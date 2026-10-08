@@ -8,6 +8,16 @@
 
 DOM 입력 취소를 보완한 동일 제품 source에서 정상 복원/control·실제 Export·기존 Milestone3 PASS 및 취소1 PASS6.8초를 확인했다. 취소는 public30/DOM31 각각의 실제 사용자 위치와 이전120 복원 없음의 직접 assertion이다. 문서·소스를 다시 동결한 후 새 tree의 독립 delta QA를 거쳐 원격 게시한다.
 
+## Issue #518 — 일정·Milestone 상위 탭 구조 단순화 (2026-10-08)
+
+[Issue #518](https://github.com/planner77/masterGantt/issues/518)의 현재 범위는 별도 `feat/issue-518-workspace-milestone-tab` 브랜치에서 #463의 내부 Gantt/Dashboard 중첩 탭을 제거하고 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 상위 탭으로 배치하는 것이다. 초기 기준 main은 `8b9d4d76758f73094ec84590e3a8a49314741587`, 이전 정렬 기준은 `b4a0898283571ac4f05d53299266acccadeeff68`, 신규 통합 기준 최신 main은 `3fa543b10e98d59e50f63f3f53613affe720b648` / application `0.101.0`; PATCH 후보 `0.101.1` (`release_required=true`, `release_authorized=false`). #399 WBS scope 탭, 기존 Gantt instance/viewport/filter/selection, #463 Dashboard 계산과 drill, dialog/focus 및 Core/Core-only 정책을 보존한다.
+
+작성 범위는 application UI/CSS·관련 기존 Playwright 수정·#518 상위 탭 E2E·REQUIREMENTS/PROJECT_UX/UI_UX_GUIDELINES/TEST_PLAN/PLAN/CHANGELOG와 Work Packet 동기화 및 PR CI 시작까지다. GitHub connector에서만 원격 파일을 변경하므로 로컬 npm/Chromium LFF는 **NOT TESTED**이며 원격 exact-head CI의 quality/e2e/docker 결과도 PR 시작 전에는 **NOT TESTED**다. qa_docs 독립 검토는 별도 실행하지 않았으며 최종 ACCEPT/merge/main/GHCR/Issue 종료는 범위 밖이다. 상세는 [ISSUE_518](ISSUE_518.md)을 따른다.
+
+Run #2158.1은 #518 고유 UI, Quality, Docker 및 E2E 5개 shard가 PASS했으나 shard 1의 기존 #502 Gantt Demo Error Boundary probe 1건이 FAIL했다. 원인은 본 Issue 코드 결함으로 단정하지 않고 hydration 이벤트 처리 준비 상태를 명시적으로 검증한다. E2E probe 전용 readiness 신호와 키보드/진짜 boundary 검증을 유지하며, 최신 main #527 통합과 함께 새로운 PR head의 required CI를 재시작한다. 이전 head PASS는 새 head 전체 ACCEPT 증거가 아니다.
+
+최신 main #528 병합으로 Resource·Milestone·일정 간 canonical drill/원래 보기 복귀 계약을 보존한다. 내부 Gantt/Dashboard 탭을 상위 Workspace 탭으로 통합하면서 ResourceNavigationState.view에 milestones를 포함시키고, 단일 작업공간 tablist의 restore/heading focus에 연결한다. #518 UI/테스트/문서와 #528 Source of Truth를 함께 검증할 새로운 PR CI는 exact head에서 필요하며, 이전 #2161 PASS는 신규 head의 증거로 사용하지 않는다. `release_required=true` / `release_authorized=false`; CI 시작 이외의 병합·release·cleanup은 범위 밖이다.
+
 ## Issue #528 — Resource·Milestone·일정 간 drill-down
 
 [Work Packet](ISSUE_528.md)에 따라 직접 선행 `feat/issue-527-resource-plan` / `a681089dcd374f56e1de4f56a8ee2bf5fe567e87` 기반 stacked PR로 순차 진행한다. Backend 관련6파일159Unit/독립159Unit·경계 probe2개 및 최종 UI 관련5파일28Unit·mock2/nativeUI1 PASS 후 문서 동결과 독립 PRE_QA를 진행한다. 후보 application `0.101.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.

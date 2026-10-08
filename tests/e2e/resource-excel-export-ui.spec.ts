@@ -163,7 +163,7 @@ test("#529 실제 readonly Resource·exact 이동 보고서 XLSX 다운로드와
   await expect(gantt).toHaveAttribute("data-export-kept", "529");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect.poll(ganttState).toEqual(beforeExport);
-  await page.getByRole("tab", { name: "완료 단계 대시보드", exact: true }).click();
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
   const mRoot = page.getByTestId("milestone-dashboard"); await expect(mRoot).toHaveAttribute("data-ready", "true");
   await mRoot.getByRole("button", { name: "해당 범위 리소스 보기", exact: true }).click();
   const exactRoot = page.locator('[data-resource-dashboard="true"]:visible'); await expect(exactRoot).toHaveAttribute("data-ready", "true");

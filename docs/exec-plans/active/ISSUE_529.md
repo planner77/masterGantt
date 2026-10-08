@@ -196,3 +196,9 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - Excel 보고서 확인창의 Task/WBS 필터를 실제 catalog name + stable ID로 표시하며 missing ID는 그대로 남긴다. 전체/Group/Resource/Milestone 조건은 기존 출력 계약 유지. 두 지적에 대한 회귀 테스트 및 TEST_PLAN/PROJECT_UX/CHANGELOG를 동기화한다.
 - **사용자 명시 승인:** 2026-10-08 18:47 KST `GHCR 게시를 포함한 병합 후 Main CI 시작까지 진행` 요청. Issue #529의 `release_required=true`, `release_authorized=true` (대상 application `0.102.0`). 승인 근거는 이 요청이며 Generic Finalizer가 읽을 수 있도록 Issue #529에 Owner-authored version-scoped marker를 별도 남긴다. PR/merge 후 Main CI·임시 image exact digest·formal Release CI·GHCR promotion이 PASS여야 정식 게시 완료다. 운영 배포/Windows Excel/DRM은 승인 범위에 포함되지 않는다.
 
+## 2026-10-08 — #518 병합 후 최신 main 정렬
+
+- #518 상위 Workspace 탭 단순화가 포함된 main `f94c22b00cac57bab409ca57e744b0530d2d35e5`(application `0.101.1`)를 새로운 정렬 기준으로 사용한다. #529의 `0.102.0` MINOR 및 Resource Excel 계약은 유지하고, #518의 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 탭 4개·공통 Editor 위치·키보드 이동을 보존한다.
+- #529의 Gantt viewport 보호 및 Excel evidence 수집/내보내기 진입은 #518 상위 탭 이벤트에 통합하고, 제거된 `scheduleView`와 하위 Gantt/Milestone 탭 코드가 재도입되지 않도록 한다.
+- #518 `0.101.1` CHANGELOG 및 PLAN 히스토리와 #529 `0.102.0`의 릴리스 승인 근거를 동시에 보존한다. 기존 PR CI #2176 성공 여부만으로 새 main merge tree의 검증을 대체하지 않으며 exact-head PR CI 재실행 후 병합한다.
+

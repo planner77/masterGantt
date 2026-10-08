@@ -226,7 +226,7 @@ export function ProjectMilestoneDashboard({
       ) : null}
       <div className={styles.sectionHeading}>
         <div>
-          <h2>완료 단계 대시보드</h2>
+          <h2>Milestone 대시보드</h2>
           <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
         </div>
         <button

@@ -3,10 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 
 export function ErrorBoundaryProbe({ probeId }: Readonly<{ probeId: string }>) {
+  const triggerReference = useRef<HTMLButtonElement>(null);
   const [shouldThrow, setShouldThrow] = useState(false);
   const [recovered, setRecovered] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const storageKey = `mastergantt:e2e-error-boundary:${probeId}`;
+
+  // Server-rendered button text can appear before React attaches its event handler.
+  // Expose a test-only readiness signal after the client commit/effect runs.
+  useEffect(() => {
+    triggerReference.current?.setAttribute("data-e2e-hydrated", "true");
+  }, []);
 
   useEffect(() => {
     if (window.sessionStorage.getItem(storageKey) !== "restore") return;

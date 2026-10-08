@@ -31,6 +31,7 @@ async function verifyBoundary(
   // is hydrated, especially on the demo route while SVAR is loading.
   await expect(trigger).toHaveAttribute("data-e2e-hydrated", "true");
   await trigger.focus();
+  await expect(trigger).toBeFocused();
   await page.keyboard.press("Enter");
   // Confirm the controlled React handler fired, not merely native button focus.
   await expect.poll(() => page.evaluate((key) => sessionStorage.getItem(key),

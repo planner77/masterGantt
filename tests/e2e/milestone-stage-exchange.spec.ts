@@ -58,7 +58,7 @@ function taskMeaning(snapshot: ProjectSnapshotResponse) {
   })).sort((a, b) => a.externalId.localeCompare(b.externalId));
 }
 const linkMeaning = (snapshot: ProjectSnapshotResponse) => snapshot.data.links.map((link) => ({ predecessorExternalId: link.predecessorExternalId, successorExternalId: link.successorExternalId, type: link.type, lag: link.lag, legacyMixed: link.legacyMixed })).sort((a, b) => a.predecessorExternalId.localeCompare(b.predecessorExternalId) || a.successorExternalId.localeCompare(b.successorExternalId));
-const row = (page: Page, taskId: string) => page.locator(`#project-schedule-view-gantt .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
+const row = (page: Page, taskId: string) => page.locator(`#project-panel-schedule .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
 async function openTask(page: Page, taskId: string) {
   await row(page, taskId).click({ button: "right" }); await chooseTaskInformation(page);
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await expect(dialog).toBeVisible(); return dialog;
@@ -138,9 +138,9 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   await editor.getByRole("button", { name: "저장", exact: true }).click(); await expect(editor).toHaveCount(0); await project.refresh();
   expect(project.snapshot.data.project.revision).toBe(beforeEdit + 1);
   const milestoneEditor = await openTask(page, join.taskId); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
-  const header = page.locator("#project-schedule-view-gantt .wx-table-container .wx-header").first(); await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
+  const header = page.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(page, child.taskId).getByRole("button", { name: /완료 단계:/ })).toContainText(join.name);
-  const stageTrigger = page.locator("#project-schedule-view-gantt .project-stage-filter-trigger"); await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter"); await expect(row(page, child.taskId)).toBeVisible(); await expect(row(page, free.taskId)).toHaveCount(0);
+  const stageTrigger = page.locator("#project-panel-schedule .project-stage-filter-trigger"); await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter"); await expect(row(page, child.taskId)).toBeVisible(); await expect(row(page, free.taskId)).toHaveCount(0);
   await page.getByRole("button", { name: "단계 조건 해제", exact: true }).click();
   const full = await dashboard(page, project), partial = await dashboard(page, project, `?milestoneIds=${join.taskId}&from=2026-10-06&to=2026-10-07&mdPerMm=null`);
   expect(full.projectRevision).toBe(project.snapshot.data.project.revision); expect(full.effort.assignmentIds).toHaveLength(3); expect(full.effort.plannedMd).toBe(5.5);
@@ -148,7 +148,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect(full.rows.find((stage) => stage.milestoneTaskId === join.taskId)?.stageGate.incompletePredecessorMilestoneTaskIds).toHaveLength(2); expect(full.rows.find((stage) => stage.milestoneTaskId === join.taskId)?.stageGate.ready).toBe(false); expect(full.kpi.ready.milestoneTaskIds).toContain(b.taskId);
   const logistics = (await (await page.request.get(`${project.api}/logistics/dashboard?equipmentIds=${fixture.equipmentId}`)).json()).data;
   expect(logistics.milestoneStages.milestoneTaskIds).toEqual([join.taskId]); expect(logistics.milestoneStages.rows[0].stageGate).toEqual(partial.rows[0].stageGate);
-  await page.getByRole("tab", { name: "완료 단계 대시보드", exact: true }).click(); const stagePanel = page.getByTestId("milestone-dashboard"); await expect(stagePanel).toHaveAttribute("data-ready", "true");
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); const stagePanel = page.getByTestId("milestone-dashboard"); await expect(stagePanel).toHaveAttribute("data-ready", "true");
   await stagePanel.getByText("단계 표시·공수 범위 조건", { exact: true }).click(); await stagePanel.getByLabel("공수 시작일", { exact: true }).fill("2026-10-06"); await stagePanel.getByLabel("공수 종료일", { exact: true }).fill("2026-10-07"); await stagePanel.getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(stagePanel).toHaveAttribute("data-ready", "true"); await expect(stagePanel).toContainText("4 M/D");
   // Exact assignment scope is POSTed and validated against the canonical fingerprint.
   const drillRequest = page.waitForRequest((request) => request.method() === "POST" && request.url().includes(`${project.api}/resource-dashboard/query`) && request.postData()?.includes('"exactAssignments"') === true);
@@ -158,7 +158,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect(requestPayload.filters).toMatchObject({ from: "2026-10-06", to: "2026-10-07" });
   await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click(); await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click(); await expect(page.getByRole("tabpanel", { name: "물류 구성", exact: true }).getByRole("row", { name: /M-JOIN/ })).toContainText("3");
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "Gantt", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
 
   // Download both formats through the actual UI, then inspect their bytes.
   await page.getByRole("button", { name: "내보내기", exact: true }).click(); const exportDialog = page.getByRole("dialog", { name: "내보내기", exact: true }); await exportDialog.getByLabel("형식", { exact: true }).selectOption("json"); await expect(exportDialog).toContainText("Resource·Logistics는 제외");
@@ -233,7 +233,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   try {
     const peer = await readonly.newPage(); await peer.goto(`/projects/${project.publicId}`); await expect(peer.getByText("읽기 전용", { exact: true }).first()).toBeVisible(); await peer.locator('summary[aria-label="프로젝트 작업 더보기"]').click(); await expect(peer.getByRole("button", { name: "가져오기 (JSON)", exact: true })).toBeDisabled();
     await peer.locator('summary[aria-label="프로젝트 작업 더보기"]').click(); const frame = peer.locator(".project-gantt-frame"); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /.+/); const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
-    const peerHeader = peer.locator("#project-schedule-view-gantt .wx-table-container .wx-header").first(); await peerHeader.click({ button: "right" }); await peer.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await peer.keyboard.press("Escape");
+    const peerHeader = peer.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await peerHeader.click({ button: "right" }); await peer.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await peer.keyboard.press("Escape");
     await peer.getByRole("button", { name: "주", exact: true }).click(); const toggle = row(peer, summary.taskId).locator('[data-action="open-task"]'); await toggle.click(); await expect(toggle).toHaveClass(/wxi-menu-right/);
     const selected = row(peer, free.taskId); await selected.locator('[data-col-id=":text"]').click(); await expect(selected).toHaveClass(/wx-selected/);
     const chart = peer.locator(".project-gantt-widget .wx-chart");
@@ -246,7 +246,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     const checkpoints = [await checkpoint("baseline")];
     await peer.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click(); await expect.poll(() => peer.evaluate(() => Boolean(document.fullscreenElement))).toBe(true); checkpoints.push(await checkpoint("fullscreen"));
     await peer.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click(); await expect.poll(() => peer.evaluate(() => Boolean(document.fullscreenElement))).toBe(false); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("fullscreen-exit"));
-    await peer.getByRole("tab", { name: "완료 단계 대시보드", exact: true }).click(); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true"); await peer.getByRole("tab", { name: "Gantt", exact: true }).click(); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("peer-return"));
+    await peer.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true"); await peer.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("peer-return"));
     expect(checkpoints.at(-1)!.gridWidth).toBe(checkpoints[0].gridWidth); expect(checkpoints.at(-1)!.chartWidth).toBe(checkpoints[0].chartWidth);
     await peer.setViewportSize({ width: 1456, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); await peer.setViewportSize({ width: 1440, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("subsequent-layout"));
     await expect(peerHeader.getByText("완료 단계", { exact: true })).toBeVisible();

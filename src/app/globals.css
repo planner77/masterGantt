@@ -1379,6 +1379,12 @@ h2 {
   outline-offset: var(--focus-offset);
 }
 
+/* #518: a single horizontal project navigation row; keep focus visible at narrow widths. */
+.project-primary-tabs { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 6px 0; scrollbar-width: thin; }
+.project-primary-tabs button { flex: 0 0 auto; white-space: nowrap; }
+/* Preserve the full 3px focus ring inside the vertical scroll clip without adding another navigation row. */
+.project-primary-tabs button:focus-visible { outline-offset: calc(var(--focus-offset) * -1); }
+
 .project-scope-tabs { display:flex; min-width:0; min-height:2.125rem; flex:0 0 auto; align-items:stretch; overflow-x:auto; overflow-y:hidden; border-bottom:1px solid var(--border-default); white-space:nowrap; scrollbar-width:thin; }
 .project-scope-tab-item { display:flex; min-width:0; flex:0 0 auto; align-items:stretch; }
 .project-scope-tab { display:flex; max-width:16rem; min-height:2.125rem; min-width:0; align-items:center; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-muted); cursor:pointer; padding:.25rem .625rem; font:inherit; font-size:.8125rem; font-weight:650; }
@@ -2586,16 +2592,15 @@ h2 {
 }
 
 
-/* Issue #463 schedule peer views: global workspace layout, not Milestone CSS Module scope. */
-.project-schedule-peer-tabs { display: flex; flex: 0 0 auto; gap: 8px; padding: 6px; overflow-x: auto; overflow-y: hidden; }
-.project-schedule-peer-tabs button { flex: 0 0 auto; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; }
-.project-schedule-peer-tabs button[aria-selected="true"] { border-bottom-color: var(--action-selected); color: var(--text-default); background: var(--surface-subtle); }
-/* Keep the inactive Chart layout box so Core never measures a zero-sized peer. */
-.project-schedule-peer-body { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); flex: 1 1 0; min-width: 0; min-height: 0; overflow: hidden; }
-.project-schedule-peer-panel { grid-area: 1 / 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 0; gap: 8px; }
-.project-schedule-peer-panel[hidden] { display: none; }
+/* #518: retain the measured Core Gantt box without interactive or accessible content. */
+.project-schedule[data-dashboard-inactive="true"] {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  visibility: hidden;
+  pointer-events: none;
+}
 .project-milestone-panel { overflow-y: auto; overflow-x: hidden; padding: 0 0 6px; }
-.project-schedule-peer-panel[aria-hidden="true"] { visibility: hidden; pointer-events: none; }
 
 .resource-drill-strip { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border-default); font-size:12px; }
 .resource-drill-strip:empty { display:none; }
