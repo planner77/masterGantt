@@ -27,7 +27,7 @@ runs:
         # #487 Main CI #2203.1: npx timeout can leave a sudo apt-get child
         # holding /var/lib/apt/lists/lock after the parent exits.
         # Normalize the known slow Azure runner mirror BEFORE the first apt
-        # operation, including Ubuntu 24.04 mirror+file indirection.
+        # operation, including Ubuntu 24.04 mirror+file:/etc/apt/apt-mirrors.txt indirection.
         azure_sources=()
         for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
           [[ -f "$source" ]] || continue
