@@ -832,7 +832,9 @@ jobs:
       needs.docker.result == 'success' &&
       needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Shared Playwright setup may perform two bounded 360s OS-deps installs.
+    # Allow enough budget for image build/push, digest pull and transport smoke.
+    timeout-minutes: 50
     needs: [changes, quality, e2e, docker]
     permissions:
       contents: read

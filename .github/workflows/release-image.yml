@@ -255,7 +255,9 @@ jobs:
     name: Main verified digest 릴리스 후보 재검증
     runs-on: ubuntu-latest
     needs: [prepare, quality]
-    timeout-minutes: 20
+    # Bounded Playwright mirror fallback can consume ~12m20s before candidate
+    # transport/runtime/digest smoke; do not cancel a healthy release candidate.
+    timeout-minutes: 40
     permissions:
       contents: read
       packages: read

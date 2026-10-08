@@ -2469,3 +2469,10 @@ Issue #454 v0.90.1 Release #140.1 (`37434408238`)의 Chromium shard 2/6은 `acti
 최신 정렬 head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI Run #2191.1 (`37781591645`)에서 TypeScript, lint, Vitest, build, repository policy, Docker smoke는 PASS했다. Chromium E2E shard 1/3/4/6은 PASS했지만 2/5는 `playwright install-deps chromium` 의존성 설치가 360초를 넘은 후 exit 124였다. runner 로그는 `file:/etc/apt/apt-mirrors.txt Mirrorlist`를 표시하고, 실제 다운로드 URL은 Azure mirror였다. 기존 fallback은 `/etc/apt/apt-mirrors.txt`를 검사하지 않아 Azure URL을 찾지 못하고 재시도 전에 FAIL했다. 이는 제품 및 기존 bounded scroll assertion의 실패 증거가 아니다.
 
 해당 미러 목록 파일을 검사/수정 대상으로 포함하고, 기존 소스 리스트 호환, 360초 bounded 설치·공식 Ubuntu archive 1회 retry, 실패 시 non-zero 결과 보존, metric guard를 유지한다. `test-config-layout.test.ts`는 `mirror+file` 간접 참조/실제 미러 파일 검색 경로를 검증한다. 새 exact-head CI의 shard 6개와 quality/Docker aggregate 통과 여부를 다시 확인해야 한다.
+
+
+### Issue #487 최신 Codex review P1 — Main/Release 후보 job timeout
+
+PR #488 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`의 코드 리뷰는 Chromium/Docker PR CI가 성공했더라도 동일 `playwright-setup` 공용 action을 호출하는 main `publish-commit-image`(기존 30분) 및 release `container`(기존 20분) job에서 Azure 미러 timeout + fallback 최악 약 12분 20초를 흡수하기 어렵다는 P1을 확인했다. 해당 job의 기능 검증·digest 증거를 생략하거나 테스트 timeout을 더 작게 만드는 것이 아닌 job budget 자체를 Main 50분·Release 40분으로 확대한다.
+
+`tests/scripts/test-config-layout.test.ts`가 정확히 이 job의 timeout을 검사하며, 기존 E2E shard 35분, Docker smoke 40분, Playwright OS deps 360초×최대 2회, fail-closed, Chromium 6-shard/workers=1 및 Main exact-digest/release candidate smoke 검증은 유지한다. 최초 P1 원문/이력은 PR 리뷰 스레드로 보존하고, 수정된 head의 exact PR CI/리뷰와 main CI/임시 GHCR image publish 확인 전에는 PASS라고 주장하지 않는다.

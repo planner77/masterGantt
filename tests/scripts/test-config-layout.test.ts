@@ -77,6 +77,14 @@ describe("test configuration repository layout", () => {
     const dockerJob = ci.split("\n  docker_smoke:\n")[1]?.split(/\n  [a-z_]+:\n/)[0];
     expect(dockerJob).toBeDefined();
     expect(dockerJob).toMatch(/^    timeout-minutes: 40$/m);
+    // The same shared Playwright setup also runs inside Main GHCR candidate and
+    // Release candidate jobs. Their budgets must allow both bounded attempts.
+    const mainImageJob = ci.split("\n  publish-commit-image:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(mainImageJob).toBeDefined();
+    expect(mainImageJob).toMatch(/^    timeout-minutes: 50$/m);
+    const releaseCandidateJob = release.split("\n  container:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(releaseCandidateJob).toBeDefined();
+    expect(releaseCandidateJob).toMatch(/^    timeout-minutes: 40$/m);
     const playwrightSetup = text(".github/actions/playwright-setup/action.yml");
     expect(playwrightSetup).toContain("timeout --signal=TERM --kill-after=10s 360s");
     expect(playwrightSetup).toContain("azure.archive.ubuntu.com/ubuntu");

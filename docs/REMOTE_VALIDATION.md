@@ -344,3 +344,10 @@ PR #488 Run #2089.1 (`37637832069`)에서 Chromium shard 4/6이 25분 job timeou
 PR head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI [#2191.1](https://github.com/planner77/masterGantt/actions/runs/37781591645)에서 policy/typecheck/lint/unit/build/Docker 및 Chromium shard 1/3/4/6은 PASS했으나 shard 2/5가 Playwright OS deps 360초 제한 후 exit 124로 FAIL했다. 두 shard 로그의 `file:/etc/apt/apt-mirrors.txt Mirrorlist` / `azure.archive.ubuntu.com` 기록은 Ubuntu runner가 deb822 `ubuntu.sources`에서 `mirror+file` 간접 참조를 사용함을 보인다. 기존 fallback은 `sources.list`, `*.sources`, `*.list`만 검사하여 간접 참조 대상 자체를 검사하지 않아 `no Azure mirror fallback available`로 중단됐다.
 
 보완은 동일한 Azure URL 탐지 및 공식 Ubuntu archive 치환 대상으로 `/etc/apt/apt-mirrors.txt`를 포함한다. 기존 Chromium 6-shard, `workers=1`, assertion, E2E timeout 35분, Docker timeout 40분, 각 OS deps 설치 시도 360초 상한과 실패 시 fail-closed, setup metrics guard는 유지한다. 독립된 `tests/scripts/test-config-layout.test.ts` 정적 회귀는 runner mirror list 경로·검사·치환 계약을 확인한다. 새 exact-head PR CI에서 전체 E2E 및 Docker 필수 gate PASS를 확인해야 하며 #2191.1 실패 결과를 성공으로 간주하지 않는다.
+
+
+### #487 Codex P1 — 공용 Playwright setup 호출자별 timeout 예산
+
+PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex 재검토에서 P1 지적: OS deps의 360초 timeout + Azure→Ubuntu archive fallback 최대 2회(약 12분 20초)에도 `.github/workflows/ci.yml`의 `publish-commit-image`는 job 30분, `.github/workflows/release-image.yml`의 `container`는 20분이었다. 이 두 main/release job은 GHCR digest pull/build·transport·runtime/persistence 추가 검증이 필수여서 setup 지연 시 검증 전에 강제 취소될 위험이 있다.
+
+보완: Main `publish-commit-image` timeout 50분, Release `container` timeout 40분으로 조정한다. 기존 CI/Release Chromium E2E 35분, Docker smoke 40분, shared action 두 시도 각 360초 제한, 실패 후 최대 1회 retry 및 non-zero fail-closed, required aggregate와 GHCR exact digest/transport/runtime/persistence 검사 내용은 그대로 유지한다. `tests/scripts/test-config-layout.test.ts`에 두 job의 timeout 값 검증을 추가했다. 새 exact-head PR CI는 수정 사항의 PR quality/E2E/Docker를 검증하며, main image/Release 실제 경로는 병합 뒤 main 및 별도 승인 release 증거로 판단한다.
