@@ -1,5 +1,9 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #506 — Context Menu 신규 Task의 화면 sibling 위치
+
+`Add > Task above`와 `Task below`는 우클릭 대상과 **같은 canonical parent**를 사용하며 각각 대상의 **바로 이전/다음 sibling**에 삽입한다 (#72). 서버의 `siblingOrder`는 유일한 저장 기준이고, 성공 응답의 순서는 동일 mounted Gantt의 Grid 행·Chart bar에 즉시 반영되며 reload 뒤에도 같아야 한다. 새 Task를 family 마지막에 붙이는 Core 기본 동작에 의존하지 않고 SVAR 공개 `add-task target/mode`로 상대 위치를 맞춘다. Scope root의 Above/Below는 기존 비활성 정책을 유지하고 scope 내부 descendant만 허용한다. 스크롤·선택·Summary 접힘·scale 및 Core instance를 초기화하는 remount/reload 우회는 허용하지 않는다.
+
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원
 
 일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
