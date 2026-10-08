@@ -2497,3 +2497,70 @@ PR #488 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`의 코드 리뷰�
 ### Issue #487 후속 PR #558 첫 PR CI 정적 회귀 보완
 
 첫 후속 head `71ee4a340aeadcae9492a88a30e616a1a7f6695f`의 PR CI #2211.1 (`37797599643`)에서 테스트 `tests/scripts/test-config-layout.test.ts`의 Playwright setup 계약 검증 1건이 FAIL했다. 원인은 코드의 실제 미러 검색 경로가 유지됐음에도 action 주석에 기존 계약 문자열 `mirror+file:/etc/apt/apt-mirrors.txt`를 정확히 쓰지 않아 문자열 기반 정적 테스트에 불일치가 발생한 것이다. 해당 Ubuntu 24.04 주석을 정확한 경로로 보강한 commit `9b226833f8dd1e3441fc53beb93be003dba66e92`에서 재검증한다. 테스트·설치 예외를 제거하거나 제품 assertion을 완화하지 않는다.
+
+
+## Issue #530 Resource KPI 종단간 정합성 검증
+
+착수 baseline은 `599b824677cec2daa47743a60fcac422297f925b` / application `0.102.0`이다. 실제 통합에서 일정 왕복 viewport 결함을 발견해 navigation frame 기록의 최소 제품 수정과 PATCH를 포함한다. R1~R7 집계·권한 계약과 required CI gate를 유지한다. `tests/fixtures/resource-kpi-integration.ts`의 명명 six-Task 원장을 Domain·native SQLite handler·실제 Next HTTP·UI·API 생성 Workbook에서 재사용한다. known11.5 M/D/unknown1/Task4/Assignment5/Resource2, G1+G2=17 비가산, M1 7.5/M2 3+unknown1/미지정1, 고유 Capacity10, explicit20 환산0.575가 원시 기대값이다.
+
+UI는 서버 기준일·환경 환산값을 사용한다. actual report의 정규화 조건과 평가 context를 Domain projection/API/Workbook에 반영하여 비교하며 fixed10-10/query20 시험과 같은 조건이라고 혼동하지 않는다. 원시 숫자는 IEEE 합산 순서에 따른 허용 정밀도로 비교하고 ID·분류·상태·snapshot/조건은 exact 비교한다. 표시 반올림 합으로 검증을 대체하지 않는다.
+
+| AC | 실행 근거 경로 | 대조 내용 |
+| --- | --- | --- |
+| 공통 원장·raw 합·분모·미설정 | resource-kpi-integration Domain/server/API/UI tests | 11.5/unknown1/고유 ID 집합·상태·Calendar·같은 조건 |
+| 같은 Assignment 필터·OR/AND·0/null/부분합 | Domain integration + resource-kpi/projection | 역할·Group·개인 조건을 다른 Assignment에서 조합하지 않음 |
+| 3계층·2교차표·정확한 상세 | actual integration UI/API + resource-milestone-views/rollup | Grand Total·교차 소계·Task/Assignment IDs |
+| 주월·일별·전체부하·비가산 Capacity | integration + resource-plan/periods/budget/server | selected/project 범위·Peak150/평균75·고유 Resource-day |
+| 전체 Ready/Blocked·계획 불변 | integration + milestone-stage-gates | 선택 필터나 progress가 full canonical 판정·계획 공수를 변경하지 않음 |
+| 일정 왕복·범위·원장 불변 | actual integration UI/API + resource-drill | 정확한 Task/Assignment·기존 Gantt/표 상태·snapshot |
+| API/UI/Workbook raw 정합성 | integration server/API/UI + resource-excel-export | 실제 ZIP/XML numeric cell·미설정 blank·원장 IDs·현재 조건 |
+| 보안·stale·foreign ID·상한 | integration API/server + resource-dashboard/plan/drill/export | public read·Origin·If-Match·보호 mutation/session·snapshot·예산 |
+| 실제 재시작·같은 조회 identity | actual integration API | SQLite 데이터 유지·read-only GET revision 불변 |
+| 5폭·native focus·scroll·상태 | actual integration UI + 기존 selected UI 회귀 | populated bounds·의도된 내부 scroll·Tab/Enter/Escape·readonly/stale |
+| 사용자 가이드와 발견 경로 | RESOURCE_KPI_DASHBOARD 및 workload/role/Milestone 링크 | 네 사용 시나리오·M/M·T0/A·비가산·공개 접근 범위 |
+
+### 로컬 실행과 보존 범위
+
+신규 Domain 10개와 native SQLite HTTP handler/API 생성 XLSX 5개가 PASS다. 관련 Domain/Calendar/Stage/HTTP/Export 11파일 205개를 선택 실행해 PASS를 확인했다. 새 테스트 수와 선행 재실행 수를 구분한다. 원문 명령·tool chunk·session·실패 역사·AC 대응은 `/tmp/issue530-backend-result.json`의 Local Fast Feedback receipt로 보존한다. 실제 Next HTTP·SQLite·XLSX·정확한 scope·보호 mutation·재시작 통합 1개도 PASS다(27.623초, suite44.1초). [API 원시 원장 증거](evidence/issue530/api-raw-ledger.json)는 합성 공개 ID·같은 snapshot/revision·개별 numeric 값·5 Assignment·재시작 identity를 보존하며 runtime DB나 인증 정보를 포함하지 않는다. Chromium의 최종 실행은 별도 기록하며 이 서버 결과만으로 실제 UI PASS를 주장하지 않는다.
+
+관측 환경은 Node22.14.0/linux x64/better-sqlite3 13.0.3이다. 실제 SQLite report 합성 Task1011/Assignment1005/Group8은59.36ms·115284bytes, 실제 HTTP handler Plan Resource40/Assignment2700/assignment-days985500은505.062147ms·1811524bytes였다. 단일 로컬 합성 측정이며 GitHub/운영 응답시간 보장이나 Chromium 렌더 성능 근거가 아니다. 크기·범위 초과는 선행 한도 테스트로 거부하며 fixture가 작다는 이유로 상한을 삭제하지 않는다.
+
+첫 native fixture의 weekend 순서와 초기 strict 소수 비교 실패는 원본 로그에 보존했다. 원시 값을 반올림하는 제품 수정 대신 Calendar 계약과 허용 정밀도를 따르는 테스트를 사용한다. 실제 API 첫 실행은 다른 Project를 같은 context에서 생성하여 편집 쿠키가 바뀐 뒤 mutation401로 실패했다. 별도 context로 분리한 두 번째 실행은 PASS이며 첫 log/trace는 보존한다. 브라우저 seed/selection/locator/취소 응답 하니스의 최초 실패도 보존하며 제품 PASS로 숨기지 않는다.
+
+### 현재 gate와 환경 경계
+
+실제 Next HTTP와 최종 Chromium은 PASS다. 최신 main 통합·PATCH0.102.2 반영을 완료했고 DOCUMENTATION_SYNC PASS이며 독립 PRE_QA는 동결 후보의 별도 보고서와 Issue/PR에 기록한다. 새 PR quality/e2e/docker와 QA_FINAL/Manager ACCEPT는 NOT TESTED다. 사용자 요청은 새 head 전체 PR CI 등록까지이며 결과 모니터링·병합·main/GHCR·release·Issue 종료·branch 정리를 하지 않는다.
+
+Project private-read 모델은 현행 제품에 없어 신규 구현 N/A다. 공개 UUID read와 기존 readonly Export·보호 mutation의 실제 계약을 검증하며 외부 SSO/reverse proxy/TLS 운영 보호는 별도 환경 NOT TESTED다. 자동 OOXML parser는 실제 Windows Excel/DRM PASS를 대신하지 않는다. 실제 OS125%·실기기·screen reader·운영 배포 역시 NOT TESTED다. 공식 SVAR URL/API 검토와 실제 demo 조작을 구별하며 Core2.7.3과 독립 Domain을 유지한다.
+
+### 실제 일정 왕복 실패와 보완
+
+최초 최종 통합 후보는 Chromium 8개 중7 PASS/1 FAIL이었다. 고정1440px에서 원래 Core/DOM 수평240이 정확한 Task 범위 왕복 후0으로 바뀌었고, 최소 재현도120→0이었다. 실제 capture marker의 최초120과 pop 시0, 동일 API instance·선택·열·트리를 관측했다. 실패 로그·trace는 `/tmp/issue530-ui-run15.log`, `/tmp/issue530-ui-run15-artifacts`, `/tmp/issue530-ui-minimal-r1.log`, `/tmp/issue530-ui-minimal-r1-artifacts`에 보존한다. 이는 기존 테스트 하니스 수정과 구분되는 제품 실패다.
+
+보완은 frame별 source/destinationBefore의 불변 Core/native memento와 검증된 canonical queue 복귀이며, 다른 nonzero 위치의 nested pop·clear·입력 취소 및 stale/geometry 거부를 확인한다. 최종 수정 후 실행 결과는 아래에 별도로 기록한다.
+
+추가 geometry 검증에서는 source root1390×532, 임시 filter root1390×435, target 전체 filter root1390×504를 관측했다. window1440×900·fullscreen=false·snapshot/reader/API/scale/grid480/columns가 동일하고 input=false였으나 source 절대 높이 비교가 정상 복귀를 거부했다. 원래 화면의 layout configuration과 root 폭을 검증하고, 실제 target canonical queue 완료 후 보이는 target 크기를 해당 요청의 기준으로 삼아 이후 크기 변화·입력·epoch/filter 변경을 취소한다. 정상 scope strip의28px 배치 변화와 사용자 크기 변경을 구분하며 입력 감시는 요청 도중 초기화하지 않는다. 이 재작업 실패도 최초120→0 결함과 별도로 보존한다.
+
+### 최종 Local Fast Feedback 및 증거 재사용
+
+- backend 신규15개·관련11파일205개, frontend 신규 memento12개·기존 public/native3개·navigation8개 모두PASS: 총16파일243개이며 반복 실행을 고유 개수에 더하지 않는다.
+- 실제 Next API1개PASS(27.623초/suite44.1초), 최종 Chromium13개PASS(3.3분): 신규 실제SQLite UI6개·기존 실제529 취소1개·대표mock6개다. 정상 통합 UI21.9초, 기존529 native wheel/filter8.6초를 별도로 관측했다. 3계층·2matrix·Plan·동일 UI context raw Excel·exact schedule scope·readonly409/POST0·minimal/nested/clear·trusted wheel·resize 취소를 검증했다.
+- 최종 UI 실행 시작/종료의 제품·test/helper·공통 fixture·소유문서10개 SHA256이 동일했다. 최신 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / tree `8b11ce8915a4b82031324174913386092840cdc4` 통합과0.102.2 반영 후 제품4개·공통fixture·UI test/helper7개의 실행 bytes가 동일했다. #519 picker의 비중복 upstream 변경은 보존했다. API r2 이후 HTTP seed/helper와 서버·Domain·fixture는 미변경이므로 backend 실행 증거를 재사용한다.
+- 통합 후 typecheck PASS, version/diff PASS, Markdown153개PASS, root/외부cwd Unit166files·browser500tests 동일발견PASS다. 변경 TS/TSX lint는0errors/기존 project-gantt hook dependency4warnings이며 새warning은 없다.
+
+[최종 실행 source 영수증](../output/playwright/issue530/source-evidence.json), [UI raw 관측](../output/playwright/issue530/integration-evidence.json), [geometry18관측](../output/playwright/issue530/geometry.json), [전체 검증 원장](evidence/issue530/integration-validation.json)에 조건·숫자·ID·최초 실패·범위·한계를 보존한다. 수정 후 actual original120→120, nested source120/middle240/clear120을 확인했다. 실제 입력은 Core30/nativeDOM31이 각각 대기 후에도 유지됐고 resize1024×768 뒤0/0이 유지됐다. 입력·geometry 취소는 viewport만 취소하며 원래 target T1~T6 canonical IDs는 적용된다. 원장 수직좌표0을 nonzero 수직 PASS로 확대하지 않는다.
+
+실행 PNG10개는 application0.102.0 당시 증거이며 최신0.102.2 badge screenshot이 아니다. 제품·test bytes 보존으로 재사용하며 서로 다른 API/UI 기준일·환산 context를 혼합하지 않는다. ui_ux 최종 화면 비교는 모델 capacity 오류2회로 실행되지 않았고 독립 qa_docs가10PNG 직접열람·actual18관측·별도long/many10관측·실제keyboard·raw 좌표·source를 비교해 해당 범위PASS했다. 전역 PRE_QA는 DOCUMENTATION_SYNC 후 별도판정이다. pointer/keydown 모든 입력 및 fullscreen 실제 전환을 wheel/resize 실제2case의 PASS로 확대하지 않는다. 원격 quality/e2e/docker·QA_FINAL/Manager ACCEPT는 계속NOT TESTED다.
+
+### 추가 직접 경로와 영향 회귀
+
+`resource-drill-ui.spec.ts` 실제1건26.0초와 `resource-drill-dashboard.spec.ts` mock2건2.9/1.8초가 현재candidate0.102.2에서PASS다(전체47.1초). Schedule선택→Resource→exact Task/Editor, M completed-stage→일정→기간·기준일·환산15복귀,8frame/9번째차단·stale/cache·paging/ancestor/late409 및 legacyMcontext null을 검증하며 지연KPI와M→Resource직행을 이3개만으로 추론하지 않는다. 실행 전후14개source/package/test/docs SHA동일·runtime exit0·기존528PNG2와생성config 원복을 확인했다.
+
+새 actual cross-flow1개는 기존UI spec32,454byte prefix를 그대로 보존해 append했다. T1+개인Assignment2 기간만2026-09-28~10-02로 보호HTTP를 통해 이동한 파생fixture이며 actualasOf2026-10-08/selectedknown7.5 M/D·Task1·Assignment2·지연1이다. M1원인→exact Resource→지연KPI→exact T1일정→원래 Resource지연상세→원래M1원인·검색·기간·focus LIFO와 canonical/revision 불변이PASS다(12.0초, suite26.7초). [직접 경로 raw 증거](../output/playwright/issue530/cross-flow-evidence.json)에 실제 POST sourceContext/scope/filters와 같은binding detail의raw IDs를 보존한다. 처음GET-onlylistener가boundPOSTreport를놓친 하니스FAIL은 `/tmp/issue530-cross-r1-artifacts`에 보존하며 binding없는GETdetails409를제품결함으로바꾸거나범위확대fallback으로우회하지않았다.
+
+고유합계는 Vitest243개, 브라우저18개(API신규실제1/UI신규실제7/기존실제2/mock8) PASS다. 13개실행·기존drill3개·추가직접1개는 별도영수증이며 한 새전체실행으로 표현하지 않는다. 제품4개·공통fixture/helper는최초13개실행과동일, 원래UI specprefix는동일하며 새case는append delta다. 최종복원후typecheck와새speclint0errors/0warnings를확인했다. UI2문서의main통합·추가실행설명갱신은실행후문서delta이며 제품PASS를바꾸지않는다.
+
+
+## Issue #530 최신 main 정렬 후 검증 경계 (2026-10-09)
+
+후보 `0.102.3` / main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`. [재정렬 증거](evidence/issue530/alignment-20261009.json)에 실제 충돌·보존 방법·locator 변경·원격 준비 실행을 기록했다. 대상 Vitest 27개·typecheck·version·변경 lint PASS. 기존 243개/18개 실행·PNG와 새 실행을 혼동하지 않는다. E2E의 Milestone 접근성 이름 4종을 현행 소스와 대조했으나 실제 브라우저 재실행은 새 full PR CI에서 검증한다. quality/e2e/docker 및 독립 QA는 NOT TESTED이며 Windows Excel/DRM·운영 검증 역시 별도다.

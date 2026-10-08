@@ -1,0 +1,568 @@
+{
+  "issue": 530,
+  "scope": "통합 회귀·사용자 가이드 및 실제 navigation viewport 결함 최소 수정",
+  "candidate_status": "PASS local implementation and DOCUMENTATION_SYNC; independent PRE_QA follows",
+  "initial_baseline_sha": "599b824677cec2daa47743a60fcac422297f925b",
+  "target_version": "0.102.2",
+  "raw_fixture": {
+    "knownMd": 11.5,
+    "unknownAssignments": 1,
+    "distinctTaskCount": 4,
+    "assignmentCount": 5,
+    "resourceCount": 2,
+    "groupSubtotalSum": 17,
+    "capacityMd": 10,
+    "mmWithExplicit20": 0.575
+  },
+  "raw_api_receipt": "api-raw-ledger.json",
+  "raw_api_receipt_sha256": "0f6887b24cdc7e6d8e24e70e00fdf0e2dee3c29aafcdb1c4abf40ca9e13d83e4",
+  "backend_local_fast_feedback": [
+    {
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/domain/resource-kpi-integration.test.ts tests/server/resources/resource-kpi-integration.test.ts",
+      "status": "PASS",
+      "count": 15,
+      "log": "/tmp/issue530-backend-tests-r7.log",
+      "tool_chunk": "456fe9",
+      "session_id": 52586
+    },
+    {
+      "command": "RESOURCE_DASHBOARD_BENCHMARK_OUTPUT=/tmp/issue530-resource-dashboard-benchmark.json npx vitest run --config tests/config/vitest.config.ts tests/domain/resource-kpi.test.ts tests/domain/resource-kpi-projection.test.ts tests/domain/resource-plan.test.ts tests/domain/resource-plan-periods.test.ts tests/domain/resource-plan-budget.test.ts tests/domain/milestone-stage-gates.test.ts tests/server/resources/resource-dashboard.test.ts tests/server/resources/resource-dashboard-rollup.test.ts tests/server/resources/resource-plan.test.ts tests/server/resources/resource-drill.test.ts tests/server/projects/resource-excel-export.test.ts",
+      "status": "PASS",
+      "count": 205,
+      "log": "/tmp/issue530-backend-related-regression.log",
+      "tool_chunk": "244cd4",
+      "session_id": 35463
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "status": "PASS",
+      "log": "/tmp/issue530-backend-typecheck-r4.log",
+      "session_id": 11916
+    },
+    {
+      "command": "npx eslint tests/fixtures/resource-kpi-integration.ts tests/domain/resource-kpi-integration.test.ts tests/server/resources/resource-kpi-integration.test.ts tests/e2e/resource-kpi-integration-api.spec.ts",
+      "status": "PASS",
+      "log": "/tmp/issue530-backend-lint-r3.log",
+      "session_id": 11916,
+      "completion_chunk": "d93247"
+    },
+    {
+      "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-kpi-integration-api.spec.ts --project chromium",
+      "status": "PASS",
+      "count": 1,
+      "case_elapsed_ms": 27623,
+      "suite_elapsed_seconds": 44.1,
+      "log": "/tmp/issue530-backend-api-e2e-r2.log",
+      "session_id": 54133,
+      "start_chunk": "c355ae",
+      "completion_chunk": "27a733",
+      "exit_code": 0,
+      "retry": 0,
+      "browser": "Chromium",
+      "fixture": "isolated per-test actual Next+SQLite",
+      "evidence": "/tmp/issue530-api-raw-evidence.json"
+    }
+  ],
+  "backend_ac_mapping": {
+    "named_raw_ledger": "newDomain10/nativeHTTP5/actualNextHTTP1; native API→actualXLSX semantic header/IDs metadata and raw assignments/partitions/Plan; same source fixture",
+    "same_assignment_OR_AND": "newdomain and executed tests/domain/resource-kpi.test.ts + tests/server/resources/resource-dashboard.test.ts",
+    "ready_full_hidden_members_predecessors": "newdomain selected-completed hiddenT6 incomplete/M1 predecessor + executed milestone-stage-gates",
+    "calendar_priority_conflicts": "newdomain + executed native resource-dashboard and Plan tests",
+    "ISO_year_month_unknown_distinct_capacity0": "executed tests/domain/resource-plan-periods.test.ts, tests/domain/resource-plan.test.ts, tests/server/resources/resource-plan.test.ts",
+    "fixed_R_zero_contribution_full_project": "executed native tests/server/resources/resource-plan.test.ts fixesR and selected80/full140; pure helper does not claim to implement server history eligibility",
+    "inactive_ungrouped": "executed resource-dashboard/catalog filters and resource-kpi tests",
+    "snapshot_stale_all_dimensions": "existing205 native all raw dimensions + newnative staleExport + actualNextHTTP unchangedsnapshot/restartidentity/staleDrill409/Export412",
+    "budget_bytes_benchmark": "executed native dashboard/Plan/excel boundary + benchmark tests",
+    "auth_origin_ifmatch": "native + actualNextHTTP Origin403/session401/ExportIfMatch412/read-only no-cookie/actual foreign Project Task400",
+    "UI_3hierarchy_2matrix_5viewport_Gantt": "frontend owner, NOT TESTED by backend"
+  },
+  "benchmark_environment": {
+    "node": "v22.14.0",
+    "platform": "linux",
+    "arch": "x64",
+    "better_sqlite3": "13.0.3",
+    "interpretation": "one local measurement, no production performance guarantee"
+  },
+  "local_single_observations": [
+    {
+      "tasks": 1011,
+      "assignments": 1005,
+      "groups": 8,
+      "rangeDays": 365,
+      "effectiveWorkingDays": 260,
+      "elapsedMs": 59.36,
+      "reportBytes": 115284,
+      "maxLocalMs": 3000
+    },
+    {
+      "resourcePlanNativeHttpBenchmark": {
+        "resources": 40,
+        "groups": 5,
+        "assignments": 2700,
+        "days": 365,
+        "resourceDays": 14600,
+        "assignmentDays": 985500,
+        "elapsedMs": 505.0621470000001,
+        "bytes": 1811524
+      }
+    }
+  ],
+  "benchmark_limit": "단일 로컬 합성 관측이며 운영·GitHub 성능 보장이나 실제 Chromium 렌더 성능으로 확대하지 않는다.",
+  "failure_history": [
+    "r1 weekend tuple[0,6] rejected; corrected to[6,0]",
+    "r2 strict Plan11.5/excess1.5 comparison rejected raw IEEE values; corrected to14 precision per existing contract",
+    "r3 missing fixture Repository description; explicit synthetic field added",
+    "r4 XLSX snapshot tested in Relations instead of Report and revision0 invalid; correct Report sheet and valid stale revision999 used",
+    "r6 predecessor field typo; corrected canonical incompletePredecessorMilestoneTaskIds; no product changes",
+    "actualNextHTTP run1: synthetic foreign Project created in source editor context replaced edit cookie, last mutation401; foreign Project isolated in separate context; run2PASS. No production change.",
+    {
+      "kind": "product",
+      "case": "fixed1440 exact Resource/Task drill roundtrip",
+      "beforeCoreAndDomLeft": 240,
+      "afterCoreAndDomLeft": 0,
+      "status": "FAIL"
+    },
+    {
+      "kind": "product",
+      "case": "minimal actual drill",
+      "beforeCoreAndDomLeft": 120,
+      "afterCoreAndDomLeft": 0,
+      "status": "FAIL",
+      "observation": "원래 peer memento를 pop 시 현재 임시 일정의0으로 재캡처; API instance·selection·columns·tree 동일"
+    }
+  ],
+  "frontend_final": {
+    "status": "PASS",
+    "localFastFeedback": [
+      {
+        "status": "PASS",
+        "command": "CAPTURE_ISSUE_530=1 npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-kpi-integration-ui.spec.ts tests/e2e/resource-milestone-views.spec.ts tests/e2e/resource-plan-dashboard.spec.ts tests/e2e/resource-excel-export-dashboard.spec.ts tests/e2e/resource-excel-export-ui.spec.ts --grep \"#530|populated Group|retained expansions|matrix metric|selected80|unknown and nonworking|dialog 5폭|pending peer restore\" --workers=1",
+        "result": "13 passed (3.3m); unique new actual SQLite530=6; existing mock regressions=6; existing actual529 native input/filter=1",
+        "log": "/tmp/issue530-ui-final-r1.log",
+        "privateArtifacts": "/tmp/issue530-ui-final-r1-artifacts",
+        "hashProof": "output/playwright/issue530/source-evidence.json"
+      },
+      {
+        "status": "PASS",
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/resources/resource-navigation-viewport.test.ts tests/features/gantt/peer-viewport-capture.test.ts tests/features/resources/resource-drill-navigation-model.test.ts",
+        "result": "3 files /23 tests; new memento12, existing Core/native3, existing navigation model8",
+        "log": "/tmp/issue530-viewport-unit-final.log"
+      },
+      {
+        "status": "PASS",
+        "command": "npx eslint src/features/projects/project-readonly-view.tsx src/features/resources/resource-navigation-viewport.ts src/features/gantt/peer-viewport-capture.ts src/features/gantt/project-gantt.tsx tests/features/resources/resource-navigation-viewport.test.ts tests/e2e/resource-kpi-integration-ui.spec.ts tests/e2e/fixtures/resource-kpi-integration-ui.ts",
+        "result": "0 errors /4 existing hook dependency warnings in project-gantt; no new warning",
+        "log": "/tmp/issue530-product-lint-final.log"
+      },
+      {
+        "status": "PASS",
+        "command": "npx tsc --noEmit",
+        "result": "after runtime closed and generated configs restored; exit0",
+        "log": "/tmp/issue530-product-type-final-restored.log"
+      }
+    ],
+    "counts": {
+      "new_actual_ui": 6,
+      "existing_actual": 1,
+      "existing_mock": 6,
+      "browser_total": 13,
+      "vitest_new_memento": 12,
+      "vitest_existing": 11,
+      "vitest_total": 23
+    },
+    "limitations": [
+      "Actual common ledger vertical scroll is0; no actual nonzero vertical browser restoration PASS claim (pure separateCore/native test exercises97vs96).",
+      "No actual Windows Excel/DRM/native125%/screenreader/productionmanual validation.",
+      "Actual UI has no asOf or conversion input; separate fixed API20 evidence is not same UI context.",
+      "Local13PASS is not remote regression acceptance."
+    ],
+    "failure_history": [
+      {
+        "runs": "ui-run1..2",
+        "cause": "sandbox localhost EPERM; authorized isolated app execution used escalated runner"
+      },
+      {
+        "runs": "ui-run3..10",
+        "cause": "test harness edits: editPassword length, initial scale, strict locator, aborted response body, tree disclosure cap/summary detail contract, random UUID ordering and semantic aria locator; logs retained"
+      },
+      {
+        "runs": "ui-run11..12",
+        "cause": "Plan IEEE exact-literal and incorrect stale-disabled expectation; asynchronous summary report pending blocked export correctly; Domain raw oracle and actual ready response used"
+      },
+      {
+        "runs": "ui-run13..15",
+        "cause": "mixed geometry then fixedgeometry confirmed product Core/native120/240->0. run14 edit aborted/interrupted; run15 7PASS/1FAIL retained"
+      },
+      {
+        "runs": "minimal-r1",
+        "cause": "actual minimal samegeometry Core/native120->0 confirms product bug; /tmp/issue530-minimal-capture-proof.json and private artifacts retained"
+      },
+      {
+        "runs": "product-lint1/unit1/type2",
+        "cause": "new reader forward ref React compiler error; alias test import; gridWidth optional and expectedReport union narrowing; corrected, logs retained"
+      },
+      {
+        "runs": "input-r1",
+        "cause": "whole pending state comparison erroneously expected no canonical tree update; coordinates unchanged. Corrected oracle preserves each Core/native coordinate and additionally verifies target IDs; actualfailure trace retained"
+      },
+      {
+        "runs": "ui-run16/minimal-r3",
+        "cause": "added source absolute rootHeight guard rejected legitimate532->504 scope-return layout. run16 stopped after representative repeated failure; measured proof retained, Manager-approved target settled baseline policy"
+      },
+      {
+        "runs": "regression-r1",
+        "cause": "nested test tab click aborted asynchronous pop contextGET status-1; added source selected/strip removed completion waits; no product gate weakening"
+      },
+      {
+        "runs": "finalization helper",
+        "cause": "report embed changed script->template; artifact extraction regex corrected; no test/source changes"
+      },
+      {
+        "runs": "final-r1",
+        "cause": "13 PASS; no retries, product/test/doc source hashes unchanged"
+      }
+    ],
+    "source_receipt": "../../../output/playwright/issue530/source-evidence.json",
+    "raw_ui_receipt": "../../../output/playwright/issue530/integration-evidence.json",
+    "supplementary_receipts": {
+      "existing_drill": "3 PASS /47.1s",
+      "new_cross": "1 PASS /12.0s /26.7s suite",
+      "total_unique_frontend_browser": 17
+    }
+  },
+  "documentation_sync": "PASS",
+  "independent_pre_qa": "NOT TESTED at documentation freeze; exact final review is recorded in Issue/PR",
+  "remote_ci": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "boundary": "정확한 새 head full PR CI 등록만 확인하고 결과 모니터링하지 않는다."
+  },
+  "environment_specific": {
+    "WindowsExcelVBA_DRM": "NOT TESTED",
+    "productionProxyTLS_SSO": "NOT TESTED",
+    "nativeOS125percent_screenreader": "NOT TESTED"
+  },
+  "security_scope": "현행 공개 Project 읽기 및 readonly Export Origin/strong If-Match 계약 유지. 제품에 없는 private Project 모델은 N/A; 외부 SSO 검증은 NOT TESTED.",
+  "authorization_boundary": "원격 게시·PR CI 시작까지만 승인됨; merge/main/GHCR/tag/Issue 종료/branch 정리는 범위 밖.",
+  "initial_viewport_failure_raw": {
+    "observations": {
+      "before": {
+        "instance": "project-gantt-amrhuh267xw",
+        "apiInstance": "svar-api-1",
+        "publicViewport": {
+          "left": 120,
+          "top": 0
+        },
+        "left": 120,
+        "top": 0,
+        "columns": [
+          56,
+          227,
+          104,
+          56,
+          37
+        ],
+        "selection": [
+          ":9f9f5a3f-b733-4dfb-8363-a4c2753795cb"
+        ],
+        "tree": [
+          ":e9bfd917-d229-46f4-93e1-7cced1b62af9",
+          ":32b899fd-eb2a-4b02-b773-4d192d4b5470",
+          ":9f9f5a3f-b733-4dfb-8363-a4c2753795cb",
+          ":cf1160b6-37c6-4ef4-9b21-7cb13a0e90c4",
+          ":88ec13c4-3cd4-436c-b89d-59f3b6743ad3",
+          ":6a3f7e68-769b-4e54-9d40-be1266078d75",
+          ":1adb42e1-62e4-4110-b641-6370270910a5",
+          ":2030adb7-c293-4e42-bc19-29920918a867",
+          null,
+          null
+        ]
+      },
+      "after": {
+        "instance": "project-gantt-amrhuh267xw",
+        "apiInstance": "svar-api-1",
+        "publicViewport": {
+          "left": 0,
+          "top": 0
+        },
+        "left": 0,
+        "top": 0,
+        "columns": [
+          56,
+          227,
+          104,
+          56,
+          37
+        ],
+        "selection": [
+          ":9f9f5a3f-b733-4dfb-8363-a4c2753795cb"
+        ],
+        "tree": [
+          ":e9bfd917-d229-46f4-93e1-7cced1b62af9",
+          ":32b899fd-eb2a-4b02-b773-4d192d4b5470",
+          ":9f9f5a3f-b733-4dfb-8363-a4c2753795cb",
+          ":cf1160b6-37c6-4ef4-9b21-7cb13a0e90c4",
+          ":88ec13c4-3cd4-436c-b89d-59f3b6743ad3",
+          ":6a3f7e68-769b-4e54-9d40-be1266078d75",
+          ":1adb42e1-62e4-4110-b641-6370270910a5",
+          ":2030adb7-c293-4e42-bc19-29920918a867",
+          null,
+          null
+        ]
+      },
+      "initialCapture": "{\"public\":{\"left\":120,\"top\":0},\"dom\":{\"left\":120,\"top\":0}}",
+      "returnCapture": "{\"public\":{\"left\":0,\"top\":0},\"dom\":{\"left\":0,\"top\":0}}"
+    },
+    "receipt_sha256": "677eb7196e89f65c421f4f3b1aef63b8f33671c962ff87d91c751ea36fc73405",
+    "scope": "합성 공개 Task ID 및 비민감 Core/native viewport 관측"
+  },
+  "viewport_fix_intermediate": {
+    "status": "PASS within executed cases; final integrated candidate pending",
+    "unit_tests": 10,
+    "minimal_actual_browser_tests": 1,
+    "minimal_actual_browser_elapsed_seconds": 11.4,
+    "minimal_actual_browser_suite_seconds": 25.5,
+    "receipts": [
+      {
+        "path": "/tmp/issue530-ui-minimal-r2.log",
+        "sha256": "c58f3944aedc31f988f3eaef051acaae904d313a5ed7d03f1b15f91a8c22f30c",
+        "bytes": 1126
+      },
+      {
+        "path": "/tmp/issue530-viewport-unit2.log",
+        "sha256": "ec8c411d69c80dcded141755652336d236489e3055ca4c4149444e27d8c4d9c6",
+        "bytes": 576
+      }
+    ]
+  },
+  "geometry_rework": {
+    "status": "FAIL before policy correction; final candidate pending",
+    "sourceRoot": [
+      1390,
+      532
+    ],
+    "temporaryRoot": [
+      1390,
+      435
+    ],
+    "targetRoot": [
+      1390,
+      504
+    ],
+    "window": [
+      1440,
+      900
+    ],
+    "fullscreen": false,
+    "input": false,
+    "unchanged": [
+      "snapshot",
+      "reader",
+      "API",
+      "scale",
+      "grid480",
+      "columns"
+    ],
+    "policy": "source layout configuration·폭·fullscreen·epoch guard 유지; 실제 target canonical queue 완료 후 target geometry 기준을 캡처하고 이후 geometry·입력·epoch/filter 변화를 취소한다.",
+    "receipt_sha256": "956c92dd344c77a9232469a26a63bb08a9dede0dfaa1cff5f1190d002c501bd2"
+  },
+  "integrated_main_sha": "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0",
+  "integrated_main_tree": "8b11ce8915a4b82031324174913386092840cdc4",
+  "integrated_checks": {
+    "typecheck": {
+      "status": "PASS",
+      "session": 74001,
+      "completion_chunk": "f35460",
+      "exit": 0
+    },
+    "version_diff_upstream_exact": {
+      "status": "PASS",
+      "chunk": "c20ced",
+      "exit": 0
+    },
+    "markdown": {
+      "status": "PASS",
+      "chunk": "4c37eb",
+      "files": 153,
+      "exit": 0
+    },
+    "test_discovery": {
+      "status": "PASS",
+      "session": 93053,
+      "completion_chunk": "be36f5",
+      "unit_files": 166,
+      "browser_tests": 500,
+      "root_external_cwd_equal": true,
+      "exit": 0
+    },
+    "preserved_initial_failures": [
+      "wrong markdown script path MODULE_NOT_FOUND chunk55c2ec corrected to actual CI path",
+      "default sandbox discovery spawnSync EPERM chunkdeda73; read-only escalation PASS"
+    ]
+  },
+  "protected_feature_bytes": [
+    {
+      "path": "src/features/gantt/peer-viewport-capture.ts",
+      "sha256": "095e9cf87fd3110523384bb64d0a1a8df806c910e4227d8776e5fceb9f6c3f8c",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/gantt/project-gantt.tsx",
+      "sha256": "e189fed9d4255b3f9faaad7b687119f3c1f94154ae3c9b0eaa675b7663e99519",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/projects/project-readonly-view.tsx",
+      "sha256": "ab68cec1f160829df97c65ef02f0887384b7edf15509fe4b8d6ed562b504f3ec",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/resources/resource-navigation-viewport.ts",
+      "sha256": "fe75ab5492ea59b7ce3a8fc79b79c8c460612776a10ad23c3aaa0e00e63f177c",
+      "unchanged": true
+    },
+    {
+      "path": "tests/fixtures/resource-kpi-integration.ts",
+      "sha256": "ae0ba5740332bbc120b6b78c78f75c0b6f4bdcb61f60b61328563637e6c857f6",
+      "unchanged": true
+    },
+    {
+      "path": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "sha256": "15ae93f77c88f02271ab48986fbb7b51501d345963c56a2239fce5719fd7b994",
+      "unchanged": true
+    },
+    {
+      "path": "tests/e2e/fixtures/resource-kpi-integration-ui.ts",
+      "sha256": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+      "unchanged": true
+    }
+  ],
+  "backend_reuse_reason": "API r2 이후 공유seed/helper·commonfixture·server/domain 미변경; upstream #519 picker는 비중복 UI 경로이며 실제 bytes 보존 확인",
+  "independent_ui_review": {
+    "status": "PASS",
+    "reviewer": "qa_docs",
+    "ui_ux_final_attempts": "BLOCKED capacity twice; qa_docs takeover",
+    "png_examined": [
+      "group-390.png",
+      "group-768.png",
+      "group-1024.png",
+      "group-1440.png",
+      "group-1920.png",
+      "resource-390.png",
+      "resource-768.png",
+      "resource-1024.png",
+      "resource-1440.png",
+      "resource-1920.png"
+    ],
+    "actual_geometry_observations": 18,
+    "receipt_sha256": "eebb4db6e229bce2f287371d8b321470d6208503e4c7010e88097832229316cf",
+    "scope": "화면·interaction 증거 비교; 전역 PRE_QA 및 원격QA_FINAL 아님"
+  },
+  "counts": {
+    "vitest": 243,
+    "browser_total": 18,
+    "browser_new_api": 1,
+    "browser_new_ui": 7,
+    "browser_existing_actual": 2,
+    "browser_existing_mock": 8
+  },
+  "version_evidence_limit": "UI PNG/source runtime application0.102.0; latest main0.102.1 통합 후 product/test bytes 유지 및 package/lock0.102.2. 0.102.2 screenshot으로 표시하지 않는다.",
+  "additional_existing_drill_regression": {
+    "status": "PASS",
+    "tests": "3 unique existing tests: actual SQLite/HTTP1 + mocked2",
+    "duration": "47.1s",
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-drill-ui.spec.ts tests/e2e/resource-drill-dashboard.spec.ts --workers=1",
+    "version": "0.102.2",
+    "sourceHashesUnchanged": true,
+    "assertionScope": [
+      "Actual: Schedule selectedTask→Resource→exact Task schedule/Editor, membership Assignment2 source selector",
+      "Actual: Milestone completed-stage→Schedule→Milestone customasOf/range/md-per-mm15 restored",
+      "Actual:5width strip geometry/focus,8nestedLIFO/maxlimit/GanttDOMidentity/selection/stale catalog collision readonly cookie0 and revision unchanged",
+      "Mock:60 wholeTaskScope vs50+10 paged rows/ancestor1/conflict59/Escapefocus and in-flight cancel",
+      "Mock:legacy Milestone null resourceScopeContext cross command disabled and cause/Editor existing lookup retained"
+    ],
+    "notDirectlyExercised": [
+      "Delayed KPI selector→schedule",
+      "Milestone Dashboard→Resource cross command→Task schedule"
+    ],
+    "log": "/tmp/issue530-drill-r1.log",
+    "baselineBytesRestored": true
+  },
+  "supplementary_direct_flow_status": "PASS",
+  "supplementary_direct_flow": {
+    "status": "PASS",
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-kpi-integration-ui.spec.ts --grep '#530 실제 M1' --workers=1",
+    "tests": "1 new actual SQLite/HTTP cross-flow case;12.0s /26.7s overall",
+    "version": "0.102.2",
+    "derivedContext": {
+      "range": {
+        "from": "2026-09-28",
+        "to": "2026-10-02"
+      },
+      "asOfDate": "2026-10-08",
+      "taskId": "89be1a43-bdd9-4187-82f5-c4814d2fee7d",
+      "assignmentIds": [
+        "6867454a-f371-4a85-92dd-96c3a55057ae",
+        "e837f305-09a5-49a1-9ca8-ec7ed27327d2"
+      ],
+      "selectedRaw": {
+        "knownMd": 7.5,
+        "taskCount": 1,
+        "assignmentCount": 2,
+        "delayed": 1
+      },
+      "projectRevision": 18,
+      "snapshotDataUnchanged": true,
+      "revisionUnchanged": true
+    },
+    "flows": [
+      "M1 cause→M1 exact Resource T1/Assignment2",
+      "Resource delayed KPI1→exact T1 schedule→Resource delayed detail→M1 cause/filter/period/focus"
+    ],
+    "start_source_hashes": {
+      "src/features/projects/project-readonly-view.tsx": "ab68cec1f160829df97c65ef02f0887384b7edf15509fe4b8d6ed562b504f3ec",
+      "src/features/resources/resource-navigation-viewport.ts": "fe75ab5492ea59b7ce3a8fc79b79c8c460612776a10ad23c3aaa0e00e63f177c",
+      "src/features/gantt/project-gantt.tsx": "e189fed9d4255b3f9faaad7b687119f3c1f94154ae3c9b0eaa675b7663e99519",
+      "src/features/gantt/peer-viewport-capture.ts": "095e9cf87fd3110523384bb64d0a1a8df806c910e4227d8776e5fceb9f6c3f8c",
+      "tests/features/resources/resource-navigation-viewport.test.ts": "ac78b01cd72bbe57b5ad8b792c46b694d286dec7dccd707a9aeb9e1a79a59a2e",
+      "tests/e2e/resource-kpi-integration-ui.spec.ts": "e2ff54bab3fcd94cadd456433568297f85fc04c145870f67af4b2ebc4765656e",
+      "tests/e2e/fixtures/resource-kpi-integration-ui.ts": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+      "tests/fixtures/resource-kpi-integration.ts": "ae0ba5740332bbc120b6b78c78f75c0b6f4bdcb61f60b61328563637e6c857f6",
+      "docs/PROJECT_UX.md": "1a82902296fca7d1f5f567e09ec9b177360480517a7495ffe8ec7a8e8b5cbe85",
+      "docs/UI_UX_GUIDELINES.md": "feb8bd6b982cad950a787038e927038b688545a70eca3e497ff6e7e9ad88da8a",
+      "tests/e2e/resource-drill-ui.spec.ts": "649f1316a56c680e98d2367d2bf33346ba599f255eebb00c60a8f914a331e258",
+      "tests/e2e/resource-drill-dashboard.spec.ts": "709ac0364d0d56e2d6f4c71a6d2a72f4a2bd681c021528057a7fd00778a17535",
+      "package.json": "5a8aea3361dd37c2df48e847c9e970c52ee0821ba86d9f33a55eb53978b4fb7c",
+      "package-lock.json": "696d45771bb7f82055980879596ee13f0448dd59500d50aa5c60b0d71dbbc863"
+    },
+    "sourceHashesUnchanged": true,
+    "original13CasePrefix": {
+      "bytes": 32454,
+      "sha256": "15ae93f77c88f02271ab48986fbb7b51501d345963c56a2239fce5719fd7b994",
+      "unchanged": true
+    },
+    "frozenProductFixtureHelperUnchangedSinceOriginal13": {
+      "src/features/projects/project-readonly-view.tsx": true,
+      "src/features/gantt/peer-viewport-capture.ts": true,
+      "src/features/gantt/project-gantt.tsx": true,
+      "src/features/resources/resource-navigation-viewport.ts": true,
+      "tests/fixtures/resource-kpi-integration.ts": true,
+      "tests/e2e/fixtures/resource-kpi-integration-ui.ts": true
+    },
+    "restoredTypecheck": {
+      "status": "PASS",
+      "command": "npx tsc --noEmit",
+      "log": "/tmp/issue530-cross-type-final-restored.log"
+    },
+    "scopedLint": {
+      "status": "PASS",
+      "command": "npx eslint tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "result": "0 errors/0 warnings",
+      "log": "/tmp/issue530-cross-lint-r3.log"
+    },
+    "firstFailure": "r1 GET-only report listener missed actual POST bound report; scoped details changed to same binding POST rather than invalid GET fallback; /tmp/issue530-cross-r1-artifacts",
+    "raw_receipt": "../../../output/playwright/issue530/cross-flow-evidence.json"
+  },
+  "local_evidence_reuse": "고유18=API1+원래UI13+기존drill3+새cross1. 기존spec32454byteprefix/제품4/공통fixture/helper 불변, 새case append delta만 별도 검증. UI13 전체를 새source로 다시 실행했다고 주장하지 않는다."
+}
