@@ -1382,6 +1382,8 @@ h2 {
 /* #518: a single horizontal project navigation row; keep focus visible at narrow widths. */
 .project-primary-tabs { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 6px 0; scrollbar-width: thin; }
 .project-primary-tabs button { flex: 0 0 auto; white-space: nowrap; }
+/* Preserve the full 3px focus ring inside the vertical scroll clip without adding another navigation row. */
+.project-primary-tabs button:focus-visible { outline-offset: calc(var(--focus-offset) * -1); }
 
 .project-scope-tabs { display:flex; min-width:0; min-height:2.125rem; flex:0 0 auto; align-items:stretch; overflow-x:auto; overflow-y:hidden; border-bottom:1px solid var(--border-default); white-space:nowrap; scrollbar-width:thin; }
 .project-scope-tab-item { display:flex; min-width:0; flex:0 0 auto; align-items:stretch; }

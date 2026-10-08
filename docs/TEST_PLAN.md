@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #518 — PR #544 접근성 리뷰 P2 보완 및 최신 CI 증거
+
+- PR #544 head `230cefa19300e928023e3de65c35f05aa22b96dc`의 [PR CI #2173.1](https://github.com/planner77/masterGantt/actions/runs/37755252750)은 Quality/Chromium 6 shards/Docker **SUCCESS**였다. 그러나 Codex 리뷰의 미해결 P2 1건: `src/app/globals.css`의 `.project-primary-tabs`는 `overflow-y: hidden`이므로 상위 탭 기본 양수 3px focus outline/offset이 세로 경계에서 잘릴 수 있다.
+- `.project-primary-tabs button:focus-visible`에 음수 `outline-offset`을 적용해 3px ring 전체를 button 내부에 유지한다. 불필요한 세로 padding을 추가하지 않는다. `project-workspace-tabs-518.spec.ts`는 390/768/1024/1440/1920px 각각에서 키보드 ArrowRight의 실제 `:focus-visible`, outline thickness/offset 합이 0 이하, selected focus, document overflow와 상위 탭 높이를 함께 검증한다.
+- 해당 리뷰는 새 코드·테스트의 실제 CI 근거를 확인한 뒤에만 resolve 한다. 변경 후 새 exact head의 필수 PR CI Quality/E2E/Docker와 merge 가능 상태를 확인한다. Local Chromium/독립 QA/실기기는 별도 근거가 없으면 NOT TESTED이며, 이전 head SUCCESS는 새 head CI PASS를 뜻하지 않는다.
+
+
 ## Issue #518 — PR CI #2158 shard 1/6 Error Boundary 테스트 안정화
 
 - 이전 PR head `b9c97861c07a79f7656e5aeb5e387d279f0bcfb7`의 [Run #2158.1](https://github.com/planner77/masterGantt/actions/runs/37736467124): quality/TypeScript/Vitest/ESLint/Next build/Docker/정책과 Chromium E2E shard 2~6 SUCCESS, shard 1/6에서 `error-boundary-regression.spec.ts` #502 Gantt Demo 1건 FAIL. 오류 fallback `Gantt를 표시할 수 없습니다`가 나타나지 않았으며 다른 검증은 PASS. 원래 #502 probe 소스와 error.tsx는 해당 PR에서 변경하지 않았다.

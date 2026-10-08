@@ -1,5 +1,13 @@
 # Issue #518 — 일정·Milestone 상위 탭 단순화 실행 계획
 
+## PR #544 P2 리뷰 — 상위 탭 포커스 링 잘림 수정 및 병합 요청
+
+- 병합 전 검사: PR CI #2173.1 `37755252750` / head `230cefa19300e928023e3de65c35f05aa22b96dc` Quality, Chromium E2E 6/6, Docker, policy SUCCESS. main `3fa543b10e98d59e50f63f3f53613affe720b648`와 충돌 없음.
+- Codex 리뷰 thread `PRRT_kwDOUUB7Bc6qN9au`의 P2: 3px 외부 focus ring이 `project-primary-tabs`의 `overflow-y:hidden`에 잘릴 수 있음. 같은 design token을 유지하면서 `:focus-visible`만 음수 offset으로 재정의한다. 원래 UI 구조·navigation·Dashboard·Resource 경계는 변경하지 않는다.
+- Chromium #518 실제 keyboard 탭의 focus-visible computed style(전체 ring이 요소 내부)/5폭 수평·수직 geometry를 regression assertion으로 추가. 리뷰 대응 내용은 `docs/UI_UX_GUIDELINES.md`, `docs/TEST_PLAN.md`와 동기화.
+- 현재 사용자 범위: P2 보완 뒤 새로운 exact-head PR CI를 확인하고, 리뷰 unresolved 처리가 완료되면 **merge → Main CI 시작까지**. `release_required=true` / `release_authorized=false`이므로 정식 tag/GHCR 승격·Issue 종료는 범위 밖. Main CI 자체의 임시 ci-image 검증은 기존 gate를 따름. 독립 QA/운영 검증은 실행 근거 없으면 NOT TESTED.
+
+
 ## 최신 main 정렬과 #528 충돌 해결 (2026-10-08)
 
 - 최신 main: `3fa543b10e98d59e50f63f3f53613affe720b648` / application `0.101.0`. 이전 main `b4a0898283571ac4f05d53299266acccadeeff68`에서 9개 커밋이 전진했고, PR #544는 해당 9개 커밋만큼 behind였다.

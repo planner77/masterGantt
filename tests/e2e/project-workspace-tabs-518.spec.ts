@@ -51,6 +51,19 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
     await expect(scopeTabs.getByRole("tab", { name: "전체 프로젝트", exact: true })).toBeVisible();
     await milestone.click();
     await expect(dashboard).toHaveAttribute("data-ready", "true");
+    // Keyboard focus must retain its entire 3px ring inside the clipped tab scroller.
+    await schedule.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(milestone).toBeFocused();
+    const focusRing = await milestone.evaluate((button) => {
+      const style = getComputedStyle(button);
+      return { visible: button.matches(":focus-visible"), kind: style.outlineStyle,
+        width: parseFloat(style.outlineWidth), offset: parseFloat(style.outlineOffset) };
+    });
+    expect(focusRing.visible).toBe(true);
+    expect(focusRing.kind).not.toBe("none");
+    expect(focusRing.width).toBeGreaterThanOrEqual(3);
+    expect(focusRing.width + focusRing.offset).toBeLessThanOrEqual(0);
     const geometry = await tabs.evaluate((owner) => {
       const selected = owner.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')!;
       const outer = owner.getBoundingClientRect(), inner = selected.getBoundingClientRect();
