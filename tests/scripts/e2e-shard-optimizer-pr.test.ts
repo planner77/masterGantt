@@ -58,3 +58,13 @@ describe("E2E optimizer PR creation failure recovery", () => {
     expect(createStep?.indexOf("exit 1")).toBeLessThan(createStep?.indexOf("ci.yml/dispatches"));
   });
 });
+
+describe("E2E plan changes trigger the real Chromium shards", () => {
+  const ciWorkflow = readFileSync(".github/workflows/ci.yml", "utf8");
+  const filter = ciWorkflow.split("            e2e:")[1]?.split("            docker:")[0] || "";
+
+  it("classifies shard plan and shard selector changes as E2E-impacting", () => {
+    expect(filter).toContain("'tests/config/e2e-shard-plan.json'");
+    expect(filter).toContain("'scripts/e2e-shard-planner.mjs'");
+  });
+});
