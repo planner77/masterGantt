@@ -200,9 +200,9 @@ Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한�
 
 Task Editor 관계 탭은 상위 Project의 canonical `tasks + links + revision` snapshot을 사용하면서 기존 Relation Editor의 추가 진입점을 제공한다.
 
-- 정상 relation row는 상대 작업, externalId, type, lag와 **편집 / 삭제** action을 제공한다. dangling reference는 경고만 표시하고 mutation action은 제공하지 않는다.
+- 정상 relation row는 상대 작업, externalId, type, lag와 **편집 / 삭제** action을 제공한다. 읽기 전용/완료 상태에서는 수정 동작 대신 **조회** 버튼만 노출해 동일 Relation Editor의 비변경 상세를 연다. dangling reference는 경고만 표시하고 action은 제공하지 않는다.
 - **관계 추가**는 현재 Task/Milestone의 taskId를 Anchor context로 Relation Editor에 전달한다. 관계가 0건이어도 선행/후행 방향, 후보 Task/Milestone, FS/SS/FF/SF, signed Lag를 선택해 기존 Link POST 계약으로 생성할 수 있다. Summary endpoint 정책은 확대하지 않는다.
-- Task draft가 dirty이면 관계 추가/편집/삭제를 잠그고 먼저 Task 변경을 저장하거나 취소하도록 안내한다. stale revision, readonly, pending도 fail-closed한다.
+- Task draft가 dirty이면 관계 추가/편집/삭제를 잠그고 먼저 Task 변경을 저장하거나 취소하도록 안내한다. stale revision, readonly, pending은 mutation을 fail-closed한다. readonly 관계 조회는 권한 변경·Link POST/PATCH/DELETE 없이 가능하되 stale/dirty/pending 중에는 새 모달 진입을 막는다.
 - 관계 mutation 성공 시 Project snapshot과 열린 Task Editor의 base/draft/revision을 동일 canonical 응답으로 갱신한다. 이 동기화는 Task Editor native dialog를 다시 `showModal()`하지 않아 Relation Editor가 top layer를 유지하고, 현재 관계 탭을 보존한다.
 - Relation Editor 닫힘 후 기존 trigger가 남아 있으면 focus를 복원한다. 관계 탭 직접 삭제 confirmation은 취소 버튼으로 focus를 이동하고 취소 시 원래 삭제 버튼으로 되돌린다.
 - Gantt fullscreen, instance, scroll/tree/column/scale/filter 상태는 관계 관리 진입과 canonical sync 때문에 초기화하지 않는다.

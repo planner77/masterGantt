@@ -1,3 +1,12 @@
+## Issue #553 — PR CI #2250 실패 재현 및 변경 영향 검증 (2026-10-09)
+
+[PR #562 CI #2250](https://github.com/planner77/masterGantt/actions/runs/37856833368), head `8bf7057`에서 E2E shard 3/4/5/6의 16건이 FAIL이고 policy/Vitest/typecheck/lint/build/Docker 및 shard 1/2는 PASS였다. 구간별로 다음과 같이 회귀를 보존한다.
+
+- 스크롤/viewport 9건: metadata-only 저장과 확인된 Task 삭제 후 Chart public/DOM left, tree/selection/scale/instance, tab 복귀 대기 중 사용자 native wheel 우선, 실제 필터 집합 변경 후 오래된 위치 비복원.
+- Relation Editor 5건: 일반 Task→Task 두 관계 fixture의 선택·dirty 확인과 readonly 관계 **조회** 진입, 390/768/1024/1440px keyboard/focus, POST/PATCH/DELETE 원자·권한 보호. 숨긴 Milestone SVG link는 복구하지 않는다.
+- Inline 이름·Milestone 2건: native Tab blur의 이름 단일 PATCH/trim/revision과 Escape cancel, linked/비연결 ordinary Task의 독립 변경, Milestone은 대시보드 canonical-ID Editor 경로로 분리 검증한다.
+- 보완은 기능 코드+관련 E2E 및 DESIGN/AGENTS 기준의 문서 반영이며 skip·timeout 증가·assertion 완화로 대신하지 않는다. 변경 후 exact-head PR CI와 환경별 미실행을 구분해 기록한다.
+
 # Test Plan
 
 ## Issue #519 PR #547 최초 CI timeout과 최신 main 회귀 복구

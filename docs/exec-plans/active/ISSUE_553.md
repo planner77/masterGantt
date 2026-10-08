@@ -97,3 +97,11 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - Milestone의 retired WBS bar/row·mixed SVG link를 여는 E2E가 다수 잔존했고 새 #552 Dashboard/Task Editor 진입으로 수정했다. 별도 일반 Task Relation Editor 경로로 키보드·삭제·pending·readonly·fullscreen을 검증한다.
 - metadata 저장 시 Core가 nonzero scrollLeft를 clamp하는 경로에서 기존 0-only 복원이 동작하지 않아 실제 입력 우선·고정 column/scope 조건하에 정확한 viewport를 복원하도록 조정했다. 필터 변경 시에는 이전 위치를 복원하지 않는 기존 기준을 유지한다.
 - PR/new exact-head CI는 반드시 새 commit 대상으로 판단한다. QA_FINAL, Main, GHCR, 환경별 검증은 NOT TESTED.
+
+
+## PR CI #2250 재보완 / 새 PR CI 등록 (2026-10-09)
+
+- 실패: https://github.com/planner77/masterGantt/actions/runs/37856833368 (head `8bf7057`), E2E 16건(shards 3/4/5/6), quality/Vitest/typecheck/lint/build/Docker 및 shards 1/2 PASS.
+- 변경: `7c863cc` readonly 관계 **조회**(mutation 미허용), 두 visible ordinary Link fixture, native blur 단일 PATCH 및 unrelated Task 경로; `0654865` canonical WBS filter 이후 viewport 후처리와 bounded snapshot cleanup; `908685b` peer 복귀 지연 중 wheel 우선 복구. User input > old peer restore, 동일 scope/scale ID 유지 시 viewport 복원, 실제 필터 집합 변경 시 기존 위치 미복원.
+- 정합: #552 Milestone native WBS행 비복원, canonical Link/Membership/Project revision 불변, 관찰한 최초 실패 로그 보존. 새로운 API/schema/migration/dependency renderer는 추가하지 않음.
+- 실행 근거: 정확한 head의 PR CI https://github.com/planner77/masterGantt/actions/runs/37859412326 (#2254, 최초 head `908685b`)는 등록만 확인한 상태이며 최종 docs sync 새 head 기준으로 다시 실행한다. PASS 추정 금지. QA_FINAL/Manager ACCEPT/Main CI/GHCR/release/Issue 종료 및 환경별 UX: NOT TESTED.
