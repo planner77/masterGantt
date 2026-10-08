@@ -17,10 +17,12 @@ async function setup(page: Page, readonly = false, longNames = false) {
   const root = await rememberGanttRoot(page);
   // Open through the supported ordinary Task Relation tab rather than relying on an SVG link overlay.
   const sourceRow = page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000003\"]").first();
-  await sourceRow.click({ button: "right", position: { x: 12, y: 19 } });
+  await sourceRow.getByText("Stable leaf", { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Stable leaf");
   await editor.getByRole("tab", { name: /관계/ }).click();
+  await expect(editor.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
   await editor.getByRole("button", { name: `${readonly ? "Existing summary child 관계 조회" : "Existing summary child 관계 편집"}`, exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };

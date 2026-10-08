@@ -181,7 +181,7 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
       await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
       await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
       await expect(toggle).toHaveClass(/wxi-menu-right/);
-      expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(preservedScrollLeft, 0);
+      await expect.poll(async () => chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(preservedScrollLeft, 0);
       for (const entry of deleted) {
         const id = snapshot.data.tasks.find((task) => task.name === entry)!.taskId;
         await expect(page.locator(`.wx-bar[data-task-id=":${id}"]`)).toHaveCount(0);

@@ -249,10 +249,16 @@ test("#529 pending peer restore cancels on native wheel and canonical filter cha
   expect(inputViewport.dom.left).not.toBe(120);
   expect(inputViewport.dom.left).not.toBe(0);
   const userViewport = inputViewport;
+  // Core public coordinates are authoritative; DOM rounds a fractional pixel.
+  const preserved = async () => {
+    const now = await viewport();
+    return { public: now.public, top: now.dom.top, domWithinOnePixel: Math.abs(now.dom.left - userViewport.dom.left) <= 1, notStale: now.dom.left !== 120 && now.public.left !== 120 };
+  };
+  const expectedPreserved = { public: userViewport.public, top: userViewport.dom.top, domWithinOnePixel: true, notStale: true };
   await page.clock.runFor(200);
-  await expect.poll(viewport).toEqual(userViewport);
+  await expect.poll(preserved).toEqual(expectedPreserved);
   await page.clock.runFor(300);
-  await expect.poll(viewport).toEqual(userViewport);
+  await expect.poll(preserved).toEqual(expectedPreserved);
   expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
   const afterInput = await peerDiagnostics(page);
   const events = JSON.parse(afterInput.events!) as { requestedLeft?: number }[];

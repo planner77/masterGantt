@@ -1842,8 +1842,15 @@ export function ProjectGantt({
       if (context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
         let timeoutId: number | null = null;
+        const navigationTag = "project-canonical-viewport-navigation-" + String(syncVersion);
+        // An explicit date reveal is a newer navigation intent than a saved viewport.
+        api.on("scroll-chart", (event) => {
+          if (typeof event.left === "number" && Math.abs(event.left - viewport.scrollLeft) > 1)
+            viewportInput = true;
+        }, { tag: navigationTag });
         const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => {
           if (timeoutId !== null) window.clearTimeout(timeoutId);
+          api.detach(navigationTag);
           for (const event of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(event, markViewportInput, true);
         } };
         metadataViewportReference.current = request;
@@ -1902,11 +1909,11 @@ export function ProjectGantt({
         const unchangedProjection = applied?.api === api && applied.key === visibleTaskFilterKey && applied.source === source && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay && applied.version === version && milestoneWbsProjectionMatches(api, ids);
         const request = metadataViewportReference.current;
         const matchingRequest = request?.api === api && request.version === version && request.filter === visibleTaskFilterKey && request.key === context && request.scale === scale;
-        const stableContext = applied?.api === api && applied.key === visibleTaskFilterKey && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay;
         const initialViewport = api.getState();
         const targetLeft = request && matchingRequest && !request.hasInput() ? request.left : initialViewport.scrollLeft;
         const targetTop = request && matchingRequest && !request.hasInput() ? request.top : initialViewport.scrollTop;
-        const mayRestore = matchingRequest || stableContext;
+        // A generic resize/date reveal cannot replay a viewport from an older filter.
+        const mayRestore = Boolean(matchingRequest && request && !request.hasInput());
         const root = ganttScrollReference.current;
         let userInput = false;
         const markInput = (event: Event) => {
@@ -3480,6 +3487,14 @@ export function ProjectGantt({
   }
 
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Tab" && isCurrentInlineNameInput(event.target)) {
+      // Capture the valid raw name before SVAR's native Tab/blur unmounts its input.
+      // Leave normal Tab focus movement intact; the session gate prevents duplicates.
+      const session = inlineSessionReference.current;
+      if (session && !session.committed && !inlineComposingReference.current)
+        commitInlineName(event.target.value, session);
+      return;
+    }
     if (event.key === "Enter" && isCurrentInlineNameInput(event.target)) {
       event.preventDefault();
       event.stopPropagation();
