@@ -163,3 +163,9 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - #83: 선택 범위에 개인 Assignment가 없는 empty 상태는 할당 없음으로 표시. configured 0 M/D·M/M, unset은 서로 구별. Unit 검증 추가.
 - #526: Task 선택 후 SVAR 자동 가로 이동과 DOM-only 120px 스크롤 설정 경합 제거. 기존 #527 패턴으로 canonical sync 및 연속 animation frame 이후 Core/DOM 일치 상태를 기준으로 하여 화면 복귀 strict equality 유지.
 - 새 exact-head CI 결과가 확인되기 전 PASS 미주장. QA_FINAL/Manager ACCEPT/Windows Excel/GHCR NOT TESTED, release_authorized=false.
+
+## CI #2148 실패 및 후속 보완 (2026-10-08)
+
+- PR #543 / commit `58f3ef97` CI #2148: Chromium shard1의 기존 #502 `error-boundary-regression.spec.ts` Gantt Demo error boundary assertion 1건 FAIL; 나머지 E2E shard2~6 및 Quality/Build/Docker/Policy PASS.
+- SSR-visible React button의 hydrate 전 native Enter race를 방지하기 위해 비운영 gated `ErrorBoundaryProbe`의 effect readiness marker 및 Playwright onClick receipt를 추가한다. 여전히 실제 render throw → route boundary → retry/reset → focus 복구를 검증한다.
+- 임의 timeout/skip/expected failure로 위장하지 않는다. #529 Resource Excel/Domain/API/DB 변경 없음. CI와 최종 QA 결과는 새 exact-head 검증 전 NOT TESTED, merge/main/GHCR/Issue close 미승인.

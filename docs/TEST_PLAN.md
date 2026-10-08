@@ -2302,3 +2302,10 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 - #83: 선택 범위에 개인 Assignment가 없는 empty 상태는 할당 없음으로 표시. configured 0 M/D·M/M, unset은 서로 구별. Unit 검증 추가.
 - #526: Task 선택 후 SVAR 자동 가로 이동과 DOM-only 120px 스크롤 설정 경합 제거. 기존 #527 패턴으로 canonical sync 및 연속 animation frame 이후 Core/DOM 일치 상태를 기준으로 하여 화면 복귀 strict equality 유지.
 - 새 exact-head CI 결과가 확인되기 전 PASS 미주장. QA_FINAL/Manager ACCEPT/Windows Excel/GHCR NOT TESTED, release_authorized=false.
+
+## Issue #529 — CI #2148 오류 경계 E2E hydration guard (2026-10-08)
+
+- Exact-head `58f3ef973464c5259a560bf4dedeafe05ff6a1fb`, PR #543 CI [#2148](https://github.com/planner77/masterGantt/actions/runs/37728568858): Lint/TypeScript/Vitest/Build/Docker/Policy 및 Chromium E2E shard2~6 PASS; shard1 #502 Gantt Demo error boundary 1개 FAIL.
+- 실제 로그: root probe의 controlled exception은 발생해 root 경계 테스트 PASS, Gantt Demo에는 controlled exception 로그가 없고 예상 오류 제목만 5초 대기 후 누락. SSR에서 표시된 버튼을 React hydration 전에 Enter로 누르는 경합 가능성이 높다. 이를 실제 브라우저에서 일으킨 장애와 동일하다고 단정하지 않는다.
+- 비운영 E2E probe의 client effect가 `data-e2e-hydrated=true`를 설정한 뒤 native Enter를 수행하고, sessionStorage의 `restore` 마커로 실제 onClick 실행을 별도로 검증한다. route error boundary·retry Enter·focus restore·390/1440px 검증은 유지한다. Timeout 증가 또는 조건부 skip 없음.
+- 수정 commit에 대한 exact-head CI 결과 및 실제 운영 Gantt 오류 경계 동작, Windows/DRM, QA_FINAL, Manager ACCEPT, GHCR는 새 검증 전 NOT TESTED. `release_authorized=false`.
