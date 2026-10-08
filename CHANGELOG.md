@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.101.0] - 2026-10-08
+
+### Added
+
+- Issue #528: Resource·Milestone·일정 간 임시 조회 범위를 전체 고유 Task·개인 Assignment 기준으로 연결한다. 동일 원장·출발 조건의 stale 검증, 원래 보기 복귀와 범위 해제, 최대 8단계 이동 기록과 기존 Task Editor·Gantt 상태 보존을 제공한다.
+
 ## [0.100.0] - 2026-10-08
 
 ### Added

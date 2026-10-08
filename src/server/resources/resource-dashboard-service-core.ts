@@ -1,4 +1,7 @@
-import { createHash } from "node:crypto";
+import { resourceFingerprint as fingerprint, readResourceDataSnapshot } from "./resource-data-context-core";
+import type { ResourceDrillQueryInput, ResourceDrillQueryResponse, ResourceDrillScope, ResourceDrillScopeDto, ResourceDrillScopeRequest, ResourceDrillSourceContext, ResourceDrillSourceProjection } from "../../contracts/resource-drill";
+import { parseResourceDrillQuery } from "./resource-drill-query-core";
+import { resolveMdPerMm } from "../../domain/resources/md-per-mm";
 import type Database from "better-sqlite3";
 import type { ResourceDashboardDetailInput, ResourceDashboardDetailRow, ResourceDashboardDetailsDto, ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardSummary, ResourceDashboardGroupChildrenInput, ResourceDashboardGroupChildrenDto } from "../../contracts/resource-dashboard";
 import { RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
@@ -6,22 +9,15 @@ import type { ResourceWorkloadRole } from "../../contracts/resources";
 import { prepareResourceKpiSnapshot, selectResourceKpiAssignments, summarizeResourceKpiAssignments, renderResourceKpi, getResourceKpiDiagnostics, assertResourceKpiProjectionBudget, ResourceKpiProjectionLimitError, type ResourceKpiAssignmentRow, type ResourceKpiTotals } from "../../domain/resources/resource-kpi";
 import { mdPerMmSource } from "../../domain/resources/md-per-mm";
 import { dateToOrdinal } from "../../domain/scheduling/date-only";
-import { loadResourceCalendarExceptions, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+import { loadResourceCalendarExceptions } from "../calendars/calendar-resolution-core";
 import { PublicApiError } from "../http/api-error-core";
 import { isCanonicalUuidV4 } from "../projects/project-contract";
-import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
-import { ProjectRepository } from "../repositories/project-repository-core";
-import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
-import { ResourceDashboardRepository } from "../repositories/resource-dashboard-repository-core";
-import { ScheduleRepository } from "../repositories/schedule-repository-core";
-import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
 import { normalizeResourceDashboardFilters, parseResourceDashboardDetails, parseResourceDashboardGroupChildren } from "./resource-dashboard-query-core";
 import type { ResourcePlanDetailInput, ResourcePlanDetailKind, ResourcePlanDetailsDto, ResourceDashboardPlanDto, ResourcePlanPersonMetadata, ResourcePlanRowSelector } from "../../contracts/resource-dashboard";
 import { RESOURCE_PLAN_LIMITS } from "../../contracts/resource-dashboard";
 import { calculateResourcePlan, getResourcePlanDailyPage, getResourcePlanDayResources, getResourcePlanDayAssignments, buildResourcePlanPeriods, ResourcePlanLimitError, type ResourcePlanInput } from "../../domain/resources/resource-plan";
 import { parseResourcePlanDetails } from "./resource-dashboard-query-core";
 
-const fingerprint = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 export function resourceDashboardLimit(kind: string): never {
   const guidance = kind.startsWith("plan.") ? kind === "plan.bytes" ? "조회 기간·개인 분류 범위를 줄이거나 월별로 조회해 주세요." : kind === "plan.matrixCells" ? "월별로 전환하거나 조회 기간·개인 분류 범위를 줄여 주세요." : "조회 기간 또는 Resource·Group·역할·등급·활성 조건의 개인 범위를 줄여 주세요. Task·Milestone·검색 조건만으로 전체 부하 계산 범위를 줄일 수 없습니다." : kind === "range.days" ? "조회 기간을 366일 이하로 줄여 주세요." : kind.startsWith("projection.") ? "개인·Group·Milestone 선택 범위를 줄여 주세요." : kind === "detail.bytes" ? "상세 page 크기를 줄여 주세요." : "프로젝트의 Task·관계·Group 소속 범위를 정리하거나 프로젝트를 분리해 주세요. 전체 snapshot 한도는 조회 필터로 우회할 수 없습니다.";
   throw new PublicApiError(422, "REPORT_LIMIT_EXCEEDED", `${kind} 조회 한도를 초과했습니다. ${guidance}`, [{ path: kind, code: "REPORT_LIMIT_EXCEEDED", message: kind }]);
@@ -58,10 +54,10 @@ function milestoneOrder(snapshot: { taskById: Map<string, { startDate: string | 
 
 export class ResourceDashboardService {
   constructor(private readonly database: Database.Database, private readonly options: { clock?: () => Date; mdPerMmEnvironment?: string } = {}) {}
-  getDashboard(publicId: string, filter: ResourceDashboardFilterInput = {}): ResourceDashboardDto | undefined {
-    return this.database.transaction(() => this.calculate(publicId, filter)?.report)();
+  getDashboard(publicId: string, filter: ResourceDashboardFilterInput = {}, scope?: ResourceDrillScope): ResourceDashboardDto | undefined {
+    return this.database.transaction(() => this.calculate(publicId, filter, scope)?.report)();
   }
-  getPlanDetails(publicId: string, filter: ResourceDashboardFilterInput, input: ResourcePlanDetailInput, kind: ResourcePlanDetailKind): ResourcePlanDetailsDto | undefined {
+  getPlanDetails(publicId: string, filter: ResourceDashboardFilterInput, input: ResourcePlanDetailInput, kind: ResourcePlanDetailKind, scope?: ResourceDrillScope): ResourcePlanDetailsDto | undefined {
     // Reparse programmatic requests using the same route allowlist and scalar constraints.
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(filter)) {
@@ -78,7 +74,7 @@ export class ResourceDashboardService {
     const checked = parseResourcePlanDetails(params, kind);
     return this.database.transaction(() => {
       let calculated: ReturnType<ResourceDashboardService["prepareAndSelect"]>;
-      try { calculated = this.prepareAndSelect(publicId, checked.filter, checked.detail.snapshotId); }
+      try { calculated = this.prepareAndSelect(publicId, checked.filter, checked.detail.snapshotId, scope); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
       const { snapshot } = calculated, detail = checked.detail, plan = this.planInput(calculated);
@@ -87,7 +83,7 @@ export class ResourceDashboardService {
       if (!period || (detail.date !== undefined && (detail.date < period.from || detail.date > period.to))) invalidSelection();
       this.validatePlanRow(snapshot, plan, detail.selector);
       const page = { offset: detail.offset, limit: detail.limit };
-      const context = { schema: "resource-dashboard/1" as const, ...detail, projectPublicId: publicId, projectRevision: snapshot.project.revision,
+      const context = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1" as const, ...detail, projectPublicId: publicId, projectRevision: snapshot.project.revision,
         catalogRevision: snapshot.catalogRevision, calendarRevision: snapshot.calendarRevision, filters: snapshot.filters, range: { from: snapshot.from, to: snapshot.to },
         asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource };
       let result: ResourcePlanDetailsDto;
@@ -107,6 +103,116 @@ export class ResourceDashboardService {
       }
       assertResourcePlanResponseBytes({ data: result }, "detail.bytes");
       return result;
+    })();
+  }
+  private sourceContext(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, sourceProjection: ResourceDrillSourceProjection): ResourceDrillSourceContext {
+    return { ...snapshot.dataContext, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm,
+      mdPerMmSource: snapshot.mdPerMmSource, mdPerMmProvided: snapshot.filters.mdPerMmProvided, sourceProjection };
+  }
+  private resolveRestriction(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, scope: ResourceDrillScope) {
+    const tasks = new Set<string>();
+    if (scope.kind === "exactAssignments") {
+      const assignments = new Set(scope.assignmentIds);
+      for (const id of assignments) { const row = snapshot.assignmentById.get(id); if (!row || row.kind !== "resource" || snapshot.taskById.get(row.taskPublicId)?.type !== "task") invalidSelection(); tasks.add(row.taskPublicId); }
+      return { tasks, assignments };
+    }
+    const nodeIds = scope.kind === "summarySubtree" ? [scope.rootId] : scope.nodeIds;
+    for (const id of nodeIds) { const row = snapshot.taskById.get(id); if (!row || row.type === "milestone" || (scope.kind === "summarySubtree" && row.type !== "summary")) invalidSelection(); }
+    const nodes = new Set(nodeIds);
+    for (const task of snapshot.storedTasks) if (task.type === "task" && snapshot.paths.get(task.publicId)!.some((entry) => nodes.has(entry.taskId))) tasks.add(task.publicId);
+    return { tasks, assignments: undefined };
+  }
+  getScope(publicId: string, input: ResourceDrillScopeRequest, scope?: ResourceDrillScope) {
+    return this.database.transaction(() => {
+      if (input.view === "context") return readResourceDataSnapshot(this.database, publicId)?.context;
+      let calculated: ReturnType<ResourceDashboardService["prepareAndSelect"]>;
+      try { calculated = this.prepareAndSelect(publicId, input.filters, input.view === "dashboard" ? input.snapshotId : input.detail.snapshotId, scope); }
+      catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
+      if (!calculated) return undefined;
+      const { snapshot } = calculated;
+      let rows: readonly ResourceKpiAssignmentRow[], taskIds: string[], sourceProjection: ResourceDrillSourceProjection;
+      if (input.view === "dashboard") {
+        const selected = this.detailTargets(calculated, input.selector); taskIds = selected.targetTaskIds; const targets = new Set(taskIds); rows = selected.rows.filter((row) => targets.has(row.taskId));
+        sourceProjection = { kind: "details", selector: input.selector, view: input.selector.dimension === "diagnostic" ? "tasks" : "assignments" };
+      } else {
+        const detail = input.detail, plan = this.planInput(calculated);
+        const period = detail.periodId === "all" ? { from: snapshot.from, to: snapshot.to } : buildResourcePlanPeriods(snapshot.from, snapshot.to, detail.granularity).find((period) => period.key === detail.periodId);
+        if (!period || (detail.date !== undefined && (detail.date < period.from || detail.date > period.to))) invalidSelection();
+        this.validatePlanRow(snapshot, plan, detail.selector);
+        planCall(() => calculateResourcePlan(plan));
+        const population = new Set(plan.capacityResourceIds), row = detail.selector;
+        rows = (detail.demandScope === "project" ? plan.fullProjectAssignments : plan.selectedAssignments).filter((assignment) => population.has(assignment.resourceId) &&
+          (row.kind !== "group" || (row.groupId === null ? !assignment.groupIds.length : assignment.groupIds.includes(row.groupId))) &&
+          ((row.kind !== "resource" && row.kind !== "resourceMilestone") || assignment.resourceId === row.resourceId) &&
+          (row.kind !== "resourceMilestone" || assignment.milestoneTaskId === row.milestoneTaskId) &&
+          assignment.from <= (detail.date ?? period.to) && assignment.to >= (detail.date ?? period.from));
+        taskIds = [...new Set(rows.map((row) => row.taskId))].sort();
+        sourceProjection = { kind: "plan", granularity: detail.granularity, periodId: detail.periodId, selector: row, demandScope: detail.demandScope, ...(detail.date === undefined ? {} : { date: detail.date }) };
+      }
+      const assignmentIds = [...new Set(rows.map((row) => row.assignmentId))].sort();
+      const ancestors = new Set(taskIds.flatMap((id) => snapshot.paths.get(id)!.filter((entry) => snapshot.taskById.get(entry.taskId)?.type === "summary").map((entry) => entry.taskId)));
+      const result: ResourceDrillScopeDto = { schema: "resource-dashboard/1", snapshotId: snapshot.snapshotId, sourceContext: this.sourceContext(snapshot, sourceProjection),
+        taskIds: [...taskIds].sort(), assignmentIds, taskCount: taskIds.length, assignmentCount: assignmentIds.length, ancestorSummaryIds: [...ancestors].sort() };
+      assertResourcePlanResponseBytes({ data: result }, "detail.bytes"); return result;
+    })();
+  }
+  query(publicId: string, raw: ResourceDrillQueryInput): ResourceDrillQueryResponse | undefined {
+    const input = parseResourceDrillQuery(raw);
+    return this.database.transaction(() => {
+      const data = readResourceDataSnapshot(this.database, publicId);
+      if (!data) return undefined;
+      const source = input.sourceContext;
+      if (Object.entries(data.context).some(([key, value]) => source[key as keyof typeof data.context] !== value)) stale();
+      if (!source.mdPerMmProvided && (source.mdPerMm !== resolveMdPerMm(undefined, this.options.mdPerMmEnvironment) || source.mdPerMmSource !== mdPerMmSource(undefined, this.options.mdPerMmEnvironment))) stale();
+      const origin = source.sourceProjection;
+      const validTask = (id: string | null | undefined, type?: string) => { if (id != null && !data.storedTasks.some((task) => task.publicId === id && (!type || task.type === type))) invalidSelection(); };
+      const validPerson = (id: string | undefined) => { if (id !== undefined && !data.resources.some((resource) => resource.publicId === id)) invalidSelection(); };
+      const validGroup = (id: string | null) => { if (id !== null && !data.groups.some((group) => group.publicId === id)) invalidSelection(); };
+      if (origin.kind === "details") {
+        const selector = origin.selector;
+        if (selector.dimension === "resource") validPerson(selector.id!);
+        if (selector.dimension === "group") validGroup(selector.id);
+        if (selector.dimension === "milestone") validTask(selector.id, "milestone");
+        validPerson(selector.resourceId); validTask(selector.milestoneTaskId, "milestone");
+      } else if (origin.kind === "groupChildren") { validGroup(origin.groupId); validTask(origin.milestoneTaskId, "milestone"); }
+      else if (origin.kind === "plan") {
+        const row = origin.selector;
+        if (row.kind === "group") validGroup(row.groupId);
+        if (row.kind === "resource" || row.kind === "resourceMilestone") validPerson(row.resourceId);
+        if (row.kind === "resourceMilestone") validTask(row.milestoneTaskId, "milestone");
+        if (dateToOrdinal(source.range.to) - dateToOrdinal(source.range.from) + 1 > LIMITS.rangeDays) resourceDashboardLimit("range.days");
+        const period = origin.periodId === "all" ? source.range : buildResourcePlanPeriods(source.range.from, source.range.to, origin.granularity).find((period) => period.key === origin.periodId);
+        if (!period || (origin.date !== undefined && (origin.date < period.from || origin.date > period.to))) invalidSelection();
+      }
+      // Validate descriptor IDs before legacy detail wrappers translate invalid filters to stale.
+      const descriptor = input.scope;
+      const sourceTasks = new Map(data.storedTasks.map(task => [task.publicId, task]));
+      if (descriptor.kind === "exactAssignments") {
+        const sourceAssignments = new Map(data.assignments.map(assignment => [assignment.publicId, assignment]));
+        for (const id of descriptor.assignmentIds) { const row = sourceAssignments.get(id); if (!row || row.kind !== "resource" || sourceTasks.get(row.taskPublicId)?.type !== "task") invalidSelection(); }
+      } else {
+        const ids = descriptor.kind === "summarySubtree" ? [descriptor.rootId] : descriptor.nodeIds;
+        for (const id of ids) { const task = sourceTasks.get(id); if (!task || task.type === "milestone" || (descriptor.kind === "summarySubtree" && task.type !== "summary")) invalidSelection(); }
+      }
+      const validateFilterIds = (ids: readonly string[] | undefined, allowed: Set<string>, sentinel?: string) => { if (ids?.some(id => id !== sentinel && !allowed.has(id))) invalidSelection(); };
+      validateFilterIds(input.filters.taskIds, new Set(data.storedTasks.filter(task => task.type === "task").map(task => task.publicId)));
+      validateFilterIds(input.filters.wbsRootIds, new Set(data.storedTasks.map(task => task.publicId)));
+      validateFilterIds(input.filters.milestoneIds, new Set(data.storedTasks.filter(task => task.type === "milestone").map(task => task.publicId)), "unassigned");
+      validateFilterIds(input.filters.resourceIds, new Set(data.resources.map(resource => resource.publicId)));
+      validateFilterIds(input.filters.groupIds, new Set(data.groups.map(group => group.publicId)), "ungrouped");
+      const projection = input.projection;
+      const filter = { ...input.filters, ...( "granularity" in projection ? { granularity: projection.granularity } : {}) };
+      // Freeze one clock for all nested projections in this same SQLite read transaction.
+      const service = new ResourceDashboardService(this.database, { ...this.options, clock: (() => { const now = (this.options.clock ?? (() => new Date()))(); return () => now; })() });
+      let result: ResourceDrillQueryResponse["data"] | undefined;
+      if (projection.kind === "report") result = service.getDashboard(publicId, filter, input.scope);
+      else if (projection.kind === "details") result = service.getDetails(publicId, filter, projection, input.scope);
+      else if (projection.kind === "groupChildren") result = service.getGroupChildren(publicId, filter, projection, input.scope);
+      else if (projection.kind === "scope") result = service.getScope(publicId, projection.target === "dashboard" ? { view: "dashboard", filters: filter, snapshotId: projection.snapshotId, selector: projection.selector } : { view: "plan", filters: filter, detail: { ...projection, offset: 0, limit: 100 } }, input.scope) as ResourceDrillScopeDto | undefined;
+      else result = service.getPlanDetails(publicId, filter, projection, projection.kind === "planDaily" ? "daily" : projection.kind === "planDayResources" ? "day-resources" : "day-assignments", input.scope);
+      if (!result) return undefined;
+      const response = { data: result, drill: { sourceContext: source, scope: input.scope, targetFilters: normalizeResourceDashboardFilters(filter), projection, assignmentScope: "exact-source-intersection" as const, projectReferenceScope: "same-resource-population-and-period" as const } };
+      assertResourcePlanResponseBytes(response, projection.kind === "report" ? "plan.bytes" : "detail.bytes"); return response;
     })();
   }
   private planPerson(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, resourceId: string): ResourcePlanPersonMetadata {
@@ -152,7 +258,7 @@ export class ResourceDashboardService {
       groups: raw.groups.filter((row) => this.visiblePlanGroup(snapshot, row.groupId)).map((row) => { const group = snapshot.groups.find((group) => group.publicId === row.groupId); return { ...row, name: group?.name ?? "미분류 리소스", code: group?.code ?? null, active: group?.active ?? true }; }),
       metadata: { ...raw.metadata, limits: RESOURCE_PLAN_LIMITS, populationScope: "ordinary-task-personal-assignment-history-classification-only", groupDisplayScope: "selected-group-and-activity" } };
   }
-  getDetails(publicId: string, filter: ResourceDashboardFilterInput, detail: ResourceDashboardDetailInput): ResourceDashboardDetailsDto | undefined {
+  getDetails(publicId: string, filter: ResourceDashboardFilterInput, detail: ResourceDashboardDetailInput, scope?: ResourceDrillScope): ResourceDashboardDetailsDto | undefined {
     // Programmatic callers get the same selector/page validation as HTTP callers.
     const params = new URLSearchParams({ snapshotId: detail.snapshotId, dimension: detail.selector.dimension, metric: detail.selector.metric, view: detail.view, offset: String(detail.offset), limit: String(detail.limit) });
     if (detail.selector.id !== null) params.set("id", detail.selector.id);
@@ -164,38 +270,26 @@ export class ResourceDashboardService {
     const checked = parseResourceDashboardDetails(params);
     return this.database.transaction(() => {
       let calculated: ReturnType<ResourceDashboardService["prepareAndSelect"]>;
-      try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId); }
+      try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId, scope); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
-      const { snapshot, selection, referenceRows, excludedRows, diagnosticSelection } = calculated;
+      const { snapshot, diagnosticSelection } = calculated;
       const { taskById, resourceById, assignmentById, paths, domain } = snapshot;
       const projection = domain.projection;
       const report = snapshot;
-      const diagnostics = getResourceKpiDiagnostics(domain, selection);
-      const selector = checked.selector;
-      const diagnosticRows = selector.dimension === "diagnostic" && selector.metric === "unset"
-        ? diagnosticSelection.assignments.filter((row) => diagnostics.unsetAssignmentIds.includes(row.assignmentId))
-        : null;
       if (report.snapshotId !== checked.snapshotId) stale();
-      if (selector.dimension === "resource" && !resourceById.has(selector.id!)) invalidSelection();
-      if (selector.dimension === "group" && selector.id !== null && !snapshot.groups.some((row) => row.publicId === selector.id)) invalidSelection();
-      if (selector.dimension === "milestone" && selector.id !== null && !snapshot.milestones.some((row) => row.publicId === selector.id)) invalidSelection();
-      if (selector.milestoneTaskId !== undefined && selector.milestoneTaskId !== null && !snapshot.milestones.some((row) => row.publicId === selector.milestoneTaskId)) invalidSelection();
-      if (selector.resourceId !== undefined) this.validateGroupResource(snapshot, selector.id, selector.resourceId);
-      const scopeRows = selector.assignmentScope === "milestoneReference" ? referenceRows : selector.assignmentScope === "milestoneExcluded" ? excludedRows : selection.assignments;
-      const scopeTotals = summarizeResourceKpiAssignments(domain, scopeRows);
-      const metricTaskIds = selector.metric === "notStarted" ? scopeTotals.notStarted.taskIds : selector.metric === "inProgress" ? scopeTotals.inProgress.taskIds : selector.metric === "completed" ? scopeTotals.completed.taskIds : selector.metric === "delayed" ? scopeTotals.delayed.taskIds : null;
-      const rows = scopeRows.filter((row) =>
-        (selector.resourceId === undefined || row.resourceId === selector.resourceId) &&
-        (selector.dimension !== "resource" || row.resourceId === selector.id) &&
-        (selector.dimension !== "group" || (selector.id === null ? !row.groupIds.length : row.groupIds.includes(selector.id))) &&
-        (selector.dimension !== "role" || row.roles.includes(selector.id!)) &&
-        (selector.dimension !== "milestone" || row.milestoneTaskId === selector.id) &&
-        (selector.milestoneTaskId === undefined || row.milestoneTaskId === selector.milestoneTaskId) &&
-        (!metricTaskIds || metricTaskIds.includes(row.taskId)) && (selector.metric !== "unset" || row.plannedMd === null));
-      const diagnosticTaskIds = selector.metric === "completelyUnassigned" ? diagnostics.completelyUnassigned.taskIds : selector.metric === "groupOnly" ? diagnostics.groupOnly.taskIds : selector.metric === "personallyUnassigned" ? diagnostics.personallyUnassigned.taskIds : diagnostics.unsetTasks.taskIds;
-      const targetTaskIds = selector.dimension === "diagnostic" ? diagnosticTaskIds : [...new Set(rows.map((row) => row.taskId))].sort();
-      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks" ? targetTaskIds.map((taskId) => ({ taskId, row: null })) : (diagnosticRows ?? rows).map((row) => ({ taskId: row.taskId, row }));
+      const selector = checked.selector;
+      const { rows, targetTaskIds } = this.detailTargets(calculated, selector);
+      // Diagnostic "unset" operates on all in-scope assignments rather than person-filtered rows.
+      const diagnosticIds = selector.dimension === "diagnostic" && selector.metric === "unset"
+        ? new Set(getResourceKpiDiagnostics(domain, calculated.selection).unsetAssignmentIds)
+        : null;
+      const diagnosticRows = diagnosticIds
+        ? diagnosticSelection.assignments.filter((row) => diagnosticIds.has(row.assignmentId))
+        : null;
+      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks"
+        ? targetTaskIds.map((taskId) => ({ taskId, row: null }))
+        : (diagnosticRows ?? rows).map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
       const page: ResourceDashboardDetailRow[] = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => {
         const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
@@ -208,7 +302,7 @@ export class ResourceDashboardService {
             assignmentStart: assignment.assignmentStart, assignmentEnd: assignment.assignmentEnd, from: row.from, to: row.to, allocationPercent: row.allocationPercent,
             effectiveWorkingDays: row.effectiveWorkingDays, plannedMd: row.plannedMd, plannedMm: row.plannedMm } : null };
       });
-      const result: ResourceDashboardDetailsDto = { schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,
+      const result: ResourceDashboardDetailsDto = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,
         projectRevision: report.project.revision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision,
         selector, view: checked.view, offset: checked.offset, limit: checked.limit, totalCount: details.length,
         nextOffset: checked.offset + checked.limit < details.length ? checked.offset + checked.limit : null, rows: page };
@@ -216,13 +310,37 @@ export class ResourceDashboardService {
       return result;
     })();
   }
-  getGroupChildren(publicId: string, filter: ResourceDashboardFilterInput, input: ResourceDashboardGroupChildrenInput): ResourceDashboardGroupChildrenDto | undefined {
+  private detailTargets(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>, selector: ResourceDashboardSelector) {
+    const { snapshot, selection, referenceRows, excludedRows } = calculated;
+    const { domain, resourceById } = snapshot;
+    const diagnostics = getResourceKpiDiagnostics(domain, selection);
+    if (selector.dimension === "resource" && !resourceById.has(selector.id!)) invalidSelection();
+    if (selector.dimension === "group" && selector.id !== null && !snapshot.groups.some((row) => row.publicId === selector.id)) invalidSelection();
+    if (selector.dimension === "milestone" && selector.id !== null && !snapshot.milestones.some((row) => row.publicId === selector.id)) invalidSelection();
+    if (selector.milestoneTaskId !== undefined && selector.milestoneTaskId !== null && !snapshot.milestones.some((row) => row.publicId === selector.milestoneTaskId)) invalidSelection();
+    if (selector.resourceId !== undefined) this.validateGroupResource(snapshot, selector.id, selector.resourceId);
+    const scopeRows = selector.assignmentScope === "milestoneReference" ? referenceRows : selector.assignmentScope === "milestoneExcluded" ? excludedRows : selection.assignments;
+    const scopeTotals = summarizeResourceKpiAssignments(domain, scopeRows);
+    const metricTaskIds = selector.metric === "notStarted" ? scopeTotals.notStarted.taskIds : selector.metric === "inProgress" ? scopeTotals.inProgress.taskIds : selector.metric === "completed" ? scopeTotals.completed.taskIds : selector.metric === "delayed" ? scopeTotals.delayed.taskIds : null;
+    const rows = scopeRows.filter((row) =>
+      (selector.resourceId === undefined || row.resourceId === selector.resourceId) &&
+      (selector.dimension !== "resource" || row.resourceId === selector.id) &&
+      (selector.dimension !== "group" || (selector.id === null ? !row.groupIds.length : row.groupIds.includes(selector.id))) &&
+      (selector.dimension !== "role" || row.roles.includes(selector.id!)) &&
+      (selector.dimension !== "milestone" || row.milestoneTaskId === selector.id) &&
+      (selector.milestoneTaskId === undefined || row.milestoneTaskId === selector.milestoneTaskId) &&
+      (!metricTaskIds || metricTaskIds.includes(row.taskId)) && (selector.metric !== "unset" || row.plannedMd === null));
+    const diagnosticTaskIds = selector.metric === "completelyUnassigned" ? diagnostics.completelyUnassigned.taskIds : selector.metric === "groupOnly" ? diagnostics.groupOnly.taskIds : selector.metric === "personallyUnassigned" ? diagnostics.personallyUnassigned.taskIds : diagnostics.unsetTasks.taskIds;
+    const targetTaskIds = selector.dimension === "diagnostic" ? diagnosticTaskIds : [...new Set(rows.map((row) => row.taskId))].sort();
+    return { rows, targetTaskIds };
+  }
+  getGroupChildren(publicId: string, filter: ResourceDashboardFilterInput, input: ResourceDashboardGroupChildrenInput, scope?: ResourceDrillScope): ResourceDashboardGroupChildrenDto | undefined {
     const params = new URLSearchParams({ snapshotId: input.snapshotId, groupId: input.groupId ?? "ungrouped", offset: String(input.offset), limit: String(input.limit) });
     if (input.milestoneTaskId !== undefined) params.set("milestoneTaskId", input.milestoneTaskId ?? "unassigned");
     const checked = parseResourceDashboardGroupChildren(params);
     return this.database.transaction(() => {
       let calculated: ReturnType<ResourceDashboardService["prepareAndSelect"]>;
-      try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId); }
+      try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId, scope); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
       const { snapshot, selection } = calculated;
@@ -244,7 +362,7 @@ export class ResourceDashboardService {
           summary: compact(summarizeResourceKpiAssignments(snapshot.domain, assignments), memberSelector),
           milestones: milestoneIds.sort((a, b) => milestoneOrder(snapshot, a, b)).map((milestoneTaskId) => ({ milestoneTaskId, summary: compact(summarizeResourceKpiAssignments(snapshot.domain, assignments.filter((row) => row.milestoneTaskId === milestoneTaskId)), { ...memberSelector, milestoneTaskId }) })) };
       });
-      const result: ResourceDashboardGroupChildrenDto = { schema: "resource-dashboard/1", projectPublicId: publicId, snapshotId: snapshot.snapshotId, projectRevision: snapshot.project.revision,
+      const result: ResourceDashboardGroupChildrenDto = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1", projectPublicId: publicId, snapshotId: snapshot.snapshotId, projectRevision: snapshot.project.revision,
         catalogRevision: snapshot.catalogRevision, calendarRevision: snapshot.calendarRevision, filters: snapshot.filters, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, groupId: checked.groupId,
         ...(checked.milestoneTaskId === undefined ? {} : { milestoneTaskId: checked.milestoneTaskId }), summary: compact(summarizeResourceKpiAssignments(snapshot.domain, rows), selector),
         offset: checked.offset, limit: checked.limit, totalCount: resourceIds.length, nextOffset: checked.offset + checked.limit < resourceIds.length ? checked.offset + checked.limit : null, rows: pageRows };
@@ -259,16 +377,12 @@ export class ResourceDashboardService {
   }
   private prepareSnapshot(publicId: string, filter: ResourceDashboardFilterInput) {
     if (!isCanonicalUuidV4(publicId)) return undefined;
-    const project = new ProjectRepository(this.database).findByPublicId(publicId);
-    if (!project) return undefined;
+    const rawData = readResourceDataSnapshot(this.database, publicId);
+    if (!rawData) return undefined;
+    const { project, storedTasks, assignments, resources, groups, memberships, projectCalendar } = rawData;
     const now = (this.options.clock ?? (() => new Date()))();
     const filters = normalizeResourceDashboardFilters(filter);
-    const repository = new ResourceDashboardRepository(this.database), counts = repository.counts(project.id);
-    for (const key of ["tasks", "assignments", "links", "calendarRules", "calendarDates", "catalogMemberships"] as const) if (counts[key] > LIMITS[key]) resourceDashboardLimit(`snapshot.${key}`);
-    const schedules = new ScheduleRepository(this.database), catalogRepository = new ResourceCatalogRepository(this.database);
-    const storedTasks = schedules.listTasks(project.id), assignments = catalogRepository.listAssignments(project.id);
     const taskById = new Map(storedTasks.map((row) => [row.publicId, row])), internalTasks = new Map(storedTasks.map((row) => [row.id, row]));
-    const { resources, groups } = repository.catalog(project.id);
     const resourceById = new Map(resources.map((row) => [row.publicId, row]));
     const groupIdsByResource = new Map<string, string[]>();
     for (const group of groups) for (const id of group.memberResourceIds) { const values = groupIdsByResource.get(id) ?? []; values.push(group.publicId); groupIdsByResource.set(id, values); }
@@ -296,15 +410,12 @@ export class ResourceDashboardService {
     const asOfDate = filters.asOfDate ?? localDate(now), from = filters.from ?? dates[0] ?? asOfDate, to = filters.to ?? dates.at(-1) ?? from;
     if (from > to) throw new PublicApiError(400, "INVALID_REQUEST", "조회 시작일과 종료일을 확인해 주세요.");
     if (dateToOrdinal(to) - dateToOrdinal(from) + 1 > LIMITS.rangeDays) resourceDashboardLimit("range.days");
-    const memberships = new MilestoneMembershipRepository(this.database).list(project.id);
-    const links = schedules.listLinks(project.id).map((row) => ({ id: row.publicId, predecessorTaskId: internalTasks.get(row.predecessorTaskId)!.publicId, successorTaskId: internalTasks.get(row.successorTaskId)!.publicId, type: row.type, lag: row.lag }));
+    const links = rawData.links.map((row) => ({ id: row.publicId, predecessorTaskId: internalTasks.get(row.predecessorTaskId)!.publicId, successorTaskId: internalTasks.get(row.successorTaskId)!.publicId, type: row.type, lag: row.lag }));
     const tasks = storedTasks.map((task) => ({ taskId: task.publicId, parentTaskId: task.parentId === null ? null : internalTasks.get(task.parentId)!.publicId,
       type: task.type, duration: task.duration, progress: task.progress, status: task.status, start: task.startDate, end: task.endDate,
       name: task.name, externalId: task.externalId, wbsPath: paths.get(task.publicId)!.map((row) => row.name).join(" / ") }));
-    const calendars = new WorkCalendarRepository(this.database);
-    const calendarRules = calendars.listRules(project.id), calendarDates = calendars.listDates(project.id);
-    const projectCalendar = resolveProjectWorkingCalendar(this.database, project.id), calendarExceptions = loadResourceCalendarExceptions(this.database, project.id);
-    const calendarRevision = fingerprint({ rules: calendarRules, dates: calendarDates });
+    const calendarExceptions = loadResourceCalendarExceptions(this.database, project.id);
+    const { catalogRevision, calendarRevision } = rawData.context;
     const activityMatches = (active: boolean, filter: "all" | "active" | "inactive") => filter === "all" || active === (filter === "active");
     const eligibleResourceIds = filters.resourceActivity === "all" && filters.groupActivity === "all" ? undefined : resources.filter((resource) =>
       activityMatches(resource.active, filters.resourceActivity) && (filters.groupActivity === "all" || groups.some((group) => group.memberResourceIds.includes(resource.publicId) &&
@@ -317,30 +428,34 @@ export class ResourceDashboardService {
       filters: { eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
         resourceIds: filters.resourceIds, groupIds: filters.groupIds.filter((id) => id !== "ungrouped"), includeUngrouped: filters.groupIds.includes("ungrouped"),
         roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } });
-    const catalogRevision = catalogRepository.getRevision();
-    const snapshotId = fingerprint({ projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, tasks, memberships, links, assignments,
-      resources, groups, filters: { ...filters, mode: undefined, granularity: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });
-    return { project, publicId, now, filters, from, to, asOfDate, dates, tasks, storedTasks, resources, groups, milestones, groupIdsByResource,
+    const snapshotId = fingerprint({ dataSnapshotId: rawData.context.dataSnapshotId, filters: { ...filters, mode: undefined, granularity: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });
+    return { dataContext: rawData.context, project, publicId, now, filters, from, to, asOfDate, dates, tasks, storedTasks, resources, groups, milestones, groupIdsByResource,
       taskById, resourceById, assignmentById: new Map(assignments.map((row) => [row.publicId, row])), paths, domain, mdPerMmSource: mdPerMmSource(filters.mdPerMmProvided ? filters.mdPerMm : undefined, this.options.mdPerMmEnvironment), catalogRevision, calendarRevision, snapshotId };
   }
-  private prepareAndSelect(publicId: string, filter: ResourceDashboardFilterInput, expectedSnapshotId?: string) {
+  private prepareAndSelect(publicId: string, filter: ResourceDashboardFilterInput, expectedSnapshotId?: string, scope?: ResourceDrillScope) {
     const snapshot = this.prepareSnapshot(publicId, filter);
     if (!snapshot) return undefined;
+    const restriction = scope ? this.resolveRestriction(snapshot, scope) : undefined;
+    if (restriction) snapshot.snapshotId = fingerprint({ snapshotId: snapshot.snapshotId, taskIds: [...restriction.tasks].sort(), assignmentIds: restriction.assignments ? [...restriction.assignments].sort() : null });
     if (expectedSnapshotId !== undefined && snapshot.snapshotId !== expectedSnapshotId) stale();
-    const reference = selectResourceKpiAssignments(snapshot.domain, { ...snapshot.domain.input.filters, milestoneIds: [] });
-    const diagnosticSelection = selectResourceKpiAssignments(snapshot.domain, {
-      taskIds: snapshot.domain.input.filters?.taskIds, wbsRootIds: snapshot.domain.input.filters?.wbsRootIds,
-      milestoneIds: snapshot.domain.input.filters?.milestoneIds, statuses: snapshot.domain.input.filters?.statuses,
+    const restrict = (value: ReturnType<typeof selectResourceKpiAssignments>) => restriction ? { ...value, assignments: value.assignments.filter((row) => restriction.tasks.has(row.taskId) && (!restriction.assignments || restriction.assignments.has(row.assignmentId))), t0: value.t0.filter((task) => restriction.tasks.has(task.taskId)), t0Ids: new Set([...value.t0Ids].filter((id) => restriction.tasks.has(id))) } : value;
+    // Keep the same exact drill scope, but do not narrow diagnostic coverage to personal filters.
+    const diagnosticSelection = restrict(selectResourceKpiAssignments(snapshot.domain, {
+      taskIds: snapshot.domain.input.filters?.taskIds,
+      wbsRootIds: snapshot.domain.input.filters?.wbsRootIds,
+      milestoneIds: snapshot.domain.input.filters?.milestoneIds,
+      statuses: snapshot.domain.input.filters?.statuses,
       taskSearch: snapshot.domain.input.filters?.taskSearch,
-    });
-    const selection = snapshot.filters.milestoneIds.length ? selectResourceKpiAssignments(snapshot.domain) : reference;
+    }));
+    const reference = restrict(selectResourceKpiAssignments(snapshot.domain, { ...snapshot.domain.input.filters, milestoneIds: [] }));
+    const selection = snapshot.filters.milestoneIds.length ? restrict(selectResourceKpiAssignments(snapshot.domain)) : reference;
     try { assertResourceKpiProjectionBudget(snapshot.domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
     const selectedIds = new Set(selection.assignments.map((row) => row.assignmentId));
     const excludedRows = reference.assignments.filter((row) => !selectedIds.has(row.assignmentId));
     return { snapshot, selection, referenceRows: reference.assignments, excludedRows, diagnosticSelection };
   }
-  private calculate(publicId: string, filter: ResourceDashboardFilterInput) {
-    const calculated = this.prepareAndSelect(publicId, filter);
+  private calculate(publicId: string, filter: ResourceDashboardFilterInput, scope?: ResourceDrillScope) {
+    const calculated = this.prepareAndSelect(publicId, filter, undefined, scope);
     if (!calculated) return undefined;
     const report = this.renderReport(calculated);
     if (calculated.snapshot.filters.granularity) { report.plan = this.renderPlan(calculated); assertResourcePlanResponseBytes({ data: report }); }
@@ -356,6 +471,7 @@ export class ResourceDashboardService {
     const convertCells = (rows: typeof raw.milestones, dimension: ResourceDashboardSelector["dimension"], id: string | null) => rows.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((row) => ({ milestoneTaskId: row.milestoneTaskId, summary: compact(row, { ...selector(dimension, id), milestoneTaskId: row.milestoneTaskId }) }));
     const diagnostic = (count: number, metric: ResourceDashboardSelector["metric"]) => ({ count, selector: { dimension: "diagnostic" as const, id: null, metric, assignmentScope: "selected" as const } });
     const report: ResourceDashboardDto = {
+      resourceScopeContext: this.sourceContext(snapshot, { kind: "report" }),
       schema: "resource-dashboard/1", projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, snapshotId,
       calculatedAt: now.toISOString(), asOfDate, timezone: "Asia/Seoul", filters, range: { from, to }, rangeFallback: !dates.length && filters.from === null,
       mdPerMm: raw.mdPerMm, mdPerMmSource: raw.mdPerMmSource, scope: { assignment: "A", diagnostics: "T0", identity: snapshotId },

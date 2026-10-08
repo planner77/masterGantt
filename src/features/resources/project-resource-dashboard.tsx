@@ -52,15 +52,18 @@ export function ProjectResourceDashboard({
   active,
   refreshDisabled,
   onRefreshProject,
+  initialFilters,
 }: {
   publicId: string;
   revision: number;
   active: boolean;
   refreshDisabled: boolean;
   onRefreshProject: () => void;
+  initialFilters?: ResourceDashboardFilterInput;
 }) {
-  const [filters, setFilters] =
-    useState<ResourceDashboardFilterInput>(DEFAULTS);
+  const [filters, setFilters] = useState<ResourceDashboardFilterInput>(
+    initialFilters ?? DEFAULTS,
+  );
   const [mode, setMode] = useState<"group" | "resource">("group");
   const [unit, setUnit] = useState<"md" | "mm">("md");
   const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan">(
@@ -98,7 +101,7 @@ export function ProjectResourceDashboard({
     queryKey,
   );
   const data = report.data;
-  // Invalidate stale details when the project query or snapshot changes.
+  // A changed query/snapshot invalidates interactive selections without resetting the cached report.
   const scopeKey = JSON.stringify([publicId, revision, queryKey, data?.snapshotId ?? null]);
   const [selectionScopeKey, setSelectionScopeKey] = useState(scopeKey);
   if (selectionScopeKey !== scopeKey) {
