@@ -10,7 +10,8 @@ async function setup(page: Page, readonly = false, longNames = false) {
   fixture.sessionEditable = !readonly;
   for (const item of fixture.tasks) { item.start = "2026-09-16"; item.end = "2026-09-17"; item.requestedStart = item.type === "summary" ? null : item.start; }
   fixture.tasks.push({ ...fixture.tasks[2], taskId: "00000000-0000-4000-8000-000000000005", externalId: "CANDIDATE", name: longNames ? "후보 작업 " + "아주긴한국어와LongUnbrokenName".repeat(15) : "후보 작업", siblingOrder: 4 });
-  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 });
+  fixture.tasks.push({ ...fixture.tasks[2], taskId: "00000000-0000-4000-8000-000000000006", externalId: "SECONDARY-1", name: "Secondary relation target", siblingOrder: 5 });
+  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "SECONDARY-1", type: "FS", lag: 0 });
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
@@ -20,7 +21,7 @@ async function setup(page: Page, readonly = false, longNames = false) {
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await editor.getByRole("tab", { name: /관계/ }).click();
-  await editor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
+  await editor.getByRole("button", { name: `${readonly ? "Existing summary child 관계 조회" : "Existing summary child 관계 편집"}`, exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }

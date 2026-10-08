@@ -236,6 +236,8 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
 
 test("linked endpoints, unrelated tasks, readonly state, and narrow layout preserve existing contracts", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
+  // Keep an independent ordinary Task for inline editing; Milestone Editor has dedicated tests above.
+  fixture.tasks.push({ ...fixture.tasks[2], taskId: id(5), externalId: "UNRELATED-5", name: "Unrelated leaf", siblingOrder: 4, url: null });
   fixture.links.push({ id: "inline-link", predecessorExternalId: "SUMMARY-CHILD-1", successorExternalId: "LEAF-1", type: "FS", lag: 0 });
   fixture.tasks[2].url = "https://example.invalid/linked";
   const route = await routeRenames(page, fixture);
@@ -256,13 +258,11 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
   expect(route.patches).toHaveLength(1);
   await ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`).click();
   await expect.poll(async () => (await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls))?.length).toBe(1);
-  const unrelated = await openMilestoneEditor(page, id(4));
-  await unrelated.getByLabel("작업명", { exact: true }).fill("Unrelated rename");
-  await unrelated.getByRole("button", { name: "저장", exact: true }).click();
-  await expect(unrelated).toBeHidden();
-  expect(fixture.tasks[3].name).toBe("Unrelated rename");
-  await page.getByRole("tab", { name: "일정", exact: true }).click();
-  await expect(nameCell(page, "Unrelated rename")).toHaveCount(0);
+  const unrelated = await openName(page, "Unrelated leaf");
+  await unrelated.fill("Unrelated rename");
+  await unrelated.press("Enter");
+  await expect(nameCell(page, "Unrelated rename")).toBeVisible();
+  expect(fixture.tasks.find(task => task.taskId === id(5))?.name).toBe("Unrelated rename");
 
   fixture.sessionEditable = false;
   await page.reload();

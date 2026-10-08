@@ -3723,6 +3723,13 @@ export function ProjectGantt({
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
+          onBlurCapture={(event) => {
+            // SVAR may cancel an inline editor when focus leaves the grid for a toolbar.
+            // Persist a valid blur exactly once through the same revision-guarded command as Enter.
+            if (!isCurrentInlineNameInput(event.target) || inlineComposingReference.current) return;
+            const session = inlineSessionReference.current;
+            if (session && !session.committed) commitInlineName(event.target.value, session);
+          }}
           onInput={(event) => {
             if (!isCurrentInlineNameInput(event.target)) return;
             event.target.removeAttribute("aria-invalid");
