@@ -1904,8 +1904,8 @@ export function ProjectGantt({
         const matchingRequest = request?.api === api && request.version === version && request.filter === visibleTaskFilterKey && request.key === context && request.scale === scale;
         const stableContext = applied?.api === api && applied.key === visibleTaskFilterKey && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay;
         const initialViewport = api.getState();
-        const targetLeft = matchingRequest && !request.hasInput() ? request.left : initialViewport.scrollLeft;
-        const targetTop = matchingRequest && !request.hasInput() ? request.top : initialViewport.scrollTop;
+        const targetLeft = request && matchingRequest && !request.hasInput() ? request.left : initialViewport.scrollLeft;
+        const targetTop = request && matchingRequest && !request.hasInput() ? request.top : initialViewport.scrollTop;
         const mayRestore = matchingRequest || stableContext;
         const root = ganttScrollReference.current;
         let userInput = false;
@@ -1926,7 +1926,7 @@ export function ProjectGantt({
             if (!cancelled && !userInput && apiReference.current === api && root.isConnected &&
                 peerViewportContext.current.visible && peerViewportContext.current.key === context &&
                 visibleTaskFilterKeyReference.current === visibleTaskFilterKey && scaleModeReference.current === scale &&
-                (!matchingRequest || !request.hasInput())) {
+                (!matchingRequest || !request || !request.hasInput())) {
               ensureTimelineEnd(api);
               const current = api.getState();
               if (Math.abs(current.scrollLeft - targetLeft) > 1 || Math.abs(current.scrollTop - targetTop) > 1) {
@@ -2059,9 +2059,37 @@ export function ProjectGantt({
       scale = scaleModeReference.current, gridWidth = api.getState().gridWidth,
       columnsKey = () => JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])),
       columns = columnsKey();
-    let cancelled = false, input = false;
+    let cancelled = false, input = false, wheelSerial = 0;
+    const yieldFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const markInput = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) input = true;
+      if (!(event.target instanceof Element) || !event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) return;
+      input = true; // A direct user gesture always cancels the previous tab's pending restore.
+      if (event.type !== "wheel") return;
+      const serial = ++wheelSerial;
+      void (async () => {
+        // Read Core after its native wheel handler, not the stale origin viewport.
+        await yieldFrame();
+        if (cancelled || serial !== wheelSerial || apiReference.current !== api) return;
+        const userViewport = api.getState();
+        let queue = canonicalSyncQueueReference.current;
+        await queue;
+        while (!cancelled && queue !== canonicalSyncQueueReference.current) {
+          queue = canonicalSyncQueueReference.current;
+          await queue;
+        }
+        await yieldFrame(); await yieldFrame();
+        if (cancelled || serial !== wheelSerial || apiReference.current !== api || !root.isConnected ||
+            !peerViewportContext.current.visible || peerViewportContext.current.key !== request.key ||
+            visibleTaskFilterKeyReference.current !== filter || scaleModeReference.current !== scale) return;
+        const currentViewport = api.getState();
+        if (Math.abs(currentViewport.scrollLeft - userViewport.scrollLeft) <= 1 &&
+            Math.abs(currentViewport.scrollTop - userViewport.scrollTop) <= 1) return;
+        ensureTimelineEnd(api);
+        const chartWidth = (api.getState() as TimelineState)._chartWidth;
+        if (typeof chartWidth === "number" && chartWidth > 0 && userViewport.scrollLeft > 0)
+          expandTimelineScale(api, chartWidth + userViewport.scrollLeft + 2 * GANTT_CELL_WIDTH[scale]);
+        await api.exec("scroll-chart", { left: userViewport.scrollLeft, top: userViewport.scrollTop });
+      })().catch(() => { /* A cancelled user-input recovery is not a viewport restore failure. */ });
     };
     const inputEvents = ["pointerdown", "wheel", "keydown"];
     for (const event of inputEvents) root.addEventListener(event, markInput, true);
@@ -2090,7 +2118,9 @@ export function ProjectGantt({
         const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
       } finally {
-        cleanupInput();
+        // Keep the wheel recovery guard alive after a user gesture until the
+        // view changes; otherwise a later Core layout can erase their input.
+        if (!input) cleanupInput();
       }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
     return () => { cancelled = true; cleanupInput(); };
