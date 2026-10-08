@@ -80,6 +80,10 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#552 enabled Day/Week co
       }
       await expect(frame.locator(".project-milestone-lane-plot")).toBeVisible();
       await expect.poll(() => frame.evaluate(node => { const chart = node.querySelector(".wx-chart")!.getBoundingClientRect(), lane = node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect(); return Math.abs(chart.x - lane.x) + Math.abs(chart.width - lane.width); })).toBeLessThanOrEqual(1);
+      // Wait for the canonical projection and native derived row/bar after a column resize.
+      // A missing row remains a failure rather than being hidden by a non-null assertion.
+      await expect(frame.locator('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000002"]')).toBeVisible();
+      await expect(frame.locator('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000002"]')).toBeVisible();
       const geometry = await frame.evaluate(node => {
         const rect = (element: Element) => { const r = element.getBoundingClientRect(); return { x:r.x, y:r.y, width:r.width, height:r.height }; };
         const row = node.querySelector('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000002"]')!, bar = node.querySelector('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000002"]')!, tick = node.querySelector('[data-milestone-tick="00000000-0000-4000-8000-000000000004"]');

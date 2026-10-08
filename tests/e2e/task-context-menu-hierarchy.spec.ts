@@ -383,17 +383,16 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
   const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
-  const milestoneAdd = rowByTaskId(page, headerLeaf!.taskId).locator('[data-action="add-task"]');
-  await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
-  let milestonePosts = 0;
-  const countMilestonePost = (request: import("@playwright/test").Request) => {
-    if (request.method() === "POST" && new URL(request.url()).pathname === `${api}/tasks`) milestonePosts += 1;
-  };
-  page.on("request", countMilestonePost);
-  await milestoneAdd.click({ force: true });
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다.");
-  page.off("request", countMilestonePost);
-  expect(milestonePosts).toBe(0);
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  const rejected = await page.request.post(`${api}/tasks`, {
+    headers: { Origin: origin, "If-Match": `"${milestoneSnapshot.data.project.revision}"` },
+    data: { name: "Forbidden milestone child", type: "task", parentTaskId: headerLeaf!.taskId, start: "2026-09-18", duration: 1, progress: 0 },
+  });
+  // Existing server rejects structurally invalid milestone-parent creation as a conflict.
+  expect(rejected.status()).toBe(409);
+  const afterGuard = (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  expect(afterGuard.data.project.revision).toBe(milestoneSnapshot.data.project.revision);
+  expect(afterGuard.data.tasks.some(task => task.name === "Forbidden milestone child")).toBe(false);
 
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
@@ -401,7 +400,8 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
 
   await allTab.click();
   await expect(allTab).toHaveAttribute("aria-selected", "true");
-  for (const taskId of [headerLeaf!.taskId, keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  for (const taskId of [keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
     await expect(rowByTaskId(page, taskId)).toBeVisible();
   }
 });
@@ -617,14 +617,6 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   expect(outdented.data.tasks.find((task) => task.name === "Gamma")!.parentExternalId).toBeNull();
 
   await openMenu(page, "Beta");
-  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
-  expect(milestone.data.tasks.find((task) => task.name === "Beta")!.type).toBe("milestone");
-
-  await openMenu(page, "Beta");
-  const taskAgain = await chooseSubmenu(page, "Convert to", "Task");
-  expect(taskAgain.data.tasks.find((task) => task.name === "Beta")!.type).toBe("task");
-
-  await openMenu(page, "Beta");
   await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
   await expect(menu(page)).toHaveCount(0);
   await openMenu(page, "Gamma");
@@ -634,8 +626,13 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   await openMenu(page, "Gamma");
   const added = await chooseSubmenu(page, "Add", "Task above");
   expect(added.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
+  await openMenuByTaskId(page, b.data.tasks.find((task) => task.name === "Beta")!.taskId);
+  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
+  const converted = milestone.data.tasks.find((task) => task.taskId === b.data.tasks.find((entry) => entry.name === "Beta")!.taskId)!;
+  expect(converted.type).toBe("milestone");
+  await expect(rowByTaskId(page, converted.taskId)).toHaveCount(0);
 
-  const finalRevision = added.data.project.revision;
+  const finalRevision = milestone.data.project.revision;
   await page.reload();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;

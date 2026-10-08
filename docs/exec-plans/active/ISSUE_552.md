@@ -111,3 +111,32 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 2026-10-08T18:21:40Z에 backend가 기존 3파일의 직접 관련 case를 `vitest -t`로 선별 실행했다. exit0, 1.19s, 고유23 PASS이며 35개는 선택 정규식의 비대상이다. 새 skip이나 guard 약화는 없다. Copy/Stage는 실제 native better-sqlite3 in-memory transaction, Delete recovery는 임시 파일 SQLite reopen을 사용한다. Request/Response handler는 in-process이며 이 시점의 새 화면 Next HTTP 연결은 NOT TESTED였다. Password hash helper는 fixture 주입이다.
 
 전체 subtree/internal remap/외부 소속 확인/completed full E·incident endpoint/Assignment Copy 제한/Cut identity/삭제 rollback/401·412·403 원자성을 검증했다. server/domain/contracts/migrations 173파일의 전후 변경0이며 aggregate SHA256은 `f36bd89f609975425123de4e2cf921d43884d70b4baa0edef2cc266cbf13e339`다. 실행 계약은 `/tmp/issue552-backend-guard-execution.json`, 원본 로그는 `/tmp/issue552-backend-guard-run.log`에 보존했다. 기존 또는 이후 동일 case 실행과 고유 수를 중복 합산하지 않는다.
+
+## PR #563 CI trace REWORK — 2026-10-09
+
+- 기존 #552 PR #561의 최초 전체 PR CI run `37839172928`은 quality/build/unit/Docker PASS, Chromium E2E 5/6 shard FAIL이었다. 이를 조사해 WBS에서 숨겨진 Milestone native 행에 의존하는 테스트를 변경하는 별도 보완 PR #563을 생성했다. 기존 기능 제품 소스 변경은 없으며, 이 PR의 UI/E2E/QA 최종 통과는 아직 주장할 수 없다.
+- PR #563 run `37848837406` (#2235.1)은 코드·E2E 실행 전 `변경 경로 판정`의 `scripts/verify-ci-run-trace.py`에서 FAIL하였다. PR 본문이 `Refs #552. PR #561...`으로 이어져 정규식 `^\\s*Refs\\s+#\\s*([1-9][0-9]*)\\s*$`에 맞는 독립 행이 없었다. 그 결과 `Refs` 목록이 빈 배열로 판정되어 다른 CI jobs가 SKIPPED / aggregator FAIL 처리되었다. 이를 E2E 재실패로 기록하지 않는다.
+- 보완: PR 본문에 **독립 한 행** `Refs #552`만 배치한다. PR 제목 `test(#552): ...`과 branch `fix/issue-552-ci-milestone-e2e`가 동일 Primary Issue #552로 정규화됨을 원본 CI 스크립트와 대조했다.
+- `pull_request.edited` 이벤트는 검증된 같은 SHA의 이전 전체 CI 성공 증거를 요구하므로 그 경량 실행으로 승인하지 않는다. 이 복구 기록을 별도 commit으로 추가하여 `synchronize` 이벤트의 전체 PR CI를 시작하고 **새 head SHA / run ID / result**를 구분해 확인한다. 임의 테스트 skip, gate 삭제, `continue-on-error`, 캐시로 성공 판정 우회는 하지 않는다.
+- 이 변경은 **PR metadata 및 실패·재실행 추적 문서만** 다룬다. 제품·API·DB·Scheduling·디자인 정책·버전은 변경하지 않는다. 신규 테스트의 실제 CI result는 새 실행 전 **NOT TESTED**이며, #551 선행 stacked base 및 #553 후속 PR 겹치는 E2E 변경은 병합 단계에 별도 정리한다.
+- `release_required=true`, `release_authorized=false`. 새 PR CI START까지만 수행하며 merge/main/GHCR/tag/release/Issue close는 요청되지 않았다.
+
+## PR #563 Chromium E2E REWORK — Run #2237.1
+
+- 정확한 PR #563 head `ef4e900f076697a1cb21a2fa9072e1e386b704bf`, run `37849385061` (#2237.1): 변경 경로/typecheck/lint/Vitest/build/policy/Docker PASS, Chromium E2E shard 1/6 PASS 및 shard 2~6 FAIL. 이번 실패는 실제 E2E 회귀이며 이전 PR metadata trace fail과 별개다.
+- 오라클 변경: 숨겨진 Milestone native row/bar를 강제로 찾아 클릭하지 않고 Milestone 대시보드 `data-milestone-task-id`에 정확한 ID로 진입한다. 동일 Editor, 관계, clipboard-ID, read-only 및 locked 서버 guard를 검사한다. Task/Task Link의 native context→Relation Editor, fullscreen 유지는 기존 진입 경로로 검증한다.
+- 범위 내 11개 회귀 spec/helper 보완: Project Editor/화면 밀도, 단계 대시보드의 실제 스크롤 가능한 일반 WBS fixture, 컨텍스트 메뉴/Copy ID/구조 명령, canonical completed Milestone copy guard, 리소스 drill의 숨은 M 행, column resize 전 derived row/bar 실제 가시성, link management context. 전체 TEST SKIP / assertion 기준 완화 없음.
+- 범위 밖 실증 원인: metadata rename 후 native row 일시 소실, Summary/Task canonical mutation 후 scroll/peer viewport 120→100 또는 68→0, 390px lane/768px geometry, 대형 milestone lane resize. 제품 결함이거나 테스트 fixture 공간 부족일 가능성을 구분해야 하므로 기존 강한 assertion을 유지하고 새 remote E2E에서 검증한다. 각 미통과 항목을 PASS로 보고하지 않는다.
+- Source/DB/API/scheduling/version 변경 없음. `DESIGN.md`, `AGENTS.md`, `TEST_PLAN.md`의 정책 자체는 변경되지 않아 유지한다. 이 문서는 active Packet의 실패/수정/검증 범위 근거를 추가한다. 실제 local E2E/독립 QA는 이 세션에서 미실행하여 NOT TESTED; GitHub Actions에서 새 head의 공식 gate를 확인한다.
+- release_required=true / release_authorized=false; 범위 PR CI START. merge/main/GHCR/tag/release/Issue close는 수행하지 않는다.
+
+## PR #563 CI #2245.1 E2E 실패 보완
+
+- CI run `37852749930` (#2245.1), head `3ee2b2a42dcc6e02bc74a5085523a2515152e543`: `changes`/TypeScript/ESLint/Vitest/build/policy/Docker PASS, E2E shard 1·2 PASS, shard 3~6 FAIL. 실제 4개 Chromium shard 실패로 기록하며 단순 재실행으로 성공 처리하지 않는다.
+- relation-dlg/fullscreen: 단일 Link SVG는 존재하지만 native Gantt bar/header가 포인터 hit test를 가로막음. `force:true` 같은 기계적 우회가 아니라 **Task 정보→관계 탭→정확 Link 관계 편집**이라는 지원된 사용자 진입점으로 변경한다. link ID 보존·Relation Editor 명령·키보드·focus·fullscreen의 검증은 유지한다.
+- Copy ID: Dashboard/Logistics에 `data-milestone-task-id`가 중복되므로 `#project-panel-milestones`와 `data-ready` 및 canonical ID로 스코프를 제한한다. Milestone native row에 접근하지 않는다.
+- server locked guard: 실제 invalid milestone parent create의 거부 status가 409이며 422 고정 오라클과 달랐다. 409을 검증하고 revision 불변·child 부재는 유지한다.
+- inline Milestone 편집/readonly/401: 더 이상 존재하지 않는 WBS Milestone 이름 셀 대신 Dashboard exact-ID Editor를 사용한다. Task Grid inline name은 유지한다.
+- 제품 viewport: geometry·selection·scale·user input·scope가 동일한 metadata 변경의 복원에서 `scrollLeft==0`만 복원하던 결함을 고쳐 120→100 같은 부분 clamp도 보존한다. 명시적 사용자 입력·변경된 filter/context·new scale 등 기존 취소 guard는 그대로 적용한다.
+- 제품 WBS projection: 공개 Core의 `update-task`/`add-task`/`delete-task` 이벤트에도 기존 frame-coalesced projection 재확인을 요청한다. 새 숨은 Milestone native 행이 나타나거나 일반 Task가 소실되는 회귀를 기존 전체 E2E로 검증한다. Core private field 쓰기/강제 remount/polling/assertion 약화는 하지 않는다.
+- 미검증: 실제 GitHub E2E 및 로컬 독립 QA, peer restore 사용자 wheel vs delayed restore, 대용량 Timeline/좁은 width geometry, confirmed delete scroll. 새 head 전체 CI의 최종 PASS를 주장하지 않는다. release_required=true/release_authorized=false, merge/main/GHCR/tag/Issue close 제외.

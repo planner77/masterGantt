@@ -25,15 +25,17 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     mutations.length = 0;
 
     const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
-    await search.fill("Stable milestone");
-    await expect(page.getByRole("status").filter({ hasText: "1개 일치" })).toBeVisible();
-    await expect(rowNamed(page, "Stable milestone")).toBeVisible();
+    await search.fill("Existing summary child");
+    await expect(page.getByRole("status").filter({ hasText: "1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 1개 / 전체 3개 WBS 작업" })).toBeVisible();
+    await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /프로젝트 전체 Milestone 목록 1개/ })).toBeVisible();
     await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
     await expectSameGanttRoot(page, identity);
 
     await page.getByRole("button", { name: "초기화", exact: true }).click();
     await expect(rowNamed(page, "Stable leaf")).toBeVisible();
-    await expect(rowNamed(page, "Stable milestone")).toBeVisible();
+    await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
+    await expect(rowNamed(page, "Existing summary child")).toBeVisible();
     await expectSameGanttRoot(page, identity);
     expect(documents).toEqual([]);
     expect(mutations).toEqual([]);
@@ -49,7 +51,7 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
 
     await page.getByRole("button", { name: "필터", exact: true }).click();
     await page.getByLabel("작업명", { exact: true }).fill("Existing summary child");
-    await expect(page.getByRole("status").filter({ hasText: "1개 일치" })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 1개 / 전체 3개 WBS 작업" })).toBeVisible();
     await expect(rowNamed(page, "Stable summary")).toBeVisible();
     await expect(rowNamed(page, "Existing summary child")).toBeVisible();
     await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);

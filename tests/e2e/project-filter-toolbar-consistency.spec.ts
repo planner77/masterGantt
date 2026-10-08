@@ -150,7 +150,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     const taskFilter = taskToolbar.locator('button[aria-controls="project-task-filter-panel"]');
     await taskSearch.fill("Stable leaf");
     await expect(taskFilter).toHaveText("필터 1");
-    await expect(taskToolbar.getByRole("status")).toContainText("1개 일치 / 전체 4개 작업");
+    await expect(taskToolbar.getByRole("status")).toContainText("1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 / 전체 3개 WBS 작업");
     await expect(page.locator(".schedule-heading-row p")).toHaveText("작업 일정을 확인하고 관리합니다.");
     const taskReset = taskToolbar.getByRole("button", { name: "초기화" });
     await expect(taskReset).toBeVisible();

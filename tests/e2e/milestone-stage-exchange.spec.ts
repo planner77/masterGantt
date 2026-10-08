@@ -1,3 +1,4 @@
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 import { inflateRawSync } from "node:zlib";
 import type { Page, Download } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -137,7 +138,8 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   const beforeEdit = project.snapshot.data.project.revision;
   await editor.getByRole("button", { name: "저장", exact: true }).click(); await expect(editor).toHaveCount(0); await project.refresh();
   expect(project.snapshot.data.project.revision).toBe(beforeEdit + 1);
-  const milestoneEditor = await openTask(page, join.taskId); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  const milestoneEditor = await openMilestoneEditor(page, join.taskId); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   const header = page.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(page, child.taskId).getByRole("button", { name: /완료 단계:/ })).toContainText(join.name);
   const stageTrigger = page.locator("#project-panel-schedule .project-stage-filter-trigger"); await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter"); await expect(row(page, child.taskId)).toBeVisible(); await expect(row(page, free.taskId)).toHaveCount(0);
@@ -235,7 +237,14 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     await peer.locator('summary[aria-label="프로젝트 작업 더보기"]').click(); const frame = peer.locator(".project-gantt-frame"); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /.+/); const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
     const peerHeader = peer.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await peerHeader.click({ button: "right" }); await peer.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await peer.keyboard.press("Escape");
     await peer.getByRole("button", { name: "주", exact: true }).click(); const toggle = row(peer, summary.taskId).locator('[data-action="open-task"]'); await toggle.click(); await expect(toggle).toHaveClass(/wxi-menu-right/);
+    const descendants = new Set<string>([summary.externalId]);
+    let added = true; while (added) { added = false; for (const task of internalCopy.data.tasks) if (task.parentExternalId && descendants.has(task.parentExternalId) && !descendants.has(task.externalId)) { descendants.add(task.externalId); added = true; } }
+    const descendantWbsIds = internalCopy.data.tasks.filter(task => task.type !== "milestone" && task.taskId !== summary.taskId && descendants.has(task.externalId)).map(task => task.taskId);
+    expect(descendantWbsIds.length).toBeGreaterThan(0);
+    const readCore = () => frame.evaluate(element => { const value = Reflect.get(element, "__masterganttMilestoneTimeline").read(); const ids = (values: (string | number)[]) => values.map(id => String(id).replace(/^:/, "")); return { rows: value.rows.map((row: {id:string}) => row.id.replace(/^:/, "")), selected: ids(value.selected), appSelection: ids(value.appSelection) }; });
+    const collapsedRows = (await readCore()).rows; expect(collapsedRows).toContain(summary.taskId); for (const id of descendantWbsIds) expect(collapsedRows).not.toContain(id);
     const selected = row(peer, free.taskId); await selected.locator('[data-col-id=":text"]').click(); await expect(selected).toHaveClass(/wx-selected/);
+    await expect.poll(async () => (await readCore()).selected).toEqual([free.taskId]); await expect.poll(async () => (await readCore()).appSelection).toEqual([free.taskId]);
     const chart = peer.locator(".project-gantt-widget .wx-chart");
     expect(await chart.evaluate((element) => element.scrollWidth - element.clientWidth), "Week timeline has a real horizontal buffer").toBeGreaterThanOrEqual(120);
     const verticalRange = await peer.locator(".project-gantt-widget .wx-gantt").evaluate((element) => element.scrollHeight - element.clientHeight); expect(verticalRange, "Real task rows have a nonzero vertical buffer").toBeGreaterThanOrEqual(96);
@@ -251,7 +260,8 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     await peer.setViewportSize({ width: 1456, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); await peer.setViewportSize({ width: 1440, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("subsequent-layout"));
     await expect(peerHeader.getByText("완료 단계", { exact: true })).toBeVisible();
     await testInfo.attach("actual-464-viewport-checkpoints", { body: JSON.stringify(checkpoints), contentType: "application/json" });
-    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!); await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week"); await expect(toggle).toHaveClass(/wxi-menu-right/); await expect(selected).toHaveClass(/wx-selected/);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!); await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week"); const returnedCore = await readCore(); expect(returnedCore.rows).toEqual(collapsedRows); for (const id of descendantWbsIds) expect(returnedCore.rows).not.toContain(id); expect(returnedCore.selected).toEqual([free.taskId]); expect(returnedCore.appSelection).toEqual([free.taskId]);
+    await testInfo.attach("actual-464-collapsed-projection-selection", { body: JSON.stringify({ collapsedRows, descendantWbsIds, returnedCore }), contentType: "application/json" });
     await peer.screenshot({ path: "output/playwright/issue-464-actual/after-readonly-peer.png" });
     await testInfo.attach("actual-464-viewport", { body: JSON.stringify(await live()), contentType: "application/json" });
   } finally { await readonly.close(); }

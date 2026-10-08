@@ -1,5 +1,33 @@
+import { writeFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
-import { expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rootAdd, rowNamed } from "../fixtures/stateful-project";
+import { expectSameGanttRoot, installStatefulProjectFixture, publicId, projectPath, rememberGanttRoot, rootAdd, rowNamed, type StatefulProjectFixture } from "../fixtures/stateful-project";
+
+async function notificationCommandReady(page: Page, fixture: StatefulProjectFixture) {
+  const frame = page.locator(".project-gantt-frame");
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+  await expect(frame).toHaveAttribute("data-gantt-canonical-sync-depth", "0");
+  await expect.poll(() => frame.evaluate(node => node.getAttribute("data-gantt-canonical-sync-generation") !== null && node.getAttribute("data-gantt-canonical-sync-generation") === node.getAttribute("data-gantt-canonical-sync-settled-generation"))).toBe(true);
+  await expect(rootAdd(page)).toBeEnabled(); await expect(rootAdd(page)).not.toHaveAttribute("aria-disabled", "true");
+  const expected = fixture.tasks.filter(task => task.type !== "milestone").map(task => task.taskId).sort();
+  await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().rows.map((row: {id:string}) => row.id.replace(/^:/, "")).sort())).toEqual(expected);
+  await expect(page.locator(".schedule-saving")).toHaveCount(0);
+}
+
+/** Notifications use a supported root command with a synthetic server rejection.
+ * Hidden M child commands stay absent; actual parent rejection is a server test concern. */
+async function rejectRootForNotification(page: Page, fixture: StatefulProjectFixture, unread: number) {
+  await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
+  await notificationCommandReady(page, fixture);
+  const before = await page.evaluate(async path => (await fetch(path)).json(), projectPath);
+  fixture.nextPost = { kind: "error", status: 422, code: "INVALID_PARENT_TASK" };
+  const requestCount = fixture.posts.length;
+  await rootAdd(page).dispatchEvent("click");
+  await expect.poll(() => fixture.posts.length).toBe(requestCount + 1);
+  expect(fixture.posts.at(-1)?.parentTaskId).toBeUndefined();
+  await expect(page.getByRole("button", { name: `알림함, 미확인 ${unread}건`, exact: true })).toBeVisible();
+  await notificationCommandReady(page, fixture);
+  expect(await page.evaluate(async path => (await fetch(path)).json(), projectPath)).toEqual(before);
+}
 
 async function geometry(page: Page) {
   return page.evaluate(() => {
@@ -10,6 +38,13 @@ async function geometry(page: Page) {
     };
     return { pageX: window.scrollX, pageY: window.scrollY, project: rect(".project-readonly"), grid: rect(".wx-table-container"), chart: rect(".wx-chart") };
   });
+}
+
+async function captureNotificationLayout(page: Page, phase: string) {
+  if (!process.env.CAPTURE_ISSUE_553_NOTIFICATIONS) return;
+  const layout = await page.locator(".project-gantt-frame").evaluate(frame => Array.from(frame.querySelectorAll("*"), node => { const r=node.getBoundingClientRect(), s=getComputedStyle(node);return {tag:node.tagName,class:node.getAttribute("class"),style:node.getAttribute("style"),text:node.childElementCount===0?node.textContent:null,rect:{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom},height:s.height,minHeight:s.minHeight,maxHeight:s.maxHeight,display:s.display,flex:s.flex,overflow:s.overflow}; }));
+  await writeFile(`/tmp/issue553-notification-${phase}.json`,JSON.stringify(layout,null,2));
+  await page.screenshot({path:`/tmp/issue553-notification-${phase}.png`});
 }
 
 function rectanglesOverlap(
@@ -30,22 +65,37 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
-  const milestoneAdd = rowNamed(page, "Stable milestone").locator('[data-action="add-task"]');
-  await milestoneAdd.scrollIntoViewIfNeeded();
   const chart = page.locator(".wx-chart");
   await chart.evaluate((element) => { element.scrollLeft = 200; });
-  const before = await geometry(page);
+  let before = await geometry(page);
+  const layoutBounds = () => page.evaluate(() => { const rect=(selector:string)=>{const r=document.querySelector(selector)!.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};return {frame:rect(".project-gantt-frame"),lane:rect(".project-milestone-lane")}; });
+  const frameAndLane = await layoutBounds(); expect(frameAndLane.lane.height).toBe(64);
+  await captureNotificationLayout(page,"before");
   // Native dispatch avoids Playwright actionability auto-scroll from changing the Grid position.
-  await milestoneAdd.dispatchEvent("click");
+  await rejectRootForNotification(page, fixture, 1);
   await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
   await expect(page.getByRole("button", { name: "알림함, 미확인 1건" })).toBeVisible();
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
-  await rootAdd(page).click();
+  await notificationCommandReady(page, fixture);
+  const beforeCreateRevision=fixture.project.revision, beforeCreateIds=fixture.tasks.map(task=>task.taskId).sort();
+  await expect(page.locator(".project-copy-selection-status")).toHaveCount(0);
+  await rootAdd(page).dispatchEvent("click");
   await expect(page.getByTestId("workspace-toast")).toContainText("작업을 추가했습니다");
   await expect(page.getByRole("button", { name: "알림함, 미확인 1건" })).toBeVisible();
-  expect(fixture.posts).toHaveLength(1);
-  expect(await geometry(page)).toEqual(before);
+  expect(fixture.posts).toHaveLength(2);
+  await notificationCommandReady(page, fixture);
+  await captureNotificationLayout(page,"after-success");
+  expect(fixture.project.revision).toBe(beforeCreateRevision+1); expect(fixture.createdTaskIds).toHaveLength(1);
+  expect(fixture.tasks.map(task=>task.taskId).sort()).toEqual([...beforeCreateIds,fixture.createdTaskIds[0]].sort());
+  const scopeNotice=page.locator(".project-copy-selection-status"); await expect(scopeNotice).toHaveText("표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
+  const occupied=await scopeNotice.evaluate(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {height:r.height,marginTop:parseFloat(s.marginTop),marginBottom:parseFloat(s.marginBottom)};});
+  expect(occupied).toEqual({height:20,marginTop:4,marginBottom:4}); const noticeHeight=occupied.height+occupied.marginTop+occupied.marginBottom; expect(noticeHeight).toBe(28);
+  const afterCreate=await geometry(page); expect(afterCreate.grid.height).toBe(before.grid.height-noticeHeight); expect(afterCreate.chart.height).toBe(before.chart.height-noticeHeight);
+  expect({...afterCreate,grid:{...afterCreate.grid,height:before.grid.height},chart:{...afterCreate.chart,height:before.chart.height}}).toEqual(before);
+  expect(await layoutBounds()).toEqual(frameAndLane);
+  // Canonical creation adds the existing scope notice; later notification operations use its exact stable layout.
+  before=afterCreate;
   await expectSameGanttRoot(page, identity);
   await page.clock.fastForward(5_100);
   await expect(page.getByTestId("workspace-toast")).toBeEmpty();
@@ -167,11 +217,11 @@ test("Clipboard API 권한 거부는 legacy로 우회하지 않고 수동 fallba
 
 test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 원문 서버 응답을 노출하지 않는다", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await installStatefulProjectFixture(page);
+  const fixture = await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
-  for (let index = 0; index < 8; index++) await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').dispatchEvent("click");
+  for (let index = 0; index < 8; index++) await rejectRootForNotification(page, fixture, index + 1);
   await expect(page.getByRole("button", { name: "알림함, 미확인 8건" })).toBeVisible();
   const before = await geometry(page);
   await page.getByRole("button", { name: "알림함, 미확인 8건" }).click();
@@ -190,7 +240,7 @@ test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 
 for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
   test(`${width}px에서 브랜드·메뉴·알림 버튼의 hit area가 분리된다`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
-    await installStatefulProjectFixture(page);
+    const fixture = await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
     await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
@@ -230,7 +280,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
     }
 
     // Native dispatch avoids scrolling the workspace away from the header while creating unread state.
-    await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').dispatchEvent("click");
+    await rejectRootForNotification(page, fixture, 1);
     await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
     const unreadBell = page.getByRole("button", { name: "알림함, 미확인 1건", exact: true });
     await expect(unreadBell).toBeVisible();

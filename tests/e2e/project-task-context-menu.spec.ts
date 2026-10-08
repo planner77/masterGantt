@@ -437,21 +437,22 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
   await expectClipboardText(page, summary.taskId);
 
-  const milestoneBar = page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`);
-  await expect(milestoneBar).toBeVisible();
-  await milestoneBar.click({ button: "right" });
-  menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expect(page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`)).toHaveCount(0);
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  const managementPanel = page.locator("#project-panel-milestones");
+  await expect(managementPanel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  const managementRow = managementPanel.locator(`[data-milestone-task-id="${milestone.taskId}"]`);
+  await expect(managementRow).toBeVisible();
+  await managementRow.getByRole("button", { name: "Copy ID Milestone 관리", exact: true }).click();
+  await page.getByRole("dialog", { name: "Copy ID Milestone 관리", exact: true }).getByRole("button", { name: "작업 ID 복사", exact: true }).click();
   await expectClipboardText(page, milestone.taskId);
-
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   menu = await openTaskMenu(page, "Copy ID Task");
   await menu.getByRole("menuitem", { name: "Copy", exact: true }).click();
-  menu = await openTaskMenu(page, "Copy ID Milestone");
-  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
-  await expectClipboardText(page, milestone.taskId);
-  menu = await openTaskMenu(page, "Copy ID Milestone");
+  menu = await openTaskMenu(page, "Copy ID Summary");
   await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
   await page.keyboard.press("Escape");
+  await expect(page.locator(`.project-gantt-widget .wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
   expect((await snapshot(page, api)).data.project.revision).toBe(revisionBeforeCopyId);
 
   await context.clearCookies();
@@ -604,8 +605,9 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
     duration: 0,
   });
 
+  await expect(page.locator(`.project-gantt-widget .wx-row[data-id=":${a.taskId}"]`)).toHaveCount(0);
   const beforeAddRevision = current.data.project.revision;
-  menu = await openTaskMenu(page, "Context A");
+  menu = await openTaskMenu(page, "Context B");
   await runSubmenu(page, "Add", "Task below");
   await expectStructureToast(page);
   current = await snapshot(page, api);
@@ -617,7 +619,8 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   current = await snapshot(page, api);
   expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.type).toBe("milestone");
   expect(current.data.tasks.filter((task) => task.name === "Context C")).toHaveLength(2);
-  await expect(page.getByRole("grid").getByText("Context A", { exact: true })).toBeVisible();
+  await expect(page.locator(`.project-gantt-widget .wx-row[data-id=":${a.taskId}"]`)).toHaveCount(0);
+  expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.name).toBe("Context A");
 });
 
 

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
+import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rowNamed } from "../fixtures/stateful-project";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 const linkId = "00000000-0000-4000-8000-000000000080";
 const title = "작업 관계 관리 (Relation Editor)";
@@ -9,11 +10,18 @@ async function setup(page: Page, readonly = false, longNames = false) {
   fixture.sessionEditable = !readonly;
   for (const item of fixture.tasks) { item.start = "2026-09-16"; item.end = "2026-09-17"; item.requestedStart = item.type === "summary" ? null : item.start; }
   fixture.tasks.push({ ...fixture.tasks[2], taskId: "00000000-0000-4000-8000-000000000005", externalId: "CANDIDATE", name: longNames ? "후보 작업 " + "아주긴한국어와LongUnbrokenName".repeat(15) : "후보 작업", siblingOrder: 4 });
-  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "MILESTONE-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 });
+  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "CANDIDATE", type: "FS", lag: 0 });
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
-  await page.locator(`[data-link-id=":${linkId}"]`).first().dblclick({ force: true });
+  // The native SVG line may sit behind a bar: use the public relation command
+  // in Task information rather than bypassing pointer hit testing.
+  await expect(page.locator(`[data-link-id=":${linkId}"]`)).toHaveCount(1);
+  await rowNamed(page, "Stable leaf").click({ button: "right" });
+  await chooseTaskInformation(page);
+  const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await taskEditor.getByRole("tab", { name: /관계/ }).click();
+  await taskEditor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }
@@ -57,7 +65,7 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await expect(modal).toHaveCount(0);
   await expectSameGanttRoot(page, root);
-  expect(await page.evaluate(() => document.activeElement?.closest(".project-gantt-frame") !== null)).toBe(true);
+  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toBeVisible();
 });
 
 test("명시적 닫기는 후보 popup보다 우선해 dirty 닫기 확인으로 진입한다", async ({ page }) => {
@@ -127,7 +135,7 @@ test("삭제 확인은 대상 이름을 표시하고 취소는 DELETE를 보내�
   let deletes = 0;
   page.on("request", (request) => { if (request.method() === "DELETE" && request.url().includes("/links/")) deletes++; });
   await dialog(page).getByRole("button", { name: "관계 삭제", exact: true }).click();
-  await expect(dialog(page).getByRole("alert")).toContainText("Stable leaf → Stable milestone");
+  await expect(dialog(page).getByRole("alert")).toContainText("Stable leaf → Existing summary child");
   await dialog(page).getByRole("button", { name: "삭제 취소" }).click();
   expect(deletes).toBe(0);
   await expect(dialog(page)).toBeVisible();
