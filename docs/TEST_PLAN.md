@@ -2484,3 +2484,7 @@ PR #488 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`의 코드 리뷰�
 후속 수정 검증: GitHub runner Ubuntu 24.04 `mirror+file:/etc/apt/apt-mirrors.txt`/기존 Azure source를 첫 Playwright 설치 전에 공식 Ubuntu archive로 변경, APT HTTP/HTTPS 자체 제한시간 45초 및 1회 Acquire retry, 최초 실패 후 lists/dpkg 잠금의 실제 점유 프로세스를 최대 60초 확인한 뒤 잠금 해제 때만 1회 설치 재시도, 잠금이 유지되거나 도구가 없으면 즉시 실패, 임의 강제 프로세스 kill 금지. 기존 E2E shard 6개·workers 1·2초 bounded scroll poll·focus/geometry assertion, CI/Release job budget 및 Docker/runtime/보안 필수 gate 유지.
 
 후속 PR은 새로운 exact-head PR CI의 Quality/E2E/Docker 전체 PASS를 요구하며, Main CI 및 임시 GHCR 게시/digest smoke는 새 merge SHA에서 별도로 PASS 확인 후에만 Issue #487 최종 완료로 판정한다. 정식 tag/release_required=false, application version 불변.
+
+### Issue #487 후속 PR #558 첫 PR CI 정적 회귀 보완
+
+첫 후속 head `71ee4a340aeadcae9492a88a30e616a1a7f6695f`의 PR CI #2211.1 (`37797599643`)에서 테스트 `tests/scripts/test-config-layout.test.ts`의 Playwright setup 계약 검증 1건이 FAIL했다. 원인은 코드의 실제 미러 검색 경로가 유지됐음에도 action 주석에 기존 계약 문자열 `mirror+file:/etc/apt/apt-mirrors.txt`를 정확히 쓰지 않아 문자열 기반 정적 테스트에 불일치가 발생한 것이다. 해당 Ubuntu 24.04 주석을 정확한 경로로 보강한 commit `9b226833f8dd1e3441fc53beb93be003dba66e92`에서 재검증한다. 테스트·설치 예외를 제거하거나 제품 assertion을 완화하지 않는다.
