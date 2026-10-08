@@ -23,7 +23,33 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        # Bound network stalls; success is required, never skipped.
+
+        # #487 Main CI #2203.1: npx timeout can leave a sudo apt-get child
+        # holding /var/lib/apt/lists/lock after the parent exits.
+        # Normalize the known slow Azure runner mirror BEFORE the first apt
+        # operation, including Ubuntu 24.04 mirror+file indirection.
+        azure_sources=()
+        for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
+          [[ -f "$source" ]] || continue
+          if grep -Fq 'azure.archive.ubuntu.com/ubuntu' "$source"; then
+            azure_sources+=("$source")
+          fi
+        done
+        if (( ${#azure_sources[@]} > 0 )); then
+          echo "::notice::Selecting the official Ubuntu archive before Playwright dependency installation."
+          for source in "${azure_sources[@]}"; do
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$source"
+          done
+        fi
+
+        # APT network deadlines let sudo apt-get unwind locks rather than
+        # relying only on the outer npx timeout to terminate child processes.
+        sudo tee /etc/apt/apt.conf.d/99mastergantt-playwright-ci >/dev/null <<'APT_CONF'
+        Acquire::http::Timeout "45";
+        Acquire::https::Timeout "45";
+        Acquire::Retries "1";
+        APT_CONF
+
         install_deps() {
           timeout --signal=TERM --kill-after=10s 360s npx --no-install playwright install-deps chromium
         }
@@ -33,26 +59,35 @@ runs:
           exit 0
         fi
 
-        # Ubuntu 24.04 runner ubuntu.sources can reference
-        # mirror+file:/etc/apt/apt-mirrors.txt instead of an inline Azure URL.
-        # Inspect that referenced mirror list as well as the legacy apt sources.
-        azure_sources=()
-        for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
-          [[ -f "$source" ]] || continue
-          if grep -Fq 'azure.archive.ubuntu.com/ubuntu' "$source"; then
-            azure_sources+=("$source")
-          fi
-        done
+        # Only retry after a normalized Azure source failed. A timed-out npm
+        # ancestor may leave its apt-get child active. Never overlap apt-get
+        # instances, kill unrelated processes or weaken validation.
         if (( ${#azure_sources[@]} == 0 )); then
-          echo "Playwright OS deps failed (exit=$install_status); no Azure mirror fallback available." >&2
+          echo "Playwright OS deps failed (exit=$install_status); no Azure mirror recovery available." >&2
           exit "$install_status"
         fi
-        echo "::warning::Playwright OS dependencies failed (exit=$install_status); retrying once with the official Ubuntu archive."
-        for source in "${azure_sources[@]}"; do
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$source"
+        if ! command -v fuser >/dev/null 2>&1; then
+          echo "Cannot verify APT lock release: fuser is unavailable." >&2
+          exit "$install_status"
+        fi
+        apt_locked() {
+          local locks=()
+          for lock in /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock; do
+            [[ -e "$lock" ]] && locks+=("$lock")
+          done
+          (( ${#locks[@]} == 0 )) && return 1
+          sudo fuser -s "${locks[@]}" 2>/dev/null
+        }
+        for (( attempt=0; attempt<30; attempt++ )); do
+          if ! apt_locked; then
+            echo "::warning::Playwright OS deps first attempt failed (exit=$install_status); APT locks released, retrying once."
+            install_deps
+            exit 0
+          fi
+          sleep 2
         done
-        install_deps
-
+        echo "APT lock still held after 60 seconds; refusing overlapping Playwright install-deps retry." >&2
+        exit "$install_status"
     - name: Chromium OS dependency 시간 기록
       if: ${{ always() && steps.deps-start.outputs.started_ms != '' }}
       shell: bash

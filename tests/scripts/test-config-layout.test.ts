@@ -97,6 +97,26 @@ describe("test configuration repository layout", () => {
     expect(playwrightSetup).toContain('azure_sources+=("$source")');
     expect(playwrightSetup).toContain("sudo sed -i");
     expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
+    // #487 Main #2203.1: timed-out npx can leave sudo apt-get holding its lock.
+    // Runner mirror normalization must precede the first Playwright attempt;
+    // retry is legal only after the original apt process released its locks.
+    const normalizedAt = playwrightSetup.indexOf('sudo sed -i');
+    const firstInstallAt = playwrightSetup.indexOf('install_deps || install_status=$?');
+    const lockWaitAt = playwrightSetup.indexOf('if ! apt_locked; then');
+    const retryInstallAt = playwrightSetup.lastIndexOf('            install_deps');
+    expect(normalizedAt).toBeGreaterThan(0);
+    expect(normalizedAt).toBeLessThan(firstInstallAt);
+    expect(lockWaitAt).toBeGreaterThan(firstInstallAt);
+    expect(retryInstallAt).toBeGreaterThan(lockWaitAt);
+    expect(playwrightSetup).toContain('Acquire::http::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::https::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::Retries "1"');
+    expect(playwrightSetup).toContain("command -v fuser");
+    expect(playwrightSetup).toContain("sudo fuser -s");
+    expect(playwrightSetup).toContain("/var/lib/apt/lists/lock");
+    expect(playwrightSetup).toContain("/var/lib/dpkg/lock-frontend");
+    expect(playwrightSetup).toContain("APT lock still held after 60 seconds");
+    expect(playwrightSetup).toContain('exit "$install_status"');
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");
