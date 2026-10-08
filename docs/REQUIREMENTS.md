@@ -409,3 +409,11 @@ Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·
 동일 Project read snapshot과 단일 기준시각의 Resource/Group subtotal·Milestone cell·distinct Task KPI·raw M/D/M/M·T0 진단을 신규 readonly API로 제공한다. 조건은 같은 개인 Assignment에서 AND이며 Group/개인 mode는 Grand Total을 바꾸지 않는다. 개인/Group 활성 조건과 개인·Task·연결Group 검색은 A, Task-only 검색/status는 T0에도 적용하고 full-stage Ready/Blocked는 전체 member/predecessor를 유지한다. 기간이 다른 canonical Task 일정과 Assignment 투입 구간은 별도 제공한다.
 
 상세는 같은 filter/revision/Calendar/scope identity를 확인하는 bounded selector/page이며 변경 시 재조회409를 요구한다. 다른 Project/글로벌 미할당 개인 정보는 공개하지 않고 전체집계·조회부하에 유한 상한을 두며 초과 시 부분합을 완전한 값으로 표시하지 않는다. 기존 workload/Stage/Logistics 응답 의미·rounding·권한은 불변이다. [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다. UI/capacity/export 공개는 후속 단위다.
+
+## Issue #525 Resource·Group 기본 Dashboard
+
+기존 Project 리소스 탭에서 동일 서버 scope의 raw 선택 KPI와 그룹/개인 행·고유 Task/Assignment 상세를 조회한다. 기본 그룹 모드, 개인 직접 조회, 기간/Milestone/Global Role/개발자 등급/상태/검색/activity/개인·그룹 선택 및 개발 견적 preset을 제공한다. mode/단위 변경은 조건·Grand Total·DB를 변경하지 않는다. 계획 공수의 unknown/partial/설정된0/빈0과 T0 개인 미배정·Group만 지정·Milestone 미지정·미분류 Resource를 구분한다. Group/Role 소계는 비가산이며 화면 행의 재합산을 KPI authority로 사용하지 않는다.
+
+조회 조건/기간/revision/snapshot 검증, abort·늦은 응답 폐기, hidden 조회 중단, stale 상세 잠금과 명시 재시도/최신 일정 조회를 제공한다. 오류 후 입력 조건·단위·같은 snapshot의 열림 상태를 보존한다. Task KPI는 고유 Task 표, Assignment 공수는 개인 할당 상세로 구분하고 작업 일정·저장 override/상속·선택 투입 구간을 별도 표시한다. keyboard/Escape/focus 복원, 내부 scroll/5개 viewport와 Gantt instance/상태 보존을 검증한다.
+
+기존 stage assignmentIds drill은 legacy API/UI로 보존한다. 상위 Workspace 재설계(#518)/Milestone 용어 일괄 변경(#495), Milestone tree/matrix(#526), capacity(#527), 외부 navigation/export(#528)는 이 구현의 인수 범위 밖이다. 상세 source of truth는 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)이다.

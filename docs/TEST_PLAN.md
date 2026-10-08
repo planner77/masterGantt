@@ -2123,3 +2123,43 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 실제 SQLite benchmark는 Task1011/개인Assignment1005/Group8/365일260근무일을 사용한다. timing/reportBytes는 선택 환경변수 RESOURCE_DASHBOARD_BENCHMARK_OUTPUT의 로컬 JSON 근거로 기록하며 로컬 기준3000ms 안에서 측정한다. 이 수치가 원격 CI나 운영 성능 PASS를 뜻하지 않는다. 전체 원격회귀는 PR quality/e2e/docker가 담당한다.
 
 `tests/e2e/resource-dashboard-api.spec.ts`는 격리 실제 Next/SQLite/Chromium에서 편집 쿠키 없는 public report/detail, no-store/nosniff,405 mutation 거부, selection400, 원본 revision 불변, 실제 서버 재시작 snapshot과 scope/환산 stale409를 검증한다. 초기 실패 이력은 inventory 예상 route2개 누락, Turbopack 외부 node_modules symlink 거부, 신규테스트 비밀번호의 기존12자상한 위반, report nosniff 누락을 보존한다. route expected inventory·작업tree 실제 dependencies·유효 fixture·신규handler 성공/오류 nosniff를 보완하고 동일 관련 범위를 다시 검증한다. 최종 실행 결과는 Manager Issue/PR Work Packet에 exact head 근거로 기록하며 원격 CI 결과 모니터링은 이번 범위 밖이다.
+
+## Issue #525 Resource·Group Dashboard 검증
+
+- `tests/features/resources/resource-dashboard-model.test.ts`: 기본 nullable 날짜의 상세 query omission/명시 mdPerMm=null, filter/schema/publicId/scope/calendar echo 거부, snapshot-bound details, tasks assignment:null/assignments nonnull, unset/partial/configured zero 표시. 기존 `tests/domain/milestone-resource-drill.test.ts`도 보존한다.
+- `tests/e2e/project-resource-workload-status.spec.ts`: 새 기본 endpoint에 #117/#414 상태 oracle을 이관한다. report가 catalog를 원자적으로 포함하므로 기존 workload/assigned-targets의 독립 부분 실패 대신 report 실패와 독립 상세 실패·재시도, malformed200/네트워크/echo 거부, stale·입력·단위·열림 보존, 응답 역전, 중복 refresh/hidden 조회 없음/focus catch-up, canonical mismatch와 명시 최신 일정 조회,409/400/422 및 disabled trigger focus fallback, 개발 견적/Global Role/등급/단위, 고급필터 Escape를 검증한다. 기존 client filter 네트워크0은 실제 server filter 조회 계약으로 변경한다.
+- 같은 spec의5폭 geometry는390/768/1024/1440/1920px에서 populated 요약/Assignment 표의 header/body 정렬, 소유 table의 date 열208px 최소 예산, cell 비중첩/control containment, toolbar 비중첩·document overflow0·의도한 내부 overflow 및 native Tab focus ring containment를 검사한다. Gantt의 존재하는 header 열폭·비어 있지 않은 실제 선택·native/public scroll120/96·주 scale·instance를 탭 왕복 전후 비교한다. Summary를 실제로 접고 자식 row가 없음을 확인한 뒤 복귀 후 접힘 icon/자식 비표시와 같은 scroll을 다시 확인한다. legacy 단계 drill의 exact 기존 endpoint/mount된 기본 필터·단위·모드 복귀와 DOM ID 고유성도 확인한다. 외부 snapshot으로 상세가 사라질 때 내부 focus만 trigger/검색으로 복원하고 filter focus를 보존한다.
+- `project-resource-workload-status.spec.ts`의 외부 snapshot/focus 시나리오는 고유 snapshot A→B와 동일한 B의 검색 조건 A→B→A 복귀에서 숨긴 KPI 상세가 다시 나타나지 않고 상세 GET 횟수가 증가하지 않음을 검증한다. 검색 입력 focus를 유지하고 동일 scope의 명시적 상세 retry는 유지한다.
+- `tests/e2e/resource-dashboard-ui.spec.ts`: isolated 실제 native SQLite/HTTP/readonly browser에서 Task4개+Milestone1개, 개인2명/Group2개, 공동 Task2Assignment와 null 공수/완전 미할당/Group만 지정, 복수 Group/Role 비가산 subtotal을 생성한다. raw 서버 합계·기본 view/tasks 고유 Task·Assignment 상세·Milestone 소속·DEVELOPER 필터/all-unset/미배정 T0·비활성 기존 할당·외부 Project revision 명시 복구·읽기전용 cookie 없음/조회 mutation 없음을 검증한다. `milestone-stage-dashboard.spec.ts`의 기존 실제 legacy drill 회귀도 실행한다.
+
+합성 화면 PNG와 geometry/실행별 실패 trace는 `output/playwright/issue-525/` 및 실행별 sibling artifact에 로컬 보존한다. PR 검토용 합성 PNG390/1440은 `docs/evidence/issue-525/`에 둔다. legacy-preserved 이미지는 동일한 기존 renderer의 현재 보존 관측이며 historical before capture를 새 source의 before로 소급하지 않는다.
+
+초기 실패: typecheck의 nullable 상세 날짜 및 fixture 중복 snapshot 필드, implicit select label의 exact 접근 이름 실패, stale409 disabled trigger에 focus 복원 불가(제품 수정: 검색 fallback), 단방향 날짜 fixture의 역순 resolved range, 실제 HTTP 생성 fixture의 description 누락/12자 초과 password, Task 이름과 self WBS의 중복 text locator 및 hidden Milestone option locator를 기록한다. 테스트 assertion은 실제 grain/row/cell에 맞춰 구체화하고 성공 계약을 완화하지 않는다. 실제 초기 artifacts와 수정 후 PASS는 별도 근거다.
+
+2026-10-08 Local Fast Feedback: typecheck PASS, 변경 Unit+legacy drill2파일9개 PASS, 변경 파일 lint0error/이동된 legacy의 기존 warning3개, Markdown link144파일 PASS다. Chromium 전체 영향 실행은10개 PASS(신규 mock8개+실제 비빈 SQLite/HTTP1개+기존 실제 Milestone stage1개,56.4초)다. 같은 제품 source의 캡처 owner scroll0 보완 후geometry1개 PASS와 Summary 접힘/비빈 선택 oracle 보강 후geometry1개 PASS(6.1초)는 별도 실행이며 고유12개로 세지 않는다. 마지막5폭 geometry와 PNG는 후자의 spec/source에서 생성한다. 제품/source/docs/PNG hash는 최종 반환 manifest로 연결한다. 공식 원격 quality/e2e/docker 및 최종 독립 QA는 NOT TESTED이며 로컬 PASS로 대체하지 않는다. 실제 native125% zoom/실기기/screen reader/운영 proxy·배포·최종 수동 UX는 #517의 별도 NOT TESTED/BLOCKED 범위다. 공식 SVAR demo URL 확인과 실제 demo interaction NOT TESTED도 구분한다.
+
+PR 검토용 최종 합성 화면: [390px](evidence/issue-525/after-390.png), [1440px](evidence/issue-525/after-1440.png). 이 이미지와 실제 SQLite/HTTP fixture의 검증 근거는 서로 구분한다.
+
+
+### Issue #525 긴 이름·다중 행 인수 보완
+
+2026-10-08 독립 QA에서 기존 짧은 Dashboard fixture만으로 긴 이름·많은 행을 검증하지 못한 점을 발견하여, 제품 코드를 변경하지 않고 별도 `longResourceDashboardUiFixture`를 추가했다. 합성 입력은 Group12개·Resource40명·공동 Task120개·Assignment4800개이며 이름200자/코드64자/외부 ID128자 및 WBS 각 구간200자 상한 안의 긴 한국어·영문을 사용한다. 최대3개 Global Role(PI/DEVELOPER/EQUIPMENT_OWNER)과 Role 미지정 각각1행, 복수 Role39행 및 비활성 개인·Group을 포함한다.
+
+`project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
+
+기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+### Issue #525 최초 실패 PR CI E2E 보완 (2026-10-08)
+
+원격 [#2093.1](https://github.com/planner77/masterGantt/actions/runs/37650777139): quality/docker PASS, e2e shard2(#130)·4(#83)·5(#491/#76) FAIL. 이전 Resource 화면의 selector/집계 의미와 새 기본 Dashboard 계약의 불일치가 확인됐으며 API 계산 오류는 확인되지 않았다.
+
+- project-filter-toolbar-consistency: 5폭 Resource 검색·Role·기간/역순 조건과 stale 차단, Escape/포커스, Gantt 인스턴스·scroll 및 mutation 부재.
+- project-search-filter: 선택 범위 KPI/표시 행 동시 갱신, 기간 미교차 0건 및 초기화. UI fixture는 date overlap만 모사하며 실제 Calendar/workday clipping은 SQLite/HTTP 회귀가 담당한다.
+- project-workspace-ux: 기본 Group disclosure 후 개인 행과 5.00 M/D, 기존 Gantt 보존.
+- project-transfer-layout-491: 실제 HTTP M/M 미설정, 개발 견적 preset, 실제 서버 응답 기반 합성 대규모 공수 display-only 값과 단위 변환, 역순 기간 차단, native Tab/Escape.
+
+테스트 skip/삭제 없이 갱신한다. 새 원격 PR quality/e2e/docker 성공 전 ACCEPT는 유보한다.
+
+### Issue #525 Codex P2: 빈 할당과 설정된 0공수 구별 (2026-10-08)
+
+`src/features/resources/resource-dashboard-model.ts`의 공수 표시에서 `state=empty` / `assignmentCount=0`은 `할당 없음`으로 표현한다. `state=configured`이면서 유효 근무일이 0인 계획은 실제 `0.00 M/D`·`0.00 M/M`로 표시해야 한다. `unset`(산정 불가)·`partial`(알려진 부분합)도 각각 다른 값이다. 단위 테스트는 empty/configured-zero를 M/D·M/M 양쪽에서 별도 검증하고, `project-search-filter.spec.ts`는 실제 기본 Dashboard의 기간 밖 0건 범위에서 `할당 없음`을 확인한다. Global Role 누락 행도 같은 의미로 표시한다. 최신 head CI 성공 전 ACCEPT는 유보한다.

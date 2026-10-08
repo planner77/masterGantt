@@ -1,0 +1,47 @@
+.dashboard { min-width: 0; width: 100%; }
+.dashboard :global(.resource-dashboard-toolbar) { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.dashboard :global(h2) { margin:0 auto 0 0; font-size:16px; }
+.dashboard :global(.resource-dashboard-filters), .dashboard :global(.resource-dashboard-advanced) { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end; }
+.dashboard :global(.resource-dashboard-advanced[hidden]) { display:none; }
+.dashboard :global(label) { display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:0; flex:1 1 140px; max-width:220px; }
+.dashboard :global(input), .dashboard :global(select) { min-width:0; width:100%; border:1px solid var(--border-default); background:var(--surface-panel); color:var(--text-default); border-radius:4px; padding:6px 8px; height:36px; font:inherit; }
+.dashboard :global(.resource-dashboard-search) { max-width:none; flex:2 1 220px; }
+.dashboard :global(.resource-dashboard-status p), .dashboard :global(.resource-dashboard-hint) { margin:0; color:var(--text-muted); font-size:12px; overflow-wrap:anywhere; }
+.dashboard :global(.resource-dashboard-kpis) { display:flex; flex-wrap:wrap; gap:0; border-block:1px solid var(--border-default); margin:0; }
+.dashboard :global(.resource-dashboard-kpis > div) { flex:1 1 140px; padding:8px; min-width:0; border-right:1px solid var(--border-default); }
+.dashboard :global(dt) { font-size:12px; color:var(--text-muted); }
+.dashboard :global(dd) { margin:4px 0 0; font-variant-numeric:tabular-nums; font-size:14px; overflow-wrap:anywhere; }
+.dashboard :global(.resource-dashboard-kpis button) { color:var(--action-primary); background:none; border:0; font:inherit; padding:4px; text-decoration:underline; cursor:pointer; }
+.dashboard :global(button:disabled) { cursor:default; opacity:.65; }
+.dashboard :global(.resource-dashboard-table-scroll) { max-width:100%; overflow:auto; max-height:min(520px,60dvh); padding:6px; scroll-padding:8px; min-width:0; border:1px solid var(--border-default); }
+.dashboard :global(.resource-dashboard-table) { width:100%; min-width:1120px; table-layout:fixed; border-collapse:collapse; font-size:12px; font-variant-numeric:tabular-nums; }
+.dashboard :global(.resource-dashboard-table th), .dashboard :global(.resource-dashboard-table td) { padding:8px; text-align:left; vertical-align:top; border-bottom:1px solid var(--border-default); overflow-wrap:anywhere; }
+.dashboard :global(.resource-dashboard-table thead th) { position:sticky; top:0; z-index:1; background:var(--surface-subtle); font-weight:600; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(1)) { width:280px; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(n+2):nth-child(-n+5)) { width:64px; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(6)) { width:88px; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(7)), .dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(8)) { width:112px; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(9)) { width:144px; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > thead > tr > th:nth-child(10)) { width:128px; }
+.dashboard :global(.resource-dashboard-disclosure) { display:flex; gap:6px; text-align:left; max-width:100%; background:none; color:inherit; border:0; padding:4px; font:inherit; cursor:pointer; }
+.dashboard :global(small) { display:block; font-size:11px; font-weight:400; color:var(--text-muted); overflow-wrap:anywhere; }
+.dashboard :global(.resource-dashboard-member th:first-child) { padding-left:16px; }
+.dashboard :global(.resource-dashboard-expanded) { padding:8px; background:var(--surface-panel); }
+.dashboard :global(.resource-dashboard-detail-table) { min-width:1360px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(1)) { width:320px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(2)) { width:112px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(3)) { width:80px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(4)), .dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(5)) { width:208px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(6)) { width:88px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(7)) { width:144px; }
+.dashboard :global(.resource-dashboard-detail-table > thead > tr > th:nth-child(8)) { width:200px; }
+.dashboard :global(.resource-dashboard-detail-table.tasks-only) { min-width:920px; }
+.dashboard :global(.resource-dashboard-pagination), .dashboard :global(.resource-dashboard-diagnostic-actions) { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:8px; }
+.dashboard :global(.resource-dashboard-diagnostics), .dashboard :global(.resource-dashboard-selected) { padding:8px; border-block:1px solid var(--border-default); font-size:12px; }
+.dashboard :global(.resource-dashboard-selected h3) { display:inline-block; margin:0 12px 8px 0; font-size:14px; }
+@media(max-width:600px) { .dashboard :global(label) { max-width:none; flex-basis:calc(50% - 8px); } .dashboard :global(.resource-dashboard-search) { flex-basis:100%; } .dashboard :global(.resource-dashboard-toolbar h2) { flex-basis:100%; } }
+
+.dashboard :global(.resource-dashboard-detail-table.tasks-only > thead > tr > th:nth-child(5)) { width:200px; }
+
+.dashboard :global(.resource-dashboard-date) { white-space:nowrap; }
+.dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > tbody > tr > td:nth-child(7)), .dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > tbody > tr > td:nth-child(8)) { white-space:nowrap; }
