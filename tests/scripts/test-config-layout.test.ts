@@ -69,7 +69,34 @@ describe("test configuration repository layout", () => {
       expect(workflow).toContain("tests/config/e2e-shard-plan.json");
       expect(workflow).toContain("E2E_TIMING_OUTPUT");
       expect(workflow).toContain("native 6-way sharding fallback");
+      // Scope timeout verification to this job, not another workflow job.
+      const shard = workflow.split(/\n  (?:release_)?e2e_shard:\n/)[1]?.split(/\n  [a-z_]+:\n/)[0];
+      expect(shard).toBeDefined();
+      expect(shard).toMatch(/^    timeout-minutes: 35$/m);
     }
+    const dockerJob = ci.split("\n  docker_smoke:\n")[1]?.split(/\n  [a-z_]+:\n/)[0];
+    expect(dockerJob).toBeDefined();
+    expect(dockerJob).toMatch(/^    timeout-minutes: 40$/m);
+    // The same shared Playwright setup also runs inside Main GHCR candidate and
+    // Release candidate jobs. Their budgets must allow both bounded attempts.
+    const mainImageJob = ci.split("\n  publish-commit-image:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(mainImageJob).toBeDefined();
+    expect(mainImageJob).toMatch(/^    timeout-minutes: 50$/m);
+    const releaseCandidateJob = release.split("\n  container:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(releaseCandidateJob).toBeDefined();
+    expect(releaseCandidateJob).toMatch(/^    timeout-minutes: 40$/m);
+    const playwrightSetup = text(".github/actions/playwright-setup/action.yml");
+    expect(playwrightSetup).toContain("timeout --signal=TERM --kill-after=10s 360s");
+    expect(playwrightSetup).toContain("azure.archive.ubuntu.com/ubuntu");
+    expect(playwrightSetup).toContain("https://archive.ubuntu.com/ubuntu");
+    // Ubuntu 24.04 deb822 ubuntu.sources may use mirror+file indirection.
+    // The Azure URL must be detected and rewritten in the referenced file.
+    expect(playwrightSetup).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
+    expect(playwrightSetup).toContain("for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list");
+    expect(playwrightSetup).toContain("grep -Fq 'azure.archive.ubuntu.com/ubuntu' \"$source\"");
+    expect(playwrightSetup).toContain('azure_sources+=("$source")');
+    expect(playwrightSetup).toContain("sudo sed -i");
+    expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");

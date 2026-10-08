@@ -2453,6 +2453,30 @@ Local Fast Feedback은 현재 selection/timeline Unit2파일18PASS157ms, 최종 
 
 선별 비민감 JSON/PNG·실행별 source SHA/시각·범위·최초 실패는 [증거 README](../output/playwright/issue-514/review/README.md)를 따른다. 공식 quality/e2e/docker, 독립 QA_FINAL·Manager 최종 승인, 실제 demo 조작·screen reader·실기기·최종 수동 UX·사용자 outer pan은 NOT TESTED다. 원격 CI는 PR 등록 후 사용자 요청대로 결과를 모니터링하지 않는다.
 
+## Issue #487 — End 키 scroll E2E 및 PR CI setup-timeout 복구
+
+Issue #454 v0.90.1 Release #140.1 (`37434408238`)의 Chromium shard 2/6은 `activeVisible=false`였고 동일 exact SHA Main CI #1942.1에서는 같은 case가 PASS했다. 제품 `StageFilterPicker.move()`는 `End` 키 후 다음 animation frame에 `scrollIntoView()`를 수행하므로, E2E는 현재 `aria-activedescendant`가 실제 list viewport 내부에 완전히 들어오며 `scrollTop>0`인 observable postcondition을 `expect.poll`(2초 제한)로 확인한 뒤 기존 `activeVisible/listScroll/focus/input containment` 및 390/768/1024/1440/1920폭 geometry 검증을 그대로 유지한다. static sleep과 기준 완화 없음. 최신 main의 `#project-panel-schedule` selector를 보존한다.
+
+- PR #488 Run #2089.1: Chromium shard 4/6이 Playwright setup 약 8분 30초 뒤 연속 테스트 PASS 중 25분 job ceiling으로 CANCELLED.
+- Run #2094.1: Chromium shard 6개 PASS. Vitest 1514 PASS·1 FAIL·3 skipped. 추가된 timeout 정규식이 `[\\s\\S]` 문자 그대로를 찾아 실패했다. Docker smoke의 image build/policy, migration/readiness, SQLite persistence는 PASS했고, Playwright Ubuntu OS deps `apt` 미러 지연(약 27분 42초)으로 30분 job timeout에 도달해 CANCELLED.
+- Run #2095.1: metadata-only는 동일 head 전체 CI 실패로 연쇄 FAIL.
+- 보완: 정규식 대신 실제 job 영역을 분리해 timeout 값을 검사한다. PR/Main·Release Chromium shard timeout 35분, Docker smoke 40분, `install-deps` 시도별 6분 제한과 Azure Ubuntu mirror→공식 Ubuntu archive 1회 fallback, 미시작 Playwright metric의 빈 `started_ms` 방지를 적용한다.
+- CI 필수 검증, shard 수 6·workers=1·native fallback·fail-closed 정책을 유지한다. 제품 source/API/DB/domain 및 version 변경 없이 최신 main 기록/selector를 보존한다. immutable v0.90.1 tag 재사용 금지. 새 exact-head 전체 PR CI SUCCESS 전에는 PASS나 병합 가능으로 판정하지 않는다.
+
+
+### Issue #487 PR CI #2191.1 mirror+file fallback 누락 재발 방지
+
+최신 정렬 head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI Run #2191.1 (`37781591645`)에서 TypeScript, lint, Vitest, build, repository policy, Docker smoke는 PASS했다. Chromium E2E shard 1/3/4/6은 PASS했지만 2/5는 `playwright install-deps chromium` 의존성 설치가 360초를 넘은 후 exit 124였다. runner 로그는 `file:/etc/apt/apt-mirrors.txt Mirrorlist`를 표시하고, 실제 다운로드 URL은 Azure mirror였다. 기존 fallback은 `/etc/apt/apt-mirrors.txt`를 검사하지 않아 Azure URL을 찾지 못하고 재시도 전에 FAIL했다. 이는 제품 및 기존 bounded scroll assertion의 실패 증거가 아니다.
+
+해당 미러 목록 파일을 검사/수정 대상으로 포함하고, 기존 소스 리스트 호환, 360초 bounded 설치·공식 Ubuntu archive 1회 retry, 실패 시 non-zero 결과 보존, metric guard를 유지한다. `test-config-layout.test.ts`는 `mirror+file` 간접 참조/실제 미러 파일 검색 경로를 검증한다. 새 exact-head CI의 shard 6개와 quality/Docker aggregate 통과 여부를 다시 확인해야 한다.
+
+
+### Issue #487 최신 Codex review P1 — Main/Release 후보 job timeout
+
+PR #488 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`의 코드 리뷰는 Chromium/Docker PR CI가 성공했더라도 동일 `playwright-setup` 공용 action을 호출하는 main `publish-commit-image`(기존 30분) 및 release `container`(기존 20분) job에서 Azure 미러 timeout + fallback 최악 약 12분 20초를 흡수하기 어렵다는 P1을 확인했다. 해당 job의 기능 검증·digest 증거를 생략하거나 테스트 timeout을 더 작게 만드는 것이 아닌 job budget 자체를 Main 50분·Release 40분으로 확대한다.
+
+`tests/scripts/test-config-layout.test.ts`가 정확히 이 job의 timeout을 검사하며, 기존 E2E shard 35분, Docker smoke 40분, Playwright OS deps 360초×최대 2회, fail-closed, Chromium 6-shard/workers=1 및 Main exact-digest/release candidate smoke 검증은 유지한다. 최초 P1 원문/이력은 PR 리뷰 스레드로 보존하고, 수정된 head의 exact PR CI/리뷰와 main CI/임시 GHCR image publish 확인 전에는 PASS라고 주장하지 않는다.
+
 ## Issue #538 — Project master 계층 검증
 
 - DB migration 0024: 이미 연결된 조합 중복 제거, 부분/legacy row의 무추정·무변경, FK/category/parent 보호, checksum/rollback.
