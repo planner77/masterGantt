@@ -109,3 +109,9 @@ Core 2.7.3의 공개 Grid text editor·Chart move/resize·update-task interactio
 
 same-parent Chart reorder는 SVAR PRO에 의존하지 않는다. Core 2.7.3의 공개 `drag-task(top)` feedback과 masterGantt의 protected hierarchy command를 연결하며, 별도 PRO package·비공개 구현·cross-parent implicit reparent는 사용하지 않는다.
 
+
+## Issue #549 — Milestone Timeline Core 연동 제한
+
+확인일 2026-10-08, react-gantt 2.7.3 / 종속 gantt-store 2.7.2. [markers](https://docs.svar.dev/react/gantt/api/properties/markers/)는 PRO이며 MT1은 이를 호출하거나 복제하지 않는다. 공개 filter-tasks/scroll-chart/getState를 사용한다. date geometry의 문서화된 안정 widget API는 확인되지 않았으며 published typed derived scale state와 이미 설치된 store package-root exported getDiffer의 read-only 조합을 단일 version-bound 앱 adapter에 격리한다. react-gantt 타입 reexport와 runtime 미export의 차이 때문에 store root를 사용하며 deep import/새 패키지/private write는 없다. Day/Week step1/lengthUnit day의 실제 DOM ±1px 기준 검증과 unsupported/zero-size fail-closed가 후속 활성화 조건이다. Core 단발 filter는 scale props 갱신 후 초기화될 수 있어 앱의 canonical queue 뒤 controlled projection 재적용이 필요하다. 현재 운영 행 전환과 PRO 기능 parity는 완료 범위가 아니다. [기술 gate·실패·대안](MILESTONE_TIMELINE.md)을 따른다.
+
+#549 독립 UI/UX 비교에서 Week month/year 헤더와 native Task의 canonical 날짜 의미 불일치가 선별 화면으로 확인되었다. Task start 대비 adapter x ±1px 자동 PASS는 전체 헤더 의미 PASS가 아니다. 원인/변경 전 baseline 재현은 NOT TESTED이며 #551 lane 활성화는 [별도 date/header 의미 gate](MILESTONE_TIMELINE.md#독립-uiux-비교에서-확인한-week-날짜-헤더-불일치)를 통과하기 전 허용하지 않는다.

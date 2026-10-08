@@ -305,3 +305,7 @@ canonical start=null을 renderer anchor가 있는 날짜 작업으로 취급하�
 지연된 peer viewport 복원은 실제 작업면 pointerdown/wheel/keydown과 source/snapshot/instance/sync/visibility/scale/column/grid 변경 뒤 취소한다. DOM와 Core 경로를 각각 검증하며 marker 해제나 screenshot만으로 사용자 위치 보존을 판단하지 않는다. public/native 위치가 rounding 때문에 다를 수 있으므로 입력 직후 각각의 값을 pending queue 후 각각 비교한다. 복원 준비의 RAF는 앱 통합 선택이며 SVAR layout-settled 보장으로 기록하지 않는다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다.
 
 설치 Core2.7.3와 2026-10-08 공식 [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/)·[scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)의 공개 계약을 확인했다. 문서 URL 조회와 실제 project fixture Chromium pointer 증거를 구별하며 공식 demo 실제 조작은 NOT TESTED다. Core 공개 action을 사용하고 PRO·비공개 state·날짜 픽셀 탐색 구현을 추가하지 않는다. 좁은 화면의 기존 내부 작업면 제한은 [프로젝트 UX](PROJECT_UX.md#issue-514--grid-시작-위치와-지연된-peer-복원)를 따른다.
+
+## Issue #549 — Timeline 기술 기반과 후속 UX gate
+
+[Milestone Timeline](MILESTONE_TIMELINE.md)의 current/target/compatibility 표를 따른다. 현재 native Milestone 행과 빠른 보기를 유지하며 모델/개발 probe만으로 후속 lane keyboard/focus/Escape/관리 UX PASS를 주장하지 않는다. 표시 설정은 작업 조건·활성 필터 수와 독립이고 전체 모집단/viewport 안 없음/일반 작업 없음/null 일정은 별도 상태다. MT1 browser는 390/768/1024/1440/1920px의 Core geometry·same-instance·공개 이벤트·무변경을 검증한다. 공식 demo URL 조회와 실제 설치 Core 앱 fixture 조작은 구분하며 후속 UI의 keyboard/focus/overflow 검증은 별도다.

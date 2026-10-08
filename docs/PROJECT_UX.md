@@ -1167,3 +1167,9 @@ Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약
 - SVAR 공개 Core `scrollLeft/scrollTop`은 자식 Gantt가 읽기 전용 callback으로 현재 값만 전달한다. 부모는 보이는 Chart의 native `scrollLeft/scrollTop`을 별도로 캡처한다. 레이아웃 반올림 등으로 공개 Core와 DOM에 1px 차이가 있어도 Core 복원을 DOM 값으로 덮어쓰지 않는다.
 - `scroll-chart`에는 캡처한 공개 Core 좌표를 사용하고 기존 DOM native 좌표는 별도 복귀 대상으로 유지한다. 공개 reader가 준비되지 않거나 유효하지 않으면 DOM 값을 Core로 대체하지 않고 해당 peer Core 복원을 취소한다. 원장/snapshot, task root/filter, Gantt instance, sync generation, 사용자 입력/geometry 취소 정책은 유지한다.
 
+
+## Issue #549 — Timeline 공통 모델과 현재 UX 보존
+
+현재 `TaskFilterState.types`는 React 메모리와 scope별 Map에 보존하며 URL/localStorage에 저장하지 않는다. MT1은 표시 preference v1의 기본 ON 정규화와 types 변환 함수를 제공하지만 현재 화면에 적용하지 않는다. Task-only를 새 OFF로 자동 이식하지 않고 mixed 조합은 Milestone 유형만 제외하며 나머지 조건을 보존한다. Milestone-only는 원래 조건을 보존하고 Dashboard/명시 유형 해제 호환 UI를 후속 MT4에서 제공한다. OFF 날짜 조회의 일시 표시와 복귀 OFF, 사용자 toggle만 저장하는 계약도 후속 연결 대상이다.
+
+#399의 단일 Summary `rootTask` scope와 현재 작업 선택/Editor/clipboard/viewport를 유지한다. #497 복합 scope/Milestone root를 구현된 기능으로 간주하지 않는다. 숨은 Milestone은 Summary roll-up/전체 subtree 명령과 canonical JSON/Excel/이미지 export에 계속 포함한다. 새 Timeline 조회 선택은 native 작업 다중 선택과 분리하며 가시 일반 작업 교집합만 강조한다. [상세 계약과 기술 gate](MILESTONE_TIMELINE.md)를 따른다.

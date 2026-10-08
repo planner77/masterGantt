@@ -1,3 +1,10 @@
+<!-- Issue #549 인계: Unit72개 / Chromium 기술 실험9개 PASS. Week 월 헤더 의미 불일치 관측, 이전 baseline·원인 NOT TESTED이며 #551 활성화 전 gate로 검증한다. 사용자 요청에 따라 PR CI 결과를 모니터링하지 않는다. -->
+## Milestone Timeline 순차 구현 — #549 → #550 → #551 → #552 → #553
+
+사용자 요청에 따라 각 Issue의 구현·관련 문서·Local Fast Feedback·DOCUMENTATION_SYNC·독립 PRE_QA 후 원격 PR과 exact-head CI 등록까지만 진행한다. CI 결과를 모니터링하지 않고 다음 Issue로 넘어가며 merge/release/main/GHCR/Issue 종료는 수행하지 않는다. 선행 구현이 필요한 후속 PR은 앞선 exact head의 stacked branch를 기반으로 하고 main 통합과 구별한다. Epic #548은 등록 때의 완료 체크를 변경하지 않고 실제 단계별 증거를 연결한다.
+
+현재 첫 대상은 [#549 Work Packet](ISSUE_549.md), 최초 착수 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / application `0.102.1`, branch `feat/issue-549-milestone-timeline-foundation`, 후보 MINOR `0.103.0`이다. MT1은 공통 표시 모델·Core 행 숨김/날짜 좌표/스크롤 기술 실험과 호환 계약을 구현하되 기존 Milestone 행/빠른 보기는 활성 변경하지 않는다. #550 관리 경로와 #551 lane을 준비한 뒤 #552에서 함께 전환하며 #553은 no-loss/교환/Export 및 종단간 회귀·사용자 가이드를 완성한다. release_required=true/release_authorized=false, 공식 quality/e2e/docker 및 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #487 — 완료 단계 스크롤 E2E 및 CI 설치 지연 복구 (2026-10-08)
 
 [Issue #487](https://github.com/planner77/masterGantt/issues/487) / [PR #488](https://github.com/planner77/masterGantt/pull/488). 최신 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / version `0.102.1` 기준 재정렬. #487의 bounded `expect.poll` 후 기존 `activeVisible`/focus/geometry를 유지하고 최신 main의 `#project-panel-schedule` selector·#490 reset retry·제품 계약을 보존한다. 제품 source/API/DB/domain/version 변경 없음.

@@ -203,3 +203,7 @@ Milestone→Resource와 Milestone→일정 모두 원본 report의 resourceScope
 Milestone 자체 일정 위치 명령은 canonical Milestone 표시 노드를 유지한다. 일반 Task N0과 Milestone 표시 수를 별도로 안내하며 API의 일반 Task scope에 Milestone ID를 추가하지 않는다. 빈 개인 배정의 Resource 조회는 전체 범위로 확대하지 않는다. 원본 Assignment를 사용하는 Resource 이동은 기본 Dashboard의 새 방문으로 열고 원래 Milestone 화면 조건은 복귀 기록에 보존한다. full Stage Ready/Blocked 및 원본 Milestone 공수 계산은 바꾸지 않는다.
 
 Milestone 직접 위치의 복귀 frame에는 검증한 원본 resourceScopeContext를 보존한다. 오늘의 lookup report context로 기간·평가일·환산·sourceProjection을 바꾸지 않는다. Strip에서 원본 기간과 평가일·환산 출처를 표시하고 복귀 직전 원본 정책을 다시 검증한다. 수동 평가일2026-10-02/기간2026-10-01–2026-10-03/명시1 M/M당15 M/D의 native fixture로 원본 표시와 복귀 입력 보존을 확인했다.
+
+## Issue #549 — 표시 projection과 전체 Gate
+
+[Milestone Timeline](MILESTONE_TIMELINE.md)의 순수 조회 모델은 전체 canonical Task/Link를 기존 `projectStageGates`에 전달한다. WBS scope/작업 조건/접힘/표시 OFF/viewport clip으로 전체 Membership, E(M)/P(M), ready/manualEvent/completionInconsistent를 변경하지 않는다. 별도 active Milestone은 native 작업 선택과 분리하며 가시 일반 Task와 전체 member의 교집합만 강조한다. 전체 canonical subtree 영향 설명은 기존 Copy 제외·완료 구조 잠금·external Link/Assignment guard를 대체하지 않는다. MT1은 운영 행 제거·새 Gate 계산·API/DB mutation 계약 변경을 하지 않는다.

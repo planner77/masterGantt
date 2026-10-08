@@ -51,6 +51,7 @@ Manager와 모든 Sub-Agent는 사람이 읽는 대화·진행 보고·최종 �
 | 화면 배치, 정보 밀도, 색상·폰트·간격·공통 상태 변경 | [DESIGN.md](DESIGN.md): 제품 시각 언어, semantic token, Linear/Airtable/Carbon 참조 영역과 우선순위 |
 | 메뉴·탭·모달·폼 interaction, 접근성, 반응형 설계 또는 검토 | [UI_UX_GUIDELINES.md](docs/UI_UX_GUIDELINES.md): 설계 산출물, keyboard/focus/Escape/복원, 상태별 동작, 390/768/1024/1440px 검증 |
 | 기존 화면의 동작 변경 | 해당 화면별 UX 문서(예: [PROJECT_UX.md](docs/PROJECT_UX.md), [TASK_EDITOR.md](docs/TASK_EDITOR.md)): 기존 동작, 저장·초안·stale 처리, Gantt 인스턴스와 작업 상태 보존 계약 |
+| Milestone Timeline 표시·필터·탐색 분리 | [MILESTONE_TIMELINE.md](docs/MILESTONE_TIMELINE.md): current/target 호환, 전체 canonical/Gate 보존과 Core 기술 gate |
 | Gantt/Grid/Task Editor/Context Menu 기능 설계 | [UI_UX_GUIDELINES.md의 SVAR 자료](docs/UI_UX_GUIDELINES.md#svar-데모와-api-확인): 유사 공식 demo/API와 설치 버전의 Core/PRO 범위 확인; URL 조회와 실제 조작 증거 구분 |
 | 여러 UI/UX 이슈 또는 화면을 단계적으로 개선 | [현재 활성 계획](docs/exec-plans/active/PLAN.md)(현재 UI/UX 범위는 [UI/UX 실행 계획](docs/exec-plans/active/UI_UX_ROLLOUT.md)): 최신 Issue/PR 상태를 확인하고 선행 의존성·중복 범위·단계 순서 조정; 계획 완료·이관 시 참조도 갱신 |
 | 담당 배정, 문서 동기화, 독립 QA, PR/main 완료 판정 | [ISSUE_LIFECYCLE.md](docs/ISSUE_LIFECYCLE.md), [REMOTE_VALIDATION.md](docs/REMOTE_VALIDATION.md): 역할과 단계별 gate, 로컬·원격·환경별 증거 구분 |

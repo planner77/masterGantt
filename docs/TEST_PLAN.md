@@ -2476,3 +2476,19 @@ Issue #454 v0.90.1 Release #140.1 (`37434408238`)의 Chromium shard 2/6은 `acti
 PR #488 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`의 코드 리뷰는 Chromium/Docker PR CI가 성공했더라도 동일 `playwright-setup` 공용 action을 호출하는 main `publish-commit-image`(기존 30분) 및 release `container`(기존 20분) job에서 Azure 미러 timeout + fallback 최악 약 12분 20초를 흡수하기 어렵다는 P1을 확인했다. 해당 job의 기능 검증·digest 증거를 생략하거나 테스트 timeout을 더 작게 만드는 것이 아닌 job budget 자체를 Main 50분·Release 40분으로 확대한다.
 
 `tests/scripts/test-config-layout.test.ts`가 정확히 이 job의 timeout을 검사하며, 기존 E2E shard 35분, Docker smoke 40분, Playwright OS deps 360초×최대 2회, fail-closed, Chromium 6-shard/workers=1 및 Main exact-digest/release candidate smoke 검증은 유지한다. 최초 P1 원문/이력은 PR 리뷰 스레드로 보존하고, 수정된 head의 exact PR CI/리뷰와 main CI/임시 GHCR image publish 확인 전에는 PASS라고 주장하지 않는다.
+
+## Issue #549 — Milestone Timeline MT1 검증
+
+`tests/domain/milestone-timeline-model.test.ts`는 canonical refs/no-loss, full Membership/Gate와 scope 밖 상속, 날짜 정렬/null/invalid/empty/manual/completion inconsistency, preference/types/selection 독립, 전체 subtree 영향의 신규 24개 Unit을 검증한다. 기존 관련 filter/Gate/subtree 32개와 구별한다. `tests/features/gantt/milestone-timeline-adapter.test.ts`는 설치 package-root runtime helper, 좌표/invalid/unsupported/zero geometry, 이미 가시 날짜 무이동, 축 밖 거부, 공개 filter/left 명령의 신규 5개 Unit이다.
+
+`tests/e2e/milestone-timeline-core.spec.ts`는 synthetic mocked canonical API의 실제 Chromium/Core 2.7.3 실험이다. 5폭(390/768/1024/1440/1920), Day/Week/leap/month/year/DST, Grid/Chart row와 Task-start ±1px, 숨은 Link endpoint/no-loss/Task→Task 유지, Milestone-only/empty axis, 같은 instance·scroll/resize/열/fullscreen/동적 축/peer return, mutation0을 검증한다. 최초 9개 중1PASS/8FAIL은 filter scale reset 및 fixture/name 오류로 기록하고 수정 후 결과와 소스 해시를 [상세 증거](MILESTONE_TIMELINE.md)에 구분한다.
+
+Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 전체 회귀·production build/Docker는 동일 PR exact-head GitHub Actions quality/e2e/docker로 판정한다. CI 미등록/진행 중은 NOT TESTED다. 공식 demo 실제 조작, 실기기/screen reader/Windows Excel/운영환경은 별도 NOT TESTED다.
+
+#549 Local Fast Feedback 최종: 모델 56 Unit과 adapter/date/timeline 16 Unit, 서로 다른 파일 합계 72 PASS. synthetic Chromium Core 9개 PASS, typecheck/변경 lint/Markdown/diff PASS다. native date 스크롤 NY Day -1px/Week -39px 불일치와 scale 변경 filter 초기화 최초 FAIL은 원본 근거를 남기고 단일 calendar-day/public-left adapter 및 dev-only controlled filter 재적용으로 검증했다. Milestone-only end가 기존 동적 축에 의해 관측 1일 확장된 최초 exact-end oracle FAIL도 보존하고 start 유지/end 비축소/날짜 reveal/원본·revision·mutation0을 검증했다. 첫 uncommitted probe exact source hash는 NOT CAPTURED이며 최종 실행 source SHA-256만 재현 비교한다. 원격 quality/e2e/docker와 독립 최종 QA는 NOT TESTED다.
+
+### #549 독립 UI/UX 비교 REWORK — Week 날짜 헤더 의미 gate
+
+현재 E2E 9개 PASS는 adapter x와 native Task start anchor의 ±1px, 행/Link/instance/viewport/no-loss assertion 결과이며 헤더 전체 날짜 의미를 검증한 결과가 아니다. 선별 Week `geometry-1440.png`의 T-year 시작 Jan 1, 2027 bar 위에 July 2026, `DST-reveal.png`의 Mar 10, 2026 bar 위에 November 2025가 표시된 불일치를 독립 비교에서 확인했다. 실제 캡처의 Week month/year 의미 일치는 FAIL이다. 원인·변경 전 baseline 재현은 NOT TESTED이며 제품/scale 알고리즘 수정 없이 제한을 기록했다. Day 헤더 일치는 비교 관찰 범위에 한정한다.
+
+#551 lane 활성화 전에 canonical 날짜/adapter x/native anchor/가시 Day 셀 또는 ISO week의 실제 날짜 구간/month-year 경계를 함께 비교하는 별도 E2E oracle을 추가하고, Day/Week·DST·월말/연말/윤일·scroll/resize/scale/동적 축 후 동일 source 브라우저 검증을 통과해야 한다. Task anchor 일치만으로 gate를 PASS하지 않는다. [불일치 화면과 활성화 gate](MILESTONE_TIMELINE.md#독립-uiux-비교에서-확인한-week-날짜-헤더-불일치)를 따른다.
