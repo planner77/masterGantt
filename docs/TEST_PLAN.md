@@ -2186,3 +2186,8 @@ DOCUMENTATION_SYNC 대상은 Resource KPI/PROJECT_UX/MILESTONE_STAGE_GATES/REQUI
 원격 full PR CI [#2142.1](https://github.com/planner77/masterGantt/actions/runs/37720291182)의 TypeScript/ESLint/Vitest/Next production build/Docker smoke/정책 및 Chromium shard 1·2·3·5·6는 PASS였다. Chromium shard 4에서 `tests/e2e/project-search-filter.spec.ts`의 #83 테스트 1건이 실패했다. 조회 from=2026-10-01, to=2026-10-31에서 합성 배정기간 2026-09-16~18은 교집합이 없어야 하지만 `tests/fixtures/resource-dashboard-ui.ts`가 날짜를 무시하고 1 Assignment/5 M/D를 반환했다. 이 fixture는 UI 회귀 검증용 응답이며 실제 SQLite 서버 계산과 구분한다.
 
 기존 선택 범위 검색/활성/역할/등급/상태 판정에 inclusive 날짜 교집합 조건을 추가한다. 기간 밖일 때 Resource·Group 행 0개, `effort.state=empty` 및 `할당 없음`을 유지하되 명시 설정된 0공수(`configured`)와 혼동하지 않는다. 기간 재초기화 시 합성 9월 배정과 5 M/D가 복원되는 기존 E2E assertion을 유지하며 skip/기대값 완화는 적용하지 않는다. DB/API·출력 기능과 실제 Dashboard 서버 코드 변경 없음. 이 수정 이후 공식 exact-head 원격 CI/ACCEPT는 결과 확인 전 NOT TESTED다.
+
+
+### Issue #526 PR #534 Codex P2 — Milestone scope Assignment drill-down 보완 (2026-10-08)
+
+PR #534 unresolved review `PRRT_kwDOUUB7Bc6qEYQc`는 Milestone 조건 활성화 시 선택/reference/excluded 계획공수를 보이면서 고유 Task 상세만 제공하는 실제 UI 누락을 지적한다. 이 세 서버 `ResourceDashboardSummary.selector`는 동일 snapshot의 실제 Assignment 집합을 가리킨다. `MilestoneScopeSummaries`의 각 scope에 계획 M/D·M/M 및 Assignment 수를 포함한 명시적 `assignments` 상세 버튼을 추가하고 기존 고유 Task 상세 버튼은 유지한다. Assignment 0건은 비활성이고 null/partial/unset 텍스트를 변경하지 않는다. native SQLite/HTTP E2E에서 Milestone 제외 집합의 `assignmentScope=milestoneExcluded`/`view=assignments`/고유 Assignment 행·Task 집합을 검증하며 모드/수치 계산·DB·API 계약은 변경하지 않는다. 리뷰 해결·정확한 새 head의 PR CI success 전에는 병합/ACCEPT를 선언하지 않는다.

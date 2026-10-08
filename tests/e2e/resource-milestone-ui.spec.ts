@@ -47,6 +47,24 @@ test("#526 실제 SQLite/HTTP 세 계층·비교표·선택 진척과 전체 Gat
     await root.getByRole("button", { name: "개인", exact: true }).click(); tree = root.getByRole("region", { name: "Milestone 계층 현황", exact: true }); await tree.getByRole("button", { name: "개발 담당 Alice", exact: true }).click(); await tree.getByRole("button", { name: "인수 Milestone", exact: true }).click(); await expect(tree.getByText(/준비 전/)).toBeVisible();
     await root.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); await expect(root.getByRole("region", { name: "개인 Milestone 비교표", exact: true }).locator("tbody tr")).toHaveCount(2); await expect(root.getByRole("region", { name: "개인 Milestone 비교표", exact: true }).getByText("대상 없음").first()).toBeVisible();
     await root.getByLabel("Milestone", { exact: true }).selectOption(milestone.taskId); await expect(root).toHaveAttribute("data-ready", "true"); const summaries = root.getByLabel("Milestone 선택과 기준 범위"); await expect(summaries).toContainText("선택 Milestone 범위"); await expect(summaries).toContainText("선택에서 제외된 배정"); const excluded = summaries.locator("div").filter({ has: publicPage.locator("dt", { hasText: "선택에서 제외된 배정" }) }); const response = publicPage.waitForResponse(r => r.url().includes("/resource-dashboard/details?")); await excluded.getByRole("button", { name: "2 Task", exact: true }).click(); const excludedBody = await (await response).json(); expect(excludedBody.data.selector.assignmentScope).toBe("milestoneExcluded"); expect(excludedBody.data.rows.map((row: { taskId: string }) => row.taskId)).toEqual(expect.arrayContaining([unset.taskId, override.taskId]));
+    // A separate Assignment-grain drill is required for the exact excluded effort,
+    // including partial/unset allocations. Task-grain detail cannot substitute it.
+    await root.getByRole("button", { name: "상세 닫기" }).click();
+    const assignmentResponse = publicPage.waitForResponse(r => {
+      const url = new URL(r.url());
+      return url.pathname.endsWith("/resource-dashboard/details") &&
+        url.searchParams.get("assignmentScope") === "milestoneExcluded" &&
+        url.searchParams.get("view") === "assignments";
+    });
+    await excluded.getByRole("button", { name: /선택에서 제외된 배정.*2 Assignment 상세/ }).click();
+    const exactAssignments = (await (await assignmentResponse).json()).data;
+    expect(exactAssignments.selector.assignmentScope).toBe("milestoneExcluded");
+    expect(exactAssignments.view).toBe("assignments");
+    expect(exactAssignments.totalCount).toBe(2);
+    expect(exactAssignments.rows.every((row: { assignment: unknown }) => row.assignment !== null)).toBe(true);
+    expect(exactAssignments.rows.map((row: { taskId: string }) => row.taskId))
+      .toEqual(expect.arrayContaining([unset.taskId, override.taskId]));
+    await root.getByRole("button", { name: "상세 닫기" }).click();
     expect(await readonly.cookies()).toEqual([]); expect((await get()).data.project.revision).toBe(snapshot.data.project.revision); await testInfo.attach("actual-526-projection", { body: JSON.stringify({ projectPublicId: publicId, revision: snapshot.data.project.revision, groupChild: body, excluded: excludedBody.data }), contentType: "application/json" });
   } finally { await readonly.close(); }
 });
