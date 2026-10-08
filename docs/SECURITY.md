@@ -373,7 +373,7 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 관리자 로그인은 #280 물류 관리자와 같은 bounded process-global 제한(20회/15분)을 적용한 뒤 KDF를 수행한다. 관리자 mutation은 exact Origin과 catalog revision을 서버에서 다시 검증하며 UI 로그인 상태를 권한 근거로 사용하지 않는다. 비밀번호 회전 시 기존 project-master 관리자 세션은 모두 revoke하고, 사용 중 stable code 변경과 FK parent 삭제는 fail-closed 처리한다.
 
 
-## Issue #463 — readonly 단계 대시보드
+## Issue #463 — readonly Milestone 대시보드
 
 `GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
 

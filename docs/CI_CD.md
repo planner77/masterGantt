@@ -461,6 +461,15 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - 기존 자동 plan PR 조회는 inline Bash quote nesting을 사용하지 않고 `scripts/e2e-shard-optimizer-pr.mjs`가 GitHub CLI 인자를 배열로 전달한다. 검색 결과는 `[Issue #437] ci: E2E 샤드 계획 갱신` exact title만 기존 PR로 인정한다.
 - `shouldUpdate=false`이면 기존 PR 조회와 PR 생성은 모두 skip한다. `shouldUpdate=true`일 때 exact-title PR이 있으면 새 PR을 만들지 않고, 없을 때만 기존 자동 PR 생성·명시적 `ci.yml workflow_dispatch` 경로로 진행한다. 6-shard, median/LPT, threshold, cooldown과 자동 merge 금지 계약은 변경하지 않는다.
 
+### Issue #541 자동 PR 권한 차단 및 복구
+
+- `E2E 샤드 최적화 #10.1`(Run ID `37706501705`)에서는 15개 성공 run의 median/LPT 분석과 proposal artifact 업로드, 브랜치 push까지 성공했지만 `gh pr create`가 `GitHub Actions is not permitted to create or approve pull requests`로 차단되었다.
+- `permissions: pull-requests: write`는 workflow-scoped token 권한이며, 자동 PR 허용을 위한 repository-level 정책과 별개다. 관리자 승인 없이 Actions 설정이나 Secret 권한을 확대하지 않는다.
+- 권한 거부 또는 다른 자동 PR 생성 실패 시 생성된 변경 브랜치를 보존하고 `GITHUB_STEP_SUMMARY`에 BLOCKED 원인, 브랜치 SHA, GitHub compare 기반 수동 PR 생성 링크 및 Settings → Actions → General → Workflow permissions 설정 경로를 남긴다. **수동 복구 시 자동 PR과 정확히 동일한 제목 `[Issue #437] ci: E2E 샤드 계획 갱신` 및 canonical `Refs #437`가 정확히 한 번 포함된 본문을 복사하도록 Summary에 명시한다.** `exit 1`을 유지하여 자동화 실패를 SUCCESS로 위장하지 않는다.
+- 자동 PR이 성공했을 때만 exact branch의 `ci.yml workflow_dispatch`를 실행한다. 기존 PR이 있으면 추가 자동 PR을 생성하지 않는다.
+- 또한 `tests/config/e2e-shard-plan.json` 또는 `scripts/e2e-shard-planner.mjs` 변경은 Chromium E2E 실행에 직접 영향을 미치므로 `ci.yml`의 `e2e` path filter에 포함한다. PR aggregate E2E 성공이라도 shard job이 `SKIPPED`였다면 새 계획의 런타임 검증을 완료했다고 해석하지 않는다.
+- 장애 복구: #10에서 생성된 `ci/issue-437-e2e-shard-plan-37706501705` 브랜치를 별도 [PR #540](https://github.com/planner77/masterGantt/pull/540)으로 복구했다. required CI가 성공하기 전에는 병합하지 않으며 repository 설정 변경은 owner/maintainer의 별도 승인 대상이다.
+
 ## Issue #438 Build-once / verified digest promotion
 
 - Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. successful non-docs main candidate는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고, release-required candidate는 formal release에서 재사용한다.
@@ -523,3 +532,11 @@ Release quality의 setup/build duration recorder는 원래 제품·보안 gate�
 - `issues: write`, `packages: write`, `pull-requests: read`: 기존 finalize/cleanup 계약을 유지한다.
 - Resume는 trusted `main`만 checkout하며 source Release run의 path/head SHA/conclusion을 검증한 뒤 resolver를 실행한다.
 - 권한 누락은 `scripts/verify-issue-lifecycle.py`에서 PR CI 단계에 fail-closed로 검출한다.
+
+### Issue #487 Main CI #2203.1 — APT 잠금 충돌 재발 방지
+
+PR #488 merge SHA `08ac7749efc4544dfc125853d9e58ef3a9d56b21`의 Main CI #2203.1 (run `37793380955`)은 Quality/Docker 및 Chromium shard 2~6이 PASS, shard 1/6은 Playwright OS deps timeout 뒤 이전 `apt-get` (PID 2593)이 `/var/lib/apt/lists/lock`을 유지해 공식 Ubuntu archive 재시도가 lock exit 100으로 실패했다. E2E aggregate가 실패해 Main 임시 GHCR 게시 job은 SKIPPED였다.
+
+공용 `.github/actions/playwright-setup/action.yml`의 안전한 복구는 GitHub Ubuntu runner에 Azure archive URL이 구성된 경우 **첫 설치 시도 전** 해당 URL을 공식 `https://archive.ubuntu.com/ubuntu`로 치환한다(24.04 `/etc/apt/apt-mirrors.txt` 참조 포함). APT HTTP/HTTPS 자체 timeout 45초 및 Acquire retries 1회를 설정해 sudo `apt-get`이 상위 npm timeout 뒤에 불필요하게 살아남는 위험을 줄인다. 각 Playwright 설치 시도 전체의 360초 상한은 유지한다. 최초 시도가 실패하고 retry 가능 경로인 경우 `fuser`로 `/var/lib/apt/lists/lock`, `/var/lib/dpkg/lock-frontend`, `/var/lib/dpkg/lock`의 활성 점유를 최대 60초 확인한 뒤 **잠금이 모두 해제된 때만** 1회 재시도한다. 잠금이 남거나 `fuser`가 없으면 다른 프로세스를 강제 종료하지 않고 fail-closed한다.
+
+CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/transport/persistence 검사, metrics 측정 및 버전 정책은 유지한다. 이 보완은 추가 `Refs #487` PR 및 새 merge SHA의 PR/Main CI로 별도 검증하며 기존 실패를 PASS로 대체하지 않는다. 애플리케이션 버전 `0.102.1` 불변, 정식 SemVer tag는 N/A다.

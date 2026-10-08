@@ -109,6 +109,8 @@ jobs:
               - 'db/**'
               - 'tests/e2e/**'
               - 'tests/config/playwright.config.ts'
+              - 'tests/config/e2e-shard-plan.json'
+              - 'scripts/e2e-shard-planner.mjs'
               - 'package.json'
               - 'package-lock.json'
               - 'next.config.*'
