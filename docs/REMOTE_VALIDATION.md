@@ -337,3 +337,10 @@ before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 su
 PR #488 Run #2089.1 (`37637832069`)에서 Chromium shard 4/6이 25분 job timeout으로 취소됐고 E2E aggregate가 FAIL했다. 보완된 Run #2094.1 (`37671573154`)은 6개 Chromium shard 모두 PASS했으나, 신규 `test-config-layout`의 정규식 이스케이프 오류 1건으로 Vitest FAIL이 발생했고 Docker smoke는 Playwright OS dependency Ubuntu Azure mirror 설치 지연으로 30분 job ceiling에서 취소됐다. PR 본문 edit로 생성된 metadata-only Run #2095.1은 동일 head의 전체 CI PASS 근거가 없으므로 연쇄 실패했다.
 
 최신 main 기반 PR은 현재 schedule popup selector와 bounded poll을 함께 보존한다. CI 및 Release E2E shard timeout은 35분, Docker smoke는 40분이고, OS deps 설치는 6분 제한 및 Azure archive 장애 시 공식 Ubuntu archive로 제한적 재시도 1회를 수행한다. 계측 시작이 생략되면 빈 started_ms를 기록하지 않는다. shard 6개, workers=1, 기존 geometry/focus assertion, error/aggregate fail-closed 및 Docker baseline/runtime/transport/Compose smoke를 생략하지 않는다. 새 exact-head PR CI에서 quality/E2E/Docker required checks의 실제 PASS를 검증해야 한다. Release/GHCR 게시·병합·Issue 종료는 별도 승인 절차다.
+
+
+### #487 PR CI #2191.1 — Ubuntu 24.04 mirror+file fallback 탐지 회귀
+
+PR head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI [#2191.1](https://github.com/planner77/masterGantt/actions/runs/37781591645)에서 policy/typecheck/lint/unit/build/Docker 및 Chromium shard 1/3/4/6은 PASS했으나 shard 2/5가 Playwright OS deps 360초 제한 후 exit 124로 FAIL했다. 두 shard 로그의 `file:/etc/apt/apt-mirrors.txt Mirrorlist` / `azure.archive.ubuntu.com` 기록은 Ubuntu runner가 deb822 `ubuntu.sources`에서 `mirror+file` 간접 참조를 사용함을 보인다. 기존 fallback은 `sources.list`, `*.sources`, `*.list`만 검사하여 간접 참조 대상 자체를 검사하지 않아 `no Azure mirror fallback available`로 중단됐다.
+
+보완은 동일한 Azure URL 탐지 및 공식 Ubuntu archive 치환 대상으로 `/etc/apt/apt-mirrors.txt`를 포함한다. 기존 Chromium 6-shard, `workers=1`, assertion, E2E timeout 35분, Docker timeout 40분, 각 OS deps 설치 시도 360초 상한과 실패 시 fail-closed, setup metrics guard는 유지한다. 독립된 `tests/scripts/test-config-layout.test.ts` 정적 회귀는 runner mirror list 경로·검사·치환 계약을 확인한다. 새 exact-head PR CI에서 전체 E2E 및 Docker 필수 gate PASS를 확인해야 하며 #2191.1 실패 결과를 성공으로 간주하지 않는다.

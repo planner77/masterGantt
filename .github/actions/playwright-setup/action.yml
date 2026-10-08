@@ -33,9 +33,11 @@ runs:
           exit 0
         fi
 
-        # On a runner using Azure Ubuntu mirrors, retry once with the official mirror.
+        # Ubuntu 24.04 runner ubuntu.sources can reference
+        # mirror+file:/etc/apt/apt-mirrors.txt instead of an inline Azure URL.
+        # Inspect that referenced mirror list as well as the legacy apt sources.
         azure_sources=()
-        for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
+        for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
           [[ -f "$source" ]] || continue
           if grep -Fq 'azure.archive.ubuntu.com/ubuntu' "$source"; then
             azure_sources+=("$source")

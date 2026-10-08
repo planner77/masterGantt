@@ -6,6 +6,8 @@ PR CI #2089.1의 E2E 25분 timeout은 35분으로 보완되어 #2094.1에서 6�
 
 사용자 요청 종료점: 최신 main 정렬, 충돌 해결, 문서 동기화 및 새 exact-head PR CI **시작 확인**. `release_required=false`, `release_authorized=false`; 병합/GHCR/Issue 종료는 범위 밖이며 새 CI 완료 전 결과는 NOT TESTED다.
 
+#487 PR CI #2191.1 (`37781591645`)의 quality·Docker는 PASS, Chromium shard 1/3/4/6 PASS, 2/5는 Ubuntu 24.04 runner의 `mirror+file:/etc/apt/apt-mirrors.txt` 간접 참조 때문에 기존 Azure fallback이 미러 URL을 발견하지 못해 OS deps 설치 timeout 124로 실패했다. 간접 참조되는 `/etc/apt/apt-mirrors.txt`까지 fallback 검사/치환 대상으로 추가하고 `test-config-layout` 정적 회귀·CI_CD/REMOTE_VALIDATION/TEST_PLAN 기록을 동기화한다. 변경 대상은 shared Playwright setup 및 관련 테스트/문서이며 제품 version·기능은 불변이다. 새 exact-head PR CI 시작까지만 진행한다.
+
 ## Issue #519 — 최초 PR CI 실패·최신 main 통합 (2026-10-08)
 
 [Issue #519](https://github.com/planner77/masterGantt/issues/519) / [Work Packet](ISSUE_519.md) / [PR #547](https://github.com/planner77/masterGantt/pull/547). 최초 head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599` / [CI #2185.1](https://github.com/planner77/masterGantt/actions/runs/37773843644): quality/docker 및 E2E 5개 shard SUCCESS, 5/6의 기존 #130 workspace 5폭×readonly/edit 단일 시나리오가 30s timeout으로 FAIL. 최신 main `599b824677cec2daa47743a60fcac422297f925b` / version `0.102.0`은 #130 시나리오를 폭별 독립 Playwright 테스트로 이미 분할했다. main 이력과 #529 구현을 보존하고 #519 UI/문서 delta를 통합하며 후보 PATCH `0.102.1`로 변경한다. 기존 0.101.3은 미병합 PR 후보 이력이다. 새 exact-head PR CI `quality/e2e/docker` 재검증 필요. 로컬 npm/Chromium 및 독립 qa_docs 미실행: NOT TESTED. `release_required=true` / `release_authorized=false`, 병합/Main CI/GHCR/Issue 종료 비범위.

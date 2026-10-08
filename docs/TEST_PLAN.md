@@ -2462,3 +2462,10 @@ Issue #454 v0.90.1 Release #140.1 (`37434408238`)의 Chromium shard 2/6은 `acti
 - Run #2095.1: metadata-only는 동일 head 전체 CI 실패로 연쇄 FAIL.
 - 보완: 정규식 대신 실제 job 영역을 분리해 timeout 값을 검사한다. PR/Main·Release Chromium shard timeout 35분, Docker smoke 40분, `install-deps` 시도별 6분 제한과 Azure Ubuntu mirror→공식 Ubuntu archive 1회 fallback, 미시작 Playwright metric의 빈 `started_ms` 방지를 적용한다.
 - CI 필수 검증, shard 수 6·workers=1·native fallback·fail-closed 정책을 유지한다. 제품 source/API/DB/domain 및 version 변경 없이 최신 main 기록/selector를 보존한다. immutable v0.90.1 tag 재사용 금지. 새 exact-head 전체 PR CI SUCCESS 전에는 PASS나 병합 가능으로 판정하지 않는다.
+
+
+### Issue #487 PR CI #2191.1 mirror+file fallback 누락 재발 방지
+
+최신 정렬 head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI Run #2191.1 (`37781591645`)에서 TypeScript, lint, Vitest, build, repository policy, Docker smoke는 PASS했다. Chromium E2E shard 1/3/4/6은 PASS했지만 2/5는 `playwright install-deps chromium` 의존성 설치가 360초를 넘은 후 exit 124였다. runner 로그는 `file:/etc/apt/apt-mirrors.txt Mirrorlist`를 표시하고, 실제 다운로드 URL은 Azure mirror였다. 기존 fallback은 `/etc/apt/apt-mirrors.txt`를 검사하지 않아 Azure URL을 찾지 못하고 재시도 전에 FAIL했다. 이는 제품 및 기존 bounded scroll assertion의 실패 증거가 아니다.
+
+해당 미러 목록 파일을 검사/수정 대상으로 포함하고, 기존 소스 리스트 호환, 360초 bounded 설치·공식 Ubuntu archive 1회 retry, 실패 시 non-zero 결과 보존, metric guard를 유지한다. `test-config-layout.test.ts`는 `mirror+file` 간접 참조/실제 미러 파일 검색 경로를 검증한다. 새 exact-head CI의 shard 6개와 quality/Docker aggregate 통과 여부를 다시 확인해야 한다.

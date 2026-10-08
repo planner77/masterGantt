@@ -81,6 +81,13 @@ describe("test configuration repository layout", () => {
     expect(playwrightSetup).toContain("timeout --signal=TERM --kill-after=10s 360s");
     expect(playwrightSetup).toContain("azure.archive.ubuntu.com/ubuntu");
     expect(playwrightSetup).toContain("https://archive.ubuntu.com/ubuntu");
+    // Ubuntu 24.04 deb822 ubuntu.sources may use mirror+file indirection.
+    // The Azure URL must be detected and rewritten in the referenced file.
+    expect(playwrightSetup).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
+    expect(playwrightSetup).toContain("for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list");
+    expect(playwrightSetup).toContain("grep -Fq 'azure.archive.ubuntu.com/ubuntu' \"$source\"");
+    expect(playwrightSetup).toContain('azure_sources+=("$source")');
+    expect(playwrightSetup).toContain("sudo sed -i");
     expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
