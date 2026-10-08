@@ -2132,3 +2132,7 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 - 관리자 API: 세션/Origin/If-Match/ETag/revision 동기화, stale 탭, 로그인 만료, 409 메시지.
 - Browser: 관리자 항목/관계 영역 연결·해제 확인, 프로젝트 사업부/제품 변경에 따른 후보/초안 초기화 및 status 안내, 재선택, inactive 이전값, 390/768/1024/1440/wide, keyboard/focus/overflow.
 - 해당 PR head의 공식 quality/E2E/docker GitHub Actions 증거가 최종 판정이며, 문서나 변경 코드만으로 PASS라고 하지 않는다.
+
+### Issue #538 CI 보완: metadata-only viewport drift
+
+Native Gantt가 canonical metadata 동기화 중 120→91 같은 비영(非零) scroll 이동을 수행해도 geometry/scope/columns/scale이 같고 사용자 입력이 없는 경우 public `scroll-chart`로 정확한 좌표를 복원한다. `metadataViewportRestoreTarget` unit은 nonzero, partial, zero, invalid 상태를 검증한다. 기존 `tests/e2e/task-editor-form-density.spec.ts` #456 테스트가 fullscreen/WBS 탭·tree·column·selection·vertical/horizontal scroll 동시 보존을 exact-head Chromium에서 확인한다.

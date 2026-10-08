@@ -23,3 +23,9 @@
 - [CI Run #2121.1](https://github.com/planner77/masterGantt/actions/runs/37703276171) FAIL: Vitest 4건은 migration 0024 신규 적용의 기존 snapshot(목록·migration count·스키마 table/index)과 두 admin relation Route inventory 고정 목록 미동기화. Vitest 전체 1,581 PASS / 4 FAIL / 3 SKIP.
 - E2E shard 3/6: 관리자 관계 테스트의 `getByLabel("사업부", {exact:true})`가 같은 accessible name을 가진 tabpanel에 매칭되어 `selectOption`이 실패. selector를 `project-master-relations-heading` section 내부의 실제 `select`로 좁힘. 해당 shard 총 73 PASS, 1 FAIL.
 - TypeScript, ESLint, production build, policy, Docker smoke는 PASS. 새 CI로 모든 동일 head 검증을 다시 실시하며 이전 결과를 재사용해 전체 성공으로 판정하지 않는다.
+
+## PR CI #2123.1 실패 후속 (2026-10-08 KST)
+
+- [Run #2123.1](https://github.com/planner77/masterGantt/actions/runs/37706749312), head `b0a9dcc232afc7abc2fec6ae8b2b87597c0c6607`: 변경 경로/TypeScript/ESLint/build/Vitest/정책/Docker PASS, E2E shard 1–5 PASS. Shard 6은 기존 #456 `task-editor-form-density.spec.ts`의 *metadata 저장 후 Gantt viewport continuity* assertion에서 FAIL (기대 chartScroll/publicViewport.left=120, 실제=91; 다른 상태는 보존), shard 6 = 72 PASS / 1 FAIL / 1 SKIP.
+- 현재 Core canonical metadata sync 후 Gantt viewport 복원은 `scrollLeft===0` 또는 `scrollTop===0`에서만 보정한다. 기존 nonzero 좌표 `120 → 91`의 일부 변동은 복원하지 않는다. 동일 API/scope/geometry/columns/scale 및 사용자 입력 없음이라는 기존 `currentRequest()` guard를 유지하고 *실제 값이 이전 좌표와 다르면* public `scroll-chart`로 정확히 복원하도록 보완한다. 별도 순수 helper와 0/partial/nonzero/invalid 단위 회귀를 추가한다. 사용자 입력 후 offset을 강제로 되돌리지 않도록 기존 `hasInput` guard를 그대로 유지한다.
+- 원격 브라우저 trace ZIP의 직접 재생/독립 실험은 수행하지 않았다. 원인은 코드 검토 + observed numeric mismatch의 합리적 추정이며 수정 효과는 새 PR exact-head CI에서 검증할 것. 사용자 승인 범위는 보완 후 PR CI 시작까지이며 병합/메인 CI/정식 릴리스는 미승인.

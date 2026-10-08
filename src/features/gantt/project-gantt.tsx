@@ -1,3 +1,4 @@
+import { metadataViewportRestoreTarget } from "./metadata-viewport-restore";
 "use client";
 
 import {
@@ -1681,9 +1682,15 @@ export function ProjectGantt({
               await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
               const current = api.getState();
               if (currentRequest()) {
-                const left = current.scrollLeft === 0 && request.left > 0 ? request.left : undefined;
-                const top = current.scrollTop === 0 && request.top > 0 ? request.top : undefined;
-                if (left !== undefined || top !== undefined) await api.exec("scroll-chart", { left, top });
+                // Core can shift a nonzero viewport (e.g. 120 -> 91) during a
+                // metadata-only canonical sync. Restore the exact prior offset,
+                // not only a reset to zero. currentRequest() already verifies
+                // unchanged geometry, columns, scope, and no user input.
+                const restore = metadataViewportRestoreTarget(
+                  { left: current.scrollLeft, top: current.scrollTop },
+                  { left: request.left, top: request.top },
+                );
+                if (restore) await api.exec("scroll-chart", restore);
               }
             }
           } finally {
