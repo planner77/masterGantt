@@ -71,11 +71,11 @@ export class ResourceDashboardService {
       const projection = domain.projection;
       const report = snapshot;
       const diagnostics = getResourceKpiDiagnostics(domain, selection);
+      const selector = checked.selector;
       const diagnosticRows = selector.dimension === "diagnostic" && selector.metric === "unset"
         ? diagnosticSelection.assignments.filter((row) => diagnostics.unsetAssignmentIds.includes(row.assignmentId))
         : null;
       if (report.snapshotId !== checked.snapshotId) stale();
-      const selector = checked.selector;
       if (selector.dimension === "resource" && !resourceById.has(selector.id!)) invalidSelection();
       if (selector.dimension === "group" && selector.id !== null && !snapshot.groups.some((row) => row.publicId === selector.id)) invalidSelection();
       if (selector.dimension === "milestone" && selector.id !== null && !snapshot.milestones.some((row) => row.publicId === selector.id)) invalidSelection();
