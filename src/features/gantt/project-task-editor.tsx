@@ -334,7 +334,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   }
   async function applyMemberships() {
     if (!onMembershipSave || locked || awaitingDecision || actionReference.current || basicDirty || resourceDirty || logisticsDirty || readOnly || base.task.status === "completed" || !changes.length) return;
-    try { membershipProjection(tasks, links, changes); } catch { setError("완료 단계를 먼저 재개해야 합니다. 소속 초안은 유지됩니다."); return; }
+    try { membershipProjection(tasks, links, changes); } catch { setError("Milestone를 먼저 재개해야 합니다. 소속 초안은 유지됩니다."); return; }
     actionReference.current = true; setOperation("membership"); setError(null);
     try {
       const result = await onMembershipSave({ changes }, base.revision);
@@ -355,7 +355,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     busy: locked || awaitingDecision || membershipDirty || resourceDirty || logisticsDirty || (base.task.type === "milestone" && base.task.status === "completed"),
   });
   const relationMutationDisabled = relationMutationBlockReason !== null;
-  const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
+  const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "Milestone" : "일반 작업";
   const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
   return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onKeyDown={(event) => { if (event.key === "Escape" && locked) { event.preventDefault(); event.stopPropagation(); } }} onCancel={(event) => { event.preventDefault(); if (confirmation || navigation) { setConfirmation(null); setNavigation(null); } else if (relationDeleteTarget) cancelRelationDelete(); else close(); }}>
@@ -502,12 +502,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
             </fieldset>
           </div>
 
-          {base.task.type === "milestone" && base.task.stageGate ? <section className={styles.metadata} aria-label="완료 단계 준비 상태">
-            <h3>완료 단계 준비 상태</h3><p>본인 상태: {base.task.status === "completed" ? "완료" : base.task.status === "in_progress" ? "진행 중" : "시작 전"}</p>
+          {base.task.type === "milestone" && base.task.stageGate ? <section className={styles.metadata} aria-label="Milestone 준비 상태">
+            <h3>Milestone 준비 상태</h3><p>본인 상태: {base.task.status === "completed" ? "완료" : base.task.status === "in_progress" ? "진행 중" : "시작 전"}</p>
             <p>{base.task.stageGate.manualEvent ? "수동 이벤트 · 작업 진척 대상 없음 (N/A)" : `소속 작업 진척 ${base.task.stageGate.memberProgressPercent ?? 0}% · 미완료 작업 ${base.task.stageGate.incompleteMemberTaskIds.length}개`}</p>
-            <p>미완료 선행 단계 {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length}개 · {base.task.stageGate.ready === true || (base.task.stageGate.manualEvent && base.task.stageGate.predecessorsCompleted) ? "완료 처리 가능 · 상태를 명시적으로 선택하여 저장해 주세요." : "완료 조건을 확인해 주세요."}</p>
+            <p>미완료 선행 Milestone {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length}개 · {base.task.stageGate.ready === true || (base.task.stageGate.manualEvent && base.task.stageGate.predecessorsCompleted) ? "완료 처리 가능 · 상태를 명시적으로 선택하여 저장해 주세요." : "완료 조건을 확인해 주세요."}</p>
             {base.task.stageGate.incompleteMemberTaskIds.length ? <details><summary>미완료 소속 작업</summary><ul>{base.task.stageGate.incompleteMemberTaskIds.map((id) => <li key={id}><button type="button" className="secondary-button" disabled={locked} onClick={() => navigateTask(id)}>{tasks.find((row) => row.taskId === id)?.name ?? id}</button></li>)}</ul></details> : null}
-            {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length ? <details><summary>미완료 선행 완료 단계</summary><ul>{base.task.stageGate.incompletePredecessorMilestoneTaskIds.map((id) => <li key={id}><button type="button" className="secondary-button" disabled={locked} onClick={() => navigateTask(id)}>{tasks.find((row) => row.taskId === id)?.name ?? id}</button></li>)}</ul></details> : null}
+            {base.task.stageGate.incompletePredecessorMilestoneTaskIds.length ? <details><summary>미완료 선행 Milestone</summary><ul>{base.task.stageGate.incompletePredecessorMilestoneTaskIds.map((id) => <li key={id}><button type="button" className="secondary-button" disabled={locked} onClick={() => navigateTask(id)}>{tasks.find((row) => row.taskId === id)?.name ?? id}</button></li>)}</ul></details> : null}
             {base.task.stageGate.completionInconsistent ? <p className={styles.error}>완료 기록과 현재 소속/선행 상태가 일치하지 않습니다. 진단 정보이며 자동으로 재개하지 않습니다.</p> : null}
             {base.task.status === "completed" ? <p>소속/관계를 수정하려면 상태를 진행 중 또는 시작 전으로 변경하고 먼저 저장해 주세요. 재개와 구조 변경은 별도 저장입니다.</p> : null}
           </section> : null}

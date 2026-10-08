@@ -49,7 +49,7 @@ export function useMilestoneDashboard(publicId: string, revision: number, input:
       setOutcome((previous) => ({ key, status: "loading", data: previous.data?.projectPublicId === publicId ? previous.data : null }));
       try {
         const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/milestone-dashboard?${query}`, { signal: controller.signal, cache: "no-store", credentials: "same-origin" });
-        if (!response.ok) throw new Error(`완료 단계 조회에 실패했습니다 (HTTP ${response.status}).`);
+        if (!response.ok) throw new Error(`Milestone 조회에 실패했습니다 (HTTP ${response.status}).`);
         const data = dashboardFrom(await response.json());
         if (!data || !dashboardMatches(data, publicId, revision, expected, catalogs.current.get(publicId) ?? 0)) throw new Error("현재 프로젝트 Revision·조회 조건과 응답이 다릅니다. 프로젝트 최신 정보를 조회한 뒤 다시 시도해 주세요.");
         if (controller.signal.aborted || generation.current !== id || current.current.key !== key) return;
@@ -59,7 +59,7 @@ export function useMilestoneDashboard(publicId: string, revision: number, input:
         if (cache.current.size > 8) cache.current.delete(cache.current.keys().next().value!);
         setOutcome({ key, status: "ready", data });
       } catch (error) {
-        if (!controller.signal.aborted && generation.current === id) setOutcome((previous) => ({ key, status: "error", data: previous.data, error: error instanceof Error ? error.message : "완료 단계를 불러오지 못했습니다." }));
+        if (!controller.signal.aborted && generation.current === id) setOutcome((previous) => ({ key, status: "error", data: previous.data, error: error instanceof Error ? error.message : "Milestone를 불러오지 못했습니다." }));
       } finally {
         if (generation.current === id) inFlight.current = false;
       }
