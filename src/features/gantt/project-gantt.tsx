@@ -1823,12 +1823,7 @@ export function ProjectGantt({
     }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
-      // Compare with the geometry that actually completed the previous canonical sync.
-      // A render that was superseded before its queued sync ran must not become the
-      // viewport-restoration baseline for the surviving update.
-      const geometryUnchanged =
-        appliedCanonicalViewportGeometryReference.current !== null &&
-        appliedCanonicalViewportGeometryReference.current === canonicalViewportGeometry;
+      // Preserve the pre-sync viewport only while the scope and latest input remain stable.
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
@@ -1844,13 +1839,20 @@ export function ProjectGantt({
       };
       metadataViewportReference.current?.cleanup();
       metadataViewportReference.current = null;
-      if (geometryUnchanged && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+      if (context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
-        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
+        let timeoutId: number | null = null;
+        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => {
+          if (timeoutId !== null) window.clearTimeout(timeoutId);
+          for (const event of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(event, markViewportInput, true);
+        } };
         metadataViewportReference.current = request;
-        const cleanup = () => { request.cleanup(); if (metadataViewportReference.current === request) metadataViewportReference.current = null; };
-        // The queue tail also clears requests when no columns update follows.
-        void canonicalSyncQueueReference.current.then(cleanup, cleanup);
+        // The controlled WBS filter follows canonical/column updates. Do not
+        // prematurely discard its restore snapshot. Bound any leftover listener.
+        timeoutId = window.setTimeout(() => {
+          request.cleanup();
+          if (metadataViewportReference.current === request) metadataViewportReference.current = null;
+        }, 2000);
       }
       try {
         const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
@@ -1897,12 +1899,51 @@ export function ProjectGantt({
         const ids = JSON.parse(visibleTaskFilterKey) as string[] | null;
         const version = canonicalSyncVersionReference.current;
         const applied = appliedTaskFilterReference.current;
-        if (applied?.api === api && applied.key === visibleTaskFilterKey && applied.source === source && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay && applied.version === version && milestoneWbsProjectionMatches(api, ids)) return;
-        const visible = ids === null ? null : new Set(ids);
-        await api.exec("filter-tasks", { open: false,
-          filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined });
-        taskFilterAppliedReference.current = visible !== null;
-        if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version };
+        const unchangedProjection = applied?.api === api && applied.key === visibleTaskFilterKey && applied.source === source && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay && applied.version === version && milestoneWbsProjectionMatches(api, ids);
+        const request = metadataViewportReference.current;
+        const matchingRequest = request?.api === api && request.version === version && request.filter === visibleTaskFilterKey && request.key === context && request.scale === scale;
+        const stableContext = applied?.api === api && applied.key === visibleTaskFilterKey && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay;
+        const initialViewport = api.getState();
+        const targetLeft = matchingRequest && !request.hasInput() ? request.left : initialViewport.scrollLeft;
+        const targetTop = matchingRequest && !request.hasInput() ? request.top : initialViewport.scrollTop;
+        const mayRestore = matchingRequest || stableContext;
+        const root = ganttScrollReference.current;
+        let userInput = false;
+        const markInput = (event: Event) => {
+          if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) userInput = true;
+        };
+        if (root) for (const kind of ["pointerdown", "wheel", "keydown"]) root.addEventListener(kind, markInput, true);
+        try {
+          if (!unchangedProjection) {
+            const visible = ids === null ? null : new Set(ids);
+            await api.exec("filter-tasks", { open: false,
+              filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined });
+            taskFilterAppliedReference.current = visible !== null;
+          }
+          if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version };
+          if (mayRestore && root?.isConnected && !userInput && (!request || !matchingRequest || !request.hasInput())) {
+            await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+            if (!cancelled && !userInput && apiReference.current === api && root.isConnected &&
+                peerViewportContext.current.visible && peerViewportContext.current.key === context &&
+                visibleTaskFilterKeyReference.current === visibleTaskFilterKey && scaleModeReference.current === scale &&
+                (!matchingRequest || !request.hasInput())) {
+              ensureTimelineEnd(api);
+              const current = api.getState();
+              if (Math.abs(current.scrollLeft - targetLeft) > 1 || Math.abs(current.scrollTop - targetTop) > 1) {
+                const chartWidth = (current as TimelineState)._chartWidth;
+                if (typeof chartWidth === "number" && chartWidth > 0 && targetLeft > 0)
+                  expandTimelineScale(api, chartWidth + targetLeft + 2 * GANTT_CELL_WIDTH[scale]);
+                await api.exec("scroll-chart", { left: targetLeft, top: targetTop });
+              }
+            }
+          }
+        } finally {
+          if (root) for (const kind of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(kind, markInput, true);
+          if (request && metadataViewportReference.current === request) {
+            request.cleanup();
+            metadataViewportReference.current = null;
+          }
+        }
       }).catch(() => onCanonicalSyncFailureReference.current()).finally(() => {
         awaiting = false;
         if (!cancelled && requested) { requested = false; schedule(); }
@@ -1912,7 +1953,7 @@ export function ProjectGantt({
     const resize = new ResizeObserver(schedule); resize.observe(widget);
     api.on("resize-chart", schedule, { tag }); api.on("resize-grid", schedule, { tag }); api.on("filter-tasks", schedule, { tag }); schedule();
     return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); };
-  }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay]);
+  }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay, ensureTimelineEnd, expandTimelineScale]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
@@ -1985,7 +2026,7 @@ export function ProjectGantt({
                 if (left !== undefined || top !== undefined) {
                   if (left !== undefined) {
                     const chartWidth = (api.getState() as TimelineState)._chartWidth;
-                    if (typeof chartWidth === "number" && chartWidth > 0) expandTimelineScale(api, chartWidth + left);
+                    if (typeof chartWidth === "number" && chartWidth > 0) expandTimelineScale(api, chartWidth + left + 2 * GANTT_CELL_WIDTH[scaleModeReference.current]);
                   }
                   if (currentRequest()) await api.exec("scroll-chart", { left, top });
                 }
@@ -2041,7 +2082,7 @@ export function ProjectGantt({
         await frame(); await frame();
         if (!current()) return;
         const chartWidth = (api.getState() as TimelineState)._chartWidth;
-        if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left);
+        if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left + 2 * GANTT_CELL_WIDTH[scale]);
         if (!current()) return;
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         peerViewportRestoreCount.current++;
