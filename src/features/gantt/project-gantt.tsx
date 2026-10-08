@@ -1910,7 +1910,11 @@ export function ProjectGantt({
     };
     const schedule = () => { if (awaiting) requested = true; else if (frame === null) frame = requestAnimationFrame(apply); };
     const resize = new ResizeObserver(schedule); resize.observe(widget);
-    api.on("resize-chart", schedule, { tag }); api.on("resize-grid", schedule, { tag }); api.on("filter-tasks", schedule, { tag }); schedule();
+    api.on("resize-chart", schedule, { tag }); api.on("resize-grid", schedule, { tag }); api.on("filter-tasks", schedule, { tag });
+    // Canonical Task updates can replace Core derived rows after a filter pass.
+    // Coalesce the public lifecycle events instead of leaving a stale WBS projection.
+    for (const action of ["update-task", "add-task", "delete-task"] as const) api.on(action, schedule, { tag });
+    schedule();
     return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); };
   }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay]);
 
@@ -1977,8 +1981,8 @@ export function ProjectGantt({
               await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
               const current = api.getState();
               if (currentRequest()) {
-                const left = current.scrollLeft === 0 && request.left > 0 ? request.left : undefined;
-                const top = current.scrollTop === 0 && request.top > 0 ? request.top : undefined;
+                const left = current.scrollLeft !== request.left ? request.left : undefined;
+                const top = current.scrollTop !== request.top ? request.top : undefined;
                 if (left !== undefined || top !== undefined) await api.exec("scroll-chart", { left, top });
               }
             }

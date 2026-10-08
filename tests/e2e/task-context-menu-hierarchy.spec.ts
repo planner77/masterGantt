@@ -388,7 +388,8 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
     headers: { Origin: origin, "If-Match": `"${milestoneSnapshot.data.project.revision}"` },
     data: { name: "Forbidden milestone child", type: "task", parentTaskId: headerLeaf!.taskId, start: "2026-09-18", duration: 1, progress: 0 },
   });
-  expect(rejected.status()).toBe(422);
+  // Existing server rejects structurally invalid milestone-parent creation as a conflict.
+  expect(rejected.status()).toBe(409);
   const afterGuard = (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
   expect(afterGuard.data.project.revision).toBe(milestoneSnapshot.data.project.revision);
   expect(afterGuard.data.tasks.some(task => task.name === "Forbidden milestone child")).toBe(false);

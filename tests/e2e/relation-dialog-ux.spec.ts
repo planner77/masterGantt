@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
+import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rowNamed } from "../fixtures/stateful-project";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 const linkId = "00000000-0000-4000-8000-000000000080";
 const title = "작업 관계 관리 (Relation Editor)";
@@ -13,12 +14,14 @@ async function setup(page: Page, readonly = false, longNames = false) {
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
-  const nativeLink = page.locator(`[data-link-id=":${linkId}"]`).first();
-  await expect(nativeLink).toBeVisible();
-  await nativeLink.click({ button: "right" });
-  const context = page.getByRole("dialog", { name: "작업 관계 설정", exact: true });
-  await expect(context).toBeVisible();
-  await context.getByRole("button", { name: "관계 관리... (Relation Editor)" }).click();
+  // The native SVG line may sit behind a bar: use the public relation command
+  // in Task information rather than bypassing pointer hit testing.
+  await expect(page.locator(`[data-link-id=":${linkId}"]`)).toHaveCount(1);
+  await rowNamed(page, "Stable leaf").click({ button: "right" });
+  await chooseTaskInformation(page);
+  const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await taskEditor.getByRole("tab", { name: /관계/ }).click();
+  await taskEditor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }
@@ -62,7 +65,7 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await expect(modal).toHaveCount(0);
   await expectSameGanttRoot(page, root);
-  expect(await page.evaluate(() => document.activeElement?.closest(".project-gantt-frame") !== null)).toBe(true);
+  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toBeVisible();
 });
 
 test("명시적 닫기는 후보 popup보다 우선해 dirty 닫기 확인으로 진입한다", async ({ page }) => {

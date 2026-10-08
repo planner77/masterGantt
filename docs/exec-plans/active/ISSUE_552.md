@@ -129,3 +129,14 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - 범위 밖 실증 원인: metadata rename 후 native row 일시 소실, Summary/Task canonical mutation 후 scroll/peer viewport 120→100 또는 68→0, 390px lane/768px geometry, 대형 milestone lane resize. 제품 결함이거나 테스트 fixture 공간 부족일 가능성을 구분해야 하므로 기존 강한 assertion을 유지하고 새 remote E2E에서 검증한다. 각 미통과 항목을 PASS로 보고하지 않는다.
 - Source/DB/API/scheduling/version 변경 없음. `DESIGN.md`, `AGENTS.md`, `TEST_PLAN.md`의 정책 자체는 변경되지 않아 유지한다. 이 문서는 active Packet의 실패/수정/검증 범위 근거를 추가한다. 실제 local E2E/독립 QA는 이 세션에서 미실행하여 NOT TESTED; GitHub Actions에서 새 head의 공식 gate를 확인한다.
 - release_required=true / release_authorized=false; 범위 PR CI START. merge/main/GHCR/tag/release/Issue close는 수행하지 않는다.
+
+## PR #563 CI #2245.1 E2E 실패 보완
+
+- CI run `37852749930` (#2245.1), head `3ee2b2a42dcc6e02bc74a5085523a2515152e543`: `changes`/TypeScript/ESLint/Vitest/build/policy/Docker PASS, E2E shard 1·2 PASS, shard 3~6 FAIL. 실제 4개 Chromium shard 실패로 기록하며 단순 재실행으로 성공 처리하지 않는다.
+- relation-dlg/fullscreen: 단일 Link SVG는 존재하지만 native Gantt bar/header가 포인터 hit test를 가로막음. `force:true` 같은 기계적 우회가 아니라 **Task 정보→관계 탭→정확 Link 관계 편집**이라는 지원된 사용자 진입점으로 변경한다. link ID 보존·Relation Editor 명령·키보드·focus·fullscreen의 검증은 유지한다.
+- Copy ID: Dashboard/Logistics에 `data-milestone-task-id`가 중복되므로 `#project-panel-milestones`와 `data-ready` 및 canonical ID로 스코프를 제한한다. Milestone native row에 접근하지 않는다.
+- server locked guard: 실제 invalid milestone parent create의 거부 status가 409이며 422 고정 오라클과 달랐다. 409을 검증하고 revision 불변·child 부재는 유지한다.
+- inline Milestone 편집/readonly/401: 더 이상 존재하지 않는 WBS Milestone 이름 셀 대신 Dashboard exact-ID Editor를 사용한다. Task Grid inline name은 유지한다.
+- 제품 viewport: geometry·selection·scale·user input·scope가 동일한 metadata 변경의 복원에서 `scrollLeft==0`만 복원하던 결함을 고쳐 120→100 같은 부분 clamp도 보존한다. 명시적 사용자 입력·변경된 filter/context·new scale 등 기존 취소 guard는 그대로 적용한다.
+- 제품 WBS projection: 공개 Core의 `update-task`/`add-task`/`delete-task` 이벤트에도 기존 frame-coalesced projection 재확인을 요청한다. 새 숨은 Milestone native 행이 나타나거나 일반 Task가 소실되는 회귀를 기존 전체 E2E로 검증한다. Core private field 쓰기/강제 remount/polling/assertion 약화는 하지 않는다.
+- 미검증: 실제 GitHub E2E 및 로컬 독립 QA, peer restore 사용자 wheel vs delayed restore, 대용량 Timeline/좁은 width geometry, confirmed delete scroll. 새 head 전체 CI의 최종 PASS를 주장하지 않는다. release_required=true/release_authorized=false, merge/main/GHCR/tag/Issue close 제외.

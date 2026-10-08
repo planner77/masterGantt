@@ -439,7 +439,9 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
 
   await expect(page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`)).toHaveCount(0);
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
-  const managementRow = page.locator(`[data-milestone-task-id="${milestone.taskId}"]`);
+  const managementPanel = page.locator("#project-panel-milestones");
+  await expect(managementPanel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  const managementRow = managementPanel.locator(`[data-milestone-task-id="${milestone.taskId}"]`);
   await expect(managementRow).toBeVisible();
   await managementRow.getByRole("button", { name: "Copy ID Milestone 관리", exact: true }).click();
   await page.getByRole("dialog", { name: "Copy ID Milestone 관리", exact: true }).getByRole("button", { name: "작업 ID 복사", exact: true }).click();

@@ -146,6 +146,8 @@ test("Summary/Task inline and exact-ID Milestone Editor each use one canonical P
 
 test("invalid input stays focused, Escape cancels, blur saves once, and failures keep canonical names", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
+  fixture.tasks[3].status = taskStatusFromProgress(fixture.tasks[3].progress);
+  await installMilestoneDashboardFixture(page, fixture);
   const route = await routeRenames(page, fixture);
   await page.goto(`/projects/${publicId}`);
   for (const width of [390, 768, 1024, 1440]) {
@@ -220,16 +222,19 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
   expect(route.patches).toHaveLength(5);
 
   route.failOnce(401);
-  const unauthorized = await openName(page, "Stable milestone");
-  await unauthorized.fill("Unauthorized name");
-  await unauthorized.press("Enter");
-  await expect(nameCell(page, "Stable milestone")).toBeVisible();
+  const unauthorized = await openMilestoneEditor(page, id(4));
+  await unauthorized.getByLabel("작업명", { exact: true }).fill("Unauthorized name");
+  await unauthorized.getByRole("button", { name: "저장", exact: true }).click();
+  expect(fixture.tasks[3].name).toBe("Stable milestone");
+  await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
   expect(route.patches).toHaveLength(6);
 });
 
 test("linked endpoints, unrelated tasks, readonly state, and narrow layout preserve existing contracts", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
+  fixture.tasks[3].status = taskStatusFromProgress(fixture.tasks[3].progress);
+  await installMilestoneDashboardFixture(page, fixture);
   fixture.links.push({ id: "inline-link", predecessorExternalId: "SUMMARY-CHILD-1", successorExternalId: "LEAF-1", type: "FS", lag: 0 });
   fixture.tasks[2].url = "https://example.invalid/linked";
   const route = await routeRenames(page, fixture);
@@ -249,15 +254,23 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
   expect(route.patches).toHaveLength(1);
   await ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`).click();
   await expect.poll(async () => (await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls))?.length).toBe(1);
-  const unrelated = await openName(page, "Stable milestone");
-  await unrelated.fill("Unrelated rename");
-  await unrelated.press("Enter");
-  await expect(nameCell(page, "Unrelated rename")).toBeVisible();
+  const unrelated = await openMilestoneEditor(page, id(4));
+  await unrelated.getByLabel("작업명", { exact: true }).fill("Unrelated rename");
+  await unrelated.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(unrelated).toBeHidden();
+  expect(fixture.tasks[3].name).toBe("Unrelated rename");
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(rowNamed(page, "Unrelated rename")).toHaveCount(0);
 
   fixture.sessionEditable = false;
   await page.reload();
-  await nameCell(page, "Unrelated rename").locator(".wx-content > .wx-text").click();
+  await nameCell(page, "Linked rename").locator(".wx-content > .wx-text").click();
   await expect(inlineInput(page)).toHaveCount(0);
+  const readonlyMilestone = await openMilestoneEditor(page, id(4));
+  await expect(readonlyMilestone.getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+  await expect(readonlyMilestone.getByRole("button", { name: "저장", exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   expect(route.patches).toHaveLength(2);
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });

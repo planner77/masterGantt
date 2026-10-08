@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 import {
   expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId,
   rememberGanttRoot, rowNamed,
@@ -343,12 +344,12 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await guardExitFullscreen(page);
-    const link = page.locator(`[data-link-id=":${linkId}"]`).first();
-    await expect(link).toBeVisible();
-    await link.click({ button: "right" });
-    const context = page.getByRole("dialog", { name: "작업 관계 설정", exact: true });
-    await expect(context).toBeVisible();
-    await context.getByRole("button", { name: "관계 관리... (Relation Editor)" }).click();
+    await expect(page.locator(`[data-link-id=":${linkId}"]`)).toHaveCount(1);
+    await rowNamed(page, "Stable leaf").click({ button: "right" });
+    await chooseTaskInformation(page);
+    const task = taskEditor(page);
+    await task.getByRole("tab", { name: /관계/ }).click();
+    await task.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "작업 관계 관리 (Relation Editor)", exact: true });
     await expect(dialog).toBeVisible();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
