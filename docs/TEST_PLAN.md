@@ -1498,7 +1498,7 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 | --- | --- |
 | Unit | 직접/nearest Summary 상속/override/null 복귀, full hierarchy/links, explicit-only batch, 고유 일반 Task 영향, Summary name+membership-only/Task 한 payload, omission/null, 완료 잠금, manual event와 실제 동적 탭 |
 | 실제 SQLite API + Browser | 기본 한 PATCH·batch 한 POST 각각 revision+1, 실패 rollback, 양쪽 Editor 재조회 일치, override 보존, 100%+선행 미완료 거부, manual N/A 명시 완료, 완료/reopen 별도 save |
-| Mock Browser | UUID/동명이인 식별 metadata·긴 후보 active option scroll·Escape/focus, Summary 일정/진척 readonly, Resource/Logistics dirty/pending/stale/401/412/network 초안 보존, 교차 mutation/확인 focus/inert/기본 Baseline 잠금, readonly 검색과 지정 거부 |
+| Mock Browser | UUID/외부 ID 검색·동명이인 canonical 선택·#519 후보 이름/날짜/상태만 표시(ID 비표시)·긴 후보 active option scroll·Escape/focus, Summary 일정/진척 readonly, Resource/Logistics dirty/pending/stale/401/412/network 초안 보존, 교차 mutation/확인 focus/inert/기본 Baseline 잠금, readonly 검색과 지정 거부 |
 | Geometry | 390/768/1024/1440/1920×844, 긴 한글/영문/UUID·21개 후보 행·5개 탭, table 960px owned horizontal scroll, document overflow 없음, dynamic Arrow/Home/End focus, 기존 Gantt identity 유지 |
 
 Local Fast Feedback는 실제 명령과 최종 결과를 구현 Result Contract에 기록한다. 이번 로컬 명령은 `npm run typecheck`, 변경 TS/TSX에 대한 `npx eslint <files>`, `npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/task-editor-model.test.ts tests/features/gantt/task-editor-view-model.test.ts tests/domain/milestone-editor-model.test.ts` 및 repository Playwright config의 관련 spec/grep만 실행한다. 원격 전체 quality/e2e/docker와 독립 최종 QA는 NOT TESTED다.
