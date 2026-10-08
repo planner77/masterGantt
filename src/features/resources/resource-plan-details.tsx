@@ -1,4 +1,9 @@
 "use client";
+import { useResourceDrill } from "./resource-drill-context";
+import {
+  resourceProjectionFetch,
+  planScopeProjection,
+} from "./resource-drill-transport";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type {
   ResourceDashboardDto,
@@ -34,6 +39,7 @@ export function ResourcePlanDetails({
   onClose: () => void;
   unit: "md" | "mm";
 }) {
+  const { binding, onSchedule, onOpenTask, locked } = useResourceDrill();
   const [steps, setSteps] = useState([initial]),
     [result, setResult] = useState<ResourcePlanDetailsDto | null>(null),
     [error, setError] = useState(""),
@@ -69,7 +75,8 @@ export function ResourcePlanDetails({
       setLoading(true);
       setError("");
       try {
-        const response = await fetch(
+        const response = await resourceProjectionFetch(
+          binding,
           `/api/projects/${data.projectPublicId}/resource-dashboard/plan/${current.kind}?${query}`,
           { cache: "no-store", signal: abort.signal },
         );
@@ -98,7 +105,7 @@ export function ResourcePlanDetails({
       disposed = true;
       abort.abort();
     };
-  }, [data, current, query, stale, active, onStale, retry]);
+  }, [data, current, query, stale, active, onStale, retry, binding]);
   const back = () =>
     steps.length > 1 ? setSteps((s) => s.slice(0, -1)) : onClose();
   const next = (date: string, resourceId?: string, name?: string) => {
@@ -113,7 +120,12 @@ export function ResourcePlanDetails({
       ...s,
       {
         kind,
-        input: { ...current.input, selector, date, offset: 0 },
+        input: {
+          ...current.input,
+          selector,
+          date,
+          offset: 0,
+        },
         label: `${current.label} · ${date}${name ? ` · ${name}` : ""}`,
       },
     ]);
@@ -169,6 +181,24 @@ export function ResourcePlanDetails({
       ) : loading ? (
         <p role="status">기간 상세 조회 중…</p>
       ) : null}
+      <button
+        type="button"
+        disabled={stale || locked || !onSchedule || loading}
+        onClick={(event) =>
+          onSchedule?.({
+            data,
+            projection: {
+              kind: "scope",
+              target: "plan",
+              ...planScopeProjection(current.input),
+            },
+            label: current.label,
+            trigger: event.currentTarget,
+          })
+        }
+      >
+        전체 범위 일정 보기
+      </button>
       {result && !error && loadedQuery === query && !loading ? (
         <>
           <div
@@ -205,7 +235,33 @@ export function ResourcePlanDetails({
                   ? result.rows.map((row) => (
                       <tr key={row.assignmentId}>
                         <th scope="row">
-                          <strong>{row.taskName}</strong>
+                          <button
+                            type="button"
+                            disabled={stale || locked || !onOpenTask}
+                            onClick={() => onOpenTask?.(row.taskId)}
+                          >
+                            {row.taskName}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={stale || locked || !onSchedule}
+                            onClick={(event) =>
+                              onSchedule?.({
+                                data,
+                                projection: {
+                                  kind: "scope",
+                                  target: "plan",
+                                  ...planScopeProjection(current.input),
+                                },
+                                label: row.taskName,
+                                trigger: event.currentTarget,
+                                taskId: row.taskId,
+                                assignmentId: row.assignmentId,
+                              })
+                            }
+                          >
+                            이 Task 일정
+                          </button>
                           <small>
                             {row.externalId} · Assignment {row.assignmentId}
                           </small>

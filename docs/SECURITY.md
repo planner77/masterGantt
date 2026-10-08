@@ -399,3 +399,9 @@ reference/excluded scope는 동일 필터 중 Milestone 조건만 제거한 해�
 신규 Plan daily/day-resources/day-assignments GET 세 경로는 inventory public-read/mutatesState=false이며 canonical UUIDv4+Project 존재 guard를 유지한다. 쿠키/편집 권한 없이 같은 공개 Project 범위에서 조회하고 보호 mutation의 exact Origin/session/revision과 production HTTPS·명시 HTTP 쿠키 정책을 변경하지 않는다. Capacity R는 일반 Task 개인 Assignment 이력으로 한정하고 전역 미배정 Group 구성원·책임 참조뿐인 개인은 Plan 인력으로 공개하지 않는다. 안전 metadata에는 이름/code/분류만 포함하며 description/내부PK/password/KDF/token/SQL/stack은 포함하지 않는다.
 
 모든 상세는 snapshot을 먼저 재확인하고 normalized filter/range/asOf/M/M 및 parent periodId/date/selector/demandScope를 검증한다. SHA는 권한 token이 아니다. stale409, malformed/foreign400, resource-day/assignment-day/matrix/JSON 예산422를 구별하며 임의 절삭이나 오류 원문 공개를 하지 않는다. Group 표시 조건은 전체 Calendar 소속을 변경하지 않는다. 성공·오류 private/no-store/nosniff/X-Request-ID와 unsupported mutation405를 유지한다. [API](API.md#issue-527-resource-plan-공개-조회)를 따른다.
+
+## Issue #528 — 공개 읽기 POST scope query
+
+`resource-dashboard/scope` GET은 public-read/mutatesState=false, `resource-dashboard/query` POST는 inventory `origin-public-query-read`/mutatesState=false다. POST는 검증된 APP_BASE_URL과 exact Origin을 비교하며 production HTTPS 기본값/명시 ALLOW_INSECURE_HTTP=true 내부망 HTTP 정책을 재사용한다. 편집 session이나 mutation revision 보호를 제거하지 않는다. 조회는 session 없이 허용하고 모든 응답에 private/no-store/nosniff/request ID를 적용하며 쿠키·credentialed CORS·권한 token·서버 scope ledger를 만들지 않는다.
+
+POST는 실제 UTF-8 byte1MiB, content-type/charset/content-encoding, strict object/selector/filter/UUID allowlist와 raw source ID5000/8000 상한을 검사한다. unknown/foreign selector는400, 원본 fingerprint와 환경 M-D 정책 변경은409이며 문법 정상인 descriptor의 foreign 의미 검사보다 stale을 먼저 판정한다. 원본/계산/직렬화 한도는422, 전송 한도는413이고 부분 scope를 완전한 결과로 반환하지 않는다. dataSnapshotId/snapshotId는 최신 데이터 비교용이며 authorization token이 아니다. Project 연결 Catalog만 fingerprint/enrichment하고 SQL/password/session 원문을 공개하지 않는다. 실제 원장 변경과 protected mutation denied/no-cookie/no-mutation 회귀는 [TEST_PLAN](TEST_PLAN.md)을 따른다.

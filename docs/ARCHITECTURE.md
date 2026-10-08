@@ -241,3 +241,9 @@ ResourceDashboardService는 같은 SQLite read transaction의 prepareSnapshot, p
 기존 ResourceDashboardService가 같은 SQLite read transaction/clock1회와 준비 ResourceKpi snapshot에서 Capacity R, selectedA, fullProjectA를 구성하고 pure Resource Plan으로 전달한다. Domain은 HTTP/DB/clock/ENV를 읽지 않으며 서비스는 Project 연결 metadata를 compact report와 bounded numeric/Assignment DTO에 enrich한다. granularity는 opt-in projection으로 snapshot hash에서 제외하되 canonical source/실제 filter/range/asOf/M/M identity를 유지한다.
 
 Calendar의 전체 Group 소속과 Group 출력 projectionGroupIds를 분리한다. 선택 기간/Task/Milestone/search로 R를 축소하지 않고 Group/Role 중첩 Capacity를 Grand로 합산하지 않는다. 신규 daily/day-resources/day-assignments GET은 기존 route→service→repository→SQLite 경계를 유지하며 전역 Group 멤버·원장·cache·migration을 추가하지 않는다. 실제 daily ID 원인은 별도 page이며 시간축 전체 ID 배열을 report에 복제하지 않는다. [Plan 공개 계약](API.md#issue-527-resource-plan-공개-조회)을 따른다.
+
+## Issue #528 — Stateless scope query 경계
+
+Resource drill DTO와 strict 입력 parser, 공개 Route Handler, ResourceDashboardService, 공용 `readResourceDataSnapshot`, 기존 Repository/SQLite를 사용한다. POST는 exact Origin과 실제 stream1MiB를 검증하는 읽기 전용 경로이며 session·DB schema·scope token 저장소를 추가하지 않는다. 공용 원본 reader는 clock/기간 projection 없이 동일 read transaction의 raw 원장과 연결 Catalog/Calendar를 정렬·fingerprint한다. Resource report, bootstrap/query와 Legacy Milestone의 context 계산이 동일 helper를 사용한다. query는 source fingerprint/환경 환산 정책을 먼저 확인하고 한 clock/read transaction에서 target projection을 읽는다.
+
+source restriction은 선택 A와 T0에만 적용한다. exact Assignment 교집합은 다른 co-assignee로 확대하지 않고, T0의 raw 진단은 허용 일반 Task 집합 안에서 개인 조건 전 의미를 유지한다. Milestone reference는 source restriction을 유지하면서 M 조건만 제거한다. Plan Capacity R/history/fullProjectA 및 full canonical Stage Gate는 source restriction으로 좁히지 않는다. Plan의 project는 같은 R/기간 전체 참고로 명시한다. UI는 원래 출발 context와 target 조건을 별도 echo로 검증한다. Legacy Milestone의 추가 fingerprint 한도 초과는 report 전체 실패가 아니라 nullable context로 표현한다. 상세 계약은 [API](API.md#issue-528-정확한-resource일정-drill-조회)를 따른다.

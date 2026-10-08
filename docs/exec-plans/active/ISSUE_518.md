@@ -1,10 +1,19 @@
 # Issue #518 — 일정·Milestone 상위 탭 단순화 실행 계획
 
+## 최신 main 정렬과 #528 충돌 해결 (2026-10-08)
+
+- 최신 main: `3fa543b10e98d59e50f63f3f53613affe720b648` / application `0.101.0`. 이전 main `b4a0898283571ac4f05d53299266acccadeeff68`에서 9개 커밋이 전진했고, PR #544는 해당 9개 커밋만큼 behind였다.
+- 겹침 범위: `src/features/projects/project-readonly-view.tsx`, `src/features/milestones/project-milestone-dashboard.tsx`, `src/app/globals.css`, 공통 UX/요구사항/테스트·계획 문서와 기존 #463 E2E. 코드 덮어쓰기 대신 최신 main 트리를 우선 사용해 #518 delta를 반영한다.
+- #528 보존: `ResourceNavigationState.view`의 Milestone 상위 탭 대응, Resource/Milestone↔일정 원래 보기 복귀, 선택 Task·공수 컨텍스트 검증, `onSourceContext`/`milestoneToResources`와 Resource navigation frame 및 pending/stale guard를 유지한다. #518 내부 `scheduleView` 중복 state/tab row는 제거하고 이전 Milestone 출발 위치는 top-level `view`로 복구한다.
+- #528 Resource/Scope 보고서·API/DTO/신규 테스트와 release 0.101.0 문서를 모두 main으로부터 보존한다. #518의 최신 PATCH 버전은 `0.101.1`. `DESIGN.md`, `AGENTS.md`, Lifecycle/DB/API/Scheduling 정책은 변경 N/A. 새 PR CI를 동일 exact head에서 재검증하기 전 PASS가 아니다.
+- 실행 범위: 최신 main 충돌 해결과 새로운 PR CI 등록까지. 병합/Main/GHCR/Issue 완료는 요청하지 않았다. `release_required=true`, `release_authorized=false`.
+
+
 ## PR CI #2158 E2E shard 실패 / hydrate-ready 보완 / 최신 main 정렬 (2026-10-08)
 
 - PR #544, head `b9c97861c07a79f7656e5aeb5e387d279f0bcfb7`, [Run #2158.1](https://github.com/planner77/masterGantt/actions/runs/37736467124): `quality` 및 `docker` SUCCESS, Chromium shard 2~6 SUCCESS. shard 1/6은 `tests/e2e/error-boundary-regression.spec.ts`의 #502 Gantt Demo 1건이 예상되는 오류 heading을 발견하지 못해 FAIL했다.
 - 해당 #502 probe/error boundary 본체는 #518 변경 이전에도 동일했다. root 테스트는 실제 controlled throw를 기록했지만 Gantt Demo throw는 로그에 없어 SSR button 표시와 hydration handler 준비 사이 입력 경쟁을 가설로 확인한다. E2E-only `ErrorBoundaryProbe`에 `useEffect` 이후 readiness marker를 제공하고, Playwright는 실제 event handler hydration 후 Enter로 오류 경계와 retry/focus 복원을 계속 검증한다. 단순 대기시간 증가, 실패 무시, 모킹, 품질 gate 완화 금지.
-- 재정렬 기준 최신 main `b4a0898283571ac4f05d53299266acccadeeff68` / application `0.100.0` (#527 Resource Plan 포함), 새 PATCH 후보 `0.100.1`; 초기 기준 `8b9d4d76758f73094ec84590e3a8a49314741587` / `0.99.0`의 역사 이력은 유지. 충돌 파일은 main의 #527 코드·문서·계산·테스트/증거를 우선 보존하고 #518 delta만 병합한다.
+- 재정렬 기준 최신 main `b4a0898283571ac4f05d53299266acccadeeff68` / application `0.100.0` (#527 Resource Plan 포함), 새 PATCH 후보 `0.101.1`; 초기 기준 `8b9d4d76758f73094ec84590e3a8a49314741587` / `0.99.0`의 역사 이력은 유지. 충돌 파일은 main의 #527 코드·문서·계산·테스트/증거를 우선 보존하고 #518 delta만 병합한다.
 - 새 head CI 전체 quality/e2e/docker 통과 전에는 최종 PASS 아님. Local Chromium 및 독립 QA 실행은 NOT TESTED. `release_required=true` / `release_authorized=false`; merge/main CI/GHCR/Issue 종료는 이번 요청 비범위.
 
 ## PR CI #2154 E2E 실패 및 보완 (2026-10-08)
@@ -30,7 +39,7 @@
 - Issue: https://github.com/planner77/masterGantt/issues/518
 - 초기 기준 main: `8b9d4d76758f73094ec84590e3a8a49314741587`; 현재 정렬 main: `b4a0898283571ac4f05d53299266acccadeeff68` / application `0.100.0`
 - branch: `feat/issue-518-workspace-milestone-tab`
-- 후보 version: `0.100.1` (PATCH: 최신 main 0.100.0 기준 기존 탭 계층/공간 문제 시정)
+- 후보 version: `0.101.1` (PATCH: 최신 main 0.100.0 기준 기존 탭 계층/공간 문제 시정)
 - release_required: true / release_authorized: false
 - 현재 종료 목표: 구현·관련 문서 동기화·PR 생성·exact-head PR CI 시작. CI 완료, 독립 QA 확정, merge/main, tag/GHCR, branch cleanup, Issue 종료는 범위 밖
 

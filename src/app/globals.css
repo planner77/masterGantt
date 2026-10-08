@@ -1379,7 +1379,7 @@ h2 {
   outline-offset: var(--focus-offset);
 }
 
-/* #518: a single horizontal nav row; narrow screens scroll inside the tablist. */
+/* #518: a single horizontal project navigation row; keep focus visible at narrow widths. */
 .project-primary-tabs { min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 6px 0; scrollbar-width: thin; }
 .project-primary-tabs button { flex: 0 0 auto; white-space: nowrap; }
 
@@ -2590,7 +2590,7 @@ h2 {
 }
 
 
-/* #518: Gantt remains measured but inaccessible during the top-level Milestone view. */
+/* #518: retain the measured Core Gantt box without interactive or accessible content. */
 .project-schedule[data-dashboard-inactive="true"] {
   position: absolute;
   inset: 0;
@@ -2599,3 +2599,8 @@ h2 {
   pointer-events: none;
 }
 .project-milestone-panel { overflow-y: auto; overflow-x: hidden; padding: 0 0 6px; }
+
+.resource-drill-strip { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border-default); font-size:12px; }
+.resource-drill-strip:empty { display:none; }
+.resource-drill-strip > span { flex:1 1 260px; min-width:0; overflow-wrap:anywhere; }
+.resource-drill-strip > button { flex:0 0 auto; max-width:100%; }

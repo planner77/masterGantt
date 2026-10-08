@@ -446,3 +446,13 @@ Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·
 ### Issue #527 Resource Plan UI
 
 리소스 탭에서 주/월 한 개 계획 matrix와 Group→Resource→Milestone/Resource→Milestone을 제공한다. 전체1+분류49행/4기간+전체 window, 부모context·code/activity/Role-grade·sticky/internal scroll,5폭(390/768/1024/1440/1920px) 긴 이름·마지막 기간 창을 검증한다. 선택 기여와 Project 전체 참고·과투입, R0/0부하/비근무/미설정/부분합을 구별한다. 날짜→개인→Assignment의 echo 검증·readonly 상세, keyboard/focus/Escape/pager·cancel/stale·기존 Gantt 상태를 보존한다. 자세한 계약은 [Resource KPI Dashboard](RESOURCE_KPI_DASHBOARD.md#issue-527-resource-plan-조회-ui)를 따른다.
+
+## Issue #528 — Resource·Milestone·일정 정확한 조회 범위
+
+Resource→일정은 서버가 확인한 전체 고유 일반 Task/개인 Assignment 집합을 사용하며 상세 page50을 전체 범위로 대체하지 않는다. 조상 Summary는 표시 context로 분리한다. 일정 선택 Task/Summary→Resource는 일반 Task 자손의 모든 개인 배정을 대상으로 하고, exact Assignment source는 공동 Task의 다른 개인으로 확대하지 않는다. 빈 source는 All로 fallback하지 않는다. selected A/T0와 #526 reference는 source 제한을 유지하며 #527 Project 전체 부하 참고는 같은 R/기간의 명시 reference다. full Stage Ready/Blocked 계산은 유지한다.
+
+public-readonly POST query는 exact Origin·실제 stream1MiB·strict descriptor와 유한 원본/계산/JSON 예산을 검증하고 DB/session/token을 만들지 않는다. canonical raw fingerprint와 출발 실제 기간/M-D 정책, 별도 target 조건을 echo하여 stale409를 차단한다. Legacy Milestone 추가 context 한도 초과는 기존 조회를 보존하며 정확한 cross drill만 unavailable로 명시한다. UI의 return-frame·guard·WBS 확인 계약은 [실행 계획](exec-plans/active/ISSUE_528.md)과 [Resource KPI](RESOURCE_KPI_DASHBOARD.md#issue-528-정확한-source-scope와-양방향-drill)를 따른다.
+
+Issue #528 UI는 명시 원본 source와 destination 조건을 분리하고 최대8개 복귀 frame·최대9개 live 방문 context를 보존한다. 원래 보기는 직전 출발을 복원하고 전체 해제는 현재 화면의 첫 이동 전 조건을 복원한다. 서로 다른 수동 탭의 최근 이동 집합을 현재 조회 집합으로 표시하지 않는다. 직접 Milestone 위치 노드는 일반 Task N과 구분한다. 확인창 승인 후 원본 fingerprint·환산 정책을 다시 검증하고 stale/empty를 All로 확대하지 않는다. 기존 공통 Editor와 Gantt instance·선택·viewport를 보존한다.
+
+Issue #528의 신규 범위 버튼은 기존40px secondary-button/focus primitive를 사용하고 캐시된 숨은 제목 대신 실제 도착 제목으로 focus한다. Milestone 직접 노드 frame의 원본 기간·평가일·환산/sourceProjection은 오늘 lookup 결과로 대체하지 않는다.

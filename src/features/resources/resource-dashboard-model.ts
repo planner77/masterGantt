@@ -1,3 +1,7 @@
+import {
+  resourceSourceContextSchema,
+  resourceDataContextSchema,
+} from "./resource-drill-scope-model";
 import { z } from "zod";
 import { resourcePlanSchema } from "./resource-plan-model";
 import type {
@@ -113,6 +117,7 @@ const revisions = {
 };
 const diagnostic = z.object({ count, selector });
 const report = z.object({
+  resourceScopeContext: resourceSourceContextSchema.optional(),
   ...revisions,
   calculatedAt: z.iso.datetime(),
   asOfDate: date,
@@ -210,6 +215,7 @@ const report = z.object({
   }),
 });
 const detail = z.object({
+  resourceDataContext: resourceDataContextSchema.optional(),
   ...revisions,
   selector,
   view: z.enum(["tasks", "assignments"]),
@@ -489,6 +495,7 @@ export function sameSelector(
   );
 }
 const children = z.object({
+  resourceDataContext: resourceDataContextSchema.optional(),
   ...revisions,
   groupId: z.string().nullable(),
   milestoneTaskId: z.string().nullable().optional(),
