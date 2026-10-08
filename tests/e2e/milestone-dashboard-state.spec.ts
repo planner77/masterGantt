@@ -103,6 +103,12 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), identity = await frame.getAttribute("data-project-gantt-api-instance");
   const viewport = () => frame.evaluate((element) => ({ public: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, dom: { left:element.querySelector(".wx-chart")!.scrollLeft,top:element.querySelector(".wx-gantt")!.scrollTop } }));
   try {
+    // Wait for actual week-scale scroll geometry before checking viewport persistence.
+    await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+    await expect.poll(() => chart.evaluate((element) => element.scrollWidth - element.clientWidth), {
+      message: "Week timeline needs at least 120px of horizontal scroll",
+      timeout: 10_000,
+    }).toBeGreaterThanOrEqual(120);
     const vertical = frame.locator(".wx-gantt"); expect(await vertical.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
