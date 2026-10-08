@@ -329,21 +329,17 @@ export class ResourceDashboardService {
       try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId, scope); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
-      const { snapshot, diagnosticSelection } = calculated;
+      const { snapshot } = calculated;
       const report = snapshot;
       if (report.snapshotId !== checked.snapshotId) stale();
       const selector = checked.selector;
+      // detailTargets handles T0 diagnostics via diagnosticUnsetRows, including
+      // exact-Assignment scope and original dates outside the report range.
+      // Do not override its raw result with the clipped dashboard selection.
       const { rows, targetTaskIds } = this.detailTargets(calculated, selector);
-      // Diagnostic "unset" operates on all in-scope assignments rather than person-filtered rows.
-      const diagnosticIds = selector.dimension === "diagnostic" && selector.metric === "unset"
-        ? new Set(getResourceKpiDiagnostics(domain, calculated.selection).unsetAssignmentIds)
-        : null;
-      const diagnosticRows = diagnosticIds
-        ? diagnosticSelection.assignments.filter((row) => diagnosticIds.has(row.assignmentId))
-        : null;
       const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks"
         ? targetTaskIds.map((taskId) => ({ taskId, row: null }))
-        : (diagnosticRows ?? rows).map((row) => ({ taskId: row.taskId, row }));
+        : rows.map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
       const page = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => this.detailRow(snapshot, taskId, row));
       const result: ResourceDashboardDetailsDto = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,

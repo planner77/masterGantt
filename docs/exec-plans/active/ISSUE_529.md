@@ -181,3 +181,10 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - `resource-plan-dashboard.spec.ts`: #529에서 CI 통과한 Core auto-pan 이후 nonzero public/DOM 안정 상태를 유지하며 왕복 strict equality도 보존한다. main의 임의 120px 입력 경합 회피 목적도 유지한다.
 - `resource-dashboard-model.test.ts`: empty MD/MM 0/null, configured 0, unset/partial 구별을 모두 테스트한다. `resource-dashboard-ui.ts` fixture는 main의 동일 날짜 교집합 동작을 사용한다.
 - 공통 소스에는 Release 승인·제품 버전·DB schema·기존 권한·CI gate 변경을 가하지 않는다. 충돌 해결 후 exact-tree PR CI가 최종 검증이며 QA_FINAL/Manager ACCEPT, main/GHCR/정식 Release는 이번 요청 범위 밖이다. `release_required=true`, `release_authorized=false`.
+
+## PR CI #2171 실패·동일 SHA 메타데이터 CI #2172 구분 (2026-10-08)
+
+- PR #543 full CI #2171 (run `37752287987`, head `ff7576cf6a398804dfe87239dc70e84d7bd762fc`): 6 Chromium E2E shard / ESLint / repository policy PASS. TypeScript `TS2304` at `resource-dashboard-service-core.ts:339`, Vitest `resource-dashboard.test.ts` 4개 FAIL; Next.js build와 Docker image build 연쇄 FAIL. 정확한 원인은 최신 main/#529 충돌 해결 시 기존 `getDetails`가 참조하는 미정의 `domain` 분기와 진단 상세 행을 다시 잘라내는 `diagnosticSelection` 우회 로직을 남긴 것이다.
+- 같은 HEAD의 PR metadata-only CI #2172 (run `37753712741`)는 새 전체 검증이 아니며 #2171의 failed required gates를 회복하지 못했다.
+- 해결: `getDetails`는 `detailTargets`의 canonical `diagnosticUnsetRows` 결과를 그대로 사용한다. 원본 Assignment 기간과 보고기간 겹침, exact ID 범위 및 개인 필터 미적용 T0 진단의 3가지 기존 회귀 `tests/server/resources/resource-dashboard.test.ts`를 유지한다. 결과를 다시 `diagnosticSelection` clipped 행으로 덮어쓰지 않는다. 필터·원장·권한·DTO·API 변경 없이 미정의 식별자를 제거한다.
+- CI 오류를 기존 PASS라고 보고하지 않는다. 새 head 공식 Quality/E2E/Docker 결과와 QA_FINAL/Manager ACCEPT는 실행/판정 전 NOT TESTED. release_required=true, release_authorized=false; 병합, Main CI, GHCR, Issue 종료는 요청 범위 밖이다.
