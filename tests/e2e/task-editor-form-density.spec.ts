@@ -226,10 +226,11 @@ test("#456 active name filter의 metadata 저장으로 실제 ID 집합이 바�
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
   await search.fill("긴 작업명"); await expect(target).toBeVisible();
   const chart = frame.locator(".wx-chart").first();
-  await chart.evaluate((element) => { element.scrollLeft = 120; });
+  await chart.evaluate((element) => { element.scrollLeft = Math.min(120, element.scrollWidth - element.clientWidth); });
   const viewport = () => frame.evaluate((element) => ({ api: element.getAttribute("data-project-gantt-api-instance"), instance: element.getAttribute("data-project-gantt-instance"), public: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, domLeft: element.querySelector(".wx-chart")!.scrollLeft }));
-  await expect.poll(async () => (await viewport()).public.left).toBe(120);
+  await expect.poll(async () => (await viewport()).public.left).toBeGreaterThan(0);
   const before = await viewport();
+  expect(before.domLeft).toBeGreaterThan(0);
   await target.click({ button: "right", position: { x: 12, y: 19 } }); await chooseTaskInformation(page);
   const dialog = editor(page); await dialog.getByLabel("작업명", { exact: true }).fill("Filtered name changed");
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0);

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 import {
   expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId,
   rememberGanttRoot, rowNamed,
@@ -345,7 +346,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await guardExitFullscreen(page);
     const source = page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000003\"]").first();
     await source.click({ button: "right", position: { x: 12, y: 19 } });
-    await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "작업 정보", exact: true }).click();
+    await chooseTaskInformation(page);
     const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
     await editor.getByRole("tab", { name: /관계/ }).click();
     await editor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();

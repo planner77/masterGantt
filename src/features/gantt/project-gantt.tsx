@@ -1977,9 +1977,18 @@ export function ProjectGantt({
               await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
               const current = api.getState();
               if (currentRequest()) {
-                const left = current.scrollLeft === 0 && request.left > 0 ? request.left : undefined;
-                const top = current.scrollTop === 0 && request.top > 0 ? request.top : undefined;
-                if (left !== undefined || top !== undefined) await api.exec("scroll-chart", { left, top });
+                // Native Core may clamp a nonzero viewport during a metadata-only
+                // column/layout update; preserve the recorded position unless a real
+                // wheel/pointer/keyboard input or a scope change has superseded it.
+                const left = Math.abs(current.scrollLeft - request.left) > 1 ? request.left : undefined;
+                const top = Math.abs(current.scrollTop - request.top) > 1 ? request.top : undefined;
+                if (left !== undefined || top !== undefined) {
+                  if (left !== undefined) {
+                    const chartWidth = (api.getState() as TimelineState)._chartWidth;
+                    if (typeof chartWidth === "number" && chartWidth > 0) expandTimelineScale(api, chartWidth + left);
+                  }
+                  if (currentRequest()) await api.exec("scroll-chart", { left, top });
+                }
               }
             }
           } finally {
@@ -1997,7 +2006,7 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [columns, ensureTimelineEnd]);
+  }, [columns, ensureTimelineEnd, expandTimelineScale]);
 
   useEffect(() => {
     const id = ++peerViewportGeneration.current;

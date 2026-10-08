@@ -90,3 +90,10 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - 원인: #552 Milestone 표시 구조가 native WBS 행/막대/혼합 link를 분리했으나 레거시 E2E는 종전 native locator로 접근. 일부 viewport는 Milestone 제외 후 scroll 높이가 줄어든 환경에서 고정 픽셀을 전제.
 - 보완: 일반 Task 사이 관계와 fullscreen 테스트 진입, canonical Milestone 데이터/대시보드 검증, 물리적으로 scroll 가능한 ordinary WBS fixture, 계층 메뉴의 Convert 시점 조정. E2E skip·timeout 완화는 적용하지 않음.
 - 새 exact-head 공식 검증과 QA는 결과 확인 전까지 NOT TESTED. merge/main/GHCR/release/Issue 종료 미승인.
+
+## PR CI #2246 (2026-10-09) 후속 실패 진단
+
+- Exact-head run https://github.com/planner77/masterGantt/actions/runs/37853503260 (`8734a98`): 단위·타입·Lint·Build·Docker·정책 PASS, Chromium shard 2–6 FAIL.
+- Milestone의 retired WBS bar/row·mixed SVG link를 여는 E2E가 다수 잔존했고 새 #552 Dashboard/Task Editor 진입으로 수정했다. 별도 일반 Task Relation Editor 경로로 키보드·삭제·pending·readonly·fullscreen을 검증한다.
+- metadata 저장 시 Core가 nonzero scrollLeft를 clamp하는 경로에서 기존 0-only 복원이 동작하지 않아 실제 입력 우선·고정 column/scope 조건하에 정확한 viewport를 복원하도록 조정했다. 필터 변경 시에는 이전 위치를 복원하지 않는 기존 기준을 유지한다.
+- PR/new exact-head CI는 반드시 새 commit 대상으로 판단한다. QA_FINAL, Main, GHCR, 환경별 검증은 NOT TESTED.

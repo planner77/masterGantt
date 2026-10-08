@@ -147,6 +147,7 @@ test("Summary/Task inline and exact-ID Milestone Editor each use one canonical P
 test("invalid input stays focused, Escape cancels, blur saves once, and failures keep canonical names", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   const route = await routeRenames(page, fixture);
+  await installMilestoneDashboardFixture(page, fixture);
   await page.goto(`/projects/${publicId}`);
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
@@ -226,7 +227,8 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
   const unauthorized = await openMilestoneEditor(page, id(4));
   await unauthorized.getByLabel("작업명", { exact: true }).fill("Unauthorized name");
   await unauthorized.getByRole("button", { name: "저장", exact: true }).click();
-  await expect(unauthorized).toContainText(/편집 권한|세션|실패/);
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  expect(fixture.tasks.find(task => task.taskId === id(4))?.name).toBe("Stable milestone");
   await expect(page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000004\"]")).toHaveCount(0);
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
   expect(route.patches).toHaveLength(6);
