@@ -149,8 +149,6 @@ jobs:
     name: Release Chromium E2E shard ${{ matrix.shard }}/6
     runs-on: ubuntu-latest
     needs: prepare
-    # Match PR/Main E2E timeout so transient Playwright setup latency cannot make
-    # Release stricter only because runner setup consumed the shared job budget.
     timeout-minutes: 35
     strategy:
       fail-fast: false

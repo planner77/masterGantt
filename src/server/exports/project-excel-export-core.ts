@@ -1,4 +1,6 @@
 import { deflateRawSync } from "node:zlib";
+import { type ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
+import { assertResourceExcelXmlBytes, assertResourceExcelZipBytes, buildResourceExcelSheets, validateResourceExcelValues } from "./resource-excel-export-core";
 
 import type { ProjectLinkDto, ProjectSnapshotResponse, ProjectStatus, ProjectTaskDto } from "@/contracts/projects";
 import type { MilestoneDashboardDto } from "@/contracts/milestone-dashboard";
@@ -1106,7 +1108,9 @@ export function buildProjectExcelWorkbook(
   request: ProjectExcelExportRequest,
   resourceWorkload?: ResourceWorkloadResponse,
   stageDashboard?: MilestoneDashboardDto,
+  resourceReport?: ResourceExcelReportBundle,
 ): Uint8Array<ArrayBuffer> {
+  if (request.resourceDashboard) for (const input of [snapshot, resourceWorkload, stageDashboard, resourceReport]) validateResourceExcelValues(input);
   const stagePresent = snapshot.data.tasks.some((task) => task.type === "milestone" || task.membership?.explicitMilestoneTaskId || task.membership?.effectiveMilestoneTaskId);
   if (stagePresent && !stageDashboard) {
     throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage summary must be supplied for this snapshot.");
@@ -1123,6 +1127,7 @@ export function buildProjectExcelWorkbook(
     throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Resource workload must match the exported Project revision.");
   }
   const effortRows = includeResourceEffort ? resourceEffortRows(resourceWorkload!) : [];
+  const reportSheets = request.resourceDashboard ? buildResourceExcelSheets(snapshot, request.resourceDashboard, resourceReport!, (row, values, header) => rowXml(row, values.map((value, index) => ({ column: index + 1, style: header ? STYLE.header : typeof value === "number" ? STYLE.default : STYLE.text, type: typeof value === "number" ? "number" : "string", value: value === null || value === undefined ? undefined : typeof value === "boolean" ? String(value) : value })))) : [];
   const names = [
     "Gantt",
     "Tasks",
@@ -1131,6 +1136,7 @@ export function buildProjectExcelWorkbook(
     ...(includeLogistics ? ["Logistics"] : []),
     ...(includeResourceEffort ? ["Resource Effort Summary", "Resource Effort Detail"] : []),
     ...(stageDashboard ? ["Milestone Stages"] : []),
+    ...reportSheets.map(sheet => sheet.name),
   ];
   const entries: ZipEntry[] = [
     { path: "[Content_Types].xml", content: contentTypes(names.length, drawing) },
@@ -1165,7 +1171,14 @@ export function buildProjectExcelWorkbook(
     entries.push({ path: "xl/worksheets/_rels/sheet1.xml.rels", content: DRAWING_RELS });
     entries.push({ path: "xl/drawings/drawing1.xml", content: drawingXml(snapshot.data.links, tasks, dates, gantt.timelineStart) });
   }
-  return zip(entries);
+  for (const sheet of reportSheets) {
+    const index = nextSheetIndex++; entries.push({ path: `xl/worksheets/sheet${index}.xml`, content: sheet.xml });
+    if (sheet.relationship) entries.push({ path: `xl/worksheets/_rels/sheet${index}.xml.rels`, content: sheet.relationship });
+  }
+  if (request.resourceDashboard) assertResourceExcelXmlBytes(entries.map(entry => entry.content));
+  const bytes = zip(entries);
+  if (request.resourceDashboard) assertResourceExcelZipBytes(bytes);
+  return bytes;
 }
 
 export const projectExcelExportLimits = Object.freeze({

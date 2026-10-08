@@ -1,3 +1,5 @@
+import type { ResourceExcelExportOptions, ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
+import { ResourceDashboardService } from "../resources/resource-dashboard-service-core";
 import type Database from "better-sqlite3";
 
 import type { MilestoneDashboardDto } from "../../contracts/milestone-dashboard";
@@ -11,6 +13,7 @@ import { ResourceWorkloadService } from "../resources/resource-workload-service-
 
 export interface ProjectExportSnapshotBundle {
   snapshot: ProjectSnapshotResponse;
+  resourceDashboard?: ResourceExcelReportBundle;
   stageDashboard: MilestoneDashboardDto;
   resourceWorkload?: ResourceWorkloadResponse;
 }
@@ -22,12 +25,13 @@ export class ProjectExportSnapshotService {
     mdPerMmEnvironment?: string;
   } = {}) {}
 
-  get(publicId: string, includeResourceEffort = false): ProjectExportSnapshotBundle | undefined {
+  get(publicId: string, includeResourceEffort = false, resourceOptions?: ResourceExcelExportOptions, expectedRevision?: number): ProjectExportSnapshotBundle | undefined {
     return this.database.transaction(() => {
       const now = (this.options.clock ?? (() => new Date()))();
       const clock = () => now;
       const snapshot = new TaskFieldProjectService(this.database, { clock }).getReadonlySnapshot(publicId);
       if (!snapshot) return undefined;
+      if (expectedRevision !== undefined && snapshot.data.project.revision !== expectedRevision) throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
       const stageDashboard = new MilestoneDashboardService(this.database, {
         clock, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
       }).getDashboard(publicId);
@@ -43,7 +47,9 @@ export class ProjectExportSnapshotService {
         || (resourceWorkload && (resourceWorkload.data.projectRevision !== revision || resourceWorkload.data.catalogRevision !== catalogRevision))) {
         throw new PublicApiError(412, "REVISION_MISMATCH", "Project or catalog changed. Reload and retry.");
       }
-      return { snapshot, stageDashboard, ...(resourceWorkload ? { resourceWorkload } : {}) };
+      const resourceDashboard = resourceOptions ? new ResourceDashboardService(this.database, { clock, mdPerMmEnvironment: this.options.mdPerMmEnvironment }).getExcelReport(publicId, resourceOptions) : undefined;
+      if (resourceOptions && !resourceDashboard) throw new PublicApiError(500, "CONFIGURATION_ERROR", "Resource report export is not configured.");
+      return { snapshot, stageDashboard, ...(resourceDashboard ? { resourceDashboard } : {}), ...(resourceWorkload ? { resourceWorkload } : {}) };
     }).deferred();
   }
 }

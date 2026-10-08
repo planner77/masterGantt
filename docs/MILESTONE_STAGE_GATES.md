@@ -186,3 +186,20 @@ Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 
 M/M 기준은 명시 finite-positive query → 유효 `RESOURCE_MD_PER_MM` → null 순이다. HTTP `mdPerMm=null`과 programmatic null은 ENV를 무시한다. 빈/invalid query는400, invalid ENV는 null이다. DTO `mdPerMmSource=query|environment|unset`과 기준 숫자를 표시하고, `filters.mdPerMmProvided`가 query omission과 명시 null을 구분한다. 기존 Logistics의 20일 fallback과 invalid query 무시를 제거한 의미 변경이다. 기존 Resource workload의 ENV 기준과 M/D 산식은 유지한다.
 
 응답 `filters`는 trim된 search(대소문자 보존), unique/sort 배열, defaults 및 요청 날짜 omission=null을 echo한다. resolved asOfDate/workloadRange와 기준값은 별도 필드다. Project/Catalog revision, publicId, query echo, calculatedAt와 timezone을 검증한 현재 성공 응답만 UI에 채택한다. 요청마다 no-store 재계산하며 서버 cache/polling/job이 없다. 날짜 경계 및 visibility/focus 갱신, 요청 역전/실패/stale drill-down 처리는 [Project UX](PROJECT_UX.md)를 따른다.
+
+
+## Issue #523 Resource KPI의 선택 범위와 전체 상태
+
+`calculateResourceKpi`는 full canonical snapshot의 `projectStageGates`를 그대로 재사용해 explicit/상속/override/해제/빈 Summary/미지정을 분류한다. Resource/Group/Milestone bucket의 할당 작업 진척은 A의 고유 일반 Task를 사용하지만 `fullMilestones.stageGate`의 전체 진척·Ready·Blocked는 full E(M)/P(M)를 사용한다. 숨긴 미완료 member나 predecessor를 조회 조건으로 제거하지 않는다. Task Dependency나 날짜순을 Milestone Dependency로 승격하지 않고 조회로 상태를 변경하지 않는다. 각 Resource/Group의 모든 Milestone+미지정 raw 공수 partition은 해당 subtotal을 보존하며 Group/Role 중첩 소계를 전체 합으로 더하지 않는다. 상세 [공통 KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+## Issue #526 Resource 교차 범위 표시
+
+Resource/Group Milestone 소계의 할당 작업 진척은 선택 Assignment의 작업범위다. 계층 안에 표시하는 단계 전체 소속 완료 수/Ready/선행 Blocked는 서버 full canonical stage를 그대로 사용한다. 선택 개인의 모든 작업이 완료되어도 다른 전체 member 또는 선행 단계가 미완료면 준비 전/선행 차단 있음이 유지된다. manual event와 준비 판정 해당 없음은 문자열로 구분한다. 비교표 완료율은 고유 Task 완료율이며 null은 미산정으로 표시한다. 상세로 이동해도 membership/일정/Dependency/완료상태 mutation을 수행하지 않는다.
+
+## Issue #528 — Milestone 출발 context와 직접 일정 위치
+
+Milestone→Resource와 Milestone→일정 모두 원본 report의 resourceScopeContext를 전달한다. 같은 Project revision이어도 Catalog/Calendar/Assignment fingerprint 또는 환산 정책이 달라지면 서버 stale 검증으로 이동을 차단한다. 새 bootstrap으로 과거 report를 fresh로 표시하지 않는다. context=null/limit-exceeded인 legacy report는 기존 상태·공수 조회를 유지하고 정확한 화면 간 이동만 비활성화하며 사유를 표시한다.
+
+Milestone 자체 일정 위치 명령은 canonical Milestone 표시 노드를 유지한다. 일반 Task N0과 Milestone 표시 수를 별도로 안내하며 API의 일반 Task scope에 Milestone ID를 추가하지 않는다. 빈 개인 배정의 Resource 조회는 전체 범위로 확대하지 않는다. 원본 Assignment를 사용하는 Resource 이동은 기본 Dashboard의 새 방문으로 열고 원래 Milestone 화면 조건은 복귀 기록에 보존한다. full Stage Ready/Blocked 및 원본 Milestone 공수 계산은 바꾸지 않는다.
+
+Milestone 직접 위치의 복귀 frame에는 검증한 원본 resourceScopeContext를 보존한다. 오늘의 lookup report context로 기간·평가일·환산·sourceProjection을 바꾸지 않는다. Strip에서 원본 기간과 평가일·환산 출처를 표시하고 복귀 직전 원본 정책을 다시 검증한다. 수동 평가일2026-10-02/기간2026-10-01–2026-10-03/명시1 M/M당15 M/D의 native fixture로 원본 표시와 복귀 입력 보존을 확인했다.

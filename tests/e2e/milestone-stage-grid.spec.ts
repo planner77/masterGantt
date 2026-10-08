@@ -43,7 +43,7 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   const header = page.locator(".project-gantt-widget .wx-table-container .wx-header").first();
   let reads = 0, writes = 0;
   page.on("request", (request) => { if (new URL(request.url()).pathname === api && request.method() === "GET") reads++; if (request.url().includes(api) && !["GET", "HEAD"].includes(request.method())) writes++; });
-  const stage = () => page.locator("#project-schedule-view-gantt .project-stage-filter-trigger");
+  const stage = () => page.locator("#project-panel-schedule .project-stage-filter-trigger");
   const select = async (value: string) => { await stage().click(); const input = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await input.fill(`  ${value.toUpperCase()}  `); await expect(page.getByRole("listbox", { name: "완료 단계 조회 조건" }).getByRole("option")).toHaveCount(3); await input.press("End"); await input.press("Enter"); };
   await expect(header.getByText("완료 단계", { exact: true })).toHaveCount(0);
   await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
@@ -67,7 +67,7 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   await mkdir("output/playwright/issue-462", { recursive: true }); const metrics: unknown[] = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 844 }); await stage().click(); const input = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await input.press("End");
-    const popupLocator = page.locator("#project-schedule-view-gantt .project-stage-filter-popup");
+    const popupLocator = page.locator("#project-panel-schedule .project-stage-filter-popup");
     await expect.poll(() => popupLocator.evaluate((element) => { const input = element.querySelector("input"), activeId = input?.getAttribute("aria-activedescendant"), active = activeId ? document.getElementById(activeId) : null, owner = element.querySelector("ul"); if (!active || !owner) return false; const a = active.getBoundingClientRect(), b = owner.getBoundingClientRect(); return a.top >= b.top && a.bottom <= b.bottom && owner.scrollTop > 0; }), { timeout: 2_000 }).toBe(true);
     const popup = await popupLocator.evaluate((element) => { const box = element.getBoundingClientRect(), input = element.querySelector("input")!, active = document.getElementById(input.getAttribute("aria-activedescendant")!)!, owner = element.querySelector("ul")!, a = active.getBoundingClientRect(), b = owner.getBoundingClientRect(), i = input.getBoundingClientRect(); return { top: box.top, bottom: box.bottom, left: box.left, right: box.right, viewport: innerWidth, activeVisible: a.top >= b.top && a.bottom <= b.bottom, inputFocused: document.activeElement === input, inputVisible: i.left >= box.left && i.right <= box.right, listScroll: owner.scrollTop }; }); expect(popup.left).toBeGreaterThanOrEqual(0); expect(popup.right).toBeLessThanOrEqual(width); expect(popup.activeVisible).toBe(true); expect(popup.inputFocused).toBe(true); expect(popup.inputVisible).toBe(true); expect(popup.listScroll).toBeGreaterThan(0); await input.press("Escape"); await expect(stage()).toBeFocused();
     const geometry = await page.evaluate(() => {

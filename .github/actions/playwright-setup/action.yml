@@ -21,10 +21,38 @@ runs:
 
     - name: Chromium OS dependency 설치
       shell: bash
-      run: npx --no-install playwright install-deps chromium
+      run: |
+        set -euo pipefail
+        # Bound network stalls; success is required, never skipped.
+        install_deps() {
+          timeout --signal=TERM --kill-after=10s 360s npx --no-install playwright install-deps chromium
+        }
+        install_status=0
+        install_deps || install_status=$?
+        if (( install_status == 0 )); then
+          exit 0
+        fi
+
+        # On a runner using Azure Ubuntu mirrors, retry once with the official mirror.
+        azure_sources=()
+        for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
+          [[ -f "$source" ]] || continue
+          if grep -Fq 'azure.archive.ubuntu.com/ubuntu' "$source"; then
+            azure_sources+=("$source")
+          fi
+        done
+        if (( ${#azure_sources[@]} == 0 )); then
+          echo "Playwright OS deps failed (exit=$install_status); no Azure mirror fallback available." >&2
+          exit "$install_status"
+        fi
+        echo "::warning::Playwright OS dependencies failed (exit=$install_status); retrying once with the official Ubuntu archive."
+        for source in "${azure_sources[@]}"; do
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$source"
+        done
+        install_deps
 
     - name: Chromium OS dependency 시간 기록
-      if: always()
+      if: ${{ always() && steps.deps-start.outputs.started_ms != '' }}
       shell: bash
       run: node scripts/record-ci-setup-metric.mjs --metric playwright-os-deps --started-ms "${{ steps.deps-start.outputs.started_ms }}" --cache "not-enabled"
 
@@ -38,6 +66,6 @@ runs:
       run: npx --no-install playwright install --only-shell chromium
 
     - name: Chromium headless shell 시간 기록
-      if: always()
+      if: ${{ always() && steps.browser-start.outputs.started_ms != '' }}
       shell: bash
       run: node scripts/record-ci-setup-metric.mjs --metric playwright-headless-shell --started-ms "${{ steps.browser-start.outputs.started_ms }}" --cache "not-enabled"

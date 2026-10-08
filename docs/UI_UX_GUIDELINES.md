@@ -1,5 +1,13 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #518 — Project Workspace 단일 상위 탭과 세로 영역
+
+상위 tablist의 peer는 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 순서다. 일정의 중복 Gantt/Dashboard tablist를 제거하고 #399 WBS scope tablist만 유지한다. 각 tab의 aria-controls/aria-labelledby/aria-selected/roving tabIndex, ArrowLeft/Right/Home/End, focus 이동과 비활성 panel 접근성 차단을 실제 DOM에서 검증한다. 390px 등 좁은 화면은 선택 tab과 focus outline이 잘리지 않도록 tablist 자체만 수평 스크롤하며 height를 적층하지 않는다.
+
+상위 탭 목록은 `overflow-y:hidden`이므로 `:focus-visible`의 3px outline을 음수 offset으로 버튼 안쪽에 그려 상·하단이 잘리지 않도록 한다. 별도 높이/패딩 증가 없이 390/768/1024/1440/1920px 실제 keyboard `ArrowRight` 전환에서 `:focus-visible`, `outlineWidth + outlineOffset <= 0`, 소유 탭의 가로 가시성을 검증한다. 이는 PR #544의 접근성 리뷰(미해결 상태) 개선 항목이다.
+
+Milestone 활성 시 Gantt panel은 Core가 측정 가능한 높이/폭을 가진 visibility:hidden/inert/aria-hidden overlay로 남기고 Milestone 상위 panel만 scroll을 소유한다. 다른 상위 탭은 기존 hidden 정책을 사용한다. 동일 instance와 scope/filter 기준 viewport를 보존한다. Dashboard의 Task Editor/Dialog는 일정 패널 밖에 있어야 한다. 390/768/1024/1440/1920px에서 네비게이션/작업영역 geometry, Dashboard detail→Editor→복귀, readonly/edit, Gantt state를 검증한다.
+
 ## Issue #345 Summary 구조와 미산정 일정 구분
 
 Summary의 유형·이름·계층과 일정의 유무는 별개다. 일정 없는 Summary도 Grid/Chart의 동일 행에 남고 bar만 없다. Grid 이름의 보조 설명과 접근 가능한 `aria-description`은 실제 전체 계층에서 자식 0개와 일정 있는 자손 0개를 구분한다. 접기·검색으로 숨겨진 child 수를 빈 상태로 오인하지 않는다. readonly에서는 생성 명령을 노출하지 않고 saving에서는 중복 생성·편집을 차단한다. 기존 메뉴 keyboard/Escape/focus 복원을 재사용하며 도구 모음은 작은 폭에서 wrap한다.
@@ -159,7 +167,7 @@ frontend는 변경 전후 screenshot 또는 재현 근거, viewport, 실행 명�
 
 ## Issue #461 동적 탭과 소속 검색
 
-Task/Summary는 기존 네 Editor 탭, Milestone은 두 번째 소속 작업 N 탭을 추가한다. Keyboard 이동은 실제 노출 배열을 사용하고 active tab focus를 한 행 내부 scroll에서 보인다. 검색 combobox의 Arrow 이동은 aria-activedescendant와 visible option을 함께 갱신하며 Escape는 후보 목록→초안 확인→dialog 순서다. 진행 중에는 선택/닫기/Escape를 잠근다.
+Task/Summary는 기존 네 Editor 탭, Milestone은 두 번째 소속 작업 N 탭을 추가한다. #519부터 이 Task/Summary Membership 후보만 이름·날짜·상태를 표시하고 외부 ID/작업 ID는 숨긴다. ID/UUID 검색 및 canonical taskId 선택은 유지하며 Grid 단계 필터와 Relation Editor의 식별자 표시 정책에는 영향이 없다. Keyboard 이동은 실제 노출 배열을 사용하고 active tab focus를 한 행 내부 scroll에서 보인다. 검색 combobox의 Arrow 이동은 aria-activedescendant와 visible option을 함께 갱신하며 Escape는 후보 목록→초안 확인→dialog 순서다. 진행 중에는 선택/닫기/Escape를 잠근다.
 
 소속 표는 960px column budget을 유지한 소유 scroll container만 가로 넘치며 필터는 390px에서 한 열로 reflow한다. Header/Tab/Footer는 본문 세로 scroll과 분리한다. 다른 저장 단위의 dirty를 집계하여 cross-unit mutation을 차단하고 탭 이동은 초안을 유지한다. 연결 작업 열기/일정에서 보기·닫기·재조회에 전체 초안 폐기를 명시 확인한다. 기존 semantic tokens와 Editor 44px control/focus 규칙을 사용하며 제품 공통 시각 체계는 변경하지 않는다.
 
@@ -192,13 +200,13 @@ Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll bu
 
 ## Issue #463 Dashboard interaction과 표 예산
 
-일정 peer body는 같은 minmax(0,1fr) grid cell과 min-width/min-height 0으로 두 panel의 layout budget을 유지한다. 비활성 Gantt는 visibility:hidden·inert·aria-hidden으로 숨기며 focus/keyboard/접근성 조회에서 제외한다. Dashboard만 활성 세로 body scroll을 소유한다. 일정 peer 탭은 Arrow/Home/End 로빙과 활성 panel 연결을 제공하고 전환 후 focus를 hidden Gantt에 남기지 않는다. 단계 선택은 #462의 검색·명시 ID 라벨·active option 가시성·Escape 복원(preventScroll)을 재사용한다. 다중 선택과 단일 picker는 같은 선택 상태를 표현하고 다중값을 조용히 단일값으로 덮지 않는다. 추가 조건과 원인 영역은 disclosure 의미를 공개한다. 원인 확인은 제목에 focus를 옮기고 Escape/닫기 뒤 trigger로 복원한다. readonly는 조회·필터·원인·drill을 허용하며 pending/stale에서는 조회 결과에 대한 이동 버튼과 실행 handler를 함께 잠근다.
+#463의 일정 내부 peer 배치는 #518 이후 상위 `일정 / Milestone 대시보드` peer tab으로 대체한다. 동일 Gantt component를 유지하며 비활성 일정은 측정 가능한 크기로 overlay하되 visibility:hidden·inert·aria-hidden으로 keyboard/focus/접근성 조회에서 제외한다. 활성 Milestone 상위 panel만 세로 body scroll을 소유한다. 상위 tablist는 Arrow/Home/End와 활성 panel 관계를 제공한다. 단계 선택은 #462의 검색·명시 ID 라벨·active option 가시성·Escape 복원(preventScroll)을 재사용한다. 다중 선택과 단일 picker는 같은 선택 상태를 표현하고 다중값을 조용히 단일값으로 덮지 않는다. 추가 조건과 원인 영역은 disclosure 의미를 공개한다. 원인 확인은 제목에 focus를 옮기고 Escape/닫기 뒤 trigger로 복원한다. readonly는 조회·필터·원인·drill을 허용하며 pending/stale에서는 조회 결과에 대한 이동 버튼과 실행 handler를 함께 잠근다.
 
-단계 전체 상태 표의 최소 예산은 1052px이다. identity는 최소 260px의 가변 열이고 날짜 112px, 상태 96px, member progress 160px, 완료/전체 104px, 선행 차단 88px, 위험 88px, 조회 144px을 둔다. 긴 이름·외부 ID·UUID는 cell 안에서 wrap/ellipsis와 전체 title로 접근한다. 숫자는 우측 정렬하고 공수는 별도 표에 둔다. 작은 폭에서는 필터/KPI를 reflow하고 표 자체 가로 scroll을 사용한다. 활성 peer body가 세로 scroll을 소유하며 document/sibling overflow를 만들지 않는다.
+단계 전체 상태 표의 최소 예산은 1052px이다. identity는 최소 260px의 가변 열이고 날짜 112px, 상태 96px, member progress 160px, 완료/전체 104px, 선행 차단 88px, 위험 88px, 조회 144px을 둔다. 긴 이름·외부 ID·UUID는 cell 안에서 wrap/ellipsis와 전체 title로 접근한다. 숫자는 우측 정렬하고 공수는 별도 표에 둔다. 작은 폭에서는 필터/KPI를 reflow하고 표 자체 가로 scroll을 사용한다. 활성 Milestone 상위 panel이 세로 scroll을 소유하며 document/sibling overflow를 만들지 않는다.
 
 로컬 Chromium 근거는 `tests/e2e/milestone-dashboard-state.spec.ts`의 390/768/1024/1440/1920px 화면과 geometry, `tests/e2e/milestone-stage-dashboard.spec.ts`의 실제 SQLite drill/Gantt 상태 조작으로 구분한다. geometry는 header/body alignment, 모든 row button의 cell containment와 비중첩, 필터 control 경계, 실제 focus outline 가시성, popup viewport/active option/input 경계, tab 높이와 body scroll owner를 측정한다. 변경 전 actual 화면은 NOT TESTED이며 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 일정 화면에는 peer 대시보드가 없다는 source 재현 근거를 사용한다. 실제 기기·screen reader·최종 수동 UX와 원격 CI는 별도 검증이다.
 
-2026-10-06 [공식 scroll-chart action](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)과 설치 Core 2.7.3 `DataStore.d.ts`의 공개 left/top 계약을 확인했다. 일반 peer 복원은 visible·세대·scope/filter key를 확인하고 기존 canonical/column queue 뒤에 공개 viewport action을 직렬 적용한다. native fullscreen과 scheduling 정책은 변경하지 않는다. 복원 오류는 canonical reset/remount를 호출하지 않는다. 공개 scroll event/state 진단은 개발/test에만 한정하며 최근 12건을 보존하고 Task 데이터나 비밀값을 포함하지 않는다. 문서 조회와 실제 Chromium의 public state/DOM 및 후속 layout 유지 근거는 구분한다.
+2026-10-06 [공식 scroll-chart action](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)과 설치 Core 2.7.3 `DataStore.d.ts`의 공개 left/top 계약을 확인했다. 일반 peer 복원은 visible·세대·scope/filter key를 확인하고 기존 canonical/column queue 뒤에 공개 viewport action을 직렬 적용한다. native fullscreen과 scheduling 정책은 변경하지 않는다. 복원 오류는 canonical reset/remount를 호출하지 않는다. 공개 scroll event/state 진단은 개발/test에만 한정하며 최근 256건의 공개 scroll/resize/select 진단을 보존한다. select 진단은 ID/show/eventSource에 한정하며 Task 본문이나 비밀값을 포함하지 않는다. 문서 조회와 실제 Chromium의 public state/DOM 및 후속 layout 유지 근거는 구분한다.
 
 변경 전 재현 근거는 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 `src/features/projects/project-readonly-view.tsx`다. 해당 source의 일정 영역에는 Gantt만 있고 완료 단계 Dashboard peer가 없다. baseline에서 Project 직접 링크를 열어 일정 탭을 선택하는 절차와 변경 후 peer 선택 절차를 비교한다. 변경 전 실제 캡처는 수행하지 않았으며 source 비교를 실제 browser PASS로 표시하지 않는다. geometry는 실제 표시되는 control만 집계하고 닫힌 details 자식의 캐시 bounding rect는 `checkVisibility()`로 제외한다.
 
@@ -288,3 +296,12 @@ Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는�
 ### #502 자동화와 #517 환경 검증 분리
 
 PR #516의 Error Boundary 하니스/keyboard/focus 검증은 #502의 자동화 범위다. 실제 브라우저 native125%·실기기/screen reader·최종 수동 UX·운영 source/version/proxy는 #517의 환경별 범위이며, #502 CI 또는 merge/close를 해당 환경 PASS로 해석하지 않는다.
+
+
+## Issue #514 — null 시작과 입력 뒤 viewport 복원 경계
+
+canonical start=null을 renderer anchor가 있는 날짜 작업으로 취급하지 않는다. 해당 native `select-task show:xy`만 공개 `show:y`로 좁혀 선택/focus·수직 reveal을 유지한다. dated native xy, Context Menu false, modifier/checkbox/keyboard와 canonical-owned 선택은 일괄 변경하지 않는다.
+
+지연된 peer viewport 복원은 실제 작업면 pointerdown/wheel/keydown과 source/snapshot/instance/sync/visibility/scale/column/grid 변경 뒤 취소한다. DOM와 Core 경로를 각각 검증하며 marker 해제나 screenshot만으로 사용자 위치 보존을 판단하지 않는다. public/native 위치가 rounding 때문에 다를 수 있으므로 입력 직후 각각의 값을 pending queue 후 각각 비교한다. 복원 준비의 RAF는 앱 통합 선택이며 SVAR layout-settled 보장으로 기록하지 않는다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다.
+
+설치 Core2.7.3와 2026-10-08 공식 [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/)·[scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)의 공개 계약을 확인했다. 문서 URL 조회와 실제 project fixture Chromium pointer 증거를 구별하며 공식 demo 실제 조작은 NOT TESTED다. Core 공개 action을 사용하고 PRO·비공개 state·날짜 픽셀 탐색 구현을 추가하지 않는다. 좁은 화면의 기존 내부 작업면 제한은 [프로젝트 UX](PROJECT_UX.md#issue-514--grid-시작-위치와-지연된-peer-복원)를 따른다.

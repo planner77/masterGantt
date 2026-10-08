@@ -1398,3 +1398,90 @@ Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-
 기존 Logistics dashboard는 additive `milestoneStages={milestoneTaskIds,rows}`로 같은 full-stage projection을 제공한다. 기존 includedTaskIds/progress/plannedMd/경보 수치는 확장하지 않는다. effort.mdPerMmSource를 추가하고 숨은20일 환산을 제거하므로 설정이 없으면 plannedMm/mdPerMm=null이다. `mdPerMm=null`은 ENV를 무시하며 invalid/빈/반복 mdPerMm은 이전의 조용한 무시 대신400을 반환한다.
 
 단계→Resource drill은 기존 `GET /api/projects/{publicId}/resource-workload?from=&to=`를 같은 기간으로 호출한다. 기존 API 필드·ENV 환산·4자리 rounding은 N/A(변경 없음)이며 UI가 range echo/Project/Catalog revision을 검사하고 받은 개인 assignment만 표시 필터한다. Stage raw 공수 및 query 환산 기준과 기존 Resource 기간 subtotal/ENV 기준을 구분하고, scope 해제는 기본 조회로 복귀한다. 이 동작은 Resource API에 새 필터나 계산 엔진을 추가하지 않는다.
+
+## Issue #524 Resource Dashboard 조회 PLAN
+
+`GET /api/projects/{publicId}/resource-dashboard`와 `GET /api/projects/{publicId}/resource-dashboard/details`는 현재 Project public-read 정책(UUIDv4+Project 존재 확인)을 적용하는 stateless readonly API다. 성공·오류 응답은 `private, no-store`, `X-Content-Type-Options: nosniff`, `X-Request-ID`를 제공하며 쿠키/CORS 권한을 추가하지 않는다. detail은 동일 query/filter/snapshotId를 요구하며 stale이면409 REPORT_STALE다.
+
+정확한 query/DTO/선택·검색·null·snapshot·budget 계약은 [Resource KPI 공통 집계](RESOURCE_KPI_DASHBOARD.md#issue-524-서버-report-plan과-공개-계약)와 `src/contracts/resource-dashboard.ts`를 따른다. mode는 Resource/Group projection만 선택한다. 새 API는 unknown/stale/다른 Project/Project 미연결 public ID를400 INVALID_SELECTION으로 거부한다. 기존 resource-workload 및 Stage/Logistics 응답/4자리 의미는 변경하지 않는다. fullTask5000/Assignment8000/Link20000/Calendar rule·date각20000/연결Group소속16000,366일, Group 반복16000/cell5000/WBS누적node50000/path이름20000자/report·detail각2MiB/detail100 등의 유한 한도를 넘으면422 REPORT_LIMIT_EXCEEDED이고 완전한 합계처럼 부분 결과를 반환하지 않는다.
+
+
+Report query는 `from`, `to`, `asOfDate`, `search`, `taskSearch`, `mode=resource|group`, `resourceActivity=all|active|inactive`, `groupActivity=all|active|inactive`, `mdPerMm` 및 배열 `resourceIds/groupIds/roles/developerGrades/milestoneIds/taskIds/wbsRootIds/statuses`다. 배열은 반복 key 또는 comma 값이며 exact duplicates는 unique/sort한다. Query 전체32768자, 검색각200자, 배열축 raw200/전체400개다. 빈 배열을 전송하지 않고 필터 해제는 key omission을 사용한다. scalar 중복과 unknown key는400이다. 날짜 echo omission=null과 resolved range/asOfDate를 구분한다.
+
+Detail query는 동일 report 조건에 필수 `snapshotId=<64 lowercase hex>`, `dimension`, 필요 `id`, optional `milestoneTaskId`, `metric`, `view=tasks|assignments`, `offset=0..8000`, `limit=1..100`(기본50)를 더한다. Row/cell의 selector에서 Group id=null은 id=ungrouped, Milestone id=null 및 milestoneTaskId=null은unassigned로 변환한다. all/diagnostic은id를 생략한다. diagnostic은 view=tasks, 완전미할당/Group-only/개인미배정/unset metric만 허용한다. Task KPI는 view=tasks로 고유 Task ID 집합, Assignment KPI는 view=assignments로 원시 grain을 resolve한다.
+
+Report `data`는 schema/projectPublicId/projectRevision/catalogRevision/calendarRevision/snapshotId/calculatedAt/asOfDate/timezone/filters/range/rangeFallback/mdPerMm/mdPerMmSource/scope, compact summary/resources/groups/roleTotals/milestones/stages/diagnostics/catalog/metadata다. Resource/Group 행은 서버가 계산한 assignmentRange를 포함한다. full stage 진척/Ready/Blocked와 selected Task summary는 별개다. Detail `data`는 동일 schema/identity/revision과 selector/view/offset/limit/totalCount/nextOffset/rows다. 행은 Task/WBS/Milestone public identity와 canonical Task 일정·status/progress, 개인 Assignment가 있을 때 개인 분류·투입기간·raw 계획 공수를 포함한다. 빈 결과나 미할당 진단에 가짜 Assignment를 만들지 않는다.
+
+`mdPerMmProvided=false`인 report filter를 상세 query로 재전송할 때 mdPerMm은 생략한다. explicit null은문자열null이다. 동일 filter에 projection mode만 바꿀 수 있으며 다른 날짜/filter/환산 또는 데이터 변경은409 REPORT_STALE다. Task 삭제로 선택 ID가 stale된 detail도409를 반환하고 report 조회의 INVALID_SELECTION과 구분한다. 예산은422 REPORT_LIMIT_EXCEEDED, Calendar same-level conflict는409 RESOURCE_CALENDAR_EXCEPTION_CONFLICT, 존재하지 않는 Project는404 PROJECT_NOT_FOUND다. 오류에는 SQL/stack/내부PK/secret을 노출하지 않는다.
+
+
+## Issue #526 Milestone roll-up 조회 확장
+
+기존 `resource-dashboard/1` report/detail은 호환 유지한다. report는 `reference`/`excluded` compact summary와 `milestoneSelection`을 항상 반환하며 TypeScript 타입은 additive optional이다. reference는 Milestone 필터만 제거, excluded는 실제 Assignment 집합 차이다. 각 summary.selector.assignmentScope는 milestoneReference/milestoneExcluded, 기존 선택은 selected다. Detail query에 optional assignmentScope를 추가하고 omission을 selected로 echo한다. diagnostic은 selected만 허용한다. optional resourceId는 dimension=group에서만 public UUID 문자열로 받으며 null은400이다.
+
+신규 `GET /api/projects/{publicId}/resource-dashboard/group-children`은 동일 report filters와 snapshotId/groupId, optional milestoneTaskId, offset/limit를 사용한다. groupId=ungrouped와 milestoneTaskId=unassigned는 null이며 Milestone omission은 전체다. metric/assignmentScope/resourceId는 이 경로에서400이다. 동일 public-read guard와 성공·오류 private/no-store/nosniff/X-Request-ID를 적용한다. default50/max100/offset8000, pagecells5000 및 JSON2MiB를 적용한다.
+
+응답 `{data: ResourceDashboardGroupChildrenDto}`는 schema/snapshotId/projectPublicId/projectRevision/catalogRevision/calendarRevision/filters/range/asOfDate/mdPerMm/mdPerMmSource/groupId/optional milestoneTaskId/summary/offset/limit/totalCount/nextOffset/rows다. rows는 Group 교집합 ResourceDashboardRow이며 selector.dimension=group/id=groupId/resourceId를 유지한다. 개인 ID 순 페이지, Milestone 예정일+ID 순/미지정 마지막이다. 현재 필터에 없는 유효 Group 구성원 상세는200empty, 다른 Group/미연결 Resource는400 INVALID_SELECTION, source/scope 변경은409 REPORT_STALE다. full snapshot 예산 초과는 기존422를 유지한다. 정확한 계산·null·범위는 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
+
+
+## Issue #527 Resource Plan 공개 조회
+
+`GET /api/projects/{publicId}/resource-dashboard?granularity=week|month`는 기존 `resource-dashboard/1`에 optional `plan`을 추가한다. granularity 생략 시 Plan 계산·필드가 없고 기존 raw/null/legacy 응답을 유지한다. mode와 granularity는 projection이므로 snapshotId에서 제외한다. normalized filters에는 요청 granularity를 echo하며 기간·개인 조건·Task 조건·asOfDate·M/M 정책은 계속 identity에 포함한다. 같은 normalized 조회의 기본/week/month는 동일 snapshotId다.
+
+Plan은 periods/population/totals/resources/groups/metadata를 제공한다. Resource는 R 전체의 안전한 이름/code/active/groupIds/Global Role/개발 등급을 포함해 0부하 개인을 유지한다. Group은 R 구성원의 고유 resourceIds만 반환한다. 각 summary/cell은 selected/project 지표 쌍이며 cell.periodKey는 periods.key다. 개인별 sparse Milestone에는 canonical 이름/예정일, capacityReferenceOnly/projectReferenceOnly와 projectReferenceRow를 제공한다. Milestone의 selected는 기여, project는 동일 개인 Project 전체 참고로서 Milestone 귀속 공수나 과투입이 아니다.
+
+신규 GET 경로는 다음과 같다. 세 경로 모두 기존 public-read Project guard와 성공/오류 private/no-store/nosniff/X-Request-ID를 사용하고 session 없이 조회한다.
+
+| 경로 | selector | 추가 필수 조건 | 응답 view |
+| --- | --- | --- | --- |
+| `/resource-dashboard/plan/daily` | total/group/resource/resourceMilestone | 없음 | daily |
+| `/resource-dashboard/plan/day-resources` | total/group | date | day-resources |
+| `/resource-dashboard/plan/day-assignments` | resource/resourceMilestone | date | day-assignments |
+
+모든 상세는 기존 report filters와 snapshotId(64자리 SHA256), granularity, periodId, row, demandScope를 필수로 보낸다. periodId=all은 조회 전체, 나머지는 해당 granularity의 실제 periods.key다. date는 부모 periodId의 clipped 범위 안이어야 한다. row=group은 groupId=UUID|ungrouped, row=resource는 resourceId=UUID, row=resourceMilestone은 resourceId와 milestoneTaskId=UUID|unassigned를 요구한다. total에는 ID를 보내지 않는다. demandScope=selected|project를 생략하지 않는다. 기본 offset0/limit50, 최대 offset8000/limit100이며 반복 scalar·unknown key·잘못된 조합은400 INVALID_REQUEST다. metric/view/assignmentScope는 새 경로에서 허용하지 않는다.
+
+응답 `{data: ResourcePlanDetailsDto}`는 schema/projectPublicId/snapshotId/Project·Catalog·Calendar revisions, filters/range/asOfDate/mdPerMm/mdPerMmSource, granularity/periodId/selector/demandScope/optional date, view/offset/limit/totalCount/nextOffset/rows를 echo한다. Daily는 날짜별 numeric metrics이며 Assignment ID 배열을 반복하지 않는다. day-resources는 Resource ID 안정 정렬, 0부하 개인 포함 및 안전한 분류 metadata와 당일 metrics를 반환한다. day-assignments는 Resource ID→Task ID→Assignment ID 안정 정렬의 별도 bounded 원인 페이지이며 날짜·투입률·근무 여부·일별 known/planned M/D, canonical Task/원시 Assignment 기간, Milestone 이름, WBS public path를 제공한다. page를 전체 KPI로 재합산하지 않는다.
+
+예시: `plan/daily?from=2026-10-19&to=2026-10-20&granularity=week&snapshotId=<report.snapshotId>&periodId=all&row=resource&resourceId=<R>&demandScope=project`. 다음 원인 조회는 같은 context에 `date=2026-10-19`를 추가해 `plan/day-assignments`로 보낸다. Milestone 행의 전체 과투입 참고 원인은 row=resource/demandScope=project로 조회해 선택 Milestone 밖 원인을 유지한다. row=resourceMilestone/demandScope=project 자체는 해당 Milestone의 Project 기여이므로 report Milestone.project 참고값과 동일하다고 해석하지 않는다.
+
+현재 snapshot을 먼저 확인해 source/filter/환산 변경은409 REPORT_STALE, 이후 foreign ID·R 밖 개인·비표시/멤버 없는 Group·잘못된 실제 period/date는400 INVALID_SELECTION이다. 기간366/resourceDays200000/assignmentDays1000000/matrixCells5000/응답 JSON2097152 bytes를 초과하면422 REPORT_LIMIT_EXCEEDED다. 실제 `{data}` envelope까지 bytes를 검사하며 부분 기간·개인을 절삭하지 않는다. 전체 계산·Capacity·unknown 의미는 [Resource Plan 계약](RESOURCE_KPI_DASHBOARD.md#issue-527-backend-resource-plan-범위와-api)을 따른다.
+
+## Issue #528 — 정확한 Resource·일정 drill 조회
+
+`GET /api/projects/{publicId}/resource-dashboard/scope`와 `POST /api/projects/{publicId}/resource-dashboard/query`는 공개 읽기 전용이다. GET의 `view=context`는 원본 데이터 context만 반환하며 기간 계산을 하지 않는다. `view=dashboard`는 기존 report 필터와 snapshotId/dimension/id/metric/assignmentScope/optional milestoneTaskId/resourceId를 사용하고, `view=plan`은 기존 granularity/snapshotId/row/periodId/demandScope와 optional date를 사용한다. 두 scope projection 모두 offset/limit를 거부하며 전체 고유 일반 Task IDs≤5000, 개인 Assignment IDs≤8000, 건수와 ancestorSummaryIds를 반환한다. 조상 Summary는 표시 context이며 taskCount 분모에 포함하지 않는다. GET에서 변경되거나 삭제된 필터 대상은 기존 상세와 같이409 REPORT_STALE, fresh snapshot의 외부 selector는400 INVALID_SELECTION이다.
+
+POST는 exact Origin을 요구하되 편집 session은 요구하지 않는다. 본문은 실제 UTF-8 stream1MiB 제한의 `readBoundedJson`을 사용한다. JSON media/charset/encoding 위반은415, JSON·descriptor 문법·필터·raw 입력 배열 상한 위반은400, stream 상한 초과는413이다. 원본 원장·기간366일·projection/cells/serialized response2MiB 등 계산 한도는422이며 절삭하지 않는다. 성공·오류는 private/no-store/nosniff/request ID를 반환하며 쿠키·CORS 권한·서버 token·원장 mutation을 추가하지 않는다.
+
+본문 계약은 `src/contracts/resource-drill.ts`다. `{sourceContext,scope,filters,projection}`을 받으며 scope는 `scheduleSelection/nodeIds≤5000`, `summarySubtree/rootId`, `exactAssignments/assignmentIds≤8000`이다. raw 배열 상한은 중복 제거 전에 검사하고 정규화된 exact set은 정렬·중복 제거한다. 명시 빈 배열은 빈 집합이다. scheduleSelection은 일반 Task와 Summary의 일반 Task 자손만 허용하며 Milestone 노드는 거부한다. exactAssignments는 해당 Project 일반 Task의 개인 Assignment만 허용한다.
+
+projection은 `report`, 기존 상세 입력을 포함한 `details`/`groupChildren`, 기존 Plan 입력을 포함한 `planDaily`/`planDayResources`/`planDayAssignments`, 또는 `scope`의 target=`dashboard|plan`이다. 모든 후속 상세에도 같은 source descriptor를 POST 재전송한다. `{data,drill}` 응답의 drill은 원래 sourceContext/normalized scope/targetFilters/projection과 `assignmentScope=exact-source-intersection`, `projectReferenceScope=same-resource-population-and-period`를 echo한다. data.sourceContext가 있는 scope 응답은 실제 target range/asOfDate/M-D 정책과 현재 selector의 새 출발 context다. 기존 출발 context를 새 target 조건으로 덮어쓰지 않는다.
+
+ResourceDataContext는 projectPublicId/projectRevision/catalogRevision/calendarRevision/dataSnapshotId다. 공용 reader는 같은 read transaction에서 정렬된 원시 Task/Link/Membership/Assignment/Project 연결 Catalog/Calendar를 fingerprint한다. ResourceDrillSourceContext는 실제 source range/asOfDate/mdPerMm/mdPerMmSource/mdPerMmProvided/sourceProjection을 추가한다. sourceProjection은 schedule/milestoneReport/report/details/groupChildren/plan 중 하나이며 Plan은 granularity/periodId/selector/demandScope/optional date를 보존한다. stale 원본 fingerprint 및 미지정 환경 환산 정책 변경은 selector의 의미 검증보다 먼저409다. 실제 parent period 밖 source 또는 target date는400이다. report snapshot identity는 원본 data fingerprint+normalized exact scope+필터/기간/asOf/M-D 정책을 포함하며 mode/page/granularity를 제외한다.
+
+새 Resource report는 additive resourceScopeContext를 항상 제공한다. 기존 상세/Group/Plan은 additive resourceDataContext를 제공한다. Legacy Milestone report는 같은 read transaction의 additive resourceScopeContext와 resourceScopeUnavailableReason을 제공한다. 추가 원본 context 한도만 초과하면 기존 Milestone 조회를 보존하며 context=null/reason=`limit-exceeded`를 반환한다. 이때 정확한 cross drill은 비활성화하며 새 bootstrap으로 과거 report를 fresh로 대체할 수 없다. Schedule 출발에는 환산 계산이 없으므로 sourceProjection=schedule/mdPerMm=null/source=query/provided=true를 명시하고 실제 target 환산 정책은 별도로 유지한다.
+
+## Issue #529 Resource 보고서 Excel opt-in
+
+기존 `POST /api/projects/{publicId}/exports/excel`에 optional `resourceDashboard`를 추가한다. 생략하면 기존 시트·수치·문자열·예산 계약을 유지한다. exact Origin, strong If-Match, readonly 접근(edit session 불필요), 실제 UTF-8 stream 8 KiB는 그대로다. descriptor가 8 KiB를 넘으면 413 전체 실패이며 ID 절삭이나 상세 page로 대체하지 않는다.
+
+`resourceDashboard`는 다음 strict union이다. `expectedReport.context`는 실제 대상 Resource report의 `resourceScopeContext` 원문이며 `sourceProjection.kind=report`다. raw Project/Catalog/Calendar/dataSnapshot identity와 기간/asOf/환산값·출처·provided 여부를 같은 read snapshot에서 검증한다.
+
+```typescript
+// 기존 Export request의 선택 필드
+resourceDashboard: {
+  basis: "current",
+  expectedReport: { context: targetReport.resourceScopeContext,
+    snapshotId: targetReport.snapshotId, filters: actualFilterInput },
+  binding: { sourceContext: originalDrillSourceContext, scope: originalExactScope }, // drill일 때
+  originalSourceContext: originalDrillSourceContext, // 선택 provenance
+  granularities: ["week", "month"] // unique, 1..2
+}
+```
+
+정상 비-drill current는 binding을 생략할 수 있다. exact report snapshotId를 유지하면서 원래 binding을 누락·변경하면 scope-bound identity가 달라져 412 `REVISION_MISMATCH`로 실패한다. project는 `{basis:"project",expectedReport:{context:targetReport.resourceScopeContext},granularities:["month"]}` 형태이며 filters/snapshotId/binding을 받지 않는다. 실제 대상의 range/asOf/환산 정책은 유지하고 개인·Group·Role·등급·활성·Task/WBS/Milestone·검색·상태·exact 제한을 제거한다. `originalSourceContext`는 선택 출처이며 현재 또는 전체 합계와 동일하다는 근거가 아니다. 서버가 반환한 actual report context를 Workbook 기준으로 기록한다.
+
+동일 deferred SQLite read transaction과 clock 1회에서 기존 KPI·Plan 서비스를 재사용한다. Resource의 REPORT_STALE 409를 이 Export에서는 412 REVISION_MISMATCH로 매핑한다. missing DTO·비유한 값·ID/count/합계/기간 parity 오류와 계산·시트·파일 예산은 422 전체 실패다. malformed request 400, Origin 403, media type 415, stream 413은 기존 계약이다. 성공은 XLSX attachment+ETag/private,no-store/nosniff이고 오류는 JSON/no-store/nosniff이며 cookie를 발급하지 않는다.
+
+새 7개 시트·raw/null·예산 및 단일 검증 Project hyperlink는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다. 기존 Gantt/Stages/Resource Effort는 기존 전체 범위다.
+
+미설정 원장 상세 보완: `dimension=diagnostic&metric=unset&view=assignments`만 허용한다. T0에 원래 source Task/exact Assignment 교집합을 먼저 적용하고 개인·역할 조건 전 raw unset IDs를 count/detail/scope에서 공유한다. 기간 교차 행은 기존 clipped 값과 optional `allocationOverlapsReport=true,effortRangeBasis=report-overlap`을 제공한다. 기간 밖 행은 원래 from/to, 기존 Calendar helper의 근무일, null MD/MM과 `false,raw-allocation`을 제공한다. required numeric 필드는 유지한다. page 전에 모든 대상 원래 기간 합 1,000,000일을 검증하고 초과는 422 REPORT_LIMIT_EXCEEDED(`diagnostic.assignmentDays`)다. 개별 366일 제한을 추가하지 않으며 개인 필터/page로 이 예산을 우회하지 않는다.

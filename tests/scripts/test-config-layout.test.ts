@@ -69,8 +69,19 @@ describe("test configuration repository layout", () => {
       expect(workflow).toContain("tests/config/e2e-shard-plan.json");
       expect(workflow).toContain("E2E_TIMING_OUTPUT");
       expect(workflow).toContain("native 6-way sharding fallback");
-      expect(workflow).toMatch(/(?:e2e_shard|release_e2e_shard):[\\s\\S]*?timeout-minutes: 35/);
+      // Scope timeout verification to this job, not another workflow job.
+      const shard = workflow.split(/\n  (?:release_)?e2e_shard:\n/)[1]?.split(/\n  [a-z_]+:\n/)[0];
+      expect(shard).toBeDefined();
+      expect(shard).toMatch(/^    timeout-minutes: 35$/m);
     }
+    const dockerJob = ci.split("\n  docker_smoke:\n")[1]?.split(/\n  [a-z_]+:\n/)[0];
+    expect(dockerJob).toBeDefined();
+    expect(dockerJob).toMatch(/^    timeout-minutes: 40$/m);
+    const playwrightSetup = text(".github/actions/playwright-setup/action.yml");
+    expect(playwrightSetup).toContain("timeout --signal=TERM --kill-after=10s 360s");
+    expect(playwrightSetup).toContain("azure.archive.ubuntu.com/ubuntu");
+    expect(playwrightSetup).toContain("https://archive.ubuntu.com/ubuntu");
+    expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");

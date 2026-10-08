@@ -332,14 +332,8 @@ before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 su
 
 회귀 사례: #502 merge SHA의 Main #2083.1은 quality/e2e/docker 및 temporary GHCR exact digest smoke가 모두 SUCCESS였고, 뒤따른 #2084.1은 동일 immutable `ci-<SHA>` overwrite 거부로 artifact job만 실패했다. #520 이후 lifecycle은 #2083.1의 성공 evidence를 재사용하되 #2084.1 FAILURE 자체는 역사적 기록으로 유지한다.
 
-## Issue #487 PR E2E job-timeout corrective
+## Issue #487 — Chromium E2E timeout 및 Playwright mirror 복구
 
-PR CI Run #2089.1 (`37637832069`)의 Chromium shard 4/6은 제품 assertion 실패가 아니라 job timeout으로 CANCELLED되었다. shard는 `tests/config/e2e-shard-plan.json` 불일치/부재로 native `--shard=4/6` fallback을 사용했고, Playwright setup이 약 8분 30초 걸린 뒤 browser test가 50개까지 계속 PASS했지만 25분 ceiling에서 강제 종료되었다.
+PR #488 Run #2089.1 (`37637832069`)에서 Chromium shard 4/6이 25분 job timeout으로 취소됐고 E2E aggregate가 FAIL했다. 보완된 Run #2094.1 (`37671573154`)은 6개 Chromium shard 모두 PASS했으나, 신규 `test-config-layout`의 정규식 이스케이프 오류 1건으로 Vitest FAIL이 발생했고 Docker smoke는 Playwright OS dependency Ubuntu Azure mirror 설치 지연으로 30분 job ceiling에서 취소됐다. PR 본문 edit로 생성된 metadata-only Run #2095.1은 동일 head의 전체 CI PASS 근거가 없으므로 연쇄 실패했다.
 
-보완 검증은 다음을 확인한다.
-
-- `.github/workflows/ci.yml`과 `.github/workflows/release-image.yml`의 Chromium 6-shard job timeout이 모두 35분으로 동일하다.
-- shard 수 6, `workers: 1`, native fallback, historical timing artifact 계약과 required aggregate check 이름은 변경하지 않는다.
-- timeout 증가는 정상 진행 test의 runner setup jitter만 흡수하며 assertion 실패나 non-zero test exit를 success로 바꾸지 않는다.
-- corrective exact-head PR CI에서 Chromium 6개 shard와 aggregate가 실제 PASS해야 한다. 기존 #2089.1 CANCELLED는 실패 이력으로 유지하고 retry 성공으로 덮어쓰지 않는다.
-
+최신 main 기반 PR은 현재 schedule popup selector와 bounded poll을 함께 보존한다. CI 및 Release E2E shard timeout은 35분, Docker smoke는 40분이고, OS deps 설치는 6분 제한 및 Azure archive 장애 시 공식 Ubuntu archive로 제한적 재시도 1회를 수행한다. 계측 시작이 생략되면 빈 started_ms를 기록하지 않는다. shard 6개, workers=1, 기존 geometry/focus assertion, error/aggregate fail-closed 및 Docker baseline/runtime/transport/Compose smoke를 생략하지 않는다. 새 exact-head PR CI에서 quality/E2E/Docker required checks의 실제 PASS를 검증해야 한다. Release/GHCR 게시·병합·Issue 종료는 별도 승인 절차다.

@@ -1,3 +1,5 @@
+import { readResourceDataSnapshot } from "../resources/resource-data-context-core";
+import { PublicApiError } from "../http/api-error-core";
 import type Database from "better-sqlite3";
 import type { MilestoneDashboardFilterInput } from "../../contracts/milestone-dashboard";
 import type { ProjectTaskDto } from "../../contracts/projects";
@@ -27,7 +29,7 @@ export class MilestoneDashboardService {
         parentExternalId: task.parentId === null ? null : byInternalId.get(task.parentId)!, siblingOrder: task.sortOrder,
       }));
       const calendars = new Map<string, WorkingCalendar>();
-      return calculateMilestoneDashboard({
+      const report = calculateMilestoneDashboard({
         project: { publicId: project.publicId, name: project.name, description: project.description, status: project.status, revision: project.revision, calendar: projectCalendarDto(this.database, project.id) },
         tasks, stageSnapshot: readStageSnapshot(this.database, project.id), catalogRevision: catalog.getRevision(),
         logistics: new LogisticsService(this.database).getLogisticsDto(project.id),
@@ -41,6 +43,16 @@ export class MilestoneDashboardService {
         },
         filter, now, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
       });
+      try {
+        const raw = readResourceDataSnapshot(this.database, publicId)!;
+        report.resourceScopeContext = { ...raw.context, range: report.workloadRange, asOfDate: report.asOfDate, mdPerMm: report.mdPerMm,
+          mdPerMmSource: report.mdPerMmSource, mdPerMmProvided: report.filters.mdPerMmProvided, sourceProjection: { kind: "milestoneReport" } };
+        report.resourceScopeUnavailableReason = null;
+      } catch (error) {
+        if (!(error instanceof PublicApiError) || error.code !== "REPORT_LIMIT_EXCEEDED") throw error;
+        report.resourceScopeContext = null; report.resourceScopeUnavailableReason = "limit-exceeded";
+      }
+      return report;
     })();
   }
 }

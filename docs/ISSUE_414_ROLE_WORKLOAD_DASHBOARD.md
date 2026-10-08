@@ -100,3 +100,14 @@ Chromium:
 - 기존 loading/error/stale/partial retry 회귀 유지
 
 전체 판정은 PR exact head의 GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+
+## Issue #523 공통 Task/Assignment KPI
+
+[공통 Resource KPI](RESOURCE_KPI_DASHBOARD.md)는 현재 Global Role 복수 분류와 같은 Resource Calendar 산식을 사용한다. 역할마다 중복 subtotal이 생길 수 있지만 Grand Total은 raw 개인 Assignment ID에서 한 번만 계산한다. 할당 Task/완료율/진척은 역할 범위의 고유 일반 Task 기준이며 개인 생산성이 아니다. canonical `progress<100 AND end<asOfDate` 지연 정의와 date-only/Project timezone을 유지한다. 개인 조건의 A와 개인/Role/등급 조건을 적용할 수 없는 T0 미배정 진단을 별도로 명시한다. 기존 workload API·Global Role 저장·legacy rounding은 변경하지 않는다.
+
+## Issue #525 Global Role 기본 Dashboard 연결
+
+기본 Resource Dashboard는 Global Role 공수 flat summary와 개발 견적 preset을 유지한다. 개발 견적은 서버 A의 DEVELOPER 조건과 개인 표시 모드를 선택하고 등급 필터를 추가할 수 있다. Global Role은 현재 catalog가 source이며 Task별 역할 저장을 다시 만들지 않는다. 역할 소계는 복수 Role 때문에 비가산이고 Grand Total은 원시 Assignment에서 서버가 계산한 값이다. 검색/역할/등급/activity/개인 조건이 T0 미배정 진단을 제한하지 않는다는 설명을 함께 제공한다.
+
+새 기본 화면의 역할·등급·상태·기간 필터는 서버 조회 조건이다. 과거의 client-only 표시 subtotal/필터 시 네트워크0 조건은 새 기본 화면에 적용하지 않는다. 기존 exact Milestone drill은 legacy 의미를 유지한다. raw/null/snapshot 및 독립 상세 실패·stale·keyboard·Gantt 보존 검증은 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)과 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)을 따른다.

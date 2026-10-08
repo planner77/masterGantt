@@ -1,0 +1,195 @@
+{
+  "capturedAt": "2026-10-08T10:01:37.887Z",
+  "timerControl": "paused pending peer RAF; native forced pointer event (not DOM click) then run300ms",
+  "beforePeer": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "dom": {
+      "left": 120,
+      "top": 0
+    },
+    "startX": 20664,
+    "startVisible": false,
+    "chartWidth": 905,
+    "scale": {
+      "start": "2026-01-04T15:00:00.000Z",
+      "cellWidth": 36,
+      "scaleUnit": "day",
+      "selected": []
+    },
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": -484,
+        "height": -72
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 407
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      }
+    ],
+    "instance": "svar-api-1",
+    "syncGeneration": "2"
+  },
+  "immediate": {
+    "public": {
+      "left": 19830,
+      "top": 0
+    },
+    "dom": {
+      "left": 19830,
+      "top": 0
+    },
+    "startX": 20664,
+    "startVisible": true,
+    "chartWidth": 905,
+    "scale": {
+      "start": "2026-01-04T15:00:00.000Z",
+      "cellWidth": 36,
+      "scaleUnit": "day",
+      "selected": [
+        "00000000-0000-4000-8000-000000000102"
+      ]
+    },
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": -484,
+        "height": -72
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 407
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      },
+      {
+        "action": "scroll-chart",
+        "left": 19830,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 19830
+      },
+      {
+        "action": "select-task",
+        "left": 19830,
+        "top": 0,
+        "visible": true,
+        "taskId": "00000000-0000-4000-8000-000000000102",
+        "show": "xy"
+      }
+    ],
+    "instance": "svar-api-1",
+    "syncGeneration": "2"
+  },
+  "settled": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "dom": {
+      "left": 120,
+      "top": 0
+    },
+    "startX": 20664,
+    "startVisible": false,
+    "chartWidth": 905,
+    "scale": {
+      "start": "2026-01-04T15:00:00.000Z",
+      "cellWidth": 36,
+      "scaleUnit": "day",
+      "selected": [
+        "00000000-0000-4000-8000-000000000102"
+      ]
+    },
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": -484,
+        "height": -72
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0,
+        "visible": true,
+        "width": 906,
+        "height": 407
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      },
+      {
+        "action": "scroll-chart",
+        "left": 19830,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 19830
+      },
+      {
+        "action": "select-task",
+        "left": 19830,
+        "top": 0,
+        "visible": true,
+        "taskId": "00000000-0000-4000-8000-000000000102",
+        "show": "xy"
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      },
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0,
+        "visible": true,
+        "requestedLeft": 120
+      }
+    ],
+    "instance": "svar-api-1",
+    "syncGeneration": "2"
+  },
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "515be2b51cd0295e8edb712a4bbfbf7089dbec153aa5b65d5baffe1a092bd070",
+    "src/features/projects/project-readonly-view.tsx": "ece492be699552421ffc9560284d7df414dadf954798878333e4407faf4f03df",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "a2b13039b1a5bdd7ba39a9e1dd7a1f8f3011d8cab4c3ec3acee0cc96b84b3945"
+  }
+}
