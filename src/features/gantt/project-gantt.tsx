@@ -165,7 +165,7 @@ function ProjectStageCell({ row }: { row: Record<string, unknown> }) {
   const target = tasks.find((candidate) => candidate.taskId === membership?.effectiveMilestoneTaskId);
   const source = tasks.find((candidate) => candidate.taskId === membership?.inheritedFromTaskId);
   const detail = `${membershipDescription(task, tasks, membership)}${target ? ` · ${target.externalId} · ${target.taskId}` : ""}${source ? ` · 출처 ${source.externalId} · ${source.taskId}` : ""}`;
-  return <button type="button" className="project-stage-membership-cell" disabled={context.stageLocked} title={detail} aria-label={`${task.name} 완료 단계: ${detail}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); context.onStageOpen(task.taskId); }}>{target?.name ?? "미지정"}{target ? membership?.inheritedFromTaskId ? " · 상속" : " · 직접" : ""}</button>;
+  return <button type="button" className="project-stage-membership-cell" disabled={context.stageLocked} title={detail} aria-label={`${task.name} Milestone: ${detail}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); context.onStageOpen(task.taskId); }}>{target?.name ?? "미지정"}{target ? membership?.inheritedFromTaskId ? " · 상속" : " · 직접" : ""}</button>;
 }
 
 export type ProjectGridDataColumnId =
@@ -354,7 +354,7 @@ const baseProjectColumns: IColumnConfig[] = [
   { id: "projectStart", header: "시작", width: 104, align: "center" },
   { id: "projectDuration", header: "기간", width: 56, align: "center" },
   { id: "baselineStart", header: "기준 시작", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineStart ?? "—") },
-  { id: "milestoneStage", header: "완료 단계", width: 180, cell: ProjectStageCell },
+  { id: "milestoneStage", header: "Milestone", width: 180, cell: ProjectStageCell },
   { id: "baselineEnd", header: "기준 종료", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineEnd ?? "—") },
   // The Core recognizes this documented ID and renders its native header/row
   // plus controls. Their `add-task` event is intercepted below.
@@ -367,7 +367,7 @@ const dataColumns: ReadonlyArray<Readonly<{ id: ProjectGridDataColumnId; label: 
   { id: "projectStart", label: "시작" },
   { id: "projectDuration", label: "기간" },
   { id: "baselineStart", label: "기준 시작" },
-  { id: "milestoneStage", label: "완료 단계" },
+  { id: "milestoneStage", label: "Milestone" },
   { id: "baselineEnd", label: "기준 종료" },
 ];
 
@@ -1765,14 +1765,12 @@ export function ProjectGantt({
               const current = api.getState();
               if (currentRequest()) {
                 // Core may shift a nonzero offset while applying metadata-only changes.
-                // Restore exactly the pre-sync viewport when currentRequest confirms
-                // the same geometry, scope, columns, scale, and no user input.
+                // Preserve the viewport if no input or geometry changes invalidated the request.
                 const restore = metadataViewportRestoreTarget(
                   { left: current.scrollLeft, top: current.scrollTop },
                   { left: request.left, top: request.top },
                 );
                 if (restore) await api.exec("scroll-chart", restore);
-              }
             }
           } finally {
             request.cleanup();
@@ -3685,7 +3683,7 @@ export function ProjectGantt({
           <button aria-label="Edit" disabled={mutationLocked} onClick={() => openTaskEditorFromMenu()} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
-          <button disabled={mutationLocked} role="menuitem" type="button" onClick={() => openTaskEditorFromMenu(tasksById.get(taskMenu.taskId)?.type === "milestone" ? "memberships" : "task")}><span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>{tasksById.get(taskMenu.taskId)?.type === "milestone" ? "소속 작업 관리…" : "완료 단계 연결…"}</span></button>
+          <button disabled={mutationLocked} role="menuitem" type="button" onClick={() => openTaskEditorFromMenu(tasksById.get(taskMenu.taskId)?.type === "milestone" ? "memberships" : "task")}><span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>{tasksById.get(taskMenu.taskId)?.type === "milestone" ? "소속 작업 관리…" : "Milestone 연결…"}</span></button>
           {canOpenAsRoot ? (
                     <button aria-label="최상위로 열기 (작업공간 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>최상위로 열기</span>

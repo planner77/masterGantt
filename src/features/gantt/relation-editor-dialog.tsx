@@ -261,7 +261,7 @@ export function RelationEditorDialog({
           {activeLink ? (
             <div className="relation-editor-section">
               <div className="relation-editor-section-title">
-                <span>선택된 관계 설정</span>{activeLocked ? <span className="relation-editor-badge">완료 단계 잠금</span> : null}
+                <span>선택된 관계 설정</span>{activeLocked ? <span className="relation-editor-badge">Milestone 잠금</span> : null}
                 {!editable && <span className="relation-editor-badge">읽기 전용</span>}
               </div>
 

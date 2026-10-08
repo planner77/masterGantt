@@ -1,6 +1,6 @@
 # JSON 파일 가져오기와 내보내기
 
-JSON 파일은 기존 Project에 새 Tasks/Links/명시 단계 소속을 추가하는 create-only 교환 형식이다. 대상 Project metadata와 Calendar를 덮어쓰지 않는다. `schemaVersion: "1.0"`은 기존 일정 입력을 지원하고 `"1.1"`은 status·description·URL·leaf Baseline·명시 Milestone membership·source metadata를 지원한다. 정확한 필드는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)와 두 machine schema를 따른다.
+JSON 파일은 기존 Project에 새 Tasks/Links/명시 Milestone 소속을 추가하는 create-only 교환 형식이다. 대상 Project metadata와 Calendar를 덮어쓰지 않는다. `schemaVersion: "1.0"`은 기존 일정 입력을 지원하고 `"1.1"`은 status·description·URL·leaf Baseline·명시 Milestone membership·source metadata를 지원한다. 정확한 필드는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)와 두 machine schema를 따른다.
 
 Project Workspace의 `더보기 → 가져오기 (JSON)`에서 파일을 선택하고 Preview를 수행한다. 유효 edit session이 필요하다. 편집기/다른 mutation 중 진입을 막고 파일/target/revision/permission이 바뀌면 이전 preview를 폐기한다. 오류는 전체 거부이며 일부 행만 저장하지 않는다. Preview의 counts, normalizedTasks, changedTasks, warning과 target Calendar를 확인한 뒤 동일 파일을 commit한다. 빈 파일은 preview counts0/commit 비활성이다. 실패 시 현재 Project Tasks/Links/소속/revision은 보존된다. 412에서는 “최신 일정 조회”로 대상 canonical revision을 갱신하되 파일/dialog을 유지하고 이전 preview를 폐기한다. 조회 실패는 명시적으로 재시도하고 target/permission/cancel 또는 요청 세대가 바뀐 늦은 응답은 적용하지 않는다. 자동 저장 없이 사용자가 다시 Preview/diff를 확인한 뒤 Commit한다.
 
