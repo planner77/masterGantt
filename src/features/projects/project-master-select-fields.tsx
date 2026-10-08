@@ -69,7 +69,7 @@ export function linkedProjectMasterChoices(
   current: ProjectMasterItemDto | null | undefined,
   parentActive: boolean,
 ): ProjectMasterItemDto[] {
-  return options(parentActive ? active.filter((item) => linkedIds.has(item.id)) : [], current);
+  return options(parentActive ? active.filter((item) => item.active && linkedIds.has(item.id)) : [], current);
 }
 
 export function ProjectMasterSelectFields({
@@ -94,7 +94,7 @@ export function ProjectMasterSelectFields({
     r.businessUnitId === value.businessUnitId && r.siteEntityId === null).map((r) => r.productId));
   const linkedSites = new Set(catalog.data.relations.filter((r) =>
     r.businessUnitId === value.businessUnitId && r.productId === value.productId &&
-    r.siteEntityId !== null).map((r) => r.siteEntityId));
+    r.siteEntityId !== null).flatMap((r) => r.siteEntityId === null ? [] : [r.siteEntityId]));
   const selectedBusinessUnit = current?.businessUnit?.id === value.businessUnitId
     ? current.businessUnit
     : catalog.data.businessUnits.find((item) => item.id === value.businessUnitId);
@@ -106,7 +106,7 @@ export function ProjectMasterSelectFields({
       key: "businessUnitId" as const,
       id: "project-business-unit",
       label: "사업부",
-      items: options(catalog.data.businessUnits, current?.businessUnit),
+      items: options(catalog.data.businessUnits.filter((item) => item.active), current?.businessUnit),
     },
     {
       key: "productId" as const,
