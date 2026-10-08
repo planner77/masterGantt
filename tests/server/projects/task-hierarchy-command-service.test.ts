@@ -82,6 +82,98 @@ describe("TaskHierarchyService", () => {
     }
   });
 
+  it("Issue #506 normalizes root create-before/after exactly around the anchor and persists read-back", async () => {
+    const value = await fixture();
+    try {
+      let revision = 1;
+      const add = (name: string) => {
+        const response = value.projects.createTask(value.authorization, revision, input(name));
+        revision = response.data.project.revision;
+        return response.data.tasks.find((task) => task.name === name)!;
+      };
+      const a = add("A");
+      const b = add("B");
+      const c = add("C");
+      const create = (name: string, anchorTaskId: string, placement: "before" | "after") => {
+        const response = value.hierarchy.execute(value.authorization, revision, {
+          kind: "create", anchorTaskId, placement,
+          task: { name, type: "task", start: "2026-09-21", duration: 1, progress: 0 },
+        });
+        revision = response.data.project.revision;
+        return response;
+      };
+      const before = create("Above B", b.taskId, "before");
+      const below = create("Below B", b.taskId, "after");
+      const first = create("First", a.taskId, "before");
+      const last = create("Last", c.taskId, "after");
+      const expected = ["First", "A", "Above B", "B", "Below B", "C", "Last"];
+      const root = (tasks: typeof last.data.tasks) => tasks
+        .filter((task) => task.parentExternalId === null)
+        .sort((left, right) => left.siblingOrder - right.siblingOrder);
+      expect(root(before.data.tasks).map((task) => task.name)).toEqual(["A", "Above B", "B", "C"]);
+      expect(root(below.data.tasks).map((task) => task.name)).toEqual(["A", "Above B", "B", "Below B", "C"]);
+      expect(root(last.data.tasks).map((task) => task.name)).toEqual(expected);
+      expect(root(last.data.tasks).map((task) => task.siblingOrder))
+        .toEqual(expected.map((_, index) => index));
+      const readBack = value.projects.getReadonlySnapshot(value.authorization.projectPublicId)!;
+      expect(readBack.data.project.revision).toBe(revision);
+      expect(root(readBack.data.tasks).map((task) => task.name)).toEqual(expected);
+      expect(root(readBack.data.tasks).map((task) => task.siblingOrder))
+        .toEqual(expected.map((_, index) => index));
+    } finally {
+      value.database.close();
+    }
+  });
+
+  it("Issue #506 inserts within the nested family, keeping its parent and sibling order", async () => {
+    const value = await fixture();
+    try {
+      let revision = 1;
+      const parentCreated = value.projects.createTask(value.authorization, revision, input("Summary"));
+      revision = parentCreated.data.project.revision;
+      const parent = parentCreated.data.tasks.find((task) => task.name === "Summary")!;
+      const addChild = (name: string, first = false) => {
+        const response = value.projects.createTask(value.authorization, revision, {
+          ...input(name), parentTaskId: parent.taskId,
+          ...(first ? { convertParentToSummary: true as const } : {}),
+        });
+        revision = response.data.project.revision;
+        return response.data.tasks.find((task) => task.name === name)!;
+      };
+      const a = addChild("A", true);
+      const b = addChild("B");
+      const c = addChild("C");
+      const insert = (name: string, anchorTaskId: string, placement: "before" | "after") => {
+        const response = value.hierarchy.execute(value.authorization, revision, {
+          kind: "create", anchorTaskId, placement,
+          task: { name, type: "task", start: "2026-09-21", duration: 1, progress: 0 },
+        });
+        revision = response.data.project.revision;
+        return response;
+      };
+      const before = insert("Above B", b.taskId, "before");
+      const after = insert("Below C", c.taskId, "after");
+      const first = insert("First", a.taskId, "before");
+      const expected = ["First", "A", "Above B", "B", "C", "Below C"];
+      const children = (tasks: typeof first.data.tasks) => tasks
+        .filter((task) => task.parentExternalId === parent.externalId)
+        .sort((left, right) => left.siblingOrder - right.siblingOrder);
+      expect(children(before.data.tasks).map((task) => task.name)).toEqual(["A", "Above B", "B", "C"]);
+      expect(children(after.data.tasks).map((task) => task.name)).toEqual(["A", "Above B", "B", "C", "Below C"]);
+      expect(children(first.data.tasks).map((task) => task.name)).toEqual(expected);
+      expect(children(first.data.tasks).map((task) => task.siblingOrder))
+        .toEqual(expected.map((_, index) => index));
+      const readBack = value.projects.getReadonlySnapshot(value.authorization.projectPublicId)!;
+      expect(readBack.data.project.revision).toBe(revision);
+      expect(children(readBack.data.tasks).map((task) => task.name)).toEqual(expected);
+      expect(children(readBack.data.tasks).map((task) => task.siblingOrder))
+        .toEqual(expected.map((_, index) => index));
+      expect(readBack.data.tasks.find((task) => task.taskId === parent.taskId)?.type).toBe("summary");
+    } finally {
+      value.database.close();
+    }
+  });
+
   it("indents under the previous sibling, converting that leaf to a summary atomically", async () => {
     const value = await fixture();
     try {

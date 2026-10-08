@@ -128,6 +128,78 @@ function deletedTaskIdsChildFirst(
       (originalIndex.get(first) ?? 0) - (originalIndex.get(second) ?? 0));
 }
 
+/**
+ * Add canonical tasks at their actual sibling positions. A plain add-task
+ * appends to the family, even when the server has inserted a task before an
+ * existing sibling. Use the documented before/after/child modes instead of
+ * remounting Core or moving every unaffected sibling.
+ */
+async function syncAddedTaskHierarchy(
+  api: Pick<IApi, "exec">,
+  current: readonly ITask[],
+  canonical: readonly ITask[],
+  added: readonly ITask[],
+  isCurrent: () => boolean,
+): Promise<void> {
+  const canonicalIds = new Set(canonical.map((task) => String(task.id)));
+  const present = new Set(current
+    .filter((task) => canonicalIds.has(String(task.id)))
+    .map((task) => String(task.id)));
+  const siblingsByParent = new Map<string, ITask[]>();
+  for (const task of canonical) {
+    const parent = normalizedParent(task);
+    const siblings = siblingsByParent.get(parent) ?? [];
+    siblings.push(task);
+    siblingsByParent.set(parent, siblings);
+  }
+
+  // New subtrees may contain parents and children in different array groups.
+  // Delay a child until its canonical parent has been added to Core.
+  const pending = new Map(added.map((task) => [String(task.id), task]));
+  while (pending.size > 0) {
+    let progressed = false;
+    for (const [id, task] of pending) {
+      if (!isCurrent()) return;
+      const parent = normalizedParent(task);
+      if (parent !== "0" && !present.has(parent)) continue;
+
+      const siblings = siblingsByParent.get(parent) ?? [];
+      const index = siblings.findIndex((sibling) => String(sibling.id) === id);
+      if (index < 0) throw new Error("Canonical sibling missing during Gantt sync.");
+      const next = siblings.slice(index + 1).find((sibling) => present.has(String(sibling.id)));
+      const previous = [...siblings.slice(0, index)].reverse()
+        .find((sibling) => present.has(String(sibling.id)));
+
+      let mode: "before" | "after" | "child" | undefined;
+      let target: string | number | undefined;
+      if (next?.id !== undefined) {
+        mode = "before";
+        target = next.id;
+      } else if (previous?.id !== undefined) {
+        mode = "after";
+        target = previous.id;
+      } else if (parent !== "0") {
+        mode = "child";
+        target = task.parent as string | number;
+      }
+
+      const { id: taskId, ...payload } = task;
+      delete payload.open;
+      await api.exec("add-task", {
+        id: taskId,
+        task: { ...payload, id: taskId },
+        select: false,
+        eventSource: "project-canonical-sync",
+        ...(target !== undefined ? { target, mode } : {}),
+      });
+      present.add(id);
+      pending.delete(id);
+      progressed = true;
+    }
+    if (!progressed) throw new Error("Canonical task parent missing during Gantt sync.");
+  }
+}
+
 /** Plans public SVAR actions from the rendered data to the server snapshot. */
 export function planCanonicalGanttSync(
   current: CanonicalGanttSnapshot,
@@ -192,19 +264,7 @@ export async function applyCanonicalGanttSync(
       await api.exec("update-task", { id, task: update, eventSource: "project-canonical-sync", skipUndo: true });
     }
   }
-  for (const task of plan.addedTasks) {
-    if (!isCurrent()) return;
-    const { id, ...add } = task;
-    delete add.open;
-    await api.exec("add-task", {
-      id,
-      // Core reads task.id; preserve the public top-level action ID as well.
-      task: { ...add, id },
-      select: false,
-      eventSource: "project-canonical-sync",
-      ...(task.parent && task.parent !== 0 ? { target: task.parent, mode: "child" as const } : {}),
-    });
-  }
+  await syncAddedTaskHierarchy(api, current.tasks, canonical.tasks, plan.addedTasks, isCurrent);
   // A former leaf has no child collection until add-task has run. Opening it
   // earlier exposes an invalid intermediate tree to Core's synchronous render.
   // Do not reopen existing summaries that the user deliberately collapsed.

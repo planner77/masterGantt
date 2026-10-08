@@ -64,6 +64,95 @@ describe("canonical SVAR snapshot sync", () => {
     expect(plan.deletedTaskIds).toEqual(["grandchild", "branch"]);
   });
 
+  it("inserts a new root sibling directly before an existing middle task without extra moves", async () => {
+    const a = { id: "a", text: "A", parent: 0 };
+    const b = { id: "b", text: "B", parent: 0 };
+    const c = { id: "c", text: "C", parent: 0 };
+    const inserted = { id: "new", text: "New", parent: 0 };
+    const calls: Array<{ action: string; payload: unknown }> = [];
+    await applyCanonicalGanttSync(
+      { exec: async (action: string, payload: unknown) => { calls.push({ action, payload }); } } as never,
+      { tasks: [a, b, c], links: [] },
+      { tasks: [a, inserted, b, c], links: [] },
+    );
+    expect(calls).toEqual([{
+      action: "add-task",
+      payload: {
+        id: "new", task: { ...inserted }, target: "b", mode: "before",
+        select: false, eventSource: "project-canonical-sync",
+      },
+    }]);
+  });
+
+  it("inserts after a middle sibling, before the first, and after the last", async () => {
+    const a = { id: "a", text: "A", parent: 0 };
+    const b = { id: "b", text: "B", parent: 0 };
+    const c = { id: "c", text: "C", parent: 0 };
+    const before = { id: "before", text: "First", parent: 0 };
+    const below = { id: "below", text: "Below B", parent: 0 };
+    const last = { id: "last", text: "Last", parent: 0 };
+    const calls: Array<{ action: string; payload: unknown }> = [];
+    await applyCanonicalGanttSync(
+      { exec: async (action: string, payload: unknown) => { calls.push({ action, payload }); } } as never,
+      { tasks: [a, b, c], links: [] },
+      { tasks: [before, a, b, below, c, last], links: [] },
+    );
+    expect(calls.filter(({ action }) => action === "move-task")).toEqual([]);
+    expect(calls.filter(({ action }) => action === "add-task").map(({ payload }) => payload))
+      .toMatchObject([
+        { id: "before", mode: "before", target: "a" },
+        { id: "below", mode: "before", target: "c" },
+        { id: "last", mode: "after", target: "c" },
+      ]);
+  });
+
+  it("preserves nested family order and the parent when inserting before a middle child", async () => {
+    const parent = { id: "parent", text: "Summary", parent: 0, type: "summary", open: false };
+    const a = { id: "a", text: "A", parent: "parent" };
+    const b = { id: "b", text: "B", parent: "parent" };
+    const c = { id: "c", text: "C", parent: "parent" };
+    const inserted = { id: "new", text: "New", parent: "parent", open: true };
+    const calls: Array<{ action: string; payload: unknown }> = [];
+    await applyCanonicalGanttSync(
+      { exec: async (action: string, payload: unknown) => { calls.push({ action, payload }); } } as never,
+      { tasks: [parent, a, b, c], links: [] },
+      { tasks: [parent, a, inserted, b, c], links: [] },
+    );
+    expect(calls).toEqual([{
+      action: "add-task",
+      payload: {
+        id: "new", task: { id: "new", text: "New", parent: "parent" },
+        target: "b", mode: "before", select: false,
+        eventSource: "project-canonical-sync",
+      },
+    }]);
+  });
+
+  it("maintains the order of multiple inserted roots and waits for newly added parents", async () => {
+    const a = { id: "a", text: "A", parent: 0 };
+    const b = { id: "b", text: "B", parent: 0 };
+    const first = { id: "first", text: "First", parent: 0 };
+    const second = { id: "second", text: "Second", parent: 0 };
+    const parent = { id: "new-parent", text: "Summary", parent: 0, type: "summary" };
+    const child = { id: "child", text: "Child", parent: "new-parent" };
+    const calls: Array<{ action: string; payload: unknown }> = [];
+    await applyCanonicalGanttSync(
+      { exec: async (action: string, payload: unknown) => { calls.push({ action, payload }); } } as never,
+      { tasks: [a, b], links: [] },
+      // An incoming snapshot need not list a newly created parent before its child.
+      { tasks: [a, first, second, b, child, parent], links: [] },
+    );
+    const adds = calls.filter(({ action }) => action === "add-task")
+      .map(({ payload }) => payload);
+    expect(adds).toMatchObject([
+      { id: "first", mode: "before", target: "b" },
+      { id: "second", mode: "before", target: "b" },
+      { id: "new-parent", mode: "after", target: "b" },
+      { id: "child", mode: "child", target: "new-parent" },
+    ]);
+    expect(calls.filter(({ action }) => action === "move-task")).toHaveLength(0);
+  });
+
   it("renaming a persisted reordered task does not generate a reverse move",async()=>{
     const tasks=[{id:"a",text:"A",parent:0},{id:"c",text:"C",parent:0},{id:"b",text:"B",parent:0}];
     const canonical=[tasks[0],tasks[1],{...tasks[2],text:"B renamed"}];
