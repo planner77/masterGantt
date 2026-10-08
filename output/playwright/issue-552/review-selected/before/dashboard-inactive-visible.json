@@ -1,0 +1,51 @@
+{
+  "capturedAt": "2026-10-08T19:57:31.767Z",
+  "environment": "Chromium / Next dev / Core2.7.3 / synthetic API / America/New_York",
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "65a4e7e04ba367b548404222e3674a0e37fff8ee3d01f6b79304fdd60298e68d",
+    "src/features/gantt/project-gantt.tsx": "be4c545b0a5a612602cace4551371a87012feccb1a9773eb2b7f58e07392b384",
+    "src/features/gantt/milestone-timeline-lane.tsx": "5447dbe3fbf9d6e1cdf0fe20254e27552e8ab18b8b8561bee5de9d20e6f19951",
+    "src/features/milestones/milestone-timeline-preference.ts": "e6437005a980ac18a8e66bb01deacaef4343de34b52a5f0193e8f239e6dc119a",
+    "src/features/milestones/use-milestone-timeline-preference.ts": "222ebb5d91074b3bfee1d8783e9c45bc93cbf57603d6fa9d2e0db4bde88936ca",
+    "src/features/milestones/project-milestone-dashboard.tsx": "800ceab77ec992bfa39a9c75fe74348f9b15c4e5e440be15ca0174f011083393",
+    "src/features/gantt/milestone-timeline-adapter.ts": "12fe5a10f328307542999acf1b2e561241c01ff400c930c41df3c96697bc7380",
+    "src/features/gantt/task-selection-model.ts": "a1f710ab3901c14276da95acce778fa0ccb8360c2257a7383e9c74ed3dace0b8",
+    "src/features/gantt/gantt-scale-toolbar.css": "06734b299cfbb4d7e1eb15e2621beaf9d538834254aaa7431003b02c10f15ce0",
+    "src/features/milestones/project-milestone-stage-table.tsx": "aff5560009e95bba0684244f2183299b0fe4d68d8c37191263c1719d829284ed",
+    "src/features/milestones/project-milestone-dashboard.module.css": "25896f02e686b57f327e2116742f8bd89333f3e9f2e92fbd592167acbed2d16e",
+    "src/features/projects/project-copy-membership-confirm.tsx": "3a592c274c1cf7a6f4ae7c958adc8cc43bc823b4b004117010cb2b601d401887",
+    "tests/e2e/milestone-visibility.spec.ts": "9a29b68211008ba5698f0bd3c5fb734a962574f1d1d44616b809621f6e657bcc"
+  },
+  "data": {
+    "taskId": "00000000-0000-4000-8000-000000000004",
+    "label": "Stable milestone 관리",
+    "rect": {
+      "x": 241,
+      "y": 639,
+      "right": 283,
+      "bottom": 671,
+      "width": 42,
+      "height": 32
+    },
+    "ownerClip": {
+      "x": 19,
+      "y": 464,
+      "right": 371,
+      "bottom": 694
+    },
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    },
+    "outline": "solid",
+    "outlineWidth": 3,
+    "outlineOffset": 3,
+    "ring": 6,
+    "centerHit": true,
+    "occluding": [],
+    "ownerScroll": {
+      "left": 700,
+      "top": 0
+    }
+  }
+}

@@ -97,7 +97,7 @@ async function captureLane(page:Page, info:import("@playwright/test").TestInfo, 
 
 test("#551 singleton focus/hover guide and canonical Editor return preserve native selection",async({page},info)=>{
   await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"milestone-only"),before=await probe<Observation>(frame,"read");
-  await probe(frame,"preview",true); const marker=frame.locator(".project-milestone-lane-marker"); await expect(marker).toHaveCount(1);
+   const marker=frame.locator(".project-milestone-lane-marker"); await expect(marker).toHaveCount(1);
   await marker.focus(); await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   await marker.hover(); await page.mouse.move(20,20); await expect(marker).toBeFocused(); await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   const focus=await focusObservation(marker); expect(focus.active).toBe(true); expect(focus.outset).toBe(6); expect(focus.centerHit).toBe(true);
@@ -109,7 +109,7 @@ test("#551 singleton focus/hover guide and canonical Editor return preserve nati
 });
 
 test("#551 same-date/near-date cluster pagination keyboard and exact-ID Editor return",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster");await probe(frame,"reveal","2026-10-05");await settle(page);
   const markers=frame.locator(".project-milestone-lane-marker");await expect(markers).toHaveCount(2);
   expect(await markers.evaluateAll(nodes=>nodes.filter(node=>(node as HTMLElement).tabIndex===0).length)).toBe(1);
   await markers.first().focus();await page.keyboard.press("End");await expect(markers.last()).toBeFocused();await page.keyboard.press("Home");await expect(markers.first()).toBeFocused();
@@ -124,7 +124,7 @@ test("#551 same-date/near-date cluster pagination keyboard and exact-ID Editor r
 });
 
 test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"reveal","2026-10-05");await settle(page);
   await frame.locator(".wx-chart").hover();await page.mouse.wheel(0,570);await settle(page);
   const before=await probe<Observation>(frame,"read"),height=await frame.locator(".wx-chart").evaluate(node=>node.getBoundingClientRect().height);
   expect(before.top).toBeGreaterThan(0);
@@ -134,7 +134,7 @@ test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/r
   await page.getByRole("tab",{name:"일정",exact:true}).click();await settle(page);const returned=await probe<Observation>(frame,"read");expect(returned.instance).toBe(before.instance);expect(returned.top).toBe(before.top);expect(returned.left).toBe(before.left);
   const splitter=frame.locator(".wx-resizer.wx-resizer-display-all").first(),box=(await splitter.boundingBox())!;await page.mouse.move(box.x+box.width/2,box.y+60);await page.mouse.down();await page.mouse.move(box.x+box.width/2+80,box.y+60,{steps:5});await page.mouse.up();await settle(page);
   expect((await probe<Observation>(frame,"read")).gridWidth).not.toBe(before.gridWidth);
-  await captureLane(page,info,"peer-resize-diagnostic",{core:await probe(frame,"read"),measurement:await probe(frame,"laneMeasurement"),dom:await frame.evaluate(node=>{const chart=node.querySelector<HTMLElement>(".wx-chart")!,widget=node.querySelector<HTMLElement>(".project-gantt-widget")!;return{chartWidth:chart.getBoundingClientRect().width,chartClientWidth:chart.clientWidth,widgetWidth:widget.getBoundingClientRect().width,hidden:Boolean(widget.closest("[hidden],[inert]")),laneReason:node.querySelector(".project-milestone-lane-state")?.textContent};})});
+  await captureLane(page,info,"peer-resize-diagnostic",{core:await probe(frame,"read"),measurement:await probe(frame,"laneMeasurement"),dom:await frame.evaluate(node=>{const chart=node.querySelector<HTMLElement>(".wx-chart")!,widget=node.querySelector<HTMLElement>(".project-gantt-widget")!;return{boxes: Array.from(node.querySelectorAll<HTMLElement>(".project-gantt-scroll,.project-gantt-native-owner,.wx-gantt,.project-gantt-widget,.wx-chart,.wx-table-container")).map(element=>({className:element.className,width:element.getBoundingClientRect().width,height:element.getBoundingClientRect().height,clientWidth:element.clientWidth,scrollWidth:element.scrollWidth,clientHeight:element.clientHeight,scrollHeight:element.scrollHeight})),chartWidth:chart.getBoundingClientRect().width,chartClientWidth:chart.clientWidth,widgetWidth:widget.getBoundingClientRect().width,hidden:Boolean(widget.closest("[hidden],[inert]")),laneReason:node.querySelector(".project-milestone-lane-state")?.textContent};})});
   await expect(frame.locator(".project-milestone-lane-plot")).toBeVisible();
   const bounds=await frame.evaluate(node=>{const plot=node.querySelector(".wx-chart")!.getBoundingClientRect(),lane=node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect();return{plotX:plot.x,laneX:lane.x,plotWidth:plot.width,laneWidth:lane.width};});expect(Math.abs(bounds.plotX-bounds.laneX)).toBeLessThanOrEqual(1);expect(Math.abs(bounds.plotWidth-bounds.laneWidth)).toBeLessThanOrEqual(1);
   await frame.getByRole("button",{name:"Gantt 전체 화면",exact:true}).click();await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(true);await settle(page);
@@ -144,7 +144,7 @@ test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/r
 });
 
 test("#551 cluster canonical expiry cannot reopen when the same IDs return",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"reveal","2026-10-05");await settle(page);
   await frame.locator(".project-milestone-lane-marker").first().click();const list=page.getByRole("dialog",{name:"Milestone 날짜 목록",exact:true});await expect(list).toBeVisible();
   const removed=state.tasks.filter(task=>task.type==="milestone");state.tasks.splice(0,state.tasks.length,...state.tasks.filter(task=>task.type!=="milestone"));await changedSnapshot(page,state);await expect(list).toBeHidden();
   const fallback=frame.locator("[data-milestone-lane-focus=list]");await expect(fallback).toBeFocused();const focus=await focusObservation(fallback);expect(focus.centerHit).toBe(true);
@@ -153,23 +153,23 @@ test("#551 cluster canonical expiry cannot reopen when the same IDs return",asyn
 });
 
 test("#551 OFF while Editor open preserves the dialog and returns to visible schedule without native M selection",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await probe(frame,"preview",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
-  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await probe(frame,"preview",false);await expect(editor).toBeVisible();await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
+  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await page.getByRole("button",{name:"◆ Milestone 표시",exact:true}).evaluate(button => (button as HTMLButtonElement).click());await expect(editor).toBeVisible();await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
   await page.keyboard.press("Escape");await expect(editor).toBeHidden();await expect(frame.locator(".project-gantt-scroll")).toBeFocused();await expect(frame.getByRole("group",{name:"복사 대상 선택"})).toContainText("선택 0개");
   await captureLane(page,info,"off-editor",{editorPreserved:true,selectionCount:0,mutationCount:state.posts.length+state.patchRequests.length});
 });
 
 test("#551 full population empty vs date viewport and Task-only filter stay independent",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster"); await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster"); await probe(frame,"reveal","2026-10-05");await settle(page);
   const lane=page.getByLabel("Milestone Timeline",{exact:true});await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");
-  await page.getByRole("button",{name:"Task",exact:true}).click();await settle(page);await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");await expect(lane.locator(".project-milestone-lane-marker")).toHaveCount(2);
+  await page.getByRole("button",{name:/^필터/}).click();await page.getByRole("group",{name:"Task type",exact:true}).getByRole("checkbox",{name:"task",exact:true}).check();await page.keyboard.press("Escape");await settle(page);await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");await expect(lane.locator(".project-milestone-lane-marker")).toHaveCount(2);
   const read=await probe<Observation>(frame,"read");await probe(frame,"scroll",read.width-read.chartWidth);await settle(page);await expect(lane.getByRole("status")).toContainText("현재 날짜 viewport");
   state.tasks.splice(0,state.tasks.length,...state.tasks.filter(task=>task.type!=="milestone"));await changedSnapshot(page,state);await expect(lane.getByRole("status")).toContainText("프로젝트 전체 Milestone 0개");
   await captureLane(page,info,"population-empty-viewport",{fullPopulationBefore:61,taskFilterDidNotReduce:true,fullPopulationAfter:0,mutationCount:state.posts.length+state.patchRequests.length});
 });
 
 test("#551 dynamic axis/latest native horizontal scroll and Task pointer selection survive the guide",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"reveal","2026-10-05");await settle(page);
   const marker=frame.locator(".project-milestone-lane-marker").first();await marker.focus();await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   const ordinary=frame.locator('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000001"]');await expect(ordinary).toBeVisible();const bar=(await ordinary.boundingBox())!;
   const hit=await page.evaluate(({x,y})=>document.elementFromPoint(x,y)?.closest(".wx-bar")?.getAttribute("data-task-id"),{x:bar.x+2,y:bar.y+bar.height/2});expect(hit).toBe(":00000000-0000-4000-8000-000000000001");
@@ -182,8 +182,8 @@ test("#551 dynamic axis/latest native horizontal scroll and Task pointer selecti
 });
 
 test("#551 OFF preserves a dirty existing Editor draft until explicit discard",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only",true);await probe(frame,"preview",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
-  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await editor.getByLabel("작업명",{exact:true}).fill("유지할 lane 초안");await probe(frame,"preview",false);await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("유지할 lane 초안");
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
+  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await editor.getByLabel("작업명",{exact:true}).fill("유지할 lane 초안");await page.getByRole("button",{name:"◆ Milestone 표시",exact:true}).evaluate(button => (button as HTMLButtonElement).click());await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("유지할 lane 초안");
   await page.keyboard.press("Escape");await expect(editor).toBeVisible();await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("유지할 lane 초안");
   await editor.getByRole("button",{name:"변경사항 버리고 닫기",exact:true}).click();await expect(editor).toBeHidden();expect(state.posts.length+state.patchRequests.length).toBe(0);await captureLane(page,info,"dirty-editor-off",{draftPreserved:true,explicitDiscard:true,mutationCount:0});
 });
@@ -191,14 +191,14 @@ test("#551 OFF preserves a dirty existing Editor draft until explicit discard",a
 test.describe("#551 actual touch capability",()=>{
   test.use({hasTouch:true,isMobile:true,viewport:{width:390,height:1000}});
   test("390px touch hit uses the marker's real 160×44 target",async({page},info)=>{
-    const {state,frame}=await fixture(page,"milestone-only");await probe(frame,"preview",true);await frame.locator(".project-gantt-scroll").evaluate(node=>node.scrollTo({left:node.scrollWidth-node.clientWidth}));await settle(page);
+    const {state,frame}=await fixture(page,"milestone-only");await frame.locator(".project-gantt-scroll").evaluate(node=>node.scrollTo({left:node.scrollWidth-node.clientWidth}));await settle(page);
     const marker=frame.locator(".project-milestone-lane-marker");await expect(marker).toHaveCount(1);const bounds=(await marker.boundingBox())!;expect(bounds.width).toBe(160);expect(bounds.height).toBe(44);
     await marker.tap();await expect(page.getByRole("dialog",{name:"작업 정보",exact:true})).toBeVisible();await captureLane(page,info,"touch-390",{bounds,hasTouch:true,mutationCount:state.posts.length+state.patchRequests.length});
   });
 });
 
 test("#551 public displayMode grid/chart keeps one Core instance and chart-only full plot",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await probe(frame,"preview",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);const before=await probe<Observation>(frame,"read");
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);const before=await probe<Observation>(frame,"read");
   await probe(frame,"display","grid");await settle(page);await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);await expect(frame.locator(".wx-chart")).toBeHidden();expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   await probe(frame,"display","chart");await settle(page);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);
   const bounds=await frame.evaluate(node=>{const plot=node.querySelector(".wx-chart")!.getBoundingClientRect(),lane=node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect(),owner=node.querySelector(".project-gantt-native-owner")!.getBoundingClientRect();return{plotX:plot.x,laneX:lane.x,ownerX:owner.x,plotWidth:plot.width,laneWidth:lane.width,ownerWidth:owner.width,chrome:Array.from(node.querySelectorAll<HTMLElement>(".wx-table-container, .wx-resizer")).slice(0,12).map(element=>({classes:element.className,x:element.getBoundingClientRect().x,width:element.getBoundingClientRect().width,text:element.textContent?.slice(0,60)}))};});
@@ -278,7 +278,6 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   await page.setViewportSize({ width, height: 1000 });
   const { state, frame } = await fixture(page), before = await probe<Observation>(frame, "read");
   const beforeRows = await frame.locator('.wx-table-container .wx-row[data-id]').evaluateAll(nodes => nodes.map(node => ({ id: node.getAttribute("data-id"), height: node.getBoundingClientRect().height })));
-  await page.getByRole("button", { name: "Milestone Timeline 기술 미리보기", exact: true }).click();
   const lane = page.getByLabel("Milestone Timeline", { exact: true }); await expect(lane).toBeVisible();
   expect((await lane.boundingBox())!.height).toBe(64);
   for(const scale of ["day","week"] as const) {
@@ -311,7 +310,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   const data={capturedAt:new Date().toISOString(),width,scale,observed,metrics,mutationCount:0,instance:before.instance};
   await captureLane(page,info,`lane-${scale}-${width}`,data);
   }
-  await page.getByRole("button", { name: "Milestone Timeline 기술 미리보기", exact: true }).click(); await expect(lane).toHaveCount(0); expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
+  await page.getByRole("button", { name: "◆ Milestone 표시", exact: true }).click(); await expect(lane).toHaveCount(0); expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   const stopped=await probe<{count:number}>(frame,"laneMeasurement");await page.setViewportSize({width:width+1,height:1000});await settle(page);
   expect((await probe<{count:number}>(frame,"laneMeasurement")).count).toBe(stopped.count);
 });

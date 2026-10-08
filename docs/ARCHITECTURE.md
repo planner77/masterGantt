@@ -269,3 +269,13 @@ Workspace는 전체 canonical snapshot에서 Timeline 모델을 memoize하고 �
 Week는 Gantt에만 scoped Locale Monday 시작과 공개 weekly scales formatter를 사용한다. 상위 label은 실제 주가 포함하는 Gregorian 월·연도 span이며 native monthly rounding 구현 변경이 아니다. UI interval의 2200 metadata와 Calendar supported domain을 구별하고 전체 근무일 미산정 fallback만 제공한다. Editor·Calendar·API·server/auth/DB/일정 알고리즘 계약은 유지한다. [기술/UX 계약](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #552 — controlled WBS 표시 경계
+
+Workspace가 전체 canonical Snapshot과 독립 Timeline 모델을 유지하고 ordinary visible IDs를 기존 단일 Gantt로 전달한다. Core source tasks/links를 삭제하지 않고 공개 filter-tasks로 표시 projection을 제어한다. canonical queue/API/source/scale/context/display와 read-only 설치 derived row 상태를 확인하며 bounded resize/event/RAF 요청을 coalesce하고 cleanup한다. Grid-only도 Chart 폭과 독립적으로 WBS 표시를 적용한다. read-only derived row/geometry는 단일 설치 버전 adapter 경계이며 공식 안정 geometry 계약으로 확대하지 않는다.
+
+프로젝트별 localStorage schema와 일시 날짜 override는 UI authority다. 날짜 조회는 기존 public viewport reader/queue/scroll action과 현재 snapshot/intent guard를 재사용한다. domain/server/DB/API/auth/revision 계약 변경은 N/A이며 같은 보호 gateway를 유지한다.
+
+#552의 Chart 측정은 최신 DOM commit과 installed `_columnsWidth`/`_scrollSize`/`_chartHeight`를 단일 adapter에서 읽는다. 지원 all/Chart-only의 실제 plot과 설치 Layout 식이 ±1px로 일치하는 stale 폭만 공개 `resize-chart`로 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth]와 같은 재요청은 보완하지 않는다. 새 layoutKey의 측정 요청은 다시 한 번 보완할 수 있다. Grid-only와 unsupported geometry는 fail-closed하며 private store write/라이브러리 수정/강제 scroll 없이 현재 공개 left/top을 유지한다. 이 derived state/DOM 의존은 Core 2.7.3/store 2.7.2 검증 경계이며 안정된 공식 geometry 계약으로 확대하지 않는다.
+
+프로젝트 표시 설정은 SSR defaultON과 클라이언트의 cached browser snapshot을 `useSyncExternalStore`로 분리한다. subscription은 cleanup하고 명시 토글만 memory/store를 갱신해 저장 오류 때도 선택을 보존한다. 서버 DB/authorization authority는 추가하지 않는다. React 공식 [외부 store/SSR snapshot](https://react.dev/reference/react/useSyncExternalStore)과 [조건부 현재 컴포넌트 state 조정](https://react.dev/reference/react/useState#storing-information-from-previous-renders)을 확인했으며 설치 Next16.3.8의 use-client guide를 적용했다(확인2026-10-09).

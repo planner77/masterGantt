@@ -1,0 +1,183 @@
+{
+  "command": [
+    "npx",
+    "--no-install",
+    "playwright",
+    "test",
+    "--config",
+    "/tmp/issue552-backend-http-config-run6.ts",
+    "tests/e2e/milestone-visibility-persistence.spec.ts",
+    "--project",
+    "chromium",
+    "--workers",
+    "1",
+    "--retries",
+    "0"
+  ],
+  "cwd": "/home/planner/Dev/masterGantt-worktrees/issue-552",
+  "started_utc": "2026-10-08T20:07:46.813251+00:00",
+  "finished_utc": "2026-10-08T20:08:42.226880+00:00",
+  "exit_code": 0,
+  "source_count": 405,
+  "source_before_fingerprint": "2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a",
+  "source_after_fingerprint": "2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a",
+  "source_drift_paths": [],
+  "next_generated_configuration_before": {
+    "tsconfig.json": "6a680db4069455de4daadaab7201c2d35b6917c690daa0fb66199bf8711ca235"
+  },
+  "next_generated_configuration_after": {
+    "tsconfig.json": "7635f4282b2306867640cf5d4e1ee7adbb47dc1f08d1f8fff6723cf067f8e3fc"
+  },
+  "next_generated_configuration_note": "Next dev may automatically add isolated dist dev/types include patterns; not manually edited by backend, not included in source405/package fingerprint; typecheck only after fixture teardown",
+  "environment_before": {
+    "package_version": "0.106.0",
+    "package_lock_root_version": "0.106.0",
+    "package_file_sha256": {
+      "package.json": "0d020f5ce8ac904a8e495f18368d42f6b57e963f2662d37bf354708cee684bf6",
+      "package-lock.json": "962cdb98e840f13fe80a8d4625fe6e22942e1a29651aa3fb170654851da6454d"
+    },
+    "installed_packages": {
+      "next": "16.3.8",
+      "@svar-ui/react-gantt": "2.7.3",
+      "@svar-ui/gantt-store": "2.7.2",
+      "better-sqlite3": "13.0.3",
+      "@playwright/test": "1.63.0"
+    },
+    "node": "v22.14.0"
+  },
+  "environment_after": {
+    "package_version": "0.106.0",
+    "package_lock_root_version": "0.106.0",
+    "package_file_sha256": {
+      "package.json": "0d020f5ce8ac904a8e495f18368d42f6b57e963f2662d37bf354708cee684bf6",
+      "package-lock.json": "962cdb98e840f13fe80a8d4625fe6e22942e1a29651aa3fb170654851da6454d"
+    },
+    "installed_packages": {
+      "next": "16.3.8",
+      "@svar-ui/react-gantt": "2.7.3",
+      "@svar-ui/gantt-store": "2.7.2",
+      "better-sqlite3": "13.0.3",
+      "@playwright/test": "1.63.0"
+    },
+    "node": "v22.14.0"
+  },
+  "environment_drift_keys": [],
+  "runtime": "isolated Next development per test, actual HTTP, native SQLite, fresh DB/port/dist; no mocked routes",
+  "results_dir": "/tmp/issue552-backend-http-results-6",
+  "pass_reuse": "STALE if any source drift; source freeze rerun required",
+  "status": "PASS",
+  "final_source_freeze": "/tmp/issue552-peer-source-freeze.json",
+  "final_source_freeze_utc": "2026-10-08T20:07:08.871061+00:00",
+  "spec_sha256": "8d4e292dd8b20c1d991619e94c79e6ff757a108bb22eb3452ed5631bbf558c0c",
+  "baseline_head_from_work_packet": "fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9",
+  "diagnostic_run4": "temporary freeze 3PASS/source drift0, retained separately in /tmp/issue552-backend-http-run4-diagnostic-result.json; not promoted to final source validation",
+  "actual_origins": [
+    "http://127.0.0.1:41383",
+    "http://127.0.0.1:38103",
+    "http://127.0.0.1:40945"
+  ],
+  "generated_configuration_restoration": {
+    "verified_utc": "2026-10-08T20:10:18.824049+00:00",
+    "parent": "fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9",
+    "restoration_writer": "frontend",
+    "original_restoration_envelope": "/tmp/issue552-peer-config-restoration.json",
+    "files": {
+      "next-env.d.ts": {
+        "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+        "parent_sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+        "exact_parent_equal": true
+      },
+      "tsconfig.json": {
+        "sha256": "2965263e2798ab070add1d9887c9e52528eeb891a34e0c689e458c9f075a07b3",
+        "parent_sha256": "2965263e2798ab070add1d9887c9e52528eeb891a34e0c689e458c9f075a07b3",
+        "exact_parent_equal": true
+      }
+    }
+  },
+  "summary_copy_actual": {
+    "commandBody": {
+      "kind": "copy",
+      "taskIds": [
+        "f6c21c2d-3506-452b-9e0c-fb21cfd4b405"
+      ],
+      "anchorTaskId": "68415d7f-eb43-4ea4-a32e-181b1b44d811",
+      "placement": "after"
+    },
+    "ifMatch": "\"11\"",
+    "copiedTaskCount": 6,
+    "canonicalTaskCountBefore": 7,
+    "canonicalTaskCountAfter": 13,
+    "beforeRevision": 11,
+    "afterRevision": 12,
+    "toggleMutations": 0,
+    "toggleProjectGets": 0
+  },
+  "unique_scenarios": 3,
+  "retry": 0,
+  "fixture": "tests/e2e/fixtures/isolated-application.ts",
+  "database": "fresh file-backed native SQLite per scenario, migration CLI; no DB mocks or direct seed SQL",
+  "network": "UI Summary Copy/Paste and stale/expired Copy commands observed as actual Next HTTP; completed/Assignment boundaries exercised through direct actual HTTP",
+  "ui_cases": [
+    "Summary Copy full subtree includes hidden M1/M2, internal Link and inherited/override Membership remap; revision+1; source unchanged; reload persistence",
+    "display toggle mutation0 / ProjectGET0 / revision unchanged",
+    "Delete confirmation Cancel mutation0 / full canonical unchanged",
+    "Summary clipboard stale412 and expired cookie401 preserve full canonical/revision"
+  ],
+  "http_guard_cases": [
+    "completed external E member409",
+    "completed external incident Link409",
+    "Assignment Copy409"
+  ],
+  "not_tested": [
+    "Remote CI quality/e2e/docker",
+    "production HTTP/HTTPS",
+    "container/GHCR exact digest",
+    "process restart persistence",
+    "manual UX"
+  ],
+  "separate_existing_guard_count": 23,
+  "existing_guards_not_added_to_3_scenario_count": true,
+  "node": "v22.14.0",
+  "installed_packages": {
+    "next": "16.3.8",
+    "@svar-ui/react-gantt": "2.7.3",
+    "@svar-ui/gantt-store": "2.7.2",
+    "better-sqlite3": "13.0.3",
+    "@playwright/test": "1.63.0"
+  },
+  "application_version": "0.106.0",
+  "source_scope": {
+    "src_files": 378,
+    "db_migrations": 23,
+    "individual_files": [
+      "next.config.ts",
+      "tests/config/playwright.config.ts",
+      "tests/e2e/fixtures/isolated-application.ts",
+      "tests/e2e/milestone-visibility-persistence.spec.ts"
+    ],
+    "not_in_405_aggregate": [
+      "docs",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "generated Next types"
+    ]
+  },
+  "raw_log": "/tmp/issue552-backend-http-run6.log",
+  "raw_log_sha256": "86414eda156b2876d8006c662aca3d3ebb9b0c41fcf6d6087e48cf18b5616eb9",
+  "documentation_writer": "frontend -> Manager/qa_docs",
+  "issue_comment_writer": "Manager",
+  "agent_issue_comment_authority": "NONE",
+  "run": 6,
+  "previous_run5": {
+    "status": "historical PASS, superseded source; not reused as current source validation",
+    "fingerprint": "552e6d45fd75b783c85f24f804987f6a9a5bac42ee00c35066a9df40eaec9a8c",
+    "original_execution": "/tmp/issue552-backend-http-run5-execution.json"
+  },
+  "source_change_from_run5": [
+    "src/features/projects/project-readonly-view.tsx"
+  ],
+  "current_case_duration_playwright": "57.1s",
+  "server_restart_context": "fresh per-scenario application after visibility inheritance source fix; full3case rerun",
+  "restoration_writer": "frontend; backend verified exact parent bytes after both runtime teardowns"
+}

@@ -1,0 +1,37 @@
+{
+  "environment": "Next development isolatedApplication + real HTTP + native SQLite",
+  "origin": "http://127.0.0.1:41383",
+  "publicId": "55e45f64-102d-49d4-9c7a-54349b1fae56",
+  "sourceRootTaskId": "f6c21c2d-3506-452b-9e0c-fb21cfd4b405",
+  "commandBody": {
+    "kind": "copy",
+    "taskIds": [
+      "f6c21c2d-3506-452b-9e0c-fb21cfd4b405"
+    ],
+    "anchorTaskId": "68415d7f-eb43-4ea4-a32e-181b1b44d811",
+    "placement": "after"
+  },
+  "ifMatch": "\"11\"",
+  "copiedTaskCount": 6,
+  "canonicalTaskCountBefore": 7,
+  "canonicalTaskCountAfter": 13,
+  "copiedTaskIds": [
+    "bf4076c9-eb0c-4f73-b25d-16cf0e83e8d0",
+    "d9b21bdc-1648-400e-8c14-07f7acd0a578",
+    "861e726d-5a8d-40fa-8453-35f6de117e9f",
+    "afc40439-31f8-4450-9ddd-0a49b0b4a62c",
+    "e5d5c785-78dd-4690-b6fb-c756bcb72b0a",
+    "f8b30d60-0989-4040-952f-d64da9eb8824"
+  ],
+  "hiddenMilestoneTaskIds": [
+    "861e726d-5a8d-40fa-8453-35f6de117e9f",
+    "afc40439-31f8-4450-9ddd-0a49b0b4a62c"
+  ],
+  "copiedLinkId": "93ef4268-6082-430d-8635-bf51742e8ed6",
+  "beforeRevision": 11,
+  "afterRevision": 12,
+  "toggleMutations": 0,
+  "toggleProjectGets": 0,
+  "sourcePreserved": true,
+  "reloaded": true
+}

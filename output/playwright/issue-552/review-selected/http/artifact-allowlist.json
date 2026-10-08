@@ -1,0 +1,23 @@
+{
+  "files_sha256": {
+    "summary-copy-full-canonical.json": "60dd61cae8a8ad41f765b6e8f32166073e03d160165844c744272eef912b5d45",
+    "summary-copy-full-canonical-screen.png": "98b39d83a80925e94120dfc7a2c1aebb04f5bb83a3ee0c816b268c88ef3ef9cb",
+    "summary-cancel-and-completed-boundaries.json": "026e9b8c5501c9b5ad66b362c583e43884a70ef87eafac2fb9fcd6ded83ae960",
+    "assignment-and-ui-authorization.json": "c4e3d01dffaaefa3180ee5a6b4cf11c68fd3bef88a78d330f7eaff1fa3dfee5d",
+    "assignment-and-ui-authorization-screen.png": "95b3a0fbded084d3f7b63fdcc2ee51b0b76ef2c77ce2e4c4a68be35c36423194",
+    "execution-contract.json": "463694bea31fcc018f6c9ba184722b67d31ae93d330f1973fdda5865afc3e8ab",
+    "source-hashes.json": "0cb85a48d515e1f5e2c15f78097794044dfcd50496c523c763f382508a4c5d7c",
+    "validation-checks.json": "f38499ca43aafa8ba6de4dc8ec8b03dbfebba0ec9954d2a1ea075e2b519295dc",
+    "rework-history.json": "76bea7c862bcfd58f8bb583045e3cdba4a1a5dc7a64886d673d74bbb584641f8"
+  },
+  "excluded": [
+    "raw logs",
+    "trace.zip",
+    "runtime DB",
+    "cookies",
+    "tokens",
+    "passwords",
+    ".env"
+  ],
+  "manifest_self_sha256": "returned separately in Result Contract"
+}

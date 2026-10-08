@@ -66,3 +66,6 @@
 @media (max-width: 600px) { .sectionHeading { flex-wrap: wrap; } .managementActions { grid-template-columns: minmax(0, 1fr); } }
 
 .tableOwner { max-height: 480px; overflow: auto; }
+.stageTable tr[data-date-highlight="true"] {
+  background: var(--action-selected-subtle);
+}

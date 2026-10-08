@@ -319,3 +319,11 @@ native Chart plot 원점/폭과 lane을 직접 비교하고 Grid/Chart row y/hei
 공개 Week 대안은 scoped Monday 시작과 동일 주 셀의 Gregorian 월·연도 span이다. 짧은 셀 label은 ellipsis하되 [Monday,nextMonday), 포함 월, ISO week-year를 accessible name/keyboard detail에 제공한다. 월 1일은 주 셀 내부 x로 비교하며 native 월 셀 경계가 있는 것처럼 검증하지 않는다. Calendar 지원 범위 밖 exclusive-end metadata는 표시 전용이고 해당 주 전체 근무일을 미산정으로 안내한다. [상세 계약과 원본 실패](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #552 — 표시 전환과 호환 상태
+
+단일 표시 토글은 aria-pressed와 readonly 조작을 제공하고 활성 Task 필터 수로 집계하지 않는다. 프로젝트 M0, 날짜 viewport0, 날짜 미정/invalid, 물리 조작 폭 부족, WBS 일반 작업0, 조건 불일치를 구별한다. legacy M-only는 원 조건과 이유를 유지하며 Dashboard/유형만 해제의 명시 선택을 제공한다. 다른 Dashboard 조건은 날짜 fallback에서 자동 초기화하지 않는다.
+
+390/768/1024/1440/1920px × Day/Week에서 열 show/hide/show 후 row y/height, 원래 날짜 tick x, plot 원점/폭과 document scrollWidth를 함께 확인한다. 좁은 화면은 native owner wheel/splitter 조작과 실제 hit/focus 외곽6px을 확인하고 논리 작업면과 물리 clip을 구별한다. 날짜 복귀/최신 intent, exactID 목록 focus, scope drift의 같은 instance, native M 선택 잔존 정리를 별도 interaction으로 검증한다. 개발 public display/selection probe는 사용자 생산 경로 또는 서버 권한 증거가 아니다.
+
+#552의 정상 scope owner는 비활성 schedule의 visibility를 상속한다. Dashboard peer를 `visibility:hidden`/inert/aria-hidden으로 보존할 때 내부 wrapper에 visible을 지정하면 숨김을 덮을 수 있다. 실제 검증은 ancestor·scope owner·Toolbar·native Gantt/Grid/Chart의 computed hidden과 양수 bbox를 함께 확인한다. `pointer-events:none` absolute content는 elementFromPoint와 sticky/fixed 가림 검사에서 빠질 수 있으므로 center hit만으로 실제 paint가 숨었다고 판정하지 않는다.
