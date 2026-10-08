@@ -1,5 +1,13 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 최신 main 재정렬 — PR #555
+
+기존 head `a87954a7ce76ac14e1095953486aafbb03f33e02`의 기능·검증 이력을 보존하고 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 통합했다. 후보 버전은 `0.102.3`이다. CHANGELOG의 main 0.102.2와 #530 PATCH 항목을 분리하고 양쪽 문서 추가를 보존했다. #495의 Milestone 표기와 #530 frame별 Core/native viewport·canonical queue·입력 취소를 함께 유지하며, 신규 UI 테스트의 이전 접근성 이름 4종을 현행 소스와 대조해 변경했다. 기존 assertion·공수 기대값·CI gate는 삭제하거나 완화하지 않았다.
+
+[현재 정렬 증거](../../evidence/issue530/alignment-20261009.json)는 최초 PR 실행과 구분한다. GitHub Actions 통합 준비에서 version/typecheck/변경 lint와 대상 Vitest 27개 PASS를 확인했다. 이는 전체 PR CI PASS가 아니다. 새 head quality/e2e/docker, 독립 QA, Windows Excel/DRM은 NOT TESTED다. 과거 243개/18개 실행은 아래 초기 구현 이력으로만 유지한다. 새 full PR CI 등록까지만 승인되었으며 병합·Main CI·GHCR·Release·tag·Issue 종료는 수행하지 않는다. `release_required=true`, `release_authorized=false`다.
+
+DESIGN/AGENTS/API/DB/보안/집계/기존 CI workflow 계약 변경은 N/A다. 임시 통합 실행 workflow는 후보 tree에서 제거하고 원래 CI workflow와 required gate를 유지한다. 후보 Git 객체 생성과 PR ref 갱신을 분리하고, 게시 시 expected-head를 확인한다.
+
 ## 범위와 실행 기준
 
 [Issue #530](https://github.com/planner77/masterGantt/issues/530)은 [Epic #522](https://github.com/planner77/masterGantt/issues/522)의 R8이다. #523~#529의 공통 집계 Domain, API, Dashboard, Milestone 비교, Resource Plan, 정확한 일정 이동, Excel을 같은 합성 데이터로 연결해 검증한다. 등록 당시의 등록-only 경계는 최신 사용자의 구현·문서·원격 게시·PR CI 시작 요청으로 전환했다.

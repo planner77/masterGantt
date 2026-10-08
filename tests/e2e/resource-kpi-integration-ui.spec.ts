@@ -461,8 +461,8 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   const scheduleTab=page.getByRole("tab",{name:"일정",exact:true});
   await milestoneTab.click();
   const milestone=page.getByTestId("milestone-dashboard");await expect(milestone).toHaveAttribute("data-ready","true");
-  await milestone.getByLabel("단계 검색",{exact:true}).fill("M1");
-  await milestone.getByText("단계 표시·공수 범위 조건",{exact:true}).click();
+  await milestone.getByLabel("Milestone 검색",{exact:true}).fill("M1");
+  await milestone.getByText("Milestone 표시·공수 범위 조건",{exact:true}).click();
   await milestone.getByLabel("공수 시작일",{exact:true}).fill(range.from);
   await milestone.getByLabel("공수 종료일",{exact:true}).fill(range.to);
   await expect(milestone).toHaveAttribute("data-ready","true");
@@ -472,9 +472,9 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   const m1Bucket=milestoneReport.effort.buckets.find(bucket=>bucket.milestoneTaskId===seed.tasks.M1.taskId)!;
   expect(m1Bucket.taskIds).toEqual([t1.taskId]);expect([...m1Bucket.assignmentIds].sort()).toEqual(assignmentIds);expect(m1Bucket.plannedMd).toBe(7.5);
   const cause=milestone.getByRole("button",{name:"M1 전체 원인 확인",exact:true});await cause.focus();await page.keyboard.press("Enter");
-  const causeHeading=milestone.getByRole("heading",{name:"M1 · 전체 단계 원인",exact:true});await expect(causeHeading).toBeFocused();
+  const causeHeading=milestone.getByRole("heading",{name:"M1 · 전체 Milestone 원인",exact:true});await expect(causeHeading).toBeFocused();
   const causeRegion=causeHeading.locator("xpath=../..");await expect(causeRegion).toContainText("T1");
-  const crossTrigger=milestone.getByRole("region",{name:"범위 내 단계 공수 표 가로 스크롤",exact:true}).locator("tbody tr").filter({hasText:"M1"}).getByRole("button",{name:"리소스",exact:true});
+  const crossTrigger=milestone.getByRole("region",{name:"범위 내 Milestone 공수 표 가로 스크롤",exact:true}).locator("tbody tr").filter({hasText:"M1"}).getByRole("button",{name:"리소스",exact:true});
   await crossTrigger.focus();await page.keyboard.press("Enter");
   await expect(resourceTab).toHaveAttribute("aria-selected","true");
   const resource=page.locator('[data-resource-dashboard="true"]:visible');await expect(resource).toHaveAttribute("data-ready","true");
@@ -508,7 +508,7 @@ test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource�
   await strip.getByRole("button",{name:/원래 보기/}).click();await expect(resourceTab).toHaveAttribute("aria-selected","true");
   await expect(detail.locator("tbody tr")).toHaveCount(1);await expect(resource.getByLabel("기간 시작",{exact:true})).toHaveValue(range.from);await expect(resource.getByLabel("기간 종료",{exact:true})).toHaveValue(range.to);
   await strip.getByRole("button",{name:/원래 보기/}).click();await expect(milestoneTab).toHaveAttribute("aria-selected","true");await expect(strip).toHaveCount(0);
-  await expect(milestone.getByLabel("단계 검색",{exact:true})).toHaveValue("M1");await expect(milestone.getByLabel("공수 시작일",{exact:true})).toHaveValue(range.from);await expect(milestone.getByLabel("공수 종료일",{exact:true})).toHaveValue(range.to);
+  await expect(milestone.getByLabel("Milestone 검색",{exact:true})).toHaveValue("M1");await expect(milestone.getByLabel("공수 시작일",{exact:true})).toHaveValue(range.from);await expect(milestone.getByLabel("공수 종료일",{exact:true})).toHaveValue(range.to);
   await expect(causeHeading).toBeVisible();await expect(causeRegion).toContainText("T1");await expect(crossTrigger).toBeFocused();
   const after=await seed.getSnapshot();expect(after).toEqual(canonical);expect((await ganttIntegrationState(page)).instance).toBe(instance);
   const receipt={variant:"T1 task and two personal allocation windows moved to past five weekdays; selected M1 scope only",baseRange:RESOURCE_KPI_INTEGRATION,range,

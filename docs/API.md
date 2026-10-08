@@ -8,7 +8,7 @@ Canonical Task 응답은 `membership={explicitMilestoneTaskId,effectiveMilestone
 
 `POST /api/projects/{publicId}/milestone-memberships`는 `{changes:[{taskId,milestoneTaskId:UUID|null}]}`를 받는다. 1..500 unique source와 기존 bounded JSON byte limit을 적용한다. 후보 조회는 전체 Project snapshot을 사용한다. 같은 Project의 Task/Summary→Milestone만 허용한다. exact Origin/edit session/strong If-Match 및 transaction 내 session/revision 재검증을 요구한다. 성공 200+ETag, canonical full snapshot, `operation.kind=milestoneMembership`, revision +1이다. changedTaskExternalIds는 명시 source와 실제 소속/Gate projection이 변한 Task/Milestone을 포함한다. Membership-only 명령은 일정/WBS/Link/Assignment를 변경하지 않으며 실패 시 전부 rollback한다. 다른 operation의 changed 목록을 부분 snapshot으로 해석하지 말고 전체 canonical tasks/links를 반영한다.
 
-기존 401/403/428/412 보호 오류를 유지한다. `409 INVALID_MILESTONE_MEMBERSHIP`, `COMPLETED_MILESTONE_STRUCTURE_LOCKED`, `MILESTONE_NOT_READY`, `MILESTONE_REFERENCED`, `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`는 공통 `{error:{code,message,details[],requestId}}`로 반환하고 관련 public Task ID를 details에 제공한다. 내부 SQL/PK를 노출하지 않는다. 완료 guard는 새 status=completed 및 progress=100 전환을 모두 검사한다. 완료 단계 구조 변경은 명시 재개 후 요청해야 한다.
+기존 401/403/428/412 보호 오류를 유지한다. `409 INVALID_MILESTONE_MEMBERSHIP`, `COMPLETED_MILESTONE_STRUCTURE_LOCKED`, `MILESTONE_NOT_READY`, `MILESTONE_REFERENCED`, `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`는 공통 `{error:{code,message,details[],requestId}}`로 반환하고 관련 public Task ID를 details에 제공한다. 내부 SQL/PK를 노출하지 않는다. 완료 guard는 새 status=completed 및 progress=100 전환을 모두 검사한다. Milestone 구조 변경은 명시 재개 후 요청해야 한다.
 
 신규 Link 생성은 task→task 또는 milestone→milestone만 허용하고 mixed는 `409 MIXED_DEPENDENCY_ENDPOINT`다. 기존 mixed Link는 endpoint가 동일한 type/Lag 수정·삭제·조회·일정 계산에서 보존한다(완료 endpoint 잠금 적용). client legacy flag는 unknown field로 거부한다.
 
@@ -604,7 +604,7 @@ UI 생성에서는 `externalId` 생략을 허용하고 server가 Task `taskId`�
 
 ### `PATCH /api/projects/{publicId}/tasks/{taskId}`
 
-Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, 마일스톤의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 변경할 수 있고 날짜·기간·진척·상태·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다. Description/URL은 일반 Task와 동일한 길이·정규화·HTTP(S) URL 검증을 사용한다.
+Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, Milestone의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 변경할 수 있고 날짜·기간·진척·상태·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다. Description/URL은 일반 Task와 동일한 길이·정규화·HTTP(S) URL 검증을 사용한다.
 
 Issue #258부터 incoming/outgoing/both 관계가 있는 일반 Task/Milestone도 편집할 수 있다. `name/description/url/progress/Baseline`만 보낸 요청은 저장된 effective `start/end`와 `requestedStart`를 그대로 보존하고 필요한 Summary 진척/Baseline만 재집계한다. 일정 필드(`start/duration/scheduleMode/end`)가 있으면 Calendar 정규화 및 optional `end` assertion을 먼저 검사하고 모든 leaf를 각 `requestedStart`에서 다시 만들어 현재 FS/SS/FF/SF와 signed lag 그래프를 재계산한다. `end` assertion은 관계 적용 전 Calendar 계산값에 대한 검증이다. Auto 후행은 지연과 앞당김 모두 가능하며, 명시적으로 바꾸지 않은 후행 요청일과 Baseline은 유지한다.
 
@@ -978,10 +978,10 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
 
 ### `GET /api/projects/{publicId}/logistics/dashboard`
 - **권한**: Public-read (프로젝트 직람 가능 시 편집 세션 불필요).
-- **설명**: 물류 프로젝트의 3개 핵심 KPI(기간 가중 진척률, 미완료 지연 작업, 마일스톤 경보), 보조 계획 공수(M/D, M/M), 데이터 품질 진단, 공정·설비·시스템별 세부 집계를 단일 읽기 트랜잭션 내에서 일관된 스냅샷으로 계산하여 반환한다.
+- **설명**: 물류 프로젝트의 3개 핵심 KPI(기간 가중 진척률, 미완료 지연 작업, Milestone 경보), 보조 계획 공수(M/D, M/M), 데이터 품질 진단, 공정·설비·시스템별 세부 집계를 단일 읽기 트랜잭션 내에서 일관된 스냅샷으로 계산하여 반환한다.
 - **쿼리 파라미터**:
   - `asOfDate` (string, `YYYY-MM-DD`): 기준일 (기본값: 오늘 일자).
-  - `horizonDays` (number, `1`~`90`): 마일스톤 임박 판정 기간 일수 (기본값: `14`).
+  - `horizonDays` (number, `1`~`90`): Milestone 임박 판정 기간 일수 (기본값: `14`).
   - `systemView` (`"direct"` | `"coordination"`): 시스템 집계 모드 (기본값: `"direct"`).
     - `direct`: 태스크에 직접 연결된 시스템 기준.
     - `coordination`: Coordinator DAG를 순회하여 하위 Controller 및 해당 Controller가 제어하는 설비까지 roll-up(중복 태스크는 정확히 1번만 집계).
@@ -1290,7 +1290,7 @@ Frontend는 현재 Project `publicId`와 마지막 확정 revision을 기준으�
 
 Summary는 자식 수와 무관하게 유효한 WBS 컨테이너다. 모든 canonical GET/mutation 응답에서 일정 있는 Task/Milestone 자손이 없으면 `type: summary`, `scheduleMode: auto`, `requestedStart/start/end/duration/progress: null`을 반환한다. 빈 Summary들만 중첩된 경우도 동일하다. 이름/ID/parent/order·직접 Resource/Group·물류 `self/subtree` 연결은 유지한다. Leaf의 필수 날짜·기간·진척, Summary Dependency endpoint 금지는 유지한다.
 
-`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 이름·description·URL·명시 완료 단계 소속만 직접 변경할 수 있으며 일정·진척·상태·Baseline 수동 입력을 허용하지 않는다. 생성/복사/직접 편집으로 저장한 description/URL은 부모가 비거나 일정 재계산이 발생해도 보존한다.
+`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 이름·description·URL·명시 Milestone 소속만 직접 변경할 수 있으며 일정·진척·상태·Baseline 수동 입력을 허용하지 않는다. 생성/복사/직접 편집으로 저장한 description/URL은 부모가 비거나 일정 재계산이 발생해도 보존한다.
 
 단건 DELETE는 빈 Summary 자체를 삭제할 수 있다. 자손이 있는 Summary는 기존 `includeDescendants=true` 확인 경로를 이용한다. 마지막 child/선택 subtree 삭제 또는 reparent/indent/outdent 이후에도 범위 밖 부모가 비었다는 이유로 `EMPTY_SUMMARY_NOT_ALLOWED`를 반환하지 않는다. 한 논리적 변경의 transaction/revision/changed/deleted ID 계약과 보호 정책은 유지한다. 과거 오류 코드는 legacy error adapter의 호환 mapping만 남아 있으며 이 조건에서는 발생하지 않는다.
 
@@ -1376,7 +1376,7 @@ UI canonical parser는 `operation.kind=milestoneMembership`을 Task mutation으�
 
 ### `GET /api/projects/{publicId}/milestone-dashboard`
 
-Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-Match 없는 조회이며 DB 및 revision을 변경하지 않는다. 보호 mutation의 기존 session/Origin/revision 계약은 유지한다. 모든 대상 ID는 immutable public UUID다. 정확한 필드 타입은 [milestone-dashboard.ts](../src/contracts/milestone-dashboard.ts), 계산·분모는 [단계 대시보드 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
+Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-Match 없는 조회이며 DB 및 revision을 변경하지 않는다. 보호 mutation의 기존 session/Origin/revision 계약은 유지한다. 모든 대상 ID는 immutable public UUID다. 정확한 필드 타입은 [milestone-dashboard.ts](../src/contracts/milestone-dashboard.ts), 계산·분모는 [Milestone 대시보드 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
 
 | Query | 검증/기본값 |
 | --- | --- |

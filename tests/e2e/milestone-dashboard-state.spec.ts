@@ -7,7 +7,7 @@ async function fixture(page: Page) {
   const state = await installStatefulProjectFixture(page);
   state.sessionEditable = false;
   const original = state.tasks.find((task) => task.type === "milestone")!;
-  original.name = "완료 단계 긴 한글 English extraordinary identity";
+  original.name = "Milestone 긴 한글 English extraordinary identity";
   for (let i = 5; i < 23; i++) state.tasks.push({ ...original, taskId: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`, externalId: `M-${i}`, siblingOrder: i, name: `단계 ${i} 긴 한글 English extraordinary identity` });
   return state;
 }
@@ -20,18 +20,18 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
   page.on("request", (request) => { if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method())) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
-  const region = page.getByRole("region", { name: "완료 단계 전체 상태 표 가로 스크롤" });
+  const region = page.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" });
   await expect(region.getByRole("row")).toHaveCount(20);
-  await dashboard(page).getByLabel("단계 검색", { exact: true }).fill("no matching stage");
-  await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText("조건에 일치하는 완료 단계가 없습니다.", { exact: false })).toBeVisible(); await expect(dashboard(page).getByText("5 M/D / 0.25 M/M", { exact: true })).toBeVisible();
-  await dashboard(page).getByLabel("단계 검색", { exact: true }).fill(""); await expect(region).toBeVisible();
+  await dashboard(page).getByLabel("Milestone 검색", { exact: true }).fill("no matching stage");
+  await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText("조건에 일치하는 Milestone이 없습니다.", { exact: false })).toBeVisible(); await expect(dashboard(page).getByText("5 M/D / 0.25 M/M", { exact: true })).toBeVisible();
+  await dashboard(page).getByLabel("Milestone 검색", { exact: true }).fill(""); await expect(region).toBeVisible();
   const causes = dashboard(page).getByRole("button", { name: `${state.tasks[3].name} 전체 원인 확인`, exact: true });
-  await causes.click(); await expect(dashboard(page).getByText("미완료 직접 선행 단계 · 1개", { exact: true })).toBeVisible(); await page.keyboard.press("Escape"); await expect(causes).toBeFocused();
+  await causes.click(); await expect(dashboard(page).getByText("미완료 직접 선행 Milestone · 1개", { exact: true })).toBeVisible(); await page.keyboard.press("Escape"); await expect(causes).toBeFocused();
   await mkdir("output/playwright/issue-463", { recursive: true }); const metrics: unknown[] = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     const trigger = dashboard(page).locator(".project-stage-filter-trigger"); await trigger.click();
-    const input = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" });
+    const input = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" });
     await page.setViewportSize({ width, height: 880 });
     const resizedPopup = await page.locator(".project-stage-filter-popup").boundingBox(); expect(resizedPopup!.y).toBeGreaterThanOrEqual(0); expect(resizedPopup!.y + resizedPopup!.height).toBeLessThanOrEqual(880);
     await page.setViewportSize({ width, height: 900 }); await input.press("End");
@@ -59,13 +59,13 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
     metrics.push({ width,popup,...geometry }); await page.screenshot({ path:`output/playwright/issue-463/dashboard-stage-table-${width}.png`,fullPage:false });
   }
   await writeFile("output/playwright/issue-463/geometry.json",JSON.stringify(metrics,null,2));
-  await page.setViewportSize({ width:1440,height:900 }); const first = region.getByRole("row").nth(1); await first.getByRole("button",{name:/단계 상세$/}).click(); const editor = page.getByRole("dialog",{name:"작업 정보",exact:true}); await expect(editor).toBeVisible(); await editor.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click(); await expect(tab(page)).toHaveAttribute("aria-selected","true"); expect(writes).toBe(0);
+  await page.setViewportSize({ width:1440,height:900 }); const first = region.getByRole("row").nth(1); await first.getByRole("button",{name:/Milestone 상세$/}).click(); const editor = page.getByRole("dialog",{name:"작업 정보",exact:true}); await expect(editor).toBeVisible(); await editor.getByRole("button",{name:"작업 편집기 닫기",exact:true}).click(); await expect(tab(page)).toHaveAttribute("aria-selected","true"); expect(writes).toBe(0);
 });
 
 test("#463 request reversal, stale error and explicit retry preserve filters", async ({ page }) => {
   const state = await fixture(page), gate = deferred(), started = deferred(); let fail = false;
   await page.route(`**${projectPath}/milestone-dashboard?*`,async(route)=>{const params=new URL(route.request().url()).searchParams;if(params.get("search")==="older"){started.resolve();await gate.promise;}if(fail){await route.fulfill({status:500,json:{error:{code:"FIXTURE_ERROR"}}});return;}await route.fulfill({json:{data:dashboardFixture(state,params)}});});
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); const search=dashboard(page).getByLabel("단계 검색",{exact:true}); await search.fill("older"); await started.promise; await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); await search.fill("단계 5"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); gate.resolve(); await expect(dashboard(page).getByRole("heading",{name:"단계 전체 상태 · 표시 1개"})).toBeVisible(); fail=true; await search.fill("failed"); await expect(dashboard(page).getByRole("alert")).toContainText("HTTP 500"); await expect(search).toHaveValue("failed"); await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); fail=false; await dashboard(page).getByRole("button",{name:"다시 시도",exact:true}).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); await expect(search).toHaveValue("failed");
+  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); const search=dashboard(page).getByLabel("Milestone 검색",{exact:true}); await search.fill("older"); await started.promise; await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); await search.fill("단계 5"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); gate.resolve(); await expect(dashboard(page).getByRole("heading",{name:"Milestone 전체 상태 · 표시 1개"})).toBeVisible(); fail=true; await search.fill("failed"); await expect(dashboard(page).getByRole("alert")).toContainText("HTTP 500"); await expect(search).toHaveValue("failed"); await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); fail=false; await dashboard(page).getByRole("button",{name:"다시 시도",exact:true}).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); await expect(search).toHaveValue("failed");
 });
 
 test("#463 server date authority, bounded day refresh and same-day catalog catch-up",async({page})=>{
@@ -82,8 +82,8 @@ test("#463 shared multi-selection, null conversion and canonical/catalog invalid
   const state = await fixture(page); let catalog = 2, staleRevision = false;
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => { const data = dashboardFixture(state, new URL(route.request().url()).searchParams, "2026-10-06", catalog); if (staleRevision) data.projectRevision--; return route.fulfill({ json: { data } }); });
   await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
-  await dashboard(page).getByText("단계 표시·공수 범위 조건", { exact: true }).click(); const choices = dashboard(page).getByRole("group", { name: "표시 단계", exact: true }); await choices.getByRole("checkbox").nth(0).check(); await choices.getByRole("checkbox").nth(1).check(); await expect(dashboard(page).getByText("여러 단계 2개 선택", { exact: true })).toBeVisible(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toHaveCount(0); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
-  await dashboard(page).getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText("5 M/D / — M/M", { exact: true })).toBeVisible(); await dashboard(page).getByRole("button", { name: "모든 단계 선택 해제", exact: true }).click(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toBeVisible();
+  await dashboard(page).getByText("Milestone 표시·공수 범위 조건", { exact: true }).click(); const choices = dashboard(page).getByRole("group", { name: "표시 Milestone", exact: true }); await choices.getByRole("checkbox").nth(0).check(); await choices.getByRole("checkbox").nth(1).check(); await expect(dashboard(page).getByText("여러 Milestone 2개 선택", { exact: true })).toBeVisible(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toHaveCount(0); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await dashboard(page).getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText("5 M/D / — M/M", { exact: true })).toBeVisible(); await dashboard(page).getByRole("button", { name: "모든 Milestone 선택 해제", exact: true }).click(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toBeVisible();
   catalog = 1; await dashboard(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(dashboard(page).getByRole("alert")).toContainText("Revision·조회 조건"); await expect(dashboard(page).getByRole("button", { name: "해당 범위 리소스 보기" })).toBeDisabled();
   catalog = 3; await dashboard(page).getByRole("button", { name: "다시 시도", exact: true }).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); staleRevision = true; await dashboard(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(dashboard(page).getByRole("alert")).toContainText("Revision·조회 조건"); state.project.revision++; const refreshed = page.waitForResponse((response) => new URL(response.url()).pathname === `${projectPath}/milestone-dashboard`); await dashboard(page).getByRole("button", { name: "프로젝트 최신 정보 조회", exact: true }).click(); await refreshed; await expect(dashboard(page).getByRole("button", { name: "다시 시도", exact: true })).toBeVisible(); staleRevision = false; await dashboard(page).getByRole("button", { name: "다시 시도", exact: true }).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText(/Project 41 \/ Catalog 3/)).toBeVisible();
 });
@@ -92,7 +92,7 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   const state = await fixture(page), gate = deferred(), started = deferred(); let calls = 0;
   await page.clock.install({ time: new Date("2026-10-06T00:00:00Z") });
   await page.route(`**${projectPath}/milestone-dashboard?*`, async (route) => { calls++; const params = new URL(route.request().url()).searchParams; if (params.get("search") === "slow") { started.resolve(); await gate.promise; } await route.fulfill({ json: { data: dashboardFixture(state, params) } }); });
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("단계 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill(""); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); gate.resolve();
+  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill(""); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); gate.resolve();
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 });
 

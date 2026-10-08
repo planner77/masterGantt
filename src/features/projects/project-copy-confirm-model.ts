@@ -14,14 +14,14 @@ export function taskIdentity(tasks: readonly ProjectTaskDto[], id: string): stri
 }
 export function copyMilestoneLabel(reference: CopyMilestoneReference, tasks: readonly ProjectTaskDto[]): string {
   if (!reference) return "미지정";
-  return reference.kind === "existing" ? `기존 단계 · ${taskIdentity(tasks, reference.existingMilestoneTaskId)}` : `복제될 단계 · 원본 ${taskIdentity(tasks, reference.copiedFromMilestoneTaskId)}`;
+  return reference.kind === "existing" ? `기존 Milestone · ${taskIdentity(tasks, reference.existingMilestoneTaskId)}` : `복제될 Milestone · 원본 ${taskIdentity(tasks, reference.copiedFromMilestoneTaskId)}`;
 }
 export function copyInheritanceLabel(reference: CopyInheritanceReference, tasks: readonly ProjectTaskDto[]): string {
   if (!reference) return "직접 지정 또는 미지정";
   return reference.kind === "existing" ? `기존 Summary 상속 · ${taskIdentity(tasks, reference.existingSummaryTaskId)}` : `복제될 Summary 상속 · 원본 ${taskIdentity(tasks, reference.copiedFromSummaryTaskId)}`;
 }
 export const COPY_REASON_LABELS = {
-  EXTERNAL_EXPLICIT_EXCLUDED: "복사 범위 밖 명시 단계 연결 제외",
+  EXTERNAL_EXPLICIT_EXCLUDED: "복사 범위 밖 명시 Milestone 연결 제외",
   EXTERNAL_INHERITANCE_CHANGED: "복사 범위 밖 Summary 상속 변경",
-  DESTINATION_INHERITANCE_CHANGED: "붙여넣기 대상의 단계 상속 적용",
+  DESTINATION_INHERITANCE_CHANGED: "붙여넣기 대상의 Milestone 상속 적용",
 } as const;

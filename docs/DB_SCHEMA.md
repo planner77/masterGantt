@@ -4,7 +4,7 @@
 
 Migration `0022_task_milestone_memberships.sql`은 `task_milestone_memberships(project_id, member_task_id, milestone_task_id)` STRICT table을 추가한다. `PRIMARY KEY(project_id, member_task_id)`로 단일 소속을 보장한다. Project FK 및 두 `(project_id, task_id)` composite FK는 Project 경계와 삭제 cascade를 제공하고 target 조회 index를 둔다. INSERT/UPDATE type trigger는 source Task/Summary, target Milestone을 검증하며 Task type 변경 trigger도 이 불변조건을 유지한다. 상속/effective/Ready/KPI는 저장하지 않는다.
 
-기존 row/ID/상태/진척/일정/Link/Assignment/revision은 수정하거나 추정 backfill하지 않는다. Task 삭제/타입 전환 서비스는 이전/새 snapshot과 참조를 검사하여 완료 단계 구조 변경 또는 참조받는 Milestone 삭제를 rollback한다. target FK cascade가 소속을 조용히 없애는 public mutation을 허용하지 않는다. 기존 Project 전체 삭제의 cascade는 유지한다. 미병합 다른 0022 migration과 통합 시 최신 ledger 기준 번호 조정이 필요하며 loader 연속성/checksum gate를 제거하지 않는다. [Stage Gate 계약](MILESTONE_STAGE_GATES.md)을 참조한다.
+기존 row/ID/상태/진척/일정/Link/Assignment/revision은 수정하거나 추정 backfill하지 않는다. Task 삭제/타입 전환 서비스는 이전/새 snapshot과 참조를 검사하여 Milestone 구조 변경 또는 참조받는 Milestone 삭제를 rollback한다. target FK cascade가 소속을 조용히 없애는 public mutation을 허용하지 않는다. 기존 Project 전체 삭제의 cascade는 유지한다. 미병합 다른 0022 migration과 통합 시 최신 ledger 기준 번호 조정이 필요하며 loader 연속성/checksum gate를 제거하지 않는다. [Stage Gate 계약](MILESTONE_STAGE_GATES.md)을 참조한다.
 
 
 ## Issue #464 — 복사와 Template의 소속 보존
@@ -131,7 +131,7 @@ Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기�
 | `parent_id` | INTEGER | Y | 같은 Project의 summary task만 허용 |
 | `sort_order` | INTEGER | N | 같은 parent 아래 sibling의 안정적인 순서, 0 이상 |
 | `baseline_start` | TEXT | Y | 기준 일정 시작일 (ISO date YYYY-MM-DD); 미설정 시 NULL (0014 추가) |
-| `baseline_duration` | INTEGER | Y | 기준 일정 근무일 기간; 미설정 시 NULL, 마일스톤은 0 (0014 추가) |
+| `baseline_duration` | INTEGER | Y | 기준 일정 근무일 기간; 미설정 시 NULL, Milestone은 0 (0014 추가) |
 | `baseline_end` | TEXT | Y | 기준 일정 종료일 (ISO date YYYY-MM-DD); 미설정 시 NULL (0014 추가) |
 | `created_at` | TEXT | N | UTC timestamp |
 | `updated_at` | TEXT | N | UTC timestamp |
@@ -163,7 +163,7 @@ Issue #300: Grid DnD와 Context Menu의 기존 hierarchy command는 parent별 si
 - Summary span duration은 모든 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration의 합이 아니다.
 - 빈 Summary와 빈 Summary만 중첩된 구조를 최종 snapshot에서 허용한다. Parent가 될 수 있는 type은 summary뿐이다.
 - `baseline_start`, `baseline_duration`, `baseline_end`(0014)는 프로젝트 계획 기준점(Baseline) 일정이다.
-  - Leaf 작업(일반 작업, 마일스톤)은 사용자가 직접 지정하거나 현재 일정에서 복사해 저장할 수 있다.
+  - Leaf 작업(일반 작업, Milestone)은 사용자가 직접 지정하거나 현재 일정에서 복사해 저장할 수 있다.
   - Summary 작업의 baseline은 모든 하위 자손(leaf)에 baseline이 존재할 때만 자손들로부터 파생(`min(baseline_start)`, `max(baseline_end)`, `workingDaysBetween`)된다. 실제 Task/Milestone 자손 중 하나라도 baseline이 없으면 Summary baseline은 NULL이다. 빈 Summary는 baseline 완비성에서 중립이고 실제 Leaf가 하나도 없으면 파생 Summary baseline은 NULL이다. Summary baseline의 직접 수동 수정은 허용되지 않는다(`SummaryScheduleReadonlyError`).
 
 이 규칙은 DB trigger로 중복 구현하지 않고 Scheduling Engine을 단일 계산 소스로 사용한다. 저장 직전 Service가 전체 aggregate 결과를 검증한다.
@@ -611,8 +611,8 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 | `source_project_id` | INTEGER | Y | 원본 프로젝트 FK (`projects.id` ON DELETE SET NULL) |
 | `source_project_name` | TEXT | Y | 원본 프로젝트 명칭 (원본 삭제 후에도 표시용 보존) |
 | `active` | INTEGER | N | 활성 상태 (0 또는 1, 기본 1) |
-| `task_count` | INTEGER | N | 작업 수 (마일스톤 제외 일반/요약 작업 수, 기본 0) |
-| `milestone_count` | INTEGER | N | 마일스톤 수 (기본 0) |
+| `task_count` | INTEGER | N | 작업 수 (Milestone 제외 일반/요약 작업 수, 기본 0) |
+| `milestone_count` | INTEGER | N | Milestone 수 (기본 0) |
 | `content_json` | TEXT | N | 템플릿 전체 스냅샷 JSON (태스크, 링크, 배정, 물류 마스터/연결) |
 | `created_at` | TEXT | N | UTC timestamp |
 | `updated_at` | TEXT | N | UTC timestamp |

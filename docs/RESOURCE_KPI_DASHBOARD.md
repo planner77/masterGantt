@@ -156,7 +156,7 @@ report의 optional 타입 필드 `reference`, `excluded`, `milestoneSelection`�
 
 selector의 `assignmentScope`는 selected(기본), milestoneReference, milestoneExcluded다. 기본 범위를 생략한 기존 요청도 selected로 정규화해 echo한다. reference/excluded summary의 selector로 같은 snapshot 상세를 조회한다. diagnostic은 selected scope만 허용하며 T0/full-stage 계약을 바꾸지 않는다. `resourceId`는 optional public UUID 문자열이고 dimension=group에서만 허용한다. null은 허용하지 않고 제한 없음은 생략한다. Group Resource 상세는 Group∩Resource∩선택 scope이며 기존 Resource 전체 selector로 바꾸지 않는다.
 
-`GET /api/projects/{publicId}/resource-dashboard/group-children`은 기존 report filters와 필수 snapshotId/groupId, optional milestoneTaskId, offset/limit를 받는다. groupId=null은 HTTP `ungrouped`, milestoneTaskId=null은 `unassigned`로 전송하며 Milestone 생략은 모든 선택 단계다. metric/resourceId/assignmentScope query는 이 경로에서 허용하지 않는다. Group→Resource→Milestone은 Milestone 생략, Group→Milestone→Resource는 해당 Milestone 지정으로 조회한다. metric 전환은 서버 summary를 표시할 뿐 자식 요청의 집합을 바꾸지 않는다.
+`GET /api/projects/{publicId}/resource-dashboard/group-children`은 기존 report filters와 필수 snapshotId/groupId, optional milestoneTaskId, offset/limit를 받는다. groupId=null은 HTTP `ungrouped`, milestoneTaskId=null은 `unassigned`로 전송하며 Milestone 생략은 모든 선택 Milestone이다. metric/resourceId/assignmentScope query는 이 경로에서 허용하지 않는다. Group→Resource→Milestone은 Milestone 생략, Group→Milestone→Resource는 해당 Milestone 지정으로 조회한다. metric 전환은 서버 summary를 표시할 뿐 자식 요청의 집합을 바꾸지 않는다.
 
 응답은 schema/snapshotId/projectPublicId/Project·Catalog·Calendar revision, 정규화 filters, resolved range/asOfDate/mdPerMm/source, groupId/optional milestoneTaskId와 서버 summary/Resource rows를 반환한다. 각 행의 summary/assignmentRange/milestones는 Group 교집합의 A다. summary selector와 모든 cell selector에 groupId/resourceId를 보존한다. Resource는 public ID 순으로 페이지하고 offset/default50/max100/상한8000, totalCount/nextOffset을 echo한다. optional Milestone의 생략과 명시null은 구별한다. 페이지는 전체 그룹 summary를 바꾸지 않고 frontend는 받은 페이지 행으로 그룹 합계를 다시 계산하지 않는다.
 
@@ -223,7 +223,7 @@ Milestone series selected는 해당 Milestone 기여, project는 동일 개인�
 
 전체1행+분류49행, 기간4열+전체 조회기간을 window로 표시한다. 표시 페이지·펼침은 raw 서버합계와 R을 바꾸지 않는다. 페이지에 부모가 없어도 child identity에 Group/Resource context를 표시하며 code/activity/Global Role/등급을 보존한다. 이름/context는2줄과 full accessible name/title을 사용한다. Desktop identity280px,600px 이하144px, 기간176px로 visible 열 수에 따른 colgroup을 적용한다. 마지막1~3기간 창에서도 identity폭을 유지하고 표 내부 scroll·sticky header/identity를 사용한다.
 
-셀 지표는 계획 M/D·M/M, 평균 Load%, 과투입 M/D 중 하나다. Capacity는 M/D 기준이며 초과 공수는 항상 M/D다. 조회 전체의 알려진 가중 일별 Peak와 알려진 개인 최대 Peak, 고유 과투입 일수/개인일/개인 수, unknown Assignment를 별도로 표시한다. 미산정에는 임의0%나 `%` 접미어를 붙이지 않는다. Milestone 행은 단계 기여(선택)와 개인 전체 참고를 분리하며 반복 Capacity는 비가산이다. 개인 Project 전체 과투입 경고를 누르면 Milestone 제한 없는 Resource/project 상세를 연다.
+셀 지표는 계획 M/D·M/M, 평균 Load%, 과투입 M/D 중 하나다. Capacity는 M/D 기준이며 초과 공수는 항상 M/D다. 조회 전체의 알려진 가중 일별 Peak와 알려진 개인 최대 Peak, 고유 과투입 일수/개인일/개인 수, unknown Assignment를 별도로 표시한다. 미산정에는 임의0%나 `%` 접미어를 붙이지 않는다. Milestone 행은 Milestone 기여(선택)와 개인 전체 참고를 분리하며 반복 Capacity는 비가산이다. 개인 Project 전체 과투입 경고를 누르면 Milestone 제한 없는 Resource/project 상세를 연다.
 
 Group 셀은 날짜별 요약→날짜의 개인 numeric 근거→개인·날짜 Assignment 기여, 개인 셀은 날짜별 요약→Assignment 기여로 이동한다. Scope·granularity·parent periodId(all 포함)·date·selector·offset·revisions·filter/range/asOf/M/M 출처를 echo 검증하고 날짜가 해당 기간 안인지 확인한다. 상세50행 페이지는 원래 parent period와 scope를 유지한다. Step 전환은 제목에 focus, 페이지/retry는 기존 control에 focus를 유지한다. Escape는 한 단계씩 복귀하고 최종 닫기는 유효 visible trigger 또는 fallback control로 복원한다.
 

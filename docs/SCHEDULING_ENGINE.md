@@ -110,7 +110,7 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 - `parseDateOnly`, ordinal 변환·가감·요일: strict Gregorian label과 범위 검사
 - `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, legacy Holiday 및 `WORKING/NON_WORKING` exception 검증·정렬·불변 복사
 - `isWorkingDay`, `nextWorkingDay`, `workingDaysBetween`, `endFromStart`: 양 끝 포함 근무일 연산
-- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone와 dependency 전 optional end 검증
+- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone과 dependency 전 optional end 검증
 - `recalculateFinishStartDependencies`: calendar-normalized Leaf와 FS/lag=0 graph를 검증하고 Kahn forward-pass로 Auto 일정 이동 및 Manual lower-bound conflict를 계산
 - `SchedulingError`: 안정적인 `code`와 제한된 `field/date/expectedDate/index` context
 - `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`, `MAX_CALENDAR_EXCEPTIONS`: 실행 가능한 자원 경계
@@ -174,7 +174,7 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 
 ### 4대 의존성 관계 종류 및 Lag 공식
 
-선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 마일스톤) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
+선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 Milestone) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
 
 1. **FS (Finish-to-Start, 종료 후 시작)**
    - 기준: $A$의 종료일 다음 첫 근무일로부터 $Lag$ 근무일 오프셋 이동.
@@ -185,7 +185,7 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 3. **FF (Finish-to-End, 종료 후 종료)**
    - 기준: $A$의 종료일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
    - $requiredEnd = \text{shiftWorkingDate}(A.end, Lag)$
-   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, 마일스톤은 $requiredEnd$ 자체)
+   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, Milestone은 $requiredEnd$ 자체)
 4. **SF (Start-to-End, 시작 후 종료)**
    - 기준: $A$의 시작일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
    - $requiredEnd = \text{shiftWorkingDate}(A.start, Lag)$
@@ -363,7 +363,7 @@ ISO 주는 월요일 시작/week-year, 월은 date-only calendar month다. 조�
 
 개인별 known demand가 Capacity를 넘는 날짜를 계산한다. `overAllocatedDayCount`는 한 명 이상 초과한 고유 날짜, `overAllocatedResourceDayCount`는 개인-날짜 수, `overAllocatedResourceCount`는 고유 개인 수다. `excessMd`는 개인별 `max(0,demand-capacity)`의 합이다. Group 가중 `peakDailyLoadPercent`와 `peakResourceDailyLoadPercent`를 구분하여 Group 평균75% 안의 개인150%를 보존한다. 부동소수점의 가짜 초과는 판정에만 `1e-12 × max(1,demand,capacity)` tolerance를 적용하고 원시 합계를 반올림하지 않는다. Grand Capacity는 고유 resource-day이며 복수 Group/Role 소계와 Milestone 반복 Capacity는 비가산이다.
 
-`calculateResourcePlan`은 grand/Resource/Group의 전체·기간별 selected/project 지표 쌍과 Resource별 sparse Milestone 기여를 반환한다. M행 selected는 해당 단계 기여, project는 같은 Resource 전체 참고이며 `projectReferenceOnly`와 `projectReferenceRow`로 구분한다. 일별/개인별/Assignment별 상세는 각각 `getResourcePlanDailyPage`, `getResourcePlanDayResources`, `getResourcePlanDayAssignments`가 제공한다. 일별 `periodKey=all`은 전체 조회 기간이다. `resourceMilestone` 상세 selector는 selected/project 양쪽에서 해당 단계로 제한하므로 M행 전체 과투입 원인은 명시 Resource/project selector로 조회한다. Group 일별 평균에서 개인별 numeric 페이지를 거쳐 원인 Assignment 페이지로 이동할 수 있고 0부하 R을 포함한다. 반환 페이지는 최대100이며 개인 numeric 계산은 요청 페이지에 한정한다.
+`calculateResourcePlan`은 grand/Resource/Group의 전체·기간별 selected/project 지표 쌍과 Resource별 sparse Milestone 기여를 반환한다. M행 selected는 해당 Milestone 기여, project는 같은 Resource 전체 참고이며 `projectReferenceOnly`와 `projectReferenceRow`로 구분한다. 일별/개인별/Assignment별 상세는 각각 `getResourcePlanDailyPage`, `getResourcePlanDayResources`, `getResourcePlanDayAssignments`가 제공한다. 일별 `periodKey=all`은 전체 조회 기간이다. `resourceMilestone` 상세 selector는 selected/project 양쪽에서 해당 Milestone으로 제한하므로 M행 전체 과투입 원인은 명시 Resource/project selector로 조회한다. Group 일별 평균에서 개인별 numeric 페이지를 거쳐 원인 Assignment 페이지로 이동할 수 있고 0부하 R을 포함한다. 반환 페이지는 최대100이며 개인 numeric 계산은 요청 페이지에 한정한다.
 
 resource-day200000, full Assignment-day1000000, 전체 projection cell5000의 예산을 buffer/cell materialization 전에 확인한다. selected는 fullProject의 같은 값·고유 ID 부분집합이어야 하며 중복/충돌 Resource metadata·Assignment grain·잘못된 finite allocation/환산값·조회범위를 거부한다. 일별 IDs 전체 배열을 numeric 응답에 넣지 않는다. 응답2MiB와 인증·snapshot/HTTP 오류 변환은 backend 계약이다. 실제 fixture benchmark는 [Resource KPI 문서](RESOURCE_KPI_DASHBOARD.md#issue-527-resource-plan-domain-계약)를 따른다.
 

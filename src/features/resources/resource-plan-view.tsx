@@ -131,7 +131,7 @@ export function ResourcePlanView({
           }
         >
           {row.selector.kind === "resourceMilestone"
-            ? "단계 기여(선택) · "
+            ? "Milestone 기여(선택) · "
             : ""}
           {planMetric(selected, metric, unit)}
         </button>
@@ -214,7 +214,7 @@ export function ResourcePlanView({
       <p className="resource-dashboard-hint">
         현재 Project 개인 {plan.population.resourceCount}명 · 유효 근무일1 M/D
         기준. Task·Milestone·기간·검색으로 Capacity 모집단을 줄이지 않습니다.
-        Group 소계와 단계 Capacity는 비가산이며 전사 가용 인력이 아닙니다.
+        Group 소계와 Milestone Capacity는 비가산이며 전사 가용 인력이 아닙니다.
       </p>
       <p className="resource-dashboard-hint">
         조회 전체 {scope === "selected" ? "선택 기여" : "Project 전체 참고"} ·

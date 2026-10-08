@@ -1,9 +1,38 @@
+## Issue #530 — 최신 main 통합 후보 / 새 PR CI 등록 (2026-10-09)
+
+main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 통합한 후보 `0.102.3`. [현재 실행 계획](ISSUE_530.md)의 2026-10-09 절을 따른다. 원격 통합 준비의 version/typecheck/변경 lint·대상 Vitest 27개 PASS와 기존 PR CI #2199.1 성공 이력을 구분한다. 새 head 전체 PR CI 및 독립 QA는 NOT TESTED이며 병합·Main CI·GHCR/Release/tag·Issue 종료는 승인 범위 밖이다.
+
 ## Issue #530 Resource KPI 통합 회귀·사용자 가이드 — 구현 / PR CI 시작까지
 
 main `599b824677cec2daa47743a60fcac422297f925b` / application `0.102.0`에서 선행 #523~#529를 같은 합성 원장으로 연결해 검증한다. branch `test/issue-530-resource-kpi-integration`, 상세 범위·소유권·기대값·검증은 [Issue #530 실행 계획](ISSUE_530.md)을 따른다. 알려진 11.5 M/D+미설정1, distinct Task4/Assignment5/Resource2, 다중 Group 비가산, 명시 환산20일 경우0.575 M/M, 고유 Capacity10이 Domain·실제 SQLite HTTP·UI·Excel에서 같은 raw ID/숫자/조건으로 나와야 한다.
 
 기존 Dashboard/Plan/정확한 일정 이동/Export를 재사용하여 세 계층·두 matrix·주월/일별 과투입·Gantt 상태 보존·5폭 keyboard 및 사용자 가이드 네 시나리오를 검증한다. 실제 fixed1440 Core/DOM240→0 및 최소120→0 결함으로 frame별 viewport 기록을 최소 수정한다. 최신 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / `0.102.1` 통합과 PATCH `0.102.2`를 적용했다. 검증된 제품·테스트 bytes를 보존했고 Vitest243개·브라우저18개(API1/UI17: 신규실제7·기존실제2·mock8), 통합 후 typecheck·version·Markdown153·테스트 발견이 PASS다. DOCUMENTATION_SYNC와 독립 PRE_QA 뒤 원격 게시·새 전체 PR CI 등록까지만 진행한다. CI 모니터링·병합·main/GHCR/tag·Issue 종료·branch 정리는 범위 밖이며 새 quality/e2e/docker와 최종 ACCEPT는 NOT TESTED다. `release_required=true`, `release_authorized=false`다.
 
+
+## Issue #495 — Milestone 화면·문서 용어 정합화 (2026-10-08)
+
+[Issue #495](https://github.com/planner77/masterGantt/issues/495) / [Work Packet](ISSUE_495.md). 기준 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / app `0.102.1`, branch `fix/issue-495-milestone-terminology`, PATCH 후보 `0.102.2`. UI·접근성·오류·리소스·물류·Template·Import/Copy/Export의 용어를 `Milestone`으로 통일하고 E2E·DESIGN/AGENTS 및 도메인·UX·Export 계약 문서를 동기화한다. Ready/Completed, Membership/Dependency, API/DB/JSON 및 Excel 고정 header/sheet는 보존한다. 이 connector 실행에는 로컬 npm/Chromium/독립 qa_docs가 없어 NOT TESTED. 공식 원격 CI는 PR head의 quality/e2e/docker에서 확인한다. 종료점은 PR CI 시작, 병합/Main CI/GHCR/Issue 종료 비범위. `release_required=true`, `release_authorized=false`.
+
+## Issue #487 — Main CI #2203.1 APT lock 경합 수정 후속 PR (2026-10-08)
+
+기존 [PR #488](https://github.com/planner77/masterGantt/pull/488)은 `08ac7749efc4544dfc125853d9e58ef3a9d56b21`에 병합됐다. [Main CI #2203.1](https://github.com/planner77/masterGantt/actions/runs/37793380955)은 quality/docker 및 Chromium shard 2~6 SUCCESS이나 shard 1/6의 Playwright `install-deps` 360초 timeout 뒤 잔존 `apt-get`이 APT lock을 잡고 있어 mirror fallback이 exit 100으로 실패했다. Main 임시 GHCR publish는 SKIPPED, Issue #487 미완료다.
+
+후속 브랜치 `fix/issue-487-main-ci-apt-lock`, base `08ac7749efc4544dfc125853d9e58ef3a9d56b21`. 공용 Playwright setup에서 Azure mirror 사전 공식 archive 정규화, APT native HTTP/HTTPS timeout/retry 및 첫 시도 실패 후 APT lists/dpkg lock의 해제 확인을 수행한다. 강제 PID kill/skip/무조건 PASS는 금지한다. `tests/scripts/test-config-layout.test.ts`에 사전 변경/잠금 해제/retry 순서·fail-closed 검증을 추가하고 CI_CD/REMOTE_VALIDATION/TEST_PLAN을 갱신한다. application source/API/DB/domain/버전 `0.102.1` 유지.
+
+요청 후속: 새 `Refs #487` PR 생성→정책/CI/최신 head Codex 리뷰→병합→새 merge SHA의 Main CI 시작 확인. Main GHCR `ci-<SHA>` 임시 게시·exact digest smoke·Generic Finalizer cleanup/Issue 종료는 실제 Main PASS 이후 단계이다. `release_required=false`, `release_authorized=false`, 정식 SemVer/GHCR release N/A이며 원인 로그 및 이전 FAIL 불변.
+
+## Issue #487 — 완료 단계 스크롤 E2E 및 CI 설치 지연 복구 (2026-10-08)
+
+[Issue #487](https://github.com/planner77/masterGantt/issues/487) / [PR #488](https://github.com/planner77/masterGantt/pull/488). 최신 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / version `0.102.1` 기준 재정렬. #487의 bounded `expect.poll` 후 기존 `activeVisible`/focus/geometry를 유지하고 최신 main의 `#project-panel-schedule` selector·#490 reset retry·제품 계약을 보존한다. 제품 source/API/DB/domain/version 변경 없음.
+
+PR CI #2089.1의 E2E 25분 timeout은 35분으로 보완되어 #2094.1에서 6개 shard PASS를 확인했으나, #2094.1의 정적 regex 오류와 Docker Playwright Ubuntu mirror 설치 지연(30분 취소)이 잔존했다. 정규식을 job 범위 기반 검증으로 수정하고, OS deps 설치 6분 제한·Azure→Ubuntu official mirror 1회 fallback·계측 시작 guard, Docker 40분 timeout으로 보완한다. 기존 실패는 역사 증거로 유지한다.
+
+사용자 요청 종료점: 최신 main 정렬, 충돌 해결, 문서 동기화 및 새 exact-head PR CI **시작 확인**. `release_required=false`, `release_authorized=false`; 병합/GHCR/Issue 종료는 범위 밖이며 새 CI 완료 전 결과는 NOT TESTED다.
+
+#487 PR CI #2191.1 (`37781591645`)의 quality·Docker는 PASS, Chromium shard 1/3/4/6 PASS, 2/5는 Ubuntu 24.04 runner의 `mirror+file:/etc/apt/apt-mirrors.txt` 간접 참조 때문에 기존 Azure fallback이 미러 URL을 발견하지 못해 OS deps 설치 timeout 124로 실패했다. 간접 참조되는 `/etc/apt/apt-mirrors.txt`까지 fallback 검사/치환 대상으로 추가하고 `test-config-layout` 정적 회귀·CI_CD/REMOTE_VALIDATION/TEST_PLAN 기록을 동기화한다. 변경 대상은 shared Playwright setup 및 관련 테스트/문서이며 제품 version·기능은 불변이다. 새 exact-head PR CI 시작까지만 진행한다.
+
+
+#487 최신 Codex review는 head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에서 공용 Playwright setup의 최악 OS deps 재시도(약 12분 20초)에 비해 main `publish-commit-image` 30분 및 release `container` 20분 job timeout이 부족하다는 P1을 제기했다. 해당 호출자만 Main 50분/Release 40분으로 조정하고 기존 shard 35분·Docker 40분, 모든 필수 runtime/transport/GHCR digest 검증과 fail-closed 정책을 보존한다. timeout 정적 계약·CI_CD/REMOTE_VALIDATION/TEST_PLAN을 갱신한 새 exact head에서 전체 PR CI 및 최신 Codex 검토를 다시 확보한 후 병합한다. 정식 GHCR tag 발행은 이슈의 version 변경이 없으므로 N/A이며 main `ci-<SHA>` 임시 게시/검증/cleanup은 필수다.
 
 ## Issue #519 — 최초 PR CI 실패·최신 main 통합 (2026-10-08)
 

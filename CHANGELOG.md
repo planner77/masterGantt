@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.102.2] - 2026-10-08
+## [0.102.3] - 2026-10-09
 
 ### Fixed
 
@@ -9,6 +9,14 @@
 ### Changed
 
 - Issue #530: 공통 합성 fixture로 Domain·SQLite HTTP·UI·Excel의 원시 공수·고유 Assignment·scope 정합성을 비교하는 통합 회귀 검증과 사용자 가이드를 추가한다. 외부 ID 표시를 제거한 최신 #519 Milestone picker와 기존 회귀 검증을 보존한다.
+
+## [0.102.2] - 2026-10-08
+
+### Fixed
+
+- Issue #495: Gantt/Grid, Task Editor, Milestone Dashboard, 필터, 물류·리소스 및 Template·Import/Copy/Export 안내의 사용자 표기를 `Milestone`으로 통일하고 접근성 이름·E2E·관련 문서를 동기화한다. Stage Gate 내부 판정과 Membership/Dependency/API/DB 의미는 유지한다.
+- 기존 Excel 시트·고정 열 헤더와 JSON schema/key는 하위 호환을 위해 보존한다. 일반 완료 상태, CI 단계와 이동 이력의 `단계`는 용도에 맞게 유지한다.
+
 
 ## [0.102.1] - 2026-10-08
 

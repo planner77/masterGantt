@@ -75,7 +75,7 @@ test("#464 미선택 하단 가상 행 우클릭은 선택을 반영하고 위�
   await expect(taskContextMenu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
   await taskContextMenu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
   await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "Below", exact: true }).click();
-  const confirmation = page.getByRole("dialog", { name: "복사 시 단계 소속 변경", exact: true });
+  const confirmation = page.getByRole("dialog", { name: "복사 시 Milestone 소속 변경", exact: true });
   await expect(confirmation).toContainText("외부 명시 연결 제외 1개");
   expect(mutations).toHaveLength(0);
   await confirmation.getByRole("button", { name: "취소", exact: true }).click();
@@ -100,7 +100,7 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
     calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
   };
   // 9월 23일은 이 viewport의 초기 표시 범위 안에 있었다. 초기 작업과 충분히
-  // 떨어진 마일스톤을 두고 실제 geometry로 화면 밖이라는 준비 조건을 확인한다.
+  // 떨어진 Milestone을 두고 실제 geometry로 화면 밖이라는 준비 조건을 확인한다.
   const task: ProjectTaskDto = {
     taskId, externalId: "SCROLL-5", name: "Far milestone", type: "milestone", scheduleMode: "auto",
     requestedStart: "2026-10-16", start: "2026-10-16", end: "2026-10-16", duration: 0, progress: 0,
@@ -139,7 +139,7 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   await expect.poll(() => chart.evaluate((element) => element.scrollLeft)).toBe(0);
   await expect.poll(() => bar.evaluate((element) => {
     const parentChart = element.closest(".wx-chart");
-    if (!parentChart) throw new Error("마일스톤의 Chart 조상을 찾을 수 없습니다.");
+    if (!parentChart) throw new Error("Milestone의 Chart 조상을 찾을 수 없습니다.");
     return element.getBoundingClientRect().left - parentChart.getBoundingClientRect().right;
   })).toBeGreaterThan(0);
   // force/dispatchEvent로 우클릭을 우회하지 않는다. 실제 scrollIntoView 후 클릭을 검증한다.

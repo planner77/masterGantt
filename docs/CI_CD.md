@@ -26,7 +26,7 @@ GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름�
 - PR의 **HTTP/HTTPS transport smoke**는 deploy, transport test/script, security/http server, 인증·Origin/cookie 계약과 연결된 API 또는 CI workflow/action 변경에서만 실행한다. `main` push와 수동 `workflow_dispatch`는 항상 transport smoke를 수행해 release 전 운영 경로 검증을 축소하지 않는다.
 - `Issue #118 구현 전후 레이아웃 증거` workflow는 고정 baseline/after revision을 비교하는 완료된 one-time evidence이므로 자동 PR trigger를 제거하고 수동 `workflow_dispatch` 재현만 남긴다.
 - Required aggregate check 이름과 fail-closed routing은 변경하지 않는다. 선택 step이 생략되어도 Docker aggregate는 candidate/runtime 필수 검증 결과를 기준으로 판정한다.
-- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 6-way shard와 `workers: 1` 계약은 유지한다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 PR/Main 및 Release Chromium shard timeout은 35분으로 둔다. #487 PR #488 Run #2089.1에서는 정상 진행 중인 shard 4/6이 25분 job 제한으로 취소됐고, #2094.1에서는 6개 E2E shard가 모두 PASS했다. `.github/actions/playwright-setup/action.yml`은 OS dependency 설치 시도마다 6분 제한을 두고 실패 시 Azure Ubuntu 미러가 설정된 환경에서만 공식 Ubuntu archive로 1회 재시도한다. Ubuntu 24.04 runner의 `ubuntu.sources`가 `mirror+file:/etc/apt/apt-mirrors.txt`를 참조하는 경우에는 실제 Azure URL이 들어 있는 `/etc/apt/apt-mirrors.txt`도 검사·치환한다(#487 PR CI #2191.1의 shard 2/5 fallback 탐지 누락 보완). 두 번 모두 실패하면 실패로 판정하며 실행을 우회하지 않는다. Docker smoke job은 build/runtime/transport/Compose를 유지하며 40분을 허용한다. 동일 공용 Playwright setup을 사용하는 Main 임시 GHCR candidate `publish-commit-image`는 image build/push·exact digest pull·transport smoke를 모두 포함하므로 50분, Release `container` 후보 검증은 candidate pull·transport/runtime/persistence 검사에 40분을 허용한다. #487 PR #488 최신 Codex P1 리뷰는 Playwright OS deps 재시도 최악 약 12분 20초를 두 추가 호출자의 budget에 반영하도록 요구했다. 추가 timeout은 required checks와 이미지/digest/security/smoke 검사를 생략하거나 완화하지 않는다. 이는 외부 setup 지연을 흡수하는 안정성 여유이며, 6-way shard와 `workers: 1`, 기존 assertion 및 required aggregate 계약은 유지한다.
 - Phase 2는 process/DB 격리를 유지한 prebuilt E2E runtime과 historical timing 기반 shard 균형화를 별도 검증한다. Phase 3는 exact main CI evidence를 release에서 재사용할 수 있는지 별도 검증한다.
 
 ## Issue #283 Docker runtime 슬림화 검증
@@ -523,3 +523,11 @@ Release quality의 setup/build duration recorder는 원래 제품·보안 gate�
 - `issues: write`, `packages: write`, `pull-requests: read`: 기존 finalize/cleanup 계약을 유지한다.
 - Resume는 trusted `main`만 checkout하며 source Release run의 path/head SHA/conclusion을 검증한 뒤 resolver를 실행한다.
 - 권한 누락은 `scripts/verify-issue-lifecycle.py`에서 PR CI 단계에 fail-closed로 검출한다.
+
+### Issue #487 Main CI #2203.1 — APT 잠금 충돌 재발 방지
+
+PR #488 merge SHA `08ac7749efc4544dfc125853d9e58ef3a9d56b21`의 Main CI #2203.1 (run `37793380955`)은 Quality/Docker 및 Chromium shard 2~6이 PASS, shard 1/6은 Playwright OS deps timeout 뒤 이전 `apt-get` (PID 2593)이 `/var/lib/apt/lists/lock`을 유지해 공식 Ubuntu archive 재시도가 lock exit 100으로 실패했다. E2E aggregate가 실패해 Main 임시 GHCR 게시 job은 SKIPPED였다.
+
+공용 `.github/actions/playwright-setup/action.yml`의 안전한 복구는 GitHub Ubuntu runner에 Azure archive URL이 구성된 경우 **첫 설치 시도 전** 해당 URL을 공식 `https://archive.ubuntu.com/ubuntu`로 치환한다(24.04 `/etc/apt/apt-mirrors.txt` 참조 포함). APT HTTP/HTTPS 자체 timeout 45초 및 Acquire retries 1회를 설정해 sudo `apt-get`이 상위 npm timeout 뒤에 불필요하게 살아남는 위험을 줄인다. 각 Playwright 설치 시도 전체의 360초 상한은 유지한다. 최초 시도가 실패하고 retry 가능 경로인 경우 `fuser`로 `/var/lib/apt/lists/lock`, `/var/lib/dpkg/lock-frontend`, `/var/lib/dpkg/lock`의 활성 점유를 최대 60초 확인한 뒤 **잠금이 모두 해제된 때만** 1회 재시도한다. 잠금이 남거나 `fuser`가 없으면 다른 프로세스를 강제 종료하지 않고 fail-closed한다.
+
+CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/transport/persistence 검사, metrics 측정 및 버전 정책은 유지한다. 이 보완은 추가 `Refs #487` PR 및 새 merge SHA의 PR/Main CI로 별도 검증하며 기존 실패를 PASS로 대체하지 않는다. 애플리케이션 버전 `0.102.1` 불변, 정식 SemVer tag는 N/A다.

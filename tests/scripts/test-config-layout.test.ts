@@ -69,7 +69,57 @@ describe("test configuration repository layout", () => {
       expect(workflow).toContain("tests/config/e2e-shard-plan.json");
       expect(workflow).toContain("E2E_TIMING_OUTPUT");
       expect(workflow).toContain("native 6-way sharding fallback");
+      // Scope timeout verification to this job, not another workflow job.
+      const shard = workflow.split(/\n  (?:release_)?e2e_shard:\n/)[1]?.split(/\n  [a-z_]+:\n/)[0];
+      expect(shard).toBeDefined();
+      expect(shard).toMatch(/^    timeout-minutes: 35$/m);
     }
+    const dockerJob = ci.split("\n  docker_smoke:\n")[1]?.split(/\n  [a-z_]+:\n/)[0];
+    expect(dockerJob).toBeDefined();
+    expect(dockerJob).toMatch(/^    timeout-minutes: 40$/m);
+    // The same shared Playwright setup also runs inside Main GHCR candidate and
+    // Release candidate jobs. Their budgets must allow both bounded attempts.
+    const mainImageJob = ci.split("\n  publish-commit-image:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(mainImageJob).toBeDefined();
+    expect(mainImageJob).toMatch(/^    timeout-minutes: 50$/m);
+    const releaseCandidateJob = release.split("\n  container:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(releaseCandidateJob).toBeDefined();
+    expect(releaseCandidateJob).toMatch(/^    timeout-minutes: 40$/m);
+    const playwrightSetup = text(".github/actions/playwright-setup/action.yml");
+    expect(playwrightSetup).toContain("timeout --signal=TERM --kill-after=10s 360s");
+    expect(playwrightSetup).toContain("azure.archive.ubuntu.com/ubuntu");
+    expect(playwrightSetup).toContain("https://archive.ubuntu.com/ubuntu");
+    // Ubuntu 24.04 deb822 ubuntu.sources may use mirror+file indirection.
+    // The Azure URL must be detected and rewritten in the referenced file.
+    expect(playwrightSetup).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
+    expect(playwrightSetup).toContain("for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list");
+    expect(playwrightSetup).toContain("grep -Fq 'azure.archive.ubuntu.com/ubuntu' \"$source\"");
+    expect(playwrightSetup).toContain('azure_sources+=("$source")');
+    expect(playwrightSetup).toContain("sudo sed -i");
+    expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
+    // #487 Main #2203.1: timed-out npx can leave sudo apt-get holding its lock.
+    // Runner mirror normalization must precede the first Playwright attempt;
+    // retry is legal only after the original apt process released its locks.
+    const normalizedAt = playwrightSetup.indexOf('sudo sed -i');
+    const firstInstallAt = playwrightSetup.indexOf('install_deps || install_status=$?');
+    const lockWaitAt = playwrightSetup.indexOf('if ! apt_locked; then');
+    const retryInstallAt = playwrightSetup.lastIndexOf('            install_deps');
+    expect(normalizedAt).toBeGreaterThan(0);
+    expect(normalizedAt).toBeLessThan(firstInstallAt);
+    expect(lockWaitAt).toBeGreaterThan(firstInstallAt);
+    expect(retryInstallAt).toBeGreaterThan(lockWaitAt);
+    expect(playwrightSetup).toContain('Acquire::http::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::https::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::Retries "1"');
+    expect(playwrightSetup).toContain("command -v fuser");
+    expect(playwrightSetup).toContain("::notice::Playwright 의존성 설치 전에 Ubuntu 공식 미러를 선택했습니다.");
+    expect(playwrightSetup).toContain("::warning::Playwright OS 의존성 첫 설치 실패");
+    expect(playwrightSetup).toContain("APT 잠금 해제 확인 불가");
+    expect(playwrightSetup).toContain("sudo fuser -s");
+    expect(playwrightSetup).toContain("/var/lib/apt/lists/lock");
+    expect(playwrightSetup).toContain("/var/lib/dpkg/lock-frontend");
+    expect(playwrightSetup).toContain("APT 잠금이 60초 동안 해제되지 않아 Playwright install-deps 중복 실행을 거부합니다.");
+    expect(playwrightSetup).toContain('exit "$install_status"');
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");
