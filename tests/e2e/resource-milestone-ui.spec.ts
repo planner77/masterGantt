@@ -42,7 +42,32 @@ test("#526 실제 SQLite/HTTP 세 계층·비교표·선택 진척과 전체 Gat
     let tree = root.getByRole("region", { name: "Milestone 계층 현황", exact: true });
     await tree.getByRole("button", { name: "공동 그룹", exact: true }).click(); await tree.getByRole("button", { name: "인수 Milestone", exact: true }).click();
     await expect(tree.getByText(/선택 할당 작업 진척 100.0%/).first()).toBeVisible(); await expect(tree.getByText(/단계 전체 소속 2\/3/)).toBeVisible(); await expect(tree.getByText(/선행 차단 있음/)).toBeVisible();
-    const childResponse = publicPage.waitForResponse(r => r.url().includes("/resource-dashboard/details?")); await tree.getByRole("button", { name: "개발 담당 Alice", exact: true }).click(); await tree.locator(".resource-milestone-summary").last().getByRole("button", { name: "2 Task", exact: true }).click(); const child = await childResponse; expect(child.status()).toBe(200); const body = (await child.json()).data; expect(body.selector).toMatchObject({ dimension: "group", id: g1, resourceId: r1, milestoneTaskId: milestone.taskId }); expect(body.totalCount).toBe(2); expect(body.rows.map((row: { taskId: string }) => row.taskId)).toEqual(expect.arrayContaining([shared.taskId, inherited.taskId])); await root.getByRole("button", { name: "상세 닫기" }).click();
+    // Group children arrive asynchronously. The Milestone parent has no resourceId,
+    // so target Alice's own expanded summary rather than the last summary in the tree.
+    const groupChildren = tree.getByLabel("그룹 교차 개인 현황");
+    const aliceButton = groupChildren.getByRole("button", { name: "개발 담당 Alice", exact: true });
+    await expect(aliceButton).toBeVisible();
+    await aliceButton.click();
+    // Scope the locator to Alice's direct child node, avoiding a nested has-locator's ancestor constraints.
+    const aliceBranch = groupChildren.locator(":scope > .resource-milestone-node").filter({ hasText: "개발 담당 Alice" });
+    await expect(aliceBranch).toHaveCount(1);
+    const aliceTasks = aliceBranch.locator(":scope > div > .resource-milestone-summary").getByRole("button", { name: "2 Task", exact: true });
+    await expect(aliceTasks).toBeVisible();
+    const childResponse = publicPage.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname.endsWith("/resource-dashboard/details") &&
+        url.searchParams.get("dimension") === "group" &&
+        url.searchParams.get("resourceId") === r1 &&
+        url.searchParams.get("milestoneTaskId") === milestone.taskId;
+    });
+    await aliceTasks.click();
+    const child = await childResponse;
+    expect(child.status()).toBe(200);
+    const body = (await child.json()).data;
+    expect(body.selector).toMatchObject({ dimension: "group", id: g1, resourceId: r1, milestoneTaskId: milestone.taskId });
+    expect(body.totalCount).toBe(2);
+    expect(body.rows.map((row: { taskId: string }) => row.taskId)).toEqual(expect.arrayContaining([shared.taskId, inherited.taskId]));
+    await root.getByRole("button", { name: "상세 닫기" }).click();
     await root.getByLabel("집계 순서", { exact: true }).selectOption("resource"); tree = root.getByRole("region", { name: "Milestone 계층 현황", exact: true }); await tree.getByRole("button", { name: "공동 그룹", exact: true }).click(); await tree.getByRole("button", { name: "개발 담당 Alice", exact: true }).click(); await tree.getByRole("button", { name: "두 번째 Milestone", exact: true }).click(); await expect(tree.locator(".resource-milestone-summary").last().getByText(/알려진 부분합/)).toBeVisible();
     await root.getByRole("button", { name: "개인", exact: true }).click(); tree = root.getByRole("region", { name: "Milestone 계층 현황", exact: true }); await tree.getByRole("button", { name: "개발 담당 Alice", exact: true }).click(); await tree.getByRole("button", { name: "인수 Milestone", exact: true }).click(); await expect(tree.getByText(/준비 전/)).toBeVisible();
     await root.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); await expect(root.getByRole("region", { name: "개인 Milestone 비교표", exact: true }).locator("tbody tr")).toHaveCount(2); await expect(root.getByRole("region", { name: "개인 Milestone 비교표", exact: true }).getByText("대상 없음").first()).toBeVisible();
