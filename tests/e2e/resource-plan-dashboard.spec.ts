@@ -76,13 +76,23 @@ async function setup(page: import("@playwright/test").Page) {
     .first()
     .click();
   await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
-  // Selection and scale can schedule Core's scroll restoration on the next frame.
-  await frame.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  );
+  // Selection reveals its Task on the timeline. Set the test viewport only after
+  // that Core scroll and canonical sync settle, otherwise a later reveal can
+  // overwrite the setup's left=120 (observed left=1581 in PR CI #2143).
+  await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
+  await frame.evaluate(async (el) => {
+    let previous = "", stableFrames = 0;
+    for (let tick = 0; tick < 60 && stableFrames < 6; tick++) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const chart = el.querySelector<HTMLElement>(".wx-chart");
+      const gantt = el.querySelector<HTMLElement>(".wx-gantt");
+      const state = Reflect.get(el, "__masterganttPublicViewport") as { left: number; top: number } | undefined;
+      const current = [chart?.scrollLeft, gantt?.scrollTop, state?.left, state?.top, el.getAttribute("data-gantt-canonical-sync-depth")].join(":");
+      stableFrames = current === previous && el.getAttribute("data-gantt-canonical-sync-depth") === "0" ? stableFrames + 1 : 0;
+      previous = current;
+    }
+    if (stableFrames < 6) throw new Error("Gantt selection/scale viewport did not settle before peer-view test");
+  });
   await frame.locator(".wx-gantt").evaluate((el) => {
     el.scrollTop = 96;
   });

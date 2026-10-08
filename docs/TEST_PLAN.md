@@ -2279,3 +2279,12 @@ Export 없는 동일 native fixture control은 PRE_QA 전 1 PASS/7.5s(총8.3s, `
 같은 최종 제품 source의 positive 영향 범위는 `/tmp/frontend529-rework-browser-final.log`의 Milestone1 PASS/1.8s, native Export1 PASS/6.2s, no-Export control1 PASS/2.2s다. 그 묶음 cancel의 clock fixture FAIL은 숨기지 않는다. 마지막 수정은 cancel case의 두 번째 clock.pauseAt 기준만 바꿨으므로 positive case는 제품 SHA와 실행 당시 spec SHA를 보존해 재사용한다. 새 고유 case를 추가한 것이 아니며 mock3/native3/기존M1 수는 유지한다. 최초 invalid 취소 판정은 이 수의 유효 PASS 근거로 쓰지 않는다.
 
 최종 관련 typecheck/lint·Markdown/diff 및 문서 동기화는 REWORK 이후 재수행하며 Unit18/기존 Gantt warning4 증거는 변경 영향이 없어 재사용한다. 새 frozen manifest가 이전 PRE_QA tree/소스 동결을 대체한다. 독립 PRE_QA 재검토와 원격 quality/e2e/docker는 아직 NOT TESTED다.
+
+
+## Issue #529 PR CI #2143 E2E rework — 2026-10-08
+
+CI #2143.1의 quality/Vitest/typecheck/build/Docker는 PASS이며 Chromium shard4의 #83, shard6의 #526/#527 세 테스트(4 case)가 FAIL했다. #83 synthetic Resource Dashboard fixture는 고정 Assignment(2026-09-16~18)와 조회 from/to 교집합을 빠뜨려 10월 비어 있는 선택범위에도 9월 공수를 반환했다. 실제 API 계산을 변경하지 않고 fixture 날짜 교집합을 복원하며 빈 범위의 `할당 없음`/0공수 구분 assertion을 유지한다.
+
+#526 실제 SQLite/HTTP 테스트는 Group→Milestone→Resource 자식 조회가 비동기인데 전체 tree의 `.resource-milestone-summary.last()`를 먼저 클릭하여 부모 Group 소계를 열 수 있었다. 클릭한 개인 disclosure의 `aria-controls` 하위 Summary가 표시될 때까지 확인하고, 상세 네트워크의 `resourceId` 및 응답 selector/Task ID를 계속 검증한다. Server selector 완화나 검증 제거는 하지 않는다.
+
+#527 초기 fixture의 selected Task reveal 및 Core canonical scroll 동기화가 끝나기 전 `scrollLeft=120`을 설정해 뒤늦은 자동 이동(실제 1581)과 경합했다. Core 동기화 depth=0 및 연속 6 animation-frame의 DOM/public viewport 안정 상태를 확인한 후 명시 테스트 viewport를 설정한다. Workspace 복귀 뒤 동일 Gantt/선택/scroll/scale invariant와 사용자 입력 guard assertion은 유지한다. 이번 변경의 실제 원격 재검증·QA_FINAL/ACCEPT는 새 exact-head PR CI 결과 전 NOT TESTED다.
