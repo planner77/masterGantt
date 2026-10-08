@@ -334,7 +334,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   }
   async function applyMemberships() {
     if (!onMembershipSave || locked || awaitingDecision || actionReference.current || basicDirty || resourceDirty || logisticsDirty || readOnly || base.task.status === "completed" || !changes.length) return;
-    try { membershipProjection(tasks, links, changes); } catch { setError("Milestone를 먼저 재개해야 합니다. 소속 초안은 유지됩니다."); return; }
+    try { membershipProjection(tasks, links, changes); } catch { setError("Milestone을 먼저 재개해야 합니다. 소속 초안은 유지됩니다."); return; }
     actionReference.current = true; setOperation("membership"); setError(null);
     try {
       const result = await onMembershipSave({ changes }, base.revision);

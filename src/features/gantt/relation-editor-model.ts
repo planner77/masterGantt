@@ -119,7 +119,7 @@ export function canCreateSchedulingLink(source: ProjectTaskDto | undefined, targ
   return Boolean(source && target && source.taskId !== target.taskId && source.type !== "summary" && source.type === target.type && !completedMilestoneEndpoint(source, target));
 }
 
-export const COMPLETED_LINK_EXPLANATION = "완료된 Milestone에 연결된 일정 관계는 잠겨 있습니다. 해당 Milestone를 명시적으로 재개한 뒤 변경할 수 있습니다.";
+export const COMPLETED_LINK_EXPLANATION = "완료된 Milestone에 연결된 일정 관계는 잠겨 있습니다. 해당 Milestone을 명시적으로 재개한 뒤 변경할 수 있습니다.";
 export function completedMilestoneEndpoint(...tasks: readonly (ProjectTaskDto | undefined)[]): boolean {
   return tasks.some((task) => task?.type === "milestone" && task.status === "completed");
 }

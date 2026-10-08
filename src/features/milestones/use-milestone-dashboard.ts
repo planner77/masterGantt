@@ -59,7 +59,7 @@ export function useMilestoneDashboard(publicId: string, revision: number, input:
         if (cache.current.size > 8) cache.current.delete(cache.current.keys().next().value!);
         setOutcome({ key, status: "ready", data });
       } catch (error) {
-        if (!controller.signal.aborted && generation.current === id) setOutcome((previous) => ({ key, status: "error", data: previous.data, error: error instanceof Error ? error.message : "Milestone를 불러오지 못했습니다." }));
+        if (!controller.signal.aborted && generation.current === id) setOutcome((previous) => ({ key, status: "error", data: previous.data, error: error instanceof Error ? error.message : "Milestone을 불러오지 못했습니다." }));
       } finally {
         if (generation.current === id) inFlight.current = false;
       }

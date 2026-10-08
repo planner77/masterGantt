@@ -483,7 +483,7 @@ export function ProjectMilestoneDashboard({
       </details>
       {query.loading ? (
         <p role="status">
-          현재 조건으로 Milestone를 조회 중입니다. 이전 결과의 상세·일정·리소스
+          현재 조건으로 Milestone을 조회 중입니다. 이전 결과의 상세·일정·리소스
           이동은 잠깁니다.
         </p>
       ) : null}
@@ -584,7 +584,7 @@ export function ProjectMilestoneDashboard({
               />
             ) : (
               <p>
-                조건에 일치하는 Milestone가 없습니다. 전체 공수 bucket은
+                조건에 일치하는 Milestone이 없습니다. 전체 공수 bucket은
                 아래에서 별도로 확인합니다.
               </p>
             )}

@@ -15,7 +15,7 @@ export function MilestoneMembershipPicker({ task, tasks, links, value, disabled,
   let resolved = task.membership;
   let description = membershipDescription(task, tasks), reason: string | null = null;
   try { resolved = membershipProjection(tasks, links, [{ taskId: task.taskId, milestoneTaskId: value }]).membership.get(task.taskId); description = membershipDescription(task, tasks, resolved); }
-  catch { reason = "Milestone를 먼저 재개해야 합니다. 기존 Milestone의 소속 구조는 잠겨 있습니다."; }
+  catch { reason = "Milestone을 먼저 재개해야 합니다. 기존 Milestone의 소속 구조는 잠겨 있습니다."; }
   const source = resolved?.inheritedFromTaskId;
   const oldTarget = tasks.find((row) => row.taskId === task.membership?.effectiveMilestoneTaskId);
   const completedLock = oldTarget?.status === "completed";
@@ -39,7 +39,7 @@ export function MilestoneMembershipPicker({ task, tasks, links, value, disabled,
     </ul> : null}
     <p className={styles.caption}>{description}</p>
     {disabled || completedLock ? <p id={`${id}-lock-description`} className={styles.caption}>검색·조회는 가능합니다. Milestone 소속 변경은 잠겨 있습니다.</p> : null}
-    {completedLock || reason ? <p className={styles.caption}>{reason ?? "Milestone를 먼저 재개해야 합니다."}</p> : null}
+    {completedLock || reason ? <p className={styles.caption}>{reason ?? "Milestone을 먼저 재개해야 합니다."}</p> : null}
     <div className={styles.membershipActions}>
       {value !== null ? <button type="button" className="secondary-button" disabled={disabled || completedLock} onClick={() => choose(null)}>직접 지정 해제 · 상속으로 복귀</button> : null}
       {source ? <button type="button" className="secondary-button" onClick={() => onOpen(source)}>상속 출처 열기</button> : null}
