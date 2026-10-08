@@ -36,7 +36,7 @@ runs:
           fi
         done
         if (( ${#azure_sources[@]} > 0 )); then
-          echo "::notice::Selecting the official Ubuntu archive before Playwright dependency installation."
+          echo "::notice::Playwright 의존성 설치 전에 Ubuntu 공식 미러를 선택했습니다."
           for source in "${azure_sources[@]}"; do
             sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$source"
           done
@@ -63,11 +63,11 @@ runs:
         # ancestor may leave its apt-get child active. Never overlap apt-get
         # instances, kill unrelated processes or weaken validation.
         if (( ${#azure_sources[@]} == 0 )); then
-          echo "Playwright OS deps failed (exit=$install_status); no Azure mirror recovery available." >&2
+          echo "Playwright OS 의존성 설치 실패(exit=$install_status): 복구 가능한 Azure 미러 설정이 없습니다." >&2
           exit "$install_status"
         fi
         if ! command -v fuser >/dev/null 2>&1; then
-          echo "Cannot verify APT lock release: fuser is unavailable." >&2
+          echo "APT 잠금 해제 확인 불가: fuser 명령을 사용할 수 없습니다." >&2
           exit "$install_status"
         fi
         apt_locked() {
@@ -80,13 +80,13 @@ runs:
         }
         for (( attempt=0; attempt<30; attempt++ )); do
           if ! apt_locked; then
-            echo "::warning::Playwright OS deps first attempt failed (exit=$install_status); APT locks released, retrying once."
+            echo "::warning::Playwright OS 의존성 첫 설치 실패(exit=$install_status): APT 잠금 해제를 확인했고 1회 재시도합니다."
             install_deps
             exit 0
           fi
           sleep 2
         done
-        echo "APT lock still held after 60 seconds; refusing overlapping Playwright install-deps retry." >&2
+        echo "APT 잠금이 60초 동안 해제되지 않아 Playwright install-deps 중복 실행을 거부합니다." >&2
         exit "$install_status"
     - name: Chromium OS dependency 시간 기록
       if: ${{ always() && steps.deps-start.outputs.started_ms != '' }}

@@ -112,10 +112,13 @@ describe("test configuration repository layout", () => {
     expect(playwrightSetup).toContain('Acquire::https::Timeout "45"');
     expect(playwrightSetup).toContain('Acquire::Retries "1"');
     expect(playwrightSetup).toContain("command -v fuser");
+    expect(playwrightSetup).toContain("::notice::Playwright 의존성 설치 전에 Ubuntu 공식 미러를 선택했습니다.");
+    expect(playwrightSetup).toContain("::warning::Playwright OS 의존성 첫 설치 실패");
+    expect(playwrightSetup).toContain("APT 잠금 해제 확인 불가");
     expect(playwrightSetup).toContain("sudo fuser -s");
     expect(playwrightSetup).toContain("/var/lib/apt/lists/lock");
     expect(playwrightSetup).toContain("/var/lib/dpkg/lock-frontend");
-    expect(playwrightSetup).toContain("APT lock still held after 60 seconds");
+    expect(playwrightSetup).toContain("APT 잠금이 60초 동안 해제되지 않아 Playwright install-deps 중복 실행을 거부합니다.");
     expect(playwrightSetup).toContain('exit "$install_status"');
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
