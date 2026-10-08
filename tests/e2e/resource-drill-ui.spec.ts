@@ -340,7 +340,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await expect(
       frame.locator(`input[data-copy-selection="${shared.taskId}"]`),
     ).toBeChecked();
-    await p.getByRole("tab", {name:"완료 단계 대시보드",exact:true}).click();
+    await p.getByRole("tab", {name:"Milestone 대시보드",exact:true}).click();
     const mRoot = p.locator('[data-testid="milestone-dashboard"]');
     await expect(mRoot).toHaveAttribute('data-ready','true');
     await mRoot.getByLabel("수동 기준일", {exact:true}).check();
@@ -358,12 +358,12 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await expect(strip).toContainText('원본 환산 15 M/D / 1 M/M (명시 기준)');
     await expect(frame.locator(`.wx-row[data-id=":${completedMarker.taskId}"]`).first()).toBeVisible();
     await strip.getByRole('button',{name:/원래 보기/}).click();
-    await expect(p.getByRole('tab',{name:'완료 단계 대시보드',exact:true})).toHaveAttribute('aria-selected','true');
+    await expect(p.getByRole('tab',{name:'Milestone 대시보드',exact:true})).toHaveAttribute('aria-selected','true');
     await expect(mRoot.getByLabel("기준일",{exact:true})).toHaveValue("2026-10-02");
     await expect(mRoot.getByLabel("공수 시작일",{exact:true})).toHaveValue("2026-10-01");
     await expect(mRoot.getByLabel("공수 종료일",{exact:true})).toHaveValue("2026-10-03");
     await expect(mRoot.getByLabel("1 M/M당 M/D",{exact:true})).toHaveValue("15");
-    await p.getByRole('tab',{name:'Gantt',exact:true}).click();
+    await p.getByRole('tab',{name:'일정',exact:true}).click();
     // Each visit retains its own detail/mode state; the ninth move cannot evict the first origin.
     for (let step = 0; step < 8; step++) {
       if (step % 2 === 0) {

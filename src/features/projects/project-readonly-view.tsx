@@ -84,9 +84,9 @@ type LoadState = | { status: "loading" } | { status: "ready"; snapshot: ProjectS
 type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
+type WorkspaceView = "schedule" | "milestones" | "resources" | "logistics";
 type ResourceNavigationState = {
-  view: "schedule" | "resources" | "logistics";
-  scheduleView: "gantt" | "milestones";
+  view: WorkspaceView;
   rootTaskId: string | null;
   filter: TaskFilterState;
   resourceViewId: number;
@@ -231,10 +231,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"schedule" | "resources" | "logistics">("schedule");
-  const [scheduleView, setScheduleView] = useState<"gantt" | "milestones">("gantt");
-  const schedulePeerReferences = useRef<Partial<Record<"gantt" | "milestones", HTMLButtonElement | null>>>({});
-  const scheduleGanttPanel = useRef<HTMLDivElement>(null);
+  const [activeView, setActiveView] = useState<WorkspaceView>("schedule");
+  const scheduleGanttPanel = useRef<HTMLElement>(null);
   const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number } | null>(null);
   const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
@@ -269,7 +267,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
-  const editorOriginViewReference = useRef<"schedule" | "resources" | "logistics">("schedule");
+  const editorOriginViewReference = useRef<WorkspaceView>("schedule");
   const editorOpeningReference = useRef(false);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
   const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
@@ -277,6 +275,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const focusSettingsAfterUnlockReference = useRef(false);
   const focusUnlockAfterSettingsReference = useRef(false);
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
+  const milestoneTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const logisticsTabReference = useRef<HTMLButtonElement | null>(null);
   const scopeTabReferences = useRef(new Map<string, HTMLButtonElement>());
@@ -675,7 +674,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function openTaskAsRoot(taskId: string): void {
     setOpenScopeTaskIds((current) => current.includes(taskId) ? current : [...current, taskId]);
     setActiveView("schedule");
-    setScheduleView("gantt");
     activateScope(taskId);
   }
 
@@ -1047,7 +1045,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const fromOtherView = editorOriginViewReference.current !== "schedule";
     editorOriginViewReference.current = "schedule";
     closeTaskEditor();
-    if (scheduleView === "milestones" || fromOtherView) {
+    if (fromOtherView) {
       requestAnimationFrame(() =>
         drillDashboardSchedule([taskId], resourceBinding?.sourceContext ?? resourceReportReference.current[resourceViewId]?.resourceScopeContext ?? milestoneSourceReference.current ?? undefined),
       );
@@ -1171,31 +1169,26 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
-  function activateWorkspaceView(view: "schedule" | "resources" | "logistics") {
+  // Preserve native and public Chart viewport while switching the top-level peer.
+  function captureScheduleViewport() {
+    const panel = scheduleGanttPanel.current;
+    peerViewport.current = { publicId, rootTaskId: activeRootTaskId, filter: taskFilter, positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap((selector) => {
+      const owner = panel?.querySelector<HTMLElement>(selector);
+      return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
+    }) };
+    const chart = panel?.querySelector<HTMLElement>(".wx-chart");
+    if (chart) setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, left: chart.scrollLeft, top: panel?.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0 });
+  }
+  function activateWorkspaceView(view: WorkspaceView) {
     if (navigationPending.current || navigationConfirmation.current)
       cancelNavigationConfirmation();
+    if (activeView === "schedule" && view !== "schedule") captureScheduleViewport();
     setActiveView(view);
     requestAnimationFrame(() => {
-      const ref = view === "schedule" ? scheduleTabReference.current : view === "resources" ? resourceTabReference.current : logisticsTabReference.current;
+      const ref = view === "schedule" ? scheduleTabReference.current : view === "milestones" ? milestoneTabReference.current : view === "resources" ? resourceTabReference.current : logisticsTabReference.current;
       ref?.focus({ preventScroll: true });
+      ref?.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
-  }
-  function activateScheduleView(view: "gantt" | "milestones") {
-    if (scheduleView === "gantt" && view === "milestones") {
-      const panel = scheduleGanttPanel.current;
-      peerViewport.current = { publicId, rootTaskId: activeRootTaskId, filter: taskFilter, positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap((selector) => {
-        const owner = panel?.querySelector<HTMLElement>(selector);
-        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
-      }) };
-      const chart = panel?.querySelector<HTMLElement>(".wx-chart");
-      if (chart) setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, left: chart.scrollLeft, top: panel?.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0 });
-    }
-    setScheduleView(view);
-    requestAnimationFrame(() => schedulePeerReferences.current[view]?.focus({ preventScroll: true }));
-  }
-  function handleScheduleViewKey(event: ReactKeyboardEvent<HTMLButtonElement>, view: "gantt" | "milestones") {
-    const next = event.key === "Home" ? "gantt" : event.key === "End" ? "milestones" : event.key === "ArrowLeft" || event.key === "ArrowRight" ? view === "gantt" ? "milestones" : "gantt" : null;
-    if (next) { event.preventDefault(); activateScheduleView(next); }
   }
   function navigationToday() {
     const parts = new Intl.DateTimeFormat("en-CA", {timeZone: project.calendar.timezone, year:"numeric", month:"2-digit", day:"2-digit"}).formatToParts(new Date());
@@ -1213,7 +1206,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function captureNavigation(): ResourceNavigationState {
     return {
       view: activeView,
-      scheduleView,
       rootTaskId: activeRootTaskId,
       filter: taskFilter,
       resourceViewId,
@@ -1249,12 +1241,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ? resourceTabReference.current
             : state.view === "logistics"
               ? logisticsTabReference.current
-              : scheduleTabReference.current;
+              : state.view === "milestones"
+                ? milestoneTabReference.current
+                : scheduleTabReference.current;
         const trigger = state.trigger;
         const heading = Array.from(document.querySelectorAll<HTMLElement>(
           state.view === "resources"
             ? "#project-panel-resources h2"
-            : "#schedule-heading",
+            : state.view === "milestones"
+              ? "#project-panel-milestones h2"
+              : "#schedule-heading",
         )).find(element => !element.closest("[hidden],[inert]") && element.getClientRects().length > 0);
         if (!origin && heading && !heading.closest("[hidden],[inert]")) {
           heading.tabIndex = -1;
@@ -1276,8 +1272,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setResourceViewId(target.resourceViewId);
     setResourceBinding(target.binding);
     setResourceInitialFilters(target.initialFilters);
+    if (activeView === "schedule" && target.view !== "schedule") captureScheduleViewport();
     setActiveView(target.view);
-    setScheduleView(target.scheduleView);
     setSelectionRestore({
       generation: ++navigationSequence.current,
       ids: target.selection,
@@ -1313,7 +1309,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         : {
             ...source,
             view: "schedule" as const,
-            scheduleView: "gantt" as const,
           };
     const frame: ResourceNavigationFrame = {
       source,
@@ -1600,7 +1595,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         destination: {
           ...source,
           view: "schedule",
-          scheduleView: "gantt",
           rootTaskId: null,
           filter: { ...EMPTY_TASK_FILTER, taskIds: scope.taskIds },
           selection: [],
@@ -1976,7 +1970,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         destination: {
           ...captureNavigation() ,
           view: "schedule",
-          scheduleView: "gantt",
           rootTaskId: null,
           filter: {
     ...EMPTY_TASK_FILTER, taskIds: displayIds },
@@ -1987,10 +1980,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       };
     });
   }
-  function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: "schedule" | "resources" | "logistics") {
-    const views: Array<"schedule" | "resources" | "logistics"> = ["schedule", "resources", "logistics"];
+  function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: WorkspaceView) {
+    const views: WorkspaceView[] = ["schedule", "milestones", "resources", "logistics"];
     const idx = views.indexOf(current);
-    let next: "schedule" | "resources" | "logistics" | null = null;
+    let next: WorkspaceView | null = null;
     if (event.key === "ArrowRight") next = views[(idx + 1) % views.length];
     else if (event.key === "ArrowLeft") next = views[(idx - 1 + views.length) % views.length];
     else if (event.key === "Home") next = views[0];
@@ -2002,7 +1995,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
 
   useEffect(() => {
     const saved = peerViewport.current;
-    if (activeView !== "schedule" || scheduleView !== "gantt" || !saved) return;
+    if (activeView !== "schedule" || !saved) return;
     peerViewport.current = null;
     // Explicit ID/scope drills own their new viewport. Only a plain peer return
     // restores native DOM scroll, after Core has resized the visible frame.
@@ -2019,7 +2012,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       });
     });
     return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); };
-  }, [activeView, scheduleView, publicId, activeRootTaskId, taskFilter]);
+  }, [activeView, publicId, activeRootTaskId, taskFilter]);
 
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
@@ -2170,8 +2163,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
     </header>
 
-    <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
+    <div className="project-workspace-tabs project-primary-tabs" role="tablist" aria-label="프로젝트 작업공간">
       <button ref={scheduleTabReference} id="project-tab-schedule" role="tab" type="button" aria-controls="project-panel-schedule" aria-selected={activeView === "schedule"} tabIndex={activeView === "schedule" ? 0 : -1} onClick={() => activateWorkspaceView("schedule")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "schedule")}>일정</button>
+      <button ref={milestoneTabReference} id="project-tab-milestones" role="tab" type="button" aria-controls="project-panel-milestones" aria-selected={activeView === "milestones"} tabIndex={activeView === "milestones" ? 0 : -1} onClick={() => activateWorkspaceView("milestones")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "milestones")}>Milestone 대시보드</button>
       <button ref={resourceTabReference} id="project-tab-resources" role="tab" type="button" aria-controls="project-panel-resources" aria-selected={activeView === "resources"} tabIndex={activeView === "resources" ? 0 : -1} onClick={() => activateWorkspaceView("resources")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}>리소스</button>
       <button ref={logisticsTabReference} id="project-tab-logistics" role="tab" type="button" aria-controls="project-panel-logistics" aria-selected={activeView === "logistics"} tabIndex={activeView === "logistics" ? 0 : -1} onClick={() => activateWorkspaceView("logistics")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}>물류 구성</button>
     </div>
@@ -2203,7 +2197,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                 ? "리소스"
                 : navigationFrames.at(-1)!.source.view === "logistics"
                   ? "물류 구성"
-                  : navigationFrames.at(-1)!.source.scheduleView ===
+                   : navigationFrames.at(-1)!.source.view ===
                       "milestones"
                     ? "Milestone"
                     : "일정"}
@@ -2303,19 +2297,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       ) : null}
       <div className="project-workspace-panels">
       <section
+        ref={scheduleGanttPanel}
         id="project-panel-schedule"
         role="tabpanel"
         aria-labelledby="project-tab-schedule"
-        hidden={activeView !== "schedule"}
+        hidden={activeView !== "schedule" && activeView !== "milestones"}
+        aria-hidden={activeView === "milestones" || undefined}
+        inert={activeView === "milestones"}
+        data-dashboard-inactive={activeView === "milestones" || undefined}
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
-        <div className="project-schedule-peer-tabs" role="tablist" aria-label="일정 보기">
-          {(["gantt", "milestones"] as const).map((view) => (
-              <button key={view} type="button" role="tab" id={`project-schedule-tab-${view}`} aria-controls={`project-schedule-view-${view}`} aria-selected={scheduleView === view} tabIndex={scheduleView === view ? 0 : -1} ref={(node) => { schedulePeerReferences.current[view] = node; }} onClick={() => activateScheduleView(view)} onKeyDown={(event) => handleScheduleViewKey(event, view)}>{view === "gantt" ? "Gantt" : "완료 단계 대시보드"}</button>))}
-        </div>
-        <div className="project-schedule-peer-body">
-        <div ref={scheduleGanttPanel} id="project-schedule-view-gantt" role="tabpanel" aria-labelledby="project-schedule-tab-gantt" aria-hidden={scheduleView !== "gantt" || undefined} inert={scheduleView !== "gantt"} className="project-schedule-peer-panel">
         <div className="project-scope-tabs" role="tablist" aria-label="WBS 범위 탭">
           <div className="project-scope-tab-item" role="presentation">
             <button className="project-scope-tab" id={scopeTabId(null)} role="tab" type="button" aria-controls="project-scope-panel" aria-selected={activeRootTaskId === null} tabIndex={activeRootTaskId === null ? 0 : -1} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} onClick={() => activateScope(null)} onKeyDown={(event) => handleScopeTabKeyDown(event, null)}><span className="project-scope-tab-label">전체 프로젝트</span></button>
@@ -2560,7 +2552,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
         </div> ) : (
-                  <ProjectGantt viewVisible={activeView === "schedule" && scheduleView === "gantt"} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+                  <ProjectGantt viewVisible={activeView === "schedule"} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -2575,27 +2567,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                     selectionRestore={selectionRestore}
                     tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />)}
         </div>
-        </div>
-        <div id="project-schedule-view-milestones" role="tabpanel" aria-labelledby="project-schedule-tab-milestones" hidden={scheduleView !== "milestones"} className="project-schedule-peer-panel project-milestone-panel">
-          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "schedule" && scheduleView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
+      </section>
+      <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
+        hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
+          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
                 onSchedule={drillDashboardSchedule} onResources={milestoneToResources} onRefreshProject={() => { void reloadCanonicalSnapshot(); }} />
-        </div>
-        </div>
-        {copyReview ? (
-            <ProjectCopyMembershipConfirm review={copyReview} tasks={tasks} current={copyReview.publicId === publicId && copyReview.revision === project.revision && editing} pending={isSavingTask} error={copyReviewError} restoreFocusRef={copyReviewTriggerReference} onClose={closeCopyReview} onConfirm={() => void confirmMembershipCopy()} /> ) : null}
-        {relationEditorRequest ? (
-          <RelationEditorDialog
-            editable={editing}
-            key={relationEditorRequest.kind === "link" ? `link:${relationEditorRequest.linkId}` : `task:${relationEditorRequest.taskId}`}
-            {...(relationEditorRequest.kind === "link" ? { linkId: relationEditorRequest.linkId } : { anchorTaskId: relationEditorRequest.taskId })}
-            links={links}
-            onClose={closeRelationEditor}
-            onCreateLink={(source, target, options) => saveLink("POST", source, target, undefined, options)}
-            onDeleteLink={(id) => saveLink("DELETE", undefined, undefined, id)}
-            onUpdateLink={(id, patch) => saveLink("PATCH", undefined, undefined, id, patch)}
-            tasks={tasks}
-          />
-        ) : null}
       </section>
       <section
         id="project-panel-resources"
@@ -2649,7 +2625,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onNavigateToSchedule={(targetFilter) => {
             activateScope(null, false);
             setActiveView("schedule");
-            setScheduleView("gantt");
             if (targetFilter) {
               setTaskFilter((prev) => ({ ...prev, ...targetFilter }));
             }
@@ -2658,6 +2633,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         />
       </section>
     </div>
+
+        {copyReview ? (
+            <ProjectCopyMembershipConfirm review={copyReview} tasks={tasks} current={copyReview.publicId === publicId && copyReview.revision === project.revision && editing} pending={isSavingTask} error={copyReviewError} restoreFocusRef={copyReviewTriggerReference} onClose={closeCopyReview} onConfirm={() => void confirmMembershipCopy()} /> ) : null}
+        {relationEditorRequest ? (
+          <RelationEditorDialog
+            editable={editing}
+            key={relationEditorRequest.kind === "link" ? `link:${relationEditorRequest.linkId}` : `task:${relationEditorRequest.taskId}`}
+            {...(relationEditorRequest.kind === "link" ? { linkId: relationEditorRequest.linkId } : { anchorTaskId: relationEditorRequest.taskId })}
+            links={links}
+            onClose={closeRelationEditor}
+            onCreateLink={(source, target, options) => saveLink("POST", source, target, undefined, options)}
+            onDeleteLink={(id) => saveLink("DELETE", undefined, undefined, id)}
+            onUpdateLink={(id, patch) => saveLink("PATCH", undefined, undefined, id, patch)}
+            tasks={tasks}
+          />
+        ) : null}
 
     {unlockOpen && !editing ? (
         <WorkspaceDialog

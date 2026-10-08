@@ -217,7 +217,7 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - Project Context는 프로젝트명과 편집 상태 중심으로 compact하게 유지하며 Description/Owner/Revision은 별도 Info UI에서 조회 가능해야 한다.
 - Status와 Action을 분리하고 Share/Export/Settings/Copy 등 Project command는 direct action과 overflow hierarchy로 정돈한다.
 - Readonly password 입력은 상시 form이 아니라 사용자가 명시적으로 편집 활성화를 선택했을 때 Dialog로 제공한다. 기존 edit-session/security/rate-limit 계약은 변경하지 않는다.
-- `일정`과 `리소스`를 동일 Project Context의 peer view로 제공하고 최초 view는 일정이다.
+- `일정 / Milestone 대시보드 / 리소스 / 물류 구성`을 동일 Project Context의 상위 peer view로 제공하고 최초 view는 일정이다 (#518).
 - Resource workload를 Gantt 하단 누적 영역에서 Resource view로 이동하고 전체 가용 폭에서 Summary, M/D/M/M/Refresh, Group → Resource → Task hierarchy를 제공한다.
 - 정상 tab 전환은 mutation/reload/navigation을 발생시키지 않으며 일정 view로 복귀했을 때 Gantt instance와 사용자의 scroll/tree/column/scale/selection state를 불필요하게 잃지 않아야 한다.
 - 390/768/1024/1440/wide viewport, keyboard/focus, Escape/focus restore, unintended document overflow를 회귀 검증한다.
@@ -384,9 +384,16 @@ Milestone은 기존 탭을 유지한 소속 작업 N 탭으로 유효 일반 Tas
 특정 M + Milestone-only는 M 자체와 해당 행을 표시하기 위한 scope 내 hierarchy ancestors만 표시한다. Membership 설정용 Summary context/빈 Summary는 추가하지 않는다. 전체/Task-only에서는 설정 context를 유지하며 match/count와 구분한다.
 
 
+## Issue #518 — 일정 탭 계층 단순화
+
+- Workspace 상위 tab 순서는 `일정 / Milestone 대시보드 / 리소스 / 물류 구성`이며 내부 Gantt/Dashboard tab 행을 제거한다. `일정`은 기존 Gantt 내용을 즉시 표시한다.
+- `전체 프로젝트 / Summary ...` WBS 범위 탭은 그대로 유지한다. 보기 전환은 서버 mutation·Project revision 증가·Gantt remount를 만들지 않는다.
+- Milestone 활성 시 Gantt는 visibility:hidden/inert/aria-hidden이면서 layout 측정 크기를 보존한다. Dashboard detail→Editor와 일정 drill, 일반 왕복 시 scope/viewport/selection 유지 계약을 보존한다.
+- 390/768/1024/1440/1920px에서 여백·탭 focus/ARIA·가로 내부 scroll·Gantt 가용 면적을 검증한다. API/DB/KPI/Scheduling은 비범위다.
+
 ## Issue #463: 단계 대시보드와 물류 연계
 
-Project 일정의 Gantt/Milestone 대시보드 peer view에서 readonly KPI와 단계 목록을 조회한다. full canonical snapshot의 E(M)/P(M)로 Ready·Blocked·소속 작업 진척·완료 불일치를 계산한다. 현재 단계 검색/선택 S와 Project 전체 물류·Resource·수행 역할·등급·기간 공수 F를 분리하고 WBS scope 미적용을 명시한다. 완료율/Ready/Blocked/지연/임박/계획 위험/소속 적용률은 raw 분모와 snapshot 대상 ID를 제공하며 null/0/loading/error를 구분한다.
+Project Workspace 상위 Milestone 대시보드 peer view에서 readonly KPI와 단계 목록을 조회한다 (#518). full canonical snapshot의 E(M)/P(M)로 Ready·Blocked·소속 작업 진척·완료 불일치를 계산한다. 현재 단계 검색/선택 S와 Project 전체 물류·Resource·수행 역할·등급·기간 공수 F를 분리하고 WBS scope 미적용을 명시한다. 완료율/Ready/Blocked/지연/임박/계획 위험/소속 적용률은 raw 분모와 snapshot 대상 ID를 제공하며 null/0/loading/error를 구분한다.
 
 일반 Task 개인 assignment만 기존 Calendar/allocation으로 계산하고 모든 단계+미지정 bucket 합은 같은 F Grand Total이다. 검색으로 숨겨진 단계의 공수도 총합에 남는다. M/M은 명시 query 또는 유효 ENV 설정에서만 환산한다. 기존 물류 수치는 유지하고 full-stage 관련 projection을 추가한다. 기준일은 현재 snapshot의 Project timezone 평가이며 과거 상태/actual completion/원가/AI 위험 예측이 아니다. [정확한 서버 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델) 및 [API](API.md#issue-463-milestone-dashboard-api)를 따른다.
 

@@ -87,7 +87,7 @@ test("#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조�
   await page.route(path, (route) => { calls++; return route.fallback(); });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await open(page); await ready(page); const root = panel(page); await root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" }).fill("R-01"); await ready(page); await root.getByRole("button", { name: "개인", exact: true }).click(); await root.getByRole("button", { name: "M/M", exact: true }).click();
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "완료 단계 대시보드", exact: true }).click(); await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   // The legacy milestone mock has no immutable Resource source descriptor.
   // #528 must disable exact-assignment navigation rather than silently use
   // the unrestricted /resource-workload API.

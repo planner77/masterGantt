@@ -1,5 +1,44 @@
 # Test Plan
 
+## Issue #518 — PR #544 접근성 리뷰 P2 보완 및 최신 CI 증거
+
+- PR #544 head `230cefa19300e928023e3de65c35f05aa22b96dc`의 [PR CI #2173.1](https://github.com/planner77/masterGantt/actions/runs/37755252750)은 Quality/Chromium 6 shards/Docker **SUCCESS**였다. 그러나 Codex 리뷰의 미해결 P2 1건: `src/app/globals.css`의 `.project-primary-tabs`는 `overflow-y: hidden`이므로 상위 탭 기본 양수 3px focus outline/offset이 세로 경계에서 잘릴 수 있다.
+- `.project-primary-tabs button:focus-visible`에 음수 `outline-offset`을 적용해 3px ring 전체를 button 내부에 유지한다. 불필요한 세로 padding을 추가하지 않는다. `project-workspace-tabs-518.spec.ts`는 390/768/1024/1440/1920px 각각에서 키보드 ArrowRight의 실제 `:focus-visible`, outline thickness/offset 합이 0 이하, selected focus, document overflow와 상위 탭 높이를 함께 검증한다.
+- 해당 리뷰는 새 코드·테스트의 실제 CI 근거를 확인한 뒤에만 resolve 한다. 변경 후 새 exact head의 필수 PR CI Quality/E2E/Docker와 merge 가능 상태를 확인한다. Local Chromium/독립 QA/실기기는 별도 근거가 없으면 NOT TESTED이며, 이전 head SUCCESS는 새 head CI PASS를 뜻하지 않는다.
+
+
+## Issue #518 — PR CI #2158 shard 1/6 Error Boundary 테스트 안정화
+
+- 이전 PR head `b9c97861c07a79f7656e5aeb5e387d279f0bcfb7`의 [Run #2158.1](https://github.com/planner77/masterGantt/actions/runs/37736467124): quality/TypeScript/Vitest/ESLint/Next build/Docker/정책과 Chromium E2E shard 2~6 SUCCESS, shard 1/6에서 `error-boundary-regression.spec.ts` #502 Gantt Demo 1건 FAIL. 오류 fallback `Gantt를 표시할 수 없습니다`가 나타나지 않았으며 다른 검증은 PASS. 원래 #502 probe 소스와 error.tsx는 해당 PR에서 변경하지 않았다.
+- `ErrorBoundaryProbe` 버튼의 SSR 텍스트는 React hydration 완료 증거가 아니다. root probe는 실제 오류 로그가 확인되었으나 Gantt Demo probe의 throw는 로그로 확인되지 않았으므로 hydration 이전 Enter 유실 가능성을 가설로 취급한다(확정 원인 아님). 테스트 전용 probe가 `useEffect` 후 버튼에 `data-e2e-hydrated=true`를 설정하고 Playwright가 이 신호와 실제 focus를 확인한 뒤 **동일한 Enter→진짜 error boundary→Tab retry→Enter reset→focus 복원** 순서를 실행하도록 한다. 단순 timeout 증가/기능 mocking/검사 제거는 하지 않는다.
+- 최신 main `b4a0898283571ac4f05d53299266acccadeeff68`의 #527 Resource Plan 변경을 보존한 merge로 PR branch를 정렬하고 version `0.100.0 → 0.100.1` PATCH를 일관되게 적용한다. #518의 UI/UX 검증과 #527 신규 Resource·API 회귀 모두 새 exact-head의 전체 PR CI에서 실행한다.
+- 로컬 Node/Chromium 실행 환경은 연결된 GitHub connector에 없으므로 Local Fast Feedback은 NOT TESTED. 새 PR CI 완료/독립 QA/실제 운영 환경은 판정 전까지 NOT TESTED다.
+
+
+## Issue #518 — PR CI #2154 Chromium E2E 실패 분석 및 재검증
+
+- PR #544 / head `a0e31b69cb6f169a9e8f4683031abf1440aa1d30` / Run #2154.1(`37734388502`): quality(TypeScript/ESLint/Vitest/Next build)와 Docker, 선행 추적·정책 gate SUCCESS. Chromium shard 2/6은 74 PASS·2 FAIL, shard 5/6은 75 PASS·1 FAIL; 다른 4개 shard는 SUCCESS. 따라서 E2E 전체 FAIL이다.
+- `milestone-dashboard-state.spec.ts`의 geometry 검증은 상위 tab/화면 h2의 `Milestone 대시보드` 일치 여부를 검사하고 timeout으로 실패하지 않아야 한다. 5폭 표/필터/포커스/hidden Gantt geometry assertion은 기존 그대로 검증한다.
+- 같은 spec의 기준일 자동/수동·refresh는 새 상위 `일정` tab으로 이동한 후에도 hidden Dashboard에서 추가 request가 없음을 검증한다. 삭제된 `Gantt` 하위 tab에 의존하지 않는다.
+- `project-workspace-ux.spec.ts`의 ArrowRight/ArrowLeft는 `일정 → Milestone → 리소스 → 물류 구성` 네 peer를 모두 방문한다. focus/aria-selected/실제 tabpanel 및 Gantt identity/scroll/no GET navigation/no mutation/Resource 상태를 그대로 확인한다.
+- 새 head의 필수 E2E 6개 shard, quality와 Docker는 각각 실제 run/job으로만 PASS 판정한다. 운영·스크린리더 수동 검증과 독립 QA는 별개다.
+
+
+## Issue #518 — PR CI #2152 trace 선행 실패
+
+Run #2152.1 (`37733916932`)의 `변경 경로 판정`에서 PR title `feat: #518 ...`를 canonical Issue 표기로 파싱하지 못해 `title Issues=[]`가 발생했다. 후속 quality/e2e/docker 집계 실패는 선행 gate 실패 전파이며 실제 TypeScript/Build/Chromium/Docker 구현 job은 실행되지 않았다. PR title을 `[Issue #518] feat: ...`로 수정하고 새 head에 대한 전체 `pull_request.synchronize` PR CI를 시작한다. 새로운 run의 통과 여부와 앱 회귀는 해당 run/job 결과로만 판정한다.
+
+## Issue #518 — 단일 상위 탭 E2E 검증 계획
+
+대상은 `project-readonly-view.tsx`, `globals.css`, `tests/e2e/project-workspace-tabs-518.spec.ts`, `project-workspace-ux.spec.ts`, 기존 #463 milestone Dashboard/Grid/Exchange/Resource 회귀 테스트다.
+
+- 상위 4개 tab 순서·ARIA/keyboard/label과 내부 `Gantt` tab 제거, `일정`에서 `전체 프로젝트 / Summary` WBS 범위 보존을 검증한다.
+- Milestone→Task Editor→Milestone 복귀, readonly/edit 권한, 명시적 drill/filter 복원, Task·Link·Project revision 불변을 확인한다.
+- 탭 전환에서 Gantt API instance/viewport public+DOM/scale/tree/selection/column/scope 및 Milestone Dashboard 조회 조건이 보존되는지 확인한다.
+- 390/768/1024/1440/1920px에서 상위 tablist의 내부 scroll과 focus outline, 세로 중복행 제거·Gantt 높이, 비활성 Gantt inert/aria-hidden/visibility와 dashboard table geometry를 검증한다.
+- 동일 PR head의 공식 quality/e2e/docker, 독립 QA, 운영 환경 수동 검증은 각자의 실제 결과로 판정한다. 계획 단계는 NOT TESTED다.
+
+
 ## Issue #459 — Milestone Stage Gate Epic 통합 회귀
 
 #460~#464의 개별 테스트를 Epic 수용 기준으로 묶어 다음 교차 불변식을 유지한다.
