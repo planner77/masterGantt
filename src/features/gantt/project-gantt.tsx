@@ -1,5 +1,6 @@
-import { metadataViewportRestoreTarget } from "./metadata-viewport-restore";
 "use client";
+
+import { metadataViewportRestoreTarget } from "./metadata-viewport-restore";
 
 import {
   Gantt,
