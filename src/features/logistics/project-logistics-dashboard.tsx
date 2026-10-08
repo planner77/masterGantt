@@ -343,7 +343,7 @@ export function ProjectLogisticsDashboard({
             {/* 카드 3: Milestone 경보 */}
             <div className={styles.kpiCard}>
               <div className={styles.kpiHeader}>
-                <h4 className={styles.kpiTitle}>마일스톤 경보</h4>
+                <h4 className={styles.kpiTitle}>Milestone 경보</h4>
                 <span className={styles.kpiBadge}>주요 일정</span>
               </div>
               <div className={styles.kpiValueRow}>
@@ -367,7 +367,7 @@ export function ProjectLogisticsDashboard({
                 <span className={styles.kpiUnit}>건 임박</span>
               </div>
               <div className={styles.kpiMetaRow}>
-                <span>총 마일스톤 {dashboard.kpi.milestoneTotalCount}개 중</span>
+                <span>총 Milestone {dashboard.kpi.milestoneTotalCount}개 중</span>
                 <span>{dashboard.horizonDays}일 이내 임박</span>
               </div>
               <button
@@ -384,7 +384,7 @@ export function ProjectLogisticsDashboard({
                   ])
                 }
               >
-                경보 마일스톤 일정 보기
+                경보 Milestone 일정 보기
               </button>
             </div>
 
@@ -423,9 +423,9 @@ export function ProjectLogisticsDashboard({
           </div>
 
           {dashboard.milestoneStages ? <section className={styles.relatedStages} aria-labelledby={`${tabId}-stages`}>
-            <h3 id={`${tabId}-stages`}>관련 단계 — 단계 전체 상태 기준</h3>
-            <p className={styles.scopeNote}>물류 연결에 관련된 고유 단계입니다. Ready·소속 진척·원인은 전체 소속 작업과 직접 선행 단계 기준이며 위 물류 Task·진척·계획 M/D 범위를 확장하지 않습니다.</p>
-            {dashboard.milestoneStages.rows.length ? <ProjectMilestoneStageTable rows={dashboard.milestoneStages.rows} tasks={tasks} enabled={ready && !busy} onOpenTask={onStageOpen} onSchedule={onStageSchedule} /> : <p>관련 완료 단계가 없습니다.</p>}
+            <h3 id={`${tabId}-stages`}>관련 Milestone — Milestone 전체 상태 기준</h3>
+            <p className={styles.scopeNote}>물류 연결에 관련된 고유 Milestone입니다. Ready·소속 진척·원인은 전체 소속 작업과 직접 선행 Milestone 기준이며 위 물류 Task·진척·계획 M/D 범위를 확장하지 않습니다.</p>
+            {dashboard.milestoneStages.rows.length ? <ProjectMilestoneStageTable rows={dashboard.milestoneStages.rows} tasks={tasks} enabled={ready && !busy} onOpenTask={onStageOpen} onSchedule={onStageSchedule} /> : <p>관련 Milestone가 없습니다.</p>}
           </section> : null}
 
           {/* 3. 데이터 품질 및 구성 진단 패널 */}
