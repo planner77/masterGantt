@@ -105,7 +105,7 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     const quality = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Quality") + 1}.xml`)!;
     const assignments = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Assignments") + 1}.xml`)!;
     const assignedRow = (xml: string) => {
-      const hit = [...xml.matchAll(/<row r="(\d+)"[^>]*>(.*?)<\/row>/gs)].find(match => match[2].includes(assignmentId));
+      const hit = [...xml.matchAll(/<row r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)].find(match => match[2].includes(assignmentId));
       expect(hit, "Selected A5 must exist in the exported sheet").toBeDefined();
       return { index: hit![1], content: hit![0] };
     };

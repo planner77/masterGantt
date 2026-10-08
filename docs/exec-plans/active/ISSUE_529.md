@@ -215,3 +215,9 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - Gantt에서는 read-only public SVAR API `getState` 좌표를 자식에서 부모에 등록하여 순수 viewport 캡처 함수로 공개 Core/DOM 좌표를 분리한다. 공개 reader 미준비는 fail-closed, 부모의 DOM 원형·기존 Gantt instance/snapshot/generation/input guard와 자식 Core 복원 호출은 보존한다. pure Unit 3건(1px drift/동일/무효)과 native peer 왕복에서 captured Core/DOM 별도 일치 검증 추가.
 - 사용자 요청 종료점은 보완 commit·새 PR CI 시작이며 병합/Main CI/정식 GHCR 게시/Issue 종료는 이번 요청에서 미수행한다. 기존 trusted OWNER의 `v0.102.0` 정식 GHCR 승인([#529 기록](https://github.com/planner77/masterGantt/issues/529#issuecomment-6057333248))은 유효하나 최종 원격 gate와 실제 릴리스 성공을 대신하지 않는다. 새로운 HEAD의 CI 결과 전까지 NOT TESTED.
 
+## PR CI #2182 즉시 실패 원인 보완 (2026-10-08)
+
+- 리뷰 P2 수정 HEAD `f551df1adeed54673c755f04bdfe89bcce598689`의 PR CI #2182는 TypeScript TS1501 (`tests/server/projects/resource-excel-export.test.ts:108`, `s` 정규식 flag/ES target 차이) 때문에 TypeScript·build FAIL을 확인했다. 순수 Unit/Vitest는 PASS이며 P2 제품 수정 자체의 실패 근거는 아니다.
+- XML row 경계 matcher를 `([\\s\\S]*?)` + `g`로 변경하여 타깃 호환을 맞추고, 실제 XLSX 원본기간 및 overlap 셀의 모든 기대값·시험 데이터는 유지한다. 새 exact-head 전체 CI 완료 전 PASS/병합 준비 주장 금지.
+- 최신 main `e61fa037d9b527dad5a014250dbdd1678519c027` 대비 #529가 3커밋 뒤처진 점은 별도 형상 정렬 필요로 기록한다. 이번 요청은 새 PR CI 시작까지이며 main merge/GHCR은 미진행이다.
+

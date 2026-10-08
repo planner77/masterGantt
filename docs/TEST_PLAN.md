@@ -2421,3 +2421,9 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 - Gantt peer 이동은 자식 SVAR API의 `getState().scrollLeft/scrollTop`을 production-safe callback reader로 캡처한다. DOM `.wx-chart.scrollLeft`/native top은 별도 저장한다. Core 복원은 public 값만 `scroll-chart`에 사용하며 DOM native 원래 위치·snapshot/instance/generation/scale/geometry·사용자 입력 cancel guard는 유지한다. 공개 좌표와 DOM이 1px 다를 때 및 reader 미준비/NaN 조건에 관한 pure Unit 3건, 기존 native E2E의 정확한 capture `public/dom` 비교를 추가한다.
 - 수정 HEAD의 공식 Quality/E2E/Docker, 독립 QA_FINAL, 병합/Main CI/정식 GHCR은 새 실행·증거 확인 전 NOT TESTED다. PR/CI 성공 전 branch 정리·Issue 종료를 하지 않는다.
 
+### Issue #529 — CI #2182 TypeScript 정규식 target 호환 보완 (2026-10-08)
+
+- PR #543 head `f551df1adeed54673c755f04bdfe89bcce598689`의 CI #2182에서 Vitest/ESLint/Policy PASS였지만 TypeScript와 production build는 새 `tests/server/projects/resource-excel-export.test.ts:108`의 `/gs` flag가 현재 target에서 지원되지 않아 TS1501 FAIL. 행 경계별 XML 회귀 시나리오는 삭제하지 않는다.
+- 동일한 XML 내용을 검증하면서 `/<row ...>([\\s\\S]*?)<\\/row>/g`로 교체한다. dotAll의 전역 flag만 제거하고 원본기간/교차기간 각 셀 검증 및 explicit/null fallback을 그대로 유지한다. 기존 PASS를 수정 commit의 PASS로 재사용하지 않으며 새 exact-head PR CI 전체 결과를 판정한다.
+- 최신 main에 Issue #514 관련 후속 merge가 반영되어 #529는 정렬 전 상태다. 이 회차는 요청한 P2 보완 후 새 PR CI 시작 범위이며 main 정렬/병합/정식 GHCR은 미수행한다.
+
