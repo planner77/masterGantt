@@ -146,3 +146,10 @@ Tree `06a72a74070b736a416ea63a0b66c2f2d72009c7`의 독립 UI5파일28Unit PASS(0
 5폭 각각 strip 버튼2개의 실제 높이40px/native Tab outline solid3px/document overflow0을 확인했고 최초·8단계에서 visible Resource heading focus를 확인했다. Milestone 수동 asOfDate2026-10-02/range2026-10-01–2026-10-03/명시 query환산15를 원래 sourceContext로 strip/복귀 입력에 보존하고 return preflight로 검증했다. 같은 고유 native1case의 REWORK중 원본 M heading 문자열 locator 실패는 기록했으며 마지막16.5s PASS와 구별한다.
 
 Frontend32파일을 새 manifest로 재동결하고 문서5/README/TEST_PLAN/PNG2/geometry를 갱신했다. next-env/tsconfig는 다시 HEAD byte로 복원했다. 새 exact staged tree를 생성해 ui_ux가3REWORK·최신 증거를 비교하고 qa_docs가 문서·관련 검증·source 불변/시점을 독립 확인한다. 이전 tree06a72의 최종 승인은 재사용하지 않는다. PRE_QA 결과·원격 인계는 Issue/PR에서 추적하고 quality/e2e/docker·QA_FINAL/Manager ACCEPT는 여전히NOT TESTED다.
+
+### PR #536 최신 main 정렬 및 CI 재검증 (2026-10-08)
+
+- 직전 head: `dc5ee1c58daff7a718d3b8c5463515c32b1160c1`; 이전 PR CI #2157.1/run `37736414550` PASS (당시 base `feat/issue-527-resource-plan`).
+- 정렬 대상: `main` `18ab2ed460d1c4697c63977eae4949dbe95ed1df`; main ahead 5 commits; 겹치는 파일 `docs/TEST_PLAN.md`, `tests/e2e/resource-plan-dashboard.spec.ts`.
+- 병합 정책: #528의 scope·Task/Assignment·Gantt instance·Editor/return 계약을 보존. main의 #527 E2E 비동기 Group children 검증과 Gantt canonical sync 안정화 + 실제 left120/top96 5-frame 왕복 검증은 유지하고, TEST_PLAN의 #527 Main CI #2159 실패 및 PR #545 trace 기록을 병합한다. 동시 수정이 없는 `tests/e2e/resource-milestone-ui.spec.ts`은 main 원본을 사용한다.
+- 추가 동작·계산/API 변경 없음. 새 exact HEAD full PR CI quality/e2e/docker는 등록 전 NOT TESTED이며, 병합·main CI·GHCR/tag/release·Issue 종료/branch cleanup은 범위 외다. `release_authorized=false` 유지.

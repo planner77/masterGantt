@@ -76,25 +76,32 @@ async function setup(page: import("@playwright/test").Page) {
     .first()
     .click();
   await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
-  // Selection and scale can schedule Core's scroll restoration on the next frame.
-  await frame.evaluate(
-    () =>
-      new Promise<void>((resolve) =>
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-      ),
-  );
-  await frame.locator(".wx-gantt").evaluate((el) => {
-    el.scrollTop = 96;
-  });
-  await frame.locator(".wx-chart").evaluate((el) => {
-    el.scrollLeft = 120;
-  });
-  // Core may auto-pan selected tasks after selection. Verify round-trip continuity
-  // against the actual stable viewport rather than assuming a fixed 120px offset.
-  await expect.poll(async () => (await viewport(page)).dom.top).toBe(96);
-  await expect.poll(async () => (await viewport(page)).dom.left).toBeGreaterThan(0);
-  await frame.evaluate(() => new Promise<void>((resolve) =>
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  // Selection can queue SVAR's show-task scroll after the next paint. Do not
+  // capture a transient DOM position while canonical scale/selection sync runs.
+  await expect.poll(async () => frame.evaluate((el) => {
+    const generation = el.dataset.ganttCanonicalSyncGeneration;
+    return Boolean(generation &&
+      generation === el.dataset.ganttCanonicalSyncSettledGeneration &&
+      el.dataset.ganttCanonicalSyncDepth === "0");
+  }), { timeout: 15_000 }).toBe(true);
+  // Establish the intended manual viewport after pending task reveal settles.
+  // Verify multiple animation frames; a one-frame 120px reading is insufficient.
+  await expect.poll(async () => frame.evaluate(async (el) => {
+    const chart = el.querySelector<HTMLElement>(".wx-chart");
+    const gantt = el.querySelector<HTMLElement>(".wx-gantt");
+    if (!chart || !gantt) throw new Error("Gantt scrollers are not mounted");
+    gantt.scrollTop = 96;
+    chart.scrollLeft = 120;
+    const samples: Array<{ left: number; top: number }> = [];
+    for (let i = 0; i < 5; i++) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      samples.push({ left: chart.scrollLeft, top: gantt.scrollTop });
+    }
+    const final = samples[samples.length - 1];
+    return samples.every((sample) => sample.left === 120 && sample.top === 96)
+      ? { left: 120, top: 96 }
+      : final;
+  }), { timeout: 15_000, intervals: [100, 250, 500, 1000] }).toEqual({ left: 120, top: 96 });
   const before = await viewport(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(root(page)).toHaveAttribute("data-ready", "true");

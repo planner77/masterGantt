@@ -2264,3 +2264,18 @@ Backend nativeAPI1PASS15.8초/전체27.6초는 최초 실행의 이전 source �
 ### Issue #528 PR CI #2115.1 — 선행 #527 정렬·회귀 검증 보완 (2026-10-08)
 
 PR #536 exact head `899d5d7` Actions `37697904378`에서 Chromium shard 2/4/5/6는 실패하고 quality/typecheck/Vitest/ESLint/Next Build/Docker smoke는 성공했다. Gantt 선택 직후 Core auto-pan으로 고정 수평좌표120이 달라질 수 있으므로 실제 전환 직전 스크롤을 취득해 복귀 시 같은 native viewport·선택·scale·instance인지 비교한다. Milestone→Resource 정확한 원본 범위 문구는 Dashboard 본문이 아닌 `임시 조회 범위` region에 있으며, POST exactAssignments·기간·원본 revision을 검증한다. Resource 검색의 숨김 option 대신 실제 row를 검증한다. 선행 #527에 추가된 #525의 빈 배정 `할당 없음`·snapshot 전환 시 상세 초기화·진단 projection·기간 fixture 교집합과 관련 E2E 변경은 유지한다. 새 CI 전에는 모두 NOT TESTED이며 테스트 skip/검증 제거로 성공을 주장하지 않는다.
+
+## Issue #527 병합 후 Main CI #2159 E2E 보완 (2026-10-08)
+
+- PR #535 head `5d8c5586a8f4eb37b87785108b7efddfc24e8c99`의 PR CI #2155는 quality/E2E 6-shard/Docker PASS였다. main merge `b4a0898283571ac4f05d53299266acccadeeff68`에 대한 Main CI #2159 (run `37738017744`)는 TypeScript/ESLint/Vitest/production build/Docker와 Chromium shard1~5 PASS, shard6 FAIL로 임시 GHCR stage SKIPPED였다. Main CI 성공이나 정식 GHCR 게시를 주장하지 않는다.
+- shard6의 실제 3 FAIL: `resource-milestone-ui.spec.ts` group crossed resource drill은 비동기 하위 개인이 로딩 중인데 `.resource-milestone-summary.last()`가 부모 Milestone summary를 선택해 `resourceId`가 없었다. `resource-plan-dashboard.spec.ts` 2개는 Core의 지연 selected-task reveal과 test가 설정한 `chart.scrollLeft=120`이 경합하여 `left=1581`로 복원되었다(`top=96` 유지). API 500, 도메인 계산 오류나 Docker 빌드 오류는 이번 Main 실패 근거가 아니다.
+- 보완: 선택한 Alice의 `그룹 교차 개인 현황` 내부 확장 요약만 조회하며 실제 HTTP query의 `dimension=group/resourceId/milestoneTaskId` 및 응답 selector·원래 2 Task를 모두 검증한다. Gantt fixture는 canonical sync generation/depth 완료를 기다리고 5 animation frames의 DOM left=120/top=96 안정성을 bounded poll로 확인한 뒤 원래의 instance/public state/DOM/selection/tree/column/scale 왕복 동일성 검증을 그대로 수행한다. 단순 timeout 무제한 확대, 테스트 skip, 기대값 1581 치환은 하지 않는다.
+- 변경 범위는 E2E fixture 2파일+이 실패 이력 문서이며 제품 계산·API·UI·DB/버전과 기존 `v0.100.0` trusted release 승인 범위는 변경하지 않는다. 보완 PR의 exact HEAD remote PR CI/독립 QA, 이후 새 Main CI 및 정식 GHCR exact-digest 증거는 실제 성공 확인 전 `NOT TESTED`로 유지한다.
+
+PR #545 최초 PR CI #2162(run `37740429409`)는 코드 테스트 이전 CI trace metadata 검사에서 실패했다. PR 본문의 `Refs #527` 뒤에 설명을 붙여 canonical 독립 행 패턴이 매칭되지 않은 것이 원인이며, PR 메타데이터를 정확히 독립 행 `Refs #527`로 수정했다. metadata-only `edited` 실행은 첫 전체 CI PASS를 대체할 수 없으므로 문서 검증 이력을 기록한 새 HEAD에 대해 전체 PR CI를 다시 시작한다.
+
+PR #545 원격 Trace gate/전체 CI 실행 보완: PR CI #2164(run `37740562154`)는 PR 제목의 `(#527)` 누락으로 `verify-ci-run-trace.py`의 Primary Issue 검사에서 실패했다. PR 제목을 `test: Resource Plan E2E 비동기 행·스크롤 경합 보완 (#527)`로 변경했고, #2165(run `37740621980`)는 metadata edit event이므로 성공 여부와 관계없이 해당 HEAD의 quality/E2E/Docker 전체 검증이 아니다. 추가로 async Group children의 Alice locator는 Playwright `filter({has: ancestor-scoped-locator})` 대신 직접 자식 node의 이름 조건 및 고유 count를 사용하여 child summary 스코프를 명확히 한다. 이 변경 HEAD에서 신규 전체 PR CI를 검증한다.
+
+### Issue #528 PR #536 최신 main 정렬 (2026-10-08)
+
+PR #536의 직전 exact head `dc5ee1c58daff7a718d3b8c5463515c32b1160c1`은 PR CI #2157.1(run `37736414550`) quality/E2E/Docker PASS다. 그러나 선행 #527이 main에 병합된 후 main `18ab2ed460d1c4697c63977eae4949dbe95ed1df`는 5개 커밋 앞서 있었으므로 기존 CI를 최신 main 기준 검증으로 표시하지 않는다. main이 보완한 `resource-milestone-ui.spec.ts` E2E selector와 `resource-plan-dashboard.spec.ts`의 canonical sync 안정화+5-frame native scroll120/96 bounded assertion을 그대로 유지한다. #528 source/resource drill·회귀 테스트는 보존한다. TEST_PLAN은 main의 #527 Main CI 실패·후속 PR #545 CI trace 수정 기록과 #528 실행 근거를 양쪽 모두 유지한다. 신규 exact-head 전체 PR CI 성공 전 merge/QA_FINAL/Manager ACCEPT는 NOT TESTED이고 main/GHCR/tag/Issue 종료는 미수행이다.
