@@ -17,3 +17,9 @@
 - PR CI Run #2119.1 (head `e0c5f15624499da74d01bf9dd34d33080dcc90c4`)은 `변경 경로 판정 / CI 실행 추적 메타데이터 검증`에서 FAIL. `verify-ci-run-trace.py`가 PR 본문 독립 한 줄 `Refs #538` 정확히 1개를 요구하나 최초 본문은 `Refs #538.`으로 한 줄에 문장과 붙어 검출 0개였다.
 - PR #539 본문을 canonical `Refs #538` 독립 한 줄로 교정한다. 같은 값의 상위 Select 재선택 시 기존 초안 유지, 하위 현재값의 다른 부모 선택지 유입 방지도 보완한다.
 - PR CI 새 head 시작까지만 수행. 이전 Run은 downstream quality/E2E/docker가 선행 gate 실패로 skipped이므로 해당 단계 PASS로 판단하지 않는다.
+
+## Run #2121.1 실패와 후속 교정 (2026-10-08 KST)
+
+- [CI Run #2121.1](https://github.com/planner77/masterGantt/actions/runs/37703276171) FAIL: Vitest 4건은 migration 0024 신규 적용의 기존 snapshot(목록·migration count·스키마 table/index)과 두 admin relation Route inventory 고정 목록 미동기화. Vitest 전체 1,581 PASS / 4 FAIL / 3 SKIP.
+- E2E shard 3/6: 관리자 관계 테스트의 `getByLabel("사업부", {exact:true})`가 같은 accessible name을 가진 tabpanel에 매칭되어 `selectOption`이 실패. selector를 `project-master-relations-heading` section 내부의 실제 `select`로 좁힘. 해당 shard 총 73 PASS, 1 FAIL.
+- TypeScript, ESLint, production build, policy, Docker smoke는 PASS. 새 CI로 모든 동일 head 검증을 다시 실시하며 이전 결과를 재사용해 전체 성공으로 판정하지 않는다.

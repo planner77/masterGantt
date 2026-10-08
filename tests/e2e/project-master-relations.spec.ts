@@ -59,12 +59,12 @@ test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async
   await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
   await page.getByRole("button",{name:"로그인",exact:true}).click();
   await expect(page.getByRole("heading",{name:"기준정보 연결 관계"})).toBeVisible();
-  await page.getByLabel("사업부",{exact:true}).selectOption(bu.id);
-  await page.getByLabel("제품",{exact:true}).selectOption(product.id);
+  await page.locator('section[aria-labelledby="project-master-relations-heading"] select').nth(0).selectOption(bu.id);
+  await page.locator('section[aria-labelledby="project-master-relations-heading"] select').nth(1).selectOption(product.id);
   await page.getByRole("button",{name:"제품 연결",exact:true}).click();
   const table=page.getByRole("table",{name:"사업부 제품 사업장 법인 연결 목록"});
   await expect(table.locator("tbody tr")).toHaveCount(1);
-  await page.getByLabel("사업장/법인",{exact:true}).selectOption(site.id);
+  await page.locator('section[aria-labelledby="project-master-relations-heading"] select').nth(2).selectOption(site.id);
   await page.getByRole("button",{name:"사업장/법인 연결",exact:true}).click();
   await expect(table.locator("tbody tr")).toHaveCount(2);
   const removeSite=table.getByRole("button",{name:/베트남 법인 관계 해제/});

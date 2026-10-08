@@ -136,7 +136,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -176,6 +176,7 @@ describe("SQLite connection and schema", () => {
         "0021_task_assignment_roles.sql",
         "0022_task_milestone_memberships.sql",
         "0023_deprecate_task_assignment_roles.sql",
+        "0024_project_master_relations.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -189,6 +190,8 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(tables).toEqual([
+        "business_unit_product_sites",
+        "business_unit_products",
         "edit_sessions",
         "links",
         "logistics_catalog_admin_credentials",
@@ -234,6 +237,8 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(indexes).toEqual([
+        "business_unit_product_sites_site_idx",
+        "business_unit_products_product_idx",
         "edit_sessions_project_expires_idx",
         "equipment_resource_one_primary",
         "equipment_systems_one_primary",
@@ -280,6 +285,7 @@ describe("SQLite connection and schema", () => {
         "work_calendar_dates_rule_date_idx",
         "work_calendar_rules_project_idx",
       ]);
+      expect(database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
       expect(database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'assignment_role'").get())
         .toEqual({ name: "assignment_role", type: "TEXT" });
       expect(database.prepare("SELECT name FROM sqlite_schema WHERE type = 'trigger' AND name = 'resource_roles_assignment_delete_guard'").pluck().get())
