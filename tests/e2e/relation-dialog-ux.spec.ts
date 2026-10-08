@@ -13,7 +13,12 @@ async function setup(page: Page, readonly = false, longNames = false) {
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
-  await page.locator(`[data-link-id=":${linkId}"]`).first().dblclick({ force: true });
+  const nativeLink = page.locator(`[data-link-id=":${linkId}"]`).first();
+  await expect(nativeLink).toBeVisible();
+  await nativeLink.click({ button: "right" });
+  const context = page.getByRole("dialog", { name: "작업 관계 설정", exact: true });
+  await expect(context).toBeVisible();
+  await context.getByRole("button", { name: "관계 관리... (Relation Editor)" }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }

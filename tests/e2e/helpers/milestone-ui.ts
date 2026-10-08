@@ -4,10 +4,11 @@ import { createWorkingCalendar } from "../../../src/domain/scheduling/calendar";
 import { projectStageGates } from "../../../src/domain/milestones/stage-gates";
 import { stageSnapshotFromProject } from "../../../src/domain/milestones/project-stage-model";
 import { calculateMilestoneDashboard } from "../../../src/server/projects/milestone-dashboard-calculation-core";
-import { projectPath, type StatefulProjectFixture } from "../../fixtures/stateful-project";
+import { type StatefulProjectFixture } from "../../fixtures/stateful-project";
+type MilestoneDashboardFixture = Pick<StatefulProjectFixture, "project" | "tasks" | "links"> & Partial<Pick<StatefulProjectFixture, "logistics">>;
 
 /** Full Gate/member projections come from the authored canonical fixture, never fixed completion rows. */
-export function canonicalMilestoneDashboard(state: StatefulProjectFixture, params = new URLSearchParams()) {
+export function canonicalMilestoneDashboard(state: MilestoneDashboardFixture, params = new URLSearchParams()) {
   const filter: MilestoneDashboardFilterInput = {};
   for (const key of ["search", "asOfDate", "from", "to"] as const) if (params.has(key)) Object.assign(filter, { [key]: params.get(key) });
   if (params.has("milestoneIds")) filter.milestoneIds = params.getAll("milestoneIds");
@@ -25,8 +26,8 @@ export function canonicalMilestoneTasks(state: StatefulProjectFixture) {
 }
 
 /** Synthetic-only report adapter; actual HTTP specs never call this helper. */
-export async function installMilestoneDashboardFixture(page: Page, state: StatefulProjectFixture) {
-  await page.route(`**${projectPath}/milestone-dashboard*`, route => route.fulfill({ json: {
+export async function installMilestoneDashboardFixture(page: Page, state: MilestoneDashboardFixture) {
+  await page.route(`**/api/projects/${state.project.publicId}/milestone-dashboard*`, route => route.fulfill({ json: {
     data: canonicalMilestoneDashboard(state, new URL(route.request().url()).searchParams),
   } }));
 }

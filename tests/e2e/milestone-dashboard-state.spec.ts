@@ -98,6 +98,14 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
 
 test("#463 public viewport and native scroll survive peer/layout, stale restore is consumed", async ({ page }, testInfo) => {
   const state = await fixture(page); await page.setViewportSize({ width: 1440, height: 900 });
+  // #552 removes Milestones from the native WBS. Populate ordinary rows so a
+  // 96px vertical viewport restore is physically possible, not a clipped no-op.
+  const ordinary = state.tasks.find(task => task.type === "task")!;
+  for (let index = 100; index < 124; index++) state.tasks.push({
+    ...ordinary, taskId: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+    externalId: `SCROLL-${index}`, name: `Viewport ordinary task ${index}`,
+    siblingOrder: index, parentExternalId: null,
+  });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}`); await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), identity = await frame.getAttribute("data-project-gantt-api-instance");

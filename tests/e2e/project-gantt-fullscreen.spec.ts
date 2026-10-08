@@ -345,7 +345,10 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await guardExitFullscreen(page);
     const link = page.locator(`[data-link-id=":${linkId}"]`).first();
     await expect(link).toBeVisible();
-    await link.dblclick({ force: true });
+    await link.click({ button: "right" });
+    const context = page.getByRole("dialog", { name: "작업 관계 설정", exact: true });
+    await expect(context).toBeVisible();
+    await context.getByRole("button", { name: "관계 관리... (Relation Editor)" }).click();
     const dialog = page.getByRole("dialog", { name: "작업 관계 관리 (Relation Editor)", exact: true });
     await expect(dialog).toBeVisible();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
