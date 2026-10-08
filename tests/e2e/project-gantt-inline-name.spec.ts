@@ -190,6 +190,9 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
 
   const retry = await openName(page, "Stable leaf");
   await retry.fill("Blur saved");
+  await retry.press("Tab"); // Actual blur commits the inline value before changing scale.
+  await expect.poll(() => route.patches.length).toBe(1);
+  await expect(nameCell(page, "Blur saved")).toBeVisible();
   await page.getByRole("button", { name: "주", exact: true }).click();
   await expect(nameCell(page, "Blur saved")).toBeVisible();
   expect(route.patches).toHaveLength(1);
@@ -220,10 +223,11 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
   expect(route.patches).toHaveLength(5);
 
   route.failOnce(401);
-  const unauthorized = await openName(page, "Stable milestone");
-  await unauthorized.fill("Unauthorized name");
-  await unauthorized.press("Enter");
-  await expect(nameCell(page, "Stable milestone")).toBeVisible();
+  const unauthorized = await openMilestoneEditor(page, id(4));
+  await unauthorized.getByLabel("작업명", { exact: true }).fill("Unauthorized name");
+  await unauthorized.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(unauthorized).toContainText(/편집 권한|세션|실패/);
+  await expect(page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000004\"]")).toHaveCount(0);
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
   expect(route.patches).toHaveLength(6);
 });
@@ -233,6 +237,7 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
   fixture.links.push({ id: "inline-link", predecessorExternalId: "SUMMARY-CHILD-1", successorExternalId: "LEAF-1", type: "FS", lag: 0 });
   fixture.tasks[2].url = "https://example.invalid/linked";
   const route = await routeRenames(page, fixture);
+  await installMilestoneDashboardFixture(page, fixture);
   await page.addInitScript(() => {
     const tracked = window as typeof window & { __openedTaskUrls?: string[] };
     tracked.__openedTaskUrls = [];
@@ -249,14 +254,17 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
   expect(route.patches).toHaveLength(1);
   await ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`).click();
   await expect.poll(async () => (await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls))?.length).toBe(1);
-  const unrelated = await openName(page, "Stable milestone");
-  await unrelated.fill("Unrelated rename");
-  await unrelated.press("Enter");
-  await expect(nameCell(page, "Unrelated rename")).toBeVisible();
+  const unrelated = await openMilestoneEditor(page, id(4));
+  await unrelated.getByLabel("작업명", { exact: true }).fill("Unrelated rename");
+  await unrelated.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(unrelated).toBeHidden();
+  expect(fixture.tasks[3].name).toBe("Unrelated rename");
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(nameCell(page, "Unrelated rename")).toHaveCount(0);
 
   fixture.sessionEditable = false;
   await page.reload();
-  await nameCell(page, "Unrelated rename").locator(".wx-content > .wx-text").click();
+  await nameCell(page, "Linked rename").locator(".wx-content > .wx-text").click();
   await expect(inlineInput(page)).toHaveCount(0);
   expect(route.patches).toHaveLength(2);
   for (const width of [390, 768, 1024, 1440]) {

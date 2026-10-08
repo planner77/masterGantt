@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 const linkId = "00000000-0000-4000-8000-000000000080";
 const title = "작업 관계 관리 (Relation Editor)";
@@ -13,7 +14,13 @@ async function setup(page: Page, readonly = false, longNames = false) {
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
-  await page.locator(`[data-link-id=":${linkId}"]`).first().dblclick({ force: true });
+  // Open through the supported ordinary Task Relation tab rather than relying on an SVG link overlay.
+  const sourceRow = page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000003\"]").first();
+  await sourceRow.click({ button: "right", position: { x: 12, y: 19 } });
+  await chooseTaskInformation(page);
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await editor.getByRole("tab", { name: /관계/ }).click();
+  await editor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }
@@ -56,6 +63,8 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await expect(modal).toHaveCount(0);
+  // Closing the nested Task Editor completes the focus round-trip to the visible Gantt.
+  await page.getByRole("dialog", { name: "작업 정보", exact: true }).getByRole("button", { name: "작업 편집기 닫기" }).click();
   await expectSameGanttRoot(page, root);
   expect(await page.evaluate(() => document.activeElement?.closest(".project-gantt-frame") !== null)).toBe(true);
 });

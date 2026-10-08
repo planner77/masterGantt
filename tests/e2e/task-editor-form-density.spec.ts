@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Locator } from "@playwright/test";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { editor, openRow, publicId, relationEditor, setup } from "./fixtures/task-editor-density";
@@ -92,9 +93,10 @@ test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 �
   test.setTimeout(90_000);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page);
+  await installMilestoneDashboardFixture(page, fixture, `/api/projects/${publicId}`);
   for (const width of widths) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
-    await openRow(page, "Milestone");
+    await openMilestoneEditor(page, fixture.tasks.find(task => task.type === "milestone")!.taskId);
     const dialog = editor(page);
     await expect(dialog.getByRole("tab")).toHaveCount(5);
     for (const [label, key] of [["소속 작업", "membership"], ["물류 연결", "logistics"]]) {

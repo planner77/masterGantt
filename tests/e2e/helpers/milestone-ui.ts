@@ -7,7 +7,9 @@ import { calculateMilestoneDashboard } from "../../../src/server/projects/milest
 import { projectPath, type StatefulProjectFixture } from "../../fixtures/stateful-project";
 
 /** Full Gate/member projections come from the authored canonical fixture, never fixed completion rows. */
-export function canonicalMilestoneDashboard(state: StatefulProjectFixture, params = new URLSearchParams()) {
+type MilestoneFixture = Pick<StatefulProjectFixture, "project" | "tasks" | "links" | "logistics">;
+
+export function canonicalMilestoneDashboard(state: MilestoneFixture, params = new URLSearchParams()) {
   const filter: MilestoneDashboardFilterInput = {};
   for (const key of ["search", "asOfDate", "from", "to"] as const) if (params.has(key)) Object.assign(filter, { [key]: params.get(key) });
   if (params.has("milestoneIds")) filter.milestoneIds = params.getAll("milestoneIds");
@@ -19,14 +21,14 @@ export function canonicalMilestoneDashboard(state: StatefulProjectFixture, param
 }
 
 /** Same full canonical projections as the stateful GET fixture for synthetic mutation responses. */
-export function canonicalMilestoneTasks(state: StatefulProjectFixture) {
+export function canonicalMilestoneTasks(state: MilestoneFixture) {
   const projection = projectStageGates(stageSnapshotFromProject(state.tasks, state.links));
   return state.tasks.map(entry => ({ ...entry, membership:projection.membership.get(entry.taskId)!, ...(entry.type === "milestone" ? {stageGate:projection.gates.get(entry.taskId)!} : {}) }));
 }
 
 /** Synthetic-only report adapter; actual HTTP specs never call this helper. */
-export async function installMilestoneDashboardFixture(page: Page, state: StatefulProjectFixture) {
-  await page.route(`**${projectPath}/milestone-dashboard*`, route => route.fulfill({ json: {
+export async function installMilestoneDashboardFixture(page: Page, state: MilestoneFixture, apiPath = projectPath) {
+  await page.route(`**${apiPath}/milestone-dashboard*`, route => route.fulfill({ json: {
     data: canonicalMilestoneDashboard(state, new URL(route.request().url()).searchParams),
   } }));
 }
