@@ -105,3 +105,12 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - 변경: `7c863cc` readonly 관계 **조회**(mutation 미허용), 두 visible ordinary Link fixture, native blur 단일 PATCH 및 unrelated Task 경로; `0654865` canonical WBS filter 이후 viewport 후처리와 bounded snapshot cleanup; `908685b` peer 복귀 지연 중 wheel 우선 복구. User input > old peer restore, 동일 scope/scale ID 유지 시 viewport 복원, 실제 필터 집합 변경 시 기존 위치 미복원.
 - 정합: #552 Milestone native WBS행 비복원, canonical Link/Membership/Project revision 불변, 관찰한 최초 실패 로그 보존. 새로운 API/schema/migration/dependency renderer는 추가하지 않음.
 - 실행 근거: 정확한 head의 PR CI https://github.com/planner77/masterGantt/actions/runs/37859412326 (#2254, 최초 head `908685b`)는 등록만 확인한 상태이며 최종 docs sync 새 head 기준으로 다시 실행한다. PASS 추정 금지. QA_FINAL/Manager ACCEPT/Main CI/GHCR/release/Issue 종료 및 환경별 UX: NOT TESTED.
+
+## PR CI #2255.1 실패와 이번 exact-head 재검증 (2026-10-09)
+
+- 실패: https://github.com/planner77/masterGantt/actions/runs/37859565333, head 97c09f4cf4bc2b173d2c9fdd7333da7a90cefdb5. quality/Vitest/typecheck/lint/build/Docker PASS, Chromium shard 2~6 E2E 14건 FAIL.
+- #551 5폭 날짜 tick↔native bar 3018~3036px 오차 및 #51 Day/Week 우측 확장: 과거 WBS viewport를 generic resize/date reveal에 재적용하는 경로 제한. 정확한 canonical request에서만 restore하고 명시적 scroll-chart navigation은 기존 snapshot을 무효화한다. 이전에 PASS한 픽셀 1px 기준은 유지한다.
+- #529 DOM/native 정수화 ±1px만 peer-viewport-capture 계약 범위로 허용. Core public은 정확히 일치하고 오래된 120px 위치 복귀는 실패로 본다.
+- #456 실제 Chart scrollable 범위가 120px 이상인지 보장하기 위해 필터 조건 밖 미래 Milestone fixture를 설정하고 0행 변경 후 public/DOM 원점 복원 판정. #266 390px은 실제 이름 target과 열려 있는 관계 탭 확인. #344 412 후 같은 scrollLeft 수렴, #notifications DOM↔Core baseline 동기화 후 상태 불변.
+- #140 Tab에 의한 blur는 Core Editor 입력 해제 전에 revision guarded name-only PATCH를 정확히 한 번 실행하고 Escape/invalid/401 가드를 유지한다.
+- 보완 소스 커밋 ff39fb4030a33c22e40d9b821540bbad5a1cd783. 새 exact-head PR CI 통과 여부/QA_FINAL은 NOT TESTED; merge/main/GHCR/release/Issue 종료/브랜치 정리하지 않는다.

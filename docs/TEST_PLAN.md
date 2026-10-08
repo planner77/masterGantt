@@ -1,3 +1,12 @@
+## Issue #553 — PR CI #2255 후속 회귀 (2026-10-09)
+
+[원본 PR CI #2255](https://github.com/planner77/masterGantt/actions/runs/37859565333)에서 E2E 14개 FAIL, quality/Vitest/typecheck/lint/build/Docker PASS.
+
+- 390/768/1024/1440/1920px Milestone Timeline tick↔native bar 1px 정렬과 날짜 이동/Day·Week/연속 3회 축 확장 불변을 검증한다.
+- Metadata/작업 삭제/401·412/peer 왕복: 실제 사용자 wheel·Gantt 날짜 navigation이 stale viewport 복원보다 우선하며 Core 공개 좌표 정확 일치, DOM 물리 좌표 1px 정수화 계약과 정확한 Task ID/revision을 구분한다.
+- Active 필터 집합 변경 테스트는 native scrollWidth-clientWidth >= 120의 물리적 준비조건을 만들고 표시 행 0개 변경 이후 Core/DOM 원점과 동일 인스턴스를 검사한다.
+- 390px Relation 접근은 명시적 Task 이름과 활성 관계 탭의 실제 가시성, readonly 조회와 keyboard/focus를 확인한다. Inline Tab/blur는 invalid/Escape/권한/단건 PATCH 보호를 유지한다. Test skip·timeout 증가·assertion 임의 완화는 금지한다.
+
 ## Issue #553 — PR CI #2250 실패 재현 및 변경 영향 검증 (2026-10-09)
 
 [PR #562 CI #2250](https://github.com/planner77/masterGantt/actions/runs/37856833368), head `8bf7057`에서 E2E shard 3/4/5/6의 16건이 FAIL이고 policy/Vitest/typecheck/lint/build/Docker 및 shard 1/2는 PASS였다. 구간별로 다음과 같이 회귀를 보존한다.

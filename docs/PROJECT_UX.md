@@ -2,6 +2,8 @@
 
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원
 
+PR CI #2255 회귀 보완: Gantt `scroll-chart`로 발생하는 명시적 날짜 navigation은 과거 동일 scope viewport 재생보다 우선한다. Core 내부 resize에 대한 일반 WBS projection 재평가만으로 이전 viewport를 강제 적용하지 않으며 canonical 변경에 동반된 정확한 restore request만 허용한다. Core 공개 좌표와 native DOM 정수화 오차는 각각 검사한다.
+
 일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
 
 일정에서 상위 peer로 떠날 때 보이는 Gantt의 snapshot·scope/filter·instance·동기화 세대와 viewport를 저장한다. 복귀의 DOM/Public Core 복원은 실제 Grid/Chart pointerdown·wheel·keydown 뒤 취소하며, source·instance·세대·visibility·scale·column/grid 조건이 달라진 오래된 복원을 적용하지 않는다. 양쪽 복원 경로가 같은 경계를 지켜야 하며 Core 진단 marker가 없어지는 것만으로 입력 위치 보존을 판정하지 않는다. 동일 scope·scale의 metadata 변경과 Task 삭제는 canonical/set-columns/controlled-WBS-filter 처리 후 Core의 실제 양축 위치를 비교하고 필요 시 복원하며, 해당 구간에서 사용자가 wheel/pointer/keyboard로 이동했거나 검색·필터 결과 집합이 변했으면 과거 위치를 강제 적용하지 않는다. 공개 viewport와 native DOM의 실제 값은 각각 확인한다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다. #518의 상위 일정/Milestone 탭 구조와 무입력 복귀·선택/tree/열/scale/인스턴스 보존은 유지한다.
