@@ -386,6 +386,13 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 
 성공과 오류는 private/no-store·nosniff·request ID이며 CORS/Origin/session/revision mutation 정책을 변경하지 않는다. same-snapshot SHA256은 권한 token이 아니라 현재 보고서의 정합성 identity다. Detail에서 source/filter/날짜/환산이 바뀌면409 stale이고 기존 KPI와 새 행을 성공으로 혼합하지 않는다. unknown scalar/잘못된 배열·날짜·페이지·selector는400, 유한 raw/cell/path/JSON 예산 초과는422다. raw query/SQL/stack/secret을 공개 오류로 전달하지 않으며 새 migration·report 저장 원장이 없다. [KPI/API 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
 
+
+## Issue #526 Group 자식 조회와 비교 범위
+
+resource-dashboard/group-children GET은 inventory public-read/mutatesState=false이며 기존 UUIDv4+Project 존재 guard, private/no-store·nosniff·request ID를 사용한다. 상세 resourceId는 Group selector에서만 허용하며 Project 연결과 실제 해당 Group membership을 서버에서 검증한다. filtered-out valid member는 empty, 미연결/다른 Group 개인은 INVALID_SELECTION이다. Group 전체/글로벌 미배정 개인을 공개하는 API로 확장하지 않는다.
+
+reference/excluded scope는 동일 필터 중 Milestone 조건만 제거한 해당 Project 개인 Assignment 집합이다. snapshot identity를 먼저 재확인하며 SHA는 권한 token이 아니다. group children query/page/cells/JSON은 유한 allowlist/상한으로 검증하고 초과값을 완전 합계로 절삭하지 않는다. Origin/session/revision 보호 mutation, HTTPS/명시 HTTP cookie 정책, password/secret/SQL 비노출은 불변이다. [조회 계약](API.md#issue-526-milestone-roll-up-조회-확장)을 따른다.
+
 ## Issue #538 — Project master relation mutation
 
 `POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.

@@ -36,3 +36,12 @@
 - 실패는 `tests/e2e/project-edit-authorization.spec.ts:79`의 저장 완료 후 read-only `page.request.get(projectPath)`에서 `read ECONNRESET` (HTTP 응답 자체 없음). 로그만으로 Node/Next.js 서버 종료나 제품 API 오류라고 확정할 수 없음. 기능 변경으로 API 응답을 우회하지 않는다.
 - 저장소의 `tests/e2e/project-browser-title-favicon.spec.ts`, `milestone-stage-grid.spec.ts`에서 사용하는 동일 패턴에 따라 W05 보안 회귀의 **읽기 전용 프로젝트 GET만** `ECONNRESET/socket hang up` 시 최대 3회, 250ms×시도번호 지연으로 재전송한다. 재시도 소진, HTTP 401/409/500, mutation 실패 등은 기존대로 즉시 실패·검증한다. `HEAD/OPTIONS/PATCH`, 인증·revision·session assertion은 변경하지 않는다.
 - 실제 장애 원인 증거가 부족하므로 재시도 후 최종 PASS는 새 exact-head CI 결과가 판단한다. 요청 범위는 새 PR CI 시작까지이고 병합·Main CI·GHCR 게시·Issue 종료는 금지.
+
+## 최신 main 병합·충돌 해결 (2026-10-08 KST)
+
+- 원본 PR #539 head: `3c607e66aead5526f8b8706f65450b4ce4284776`; 최신 main: `8b9d4d76758f73094ec84590e3a8a49314741587`. 공통 조상: `b417fcc094bff98ea142374fcd746bce2458c2e1`.
+- main 고유 54개, PR 고유 37개 파일 중 11개 파일에 동시 변경. main의 Resource Dashboard #525/#526 및 E2E/API 문서 변경과 PR #538의 마이그레이션·API·UI·테스트 변경을 모두 보존하여 two-parent merge commit으로 정렬한다.
+- 동시 변경 6개 설명서(`API/ARCHITECTURE/PROJECT_UX/REQUIREMENTS/SECURITY/TEST_PLAN`)는 공통 원본을 확인하여 main의 추가된 섹션을 유지하고 PR #538 추가 섹션을 이어 붙인다. `CHANGELOG`에는 새 #538 릴리스 섹션을 main의 0.99.0 앞에 추가한다.
+- `package.json`/`package-lock.json`은 main `0.99.0`보다 높은 `0.100.0`으로 통일한다. `route-security-inventory.ts` 및 `edit-authorization-handlers.test.ts`는 main에 새로 추가된 Resource Dashboard route 목록과 PR의 project-master 관계 API 2개를 함께 유지한다.
+- 교차 수정 없는 26개 PR 파일은 원본 blob SHA를 그대로 보존하고 나머지 main 변경은 main tree에서 유지한다. 이전 #2135.1 SUCCESS는 **merge 이전 PR head** 증거이므로 merge 후 exact head 신규 PR CI를 별도 실행·검증한다.
+- 이번 요청은 최신 main 정렬·충돌 해결·새 PR CI 시작까지이며, 병합(main)·Main CI·GHCR 게시·Issue 종료는 미승인.

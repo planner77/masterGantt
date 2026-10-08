@@ -1414,6 +1414,15 @@ Report `data`는 schema/projectPublicId/projectRevision/catalogRevision/calendar
 
 `mdPerMmProvided=false`인 report filter를 상세 query로 재전송할 때 mdPerMm은 생략한다. explicit null은문자열null이다. 동일 filter에 projection mode만 바꿀 수 있으며 다른 날짜/filter/환산 또는 데이터 변경은409 REPORT_STALE다. Task 삭제로 선택 ID가 stale된 detail도409를 반환하고 report 조회의 INVALID_SELECTION과 구분한다. 예산은422 REPORT_LIMIT_EXCEEDED, Calendar same-level conflict는409 RESOURCE_CALENDAR_EXCEPTION_CONFLICT, 존재하지 않는 Project는404 PROJECT_NOT_FOUND다. 오류에는 SQL/stack/내부PK/secret을 노출하지 않는다.
 
+
+## Issue #526 Milestone roll-up 조회 확장
+
+기존 `resource-dashboard/1` report/detail은 호환 유지한다. report는 `reference`/`excluded` compact summary와 `milestoneSelection`을 항상 반환하며 TypeScript 타입은 additive optional이다. reference는 Milestone 필터만 제거, excluded는 실제 Assignment 집합 차이다. 각 summary.selector.assignmentScope는 milestoneReference/milestoneExcluded, 기존 선택은 selected다. Detail query에 optional assignmentScope를 추가하고 omission을 selected로 echo한다. diagnostic은 selected만 허용한다. optional resourceId는 dimension=group에서만 public UUID 문자열로 받으며 null은400이다.
+
+신규 `GET /api/projects/{publicId}/resource-dashboard/group-children`은 동일 report filters와 snapshotId/groupId, optional milestoneTaskId, offset/limit를 사용한다. groupId=ungrouped와 milestoneTaskId=unassigned는 null이며 Milestone omission은 전체다. metric/assignmentScope/resourceId는 이 경로에서400이다. 동일 public-read guard와 성공·오류 private/no-store/nosniff/X-Request-ID를 적용한다. default50/max100/offset8000, pagecells5000 및 JSON2MiB를 적용한다.
+
+응답 `{data: ResourceDashboardGroupChildrenDto}`는 schema/snapshotId/projectPublicId/projectRevision/catalogRevision/calendarRevision/filters/range/asOfDate/mdPerMm/mdPerMmSource/groupId/optional milestoneTaskId/summary/offset/limit/totalCount/nextOffset/rows다. rows는 Group 교집합 ResourceDashboardRow이며 selector.dimension=group/id=groupId/resourceId를 유지한다. 개인 ID 순 페이지, Milestone 예정일+ID 순/미지정 마지막이다. 현재 필터에 없는 유효 Group 구성원 상세는200empty, 다른 Group/미연결 Resource는400 INVALID_SELECTION, source/scope 변경은409 REPORT_STALE다. full snapshot 예산 초과는 기존422를 유지한다. 정확한 계산·null·범위는 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
+
 ## Issue #538 — Project Master 관계 계약
 
 `GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.

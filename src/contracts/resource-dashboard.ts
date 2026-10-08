@@ -27,6 +27,8 @@ export interface ResourceDashboardSelector {
   id: string | null;
   milestoneTaskId?: string | null;
   metric: ResourceDashboardMetric;
+  resourceId?: string;
+  assignmentScope?: "selected" | "milestoneReference" | "milestoneExcluded";
 }
 export interface ResourceDashboardEffort {
   knownMd: number; plannedMd: number | null; plannedMm: number | null;
@@ -61,6 +63,8 @@ export interface ResourceDashboardDto {
   filters: ResourceDashboardFilters; range: { from: string; to: string }; rangeFallback: boolean;
   mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
   scope: { assignment: "A"; diagnostics: "T0"; identity: string };
+  reference?: ResourceDashboardSummary; excluded?: ResourceDashboardSummary;
+  milestoneSelection?: { applied: boolean; reference: "A without Milestone filter"; excluded: "reference Assignment IDs minus selected Assignment IDs" };
   summary: ResourceDashboardSummary; resources: ResourceDashboardRow[]; groups: ResourceDashboardRow[];
   roleTotals: { role: ResourceWorkloadRole; summary: ResourceDashboardSummary }[];
   milestones: ResourceDashboardCell[]; stages: ResourceDashboardStage[];
@@ -94,3 +98,13 @@ export interface ResourceDashboardDetailsDto {
 }
 export interface ResourceDashboardResponse { data: ResourceDashboardDto }
 export interface ResourceDashboardDetailsResponse { data: ResourceDashboardDetailsDto }
+
+export interface ResourceDashboardGroupChildrenInput {
+  snapshotId: string; groupId: string | null; milestoneTaskId?: string | null; offset: number; limit: number;
+}
+export interface ResourceDashboardGroupChildrenDto {
+  schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
+  groupId: string | null; milestoneTaskId?: string | null; filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset"; summary: ResourceDashboardSummary;
+  offset: number; limit: number; totalCount: number; nextOffset: number | null; rows: ResourceDashboardRow[];
+}
+export interface ResourceDashboardGroupChildrenResponse { data: ResourceDashboardGroupChildrenDto }

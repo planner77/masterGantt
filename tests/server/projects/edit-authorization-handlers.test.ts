@@ -480,6 +480,7 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/assigned-targets",
       "GET /api/projects/{publicId}/resource-dashboard",
       "GET /api/projects/{publicId}/resource-dashboard/details",
+      "GET /api/projects/{publicId}/resource-dashboard/group-children",
       "GET /api/projects/{publicId}/resource-workload",
       "GET /api/work-calendars/countries",
       "GET /api/projects/{publicId}/work-calendar",

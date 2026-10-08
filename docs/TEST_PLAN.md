@@ -2124,6 +2124,74 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 
 `tests/e2e/resource-dashboard-api.spec.ts`는 격리 실제 Next/SQLite/Chromium에서 편집 쿠키 없는 public report/detail, no-store/nosniff,405 mutation 거부, selection400, 원본 revision 불변, 실제 서버 재시작 snapshot과 scope/환산 stale409를 검증한다. 초기 실패 이력은 inventory 예상 route2개 누락, Turbopack 외부 node_modules symlink 거부, 신규테스트 비밀번호의 기존12자상한 위반, report nosniff 누락을 보존한다. route expected inventory·작업tree 실제 dependencies·유효 fixture·신규handler 성공/오류 nosniff를 보완하고 동일 관련 범위를 다시 검증한다. 최종 실행 결과는 Manager Issue/PR Work Packet에 exact head 근거로 기록하며 원격 CI 결과 모니터링은 이번 범위 밖이다.
 
+## Issue #525 Resource·Group Dashboard 검증
+
+- `tests/features/resources/resource-dashboard-model.test.ts`: 기본 nullable 날짜의 상세 query omission/명시 mdPerMm=null, filter/schema/publicId/scope/calendar echo 거부, snapshot-bound details, tasks assignment:null/assignments nonnull, unset/partial/configured zero 표시. 기존 `tests/domain/milestone-resource-drill.test.ts`도 보존한다.
+- `tests/e2e/project-resource-workload-status.spec.ts`: 새 기본 endpoint에 #117/#414 상태 oracle을 이관한다. report가 catalog를 원자적으로 포함하므로 기존 workload/assigned-targets의 독립 부분 실패 대신 report 실패와 독립 상세 실패·재시도, malformed200/네트워크/echo 거부, stale·입력·단위·열림 보존, 응답 역전, 중복 refresh/hidden 조회 없음/focus catch-up, canonical mismatch와 명시 최신 일정 조회,409/400/422 및 disabled trigger focus fallback, 개발 견적/Global Role/등급/단위, 고급필터 Escape를 검증한다. 기존 client filter 네트워크0은 실제 server filter 조회 계약으로 변경한다.
+- 같은 spec의5폭 geometry는390/768/1024/1440/1920px에서 populated 요약/Assignment 표의 header/body 정렬, 소유 table의 date 열208px 최소 예산, cell 비중첩/control containment, toolbar 비중첩·document overflow0·의도한 내부 overflow 및 native Tab focus ring containment를 검사한다. Gantt의 존재하는 header 열폭·비어 있지 않은 실제 선택·native/public scroll120/96·주 scale·instance를 탭 왕복 전후 비교한다. Summary를 실제로 접고 자식 row가 없음을 확인한 뒤 복귀 후 접힘 icon/자식 비표시와 같은 scroll을 다시 확인한다. legacy 단계 drill의 exact 기존 endpoint/mount된 기본 필터·단위·모드 복귀와 DOM ID 고유성도 확인한다. 외부 snapshot으로 상세가 사라질 때 내부 focus만 trigger/검색으로 복원하고 filter focus를 보존한다.
+- `project-resource-workload-status.spec.ts`의 외부 snapshot/focus 시나리오는 고유 snapshot A→B와 동일한 B의 검색 조건 A→B→A 복귀에서 숨긴 KPI 상세가 다시 나타나지 않고 상세 GET 횟수가 증가하지 않음을 검증한다. 검색 입력 focus를 유지하고 동일 scope의 명시적 상세 retry는 유지한다.
+- `tests/e2e/resource-dashboard-ui.spec.ts`: isolated 실제 native SQLite/HTTP/readonly browser에서 Task4개+Milestone1개, 개인2명/Group2개, 공동 Task2Assignment와 null 공수/완전 미할당/Group만 지정, 복수 Group/Role 비가산 subtotal을 생성한다. raw 서버 합계·기본 view/tasks 고유 Task·Assignment 상세·Milestone 소속·DEVELOPER 필터/all-unset/미배정 T0·비활성 기존 할당·외부 Project revision 명시 복구·읽기전용 cookie 없음/조회 mutation 없음을 검증한다. `milestone-stage-dashboard.spec.ts`의 기존 실제 legacy drill 회귀도 실행한다.
+
+합성 화면 PNG와 geometry/실행별 실패 trace는 `output/playwright/issue-525/` 및 실행별 sibling artifact에 로컬 보존한다. PR 검토용 합성 PNG390/1440은 `docs/evidence/issue-525/`에 둔다. legacy-preserved 이미지는 동일한 기존 renderer의 현재 보존 관측이며 historical before capture를 새 source의 before로 소급하지 않는다.
+
+초기 실패: typecheck의 nullable 상세 날짜 및 fixture 중복 snapshot 필드, implicit select label의 exact 접근 이름 실패, stale409 disabled trigger에 focus 복원 불가(제품 수정: 검색 fallback), 단방향 날짜 fixture의 역순 resolved range, 실제 HTTP 생성 fixture의 description 누락/12자 초과 password, Task 이름과 self WBS의 중복 text locator 및 hidden Milestone option locator를 기록한다. 테스트 assertion은 실제 grain/row/cell에 맞춰 구체화하고 성공 계약을 완화하지 않는다. 실제 초기 artifacts와 수정 후 PASS는 별도 근거다.
+
+2026-10-08 Local Fast Feedback: typecheck PASS, 변경 Unit+legacy drill2파일9개 PASS, 변경 파일 lint0error/이동된 legacy의 기존 warning3개, Markdown link144파일 PASS다. Chromium 전체 영향 실행은10개 PASS(신규 mock8개+실제 비빈 SQLite/HTTP1개+기존 실제 Milestone stage1개,56.4초)다. 같은 제품 source의 캡처 owner scroll0 보완 후geometry1개 PASS와 Summary 접힘/비빈 선택 oracle 보강 후geometry1개 PASS(6.1초)는 별도 실행이며 고유12개로 세지 않는다. 마지막5폭 geometry와 PNG는 후자의 spec/source에서 생성한다. 제품/source/docs/PNG hash는 최종 반환 manifest로 연결한다. 공식 원격 quality/e2e/docker 및 최종 독립 QA는 NOT TESTED이며 로컬 PASS로 대체하지 않는다. 실제 native125% zoom/실기기/screen reader/운영 proxy·배포·최종 수동 UX는 #517의 별도 NOT TESTED/BLOCKED 범위다. 공식 SVAR demo URL 확인과 실제 demo interaction NOT TESTED도 구분한다.
+
+PR 검토용 최종 합성 화면: [390px](evidence/issue-525/after-390.png), [1440px](evidence/issue-525/after-1440.png). 이 이미지와 실제 SQLite/HTTP fixture의 검증 근거는 서로 구분한다.
+
+
+### Issue #525 긴 이름·다중 행 인수 보완
+
+2026-10-08 독립 QA에서 기존 짧은 Dashboard fixture만으로 긴 이름·많은 행을 검증하지 못한 점을 발견하여, 제품 코드를 변경하지 않고 별도 `longResourceDashboardUiFixture`를 추가했다. 합성 입력은 Group12개·Resource40명·공동 Task120개·Assignment4800개이며 이름200자/코드64자/외부 ID128자 및 WBS 각 구간200자 상한 안의 긴 한국어·영문을 사용한다. 최대3개 Global Role(PI/DEVELOPER/EQUIPMENT_OWNER)과 Role 미지정 각각1행, 복수 Role39행 및 비활성 개인·Group을 포함한다.
+
+`project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
+
+기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+
+## Issue #526 Backend Milestone roll-up 검증
+
+`tests/domain/resource-kpi-projection.test.ts`는 shared snapshot/전체 Membership·Group Calendar·Assignment 행 cache, 입력 불변, 실제 제외 집합의 distinct/raw/progress, Assignment 중복/충돌, totals-only와 T0 진단을 검증한다. 기존 #523 calculateResourceKpi의 결과와 helper composition을 비교한다.
+
+`tests/server/resources/resource-dashboard-rollup.test.ts`는 실제 SQLite의 선택/reference/excluded summary와 상세 ID 수, Group 두 계층 경로, Group∩Resource 상세, 페이지 전체 summary 불변, normalized echo/null omission, canonical 예정일/동률ID/미지정 마지막, full Ready, filtered-out valid member empty와 foreign400/activity, public-read/no-store/nosniff/개인정보/원장 불변/stale409 및 malformed query를 검증한다. 실제100개인×50Milestone의5000 신규 Assignment에서 선택100/reference5005/excluded4905를 계산하며 reference의 cells를 생성하지 않는다. 같은 전체 Milestone report는 cells5000 초과를 거부한다. 원래 Project fixture의5개 개인 Assignment를 포함한 정확한 수다.
+
+`tests/e2e/resource-dashboard-api.spec.ts`는 기존 실제 Next/SQLite/Chromium readonly/restart 회귀에 신규 group-children route의 scope/header 및 reference detail을 더한다. UI tree/matrix geometry·keyboard·Gantt 보존은 frontend 인계 뒤 별도 검증이다.
+
+초기 실패를 보존한다: helper 추출의 search closure 누락으로 기존2파일68개 중37FAIL/31PASS 및 typecheck4오류, 신규 fixture insertResource의 code/description 누락으로104개 중2FAIL/102PASS, 보완 후 잘못된 Membership SQL column으로19개 중1FAIL/18PASS. closure/import 타입을 복원하고 fixture 필수필드와 기존 MembershipRepository를 사용한 후 해당 범위를 재실행한다. Local Fast Feedback PASS와 공식 PR quality/e2e/docker NOT TESTED를 분리하며 UI gate/독립 QA는 다음 owner의 실제 근거로 판정한다.
+
+Backend 최종 준비 검증은 관련 Domain/SQLite/HTTP/legacy12파일과 실제 Next 신규route Chromium을 실행한다. 추가 fixture 타입검사의 URLSearchParams union/undefined Record cast 오류는 명시 Record<string,string>[] 입력으로 보완했다. E2E 후 생성된 next-env/tsconfig isolated 경로는 원본으로 복원하며 제품 설정 변경으로 저장하지 않는다.
+
+### Issue #526 UI Local Fast Feedback — 2026-10-08
+
+새 `resource-milestone-views.spec.ts` mock5case, unmocked `resource-milestone-ui.spec.ts` native SQLite/HTTP1case, 기존 실제 `resource-dashboard-api.spec.ts`1case로 고유7case PASS를 확인했다. Node/npm 선언 lockfile에 맞춘 `npm ci` 후 설치 Next16.3.8에서 실행했다. 기존 physical-copy 환경 Next16.3.4의5PASS는 과거 환경 증거이며 최종 검증으로 재사용하지 않는다. 새 UI mock5는 최종 combined run에서5PASS, actual API는19.3s PASS, 실제UI는 fixture oracle 수정 후1PASS(13.3s/전체25.9s)다. 실행별 원래 실패를 합쳐 하나의 성공 run으로 표현하지 않는다.
+
+실제UI는 신규 Project4일 공동Task/2개Resource/2개Group/복수Role/2Milestone, Summary 상속/명시 override, 미설정+known 부분합 fixture다. 공개 readonly/no-cookie로 세 계층·비교표를 표시하고 group/resource/Milestone selector의 실제 상세 ID 집합 및 excluded Assignment scope를 확인했다. 선택 작업진척100%와 전체 단계2/3 완료·준비 전·선행 차단을 별도로 표시하며 조회 뒤 Project revision 불변을 확인했다.
+
+Mock 대량 fixture는 긴200자 Resource/Group/Milestone명·code50자·Group12/Resource40/Milestone13+미지정이며 matrix50행/6단계 budget을 확인했다. Group/Resource×390/768/1024/1440/1920px의10 geometry 관측은 header81px/maxrow98px/usable4행, identity264px/Milestone144px 이상, header/body alignment·형제 nonoverlap·cell button containment·toolbar viewport·문서 overflow0을 검증했다. 세 계층 경로×5폭의15관측은 populated summary 최소3개(Group 경로) 또는2개(개인 경로), identity2줄40px 이내·button containment·문서 overflow0·펼침≤12를 확인했다. [390px 화면](evidence/issue-526/after-390.png)과 [1440px 화면](evidence/issue-526/after-1440.png)은 최종 compact Group 비교표다.
+
+추가 oracle은62 Group 상위행 page away/back,12개 nested intent ancestor collapse/reopen 및 mode복귀, canceled old children409, hidden/inert 상세 trigger의 검색 focus복원, null완료율/누락 셀 대상없음/설정된0, completion·delayed의Task grain·metric selector를 검증한다. Matrix Enter/Escape 상세 focus와 M열 canonical동률ID/미지정 마지막/전체 별도, 화면표현 페이지에 무관한 서버합계를 유지한다. Gantt45Task fixture에서 실제 선택·tree ID 목록·열 폭·주scale public viewport·DOM scroll120/96와 동일instance를 왕복 비교했다.
+
+최초 중단된 JSX 추가괄호로 browser2FAIL/typecheck syntaxFAIL, 수정 뒤 테스트 identity 인수누락으로 matrix1FAIL/tree1PASS를 확인했다. Compact 개선 중 oracle이 내부 가로scroll metricbutton을 toolbar viewport 검사에 포함하고 Resource→M 경로에 summary3개를 요구하여 실패했으며 실제 표/toolbar·경로별 최소수를 구분했다. Native target없음 locator의 숨김패널 선택과 known부분합 중복 strictlocator, fallback 검색 oracle의 다른 입력label 선택을 고쳤다. 실제Summary fixture에 authored duration/progress0을 보내400인 실패를 확인하고 파생 Summary 필드를 생략했다. 12개 budget 복귀와 source cap admission 수정, compact identity 작업면 REWORK, Next 환경 동기화를 기록하며 gate를 제거하지 않았다. Raw 실행 로그/geometry/source hash는 로컬 `output/playwright/issue-526/`에 보존하고 runtimeDB/민감 로그는 Git에 넣지 않는다.
+
+DOCUMENTATION_SYNC 대상은 Resource KPI/PROJECT_UX/MILESTONE_STAGE_GATES/REQUIREMENTS/TEST_PLAN UI 절이다. Backend freeze의 DTO/API/Domain/Calendar/security 계약을 변경하지 않았다. DB migration/DESIGN/공용semantic token/AGENTS 변경은 N/A다. Official PR quality/e2e/docker, 독립 QA/최종 Manager ACCEPT, 실제 native125%/실기기/screen reader/Windows Excel/운영환경 검증은 별도 NOT TESTED다.
+
+### Issue #525 Codex P2: 빈 할당과 설정된 0공수 구별 (2026-10-08)
+
+`src/features/resources/resource-dashboard-model.ts`의 공수 표시에서 `state=empty` / `assignmentCount=0`은 `할당 없음`으로 표현한다. `state=configured`이면서 유효 근무일이 0인 계획은 실제 `0.00 M/D`·`0.00 M/M`로 표시해야 한다. `unset`(산정 불가)·`partial`(알려진 부분합)도 각각 다른 값이다. 단위 테스트는 empty/configured-zero를 M/D·M/M 양쪽에서 별도 검증하고, `project-search-filter.spec.ts`는 실제 기본 Dashboard의 기간 밖 0건 범위에서 `할당 없음`을 확인한다. Global Role 누락 행도 같은 의미로 표시한다. 최신 head CI 성공 전 ACCEPT는 유보한다.
+
+
+### Issue #526 PR CI #2142.1 — 기존 Resource 검색 기간 E2E fixture 회귀 (2026-10-08)
+
+원격 full PR CI [#2142.1](https://github.com/planner77/masterGantt/actions/runs/37720291182)의 TypeScript/ESLint/Vitest/Next production build/Docker smoke/정책 및 Chromium shard 1·2·3·5·6는 PASS였다. Chromium shard 4에서 `tests/e2e/project-search-filter.spec.ts`의 #83 테스트 1건이 실패했다. 조회 from=2026-10-01, to=2026-10-31에서 합성 배정기간 2026-09-16~18은 교집합이 없어야 하지만 `tests/fixtures/resource-dashboard-ui.ts`가 날짜를 무시하고 1 Assignment/5 M/D를 반환했다. 이 fixture는 UI 회귀 검증용 응답이며 실제 SQLite 서버 계산과 구분한다.
+
+기존 선택 범위 검색/활성/역할/등급/상태 판정에 inclusive 날짜 교집합 조건을 추가한다. 기간 밖일 때 Resource·Group 행 0개, `effort.state=empty` 및 `할당 없음`을 유지하되 명시 설정된 0공수(`configured`)와 혼동하지 않는다. 기간 재초기화 시 합성 9월 배정과 5 M/D가 복원되는 기존 E2E assertion을 유지하며 skip/기대값 완화는 적용하지 않는다. DB/API·출력 기능과 실제 Dashboard 서버 코드 변경 없음. 이 수정 이후 공식 exact-head 원격 CI/ACCEPT는 결과 확인 전 NOT TESTED다.
+
+
+### Issue #526 PR #534 Codex P2 — Milestone scope Assignment drill-down 보완 (2026-10-08)
+
+PR #534 unresolved review `PRRT_kwDOUUB7Bc6qEYQc`는 Milestone 조건 활성화 시 선택/reference/excluded 계획공수를 보이면서 고유 Task 상세만 제공하는 실제 UI 누락을 지적한다. 이 세 서버 `ResourceDashboardSummary.selector`는 동일 snapshot의 실제 Assignment 집합을 가리킨다. `MilestoneScopeSummaries`의 각 scope에 계획 M/D·M/M 및 Assignment 수를 포함한 명시적 `assignments` 상세 버튼을 추가하고 기존 고유 Task 상세 버튼은 유지한다. Assignment 0건은 비활성이고 null/partial/unset 텍스트를 변경하지 않는다. native SQLite/HTTP E2E에서 Milestone 제외 집합의 `assignmentScope=milestoneExcluded`/`view=assignments`/고유 Assignment 행·Task 집합을 검증하며 모드/수치 계산·DB·API 계약은 변경하지 않는다. 리뷰 해결·정확한 새 head의 PR CI success 전에는 병합/ACCEPT를 선언하지 않는다.
+
 ## Issue #538 — Project master 계층 검증
 
 - DB migration 0024: 이미 연결된 조합 중복 제거, 부분/legacy row의 무추정·무변경, FK/category/parent 보호, checksum/rollback.
