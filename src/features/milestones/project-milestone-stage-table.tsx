@@ -10,13 +10,14 @@ export interface MilestoneStageTableProps {
   rows: readonly MilestoneDashboardStageDto[];
   tasks: readonly ProjectTaskDto[];
   enabled: boolean;
+  scheduleEnabled?: boolean;
   onOpenTask?: (taskId: string, tab?: "task" | "memberships") => void;
   onSchedule?: (taskIds: string[]) => void;
 }
 
 const statusLabel = (status: ProjectTaskDto["status"]) => status === "completed" ? "완료 기록" : status === "in_progress" ? "진행 중" : "시작 전";
 
-export function ProjectMilestoneStageTable({ rows, tasks, enabled, onOpenTask, onSchedule }: MilestoneStageTableProps) {
+export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabled = enabled, onOpenTask, onSchedule }: MilestoneStageTableProps) {
   const id = useId(), [detailId, setDetailId] = useState<string | null>(null);
   const heading = useRef<HTMLHeadingElement>(null), trigger = useRef<HTMLButtonElement | null>(null);
   const row = rows.find((stage) => stage.milestoneTaskId === detailId);
@@ -24,7 +25,7 @@ export function ProjectMilestoneStageTable({ rows, tasks, enabled, onOpenTask, o
   const openDetails = (taskId: string, button: HTMLButtonElement) => { trigger.current = button; setDetailId(taskId); requestAnimationFrame(() => heading.current?.focus({ preventScroll: true })); };
   const closeDetails = () => { setDetailId(null); requestAnimationFrame(() => trigger.current?.focus({ preventScroll: true })); };
   function causeList(title: string, ids: string[]) {
-    return <section className={styles.causeGroup}><h4>{title} · {ids.length}개</h4>{ids.length ? <ul>{ids.map((taskId) => { const task = taskById.get(taskId); return <li key={taskId}><span>{task?.name ?? "현재 정보에 없는 작업"}<small>외부 ID: {task?.externalId ?? "—"} · 작업 ID: {taskId}</small></span><div className={styles.actions}><button type="button" disabled={!enabled || !task || !onOpenTask} onClick={() => { if (enabled && task) onOpenTask?.(taskId, "task"); }}>전체 프로젝트 정보</button><button type="button" disabled={!enabled || !onSchedule} onClick={() => { if (enabled) onSchedule?.([taskId]); }}>전체 일정에서 보기</button></div></li>; })}</ul> : <p>해당 원인 없음</p>}</section>;
+    return <section className={styles.causeGroup}><h4>{title} · {ids.length}개</h4>{ids.length ? <ul>{ids.map((taskId) => { const task = taskById.get(taskId); return <li key={taskId}><span>{task?.name ?? "현재 정보에 없는 작업"}<small>외부 ID: {task?.externalId ?? "—"} · 작업 ID: {taskId}</small></span><div className={styles.actions}><button type="button" disabled={!enabled || !task || !onOpenTask} onClick={() => { if (enabled && task) onOpenTask?.(taskId, "task"); }}>전체 프로젝트 정보</button><button type="button" disabled={!scheduleEnabled || !onSchedule} onClick={() => { if (scheduleEnabled) onSchedule?.([taskId]); }}>전체 일정에서 보기</button></div></li>; })}</ul> : <p>해당 원인 없음</p>}</section>;
   }
   return <>
     <div className={styles.tableOwner} tabIndex={0} role="region" aria-label="완료 단계 전체 상태 표 가로 스크롤">

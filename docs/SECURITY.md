@@ -13,7 +13,7 @@ Production Import routes는 이전 unavailable stub를 사용하지 않는다. P
 
 파일5 MiB, multipart framing16 KiB, JSON syntax depth64, Task5000/Link20000/perTask predecessor100을 제한한다. Content-Length와 실제 stream bytes를 확인한 뒤 bounded buffer에 대해서만 multipart를 파싱한다. unknown/duplicate/text part, fatal UTF-8 오류, 두 BOM, decoded duplicate JSON key, derived/client bypass field, 새 mixed Link, malformed target/collision/완료 상태는 전체 거부한다. Task description/HTTP(S) URL은 기존 public validator로 재검증하며 URL을 fetch하지 않는다. 실패는 Task/Link/membership/revision 전체 rollback이고 request/error log에 파일 내용·Password·session token·내부 SQL을 추가하지 않는다. 기존 rate-limit 표의 Import10회/분은 별도 계획이며 이번 구현이 해당 rate limiter를 추가했다고 주장하지 않는다.
 
-JSON/Excel Export는 readonly Origin+strong revision 보호이며 edit session을 요구하지 않는다. JSON scope는 strict full project이고 새 route security inventory의 origin-if-match-read다. 같은 SQLite read snapshot/clock에서 revision을 확인하며 no-store/nosniff/UUID filename을 유지한다. JSON의5 MiB 및 Excel text32767/Stage50000행 등 한도를 넘으면 전체 실패하며 식별자/Link 생략·절삭이 없다. Workbook은 inlineStr/escaping/no formula·외부 relationship 정책을 유지하고 새 Direct Project Hyperlink를 추가하지 않는다. Calendar source metadata의 exceptions 우선/legacy holidays fallback은 동일 날짜 중복 적용을 방지하며 대상 Calendar의 authority를 바꾸지 않는다.
+JSON/Excel Export는 readonly Origin+strong revision 보호이며 edit session을 요구하지 않는다. JSON scope는 strict full project이고 새 route security inventory의 origin-if-match-read다. 같은 SQLite read snapshot/clock에서 revision을 확인하며 no-store/nosniff/UUID filename을 유지한다. JSON의5 MiB 및 Excel text32767/Stage50000행 등 한도를 넘으면 전체 실패하며 식별자/Link 생략·절삭이 없다. Workbook은 inlineStr/escaping/no formula 정책을 유지한다. legacy 시트의 외부 관계는 그대로이고 #529 opt-in Resource Report만 검증 Project direct hyperlink 관계 1개를 허용한다. Calendar source metadata의 exceptions 우선/legacy holidays fallback은 동일 날짜 중복 적용을 방지하며 대상 Calendar의 authority를 바꾸지 않는다.
 
 Template create의 기존 validSession이 revokedAt를 검사하지 않는 실제 결함을 관련 SQLite 회귀에서 확인하여 보존 담당이 보강했다. 이제 source public/internal Project와 session Project/id binding, revokedAt=null, session/project authVersion, tokenHash와 expiry를 재검증한다. wrong-public-id/wrong-project-id/expired/authVersion/revoked 회귀를 추가하며 기존 TTL/Origin/authorization scope는 유지한다. Copy ack는 완료/Assignment/권한 guard를 우회하지 않는다. 실제 LFF와 최초 실패는 TEST_PLAN을 따르며 원격 CI나 운영 proxy 검증과 구분한다.
 
@@ -221,7 +221,7 @@ SVG export POST는 readonly 경로이지만 exact `Origin`, strong `If-Match`, c
 
 ### Excel export
 
-- ExcelJS cell에는 user string을 string value로만 넣고 `formula`, rich value, hyperlink object로 해석하지 않는다.
+- handcrafted OOXML writer는 사용자 문자열을 XML-escaped inlineStr로 기록하고 formula/rich value로 해석하지 않는다. 기존 Logistics/Resource Effort의 apostrophe 정책을 유지하고 신규 Resource report는 원문 literal text를 보존한다. finite raw 숫자는 numeric cell, null/미설정은 공란이며 0~100 진척/Load에 percent style을 적용하지 않는다.
 - `=`, `+`, `-`, `@`로 시작하는 사용자 값도 formula로 만들지 않도록 workbook XML round-trip test를 둔다.
 - 외부 hyperlink는 검증한 `APP_BASE_URL`과 Project public UUID로 만든 direct URL 하나만 허용한다.
 - Task/description에 들어 있는 URL을 자동 hyperlink로 만들지 않는다.
@@ -399,6 +399,21 @@ reference/excluded scope는 동일 필터 중 Milestone 조건만 제거한 해�
 신규 Plan daily/day-resources/day-assignments GET 세 경로는 inventory public-read/mutatesState=false이며 canonical UUIDv4+Project 존재 guard를 유지한다. 쿠키/편집 권한 없이 같은 공개 Project 범위에서 조회하고 보호 mutation의 exact Origin/session/revision과 production HTTPS·명시 HTTP 쿠키 정책을 변경하지 않는다. Capacity R는 일반 Task 개인 Assignment 이력으로 한정하고 전역 미배정 Group 구성원·책임 참조뿐인 개인은 Plan 인력으로 공개하지 않는다. 안전 metadata에는 이름/code/분류만 포함하며 description/내부PK/password/KDF/token/SQL/stack은 포함하지 않는다.
 
 모든 상세는 snapshot을 먼저 재확인하고 normalized filter/range/asOf/M/M 및 parent periodId/date/selector/demandScope를 검증한다. SHA는 권한 token이 아니다. stale409, malformed/foreign400, resource-day/assignment-day/matrix/JSON 예산422를 구별하며 임의 절삭이나 오류 원문 공개를 하지 않는다. Group 표시 조건은 전체 Calendar 소속을 변경하지 않는다. 성공·오류 private/no-store/nosniff/X-Request-ID와 unsupported mutation405를 유지한다. [API](API.md#issue-527-resource-plan-공개-조회)를 따른다.
+
+## Issue #528 — 공개 읽기 POST scope query
+
+`resource-dashboard/scope` GET은 public-read/mutatesState=false, `resource-dashboard/query` POST는 inventory `origin-public-query-read`/mutatesState=false다. POST는 검증된 APP_BASE_URL과 exact Origin을 비교하며 production HTTPS 기본값/명시 ALLOW_INSECURE_HTTP=true 내부망 HTTP 정책을 재사용한다. 편집 session이나 mutation revision 보호를 제거하지 않는다. 조회는 session 없이 허용하고 모든 응답에 private/no-store/nosniff/request ID를 적용하며 쿠키·credentialed CORS·권한 token·서버 scope ledger를 만들지 않는다.
+
+POST는 실제 UTF-8 byte1MiB, content-type/charset/content-encoding, strict object/selector/filter/UUID allowlist와 raw source ID5000/8000 상한을 검사한다. unknown/foreign selector는400, 원본 fingerprint와 환경 M-D 정책 변경은409이며 문법 정상인 descriptor의 foreign 의미 검사보다 stale을 먼저 판정한다. 원본/계산/직렬화 한도는422, 전송 한도는413이고 부분 scope를 완전한 결과로 반환하지 않는다. dataSnapshotId/snapshotId는 최신 데이터 비교용이며 authorization token이 아니다. Project 연결 Catalog만 fingerprint/enrichment하고 SQL/password/session 원문을 공개하지 않는다. 실제 원장 변경과 protected mutation denied/no-cookie/no-mutation 회귀는 [TEST_PLAN](TEST_PLAN.md)을 따른다.
+
+
+## Issue #529 Excel Resource report opt-in 보안
+
+기존 origin-if-match-read Export의 exact Origin·strong If-Match·실제 UTF-8 stream8KiB·readonly/no session 정책은 유지한다. source raw fingerprint/Calendar/Catalog/Project와 actual 대상 range/asOf/환산값·출처·provided 여부를 같은 read transaction에서 검증한다. 과거 raw source 또는 scope-bound current snapshot 불일치는 Export412로 전체 실패하며 fresh Project GET으로 이전 context를 대체하지 않는다. 요청 shape400, body413, 계산/row/cell/XML/ZIP 예산422를 구별하고 ID/시트/문자열을 절삭하지 않는다.
+
+opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bundle)의 XML1.0 불허 문자·U+FFFE/U+FFFF·unpaired surrogate는 JSON escaping 이전에도 검증해 EXPORT_UNSUPPORTED로 전체 실패한다. tab/LF/CR와 유효 supplementary Unicode/=+-@ 원문을 보존한다. 신규 시트당50000/전체150000행·1000000실제셀·opt-in 전체XML32MiB/ZIP16MiB의 사전/최종 actualbyte 검증은 legacy opt-in 없는 파일에 적용하지 않는다.
+
+신규 Resource Report에만 validated APP_BASE_URL parser에서 만든 canonical `/projects/{publicId}` external hyperlink relationship 1개를 허용한다. writer는 server-only canonicalProjectUrl만 받고 request에 URL 필드는 없다. Task/user URL·credential·query·fragment·secret은 relationship target으로 만들지 않는다. Password/hash/session/Cookie/internal SQL/DB ID를 보고서·오류·로그에 추가하지 않는다. 성공/오류 private,no-store/nosniff/no-cookie와 UUID filename은 유지한다. [API](API.md#issue-529-resource-보고서-excel-opt-in)를 따른다.
 
 ## Issue #538 — Project master relation mutation
 

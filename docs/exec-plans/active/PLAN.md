@@ -1,14 +1,44 @@
+## Issue #529 — Resource Plan·공수 견적 Excel 보고
+
+[Work Packet](ISSUE_529.md)에 따라 최신 선행 #528 branch/head `899d5d7d12855771339e84f7d7b10ce1e1012983` 기반 `feat/issue-529-resource-excel-report`를 생성했다. 최신 main `b417fcc094bff98ea142374fcd746bce2458c2e1`, 후보 version0.102.0 MINOR, release_required=true/release_authorized=false. 동일 snapshot·현재 조건/Project 전체·raw 숫자/null·고유 Assignment·기존 Export 보안과 기본 시트 호환을 설계한다. 구현·DOCUMENTATION_SYNC·독립 PRE_QA 후 원격 게시·PR CI 등록까지만 진행하며 quality/e2e/docker 결과 모니터링·병합·main/GHCR·Issue 종료는 범위 밖이다. 공식 gate/QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
+구현과 required docs를 동결했다. Backend 고유 Unit147·nativeAPI1, frontend 관련 Unit18·mock 고유3·native 고유3·기존 Milestone viewport1의 영향 범위 PASS를 확인했다. 최초 viewport FAIL과 재작업 FAIL, 반복 실행·controlled RAF·실행 당시 source hash 미수집은 별도로 보존한다. 독립 source/UI/PRE_QA 후 exact tree를 게시하며 PR/head/CI 실행 등록 증거는 Issue/PR에 기록한다. 전체 회귀와 Windows Excel/DRM은 NOT TESTED다.
+
+최초 독립 PRE_QA는 readonly DOM 복원의 입력 취소 guard 누락으로 REWORK다. 기존 취소 oracle의 marker-null PASS는 실제 사용자 위치 보존 증거로 무효이며 원래 source/event 근거를 보존한다. DOM/Core 양쪽 취소·최종 public/DOM 직접 assertion·관련 검증/문서를 보완해 재동결하기 전 원격 게시를 보류한다.
+
+DOM 입력 취소를 보완한 동일 제품 source에서 정상 복원/control·실제 Export·기존 Milestone3 PASS 및 취소1 PASS6.8초를 확인했다. 취소는 public30/DOM31 각각의 실제 사용자 위치와 이전120 복원 없음의 직접 assertion이다. 문서·소스를 다시 동결한 후 새 tree의 독립 delta QA를 거쳐 원격 게시한다.
+
+## Issue #514 — 최신 #518 Workspace 구조 통합 / PR CI 준비
+
+[Work Packet](ISSUE_514.md)에 따라 외부 #518 병합 main `f94c22b00cac57bab409ca57e744b0530d2d35e5` / application `0.101.1`의 상위 Milestone 탭과 복원 구조를 보존해 #514 보완을 적응 통합한다. 최종 branch는 `fix/issue-514-grid-start-reveal`, current worktree는 `issue-514-current`, 후보 PATCH `0.101.2`다. 최초 baseline `3fa543b10e98d59e50f63f3f53613affe720b648`의 source/진단/16조합 PASS와 실제 null/pending FAIL·폭 fixture FAIL은 historical로 보존한다. 최신 구조의 영향 검증·문서 gate·독립 PRE_QA 후 원격 게시와 exact-head PR CI 등록까지만 진행한다. CI 결과 모니터링·병합·main/GHCR·Issue 종료는 하지 않으며 release_required=true/release_authorized=false, 공식 quality/e2e/docker·QA_FINAL/Manager ACCEPT는 NOT TESTED다. 기존 #529 구현은 유지한다.
+
+현재 #518 통합의 신규 고유16case(8matrix/16설정 포함)와 직접 관련 기존4case, Unit18case가 로컬 PASS다. 양 복원 queue의 새 입력 우선순위와 null start 수평 보호를 확인했다. 5폭10관측 중 390px 미래 시작점은 기존 minWidth720 작업면의 논리 viewport에만 포함되며 page x662 제한·outer pan NOT TESTED를 명시한다. 이전/현재 최초 typecheck fixture 오류 및 초기 oracle/폭 fixture FAIL을 보존하고 명시 타입 수정 뒤 현재 typecheck PASS를 구분한다. 최신 문서·독립 PRE_QA 후 게시하며 공식 CI와 최종 ACCEPT는 NOT TESTED다.
+
+## Issue #518 — 일정·Milestone 상위 탭 구조 단순화 (2026-10-08)
+
+[Issue #518](https://github.com/planner77/masterGantt/issues/518)의 현재 범위는 별도 `feat/issue-518-workspace-milestone-tab` 브랜치에서 #463의 내부 Gantt/Dashboard 중첩 탭을 제거하고 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 상위 탭으로 배치하는 것이다. 초기 기준 main은 `8b9d4d76758f73094ec84590e3a8a49314741587`, 이전 정렬 기준은 `b4a0898283571ac4f05d53299266acccadeeff68`, 신규 통합 기준 최신 main은 `3fa543b10e98d59e50f63f3f53613affe720b648` / application `0.101.0`; PATCH 후보 `0.101.1` (`release_required=true`, `release_authorized=false`). #399 WBS scope 탭, 기존 Gantt instance/viewport/filter/selection, #463 Dashboard 계산과 drill, dialog/focus 및 Core/Core-only 정책을 보존한다.
+
+작성 범위는 application UI/CSS·관련 기존 Playwright 수정·#518 상위 탭 E2E·REQUIREMENTS/PROJECT_UX/UI_UX_GUIDELINES/TEST_PLAN/PLAN/CHANGELOG와 Work Packet 동기화 및 PR CI 시작까지다. GitHub connector에서만 원격 파일을 변경하므로 로컬 npm/Chromium LFF는 **NOT TESTED**이며 원격 exact-head CI의 quality/e2e/docker 결과도 PR 시작 전에는 **NOT TESTED**다. qa_docs 독립 검토는 별도 실행하지 않았으며 최종 ACCEPT/merge/main/GHCR/Issue 종료는 범위 밖이다. 상세는 [ISSUE_518](ISSUE_518.md)을 따른다.
+
+Run #2158.1은 #518 고유 UI, Quality, Docker 및 E2E 5개 shard가 PASS했으나 shard 1의 기존 #502 Gantt Demo Error Boundary probe 1건이 FAIL했다. 원인은 본 Issue 코드 결함으로 단정하지 않고 hydration 이벤트 처리 준비 상태를 명시적으로 검증한다. E2E probe 전용 readiness 신호와 키보드/진짜 boundary 검증을 유지하며, 최신 main #527 통합과 함께 새로운 PR head의 required CI를 재시작한다. 이전 head PASS는 새 head 전체 ACCEPT 증거가 아니다.
+
+최신 main #528 병합으로 Resource·Milestone·일정 간 canonical drill/원래 보기 복귀 계약을 보존한다. 내부 Gantt/Dashboard 탭을 상위 Workspace 탭으로 통합하면서 ResourceNavigationState.view에 milestones를 포함시키고, 단일 작업공간 tablist의 restore/heading focus에 연결한다. #518 UI/테스트/문서와 #528 Source of Truth를 함께 검증할 새로운 PR CI는 exact head에서 필요하며, 이전 #2161 PASS는 신규 head의 증거로 사용하지 않는다. `release_required=true` / `release_authorized=false`; CI 시작 이외의 병합·release·cleanup은 범위 밖이다.
+
+## Issue #528 — Resource·Milestone·일정 간 drill-down
+
+[Work Packet](ISSUE_528.md)에 따라 직접 선행 `feat/issue-527-resource-plan` / `a681089dcd374f56e1de4f56a8ee2bf5fe567e87` 기반 stacked PR로 순차 진행한다. Backend 관련6파일159Unit/독립159Unit·경계 probe2개 및 최종 UI 관련5파일28Unit·mock2/nativeUI1 PASS 후 문서 동결과 독립 PRE_QA를 진행한다. 후보 application `0.101.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
+
 ## Issue #526 원격 인계
 
 [PR #534](https://github.com/planner77/masterGantt/pull/534), head `1c518612395c45254ecbd018742e594ac88c3229`, [CI 37676430071 / 2099.1](https://github.com/planner77/masterGantt/actions/runs/37676430071) 등록을 확인했다. source tree `3c28e65d5fabc96d91103490f9536af357064523`, DOCUMENTATION_SYNC/독립 PRE_QA PASS. quality/e2e/docker 결과는 모니터링하지 않았고 NOT TESTED이며 #527로 진행한다.
 
 ## Issue #527 — 주·월 Resource Plan과 Capacity·과투입
 
-[Work Packet](ISSUE_527.md)에 따라 직접 선행 `feat/issue-526-resource-milestone-rollup` / `1c518612395c45254ecbd018742e594ac88c3229` 기반 stacked PR로 순차 진행한다. source/doc 동결과 로컬 관련 검증 후 독립 PRE_QA를 진행한다. application `0.100.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
+[Work Packet](ISSUE_527.md)에 따라 직접 선행 `feat/issue-526-resource-milestone-rollup` / `1c518612395c45254ecbd018742e594ac88c3229` 기반 stacked PR로 순차 진행한다. [PR #535](https://github.com/planner77/masterGantt/pull/535), head `a681089dcd374f56e1de4f56a8ee2bf5fe567e87`, [CI 37684790075 / 2104.1](https://github.com/planner77/masterGantt/actions/runs/37684790075) 등록을 확인했다. source tree `d28ca7d9410b2a8894a0d7be739f5e2f35adc002`, DOCUMENTATION_SYNC/독립 PRE_QA PASS. application `0.100.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
 
 ## #523–#528 요청 범위 진행 상태
 
-#523 [PR #531](https://github.com/planner77/masterGantt/pull/531) / head `f8a51503745cd5f3f1f3c9986f6b7577d83ce93a` / [CI 37639620321](https://github.com/planner77/masterGantt/actions/runs/37639620321), #524 [PR #532](https://github.com/planner77/masterGantt/pull/532) / head `5c17d3a394d95c6799dceb2b22ed166dca34f241` / [CI 37643698987](https://github.com/planner77/masterGantt/actions/runs/37643698987), #525 [PR #533](https://github.com/planner77/masterGantt/pull/533) / head `c4454ba4085930ba2d6e32c58f1653a32e496aca` / [CI 37650777139](https://github.com/planner77/masterGantt/actions/runs/37650777139)의 실행 등록까지 확인했다. CI 결과는 조회하지 않았으며 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. #526은 서버 계약 구현 뒤 UI를 순차 구현하며 #527/#528 구현은 각각 선행 PR CI 등록 이후 시작한다. 모든 branch/Issue는 유지한다.
+#523 [PR #531](https://github.com/planner77/masterGantt/pull/531) / head `f8a51503745cd5f3f1f3c9986f6b7577d83ce93a` / [CI 37639620321](https://github.com/planner77/masterGantt/actions/runs/37639620321), #524 [PR #532](https://github.com/planner77/masterGantt/pull/532) / head `5c17d3a394d95c6799dceb2b22ed166dca34f241` / [CI 37643698987](https://github.com/planner77/masterGantt/actions/runs/37643698987), #525 [PR #533](https://github.com/planner77/masterGantt/pull/533) / head `c4454ba4085930ba2d6e32c58f1653a32e496aca` / [CI 37650777139](https://github.com/planner77/masterGantt/actions/runs/37650777139)의 실행 등록까지 확인했다. CI 결과는 조회하지 않았으며 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. #526 PR #534 / CI 37676430071 및 #527 PR #535 / CI 37684790075 등록 후 #528 구현을 순차 진행했다. 작업 branch는 정리하지 않는다. #523의 외부 병합 및 추가 fix `37a16a55193a35b4d1dd608b14aae7a8317c84d3`는 후행 #527/#528 baseline에 반영했으며 이번 작업이 수행한 병합으로 보고하지 않는다.
 
 ## Issue #526 — Resource·Group Milestone roll-up과 비교표
 

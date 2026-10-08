@@ -242,6 +242,18 @@ ResourceDashboardService는 같은 SQLite read transaction의 prepareSnapshot, p
 
 Calendar의 전체 Group 소속과 Group 출력 projectionGroupIds를 분리한다. 선택 기간/Task/Milestone/search로 R를 축소하지 않고 Group/Role 중첩 Capacity를 Grand로 합산하지 않는다. 신규 daily/day-resources/day-assignments GET은 기존 route→service→repository→SQLite 경계를 유지하며 전역 Group 멤버·원장·cache·migration을 추가하지 않는다. 실제 daily ID 원인은 별도 page이며 시간축 전체 ID 배열을 report에 복제하지 않는다. [Plan 공개 계약](API.md#issue-527-resource-plan-공개-조회)을 따른다.
 
+## Issue #528 — Stateless scope query 경계
+
+Resource drill DTO와 strict 입력 parser, 공개 Route Handler, ResourceDashboardService, 공용 `readResourceDataSnapshot`, 기존 Repository/SQLite를 사용한다. POST는 exact Origin과 실제 stream1MiB를 검증하는 읽기 전용 경로이며 session·DB schema·scope token 저장소를 추가하지 않는다. 공용 원본 reader는 clock/기간 projection 없이 동일 read transaction의 raw 원장과 연결 Catalog/Calendar를 정렬·fingerprint한다. Resource report, bootstrap/query와 Legacy Milestone의 context 계산이 동일 helper를 사용한다. query는 source fingerprint/환경 환산 정책을 먼저 확인하고 한 clock/read transaction에서 target projection을 읽는다.
+
+source restriction은 선택 A와 T0에만 적용한다. exact Assignment 교집합은 다른 co-assignee로 확대하지 않고, T0의 raw 진단은 허용 일반 Task 집합 안에서 개인 조건 전 의미를 유지하며 exact Assignment source의 ID 교집합도 보존한다. Milestone reference는 source restriction을 유지하면서 M 조건만 제거한다. Plan Capacity R/history/fullProjectA 및 full canonical Stage Gate는 source restriction으로 좁히지 않는다. Plan의 project는 같은 R/기간 전체 참고로 명시한다. UI는 원래 출발 context와 target 조건을 별도 echo로 검증한다. Legacy Milestone의 추가 fingerprint 한도 초과는 report 전체 실패가 아니라 nullable context로 표현한다. 상세 계약은 [API](API.md#issue-528-정확한-resource일정-drill-조회)를 따른다.
+
+## Issue #529 Resource Excel report projection
+
+기존 Excel Route Handler → ProjectExportSnapshotService → 기존 Project/Resource services/repositories → SQLite 경계를 유지한다. ProjectExportSnapshotService의 deferred read transaction과 한 번 캡처한 clock에서 canonical Project/Stage/legacy Resource Effort 및 opt-in KPI·Plan bundle을 읽는다. ResourceDashboardService는 source raw fingerprint/환산 정책과 current scope-bound snapshot 또는 project 전체 intent를 검증하고 기존 pure KPI/Plan을 재사용한다. writer는 typed bundle의 identity/finite/null/count/period partition을 검증해 7개 worksheet를 append하며 별도 Calendar/공수/상태 계산 엔진을 만들지 않는다.
+
+actual target report context와 original drill provenance는 별도다. source 제한은 A와 T0에 적용하고 exact Assignment를 공동담당자로 확대하지 않는다. #526 reference는 source를 유지해 M만 제거하고 #527 project 참고는 동일 Capacity R 전체다. 진단의 원래 기간 계산은 기존 Calendar helper와 별도 Assignment row cache를 사용하며 prepared snapshot을 mutate하지 않는다. 저장 schema·migration·report cache·token 원장은 추가하지 않는다. OOXML/ZIP 예산과 검증된 Project hyperlink 단일 관계는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다.
+
 ## Issue #538 — Project master relations
 
 계층 관계는 SVAR와 분리된 전역 Project Master Domain이다. `project_master_items`는 안정된 item authority, `business_unit_products` 및 `business_unit_product_sites`는 재사용 가능한 연결 authority, Project는 기존 nullable FK를 보유한다. `Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`의 transaction boundary에서 관계 생성/해제·Project 조합 validation·catalog revision 경쟁 검사를 실행한다. Frontend cascading은 서버의 `relations`를 읽는 projection이며 자체 Source of Truth가 아니다.

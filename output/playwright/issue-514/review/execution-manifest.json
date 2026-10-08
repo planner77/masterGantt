@@ -1,0 +1,213 @@
+{
+  "frozenAt": "2026-10-08T10:28:11.060014+00:00",
+  "baseline": "f94c22b00cac57bab409ca57e744b0530d2d35e5",
+  "branch": "fix/issue-514-grid-start-reveal",
+  "sourceAndDocs": {
+    "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+    "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "7b3c93e395f29330a196067f097d78a59ce770561fc95ebe1d2f38c06be5fe11",
+    "docs/PROJECT_UX.md": "d312f5fd25219435204e81d88d58ebb582c4f24a5800faf6dc85e694e69d9063",
+    "docs/UI_UX_GUIDELINES.md": "7121ca45b03d931010aa8bbd2793aea85fe53e12e1133b3683158cc09e373ec5",
+    "docs/TEST_PLAN.md": "d6d256d46a317d17c8231b9f2afe0b5cdce14181bf205495f89a2d239506ac0e"
+  },
+  "captures": {
+    "before-null.json": {
+      "capturedAt": "2026-10-08T09:58:46.880Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "515be2b51cd0295e8edb712a4bbfbf7089dbec153aa5b65d5baffe1a092bd070",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "b5e60ebe4388abbd3397e64a911ff86a3ca657b63cf9efade1f8e6a86ee44b51"
+      },
+      "status": "HISTORICAL_FAIL"
+    },
+    "before-pending.json": {
+      "capturedAt": "2026-10-08T10:01:37.887Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "515be2b51cd0295e8edb712a4bbfbf7089dbec153aa5b65d5baffe1a092bd070",
+        "src/features/projects/project-readonly-view.tsx": "ece492be699552421ffc9560284d7df414dadf954798878333e4407faf4f03df",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "a2b13039b1a5bdd7ba39a9e1dd7a1f8f3011d8cab4c3ec3acee0cc96b84b3945"
+      },
+      "status": "HISTORICAL_FAIL"
+    },
+    "current-editable-name.json": {
+      "capturedAt": "2026-10-08T10:21:21.228Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "a9689a0e2ec49d288412b9327382ae7a7b5a52782d0435b45f1750124c7cadad"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-normal-long.json": {
+      "capturedAt": "2026-10-08T10:21:19.767Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "a9689a0e2ec49d288412b9327382ae7a7b5a52782d0435b45f1750124c7cadad"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-null.json": {
+      "capturedAt": "2026-10-08T10:17:05.962Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-pending-dated.json": {
+      "capturedAt": "2026-10-08T10:17:07.830Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-pending-input.json": {
+      "capturedAt": "2026-10-08T10:17:04.148Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-pending-source-filter.json": {
+      "capturedAt": "2026-10-08T10:21:17.943Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "a9689a0e2ec49d288412b9327382ae7a7b5a52782d0435b45f1750124c7cadad"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-selection-guards.json": {
+      "capturedAt": "2026-10-08T10:20:28.531Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01e359eee568d3abc75170c193750aed9cbebce3781a9e05a7687734965e9394"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "current-widths.json": {
+      "capturedAt": "2026-10-08T10:20:32.005Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01e359eee568d3abc75170c193750aed9cbebce3781a9e05a7687734965e9394"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-edit-day-full.json": {
+      "capturedAt": "2026-10-08T10:16:56.622Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-edit-day-normal.json": {
+      "capturedAt": "2026-10-08T10:16:53.768Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-edit-week-full.json": {
+      "capturedAt": "2026-10-08T10:17:02.355Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-edit-week-normal.json": {
+      "capturedAt": "2026-10-08T10:16:59.422Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-ro-day-full.json": {
+      "capturedAt": "2026-10-08T10:16:46.170Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-ro-day-normal.json": {
+      "capturedAt": "2026-10-08T10:16:43.199Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-ro-week-full.json": {
+      "capturedAt": "2026-10-08T10:16:51.086Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    },
+    "matrix-ro-week-normal.json": {
+      "capturedAt": "2026-10-08T10:16:49.134Z",
+      "sourceHashes": {
+        "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+        "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+        "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+      },
+      "status": "LOCAL_PASS_LIMITED_SCOPE"
+    }
+  },
+  "logs": {
+    "/tmp/frontend514-current1.log": "5849cfbca69ea02bd9b0ff23dc8aaeed13328605ca1ba0fdbda40dcd6a4b1d17",
+    "/tmp/frontend514-current-controls2.log": "b832523eadb2a7daeddc76c00a1a5ecf4250883b8b79ac3e58b7b4dcf0213b90",
+    "/tmp/frontend514-current-source1.log": "a7cd7bc37dec0bf85595cdf5621c46adf36f59aab1ee39775325251c2ac9e450",
+    "/tmp/frontend514-current-regression1.log": "30f7410c7c41bd6a02fd7403e5965d7abc64c353db5f3e0480a4731103f734c1",
+    "/tmp/frontend514-current-width1.log": "5f411bac49638f4bbde66a5d0ab8538c4e4471f6d05acc02bd0f704f8cd3fb11",
+    "/tmp/frontend514-current-typecheck.log": "bf958ad0d72b48a1e63f51602036c3593b7e3c278ecdcb72fb86ae198b4e7379",
+    "/tmp/frontend514-current-typecheck2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/frontend514-current-lint.log": "cf82869b08131fb768ab2b659a1624303e31153c1e99ae311c977f8eb9b41639",
+    "/tmp/frontend514-current-testlint2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/frontend514-current-unit.log": "b4f903f95cbf8d99b1457c46b81c8b91fe89589ddee049a6142fe8edee229f31",
+    "/tmp/frontend514-current-markdown-final.log": "92f925f4d8b024960abbfb56ec2e1ce1e145ec396b4d831f81a4aea983087e1a",
+    "/tmp/frontend514-typecheck1.log": "bf958ad0d72b48a1e63f51602036c3593b7e3c278ecdcb72fb86ae198b4e7379"
+  },
+  "localTests": {
+    "newUniqueE2e": 16,
+    "relatedUniqueE2e": 4,
+    "matrixCases": 8,
+    "configurationCount": 16,
+    "widthObservations": 10,
+    "current1": "11 PASS / 33.1s",
+    "currentControls2": "2 PASS / 8.2s; repeated selection case + width scope correction",
+    "currentSource1": "3 PASS / 6.7s",
+    "relatedRegression1": "4 related PASS + 1 new oracle FAIL / 17.4s",
+    "unit": "2 files18 PASS / 157ms",
+    "typecheck": "initial fixture type widening FAIL; corrected final exit0 PASS",
+    "lint": "0 errors; baseline4 hook warnings; final test lint0",
+    "environment": "ALL 20 browser cases mocked canonical API + actual native Chromium/Core; no SQLite/persistence proof"
+  },
+  "limitations": [
+    "390 future logical viewport PASS, page x662 outside; no automatic narrow page follow claim",
+    "768 and1024/1440/1920 both page starts visible",
+    "outer pan NOT TESTED",
+    "production DOM sync marker not exposed; snapshot/reset/instance/input/geometry guard and Core actual canonical ref",
+    "capture spec SHA differs after independent added cases and local array type correction; fixture values and existing case behavior unchanged; raw original SHA preserved",
+    "historical typecheck PASS report corrected to FAIL; original freeze JSON not overwritten"
+  ],
+  "runtime": "owned server stopped; own build removed; next-env/tsconfig HEAD byte restored; unselected artifacts archived at /tmp/issue-514-current-all-artifacts",
+  "remoteCI": "NOT TESTED; no monitoring",
+  "independentQA_FINAL": "NOT TESTED"
+}

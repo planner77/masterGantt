@@ -53,3 +53,14 @@
 - E2E shard 6: 신규 main #526의 `tests/e2e/resource-milestone-views.spec.ts` 최초 `setup()`에서 Gantt scroll `{left:120,top:96}` 직후 `left=1581`로 이동, 74 PASS / 1 FAIL / 1 SKIP. 실제 제품 반응인지 native row selection 직후 지연 스크롤 경합인지 trace 직접 재생 미검증. 초기 fixture에서 delayed scroll-to-task 실행과 명시 scroll 설정이 경합할 수 있으므로, **두 RAF 이후 DOM과 Core 공개 viewport를 함께 확인하고 목표 좌표를 bounded 재설정**해 상태를 고정한다. 진짜 Resource 탭 왕복 상태 보존 `expect.poll(() => ganttState(page)).toEqual(before)`은 변경하지 않는다.
 - main이 `8b9d4d76758f73094ec84590e3a8a49314741587`에서 `b4a0898283571ac4f05d53299266acccadeeff68`로 6 commits 이동했으며 #527 Resource Plan/version 0.100.0을 포함한다. 최신 main과 #538를 다시 두 부모 merge 방식으로 정렬하고 고유 변경·Resource Plan을 함께 보존한다. 버전은 `0.101.0`.
 - `release_required=true`, `release_authorized=false`. 새 PR CI exact-head 등록까지만 실행하며 병합/Main CI/정식 GHCR 게시/Issue 종료 미진행.
+
+## 2026-10-08 최신 main 재정렬 (#539)
+
+- 정렬 전 PR head: `4c63af8cb7d4d50bb6cdafcd108aa5df0f0a4cc0`, 기준 latest main: `599b824677cec2daa47743a60fcac422297f925b` (Issue #514/#518/#528/#529 병합, app 0.102.0).
+- 공통 parent `b4a0898283571ac4f05d53299266acccadeeff68` 이후 PR 고유 변경 38파일, main 변경 134파일 중 **동시 변경 14파일**을 교차 검토했다.
+- 최신 main의 전체 tree에서 출발해 #538 전용 24파일을 원본 blob SHA로 보존. 동시 수정된 7개 문서는 PR의 #538 추가 섹션만 최신 main 문서 뒤에 통합하고 #514/#518/#528/#529 내용을 유지했다.
+- 최신 main `project-gantt.tsx`(새로운 Grid 날짜 표시 이동 및 peer viewport 처리)의 코드를 유지하면서 #538 메타데이터 저장 뒤 비영점 스크롤 복원 helper/import만 해당 guard에 적용한다. `tests/e2e/resource-milestone-views.spec.ts`는 최신 main #529에서 이미 DOM·SVAR Core의 안정화된 스크롤을 검증하도록 개선했으므로 PR의 과거 #526 테스트 픽스처 재시도안으로 덮어쓰지 않고 main을 선택한다.
+- `src/server/security/route-security-inventory.ts`와 `tests/server/projects/edit-authorization-handlers.test.ts`는 최신 main의 새 Query/Scope API 계약을 유지하고 #538 전역 관리자 관계 POST/DELETE 두 경로만 추가했다.
+- `CHANGELOG.md`는 main의 0.102.0 및 기존 릴리스 이력을 보존하면서 Issue #538의 0.103.0 내용을 상단에 추가. `package.json`과 `package-lock.json` 루트 버전은 둘 다 0.103.0.
+- 최종 결과는 두 부모 merge commit의 GitHub trees/refs와 PR CI exact head로 검증해야 하며, 이전 Run #2160.1 SUCCESS는 정렬 전 head 증거로만 남긴다.
+- 승인 범위는 main 정렬·충돌 해결·**새 PR CI 시작**까지. main 병합, Main CI, 정식 GHCR 게시, Issue 종료는 별도 승인 전 시행하지 않는다.

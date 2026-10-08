@@ -1,4 +1,6 @@
 "use client";
+import { useResourceDrill } from "./resource-drill-context";
+import { resourceProjectionFetch } from "./resource-drill-transport";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ResourceDashboardDto } from "@/contracts/resource-dashboard";
 import { readDashboard } from "./resource-dashboard-model";
@@ -8,7 +10,9 @@ export type ReportState = {
   phase: "loading" | "ready" | "error";
   error: string;
   queryKey: string;
+  bindingKey: string;
   confirmedAt: string | null;
+  confirmationId: number;
 };
 export function dashboardError(code: string): string {
   if (code === "REPORT_STALE")
@@ -29,24 +33,30 @@ export function useResourceDashboard(
   active: boolean,
   queryKey: string,
 ) {
+  const { binding, onReport } = useResourceDrill();
+  const reportCallback = useRef(onReport);
+  useEffect(() => { reportCallback.current = onReport; }, [onReport]);
+  const bindingKey = JSON.stringify(binding);
   const [state, setState] = useState<ReportState>({
     data: null,
     phase: "loading",
     error: "",
     queryKey: "",
+    bindingKey: "",
     confirmedAt: null,
+    confirmationId: 0,
   });
   const [planData, setPlanData] = useState<ResourceDashboardDto | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
-  const latest = useRef({ publicId, revision, queryKey });
+  const latest = useRef({ publicId, revision, queryKey, bindingKey });
   const generation = useRef(0);
   const refresh = useCallback(() => {
     setState((previous) => ({ ...previous, phase: "loading" }));
     setRefreshTick((value) => value + 1);
   }, []);
   useEffect(() => {
-    latest.current = { publicId, revision, queryKey };
-  }, [publicId, revision, queryKey]);
+    latest.current = { publicId, revision, queryKey, bindingKey };
+  }, [publicId, revision, queryKey, bindingKey]);
   useEffect(() => {
     if (!active) return;
     let disposed = false;
@@ -62,7 +72,8 @@ export function useResourceDashboard(
         error: "",
       }));
       try {
-        const response = await fetch(
+        const response = await resourceProjectionFetch(
+          binding,
           `/api/projects/${encodeURIComponent(publicId)}/resource-dashboard?${queryKey}`,
           {
             credentials: "same-origin",
@@ -85,10 +96,12 @@ export function useResourceDashboard(
           generation.current !== current ||
           latest.current.publicId !== publicId ||
           latest.current.queryKey !== queryKey ||
-          latest.current.revision !== revision
+          latest.current.revision !== revision ||
+          latest.current.bindingKey !== bindingKey
         )
           return;
         if (data.projectRevision !== revision) throw new Error("REPORT_STALE");
+        reportCallback.current?.(data);
         if (data.plan) setPlanData(data);
         setState((previous) =>
           previous.data?.projectPublicId === publicId &&
@@ -103,7 +116,9 @@ export function useResourceDashboard(
                 phase: "ready",
                 error: "",
                 queryKey,
+                bindingKey,
                 confirmedAt: new Date().toISOString(),
+                confirmationId: current,
               },
         );
       } catch (error) {
@@ -126,7 +141,7 @@ export function useResourceDashboard(
       disposed = true;
       controller.abort();
     };
-  }, [publicId, revision, active, queryKey, refreshTick]);
+  }, [publicId, revision, active, queryKey, refreshTick, bindingKey, binding]);
   useEffect(() => {
     if (!active) return;
     const catchUp = () => {
@@ -145,6 +160,7 @@ export function useResourceDashboard(
     !active ||
     state.phase !== "ready" ||
     state.queryKey !== queryKey ||
+    state.bindingKey !== bindingKey ||
     data.projectRevision !== revision;
   return {
     ...state,
