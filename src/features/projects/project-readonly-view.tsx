@@ -44,7 +44,8 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEve
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
-import { ProjectExportButton } from "@/features/projects/project-excel-export-button";
+import type { ResourceExportEvidence } from "@/features/resources/resource-export-model";
+import { ProjectExportButton, type ProjectExportHandle } from "@/features/projects/project-excel-export-button";
 import { previewMembershipCopy } from "@/domain/milestones/membership-copy-plan";
 import { ProjectCopyMembershipConfirm } from "./project-copy-membership-confirm";
 import { copyReviewMatches, type CopyReview } from "./project-copy-confirm-model";
@@ -235,8 +236,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [scheduleView, setScheduleView] = useState<"gantt" | "milestones">("gantt");
   const schedulePeerReferences = useRef<Partial<Record<"gantt" | "milestones", HTMLButtonElement | null>>>({});
   const scheduleGanttPanel = useRef<HTMLDivElement>(null);
-  const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number } | null>(null);
-  const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; positions: { selector: string; left: number; top: number }[] } | null>(null);
+  const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number; snapshot: ProjectSnapshotResponse; generation: number } | null>(null);
+  const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; snapshot: ProjectSnapshotResponse; generation: number; instanceId: string | null; syncGeneration: string | null; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
   const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
@@ -326,6 +327,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       importPending: false,
     });
   const milestoneSourceReference = useRef<ResourceDrillSourceContext | null>(null);
+  const resourceExportReference = useRef<ResourceExportEvidence | null>(null);
+  const exportHandle = useRef<ProjectExportHandle | null>(null);
   const resourceReportReference = useRef<Record<number, ResourceDashboardDto>>({});
   const navigationConfirmation = useRef<{
     source: ResourceNavigationState;
@@ -1171,9 +1174,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
+  function capturePeerViewport() {
+    const panel = scheduleGanttPanel.current;
+    if (state.status !== "ready" || activeView !== "schedule" || scheduleView !== "gantt" ||
+      !panel?.isConnected || panel.closest("[hidden], [inert]")) return;
+    const chart = panel.querySelector<HTMLElement>(".wx-chart"), frame = panel.querySelector<HTMLElement>(".project-gantt-frame");
+    if (!chart?.getClientRects().length || !frame) return;
+    // Capture the visible scroll surface; Core restores its public viewport on return.
+    peerViewport.current = {
+      publicId, rootTaskId: activeRootTaskId, filter: taskFilter, snapshot: state.snapshot,
+      generation: ganttResetGeneration, instanceId: frame.dataset.projectGanttApiInstance ?? null,
+      syncGeneration: frame.dataset.ganttCanonicalSyncGeneration ?? null,
+      positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap(selector => {
+        const owner = panel.querySelector<HTMLElement>(selector);
+        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
+      }),
+    };
+    setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`,
+      left: chart.scrollLeft, top: panel.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0,
+      snapshot: state.snapshot, generation: ganttResetGeneration });
+  }
   function activateWorkspaceView(view: "schedule" | "resources" | "logistics") {
     if (navigationPending.current || navigationConfirmation.current)
       cancelNavigationConfirmation();
+    if (view !== "schedule") capturePeerViewport();
     setActiveView(view);
     requestAnimationFrame(() => {
       const ref = view === "schedule" ? scheduleTabReference.current : view === "resources" ? resourceTabReference.current : logisticsTabReference.current;
@@ -1181,15 +1205,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     });
   }
   function activateScheduleView(view: "gantt" | "milestones") {
-    if (scheduleView === "gantt" && view === "milestones") {
-      const panel = scheduleGanttPanel.current;
-      peerViewport.current = { publicId, rootTaskId: activeRootTaskId, filter: taskFilter, positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap((selector) => {
-        const owner = panel?.querySelector<HTMLElement>(selector);
-        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
-      }) };
-      const chart = panel?.querySelector<HTMLElement>(".wx-chart");
-      if (chart) setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, left: chart.scrollLeft, top: panel?.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0 });
-    }
+    if (view === "milestones") capturePeerViewport();
     setScheduleView(view);
     requestAnimationFrame(() => schedulePeerReferences.current[view]?.focus({ preventScroll: true }));
   }
@@ -2006,20 +2022,49 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     peerViewport.current = null;
     // Explicit ID/scope drills own their new viewport. Only a plain peer return
     // restores native DOM scroll, after Core has resized the visible frame.
-    if (saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId || saved.filter !== taskFilter) return;
-    let secondFrame = 0;
+    const frame = scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-frame");
+    if (state.status !== "ready" || saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId ||
+      saved.filter !== taskFilter || saved.snapshot !== state.snapshot || saved.generation !== ganttResetGeneration ||
+      saved.instanceId !== (frame?.dataset.projectGanttApiInstance ?? null) ||
+      saved.syncGeneration !== (frame?.dataset.ganttCanonicalSyncGeneration ?? null)) {
+      setPeerChartRestore(null);
+      return;
+    }
+    if (!frame) return;
+    const panel = scheduleGanttPanel.current;
+    if (!panel) return;
+    const geometry = () => JSON.stringify({
+      scale: frame.dataset.ganttScaleMode, cellWidth: frame.dataset.ganttCellWidth,
+      columns: Array.from(frame.querySelectorAll(".wx-header .wx-cell")).map(cell => cell.getBoundingClientRect().width),
+      gridWidth: frame.querySelector(".wx-table-container")?.getBoundingClientRect().width,
+    });
+    const initialGeometry = geometry();
+    let secondFrame = 0, cancelled = false;
+    const inputEvents = ["pointerdown", "wheel", "keydown"];
+    const markInput = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) cancelled = true;
+    };
+    for (const event of inputEvents) frame.addEventListener(event, markInput, true);
+    const cleanupInput = () => { for (const event of inputEvents) frame.removeEventListener(event, markInput, true); };
+    const current = () => !cancelled && frame.isConnected && panel === scheduleGanttPanel.current &&
+      !panel.closest("[hidden], [inert]") && frame.getClientRects().length > 0 &&
+      saved.instanceId === (frame.dataset.projectGanttApiInstance ?? null) &&
+      saved.syncGeneration === (frame.dataset.ganttCanonicalSyncGeneration ?? null) && geometry() === initialGeometry;
     const firstFrame = requestAnimationFrame(() => {
       secondFrame = requestAnimationFrame(() => {
-        const panel = scheduleGanttPanel.current;
-        if (!panel || panel.hidden) return;
-        for (const position of saved.positions) {
-          const owner = panel.querySelector<HTMLElement>(position.selector);
-          if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
+        try {
+          if (!current()) return;
+          for (const position of saved.positions) {
+            const owner = panel.querySelector<HTMLElement>(position.selector);
+            if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
+          }
+        } finally {
+          cleanupInput();
         }
       });
     });
-    return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); };
-  }, [activeView, scheduleView, publicId, activeRootTaskId, taskFilter]);
+    return () => { cancelled = true; cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); cleanupInput(); };
+  }, [activeView, scheduleView, publicId, activeRootTaskId, taskFilter, state, ganttResetGeneration]);
 
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
@@ -2133,7 +2178,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
       <div className="project-context-actions">
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
-        <ProjectExportButton publicId={publicId} expectedRevision={project.revision} />
+        <ProjectExportButton ref={exportHandle} publicId={publicId} expectedRevision={project.revision}
+          getResourceEvidence={() => resourceExportReference.current} />
         {editing ? (
             <button
           ref={settingsTriggerReference}
@@ -2560,7 +2606,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
         </div> ) : (
-                  <ProjectGantt viewVisible={activeView === "schedule" && scheduleView === "gantt"} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+                  <ProjectGantt viewVisible={activeView === "schedule" && scheduleView === "gantt"} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -2615,6 +2661,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               } as ResourceNavigationState,
               (state) => state.resourceViewId,
             )}
+            onExport={trigger => exportHandle.current?.openResource(trigger)}
+            onExportEvidence={evidence => { resourceExportReference.current = evidence; }}
             onReport={data => {
               const live = new Set(resourceDrillLiveVisits(navigationFrames, {resourceViewId} as ResourceNavigationState, state => state.resourceViewId));
               for(const key of Object.keys(resourceReportReference.current)) if(!live.has(Number(key))) delete resourceReportReference.current[Number(key)];

@@ -1459,3 +1459,29 @@ projection은 `report`, 기존 상세 입력을 포함한 `details`/`groupChildr
 ResourceDataContext는 projectPublicId/projectRevision/catalogRevision/calendarRevision/dataSnapshotId다. 공용 reader는 같은 read transaction에서 정렬된 원시 Task/Link/Membership/Assignment/Project 연결 Catalog/Calendar를 fingerprint한다. ResourceDrillSourceContext는 실제 source range/asOfDate/mdPerMm/mdPerMmSource/mdPerMmProvided/sourceProjection을 추가한다. sourceProjection은 schedule/milestoneReport/report/details/groupChildren/plan 중 하나이며 Plan은 granularity/periodId/selector/demandScope/optional date를 보존한다. stale 원본 fingerprint 및 미지정 환경 환산 정책 변경은 selector의 의미 검증보다 먼저409다. 실제 parent period 밖 source 또는 target date는400이다. report snapshot identity는 원본 data fingerprint+normalized exact scope+필터/기간/asOf/M-D 정책을 포함하며 mode/page/granularity를 제외한다.
 
 새 Resource report는 additive resourceScopeContext를 항상 제공한다. 기존 상세/Group/Plan은 additive resourceDataContext를 제공한다. Legacy Milestone report는 같은 read transaction의 additive resourceScopeContext와 resourceScopeUnavailableReason을 제공한다. 추가 원본 context 한도만 초과하면 기존 Milestone 조회를 보존하며 context=null/reason=`limit-exceeded`를 반환한다. 이때 정확한 cross drill은 비활성화하며 새 bootstrap으로 과거 report를 fresh로 대체할 수 없다. Schedule 출발에는 환산 계산이 없으므로 sourceProjection=schedule/mdPerMm=null/source=query/provided=true를 명시하고 실제 target 환산 정책은 별도로 유지한다.
+
+## Issue #529 Resource 보고서 Excel opt-in
+
+기존 `POST /api/projects/{publicId}/exports/excel`에 optional `resourceDashboard`를 추가한다. 생략하면 기존 시트·수치·문자열·예산 계약을 유지한다. exact Origin, strong If-Match, readonly 접근(edit session 불필요), 실제 UTF-8 stream 8 KiB는 그대로다. descriptor가 8 KiB를 넘으면 413 전체 실패이며 ID 절삭이나 상세 page로 대체하지 않는다.
+
+`resourceDashboard`는 다음 strict union이다. `expectedReport.context`는 실제 대상 Resource report의 `resourceScopeContext` 원문이며 `sourceProjection.kind=report`다. raw Project/Catalog/Calendar/dataSnapshot identity와 기간/asOf/환산값·출처·provided 여부를 같은 read snapshot에서 검증한다.
+
+```typescript
+// 기존 Export request의 선택 필드
+resourceDashboard: {
+  basis: "current",
+  expectedReport: { context: targetReport.resourceScopeContext,
+    snapshotId: targetReport.snapshotId, filters: actualFilterInput },
+  binding: { sourceContext: originalDrillSourceContext, scope: originalExactScope }, // drill일 때
+  originalSourceContext: originalDrillSourceContext, // 선택 provenance
+  granularities: ["week", "month"] // unique, 1..2
+}
+```
+
+정상 비-drill current는 binding을 생략할 수 있다. exact report snapshotId를 유지하면서 원래 binding을 누락·변경하면 scope-bound identity가 달라져 412 `REVISION_MISMATCH`로 실패한다. project는 `{basis:"project",expectedReport:{context:targetReport.resourceScopeContext},granularities:["month"]}` 형태이며 filters/snapshotId/binding을 받지 않는다. 실제 대상의 range/asOf/환산 정책은 유지하고 개인·Group·Role·등급·활성·Task/WBS/Milestone·검색·상태·exact 제한을 제거한다. `originalSourceContext`는 선택 출처이며 현재 또는 전체 합계와 동일하다는 근거가 아니다. 서버가 반환한 actual report context를 Workbook 기준으로 기록한다.
+
+동일 deferred SQLite read transaction과 clock 1회에서 기존 KPI·Plan 서비스를 재사용한다. Resource의 REPORT_STALE 409를 이 Export에서는 412 REVISION_MISMATCH로 매핑한다. missing DTO·비유한 값·ID/count/합계/기간 parity 오류와 계산·시트·파일 예산은 422 전체 실패다. malformed request 400, Origin 403, media type 415, stream 413은 기존 계약이다. 성공은 XLSX attachment+ETag/private,no-store/nosniff이고 오류는 JSON/no-store/nosniff이며 cookie를 발급하지 않는다.
+
+새 7개 시트·raw/null·예산 및 단일 검증 Project hyperlink는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다. 기존 Gantt/Stages/Resource Effort는 기존 전체 범위다.
+
+미설정 원장 상세 보완: `dimension=diagnostic&metric=unset&view=assignments`만 허용한다. T0에 원래 source Task/exact Assignment 교집합을 먼저 적용하고 개인·역할 조건 전 raw unset IDs를 count/detail/scope에서 공유한다. 기간 교차 행은 기존 clipped 값과 optional `allocationOverlapsReport=true,effortRangeBasis=report-overlap`을 제공한다. 기간 밖 행은 원래 from/to, 기존 Calendar helper의 근무일, null MD/MM과 `false,raw-allocation`을 제공한다. required numeric 필드는 유지한다. page 전에 모든 대상 원래 기간 합 1,000,000일을 검증하고 초과는 422 REPORT_LIMIT_EXCEEDED(`diagnostic.assignmentDays`)다. 개별 366일 제한을 추가하지 않으며 개인 필터/page로 이 예산을 우회하지 않는다.

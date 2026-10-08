@@ -98,7 +98,8 @@ export interface ResourceDashboardDetailRow {
   assignment: { assignmentId: string; resourceId: string; resourceName: string; resourceCode: string | null;
     active: boolean; roles: ResourceWorkloadRole[]; developerGrade: DeveloperGrade | null; groupIds: string[];
     assignmentStart: string | null; assignmentEnd: string | null; from: string; to: string; allocationPercent: number | null;
-    effectiveWorkingDays: number; plannedMd: number | null; plannedMm: number | null } | null;
+    effectiveWorkingDays: number; plannedMd: number | null; plannedMm: number | null;
+    allocationOverlapsReport?: boolean; effortRangeBasis?: "report-overlap" | "raw-allocation" } | null;
 }
 export interface ResourceDashboardDetailsDto {
   resourceDataContext?: ResourceDataContext;

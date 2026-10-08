@@ -16,7 +16,7 @@ metadata는 Project/Catalog revision, calculatedAt, Asia/Seoul, asOfDate, horizo
 
 ID 목록은 셀 하나에 이어 붙이거나 자르지 않고 분류·단계·역할·ID별 행으로 출력한다. 단계 시트는 header/metadata/detail을 포함해 50,000행까지 허용한다. 기존 32,767 code point 셀 한도와 Gantt Task/timeline 한도를 유지하며 초과는 전체 `EXPORT_LIMIT_EXCEEDED`다. 새 문자열은 XML escape된 `inlineStr`로 기록하고 `=`, `+`, `-`, `@`, 한글·Unicode·CRLF를 원문 그대로 보존한다. 기존 Logistics/Resource Effort의 apostrophe prefix 정책은 유지한다.
 
-Excel은 보고용 파일이다. 일정·단계 authoritative 재가져오기에는 JSON 1.1을 사용하며 Resource/Logistics가 포함된 전체 운영 백업이라고 안내하지 않는다. 새 Project direct hyperlink는 이번 범위에서 구현하지 않는다. 실제 Windows Excel/VBA/DRM 파일 열기·표시 검증은 NOT TESTED다.
+Excel은 보고용 파일이다. 일정·단계 authoritative 재가져오기에는 JSON 1.1을 사용하며 Resource/Logistics가 포함된 전체 운영 백업이라고 안내하지 않는다. 기존 단계/legacy 출력에는 새 Project direct hyperlink를 추가하지 않는다. #529 opt-in Resource Report의 단일 검증 링크 예외는 아래 계약을 따른다. 실제 Windows Excel/VBA/DRM 파일 열기·표시 검증은 NOT TESTED다.
 
 ## 1. 상태
 
@@ -215,3 +215,33 @@ Excel 요청은 선택적으로 `includeResourceEffort: true`를 받을 수 있�
 Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
 
 Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #529 Resource Dashboard/Plan 추가 보고서
+
+선택 `resourceDashboard`는 [API strict union](API.md#issue-529-resource-보고서-excel-opt-in)을 사용한다. current는 실제 대상 report context/snapshot/입력 조건과 원래 exact binding을 보존한다. project는 실제 기간/asOf/M-D 환산값·출처를 유지하면서 분류·Task/WBS/M·검색·상태·exact 제한만 제거한다. 원래 drill 출처와 현재 대상 기준은 별도 metadata다. 새 범위는 추가 Resource 보고서에 적용하며 기존 Gantt/Tasks/Project/Stages/Resource Effort 범위와 계산은 유지한다.
+
+| 추가 순서 | 시트 | 행 단위와 의미 |
+| --- | --- | --- |
+| 1 | Resource Report | 실제 기준/context/조건·revision·raw snapshot·환산 정책, 전체 A 및 개인/Group/Role 소계, T0 진단 |
+| 2 | Resource Milestones | 개인×effective Milestone/미지정, 안정 ID·이름·nullable 예정일과 raw 요약 |
+| 3 | Group Milestones | Group×Milestone/미지정, 복수 Group 비가산 소계 |
+| 4 | Resource Plan | week/month·overall(all)/기간·전체/Group/개인/개인×M의 selected/project metrics |
+| 5 | Resource Assignments | 선택 A의 고유 Assignment ID당 1행, Task 상태/진척·WBS 참조·개인·원래/교차 기간·투입률·근무일·raw MD/MM |
+| 6 | Resource Quality | T0 개인 조건 전 미배정/Group-only/개인 미배정/미설정 Task 및 raw unset Assignment; 선택 A의 Milestone 미지정은 별도 grain |
+| 7 | Resource Relations | Global Group/Role·Assignment Group/Role·WBS·Milestone metadata·조건·원래 exact scope 관계 |
+
+Plan은 기존 period DTO의 label/year/ISO week/month/partial/from/to를 저장하며 all에는 해당 bucket metadata를 공란으로 둔다. 개인×M의 Capacity와 project 값은 parent Resource 참고이며 비가산이다. project 값이나 parent 과투입을 해당 M 자체 공수/초과로 귀속하지 않는다. 기간별 known MD 합과 전체 요약, selected A 고유 count/공수 및 개인/Group M partition을 검증한다. Group/Role 소계 합은 전체 A 합계로 재합산하지 않는다. 개인별 distinct Task 수 역시 공동담당 Task가 중복되므로 전체 Task 수로 더하지 않는다. 개인×M의 assignmentEffortAdditiveAcrossResources는 Assignment 공수 partition만 의미한다.
+
+품질 raw unset Assignment는 조회 기간 밖이어도 원래 실효기간·overlapsReport=false·null effort로 남기며 선택 A 합계에 넣지 않는다. source exact는 다른 공동담당 Assignment로 확대하지 않는다. 공란(null), configured zero, empty zero, unset/partial state를 구별한다. MD/MM·투입률·진척·Load는 finite raw 숫자다. 0~100 값의 열에 단위를 표시하고 Excel percent style로 100배 변환하지 않는다.
+
+새 문자열은 XML-escaped inlineStr 원문이고 =/+/-/@를 수식으로 바꾸거나 apostrophe를 더하지 않는다. 기존 Logistics/Resource Effort의 apostrophe 정책은 유지한다. opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bundle)의 XML 1.0 금지 제어 문자·U+FFFE/U+FFFF·unpaired surrogate는 치환/절삭 없이 EXPORT_UNSUPPORTED 전체 실패다. tab/LF/CR와 정상 supplementary Unicode는 보존한다.
+
+신규 Resource Report의 Direct Project Link 1개만 external hyperlink relationship으로 허용한다. 기존 validated APP_BASE_URL parser로 생성한 `/projects/{publicId}`를 서버 전용 bundle로 전달한다. 사용자 URL·credential·query·fragment·secret은 허용하지 않으며 잘못된 설정은 전체 실패다. legacy opt-in 없는 Workbook에 새 관계를 추가하지 않는다.
+
+기존 실제 body 8 KiB, 셀 32,767 code point와 기존 Task/timeline/Stage 예산은 유지한다. 신규 시트는 header/metadata 포함 각각 50,000행, 전체 신규 보고 150,000행·실제 1,000,000셀이다. 생성 중 실제 UTF-8 XML bytes를 선검증하고 opt-in Workbook 전체(기존+신규) XML/관계 32 MiB 및 최종 ZIP/response 16 MiB를 검사한다. 기존 Resource report/각 Plan 2 MiB와 계산 예산도 유지한다. 초과는 전체 422이며 일부 시트·행·ID·문자열을 잘라 파일을 성공시키지 않는다. 신규 예산은 opt-in 없는 legacy에는 적용하지 않는다.
+
+실제 Windows Excel/VBA/DRM 열기·표시와 원격 CI는 로컬 ZIP/OOXML 검사로 대체하지 않는다. Excel은 보고용 파일이며 무손실 운영 백업/재가져오기 계약은 기존 JSON이다.
+
+Resource toolbar 진입은 기존 단일 Export 대화상자의 Excel·보고서 포함·현재 조건 기본값을 사용한다. 일반 Export는 기존 기본값을 유지한다. 서버 409/412 뒤 옵션을 보존하고 동일 조회 증거의 즉시 재제출을 잠근다. 실제 새 ready 조회와 사용자 명시 확인이 필요하며 Project·방문·query·binding이 다른 조회의 receipt는 이전 방문의 숫자와 직접 비교하지 않는다. 대화상자는 실제 대상 조건과 원래 이동 출발 조건을 구분하고 Project 전체에서 제외되는 분류·Task/WBS/M·검색·상태·exact 조건을 안내한다. 상세 stale도 생성 금지에 포함하며 재조회는 기존 Resource stale 해제 경로를 사용한다.
+
+Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.

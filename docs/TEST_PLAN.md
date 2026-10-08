@@ -2242,3 +2242,40 @@ Backend nativeAPI1PASS15.8초/전체27.6초는 최초 실행의 이전 source �
 최종 /tmp/frontend528-final-rework-native2.log 실제 SQLite UI1PASS16.5초/전체27.4초. 390/768/1024/1440/1920에서 버튼2개가 모두40px, native Tab focus outline solid3px, document overflow0·strip containment를 확인했다. 최초 및8단계 신규 Resource 방문의 visible 제목 focus를 확인하고390/1440 PNG·five-width JSON을 갱신했다. M 수동 기준일2026-10-02/원본기간2026-10-01–2026-10-03/명시 환산15 M/D /1 M/M은 오늘 lookup과 달라도 strip·원본 M 복귀 후 입력에 유지된다.
 
 첫 hitbox 영향 native1PASS16.7초/전체27.4초는 동일 고유 case 반복이다. M manual 추가 최초 실행은 select의 label에 option text가 포함된 exact locator로15초 timeout이 발생했다(/tmp/frontend528-final-m-context-native.log). 적절한 label 부분 일치로 수정하고 최종 통과했으며 timeout을 늘리지 않았다. 새 고유 case 수는 여전히 mock2/nativeUI1이고, 영향 없는 mock2의 browser11 증거를 재사용한다. 관련 navigation/transport Unit2파일13PASS·typecheck·변경2파일lint0error/0warning·Markdown 링크를 최종 갱신한다. 기존 전체28Unit 및 Gantt baseline4warning 분류는 관련 Local 재사용이며 추가 전체 회귀로 합산하지 않는다. 원격CI/독립QA는 NOT TESTED다.
+
+## Issue #529 Resource Excel와 미설정 원장 회귀
+
+- `tests/server/projects/resource-excel-export.test.ts`: 실제 SQLite+HTTP handler 응답 bytes → ZIP/OOXML 셀·시트·관계 검사, raw known MD와 고유 A parity/null·zero, current/project 정책·clock 1회·legacy bytes, exact binding 생략/변경 412와 정확한 binding 성공, literal text/XML escape/100-based 숫자, Origin/If-Match/raw stale, UTF-8 body 8192/8193, sheet/report rows·cells 및 actual XML32MiB/ZIP16MiB checker 경계, cell32767/32768 writer 통합, missing DTO/non-finite/ID-count/Plan 검증, XML1.0 불허 문자와 surrogate/정상 Unicode, 현재 조건 밖 Task와 legacy Project 문자열 선검증.
+- `tests/server/resources/resource-dashboard.test.ts`: diagnostic unset Assignment parser, 개인 조건 전 count/detail/scope, 원래 exact ID 교집합·공동담당 비확대, 기간 밖 원래 날짜/근무일/null effort vs 기존 clipped 값, 원래 기간 합1000000/1000001 및 개별366 제한 없음.
+- `tests/e2e/resource-excel-export-api.spec.ts`: 실제 Next HTTP/native SQLite XLSX 응답과 자동 ZIP/셀/관계 검사, raw MD/null MM·unsafe-like 원문·Project hyperlink allowlist, readonly no-cookie/no mutation, exact scope binding 생략412/정확binding200, Origin403/body413/수정후 stale412.
+- 기존 Excel Resource Effort/Stage/Logistics/status/week-header와 Resource drill/Plan Unit을 영향 범위로 재사용한다. Builder-only, in-process handler, 실제 Next HTTP, mock UI/native UI 증거를 구분하고 최초 FAIL을 로그에 보존한다. 신규 XML/ZIP checker의 실제 byte 경계 검증을 Windows Excel 열기 PASS로 표시하지 않는다.
+
+공식 quality/e2e/docker·QA_FINAL/main/GHCR 및 실제 Windows Excel/VBA/DRM은 별도 NOT TESTED다. UI 검증은 아래 frontend 소유 테스트·결과로 분리한다.
+
+### Issue #529 UI 검증과 viewport 재작업
+
+Frontend 모델은 `resource-export-model.test.ts`의 새 10개와 기존 Resource 모델 8개를 포함한 3파일 18 PASS(332ms, `/tmp/frontend529-unit-final1.log`)다. 활성 visit/ready/query/binding·3revision/fingerprint/실제 정책, immutable exact binding, current/project 요청 차이, UTF-8 8192/8193·Unicode/직렬화 실패, Project/visit별 receipt와 늦은 파일 취소를 검증한다.
+
+Mock UI는 `resource-excel-export-dashboard.spec.ts`의 고유 3개다. 최초 3 PASS/9.0s(`/tmp/frontend529-mock1.log`)를 보존하고 receipt/Project identity·detail stale 재조회 보완에 따른 영향 2개씩 실행을 별도 기록했다. 최종 영향 2 PASS/5.0s는 `/tmp/frontend529-mock7.log`다. 일반 default off/Resource preset, exact body, 서버412 뒤 동일 proof 잠금·옵션 보존·새 조회/명시 확인, 상세409→동일 snapshotId/new receipt 복구, pending/late 다운로드 폐기, hidden trigger Escape 복원, 긴 조건 5폭 내부 scroll/native Tab outline을 검증한다. 반복 실행 수를 고유 case 수로 합산하지 않는다.
+
+실제 Next/SQLite UI 고유 3개는 `resource-excel-export-ui.spec.ts`다. Export current/exact/whole 다운로드는 `/tmp/frontend529-native4.log`에서 1 PASS/7.1s, PRE_QA 전 artifact 생성 실행 `/tmp/frontend529-native-final1.log`에서 1 PASS/4.4s다. 실제 ZIP의 7시트와 typed numeric/inlineStr/null, Project/3revision/raw snapshot/대상 및 원래 context, 고유 Assignment 집합·raw MD 합을 같은 실제 Dashboard DTO와 비교한다. exact는 원래 ID 집합과 binding, whole은 binding 없는 정책을 확인한다. Export open/cancel/download 전후 양수 public/DOM viewport·선택 ID·열폭·tree·동일 Gantt marker를 비교한다.
+
+Export 없는 동일 native fixture control은 PRE_QA 전 1 PASS/7.5s(총8.3s, `/tmp/frontend529-peer-control-final.log`)다. pending 취소 고유 1개의 최초 1 PASS/3.3s(총4.3s, `/tmp/frontend529-peer-cancel1.log`) 판정은 독립 PRE_QA에서 NOT VALID로 정정했다. Core restore attribute만 검사해 readonly DOM RAF의 사용자 위치 덮어쓰기를 놓쳤으며 아래 REWORK의 최종 public/DOM 값 검증으로 대체한다. 이 timer fixture는 실제 자연 layout 안정화 증거와 구분한다. 기존 Milestone public viewport/resize/stale-restore control은 수정 후 고유 1개 PASS/1.9s(`/tmp/frontend529-native4.log`)로 재사용한다. 따라서 UI 고유 case는 mock3 + native3 + 기존 Milestone1이며 backend native API1과 별도다.
+
+최초 native Export 실행 `/tmp/frontend529-native1.log`, public state를 기다린 재실행 native2, no-Export control1과 readonly helper 보완 native3은 FAIL이다. baseline의 일반 workspace 전환에 viewport capture가 없어 hidden DOM0이 돌아왔고, capture 보완 후에는 Core 복원120 뒤 후행 layout/scroll0이 덮었다. ensure-only control3과 범위 준비가 먼저 실행된 control5도 clamp30으로 FAIL했다. 기존 Milestone control은 주 scale/다행 fixture에서 PASS였으므로 실제 짧은 Task/기본 일 scale control을 유지했다. 최종 보완은 frontend 승인 파일의 기존 peer restore effect에서 원본/instance/sync/filter/scale/columns/gridWidth/input guard, timeline 정리→RAF→실제 필요한 가로 범위 준비→공개 scroll-chart 1회 순서다. Task 날짜·scale 선택·instance remount·비공개 SVAR state 쓰기는 없다. API exec/resize/scroll은 layout settled를 보장하지 않으며 RAF 순서는 앱 통합 선택이다.
+
+수동 dedicated 서버의 반복 Project 생성429는 `/tmp/frontend529-peer-control4.log`와 최종 native 묶음의 control 진입 전 실패로 보존했다. 소유 서버·DB를 새로 분리한 최종 control은 PASS이며 rate-limit 정책은 변경하지 않았다. grep 오지정의 No tests found와 native 실행 중 generated 경로 TS6053도 제품 PASS에 넣지 않는다. 최초 before FAIL과 rework FAIL은 공개 JSON으로 보존하고 after PASS로 덮지 않는다. historical 실패의 정확 파일별 source hash를 당시 수집하지 않은 부분은 NOT TESTED이며 값/시각/instance/events는 그대로 보존한다.
+
+공개 fixture 근거는 `output/playwright/issue-529-resource-export/`의 PNG5/geometry, before/rework/after viewport JSON, cancel 및 workbook metadata JSON이다. 대화상자 geometry의 4제품 SHA와 Workspace/Gantt 상태 근거의 6 source SHA를 분리한다. 실제 DB·runtime log·다운로드 XLSX·쿠키/암호는 저장하지 않는다. mock document overflow는 5폭 모두0, 내부 scroll·control containment·native focus outline3px를 관측했으며 native radio/checkbox compact 예외는 새 toolbar button의 hitbox 기준과 구분한다. 전체 원격 quality/e2e/docker·독립 QA·main/GHCR·실제 Windows Excel/DRM은 NOT TESTED다.
+
+최종 quiesced typecheck는 `/tmp/frontend529-tsc-final.log` PASS다. 소유 lint는 오류0/기존 Gantt warning4(`/tmp/frontend529-lint-final.log`)이며 HEAD 복사본의 동일4를 `/tmp/frontend529-gantt-baseline-lint.log`로 확인했다. 신규 warning은0이고 기존 fullscreen/column/native-add/date-picker 의존성 경고를 이 작업에서 임의 변경하지 않았다. runtime Next 생성 `next-env.d.ts`/`tsconfig.json`은 HEAD byte로 복원하고 소유 `.next-e2e-ui529`를 제거했다.
+
+### Issue #529 PRE_QA 사용자 입력 취소 REWORK
+
+독립 QA는 초기 취소 JSON에서 사용자 public30/DOM31 뒤 readonly DOM RAF가 저장120을 쓰는 이벤트를 발견했다. 기존 증거는 `peer-restore-cancel-before-invalid.json`의 NOT VALID 상태로 보존한다. Core 취소만으로 DOM 취소를 판정하지 않는다. 승인된 readonly DOM 복원 effect에 wheel/pointer/keydown 취소와 visible/connected·source snapshot/reset·instance/sync·root/filter·scale/열/grid geometry 재검사를 추가했다. Core effect/Domain/API는 변경하지 않았다.
+
+최종 취소 고유 case는 `/tmp/frontend529-peer-cancel-rework-final.log` 1 PASS/6.8s(총7.6s)다. 실제 native wheel 직후 public30/DOM31 각각을 pending 전 캡처하여 200ms와 추가300ms RAF 완료 뒤 정확히 보존되는지 확인하고, 이후 저장120 복원 이벤트가 없음을 검사한다. 두 값이 항상 같다는 가정을 두지 않는다. 앞선 REWORK 실행2개는 public30/DOM31을 하나의 값으로 정규화한 oracle 가정 때문에 FAIL했고 원본 로그를 보존했다. 이어진 묶음의 clock 과거 pause 오류도 fixture FAIL로 보존했으며 browser clock+100ms 기준으로 보완했다. 검색 변경으로 canonical sync generation이 달라진 경우에도 pending restore를 실행하지 않는다.
+
+같은 최종 제품 source의 positive 영향 범위는 `/tmp/frontend529-rework-browser-final.log`의 Milestone1 PASS/1.8s, native Export1 PASS/6.2s, no-Export control1 PASS/2.2s다. 그 묶음 cancel의 clock fixture FAIL은 숨기지 않는다. 마지막 수정은 cancel case의 두 번째 clock.pauseAt 기준만 바꿨으므로 positive case는 제품 SHA와 실행 당시 spec SHA를 보존해 재사용한다. 새 고유 case를 추가한 것이 아니며 mock3/native3/기존M1 수는 유지한다. 최초 invalid 취소 판정은 이 수의 유효 PASS 근거로 쓰지 않는다.
+
+최종 관련 typecheck/lint·Markdown/diff 및 문서 동기화는 REWORK 이후 재수행하며 Unit18/기존 Gantt warning4 증거는 변경 영향이 없어 재사용한다. 새 frozen manifest가 이전 PRE_QA tree/소스 동결을 대체한다. 독립 PRE_QA 재검토와 원격 quality/e2e/docker는 아직 NOT TESTED다.

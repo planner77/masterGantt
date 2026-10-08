@@ -1,4 +1,5 @@
 "use client";
+import { useResourceDrill } from "./resource-drill-context";
 import {
   useCallback,
   useLayoutEffect,
@@ -101,6 +102,28 @@ export function ProjectResourceDashboard({
     queryKey,
   );
   const data = report.data;
+  const refreshReport = report.refresh;
+  const refresh = useCallback(() => {
+    if (detailStale) { setSelection(null); setExpanded(new Set()); }
+    setDetailStale(null);
+    refreshReport();
+  }, [detailStale, refreshReport]);
+  const exportContext = useResourceDrill();
+  const exportCallback = useRef(exportContext.onExportEvidence);
+  useLayoutEffect(() => { exportCallback.current = exportContext.onExportEvidence; }, [exportContext.onExportEvidence]);
+  const bindingKey = JSON.stringify(exportContext.binding);
+  useLayoutEffect(() => {
+    exportCallback.current?.({
+      lease: data ? { confirmationId: report.confirmationId, visitId: exportContext.viewId ?? 0, queryKey: report.queryKey,
+        bindingKey: report.bindingKey, report: data, binding: exportContext.binding } : null,
+      live: { confirmationId: report.confirmationId, visitId: exportContext.viewId ?? 0, active, phase: report.phase, queryKey, bindingKey,
+        projectPublicId: publicId, projectRevision: revision, context: data?.resourceScopeContext ?? null,
+        readAllowed: !refreshDisabled && !report.stale && detailStale !== data?.snapshotId },
+      refresh,
+    });
+  }, [data, active, report.confirmationId, report.phase, report.queryKey, report.bindingKey, report.stale, refresh,
+    queryKey, bindingKey, publicId, revision, refreshDisabled, detailStale, exportContext.viewId, exportContext.binding]);
+
   const stale =
     report.stale || (data !== null && detailStale === data.snapshotId);
   const set = <K extends keyof ResourceDashboardFilterInput>(
@@ -128,14 +151,6 @@ export function ProjectResourceDashboard({
   const reset = () => {
     setFilters(DEFAULTS);
     requestAnimationFrame(() => search.current?.focus({ preventScroll: true }));
-  };
-  const refresh = () => {
-    if (detailStale) {
-      setSelection(null);
-      setExpanded(new Set());
-    }
-    setDetailStale(null);
-    report.refresh();
   };
   const markStale = useCallback(() => {
     setDetailStale(data?.snapshotId ?? null);
@@ -323,6 +338,8 @@ export function ProjectResourceDashboard({
     >
       <div className="resource-dashboard-toolbar">
         <h2 id="resource-dashboard-heading">리소스 공수</h2>
+        <button type="button" className="secondary-button" disabled={refreshDisabled}
+          onClick={event => exportContext.onExport?.(event.currentTarget)}>Excel 보고서</button>
         <div
           className="project-gantt-scale-controls"
           role="group"

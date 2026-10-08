@@ -449,3 +449,13 @@ public-readonly POST query는 exact Origin·실제 stream1MiB·strict descriptor
 Issue #528 UI는 명시 원본 source와 destination 조건을 분리하고 최대8개 복귀 frame·최대9개 live 방문 context를 보존한다. 원래 보기는 직전 출발을 복원하고 전체 해제는 현재 화면의 첫 이동 전 조건을 복원한다. 서로 다른 수동 탭의 최근 이동 집합을 현재 조회 집합으로 표시하지 않는다. 직접 Milestone 위치 노드는 일반 Task N과 구분한다. 확인창 승인 후 원본 fingerprint·환산 정책을 다시 검증하고 stale/empty를 All로 확대하지 않는다. 기존 공통 Editor와 Gantt instance·선택·viewport를 보존한다.
 
 Issue #528의 신규 범위 버튼은 기존40px secondary-button/focus primitive를 사용하고 캐시된 숨은 제목 대신 실제 도착 제목으로 focus한다. Milestone 직접 노드 frame의 원본 기간·평가일·환산/sourceProjection은 오늘 lookup 결과로 대체하지 않는다.
+
+## Issue #529 Resource 기준 Excel 보고
+
+기존 Excel Export에 명시 opt-in으로 Resource Dashboard/Plan 보고서를 추가한다. current는 실제 서버 성공 보고서의 조건·기간·asOf·M-D 정책·raw snapshot과 exact binding을 유지하고 project는 같은 기간/정책에서 분류/Task/WBS/M/search/status/exact 선택만 제거한다. 기존 시트는 기존 전체 범위를 유지한다. 같은 read snapshot의 기존 Domain 결과만 사용하며 client 합계·화면 행·표시 반올림을 authoritative 값으로 쓰지 않는다.
+
+개인/Group×Milestone·미지정, 주·월/부분·ISO-year Plan, 고유 Assignment 상세, T0 미배정/미설정 품질과 정규화 관계를 별도 시트로 제공한다. Capacity·Group/Role·개인×M 참고는 비가산 의미를 명시한다. raw null/0/state/진척·Load 단위와 safe literal text를 보존하고 stale·missing DTO·계산/행/셀/XML/ZIP 예산 초과는 전체 실패다. body 8 KiB와 기존 readonly Origin/If-Match·쿠키/보안 정책은 유지한다. 신규 report의 검증 Project direct hyperlink 1개 외에 사용자 URL 관계를 만들지 않는다. 상세 [API](API.md#issue-529-resource-보고서-excel-opt-in), [Excel](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다.
+
+Resource 화면의 보고서 진입과 일반 Export opt-in은 단일 대화상자를 사용한다. current는 활성 방문·ready/query/exact binding·원장 fingerprint·실제 정책이 일치해야 한다. stale 후 옵션은 보존하되 실제 새 조회와 사용자 명시 확인 전에는 생성하지 않는다. 현재 조건의 이름/안정 ID·분류·기간·정책·원장·exact 범위를 확인할 수 있어야 한다. Export 종료 시 숨겨진 trigger 대신 visible tab/일반 Export로 focus를 복원하며 readonly·Gantt 선택/양수 viewport/열폭/tree/동일 인스턴스를 유지한다. 원격 quality/e2e/docker와 실제 Windows Excel 검증은 로컬 증거와 별도 판정한다.
+
+Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.

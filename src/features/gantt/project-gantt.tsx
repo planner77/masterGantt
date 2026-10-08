@@ -1767,25 +1767,48 @@ export function ProjectGantt({
     const id = ++peerViewportGeneration.current;
     if (!viewVisible || !apiInstanceId || !peerViewportRestore || peerViewportRestore.key !== viewportContinuityKey || peerViewportConsumed.current === peerViewportRestore) return;
     peerViewportConsumed.current = peerViewportRestore;
-    const request = peerViewportRestore;
-    let cancelled = false;
-    const current = () => !cancelled && id === peerViewportGeneration.current && peerViewportContext.current.visible && peerViewportContext.current.key === request.key;
+    const request = peerViewportRestore, api = apiReference.current, root = ganttScrollReference.current;
+    if (!api || !root?.isConnected) return;
+    const version = canonicalSyncVersionReference.current, filter = visibleTaskFilterKeyReference.current,
+      scale = scaleModeReference.current, gridWidth = api.getState().gridWidth,
+      columnsKey = () => JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])),
+      columns = columnsKey();
+    let cancelled = false, input = false;
+    const markInput = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) input = true;
+    };
+    const inputEvents = ["pointerdown", "wheel", "keydown"];
+    for (const event of inputEvents) root.addEventListener(event, markInput, true);
+    const current = () => !cancelled && !input && id === peerViewportGeneration.current &&
+      api === apiReference.current && root.isConnected && peerViewportContext.current.visible &&
+      peerViewportContext.current.key === request.key && version === canonicalSyncVersionReference.current &&
+      filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current &&
+      gridWidth === api.getState().gridWidth && columns === columnsKey();
+    const cleanupInput = () => { for (const event of inputEvents) root.removeEventListener(event, markInput, true); };
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
-      const api = apiReference.current;
-      if (!api || !current()) return;
       const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      await frame(); await frame();
-      if (api !== apiReference.current || !current()) return;
-      // Hidden native scroll may report zero to Core. Restore its documented
-      // viewport state, so later Chart layout cannot overwrite a DOM-only fix.
-      await api.exec("scroll-chart", { left: request.left, top: request.top });
-      peerViewportRestoreCount.current++;
-      if (!current()) return;
-      const state = api.getState(), chart = ganttScrollReference.current?.querySelector<HTMLElement>(".wx-chart");
-      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
+      try {
+        await frame(); await frame();
+        if (!current()) return;
+        // Timeline expansion can trigger a later Chart layout. Settle that
+        // application-owned work before restoring Core's public viewport.
+        ensureTimelineEnd(api);
+        await frame(); await frame();
+        if (!current()) return;
+        const chartWidth = (api.getState() as TimelineState)._chartWidth;
+        if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left);
+        if (!current()) return;
+        await api.exec("scroll-chart", { left: request.left, top: request.top });
+        peerViewportRestoreCount.current++;
+        if (!current()) return;
+        const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
+      } finally {
+        cleanupInput();
+      }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
-    return () => { cancelled = true; };
-  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, notify]);
+    return () => { cancelled = true; cleanupInput(); };
+  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, expandTimelineScale, notify]);
 
   useEffect(() => {
     if (!columnMenuPosition) return;

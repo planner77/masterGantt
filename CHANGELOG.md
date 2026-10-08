@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.102.0] - 2026-10-08
+
+### Added
+
+- Issue #529: Resource Dashboard·Milestone·주/월 Resource Plan과 고유 Assignment 상세를 같은 조회 기준의 Excel 보고서로 확장한다. 기존 Export 옵션과 시트 구성을 보존한다.
+
+### Fixed
+
+- Issue #524/#529: 공수 미설정 진단의 Assignment 상세와 조회 범위를 진단 원장에 맞춘다. 조회 기간 밖 배정은 원래 실효기간 근거를 표시하고 선택 공수 합계와 구별한다.
+- Issue #529: 리소스·물류 화면에서 일정으로 돌아올 때 기존 Gantt viewport를 복원한다. 다른 조회 범위·원장·인스턴스의 오래된 복원 값은 적용하지 않는다.
+
 ## [0.101.0] - 2026-10-08
 
 ### Added

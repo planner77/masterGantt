@@ -21,8 +21,8 @@ export async function POST(request: Request, context: RouteContext): Promise<Res
       service: getProjectService,
       ...readApplicationConfiguration(process.env),
       requestId: () => requestId,
-      getExportBundle: (projectPublicId, includeResourceEffort) =>
-        new ProjectExportSnapshotService(getDatabase(), { mdPerMmEnvironment: process.env.RESOURCE_MD_PER_MM }).get(projectPublicId, includeResourceEffort),
+      getExportBundle: (projectPublicId, includeResourceEffort, resourceOptions, expectedRevision) =>
+        new ProjectExportSnapshotService(getDatabase(), { mdPerMmEnvironment: process.env.RESOURCE_MD_PER_MM }).get(projectPublicId, includeResourceEffort, resourceOptions, expectedRevision),
     }),
   );
 }

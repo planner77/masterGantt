@@ -247,6 +247,8 @@ export function ResourceDashboardDetails({
                               to={row.assignment?.assignmentEnd ?? "작업 상속"}
                             />
                           </small>
+                          {row.assignment?.allocationOverlapsReport === false || row.assignment?.effortRangeBasis === "raw-allocation" ?
+                            <small>조회 기간 밖 · 원래 배정 기간 기준</small> : null}
                           <small>
                             {row.assignment?.resourceName} · 유효 근무{" "}
                             {row.assignment?.effectiveWorkingDays}일

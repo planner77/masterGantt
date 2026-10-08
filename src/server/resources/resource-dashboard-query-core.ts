@@ -77,7 +77,7 @@ export function parseResourceDashboardDetails(params: URLSearchParams): Resource
   if (dimension === "milestone" && (id === null || !(id === "unassigned" || isCanonicalUuidV4(id)))) invalidDashboardQuery();
   const view = params.get("view") ?? (dimension === "diagnostic" ? "tasks" : "assignments");
   if (view !== "tasks" && view !== "assignments") invalidDashboardQuery();
-  if (dimension === "diagnostic" && (view !== "tasks" || !["completelyUnassigned", "groupOnly", "personallyUnassigned", "unset"].includes(metric))) invalidDashboardQuery();
+  if (dimension === "diagnostic" && (!["completelyUnassigned", "groupOnly", "personallyUnassigned", "unset"].includes(metric) || (view === "assignments" && metric !== "unset"))) invalidDashboardQuery();
   if (dimension !== "diagnostic" && ["completelyUnassigned", "groupOnly", "personallyUnassigned"].includes(metric)) invalidDashboardQuery();
   const selector: ResourceDashboardSelector = { dimension: dimension as ResourceDashboardSelector["dimension"], id: id === "ungrouped" || id === "unassigned" ? null : id, assignmentScope: "selected", metric: metric as ResourceDashboardMetric };
   if (params.has("milestoneTaskId")) {

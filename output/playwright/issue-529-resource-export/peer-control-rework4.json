@@ -1,0 +1,84 @@
+{
+  "capturedAt": "2026-10-08T00:41:44.795Z",
+  "control": "no-export",
+  "before": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "dom": {
+      "left": 120,
+      "top": 0
+    },
+    "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":612,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":1872,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":0,\"top\":0,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true,\"requestedLeft\":120}]",
+    "restore": null,
+    "instance": "svar-api-1",
+    "syncDepth": "0",
+    "syncGeneration": "2",
+    "settledGeneration": "2",
+    "activeTabs": [
+      "일정",
+      "Gantt",
+      "전체 프로젝트",
+      "KPI 대시보드",
+      "공정별 현황 (0)"
+    ],
+    "resourceVisits": [
+      "0"
+    ]
+  },
+  "hidden": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "dom": {
+      "left": 0,
+      "top": 0
+    },
+    "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":612,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":1872,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":0,\"top\":0,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":false,\"width\":906,\"height\":407}]",
+    "restore": null,
+    "instance": "svar-api-1",
+    "syncDepth": "0",
+    "syncGeneration": "2",
+    "settledGeneration": "2",
+    "activeTabs": [
+      "리소스",
+      "Gantt",
+      "전체 프로젝트",
+      "KPI 대시보드",
+      "공정별 현황 (0)"
+    ],
+    "resourceVisits": [
+      "0"
+    ]
+  },
+  "after": {
+    "public": {
+      "left": 30,
+      "top": 0
+    },
+    "dom": {
+      "left": 30,
+      "top": 0
+    },
+    "events": "[{\"action\":\"scroll-chart\",\"left\":0,\"top\":0,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":false,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":0,\"top\":0,\"visible\":true,\"requestedLeft\":108},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":1908,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":30,\"top\":0,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":30,\"top\":0,\"visible\":true,\"width\":1944,\"height\":407},{\"action\":\"resize-chart\",\"left\":30,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":30,\"top\":0,\"visible\":true,\"width\":906,\"height\":407}]",
+    "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":30,\"publicTop\":0,\"domLeft\":0}",
+    "instance": "svar-api-1",
+    "syncDepth": "0",
+    "syncGeneration": "2",
+    "settledGeneration": "2",
+    "activeTabs": [
+      "일정",
+      "Gantt",
+      "전체 프로젝트",
+      "KPI 대시보드",
+      "공정별 현황 (0)"
+    ],
+    "resourceVisits": [
+      "0"
+    ]
+  },
+  "status": "FAIL",
+  "sourceHashStatus": "Historical per-file hashes were not captured at execution; NOT TESTED. Original viewport values/events are preserved."
+}

@@ -12,6 +12,7 @@ export type ReportState = {
   queryKey: string;
   bindingKey: string;
   confirmedAt: string | null;
+  confirmationId: number;
 };
 export function dashboardError(code: string): string {
   if (code === "REPORT_STALE")
@@ -43,6 +44,7 @@ export function useResourceDashboard(
     queryKey: "",
     bindingKey: "",
     confirmedAt: null,
+    confirmationId: 0,
   });
   const [planData, setPlanData] = useState<ResourceDashboardDto | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
@@ -116,6 +118,7 @@ export function useResourceDashboard(
                 queryKey,
                 bindingKey,
                 confirmedAt: new Date().toISOString(),
+                confirmationId: current,
               },
         );
       } catch (error) {
