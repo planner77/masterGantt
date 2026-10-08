@@ -296,7 +296,7 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
   try { parseDateOnly(draft.start); } catch { return invalid("시작일은 1900-01-01~2199-12-31 범위의 올바른 날짜여야 합니다."); }
   if (draft.scheduleMode !== "auto" && draft.scheduleMode !== "manual") return invalid("일정 모드를 확인해 주세요.");
   const duration = Number(draft.duration);
-  if (!draft.duration.trim() || !Number.isSafeInteger(duration) || (task.type === "milestone" ? duration !== 0 : duration < 1 || duration > MAX_TASK_DURATION)) return invalid(task.type === "milestone" ? "마일스톤의 기간은 0일입니다." : "기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
+  if (!draft.duration.trim() || !Number.isSafeInteger(duration) || (task.type === "milestone" ? duration !== 0 : duration < 1 || duration > MAX_TASK_DURATION)) return invalid(task.type === "milestone" ? "Milestone의 기간은 0일입니다." : "기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
   const progress = Number(draft.progress);
   if (!draft.progress.trim() || !Number.isFinite(progress) || progress < 0 || progress > 100 || (progress !== task.progress && !Number.isInteger(progress))) {
     return invalid("진행률은 0~100 사이의 1% 단위 값으로 입력해 주세요.");
@@ -320,7 +320,7 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
       try { parseDateOnly(rawBaselineStart); } catch { return invalid("기준 일정 시작일은 올바른 날짜여야 합니다."); }
       const bDuration = Number(rawBaselineDuration);
       if (!rawBaselineDuration || !Number.isSafeInteger(bDuration) || (task.type === "milestone" ? bDuration !== 0 : bDuration < 1 || bDuration > MAX_TASK_DURATION)) {
-        return invalid(task.type === "milestone" ? "마일스톤의 기준 일정 기간은 0일입니다." : "기준 일정 기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
+        return invalid(task.type === "milestone" ? "Milestone의 기준 일정 기간은 0일입니다." : "기준 일정 기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
       }
       nextBaselineStart = rawBaselineStart;
       nextBaselineDuration = bDuration;
