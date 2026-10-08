@@ -79,3 +79,9 @@ export function hiddenSelectedCount(tasks: readonly ProjectTaskDto[], ids: reado
     return false;
   }).length;
 }
+
+/** Explicit WBS roots exclude Milestones; a Summary root still denotes its complete canonical subtree. */
+export function wbsClipboardRootIds(tasks: readonly ProjectTaskDto[], roots: readonly string[]): string[] {
+  const allowed = new Set(tasks.filter(task => task.type !== "milestone").map(task => task.taskId));
+  return roots.filter(id => allowed.has(id));
+}

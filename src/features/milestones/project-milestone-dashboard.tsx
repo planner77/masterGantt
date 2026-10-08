@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type {
   MilestoneDashboardFilterInput,
   MilestoneDashboardFiltersDto,
@@ -37,6 +37,7 @@ export interface ProjectMilestoneDashboardProps {
   onAddMilestone?: (trigger: HTMLElement) => void;
   onManageMilestone?: MilestoneManagementHandler;
   onManagementFocusUnavailable?: () => void;
+  highlightTaskId?: string | null;
 }
 
 export function ProjectMilestoneDashboard({
@@ -54,6 +55,7 @@ export function ProjectMilestoneDashboard({
   onAddMilestone,
   onManageMilestone,
   onManagementFocusUnavailable,
+  highlightTaskId = null,
 }: ProjectMilestoneDashboardProps) {
   const id = useId();
   const [search, setSearch] = useState(""),
@@ -102,6 +104,21 @@ export function ProjectMilestoneDashboard({
       onSchedule([...new Set(ids)], data.resourceScopeContext);
   };
   const managementRows = useMemo(() => sortMilestoneManagementRows(data?.rows ?? [], tasks), [data?.rows, tasks]);
+  const focusedHighlight = useRef<string | null>(null);
+  useEffect(() => {
+    if (!active) { focusedHighlight.current = null; return; }
+    if (!enabled || !highlightTaskId || focusedHighlight.current === highlightTaskId) return;
+    const frame = requestAnimationFrame(() => {
+      const root = document.getElementById("project-panel-milestones");
+      if (!root?.isConnected || root.closest("[hidden], [inert]") || document.querySelector("dialog:modal")) return;
+      const row = Array.from(root.querySelectorAll<HTMLElement>("[data-milestone-task-id]")).find(node => node.dataset.milestoneTaskId === highlightTaskId);
+      const target = row?.querySelector<HTMLElement>('button[aria-label$=" 관리"]') ?? root.querySelector<HTMLElement>("[data-milestone-focus=heading]");
+      if (target) { target.focus(); focusedHighlight.current = highlightTaskId; }
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [active, enabled, highlightTaskId, managementRows]);
+  function resetDashboardConditions() { setFilters({}); setSearch(""); setHorizon("14"); setManualDate(false); setDate(""); setFrom(""); setTo(""); setConversionMode("environment"); setConversion(""); }
+
   const resourceAvailable = enabled && Boolean(data?.resourceScopeContext);
   const resourceScope = (
     assignmentIds: string[],
@@ -239,6 +256,8 @@ export function ProjectMilestoneDashboard({
         <div>
           <h2 tabIndex={-1} data-milestone-focus="heading">Milestone 대시보드</h2>
           <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
+          {highlightTaskId ? <p role="status">{!tasks.some(task => task.taskId === highlightTaskId && task.type === "milestone") ? "요청한 Milestone이 삭제되었거나 현재 정보에 없습니다." : managementRows.some(row => row.milestoneTaskId === highlightTaskId) ? `날짜 보기 대상: ${tasks.find(task => task.taskId === highlightTaskId)?.name} · 작업 ID ${highlightTaskId}` : "요청한 Milestone은 현재 대시보드 조건에 포함되지 않습니다. 조회 조건은 유지했습니다."}</p> : null}
+          {highlightTaskId && tasks.some(task => task.taskId === highlightTaskId && task.type === "milestone") && !managementRows.some(row => row.milestoneTaskId === highlightTaskId) ? <button type="button" disabled={!enabled} onClick={() => { focusedHighlight.current = null; resetDashboardConditions(); }}>조건 해제하여 전체 목록 보기</button> : null}
         </div>
         <div className={styles.actions}>
         <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? "프로젝트 최상위에 추가" : "편집 활성화 후 추가할 수 있습니다"}>Milestone 추가</button>
@@ -480,17 +499,7 @@ export function ProjectMilestoneDashboard({
         <button
           type="button"
           className="secondary-button"
-          onClick={() => {
-            setFilters({});
-            setSearch("");
-            setHorizon("14");
-            setManualDate(false);
-            setDate("");
-            setFrom("");
-            setTo("");
-            setConversionMode("environment");
-            setConversion("");
-          }}
+          onClick={resetDashboardConditions}
         >
           Dashboard 조건 초기화
         </button>
@@ -590,6 +599,7 @@ export function ProjectMilestoneDashboard({
             {data.rows.length ? (
               <ProjectMilestoneStageTable
                 rows={managementRows}
+                highlightTaskId={highlightTaskId}
                 tasks={tasks}
                 enabled={enabled}
                 scheduleEnabled={resourceAvailable}

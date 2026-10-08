@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.106.0] - 2026-10-09
+
+### Added
+
+- Issue #552: Milestone native 행과 유형 빠른 보기를 Summary/Task WBS 및 프로젝트별 Milestone 표시 설정으로 전환한다. 작업 필터·전체 canonical 데이터·관리/날짜 탐색·구조 명령의 전체 영향 계약을 보존한다.
+
 ## [0.105.0] - 2026-10-09
 
 ### Added

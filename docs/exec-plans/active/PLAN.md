@@ -1,3 +1,15 @@
+## Issue #552 — WBS 표시 분리와 Milestone 표시 전환
+
+재개 후 독립 PNG 비교에서 비활성 schedule의 hidden을 정상 scope-owner visibility가 덮는 실제 가림을 발견했다. 정상 visibility 상속과 inactive paint oracle를 보완한 새 source에서 UI44/HTTP3을 fresh 재검증해 PASS(2.6분/57.1초), source125/405 drift0를 확보했다. Unit56은 pure dependency 불변 근거의 제한 재사용이다. 최신 PNG/문서/원본FAIL을 동결해 독립 재검토 뒤 PR CI 등록까지만 이어간다.
+
+독립 검토의 좁은 REWORK 후 날짜2case 최신PASS(9.2초)/390 fallback 물리 focus·hit 증거를 추가하고 resize3문서의 실제 layoutKey 중복차단 계약을 정정했다. 제품120/HTTP405 불변 근거로 기존44의42case·Unit56·HTTP3은 제한 재사용한다. 서버 재시작 후 main/parent/미게시 상태를 확인하고78파일 재동결 및 독립 delta 검토로 이어간다. 최초 FAIL/검토REWORK와 공식 원격 결과 NOT TESTED는 유지한다.
+
+현재 #552 LOCAL_VALIDATED/DOCUMENTATION_SYNC PASS: 동일 최종 source Unit56/Chromium44/actual HTTP3 PASS, source125/405 drift0 및 required10docs/항목별N/A를 Manager가 확인했다. 선별 합성 증거와 버전0.106.0을 동결하고 독립 UI/PRE_QA 후 stacked PR/exact-head CI 등록까지만 진행한다. CI 결과/QA_FINAL/ACCEPT/main 통합은 NOT TESTED이며 첫 FAIL/HMR STALE/lint 오류와 환경별 미검증을 보존한다.
+
+[#552 Work Packet](ISSUE_552.md). 선행 #551 [PR #560](https://github.com/planner77/masterGantt/pull/560), head `fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9`, [CI #2217.1](https://github.com/planner77/masterGantt/actions/runs/37821023371) 등록 후 결과 모니터링 없이 MT4를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-552-milestone-visibility`/PR base `feat/issue-551-milestone-timeline-lane`, 후보 MINOR `0.106.0`으로 진행한다. 선행 코드와 문서/LFF는 준비됐지만 main 통합/공식 원격 결과/최종 활성화는 NOT TESTED다. frontend는 전체 canonical 입력을 유지하며 WBS M 행 제외와 단일 표시 설정·필터 호환·날짜/drill/구조 명령을 구현한다. ui_ux 설계, backend/scheduler read-only no-loss/guard 자문, DOCSYNC 및 독립 QA를 거쳐 PR CI 등록까지만 진행한다. #551의 미검증 Grid 열 표시숨김/5폭 document overflow 직접 assertion도 actual 표시 전환에서 검증한다.
+
+<!-- #551 인계: Chromium17/17 PASS46.4초·Unit29 PASS, 독립 UI/PRE_QA PASS. 최종tree581837e6840c5438387a1054bc3d1745a2924399/71파일23PNG 원격일치, PR560/headfb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9/CI37821023371 등록, official quality/e2e/docker/QA_FINAL/ACCEPT NOT TESTED. -->
+
 ## Issue #551 — compact Milestone Timeline 준비
 
 [#551 Work Packet](ISSUE_551.md). 선행 #550 [PR #559](https://github.com/planner77/masterGantt/pull/559), head `31345da9346dfbdc1ac02e4e7ca567edafec775f`, CI [2216.1](https://github.com/planner77/masterGantt/actions/runs/37806909407) 등록 후 결과 모니터링 없이 MT3를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-551-milestone-timeline-lane`/PR base `feat/issue-550-milestone-management`, 후보 MINOR `0.105.0`으로 진행한다. ui_ux의 배치·interaction 설계와 researcher의 공식 Core 자료를 따라 frontend가 단일 Gantt/Workspace writer로 구현·검증·관련 문서를 소유한다. #549 Week 헤더 의미 FAIL을 date/header 실제 oracle로 해결하기 전 lane 좌표 표시를 활성화하지 않는다. 현재 M native 행과 quickview는 유지하며 실제 기본 전환은 #552이다. 관련 문서 동기화와 독립 QA 뒤 PR CI 등록까지만 진행한다.

@@ -320,3 +320,9 @@ Dashboard의 canonical taskId와 실제 trigger로 기존 Editor의 task/members
 Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의 검색/추가/heading으로 복귀한다. 완료·재개는 기존 상태 선택과 명시 저장이며 Ready/100%는 자동 Completed가 아니다. Copy는 기존 단일 source/sibling-after gateway와 완료 경계 판단을 재사용하므로 완료 manual 이벤트를 일괄 금지하지 않는다. 삭제는 명시 확인과 기존 완료/Link/Assignment/server guard를 유지한다. 자세한 inventory는 [관리 계약](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다.
 
 #550 관리 메뉴의 삭제 확인 취소/Escape는 저장 중 차단되며 삭제 요청을 보내지 않는다. 확인 중 외부 canonical 갱신으로 호출 trigger가 사라지면 현재 Dashboard의 보이는 검색/추가/heading으로 focus를 복귀한다. 공통 Dialog나 서버 삭제 계약은 변경하지 않는다.
+
+## Issue #552 — 숨긴 M의 같은 Editor와 날짜 조회
+
+Timeline/전체 Dashboard는 같은 canonical M ID와 실제 trigger로 기존 단일 Editor를 연다. 표시 OFF/범위/clip은 Editor dirty/pending 초안을 저장하거나 폐기하지 않는다. 닫기에서 소멸한 marker를 숨은 native M 행 선택으로 복원하지 않고 현재 전체 목록/visible Dashboard 안전 대상으로 복귀한다.
+
+날짜 관리 명령은 유효 canonical date/current snapshot 및 ready/busy guard를 사용하고 소속 drill의 resourceScopeContext와 분리한다. 기존 #550 date context 조건은 이 후보의 canonical 날짜 조회에서 대체되며 소속 작업/리소스 drill guard는 유지한다. 삭제 확인과 기존 Copy 소속 확인은 전체 canonical 숨은 M 수를 설명한다. Assignment Copy 제한을 삭제/Move 포괄 제한으로 확대하지 않으며 기존 session/Origin/revision/완료/관계 보호를 유지한다.

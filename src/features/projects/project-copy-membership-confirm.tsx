@@ -11,12 +11,14 @@ const fullscreenHost=()=>document.querySelector<HTMLElement>(".project-gantt-fra
 const serverHost=()=>null;
 
 export function ProjectCopyMembershipConfirm({ review, tasks, current, pending, error, restoreFocusRef, onClose, onConfirm }: Readonly<{ review: CopyReview; tasks: readonly ProjectTaskDto[]; current: boolean; pending: boolean; error: string | null; restoreFocusRef: RefObject<HTMLElement | null>; onClose: () => void; onConfirm: () => void }>) {
+  const copied = new Set(review.plan.copiedTaskIds);
+  const hiddenMilestoneCount = tasks.filter(task => task.type === "milestone" && copied.has(task.taskId)).length;
   const cancel = useRef<HTMLButtonElement>(null);
   const host=useSyncExternalStore(subscribeFullscreen,fullscreenHost,serverHost);
   useEffect(() => { cancel.current?.focus({ preventScroll: true }); }, []);
   const dialog = <WorkspaceDialog title="복사 시 단계 소속 변경" size="wide" busy={pending} restoreFocusRef={restoreFocusRef} onClose={onClose}>
     <div className={styles.content}><div className={styles.body}>
-      <p>검토 revision {review.revision} · 복사 root {review.plan.rootTaskIds.length}개 · 하위 포함 {review.plan.copiedTaskIds.length}개</p>
+      <p>검토 revision {review.revision} · 복사 root {review.plan.rootTaskIds.length}개 · 하위 포함 {review.plan.copiedTaskIds.length}개 · WBS에서 숨긴 Milestone {hiddenMilestoneCount}개 포함</p>
       <p>외부 명시 연결 제외 {review.plan.excludedExplicitMemberships.length}개 · 소속 또는 상속 출처가 달라지는 Task/Summary {review.plan.impacts.length}개</p>
       <p>내부 단계 연결은 복사본에 보존합니다. 복제될 단계의 원본 ID는 아직 생성되지 않은 복사본 UUID가 아닙니다.</p>
       <div className={styles.tableOwner} role="region" aria-label="복사 소속 영향 표 가로 스크롤" tabIndex={0}>

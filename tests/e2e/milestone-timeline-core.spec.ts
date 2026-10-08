@@ -48,7 +48,7 @@ async function fixture(page: Page, kind: "mixed" | "milestone-only" | "empty" = 
 }
 async function evidence(info: TestInfo, name: string, data: object, page: Page) {
   const sourcePaths = ["src/features/gantt/milestone-timeline-adapter.ts", "src/features/gantt/project-gantt.tsx", "tests/e2e/milestone-timeline-core.spec.ts"];
-  const payload = { capturedAt: new Date().toISOString(), baseline: "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0", core: "2.7.3", store: "2.7.2", environment: "Chromium/Next dev, synthetic mocked canonical API", ...data,
+  const payload = { capturedAt: new Date().toISOString(), baseline: "fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9", core: "2.7.3", store: "2.7.2", environment: "Chromium/Next dev, synthetic mocked canonical API", ...data,
     sourceHashes: Object.fromEntries(await Promise.all(sourcePaths.map(async path => [path, createHash("sha256").update(await readFile(path)).digest("hex")]))) };
   await info.attach(name, { body: JSON.stringify(payload), contentType: "application/json" });
   if (process.env.CAPTURE_ISSUE_549) {
@@ -101,7 +101,8 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#549 Core filter geometr
   expect(state.patchRequests).toHaveLength(0); expect(state.posts).toHaveLength(0);
   await evidence(info, `geometry-${width}`, { before, after, observations, mutationCount: 0 }, page);
   await probe(frame, "filter", null); await settle(page);
-  expect((await probe<Observation>(frame, "read")).rows).toHaveLength(state.tasks.length);
+  // #552 production owns the Summary/Task projection after a public reset.
+  expect((await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
 });
 
 test("#549 DST reveal uses the same calendar-day geometry as native Task bars", async ({ page }, info) => {

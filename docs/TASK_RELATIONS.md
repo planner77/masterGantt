@@ -185,3 +185,9 @@ Dependency Link의 의미와 WBS sibling order는 별도 계약이다. 같은 pa
 ## Issue #550 — 관리 목록 관계 진입
 
 Milestone 관리 메뉴는 같은 canonical taskId로 기존 Task Editor의 relations 탭을 연다. 그 안에서 기존 Relation Editor와 saveLink를 재사용하며 full canonical endpoint를 조회한다. readonly/dirty/pending/기준 revision/완료 단계의 기존 guard를 바꾸지 않는다. Task→Task와 M→M 신규, legacy mixed 조회·허용 수정/삭제, Summary endpoint 금지·순환·Lag·calendar 검증은 기존 서버 계약이다. 관리 메뉴가 새 그래프/가짜 Membership Link를 만들지 않는다. Dashboard에서 시작한 관계 화면은 visible actual trigger로 복귀하고 trigger가 없으면 보이는 Dashboard 검색/추가/heading으로 복귀한다. Copy acknowledgement는 기존 소속 제외·상속 효과만 확인하며 Assignment나 완료 fullE/explicit/incident 경계를 해제하지 않는다.
+
+## Issue #552 — 숨은 endpoint와 canonical 관계 보존
+
+WBS에서 M을 숨겨도 Core에 전달하는 canonical Link 입력과 기존 Editor 관계 목록은 전체를 유지한다. native Chart의 숨은 M→M/legacy mixed endpoint 선은 다른 Summary/Task 행에 재연결하지 않는다. ordinary Task→Task 선은 가시 endpoint를 따라 유지하고 접힘으로 endpoint가 사라지면 잘못된 대체 선을 그리지 않는다. 신규 mixed/ Summary endpoint 허용 정책은 만들지 않는다.
+
+Summary Copy는 숨은 M과 내부 Link/remap을 포함하는 전체 subtree이고 기존 completed/fullE/explicit/incident/external membership/Assignment Copy guard와 auth/revision의 서버 판정은 그대로다. 표시 UI는 새 관계 엔진/가짜 Membership Link를 만들지 않는다. actual Core 표시와 실제 HTTP/SQLite 명령 증거를 [테스트 계획](TEST_PLAN.md#issue-552--milestone-표시-분리-검증)에서 분리한다.

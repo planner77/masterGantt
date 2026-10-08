@@ -479,3 +479,9 @@ MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Mile
 보고 필터/KPI/freshness와 Gantt 인스턴스를 보존하며 같은 이름/날짜·전체0/조건0·scope 밖 endpoint를 구분한다. dirty 생성 초안의 폐기 확인, pending 닫기/중복 제출 차단, 401/412/network/stale 입력 보존과 실제 목록 focus/삭제 fallback을 요구한다. 현재 M행·quickview를 제거하지 않고 새 lane을 활성화하지 않는다. #549 Week header 의미 FAIL는 #551 활성화 전 독립 gate로 남는다. 명령 inventory/비지원 범위는 [MILESTONE_TIMELINE](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다.
 
 #550 관리 대상의 소멸이 commit된 뒤 RAF 전에 같은 대상이 복귀해도 메뉴를 자동 재개하지 않아야 한다. 명시적 같은/다른 ID 열기를 오래된 focus 복원이 방해하지 않아야 하며, 삭제 확인 취소/Escape는 disconnected trigger에서도 visible Dashboard fallback과 삭제 요청0을 유지해야 한다.
+
+## Issue #552 — WBS 행과 Timeline 표시 계약
+
+기존 #196의 전체/Task/Milestone 빠른 보기와 고급 M 유형은 #552 후보에서 단일 표시 토글로 대체한다. WBS Summary/Task의 matching/context count와 전체 프로젝트 Timeline 모집단을 분리한다. Membership 필터는 전체 canonical context로 계산하며 M 표시 OFF도 유효하다. 기본 ON 설정은 프로젝트별 브라우저 v1 schema이고 명시 토글만 저장한다. 오류에서는 현재 메모리와 한번 알림을 제공한다.
+
+기존 mixed/M-only 메모리 조건은 다른 조건을 보존해 호환하며 자동 types migration은 없다. canonical M date 조회/일시 표시/출발 조건·viewport 복귀와 exactID Dashboard fallback은 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다. 숨김은 canonical 구조/Link/일정/roll-up/전체 Gate/Copy/Delete/Move/export 입력을 축소하지 않는다. Assignment는 기존 Copy 제한이며 Delete/Move 전체를 새로 잠그지 않는다. API/domain/auth/revision 계약은 불변이다.

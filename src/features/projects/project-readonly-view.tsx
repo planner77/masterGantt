@@ -1,9 +1,11 @@
 "use client";
+
+import { useMilestoneTimelinePreference } from "@/features/milestones/use-milestone-timeline-preference";
 import type {
   ResourceDrillScopeDto,
   ResourceDrillSourceContext,
 } from "@/contracts/resource-drill";
-import { buildMilestoneTimelineModel } from "../milestones/milestone-timeline-model";
+import { adaptMilestoneTimelineTypeFilter, buildMilestoneTimelineModel } from "../milestones/milestone-timeline-model";
 import type { ResourceDashboardDto, ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
 import {
   clearResourceDrill,
@@ -55,7 +57,7 @@ import { ProjectCopyMembershipConfirm } from "./project-copy-membership-confirm"
 import { copyReviewMatches, type CopyReview } from "./project-copy-confirm-model";
 import { ProjectImportButton } from "@/features/projects/project-import-button";
 import { ProjectSettingsDialog } from "@/features/projects/project-settings-dialog";
-import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
+import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
@@ -217,6 +219,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const searchParams = useSearchParams();
   const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
   const { notify, clearToast } = useWorkspaceNotifications();
+  const { preference: milestonePreference, setShowMilestones } = useMilestoneTimelinePreference(publicId, () => notify("info", "Milestone 표시 설정을 저장소에서 읽거나 저장하지 못했습니다. 현재 화면의 선택은 유지합니다.", "표시 설정"));
+  const [milestoneDateRequest, setMilestoneDateRequest] = useState<{ taskId: string; generation: number; snapshot: ProjectSnapshotResponse; originView: WorkspaceView; trigger: HTMLElement; rootTaskId: string | null; filter: TaskFilterState; peer: typeof peerViewport.current; chart: typeof peerChartRestore } | null>(null);
+  const milestoneDateGeneration = useRef(0);
+  const [highlightMilestoneId, setHighlightMilestoneId] = useState<string | null>(null);
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
   const crossTabRefreshInFlightReference = useRef(false);
@@ -1047,8 +1053,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       void writeTextWithCompatibility(taskId, modern, copyTextWithLegacyCommand).then(() => notify("success", "작업 ID를 복사했습니다.", "작업 ID 복사"), () => notify("error", "작업 ID를 복사하지 못했습니다.", "작업 ID 복사"));
       focusMilestoneDashboard(trigger); return;
     }
-    if (command === "date" || command === "members") {
-      const ids = command === "date" ? milestoneManagementDate(task) ? [taskId] : [] : task.stageGate?.memberTaskIds ?? [];
+    if (command === "date") {
+      if (!milestoneManagementDate(task)) { notify("info", "유효한 Milestone 날짜가 없어 날짜에서 볼 수 없습니다.", "날짜 보기"); return; }
+      const scope = resolveTaskSubtreeScope(state.snapshot.data.tasks, activeRootTaskId);
+      if (scope.kind === "missing" || scope.kind === "not-summary") { setHighlightMilestoneId(taskId); activateWorkspaceView("milestones"); notify("info", "현재 WBS 범위가 유효하지 않아 해당 Milestone을 목록에서 표시합니다. 전체 프로젝트 복귀는 별도 명령으로 선택해 주세요.", "날짜 보기"); return; }
+      const generation = ++milestoneDateGeneration.current;
+      setMilestoneDateRequest({ taskId, generation, snapshot: state.snapshot, originView: activeView, trigger, rootTaskId: activeRootTaskId, filter: taskFilter, peer: peerViewport.current, chart: peerChartRestore });
+      activateWorkspaceView("schedule", false);
+      return;
+    }
+    if (command === "members") {
+      const ids = task.stageGate?.memberTaskIds ?? [];
       if (ids.length && milestoneSourceReference.current) void drillDashboardSchedule(ids, milestoneSourceReference.current);
       return;
     }
@@ -1285,15 +1300,35 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       left: captured.public.left, top: captured.public.top,
       snapshot: state.snapshot, generation: ganttResetGeneration });
   }
-  function activateWorkspaceView(view: WorkspaceView) {
+  function activateWorkspaceView(view: WorkspaceView, focusTab = true) {
     if (navigationPending.current || navigationConfirmation.current)
       cancelNavigationConfirmation();
     if (activeView === "schedule" && view !== "schedule") capturePeerViewport();
     setActiveView(view);
+    if (!focusTab) return;
     requestAnimationFrame(() => {
       const ref = view === "schedule" ? scheduleTabReference.current : view === "milestones" ? milestoneTabReference.current : view === "resources" ? resourceTabReference.current : logisticsTabReference.current;
       ref?.focus({ preventScroll: true });
       ref?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  }
+  function returnFromMilestoneDate() {
+    const request = milestoneDateRequest;
+    if (!request || state.status !== "ready" || request.snapshot !== state.snapshot || request.generation !== milestoneDateGeneration.current) return;
+    const generation = ++milestoneDateGeneration.current;
+    setMilestoneDateRequest(null);
+    if (request.originView === "milestones") setHighlightMilestoneId(request.taskId);
+    activateWorkspaceView(request.originView, false);
+    // A plain peer return owns the original viewport only while its context
+    // still matches. The existing peer reader/restore rejects newer user input.
+    if (request.rootTaskId === activeRootTaskId && request.filter === taskFilter) {
+      peerViewport.current = request.peer;
+      setPeerChartRestore(request.chart);
+    }
+    requestAnimationFrame(() => {
+      if (generation !== milestoneDateGeneration.current || confirmedSnapshotReference.current !== request.snapshot) return;
+      if (request.trigger.isConnected && !request.trigger.closest("[hidden], [inert]")) request.trigger.focus();
+      else if (request.originView === "milestones") focusMilestoneDashboard();
     });
   }
   function navigationToday() {
@@ -2162,12 +2197,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     : subtreeScope.kind === "valid"
       ? tasks.filter((task) => scopedTaskIdSet?.has(task.taskId))
       : [];
-  const filteredTasks = filterTasksWithAncestors(scopedTasks, taskFilter, assignments, logistics, tasks);
+  const typeCompatibility = adaptMilestoneTimelineTypeFilter(taskFilter);
+  const wbsScopedTasks = scopedTasks.filter(task => task.type !== "milestone");
+  const filteredTasks = filterTasksWithAncestors(wbsScopedTasks, typeCompatibility.filter, assignments, logistics, tasks);
   const activeFilters = activeTaskFilterCount(taskFilter);
-  const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
-  const ganttVisibleTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : visibleTaskIds;
-  const ganttMatchingTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : filteredTasks.matchingTaskIds;
+  const ganttVisibleTaskIds = visibleTaskIds;
+  const ganttMatchingTaskIds = filteredTasks.matchingTaskIds;
   const ganttSelectionBoundaryKey = JSON.stringify(taskFilter, (_key, value: unknown) =>
     Array.isArray(value) ? [...value].sort() : value);
   const subtreeScopeInvalid = subtreeScope.kind === "missing" || subtreeScope.kind === "not-summary";
@@ -2488,7 +2524,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                         Summary 하위 모든 개인 담당 조회
                       </button>
                     ) : null}
-                    <p>{scopedTasks.length === 0 ? "표시할 작업이 없습니다." : scopedTasks.every((task) => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
+                    <p>{wbsScopedTasks.length === 0 ? tasks.some(task => task.type === "milestone") ? "현재 범위의 WBS Summary/Task는 0개입니다. Milestone은 프로젝트 전체 Timeline과 대시보드에서 확인합니다." : "프로젝트에 표시할 WBS 작업과 Milestone이 없습니다." : filteredTasks.tasks.length === 0 ? "현재 조건에 일치하는 WBS 작업이 없습니다. 프로젝트 전체 Milestone 모집단은 별도입니다." : wbsScopedTasks.every(task => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
           {isSavingTask ? (
                     <span className="schedule-saving" role="status">일정 저장 중…</span> ) : null}</div>
         <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
@@ -2507,36 +2543,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             필터{activeFilters ? ` ${activeFilters}` : ""}
           </button>
           <StageFilterPicker tasks={tasks} value={taskFilter.milestoneTaskId} onChange={(milestoneTaskId) => setTaskFilter((current) => ({ ...current, milestoneTaskId }))} />
-          <div className="project-filter-quick-views" role="group" aria-label="작업 유형 빠른 보기">
-            <button
-              type="button"
-              className={`project-filter-quick-button${quickView === "all" ? " is-active" : ""}`}
-              aria-pressed={quickView === "all"}
-              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "all"))}
-            >
-              전체
-            </button>
-            <button
-              type="button"
-              className={`project-filter-quick-button${quickView === "task" ? " is-active" : ""}`}
-              aria-pressed={quickView === "task"}
-              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "task"))}
-            >
-              Task
-            </button>
-            <button
-              type="button"
-              className={`project-filter-quick-button${quickView === "milestone" ? " is-active" : ""}`}
-              aria-pressed={quickView === "milestone"}
-              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "milestone"))}
-            >
-              Milestone
-            </button>
-          </div>
+          <button className="project-filter-quick-button" type="button" aria-pressed={milestonePreference.showMilestones || Boolean(milestoneDateRequest && milestoneDateRequest.snapshot === state.snapshot)} onClick={() => { milestoneDateGeneration.current++; setMilestoneDateRequest(null); setShowMilestones(!(milestonePreference.showMilestones || Boolean(milestoneDateRequest && milestoneDateRequest.snapshot === state.snapshot))); }}>◆ Milestone 표시</button>
+          {milestoneDateRequest && milestoneDateRequest.snapshot === state.snapshot && !milestonePreference.showMilestones ? <span role="status">날짜 확인을 위해 일시 표시 중 <button type="button" onClick={returnFromMilestoneDate}>원래 보기로 돌아가기</button></span> : null}
+          {typeCompatibility.compatibility === "milestone-only" ? <span role="status">기존 Milestone 유형 조건은 유지됩니다. WBS에는 Summary/Task만 표시합니다. <button type="button" onClick={() => activateWorkspaceView("milestones")}>Milestone 대시보드 보기</button><button type="button" onClick={() => setTaskFilter(current => ({ ...current, types: [] }))}>유형 조건만 해제</button></span> : null}
           {activeFilters > 0 ? (
                     <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> ) : null}
-          <span className="project-filter-result" role="status">{taskFilter.milestoneTaskId !== "all" ? `유효 소속 일반 작업 ${filteredTasks.ordinaryMatchCount}개 · ` : ""}{filteredTasks.matchCount}개 일치 / {" "}
-                    {subtreeScope.kind === "valid" ? "범위" : "전체"}{" "} {scopedTasks.length}개 작업</span>
+          <span className="project-filter-result" role="status">{taskFilter.milestoneTaskId !== "all" ? `유효 소속 일반 작업 ${filteredTasks.ordinaryMatchCount}개 · ` : ""}{filteredTasks.ordinaryMatchCount}개 일반 Task 일치 · 직접 Summary {filteredTasks.matchingTaskIds.filter(id => tasks.find(task => task.taskId === id)?.type === "summary").length}개 · context Summary {filteredTasks.tasks.filter(task => task.type === "summary" && !filteredTasks.matchingTaskIds.includes(task.taskId)).length}개 / {" "}
+                    {subtreeScope.kind === "valid" ? "범위" : "전체"}{" "} {wbsScopedTasks.length}개 WBS 작업</span>
         </div>
         <div className="project-filter-panel project-task-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
           <section className="project-filter-section" aria-labelledby="project-filter-text-heading">
@@ -2581,7 +2594,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <section className="project-filter-section" aria-labelledby="project-filter-assignment-heading">
             <h3 className="project-filter-section-title" id="project-filter-assignment-heading">유형 · 할당</h3>
             <div className="project-filter-section-grid project-filter-section-grid-assignment">
-              <fieldset className="project-filter-choice-fieldset"><legend>Task type</legend>{(["task","summary","milestone"] as const).map((type) => (
+              <fieldset className="project-filter-choice-fieldset"><legend>Task type</legend>{(["task","summary"] as const).map((type) => (
                             <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>),
                         )}</fieldset>
               <fieldset className="project-filter-choice-fieldset"><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => (
@@ -2686,12 +2699,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                   <div className="schedule-scope-note" role="alert">
           <strong>선택한 Summary 범위를 열 수 없습니다.</strong>{" "}
           {subtreeScope.kind === "not-summary"
-            ? "선택한 작업이 더 이상 Summary가 아닙니다."
+            ? subtreeScope.root.type === "milestone" ? "선택한 범위가 Milestone으로 변경되었습니다. 데이터는 프로젝트 전체 Milestone 목록에 있으며 WBS 범위는 자동으로 넓히지 않습니다." : "선택한 작업이 더 이상 Summary가 아닙니다."
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
+          {subtreeScope.kind === "not-summary" && subtreeScope.root.type === "milestone" ? <button type="button" onClick={() => { setHighlightMilestoneId(subtreeScope.root.taskId); activateWorkspaceView("milestones"); }}>해당 Milestone 목록에서 보기</button> : null}
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
-        </div> ) : (
-                  <ProjectGantt viewVisible={activeView === "schedule"} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
-          milestoneTimeline={milestoneTimelineModel ? { enabled: false, timelineModel: milestoneTimelineModel, onOpenMilestone: (taskId, trigger) => openTaskEditor(taskId, "task", trigger), onOpenDashboard: () => activateWorkspaceView("milestones") } : undefined}
+        </div> ) : null}
+        <div className="project-gantt-scope-owner" style={{ visibility: subtreeScopeInvalid ? "hidden" : undefined }} inert={subtreeScopeInvalid || undefined} aria-hidden={subtreeScopeInvalid || undefined}>
+                  <ProjectGantt viewVisible={activeView === "schedule" && !subtreeScopeInvalid} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+          milestoneTimeline={milestoneTimelineModel ? { enabled: milestonePreference.showMilestones || Boolean(milestoneDateRequest && milestoneDateRequest.snapshot === state.snapshot), timelineModel: milestoneTimelineModel, activeMilestoneTaskId: milestoneDateRequest?.snapshot === state.snapshot ? milestoneDateRequest.taskId : null, dateRequest: milestoneDateRequest?.snapshot === state.snapshot ? milestoneDateRequest : null, onOpenMilestone: (taskId, trigger) => openTaskEditor(taskId, "task", trigger), onDateRevealComplete: (generation, result) => { if (result === "dashboard" && generation === milestoneDateGeneration.current) setMilestoneDateRequest(current => current?.generation === generation ? null : current); }, onOpenDashboard: (taskId) => { setHighlightMilestoneId(taskId ?? null); if (taskId && milestoneDateRequest?.taskId === taskId && milestoneDateRequest.snapshot === state.snapshot) returnFromMilestoneDate(); else activateWorkspaceView("milestones", !taskId); } } : undefined}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -2704,12 +2719,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                       setWorkspaceSelection(ids);
                     }}
                     selectionRestore={selectionRestore}
-                    tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />)}
+                    tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={activeRootTaskId} />
+        </div>
         </div>
       </section>
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
         hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
-          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} editable={editing} onAddMilestone={requestMilestoneCreate} onManageMilestone={manageMilestone} onManagementFocusUnavailable={() => focusMilestoneDashboard()} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
+          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} editable={editing} onAddMilestone={requestMilestoneCreate} highlightTaskId={highlightMilestoneId} onManageMilestone={manageMilestone} onManagementFocusUnavailable={() => focusMilestoneDashboard()} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
                 onSchedule={drillDashboardSchedule} onResources={milestoneToResources} onRefreshProject={() => { void reloadCanonicalSnapshot(); }} />
       </section>
       <section
@@ -2814,6 +2830,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               {pendingTaskDelete.descendantTaskIds.length}개, 총 {" "}
               {pendingTaskDelete.descendantTaskIds.length + 1}개 작업을 삭제하시겠습니까?</p>
         <p>접힌 하위 작업을 포함하여 모든 하위 작업이 함께 삭제됩니다. 삭제 후에는 이 화면에서 되돌릴 수 없습니다.</p>
+        {tasks.filter(task => task.type === "milestone" && [pendingTaskDelete.taskId, ...pendingTaskDelete.descendantTaskIds].includes(task.taskId)).length ? <p>WBS에서 숨긴 Milestone {tasks.filter(task => task.type === "milestone" && [pendingTaskDelete.taskId, ...pendingTaskDelete.descendantTaskIds].includes(task.taskId)).length}개도 전체 canonical 하위 작업에 포함됩니다. 기존 완료·소속·관계 잠금은 그대로 적용됩니다.</p> : null}
         <div className={feedbackStyles.headingActions}>
           <button autoFocus className="secondary-button" disabled={isSavingTask} onClick={closeTaskDelete} type="button">취소</button>
           <button className="danger-button" disabled={isSavingTask} onClick={() => void confirmTaskDelete()} type="button">{isSavingTask ? "삭제 중…" : "하위 작업 포함 삭제"}</button>

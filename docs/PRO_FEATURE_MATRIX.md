@@ -123,3 +123,9 @@ same-parent Chart reorder는 SVAR PRO에 의존하지 않는다. Core 2.7.3의 �
 기본 OFF opt-in sibling lane는 공개 Core getState/scroll/filter 및 기존 단일 adapter를 사용한다. `_scales`/폭의 published typed derived fields와 read-only `.wx-chart` bbox/client owner clip은 버전 결합이며 안정 문서화 geometry API가 아니다. 앱 소유 64px 공간/marker/묶음 native dialog는 canonical 조회 UI이고 PRO markers/새 Gantt/fake Task/private state write/deep import/library patch/새 패키지를 사용하지 않는다. supported Day/Week step1 이외와 invalid/hidden/zero-size/폭 불일치는 fail-closed다. 개발 public displayMode 실험은 사용자 제품 명령이 아니며 Chart-only 실제 plot은 Core 고유 42px rail을 제외한다. [실제 gate와 제한](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #552 — Core 표시 전환
+
+단일 표시 토글과 ordinary WBS controlled projection은 공개 Core filter-tasks/select-task/scroll-chart를 사용한다. canonical 전체 tasks/links와 별도 조회 lane을 유지하며 PRO markers, private write, deep import, 새 Gantt/remount 또는 새 패키지를 사용하지 않는다. 설치 typed derived rows의 read-only filter-reset 확인과 DOM plot/owner clip 측정은 기존 버전 결합 adapter에 격리한다. 안정 공식 geometry 보장 또는 PRO parity로 표기하지 않는다. 개발 bounded select/display probe는 실제 browser 기술 실험이고 production testhook이 아니다. 원격/main/실물 touch와 local synthetic/actual HTTP 증거는 별도다.
+
+#552의 Chart 측정은 최신 DOM commit과 installed `_columnsWidth`/`_scrollSize`/`_chartHeight`를 단일 adapter에서 읽는다. 지원 all/Chart-only의 실제 plot과 설치 Layout 식이 ±1px로 일치하는 stale 폭만 공개 `resize-chart`로 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth]와 같은 재요청은 보완하지 않는다. 새 layoutKey의 측정 요청은 다시 한 번 보완할 수 있다. Grid-only와 unsupported geometry는 fail-closed하며 private store write/라이브러리 수정/강제 scroll 없이 현재 공개 left/top을 유지한다. 이 derived state/DOM 의존은 Core 2.7.3/store 2.7.2 검증 경계이며 안정된 공식 geometry 계약으로 확대하지 않는다.

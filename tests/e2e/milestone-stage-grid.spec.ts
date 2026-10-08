@@ -48,9 +48,9 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   await expect(header.getByText("완료 단계", { exact: true })).toHaveCount(0);
   await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(child.taskId).getByRole("button", { name: /완료 단계:/ })).toContainText("상속");
-  await select(m1.taskId); await expect(page.getByRole("status").filter({ hasText: "유효 소속 일반 작업 1개" })).toBeVisible(); await expect(row(m1.taskId)).toBeVisible(); await expect(row(empty.taskId)).toBeVisible(); await expect(row(override.taskId)).toHaveCount(0);
-  const quick = page.getByRole("group", { name: "작업 유형 빠른 보기" }); await quick.getByRole("button", { name: "Task", exact: true }).click(); await expect(row(m1.taskId)).toHaveCount(0); await expect(row(child.taskId)).toBeVisible(); await expect(stage()).toContainText(name);
-  await page.getByRole("button", { name: "단계 조건 해제", exact: true }).click(); await expect(row(free.taskId)).toBeVisible(); await expect(quick.getByRole("button", { name: "Task", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await select(m1.taskId); await expect(page.getByRole("status").filter({ hasText: "유효 소속 일반 작업 1개" })).toBeVisible(); await expect(row(m1.taskId)).toHaveCount(0); await expect(row(empty.taskId)).toBeVisible(); await expect(row(override.taskId)).toHaveCount(0);
+  await page.getByRole("button", { name: /^필터/ }).click(); const taskType = page.getByRole("group", { name: "Task type", exact: true }).getByRole("checkbox", { name: "task", exact: true }); await taskType.check(); await page.keyboard.press("Escape"); await expect(row(m1.taskId)).toHaveCount(0); await expect(row(child.taskId)).toBeVisible(); await expect(stage()).toContainText(name);
+  await page.getByRole("button", { name: "단계 조건 해제", exact: true }).click(); await expect(row(free.taskId)).toBeVisible(); await page.getByRole("button", { name: /^필터/ }).click(); await expect(taskType).toBeChecked(); await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "초기화", exact: true }).click();
   await row(summary.taskId).click({ button: "right" }); await page.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click(); await select(m1.taskId); await expect(row(child.taskId)).toBeVisible(); await expect(row(m1.taskId)).toHaveCount(0);
   await page.getByRole("tab", { name: "전체 프로젝트", exact: true }).click(); await expect(stage()).toContainText("전체");
@@ -62,8 +62,9 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   expect(writes).toBe(0); const picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true }); await picker.fill(m2.taskId); await picker.press("Enter"); const before = snapshot.data.project.revision;
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0); snapshot = await get(); expect(snapshot.data.project.revision).toBe(before + 1); expect(snapshot.data.tasks.find((task) => task.taskId === child.taskId)?.membership?.explicitMilestoneTaskId).toBe(m2.taskId); expect(writes).toBe(1);
   await expect(row(child.taskId).getByRole("button", { name: /완료 단계:/ })).toContainText("직접");
-  await row(m2.taskId).click({ button: "right" }); await page.getByRole("menuitem", { name: "소속 작업 관리…", exact: true }).click(); await expect(dialog.getByRole("tab", { name: /소속 작업/ })).toHaveAttribute("aria-selected", "true"); await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
-  await select(m2.taskId); await expect(page.getByRole("status").filter({ hasText: "유효 소속 일반 작업 2개" })).toBeVisible(); await page.getByRole("button", { name: "초기화", exact: true }).click();
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await page.locator(`#project-panel-milestones [data-milestone-task-id="${m2.taskId}"]`).getByRole("button", { name: / 소속 작업 조회$/ }).click(); await expect(dialog.getByRole("tab", { name: /소속 작업/ })).toHaveAttribute("aria-selected", "true"); await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); await select(m2.taskId); await expect(page.getByRole("status").filter({ hasText: "유효 소속 일반 작업 2개" })).toBeVisible(); await page.getByRole("button", { name: "초기화", exact: true }).click();
   await mkdir("output/playwright/issue-462", { recursive: true }); const metrics: unknown[] = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 844 }); await stage().click(); const input = page.getByRole("combobox", { name: "단계 이름·외부 ID·작업 ID 검색" }); await input.press("End");

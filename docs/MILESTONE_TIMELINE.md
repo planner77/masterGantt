@@ -2,6 +2,8 @@
 
 ## 적용 범위와 현재 상태
 
+#549~#551의 아래 current/target 표와 초기 실행 기록은 각 Issue 당시 baseline이다. #552 후보에서 적용되는 행/토글/호환 전환은 [새 표시 분리 계약](#issue-552--wbs와-milestone-표시-분리)을 따른다. 원격 등록과 main 적용 여부는 별도 lifecycle 증거로 판정한다.
+
 Issue #549는 Epic #548의 MT1 공통 모델과 설치 SVAR Core 연동 기술 기반이다. 현재 운영의 Milestone Grid/Chart 행, 전체/Task/Milestone 빠른 보기와 고급 유형 필터를 유지한다. #550의 관리 진입은 기존 Dashboard에서 구현한다. #551은 기본 OFF인 opt-in lane capability와 개발 전용 기술 미리보기다. 운영 기본 표시 전환과 호환 UI는 #552, 통합 검증은 #553의 선행 gate 이후 범위다. 이 문서의 target은 현재 화면 기능 완료를 뜻하지 않는다.
 
 baseline은 `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0`, 설치 `@svar-ui/react-gantt` 2.7.3, 그 종속 `@svar-ui/gantt-store` 2.7.2, Next.js 16.3.8이다. 공식 문서 확인일은 2026-10-08이다. 원격 quality/e2e/docker와 독립 최종 QA는 실제 exact-head 증거를 확보하기 전 NOT TESTED다.
@@ -178,3 +180,27 @@ Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하�
 로컬 증거와 최초 FAIL/제약은 [TEST_PLAN](TEST_PLAN.md#issue-551--opt-in-lane와-week-의미-local-fast-feedback)에 기록한다. production build/실제 운영·reverse proxy·실물 touch/screen reader·remote quality/e2e/docker는 이 개발 Chromium 증거로 대체하지 않는다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #552 — WBS와 Milestone 표시 분리
+
+#552 후보 구현은 #196의 세 유형 빠른 보기와 고급 Milestone 유형 선택을 단일 `◆ Milestone 표시` 명령으로 대체한다. WBS 행은 Summary/Task이며 소속 단계 필터와 조회 조건은 그대로 유지한다. 전체 canonical tasks/links를 Core와 도메인 명령에 전달하고 공개 `filter-tasks`로 표시 ID만 제어한다. 숨긴 Milestone은 Summary roll-up, 전체 E(M)/P(M), 기존 완료/관계 보호와 canonical export에 계속 참여한다. 표시 전환은 서버 권한이나 revision 변경 명령이 아니다.
+
+프로젝트별 브라우저 설정은 `mastergantt:milestone-timeline:<publicId>`의 `{version:1,showMilestones:boolean}`이며 기본 ON이다. 누락/잘못된 schema는 기본 ON, 읽기/쓰기 오류는 현재 메모리 선택을 유지하며 프로젝트당 한 번 알린다. 명시 토글만 저장하며 필터 초기화, 범위/상위 탭 변경, 날짜 확인은 저장하지 않는다. 저장 설정과 임시 날짜 표시의 OR만 유효 표시를 결정한다. 기존 개발 preview는 추가 authority가 아니다.
+
+기존 `types`는 React 메모리와 scope Map에만 존재한다. mixed 조건은 M만 제외하고 다른 조건을 보존한다. M-only는 원 조건을 그대로 유지하고 빈 WBS와 Dashboard 열기/유형만 해제의 명시 선택을 안내한다. URL 또는 저장소 types migration은 만들지 않으며 reload 후 메모리 조건은 사라진다. Summary root가 외부 canonical 갱신에서 M이 된 경우 삭제와 구별하고 같은 Gantt instance를 숨김/inert 상태로 보류한다. 명시 전체 프로젝트 복귀 전 범위를 넓히지 않는다. 서버 Summary 변환 정책은 변경하지 않는다.
+
+날짜 조회는 현재 canonical M taskId/date/snapshot과 기존 queue를 확인하여 공개 scroll-chart/단일 date adapter를 사용한다. 저장 OFF는 일시 ON이며 원래 보기 명령은 출발 Dashboard 조건/관리 trigger와 이전 peer/public viewport 정보를 복귀시킨다. 새 사용자 intent나 snapshot/root/filter 변경이 이전 복원보다 우선한다. 좁은 물리 폭에서 marker 조작이 불가능하면 현재 조건을 보존한 Dashboard의 exact ID를 강조하고 현재 목록 trigger로 focus를 옮긴다. 조건 때문에 행이 없으면 그 이유와 별도 조건 해제 선택을 제공한다. 날짜 조회는 소속 작업 drill의 resourceScopeContext와 분리하며 소속 drill의 기존 guard는 유지한다.
+
+선택 정리는 공개 select-task toggle:true/show:false로 native M 잔존만 제거하고 일반 Task를 유지한다. 명시 M clipboard root는 제외하지만 Summary root는 숨은 M을 포함한 전체 canonical subtree다. 기존 Copy 소속 확인은 copiedTaskIds와 canonical M의 교집합 수를 설명하고 closure Copy status와 삭제 확인도 숨은 영향을 알린다. Copy의 Assignment 제한을 Delete/Move의 포괄 잠금으로 확대하지 않는다. 신규 확인 modal이나 도메인 guard를 만들지 않는다.
+
+이 절은 stacked #552 후보의 계약이다. 로컬, 실제 HTTP/SQLite, 독립 QA와 원격 exact-head quality/e2e/docker는 [테스트 계획](TEST_PLAN.md#issue-552--milestone-표시-분리-검증)에서 별도 판정한다. main/production 및 원격 결과를 로컬 실행으로 대신하지 않는다.
+
+### #552 공개 Chart resize 보완 경계
+
+설치 Core Layout은 ResizeObserver가 읽은 `latestLayout`의 Grid 폭으로 공개 `resize-chart`를 호출한다. 실제 80px/5단계 splitter에서 마지막 Grid 560px/Chart 825px인데 Core 폭 842px가 남은 실패를 보존한다. 842는 이전 Grid 544px로 계산한 값이며 최신 정상 이벤트의 826px와 실제 bbox 825px는 테두리 1px 차이다. 단순히 17px scrollbar 문제라고 단정하지 않는다.
+
+앱의 기존 resize/observer/canonical queue가 요청한 측정에서만 한 번 frame을 넘긴 뒤 현재 commit을 읽는다. 단일 adapter는 installed typed `_columnsWidth`, `_scrollSize`, `_chartHeight`와 read-only native owner/content/Grid/resizer/Chart bbox를 대조한다. owner offsetWidth − 현재 effective Grid 폭 − native scrollSize − 4px가 실제 plot과 ±1px 이내이고 기존 높이도 일치할 때, stale Core 폭에만 공개 `resize-chart`를 한정 재발행한다. Chart-only의 effective 38px rail과 resizer4px를 사용하며 nominal Grid 폭을 대신 넣지 않는다. Grid-only/hidden/zero/지원하지 않는 rail·height는 보완하지 않는다. 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth]와 같은 요청을 중복 차단하며 새 layoutKey는 다시 한 번 보완할 수 있다. 자체 resize 이벤트는 재진입시키지 않는다. 공개 scrollLeft/top 명령, private state write, library patch, remount, idle polling은 없다. 이는 설치 버전에 결합된 앱 보완이며 안정 geometry API라는 보장이 아니다.
+
+#552 Local Fast Feedback의 이전 실행과 visibility 수정 후 실행은 별도 source 지문으로 구분한다. 순수 의존성이 불변인 Unit56만 영향 재사용하며 UI44/실제HTTP3은 제품 visibility 수정 후 재실행한다. 명령/시간/소스 지문과 검증되지 않은 환경은 [TEST_PLAN](TEST_PLAN.md#552-local-fast-feedback-이력과-미검증-경계) 및 [실행 계약](../output/playwright/issue-552/review-selected/execution-contract.json)을 따른다. 설정 읽기는 SSR defaultON과 cached browser snapshot을 분리하며 저장 실패 시 현재 memory 선택을 유지한다. Clipboard는 canonical tasks가 바뀐 commit에서 explicit M root만 제거하고 Summary full subtree를 보존한다. 최신 source 실제 HTTP는 whole canonical 복사/권한/atomicity의 지정3cases 범위이며 production·원격회귀 완료를 뜻하지 않는다.
+
+#552 정상 scope의 visibility는 schedule 조상을 상속한다. Dashboard 활성 중 Core의 실제 bbox와 instance를 유지하되 scope owner/Toolbar/native Grid/Chart의 paint는 hidden이어야 한다. invalid Summary scope의 별도 hidden/inert와 명시 복귀는 그대로다. 최초390px PNG의 peer 노출을 결함 근거로 보존하고 수정 후 fallback PNG를 exact-ID focus/외곽6px·조건 보존과 함께 비교한다.

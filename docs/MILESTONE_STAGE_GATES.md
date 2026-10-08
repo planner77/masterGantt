@@ -212,3 +212,9 @@ Milestone 직접 위치의 복귀 frame에는 검증한 원본 resourceScopeCont
 ## Issue #550 — 관리 진입과 기존 전체 Gate
 
 관리 목록은 기존 Dashboard stageGate와 전체 canonical Task.stageGate를 조회하고 새 Ready/Completed 엔진을 만들지 않는다. fullE(M)/P(M), 수동 이벤트 ready=null, 완료불일치 진단·완료 잠금, 명시 소속/상속/override를 유지한다. 소속 일정 이동은 full memberTaskIds를 사용하고 0-member에서는 사유와 함께 비활성화한다. 날짜 정렬은 표시 순서이며 Dependency/siblingOrder/Gate 모집단 mutation이 아니다. 완료/재개는 같은 Editor의 명시 상태 저장이다. 단일 Copy는 기존 fullE/explicit/incident 경계의 server authority를 유지하며 0-member manual 완료 M도 경계를 통과하면 허용된다. acknowledgement로 Assignment/완료 잠금을 해제하지 않는다.
+
+## Issue #552 — WBS projection과 전체 Gate
+
+전체 canonical E(M)/P(M), explicit/상속/override, 수동 ready=null, 완료 불일치와 기존 Summary roll-up을 유지한다. WBS 조건의 입력은 ordinary Summary/Task지만 filterTasksWithAncestors의 마지막 context는 전체 tasks를 사용한다. native 행/M marker/viewport/표시 설정을 모집단이나 Ready 엔진 입력으로 사용하지 않는다. OFF도 소속 단계 필터와 전체 Dashboard 조회가 동작한다.
+
+Copy/Delete/Move 대상은 전체 canonical subtree이며 숨은 M을 제외하지 않는다. Copy의 외부 소속/incident/완료/Assignment 제한과 기존 삭제·구조 명령 guard를 구별한다. types 호환, 날짜 확인·복귀와 M root drift는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.

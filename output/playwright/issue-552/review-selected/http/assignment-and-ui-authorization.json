@@ -1,0 +1,29 @@
+{
+  "environment": "Next development isolatedApplication + real HTTP + native SQLite",
+  "origin": "http://127.0.0.1:40945",
+  "publicId": "4984bf35-7384-4043-880b-408a12e06cca",
+  "sourceRootTaskId": "576d7e1a-4d30-468f-8697-8ebecab4161c",
+  "hiddenMilestoneTaskId": "6511012e-481c-485e-81aa-21c70c47908b",
+  "assignmentCopyStatus": 409,
+  "assignmentCopyCode": "TASK_COPY_ASSIGNMENTS_UNSUPPORTED",
+  "staleUiCommandStatus": 412,
+  "staleCommandBody": {
+    "kind": "copy",
+    "taskIds": [
+      "576d7e1a-4d30-468f-8697-8ebecab4161c"
+    ],
+    "anchorTaskId": "a0df9aba-0632-4f09-b20e-acf20813ac31",
+    "placement": "after"
+  },
+  "unauthorizedUiCommandStatus": 401,
+  "unauthorizedCommandBody": {
+    "kind": "copy",
+    "taskIds": [
+      "576d7e1a-4d30-468f-8697-8ebecab4161c"
+    ],
+    "anchorTaskId": "a0df9aba-0632-4f09-b20e-acf20813ac31",
+    "placement": "after"
+  },
+  "revision": 8,
+  "fullSnapshotUnchangedAfterEachRejection": true
+}

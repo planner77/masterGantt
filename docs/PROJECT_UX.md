@@ -1199,3 +1199,11 @@ Lane Left/Right/Home/End roving Tab 1개, Enter/Space; 묶음 Up/Down/Home/End/T
 Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 ISO 주차를 구별한다. Day의 기존 월/일 의미는 유지한다. 2199-12-31의 2200 exclusive-end metadata는 표시 전용이며 해당 주 전체 Calendar 근무일은 미산정 사유를 표시한다. 원래 native 월 셀 오류를 고쳤다고 표기하지 않는다. 상세 current/target/compatibility와 검증 경계는 [Milestone Timeline](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #552 — 독립 표시와 날짜 복귀
+
+일정 Toolbar는 단일 Milestone 표시 토글을 제공하며 WBS는 Summary/Task만 표시한다. 상위 탭/범위/필터와 표시 설정은 독립이고 기본 ON 및 aria-pressed를 readonly에서도 제공한다. 기존 #196 빠른 보기 절은 이전 계약이다. 실제 row 순서는 앱 sibling64px → native 날짜 header/Grid → Task rows이며 같은 ancestry/key를 유지한다. 숨은 peer의 ON 공간은 유지하고 OFF만 반환한다.
+
+날짜 조회는 저장 OFF를 쓰지 않고 일시 표시한다. 원래 보기는 출발 Dashboard 조건/현재 canonical 관리 trigger와 이전 peer/public viewport로 복귀하되 최신 사용자 입력을 덮지 않는다. 물리 폭 부족은 날짜 범위 밖 0과 구별하고 exactID 목록 fallback을 제공한다. invalid Summary root는 삭제/M drift를 구별하여 명시 복귀 전 hidden/inert 같은 Gantt로 보류한다. 상세는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
+
+#552 비활성 Dashboard peer에서는 정상 scope owner가 조상의 `visibility:hidden`을 상속한다. invalid Summary scope만 별도 hidden/inert를 지정한다. schedule/Core의 양수 bbox와 같은 instance는 보존하지만 Toolbar/Grid/Chart가 Dashboard 위에 그려지지 않아야 한다. 390px 날짜 fallback은 exact-ID focus·검색·저장 OFF·원래 viewport와 실제 hidden paint를 함께 검증한다.
