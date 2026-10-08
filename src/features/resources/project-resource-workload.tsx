@@ -6,6 +6,7 @@ import {
   ResourceDrillContext,
   type ResourceScheduleRequest,
 } from "./resource-drill-context";
+import type { ResourceExportEvidence } from "./resource-export-model";
 import type { ResourceDrillBinding } from "./resource-drill-transport";
 
 type Props = Readonly<{
@@ -20,6 +21,8 @@ type Props = Readonly<{
   cacheGeneration: number;
   liveViewIds: readonly number[];
   onSchedule: (request: ResourceScheduleRequest) => void;
+  onExport: (trigger: HTMLButtonElement) => void;
+  onExportEvidence: (evidence: ResourceExportEvidence) => void;
   onReport: (data: ResourceDashboardDto) => void;
   onOpenTask: (id: string) => void;
 }>;
@@ -32,6 +35,8 @@ export function ProjectResourceWorkload({
   onSchedule,
   onOpenTask,
   onReport,
+  onExport,
+  onExportEvidence,
   ...props
 }: Props) {
   const key = String(viewId);
@@ -69,6 +74,9 @@ export function ProjectResourceWorkload({
           <ResourceDrillContext.Provider
             value={{
               binding: view.binding,
+              viewId: Number(id),
+              onExport,
+              onExportEvidence: id === key ? onExportEvidence : undefined,
               onSchedule,
               onOpenTask,
               onReport: id === key ? onReport : undefined,

@@ -1,3 +1,4 @@
+import { dateToOrdinal, ordinalToDate } from "../../../src/domain/scheduling/date-only";
 import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -263,4 +264,58 @@ describe("resource dashboard native SQLite and direct HTTP", () => {
     expect(() => g.service.getDashboard(g.project.publicId)).toThrow("snapshot.groupsPerResource");
   });
 
+});
+
+
+describe("#529 raw unset diagnostic compatibility", () => {
+  it("counts raw pre-person Assignments and preserves within/outside effort ranges across details and scope", () => {
+    const f = fixture(), filters = { from: "2026-10-07", to: "2026-10-08", resourceIds: [f.resources.get("R1")!.publicId] };
+    f.database.prepare("UPDATE task_assignments SET assignment_start='2026-10-12', assignment_end='2026-10-16' WHERE public_id=?").run(f.assignmentIds.get("A3"));
+    const report = f.service.getDashboard(f.project.publicId, filters)!; expect(report.diagnostics.unsetAssignmentCount).toBe(2);
+    const selector = report.diagnostics.unsetTasks.selector;
+    const parsed = parseResourceDashboardDetails(new URLSearchParams({ snapshotId: report.snapshotId, dimension: "diagnostic", metric: "unset", view: "assignments" }));
+    const rows = f.service.getDetails(f.project.publicId, filters, parsed)!; expect(rows.totalCount).toBe(2);
+    const outside = rows.rows.find(row => row.assignment!.assignmentId === f.assignmentIds.get("A3"))!.assignment!;
+    const inside = rows.rows.find(row => row.assignment!.assignmentId === f.assignmentIds.get("A4"))!.assignment!;
+    expect(outside).toMatchObject({ from: "2026-10-12", to: "2026-10-16", effectiveWorkingDays: 5, allocationOverlapsReport: false, effortRangeBasis: "raw-allocation", plannedMd: null, plannedMm: null });
+    expect(inside).toMatchObject({ from: "2026-10-07", to: "2026-10-08", effectiveWorkingDays: 2, allocationOverlapsReport: true, effortRangeBasis: "report-overlap", plannedMd: null, plannedMm: null });
+    const scope = f.service.getScope(f.project.publicId, { view: "dashboard", filters, snapshotId: report.snapshotId, selector })!;
+    expect("assignmentIds" in scope && scope.assignmentIds).toEqual([f.assignmentIds.get("A3")!, f.assignmentIds.get("A4")!].sort());
+    expect(() => parseResourceDashboardDetails(new URLSearchParams({ snapshotId: report.snapshotId, dimension: "diagnostic", metric: "completelyUnassigned", view: "assignments" }))).toThrow();
+    const selected = f.service.getDetails(f.project.publicId, filters, detail(report.snapshotId))!; expect(selected.rows.some(row => row.assignment?.assignmentId === f.assignmentIds.get("A3"))).toBe(false);
+  });
+  it("keeps original exact Assignment intersection without co-assignee expansion", () => {
+    const f = fixture(), filters = { resourceIds: [f.resources.get("R2")!.publicId] }, scope = { kind: "exactAssignments" as const, assignmentIds: [f.assignmentIds.get("A3")!] };
+    const report = f.service.getDashboard(f.project.publicId, filters, scope)!;
+    expect(report.summary.assignmentCount).toBe(0); expect(report.diagnostics.unsetAssignmentCount).toBe(1);
+    const rows = f.service.getDetails(f.project.publicId, filters, detail(report.snapshotId, { selector: report.diagnostics.unsetTasks.selector }), scope)!;
+    expect(rows.totalCount).toBe(1); expect(rows.rows[0].assignment!.assignmentId).toBe(f.assignmentIds.get("A3"));
+    const result = f.service.getScope(f.project.publicId, { view: "dashboard", filters, snapshotId: report.snapshotId, selector: report.diagnostics.unsetTasks.selector }, scope)!;
+    expect("assignmentIds" in result && result.assignmentIds).toEqual([f.assignmentIds.get("A3")!]);
+  });
+  it("accepts aggregate original allocation 1000000 days without an individual 366-day cap and rejects 1000001", () => {
+    const f = fixture(), first = "2000-01-01", last = ordinalToDate(dateToOrdinal(first) + 49999);
+    f.database.prepare("DELETE FROM task_assignments WHERE project_id=?").run(f.project.id);
+    const ids: string[] = [];
+    for (let i = 0; i < 20; i++) {
+      const task = f.schedules.insertTask({ projectId: f.project.id, publicId: randomUUID(), externalId: `LONG${i}`, name: `LONG${i}`, type: "task", parentId: null, sortOrder: i + 100, scheduleMode: "auto", requestedStart: first, startDate: first, endDate: last, duration: 10000, progress: 0, createdAt: RESOURCE_DASHBOARD_NOW, updatedAt: RESOURCE_DASHBOARD_NOW });
+      const id = randomUUID(); ids.push(id); f.catalog.replaceTaskAssignments({ projectId: f.project.id, taskId: task.id, now: RESOURCE_DASHBOARD_NOW, targets: [{ kind: "resource", publicId: f.resources.get("R1")!.publicId, internalId: f.resources.get("R1")!.id, assignmentPublicId: id, assignmentStart: first, assignmentEnd: last, allocationPercent: null }] });
+    }
+    const filters = { from: "2026-10-07", to: "2026-10-08" }, report = f.service.getDashboard(f.project.publicId, filters)!;
+    const input = detail(report.snapshotId, { selector: report.diagnostics.unsetTasks.selector }); expect(f.service.getDetails(f.project.publicId, filters, input)!.totalCount).toBe(20);
+    const exportOptions = (current: typeof report) => ({
+      basis: "current" as const,
+      expectedReport: { context: current.resourceScopeContext!, snapshotId: current.snapshotId, filters },
+      granularities: ["month" as const],
+    });
+    // Excel quality rows and interactive diagnostic details share the exact
+    // original effective period budget: 1,000,000 days is inclusive.
+    expect(f.service.getExcelReport(f.project.publicId, exportOptions(report))!.quality.unsetAssignments).toHaveLength(20);
+    const taskId = f.database.prepare("SELECT task_id FROM task_assignments WHERE public_id=?").get(ids[0]) as { task_id: number };
+    f.database.prepare("UPDATE tasks SET end_date=? WHERE id=?").run(ordinalToDate(dateToOrdinal(last) + 1), taskId.task_id);
+    f.database.prepare("UPDATE task_assignments SET assignment_end=? WHERE public_id=?").run(ordinalToDate(dateToOrdinal(last) + 1), ids[0]);
+    const fresh = f.service.getDashboard(f.project.publicId, filters)!; expect(() => f.service.getDetails(f.project.publicId, filters, { ...input, snapshotId: fresh.snapshotId })).toThrowError(expect.objectContaining({ status: 422 }));
+    expect(() => f.service.getExcelReport(f.project.publicId, exportOptions(fresh)))
+      .toThrowError(expect.objectContaining({ status: 422, code: "REPORT_LIMIT_EXCEEDED" }));
+  });
 });

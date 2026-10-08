@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #519 PR #547 최초 CI timeout과 최신 main 회귀 복구
+
+PR head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599`, [PR CI #2185.1](https://github.com/planner77/masterGantt/actions/runs/37773843644)에서 quality/docker/기타 E2E shards는 SUCCESS, shard 5/6의 기존 `project-workspace-ux.spec.ts:206` #130(5폭×readonly/edit 단일 테스트)만 30초 timeout으로 FAIL(79 PASS, 1 FAIL)했다. #519 picker E2E 실패 증거가 아니며 PASS라고 재판정하지 않는다. 최신 main은 #130의 5폭 테스트를 폭별 독립 fixture test로 분할했으므로 통합하여 원래 10개 조합·접근성·스크롤·상태 보존 assertion을 그대로 재검증한다. CI timeout 증가·retry·skip 없음. 최신 main `0.102.0`에 맞춘 보완 PATCH `0.102.1`의 새 exact head PR CI quality/e2e/docker가 완료되기 전 최종 PASS는 NOT TESTED다.
+
 ## Issue #518 — PR #544 접근성 리뷰 P2 보완 및 최신 CI 증거
 
 - PR #544 head `230cefa19300e928023e3de65c35f05aa22b96dc`의 [PR CI #2173.1](https://github.com/planner77/masterGantt/actions/runs/37755252750)은 Quality/Chromium 6 shards/Docker **SUCCESS**였다. 그러나 Codex 리뷰의 미해결 P2 1건: `src/app/globals.css`의 `.project-primary-tabs`는 `overflow-y: hidden`이므로 상위 탭 기본 양수 3px focus outline/offset이 세로 경계에서 잘릴 수 있다.
@@ -2299,7 +2303,6 @@ Backend nativeAPI1PASS15.8초/전체27.6초는 최초 실행의 이전 source �
 
 첫 hitbox 영향 native1PASS16.7초/전체27.4초는 동일 고유 case 반복이다. M manual 추가 최초 실행은 select의 label에 option text가 포함된 exact locator로15초 timeout이 발생했다(/tmp/frontend528-final-m-context-native.log). 적절한 label 부분 일치로 수정하고 최종 통과했으며 timeout을 늘리지 않았다. 새 고유 case 수는 여전히 mock2/nativeUI1이고, 영향 없는 mock2의 browser11 증거를 재사용한다. 관련 navigation/transport Unit2파일13PASS·typecheck·변경2파일lint0error/0warning·Markdown 링크를 최종 갱신한다. 기존 전체28Unit 및 Gantt baseline4warning 분류는 관련 Local 재사용이며 추가 전체 회귀로 합산하지 않는다. 원격CI/독립QA는 NOT TESTED다.
 
-
 ### Issue #528 PR CI #2115.1 — 선행 #527 정렬·회귀 검증 보완 (2026-10-08)
 
 PR #536 exact head `899d5d7` Actions `37697904378`에서 Chromium shard 2/4/5/6는 실패하고 quality/typecheck/Vitest/ESLint/Next Build/Docker smoke는 성공했다. Gantt 선택 직후 Core auto-pan으로 고정 수평좌표120이 달라질 수 있으므로 실제 전환 직전 스크롤을 취득해 복귀 시 같은 native viewport·선택·scale·instance인지 비교한다. Milestone→Resource 정확한 원본 범위 문구는 Dashboard 본문이 아닌 `임시 조회 범위` region에 있으며, POST exactAssignments·기간·원본 revision을 검증한다. Resource 검색의 숨김 option 대신 실제 row를 검증한다. 선행 #527에 추가된 #525의 빈 배정 `할당 없음`·snapshot 전환 시 상세 초기화·진단 projection·기간 fixture 교집합과 관련 E2E 변경은 유지한다. 새 CI 전에는 모두 NOT TESTED이며 테스트 skip/검증 제거로 성공을 주장하지 않는다.
@@ -2319,6 +2322,114 @@ PR #545 원격 Trace gate/전체 CI 실행 보완: PR CI #2164(run `37740562154`
 
 PR #536의 직전 exact head `dc5ee1c58daff7a718d3b8c5463515c32b1160c1`은 PR CI #2157.1(run `37736414550`) quality/E2E/Docker PASS다. 그러나 선행 #527이 main에 병합된 후 main `18ab2ed460d1c4697c63977eae4949dbe95ed1df`는 5개 커밋 앞서 있었으므로 기존 CI를 최신 main 기준 검증으로 표시하지 않는다. main이 보완한 `resource-milestone-ui.spec.ts` E2E selector와 `resource-plan-dashboard.spec.ts`의 canonical sync 안정화+5-frame native scroll120/96 bounded assertion을 그대로 유지한다. #528 source/resource drill·회귀 테스트는 보존한다. TEST_PLAN은 main의 #527 Main CI 실패·후속 PR #545 CI trace 수정 기록과 #528 실행 근거를 양쪽 모두 유지한다. 신규 exact-head 전체 PR CI 성공 전 merge/QA_FINAL/Manager ACCEPT는 NOT TESTED이고 main/GHCR/tag/Issue 종료는 미수행이다.
 
+## Issue #529 Resource Excel와 미설정 원장 회귀
+
+- `tests/server/projects/resource-excel-export.test.ts`: 실제 SQLite+HTTP handler 응답 bytes → ZIP/OOXML 셀·시트·관계 검사, raw known MD와 고유 A parity/null·zero, current/project 정책·clock 1회·legacy bytes, exact binding 생략/변경 412와 정확한 binding 성공, literal text/XML escape/100-based 숫자, Origin/If-Match/raw stale, UTF-8 body 8192/8193, sheet/report rows·cells 및 actual XML32MiB/ZIP16MiB checker 경계, cell32767/32768 writer 통합, missing DTO/non-finite/ID-count/Plan 검증, XML1.0 불허 문자와 surrogate/정상 Unicode, 현재 조건 밖 Task와 legacy Project 문자열 선검증.
+- `tests/server/resources/resource-dashboard.test.ts`: diagnostic unset Assignment parser, 개인 조건 전 count/detail/scope, 원래 exact ID 교집합·공동담당 비확대, 기간 밖 원래 날짜/근무일/null effort vs 기존 clipped 값, 원래 기간 합1000000/1000001 및 개별366 제한 없음.
+- `tests/e2e/resource-excel-export-api.spec.ts`: 실제 Next HTTP/native SQLite XLSX 응답과 자동 ZIP/셀/관계 검사, raw MD/null MM·unsafe-like 원문·Project hyperlink allowlist, readonly no-cookie/no mutation, exact scope binding 생략412/정확binding200, Origin403/body413/수정후 stale412.
+- 기존 Excel Resource Effort/Stage/Logistics/status/week-header와 Resource drill/Plan Unit을 영향 범위로 재사용한다. Builder-only, in-process handler, 실제 Next HTTP, mock UI/native UI 증거를 구분하고 최초 FAIL을 로그에 보존한다. 신규 XML/ZIP checker의 실제 byte 경계 검증을 Windows Excel 열기 PASS로 표시하지 않는다.
+
+공식 quality/e2e/docker·QA_FINAL/main/GHCR 및 실제 Windows Excel/VBA/DRM은 별도 NOT TESTED다. UI 검증은 아래 frontend 소유 테스트·결과로 분리한다.
+
+### Issue #529 UI 검증과 viewport 재작업
+
+Frontend 모델은 `resource-export-model.test.ts`의 새 10개와 기존 Resource 모델 8개를 포함한 3파일 18 PASS(332ms, `/tmp/frontend529-unit-final1.log`)다. 활성 visit/ready/query/binding·3revision/fingerprint/실제 정책, immutable exact binding, current/project 요청 차이, UTF-8 8192/8193·Unicode/직렬화 실패, Project/visit별 receipt와 늦은 파일 취소를 검증한다.
+
+Mock UI는 `resource-excel-export-dashboard.spec.ts`의 고유 3개다. 최초 3 PASS/9.0s(`/tmp/frontend529-mock1.log`)를 보존하고 receipt/Project identity·detail stale 재조회 보완에 따른 영향 2개씩 실행을 별도 기록했다. 최종 영향 2 PASS/5.0s는 `/tmp/frontend529-mock7.log`다. 일반 default off/Resource preset, exact body, 서버412 뒤 동일 proof 잠금·옵션 보존·새 조회/명시 확인, 상세409→동일 snapshotId/new receipt 복구, pending/late 다운로드 폐기, hidden trigger Escape 복원, 긴 조건 5폭 내부 scroll/native Tab outline을 검증한다. 반복 실행 수를 고유 case 수로 합산하지 않는다.
+
+실제 Next/SQLite UI 고유 3개는 `resource-excel-export-ui.spec.ts`다. Export current/exact/whole 다운로드는 `/tmp/frontend529-native4.log`에서 1 PASS/7.1s, PRE_QA 전 artifact 생성 실행 `/tmp/frontend529-native-final1.log`에서 1 PASS/4.4s다. 실제 ZIP의 7시트와 typed numeric/inlineStr/null, Project/3revision/raw snapshot/대상 및 원래 context, 고유 Assignment 집합·raw MD 합을 같은 실제 Dashboard DTO와 비교한다. exact는 원래 ID 집합과 binding, whole은 binding 없는 정책을 확인한다. Export open/cancel/download 전후 양수 public/DOM viewport·선택 ID·열폭·tree·동일 Gantt marker를 비교한다.
+
+Export 없는 동일 native fixture control은 PRE_QA 전 1 PASS/7.5s(총8.3s, `/tmp/frontend529-peer-control-final.log`)다. pending 취소 고유 1개의 최초 1 PASS/3.3s(총4.3s, `/tmp/frontend529-peer-cancel1.log`) 판정은 독립 PRE_QA에서 NOT VALID로 정정했다. Core restore attribute만 검사해 readonly DOM RAF의 사용자 위치 덮어쓰기를 놓쳤으며 아래 REWORK의 최종 public/DOM 값 검증으로 대체한다. 이 timer fixture는 실제 자연 layout 안정화 증거와 구분한다. 기존 Milestone public viewport/resize/stale-restore control은 수정 후 고유 1개 PASS/1.9s(`/tmp/frontend529-native4.log`)로 재사용한다. 따라서 UI 고유 case는 mock3 + native3 + 기존 Milestone1이며 backend native API1과 별도다.
+
+최초 native Export 실행 `/tmp/frontend529-native1.log`, public state를 기다린 재실행 native2, no-Export control1과 readonly helper 보완 native3은 FAIL이다. baseline의 일반 workspace 전환에 viewport capture가 없어 hidden DOM0이 돌아왔고, capture 보완 후에는 Core 복원120 뒤 후행 layout/scroll0이 덮었다. ensure-only control3과 범위 준비가 먼저 실행된 control5도 clamp30으로 FAIL했다. 기존 Milestone control은 주 scale/다행 fixture에서 PASS였으므로 실제 짧은 Task/기본 일 scale control을 유지했다. 최종 보완은 frontend 승인 파일의 기존 peer restore effect에서 원본/instance/sync/filter/scale/columns/gridWidth/input guard, timeline 정리→RAF→실제 필요한 가로 범위 준비→공개 scroll-chart 1회 순서다. Task 날짜·scale 선택·instance remount·비공개 SVAR state 쓰기는 없다. API exec/resize/scroll은 layout settled를 보장하지 않으며 RAF 순서는 앱 통합 선택이다.
+
+수동 dedicated 서버의 반복 Project 생성429는 `/tmp/frontend529-peer-control4.log`와 최종 native 묶음의 control 진입 전 실패로 보존했다. 소유 서버·DB를 새로 분리한 최종 control은 PASS이며 rate-limit 정책은 변경하지 않았다. grep 오지정의 No tests found와 native 실행 중 generated 경로 TS6053도 제품 PASS에 넣지 않는다. 최초 before FAIL과 rework FAIL은 공개 JSON으로 보존하고 after PASS로 덮지 않는다. historical 실패의 정확 파일별 source hash를 당시 수집하지 않은 부분은 NOT TESTED이며 값/시각/instance/events는 그대로 보존한다.
+
+공개 fixture 근거는 `output/playwright/issue-529-resource-export/`의 PNG5/geometry, before/rework/after viewport JSON, cancel 및 workbook metadata JSON이다. 대화상자 geometry의 4제품 SHA와 Workspace/Gantt 상태 근거의 6 source SHA를 분리한다. 실제 DB·runtime log·다운로드 XLSX·쿠키/암호는 저장하지 않는다. mock document overflow는 5폭 모두0, 내부 scroll·control containment·native focus outline3px를 관측했으며 native radio/checkbox compact 예외는 새 toolbar button의 hitbox 기준과 구분한다. 전체 원격 quality/e2e/docker·독립 QA·main/GHCR·실제 Windows Excel/DRM은 NOT TESTED다.
+
+최종 quiesced typecheck는 `/tmp/frontend529-tsc-final.log` PASS다. 소유 lint는 오류0/기존 Gantt warning4(`/tmp/frontend529-lint-final.log`)이며 HEAD 복사본의 동일4를 `/tmp/frontend529-gantt-baseline-lint.log`로 확인했다. 신규 warning은0이고 기존 fullscreen/column/native-add/date-picker 의존성 경고를 이 작업에서 임의 변경하지 않았다. runtime Next 생성 `next-env.d.ts`/`tsconfig.json`은 HEAD byte로 복원하고 소유 `.next-e2e-ui529`를 제거했다.
+
+### Issue #529 PRE_QA 사용자 입력 취소 REWORK
+
+독립 QA는 초기 취소 JSON에서 사용자 public30/DOM31 뒤 readonly DOM RAF가 저장120을 쓰는 이벤트를 발견했다. 기존 증거는 `peer-restore-cancel-before-invalid.json`의 NOT VALID 상태로 보존한다. Core 취소만으로 DOM 취소를 판정하지 않는다. 승인된 readonly DOM 복원 effect에 wheel/pointer/keydown 취소와 visible/connected·source snapshot/reset·instance/sync·root/filter·scale/열/grid geometry 재검사를 추가했다. Core effect/Domain/API는 변경하지 않았다.
+
+최종 취소 고유 case는 `/tmp/frontend529-peer-cancel-rework-final.log` 1 PASS/6.8s(총7.6s)다. 실제 native wheel 직후 public30/DOM31 각각을 pending 전 캡처하여 200ms와 추가300ms RAF 완료 뒤 정확히 보존되는지 확인하고, 이후 저장120 복원 이벤트가 없음을 검사한다. 두 값이 항상 같다는 가정을 두지 않는다. 앞선 REWORK 실행2개는 public30/DOM31을 하나의 값으로 정규화한 oracle 가정 때문에 FAIL했고 원본 로그를 보존했다. 이어진 묶음의 clock 과거 pause 오류도 fixture FAIL로 보존했으며 browser clock+100ms 기준으로 보완했다. 검색 변경으로 canonical sync generation이 달라진 경우에도 pending restore를 실행하지 않는다.
+
+같은 최종 제품 source의 positive 영향 범위는 `/tmp/frontend529-rework-browser-final.log`의 Milestone1 PASS/1.8s, native Export1 PASS/6.2s, no-Export control1 PASS/2.2s다. 그 묶음 cancel의 clock fixture FAIL은 숨기지 않는다. 마지막 수정은 cancel case의 두 번째 clock.pauseAt 기준만 바꿨으므로 positive case는 제품 SHA와 실행 당시 spec SHA를 보존해 재사용한다. 새 고유 case를 추가한 것이 아니며 mock3/native3/기존M1 수는 유지한다. 최초 invalid 취소 판정은 이 수의 유효 PASS 근거로 쓰지 않는다.
+
+최종 관련 typecheck/lint·Markdown/diff 및 문서 동기화는 REWORK 이후 재수행하며 Unit18/기존 Gantt warning4 증거는 변경 영향이 없어 재사용한다. 새 frozen manifest가 이전 PRE_QA tree/소스 동결을 대체한다. 독립 PRE_QA 재검토와 원격 quality/e2e/docker는 아직 NOT TESTED다.
+
+
+## Issue #529 PR CI #2143 E2E rework — 2026-10-08
+
+CI #2143.1의 quality/Vitest/typecheck/build/Docker는 PASS이며 Chromium shard4의 #83, shard6의 #526/#527 세 테스트(4 case)가 FAIL했다. #83 synthetic Resource Dashboard fixture는 고정 Assignment(2026-09-16~18)와 조회 from/to 교집합을 빠뜨려 10월 비어 있는 선택범위에도 9월 공수를 반환했다. 실제 API 계산을 변경하지 않고 fixture 날짜 교집합을 복원하며 빈 범위의 `할당 없음`/0공수 구분 assertion을 유지한다.
+
+#526 실제 SQLite/HTTP 테스트는 Group→Milestone→Resource 자식 조회가 비동기인데 전체 tree의 `.resource-milestone-summary.last()`를 먼저 클릭하여 부모 Group 소계를 열 수 있었다. 클릭한 개인 disclosure의 `aria-controls` 하위 Summary가 표시될 때까지 확인하고, 상세 네트워크의 `resourceId` 및 응답 selector/Task ID를 계속 검증한다. Server selector 완화나 검증 제거는 하지 않는다.
+
+#527 초기 fixture의 selected Task reveal 및 Core canonical scroll 동기화가 끝나기 전 `scrollLeft=120`을 설정해 뒤늦은 자동 이동(실제 1581)과 경합했다. Core 동기화 depth=0 및 연속 6 animation-frame의 DOM/public viewport 안정 상태를 확인한 후 명시 테스트 viewport를 설정한다. Workspace 복귀 뒤 동일 Gantt/선택/scroll/scale invariant와 사용자 입력 guard assertion은 유지한다. 이번 변경의 실제 원격 재검증·QA_FINAL/ACCEPT는 새 exact-head PR CI 결과 전 NOT TESTED다.
+
+### Issue #529 PR CI #2144.1 — #527 Core-selected viewport 인수 수정 (2026-10-08)
+
+PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometry, unknown/nonworking)가 공통 `setup`의 `left=120` 고정값 assertion에 실패했다. 실제 차트 왼쪽은 1581이며 이전 #2143에서도 동일한 Core Task 선택/자동 reveal 위치가 관측됐다. 6프레임의 초기 정착만으로는 `chart.scrollLeft=120`을 직접 쓰는 DOM-only 변경과 SVAR Core의 공개 viewport 복원이 일치한다고 보장하지 못한다. 이번 수정은 제품의 Task 선택/scroll 정책을 변경하지 않는다.
+
+테스트는 먼저 Task 선택과 주 배율을 유지하고 세로 위치 96을 설정한다. Core canonical sync depth=0과 공개 Core/DOM 스크롤값의 연속 8 animation-frame 안정 상태를 검증한다. 이후 실제 차트 왼쪽이 0보다 크고 세로가 96이며 공개 Core viewport와 DOM이 양 축에서 일치함을 검증하고 그 값을 `before`로 저장한다. Resource Plan 왕복 뒤 기존 `expect.poll(() => viewport(page)).toEqual(before)`로 전체 viewport/columns/selection/tree 불변을 그대로 확인한다. 원점으로 리셋되는 회귀를 통과로 오인하지 않으며, 안정된 선택 결과를 임의 고정 pixel 값으로 재정의하지 않는다. 이 변경의 새 PR CI·실제 Chromium PASS는 시작 전 NOT TESTED로 구분한다.
+
+
+## Issue #529 CI #2145 후속 (2026-10-08)
+
+- 실패: PR #543 CI #2145, Chromium E2E shard 4(#83) 및 shard 6(#526). Static/Unit/Build/Docker/Policy PASS.
+- #83: 선택 범위에 개인 Assignment가 없는 empty 상태는 할당 없음으로 표시. configured 0 M/D·M/M, unset은 서로 구별. Unit 검증 추가.
+- #526: Task 선택 후 SVAR 자동 가로 이동과 DOM-only 120px 스크롤 설정 경합 제거. 기존 #527 패턴으로 canonical sync 및 연속 animation frame 이후 Core/DOM 일치 상태를 기준으로 하여 화면 복귀 strict equality 유지.
+- 새 exact-head CI 결과가 확인되기 전 PASS 미주장. QA_FINAL/Manager ACCEPT/Windows Excel/GHCR NOT TESTED, release_authorized=false.
+
+## Issue #529 — CI #2148 오류 경계 E2E hydration guard (2026-10-08)
+
+- Exact-head `58f3ef973464c5259a560bf4dedeafe05ff6a1fb`, PR #543 CI [#2148](https://github.com/planner77/masterGantt/actions/runs/37728568858): Lint/TypeScript/Vitest/Build/Docker/Policy 및 Chromium E2E shard2~6 PASS; shard1 #502 Gantt Demo error boundary 1개 FAIL.
+- 실제 로그: root probe의 controlled exception은 발생해 root 경계 테스트 PASS, Gantt Demo에는 controlled exception 로그가 없고 예상 오류 제목만 5초 대기 후 누락. SSR에서 표시된 버튼을 React hydration 전에 Enter로 누르는 경합 가능성이 높다. 이를 실제 브라우저에서 일으킨 장애와 동일하다고 단정하지 않는다.
+- 비운영 E2E probe의 client effect가 `data-e2e-hydrated=true`를 설정한 뒤 native Enter를 수행하고, sessionStorage의 `restore` 마커로 실제 onClick 실행을 별도로 검증한다. route error boundary·retry Enter·focus restore·390/1440px 검증은 유지한다. Timeout 증가 또는 조건부 skip 없음.
+- 수정 commit에 대한 exact-head CI 결과 및 실제 운영 Gantt 오류 경계 동작, Windows/DRM, QA_FINAL, Manager ACCEPT, GHCR는 새 검증 전 NOT TESTED. `release_authorized=false`.
+
+
+### Issue #529 — #528 merge/main 정렬 충돌 해결 (2026-10-08)
+
+- 최신 main `3fa543b10e98d59e50f63f3f53613affe720b648`은 #528 merge commit이다. #529의 이전 공통 조상은 `899d5d7d12855771339e84f7d7b10ce1e1012983`이다.
+- #525의 Resource Dashboard query/snapshot 변경 시 선택/상세 초기화와 #529 Excel evidence callback을 함께 보존한다. #528 진단 조회 시 `diagnosticSelection`과 #529 원래 배정기간용 `diagnosticDomain`을 모두 보존한다.
+- #527/#528의 비동기 Group 개인 상세 locator와 #529의 제외 Assignment 상세 원장을 함께 검증한다. Chart의 선택 auto-pan과 수동 120px 고정 경합을 피하면서 Gantt/Core/DOM 복귀 값의 strict equality를 유지한다.
+- 충돌 파일의 변경을 합친 신규 HEAD에 대한 PR CI는 새로 검증해야 하며 이전 #2150 SUCCESS는 병합된 tree의 PASS가 아니다. 병합·Main CI·GHCR/정식 release는 이번 요청에서 미수행한다.
+
+## PR CI #2171 실패·동일 SHA 메타데이터 CI #2172 구분 (2026-10-08)
+
+- PR #543 full CI #2171 (run `37752287987`, head `ff7576cf6a398804dfe87239dc70e84d7bd762fc`): 6 Chromium E2E shard / ESLint / repository policy PASS. TypeScript `TS2304` at `resource-dashboard-service-core.ts:339`, Vitest `resource-dashboard.test.ts` 4개 FAIL; Next.js build와 Docker image build 연쇄 FAIL. 정확한 원인은 최신 main/#529 충돌 해결 시 기존 `getDetails`가 참조하는 미정의 `domain` 분기와 진단 상세 행을 다시 잘라내는 `diagnosticSelection` 우회 로직을 남긴 것이다.
+- 같은 HEAD의 PR metadata-only CI #2172 (run `37753712741`)는 새 전체 검증이 아니며 #2171의 failed required gates를 회복하지 못했다.
+- 해결: `getDetails`는 `detailTargets`의 canonical `diagnosticUnsetRows` 결과를 그대로 사용한다. 원본 Assignment 기간과 보고기간 겹침, exact ID 범위 및 개인 필터 미적용 T0 진단의 3가지 기존 회귀 `tests/server/resources/resource-dashboard.test.ts`를 유지한다. 결과를 다시 `diagnosticSelection` clipped 행으로 덮어쓰지 않는다. 필터·원장·권한·DTO·API 변경 없이 미정의 식별자를 제거한다.
+- CI 오류를 기존 PASS라고 보고하지 않는다. 새 head 공식 Quality/E2E/Docker 결과와 QA_FINAL/Manager ACCEPT는 실행/판정 전 NOT TESTED. release_required=true, release_authorized=false; 병합, Main CI, GHCR, Issue 종료는 요청 범위 밖이다.
+
+## Issue #529 — PR 리뷰 2건 해소 및 최종 GHCR 승인 (2026-10-08)
+
+- PR #543의 최초 Codex Review P2 두 건: Excel Quality raw unset Assignment는 interactive diagnostic과 달리 원래 실효기간 합계 1,000,000일 예산을 우회했으며, 확인창의 Task/WBS 필터는 UUID만 노출했다.
+- 단일 `assertDiagnosticAssignmentDayBudget`으로 1,000,000일 포함/1,000,001일 422를 상세 조회와 Excel 내보내기 양쪽에서 적용한다. 기간은 report overlap이 아닌 원래 Assignment 시작/종료 또는 canonical Task 기간이다. raw row 생성 전에 검증하고 필터·페이지 크기로 우회하지 않는다.
+- Task/WBS는 `catalog.wbsRoots`의 실제 Task/Summary 이름과 안정 ID를 함께 표시한다. 항목이 사라진 경우 ID를 보존하고 Resource/Group/Milestone 기존 레이블도 동일하게 유지한다.
+- `resource-dashboard.test.ts`는 20개×50,000일의 경계/초과 조건을 Excel export 경로에도 확장하고, `resource-export-model.test.ts`는 Task/WBS/resource 코드 표시를 검증한다. 성공한 이전 CI #2174는 이 변경의 PASS가 아니며 신규 exact-head quality/e2e/docker 재검증이 필요하다.
+- 사용자의 2026-10-08 18:47 KST 요청은 Issue #529의 정식 GHCR 게시를 포함한다. 승인 대상은 application 0.102.0이며 Main CI 및 exact digest·release 검증 전 tag/GHCR 성공을 선언하지 않는다. trusted Owner authorization marker는 Issue 댓글로 별도 기록한다.
+
+### Issue #529 — PR CI #2178: Issue #130 E2E 실행 단위 분할 (2026-10-08)
+
+- PR #543 exact-head `5193c9ce2de112e6d0a115c2d50dcbc93407d9b9` / [PR CI #2178](https://github.com/planner77/masterGantt/actions/runs/37761148163): Quality·TypeScript·Lint·Vitest·Next production build·Docker smoke 및 Chromium E2E shard 1/2/3/4/6 PASS. Chromium shard 5의 기존 `tests/e2e/project-workspace-ux.spec.ts` Issue #130 Phase 2 한 테스트가 기본 **30,000ms 테스트 전체 제한**을 초과하여 FAIL. 단위 assertion 실패는 로그에 없고 78개 다른 테스트 PASS다.
+- 이전 단일 테스트에 화면 폭 390/768/1024/1440/1600px × 읽기 전용·편집 가능=10개 완전한 페이지 로드/키보드/geometry/Gantt 상태/Screenshot을 직렬 수행했다. 한 테스트에 10개 시나리오를 묶어 공통 기본 time budget을 소모하는 구조이므로, **폭별 5개 Playwright 독립 테스트**로 분할한다. 각 테스트는 읽기 전용·편집 가능 모두 검증하고 1440px/week/chart scroll 특수 Oracle 및 기존 모든 assertion/PNG 출력 이름을 유지한다. 기본 30초 timeout 증액·검증 skip·threshold 완화는 하지 않는다.
+- 각각의 width는 별도 browser page/mock fixture 수명을 사용하여 상태·재시도·trace를 분리하며, 테스트 수가 증가하는 것은 범위 확대가 아닌 기존 테스트의 10개 조합 분리다. 새 exact-head CI에서 5개 모두와 quality/E2E/Docker aggregate 결과를 새로 판정한다. 기존 #2178 FAIL을 PASS로 간주하지 않는다.
+
+## Issue #529 — PR CI #2180 성공 후 P2 리뷰 2건 보완 (2026-10-08)
+
+- PR #543 previous exact HEAD `76a4ca2cf012cf43bccc8287ced25cd7b76dcc3f` / [CI #2180](https://github.com/planner77/masterGantt/actions/runs/37768406917)은 Quality/Vitest/TypeScript/Build/Docker 및 Chromium E2E 6 shards SUCCESS다. 다만 Codex의 미해결 P2 2건으로 현재 tree의 병합 인수는 아직 완료되지 않았다.
+- Resource Quality Excel 시트의 `originalFrom/originalTo`는 raw/unset과 **선택된 Milestone 미지정 Assignment** 양쪽 모두 원래 실효기간으로 표현한다. 선택 행은 `assignmentStart ?? taskStart`, `assignmentEnd ?? taskEnd`를 사용하고, 별도 `Resource Assignments.overlapFrom/overlapTo`에만 보고기간 잘림 값을 보존한다. 실제 HTTP XLSX 압축해제·worksheet 셀 I/J 및 U/V 검증에서 explicit Assignment 기간 및 null Task fallback 두 조건을 확인한다.
+- Gantt peer 이동은 자식 SVAR API의 `getState().scrollLeft/scrollTop`을 production-safe callback reader로 캡처한다. DOM `.wx-chart.scrollLeft`/native top은 별도 저장한다. Core 복원은 public 값만 `scroll-chart`에 사용하며 DOM native 원래 위치·snapshot/instance/generation/scale/geometry·사용자 입력 cancel guard는 유지한다. 공개 좌표와 DOM이 1px 다를 때 및 reader 미준비/NaN 조건에 관한 pure Unit 3건, 기존 native E2E의 정확한 capture `public/dom` 비교를 추가한다.
+- 수정 HEAD의 공식 Quality/E2E/Docker, 독립 QA_FINAL, 병합/Main CI/정식 GHCR은 새 실행·증거 확인 전 NOT TESTED다. PR/CI 성공 전 branch 정리·Issue 종료를 하지 않는다.
+
+### Issue #529 — CI #2182 TypeScript 정규식 target 호환 보완 (2026-10-08)
+
+- PR #543 head `f551df1adeed54673c755f04bdfe89bcce598689`의 CI #2182에서 Vitest/ESLint/Policy PASS였지만 TypeScript와 production build는 새 `tests/server/projects/resource-excel-export.test.ts:108`의 `/gs` flag가 현재 target에서 지원되지 않아 TS1501 FAIL. 행 경계별 XML 회귀 시나리오는 삭제하지 않는다.
+- 동일한 XML 내용을 검증하면서 `/<row ...>([\\s\\S]*?)<\\/row>/g`로 교체한다. dotAll의 전역 flag만 제거하고 원본기간/교차기간 각 셀 검증 및 explicit/null fallback을 그대로 유지한다. 기존 PASS를 수정 commit의 PASS로 재사용하지 않으며 새 exact-head PR CI 전체 결과를 판정한다.
+- 최신 main에 Issue #514 관련 후속 merge가 반영되어 #529는 정렬 전 상태다. 이 회차는 요청한 P2 보완 후 새 PR CI 시작 범위이며 main 정렬/병합/정식 GHCR은 미수행한다.
 
 ## Issue #514 — Grid 시작 위치와 peer 복원 영향 검증
 

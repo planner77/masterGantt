@@ -22,7 +22,8 @@
 
 .form > select:focus-visible,
 .form > input[type="date"]:focus-visible,
-.form input[type="radio"]:focus-visible {
+.form input[type="radio"]:focus-visible,
+.form input[type="checkbox"]:focus-visible {
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);
 }
@@ -76,3 +77,16 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.resourceReport { display: grid; gap: 8px; min-width: 0; }
+.resourceReport p { overflow-wrap: anywhere; }
+.resourceReport label { display: flex; align-items: center; gap: 6px; }
+
+.evidence { min-width: 0; }
+.evidence summary { min-height: 36px; display: flex; align-items: center; cursor: pointer; }
+.evidence summary:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.evidence dl { margin: 8px 0; }
+.evidence dl > div { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(0, 2fr); gap: 8px; margin: 6px 0; }
+.evidence dt { color: var(--text-muted); }
+.evidence dd { margin: 0; overflow-wrap: anywhere; }
+.evidence pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }

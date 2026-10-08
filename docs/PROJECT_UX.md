@@ -1138,3 +1138,32 @@ WBS·필터 또는 기존 Resource 분류·기간의 전체 scope가 명시 대�
 조회는 기존 Gantt instance와 공개 Core 선택 API를 유지한다. 선택 복원은 현재 canonical/권한 검증 후 show:false로 수행하여 viewport 복원과 자동 reveal이 경합하지 않게 한다. 설치 SVAR React Gantt Core2.7.3의 grouping 공식 자료는2026-10-08 URL로 확인했으며 PRO grouping 복제는 사용하지 않는다. 공식 demo 실제 조작은 NOT TESTED다.
 
 Issue #528의 임시 범위 strip 버튼은 기존 secondary-button(최소40px)과 공통 focus-visible outline을 사용한다. 신규 Resource 방문 도착 시 hidden/inert 조상 없이 실제 보이는 제목을 선택하여 focus하며, 이전 방문의 숨은 제목을 선택하지 않는다. Milestone 직접 노드 일정 명령은 검증한 원본 range/asOf/환산/sourceProjection을 복귀 frame에 그대로 보존하고 lookup snapshot·오늘 target 조건과 분리한다.
+
+### Resource Excel 보고서 선택 (#529)
+
+Project Context의 기존 내보내기 대화상자를 재사용한다. 일반 진입의 리소스 현황 보고서 포함은 기본 해제이고, Resource toolbar의 `Excel 보고서`는 Excel·리소스 보고서 포함·현재 선택 조건으로 같은 대화상자를 연다. 추가 7개 보고 시트의 현재/Project 전체 선택과 주·월 계획 선택은 기존 일정·단계·물류·견적 시트의 Project 전체 기준을 변경하지 않는다.
+
+현재 선택은 활성 방문의 조회 완료 상태, 실제 query와 이동 binding, 대상 report의 원장 fingerprint·기간·기준일·환산 정책을 확인한다. exact Assignment 이동의 원래 binding을 포함하고 DTO 전용 환산 metadata는 query input에서 제외한다. Project 전체는 확인된 대상 context만 보내고 분류·Task·WBS·Milestone·검색·상태·exact 범위는 적용하지 않는다. 확인된 기간·기준일·환산 정책은 유지하며 사용자 화면 조건·복귀 기록·캐시는 바꾸지 않는다. 대상 보고서 문맥과 원래 이동 출발 문맥은 따로 표시한다.
+
+리소스 보고서 내보내기는 원래 report의 Project revision을 사용하며, 최신 Project GET으로 과거 보고서 revision을 바꾸지 않는다. stale 응답은 옵션과 기존 확인 증거를 보존하고 생성을 잠근다. 성공 조회마다 부여한 receipt를 Project·visit·query·binding과 묶어 같은 요청에서는 서버 stale 당시보다 새로워지고 사용자가 현재 보고서를 명시적으로 확인해야 잠금을 해제한다. 같은 cached report의 확인만으로 재생성하지 않는다. 실제 다른 Project 또는 새 visit·query·binding의 ready 조회는 이전 방문의 큰 receipt와 비교하지 않지만 사용자 명시 확인은 동일하게 요구한다. 접이식 근거에서 실제 이름·안정 ID·분류·검색·상태·활성 조건·시간대·세 revision·Task/Assignment와 exact 범위를 확인한다. pending 중복 제출과 늦은 다운로드를 generation·활성 방문·query·binding·원장·옵션으로 차단한다. 전체 JSON 요청이 UTF-8 8 KiB를 초과하면 배정 목록을 절삭하지 않고 명시적으로 실패한다. Readonly 조회·내보내기는 기존 서버 권한 계약을 유지한다.
+
+공수 미설정 진단의 기간 밖 Assignment는 `조회 기간 밖 · 원래 배정 기간 기준`을 표시한다. 원래 실효기간·근무일·null 공수를 현재 조회 기간의 공수 부분합처럼 표시하지 않는다. Export 종료 시 Resource trigger가 숨겨지거나 제거되면 현재 visible tab 또는 일반 Export 버튼으로 focus를 복원한다. 실제 브라우저와 원격 CI 판정은 별도 실행 증거로 기록한다.
+
+내보내기 대화상자의 재조회는 Resource 화면과 같은 stale 해제 경로를 사용한다. 상세 snapshot 409 뒤 동일 snapshotId가 다시 조회되어도 새 receipt와 사용자 명시 확인으로 복구할 수 있다. 기존 펼침·선택 초기화는 stale 상태에만 적용한다.
+
+일정에서 Resource 또는 물류 workspace로 이동할 때 활성 Gantt의 공개 viewport와 원본·인스턴스·동기화 generation을 보존한다. 숨은 DOM의 0을 저장값으로 덮어쓰지 않는다. 복귀는 기존 공개 Core resize/scroll 경로를 사용하며 원본·조건·scale·열폭·gridWidth가 달라지거나 Gantt pointer/wheel/keydown 입력이 발생하면 대기 중 복원을 취소한다. 공개 API에는 layout settled 보장이 없으므로 앱이 소유한 timeline 정리와 RAF 뒤 필요한 가로 범위를 준비하고 한 번 복원한다. 기존 Task 날짜·scale 선택·Gantt 인스턴스는 변경하지 않는다.
+
+2026-10-08 설치 SVAR React Gantt Core2.7.3에서 [exec](https://docs.svar.dev/react/gantt/api/methods/exec/), [scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/) 공개 계약과 타입을 read-only 조사했다. URL/문서 확인과 실제 Chromium의 positive·입력취소·조건변경 조작 증거를 분리한다. Core 공개 기능을 사용하며 PRO 기능/비공개 구현을 복제하지 않는다.
+
+Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
+
+### Issue #529 — Resource Excel 보고서 범위 확인
+
+- 현재 조건 확인창의 Resource·Group·Milestone·Task·WBS 선택은 사람이 확인할 수 있는 **이름(코드가 있으면 코드 포함) + 안정 ID**로 표시한다. 선택 범위가 비어 있으면 전체, 보고서 snapshot catalog에서 찾을 수 없는 ID는 ID 그대로 표시한다. 다른 Task/WBS가 동일한 이름이어도 ID로 구별한다.
+- Raw unset Assignment의 Excel Quality 보고는 interactive 진단과 같은 원래 실효기간 합산 1,000,000일 제한을 따른다. 초과 시 부분 결과를 제공하지 않고 422 `REPORT_LIMIT_EXCEEDED`를 반환한다.
+
+### Issue #529 — Gantt peer 복귀의 Core/DOM 별도 좌표
+
+- SVAR 공개 Core `scrollLeft/scrollTop`은 자식 Gantt가 읽기 전용 callback으로 현재 값만 전달한다. 부모는 보이는 Chart의 native `scrollLeft/scrollTop`을 별도로 캡처한다. 레이아웃 반올림 등으로 공개 Core와 DOM에 1px 차이가 있어도 Core 복원을 DOM 값으로 덮어쓰지 않는다.
+- `scroll-chart`에는 캡처한 공개 Core 좌표를 사용하고 기존 DOM native 좌표는 별도 복귀 대상으로 유지한다. 공개 reader가 준비되지 않거나 유효하지 않으면 DOM 값을 Core로 대체하지 않고 해당 peer Core 복원을 취소한다. 원장/snapshot, task root/filter, Gantt instance, sync generation, 사용자 입력/geometry 취소 정책은 유지한다.
+

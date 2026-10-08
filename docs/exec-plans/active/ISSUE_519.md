@@ -3,7 +3,7 @@
 ## 범위와 기준
 - Issue: https://github.com/planner77/masterGantt/issues/519
 - 기준 main: `e61fa037d9b527dad5a014250dbdd1678519c027`, app `0.101.2`
-- Branch: `fix/issue-519-milestone-picker-metadata`; 후보 PATCH `0.101.3`
+- Branch: `fix/issue-519-milestone-picker-metadata`; 최초 후보 PATCH `0.101.3` (최신 main 통합 후보 `0.102.1`)
 - 종료점: 구현·테스트·문서 동기화·PR 생성과 exact-head PR CI 시작. 병합·Main CI·GHCR·종료 비범위.
 - release_required=true / release_authorized=false. 단일 에이전트 순차 처리.
 
@@ -21,3 +21,12 @@
 
 ## 검증 상태
 GitHub connector에서 파일 쓰기를 수행했다. 실행 가능한 로컬 npm/Chromium, 독립 qa_docs Sub-Agent 없음: **NOT TESTED**. GitHub Actions PR CI의 exact head quality/e2e/docker gate가 공식 근거다. 성공 전 최종 QA/merge는 승인하지 않는다.
+
+## 2026-10-08 CI 실패·최신 main 통합 보완
+- 최초 PR: https://github.com/planner77/masterGantt/pull/547, head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599`
+- 실패 CI #2185.1: https://github.com/planner77/masterGantt/actions/runs/37773843644
+- quality, build, typecheck, lint, unit, docker, 5개 E2E shard 성공. E2E shard 5/6에서 기존 `project-workspace-ux.spec.ts:206` Issue #130 단일 5폭×readonly/edit 검증이 30s timeout으로 실패(79 PASS/1 FAIL).
+- 해당 기존 테스트는 최신 main `599b824677cec2daa47743a60fcac422297f925b`에서 5폭 각각의 독립 테스트로 분리되어 있다. 시간제한을 늘리거나 회귀 항목을 지우지 않고 latest main의 실제 수정과 테스트 assertion 전체를 받아 해결한다.
+- 최신 main은 application `0.102.0`, Issue #529 Excel Resource 보고 및 여러 후속 수정이 포함된다. 기존 PR의 `0.101.3` 버전·문서는 main `0.102.0`을 유지한 `0.102.1` PATCH에 재적용한다. 이전 0.101.3은 병합/게시된 release가 아니다.
+- Git의 정상 2부모 merge commit에서 parent 1은 feature, parent 2는 해당 main이다. content tree는 정확한 최신 main tree 기반이며 Issue #519의 기존 11개 변경 경로에만 차이를 적용해 다른 Issue 작업과 코드·문서 유실을 방지한다.
+- 새 PR CI 정확한 head의 quality/e2e/docker 결과 확인 필요. Local npm/Chromium 및 독립 QA는 여전히 NOT TESTED.
