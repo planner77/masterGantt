@@ -1,5 +1,12 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 Main CI #2249.1 E2E 스크롤 경합 보완
+
+Issue #530 병합 SHA `09e0a77222edb4652a6ca9c44c758d1c96a0e6bc`의 [Main CI #2249.1](https://github.com/planner77/masterGantt/actions/runs/37856801652)은 quality/Docker 및 Chromium 샤드 1·2·3·5·6 PASS, 샤드4의 `tests/e2e/project-resource-workload-status.spec.ts` #525 회귀 1건 FAIL(82 PASS) 때문에 E2E aggregate FAIL, GHCR 임시 이미지 SKIPPED였다. Grid Task 클릭 후 Chart 자동 이동이 완료되기 전에 테스트가 수동 `scrollLeft=120`을 설정했고, 비동기 이동값 `1581`이 뒤늦게 적용되어 `{left:120,top:96}` 원장 생성 단계의 5초 poll이 실패했다. 테스트 경쟁 조건이며 화면 복귀 불변식 실패라고 확대하지 않는다.
+
+회귀 기대값·전체 검증을 약화하지 않고, 행 선택의 native Chart reveal(>120)을 확인한 다음 canonical sync depth0/animation-frame 안정화를 기다려 수동120/수직96 baseline을 설정한다. 이후 Gantt root identity, Core/DOM/selection/columns/scale 및 돌아온 좌표 전체의 strict equality와 5폭·keyboard 검증은 그대로 보존한다. 제품/API/DB/집계 및 workflow 변경은 없다. 테스트 보완이므로 기존 application 버전 `0.102.3`을 유지하고, 새로운 정확한 Head의 PR CI 및 병합 SHA의 Main CI가 성공하기 전에는 GHCR 게시 완료를 주장하지 않는다. 코드 수정과 다른 독립 QA 검토는 실제 실행 증거로 별도 판정한다.
+
+
 ## 2026-10-09 최신 main 재정렬 — PR #555
 
 기존 head `a87954a7ce76ac14e1095953486aafbb03f33e02`의 기능·검증 이력을 보존하고 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 통합했다. 후보 버전은 `0.102.3`이다. CHANGELOG의 main 0.102.2와 #530 PATCH 항목을 분리하고 양쪽 문서 추가를 보존했다. #495의 Milestone 표기와 #530 frame별 Core/native viewport·canonical queue·입력 취소를 함께 유지하며, 신규 UI 테스트의 이전 접근성 이름 4종을 현행 소스와 대조해 변경했다. 기존 assertion·공수 기대값·CI gate는 삭제하거나 완화하지 않았다.
