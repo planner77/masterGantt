@@ -2485,3 +2485,15 @@ Issue #454 v0.90.1 Release #140.1 (`37434408238`)의 Chromium shard 2/6은 `acti
 PR #488 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`의 코드 리뷰는 Chromium/Docker PR CI가 성공했더라도 동일 `playwright-setup` 공용 action을 호출하는 main `publish-commit-image`(기존 30분) 및 release `container`(기존 20분) job에서 Azure 미러 timeout + fallback 최악 약 12분 20초를 흡수하기 어렵다는 P1을 확인했다. 해당 job의 기능 검증·digest 증거를 생략하거나 테스트 timeout을 더 작게 만드는 것이 아닌 job budget 자체를 Main 50분·Release 40분으로 확대한다.
 
 `tests/scripts/test-config-layout.test.ts`가 정확히 이 job의 timeout을 검사하며, 기존 E2E shard 35분, Docker smoke 40분, Playwright OS deps 360초×최대 2회, fail-closed, Chromium 6-shard/workers=1 및 Main exact-digest/release candidate smoke 검증은 유지한다. 최초 P1 원문/이력은 PR 리뷰 스레드로 보존하고, 수정된 head의 exact PR CI/리뷰와 main CI/임시 GHCR image publish 확인 전에는 PASS라고 주장하지 않는다.
+
+### Issue #487 / Main CI #2203.1 — timeout 이후 잔존 APT 잠금 회귀
+
+`08ac7749efc4544dfc125853d9e58ef3a9d56b21`의 Main CI #2203.1 (`37793380955`): Chromium E2E shard 1/6의 `playwright-setup` 첫 시도 360초 초과 후 npm 상위 프로세스가 종료돼도 이전 `apt-get`이 `/var/lib/apt/lists/lock`을 보유했다. 미러 전환 자체는 성공했으나 재시도 `apt-get update`는 lock exit 100으로 실패했다. E2E shard 2~6과 Quality/Docker는 PASS; E2E aggregate FAIL로 GHCR 게시 SKIPPED. 본 실패를 브라우저 assertion 또는 Gantt 기능 실패로 오분류하지 않는다.
+
+후속 수정 검증: GitHub runner Ubuntu 24.04 `mirror+file:/etc/apt/apt-mirrors.txt`/기존 Azure source를 첫 Playwright 설치 전에 공식 Ubuntu archive로 변경, APT HTTP/HTTPS 자체 제한시간 45초 및 1회 Acquire retry, 최초 실패 후 lists/dpkg 잠금의 실제 점유 프로세스를 최대 60초 확인한 뒤 잠금 해제 때만 1회 설치 재시도, 잠금이 유지되거나 도구가 없으면 즉시 실패, 임의 강제 프로세스 kill 금지. 기존 E2E shard 6개·workers 1·2초 bounded scroll poll·focus/geometry assertion, CI/Release job budget 및 Docker/runtime/보안 필수 gate 유지.
+
+후속 PR은 새로운 exact-head PR CI의 Quality/E2E/Docker 전체 PASS를 요구하며, Main CI 및 임시 GHCR 게시/digest smoke는 새 merge SHA에서 별도로 PASS 확인 후에만 Issue #487 최종 완료로 판정한다. 정식 tag/release_required=false, application version 불변.
+
+### Issue #487 후속 PR #558 첫 PR CI 정적 회귀 보완
+
+첫 후속 head `71ee4a340aeadcae9492a88a30e616a1a7f6695f`의 PR CI #2211.1 (`37797599643`)에서 테스트 `tests/scripts/test-config-layout.test.ts`의 Playwright setup 계약 검증 1건이 FAIL했다. 원인은 코드의 실제 미러 검색 경로가 유지됐음에도 action 주석에 기존 계약 문자열 `mirror+file:/etc/apt/apt-mirrors.txt`를 정확히 쓰지 않아 문자열 기반 정적 테스트에 불일치가 발생한 것이다. 해당 Ubuntu 24.04 주석을 정확한 경로로 보강한 commit `9b226833f8dd1e3441fc53beb93be003dba66e92`에서 재검증한다. 테스트·설치 예외를 제거하거나 제품 assertion을 완화하지 않는다.
