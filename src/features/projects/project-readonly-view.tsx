@@ -36,6 +36,9 @@ import { dashboardError } from "@/features/resources/use-resource-dashboard";
 import { canCreateSchedulingLink, linkStructureLocked, MIXED_LINK_EXPLANATION, COMPLETED_LINK_EXPLANATION } from "@/features/gantt/relation-editor-model";
 import { StageFilterPicker } from "./stage-filter-picker";
 import { ProjectMilestoneDashboard } from "@/features/milestones/project-milestone-dashboard";
+import { MilestoneCreateDialog } from "@/features/milestones/milestone-create-dialog";
+import { milestoneRootPayload, resolveCreatedMilestone, isVisibleFocusTarget, milestoneManagementDate, type MilestoneManagementCommand } from "@/features/milestones/milestone-management-model";
+import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "@/components/clipboard-write";
 import type { MilestoneResourceDrill } from "@/features/resources/milestone-resource-drill";
 
 import dynamic from "next/dynamic";
@@ -269,12 +272,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }, [publicId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
-  const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships">("task");
+  const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations">("task");
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const editorOriginViewReference = useRef<WorkspaceView>("schedule");
   const editorOpeningReference = useRef(false);
+  const [milestoneCreate, setMilestoneCreate] = useState<{ revision: number; publicId: string } | null>(null);
+  const milestoneCreateReference = useRef<typeof milestoneCreate>(null);
+  const milestoneCreateTriggerReference = useRef<HTMLElement | null>(null);
+  useEffect(() => () => { milestoneCreateReference.current = null; }, []);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
   const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
   const settingsTriggerReference = useRef<HTMLButtonElement | null>(null);
@@ -869,7 +876,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     notify("error", message, operation, error);
     return message;
   }
-  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false): Promise<TaskEditorSaveResult> {
+  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false, onCanonicalSuccess?: (response: TaskMutationResponse, snapshot: ProjectSnapshotResponse) => void): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready" || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
     if (expectedRevision !== undefined && expectedRevision !== state.snapshot.data.project.revision) {
       return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 최신 정보를 다시 불러온 뒤 검토해 주세요." };
@@ -902,6 +909,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           ? ` 요청 시작일 ${currentTask.requestedStart} → 적용 시작일 ${currentTask.start}.` : "";
         const changed = successors.length ? ` 후행 작업 ${successors.length}건의 일정이 조정되었습니다: ${successors.slice(0, 3).map((task) => `${task.name} (${task.externalId})`).join(", ")}${successors.length > 3 ? ` 외 ${successors.length - 3}건` : ""}.` : "";
         notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
+        onCanonicalSuccess?.(body as TaskMutationResponse, snapshot);
         return { status: "saved" };
       }
       if (expectedRevision !== undefined) {
@@ -938,14 +946,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
 
-  async function saveTaskHierarchyCommand(command: TaskHierarchyCommandRequest): Promise<void> {
+  async function saveTaskHierarchyCommand(command: TaskHierarchyCommandRequest, trigger?: HTMLElement): Promise<void> {
     if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || busy || editorSession || settingsOpen || copyReview) return;
     const revision = state.snapshot.data.project.revision;
     if (command.kind === "copy") {
       try {
         const plan = previewMembershipCopy(state.snapshot.data.tasks, state.snapshot.data.links, command);
         if (plan.requiresAcknowledgement) {
-          copyReviewTriggerReference.current = findTaskContextElement(document.body, command.anchorTaskId);
+          copyReviewTriggerReference.current = trigger ?? findTaskContextElement(document.body, command.anchorTaskId);
           setCopyReviewError(null); setCopyReview({ publicId, revision, command, plan }); return;
         }
       } catch (error) {
@@ -972,16 +980,77 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     finally { copyConfirmationReference.current = false; }
   }
 
-  function openTaskEditor(taskId: string, initialTab: "task" | "memberships" = "task") {
+  function openTaskEditor(taskId: string, initialTab: "task" | "memberships" | "relations" = "task", actualTrigger?: HTMLElement) {
     if (state.status !== "ready" || busy || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
-    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const trigger = actualTrigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setEditorInitialTab(initialTab);
     editorOriginViewReference.current = activeView;
     editorOpeningReference.current = true;
     editorTriggerReference.current = trigger;
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
+  }
+  function closeTaskDelete() {
+    if (taskMutationReference.current) return;
+    setPendingTaskDelete(null);
+    if (activeView === "milestones") focusMilestoneDashboard(deleteTriggerReference.current);
+  }
+  function focusMilestoneDashboard(trigger?: HTMLElement | null) {
+    requestAnimationFrame(() => {
+      const panel = document.getElementById("project-panel-milestones");
+      if (panel?.querySelector("[data-testid=milestone-dashboard]")?.getAttribute("data-project-public-id") !== publicId) return;
+      const target = isVisibleFocusTarget(trigger) ? trigger : ["search", "add", "heading"].map(kind => panel?.querySelector<HTMLElement>(`[data-milestone-focus="${kind}"]`)).find(isVisibleFocusTarget);
+      target?.focus();
+    });
+  }
+  function closeMilestoneCreate() {
+    if (taskMutationReference.current) return;
+    milestoneCreateReference.current = null; setMilestoneCreate(null);
+    focusMilestoneDashboard(milestoneCreateTriggerReference.current);
+  }
+  function requestMilestoneCreate(trigger: HTMLElement) {
+    if (state.status !== "ready" || !editing || busy || editorSession || relationEditorRequest || pendingTaskDelete || settingsOpen) return;
+    const request = { publicId, revision: state.snapshot.data.project.revision };
+    milestoneCreateTriggerReference.current = trigger;
+    milestoneCreateReference.current = request; setMilestoneCreate(request);
+  }
+  async function createRootMilestone(name: string, start: string): Promise<TaskEditorSaveResult> {
+    const request = milestoneCreateReference.current;
+    if (!request || state.status !== "ready" || !editing || request.publicId !== publicId || request.revision !== state.snapshot.data.project.revision) return { status: "failed", conflict: true, message: "편집 권한과 기준 Revision을 확인해 주세요. 입력은 유지됩니다." };
+    let payload;
+    try { payload = milestoneRootPayload(name, start); if (!payload.name) throw new Error("Empty name"); }
+    catch { return { status: "failed", message: "Milestone 이름과 유효한 요청 시작일을 입력해 주세요." }; }
+    const previous = state.snapshot.data.tasks;
+    return saveTask("POST", null, payload, request.revision, false, (response, snapshot) => {
+      if (milestoneCreateReference.current !== request || confirmedSnapshotReference.current !== snapshot || snapshot.data.project.publicId !== request.publicId) return;
+      milestoneCreateReference.current = null; setMilestoneCreate(null);
+      const created = resolveCreatedMilestone(previous, response);
+      if (!created) { notify("info", "생성 결과의 작업 ID를 유일하게 확인하지 못했습니다. 목록에서 단계를 확인해 주세요.", "Milestone 추가"); focusMilestoneDashboard(); return; }
+      editorOriginViewReference.current = "milestones";
+      editorTriggerReference.current = milestoneCreateTriggerReference.current;
+      editorOpeningReference.current = true; setEditorInitialTab("task");
+      setEditorSession({ task: { ...created }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
+    });
+  }
+  function manageMilestone(taskId: string, command: MilestoneManagementCommand, trigger: HTMLElement) {
+    if (state.status !== "ready" || busy || editorSession || relationEditorRequest || pendingTaskDelete || settingsOpen) return;
+    const task = state.snapshot.data.tasks.find(entry => entry.taskId === taskId && entry.type === "milestone");
+    if (!task) { focusMilestoneDashboard(); return; }
+    if (command === "detail" || command === "memberships" || command === "relations") { openTaskEditor(taskId, command === "detail" ? "task" : command, trigger); return; }
+    if (command === "copy-id") {
+      const modern = window.isSecureContext && navigator.clipboard?.writeText ? navigator.clipboard.writeText.bind(navigator.clipboard) : undefined;
+      void writeTextWithCompatibility(taskId, modern, copyTextWithLegacyCommand).then(() => notify("success", "작업 ID를 복사했습니다.", "작업 ID 복사"), () => notify("error", "작업 ID를 복사하지 못했습니다.", "작업 ID 복사"));
+      focusMilestoneDashboard(trigger); return;
+    }
+    if (command === "date" || command === "members") {
+      const ids = command === "date" ? milestoneManagementDate(task) ? [taskId] : [] : task.stageGate?.memberTaskIds ?? [];
+      if (ids.length && milestoneSourceReference.current) void drillDashboardSchedule(ids, milestoneSourceReference.current);
+      return;
+    }
+    if (!editing) return;
+    if (command === "copy") { void saveTaskHierarchyCommand({ kind: "copy", taskId, anchorTaskId: taskId, placement: "after" }, trigger); return; }
+    if (task.status !== "completed") requestTaskDelete(taskId, trigger, true);
   }
   function closeTaskEditor() {
     const taskId = editorSession?.task.taskId;
@@ -989,9 +1058,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setEditorSession(null);
     setActiveView(editorOriginViewReference.current);
     editorOpeningReference.current = false;
+    if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
-      const target = trigger?.isConnected ? trigger : root && taskId ? findTaskContextElement(root, taskId) ?? root : root;
+      const target = isVisibleFocusTarget(trigger) ? trigger : root && taskId ? findTaskContextElement(root, taskId) ?? root : root;
       target?.focus({ preventScroll: true });
     });
   }
@@ -1012,7 +1082,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     relationEditorTriggerReference.current = null;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
-      const target = trigger?.isConnected && !trigger.closest(".project-relation-context-menu") ? trigger : root;
+      if (!isVisibleFocusTarget(trigger) && editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(); return; }
+      const target = isVisibleFocusTarget(trigger) && !trigger.closest(".project-relation-context-menu") ? trigger : root;
       target?.focus({ preventScroll: true });
     });
   }
@@ -1076,7 +1147,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       ...(command.type === "summary" ? { name: "새 요약 작업" } : { name: "새 작업", start: todayLocalDateString(), duration: 1 }),
       ...(convert ? { convertParentToSummary: true } : {}) });
   }
-  function requestTaskDelete(taskId: string, trigger: HTMLElement | null) {
+  function requestTaskDelete(taskId: string, trigger: HTMLElement | null, confirmLeaf = false) {
     if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen) return;
     const plan = createTaskDeletePlan(state.snapshot.data.tasks, taskId);
     if (!plan) { notify("error", "삭제할 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 삭제"); return; }
@@ -1086,7 +1157,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       return;
     }
     deleteTriggerReference.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-    if (plan.descendantTaskIds.length === 0) {
+    if (plan.descendantTaskIds.length === 0 && !confirmLeaf) {
       void saveTask("DELETE", taskId);
       return;
     }
@@ -1096,7 +1167,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const pending = pendingTaskDelete;
     if (!pending) return;
     const result = await saveTask("DELETE", pending.taskId, undefined, pending.revision, true);
-    if (result.status === "saved" || result.conflict) setPendingTaskDelete(null);
+    if (result.status === "saved" || result.conflict) { setPendingTaskDelete(null); if (activeView === "milestones") focusMilestoneDashboard(deleteTriggerReference.current); }
   }
   function rejectNativeTaskAdd(reason: "scope" | "missing" | "milestone") {
     if (reason === "milestone") {
@@ -2094,7 +2165,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null;
+  const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
   const scopeTabLabel = (taskId: string): string => {
     const task = tasks.find((candidate) => candidate.taskId === taskId);
     if (!task) return "선택한 Summary";
@@ -2625,7 +2696,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </section>
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"
         hidden={activeView !== "milestones"} className="project-workspace-panel project-milestone-panel">
-          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
+          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} editable={editing} onAddMilestone={requestMilestoneCreate} onManageMilestone={manageMilestone} onManagementFocusUnavailable={() => focusMilestoneDashboard()} onOpenTask={openTaskEditor} onSourceContext={context => { milestoneSourceReference.current = context; }}
                 onSchedule={drillDashboardSchedule} onResources={milestoneToResources} onRefreshProject={() => { void reloadCanonicalSnapshot(); }} />
       </section>
       <section
@@ -2721,16 +2792,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : "편집 활성화"}</button>
       </form>
     </WorkspaceDialog> ) : null}
+    {milestoneCreate ? <MilestoneCreateDialog pending={isSavingTask} editable={editing} stale={milestoneCreate.publicId !== publicId || milestoneCreate.revision !== project.revision} restoreFocusRef={milestoneCreateTriggerReference} onClose={closeMilestoneCreate} onCreate={createRootMilestone} /> : null}
     {pendingTaskDelete ? (
         <WorkspaceDialog title="작업 삭제" restoreFocusRef={deleteTriggerReference} busy={isSavingTask}
-      onClose={() => { if (!isSavingTask) setPendingTaskDelete(null); }}>
+      onClose={closeTaskDelete}>
       <div className="project-form compact-form">
         <p><strong>{pendingTaskDelete.taskName}</strong> 작업과 하위 작업 {" "}
               {pendingTaskDelete.descendantTaskIds.length}개, 총 {" "}
               {pendingTaskDelete.descendantTaskIds.length + 1}개 작업을 삭제하시겠습니까?</p>
         <p>접힌 하위 작업을 포함하여 모든 하위 작업이 함께 삭제됩니다. 삭제 후에는 이 화면에서 되돌릴 수 없습니다.</p>
         <div className={feedbackStyles.headingActions}>
-          <button autoFocus className="secondary-button" disabled={isSavingTask} onClick={() => setPendingTaskDelete(null)} type="button">취소</button>
+          <button autoFocus className="secondary-button" disabled={isSavingTask} onClick={closeTaskDelete} type="button">취소</button>
           <button className="danger-button" disabled={isSavingTask} onClick={() => void confirmTaskDelete()} type="button">{isSavingTask ? "삭제 중…" : "하위 작업 포함 삭제"}</button>
         </div>
       </div>

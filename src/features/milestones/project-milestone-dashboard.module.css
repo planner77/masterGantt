@@ -58,3 +58,11 @@
 .multiSummary { display:flex; flex-direction:column; gap:4px; min-width:0; font-size:12px; }
 .numeric { text-align:right !important; }
 
+
+.managementActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.managementActions > div { min-width: 0; }
+.managementActions button { width: 100%; white-space: normal; }
+.managementActions small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+@media (max-width: 600px) { .sectionHeading { flex-wrap: wrap; } .managementActions { grid-template-columns: minmax(0, 1fr); } }
+
+.tableOwner { max-height: 480px; overflow: auto; }

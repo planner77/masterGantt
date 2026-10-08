@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.104.0] - 2026-10-09
+
+### Added
+
+- Issue #550: 기존 Milestone Dashboard에 날짜순 독립 관리 목록과 명시적 프로젝트 root 생성·기존 Editor/소속/관계/utility 명령 진입을 제공한다. 현재 Milestone 행과 빠른 보기는 유지한다.
+
 ## [0.103.0] - 2026-10-08
 
 ### Added

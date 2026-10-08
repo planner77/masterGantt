@@ -1,3 +1,7 @@
+## Issue #550 — 독립 Milestone 관리 진입 구현
+
+[#550 Work Packet](ISSUE_550.md). 선행 #549 [PR #557](https://github.com/planner77/masterGantt/pull/557), head `4bc4c31d9c5f46d90a83cbe4de878a52a2f2529b`, CI [2210.1](https://github.com/planner77/masterGantt/actions/runs/37795569338) 등록 후 결과 모니터링 없이 MT2를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-550-milestone-management`/PR base `feat/issue-549-milestone-timeline-foundation`, 후보 MINOR `0.104.0`으로 진행한다. frontend가 기존 Dashboard/Workspace/Editor 관리 진입과 문서를, backend가 실제 SQLite/HTTP persistence 검증을 소유한다. 최종 로컬 UI19개/44.5초와 고유Unit88개 PASS, 실제HTTP/SQLite2개/43.3초는 이후 Dashboard focus·메뉴 상태·삭제 취소 bridge의 UI 영향 분석으로 재사용하며 실행 source를 구별한다. ui_ux geometry와 관리 대상 소멸·물리 focus 가시성 REWORK를 해소했다. ui_ux 설계·증거 비교와 qa_docs 독립 검토를 거친다. 원격 CI 결과/최종 ACCEPT 및 merge/main/GHCR/Issue 종료는 범위 밖이다.
+
 <!-- Issue #549 인계: Unit72개 / Chromium 기술 실험9개 PASS. Week 월 헤더 의미 불일치 관측, 이전 baseline·원인 NOT TESTED이며 #551 활성화 전 gate로 검증한다. 사용자 요청에 따라 PR CI 결과를 모니터링하지 않는다. -->
 ## Milestone Timeline 순차 구현 — #549 → #550 → #551 → #552 → #553
 

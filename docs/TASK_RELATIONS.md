@@ -180,3 +180,8 @@ Dependency Link의 의미와 WBS sibling order는 별도 계약이다. 같은 pa
 새 Relation Editor 후보와 native add-link는 Task→Task 또는 Milestone→Milestone만 허용한다. Summary/자기 자신/동일 방향 기존 연결을 후보에서 제외하고 미해결 anchor는 후보가 없다. 서로 다른 단계에 소속된 일반 Task끼리의 일정 관계는 허용한다. Membership은 일반 Dependency가 아니며 완료 단계 연결 명령으로 관리한다. 타입 제한 안내는 새 연결에만 적용한다. 기존 legacyMixed 관계는 선행/후행 목록·Task Editor·Relation Editor·canonical SVAR links에서 숨기거나 삭제하지 않고 endpoint 고정 type/Lag 편집·삭제 호환을 유지한다.
 
 완료 Milestone endpoint에 연결된 관계는 양쪽 full canonical endpoint를 검사하여 type/Lag/create/delete를 잠근다. 기준이 일반 Task여도 상대가 완료 M이면 잠긴다. 일반 Task의 completed 상태/완료 단계 소속은 이 잠금 조건이 아니다. Context Menu와 Relation Editor의 표시·실행 handler, Task Editor per-link 삭제 및 Workspace 실제 saveLink dispatch에서 같은 UI guard를 사용하고 선택 후 canonical 타입/상태 변경도 최신 map으로 재검증한다. 서버의 #460 session/Origin/revision/structure guard는 최종 authority로 유지한다. 명시 reopen canonical 성공 뒤 잠금이 해제된다. native canonicalSyncDepth의 내부 동기화 bypass는 기존 legacy links 복원에 사용하며 신규 사용자 연결 권한을 부여하지 않는다.
+
+
+## Issue #550 — 관리 목록 관계 진입
+
+Milestone 관리 메뉴는 같은 canonical taskId로 기존 Task Editor의 relations 탭을 연다. 그 안에서 기존 Relation Editor와 saveLink를 재사용하며 full canonical endpoint를 조회한다. readonly/dirty/pending/기준 revision/완료 단계의 기존 guard를 바꾸지 않는다. Task→Task와 M→M 신규, legacy mixed 조회·허용 수정/삭제, Summary endpoint 금지·순환·Lag·calendar 검증은 기존 서버 계약이다. 관리 메뉴가 새 그래프/가짜 Membership Link를 만들지 않는다. Dashboard에서 시작한 관계 화면은 visible actual trigger로 복귀하고 trigger가 없으면 보이는 Dashboard 검색/추가/heading으로 복귀한다. Copy acknowledgement는 기존 소속 제외·상속 효과만 확인하며 Assignment나 완료 fullE/explicit/incident 경계를 해제하지 않는다.

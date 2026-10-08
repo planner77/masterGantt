@@ -2492,3 +2492,35 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 현재 E2E 9개 PASS는 adapter x와 native Task start anchor의 ±1px, 행/Link/instance/viewport/no-loss assertion 결과이며 헤더 전체 날짜 의미를 검증한 결과가 아니다. 선별 Week `geometry-1440.png`의 T-year 시작 Jan 1, 2027 bar 위에 July 2026, `DST-reveal.png`의 Mar 10, 2026 bar 위에 November 2025가 표시된 불일치를 독립 비교에서 확인했다. 실제 캡처의 Week month/year 의미 일치는 FAIL이다. 원인·변경 전 baseline 재현은 NOT TESTED이며 제품/scale 알고리즘 수정 없이 제한을 기록했다. Day 헤더 일치는 비교 관찰 범위에 한정한다.
 
 #551 lane 활성화 전에 canonical 날짜/adapter x/native anchor/가시 Day 셀 또는 ISO week의 실제 날짜 구간/month-year 경계를 함께 비교하는 별도 E2E oracle을 추가하고, Day/Week·DST·월말/연말/윤일·scroll/resize/scale/동적 축 후 동일 source 브라우저 검증을 통과해야 한다. Task anchor 일치만으로 gate를 PASS하지 않는다. [불일치 화면과 활성화 gate](MILESTONE_TIMELINE.md#독립-uiux-비교에서-확인한-week-날짜-헤더-불일치)를 따른다.
+
+
+## Issue #550 — Milestone 관리 진입 Local Fast Feedback
+
+현재 변경은 기존 Dashboard 목록/관리 메뉴/작은 root 생성 form 및 같은 Task/Relation Editor·보호 gateway의 진입이다. canonical date/ID 정렬은 stageFilterCandidates를 재사용하고 full E/P·Ready·수동 이벤트·완료 잠금은 기존 server 계산이다. #549의 Week 날짜 헤더 의미 FAIL와 원인/baseline NOT TESTED는 #551 활성화 gate로 유지하며 새 lane/M행 제거는 이 검증 범위가 아니다.
+
+| 검증 | 실제 범위와 결과 |
+| --- | --- |
+| Unit | milestone-management-model 신규 4 + 기존 milestone-dashboard-model/task-editor-view-model 66 = 70 PASS. 표시 정렬/인구 보존/입력 불변, canonical date, root payload, taskCreate의 유일 새 ID 대조 |
+| Chromium synthetic UI | milestone-management.spec.ts 19/19 PASS, exit 0, PRE_QA race/삭제 취소 보완 후 최종 44.5s. 390/768/1024/1440/1920, 긴 동명/같은 날짜/30행, readonly utility와 mutation disabled, native modal Tab/Escape/실제 trigger focus, 표 ArrowRight/PageDown 내부 scroll, 같은 Gantt instance, search0/단순조회 mutation0. 5폭 header/body 경계 최대 차이0px, 문서폭=viewport, sibling nonoverlap, 버튼의 td 경계/toolbar 경계/outline 선두께3px/offset3px/외곽 여유6px의 modal owner 경계 ±1px |
+| 저장 UI | 기존 saveTask POST root payload/created external ID, pending 중 중복·Escape 보호, 생성 및 기존 Editor dirty 폐기 확인, 401/412/network 입력 보존/자동 재전송 없음, 외부 revision stale 제출 차단, 단일 Copy/DELETE 명시 확인/정확 taskId/삭제 후 검색·추가·heading fallback. 열린 관리 대상의 외부 canonical 삭제/보고 population 탈락→visible source-guarded fallback 및 같은 대상 재등장시 자동 modal 재개 없음 |
+| 보고 응답 역전 | 늦은 첫 검색 응답을 보류하고 다음 검색 응답을 먼저 완료한 뒤 첫 route.fulfill 완료와 두 browser frame 이후 최신 조건/행/기준 revision 유지. 기존 hook의 abort/generation guard를 유지함 |
+| 실제 HTTP·SQLite | 별도 milestone-management-persistence.spec.ts와 development isolatedApplication에서 최종 2/2 PASS exit0, skipped/flaky0, 전체43.3s(주 JSON 합계43288.521ms). 실행 당시 UI/테스트/fixture/server/domain16개 SHA 검증 OK. root 생성→Editor PATCH→소속/관계/fullE/P/완료 잠금·보호 거절/restart 전체 canonical 일치, 완료 manual M 단독 Copy 성공/partial completed M acktrue에도409 거절, 빈→M-only 상세·소속·관계 조회 mutation0/readonly 생성401. production 및 원격 CI PASS로 확대하지 않음 |
+| 원격 quality/e2e/docker | 이 문서의 로컬 결과로 대체하지 않음. #550 exact PR head Actions 결과는 NOT TESTED이며 현재 권한은 CI 등록까지만 |
+
+직접 실행은 `npx vitest run --config tests/config/vitest.config.ts tests/features/milestones/milestone-management-model.test.ts tests/domain/milestone-dashboard-model.test.ts tests/features/gantt/task-editor-view-model.test.ts`와 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-management.spec.ts --project chromium --output=/tmp/issue550-frontend-preqa-final-results --reporter=line`를 사용한다. 변경 파일 ESLint, typecheck 및 Markdown 링크를 별도 검사한다. 역할별 /tmp output/reporter를 사용하여 backend/다른 실행의 report를 덮어쓰지 않는다.
+
+초기 synthetic UI 9/9 FAIL은 shared fixture의 초기 M gate를 undefined로 덮어쓴 새 report fixture가 shape/freshness 검증에서 거절된 결과였다. 수정 후 3 PASS/6 FAIL은 새 합성 M의 비근무일 날짜, 다음 4 PASS/6 FAIL은 unsupported weekendDays=[], 다음 4 PASS/6 FAIL은 중복 siblingOrder로 기존 계층 검증이 Editor를 거절한 fixture 결함이다. engine/guard를 약화하지 않고 지원 calendar [6,0], 근무일 2026-10-05, 고유 root siblingOrder 및 보고 gate를 정정했다. 이후 10/10 PASS, 추가 command/stale/order oracle 13/13 PASS(31.7s), 실제 keyboard scroll/응답 완료 oracle 보강 13/13 PASS(31.9s)다. 독립 UI/UX 비교에서 geometry evidence 부족과 열린 관리 대상 외부 소멸의 focus 누락을 찾아 PRE_QA 전에 소유 table/dashboard/Workspace의 bounded cleanup과 source-guarded fallback을 보완했다. header/body·sibling·button·toolbar·focus owner·document overflow oracle와 대상 소멸 2case를 추가한 UI/UX geometry·대상 소멸 보완15/15 PASS(36.4s)를 별도 source SHA로 보존한다. 이전13PASS/2실제PASS를 새 source의 결과로 재명명하지 않는다. 최초 source hash/time/stdout/trace와 각 실패를 /tmp에 보존했고 최종 합성 fixture는 기존 recalculateHierarchy/workingCalendarFromProjectCalendar/membershipProjection으로 browser 전에 검증한다.
+
+선별 합성 PNG/JSON은 `output/playwright/issue-550/review/`에 actual timestamp와 당시 source SHA-256을 기록한다. runtime DB/로그·Playwright trace·.next·실제 Task 내용/credential은 Git 증거에 포함하지 않는다. mock의 비관련 inactive logistics report GET 404는 합성 Project가 실제 backend에 없기 때문이며 실제 서버 검증 PASS와 분리한다. 모든 domain/auth/Assignment/legacy mixed 경계를 이 UI mock으로 검증했다고 확대하지 않는다. 기존 proxy/실기기/스크린리더/Windows Excel와 #551 date/header 의미는 NOT TESTED다.
+
+
+최종 visible-fallback 보완은 Workspace의 Dashboard focus helper 한 곳에서 `focus({preventScroll:true})`를 native `focus()`로 변경했다. 당시15case는 그 시점 UI source에서15/15 PASS exit0(36.2s)이며 실제 fallback bbox·3px outline/3px offset 포함 viewport containment·center hit-test·불투명 visible sticky/fixed 겹침0·기존 Chart scroll/instance 불변을 확인했다. 이전 bbox 미측정/viewport 밖 focus를 visible fallback PASS로 재명명하지 않는다.
+
+실제 HTTP·SQLite2/2 PASS(43.3s)는 nativefocus 마지막 한 줄 변경 **전** Workspace SHA `b49ce846e4588113c24ddd9ec6cf33bb8f69c9cb015e51959a1112edaff87458` 기준이다. Manager가 생성payload/transport/auth/Origin/If-Match/API/domain/DB/persistence spec 및 나머지4제품source 불변, Dashboard native focus·삭제 취소 focus bridge·관리 메뉴 ID 폐기의 UI-only 변경과 서버영향 N/A 조건으로 이 제한된 실제 서버 증거의 재사용을 승인했다. 최종 UI source와 동일한 실제 서버 재실행이라고 쓰지 않는다. 원본16파일 manifest와 현재 Workspace/table의 UI-only diff, sanitized2JSON 및 reuse 근거를 최종validation에 구분한다.
+
+
+PRE_QA에서 관리 ID를 폐기하는 RAF가 대상 복귀 render의 cleanup으로 취소될 수 있음을 확인했다. 최초에는 정적 후보였으며, 기존 제품 source의 실제 Chromium 집중 2case에서 소멸 modal/행 commit 뒤 application RAF를 보류한 채 같은 ID를 복귀시키자 메뉴가 자동 재개되어 2/2 FAIL exit1이었다. 기존15case는 RAF 후 복귀를 검증했으므로 이 경쟁조건의 증거가 아니다. 최초 원본은 `/tmp/issue550-frontend-preqa-first.log`, `preqa-first-source.sha256`, `preqa-first-results/` trace로 보존한다.
+
+관리 ID는 현재 컴포넌트의 조건부 render-state 조정으로 자식 commit 전에 폐기하고, 취소 가능한 RAF에는 focus 복원만 남긴다. 테스트 전용 application-world RAF gate는 React의 소멸 DOM commit/행 제거를 먼저 확인하고, 복귀 행이 나타날 때까지 callback을 실행하지 않는다. 자동 메뉴 재개가 없는 것을 검증한 뒤 명시 같은/다른 ID를 열고 보류 callback을 한 번 해제하여 새 dialog와 focus가 유지되는지 확인한다. 임의 timeout이나 생산 control hook을 추가하지 않는다. 삭제 취소/Escape의 disconnected trigger는 별도 정적 후보였으며 기존 source에서 runtime 재현한 것으로 표기하지 않는다. 보완 후 외부 canonical 삭제→취소/Escape가 현재 visible Dashboard 검색으로 복귀하고 outline 선두께3px/offset3px/전체6px 외곽이 viewport 내부, center hit=true/불투명 sticky 겹침0/DELETE0임을 실제 검증했다.
+
+최종19/19 PASS exit0(44.5s)는 `/tmp/issue550-frontend-preqa-final.log`와 `preqa-final-source.sha256`의 동일 UI source 기준이다. 기존15case/5폭도 이 source로 재실행하여 선별 PNG/JSON을 갱신했다. `expiry-race-same-id`, `expiry-race-other-id`, `delete-close-cancel`, `delete-close-escape`의 JSON/PNG를 추가한다. 이전19 실행 없는 상태를 PASS로 재명명하지 않으며 독립 QA·원격 CI는 별도 gate다. TASK_RELATIONS/MILESTONE_STAGE_GATES는 이번 focus/메뉴 수명 보완으로 관계/Gate 계약 변경이 없어 기존 #550 문단을 유지한다.
