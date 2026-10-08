@@ -2288,3 +2288,9 @@ CI #2143.1의 quality/Vitest/typecheck/build/Docker는 PASS이며 Chromium shard
 #526 실제 SQLite/HTTP 테스트는 Group→Milestone→Resource 자식 조회가 비동기인데 전체 tree의 `.resource-milestone-summary.last()`를 먼저 클릭하여 부모 Group 소계를 열 수 있었다. 클릭한 개인 disclosure의 `aria-controls` 하위 Summary가 표시될 때까지 확인하고, 상세 네트워크의 `resourceId` 및 응답 selector/Task ID를 계속 검증한다. Server selector 완화나 검증 제거는 하지 않는다.
 
 #527 초기 fixture의 selected Task reveal 및 Core canonical scroll 동기화가 끝나기 전 `scrollLeft=120`을 설정해 뒤늦은 자동 이동(실제 1581)과 경합했다. Core 동기화 depth=0 및 연속 6 animation-frame의 DOM/public viewport 안정 상태를 확인한 후 명시 테스트 viewport를 설정한다. Workspace 복귀 뒤 동일 Gantt/선택/scroll/scale invariant와 사용자 입력 guard assertion은 유지한다. 이번 변경의 실제 원격 재검증·QA_FINAL/ACCEPT는 새 exact-head PR CI 결과 전 NOT TESTED다.
+
+### Issue #529 PR CI #2144.1 — #527 Core-selected viewport 인수 수정 (2026-10-08)
+
+PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometry, unknown/nonworking)가 공통 `setup`의 `left=120` 고정값 assertion에 실패했다. 실제 차트 왼쪽은 1581이며 이전 #2143에서도 동일한 Core Task 선택/자동 reveal 위치가 관측됐다. 6프레임의 초기 정착만으로는 `chart.scrollLeft=120`을 직접 쓰는 DOM-only 변경과 SVAR Core의 공개 viewport 복원이 일치한다고 보장하지 못한다. 이번 수정은 제품의 Task 선택/scroll 정책을 변경하지 않는다.
+
+테스트는 먼저 Task 선택과 주 배율을 유지하고 세로 위치 96을 설정한다. Core canonical sync depth=0과 공개 Core/DOM 스크롤값의 연속 8 animation-frame 안정 상태를 검증한다. 이후 실제 차트 왼쪽이 0보다 크고 세로가 96이며 공개 Core viewport와 DOM이 양 축에서 일치함을 검증하고 그 값을 `before`로 저장한다. Resource Plan 왕복 뒤 기존 `expect.poll(() => viewport(page)).toEqual(before)`로 전체 viewport/columns/selection/tree 불변을 그대로 확인한다. 원점으로 리셋되는 회귀를 통과로 오인하지 않으며, 안정된 선택 결과를 임의 고정 pixel 값으로 재정의하지 않는다. 이 변경의 새 PR CI·실제 Chromium PASS는 시작 전 NOT TESTED로 구분한다.

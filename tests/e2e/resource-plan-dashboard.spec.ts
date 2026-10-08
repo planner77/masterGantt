@@ -76,13 +76,17 @@ async function setup(page: import("@playwright/test").Page) {
     .first()
     .click();
   await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
-  // Selection reveals its Task on the timeline. Set the test viewport only after
-  // that Core scroll and canonical sync settle, otherwise a later reveal can
-  // overwrite the setup's left=120 (observed left=1581 in PR CI #2143).
+  // Selecting a Task may legitimately reveal it at a nonzero chart offset
+  // (1581px on CI #2144). Directly assigning chart.scrollLeft=120 during that
+  // Core reveal creates a competing DOM-only position that Core overwrites.
+  // Verify peer navigation against the settled public+DOM viewport instead.
+  await frame.locator(".wx-gantt").evaluate((el) => {
+    el.scrollTop = 96;
+  });
   await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
   await frame.evaluate(async (el) => {
     let previous = "", stableFrames = 0;
-    for (let tick = 0; tick < 60 && stableFrames < 6; tick++) {
+    for (let tick = 0; tick < 90 && stableFrames < 8; tick++) {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       const chart = el.querySelector<HTMLElement>(".wx-chart");
       const gantt = el.querySelector<HTMLElement>(".wx-gantt");
@@ -91,17 +95,15 @@ async function setup(page: import("@playwright/test").Page) {
       stableFrames = current === previous && el.getAttribute("data-gantt-canonical-sync-depth") === "0" ? stableFrames + 1 : 0;
       previous = current;
     }
-    if (stableFrames < 6) throw new Error("Gantt selection/scale viewport did not settle before peer-view test");
+    if (stableFrames < 8) throw new Error("Gantt public/DOM viewport did not settle before peer-view test");
   });
-  await frame.locator(".wx-gantt").evaluate((el) => {
-    el.scrollTop = 96;
-  });
-  await frame.locator(".wx-chart").evaluate((el) => {
-    el.scrollLeft = 120;
-  });
-  await expect
-    .poll(async () => (await viewport(page)).dom)
-    .toEqual({ left: 120, top: 96 });
+  await expect.poll(async () => {
+    const current = await viewport(page);
+    // Both axes must be meaningfully scrolled and the public Core viewport
+    // must agree with the DOM; a reset-to-origin cannot pass this assertion.
+    return current.dom.left > 0 && current.dom.top === 96 &&
+      current.public?.left === current.dom.left && current.public?.top === current.dom.top;
+  }).toBe(true);
   const before = await viewport(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(root(page)).toHaveAttribute("data-ready", "true");
