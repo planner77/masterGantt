@@ -75,3 +75,17 @@ test("Issue #538: 관리자 관계 연결과 명시적 두 단계 해제", async
   await expect(table.locator("tbody tr")).toHaveCount(1);
   await expect(table.getByText("베트남 법인")).toHaveCount(0);
 });
+
+test("Issue #538: 비활성 사업부·제품으로 신규 하위 분류 선택 불가", async ({page}) => {
+  const inactiveUnit = { ...bu, active:false };
+  const inactiveProduct = { ...product, active:false };
+  await page.route("**/api/project-master/catalog", (route) => route.fulfill({
+    status:200,
+    json:{data:{revision:1,businessUnits:[inactiveUnit],products:[inactiveProduct],
+      siteEntities:[site],relations:[pair,triple]}},
+  }));
+  await page.goto("/projects/new");
+  await expect(page.locator("#project-business-unit option")).toHaveCount(1);
+  await expect(page.locator("#project-product")).toBeDisabled();
+  await expect(page.locator("#project-site-entity")).toBeDisabled();
+});
