@@ -1099,3 +1099,13 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 계획 공수의 서버 `effort.state=empty`는 `할당 없음`이며 의도적으로 설정된 0공수(`configured`의 `0.00 M/D` 또는 `0.00 M/M`)와 구분한다. `unset`은 `산정 불가 · 공수 미설정`, `partial`은 `알려진 부분합` 표시를 유지한다. 비어 있는 Role 소계에도 가짜 확정 0공수를 노출하지 않는다.
 
 긴 Group/Resource/Milestone 이름은2줄로 보이되 full accessible name/title을 보존한다. 비교표는 내부 scroll을 가진50행×6단계+전체이며 visible 개수와 전체 scope를 구분한다. 계층은12개 실제 펼침 상한과 안정 ID별 보존 상태를 사용한다. 상세의 이름은 row·Milestone·metric을 포함하고 Escape는 숨김/inert trigger를 피하여 검색으로 복원한다. Gantt instance 및 기존 일정 scroll/선택/열/tree/scale을 변경하지 않는다. 정량 검증은 TEST_PLAN의 #526 UI 절을 따른다.
+
+## Issue #527 기간 Resource Plan
+
+리소스 탭 안에서 주/월 기간 matrix를 선택한다. Group/개인 집계 기준과 기존 필터·단위를 공유하고 별도 상위 navigation을 추가하지 않는다. 한 번에 전체1행+분류49행/4기간+전체만 표시하며 page2에 parent가 없어도 child의 Group/Resource context와 code/activity/Role/grade를 확인한다. 좁은 화면 identity144px/기간176px, desktop identity280px와 sticky header/identity·표 내부 scroll을 사용한다.
+
+선택 기여와 동일 개인의 Project 전체 참고는 명시적 scope다. Milestone 행은 선택 단계 기여와 개인 전체 참고를 함께 구별하고 parent 전체 경고에서 Resource/project 원인을 조회한다. Group 평균으로 개인 초과를 숨기지 않으며 R0·0부하·미설정·부분합·비근무기간을 구분한다. 상세는 날짜→개인→Assignment의 점진적 조회이며 readonly다.
+
+Plan/기본 현황/#526 보기와 Group/개인·주/월 전환에서 상태를 보존한다. 마지막 Plan DTO는 비활성 보기에서 hidden/inert·drill 잠금 상태로 보존하고 실제 snapshot/filter 변화는 새 상태로 취급한다. Step 진입 제목 focus/Escape 한 단계 복귀, 안정적인 retry/pager focus, 늦은 canceled409 무시와 stale 차단을 검증한다. 실제 Gantt scroll120/96·선택/tree/열/주scale·instance 보존과5폭 geometry는 TEST_PLAN의 #527 UI 절을 따른다.
+
+Resource Plan owner는 sticky identity 폭(280px/144px)을 scroll-padding에 반영하고 기간 버튼에 scroll-margin을 적용한다. 가로·세로 scroll 뒤 native Tab focus ring이 identity/header 아래에 숨지 않고 owner 안에 드러나도록 유지한다. 상세 Assignment 0건의 페이지 표기는 `0–0 / 0`이며 이전/다음은 잠긴다.

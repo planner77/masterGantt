@@ -428,3 +428,14 @@ Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·
 ### Issue #526 UI
 
 리소스 탭 내 Group→Milestone→Resource→Task, Group→Resource→Milestone→Task, Resource→Milestone→Task와 Group/Resource×Milestone 비교표를 제공한다. Raw 서버합계·distinct/비가산·선택/reference/excluded·full 단계 Gate 의미를 유지한다. 비교표50행/6단계와 펼침12개 budget은 표현 상한이며 집계 범위를 줄이지 않는다. Keyboard·focus·stale/canceled 응답과390/768/1024/1440/1920px 긴 이름/다수 행 geometry 및 기존 Gantt 상태를 검증한다. API/계산 계약은 [Resource KPI Dashboard](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)를 따른다.
+
+
+## Issue #527 주·월 Resource Plan
+
+일반 Task 개인 Assignment 이력에서 개인 분류 조건만 적용한 Capacity R를 기준으로 주/월 기간별 selected 부하와 같은 개인의 현재 Project 전체 부하를 함께 제공한다. 기간/Task/Milestone/search 조건은 R와 전체 참고 부하를 숨기지 않으며 실제 전사 가용량·근태로 표현하지 않는다. 근무일1일=1M/D, 기존 전체 Group Resource Calendar 우선순위, 명시 M/M 환산·raw/unknown/분모0 계약을 유지한다.
+
+평균 Load·집합/개인 Peak·개인 초과 일수/개인 수·개인 초과 M/D를 구별하고 Group 평균이 개인 초과를 숨기지 않는다. Milestone 기여와 부모 Resource Project 전체 참고는 비가산이다. 기간별 numeric 일별 근거→Group 구성원 날짜별 근거→개인 Assignment 원인을 같은 snapshot으로 bounded 조회한다. ISO week-year/부분 기간·월/윤년·0부하·비활성·미설정/부분합/비근무기간을 구별한다. 유한 계산/JSON 예산 초과는422로 거부하고 전체 합계를 절삭하지 않는다. [Domain·API 계약](RESOURCE_KPI_DASHBOARD.md#issue-527-backend-resource-plan-범위와-api)을 따른다. UI geometry/interaction은 frontend의 별도 검증이다. DB/Calendar 원장·실적·FTE·시간·자동배정/레벨링은 범위 밖이다.
+
+### Issue #527 Resource Plan UI
+
+리소스 탭에서 주/월 한 개 계획 matrix와 Group→Resource→Milestone/Resource→Milestone을 제공한다. 전체1+분류49행/4기간+전체 window, 부모context·code/activity/Role-grade·sticky/internal scroll,5폭(390/768/1024/1440/1920px) 긴 이름·마지막 기간 창을 검증한다. 선택 기여와 Project 전체 참고·과투입, R0/0부하/비근무/미설정/부분합을 구별한다. 날짜→개인→Assignment의 echo 검증·readonly 상세, keyboard/focus/Escape/pager·cancel/stale·기존 Gantt 상태를 보존한다. 자세한 계약은 [Resource KPI Dashboard](RESOURCE_KPI_DASHBOARD.md#issue-527-resource-plan-조회-ui)를 따른다.

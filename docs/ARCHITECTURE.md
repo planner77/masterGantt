@@ -234,3 +234,10 @@ Report snapshotId는 revision뿐 아니라 같은 snapshot의 원시 Task/Link/M
 ResourceDashboardService는 같은 SQLite read transaction의 prepareSnapshot, pure 선택/합계, report/detail/group-child 렌더링을 분리한다. Domain prepareResourceKpiSnapshot/selectResourceKpiAssignments/summarizeResourceKpiAssignments/getResourceKpiDiagnostics/renderResourceKpi를 공유하고 기존 calculateResourceKpi는 호환 wrapper다. full Stage projector는 준비 시1회, Calendar와 동일 clipped Assignment 행은 선택/reference 사이에 재사용한다. reference/excluded는 실제 원시 행 집합의 totals-only이며 미선택 전체 cells를 생성하지 않는다.
 
 신규 Group 자식 GET은 동일 snapshot identity와 Project-connected Group∩Resource 범위의 bounded 페이지다. 후속 capacity가 준비 입력과 검증된 Assignment grain을 재사용할 수 있도록 경계를 유지하며 새 DB 저장/서버 간 상태 cache는 없다. route/service/repository/SQLite 권한 경계와 기존 workload/Stage/Logistics 계산은 유지한다. [공개 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
+
+
+## Issue #527 Resource Plan 조회 경계
+
+기존 ResourceDashboardService가 같은 SQLite read transaction/clock1회와 준비 ResourceKpi snapshot에서 Capacity R, selectedA, fullProjectA를 구성하고 pure Resource Plan으로 전달한다. Domain은 HTTP/DB/clock/ENV를 읽지 않으며 서비스는 Project 연결 metadata를 compact report와 bounded numeric/Assignment DTO에 enrich한다. granularity는 opt-in projection으로 snapshot hash에서 제외하되 canonical source/실제 filter/range/asOf/M/M identity를 유지한다.
+
+Calendar의 전체 Group 소속과 Group 출력 projectionGroupIds를 분리한다. 선택 기간/Task/Milestone/search로 R를 축소하지 않고 Group/Role 중첩 Capacity를 Grand로 합산하지 않는다. 신규 daily/day-resources/day-assignments GET은 기존 route→service→repository→SQLite 경계를 유지하며 전역 Group 멤버·원장·cache·migration을 추가하지 않는다. 실제 daily ID 원인은 별도 page이며 시간축 전체 ID 배열을 report에 복제하지 않는다. [Plan 공개 계약](API.md#issue-527-resource-plan-공개-조회)을 따른다.

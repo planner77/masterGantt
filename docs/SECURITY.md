@@ -392,3 +392,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 resource-dashboard/group-children GET은 inventory public-read/mutatesState=false이며 기존 UUIDv4+Project 존재 guard, private/no-store·nosniff·request ID를 사용한다. 상세 resourceId는 Group selector에서만 허용하며 Project 연결과 실제 해당 Group membership을 서버에서 검증한다. filtered-out valid member는 empty, 미연결/다른 Group 개인은 INVALID_SELECTION이다. Group 전체/글로벌 미배정 개인을 공개하는 API로 확장하지 않는다.
 
 reference/excluded scope는 동일 필터 중 Milestone 조건만 제거한 해당 Project 개인 Assignment 집합이다. snapshot identity를 먼저 재확인하며 SHA는 권한 token이 아니다. group children query/page/cells/JSON은 유한 allowlist/상한으로 검증하고 초과값을 완전 합계로 절삭하지 않는다. Origin/session/revision 보호 mutation, HTTPS/명시 HTTP cookie 정책, password/secret/SQL 비노출은 불변이다. [조회 계약](API.md#issue-526-milestone-roll-up-조회-확장)을 따른다.
+
+
+## Issue #527 Resource Plan public read
+
+신규 Plan daily/day-resources/day-assignments GET 세 경로는 inventory public-read/mutatesState=false이며 canonical UUIDv4+Project 존재 guard를 유지한다. 쿠키/편집 권한 없이 같은 공개 Project 범위에서 조회하고 보호 mutation의 exact Origin/session/revision과 production HTTPS·명시 HTTP 쿠키 정책을 변경하지 않는다. Capacity R는 일반 Task 개인 Assignment 이력으로 한정하고 전역 미배정 Group 구성원·책임 참조뿐인 개인은 Plan 인력으로 공개하지 않는다. 안전 metadata에는 이름/code/분류만 포함하며 description/내부PK/password/KDF/token/SQL/stack은 포함하지 않는다.
+
+모든 상세는 snapshot을 먼저 재확인하고 normalized filter/range/asOf/M/M 및 parent periodId/date/selector/demandScope를 검증한다. SHA는 권한 token이 아니다. stale409, malformed/foreign400, resource-day/assignment-day/matrix/JSON 예산422를 구별하며 임의 절삭이나 오류 원문 공개를 하지 않는다. Group 표시 조건은 전체 Calendar 소속을 변경하지 않는다. 성공·오류 private/no-store/nosniff/X-Request-ID와 unsupported mutation405를 유지한다. [API](API.md#issue-527-resource-plan-공개-조회)를 따른다.

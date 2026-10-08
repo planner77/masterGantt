@@ -1,3 +1,11 @@
+## Issue #526 원격 인계
+
+[PR #534](https://github.com/planner77/masterGantt/pull/534), head `1c518612395c45254ecbd018742e594ac88c3229`, [CI 37676430071 / 2099.1](https://github.com/planner77/masterGantt/actions/runs/37676430071) 등록을 확인했다. source tree `3c28e65d5fabc96d91103490f9536af357064523`, DOCUMENTATION_SYNC/독립 PRE_QA PASS. quality/e2e/docker 결과는 모니터링하지 않았고 NOT TESTED이며 #527로 진행한다.
+
+## Issue #527 — 주·월 Resource Plan과 Capacity·과투입
+
+[Work Packet](ISSUE_527.md)에 따라 직접 선행 `feat/issue-526-resource-milestone-rollup` / `1c518612395c45254ecbd018742e594ac88c3229` 기반 stacked PR로 순차 진행한다. source/doc 동결과 로컬 관련 검증 후 독립 PRE_QA를 진행한다. application `0.100.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
+
 ## #523–#528 요청 범위 진행 상태
 
 #523 [PR #531](https://github.com/planner77/masterGantt/pull/531) / head `f8a51503745cd5f3f1f3c9986f6b7577d83ce93a` / [CI 37639620321](https://github.com/planner77/masterGantt/actions/runs/37639620321), #524 [PR #532](https://github.com/planner77/masterGantt/pull/532) / head `5c17d3a394d95c6799dceb2b22ed166dca34f241` / [CI 37643698987](https://github.com/planner77/masterGantt/actions/runs/37643698987), #525 [PR #533](https://github.com/planner77/masterGantt/pull/533) / head `c4454ba4085930ba2d6e32c58f1653a32e496aca` / [CI 37650777139](https://github.com/planner77/masterGantt/actions/runs/37650777139)의 실행 등록까지 확인했다. CI 결과는 조회하지 않았으며 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. #526은 서버 계약 구현 뒤 UI를 순차 구현하며 #527/#528 구현은 각각 선행 PR CI 등록 이후 시작한다. 모든 branch/Issue는 유지한다.

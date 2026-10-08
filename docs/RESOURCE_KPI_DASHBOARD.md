@@ -175,3 +175,56 @@ Milestone 조건이 없으면 기준=선택·제외0을 한 줄로 표시한다.
 펼침 의도·nested pager는 안정 ID tuple로 보존하며 실제 mount되는 펼침은 provider admission으로 최대12개다. 페이지 밖 상태를 지우지 않고 상위부터 허용하여 ancestor 재펼침·페이지 복귀 시12개를 넘기지 않는다. 동일 query에서 mode/order 변경은 상태를 유지하고 snapshot/filter 변경은 새 상태다. canceled/이전 child409는 현재 report를 stale로 만들지 않는다. stale 클릭을 잠그고 실패를 이전 정상 결과로 위장하지 않는다. 상세 Escape는 유효한 visible trigger로 복원하고 숨김/inert/disabled/unmounted trigger는 검색으로 복원한다.
 
 2026-10-08 공식 [SVAR Group tasks](https://docs.svar.dev/react/gantt/guides/data-operations/grouping-tasks/) 문서를 확인했다. 해당 grouping은 PRO 기능이며 설치 Core2.7.3의 API로 가정하지 않는다. 앱 서버 projection을 표/계층으로 표시하며 Gantt 자체의 tree/grouping을 재구성하지 않는다. 공식 demo JavaScript 직접 조작은 NOT TESTED다.
+
+## Issue #527 Resource Plan Domain 계약
+
+Resource Plan은 현재 Project·선택 Resource의 계획 부하이며 전사 가용인력/근태/실제 유휴시간이 아니다. backend가 R을 현재 일반 Task의 개인 Assignment 이력에서 Resource/Group/Role/등급/activity 조건만 적용해 확정한다. 기간·Task/WBS/status/Milestone·검색 조건은 selected 기여를 제한하고 R을 줄이지 않는다. 기간 밖 할당 이력의 개인도 Capacity와0부하 행을 유지하며 Global 미배정 멤버는 추가하지 않는다.
+
+`ResourcePlanInput`은 기존 `ResourceKpiResource`/`ResourceKpiAssignmentRow`/Calendar와 명시 R, selected/fullProject 행, from/to/asOfDate, week/month, resolved mdPerMm 및 limits를 받는다. fullProject는 같은 R·기간에서 Task 차원 조건을 제거한 원인 집합이다. selected는 같은 값의 고유 Assignment 부분집합이어야 한다. Calendar는 필터에서 제외된 소속 Group까지 포함한다. Engine은 API/DB/필터/ENV를 다시 해석하지 않는다.
+
+`ResourcePlanResult`는 ISO 주/월 metadata, population IDs, grand totals, Resource·Group summary/period cells와 Resource별 sparse Milestone series를 제공한다. 각 지표는 selected와 project 쌍이다. 근무일1개당 Capacity1 M/D, 일별 계획 allocation/100이며 설정0 allocation은 기존 입력 계약대로 거부한다. M/M은 명시 기준만 사용한다. 단계별 반복 Capacity는 참고값이고 합산 금지다. M행 project는 개인 전체 참고(`projectReferenceOnly=true`, `projectReferenceRow=resource`)다. `resourceMilestone/project` 상세는 해당 M의 Project 기여이므로 전체 과투입 원인 명령은 Resource/project selector를 사용한다.
+
+미설정 Assignment의 inclusive 기간 교차는 근무일0이어도 unknown Assignment로 센다. unknown resource-day는 유효 근무일만 센다. 기간별 known M/D는 가산 가능하지만 nullable planned/state와 unknown distinct 수는 전체 집합에서 다시 판단한다. `empty=0`, `unset=null`, `partial=known 합`, `configured=known 합`이며 Capacity0의 Load/Peak는null이다. all-unset의 계획 Load/Peak는null이고 known Load/Peak는 확인된 하한으로 별도 제공한다. unknown이 있으면 정상·가용을 확정하지 않으며 known 초과와 partial을 동시에 보존한다.
+
+Group 가중 Peak와 개인 최대 Peak, 고유 초과 날짜·개인-날짜·개인 수를 각각 표시할 수 있다. excess는 개인별 초과 합이라 Group 평균75%가 개인150%를 숨기지 않는다. Grand와 여러 Group/Role 소계는 비가산이다. 계산은 원시 합계를 반올림하지 않고 초과 판정에만 상대 tolerance1e-12를 적용한다. ISO 상한은2199-12-31/2200-W01 metadata를 허용하며 날짜 parser 범위를 바꾸지 않는다.
+
+일별 numeric 페이지 → 해당 날짜 Group/전체 개인 numeric 페이지 → 개인 날짜 Assignment 근거 페이지를 제공한다. numeric 응답에 전체 Assignment ID 배열을 넣지 않으며 개인 페이지는0부하 R을 포함한다. 상세 scope/기간/selector는 backend가 snapshot과 함께 echo한다. `getResourcePlanDailyPage`의 periodKey는 실제 key 또는 전체 범위 `all`, 일별 개인은 total/group, Assignment는 total/group/resource/resourceMilestone selector를 사용한다. 순서는 날짜·안정 Resource/Task/Assignment ID이며 offset≤8000/limit≤100이다. Calendar·단계·원장 mutation을 만들지 않는다.
+
+유한 예산은 resource-day200000, full Assignment-day1000000(선택 subset을 중복 가산하지 않음), 전체 row×period cells5000이며 범위366일이다. 전체 projection cell은 grand/Group/Resource/Resource×선택 Milestone 행의 기간 셀을 materialization 전에 검사한다. 초과 시 명시 limit 오류를 반환하고 기간/개인을 임의로 잘라낸 총계는 만들지 않는다. API의 응답2MiB·catalog/revision/snapshot·readonly/private/no-store/nosniff는 backend 후속 문서와 테스트에서 검증한다.
+
+2026-10-08 순수 Domain fixture benchmark: Resource40/Group5/Assignment2700/365일/month12/개인-stage80, resource-day14600/Assignment-day985500/matrix1512. 실제 실행166.983622ms, engine JSON1627142bytes, Capacity10440 M/D, known352350 M/D이며 기간 known 합=whole raw 합이다. 이는 API enrichment·SQLite/HTTP·Chromium benchmark가 아니다. resource-day200202, Assignment-day1000100 및 전체 matrix 초과를 materialization 전 거부하는 회귀를 포함한다.
+
+관련 Unit은5일50%=2.5, ISO1900/2020W53/2026W01/2200W01·윤년·부분기간, 하루150%/다음0 평균75%·Peak150%, M선택80%/Project140%, Group75%/개인150%, 복수 Group/M Grand distinct, 주말 월 경계 null distinct, working override/동일층 conflict, Capacity0/모두 미설정/partial/0부하/환산값 부재, matching subset/property order/중복 metadata 및10×10% floating-point 경계를 고정한다. 원격 CI와 실제 UI/환경 판정은 별도다.
+
+
+## Issue #527 Backend Resource Plan 범위와 API
+
+Capacity 모집단 R는 현재 Project의 일반 Task 개인 Assignment 이력에 Resource/Group/Global Role/개발 등급/활성 조건만 적용한 고유 개인이다. Summary/Milestone 책임 참조와 글로벌 미배정 Group 멤버는 제외한다. 기간·Task/WBS/status/Milestone/taskSearch/혼합 search는 R를 줄이지 않으므로 기간 밖 이력의 개인과 선택 부하0인 개인도 Capacity 행에 남는다. active는 분류일 뿐 근무시간·퇴사일이나 Capacity0을 추정하지 않는다.
+
+Backend는 같은 준비 Domain/read transaction/clock1회에서 selectedA를 기존 필터대로, fullProjectA를 같은 R·실효 Assignment 기간으로 선택한다. fullProjectA에는 Task 차원·Milestone·두 검색 조건을 적용하지 않는다. 기존 저장/준비 검증은 명시 Assignment 기간을 canonical Task 안으로 제한하므로 이 계산은 Task 밖 override를 허용하는 확장이 아니다.
+
+ResourcePlanInput.projectionGroupIds는 출력 Group series와 matrix 예산만 제한한다. 생략은 전체, 명시[]는 Group series 없음이며 중복/unknown 문자열 ID를 거부한다. null은 미분류 sentinel이고 알려진 Group에 R 구성원이0명이면 행을 만들지 않는다. Backend는 R의 실제 Group 소속 중 groupIds와 groupActivity가 같은 Group에서 일치하는 ID만 전달한다. 선택 Group 외 모든 실제 소속은 Calendar 해석에 그대로 보존한다. 숨은31개 Group의 Calendar가 있어도 선택한1개 Group 외 series/cells를 생성하지 않는다. Grand/Resource Capacity와 Milestone 기여는 표시 Group 필터로 재정의하지 않는다.
+
+report granularity=week|month는 opt-in이며 생략하면 기존 report 계산을 유지한다. 주/월/mode 전환은 같은 snapshot identity, 실제 filters/range/asOf/M/M 정책은 identity에 포함한다. Plan Resource/Group metadata는 선택 A의 기존 report 행에서 가져오지 않고 안전한 Project 연결 catalog에서 R 전체를 enrich한다. Milestone은 canonical 예정일+public ID 순이며 미지정은 마지막이다.
+
+Milestone series selected는 해당 Milestone 기여, project는 동일 개인의 Project 전체 참고다. capacityReferenceOnly/projectReferenceOnly와 projectReferenceRow가 비가산·부모 참고 의미를 명시한다. 전체 과투입 원인은 resource/project 상세로 조회해야 선택 Milestone 밖 Assignment가 사라지지 않는다. resourceMilestone/project 상세는 해당 Milestone의 Project 기여로 범위가 다르다.
+
+세 readonly 상세 경로 daily/day-resources/day-assignments는 같은 normalized context와 snapshot/parent periodId/date/demandScope를 확인한다. 전체 summary의 periodId=all을 지원한다. Group 날짜별 summary 이후 day-resources는 0부하 R도 포함하는 bounded numeric 근거이며 Assignment 원인은 별도 개인 날짜 페이지다. unknown Assignment는 비근무일 기간 교차에도 유지하고 resource-day unknown은 유효 근무일만 센다. 전체 nullable state/unknown count는 고유 Assignment 집합에서 다시 판정해 월별 unknown 수를 더하지 않는다. 구체적인 query/DTO는 [API](API.md#issue-527-resource-plan-공개-조회)를 따른다.
+
+유한 예산은 range366일, R×inclusive range resourceDays200000, fullProjectA 고유 Assignment의 clipped inclusive day 합 assignmentDays1000000, 실제 grand/Resource/표시 Group/선택 sparse Milestone×period matrixCells5000, 각 JSON `{data}` 응답2097152 bytes, page100/offset8000이다. 원시 전체 snapshot의 기존 상한도 그대로 적용한다. 예산 초과는422이며 Task/Milestone/검색만 줄여 R/fullProject 계산이 작아진다고 안내하지 않는다. 기간 또는 개인 분류 범위를 줄이고 matrix/bytes에서는 month 전환을 안내한다. detail bytes는 page 축소를 안내한다.
+
+실 SQLite+HTTP handler benchmark는40명·5Group·2700개 개인 Assignment·365일·2Milestone에서 resourceDays14600/assignmentDays985500을 계산했다. 최초 최종 관련 run의 응답1811056 bytes/308.749935ms는 로컬 관측이며 scheduler pure engine의1627142 bytes/166.983622ms와 별개다. 후속 Group projection 조정 뒤 관련5파일107개 PASS run(05:18:54 KST)의 최종 handler 측정은369.575127ms/1811056 bytes이며 최초308.749935ms 관측을 별도 이력으로 보존한다. 60명/2700Assignment/month의 matrix5000 미만에서도 실제 응답2MiB 초과를 거부하며, week matrix 초과·1000100 assignment-days·200202 resource-days와 byte 정확한 상한/상한+1을 검증한다. 원격 CI·전체 회귀·실제 운영 성능 PASS를 의미하지 않는다.
+
+### Issue #527 Resource Plan 조회 UI
+
+기존 리소스 보기 선택에 Resource Plan을 추가한다. 주/월 한 개 matrix에서 Group→Resource→Milestone 또는 Resource→Milestone을 표시한다. Capacity 모집단 R의 서버행을 사용하므로 선택 Milestone/Task·검색에 기여가 없거나 기간 밖 Assignment 이력이 있는 개인도0부하 행으로 남는다. R0은 대상 없음이며 R>0의 비근무기간(Capacity0)과 다르다. 미설정/알려진 부분합을 포함한 값으로 정상·가용을 확정하지 않는다.
+
+전체1행+분류49행, 기간4열+전체 조회기간을 window로 표시한다. 표시 페이지·펼침은 raw 서버합계와 R을 바꾸지 않는다. 페이지에 부모가 없어도 child identity에 Group/Resource context를 표시하며 code/activity/Global Role/등급을 보존한다. 이름/context는2줄과 full accessible name/title을 사용한다. Desktop identity280px,600px 이하144px, 기간176px로 visible 열 수에 따른 colgroup을 적용한다. 마지막1~3기간 창에서도 identity폭을 유지하고 표 내부 scroll·sticky header/identity를 사용한다.
+
+셀 지표는 계획 M/D·M/M, 평균 Load%, 과투입 M/D 중 하나다. Capacity는 M/D 기준이며 초과 공수는 항상 M/D다. 조회 전체의 알려진 가중 일별 Peak와 알려진 개인 최대 Peak, 고유 과투입 일수/개인일/개인 수, unknown Assignment를 별도로 표시한다. 미산정에는 임의0%나 `%` 접미어를 붙이지 않는다. Milestone 행은 단계 기여(선택)와 개인 전체 참고를 분리하며 반복 Capacity는 비가산이다. 개인 Project 전체 과투입 경고를 누르면 Milestone 제한 없는 Resource/project 상세를 연다.
+
+Group 셀은 날짜별 요약→날짜의 개인 numeric 근거→개인·날짜 Assignment 기여, 개인 셀은 날짜별 요약→Assignment 기여로 이동한다. Scope·granularity·parent periodId(all 포함)·date·selector·offset·revisions·filter/range/asOf/M/M 출처를 echo 검증하고 날짜가 해당 기간 안인지 확인한다. 상세50행 페이지는 원래 parent period와 scope를 유지한다. Step 전환은 제목에 focus, 페이지/retry는 기존 control에 focus를 유지한다. Escape는 한 단계씩 복귀하고 최종 닫기는 유효 visible trigger 또는 fallback control로 복원한다.
+
+Plan 컴포넌트와 마지막 정상 Plan DTO는 메모리에서 보존한다. 다른 보기에서는 hidden/inert이며 요청을 중단한다. 오래된 자료는 새 filter/snapshot/granularity의 결과로 표시하거나 drill하지 않는다. 늦게 도착한 canceled409는 현재 상태를 stale로 만들지 않는다. 동일 snapshot의 view/mode/week/month 왕복은 펼침·분류 페이지·기간 창·지표·scope를 보존한다. #526 tree/matrix 상태 key에서 projection granularity를 제외하고 실제 filter/snapshot 변화와 구별한다. Gantt instance나 저장 데이터를 변경하지 않는다.
+
+Resource Plan owner는 sticky identity 폭(280px/144px)을 scroll-padding에 반영하고 기간 버튼에 scroll-margin을 적용한다. 가로·세로 scroll 뒤 native Tab focus ring이 identity/header 아래에 숨지 않고 owner 안에 드러나도록 유지한다. 상세 Assignment 0건의 페이지 표기는 `0–0 / 0`이며 이전/다음은 잠긴다.
