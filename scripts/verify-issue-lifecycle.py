@@ -768,6 +768,49 @@ parsed_cleanup = module.build_parser().parse_args(
     ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9", "--defer-close"])
 require(parsed_cleanup.cleanup_pr == [10, 9] and parsed_cleanup.defer_close, "lifecycle must parse cleanup/deferral flags")
 
+# #586 immutable FINAL identity and phase-order fail closed regression.
+from types import SimpleNamespace
+existing_sha, next_sha = "1" * 40, "2" * 40
+ctx = SimpleNamespace(issue_number=565, pr_number=585, merge_sha=next_sha,
+    head_sha="4" * 40, head_branch="fix/next", current_main_sha=next_sha,
+    version="0.103.1", main_docs_only=False, main_ci_url="https://example.invalid/ci",
+    main_artifact_evidence="PASS")
+existing_body = "\\n".join([
+    module.final_marker(565, existing_sha), "## Lifecycle FINAL · Issue #565",
+    "- PR: #583", "- PR head branch: "+chr(96)+"docs/previous"+chr(96),
+    "- PR head SHA: "+chr(96)+"3"*40+chr(96),
+    "- merge/release target SHA: "+chr(96)+existing_sha+chr(96),
+])
+saved_gh, saved_run = module.gh, module.run
+calls = []
+def fake_audit_run(*args, **kwargs):
+    if args[:3] == ("git", "rev-list", "--first-parent"):
+        return SimpleNamespace(stdout=next_sha+"\\n"+existing_sha+"\\n", returncode=0)
+    raise AssertionError(args)
+def fake_audit_gh(path, *, method="GET", fields=None):
+    calls.append((path, method))
+    if "/comments?" in path:
+        return [{"body":existing_body, "user":{"login":"github-actions[bot]"}}]
+    if path.endswith("/pulls/583"):
+        return {"merged":True,"merge_commit_sha":existing_sha,"base":{"ref":"main"},
+            "head":{"ref":"docs/previous","sha":"3"*40,"repo":{"full_name":"owner/repo"}},
+            "body":"Refs #565"}
+    raise AssertionError(path)
+module.gh, module.run = fake_audit_gh, fake_audit_run
+try:
+    records = module.audited_final_markers("owner/repo", ctx)
+    require(records == {existing_sha:583}, "older valid FINAL must coexist with newer target")
+    require(not any(method != "GET" for _,method in calls), "FINAL preflight must remain read only")
+    bad = existing_body.replace("#583", "#999")
+    existing_body = bad
+    try:
+        module.audited_final_markers("owner/repo", ctx)
+        raise SystemExit("tampered FINAL must fail closed")
+    except module.LifecycleError:
+        pass
+finally:
+    module.gh, module.run = saved_gh, saved_run
+
 # A failed older attempt may be superseded by a later Green corrective merge
 # for the same Issue even when independent Issues are in between. Intervening
 # work keeps first-parent order and the older branch becomes cleanup debt of
