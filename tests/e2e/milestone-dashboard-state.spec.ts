@@ -123,6 +123,15 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     const vertical = frame.locator(".wx-gantt"); expect(await vertical.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
+    // 좌표 도달과 3-frame 완료 영수증은 별개다. 정상 복귀가 완료된 뒤 검색 기준을 캡처한다.
+    await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).not.toBeNull();
+    const completed = JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!);
+    expect(completed).toMatchObject({ count: 1, requestedLeft: 120, publicLeft: 120, publicTop: 96, domLeft: 120 });
+    expect(completed.capacityStableFrames).toBeGreaterThanOrEqual(3);
+    expect(completed.settleStableFrames).toBeGreaterThanOrEqual(3);
+    expect(completed.nativeCapacity).toBeGreaterThanOrEqual(119);
+    expect(completed.admissionCapacity).toBeGreaterThanOrEqual(119);
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left: 120, top: 96 } });
     await page.setViewportSize({ width: 1456, height: 900 }); await page.setViewportSize({ width: 1440, height: 900 }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } }); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
     // 같은 인스턴스가 native 좌표를 보존하면 restore marker가 없을 수 있다.
     // 검색 때문에 이전 peer 요청이 다시 실행되어 marker가 바뀌면 실패한다.
@@ -136,9 +145,8 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await expect(frame.getByRole("row")).toHaveCount(2);
     await expect(frame.getByRole("gridcell", { name: "Stable leaf", exact: true })).toBeVisible();
     await observe("filter-applied");
-    // The browser input supersedes a still-pending peer/layout restore
-    // before React has committed the filter. A late completed receipt here
-    // would be an unauthorized replay of the old unfiltered viewport.
+    // 완료된 복귀의 영수증은 검색 적용/해제 뒤에도 그대로여야 한다.
+    // 진행 중 복원의 입력 취소는 별도 RAF barrier 회귀에서 검증한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await search.fill("");
     await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
@@ -192,4 +200,98 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
       await writeFile(`${process.env.ISSUE569_REWORK_EVIDENCE_DIR}/filter-viewport-phases.json`, JSON.stringify({ observations, status: testInfo.status }, null, 2));
     }
     await testInfo.attach("filter-viewport-phases", { body: JSON.stringify(observations), contentType: "application/json" }); await testInfo.attach("public-viewport-events", { body: JSON.stringify({ viewport: await viewport(), events: await frame.getAttribute("data-gantt-public-scroll-events"), restored: await frame.getAttribute("data-gantt-peer-restore") }), contentType: "application/json" }); }
+});
+
+test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다", async ({ page }, testInfo) => {
+  const state = await fixture(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
+  await page.goto(`/projects/${publicId}?__coreTrace=1`);
+  await page.getByRole("button", { name: "주", exact: true }).click();
+  const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), vertical = frame.locator(".wx-gantt");
+  const viewport = () => frame.evaluate(element => ({ public: Reflect.get(element, "__masterganttPublicViewport"), native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop } }));
+  await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
+  await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
+  const identity = await frame.getAttribute("data-project-gantt-api-instance");
+  await vertical.evaluate(element => { element.scrollTop = 96; });
+  await chart.evaluate(element => { element.scrollLeft = 120; });
+  await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, native: { left: 120, top: 96 } });
+  await tab(page).click();
+  await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await expect.poll(() => frame.evaluate(element => !!Reflect.get(element, "__issue568Trace"))).toBe(true);
+  // 실제 RAF callback만 유한하게 보류한다. 해제 후에도 원래 RAF에서 실행하며 Core는 그대로 사용한다.
+  await frame.evaluate(element => {
+    const originalRaf = window.requestAnimationFrame, originalCancel = window.cancelAnimationFrame;
+    const held = new Map<number, FrameRequestCallback>(), cancelled = new Set<number>();
+    const inputEvents: unknown[] = [];
+    let holding = true, autoReleased = false, disposed = false;
+    const trace = Reflect.get(element, "__issue568Trace");
+    const afterSequence = trace.snapshot().entries.at(-1)?.sequence ?? 0;
+    const release = (automatic = false) => {
+      if (!holding) return;
+      holding = false; autoReleased = automatic; clearTimeout(safety);
+      for (const [id, callback] of held) originalRaf.call(window, time => { if (!cancelled.has(id)) callback(time); });
+      held.clear();
+    };
+    window.requestAnimationFrame = callback => {
+      const id = originalRaf.call(window, time => { if (holding) held.set(id, callback); else callback(time); });
+      return id;
+    };
+    window.cancelAnimationFrame = id => { cancelled.add(id); held.delete(id); originalCancel.call(window, id); };
+    const peerState = () => {
+      const entries = trace.snapshot().entries as { sequence: number; event: string; action: string }[];
+      const request = entries.find(entry => entry.sequence > afterSequence && entry.event === "effect-request" && entry.action === "peer-restore");
+      const cleanup = request && entries.some(entry => entry.sequence > request.sequence && entry.event === "effect-cleanup" && entry.action === "peer-restore");
+      return { peerRequested: !!request, peerRequestSequence: request?.sequence ?? null, peerCleanupObserved: !!cleanup, peerPending: !!request && !cleanup };
+    };
+    const input = (event: Event) => {
+      if (!(event.target instanceof HTMLInputElement) || !event.target.closest(".project-schedule-filter-toolbar")) return;
+      inputEvents.push({ at: performance.now(), trusted: event.isTrusted, targetIsSearch: event.target.type === "search", expectedValue: event.target.value === "Stable leaf",
+        holding, autoReleased, heldFrames: held.size, ...peerState(), marker: element.getAttribute("data-gantt-peer-restore") });
+    };
+    document.addEventListener("input", input, true);
+    const safety = setTimeout(() => release(true), 1500);
+    Object.defineProperty(element, "__issue530PendingBarrier", { configurable: true, value: {
+      release: () => release(),
+      sample: () => ({ holding, autoReleased, rafRestored: window.requestAnimationFrame === originalRaf && window.cancelAnimationFrame === originalCancel, heldFrames: held.size, marker: element.getAttribute("data-gantt-peer-restore"), inputEvents,
+        ...peerState() }),
+      dispose() { if (disposed) return; disposed = true; release(); clearTimeout(safety); window.requestAnimationFrame = originalRaf; window.cancelAnimationFrame = originalCancel; document.removeEventListener("input", input, true); },
+    } });
+  });
+  const barrier = () => frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").sample());
+  try {
+    // 탭 명령은 직접 발행하고, 복귀 뒤 제품의 실제 RAF callback을 보류한다.
+    await page.getByRole("tab", { name: "일정", exact: true }).evaluate(element => (element as HTMLElement).click());
+    await expect.poll(barrier).toMatchObject({ holding: true, autoReleased: false, marker: null, peerRequested: true, peerPending: true, peerCleanupObserved: false });
+    await expect.poll(async () => (await barrier()).heldFrames).toBeGreaterThan(0);
+    const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
+    await search.focus();
+    await page.keyboard.insertText("Stable leaf");
+    const atInput = await barrier();
+    expect(atInput).toMatchObject({ holding: true, autoReleased: false, marker: null, peerRequested: true });
+    expect(atInput.inputEvents).toHaveLength(1);
+    expect(atInput.inputEvents[0]).toMatchObject({ trusted: true, targetIsSearch: true, expectedValue: true, holding: true, autoReleased: false, marker: null, peerPending: true, peerCleanupObserved: false });
+    expect(atInput.heldFrames).toBeGreaterThan(0);
+    expect(atInput.inputEvents[0].heldFrames).toBeGreaterThan(0);
+    await frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").release());
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(frame.getByRole("row")).toHaveCount(2);
+    await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, native: { left: 120, top: 0 } });
+    expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
+    await search.fill("");
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
+    for (let index = 0; index < 3; index++) {
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      expect(await viewport()).toEqual({ public: { left: 120, top: 0 }, native: { left: 120, top: 0 } });
+      expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
+      expect(await frame.getAttribute("data-project-gantt-api-instance")).toBe(identity);
+    }
+    await expect.poll(barrier).toMatchObject({ autoReleased: false, peerRequested: true, peerPending: false, peerCleanupObserved: true });
+  } finally {
+    await frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").dispose());
+    expect((await barrier()).rafRestored).toBe(true);
+    await testInfo.attach("pending-peer-input-order", { body: JSON.stringify({ barrier: await barrier(), viewport: await viewport(), trace: await frame.evaluate(element => Reflect.get(element, "__issue568Trace").snapshot()) }), contentType: "application/json" });
+  }
 });

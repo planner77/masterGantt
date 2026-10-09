@@ -40,6 +40,8 @@ require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목�
 require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
 
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
+ops_doc = (ROOT / "docs" / "GITHUB_OPERATIONS.md").read_text(encoding="utf-8")
+require('gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"' in ops_doc, "Issue #582 merge CLI must include method/subject/empty body/exact Head")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
 require("github.event.pull_request.number" in ci_workflow, "PR CI run-name must carry the PR number")
 require("github.event.head_commit.message" in ci_workflow, "main CI run-name must carry merge commit trace metadata")
