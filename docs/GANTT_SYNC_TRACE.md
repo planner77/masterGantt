@@ -72,3 +72,10 @@ observer-only 비교 clone에서도 두 실패를 각각 두 번 확인했다. w
 ARCHITECTURE/PROJECT_UX/TEST_PLAN/DECISIONS/active PLAN을 동기화한다. DESIGN/AGENTS는 제품 시각 언어·역할·검증 gate 변경이 없어 N/A다. API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/Import/VBA/배포/CI는 저장·권한·도메인·운영 계약 변경이 없어 N/A다. 진단 페이지의 production 차단과 allowlist/cleanup은 코드·테스트로 별도 확인한다.
 
 보완 원본 검증: Inline keyboard 저장/취소 두 번과 confirmed Task Delete 401/412/network 각각두 번, 총8 PASS/exit0(2.6분). [보완 영수증](evidence/issue568/stack/supplemental-validation.json)에 정확한 source와 명령을 남긴다. 이는 Week 뒤 Inline 오류 복구 미도달 분기의 PASS를 대신하지 않는다.
+
+
+## CI #2285.1 — 기존 #530 중첩 viewport 복귀 경합 관측
+
+PR #575의 `4ad246c3616fd8699585ecb06095f4bc931292e8`에서 Chromium shard6은 기존 #530 중첩 frame 2번째 복귀의 원본 `left=120`을 유지하지 못했다. Playwright의 실제 Core event snapshot은 명시적 `scroll-chart(120)`을 적용한 직후 `scroll-chart(0)` 재실행을 기록한다. 초기 명시적 peer restore 자체의 누락이 아니며 정확한 후속 writer/발생 경로는 **미확정**이다.
+
+후속 #568 계측은 dev/test `?__coreTrace=1`에서 두 번째 복귀 직전 실행별 ring reset과 `nested-second-pop` 시나리오 시작을 지원한다. 테스트는 기존 Core/native/instance/columns/tree strict equality를 유지하고, PASS/FAIL 모두 bounded trace와 `data-gantt-public-scroll-events`/peer receipt를 artifact로 남긴다. 정상 제품 동작 수정이나 #530 회귀의 PASS를 의미하지 않는다. 실패 증거: [PR CI #2285.1](https://github.com/planner77/masterGantt/actions/runs/37886327633).
