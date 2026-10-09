@@ -1,5 +1,15 @@
 # CI/CD
 
+## Issue #582 — 짧은 한 줄 Main CI·Finalizer 실행명
+
+표준: `Main CI · Issue #<Primary Issue> · PR #<PR> · <한글 Issue명 축약> · Run #<N>.<attempt>`. Finalizer는 `Finalizer · Issue #... · PR #... · <요약> · Main #<원본 N>.<attempt> · Run #<N>.<attempt>`를 사용한다. Job output이 아닌 **Merge 요청 전에 입력한 commit title**을 event payload로 전달받는다.
+
+- `scripts/main_ci_run_name.py --issue 582 --pr <숫자> --summary "<짧은 한글 제목>"`로 단일 행 제목을 생성한다. 한글 요약 1~30자, 제어 문자·개행·중복 Issue/PR 번호·비한글 요약은 거부한다. Merge API는 `merge_method=merge`, `commit_title=<결과>`, `commit_message=""`, `expected_head_sha=<검증된 PR head>`를 사용한다. GitHub UI 병합도 제목을 수동 변경하고 설명 본문을 비워야 한다.
+- 새 제목 `Issue #N · PR #P · ...`은 `run-name`에 그대로 사용한다. 기존 Merge/직접 main Push는 다중 행을 피하도록 `Main CI · 기존 병합/직접 Push · <exact SHA> · Run #N.A`로 표시되며 이 경로에는 Issue/PR/제목이 자동 표시되지 않는다. `scripts/verify-ci-run-trace.py`는 구형 `Merge pull request #P`, `Merge PR #P` 추적을 유지하고 잘못된 신형 제목은 fail-closed한다.
+- Finalizer는 `workflow_run.head_commit.message`의 표준 한 줄(또는 `head_sha` fallback) 및 triggering `workflow_run.run_number/run_attempt`, 자체 Run/attempt를 표시해 불필요한 `Main CI` 중첩을 제거한다. Release/Finalizer authority는 여전히 exact merge SHA → merged PR → PR body canonical `Refs #Issue`다.
+- `run-name`은 시작 전에 평가되므로 멀티라인 커밋의 한글 제목을 job output으로 추출하여 이미 시작된 실행명에 넣을 수 없다. 현재 저장소 Merge 기본 설정은 표준을 보장하지 않으며 관리자 설정을 변경하지 않는다. 작업 절차는 [GITHUB_OPERATIONS.md](GITHUB_OPERATIONS.md)를 따른다.
+- `name: CI`, required checks, trigger/concurrency, 권한, GHCR digest/release 승인 gate는 유지한다. 신규 Main/Finalizer 출력은 **사용자가 승인한 실제 병합 이후**에만 관측 가능하며 PR 단계에는 NOT TESTED다.
+
 ## Issue #361 CI/CD 실행 인스턴스 추적 표준
 
 GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름은 유지하고, Actions 목록에서 사람이 보는 실행 인스턴스 `run-name`만 trace metadata로 확장한다.
@@ -7,10 +17,10 @@ GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름�
 - PR CI는 PR 제목, PR 번호, `github.run_number`와 `github.run_attempt`를 표시한다. PR 제목에는 Primary Issue가 `Issue #NNN` 또는 `(#NNN)` 형식으로 포함되어야 한다.
 - PR CI의 첫 lightweight gate인 `scripts/verify-ci-run-trace.py`는 PR 본문의 canonical `Refs #NNN` 1개, head branch의 `issue-NNN`, PR 제목의 Issue가 같은 Primary Issue **하나만** 가리키는지 확인한다. `pull_request`의 `edited` 이벤트도 구독하여 title/body 수정 뒤 같은 head SHA라도 다시 검증한다. PR title/body/branch 문자열을 inline shell로 재평가하지 않고 GitHub event JSON을 데이터로 읽는다.
 - Dependabot은 Issue 기반 human workflow의 예외다. PR 작성자가 `dependabot[bot]`이고 동일 저장소의 `dependabot/` branch인 경우에만 trusted automation 경로로 통과시키며, 일반 사용자가 이름만 모방한 branch는 예외로 인정하지 않는다.
-- Main CI는 `push` 이벤트에 PR payload가 없으므로 merge commit message를 표시명에 포함한다. 저장소의 merge commit은 PR 번호와 head branch, PR 제목을 보존하므로 PR 단계에서 확정한 Primary Issue trace를 계승한다. 비-PR main push는 commit-message fallback으로 표시한다.
+- Main CI는 PR payload가 없으므로 **#582 한 줄 Merge 제목**을 사용한다. 기존 Merge/직접 Push는 SHA fallback으로 짧게 표시하고 기존 Merge metadata는 별도로 검증한다.
 - 수동 CI는 선택적 `issue_number` input을 받아 관련 작업이면 `Issue #NNN`을 표시하고, 진단성 실행은 Issue 없이 명시적 fallback 이름을 사용한다.
 - `Issue lifecycle`은 기존 `issue_number`, `pr_number`, `operation` input을 직접 표시한다.
-- Generic Release Finalizer는 triggering `workflow_run.display_title`을 계승하여 Main CI의 Issue/PR trace를 보존하고 자체 `run_number.run_attempt`를 추가한다.
+- Generic Release Finalizer는 triggering `workflow_run.head_commit.message`의 한 줄 제목(또는 `head_sha` fallback), 원본 Main run/attempt 및 자체 run/attempt를 표시한다.
 - 정식 GHCR release를 lifecycle에서 dispatch할 때 `inputs[issue_number]`, `inputs[pr_number]`을 REST `inputs` 객체로 전달한다. tag push 또는 trace input 없는 수동 release는 tag/version 기반 fallback 이름을 사용한다.
 - 재실행은 `run_number`가 동일하고 `run_attempt`만 증가하므로 `Run #N.1`, `Run #N.2`로 구분한다.
 - Generic Finalizer가 PR required checks를 검증할 때 같은 head SHA의 이전 attempt와 최신 재실행 check-run이 함께 반환될 수 있다. required check 이름별로 GitHub Actions check-run의 **가장 큰 check-run ID** 하나만 최신 결과로 채택한다. 최신 결과가 SUCCESS일 때만 PASS하며, 최신 failure/cancelled/pending을 오래된 성공으로 우회하지 않는다.
