@@ -1,7 +1,7 @@
 name: 범용 Release Finalizer
 
 run-name: >-
-  ${{ github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_commit.message, 'Issue #') && !contains(toJSON(github.event.workflow_run.head_commit.message), '\n') && !contains(toJSON(github.event.workflow_run.head_commit.message), '\r') && format('Finalizer · {0} · Main #{1}.{2} · Run #{3}.{4}', github.event.workflow_run.head_commit.message, github.event.workflow_run.run_number, github.event.workflow_run.run_attempt, github.run_number, github.run_attempt) || format('Finalizer · 기존 병합/직접 Push · {0} · Main #{1}.{2} · Run #{3}.{4}', github.event.workflow_run.head_sha, github.event.workflow_run.run_number, github.event.workflow_run.run_attempt, github.run_number, github.run_attempt) }}
+  ${{ github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_commit.message, 'Issue #') && contains(github.event.workflow_run.head_commit.message, ' · PR #') && !contains(toJSON(github.event.workflow_run.head_commit.message), '\n') && !contains(toJSON(github.event.workflow_run.head_commit.message), '\r') && format('Finalizer · {0} · Main #{1}.{2} · Run #{3}.{4}', github.event.workflow_run.head_commit.message, github.event.workflow_run.run_number, github.event.workflow_run.run_attempt, github.run_number, github.run_attempt) || format('Finalizer · 기존 병합/직접 Push · {0} · Main #{1}.{2} · Run #{3}.{4}', github.event.workflow_run.head_sha, github.event.workflow_run.run_number, github.event.workflow_run.run_attempt, github.run_number, github.run_attempt) }}
 
 on:
   workflow_run:

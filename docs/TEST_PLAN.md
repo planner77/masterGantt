@@ -2,6 +2,8 @@
 
 ## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
 
+- **P2 추가 검토:** GitHub Actions `run-name`에는 정규식/문자 길이 검증을 직접 실행할 수 없으므로 단일 행·`Issue #` prefix·` · PR #` 구분자만 시작 시 검사한다. 위 조건을 모방한 한 줄의 영어/과장 제목은 제목에 남을 수 있으나 첫 CI trace gate의 `parse_merge_title()`은 이를 FAIL 처리한다. 따라서 malformed **모든** 한 줄이 SHA fallback으로 표시된다고 보장하지 않는다. 보수적인 운영은 merge 전 generator 및 PR trace 검증을 필수로 한다. 추가 표시명 엄격화가 필요하면 승인된 별도 메타데이터 전달 구조가 필요하다.
+
 - 생성기 `format_merge_title(582, 583, "Main CI 실행명 간소화")`는 `Issue #582 · PR #583 · Main CI 실행명 간소화`를 반환한다. 한글 없는 요약, 개행, 31자 초과, 중복 Issue/PR 번호, 0/음수 번호는 거부한다.
 - Main `push`: 신규 한 줄은 `(582, 583)`, 기존 `Merge pull request #...` 및 `Merge PR #...`도 같은 Primary Issue로 해석, 비-PR push는 `(None, None)` fallback, 부적절한 신형 제목/다중 행은 fail-closed. Dependabot PR, edited metadata-only PR, 수동 CI는 기존 경로를 유지한다.
 - Workflow 정적 계약: Main은 표준 prefix와 SHA fallback, Finalizer는 triggering head commit/SHA 및 원본 Main run/attempt를 사용한다. `name: CI`, required checks, 이벤트·concurrency, exact merge SHA/PR Refs, GHCR/Release approval을 유지한다.
@@ -359,7 +361,7 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 - PR metadata edit: `pull_request`의 `edited` activity가 CI를 새로 실행하여 이미 green인 동일 head SHA라도 수정된 title/body를 다시 검증해야 한다.
 - Dependabot: 작성자=`dependabot[bot]`, 동일 저장소, `dependabot/` branch의 세 조건이 모두 맞는 자동 PR만 Issue trace 예외로 통과하고, 조건 일부만 모방한 PR은 FAIL해야 한다.
 - Main trace: merge commit message에서 PR 번호와 단일 Primary Issue를 식별하고, 비-PR main push는 mutation identity를 추론하지 않은 채 fallback 표시를 사용한다.
-- Lifecycle/Finalizer: Lifecycle 표시명은 input의 Issue/PR/operation을 직접 사용하고 Generic Finalizer는 triggering Main CI의 `display_title`을 계승해야 한다.
+- Lifecycle/Finalizer (#582 반영): Lifecycle은 input의 Issue/PR/operation으로 표시하고 Generic Finalizer는 triggering Main CI의 **`workflow_run.head_commit.message`에서 단일 행·Issue/PR 구분자 조건을 확인하여 표시하거나 `head_sha` fallback**을 사용한다. 원본 Main `run_number/run_attempt`와 Finalizer 자체 실행 식별자는 별도로 유지하며 `display_title` 중첩을 요구하지 않는다.
 - Release trace: `issue_lifecycle.py`가 `release-image.yml` dispatch에 `inputs[issue_number]`, `inputs[pr_number]`을 전달하고 Release 표시명이 Issue/PR/tag/run attempt를 포함해야 한다.
 - 불변식: workflow `name: CI`, required check 세 항목, trigger/permission/concurrency, exact merge SHA, release authorization와 GHCR digest gate는 변경되지 않아야 한다.
 - 공식 원격 증거: PR 생성 후 Actions 목록의 PR CI 표시명에 Issue #361/PR 번호/run attempt가 실제로 노출되고 quality/e2e/docker required checks가 기존 이름으로 실행되는지 확인한다.
