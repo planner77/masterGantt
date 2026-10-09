@@ -7,6 +7,47 @@
 - 안정화된 **실제 selected Task reveal 좌표**를 `before`로 확정한 뒤 추가12 RAF 동일 상태 확인, 기존 일정↔리소스 단일 Gantt root, 선택/열/Chart·Grid X/Y **전체 strict 상태 왕복**, 5폭 geometry 및 keyboard·focus를 그대로 검증한다. 다른 #530 nested/fixed 120/240 E2E와 #463/#514에 대한 수정 없음. #526/#527의 기존 원본 안정화 기법을 재사용한다.
 - 제품/API/DB/SVAR/CI workflow 불변, package/lock version `0.103.1` 유지. 신규 head PR CI Quality/E2E6/Docker, 실제 QA_FINAL, 신규 Main/GHCR digest는 별도 증거 전 `NOT TESTED`이다. 정식 v0.103.1 승인 이력과 자동 first-parent 릴리스 분기 문제는 릴리스 단계의 별도 blocker로 보존한다.
 
+## Issue #565 — 병합 후 infra Agent QA 조건 회귀 확인 (2026-10-10)
+
+선행 결과: [PR #583](https://github.com/planner77/masterGantt/pull/583)은 main에 병합되었으나 [독립 QA 지적 F1](https://github.com/planner77/masterGantt/issues/565#issuecomment-6083701630)의 `.codex/agents/infra.toml:82,103` 무조건 qa_docs 요구가 남았다. 이 테스트 계획은 **실제 실행 지침과 문서 정책의 동일성**을 확인한다.
+
+| 케이스 | 변경 범위/조건 | 기대 결과와 확인 지침 |
+| --- | --- | --- |
+| T1 LOW | 단순 문구·문서, `qa_required=false`, Reviewer 미실행 | `QA_FINAL=N/A(reason)` + DOCUMENTATION_SYNC + 현재 Head 필수 3 check + Manager ACCEPT 시 병합 가능; qa_docs 없다는 이유만으로 BLOCKED 금지 |
+| T2 MEDIUM(N/A) | 국소 UI 기능, 타깃 회귀 확보·독립 트리거 없음 | Manager 교차 검토 및 사유 있는 N/A 가능. 실제 검토/테스트를 임의 PASS로 기재하지 않음 |
+| T3 MEDIUM(의무) | frontend/backend 공용 계약, `qa_required=true` | qa_docs 또는 승인된 별도 인간 Reviewer의 exact Head PASS 필수. 미확보 시 BLOCKED |
+| T4 HIGH | 인증·DB migration·Scheduler·CI/GHCR 보호 정책 | 별도 Reviewer의 실제 독립 PASS + Manager ACCEPT 필수. 단독 검토·Actions 성공만으로 독립 QA를 대체하지 않음 |
+| T5 도구 미지원 | `qa_required=true`, Sub-Agent 없음/사람 Reviewer 없음 | `QA_FINAL=BLOCKED`, MERGE_READY 금지; #580의 자동 QA 대체는 미구현 |
+| T6 재작업 | 현재 Head에 수정 커밋 추가 | 이전 Head QA_FINAL PASS/N/A와 필수 quality/e2e/docker 전부 stale, 새 Head 전체 재검증 |
+| T7 병합 후 | LOW/MEDIUM N/A 또는 의무 HIGH가 main CI/GHCR 검증 | N/A면 Manager가 exact SHA·digest 증거 확인; 필수면 Reviewer 별도 검토. 필요 main GHCR 검증 자체는 생략하지 않음 |
+| T8 지침 일관성 | `.codex/agents/infra.toml`, `frontend.toml`, `ui-ux.toml`의 QA 관련 문구와 정책·Prompts 대조 | 필수/비의무 경로 모순 0, `qa-docs.toml` read-only 계약 불변, TOML 구문 유효 |
+
+**검증 구분:** TOML 구문/정적 문자열 및 문서 간 대조는 로컬/정적 근거. 새 PR의 exact Head GitHub Quality/E2E/Docker aggregate 각각을 실제 Run/Job으로 확인해야 원격 PASS다. Docs-only/path filter에 의해 구현 E2E shard/Docker smoke가 SKIPPED이면 실행 PASS라고 말하지 않는다. Issue #565 후속은 정식 Release, Ruleset 변경, #580 자동 QA 구현을 포함하지 않는다.
+
+
+## Issue #565 — 위험 기반 QA 정책 시나리오 및 증거 경계
+
+[위험도 기반 QA 정책](QA_REVIEW_POLICY.md)의 **4절 판정 행렬**을 [Issue #565](https://github.com/planner77/masterGantt/issues/565) AC1~AC8에 적용한다. 표는 **정책 기대 판정**이고 독립 Reviewer·E2E·Actions가 실제 실행됐다는 증거가 아니다.
+
+| 재현 입력 | 기대 위험도 | 독립 QA / 병합 조건 |
+| --- | --- | --- |
+| 제품 계약에 영향 없는 docs-only / 문구 | LOW | DOC_SYNC + 새 Head 세 aggregate PASS + `QA_FINAL=N/A(reason)` + Manager ACCEPT |
+| 단일 화면 국소 필터 동작, 타깃 regression 확보 | MEDIUM | 변경 영향·타깃 증거·Manager 교차 검토 후 독립 QA 필요성을 결정·기록 |
+| 조회 API와 UI에 걸친 동일 시나리오 | MEDIUM(권한/데이터 손실 없을 때) | 두 ownership 경계이므로 독립 Reviewer 필수 |
+| #530 유형 복수 viewport 비동기 복원 경쟁 | HIGH | 실제 독립 QA 필수; reviewer 부재 BLOCKED |
+| 인증/DB migration/Scheduling/CI 권한 변경 | HIGH | 기존 safety Gate + 별도 Reviewer Head 연결 PASS |
+| Sub-Agent 실행 불가, 승인된 별도 인간 Reviewer 있음 | HIGH | 인간 독립 검토 근거가 있으면 Manager ACCEPT 가능 |
+| Sub-Agent 및 인간 Reviewer 모두 없음 | HIGH | CI PASS와 무관하게 QA_FINAL BLOCKED; #580 자동화 미적용 |
+| LOW→MEDIUM/HIGH 범위 확대 또는 Head 교체 | 재분류 필요 | 종전 N/A/QA PASS stale, 새 Head required checks 재실행 |
+| Head A의 CI FAIL → 수정 Head B | 새 위험도 판정 | A 성공/실패를 B PASS로 복제 금지 |
+| docs 영향 없는 구현 | 원래 위험도 유지 | 영향 분석 및 문서별 N/A(reason)로 DOCUMENTATION_SYNC 처리 |
+| 이미 병합된 #525/PR #533와 #530/PR #564 | 과거 사례 | 재분류 예시만 사용, 과거 검증/QA 소급 PASS 금지 |
+
+**원격 확인 조건:** 이 Issue의 문서 정책 PR에서 canonical Primary Issue trace, 새 Head, 최신 `quality/e2e/docker` aggregate 결과를 실제 run/job/attempt로 확인한다. Docs-only 경로에서는 node/E2E/Docker 구현 Job이 조건에 따라 SKIPPED일 수 있다. 이 경우 required aggregate 체크 PASS와 실제 기능 테스트 PASS를 구분한다. `QA_FINAL`(HIGH로 분류된 정책 변경의 별도 인간 Reviewer 포함)과 Manager ACCEPT는 이번 요청 'PR CI 시작까지' 범위 밖이므로 완료라고 표시하지 않는다.
+
+**기존 Gate 회귀 점검:** `.github/workflows/ci.yml`, `.github/workflows/release-image.yml`, Ruleset/권한/required checks/merge SHA/GHCR exact digest/Finalizer/cleanup 동작은 #565에서 **수정하지 않는다**. 자동 QA Job은 #580 구현 전 NOT IMPLEMENTED. `DESIGN.md`/API/DB/DEPLOYMENT/CHANGELOG는 애플리케이션 동작·스키마·운영 이미지·버전 변경이 없어 N/A다.
+
+
 ## Issue #530 / PR #579 — CI #2313.1 검색/복원 intent 경합과 post-settle guard 예산
 
 - [CI #2313.1](https://github.com/planner77/masterGantt/actions/runs/37934372035), Head `b00aee0d4bbc7d6babac9c76bf9a1ee74847fcb0`: Chromium shard2 #463 검색 필터 전 restore marker null→filter applied 뒤 `count1/requestedLeft120/publicTop96` 지연 영수증으로 FAIL. 다른 E2E shard 1/3/4/5/6과 Quality/Docker PASS. 참조 [실제 CI shard2 report](https://github.com/planner77/masterGantt/actions/runs/37934372035/artifacts/11618062834); 새 Input intent에서 이전 peer 복원 완료 표시를 금지한다.
