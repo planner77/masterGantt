@@ -2762,3 +2762,7 @@ T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개�
 - R2: 동일 Issue의 `v1.1.0`과 `v1.2.0` 승인 marker가 연속해도 각 대상 버전별 최종 trusted comment로 release 판정. `v1.1.0` 철회가 `v1.2.0` 승인에 영향을 주지 않으며 해당 버전은 BLOCKED.
 - R3: 자동 Finalizer, Manual Lifecycle, Resume mutation은 동일 concurrency group; 동일 bot/PR/SHA FINAL 중복은 인증 후 멱등, 다른 PR identity 또는 위조는 거부.
 - R4: `scripts/verify-issue-lifecycle.py`의 폐쇄 Issue Mock과 실제 인증 경계 회귀를 분리하고 PR 새 Head CI Quality/E2E/Docker/정책 계약으로 검증. HIGH 독립 QA와 Manager ACCEPT는 CI 성공과 별도.
+
+### Issue #586 수동 fallback 순서 누락 회귀 (#588 리뷰 P1)
+
+성공 Main CI인 동일 Issue A→B 중 A에 marker가 없을 때 수동 B FINAL은 FAIL(브랜치/GHCR/Issue 무변경). A→다른 Issue→B에서는 먼저 선행 target 처리 필수. 동일 Issue의 후속 B가 남아 있는 A는 close 금지. 이미 FINAL인 A를 수동 재호출해도 close mutation 금지. 최신 main SHA가 검증 도중 변경되거나 선택 PR/SHA가 first-parent pending identity와 일치하지 않으면 FAIL. 정규 자동 Resolver만 `--resolver-ordered`를 사용한다. 회귀 구현: `scripts/verify-issue-lifecycle.py`. 정확한 Head의 PR CI·독립 QA_FINAL은 별도로 확인.
