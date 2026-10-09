@@ -1,5 +1,14 @@
 # Manager decisions
 
+## Issue #565 — 위험도 기반 QA_FINAL 운영 정책 (2026-10-09)
+
+**결정(적용은 문서 정책 PR의 main 병합 이후):** 모든 구현 Issue에 독립 QA Agent를 일괄 필수로 요구하는 대신, [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 LOW/MEDIUM/HIGH 트리거에 따라 독립 Reviewer 의무를 정한다. LOW·일부 MEDIUM은 구체적인 사유가 있을 때 `QA_FINAL=N/A`로 처리하고 Manager의 Head 연결 ACCEPT가 필수다. HIGH 및 독립 검토를 선택한 MEDIUM은 실제 별도 `qa_docs` 또는 별도 인간 Reviewer의 Head 연결 PASS 없이는 BLOCKED다.
+
+**근거:** 현재 Ruleset은 required Quality/E2E/Docker aggregate와 리뷰 스레드 해결을 강제하지만 승인 Review count가 0이므로 내부 독립 QA/Manager 승인을 대신하지 않는다. 기존 PR/Head 전체 CI·문서 동기화·main/GHCR·릴리스 승인 Gate는 유지한다. Sub-Agent 없는 단독 실행도 별도 인간 Reviewer를 확보할 수 있어야 하며 과거 병합 이력을 소급 정정하지 않는다.
+
+**후속 결정 경계:** 사용자 요청 #580은 GitHub Actions 자동 QA + Manager ACCEPT가 공식 대체 경로가 되도록 하는 *후속 구현 이슈*이며 #565 정책만으로 자동 대체가 승인·구현된 것은 아니다. 자동 QA 도입 후 HIGH 조건을 바꿀 때에는 이 결정과 모든 참조 지침을 동기 개정하고 실제 required check·Ruleset의 보장 범위를 재확인한다.
+
+
 ## Issue #569 — 시간축 확장 대안과 Adapter ADR (2026-10-09)
 
 [ADR](GANTT_ADAPTER_ADR.md)에서 문서화된 autoScale/start/end, 같은 instance의 명시 범위 변경, 기존 synthetic resize의 세 대안을 실제 설치 Core2.7.3로 비교한다. 공식 최신 문서와 설치 타입/runtime을 같은 버전 계약으로 간주하지 않으며 exec resolve와 native settle을 분리한다.

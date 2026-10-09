@@ -1,5 +1,12 @@
 # GitHub / CI / GHCR 운영 담당과 작업 절차
 
+## Issue #565 위험도 기반 QA_FINAL / 병합 승인 정책
+
+[QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 HIGH 우선 LOW/MEDIUM/HIGH 분류를 PLAN·REWORK·PR Head 변경·병합 직전에 다시 점검한다. `qa_required=true`이면 실제 `qa_docs` 또는 구현자와 분리된 승인된 인간 Reviewer의 **최신 Head 독립 검토 PASS**가 필요하다. 그렇지 않은 LOW/일부 MEDIUM은 `QA_FINAL=N/A(reason)`가 가능하며 **Manager ACCEPT**는 두 경우 모두 필수다. #580의 GitHub Actions 자동 QA 대체는 구현 전까지 이 조건을 변경하지 않는다.
+
+실제 활성 `main-lifecycle-gate`는 required check 3개, 최신 main 정렬, 리뷰 스레드 해결을 강제하며 승인 review 수 0이다. **GitHub의 required review 수 0 = Manager ACCEPT 또는 독립 QA PASS가 아니다.** PR에서 `risk_level`/트리거/파일/qa_required/Reviewer identity/QA evidence/Head SHA/Manager 결정을 확인하고, GitHub Ruleset에 없는 운영상 Manager Gate를 자동 강제됐다고 보고하지 않는다. branch ruleset/required checks/권한 변경은 사용자·지정 maintainer의 명시 승인 및 실제 설정 확인 후에만 한다. #565에서 `.github` workflow나 Ruleset은 변경하지 않는다.
+
+
 ## Issue #361 Workflow 실행명 운영 규칙
 
 Actions 목록에서 하나의 업무 lifecycle을 검색할 때 **Primary Issue**를 공통 추적 키로 사용한다. 한 PR에는 canonical `Refs #NNN` 1개를 두고 branch는 `*/issue-NNN-*`, PR 제목은 새 작업부터 `[Issue #NNN] ...` 형식을 우선한다. 호환을 위해 기존 `Issue #NNN` 또는 `(#NNN)` 제목도 허용하지만 Primary Issue는 branch/body/title 사이에 일치해야 한다. Related Issue는 PR 본문 설명에만 기록하고 workflow run-name의 owner로 사용하지 않는다.
@@ -24,10 +31,10 @@ PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, tit
 
 | 요청/변경 | 주 담당 | 협업과 검토 |
 | --- | --- | --- |
-| GitHub repository, branch/PR/merge 정책, ruleset, required checks, Actions/Environment 설정 | infra | Manager의 범위·권한 확인, qa_docs 검토 |
+| GitHub repository, branch/PR/merge 정책, ruleset, required checks, Actions/Environment 설정 | infra | Manager의 범위·권한 확인, 위험도별 조건부 qa_docs/별도 인간 Reviewer 검토 |
 | GitHub 운영 Issue/PR, template, Dependabot, CI 상태와 release 이력 관리 | infra | 기능 Issue의 도메인 담당과 Manager는 그대로 유지 |
 | CI 실패, runner/cache/network, workflow trigger/job/permission, CI script | infra | Application 결함은 frontend/backend/scheduler가 수정 |
-| GHCR 인증·401/403·repository 연결·visibility·Actions access·image 보관/복구 | infra | 권한·공개범위·삭제는 지정 maintainer 승인 |
+| GHCR 인증·401/403·repository 연결·visibility·Actions access·image 보관/복구 | infra | HIGH 위험 정책 변경에는 별도 Reviewer 검토, 권한·공개범위·삭제는 지정 maintainer 승인 |
 | Docker/Compose, SQLite volume, Node/native module, readiness와 배포 | infra | backend 협업, qa_docs 독립 검증 |
 | 모든 변경의 최종 ACCEPT/REWORK/보류 판단 | Manager | 구현 Agent의 자체 PASS만으로 승인하지 않음 |
 
@@ -85,7 +92,7 @@ Force push, tag 이동/재발행, quality gate 우회, 무조건 재시도, 비�
 QA 검토 결과 / Manager 판단:
 ```
 
-완료는 근거 있는 원인/변경, 관련 검증, 권한·release 불변식 유지, 문서 일관성, 독립 QA와 Manager 판단을 포함한다. 실행하지 않은 CI나 GHCR 검증을 PASS로 기록하지 않는다. TOML에 적힌 model/effort와 실제 실행 metadata의 확인도 구분한다.
+완료는 근거 있는 원인/변경, 관련 검증, 권한·release 불변식 유지, 문서 일관성, 위험도에 따라 필요한 독립 QA PASS 또는 사유 있는 N/A 및 Manager 판단을 포함한다. 실행하지 않은 CI나 GHCR 검증을 PASS로 기록하지 않는다. TOML에 적힌 model/effort와 실제 실행 metadata의 확인도 구분한다.
 
 ## 7. CI/CD 한글 작성 정책
 

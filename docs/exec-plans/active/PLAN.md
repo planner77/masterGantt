@@ -1,3 +1,7 @@
+## Issue #565 — 위험도 기반 QA_FINAL / 필수 Reviewer 정책 (2026-10-09)
+
+[실행 계획](ISSUE_565.md)과 [QA 위험도 정책](../../QA_REVIEW_POLICY.md)에 따라 기존 필수 CI·문서 동기화·GHCR 승인 경계는 보존하면서 LOW/MEDIUM/HIGH 위험 분류, Reviewer 의무/N/A, Manager ACCEPT를 명문화한다. 기준 main `d41032358c5cbeb4758e124d037d9ada18af9ee9`, app `0.103.1`, branch `docs/issue-565-risk-based-qa-policy`. 이 정책 변경 자체는 HIGH이므로 별도 QA 검토자 부재 시 병합 전 BLOCKED; 사용자 요청 범위는 PR CI 시작까지다. #580 Actions 자동 QA 대체는 후속 별도 구현이며 아직 채택된 대체 Gate가 아니다.
+
 ## Issue #569 — 공개 API·시간축·기하 Adapter PoC
 
 #568 병합 main `6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca` 기반 `feat/issue-569-readonly-gantt-adapter`에서 [Work Packet](ISSUE_569.md)과 [ADR](../../GANTT_ADAPTER_ADR.md)을 따른다. 실제 설치 Core2.7.3의 A/B/C 대안을 비교하는 제품 미도입 설계/PoC로 application0.103.1 유지, release_required=false/release_authorized=false다. 구현·문서·독립 PRE_QA·원격 게시·PR CI 시작까지 진행하며 CI 모니터링·병합·release·Issue 종료는 제외한다.

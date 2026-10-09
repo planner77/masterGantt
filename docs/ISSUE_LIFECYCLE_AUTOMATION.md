@@ -32,7 +32,7 @@
 - 완료 evidence comment
 - 모든 required gate가 충족된 경우 Issue close
 
-병합은 Actions가 quality gate를 우회해 직접 수행하지 않는다. 기본 경로는 **Ruleset + Required Checks + Review/Conversation Resolution + GitHub Auto-merge**다.
+병합은 Actions가 quality gate를 우회해 직접 수행하지 않는다. 기본 경로는 **Ruleset + Required Checks + Review/Conversation Resolution + GitHub Auto-merge**다. QA의 위험도별 선택·운영상 Manager ACCEPT는 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)가 Source of Truth이며, 기존 Ruleset은 이를 전부 기계적으로 강제하지 않는다.
 
 ## 2. Lifecycle Gate
 
@@ -69,8 +69,11 @@
 - blocking review/thread 없음
 - Ruleset 충족
 - 필요 시 최신 main 재정렬 후 새 head에서 required CI 재실행
+- PLAN/PR 최신 Head의 `risk_level`/`risk_reason`/`qa_required`/실제 reviewer/qa_evidence 기록
+- `qa_required=true`이면 별도 qa_docs 또는 승인된 인간 Reviewer의 정확한 Head 독립 QA_FINAL PASS, `qa_required=false`이면 조건을 충족하는 LOW/일부 MEDIUM의 `QA_FINAL=N/A(reason)`
+- 위 증거와 문서 동기화 결과를 확인한 **Manager ACCEPT** (CI PASS 또는 Ruleset의 승인 리뷰 수 0으로 대체하지 않음)
 
-PR head가 바뀌면 이전 head의 required CI/최종 QA evidence는 stale이다.
+PR head가 바뀌면 이전 head의 required CI/최종 QA PASS 또는 N/A evidence는 stale이다. #580 자동 QA Job은 후속 이슈이며 #565에서 새 required check를 도입하거나 기존 3개를 완화하지 않는다.
 
 ### Gate D — READY_FOR_RELEASE
 

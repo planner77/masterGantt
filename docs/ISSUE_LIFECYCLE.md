@@ -2,7 +2,7 @@
 
 적용: Issue #87, 2026-09-22. 공통 진입점은 [AGENTS.md](../AGENTS.md)다. 이 문서는 실행 환경의 Manager가 따르는 위임 규칙이며 GitHub 이벤트를 감시하는 서버나 새로운 Actions workflow가 아니다. 실제 Sub-Agent 생성 도구와 권한이 있는 세션에서만 독립 실행을 주장한다.
 
-기술 계약은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md), [CI_CD.md](CI_CD.md), [GITHUB_OPERATIONS.md](GITHUB_OPERATIONS.md)가 우선한다. UI 기준은 [UI_UX_GUIDELINES.md](UI_UX_GUIDELINES.md), 역할 설정은 [AGENT_CONFIGURATION.md](AGENT_CONFIGURATION.md)를 따른다. 이 문서로 기존 CI gate나 승인 경계를 완화하지 않는다.
+기술 계약은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md), [CI_CD.md](CI_CD.md), [GITHUB_OPERATIONS.md](GITHUB_OPERATIONS.md)가 우선한다. UI 기준은 [UI_UX_GUIDELINES.md](UI_UX_GUIDELINES.md), 역할 설정은 [AGENT_CONFIGURATION.md](AGENT_CONFIGURATION.md)를 따른다. 이 문서로 기존 CI gate나 승인 경계를 완화하지 않는다. 위험도 분류·QA_FINAL 독립 검토의 필수/N/A·별도 인간 Reviewer 조건과 #580 후속 자동 대체 경계는 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)를 Source of Truth로 삼는다.
 
 ## 1. 요청 해석과 실행 준비
 
@@ -12,7 +12,7 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 2. 목표, 비범위, 인수 기준, 의존성, 위험, 요청된 마지막 단계를 확정한다. 분석만 요청한 작업을 구현/병합/게시로 확대하지 않는다. 여러 이슈를 순차 진행하라는 요청이면 하나를 완료하기 전 다음 이슈를 변경하지 않는다.
 3. `release_required`(정식 릴리스 필요성/범위), `release_authorized`(기본 false인 명시적 게시 승인)와 각각의 근거를 기록한다. 단순 “Issue Lifecycle 전체 진행”만으로 두 값을 true로 간주하지 않는다. 범위가 불명확하면 release_required는 미확정으로 남기고 게시 전에 범위/승인을 확인한다. 사용자가 게시를 제외하거나 PR까지만 요청하면 그 경계에서 멈춘다. 문서/Agent 지침만 변경하고 제품 산출물에 영향이 없으면 정식 release는 N/A로 기록한다. `main` 변경이 `docs/**` 또는 저장소 루트 Markdown만 포함하는 docs-only merge이면 CI 변경 유형 판정에 따라 임시 GHCR 게시·검증·정리 job도 N/A/SKIPPED로 기록한다. 비문서 파일이 하나라도 포함되거나 판정이 불가능하면 기존 main 임시 GHCR gate를 유지한다.
 4. 실제 사용 가능한 Agent 실행/파일/명령/브라우저/GitHub/Actions 도구, 모델 접근과 권한을 확인한다. 기존 동시 실행 한도는 6이며 실제 runtime 제한이 더 작으면 작은 값을 따른다. 모든 역할을 상시 실행하지 않는다.
-5. 실행 도구가 없으면 `실행 방식: 단일 에이전트 순차 처리`와 미실행 항목을 기록한다. 역할별 검토를 했다는 이유로 독립 Sub-Agent/QA를 실행했다고 하지 않는다. 필수 독립 검토를 확보할 수 없으면 해당 gate는 BLOCKED다.
+5. 실행 도구가 없으면 `실행 방식: 단일 에이전트 순차 처리`와 미실행 항목을 기록한다. 위험도 정책의 `qa_required=false`인 LOW/일부 MEDIUM은 사유 있는 QA_FINAL N/A가 가능하지만 `qa_required=true`인 HIGH/일부 MEDIUM은 별도 qa_docs 또는 인간 독립 Reviewer가 없으면 BLOCKED다. 역할별 순차 검토는 독립 QA PASS가 아니며 #580의 자동 대체는 아직 구현되지 않았다.
 
 ### 정식 게시 승인 경계
 
@@ -41,7 +41,7 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 | Calendar, Duration, Summary, Dependency, Auto Schedule | scheduler | backend/frontend, qa_docs |
 | Excel/VBA → JSON/CSV와 매핑 | excel_vba | backend, UI 변경이면 frontend/ui_ux, qa_docs |
 | GitHub branch/PR/CI/merge, Docker/Compose, GHCR 게시·검증 | infra | application 결함은 해당 구현 담당, qa_docs |
-| 요구사항·테스트·보안·문서·원격 증거 검토 | qa_docs | 작성자와 분리된 reviewer; 최종 판단은 Manager |
+| 요구사항·테스트·보안·문서·원격 증거 검토 | 위험도별 qa_docs 또는 승인된 별도 인간 Reviewer | `qa_required=true`에 독립 검토 의무. `qa_required=false`는 사유 있는 N/A와 Manager 교차 검토; 최종 판단은 Manager |
 
 `ui_ux`는 정보 구조·사용 흐름·상태·접근성·검증 기준을 제안하는 읽기 중심 역할이다. 실제 UI/test 수정은 frontend, 설계 문서 반영은 Manager 또는 명시된 문서 작성자가 맡는다. qa_docs는 read-only reviewer이며 문서를 직접 고치도록 배정하지 않는다. 두 역할 모두 MCP/API를 통한 쓰기까지 하지 않는다. 읽기 전용 sandbox만으로 connector 쓰기까지 차단된다고 가정하지 않는다.
 
@@ -51,7 +51,7 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 접수/현재 상태 확인 → 분석/필요 역할 배정 → 설계·계획·버전 결정
 → 작업 branch/worktree → 구현·관련 테스트 → Local Fast Feedback
 → DOCUMENTATION_SYNC(관련 문서 갱신 또는 N/A 근거)
-→ QA 사전 검토 → PR → CI → QA 최종 검토/Manager 병합 승인
+→ 위험도별 QA 사전 검토(필수 또는 N/A 근거) → PR → CI → QA_FINAL(독립 PASS 또는 N/A)/Manager 병합 승인
 → main 병합 → main CI → main 임시 GHCR 게시·digest 검증·정리
 → [release_required] 명시적 release_authorized 승인 확인 (미승인 시 BLOCKED)
 → [release_required && release_authorized] 정식 version tag → Release CI → 정식 GHCR 게시·digest 검증
@@ -68,11 +68,11 @@ PR을 조기에 만들 수 있으나 동일 이슈의 PR을 중복 생성하지 
 | branch/worktree | infra | 확인한 최신 main 기반 `fix/issue-N-...`, `feat/issue-N-...`, `docs/issue-N-...`; 기존 작업은 재사용 |
 | 구현/빠른 검증 | 지정 구현 담당 | 범위 내 diff, 회귀 테스트, 실제 실행 명령·exit 결과; version 수정도 작업 branch에서 수행 |
 | 문서 동기화 (DOCUMENTATION_SYNC) | Manager가 지정한 문서 작성자, 기본은 Work Packet 지정 구현 Agent | 문서 영향 분석, required docs 실제 갱신 또는 N/A 근거, 코드·계약·문서 정합성; 미완료 시 QA 진입 금지 |
-| QA 사전 검토 | qa_docs, UI 설계 비교는 ui_ux | 요구사항↔코드↔테스트↔문서 비교, DOCUMENTATION_SYNC 증거, 실패/미검증 목록; frontend 자체 PASS로 대체 금지 |
+| QA 사전 검토 | Manager의 위험도 판정; `qa_required=true`면 qa_docs/별도 인간 Reviewer | 요구사항↔코드↔테스트↔문서 비교, DOCUMENTATION_SYNC, 영향 회귀와 N/A 근거. 구현 Agent의 자체 PASS는 독립 검토가 아님 |
 | PR/CI | infra | PR head와 테스트된 merge/base ref, run/job/attempt; quality/e2e/docker 실제 성공 |
-| 병합 승인 | qa_docs 최종 검토 + Manager | 마지막 수정 이후 head의 필수 CI/검토 PASS, 미해결 차단 사항 없음, 병합 승인 범위 확인 |
+| 병합 승인 | 위험도별 독립 Reviewer(필요 시) + Manager | 최신 Head 세 required checks, 필수 독립 QA PASS 또는 N/A(reason), DOCUMENTATION_SYNC, 미해결 차단 사항 없음, **Manager ACCEPT** 증거 |
 | main 병합 | infra | 승인한 head를 지정한 merge, 실제 merge SHA; base 이동/충돌로 diff가 바뀌면 재검증 |
-| main CI/GHCR | infra, qa_docs 확인 | merge SHA의 gate → 임시 ci-image → exact digest smoke → SBOM/provenance → cleanup |
+| main CI/GHCR | infra, 위험도별 Reviewer 확인 및 Manager 판단 | merge SHA의 gate → 정책상 임시 ci-image → exact digest smoke → SBOM/provenance → cleanup; QA N/A가 GHCR 생략 사유는 아님 |
 | 정식 GHCR 게시 | infra, Manager의 명시적 release 승인 근거 확인 | release_required=true와 release_authorized=true 확인 후 아래 4절의 tag/Release CI/registry 검증. 필요 없는 경우만 사유와 함께 N/A |
 | 정리/종료 | Manager 판단, infra 실행 | 필요한 모든 gate 완료, 인수 기준별 증거, 잔여 위험/환경 검증 기록, 안전한 branch 정리 |
 
@@ -80,7 +80,7 @@ PR을 조기에 만들 수 있으나 동일 이슈의 PR을 중복 생성하지 
 
 ## 4. GHCR는 게시와 검증을 함께 완료한다
 
-GHCR 주 담당은 infra, 독립 증거 검토는 qa_docs, 게시 범위와 최종 판단은 Manager다. PR/수동 일반 CI는 read-only이며 registry write를 하지 않는다. 상세 tag/권한/runtime 계약은 CI_CD를 따른다.
+GHCR 주 담당은 infra, 위험도별 의무가 있는 독립 증거 검토는 qa_docs 또는 승인된 별도 인간 Reviewer, 게시 범위와 최종 판단은 Manager다. PR/수동 일반 CI는 read-only이며 registry write를 하지 않는다. 상세 tag/권한/runtime 계약은 CI_CD를 따른다.
 
 ### 4.1 main 임시 이미지
 
@@ -114,6 +114,7 @@ Agent 역할 / 실행 ID(실제 생성 시) / 요청 모델·effort:
 참조 문서 / UI 관련 SVAR demo·API와 확인 범위:
 필수 테스트 / 문서 / 산출물:
 승인 범위 / 금지 행위 / release_required / release_authorized / 명시적 승인 근거:
+위험 분류 / risk_level / risk_reason / risk_triggers / qa_required / qa_review_mode / reviewer / qa_evidence:
 반환: 변경 요약, 파일·commit, 실제 명령/결과, 근거, 남은 위험, 다음 담당:
 ```
 
@@ -160,7 +161,7 @@ Secret/PAT/.env/실제 DB/runtime log를 Git/Issue/PR/artifact에 저장하지 �
 
 | 입력/상태 | 기대 배정/판정 |
 | --- | --- |
-| Workspace 여러 화면 재설계 | ui_ux 설계 → frontend 구현 → qa_docs → infra; 필요 시 backend |
+| Workspace 여러 화면 재설계 | ui_ux 설계 → frontend 구현 → 위험도 HIGH 트리거(비동기 상태·회귀 등) 평가 → 필요시 qa_docs/인간 Reviewer → infra |
 | 기존 버튼 문구 수정 | frontend가 UI/UX 겸임, ui_ux 미선택 사유 기록 |
 | Calendar 계산 오류 | scheduler 주 담당, 변경 경로에 따라 backend/frontend |
 | Docker/registry 인증 실패 | infra 주 담당, secret 원문 비노출, 권한 확대 금지 |
@@ -173,7 +174,7 @@ Secret/PAT/.env/실제 DB/runtime log를 Git/Issue/PR/artifact에 저장하지 �
 | main 임시 GHCR 성공, 정식 release 필요 | 명시적 승인 확인 후 정식 GHCR 단계 진행; 임시 결과로 종료 금지 |
 | 정식 push 성공, digest smoke 실패 | release FAIL, 이슈 유지, exact tag 재사용 금지 |
 | 문서/Agent 지침만 변경 | 버전 유지 근거, 정식 release N/A; 실제 main workflow는 확인 |
-| Sub-Agent 도구 없음 | 순차 처리 명시, 가짜 실행 ID/독립 QA PASS 금지 |
+| Sub-Agent 도구 없음 | 순차 처리 명시. LOW/일부 MEDIUM N/A(reason), HIGH/의무 MEDIUM은 별도 인간 Reviewer 배정 또는 BLOCKED. 가짜 독립 PASS 금지 |
 | 동일 파일을 두 Agent가 요구 | 소유자/선행 순서 확정 전 병렬 쓰기 금지 |
 | 중단 후 PR/이미지가 이미 존재 | 최신 상태로 재개, 중복 PR/tag/publish 금지 |
 
@@ -224,6 +225,7 @@ Manager는 각 위임 전에 최소 다음을 고정한다.
 - repository / issue number / issue URL / lifecycle phase
 - goal / acceptance criteria / scope / non-scope / dependencies / risks
 - default branch / main SHA / working branch / working head / existing PR / CI
+- risk_level (LOW/MEDIUM/HIGH), risk_reason/triggers, affected_paths, qa_required, qa_review_mode, reviewer, qa_evidence, manager_decision; 분류/재분류 근거
 - current version / version decision과 근거
 - release_required / release_authorized / 승인 근거
 - primary Agent / collaborators / writable files / read-only files / shared interface
@@ -234,6 +236,12 @@ Manager는 각 위임 전에 최소 다음을 고정한다.
 `issue_comment_writer` 기본값은 `manager`다. infra가 댓글을 직접 작성하도록 위임할 때만 `issue_comment_writer=infra`를 명시하고, `issue_comment_allowed_types`는 `STATUS`, `EXCEPTION` 또는 두 유형의 조합으로 제한한다. 필드 누락, `manager`, `NONE`은 infra에 대한 쓰기 위임이 아니다. `issue_log_type` 자체도 댓글 작성 권한을 부여하지 않는다.
 
 Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 않고 Manager에게 차이를 반환한다.
+
+### 9.2.1 위험도 기반 QA_FINAL 분기 (#565)
+
+PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_reason`/`qa_required`/Reviewer/최신 Head를 기록한다. HIGH는 실제 `qa_docs` 또는 별도 인간 Reviewer 필수이고 없으면 BLOCKED, LOW/일부 MEDIUM만 `QA_FINAL=N/A(reason)` 가능하다. MEDIUM의 복수 ownership 경계/회귀 등 트리거는 독립 검토 의무이며 기존 코드/문서/CI 검사 생략 근거가 아니다. [판정 순서·예외 및 테스트 시나리오](QA_REVIEW_POLICY.md)를 따른다.
+
+이슈 #580의 GitHub Actions 자동 QA 대체 경로는 **별도 구현 및 검증 전까지 미적용**이다. Ruleset의 승인 리뷰 수 0명을 독립 QA PASS로 간주하지 않으며, 모든 경우 Manager의 Head 연결 ACCEPT가 필요하다.
 
 ### 9.3 Phase Gate
 
@@ -246,12 +254,12 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 | IMPLEMENTING | 지정 파일 내 구현/테스트 변경 | Work Packet의 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) |
 | LOCAL_VALIDATED | 관련 Local Fast Feedback 실제 결과 | Work Packet 지정 구현 Agent |
 | DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 Work Packet 지정 구현 Agent |
-| QA_READY | DOCUMENTATION_SYNC PASS와 구현 결과/증거가 Result Contract로 전달됨 | qa_docs |
+| QA_READY | DOCUMENTATION_SYNC PASS + 위험도별 qa_required 결정(독립 Reviewer 지정 또는 N/A 근거) + 구현 결과/증거 전달 | Manager/조건부 Reviewer |
 | PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
-| QA_FINAL/MERGE_READY | qa_docs 독립 판정 + Manager ACCEPT | qa_docs + Manager |
+| QA_FINAL/MERGE_READY | HEAD별 `qa_required=true`이면 실제 독립 Reviewer PASS, 아니면 사유 있는 `QA_FINAL=N/A`; 두 경우 모두 최신 CI·리뷰 해결·Manager ACCEPT 필수 | qa_docs 또는 인간 Reviewer(필요 시) + Manager |
 | MERGED | 승인 head의 실제 merge SHA | infra |
 | MAIN_VALIDATION | merge SHA의 main CI 완료 | infra |
-| MAIN_ARTIFACT_VALIDATED | 정책상 ci-<SHA> exact digest smoke/SBOM/provenance/cleanup | infra + qa_docs |
+| MAIN_ARTIFACT_VALIDATED | 정책상 ci-<SHA> exact digest smoke/SBOM/provenance/cleanup | infra + 위험도별 Reviewer/Manager |
 | RELEASE_VALIDATION | 필요한 경우 명시적 승인 기반 정식 tag/CI/GHCR | Manager + infra |
 | CLEANUP | 안전한 branch 정리, docs/evidence 최종 동기화 | infra |
 | CLOSED | 모든 필수 AC/gate와 잔여 위험 기록 | Manager |
@@ -288,7 +296,7 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 
 | 유형 | 기록 시점 | 최소 내용 |
 | --- | --- | --- |
-| `PLAN` | 분석 후 실행 계획 확정 시 | 현재 phase, 범위/비범위, 단계별 계획, 역할/소유권, 검증/문서 계획, version/release 판단 |
+| `PLAN` | 분석 후 실행 계획 확정 시 | 현재 phase, 범위/비범위, 단계별 계획, 역할/소유권, **risk_level/qa_required/reviewer**, 검증/문서 계획, version/release 판단 |
 | `STATUS` | 주요 phase 전환 또는 의미 있는 진행 완료 시 | 이전→현재 phase, 완료 항목, 현재 head/PR/CI 등 핵심 증거, 다음 조치 |
 | `EXCEPTION` | 예상 밖 제약·실패·위험·workaround 발견 시 | 사실, 영향, 원인/가설 구분, 임시 조치, 재작업 대상 phase |
 | `DECISION_REQUIRED` | 사용자/maintainer 결정 없이는 진행할 수 없거나 범위가 달라질 때 | 결정 질문, 선택지, 각 영향, 권장 기본안이 있으면 근거, 미결정 시 차단 범위 |
@@ -319,7 +327,7 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 ### 9.7 REWORK와 재개
 
 - 기존 Issue/branch/PR이 있으면 재사용한다.
-- PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 최종 QA 판정은 변경 영향도와 무관하게 stale이다. 새 head에서 전체 required PR gate와 최종 QA를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용을 허용한다.
+- PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 QA_FINAL(독립 PASS 또는 N/A) 판정은 변경 영향도와 무관하게 stale이다. 새 head에서 전체 required PR gate 및 위험도/QA 필요성을 재평가하고 해당 QA 절차를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용을 허용한다.
 - 구현·계약 변경이 문서에 영향을 주면 이전 DOCUMENTATION_SYNC PASS도 stale이며 QA 전 문서 Gate를 다시 통과한다.
 - 같은 원인 실패를 두 차례 반복하면 Manager가 가설/계획을 재검토한다.
 - 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
