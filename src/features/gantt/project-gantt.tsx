@@ -3457,7 +3457,14 @@ export function ProjectGantt({
     const token = inlineOpenTokenReference.current;
     const api = apiReference.current;
     void onTaskCommandReference.current({ taskId: task.taskId, payload: { name: normalized.name } }, session.revision).then((result) => {
-      if (inlineOpenTokenReference.current !== token || apiReference.current !== api) return;
+      if (apiReference.current !== api) return;
+      // A successful PATCH itself increments Project revision and intentionally
+      // invalidates the inline-open token. Do not discard its confirmed UI
+      // reconciliation merely because that revision advanced. A new active
+      // editor still owns its input and must never be overwritten.
+      const activeSession = inlineSessionReference.current;
+      if (inlineOpenTokenReference.current !== token &&
+          (result.status !== "saved" || (activeSession && activeSession !== session))) return;
       if (result.status === "saved") {
         setInlineNameMessage("작업명을 저장했습니다.");
         // The Grid checkbox is fed directly from canonical DTOs, but an
@@ -3472,7 +3479,9 @@ export function ProjectGantt({
           for (let attempt = 0; attempt < 8; attempt++) {
             await nextFrame();
             await canonicalSyncQueueReference.current;
-            if (!api || apiReference.current !== api || inlineOpenTokenReference.current !== token) return;
+            if (!api || apiReference.current !== api) return;
+            const active = inlineSessionReference.current;
+            if (active && active !== session) return;
             const confirmed = tasksByIdReference.current.get(session.taskId);
             if (!confirmed || confirmed.name !== normalized.name) continue;
             const core = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
