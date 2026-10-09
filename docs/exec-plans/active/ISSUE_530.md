@@ -1,5 +1,14 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 PR #564 QA 재작업·최신 main 정렬 (새 Head CI는 별도 검증)
+
+- **기존 정확한 Head의 CI:** [PR CI #2251.1 / Run 37858842272](https://github.com/planner77/masterGantt/actions/runs/37858842272)는 **기존 Head `55ea089d826fb616a1fa30f9fde38520ca0ae67a`**에서 2026-10-09 **08:35 KST** `completed/success`로 끝났다. Quality(TypeScript/ESLint/Vitest/Next.js build), Chromium E2E **6/6 샤드**, E2E aggregate 성공. 기존 Main #2249.1에서 실패했던 샤드 4/6은 **83 PASS**, 동일 #525 테스트는 **6.5초 PASS**였다. 이 결과는 새 정렬 Head의 성공으로 소급하지 않는다.
+- **Docker 검증의 정확한 범위:** 해당 PR CI에서 `Docker build and runtime smoke test` aggregate는 **SUCCESS**였지만 실제 `Docker smoke 구현` job은 **SKIPPED**였다. 따라서 이 Head의 실 Docker runtime smoke는 **NOT TESTED**로 기록한다. 원래 Main #2249.1에서 실제 Docker 구현이 PASS한 사실과 구별한다.
+- **독립 QA 지적·보완:** [PR #564의 QA_FINAL FAIL/REWORK](https://github.com/planner77/masterGantt/pull/564#issuecomment-6071312325)에서 `QA530-564-DOC-01`(본 계획 문서의 성공 Run/Head/시각/Docker SKIPPED 근거 누락)을 **차단 1건**으로 지적했다. 위 원격 증거·범위·미검증 내용을 추가한다. `QA530-564-LANG-02`(영어 주석)은 테스트 준비 설명을 한글로 변경해 처리한다. 기능 로직·실제 assertion·CI workflow·timeout/skip/retry는 변경하지 않는다. 자동 이동 종료 뒤 **고정 12 animation frames**의 연속 좌표 안정화 미확인 리스크는 비차단 관찰 대상으로 남긴다.
+- **최신 main 재정렬:** 기존 공통 기준 `09e0a77222edb4652a6ca9c44c758d1c96a0e6bc` 이후 main `be17a6c098d0b7c12263d9274a66544b026b6487`에 33개 커밋, 42개 파일 변화가 반영됐다. #564 이전 PR 변경 파일 두 개(테스트·이 문서)와 **파일 경로 교집합 0**이므로 main 파일을 그대로 보존하며 두 변경을 병합한다. 현재 main application 버전은 **0.103.0**이고 #564는 테스트·문서 전용 보완으로 별도 버전 변경을 생성하지 않는다. 과거 이슈 문서의 0.102.3 버전·정식 GHCR 승인 마커는 그 시점 증거이므로 현재 main의 0.103.0 릴리스 승인과 혼동하지 않는다.
+- **현재 종료점:** 이 사용자의 요청은 PR #564 최신 main 정렬·QA 지적 문서/주석 보완·새 **full PR CI 시작까지**이다. 새 head의 quality/E2E/Docker 및 독립 QA_FINAL은 별도 확인 전 **NOT TESTED**이다. 기존 QA_FINAL FAIL은 새 독립 판정 없이 PASS로 바꾸지 않는다. PR 병합·Main CI·GHCR/tag/Release·Issue 종료는 수행하지 않는다.
+
+
 ## 2026-10-09 Main CI #2249.1 E2E 스크롤 경합 보완
 
 Issue #530 병합 SHA `09e0a77222edb4652a6ca9c44c758d1c96a0e6bc`의 [Main CI #2249.1](https://github.com/planner77/masterGantt/actions/runs/37856801652)은 quality/Docker 및 Chromium 샤드 1·2·3·5·6 PASS, 샤드4의 `tests/e2e/project-resource-workload-status.spec.ts` #525 회귀 1건 FAIL(82 PASS) 때문에 E2E aggregate FAIL, GHCR 임시 이미지 SKIPPED였다. Grid Task 클릭 후 Chart 자동 이동이 완료되기 전에 테스트가 수동 `scrollLeft=120`을 설정했고, 비동기 이동값 `1581`이 뒤늦게 적용되어 `{left:120,top:96}` 원장 생성 단계의 5초 poll이 실패했다. 테스트 경쟁 조건이며 화면 복귀 불변식 실패라고 확대하지 않는다.

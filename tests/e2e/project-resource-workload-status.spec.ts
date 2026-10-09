@@ -62,9 +62,9 @@ test("#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실
   const frame = page.locator(".project-gantt-frame"), viewport = () => frame.evaluate((element) => ({ public: Reflect.get(element, "__masterganttPublicViewport"), dom: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop }, columns: Array.from(element.querySelectorAll(".wx-header .wx-cell")).map((cell) => cell.getBoundingClientRect().width), selection: Array.from(element.querySelectorAll(".wx-row.wx-selected")).map((row) => row.getAttribute("data-id")) }));
   const summaryToggle = frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000001"] [data-action="open-task"]');
   await summaryToggle.click(); await expect(frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000002"]')).toHaveCount(0);
-  // The Grid click intentionally reveals the selected Task in the Chart.
-  // Wait for that Core-owned navigation before setting our independent scroll
-  // fixture; otherwise a late reveal overwrites the manual 120px baseline.
+  // 그리드의 Task 선택에 따른 Chart 자동 이동을 먼저 관측한다.
+  // 자동 이동 중 수동 120px 좌표를 설정하면 후속 Core 이동에 덮어써질 수 있다.
+  // Core 이동 완료를 확인한 뒤 독립적인 스크롤 기준값을 설정한다.
   await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click();
   await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
   await expect.poll(async () => (await viewport()).dom.left).toBeGreaterThan(120);

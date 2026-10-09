@@ -1,5 +1,26 @@
 # Test Plan
 
+## Issue #538 — Project master 계층 검증
+
+- DB migration 0024: 이미 연결된 조합 중복 제거, 부분/legacy row의 무추정·무변경, FK/category/parent 보호, checksum/rollback.
+- Unit/Service: 사업부 A/B에 제품 공유, 사이트 다중 조합, product-only/site-only 거부, 다른 사업부/조합 사이트 거부, 중복 링크 no-op revision, 사용/하위 연결 관계 unlink 409, inactive, 잘못된 UUID/category.
+- Project API: create/update/template의 서버 직접 유효성 검증, 기존 project의 legacy/비활성 참조 조회·이름만 수정 및 copy 보존, 400/401/403/409/412 시 transaction 원자성.
+- 관리자 API: 세션/Origin/If-Match/ETag/revision 동기화, stale 탭, 로그인 만료, 409 메시지.
+- Browser: 관리자 항목/관계 영역 연결·해제 확인, 프로젝트 사업부/제품 변경에 따른 후보/초안 초기화 및 status 안내, 재선택, inactive 이전값, 390/768/1024/1440/wide, keyboard/focus/overflow.
+- 해당 PR head의 공식 quality/E2E/docker GitHub Actions 증거가 최종 판정이며, 문서나 변경 코드만으로 PASS라고 하지 않는다.
+
+### Issue #538 CI 보완: metadata-only viewport drift
+
+Native Gantt가 canonical metadata 동기화 중 120→91 같은 비영(非零) scroll 이동을 수행해도 geometry/scope/columns/scale이 같고 사용자 입력이 없는 경우 public `scroll-chart`로 정확한 좌표를 복원한다. `metadataViewportRestoreTarget` unit은 nonzero, partial, zero, invalid 상태를 검증한다. 기존 `tests/e2e/task-editor-form-density.spec.ts` #456 테스트가 fullscreen/WBS 탭·tree·column·selection·vertical/horizontal scroll 동시 보존을 exact-head Chromium에서 확인한다.
+
+### Issue #538 / PR #539: 독립 E2E 서버 일시적 GET transport 오류
+
+W05 편집 인증 회귀가 isolated Next dev 서버에 읽기 전용 Project GET을 수행하는 과정에서 `ECONNRESET`이 발생할 수 있다. socket hang up/ECONNRESET만 bounded 3회(250/500ms) 재시도하며, 서버의 HTTP 응답이 반환되면 이전과 동일한 status/body/session/revision assertions를 수행한다. 다른 오류·쓰기 요청·재시도 소진은 실패로 유지한다. 해당 경로의 CI 성공을 보장하거나 서버 비정상 종료를 정상 처리했다는 의미는 아니다.
+
+### Issue #538 review 후속 회귀
+
+비활성 상위 사업부를 가진 기존 Project가 기존 관계 보존과 달리 제품/사업장 값을 변경할 때는 409/원자 rollback을 검증한다. 기존 비활성 관계 POST 재시도는 revision 불변 no-op, 새 비활성 관계 추가는 거부. 이전 데이터와 관계가 맞지 않는 Template 인스턴스화는 500이 아닌 409 PROJECT_MASTER_RELATION_INVALID를 검증한다.
+
 ## Issue #519 PR #547 최초 CI timeout과 최신 main 회귀 복구
 
 PR head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599`, [PR CI #2185.1](https://github.com/planner77/masterGantt/actions/runs/37773843644)에서 quality/docker/기타 E2E shards는 SUCCESS, shard 5/6의 기존 `project-workspace-ux.spec.ts:206` #130(5폭×readonly/edit 단일 테스트)만 30초 timeout으로 FAIL(79 PASS, 1 FAIL)했다. #519 picker E2E 실패 증거가 아니며 PASS라고 재판정하지 않는다. 최신 main은 #130의 5폭 테스트를 폭별 독립 fixture test로 분할했으므로 통합하여 원래 10개 조합·접근성·스크롤·상태 보존 assertion을 그대로 재검증한다. CI timeout 증가·retry·skip 없음. 최신 main `0.102.0`에 맞춘 보완 PATCH `0.102.1`의 새 exact head PR CI quality/e2e/docker가 완료되기 전 최종 PASS는 NOT TESTED다.
@@ -2564,3 +2585,10 @@ Project private-read 모델은 현행 제품에 없어 신규 구현 N/A다. 공
 ## Issue #530 최신 main 정렬 후 검증 경계 (2026-10-09)
 
 후보 `0.102.3` / main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`. [재정렬 증거](evidence/issue530/alignment-20261009.json)에 실제 충돌·보존 방법·locator 변경·원격 준비 실행을 기록했다. 대상 Vitest 27개·typecheck·version·변경 lint PASS. 기존 243개/18개 실행·PNG와 새 실행을 혼동하지 않는다. E2E의 Milestone 접근성 이름 4종을 현행 소스와 대조했으나 실제 브라우저 재실행은 새 full PR CI에서 검증한다. quality/e2e/docker 및 독립 QA는 NOT TESTED이며 Windows Excel/DRM·운영 검증 역시 별도다.
+
+## Issue #538 PR #539 — CI #2256.1 Skip Link / 생성 탭 키보드 회귀
+
+- 실패 환경: Chromium shard 5/6 83 PASS/1 FAIL; TypeScript/ESLint/Vitest/Next production build/Docker/정책 및 E2E 나머지 5개 shard SUCCESS. `project-workspace-ux.spec.ts` #195에서 Skip Link Enter 뒤 main focus는 정상이나 이어지는 Tab 후 첫 프로젝트 이름 input의 focus 검증이 실패했다.
+- `new-project-tabs.tsx`의 skip-link click listener는 client `useEffect`에 의존하고 선택 탭의 `tabIndex` 변경은 React state commit을 기다린다. 이벤트 등록 전 SSR/초기 hydration 또는 클릭 후 state commit 전에 Tab을 누르면 focus traversal에 이전 탭 상태가 남을 수 있다(추정 원인).
+- 핸들러 등록 완료를 앱 소유 `data-skip-link-ready`로 표시하고, 클릭 즉시 두 생성 방식 탭을 순차 Tab에서 제외한다. panel 진입 시 선택 탭의 roving 순서를 동기 복구한다. 테스트는 준비 신호 확인·main focus·선택 탭 -1·프로젝트 이름 focus·선택 탭 0·화살표/Home/End 순서를 모두 검증한다. 실제 사용자가 Tab/키보드 조작하도록 유지하며 직접 `.focus()`로 성공을 대신하지 않는다.
+- 새 PR head의 전체 Playwright/TypeScript/Docker 결과와 #264 draft 보존, #121 Skip Link E2E를 확인할 때까지 최종 PASS는 NOT TESTED다. 로컬 독립 브라우저/운영 환경 검증은 별도다.

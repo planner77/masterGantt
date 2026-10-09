@@ -71,6 +71,7 @@ describe("migration CLI", () => {
         "0021_task_assignment_roles.sql",
         "0022_task_milestone_memberships.sql",
         "0023_deprecate_task_assignment_roles.sql",
+        "0024_project_master_relations.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -89,7 +90,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 23 });
+        .toEqual({ count: 24 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())
@@ -97,6 +98,10 @@ describe("migration CLI", () => {
       expect(database.prepare("SELECT revision FROM project_master_catalog_state WHERE id = 1").get())
         .toEqual({ revision: 1 });
       expect(database.prepare("SELECT count(*) AS count FROM project_master_items").get())
+        .toEqual({ count: 0 });
+      expect(database.prepare("SELECT count(*) AS count FROM business_unit_products").get())
+        .toEqual({ count: 0 });
+      expect(database.prepare("SELECT count(*) AS count FROM business_unit_product_sites").get())
         .toEqual({ count: 0 });
       const ownerColumn = database.prepare("SELECT name, \"notnull\" AS required FROM pragma_table_info('projects') WHERE name = 'owner_name'").get();
       expect(ownerColumn).toEqual({ name: "owner_name", required: 0 });

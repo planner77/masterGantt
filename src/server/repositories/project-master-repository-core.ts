@@ -109,6 +109,43 @@ export class ProjectMasterRepository {
     return row.count;
   }
 
+  listRelations(): Array<{ businessUnitId: string; productId: string; siteEntityId: string | null }> {
+    return this.database.prepare(`
+      SELECT b.public_id AS businessUnitId,p.public_id AS productId,NULL AS siteEntityId
+      FROM business_unit_products rel JOIN project_master_items b ON b.id=rel.business_unit_id
+      JOIN project_master_items p ON p.id=rel.product_id
+      UNION ALL
+      SELECT b.public_id AS businessUnitId,p.public_id AS productId,s.public_id AS siteEntityId
+      FROM business_unit_product_sites rel JOIN project_master_items b ON b.id=rel.business_unit_id
+      JOIN project_master_items p ON p.id=rel.product_id
+      JOIN project_master_items s ON s.id=rel.site_entity_id
+      ORDER BY businessUnitId,productId,siteEntityId
+    `).all() as Array<{ businessUnitId: string; productId: string; siteEntityId: string | null }>;
+  }
+
+  relationExists(b: number,p: number,s: number | null = null): boolean {
+    return s === null ?
+      !!this.database.prepare("SELECT 1 FROM business_unit_products WHERE business_unit_id=? AND product_id=?").get(b,p) :
+      !!this.database.prepare("SELECT 1 FROM business_unit_product_sites WHERE business_unit_id=? AND product_id=? AND site_entity_id=?").get(b,p,s);
+  }
+  relationSiteCount(b: number,p: number): number {
+    return (this.database.prepare("SELECT count(*) AS count FROM business_unit_product_sites WHERE business_unit_id=? AND product_id=?")
+      .get(b,p) as {count:number}).count;
+  }
+  relationProjectUsage(b: number,p: number,s: number | null): number {
+    return s === null ?
+      (this.database.prepare("SELECT count(*) AS count FROM projects WHERE business_unit_id=? AND product_id=?").get(b,p) as {count:number}).count :
+      (this.database.prepare("SELECT count(*) AS count FROM projects WHERE business_unit_id=? AND product_id=? AND site_entity_id=?").get(b,p,s) as {count:number}).count;
+  }
+  addRelation(b: number,p: number,s: number | null): void {
+    if(s === null) this.database.prepare("INSERT INTO business_unit_products (business_unit_id,product_id) VALUES (?,?)").run(b,p);
+    else this.database.prepare("INSERT INTO business_unit_product_sites (business_unit_id,product_id,site_entity_id) VALUES (?,?,?)").run(b,p,s);
+  }
+  removeRelation(b: number,p: number,s: number | null): void {
+    if(s === null) this.database.prepare("DELETE FROM business_unit_products WHERE business_unit_id=? AND product_id=?").run(b,p);
+    else this.database.prepare("DELETE FROM business_unit_product_sites WHERE business_unit_id=? AND product_id=? AND site_entity_id=?").run(b,p,s);
+  }
+
   getProjectSelection(projectId: number): {
     businessUnit: ProjectMasterRecord | null;
     product: ProjectMasterRecord | null;

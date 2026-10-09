@@ -1,5 +1,7 @@
 "use client";
 
+import { metadataViewportRestoreTarget } from "./metadata-viewport-restore";
+
 import {
   Gantt,
   Willow,
@@ -1773,9 +1775,13 @@ export function ProjectGantt({
               await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
               const current = api.getState();
               if (currentRequest()) {
-                const left = current.scrollLeft === 0 && request.left > 0 ? request.left : undefined;
-                const top = current.scrollTop === 0 && request.top > 0 ? request.top : undefined;
-                if (left !== undefined || top !== undefined) await api.exec("scroll-chart", { left, top });
+                // Core may shift a nonzero offset while applying metadata-only changes.
+                // Preserve the viewport if no input or geometry changes invalidated the request.
+                const restore = metadataViewportRestoreTarget(
+                  { left: current.scrollLeft, top: current.scrollTop },
+                  { left: request.left, top: request.top },
+                );
+                if (restore) await api.exec("scroll-chart", restore);
               }
             }
           } finally {
