@@ -15,7 +15,7 @@ export function NewProjectTabs() {
   const pendingRef = useRef(false);
   const [skipNavigationActive, setSkipNavigationActive] = useState(false);
   const skipNavigationActiveRef = useRef(false);
-  const [skipLinkReady, setSkipLinkReady] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const blankTabRef = useRef<HTMLButtonElement | null>(null);
   const templateTabRef = useRef<HTMLButtonElement | null>(null);
 
@@ -32,8 +32,12 @@ export function NewProjectTabs() {
       setSkipNavigationActive(true);
     };
     skipLink.addEventListener("click", handleSkipNavigation);
-    setSkipLinkReady(true);
-    return () => skipLink.removeEventListener("click", handleSkipNavigation);
+    const container = containerRef.current;
+    container?.setAttribute("data-skip-link-ready", "true");
+    return () => {
+      skipLink.removeEventListener("click", handleSkipNavigation);
+      container?.removeAttribute("data-skip-link-ready");
+    };
   }, []);
 
   function handleContainerFocus(event: FocusEvent<HTMLDivElement>) {
@@ -84,7 +88,7 @@ export function NewProjectTabs() {
   }
 
   return (
-    <div className="new-project-container" data-skip-link-ready={skipLinkReady} onFocusCapture={handleContainerFocus}>
+    <div ref={containerRef} className="new-project-container" onFocusCapture={handleContainerFocus}>
       <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 생성 방식">
         <button
           ref={blankTabRef}
