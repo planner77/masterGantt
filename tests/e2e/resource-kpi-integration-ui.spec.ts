@@ -335,7 +335,7 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
 test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존", async ({ page, baseURL }, info) => {
   test.setTimeout(180_000);
   const seed = await seedResourceKpiIntegration(page.request, baseURL!);
-  await page.goto(`/projects/${seed.publicId}`);
+  await page.goto(`/projects/${seed.publicId}?__coreTrace=1`);
   const frame = page.locator(".project-gantt-frame");
   const schedule = page.getByRole("tab", {name: "일정", exact: true});
   const resource = page.getByRole("tab", {name: "리소스", exact: true});
@@ -382,6 +382,18 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
       contentType: "application/json",
     });
   }
+  // #568: 원래 좌표 복원 뒤 뒤늦게 실행된 scroll-chart(0)의 최초 writer를 보존한다.
+  // Trace는 dev/test opt-in이며 제품 계약·수용 assertion/timeout/retry는 그대로 유지한다.
+  await expect.poll(() => frame.evaluate(element => "__issue568Trace" in element)).toBe(true);
+  const traceHead = process.env.ISSUE568_HEAD ?? process.env.GITHUB_SHA ?? "uncommitted";
+  await frame.evaluate((element, { run, head }) => {
+    const trace = (element as HTMLElement & {
+      __issue568Trace?: { configure: (run: string, head: string, scenario: string) => void };
+    }).__issue568Trace;
+    if (!trace) throw new Error("Issue #568 trace unavailable");
+    trace.configure(run, head, "nested-second-pop");
+  }, { run: `ci530-repeat-${info.retry}`, head: traceHead });
+  try {
   await resource.click(); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   // A new nested journey clears to the earliest schedule destination baseline.
@@ -390,6 +402,22 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await expect(strip).toHaveCount(0);
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page)}),contentType:"application/json"});
+  } finally {
+    const trace = await frame.evaluate(element => (element as HTMLElement & {
+      __issue568Trace?: { snapshot: () => unknown };
+    }).__issue568Trace?.snapshot() ?? null);
+    await info.attach("issue568-nested-return-trace", {
+      body: JSON.stringify({
+        source: "PR #575 / Issue #568 dev-test opt-in observation",
+        head: traceHead, origin, actual: await ganttIntegrationState(page),
+        publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
+        peerRestore: await frame.getAttribute("data-gantt-peer-restore"),
+        canonicalGeneration: await frame.getAttribute("data-gantt-canonical-sync-generation"),
+        trace,
+      }, null, 2),
+      contentType: "application/json",
+    });
+  }
 });
 
 test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL},info) => {

@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #568 — 실제 동기화 완료의 관측
+
+고정 PR #562의 로컬 반복에서 pending wheel의 최신 사용자 위치와 Week 전환 후 Inline 이름 표시 계약 위반이 재현됐다. 이번 진단 도구 추가는 이 두 제품 회귀의 해결을 의미하지 않는다.
+
+조회 탭·Resource 복귀·검색·fullscreen·Inline 저장의 기존 사용자 계약은 유지한다. 분석 fixture는 명시적인 dev/test opt-in에서만 합성 데이터로 제공하며 일반 Project 탐색에 추가하지 않는다. Core 명령 반환을 화면 복귀 완료로 간주하지 않는다. 검증은 Core 공개 좌표 exact, DOM 정수화 ±1px, 실제 scroll capacity, 연속 안정 frame, 새 사용자 입력의 우선권을 함께 관측한다.
+
+[진단 가이드](GANTT_SYNC_TRACE.md)의 단독 Core 관측은 서버 저장·권한·Milestone lane의 제품 인수를 대신하지 않는다. 서버 saved/canonical 값과 native Grid 표시, 첫 focus와 Enter/Tab/Escape는 각각 검증해야 한다. 관측·재현 실패와 후속 제품 수정은 분리한다.
+
 ## Issue #538 — Project 분류의 종속 선택
 
 기존 #289의 독립 3개 Select를 관계 기반 `사업부 → 제품 → 사업장/법인`으로 확장한다. 초기값은 모두 미지정, 사업부/제품 변경 시 하위 값은 초안에서만 지우고 `role=status`로 안내하며 저장 전 사용자 확인을 기다린다. 사업부 없이는 제품을, 사업부·제품 없이는 사이트를 변경할 수 없다. 기존 inactive/legacy 참조는 현재값 옵션에 남기고 새 선택은 active relation만 허용한다.

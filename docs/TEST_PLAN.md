@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #568 — Core Action Trace와 재현 분석
+
+고정 PR #562 targeted5×2는 각각3 PASS/2 FAIL이다. Inline 실패 run은 Week 후 assertion에서 멈춰 뒤의500/412/network 분기에는 도달하지 않았다. observer-only clock 실험은 sequence를 정렬 기준으로 사용하고 elapsedMs/수직 sample로 안정화 PASS를 주장하지 않는다.
+
+실제 설치 Core 2.7.3/Willow를 사용한 독립 fixture와 React wrapper를 Chromium에서 두 번 실행한다. trace 순서·bounded memory·parameter allowlist·exact Core/DOM ±1·3-frame 안정화·finite timeout·intent supersede·scroll capacity를 검증한다. 공식 문서 URL 조회, 타입 정의, 실제 runtime 반환, Core state와 native layout의 관측 결과를 구분한다.
+
+고정 PR #562의 다섯 실패(Resource peer120, wheel30, fullscreen metadata, Inline saved Grid, 390px Milestone plot)를 소스 변경 없이 두 번 독립 실행하고 재현/미재현/환경 차이·첫 관측 writer와 가설을 [진단 가이드](GANTT_SYNC_TRACE.md)에 남긴다. 실패를 skip하거나 허용 오차·timeout·CI gate를 완화하지 않는다. 합성 fixture·trace만 저장하고 실제 DB·session/password/URL credential은 포함하지 않는다.
+
+실행 명령·source SHA·결과는 [Issue 실행 계획](exec-plans/active/ISSUE_568.md)에서 연결한다. 로컬 도구 PASS는 PR 전체 quality/e2e/docker PASS나 제품 동기화 완료를 뜻하지 않는다. 현재 요청은 PR CI 시작까지이며 원격 전체 결과·QA_FINAL·Manager ACCEPT·main/GHCR은 NOT TESTED다.
+
 ## Issue #530 PR #564 — #2270.1 중첩 frame 복귀와 metadata-only 경합 (2026-10-09)
 
 - [PR CI #2270.1 / run 37869484841](https://github.com/planner77/masterGantt/actions/runs/37869484841), 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`: Quality(타입·ESLint·Vitest·빌드) 및 Docker, Chromium shard 1~5 PASS. shard 6/6의 실제 `resource-kpi-integration-ui.spec.ts` **nested pop/clear** 시험 1 FAIL, 82 PASS, 1 SKIP. 기대 Core/native left240이 0으로 재덮였고 인스턴스·선택·열·계층은 유지됨.
