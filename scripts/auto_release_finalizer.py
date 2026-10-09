@@ -321,7 +321,11 @@ def collect_pending_work(
             return list(reversed(pending_newest_first))
         if is_finalized_boundary(repo, item):
             return list(reversed(pending_newest_first))
-        if is_closed_issue(repo, item):
+        if is_closed_issue(repo, item) and not any(
+            line.strip().startswith(f"{FINAL_MARKER_PREFIX}{item.issue_number}:")
+            for comment in issue_comments(repo, item.issue_number)
+            for line in (comment.get("body") or "").splitlines()
+        ):
             # A later maintenance/fix PR may legitimately reference an Issue
             # whose older target was already finalized.  Keep it as a
             # non-actionable ordering barrier so adjacency-sensitive retry
@@ -338,47 +342,8 @@ def collect_pending_work(
 
 
 def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
-    """Collapse adjacent same-Issue retries only when validation scope matches.
-
-    The latest target can stand in for earlier attempts only when both merges
-    require the same docs-only/non-docs main validation scope. This prevents a
-    docs-only follow-up from masking an earlier code merge whose exact main CI
-    never produced the required E2E/Docker/GHCR evidence. Every collapsed PR
-    identity is retained so all merged branches can be safely cleaned before
-    FINAL/Issue close.
-    """
-    coalesced: list[WorkItem] = []
-    for item in items:
-        if (
-            coalesced
-            and coalesced[-1].actionable
-            and item.actionable
-            and coalesced[-1].issue_number == item.issue_number
-            and coalesced[-1].validation_docs_only == item.validation_docs_only
-        ):
-            previous = coalesced[-1]
-            cleanup_pr_numbers = tuple(
-                dict.fromkeys(
-                    (
-                        *previous.cleanup_pr_numbers,
-                        previous.pr_number,
-                        *item.cleanup_pr_numbers,
-                    )
-                )
-            )
-            coalesced[-1] = WorkItem(
-                target_sha=item.target_sha,
-                first_parent_sha=previous.first_parent_sha,
-                pr_number=item.pr_number,
-                issue_number=item.issue_number,
-                previous_version=previous.previous_version,
-                current_version=item.current_version,
-                validation_docs_only=item.validation_docs_only,
-                cleanup_pr_numbers=cleanup_pr_numbers,
-            )
-            continue
-        coalesced.append(item)
-    return coalesced
+    """Preserve every successful target; no per-merge CI/GHCR obligation may vanish."""
+    return list(items)
 
 
 def validation_scope_covers(older: WorkItem, replacement: WorkItem) -> bool:
@@ -600,6 +565,7 @@ def lifecycle_command(
     expected_version: str,
     authorization_note: str,
     cleanup_pr_numbers: tuple[int, ...] = (),
+    defer_close: bool = False,
 ) -> list[str]:
     command = [
         "python3",
@@ -618,12 +584,14 @@ def lifecycle_command(
         "--authorization-note",
         authorization_note,
     ]
+    if defer_close:
+        command.append("--defer-close")
     for cleanup_pr_number in cleanup_pr_numbers:
         command.extend(["--cleanup-pr", str(cleanup_pr_number)])
     return command
 
 
-def process_item(repo: str, item: WorkItem, release_state: str) -> str:
+def process_item(repo: str, item: WorkItem, release_state: str, *, defer_close: bool = False) -> str:
     release_required = item.previous_version != item.current_version
     operation = "finalize"
     release_authorized = False
@@ -683,6 +651,7 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
             expected_version=item.current_version if release_required else "",
             authorization_note=authorization_note,
             cleanup_pr_numbers=item.cleanup_pr_numbers,
+            defer_close=defer_close,
         ),
         check=False,
     )
@@ -819,7 +788,11 @@ def execute(trigger_sha: str) -> int:
                 ]
             )
             return 0
-        operation = process_item(repo, item, release_state)
+        newer_same_issue = any(
+            candidate.issue_number == item.issue_number and candidate.target_sha != item.target_sha
+            for candidate in pending[pending.index(item) + 1:]
+        )
+        operation = process_item(repo, item, release_state, defer_close=newer_same_issue)
         if operation == "release_start":
             write_summary(
                 [
