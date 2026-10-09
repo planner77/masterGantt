@@ -801,6 +801,81 @@ require(cleanup_command[-3:] == ["--defer-close", "--cleanup-pr", "10"], "later 
 parsed_cleanup = module.build_parser().parse_args(
     ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9", "--defer-close"])
 require(parsed_cleanup.cleanup_pr == [10, 9] and parsed_cleanup.defer_close, "lifecycle must parse cleanup/deferral flags")
+require("--resolver-ordered" in cleanup_command,
+        "automatic Finalizer must identify its oldest-first verified orchestration")
+require(not parsed_cleanup.resolver_ordered,
+        "manual workflow must default to ordered-history preflight")
+
+# #586 P1: manual latest-target finalize must never skip earlier pending work,
+# including earlier same-Issue PRs and interleaving Issues. The generic resolver
+# is the authority for first-parent ordering; no branch/package mutation here.
+from types import SimpleNamespace
+manual_old = auto.WorkItem("1" * 40, "0" * 40, 583, 565, "0.103.1", "0.103.1")
+manual_other = auto.WorkItem("2" * 40, manual_old.target_sha, 584, 577, "0.103.1", "0.103.1")
+manual_new = auto.WorkItem("3" * 40, manual_other.target_sha, 585, 565, "0.103.1", "0.103.1")
+manual_ctx = SimpleNamespace(issue_number=565, pr_number=585,
+    merge_sha=manual_new.target_sha, current_main_sha=manual_new.target_sha)
+saved_auto_latest = auto.current_main_sha
+saved_auto_pending = auto.collect_pending_work
+auto.current_main_sha = lambda _repo: manual_new.target_sha
+pending_manual = []
+auto.collect_pending_work = lambda _repo, _head: pending_manual
+try:
+    for scenario, target_ctx in (
+        ([manual_old, manual_new], manual_ctx),
+        ([manual_old, manual_other, manual_new], manual_ctx),
+        ([manual_old, manual_new], SimpleNamespace(
+            issue_number=565, pr_number=583, merge_sha=manual_old.target_sha,
+            current_main_sha=manual_new.target_sha)),
+        ([manual_other, manual_new], manual_ctx),
+        ([], manual_ctx),
+    ):
+        pending_manual[:] = scenario
+        try:
+            module.manual_order_preflight("owner/repo", target_ctx)
+            raise SystemExit("manual FINAL may not skip an older/newer pending target")
+        except module.LifecycleError:
+            pass
+    pending_manual[:] = [manual_new]
+    module.manual_order_preflight("owner/repo", manual_ctx)
+    try:
+        module.manual_order_preflight(
+            "owner/repo", SimpleNamespace(issue_number=565, pr_number=999,
+                merge_sha=manual_new.target_sha, current_main_sha=manual_new.target_sha))
+        raise SystemExit("manual target PR identity must match ordered resolver")
+    except module.LifecycleError:
+        pass
+    try:
+        module.manual_order_preflight(
+            "owner/repo", SimpleNamespace(issue_number=565, pr_number=585,
+                merge_sha=manual_new.target_sha, current_main_sha="f" * 40))
+        raise SystemExit("moving main must block manual FINAL")
+    except module.LifecycleError:
+        pass
+finally:
+    auto.current_main_sha = saved_auto_latest
+    auto.collect_pending_work = saved_auto_pending
+
+# A repeated historical FINAL during manual fallback must be read-only. Manual
+# re-entry is not authority to close while a later same-Issue target may exist.
+saved_manual_audit = module.audited_final_markers
+saved_manual_gh = module.gh
+saved_manual_repo = __import__("os").environ.get("GITHUB_REPOSITORY")
+module.audited_final_markers = lambda _repo, _ctx: {
+    manual_new.target_sha: manual_new.pr_number}
+def no_manual_mutation(*args, **kwargs):
+    raise AssertionError("manual duplicate FINAL cannot mutate Issue or cleanup")
+module.gh = no_manual_mutation
+__import__("os").environ["GITHUB_REPOSITORY"] = "owner/repo"
+try:
+    module.finalize(manual_ctx, SimpleNamespace(defer_close=False, resolver_ordered=False))
+finally:
+    module.audited_final_markers = saved_manual_audit
+    module.gh = saved_manual_gh
+    if saved_manual_repo is None:
+        __import__("os").environ.pop("GITHUB_REPOSITORY", None)
+    else:
+        __import__("os").environ["GITHUB_REPOSITORY"] = saved_manual_repo
 
 # #586 immutable FINAL identity and phase-order fail closed regression.
 from types import SimpleNamespace
