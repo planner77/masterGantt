@@ -361,6 +361,8 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true"); await schedule.click();
   try {
     await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+    // Gantt 외부의 프로젝트 제목 입력은 복원 보호를 해제하면 안 된다.
+    await page.getByRole("heading", { name: "Resource KPI integration #530" }).click();
     await frame.evaluate(async () => {
       for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
     });

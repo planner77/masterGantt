@@ -1688,7 +1688,14 @@ export function ProjectGantt({
         return false;
       }
     }, { tag });
-    const releaseOnUserInput = () => { protectedPeerScrollReference.current = null; };
+    const releaseOnUserInput = (event: Event) => {
+      const target = event.target, root = ganttScrollReference.current;
+      // Task editor, toolbar and other peer panels do not navigate the
+      // chart viewport, so they must not revoke a pending peer restoration.
+      if (root && target instanceof Element && root.contains(target) &&
+        target.closest(".wx-chart, .wx-gantt, .wx-table-container"))
+        protectedPeerScrollReference.current = null;
+    };
     const inputEvents = ["pointerdown", "wheel", "keydown", "touchstart"] as const;
     for (const type of inputEvents)
       document.addEventListener(type, releaseOnUserInput, { capture: true, passive: true });

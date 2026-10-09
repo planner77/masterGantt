@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Issue #530 동일 v0.103.1 Main CI 재보완: 명시적 Resource→일정 복원 이후 지연된 SVAR native scroll-chart(0)이 nonzero 120/240 좌표를 덮지 못하도록 유효한 같은 viewport 문맥에서 Event Bus intercept를 적용하고, 실제 사용자 wheel/키보드/포인터와 범위·레이아웃 변경은 즉시 보호를 해제한다. nested pop/clear와 사용자 좌측 끝 이동을 E2E로 검증한다.
+- Issue #530 동일 v0.103.1 Main CI 재보완: 명시적 Resource→일정 복원 이후 지연된 SVAR native scroll-chart(0)이 nonzero 120/240 좌표를 덮지 못하도록 유효한 같은 viewport 문맥에서 Event Bus intercept를 적용하고, 실제 Gantt 차트·그리드 내부 사용자 wheel/키보드/포인터와 범위·레이아웃 변경만 보호를 해제한다. Gantt 외부 Task Editor·툴바·타 패널 입력은 복원 보호를 유지한다. nested pop/clear와 사용자 좌측 끝 이동을 E2E로 검증한다.
 - Issue #530 후속 PR #564: Resource→정확한 Task 일정→원래 보기 복귀 시 메타데이터-only Gantt 동기화가 보존한 이전 0 좌표를 명시적 peer viewport 복원(비영점) 이후 다시 덮는 경합을 해결한다. 명시적 복원 epoch로 오래된 요청을 무효화하고, 중첩 LIFO 복귀의 layout~queue/DOM 안정화 동안 metadata-only 캡처·적용을 보류하여 재진입한 0 좌표의 늦은 재적용도 차단한다. 입력·scope·API instance·geometry guard와 원래 Core/native 위치의 엄격한 불변식은 유지한다.
 - E2E 회귀에 복원 직후뿐 아니라 12 animation frame 이후에도 공개 Core/native 위치가 유지되고, 나중에 `scroll-chart(0)` 재적용이 없다는 판정을 추가한다. 기존 반응형·키보드·권한·집계·Excel 검증과 CI gate는 유지한다.
 
