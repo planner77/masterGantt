@@ -95,3 +95,10 @@
 - `CHANGELOG.md`는 #538 0.103.0을 기존 #530 0.102.3보다 상단에 추가하고, package.json/lockfile 루트 버전을 0.103.0으로 일치시킨다. 공통 문서는 latest main 문맥과 #538 독립 계약을 모두 유지한다. #530 신규 Resource KPI/통합 증거/테스트 코드는 덮어쓰지 않는다.
 - 동일 PR의 최신 exact-head에서 새 전체 PR CI(quality·E2E·Docker) SUCCESS, mergeable/behind 0, 미해결 review 0 확인 후에만 병합한다. 사용자 요청은 **GHCR 정식 게시를 포함한 병합 및 Main CI 시작**이다.
 - [Issue #538 OWNER release authorization](https://github.com/planner77/masterGantt/issues/538#issuecomment-6061984912): `release_required=true`, `release_authorized=true`, `expected_version=0.103.0`. Main CI 성공과 verified `ci-<merge SHA>` 이후 기존 generic release finalizer→annotated tag→Release CI→GHCR digest/stable 검증. CI 실패나 불일치 시 fail-closed; 운영 배포는 별도다.
+
+## PR CI #2256.1 Chromium E2E 5/6 실패 후 보완 (2026-10-09 KST)
+
+- [PR CI #2256.1](https://github.com/planner77/masterGantt/actions/runs/37861059587), head `352eb308fd1d30eedfd853b0aca996e5688e125c`: TypeScript/ESLint/Vitest/production build/Docker/정책 및 Chromium E2E shard 1/2/3/4/6 SUCCESS. Shard 5는 83 PASS / 1 FAIL이며 `tests/e2e/project-workspace-ux.spec.ts:335`의 #195 새 프로젝트 생성 Skip Link 포커스 회귀에서 `#project-name` focus 기대와 실제 inactive가 불일치했다. 전체 CI는 FAIL.
+- 관찰: native Skip Link의 main focus는 PASS이나 뒤따르는 Tab이 첫 입력으로 이동하지 않았다. `NewProjectTabs`의 listener는 `useEffect`에서 등록하고, 클릭 시 `skipNavigationActive` 상태만 갱신하므로 hydration 또는 React commit 지연 시 선택된 탭이 일시적으로 `tabIndex=0`인 경합 가능성이 있다. 실제 원인은 로그·trace/현재 구현 기반의 합리적 가설이며 별도의 브라우저 재현 없이 확정하지 않는다.
+- 보완: Skip Link handler 등록 완료 후 시험 준비 marker를 설정한다. 클릭 event에서 양쪽 탭의 `tabindex=-1`을 동기 적용하고 ref에도 상태를 기록한다. 활성 panel에 포커스가 들어오면 선택된 탭의 roving `tabindex=0`을 동기 복원하며 React state도 함께 맞춘다. #195 E2E는 등록 완료 marker와 skip 직후 tab order, 실제 첫 필드 focus, 탭 복귀를 보존·검증한다. #121 및 #264 관련 E2E를 약화/skip하지 않는다.
+- 서버/API/DB/Gantt scheduling 변경 없음. 전체 PR quality/e2e/docker의 새 exact-head 성공 전 병합·Main CI·GHCR 게시 금지. 사용자의 이번 요청 범위는 **실패 수정 및 새 PR CI 시작까지**이며 새 CI는 최종 판정 전 NOT TESTED다.
