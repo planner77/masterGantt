@@ -1,0 +1,354 @@
+{
+  "schema": "mastergantt-ci-history-v1",
+  "issue": 569,
+  "pr": 576,
+  "reviewedHead": "9f0458124198470872c6764cbd5b00dedc75417b",
+  "reviewedTree": "8f7906d325c53d8ba1c9ee6e52f8a9a7fef8e1c7",
+  "runCount": 5,
+  "attempts": "조회한 5개 run은 모두 attempt1이며 각 attempt의 job endpoint를 확인했다.",
+  "runs": [
+    {
+      "runId": 37899506465,
+      "runNumber": 2291,
+      "attempt": 1,
+      "head": "469de57567d8b06269b649f76caa67071fc0d613",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/37899506465",
+      "quality": [
+        {
+          "id": 113719043341,
+          "conclusion": "success"
+        }
+      ],
+      "docker": [
+        {
+          "id": 113718566051,
+          "name": "Docker smoke 구현",
+          "conclusion": "success"
+        },
+        {
+          "id": 113719246944,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ],
+      "e2e": [
+        {
+          "id": 113724608499,
+          "conclusion": "success"
+        }
+      ],
+      "failedJobs": [],
+      "analysis": "이 head에서 실제 quality/e2e/docker와 모든 E2E shard PASS. 이후 head에 PASS를 전용하지 않는다."
+    },
+    {
+      "runId": 37902431281,
+      "runNumber": 2292,
+      "attempt": 1,
+      "head": "7d162d5b3c12e5bc2a5ad5b787a5ef897b55c7db",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/37902431281",
+      "quality": [
+        {
+          "id": 113728417600,
+          "conclusion": "success"
+        }
+      ],
+      "docker": [
+        {
+          "id": 113727906621,
+          "name": "Docker smoke 구현",
+          "conclusion": "success"
+        },
+        {
+          "id": 113728613773,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ],
+      "e2e": [
+        {
+          "id": 113733975011,
+          "conclusion": "failure"
+        }
+      ],
+      "failedJobs": [
+        {
+          "jobId": 113727906648,
+          "name": "Chromium E2E shard 1/6",
+          "step": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ],
+          "sourceLogSha256": "c2800d4cd23e5fce10bb799429949466c7d70d864c1e293b63b4c5c51807ce09",
+          "cause": "신규 empty 시나리오에서 getState().tasks가 배열이라고 가정해 null을 반환한 관측 하네스가 실패했다.",
+          "job": 113727906648,
+          "error": "Expected: []; Received: null",
+          "location": "tests/e2e/gantt-adapter-poc.spec.ts:133",
+          "count": 10,
+          "fixedBy": "ae7ff7450015e369c3bff81f804b83fa75d2e046",
+          "latestStatus": "최신 #2295에서 해당 PoC shard PASS"
+        }
+      ],
+      "analysis": {
+        "cause": "신규 empty 시나리오에서 getState().tasks가 배열이라고 가정해 null을 반환한 관측 하네스가 실패했다.",
+        "fixedBy": "ae7ff7450015e369c3bff81f804b83fa75d2e046",
+        "latestStatus": "최신 #2295에서 해당 PoC shard PASS"
+      }
+    },
+    {
+      "runId": 37904712513,
+      "runNumber": 2293,
+      "attempt": 1,
+      "head": "ae7ff7450015e369c3bff81f804b83fa75d2e046",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/37904712513",
+      "quality": [
+        {
+          "id": 113735696888,
+          "conclusion": "success"
+        }
+      ],
+      "docker": [
+        {
+          "id": 113735339204,
+          "name": "Docker smoke 구현",
+          "conclusion": "success"
+        },
+        {
+          "id": 113736324779,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ],
+      "e2e": [
+        {
+          "id": 113742193154,
+          "conclusion": "failure"
+        }
+      ],
+      "failedJobs": [
+        {
+          "jobId": 113735339639,
+          "name": "Chromium E2E shard 1/6",
+          "step": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ],
+          "sourceLogSha256": "3d09fde988c6078429946d530e495f55383433c3d33170da5f7a5fa7ae3e4c84",
+          "cause": "공개 serialize의 Milestone은 end=null인데 start와 같은 timestamp를 기대했다.",
+          "job": 113735339639,
+          "error": "Expected endMs: 1768003200000; Received endMs: null",
+          "location": "tests/e2e/gantt-adapter-poc.spec.ts:138",
+          "count": 10,
+          "fixedBy": "c572cd819c304c54c323e22d9912a30b8f7ef3e4",
+          "latestStatus": "최신 #2295에서 해당 PoC shard PASS"
+        }
+      ],
+      "analysis": {
+        "cause": "공개 serialize의 Milestone은 end=null인데 start와 같은 timestamp를 기대했다.",
+        "fixedBy": "c572cd819c304c54c323e22d9912a30b8f7ef3e4",
+        "latestStatus": "최신 #2295에서 해당 PoC shard PASS"
+      }
+    },
+    {
+      "runId": 37907341697,
+      "runNumber": 2294,
+      "attempt": 1,
+      "head": "c572cd819c304c54c323e22d9912a30b8f7ef3e4",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/37907341697",
+      "quality": [
+        {
+          "id": 113744273377,
+          "conclusion": "success"
+        }
+      ],
+      "docker": [
+        {
+          "id": 113743939199,
+          "name": "Docker smoke 구현",
+          "conclusion": "success"
+        },
+        {
+          "id": 113744756131,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ],
+      "e2e": [
+        {
+          "id": 113749301647,
+          "conclusion": "failure"
+        }
+      ],
+      "failedJobs": [
+        {
+          "jobId": 113743939277,
+          "name": "Chromium E2E shard 1/6",
+          "step": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ],
+          "sourceLogSha256": "56a635375b89024a377371d9fd45247290ae078844344f0b8a38b32fe5004a19",
+          "job": 113743939277,
+          "error": "Expected: \"NATIVE_LAYOUT_SETTLED\"; Received: \"NO_SCROLL_CAPACITY\"",
+          "location": "tests/e2e/gantt-adapter-poc.spec.ts:30",
+          "count": 1
+        },
+        {
+          "jobId": 113743939317,
+          "name": "Chromium E2E shard 2/6",
+          "step": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ],
+          "sourceLogSha256": "85531b87a903e8c622786b38b1a88fe15d74050b97a4b6180e0f7064bb0a0171",
+          "job": 113743939317,
+          "error": "TypeError: Cannot read properties of null (reading 'count')",
+          "location": "tests/e2e/milestone-dashboard-state.spec.ts:116",
+          "count": 1
+        },
+        {
+          "jobId": 113743939386,
+          "name": "Chromium E2E shard 6/6",
+          "step": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ],
+          "sourceLogSha256": "9562d008339b0ea5ccc2a566058029c3615a0849566869c64624cdc3c5c5884f",
+          "job": 113743939386,
+          "error": "clock.pauseAt: Error: Cannot fast-forward to the past",
+          "location": "tests/e2e/resource-kpi-integration-ui.spec.ts:469",
+          "count": 1
+        }
+      ],
+      "analysis": {
+        "cause": "390px fallback의 layout commit 선행 측정, nullable 진단 marker 처리, Playwright 가상 clock 시점에 서로 다른 세 오류가 있었다.",
+        "fixedBy": "9f0458124198470872c6764cbd5b00dedc75417b",
+        "latestStatus": "최신 #2295에서 #569/#530 통과. #463 null 예외는 없어졌으나 새 검색 후 top96 assertion에서 FAIL"
+      }
+    },
+    {
+      "runId": 37909674449,
+      "runNumber": 2295,
+      "attempt": 1,
+      "head": "9f0458124198470872c6764cbd5b00dedc75417b",
+      "event": "pull_request",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/37909674449",
+      "quality": [
+        {
+          "id": 113752042319,
+          "conclusion": "success"
+        }
+      ],
+      "docker": [
+        {
+          "id": 113751593118,
+          "name": "Docker smoke 구현",
+          "conclusion": "success"
+        },
+        {
+          "id": 113752503593,
+          "name": "Docker build and runtime smoke test",
+          "conclusion": "success"
+        }
+      ],
+      "e2e": [
+        {
+          "id": 113758051442,
+          "conclusion": "failure"
+        }
+      ],
+      "failedJobs": [
+        {
+          "jobId": 113751593202,
+          "name": "Chromium E2E shard 2/6",
+          "step": [
+            {
+              "number": 7,
+              "name": "E2E shard 실행"
+            }
+          ],
+          "sourceLogSha256": "1682a8ab78e81da129a666ac88eebe95ecf03ac1e2a88eb82c497ae7528b1576",
+          "cause": "직전 변경에서 추가한 검색 후 viewport96 assertion이 실제 filter 변경 뒤 top0 상태와 불일치했다. clamp 직접 writer/callsite는 미확정이다.",
+          "job": 113751593202,
+          "error": "Expected public.top=96/dom.top=96; Received public.top=0/dom.top=0; left=120 유지; predicate timeout5000ms",
+          "location": "tests/e2e/milestone-dashboard-state.spec.ts:122",
+          "count": 1,
+          "fixedBy": null,
+          "latestStatus": "미해결 FAIL; read-only 조사 후 구현 담당 REWORK 대기"
+        }
+      ],
+      "analysis": {
+        "cause": "직전 변경에서 추가한 검색 후 viewport96 assertion이 실제 filter 변경 뒤 top0 상태와 불일치했다. clamp 직접 writer/callsite는 미확정이다.",
+        "fixedBy": null,
+        "latestStatus": "미해결 FAIL; read-only 조사 후 구현 담당 REWORK 대기"
+      }
+    }
+  ],
+  "latestArtifact": {
+    "artifactId": 11607155486,
+    "name": "playwright-report-shard-2",
+    "observedViewport": {
+      "public": {
+        "left": 120,
+        "top": 0
+      },
+      "dom": {
+        "left": 120,
+        "top": 0
+      }
+    },
+    "observedRestoreMarker": {
+      "count": 1,
+      "requestedLeft": 120,
+      "publicLeft": 120,
+      "publicTop": 96,
+      "domLeft": 120
+    },
+    "observedEventTail": [
+      {
+        "action": "scroll-chart",
+        "left": 120,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 120,
+        "top": 0,
+        "width": 906,
+        "height": 460
+      }
+    ],
+    "interpretation": "이전 복원 marker count1/top96 뒤 현재 public/native top0 및 scroll-chart 전파가 관측된다. 검색 중 scroll capacity와 직접 writer callsite를 이 attachment만으로 확정하지 않는다."
+  },
+  "limitations": [
+    "최신 head 이후 수정·재실행·추가 CI 결과는 이 문서의 증거가 아니다.",
+    "quality/docker PASS는 각 run의 해당 head에서 실제 job success를 뜻한다. 전체 PR ACCEPT 또는 Main/GHCR 증거가 아니다.",
+    "실패 E2E 구현 job의 decoded UTF-8 원문 로그에 SHA-256을 계산했다. aggregate job 실패는 shard 실패의 집계이며 별도 원인으로 세지 않았다.",
+    "setup/network/권한 실패는 확인되지 않았다. 최초 오류는 application/test assertion 또는 Playwright clock 경로에서 발생했다.",
+    "원본 ZIP/network/raw 로그와 signed URL은 저장소에 포함하지 않는다.",
+    "전체 로그나 artifact에 없는 인과·clamp writer는 미확정으로 유지한다."
+  ]
+}

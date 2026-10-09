@@ -1,5 +1,22 @@
 # Test Plan
 
+## Issue #569 — 공개 API·시간축 Adapter PoC
+
+PR #576 CI #2294.1 재검증에서는 390px Chart-only 모드 진입 직후 실제 native geometry가 측정 가능할 때만 이어가며, 이후 3-frame settle 및 기존 좌표/시간축 확장 판정은 그대로 엄격 검사한다. 기존 #463의 복원 이벤트 diagnostic attribute는 optional이므로 null/non-null 원형 그대로 불변 여부를 검사한다. peer/layout의 동일 scope에서는 public/native 120/96 보존을 유지한다. 검색으로 행이 줄어 native 수직 capacity가 0이 되면 top 0으로 제한되는 조건을 별도로 검증하며, 이전 top 96을 다시 강제하지 않는다. 기존 #530 Clock 기반 경합 회귀는 `install` 시점을 `pauseAt` 목표보다 충분히 앞서 두되, 시뮬레이션 후 목표 wall-clock은 그대로 유지하고 500ms/500ms 안정성 체크를 보존한다. 환경/성공 여부는 신규 exact-head PR CI에서만 판정한다.
+
+
+PR #576 CI #2291~#2295의 5개 run(모두 attempt 1)을 종합 분석한다. #2295.1에서는 quality/docker와 #569 PoC shard가 PASS였고, 유일 실패는 #463 검색 해제 후 top 96 기대/public·native top 0의 불일치였다. 원본 targeted 재현도 같은 지점에서 FAIL했다. 검색 전 22개 Task에서 capacity 376px, 검색 1개 일치에서 capacity 0px와 public/native top 0, 해제 후 22개 Task와 capacity 회복을 실측했다. 직접 DOM writer의 callsite까지 확정한 결과는 아니다.
+
+보완 테스트는 검색 적용·해제의 결과 수/native capacity/정확한 public·native 좌표/동일 instance를 조건 기반으로 확인한다. 이후 기존 peer 위치 120/96과 다른 새 사용자 위치 180/128을 설정하고, 충분한 행이 유지되는 검색·해제·layout 변경 뒤 180/128이 유지되고 restore marker가 변하지 않는지 검사한다. frame 폭의 실제 증가/원폭 복귀를 조건으로 기다린 뒤 마지막 3개 실제 RAF에서 좌표·marker·instance를 정확히 재확인한다. 늦은 stale 96 복원은 실패한다. 단순 기대값 변경이나 assertion 삭제로 통과시키지 않는다. 실제 실행 영수증과 실패 이력은 [Issue #569 실행 계획](exec-plans/active/ISSUE_569.md)에서 연결하며 새 head 원격 gate는 모두 별도 재검증 대상이다.
+
+PR #576의 Milestone-only E2E는 `api.serialize()` 기준 1개 Milestone(`synthetic-6`), 시작일 2026-01-10, 종료일 부재(`endMs=null`), 실제 native DOM Milestone 표시를 필수로 검증한다. 기존에 종료일을 시작일과 동일하게 가정한 조건은 SVAR 시점 Milestone 계약과 불일치하여 교정한다. Empty / A-mode 미래 Task / 재진입 `BUSY` 검증은 그대로 유지한다. 최신 Head의 CI 결과는 과거 증거와 분리한다.
+
+[실행 계획](exec-plans/active/ISSUE_569.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 공식/설치 기능 matrix, A/B/C 결과와 지원 경계를 남긴다. 실제 Core 2.7.3 Chromium의 390/768/1024/1440/1920px·Day/Week에서 최대 3회 확장의 성공/실패와 instance/selection/origin/scroll/열/visible date와 tick↔bar≤1 CSSpx, Grid/Chart y정렬을 비교한다. empty/M-only, fullscreen/split, 가로/세로scroll·열resize, hidden/inert/zero-size/capacity·cleanup·intent 취소·finite timeout을 별도로 확인한다.
+
+지원 분류는 390px Chart 확대 후 Day A/B·Week A/B/C의 3회 성공, C Day의 첫 확장 위치 실패, 넓은 화면의 첫 확장 성공 후 다음 edge timeout이다. 분류 검증 PASS를 모든 후보의 지원 PASS로 해석하지 않는다.
+
+최초 구현의 순수 adapter Unit·typecheck·변경부 lint와 기존 #367/#514 targeted 회귀, 별도 PR #562 source의 #551 lane390 회귀를 실행한다. 최초실패·source/artifact SHA·명령과 미검증을 보존했다. 이후 CI REWORK의 기존 테스트 변경은 아래의 계약 검증 보완으로 구분하며 timeout/skip/retry/workflow gate는 완화하지 않는다. 로컬 PoC의 성공은 기존 제품 전체 회귀나 원격 CI 성공을 뜻하지 않는다. 요청 종료점은 PR CI 시작이며 quality/e2e/docker 결과·QA_FINAL·main/GHCR은 NOT TESTED다.
+
 ## Issue #568 — Core Action Trace와 재현 분석
 
 고정 PR #562 targeted5×2는 각각3 PASS/2 FAIL이다. Inline 실패 run은 Week 후 assertion에서 멈춰 뒤의500/412/network 분기에는 도달하지 않았다. observer-only clock 실험은 sequence를 정렬 기준으로 사용하고 elapsedMs/수직 sample로 안정화 PASS를 주장하지 않는다.
@@ -2617,3 +2634,7 @@ Project private-read 모델은 현행 제품에 없어 신규 구현 N/A다. 공
 - `new-project-tabs.tsx`의 skip-link click listener는 client `useEffect`에 의존하고 선택 탭의 `tabIndex` 변경은 React state commit을 기다린다. 이벤트 등록 전 SSR/초기 hydration 또는 클릭 후 state commit 전에 Tab을 누르면 focus traversal에 이전 탭 상태가 남을 수 있다(추정 원인).
 - 핸들러 등록 완료를 앱 소유 `data-skip-link-ready`로 표시하고, 클릭 즉시 두 생성 방식 탭을 순차 Tab에서 제외한다. panel 진입 시 선택 탭의 roving 순서를 동기 복구한다. 테스트는 준비 신호 확인·main focus·선택 탭 -1·프로젝트 이름 focus·선택 탭 0·화살표/Home/End 순서를 모두 검증한다. 실제 사용자가 Tab/키보드 조작하도록 유지하며 직접 `.focus()`로 성공을 대신하지 않는다.
 - 새 PR head의 전체 Playwright/TypeScript/Docker 결과와 #264 draft 보존, #121 Skip Link E2E를 확인할 때까지 최종 PASS는 NOT TESTED다. 로컬 독립 브라우저/운영 환경 검증은 별도다.
+
+### PR #576 리뷰 보완 검증
+
+Core scale 단일 행·unit 일치·step=1 이외에는 forward/inverse/reveal `UNMEASURABLE`을 확인한다. Fixture의 동시 extend는 `BUSY`, 유효 최초 요청만 수행되는지 확인한다. Empty/Milestone-only의 Core task 및 native DOM, future-task 날짜 변경과 settle 결과를 E2E assertion으로 확인한다. 기존 결과와 새 Head의 검증을 혼동하지 않는다.
