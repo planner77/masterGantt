@@ -1,3 +1,9 @@
+## Issue #553 — Gantt 논리/물리 스크롤 및 검색 복귀 계약 (2026-10-09)
+
+SVAR의 Core 공개 `scrollLeft`와 브라우저 native Chart `scrollWidth - clientWidth`는 동기화 완료 전 다른 범위일 수 있다. 저장된 위치 복원에 필요한 DOM 실제 범위가 부족하면 축을 확장하는 공개 `resize-chart` 경로를 사용하고, 두 번의 bounded layout frame에서 복원 여부를 확인한다. metadata/Task 삭제의 원래 scope·scale/instance가 유지되고 해당 기간 사용자 Grid/Chart 입력이 없을 때만 복원하며, 이전 위치를 그대로 주장하는 시각 효과나 임의 DOM 덮어쓰기는 금지한다.
+
+검색 진입은 검색 이전의 조회 위치를 기억한다. 검색 중 Grid/Chart에 별도의 사용자 입력이 없으면 검색 해제 후 기존 위치를 복원하되, 검색 중 명시적인 Task 선택·스크롤은 우선하고 이전 북마크를 폐기한다. 검색 결과가 0개가 되면 원점으로 복귀하고, 이 경우 검색 종료 시도 이전 위치를 강제로 적용하지 않는다.
+
 
 ## Issue #553 — Canonical viewport 동기화 순서 후속 교정 (2026-10-09)
 

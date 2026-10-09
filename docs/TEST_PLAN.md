@@ -1,3 +1,11 @@
+## Issue #553 — CI #2269 Native Chart 범위·필터 복귀 검증 (2026-10-09)
+
+- [실패 PR CI #2269](https://github.com/planner77/masterGantt/actions/runs/37867864388): quality/typecheck/build/Docker/Policy PASS, Chromium E2E 16건 FAIL. 단일 Core scroll-chart(120) 성공만으로 복원 완료 판정 금지: 뒤따르는 resize-chart와 native scroll 이벤트 이후에도 public/DOM left와 최종 가로 범위가 유지되는지 확인한다.
+- Task metadata/confirmed deletion 및 Resource peer: 동일 Core 인스턴스·scope·scale·filter에서 명시적 사용자 조작이 없으면 기존 위치를 복원하며 실제 DOM scrollable range가 부족할 때에만 Core 공개 기능으로 확장한다. #529 wheel 우선·stale peer restore 차단을 검증한다.
+- #118 검색 fill/reset 후 기존 Chart scroll과 Grid 폭/높이 유지; #514 필터 후 명시 Task 선택의 start reveal을 기존 복원보다 우선; #456 검색 결과 0건 후 Core/DOM left=0. 각각 서로 다른 상태 전이다.
+- #140 Inline 이름은 단건 name-only PATCH 확정, Grid native cell 이름과 canonical DTO 일치, 오류/401/412/Escape 및 동일 Core instance를 검사한다. #552 390px Milestone 날짜 조회 fallback focus는 대화상자 종료 뒤 대상 관리 행에 실제 포커스가 안정적으로 유지되는지 검사한다.
+- Core2.7.3/Store2.7.2 설치 버전에서 5폭 #551 lane tick↔native bar 1px 및 Day/Week 연속 미래 축 확장 회귀를 유지한다. Fail assertion 제거, 테스트 skip/retry/timeout 증가는 하지 않는다.
+
 ## Issue #553 — PR CI #2266 재현·복원 수명 회귀 (2026-10-09)
 
 - [PR CI #2266](https://github.com/planner77/masterGantt/actions/runs/37865006516), head `4e27c04`: TypeScript/ESLint/Vitest/Next build/policy PASS, E2E shards2/3/4/6 17 cases FAIL, Docker smoke OAuth token `connection reset by peer` FAIL(외부 전송 오류). Docker 코드 정상·비정상을 해당 실패만으로 추론하지 않는다.

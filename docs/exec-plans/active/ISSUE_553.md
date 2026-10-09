@@ -133,3 +133,12 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - Inline 이름: Tab과 Enter 모두 기존 SVAR `close-editor({ignore:false})`→`update-cell` 단일 보호된 Task PATCH 경로를 사용한다. 이전 Tab 선행 단독 commit+ignore=true 조합은 서버 저장 후 구 input이 남는 원인이 될 수 있어 제거했다.
 - 390px Relation: `cell.focus()` 후 locator `.press()` 재탐색/자동 스크롤 대신 현재 활성 셀에 `page.keyboard.press(Shift+F10)`를 전달한다. 실제 Task identity assertion·관계 조회/수정·focus 검사는 보존한다. Dashboard 집중: management native modal 종료와 focus 복귀의 bounded requestAnimationFrame 대기 상한 확대(4→30 프레임).
 - 코드·테스트 commit `9aaaa02ff40f9d91112850362f8bc447d69945ea`의 PR CI https://github.com/planner77/masterGantt/actions/runs/37867727493 (#2268)는 등록·실행 상태만 확인했다. 최종 exact-head PR CI·QA_FINAL·Manager ACCEPT는 NOT TESTED. 테스트 disable, timeout 증가, 검증 계약 삭제 및 main/GHCR/merge/release/Issue 종료 없음.
+
+## PR CI #2269 실패 분석 및 복구 구현 (2026-10-09 KST)
+
+- [CI #2269.1](https://github.com/planner77/masterGantt/actions/runs/37867864388), exact head `7137e9d99736390cb3cff56357cb3dc33983e66a`: TypeScript/ESLint/Vitest/build/Docker/Policy PASS, Chromium E2E shard1/3/4/6에서 16 FAIL, shard2/5 PASS.
+- 직접 Playwright trace에서 metadata Save 이후 native scroll 명령 120px 복구가 성공한 직후 `resize-chart`에 의해 100px, 이후 `scroll-chart(63)`으로 다시 축소된 것을 확인했다. Core 논리 scale width와 DOM 물리 scrollWidth가 동의하지 않는 경우, 저장 위치만 반복 전송하면 효과가 없다.
+- 기능 변경 `f483d29`: DOM 실제 최대 scroll 범위를 읽어 부족한 경우에만 기존 Core 공개 `resize-chart` 경로로 축을 확장한다. 정해진 최대 2회 RAF 확인 후 `scroll-chart`를 재검증한다. 별도 재마운트·store 직접 write·서버 mutation 없음. 활성 검색에서 0건일 때만 기존 위치를 원점으로 정렬하고, 검색 활성→해제 시 그 사이 Grid 사용자 입력이 없으면 검색 전 위치를 되돌리는 별도 북마크를 유지한다.
+- 기능 변경 `42a68c5`: 변경된 이름이 canonical DTO에서는 확인되지만 native Grid text가 구 값인 상황에서 확정된 동일 이름만 Core public update-task에 반영한다. Peer 복귀 중 사용자가 wheel을 실행했으면 상위 peer 복구 객체의 React cleanup과 무관하게 동일 API/범위/입력 세대 확인 후 마지막 사용자 위치를 보호한다. Milestone 관리 모달 종료 후 포커스의 후행 이동 가능성을 고려해 bounded stable-focus window를 적용한다.
+- 기존 #514 직접 Task 선택이 필터의 이전 viewport를 사용하지 않는 규칙, #551 date plot 1px 정렬 및 연속 timeline 우측 확장, #529 Core/DOM ±1px, #456 no-result zero-reset, #140 Task PATCH 단건/401/412, readonly fail-closed은 그대로 검증한다. 멈춤/skip/timeout 증가/expect 완화 없음.
+- 새 exact-head CI 종료 전 TESTED는 TypeScript·E2E·Docker 등 모두 NOT TESTED. 메인 정렬/병합/GHCR/Release/Issue close는 승인되지 않음.
