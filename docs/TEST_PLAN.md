@@ -6,6 +6,7 @@
 - Playwright `issue568-nested-return-trace`: `scroll-chart(120)` 발행 순간 native `scrollWidth=936`, `clientWidth=905`, capacity31밖에 없음 → DOM31 clamp → 후속 Core scroll-chart31. 다음 physical layout update에서 `scrollWidth=2232`이 됐으나 과거 native 알림이 최신 복원 좌표를 덮어쓴 것으로 관측됐다.
 - 제품 복원 입장 조건: visible Chart, 실제 native capacity≥target-1px가 3 RAF 연속 안정, window/root/instance/filter/scale/columns/intent 불변. 120 frame/최대2초, 사용자가 새 입력을 하면 기존 요청 취소; 불가시 `NO_SCROLL_CAPACITY` 진단/오류로 보고. 명시적 scroll-chart 복원 후 실제 Core exact/native±1px 3 RAF 안정화 확인 후 복원 count/receipt 기록. 용량 상실이나 native 재정합 최대3회 실패는 `TIMED_OUT`으로 처리. #569 어댑터는 실험용/read-only, 여전히 제품 도입 DEFER.
 - 기존 #530 fixed-geometry, 중첩 first/second pop/clear, 12RAF, 사용자 wheel/resize, #514/#529/#538/#463 및 #568 trace 회귀의 기존 의미·기대값을 삭제하지 않는다. **중첩 second pop**의 복원 receipt에서 요청120, admission/최종 physical capacity≥120-1, Core/native120, admission/settle stable frames≥3을 강제하고 실패 시 별도 `capacityFailure/settleFailure` 증거 첨부.
+- Codex P2: 문서 hidden/occlusion 등으로 RAF가 멈춰도 독립 timer(250ms)나 visibilitychange가 대기 루프를 깨워 2초 제한을 유지한다. Timer wake는 RAF 안정화 횟수에서 배제한다. 직접·Core interceptor의 native 보정이 발생하면 안정 프레임 연속 횟수를 초기화하며, 3개의 이미 안정된 실제 프레임만 receipt 완료 근거가 된다. 테스트는 두 번째 복귀의 receipt가 기록되는 시점을 기대값으로 poll하여 결과를 조기에 판정하지 않는다.
 - 최신 Head PR Quality/E2E6/Docker CI와 병합 후 exact new Main CI 전까지 PASS/완료 주장하지 않는다. 0.103.1 정식 Release/ghcr digest는 별도 evidence/authorization/finalizer 경계.
 
 ## Issue #530 PR #566 CI #2302.1 — 네이티브 Chart 우선 변조 복원

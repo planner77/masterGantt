@@ -417,6 +417,16 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   // Admission cannot rely on Core alone: physical chart scroll capacity
   // must accept the original 120px before an explicit peer restore is sent.
+  // A Core+DOM match can precede the receipt, which is deliberately
+  // published only after the extra three stable layout frames.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-peer-restore");
+    return raw ? JSON.parse(raw) : null;
+  }).toMatchObject({
+    requestedLeft: origin.publicViewport.left,
+    capacityStableFrames: 3,
+    settleStableFrames: 3,
+  });
   const secondReceipt = await frame.getAttribute("data-gantt-peer-restore");
   expect(secondReceipt).not.toBeNull();
   const restoredCapacity = JSON.parse(secondReceipt!) as {

@@ -1978,7 +1978,7 @@ export function ProjectGantt({
     };
     const inputEvents = ["pointerdown", "wheel", "keydown"];
     for (const event of inputEvents) root.addEventListener(event, markInput, true);
-    const current = () => !cancelled && !input && id === peerViewportGeneration.current &&
+    const current = () => !cancelled && !input && document.visibilityState !== "hidden" && id === peerViewportGeneration.current &&
       api === apiReference.current && root.isConnected && peerViewportContext.current.visible &&
       peerViewportContext.current.key === request.key && version === canonicalSyncVersionReference.current &&
       filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current &&
@@ -1994,7 +1994,25 @@ export function ProjectGantt({
       (targetGeometry === null || targetGeometry === geometry());
     const cleanupInput = () => { for (const event of inputEvents) root.removeEventListener(event, markInput, true); };
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
-      const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      // RAF can stop when a tab is backgrounded. Always settle or wake by an
+      // independent timer/visibility event; only real RAF counts as a stable
+      // layout frame, never a timeout wakeup.
+      const frame = () => new Promise<boolean>((resolve) => {
+        let done = false, animationId: number | null = null, timerId: number | null = null;
+        const onVisibility = () => { if (document.visibilityState === "hidden") finish(false); };
+        const finish = (animated: boolean) => {
+          if (done) return;
+          done = true;
+          if (animationId !== null) cancelAnimationFrame(animationId);
+          if (timerId !== null) window.clearTimeout(timerId);
+          document.removeEventListener("visibilitychange", onVisibility);
+          resolve(animated);
+        };
+        animationId = requestAnimationFrame(() => finish(true));
+        timerId = window.setTimeout(() => finish(false), 250);
+        document.addEventListener("visibilitychange", onVisibility);
+        if (document.visibilityState === "hidden") finish(false);
+      });
       try {
         await frame(); await frame();
         if (!current()) return;
@@ -2030,12 +2048,14 @@ export function ProjectGantt({
           return owner ? owner.scrollWidth - owner.clientWidth : -1;
         };
         const capacityStart = performance.now();
-        let capacityFrames = 0, capacityAtRestore = -1;
+        let capacityFrames = 0, capacityAtRestore = -1, hadAnimationFrame = false;
         for (let attempts = 0; attempts < 120 && current(); attempts++) {
           capacityAtRestore = physicalCapacity();
-          capacityFrames = capacityAtRestore >= request.left - 1 ? capacityFrames + 1 : 0;
+          // A timer wakeup keeps the deadline live but cannot count as RAF.
+          capacityFrames = hadAnimationFrame && capacityAtRestore >= request.left - 1
+            ? capacityFrames + 1 : 0;
           if (capacityFrames >= 3 || performance.now() - capacityStart > 2_000) break;
-          await frame();
+          hadAnimationFrame = await frame();
         }
         if (!current()) return;
         if (capacityFrames < 3) {
@@ -2063,18 +2083,22 @@ export function ProjectGantt({
         } : null;
         const settleStart = performance.now();
         let settledFrames = 0, nativeAtSettle = -1, coreAtSettle = -1;
+        let hadSettleAnimationFrame = false;
+        let previousRepairs = protectedPeerScrollReference.current?.nativeRepairs ?? 0;
         for (let attempts = 0; attempts < 120 && current(); attempts++) {
           const chart = nativeChart(), capacity = physicalCapacity();
           const state = api.getState();
           coreAtSettle = state.scrollLeft;
           nativeAtSettle = chart?.scrollLeft ?? -1;
           const guard = protectedPeerScrollReference.current;
+          let repairedInThisSample = false;
           if (chart && guard && coreAtSettle === request.left &&
             capacity >= request.left - 1 && Math.abs(nativeAtSettle - request.left) > 1 &&
             guard.nativeRepairs < 3) {
             // A late SVAR physical resize may reset the DOM without issuing a
             // new Core action; only this explicit peer restore owns the repair.
             guard.nativeRepairs++;
+            repairedInThisSample = true;
             chart.scrollLeft = request.left;
             nativeAtSettle = chart.scrollLeft;
             if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
@@ -2082,11 +2106,16 @@ export function ProjectGantt({
               frameNode.dataset.ganttPeerNativeRepairs = String(Number(frameNode.dataset.ganttPeerNativeRepairs ?? 0) + 1);
             }
           }
-          settledFrames = chart && capacity >= request.left - 1 &&
-            coreAtSettle === request.left && Math.abs(nativeAtSettle - request.left) <= 1
-              ? settledFrames + 1 : 0;
+          const repairs = guard?.nativeRepairs ?? 0;
+          const changedSinceLastFrame = repairedInThisSample || repairs !== previousRepairs;
+          // Any native repair (including one from the interceptor between
+          // samples) resets the streak: no false 3-frame success while drifting.
+          settledFrames = chart && hadSettleAnimationFrame && !changedSinceLastFrame &&
+            capacity >= request.left - 1 && coreAtSettle === request.left &&
+            Math.abs(nativeAtSettle - request.left) <= 1 ? settledFrames + 1 : 0;
+          previousRepairs = repairs;
           if (settledFrames >= 3 || performance.now() - settleStart > 2_000) break;
-          await frame();
+          hadSettleAnimationFrame = await frame();
         }
         if (!current()) return;
         if (settledFrames < 3) {

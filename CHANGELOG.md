@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Issue #530 Main CI #2311.1 후속 복원 안정화: SVAR 시간축 확장 시 native Chart의 실제 수평 capacity가 31px로 제한된 순간 Core120 복원 명령을 발행해 좌표가 Core/native31로 재덮이는 경합을 보완한다. Chart 물리 capacity가 target을 3프레임 연속 지원할 때만 명시 복원을 시작하고, Core/native 3프레임 정합 뒤 성공 receipt를 남긴다. 사용자/geometry 변화는 취소하며 bounded timeout·진단을 추가하고 기존 엄격한 #530 E2E를 유지한다.
+- Issue #530 Main CI #2311.1 후속 복원 안정화: SVAR 시간축 확장 시 native Chart의 실제 수평 capacity가 31px로 제한된 순간 Core120 복원 명령을 발행해 좌표가 Core/native31로 재덮이는 경합을 보완한다. Chart 물리 capacity가 target을 3프레임 연속 지원할 때만 명시 복원을 시작하고, Core/native 3프레임 정합 뒤 성공 receipt를 남긴다. 사용자/geometry 변화는 취소하며 bounded timeout·진단을 추가하고 기존 엄격한 #530 E2E를 유지한다. 배경화면 RAF 중지 시 독립 timer·visibilitychange로 기다림을 깨우고, timer wake/실제 native 보정은 3개의 연속 안정 프레임으로 계상하지 않으며 E2E receipt는 실제 안정화 이후 읽는다.
 - Issue #530 PR #566 CI #2302.1 재보완: SVAR peer 복귀의 Core 좌표가 120px이나 실제 Chart DOM이 늦게 0px이 되는 현상을 native-first trace로 식별하고, 유효한 같은 viewport·물리 scroll capacity에 한정해 기존 복원 소유자에서 native 좌표를 최대 3회 재정합한다. Core 변경·사용자 입력·숨김·물리 capacity 부족 시 보정 취소 및 진단을 유지하며 E2E에서 실제 native-only 0 재현과 Core/DOM strict 복귀를 검증한다.
 - Issue #530 동일 v0.103.1 Main CI 재보완: 명시적 Resource→일정 복원 이후 지연된 SVAR native scroll-chart(0)이 nonzero 120/240 좌표를 덮지 못하도록 유효한 같은 viewport 문맥에서 Event Bus intercept를 적용하고, 실제 Gantt 차트·그리드 내부 사용자 wheel/키보드/포인터와 범위·레이아웃 변경만 보호를 해제한다. Gantt 외부 Task Editor·툴바·타 패널 입력은 복원 보호를 유지한다. nested pop/clear와 사용자 좌측 끝 이동을 E2E로 검증한다.
 - Issue #530 후속 PR #564: Resource→정확한 Task 일정→원래 보기 복귀 시 메타데이터-only Gantt 동기화가 보존한 이전 0 좌표를 명시적 peer viewport 복원(비영점) 이후 다시 덮는 경합을 해결한다. 명시적 복원 epoch로 오래된 요청을 무효화하고, 중첩 LIFO 복귀의 layout~queue/DOM 안정화 동안 metadata-only 캡처·적용을 보류하여 재진입한 0 좌표의 늦은 재적용도 차단한다. 입력·scope·API instance·geometry guard와 원래 Core/native 위치의 엄격한 불변식은 유지한다.
