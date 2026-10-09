@@ -1,5 +1,9 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #538 — 관계 관리자와 cascade 상태
+
+전역 Project Master의 연결 편집은 app-owned native control이다(SVAR Gantt Core API 적용 대상 아님). 라벨 있는 select/연결 버튼/해제 확인을 사용하며 disabled 이유와 server 409/412 메시지, 로딩/빈 관계/초안 하위 해제 상태를 텍스트로 구분한다. 하위 선택 변경은 저장과 분리하고 Project dirty draft를 무단 제출하지 않는다. 390/768/1024/1440/wide의 table-owned scroll, keyboard focus 및 document overflow를 회귀 검증한다.
+
 ## Issue #518 — Project Workspace 단일 상위 탭과 세로 영역
 
 상위 tablist의 peer는 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 순서다. 일정의 중복 Gantt/Dashboard tablist를 제거하고 #399 WBS scope tablist만 유지한다. 각 tab의 aria-controls/aria-labelledby/aria-selected/roving tabIndex, ArrowLeft/Right/Home/End, focus 이동과 비활성 panel 접근성 차단을 실제 DOM에서 검증한다. 390px 등 좁은 화면은 선택 tab과 focus outline이 잘리지 않도록 tablist 자체만 수평 스크롤하며 height를 적층하지 않는다.
@@ -306,6 +310,15 @@ canonical start=null을 renderer anchor가 있는 날짜 작업으로 취급하�
 
 설치 Core2.7.3와 2026-10-08 공식 [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/)·[scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)의 공개 계약을 확인했다. 문서 URL 조회와 실제 project fixture Chromium pointer 증거를 구별하며 공식 demo 실제 조작은 NOT TESTED다. Core 공개 action을 사용하고 PRO·비공개 state·날짜 픽셀 탐색 구현을 추가하지 않는다. 좁은 화면의 기존 내부 작업면 제한은 [프로젝트 UX](PROJECT_UX.md#issue-514--grid-시작-위치와-지연된-peer-복원)를 따른다.
 
+## Issue #530 동일 원장 통합 UI 검증
+
+Resource 기본 현황·세 계층·두 Milestone 비교표·주/월 Resource Plan은 같은 합성 원장을 실제 SQLite/HTTP로 읽어 검증한다. 원시 합계 외에 현재 응답의 기간·기준일·환산값·출처, 상세 Task/Assignment scope를 확인한다. Group 소계의 합을 Grand로 대체하지 않는다.
+
+390/768/1024/1440/1920px의 populated 비교표는 문서 overflow와 표 내부 scroll, 셀 control containment를 측정한다. keyboard Enter로 실제 계층과 상세를 열고 제목 focus 및 Escape의 visible trigger 복원을 확인한다. Gantt는 instance뿐 아니라 public/native viewport·선택·열·tree를 별도로 대조한다. 합성 fixture의 자료량으로 수직 overflow가 생기지 않는 경우 이를 nonzero 수직 viewport 검증으로 보고하지 않는다. 긴 이름과 많은 행의 기존 mock 회귀 및 실제 원장 통합 증거도 구분한다.
+
+Resource 임시 이동 반환의 검증은 고정 1440px에서 서로 다른 비영 Core/native 위치의 nested pop, 현재 보기의 가장 이른 baseline으로 전체 해제, pending 복원 중 실제 wheel 이후 사용자 위치 유지까지 포함한다. 반응형 5폭 검증과 고정 geometry 상태 보존 검증은 분리한다. frame 기록의 조건 검사와 canonical queue의 실제 target filter 검사, Core 좌표와 native owner 좌표 검증을 각각 수행하며 hidden/inert·분리·교체된 native owner에는 복원을 적용하지 않는다.
+
+Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개의 기간만2026-09-28~10-02로 이동한 명시 파생 원장에서 검증한다. M1 원인→정확한 Resource(T1/Assignment2,known7.5 M/D)→지연 KPI1→정확한T1 일정→원래 Resource 지연 상세→원래 M1 원인·검색·기간·focus의 두 단계 LIFO 복귀와 조회 전후 canonical/revision 불변을 확인했다. 실제 server asOf2026-10-08과 해당 report scope/환산을 사용하며 공통 기본11.5 M/D 원장과 파생 조회 context를 혼합하지 않는다. Source-bound report/detail은 같은 binding의 POST query로 대조하며 binding 없는 GET fallback으로 범위를 확대하지 않는다. [실행 증거](../output/playwright/issue530/cross-flow-evidence.json)는 제품4개·fixture/helper 불변, 기존spec32,454byte prefix 보존, 추가case1건12.0초PASS를 기록한다.
 ## Issue #549 — Timeline 기술 기반과 후속 UX gate
 
 [Milestone Timeline](MILESTONE_TIMELINE.md)의 current/target/compatibility 표를 따른다. 현재 native Milestone 행과 빠른 보기를 유지하며 모델/개발 probe만으로 후속 lane keyboard/focus/Escape/관리 UX PASS를 주장하지 않는다. 표시 설정은 작업 조건·활성 필터 수와 독립이고 전체 모집단/viewport 안 없음/일반 작업 없음/null 일정은 별도 상태다. MT1 browser는 390/768/1024/1440/1920px의 Core geometry·same-instance·공개 이벤트·무변경을 검증한다. 공식 demo URL 조회와 실제 설치 Core 앱 fixture 조작은 구분하며 후속 UI의 keyboard/focus/overflow 검증은 별도다.

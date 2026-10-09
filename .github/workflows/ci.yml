@@ -1,6 +1,6 @@
 name: CI
 run-name: >-
-  ${{ github.event_name == 'pull_request' && format('PR CI · {0} · PR #{1} · Run #{2}.{3}', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
 
 on:
   pull_request:
@@ -241,37 +241,18 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'edited'
     needs: changes
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 5
     steps:
-      - name: 동일 head SHA의 전체 PR CI 완료 증거 대기
+      # changes와 metadata_evidence는 별도 Runner: 명시적으로 작업 브랜치 checkout
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: 현재 PR Head 및 동일 SHA 전체 CI 증거 즉시 판정
+        id: evidence
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CURRENT_RUN_ID: ${{ github.run_id }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         shell: bash
-        run: |
-          set -euo pipefail
-          repo="${GITHUB_REPOSITORY}"
-          deadline=$((SECONDS + 1200))
-          while (( SECONDS < deadline )); do
-            mapfile -t candidate_ids < <(
-              gh api "/repos/$repo/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$HEAD_SHA&per_page=100"                 --jq ".workflow_runs[] | select((.id | tostring) != \"$CURRENT_RUN_ID\") | .id"
-            )
-            for run_id in "${candidate_ids[@]}"; do
-              jobs_json="$(gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100")"
-              metadata_gate="$(jq -r '[.jobs[] | select(.name == "PR metadata가 기존 전체 CI 증거를 보존하는지 검증")][0].conclusion // ""' <<<"$jobs_json")"
-              quality="$(jq -r '[.jobs[] | select(.name == "Build, static checks, and unit tests")][0].conclusion // ""' <<<"$jobs_json")"
-              e2e="$(jq -r '[.jobs[] | select(.name == "Chromium end-to-end tests")][0].conclusion // ""' <<<"$jobs_json")"
-              docker="$(jq -r '[.jobs[] | select(.name == "Docker build and runtime smoke test")][0].conclusion // ""' <<<"$jobs_json")"
-              if [[ "$metadata_gate" == "skipped" && "$quality" == "success" && "$e2e" == "success" && "$docker" == "success" ]]; then
-                echo "동일 head SHA의 전체 CI required gate 증거 확인: run $run_id"
-                exit 0
-              fi
-            done
-            sleep 10
-          done
-          echo "동일 head SHA의 성공한 전체 PR CI 증거를 제한 시간 안에 확인하지 못했습니다." >&2
-          exit 1
+        run: python3 scripts/verify-pr-metadata-evidence.py --mode evidence
 
   policy:
     name: 정책·저장소 계약 검사
@@ -305,6 +286,8 @@ jobs:
         run: python3 scripts/verify-safe-branch-cleanup.py
       - name: 범용 Issue Lifecycle 계약·시나리오 검증
         run: python3 scripts/verify-issue-lifecycle.py
+      - name: PR metadata 증거 판정 M1~M8 회귀
+        run: python3 scripts/test-pr-metadata-evidence.py
       - name: 배포 shell 구문 검증
         run: |
           sh -n deploy/docker/container-entrypoint.sh

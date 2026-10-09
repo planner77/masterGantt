@@ -1,5 +1,15 @@
 # GitHub / CI / GHCR 운영 담당과 작업 절차
 
+## Issue #565 위험도 기반 QA_FINAL / 병합 승인 정책
+
+2026-10-10 후속: PR #583 독립 QA F1의 실제 실행 지침(`.codex/agents/infra.toml`) 누락을 보완한다. **QA Review의 필수/N/A는 단순 TOML 존재 여부가 아니라 `risk_level`/`qa_required`/최신 Head·Reviewer 증거로 판정**한다. 기존 Required Quality/E2E/Docker, DOCUMENTATION_SYNC, 미해결 리뷰 해결, Manager ACCEPT 및 main/GHCR 검증 Gate는 유지한다.
+
+
+[QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 HIGH 우선 LOW/MEDIUM/HIGH 분류를 PLAN·REWORK·PR Head 변경·병합 직전에 다시 점검한다. `qa_required=true`이면 실제 `qa_docs` 또는 구현자와 분리된 승인된 인간 Reviewer의 **최신 Head 독립 검토 PASS**가 필요하다. 그렇지 않은 LOW/일부 MEDIUM은 `QA_FINAL=N/A(reason)`가 가능하며 **Manager ACCEPT**는 두 경우 모두 필수다. #580의 GitHub Actions 자동 QA 대체는 구현 전까지 이 조건을 변경하지 않는다.
+
+실제 활성 `main-lifecycle-gate`는 required check 3개, 최신 main 정렬, 리뷰 스레드 해결을 강제하며 승인 review 수 0이다. **GitHub의 required review 수 0 = Manager ACCEPT 또는 독립 QA PASS가 아니다.** PR에서 `risk_level`/트리거/파일/qa_required/Reviewer identity/QA evidence/Head SHA/Manager 결정을 확인하고, GitHub Ruleset에 없는 운영상 Manager Gate를 자동 강제됐다고 보고하지 않는다. branch ruleset/required checks/권한 변경은 사용자·지정 maintainer의 명시 승인 및 실제 설정 확인 후에만 한다. #565에서 `.github` workflow나 Ruleset은 변경하지 않는다.
+
+
 ## Issue #361 Workflow 실행명 운영 규칙
 
 Actions 목록에서 하나의 업무 lifecycle을 검색할 때 **Primary Issue**를 공통 추적 키로 사용한다. 한 PR에는 canonical `Refs #NNN` 1개를 두고 branch는 `*/issue-NNN-*`, PR 제목은 새 작업부터 `[Issue #NNN] ...` 형식을 우선한다. 호환을 위해 기존 `Issue #NNN` 또는 `(#NNN)` 제목도 허용하지만 Primary Issue는 branch/body/title 사이에 일치해야 한다. Related Issue는 PR 본문 설명에만 기록하고 workflow run-name의 owner로 사용하지 않는다.
@@ -16,7 +26,7 @@ GHCR Release · Issue #361 · PR #<PR> · v<version> · Run #<run>.<attempt>
 
 PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue가 정확히 하나의 Primary Issue로 일치하는지 먼저 검증한다. Title/body 편집도 `pull_request.edited`로 재검증한다. Dependabot은 작성자 `dependabot[bot]` + 동일 저장소 + `dependabot/` branch 조건이 모두 맞는 경우에만 automation 예외로 취급한다. Main CI에서는 별도 PR payload가 없으므로 merge commit metadata가 trace source다. Generic Finalizer는 `workflow_run.display_title`, Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
 
-최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
+최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_required=true`인 경우 `qa_docs` 또는 승인된 별도 인간 Reviewer가 독립 검토한다. `qa_required=false`인 경우 Manager가 사유 있는 QA_FINAL N/A 및 검토 증거를 남긴다.
 
 이 문서는 **담당자, 배정 조건, 승인 경계와 보고 절차**의 기준이다. Workflow·tag·image의 기술 계약은 [CI_CD.md](CI_CD.md), runtime과 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 보안은 [SECURITY.md](SECURITY.md), 기존 결정은 [DECISIONS.md](DECISIONS.md)가 기준이다. 역할 확장은 기존 release 정책이나 D05를 변경하지 않는다.
 
@@ -24,11 +34,11 @@ PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, tit
 
 | 요청/변경 | 주 담당 | 협업과 검토 |
 | --- | --- | --- |
-| GitHub repository, branch/PR/merge 정책, ruleset, required checks, Actions/Environment 설정 | infra | Manager의 범위·권한 확인, qa_docs 검토 |
+| GitHub repository, branch/PR/merge 정책, ruleset, required checks, Actions/Environment 설정 | infra | Manager의 범위·권한 확인, 위험도별 조건부 qa_docs/별도 인간 Reviewer 검토 |
 | GitHub 운영 Issue/PR, template, Dependabot, CI 상태와 release 이력 관리 | infra | 기능 Issue의 도메인 담당과 Manager는 그대로 유지 |
 | CI 실패, runner/cache/network, workflow trigger/job/permission, CI script | infra | Application 결함은 frontend/backend/scheduler가 수정 |
-| GHCR 인증·401/403·repository 연결·visibility·Actions access·image 보관/복구 | infra | 권한·공개범위·삭제는 지정 maintainer 승인 |
-| Docker/Compose, SQLite volume, Node/native module, readiness와 배포 | infra | backend 협업, qa_docs 독립 검증 |
+| GHCR 인증·401/403·repository 연결·visibility·Actions access·image 보관/복구 | infra | HIGH 위험 정책 변경에는 별도 Reviewer 검토, 권한·공개범위·삭제는 지정 maintainer 승인 |
+| Docker/Compose, SQLite volume, Node/native module, readiness와 배포 | infra | backend 협업, 위험도별 `qa_required=true`면 qa_docs/별도 인간 Reviewer 독립 검증; 미의무인 경우 Manager 증거 검토 |
 | 모든 변경의 최종 ACCEPT/REWORK/보류 판단 | Manager | 구현 Agent의 자체 PASS만으로 승인하지 않음 |
 
 GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한다. Agent ID는 GitHub 사용자 계정이 아니다. Issue에는 `담당 에이전트: infra`로 기록하고 실제 assignee는 확인된 계정만 사용한다. 같은 workflow/script를 여러 Agent가 동시에 수정하지 않는다.
@@ -85,7 +95,7 @@ Force push, tag 이동/재발행, quality gate 우회, 무조건 재시도, 비�
 QA 검토 결과 / Manager 판단:
 ```
 
-완료는 근거 있는 원인/변경, 관련 검증, 권한·release 불변식 유지, 문서 일관성, 독립 QA와 Manager 판단을 포함한다. 실행하지 않은 CI나 GHCR 검증을 PASS로 기록하지 않는다. TOML에 적힌 model/effort와 실제 실행 metadata의 확인도 구분한다.
+완료는 근거 있는 원인/변경, 관련 검증, 권한·release 불변식 유지, 문서 일관성, 위험도에 따라 필요한 독립 QA PASS 또는 사유 있는 N/A 및 Manager 판단을 포함한다. 실행하지 않은 CI나 GHCR 검증을 PASS로 기록하지 않는다. TOML에 적힌 model/effort와 실제 실행 metadata의 확인도 구분한다.
 
 ## 7. CI/CD 한글 작성 정책
 
@@ -263,3 +273,10 @@ Release 성공 후 `release-finalizer-resume.yml`은 exact source run을 확인�
 - 이미 생성된 annotated SemVer tag가 있으면 그 tag를 그대로 사용하며 이동/덮어쓰기하지 않는다.
 - dispatch 403은 새 tag/version 생성으로 우회하지 않고 Resume permission을 수정한 뒤 동일 lifecycle을 재개한다.
 - Issue별 one-shot release helper workflow는 만들지 않는다.
+
+
+## Issue #577 — PR 변경과 metadata-only CI 운영 순서
+
+PR 생성 시 제목의 단일 `Issue #N`, 본문의 단일 canonical `Refs #N`, `issue-N` 작업 브랜치를 맞춘다. 진행 상황·CI 결과는 PR/Issue **댓글**로 기록하고 제목/본문을 STATUS 용도로 반복 편집하지 않는다. 제목/본문의 실제 의미가 달라질 때만 편집한다. Push 이후 full CI 완료 전 edited 이벤트를 발생시키면 같은 SHA의 full/metadata 작업이 동시에 발생할 수 있으며, Push 우선만으로 중복이 제거되지는 않는다.
+
+메타데이터 CI는 long polling하지 않는다. `SUPERSEDED`는 구 SHA의 비권위 N/A이고, `DEFERRED/MISSING`은 현재 SHA 필수 Gate 승인 증거가 아니다. full CI의 세 required check가 성공한 뒤 기존 metadata-only 실패 Job을 재실행하여 성공으로 갱신해야 한다. API 오류·trace 오류는 원인을 수정한 뒤 재검증한다. 메타데이터 Run이 full E2E/Docker를 취소하지 않는지 Actions concurrency를 확인한다. PR CI 시작까지만 요청되면 Runner completion을 기다리지 않는다.

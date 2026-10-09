@@ -1,5 +1,11 @@
 # Database Schema
 
+## Issue #538 — 사업부/제품/사업장 연결 (migration 0024)
+
+`db/migrations/0024_project_master_relations.sql`은 `business_unit_products(business_unit_id,product_id)` 및 `business_unit_product_sites(business_unit_id,product_id,site_entity_id)` STRICT 복합 PK/FK 연결 테이블을 생성한다. site 연결은 유효한 business_unit_products 연결에만 귀속된다. INSERT category trigger는 BUSINESS_UNIT/PRODUCT/SITE_ENTITY 타입을 강제하며 FK는 삭제와 고아 관계를 보호한다.
+
+Migration은 기존 Project의 **사업부+제품이 모두 지정된 조합**을 중복 없이 backfill하고 site가 있는 3개 조합도 연결한다. Project의 FK/row/revision이나 부분·legacy 선택을 추정/수정하지 않는다. migration ledger의 순서 및 checksum 검증은 유지한다.
+
 ## Issue #460 — 명시 Milestone Membership
 
 Migration `0022_task_milestone_memberships.sql`은 `task_milestone_memberships(project_id, member_task_id, milestone_task_id)` STRICT table을 추가한다. `PRIMARY KEY(project_id, member_task_id)`로 단일 소속을 보장한다. Project FK 및 두 `(project_id, task_id)` composite FK는 Project 경계와 삭제 cascade를 제공하고 target 조회 index를 둔다. INSERT/UPDATE type trigger는 source Task/Summary, target Milestone을 검증하며 Task type 변경 trigger도 이 불변조건을 유지한다. 상속/effective/Ready/KPI는 저장하지 않는다.

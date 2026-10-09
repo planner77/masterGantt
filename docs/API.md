@@ -1,5 +1,17 @@
 # Backend API
 
+## Issue #538 — Project Master 관계 계약
+
+`GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.
+
+`POST /api/project-master/admin/relations`은 연결, `DELETE`는 해제다. JSON body는 `{businessUnitId:string,productId:string,siteEntityId?:string|null}`이며 미지정 site는 제품 연결로 해석한다. 기존 관리자 Cookie, Origin, strong catalog `If-Match`, request logging, `private,no-store`, 최신 revision/ETag를 유지한다. 동일 관계 재연결은 no-op(리비전 유지). Category·UUID 불일치/존재하지 않는 부모 관계는 409 `PROJECT_MASTER_RELATION_INVALID`, 프로젝트 사용 또는 하위 site 연결이 남은 해제는 409 `PROJECT_MASTER_RELATION_IN_USE`, 비활성 항목 신규 연결은 409 `PROJECT_MASTER_INACTIVE`, stale revision은 412다.
+
+Project create/update에서 조합이 맞지 않으면 409 `PROJECT_MASTER_RELATION_INVALID`. Project는 모두 null, 사업부만, 사업부+제품, 사업부+제품+사이트 형태만 신규 허용한다. 기존 Project와 동일한 legacy 관계가 그대로 유지될 때는 비분류 메타데이터 변경을 허용한다. Copy는 원본 관계를 안정 ID 그대로 보존한다.
+
+### Issue #538 review follow-up — template hierarchy conflict
+
+기존 Template snapshot의 사업부/제품/사업장 조합이 현행 관계 제약에 맞지 않으면 인스턴스화 API는 `409 PROJECT_MASTER_RELATION_INVALID`를 반환한다. 템플릿 자체를 임의 변환/자동 수정하거나 신규 Project를 불완전하게 생성하지 않는다.
+
 ## Issue #460 — Milestone 소속 / 완료 Gate API
 
 Canonical Task 응답은 `membership={explicitMilestoneTaskId,effectiveMilestoneTaskId,inheritedFromTaskId}`를 null 정규화하여 제공하고 Milestone은 `stageGate`를 제공한다. 모든 ID는 immutable public Task UUID다. effective/inheritance/Ready는 read-only projection이며 저장 입력으로 신뢰하지 않는다. 기존 mixed Link에는 `legacyMixed=true`, 정상 homogeneous Link에는 false를 제공한다. [정확한 DTO·판정·inventory](MILESTONE_STAGE_GATES.md)를 따른다.
@@ -1485,3 +1497,11 @@ resourceDashboard: {
 새 7개 시트·raw/null·예산 및 단일 검증 Project hyperlink는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다. 기존 Gantt/Stages/Resource Effort는 기존 전체 범위다.
 
 미설정 원장 상세 보완: `dimension=diagnostic&metric=unset&view=assignments`만 허용한다. T0에 원래 source Task/exact Assignment 교집합을 먼저 적용하고 개인·역할 조건 전 raw unset IDs를 count/detail/scope에서 공유한다. 기간 교차 행은 기존 clipped 값과 optional `allocationOverlapsReport=true,effortRangeBasis=report-overlap`을 제공한다. 기간 밖 행은 원래 from/to, 기존 Calendar helper의 근무일, null MD/MM과 `false,raw-allocation`을 제공한다. required numeric 필드는 유지한다. page 전에 모든 대상 원래 기간 합 1,000,000일을 검증하고 초과는 422 REPORT_LIMIT_EXCEEDED(`diagnostic.assignmentDays`)다. 개별 366일 제한을 추가하지 않으며 개인 필터/page로 이 예산을 우회하지 않는다.
+
+## Issue #530 통합 회귀의 조회 기준
+
+`tests/fixtures/resource-kpi-integration.ts`의 동일 6개 Task 원장을 Domain, native SQLite HTTP handler, 실제 Next HTTP와 Excel 회귀에서 재사용한다. 테스트 adapter는 Task/Resource/Group/Assignment의 런타임 public ID를 매핑하고 상태·기간·분류·Milestone 소속을 유지한다. 명시 조회는 `2026-10-05..09`, `asOfDate=2026-10-10`, `mdPerMm=20`이며 known11.5 M/D, unknown1 Assignment, 고유 Task4/Assignment5/Resource2, Capacity10 M/D와 M/M0.575를 확인한다. UI의 서버 기본 기준일·환경 환산은 실제 report echo로 비교하며 이 명시 조회와 동일하다고 간주하지 않는다.
+
+신규 API나 DB 계약은 추가하지 않는다. GET은 Project UUID 기반 공개 읽기이고, 읽기 POST query는 exact Origin, readonly Excel POST는 exact Origin과 strong `If-Match`를 검증한다. 편집 session 없이 조회·Export할 수 있지만 Task 변경은 server session을 요구한다. 다른 Project Task 선택은400, stale drill은409, stale Export는412이며 전체 파일 생성 실패를 유지한다. 현재 제품에 별도의 private Project 모델은 없다. 공개 링크의 읽기 접근을 편집 권한이나 조직 SSO 권한으로 설명하지 않는다.
+
+실제 회귀는 `tests/server/resources/resource-kpi-integration.test.ts`와 `tests/e2e/resource-kpi-integration-api.spec.ts`에 있다. 원격 `quality/e2e/docker`와 실제 reverse proxy/SSO 운영 검증은 이 로컬 증거와 별도로 판정한다.

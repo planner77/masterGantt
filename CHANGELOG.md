@@ -1,10 +1,48 @@
 # Changelog
 
-## [0.103.0] - 2026-10-08
+## [0.104.0] - 2026-10-10
 
 ### Added
 
-- Issue #549: Milestone Timeline의 전체 원본과 WBS 표시·날짜순 조회·표시 환경설정·조회 선택을 분리하는 공통 모델과 설치 Core 연동 adapter를 추가한다. 기존 운영의 Milestone 행과 빠른 보기는 유지하며 후속 전환의 호환·기술 검증 계약을 문서화한다.
+- Issue #549: Milestone Timeline 기반의 canonical 조회 원본, WBS 표시 집합, 프로젝트 전체 날짜순 Milestone 모집단, 표시 환경설정, 선택·member 강조를 분리한다. 설치 SVAR Core 2.7.3의 공개 동작과 단일 adapter·개발용 Chromium fixture로 후속 lane/행 분리의 호환성 gate를 정의한다. 기존 운영 Milestone 행·빠른 보기·서버 Gate/권한·데이터는 변경하지 않는다.
+
+### Changed
+
+- PR #557: v0.103.1 최신 main의 #530 peer viewport 복원, #568 Core trace, #569 좌표·기하 Adapter PoC 및 위험도 기반 QA 문서를 보존하며 #549 기능 기반을 통합한다. 기존 #549의 v0.103.0 예정 버전은 #538 main 발행과 충돌하여 v0.104.0으로 조정한다. #569 PoC의 제품 도입 DEFER 및 Week 월 헤더 의미 검증 필요성은 유지한다.
+
+## [0.103.1] - 2026-10-09
+
+### Fixed
+
+- Issue #530 PR #581 CI #2325.1의 #463 E2E read→fill 경쟁을 보완한다. 정상 peer 복귀의 3-frame 완료 영수증을 resize/검색 이전에 확정하고, 실제 trusted 검색 입력이 진행 중 복원을 취소하는 별도 유한 RAF barrier 회귀를 추가한다. 기존 120/96·180/128·#530 fixed120/240/nested 검증과 제품·버전·CI gate를 유지한다.
+- Issue #530 Main CI #2315.1의 기존 #525 E2E 좌표 경합을 보완한다. Grid Task 선택 후 늦게 끝나는 Core Chart 자동 reveal(실측 1581px)을 수동 native120px로 경쟁시키지 않고, 실제 비영점 public/Core·DOM 두 축 8연속 RAF 안정화 좌표를 원장으로 고정해 추가12RAF/일정↔리소스 복귀 strict 상태 보존을 검사한다. 제품/버전/필수 CI gate는 불변이다.
+- Issue #530 PR #579 CI #2313.1 후속: 검색/필터 input·change를 명시적 사용자 intent로 수용해 대기 중인 peer viewport 복원을 React Projection 업데이트 전에 취소하고, 완료된 복원 가드도 무효화한다. 네이티브 Chart 보정의 settle 단계 예산과 이후 guard 단계 예산을 구분하며, hidden·취소로 정상 종료되는 요청의 guard를 인스턴스 동일성으로 정리한다. #463 필터 중 stale restore 영수증 방지와 #530 post-settle 반복 native-only reset의 Core/DOM 복귀를 strict E2E로 보강한다.
+- Issue #530 Main CI #2311.1 후속 복원 안정화: SVAR 시간축 확장 시 native Chart의 실제 수평 capacity가 31px로 제한된 순간 Core120 복원 명령을 발행해 좌표가 Core/native31로 재덮이는 경합을 보완한다. Chart 물리 capacity가 target을 3프레임 연속 지원할 때만 명시 복원을 시작하고, Core/native 3프레임 정합 뒤 성공 receipt를 남긴다. 사용자/geometry 변화는 취소하며 bounded timeout·진단을 추가하고 기존 엄격한 #530 E2E를 유지한다. 배경화면 RAF 중지 시 독립 timer·visibilitychange로 기다림을 깨우고, timer wake/실제 native 보정은 3개의 연속 안정 프레임으로 계상하지 않으며 E2E receipt는 실제 안정화 이후 읽는다.
+- Issue #530 PR #566 CI #2302.1 재보완: SVAR peer 복귀의 Core 좌표가 120px이나 실제 Chart DOM이 늦게 0px이 되는 현상을 native-first trace로 식별하고, 유효한 같은 viewport·물리 scroll capacity에 한정해 기존 복원 소유자에서 native 좌표를 최대 3회 재정합한다. Core 변경·사용자 입력·숨김·물리 capacity 부족 시 보정 취소 및 진단을 유지하며 E2E에서 실제 native-only 0 재현과 Core/DOM strict 복귀를 검증한다.
+- Issue #530 동일 v0.103.1 Main CI 재보완: 명시적 Resource→일정 복원 이후 지연된 SVAR native scroll-chart(0)이 nonzero 120/240 좌표를 덮지 못하도록 유효한 같은 viewport 문맥에서 Event Bus intercept를 적용하고, 실제 Gantt 차트·그리드 내부 사용자 wheel/키보드/포인터와 범위·레이아웃 변경만 보호를 해제한다. Gantt 외부 Task Editor·툴바·타 패널 입력은 복원 보호를 유지한다. nested pop/clear와 사용자 좌측 끝 이동을 E2E로 검증한다.
+- Issue #530 후속 PR #564: Resource→정확한 Task 일정→원래 보기 복귀 시 메타데이터-only Gantt 동기화가 보존한 이전 0 좌표를 명시적 peer viewport 복원(비영점) 이후 다시 덮는 경합을 해결한다. 명시적 복원 epoch로 오래된 요청을 무효화하고, 중첩 LIFO 복귀의 layout~queue/DOM 안정화 동안 metadata-only 캡처·적용을 보류하여 재진입한 0 좌표의 늦은 재적용도 차단한다. 입력·scope·API instance·geometry guard와 원래 Core/native 위치의 엄격한 불변식은 유지한다.
+- E2E 회귀에 복원 직후뿐 아니라 12 animation frame 이후에도 공개 Core/native 위치가 유지되고, 나중에 `scroll-chart(0)` 재적용이 없다는 판정을 추가한다. 기존 반응형·키보드·권한·집계·Excel 검증과 CI gate는 유지한다.
+
+## [0.103.0] - 2026-10-09
+
+### Added
+
+- Issue #538: 프로젝트 기준정보 사업부→제품→사업장/법인 연결 관계를 별도 권한으로 관리하고 종속 선택 및 서버 유효성 검증을 제공한다. 기존 Project 참조는 보존하고 확인된 조합만 migration 0024에서 연결한다.
+
+### Fixed
+
+- Issue #538 PR 회귀 보완: 새 프로젝트 생성에서 본문 바로가기 직후 활성 생성 방식 탭을 순차 Tab에서 즉시 제외하고 폼 진입 시 roving 탭 순서를 복원하여 키보드 탐색을 안정화한다.
+- 메타데이터 저장 뒤 Gantt 비영점 스크롤 위치와 독립 E2E 서버의 읽기 전용 GET 일시적 연결 리셋 검증을 보완한다. 최신 main의 #519 Milestone 후보 ID 숨김 및 Resource KPI/Excel 보고·워크스페이스 변경을 보존한다.
+
+## [0.102.3] - 2026-10-09
+
+### Fixed
+
+- Issue #530: Resource·Milestone drill-down 이동 기록마다 Gantt 공개 Core·DOM viewport 관측값을 보존하고, 원래 보기로 복귀할 때 같은 snapshot·instance·범위의 유효한 좌표를 복원한다. 오래된 복원과 새 사용자 입력의 충돌을 방지한다.
+
+### Changed
+
+- Issue #530: 공통 합성 fixture로 Domain·SQLite HTTP·UI·Excel의 원시 공수·고유 Assignment·scope 정합성을 비교하는 통합 회귀 검증과 사용자 가이드를 추가한다. 외부 ID 표시를 제거한 최신 #519 Milestone picker와 기존 회귀 검증을 보존한다.
 
 ## [0.102.2] - 2026-10-08
 

@@ -1,5 +1,9 @@
 # Security
 
+## Issue #538 — Project master relation mutation
+
+`POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.
+
 ## Issue #460 — 단계 mutation과 데이터 유실 방지
 
 새 `POST /api/projects/{publicId}/milestone-memberships`는 route security inventory의 `origin-session-if-match` 보호 mutation이다. Task PATCH의 Membership도 동일 session/Origin/strong revision 및 transaction 내 최신 권한 재검증을 사용한다. type/Project/FK/unique/완료 구조/완료 가능 조건을 서버에서 확인하고 client effective/Ready/legacy flag를 신뢰하지 않는다. 실패 시 Task 필드·소속·revision을 전부 rollback하며 공개 오류에는 public Task ID만 제공한다.
@@ -414,3 +418,9 @@ POST는 실제 UTF-8 byte1MiB, content-type/charset/content-encoding, strict obj
 opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bundle)의 XML1.0 불허 문자·U+FFFE/U+FFFF·unpaired surrogate는 JSON escaping 이전에도 검증해 EXPORT_UNSUPPORTED로 전체 실패한다. tab/LF/CR와 유효 supplementary Unicode/=+-@ 원문을 보존한다. 신규 시트당50000/전체150000행·1000000실제셀·opt-in 전체XML32MiB/ZIP16MiB의 사전/최종 actualbyte 검증은 legacy opt-in 없는 파일에 적용하지 않는다.
 
 신규 Resource Report에만 validated APP_BASE_URL parser에서 만든 canonical `/projects/{publicId}` external hyperlink relationship 1개를 허용한다. writer는 server-only canonicalProjectUrl만 받고 request에 URL 필드는 없다. Task/user URL·credential·query·fragment·secret은 relationship target으로 만들지 않는다. Password/hash/session/Cookie/internal SQL/DB ID를 보고서·오류·로그에 추가하지 않는다. 성공/오류 private,no-store/nosniff/no-cookie와 UUID filename은 유지한다. [API](API.md#issue-529-resource-보고서-excel-opt-in)를 따른다.
+
+## Issue #530 공개 조회와 편집 권한 통합 회귀
+
+Resource GET의 Project UUID 공개 읽기, query POST의 exact Origin, Excel POST의 exact Origin·strong `If-Match`와 보호 Task mutation의 edit session을 실제 HTTP로 각각 확인한다. 공개 읽기와 Export는 edit session 없이 허용한다. `private, no-store`는 응답 cache 정책이며 private Project authorization 모델을 뜻하지 않는다. 현재 별도의 private Project 모델은 없고 공개 링크 보유자의 읽기를 차단하는 신규 권한을 이 회귀에 추가하지 않는다. 조직 SSO/reverse proxy 접근 통제는 해당 운영 환경의 별도 검증이다.
+
+회귀는 foreign Project ID 거부, stale report/export 실패, 조회/Export 전후 canonical snapshot 불변, 쿠키 발급 없음과 Workbook 내 credential 필드 없음·서버 생성 Project hyperlink를 확인한다. 합성 admin/edit password는 disposable test instance의 fixture에만 사용하며 운영 secret이나 SQLite 파일을 게시하지 않는다. 신규 session/token 저장소·Origin 예외·권한 우회는 없다.

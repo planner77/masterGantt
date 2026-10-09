@@ -77,3 +77,12 @@ native 날짜 reveal은 NY Day -1px/Week -39px, calendar helper+public left는0p
 게시 직전 main drift `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0 → 08ac7749efc4544dfc125853d9e58ef3a9d56b21`(PR #488/#487)을 확인했다. branch를 fast-forward하고 공용 Playwright setup/CI timeout·관련 정적 검증/기존 E2E 및 문서를 모두 보존했다. TEST_PLAN/PLAN의 양쪽 추가 문단을 통합했다. 제품 source/domain/API/version 변경은 없고 최종 기술 실험 source hashes도 불변이므로 해당 Local Fast Feedback은 재사용한다. 실험 baseline은 이전 dca2 SHA, 최종 게시 parent는08ac SHA로 구별한다. version은0.103.0 유지한다. 기존 runtime 산출물은 게시하지 않는다.
 
 DOCUMENTATION_SYNC: PASS. frontend Week header 관측 FAIL/원인 baseline NOT TESTED 문서 REWORK를 확인했고 required docs/N/A와 version/Markdown/diff 검증을 완료했다. 최종 exact staged tree를 독립 PRE_QA 대상으로 전달한다. PR CI 결과/최종 ACCEPT는 NOT TESTED다.
+
+## 2026-10-10 최신 main 재정렬·재검증 인계
+
+- 이전 PR #557 head `2ac846da822f8b67abea01ef9d1f535b1a8a54dc`의 [CI #2230.1](https://github.com/planner77/masterGantt/actions/runs/37848532318)은 quality/e2e/docker 모두 PASS다. 최초 #2210.1 Chromium #514 wheel 실패는 이후 정확한 DOM 이동 관측 보완으로 해소했다. 과거 head의 PASS를 새 head의 PASS로 표시하지 않는다.
+- 2026-10-10 기준 main `f1ac9fef186a635d08b51c878376925567653736`, application `0.103.1`; 선행 기준 `3457d1fac8e50c43beafa7d662fbaf692e72127c` 대비 93커밋 진척으로 PR 충돌 상태를 확인했다. 신규 공통 기반에는 version `0.104.0`(MINOR)을 사용하며 package/lock/CHANGELOG를 함께 갱신한다. 기존 `0.103.0`은 이미 #538의 main 릴리스이므로 재사용할 수 없다.
+- 기존 #549 원본(공통 순수 모델, Core version-bound adapter, unit/synthetic Chromium, canonical 보존)과 이전 #514 E2E 보완을 보존한다. 충돌 범위는 문서·source/manifest로 제한하며 #530 peer viewport 정합, #568 진단 추적, #569 PoC/ADR, 위험도 기반 QA 문서를 최신 main 기준으로 유지한다. Milestone display 전환은 MT4 #552까지 하지 않는다.
+- [MILESTONE_TIMELINE](../../MILESTONE_TIMELINE.md)에는 #549 current→target 계약과 #569 PoC의 native scroll 단일 소유, 좁은 폭 NO_SCROLL_CAPACITY, 제품 도입 DEFER를 분리 기록한다. #549 dev-only 기술 probe의 9 PASS는 #569/#551 통합 제품 검증이나 Week header 의미 PASS를 의미하지 않는다.
+- DOCUMENTATION_SYNC은 해당 source/문서/버전 통합 내용을 포함하며 API·SQLite DB schema·Security·Scheduling Engine·Export 동작·GitHub workflow 의미 변경은 N/A다. 단일 에이전트 순차 검토이며 독립 QA의 새 head 검증은 NOT TESTED. 새 PR CI 결과는 actual run/head를 별도 확인해야 한다.
+- 관련 후속 PR #559/#560/#561/#562는 stacked 선행 관계와 버전 재정렬이 별도로 필요하다. 이번 승인 범위는 **새 exact-head PR CI 시작 확인**까지다. merge/main CI/GHCR/tag/Release/Issue 종료는 하지 않는다; `release_required=true / release_authorized=false`.

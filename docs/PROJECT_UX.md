@@ -1,5 +1,27 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #569 — 기하·날짜 이동의 설계 실험
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)의 fixture는 개발·테스트 전용이며 기존 프로젝트 화면을 바꾸지 않는다. 명령 반환만으로 날짜 이동 완료를 알리지 않고 actual Core/native 좌표와3안정frame을 따로 확인한다. hidden/inert/zero-size/scroll capacity 부족은 측정·복원을 중지하는 명시적 결과로 다룬다.
+
+실제 공간 부족 시 제안된 회복은 보이는 layout 복귀, Chart 공간 확대, 사용자 명시 재시도다. 자동 무한 retry나 오래된 viewport 적용을 하지 않는다. 이 제안은 제품 도입 전 UX 연결이 필요하며 #569만으로 새 feedback 흐름이 제품에 구현된 것은 아니다. 기존 #367의 우측 탐색, #514의 Task 시작일 reveal, #551 비교 stack의 Milestone geometry와 원본 identity/권한 계약은 별도 회귀로 유지한다.
+
+#569의 PR CI 보완에서는 peer/layout 복귀의 동일 scope 위치 보존과 검색으로 줄어든 행의 native scroll clamp를 구분한다. capacity 0인 검색 결과에 이전 세로 위치를 강제하지 않으며, 검색 해제 후 새 사용자 위치를 오래된 peer 복원이 덮어쓰지 않는지 검증한다. 이번 변경은 이 기존 경계를 확인하는 테스트 보완이며 제품 viewport writer나 검색 동작을 바꾸지 않는다.
+
+## Issue #568 — 실제 동기화 완료의 관측
+
+고정 PR #562의 로컬 반복에서 pending wheel의 최신 사용자 위치와 Week 전환 후 Inline 이름 표시 계약 위반이 재현됐다. 이번 진단 도구 추가는 이 두 제품 회귀의 해결을 의미하지 않는다.
+
+조회 탭·Resource 복귀·검색·fullscreen·Inline 저장의 기존 사용자 계약은 유지한다. 분석 fixture는 명시적인 dev/test opt-in에서만 합성 데이터로 제공하며 일반 Project 탐색에 추가하지 않는다. Core 명령 반환을 화면 복귀 완료로 간주하지 않는다. 검증은 Core 공개 좌표 exact, DOM 정수화 ±1px, 실제 scroll capacity, 연속 안정 frame, 새 사용자 입력의 우선권을 함께 관측한다.
+
+[진단 가이드](GANTT_SYNC_TRACE.md)의 단독 Core 관측은 서버 저장·권한·Milestone lane의 제품 인수를 대신하지 않는다. 서버 saved/canonical 값과 native Grid 표시, 첫 focus와 Enter/Tab/Escape는 각각 검증해야 한다. 관측·재현 실패와 후속 제품 수정은 분리한다.
+
+## Issue #538 — Project 분류의 종속 선택
+
+기존 #289의 독립 3개 Select를 관계 기반 `사업부 → 제품 → 사업장/법인`으로 확장한다. 초기값은 모두 미지정, 사업부/제품 변경 시 하위 값은 초안에서만 지우고 `role=status`로 안내하며 저장 전 사용자 확인을 기다린다. 사업부 없이는 제품을, 사업부·제품 없이는 사이트를 변경할 수 없다. 기존 inactive/legacy 참조는 현재값 옵션에 남기고 새 선택은 active relation만 허용한다.
+
+`/project-master-admin`에서는 기존 category Tab과 항목 표 아래에 독립 관계 편집 영역을 둔다. 먼저 사업부-제품을 연결한 후 동일 조합에 사업장/법인을 연결할 수 있다. 관계 해제는 두 번째 명시 클릭이 필요하며, 프로젝트/하위 관계 사용 중에는 서버가 거부한다. 390~wide에서는 control wrap/표 자체 가로 scroll을 유지하고 keyboard/tab/aria/focus, 기존 조회 오류/비밀번호 UI를 보존한다.
+
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원
 
 일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
@@ -1155,7 +1177,7 @@ Project Context의 기존 내보내기 대화상자를 재사용한다. 일반 �
 
 2026-10-08 설치 SVAR React Gantt Core2.7.3에서 [exec](https://docs.svar.dev/react/gantt/api/methods/exec/), [scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/) 공개 계약과 타입을 read-only 조사했다. URL/문서 확인과 실제 Chromium의 positive·입력취소·조건변경 조작 증거를 분리한다. Core 공개 기능을 사용하며 PRO 기능/비공개 구현을 복제하지 않는다.
 
-Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
+Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 작업 검색·고급 필터의 명시적 입력/변경도 최신 viewport 의도로 간주해, 브라우저 입력 캡처 단계에서 이전 peer 복원 요청과 복원 보호를 취소한다. 단순히 Gantt 밖의 Task Editor·툴바를 클릭하는 것은 의도적인 일정 위치 변경이 아니므로 동일하게 취소하지 않는다. 실제 Core/DOM 3개 RAF 안정화로 복원 성공이 확정된 후에는 별도의 제한된 네이티브 재정합 예산을 유지하며, 숨김/취소로 안정화가 중단된 요청의 보호는 즉시 정리한다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
 
 ### Issue #529 — Resource Excel 보고서 범위 확인
 
@@ -1168,6 +1190,25 @@ Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약
 - `scroll-chart`에는 캡처한 공개 Core 좌표를 사용하고 기존 DOM native 좌표는 별도 복귀 대상으로 유지한다. 공개 reader가 준비되지 않거나 유효하지 않으면 DOM 값을 Core로 대체하지 않고 해당 peer Core 복원을 취소한다. 원장/snapshot, task root/filter, Gantt instance, sync generation, 사용자 입력/geometry 취소 정책은 유지한다.
 
 
+## Issue #530 통합 회귀의 사용자 조건
+
+리소스 화면의 기간·보기·집계 순서·표시 단위를 왕복해도 고유 개인 Assignment 원장의 Grand 공수는 변하지 않는다. 복수 Group 소속의 소계는 중복 기여를 포함하므로 Grand와 합산하지 않는다. 공수 미설정은 알려진 부분합과 함께 표시하며 M/M 기준이 없으면 전환을 잠근다.
+
+현재 화면에는 조회 기준일이나 M/D 환산값을 직접 입력하는 control이 없다. 서버 응답에 표시된 기준일·환산값·출처를 API 및 Excel과 비교해야 하며 다른 기준일의 지연 KPI를 같은 조건의 결과로 취급하지 않는다. 명시적인 `mdPerMm=20` API 조회와 화면의 환경/미설정 환산은 별도 조건이다.
+
+통합 회귀는 합성 원장을 실제 SQLite/HTTP로 생성하고 계층·비교표·Resource Plan·Excel 명령·상위 Workspace 탭 왕복을 검사한다. 조회와 파일 생성으로 Project/Task/Link revision을 바꾸지 않는다. 로컬 Chromium 증거와 PR의 원격 전체 회귀는 별도로 판정한다.
+
+상세/report에서 stale를 확인한 경우 Excel Dialog는 열어 조건을 검토할 수 있다. 리소스 보고서를 포함한 생성은 현재 보고서 확인 전 로컬 handler에서 안내하고 POST를 보내지 않는다. 이 로컬 사전 차단은 실제 Excel POST의 409/412 응답으로 해당 증명이 거부되어 생성 버튼을 잠그는 상태와 구별한다.
+
+Resource 임시 범위 이동의 각 반환 단계는 당시 일정의 SVAR public 좌표와 native scroll 좌표를 독립된 불변 기록으로 보관한다. 원래 보기와 전체 해제는 복귀 대상 단계의 기록을 사용하며, 떠나는 임시 일정의 위치로 원본을 덮어쓰지 않는다. 동일 canonical snapshot 객체, Project·scope/filter, reset 세대, 실제 API reader identity 및 scale/grid/columns/viewport 조건이 맞는 명시적 frame 귀환만 기존 canonical queue에서 새 복원 요청을 만든다. 복원 전에 사용자가 일정에 입력하거나 조건이 바뀌면 Core와 native 복원을 함께 취소하고 사용자 위치를 유지한다. 일반 탭 전환과 일반 필터 변경의 기존 취소 계약은 유지한다.
+
+동일 1440×900 window에서 scope 반환 시 실제 Gantt root 높이가 532px에서 504px로 바뀌는 정상 배치를 확인했다. 원본과 target의 절대 높이 동일성을 요구하지 않고, 원본 window 크기·fullscreen host·scale/columns/grid/root 폭 조건을 유지하면서 target canonical filter 적용 후 보이는 root 크기를 해당 복원 요청의 기준으로 삼는다. 이후 geometry·입력·canonical 세대 변경은 복원을 취소하며, 움직이는 배치를 계속 재캡처하지 않는다.
+
+Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개의 기간만2026-09-28~10-02로 이동한 명시 파생 원장에서 검증한다. M1 원인→정확한 Resource(T1/Assignment2,known7.5 M/D)→지연 KPI1→정확한T1 일정→원래 Resource 지연 상세→원래 M1 원인·검색·기간·focus의 두 단계 LIFO 복귀와 조회 전후 canonical/revision 불변을 확인했다. 실제 server asOf2026-10-08과 해당 report scope/환산을 사용하며 공통 기본11.5 M/D 원장과 파생 조회 context를 혼합하지 않는다. Source-bound report/detail은 같은 binding의 POST query로 대조하며 binding 없는 GET fallback으로 범위를 확대하지 않는다. [실행 증거](../output/playwright/issue530/cross-flow-evidence.json)는 제품4개·fixture/helper 불변, 기존spec32,454byte prefix 보존, 추가case1건12.0초PASS를 기록한다.
+
+## Issue #538 — 새 프로젝트 생성 화면 Skip Link와 키보드 순서 보완
+
+새 프로젝트 생성 화면에서 `본문으로 바로가기`를 누르면 native anchor의 `main#main-content` focus를 유지하면서 두 생성 방식 탭의 순차 `tabindex`를 즉시 -1로 변경한다. 다음 Tab은 현재 활성 폼의 첫 컨트롤로 진입해야 한다. 해당 폼에 focus가 들어오면 선택된 탭의 roving `tabindex=0`를 복원하고 이후 ArrowLeft/Right/Home/End 탐색은 이전과 동일해야 한다. Client handler 등록 준비는 E2E에서 `data-skip-link-ready`로 구분해 SSR 탭 DOM 표시만으로 hydration을 추론하지 않는다. `#121` App Shell Skip Link와 `#264` 초안 보존 및 inactive panel 금지는 유지한다. 권한·저장 API 변화는 없다.
 ## Issue #549 — Timeline 공통 모델과 현재 UX 보존
 
 현재 `TaskFilterState.types`는 React 메모리와 scope별 Map에 보존하며 URL/localStorage에 저장하지 않는다. MT1은 표시 preference v1의 기본 ON 정규화와 types 변환 함수를 제공하지만 현재 화면에 적용하지 않는다. Task-only를 새 OFF로 자동 이식하지 않고 mixed 조합은 Milestone 유형만 제외하며 나머지 조건을 보존한다. Milestone-only는 원래 조건을 보존하고 Dashboard/명시 유형 해제 호환 UI를 후속 MT4에서 제공한다. OFF 날짜 조회의 일시 표시와 복귀 OFF, 사용자 toggle만 저장하는 계약도 후속 연결 대상이다.

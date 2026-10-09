@@ -1,5 +1,23 @@
 # Architecture draft
 
+## Issue #569 — 공개 API Adapter의 도입 전 경계
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)은 Core/native 읽기와 공개 scroll/date reveal/finite settle 명령을 분리하는 인터페이스·PoC다. 제품 ProjectGantt의 기존 viewport writer나 Coordinator를 교체하지 않는다. 공개 controlled scale 설정과 native chart를 같은 좌표계로 검증하고 hidden/inert/zero-size를 유효한 viewport로 저장하지 않는다.
+
+A(autoScale)/B(명시 범위)/C(2.7.3 resize 호환)의 실제 성공·실패와 보존 조건을 비교한 뒤 후속 도입 여부를 판단한다. C의 synthetic width는 공식 physical container 의미 밖의 예외이므로 버전 가드·명시 opt-in·유한 상한을 갖는 교체 가능한 모듈로 한정한다. 직접 Store/DOM 폭 쓰기·PRO·서버 상태 authority 추가는 없다.
+
+## Issue #568 — 동기화 관측 도구의 경계
+
+비교 stack의 filter 이후 native clamp→Core scroll 반영은 관측 순서이며 직접 DOM writer는 미확정이다. 이 결과만으로 Core 결함이나 adapter 수정 방향을 확정하지 않는다.
+
+[Core Action Trace](GANTT_SYNC_TRACE.md)는 #567의 설계 가설을 실측하기 위한 dev/test-only 도구다. 서버 canonical snapshot/revision, React projection, Core 공개 state, native DOM geometry, 사용자 intent를 서로 다른 관측 층으로 기록한다. trace가 제품 상태 authority나 두 번째 viewport writer가 되어서는 안 된다. Core 단독/React wrapper와 고정 PR #562 앱의 관측을 같은 source라고 취급하지 않는다.
+
+명령 반환·Core state 변경·native layout 안정화를 별도 분류한다. 공개 getState 좌표와 native scroll capacity·3개 연속 안정 frame을 bounded timeout 안에서 확인하고 superseding intent를 실패·성공과 구분한다. 최신 공식 exec 문서의 void 선언과 설치 2.7.3 타입/실행 반환은 별도 검증 대상이다. 실제 첫 writer가 관측되지 않은 원인은 가설로 남긴다. 단일 Coordinator 및 geometry adapter의 제품 도입은 후속 이슈에서 결정한다.
+
+## Issue #538 — Project master relations
+
+계층 관계는 SVAR와 분리된 전역 Project Master Domain이다. `project_master_items`는 안정된 item authority, `business_unit_products` 및 `business_unit_product_sites`는 재사용 가능한 연결 authority, Project는 기존 nullable FK를 보유한다. `Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`의 transaction boundary에서 관계 생성/해제·Project 조합 validation·catalog revision 경쟁 검사를 실행한다. Frontend cascading은 서버의 `relations`를 읽는 projection이며 자체 Source of Truth가 아니다.
+
 ## Issue #459 — Stage Gate 통합 데이터 흐름
 
 Stage Gate는 별도 Gantt 엔진이나 UI별 계산기가 아니라 하나의 canonical Project snapshot에서 파생되는 공통 도메인 projection이다.
@@ -254,6 +272,13 @@ source restriction은 선택 A와 T0에만 적용한다. exact Assignment 교집
 
 actual target report context와 original drill provenance는 별도다. source 제한은 A와 T0에 적용하고 exact Assignment를 공동담당자로 확대하지 않는다. #526 reference는 source를 유지해 M만 제거하고 #527 project 참고는 동일 Capacity R 전체다. 진단의 원래 기간 계산은 기존 Calendar helper와 별도 Assignment row cache를 사용하며 prepared snapshot을 mutate하지 않는다. 저장 schema·migration·report cache·token 원장은 추가하지 않는다. OOXML/ZIP 예산과 검증된 Project hyperlink 단일 관계는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다.
 
+## Issue #530 공통 원장 통합 회귀
+
+새 공통 fixture는 pure 데이터이며 DB 또는 브라우저를 import하지 않는다. Domain 입력, native SQLite Repository seed와 실제 HTTP mutation seed가 이를 각각 현재 계층의 ID·DTO로 변환한다. 테스트는 mock report를 반환하지 않고 기존 Route Handler → Service → Repository → SQLite와 API에서 생성한 ZIP/OOXML을 통과시킨다. 서버 코드·schema·migration·환산 helper와 인증 경계는 변경하지 않는다.
+
+공통 원장과 평가 context는 구분한다. 고정 명시 기준일/환산 query와 UI의 실제 서버 clock/환경 환산값을 혼합하지 않고 같은 report echo에 맞춰 원시 수치와 ID·범위·revision·Calendar identity를 대조한다. KPI의 Assignment 단위 곱과 Plan의 일별 누적은 부동소수 연산 순서가 다르므로 수치 정합성은 기존 raw 정밀도 범위에서 검사한다. ID·count·null/state·scope는 정확히 비교하며 표시 반올림으로 차이를 숨기지 않는다. [통합 검증 범위](TEST_PLAN.md)를 따른다.
+
+클라이언트의 Resource navigation frame은 source와 destinationBefore의 공개 Core 좌표 및 native scroll 좌표를 불변 기록으로 보존한다. pop/clear는 임시 일정의 현재 좌표를 원래 기록에 재캡처하지 않고 복귀 대상의 기록을 선택한다. 원본 snapshot·reset·reader/API identity·target key 검증 후 기존 Gantt canonical queue에 새 복귀 요청을 전달하며, 실제 target filter·동기화 epoch·layout·사용자 입력 취소 검사를 통과해야 각각의 좌표를 복원한다. 원래 source epoch를 현재 값으로 덮어쓰거나 native 값을 Core 명령으로 대체하지 않는다. 일반 탭 이동의 기존 peer capture는 유지한다. 상세 동작과 실행 범위는 [프로젝트 UX](PROJECT_UX.md)와 [통합 검증](TEST_PLAN.md)을 따른다.
 ## Issue #549 — version-bound Timeline display adapter
 
 `milestone-timeline-model.ts`는 전체 canonical Task/Link와 기존 Gate 계산을 유지하는 순수 조회 projection이다. 단일 `milestone-timeline-adapter.ts`는 공개 Core filter/scroll/state와 기존 local date adapter를 연결한다. react-gantt 2.7.3의 타입/runtime calendar helper reexport 차이를 격리하기 위해 이미 설치된 gantt-store 2.7.2 package-root getDiffer를 사용한다. typed `_scales`/viewport derived fields는 read-only 관찰이며 공식 안정 geometry API 보장이 아니다. 검증한 Day/Week 설정 밖은 fail-closed다. source 복제/private store write/PRO markers/독립 Gantt/remount/DOM 강제 scroll은 사용하지 않는다.

@@ -1,5 +1,15 @@
 # Requirements baseline
 
+## Issue #538 — 프로젝트 기준정보 관계 (후속 계약)
+
+#289의 독립 선택/cascading 비범위 기록은 당시 범위에 한정된다. #538부터 사업부→제품→사업장/법인 관계를 Project Master의 추가 Source of Truth로 관리한다.
+
+- 사업부 1개에 0..N 제품, (사업부,제품) 1개에 0..N 사업장/법인을 연결한다. 같은 제품은 여러 사업부에서, 같은 사업장/법인은 여러 사업부·제품 조합에서 안정 ID를 공유할 수 있다.
+- Project 분류 값은 기존 nullable 단일 ID 3개이며, 전체 미지정과 사업부만 지정 및 사업부+제품만 지정이 가능하다. 제품은 사업부 없이, 사업장/법인은 두 상위 선택 없이 지정할 수 없다.
+- 신규 지정/변경 시 반드시 활성 item + 유효 관계를 선택한다. 이미 저장된 legacy/비활성/부분 참조는 관계 변경이 없는 메타데이터 편집·조회·복사에서 보존한다. Template 신규 생성 시에는 관계를 검증한다.
+- 연결 해제 시 그 관계를 참조하는 Project가 있으면 409로 거부한다. 제품 관계는 하위 사이트 연결이 남아 있어도 해제 불가다. Project row를 자동 수정하거나 관계를 임의 추정하지 않는다.
+- Server 검증을 권위로 하며 UI 필터는 편의용이다. SVAR Task/일정/Resource·물류 도메인은 변경하지 않는다.
+
 ## Issue #492 — Grid/Chart 작업 Hover Tooltip
 
 Project 일정의 Grid 작업 행과 Chart Task/Summary/Milestone에 마우스를 올리면 같은 작업 정보를 Tooltip으로 제공한다. 첫 줄은 canonical 작업명, 다음 줄은 canonical 시작일·종료일이며 기존 공통 locale 날짜 formatter를 사용한다. `start/end=null`인 작업은 `—`로 표시하고 SVAR가 date-less Summary를 렌더하기 위해 사용하는 내부 anchor 날짜를 사용자 일정으로 노출하지 않는다.
@@ -467,6 +477,10 @@ Resource 화면의 보고서 진입과 일반 Export opt-in은 단일 대화상�
 
 Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.
 
+
+## Issue #530 Resource KPI 통합 수용
+
+#523~#529의 기존 Domain/API/Dashboard/Plan/정확한 일정 이동/Excel을 같은 합성 원장으로 대조한다. 일반 Task·개인 Assignment 고유 집합, raw 계획 M/D/M/M, 미설정/null/0, 다중 Group 비가산, 선택 기여와 Project 전체 부하, full Milestone Ready를 유지한다. 통합 테스트는 기존 기능별 검증을 대체하거나 제품 계산·권한을 변경하지 않는다. 사용 흐름과 네 진단의 보완 경로는 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#issue-530-통합-사용자-가이드), 실행 증거는 [Issue #530 계획](exec-plans/active/ISSUE_530.md)을 따른다.
 ## Issue #549 — Milestone Timeline 공통 기반
 
 MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Milestone 날짜 모집단, 기본 ON의 독립 표시 설정과 별도 Milestone 조회 선택을 구분한다. 기존 전체 Membership/Gate projector와 전체 subtree/export 의미를 유지하며 검색/scope/viewport로 E(M)/P(M)를 줄이지 않는다. null/invalid 날짜, 수동 이벤트, 완료 기록 불일치를 구별한다. 현재 native Milestone 행·빠른 보기·types를 유지하고 관리/lane/호환 표시 전환 UI는 #550~#553의 선행 gate 후 범위다. 상세 current/target/compatibility와 설치 Core 기술 제한은 [Milestone Timeline](MILESTONE_TIMELINE.md)을 따른다.

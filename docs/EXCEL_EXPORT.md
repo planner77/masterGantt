@@ -256,3 +256,9 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 ### Issue #495 — 사용자 용어와 Excel 호환 열 구분
 
 화면·안내·설명 문서에서 엔터티 명칭은 **Milestone**을 사용한다. 기존 Excel 파일의 `Tasks` 시트 내 `명시 단계 ID`, `유효 단계 ID(파생)` 등 기계적으로 소비될 수 있는 기존 열 헤더와 시트 식별자는 이 용어 정합화에서 변경하지 않는다. 출력 schema/header 변경은 별도 versioning·하위 호환 검토가 필요하며, Milestone Membership의 저장/산출 의미는 기존과 같다.
+
+## Issue #530 공통 원장과 실제 파일 정합성
+
+통합 회귀는 실제 native SQLite HTTP handler와 Next HTTP의 Export 응답 ZIP을 풀어7개 Resource 시트의 OOXML을 검사한다. 동일 Assignment ID별 raw 계획값2.5/5/3/1/null과 unknown 공란, 전체11.5 M/D, 개인·Group×Milestone partition, Plan selected/project 숫자와 report의 기간/asOf/환산/revision/Calendar/snapshot metadata를 비교한다. Group 소계17은 중첩 분류 결과이며 전체11.5로 대체하지 않는다. null 공란과 numeric0을 합계 표시만으로 판정하지 않는다.
+
+readonly Export, exact Origin·strong `If-Match`, stale 전체 실패, ID·scope 보존과 credential 없는 단일 서버 생성 Project hyperlink를 함께 확인한다. 시트 숫자는 report와 같은 raw 값을 유지하고 KPI와 Plan 사이의 부동소수 연산 순서 차이만 기존 정밀도 허용범위에서 비교한다. 실제 Windows Excel/VBA/DRM에서 파일을 열고 표시하는 검증과 원격 CI는 로컬 OOXML 검사로 대체하지 않는다. 새 Export endpoint·시트·예산이나 재가져오기 계약을 추가하지 않는다.

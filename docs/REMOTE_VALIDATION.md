@@ -1,5 +1,12 @@
 # GitHub-first 테스트 및 검증 정책
 
+## Issue #565 위험도 기반 독립 QA와 GitHub Required Validation 분리
+
+위험 분류/QA N/A·Reviewer·Manager 승인 계약은 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)를 따른다. LOW/일부 MEDIUM은 근거와 영향을 기록하고 독립 검토만 `N/A`가 가능하다. HIGH 및 `qa_required=true` MEDIUM은 실제 별도 qa_docs/인간 Reviewer가 필요한 상태이며 reviewer를 확보하지 못하면 **BLOCKED**다. 자동 리뷰 또는 CI만으로 독립 QA PASS라고 기록하지 않는다(#580 자동 QA 대체는 별도 후속).
+
+GitHub Actions exact-head `quality/e2e/docker` aggregate PASS와 path-based implementation Job SKIPPED를 분리 기록한다. 새 Head에서는 3개 required aggregate 결과를 다시 확인해야 한다. PR의 latest SHA와 run ID/attempt, 문서 동기화, review thread 해결, qa_final(PASS 또는 조건부 N/A) 및 Manager ACCEPT가 서로 다른 증거다. `main-lifecycle-gate` 승인 리뷰 수 0은 내부 Manager 승인 근거가 아니다. 실제 GitHub Settings/Ruleset 변경은 이번 범위에 없다.
+
+
 ## Issue #361 Actions 실행명 원격 검증
 
 PR 단계의 실제 원격 증거는 Actions run의 `display_title`이 Primary Issue, PR 번호와 `run_number.run_attempt`를 포함하는지 확인하는 것이다. 정적 Python contract만으로 GitHub UI에 적용됐다고 판정하지 않는다. 이 PR에서는 새 `run-name`이 적용된 PR CI와 기존 required `quality/e2e/docker` check 이름을 함께 확인한다.
@@ -113,8 +120,8 @@ PR과 동일한 `quality`/`e2e`/`docker` gate를 다시 수행한다. 별도 `cl
 
 - `frontend`, `backend`, `scheduler`, `excel_vba`: 구현 중 관련 로컬 fast feedback을 수행하고 원격 branch/PR 검증 대상으로 변경을 전달한다.
 - `infra`: GitHub Actions run, workflow, runner, permission, cache, Docker/GHCR 문제를 담당한다. CI 실패 시 run/job/step 근거를 확보한다.
-- `qa_docs`: 로컬 결과와 GitHub 원격 결과를 구분하여 독립 검토한다. 원격 CI 미실행은 `NOT TESTED`, 실행 불가/권한 문제는 `BLOCKED`로 기록한다.
-- `Manager`: PR 원격 gate 결과와 필요한 환경별 검증을 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
+- `qa_docs`: 위험도 정책에서 독립 검토가 필수인 경우 구현자와 분리해 로컬/원격 증거를 검토한다. 도구가 없으면 승인된 별도 인간 Reviewer를 배정한다. 독립 QA 미선택은 조건부 N/A, 필수 Reviewer 부재는 BLOCKED, 원격 CI 미실행은 NOT TESTED로 구분한다.
+- `Manager`: PR 원격 gate, 위험도별 QA_FINAL(필수 PASS 또는 N/A 근거), DOCUMENTATION_SYNC 및 필요한 환경 검증을 Head와 함께 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
 
 ## 6. 완료 보고 최소 증거
 
@@ -127,6 +134,8 @@ Local Fast Feedback: PASS | FAIL | NOT TESTED
 GitHub quality: PASS | FAIL | BLOCKED | NOT TESTED
 GitHub E2E: PASS | FAIL | BLOCKED | NOT TESTED
 GitHub Docker smoke: PASS | FAIL | BLOCKED | NOT TESTED
+risk_level / qa_required / risk_reason / reviewer / qa_final(PASS|FAIL|BLOCKED|NOT TESTED|N/A+reason):
+Manager ACCEPT/REWORK/DEFER와 해당 Head·근거:
 Main GHCR digest smoke: PASS | FAIL | BLOCKED | NOT TESTED | N/A
 Environment-specific validation: PASS | FAIL | BLOCKED | NOT TESTED | N/A
 Remaining risks:
@@ -373,3 +382,8 @@ PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex
 
 - 2026-10-09 기준 #542에 최신 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 병합했다. #463 수평 스크롤 실패는 주간 timeline의 실제 120px scroll buffer가 준비됐는지 확인한 후 기존 정확한 viewport 120px 불변식을 검사하도록 보완했다.
 - 새로운 PR CI의 실행 SHA가 갱신된 PR head와 동일한지 반드시 확인한다. 이전 SHA `ca6312ce2c53bb9ad4e11b8e959bcc6963f108a9`의 재실행은 새 변경에 대한 증거가 아니다.
+
+
+## Issue #577 — Metadata/Full CI 원격 회귀
+
+PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run-name, 이벤트/action, 이벤트 Head/current Head, same-SHA full-run ID, quality/E2E/Docker required check, 실행시간을 함께 기록한다. 현재 Head 변경으로 stale인 메타데이터는 즉시 `SUPERSEDED`여야 하며 20분 polling이 없어야 한다. metadata-only run이 full CI를 취소하면 FAIL. 현재 full-run pending/missing은 NOT TESTED 또는 FAIL이고 자동 PASS가 아니다. metadata-only 실패 뒤 full CI가 성공하면 해당 metadata 실패 Job 재실행으로 재판정하되 본 PR CI 시작 범위에서는 관측·리허설을 별도 기록한다. CI 변경 PR은 E2E/Docker 경로 판정에 포함되므로 실제 PR에서 세 필수 Gate를 모두 확인한다.

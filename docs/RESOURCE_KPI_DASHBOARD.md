@@ -1,5 +1,7 @@
 # Resource KPI 공통 집계 계약
 
+이 문서는 Resource KPI Epic #522의 공통 계약과 사용자 가이드다. 현재 Dashboard·Milestone 비교·Resource Plan·정확한 일정 이동·Excel 기능은 #524~#529로 확장됐다. 아래 R1~R7 설명은 단계별 계약과 당시 검증 범위를 보존하며, 현재 사용 흐름은 [통합 사용자 가이드](#issue-530-통합-사용자-가이드)를 따른다.
+
 Issue #523은 Resource KPI Epic #522의 R1이다. `src/domain/resources/resource-kpi.ts`의 실행 가능한 pure projection과 typed input/output, KPI 사전 및 고정 fixture를 제공한다. HTTP/UI 공개는 #524 이후이며 시간축 capacity, 실제 실적 원장, DB migration은 이 단위 범위 밖이다. 현재 상태의 계산을 다른 기준일과 비교할 수 있지만 과거 상태를 복원하지 않는다.
 
 ## 원시 단위와 분류
@@ -256,3 +258,70 @@ T0는 원래 allowed Task 집합을 적용한 뒤 개인·역할 조건 전 raw 
 Excel 보고서 명령은 활성 visit의 ready report·실제 query/binding·원장·대상 기간/asOf/환산 정책을 확인한다. exact 이동은 immutable 원래 binding을 serialize하고 Project 전체는 binding을 보내지 않는다. report stale 및 상세 stale 모두 생성 금지이며 재조회 성공 뒤 명시 확인으로 복구한다. 기간 밖 raw unset 상세에는 `조회 기간 밖 · 원래 배정 기간 기준`을 표시하여 조회 기간의 공수 합계와 구분한다. Export 열기·취소·다운로드는 Resource 조건·LIFO 복귀 기록과 Gantt 선택·viewport·열폭·tree·인스턴스를 보존한다.
 
 Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.
+
+
+## Issue #530 통합 사용자 가이드
+
+### 먼저 확인할 보고 기준
+
+프로젝트의 `리소스` 탭에서 기간, Group/개인, Global Role·등급, Task 상태와 Milestone을 선택하고 표시된 서버 기준일·환산값·출처를 확인한다. 현재 UI에는 기준일·환산값 직접 입력 control이 없으며 API의 명시적 query 정책과 구별한다. 표의 표시 페이지·접힘·기간 열 창은 이미 계산한 전체 KPI를 바꾸지 않는다. 모드·단위 전환도 개인 Assignment 원장을 추가하지 않는다. 조회 화면의 수치는 현재 Project의 **계획**이며 실제 투입·생산성·전사 가용 인력을 뜻하지 않는다.
+
+| 표시 | 읽는 방법 |
+| --- | --- |
+| 계획 M/D | 선택 기간과 개인 할당 기간이 겹치는 Resource 유효 근무일 × allocation% |
+| 계획 M/M | 같은 raw M/D ÷ 표시된 명시적 또는 환경 환산 기준; 기준 없으면 미산정 |
+| 알려진 부분합 / 미설정 | 계산 가능한 할당의 합과 allocation 미설정 건수; 확정 전체 소요량이 아님 |
+| Task / Assignment | 고유 일반 Task 수 / 개인 할당 행 수; 공동 담당 Task는 Task 1건 |
+| Group·Role 소계 | 현재 다중 분류의 겹치는 소계; 소계를 더해 Grand Total을 만들지 않음 |
+| 선택 단계 진척 / 전체 단계 상태 | 선택 Task의 현황 / full canonical 단계 전체의 Ready·Blocked |
+| Capacity / Project 전체 부하 참고 | 현재 Project에 일반 Task 개인 할당 이력이 있는 고유 Resource-day / 같은 개인의 이 Project 전체 계획 부하 |
+
+환산 기준을 제공하지 않았을 때 20일이나 21일을 임의 기본값으로 쓰지 않는다. 계획 공수는 Task 진척률로 차감되지 않으며 `계획×미완료율`을 실제 잔여공수로 해석하지 않는다. Global Role·Group·등급은 현재 Catalog 분류이며 과거 조직 이력을 복원하지 않는다. inactive 상태도 고용 종료나 Capacity 0으로 해석하지 않는다.
+
+### 팀별 Milestone 공수에서 개인과 Task 찾기
+
+1. `그룹` 모드에서 기간과 필요한 Milestone 조건을 선택한다. `리소스 보기`의 계층 보기에서 `집계 순서`를 단계 우선으로 선택한다.
+2. Group → Milestone → Resource를 펼쳐 단계 합과 개인 기여를 확인한다. 개인 우선 순서에서는 Group → Resource → Milestone, `개인` 모드에서는 Resource → Milestone을 사용할 수 있다.
+3. Task 수 또는 공수 상세를 열어 실제 Task·Assignment를 확인한다. 비교표에서는 Group×Milestone 또는 Resource×Milestone 셀로 같은 교차 범위의 상세에 들어간다.
+4. 상세의 일정 명령으로 대상 Task를 추적하고 `원래 보기` 또는 돌아가기 명령으로 출발 범위에 복귀한다. 일정의 ancestor Summary는 문맥 행이며 KPI Task 수에 포함되지 않는다.
+
+예를 들어 5근무일 T1의 A50%·B100%는 M1 7.5 M/D다. M2의 A60%는 3.0 M/D이고 allocation=null 할당은 미설정으로 남는다. 미지정 B20%의 1.0까지 알려진 합은 11.5다. A가 G1/G2에 함께 속하면 G1 11.5와 G2 5.5의 합 17을 전체로 사용하지 않는다. 이 숫자는 합성 검증 예시이며 운영 측정값이 아니다.
+
+선택 개인의 Task가 모두 완료여도 다른 단계 구성원이나 선행 Milestone이 미완료면 전체 Ready는 false일 수 있다. 상세·일정 이동은 원본 소속·상태·revision을 저장하는 명령이 아니다. 삭제·권한·원장 변화로 오래된 범위가 되면 다시 조회하고 대상을 확인한다.
+
+### 개인별 주·월 계획과 전체 과투입 원인 찾기
+
+1. `리소스 보기`에서 Resource Plan을 선택하고 `개인` 모드와 주/월 기준을 정한다. 표 내부에서 기간 창과 계획 M/D·M/M, 평균 Load, 과투입 지표를 확인한다.
+2. 기간 셀을 열어 날짜별 근거와 해당 날짜의 개인 Assignment를 확인한다. Group 셀은 날짜 → 개인 → Assignment 순서로 내려간다. Escape는 이전 단계로, 마지막 닫기는 출발 명령으로 초점을 돌린다.
+3. 선택 Milestone 기여와 `Project 전체` 과투입 참고를 구별한다. 전체 과투입 경고에서 같은 개인·날짜의 단계 밖 기여 Task까지 추적한다.
+4. 기간이나 표시 모드를 바꿀 때 현재 조건·미설정·분모를 다시 확인한다. 현재 화면 밖 다른 Project나 상시 업무는 이 부하에 포함되지 않는다.
+
+같은 날 M1 80%와 M2 60%면 M1의 기여는 80%이고 동일 개인의 Project 전체는 140%다. 이틀 중 하루 150%·다른 날 0%는 평균 75%라도 Peak 150%·과투입 1일이다. Group 평균이 낮아도 개인별 초과는 상쇄하지 않는다. 반복 표시된 단계 Capacity를 합산하지 않는다. Capacity 0, 대상 Resource 0명, 미설정 allocation은 정상 0%·유휴 확정값과 구별한다.
+
+### 개발자 역할·등급 견적과 같은 범위 Excel
+
+1. `개발 견적`을 선택하거나 Global Role=DEVELOPER와 개발 등급 조건을 명시한다. 기간·기준일·Group/개인·Milestone·Task 조건과 M/M 기준을 확인한다.
+2. 알려진 부분합, 미설정과 고유 Assignment를 확인한 뒤 `Excel 보고서`를 연다. `현재 선택 조건`은 지금 조회한 필터·정확한 Task/Assignment 범위를 유지한다.
+3. `Project 전체 (확인된 기간·기준일·환산 정책 유지)`는 같은 기간·기준일·환산에서 개인/분류/Task/WBS/Milestone/검색/상태/정확한 이동 제한을 제거한다. 현재 화면과 같은 숫자를 내보내는 선택으로 해석하지 않는다.
+4. 필요한 주/월 계획 포함 여부를 확인하고 내보낸다. 오래된 보고서라면 재조회 후 `현재 보고서 확인`으로 명시 재확인한다. 저장 중 중복 생성이나 오래된 응답 파일을 성공으로 처리하지 않는다.
+
+Workbook은 [Excel 보고서 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)에 따라 기준·요약·Milestone/기간·고유 Assignment·데이터 품질·관계를 기록한다. raw 숫자는 numeric cell이며 표시만 반올림한다. 11.5 M/D를 **명시적 20일**로 환산한 0.575 M/M 예시는 금액·단가·인건비 견적이 아니다. 현재 읽기 전용 조회에서도 보고서 내보내기를 사용할 수 있다. 공개 링크 접근과 저장 권한, 요청 출처·현재 revision 확인은 [SECURITY](SECURITY.md), [API](API.md)의 기존 정책을 따른다.
+
+### 데이터 품질 네 종류와 보완 경로
+
+| 진단 | 의미 | 보완할 곳 |
+| --- | --- | --- |
+| 개인 미배정 | 개인 Assignment 없는 Task; 아래 완전 미할당과 Group만 지정의 합집합 | 기존 Task Editor의 담당 관계를 확인하고 필요한 개인을 명시 배정 |
+| Group만 지정 / 완전 미할당 | Group 책임만 있거나 개인·Group 책임 모두 없음 | Group 구성원이 자동 개인 할당된다고 가정하지 않고 담당 관계 확인 |
+| 공수 미설정 | 개인 Assignment는 있으나 allocation=null; 날짜 범위 밖 raw 미설정도 품질 원장에 별도 표시 | Task Editor의 개인 allocation·실효 기간 확인; 미배정을 100%나 0공수로 생성하지 않음 |
+| Milestone 미지정 | 일반 Task의 effective 단계가 없음; 개인 배정 여부와 독립 | 기존 단계 소속·Summary 상속·하위 override를 확인하고 의도된 단계 지정 |
+
+개인/역할 필터가 적용된 Assignment 집합 A와 개인 조건 이전 진단 T0는 분모가 다르다. 개인 필터에서 안 보이는 담당자를 미배정으로 바꾸지 않는다. 날짜 없는 대상 없음, 유효 비근무일 0공수, 모두 미설정(null), 일부 미설정(부분합)을 구별한다. readonly에서는 조회만 수행하고 수정은 기존 편집 인증과 저장 계약을 따른다.
+
+### 제한·검증 범위
+
+원장 또는 조건이 달라진 report/detail/export는 stale로 거부하고 다시 확인한다. 같은 원시 공수라도 일별/Assignment별 합산 순서의 부동소수 오차가 있을 수 있으므로 검증은 허용 정밀도에서 비교하고 ID·분류·상태·조회 조건은 정확히 대조한다. 기간·Assignment·분류·cell·response 예산 초과는 명시적으로 범위 축소를 안내하며 일부 데이터만 반환한 값을 완전한 총계로 표시하지 않는다. 공개 UUID Project read가 현재 제품 정책이며 별도의 Project private-read 모델이나 외부 SSO/TLS 운영 보호를 이번 통합 단위에서 신규 구현하지 않는다.
+
+최신 실행 범위·최초 실패·AC와 테스트 대응은 [Issue #530 실행 계획](exec-plans/active/ISSUE_530.md)과 [TEST_PLAN](TEST_PLAN.md)을 따른다. Local Fast Feedback과 독립 사전 검토는 새 PR의 quality/e2e/docker 최종 PASS를 대신하지 않는다. 실제 Windows Excel/DRM·OS 125%·screen reader·운영 배포 검증은 자동 parser/Chromium 결과와 구별한다.
+
+R8 회귀는 Milestone의 정확한 Resource 범위에서 지연 KPI로 Task 일정을 열고 원래 Resource와 Milestone으로 되돌아오는 흐름도 확인한다. 이 조회는 원래 기준일·기간·검색·단위·원인을 복구하고 canonical Task/Assignment나 revision을 변경하지 않는다. [파생 원장의 직접 경로 증거](../output/playwright/issue530/cross-flow-evidence.json)는 기본11.5 M/D 원장과 별도 조회 조건이며 selected7.5 M/D·Task1·Assignment2·지연1을 검증한다.

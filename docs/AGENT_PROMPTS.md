@@ -2,7 +2,7 @@
 
 적용: Issue #109, 2026-09-22.
 
-이 문서는 `AGENTS.md`와 `docs/ISSUE_LIFECYCLE.md`의 실행 계약을 실제 Agent 위임 프롬프트로 옮기기 위한 표준 템플릿이다. 템플릿은 복사해서 사용할 수 있지만, 실제 Issue/현재 SHA/branch/승인 상태를 조회한 값으로 채워야 한다. 과거 대화나 예시 값을 현재 상태로 간주하지 않는다.
+이 문서는 `AGENTS.md`와 `docs/ISSUE_LIFECYCLE.md`의 실행 계약을 실제 Agent 위임 프롬프트로 옮기기 위한 표준 템플릿이다. 위험도·QA 필수/N/A 분기는 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)에서 정의한다. 템플릿은 복사해서 사용할 수 있지만, 실제 Issue/현재 SHA/branch/승인 상태를 조회한 값으로 채워야 한다. 과거 대화나 예시 값을 현재 상태로 간주하지 않는다.
 
 ## 1. 공통 Issue Work Packet
 
@@ -23,6 +23,10 @@ REQUIREMENT
 - non_scope:
 - dependencies:
 - risks:
+- risk_level: LOW | MEDIUM | HIGH
+- risk_reason:
+- risk_triggers:
+- affected_paths:
 
 BASELINE
 - default_branch:
@@ -49,6 +53,11 @@ OWNERSHIP
 - blocked_files:
 
 VALIDATION
+- qa_required: true | false
+- qa_review_mode: qa_docs | human | N/A
+- reviewer: independent run ID / GitHub identity | N/A
+- qa_evidence: exact-head review link/results | N/A(reason)
+- manager_decision: ACCEPT | REWORK | REJECT | DEFER | NOT TESTED
 - local_fast_feedback:
 - required_tests:
 - required_docs:
@@ -83,6 +92,13 @@ ISSUE RESULT
 - agent:
 - status: PASS | FAIL | BLOCKED | NOT TESTED
 - baseline_sha_checked:
+- risk_level_checked: LOW | MEDIUM | HIGH
+- risk_reason_checked:
+- qa_required_checked: true | false
+- qa_review_mode_checked: qa_docs | human | N/A
+- reviewer_checked:
+- qa_final: PASS | FAIL | BLOCKED | NOT TESTED | N/A(reason)
+- manager_decision: ACCEPT | REWORK | REJECT | DEFER | NOT TESTED
 
 WORK
 - findings:
@@ -123,7 +139,7 @@ HANDOFF
 - rework_reason:
 ```
 
-Head SHA가 변경되면 이전 PASS는 그 SHA에만 유효하다. 모든 필수 원격 Gate(`quality`, `e2e`, `docker`)와 final QA 판정은 영향도와 무관하게 새 Head SHA에서 전부 다시 수행한다. Local Fast Feedback만 변경 영향도에 따라 선택적으로 재사용할 수 있다.
+Head SHA가 변경되면 이전 PASS/N/A는 그 SHA에만 유효하다. 모든 필수 원격 Gate(`quality`, `e2e`, `docker`)와 final QA 판정(독립 PASS 또는 N/A)은 영향도와 무관하게 stale이며 새 Head SHA에서 위험도를 재분류하고 필요한 QA 절차를 다시 수행한다. Local Fast Feedback만 변경 영향도에 따라 선택적으로 재사용할 수 있다.
 
 ## 3. Manager Orchestration Prompt
 
@@ -132,14 +148,14 @@ Head SHA가 변경되면 이전 PASS는 그 SHA에만 유효하다. 모든 필�
 AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX 범위가 있으면 DESIGN.md와 docs/UI_UX_GUIDELINES.md를 함께 읽고 Work Packet의 required_docs/read_only_files에 반영한다.
 
 1. GitHub에서 Issue, 댓글, 현재 main SHA, 기존 branch/PR/CI/version 상태를 먼저 조회한다.
-2. Issue 목표/AC/scope/non-scope/dependency/risk를 정리한다.
+2. Issue 목표/AC/scope/non-scope/dependency/risk를 정리하고 QA_REVIEW_POLICY의 HIGH 우선 트리거로 risk_level, qa_required, 실제 독립 Reviewer 가용성, 증거를 PLAN에 확정한다.
 3. version_decision, release_required, release_authorized를 각각 판단하고 근거를 기록한다.
 4. 필요한 Agent만 선택한다. 동일 파일을 두 Write Agent에게 동시에 배정하지 않는다.
 5. PLAN 확정 시 Issue에 `PLAN` 기록을 남기고 각 Agent에게 표준 Issue Work Packet을 전달한다. Packet의 `issue_comment_writer`와 `issue_comment_allowed_types`를 명시하여 댓글 작성 권한을 추측하게 하지 않는다. 기본 writer는 `manager`이며 infra 위임이 없으면 `infra`로 설정하지 않는다.
 6. Agent 결과를 Result Contract로 수집하고 PASS를 자동 승인하지 않는다. 각 Result의 `ISSUE_LOG`를 검토하여 주요 phase 전환, FAIL/BLOCKED, 특이사항, 결정 필요, 재개 시 Issue에 중복 없이 기록한다.
 7. 구현과 Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate를 수행한다. required docs를 갱신하거나 항목별 N/A 근거를 기록하기 전 QA_READY로 넘기지 않는다.
 8. REWORK 시 기존 Issue/branch/PR을 재사용하며 최신 head 기준으로 재검증한다. 구현 변경으로 문서 영향이 생기면 이전 DOCUMENTATION_SYNC PASS도 stale 처리한다.
-9. qa_docs의 독립 검토와 실제 PR CI를 통과하기 전에 병합하지 않는다.
+9. 실제 PR CI와 DOCUMENTATION_SYNC를 통과하고 QA_REVIEW_POLICY의 위험도별 QA_FINAL(의무 시 독립 PASS, 미선택 시 근거 있는 N/A), 최신 Head·미해결 review 및 Manager ACCEPT가 모두 확보되기 전에는 병합하지 않는다. 자동 대체는 #580 구현 이전에 불가하다.
 10. 병합 후 main CI와 repository 정책상 GHCR ci-<SHA> digest 검증/cleanup을 확인한다.
 11. 정식 release는 release_required=true AND release_authorized=true일 때만 수행한다.
 12. branch cleanup은 모든 필수 gate가 완료된 뒤 수행하고 cleanup 결과를 확인한다.
@@ -193,7 +209,7 @@ Issue Work Packet과 관련 Source of Truth를 읽고 구현 파일/GitHub 상�
 
 ```text
 당신은 독립 QA/Documentation Reviewer다.
-구현 Agent의 완료 주장을 신뢰하지 않고 Issue AC, diff, tests, docs, PR head SHA, 실제 CI를 직접 비교한다.
+Manager Work Packet이 `qa_required=true`인 경우 실제 분리된 Reviewer로서 Issue AC, diff, tests, docs, PR head SHA, 실제 CI를 직접 비교한다. 구현 Agent의 완료 주장을 신뢰하지 않는다. `qa_required=false`이면 본 Agent가 실행되지 않아도 되며 Manager가 `QA_FINAL=N/A(reason)`를 기록한다.
 
 - 검토 대상 head SHA가 Work Packet과 일치하는지 먼저 확인한다.
 - DOCUMENTATION_SYNC가 PASS인지, required docs가 갱신되었거나 N/A 근거가 있는지 확인한다. 미완료면 QA PASS를 주지 않는다.
@@ -221,7 +237,7 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 - version은 Manager 결정값만 반영한다.
 - PR head SHA의 quality/e2e/docker를 확인하고 실패 원인을 분류한다.
 - gate 삭제, continue-on-error, 무조건 retry로 녹색 상태를 만들지 않는다.
-- Manager ACCEPT와 qa_docs gate 전에는 병합하지 않는다.
+- Manager ACCEPT, latest-head required CI 및 QA_REVIEW_POLICY의 조건부 독립 Reviewer PASS 또는 근거 있는 QA_FINAL N/A 전에는 병합하지 않는다.
 - main merge SHA의 CI와 ci-<full SHA> GHCR exact digest smoke/SBOM/provenance/cleanup을 확인한다.
 - 정식 version tag/GHCR release는 release_required=true AND release_authorized=true 근거가 있을 때만 수행한다.
 - branch 삭제 전 merge 및 미병합 commit/다른 PR 참조 여부를 확인한다.
@@ -256,10 +272,10 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 | Branch/worktree | infra | 구현 Agent는 지정 branch 사용 |
 | Implementation/tests | Work Packet 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) | Manager 파일 소유권 통제 |
 | Documentation sync | Manager 지정 문서 작성자; 기본은 지정 구현 Agent | 영향 문서 갱신 또는 N/A 근거, 정합성 확인 |
-| QA readiness/final QA | qa_docs | DOCUMENTATION_SYNC 증거 필수, ui_ux는 UI 설계 비교 |
+| QA readiness/final QA | qa_required=true: qa_docs 또는 승인된 별도 인간 Reviewer; false: Manager N/A 판정 | DOCUMENTATION_SYNC는 모든 위험도 필수, UI 설계 비교는 ui_ux |
 | PR/CI | infra | 실패 원인에 해당하는 Work Packet 지정 구현 Agent가 수정 |
-| Merge | Manager 승인 + infra 실행 | qa_docs PASS 필요 |
-| Main CI/GHCR ci image | infra | qa_docs 증거 검토 |
+| Merge | Manager 승인 + infra 실행 | 독립 QA 의무 시 실제 PASS, 비의무 시 N/A(reason); HEAD별 required checks 필수 |
+| Main CI/GHCR ci image | infra | `qa_required=true`이면 qa_docs 또는 승인된 별도 인간 Reviewer가 증거 검토, `qa_required=false`이면 Manager가 CI/GHCR exact-SHA·digest 증거를 직접 확인하고 N/A 사유 기록 |
 | Formal release | Manager 승인 + infra | 명시적 release authorization 필수 |
 | Branch cleanup | infra | 안전성 확인 |
 | Issue closure | Manager 판단 | infra/GitHub 실행 가능 |
