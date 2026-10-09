@@ -22,6 +22,13 @@
 ## 요구사항과 증거
 추적 스키마, 재현 명령, 판정과 미검증 항목은 [Gantt Sync Trace](../../GANTT_SYNC_TRACE.md)에 기록한다. 공식 API 문서 확인과 실제 설치 Core 측정은 별개 증거다. 테스트 실패를 제품 수정 또는 assertion 완화로 숨기지 않는다.
 
+## PR #575 CI #2285 실패 조사 및 재현 계측 (2026-10-09)
+
+- exact head `4ad246c3616fd8699585ecb06095f4bc931292e8`의 [PR CI #2285.1](https://github.com/planner77/masterGantt/actions/runs/37886327633)은 전체 failure. 6/6 Chromium shard에서 기존 #530 중첩 원래 보기 회귀 1 FAIL, 82 PASS, 1 SKIP이며 E2E aggregate도 FAIL. 다른 shard/quality 판정으로 이를 덮지 않는다.
+- 실패 위치: `tests/e2e/resource-kpi-integration-ui.spec.ts:386`. 원래 SVAR public 및 native 좌표 left120을 복귀해야 하지만 left0으로 끝났다. 첫 frame 복귀 left240은 PASS였다. Playwright trace에서 두 번째 peer restore `requestedLeft=120, publicLeft=120, domLeft=120, count=2` 적용 뒤 후발 `scroll-chart(0)` 실행을 확인했다. 위 현상은 예전 #530와 유사하지만 **최초 writer가 메타데이터 코드라고 단정하지 않는다**.
+- #568 경계 준수: 0.103.1/제품 동기화 알고리즘 변경 없이, 전체 Project opt-in trace의 `configure()`에서 이전 ring·실행 식별자를 초기화하고, #530 원본 strict E2E를 유지한 채 실패 시 trace/peer/event/canonical generation 진단 artifact를 첨부한다. 기존 assert·timeout·skip/retry 및 CI gate를 완화하지 않는다.
+- 다음 정확한 head PR CI에서 새 추적 도구의 수집 동작과 #530 회귀를 별도로 검증한다. #530 반복 실패 시 Writer 경로·source와 #567/#569 adapter 설계를 연결하여 별도 제품 수정이 필요하며 #568 분석 PASS로 제품 버그 해결을 주장하지 않는다.
+
 ## 실행 기록
 - BRANCH_READY PASS: 최신 main 기반 격리 branch 생성.
 - setup PASS: Node 22.14.0/npm 11.10.0, frozen npm ci 447 packages, native SQLite in-memory query, 기존 Playwright Chromium1243 확인.
