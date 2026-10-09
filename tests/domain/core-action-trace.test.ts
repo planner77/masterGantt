@@ -69,6 +69,22 @@ describe("bounded Core observation contract", () => {
     expect(snapshot.entries[0].scenario).toBe("redacted"); snapshot.entries[0].sample.core.left = 0;
     expect(trace.snapshot().entries[0].sample.core.left).toBe(120);
   });
+  it("resets trace identity and counters between fixture runs, cancelling old observers", async () => {
+    const identity = context(), trace = createCoreActionTrace(() => identity, sample, 2);
+    trace.record("old-one"); trace.record("old-two"); trace.record("old-three");
+    const pending = trace.settle({ left: 120, top: 96 });
+    trace.reset();
+    expect(await pending).toBe("SUPERSEDED_BY_INTENT");
+    Object.assign(identity, { run: "second", head: "new-sha", scenario: "new-scenario" });
+    trace.record("scenario-start");
+    const snapshot = trace.snapshot();
+    expect(snapshot.dropped).toBe(0);
+    expect(snapshot.entries).toHaveLength(1);
+    expect(snapshot.entries[0]).toMatchObject({
+      sequence: 1, run: "second", head: "new-sha", scenario: "new-scenario", event: "scenario-start",
+    });
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it("disposes pending RAF/timer and rejects invalid settle bounds", async () => {
     const trace = createCoreActionTrace(context, sample), pending = trace.settle();
     trace.dispose(); expect(await pending).toBe("SUPERSEDED_BY_INTENT"); expect(vi.getTimerCount()).toBe(0);
