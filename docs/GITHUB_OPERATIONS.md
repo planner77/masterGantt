@@ -162,7 +162,7 @@ Issue #198 이후 Lifecycle 자동화와 저장소 보호 설정의 기준은 [I
 
 운영자는 `operation`, `issue_number`, `pr_number`, `release_required`, `release_authorized`를 지정한다. formal release가 필요하면 target manifest와 동일한 `expected_version`과 승인 근거 `authorization_note`도 제공한다. 우선 `verify`로 read-only 상태를 확인하고, exact merge SHA main CI가 성공한 뒤에만 `release` 또는 `finalize`를 실행한다.
 
-`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 target SHA marker로 중복 생성을 방지하며 다른 target marker가 있으면 fail-closed로 중단한다.
+`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 **Issue + exact merge SHA별** 불변 marker로 추적한다. 이미 존재하는 다른 정상 과거 SHA의 인증된 marker는 보존하며, 작성자·PR·head·canonical Refs·merge ancestry가 틀린 marker 또는 충돌하는 동일 SHA 기록은 fail-closed한다. 완료 경계 판단 시점에도 인증을 요구한다.
 
 
 ## Issue Lifecycle release_finalize 운영 (#248)
@@ -213,7 +213,7 @@ Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하�
 <!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
 ```
 
-comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 **동일 버전의 최신 trusted marker**를 적용한다. 다른 버전의 marker는 이 버전 승인 상태에 영향을 주지 않는다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
 
 수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
 
