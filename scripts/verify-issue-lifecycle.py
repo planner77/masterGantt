@@ -775,7 +775,7 @@ ctx = SimpleNamespace(issue_number=565, pr_number=585, merge_sha=next_sha,
     head_sha="4" * 40, head_branch="fix/next", current_main_sha=next_sha,
     version="0.103.1", main_docs_only=False, main_ci_url="https://example.invalid/ci",
     main_artifact_evidence="PASS")
-existing_body = "\\n".join([
+existing_body = "\n".join([
     module.final_marker(565, existing_sha), "## Lifecycle FINAL · Issue #565",
     "- PR: #583", "- PR head branch: "+chr(96)+"docs/previous"+chr(96),
     "- PR head SHA: "+chr(96)+"3"*40+chr(96),
@@ -785,7 +785,7 @@ saved_gh, saved_run = module.gh, module.run
 calls = []
 def fake_audit_run(*args, **kwargs):
     if args[:3] == ("git", "rev-list", "--first-parent"):
-        return SimpleNamespace(stdout=next_sha+"\\n"+existing_sha+"\\n", returncode=0)
+        return SimpleNamespace(stdout=next_sha+"\n"+existing_sha+"\n", returncode=0)
     raise AssertionError(args)
 def fake_audit_gh(path, *, method="GET", fields=None):
     calls.append((path, method))
