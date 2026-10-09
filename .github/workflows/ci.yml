@@ -316,7 +316,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       # actions/cache v4.3.0 — TypeScript incremental metadata 재사용
-      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: tsconfig.tsbuildinfo
           key: ${{ runner.os }}-tsc-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
@@ -398,7 +398,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - name: Next.js build cache 복원
         id: next-cache
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: .next/cache
           key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
