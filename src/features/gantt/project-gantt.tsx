@@ -1630,7 +1630,7 @@ export function ProjectGantt({
       snapshot: trace.snapshot, settle: trace.settle,
       configure(run: string, head: string, scenario: string) {
         if ([run, head, scenario].some(value => !/^[\w.-]{1,64}$/.test(value))) throw new Error("Invalid synthetic trace identity");
-        Object.assign(context, { run, head, scenario }); trace.record("scenario-start");
+        trace.reset(); Object.assign(context, { run, head, scenario }); trace.record("scenario-start");
       },
     } });
     trace.record("react-effect-installed");
