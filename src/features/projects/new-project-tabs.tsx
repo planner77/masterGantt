@@ -14,6 +14,7 @@ export function NewProjectTabs() {
   const [pending, setPending] = useState(false);
   const pendingRef = useRef(false);
   const [skipNavigationActive, setSkipNavigationActive] = useState(false);
+  const [skipLinkReady, setSkipLinkReady] = useState(false);
   const blankTabRef = useRef<HTMLButtonElement | null>(null);
   const templateTabRef = useRef<HTMLButtonElement | null>(null);
 
@@ -21,8 +22,15 @@ export function NewProjectTabs() {
     const skipLink = document.querySelector<HTMLAnchorElement>('a.skip-link[href="#main-content"]');
     if (!skipLink) return;
 
-    const handleSkipNavigation = () => setSkipNavigationActive(true);
+    const handleSkipNavigation = () => {
+      // The native anchor focuses main immediately. Update the browser tab order
+      // before the next keypress; React's state commit can occur afterward.
+      blankTabRef.current?.setAttribute("tabindex", "-1");
+      templateTabRef.current?.setAttribute("tabindex", "-1");
+      setSkipNavigationActive(true);
+    };
     skipLink.addEventListener("click", handleSkipNavigation);
+    setSkipLinkReady(true);
     return () => skipLink.removeEventListener("click", handleSkipNavigation);
   }, []);
 
@@ -30,6 +38,8 @@ export function NewProjectTabs() {
     if (!skipNavigationActive || !(event.target instanceof HTMLElement)) return;
     const activePanel = event.target.closest<HTMLElement>('[role="tabpanel"]');
     if (activePanel?.id === `panel-${mode}`) {
+      // Restore the selected tab's roving focus after entering the active panel.
+      (mode === "blank" ? blankTabRef.current : templateTabRef.current)?.setAttribute("tabindex", "0");
       setSkipNavigationActive(false);
     }
   }
@@ -71,7 +81,7 @@ export function NewProjectTabs() {
   }
 
   return (
-    <div className="new-project-container" onFocusCapture={handleContainerFocus}>
+    <div className="new-project-container" data-skip-link-ready={skipLinkReady} onFocusCapture={handleContainerFocus}>
       <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 생성 방식">
         <button
           ref={blankTabRef}
