@@ -155,3 +155,7 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 - risk_level=HIGH / qa_required=true; 독립 Reviewer의 exact PR Head 검토 필요
 - version 0.103.1 유지; release_required=false / release_authorized=false
 - PR 단계에는 병합·Main CI·정식 tag/release·#565 자동 복구를 포함하지 않는다
+
+### #586 수동 Lifecycle 호출의 oldest-first 검증
+
+수동 `issue-lifecycle.yml`의 `finalize`와 `release_finalize`는 Generic Resolver가 사용하는 first-parent pending backlog를 재검사한다. 선택된 PR이 oldest actionable 대상이 아니거나 같은 Issue에 나중 PR이 미완료이면 **변경 전 BLOCKED**하고 자동 Generic Finalizer의 ordered resume을 사용한다. 자동 경로만 `--resolver-ordered`를 전달하며, 수동은 전달하지 않는다. 기존 FINAL을 수동으로 재호출해도 다른 후속 PR의 진행 상태를 확인하지 않고 Issue를 재종료하지 않는다.
