@@ -802,6 +802,56 @@ jobs:
             exit 1
           }
 
+  qa_final_automated:
+    name: QA Final — Automated
+    if: always() && github.event_name == 'pull_request'
+    needs: [changes, metadata_evidence, quality, e2e, docker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      issues: read
+    steps:
+      - name: 신뢰된 base SHA의 자동 QA 검증기 사용 (PR 코드 실행 금지)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: 최초 도입 PR Bootstrap 검증
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f scripts/qa_final_automated.py ]]; then
+            echo "::error::base에 신뢰된 QA validator가 없습니다. 최초 도입은 별도 독립 QA가 필요합니다."
+            exit 1
+          fi
+      - name: 최신 PR 증거·문서·리뷰 확인 (read-only)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          TEST_MERGE_SHA: ${{ github.sha }}
+          NEED_CHANGES: ${{ needs.changes.result }}
+          NEED_QUALITY: ${{ needs.quality.result }}
+          NEED_E2E: ${{ needs.e2e.result }}
+          NEED_DOCKER: ${{ needs.docker.result }}
+          NEED_METADATA: ${{ needs.metadata_evidence.result }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          E2E_REQUIRED: ${{ needs.changes.outputs.e2e }}
+          DOCKER_REQUIRED: ${{ needs.changes.outputs.docker }}
+        run: python3 scripts/qa_final_automated.py
+      - name: QA 증거 보존
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qa-final-automated-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-final-automated-report.json
+          if-no-files-found: ignore
+          retention-days: 30
+
   publish-commit-image:
     name: Main 임시 commit 이미지 게시·검증·정리
     # Optional implementation jobs may be skipped while the required aggregate
