@@ -738,6 +738,55 @@ def cleanup_temporary_main_candidate(repo: str, ctx: Context, *, preflight: bool
     return f"{'READY' if preflight else 'PASS'} — {evidence}"
 
 
+def manual_order_preflight(repo: str, ctx: Context) -> None:
+    """Fail closed unless this manual target is the oldest pending main merge.
+
+    The generic resolver owns first-parent ordering, failed-attempt supersession
+    and defer-close decisions. The manual fallback must not bypass that order.
+    """
+    # Import only for manual invocation: automatic resolver imports this module.
+    from auto_release_finalizer import (
+        AutoFinalizerError,
+        collect_pending_work,
+        current_main_sha,
+    )
+
+    try:
+        latest_main = current_main_sha(repo)
+        if latest_main != ctx.current_main_sha:
+            raise LifecycleError("main moved during manual lifecycle verification")
+        backlog = collect_pending_work(repo, latest_main)
+    except AutoFinalizerError as exc:
+        raise LifecycleError(f"manual first-parent preflight blocked: {exc}") from exc
+
+    pending = [item for item in backlog if item.actionable]
+    if not pending:
+        raise LifecycleError(
+            "manual FINAL is not the oldest pending first-parent target; "
+            "use the generic release finalizer"
+        )
+    oldest = pending[0]
+    if (
+        oldest.target_sha != ctx.merge_sha
+        or oldest.issue_number != ctx.issue_number
+        or oldest.pr_number != ctx.pr_number
+    ):
+        raise LifecycleError(
+            f"manual FINAL for Issue #{ctx.issue_number} PR #{ctx.pr_number} "
+            f"cannot skip oldest pending Issue #{oldest.issue_number} "
+            f"PR #{oldest.pr_number} SHA {oldest.target_sha}; "
+            "resume the ordered generic finalizer"
+        )
+    if any(
+        item.issue_number == ctx.issue_number
+        for item in pending[1:]
+    ):
+        raise LifecycleError(
+            "manual FINAL would close an Issue with newer pending PRs; "
+            "use the generic finalizer to defer close"
+        )
+
+
 def finalize(ctx: Context, args: argparse.Namespace) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     if not ctx.merge_sha:
@@ -750,13 +799,20 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
         # Re-entry after FINAL is written must not repeat branch/image cleanup.
         # An earlier valid FINAL for a different SHA remains immutable.
         if ctx.merge_sha in records:
-            if not args.defer_close:
+            # A repeated FINAL must not close an Issue whose later PR is still
+            # pending. Closing after a previous FINAL-write crash is performed
+            # only by an ordered resolver, never an unchecked manual fallback.
+            if not args.defer_close and args.resolver_ordered:
                 issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
                 if issue.get("state") != "closed":
                     gh(f"/repos/{repo}/issues/{ctx.issue_number}",
                        method="PATCH", fields={"state": "closed", "state_reason": "completed"})
             print(f"FINAL already recorded for PR #{ctx.pr_number} / {ctx.merge_sha}; idempotent PASS")
             return
+
+        phase = "MANUAL_ORDER_PREFLIGHT"
+        if not args.resolver_ordered:
+            manual_order_preflight(repo, ctx)
 
         phase = "BRANCH_PREFLIGHT"
         cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr, preflight=True)
@@ -840,6 +896,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--expected-version", default="")
     parser.add_argument("--authorization-note", default="")
     parser.add_argument("--defer-close", action="store_true", help="newer same-Issue main merge pending")
+    parser.add_argument("--resolver-ordered", action="store_true", help="first-parent order verified by generic resolver")
     parser.add_argument(
         "--cleanup-pr",
         action="append",
