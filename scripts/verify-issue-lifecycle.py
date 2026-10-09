@@ -191,7 +191,7 @@ require("gh_paginated(" in auto_impl, "comment and PR pagination helper is requi
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
 require("def is_closed_issue(" in auto_impl, "closed Issue skip classifier is required")
 require("replace(item, actionable=False)" in auto_impl, "closed unmarked Issue must remain as a non-actionable ordering barrier")
-require("coalesced[-1].actionable" in auto_impl and "item.actionable" in auto_impl, "retry coalescing must not cross non-actionable closed barriers")
+require("return list(items)" in auto_impl, "every per-merge lifecycle obligation must be preserved")
 require("pending_with_barriers" in auto_impl and "if item.actionable" in auto_impl, "closed ordering barriers must be filtered only after adjacency-sensitive coalescing")
 require("return issue.get(\"state\") == \"closed\"" not in auto_impl.split("def is_finalized_boundary", 1)[1].split("def is_closed_issue", 1)[0], "closed Issue must not be treated as an exact finalized boundary")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
@@ -753,39 +753,20 @@ require(
     "barrier filtering must preserve both actionable retry targets",
 )
 
-# Adjacent corrective merges for the same Issue converge only when their
-# validation scope is equivalent. Collapsed PR identities remain cleanup
-# obligations. Different Issue or docs-only/non-docs scope prevents convergence.
+# Issue #586: no green per-target Main CI/GHCR obligation may coalesce away.
 retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4", False)
 retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5", False)
-collapsed = auto.coalesce_consecutive_issue_retries([retry_one, retry_two])
-require(len(collapsed) == 1, "adjacent same-Issue retries with equal scope must converge")
-require(collapsed[0].target_sha == retry_two.target_sha, "latest retry target must win")
-require(collapsed[0].pr_number == retry_two.pr_number, "latest retry PR must win")
-require(collapsed[0].cleanup_pr_numbers == (retry_one.pr_number,), "earlier retry PR must remain a cleanup obligation")
-require(collapsed[0].first_parent_sha == retry_one.first_parent_sha, "version span must start before first retry")
-require(collapsed[0].previous_version == "0.58.3" and collapsed[0].current_version == "0.58.5", "version span must cover all adjacent retries")
 docs_followup = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 344, "0.58.4", "0.58.4", True)
-scope_split = auto.coalesce_consecutive_issue_retries([retry_one, docs_followup])
-require(len(scope_split) == 2, "docs-only/non-docs validation scope mismatch must prevent convergence")
 other_issue = auto.WorkItem("7" * 40, retry_one.target_sha, 13, 999, "0.58.4", "0.58.4", False)
-not_collapsed = auto.coalesce_consecutive_issue_retries([retry_one, other_issue, retry_two])
-require(len(not_collapsed) == 3, "different Issue boundary must prevent convergence")
-cleanup_command = auto.lifecycle_command(
-    operation="finalize",
-    issue_number=344,
-    pr_number=11,
-    release_required=False,
-    release_authorized=False,
-    expected_version="",
-    authorization_note="",
-    cleanup_pr_numbers=(10,),
-)
-require(cleanup_command[-2:] == ["--cleanup-pr", "10"], "collapsed cleanup PR must be forwarded to lifecycle")
+for sequence in ([retry_one, retry_two], [retry_one, docs_followup], [retry_one, other_issue, retry_two]):
+    require(auto.coalesce_consecutive_issue_retries(sequence) == sequence, "all merged targets must retain independent evidence")
+cleanup_command = auto.lifecycle_command(operation="finalize", issue_number=344, pr_number=11,
+    release_required=False, release_authorized=False, expected_version="", authorization_note="",
+    cleanup_pr_numbers=(10,), defer_close=True)
+require(cleanup_command[-3:] == ["--defer-close", "--cleanup-pr", "10"], "later target must defer close")
 parsed_cleanup = module.build_parser().parse_args(
-    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9"]
-)
-require(parsed_cleanup.cleanup_pr == [10, 9], "lifecycle must accept repeated cleanup PR identities")
+    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9", "--defer-close"])
+require(parsed_cleanup.cleanup_pr == [10, 9] and parsed_cleanup.defer_close, "lifecycle must parse cleanup/deferral flags")
 
 # A failed older attempt may be superseded by a later Green corrective merge
 # for the same Issue even when independent Issues are in between. Intervening
