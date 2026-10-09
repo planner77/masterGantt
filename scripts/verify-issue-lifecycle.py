@@ -702,6 +702,8 @@ closed_item = auto.WorkItem(closed_sha, pending_sha, 474, 452, "0.86.0", "0.86.0
 saved_resolve = auto.resolve_work_item
 saved_boundary = auto.is_finalized_boundary
 saved_closed = auto.is_closed_issue
+saved_issue_comments = auto.issue_comments
+auto.issue_comments = lambda _repo, _issue: []
 auto.resolve_work_item = lambda _repo, target: {
     finalized_sha: finalized_item,
     pending_sha: pending_item,
@@ -728,6 +730,7 @@ finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
     auto.is_closed_issue = saved_closed
+    auto.issue_comments = saved_issue_comments
 
 # Two pending retries for the same Issue must not become adjacent when a
 # closed/no-marker merge sits between them in first-parent order.
