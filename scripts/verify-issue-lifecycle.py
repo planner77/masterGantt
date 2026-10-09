@@ -817,6 +817,7 @@ existing_body = "\n".join([
 ])
 saved_gh, saved_run = module.gh, module.run
 calls = []
+audit_comments = [{"body": existing_body, "user":{"login":"github-actions[bot]"}}]
 def fake_audit_run(*args, **kwargs):
     if args[:3] == ("git", "rev-list", "--first-parent"):
         return SimpleNamespace(stdout=next_sha+"\n"+existing_sha+"\n", returncode=0)
@@ -824,10 +825,14 @@ def fake_audit_run(*args, **kwargs):
 def fake_audit_gh(path, *, method="GET", fields=None):
     calls.append((path, method))
     if "/comments?" in path:
-        return [{"body":existing_body, "user":{"login":"github-actions[bot]"}}]
+        return audit_comments
     if path.endswith("/pulls/583"):
         return {"merged":True,"merge_commit_sha":existing_sha,"base":{"ref":"main"},
             "head":{"ref":"docs/previous","sha":"3"*40,"repo":{"full_name":"owner/repo"}},
+            "body":"Refs #565"}
+    if path.endswith("/pulls/585"):
+        return {"merged":True,"merge_commit_sha":next_sha,"base":{"ref":"main"},
+            "head":{"ref":"fix/next","sha":"4"*40,"repo":{"full_name":"owner/repo"}},
             "body":"Refs #565"}
     if path.endswith("/pulls/999"):
         # Simulate a real API lookup resolving to an unrelated, unmerged PR.
@@ -842,12 +847,36 @@ try:
     require(records == {existing_sha:583}, "older valid FINAL must coexist with newer target")
     require(not any(method != "GET" for _,method in calls), "FINAL preflight must remain read only")
     bad = existing_body.replace("#583", "#999")
-    existing_body = bad
+    audit_comments[0]["body"] = bad
     try:
         module.audited_final_markers("owner/repo", ctx)
         raise SystemExit("tampered FINAL must fail closed")
     except module.LifecycleError:
         pass
+
+    audit_comments[0]["body"] = existing_body
+    audit_comments.append({"body": existing_body, "user":{"login":"github-actions[bot]"}})
+    require(module.audited_final_markers("owner/repo", ctx) == {existing_sha:583},
+            "identical independently authenticated FINAL write must be idempotent")
+    audit_comments[:] = [{"body":existing_body, "user":{"login":"github-actions[bot]"}}]
+    newer_body = "\n".join([
+        module.final_marker(565, next_sha), "## Lifecycle FINAL · Issue #565",
+        "- PR: #585", "- PR head branch: "+chr(96)+"fix/next"+chr(96),
+        "- PR head SHA: "+chr(96)+"4"*40+chr(96),
+        "- merge/release target SHA: "+chr(96)+next_sha+chr(96),
+    ])
+    next_item = auto.WorkItem(next_sha, existing_sha, 585, 565, "0.103.1", "0.103.1")
+    require(not auto.is_finalized_boundary("owner/repo", next_item),
+            "older FINAL must never finish current unmarked SHA")
+    audit_comments[:] = [{"body":newer_body, "user":{"login":"external-commenter"}}]
+    try:
+        auto.is_finalized_boundary("owner/repo", next_item)
+        raise SystemExit("forged FINAL boundary must fail closed during collection")
+    except auto.AutoFinalizerError as exc:
+        require("phase=FINAL_BOUNDARY_AUDIT" in str(exc), "boundary error must identify audit phase")
+    audit_comments[:] = [{"body":newer_body, "user":{"login":"github-actions[bot]"}}]
+    require(auto.is_finalized_boundary("owner/repo", next_item),
+            "authenticated exact merge FINAL must terminate first-parent scan")
 finally:
     module.gh, module.run = saved_gh, saved_run
 
