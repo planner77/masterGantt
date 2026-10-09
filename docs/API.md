@@ -1,5 +1,17 @@
 # Backend API
 
+## Issue #538 — Project Master 관계 계약
+
+`GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.
+
+`POST /api/project-master/admin/relations`은 연결, `DELETE`는 해제다. JSON body는 `{businessUnitId:string,productId:string,siteEntityId?:string|null}`이며 미지정 site는 제품 연결로 해석한다. 기존 관리자 Cookie, Origin, strong catalog `If-Match`, request logging, `private,no-store`, 최신 revision/ETag를 유지한다. 동일 관계 재연결은 no-op(리비전 유지). Category·UUID 불일치/존재하지 않는 부모 관계는 409 `PROJECT_MASTER_RELATION_INVALID`, 프로젝트 사용 또는 하위 site 연결이 남은 해제는 409 `PROJECT_MASTER_RELATION_IN_USE`, 비활성 항목 신규 연결은 409 `PROJECT_MASTER_INACTIVE`, stale revision은 412다.
+
+Project create/update에서 조합이 맞지 않으면 409 `PROJECT_MASTER_RELATION_INVALID`. Project는 모두 null, 사업부만, 사업부+제품, 사업부+제품+사이트 형태만 신규 허용한다. 기존 Project와 동일한 legacy 관계가 그대로 유지될 때는 비분류 메타데이터 변경을 허용한다. Copy는 원본 관계를 안정 ID 그대로 보존한다.
+
+### Issue #538 review follow-up — template hierarchy conflict
+
+기존 Template snapshot의 사업부/제품/사업장 조합이 현행 관계 제약에 맞지 않으면 인스턴스화 API는 `409 PROJECT_MASTER_RELATION_INVALID`를 반환한다. 템플릿 자체를 임의 변환/자동 수정하거나 신규 Project를 불완전하게 생성하지 않는다.
+
 ## Issue #460 — Milestone 소속 / 완료 Gate API
 
 Canonical Task 응답은 `membership={explicitMilestoneTaskId,effectiveMilestoneTaskId,inheritedFromTaskId}`를 null 정규화하여 제공하고 Milestone은 `stageGate`를 제공한다. 모든 ID는 immutable public Task UUID다. effective/inheritance/Ready는 read-only projection이며 저장 입력으로 신뢰하지 않는다. 기존 mixed Link에는 `legacyMixed=true`, 정상 homogeneous Link에는 false를 제공한다. [정확한 DTO·판정·inventory](MILESTONE_STAGE_GATES.md)를 따른다.

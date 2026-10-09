@@ -1,5 +1,9 @@
 # Security
 
+## Issue #538 — Project master relation mutation
+
+`POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.
+
 ## Issue #460 — 단계 mutation과 데이터 유실 방지
 
 새 `POST /api/projects/{publicId}/milestone-memberships`는 route security inventory의 `origin-session-if-match` 보호 mutation이다. Task PATCH의 Membership도 동일 session/Origin/strong revision 및 transaction 내 최신 권한 재검증을 사용한다. type/Project/FK/unique/완료 구조/완료 가능 조건을 서버에서 확인하고 client effective/Ready/legacy flag를 신뢰하지 않는다. 실패 시 Task 필드·소속·revision을 전부 rollback하며 공개 오류에는 public Task ID만 제공한다.

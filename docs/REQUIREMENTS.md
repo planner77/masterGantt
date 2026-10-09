@@ -1,5 +1,15 @@
 # Requirements baseline
 
+## Issue #538 — 프로젝트 기준정보 관계 (후속 계약)
+
+#289의 독립 선택/cascading 비범위 기록은 당시 범위에 한정된다. #538부터 사업부→제품→사업장/법인 관계를 Project Master의 추가 Source of Truth로 관리한다.
+
+- 사업부 1개에 0..N 제품, (사업부,제품) 1개에 0..N 사업장/법인을 연결한다. 같은 제품은 여러 사업부에서, 같은 사업장/법인은 여러 사업부·제품 조합에서 안정 ID를 공유할 수 있다.
+- Project 분류 값은 기존 nullable 단일 ID 3개이며, 전체 미지정과 사업부만 지정 및 사업부+제품만 지정이 가능하다. 제품은 사업부 없이, 사업장/법인은 두 상위 선택 없이 지정할 수 없다.
+- 신규 지정/변경 시 반드시 활성 item + 유효 관계를 선택한다. 이미 저장된 legacy/비활성/부분 참조는 관계 변경이 없는 메타데이터 편집·조회·복사에서 보존한다. Template 신규 생성 시에는 관계를 검증한다.
+- 연결 해제 시 그 관계를 참조하는 Project가 있으면 409로 거부한다. 제품 관계는 하위 사이트 연결이 남아 있어도 해제 불가다. Project row를 자동 수정하거나 관계를 임의 추정하지 않는다.
+- Server 검증을 권위로 하며 UI 필터는 편의용이다. SVAR Task/일정/Resource·물류 도메인은 변경하지 않는다.
+
 ## Issue #492 — Grid/Chart 작업 Hover Tooltip
 
 Project 일정의 Grid 작업 행과 Chart Task/Summary/Milestone에 마우스를 올리면 같은 작업 정보를 Tooltip으로 제공한다. 첫 줄은 canonical 작업명, 다음 줄은 canonical 시작일·종료일이며 기존 공통 locale 날짜 formatter를 사용한다. `start/end=null`인 작업은 `—`로 표시하고 SVAR가 date-less Summary를 렌더하기 위해 사용하는 내부 anchor 날짜를 사용자 일정으로 노출하지 않는다.

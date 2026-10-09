@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #538 — Project 분류의 종속 선택
+
+기존 #289의 독립 3개 Select를 관계 기반 `사업부 → 제품 → 사업장/법인`으로 확장한다. 초기값은 모두 미지정, 사업부/제품 변경 시 하위 값은 초안에서만 지우고 `role=status`로 안내하며 저장 전 사용자 확인을 기다린다. 사업부 없이는 제품을, 사업부·제품 없이는 사이트를 변경할 수 없다. 기존 inactive/legacy 참조는 현재값 옵션에 남기고 새 선택은 active relation만 허용한다.
+
+`/project-master-admin`에서는 기존 category Tab과 항목 표 아래에 독립 관계 편집 영역을 둔다. 먼저 사업부-제품을 연결한 후 동일 조합에 사업장/법인을 연결할 수 있다. 관계 해제는 두 번째 명시 클릭이 필요하며, 프로젝트/하위 관계 사용 중에는 서버가 거부한다. 390~wide에서는 control wrap/표 자체 가로 scroll을 유지하고 keyboard/tab/aria/focus, 기존 조회 오류/비밀번호 UI를 보존한다.
+
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원
 
 일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
@@ -1183,3 +1189,7 @@ Resource 임시 범위 이동의 각 반환 단계는 당시 일정의 SVAR publ
 동일 1440×900 window에서 scope 반환 시 실제 Gantt root 높이가 532px에서 504px로 바뀌는 정상 배치를 확인했다. 원본과 target의 절대 높이 동일성을 요구하지 않고, 원본 window 크기·fullscreen host·scale/columns/grid/root 폭 조건을 유지하면서 target canonical filter 적용 후 보이는 root 크기를 해당 복원 요청의 기준으로 삼는다. 이후 geometry·입력·canonical 세대 변경은 복원을 취소하며, 움직이는 배치를 계속 재캡처하지 않는다.
 
 Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개의 기간만2026-09-28~10-02로 이동한 명시 파생 원장에서 검증한다. M1 원인→정확한 Resource(T1/Assignment2,known7.5 M/D)→지연 KPI1→정확한T1 일정→원래 Resource 지연 상세→원래 M1 원인·검색·기간·focus의 두 단계 LIFO 복귀와 조회 전후 canonical/revision 불변을 확인했다. 실제 server asOf2026-10-08과 해당 report scope/환산을 사용하며 공통 기본11.5 M/D 원장과 파생 조회 context를 혼합하지 않는다. Source-bound report/detail은 같은 binding의 POST query로 대조하며 binding 없는 GET fallback으로 범위를 확대하지 않는다. [실행 증거](../output/playwright/issue530/cross-flow-evidence.json)는 제품4개·fixture/helper 불변, 기존spec32,454byte prefix 보존, 추가case1건12.0초PASS를 기록한다.
+
+## Issue #538 — 새 프로젝트 생성 화면 Skip Link와 키보드 순서 보완
+
+새 프로젝트 생성 화면에서 `본문으로 바로가기`를 누르면 native anchor의 `main#main-content` focus를 유지하면서 두 생성 방식 탭의 순차 `tabindex`를 즉시 -1로 변경한다. 다음 Tab은 현재 활성 폼의 첫 컨트롤로 진입해야 한다. 해당 폼에 focus가 들어오면 선택된 탭의 roving `tabindex=0`를 복원하고 이후 ArrowLeft/Right/Home/End 탐색은 이전과 동일해야 한다. Client handler 등록 준비는 E2E에서 `data-skip-link-ready`로 구분해 SSR 탭 DOM 표시만으로 hydration을 추론하지 않는다. `#121` App Shell Skip Link와 `#264` 초안 보존 및 inactive panel 금지는 유지한다. 권한·저장 API 변화는 없다.

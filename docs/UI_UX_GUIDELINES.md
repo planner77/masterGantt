@@ -1,5 +1,9 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #538 — 관계 관리자와 cascade 상태
+
+전역 Project Master의 연결 편집은 app-owned native control이다(SVAR Gantt Core API 적용 대상 아님). 라벨 있는 select/연결 버튼/해제 확인을 사용하며 disabled 이유와 server 409/412 메시지, 로딩/빈 관계/초안 하위 해제 상태를 텍스트로 구분한다. 하위 선택 변경은 저장과 분리하고 Project dirty draft를 무단 제출하지 않는다. 390/768/1024/1440/wide의 table-owned scroll, keyboard focus 및 document overflow를 회귀 검증한다.
+
 ## Issue #518 — Project Workspace 단일 상위 탭과 세로 영역
 
 상위 tablist의 peer는 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 순서다. 일정의 중복 Gantt/Dashboard tablist를 제거하고 #399 WBS scope tablist만 유지한다. 각 tab의 aria-controls/aria-labelledby/aria-selected/roving tabIndex, ArrowLeft/Right/Home/End, focus 이동과 비활성 panel 접근성 차단을 실제 DOM에서 검증한다. 390px 등 좁은 화면은 선택 tab과 focus outline이 잘리지 않도록 tablist 자체만 수평 스크롤하며 height를 적층하지 않는다.

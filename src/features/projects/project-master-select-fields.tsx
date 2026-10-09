@@ -16,7 +16,8 @@ function isCatalog(value: unknown): value is ProjectMasterSelectionResponse {
     "revision" in data && typeof data.revision === "number" &&
     "businessUnits" in data && Array.isArray(data.businessUnits) &&
     "products" in data && Array.isArray(data.products) &&
-    "siteEntities" in data && Array.isArray(data.siteEntities);
+    "siteEntities" in data && Array.isArray(data.siteEntities) &&
+    "relations" in data && Array.isArray(data.relations);
 }
 
 export function useProjectMasterSelectionCatalog() {
@@ -61,6 +62,16 @@ function options(active: readonly ProjectMasterItemDto[], current?: ProjectMaste
   return [current, ...active];
 }
 
+/** Preserve a legacy selection for display, but never suggest new children of an inactive parent. */
+export function linkedProjectMasterChoices(
+  active: readonly ProjectMasterItemDto[],
+  linkedIds: ReadonlySet<string>,
+  current: ProjectMasterItemDto | null | undefined,
+  parentActive: boolean,
+): ProjectMasterItemDto[] {
+  return options(parentActive ? active.filter((item) => item.active && linkedIds.has(item.id)) : [], current);
+}
+
 export function ProjectMasterSelectFields({
   value,
   onChange,
@@ -78,36 +89,74 @@ export function ProjectMasterSelectFields({
     siteEntity?: ProjectMasterItemDto | null;
   };
 }>) {
+  const [notice, setNotice] = useState<string | null>(null);
+  const linkedProducts = new Set(catalog.data.relations.filter((r) =>
+    r.businessUnitId === value.businessUnitId && r.siteEntityId === null).map((r) => r.productId));
+  const linkedSites = new Set(catalog.data.relations.filter((r) =>
+    r.businessUnitId === value.businessUnitId && r.productId === value.productId &&
+    r.siteEntityId !== null).flatMap((r) => r.siteEntityId === null ? [] : [r.siteEntityId]));
+  const selectedBusinessUnit = current?.businessUnit?.id === value.businessUnitId
+    ? current.businessUnit
+    : catalog.data.businessUnits.find((item) => item.id === value.businessUnitId);
+  const selectedProduct = current?.product?.id === value.productId
+    ? current.product
+    : catalog.data.products.find((item) => item.id === value.productId);
   const fields = [
     {
       key: "businessUnitId" as const,
       id: "project-business-unit",
       label: "사업부",
-      items: options(catalog.data.businessUnits, current?.businessUnit),
+      items: options(catalog.data.businessUnits.filter((item) => item.active), current?.businessUnit),
     },
     {
       key: "productId" as const,
       id: "project-product",
       label: "제품",
-      items: options(catalog.data.products, current?.product),
+      items: linkedProjectMasterChoices(
+        catalog.data.products, linkedProducts,
+        current?.product?.id === value.productId ? current.product : null,
+        selectedBusinessUnit?.active === true,
+      ),
     },
     {
       key: "siteEntityId" as const,
       id: "project-site-entity",
       label: "사업장/법인",
-      items: options(catalog.data.siteEntities, current?.siteEntity),
+      items: linkedProjectMasterChoices(
+        catalog.data.siteEntities, linkedSites,
+        current?.siteEntity?.id === value.siteEntityId ? current.siteEntity : null,
+        selectedBusinessUnit?.active === true && selectedProduct?.active === true,
+      ),
     },
   ];
 
-  return <div className="project-master-field-grid">
+  const handleChange = (key: keyof ProjectMasterSelectionValue, selected: string) => {
+    if (key === "businessUnitId") {
+      if (selected === value.businessUnitId) return;
+      setNotice(value.productId || value.siteEntityId
+        ? "사업부가 변경되어 하위 제품·사업장 선택을 해제했습니다."
+        : null);
+      onChange({ businessUnitId: selected, productId: "", siteEntityId: "" });
+    } else if (key === "productId") {
+      if (selected === value.productId) return;
+      setNotice(value.siteEntityId ? "제품이 변경되어 사업장/법인 선택을 해제했습니다." : null);
+      onChange({ ...value, productId: selected, siteEntityId: "" });
+    } else {
+      setNotice(null);
+      onChange({ ...value, siteEntityId: selected });
+    }
+  };
+  return <div>
+    <div className="project-master-field-grid">
     {fields.map((field) => (
       <div className="form-field" key={field.key}>
         <label htmlFor={field.id}>{field.label} <span>(선택)</span></label>
         <select
           id={field.id}
-          disabled={disabled}
+          disabled={disabled || (field.key === "productId" && !value.businessUnitId) ||
+            (field.key === "siteEntityId" && (!value.businessUnitId || !value.productId))}
           value={value[field.key]}
-          onChange={(event) => onChange({ ...value, [field.key]: event.target.value })}
+          onChange={(event) => handleChange(field.key, event.target.value)}
         >
           <option value="">미지정</option>
           {field.items.map((item) => (
@@ -118,5 +167,7 @@ export function ProjectMasterSelectFields({
         </select>
       </div>
     ))}
+    </div>
+    {notice ? <p role="status" aria-live="polite">{notice}</p> : null}
   </div>;
 }
