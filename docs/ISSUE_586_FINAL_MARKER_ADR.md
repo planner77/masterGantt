@@ -36,3 +36,9 @@ Issue #565는 PR #583(docs-only, `1ed682dd062012f3d04c2517110835bf7c28ac13`)에 
 기존 #565의 #583 FINAL은 수정·삭제하지 않는다. PR #585의 Main CI [37954486201](https://github.com/planner77/masterGantt/actions/runs/37954486201) 및 실패한 Resume [37958294541](https://github.com/planner77/masterGantt/actions/runs/37958294541)은 과거 불변 증거다. #585의 GHCR candidate/branch는 독립 조회를 통해 상태를 확인한 뒤 새 코드가 main에 반영되었을 때 exact target을 멱등 재개한다. 실패 Run을 성공으로 소급 변경하거나 무조건 tag 재게시·Issue reopen을 수행하지 않는다.
 
 이 ADR은 PR 단계에서 운영 복구가 실행되었다는 주장이나 정식 GHCR 릴리스 승인이 아니다.
+
+### 수동 fallback 순서 검증 (2026-10-10, 추가 P1 보완)
+
+`issue-lifecycle.yml`의 수동 `finalize`/`release_finalize`는 자동 Resolver의 합류·대기·Issue 종료 지연 판단을 우회할 수 없다. 수동 호출은 현재 main first-parent backlog를 다시 해석하고 **선택한 PR이 최초 actionable 대상**이어야만 처리한다. 선행 다른 Issue나 같은 Issue의 미완료 PR이 있거나 선택한 Issue에 후속 PR이 남으면 기존 Generic Finalizer로 복구하도록 FAIL/BLOCKED 한다. 동일 SHA의 기존 FINAL로 수동 재진입할 때는 무조건 close하지 않고 변경 없는 멱등 응답만 반환한다. 자동 Resolver는 이미 순서 검증을 마친 경우에만 `--resolver-ordered` 플래그를 전달한다. 수동 workflow는 이 내부 플래그를 전달하지 않는다.
+
+테스트는 선행 동일 Issue A/B, 중간 다른 Issue, 이미 완료된 PR의 재호출, main 변경 및 잘못된 PR 번호에 대해 side effect 전 거부되는지 확인한다.
