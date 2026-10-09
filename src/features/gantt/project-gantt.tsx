@@ -2187,19 +2187,24 @@ export function ProjectGantt({
       input = true; // A direct user gesture always cancels the previous tab's pending restore.
       if (event.type !== "wheel") return;
       const serial = ++wheelSerial;
+      const gesture = viewportGestureReference.current;
       void (async () => {
-        // Read Core after its native wheel handler, not the stale origin viewport.
+        // A tab's pending restore object may be discarded while the user stays
+        // on the schedule. Continue protecting their actual wheel position,
+        // but never replay it after another gesture, scope or view change.
         await yieldFrame();
-        if (cancelled || serial !== wheelSerial || apiReference.current !== api) return;
+        if (serial !== wheelSerial || gesture !== viewportGestureReference.current ||
+            apiReference.current !== api) return;
         const userViewport = api.getState();
         let queue = canonicalSyncQueueReference.current;
         await queue;
-        while (!cancelled && queue !== canonicalSyncQueueReference.current) {
+        while (queue !== canonicalSyncQueueReference.current) {
           queue = canonicalSyncQueueReference.current;
           await queue;
         }
         await yieldFrame(); await yieldFrame();
-        if (cancelled || serial !== wheelSerial || apiReference.current !== api || !root.isConnected ||
+        if (serial !== wheelSerial || gesture !== viewportGestureReference.current ||
+            apiReference.current !== api || !root.isConnected ||
             !peerViewportContext.current.visible || peerViewportContext.current.key !== request.key ||
             visibleTaskFilterKeyReference.current !== filter || scaleModeReference.current !== scale) return;
         const currentViewport = api.getState();
@@ -3407,6 +3412,31 @@ export function ProjectGantt({
       if (inlineOpenTokenReference.current !== token || apiReference.current !== api) return;
       if (result.status === "saved") {
         setInlineNameMessage("작업명을 저장했습니다.");
+        // The Grid checkbox is fed directly from canonical DTOs, but an
+        // intercepted Core close-editor can leave the native name cell stale.
+        // Reconcile only the confirmed server name, through Core's public
+        // update-task action, after any older canonical sync finishes.
+        void canonicalSyncQueueReference.current.then(async () => {
+          if (!api || apiReference.current !== api) return;
+          const confirmed = tasksByIdReference.current.get(session.taskId);
+          if (!confirmed || confirmed.name !== normalized.name) return;
+          const core = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
+          const rendered = ganttScrollReference.current?.querySelector<HTMLElement>(
+            '.wx-row[data-id=":' + session.taskId + '"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text',
+          );
+          if (core.find(task => task.id === session.taskId)?.text === confirmed.name &&
+              rendered?.textContent?.trim() === confirmed.name) return;
+          if (inlineSessionReference.current === session) inlineSessionReference.current = null;
+          canonicalSyncDepthReference.current++;
+          try {
+            await api.exec("update-task", {
+              id: session.taskId, task: { text: confirmed.name },
+              eventSource: "project-canonical-sync", skipUndo: true,
+            });
+          } finally {
+            canonicalSyncDepthReference.current--;
+          }
+        }).catch(() => onCanonicalSyncFailureReference.current());
       } else {
         setInlineNameError(true);
         setInlineNameMessage(result.message);

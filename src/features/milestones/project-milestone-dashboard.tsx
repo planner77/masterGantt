@@ -110,21 +110,36 @@ export function ProjectMilestoneDashboard({
     if (!enabled || !highlightTaskId || focusedHighlight.current === highlightTaskId) return;
     // The management dialog closes on a prior animation frame. Retrying briefly keeps
     // the exact-ID dashboard fallback focus deterministic without stealing focus later.
-    let frame = 0, disposed = false;
-    const focusHighlight = (attempt: number) => {
-      if (disposed) return;
+    let frame = 0, disposed = false, userMoved = false;
+    const markUserMove = () => { userMoved = true; };
+    document.addEventListener("pointerdown", markUserMove, true);
+    document.addEventListener("keydown", markUserMove, true);
+    const focusHighlight = (attempt: number, stableFrames: number) => {
+      if (disposed || userMoved || attempt >= 120) return;
       const root = document.getElementById("project-panel-milestones");
       if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
-      if (document.querySelector("dialog:modal")) {
-        if (attempt < 30) frame = requestAnimationFrame(() => focusHighlight(attempt + 1));
-        return;
+      if (!document.querySelector("dialog:modal")) {
+        const row = Array.from(root.querySelectorAll<HTMLElement>("[data-milestone-task-id]"))
+          .find(node => node.dataset.milestoneTaskId === highlightTaskId);
+        const target = row?.querySelector<HTMLElement>('button[aria-label$=" 관리"]')
+          ?? root.querySelector<HTMLElement>("[data-milestone-focus=heading]");
+        if (target) {
+          if (document.activeElement !== target) target.focus({ preventScroll: false });
+          stableFrames = document.activeElement === target ? stableFrames + 1 : 0;
+          // The closing management dialog may restore its trigger on a later
+          // frame. Require a bounded stable window before declaring success.
+          if (stableFrames >= 15) { focusedHighlight.current = highlightTaskId; return; }
+        }
       }
-      const row = Array.from(root.querySelectorAll<HTMLElement>("[data-milestone-task-id]")).find(node => node.dataset.milestoneTaskId === highlightTaskId);
-      const target = row?.querySelector<HTMLElement>('button[aria-label$=" 관리"]') ?? root.querySelector<HTMLElement>("[data-milestone-focus=heading]");
-      if (target) { target.focus({ preventScroll: false }); focusedHighlight.current = highlightTaskId; }
+      frame = requestAnimationFrame(() => focusHighlight(attempt + 1, stableFrames));
     };
-    frame = requestAnimationFrame(() => focusHighlight(0));
-    return () => { disposed = true; cancelAnimationFrame(frame); };
+    frame = requestAnimationFrame(() => focusHighlight(0, 0));
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      document.removeEventListener("pointerdown", markUserMove, true);
+      document.removeEventListener("keydown", markUserMove, true);
+    };
   }, [active, enabled, highlightTaskId, managementRows]);
   function resetDashboardConditions() { setFilters({}); setSearch(""); setHorizon("14"); setManualDate(false); setDate(""); setFrom(""); setTo(""); setConversionMode("environment"); setConversion(""); }
 
