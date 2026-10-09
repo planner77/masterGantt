@@ -318,6 +318,15 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
       for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
     });
     await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    // #568: a late SVAR layout can move the native chart to zero before
+    // scroll-chart(0) reaches Core. Recreate a native-only reset with no
+    // user input and require the exact public/native viewport to recover.
+    const chart = frame.locator(".wx-chart");
+    const capacity = await chart.evaluate(element => element.scrollWidth - element.clientWidth);
+    expect(capacity).toBeGreaterThanOrEqual(before.publicViewport.left);
+    await chart.evaluate(element => { element.scrollLeft = 0; });
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    await expect.poll(async () => Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0)).toBeGreaterThanOrEqual(1);
     const staleAfterPeer = await frame.evaluate((element, expectedLeft) => {
       const raw = element.getAttribute("data-gantt-public-scroll-events") ?? "[]";
       const events = JSON.parse(raw) as { action: string; requestedLeft?: number }[];
@@ -328,7 +337,15 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
     expect(staleAfterPeer).toBe(0);
     expect(await seed.getSnapshot()).toEqual(canonical);
   } finally {
-    await info.attach("fixed-geometry-exact-drill", { body: JSON.stringify({ before, after: await ganttIntegrationState(page), initialCapture, returnCapture }), contentType: "application/json" });
+    await info.attach("fixed-geometry-exact-drill", { body: JSON.stringify({
+      before, after: await ganttIntegrationState(page), initialCapture, returnCapture,
+      peerRestore: await frame.getAttribute("data-gantt-peer-restore"),
+      guardBlocks: await frame.getAttribute("data-gantt-peer-scroll-guard-blocks"),
+      nativeRepairs: await frame.getAttribute("data-gantt-peer-native-repairs"),
+      repairFailure: await frame.getAttribute("data-gantt-peer-native-repair-failure"),
+      publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
+      capacity: await frame.locator(".wx-chart").evaluate(element => element.scrollWidth - element.clientWidth),
+    }), contentType: "application/json" });
   }
 });
 
@@ -361,6 +378,8 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true"); await schedule.click();
   try {
     await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+    // 복원 후 Gantt 외부 프로젝트 제목 클릭으로는 이전 좌표 보호가 해제되지 않는다.
+    await page.getByRole("heading", { name: "Resource KPI integration #530" }).click();
     await frame.evaluate(async () => {
       for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
     });
@@ -401,7 +420,10 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await strip.getByRole("button",{name:/임시 이동 범위 전체 해제/}).click();
   await expect(strip).toHaveCount(0);
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
-  await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page)}),contentType:"application/json"});
+  await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page),guardBlocks:await frame.getAttribute("data-gantt-peer-scroll-guard-blocks")}),contentType:"application/json"});
+  // #530: 실제 사용자가 차트를 왼쪽으로 스크롤하면 보호가 해제되어야 한다.
+  await frame.locator(".wx-chart").hover(); await page.mouse.wheel(-240, 0);
+  await expect.poll(async () => { const state = await ganttIntegrationState(page); return { coreLeft: state.publicViewport.left, nativeLeft: state.left }; }).toEqual({ coreLeft:0, nativeLeft:0 });
   } finally {
     const trace = await frame.evaluate(element => (element as HTMLElement & {
       __issue568Trace?: { snapshot: () => unknown };

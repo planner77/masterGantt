@@ -1,5 +1,26 @@
 # Test Plan
 
+## Issue #530 PR #566 CI #2302.1 — 네이티브 Chart 우선 변조 복원
+
+- [PR CI #2302.1](https://github.com/planner77/masterGantt/actions/runs/37920082307)의 #530 fixed geometry 복귀에서 공개 Core left120 / native Chart left0으로 E2E6 FAIL(84 PASS/1 FAIL/1 SKIP). Quality/Docker 및 E2E1~5 PASS. [Trace artifact](https://github.com/planner77/masterGantt/actions/runs/37920082307/artifacts/11611469146)는 복원 시점 Core/native120 성공과 후행 stale `scroll-chart(0)` guard 차단1을 동시에 확인. 최초 native writer 호출 위치는 미확정.
+- 프로그램 출발/복귀의 소유권이 유효하고 Core left와 원래 복원 위치가 일치할 때만 native Chart 물리 capacity/visible 확인 후 bounded native `scrollLeft` 보정을 허용한다. Core 변경/새 사용자 wheel·pointer·keyboard·touch/scale·scope·columns/레이아웃 변경/숨김/capacity 부족은 보호를 해제한다. 반복 보정은 복귀당 최대3회, 실패 시 진단자료를 남기고 무조건 성공으로 표시하지 않는다. SVAR 설치 버전과 read-only #569 Adapter 계약을 분리한다.
+- 기존 Core/native strict 120/240, 12RAF, instance/selection/tree/columns, nested LIFO, 타 패널 외부 클릭, 실제 Gantt wheel(-240) 및 resize/필터 취소 검증 유지. 고정 geometry 복귀 뒤 native-only 0으로 의도적으로 전환하여 **같은 원래 좌표로 Core/native 재정합**하고 양의 bounded repair 횟수를 검사. 사용자 휠을 통한 정상 0 이동은 여전히 허용한다. assertion/skip/retry/timeout/required checks 조정 금지.
+- 신규 Head의 full Quality/E2E6/Docker와 독립 QA는 별도 증거 없이는 NOT TESTED. Issue #530 정식 GHCR 0.103.1 OWNER 승인 ≠ 릴리스 완료.
+
+## Issue #530 — #568·#569 최신 main + PR #566 충돌 해결 및 회귀 검증
+
+- #568의 [실제 Core/native trace](GANTT_SYNC_TRACE.md)·`nested-second-pop` 원본 관측을 유지한다. `scroll-chart(120)` 이후 native DOM 좌표가 0이 되고 나서 Core에 0 명령이 도착할 수 있으므로 `api.intercept`만으로 실제 DOM settle을 증명하지 않는다.
+- #569의 [ADR/Adapter](GANTT_ADAPTER_ADR.md)에서 `api.exec` completion과 3-frame Core/native·실제 scroll capacity settle을 분리한다. 제품 도입은 DEFER. #463의 최신 main 회귀를 우선 보존해 raw optional restore marker·필터의 수직 clamp·복구된 capacity에서 새 사용자 위치·Clock 시각 경합까지 엄격 검증한다. PR #566 옛 marker-null→0회 처리 코드는 병합하지 않는다.
+- #530 nested first pop은 외부 프로젝트 제목 클릭 후 기존 240px 좌표/인스턴스·열·선택·tree 불변, second pop의 #568 bounded trace artifact, 사용자 내부 wheel(-240) 뒤 public/native 0 허용을 점검한다. 이전 #2283.1(Core120/native0) 실패는 별도로 보존한다. 기존 5초 poll/12-frame 재검증·test assertion·skip/retry·CI required gate 완화 없음.
+- 최종 결과는 새 exact-head 전체 PR CI와 독립 QA 확인 후 판정한다. 기존 0.103.1 버전·승인 및 Main/Release 결과는 분리한다.
+
+## Issue #530 — Main CI #2280.1 뒤늦은 SVAR scroll-chart(0) 회귀 (2026-10-09)
+
+- 원격 Main CI #2280.1 (`e1e6e255...`) shard6: nested LIFO pop 240→0으로 재발, 캡처/명시적 restore는 성공하고 이후 새로운 scroll-chart(0)이 발생. Quality/E2E1~5/Docker PASS, E2E6 FAIL, 전체 CI FAIL.
+- 명시적 Resource peer restore 직후 보호 계약: API instance·scope/filter·scale·grid/columns·root geometry가 같고 사용자 입력이 없을 때 늦은 `scroll-chart(left!=restoredLeft)`는 SVAR intercept에서 pre-dispatch 거부한다. Gantt chart/grid 내부 실제 wheel/pointerdown/keydown/touchstart 및 scope/geometry/visibility 변경은 보호를 해제해야 한다. Gantt 외부 Task Editor/toolbar/peer panel 입력은 보호를 해제하지 않아야 한다. 사용자가 뒤늦게 Chart를 좌측 끝(0)으로 옮길 수 있어야 한다.
+- Playwright: nested pop middle240 및 origin120 Core/native+selection+columns+tree strict 비교와 12rAF 지연 비교, 복원 후 stale scroll-chart(0) 이벤트 0건; **첫 pop 직후 Gantt 외부 프로젝트 제목 클릭에도 12rAF 이후 public/native240 보존**, 최종 사용자의 chart wheel(-240)→Core/native 0 회귀 추가. #514 Grid reveal, #525 5 viewport widths, #538 metadata-only nonzero 보존, 사용자 wheel/resizing 중 pending restore 취소는 full PR CI에서 별도 재검증.
+- 버전은 기존 release 후보 0.103.1 유지; 같은 Issue 실패 Main 뒤 보완 merge coalesce/OWNER authorization 근거는 `docs/exec-plans/active/ISSUE_530.md`에 명시. CI required checks/timeout/skip/retry 축소 금지.
+
 ## Issue #569 — 공개 API·시간축 Adapter PoC
 
 PR #576 CI #2294.1 재검증에서는 390px Chart-only 모드 진입 직후 실제 native geometry가 측정 가능할 때만 이어가며, 이후 3-frame settle 및 기존 좌표/시간축 확장 판정은 그대로 엄격 검사한다. 기존 #463의 복원 이벤트 diagnostic attribute는 optional이므로 null/non-null 원형 그대로 불변 여부를 검사한다. peer/layout의 동일 scope에서는 public/native 120/96 보존을 유지한다. 검색으로 행이 줄어 native 수직 capacity가 0이 되면 top 0으로 제한되는 조건을 별도로 검증하며, 이전 top 96을 다시 강제하지 않는다. 기존 #530 Clock 기반 경합 회귀는 `install` 시점을 `pauseAt` 목표보다 충분히 앞서 두되, 시뮬레이션 후 목표 wall-clock은 그대로 유지하고 500ms/500ms 안정성 체크를 보존한다. 환경/성공 여부는 신규 exact-head PR CI에서만 판정한다.

@@ -1,5 +1,36 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 #530 PR #566 CI #2302.1 — native-first Chart reset 재정합
+
+- [PR CI #2302.1](https://github.com/planner77/masterGantt/actions/runs/37920082307), 정확한 Head `17e5148dd3f857b75eb6ff9ab6bdabd2f08bdeb5`: Quality(TypeScript/ESLint/Vitest/Next build), Docker, Chromium E2E 1~5 PASS; shard6의 #530 fixed-geometry exact 복귀 1 FAIL/84 PASS/1 SKIP. 기대 Core/native horizontal120, 실제 Core120/native0, 동일 SVAR API instance/selection/columns/tree.
+- [Playwright artifact](https://github.com/planner77/masterGantt/actions/runs/37920082307/artifacts/11611469146) 영수증은 최초 `data-gantt-peer-restore={requestedLeft:120,publicLeft:120,domLeft:120}`, 후행 `data-gantt-peer-scroll-guard-blocks=1`을 함께 기록했다. [#568 trace](../../GANTT_SYNC_TRACE.md)의 native0 → `scroll-chart(0)` 순서와 일치한다. 최초 native0 writer 호출 위치는 아직 **미확정**이다.
+- 제품: 현재 복원 guard의 `api.intercept("scroll-chart")`가 같은 visible API/scope/filter/scale/columns/root에 있으며 실제 native Chart scroll capacity가 목표를 수용하는지 확인한다. 기존 Core 좌표가 유지된 경우에만 늦은 Core0 action을 차단하면서 **직전 peer restore가 소유한 native `scrollLeft`를 120/240으로 직접 재정합**한다. 같은 복귀당 보정 최대3회이며 Core 상태 변동·숨김·물리 capacity 부족·반복 과다 시 guard 폐기/진단하고 실패를 숨기지 않는다. 이는 중앙 Viewport Coordinator #571 제품 도입이 아니며 #569 read-only PoC adapter는 계속 DEFER다.
+- 검증: 기존 strict Core/native 복귀·12RAF·중첩 LIFO·외부 클릭·사용자 wheel/resize·단일 instance·#463 capacity 검사를 유지한다. 고정 geometry 복귀 후 사용자가 아닌 DOM-native-only 0을 재현하고 **동일 Core/native120 수렴, native repair count≥1**을 추가 검증한다. 실패 attachment에 guard/repair/capacity/raw events를 첨부. full CI 성공 및 E2E 재현 전 PASS 주장 금지.
+- 기존 Main CI #2280.1 및 PR CI #2283.1 실패 이력 유지, 패키지 버전 0.103.1, 기존 OWNER 승인과 릴리스 성공 분리. timeout/retry/skip/기대값/CI gate 완화 없음.
+
+## 2026-10-09 #568·#569 근거로 PR #566의 main 충돌 해결
+
+- 최신 main `56e033687f14cd159e2eb1a3bc5feabca68b70d4`에는 #568 Core Action Trace/계측과 #569 읽기 전용 Adapter·ADR가 병합되어 있다. 이전 #566 head `0fc8e746af4e9b91df8b5e62d4992f9212845eca`는 최신 main보다 17커밋 뒤였으며 Gantt 코드·E2E·TEST_PLAN의 공통 변경을 3-way로 조정했다.
+- [#568 trace](../../GANTT_SYNC_TRACE.md)는 늦은 native DOM 0이 먼저 관측되고 이후 `scroll-chart(0)`이 발생하는 경로를 확인했지만 최초 native writer의 호출 지점은 **미확정**이다. [#569 ADR](../../GANTT_ADAPTER_ADR.md)은 `api.exec()` 완료와 실제 Core/DOM settle을 구별하고 `NO_SCROLL_CAPACITY`/3-frame 안정화 조건을 규정한다. Adapter 제품 writer 교체는 **DEFER**이므로 이번 #530 PR은 기존 writer 구조 위의 보호 코드만 통합했다.
+- 충돌 판정: #568의 dev/test opt-in Trace와 #530 nested second-pop 진단은 유지하고, #569가 개선한 `#463` 검증(`null` restore marker 원형 유지, 수직 capacity clamp, 새 사용자 위치·3-frame 안정화)과 Clock 설치 순서를 우선 보존했다. PR #566의 `null marker=복원 0회` 가정은 [Codex P2](https://github.com/planner77/masterGantt/pull/566#discussion_r4226430640) 지적대로 폐기. PR #566의 Gantt 내부 입력 제한 guard, 첫 pop의 외부 클릭 후 240px 유지, 최종 사용자 wheel로 좌측 0 이동 테스트만 새 main에 이식했다.
+- 앞선 [PR CI #2283.1](https://github.com/planner77/masterGantt/actions/runs/37880633821)는 고정 geometry 복귀에서 Core left120 vs DOM left0 불일치로 실패했으며, **정렬만으로 해당 제품 문제가 해결됐다고 주장하지 않는다**. #568의 trace와 #569 receipt로 이후 실제 CI 실패를 분류한다. timeout/skip/retry/expected/required checks 완화 없음.
+- App version `0.103.1` 유지, 기존 [Issue #530 OWNER 0.103.1 릴리스 승인](https://github.com/planner77/masterGantt/issues/530#issuecomment-6073180869)은 정식 게시 승인이지 제품/CI 합격이 아니다. 현재 요구는 정렬·충돌 해소·전체 PR CI 시작까지만이며 merge/Main CI/GHCR은 하지 않는다.
+
+## 2026-10-09 PR #566 CI #2282.1 — Milestone #463 진단 속성 미존재 회귀 보완
+
+- [PR CI #2282.1 / run 37879481685](https://github.com/planner77/masterGantt/actions/runs/37879481685)에서 **제품 문제였던 #530 nested E2E shard6은 SUCCESS**. Chromium shard2의 기존 #463 milestone viewport 회귀는 `JSON.parse(null).count` 예외로 FAIL. [해당 Playwright report](https://github.com/planner77/masterGantt/actions/runs/37879481685/artifacts/11593194720)의 `public-viewport-events`는 restore marker=null이지만 Core/native left120 일치, Gantt API instance=svar-api-1 및 필터 후 vertical0 동기화로 기록한다.
+- 명시적 peer 복원 action을 발행하지 않아 원래 위치가 유지될 때 디버그 `data-gantt-peer-restore`가 설정되지 않은 것이므로, 부재를 `restore count 0`으로 해석하는 테스트 자료 정합성 수정. 기존 '복원 요청 중복 호출 없음' 검사는 유지하고, 검색 필터 적용/초기화 뒤 API identity·public/native horizontal120 보존·vertical alignment까지 검사한다. 보이는 행 수가 줄어드는 필터의 세로 clamp는 정상이며 과거 96 고정으로 오판하지 않는다.
+- 수정 대상: `tests/e2e/milestone-dashboard-state.spec.ts`, `docs/TEST_PLAN.md`, 본 실행 계획. 신규 Head에 대해 전체 required quality/E2E6/Docker CI 재검증. 테스트 skip/retry/timeout 증가나 제품 입력 보호 로직 변경은 없다.
+- `v0.103.1` 후보와 Issue #530 OWNER 정식 GHCR 승인은 유지하며, PR CI와 새 merge SHA Main CI 통과 이전엔 게시/Issue Close를 주장하지 않는다.
+
+## 2026-10-09 Main CI #2280.1 재실패 — 지연 native 스크롤 재덮기 보완
+
+- **정확한 실패 근거:** Issue #530 [Main CI #2280.1](https://github.com/planner77/masterGantt/actions/runs/37876071912), merge SHA `e1e6e2558481fe01d9f7e57c0148288f77a884de`는 TypeScript/ESLint/Vitest/Next.js, Docker 실제 smoke, Chromium 1~5/6 PASS. Chromium shard 6/6의 #530 nested LIFO pop/clear 1 FAIL, 82 PASS, 1 SKIP로 E2E aggregate FAIL, 임시 GHCR image job SKIPPED.
+- [Playwright shard6 report/trace](https://github.com/planner77/masterGantt/actions/runs/37876071912/artifacts/11593006119)의 `nested-frame-return-first-pop` 관측에서 기대 Core/native left240, 최종 left0. 동일 SVAR API instance·columns·selection·tree 유지. capture Core/native240 및 명시적 `scroll-chart(240)` 성공(count1/public240/dom240) **이후** `scroll-chart(0)` 명령이 발생. 이전 metadata epoch+pending lease+12rAF만으로 늦은 command를 완전히 차단하지 못했음.
+- **제품 보완:** 설치된 SVAR Gantt 2.7.3의 공식 `api.intercept('scroll-chart')`를 사용해, 명시적으로 복원한 nonzero 좌표를 동일 API/visible scope/filter/scale/columns/grid/root geometry에서 우선 보호한다. 그 이후 새 사용자 입력 없이 다른 left 명령이 들어오면 Core action 전에 취소하고, 임의의 시간 만료를 두지 않는다. 실제 Gantt 차트·그리드 영역 내부의 pointerdown/wheel/keydown/touchstart, 화면 숨김·범위·레이아웃 변경만 보호를 해제한다. Task Editor·툴바·타 패널 등 Gantt **외부 입력은 복원 보호를 해제하지 않는다**. [PR #566 Codex P2 리뷰](https://github.com/planner77/masterGantt/pull/566#discussion_r4226332007)를 반영했다. 사용자의 Task 탐색 및 좌측 끝까지 수동 스크롤을 방해하지 않음.
+- **회귀:** 기존 120/240px strict Core+native/instance/columns/selection/tree 복귀, 12rAF 후 재검사, 늦은 scroll-chart(0) 0건은 그대로 유지한다. nested pop/clear 완료 후 wheel(-240) 사용자 입력으로 Core/native left0에 도달하는 양방향 테스트를 추가한다. 첫 번째 pop 직후 Gantt 외부 프로젝트 제목 클릭을 끼워 넣어 복원된 public/native240이 12rAF 뒤에도 유지되는지 strict 검사한다. 우회용 timeout/skip/retry/expected 변경 없이 기존 #514/#525/#538 및 E2E6·Quality·Docker required gate 유지.
+- **버전 및 승인:** 기존 메인 후보 0.103.1은 아직 immutable v0.103.1 tag/Release 미발행이다. Generic Release Finalizer의 같은 Issue 인접 non-docs corrective coalesce는 가장 오래된 first-parent(0.103.0) → 최종 version(0.103.1)을 비교하므로 이번 추가 보완도 버전 0.103.1을 유지한다. 이미 확인된 [Issue #530 0.103.1 OWNER 정식 GHCR 승인](https://github.com/planner77/masterGantt/issues/530#issuecomment-6073180869)을 재사용한다. 새로운 Main CI/GHCR exact digest 검증 전 PASS로 주장하지 않는다.
+- **검증 경계:** 이번 보완의 신규 PR Head CI 및 독립 QA, Manager 병합 판정은 해당 증거 확보 전 NOT TESTED다. 새 PR 품질 검사를 완료한 뒤에만 Main 병합을 추진한다.
 ## 2026-10-09 PR #564 CI #2270.1 중첩 복귀 실패 재보완
 
 - 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`의 [CI #2270.1](https://github.com/planner77/masterGantt/actions/runs/37869484841)은 Quality·Docker·Chromium 샤드1~5 PASS, **shard6의 #530 nested frame pop 복원 1 FAIL/82 PASS/1 SKIP**로 전체 실패. 기대 left240, 실제 Core/native left0, 다른 상태는 동일.
