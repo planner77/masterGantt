@@ -300,7 +300,7 @@ Issue #198에서 정의한 목표를 Issue #211에서 `.github/workflows/issue-l
 - `release_required / release_authorized / expected_version / authorization_note` 경계를 fail-closed로 검증한다.
 - formal release는 기존 `release-image.yml`, branch 삭제는 `scripts/safe_branch_cleanup.py`를 재사용한다.
 - lifecycle workflow 자체에는 `packages: write`를 부여하지 않는다.
-- FINAL은 `<!-- issue-lifecycle-final:<issue>:<target_sha> -->` marker로 중복 생성과 다른 target 재종료를 방지한다.
+- FINAL은 `<!-- issue-lifecycle-final:<issue>:<target_sha> -->`로 PR/merge SHA별 불변 증거를 남긴다. 완료 경계 판단 시점에 bot 작성자·canonical Refs·head/merge SHA·main first-parent를 인증한다. 동일 identity의 재진입은 멱등, 다른 과거 exact SHA의 정상 marker는 허용하되 위조·충돌 기록은 fail-closed한다. 수동·자동·Resume lifecycle mutation은 동일 직렬화 group으로 동시 쓰기 경쟁을 방지한다.
 - PR 단계 contract/scenario 검증은 `scripts/verify-issue-lifecycle.py`를 CI quality job에서 수행한다.
 - main 병합 후 non-destructive `verify` 실제 실행을 확보한 다음 기존 Issue별 helper의 퇴역 가능 여부를 판단한다.
 
