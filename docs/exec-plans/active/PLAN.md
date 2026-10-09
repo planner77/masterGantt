@@ -1,3 +1,11 @@
+## Issue #549 — CI #2348.1 동적 날짜축 E2E 보완 (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 head `f636d3073c8153726be8b06d3e798d83a4752845`에 대한 [CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776)은 build/typecheck/lint/Vitest/Docker, Chromium shards 1/3/4/5/6 PASS이나 shard2의 `tests/e2e/milestone-timeline-core.spec.ts:171` 1건 FAIL(86 PASS/1 FAIL/1 SKIP)로 aggregate FAIL. 오른쪽 끝 programmatic `scroll-chart` 호출 후 축 width 37404가 유지되었다.
+
+최신 main #530은 peer return 뒤 stale programmatic `scroll-chart`를 막고 Chart 내부 trusted wheel/pointer/key에만 복원 가드를 해제한다. #549 E2E가 사용자 입력 없이 probe 명령을 보낸 경로와 일치하며, 별도 브라우저 trace/재현으로 root-cause가 확정된 것은 아니다. 실제 Chart wheel로 의도를 전환한 다음 기존 공개 `scroll-chart`로 right edge를 검증하도록 고친다. #367 한 RAF 예약 + Core/scale 갱신에 대한 bounded `expect.poll`을 적용하지만 축 확대량 조건은 그대로 두고, 확대 후 instance/filtered IDs/Link/canonical/mutation0도 비교한다. 제품 코드·CI workflow·server/domain은 수정하지 않는다.
+
+application `0.104.0`, current main `f1ac9fef186a635d08b51c878376925567653736` 기준 유지. 해당 검증은 remote exact new head 전체 quality/e2e/docker 재실행이 필요하며 시작 전 NOT TESTED다. #569 PoC DEFER/Week header 미검증은 그대로 유지. Independent QA_FINAL/Manager ACCEPT, merge/main CI/GHCR/tag/Issue close는 비범위다.
+
 ## Issue #549 — 최신 main 정렬 및 PR 재검증 (2026-10-10)
 
 [PR #557](https://github.com/planner77/masterGantt/pull/557)의 이전 exact head `2ac846da822f8b67abea01ef9d1f535b1a8a54dc`는 [PR CI #2230.1](https://github.com/planner77/masterGantt/actions/runs/37848532318)의 quality/e2e/docker가 PASS였으나, 그 뒤 최신 main `f1ac9fef186a635d08b51c878376925567653736`로 93개 커밋이 추가되어 GitHub mergeable=dirty를 확인했다. 기존 성공 결과를 새 head의 검증 결과로 재사용하지 않는다.

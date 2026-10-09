@@ -2765,3 +2765,10 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 현재 E2E 9개 PASS는 adapter x와 native Task start anchor의 ±1px, 행/Link/instance/viewport/no-loss assertion 결과이며 헤더 전체 날짜 의미를 검증한 결과가 아니다. 선별 Week `geometry-1440.png`의 T-year 시작 Jan 1, 2027 bar 위에 July 2026, `DST-reveal.png`의 Mar 10, 2026 bar 위에 November 2025가 표시된 불일치를 독립 비교에서 확인했다. 실제 캡처의 Week month/year 의미 일치는 FAIL이다. 원인·변경 전 baseline 재현은 NOT TESTED이며 제품/scale 알고리즘 수정 없이 제한을 기록했다. Day 헤더 일치는 비교 관찰 범위에 한정한다.
 
 #551 lane 활성화 전에 canonical 날짜/adapter x/native anchor/가시 Day 셀 또는 ISO week의 실제 날짜 구간/month-year 경계를 함께 비교하는 별도 E2E oracle을 추가하고, Day/Week·DST·월말/연말/윤일·scroll/resize/scale/동적 축 후 동일 source 브라우저 검증을 통과해야 한다. Task anchor 일치만으로 gate를 PASS하지 않는다. [불일치 화면과 활성화 gate](MILESTONE_TIMELINE.md#독립-uiux-비교에서-확인한-week-날짜-헤더-불일치)를 따른다.
+
+## #549 CI #2348.1 — #530 복원 가드와 #367 동적 축 연동 회귀 (2026-10-10)
+
+- 실패 증거: [PR CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776), Chromium shard2 (86 PASS, 1 FAIL, 1 SKIP), `tests/e2e/milestone-timeline-core.spec.ts:171`에서 `width: 37404 → 37404`로 확장 기대 실패. Quality/Docker 및 다른 E2E shard들은 PASS, 전체 E2E aggregate FAIL. 확정된 browser trace source는 별도 확보하지 못했고 원인 판단은 코드 계약 기반이다.
+- 검증 경계: peer dashboard에서 일정으로 복귀하면 #530 guard가 programmatic `scroll-chart(left)` 요청을 이전 복원의 stale writer로 차단할 수 있다. #367 `nextTimelineScaleWidth`는 실제 public scrollLeft가 오른쪽 임계에 도달한 경우에만 확대한다. 이 둘을 하나의 E2E 시나리오로 검증하려면 실제 Chart 내부 trusted wheel로 새 사용자 의도를 전달해 guard를 해제하고, 그 뒤 개발용 공개 scroll probe로 오른쪽 임계점을 방문해야 한다.
+- E2E 수정: `chart.hover()` + `page.mouse.wheel(31, 0)` 후 오른쪽 공개 `scroll-chart` 명령 → `expect.poll` 최대10초 안에 **실제 width > 이전 width**. 빈 wait/일괄 skip이 아니다. 확대 후 같은 instance, 동일 filtered IDs, Link/canonical IDs 및 POST/PATCH0을 유지하며 기존 full screen/column resize/peer return assertions도 보존한다.
+- 정적 검토만으로 실제 브라우저 PASS를 주장하지 않는다. 새 PR exact head의 Chromium 6 shard, Quality, Docker aggregate 판정을 기다리되 요청 종료점은 CI 시작 확인이며 결과 모니터링은 별도 지시다. Backend/API/DB/Auth/Engine/Prod 동작의 변경은 N/A, `0.104.0` 후보 유지. #551 Week month-header 의미 gate와 #569 PoC DEFER는 별도다.

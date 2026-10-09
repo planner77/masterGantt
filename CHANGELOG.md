@@ -2,6 +2,10 @@
 
 ## [0.104.0] - 2026-10-10
 
+### Fixed
+
+- PR #557 CI #2348.1의 #549 기술 E2E가 #530의 peer 복원 보호 상태에서 programmatic scroll을 새 사용자 입력으로 잘못 가정하던 회귀를 고친다. 실제 Chart wheel로 입력 의도를 전달한 뒤 #367 축 확장·Core instance/표시 행/Link/canonical 불변을 검사하며 timeout이나 필수 CI gate를 완화하지 않는다.
+
 ### Added
 
 - Issue #549: Milestone Timeline 기반의 canonical 조회 원본, WBS 표시 집합, 프로젝트 전체 날짜순 Milestone 모집단, 표시 환경설정, 선택·member 강조를 분리한다. 설치 SVAR Core 2.7.3의 공개 동작과 단일 adapter·개발용 Chromium fixture로 후속 lane/행 분리의 호환성 gate를 정의한다. 기존 운영 Milestone 행·빠른 보기·서버 Gate/권한·데이터는 변경하지 않는다.

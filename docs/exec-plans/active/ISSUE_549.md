@@ -86,3 +86,10 @@ DOCUMENTATION_SYNC: PASS. frontend Week header 관측 FAIL/원인 baseline NOT T
 - [MILESTONE_TIMELINE](../../MILESTONE_TIMELINE.md)에는 #549 current→target 계약과 #569 PoC의 native scroll 단일 소유, 좁은 폭 NO_SCROLL_CAPACITY, 제품 도입 DEFER를 분리 기록한다. #549 dev-only 기술 probe의 9 PASS는 #569/#551 통합 제품 검증이나 Week header 의미 PASS를 의미하지 않는다.
 - DOCUMENTATION_SYNC은 해당 source/문서/버전 통합 내용을 포함하며 API·SQLite DB schema·Security·Scheduling Engine·Export 동작·GitHub workflow 의미 변경은 N/A다. 단일 에이전트 순차 검토이며 독립 QA의 새 head 검증은 NOT TESTED. 새 PR CI 결과는 actual run/head를 별도 확인해야 한다.
 - 관련 후속 PR #559/#560/#561/#562는 stacked 선행 관계와 버전 재정렬이 별도로 필요하다. 이번 승인 범위는 **새 exact-head PR CI 시작 확인**까지다. merge/main CI/GHCR/tag/Release/Issue 종료는 하지 않는다; `release_required=true / release_authorized=false`.
+
+## 2026-10-10 PR CI #2348.1 회귀 수정
+
+- Run [#2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776), exact head `f636d3073c8153726be8b06d3e798d83a4752845`: Chromium shard2 `tests/e2e/milestone-timeline-core.spec.ts:171` FAIL(기대 축 width >37404, 실제 37404). 같은 shard 86 PASS/1 FAIL/1 SKIP, shards 1/3/4/5/6와 Quality/Docker는 PASS. E2E aggregate FAIL. 원본 log·trace artifact ID `11649692848` 보존.
+- #530 peer viewport의 프로그램식 scroll guard는 대시보드에서 일정 복귀 직후 동일 identity 동안 다른 `scroll-chart(left)`를 차단할 수 있다. 이 시험은 실제 사용자 입력 없이 dev-only probe의 `scroll()`을 호출했으므로 extension precondition인 public left 변화가 발생하지 않았을 가능성이 높다. 실측 trace까지 원인 확정한 것은 아님.
+- 테스트는 실제 Chart 내부 `page.mouse.wheel(31,0)`로 새 user intent를 발생시켜 이전 guard를 해제한 뒤 synthetic right-edge를 사용한다. 축 확장은 고정 5 RAF가 아니라 bounded poll로 검증하며 `nextTimelineScaleWidth`의 오른쪽 임계/축 실제 증가 assertion을 제거하지 않는다. 확대 뒤 동일 Core instance, filtered Task IDs, Link, canonical IDs, 요청 없음(POST/PATCH=0)을 검사한다. 이 수정은 본래 제품의 복원 보호를 약화하거나 bypass하지 않는다.
+- Product `0.104.0` 유지, 최신 main `f1ac9fef186a635d08b51c878376925567653736`. E2E 테스트와 설명 문서만 변경, API/DB/auth/engine/export/CI/GHCR 계약은 N/A. Local Playwright 재현/독립 QA_FINAL 및 새로운 exact-head 원격 checks는 실제 실행 전 NOT TESTED. 요청 종료점은 새 PR CI 등록이다.

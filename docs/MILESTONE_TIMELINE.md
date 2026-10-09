@@ -68,6 +68,12 @@ Membership/Gate는 기존 전체 `projectStageGates(stageSnapshotFromProject(tas
 
 MT1 probe는 기존 ProjectGantt의 개발 모드에서만 존재한다. frame namespace `__masterganttMilestoneTimeline`의 작은 diagnostic은 최대 500개 ID/좌표/Link endpoint와 64개 공개 이벤트만 보관하고 Task 본문/secret을 포함하지 않는다. 소유 listener/property는 cleanup한다. 운영에서 행 숨김을 노출하지 않는다. 필터 projection은 Core scale/config 갱신 뒤 기존 canonical 동기화 queue와 순서가 맞아야 한다. 첫 실험은 filter 직후 7행, Day→Week 설정 변경 뒤 원래 10행으로 돌아왔다. 개발 probe는 명시 요청 ID를 보관하고 같은 API/source/filter key/현재 요청 generation/현재 scale/가시 nonzero viewport를 확인한 뒤 queue 이후 공개 filter를 재적용한다. source/scope 변경은 요청을 폐기하고 소유 cleanup이 오래된 요청을 무효화한다. 이는 native filter 자체의 scale 지속성이 아니라 앱이 제어하는 표시 projection 기술 대안이다. 후속 production은 실제 visibleTaskIds와 공통 queue를 연결해야 하며 개발 probe ref를 제품 기능으로 사용할 수 없다. 기술 gate가 통과하기 전 후속 행 제거를 활성화하지 않는다.
 
+## CI #2348.1의 #530 복원 가드와 동적 날짜축 검증 경계
+
+최신 main의 #530 peer restore는 동일 Gantt viewport가 복귀한 직후 stale programmatic `scroll-chart(left)`를 차단한다. 실제 Chart 내부 wheel/pointer/key/touch는 새 사용자 의도이므로 이 guard를 해제하지만, 개발용 `__masterganttMilestoneTimeline.scroll` 호출은 사용자 입력이 아니다. 이는 복원 가드의 정상 보호 계약이며 #549 기술 시험이 그대로 강제 programmatic scroll을 보내고 축 확장을 기대해서는 안 된다.
+
+[PR CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776)의 Chromium shard2에서 우측 programmatic scroll 뒤 scale width가 37404에서 변하지 않은 현상을 확인했다. guard 차단은 source상 가능한 직접 원인이지만 해당 실패 trace를 전부 재현했다고 보고하지 않는다. #549 E2E는 실제 Chart trusted wheel로 이전 복원 보호를 해제한 뒤 개발용 공개 right-edge scroll과 RAF 기반 확대를 검사한다. 기존 `width > oldWidth`, 동일 instance/행·Link/canonical/mutation0 검증은 유지하며, `expect.poll`은 여러 비동기 Core/React 프레임의 완료까지 유한 시간 안에 확인하는 용도다. 확대되지 않으면 FAIL이며 축 확장 정책(#367)과 #530 복원 가드는 변경하지 않는다.
+
 ## 검증 증거와 미검증
 
 관련 Unit은 `tests/features/gantt/milestone-timeline-adapter.test.ts`, 모델 Unit은 `tests/domain/milestone-timeline-model.test.ts`다. 실제 synthetic ProjectGantt Chromium 실험은 `tests/e2e/milestone-timeline-core.spec.ts`이며 390/768/1024/1440/1920px, Day/Week, leap/month/year/DST, native Grid/Chart 행과 Task start geometry, canonical Link/no-loss/hidden endpoint, zero row/date axis, 같은 instance와 scroll/resize/fullscreen/peer return을 대상으로 한다.
