@@ -1,5 +1,37 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 PR #564 CI #2270.1 중첩 복귀 실패 재보완
+
+- 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`의 [CI #2270.1](https://github.com/planner77/masterGantt/actions/runs/37869484841)은 Quality·Docker·Chromium 샤드1~5 PASS, **shard6의 #530 nested frame pop 복원 1 FAIL/82 PASS/1 SKIP**로 전체 실패. 기대 left240, 실제 Core/native left0, 다른 상태는 동일.
+- [shard6 Playwright report/trace](https://github.com/planner77/masterGantt/actions/runs/37869484841/artifacts/11590201108)에서 캡처된 Core/native240과 명시적 `scroll-chart(240)`의 실제 적용(count1/public240/dom240)을 확인했으며, 그 직후 오래된 `scroll-chart(0)` 재적용을 발견했다. 이전 PR 제품 patch는 복원 직전에만 epoch를 무효화해 **동시에 새로 발생하는 metadata-only 요청**을 막지 못했다.
+- 메타데이터-only 복원과 명시적 peer 복원을 구별한다. Resource 복귀 요청의 layout 단계부터 queue drain/복원/최종 DOM frame 안정화까지 **pending lease**를 유지하고 그동안 metadata-only capture/execute를 차단한다. 향후 메타데이터만 변경될 때는 새 lease 없이 정상 복원할 수 있다.
+- nested pop 회귀의 middle240/원래 origin120 및 snapshot·instance·selection·columns·tree strict equality를 유지하고 12rAF 뒤 중첩 재검사, 늦은 `scroll-chart(0)` 0건, 실패 시 debugger 자료 영수증을 추가한다. 0.103.1 후보 버전 유지, 테스트를 skip하거나 timeout/threshold를 완화하지 않는다. 새 Head 독립 QA 및 전체 PR CI는 별도 판정 전 NOT TESTED. 병합·Main CI·GHCR/Release 미수행.
+
+## 2026-10-09 PR CI #2267.1 실패 — 실제 viewport 재덮기와 PATCH 보완
+
+- PR #564 정렬 head `87b8c1cff06c4b2d5b950fdf9dbef043766e77c1`의 [PR CI #2267.1 / Run 37867259587](https://github.com/planner77/masterGantt/actions/runs/37867259587)은 completed/failure. Quality(TypeScript·ESLint·Vitest·Build)와 Docker aggregate, Chromium 샤드 1~5 PASS. **Chromium shard 6/6**에서 `tests/e2e/resource-kpi-integration-ui.spec.ts:314` 실제 #530 viewport 복귀 1 FAIL/82 PASS/1 SKIP: 초기/복귀 capture 모두 Core/native `left=120,top=0`이었으나 복귀 최종 Core/native가 `left=0`이었다. 원래 Gantt instance·선택·열·트리는 보존됐다.
+- 보존된 Playwright `fixed-geometry-exact-drill` attachment와 trace의 `data-gantt-public-scroll-events`를 대조하면 peer restore `scroll-chart(120)`이 실제 성공하고 `data-gantt-peer-restore={count:1,requestedLeft:120,publicLeft:120,domLeft:120}`까지 기록된 **이후에 다시 `scroll-chart(0)`이 명시적으로 발생**했다. 따라서 단순한 assertion 지연이나 복원 누락이 아니라, 메타데이터-only 동기화가 이전 scope에서 캡처한 0 좌표를 나중에 복원한 우선순위 경합이다.
+- 제품 PATCH: `project-gantt.tsx`에서 metadata-only viewport 요청에 `peerEpoch`를 함께 저장하고 현재 epoch와 같을 때만 적용한다. 명시적인 Resource/peer 복원 직전 epoch를 증가시키며 앞선 메타데이터 요청의 listener/참조를 폐기한다. 정상 메타데이터-only 보존은 유지하면서 **과거 metadata restore가 명시적 peer restore를 덮지 못하도록** 한다. 비동기 pending queue의 target/source·scale·columns·generation·입력 취소·resize guard 및 Core/native 독립 좌표 계약은 유지한다.
+- Chromium 회귀는 복귀 직후 전체 viewport 엄격 비교와 정지 후(12 animation frame) **다시 엄격 비교**하고, 명시적 peer 복원보다 늦은 `scroll-chart(0)` 이벤트가 없는지 확인한다. 사용자 입력으로 복원이 취소되는 테스트·중첩 복귀·실제 API/Excel 회귀는 유지한다. timeout/skip/retry나 CI quality gate는 완화하지 않는다.
+- 최신 main은 `be17a6c098d0b7c12263d9274a66544b026b6487`의 `0.103.0`; 실제 제품 수정이므로 PATCH **0.103.1**로 올려 package/lock/CHANGELOG를 일치시킨다. 현재 Issue #530의 과거 정식 release 승인 마커는 `0.102.3` 전용이므로 0.103.1에 소급 적용하지 않는다. `release_required=true`, `release_authorized=false` (0.103.1).
+- 대상 SHA의 로컬 실행/완전한 Chromium 결과와 새로운 독립 QA는 별도 증거가 없으면 **NOT TESTED**이며 새 정확한 Head의 full PR CI를 등록해 검증한다. 요청 범위는 보완·문서 갱신·새 PR CI 시작까지; 병합/Main CI/GHCR/Release/Issue 종료는 제외한다.
+
+## 2026-10-09 PR #564 QA 재작업·최신 main 정렬 (새 Head CI는 별도 검증)
+
+- **기존 정확한 Head의 CI:** [PR CI #2251.1 / Run 37858842272](https://github.com/planner77/masterGantt/actions/runs/37858842272)는 **기존 Head `55ea089d826fb616a1fa30f9fde38520ca0ae67a`**에서 2026-10-09 **08:35 KST** `completed/success`로 끝났다. Quality(TypeScript/ESLint/Vitest/Next.js build), Chromium E2E **6/6 샤드**, E2E aggregate 성공. 기존 Main #2249.1에서 실패했던 샤드 4/6은 **83 PASS**, 동일 #525 테스트는 **6.5초 PASS**였다. 이 결과는 새 정렬 Head의 성공으로 소급하지 않는다.
+- **Docker 검증의 정확한 범위:** 해당 PR CI에서 `Docker build and runtime smoke test` aggregate는 **SUCCESS**였지만 실제 `Docker smoke 구현` job은 **SKIPPED**였다. 따라서 이 Head의 실 Docker runtime smoke는 **NOT TESTED**로 기록한다. 원래 Main #2249.1에서 실제 Docker 구현이 PASS한 사실과 구별한다.
+- **독립 QA 지적·보완:** [PR #564의 QA_FINAL FAIL/REWORK](https://github.com/planner77/masterGantt/pull/564#issuecomment-6071312325)에서 `QA530-564-DOC-01`(본 계획 문서의 성공 Run/Head/시각/Docker SKIPPED 근거 누락)을 **차단 1건**으로 지적했다. 위 원격 증거·범위·미검증 내용을 추가한다. `QA530-564-LANG-02`(영어 주석)은 테스트 준비 설명을 한글로 변경해 처리한다. 기능 로직·실제 assertion·CI workflow·timeout/skip/retry는 변경하지 않는다. 자동 이동 종료 뒤 **고정 12 animation frames**의 연속 좌표 안정화 미확인 리스크는 비차단 관찰 대상으로 남긴다.
+- **최신 main 재정렬:** 기존 공통 기준 `09e0a77222edb4652a6ca9c44c758d1c96a0e6bc` 이후 main `be17a6c098d0b7c12263d9274a66544b026b6487`에 33개 커밋, 42개 파일 변화가 반영됐다. #564 이전 PR 변경 파일 두 개(테스트·이 문서)와 **파일 경로 교집합 0**이므로 main 파일을 그대로 보존하며 두 변경을 병합한다. 현재 main application 버전은 **0.103.0**이고 #564는 테스트·문서 전용 보완으로 별도 버전 변경을 생성하지 않는다. 과거 이슈 문서의 0.102.3 버전·정식 GHCR 승인 마커는 그 시점 증거이므로 현재 main의 0.103.0 릴리스 승인과 혼동하지 않는다.
+- **현재 종료점:** 이 사용자의 요청은 PR #564 최신 main 정렬·QA 지적 문서/주석 보완·새 **full PR CI 시작까지**이다. 새 head의 quality/E2E/Docker 및 독립 QA_FINAL은 별도 확인 전 **NOT TESTED**이다. 기존 QA_FINAL FAIL은 새 독립 판정 없이 PASS로 바꾸지 않는다. PR 병합·Main CI·GHCR/tag/Release·Issue 종료는 수행하지 않는다.
+
+
+## 2026-10-09 Main CI #2249.1 E2E 스크롤 경합 보완
+
+Issue #530 병합 SHA `09e0a77222edb4652a6ca9c44c758d1c96a0e6bc`의 [Main CI #2249.1](https://github.com/planner77/masterGantt/actions/runs/37856801652)은 quality/Docker 및 Chromium 샤드 1·2·3·5·6 PASS, 샤드4의 `tests/e2e/project-resource-workload-status.spec.ts` #525 회귀 1건 FAIL(82 PASS) 때문에 E2E aggregate FAIL, GHCR 임시 이미지 SKIPPED였다. Grid Task 클릭 후 Chart 자동 이동이 완료되기 전에 테스트가 수동 `scrollLeft=120`을 설정했고, 비동기 이동값 `1581`이 뒤늦게 적용되어 `{left:120,top:96}` 원장 생성 단계의 5초 poll이 실패했다. 테스트 경쟁 조건이며 화면 복귀 불변식 실패라고 확대하지 않는다.
+
+회귀 기대값·전체 검증을 약화하지 않고, 행 선택의 native Chart reveal(>120)을 확인한 다음 canonical sync depth0/animation-frame 안정화를 기다려 수동120/수직96 baseline을 설정한다. 이후 Gantt root identity, Core/DOM/selection/columns/scale 및 돌아온 좌표 전체의 strict equality와 5폭·keyboard 검증은 그대로 보존한다. 제품/API/DB/집계 및 workflow 변경은 없다. 테스트 보완이므로 기존 application 버전 `0.102.3`을 유지하고, 새로운 정확한 Head의 PR CI 및 병합 SHA의 Main CI가 성공하기 전에는 GHCR 게시 완료를 주장하지 않는다. 코드 수정과 다른 독립 QA 검토는 실제 실행 증거로 별도 판정한다.
+
+
 ## 2026-10-09 최신 main 재정렬 — PR #555
 
 기존 head `a87954a7ce76ac14e1095953486aafbb03f33e02`의 기능·검증 이력을 보존하고 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 통합했다. 후보 버전은 `0.102.3`이다. CHANGELOG의 main 0.102.2와 #530 PATCH 항목을 분리하고 양쪽 문서 추가를 보존했다. #495의 Milestone 표기와 #530 frame별 Core/native viewport·canonical queue·입력 취소를 함께 유지하며, 신규 UI 테스트의 이전 접근성 이름 4종을 현행 소스와 대조해 변경했다. 기존 assertion·공수 기대값·CI gate는 삭제하거나 완화하지 않았다.

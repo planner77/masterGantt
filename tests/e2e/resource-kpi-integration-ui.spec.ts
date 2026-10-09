@@ -312,6 +312,20 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   try {
     await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    // A stale metadata-only scroll command must not replace the peer restore
+    // with zero after the first successful snapshot comparison.
+    await frame.evaluate(async () => {
+      for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    });
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    const staleAfterPeer = await frame.evaluate((element, expectedLeft) => {
+      const raw = element.getAttribute("data-gantt-public-scroll-events") ?? "[]";
+      const events = JSON.parse(raw) as { action: string; requestedLeft?: number }[];
+      const lastExplicitReturn = events.findLastIndex(event => event.action === "scroll-chart" && event.requestedLeft === expectedLeft);
+      if (lastExplicitReturn < 0) return -1;
+      return events.slice(lastExplicitReturn + 1).filter(event => event.action === "scroll-chart" && event.requestedLeft === 0).length;
+    }, before.publicViewport.left);
+    expect(staleAfterPeer).toBe(0);
     expect(await seed.getSnapshot()).toEqual(canonical);
   } finally {
     await info.attach("fixed-geometry-exact-drill", { body: JSON.stringify({ before, after: await ganttIntegrationState(page), initialCapture, returnCapture }), contentType: "application/json" });
@@ -345,7 +359,29 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   expect(middle.left).toBeGreaterThan(origin.left);
   await drill();
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true"); await schedule.click();
-  await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+  try {
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+    await frame.evaluate(async () => {
+      for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    });
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+    // 중첩 원래 보기 복원 이후에는 이전 metadata-only 0 좌표가 재적용되지 않아야 한다.
+    const rebaseToZero = await frame.evaluate((element, target) => {
+      const events = JSON.parse(element.getAttribute("data-gantt-public-scroll-events") ?? "[]") as {action: string; requestedLeft?: number}[];
+      const targetIndex = events.findLastIndex(event => event.action === "scroll-chart" && event.requestedLeft === target);
+      if (targetIndex < 0) return -1;
+      return events.slice(targetIndex + 1).filter(event => event.action === "scroll-chart" && event.requestedLeft === 0).length;
+    }, middle.publicViewport.left);
+    expect(rebaseToZero).toBe(0);
+  } finally {
+    await info.attach("nested-frame-return-first-pop", {
+      body: JSON.stringify({expected: middle, actual: await ganttIntegrationState(page),
+        captured: await frame.getAttribute("data-gantt-peer-capture"),
+        restored: await frame.getAttribute("data-gantt-peer-restore"),
+        events: await frame.getAttribute("data-gantt-public-scroll-events")}),
+      contentType: "application/json",
+    });
+  }
   await resource.click(); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   // A new nested journey clears to the earliest schedule destination baseline.

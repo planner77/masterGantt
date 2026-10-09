@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.103.1] - 2026-10-09
+
+### Fixed
+
+- Issue #530 후속 PR #564: Resource→정확한 Task 일정→원래 보기 복귀 시 메타데이터-only Gantt 동기화가 보존한 이전 0 좌표를 명시적 peer viewport 복원(비영점) 이후 다시 덮는 경합을 해결한다. 명시적 복원 epoch로 오래된 요청을 무효화하고, 중첩 LIFO 복귀의 layout~queue/DOM 안정화 동안 metadata-only 캡처·적용을 보류하여 재진입한 0 좌표의 늦은 재적용도 차단한다. 입력·scope·API instance·geometry guard와 원래 Core/native 위치의 엄격한 불변식은 유지한다.
+- E2E 회귀에 복원 직후뿐 아니라 12 animation frame 이후에도 공개 Core/native 위치가 유지되고, 나중에 `scroll-chart(0)` 재적용이 없다는 판정을 추가한다. 기존 반응형·키보드·권한·집계·Excel 검증과 CI gate는 유지한다.
+
 ## [0.103.0] - 2026-10-09
 
 ### Added

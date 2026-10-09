@@ -1,5 +1,20 @@
 # Test Plan
 
+## Issue #530 PR #564 — #2270.1 중첩 frame 복귀와 metadata-only 경합 (2026-10-09)
+
+- [PR CI #2270.1 / run 37869484841](https://github.com/planner77/masterGantt/actions/runs/37869484841), 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`: Quality(타입·ESLint·Vitest·빌드) 및 Docker, Chromium shard 1~5 PASS. shard 6/6의 실제 `resource-kpi-integration-ui.spec.ts` **nested pop/clear** 시험 1 FAIL, 82 PASS, 1 SKIP. 기대 Core/native left240이 0으로 재덮였고 인스턴스·선택·열·계층은 유지됨.
+- 실패 Playwright Trace 스냅샷에서 second frame `data-gantt-peer-capture`는 **Core/native240**. `data-gantt-peer-restore`는 `requestedLeft:240, publicLeft:240, domLeft:240, count:1`로 실제 성공하였으나 직후 `scroll-chart(0)`이 남았음. 이전 패치에서 explicit restore 직전에 metadata epoch를 무효화하는 것만으로는 충분하지 않았음.
+- 변경: 제품 `project-gantt.tsx`에서 명시적 peer restore가 계획된 시점의 **layout effect**부터 queue 정리 이후 **마지막 2 animation frames**까지 pending lease를 유지한다. lease 기간 metadata-only 요청의 캡처와 적용을 모두 중지하고 구버전 요청도 무효화한다. 이후 정상 metadata 변경은 새 좌표로 다시 캡처할 수 있어야 하며, 기존 #538 metadata-only 동기화 및 사용자 입력·geometry/instance/scope guards는 유지한다.
+- 테스트: #530 nested first pop의 **middle=240 strict Core/native·선택·열·tree 비교**, 12 frame 뒤 재검증, 명시적 복원보다 늦은 `scroll-chart(0)` 없음 확인, 실패 시 peer capture/restore/events evidence 기록. 기존 #530 nonzero120, clear와 pending input·resize, #525 5폭/keyboard, #538 metadata tests 등은 계속 full PR CI에 포함된다.
+- 제품·버전: 기존 PR 후보 `0.103.1`을 유지하며 package/lock에 중복 버전을 부여하지 않는다. 대상은 새 Head의 전체 PR CI 성공과 독립 QA를 다시 검증하기 전 **NOT TESTED**. timeout/기대값/CI gate 완화 없음.
+
+## Issue #530 / PR #564 — 비영점 Gantt 복귀 재덮기 회귀 (2026-10-09)
+
+- 이전 PR CI #2267.1/head `87b8c1c`: Chromium E2E shard6 `resource-kpi-integration-ui.spec.ts` 실제 Task 일정 복귀 시 초기 Core/native120 → peer restore120 성공 후 늦은 metadata-only `scroll-chart(0)`으로 최종0; 독립 source capture는 정상. 1 FAIL /82 PASS/1 SKIP. 이전 #525 자동-reveal 보완 E2E는 별도 성공.
+- PATCH `0.103.1`: `project-gantt.tsx` metadata-only 복원 요청은 발급 당시 peer epoch와 현재 epoch를 대조하고, explicit Resource peer restore 직전 기존 metadata request를 revoke. metadata-only 저장 이후의 오래된 0 좌표가 새 사용자 복귀 좌표를 덮지 못하도록 한다. 기존 metadata 수정 스크롤 보존(#538), stale/scope/geometry/input 취소는 회귀 유지.
+- E2E `#530 고정 geometry exact 일정 drill 복귀`: Core/native 초기120, resource drill, 원래 보기 LIFO, 최종 전체 state/ID/selection/columns strict equality, 12 animation-frame 추가 지연 뒤 동일 좌표, peer restore 뒤 stale `scroll-chart(0)` 이벤트 0건. 다른 nested-pop/clear와 사용자 wheel/resize 취소 회귀 유지. 회귀 실패 시 timeout/기대값 완화 대신 제품 우선순위 경로 수정.
+- 필수 신규 exact-head PR CI: quality, Chromium E2E6/6, Docker aggregate 전부 성공하고 독립 QA에서 제품 범위/문서/새 version·기존 release 승인 경계를 다시 확인하기 전까지 병합 불가.
+
 ## Issue #538 — Project master 계층 검증
 
 - DB migration 0024: 이미 연결된 조합 중복 제거, 부분/legacy row의 무추정·무변경, FK/category/parent 보호, checksum/rollback.

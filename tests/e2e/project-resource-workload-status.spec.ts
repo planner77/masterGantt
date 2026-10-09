@@ -62,7 +62,23 @@ test("#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실
   const frame = page.locator(".project-gantt-frame"), viewport = () => frame.evaluate((element) => ({ public: Reflect.get(element, "__masterganttPublicViewport"), dom: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop }, columns: Array.from(element.querySelectorAll(".wx-header .wx-cell")).map((cell) => cell.getBoundingClientRect().width), selection: Array.from(element.querySelectorAll(".wx-row.wx-selected")).map((row) => row.getAttribute("data-id")) }));
   const summaryToggle = frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000001"] [data-action="open-task"]');
   await summaryToggle.click(); await expect(frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000002"]')).toHaveCount(0);
-  await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click(); await frame.locator(".wx-gantt").evaluate((element) => { element.scrollTop = 96; }); await frame.locator(".wx-chart").evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(async () => (await viewport()).dom).toEqual({ left: 120, top: 96 }); const before = await viewport(); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0);
+  // 그리드의 Task 선택에 따른 Chart 자동 이동을 먼저 관측한다.
+  // 자동 이동 중 수동 120px 좌표를 설정하면 후속 Core 이동에 덮어써질 수 있다.
+  // Core 이동 완료를 확인한 뒤 독립적인 스크롤 기준값을 설정한다.
+  await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click();
+  await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
+  await expect.poll(async () => (await viewport()).dom.left).toBeGreaterThan(120);
+  await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
+  await frame.evaluate(async () => {
+    for (let frameCount = 0; frameCount < 12; frameCount++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  await frame.locator(".wx-gantt").evaluate((element) => { element.scrollTop = 96; });
+  await frame.locator(".wx-chart").evaluate((element) => { element.scrollLeft = 120; });
+  await expect.poll(async () => (await viewport()).dom).toEqual({ left: 120, top: 96 });
+  const before = await viewport();
+  expect(before.columns.length).toBeGreaterThan(0);
+  expect(before.selection.length).toBeGreaterThan(0);
   await page.getByRole("tab", { name: "리소스", exact: true }).click(); await ready(page); const root = panel(page); await root.getByRole("button", { name: "개발 견적", exact: true }).click(); await ready(page); await expect(root.getByRole("button", { name: "개인", exact: true })).toHaveAttribute("aria-pressed", "true"); await root.getByRole("button", { name: /^필터/ }).click(); await expect(root.getByLabel("Global Role", { exact: true })).toHaveValue("DEVELOPER"); await root.getByLabel("개발자 등급").selectOption("ADVANCED"); await ready(page); await root.getByLabel("개발자 등급").press("Escape"); await expect(root.getByRole("button", { name: /^필터/ })).toBeFocused(); await root.getByRole("button", { name: /테스트 리소스 \(R-01\)/ }).click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();
   const evidence = []; mkdirSync("output/playwright/issue-525", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 900 }); const result = await root.evaluate((element) => {
