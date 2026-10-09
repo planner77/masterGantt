@@ -1681,12 +1681,21 @@ export function ProjectGantt({
   // SVAR may issue a delayed programmatic scroll-chart(0) after the
   // explicit LIFO return. Keep its public viewport authoritative until
   // actual user input or a change in the visible viewport identity.
-  const protectedPeerScrollReference = useRef<{
+  type PeerScrollGuard = {
     api: IApi; key: string; left: number; root: HTMLDivElement;
     rootWidth: number; rootHeight: number; filter: string;
     scale: GanttScaleMode; gridWidth: number | undefined; columns: string;
     nativeRepairs: number;
-  } | null>(null);
+  };
+  const protectedPeerScrollReference = useRef<PeerScrollGuard | null>(null);
+  // A search/filter edit is a new explicit viewport intent. Capture its
+  // browser input BEFORE the React filter projection has committed, otherwise
+  // a delayed peer restore can complete against the old filter and survive
+  // the intermediate 0-result/native-clamp state (#463, CI #2313.1).
+  const isExplicitFilterInput = useCallback((event: Event) =>
+    (event.type === "input" || event.type === "change") &&
+    event.target instanceof Element &&
+    Boolean(event.target.closest(".project-schedule-filter-toolbar, .project-task-filter-panel")), []);
   useLayoutEffect(() => {
     const guard = protectedPeerScrollReference.current;
     if (guard && (!viewVisible || guard.key !== viewportContinuityKey))
@@ -1759,21 +1768,26 @@ export function ProjectGantt({
       const target = event.target, root = ganttScrollReference.current;
       // Task editor, toolbar and other peer panels do not navigate the
       // chart viewport, so they must not revoke a pending peer restoration.
-      if (root && target instanceof Element && root.contains(target) &&
-        target.closest(".wx-chart, .wx-gantt, .wx-table-container"))
+      if (isExplicitFilterInput(event) ||
+        (root && target instanceof Element && root.contains(target) &&
+          target.closest(".wx-chart, .wx-gantt, .wx-table-container")))
         protectedPeerScrollReference.current = null;
     };
     const inputEvents = ["pointerdown", "wheel", "keydown", "touchstart"] as const;
     for (const type of inputEvents)
       document.addEventListener(type, releaseOnUserInput, { capture: true, passive: true });
+    document.addEventListener("input", releaseOnUserInput, true);
+    document.addEventListener("change", releaseOnUserInput, true);
     return () => {
       api.detach(tag);
       for (const type of inputEvents)
         document.removeEventListener(type, releaseOnUserInput, true);
+      document.removeEventListener("input", releaseOnUserInput, true);
+      document.removeEventListener("change", releaseOnUserInput, true);
       if (protectedPeerScrollReference.current?.api === api)
         protectedPeerScrollReference.current = null;
     };
-  }, [apiInstanceId]);
+  }, [apiInstanceId, isExplicitFilterInput]);
   useLayoutEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore ||
       peerViewportRestore.key !== viewportContinuityKey ||
@@ -1974,11 +1988,17 @@ export function ProjectGantt({
     let targetGeometry: string | null = null;
     const geometry = () => JSON.stringify([root.clientWidth, root.clientHeight]);
     const markInput = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) input = true;
+      if (event.target instanceof Element &&
+        (root.contains(event.target) && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container") ||
+          isExplicitFilterInput(event))) input = true;
     };
     const inputEvents = ["pointerdown", "wheel", "keydown"];
     for (const event of inputEvents) root.addEventListener(event, markInput, true);
-    const current = () => !cancelled && !input && id === peerViewportGeneration.current &&
+    // A filter edit can happen while a physical-capacity/settle RAF is pending.
+    // Cancel synchronously at input, not after the filter A→B→A React renders.
+    document.addEventListener("input", markInput, true);
+    document.addEventListener("change", markInput, true);
+    const current = () => !cancelled && !input && document.visibilityState !== "hidden" && id === peerViewportGeneration.current &&
       api === apiReference.current && root.isConnected && peerViewportContext.current.visible &&
       peerViewportContext.current.key === request.key && version === canonicalSyncVersionReference.current &&
       filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current &&
@@ -1992,9 +2012,33 @@ export function ProjectGantt({
         request.continuity.fullscreen === (document.fullscreenElement !== null) &&
         request.continuity.fullscreenElement === document.fullscreenElement)) &&
       (targetGeometry === null || targetGeometry === geometry());
-    const cleanupInput = () => { for (const event of inputEvents) root.removeEventListener(event, markInput, true); };
+    const cleanupInput = () => {
+      for (const event of inputEvents) root.removeEventListener(event, markInput, true);
+      document.removeEventListener("input", markInput, true);
+      document.removeEventListener("change", markInput, true);
+    };
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
-      const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      // RAF can stop when a tab is backgrounded. Always settle or wake by an
+      // independent timer/visibility event; only real RAF counts as a stable
+      // layout frame, never a timeout wakeup.
+      const frame = () => new Promise<boolean>((resolve) => {
+        let done = false, animationId: number | null = null, timerId: number | null = null;
+        const onVisibility = () => { if (document.visibilityState === "hidden") finish(false); };
+        const finish = (animated: boolean) => {
+          if (done) return;
+          done = true;
+          if (animationId !== null) cancelAnimationFrame(animationId);
+          if (timerId !== null) window.clearTimeout(timerId);
+          document.removeEventListener("visibilitychange", onVisibility);
+          resolve(animated);
+        };
+        animationId = requestAnimationFrame(() => finish(true));
+        timerId = window.setTimeout(() => finish(false), 250);
+        document.addEventListener("visibilitychange", onVisibility);
+        if (document.visibilityState === "hidden") finish(false);
+      });
+      let installedGuard: PeerScrollGuard | null = null;
+      let restoreCommitted = false;
       try {
         await frame(); await frame();
         if (!current()) return;
@@ -2016,6 +2060,38 @@ export function ProjectGantt({
         peerRestoreAuthorityEpoch.current += 1;
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
+        // #530 Main CI #2311.1: Core's synthetic resize can finish while
+        // .wx-chart still has only 31px of physical horizontal capacity.
+        // Wait for three measurable frames before issuing a 120/240px scroll.
+        // api.exec completion and Core _scales are not DOM-settled signals.
+        const nativeChart = () => {
+          const owner = root.querySelector<HTMLElement>(".wx-chart");
+          return owner?.isConnected && !owner.closest("[hidden], [inert]") &&
+            owner.clientWidth > 0 && owner.getClientRects().length ? owner : null;
+        };
+        const physicalCapacity = () => {
+          const owner = nativeChart();
+          return owner ? owner.scrollWidth - owner.clientWidth : -1;
+        };
+        const capacityStart = performance.now();
+        let capacityFrames = 0, capacityAtRestore = -1, hadAnimationFrame = false;
+        for (let attempts = 0; attempts < 120 && current(); attempts++) {
+          capacityAtRestore = physicalCapacity();
+          // A timer wakeup keeps the deadline live but cannot count as RAF.
+          capacityFrames = hadAnimationFrame && capacityAtRestore >= request.left - 1
+            ? capacityFrames + 1 : 0;
+          if (capacityFrames >= 3 || performance.now() - capacityStart > 2_000) break;
+          hadAnimationFrame = await frame();
+        }
+        if (!current()) return;
+        if (capacityFrames < 3) {
+          if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+            fullscreenFrameReference.current.dataset.ganttPeerRestoreCapacityFailure = JSON.stringify({
+              requestedLeft: request.left, nativeCapacity: capacityAtRestore, stableFrames: capacityFrames,
+            });
+          }
+          throw new Error("NO_SCROLL_CAPACITY: peer viewport native chart is not ready");
+        }
         diagnosticTraceReference.current?.record("effect-apply", "peer-restore", { left: request.left, top: request.top });
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         if (!current()) return;
@@ -2023,30 +2099,94 @@ export function ProjectGantt({
           const owner = root.matches(position.selector) ? root : root.querySelector<HTMLElement>(position.selector);
           if (owner?.isConnected && !owner.closest("[hidden], [inert]") && owner.getClientRects().length && (!position.owner || owner === position.owner)) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
         }
-        peerViewportRestoreCount.current++;
         if (!current()) return;
-        const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
-        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
-        // Beyond the queued restore and its final frames, unowned SVAR
-        // scroll commands cannot replace this position until real input
-        // or an independent viewport-context change releases the guard.
-        protectedPeerScrollReference.current = request.left > 0 ? {
+        // Keep the explicit return authoritative while checking DOM and Core,
+        // not merely while invoking scroll-chart. New user gestures cancel it.
+        installedGuard = request.left > 0 ? {
           api, key: request.key, left: request.left, root,
           rootWidth: root.clientWidth, rootHeight: root.clientHeight,
           filter, scale, gridWidth, columns, nativeRepairs: 0,
         } : null;
-        // Keep the explicit return authoritative through the final native
-        // layout frames. Later independent metadata edits may capture anew.
-        await frame(); await frame();
+        protectedPeerScrollReference.current = installedGuard;
+        const settleStart = performance.now();
+        let settledFrames = 0, nativeAtSettle = -1, coreAtSettle = -1;
+        let hadSettleAnimationFrame = false;
+        let previousRepairs = protectedPeerScrollReference.current?.nativeRepairs ?? 0;
+        for (let attempts = 0; attempts < 120 && current(); attempts++) {
+          const chart = nativeChart(), capacity = physicalCapacity();
+          const state = api.getState();
+          coreAtSettle = state.scrollLeft;
+          nativeAtSettle = chart?.scrollLeft ?? -1;
+          const guard = protectedPeerScrollReference.current;
+          let repairedInThisSample = false;
+          if (chart && guard && coreAtSettle === request.left &&
+            capacity >= request.left - 1 && Math.abs(nativeAtSettle - request.left) > 1 &&
+            guard.nativeRepairs < 3) {
+            // A late SVAR physical resize may reset the DOM without issuing a
+            // new Core action; only this explicit peer restore owns the repair.
+            guard.nativeRepairs++;
+            repairedInThisSample = true;
+            chart.scrollLeft = request.left;
+            nativeAtSettle = chart.scrollLeft;
+            if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+              const frameNode = fullscreenFrameReference.current;
+              frameNode.dataset.ganttPeerNativeRepairs = String(Number(frameNode.dataset.ganttPeerNativeRepairs ?? 0) + 1);
+            }
+          }
+          const repairs = guard?.nativeRepairs ?? 0;
+          const changedSinceLastFrame = repairedInThisSample || repairs !== previousRepairs;
+          // Any native repair (including one from the interceptor between
+          // samples) resets the streak: no false 3-frame success while drifting.
+          settledFrames = chart && hadSettleAnimationFrame && !changedSinceLastFrame &&
+            capacity >= request.left - 1 && coreAtSettle === request.left &&
+            Math.abs(nativeAtSettle - request.left) <= 1 ? settledFrames + 1 : 0;
+          previousRepairs = repairs;
+          if (settledFrames >= 3 || performance.now() - settleStart > 2_000) break;
+          hadSettleAnimationFrame = await frame();
+        }
+        if (!current()) return;
+        if (settledFrames < 3) {
+          if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+            fullscreenFrameReference.current.dataset.ganttPeerRestoreSettleFailure = JSON.stringify({
+              requestedLeft: request.left, coreLeft: coreAtSettle, nativeLeft: nativeAtSettle,
+              nativeCapacity: physicalCapacity(), settledFrames,
+            });
+          }
+          protectedPeerScrollReference.current = null;
+          throw new Error("TIMED_OUT: peer viewport Core/native did not settle");
+        }
+        // The bounded settling budget is not the post-settle authority budget.
+        // Release a fresh 3-repair allowance ONLY after 3 actual stable RAFs.
+        if (installedGuard && protectedPeerScrollReference.current === installedGuard)
+          installedGuard.nativeRepairs = 0;
+        peerViewportRestoreCount.current++;
+        const state = api.getState(), chart = nativeChart();
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({
+          count: peerViewportRestoreCount.current, requestedLeft: request.left,
+          publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft,
+          nativeCapacity: physicalCapacity(), admissionCapacity: capacityAtRestore,
+          capacityStableFrames: capacityFrames, settleStableFrames: settledFrames,
+        });
+        restoreCommitted = true;
       } finally {
+        // A hidden tab, filter input, new gesture or context replacement can
+        // cancel settle without throwing. Never leave its stale guard installed.
+        // Identity protects a newer independently committed peer restore.
+        if (!restoreCommitted && installedGuard &&
+          protectedPeerScrollReference.current === installedGuard)
+          protectedPeerScrollReference.current = null;
         diagnosticTraceReference.current?.record("effect-cleanup", "peer-restore");
         if (pendingPeerRestoreReference.current === request)
           pendingPeerRestoreReference.current = null;
         cleanupInput();
       }
-    }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
+    }).catch(() => { 
+      if (protectedPeerScrollReference.current?.api === api && protectedPeerScrollReference.current.key === request.key)
+        protectedPeerScrollReference.current = null;
+      if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환");
+    });
     return () => { diagnosticTraceReference.current?.record("effect-cleanup", "peer-restore"); cancelled = true; cleanupInput(); };
-  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, expandTimelineScale, notify]);
+  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, expandTimelineScale, notify, isExplicitFilterInput]);
 
   useEffect(() => {
     if (!columnMenuPosition) return;

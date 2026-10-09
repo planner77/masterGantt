@@ -324,9 +324,16 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
     const chart = frame.locator(".wx-chart");
     const capacity = await chart.evaluate(element => element.scrollWidth - element.clientWidth);
     expect(capacity).toBeGreaterThanOrEqual(before.publicViewport.left);
-    await chart.evaluate(element => { element.scrollLeft = 0; });
-    await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
-    await expect.poll(async () => Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0)).toBeGreaterThanOrEqual(1);
+    const priorRepairs = Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0);
+    // After native capacity/Core settle, the guard has a new repair budget.
+    // Two distinct delayed native-only resets must each recover without
+    // a stale programmatic command overwriting Core or user scroll.
+    for (let cycle = 1; cycle <= 2; cycle++) {
+      await chart.evaluate(element => { element.scrollLeft = 0; });
+      await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+      await expect.poll(async () => Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0))
+        .toBeGreaterThanOrEqual(priorRepairs + cycle);
+    }
     const staleAfterPeer = await frame.evaluate((element, expectedLeft) => {
       const raw = element.getAttribute("data-gantt-public-scroll-events") ?? "[]";
       const events = JSON.parse(raw) as { action: string; requestedLeft?: number }[];
@@ -415,6 +422,32 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   try {
   await resource.click(); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
+  // Admission cannot rely on Core alone: physical chart scroll capacity
+  // must accept the original 120px before an explicit peer restore is sent.
+  // A Core+DOM match can precede the receipt, which is deliberately
+  // published only after the extra three stable layout frames.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-peer-restore");
+    return raw ? JSON.parse(raw) : null;
+  }).toMatchObject({
+    requestedLeft: origin.publicViewport.left,
+    capacityStableFrames: 3,
+    settleStableFrames: 3,
+  });
+  const secondReceipt = await frame.getAttribute("data-gantt-peer-restore");
+  expect(secondReceipt).not.toBeNull();
+  const restoredCapacity = JSON.parse(secondReceipt!) as {
+    requestedLeft: number; publicLeft: number; domLeft: number;
+    nativeCapacity: number; admissionCapacity: number;
+    capacityStableFrames: number; settleStableFrames: number;
+  };
+  expect(restoredCapacity.requestedLeft).toBe(origin.publicViewport.left);
+  expect(restoredCapacity.publicLeft).toBe(origin.publicViewport.left);
+  expect(restoredCapacity.domLeft).toBe(origin.left);
+  expect(restoredCapacity.admissionCapacity).toBeGreaterThanOrEqual(origin.left - 1);
+  expect(restoredCapacity.nativeCapacity).toBeGreaterThanOrEqual(origin.left - 1);
+  expect(restoredCapacity.capacityStableFrames).toBeGreaterThanOrEqual(3);
+  expect(restoredCapacity.settleStableFrames).toBeGreaterThanOrEqual(3);
   // A new nested journey clears to the earliest schedule destination baseline.
   await drill(); await frame.locator(".wx-chart").hover(); await page.mouse.wheel(240,0); await settle(); await drill();
   await strip.getByRole("button",{name:/임시 이동 범위 전체 해제/}).click();
@@ -434,6 +467,9 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
         head: traceHead, origin, actual: await ganttIntegrationState(page),
         publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
         peerRestore: await frame.getAttribute("data-gantt-peer-restore"),
+        capacityFailure: await frame.getAttribute("data-gantt-peer-restore-capacity-failure"),
+        settleFailure: await frame.getAttribute("data-gantt-peer-restore-settle-failure"),
+        nativeRepairs: await frame.getAttribute("data-gantt-peer-native-repairs"),
         canonicalGeneration: await frame.getAttribute("data-gantt-canonical-sync-generation"),
         trace,
       }, null, 2),
