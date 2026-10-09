@@ -74,7 +74,7 @@ export function CoreActionTraceFixture() {
     window.__issue568 = {
       configure(run, head, scenario) {
         for (const value of [run, head, scenario]) if (!/^[\w.-]{1,64}$/.test(value)) throw new Error("Invalid synthetic trace identity");
-        Object.assign(context.current, { run, head, scenario }); trace.record("scenario-start");
+        trace.reset(); Object.assign(context.current, { run, head, scenario }); trace.record("scenario-start");
       },
       async command(command) {
         context.current.intentId++; context.current.intentSource = command;
