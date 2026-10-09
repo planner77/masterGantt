@@ -2,6 +2,8 @@
 
 ## Issue #569 — 공개 API·시간축 Adapter PoC
 
+PR #576의 Milestone-only E2E는 `api.serialize()` 기준 1개 Milestone(`synthetic-6`), 시작일 2026-01-10, 종료일 부재(`endMs=null`), 실제 native DOM Milestone 표시를 필수로 검증한다. 기존에 종료일을 시작일과 동일하게 가정한 조건은 SVAR 시점 Milestone 계약과 불일치하여 교정한다. Empty / A-mode 미래 Task / 재진입 `BUSY` 검증은 그대로 유지한다. 최신 Head의 CI 결과는 과거 증거와 분리한다.
+
 [실행 계획](exec-plans/active/ISSUE_569.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 공식/설치 기능 matrix, A/B/C 결과와 지원 경계를 남긴다. 실제 Core 2.7.3 Chromium의 390/768/1024/1440/1920px·Day/Week에서 최대 3회 확장의 성공/실패와 instance/selection/origin/scroll/열/visible date와 tick↔bar≤1 CSSpx, Grid/Chart y정렬을 비교한다. empty/M-only, fullscreen/split, 가로/세로scroll·열resize, hidden/inert/zero-size/capacity·cleanup·intent 취소·finite timeout을 별도로 확인한다.
 
 지원 분류는 390px Chart 확대 후 Day A/B·Week A/B/C의 3회 성공, C Day의 첫 확장 위치 실패, 넓은 화면의 첫 확장 성공 후 다음 edge timeout이다. 분류 검증 PASS를 모든 후보의 지원 PASS로 해석하지 않는다.

@@ -135,8 +135,9 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["day", "w
       const milestone = await page.evaluate(() => window.__issue569!.variant("milestone"));
       expect(milestone).toMatchObject({ result: "NATIVE_LAYOUT_SETTLED" });
       const milestoneTasks = await page.evaluate(() => window.__issue569!.taskEvidence());
+      // SVAR의 Milestone은 시작 시점만 직렬화하며 end 필드를 제공하지 않는다.
       expect(milestoneTasks.core).toEqual([{ id: "synthetic-6", type: "milestone",
-        startMs: new Date(2026, 0, 10).getTime(), endMs: new Date(2026, 0, 10).getTime() }]);
+        startMs: new Date(2026, 0, 10).getTime(), endMs: null }]);
       expect(milestoneTasks.dom).toContain("synthetic-6");
       expect(milestoneTasks.dom.every(id => id === "synthetic-6")).toBe(true);
       const normal = await page.evaluate(() => window.__issue569!.variant("normal"));

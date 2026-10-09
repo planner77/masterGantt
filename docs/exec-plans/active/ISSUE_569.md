@@ -45,3 +45,9 @@ DOCUMENTATION_SYNC: ADR 및 필수 ARCHITECTURE/DECISIONS/PROJECT_UX/MILESTONE_T
 ## PR #576 리뷰 보완 (2026-10-09)
 
 Codex P2 3건(Scale 불일치, 중복 확장, Empty/Milestone/Future assertion)을 소스·단위/E2E·ADR·TEST_PLAN에 반영한다. 기존 제품 writer 미변경, 버전 0.103.1, 제품 도입 DEFER, 병합/GHCR 제외를 유지한다. 새 PR CI 시작 후 결과는 별도 검증한다.
+
+## PR CI #2293.1 실패·조치 (2026-10-09)
+
+- `quality`/`docker` PASS, Chromium shard2~6 PASS, shard1 FAIL(10건). 공통 원인: synthetic Milestone 기대값은 end=start이지만 실제 `api.serialize()`는 Milestone end를 반환하지 않음.
+- 공식 SVAR Milestone의 시점 모델에 맞춰 fixture에서 `end`를 제거하고 E2E에 `endMs=null`을 명시한다. 기존 DOM·태스크·확장 판단은 유지.
+- 후속 작업 한계: 새 PR CI 시작까지만. PR 병합, Main CI, GHCR, 정식 제품 도입, Issue 종료는 제외.

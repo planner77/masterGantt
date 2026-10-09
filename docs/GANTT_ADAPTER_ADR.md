@@ -88,3 +88,10 @@ C의 synthetic width 적용과 physical width 복원 사이에 취소되면 Core
 - 최신 E2E shard 1/6에서 10개 프로파일 모두 `getState().tasks === null`인데 배열 `[]`을 가정해 실패했다. Quality/Docker 및 다른 5개 shard는 PASS였다.
 - **2.7.3 공개 API `serialize()`**로 실제 Core Task 컬렉션을 읽으며, null/비배열은 성공으로 대체하지 않고 검증 실패로 남긴다. DOM `data-task-id` 관측과 실제 settle assertions는 유지한다.
 - 이 수정 후 Head의 브라우저/E2E 결과는 별도 PR CI에서만 확정한다. 이전 10/10 PoC 증거 또는 앞선 CI 성공을 새 결과로 전용하지 않는다.
+
+### PR CI #2293.1 E2E Milestone 직렬화 계약 수정 (2026-10-09)
+
+- `quality`/`docker` 및 Chromium shard 2~6 PASS, shard 1의 #569 10개 프로파일 FAIL. 동일한 실패는 Milestone을 `start=end`라고 잘못 가정한 assertion에서 발생했다.
+- 설치 Core 2.7.3의 `api.serialize()` 출력에는 Milestone의 `start`만 있고 `end`가 없다(`endMs=null`). [SVAR 공식 Milestone 가이드](https://docs.svar.dev/react/gantt/guides/tasks/milestone/)도 duration=0, start만 있고 end 없음으로 정의한다.
+- 합성 Milestone fixture의 `end` 입력을 제거하여 문서 계약과 일치시키고 E2E의 기대 직렬화 결과를 `{startMs: 2026-01-10, endMs:null}`로 교정했다. Empty 배열·Milestone 단일 id·native DOM 표시·A 미래 Task 변경·settle 검증은 유지한다. 기존 경로의 검증 제한/제품 도입 DEFER도 유지한다.
+- 이번 새 Head의 전체 CI 성공 여부는 새 PR CI 결과를 확인하기 전까지 **NOT VERIFIED**이다. 앞선 Head의 CI 성공 및 로컬 결과를 전용하지 않는다.

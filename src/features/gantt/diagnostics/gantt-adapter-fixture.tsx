@@ -10,8 +10,13 @@ const ORIGIN = new Date(2026, 0, 4).getTime();
 const INITIAL_END = new Date(2026, 6, 6).getTime();
 const emptyLinks: [] = [];
 const fixtureColumns = [{ id: "text", header: "작업", width: 200 }];
-const tasks: ITask[] = Array.from({ length: 40 }, (_, index) => ({ id: `synthetic-${index + 1}`, text: `합성 작업 ${index + 1}`, type: index === 5 ? "milestone" : "task", parent: 0,
-  start: new Date(2026, 0, index + 5), end: new Date(2026, 0, index === 5 ? index + 5 : index + 8), duration: index === 5 ? 0 : 3 }));
+const tasks: ITask[] = Array.from({ length: 40 }, (_, index) => {
+  const base = { id: `synthetic-${index + 1}`, text: `합성 작업 ${index + 1}`, parent: 0, start: new Date(2026, 0, index + 5) };
+  // SVAR Milestone 계약: duration=0인 시점 요소이며 end는 존재하지 않는다.
+  return index === 5
+    ? { ...base, type: "milestone", duration: 0 }
+    : { ...base, type: "task", end: new Date(2026, 0, index + 8), duration: 3 };
+});
 export interface AdapterTrialControl {
   sample: () => ReturnType<GanttAdapter["sample"]> & { apiInstance: number; mode: string; scale: string };
   settle: GanttAdapter["settle"];
