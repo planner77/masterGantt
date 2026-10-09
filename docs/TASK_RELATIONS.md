@@ -191,3 +191,9 @@ Milestone 관리 메뉴는 같은 canonical taskId로 기존 Task Editor의 rela
 WBS에서 M을 숨겨도 Core에 전달하는 canonical Link 입력과 기존 Editor 관계 목록은 전체를 유지한다. native Chart의 숨은 M→M/legacy mixed endpoint 선은 다른 Summary/Task 행에 재연결하지 않는다. ordinary Task→Task 선은 가시 endpoint를 따라 유지하고 접힘으로 endpoint가 사라지면 잘못된 대체 선을 그리지 않는다. 신규 mixed/ Summary endpoint 허용 정책은 만들지 않는다.
 
 Summary Copy는 숨은 M과 내부 Link/remap을 포함하는 전체 subtree이고 기존 completed/fullE/explicit/incident/external membership/Assignment Copy guard와 auth/revision의 서버 판정은 그대로다. 표시 UI는 새 관계 엔진/가짜 Membership Link를 만들지 않는다. actual Core 표시와 실제 HTTP/SQLite 명령 증거를 [테스트 계획](TEST_PLAN.md#issue-552--milestone-표시-분리-검증)에서 분리한다.
+
+## Issue #553 — 표시와 관계 교환 범위
+
+숨은 Milestone의 관계도 전체 canonical 관계·Editor·Gate·Export에 남는다. 기존 지원 유형/lag/완료 잠금은 유지하며 legacy mixed Export와 신규 Import/관계 생성 가능 여부를 구분한다. 파일 지원 밖의 관계·구조를 조용히 누락하지 않는다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.

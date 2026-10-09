@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 const linkId = "00000000-0000-4000-8000-000000000080";
 const title = "작업 관계 관리 (Relation Editor)";
@@ -9,11 +10,29 @@ async function setup(page: Page, readonly = false, longNames = false) {
   fixture.sessionEditable = !readonly;
   for (const item of fixture.tasks) { item.start = "2026-09-16"; item.end = "2026-09-17"; item.requestedStart = item.type === "summary" ? null : item.start; }
   fixture.tasks.push({ ...fixture.tasks[2], taskId: "00000000-0000-4000-8000-000000000005", externalId: "CANDIDATE", name: longNames ? "후보 작업 " + "아주긴한국어와LongUnbrokenName".repeat(15) : "후보 작업", siblingOrder: 4 });
-  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "MILESTONE-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 });
+  fixture.tasks.push({ ...fixture.tasks[2], taskId: "00000000-0000-4000-8000-000000000006", externalId: "SECONDARY-1", name: "Secondary relation target", siblingOrder: 5 });
+  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "SECONDARY-1", type: "FS", lag: 0 });
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
-  await page.locator(`[data-link-id=":${linkId}"]`).first().dblclick({ force: true });
+  // Open through the supported ordinary Task Relation tab rather than relying on an SVG link overlay.
+  const sourceRow = page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000003\"]").first();
+  // Use native keyboard context-menu on the exact canonical grid cell. At 390px
+  // pointer auto-scroll can recycle an adjacent SVAR row before mouseup.
+  const cell = sourceRow.locator('[role="gridcell"][data-col-id=":text"]');
+  await cell.scrollIntoViewIfNeeded();
+  await expect(sourceRow).toHaveAttribute("data-id", ":00000000-0000-4000-8000-000000000003");
+  await cell.focus();
+  await expect(cell).toBeFocused();
+  // Re-resolving a Playwright locator for .press() can scroll a recycled SVAR
+  // row and focus an adjacent task at 390px. Send the key to the focused cell.
+  await page.keyboard.press("Shift+F10");
+  await chooseTaskInformation(page);
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Stable leaf");
+  await editor.getByRole("tab", { name: /관계/ }).click();
+  await expect(editor.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
+  await editor.getByRole("button", { name: `${readonly ? "Existing summary child 관계 조회" : "Existing summary child 관계 편집"}`, exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }
@@ -56,6 +75,8 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await expect(modal).toHaveCount(0);
+  // Closing the nested Task Editor completes the focus round-trip to the visible Gantt.
+  await page.getByRole("dialog", { name: "작업 정보", exact: true }).getByRole("button", { name: "작업 편집기 닫기" }).click();
   await expectSameGanttRoot(page, root);
   expect(await page.evaluate(() => document.activeElement?.closest(".project-gantt-frame") !== null)).toBe(true);
 });
@@ -127,7 +148,7 @@ test("삭제 확인은 대상 이름을 표시하고 취소는 DELETE를 보내�
   let deletes = 0;
   page.on("request", (request) => { if (request.method() === "DELETE" && request.url().includes("/links/")) deletes++; });
   await dialog(page).getByRole("button", { name: "관계 삭제", exact: true }).click();
-  await expect(dialog(page).getByRole("alert")).toContainText("Stable leaf → Stable milestone");
+  await expect(dialog(page).getByRole("alert")).toContainText("Stable leaf → Existing summary child");
   await dialog(page).getByRole("button", { name: "삭제 취소" }).click();
   expect(deletes).toBe(0);
   await expect(dialog(page)).toBeVisible();

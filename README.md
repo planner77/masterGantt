@@ -1,5 +1,7 @@
 # masterGantt
 
+Milestone의 새 위치·표시 설정·소속/관계·내보내기 차이는 [Milestone 사용 가이드](docs/MILESTONE_USER_GUIDE.md)를 참조하세요. 후보 구현과 main/운영 적용 상태는 가이드의 추적표에서 구분합니다.
+
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
 프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 임시 GHCR registry 검증 image와 Semantic Version release image 기반도 추가했다. Excel 및 Gantt SVG/PNG 내보내기를 제공하며, 승인된 Excel/VBA → JSON·CSV Import와 production 배포 검증은 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.

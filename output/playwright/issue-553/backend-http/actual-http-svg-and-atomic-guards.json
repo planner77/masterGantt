@@ -1,0 +1,20 @@
+{
+  "environment": "Next development + real loopback HTTP + native SQLite",
+  "fixtureHash": "59da58e469c1f3d8a1d1b15966ab8fc7c12a0f11adebd364c5f646596fb9a5d3",
+  "publicId": "4a363dcf-1eaf-4173-9431-afab78fa7bda",
+  "canonicalHash": "dbb53aea18d258305ca49f8795e58cce7e7400b7ffbe31e786428da2823e7a42",
+  "taskCount": 33,
+  "supportedVariant": "all existing endpoint pairs FS/0, recalculated by actual Import",
+  "svgBytes": 19875,
+  "fullMilestonePolygonCount": 15,
+  "rangeWidthPx": 64,
+  "completedCopyStatus": 409,
+  "completedCopyCode": "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED",
+  "mixedImportStatus": 422,
+  "mixedImportCode": "MIXED_DEPENDENCY_UNSUPPORTED",
+  "staleStatus": 412,
+  "staleCode": "REVISION_MISMATCH",
+  "unauthorizedStatus": 401,
+  "unauthorizedCode": "EDIT_SESSION_REQUIRED",
+  "snapshotUnchangedAfterEveryRejectedMutation": true
+}

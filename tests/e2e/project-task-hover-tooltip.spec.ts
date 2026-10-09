@@ -1,3 +1,4 @@
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import {
@@ -43,6 +44,7 @@ async function expectTooltip(
 
 test("Issue #492 shows the same canonical Task details from Grid and Chart", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
+  await installMilestoneDashboardFixture(page, fixture);
   fixture.tasks.push({
     ...fixture.tasks[0],
     taskId: id(5),
@@ -67,8 +69,13 @@ test("Issue #492 shows the same canonical Task details from Grid and Chart", asy
 
   await expectTooltip(page, taskBar(page, 1), "Stable summary", taskStart, taskEnd);
 
-  const milestoneDate = await displayDate(page, "2026-12-18");
-  await expectTooltip(page, taskBar(page, 4), "Stable milestone", milestoneDate, milestoneDate);
+  await expect(taskBar(page, 4)).toHaveCount(0);
+  const milestoneEditor = await openMilestoneEditor(page, id(4));
+  await expect(milestoneEditor.getByLabel("작업명", { exact: true })).toHaveValue("Stable milestone");
+  await expect(milestoneEditor.getByLabel("요청 시작일", { exact: true })).toHaveValue("2026-12-18");
+  await page.keyboard.press("Escape");
+  await expect(milestoneEditor).toBeHidden();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
 
   await expectTooltip(page, rowNamed(page, "Date-less summary 492"), "Date-less summary 492", "—", "—");
   await expect(taskBar(page, 5)).toHaveCount(0);

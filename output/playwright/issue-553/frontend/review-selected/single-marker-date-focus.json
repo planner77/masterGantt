@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-10-08T20:55:22.206Z",
+  "environment": "Chromium/Next dev/Core2.7.3; synthetic canonical routes + real pure export builders; not actual HTTP/SQLite",
+  "sourceHashes": {
+    "src/features/projects/project-excel-export-button.tsx": "65de085ecdd4ebdb72640ea90558d32fb67fb289274deb6962cd3c3121ae0a77",
+    "src/features/projects/project-export.module.css": "46171c4068de4a3d15c3a4b28d154b55f17c0580e4e44ce63c0cc5a948c1d9bf",
+    "src/features/projects/project-readonly-view.tsx": "0edcccac566d13f84e92740e3891f4c9d21061d42df50d3394a6d0130208f9e7",
+    "src/features/gantt/project-gantt.tsx": "be4c545b0a5a612602cace4551371a87012feccb1a9773eb2b7f58e07392b384",
+    "src/features/gantt/milestone-timeline-lane.tsx": "5447dbe3fbf9d6e1cdf0fe20254e27552e8ab18b8b8561bee5de9d20e6f19951",
+    "tests/e2e/helpers/milestone-ui.ts": "472b4a23ef4987c35b0d6da23035e22c33f1f72beee923ed79302957e66f93a6",
+    "tests/e2e/milestone-timeline-interchange-ui.spec.ts": "edbab118d1b33ff12e1aac3395c64d1024bc5db950873b7f587eb4dda7d04ad4"
+  },
+  "data": {
+    "exactMilestoneId": "00000000-0000-4000-8000-000000000004",
+    "markerFocus": {
+      "taskId": "00000000-0000-4000-8000-000000000004",
+      "label": "Stable milestone · 2026-10-05 · MILESTONE-1 · 읽기 전용 · 미완료 · 진행 중",
+      "title": "Stable milestone · 2026-10-05 · MILESTONE-1 · 읽기 전용 · 미완료 · 진행 중",
+      "rect": {
+        "x": 538,
+        "y": 458,
+        "right": 698,
+        "bottom": 502
+      },
+      "outline": "solid",
+      "ring": 6,
+      "centerHit": true
+    },
+    "canonicalSnapshotEqual": true,
+    "storedOff": true,
+    "instance": {
+      "apiId": "svar-api-1",
+      "instanceId": "project-gantt-cljz4js8wg"
+    }
+  }
+}

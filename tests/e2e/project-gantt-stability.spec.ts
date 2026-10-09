@@ -124,6 +124,10 @@ test.describe("Issue #3 stable Gantt instance", () => {
     page.on("request", (request) => { if (request.resourceType() === "document") documentRequests.push(request.url()); });
     page.on("framenavigated", (frame) => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
     const leafRow = rowNamed(page, "Stable leaf");
+    const readyFrame = ganttRoot(page);
+    await expect(readyFrame).toHaveAttribute("data-gantt-canonical-sync-depth", "0");
+    await expect.poll(() => readyFrame.evaluate(node => node.dataset.ganttCanonicalSyncGeneration === node.dataset.ganttCanonicalSyncSettledGeneration)).toBe(true);
+    await expect(leafRow.locator('[data-action="add-task"]')).toHaveAttribute("aria-disabled", "false");
     const firstChildResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === taskPath);
     await leafRow.locator('[data-action="add-task"]').click();
     expect((await firstChildResponse).status()).toBe(201);
@@ -155,10 +159,8 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(rootAdd(page)).toBeVisible();
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
     await expectSameGanttRoot(page, initialIdentity);
-    const milestoneAdd = rowNamed(page, "Stable milestone").locator('[data-action="add-task"]');
-    await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
-    await milestoneAdd.dispatchEvent("click");
-    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다");
+    // Hidden Milestones expose no native child command; server parent rejection remains covered separately.
+    await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
       const taskCount = fixture.tasks.length; const postCount = fixture.posts.length;

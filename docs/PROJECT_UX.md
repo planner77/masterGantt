@@ -1,10 +1,33 @@
+## Issue #553 — WBS projection·column refresh 최적화 계약 (2026-10-09)
+
+일반 Task의 설명/이름/메타데이터 저장 또는 삭제로 canonical DTO가 바뀌었다는 이유만으로 SVAR 전체 `filter-tasks`/ `set-columns`를 재실행하지 않는다. Native Core에 표시된 WBS 행이 현재 허용된 Task ID와 일치하고 검색/범위·스케일 계약이 그대로라면 재투영을 건너뛰며 위치·선택·Grid 인스턴스를 보존한다. Search scope/active filter가 실제로 변경되거나 Milestone 비표시 행이 남아 있으면 재투영한다. Summary가 날짜 있는 상태에서 미산정 empty-container로 바뀌는 등 Grid getter 구조가 바뀌는 경우는 컬럼 재설정 대상이다. 동일 필터·동일 작업공간에서 canonical sync가 끝난 후 원래 위치를 복원할 수 있으나, 사용자 입력·새 탐색/검색 조건이 우선한다.
+
+## Issue #553 — Native viewport 확장 비동기 순서 (2026-10-09)
+
+Core 논리 스케일 확장용 `resize-chart` 2단계는 순차 완료를 기다린 뒤 사용자가 요청한 public `scroll-chart`를 실행한다. 단순히 `scrollWidth`만 체크하거나 비동기 resize를 발행한 직후 복원을 성공 처리하면 후행 Core 레이아웃이 스크롤을 다시 0으로 클램프할 수 있다. 범위를 확장할 필요가 없는 경우에는 Core 조작을 추가하지 않는다. Task/범위/scale이 바뀌거나 사용자 입력이 발생하면 오래된 복원 명령은 적용하지 않는다.
+
+## Issue #553 — Gantt 논리/물리 스크롤 및 검색 복귀 계약 (2026-10-09)
+
+SVAR의 Core 공개 `scrollLeft`와 브라우저 native Chart `scrollWidth - clientWidth`는 동기화 완료 전 다른 범위일 수 있다. 저장된 위치 복원에 필요한 DOM 실제 범위가 부족하면 축을 확장하는 공개 `resize-chart` 경로를 사용하고, 두 번의 bounded layout frame에서 복원 여부를 확인한다. metadata/Task 삭제의 원래 scope·scale/instance가 유지되고 해당 기간 사용자 Grid/Chart 입력이 없을 때만 복원하며, 이전 위치를 그대로 주장하는 시각 효과나 임의 DOM 덮어쓰기는 금지한다.
+
+검색 진입은 검색 이전의 조회 위치를 기억한다. 검색 중 Grid/Chart에 별도의 사용자 입력이 없으면 검색 해제 후 기존 위치를 복원하되, 검색 중 명시적인 Task 선택·스크롤은 우선하고 이전 북마크를 폐기한다. 검색 결과가 0개가 되면 원점으로 복귀하고, 이 경우 검색 종료 시도 이전 위치를 강제로 적용하지 않는다.
+
+
+## Issue #553 — Canonical viewport 동기화 순서 후속 교정 (2026-10-09)
+
+CI #2266 후속 보완: 저장된 viewport를 반환할 때 Core의 파생 `gridWidth`와 `columns.width`는 내부 `set-columns` 처리 중 달라질 수 있으므로 같은 canonical generation·사용자 input 없음·scope/filter/scale 동일 조건에서만 이전 public scroll 좌표를 복원한다. 검색 결과의 실제 visible Task ID 집합이 변경되는 경우에는 기존 위치를 보존하지 않고 새 원점으로 시작한다. 일정↔Resource 상위 탭 무입력 복귀는 이전 위치를 유지하되, 복귀 중 실제 wheel/key/pointer 입력을 받으면 과거 viewport를 덮지 않는다.
+
+Gantt의 변경 후 viewport는 canonical snapshot 동기화, WBS projection, 사용자 열 설정의 적용 순서가 모두 완료되기 전에는 복원 완료로 판정하지 않는다. `set-columns`가 최종 크기를 변경할 수 있으므로 이전 Task 수와 동일한 WBS scope에서 받은 metadata/delete 응답의 viewport 복원 요청을 마지막 컬럼 작업까지 보존한다. 명시적 Task 검색으로 실제 visible ID 집합이 변경되면 이전 위치를 복원하지 않는다. 날짜 선택에 따른 `scroll-chart` 이동은 이전 복원보다 우선하며 내부 Core 레이아웃 보정은 사용자 입력으로 잘못 판정하지 않는다.
+
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원
 
+PR CI #2255 회귀 보완: Gantt `scroll-chart`로 발생하는 명시적 날짜 navigation은 과거 동일 scope viewport 재생보다 우선한다. Core 내부 resize에 대한 일반 WBS projection 재평가만으로 이전 viewport를 강제 적용하지 않으며 canonical 변경에 동반된 정확한 restore request만 허용한다. Core 공개 좌표와 native DOM 정수화 오차는 각각 검사한다.
+
 일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
 
-일정에서 상위 peer로 떠날 때 보이는 Gantt의 snapshot·scope/filter·instance·동기화 세대와 viewport를 저장한다. 복귀의 DOM/Public Core 복원은 실제 Grid/Chart pointerdown·wheel·keydown 뒤 취소하며, source·instance·세대·visibility·scale·column/grid 조건이 달라진 오래된 복원을 적용하지 않는다. 양쪽 복원 경로가 같은 경계를 지켜야 하며 Core 진단 marker가 없어지는 것만으로 입력 위치 보존을 판정하지 않는다. 공개 viewport와 native DOM의 실제 값은 각각 확인한다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다. #518의 상위 일정/Milestone 탭 구조와 무입력 복귀·선택/tree/열/scale/인스턴스 보존은 유지한다.
+일정에서 상위 peer로 떠날 때 보이는 Gantt의 snapshot·scope/filter·instance·동기화 세대와 viewport를 저장한다. 복귀의 DOM/Public Core 복원은 실제 Grid/Chart pointerdown·wheel·keydown 뒤 취소하며, source·instance·세대·visibility·scale·column/grid 조건이 달라진 오래된 복원을 적용하지 않는다. 양쪽 복원 경로가 같은 경계를 지켜야 하며 Core 진단 marker가 없어지는 것만으로 입력 위치 보존을 판정하지 않는다. 동일 scope·scale의 metadata 변경과 Task 삭제는 canonical/set-columns/controlled-WBS-filter 처리 후 Core의 실제 양축 위치를 비교하고 필요 시 복원하며, 해당 구간에서 사용자가 wheel/pointer/keyboard로 이동했거나 검색·필터 결과 집합이 변했으면 과거 위치를 강제 적용하지 않는다. 공개 viewport와 native DOM의 실제 값은 각각 확인한다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다. #518의 상위 일정/Milestone 탭 구조와 무입력 복귀·선택/tree/열/scale/인스턴스 보존은 유지한다.
 
 390/768px의 기존 최소 720px 내부 Gantt 작업면은 이 수정의 배치 변경 대상이 아니다. 지원 splitter/fullscreen UI를 사용한 좁은 폭 smoke는 Core 논리 Chart viewport reveal과 화면의 실제 교집합을 구별한다. 390px 미래 시작은 논리 viewport 안이어도 화면 밖일 수 있으며 자동 page-follow를 보장하지 않는다. 내부 작업면을 사용자가 pan하는 후속 조작은 NOT TESTED다. 1024/1440/1920px에서는 실제 화면 안의 시작 위치를 별도 검증한다. 상세 실행 범위와 최초 실패는 [테스트 계획](TEST_PLAN.md#issue-514--grid-시작-위치와-peer-복원-영향-검증)에 기록한다.
 
@@ -1207,3 +1230,11 @@ Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 
 날짜 조회는 저장 OFF를 쓰지 않고 일시 표시한다. 원래 보기는 출발 Dashboard 조건/현재 canonical 관리 trigger와 이전 peer/public viewport로 복귀하되 최신 사용자 입력을 덮지 않는다. 물리 폭 부족은 날짜 범위 밖 0과 구별하고 exactID 목록 fallback을 제공한다. invalid Summary root는 삭제/M drift를 구별하여 명시 복귀 전 hidden/inert 같은 Gantt로 보류한다. 상세는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
 
 #552 비활성 Dashboard peer에서는 정상 scope owner가 조상의 `visibility:hidden`을 상속한다. invalid Summary scope만 별도 hidden/inert를 지정한다. schedule/Core의 양수 bbox와 같은 instance는 보존하지만 Toolbar/Grid/Chart가 Dashboard 위에 그려지지 않아야 한다. 390px 날짜 fallback은 exact-ID focus·검색·저장 OFF·원래 viewport와 실제 hidden paint를 함께 검증한다.
+
+## Issue #553 — Export 안내와 단계 Editor 경로
+
+내보내기 form은 기존 간격·muted 텍스트로 모든 형식에 공통 안내를 제공한다. Milestone OFF·검색·접기는 파일의 canonical 전체 집합을 줄이지 않으며 현재 Gantt와 다른 레이아웃일 수 있다. 기존 format focus·Escape·busy 닫기 보호·revision·성공 후 focus 복원을 유지한다. 숨은 단계의 이름·날짜 편집은 같은 canonical ID의 Dashboard/Editor를 사용한다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.
+
+Resource 범위 복귀의 기존 focus guard는 원래 HTMLElement가 연결되어 있고 disabled/hidden/inert가 아닐 때 해당 대상을 사용하며, 그렇지 않으면 출발 탭을 사용한다. #553은 동기 focusin의 원래 대상 상태와 현재 active element를 직접 기록한다. 비활성 대상의 Resource 탭 fallback을 원래 상세 버튼 focus 복원으로 표시하지 않는다.

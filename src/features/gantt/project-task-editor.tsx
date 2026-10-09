@@ -63,6 +63,7 @@ function RelationList({
   title,
   relations,
   showActions,
+  viewOnly,
   actionsDisabled,
   deleteLocked,
   onEdit,
@@ -71,6 +72,7 @@ function RelationList({
   title: string;
   relations: readonly TaskRelationView[];
   showActions: boolean;
+  viewOnly: boolean;
   actionsDisabled: boolean;
   deleteLocked: (id: string) => boolean;
   onEdit: (relation: TaskRelationView, trigger: HTMLElement) => void;
@@ -84,19 +86,19 @@ function RelationList({
           <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
           {showActions && relation.resolved ? <div className={styles.relationActions}>
             <button
-              aria-label={`${relation.relatedTaskName} 관계 편집`}
+              aria-label={`${relation.relatedTaskName} 관계 ${viewOnly ? "조회" : "편집"}`}
               className="secondary-button"
               disabled={actionsDisabled}
               onClick={(event) => onEdit(relation, event.currentTarget)}
               type="button"
-            >편집</button>
-            <button
+            >{viewOnly ? "조회" : "편집"}</button>
+            {!viewOnly ? <button
               aria-label={`${relation.relatedTaskName} 관계 삭제`}
               className="danger-button"
               disabled={actionsDisabled || deleteLocked(relation.id)}
               onClick={(event) => onDelete(relation, event.currentTarget)}
               type="button"
-            >삭제</button>
+            >삭제</button> : null}
           </div> : null}
         </div>
         <div className={styles.relationMeta}>
@@ -668,8 +670,9 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
               <RelationList
                 title="선행 작업"
                 relations={relations.predecessors}
-                showActions={editable}
-                actionsDisabled={relationMutationDisabled}
+                showActions
+                viewOnly={readOnly}
+                actionsDisabled={locked || stale || dirty || (!readOnly && relationMutationDisabled)}
                 deleteLocked={(id) => linkStructureLocked(links.find((link) => link.id === id), tasks)}
                 onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
                 onDelete={requestRelationDelete}
@@ -677,8 +680,9 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
               <RelationList
                 title="후행 작업"
                 relations={relations.successors}
-                showActions={editable}
-                actionsDisabled={relationMutationDisabled}
+                showActions
+                viewOnly={readOnly}
+                actionsDisabled={locked || stale || dirty || (!readOnly && relationMutationDisabled)}
                 deleteLocked={(id) => linkStructureLocked(links.find((link) => link.id === id), tasks)}
                 onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
                 onDelete={requestRelationDelete}

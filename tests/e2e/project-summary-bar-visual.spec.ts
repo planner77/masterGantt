@@ -86,7 +86,7 @@ test("Issue #375 keeps the Summary hit box while drawing a centered 60% visual b
   const identity = await rememberGanttRoot(page);
   await expect(page.getByRole("grid").getByText("Empty summary 375", { exact: true })).toBeVisible();
   await expect(taskBar(page, 5)).toHaveCount(0);
-  await expect(taskBar(page, 4)).toHaveClass(/wx-milestone/);
+  await expect(taskBar(page, 4)).toHaveCount(0); // Milestone is outside the ordinary Summary/Task WBS.
 
   for (const width of [390, 768, 1024, 1440, 1600]) {
     await page.setViewportSize({ width, height: 900 });

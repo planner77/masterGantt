@@ -320,6 +320,7 @@ interface ProjectGanttProps {
   } | null;
   readonly viewVisible?: boolean;
   readonly viewportContinuityKey?: string;
+  readonly viewportFilterActive?: boolean;
   readonly peerViewportRestore?: Readonly<{ key: string; left: number; top: number }> | null;
   /** Read SVAR's public viewport synchronously while the schedule is visible. */
   readonly onPublicViewportReader?: (reader: PublicGanttViewportReader | null) => void;
@@ -403,7 +404,7 @@ function clampMenuPosition(left: number, top: number, width: number, height: num
 
 /** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
-  viewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
+  viewVisible = true, viewportContinuityKey = "", viewportFilterActive = false, peerViewportRestore = null,
   onPublicViewportReader,
   milestoneTimeline,
   calendar,
@@ -465,6 +466,15 @@ export function ProjectGantt({
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
+  const viewportGestureReference = useRef(0);
+  const priorFilterActiveReference = useRef(viewportFilterActive);
+  const filterBaseViewportReference = useRef<{
+    publicId: string; rootId: string | null; left: number; top: number; gesture: number;
+  } | null>(null);
+  const pendingFilterReturnReference = useRef<{
+    publicId: string; rootId: string | null; left: number; top: number; gesture: number;
+  } | null>(null);
+  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
   const taskFilterAppliedReference = useRef(false);
   const summaryToggleStateReference = useRef(new Map<string, boolean>());
   const projectPublicIdReference = useRef(projectPublicId);
@@ -1418,6 +1428,12 @@ export function ProjectGantt({
     if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
     taskUpdateGateway(event);
   }, [taskUpdateGateway]);
+  // Only a Summary's dated/empty-container transition needs the native
+  // column getters to be rebuilt. Routine canonical names, metadata and
+  // ordinary Task deletion are applied through update/delete-task, not
+  // through set-columns (which resets the native horizontal viewport).
+  const summaryColumnKey = JSON.stringify(tasks.filter(task => task.type === "summary")
+    .map(task => [task.taskId, task.start, task.end, task.duration]));
   const columns = useMemo(
     () => [{ id: "copySelection", header: "선택", width: 56, hidden: false, align: "center" as const, cell: ProjectTaskSelectionCell }, ...baseProjectColumns.map((column) => (
       column.id === "milestoneStage"
@@ -1467,11 +1483,9 @@ export function ProjectGantt({
             }
             : column
     ))],
-    // Grid getters read the latest canonical DTO map through a ref, avoiding
-    // stale values after failed mutations. Keep tasksById as a dependency so a
-    // canonical Task change also re-runs the public set-columns synchronization;
-    // Core needs that refresh when a dated Summary becomes an empty container.
-    [columnVisibility, locales, tasksById],
+    // Getters consume tasksByIdReference.current. Reconfiguration is necessary
+    // for column preferences/locale and dated↔empty Summary transitions only.
+    [columnVisibility, locales, summaryColumnKey],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks, viewRootTaskId),
@@ -1543,6 +1557,34 @@ export function ProjectGantt({
     }
     recordTimelineEnd(api);
     return true;
+  }, [recordTimelineEnd]);
+
+  // The derived Core scale width can exceed the native DOM's available scroll
+  // width after resize-chart/filter-tasks. Extend the existing axis only when
+  // the physical scrollport cannot hold the user's saved horizontal position.
+  const ensureNativeViewportCapacity = useCallback(async (api: IApi, left: number): Promise<void> => {
+    if (!Number.isFinite(left) || left <= 0) return;
+    const chart = ganttScrollReference.current?.querySelector<HTMLElement>(".wx-chart");
+    const margin = 2 * GANTT_CELL_WIDTH[scaleModeReference.current];
+    if (!chart?.isConnected || chart.scrollWidth - chart.clientWidth >= left + margin) return;
+    const state = api.getState() as TimelineState;
+    const width = state._chartWidth, height = state._chartHeight;
+    const scaleWidth = state._scales?.width, scrollSize = state._scrollSize ?? 0;
+    if (typeof width !== "number" || width <= 0 || typeof height !== "number" || height <= 0 ||
+        typeof scaleWidth !== "number" || scaleWidth <= 0) return;
+    // The restore path must await BOTH public resize actions. Fire-and-forget
+    // lets Core apply a late resize-chart after scroll-chart and clamp its left.
+    timelineSyntheticResizeReference.current = true;
+    try {
+      await api.exec("resize-chart", {
+        width: Math.max(scaleWidth + width, width + left + margin),
+        height, scrollSize,
+      });
+      await api.exec("resize-chart", { width, height, scrollSize });
+    } finally {
+      timelineSyntheticResizeReference.current = false;
+    }
+    recordTimelineEnd(api);
   }, [recordTimelineEnd]);
 
   const ensureTimelineEnd = useCallback((api: IApi): void => {
@@ -1627,6 +1669,38 @@ export function ProjectGantt({
   const peerViewportRestoreCount = useRef(0);
   const peerViewportContext = useRef({ visible: viewVisible, key: viewportContinuityKey });
   useLayoutEffect(() => { peerViewportContext.current = { visible: viewVisible, key: viewportContinuityKey }; }, [viewVisible, viewportContinuityKey]);
+  // Capture the ordinary timeline before the first search narrows the WBS.
+  // A user navigating the chart during filtering invalidates that bookmark.
+  useLayoutEffect(() => {
+    const previous = priorFilterActiveReference.current;
+    const api = apiReference.current;
+    if (!previous && viewportFilterActive && viewVisible && api) {
+      const state = api.getState();
+      filterBaseViewportReference.current = {
+        publicId: projectPublicId ?? "", rootId: viewRootTaskId,
+        left: state.scrollLeft, top: state.scrollTop,
+        gesture: viewportGestureReference.current,
+      };
+      pendingFilterReturnReference.current = null;
+    } else if (previous && !viewportFilterActive) {
+      const saved = filterBaseViewportReference.current;
+      pendingFilterReturnReference.current =
+        saved && saved.publicId === projectPublicId && saved.rootId === viewRootTaskId &&
+        saved.gesture === viewportGestureReference.current ? saved : null;
+      filterBaseViewportReference.current = null;
+    }
+    priorFilterActiveReference.current = viewportFilterActive;
+  }, [viewportFilterActive, viewVisible, projectPublicId, viewRootTaskId]);
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || !apiInstanceId) return;
+    const recordGesture = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container"))
+        viewportGestureReference.current++;
+    };
+    for (const kind of ["pointerdown", "wheel", "keydown"]) root.addEventListener(kind, recordGesture, true);
+    return () => { for (const kind of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(kind, recordGesture, true); };
+  }, [apiInstanceId]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1734,6 +1808,8 @@ export function ProjectGantt({
     void (async () => {
       await settle(); if (!current()) return;
       ensureTimelineEnd(api);
+      metadataViewportReference.current?.cleanup();
+      metadataViewportReference.current = null;
       if (!await revealMilestoneDate(api, task.start!)) {
         if (current()) milestoneDateCallbacks.current?.onOpenDashboard(request.taskId);
         return;
@@ -1782,9 +1858,19 @@ export function ProjectGantt({
         for (const id of ids) await api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
       },
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
-      reveal: (date: string) => revealMilestoneDate(api, date),
-      nativeDateReveal: (date: string) => api.exec("scroll-chart", { date: localDateFromDateOnly(date as DateOnly) }),
-      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? api.exec("scroll-chart", { left }) : Promise.resolve(),
+      reveal: (date: string) => {
+        metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
+        return revealMilestoneDate(api, date);
+      },
+      nativeDateReveal: (date: string) => {
+        metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
+        return api.exec("scroll-chart", { date: localDateFromDateOnly(date as DateOnly) });
+      },
+      scroll: (left: number) => {
+        if (!Number.isFinite(left) || left < 0) return Promise.resolve();
+        metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
+        return api.exec("scroll-chart", { left });
+      },
       filter: async (ids: string[] | null) => {
         if (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string"))) return;
         const generation = ++milestoneProbeGeneration.current;
@@ -1810,7 +1896,6 @@ export function ProjectGantt({
 
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
-  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
   useEffect(() => () => {
     metadataViewportReference.current?.cleanup();
     metadataViewportReference.current = null;
@@ -1823,12 +1908,7 @@ export function ProjectGantt({
     }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
-      // Compare with the geometry that actually completed the previous canonical sync.
-      // A render that was superseded before its queued sync ran must not become the
-      // viewport-restoration baseline for the surviving update.
-      const geometryUnchanged =
-        appliedCanonicalViewportGeometryReference.current !== null &&
-        appliedCanonicalViewportGeometryReference.current === canonicalViewportGeometry;
+      // Preserve the pre-sync viewport only while the scope and latest input remain stable.
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
@@ -1837,6 +1917,14 @@ export function ProjectGantt({
       }
       const context = peerViewportContext.current;
       const viewport = api.getState();
+      // Preserve the first authoritative pre-sync position across consecutive
+      // canonical renders instead of recapturing a transient Core clamp.
+      const previousRequest = metadataViewportReference.current;
+      const stablePrevious = previousRequest && !previousRequest.hasInput() &&
+        previousRequest.key === context.key && previousRequest.filter === visibleTaskFilterKey &&
+        previousRequest.scale === scaleModeReference.current;
+      const viewportLeft = stablePrevious ? previousRequest.left : viewport.scrollLeft;
+      const viewportTop = stablePrevious ? previousRequest.top : viewport.scrollTop;
       const root = ganttScrollReference.current;
       let viewportInput = false;
       const markViewportInput = (event: Event) => {
@@ -1844,13 +1932,24 @@ export function ProjectGantt({
       };
       metadataViewportReference.current?.cleanup();
       metadataViewportReference.current = null;
-      if (geometryUnchanged && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+      const priorProjection = appliedTaskFilterReference.current;
+      // A changing active search result is not a metadata-only viewport update;
+      // a canonical create/delete without active filters retains its view position.
+      const canPreserve = !viewportFilterActive || priorProjection?.key === visibleTaskFilterKey;
+      if (canPreserve && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
-        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
+        let timeoutId: number | null = null;
+        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewportLeft, top: viewportTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => {
+          if (timeoutId !== null) window.clearTimeout(timeoutId);
+          for (const event of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(event, markViewportInput, true);
+        } };
         metadataViewportReference.current = request;
-        const cleanup = () => { request.cleanup(); if (metadataViewportReference.current === request) metadataViewportReference.current = null; };
-        // The queue tail also clears requests when no columns update follows.
-        void canonicalSyncQueueReference.current.then(cleanup, cleanup);
+        // The controlled WBS filter follows canonical/column updates. Do not
+        // prematurely discard its restore snapshot. Bound any leftover listener.
+        timeoutId = window.setTimeout(() => {
+          request.cleanup();
+          if (metadataViewportReference.current === request) metadataViewportReference.current = null;
+        }, 2000);
       }
       try {
         const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
@@ -1865,7 +1964,30 @@ export function ProjectGantt({
           appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
         }
         ensureTimelineEnd(api);
-
+        // Metadata and ordinary Task updates no longer force a set-columns
+        // refresh. Give Core the same guarded post-sync viewport restoration
+        // that was previously performed only by the columns effect.
+        const request = metadataViewportReference.current;
+        if (request && request.api === api && request.version === syncVersion &&
+            !request.hasInput() && peerViewportContext.current.visible &&
+            peerViewportContext.current.key === request.key &&
+            visibleTaskFilterKeyReference.current === request.filter &&
+            scaleModeReference.current === request.scale) {
+          await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          if (metadataViewportReference.current === request && !request.hasInput() &&
+              syncVersion === canonicalSyncVersionReference.current &&
+              peerViewportContext.current.key === request.key &&
+              visibleTaskFilterKeyReference.current === request.filter) {
+            const after = api.getState();
+            if (Math.abs(after.scrollLeft - request.left) > 1 ||
+                Math.abs(after.scrollTop - request.top) > 1) {
+              await ensureNativeViewportCapacity(api, request.left);
+              if (metadataViewportReference.current === request && !request.hasInput() &&
+                  syncVersion === canonicalSyncVersionReference.current)
+                await api.exec("scroll-chart", { left: request.left, top: request.top });
+            }
+          }
+        }
       } catch {
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
@@ -1880,9 +2002,9 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey]);
+  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, ensureNativeViewportCapacity, svarLinks, svarTasks, visibleTaskFilterKey, viewportFilterActive]);
 
-  const appliedTaskFilterReference = useRef<{ api: IApi; key: string; source: readonly ProjectTaskDto[]; scale: GanttScaleMode; context: string; display: string; version: number } | null>(null);
+  const appliedTaskFilterReference = useRef<{ api: IApi; key: string; source: readonly ProjectTaskDto[]; scale: GanttScaleMode; context: string; display: string; version: number; filterActive: boolean } | null>(null);
   useEffect(() => {
     const api = apiReference.current, source = tasks, scale = scaleMode, context = viewportContinuityKey, widget = timelineWidget.current;
     if (!api || !apiInstanceId || !viewVisible || !widget) return;
@@ -1897,12 +2019,84 @@ export function ProjectGantt({
         const ids = JSON.parse(visibleTaskFilterKey) as string[] | null;
         const version = canonicalSyncVersionReference.current;
         const applied = appliedTaskFilterReference.current;
-        if (applied?.api === api && applied.key === visibleTaskFilterKey && applied.source === source && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay && applied.version === version && milestoneWbsProjectionMatches(api, ids)) return;
-        const visible = ids === null ? null : new Set(ids);
-        await api.exec("filter-tasks", { open: false,
-          filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined });
-        taskFilterAppliedReference.current = visible !== null;
-        if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version };
+        const sameProjectionContext = applied?.api === api && applied.scale === scale &&
+          applied.context === context && applied.display === timelinePreviewDisplay &&
+          applied.filterActive === viewportFilterActive;
+        // Refilter only if the native derived rows contain an excluded ID, the
+        // view/filter scope actually changed, or the projection is uninitialized.
+        // Reapplying filter-tasks for an unchanged metadata/Task revision resets
+        // SVAR's native scroll, even when visible rows already match.
+        const unchangedProjection = Boolean(sameProjectionContext &&
+          (applied?.key === visibleTaskFilterKey || !viewportFilterActive) &&
+          milestoneWbsProjectionMatches(api, ids));
+        const request = metadataViewportReference.current;
+        const matchingRequest = request?.api === api && request.version === version && request.filter === visibleTaskFilterKey && request.key === context && request.scale === scale;
+        const initialViewport = api.getState();
+        const targetLeft = request && matchingRequest && !request.hasInput() ? request.left : initialViewport.scrollLeft;
+        const targetTop = request && matchingRequest && !request.hasInput() ? request.top : initialViewport.scrollTop;
+        // A generic resize/date reveal cannot replay a viewport from an older filter.
+        const filterMembershipChanged = Boolean(
+          viewportFilterActive && applied && applied.key !== visibleTaskFilterKey,
+        );
+        // Only the empty filtered result explicitly resets the viewport. Other
+        // filter transitions preserve the old unfiltered bookmark for Reset,
+        // while direct Grid gestures can still reveal a chosen Task.
+        const emptyFilteredResult = viewportFilterActive && ids !== null && ids.length === 0;
+        const filterReturn = pendingFilterReturnReference.current;
+        const validFilterReturn = Boolean(filterReturn &&
+          filterReturn.publicId === projectPublicId && filterReturn.rootId === viewRootTaskId &&
+          filterReturn.gesture === viewportGestureReference.current && !viewportFilterActive);
+        const restoreLeft = validFilterReturn ? filterReturn!.left : targetLeft;
+        const restoreTop = validFilterReturn ? filterReturn!.top : targetTop;
+        const mayRestore = Boolean(
+          (validFilterReturn || (matchingRequest && request && !request.hasInput() && !filterMembershipChanged)) &&
+          !emptyFilteredResult,
+        );
+        const root = ganttScrollReference.current;
+        let userInput = false;
+        const markInput = (event: Event) => {
+          if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) userInput = true;
+        };
+        if (root) for (const kind of ["pointerdown", "wheel", "keydown"]) root.addEventListener(kind, markInput, true);
+        try {
+          if (!unchangedProjection) {
+            const visible = ids === null ? null : new Set(ids);
+            await api.exec("filter-tasks", { open: false,
+              filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined });
+            taskFilterAppliedReference.current = visible !== null;
+          }
+          if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version, filterActive: viewportFilterActive };
+          // Explicit filtered membership changes require a fresh viewport,
+          // particularly an active query whose final visible task disappeared.
+          if (filterMembershipChanged && emptyFilteredResult && !userInput && root?.isConnected &&
+              visibleTaskFilterKeyReference.current === visibleTaskFilterKey &&
+              apiReference.current === api && peerViewportContext.current.key === context) {
+            filterBaseViewportReference.current = null;
+            pendingFilterReturnReference.current = null;
+            await api.exec("scroll-chart", { left: 0, top: 0 });
+          }
+          if (mayRestore && root?.isConnected && !userInput && (!request || !matchingRequest || !request.hasInput())) {
+            await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+            if (!cancelled && !userInput && apiReference.current === api && root.isConnected &&
+                peerViewportContext.current.visible && peerViewportContext.current.key === context &&
+                visibleTaskFilterKeyReference.current === visibleTaskFilterKey && scaleModeReference.current === scale &&
+                (!matchingRequest || !request || !request.hasInput())) {
+              ensureTimelineEnd(api);
+              const current = api.getState();
+              if (Math.abs(current.scrollLeft - restoreLeft) > 1 || Math.abs(current.scrollTop - restoreTop) > 1) {
+                await ensureNativeViewportCapacity(api, restoreLeft);
+                await api.exec("scroll-chart", { left: restoreLeft, top: restoreTop });
+              }
+              if (validFilterReturn && pendingFilterReturnReference.current === filterReturn)
+                pendingFilterReturnReference.current = null;
+            }
+          }
+        } finally {
+          if (root) for (const kind of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(kind, markInput, true);
+          // The later set-columns queue entry has the final viewport geometry.
+          // It consumes this bounded request; the canonical timeout cleans up
+          // when no columns update follows.
+        }
       }).catch(() => onCanonicalSyncFailureReference.current()).finally(() => {
         awaiting = false;
         if (!cancelled && requested) { requested = false; schedule(); }
@@ -1912,7 +2106,7 @@ export function ProjectGantt({
     const resize = new ResizeObserver(schedule); resize.observe(widget);
     api.on("resize-chart", schedule, { tag }); api.on("resize-grid", schedule, { tag }); api.on("filter-tasks", schedule, { tag }); schedule();
     return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); };
-  }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay]);
+  }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay, ensureTimelineEnd, ensureNativeViewportCapacity, viewportFilterActive, projectPublicId, viewRootTaskId]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
@@ -1969,7 +2163,17 @@ export function ProjectGantt({
         await restoreSummaryToggleState(api, summaryState);
         const request = metadataViewportReference.current;
         if (request) {
-          const currentRequest = () => request === metadataViewportReference.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
+          // Native set-columns/resize-grid may recalculate widths even when
+          // the user's column settings did not change. Those derived changes
+          // must not invalidate the very restore intended to survive them.
+          // Explicit pointer/wheel/keyboard input, generation, scope, filter
+          // and scale still invalidate stale requests.
+          const currentRequest = () => request === metadataViewportReference.current &&
+            ganttScrollReference.current?.isConnected === true && apiReference.current === request.api &&
+            api === request.api && request.version === canonicalSyncVersionReference.current &&
+            visibleTaskFilterKeyReference.current === request.filter &&
+            peerViewportContext.current.visible && peerViewportContext.current.key === request.key &&
+            scaleModeReference.current === request.scale && !request.hasInput();
           try {
             await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
             if (currentRequest()) {
@@ -1977,9 +2181,26 @@ export function ProjectGantt({
               await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
               const current = api.getState();
               if (currentRequest()) {
-                const left = current.scrollLeft === 0 && request.left > 0 ? request.left : undefined;
-                const top = current.scrollTop === 0 && request.top > 0 ? request.top : undefined;
-                if (left !== undefined || top !== undefined) await api.exec("scroll-chart", { left, top });
+                // Native Core may clamp a nonzero viewport during a metadata-only
+                // column/layout update; preserve the recorded position unless a real
+                // wheel/pointer/keyboard input or a scope change has superseded it.
+                const left = Math.abs(current.scrollLeft - request.left) > 1 ? request.left : undefined;
+                const top = Math.abs(current.scrollTop - request.top) > 1 ? request.top : undefined;
+                if (left !== undefined || top !== undefined) {
+                  if (left !== undefined) await ensureNativeViewportCapacity(api, left);
+                  if (currentRequest()) await api.exec("scroll-chart", { left, top });
+                  // Core may resize its actual DOM scroller after the first
+                  // restore. Recheck the physical range for two bounded frames.
+                  for (let retry = 0; retry < 2 && currentRequest(); retry++) {
+                    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+                    if (!currentRequest()) break;
+                    const after = api.getState();
+                    if (Math.abs(after.scrollLeft - request.left) <= 1 &&
+                        Math.abs(after.scrollTop - request.top) <= 1) break;
+                    await ensureNativeViewportCapacity(api, request.left);
+                    if (currentRequest()) await api.exec("scroll-chart", { left: request.left, top: request.top });
+                  }
+                }
               }
             }
           } finally {
@@ -1997,7 +2218,7 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [columns, ensureTimelineEnd]);
+  }, [columns, ensureTimelineEnd, ensureNativeViewportCapacity]);
 
   useEffect(() => {
     const id = ++peerViewportGeneration.current;
@@ -2006,20 +2227,48 @@ export function ProjectGantt({
     const request = peerViewportRestore, api = apiReference.current, root = ganttScrollReference.current;
     if (!api || !root?.isConnected) return;
     const version = canonicalSyncVersionReference.current, filter = visibleTaskFilterKeyReference.current,
-      scale = scaleModeReference.current, gridWidth = api.getState().gridWidth,
-      columnsKey = () => JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])),
-      columns = columnsKey();
-    let cancelled = false, input = false;
+      scale = scaleModeReference.current;
+    let cancelled = false, input = false, wheelSerial = 0;
+    const yieldFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const markInput = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) input = true;
+      if (!(event.target instanceof Element) || !event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) return;
+      input = true; // A direct user gesture always cancels the previous tab's pending restore.
+      if (event.type !== "wheel") return;
+      const serial = ++wheelSerial;
+      const gesture = viewportGestureReference.current;
+      void (async () => {
+        // A tab's pending restore object may be discarded while the user stays
+        // on the schedule. Continue protecting their actual wheel position,
+        // but never replay it after another gesture, scope or view change.
+        await yieldFrame();
+        if (serial !== wheelSerial || gesture !== viewportGestureReference.current ||
+            apiReference.current !== api) return;
+        const userViewport = api.getState();
+        let queue = canonicalSyncQueueReference.current;
+        await queue;
+        while (queue !== canonicalSyncQueueReference.current) {
+          queue = canonicalSyncQueueReference.current;
+          await queue;
+        }
+        await yieldFrame(); await yieldFrame();
+        if (serial !== wheelSerial || gesture !== viewportGestureReference.current ||
+            apiReference.current !== api || !root.isConnected ||
+            !peerViewportContext.current.visible || peerViewportContext.current.key !== request.key ||
+            visibleTaskFilterKeyReference.current !== filter || scaleModeReference.current !== scale) return;
+        const currentViewport = api.getState();
+        if (Math.abs(currentViewport.scrollLeft - userViewport.scrollLeft) <= 1 &&
+            Math.abs(currentViewport.scrollTop - userViewport.scrollTop) <= 1) return;
+        ensureTimelineEnd(api);
+        await ensureNativeViewportCapacity(api, userViewport.scrollLeft);
+        await api.exec("scroll-chart", { left: userViewport.scrollLeft, top: userViewport.scrollTop });
+      })().catch(() => { /* A cancelled user-input recovery is not a viewport restore failure. */ });
     };
     const inputEvents = ["pointerdown", "wheel", "keydown"];
     for (const event of inputEvents) root.addEventListener(event, markInput, true);
     const current = () => !cancelled && !input && id === peerViewportGeneration.current &&
       api === apiReference.current && root.isConnected && peerViewportContext.current.visible &&
       peerViewportContext.current.key === request.key && version === canonicalSyncVersionReference.current &&
-      filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current &&
-      gridWidth === api.getState().gridWidth && columns === columnsKey();
+      filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current;
     const cleanupInput = () => { for (const event of inputEvents) root.removeEventListener(event, markInput, true); };
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
@@ -2031,8 +2280,7 @@ export function ProjectGantt({
         ensureTimelineEnd(api);
         await frame(); await frame();
         if (!current()) return;
-        const chartWidth = (api.getState() as TimelineState)._chartWidth;
-        if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left);
+        await ensureNativeViewportCapacity(api, request.left);
         if (!current()) return;
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         peerViewportRestoreCount.current++;
@@ -2040,11 +2288,13 @@ export function ProjectGantt({
         const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
       } finally {
-        cleanupInput();
+        // Keep the wheel recovery guard alive after a user gesture until the
+        // view changes; otherwise a later Core layout can erase their input.
+        if (!input) cleanupInput();
       }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
     return () => { cancelled = true; cleanupInput(); };
-  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, expandTimelineScale, notify]);
+  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, ensureNativeViewportCapacity, notify]);
 
   useEffect(() => {
     if (!columnMenuPosition) return;
@@ -3207,9 +3457,52 @@ export function ProjectGantt({
     const token = inlineOpenTokenReference.current;
     const api = apiReference.current;
     void onTaskCommandReference.current({ taskId: task.taskId, payload: { name: normalized.name } }, session.revision).then((result) => {
-      if (inlineOpenTokenReference.current !== token || apiReference.current !== api) return;
+      if (apiReference.current !== api) return;
+      // A successful PATCH itself increments Project revision and intentionally
+      // invalidates the inline-open token. Do not discard its confirmed UI
+      // reconciliation merely because that revision advanced. A new active
+      // editor still owns its input and must never be overwritten.
+      const activeSession = inlineSessionReference.current;
+      if (inlineOpenTokenReference.current !== token &&
+          (result.status !== "saved" || (activeSession && activeSession !== session))) return;
       if (result.status === "saved") {
         setInlineNameMessage("작업명을 저장했습니다.");
+        // The Grid checkbox is fed directly from canonical DTOs, but an
+        // intercepted Core close-editor can leave the native name cell stale.
+        // Reconcile only the confirmed server name, through Core's public
+        // update-task action, after any older canonical sync finishes.
+        void (async () => {
+          // React may not have committed its confirmed canonical snapshot at
+          // the time the saved command resolves. Wait a bounded set of frames
+          // for the latest DTO and Core sync, then reconcile only that name.
+          const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+          for (let attempt = 0; attempt < 8; attempt++) {
+            await nextFrame();
+            await canonicalSyncQueueReference.current;
+            if (!api || apiReference.current !== api) return;
+            const active = inlineSessionReference.current;
+            if (active && active !== session) return;
+            const confirmed = tasksByIdReference.current.get(session.taskId);
+            if (!confirmed || confirmed.name !== normalized.name) continue;
+            const core = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
+            const rendered = ganttScrollReference.current?.querySelector<HTMLElement>(
+              '.wx-row[data-id=":' + session.taskId + '"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text',
+            );
+            if (core.find(task => task.id === session.taskId)?.text === confirmed.name &&
+                rendered?.textContent?.trim() === confirmed.name) return;
+            if (inlineSessionReference.current === session) inlineSessionReference.current = null;
+            canonicalSyncDepthReference.current++;
+            try {
+              await api.exec("update-task", {
+                id: session.taskId, task: { text: confirmed.name },
+                eventSource: "project-canonical-sync", skipUndo: true,
+              });
+            } finally {
+              canonicalSyncDepthReference.current--;
+            }
+            return;
+          }
+        })().catch(() => onCanonicalSyncFailureReference.current());
       } else {
         setInlineNameError(true);
         setInlineNameMessage(result.message);
@@ -3400,6 +3693,15 @@ export function ProjectGantt({
   }
 
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Tab" && isCurrentInlineNameInput(event.target)) {
+      // Match the working Enter path: let Core close its own editor, with the
+      // name-only update-cell intercept issuing the single guarded PATCH.
+      // A separate commit followed by ignore:true could restore old text.
+      const session = inlineSessionReference.current;
+      if (session && !session.committed && !inlineComposingReference.current)
+        void session.table.exec("close-editor", { ignore: false });
+      return; // Native Tab focus traversal is not prevented.
+    }
     if (event.key === "Enter" && isCurrentInlineNameInput(event.target)) {
       event.preventDefault();
       event.stopPropagation();
@@ -3714,6 +4016,13 @@ export function ProjectGantt({
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
+          onBlurCapture={(event) => {
+            // SVAR may cancel an inline editor when focus leaves the grid for a toolbar.
+            // Persist a valid blur exactly once through the same revision-guarded command as Enter.
+            if (!isCurrentInlineNameInput(event.target) || inlineComposingReference.current) return;
+            const session = inlineSessionReference.current;
+            if (session && !session.committed) commitInlineName(event.target.value, session);
+          }}
           onInput={(event) => {
             if (!isCurrentInlineNameInput(event.target)) return;
             event.target.removeAttribute("aria-invalid");

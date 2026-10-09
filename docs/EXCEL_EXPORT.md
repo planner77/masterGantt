@@ -1,5 +1,15 @@
 # Excel Export
 
+## Issue #553 — 화면 표시와 canonical workbook 범위
+
+Milestone 표시 ON/OFF, 작업 검색·접힘·WBS scope는 기존 `Gantt`/`Tasks`/`Milestone Stages`의 프로젝트 전체 모집단을 축소하지 않는다. 공통 대화상자는 화면의 Milestone 표시와 별개로 원본 일정 데이터를 출력하며 현재 Gantt 레이아웃과 다를 수 있음을 안내한다. 새 Timeline 전용 Excel renderer는 추가하지 않는다.
+
+`includeDependencies=false`는 Dependency 시트·관계 전용 출력만 제외하고 Milestone·명시/유효 소속·상속 출처·전체 Gate를 유지한다. 단계 보고의 기본 전체 F와 전체 E(M)/P(M)는 Resource report의 선택 Task/Assignment 범위와 별개다. #529 `resourceDashboard`는 계속 opt-in이며, 선택 Resource report를 추가해도 기존 `Gantt`/`Tasks`/`Logistics` 시트의 의미와 바이트는 보존한다. Catalog revision·원시 assignment ID·알려진 부분합·미설정 공수와 M/M null을 유지하며, 기간 밖의 알려진 0 M/D와 미설정 null은 구분한다. 투입률 0은 현행 DB/API에서 유효하지 않으므로 0 공수를 만들기 위해 입력 계약을 완화하지 않는다.
+
+[고정 fixture 통합 테스트](../tests/integration/milestone-timeline-interchange.test.ts)는 nonempty Resource/Group/역할과 선택 범위 밖 member를 사용해 선택 Assignment 출력과 full stage 집합을 비교한다. [실제 HTTP 테스트](../tests/e2e/milestone-timeline-interchange-http.spec.ts)는 같은 Project revision의 기본 workbook, 물류 시트와 opt-in Resource report의 실제 ZIP/OOXML bytes, 단일 검증된 Project direct hyperlink, XML 원문과 숫자/공란 및 무변경을 검증한다. Windows Excel/VBA/DRM에서 실제 파일 열기·표시 검증은 별도 환경의 NOT TESTED이며 로컬 OOXML PASS로 대체하지 않는다.
+
+#553 로컬 통합 13개 및 실제 HTTP 3개는 PASS다. 실제 공통 대화상자의 OFF·검색·접힌 WBS 상태에서 Excel 다운로드가 모든 33개 Task ID와 숨은 Milestone을 포함하고, 표시/검색/Gantt instance 및 revision을 보존했다. [선택 증거](../output/playwright/issue-553/backend-http/execution-contract.json)를 PR 원격 CI와 분리한다.
+
 SVG/PNG Gantt 내보내기 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 이 문서의 Excel workbook, 관계 포함/제외 및 물류 구성 보고서 옵션은 유지한다.
 
 ## Issue #464 — 단계 소속과 같은 스냅샷 보고

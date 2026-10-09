@@ -1,0 +1,380 @@
+{
+  "capturedAt": "2026-10-08T20:55:12.154Z",
+  "environment": "Chromium/Next dev/Core2.7.3; synthetic canonical routes + real pure export builders; not actual HTTP/SQLite",
+  "sourceHashes": {
+    "src/features/projects/project-excel-export-button.tsx": "65de085ecdd4ebdb72640ea90558d32fb67fb289274deb6962cd3c3121ae0a77",
+    "src/features/projects/project-export.module.css": "46171c4068de4a3d15c3a4b28d154b55f17c0580e4e44ce63c0cc5a948c1d9bf",
+    "src/features/projects/project-readonly-view.tsx": "0edcccac566d13f84e92740e3891f4c9d21061d42df50d3394a6d0130208f9e7",
+    "src/features/gantt/project-gantt.tsx": "be4c545b0a5a612602cace4551371a87012feccb1a9773eb2b7f58e07392b384",
+    "src/features/gantt/milestone-timeline-lane.tsx": "5447dbe3fbf9d6e1cdf0fe20254e27552e8ab18b8b8561bee5de9d20e6f19951",
+    "tests/e2e/helpers/milestone-ui.ts": "472b4a23ef4987c35b0d6da23035e22c33f1f72beee923ed79302957e66f93a6",
+    "tests/e2e/milestone-timeline-interchange-ui.spec.ts": "edbab118d1b33ff12e1aac3395c64d1024bc5db950873b7f587eb4dda7d04ad4"
+  },
+  "data": {
+    "observations": [
+      {
+        "format": "excel",
+        "dialog": {
+          "x": 656,
+          "y": 226.609375,
+          "right": 1264,
+          "bottom": 773.390625,
+          "width": 608,
+          "height": 546.78125
+        },
+        "form": {
+          "x": 677,
+          "y": 303.609375,
+          "right": 1243,
+          "bottom": 752.390625,
+          "width": 566,
+          "height": 448.78125
+        },
+        "footer": {
+          "x": 677,
+          "y": 712.390625,
+          "right": 1243,
+          "bottom": 752.390625,
+          "width": 566,
+          "height": 40
+        },
+        "notice": {
+          "x": 677,
+          "y": 303.609375,
+          "right": 1243,
+          "bottom": 344.203125,
+          "width": 566,
+          "height": 40.59375
+        },
+        "active": {
+          "x": 677,
+          "y": 469.390625,
+          "right": 690,
+          "bottom": 482.390625,
+          "width": 13,
+          "height": 13
+        },
+        "label": "",
+        "focusInside": true,
+        "ring": 6,
+        "outline": "solid",
+        "centerHit": true,
+        "documentWidth": 1920,
+        "documentHeight": 1001,
+        "viewport": {
+          "width": 1920,
+          "height": 1000
+        },
+        "page": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "format": "json",
+        "dialog": {
+          "x": 656,
+          "y": 311.609375,
+          "right": 1264,
+          "bottom": 688.390625,
+          "width": 608,
+          "height": 376.78125
+        },
+        "form": {
+          "x": 677,
+          "y": 388.609375,
+          "right": 1243,
+          "bottom": 667.390625,
+          "width": 566,
+          "height": 278.78125
+        },
+        "footer": {
+          "x": 677,
+          "y": 627.390625,
+          "right": 1243,
+          "bottom": 667.390625,
+          "width": 566,
+          "height": 40
+        },
+        "notice": {
+          "x": 677,
+          "y": 388.609375,
+          "right": 1243,
+          "bottom": 429.203125,
+          "width": 566,
+          "height": 40.59375
+        },
+        "active": {
+          "x": 677,
+          "y": 627.390625,
+          "right": 763,
+          "bottom": 667.390625,
+          "width": 86,
+          "height": 40
+        },
+        "label": "내보내기",
+        "focusInside": true,
+        "ring": 6,
+        "outline": "solid",
+        "centerHit": true,
+        "documentWidth": 1920,
+        "documentHeight": 1001,
+        "viewport": {
+          "width": 1920,
+          "height": 1000
+        },
+        "page": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "format": "svg",
+        "dialog": {
+          "x": 656,
+          "y": 251.90625,
+          "right": 1264,
+          "bottom": 748.09375,
+          "width": 608,
+          "height": 496.1875
+        },
+        "form": {
+          "x": 677,
+          "y": 328.90625,
+          "right": 1243,
+          "bottom": 727.09375,
+          "width": 566,
+          "height": 398.1875
+        },
+        "footer": {
+          "x": 677,
+          "y": 687.09375,
+          "right": 1243,
+          "bottom": 727.09375,
+          "width": 566,
+          "height": 40
+        },
+        "notice": {
+          "x": 677,
+          "y": 328.90625,
+          "right": 1243,
+          "bottom": 369.5,
+          "width": 566,
+          "height": 40.59375
+        },
+        "active": {
+          "x": 677,
+          "y": 547.28125,
+          "right": 690,
+          "bottom": 560.28125,
+          "width": 13,
+          "height": 13
+        },
+        "label": "",
+        "focusInside": true,
+        "ring": 6,
+        "outline": "solid",
+        "centerHit": true,
+        "documentWidth": 1920,
+        "documentHeight": 1001,
+        "viewport": {
+          "width": 1920,
+          "height": 1000
+        },
+        "page": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "format": "png",
+        "dialog": {
+          "x": 656,
+          "y": 251.90625,
+          "right": 1264,
+          "bottom": 748.09375,
+          "width": 608,
+          "height": 496.1875
+        },
+        "form": {
+          "x": 677,
+          "y": 328.90625,
+          "right": 1243,
+          "bottom": 727.09375,
+          "width": 566,
+          "height": 398.1875
+        },
+        "footer": {
+          "x": 677,
+          "y": 687.09375,
+          "right": 1243,
+          "bottom": 727.09375,
+          "width": 566,
+          "height": 40
+        },
+        "notice": {
+          "x": 677,
+          "y": 328.90625,
+          "right": 1243,
+          "bottom": 369.5,
+          "width": 566,
+          "height": 40.59375
+        },
+        "active": {
+          "x": 677,
+          "y": 547.28125,
+          "right": 690,
+          "bottom": 560.28125,
+          "width": 13,
+          "height": 13
+        },
+        "label": "",
+        "focusInside": true,
+        "ring": 6,
+        "outline": "solid",
+        "centerHit": true,
+        "documentWidth": 1920,
+        "documentHeight": 1001,
+        "viewport": {
+          "width": 1920,
+          "height": 1000
+        },
+        "page": {
+          "x": 0,
+          "y": 0
+        }
+      }
+    ],
+    "canonicalBefore": {
+      "data": {
+        "project": {
+          "publicId": "a3405d3d-8cb4-4da4-9b0f-43a5de330003",
+          "name": "Issue 3 stable Gantt fixture",
+          "description": "Stateful canonical snapshot fixture",
+          "status": "planned",
+          "revision": 40,
+          "calendar": {
+            "timezone": "Asia/Seoul",
+            "weekendDays": [
+              6,
+              0
+            ],
+            "holidays": []
+          }
+        },
+        "tasks": [
+          {
+            "taskId": "00000000-0000-4000-8000-000000000001",
+            "externalId": "SUMMARY-1",
+            "name": "Stable summary",
+            "type": "summary",
+            "scheduleMode": "auto",
+            "requestedStart": null,
+            "start": "2026-10-05",
+            "end": "2026-10-05",
+            "duration": 1,
+            "progress": 0,
+            "parentExternalId": null,
+            "siblingOrder": 0,
+            "membership": {
+              "explicitMilestoneTaskId": "00000000-0000-4000-8000-000000000004",
+              "effectiveMilestoneTaskId": "00000000-0000-4000-8000-000000000004",
+              "inheritedFromTaskId": null
+            }
+          },
+          {
+            "taskId": "00000000-0000-4000-8000-000000000002",
+            "externalId": "SUMMARY-CHILD-1",
+            "name": "Existing summary child",
+            "type": "task",
+            "scheduleMode": "auto",
+            "requestedStart": "2026-10-05",
+            "start": "2026-10-05",
+            "end": "2026-10-05",
+            "duration": 1,
+            "progress": 0,
+            "parentExternalId": "SUMMARY-1",
+            "siblingOrder": 0,
+            "status": "not_started",
+            "membership": {
+              "explicitMilestoneTaskId": null,
+              "effectiveMilestoneTaskId": "00000000-0000-4000-8000-000000000004",
+              "inheritedFromTaskId": "00000000-0000-4000-8000-000000000001"
+            }
+          },
+          {
+            "taskId": "00000000-0000-4000-8000-000000000003",
+            "externalId": "LEAF-1",
+            "name": "Stable leaf",
+            "type": "task",
+            "scheduleMode": "auto",
+            "requestedStart": "2026-10-05",
+            "start": "2026-10-05",
+            "end": "2026-10-05",
+            "duration": 1,
+            "progress": 0,
+            "parentExternalId": null,
+            "siblingOrder": 1,
+            "status": "not_started",
+            "membership": {
+              "explicitMilestoneTaskId": null,
+              "effectiveMilestoneTaskId": null,
+              "inheritedFromTaskId": null
+            }
+          },
+          {
+            "taskId": "00000000-0000-4000-8000-000000000004",
+            "externalId": "MILESTONE-1",
+            "name": "Stable milestone",
+            "type": "milestone",
+            "scheduleMode": "auto",
+            "requestedStart": "2026-10-05",
+            "start": "2026-10-05",
+            "end": "2026-10-05",
+            "duration": 0,
+            "progress": 0,
+            "parentExternalId": null,
+            "siblingOrder": 2,
+            "status": "not_started",
+            "membership": {
+              "explicitMilestoneTaskId": null,
+              "effectiveMilestoneTaskId": null,
+              "inheritedFromTaskId": null
+            },
+            "stageGate": {
+              "memberTaskIds": [
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "memberCount": 1,
+              "completedMemberCount": 0,
+              "incompleteMemberTaskIds": [
+                "00000000-0000-4000-8000-000000000002"
+              ],
+              "memberProgressPercent": 0,
+              "predecessorMilestoneTaskIds": [],
+              "incompletePredecessorMilestoneTaskIds": [],
+              "membersCompleted": false,
+              "predecessorsCompleted": true,
+              "ready": false,
+              "blocked": false,
+              "manualEvent": false,
+              "completionInconsistent": false
+            }
+          }
+        ],
+        "links": [],
+        "permission": "readonly",
+        "logistics": {
+          "processes": [],
+          "equipment": [],
+          "systems": [],
+          "systemLinks": []
+        }
+      }
+    },
+    "instance": {
+      "apiId": "svar-api-1",
+      "instanceId": "project-gantt-h7k6cso2ok"
+    }
+  }
+}

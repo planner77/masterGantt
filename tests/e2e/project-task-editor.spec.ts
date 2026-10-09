@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
 import { createWorkingCalendar } from "../../src/domain/scheduling/calendar";
@@ -186,6 +187,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
     }
     await route.continue();
   });
+  await installMilestoneDashboardFixture(page, fixture, apiPath);
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText(fixture.editable ? "편집 중" : "읽기 전용", { exact: true })).toBeVisible();
   await expect(row(page, "Beta leaf")).toBeVisible();
@@ -575,8 +577,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
     await expect(editor(page)).toContainText("편집 권한이 없습니다");
     await cancel(page);
-    await bar(page, id(5)).click({ button: "right" });
-    await chooseTaskInformation(page);
+    await openMilestoneEditor(page, id(5));
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
     await expect(save(page)).toHaveCount(0);
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
@@ -603,8 +604,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
   test("permits only supported milestone fields and does not change its zero duration", async ({ page }) => {
     const fixture = await setup(page);
-    await bar(page, id(5)).click({ button: "right" });
-    await chooseTaskInformation(page);
+    await openMilestoneEditor(page, id(5));
     await expect(editor(page).getByLabel("기간 (근무일)", { exact: true })).toHaveAttribute("readonly", "");
     await editor(page).getByLabel("작업명", { exact: true }).fill("Updated milestone");
     await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-09-22");
@@ -710,7 +710,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
   test("Issue #377/#462 관계가 없는 Milestone에서 same-type anchor 기반 Relation Editor로 새 후행 Milestone 관계를 추가한다", async ({ page }) => {
     const fixture = await setup(page, { editable: true, milestonePeer: true });
-    await openRow(page, "Milestone");
+    await openMilestoneEditor(page, id(5));
     const taskDialog = editor(page);
     const relationTab = taskDialog.getByRole("tab", { name: /관계/ });
     await relationTab.click();
@@ -1122,7 +1122,7 @@ test("#461 batch 412·network 실패 검색/선택/초안 보존과 pending 중 
   await page.reload();
   let calls = 0, failure: number | "network" = 412, release: (() => void) | undefined;
   await page.route(`**${apiPath}/milestone-memberships`, async (route) => { calls++; await new Promise<void>((resolve) => { release = resolve; }); if (failure === "network") await route.abort(); else await route.fulfill({ status: failure, json: { error: { code: "REVISION_MISMATCH" } } }); });
-  await bar(page, m.taskId).click({ button: "right" }); await chooseTaskInformation(page);
+  await openMilestoneEditor(page, m.taskId);
   const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click(); await dialog.getByRole("combobox", { name: "소속 상태", exact: true }).selectOption("all");
   const query = dialog.getByLabel("작업명 / 외부 ID / 작업 ID 검색", { exact: true }); await query.fill("Beta"); await query.press("Enter"); await expect(dialog).toBeVisible(); expect(calls).toBe(0); expect(fixture.patches).toHaveLength(0);
   await dialog.getByRole("row", { name: /Beta leaf/ }).getByRole("button", { name: "직접 지정", exact: true }).click();
@@ -1147,7 +1147,7 @@ test("#461 Resource 신규 선택 해제는 잔여 draft로 dirty를 유지하�
 });
 
 test("#461 reload 후 작업 유형이 바뀌면 유효하지 않은 소속 작업 탭을 정규화한다", async ({ page }) => {
-  const fixture = await setup(page); await openRow(page, "Milestone");
+  const fixture = await setup(page); await openMilestoneEditor(page, id(5));
   const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   const milestone = fixture.tasks.find((task) => task.taskId === id(5))!;
   milestone.type = "task"; milestone.duration = 1; milestone.stageGate = undefined; fixture.project.revision += 1;

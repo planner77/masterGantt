@@ -1,3 +1,15 @@
+## Issue #553 — Task rename 성공에 따른 inline token 무효화 예외 (2026-10-09)
+
+Task 이름 PATCH 성공 시 Project revision이 증가하면서 Inline Editor의 open token이 변경된다. 이는 새로운 편집 세션 보호를 위해 필요하지만 **해당 요청 자체의 서버 저장 성공 응답 후처리**까지 폐기해서는 안 된다. 저장 응답이 `saved`이고 현재 Core 인스턴스가 동일하며 새 인라인 세션이 해당 응답과 충돌하지 않을 때에만 canonical DTO의 확정 이름을 Grid/Chart에 반영한다. 응답 `saved` 이전의 낙관적 이름을 확정 데이터로 해석하지 않고, 401/412/네트워크 실패, 새 편집 요청, Esc 취소는 기존 차단 규칙을 유지한다.
+
+## Issue #553 — name-only PATCH 확인과 Grid 렌더링 동기화 (2026-10-09)
+
+Inline 이름 저장 Promise가 `saved`를 반환했더라도 React canonical DTO가 아직 commit 전일 수 있다. 최대 8회 bounded animation frame에서 확정된 동일 Task 이름과 native Grid/serialized Core 상태를 대조하고, 불일치하는 경우에만 기존 공개 `update-task`로 확정된 서버값을 동기화한다. 권한 거부/412/네트워크 실패, 새 편집기 세션, API 인스턴스 변경 또는 명시적 사용자 개입은 이전 요청 결과를 강제 표시하는 근거가 아니다.
+
+## Issue #553 — Grid 이름 canonical/native 후속 동기화 (2026-10-09)
+
+Inline Enter·Tab·blur는 기존 name-only Task PATCH의 revision/permission 가드를 공통으로 사용한다. 서버 저장이 성공하여 canonical DTO 이름이 확정됐으나 SVAR native Core Grid 텍스트가 전환되지 못한 경우에만 해당 확정 이름으로 공개 `update-task`를 재적용한다. 기존 이름을 낙관적으로 먼저 표시하거나 실패·stale 응답의 이름을 덮어쓰지 않으며 작업 ID, Core instance, 읽기 전용, 401/412, Escape 취소 보호를 유지한다.
+
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
 ## Issue #384 — Copy 선택 집합과 단일 편집 경계
@@ -150,7 +162,7 @@ Task Editor가 열린 동안 기존 shortcut guard, modal focus/Tab 처리, dirt
 
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
-Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint 이름 편집의 과거 409 제한은 #258에서 대체한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
+Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. Tab으로 blur될 때는 Enter와 같은 SVAR `close-editor({ignore:false})` 이벤트를 먼저 사용하고, 이름 원문을 읽는 `update-cell` interceptor를 통해 보호된 name-only PATCH를 한 번 보낸다. 별도의 선행 PATCH와 `ignore:true` 종료를 섞어 저장 성공 후 오래된 Grid 이름이 남게 해서는 안 된다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint 이름 편집의 과거 409 제한은 #258에서 대체한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
 
 ## Issue #187 — 작업 정보 대화상자 물류 연결 (logistics) 탭
 
@@ -200,9 +212,9 @@ Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한�
 
 Task Editor 관계 탭은 상위 Project의 canonical `tasks + links + revision` snapshot을 사용하면서 기존 Relation Editor의 추가 진입점을 제공한다.
 
-- 정상 relation row는 상대 작업, externalId, type, lag와 **편집 / 삭제** action을 제공한다. dangling reference는 경고만 표시하고 mutation action은 제공하지 않는다.
+- 정상 relation row는 상대 작업, externalId, type, lag와 **편집 / 삭제** action을 제공한다. 읽기 전용/완료 상태에서는 수정 동작 대신 **조회** 버튼만 노출해 동일 Relation Editor의 비변경 상세를 연다. dangling reference는 경고만 표시하고 action은 제공하지 않는다.
 - **관계 추가**는 현재 Task/Milestone의 taskId를 Anchor context로 Relation Editor에 전달한다. 관계가 0건이어도 선행/후행 방향, 후보 Task/Milestone, FS/SS/FF/SF, signed Lag를 선택해 기존 Link POST 계약으로 생성할 수 있다. Summary endpoint 정책은 확대하지 않는다.
-- Task draft가 dirty이면 관계 추가/편집/삭제를 잠그고 먼저 Task 변경을 저장하거나 취소하도록 안내한다. stale revision, readonly, pending도 fail-closed한다.
+- Task draft가 dirty이면 관계 추가/편집/삭제를 잠그고 먼저 Task 변경을 저장하거나 취소하도록 안내한다. stale revision, readonly, pending은 mutation을 fail-closed한다. readonly 관계 조회는 권한 변경·Link POST/PATCH/DELETE 없이 가능하되 stale/dirty/pending 중에는 새 모달 진입을 막는다.
 - 관계 mutation 성공 시 Project snapshot과 열린 Task Editor의 base/draft/revision을 동일 canonical 응답으로 갱신한다. 이 동기화는 Task Editor native dialog를 다시 `showModal()`하지 않아 Relation Editor가 top layer를 유지하고, 현재 관계 탭을 보존한다.
 - Relation Editor 닫힘 후 기존 trigger가 남아 있으면 focus를 복원한다. 관계 탭 직접 삭제 confirmation은 취소 버튼으로 focus를 이동하고 취소 시 원래 삭제 버튼으로 되돌린다.
 - Gantt fullscreen, instance, scroll/tree/column/scale/filter 상태는 관계 관리 진입과 canonical sync 때문에 초기화하지 않는다.
@@ -326,3 +338,9 @@ Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의
 Timeline/전체 Dashboard는 같은 canonical M ID와 실제 trigger로 기존 단일 Editor를 연다. 표시 OFF/범위/clip은 Editor dirty/pending 초안을 저장하거나 폐기하지 않는다. 닫기에서 소멸한 marker를 숨은 native M 행 선택으로 복원하지 않고 현재 전체 목록/visible Dashboard 안전 대상으로 복귀한다.
 
 날짜 관리 명령은 유효 canonical date/current snapshot 및 ready/busy guard를 사용하고 소속 drill의 resourceScopeContext와 분리한다. 기존 #550 date context 조건은 이 후보의 canonical 날짜 조회에서 대체되며 소속 작업/리소스 drill guard는 유지한다. 삭제 확인과 기존 Copy 소속 확인은 전체 canonical 숨은 M 수를 설명한다. Assignment Copy 제한을 삭제/Move 포괄 제한으로 확대하지 않으며 기존 session/Origin/revision/완료/관계 보호를 유지한다.
+
+## Issue #553 — 숨은 단계의 동일 Editor
+
+WBS에서 숨긴 Milestone은 Timeline의 단일/묶음 대상이나 Dashboard의 고유 ID 행에서 같은 작업 정보 Editor로 연다. 일반 Task/Summary의 native 이름·시작일 inline 경로는 유지한다. Milestone의 이름·예정일 편집은 Editor의 단일 canonical PATCH/기존 revision/초안·저장·취소·완료 조건을 사용한다. 과거 Milestone native row를 찾는 테스트는 이 경로로 이관하며 비공개 Core나 옛 UI를 복원하지 않는다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.

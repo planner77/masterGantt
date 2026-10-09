@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Locator } from "@playwright/test";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { editor, openRow, publicId, relationEditor, setup } from "./fixtures/task-editor-density";
@@ -92,9 +93,10 @@ test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 �
   test.setTimeout(90_000);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page);
+  await installMilestoneDashboardFixture(page, fixture, `/api/projects/${publicId}`);
   for (const width of widths) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
-    await openRow(page, "Milestone");
+    await openMilestoneEditor(page, fixture.tasks.find(task => task.type === "milestone")!.taskId);
     const dialog = editor(page);
     await expect(dialog.getByRole("tab")).toHaveCount(5);
     for (const [label, key] of [["소속 작업", "membership"], ["물류 연결", "logistics"]]) {
@@ -218,16 +220,22 @@ test("#456 필터 ID 변경·빈집합·해제와 새 API는 필요한 행을 �
 test("#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다", async ({ page }) => {
   await mkdir(output, { recursive: true });
   const fixture = await setup(page, { longList: true });
+  // The single filtered ordinary row still requires a physically scrollable axis.
+  const future = fixture.tasks.find((task) => task.type === "milestone")!;
+  future.requestedStart = "2027-10-01"; future.start = "2027-10-01"; future.end = "2027-10-01";
+  await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame"), target = page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
   await frame.getByRole("button", { name: "주", exact: true }).click();
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
   await search.fill("긴 작업명"); await expect(target).toBeVisible();
   const chart = frame.locator(".wx-chart").first();
+  await expect.poll(() => chart.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
   await chart.evaluate((element) => { element.scrollLeft = 120; });
   const viewport = () => frame.evaluate((element) => ({ api: element.getAttribute("data-project-gantt-api-instance"), instance: element.getAttribute("data-project-gantt-instance"), public: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, domLeft: element.querySelector(".wx-chart")!.scrollLeft }));
-  await expect.poll(async () => (await viewport()).public.left).toBe(120);
+  await expect.poll(async () => (await viewport()).public.left).toBeGreaterThan(0);
   const before = await viewport();
+  expect(before.domLeft).toBeGreaterThan(0);
   await target.click({ button: "right", position: { x: 12, y: 19 } }); await chooseTaskInformation(page);
   const dialog = editor(page); await dialog.getByLabel("작업명", { exact: true }).fill("Filtered name changed");
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0);

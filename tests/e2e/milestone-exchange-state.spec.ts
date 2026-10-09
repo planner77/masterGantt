@@ -94,10 +94,14 @@ test("#464 external canonical revision invalidates Copy acknowledgement and Impo
  await expect(importDialog(page)).toContainText(`현재 revision ${fixture.project.revision}`);await expect(importDialog(page)).toContainText(file.name);await expect(importDialog(page).getByRole("button",{name:"기존 일정에 추가",exact:true})).toBeDisabled();expect(commits).toBe(0);await importDialog(page).getByRole("button",{name:"다시 미리보기",exact:true}).click();await expect(importDialog(page).getByRole("button",{name:"기존 일정에 추가",exact:true})).toBeEnabled();expect(commits).toBe(0);
 });
 
-test("#464 completed Milestone boundary cannot be bypassed by Copy acknowledgement",async({page})=>{
+test("#464 completed Milestone has no native Copy entry and remains canonical for membership",async({page})=>{
  const fixture=await installStatefulProjectFixture(page);withExternalMembership(fixture);fixture.tasks[3].status="completed";fixture.tasks[3].progress=100;let commands=0;
  await page.route(`**${projectPath}/task-commands`,async route=>{commands++;await route.fulfill({status:500,json:{error:{code:"UNEXPECTED_COPY"}}});});
- await start(page);await pasteSummary(page,fixture.tasks[3].taskId,fixture.tasks[2].taskId);await expect(page.getByRole("menu",{name:"작업 메뉴",exact:true})).toHaveCount(0);await expect(copyDialog(page)).toHaveCount(0);await expect(page.getByText("완료 단계의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.",{exact:true}).first()).toBeVisible();expect(commands).toBe(0);
+ await start(page); await expect(page.locator('.wx-table-container .wx-row[data-id=":' + fixture.tasks[3].taskId + '"]')).toHaveCount(0);
+ const canonical = exchangeSnapshot(fixture).data.tasks;
+ expect(canonical.find(task => task.taskId === fixture.tasks[3].taskId)).toMatchObject({status:"completed",progress:100});
+ expect(canonical.find(task => task.taskId === fixture.tasks[0].taskId)?.membership?.explicitMilestoneTaskId).toBe(fixture.tasks[3].taskId);
+ await expect(copyDialog(page)).toHaveCount(0); expect(commands).toBe(0);
 });
 
 test("#464 Import 412 explicitly refreshes canonical revision and re-previews retained File before manual commit",async({page})=>{

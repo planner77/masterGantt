@@ -1,3 +1,59 @@
+## Issue #553 — PR CI #2275 스크롤·인라인 이름 회귀 최소 변경 검증 (2026-10-09)
+
+- [실패 #2275](https://github.com/planner77/masterGantt/actions/runs/37872798612): TypeScript/ESLint/Vitest/Next Build/Docker/Policy PASS, Chromium 10 FAIL(9 viewport, 1 Inline). 변경 head가 바뀌면 이전 PASS는 최신 검증의 대체 근거가 아니다.
+- 원인별 테스트: metadata/ordinary Task delete와 기본 검색 없는 Project 상태 변경에서 Core `set-columns`/`filter-tasks`를 불필요하게 다시 적용하지 않는다. 실제 WBS·Milestone visible ID가 바뀌거나 활성 검색/scope가 바뀌면 필요한 native 필터 적용은 계속 수행한다. dated Summary가 empty-container로 전이되면 기존 Grid getter/기간 계약을 유지한다.
+- #344/456/490/529: Task 삭제·412·network·fullscreen·프로젝트 설정·리소스 peer 왕복, 사용자 wheel 중복 재생 차단 시 public/Core 및 DOM viewport를 각각 기록하여 원래 위치/실제 입력 위치 일치를 검증한다.
+- #140: Tab blur의 서버 name-only PATCH 성공→Project revision 증가→SVAR Grid/Chart name이 확정 canonical과 같은지 검사한다. 자체 revision 변경은 해당 요청의 사후 확정 동기화를 막지 않아야 하지만, 추가 새 편집 세션·stale/401/412 및 Escape에는 옛 응답을 표시하지 않는다.
+- 실제 API/DB/schema/permissions·Milestone Timeline의 기존 acceptance E2E를 유지하고 명목상 PASS 처리를 위한 skip/timeout 상향/assertion 완화는 금지한다.
+
+## Issue #553 — PR CI #2273 TypeScript 및 비동기 viewport 복원 (2026-10-09)
+
+- 실패 기록: [PR CI #2273](https://github.com/planner77/masterGantt/actions/runs/37870892476). 필수 `publicId: string`에 optional `projectPublicId`를 할당한 TS2322가 Next/Docker 빌드까지 차단. 같은 head의 TypeScript/Next/Docker 성공 근거는 없다.
+- Gantt: 공개 `resize-chart` 2회 중 어느 것도 fire-and-forget하지 않고 순차 `await`한 후 `scroll-chart`를 수행해 metadata/Delete/peer 복원값이 늦은 resize에 의해 재클램프되지 않는지 검증한다. 물리 `scrollWidth - clientWidth`와 Core public 좌표를 별도 체크하고 기존 Date/Week/Milestone 1px, 필터 무결성, 사용자 입력 우선 검증을 보존한다.
+- Grid 이름: name-only PATCH의 saved 결과를 받은 다음 React canonical name과 Core native text가 동일해지는지 최대 8 frame 내 확인하고, 확정된 이름에 한해 Core public `update-task` 보완을 한 번 실행한다. 미저장/실패/권한 거부에서 저장된 것처럼 표시하면 FAIL.
+
+## Issue #553 — CI #2269 Native Chart 범위·필터 복귀 검증 (2026-10-09)
+
+- [실패 PR CI #2269](https://github.com/planner77/masterGantt/actions/runs/37867864388): quality/typecheck/build/Docker/Policy PASS, Chromium E2E 16건 FAIL. 단일 Core scroll-chart(120) 성공만으로 복원 완료 판정 금지: 뒤따르는 resize-chart와 native scroll 이벤트 이후에도 public/DOM left와 최종 가로 범위가 유지되는지 확인한다.
+- Task metadata/confirmed deletion 및 Resource peer: 동일 Core 인스턴스·scope·scale·filter에서 명시적 사용자 조작이 없으면 기존 위치를 복원하며 실제 DOM scrollable range가 부족할 때에만 Core 공개 기능으로 확장한다. #529 wheel 우선·stale peer restore 차단을 검증한다.
+- #118 검색 fill/reset 후 기존 Chart scroll과 Grid 폭/높이 유지; #514 필터 후 명시 Task 선택의 start reveal을 기존 복원보다 우선; #456 검색 결과 0건 후 Core/DOM left=0. 각각 서로 다른 상태 전이다.
+- #140 Inline 이름은 단건 name-only PATCH 확정, Grid native cell 이름과 canonical DTO 일치, 오류/401/412/Escape 및 동일 Core instance를 검사한다. #552 390px Milestone 날짜 조회 fallback focus는 대화상자 종료 뒤 대상 관리 행에 실제 포커스가 안정적으로 유지되는지 검사한다.
+- Core2.7.3/Store2.7.2 설치 버전에서 5폭 #551 lane tick↔native bar 1px 및 Day/Week 연속 미래 축 확장 회귀를 유지한다. Fail assertion 제거, 테스트 skip/retry/timeout 증가는 하지 않는다.
+
+## Issue #553 — PR CI #2266 재현·복원 수명 회귀 (2026-10-09)
+
+- [PR CI #2266](https://github.com/planner77/masterGantt/actions/runs/37865006516), head `4e27c04`: TypeScript/ESLint/Vitest/Next build/policy PASS, E2E shards2/3/4/6 17 cases FAIL, Docker smoke OAuth token `connection reset by peer` FAIL(외부 전송 오류). Docker 코드 정상·비정상을 해당 실패만으로 추론하지 않는다.
+- Gantt metadata/confirmed delete·Project 설정·알림·Resource peer 복귀: `set-columns`가 Core-derived width를 변경해도 canonical snapshot·scope·scale·input generation이 동일하면 원래 public/Dom viewport를 보존한다. 직접 wheel 입력 시 이전 복원 차단; Core public exact와 DOM rounding tolerance는 구분한다.
+- 필터 검색 결과 자체가 줄거나 0개가 될 때는 오래된 Task viewport를 강제하지 않고 원점 복귀를 검사한다. 검색 조건이 비활성인 Task CRUD와 동일하게 취급하지 않는다.
+- Inline 이름 Tab/Enter/Escape/401/412는 SVAR `close-editor` 경로에서 변경 Task만 PATCH 1회, canonical 이름 갱신과 안정적인 Grid·Editor 종료를 검증한다. 390px 관계키 메뉴는 정확한 UUID Grid 셀에 focus하고 재탐색 없이 native Shift+F10을 보낸 뒤 열리는 Task ID를 검사한다. Milestone 390px 날짜 요청 복귀의 focus 결과도 검사한다.
+- Docker 외부 네트워크 실패는 새 exact-head CI에서 원격으로 재평가한다. 테스트 skip, 검증 기준 완화나 Dockerfile의 근거 없는 변경을 하지 않는다.
+
+## Issue #553 — CI #2258 Chromium 추가 실패 범위 (2026-10-09)
+
+- 근거: [PR CI #2258](https://github.com/planner77/masterGantt/actions/runs/37862064001), head `5e09f067`, quality/Vitest/typecheck/lint/build/Docker PASS, Chromium shard 3~6 총15건 FAIL.
+- Gantt viewport: Task metadata와 confirmed deletion 및 401/412/network 거부 뒤 `set-columns`와 WBS `filter-tasks` 완료까지 한 번만 초기 public/DOM left·top을 복원하고, 정확한 task filter가 변한 경우에는 stale viewport를 강제로 재생하지 않는다. 일반 CRUD의 행 수 변경과 실제 검색 조건으로 필터된 행 집합 변경은 별도로 검증한다.
+- Timeline/date: 선택한 날짜 탐색의 명시적 요청은 snapshot보다 우선하며 390/768/1024/1440/1920px lane tick↔native 1px, Day/Week scale/연속 축 확장 회귀를 계속 보존한다.
+- Relation/Inline: 좁은 화면에서는 UUID가 일치하는 native 셀에 Shift+F10 키보드 Context Menu로 진입하고 Editor의 작업명까지 확인한다. Tab blur의 name-only PATCH는 정확히 1회이며 Core inline editor가 닫히고 바뀐 이름이 표시돼야 한다.
+- Add와 알림: canonical sync generation/depth와 버튼 aria-disabled 준비 완료 후 native Add를 클릭하고 실제 POST 201 및 Summary 승격을 확인한다. 타임아웃 증가/skip/검증 삭제로 통과 처리하지 않는다.
+
+## Issue #553 — PR CI #2255 후속 회귀 (2026-10-09)
+
+[원본 PR CI #2255](https://github.com/planner77/masterGantt/actions/runs/37859565333)에서 E2E 14개 FAIL, quality/Vitest/typecheck/lint/build/Docker PASS.
+
+- 390/768/1024/1440/1920px Milestone Timeline tick↔native bar 1px 정렬과 날짜 이동/Day·Week/연속 3회 축 확장 불변을 검증한다.
+- Metadata/작업 삭제/401·412/peer 왕복: 실제 사용자 wheel·Gantt 날짜 navigation이 stale viewport 복원보다 우선하며 Core 공개 좌표 정확 일치, DOM 물리 좌표 1px 정수화 계약과 정확한 Task ID/revision을 구분한다.
+- Active 필터 집합 변경 테스트는 native scrollWidth-clientWidth >= 120의 물리적 준비조건을 만들고 표시 행 0개 변경 이후 Core/DOM 원점과 동일 인스턴스를 검사한다.
+- 390px Relation 접근은 명시적 Task 이름과 활성 관계 탭의 실제 가시성, readonly 조회와 keyboard/focus를 확인한다. Inline Tab/blur는 invalid/Escape/권한/단건 PATCH 보호를 유지한다. Test skip·timeout 증가·assertion 임의 완화는 금지한다.
+
+## Issue #553 — PR CI #2250 실패 재현 및 변경 영향 검증 (2026-10-09)
+
+[PR #562 CI #2250](https://github.com/planner77/masterGantt/actions/runs/37856833368), head `8bf7057`에서 E2E shard 3/4/5/6의 16건이 FAIL이고 policy/Vitest/typecheck/lint/build/Docker 및 shard 1/2는 PASS였다. 구간별로 다음과 같이 회귀를 보존한다.
+
+- 스크롤/viewport 9건: metadata-only 저장과 확인된 Task 삭제 후 Chart public/DOM left, tree/selection/scale/instance, tab 복귀 대기 중 사용자 native wheel 우선, 실제 필터 집합 변경 후 오래된 위치 비복원.
+- Relation Editor 5건: 일반 Task→Task 두 관계 fixture의 선택·dirty 확인과 readonly 관계 **조회** 진입, 390/768/1024/1440px keyboard/focus, POST/PATCH/DELETE 원자·권한 보호. 숨긴 Milestone SVG link는 복구하지 않는다.
+- Inline 이름·Milestone 2건: native Tab blur의 이름 단일 PATCH/trim/revision과 Escape cancel, linked/비연결 ordinary Task의 독립 변경, Milestone은 대시보드 canonical-ID Editor 경로로 분리 검증한다.
+- 보완은 기능 코드+관련 E2E 및 DESIGN/AGENTS 기준의 문서 반영이며 skip·timeout 증가·assertion 완화로 대신하지 않는다. 변경 후 exact-head PR CI와 환경별 미실행을 구분해 기록한다.
+
 # Test Plan
 
 ## Issue #519 PR #547 최초 CI timeout과 최신 main 회귀 복구
@@ -2586,3 +2642,36 @@ Documentation N/A는 항목별로 다음과 같다. API는 Route/DTO/Origin/sess
 순수 Unit56의 직접4파일과 참조 model/adapter/selection/domain 의존성은 불변이므로 영향 범위 내 이전 PASS를 재사용한다. 제품 UI가 바뀌었으므로 이전 UI42와 HTTP3의 재사용 근거는 폐기하고 UI44 전체와 backend 실제HTTP3을 새 동결 source에서 실행한다. resize 보완은 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth] 동일요청 중복차단이며 새 layoutKey는 다시 보완할 수 있다. idle polling/자체resize 재진입은 없다.
 
 visibility 수정 후 source125 aggregate `f320261b0fddc7f0ddee041a4efd31881a778c88209768ab3e6bba542856947d`는 실행 전후 동일했고 UI44/44 PASS(2.6분)를 다시 확보했다. frontend가 최신390px fallback PNG를 직접 열어 관리 버튼(241,639)~(283,671)과6px focus 외곽, Toolbar/Grid 미노출을 JSON과 대조했다. schedule·scope owner·frame·toolbar·native Gantt/Grid/Chart의7개 hidden paint/양수 bbox가 실제 관측된다. 최신 visibility71+lane24 총95 record는 원본 JSON과 pool 역변환 완전일치다. 기존94 record와 이전 날짜2 증거는 별도 source/history로 보존하며 최신동결 관측으로 합치지 않는다. backend fresh HTTP run6은3/3 PASS(57.1s), UTC2026-10-08T20:07:46.813251Z~20:08:42.226880Z, source405 aggregate `2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a` 전후동일이다. Unit56은 직접4파일·pure의존불변으로 영향재사용했다. 최신변경2파일 lint/typecheck exit0이며 원격 quality/e2e/docker/QA_FINAL은 NOT TESTED다.
+
+
+## #553 Local Fast Feedback과 교환·탐색 회귀
+
+기준 parent는 `fed88f5e00e104a35cca44c342005bfe8fd04f4e`, 후보 app은0.106.1이다. 제품 변경은 기존 export dialog의 원본/화면 레이아웃 차이 안내1문장이다. 새 renderer·schema·API·권한·계산 정책은 없다. [사용자 가이드](MILESTONE_USER_GUIDE.md)와 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 연결하며 로컬 결과를 원격 전체 회귀로 확대하지 않는다.
+
+frontend의 고유 UI는 **37개 PASS = 신규10 + 기존 변경 경로27**이다. 신규10은 `milestone-timeline-interchange-ui.spec.ts` run4 **10/10 PASS29.0s**, UTC2026-10-08T20:54:57.278091Z~20:55:25.592775Z, source397 aggregate `d0ace1d5dd0eccfca7865ecd997d3961c7d41303a3fc0107da293dd884e18be7` 전후동일이다. 기존27은 최초27의 영향불변14개, 보완한 실제 #464 교환case1개, 최종 notifications12개의 고유 title/viewport로 구성한다. 중복 실행·재시도·관측 수를 case 수에 더하지 않는다. notifications12 중 마지막 timer case는 exact28px 구조 oracle 보완 후 별도로1/1 PASS10.0s를 확보했다. 정확한 명령·각 UTC·hash·source 변경 범위는 [frontend 실행 계약](../output/playwright/issue-553/frontend/review-selected/execution-contract.json)을 따른다.
+
+| 직접 UI 근거 | 보호 대상과 범위 |
+| --- | --- |
+| 신규 export notice5폭 | 390/768/1024/1440/1920px 각각 Excel/JSON/SVG/PNG 형식의20관측. 실제 dialog/안내/form/footer/document 경계와 Tab focus 외곽, Escape·원래 export trigger, OFF/instance/canonical snapshot 불변. 기존 Week/date-axis geometry를 새 안내 테스트로 대신하지 않는다. |
+| 신규 OFF/search/collapse4형식 | 합성 canonical snapshot에 기존 실제 pure export builders를 연결한 UI transport 테스트. 모든 UUID/Membership·기존 Tasks/Gantt/전체 SVG·실제 브라우저 PNG signature/dimensions·objectURL cleanup을 확인한다. route mocking0의 실제 HTTP 다운로드는 아래 backend 근거로 분리한다. |
+| 신규 cluster/단일 marker | 같은 날짜·이름에서 exact ID Editor 이름/날짜 PATCH1회, revision+1과 다른 canonical Tasks/Links 불변. 단일 marker의 이름/예정일/externalId/읽기 전용/상태 label·title, hover·keyboard6px focus와 날짜 복귀를 실제 확인한다. marker focus JSON/PNG는 return 이전 전용 capture이며 return 이후 PNG와 섞지 않는다. |
+| 신규 member/date/Resource 흐름 | Summary 소속 상속·OFF/reset/검색·저장OFF의 임시 날짜 표시/출발 복귀. Resource 상세 page10과 전체60Task/60Assignment/ancestor1을 구분하며 실제 설치 Core의 전체61 투영 ID집합을 기존 bounded read-only probe로 확인한다. viewport DOM 일부만으로 전체61을 주장하지 않는다. 기존 Resource synthetic 보조진단 숫자는 실제 집계 증거가 아니다. |
+| 신규 export 실패/pending | 412 후 snapshot/조건 불변과 명시 retry, pending 동안 반복 실행·Escape 차단, 성공 후 focus/필터/OFF/instance와 objectURL 정리. |
+
+기존10spec 이관은 다음 보호를 유지한다. `milestone-stage-editor`와 `milestone-stage-exchange`는 숨은 M native 행 대신 actual Dashboard exact-ID Editor로 진입하며 SQLite 소속/상속·JSON/Template/Copy/권한 assertion을 유지한다. `project-search-filter`/`project-context-toolbar-responsive`/`project-filter-toolbar-consistency`는 일반 Task·직접 Summary·context Summary·전체 WBS를 fixture의 정확한 수로 따로 검증하고 M native행0/프로젝트 전체 Timeline 모집단을 구별한다. `project-gantt-inline-name`/`project-gantt-inline-start-date`는 일반 Task/Summary native inline 보호를 유지하고 M 이름·요청일·Escape를 동일 Editor로 이관한다. `project-task-hover-tooltip`은 일반 Task/Summary hover와 M Editor 정보 보호를 유지하며 현재 marker 조회는 신규 canonical label/hover/focus case에 연결한다. `project-gantt-stability`는 없는 Mchild command/POST0과 일반 작업 생성/rollback을 유지한다.
+
+`project-notifications`는 지원되는 ordinary root Create의 합성422 `INVALID_PARENT_TASK`로 원래 오류 알림·timer·8개 보관·clipboard·반복 입력·10폭 hit-area 보호를 검증한다. 이 root payload에는 parentTaskId가 없으며 실제 Mparent 거부 증거로 사용하지 않는다. 실제 Mparent/cross-project 거부와5가지 handler error mapping은 `task-hierarchy-service.test.ts`/`task-handlers.test.ts`의 targeted **6 PASS/2files/419ms**이며15개는 명령의 title filter로 제외되었고 source skip을 추가하지 않았다. 반복 오류는 실제 native enabled/aria-disabled false, mutation lock 해제, canonicalSyncDepth0/generation=settled, 정확한 전체 WBS ID집합과 saving indicator0 뒤에 실행하며 매 오류의 full canonical GET equality를 확인한다.
+
+성공 Task 추가는 기존 clipboard 범위 변경 안내를 만든다. 안내의 실제20px 높이+상하4px margin=28px만큼 Grid/Chart 작업 면적이 줄어드는 구조를 정확히 검증한다. revision+1/새 canonical ID1개, 부모 frame/Timeline64/좌표/scroll/instance를 유지하며 이후 toast 해제·알림함·복사 동작은 성공 직후 geometry와 정확히 일치한다. 오류/no-op는 추가 전 geometry와 정확히 일치한다. 높이 assertion을 삭제하거나 임의 허용 오차를 사용하지 않는다. #464에서96px scroll 뒤 첫 Summary가 가상화되면 native class 대신 collapse 직후 실제 descendant WBS 제외·전체 투영 ID·정확한 selected/appSelection을 fullscreen/tab 왕복 후 비교한다. 초기 collapse class, public/DOM viewport120/96, header/scale/instance 보호는 유지한다.
+
+Resource 복귀 focus는 동기 focusin에 원래 HTMLElement의 connected/disabled/hidden-or-inert와 bbox, 현재 active를 기록한다. 현재 샘플은 원래 대상이 connected이나 복귀 순간 disabled여서 기존 guard의 Resource tab fallback이 실행되었으며, 활성화된 원래 상세 버튼 focus라고 주장하지 않는다. 실제 Resource tab focus 외곽/물리 경계와 상세 page10 조건 복귀를 확인한다.
+
+backend 독립 최신 integration은 **13/13 PASS1.58s**(`milestone-timeline-interchange.test.ts` run8)이고 actual HTTP는 **3/3 PASS1.3분**(run4,27.4/5.7/9.1s)이다. actual source408 aggregate `17c687754e28db8541a171d175db9ba49e22d24db06d5fffa5de9c8bc139f010` 전후동일이며 UI37/guard6과 중복 합산하지 않는다. [backend 실행 계약](../output/playwright/issue-553/backend-http/execution-contract.json)은 고정33Task/Summary/M·8FS/SS/FF/SF signed-lag Link·5explicit Membership과 nonempty Resource/Group/role/assignment3/Logistics를 기록한다. JSON UUID/FK 재발급과 의미 equality, Copy preserve/reset/Template/multiroot union11/Cut, 완료 경계/legacy mixed external422/원자 rollback을 확인한다. 실제 Next stop/start 후 전체 snapshot·Stage/Resource/Logistics projection equality를 확인하며 `calculatedAt`만 관측 시각으로 구분한다. route mocking0 실제 브라우저의 OFF/search/collapse4형식 다운로드는 fullcanonical/모든 M·704×1052 PNG signature/SVGdimensions·objectURL cleanup·focus/instance/요청0을 검증한다. SVG 성공은 별도 FS/0 지원 fixture이며 원본 signed/nonFS graph의 실제422 fail-closed와 혼동하지 않는다. default/opt-in#529 Excel full Gate·범위 밖 member·null M/M/Tasks/Gantt/Logistics parity는 backend 직접 증거다.
+
+재사용은 source 영향에 한정한다. #552 최종 source125 대비 #553의 차이는 exportbutton1개이며 Gantt/Timeline/Core/adapter/scale CSS가 같아 #552 fresh44 중5폭×Day/Week·fullscreen/peer/empty/stale/한도/selection/viewport 영역을 제한 재사용한다. #551은 #552에서6개 관련 source가 바뀌었으므로 source 불변 직접 재사용으로 표현하지 않고 역사 또는 #552의 후속 geometry 재검증에 연결한다. 신규10 실행 뒤 source397 차이는 신규10이 import하지 않는 기존 `milestone-stage-exchange`/`project-notifications`2spec뿐이며 제품·신규 UI direct dependencies는 같아 신규10 PASS를 영향 재사용한다. 기존14의 실행 경로와 assertions는 이후 보완2spec의 변경 경로를 실행하지 않아 재사용하며, 영향받는 notifications12와 #4641은 직접 다시 실행했다.
+
+최초 FAIL는 숨기지 않는다. 준비 typecheck의 Calendar helper/Window cast는 각 소유자가 보완했다. 신규 run1은7PASS3FAIL(옵션 status가 없는 synthetic M Editor 저장 후 유지, mouse/keyboard ring oracle, inactive Resource에서 visible-instance helper 호출), run2는8PASS2FAIL(status/focus 경로), run3의9PASS1FAIL은 Task status에 Project `planned`를 잘못 넣은 invalid fixture라 완료 증거로 쓰지 않는다. 최종은 공식 `taskStatusFromProgress`의 Task enum과 완전한 Gate/member projection을 사용한다. Resource forensic의 연결된 대상/disabled 시점은 별도 실패 이력으로 보존한다. Legacy 최초24PASS3FAIL, 보완1PASS2FAIL, notifications11PASS1FAIL 및 clipboard 상태 안내 확인용1FAIL을 최종 PASS와 구별한다. backend Unit path/calendar/Summary/0 allocation fixture oracle 실패와 HTTP existing-ID409/mixed exact-code/session401 실패도 [backend 실행 계약](../output/playwright/issue-553/backend-http/execution-contract.json)에 보존한다. 원본 log/trace/raw outputs는 `/tmp`, Git은 선별 합성 PNG/JSON이며 과거461/464 산출물7개와 Next 자동2파일은 exact parent로 복원했다.
+
+최종 서버 teardown 뒤 frontend global typecheck와 변경13파일 lint는 exit0이다. backend의 이전 실제 lint/typecheck 실행은 별도 실행이며 frontend 검사를 본인 실행으로 표시하지 않는다. 원격 quality/e2e/docker, QA_FINAL/Manager ACCEPT, main/GHCR/release는 NOT TESTED다. Windows Excel/VBA/DRM, 실제 touch/보조기기·production proxy/TLS/storage도 NOT TESTED이며 browser/서버 PASS로 대체하지 않는다.
+
+Documentation N/A는 API(Route/DTO/session/Origin/revision 불변), DB/schema/migration(저장 계약 불변), SCHEDULING_ENGINE(Calendar/Summary/Gate 알고리즘 불변), SECURITY(authorization/secret 처리 불변), IMPORT_SCHEMA(1.1/검증 불변), DESIGN/AGENTS(기존 Light/system font/compact/token·역할 원칙 적용), ARCHITECTURE/PRO_FEATURE_MATRIX(기존 Core/독립 domain 경계와 license/version 불변), CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/DEPLOYMENT(workflow/container/운영 정책 불변)이다. frontend 지정6문서/가이드/README와 backend 지정4문서, Manager 추적표/Packet/PLAN/CHANGELOG는 각각 단일 작성자가 동기화한다.

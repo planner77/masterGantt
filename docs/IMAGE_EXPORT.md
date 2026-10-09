@@ -1,5 +1,15 @@
 # Gantt SVG/PNG 내보내기
 
+## Issue #553 — Timeline 표시 분리 이후 출력
+
+Milestone Timeline OFF나 작업 검색·접힘·WBS scope는 이미지의 canonical 전체 WBS 행을 숨기지 않는다. 공통 대화상자의 안내처럼 원본 일정 데이터의 기존 Grid/Chart 출력은 live Timeline lane과 다른 모양일 수 있다. 기간 지정은 모든 작업 행을 유지한 채 날짜축만 clip하며, 새로운 Timeline 이미지 renderer나 Export API는 추가하지 않는다.
+
+[고정 통합 테스트](../tests/integration/milestone-timeline-interchange.test.ts)의 FS/SS/FF/SF signed-lag 원본 관계는 기존 SVG 지원 범위를 넘어 `EXPORT_UNSUPPORTED`로 전체 실패한다. 성공 경로는 같은 authored fixture의 별도 FS/0 관계 변형을 실제 Import하여 일정을 재계산한 뒤 검증한다. 원본 관계를 누락하거나 변환해 성공 파일로 내보낸다는 의미가 아니다. Legacy mixed 여부만으로 모든 SVG 실패를 추론하지 않고, 실제 endpoint/관계 유형·lag·구조의 현재 renderer 계약을 적용한다.
+
+[실제 HTTP/browser 통합 테스트](../tests/e2e/milestone-timeline-interchange-http.spec.ts)는 모킹 없는 Next 서버에서 OFF·검색·접힌 WBS 상태를 유지하고 공통 대화상자 JSON/Excel/SVG/PNG를 다운로드한다. PNG signature와 full SVG의 width/height 대응, object URL 해제, 같은 Gantt instance·검색·표시 설정·접기·canonical revision 보존을 직접 비교한다. 실제 실행 증거는 [TEST_PLAN](TEST_PLAN.md) 및 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)에 구분한다. XML escaping, 지원 관계의 fail-closed, 서버 한도, Canvas pixel 한도와 readonly Origin/If-Match 계약은 기존대로 유지한다.
+
+#553 실제 HTTP 3개는 PASS이며 FS/0 별도 fixture의 full SVG/PNG 다운로드와 2일 날짜 clip(64px)을 확인했다. 8개 원본 signed/non-FS 관계의 SVG는 `422 EXPORT_UNSUPPORTED`였고 부분 파일로 성공 처리하지 않았다. [선택 증거](../output/playwright/issue-553/backend-http/execution-contract.json)는 Node builder·실제 HTTP·Chromium Canvas 관측과 실제 장치/Windows 환경의 NOT TESTED를 구분한다.
+
 Issue #245의 이미지 내보내기 계약이다. 기존 Excel workbook 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)를 따른다.
 
 ## 사용자 흐름

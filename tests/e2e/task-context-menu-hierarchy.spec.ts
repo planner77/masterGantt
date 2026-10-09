@@ -383,17 +383,9 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
   const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
-  const milestoneAdd = rowByTaskId(page, headerLeaf!.taskId).locator('[data-action="add-task"]');
-  await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
-  let milestonePosts = 0;
-  const countMilestonePost = (request: import("@playwright/test").Request) => {
-    if (request.method() === "POST" && new URL(request.url()).pathname === `${api}/tasks`) milestonePosts += 1;
-  };
-  page.on("request", countMilestonePost);
-  await milestoneAdd.click({ force: true });
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다.");
-  page.off("request", countMilestonePost);
-  expect(milestonePosts).toBe(0);
+  // Converted Milestone leaves the ordinary WBS and cannot expose a native Add action.
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  await expect(page.locator('.wx-bar[data-task-id=":' + headerLeaf!.taskId + '"]')).toHaveCount(0);
 
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
@@ -401,9 +393,10 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
 
   await allTab.click();
   await expect(allTab).toHaveAttribute("aria-selected", "true");
-  for (const taskId of [headerLeaf!.taskId, keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
+  for (const taskId of [keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
     await expect(rowByTaskId(page, taskId)).toBeVisible();
   }
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
 });
 
 test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab freshness", async ({ page }) => {
@@ -617,14 +610,6 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   expect(outdented.data.tasks.find((task) => task.name === "Gamma")!.parentExternalId).toBeNull();
 
   await openMenu(page, "Beta");
-  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
-  expect(milestone.data.tasks.find((task) => task.name === "Beta")!.type).toBe("milestone");
-
-  await openMenu(page, "Beta");
-  const taskAgain = await chooseSubmenu(page, "Convert to", "Task");
-  expect(taskAgain.data.tasks.find((task) => task.name === "Beta")!.type).toBe("task");
-
-  await openMenu(page, "Beta");
   await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
   await expect(menu(page)).toHaveCount(0);
   await openMenu(page, "Gamma");
@@ -635,7 +620,11 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   const added = await chooseSubmenu(page, "Add", "Task above");
   expect(added.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
 
-  const finalRevision = added.data.project.revision;
+  // Preserve all native hierarchy commands before converting one canonical Beta to a Milestone.
+  await openMenu(page, "Beta");
+  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
+  expect(milestone.data.tasks.find((task) => task.taskId === b.data.tasks.find(entry => entry.name === "Beta")!.taskId)?.type).toBe("milestone");
+  const finalRevision = milestone.data.project.revision;
   await page.reload();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;

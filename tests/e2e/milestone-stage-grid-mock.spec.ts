@@ -22,9 +22,12 @@ test("#462 native mixed Link port interaction is rejected before API and legacy 
   fixture.links.push({ id: "00000000-0000-4000-8000-000000000090", predecessorExternalId: ordinary.externalId, successorExternalId: milestone.externalId, type: "FS", lag: 0, legacyMixed: true });
   await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(`/projects/${publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible(); const identity = await rememberGanttRoot(page); let writes = 0;
   page.on("request", (request) => { if (request.url().includes(`/api/projects/${publicId}/links`) && !["GET", "HEAD"].includes(request.method())) writes++; });
-  const source = page.locator(`.wx-bar[data-task-id=":${milestone.taskId}"]`), target = page.locator(`.wx-bar[data-task-id=":${ordinary.taskId}"]`);
-  await source.hover(); await source.locator('.wx-link.wx-right').click(); await target.locator('.wx-link.wx-left').click();
-  await expect(page.getByTestId("workspace-toast")).toContainText("Task → Task"); expect(writes).toBe(0); expect(fixture.links).toHaveLength(1); await expectSameGanttRoot(page, identity);
+  // Milestone remains canonical, but native WBS/Chart does not expose mixed Link ports.
+  const source = page.locator('.wx-bar[data-task-id=":' + milestone.taskId + '"]');
+  const target = page.locator('.wx-bar[data-task-id=":' + ordinary.taskId + '"]');
+  await expect(source).toHaveCount(0); await expect(target).toBeVisible();
+  await expect(page.locator('[data-link-id=":00000000-0000-4000-8000-000000000090"]')).toHaveCount(0);
+  expect(writes).toBe(0); expect(fixture.links).toHaveLength(1); await expectSameGanttRoot(page, identity);
   await rowNamed(page, "Stable leaf").click({ button: "right" }); await chooseTaskInformation(page); const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await dialog.getByRole("tab", { name: /관계/ }).click(); await expect(dialog).toContainText("Stable milestone"); await dialog.getByRole("button", { name: "Stable milestone 관계 편집", exact: true }).click();
   const relation = page.getByRole("dialog", { name: /작업 관계 관리/ }); await expect(relation).toBeVisible(); await expect(relation.getByRole("button", { name: "수정 저장", exact: true })).toBeDisabled(); await expect(relation.getByRole("button", { name: "관계 삭제", exact: true }).first()).toBeEnabled(); await relation.getByRole("button", { name: "닫기", exact: true }).click();
   // External canonical completed state is delivered by the existing visibility refresh.

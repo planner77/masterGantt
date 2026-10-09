@@ -1,3 +1,5 @@
+import { taskStatusFromProgress } from "../../src/domain/task-status";
+import { canonicalMilestoneTasks, installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Page, type Request, type Route } from "@playwright/test";
 import type { TaskMutationResponse } from "../../src/contracts/projects";
 import {
@@ -58,7 +60,7 @@ async function routeStartUpdates(page: Page, fixture: StatefulProjectFixture) {
     const response: TaskMutationResponse = {
       data: {
         project: { ...fixture.project },
-        tasks: fixture.tasks.map((entry) => ({ ...entry })),
+        tasks: canonicalMilestoneTasks(fixture),
         links: fixture.links.map((entry) => ({ ...entry })),
         warnings: [],
         operation: {
@@ -78,6 +80,8 @@ async function routeStartUpdates(page: Page, fixture: StatefulProjectFixture) {
 test("Grid 시작일 single click Date Picker는 start-only canonical PATCH를 저장한다", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   const route = await routeStartUpdates(page, fixture);
+  for (const task of fixture.tasks) if (task.type === "milestone") task.status = taskStatusFromProgress(task.progress);
+  await installMilestoneDashboardFixture(page, fixture);
   await page.goto(`/projects/${publicId}`);
   const identity = await rememberGanttRoot(page);
   const beforeText = await startCell(page, "Stable leaf").textContent();
@@ -102,21 +106,22 @@ test("Grid 시작일 single click Date Picker는 start-only canonical PATCH를 �
 test("Summary/readonly는 차단하고 keyboard Escape와 실패는 canonical 값을 보존한다", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   const route = await routeStartUpdates(page, fixture);
+  for (const task of fixture.tasks) if (task.type === "milestone") task.status = taskStatusFromProgress(task.progress);
+  await installMilestoneDashboardFixture(page, fixture);
   await page.goto(`/projects/${publicId}`);
 
   await startCell(page, "Stable summary").click();
   await expect(startPicker(page)).toHaveCount(0);
   expect(route.patches).toHaveLength(0);
 
-  const milestoneCell = startCell(page, "Stable milestone");
-  await milestoneCell.focus();
-  await milestoneCell.press("Enter");
-  await expect(startPicker(page)).toBeVisible();
-  await expect(startInput(page)).toBeFocused();
-  await startInput(page).press("Escape");
-  await expect(startPicker(page)).toHaveCount(0);
-  await expect(milestoneCell).toBeFocused();
+  const milestoneEditor = await openMilestoneEditor(page, fixture.tasks[3].taskId);
+  const milestoneStart = milestoneEditor.getByLabel("요청 시작일", { exact: true });
+  await expect(milestoneStart).toHaveValue("2026-12-18");
+  await milestoneStart.focus(); await page.keyboard.press("Escape");
+  await expect(milestoneEditor).toBeHidden();
   expect(route.patches).toHaveLength(0);
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(startCell(page, "Stable milestone")).toHaveCount(0);
 
   const originalStart = fixture.tasks[2].start;
   route.failOnce(500);
@@ -167,7 +172,7 @@ test("Date Picker는 좁은 viewport에서도 열리고 document overflow를 추
 
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    const cell = startCell(page, "Stable milestone");
+    const cell = startCell(page, "Stable leaf");
     await cell.click();
     await expect(startPicker(page)).toBeVisible();
     const bounds = await startPicker(page).boundingBox();
