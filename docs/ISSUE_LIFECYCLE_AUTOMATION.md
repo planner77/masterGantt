@@ -375,3 +375,8 @@ blocker가 해소된 뒤에는 다음 우선순위를 따른다.
 
 재실행 전에는 Issue가 아직 open인지, FINAL marker가 없는지, feature branch가 존재하는지, blocker였던 Open PR 참조가 실제로 제거됐는지 다시 확인한다. 재실행 후에는 일반 Main CI와 finalizer run을 혼동하지 않고 각각의 결과를 Issue STATUS/FINAL에 기록한다.
 
+
+
+### #586 다중 PR FINAL·부분 종료 방지
+
+동일 Issue의 모든 성공 Main merge를 개별 SHA로 검증한다. 과거 FINAL marker는 불변 감사 대상이며 안전한 PR/head/merge/base/canonical Refs/first-parent 확인을 통과할 때만 후속 FINAL을 기록한다. Finalizer는 FINAL과 candidate/branch preflight를 삭제보다 앞서 수행하고 중간 실패 뒤에는 기존 부수효과를 멱등 확인하여 재시도한다. 동일 Issue 후속 target이 pending이면 close하지 않는다. 원본 사건 #565/#583/#585는 [GENERIC_RELEASE_FINALIZER.md](GENERIC_RELEASE_FINALIZER.md)를 참조한다.
