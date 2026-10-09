@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import importlib.util
 import pathlib
 import re
@@ -824,6 +826,7 @@ try:
     for scenario, target_ctx in (
         ([manual_old, manual_new], manual_ctx),
         ([manual_old, manual_other, manual_new], manual_ctx),
+        ([replace(manual_old, actionable=False), manual_new], manual_ctx),
         ([manual_old, manual_new], SimpleNamespace(
             issue_number=565, pr_number=583, merge_sha=manual_old.target_sha,
             current_main_sha=manual_new.target_sha)),
