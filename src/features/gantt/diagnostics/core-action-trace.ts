@@ -44,7 +44,7 @@ export function traceFingerprint(value: string): string {
 export function createCoreActionTrace(context: () => TraceContext, read: () => TraceSample, capacity = 512) {
   if (!Number.isInteger(capacity) || capacity < 1 || capacity > 2048) throw new Error("Invalid trace capacity");
   const entries: TraceEntry[] = [];
-  const started = performance.now();
+  let started = performance.now();
   let sequence = 0, rafTick = 0, dropped = 0;
   let disposed = false;
   const pending = new Set<() => void>();
@@ -93,6 +93,15 @@ export function createCoreActionTrace(context: () => TraceContext, read: () => T
       frame = requestAnimationFrame(tick);
     });
   };
-  return { record, settle, snapshot: () => ({ schemaVersion: 1, capacity, dropped, entries: structuredClone(entries) }),
+  const reset = () => {
+    // A new synthetic run must not inherit earlier entries, timestamps or pending settles.
+    for (const cancel of [...pending]) cancel();
+    entries.length = 0;
+    sequence = 0;
+    rafTick = 0;
+    dropped = 0;
+    started = performance.now();
+  };
+  return { record, settle, reset, snapshot: () => ({ schemaVersion: 1, capacity, dropped, entries: structuredClone(entries) }),
     dispose() { for (const cancel of [...pending]) cancel(); disposed = true; } };
 }
