@@ -20,6 +20,9 @@ for (const width of [390, 1440]) {
     await expect.poll(() => page.evaluate(() => !!window.__issue568)).toBe(true);
     const run = `local-${testInfo.repeatEachIndex}-${width}`;
     await page.evaluate(({ run, head }) => window.__issue568!.configure(run, head, "core-wrapper-matrix"), { run, head: process.env.ISSUE568_HEAD ?? "uncommitted" });
+    const configured = await page.evaluate(() => window.__issue568!.snapshot());
+    expect(configured.entries[0]).toMatchObject({ sequence: 1, event: "scenario-start", run, head: process.env.ISSUE568_HEAD ?? "uncommitted", scenario: "core-wrapper-matrix" });
+    expect(configured.entries.every(entry => entry.run === run && entry.head === (process.env.ISSUE568_HEAD ?? "uncommitted") && entry.scenario === "core-wrapper-matrix")).toBe(true);
     const capacityResult = width === 390 ? "NO_SCROLL_CAPACITY" : "NATIVE_LAYOUT_SETTLED";
     expect(await page.evaluate(() => window.__issue568!.settle())).toBe(capacityResult);
     const initial = await page.evaluate(() => window.__issue568!.sample());
