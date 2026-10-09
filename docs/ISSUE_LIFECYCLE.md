@@ -438,3 +438,8 @@ PR head의 required check는 기존대로 required check 이름별 최신 check-
 - 후속 중복 run 실패 이력은 그대로 보존하며, 이전 성공을 재사용한다는 이유로 failed run을 삭제·재분류하지 않는다.
 
 이 규칙은 동일 SHA의 immutable source에만 적용하며, 새 commit/head의 이전 CI를 재사용하는 규칙이 아니다.
+
+
+### Issue #586 — 복수 PR/동일 Issue FINAL 회복
+
+개별 병합 PR을 exact merge SHA별로 추적하고 기존 FINAL을 불변으로 보존한다. 다른 SHA에 유효한 역사적 marker가 있다는 이유만으로 새 PR의 FINAL을 거부하지 않으며, 중복·위조 marker, PR/Issue identity와 first-parent 불일치에는 fail-closed한다. 각 target의 required checks, main CI, GHCR 분류·정리 증거는 통합/축약하지 않는다. 최신 후속 PR까지 완료되기 전에는 Issue 종료를 지연하고 FINAL 선행 감사 및 비파괴 cleanup preflight 뒤에만 삭제를 허용한다. 상세는 [GENERIC_RELEASE_FINALIZER.md](GENERIC_RELEASE_FINALIZER.md).
