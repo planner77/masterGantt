@@ -466,6 +466,14 @@ export function ProjectGantt({
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
+  const viewportGestureReference = useRef(0);
+  const priorFilterActiveReference = useRef(viewportFilterActive);
+  const filterBaseViewportReference = useRef<{
+    publicId: string; rootId: string | null; left: number; top: number; gesture: number;
+  } | null>(null);
+  const pendingFilterReturnReference = useRef<{
+    publicId: string; rootId: string | null; left: number; top: number; gesture: number;
+  } | null>(null);
   const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
   const taskFilterAppliedReference = useRef(false);
   const summaryToggleStateReference = useRef(new Map<string, boolean>());
@@ -1547,6 +1555,22 @@ export function ProjectGantt({
     return true;
   }, [recordTimelineEnd]);
 
+  // The derived Core scale width can exceed the native DOM's available scroll
+  // width after resize-chart/filter-tasks. Extend the existing axis only when
+  // the physical scrollport cannot hold the user's saved horizontal position.
+  const ensureNativeViewportCapacity = useCallback((api: IApi, left: number): void => {
+    if (!Number.isFinite(left) || left <= 0) return;
+    const chart = ganttScrollReference.current?.querySelector<HTMLElement>(".wx-chart");
+    if (!chart?.isConnected || chart.scrollWidth - chart.clientWidth >= left + 2) return;
+    const state = api.getState() as TimelineState;
+    const width = state._chartWidth, scaleWidth = state._scales?.width;
+    if (typeof width === "number" && width > 0 && typeof scaleWidth === "number" && scaleWidth > 0)
+      expandTimelineScale(api, Math.max(
+        scaleWidth + width,
+        width + left + 2 * GANTT_CELL_WIDTH[scaleModeReference.current],
+      ));
+  }, [expandTimelineScale]);
+
   const ensureTimelineEnd = useCallback((api: IApi): void => {
     const state = api.getState() as TimelineState;
     const currentStart = state._start;
@@ -1629,6 +1653,38 @@ export function ProjectGantt({
   const peerViewportRestoreCount = useRef(0);
   const peerViewportContext = useRef({ visible: viewVisible, key: viewportContinuityKey });
   useLayoutEffect(() => { peerViewportContext.current = { visible: viewVisible, key: viewportContinuityKey }; }, [viewVisible, viewportContinuityKey]);
+  // Capture the ordinary timeline before the first search narrows the WBS.
+  // A user navigating the chart during filtering invalidates that bookmark.
+  useLayoutEffect(() => {
+    const previous = priorFilterActiveReference.current;
+    const api = apiReference.current;
+    if (!previous && viewportFilterActive && viewVisible && api) {
+      const state = api.getState();
+      filterBaseViewportReference.current = {
+        publicId: projectPublicId, rootId: viewRootTaskId,
+        left: state.scrollLeft, top: state.scrollTop,
+        gesture: viewportGestureReference.current,
+      };
+      pendingFilterReturnReference.current = null;
+    } else if (previous && !viewportFilterActive) {
+      const saved = filterBaseViewportReference.current;
+      pendingFilterReturnReference.current =
+        saved && saved.publicId === projectPublicId && saved.rootId === viewRootTaskId &&
+        saved.gesture === viewportGestureReference.current ? saved : null;
+      filterBaseViewportReference.current = null;
+    }
+    priorFilterActiveReference.current = viewportFilterActive;
+  }, [viewportFilterActive, viewVisible, projectPublicId, viewRootTaskId]);
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || !apiInstanceId) return;
+    const recordGesture = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container"))
+        viewportGestureReference.current++;
+    };
+    for (const kind of ["pointerdown", "wheel", "keydown"]) root.addEventListener(kind, recordGesture, true);
+    return () => { for (const kind of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(kind, recordGesture, true); };
+  }, [apiInstanceId]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1934,7 +1990,20 @@ export function ProjectGantt({
         const filterMembershipChanged = Boolean(
           viewportFilterActive && applied && applied.key !== visibleTaskFilterKey,
         );
-        const mayRestore = Boolean(matchingRequest && request && !request.hasInput() && !filterMembershipChanged);
+        // Only the empty filtered result explicitly resets the viewport. Other
+        // filter transitions preserve the old unfiltered bookmark for Reset,
+        // while direct Grid gestures can still reveal a chosen Task.
+        const emptyFilteredResult = viewportFilterActive && ids !== null && ids.length === 0;
+        const filterReturn = pendingFilterReturnReference.current;
+        const validFilterReturn = Boolean(filterReturn &&
+          filterReturn.publicId === projectPublicId && filterReturn.rootId === viewRootTaskId &&
+          filterReturn.gesture === viewportGestureReference.current && !viewportFilterActive);
+        const restoreLeft = validFilterReturn ? filterReturn!.left : targetLeft;
+        const restoreTop = validFilterReturn ? filterReturn!.top : targetTop;
+        const mayRestore = Boolean(
+          (validFilterReturn || (matchingRequest && request && !request.hasInput() && !filterMembershipChanged)) &&
+          !emptyFilteredResult,
+        );
         const root = ganttScrollReference.current;
         let userInput = false;
         const markInput = (event: Event) => {
@@ -1951,9 +2020,11 @@ export function ProjectGantt({
           if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version };
           // Explicit filtered membership changes require a fresh viewport,
           // particularly an active query whose final visible task disappeared.
-          if (filterMembershipChanged && !userInput && root?.isConnected &&
+          if (filterMembershipChanged && emptyFilteredResult && !userInput && root?.isConnected &&
               visibleTaskFilterKeyReference.current === visibleTaskFilterKey &&
               apiReference.current === api && peerViewportContext.current.key === context) {
+            filterBaseViewportReference.current = null;
+            pendingFilterReturnReference.current = null;
             await api.exec("scroll-chart", { left: 0, top: 0 });
           }
           if (mayRestore && root?.isConnected && !userInput && (!request || !matchingRequest || !request.hasInput())) {
@@ -1964,12 +2035,12 @@ export function ProjectGantt({
                 (!matchingRequest || !request || !request.hasInput())) {
               ensureTimelineEnd(api);
               const current = api.getState();
-              if (Math.abs(current.scrollLeft - targetLeft) > 1 || Math.abs(current.scrollTop - targetTop) > 1) {
-                const chartWidth = (current as TimelineState)._chartWidth;
-                if (typeof chartWidth === "number" && chartWidth > 0 && targetLeft > 0)
-                  expandTimelineScale(api, chartWidth + targetLeft + 2 * GANTT_CELL_WIDTH[scale]);
-                await api.exec("scroll-chart", { left: targetLeft, top: targetTop });
+              if (Math.abs(current.scrollLeft - restoreLeft) > 1 || Math.abs(current.scrollTop - restoreTop) > 1) {
+                ensureNativeViewportCapacity(api, restoreLeft);
+                await api.exec("scroll-chart", { left: restoreLeft, top: restoreTop });
               }
+              if (validFilterReturn && pendingFilterReturnReference.current === filterReturn)
+                pendingFilterReturnReference.current = null;
             }
           }
         } finally {
@@ -1987,7 +2058,7 @@ export function ProjectGantt({
     const resize = new ResizeObserver(schedule); resize.observe(widget);
     api.on("resize-chart", schedule, { tag }); api.on("resize-grid", schedule, { tag }); api.on("filter-tasks", schedule, { tag }); schedule();
     return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); };
-  }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay, ensureTimelineEnd, expandTimelineScale]);
+  }, [apiInstanceId, visibleTaskFilterKey, tasks, scaleMode, viewVisible, viewportContinuityKey, timelinePreviewDisplay, ensureTimelineEnd, ensureNativeViewportCapacity, viewportFilterActive, projectPublicId, viewRootTaskId]);
 
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
@@ -2068,11 +2139,19 @@ export function ProjectGantt({
                 const left = Math.abs(current.scrollLeft - request.left) > 1 ? request.left : undefined;
                 const top = Math.abs(current.scrollTop - request.top) > 1 ? request.top : undefined;
                 if (left !== undefined || top !== undefined) {
-                  if (left !== undefined) {
-                    const chartWidth = (api.getState() as TimelineState)._chartWidth;
-                    if (typeof chartWidth === "number" && chartWidth > 0) expandTimelineScale(api, chartWidth + left + 2 * GANTT_CELL_WIDTH[scaleModeReference.current]);
-                  }
+                  if (left !== undefined) ensureNativeViewportCapacity(api, left);
                   if (currentRequest()) await api.exec("scroll-chart", { left, top });
+                  // Core may resize its actual DOM scroller after the first
+                  // restore. Recheck the physical range for two bounded frames.
+                  for (let retry = 0; retry < 2 && currentRequest(); retry++) {
+                    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+                    if (!currentRequest()) break;
+                    const after = api.getState();
+                    if (Math.abs(after.scrollLeft - request.left) <= 1 &&
+                        Math.abs(after.scrollTop - request.top) <= 1) break;
+                    ensureNativeViewportCapacity(api, request.left);
+                    if (currentRequest()) await api.exec("scroll-chart", { left: request.left, top: request.top });
+                  }
                 }
               }
             }
@@ -2091,7 +2170,7 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [columns, ensureTimelineEnd, expandTimelineScale]);
+  }, [columns, ensureTimelineEnd, ensureNativeViewportCapacity]);
 
   useEffect(() => {
     const id = ++peerViewportGeneration.current;
@@ -2127,9 +2206,7 @@ export function ProjectGantt({
         if (Math.abs(currentViewport.scrollLeft - userViewport.scrollLeft) <= 1 &&
             Math.abs(currentViewport.scrollTop - userViewport.scrollTop) <= 1) return;
         ensureTimelineEnd(api);
-        const chartWidth = (api.getState() as TimelineState)._chartWidth;
-        if (typeof chartWidth === "number" && chartWidth > 0 && userViewport.scrollLeft > 0)
-          expandTimelineScale(api, chartWidth + userViewport.scrollLeft + 2 * GANTT_CELL_WIDTH[scale]);
+        ensureNativeViewportCapacity(api, userViewport.scrollLeft);
         await api.exec("scroll-chart", { left: userViewport.scrollLeft, top: userViewport.scrollTop });
       })().catch(() => { /* A cancelled user-input recovery is not a viewport restore failure. */ });
     };
@@ -2150,8 +2227,7 @@ export function ProjectGantt({
         ensureTimelineEnd(api);
         await frame(); await frame();
         if (!current()) return;
-        const chartWidth = (api.getState() as TimelineState)._chartWidth;
-        if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left + 2 * GANTT_CELL_WIDTH[scale]);
+        ensureNativeViewportCapacity(api, request.left);
         if (!current()) return;
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         peerViewportRestoreCount.current++;
@@ -2165,7 +2241,7 @@ export function ProjectGantt({
       }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
     return () => { cancelled = true; cleanupInput(); };
-  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, expandTimelineScale, notify]);
+  }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, ensureNativeViewportCapacity, notify]);
 
   useEffect(() => {
     if (!columnMenuPosition) return;
