@@ -1,5 +1,12 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 PR #564 CI #2270.1 중첩 복귀 실패 재보완
+
+- 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`의 [CI #2270.1](https://github.com/planner77/masterGantt/actions/runs/37869484841)은 Quality·Docker·Chromium 샤드1~5 PASS, **shard6의 #530 nested frame pop 복원 1 FAIL/82 PASS/1 SKIP**로 전체 실패. 기대 left240, 실제 Core/native left0, 다른 상태는 동일.
+- [shard6 Playwright report/trace](https://github.com/planner77/masterGantt/actions/runs/37869484841/artifacts/11590201108)에서 캡처된 Core/native240과 명시적 `scroll-chart(240)`의 실제 적용(count1/public240/dom240)을 확인했으며, 그 직후 오래된 `scroll-chart(0)` 재적용을 발견했다. 이전 PR 제품 patch는 복원 직전에만 epoch를 무효화해 **동시에 새로 발생하는 metadata-only 요청**을 막지 못했다.
+- 메타데이터-only 복원과 명시적 peer 복원을 구별한다. Resource 복귀 요청의 layout 단계부터 queue drain/복원/최종 DOM frame 안정화까지 **pending lease**를 유지하고 그동안 metadata-only capture/execute를 차단한다. 향후 메타데이터만 변경될 때는 새 lease 없이 정상 복원할 수 있다.
+- nested pop 회귀의 middle240/원래 origin120 및 snapshot·instance·selection·columns·tree strict equality를 유지하고 12rAF 뒤 중첩 재검사, 늦은 `scroll-chart(0)` 0건, 실패 시 debugger 자료 영수증을 추가한다. 0.103.1 후보 버전 유지, 테스트를 skip하거나 timeout/threshold를 완화하지 않는다. 새 Head 독립 QA 및 전체 PR CI는 별도 판정 전 NOT TESTED. 병합·Main CI·GHCR/Release 미수행.
+
 ## 2026-10-09 PR CI #2267.1 실패 — 실제 viewport 재덮기와 PATCH 보완
 
 - PR #564 정렬 head `87b8c1cff06c4b2d5b950fdf9dbef043766e77c1`의 [PR CI #2267.1 / Run 37867259587](https://github.com/planner77/masterGantt/actions/runs/37867259587)은 completed/failure. Quality(TypeScript·ESLint·Vitest·Build)와 Docker aggregate, Chromium 샤드 1~5 PASS. **Chromium shard 6/6**에서 `tests/e2e/resource-kpi-integration-ui.spec.ts:314` 실제 #530 viewport 복귀 1 FAIL/82 PASS/1 SKIP: 초기/복귀 capture 모두 Core/native `left=120,top=0`이었으나 복귀 최종 Core/native가 `left=0`이었다. 원래 Gantt instance·선택·열·트리는 보존됐다.

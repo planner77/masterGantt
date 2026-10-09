@@ -359,7 +359,29 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   expect(middle.left).toBeGreaterThan(origin.left);
   await drill();
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true"); await schedule.click();
-  await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+  try {
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+    await frame.evaluate(async () => {
+      for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    });
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
+    // 중첩 원래 보기 복원 이후에는 이전 metadata-only 0 좌표가 재적용되지 않아야 한다.
+    const rebaseToZero = await frame.evaluate((element, target) => {
+      const events = JSON.parse(element.getAttribute("data-gantt-public-scroll-events") ?? "[]") as {action: string; requestedLeft?: number}[];
+      const targetIndex = events.findLastIndex(event => event.action === "scroll-chart" && event.requestedLeft === target);
+      if (targetIndex < 0) return -1;
+      return events.slice(targetIndex + 1).filter(event => event.action === "scroll-chart" && event.requestedLeft === 0).length;
+    }, middle.publicViewport.left);
+    expect(rebaseToZero).toBe(0);
+  } finally {
+    await info.attach("nested-frame-return-first-pop", {
+      body: JSON.stringify({expected: middle, actual: await ganttIntegrationState(page),
+        captured: await frame.getAttribute("data-gantt-peer-capture"),
+        restored: await frame.getAttribute("data-gantt-peer-restore"),
+        events: await frame.getAttribute("data-gantt-public-scroll-events")}),
+      contentType: "application/json",
+    });
+  }
   await resource.click(); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   // A new nested journey clears to the earliest schedule destination baseline.

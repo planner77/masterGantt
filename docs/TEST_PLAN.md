@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #530 PR #564 — #2270.1 중첩 frame 복귀와 metadata-only 경합 (2026-10-09)
+
+- [PR CI #2270.1 / run 37869484841](https://github.com/planner77/masterGantt/actions/runs/37869484841), 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`: Quality(타입·ESLint·Vitest·빌드) 및 Docker, Chromium shard 1~5 PASS. shard 6/6의 실제 `resource-kpi-integration-ui.spec.ts` **nested pop/clear** 시험 1 FAIL, 82 PASS, 1 SKIP. 기대 Core/native left240이 0으로 재덮였고 인스턴스·선택·열·계층은 유지됨.
+- 실패 Playwright Trace 스냅샷에서 second frame `data-gantt-peer-capture`는 **Core/native240**. `data-gantt-peer-restore`는 `requestedLeft:240, publicLeft:240, domLeft:240, count:1`로 실제 성공하였으나 직후 `scroll-chart(0)`이 남았음. 이전 패치에서 explicit restore 직전에 metadata epoch를 무효화하는 것만으로는 충분하지 않았음.
+- 변경: 제품 `project-gantt.tsx`에서 명시적 peer restore가 계획된 시점의 **layout effect**부터 queue 정리 이후 **마지막 2 animation frames**까지 pending lease를 유지한다. lease 기간 metadata-only 요청의 캡처와 적용을 모두 중지하고 구버전 요청도 무효화한다. 이후 정상 metadata 변경은 새 좌표로 다시 캡처할 수 있어야 하며, 기존 #538 metadata-only 동기화 및 사용자 입력·geometry/instance/scope guards는 유지한다.
+- 테스트: #530 nested first pop의 **middle=240 strict Core/native·선택·열·tree 비교**, 12 frame 뒤 재검증, 명시적 복원보다 늦은 `scroll-chart(0)` 없음 확인, 실패 시 peer capture/restore/events evidence 기록. 기존 #530 nonzero120, clear와 pending input·resize, #525 5폭/keyboard, #538 metadata tests 등은 계속 full PR CI에 포함된다.
+- 제품·버전: 기존 PR 후보 `0.103.1`을 유지하며 package/lock에 중복 버전을 부여하지 않는다. 대상은 새 Head의 전체 PR CI 성공과 독립 QA를 다시 검증하기 전 **NOT TESTED**. timeout/기대값/CI gate 완화 없음.
+
 ## Issue #530 / PR #564 — 비영점 Gantt 복귀 재덮기 회귀 (2026-10-09)
 
 - 이전 PR CI #2267.1/head `87b8c1c`: Chromium E2E shard6 `resource-kpi-integration-ui.spec.ts` 실제 Task 일정 복귀 시 초기 Core/native120 → peer restore120 성공 후 늦은 metadata-only `scroll-chart(0)`으로 최종0; 독립 source capture는 정상. 1 FAIL /82 PASS/1 SKIP. 이전 #525 자동-reveal 보완 E2E는 별도 성공.

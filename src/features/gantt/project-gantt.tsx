@@ -1640,6 +1640,23 @@ export function ProjectGantt({
   // Explicit peer/navigation restoration outranks an older metadata-only scroll.
   const peerRestoreAuthorityEpoch = useRef(0);
   const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; peerEpoch: number; hasInput: () => boolean; cleanup: () => void } | null>(null);
+  // The visible navigation return has stronger authority than metadata-only
+  // reconciliation. Hold it from the layout phase until its queued restore
+  // settles, not just while scroll-chart is issued (nested frame returns).
+  const pendingPeerRestoreReference = useRef<PeerViewportRestore | null>(null);
+  useLayoutEffect(() => {
+    if (!viewVisible || !apiInstanceId || !peerViewportRestore ||
+      peerViewportRestore.key !== viewportContinuityKey ||
+      peerViewportConsumed.current === peerViewportRestore) return;
+    pendingPeerRestoreReference.current = peerViewportRestore;
+    peerRestoreAuthorityEpoch.current += 1;
+    metadataViewportReference.current?.cleanup();
+    metadataViewportReference.current = null;
+    return () => {
+      if (pendingPeerRestoreReference.current === peerViewportRestore)
+        pendingPeerRestoreReference.current = null;
+    };
+  }, [viewVisible, apiInstanceId, peerViewportRestore, viewportContinuityKey]);
   useEffect(() => () => {
     metadataViewportReference.current?.cleanup();
     metadataViewportReference.current = null;
@@ -1673,7 +1690,7 @@ export function ProjectGantt({
       };
       metadataViewportReference.current?.cleanup();
       metadataViewportReference.current = null;
-      if (geometryUnchanged && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+      if (geometryUnchanged && context.visible && !pendingPeerRestoreReference.current && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
         const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), peerEpoch: peerRestoreAuthorityEpoch.current, hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
         metadataViewportReference.current = request;
@@ -1769,7 +1786,7 @@ export function ProjectGantt({
         await restoreSummaryToggleState(api, summaryState);
         const request = metadataViewportReference.current;
         if (request) {
-          const currentRequest = () => request === metadataViewportReference.current && request.peerEpoch === peerRestoreAuthorityEpoch.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
+          const currentRequest = () => request === metadataViewportReference.current && !pendingPeerRestoreReference.current && request.peerEpoch === peerRestoreAuthorityEpoch.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
           try {
             await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
             if (currentRequest()) {
@@ -1869,7 +1886,12 @@ export function ProjectGantt({
         if (!current()) return;
         const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
+        // Keep the explicit return authoritative through the final native
+        // layout frames. Later independent metadata edits may capture anew.
+        await frame(); await frame();
       } finally {
+        if (pendingPeerRestoreReference.current === request)
+          pendingPeerRestoreReference.current = null;
         cleanupInput();
       }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
