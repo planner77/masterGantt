@@ -56,7 +56,7 @@ CI 성공이나 version bump 자체는 release 승인이 아니다.
 검증 규칙:
 
 - 현재 개인 소유 저장소에서는 `author_association=OWNER`인 comment만 신뢰한다. 조직 저장소로 이전할 경우 별도 permission-check 설계 없이 이 범위를 넓히지 않는다.
-- Issue comment를 100개 단위로 끝까지 pagination한 뒤 최신 trusted marker를 authority로 사용한다. 100번째 이후의 승인·철회도 반드시 반영한다.
+- Issue comment를 100개 단위로 끝까지 pagination한 뒤 **해당 exact application version**의 trusted marker 가운데 가장 최신 comment ID를 authority로 사용한다. 같은 Issue에 서로 다른 버전의 Release가 있더라도 다른 버전의 승인·철회는 현재 버전의 결정을 덮어쓰지 않는다. 동일 버전의 최신 철회는 반드시 BLOCKED이며, 100번째 이후의 승인·철회도 반영한다.
 - `expected_version`이 merge target version과 정확히 일치해야 한다.
 - `authorized=false`는 동일 version의 명시적 철회다.
 - version이 변경됐는데 유효 marker가 없으면 finalizer는 `BLOCKED`로 실패하고 mutation하지 않는다.
@@ -144,9 +144,9 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 
 최초 완료 PR의 FINAL marker는 변경하지 않는다. 이후 같은 Issue의 PR이 병합되더라도 각 exact merge SHA의 PR Quality/E2E/Docker, Main CI, docs-only 분류 및 필요한 GHCR candidate 검증을 별도 수행한다. coalesce는 검증된 성공 merge를 삭제하지 않는다. 실패 target의 명시적 corrective supersession만 제한적으로 유지한다.
 
-FINAL 기록 전에 모든 기존 FINAL comment를 pagination하여 marker 형식·중복·작성자·PR number·canonical Refs·head SHA/branch·base main·동일 repo·exact merge SHA·main first-parent 계보를 검증한다. 이어서 관련 브랜치(리스·보호·참조·조상)와 GHCR candidate(다른 tag 공유 없음)를 읽기 전용 preflight한다. 안전하지 않은 경우 삭제·FINAL 기록 전에 FAIL한다.
+**first-parent backlog의 완료 경계 판정 전** 그리고 FINAL 기록 전에 모든 기존 FINAL comment를 pagination하여 marker 형식·작성자·PR number·canonical Refs·head SHA/branch·base main·동일 repo·exact merge SHA·main first-parent 계보를 검증한다. 다른 사용자/PR/SHA가 넣은 위조 marker는 정상 완료 경계로 SKIPPED하지 않고 FAIL 처리한다. 동일한 bot-origin PR identity·SHA로 중복 생성된 과거 marker는 중복 mutation 없이 멱등하게 해석하되, 충돌하는 PR identity는 거부한다. 이어서 관련 브랜치(리스·보호·참조·조상)와 GHCR candidate(다른 tag 공유 없음)를 읽기 전용 preflight한다. 안전하지 않은 경우 삭제·FINAL 기록 전에 FAIL한다.
 
-후속 같은 Issue merge가 미완료라면 앞선 target의 FINAL을 기록하되 Issue close는 지연한다. 정확히 같은 SHA/PR의 재진입은 중복 FINAL/정리 없이 멱등 통과한다. 부수효과 도중 중단된 경우 기존 브랜치 404와 GHCR candidate absent를 안전하게 재검증하고 이어서 진행한다. 새로운/위조된 marker는 무시하지 않고 BLOCKED한다.
+수동 `issue-lifecycle.yml`과 자동 `release-finalizer.yml`/Resume는 `mastergantt-release-finalizer` concurrency group을 공유하고 `queue: max`로 직렬화한다. 동일 SHA의 병렬 FINAL 쓰기 경쟁을 줄이되, 기존에 생성된 완전히 동일한 인증 marker의 멱등 처리는 유지한다. 후속 같은 Issue merge가 미완료라면 앞선 target의 FINAL을 기록하되 Issue close는 지연한다. 정확히 같은 SHA/PR의 재진입은 중복 FINAL/정리 없이 멱등 통과한다. 부수효과 도중 중단된 경우 기존 브랜치 404와 GHCR candidate absent를 안전하게 재검증하고 이어서 진행한다. 새로운/위조된 marker는 무시하지 않고 BLOCKED한다.
 
 실제 #565: PR #583 merge `1ed682dd062012f3d04c2517110835bf7c28ac13`의 기존 FINAL은 불변. PR #585 merge `1839ddb138808068ca06590163ad687d12cab50a`의 Main CI [37954486201](https://github.com/planner77/masterGantt/actions/runs/37954486201) SUCCESS 및 기존 Resume Run [37958294541](https://github.com/planner77/masterGantt/actions/runs/37958294541) FAIL은 과거 증거로 유지한다. 새 버전이 main에 병합되기 전에는 #585 FINAL을 성공으로 소급 기록하지 않으며 GHCR 현재 잔존 여부는 별도 조회해야 한다.
 
