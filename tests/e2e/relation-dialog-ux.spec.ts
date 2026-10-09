@@ -17,7 +17,13 @@ async function setup(page: Page, readonly = false, longNames = false) {
   const root = await rememberGanttRoot(page);
   // Open through the supported ordinary Task Relation tab rather than relying on an SVG link overlay.
   const sourceRow = page.locator(".wx-table-container .wx-row[data-id=\":00000000-0000-4000-8000-000000000003\"]").first();
-  await sourceRow.getByText("Stable leaf", { exact: true }).click({ button: "right" });
+  // Use native keyboard context-menu on the exact canonical grid cell. At 390px
+  // pointer auto-scroll can recycle an adjacent SVAR row before mouseup.
+  const cell = sourceRow.locator('[role="gridcell"][data-col-id=":text"]');
+  await cell.scrollIntoViewIfNeeded();
+  await expect(sourceRow).toHaveAttribute("data-id", ":00000000-0000-4000-8000-000000000003");
+  await cell.focus();
+  await cell.press("Shift+F10");
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Stable leaf");

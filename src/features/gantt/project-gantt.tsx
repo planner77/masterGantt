@@ -320,6 +320,7 @@ interface ProjectGanttProps {
   } | null;
   readonly viewVisible?: boolean;
   readonly viewportContinuityKey?: string;
+  readonly viewportFilterActive?: boolean;
   readonly peerViewportRestore?: Readonly<{ key: string; left: number; top: number }> | null;
   /** Read SVAR's public viewport synchronously while the schedule is visible. */
   readonly onPublicViewportReader?: (reader: PublicGanttViewportReader | null) => void;
@@ -403,7 +404,7 @@ function clampMenuPosition(left: number, top: number, width: number, height: num
 
 /** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
-  viewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
+  viewVisible = true, viewportContinuityKey = "", viewportFilterActive = false, peerViewportRestore = null,
   onPublicViewportReader,
   milestoneTimeline,
   calendar,
@@ -465,6 +466,7 @@ export function ProjectGantt({
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
+  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
   const taskFilterAppliedReference = useRef(false);
   const summaryToggleStateReference = useRef(new Map<string, boolean>());
   const projectPublicIdReference = useRef(projectPublicId);
@@ -1734,6 +1736,8 @@ export function ProjectGantt({
     void (async () => {
       await settle(); if (!current()) return;
       ensureTimelineEnd(api);
+      metadataViewportReference.current?.cleanup();
+      metadataViewportReference.current = null;
       if (!await revealMilestoneDate(api, task.start!)) {
         if (current()) milestoneDateCallbacks.current?.onOpenDashboard(request.taskId);
         return;
@@ -1782,9 +1786,19 @@ export function ProjectGantt({
         for (const id of ids) await api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
       },
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
-      reveal: (date: string) => revealMilestoneDate(api, date),
-      nativeDateReveal: (date: string) => api.exec("scroll-chart", { date: localDateFromDateOnly(date as DateOnly) }),
-      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? api.exec("scroll-chart", { left }) : Promise.resolve(),
+      reveal: (date: string) => {
+        metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
+        return revealMilestoneDate(api, date);
+      },
+      nativeDateReveal: (date: string) => {
+        metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
+        return api.exec("scroll-chart", { date: localDateFromDateOnly(date as DateOnly) });
+      },
+      scroll: (left: number) => {
+        if (!Number.isFinite(left) || left < 0) return Promise.resolve();
+        metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
+        return api.exec("scroll-chart", { left });
+      },
       filter: async (ids: string[] | null) => {
         if (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string"))) return;
         const generation = ++milestoneProbeGeneration.current;
@@ -1810,7 +1824,6 @@ export function ProjectGantt({
 
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
-  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
   useEffect(() => () => {
     metadataViewportReference.current?.cleanup();
     metadataViewportReference.current = null;
@@ -1839,18 +1852,15 @@ export function ProjectGantt({
       };
       metadataViewportReference.current?.cleanup();
       metadataViewportReference.current = null;
-      if (context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+      const priorProjection = appliedTaskFilterReference.current;
+      // A changing active search result is not a metadata-only viewport update;
+      // a canonical create/delete without active filters retains its view position.
+      const canPreserve = !viewportFilterActive || priorProjection?.key === visibleTaskFilterKey;
+      if (canPreserve && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
         let timeoutId: number | null = null;
-        const navigationTag = "project-canonical-viewport-navigation-" + String(syncVersion);
-        // An explicit date reveal is a newer navigation intent than a saved viewport.
-        api.on("scroll-chart", (event) => {
-          if (typeof event.left === "number" && Math.abs(event.left - viewport.scrollLeft) > 1)
-            viewportInput = true;
-        }, { tag: navigationTag });
         const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => {
           if (timeoutId !== null) window.clearTimeout(timeoutId);
-          api.detach(navigationTag);
           for (const event of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(event, markViewportInput, true);
         } };
         metadataViewportReference.current = request;
@@ -1889,7 +1899,7 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey]);
+  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, viewportFilterActive]);
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; source: readonly ProjectTaskDto[]; scale: GanttScaleMode; context: string; display: string; version: number } | null>(null);
   useEffect(() => {
@@ -1946,10 +1956,9 @@ export function ProjectGantt({
           }
         } finally {
           if (root) for (const kind of ["pointerdown", "wheel", "keydown"]) root.removeEventListener(kind, markInput, true);
-          if (request && metadataViewportReference.current === request) {
-            request.cleanup();
-            metadataViewportReference.current = null;
-          }
+          // The later set-columns queue entry has the final viewport geometry.
+          // It consumes this bounded request; the canonical timeout cleans up
+          // when no columns update follows.
         }
       }).catch(() => onCanonicalSyncFailureReference.current()).finally(() => {
         awaiting = false;
@@ -3491,8 +3500,12 @@ export function ProjectGantt({
       // Capture the valid raw name before SVAR's native Tab/blur unmounts its input.
       // Leave normal Tab focus movement intact; the session gate prevents duplicates.
       const session = inlineSessionReference.current;
-      if (session && !session.committed && !inlineComposingReference.current)
+      if (session && !session.committed && !inlineComposingReference.current) {
         commitInlineName(event.target.value, session);
+        // Native Tab may retain the old editor text over the canonical PATCH.
+        // Close the Core editor without a second update-cell mutation.
+        if (session.committed) void session.table.exec("close-editor", { ignore: true });
+      }
       return;
     }
     if (event.key === "Enter" && isCurrentInlineNameInput(event.target)) {

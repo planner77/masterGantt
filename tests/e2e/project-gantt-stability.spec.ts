@@ -124,6 +124,10 @@ test.describe("Issue #3 stable Gantt instance", () => {
     page.on("request", (request) => { if (request.resourceType() === "document") documentRequests.push(request.url()); });
     page.on("framenavigated", (frame) => { if (frame === page.mainFrame()) navigations.push(frame.url()); });
     const leafRow = rowNamed(page, "Stable leaf");
+    const readyFrame = ganttRoot(page);
+    await expect(readyFrame).toHaveAttribute("data-gantt-canonical-sync-depth", "0");
+    await expect.poll(() => readyFrame.evaluate(node => node.dataset.ganttCanonicalSyncGeneration === node.dataset.ganttCanonicalSyncSettledGeneration)).toBe(true);
+    await expect(leafRow.locator('[data-action="add-task"]')).toHaveAttribute("aria-disabled", "false");
     const firstChildResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === taskPath);
     await leafRow.locator('[data-action="add-task"]').click();
     expect((await firstChildResponse).status()).toBe(201);

@@ -66,7 +66,9 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
   const chart = page.locator(".wx-chart");
-  await chart.evaluate((element) => { element.scrollLeft = 200; });
+  await notificationCommandReady(page, fixture);
+  await expect.poll(() => chart.evaluate(el => el.scrollWidth - el.clientWidth)).toBeGreaterThanOrEqual(200);
+  await page.locator(".project-gantt-frame").evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").scroll(200));
   await expect.poll(() => page.locator(".project-gantt-frame").evaluate(node => Reflect.get(node, "__masterganttPublicViewport")?.left)).toBe(200);
   let before = await geometry(page);
   const layoutBounds = () => page.evaluate(() => { const rect=(selector:string)=>{const r=document.querySelector(selector)!.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};return {frame:rect(".project-gantt-frame"),lane:rect(".project-milestone-lane")}; });
