@@ -263,3 +263,10 @@ Release 성공 후 `release-finalizer-resume.yml`은 exact source run을 확인�
 - 이미 생성된 annotated SemVer tag가 있으면 그 tag를 그대로 사용하며 이동/덮어쓰기하지 않는다.
 - dispatch 403은 새 tag/version 생성으로 우회하지 않고 Resume permission을 수정한 뒤 동일 lifecycle을 재개한다.
 - Issue별 one-shot release helper workflow는 만들지 않는다.
+
+
+## Issue #577 — PR 변경과 metadata-only CI 운영 순서
+
+PR 생성 시 제목의 단일 `Issue #N`, 본문의 단일 canonical `Refs #N`, `issue-N` 작업 브랜치를 맞춘다. 진행 상황·CI 결과는 PR/Issue **댓글**로 기록하고 제목/본문을 STATUS 용도로 반복 편집하지 않는다. 제목/본문의 실제 의미가 달라질 때만 편집한다. Push 이후 full CI 완료 전 edited 이벤트를 발생시키면 같은 SHA의 full/metadata 작업이 동시에 발생할 수 있으며, Push 우선만으로 중복이 제거되지는 않는다.
+
+메타데이터 CI는 long polling하지 않는다. `SUPERSEDED`는 구 SHA의 비권위 N/A이고, `DEFERRED/MISSING`은 현재 SHA 필수 Gate 승인 증거가 아니다. full CI의 세 required check가 성공한 뒤 기존 metadata-only 실패 Job을 재실행하여 성공으로 갱신해야 한다. API 오류·trace 오류는 원인을 수정한 뒤 재검증한다. 메타데이터 Run이 full E2E/Docker를 취소하지 않는지 Actions concurrency를 확인한다. PR CI 시작까지만 요청되면 Runner completion을 기다리지 않는다.

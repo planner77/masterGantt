@@ -1685,6 +1685,7 @@ export function ProjectGantt({
     api: IApi; key: string; left: number; root: HTMLDivElement;
     rootWidth: number; rootHeight: number; filter: string;
     scale: GanttScaleMode; gridWidth: number | undefined; columns: string;
+    nativeRepairs: number;
   } | null>(null);
   useLayoutEffect(() => {
     const guard = protectedPeerScrollReference.current;
@@ -1713,8 +1714,40 @@ export function ProjectGantt({
         return;
       }
       if (event.left !== guard.left) {
-        // No user input or geometry change has revoked the restored viewport.
-        // Reject the late, lower-priority Core scroll without modifying state.
+        // #568: native DOM may scroll to zero BEFORE the stale Core action.
+        // Intercepting Core alone leaves Core=120/native=0. The original peer
+        // return also owns native scroll; reconcile only this same viewport.
+        const chart = root.querySelector<HTMLElement>(".wx-chart");
+        const capacity = chart ? chart.scrollWidth - chart.clientWidth : -1;
+        if (state.scrollLeft !== guard.left || !chart?.isConnected ||
+          chart.closest("[hidden], [inert]") || chart.getClientRects().length === 0 ||
+          capacity < guard.left - 1 || guard.nativeRepairs >= 3) {
+          // Do not fake success when Core changed, geometry is unmeasurable,
+          // or continued repair would make an unbounded loop.
+          if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+            fullscreenFrameReference.current.dataset.ganttPeerNativeRepairFailure = JSON.stringify({
+              coreLeft: state.scrollLeft, nativeLeft: chart?.scrollLeft ?? null,
+              capacity, requestedLeft: guard.left, corrections: guard.nativeRepairs,
+            });
+          }
+          protectedPeerScrollReference.current = null;
+          return;
+        }
+        if (Math.abs(chart.scrollLeft - guard.left) > 1) {
+          guard.nativeRepairs += 1;
+          // The parent peer-return path already owns this chart DOM position.
+          // No new Core command, extra ResizeObserver or continuous RAF loop.
+          chart.scrollLeft = guard.left;
+          if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+            fullscreenFrameReference.current.dataset.ganttPeerNativeRepairs = String(
+              Number(fullscreenFrameReference.current.dataset.ganttPeerNativeRepairs ?? 0) + 1,
+            );
+          }
+          if (Math.abs(chart.scrollLeft - guard.left) > 1) {
+            protectedPeerScrollReference.current = null;
+            return;
+          }
+        }
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
           const frame = fullscreenFrameReference.current;
           frame.dataset.ganttPeerScrollGuardBlocks = String(Number(frame.dataset.ganttPeerScrollGuardBlocks ?? 0) + 1);
@@ -2000,7 +2033,7 @@ export function ProjectGantt({
         protectedPeerScrollReference.current = request.left > 0 ? {
           api, key: request.key, left: request.left, root,
           rootWidth: root.clientWidth, rootHeight: root.clientHeight,
-          filter, scale, gridWidth, columns,
+          filter, scale, gridWidth, columns, nativeRepairs: 0,
         } : null;
         // Keep the explicit return authoritative through the final native
         // layout frames. Later independent metadata edits may capture anew.

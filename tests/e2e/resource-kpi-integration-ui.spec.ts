@@ -318,6 +318,15 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
       for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
     });
     await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    // #568: a late SVAR layout can move the native chart to zero before
+    // scroll-chart(0) reaches Core. Recreate a native-only reset with no
+    // user input and require the exact public/native viewport to recover.
+    const chart = frame.locator(".wx-chart");
+    const capacity = await chart.evaluate(element => element.scrollWidth - element.clientWidth);
+    expect(capacity).toBeGreaterThanOrEqual(before.publicViewport.left);
+    await chart.evaluate(element => { element.scrollLeft = 0; });
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    await expect.poll(async () => Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0)).toBeGreaterThanOrEqual(1);
     const staleAfterPeer = await frame.evaluate((element, expectedLeft) => {
       const raw = element.getAttribute("data-gantt-public-scroll-events") ?? "[]";
       const events = JSON.parse(raw) as { action: string; requestedLeft?: number }[];
@@ -328,7 +337,15 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
     expect(staleAfterPeer).toBe(0);
     expect(await seed.getSnapshot()).toEqual(canonical);
   } finally {
-    await info.attach("fixed-geometry-exact-drill", { body: JSON.stringify({ before, after: await ganttIntegrationState(page), initialCapture, returnCapture }), contentType: "application/json" });
+    await info.attach("fixed-geometry-exact-drill", { body: JSON.stringify({
+      before, after: await ganttIntegrationState(page), initialCapture, returnCapture,
+      peerRestore: await frame.getAttribute("data-gantt-peer-restore"),
+      guardBlocks: await frame.getAttribute("data-gantt-peer-scroll-guard-blocks"),
+      nativeRepairs: await frame.getAttribute("data-gantt-peer-native-repairs"),
+      repairFailure: await frame.getAttribute("data-gantt-peer-native-repair-failure"),
+      publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
+      capacity: await frame.locator(".wx-chart").evaluate(element => element.scrollWidth - element.clientWidth),
+    }), contentType: "application/json" });
   }
 });
 

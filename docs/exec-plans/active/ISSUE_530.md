@@ -1,5 +1,13 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 #530 PR #566 CI #2302.1 — native-first Chart reset 재정합
+
+- [PR CI #2302.1](https://github.com/planner77/masterGantt/actions/runs/37920082307), 정확한 Head `17e5148dd3f857b75eb6ff9ab6bdabd2f08bdeb5`: Quality(TypeScript/ESLint/Vitest/Next build), Docker, Chromium E2E 1~5 PASS; shard6의 #530 fixed-geometry exact 복귀 1 FAIL/84 PASS/1 SKIP. 기대 Core/native horizontal120, 실제 Core120/native0, 동일 SVAR API instance/selection/columns/tree.
+- [Playwright artifact](https://github.com/planner77/masterGantt/actions/runs/37920082307/artifacts/11611469146) 영수증은 최초 `data-gantt-peer-restore={requestedLeft:120,publicLeft:120,domLeft:120}`, 후행 `data-gantt-peer-scroll-guard-blocks=1`을 함께 기록했다. [#568 trace](../../GANTT_SYNC_TRACE.md)의 native0 → `scroll-chart(0)` 순서와 일치한다. 최초 native0 writer 호출 위치는 아직 **미확정**이다.
+- 제품: 현재 복원 guard의 `api.intercept("scroll-chart")`가 같은 visible API/scope/filter/scale/columns/root에 있으며 실제 native Chart scroll capacity가 목표를 수용하는지 확인한다. 기존 Core 좌표가 유지된 경우에만 늦은 Core0 action을 차단하면서 **직전 peer restore가 소유한 native `scrollLeft`를 120/240으로 직접 재정합**한다. 같은 복귀당 보정 최대3회이며 Core 상태 변동·숨김·물리 capacity 부족·반복 과다 시 guard 폐기/진단하고 실패를 숨기지 않는다. 이는 중앙 Viewport Coordinator #571 제품 도입이 아니며 #569 read-only PoC adapter는 계속 DEFER다.
+- 검증: 기존 strict Core/native 복귀·12RAF·중첩 LIFO·외부 클릭·사용자 wheel/resize·단일 instance·#463 capacity 검사를 유지한다. 고정 geometry 복귀 후 사용자가 아닌 DOM-native-only 0을 재현하고 **동일 Core/native120 수렴, native repair count≥1**을 추가 검증한다. 실패 attachment에 guard/repair/capacity/raw events를 첨부. full CI 성공 및 E2E 재현 전 PASS 주장 금지.
+- 기존 Main CI #2280.1 및 PR CI #2283.1 실패 이력 유지, 패키지 버전 0.103.1, 기존 OWNER 승인과 릴리스 성공 분리. timeout/retry/skip/기대값/CI gate 완화 없음.
+
 ## 2026-10-09 #568·#569 근거로 PR #566의 main 충돌 해결
 
 - 최신 main `56e033687f14cd159e2eb1a3bc5feabca68b70d4`에는 #568 Core Action Trace/계측과 #569 읽기 전용 Adapter·ADR가 병합되어 있다. 이전 #566 head `0fc8e746af4e9b91df8b5e62d4992f9212845eca`는 최신 main보다 17커밋 뒤였으며 Gantt 코드·E2E·TEST_PLAN의 공통 변경을 3-way로 조정했다.

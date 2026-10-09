@@ -362,3 +362,8 @@ release/finalize의 target은 PR의 exact `merge_commit_sha`이고, 해당 SHA�
 - Issue #248 구현 전까지 정식 release+종료를 한 번에 수행해야 한다면 현재 `finalize`의 release 포함 동작을 사용하되, 동일한 승인/버전 입력 계약을 충족해야 한다.
 
 자세한 운영 계약과 idempotency는 `docs/ISSUE_LIFECYCLE_AUTOMATION.md`를 따른다.
+
+
+### Issue #577 PR CI 메타데이터 운영
+
+PR 생성 시 canonical Primary Issue trace를 완성한다. 이후 진행 기록은 PR/Issue 댓글을 사용하고 상태 전달만을 위한 제목/본문 `edited`를 유발하지 않는다. Metadata-only는 같은 SHA의 최신 full CI required gate 성공을 즉시 확인하며, 오래된 Head는 SUPERSEDED/N/A로 조기 종료한다. full CI 진행 중/실패/미존재는 성공으로 취급하지 않는다. `DEFERRED/MISSING`은 full CI 성공을 확인한 후 해당 metadata 실패 Job 재실행으로 복구한다. 해당 재실행이 실제 strict Ruleset에 반영되었는지 별도 검증한다. 승인 범위가 'PR CI 시작까지'라면 완료를 기다리지 않는다.
