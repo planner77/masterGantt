@@ -138,3 +138,18 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 - 이 규칙은 immutable `ci-<SHA>`를 overwrite하는 허용이 아니다. 이미 검증된 exact SHA evidence를 lifecycle이 재사용하는 규칙이다.
 
 #502 merge SHA `36cf2db8ab0c6d04ab904b01c6bc8a0bb6b1cdab`에서 #2083.1 SUCCESS 뒤 #2084.1이 기존 `ci-<SHA>` overwrite 거부로 실패한 사례가 #520의 회귀 기준이다.
+
+
+## Issue #586 — 동일 Issue 다중 Merge의 불변 FINAL (2026-10-10)
+
+최초 완료 PR의 FINAL marker는 변경하지 않는다. 이후 같은 Issue의 PR이 병합되더라도 각 exact merge SHA의 PR Quality/E2E/Docker, Main CI, docs-only 분류 및 필요한 GHCR candidate 검증을 별도 수행한다. coalesce는 검증된 성공 merge를 삭제하지 않는다. 실패 target의 명시적 corrective supersession만 제한적으로 유지한다.
+
+FINAL 기록 전에 모든 기존 FINAL comment를 pagination하여 marker 형식·중복·작성자·PR number·canonical Refs·head SHA/branch·base main·동일 repo·exact merge SHA·main first-parent 계보를 검증한다. 이어서 관련 브랜치(리스·보호·참조·조상)와 GHCR candidate(다른 tag 공유 없음)를 읽기 전용 preflight한다. 안전하지 않은 경우 삭제·FINAL 기록 전에 FAIL한다.
+
+후속 같은 Issue merge가 미완료라면 앞선 target의 FINAL을 기록하되 Issue close는 지연한다. 정확히 같은 SHA/PR의 재진입은 중복 FINAL/정리 없이 멱등 통과한다. 부수효과 도중 중단된 경우 기존 브랜치 404와 GHCR candidate absent를 안전하게 재검증하고 이어서 진행한다. 새로운/위조된 marker는 무시하지 않고 BLOCKED한다.
+
+실제 #565: PR #583 merge `1ed682dd062012f3d04c2517110835bf7c28ac13`의 기존 FINAL은 불변. PR #585 merge `1839ddb138808068ca06590163ad687d12cab50a`의 Main CI [37954486201](https://github.com/planner77/masterGantt/actions/runs/37954486201) SUCCESS 및 기존 Resume Run [37958294541](https://github.com/planner77/masterGantt/actions/runs/37958294541) FAIL은 과거 증거로 유지한다. 새 버전이 main에 병합되기 전에는 #585 FINAL을 성공으로 소급 기록하지 않으며 GHCR 현재 잔존 여부는 별도 조회해야 한다.
+
+- risk_level=HIGH / qa_required=true; 독립 Reviewer의 exact PR Head 검토 필요
+- version 0.103.1 유지; release_required=false / release_authorized=false
+- PR 단계에는 병합·Main CI·정식 tag/release·#565 자동 복구를 포함하지 않는다
