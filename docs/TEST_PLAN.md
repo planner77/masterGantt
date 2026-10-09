@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #530 — Main CI #2315.1/#525 선택 자동 Chart reveal 대비 실제 안정 원장
+
+- 원본 [Main CI #2315.1](https://github.com/planner77/masterGantt/actions/runs/37943269547), SHA `d41032358c5cbeb4758e124d037d9ada18af9ee9`: Chromium 4/6의 #525 `project-resource-workload-status.spec.ts:78` 1 FAIL/85 PASS. Grid Task 선택 후 수동 Chart left120 기준을 5초 poll했지만 native left1581/top96; Quality/Docker/나머지 5개 shard PASS, Main GHCR candidate SKIPPED. #2249.1의 같은 1581 자동 reveal 경합과 일치하나 최초 Core action writer는 Trace 없이 단정하지 않는다.
+- 선택 자동 reveal은 실제 `>120px` 및 public Core/DOM 수평 정확한 일치가 확인되어야 한다. 수직96 설정 후 public·native X/Y strict equality·canonical sync depth0이 8연속 실제 RAF 동안 유지되도록 90RAF bounded 안정화하며, 대기/상태 오차 완화·E2E skip/retry/timeout 변경 없음. 동기화되지 않은 수동 DOM-only `left=120` 경쟁 설정을 제거한다. 실패 시 최근 8프레임 관측 자료, 성공 시 before baseline을 attachment로 남긴다.
+- 안정화된 **실제 selected Task reveal 좌표**를 `before`로 확정한 뒤 추가12 RAF 동일 상태 확인, 기존 일정↔리소스 단일 Gantt root, 선택/열/Chart·Grid X/Y **전체 strict 상태 왕복**, 5폭 geometry 및 keyboard·focus를 그대로 검증한다. 다른 #530 nested/fixed 120/240 E2E와 #463/#514에 대한 수정 없음. #526/#527의 기존 원본 안정화 기법을 재사용한다.
+- 제품/API/DB/SVAR/CI workflow 불변, package/lock version `0.103.1` 유지. 신규 head PR CI Quality/E2E6/Docker, 실제 QA_FINAL, 신규 Main/GHCR digest는 별도 증거 전 `NOT TESTED`이다. 정식 v0.103.1 승인 이력과 자동 first-parent 릴리스 분기 문제는 릴리스 단계의 별도 blocker로 보존한다.
+
 ## Issue #530 / PR #579 — CI #2313.1 검색/복원 intent 경합과 post-settle guard 예산
 
 - [CI #2313.1](https://github.com/planner77/masterGantt/actions/runs/37934372035), Head `b00aee0d4bbc7d6babac9c76bf9a1ee74847fcb0`: Chromium shard2 #463 검색 필터 전 restore marker null→filter applied 뒤 `count1/requestedLeft120/publicTop96` 지연 영수증으로 FAIL. 다른 E2E shard 1/3/4/5/6과 Quality/Docker PASS. 참조 [실제 CI shard2 report](https://github.com/planner77/masterGantt/actions/runs/37934372035/artifacts/11618062834); 새 Input intent에서 이전 peer 복원 완료 표시를 금지한다.
