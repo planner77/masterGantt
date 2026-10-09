@@ -1,5 +1,11 @@
 # Test Plan
 
+## Issue #530 — Main CI #2280.1 뒤늦은 SVAR scroll-chart(0) 회귀 (2026-10-09)
+
+- 원격 Main CI #2280.1 (`e1e6e255...`) shard6: nested LIFO pop 240→0으로 재발, 캡처/명시적 restore는 성공하고 이후 새로운 scroll-chart(0)이 발생. Quality/E2E1~5/Docker PASS, E2E6 FAIL, 전체 CI FAIL.
+- 명시적 Resource peer restore 직후 보호 계약: API instance·scope/filter·scale·grid/columns·root geometry가 같고 사용자 입력이 없을 때 늦은 `scroll-chart(left!=restoredLeft)`는 SVAR intercept에서 pre-dispatch 거부한다. 입력 wheel/pointerdown/keydown/touchstart 및 scope/geometry/visibility 변경은 보호를 해제해야 한다. 사용자가 뒤늦게 Chart를 좌측 끝(0)으로 옮길 수 있어야 한다.
+- Playwright: nested pop middle240 및 origin120 Core/native+selection+columns+tree strict 비교와 12rAF 지연 비교, 복원 후 stale scroll-chart(0) 이벤트 0건; **최종 사용자의 wheel(-240)→Core/native 0** 회귀 추가. #514 Grid reveal, #525 5 viewport widths, #538 metadata-only nonzero 보존, 사용자 wheel/resizing 중 pending restore 취소는 full PR CI에서 별도 재검증.
+- 버전은 기존 release 후보 0.103.1 유지; 같은 Issue 실패 Main 뒤 보완 merge coalesce/OWNER authorization 근거는 `docs/exec-plans/active/ISSUE_530.md`에 명시. CI required checks/timeout/skip/retry 축소 금지.
 ## Issue #530 PR #564 — #2270.1 중첩 frame 복귀와 metadata-only 경합 (2026-10-09)
 
 - [PR CI #2270.1 / run 37869484841](https://github.com/planner77/masterGantt/actions/runs/37869484841), 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`: Quality(타입·ESLint·Vitest·빌드) 및 Docker, Chromium shard 1~5 PASS. shard 6/6의 실제 `resource-kpi-integration-ui.spec.ts` **nested pop/clear** 시험 1 FAIL, 82 PASS, 1 SKIP. 기대 Core/native left240이 0으로 재덮였고 인스턴스·선택·열·계층은 유지됨.

@@ -1644,6 +1644,62 @@ export function ProjectGantt({
   // reconciliation. Hold it from the layout phase until its queued restore
   // settles, not just while scroll-chart is issued (nested frame returns).
   const pendingPeerRestoreReference = useRef<PeerViewportRestore | null>(null);
+  // SVAR may issue a delayed programmatic scroll-chart(0) after the
+  // explicit LIFO return. Keep its public viewport authoritative until
+  // actual user input or a change in the visible viewport identity.
+  const protectedPeerScrollReference = useRef<{
+    api: IApi; key: string; left: number; root: HTMLDivElement;
+    rootWidth: number; rootHeight: number; filter: string;
+    scale: GanttScaleMode; gridWidth: number | undefined; columns: string;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const guard = protectedPeerScrollReference.current;
+    if (guard && (!viewVisible || guard.key !== viewportContinuityKey))
+      protectedPeerScrollReference.current = null;
+  }, [viewVisible, viewportContinuityKey]);
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-peer-restored-scroll-authority";
+    api.detach(tag);
+    // Intercept before the SVAR Core action; on("scroll-chart") is too late.
+    api.intercept("scroll-chart", (event) => {
+      const guard = protectedPeerScrollReference.current;
+      if (!guard || typeof event.left !== "number") return;
+      const root = ganttScrollReference.current;
+      const state = api.getState(), context = peerViewportContext.current;
+      const columns = JSON.stringify((state.columns ?? []).map(column => [column.id, column.width, column.hidden]));
+      if (apiReference.current !== api || guard.api !== api || !root?.isConnected ||
+        guard.root !== root || !context.visible || context.key !== guard.key ||
+        guard.filter !== visibleTaskFilterKeyReference.current ||
+        guard.scale !== scaleModeReference.current ||
+        guard.gridWidth !== state.gridWidth || guard.columns !== columns ||
+        guard.rootWidth !== root.clientWidth || guard.rootHeight !== root.clientHeight) {
+        protectedPeerScrollReference.current = null;
+        return;
+      }
+      if (event.left !== guard.left) {
+        // No user input or geometry change has revoked the restored viewport.
+        // Reject the late, lower-priority Core scroll without modifying state.
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          const frame = fullscreenFrameReference.current;
+          frame.dataset.ganttPeerScrollGuardBlocks = String(Number(frame.dataset.ganttPeerScrollGuardBlocks ?? 0) + 1);
+        }
+        return false;
+      }
+    }, { tag });
+    const releaseOnUserInput = () => { protectedPeerScrollReference.current = null; };
+    const inputEvents = ["pointerdown", "wheel", "keydown", "touchstart"] as const;
+    for (const type of inputEvents)
+      document.addEventListener(type, releaseOnUserInput, { capture: true, passive: true });
+    return () => {
+      api.detach(tag);
+      for (const type of inputEvents)
+        document.removeEventListener(type, releaseOnUserInput, true);
+      if (protectedPeerScrollReference.current?.api === api)
+        protectedPeerScrollReference.current = null;
+    };
+  }, [apiInstanceId]);
   useLayoutEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore ||
       peerViewportRestore.key !== viewportContinuityKey ||
@@ -1886,6 +1942,14 @@ export function ProjectGantt({
         if (!current()) return;
         const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
+        // Beyond the queued restore and its final frames, unowned SVAR
+        // scroll commands cannot replace this position until real input
+        // or an independent viewport-context change releases the guard.
+        protectedPeerScrollReference.current = request.left > 0 ? {
+          api, key: request.key, left: request.left, root,
+          rootWidth: root.clientWidth, rootHeight: root.clientHeight,
+          filter, scale, gridWidth, columns,
+        } : null;
         // Keep the explicit return authoritative through the final native
         // layout frames. Later independent metadata edits may capture anew.
         await frame(); await frame();

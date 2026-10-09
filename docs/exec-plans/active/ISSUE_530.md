@@ -1,5 +1,13 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 Main CI #2280.1 재실패 — 지연 native 스크롤 재덮기 보완
+
+- **정확한 실패 근거:** Issue #530 [Main CI #2280.1](https://github.com/planner77/masterGantt/actions/runs/37876071912), merge SHA `e1e6e2558481fe01d9f7e57c0148288f77a884de`는 TypeScript/ESLint/Vitest/Next.js, Docker 실제 smoke, Chromium 1~5/6 PASS. Chromium shard 6/6의 #530 nested LIFO pop/clear 1 FAIL, 82 PASS, 1 SKIP로 E2E aggregate FAIL, 임시 GHCR image job SKIPPED.
+- [Playwright shard6 report/trace](https://github.com/planner77/masterGantt/actions/runs/37876071912/artifacts/11593006119)의 `nested-frame-return-first-pop` 관측에서 기대 Core/native left240, 최종 left0. 동일 SVAR API instance·columns·selection·tree 유지. capture Core/native240 및 명시적 `scroll-chart(240)` 성공(count1/public240/dom240) **이후** `scroll-chart(0)` 명령이 발생. 이전 metadata epoch+pending lease+12rAF만으로 늦은 command를 완전히 차단하지 못했음.
+- **제품 보완:** 설치된 SVAR Gantt 2.7.3의 공식 `api.intercept('scroll-chart')`를 사용해, 명시적으로 복원한 nonzero 좌표를 동일 API/visible scope/filter/scale/columns/grid/root geometry에서 우선 보호한다. 그 이후 새 사용자 입력 없이 다른 left 명령이 들어오면 Core action 전에 취소하고, 임의의 시간 만료를 두지 않는다. 실제 pointerdown/wheel/keydown/touchstart, 화면 숨김·범위·레이아웃 변경은 보호를 해제한다. 사용자의 Task 탐색 및 좌측 끝까지 수동 스크롤을 방해하지 않음.
+- **회귀:** 기존 120/240px strict Core+native/instance/columns/selection/tree 복귀, 12rAF 후 재검사, 늦은 scroll-chart(0) 0건은 그대로 유지한다. nested pop/clear 완료 후 wheel(-240) 사용자 입력으로 Core/native left0에 도달하는 양방향 테스트를 추가한다. 우회용 timeout/skip/retry/expected 변경 없이 기존 #514/#525/#538 및 E2E6·Quality·Docker required gate 유지.
+- **버전 및 승인:** 기존 메인 후보 0.103.1은 아직 immutable v0.103.1 tag/Release 미발행이다. Generic Release Finalizer의 같은 Issue 인접 non-docs corrective coalesce는 가장 오래된 first-parent(0.103.0) → 최종 version(0.103.1)을 비교하므로 이번 추가 보완도 버전 0.103.1을 유지한다. 이미 확인된 [Issue #530 0.103.1 OWNER 정식 GHCR 승인](https://github.com/planner77/masterGantt/issues/530#issuecomment-6073180869)을 재사용한다. 새로운 Main CI/GHCR exact digest 검증 전 PASS로 주장하지 않는다.
+- **검증 경계:** 이번 보완의 신규 PR Head CI 및 독립 QA, Manager 병합 판정은 해당 증거 확보 전 NOT TESTED다. 새 PR 품질 검사를 완료한 뒤에만 Main 병합을 추진한다.
 ## 2026-10-09 PR #564 CI #2270.1 중첩 복귀 실패 재보완
 
 - 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`의 [CI #2270.1](https://github.com/planner77/masterGantt/actions/runs/37869484841)은 Quality·Docker·Chromium 샤드1~5 PASS, **shard6의 #530 nested frame pop 복원 1 FAIL/82 PASS/1 SKIP**로 전체 실패. 기대 left240, 실제 Core/native left0, 다른 상태는 동일.

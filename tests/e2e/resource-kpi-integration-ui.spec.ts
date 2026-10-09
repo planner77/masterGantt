@@ -389,7 +389,15 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await strip.getByRole("button",{name:/임시 이동 범위 전체 해제/}).click();
   await expect(strip).toHaveCount(0);
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
-  await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page)}),contentType:"application/json"});
+  await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page),
+    guardBlocks: await frame.getAttribute("data-gantt-peer-scroll-guard-blocks")}),contentType:"application/json"});
+  // 사용자 wheel은 복원 보호 상태를 해제하여 정상적으로 좌측 0까지 이동한다.
+  await frame.locator(".wx-chart").hover();
+  await page.mouse.wheel(-240, 0);
+  await expect.poll(async () => {
+    const value = await ganttIntegrationState(page);
+    return { coreLeft: value.publicViewport.left, nativeLeft: value.left };
+  }).toEqual({ coreLeft: 0, nativeLeft: 0 });
 });
 
 test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL},info) => {
