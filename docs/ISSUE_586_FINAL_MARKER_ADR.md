@@ -39,6 +39,6 @@ Issue #565는 PR #583(docs-only, `1ed682dd062012f3d04c2517110835bf7c28ac13`)에 
 
 ### 수동 fallback 순서 검증 (2026-10-10, 추가 P1 보완)
 
-`issue-lifecycle.yml`의 수동 `finalize`/`release_finalize`는 자동 Resolver의 합류·대기·Issue 종료 지연 판단을 우회할 수 없다. 수동 호출은 현재 main first-parent backlog를 다시 해석하고 **선택한 PR이 최초 actionable 대상**이어야만 처리한다. 선행 다른 Issue나 같은 Issue의 미완료 PR이 있거나 선택한 Issue에 후속 PR이 남으면 기존 Generic Finalizer로 복구하도록 FAIL/BLOCKED 한다. 동일 SHA의 기존 FINAL로 수동 재진입할 때는 무조건 close하지 않고 변경 없는 멱등 응답만 반환한다. 자동 Resolver는 이미 순서 검증을 마친 경우에만 `--resolver-ordered` 플래그를 전달한다. 수동 workflow는 이 내부 플래그를 전달하지 않는다.
+`issue-lifecycle.yml`의 수동 `finalize`/`release_finalize`는 자동 Resolver의 합류·대기·Issue 종료 지연 판단을 우회할 수 없다. 수동 호출은 현재 main first-parent backlog를 다시 해석하고 **선택한 PR이 최초 actionable 대상**이어야만 처리한다. 선행 다른 Issue나 같은 Issue의 미완료 PR이 있거나, 같은 Issue에서 CLOSED이나 인증된 FINAL이 없는 선행 PR이 있거나, 선택한 Issue에 후속 PR이 남으면 기존 Generic Finalizer로 복구하도록 FAIL/BLOCKED 한다. 동일 SHA의 기존 FINAL로 수동 재진입할 때는 무조건 close하지 않고 변경 없는 멱등 응답만 반환한다. 자동 Resolver는 이미 순서 검증을 마친 경우에만 `--resolver-ordered` 플래그를 전달한다. 수동 workflow는 이 내부 플래그를 전달하지 않는다.
 
 테스트는 선행 동일 Issue A/B, 중간 다른 Issue, 이미 완료된 PR의 재호출, main 변경 및 잘못된 PR 번호에 대해 side effect 전 거부되는지 확인한다.
