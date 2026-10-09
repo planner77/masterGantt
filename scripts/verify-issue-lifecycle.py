@@ -85,7 +85,7 @@ require("REF_RE" in trace_impl and "BRANCH_ISSUE_RE" in trace_impl and "TITLE_IS
 
 require("workflow_dispatch:" in workflow, "workflow_dispatch entry point is required")
 require("operation:" in workflow and "verify, release, finalize, release_finalize" in workflow, "four operations are required")
-require("group: issue-lifecycle-${{ inputs.issue_number }}" in workflow, "per-Issue concurrency is required")
+require("group: mastergantt-release-finalizer" in workflow, "manual lifecycle mutation must share generic finalizer serialization")
 require("queue: max" in workflow, "manual lifecycle runs must preserve queued work")
 require("packages: write" in workflow, "lifecycle finalize operations need scoped packages: write for temporary GHCR cleanup")
 require("pull_request_target" not in workflow, "pull_request_target is forbidden")
@@ -642,6 +642,24 @@ comments = [
 auth = auto.select_authorization(comments, expected_version="1.2.3")
 require(auth is not None and auth.actor == "owner", "trusted authorization selection failed")
 
+# Multiple retained successful same-Issue merges have independently authorized
+# releases. Only the latest trusted approval/revocation *for that version*
+# can govern its target; newer other-version markers may coexist.
+version_one = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.1.0","note":"v1 approved"} -->'
+version_two = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.2.0","note":"v2 approved"} -->'
+multi_version_comments = [
+    {"id": 10, "author_association": "OWNER", "body": version_one,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/10"},
+    {"id": 11, "author_association": "OWNER", "body": version_two,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/11"},
+]
+for version in ("1.1.0", "1.2.0"):
+    result = auto.select_authorization(multi_version_comments, expected_version=version)
+    require(result is not None and result.expected_version == version,
+            "cross-version approval may not shadow retained target")
+require(auto.select_authorization(multi_version_comments, expected_version="1.3.0") is None,
+        "missing exact-version approval must never authorize release")
+
 revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.2.3","note":"revoked"} -->'
 try:
     auto.select_authorization(
@@ -651,6 +669,19 @@ try:
     raise SystemExit("latest trusted revocation must block release")
 except auto.AutoFinalizerBlocked:
     pass
+
+version_one_revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.1.0","note":"v1 revoked"} -->'
+revocation_comments = multi_version_comments + [
+    {"id": 12, "author_association": "OWNER", "body": version_one_revoked,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/12"},
+]
+try:
+    auto.select_authorization(revocation_comments, expected_version="1.1.0")
+    raise SystemExit("latest version-specific revocation must block release")
+except auto.AutoFinalizerBlocked:
+    pass
+require(auto.select_authorization(revocation_comments, expected_version="1.2.0") is not None,
+        "another version's revocation must not invalidate independent authorization")
 
 # Pagination must read beyond the first 100 comments so later revocation/approval
 # cannot be ignored.
