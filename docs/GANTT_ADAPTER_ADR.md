@@ -95,3 +95,11 @@ C의 synthetic width 적용과 physical width 복원 사이에 취소되면 Core
 - 설치 Core 2.7.3의 `api.serialize()` 출력에는 Milestone의 `start`만 있고 `end`가 없다(`endMs=null`). [SVAR 공식 Milestone 가이드](https://docs.svar.dev/react/gantt/guides/tasks/milestone/)도 duration=0, start만 있고 end 없음으로 정의한다.
 - 합성 Milestone fixture의 `end` 입력을 제거하여 문서 계약과 일치시키고 E2E의 기대 직렬화 결과를 `{startMs: 2026-01-10, endMs:null}`로 교정했다. Empty 배열·Milestone 단일 id·native DOM 표시·A 미래 Task 변경·settle 검증은 유지한다. 기존 경로의 검증 제한/제품 도입 DEFER도 유지한다.
 - 이번 새 Head의 전체 CI 성공 여부는 새 PR CI 결과를 확인하기 전까지 **NOT VERIFIED**이다. 앞선 Head의 CI 성공 및 로컬 결과를 전용하지 않는다.
+
+### PR CI #2294.1 세 경계 실패 분석과 수정 (2026-10-09)
+
+- CI #2294.1: Quality/Docker PASS. E2E shard 1(390px Day, fallback 직후 `NO_SCROLL_CAPACITY`), shard 2(#463 복원 진단 attribute null), shard 6(#530 Playwright `pauseAt`가 install 시점보다 과거) 각 1건 FAIL. 다른 shard는 PASS. 과거 #569 Milestone 직렬화 오류와는 다른 실패다.
+- #569 테스트는 Chart-only 토글 직후 **native geometry가 실제로 measurable 상태**가 될 때까지 조건 기반으로 폴링한 뒤 `NATIVE_LAYOUT_SETTLED` 3프레임 검사까지 통과해야 한다. 확장/좌표의 FAIL 판정, timeout, PoC DEFER 및 성공/실패 분류 oracle은 변경하지 않는다.
+- 기존 #463 테스트는 복원 이벤트가 아예 불필요한 same-instance 상황의 `data-gantt-peer-restore=null`을 허용하되, 검색 전후 raw marker 불변과 Core/native viewport strict equality를 확인한다. 앱 writer는 변경하지 않는다.
+- 기존 #530 테스트는 Playwright 공식 Clock의 install→pauseAt 시각 역행을 피하기 위해 pause 목표를 먼저 고정하고 가상 install 시각을 60초 앞서 설정한다. pause는 같은 현실시각에서 이뤄지며 이어지는 500ms 안정성 검증을 유지한다. 해당 버전/CI runner에서의 최종 통과는 새 PR CI 결과만이 근거다.
+- 제품 적용 DEFER, 기존 version 0.103.1, merge/release/Issue 종료 제외는 유지한다. [Playwright Clock 공식 문서](https://playwright.dev/docs/api/class-clock).

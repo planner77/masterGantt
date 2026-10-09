@@ -433,7 +433,11 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await root.locator(".resource-dashboard-detail").getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
   const strip=page.getByRole("region",{name:"임시 조회 범위",exact:true});
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // Keep the pause target ahead of installed virtual time; install() itself does not freeze time.
+  // Preserves the same wall-clock instant after the fast-forward without a race to the past.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await schedule.evaluate(node=>(node as HTMLElement).click()); await expect(frame).toBeVisible();
   const bounds=await chart.boundingBox(); if(!bounds) throw Error("visible chart required");
   await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2); await page.mouse.wheel(40,0);
@@ -466,7 +470,11 @@ test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위
   await root.locator(".resource-dashboard-detail").getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
   const strip=page.getByRole("region",{name:"임시 조회 범위",exact:true});
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // Keep the pause target ahead of installed virtual time; install() itself does not freeze time.
+  // Preserves the same wall-clock instant after the fast-forward without a race to the past.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await schedule.evaluate(node=>(node as HTMLElement).click()); await expect(frame).toBeVisible();
   const bounds=await chart.boundingBox(); if(!bounds) throw Error("visible chart required");
   await page.setViewportSize({width:1024,height:768});

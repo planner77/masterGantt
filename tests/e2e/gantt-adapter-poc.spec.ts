@@ -27,6 +27,12 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["day", "w
         expect(initial.geometry).toEqual({ ok: false, result: "NO_SCROLL_CAPACITY" });
         expect(await page.evaluate(() => window.__issue569!.settle())).toBe("NO_SCROLL_CAPACITY");
         await page.getByRole("button", { name: "Chart 확대 / Grid 복원" }).click();
+        // Click/event delivery is not proof that SVAR committed the new chart layout.
+        // Wait for actual measurable native geometry, then still require three stable frames.
+        await expect.poll(() => page.evaluate(() => window.__issue569!.sample().geometry.ok), {
+          message: "390px chart-only fallback must expose measurable native geometry",
+          timeout: 10_000,
+        }).toBe(true);
         expect(await page.evaluate(() => window.__issue569!.settle())).toBe("NATIVE_LAYOUT_SETTLED");
         fallback = true;
       } else expect(await page.evaluate(() => window.__issue569!.settle())).toBe("NATIVE_LAYOUT_SETTLED");

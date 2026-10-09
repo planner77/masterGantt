@@ -2,6 +2,8 @@
 
 ## Issue #569 — 공개 API·시간축 Adapter PoC
 
+PR #576 CI #2294.1 재검증에서는 390px Chart-only 모드 진입 직후 실제 native geometry가 측정 가능할 때만 이어가며, 이후 3-frame settle 및 기존 좌표/시간축 확장 판정은 그대로 엄격 검사한다. 기존 #463의 복원 이벤트 diagnostic attribute는 optional이므로 null/non-null 원형 그대로 검색 전후 동일 여부와 public/native viewport 불변을 검사한다. 기존 #530 Clock 기반 경합 회귀는 `install` 시점을 `pauseAt` 목표보다 충분히 앞서 두되, 시뮬레이션 후 목표 wall-clock은 그대로 유지하고 500ms/500ms 안정성 체크를 보존한다. 환경/성공 여부는 신규 exact-head PR CI에서만 판정한다.
+
 PR #576의 Milestone-only E2E는 `api.serialize()` 기준 1개 Milestone(`synthetic-6`), 시작일 2026-01-10, 종료일 부재(`endMs=null`), 실제 native DOM Milestone 표시를 필수로 검증한다. 기존에 종료일을 시작일과 동일하게 가정한 조건은 SVAR 시점 Milestone 계약과 불일치하여 교정한다. Empty / A-mode 미래 Task / 재진입 `BUSY` 검증은 그대로 유지한다. 최신 Head의 CI 결과는 과거 증거와 분리한다.
 
 [실행 계획](exec-plans/active/ISSUE_569.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 공식/설치 기능 matrix, A/B/C 결과와 지원 경계를 남긴다. 실제 Core 2.7.3 Chromium의 390/768/1024/1440/1920px·Day/Week에서 최대 3회 확장의 성공/실패와 instance/selection/origin/scroll/열/visible date와 tick↔bar≤1 CSSpx, Grid/Chart y정렬을 비교한다. empty/M-only, fullscreen/split, 가로/세로scroll·열resize, hidden/inert/zero-size/capacity·cleanup·intent 취소·finite timeout을 별도로 확인한다.

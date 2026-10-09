@@ -113,6 +113,12 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await page.setViewportSize({ width: 1456, height: 900 }); await page.setViewportSize({ width: 1440, height: 900 }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } }); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
-    const restored = JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!) as { count: number }; const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true }); await search.fill("Stable leaf"); await search.fill(""); await expect.poll(async () => JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!).count).toBe(restored.count);
+    // Native scroll may already be preserved with the same instance, without a peer-restore event.
+    // A missing diagnostic marker is valid; a new event triggered by search is not.
+    const restored = await frame.getAttribute("data-gantt-peer-restore");
+    const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
+    await search.fill("Stable leaf"); await search.fill("");
+    await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left: 120, top: 96 } });
   } finally { await testInfo.attach("public-viewport-events", { body: JSON.stringify({ viewport: await viewport(), events: await frame.getAttribute("data-gantt-public-scroll-events"), restored: await frame.getAttribute("data-gantt-peer-restore") }), contentType: "application/json" }); }
 });

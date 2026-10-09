@@ -51,3 +51,9 @@ Codex P2 3건(Scale 불일치, 중복 확장, Empty/Milestone/Future assertion)�
 - `quality`/`docker` PASS, Chromium shard2~6 PASS, shard1 FAIL(10건). 공통 원인: synthetic Milestone 기대값은 end=start이지만 실제 `api.serialize()`는 Milestone end를 반환하지 않음.
 - 공식 SVAR Milestone의 시점 모델에 맞춰 fixture에서 `end`를 제거하고 E2E에 `endMs=null`을 명시한다. 기존 DOM·태스크·확장 판단은 유지.
 - 후속 작업 한계: 새 PR CI 시작까지만. PR 병합, Main CI, GHCR, 정식 제품 도입, Issue 종료는 제외.
+
+## PR #576 CI #2294.1 실패와 신규 검증 (2026-10-09)
+
+- Quality/Docker SUCCESS, Chromium E2E shard 1/2/6 각각 1건 FAIL. shard1: 390 Day Chart-only native capacity 재계측 직후 아직 없음. shard2: #463 optional peer-restore 진단 attribute null 접근. shard6: #530 Playwright Clock `install` 후 `pauseAt(now)` 시간 경합.
+- #569의 native geometry readiness와 3-frame settle, #463의 복원 속성 raw 불변+Core/native 좌표 엄격 비교, #530의 clock 목표시간 고정/설치시각 오프셋을 최소 범위 수정한다. 제품 writer/API/DB/릴리스 정책은 변경하지 않는다. 기존 회귀 테스트 2건 수정은 해당 실패가 필수 CI를 차단하여 사용자 재검증 지시 범위에서 필요한 검증 안정화다.
+- 새로운 Head의 unit/typecheck/E2E/docker 결과는 CI 확인 전까지 NOT VERIFIED이다. CI 시작 후 병합·GHCR·Issue 종료는 수행하지 않는다.
