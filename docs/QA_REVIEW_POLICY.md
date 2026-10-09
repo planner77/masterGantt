@@ -89,7 +89,15 @@ manager_evidence: Issue/PR 댓글과 확인한 Head, 승인/잔여 위험
 
 ## 5. 운영 적용·경계
 
-- 정책의 Source of Truth: 이 문서. `AGENTS.md`, `ISSUE_LIFECYCLE.md`, `AGENT_PROMPTS.md`, `AGENT_CONFIGURATION.md`, `GITHUB_OPERATIONS.md`, `ISSUE_LIFECYCLE_AUTOMATION.md`, `REMOTE_VALIDATION.md`를 함께 참고한다.
+- 정책의 Source of Truth: 이 문서. `AGENTS.md`, `ISSUE_LIFECYCLE.md`, `AGENT_PROMPTS.md`, `AGENT_CONFIGURATION.md`, `GITHUB_OPERATIONS.md`, `ISSUE_LIFECYCLE_AUTOMATION.md`, `REMOTE_VALIDATION.md`와 **실제 실행 지침 `.codex/agents/*.toml`** 을 함께 확인한다. 문서가 올바르더라도 Agent의 실제 `developer_instructions`가 상충하면 DOCUMENTATION_SYNC와 최종 QA를 PASS 처리하지 않는다.
 - 정책 변경 PR 자체는 **HIGH(병합 승인 계약 변경)**로 취급한다. `qa_docs` 실행이 불가능하면 별도 인간 Reviewer를 배정하고, 확보되지 않은 상태의 PR CI 성공을 최종 QA/병합 승인으로 과대 표시하지 않는다.
 - 이번 #565는 app source/API/DB, .github workflow/Ruleset, 제품 version을 변경하지 않는다. application version은 유지하며 정식 GHCR 게시·운영 배포 권한을 생성하지 않는다.
 - 후속 #580이 자동 QA를 구현하여 HIGH 대체 경로가 정식 수용되면 이 문서의 인간 Reviewer 필수와 검증/승인 경계를 같은 변경에서 갱신하고, 실제 required checks/Ruleset 적용 범위까지 검증한다.
+
+## 6. Issue #565 병합 이후 F1 보완 범위 (2026-10-10)
+
+PR #583은 merge SHA `1ed682dd062012f3d04c2517110835bf7c28ac13`로 main에 반영되었지만, [실제 독립 QA F1](https://github.com/planner77/masterGantt/issues/565#issuecomment-6083701630)은 당시 `.codex/agents/infra.toml`의 **무조건 qa_docs 전제**가 위험도 정책과 충돌함을 기록했다. 사용자 검토 확인 후 병합됐다는 사실로 이 F1이 기술적으로 해결된 것은 아니다.
+
+후속 수정은 `infra.toml`의 병합 및 main 증거 검토를 `qa_required`로 분기한다. `frontend.toml`과 `ui-ux.toml`의 리뷰 문구도 동일한 조건으로 읽히도록 정합화한다. 이번 변경은 **후속 #580의 GitHub Actions 자동 QA Job을 구현하지 않는다.** 독립 Reviewer 필수인 HIGH/의무 MEDIUM의 승인 조건과 기존 CI/GHCR/권한 Gate를 그대로 유지한다.
+
+회귀 검토의 단위는 `qa_required=false` LOW/일부 MEDIUM의 사유 있는 N/A, `qa_required=true` MEDIUM/HIGH의 실제 `qa_docs` 또는 별도 인간 Reviewer PASS/부재 시 BLOCKED, 새로운 PR Head의 모든 QA/CI 증거 stale 처리, 병합 후 필요 시 Reviewer 또는 Manager의 GHCR 증거 확인이다. 새 PR CI가 PASS하더라도 **독립 QA Final, Manager ACCEPT, 병합 성공은 별도 증거**다.

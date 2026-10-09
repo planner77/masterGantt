@@ -44,6 +44,11 @@ require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must c
 require("github.event.pull_request.number" in ci_workflow, "PR CI run-name must carry the PR number")
 require("github.event.head_commit.message" in ci_workflow, "main CI run-name must carry merge commit trace metadata")
 require("startsWith(github.event.head_commit.message, 'Issue #')" in ci_workflow, "main run-name must select canonical one-line message")
+for escape in (r"\n", r"\r"):
+    require(
+        f"!contains(toJSON(github.event.head_commit.message), '{escape}')" in ci_workflow,
+        f"Main CI run-name must reject escaped newline: {escape}",
+    )
 require("기존 병합/직접 Push" in ci_workflow and "github.sha" in ci_workflow, "main legacy/direct fallback must be short and SHA-bound")
 require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
@@ -83,6 +88,11 @@ for token in ("inputs.issue_number", "inputs.pr_number", "inputs.operation", "gi
 require("run-name:" in auto_workflow, "automatic finalizer run-name is required")
 require("github.event.workflow_run.head_commit.message" in auto_workflow, "finalizer must read the triggering Main commit subject")
 require("startsWith(github.event.workflow_run.head_commit.message, 'Issue #')" in auto_workflow, "finalizer must select canonical one-line message")
+for escape in (r"\n", r"\r"):
+    require(
+        f"!contains(toJSON(github.event.workflow_run.head_commit.message), '{escape}')" in auto_workflow,
+        f"Finalizer run-name must reject escaped newline: {escape}",
+    )
 require("github.event.workflow_run.head_sha" in auto_workflow, "finalizer fallback must retain exact triggering SHA")
 require("github.event.workflow_run.run_number" in auto_workflow and "github.event.workflow_run.run_attempt" in auto_workflow, "finalizer must identify source Main run/attempt")
 require("github.run_number" in auto_workflow and "github.run_attempt" in auto_workflow, "finalizer run-name must distinguish attempts")

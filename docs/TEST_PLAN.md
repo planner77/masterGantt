@@ -10,9 +10,29 @@
 
 - **Docker 네트워크 복구 회귀:** PR #584 CI #2319.1의 baseline Node/npm `ECONNRESET`만 복구 대상으로 한다. transient(`ECONNRESET`, `ETIMEDOUT`, `EAI_AGAIN`)인 baseline `docker build`는 1회 재시도 후 성공 시 전체 image size·runtime smoke 계속 실행, 재실패/비네트워크 실패 시 원인 보존하며 FAIL. 총 2회 제한과 Docker aggregate `fail-closed` 유지. **PR CI 재실행 전/후 확정 PASS는 별도** 검증한다.
 
+- **Codex P1/P2 리뷰 후속:** GitHub REST Merge API의 Head 일치 파라미터는 `sha`, GitHub 연결 도구는 `expected_head_sha`, CLI는 `--match-head-commit`으로 구분한다. `Issue #N · PR #P · 한글 제목` prefix로 시작하더라도 commit 본문/CRLF가 있는 경우 `run-name`은 SHA fallback을 선택한다. `toJSON(message)`의 `\\n`/`\\r` escape 감지를 Main·Finalizer 양쪽 계약 검사에 추가한다. <Issue #582 PR #584> 신규 Head에서 전체 CI를 재검증해야 하며 구 Head #2322.1 성공은 구 Head 증거로만 보존한다.
+
+## Issue #565 — 병합 후 infra Agent QA 조건 회귀 확인 (2026-10-10)
+
+선행 결과: [PR #583](https://github.com/planner77/masterGantt/pull/583)은 main에 병합되었으나 [독립 QA 지적 F1](https://github.com/planner77/masterGantt/issues/565#issuecomment-6083701630)의 `.codex/agents/infra.toml:82,103` 무조건 qa_docs 요구가 남았다. 이 테스트 계획은 **실제 실행 지침과 문서 정책의 동일성**을 확인한다.
+
+| 케이스 | 변경 범위/조건 | 기대 결과와 확인 지침 |
+| --- | --- | --- |
+| T1 LOW | 단순 문구·문서, `qa_required=false`, Reviewer 미실행 | `QA_FINAL=N/A(reason)` + DOCUMENTATION_SYNC + 현재 Head 필수 3 check + Manager ACCEPT 시 병합 가능; qa_docs 없다는 이유만으로 BLOCKED 금지 |
+| T2 MEDIUM(N/A) | 국소 UI 기능, 타깃 회귀 확보·독립 트리거 없음 | Manager 교차 검토 및 사유 있는 N/A 가능. 실제 검토/테스트를 임의 PASS로 기재하지 않음 |
+| T3 MEDIUM(의무) | frontend/backend 공용 계약, `qa_required=true` | qa_docs 또는 승인된 별도 인간 Reviewer의 exact Head PASS 필수. 미확보 시 BLOCKED |
+| T4 HIGH | 인증·DB migration·Scheduler·CI/GHCR 보호 정책 | 별도 Reviewer의 실제 독립 PASS + Manager ACCEPT 필수. 단독 검토·Actions 성공만으로 독립 QA를 대체하지 않음 |
+| T5 도구 미지원 | `qa_required=true`, Sub-Agent 없음/사람 Reviewer 없음 | `QA_FINAL=BLOCKED`, MERGE_READY 금지; #580의 자동 QA 대체는 미구현 |
+| T6 재작업 | 현재 Head에 수정 커밋 추가 | 이전 Head QA_FINAL PASS/N/A와 필수 quality/e2e/docker 전부 stale, 새 Head 전체 재검증 |
+| T7 병합 후 | LOW/MEDIUM N/A 또는 의무 HIGH가 main CI/GHCR 검증 | N/A면 Manager가 exact SHA·digest 증거 확인; 필수면 Reviewer 별도 검토. 필요 main GHCR 검증 자체는 생략하지 않음 |
+| T8 지침 일관성 | `.codex/agents/infra.toml`, `frontend.toml`, `ui-ux.toml`의 QA 관련 문구와 정책·Prompts 대조 | 필수/비의무 경로 모순 0, `qa-docs.toml` read-only 계약 불변, TOML 구문 유효 |
+
+**검증 구분:** TOML 구문/정적 문자열 및 문서 간 대조는 로컬/정적 근거. 새 PR의 exact Head GitHub Quality/E2E/Docker aggregate 각각을 실제 Run/Job으로 확인해야 원격 PASS다. Docs-only/path filter에 의해 구현 E2E shard/Docker smoke가 SKIPPED이면 실행 PASS라고 말하지 않는다. Issue #565 후속은 정식 Release, Ruleset 변경, #580 자동 QA 구현을 포함하지 않는다.
+
+
 ## Issue #565 — 위험 기반 QA 정책 시나리오 및 증거 경계
 
-[위험도 기반 QA 정책](QA_REVIEW_POLICY.md)의 `4 판정 행렬을 [Issue #565](https://github.com/planner77/masterGantt/issues/565) AC1~AC8에 적용한다. 표는 **정책 기대 판정**이고 독립 Reviewer·E2E·Actions가 실제 실행됐다는 증거가 아니다.
+[위험도 기반 QA 정책](QA_REVIEW_POLICY.md)의 **4절 판정 행렬**을 [Issue #565](https://github.com/planner77/masterGantt/issues/565) AC1~AC8에 적용한다. 표는 **정책 기대 판정**이고 독립 Reviewer·E2E·Actions가 실제 실행됐다는 증거가 아니다.
 
 | 재현 입력 | 기대 위험도 | 독립 QA / 병합 조건 |
 | --- | --- | --- |

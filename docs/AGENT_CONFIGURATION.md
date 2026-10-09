@@ -1,5 +1,17 @@
 # Agent configuration validation
 
+## Issue #565 — 병합 후 독립 QA F1 실행 지침 보완 (2026-10-10)
+
+[독립 QA 검토 결과](https://github.com/planner77/masterGantt/issues/565#issuecomment-6083701630)에서 `.codex/agents/infra.toml`의 기존 병합 조건(`qa_docs` 무조건 요구)이 [위험도별 QA 정책](QA_REVIEW_POLICY.md)과 충돌한 것이 확인됐다. 변경 대상은 실제 Agent가 읽는 `developer_instructions`이며 문서 템플릿만 변경해서는 해결되지 않는다.
+
+- `infra.toml`: `qa_required=true`에는 실제 `qa_docs` 또는 승인된 별도 인간 Reviewer의 정확한 Head QA_FINAL PASS, `qa_required=false`에는 Manager의 근거 있는 N/A와 ACCEPT를 적용한다. 병합 뒤 main CI/GHCR exact-SHA·digest 증거도 필요한 Reviewer 또는 Manager가 검토한다.
+- `frontend.toml` / `ui-ux.toml`: 설계·구현 자체 PASS가 필요한 독립 QA를 대신하지 못한다는 원칙을 보존하고, 독립 Reviewer가 필수인 경우와 합법적인 N/A 경우를 구분한다.
+- `qa-docs.toml`: read-only 독립 QA 역할·반환 계약이 변경되지 않아 갱신 N/A. 나머지 Agent TOML도 QA 필수 병합 전제 표현에 대한 변경 영향 분석 후 갱신 N/A.
+- TOML syntax 및 [회귀 매트릭스](TEST_PLAN.md)의 LOW/MEDIUM/HIGH, Head 갱신, 리뷰·CI·문서 Gate, #580 비도입 조건을 확인한다. 실제 원격 CI와 별도 독립 Reviewer 검토는 새로운 PR Head로 판정한다.
+
+기존 모델/effort·기본 역할·토큰 권한·Workflow/Ruleset·release_required/release_authorized/GHCR 정책과 application version `0.103.1`은 변경하지 않는다. `.codex/` 파일을 포함하는 PR은 docs-only 자동 판정 여부를 변경 파일 기준으로 확인하며, 이번 범위는 새 PR CI 검증까지만이다.
+
+
 ## Issue #565 — 위험도별 QA Reviewer 선택 (적용은 정책 PR 병합 이후)
 
 실행 환경에서 `qa_docs` Sub-Agent는 **선택 가능한 독립 Reviewer**이지 모든 LOW/MEDIUM Issue에서 무조건 기동해야 하는 역할이 아니다. Manager는 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 HIGH 우선 위험 분류로 `qa_required`를 결정한다. LOW 및 증거가 충분한 일부 MEDIUM은 `QA_FINAL=N/A(reason)` 후 Manager ACCEPT가 가능하다. HIGH·독립 검토 필수 MEDIUM은 실제 `qa_docs` 또는 승인된 별도 인간 Reviewer의 Head 연결 PASS가 필요하며, Sub-Agent 미지원과 Reviewer 부재가 동시에 발생하면 BLOCKED다. Agent 명세/TOML 존재는 실행 증거가 아니다.

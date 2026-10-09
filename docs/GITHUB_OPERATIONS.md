@@ -2,6 +2,9 @@
 
 ## Issue #565 위험도 기반 QA_FINAL / 병합 승인 정책
 
+2026-10-10 후속: PR #583 독립 QA F1의 실제 실행 지침(`.codex/agents/infra.toml`) 누락을 보완한다. **QA Review의 필수/N/A는 단순 TOML 존재 여부가 아니라 `risk_level`/`qa_required`/최신 Head·Reviewer 증거로 판정**한다. 기존 Required Quality/E2E/Docker, DOCUMENTATION_SYNC, 미해결 리뷰 해결, Manager ACCEPT 및 main/GHCR 검증 Gate는 유지한다.
+
+
 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 HIGH 우선 LOW/MEDIUM/HIGH 분류를 PLAN·REWORK·PR Head 변경·병합 직전에 다시 점검한다. `qa_required=true`이면 실제 `qa_docs` 또는 구현자와 분리된 승인된 인간 Reviewer의 **최신 Head 독립 검토 PASS**가 필요하다. 그렇지 않은 LOW/일부 MEDIUM은 `QA_FINAL=N/A(reason)`가 가능하며 **Manager ACCEPT**는 두 경우 모두 필수다. #580의 GitHub Actions 자동 QA 대체는 구현 전까지 이 조건을 변경하지 않는다.
 
 실제 활성 `main-lifecycle-gate`는 required check 3개, 최신 main 정렬, 리뷰 스레드 해결을 강제하며 승인 review 수 0이다. **GitHub의 required review 수 0 = Manager ACCEPT 또는 독립 QA PASS가 아니다.** PR에서 `risk_level`/트리거/파일/qa_required/Reviewer identity/QA evidence/Head SHA/Manager 결정을 확인하고, GitHub Ruleset에 없는 운영상 Manager Gate를 자동 강제됐다고 보고하지 않는다. branch ruleset/required checks/권한 변경은 사용자·지정 maintainer의 명시 승인 및 실제 설정 확인 후에만 한다. #565에서 `.github` workflow나 Ruleset은 변경하지 않는다.
@@ -27,13 +30,13 @@ PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, tit
 
 - **새 Merge Commit 제목**: `Issue #<Primary Issue> · PR #<PR> · <한글 Issue명 축약>` (한글 요약 1~30자, 실제 Issue 제목에 근거하여 작성). 본문은 빈 문자열로, 한 줄만 허용한다. 예: `Issue #530 · PR #579 · Gantt 복원 경합 보완`. Issue 번호는 PR body의 정확히 하나인 `Refs #NNN`와 일치해야 한다.
 - Merge 전: PR head SHA 및 최신 main 정렬, required checks 성공, 리뷰·QA, release 승인, PR body/branch/title의 동일 Primary Issue, 실제 Issue 제목을 확인한다. `python3 scripts/main_ci_run_name.py --issue 530 --pr 579 --summary "Gantt 복원 경합 보완"`의 출력을 사용한다.
-- **GitHub Merge API/연결 도구:** `merge_method="merge"`, `commit_title="<생성 결과>"`, `commit_message=""`, `expected_head_sha="<검증 PR head SHA>"`를 **병합 요청 전** 지정한다. Merge 설명에 PR 본문·긴 CI 기록을 복사하지 않는다. 브랜치 보호·기존 approval gate는 그대로다.
+- **GitHub Merge API/연결 도구:** REST API는 `merge_method="merge"`, `commit_title="<생성 결과>"`, `commit_message=""`, `sha="<검증 PR head SHA>"`, **현재 연결 GitHub 도구는 `expected_head_sha`**로 동일 Head를 고정한다. GitHub CLI에서는 `gh pr merge --match-head-commit <SHA>`를 사용한다. 해당 파라미터는 모두 **병합 요청 전** 지정한다. Merge 설명에 PR 본문·긴 CI 기록을 복사하지 않는다. 브랜치 보호·기존 approval gate는 그대로다.
 - **GitHub UI 병합:** 제목란에 표준 한 줄 제목을 직접 입력하고 설명 본문을 비워야 동일 형식이 나온다. 현재 관측된 repository 기본값 `merge_commit_title=MERGE_MESSAGE` / `merge_commit_message=PR_TITLE`은 이를 자동 보장하지 않는다. 관리자 설정은 변경하지 않는다.
-- GitHub Actions `run-name`은 시작 전에 평가되며 표준 expression에는 split/substring/regex 치환이 없다. 표준 제목이면 `Main CI · Issue #N · PR #P · <요약> · Run #R.A`, 표준이 아닌 경우 `Main CI · 기존 병합/직접 Push · <exact SHA> · Run #R.A`로 표시한다. fallback은 Issue/PR/한글 제목을 자동 노출하지 않는 제한이 있다. Finalizer도 표준 제목 또는 SHA fallback과 원본 Main run/attempt를 표시한다.
+- GitHub Actions `run-name`은 시작 전에 평가되며 표준 expression에는 split/substring/regex 치환이 없다. 표준 제목이면 `Main CI · Issue #N · PR #P · <요약> · Run #R.A`, 표준 prefix로 시작해도 개행(LF/CR)을 포함하면 표시를 거부하고, 표준이 아닌 경우 `Main CI · 기존 병합/직접 Push · <exact SHA> · Run #R.A`로 표시한다. CR/LF는 `toJSON(message)`의 `\n`/`\r` escape를 검사한다. fallback은 Issue/PR/한글 제목을 자동 노출하지 않는 제한이 있다. Finalizer도 표준 제목 또는 SHA fallback과 원본 Main run/attempt를 표시한다.
 - `Merge pull request #N`, `Merge PR #N` 구형 커밋은 Primary Issue trace 검증에서 계속 허용하되 과거 Actions 실행명을 소급 수정하지 않는다. 신규 표준 접두어를 사용하면서 형식 오류/개행이 있으면 fail-closed한다. 표시명은 권한 근거가 아니며 실제 Finalizer는 exact merge SHA → merged PR → canonical `Refs #Issue`를 검증한다.
 - 기존 `name: CI`, 세 required checks, `workflow_run.workflows: ["CI"]`, trigger, concurrency, permissions, GHCR/release 승인 정책을 유지하고 앱 버전을 올리지 않는다.
 
-최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
+최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_required=true`인 경우 `qa_docs` 또는 승인된 별도 인간 Reviewer가 독립 검토한다. `qa_required=false`인 경우 Manager가 사유 있는 QA_FINAL N/A 및 검토 증거를 남긴다.
 
 이 문서는 **담당자, 배정 조건, 승인 경계와 보고 절차**의 기준이다. Workflow·tag·image의 기술 계약은 [CI_CD.md](CI_CD.md), runtime과 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 보안은 [SECURITY.md](SECURITY.md), 기존 결정은 [DECISIONS.md](DECISIONS.md)가 기준이다. 역할 확장은 기존 release 정책이나 D05를 변경하지 않는다.
 
@@ -45,7 +48,7 @@ PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, tit
 | GitHub 운영 Issue/PR, template, Dependabot, CI 상태와 release 이력 관리 | infra | 기능 Issue의 도메인 담당과 Manager는 그대로 유지 |
 | CI 실패, runner/cache/network, workflow trigger/job/permission, CI script | infra | Application 결함은 frontend/backend/scheduler가 수정 |
 | GHCR 인증·401/403·repository 연결·visibility·Actions access·image 보관/복구 | infra | HIGH 위험 정책 변경에는 별도 Reviewer 검토, 권한·공개범위·삭제는 지정 maintainer 승인 |
-| Docker/Compose, SQLite volume, Node/native module, readiness와 배포 | infra | backend 협업, qa_docs 독립 검증 |
+| Docker/Compose, SQLite volume, Node/native module, readiness와 배포 | infra | backend 협업, 위험도별 `qa_required=true`면 qa_docs/별도 인간 Reviewer 독립 검증; 미의무인 경우 Manager 증거 검토 |
 | 모든 변경의 최종 ACCEPT/REWORK/보류 판단 | Manager | 구현 Agent의 자체 PASS만으로 승인하지 않음 |
 
 GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한다. Agent ID는 GitHub 사용자 계정이 아니다. Issue에는 `담당 에이전트: infra`로 기록하고 실제 assignee는 확인된 계정만 사용한다. 같은 workflow/script를 여러 Agent가 동시에 수정하지 않는다.
