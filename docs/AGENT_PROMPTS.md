@@ -275,7 +275,7 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 | QA readiness/final QA | qa_required=true: qa_docs 또는 승인된 별도 인간 Reviewer; false: Manager N/A 판정 | DOCUMENTATION_SYNC는 모든 위험도 필수, UI 설계 비교는 ui_ux |
 | PR/CI | infra | 실패 원인에 해당하는 Work Packet 지정 구현 Agent가 수정 |
 | Merge | Manager 승인 + infra 실행 | 독립 QA 의무 시 실제 PASS, 비의무 시 N/A(reason); HEAD별 required checks 필수 |
-| Main CI/GHCR ci image | infra | qa_docs 증거 검토 |
+| Main CI/GHCR ci image | infra | `qa_required=true`이면 qa_docs 또는 승인된 별도 인간 Reviewer가 증거 검토, `qa_required=false`이면 Manager가 CI/GHCR exact-SHA·digest 증거를 직접 확인하고 N/A 사유 기록 |
 | Formal release | Manager 승인 + infra | 명시적 release authorization 필수 |
 | Branch cleanup | infra | 안전성 확인 |
 | Issue closure | Manager 판단 | infra/GitHub 실행 가능 |
