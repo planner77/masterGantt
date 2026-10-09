@@ -1,5 +1,11 @@
 # Manager decisions
 
+## Issue #569 — 시간축 확장 대안과 Adapter ADR (2026-10-09)
+
+[ADR](GANTT_ADAPTER_ADR.md)에서 문서화된 autoScale/start/end, 같은 instance의 명시 범위 변경, 기존 synthetic resize의 세 대안을 실제 설치 Core2.7.3로 비교한다. 공식 최신 문서와 설치 타입/runtime을 같은 버전 계약으로 간주하지 않으며 exec resolve와 native settle을 분리한다.
+
+실험용 adapter 계약을 채택하되 전체 폭에서 연속 확장이 확인되지 않아 제품 도입은 DEFER한다. PoC의 지평 상한은 10 calendar years/1,000,000 CSSpx, trial당 3회 확장, settle 기본 1500ms/최대 5000ms와 3개 안정 frame이다. 실측·실패·불확실성과 rollback 근거를 ADR에 기록하고 제품의 최종 한도는 후속 도입에서 재검토한다. API/DB/domain/권한 계약은 유지한다.
+
 ## Issue #568 — API 반환과 화면 안정화의 분리 (2026-10-09)
 
 PR #562의 pending filter→native0→Core0 feed-back은 두 번 관측했으나 최초 DOM writer와 Inline text writer는 미확정이다. Core 결함·adapter 수정 결정은 후속 이슈에 남기며 이번 도구의 PASS로 기존 제품 회귀를 종료하지 않는다.
@@ -84,7 +90,6 @@ W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calenda
 
 사용자 요구에 따라 HTTPS 기본값은 유지하면서 `ALLOW_INSECURE_HTTP=true` opt-in을 채택한다. HTTP URL만 지정하거나 빈/잘못된 boolean 값이면 fail-closed. 요청 Host/Origin/forwarded header로 설정을 변경하지 않는다. HTTP 전송은 암호화되지 않으므로 조직 승인·네트워크 접근 제한이 별도로 필요하며 HTTPS와 동등한 보안으로 보지 않는다. 쿠키는 포트별로 격리되지 않는다. 운영 전환은 기존 Compose 프로젝트·volume 보존 및 재로그인을 전제로 한다. 코드/브라우저 검증은 [HTTP_OPERATION](HTTP_OPERATION.md)에 정의하고 실제 PASS는 PR/run/head 증거로 판단한다.
 
-
 ## Issue #577 — PR metadata 단발 평가 선택 (2026-10-09)
 
 **결정:** 기존 CI workflow 내 metadata evidence job을 유지하고 stale early-exit와 strict same-SHA 단발 검증으로 대체. 다른 CI의 heavy check를 metadata edit로 취소하지 않는다.
@@ -94,3 +99,5 @@ W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calenda
 **한계·위험:** 동일 SHA full CI가 진행 중인 순간의 metadata-only 단발 검증은 `DEFERRED` 실패 상태가 된다. full CI가 나중에 성공해도 edited metadata check 자동 재실행 이벤트가 보장되지 않으므로, 운영자가 동일 metadata run의 failed job을 재실행하여 정상 증거를 반영한다. 이 흐름의 Ruleset 재평가/원격 Actions 리허설은 PR CI 이후 수행해야 하며 확인 전에는 자동 복구가 검증되었다고 주장하지 않는다. 추후 완전 자동화를 원하면 default-branch 신뢰 경계·동일 SHA·이벤트 체인과 check run 이름 충돌을 검증하는 별도 gate ADR 및 명시 승인이 필요하다.
 
 **Rollback:** 메타데이터 CI가 main strict required check를 부적절하게 덮거나 PR을 막으면 #577 merge 전 수정 또는 merge 후 해당 변경 revert. `pull_request_target`, write token, secret 확대는 금지. `DESIGN.md`는 UI 변화가 없어 N/A. 제품 SemVer/release_required=false.
+
+**충돌 해결:** main의 Issue #569 ADR 결정을 우선 보존하고 Issue #577의 설계 결정을 병합하였다. Codex P1 지적에 따른 metadata_evidence 독립 Runner checkout 단계와 회귀 계약을 추가하였다.

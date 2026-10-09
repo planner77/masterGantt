@@ -50,6 +50,17 @@ require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits m
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
 require("scripts/verify-pr-metadata-evidence.py --mode evidence" in ci_workflow, "metadata evidence must use exact Head state machine")
+metadata_section = ci_workflow.split("  metadata_evidence:", 1)[1].split("\n  policy:", 1)[0]
+require(
+    "uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in metadata_section,
+    "metadata evidence must checkout its own runner with a pinned action",
+)
+require("persist-credentials: false" in metadata_section, "metadata checkout must not retain credentials")
+require(
+    metadata_section.index("uses: actions/checkout@") <
+    metadata_section.index("run: python3 scripts/verify-pr-metadata-evidence.py --mode evidence"),
+    "metadata evidence must checkout before invoking repo-local script",
+)
 require("deadline=$((SECONDS + 1200))" not in ci_workflow and "sleep 10" not in ci_workflow, "metadata evidence must not poll for 20 minutes")
 require("[전체 검증]" in ci_workflow and "[메타데이터 검증]" in ci_workflow, "CI run names must identify type")
 require("timeout-minutes: 5" in ci_workflow.split("  metadata_evidence:", 1)[1].split("  policy:", 1)[0], "metadata evidence timeout must be bounded")

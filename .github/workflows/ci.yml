@@ -243,6 +243,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # changes와 metadata_evidence는 별도 Runner: 명시적으로 작업 브랜치 checkout
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: 현재 PR Head 및 동일 SHA 전체 CI 증거 즉시 판정
         id: evidence
         env:
