@@ -2750,3 +2750,8 @@ Core scale 단일 행·unit 일치·step=1 이외에는 forward/inverse/reveal `
 코드 판정 시나리오는 `python3 scripts/test-pr-metadata-evidence.py`, 정적 계약은 `python3 scripts/verify-issue-lifecycle.py`가 검증한다. 실제 Actions는 원격 검증으로 분리한다. PRE_QA/QA_FINAL은 해당 run 결과를 확보한 뒤에만 PASS 가능하다.
 
 - P1 수정: 별도 metadata_evidence Runner에서 pinned actions/checkout을 수행한 뒤 Python 증거 판정기를 호출하는 순서를 정적 테스트로 검사한다. 문서의 PASS/원격 CI 판정은 GitHub Actions 실측과 구분한다.
+
+
+### Issue #586 FINAL 원자성·동일 Issue 복수 PR 회귀
+
+T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개별 검증·candidate; T3 중간 다른 Issue·closed Issue의 first-parent 순서; T4 동일 SHA 멱등/위조 marker 차단; T5 SHA lease·보호·OPEN PR 참조·branch 404; T6 cleanup preflight 및 candidate 다른 tag 차단; T7 #565 불변 #583 FINAL과 미완료 #585; T8 `scripts/verify-issue-lifecycle.py`, `scripts/verify-safe-branch-cleanup.py`와 PR Quality/E2E/Docker 유지. GitHub PR CI 전 결과는 NOT TESTED이며 정식 release 승인 불변.
