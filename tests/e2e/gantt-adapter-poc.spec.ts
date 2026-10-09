@@ -126,10 +126,32 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["day", "w
       expect(fullscreen.result).toBe("NATIVE_LAYOUT_SETTLED");
       await page.evaluate(() => document.exitFullscreen());
       expect(await page.evaluate(() => window.__issue569!.settle())).toBe("NATIVE_LAYOUT_SETTLED");
+      expect(await page.evaluate(() => window.__issue569!.scroll({ left: 0, top: 0 }))).toBe("NATIVE_LAYOUT_SETTLED");
       const empty = await page.evaluate(() => window.__issue569!.variant("empty"));
+      expect(empty).toMatchObject({ result: "NATIVE_LAYOUT_SETTLED" });
+      const emptyTasks = await page.evaluate(() => window.__issue569!.taskEvidence());
+      expect(emptyTasks.core).toEqual([]);
+      expect(emptyTasks.dom).toEqual([]);
       const milestone = await page.evaluate(() => window.__issue569!.variant("milestone"));
-      await page.evaluate(() => window.__issue569!.variant("normal"));
+      expect(milestone).toMatchObject({ result: "NATIVE_LAYOUT_SETTLED" });
+      const milestoneTasks = await page.evaluate(() => window.__issue569!.taskEvidence());
+      expect(milestoneTasks.core).toEqual([{ id: "synthetic-6", type: "milestone",
+        startMs: new Date(2026, 0, 10).getTime(), endMs: new Date(2026, 0, 10).getTime() }]);
+      expect(milestoneTasks.dom).toContain("synthetic-6");
+      expect(milestoneTasks.dom.every(id => id === "synthetic-6")).toBe(true);
+      const normal = await page.evaluate(() => window.__issue569!.variant("normal"));
+      expect(normal).toMatchObject({ result: "NATIVE_LAYOUT_SETTLED" });
+      const normalTasks = await page.evaluate(() => window.__issue569!.taskEvidence());
+      expect(normalTasks.core).toHaveLength(40);
       const futureTask = mode === "A" ? await page.evaluate(() => window.__issue569!.futureTask()) : "N/A";
+      if (mode === "A") {
+        expect(futureTask).toMatchObject({ result: "NATIVE_LAYOUT_SETTLED" });
+        const futureEvidence = await page.evaluate(() => window.__issue569!.taskEvidence());
+        expect(futureEvidence.core).toHaveLength(40);
+        expect(futureEvidence.core?.find(task => task.id === "synthetic-40")).toMatchObject({
+          startMs: new Date(2028, 0, 5).getTime(), endMs: new Date(2028, 0, 8).getTime(),
+        });
+      }
       let shortAxis: unknown = "N/A";
       if (width === 1440 && scale === "week" && mode === "B") {
         await page.evaluate(() => window.__issue569!.scroll({ left: 0, top: 0 }));
@@ -157,3 +179,19 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["day", "w
     }
   });
 }
+
+test("Issue569 동시 확장 요청은 BUSY로 거부하고 1회만 집계한다", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/diagnostics/gantt-adapter?mode=B&scale=day");
+  await expect.poll(() => page.evaluate(() => !!window.__issue569)).toBe(true);
+  expect(await page.evaluate(() => window.__issue569!.settle())).toBe("NATIVE_LAYOUT_SETTLED");
+  const receipt = await page.evaluate(async () => {
+    const firstPending = window.__issue569!.extend();
+    const second = await window.__issue569!.extend();
+    const first = await firstPending;
+    return { first, second, sample: window.__issue569!.sample() };
+  });
+  expect(receipt.second).toMatchObject({ result: "BUSY" });
+  expect(receipt.first).toMatchObject({ extension: 1 });
+  expect(receipt.second).not.toHaveProperty("extension");
+});

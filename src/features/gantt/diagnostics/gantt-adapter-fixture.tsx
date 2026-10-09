@@ -21,6 +21,7 @@ export interface AdapterTrialControl {
   point: (dateMs: number) => ReturnType<GanttAdapter["dateToViewportPx"]>;
   inverse: GanttAdapter["viewportPxToDate"];
   extend: () => Promise<unknown>;
+  taskEvidence: () => { core: Array<{ id: string; type: string; startMs: number | null; endMs: number | null }> | null; dom: string[] };
   resizeGrid: () => Promise<unknown>;
   split: () => Promise<unknown>;
   variant: (variant: "normal" | "empty" | "milestone") => Promise<unknown>;
@@ -33,7 +34,7 @@ declare global { interface Window { __issue569?: AdapterTrialControl; } }
 
 export function GanttAdapterFixture({ mode, scale }: { mode: "A" | "B" | "C"; scale: "day" | "week" }) {
   const root = useRef<HTMLDivElement>(null), api = useRef<IApi | null>(null), adapterRef = useRef<GanttAdapter | null>(null);
-  const instance = useRef(0), extensions = useRef(0), endRef = useRef(INITIAL_END);
+  const instance = useRef(0), extensions = useRef(0), extending = useRef(false), endRef = useRef(INITIAL_END);
   const [ready, setReady] = useState(false), [end, setEnd] = useState(INITIAL_END), [display, setDisplay] = useState<"all" | "chart">("all");
   const [split, setSplit] = useState(false), [variant, setVariant] = useState<"normal" | "empty" | "milestone">("normal");
   const pendingCommits = useRef(new Set<(cancel?: boolean) => void>());
@@ -76,22 +77,38 @@ export function GanttAdapterFixture({ mode, scale }: { mode: "A" | "B" | "C"; sc
       sample, settle: adapter.settle, scroll: adapter.scroll, trace: adapter.trace,
       configure(run, head) { if ([run, head].some(item => !/^[\w.-]{1,64}$/.test(item))) throw new Error("Invalid diagnostic identity"); Object.assign(context.current, { run, head }); },
       revealDate: date => adapter.revealDate(new Date(date)), point: date => adapter.dateToViewportPx(new Date(date)), inverse: adapter.viewportPxToDate,
+      taskEvidence() {
+        const observed = (value.getState() as unknown as { tasks?: ITask[] }).tasks;
+        const core = Array.isArray(observed) ? observed.map(task => ({
+          id: String(task.id), type: String(task.type ?? "task"),
+          startMs: task.start instanceof Date ? task.start.getTime() : null,
+          endMs: task.end instanceof Date ? task.end.getTime() : null,
+        })) : null;
+        const dom = Array.from(element.querySelectorAll<HTMLElement>("[data-task-id]"),
+          node => node.getAttribute("data-task-id")?.replace(/^:/, "") ?? "")
+          .filter(id => id.startsWith("synthetic-"));
+        return { core, dom };
+      },
       async extend() {
         const before = sample();
+        if (extending.current) return { result: "BUSY", before, after: sample() };
         if (extensions.current >= 3) return { result: "BOUND_EXCEEDED", before, after: sample() };
-        extensions.current++;
-        let result: string;
-        if (mode === "C") {
-          result = await adapter.resizeCompatibility((before.core.scaleWidth ?? 0) + (scale === "day" ? 36 * 91 : 68 * 13));
-        } else {
-          const next = new Date(endRef.current); next.setDate(next.getDate() + 91); result = await afterCommit(() => setEnd(next.getTime()));
-        }
-        const after = sample();
-        const checks = { instance: before.apiInstance === after.apiInstance, selection: JSON.stringify(before.core.selected) === JSON.stringify(after.core.selected),
-          origin: before.core.originMs === after.core.originMs, position: before.core.left === after.core.left && before.core.top === after.core.top,
-          range: after.core.scaleWidth !== null && before.core.scaleWidth !== null && after.core.scaleWidth > before.core.scaleWidth,
-          capacity: before.geometry.ok && after.geometry.ok && after.geometry.value.scrollWidth > before.geometry.value.scrollWidth };
-        return { mode, extension: extensions.current, result, checks, supported: result === "NATIVE_LAYOUT_SETTLED" && Object.values(checks).every(Boolean), before, after };
+        extending.current = true;
+        try {
+          extensions.current++;
+          let result: string;
+          if (mode === "C") {
+            result = await adapter.resizeCompatibility((before.core.scaleWidth ?? 0) + (scale === "day" ? 36 * 91 : 68 * 13));
+          } else {
+            const next = new Date(endRef.current); next.setDate(next.getDate() + 91); result = await afterCommit(() => setEnd(next.getTime()));
+          }
+          const after = sample();
+          const checks = { instance: before.apiInstance === after.apiInstance, selection: JSON.stringify(before.core.selected) === JSON.stringify(after.core.selected),
+            origin: before.core.originMs === after.core.originMs, position: before.core.left === after.core.left && before.core.top === after.core.top,
+            range: after.core.scaleWidth !== null && before.core.scaleWidth !== null && after.core.scaleWidth > before.core.scaleWidth,
+            capacity: before.geometry.ok && after.geometry.ok && after.geometry.value.scrollWidth > before.geometry.value.scrollWidth };
+          return { mode, extension: extensions.current, result, checks, supported: result === "NATIVE_LAYOUT_SETTLED" && Object.values(checks).every(Boolean), before, after };
+        } finally { extending.current = false; }
       },
       async resizeGrid() { await value.exec("set-columns", { columns: [{ id: "text", header: "작업", width: 240 }] }); await value.exec("resize-grid", { width: 240 }); return { result: await adapter.settle(), sample: sample() }; },
       async split() { return { result: await afterCommit(() => setSplit(current => !current)), sample: sample() }; },

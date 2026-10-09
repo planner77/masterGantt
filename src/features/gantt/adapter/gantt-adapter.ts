@@ -152,7 +152,13 @@ export function createGanttAdapter(options: GanttAdapterOptions) {
   const dateToViewportPx = (date: Date): AdapterRead<Readonly<{ contentX: number; viewportX: number }>> => {
     const failure = validate(); if (failure) return { ok: false, result: failure as AdapterFailure | "NO_SCROLL_CAPACITY" };
     const origin = options.axis.origin(), width = options.axis.cellWidth();
-    const observedOrigin = api.getState()._start;
+    const state = api.getState();
+    const observedOrigin = state._start;
+    // 공개 Core scale 계약과 controlled 설정이 일치하지 않으면 좌표 계산을 허용하지 않는다.
+    if (!Array.isArray(state.scales) || state.scales.length !== 1 ||
+      state.scales[0].unit !== options.axis.unit() || state.scales[0].step !== 1) {
+      return { ok: false, result: "UNMEASURABLE" };
+    }
     // 현재 단일 row Day/Week만 지원한다. 짧은 축의 자동 stretch는 설정 cellWidth와 다르므로 DOM tick 폭으로 안전 거부한다.
     const tickWidth = root.querySelector<HTMLElement>(".wx-scale .wx-cell")?.getBoundingClientRect().width;
     if (tickWidth === undefined || !Number.isFinite(tickWidth) || Math.abs(tickWidth - width) > 0.001) return { ok: false, result: "UNMEASURABLE" };

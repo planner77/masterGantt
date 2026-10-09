@@ -75,3 +75,10 @@ C의 synthetic width 적용과 physical width 복원 사이에 취소되면 Core
 기존 main의 #367/#514 원본 회귀는 8/8 PASS, 별도 PR #562의 #551 원본 회귀는 2/2 PASS다. source가 다른 이 결과를 신규 adapter 또는 Milestone stack 전체의 PASS로 옮기지 않는다. [회귀 manifest](evidence/issue569/regression/manifest.json)와 [공식 demo 영수증](evidence/issue569/official/receipt.json)을 구분한다.
 
 최종 source를 고정한 Chromium matrix는 10/10 PASS(30개 A/B/C trial)이며, 그 직전 clean matrix도 10/10 PASS다. 최종 단일 Unit suite는 19 PASS, typecheck와 변경 파일 lint는 PASS다. [Adapter manifest](evidence/issue569/adapter/manifest.json)는 source 및 선별 산출물 SHA-256을 고정한다. 이 로컬 결과는 PR CI 결과를 대체하지 않는다.
+
+## PR #576 코드 리뷰 보완 (2026-10-09)
+
+- 날짜↔px는 실제 Core `state.scales`가 정확히 1행이며 controlled `axis.unit`과 같은 단위이고 `step===1`일 때에만 계산한다. 불일치 시 `UNMEASURABLE`.
+- 개발용 PoC의 `extend`는 진행 중 재진입을 `BUSY`로 거부한다. 중복 요청은 확장 예산을 소비하거나 동일 React state commit을 성공으로 계상하지 않는다.
+- Empty/Milestone/A-mode future task는 settle 결과와 실제 Core task 상태·native DOM 상태를 검사한다. 검증용 변화일 뿐이며 제품 적용은 계속 DEFER.
+- 과거 브라우저 증거는 이전 Head의 결과이고 새로운 PR CI는 별도 확인이 필요하다.

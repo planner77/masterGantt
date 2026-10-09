@@ -16,7 +16,7 @@ function fixture({ version = "2.7.3", compatibility = true, unit = "day" as "day
     addEventListener: (name: string, listener: EventListener) => listeners.set(name, listener), removeEventListener: (name: string) => listeners.delete(name),
   } as unknown as HTMLElement;
   const state = { scrollLeft: 0, scrollTop: 0, _start: new Date(2026, 0, 5), _end: new Date(2026, 2, 1), _scales: { width: 2000 }, _chartWidth: 400, _chartHeight: 300,
-    _scrollSize: 0, cellWidth: unit === "day" ? 36 : 68, selected: ["synthetic-1"] };
+    _scrollSize: 0, cellWidth: unit === "day" ? 36 : 68, selected: ["synthetic-1"], scales: [{ unit, step: 1 }] };
   const exec = vi.fn((action: string, params: { left?: number; top?: number }) => {
     if (action === "scroll-chart") { state.scrollLeft = chart.scrollLeft = params.left!; state.scrollTop = vertical.scrollTop = params.top!; }
     return Promise.resolve();
@@ -48,6 +48,20 @@ describe("Gantt adapter 안전 경계", () => {
     expect(f.adapter.dateToViewportPx(new Date(2026, 0, 12))).toEqual({ ok: false, result: "UNMEASURABLE" });
     expect(f.adapter.viewportPxToDate(68)).toEqual({ ok: false, result: "UNMEASURABLE" });
     expect(await f.adapter.revealDate(new Date(2026, 0, 12))).toBe("UNMEASURABLE"); expect(f.exec).not.toHaveBeenCalled(); f.adapter.dispose();
+  });
+  it("다중 scale/단위/step 불일치 시 좌표변환과 reveal을 거부한다", async () => {
+    const f = fixture();
+    for (const scales of [[], [{ unit: "day" as const, step: 1 }, { unit: "week" as const, step: 1 }],
+      [{ unit: "week" as const, step: 1 }], [{ unit: "day" as const, step: 2 }]]) {
+      f.state.scales = scales;
+      expect(f.adapter.dateToViewportPx(new Date(2026, 0, 12))).toEqual({ ok: false, result: "UNMEASURABLE" });
+      expect(f.adapter.viewportPxToDate(252)).toEqual({ ok: false, result: "UNMEASURABLE" });
+      expect(await f.adapter.revealDate(new Date(2026, 0, 12))).toBe("UNMEASURABLE");
+    }
+    expect(f.exec).not.toHaveBeenCalled();
+    f.state.scales = [{ unit: "day", step: 1 }];
+    expect(f.adapter.dateToViewportPx(new Date(2026, 0, 12)).ok).toBe(true);
+    f.adapter.dispose();
   });
   it("hidden/inert/분리된 DOM에서는 명령을 보내지 않는다", async () => {
     const f = fixture({ hidden: true }); expect(f.adapter.readGeometry()).toEqual({ ok: false, result: "UNMEASURABLE" });

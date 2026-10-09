@@ -41,3 +41,7 @@ Local Fast Feedback: 최종 단일 Unit suite 19 PASS, typecheck PASS, 변경 �
 [Adapter summary](../../evidence/issue569/adapter/summary.json)와 [manifest](../../evidence/issue569/adapter/manifest.json)에 최종 source, 명령, 측정값, 실패 이력과 제외한 mixed-source 실행을 남겼다. 실제 경계 날짜 기하·10년 장거리 성능·다중 scale은 NOT TESTED다.
 
 DOCUMENTATION_SYNC: ADR 및 필수 ARCHITECTURE/DECISIONS/PROJECT_UX/MILESTONE_TIMELINE/TEST_PLAN/active PLAN 갱신. API/DB/auth/domain/CI/배포/시각 언어·Agent 역할 변경 N/A 근거는 구현 후에도 유효하다. 독립 PRE_QA 후 원격 branch/PR과 exact-head CI 시작으로 전달한다. CI 결과·QA_FINAL·main/GHCR·Issue 종료는 요청 범위 밖이며 NOT TESTED다.
+
+## PR #576 리뷰 보완 (2026-10-09)
+
+Codex P2 3건(Scale 불일치, 중복 확장, Empty/Milestone/Future assertion)을 소스·단위/E2E·ADR·TEST_PLAN에 반영한다. 기존 제품 writer 미변경, 버전 0.103.1, 제품 도입 DEFER, 병합/GHCR 제외를 유지한다. 새 PR CI 시작 후 결과는 별도 검증한다.
