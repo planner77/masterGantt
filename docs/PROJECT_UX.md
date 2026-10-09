@@ -1,3 +1,8 @@
+
+## Issue #553 — Canonical viewport 동기화 순서 후속 교정 (2026-10-09)
+
+Gantt의 변경 후 viewport는 canonical snapshot 동기화, WBS projection, 사용자 열 설정의 적용 순서가 모두 완료되기 전에는 복원 완료로 판정하지 않는다. `set-columns`가 최종 크기를 변경할 수 있으므로 이전 Task 수와 동일한 WBS scope에서 받은 metadata/delete 응답의 viewport 복원 요청을 마지막 컬럼 작업까지 보존한다. 명시적 Task 검색으로 실제 visible ID 집합이 변경되면 이전 위치를 복원하지 않는다. 날짜 선택에 따른 `scroll-chart` 이동은 이전 복원보다 우선하며 내부 Core 레이아웃 보정은 사용자 입력으로 잘못 판정하지 않는다.
+
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
 ## Issue #514 — Grid 시작 위치와 지연된 peer 복원

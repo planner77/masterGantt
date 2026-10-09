@@ -1,3 +1,11 @@
+## Issue #553 — CI #2258 Chromium 추가 실패 범위 (2026-10-09)
+
+- 근거: [PR CI #2258](https://github.com/planner77/masterGantt/actions/runs/37862064001), head `5e09f067`, quality/Vitest/typecheck/lint/build/Docker PASS, Chromium shard 3~6 총15건 FAIL.
+- Gantt viewport: Task metadata와 confirmed deletion 및 401/412/network 거부 뒤 `set-columns`와 WBS `filter-tasks` 완료까지 한 번만 초기 public/DOM left·top을 복원하고, 정확한 task filter가 변한 경우에는 stale viewport를 강제로 재생하지 않는다. 일반 CRUD의 행 수 변경과 실제 검색 조건으로 필터된 행 집합 변경은 별도로 검증한다.
+- Timeline/date: 선택한 날짜 탐색의 명시적 요청은 snapshot보다 우선하며 390/768/1024/1440/1920px lane tick↔native 1px, Day/Week scale/연속 축 확장 회귀를 계속 보존한다.
+- Relation/Inline: 좁은 화면에서는 UUID가 일치하는 native 셀에 Shift+F10 키보드 Context Menu로 진입하고 Editor의 작업명까지 확인한다. Tab blur의 name-only PATCH는 정확히 1회이며 Core inline editor가 닫히고 바뀐 이름이 표시돼야 한다.
+- Add와 알림: canonical sync generation/depth와 버튼 aria-disabled 준비 완료 후 native Add를 클릭하고 실제 POST 201 및 Summary 승격을 확인한다. 타임아웃 증가/skip/검증 삭제로 통과 처리하지 않는다.
+
 ## Issue #553 — PR CI #2255 후속 회귀 (2026-10-09)
 
 [원본 PR CI #2255](https://github.com/planner77/masterGantt/actions/runs/37859565333)에서 E2E 14개 FAIL, quality/Vitest/typecheck/lint/build/Docker PASS.

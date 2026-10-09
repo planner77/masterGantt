@@ -114,3 +114,13 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - #456 실제 Chart scrollable 범위가 120px 이상인지 보장하기 위해 필터 조건 밖 미래 Milestone fixture를 설정하고 0행 변경 후 public/DOM 원점 복원 판정. #266 390px은 실제 이름 target과 열려 있는 관계 탭 확인. #344 412 후 같은 scrollLeft 수렴, #notifications DOM↔Core baseline 동기화 후 상태 불변.
 - #140 Tab에 의한 blur는 Core Editor 입력 해제 전에 revision guarded name-only PATCH를 정확히 한 번 실행하고 Escape/invalid/401 가드를 유지한다.
 - 보완 소스 커밋 ff39fb4030a33c22e40d9b821540bbad5a1cd783. 새 exact-head PR CI 통과 여부/QA_FINAL은 NOT TESTED; merge/main/GHCR/release/Issue 종료/브랜치 정리하지 않는다.
+
+## PR CI #2258 실패 보완 및 정식 재검증 착수 (2026-10-09 KST)
+
+- 최초 실패 run: https://github.com/planner77/masterGantt/actions/runs/37862064001; exact head `5e09f0673d0a190491287f3fd472cba7e74e3eda`. TypeScript/Vitest/ESLint/Build/Docker/정책 및 E2E shard 1,2 PASS. Chromium shard 3~6 FAIL(15).
+- 주요 원인: metadata/confirmed deletion 후 canonical sync → controlled WBS projection → `set-columns` 사이에 viewport snapshot을 조기 cleanup하여 Core가 left=0,19,100으로 재설정함. 개별 스크롤 복원 요청의 수명을 마지막 컬럼 동기화까지 유지하고, 새 검색 결과 집합 변경은 복원하지 않도록 명시적 active-filter flag로 제한한다.
+- 390px Relation Editor: pointer 자동 스크롤 중 SVAR virtualized 행이 바뀌어 Stable leaf 대신 Secondary relation target이 열림. 정확한 Task UUID 셀에 native Shift+F10 키보드 진입으로 검사하며 잘못된 행이 열리면 계속 FAIL한다.
+- Inline Tab: name-only PATCH 이후 native editor가 남아 이전 값을 표시하는 경계는 Core editor의 `ignore:true` 종료로 동기화한다. 중복 mutation 및 Escape 취소는 기존 회귀를 유지한다.
+- 최초 native Add: 동기화 generation/depth/aria-disabled 준비 상태를 확인한 후 실제 Core row 버튼을 클릭한다. 기존 POST 201/parent-conversion 검증·검증 timeout은 유지한다.
+- 날짜 probe/reveal은 과거 viewport 복원 요청을 명시적으로 무효화하고, Core 내부의 기하 보정 `scroll-chart`는 새 사용자 이동으로 간주하지 않는다. #551의 날짜축 pixel alignment와 연속 확장 E2E를 그대로 실행한다.
+- 구현 head `77174c42b6b6252bbbcb265a20cb5e28dd9df61e`, PR CI https://github.com/planner77/masterGantt/actions/runs/37864863009 (#2264). 등록 후 원격 최종 E2E/QA 판정은 run 결과 전까지 NOT TESTED. 병합/main/GHCR/릴리스/tag/Issue 종료를 진행하지 않는다.
