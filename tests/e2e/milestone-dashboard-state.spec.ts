@@ -102,8 +102,19 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
   await page.goto(`/projects/${publicId}`); await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), identity = await frame.getAttribute("data-project-gantt-api-instance");
   const viewport = () => frame.evaluate((element) => ({ public: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, dom: { left:element.querySelector(".wx-chart")!.scrollLeft,top:element.querySelector(".wx-gantt")!.scrollTop } }));
+  const observations: unknown[] = [];
+  const observe = async (phase: string) => {
+    observations.push({ phase, ...await frame.evaluate((element) => {
+      const owner = element.querySelector(".wx-gantt")!, chart = element.querySelector(".wx-chart")!;
+      return { public: Reflect.get(element, "__masterganttPublicViewport"), native: { left: chart.scrollLeft, top: owner.scrollTop },
+        rows: element.querySelectorAll(".wx-row").length, renderedGridRows: element.querySelectorAll('[role="row"]').length,
+        vertical: { scrollHeight: owner.scrollHeight, clientHeight: owner.clientHeight, capacity: owner.scrollHeight - owner.clientHeight },
+        identity: element.getAttribute("data-project-gantt-api-instance"), restore: element.getAttribute("data-gantt-peer-restore"),
+        filterResult: document.querySelector(".project-filter-result")?.textContent, events: element.getAttribute("data-gantt-public-scroll-events") };
+    }) });
+  };
   try {
-    // Wait for actual week-scale scroll geometry before checking viewport persistence.
+    // 실제 Week 스크롤 범위가 생긴 뒤 기존 peer/layout 보존 계약을 검증한다.
     await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
     await expect.poll(() => chart.evaluate((element) => element.scrollWidth - element.clientWidth), {
       message: "Week timeline needs at least 120px of horizontal scroll",
@@ -113,12 +124,68 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await page.setViewportSize({ width: 1456, height: 900 }); await page.setViewportSize({ width: 1440, height: 900 }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } }); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
-    // Native scroll may already be preserved with the same instance, without a peer-restore event.
-    // A missing diagnostic marker is valid; a new event triggered by search is not.
+    // 같은 인스턴스가 native 좌표를 보존하면 restore marker가 없을 수 있다.
+    // 검색 때문에 이전 peer 요청이 다시 실행되어 marker가 바뀌면 실패한다.
     const restored = await frame.getAttribute("data-gantt-peer-restore");
     const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
-    await search.fill("Stable leaf"); await search.fill("");
+    await observe("before-filter");
+    await search.fill("Stable leaf");
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
+    await expect(frame.getByRole("row")).toHaveCount(2);
+    await expect(frame.getByRole("gridcell", { name: "Stable leaf", exact: true })).toBeVisible();
+    await observe("filter-applied");
+    await search.fill("");
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
+    await observe("filter-cleared");
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
-    await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left: 120, top: 96 } });
-  } finally { await testInfo.attach("public-viewport-events", { body: JSON.stringify({ viewport: await viewport(), events: await frame.getAttribute("data-gantt-public-scroll-events"), restored: await frame.getAttribute("data-gantt-peer-restore") }), contentType: "application/json" }); }
+    // 필터가 한 행으로 줄면서 발생한 합법적 clamp를 과거 peer 좌표로 복원하지 않는다.
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
+    const userViewport = { public: { left: 180, top: 128 }, dom: { left: 180, top: 128 } };
+    await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(180);
+    await vertical.evaluate(element => { element.scrollTop = 128; });
+    await chart.evaluate(element => { element.scrollLeft = 180; });
+    await expect.poll(viewport).toEqual(userViewport);
+    await observe("new-user-viewport");
+    // 18행이 남아 128px capacity를 유지하는 필터로 오래된 120/96 재실행을 구분한다.
+    await search.fill("단계");
+    await expect(page.locator(".project-filter-result")).toHaveText(`18개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
+    await expect.poll(viewport).toEqual(userViewport);
+    await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
+    await observe("capacity-preserving-filter");
+    await search.fill("");
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
+    await expect.poll(viewport).toEqual(userViewport);
+    await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
+    await observe("capacity-preserving-filter-cleared");
+    const layoutWidth = await frame.evaluate(element => element.clientWidth);
+    await page.setViewportSize({ width: 1456, height: 900 });
+    await expect.poll(() => frame.evaluate(element => element.clientWidth)).toBeGreaterThan(layoutWidth);
+    await expect.poll(viewport).toEqual(userViewport);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect.poll(() => frame.evaluate(element => element.clientWidth)).toBe(layoutWidth);
+    await expect.poll(viewport).toEqual(userViewport);
+    await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
+    // 마지막 layout 뒤 3개의 실제 frame에서 늦은 stale 복원이 없는지도 확인한다.
+    for (let index = 0; index < 3; index++) {
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      expect(await viewport()).toEqual(userViewport);
+      expect(await frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+      expect(await frame.getAttribute("data-project-gantt-api-instance")).toBe(identity);
+    }
+    await observe("new-user-layout-cycle");
+  } finally {
+    if (process.env.ISSUE569_REWORK_EVIDENCE_DIR) {
+      await mkdir(process.env.ISSUE569_REWORK_EVIDENCE_DIR, { recursive: true });
+      await writeFile(`${process.env.ISSUE569_REWORK_EVIDENCE_DIR}/filter-viewport-phases.json`, JSON.stringify({ observations, status: testInfo.status }, null, 2));
+    }
+    await testInfo.attach("filter-viewport-phases", { body: JSON.stringify(observations), contentType: "application/json" }); await testInfo.attach("public-viewport-events", { body: JSON.stringify({ viewport: await viewport(), events: await frame.getAttribute("data-gantt-public-scroll-events"), restored: await frame.getAttribute("data-gantt-peer-restore") }), contentType: "application/json" }); }
 });

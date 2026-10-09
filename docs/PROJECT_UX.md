@@ -6,6 +6,8 @@
 
 실제 공간 부족 시 제안된 회복은 보이는 layout 복귀, Chart 공간 확대, 사용자 명시 재시도다. 자동 무한 retry나 오래된 viewport 적용을 하지 않는다. 이 제안은 제품 도입 전 UX 연결이 필요하며 #569만으로 새 feedback 흐름이 제품에 구현된 것은 아니다. 기존 #367의 우측 탐색, #514의 Task 시작일 reveal, #551 비교 stack의 Milestone geometry와 원본 identity/권한 계약은 별도 회귀로 유지한다.
 
+#569의 PR CI 보완에서는 peer/layout 복귀의 동일 scope 위치 보존과 검색으로 줄어든 행의 native scroll clamp를 구분한다. capacity 0인 검색 결과에 이전 세로 위치를 강제하지 않으며, 검색 해제 후 새 사용자 위치를 오래된 peer 복원이 덮어쓰지 않는지 검증한다. 이번 변경은 이 기존 경계를 확인하는 테스트 보완이며 제품 viewport writer나 검색 동작을 바꾸지 않는다.
+
 ## Issue #568 — 실제 동기화 완료의 관측
 
 고정 PR #562의 로컬 반복에서 pending wheel의 최신 사용자 위치와 Week 전환 후 Inline 이름 표시 계약 위반이 재현됐다. 이번 진단 도구 추가는 이 두 제품 회귀의 해결을 의미하지 않는다.

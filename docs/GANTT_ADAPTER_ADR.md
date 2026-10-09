@@ -103,3 +103,9 @@ C의 synthetic width 적용과 physical width 복원 사이에 취소되면 Core
 - 기존 #463 테스트는 복원 이벤트가 아예 불필요한 same-instance 상황의 `data-gantt-peer-restore=null`을 허용하되, 검색 전후 raw marker 불변과 Core/native viewport strict equality를 확인한다. 앱 writer는 변경하지 않는다.
 - 기존 #530 테스트는 Playwright 공식 Clock의 install→pauseAt 시각 역행을 피하기 위해 pause 목표를 먼저 고정하고 가상 install 시각을 60초 앞서 설정한다. pause는 같은 현실시각에서 이뤄지며 이어지는 500ms 안정성 검증을 유지한다. 해당 버전/CI runner에서의 최종 통과는 새 PR CI 결과만이 근거다.
 - 제품 적용 DEFER, 기존 version 0.103.1, merge/release/Issue 종료 제외는 유지한다. [Playwright Clock 공식 문서](https://playwright.dev/docs/api/class-clock).
+
+## PR CI 반복 실패의 증거 경계
+
+최초 `evidence/issue569/adapter/manifest.json`과 summary는 PR 최초 head `469de57567d8b06269b649f76caa67071fc0d613`에 대응하는 source snapshot이다. 이후 P2 및 CI 보완의 현재 source hash로 재표시하지 않는다. 최신 작업 baseline은 `9f0458124198470872c6764cbd5b00dedc75417b`이며 그 CI #2295.1에서는 #569 PoC를 포함한 shard 1이 PASS였다. 이 실행의 전체 E2E는 별도 #463 검색 후 viewport 기대값 때문에 FAIL이므로 전체 PASS로 해석하지 않는다.
+
+Empty는 공개 serialize 결과를 정규화하고 Milestone은 종료일이 없는 시점으로 검증한다. Chart-only 확대는 native 측정 가능 조건을 기다린 뒤 기존 3-frame settle을 요구한다. 이 기존 보완을 유지하며 현재 REWORK는 #463의 peer/layout 보존과 filter 축소의 native clamp를 구분하는 검증 보완이다. adapter 구현·지원 분류·제품 도입 DEFER와 PoC 상한은 이번 보완에서 변경하지 않는다. 상세 최초 오류와 실행별 연결은 Work Packet의 종합 실패 이력으로 관리한다.

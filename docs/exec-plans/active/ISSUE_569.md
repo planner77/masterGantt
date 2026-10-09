@@ -56,4 +56,22 @@ Codex P2 3건(Scale 불일치, 중복 확장, Empty/Milestone/Future assertion)�
 
 - Quality/Docker SUCCESS, Chromium E2E shard 1/2/6 각각 1건 FAIL. shard1: 390 Day Chart-only native capacity 재계측 직후 아직 없음. shard2: #463 optional peer-restore 진단 attribute null 접근. shard6: #530 Playwright Clock `install` 후 `pauseAt(now)` 시간 경합.
 - #569의 native geometry readiness와 3-frame settle, #463의 복원 속성 raw 불변+Core/native 좌표 엄격 비교, #530의 clock 목표시간 고정/설치시각 오프셋을 최소 범위 수정한다. 제품 writer/API/DB/릴리스 정책은 변경하지 않는다. 기존 회귀 테스트 2건 수정은 해당 실패가 필수 CI를 차단하여 사용자 재검증 지시 범위에서 필요한 검증 안정화다.
-- 새로운 Head의 unit/typecheck/E2E/docker 결과는 CI 확인 전까지 NOT VERIFIED이다. CI 시작 후 병합·GHCR·Issue 종료는 수행하지 않는다.
+- 새로운 Head의 unit/typecheck/E2E/docker 결과는 CI 확인 전까지 NOT TESTED이다. CI 시작 후 병합·GHCR·Issue 종료는 수행하지 않는다.
+
+## PR #576 반복 CI 실패 종합 REWORK (2026-10-09)
+
+이번 재개는 기존 branch/PR을 재사용한다. 작업 baseline은 원격 head `9f0458124198470872c6764cbd5b00dedc75417b`, tree `8f7906d325c53d8ba1c9ee6e52f8a9a7fef8e1c7`이며 최초 main parent는 유지한다. 기존 원격 보완 4개 commit을 보존하고 과거 local freeze는 backup branch에 보관했다. 요청 종료점은 보완 게시 후 새 exact-head PR CI 시작이며 이후 모니터링·병합·릴리스·Issue 종료는 제외한다.
+
+REWORK ownership: infra는 5개 CI run/attempt의 실패 원인 분석, `evidence/issue569/rework/ci-history.json`, 원격 게시를 담당한다. frontend는 `tests/e2e/milestone-dashboard-state.spec.ts`의 #463 viewport/consumed-restore 테스트와 별도 로컬 증거만 수정한다. Manager는 원인·필수 문서·버전 결정을, qa_docs는 read-only 독립 검토를 맡는다. 제품 writer·다른 테스트·workflow·package/lock 수정은 별도 근거 없이 확대하지 않는다. version 0.103.1 유지, release_required=false/release_authorized=false, 제품 adapter 도입 DEFER다.
+
+CI #2291.1은 전체 PASS였다. #2292.1은 getState().tasks를 배열로 가정한 empty 관측 하네스의 null 기대 불일치, #2293.1은 Milestone의 end 부재, #2294.1은 Chart 확대 직후 준비 시점·optional 복원 진단값 null·Clock 과거 이동에서 실패했다. 이 증상들은 기존 보완 후 #2295.1에서 통과했다. 최신 #2295.1의 유일 실패는 검색 후 세로 위치를 96으로 고정한 신규 assertion이며 실제 public/native top은 모두 0, left는 모두 120이었다. 모든 실행의 quality/docker는 PASS, 실패는 E2E이며 setup/network/권한 문제가 아니다. 모든 run은 attempt 1이며 최초 오류를 재실행으로 덮지 않았다.
+
+수정 전 원본 targeted 재현과 filter row/capacity·public/native 이벤트를 대조한다. peer/layout의 120/96 보존과 검색으로 축소된 행의 native clamp는 별도 조건이다. 검색 완료 후 새 사용자 viewport가 오래된 peer 복원으로 덮이지 않는지 exact Core/native·동일 instance로 검증하고 timeout/skip/retry/gate를 완화하지 않는다. 실제 결과와 새 DOCUMENTATION_SYNC/PRE_QA는 아래에 추가한다. 새 head의 quality/e2e/docker 및 QA_FINAL은 모두 NOT TESTED다.
+
+
+종합 원격 증거는 [CI history](../../evidence/issue569/rework/ci-history.json)에 5개 run/head/attempt와 실패 job/step·수정 commit 연결·원문 로그 hash로 고정한다. 최초 adapter manifest와 별도로 관리하며 최초 source를 현재 head로 오인하지 않는다. 현재 보완은 검색 1행의 capacity 0과 clear 완료를 확인한 뒤 새 사용자 180/128이 충분한 행의 filter/clear에서도 유지되는지 검증한다. layout은 1456px에서 실제 frame 폭 증가, 1440px에서 원폭 복귀를 기다리고 마지막 3개 실제 RAF에서 좌표·marker·instance가 정확히 유지되는지 확인한다. 예전 peer 120/96 복원이 다시 발생하면 실패한다.
+
+
+REWORK Local Fast Feedback: 원본 baseline targeted 1 FAIL 및 계측 targeted 1 FAIL에서 동일한 검색 후 top96/actual0 불일치를 보존했다. 최종 source의 targeted 독립 3회는 각각 1 PASS, 해당 spec 전체는 6/6 PASS(23.8초), typecheck PASS, 변경 파일 lint PASS(경고 0)다. 마지막 실제 RAF의 public/native 180/128, 동일 instance와 restore marker 불변을 확인했다. next-env.d.ts와 전체 spec이 생성한 기존 output은 baseline으로 복원했다. [로컬 summary](../../evidence/issue569/rework/summary.json) 및 [manifest](../../evidence/issue569/rework/manifest.json)에 원본·최종 source hash와 실제 phase별 관측을 남겼다.
+
+DOCUMENTATION_SYNC REWORK: ADR, TEST_PLAN, PROJECT_UX, active PLAN과 이 실행 계획을 현재 구현·실패 이력에 맞췄다. ARCHITECTURE/MILESTONE_TIMELINE/API/DB/SECURITY/SCHEDULING/CI_CD/REMOTE_VALIDATION/DESIGN/AGENTS는 adapter/제품/서버/워크플로/배포/시각 언어·역할 계약 변경이 없어 N/A다. 최초 문서와 증거는 당시 source의 이력으로 유지한다. 독립 PRE_QA 후 기존 PR #576에 게시하며 새 exact-head quality/e2e/docker·QA_FINAL·Manager 최종 ACCEPT는 NOT TESTED다.
