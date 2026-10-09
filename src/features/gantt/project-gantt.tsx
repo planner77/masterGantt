@@ -1428,6 +1428,12 @@ export function ProjectGantt({
     if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
     taskUpdateGateway(event);
   }, [taskUpdateGateway]);
+  // Only a Summary's dated/empty-container transition needs the native
+  // column getters to be rebuilt. Routine canonical names, metadata and
+  // ordinary Task deletion are applied through update/delete-task, not
+  // through set-columns (which resets the native horizontal viewport).
+  const summaryColumnKey = JSON.stringify(tasks.filter(task => task.type === "summary")
+    .map(task => [task.taskId, task.start, task.end, task.duration]));
   const columns = useMemo(
     () => [{ id: "copySelection", header: "선택", width: 56, hidden: false, align: "center" as const, cell: ProjectTaskSelectionCell }, ...baseProjectColumns.map((column) => (
       column.id === "milestoneStage"
@@ -1477,11 +1483,9 @@ export function ProjectGantt({
             }
             : column
     ))],
-    // Grid getters read the latest canonical DTO map through a ref, avoiding
-    // stale values after failed mutations. Keep tasksById as a dependency so a
-    // canonical Task change also re-runs the public set-columns synchronization;
-    // Core needs that refresh when a dated Summary becomes an empty container.
-    [columnVisibility, locales, tasksById],
+    // Getters consume tasksByIdReference.current. Reconfiguration is necessary
+    // for column preferences/locale and dated↔empty Summary transitions only.
+    [columnVisibility, locales, summaryColumnKey],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks, viewRootTaskId),
@@ -1960,7 +1964,30 @@ export function ProjectGantt({
           appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
         }
         ensureTimelineEnd(api);
-
+        // Metadata and ordinary Task updates no longer force a set-columns
+        // refresh. Give Core the same guarded post-sync viewport restoration
+        // that was previously performed only by the columns effect.
+        const request = metadataViewportReference.current;
+        if (request && request.api === api && request.version === syncVersion &&
+            !request.hasInput() && peerViewportContext.current.visible &&
+            peerViewportContext.current.key === request.key &&
+            visibleTaskFilterKeyReference.current === request.filter &&
+            scaleModeReference.current === request.scale) {
+          await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          if (metadataViewportReference.current === request && !request.hasInput() &&
+              syncVersion === canonicalSyncVersionReference.current &&
+              peerViewportContext.current.key === request.key &&
+              visibleTaskFilterKeyReference.current === request.filter) {
+            const after = api.getState();
+            if (Math.abs(after.scrollLeft - request.left) > 1 ||
+                Math.abs(after.scrollTop - request.top) > 1) {
+              await ensureNativeViewportCapacity(api, request.left);
+              if (metadataViewportReference.current === request && !request.hasInput() &&
+                  syncVersion === canonicalSyncVersionReference.current)
+                await api.exec("scroll-chart", { left: request.left, top: request.top });
+            }
+          }
+        }
       } catch {
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
@@ -1975,9 +2002,9 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, viewportFilterActive]);
+  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, ensureNativeViewportCapacity, svarLinks, svarTasks, visibleTaskFilterKey, viewportFilterActive]);
 
-  const appliedTaskFilterReference = useRef<{ api: IApi; key: string; source: readonly ProjectTaskDto[]; scale: GanttScaleMode; context: string; display: string; version: number } | null>(null);
+  const appliedTaskFilterReference = useRef<{ api: IApi; key: string; source: readonly ProjectTaskDto[]; scale: GanttScaleMode; context: string; display: string; version: number; filterActive: boolean } | null>(null);
   useEffect(() => {
     const api = apiReference.current, source = tasks, scale = scaleMode, context = viewportContinuityKey, widget = timelineWidget.current;
     if (!api || !apiInstanceId || !viewVisible || !widget) return;
@@ -1992,7 +2019,16 @@ export function ProjectGantt({
         const ids = JSON.parse(visibleTaskFilterKey) as string[] | null;
         const version = canonicalSyncVersionReference.current;
         const applied = appliedTaskFilterReference.current;
-        const unchangedProjection = applied?.api === api && applied.key === visibleTaskFilterKey && applied.source === source && applied.scale === scale && applied.context === context && applied.display === timelinePreviewDisplay && applied.version === version && milestoneWbsProjectionMatches(api, ids);
+        const sameProjectionContext = applied?.api === api && applied.scale === scale &&
+          applied.context === context && applied.display === timelinePreviewDisplay &&
+          applied.filterActive === viewportFilterActive;
+        // Refilter only if the native derived rows contain an excluded ID, the
+        // view/filter scope actually changed, or the projection is uninitialized.
+        // Reapplying filter-tasks for an unchanged metadata/Task revision resets
+        // SVAR's native scroll, even when visible rows already match.
+        const unchangedProjection = Boolean(sameProjectionContext &&
+          (applied?.key === visibleTaskFilterKey || !viewportFilterActive) &&
+          milestoneWbsProjectionMatches(api, ids));
         const request = metadataViewportReference.current;
         const matchingRequest = request?.api === api && request.version === version && request.filter === visibleTaskFilterKey && request.key === context && request.scale === scale;
         const initialViewport = api.getState();
@@ -2029,7 +2065,7 @@ export function ProjectGantt({
               filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined });
             taskFilterAppliedReference.current = visible !== null;
           }
-          if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version };
+          if (!cancelled) appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey, source, scale, context, display: timelinePreviewDisplay, version, filterActive: viewportFilterActive };
           // Explicit filtered membership changes require a fresh viewport,
           // particularly an active query whose final visible task disappeared.
           if (filterMembershipChanged && emptyFilteredResult && !userInput && root?.isConnected &&
