@@ -596,6 +596,7 @@ def lifecycle_command(
         expected_version,
         "--authorization-note",
         authorization_note,
+        "--resolver-ordered",
     ]
     if defer_close:
         command.append("--defer-close")
