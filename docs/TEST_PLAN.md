@@ -2638,3 +2638,20 @@ Project private-read 모델은 현행 제품에 없어 신규 구현 N/A다. 공
 ### PR #576 리뷰 보완 검증
 
 Core scale 단일 행·unit 일치·step=1 이외에는 forward/inverse/reveal `UNMEASURABLE`을 확인한다. Fixture의 동시 extend는 `BUSY`, 유효 최초 요청만 수행되는지 확인한다. Empty/Milestone-only의 Core task 및 native DOM, future-task 날짜 변경과 settle 결과를 E2E assertion으로 확인한다. 기존 결과와 새 Head의 검증을 혼동하지 않는다.
+
+## Issue #577 — PR full/metadata CI 경합 회귀 (M1~M8)
+
+| ID | 테스트 | 기대 결과 |
+| --- | --- | --- |
+| M1 | opened/reopened/synchronize | head exact full CI quality/e2e/docker 정상 실행 |
+| M2 | full SUCCESS 동일 SHA edited | trace 재검증, heavy skip, 같은 SHA 3 Gate 성공 재사용 |
+| M3 | edited old Head 직후 새 Push | old `SUPERSEDED` 즉시 종료, 새 full 독립 실행 |
+| M4 | 현재 Head full in_progress edited | `DEFERRED` fail-closed, Runner 장기 대기/전체 CI 취소 없음 |
+| M5 | full failed/cancelled/missing | FAIL/MISSING, 성공 후 metadata 실패 Job 재실행 경로 |
+| M6 | PR canonical Refs/title/branch 불일치 | `TRACE_INVALID`, required gate 우회 없음 |
+| M7 | rapid edited/Push | metadata 그룹만 cancel previous, 최신 SHA 판단 |
+| M8 | 다른 PR/main/dispatch/docs-only | 기존 concurrency/routing/check names/release 유지 |
+
+코드 판정 시나리오는 `python3 scripts/test-pr-metadata-evidence.py`, 정적 계약은 `python3 scripts/verify-issue-lifecycle.py`가 검증한다. 실제 Actions는 원격 검증으로 분리한다. PRE_QA/QA_FINAL은 해당 run 결과를 확보한 뒤에만 PASS 가능하다.
+
+- P1 수정: 별도 metadata_evidence Runner에서 pinned actions/checkout을 수행한 뒤 Python 증거 판정기를 호출하는 순서를 정적 테스트로 검사한다. 문서의 PASS/원격 CI 판정은 GitHub Actions 실측과 구분한다.

@@ -373,3 +373,8 @@ PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex
 
 - 2026-10-09 기준 #542에 최신 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 병합했다. #463 수평 스크롤 실패는 주간 timeline의 실제 120px scroll buffer가 준비됐는지 확인한 후 기존 정확한 viewport 120px 불변식을 검사하도록 보완했다.
 - 새로운 PR CI의 실행 SHA가 갱신된 PR head와 동일한지 반드시 확인한다. 이전 SHA `ca6312ce2c53bb9ad4e11b8e959bcc6963f108a9`의 재실행은 새 변경에 대한 증거가 아니다.
+
+
+## Issue #577 — Metadata/Full CI 원격 회귀
+
+PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run-name, 이벤트/action, 이벤트 Head/current Head, same-SHA full-run ID, quality/E2E/Docker required check, 실행시간을 함께 기록한다. 현재 Head 변경으로 stale인 메타데이터는 즉시 `SUPERSEDED`여야 하며 20분 polling이 없어야 한다. metadata-only run이 full CI를 취소하면 FAIL. 현재 full-run pending/missing은 NOT TESTED 또는 FAIL이고 자동 PASS가 아니다. metadata-only 실패 뒤 full CI가 성공하면 해당 metadata 실패 Job 재실행으로 재판정하되 본 PR CI 시작 범위에서는 관측·리허설을 별도 기록한다. CI 변경 PR은 E2E/Docker 경로 판정에 포함되므로 실제 PR에서 세 필수 Gate를 모두 확인한다.
