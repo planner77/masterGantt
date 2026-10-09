@@ -1177,7 +1177,7 @@ Project Context의 기존 내보내기 대화상자를 재사용한다. 일반 �
 
 2026-10-08 설치 SVAR React Gantt Core2.7.3에서 [exec](https://docs.svar.dev/react/gantt/api/methods/exec/), [scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/) 공개 계약과 타입을 read-only 조사했다. URL/문서 확인과 실제 Chromium의 positive·입력취소·조건변경 조작 증거를 분리한다. Core 공개 기능을 사용하며 PRO 기능/비공개 구현을 복제하지 않는다.
 
-Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
+Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 작업 검색·고급 필터의 명시적 입력/변경도 최신 viewport 의도로 간주해, 브라우저 입력 캡처 단계에서 이전 peer 복원 요청과 복원 보호를 취소한다. 단순히 Gantt 밖의 Task Editor·툴바를 클릭하는 것은 의도적인 일정 위치 변경이 아니므로 동일하게 취소하지 않는다. 실제 Core/DOM 3개 RAF 안정화로 복원 성공이 확정된 후에는 별도의 제한된 네이티브 재정합 예산을 유지하며, 숨김/취소로 안정화가 중단된 요청의 보호는 즉시 정리한다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
 
 ### Issue #529 — Resource Excel 보고서 범위 확인
 

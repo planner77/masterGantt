@@ -1,5 +1,13 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 PR #579 CI #2313.1 — 필터 의도 취소·후속 보정 예산·숨김 cleanup
+
+- [PR CI #2313.1 / run 37934372035](https://github.com/planner77/masterGantt/actions/runs/37934372035), exact Head `b00aee0d4bbc7d6babac9c76bf9a1ee74847fcb0`: Quality/TypeScript/ESLint/Vitest/Next, 실제 Docker smoke 및 Chromium E2E 1/3/4/5/6 샤드 PASS. **Chromium shard2**의 #463 `milestone-dashboard-state.spec.ts:143` 1 FAIL/85 PASS/1 SKIP. 검색 직전 `data-gantt-peer-restore=null`이었는데 filter-applied 시점에 count1/left120/top96 복원 영수증이 뒤늦게 생성됐다. 원래 public/native 검색 세로 clamp 0은 유지됐으나, 오래된 peer intent의 receipt 완료는 #463 취소 계약 위반이다.
+- 동작: 아직 pending 중인 peer 복원에서는 Gantt 외부 일반 Task Editor 클릭은 무시하되, **`.project-schedule-filter-toolbar` / `.project-task-filter-panel`의 실제 input/change를 캡처 단계**에서 최신 명시 필터 의도로 간주하여 React WBS projection 이전에 pending 복원을 취소한다. 부재했던 `restore marker`를 0회로 바꾸거나 늦은 복원을 합법화하는 assertion 완화는 하지 않는다. 완료 후 유효한 peer guard도 명시 필터 입력에서는 즉시 해제한다. #463은 filter 적용 시점에도 복원 마커의 원형을 확인하고, 기존 사용자 180/128·capacity clamp·3RAF·same API 불변을 유지한다.
+- [Codex P2](https://github.com/planner77/masterGantt/pull/579#discussion_r4230454166): capacity/settle 중 3회 보정을 사용하고 3개의 실제 RAF로 완료 판정된 뒤에는 **post-settle guard의 bounded 3회 예산을 별도로 다시 확보**한다. 보정 누적 diagnostic은 유지한다. 고정 geometry #530 테스트는 성공 이후 native-only 0 변조를 두 번 발생시키며 매번 public/native 120 복구와 실제 보정 횟수 증가를 확인한다.
+- [Codex P2](https://github.com/planner77/masterGantt/pull/579#discussion_r4230454175): hidden tab·사용자 입력·필터/컨텍스트 변경으로 async settle이 `current()=false`를 반환해도 **해당 요청이 실제로 설치한 guard 객체만 동일성 검사로 폐기**한다. 이후 새로운 peer 요청의 독립 guard를 지우거나 이전 Gantt 이벤트를 차단하지 않는다. RAF 250ms wake/2s limit, 3 안정 프레임 계산과 `NO_SCROLL_CAPACITY`/`TIMED_OUT` 분류는 기존대로 유지한다.
+- 기존 #530 복원 좌표 120/240, nested LIFO, 사용자 wheel/resize/filter, Core/native ±1, 12RAF, Source of Truth, 기존 CI Quality/E2E6/Docker gate, version 0.103.1 및 #568 trace·#569 read-only Adapter DEFER를 유지한다. 제품이 실제 통과했다는 판정은 **새 exact Head PR CI**에서만 가능하며 PR/Issue 완료·GHCR를 주장하지 않는다.
+
 ## 2026-10-09 — PR #566 병합 후 Main CI #2311.1 실패 / 물리 스크롤 용량 안정화
 
 - **실패 근거:** [Main CI #2311.1 / Run 37929545112](https://github.com/planner77/masterGantt/actions/runs/37929545112), exact merge `b982d6dd6c2a73f05d38ae3a636bd0ef4aa089fa`. Quality(Vitest/TS/ESLint/Next), Docker, Chromium E2E shard1~5 PASS. Chromium E2E6/6의 `#530 nested frame pop과 clear` 1 FAIL/84 PASS/1 SKIP; 원본 origin Core/native left120 대비 2번째 LIFO 복귀 이후 양쪽이 left31. E2E aggregate FAIL, main 임시 GHCR candidate SKIPPED.

@@ -324,9 +324,16 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
     const chart = frame.locator(".wx-chart");
     const capacity = await chart.evaluate(element => element.scrollWidth - element.clientWidth);
     expect(capacity).toBeGreaterThanOrEqual(before.publicViewport.left);
-    await chart.evaluate(element => { element.scrollLeft = 0; });
-    await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
-    await expect.poll(async () => Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0)).toBeGreaterThanOrEqual(1);
+    const priorRepairs = Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0);
+    // After native capacity/Core settle, the guard has a new repair budget.
+    // Two distinct delayed native-only resets must each recover without
+    // a stale programmatic command overwriting Core or user scroll.
+    for (let cycle = 1; cycle <= 2; cycle++) {
+      await chart.evaluate(element => { element.scrollLeft = 0; });
+      await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+      await expect.poll(async () => Number(await frame.getAttribute("data-gantt-peer-native-repairs") ?? 0))
+        .toBeGreaterThanOrEqual(priorRepairs + cycle);
+    }
     const staleAfterPeer = await frame.evaluate((element, expectedLeft) => {
       const raw = element.getAttribute("data-gantt-public-scroll-events") ?? "[]";
       const events = JSON.parse(raw) as { action: string; requestedLeft?: number }[];

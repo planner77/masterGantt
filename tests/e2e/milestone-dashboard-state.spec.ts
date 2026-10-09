@@ -136,6 +136,10 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await expect(frame.getByRole("row")).toHaveCount(2);
     await expect(frame.getByRole("gridcell", { name: "Stable leaf", exact: true })).toBeVisible();
     await observe("filter-applied");
+    // The browser input supersedes a still-pending peer/layout restore
+    // before React has committed the filter. A late completed receipt here
+    // would be an unauthorized replay of the old unfiltered viewport.
+    await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await search.fill("");
     await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);

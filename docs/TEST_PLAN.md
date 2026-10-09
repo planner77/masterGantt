@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #530 / PR #579 — CI #2313.1 검색/복원 intent 경합과 post-settle guard 예산
+
+- [CI #2313.1](https://github.com/planner77/masterGantt/actions/runs/37934372035), Head `b00aee0d4bbc7d6babac9c76bf9a1ee74847fcb0`: Chromium shard2 #463 검색 필터 전 restore marker null→filter applied 뒤 `count1/requestedLeft120/publicTop96` 지연 영수증으로 FAIL. 다른 E2E shard 1/3/4/5/6과 Quality/Docker PASS. 참조 [실제 CI shard2 report](https://github.com/planner77/masterGantt/actions/runs/37934372035/artifacts/11618062834); 새 Input intent에서 이전 peer 복원 완료 표시를 금지한다.
+- 명시 필터 입력은 브라우저 capture `input/change` 단계에서 pending peer 복원 의도를 취소한다. 기존 #463 raw null/non-null marker 불변·filter 1행의 native 수직 capacity0 clamp·사용자 180/128 좌표/3개 RAF 안정 프레임을 전부 유지하고, filter-applied 즉시 marker 불변 assertion을 추가한다. 검색 결과가 React에 커밋되기 전 대기 중이던 peer 명령이 영수증을 늦게 기록하지 못해야 한다.
+- 고정 geometry #530 복원은 뒤늦은 native-only 0을 **성공된 settle 이후 두 번** 재현하고 매번 Core/native 120으로 재정합·수정 카운트 증가를 요구한다. capacity/settle 전에 소모한 native repair 최대3회와 이후 guard 보호의 새 최대3회 예산은 분리하며, 기록된 누적 보정 횟수는 없애지 않는다.
+- hidden/visibility, 실제 사용자 wheel/pointer/key/touch 또는 filter/scope 변경으로 pending settled request가 무효화되면 요청 identity가 일치하는 guard만 폐기한다. 숨김 동안 RAF 정체에도 timer wake/visibilitychange로 bounded 종료하고 250ms wake는 안정 프레임에 넣지 않는다. `NO_SCROLL_CAPACITY`, `TIMED_OUT`, 2초 bounded 기존 계약 및 첫 writer 미확정 증거는 유지한다.
+- 기존 Chromium shard6 nested pop/clear, wheel·resize 취소, 원장/KPI/Excel, timeout/skip/retry/expected/required gate는 완화하지 않는다. 새 exact-head CI의 Quality/E2E 6개/Docker 성공 전 PASS 또는 Main/GHCR 완료를 주장하지 않는다.
+
 ## Issue #530 — Main CI #2311.1 두 번째 LIFO 복귀 물리 capacity 31px
 
 - Main merge `b982d6dd6c2a73f05d38ae3a636bd0ef4aa089fa` [CI #2311.1](https://github.com/planner77/masterGantt/actions/runs/37929545112): Chromium E2E shard6 한 건 FAIL, 처음 저장한 가로120이 복귀 후 Core/native31로 변경. Quality/Docker/나머지 E2E shard PASS, 임시 GHCR 미게시.
