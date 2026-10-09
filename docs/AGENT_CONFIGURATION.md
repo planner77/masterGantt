@@ -1,5 +1,11 @@
 # Agent configuration validation
 
+## Issue #565 — 위험도별 QA Reviewer 선택 (적용은 정책 PR 병합 이후)
+
+실행 환경에서 `qa_docs` Sub-Agent는 **선택 가능한 독립 Reviewer**이지 모든 LOW/MEDIUM Issue에서 무조건 기동해야 하는 역할이 아니다. Manager는 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 HIGH 우선 위험 분류로 `qa_required`를 결정한다. LOW 및 증거가 충분한 일부 MEDIUM은 `QA_FINAL=N/A(reason)` 후 Manager ACCEPT가 가능하다. HIGH·독립 검토 필수 MEDIUM은 실제 `qa_docs` 또는 승인된 별도 인간 Reviewer의 Head 연결 PASS가 필요하며, Sub-Agent 미지원과 Reviewer 부재가 동시에 발생하면 BLOCKED다. Agent 명세/TOML 존재는 실행 증거가 아니다.
+
+#580의 Actions 자동 QA 대체 경로는 별도 PR 검증 전 **미도입** 상태다. 기존 모델·effort 설정, 역할의 read-only 경계와 사용자 승인·CI/GHCR 조건은 변경하지 않는다. 아래 날짜별 섹션은 각 변경 당시 결정 이력이다.
+
 ## 2026-09-30: GPT-6.1 Sol 가성비 중심 역할 재배치 (#347)
 
 GPT-6.1 Sol 출시를 반영하여 상시 Astra 배치를 제거하고, 복잡 작업의 기본 모델을 GPT-6.1 Sol로 통일한다. OpenAI 공식 모델 가이드에서 GPT-6.1 Sol은 복잡한 coding, computer use, professional work에 대해 near-Astra 성능을 더 낮은 비용으로 제공하는 균형형 모델로 안내된다. GPT-6 Luna는 focused/high-volume 작업의 비용 효율 모델로 유지한다.
