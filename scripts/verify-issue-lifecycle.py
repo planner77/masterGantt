@@ -52,6 +52,11 @@ require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_r
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
+baseline_retry = ci_workflow.split("      - name: PR 기준 image와 크기 비교", 1)[1].split("      - name: 잘못된 production HTTP 설정 조기 거부 검증", 1)[0]
+require("for attempt in 1 2; do" in baseline_retry, "baseline Docker build retry must be bounded")
+require("npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)" in baseline_retry, "retry only recognized npm transient network errors")
+require('[[ "$attempt" -eq 2 ]] || ! grep -Eq' in baseline_retry, "baseline must fail closed on retry/other errors")
+require("bash scripts/verify-image-size-reduction.sh" in baseline_retry, "baseline size comparison must remain mandatory")
 require("scripts/verify-pr-metadata-evidence.py --mode evidence" in ci_workflow, "metadata evidence must use exact Head state machine")
 metadata_section = ci_workflow.split("  metadata_evidence:", 1)[1].split("\n  policy:", 1)[0]
 require(

@@ -9,6 +9,14 @@
 - Finalizer는 `workflow_run.head_commit.message`의 표준 한 줄(또는 `head_sha` fallback) 및 triggering `workflow_run.run_number/run_attempt`, 자체 Run/attempt를 표시해 불필요한 `Main CI` 중첩을 제거한다. Release/Finalizer authority는 여전히 exact merge SHA → merged PR → PR body canonical `Refs #Issue`다.
 - `run-name`은 시작 전에 평가되므로 멀티라인 커밋의 한글 제목을 job output으로 추출하여 이미 시작된 실행명에 넣을 수 없다. 현재 저장소 Merge 기본 설정은 표준을 보장하지 않으며 관리자 설정을 변경하지 않는다. 작업 절차는 [GITHUB_OPERATIONS.md](GITHUB_OPERATIONS.md)를 따른다.
 - `name: CI`, required checks, trigger/concurrency, 권한, GHCR digest/release 승인 gate는 유지한다. 신규 Main/Finalizer 출력은 **사용자가 승인한 실제 병합 이후**에만 관측 가능하며 PR 단계에는 NOT TESTED다.
+- PR #584 CI #2319.1에서 기준 이미지 빌드의 `npm ci`가 `ECONNRESET`으로 중단됐으며 다른 Quality/E2E 검증은 성공했다. #582 보완은 **PR Docker 기준 이미지 빌드에만** 실패 로그에 `ECONNRESET`/`ETIMEDOUT`/`EAI_AGAIN`이 검출될 때 최대 1회 지연 재시도를 허용한다. 비네트워크 오류와 두 번째 실패는 그대로 FAIL하며 Docker 기준 크기 비교/Runtime/GHCR gate를 생략하지 않는다.
+
+## Issue #565 — 위험도 기반 QA는 CI Gate와 별도 운영 계약
+
+[QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 LOW/MEDIUM/HIGH 정책에 따라 PR `QA_FINAL`에 독립 Reviewer PASS가 필요한지, 명시적인 `N/A(reason)`가 가능한지를 Manager가 판단한다. **독립 QA N/A는 CI Required Check N/A가 아니다.** 각 PR의 최신 Head에 기존 `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test` aggregate 결과를 모두 확인하며 해당 실행에서 세부 shard가 SKIPPED면 실행 PASS로 과대 표시하지 않는다. GitHub Ruleset 승인 리뷰 수 0과 Manager ACCEPT도 서로 다르다.
+
+이슈 #565는 Workflow/Ruleset/Tag/GHCR 동작을 변경하지 않는다. GitHub Actions 기반 자동 QA 대체 Check/대상 Head·필수 검증 강화는 별도 #580에서 설계·검증한다. 정책 문서만 변경한 PR이 실제 Actions 검증을 시작했다는 사실과 결과 PASS는 분리 보고한다.
+
 
 ## Issue #361 CI/CD 실행 인스턴스 추적 표준
 
