@@ -620,8 +620,9 @@ def audited_final_markers(repo: str, ctx: Context) -> dict[str, int]:
             if not match or int(match.group(1)) != ctx.issue_number:
                 raise LifecycleError("malformed or cross-Issue FINAL marker")
             target_sha = match.group(2)
-            if target_sha in records:
-                raise LifecycleError(f"duplicate immutable FINAL target: {target_sha}")
+            # Duplicate bot-origin comments may exist after an interrupted
+            # concurrent run; permit only the same authenticated PR identity.
+            # Authentication below is still mandatory for every occurrence.
             if target_sha not in positions:
                 raise LifecycleError(f"historical FINAL is not on main first-parent: {target_sha}")
             author = (comment.get("user") or {}).get("login")
@@ -649,6 +650,8 @@ def audited_final_markers(repo: str, ctx: Context) -> dict[str, int]:
             refs = re.findall(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$", pr.get("body") or "")
             if refs != [str(ctx.issue_number)]:
                 raise LifecycleError(f"historical FINAL PR #{pr_number} canonical Refs mismatch")
+            if target_sha in records and records[target_sha] != pr_number:
+                raise LifecycleError(f"conflicting immutable FINAL PR identity: {target_sha}")
             records[target_sha] = pr_number
         if len(comments) < 100:
             break
