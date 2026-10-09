@@ -29,6 +29,8 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
+import { filterMilestoneWbsRows, milestoneDateCoordinate, revealMilestoneDate } from "./milestone-timeline-adapter";
+import { localDateFromDateOnly, type DateOnly } from "./date-adapter";
 import type { PeerViewportRestore, PublicGanttViewportReader } from "./peer-viewport-capture";
 import {
   buildChartReorderCommand,
@@ -1669,6 +1671,48 @@ export function ProjectGantt({
     return () => { api.detach(tag); if (frame) { Reflect.deleteProperty(frame, "__masterganttPublicViewport"); Reflect.deleteProperty(frame, "__masterganttGridReveal"); } };
   }, [apiInstanceId]);
 
+  const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
+  const milestoneProbeGeneration = useRef(0);
+  // MT1 technical probe only: no production row transition or preference UI.
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const api = apiReference.current, frame = fullscreenFrameReference.current;
+    if (!api || !apiInstanceId || !frame) return;
+    const tag = "project-milestone-timeline-probe";
+    const events: { action: string; left: number; top: number }[] = [];
+    for (const action of ["filter-tasks", "scroll-chart", "resize-chart"] as const) {
+      api.on(action, () => {
+        const state = api.getState();
+        events.push({ action, left: state.scrollLeft, top: state.scrollTop });
+        if (events.length > 64) events.shift();
+      }, { tag });
+    }
+    Object.defineProperty(frame, "__masterganttMilestoneTimeline", { configurable: true, value: {
+      coordinate: (date: string) => milestoneDateCoordinate(api, date),
+      reveal: (date: string) => revealMilestoneDate(api, date),
+      nativeDateReveal: (date: string) => api.exec("scroll-chart", { date: localDateFromDateOnly(date as DateOnly) }),
+      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? api.exec("scroll-chart", { left }) : Promise.resolve(),
+      filter: async (ids: string[] | null) => {
+        if (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string"))) return;
+        const generation = ++milestoneProbeGeneration.current;
+        const source = tasksReference.current;
+        milestoneProbeRequest.current = ids === null ? null : { api, ids: [...ids], source, filterKey: visibleTaskFilterKeyReference.current, request: generation };
+        await canonicalSyncQueueReference.current;
+        if (apiReference.current !== api || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
+        await filterMilestoneWbsRows(api, ids);
+      },
+      read: () => {
+        const state = api.getState();
+        return { instance: apiInstanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
+          start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
+          rows: state._tasks.slice(0, 500).map(task => ({ id: task.id, y: task.$y, x: task.$x, height: task.$h })),
+          links: state.links.map(link => ({ id: link.id, source: link.source, target: link.target, type: link.type })).slice(0, 500),
+          canonicalIds: tasksReference.current.slice(0, 500).map(task => task.taskId), events: [...events] };
+      },
+    } });
+    return () => { api.detach(tag); Reflect.deleteProperty(frame, "__masterganttMilestoneTimeline"); milestoneProbeRequest.current = null; milestoneProbeGeneration.current += 1; };
+  }, [apiInstanceId]);
+
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
   // Explicit peer/navigation restoration outranks an older metadata-only scroll.
@@ -1899,6 +1943,27 @@ export function ProjectGantt({
       appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey };
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [apiInstanceId, visibleTaskFilterKey]);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
+    const request = milestoneProbeRequest.current;
+    if (!request) return;
+    if (request.api !== apiReference.current || request.source !== tasksReference.current || request.filterKey !== visibleTaskFilterKey) {
+      milestoneProbeRequest.current = null;
+      milestoneProbeGeneration.current += 1;
+      return;
+    }
+    let cancelled = false;
+    const scale = scaleMode, generation = canonicalSyncVersionReference.current;
+    canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
+      if (cancelled || milestoneProbeRequest.current !== request || request.request !== milestoneProbeGeneration.current ||
+        request.api !== apiReference.current || request.source !== tasksReference.current ||
+        request.filterKey !== visibleTaskFilterKeyReference.current || scale !== scaleModeReference.current ||
+        generation !== canonicalSyncVersionReference.current || !peerViewportContext.current.visible || !request.api.getState()._chartWidth) return;
+      await filterMilestoneWbsRows(request.api, request.ids);
+    });
+    return () => { cancelled = true; };
+  }, [apiInstanceId, scaleMode, viewVisible, tasks, visibleTaskFilterKey]);
+
 
   useEffect(() => {
     diagnosticTraceReference.current?.record("effect-request", "set-columns");
