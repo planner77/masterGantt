@@ -1,5 +1,15 @@
 # Manager decisions
 
+## Issue #568 — API 반환과 화면 안정화의 분리 (2026-10-09)
+
+PR #562의 pending filter→native0→Core0 feed-back은 두 번 관측했으나 최초 DOM writer와 Inline text writer는 미확정이다. Core 결함·adapter 수정 결정은 후속 이슈에 남기며 이번 도구의 PASS로 기존 제품 회귀를 종료하지 않는다.
+
+결정: #567의 제품 재설계 전에 실제 설치 Core 2.7.3와 Chromium에서 action/state/DOM 순서를 관측한다. 테스트 도구는 bounded allowlist trace와 명시적인 완료/취소/scroll-capacity/timeout 분류를 제공한다. 고정 RAF 대기만으로 모든 비동기 writer가 완료했다고 선언하지 않는다.
+
+[공식 exec 문서](https://docs.svar.dev/react/gantt/api/methods/exec/)는 반환을 void로 기술한다. 설치 타입과 runtime 반환 여부·thenable resolution은 별도 실측한다. 반환이 Promise여도 DOM settle 보장은 독립적으로 확인한다. [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/)의 width는 실제 chart container 크기이며 timeline content 확장으로 사용하는 현행 경로의 타당성은 #569에서 PoC에 근거해 판단한다.
+
+제품 Coordinator/adapter, viewport 우선순위 변경, Inline 저장·Milestone lane 수정은 이번 진단 PR에 포함하지 않는다. 비교 PR #562의 실패를 단독 Core 버그나 단순 테스트 지연으로 단정하지 않는다. 세부 측정·한계는 [Gantt Sync Trace](GANTT_SYNC_TRACE.md)를 따른다.
+
 최초 작성: 2026-09-10. 최종 갱신: 2026-09-12. 각 판단은 사용자 Confirmed 요구와 구현을 위한 Assumption을 구분한다. 이번 결과는 설계 승인 기준선이며 제품 release 승인이 아니다.
 
 | ID | 판단 | 내용 | 근거 / 후속 |

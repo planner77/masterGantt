@@ -1,3 +1,7 @@
+## Issue #568 — Gantt 동기화 재현·추적 도구 (2026-10-09)
+
+#567의 첫 단위 [Issue #568 실행 계획](ISSUE_568.md)에 따라 main `e1e6e2558481fe01d9f7e57c0148288f77a884de` 기반 `test/issue-568-core-action-trace`에서 dev/test-only trace·Core fixture를 구현한다. 비교 PR #562 head `afd5ec2899183a2464b64f91d34e9de5d8a8319c`의 제품 stack은 수정하지 않는다. application0.103.1 유지, 정식 release_required=false/release_authorized=false(진단 도구 범위). 요청 종료점은 문서 동기화·독립 PRE_QA·push·PR CI 등록이며 CI 모니터링·병합·release·Issue 종료는 제외한다.
+
 ## Issue #530 — 최신 main 통합 후보 / 새 PR CI 등록 (2026-10-09)
 
 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 통합한 후보 `0.102.3`. [현재 실행 계획](ISSUE_530.md)의 2026-10-09 절을 따른다. 원격 통합 준비의 version/typecheck/변경 lint·대상 Vitest 27개 PASS와 기존 PR CI #2199.1 성공 이력을 구분한다. 새 head 전체 PR CI 및 독립 QA는 NOT TESTED이며 병합·Main CI·GHCR/Release/tag·Issue 종료는 승인 범위 밖이다.
