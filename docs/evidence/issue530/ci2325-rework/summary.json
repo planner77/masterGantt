@@ -1,0 +1,186 @@
+{
+  "schema": "mastergantt-issue530-ci2325-rework-v1",
+  "baselineHead": "3c9921aed4589bd408e2c37d6e344aac841e7c5d",
+  "baselineTree": "da12e6dd36179ac458708eb977a30c23a09cdfac",
+  "source": {
+    "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+    "originalSha256": "e508552a6177b7a38d1a3a29c0e32ef6b4ed27aa905f34501e99315354d9e458",
+    "finalSha256": "88e75aa2924d2842136a5e59bec1991cd87c0d44848dbdfaf975e11884f348e4"
+  },
+  "applicationVersion": "0.103.1",
+  "changeScope": "테스트/문서 전용. 제품/API/DB/권한/워크플로/버전 불변.",
+  "originalCI": {
+    "run": 37956141635,
+    "attempt": 1,
+    "job": 113907106635,
+    "step": 7,
+    "artifact": 11629030372,
+    "result": "FAIL: #463 line142 marker null→count1;85PASS1FAIL1SKIP",
+    "quality": "PASS",
+    "otherE2EShards": "5 PASS",
+    "dockerAggregate": "PASS",
+    "dockerImplementation": "SKIPPED/NOT TESTED",
+    "actualInputDispatchOrder": "NOT CAPTURED: phase/Playwright fill 구간만으로 marker 쓰기와 실제 dispatch 순서 확정 불가",
+    "downloadedZipSha256": "977c5da9040b0343f2f721856e782ede69bdab36a66693471a03394dc2f33f3a"
+  },
+  "localOriginal": {
+    "target": "FAIL: CI 동일 line142 marker null→count1",
+    "instrumentedTarget": "FAIL: 동일 assert, 별도 input/receipt 순서 관측",
+    "orderedProbe": [
+      {
+        "kind": "receipt-mutation",
+        "at": 2062.899999976158,
+        "marker": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}",
+        "public": {
+          "left": 120,
+          "top": 96
+        },
+        "native": {
+          "left": 120,
+          "top": 96
+        }
+      },
+      {
+        "kind": "browser-input",
+        "at": 2073.399999976158,
+        "marker": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}",
+        "public": {
+          "left": 120,
+          "top": 96
+        },
+        "native": {
+          "left": 120,
+          "top": 96
+        }
+      }
+    ],
+    "receiptBeforeActualInputMs": 10.5
+  },
+  "finalRuns": [
+    {
+      "run": "final-targets",
+      "tests": [
+        {
+          "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+          "status": "passed",
+          "durationMs": 3557,
+          "retry": 0
+        },
+        {
+          "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+          "status": "passed",
+          "durationMs": 2604,
+          "retry": 0
+        },
+        {
+          "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+          "status": "passed",
+          "durationMs": 3226,
+          "retry": 0
+        },
+        {
+          "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+          "status": "passed",
+          "durationMs": 2274,
+          "retry": 0
+        },
+        {
+          "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+          "status": "passed",
+          "durationMs": 3216,
+          "retry": 0
+        },
+        {
+          "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+          "status": "passed",
+          "durationMs": 2289,
+          "retry": 0
+        }
+      ],
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "run": "regressions",
+      "tests": [
+        {
+          "title": "#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실제 상태를 보존한다",
+          "status": "passed",
+          "durationMs": 8209,
+          "retry": 0
+        },
+        {
+          "title": "#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존",
+          "status": "passed",
+          "durationMs": 14548,
+          "retry": 0
+        },
+        {
+          "title": "#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존",
+          "status": "passed",
+          "durationMs": 16696,
+          "retry": 0
+        }
+      ],
+      "pass": 3,
+      "fail": 0
+    }
+  ],
+  "localFastFeedback": {
+    "typecheck": "PASS: npm run typecheck",
+    "changedLint": "PASS: npx eslint tests/e2e/milestone-dashboard-state.spec.ts",
+    "unit": "N/A: domain/제품 logic 변경 없음",
+    "diffCheck": "PASS"
+  },
+  "commands": {
+    "finalTargets": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-dashboard-state.spec.ts --grep '#463 public viewport|#463 실제 검색' --repeat-each=3 --reporter=list,json",
+    "regressions": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-kpi-integration-ui.spec.ts tests/e2e/project-resource-workload-status.spec.ts --grep '#530 고정 geometry|#530 nested frame|#525 개발 견적' --reporter=list,json"
+  },
+  "newHeadRemoteCI": "NOT TESTED: infra 다음 단계",
+  "independentQA": "Manager/qa568 별도 판정",
+  "documentationSync": {
+    "updated": [
+      "docs/TEST_PLAN.md",
+      "docs/exec-plans/active/ISSUE_530.md",
+      "CHANGELOG.md"
+    ],
+    "n_a": {
+      "DESIGN/UI_UX_GUIDELINES/PROJECT_UX": "제품 visual/interaction 동작 불변, 테스트 인과관계만 보강",
+      "API/DB_SCHEMA/SECURITY/ARCHITECTURE": "제품/서버 계약 불변",
+      "CI_CD/REMOTE_VALIDATION": "workflow/검증 gate/권한 불변",
+      "package/lock": "테스트 전용 version0.103.1 유지"
+    }
+  },
+  "historicalRawArtifacts": [
+    {
+      "run": "local-original",
+      "sha256": "9558a8af1853e6e5470f2313ed1612848ae9495a2ebe6ce3275a4db30b0829f8",
+      "capturedTestSources": [
+        {
+          "file": "src/9893cb9ceb5ac0acc604aa8d36d6b9dfc232bcae.ts",
+          "sha256": "ae7cc0e656b566d51944d1022cbbf328b5fdac3c9704054eded2254c0e1fe06e"
+        },
+        {
+          "file": "src/8f8ff70780fd218659c90fc295e61b5bdcddd69a.ts",
+          "sha256": "e508552a6177b7a38d1a3a29c0e32ef6b4ed27aa905f34501e99315354d9e458"
+        }
+      ],
+      "location": "임시 로컬 경로에 보존, raw trace/network/env는Git제외"
+    },
+    {
+      "run": "local-order-probe",
+      "sha256": "32dfaf2c357469834bb774a370ecb6cbee4b617574ad5e4d7f5d49a80d54e199",
+      "capturedTestSources": [
+        {
+          "file": "src/9893cb9ceb5ac0acc604aa8d36d6b9dfc232bcae.ts",
+          "sha256": "ae7cc0e656b566d51944d1022cbbf328b5fdac3c9704054eded2254c0e1fe06e"
+        },
+        {
+          "file": "src/8f8ff70780fd218659c90fc295e61b5bdcddd69a.ts",
+          "sha256": "d1adbac62b46195e9ef54847a80e00f605f7dad71f3c9eab11fff70a2e2b188d"
+        }
+      ],
+      "location": "임시 로컬 경로에 보존, raw trace/network/env는Git제외"
+    }
+  ]
+}

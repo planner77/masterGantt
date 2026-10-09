@@ -1,5 +1,21 @@
 # Test Plan
 
+## Issue #530 / PR #581 — CI #2325.1 완료 영수증과 실제 검색 입력의 순서 분리
+
+- 원본 [PR CI #2325.1](https://github.com/planner77/masterGantt/actions/runs/37956141635), Head `3c9921aed4589bd408e2c37d6e344aac841e7c5d`: E2E shard2/job `113907106635`/step7에서 #463 `milestone-dashboard-state.spec.ts:142`가 검색 전 marker `null`과 검색 후 count1 완료 영수증 차이로 FAIL(85 PASS/1 FAIL/1 SKIP). Quality/나머지 5 E2E shard PASS, Docker aggregate PASS/실제 구현 SKIPPED를 구분한다. #525 자동 reveal 보완(shard4)과 #530 fixed/nested(shard6)은 해당 원격 실행에서 PASS였다.
+- 원본 CI의 phase/Playwright fill 구간만으로 실제 input dispatch와 receipt 쓰기의 선후는 확정할 수 없다. 같은 Head의 로컬 원본 FAIL 및 별도 관측 실행에서 **receipt Mutation 2062.900ms → 실제 browser input 2073.400ms**, 즉 receipt가 **10.5ms 먼저** 완료됐고 input 순간 marker가 이미 count1인 것을 확인했다. 이 수치는 로컬 browser performance clock 근거이며 원본 CI의 실제 dispatch 시각으로 소급하지 않는다. 제품 결함이나 검색 후 stale commit으로 단정하지 않는다.
+- 정상 peer/layout 보존 테스트는 첫 resize 전에 완료 영수증 count1/request120/public120·96/native120, admission/최종 capacity≥119px, capacity/settle≥3 실제 frame을 확인한 뒤 검색 기준을 캡처한다. 기존 exact120/96, 1match capacity0 및 검색 해제120/0, 새180/128·충분한 행 필터·실제 layout 변경/원복·sameinstance·marker 불변 검증은 유지한다.
+- 별도 pending 취소 회귀는 실제 Core와 이번 peer effect-request를 사용하고 browser RAF callback을 최대1500ms 안전 해제/finally 원복을 갖춘 barrier로 유한 보류한다. input 순간 heldRAF>0, marker null, holding/autoReleased=false와 trusted search keyboard input·정확한 입력값을 확인한다. 실제 RAF에서 callback을 재개한 뒤 filter apply/clear 모두 public/native120/0, null receipt, 동일 instance를 3frame 검사한다. 자동 안전 해제가 먼저 발생한 실행은 PASS할 수 없다.
+- 로컬 최종 검증: 정상 보존/pending 취소 2개를 각각3회 실행해 **6 PASS**, 기존 #525 실제 reveal/왕복·#530 fixed120/240·nested 3개 **3 PASS**(고유5개/실행9회). 변경파일 ESLint/TypeScript PASS. 반복 횟수를 신규 기능 수로 합산하지 않는다. 원본 FAIL 및 관측 FAIL은 별도 보존하며 raw Playwright report의 env/config/운영 로그는 Git에 넣지 않는다.
+- 제품/API/DB/권한/SVAR/워크플로/버전 `0.103.1`은 불변이며 timeout/skip/retry/기대 오차 완화는 없다. 실행 근거와 원본/최종 source hash는 [별도 증거](evidence/issue530/ci2325-rework/summary.json)와 [manifest](evidence/issue530/ci2325-rework/manifest.json)에 기록한다. 새 exact Head의 전체 PR CI 및 HIGH 독립 QA_FINAL은 별도 실행 전 NOT TESTED다.
+
+## Issue #530 — Main CI #2315.1/#525 선택 자동 Chart reveal 대비 실제 안정 원장
+
+- 원본 [Main CI #2315.1](https://github.com/planner77/masterGantt/actions/runs/37943269547), SHA `d41032358c5cbeb4758e124d037d9ada18af9ee9`: Chromium 4/6의 #525 `project-resource-workload-status.spec.ts:78` 1 FAIL/85 PASS. Grid Task 선택 후 수동 Chart left120 기준을 5초 poll했지만 native left1581/top96; Quality/Docker/나머지 5개 shard PASS, Main GHCR candidate SKIPPED. #2249.1의 같은 1581 자동 reveal 경합과 일치하나 최초 Core action writer는 Trace 없이 단정하지 않는다.
+- 선택 자동 reveal은 실제 `>120px` 및 public Core/DOM 수평 정확한 일치가 확인되어야 한다. 수직96 설정 후 public·native X/Y strict equality·canonical sync depth0이 8연속 실제 RAF 동안 유지되도록 90RAF bounded 안정화하며, 대기/상태 오차 완화·E2E skip/retry/timeout 변경 없음. 동기화되지 않은 수동 DOM-only `left=120` 경쟁 설정을 제거한다. 실패 시 최근 8프레임 관측 자료, 성공 시 before baseline을 attachment로 남긴다.
+- 안정화된 **실제 selected Task reveal 좌표**를 `before`로 확정한 뒤 추가12 RAF 동일 상태 확인, 기존 일정↔리소스 단일 Gantt root, 선택/열/Chart·Grid X/Y **전체 strict 상태 왕복**, 5폭 geometry 및 keyboard·focus를 그대로 검증한다. 다른 #530 nested/fixed 120/240 E2E와 #463/#514에 대한 수정 없음. #526/#527의 기존 원본 안정화 기법을 재사용한다.
+- 제품/API/DB/SVAR/CI workflow 불변, package/lock version `0.103.1` 유지. 신규 head PR CI Quality/E2E6/Docker, 실제 QA_FINAL, 신규 Main/GHCR digest는 별도 증거 전 `NOT TESTED`이다. 정식 v0.103.1 승인 이력과 자동 first-parent 릴리스 분기 문제는 릴리스 단계의 별도 blocker로 보존한다.
+
 ## Issue #565 — 병합 후 infra Agent QA 조건 회귀 확인 (2026-10-10)
 
 선행 결과: [PR #583](https://github.com/planner77/masterGantt/pull/583)은 main에 병합되었으나 [독립 QA 지적 F1](https://github.com/planner77/masterGantt/issues/565#issuecomment-6083701630)의 `.codex/agents/infra.toml:82,103` 무조건 qa_docs 요구가 남았다. 이 테스트 계획은 **실제 실행 지침과 문서 정책의 동일성**을 확인한다.

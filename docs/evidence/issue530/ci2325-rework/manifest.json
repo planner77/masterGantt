@@ -1,0 +1,26 @@
+{
+  "schema": "mastergantt-evidence-manifest-v1",
+  "baselineHead": "3c9921aed4589bd408e2c37d6e344aac841e7c5d",
+  "source": {
+    "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+    "originalSha256": "e508552a6177b7a38d1a3a29c0e32ef6b4ed27aa905f34501e99315354d9e458",
+    "finalSha256": "88e75aa2924d2842136a5e59bec1991cd87c0d44848dbdfaf975e11884f348e4"
+  },
+  "unchangedProduct": {
+    "file": "src/features/gantt/project-gantt.tsx",
+    "baselineSha256": "b3207da4ae512a2d894c5d0eaa0d11308368117a95dc9dad1328bb77298a0e94",
+    "currentSha256": "b3207da4ae512a2d894c5d0eaa0d11308368117a95dc9dad1328bb77298a0e94"
+  },
+  "artifacts": [
+    {
+      "file": "docs/evidence/issue530/ci2325-rework/selected-samples.json",
+      "sha256": "06aa43eaf2bf73a604af24c58016f1e373089d65e8142cfebc7f53f5d0b7404f",
+      "bytes": 23126
+    },
+    {
+      "file": "docs/evidence/issue530/ci2325-rework/summary.json",
+      "sha256": "0f966a7c03f2f1055ec1eb8cce07d7e98adb7cfcd5ed65fba27088cbe253a166",
+      "bytes": 6973
+    }
+  ]
+}
