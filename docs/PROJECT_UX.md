@@ -1,3 +1,7 @@
+## Issue #553 — WBS projection·column refresh 최적화 계약 (2026-10-09)
+
+일반 Task의 설명/이름/메타데이터 저장 또는 삭제로 canonical DTO가 바뀌었다는 이유만으로 SVAR 전체 `filter-tasks`/ `set-columns`를 재실행하지 않는다. Native Core에 표시된 WBS 행이 현재 허용된 Task ID와 일치하고 검색/범위·스케일 계약이 그대로라면 재투영을 건너뛰며 위치·선택·Grid 인스턴스를 보존한다. Search scope/active filter가 실제로 변경되거나 Milestone 비표시 행이 남아 있으면 재투영한다. Summary가 날짜 있는 상태에서 미산정 empty-container로 바뀌는 등 Grid getter 구조가 바뀌는 경우는 컬럼 재설정 대상이다. 동일 필터·동일 작업공간에서 canonical sync가 끝난 후 원래 위치를 복원할 수 있으나, 사용자 입력·새 탐색/검색 조건이 우선한다.
+
 ## Issue #553 — Native viewport 확장 비동기 순서 (2026-10-09)
 
 Core 논리 스케일 확장용 `resize-chart` 2단계는 순차 완료를 기다린 뒤 사용자가 요청한 public `scroll-chart`를 실행한다. 단순히 `scrollWidth`만 체크하거나 비동기 resize를 발행한 직후 복원을 성공 처리하면 후행 Core 레이아웃이 스크롤을 다시 0으로 클램프할 수 있다. 범위를 확장할 필요가 없는 경우에는 Core 조작을 추가하지 않는다. Task/범위/scale이 바뀌거나 사용자 입력이 발생하면 오래된 복원 명령은 적용하지 않는다.

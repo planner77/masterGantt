@@ -150,3 +150,12 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - Core `resize-chart` 2회 실행 뒤 뒤늦은 레이아웃이 `scroll-chart` 위치를 120→100→63/0으로 클램프하는 Trace 근거: 물리 가로 폭 확장에는 설치된 공개 SVAR `resize-chart` 두 단계를 **순차 await** 후 `scroll-chart`를 수행한다. 기존 2 RAF bounded 확인과 사용자 제스처·same instance/scope/scale 보호 유지. 필터 원점/복귀·Milestone 별도 Timeline tick 동기화 범위를 변경하지 않는다.
 - Inline 변경 PATCH 성공과 React canonical state commit 사이 시간차가 있어 native Grid 이름이 복구되지 않을 수 있다. 서버에서 확정된 동일 Task name을 최대 8개 RAF 내 검증한 뒤 필요할 때만 공개 update-task로 재동기화한다. 401/412/Escape 실패에는 적용하지 않는다.
 - 이번 head의 TypeScript/Vitest/Chromium/Docker 신규 공식 결과는 CI 실행 완료 전 NOT TESTED; 실패 결과를 PASS라 해석하지 않으며 skip/timeout 변경, main merge, GHCR, Issue 종료 없음.
+
+## PR CI #2275 실패와 원인별 보완 (2026-10-09 KST)
+
+- 원본 [PR #562 / CI #2275](https://github.com/planner77/masterGantt/actions/runs/37872798612), head `8d001fd07662447a3e7d4df5ebdba4e4ffc43e42`: TypeScript/ESLint/Vitest/Build/Docker/Policy 및 E2E shards1·2·5 PASS, Chromium E2E shards3·4·6의 10 cases FAIL(스크롤 복원9, Inline 이름 표시1).
+- E2E Playwright error-context: 이름 PATCH 후 Row checkbox의 canonical name은 `Blur saved`이나 SVAR `text` Grid cell·Chart bar는 `Stable leaf`로 남고, Day→Week 전환 후에도 이전 텍스트를 표시했다. 이름 commit 시 projectRevision 변경이 `inlineOpenTokenReference`를 증가시켜 동일 PATCH 성공 콜백이 종료될 수 있는 경계 확인.
+- 수정 `b7523da`: 원래 Summary의 dated↔empty-container 날짜/기간, 컬럼 선호/locale에서만 `set-columns`를 재구성한다. Ordinary Task의 단순 name/description/Project metadata·deletion은 Core의 update/delete-task로 갱신한다. controlled WBS projection은 활성 필터·scope/scale·Core row membership에 변화가 있을 때만 `filter-tasks` 적용, 동일 데이터일 때 반복 재투영으로 발생하는 scroll clamp를 방지한다. 컬럼 설정이 바뀌지 않아 `set-columns` 효과가 없는 경우에는 canonical sync 후 guarded viewport 복원을 수행한다.
+- 수정 `0a2d507`: 서버 PATCH 자체의 revision 증가로 inline token이 바뀌더라도, 같은 저장 요청의 `saved` 후처리와 확정 이름 비교를 허용한다. 새 인라인 세션과 다른 API/Task 이름은 침범하지 않으며 오류/권한 거부와 Escape는 기존 fail-closed를 유지한다.
+- E2E 기존 강도: #490/344/456/529 저장·삭제·Resource 왕복에서 Core+DOM scrollLeft/Top 보존 및 사용자 Wheel 우선; #140 Enter/Tab/Escape·401/412 단건 PATCH; Milestone #551/#552 timeline 1px 및 표시·포커스·전체 보존. Skip/timeout 상향/검증 기준 완화 없음.
+- 새 exact-head PR CI Quality/E2E/Docker는 결과 확인 전까지 NOT TESTED. 병합/main/GHCR/tag/release/issue close를 수행하지 않는다.

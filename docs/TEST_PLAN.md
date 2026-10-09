@@ -1,3 +1,11 @@
+## Issue #553 — PR CI #2275 스크롤·인라인 이름 회귀 최소 변경 검증 (2026-10-09)
+
+- [실패 #2275](https://github.com/planner77/masterGantt/actions/runs/37872798612): TypeScript/ESLint/Vitest/Next Build/Docker/Policy PASS, Chromium 10 FAIL(9 viewport, 1 Inline). 변경 head가 바뀌면 이전 PASS는 최신 검증의 대체 근거가 아니다.
+- 원인별 테스트: metadata/ordinary Task delete와 기본 검색 없는 Project 상태 변경에서 Core `set-columns`/`filter-tasks`를 불필요하게 다시 적용하지 않는다. 실제 WBS·Milestone visible ID가 바뀌거나 활성 검색/scope가 바뀌면 필요한 native 필터 적용은 계속 수행한다. dated Summary가 empty-container로 전이되면 기존 Grid getter/기간 계약을 유지한다.
+- #344/456/490/529: Task 삭제·412·network·fullscreen·프로젝트 설정·리소스 peer 왕복, 사용자 wheel 중복 재생 차단 시 public/Core 및 DOM viewport를 각각 기록하여 원래 위치/실제 입력 위치 일치를 검증한다.
+- #140: Tab blur의 서버 name-only PATCH 성공→Project revision 증가→SVAR Grid/Chart name이 확정 canonical과 같은지 검사한다. 자체 revision 변경은 해당 요청의 사후 확정 동기화를 막지 않아야 하지만, 추가 새 편집 세션·stale/401/412 및 Escape에는 옛 응답을 표시하지 않는다.
+- 실제 API/DB/schema/permissions·Milestone Timeline의 기존 acceptance E2E를 유지하고 명목상 PASS 처리를 위한 skip/timeout 상향/assertion 완화는 금지한다.
+
 ## Issue #553 — PR CI #2273 TypeScript 및 비동기 viewport 복원 (2026-10-09)
 
 - 실패 기록: [PR CI #2273](https://github.com/planner77/masterGantt/actions/runs/37870892476). 필수 `publicId: string`에 optional `projectPublicId`를 할당한 TS2322가 Next/Docker 빌드까지 차단. 같은 head의 TypeScript/Next/Docker 성공 근거는 없다.

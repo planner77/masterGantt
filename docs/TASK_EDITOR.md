@@ -1,3 +1,7 @@
+## Issue #553 — Task rename 성공에 따른 inline token 무효화 예외 (2026-10-09)
+
+Task 이름 PATCH 성공 시 Project revision이 증가하면서 Inline Editor의 open token이 변경된다. 이는 새로운 편집 세션 보호를 위해 필요하지만 **해당 요청 자체의 서버 저장 성공 응답 후처리**까지 폐기해서는 안 된다. 저장 응답이 `saved`이고 현재 Core 인스턴스가 동일하며 새 인라인 세션이 해당 응답과 충돌하지 않을 때에만 canonical DTO의 확정 이름을 Grid/Chart에 반영한다. 응답 `saved` 이전의 낙관적 이름을 확정 데이터로 해석하지 않고, 401/412/네트워크 실패, 새 편집 요청, Esc 취소는 기존 차단 규칙을 유지한다.
+
 ## Issue #553 — name-only PATCH 확인과 Grid 렌더링 동기화 (2026-10-09)
 
 Inline 이름 저장 Promise가 `saved`를 반환했더라도 React canonical DTO가 아직 commit 전일 수 있다. 최대 8회 bounded animation frame에서 확정된 동일 Task 이름과 native Grid/serialized Core 상태를 대조하고, 불일치하는 경우에만 기존 공개 `update-task`로 확정된 서버값을 동기화한다. 권한 거부/412/네트워크 실패, 새 편집기 세션, API 인스턴스 변경 또는 명시적 사용자 개입은 이전 요청 결과를 강제 표시하는 근거가 아니다.
