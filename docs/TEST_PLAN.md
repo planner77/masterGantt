@@ -1,5 +1,11 @@
 # Test Plan
 
+## #463 / Issue #530 — PR #566 CI #2282.1 Milestone viewport diagnostic contract
+
+- [PR CI #2282.1 / run 37879481685](https://github.com/planner77/masterGantt/actions/runs/37879481685), head `a24b0287b841c1a14a28bf44a9c1ac1edcbde8f1`: #530 nested pop 회귀가 포함된 Chromium shard **6/6 SUCCESS**였으나, Chromium shard **2/6**의 `milestone-dashboard-state.spec.ts:116` #463 테스트에서 `data-gantt-peer-restore` 미존재를 `JSON.parse(null).count`로 읽어 **TypeError** 발생. 기존 Quality 및 실제 Docker smoke는 SUCCESS. 최종 run aggregate 결과는 정확한 상태 조회로 확인한다.
+- [실패 Trace artifact](https://github.com/planner77/masterGantt/actions/runs/37879481685/artifacts/11593194720)의 `public-viewport-events` 첨부에서 Gantt API instance는 `svar-api-1`, 공개/DOM 좌표는 `left120`으로 정합했다. 복원 action 자체가 필요 없으면 `data-gantt-peer-restore` 디버그 속성이 존재하지 않는 것이 정상이다. 검색 필터 적용/해제 후 세로 스크롤은 표시 행 수에 따라 0으로 clamp될 수 있다.
+- #463 테스트를 **진단 속성 미설정=실행 횟수 0**으로 읽는 엄격한 복원 횟수 검증으로 변경하고, 검색 변경 전후 복원 횟수 불변 + SVAR API identity 불변 + public/native 가로 120px 불변 + Core/native 수직 정합성까지 명시 검사한다. 실 viewport/선택/복원의 기대값을 제거하거나 timeout/skip/retry를 늘리지 않는다. 실제 화면 동작 회귀는 #530 shard6 및 #463에서 각각 유지한다.
+
 ## Issue #530 — Main CI #2280.1 뒤늦은 SVAR scroll-chart(0) 회귀 (2026-10-09)
 
 - 원격 Main CI #2280.1 (`e1e6e255...`) shard6: nested LIFO pop 240→0으로 재발, 캡처/명시적 restore는 성공하고 이후 새로운 scroll-chart(0)이 발생. Quality/E2E1~5/Docker PASS, E2E6 FAIL, 전체 CI FAIL.

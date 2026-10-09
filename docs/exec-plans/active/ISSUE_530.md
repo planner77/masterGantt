@@ -1,5 +1,12 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 PR #566 CI #2282.1 — Milestone #463 진단 속성 미존재 회귀 보완
+
+- [PR CI #2282.1 / run 37879481685](https://github.com/planner77/masterGantt/actions/runs/37879481685)에서 **제품 문제였던 #530 nested E2E shard6은 SUCCESS**. Chromium shard2의 기존 #463 milestone viewport 회귀는 `JSON.parse(null).count` 예외로 FAIL. [해당 Playwright report](https://github.com/planner77/masterGantt/actions/runs/37879481685/artifacts/11593194720)의 `public-viewport-events`는 restore marker=null이지만 Core/native left120 일치, Gantt API instance=svar-api-1 및 필터 후 vertical0 동기화로 기록한다.
+- 명시적 peer 복원 action을 발행하지 않아 원래 위치가 유지될 때 디버그 `data-gantt-peer-restore`가 설정되지 않은 것이므로, 부재를 `restore count 0`으로 해석하는 테스트 자료 정합성 수정. 기존 '복원 요청 중복 호출 없음' 검사는 유지하고, 검색 필터 적용/초기화 뒤 API identity·public/native horizontal120 보존·vertical alignment까지 검사한다. 보이는 행 수가 줄어드는 필터의 세로 clamp는 정상이며 과거 96 고정으로 오판하지 않는다.
+- 수정 대상: `tests/e2e/milestone-dashboard-state.spec.ts`, `docs/TEST_PLAN.md`, 본 실행 계획. 신규 Head에 대해 전체 required quality/E2E6/Docker CI 재검증. 테스트 skip/retry/timeout 증가나 제품 입력 보호 로직 변경은 없다.
+- `v0.103.1` 후보와 Issue #530 OWNER 정식 GHCR 승인은 유지하며, PR CI와 새 merge SHA Main CI 통과 이전엔 게시/Issue Close를 주장하지 않는다.
+
 ## 2026-10-09 Main CI #2280.1 재실패 — 지연 native 스크롤 재덮기 보완
 
 - **정확한 실패 근거:** Issue #530 [Main CI #2280.1](https://github.com/planner77/masterGantt/actions/runs/37876071912), merge SHA `e1e6e2558481fe01d9f7e57c0148288f77a884de`는 TypeScript/ESLint/Vitest/Next.js, Docker 실제 smoke, Chromium 1~5/6 PASS. Chromium shard 6/6의 #530 nested LIFO pop/clear 1 FAIL, 82 PASS, 1 SKIP로 E2E aggregate FAIL, 임시 GHCR image job SKIPPED.

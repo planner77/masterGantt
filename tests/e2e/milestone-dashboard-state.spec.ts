@@ -113,6 +113,24 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await page.setViewportSize({ width: 1456, height: 900 }); await page.setViewportSize({ width: 1440, height: 900 }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } }); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
-    const restored = JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!) as { count: number }; const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true }); await search.fill("Stable leaf"); await search.fill(""); await expect.poll(async () => JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!).count).toBe(restored.count);
+    // When the existing Core/native viewport already matches the capture,
+    // the peer restore action is correctly skipped and has no debug marker.
+    // Missing marker means zero restores, not a failed layout transition.
+    const restoreCount = async (): Promise<number> => {
+      const raw = await frame.getAttribute("data-gantt-peer-restore");
+      return raw === null ? 0 : (JSON.parse(raw) as { count: number }).count;
+    };
+    const restoredCount = await restoreCount();
+    const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
+    await search.fill("Stable leaf");
+    await search.fill("");
+    await expect.poll(restoreCount).toBe(restoredCount);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
+    // Filtering can clamp vertical native scroll, but it must not recreate
+    // Gantt or desynchronize Core/native and the restored horizontal offset.
+    await expect.poll(async () => {
+      const state = await viewport();
+      return { coreLeft: state.public.left, domLeft: state.dom.left, verticalAligned: state.public.top === state.dom.top };
+    }).toEqual({ coreLeft: 120, domLeft: 120, verticalAligned: true });
   } finally { await testInfo.attach("public-viewport-events", { body: JSON.stringify({ viewport: await viewport(), events: await frame.getAttribute("data-gantt-public-scroll-events"), restored: await frame.getAttribute("data-gantt-peer-restore") }), contentType: "application/json" }); }
 });
