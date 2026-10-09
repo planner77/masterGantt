@@ -36,5 +36,15 @@
 
 ## HIGH_REVIEW
 - 권한: read-only job scoped token, 외부 PR 코드 실행 금지
-- bootstrap: 첫 도입 PR의 QA Final 자동 FAIL/BLOCKED는 보안상 의도한 동작, 별도 reviewer 필요
+- bootstrap: #2334.1에서 최초 도입 QA 검증기 부재로 QA Final FAIL 확인; 보완 후 qa_bootstrap에서 NOT TESTED 명시, QA Final SKIPPED, 독립 reviewer는 여전히 필수
 - 후속: HIGH 강화 수동 검토 및 Manager ACCEPT 전 MERGE_READY 불가
+
+## 2026-10-10 QA_FINAL Bootstrap REWORK
+
+- 원격 증거: run 37998967929 / PR #587 / head 965c8e1865525e56545611b228cc828332b02a31
+- 최초 PR CI: Quality/E2E/Docker required aggregate PASS; 새 QA Final 최초 검증기 부재로 FAIL
+- 원인: 신뢰된 base validator가 아직 없어 의도적 차단을 Job 실패로 모델링한 bootstrap lifecycle 설계 충돌
+- 수정: base SHA 신뢰 확인 전용 qa_bootstrap Job, validator가 없으면 자동 QA SKIPPED 및 NOT TESTED 요약; 이후 base에 validator 존재하면 QA Final 본검사
+- DOC_SYNC: .github/workflows/ci.yml, scripts/test_qa_final_automated.py, QA_REVIEW_POLICY/CI_CD/GITHUB_OPERATIONS/REMOTE_VALIDATION/TEST_PLAN, 본 Work Packet 갱신
+- 기대: 신규 PR CI 시작, existing 3 required checks 보존, 독립 QA 및 Manager 승인 전 병합 금지. Ruleset 변경 미진행
+- `DESIGN.md`: N/A(제품 기능/UI 무변경); `docs/DB_SCHEMA.md`: N/A(DB/API 변경 없음)

@@ -76,5 +76,21 @@ class Cases(unittest.TestCase):
         self.assertFalse(qa.blocking_reviews(reviews))
 
 
+    def test_workflow_bootstrap_is_never_automated_pass(self):
+        from pathlib import Path
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+        self.assertIn("qa_bootstrap:", workflow)
+        self.assertIn("name: QA Final — Automated", workflow)
+        self.assertIn("present=false", workflow)
+        self.assertIn("QA Final — Automated: NOT TESTED (bootstrap)", workflow)
+        self.assertIn("needs.qa_bootstrap.outputs.trusted_validator == 'true'", workflow)
+        self.assertIn("ref: ${{ github.event.pull_request.base.sha }}", workflow)
+        self.assertIn("persist-credentials: false", workflow)
+        self.assertNotIn("pull_request_target:", workflow)
+        # Old fail-on-bootstrap step must not turn full PR CI red.
+        self.assertNotIn("최초 도입 PR Bootstrap 검증", workflow)
+
+
 if __name__=="__main__":
     unittest.main(verbosity=2)

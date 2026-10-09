@@ -802,10 +802,50 @@ jobs:
             exit 1
           }
 
+  # First introduction: main lacks a trusted QA validator. Record NOT TESTED.
+  # Never report success of an unexecuted QA check, and never weaken existing required CI.
+  qa_bootstrap:
+    name: QA Final 신뢰 경계 확인
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      trusted_validator: ${{ steps.validator.outputs.present }}
+    steps:
+      - name: 현재 PR base SHA checkout (PR 코드·Secret 실행 금지)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: base의 검증기 존재와 Bootstrap 판정 기록
+        id: validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f scripts/qa_final_automated.py ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "기준 main SHA의 신뢰된 자동 QA 검증기를 확인했습니다." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## QA Final — Automated: NOT TESTED (bootstrap)"
+              echo
+              echo "현재 base SHA에 신뢰된 QA validator가 없으므로 자동 QA는 실행되지 않습니다."
+              echo "이는 자동 PASS가 아닙니다. HIGH 변경은 별도 독립 Reviewer와 Head별 Manager ACCEPT가 필요합니다."
+              echo "기존 Quality/E2E/Docker와 DOC_SYNC/리뷰/merge gate를 모두 유지합니다."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   qa_final_automated:
     name: QA Final — Automated
-    if: always() && github.event_name == 'pull_request'
-    needs: [changes, metadata_evidence, quality, e2e, docker]
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      needs.qa_bootstrap.result == 'success' &&
+      needs.qa_bootstrap.outputs.trusted_validator == 'true'
+    needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -819,14 +859,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
-      - name: 최초 도입 PR Bootstrap 검증
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ ! -f scripts/qa_final_automated.py ]]; then
-            echo "::error::base에 신뢰된 QA validator가 없습니다. 최초 도입은 별도 독립 QA가 필요합니다."
-            exit 1
-          fi
       - name: 최신 PR 증거·문서·리뷰 확인 (read-only)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
