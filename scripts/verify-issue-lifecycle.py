@@ -798,6 +798,12 @@ def fake_audit_gh(path, *, method="GET", fields=None):
         return {"merged":True,"merge_commit_sha":existing_sha,"base":{"ref":"main"},
             "head":{"ref":"docs/previous","sha":"3"*40,"repo":{"full_name":"owner/repo"}},
             "body":"Refs #565"}
+    if path.endswith("/pulls/999"):
+        # Simulate a real API lookup resolving to an unrelated, unmerged PR.
+        # The lifecycle validator, not the test transport mock, must reject it.
+        return {"merged":False, "merge_commit_sha":None,
+                "base":{"ref":"main"}, "head":{"ref":"other", "sha":"9"*40,
+                "repo":{"full_name":"owner/repo"}}, "body":"Refs #999"}
     raise AssertionError(path)
 module.gh, module.run = fake_audit_gh, fake_audit_run
 try:
