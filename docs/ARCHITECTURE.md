@@ -1,5 +1,11 @@
 # Architecture draft
 
+## Issue #569 — 공개 API Adapter의 도입 전 경계
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)은 Core/native 읽기와 공개 scroll/date reveal/finite settle 명령을 분리하는 인터페이스·PoC다. 제품 ProjectGantt의 기존 viewport writer나 Coordinator를 교체하지 않는다. 공개 controlled scale 설정과 native chart를 같은 좌표계로 검증하고 hidden/inert/zero-size를 유효한 viewport로 저장하지 않는다.
+
+A(autoScale)/B(명시 범위)/C(2.7.3 resize 호환)의 실제 성공·실패와 보존 조건을 비교한 뒤 후속 도입 여부를 판단한다. C의 synthetic width는 공식 physical container 의미 밖의 예외이므로 버전 가드·명시 opt-in·유한 상한을 갖는 교체 가능한 모듈로 한정한다. 직접 Store/DOM 폭 쓰기·PRO·서버 상태 authority 추가는 없다.
+
 ## Issue #568 — 동기화 관측 도구의 경계
 
 비교 stack의 filter 이후 native clamp→Core scroll 반영은 관측 순서이며 직접 DOM writer는 미확정이다. 이 결과만으로 Core 결함이나 adapter 수정 방향을 확정하지 않는다.

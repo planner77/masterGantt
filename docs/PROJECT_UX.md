@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #569 — 기하·날짜 이동의 설계 실험
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)의 fixture는 개발·테스트 전용이며 기존 프로젝트 화면을 바꾸지 않는다. 명령 반환만으로 날짜 이동 완료를 알리지 않고 actual Core/native 좌표와3안정frame을 따로 확인한다. hidden/inert/zero-size/scroll capacity 부족은 측정·복원을 중지하는 명시적 결과로 다룬다.
+
+실제 공간 부족 시 제안된 회복은 보이는 layout 복귀, Chart 공간 확대, 사용자 명시 재시도다. 자동 무한 retry나 오래된 viewport 적용을 하지 않는다. 이 제안은 제품 도입 전 UX 연결이 필요하며 #569만으로 새 feedback 흐름이 제품에 구현된 것은 아니다. 기존 #367의 우측 탐색, #514의 Task 시작일 reveal, #551 비교 stack의 Milestone geometry와 원본 identity/권한 계약은 별도 회귀로 유지한다.
+
 ## Issue #568 — 실제 동기화 완료의 관측
 
 고정 PR #562의 로컬 반복에서 pending wheel의 최신 사용자 위치와 Week 전환 후 Inline 이름 표시 계약 위반이 재현됐다. 이번 진단 도구 추가는 이 두 제품 회귀의 해결을 의미하지 않는다.

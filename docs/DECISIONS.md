@@ -1,5 +1,11 @@
 # Manager decisions
 
+## Issue #569 — 시간축 확장 대안과 Adapter ADR (2026-10-09)
+
+[ADR](GANTT_ADAPTER_ADR.md)에서 문서화된 autoScale/start/end, 같은 instance의 명시 범위 변경, 기존 synthetic resize의 세 대안을 실제 설치 Core2.7.3로 비교한다. 공식 최신 문서와 설치 타입/runtime을 같은 버전 계약으로 간주하지 않으며 exec resolve와 native settle을 분리한다.
+
+실험용 adapter 계약을 채택하되 전체 폭에서 연속 확장이 확인되지 않아 제품 도입은 DEFER한다. PoC의 지평 상한은 10 calendar years/1,000,000 CSSpx, trial당 3회 확장, settle 기본 1500ms/최대 5000ms와 3개 안정 frame이다. 실측·실패·불확실성과 rollback 근거를 ADR에 기록하고 제품의 최종 한도는 후속 도입에서 재검토한다. API/DB/domain/권한 계약은 유지한다.
+
 ## Issue #568 — API 반환과 화면 안정화의 분리 (2026-10-09)
 
 PR #562의 pending filter→native0→Core0 feed-back은 두 번 관측했으나 최초 DOM writer와 Inline text writer는 미확정이다. Core 결함·adapter 수정 결정은 후속 이슈에 남기며 이번 도구의 PASS로 기존 제품 회귀를 종료하지 않는다.

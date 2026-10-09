@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #569 — 공개 API·시간축 Adapter PoC
+
+[실행 계획](exec-plans/active/ISSUE_569.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 공식/설치 기능 matrix, A/B/C 결과와 지원 경계를 남긴다. 실제 Core 2.7.3 Chromium의 390/768/1024/1440/1920px·Day/Week에서 최대 3회 확장의 성공/실패와 instance/selection/origin/scroll/열/visible date와 tick↔bar≤1 CSSpx, Grid/Chart y정렬을 비교한다. empty/M-only, fullscreen/split, 가로/세로scroll·열resize, hidden/inert/zero-size/capacity·cleanup·intent 취소·finite timeout을 별도로 확인한다.
+
+지원 분류는 390px Chart 확대 후 Day A/B·Week A/B/C의 3회 성공, C Day의 첫 확장 위치 실패, 넓은 화면의 첫 확장 성공 후 다음 edge timeout이다. 분류 검증 PASS를 모든 후보의 지원 PASS로 해석하지 않는다.
+
+순수 adapter Unit·typecheck·변경부 lint와 기존 #367/#514 targeted 회귀, 별도 PR #562 source의 #551 lane390 회귀를 실행한다. 최초실패·source/artifact SHA·명령과 미검증을 보존하고 기존 assertion/timeout/skip/workflow gate는 변경하지 않는다. 로컬 PoC의 성공은 기존 제품 전체 회귀나 원격 CI 성공을 뜻하지 않는다. 요청 종료점은 PR CI 시작이며 quality/e2e/docker 결과·QA_FINAL·main/GHCR은 NOT TESTED다.
+
 ## Issue #568 — Core Action Trace와 재현 분석
 
 고정 PR #562 targeted5×2는 각각3 PASS/2 FAIL이다. Inline 실패 run은 Week 후 assertion에서 멈춰 뒤의500/412/network 분기에는 도달하지 않았다. observer-only clock 실험은 sequence를 정렬 기준으로 사용하고 elapsedMs/수직 sample로 안정화 PASS를 주장하지 않는다.
