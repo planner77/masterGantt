@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #530 / PR #564 — 비영점 Gantt 복귀 재덮기 회귀 (2026-10-09)
+
+- 이전 PR CI #2267.1/head `87b8c1c`: Chromium E2E shard6 `resource-kpi-integration-ui.spec.ts` 실제 Task 일정 복귀 시 초기 Core/native120 → peer restore120 성공 후 늦은 metadata-only `scroll-chart(0)`으로 최종0; 독립 source capture는 정상. 1 FAIL /82 PASS/1 SKIP. 이전 #525 자동-reveal 보완 E2E는 별도 성공.
+- PATCH `0.103.1`: `project-gantt.tsx` metadata-only 복원 요청은 발급 당시 peer epoch와 현재 epoch를 대조하고, explicit Resource peer restore 직전 기존 metadata request를 revoke. metadata-only 저장 이후의 오래된 0 좌표가 새 사용자 복귀 좌표를 덮지 못하도록 한다. 기존 metadata 수정 스크롤 보존(#538), stale/scope/geometry/input 취소는 회귀 유지.
+- E2E `#530 고정 geometry exact 일정 drill 복귀`: Core/native 초기120, resource drill, 원래 보기 LIFO, 최종 전체 state/ID/selection/columns strict equality, 12 animation-frame 추가 지연 뒤 동일 좌표, peer restore 뒤 stale `scroll-chart(0)` 이벤트 0건. 다른 nested-pop/clear와 사용자 wheel/resize 취소 회귀 유지. 회귀 실패 시 timeout/기대값 완화 대신 제품 우선순위 경로 수정.
+- 필수 신규 exact-head PR CI: quality, Chromium E2E6/6, Docker aggregate 전부 성공하고 독립 QA에서 제품 범위/문서/새 version·기존 release 승인 경계를 다시 확인하기 전까지 병합 불가.
+
 ## Issue #538 — Project master 계층 검증
 
 - DB migration 0024: 이미 연결된 조합 중복 제거, 부분/legacy row의 무추정·무변경, FK/category/parent 보호, checksum/rollback.

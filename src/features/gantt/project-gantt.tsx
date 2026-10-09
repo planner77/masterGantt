@@ -1637,7 +1637,9 @@ export function ProjectGantt({
 
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
-  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
+  // Explicit peer/navigation restoration outranks an older metadata-only scroll.
+  const peerRestoreAuthorityEpoch = useRef(0);
+  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; peerEpoch: number; hasInput: () => boolean; cleanup: () => void } | null>(null);
   useEffect(() => () => {
     metadataViewportReference.current?.cleanup();
     metadataViewportReference.current = null;
@@ -1673,7 +1675,7 @@ export function ProjectGantt({
       metadataViewportReference.current = null;
       if (geometryUnchanged && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
-        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
+        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), peerEpoch: peerRestoreAuthorityEpoch.current, hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
         metadataViewportReference.current = request;
         const cleanup = () => { request.cleanup(); if (metadataViewportReference.current === request) metadataViewportReference.current = null; };
         // The queue tail also clears requests when no columns update follows.
@@ -1767,7 +1769,7 @@ export function ProjectGantt({
         await restoreSummaryToggleState(api, summaryState);
         const request = metadataViewportReference.current;
         if (request) {
-          const currentRequest = () => request === metadataViewportReference.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
+          const currentRequest = () => request === metadataViewportReference.current && request.peerEpoch === peerRestoreAuthorityEpoch.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
           try {
             await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
             if (currentRequest()) {
@@ -1851,6 +1853,12 @@ export function ProjectGantt({
         const chartWidth = (api.getState() as TimelineState)._chartWidth;
         if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left);
         if (!current()) return;
+        // A metadata-only sync may still hold a captured zero offset from
+        // the temporary Task scope. Revoke that lower-priority request before
+        // the explicit peer restore so it cannot later issue scroll-chart(0).
+        peerRestoreAuthorityEpoch.current += 1;
+        metadataViewportReference.current?.cleanup();
+        metadataViewportReference.current = null;
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         if (!current()) return;
         for (const position of request.positions ?? []) {

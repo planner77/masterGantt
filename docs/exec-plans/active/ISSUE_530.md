@@ -1,5 +1,14 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 PR CI #2267.1 실패 — 실제 viewport 재덮기와 PATCH 보완
+
+- PR #564 정렬 head `87b8c1cff06c4b2d5b950fdf9dbef043766e77c1`의 [PR CI #2267.1 / Run 37867259587](https://github.com/planner77/masterGantt/actions/runs/37867259587)은 completed/failure. Quality(TypeScript·ESLint·Vitest·Build)와 Docker aggregate, Chromium 샤드 1~5 PASS. **Chromium shard 6/6**에서 `tests/e2e/resource-kpi-integration-ui.spec.ts:314` 실제 #530 viewport 복귀 1 FAIL/82 PASS/1 SKIP: 초기/복귀 capture 모두 Core/native `left=120,top=0`이었으나 복귀 최종 Core/native가 `left=0`이었다. 원래 Gantt instance·선택·열·트리는 보존됐다.
+- 보존된 Playwright `fixed-geometry-exact-drill` attachment와 trace의 `data-gantt-public-scroll-events`를 대조하면 peer restore `scroll-chart(120)`이 실제 성공하고 `data-gantt-peer-restore={count:1,requestedLeft:120,publicLeft:120,domLeft:120}`까지 기록된 **이후에 다시 `scroll-chart(0)`이 명시적으로 발생**했다. 따라서 단순한 assertion 지연이나 복원 누락이 아니라, 메타데이터-only 동기화가 이전 scope에서 캡처한 0 좌표를 나중에 복원한 우선순위 경합이다.
+- 제품 PATCH: `project-gantt.tsx`에서 metadata-only viewport 요청에 `peerEpoch`를 함께 저장하고 현재 epoch와 같을 때만 적용한다. 명시적인 Resource/peer 복원 직전 epoch를 증가시키며 앞선 메타데이터 요청의 listener/참조를 폐기한다. 정상 메타데이터-only 보존은 유지하면서 **과거 metadata restore가 명시적 peer restore를 덮지 못하도록** 한다. 비동기 pending queue의 target/source·scale·columns·generation·입력 취소·resize guard 및 Core/native 독립 좌표 계약은 유지한다.
+- Chromium 회귀는 복귀 직후 전체 viewport 엄격 비교와 정지 후(12 animation frame) **다시 엄격 비교**하고, 명시적 peer 복원보다 늦은 `scroll-chart(0)` 이벤트가 없는지 확인한다. 사용자 입력으로 복원이 취소되는 테스트·중첩 복귀·실제 API/Excel 회귀는 유지한다. timeout/skip/retry나 CI quality gate는 완화하지 않는다.
+- 최신 main은 `be17a6c098d0b7c12263d9274a66544b026b6487`의 `0.103.0`; 실제 제품 수정이므로 PATCH **0.103.1**로 올려 package/lock/CHANGELOG를 일치시킨다. 현재 Issue #530의 과거 정식 release 승인 마커는 `0.102.3` 전용이므로 0.103.1에 소급 적용하지 않는다. `release_required=true`, `release_authorized=false` (0.103.1).
+- 대상 SHA의 로컬 실행/완전한 Chromium 결과와 새로운 독립 QA는 별도 증거가 없으면 **NOT TESTED**이며 새 정확한 Head의 full PR CI를 등록해 검증한다. 요청 범위는 보완·문서 갱신·새 PR CI 시작까지; 병합/Main CI/GHCR/Release/Issue 종료는 제외한다.
+
 ## 2026-10-09 PR #564 QA 재작업·최신 main 정렬 (새 Head CI는 별도 검증)
 
 - **기존 정확한 Head의 CI:** [PR CI #2251.1 / Run 37858842272](https://github.com/planner77/masterGantt/actions/runs/37858842272)는 **기존 Head `55ea089d826fb616a1fa30f9fde38520ca0ae67a`**에서 2026-10-09 **08:35 KST** `completed/success`로 끝났다. Quality(TypeScript/ESLint/Vitest/Next.js build), Chromium E2E **6/6 샤드**, E2E aggregate 성공. 기존 Main #2249.1에서 실패했던 샤드 4/6은 **83 PASS**, 동일 #525 테스트는 **6.5초 PASS**였다. 이 결과는 새 정렬 Head의 성공으로 소급하지 않는다.

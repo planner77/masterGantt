@@ -312,6 +312,20 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   try {
     await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    // A stale metadata-only scroll command must not replace the peer restore
+    // with zero after the first successful snapshot comparison.
+    await frame.evaluate(async () => {
+      for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    });
+    await expect.poll(() => ganttIntegrationState(page)).toEqual(before);
+    const staleAfterPeer = await frame.evaluate((element, expectedLeft) => {
+      const raw = element.getAttribute("data-gantt-public-scroll-events") ?? "[]";
+      const events = JSON.parse(raw) as { action: string; requestedLeft?: number }[];
+      const lastExplicitReturn = events.findLastIndex(event => event.action === "scroll-chart" && event.requestedLeft === expectedLeft);
+      if (lastExplicitReturn < 0) return -1;
+      return events.slice(lastExplicitReturn + 1).filter(event => event.action === "scroll-chart" && event.requestedLeft === 0).length;
+    }, before.publicViewport.left);
+    expect(staleAfterPeer).toBe(0);
     expect(await seed.getSnapshot()).toEqual(canonical);
   } finally {
     await info.attach("fixed-geometry-exact-drill", { body: JSON.stringify({ before, after: await ganttIntegrationState(page), initialCapture, returnCapture }), contentType: "application/json" });
