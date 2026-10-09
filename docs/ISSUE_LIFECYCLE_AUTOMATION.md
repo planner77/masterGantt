@@ -380,3 +380,7 @@ blocker가 해소된 뒤에는 다음 우선순위를 따른다.
 ### #586 다중 PR FINAL·부분 종료 방지
 
 동일 Issue의 모든 성공 Main merge를 개별 SHA로 검증한다. 과거 FINAL marker는 불변 감사 대상이며 안전한 PR/head/merge/base/canonical Refs/first-parent 확인을 통과할 때만 후속 FINAL을 기록한다. Finalizer는 FINAL과 candidate/branch preflight를 삭제보다 앞서 수행하고 중간 실패 뒤에는 기존 부수효과를 멱등 확인하여 재시도한다. 동일 Issue 후속 target이 pending이면 close하지 않는다. 원본 사건 #565/#583/#585는 [GENERIC_RELEASE_FINALIZER.md](GENERIC_RELEASE_FINALIZER.md)를 참조한다.
+
+### Issue #586: 수동 FINAL 순서 검증
+
+수동 dispatch `finalize`/`release_finalize`는 현재 main의 first-parent backlog를 재검증하여 자신이 **최초 미완료 actionable PR**이고 동일 Issue의 더 최신 미완료 PR이 없는 경우에만 삭제/FINAL 단계로 진행한다. 그렇지 않으면 어떤 브랜치/GHCR/Issue mutation도 실행하지 않고 Generic Finalizer 재개를 요구한다. 자동 Resolver의 `--resolver-ordered`는 내부 검증 계약이며 수동 workflow input으로 노출하지 않는다. 이미 존재하는 정확한 FINAL의 수동 재호출은 close를 수행하지 않는다.
