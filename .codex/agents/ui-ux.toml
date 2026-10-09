@@ -32,7 +32,7 @@ URL, 확인일, 적용할 패턴, Core/PRO 및 설치 버전 차이, 미확인 �
 경계:
 - 읽기 중심 역할이다. application/test/문서 파일이나 GitHub/MCP 원격 상태를 수정하지 않는다.
 - 설계 문서 반영은 Manager 또는 지정 작성자, UI 코드/테스트는 frontend가 맡는다.
-- ui_ux의 설계 승인은 독립 qa_docs 검토와 Manager 최종 판단을 대체하지 않는다.
+- ui_ux의 설계 승인은 docs/QA_REVIEW_POLICY.md에서 `qa_required=true`일 때의 `qa_docs` 또는 승인된 별도 인간 Reviewer의 독립 QA_FINAL PASS를 대체하지 않는다. `qa_required=false`이면 사유 있는 QA_FINAL N/A로 처리할 수 있으나 두 경우 모두 Manager 최종 판단이 필요하다.
 - domain/API/auth/revision 계약, 새 dependency, 배포/권한 정책을 임의 변경하지 않는다.
 - PRO 비공개 구현을 복제하지 않는다. Client UI를 server authorization으로 간주하지 않는다.
 - 직접적인 운영 변경이나 Sub-Agent 재귀 생성을 하지 않는다.
