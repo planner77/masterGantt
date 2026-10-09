@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Issue #530 PR #581 CI #2325.1의 #463 E2E read→fill 경쟁을 보완한다. 정상 peer 복귀의 3-frame 완료 영수증을 resize/검색 이전에 확정하고, 실제 trusted 검색 입력이 진행 중 복원을 취소하는 별도 유한 RAF barrier 회귀를 추가한다. 기존 120/96·180/128·#530 fixed120/240/nested 검증과 제품·버전·CI gate를 유지한다.
 - Issue #530 Main CI #2315.1의 기존 #525 E2E 좌표 경합을 보완한다. Grid Task 선택 후 늦게 끝나는 Core Chart 자동 reveal(실측 1581px)을 수동 native120px로 경쟁시키지 않고, 실제 비영점 public/Core·DOM 두 축 8연속 RAF 안정화 좌표를 원장으로 고정해 추가12RAF/일정↔리소스 복귀 strict 상태 보존을 검사한다. 제품/버전/필수 CI gate는 불변이다.
 - Issue #530 PR #579 CI #2313.1 후속: 검색/필터 input·change를 명시적 사용자 intent로 수용해 대기 중인 peer viewport 복원을 React Projection 업데이트 전에 취소하고, 완료된 복원 가드도 무효화한다. 네이티브 Chart 보정의 settle 단계 예산과 이후 guard 단계 예산을 구분하며, hidden·취소로 정상 종료되는 요청의 guard를 인스턴스 동일성으로 정리한다. #463 필터 중 stale restore 영수증 방지와 #530 post-settle 반복 native-only reset의 Core/DOM 복귀를 strict E2E로 보강한다.
 - Issue #530 Main CI #2311.1 후속 복원 안정화: SVAR 시간축 확장 시 native Chart의 실제 수평 capacity가 31px로 제한된 순간 Core120 복원 명령을 발행해 좌표가 Core/native31로 재덮이는 경합을 보완한다. Chart 물리 capacity가 target을 3프레임 연속 지원할 때만 명시 복원을 시작하고, Core/native 3프레임 정합 뒤 성공 receipt를 남긴다. 사용자/geometry 변화는 취소하며 bounded timeout·진단을 추가하고 기존 엄격한 #530 E2E를 유지한다. 배경화면 RAF 중지 시 독립 timer·visibilitychange로 기다림을 깨우고, timer wake/실제 native 보정은 3개의 연속 안정 프레임으로 계상하지 않으며 E2E receipt는 실제 안정화 이후 읽는다.
