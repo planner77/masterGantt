@@ -1,3 +1,11 @@
+## Issue #553 — PR CI #2266 재현·복원 수명 회귀 (2026-10-09)
+
+- [PR CI #2266](https://github.com/planner77/masterGantt/actions/runs/37865006516), head `4e27c04`: TypeScript/ESLint/Vitest/Next build/policy PASS, E2E shards2/3/4/6 17 cases FAIL, Docker smoke OAuth token `connection reset by peer` FAIL(외부 전송 오류). Docker 코드 정상·비정상을 해당 실패만으로 추론하지 않는다.
+- Gantt metadata/confirmed delete·Project 설정·알림·Resource peer 복귀: `set-columns`가 Core-derived width를 변경해도 canonical snapshot·scope·scale·input generation이 동일하면 원래 public/Dom viewport를 보존한다. 직접 wheel 입력 시 이전 복원 차단; Core public exact와 DOM rounding tolerance는 구분한다.
+- 필터 검색 결과 자체가 줄거나 0개가 될 때는 오래된 Task viewport를 강제하지 않고 원점 복귀를 검사한다. 검색 조건이 비활성인 Task CRUD와 동일하게 취급하지 않는다.
+- Inline 이름 Tab/Enter/Escape/401/412는 SVAR `close-editor` 경로에서 변경 Task만 PATCH 1회, canonical 이름 갱신과 안정적인 Grid·Editor 종료를 검증한다. 390px 관계키 메뉴는 정확한 UUID Grid 셀에 focus하고 재탐색 없이 native Shift+F10을 보낸 뒤 열리는 Task ID를 검사한다. Milestone 390px 날짜 요청 복귀의 focus 결과도 검사한다.
+- Docker 외부 네트워크 실패는 새 exact-head CI에서 원격으로 재평가한다. 테스트 skip, 검증 기준 완화나 Dockerfile의 근거 없는 변경을 하지 않는다.
+
 ## Issue #553 — CI #2258 Chromium 추가 실패 범위 (2026-10-09)
 
 - 근거: [PR CI #2258](https://github.com/planner77/masterGantt/actions/runs/37862064001), head `5e09f067`, quality/Vitest/typecheck/lint/build/Docker PASS, Chromium shard 3~6 총15건 FAIL.

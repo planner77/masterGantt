@@ -124,3 +124,12 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - 최초 native Add: 동기화 generation/depth/aria-disabled 준비 상태를 확인한 후 실제 Core row 버튼을 클릭한다. 기존 POST 201/parent-conversion 검증·검증 timeout은 유지한다.
 - 날짜 probe/reveal은 과거 viewport 복원 요청을 명시적으로 무효화하고, Core 내부의 기하 보정 `scroll-chart`는 새 사용자 이동으로 간주하지 않는다. #551의 날짜축 pixel alignment와 연속 확장 E2E를 그대로 실행한다.
 - 구현 head `77174c42b6b6252bbbcb265a20cb5e28dd9df61e`, PR CI https://github.com/planner77/masterGantt/actions/runs/37864863009 (#2264). 등록 후 원격 최종 E2E/QA 판정은 run 결과 전까지 NOT TESTED. 병합/main/GHCR/릴리스/tag/Issue 종료를 진행하지 않는다.
+
+## PR CI #2266 실패 원인별 보완과 새 PR CI 재등록 (2026-10-09)
+
+- 실패 원본: https://github.com/planner77/masterGantt/actions/runs/37865006516 (head `4e27c04fd5a67e320adb13d1a5f4e5e7367095a9`). Required TypeScript/ESLint/Vitest/Next production build/정책 PASS, Chromium E2E shards 2·3·4·6 FAIL(17 tests), shard1·5 PASS. Docker Build는 `auth.docker.io/token` OAuth 연결에서 `connection reset by peer`: 외부 네트워크 전송 오류이므로 Dockerfile 회귀로 판정하지 않는다. 동일 head Docker PASS 아님.
+- Gantt 수정: Core `set-columns`/resize-grid가 계산한 `gridWidth/columns`는 metadata 변경·Task 삭제의 viewport 보존 요청을 무효화하는 입력이 아니다. 사용자 pointer/wheel/key, generation, scope/filter, scale 검사를 유지하며 derived layout equality만 제거. 연속 canonical update에서는 이전 valid 요청의 좌측·상단 baseline을 전달한다. Peer plain return도 본래 요청의 snapshot/key/scale + 사용자 입력을 우선하고 단순 내부 컬럼 재계산으로 원래 위치를 폐기하지 않는다.
+- 실제 task filter 결과 집합이 바뀌면 active filtering의 이전 scroll을 사용하지 않고 `scroll-chart({left:0,top:0})`으로 명시적으로 원점 정렬한다. 필터가 없는 Task CRUD와 날짜 reveal은 별도 정책을 유지한다.
+- Inline 이름: Tab과 Enter 모두 기존 SVAR `close-editor({ignore:false})`→`update-cell` 단일 보호된 Task PATCH 경로를 사용한다. 이전 Tab 선행 단독 commit+ignore=true 조합은 서버 저장 후 구 input이 남는 원인이 될 수 있어 제거했다.
+- 390px Relation: `cell.focus()` 후 locator `.press()` 재탐색/자동 스크롤 대신 현재 활성 셀에 `page.keyboard.press(Shift+F10)`를 전달한다. 실제 Task identity assertion·관계 조회/수정·focus 검사는 보존한다. Dashboard 집중: management native modal 종료와 focus 복귀의 bounded requestAnimationFrame 대기 상한 확대(4→30 프레임).
+- 코드·테스트 commit `9aaaa02ff40f9d91112850362f8bc447d69945ea`의 PR CI https://github.com/planner77/masterGantt/actions/runs/37867727493 (#2268)는 등록·실행 상태만 확인했다. 최종 exact-head PR CI·QA_FINAL·Manager ACCEPT는 NOT TESTED. 테스트 disable, timeout 증가, 검증 계약 삭제 및 main/GHCR/merge/release/Issue 종료 없음.

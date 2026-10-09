@@ -1,6 +1,8 @@
 
 ## Issue #553 — Canonical viewport 동기화 순서 후속 교정 (2026-10-09)
 
+CI #2266 후속 보완: 저장된 viewport를 반환할 때 Core의 파생 `gridWidth`와 `columns.width`는 내부 `set-columns` 처리 중 달라질 수 있으므로 같은 canonical generation·사용자 input 없음·scope/filter/scale 동일 조건에서만 이전 public scroll 좌표를 복원한다. 검색 결과의 실제 visible Task ID 집합이 변경되는 경우에는 기존 위치를 보존하지 않고 새 원점으로 시작한다. 일정↔Resource 상위 탭 무입력 복귀는 이전 위치를 유지하되, 복귀 중 실제 wheel/key/pointer 입력을 받으면 과거 viewport를 덮지 않는다.
+
 Gantt의 변경 후 viewport는 canonical snapshot 동기화, WBS projection, 사용자 열 설정의 적용 순서가 모두 완료되기 전에는 복원 완료로 판정하지 않는다. `set-columns`가 최종 크기를 변경할 수 있으므로 이전 Task 수와 동일한 WBS scope에서 받은 metadata/delete 응답의 viewport 복원 요청을 마지막 컬럼 작업까지 보존한다. 명시적 Task 검색으로 실제 visible ID 집합이 변경되면 이전 위치를 복원하지 않는다. 날짜 선택에 따른 `scroll-chart` 이동은 이전 복원보다 우선하며 내부 Core 레이아웃 보정은 사용자 입력으로 잘못 판정하지 않는다.
 
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
