@@ -116,7 +116,7 @@ export function ProjectMilestoneDashboard({
       const root = document.getElementById("project-panel-milestones");
       if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
       if (document.querySelector("dialog:modal")) {
-        if (attempt < 4) frame = requestAnimationFrame(() => focusHighlight(attempt + 1));
+        if (attempt < 30) frame = requestAnimationFrame(() => focusHighlight(attempt + 1));
         return;
       }
       const row = Array.from(root.querySelectorAll<HTMLElement>("[data-milestone-task-id]")).find(node => node.dataset.milestoneTaskId === highlightTaskId);

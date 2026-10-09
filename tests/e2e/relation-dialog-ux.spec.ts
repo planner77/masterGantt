@@ -23,7 +23,10 @@ async function setup(page: Page, readonly = false, longNames = false) {
   await cell.scrollIntoViewIfNeeded();
   await expect(sourceRow).toHaveAttribute("data-id", ":00000000-0000-4000-8000-000000000003");
   await cell.focus();
-  await cell.press("Shift+F10");
+  await expect(cell).toBeFocused();
+  // Re-resolving a Playwright locator for .press() can scroll a recycled SVAR
+  // row and focus an adjacent task at 390px. Send the key to the focused cell.
+  await page.keyboard.press("Shift+F10");
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Stable leaf");
