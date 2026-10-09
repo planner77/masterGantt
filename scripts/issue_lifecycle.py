@@ -25,6 +25,7 @@ REQUIRED_CHECKS = (
 )
 MAIN_ARTIFACT_JOB = "Main 임시 commit 이미지 게시·검증·정리"
 FINAL_MARKER_PREFIX = "<!-- issue-lifecycle-final:"
+FINAL_MARKER_RE = re.compile(r"<!-- issue-lifecycle-final:([1-9][0-9]*):([0-9a-f]{40}) -->")
 
 
 class LifecycleError(RuntimeError):
@@ -595,10 +596,80 @@ def final_marker(issue_number: int, target_sha: str) -> str:
     return f"{FINAL_MARKER_PREFIX}{issue_number}:{target_sha} -->"
 
 
+def audited_final_markers(repo: str, ctx: Context) -> dict[str, int]:
+    """Authenticate historical per-merge FINAL records before mutation."""
+    first_parent = run("git", "rev-list", "--first-parent", "origin/main").stdout.splitlines()
+    positions = {sha: index for index, sha in enumerate(first_parent)}
+    if not ctx.merge_sha or ctx.merge_sha not in positions:
+        raise LifecycleError("FINAL target must belong to main first-parent history")
+
+    records: dict[str, int] = {}
+    for page in range(1, 1001):
+        comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100&page={page}")
+        if not isinstance(comments, list):
+            raise LifecycleError("FINAL comment pagination returned a non-list")
+        for comment in comments:
+            body = comment.get("body") or ""
+            lines = [line.strip() for line in body.splitlines()
+                     if line.strip().startswith(FINAL_MARKER_PREFIX)]
+            if not lines:
+                continue
+            if len(lines) != 1:
+                raise LifecycleError("a FINAL comment must contain exactly one marker")
+            match = FINAL_MARKER_RE.fullmatch(lines[0])
+            if not match or int(match.group(1)) != ctx.issue_number:
+                raise LifecycleError("malformed or cross-Issue FINAL marker")
+            target_sha = match.group(2)
+            if target_sha in records:
+                raise LifecycleError(f"duplicate immutable FINAL target: {target_sha}")
+            if target_sha not in positions:
+                raise LifecycleError(f"historical FINAL is not on main first-parent: {target_sha}")
+            author = (comment.get("user") or {}).get("login")
+            if author != "github-actions[bot]":
+                raise LifecycleError(f"untrusted FINAL marker author for {target_sha}: {author}")
+            pr_match = re.search(r"(?m)^- PR: #([1-9][0-9]*)$", body)
+            head_match = re.search(r"(?m)^- PR head SHA: .([0-9a-f]{40}).$", body)
+            branch_match = re.search(r"(?m)^- PR head branch: .([^\r\n]+).$", body)
+            merge_match = re.search(r"(?m)^- merge/release target SHA: .([0-9a-f]{40}).$", body)
+            if not all((pr_match, head_match, branch_match, merge_match)):
+                raise LifecycleError(f"incomplete historical FINAL identity: {target_sha}")
+            pr_number = int(pr_match.group(1))
+            if merge_match.group(1) != target_sha:
+                raise LifecycleError(f"FINAL body SHA mismatch: {target_sha}")
+            pr = gh(f"/repos/{repo}/pulls/{pr_number}")
+            if (
+                not isinstance(pr, dict) or not pr.get("merged")
+                or pr.get("merge_commit_sha") != target_sha
+                or (pr.get("base") or {}).get("ref") != "main"
+                or ((pr.get("head") or {}).get("repo") or {}).get("full_name") != repo
+                or (pr.get("head") or {}).get("sha") != head_match.group(1)
+                or (pr.get("head") or {}).get("ref") != branch_match.group(1)
+            ):
+                raise LifecycleError(f"historical FINAL PR identity mismatch: PR #{pr_number} / {target_sha}")
+            refs = re.findall(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$", pr.get("body") or "")
+            if refs != [str(ctx.issue_number)]:
+                raise LifecycleError(f"historical FINAL PR #{pr_number} canonical Refs mismatch")
+            records[target_sha] = pr_number
+        if len(comments) < 100:
+            break
+    else:
+        raise LifecycleError("FINAL comment pagination exceeded safety limit")
+
+    if ctx.merge_sha in records and records[ctx.merge_sha] != ctx.pr_number:
+        raise LifecycleError("current FINAL marker belongs to a different PR")
+    if ctx.merge_sha not in records:
+        newer = [sha for sha in records if positions[sha] < positions[ctx.merge_sha]]
+        if newer:
+            raise LifecycleError("refusing older target after a newer FINAL: " + ", ".join(newer))
+    return records
+
+
 def cleanup_merged_pr_branches(
     repo: str,
     ctx: Context,
     extra_pr_numbers: list[int],
+    *,
+    preflight: bool = False,
 ) -> list[str]:
     cleanup_numbers = list(dict.fromkeys([*extra_pr_numbers, ctx.pr_number]))
     evidence: list[str] = []
@@ -632,13 +703,13 @@ def cleanup_merged_pr_branches(
             branch,
             "--target-sha",
             ctx.merge_sha or "",
-            "--delete",
+            *([] if preflight else ["--delete"]),
         )
         evidence.append(f"#{pr_number} `{branch}`")
     return evidence
 
 
-def cleanup_temporary_main_candidate(repo: str, ctx: Context) -> str:
+def cleanup_temporary_main_candidate(repo: str, ctx: Context, *, preflight: bool = False) -> str:
     if ctx.main_docs_only:
         return "N/A — docs-only main merge has no temporary GHCR candidate"
     if not ctx.merge_sha:
@@ -657,10 +728,11 @@ def cleanup_temporary_main_candidate(repo: str, ctx: Context) -> str:
         "node",
         "scripts/delete-ghcr-package-version-by-tag.mjs",
         tag,
+        *(["--check-only"] if preflight else []),
         env=env,
     )
     evidence = result.stdout.strip() or f"temporary GHCR candidate {tag} cleanup completed"
-    return f"PASS — {evidence}"
+    return f"{'READY' if preflight else 'PASS'} — {evidence}"
 
 
 def finalize(ctx: Context, args: argparse.Namespace) -> None:
@@ -668,46 +740,59 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
     if not ctx.merge_sha:
         raise LifecycleError("finalize requires a merged PR")
 
-    release_required = parse_bool(args.release_required)
-    tag = "N/A"
-    release_url = "N/A"
-    if release_required:
-        tag, release_url = ensure_release(ctx, args)
+    phase = "FINAL_PREFLIGHT"
+    try:
+        marker = final_marker(ctx.issue_number, ctx.merge_sha)
+        records = audited_final_markers(repo, ctx)
+        # Re-entry after FINAL is written must not repeat branch/image cleanup.
+        # An earlier valid FINAL for a different SHA remains immutable.
+        if ctx.merge_sha in records:
+            if not args.defer_close:
+                issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
+                if issue.get("state") != "closed":
+                    gh(f"/repos/{repo}/issues/{ctx.issue_number}",
+                       method="PATCH", fields={"state": "closed", "state_reason": "completed"})
+            print(f"FINAL already recorded for PR #{ctx.pr_number} / {ctx.merge_sha}; idempotent PASS")
+            return
 
-    cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
-    candidate_lifecycle_evidence = (
-        "RETAINED — formal release candidate/provenance alias"
-        if release_required
-        else cleanup_temporary_main_candidate(repo, ctx)
-    )
+        phase = "BRANCH_PREFLIGHT"
+        cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr, preflight=True)
+        release_required = parse_bool(args.release_required)
+        phase = "CANDIDATE_PREFLIGHT"
+        if not release_required:
+            cleanup_temporary_main_candidate(repo, ctx, preflight=True)
 
-    marker = final_marker(ctx.issue_number, ctx.merge_sha)
-    comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100")
-    lifecycle_markers = [
-        line.strip()
-        for item in comments
-        for line in (item.get("body") or "").splitlines()
-        if line.strip().startswith(FINAL_MARKER_PREFIX)
-    ]
-    if any(m != marker for m in lifecycle_markers):
-        raise LifecycleError("different lifecycle FINAL marker already exists; refusing close")
-    if marker not in lifecycle_markers:
+        tag = "N/A"
+        release_url = "N/A"
+        if release_required:
+            phase = "FORMAL_RELEASE"
+            tag, release_url = ensure_release(ctx, args)
+
+        phase = "BRANCH_CLEANUP"
+        cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
+        phase = "CANDIDATE_CLEANUP"
+        candidate_lifecycle_evidence = (
+            "RETAINED — formal release candidate/provenance alias"
+            if release_required
+            else cleanup_temporary_main_candidate(repo, ctx)
+        )
         formal = (
             f"{tag} / {release_url}"
             if release_required
             else "N/A — release_required=false"
         )
+        tick = chr(96)
         body = "\n".join(
             [
                 marker,
                 f"## Lifecycle FINAL · Issue #{ctx.issue_number}",
                 "",
                 f"- PR: #{ctx.pr_number}",
-                f"- PR head branch: `{ctx.head_branch}`",
-                f"- PR head SHA: `{ctx.head_sha}`",
-                f"- merge/release target SHA: `{ctx.merge_sha}`",
-                f"- current main SHA at finalization: `{ctx.current_main_sha}`",
-                f"- application version: `{ctx.version}`",
+                f"- PR head branch: {tick}{ctx.head_branch}{tick}",
+                f"- PR head SHA: {tick}{ctx.head_sha}{tick}",
+                f"- merge/release target SHA: {tick}{ctx.merge_sha}{tick}",
+                f"- current main SHA at finalization: {tick}{ctx.current_main_sha}{tick}",
+                f"- application version: {tick}{ctx.version}{tick}",
                 "- PR required checks: PASS",
                 f"- exact main CI: {ctx.main_ci_url}",
                 f"- main change docs-only: {str(ctx.main_docs_only).lower()}",
@@ -720,24 +805,27 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 f"- formal release: {formal}",
                 "- GHCR exact digest: release-image workflow evidence when formal release is required; otherwise N/A",
                 f"- branch cleanup: PASS ({', '.join(cleanup_evidence)})",
+                f"- issue close: {'DEFERRED — newer same-Issue merge pending' if args.defer_close else 'eligible after FINAL'}",
                 "- environment-specific validation: N/A for CI/GitHub orchestration change",
                 "- lifecycle orchestration: generic auto-finalizer; per-Issue helper workflows are not used.",
             ]
         )
-        gh(
-            f"/repos/{repo}/issues/{ctx.issue_number}/comments",
-            method="POST",
-            fields={"body": body},
-        )
+        phase = "FINAL_WRITE"
+        gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments",
+           method="POST", fields={"body": body})
 
-    issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
-    if issue.get("state") != "closed":
-        gh(
-            f"/repos/{repo}/issues/{ctx.issue_number}",
-            method="PATCH",
-            fields={"state": "closed", "state_reason": "completed"},
-        )
-
+        if not args.defer_close:
+            phase = "ISSUE_CLOSE"
+            issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
+            if issue.get("state") != "closed":
+                gh(f"/repos/{repo}/issues/{ctx.issue_number}",
+                   method="PATCH", fields={"state": "closed", "state_reason": "completed"})
+    except LifecycleError as exc:
+        raise LifecycleError(
+            f"Issue #{ctx.issue_number} PR #{ctx.pr_number} SHA {ctx.merge_sha} "
+            f"phase={phase}: {exc}; recovery=retry exact target after resolving blocker; "
+            "do not recreate tags or bypass cleanup gates"
+        ) from exc
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
@@ -748,6 +836,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--release-authorized", default="false")
     parser.add_argument("--expected-version", default="")
     parser.add_argument("--authorization-note", default="")
+    parser.add_argument("--defer-close", action="store_true", help="newer same-Issue main merge pending")
     parser.add_argument(
         "--cleanup-pr",
         action="append",
