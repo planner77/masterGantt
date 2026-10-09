@@ -561,3 +561,8 @@ CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/tran
 - 설계 비교: 단일 workflow는 Ruleset·required check ID·token 범위를 유지하면서 짧게 보완 가능하지만 pending 자동 재개가 없다. 별도 metadata workflow 또는 `workflow_run` gate는 main의 신뢰된 코드 실행·workflow 존재 조건·PR/SHA/event/attempt 증거 결합·check name 충돌과 write 권한 위험이 있으므로 이번 범위에서는 도입하지 않는다.
 
 - PR #578 Codex P1 후속: metadata 증거 판정 Job은 다른 Runner와 workspace를 공유하지 않으므로 고정 SHA의 `actions/checkout`을 `persist-credentials: false`로 먼저 수행한다. `scripts/verify-issue-lifecycle.py`가 checkout 선행·인증 미보존 계약을 확인한다.
+
+
+### Issue #586 Finalizer SHA별 의무
+
+성공한 같은 Issue의 여러 PR은 docs-only 여부와 무관하게 각 exact merge SHA의 Main CI 및 GHCR candidate PASS/N/A, branch cleanup, FINAL 증거를 독립적으로 갖는다. 정상 성공 target의 검증 의무를 coalescing으로 생략하지 않는다. Finalizer는 historical marker 감사와 GHCR 삭제 사전 조회를 실제 변경 전 수행한다. 버전 bump, tag authority 및 정식 release 승인 정책은 불변이다.
