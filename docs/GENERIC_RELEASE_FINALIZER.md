@@ -142,6 +142,8 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 
 ## Issue #586 — 동일 Issue 다중 Merge의 불변 FINAL (2026-10-10)
 
+설계 결정·대안 비교·운영 복구 조건은 [#586 ADR](ISSUE_586_FINAL_MARKER_ADR.md)을 따른다.
+
 최초 완료 PR의 FINAL marker는 변경하지 않는다. 이후 같은 Issue의 PR이 병합되더라도 각 exact merge SHA의 PR Quality/E2E/Docker, Main CI, docs-only 분류 및 필요한 GHCR candidate 검증을 별도 수행한다. coalesce는 검증된 성공 merge를 삭제하지 않는다. 실패 target의 명시적 corrective supersession만 제한적으로 유지한다.
 
 **first-parent backlog의 완료 경계 판정 전** 그리고 FINAL 기록 전에 모든 기존 FINAL comment를 pagination하여 marker 형식·작성자·PR number·canonical Refs·head SHA/branch·base main·동일 repo·exact merge SHA·main first-parent 계보를 검증한다. 다른 사용자/PR/SHA가 넣은 위조 marker는 정상 완료 경계로 SKIPPED하지 않고 FAIL 처리한다. 동일한 bot-origin PR identity·SHA로 중복 생성된 과거 marker는 중복 mutation 없이 멱등하게 해석하되, 충돌하는 PR identity는 거부한다. 이어서 관련 브랜치(리스·보호·참조·조상)와 GHCR candidate(다른 tag 공유 없음)를 읽기 전용 preflight한다. 안전하지 않은 경우 삭제·FINAL 기록 전에 FAIL한다.
