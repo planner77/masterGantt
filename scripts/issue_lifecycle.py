@@ -759,6 +759,14 @@ def manual_order_preflight(repo: str, ctx: Context) -> None:
     except AutoFinalizerError as exc:
         raise LifecycleError(f"manual first-parent preflight blocked: {exc}") from exc
 
+    if any(
+        item.issue_number == ctx.issue_number and not item.actionable
+        for item in backlog
+    ):
+        raise LifecycleError(
+            "manual FINAL cannot bypass an older closed same-Issue PR "
+            "without an authenticated FINAL marker"
+        )
     pending = [item for item in backlog if item.actionable]
     if not pending:
         raise LifecycleError(
