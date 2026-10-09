@@ -629,7 +629,7 @@ def audited_final_markers(repo: str, ctx: Context) -> dict[str, int]:
                 raise LifecycleError(f"untrusted FINAL marker author for {target_sha}: {author}")
             pr_match = re.search(r"(?m)^- PR: #([1-9][0-9]*)$", body)
             head_match = re.search(r"(?m)^- PR head SHA: .([0-9a-f]{40}).$", body)
-            branch_match = re.search(r"(?m)^- PR head branch: .([^\r\n]+).$", body)
+            branch_match = re.search(r"(?m)^- PR head branch: \x60([^\x60\r\n]+)\x60$", body)
             merge_match = re.search(r"(?m)^- merge/release target SHA: .([0-9a-f]{40}).$", body)
             if not all((pr_match, head_match, branch_match, merge_match)):
                 raise LifecycleError(f"incomplete historical FINAL identity: {target_sha}")
