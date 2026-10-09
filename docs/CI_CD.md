@@ -540,3 +540,15 @@ PR #488 merge SHA `08ac7749efc4544dfc125853d9e58ef3a9d56b21`의 Main CI #2203.1 
 공용 `.github/actions/playwright-setup/action.yml`의 안전한 복구는 GitHub Ubuntu runner에 Azure archive URL이 구성된 경우 **첫 설치 시도 전** 해당 URL을 공식 `https://archive.ubuntu.com/ubuntu`로 치환한다(24.04 `/etc/apt/apt-mirrors.txt` 참조 포함). APT HTTP/HTTPS 자체 timeout 45초 및 Acquire retries 1회를 설정해 sudo `apt-get`이 상위 npm timeout 뒤에 불필요하게 살아남는 위험을 줄인다. 각 Playwright 설치 시도 전체의 360초 상한은 유지한다. 최초 시도가 실패하고 retry 가능 경로인 경우 `fuser`로 `/var/lib/apt/lists/lock`, `/var/lib/dpkg/lock-frontend`, `/var/lib/dpkg/lock`의 활성 점유를 최대 60초 확인한 뒤 **잠금이 모두 해제된 때만** 1회 재시도한다. 잠금이 남거나 `fuser`가 없으면 다른 프로세스를 강제 종료하지 않고 fail-closed한다.
 
 CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/transport/persistence 검사, metrics 측정 및 버전 정책은 유지한다. 이 보완은 추가 `Refs #487` PR 및 새 merge SHA의 PR/Main CI로 별도 검증하며 기존 실패를 PASS로 대체하지 않는다. 애플리케이션 버전 `0.102.1` 불변, 정식 SemVer tag는 N/A다.
+
+
+## Issue #577 PR metadata 증거 판정과 동시 실행 개선 (2026-10-09)
+
+- `name: CI`, 기존 세 Required Check 이름, main strict Ruleset, E2E 6 shard, release/finalizer/GHCR 계약을 변경하지 않는다. CI 실행명은 `[전체 검증]` / `[메타데이터 검증]`으로 구분하며 PR/Issue/Run/Attempt 추적을 보존한다.
+- `pull_request.edited`는 별도 `ci-pr-<PR>-metadata` concurrency group으로 묶는다. `synchronize`의 `ci-pr-<PR>-full`을 취소하지 않는다. 메타데이터 변경만으로 전체 CI를 재시작하지 않는다.
+- metadata-only job은 현재 PR API의 Head/제목/본문/브랜치 canonical trace를 재검증하고 이벤트 Head SHA와 비교한다. 달라진 구 SHA는 `SUPERSEDED`(비권위 N/A)로 즉시 반환한다. 새로운 SHA의 CI를 구 SHA에 귀속하지 않는다.
+- 현재 SHA에서는 동일 CI workflow의 가장 최근 판별 가능한 **full** 실행만 평가한다. `completed/success`와 세 required gate의 `success`, metadata job의 `skipped`가 모두 있어야 `VERIFIED`. 더 최근 full CI가 FAILED/CANCELLED이면 `FULL_FAILED`; 진행 중은 `DEFERRED`; 확인 불가는 `MISSING`; trace 오류는 `TRACE_INVALID`. API 실패도 fail-closed.
+- 1,200초 busy-wait를 제거하고 단발 조회로 제한한다. 진행 중/없는 full CI는 성공으로 꾸미지 않는다. **제약:** DEFERRED/MISSING의 metadata-only aggregate가 실패한 뒤 full CI가 성공하더라도 자동 재평가는 제공되지 않는다. 정확한 SHA로 전체 CI가 성공했는지 검증한 후 **metadata 실행의 실패 Job 재실행**을 수행한다. 새 코드 Push 없이 의도적 metadata 편집을 반복하지 않는다. 이 경로가 병합을 막으면 승인 하에서 경량 후속 이벤트 기반 재판정 도입을 별도 이슈로 추진한다.
+- 서버 API `actions: read`, `pull-requests: read`, `contents: read` 이외 권한을 쓰지 않는다. 검증 스크립트는 적절한 Job Summary에 event/current SHA와 full run ID/상태를 기록한다.
+- 변경 전 사례: PR #576 metadata #2296 Head `9f0458124198470872c6764cbd5b00dedc75417b` 실행 2026-10-09T09:50:27Z~10:10:33Z, 약 20분 Runner 사용; full #2297 Head `9d37571cef128c2f9a57c0616244412ca3354972` 성공. 변경 후 성공률/Runner-minutes의 실제 비교는 PR #577 후속 Actions 측정으로만 결정한다. 회귀 시 본 PR revert가 rollback 방안이다.
+- 설계 비교: 단일 workflow는 Ruleset·required check ID·token 범위를 유지하면서 짧게 보완 가능하지만 pending 자동 재개가 없다. 별도 metadata workflow 또는 `workflow_run` gate는 main의 신뢰된 코드 실행·workflow 존재 조건·PR/SHA/event/attempt 증거 결합·check name 충돌과 write 권한 위험이 있으므로 이번 범위에서는 도입하지 않는다.
