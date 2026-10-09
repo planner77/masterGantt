@@ -1,0 +1,4325 @@
+{
+  "schemaVersion": 1,
+  "capacity": 512,
+  "dropped": 0,
+  "entries": [
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 1,
+      "elapsedMs": 0.20000001788139343,
+      "rafTick": 0,
+      "event": "component-mount",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 2,
+      "elapsedMs": 0.9000000059604645,
+      "rafTick": 0,
+      "event": "observer-installed",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 3,
+      "elapsedMs": 0.9000000059604645,
+      "rafTick": 0,
+      "event": "react-effect-installed",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 4,
+      "elapsedMs": 2.7000000178813934,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 5,
+      "elapsedMs": 3.100000023841858,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 6,
+      "elapsedMs": 6,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "update-task",
+      "params": {
+        "id": "a787f379-6f04-4acd-8227-1494c375c94f"
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 7,
+      "elapsedMs": 7.100000023841858,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "update-task",
+      "params": {
+        "id": "a787f379-6f04-4acd-8227-1494c375c94f"
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 8,
+      "elapsedMs": 11.100000023841858,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": -484,
+        "height": -72
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 9,
+      "elapsedMs": 11.400000005960464,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": -484,
+        "height": -72
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": -484,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 10,
+      "elapsedMs": 55.400000005960464,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": -484,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 11,
+      "elapsedMs": 58.10000002384186,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": -484,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 12,
+      "elapsedMs": 66.10000002384186,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 13,
+      "elapsedMs": 66.40000000596046,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 14,
+      "elapsedMs": 68.60000002384186,
+      "rafTick": 0,
+      "event": "scenario-start",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 15,
+      "elapsedMs": 124.40000000596046,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 16,
+      "elapsedMs": 124.7000000178814,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 17,
+      "elapsedMs": 125.10000002384186,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 648,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 18,
+      "elapsedMs": 130,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 648,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 648,
+          "scalesWidth": 648
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 19,
+      "elapsedMs": 130.5,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 648,
+          "scalesWidth": 648
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 20,
+      "elapsedMs": 131.2000000178814,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 21,
+      "elapsedMs": 131.40000000596046,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 1872,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 22,
+      "elapsedMs": 132.40000000596046,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 1872,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 1872,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 23,
+      "elapsedMs": 132.60000002384186,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 1872,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 24,
+      "elapsedMs": 132.60000002384186,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 25,
+      "elapsedMs": 132.90000000596046,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 26,
+      "elapsedMs": 132.90000000596046,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 27,
+      "elapsedMs": 133,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 28,
+      "elapsedMs": 171.10000002384186,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1872,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 29,
+      "elapsedMs": 285.60000002384186,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1872
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1872,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 30,
+      "elapsedMs": 286.7000000178814,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1872,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 31,
+      "elapsedMs": 316,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 32,
+      "elapsedMs": 316.90000000596046,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 33,
+      "elapsedMs": 317,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 34,
+      "elapsedMs": 346.10000002384186,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 1908,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 35,
+      "elapsedMs": 347.30000001192093,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 1908,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 1908,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 36,
+      "elapsedMs": 347.5,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 1908,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 37,
+      "elapsedMs": 347.60000002384186,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 38,
+      "elapsedMs": 348,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 39,
+      "elapsedMs": 348.10000002384186,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 40,
+      "elapsedMs": 348.10000002384186,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 2,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 41,
+      "elapsedMs": 390.80000001192093,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 42,
+      "elapsedMs": 494.7000000178814,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 43,
+      "elapsedMs": 712.5,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "wheel",
+      "params": {
+        "deltaX": 120,
+        "deltaY": 0
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 44,
+      "elapsedMs": 763.7000000178814,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 45,
+      "elapsedMs": 763.9000000059605,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 120
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 46,
+      "elapsedMs": 764.4000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 120
+      },
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 4,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 47,
+      "elapsedMs": 803.5,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 1908,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 48,
+      "elapsedMs": 979.7000000178814,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 0,
+          "height": 0,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 49,
+      "elapsedMs": 1000.2000000178814,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 0,
+          "height": 0,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 50,
+      "elapsedMs": 1000.2000000178814,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 0,
+          "height": 0,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 51,
+      "elapsedMs": 1010.3000000119209,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1908
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 0,
+          "height": 0,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 52,
+      "elapsedMs": 1107.300000011921,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 0,
+          "clientWidth": 0,
+          "scrollHeight": 0,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 0,
+          "height": 0,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 53,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 54,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 55,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 108
+      },
+      "sample": {
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 56,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 108
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 149,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 0
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 57,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 58,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 59,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 60,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 108,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 0,
+          "scrollHeight": 468,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 61,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 0,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 0,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 62,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 63,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 64,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 65,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 66,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-wheel",
+      "sequence": 67,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 68,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "wheel",
+      "params": {
+        "deltaX": 40,
+        "deltaY": 0
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 69,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 70,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 31
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 71,
+      "elapsedMs": -1466,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 31
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 72,
+      "elapsedMs": -1452,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 1944,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 73,
+      "elapsedMs": -1452,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 1944,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 1944,
+          "scalesWidth": 1944
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 74,
+      "elapsedMs": -1452,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 1944,
+          "scalesWidth": 1944
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 75,
+      "elapsedMs": -1452,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1944
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 76,
+      "elapsedMs": -1452,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1944
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 1944,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 77,
+      "elapsedMs": -1436,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1944
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 1944,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 78,
+      "elapsedMs": -1436,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 31,
+          "top": 0,
+          "scrollWidth": 1944,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 79,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 108
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 80,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 81,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 108,
+          "clientWidth": 108,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 108,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 82,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 83,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 0
+      },
+      "sample": {
+        "core": {
+          "left": 30,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 84,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 0
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 85,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 86,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 87,
+      "elapsedMs": -1420,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 88,
+      "elapsedMs": -1404,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 1980,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 936
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 89,
+      "elapsedMs": -1404,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 1980,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 1980,
+          "scalesWidth": 1980
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 90,
+      "elapsedMs": -1404,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 1980,
+          "scalesWidth": 1980
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 91,
+      "elapsedMs": -1404,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 396
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1980
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 936,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 9,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 92,
+      "elapsedMs": -1404,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1980
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1980,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 10,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 93,
+      "elapsedMs": -1388,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1980
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1980,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "pending-wheel",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 5,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-wheel",
+      "sequence": 94,
+      "elapsedMs": -1356,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 1980
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 1980,
+          "clientWidth": 905,
+          "scrollHeight": 541,
+          "clientHeight": 468
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 584,
+          "chartWidth": 905,
+          "chartHeight": 468
+        },
+        "focus": "button"
+      }
+    }
+  ]
+}

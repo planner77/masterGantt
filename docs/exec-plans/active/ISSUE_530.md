@@ -1,5 +1,13 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 #568·#569 근거로 PR #566의 main 충돌 해결
+
+- 최신 main `56e033687f14cd159e2eb1a3bc5feabca68b70d4`에는 #568 Core Action Trace/계측과 #569 읽기 전용 Adapter·ADR가 병합되어 있다. 이전 #566 head `0fc8e746af4e9b91df8b5e62d4992f9212845eca`는 최신 main보다 17커밋 뒤였으며 Gantt 코드·E2E·TEST_PLAN의 공통 변경을 3-way로 조정했다.
+- [#568 trace](../../GANTT_SYNC_TRACE.md)는 늦은 native DOM 0이 먼저 관측되고 이후 `scroll-chart(0)`이 발생하는 경로를 확인했지만 최초 native writer의 호출 지점은 **미확정**이다. [#569 ADR](../../GANTT_ADAPTER_ADR.md)은 `api.exec()` 완료와 실제 Core/DOM settle을 구별하고 `NO_SCROLL_CAPACITY`/3-frame 안정화 조건을 규정한다. Adapter 제품 writer 교체는 **DEFER**이므로 이번 #530 PR은 기존 writer 구조 위의 보호 코드만 통합했다.
+- 충돌 판정: #568의 dev/test opt-in Trace와 #530 nested second-pop 진단은 유지하고, #569가 개선한 `#463` 검증(`null` restore marker 원형 유지, 수직 capacity clamp, 새 사용자 위치·3-frame 안정화)과 Clock 설치 순서를 우선 보존했다. PR #566의 `null marker=복원 0회` 가정은 [Codex P2](https://github.com/planner77/masterGantt/pull/566#discussion_r4226430640) 지적대로 폐기. PR #566의 Gantt 내부 입력 제한 guard, 첫 pop의 외부 클릭 후 240px 유지, 최종 사용자 wheel로 좌측 0 이동 테스트만 새 main에 이식했다.
+- 앞선 [PR CI #2283.1](https://github.com/planner77/masterGantt/actions/runs/37880633821)는 고정 geometry 복귀에서 Core left120 vs DOM left0 불일치로 실패했으며, **정렬만으로 해당 제품 문제가 해결됐다고 주장하지 않는다**. #568의 trace와 #569 receipt로 이후 실제 CI 실패를 분류한다. timeout/skip/retry/expected/required checks 완화 없음.
+- App version `0.103.1` 유지, 기존 [Issue #530 OWNER 0.103.1 릴리스 승인](https://github.com/planner77/masterGantt/issues/530#issuecomment-6073180869)은 정식 게시 승인이지 제품/CI 합격이 아니다. 현재 요구는 정렬·충돌 해소·전체 PR CI 시작까지만이며 merge/Main CI/GHCR은 하지 않는다.
+
 ## 2026-10-09 PR #566 CI #2282.1 — Milestone #463 진단 속성 미존재 회귀 보완
 
 - [PR CI #2282.1 / run 37879481685](https://github.com/planner77/masterGantt/actions/runs/37879481685)에서 **제품 문제였던 #530 nested E2E shard6은 SUCCESS**. Chromium shard2의 기존 #463 milestone viewport 회귀는 `JSON.parse(null).count` 예외로 FAIL. [해당 Playwright report](https://github.com/planner77/masterGantt/actions/runs/37879481685/artifacts/11593194720)의 `public-viewport-events`는 restore marker=null이지만 Core/native left120 일치, Gantt API instance=svar-api-1 및 필터 후 vertical0 동기화로 기록한다.

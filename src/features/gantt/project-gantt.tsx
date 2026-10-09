@@ -1,6 +1,8 @@
 "use client";
 
 import { metadataViewportRestoreTarget } from "./metadata-viewport-restore";
+import { createCoreActionTrace, traceFingerprint, type TraceContext } from "./diagnostics/core-action-trace";
+import { observeCoreTrace, readCoreTraceSample } from "./diagnostics/core-trace-observer";
 
 import {
   Gantt,
@@ -1607,6 +1609,38 @@ export function ProjectGantt({
   }, [apiInstanceId, onPublicViewportReader]);
 
   const peerViewportGeneration = useRef(0);
+  const diagnosticTraceReference = useRef<ReturnType<typeof createCoreActionTrace> | null>(null);
+  const diagnosticContextReference = useRef<TraceContext | null>(null);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || new URLSearchParams(window.location.search).get("__coreTrace") !== "1") return;
+    const api = apiReference.current, root = fullscreenFrameReference.current;
+    if (!api || !root || !apiInstanceId) return;
+    const context: TraceContext = { run: "manual", head: "unknown", scenario: "project", layer: "FULL_APP", apiInstance: apiInstanceId,
+      projectRevision: projectRevisionReference.current, canonicalEpoch: canonicalSyncVersionReference.current, projectionEpoch: 0,
+      scope: "project", filterKey: "all", scale: "Day", intentId: 0, intentSource: "initial" };
+    diagnosticContextReference.current = context;
+    const trace = createCoreActionTrace(() => ({ ...context, projectRevision: projectRevisionReference.current,
+      canonicalEpoch: canonicalSyncVersionReference.current, scale: scaleModeReference.current,
+      scope: traceFingerprint(viewRootTaskIdReference.current ?? "root"),
+      filterKey: traceFingerprint(visibleTaskFilterKeyReference.current) }), () => readCoreTraceSample(api, root));
+    diagnosticTraceReference.current = trace;
+    trace.record("component-mount");
+    const cleanup = observeCoreTrace(api, root, trace, source => { context.intentId++; context.intentSource = source; });
+    Object.defineProperty(root, "__issue568Trace", { configurable: true, value: {
+      snapshot: trace.snapshot, settle: trace.settle,
+      configure(run: string, head: string, scenario: string) {
+        if ([run, head, scenario].some(value => !/^[\w.-]{1,64}$/.test(value))) throw new Error("Invalid synthetic trace identity");
+        trace.reset(); Object.assign(context, { run, head, scenario }); trace.record("scenario-start");
+      },
+    } });
+    trace.record("react-effect-installed");
+    return () => { trace.record("react-effect-cleanup"); trace.record("component-unmount"); cleanup();
+      Reflect.deleteProperty(root, "__issue568Trace"); diagnosticTraceReference.current = null; diagnosticContextReference.current = null; };
+  }, [apiInstanceId]);
+  useLayoutEffect(() => {
+    if (diagnosticContextReference.current) diagnosticContextReference.current.projectionEpoch++;
+    diagnosticTraceReference.current?.record("react-commit");
+  });
   const peerViewportConsumed = useRef<Readonly<{ key: string; left: number; top: number }> | null>(null);
   const peerViewportRestoreCount = useRef(0);
   const peerViewportContext = useRef({ visible: viewVisible, key: viewportContinuityKey });
@@ -1764,6 +1798,7 @@ export function ProjectGantt({
       try {
         const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
         const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
+        diagnosticTraceReference.current?.record("effect-apply", "canonical-sync");
         await applyCanonicalGanttSync(
           api,
           { tasks: currentTasks, links: currentLinks },
@@ -1780,6 +1815,7 @@ export function ProjectGantt({
         metadataViewportReference.current = null;
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
       } finally {
+        diagnosticTraceReference.current?.record("effect-settled", "canonical-sync");
         canonicalSyncDepthReference.current -= 1;
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
           fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
@@ -1793,6 +1829,7 @@ export function ProjectGantt({
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string } | null>(null);
   useEffect(() => {
+    diagnosticTraceReference.current?.record("effect-request", "filter-tasks");
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
       if (!api || !apiInstanceId) return;
@@ -1806,6 +1843,7 @@ export function ProjectGantt({
         appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey };
         return;
       }
+      diagnosticTraceReference.current?.record("effect-apply", "filter-tasks");
       await api.exec("filter-tasks", {
         open: false,
         filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
@@ -1816,6 +1854,7 @@ export function ProjectGantt({
   }, [apiInstanceId, visibleTaskFilterKey]);
 
   useEffect(() => {
+    diagnosticTraceReference.current?.record("effect-request", "set-columns");
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
       if (!api) return;
@@ -1840,6 +1879,7 @@ export function ProjectGantt({
           ganttColumnsReference.current.length,
           ...nextColumns.map((column) => ({ ...column })),
         );
+        diagnosticTraceReference.current?.record("effect-apply", "set-columns");
         await api.exec("set-columns", { columns: nextColumns });
         // Add/remove optional columns without consuming the user's name-column
         // width. Core's flex column otherwise absorbs the fixed stage width.
@@ -1863,7 +1903,10 @@ export function ProjectGantt({
                   { left: current.scrollLeft, top: current.scrollTop },
                   { left: request.left, top: request.top },
                 );
-                if (restore) await api.exec("scroll-chart", restore);
+                if (restore) {
+                  diagnosticTraceReference.current?.record("effect-apply", "metadata-restore", restore);
+                  await api.exec("scroll-chart", restore);
+                }
               }
             }
           } finally {
@@ -1885,6 +1928,7 @@ export function ProjectGantt({
 
   useEffect(() => {
     const id = ++peerViewportGeneration.current;
+    diagnosticTraceReference.current?.record("effect-request", "peer-restore");
     if (!viewVisible || !apiInstanceId || !peerViewportRestore || peerViewportRestore.key !== viewportContinuityKey || peerViewportConsumed.current === peerViewportRestore) return;
     peerViewportConsumed.current = peerViewportRestore;
     const request = peerViewportRestore, api = apiReference.current, root = ganttScrollReference.current;
@@ -1939,6 +1983,7 @@ export function ProjectGantt({
         peerRestoreAuthorityEpoch.current += 1;
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
+        diagnosticTraceReference.current?.record("effect-apply", "peer-restore", { left: request.left, top: request.top });
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         if (!current()) return;
         for (const position of request.positions ?? []) {
@@ -1961,12 +2006,13 @@ export function ProjectGantt({
         // layout frames. Later independent metadata edits may capture anew.
         await frame(); await frame();
       } finally {
+        diagnosticTraceReference.current?.record("effect-cleanup", "peer-restore");
         if (pendingPeerRestoreReference.current === request)
           pendingPeerRestoreReference.current = null;
         cleanupInput();
       }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
-    return () => { cancelled = true; cleanupInput(); };
+    return () => { diagnosticTraceReference.current?.record("effect-cleanup", "peer-restore"); cancelled = true; cleanupInput(); };
   }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, ensureTimelineEnd, expandTimelineScale, notify]);
 
   useEffect(() => {

@@ -1,10 +1,11 @@
 # Test Plan
 
-## #463 / Issue #530 — PR #566 CI #2282.1 Milestone viewport diagnostic contract
+## Issue #530 — #568·#569 최신 main + PR #566 충돌 해결 및 회귀 검증
 
-- [PR CI #2282.1 / run 37879481685](https://github.com/planner77/masterGantt/actions/runs/37879481685), head `a24b0287b841c1a14a28bf44a9c1ac1edcbde8f1`: #530 nested pop 회귀가 포함된 Chromium shard **6/6 SUCCESS**였으나, Chromium shard **2/6**의 `milestone-dashboard-state.spec.ts:116` #463 테스트에서 `data-gantt-peer-restore` 미존재를 `JSON.parse(null).count`로 읽어 **TypeError** 발생. 기존 Quality 및 실제 Docker smoke는 SUCCESS. 최종 run aggregate 결과는 정확한 상태 조회로 확인한다.
-- [실패 Trace artifact](https://github.com/planner77/masterGantt/actions/runs/37879481685/artifacts/11593194720)의 `public-viewport-events` 첨부에서 Gantt API instance는 `svar-api-1`, 공개/DOM 좌표는 `left120`으로 정합했다. 복원 action 자체가 필요 없으면 `data-gantt-peer-restore` 디버그 속성이 존재하지 않는 것이 정상이다. 검색 필터 적용/해제 후 세로 스크롤은 표시 행 수에 따라 0으로 clamp될 수 있다.
-- #463 테스트를 **진단 속성 미설정=실행 횟수 0**으로 읽는 엄격한 복원 횟수 검증으로 변경하고, 검색 변경 전후 복원 횟수 불변 + SVAR API identity 불변 + public/native 가로 120px 불변 + Core/native 수직 정합성까지 명시 검사한다. 실 viewport/선택/복원의 기대값을 제거하거나 timeout/skip/retry를 늘리지 않는다. 실제 화면 동작 회귀는 #530 shard6 및 #463에서 각각 유지한다.
+- #568의 [실제 Core/native trace](GANTT_SYNC_TRACE.md)·`nested-second-pop` 원본 관측을 유지한다. `scroll-chart(120)` 이후 native DOM 좌표가 0이 되고 나서 Core에 0 명령이 도착할 수 있으므로 `api.intercept`만으로 실제 DOM settle을 증명하지 않는다.
+- #569의 [ADR/Adapter](GANTT_ADAPTER_ADR.md)에서 `api.exec` completion과 3-frame Core/native·실제 scroll capacity settle을 분리한다. 제품 도입은 DEFER. #463의 최신 main 회귀를 우선 보존해 raw optional restore marker·필터의 수직 clamp·복구된 capacity에서 새 사용자 위치·Clock 시각 경합까지 엄격 검증한다. PR #566 옛 marker-null→0회 처리 코드는 병합하지 않는다.
+- #530 nested first pop은 외부 프로젝트 제목 클릭 후 기존 240px 좌표/인스턴스·열·선택·tree 불변, second pop의 #568 bounded trace artifact, 사용자 내부 wheel(-240) 뒤 public/native 0 허용을 점검한다. 이전 #2283.1(Core120/native0) 실패는 별도로 보존한다. 기존 5초 poll/12-frame 재검증·test assertion·skip/retry·CI required gate 완화 없음.
+- 최종 결과는 새 exact-head 전체 PR CI와 독립 QA 확인 후 판정한다. 기존 0.103.1 버전·승인 및 Main/Release 결과는 분리한다.
 
 ## Issue #530 — Main CI #2280.1 뒤늦은 SVAR scroll-chart(0) 회귀 (2026-10-09)
 
@@ -12,6 +13,34 @@
 - 명시적 Resource peer restore 직후 보호 계약: API instance·scope/filter·scale·grid/columns·root geometry가 같고 사용자 입력이 없을 때 늦은 `scroll-chart(left!=restoredLeft)`는 SVAR intercept에서 pre-dispatch 거부한다. Gantt chart/grid 내부 실제 wheel/pointerdown/keydown/touchstart 및 scope/geometry/visibility 변경은 보호를 해제해야 한다. Gantt 외부 Task Editor/toolbar/peer panel 입력은 보호를 해제하지 않아야 한다. 사용자가 뒤늦게 Chart를 좌측 끝(0)으로 옮길 수 있어야 한다.
 - Playwright: nested pop middle240 및 origin120 Core/native+selection+columns+tree strict 비교와 12rAF 지연 비교, 복원 후 stale scroll-chart(0) 이벤트 0건; **첫 pop 직후 Gantt 외부 프로젝트 제목 클릭에도 12rAF 이후 public/native240 보존**, 최종 사용자의 chart wheel(-240)→Core/native 0 회귀 추가. #514 Grid reveal, #525 5 viewport widths, #538 metadata-only nonzero 보존, 사용자 wheel/resizing 중 pending restore 취소는 full PR CI에서 별도 재검증.
 - 버전은 기존 release 후보 0.103.1 유지; 같은 Issue 실패 Main 뒤 보완 merge coalesce/OWNER authorization 근거는 `docs/exec-plans/active/ISSUE_530.md`에 명시. CI required checks/timeout/skip/retry 축소 금지.
+
+## Issue #569 — 공개 API·시간축 Adapter PoC
+
+PR #576 CI #2294.1 재검증에서는 390px Chart-only 모드 진입 직후 실제 native geometry가 측정 가능할 때만 이어가며, 이후 3-frame settle 및 기존 좌표/시간축 확장 판정은 그대로 엄격 검사한다. 기존 #463의 복원 이벤트 diagnostic attribute는 optional이므로 null/non-null 원형 그대로 불변 여부를 검사한다. peer/layout의 동일 scope에서는 public/native 120/96 보존을 유지한다. 검색으로 행이 줄어 native 수직 capacity가 0이 되면 top 0으로 제한되는 조건을 별도로 검증하며, 이전 top 96을 다시 강제하지 않는다. 기존 #530 Clock 기반 경합 회귀는 `install` 시점을 `pauseAt` 목표보다 충분히 앞서 두되, 시뮬레이션 후 목표 wall-clock은 그대로 유지하고 500ms/500ms 안정성 체크를 보존한다. 환경/성공 여부는 신규 exact-head PR CI에서만 판정한다.
+
+
+PR #576 CI #2291~#2295의 5개 run(모두 attempt 1)을 종합 분석한다. #2295.1에서는 quality/docker와 #569 PoC shard가 PASS였고, 유일 실패는 #463 검색 해제 후 top 96 기대/public·native top 0의 불일치였다. 원본 targeted 재현도 같은 지점에서 FAIL했다. 검색 전 22개 Task에서 capacity 376px, 검색 1개 일치에서 capacity 0px와 public/native top 0, 해제 후 22개 Task와 capacity 회복을 실측했다. 직접 DOM writer의 callsite까지 확정한 결과는 아니다.
+
+보완 테스트는 검색 적용·해제의 결과 수/native capacity/정확한 public·native 좌표/동일 instance를 조건 기반으로 확인한다. 이후 기존 peer 위치 120/96과 다른 새 사용자 위치 180/128을 설정하고, 충분한 행이 유지되는 검색·해제·layout 변경 뒤 180/128이 유지되고 restore marker가 변하지 않는지 검사한다. frame 폭의 실제 증가/원폭 복귀를 조건으로 기다린 뒤 마지막 3개 실제 RAF에서 좌표·marker·instance를 정확히 재확인한다. 늦은 stale 96 복원은 실패한다. 단순 기대값 변경이나 assertion 삭제로 통과시키지 않는다. 실제 실행 영수증과 실패 이력은 [Issue #569 실행 계획](exec-plans/active/ISSUE_569.md)에서 연결하며 새 head 원격 gate는 모두 별도 재검증 대상이다.
+
+PR #576의 Milestone-only E2E는 `api.serialize()` 기준 1개 Milestone(`synthetic-6`), 시작일 2026-01-10, 종료일 부재(`endMs=null`), 실제 native DOM Milestone 표시를 필수로 검증한다. 기존에 종료일을 시작일과 동일하게 가정한 조건은 SVAR 시점 Milestone 계약과 불일치하여 교정한다. Empty / A-mode 미래 Task / 재진입 `BUSY` 검증은 그대로 유지한다. 최신 Head의 CI 결과는 과거 증거와 분리한다.
+
+[실행 계획](exec-plans/active/ISSUE_569.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 공식/설치 기능 matrix, A/B/C 결과와 지원 경계를 남긴다. 실제 Core 2.7.3 Chromium의 390/768/1024/1440/1920px·Day/Week에서 최대 3회 확장의 성공/실패와 instance/selection/origin/scroll/열/visible date와 tick↔bar≤1 CSSpx, Grid/Chart y정렬을 비교한다. empty/M-only, fullscreen/split, 가로/세로scroll·열resize, hidden/inert/zero-size/capacity·cleanup·intent 취소·finite timeout을 별도로 확인한다.
+
+지원 분류는 390px Chart 확대 후 Day A/B·Week A/B/C의 3회 성공, C Day의 첫 확장 위치 실패, 넓은 화면의 첫 확장 성공 후 다음 edge timeout이다. 분류 검증 PASS를 모든 후보의 지원 PASS로 해석하지 않는다.
+
+최초 구현의 순수 adapter Unit·typecheck·변경부 lint와 기존 #367/#514 targeted 회귀, 별도 PR #562 source의 #551 lane390 회귀를 실행한다. 최초실패·source/artifact SHA·명령과 미검증을 보존했다. 이후 CI REWORK의 기존 테스트 변경은 아래의 계약 검증 보완으로 구분하며 timeout/skip/retry/workflow gate는 완화하지 않는다. 로컬 PoC의 성공은 기존 제품 전체 회귀나 원격 CI 성공을 뜻하지 않는다. 요청 종료점은 PR CI 시작이며 quality/e2e/docker 결과·QA_FINAL·main/GHCR은 NOT TESTED다.
+
+## Issue #568 — Core Action Trace와 재현 분석
+
+고정 PR #562 targeted5×2는 각각3 PASS/2 FAIL이다. Inline 실패 run은 Week 후 assertion에서 멈춰 뒤의500/412/network 분기에는 도달하지 않았다. observer-only clock 실험은 sequence를 정렬 기준으로 사용하고 elapsedMs/수직 sample로 안정화 PASS를 주장하지 않는다.
+
+실제 설치 Core 2.7.3/Willow를 사용한 독립 fixture와 React wrapper를 Chromium에서 두 번 실행한다. trace 순서·bounded memory·parameter allowlist·exact Core/DOM ±1·3-frame 안정화·finite timeout·intent supersede·scroll capacity를 검증한다. 공식 문서 URL 조회, 타입 정의, 실제 runtime 반환, Core state와 native layout의 관측 결과를 구분한다.
+
+고정 PR #562의 다섯 실패(Resource peer120, wheel30, fullscreen metadata, Inline saved Grid, 390px Milestone plot)를 소스 변경 없이 두 번 독립 실행하고 재현/미재현/환경 차이·첫 관측 writer와 가설을 [진단 가이드](GANTT_SYNC_TRACE.md)에 남긴다. 실패를 skip하거나 허용 오차·timeout·CI gate를 완화하지 않는다. 합성 fixture·trace만 저장하고 실제 DB·session/password/URL credential은 포함하지 않는다.
+
+실행 명령·source SHA·결과는 [Issue 실행 계획](exec-plans/active/ISSUE_568.md)에서 연결한다. 로컬 도구 PASS는 PR 전체 quality/e2e/docker PASS나 제품 동기화 완료를 뜻하지 않는다. 현재 요청은 PR CI 시작까지이며 원격 전체 결과·QA_FINAL·Manager ACCEPT·main/GHCR은 NOT TESTED다.
+
 ## Issue #530 PR #564 — #2270.1 중첩 frame 복귀와 metadata-only 경합 (2026-10-09)
 
 - [PR CI #2270.1 / run 37869484841](https://github.com/planner77/masterGantt/actions/runs/37869484841), 이전 Head `74cc35c45aa22f734adb59ebde4f63ac64882e73`: Quality(타입·ESLint·Vitest·빌드) 및 Docker, Chromium shard 1~5 PASS. shard 6/6의 실제 `resource-kpi-integration-ui.spec.ts` **nested pop/clear** 시험 1 FAIL, 82 PASS, 1 SKIP. 기대 Core/native left240이 0으로 재덮였고 인스턴스·선택·열·계층은 유지됨.
@@ -2619,3 +2648,7 @@ Project private-read 모델은 현행 제품에 없어 신규 구현 N/A다. 공
 - `new-project-tabs.tsx`의 skip-link click listener는 client `useEffect`에 의존하고 선택 탭의 `tabIndex` 변경은 React state commit을 기다린다. 이벤트 등록 전 SSR/초기 hydration 또는 클릭 후 state commit 전에 Tab을 누르면 focus traversal에 이전 탭 상태가 남을 수 있다(추정 원인).
 - 핸들러 등록 완료를 앱 소유 `data-skip-link-ready`로 표시하고, 클릭 즉시 두 생성 방식 탭을 순차 Tab에서 제외한다. panel 진입 시 선택 탭의 roving 순서를 동기 복구한다. 테스트는 준비 신호 확인·main focus·선택 탭 -1·프로젝트 이름 focus·선택 탭 0·화살표/Home/End 순서를 모두 검증한다. 실제 사용자가 Tab/키보드 조작하도록 유지하며 직접 `.focus()`로 성공을 대신하지 않는다.
 - 새 PR head의 전체 Playwright/TypeScript/Docker 결과와 #264 draft 보존, #121 Skip Link E2E를 확인할 때까지 최종 PASS는 NOT TESTED다. 로컬 독립 브라우저/운영 환경 검증은 별도다.
+
+### PR #576 리뷰 보완 검증
+
+Core scale 단일 행·unit 일치·step=1 이외에는 forward/inverse/reveal `UNMEASURABLE`을 확인한다. Fixture의 동시 extend는 `BUSY`, 유효 최초 요청만 수행되는지 확인한다. Empty/Milestone-only의 Core task 및 native DOM, future-task 날짜 변경과 settle 결과를 E2E assertion으로 확인한다. 기존 결과와 새 Head의 검증을 혼동하지 않는다.

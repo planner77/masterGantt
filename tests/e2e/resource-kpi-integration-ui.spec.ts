@@ -335,7 +335,7 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
 test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존", async ({ page, baseURL }, info) => {
   test.setTimeout(180_000);
   const seed = await seedResourceKpiIntegration(page.request, baseURL!);
-  await page.goto(`/projects/${seed.publicId}`);
+  await page.goto(`/projects/${seed.publicId}?__coreTrace=1`);
   const frame = page.locator(".project-gantt-frame");
   const schedule = page.getByRole("tab", {name: "일정", exact: true});
   const resource = page.getByRole("tab", {name: "리소스", exact: true});
@@ -361,7 +361,7 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true"); await schedule.click();
   try {
     await expect.poll(() => ganttIntegrationState(page)).toEqual(middle);
-    // Gantt 외부의 프로젝트 제목 입력은 복원 보호를 해제하면 안 된다.
+    // 복원 후 Gantt 외부 프로젝트 제목 클릭으로는 이전 좌표 보호가 해제되지 않는다.
     await page.getByRole("heading", { name: "Resource KPI integration #530" }).click();
     await frame.evaluate(async () => {
       for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
@@ -384,6 +384,18 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
       contentType: "application/json",
     });
   }
+  // #568: 원래 좌표 복원 뒤 뒤늦게 실행된 scroll-chart(0)의 최초 writer를 보존한다.
+  // Trace는 dev/test opt-in이며 제품 계약·수용 assertion/timeout/retry는 그대로 유지한다.
+  await expect.poll(() => frame.evaluate(element => "__issue568Trace" in element)).toBe(true);
+  const traceHead = process.env.ISSUE568_HEAD ?? process.env.GITHUB_SHA ?? "uncommitted";
+  await frame.evaluate((element, { run, head }) => {
+    const trace = (element as HTMLElement & {
+      __issue568Trace?: { configure: (run: string, head: string, scenario: string) => void };
+    }).__issue568Trace;
+    if (!trace) throw new Error("Issue #568 trace unavailable");
+    trace.configure(run, head, "nested-second-pop");
+  }, { run: `ci530-repeat-${info.retry}`, head: traceHead });
+  try {
   await resource.click(); await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(strip).toHaveCount(0); await schedule.click();
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
   // A new nested journey clears to the earliest schedule destination baseline.
@@ -391,15 +403,26 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   await strip.getByRole("button",{name:/임시 이동 범위 전체 해제/}).click();
   await expect(strip).toHaveCount(0);
   await expect.poll(() => ganttIntegrationState(page)).toEqual(origin);
-  await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page),
-    guardBlocks: await frame.getAttribute("data-gantt-peer-scroll-guard-blocks")}),contentType:"application/json"});
-  // 사용자 wheel은 복원 보호 상태를 해제하여 정상적으로 좌측 0까지 이동한다.
-  await frame.locator(".wx-chart").hover();
-  await page.mouse.wheel(-240, 0);
-  await expect.poll(async () => {
-    const value = await ganttIntegrationState(page);
-    return { coreLeft: value.publicViewport.left, nativeLeft: value.left };
-  }).toEqual({ coreLeft: 0, nativeLeft: 0 });
+  await info.attach("nested-pop-clear-positions",{body:JSON.stringify({origin,middle,after:await ganttIntegrationState(page),guardBlocks:await frame.getAttribute("data-gantt-peer-scroll-guard-blocks")}),contentType:"application/json"});
+  // #530: 실제 사용자가 차트를 왼쪽으로 스크롤하면 보호가 해제되어야 한다.
+  await frame.locator(".wx-chart").hover(); await page.mouse.wheel(-240, 0);
+  await expect.poll(async () => { const state = await ganttIntegrationState(page); return { coreLeft: state.publicViewport.left, nativeLeft: state.left }; }).toEqual({ coreLeft:0, nativeLeft:0 });
+  } finally {
+    const trace = await frame.evaluate(element => (element as HTMLElement & {
+      __issue568Trace?: { snapshot: () => unknown };
+    }).__issue568Trace?.snapshot() ?? null);
+    await info.attach("issue568-nested-return-trace", {
+      body: JSON.stringify({
+        source: "PR #575 / Issue #568 dev-test opt-in observation",
+        head: traceHead, origin, actual: await ganttIntegrationState(page),
+        publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
+        peerRestore: await frame.getAttribute("data-gantt-peer-restore"),
+        canonicalGeneration: await frame.getAttribute("data-gantt-canonical-sync-generation"),
+        trace,
+      }, null, 2),
+      contentType: "application/json",
+    });
+  }
 });
 
 test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL},info) => {
@@ -415,7 +438,11 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await root.locator(".resource-dashboard-detail").getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
   const strip=page.getByRole("region",{name:"임시 조회 범위",exact:true});
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // Keep the pause target ahead of installed virtual time; install() itself does not freeze time.
+  // Preserves the same wall-clock instant after the fast-forward without a race to the past.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await schedule.evaluate(node=>(node as HTMLElement).click()); await expect(frame).toBeVisible();
   const bounds=await chart.boundingBox(); if(!bounds) throw Error("visible chart required");
   await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2); await page.mouse.wheel(40,0);
@@ -448,7 +475,11 @@ test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위
   await root.locator(".resource-dashboard-detail").getByRole("button",{name:"전체 범위 일정 보기",exact:true}).click();
   const strip=page.getByRole("region",{name:"임시 조회 범위",exact:true});
   await strip.getByRole("button",{name:/원래 보기/}).click(); await expect(resource).toHaveAttribute("aria-selected","true");
-  await page.clock.install(); await page.clock.pauseAt(new Date());
+  // Keep the pause target ahead of installed virtual time; install() itself does not freeze time.
+  // Preserves the same wall-clock instant after the fast-forward without a race to the past.
+  const pauseTime = new Date();
+  await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
+  await page.clock.pauseAt(pauseTime);
   await schedule.evaluate(node=>(node as HTMLElement).click()); await expect(frame).toBeVisible();
   const bounds=await chart.boundingBox(); if(!bounds) throw Error("visible chart required");
   await page.setViewportSize({width:1024,height:768});

@@ -1,5 +1,19 @@
 # Architecture draft
 
+## Issue #569 — 공개 API Adapter의 도입 전 경계
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)은 Core/native 읽기와 공개 scroll/date reveal/finite settle 명령을 분리하는 인터페이스·PoC다. 제품 ProjectGantt의 기존 viewport writer나 Coordinator를 교체하지 않는다. 공개 controlled scale 설정과 native chart를 같은 좌표계로 검증하고 hidden/inert/zero-size를 유효한 viewport로 저장하지 않는다.
+
+A(autoScale)/B(명시 범위)/C(2.7.3 resize 호환)의 실제 성공·실패와 보존 조건을 비교한 뒤 후속 도입 여부를 판단한다. C의 synthetic width는 공식 physical container 의미 밖의 예외이므로 버전 가드·명시 opt-in·유한 상한을 갖는 교체 가능한 모듈로 한정한다. 직접 Store/DOM 폭 쓰기·PRO·서버 상태 authority 추가는 없다.
+
+## Issue #568 — 동기화 관측 도구의 경계
+
+비교 stack의 filter 이후 native clamp→Core scroll 반영은 관측 순서이며 직접 DOM writer는 미확정이다. 이 결과만으로 Core 결함이나 adapter 수정 방향을 확정하지 않는다.
+
+[Core Action Trace](GANTT_SYNC_TRACE.md)는 #567의 설계 가설을 실측하기 위한 dev/test-only 도구다. 서버 canonical snapshot/revision, React projection, Core 공개 state, native DOM geometry, 사용자 intent를 서로 다른 관측 층으로 기록한다. trace가 제품 상태 authority나 두 번째 viewport writer가 되어서는 안 된다. Core 단독/React wrapper와 고정 PR #562 앱의 관측을 같은 source라고 취급하지 않는다.
+
+명령 반환·Core state 변경·native layout 안정화를 별도 분류한다. 공개 getState 좌표와 native scroll capacity·3개 연속 안정 frame을 bounded timeout 안에서 확인하고 superseding intent를 실패·성공과 구분한다. 최신 공식 exec 문서의 void 선언과 설치 2.7.3 타입/실행 반환은 별도 검증 대상이다. 실제 첫 writer가 관측되지 않은 원인은 가설로 남긴다. 단일 Coordinator 및 geometry adapter의 제품 도입은 후속 이슈에서 결정한다.
+
 ## Issue #538 — Project master relations
 
 계층 관계는 SVAR와 분리된 전역 Project Master Domain이다. `project_master_items`는 안정된 item authority, `business_unit_products` 및 `business_unit_product_sites`는 재사용 가능한 연결 authority, Project는 기존 nullable FK를 보유한다. `Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`의 transaction boundary에서 관계 생성/해제·Project 조합 validation·catalog revision 경쟁 검사를 실행한다. Frontend cascading은 서버의 `relations`를 읽는 projection이며 자체 Source of Truth가 아니다.

@@ -1,5 +1,21 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #569 — 기하·날짜 이동의 설계 실험
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)의 fixture는 개발·테스트 전용이며 기존 프로젝트 화면을 바꾸지 않는다. 명령 반환만으로 날짜 이동 완료를 알리지 않고 actual Core/native 좌표와3안정frame을 따로 확인한다. hidden/inert/zero-size/scroll capacity 부족은 측정·복원을 중지하는 명시적 결과로 다룬다.
+
+실제 공간 부족 시 제안된 회복은 보이는 layout 복귀, Chart 공간 확대, 사용자 명시 재시도다. 자동 무한 retry나 오래된 viewport 적용을 하지 않는다. 이 제안은 제품 도입 전 UX 연결이 필요하며 #569만으로 새 feedback 흐름이 제품에 구현된 것은 아니다. 기존 #367의 우측 탐색, #514의 Task 시작일 reveal, #551 비교 stack의 Milestone geometry와 원본 identity/권한 계약은 별도 회귀로 유지한다.
+
+#569의 PR CI 보완에서는 peer/layout 복귀의 동일 scope 위치 보존과 검색으로 줄어든 행의 native scroll clamp를 구분한다. capacity 0인 검색 결과에 이전 세로 위치를 강제하지 않으며, 검색 해제 후 새 사용자 위치를 오래된 peer 복원이 덮어쓰지 않는지 검증한다. 이번 변경은 이 기존 경계를 확인하는 테스트 보완이며 제품 viewport writer나 검색 동작을 바꾸지 않는다.
+
+## Issue #568 — 실제 동기화 완료의 관측
+
+고정 PR #562의 로컬 반복에서 pending wheel의 최신 사용자 위치와 Week 전환 후 Inline 이름 표시 계약 위반이 재현됐다. 이번 진단 도구 추가는 이 두 제품 회귀의 해결을 의미하지 않는다.
+
+조회 탭·Resource 복귀·검색·fullscreen·Inline 저장의 기존 사용자 계약은 유지한다. 분석 fixture는 명시적인 dev/test opt-in에서만 합성 데이터로 제공하며 일반 Project 탐색에 추가하지 않는다. Core 명령 반환을 화면 복귀 완료로 간주하지 않는다. 검증은 Core 공개 좌표 exact, DOM 정수화 ±1px, 실제 scroll capacity, 연속 안정 frame, 새 사용자 입력의 우선권을 함께 관측한다.
+
+[진단 가이드](GANTT_SYNC_TRACE.md)의 단독 Core 관측은 서버 저장·권한·Milestone lane의 제품 인수를 대신하지 않는다. 서버 saved/canonical 값과 native Grid 표시, 첫 focus와 Enter/Tab/Escape는 각각 검증해야 한다. 관측·재현 실패와 후속 제품 수정은 분리한다.
+
 ## Issue #538 — Project 분류의 종속 선택
 
 기존 #289의 독립 3개 Select를 관계 기반 `사업부 → 제품 → 사업장/법인`으로 확장한다. 초기값은 모두 미지정, 사업부/제품 변경 시 하위 값은 초안에서만 지우고 `role=status`로 안내하며 저장 전 사용자 확인을 기다린다. 사업부 없이는 제품을, 사업부·제품 없이는 사이트를 변경할 수 없다. 기존 inactive/legacy 참조는 현재값 옵션에 남기고 새 선택은 active relation만 허용한다.
