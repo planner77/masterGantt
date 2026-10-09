@@ -1,5 +1,14 @@
 # Issue #530 Resource KPI 통합 회귀와 사용자 가이드
 
+## 2026-10-09 — PR #566 병합 후 Main CI #2311.1 실패 / 물리 스크롤 용량 안정화
+
+- **실패 근거:** [Main CI #2311.1 / Run 37929545112](https://github.com/planner77/masterGantt/actions/runs/37929545112), exact merge `b982d6dd6c2a73f05d38ae3a636bd0ef4aa089fa`. Quality(Vitest/TS/ESLint/Next), Docker, Chromium E2E shard1~5 PASS. Chromium E2E6/6의 `#530 nested frame pop과 clear` 1 FAIL/84 PASS/1 SKIP; 원본 origin Core/native left120 대비 2번째 LIFO 복귀 이후 양쪽이 left31. E2E aggregate FAIL, main 임시 GHCR candidate SKIPPED.
+- **실제 Trace:** [shard6 Playwright report](https://github.com/planner77/masterGantt/actions/runs/37929545112/artifacts/11616535489) `issue568-nested-return-trace`에서 Core `scroll-chart(120)` 호출 시 native `.wx-chart.scrollWidth=936,clientWidth=905`, 물리 capacity **31px**이었다. 이 시점 Core left120, DOM left31로 클램프됐다. 이어 SVG/Chart 기하 확장으로 native `scrollWidth=2232`가 됐지만 앞선 native-scroll의 `scroll-chart(31)`가 Core까지 31로 덮어썼다. 처음 복원 요청이 빠진 것이 아니며 최초 DOM writer를 추측으로 지목하지 않는다.
+- **제품 보완:** 기존 peer-restore effect에서 timeline 확장 직후 `api.exec("scroll-chart")`를 발행하지 않고, #569의 `NATIVE_LAYOUT_SETTLED` 설계에 맞춰 **실제 visible `.wx-chart` 물리 수평 capacity≥target-1px가 3개 연속 animation frame 동안 측정 가능해진 뒤에만** 복원을 시작한다. 최대 120 frame / 2초의 bounded 대기로 판정하며 `current()`가 새 사용자 입력·scope/filter/scale/columns/api instance/geometry 변화에 의해 취소되면 과거 복원을 수행하지 않는다. 한도 초과는 `NO_SCROLL_CAPACITY`로 명시 오류/진단이며 성공으로 처리하지 않는다.
+- 명시 복원 이후에도 공개 Core와 native Chart가 원래 좌표(±1px native)에 **3 frame 연속 일치**해야 receipt/count를 기록한다. 늦은 native drift는 기존 explicit peer owner 내에서 최대 3회만 재정합하고, 실패 시 `TIMED_OUT`/진단·사용자 오류 메시지를 제공한다. `api.exec()` await만으로 레이아웃 완료를 선언하지 않는다. 무제한 RAF, DOM outside owner, 신규 Store patch, #569 Adapter 제품 전환은 비범위다.
+- **E2E:** 기존 exact 120/240 LIFO 복귀, 사용자 직접 wheel/resize·filter·메타데이터, 중첩 clear, instance·columns·selection·tree strict assertions를 유지한다. 두 번째 복귀에서 `data-gantt-peer-restore` 영수증의 target120, 실제 물리 admission/최종 capacity≥target-1px, capacity 및 settle 연속3frame, public/native 좌표를 명시 검사한다. 실패 report는 원본 action trace와 `capacityFailure`, `settleFailure`, native repair evidence를 함께 보관한다. skip/retry/Playwright test timeout/required CI 완화 없음.
+- **릴리스:** 동일 #530 corrective 연속/비연속 개선의 app version 0.103.1은 아직 정식 tag/Release 미발행, Owner 승인 marker 별도 존재. 같은 version 유지/릴리스 격리. [기존 PR #566 병합 기록](https://github.com/planner77/masterGantt/issues/530#issuecomment-6080803672)에 명시된 intervening merge의 automatic Finalizer release_required 판정 누락 위험을 보존하며 Main CI 성공만으로 정식 GHCR 게시·Issue Close를 주장하지 않는다.
+
 ## 2026-10-09 #530 PR #566 CI #2302.1 — native-first Chart reset 재정합
 
 - [PR CI #2302.1](https://github.com/planner77/masterGantt/actions/runs/37920082307), 정확한 Head `17e5148dd3f857b75eb6ff9ab6bdabd2f08bdeb5`: Quality(TypeScript/ESLint/Vitest/Next build), Docker, Chromium E2E 1~5 PASS; shard6의 #530 fixed-geometry exact 복귀 1 FAIL/84 PASS/1 SKIP. 기대 Core/native horizontal120, 실제 Core120/native0, 동일 SVAR API instance/selection/columns/tree.
