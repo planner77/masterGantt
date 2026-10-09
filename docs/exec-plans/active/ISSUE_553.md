@@ -142,3 +142,11 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 - 기능 변경 `42a68c5`: 변경된 이름이 canonical DTO에서는 확인되지만 native Grid text가 구 값인 상황에서 확정된 동일 이름만 Core public update-task에 반영한다. Peer 복귀 중 사용자가 wheel을 실행했으면 상위 peer 복구 객체의 React cleanup과 무관하게 동일 API/범위/입력 세대 확인 후 마지막 사용자 위치를 보호한다. Milestone 관리 모달 종료 후 포커스의 후행 이동 가능성을 고려해 bounded stable-focus window를 적용한다.
 - 기존 #514 직접 Task 선택이 필터의 이전 viewport를 사용하지 않는 규칙, #551 date plot 1px 정렬 및 연속 timeline 우측 확장, #529 Core/DOM ±1px, #456 no-result zero-reset, #140 Task PATCH 단건/401/412, readonly fail-closed은 그대로 검증한다. 멈춤/skip/timeout 증가/expect 완화 없음.
 - 새 exact-head CI 종료 전 TESTED는 TypeScript·E2E·Docker 등 모두 NOT TESTED. 메인 정렬/병합/GHCR/Release/Issue close는 승인되지 않음.
+
+## PR CI #2273 실패/원인 분리 및 보완 기록 (2026-10-09)
+
+- [PR CI #2273](https://github.com/planner77/masterGantt/actions/runs/37870892476), head `2628cb953da3fc54fdb6b9af10b941b66363ea81`: Policy/Vitest/ESLint PASS, TypeScript/Next build/Docker FAIL (동일 원인 `project-gantt.tsx:1664`, `string | undefined`을 필수 `string`에 할당), E2E 샤드 2·3·4·6 FAIL(12 cases), shard1·5 PASS.
+- `projectPublicId`가 optional prop인 반면 필터 복원 bookmark의 `publicId`는 required string이므로 기본값을 명시해 빌드 차단을 수정한다. 이 동일 TS 오류가 Next 빌드와 Docker image build에 전파됐으며 외부 OAuth 네트워크 장애가 이번 Docker 실패 원인은 아니다.
+- Core `resize-chart` 2회 실행 뒤 뒤늦은 레이아웃이 `scroll-chart` 위치를 120→100→63/0으로 클램프하는 Trace 근거: 물리 가로 폭 확장에는 설치된 공개 SVAR `resize-chart` 두 단계를 **순차 await** 후 `scroll-chart`를 수행한다. 기존 2 RAF bounded 확인과 사용자 제스처·same instance/scope/scale 보호 유지. 필터 원점/복귀·Milestone 별도 Timeline tick 동기화 범위를 변경하지 않는다.
+- Inline 변경 PATCH 성공과 React canonical state commit 사이 시간차가 있어 native Grid 이름이 복구되지 않을 수 있다. 서버에서 확정된 동일 Task name을 최대 8개 RAF 내 검증한 뒤 필요할 때만 공개 update-task로 재동기화한다. 401/412/Escape 실패에는 적용하지 않는다.
+- 이번 head의 TypeScript/Vitest/Chromium/Docker 신규 공식 결과는 CI 실행 완료 전 NOT TESTED; 실패 결과를 PASS라 해석하지 않으며 skip/timeout 변경, main merge, GHCR, Issue 종료 없음.

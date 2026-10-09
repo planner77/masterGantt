@@ -1,3 +1,7 @@
+## Issue #553 — name-only PATCH 확인과 Grid 렌더링 동기화 (2026-10-09)
+
+Inline 이름 저장 Promise가 `saved`를 반환했더라도 React canonical DTO가 아직 commit 전일 수 있다. 최대 8회 bounded animation frame에서 확정된 동일 Task 이름과 native Grid/serialized Core 상태를 대조하고, 불일치하는 경우에만 기존 공개 `update-task`로 확정된 서버값을 동기화한다. 권한 거부/412/네트워크 실패, 새 편집기 세션, API 인스턴스 변경 또는 명시적 사용자 개입은 이전 요청 결과를 강제 표시하는 근거가 아니다.
+
 ## Issue #553 — Grid 이름 canonical/native 후속 동기화 (2026-10-09)
 
 Inline Enter·Tab·blur는 기존 name-only Task PATCH의 revision/permission 가드를 공통으로 사용한다. 서버 저장이 성공하여 canonical DTO 이름이 확정됐으나 SVAR native Core Grid 텍스트가 전환되지 못한 경우에만 해당 확정 이름으로 공개 `update-task`를 재적용한다. 기존 이름을 낙관적으로 먼저 표시하거나 실패·stale 응답의 이름을 덮어쓰지 않으며 작업 ID, Core instance, 읽기 전용, 401/412, Escape 취소 보호를 유지한다.

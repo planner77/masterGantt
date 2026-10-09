@@ -1,3 +1,7 @@
+## Issue #553 — Native viewport 확장 비동기 순서 (2026-10-09)
+
+Core 논리 스케일 확장용 `resize-chart` 2단계는 순차 완료를 기다린 뒤 사용자가 요청한 public `scroll-chart`를 실행한다. 단순히 `scrollWidth`만 체크하거나 비동기 resize를 발행한 직후 복원을 성공 처리하면 후행 Core 레이아웃이 스크롤을 다시 0으로 클램프할 수 있다. 범위를 확장할 필요가 없는 경우에는 Core 조작을 추가하지 않는다. Task/범위/scale이 바뀌거나 사용자 입력이 발생하면 오래된 복원 명령은 적용하지 않는다.
+
 ## Issue #553 — Gantt 논리/물리 스크롤 및 검색 복귀 계약 (2026-10-09)
 
 SVAR의 Core 공개 `scrollLeft`와 브라우저 native Chart `scrollWidth - clientWidth`는 동기화 완료 전 다른 범위일 수 있다. 저장된 위치 복원에 필요한 DOM 실제 범위가 부족하면 축을 확장하는 공개 `resize-chart` 경로를 사용하고, 두 번의 bounded layout frame에서 복원 여부를 확인한다. metadata/Task 삭제의 원래 scope·scale/instance가 유지되고 해당 기간 사용자 Grid/Chart 입력이 없을 때만 복원하며, 이전 위치를 그대로 주장하는 시각 효과나 임의 DOM 덮어쓰기는 금지한다.

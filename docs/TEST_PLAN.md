@@ -1,3 +1,9 @@
+## Issue #553 — PR CI #2273 TypeScript 및 비동기 viewport 복원 (2026-10-09)
+
+- 실패 기록: [PR CI #2273](https://github.com/planner77/masterGantt/actions/runs/37870892476). 필수 `publicId: string`에 optional `projectPublicId`를 할당한 TS2322가 Next/Docker 빌드까지 차단. 같은 head의 TypeScript/Next/Docker 성공 근거는 없다.
+- Gantt: 공개 `resize-chart` 2회 중 어느 것도 fire-and-forget하지 않고 순차 `await`한 후 `scroll-chart`를 수행해 metadata/Delete/peer 복원값이 늦은 resize에 의해 재클램프되지 않는지 검증한다. 물리 `scrollWidth - clientWidth`와 Core public 좌표를 별도 체크하고 기존 Date/Week/Milestone 1px, 필터 무결성, 사용자 입력 우선 검증을 보존한다.
+- Grid 이름: name-only PATCH의 saved 결과를 받은 다음 React canonical name과 Core native text가 동일해지는지 최대 8 frame 내 확인하고, 확정된 이름에 한해 Core public `update-task` 보완을 한 번 실행한다. 미저장/실패/권한 거부에서 저장된 것처럼 표시하면 FAIL.
+
 ## Issue #553 — CI #2269 Native Chart 범위·필터 복귀 검증 (2026-10-09)
 
 - [실패 PR CI #2269](https://github.com/planner77/masterGantt/actions/runs/37867864388): quality/typecheck/build/Docker/Policy PASS, Chromium E2E 16건 FAIL. 단일 Core scroll-chart(120) 성공만으로 복원 완료 판정 금지: 뒤따르는 resize-chart와 native scroll 이벤트 이후에도 public/DOM left와 최종 가로 범위가 유지되는지 확인한다.

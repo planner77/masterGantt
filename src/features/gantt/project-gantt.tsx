@@ -1558,18 +1558,30 @@ export function ProjectGantt({
   // The derived Core scale width can exceed the native DOM's available scroll
   // width after resize-chart/filter-tasks. Extend the existing axis only when
   // the physical scrollport cannot hold the user's saved horizontal position.
-  const ensureNativeViewportCapacity = useCallback((api: IApi, left: number): void => {
+  const ensureNativeViewportCapacity = useCallback(async (api: IApi, left: number): Promise<void> => {
     if (!Number.isFinite(left) || left <= 0) return;
     const chart = ganttScrollReference.current?.querySelector<HTMLElement>(".wx-chart");
-    if (!chart?.isConnected || chart.scrollWidth - chart.clientWidth >= left + 2) return;
+    const margin = 2 * GANTT_CELL_WIDTH[scaleModeReference.current];
+    if (!chart?.isConnected || chart.scrollWidth - chart.clientWidth >= left + margin) return;
     const state = api.getState() as TimelineState;
-    const width = state._chartWidth, scaleWidth = state._scales?.width;
-    if (typeof width === "number" && width > 0 && typeof scaleWidth === "number" && scaleWidth > 0)
-      expandTimelineScale(api, Math.max(
-        scaleWidth + width,
-        width + left + 2 * GANTT_CELL_WIDTH[scaleModeReference.current],
-      ));
-  }, [expandTimelineScale]);
+    const width = state._chartWidth, height = state._chartHeight;
+    const scaleWidth = state._scales?.width, scrollSize = state._scrollSize ?? 0;
+    if (typeof width !== "number" || width <= 0 || typeof height !== "number" || height <= 0 ||
+        typeof scaleWidth !== "number" || scaleWidth <= 0) return;
+    // The restore path must await BOTH public resize actions. Fire-and-forget
+    // lets Core apply a late resize-chart after scroll-chart and clamp its left.
+    timelineSyntheticResizeReference.current = true;
+    try {
+      await api.exec("resize-chart", {
+        width: Math.max(scaleWidth + width, width + left + margin),
+        height, scrollSize,
+      });
+      await api.exec("resize-chart", { width, height, scrollSize });
+    } finally {
+      timelineSyntheticResizeReference.current = false;
+    }
+    recordTimelineEnd(api);
+  }, [recordTimelineEnd]);
 
   const ensureTimelineEnd = useCallback((api: IApi): void => {
     const state = api.getState() as TimelineState;
@@ -1661,7 +1673,7 @@ export function ProjectGantt({
     if (!previous && viewportFilterActive && viewVisible && api) {
       const state = api.getState();
       filterBaseViewportReference.current = {
-        publicId: projectPublicId, rootId: viewRootTaskId,
+        publicId: projectPublicId ?? "", rootId: viewRootTaskId,
         left: state.scrollLeft, top: state.scrollTop,
         gesture: viewportGestureReference.current,
       };
@@ -2036,7 +2048,7 @@ export function ProjectGantt({
               ensureTimelineEnd(api);
               const current = api.getState();
               if (Math.abs(current.scrollLeft - restoreLeft) > 1 || Math.abs(current.scrollTop - restoreTop) > 1) {
-                ensureNativeViewportCapacity(api, restoreLeft);
+                await ensureNativeViewportCapacity(api, restoreLeft);
                 await api.exec("scroll-chart", { left: restoreLeft, top: restoreTop });
               }
               if (validFilterReturn && pendingFilterReturnReference.current === filterReturn)
@@ -2139,7 +2151,7 @@ export function ProjectGantt({
                 const left = Math.abs(current.scrollLeft - request.left) > 1 ? request.left : undefined;
                 const top = Math.abs(current.scrollTop - request.top) > 1 ? request.top : undefined;
                 if (left !== undefined || top !== undefined) {
-                  if (left !== undefined) ensureNativeViewportCapacity(api, left);
+                  if (left !== undefined) await ensureNativeViewportCapacity(api, left);
                   if (currentRequest()) await api.exec("scroll-chart", { left, top });
                   // Core may resize its actual DOM scroller after the first
                   // restore. Recheck the physical range for two bounded frames.
@@ -2149,7 +2161,7 @@ export function ProjectGantt({
                     const after = api.getState();
                     if (Math.abs(after.scrollLeft - request.left) <= 1 &&
                         Math.abs(after.scrollTop - request.top) <= 1) break;
-                    ensureNativeViewportCapacity(api, request.left);
+                    await ensureNativeViewportCapacity(api, request.left);
                     if (currentRequest()) await api.exec("scroll-chart", { left: request.left, top: request.top });
                   }
                 }
@@ -2211,7 +2223,7 @@ export function ProjectGantt({
         if (Math.abs(currentViewport.scrollLeft - userViewport.scrollLeft) <= 1 &&
             Math.abs(currentViewport.scrollTop - userViewport.scrollTop) <= 1) return;
         ensureTimelineEnd(api);
-        ensureNativeViewportCapacity(api, userViewport.scrollLeft);
+        await ensureNativeViewportCapacity(api, userViewport.scrollLeft);
         await api.exec("scroll-chart", { left: userViewport.scrollLeft, top: userViewport.scrollTop });
       })().catch(() => { /* A cancelled user-input recovery is not a viewport restore failure. */ });
     };
@@ -2232,7 +2244,7 @@ export function ProjectGantt({
         ensureTimelineEnd(api);
         await frame(); await frame();
         if (!current()) return;
-        ensureNativeViewportCapacity(api, request.left);
+        await ensureNativeViewportCapacity(api, request.left);
         if (!current()) return;
         await api.exec("scroll-chart", { left: request.left, top: request.top });
         peerViewportRestoreCount.current++;
@@ -3416,27 +3428,36 @@ export function ProjectGantt({
         // intercepted Core close-editor can leave the native name cell stale.
         // Reconcile only the confirmed server name, through Core's public
         // update-task action, after any older canonical sync finishes.
-        void canonicalSyncQueueReference.current.then(async () => {
-          if (!api || apiReference.current !== api) return;
-          const confirmed = tasksByIdReference.current.get(session.taskId);
-          if (!confirmed || confirmed.name !== normalized.name) return;
-          const core = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
-          const rendered = ganttScrollReference.current?.querySelector<HTMLElement>(
-            '.wx-row[data-id=":' + session.taskId + '"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text',
-          );
-          if (core.find(task => task.id === session.taskId)?.text === confirmed.name &&
-              rendered?.textContent?.trim() === confirmed.name) return;
-          if (inlineSessionReference.current === session) inlineSessionReference.current = null;
-          canonicalSyncDepthReference.current++;
-          try {
-            await api.exec("update-task", {
-              id: session.taskId, task: { text: confirmed.name },
-              eventSource: "project-canonical-sync", skipUndo: true,
-            });
-          } finally {
-            canonicalSyncDepthReference.current--;
+        void (async () => {
+          // React may not have committed its confirmed canonical snapshot at
+          // the time the saved command resolves. Wait a bounded set of frames
+          // for the latest DTO and Core sync, then reconcile only that name.
+          const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+          for (let attempt = 0; attempt < 8; attempt++) {
+            await nextFrame();
+            await canonicalSyncQueueReference.current;
+            if (!api || apiReference.current !== api || inlineOpenTokenReference.current !== token) return;
+            const confirmed = tasksByIdReference.current.get(session.taskId);
+            if (!confirmed || confirmed.name !== normalized.name) continue;
+            const core = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
+            const rendered = ganttScrollReference.current?.querySelector<HTMLElement>(
+              '.wx-row[data-id=":' + session.taskId + '"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text',
+            );
+            if (core.find(task => task.id === session.taskId)?.text === confirmed.name &&
+                rendered?.textContent?.trim() === confirmed.name) return;
+            if (inlineSessionReference.current === session) inlineSessionReference.current = null;
+            canonicalSyncDepthReference.current++;
+            try {
+              await api.exec("update-task", {
+                id: session.taskId, task: { text: confirmed.name },
+                eventSource: "project-canonical-sync", skipUndo: true,
+              });
+            } finally {
+              canonicalSyncDepthReference.current--;
+            }
+            return;
           }
-        }).catch(() => onCanonicalSyncFailureReference.current());
+        })().catch(() => onCanonicalSyncFailureReference.current());
       } else {
         setInlineNameError(true);
         setInlineNameMessage(result.message);
