@@ -92,5 +92,85 @@ class Cases(unittest.TestCase):
         self.assertNotIn("최초 도입 PR Bootstrap 검증", workflow)
 
 
+    def test_protected_rename_paths_and_policy_files(self):
+        changed = [{"filename":"docs/note.md","status":"renamed",
+                    "previous_filename":"scripts/qa_final_automated.py"}]
+        paths, protected = qa.protected_paths(changed)
+        self.assertIn("scripts/qa_final_automated.py", paths)
+        self.assertIn("scripts/qa_final_automated.py", protected)
+        for path in (".github/workflows/ci.yml", ".github/workflows/qa-final-trusted.yml",
+                     "docs/QA_REVIEW_POLICY.md", "docs/SECURITY.md",
+                     ".codex/agents/infra.toml", "AGENTS.md"):
+            self.assertIn(path, qa.protected_paths(
+                [{"filename":path,"status":"modified"}])[1])
+        self.blocked(lambda:qa.protected_paths(
+            [{"filename":"docs/note.md","status":"renamed"}]))
+
+    def test_metadata_full_ci_requires_matching_base(self):
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            base="a"*40
+            def collection(self, url, name):
+                if name == "workflow_runs":
+                    return [{"id":88,"event":"pull_request","head_sha":"h"*40,
+                             "display_title":"PR CI [전체 검증]",
+                             "status":"completed","conclusion":"success","run_number":55,
+                             "pull_requests":[{"number":587,"head":{"sha":"h"*40},
+                                               "base":{"sha":self.base}}]}]
+                return [{"name":name,"conclusion":status} for name,status in (
+                    ("Build, static checks, and unit tests","success"),
+                    ("Chromium end-to-end tests","success"),
+                    ("Docker build and runtime smoke test","success"),
+                    ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증","skipped"))]
+        s=Stub()
+        self.assertEqual(qa.verify_same_base_full_run(
+            s,587,"h"*40,"a"*40,99),88)
+        s.base="b"*40
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            s,587,"h"*40,"a"*40,99))
+
+    def test_default_branch_workflow_run_has_distinct_trust_source(self):
+        from unittest.mock import patch
+        class Stub:
+            repo="planner77/masterGantt"
+            prefix="/repos/planner77/masterGantt"
+            def get(self,path):
+                if path.endswith("/actions/runs/88"):
+                    return {"id":88,"event":"pull_request","head_sha":"h"*40,
+                            "path":".github/workflows/ci.yml","status":"completed",
+                            "conclusion":"success","run_attempt":1,
+                            "repository":{"full_name":self.repo},
+                            "display_title":"PR CI [전체 검증]",
+                            "pull_requests":[{"number":587,"head":{"sha":"h"*40},
+                                              "base":{"sha":"b"*40}}]}
+                return {"head":{"sha":"h"*40},"base":{"sha":"b"*40},
+                        "merge_commit_sha":"m"*40}
+            def collection(self,path,name):
+                return [{"name":name,"conclusion":result} for name,result in (
+                    ("변경 경로 판정","success"),
+                    ("Build, static checks, and unit tests","success"),
+                    ("Chromium end-to-end tests","success"),
+                    ("Docker build and runtime smoke test","success"),
+                    ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증","skipped"))]
+        env={"GITHUB_RUN_ID":"99"}
+        with patch.object(qa,"check",return_value={"automated_qa":"PASS"}) as check:
+            out=qa.trusted_source(env,{"workflow_run":{"id":88}},Stub())
+        self.assertEqual(out["trusted_source"],"PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN")
+        self.assertEqual(out["source_ci_run_id"],88)
+        self.assertEqual(check.call_args.args[0]["GITHUB_RUN_ID"],"88")
+
+    def test_trusted_workflow_definition_never_checks_out_pr_code(self):
+        from pathlib import Path
+        src=(Path(__file__).resolve().parents[1]/".github/workflows/qa-final-trusted.yml").read_text()
+        self.assertIn('workflows: ["CI"]',src)
+        self.assertIn("ref: main",src)
+        self.assertIn("persist-credentials: false",src)
+        self.assertIn("github.event.workflow_run.event == 'pull_request'",src)
+        self.assertNotIn("pull_request_target:",src)
+        self.assertNotIn("github.event.workflow_run.head_sha",src)
+        self.assertNotIn("checks: write",src)
+        self.assertNotIn("contents: write",src)
+
+
 if __name__=="__main__":
     unittest.main(verbosity=2)

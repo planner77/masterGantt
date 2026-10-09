@@ -10,8 +10,19 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-GATE_FILES = {".github/workflows/ci.yml", "scripts/qa_final_automated.py",
-              "scripts/test_qa_final_automated.py", "scripts/verify-issue-lifecycle.py"}
+GATE_FILES = {
+    ".github/workflows/ci.yml", ".github/workflows/qa-final-trusted.yml",
+    "scripts/qa_final_automated.py", "scripts/test_qa_final_automated.py",
+    "scripts/verify-issue-lifecycle.py", "scripts/verify-pr-metadata-evidence.py",
+    "scripts/verify-ci-run-trace.py",
+}
+POLICY_FILES = {
+    "AGENTS.md", "docs/QA_REVIEW_POLICY.md", "docs/SECURITY.md",
+    "docs/ISSUE_LIFECYCLE.md", "docs/AGENT_PROMPTS.md",
+    "docs/AGENT_CONFIGURATION.md", ".codex/agents/infra.toml",
+    "docs/GITHUB_OPERATIONS.md", "docs/REMOTE_VALIDATION.md",
+    "docs/ISSUE_LIFECYCLE_AUTOMATION.md", "docs/CI_CD.md",
+}
 QA_DOCS = {"AGENTS.md", "docs/QA_REVIEW_POLICY.md", "docs/CI_CD.md",
            "docs/TEST_PLAN.md", "docs/GITHUB_OPERATIONS.md", "docs/REMOTE_VALIDATION.md"}
 
@@ -60,6 +71,19 @@ class GitHub:
             if len(part) < 100:
                 return found
         raise Blocked("BLOCKED", "페이지 상한 초과, 일부 검증 증거 미확인")
+
+    def collection(self, route, name):
+        """GitHub workflow runs/jobs APIs return paginated objects, unlike PR files."""
+        found = []
+        for page in range(1, 11):
+            param = "&" if "?" in route else "?"
+            response = self.get(f"{route}{param}per_page=100&page={page}")
+            items = response.get(name) if isinstance(response, dict) else None
+            require(isinstance(items, list), f"GitHub {name} API 응답 오류")
+            found.extend(items)
+            if len(items) < 100:
+                return found
+        raise Blocked("BLOCKED", f"{name} 페이지 제한 초과")
 
     def open_threads(self, number):
         owner, repo = self.repo.split("/")
@@ -178,6 +202,68 @@ def docs_gate(plan, paths, ac):
             "ac_test_coverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"}
 
 
+def verify_same_base_full_run(gh, number, head, base, current_run_id):
+    """Metadata-only runs may reuse only the latest completed full run of THIS head+base.
+
+    PR title/body edits do not modify the merge tree; changing the base does.
+    Unknown source-base metadata is treated as BLOCKED (never as a pass).
+    """
+    route = f"{gh.prefix}/actions/workflows/ci.yml/runs?event=pull_request&head_sha={head}"
+    runs = sorted(
+        gh.collection(route, "workflow_runs"),
+        key=lambda run: (int(run.get("run_number") or 0),
+                         int(run.get("run_attempt") or 0)), reverse=True)
+    eligible = []
+    for run in runs:
+        if int(run.get("id") or 0) == int(current_run_id):
+            continue
+        if run.get("event") != "pull_request" or run.get("head_sha") != head:
+            continue
+        if "[메타데이터 검증]" in str(run.get("display_title") or ""):
+            continue
+        if "[전체 검증]" not in str(run.get("display_title") or ""):
+            continue
+        matches = [p for p in (run.get("pull_requests") or [])
+                   if int(p.get("number") or 0) == number]
+        require(len(matches) == 1, "원본 전체 CI run의 PR ref 확인 불가")
+        prior = matches[0]
+        require((prior.get("head") or {}).get("sha") == head and
+                (prior.get("base") or {}).get("sha") == base,
+                "이전 전체 CI의 base/head와 현재 test merge 입력이 다릅니다")
+        eligible.append(run)
+        break
+    require(bool(eligible), "동일 head/base의 전체 PR CI run 없음")
+    chosen = eligible[0]
+    require(chosen.get("status") == "completed" and
+            chosen.get("conclusion") == "success", "이전 전체 CI 미성공", "FAIL")
+    jobs = {j["name"]: j.get("conclusion")
+            for j in gh.collection(f"{gh.prefix}/actions/runs/{chosen['id']}/jobs", "jobs")}
+    required = {
+        "Build, static checks, and unit tests",
+        "Chromium end-to-end tests",
+        "Docker build and runtime smoke test",
+    }
+    require(all(jobs.get(name) == "success" for name in required) and
+            jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") == "skipped",
+            "동일 base의 full-run quality/e2e/docker 증거 불충분", "FAIL")
+    return int(chosen["id"])
+
+
+def protected_paths(files):
+    """Validate both sides of a rename; changed policy/workflow is never self-approved."""
+    all_paths = set()
+    for entry in files:
+        require(bool(entry.get("filename")), "변경 파일 API에 filename 누락")
+        all_paths.add(entry["filename"])
+        if entry.get("status") == "renamed":
+            require(bool(entry.get("previous_filename")), "rename source path 조회 불가")
+            all_paths.add(entry["previous_filename"])
+    protected = {p for p in all_paths
+                 if p in GATE_FILES or p in POLICY_FILES or
+                 p.startswith(".github/workflows/")}
+    return all_paths, protected
+
+
 def blocking_reviews(reviews):
     latest = {}
     for r in sorted(reviews, key=lambda x: (x.get("submitted_at") or "", x.get("id", 0))):
@@ -201,12 +287,18 @@ def check(env, event, gh):
     issue = primary_issue(pr.get("title") or "", pr.get("body") or "")
     risk = pr_field(pr.get("body") or "", "risk_level", {"LOW", "MEDIUM", "HIGH"})
     method = pr_field(pr.get("body") or "", "qa_method", {"AGENT", "AUTOMATED_MANAGER"})
-    paths = {f["filename"] for f in gh.pages(f"{gh.prefix}/pulls/{n}/files")}
+    paths, protected = protected_paths(gh.pages(f"{gh.prefix}/pulls/{n}/files"))
     require(bool(paths), "PR diff 없음")
-    require(not paths & GATE_FILES, "QA Gate 자체 변경: 독립 검토/관리자 승인 필요")
+    require(not protected, "QA 검증기/Workflow/보안 정책의 변경·rename 감지: "
+            + ", ".join(sorted(protected)) + " — 독립 검토 및 Manager 승인 필요")
     high = any(re.search(r"auth|security|migration|calendar|schedul|dependency|release|ghcr",
                          p, re.I) or p.startswith(".github/workflows/") for p in paths)
     require(not high or risk == "HIGH", "HIGH 위험 범위를 임의로 LOW/MEDIUM 처리 불가")
+    prior_full_run = None
+    if env.get("METADATA_ONLY") == "true":
+        prior_full_run = verify_same_base_full_run(
+            gh, n, env["EVENT_HEAD_SHA"], env["EVENT_BASE_SHA"],
+            int(env["GITHUB_RUN_ID"]))
     require(not blocking_reviews(gh.pages(f"{gh.prefix}/pulls/{n}/reviews")),
             "REQUEST_CHANGES 해결되지 않음")
     require(gh.open_threads(n) == 0, "미해결 review thread")
@@ -221,12 +313,91 @@ def check(env, event, gh):
             "base_or_test_merge_sha": env["TEST_MERGE_SHA"],
             "workflow_run_id": int(env["GITHUB_RUN_ID"]),
             "run_attempt": int(env["GITHUB_RUN_ATTEMPT"]),
-            "automated_qa": "PASS", "independent_qa": "NOT TESTED" if method == "AGENT"
+            "automated_qa": "PASS",
+            "decision_reason": "동일 PR Head/base에 대한 필수 CI, AC/documentation 구조·리뷰 증거 확인; 의미 검토와 Manager 승인 별도",
+            "prior_full_run_id": prior_full_run,
+            "independent_qa": "NOT TESTED" if method == "AGENT"
                             else "N/A(독립 검토를 실행하지 않는 공식 대체 경로)",
             "manager_decision": "NOT TESTED",
             "unresolved_review": 0,
             "residual_risks": "실제 의미/UX/HIGH 수동 검토 및 Manager ACCEPT 대기",
             **job_evidence, **result}
+
+
+
+def trusted_source(env, event, gh):
+    """Official verdict comes only from this default-branch workflow_run, not a PR-editable job.
+
+    GitHub workflow_run uses default branch code. This run's check attaches to
+    default-branch SHA, NOT automatically to the PR head: until Ruleset integration
+    the Manager must inspect its run URL and exact source/PR SHA manually.
+    """
+    trigger = event.get("workflow_run") or {}
+    run_id = int(trigger.get("id") or 0)
+    require(run_id > 0, "trusted workflow_run 대상 run id 누락")
+    run = gh.get(f"{gh.prefix}/actions/runs/{run_id}")
+    require(run.get("id") == run_id and run.get("event") == "pull_request" and
+            str(run.get("path") or "").split("@")[0] == ".github/workflows/ci.yml",
+            "trusted QA 입력이 CI pull_request run이 아닙니다")
+    require(run.get("status") == "completed" and run.get("conclusion") == "success",
+            "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
+    require((run.get("repository") or {}).get("full_name") == gh.repo,
+            "CI 검증 원본 repository 불일치")
+    prs = run.get("pull_requests") or []
+    require(len(prs) == 1, "workflow_run의 단일 PR/source refs 확인 불가")
+    source = prs[0]
+    number = int(source["number"])
+    head = (source.get("head") or {}).get("sha")
+    base = (source.get("base") or {}).get("sha")
+    require(bool(head) and bool(base) and run.get("head_sha") == head,
+            "CI 검증한 Head/base SHA 정보가 불완전합니다")
+    live = gh.get(f"{gh.prefix}/pulls/{number}")
+    require(live.get("head", {}).get("sha") == head and
+            live.get("base", {}).get("sha") == base,
+            "CI 완료 이후 PR head/base 변경: 새로운 full CI 필요")
+    results = {j["name"]: j.get("conclusion")
+               for j in gh.collection(f"{gh.prefix}/actions/runs/{run_id}/jobs", "jobs")}
+    metadata_only = "[메타데이터 검증]" in str(run.get("display_title") or "")
+    if not metadata_only:
+        require("[전체 검증]" in str(run.get("display_title") or ""),
+                "전체/메타데이터 CI 실행 유형 식별 불가")
+    vals = {
+        "changes": results.get("변경 경로 판정"),
+        "quality": results.get("Build, static checks, and unit tests"),
+        "e2e": results.get("Chromium end-to-end tests"),
+        "docker": results.get("Docker build and runtime smoke test"),
+        "metadata": results.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증"),
+        "metadata_only": "true" if metadata_only else "false",
+        "e2e_required": "true" if any(
+            k.startswith("Chromium E2E shard ") and v == "success"
+            for k, v in results.items()) else "false",
+        "docker_required": "true" if results.get("Docker smoke 구현") == "success" else "false",
+    }
+    # Never promote a spoofed required-check name outside the approved full CI.
+    evidence(vals)
+    ctx = dict(env)
+    ctx.update({
+        "GITHUB_EVENT_NAME": "pull_request",
+        "PR_NUMBER": str(number),
+        "EVENT_HEAD_SHA": head,
+        "EVENT_BASE_SHA": base,
+        "TEST_MERGE_SHA": live.get("merge_commit_sha"),
+        "GITHUB_RUN_ID": str(run_id),
+        "GITHUB_RUN_ATTEMPT": str(run["run_attempt"]),
+        "NEED_CHANGES": vals["changes"], "NEED_QUALITY": vals["quality"],
+        "NEED_E2E": vals["e2e"], "NEED_DOCKER": vals["docker"],
+        "NEED_METADATA": vals["metadata"],
+        "METADATA_ONLY": vals["metadata_only"],
+        "E2E_REQUIRED": vals["e2e_required"], "DOCKER_REQUIRED": vals["docker_required"],
+    })
+    synthetic = {"pull_request": {"head": {"sha": head}, "base": {"sha": base}}}
+    report = check(ctx, synthetic, gh)
+    report["trusted_source"] = "PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN"
+    report["trusted_run_id"] = int(env["GITHUB_RUN_ID"])
+    report["source_ci_run_id"] = run_id
+    report["source_ci_run_attempt"] = int(run["run_attempt"])
+    report["base_tree_equivalence"] = "HEAD_BASE_IDENTICAL_FROM_SOURCE_AND_CURRENT_PR"
+    return report
 
 
 def main():
@@ -240,7 +411,11 @@ def main():
     code = 1
     try:
         event = json.loads(Path(env["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
-        report.update(check(env, event, GitHub(env["GITHUB_REPOSITORY"], env.get("GH_TOKEN", ""))))
+        gh = GitHub(env["GITHUB_REPOSITORY"], env.get("GH_TOKEN", ""))
+        if env.get("GITHUB_EVENT_NAME") == "workflow_run":
+            report.update(trusted_source(env, event, gh))
+        else:
+            report.update(check(env, event, gh))
         code = 0
     except Blocked as error:
         report.update(automated_qa=error.status, decision_reason=error.reason)

@@ -48,3 +48,16 @@
 - DOC_SYNC: .github/workflows/ci.yml, scripts/test_qa_final_automated.py, QA_REVIEW_POLICY/CI_CD/GITHUB_OPERATIONS/REMOTE_VALIDATION/TEST_PLAN, 본 Work Packet 갱신
 - 기대: 신규 PR CI 시작, existing 3 required checks 보존, 독립 QA 및 Manager 승인 전 병합 금지. Ruleset 변경 미진행
 - `DESIGN.md`: N/A(제품 기능/UI 무변경); `docs/DB_SCHEMA.md`: N/A(DB/API 변경 없음)
+
+## 2026-10-10 리뷰 P1×4 / P2×2 REWORK (병합 전)
+
+- 1. **P1 PR-controlled workflow**: 기본 브랜치 전용 `.github/workflows/qa-final-trusted.yml` 추가. PR workflow 결과는 권위 있는 독립 자동 QA 증거 아님. 신규 trusted workflow는 **main 병합 이전 NOT TESTED**. 보호된 workflow/validator 변경인 #580 자체는 인간/qa_docs 독립 검토 필요.
+- 2. **P1 rename**: `filename`과 `previous_filename`을 함께 확인, protected paths 및 Policy 변경을 차단.
+- 3. **P1 policy**: `docs/QA_REVIEW_POLICY.md`, `docs/SECURITY.md`, AGENTS/infra/CI/검증기 관련 경로의 수정·rename은 자동 PASS 차단.
+- 4. **P1 metadata**: metadata-only 기존 full run은 같은 PR Head **및 base SHA**의 최신 검증 증거, 세 required checks 성공일 때만 재사용.
+- 5. **P2 instructions**: infra 실제 실행 지침의 qa_method 분기를 기존 qa_required 조항에도 통합. 기타 정책 문서에 보호된 Bootstrap 예외 및 trusted workflow의 기본 브랜치 상태/운영 gate 경계 명시.
+- 6. **P2 decision_reason**: 성공 원장에도 decision_reason 포함, 별도 Manager/independent QA 상태는 NOT TESTED로 유지.
+- `scripts/test_qa_final_automated.py`: protected rename, 보안 policy, metadata stale base, trusted workflow 출처, 성공 판정/스키마 회귀 추가.
+- documentation sync: 보안/QA 정책 운영 문서와 `docs/exec-plans/active/ISSUE_580.md` 및 신규 `.github/workflows/qa-final-trusted.yml` 동기화.
+- `release_required=false`, `release_authorized=false`, 제품 버전 불변.
+- **독립 QA_FINAL=NOT TESTED**, **Manager ACCEPT=NOT TESTED**. reviewer 스레드 6건 해소 및 최신 Head CI 검증 전 병합 금지.

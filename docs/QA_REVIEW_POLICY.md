@@ -1,3 +1,12 @@
+
+### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
+
+- **신뢰 출처:** `.github/workflows/qa-final-trusted.yml`은 기본 브랜치에서 `workflow_run(CI completed)`를 수신하고, `main`의 검증 스크립트로 원본 CI Run ID/Attempt·Head/base·필수 세 Check·리뷰·문서/AC를 재조회한다. `pull_request` Workflow의 `QA Final — Automated`는 **참고용**이며 PR 작성자가 workflow를 바꿀 수 있기 때문에 신뢰된 병합 승인 근거가 아니다.
+- **API 검증:** 변경 파일의 `filename` 및 rename `previous_filename` 모두를 보호 목록/보안 정책 목록과 비교한다. 보안/QA/CI 정책 또는 실행 지침 자체를 변경하는 PR은 자동 PASS가 아니라 독립 Reviewer 필요. PR `edited`는 같은 Head라도 이전 성공한 **동일 base SHA**의 full-run 3개 gate 증거가 있어야 한다. 성공 보고서에는 `decision_reason`을 반드시 남긴다.
+- **Bootstrap·Required:** #580 PR은 아직 base에 trusted workflow가 없으므로 신뢰 검증 **NOT TESTED**. 독립 `qa_docs`/승인된 별도 인간 Reviewer의 exact-head QA Final 및 Manager ACCEPT 없이는 MERGE_READY가 아니다. `workflow_run`의 Status는 **기본 브랜치 SHA**에 붙으며 자동으로 PR Head의 Ruleset required check가 되지 않는다. 관리자 승인, 예상 source/검증 방식 확인 전 자동 차단 기능을 주장하거나 신규 Required Check를 추가하지 않는다.
+- **권한:** trusted workflow 자체는 `contents/actions/pull-requests/issues: read`만 사용, PR 코드 checkout/명령 실행, PAT/추가 Secret, `pull_request_target` 없음. GHCR/릴리스/기존 세 Required Gate 불변. 인증되지 않은 워크플로 이름만으로 Merge Gate를 자동 강제했다고 보고하지 않는다.
+- **적용:** 신규 정책은 #580 PR이 적법한 독립 검토·승인 뒤 main에 병합된 이후에만 적용한다. 자동 QA가 구현됐다 하더라도 실제 main Trusted Run을 확인하기 전까지 `AUTOMATED_MANAGER`를 사용할 수 없다.
+
 ### 2026-10-10 — Issue #580 Bootstrap Gate 실패 보완
 
 - [PR #587 · 최초 CI #2334.1](https://github.com/planner77/masterGantt/actions/runs/37998967929): 기존 Quality, E2E 6/6, Docker 필수 aggregate **PASS**, 신설 `QA Final — Automated`만 최초 검증기 부재에 의한 명시적 `exit 1`으로 FAIL.
@@ -9,7 +18,7 @@
 ## Issue #580 — Actions QA Final 대체 Gate (2026-10-10)
 
 - `qa_method=AGENT`: 실제 독립 `qa_docs`/별도 인간 Reviewer의 exact-HEAD 검토 증거가 있어야 한다. CI 성공으로 독립 QA PASS를 주장하지 않는다.
-- `qa_method=AUTOMATED_MANAGER`: PR의 `QA Final — Automated`가 성공한 후에도 Head별 `Manager ACCEPT`와 위험도별 수동/업무 검토를 분리해 기록한다. 독립 QA는 `N/A(대체 경로)`다.
+- `qa_method=AUTOMATED_MANAGER`: 기본 브랜치의 실제 `QA Final — Trusted` 검증이 PASS하고 PR의 세 필수 CI도 완료된 후에도 Head별 `Manager ACCEPT`와 위험도별 수동/업무 검토를 분리해 기록한다. 독립 QA는 `N/A(대체 경로)`다.
 - LOW/MEDIUM/HIGH 및 기존 세 required checks, DOC_SYNC, 미해결 리뷰 해결, latest HEAD, main CI/GHCR/release gate는 유지한다. HIGH는 scope별 수동 검토·잔여 위험 명시적 수용이 필요하다.
 - `.github/workflows/ci.yml` / 검증기/보안 정책 자체가 변경되는 PR은 **trusted base validator가 자동 PASS하지 않으며**, 별도 독립 검토와 Manager 승인 필요. 최초 #580 bootstrap PR 역시 자동 PASS를 주장할 수 없다.
 - 현재 GitHub Ruleset Required Check에는 이 신규 Job이 자동 추가되지 않는다. 관리자 승인·설정·expected source 검증 전에는 **운영상 수동 Gate**다. GitHub review count=0도 Manager ACCEPT를 강제하지 않는다.
@@ -36,7 +45,7 @@ PLAN 단계에서 변경 파일·사용자 영향·보안/데이터/운영 영�
 
 | 위험도 | 객관적 트리거와 예시 | 병합 전 QA 요구 |
 | --- | --- | --- |
-| **HIGH** | 인증·세션·권한·보안/데이터 노출, DB migration/데이터 손실·영속성, Calendar/Duration/Dependency/Auto Schedule, 원장 의미를 바꾸는 Import/Export, CI/GHCR 권한·required checks·릴리스 보호, 다중 화면 비동기 상태 보존·경쟁/반복 회귀, 기존 안전성 테스트·가드 삭제 또는 약화 | 정확한 Head에서 **독립 QA Reviewer** (`qa_docs` 또는 승인된 작성자 외 인간 reviewer) 실제 검토 PASS + Manager ACCEPT; 검토 주체 부재 시 BLOCKED |
+| **HIGH** | 인증·세션·권한·보안/데이터 노출, DB migration/데이터 손실·영속성, Calendar/Duration/Dependency/Auto Schedule, 원장 의미를 바꾸는 Import/Export, CI/GHCR 권한·required checks·릴리스 보호, 다중 화면 비동기 상태 보존·경쟁/반복 회귀, 기존 안전성 테스트·가드 삭제 또는 약화 | 기본은 정확한 Head의 독립 Reviewer 실제 PASS + Manager ACCEPT. 단, 보호된 CI/보안/QA 계약 파일 미수정 PR은 main의 Trusted QA PASS, HIGH 수동 체크리스트·잔여 위험 명시 수용 및 Manager ACCEPT 경로를 선택할 수 있음; 없으면 BLOCKED |
 | **MEDIUM** | 제한된 기능/UX/조회 동작 변경, 호환되는 비보안 API 변경, 하나 이상의 component 연계가 있지만 HIGH 트리거 없는 상태 변화 | 영향 영역 타깃 회귀와 Manager 교차 검토 필수. 복수 ownership 경계·최근 관련 회귀·비자명한 UX 상태 전이인 경우 **독립 QA 요구**를 명시하고 실행 |
 | **LOW** | 계약/동작/보안에 영향 없는 docs-only·문구·순수 cosmetic CSS, 기존 안전성 Gate를 변경하지 않는 고립된 테스트/운영 설명 변경 | DOC_SYNC + 최신 PR required checks + review thread 해결 + Manager ACCEPT. 독립 QA 미선택은 사유 포함 `N/A` 가능 |
 
@@ -50,9 +59,9 @@ PLAN 단계에서 변경 파일·사용자 영향·보안/데이터/운영 영�
 
 ### Reviewer 독립성·부재 시 대체
 
-HIGH 또는 `qa_required=true`의 MEDIUM은 실제 구현/PR 작성자와 **다른 주체**가 AC ↔ diff ↔ tests ↔ docs ↔ 최신 PR CI를 검토한다. `qa_docs` Sub-Agent가 지원되면 해당 Agent, 불가능하면 지정 maintainer가 승인한 **별도 인간 reviewer**를 배정한다. Reviewer 이름/실제 GitHub review 링크 또는 독립 실행 ID, 검토한 Head, Findings와 PASS/REWORK 판정이 필요하다. 인간 Reviewer의 검토는 계정/주체·변경 내용·검토 증거가 식별되어야 하며 단순 `LGTM`이나 사후 Manager 자기 검토를 독립 QA로 분류하지 않는다.
+`qa_method=AGENT`의 HIGH 또는 `qa_required=true` MEDIUM은 실제 구현/PR 작성자와 **다른 주체**가 AC ↔ diff ↔ tests ↔ docs ↔ 최신 PR CI를 검토한다. `qa_docs` Sub-Agent가 지원되면 해당 Agent, 불가능하면 지정 maintainer가 승인한 **별도 인간 reviewer**를 배정한다. Reviewer 이름/실제 GitHub review 링크 또는 독립 실행 ID, 검토한 Head, Findings와 PASS/REWORK 판정이 필요하다. 인간 Reviewer의 검토는 계정/주체·변경 내용·검토 증거가 식별되어야 하며 단순 `LGTM`이나 사후 Manager 자기 검토를 독립 QA로 분류하지 않는다.
 
-인간 reviewer 확보가 불가능하면 `independent_qa=BLOCKED` 및 `MERGE_READY=BLOCKED`를 유지한다. 사용자에게 검토 주체 확보를 요청할 수 있으며, 미결정 동안 다른 안전한 작업은 진행할 수 있다. **#580 전에는 자동 CI가 독립 Reviewer의 판단을 대체하지 않는다.**
+보호된 검증기/Workflow/보안 정책 변경에는 실제 인간/qa_docs reviewer 확보가 불가능하면 `independent_qa=BLOCKED` 및 `MERGE_READY=BLOCKED`를 유지한다. 그 외 HIGH/의무 MEDIUM은 `AUTOMATED_MANAGER`를 선택할 수 있지만 신뢰된 main QA Final 검증이 실제 성공하고, 강화된 Manager 검토·위험 수용 증거가 없으면 동일하게 BLOCKED다. 사용자에게 검토 주체 확보를 요청할 수 있으며, 미결정 동안 다른 안전한 작업은 진행할 수 있다. **#580 전에는 자동 CI가 독립 Reviewer의 판단을 대체하지 않는다.**
 
 ## 3. Work Packet / PR / Result Contract 필드
 
@@ -65,6 +74,8 @@ risk_triggers: HIGH/MEDIUM/LOW 규칙에 해당하는 사실과 파일
 affected_paths: 변경 파일과 주요 영향 경계
 qa_required: true | false
 qa_review_mode: qa_docs | human | N/A
+qa_method: AGENT | AUTOMATED_MANAGER (actual route and reason)
+trusted_qa_run: trusted workflow_run ID / source PR CI run ID / head/base / PASS | NOT TESTED | BLOCKED
 reviewer: 실제 Agent run ID 또는 다른 인간의 GitHub identity | N/A
 qa_evidence: 해당 Head의 독립 검토 결과/링크/지적 처리 | N/A(명시된 사유)
 qa_final: PASS | FAIL | BLOCKED | NOT TESTED | N/A(reason)
@@ -83,7 +94,7 @@ manager_evidence: Issue/PR 댓글과 확인한 Head, 승인/잔여 위험
 2. 같은 최신 Head의 GitHub Actions **세 required aggregate checks가 성공**했는지 확인. 현재 경로 기반으로 무거운 E2E/Docker 구현 Job이 SKIPPED인 경우에는 실제 aggregate 성공과 skip 조건을 함께 기록하고 그 테스트를 **실행 PASS로 주장하지 않는다**. CI 진행 중/실패·일부 check 누락은 MERGE_READY 금지.
 3. `DOCUMENTATION_SYNC=PASS`: 영향받는 문서 갱신 또는 문서별 `N/A(reason)`, 코드·계약 일치. 문서가 불필요해도 영향 분석을 생략하지 않는다.
 4. 미해결 차단 리뷰·스레드 0, 위험도에 따른 타깃/환경별 검증 증거 확보. 실제 UX/Windows/운영 환경이 필요하면 별도 PASS/BLOCKED/NOT TESTED를 기록하고 수용 여부 판단.
-5. `qa_required=true`라면 별도 Reviewer의 정확한 Head 독립 판정 PASS와 지적 해소 증거가 필수. `qa_required=false`라면 근거 있는 `qa_final=N/A`를 기록.
+5. `qa_required=true`에서 `qa_method=AGENT`이면 별도 Reviewer exact-Head QA PASS, `AUTOMATED_MANAGER`이면 main에서 검증한 `QA Final — Trusted`의 PR Head/base/run별 자동 QA PASS·강화된 Manager 위험 수용이 필수. 보호된 workflow·검증기·보안 정책 변경 PR은 항상 독립 Reviewer PASS 필요. `qa_required=false`라면 근거 있는 독립 QA `N/A(reason)`를 기록.
 6. Manager는 Issue/PR에 Head·위험도·reviewer·qa_final·CI/문서 근거·잔여 위험을 인용해 **명시적 ACCEPT**를 남긴다. GitHub approval review 수 0과 Manager ACCEPT는 별개이며 PR CI 성공만으로 승인되지 않는다.
 7. 그 뒤에만 MERGE_READY/Auto-merge를 허용한다. 본 규칙은 GitHub Ruleset에 새 required status check를 추가하는 것은 아니며 **운영 절차의 책임**이다. 관리자 설정 변경은 권한과 명시 승인 및 실효성 검증이 필요하다.
 

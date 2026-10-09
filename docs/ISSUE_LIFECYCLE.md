@@ -1,7 +1,16 @@
+
+### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
+
+- **신뢰 출처:** `.github/workflows/qa-final-trusted.yml`은 기본 브랜치에서 `workflow_run(CI completed)`를 수신하고, `main`의 검증 스크립트로 원본 CI Run ID/Attempt·Head/base·필수 세 Check·리뷰·문서/AC를 재조회한다. `pull_request` Workflow의 `QA Final — Automated`는 **참고용**이며 PR 작성자가 workflow를 바꿀 수 있기 때문에 신뢰된 병합 승인 근거가 아니다.
+- **API 검증:** 변경 파일의 `filename` 및 rename `previous_filename` 모두를 보호 목록/보안 정책 목록과 비교한다. 보안/QA/CI 정책 또는 실행 지침 자체를 변경하는 PR은 자동 PASS가 아니라 독립 Reviewer 필요. PR `edited`는 같은 Head라도 이전 성공한 **동일 base SHA**의 full-run 3개 gate 증거가 있어야 한다. 성공 보고서에는 `decision_reason`을 반드시 남긴다.
+- **Bootstrap·Required:** #580 PR은 아직 base에 trusted workflow가 없으므로 신뢰 검증 **NOT TESTED**. 독립 `qa_docs`/승인된 별도 인간 Reviewer의 exact-head QA Final 및 Manager ACCEPT 없이는 MERGE_READY가 아니다. `workflow_run`의 Status는 **기본 브랜치 SHA**에 붙으며 자동으로 PR Head의 Ruleset required check가 되지 않는다. 관리자 승인, 예상 source/검증 방식 확인 전 자동 차단 기능을 주장하거나 신규 Required Check를 추가하지 않는다.
+- **권한:** trusted workflow 자체는 `contents/actions/pull-requests/issues: read`만 사용, PR 코드 checkout/명령 실행, PAT/추가 Secret, `pull_request_target` 없음. GHCR/릴리스/기존 세 Required Gate 불변. 인증되지 않은 워크플로 이름만으로 Merge Gate를 자동 강제했다고 보고하지 않는다.
+- **적용:** 신규 정책은 #580 PR이 적법한 독립 검토·승인 뒤 main에 병합된 이후에만 적용한다. 자동 QA가 구현됐다 하더라도 실제 main Trusted Run을 확인하기 전까지 `AUTOMATED_MANAGER`를 사용할 수 없다.
+
 ## Issue #580 — Actions QA Final 대체 Gate (2026-10-10)
 
 - `qa_method=AGENT`: 실제 독립 `qa_docs`/별도 인간 Reviewer의 exact-HEAD 검토 증거가 있어야 한다. CI 성공으로 독립 QA PASS를 주장하지 않는다.
-- `qa_method=AUTOMATED_MANAGER`: PR의 `QA Final — Automated`가 성공한 후에도 Head별 `Manager ACCEPT`와 위험도별 수동/업무 검토를 분리해 기록한다. 독립 QA는 `N/A(대체 경로)`다.
+- `qa_method=AUTOMATED_MANAGER`: 기본 브랜치의 실제 `QA Final — Trusted` 검증이 PASS하고 PR의 세 필수 CI도 완료된 후에도 Head별 `Manager ACCEPT`와 위험도별 수동/업무 검토를 분리해 기록한다. 독립 QA는 `N/A(대체 경로)`다.
 - LOW/MEDIUM/HIGH 및 기존 세 required checks, DOC_SYNC, 미해결 리뷰 해결, latest HEAD, main CI/GHCR/release gate는 유지한다. HIGH는 scope별 수동 검토·잔여 위험 명시적 수용이 필요하다.
 - `.github/workflows/ci.yml` / 검증기/보안 정책 자체가 변경되는 PR은 **trusted base validator가 자동 PASS하지 않으며**, 별도 독립 검토와 Manager 승인 필요. 최초 #580 bootstrap PR 역시 자동 PASS를 주장할 수 없다.
 - 현재 GitHub Ruleset Required Check에는 이 신규 Job이 자동 추가되지 않는다. 관리자 승인·설정·expected source 검증 전에는 **운영상 수동 Gate**다. GitHub review count=0도 Manager ACCEPT를 강제하지 않는다.
@@ -254,7 +263,7 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 
 PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_reason`/`qa_required`/Reviewer/최신 Head를 기록한다. HIGH는 실제 `qa_docs` 또는 별도 인간 Reviewer 필수이고 없으면 BLOCKED, LOW/일부 MEDIUM만 `QA_FINAL=N/A(reason)` 가능하다. MEDIUM의 복수 ownership 경계/회귀 등 트리거는 독립 검토 의무이며 기존 코드/문서/CI 검사 생략 근거가 아니다. [판정 순서·예외 및 테스트 시나리오](QA_REVIEW_POLICY.md)를 따른다.
 
-이슈 #580의 GitHub Actions 자동 QA 대체 경로는 **별도 구현 및 검증 전까지 미적용**이다. Ruleset의 승인 리뷰 수 0명을 독립 QA PASS로 간주하지 않으며, 모든 경우 Manager의 Head 연결 ACCEPT가 필요하다.
+이슈 #580의 GitHub Actions 자동 QA 대체 경로는 **#580 bootstrap PR 병합 및 신뢰된 main 실행 검증 전까지 미적용**이다. Ruleset의 승인 리뷰 수 0명을 독립 QA PASS로 간주하지 않으며, 모든 경우 Manager의 Head 연결 ACCEPT가 필요하다.
 
 ### 9.3 Phase Gate
 
@@ -269,7 +278,7 @@ PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_
 | DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 Work Packet 지정 구현 Agent |
 | QA_READY | DOCUMENTATION_SYNC PASS + 위험도별 qa_required 결정(독립 Reviewer 지정 또는 N/A 근거) + 구현 결과/증거 전달 | Manager/조건부 Reviewer |
 | PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
-| QA_FINAL/MERGE_READY | HEAD별 `qa_required=true`이면 실제 독립 Reviewer PASS, 아니면 사유 있는 `QA_FINAL=N/A`; 두 경우 모두 최신 CI·리뷰 해결·Manager ACCEPT 필수 | qa_docs 또는 인간 Reviewer(필요 시) + Manager |
+| QA_FINAL/MERGE_READY | HEAD별 `qa_method=AGENT`은 실제 독립 Reviewer PASS, `AUTOMATED_MANAGER`는 main Trusted QA PASS·Manager HIGH 위험 수용, 보호된 정책/Workflow는 무조건 독립 Reviewer PASS; 비의무 검토는 N/A(reason). 모든 경로에 최신 세 CI·DOC_SYNC·리뷰 해결·Manager ACCEPT 필수 | qa_docs 또는 인간 Reviewer(필요 시) + Manager |
 | MERGED | 승인 head의 실제 merge SHA | infra |
 | MAIN_VALIDATION | merge SHA의 main CI 완료 | infra |
 | MAIN_ARTIFACT_VALIDATED | 정책상 ci-<SHA> exact digest smoke/SBOM/provenance/cleanup | infra + 위험도별 Reviewer/Manager |
