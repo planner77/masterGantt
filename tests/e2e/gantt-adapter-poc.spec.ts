@@ -189,9 +189,11 @@ test("Issue569 동시 확장 요청은 BUSY로 거부하고 1회만 집계한다
     const firstPending = window.__issue569!.extend();
     const second = await window.__issue569!.extend();
     const first = await firstPending;
-    return { first, second, sample: window.__issue569!.sample() };
+    const followup = await window.__issue569!.extend();
+    return { first, second, followup, sample: window.__issue569!.sample() };
   });
   expect(receipt.second).toMatchObject({ result: "BUSY" });
   expect(receipt.first).toMatchObject({ extension: 1 });
   expect(receipt.second).not.toHaveProperty("extension");
+  expect(receipt.followup).toMatchObject({ extension: 2 });
 });

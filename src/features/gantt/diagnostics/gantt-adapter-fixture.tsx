@@ -78,7 +78,8 @@ export function GanttAdapterFixture({ mode, scale }: { mode: "A" | "B" | "C"; sc
       configure(run, head) { if ([run, head].some(item => !/^[\w.-]{1,64}$/.test(item))) throw new Error("Invalid diagnostic identity"); Object.assign(context.current, { run, head }); },
       revealDate: date => adapter.revealDate(new Date(date)), point: date => adapter.dateToViewportPx(new Date(date)), inverse: adapter.viewportPxToDate,
       taskEvidence() {
-        const observed = (value.getState() as unknown as { tasks?: ITask[] }).tasks;
+        // 2.7.3의 getState().tasks는 null일 수 있다. 공개 serialize()에서 실제 Core Task를 읽는다.
+        const observed = value.serialize() as ITask[] | null;
         const core = Array.isArray(observed) ? observed.map(task => ({
           id: String(task.id), type: String(task.type ?? "task"),
           startMs: task.start instanceof Date ? task.start.getTime() : null,

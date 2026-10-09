@@ -82,3 +82,9 @@ C의 synthetic width 적용과 physical width 복원 사이에 취소되면 Core
 - 개발용 PoC의 `extend`는 진행 중 재진입을 `BUSY`로 거부한다. 중복 요청은 확장 예산을 소비하거나 동일 React state commit을 성공으로 계상하지 않는다.
 - Empty/Milestone/A-mode future task는 settle 결과와 실제 Core task 상태·native DOM 상태를 검사한다. 검증용 변화일 뿐이며 제품 적용은 계속 DEFER.
 - 과거 브라우저 증거는 이전 Head의 결과이고 새로운 PR CI는 별도 확인이 필요하다.
+
+### PR CI #2292.1 실패 원인 및 수정
+
+- 최신 E2E shard 1/6에서 10개 프로파일 모두 `getState().tasks === null`인데 배열 `[]`을 가정해 실패했다. Quality/Docker 및 다른 5개 shard는 PASS였다.
+- **2.7.3 공개 API `serialize()`**로 실제 Core Task 컬렉션을 읽으며, null/비배열은 성공으로 대체하지 않고 검증 실패로 남긴다. DOM `data-task-id` 관측과 실제 settle assertions는 유지한다.
+- 이 수정 후 Head의 브라우저/E2E 결과는 별도 PR CI에서만 확정한다. 이전 10/10 PoC 증거 또는 앞선 CI 성공을 새 결과로 전용하지 않는다.
