@@ -97,6 +97,35 @@ PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042
 
 # Test Plan
 
+## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
+
+- **#598 정책 전환 + 새 main 정렬 인수 기준:** 기존 `AGENT` 모드에서 신뢰 검증기가 요구하던 독립 인간 승인·별도 Owner JSON 영수증을 #598의 `OWNER_MANAGED` default에 기계적으로 전용하지 않는다. 현재 [#584](https://github.com/planner77/masterGantt/pull/584)는 `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, 독립 QA `N/A(선택 미실시)`이며, main HEAD/PR test-merge, 세 required aggregate, docs/AC 및 리뷰 스레드 0을 새 exact Head에서 검증한다. 직전 [#2412.1](https://github.com/planner77/masterGantt/actions/runs/38050666118)은 required 3종 PASS지만 QA가 unresolved review thread로 BLOCKED였다. 기존 P2를 임의 Resolve하거나 제품/Release Gate를 완화해서 새 PR CI를 성공시켜서는 안 된다.
+
+- **#2402.1 E2E shard2 #463 virtual-clock 경합 대응:** [CI #2402.1](https://github.com/planner77/masterGantt/actions/runs/38048971400)의 6개 Chromium shard 중 shard2에서 `milestone-dashboard-state.spec.ts:91` 한 건이 `data-ready=false` 5초로 실패(86 PASS/1 FAIL/1 SKIP). 원격 trace가 cache 복원 코드의 제품 결함까지 확정한 것은 아니므로 테스트에서 `page.clock.install()`이 가로채는 timer/rAF 큐를 `page.clock.runFor(32)`로 **2프레임만 명시적으로 진행**한 뒤 기존 `data-ready=true`, `calls===2`, 느린 이전 요청을 아직 release하지 않은 상태를 그대로 검사한다. 이후 `31_000ms` focus catch-up 및 기존 호출 수 검증도 유지한다. API Stub/timeout/retry/skip/프로덕션 훅/제품 버전은 변경하지 않는다. 미해제 요청을 대체로 성공 응답하는 식의 검증 완화가 아니며, 새 CI를 통해 효과를 확인한다.
+
+
+- **#595 병합 중 PR test-merge stale 실증:** [PR CI #2400.1](https://github.com/planner77/masterGantt/actions/runs/38047330320)의 Quality/E2E6/Docker는 PASS, QA Job은 기준 main의 `26e72bbed046a6ad6721e1c3c19bda71ce42e570` 이동으로 `mergeability 또는 test merge 불일치`를 기록해 BLOCKED. 새 main 부모를 포함하도록 feature Head를 정렬하고, 원래 PASS인 이전 Head의 required checks를 새 Head PASS로 소급하지 않는다. 별도 위험: #595 병합 후에는 보호된 CI 파일을 자동 검증기로 자체 승인하지 않고 독립 인간 `APPROVED` 리뷰(`QA_FINAL: PASS`, exact Head)와 owner의 사후 승인 원장이 없으면 계속 BLOCKED가 맞다. 승인 없이 QA 재시도만으로 PASS가 되는 것을 인수 기준으로 삼지 않는다.
+
+- **#582 Unicode 표시명 스푸핑 차단:** `format_merge_title()`는 bidi override(U+202E), zero-width space(U+200B), Unicode line separator(U+2028), C1 next-line(U+0085)과 C0/C1·Cs·Cf·Zl·Zp 문자를 표준 제목 생성 전에 ValueError로 거부한다. `parse_merge_title()`/Push trace 또한 이들을 승인하지 않아야 한다. 정상 한글·일반 공백 및 기존 legacy Merge/direct Push 처리는 불변이다. GitHub Actions `run-name` 전체 regex 검증을 완료했다고 주장하지 않으며 CI 보호 경로 `QA Final` BLOCKED 정책은 유지한다.
+
+- **#582 malformed 예약 접두어 회귀:** 표준 `Issue #`로 시작하면서 ` · PR #` 구분자가 빠졌거나(`Issue #582 ·PR #583`), PR 필드가 없는 제목(`Issue #582`), 새 줄을 가진 제목(`Issue #582\\n추가 본문`)은 `validate_push`가 모두 `TraceError`로 FAIL해야 한다. 이들 제목은 일반 직접 Push fallback으로 분류할 수 없다. 기존 `docs:` 직접 Push와 `Merge PR #N` 추적은 그대로 통과한다. 액션 실행명의 완전한 regex 검증이 가능해졌다는 뜻은 아니며 자동 QA의 보호 경로 BLOCKED는 유지한다.
+
+- **#580 보호된 PR QA 회귀:** [CI #2381.1](https://github.com/planner77/masterGantt/actions/runs/38038527473)은 세 Required Quality/E2E6/Docker PASS에도 `QA Final — Automated`가 **protected CI/QA 경로 감지로 BLOCKED** 처리되어 전체 Run이 실패했다. `risk_level: HIGH`, `qa_method: AGENT` 메타데이터를 명시해도 신뢰된 base validator의 `protected_paths()` 판정은 정당하게 유지된다. #595에서 안전한 독립 QA 승인 경로와 Actions 상태 구분을 별도 설계한다. 무조건 skip/성공 우회·위험도 하향은 회귀로 취급한다. 새로운 #582 PR CI 시작은 이 보호 차단 해소나 QA_FINAL PASS의 증거가 아니다.
+
+- **P2 추가 검토:** GitHub Actions `run-name`에는 정규식/문자 길이 검증을 직접 실행할 수 없으므로 단일 행·`Issue #` prefix·` · PR #` 구분자만 시작 시 검사한다. 위 조건을 모방한 한 줄의 영어/과장 제목은 제목에 남을 수 있으나 첫 CI trace gate의 `parse_merge_title()`은 이를 FAIL 처리한다. 따라서 malformed **모든** 한 줄이 SHA fallback으로 표시된다고 보장하지 않는다. 보수적인 운영은 merge 전 generator 및 PR trace 검증을 필수로 한다. 추가 표시명 엄격화가 필요하면 승인된 별도 메타데이터 전달 구조가 필요하다.
+
+- 생성기 `format_merge_title(582, 583, "Main CI 실행명 간소화")`는 `Issue #582 · PR #583 · Main CI 실행명 간소화`를 반환한다. 한글 없는 요약, 개행, 31자 초과, 중복 Issue/PR 번호, 0/음수 번호는 거부한다.
+- Main `push`: 신규 한 줄은 `(582, 583)`, 기존 `Merge pull request #...` 및 `Merge PR #...`도 같은 Primary Issue로 해석, 비-PR push는 `(None, None)` fallback, 부적절한 신형 제목/다중 행은 fail-closed. Dependabot PR, edited metadata-only PR, 수동 CI는 기존 경로를 유지한다.
+- Workflow 정적 계약: Main은 표준 prefix와 SHA fallback, Finalizer는 triggering head commit/SHA 및 원본 Main run/attempt를 사용한다. `name: CI`, required checks, 이벤트·concurrency, exact merge SHA/PR Refs, GHCR/Release approval을 유지한다.
+- 검증 명령: `python3 scripts/verify-issue-lifecycle.py`; `python3 scripts/main_ci_run_name.py --issue 582 --pr 583 --summary "Main CI 실행명 간소화"`. YAML 정합성 및 동일 head SHA의 Quality/Chromium E2E/Docker PR CI 확인.
+- 실제 GitHub Main/Finalizer `display_title`의 한 줄, Issue/PR·한글 축약·Run/attempt와 legacy SHA fallback은 **명시 승인된 실제 병합 이후** 검증한다. PR만 실행한 상태에서 Main/GHCR/Finalizer는 NOT TESTED다. 이미 병합한 commit을 실행명만 바꾸려 force-push/재작성하지 않는다.
+
+- **Docker 네트워크 복구 회귀:** PR #584 CI #2319.1의 baseline Node/npm `ECONNRESET`만 복구 대상으로 한다. transient(`ECONNRESET`, `ETIMEDOUT`, `EAI_AGAIN`)인 baseline `docker build`는 1회 재시도 후 성공 시 전체 image size·runtime smoke 계속 실행, 재실패/비네트워크 실패 시 원인 보존하며 FAIL. 총 2회 제한과 Docker aggregate `fail-closed` 유지. **PR CI 재실행 전/후 확정 PASS는 별도** 검증한다.
+
+- **Codex P1/P2 리뷰 후속:** GitHub REST Merge API의 Head 일치 파라미터는 `sha`, GitHub 연결 도구는 `expected_head_sha`, CLI는 `--match-head-commit`으로 구분한다. `Issue #N · PR #P · 한글 제목` prefix로 시작하더라도 commit 본문/CRLF가 있는 경우 `run-name`은 SHA fallback을 선택한다. `toJSON(message)`의 `\\n`/`\\r` escape 감지를 Main·Finalizer 양쪽 계약 검사에 추가한다. <Issue #582 PR #584> 신규 Head에서 전체 CI를 재검증해야 하며 구 Head #2322.1 성공은 구 Head 증거로만 보존한다.
+
+- **CLI 회귀 (#582 / Codex P2):** `gh pr merge`에서 `--match-head-commit`만 설정하면 표준 merge 제목/본문이 적용되지 않는다. `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`로 Merge 방식, generator 출력 제목, 빈 본문, 정확한 Head SHA를 모두 지정한다. 일부 옵션만 사용하는 기본 병합은 Main/Finalizer의 canonical 이름을 보장하지 않는다.
+
 ## Issue #530 / PR #581 — CI #2325.1 완료 영수증과 실제 검색 입력의 순서 분리
 
 - 원본 [PR CI #2325.1](https://github.com/planner77/masterGantt/actions/runs/37956141635), Head `3c9921aed4589bd408e2c37d6e344aac841e7c5d`: E2E shard2/job `113907106635`/step7에서 #463 `milestone-dashboard-state.spec.ts:142`가 검색 전 marker `null`과 검색 후 count1 완료 영수증 차이로 FAIL(85 PASS/1 FAIL/1 SKIP). Quality/나머지 5 E2E shard PASS, Docker aggregate PASS/실제 구현 SKIPPED를 구분한다. #525 자동 reveal 보완(shard4)과 #530 fixed/nested(shard6)은 해당 원격 실행에서 PASS였다.
@@ -460,7 +489,7 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 - PR metadata edit: `pull_request`의 `edited` activity가 CI를 새로 실행하여 이미 green인 동일 head SHA라도 수정된 title/body를 다시 검증해야 한다.
 - Dependabot: 작성자=`dependabot[bot]`, 동일 저장소, `dependabot/` branch의 세 조건이 모두 맞는 자동 PR만 Issue trace 예외로 통과하고, 조건 일부만 모방한 PR은 FAIL해야 한다.
 - Main trace: merge commit message에서 PR 번호와 단일 Primary Issue를 식별하고, 비-PR main push는 mutation identity를 추론하지 않은 채 fallback 표시를 사용한다.
-- Lifecycle/Finalizer: Lifecycle 표시명은 input의 Issue/PR/operation을 직접 사용하고 Generic Finalizer는 triggering Main CI의 `display_title`을 계승해야 한다.
+- Lifecycle/Finalizer (#582 반영): Lifecycle은 input의 Issue/PR/operation으로 표시하고 Generic Finalizer는 triggering Main CI의 **`workflow_run.head_commit.message`에서 단일 행·Issue/PR 구분자 조건을 확인하여 표시하거나 `head_sha` fallback**을 사용한다. 원본 Main `run_number/run_attempt`와 Finalizer 자체 실행 식별자는 별도로 유지하며 `display_title` 중첩을 요구하지 않는다.
 - Release trace: `issue_lifecycle.py`가 `release-image.yml` dispatch에 `inputs[issue_number]`, `inputs[pr_number]`을 전달하고 Release 표시명이 Issue/PR/tag/run attempt를 포함해야 한다.
 - 불변식: workflow `name: CI`, required check 세 항목, trigger/permission/concurrency, exact merge SHA, release authorization와 GHCR digest gate는 변경되지 않아야 한다.
 - 공식 원격 증거: PR 생성 후 Actions 목록의 PR CI 표시명에 Issue #361/PR 번호/run attempt가 실제로 노출되고 quality/e2e/docker required checks가 기존 이름으로 실행되는지 확인한다.

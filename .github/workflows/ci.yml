@@ -1,6 +1,6 @@
 name: CI
 run-name: >-
-  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
 
 on:
   pull_request:
@@ -649,11 +649,23 @@ jobs:
           set -euo pipefail
           baseline_dir="$RUNNER_TEMP/mastergantt-image-baseline"
           git worktree add --detach "$baseline_dir" "$BASE_SHA"
-          docker build \
-            --file "$baseline_dir/deploy/docker/Dockerfile" \
-            --tag mastergantt:baseline \
-            --build-arg VERSION=baseline-"$BASE_SHA" \
-            "$baseline_dir"
+          baseline_build_log="$RUNNER_TEMP/mastergantt-baseline-build.log"
+          for attempt in 1 2; do
+            # npm registry 연결 오류만 한 차례 재시도한다. 그 외 build 실패는 즉시 실패 처리.
+            if docker build --progress=plain \
+              --file "$baseline_dir/deploy/docker/Dockerfile" \
+              --tag mastergantt:baseline \
+              --build-arg VERSION=baseline-"$BASE_SHA" \
+              "$baseline_dir" 2>&1 | tee "$baseline_build_log"; then
+              break
+            fi
+            if [[ "$attempt" -eq 2 ]] || ! grep -Eq 'npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)' "$baseline_build_log"; then
+              echo "Docker 기준 이미지 빌드가 실패했습니다. transient npm 연결 오류 외에는 재시도하지 않습니다." >&2
+              exit 1
+            fi
+            echo "npm registry 일시 연결 오류로 Docker 기준 이미지 빌드를 1회 재시도합니다."
+            sleep 5
+          done
 
           baseline_standalone=false
           candidate_standalone=false
