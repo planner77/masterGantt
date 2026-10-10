@@ -851,8 +851,10 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      pull-requests: read
     outputs:
       trusted_validator: ${{ steps.validator.outputs.present }}
+      qa_mode: ${{ steps.route.outputs.qa_mode }}
     steps:
       - name: 현재 PR base SHA checkout (PR 코드·Secret 실행 금지)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -877,6 +879,73 @@ jobs:
               echo "기존 Quality/E2E/Docker와 DOC_SYNC/리뷰/merge gate를 모두 유지합니다."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+      # Existing base script (not PR code) classifies protected diff and declared
+      # review mode. AGENT route has no automated QA verdict: it is intentionally
+      # skipped, with an explicit manual gate in the step summary. API/mode
+      # uncertainty causes bootstrap FAIL, never a false skip/PASS.
+      - name: 보호 변경·AGENT 경로 판정 (read-only, base 검증기)
+        id: route
+        if: steps.validator.outputs.present == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 - <<'PY'
+          import importlib.util
+          import os
+          import sys
+          from pathlib import Path
+
+          spec = importlib.util.spec_from_file_location(
+              "trusted_qa", Path("scripts/qa_final_automated.py"))
+          if spec is None or spec.loader is None:
+              sys.exit("BLOCKED: 신뢰된 base QA 검증기 import 불가")
+          qa = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(qa)
+          try:
+              gh = qa.GitHub(os.environ["GITHUB_REPOSITORY"], os.environ["GH_TOKEN"])
+              number = int(os.environ["PR_NUMBER"])
+              pr = gh.get(f"{gh.prefix}/pulls/{number}")
+              qa.require(pr.get("number") == number and pr.get("state") == "open" and
+                         pr.get("head", {}).get("sha") == os.environ["EVENT_HEAD_SHA"] and
+                         pr.get("base", {}).get("sha") == os.environ["EVENT_BASE_SHA"],
+                         "최신 PR/head/base 귀속 검증 실패 (stale이면 재실행 필요)")
+              body = pr.get("body") or ""
+              method = qa.pr_field(body, "qa_method", {"AGENT", "AUTOMATED_MANAGER"})
+              risk = qa.pr_field(body, "risk_level", {"LOW", "MEDIUM", "HIGH"})
+              paths, protected = qa.protected_paths(
+                  gh.pages(f"{gh.prefix}/pulls/{number}/files"))
+              qa.require(bool(paths), "PR 변경 파일 목록 없음")
+              qa.require(not protected or method == "AGENT",
+                         "보호된 CI/QA/정책 파일 변경은 AGENT 독립 QA 필수")
+              qa.require(not protected or risk == "HIGH",
+                         "보호된 CI/QA/정책 파일 변경은 HIGH 위험도 필수")
+              route = "AGENT" if method == "AGENT" else "AUTO"
+          except (qa.Blocked, ValueError, KeyError, TypeError) as error:
+              sys.exit("QA 경로 BLOCKED: " + str(error))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("qa_mode=" + route + "\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              if route == "AGENT":
+                  summary.write(
+                      "## QA Final — AGENT: NOT TESTED (별도 독립 검토 필수)\n"
+                      f"- PR #{number}, Head: `{os.environ['EVENT_HEAD_SHA']}`\n"
+                      f"- 보호 파일 감지: {len(protected)}개, risk_level: {risk}\n"
+                      "- `QA Final — Automated`는 **비적용(SKIPPED)**: 자동 QA PASS 아님\n"
+                      "- 필수 Quality/E2E/Docker CI와 분리하며, 독립 Reviewer PASS + "
+                      "Manager exact-Head ACCEPT 전 **MERGE_READY=BLOCKED**\n"
+                  )
+              else:
+                  summary.write(
+                      "## QA Final — Automated 검사 대상\n"
+                      f"- PR #{number}: AUTOMATED_MANAGER / protected=0\n"
+                      "- 기본 브랜치 검증의 실제 PASS·별도 Manager 판단 필요\n"
+                  )
+          PY
 
   qa_final_automated:
     name: QA Final — Automated
@@ -884,7 +953,8 @@ jobs:
       always() &&
       github.event_name == 'pull_request' &&
       needs.qa_bootstrap.result == 'success' &&
-      needs.qa_bootstrap.outputs.trusted_validator == 'true'
+      needs.qa_bootstrap.outputs.trusted_validator == 'true' &&
+      needs.qa_bootstrap.outputs.qa_mode == 'AUTO'
     needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker]
     runs-on: ubuntu-latest
     timeout-minutes: 10
