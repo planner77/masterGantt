@@ -170,3 +170,8 @@ PR #583은 merge SHA `1ed682dd062012f3d04c2517110835bf7c28ac13`로 main에 반�
 후속 수정은 `infra.toml`의 병합 및 main 증거 검토를 `qa_required`로 분기한다. `frontend.toml`과 `ui-ux.toml`의 리뷰 문구도 동일한 조건으로 읽히도록 정합화한다. 이번 변경은 **후속 #580의 GitHub Actions 자동 QA Job을 구현하지 않는다.** 독립 Reviewer 필수인 HIGH/의무 MEDIUM의 승인 조건과 기존 CI/GHCR/권한 Gate를 그대로 유지한다.
 
 회귀 검토의 단위는 `qa_required=false` LOW/일부 MEDIUM의 사유 있는 N/A, `qa_required=true` MEDIUM/HIGH의 실제 `qa_docs` 또는 별도 인간 Reviewer PASS/부재 시 BLOCKED, 새로운 PR Head의 모든 QA/CI 증거 stale 처리, 병합 후 필요 시 Reviewer 또는 Manager의 GHCR 증거 확인이다. 새 PR CI가 PASS하더라도 **독립 QA Final, Manager ACCEPT, 병합 성공은 별도 증거**다.
+
+## #593 보호 변경 QA 라우팅
+
+- `qa_method=AGENT`가 base의 신뢰된 검증기로 확인될 때에만 자동 QA Job을 비적용(SKIPPED)으로 두고 `QA Final — AGENT: NOT TESTED`, `MERGE_READY=BLOCKED`를 표시한다. 별도 독립 Reviewer PASS와 Manager exact Head 승인 없이는 병합하지 않는다.
+- `AUTOMATED_MANAGER` 보호 파일 변경 또는 PR/head/base/API 검증 실패는 fail-closed. 보호 검증을 자동 PASS로 우회하지 않는다.
