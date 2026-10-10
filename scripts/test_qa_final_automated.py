@@ -488,23 +488,49 @@ class Cases(unittest.TestCase):
             self.assertEqual("HIGH", qa.risk_floor({path}))
 
     def test_composite_action_pr_is_not_automatically_accepted(self):
+        """Protected CI execution input remains HIGH; automated QA is never Owner ACCEPT."""
         from unittest.mock import patch
+        path=".github/actions/node-setup/action.yml"
+        self.assertIn(path, qa.protected_paths(
+            [{"filename":path,"status":"modified"}])[1])
+        self.assertEqual(qa.risk_floor({path}), "HIGH")
+
         class Stub:
             prefix="/repos/planner77/masterGantt"
-            def get(self,url):
+            risk="HIGH"
+            def get(self, url):
                 if "/pulls/" in url:
-                    return {"title":"[Issue #580] 변경","body":"Refs #580\nrisk_level: HIGH\nqa_method: AUTOMATED_MANAGER"}
+                    return {"title":"[Issue #580] 변경",
+                            "body":"Refs #580\nrisk_level: "+self.risk+
+                                   "\nqa_method: OWNER_MANAGED"}
                 if "/issues/" in url:
                     return {"body":"AC1"}
                 return {}
-            def pages(self,url):
-                if "/files" in url:
-                    return [{"filename":".github/actions/node-setup/action.yml","status":"modified"}]
+            def pages(self, url):
+                if url.endswith("/files"):
+                    return [{"filename":path,"status":"modified"}]
                 return []
+            def open_threads(self, number):
+                return 0
+            def head_text(self, *args):
+                return "docs gate mocked; no external contents loaded"
+
         env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"587",
-             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
-        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
-            self.blocked(lambda: qa.check(env,{},Stub()))
+             "GITHUB_RUN_ID":"100","GITHUB_RUN_ATTEMPT":"1",
+             "EVENT_HEAD_SHA":"a"*40,"EVENT_BASE_SHA":"b"*40,
+             "TEST_MERGE_SHA":"c"*40,"METADATA_ONLY":"false"}
+        stub=Stub()
+        with (patch.object(qa,"snapshot"),
+              patch.object(qa,"evidence",return_value={}),
+              patch.object(qa,"docs_gate",return_value={})):
+            result=qa.check(env,{},stub)
+            self.assertEqual(result["automated_qa"],"PASS")
+            self.assertEqual(result["risk_level"],"HIGH")
+            self.assertIn(path, result["protected_paths"])
+            self.assertEqual(result["manager_decision"],"NOT TESTED")
+            self.assertIn("N/A(", result["independent_qa"])
+            stub.risk="LOW"
+            self.blocked(lambda: qa.check(env,{},stub))
 
     def test_validator_revision_immutable(self):
         self.assertEqual(qa.validate_validator_sha("a"*40,"a"*40),"a"*40)
@@ -666,7 +692,7 @@ class Cases(unittest.TestCase):
         env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"598",
              "GITHUB_RUN_ID":"100","GITHUB_RUN_ATTEMPT":"1",
              "EVENT_HEAD_SHA":"a"*40,"EVENT_BASE_SHA":"b"*40,
-             "METADATA_ONLY":"false"}
+             "TEST_MERGE_SHA":"c"*40,"METADATA_ONLY":"false"}
         stub=Stub()
         with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}), \
              patch.object(qa,"docs_gate",return_value={}):
