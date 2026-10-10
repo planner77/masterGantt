@@ -1,3 +1,7 @@
+## Issue #595 — QA Final 재실행의 CI Job provenance (P1)
+
+보호 경로 AGENT PR의 원본 CI 세 aggregate가 완료 성공이고 QA 전용 Job만 독립 승인 미확보로 실패한 뒤, 같은 Run ID로 QA만 재실행할 수 있다. `workflow_run`의 latest attempt에 필수 aggregate가 없어도 `/actions/runs/{id}/attempts/{i}/jobs`를 1..최신으로 조회해 실제 마지막으로 실행된 Job 결론을 선택한다. 최신 attempt에 aggregate가 없으면 과거 같은 Run의 성공을 보존하되 다시 실행된 실패/취소 Job을 이전 성공으로 덮지 않는다. 조회 누락·중복은 BLOCKED, source_attempt를 verdict에 남긴다. 기존 required 3개, checkout 신뢰·GitHub Ruleset·릴리스 승인 경계는 불변이다.
+
 ## Issue #595 — QA Final AGENT/보호 파일 원본 Run 검증
 
 `package.json`/lockfile, CI·검증기·보안 정책 등 보호 경로는 계속 HIGH 및 독립 검토가 필수다. main의 신뢰된 QA validator가 `AGENT`에서 수동 승인 영수증을 검증하더라도 세 required aggregate 이름 및 Quality/E2E/Docker 실행·결론·동일 SHA 보존 계약은 불변이다. 원본 Run/Attempt의 required job `completed_at` 이전 Manager ACCEPT는 거부하고, 다른 CI run의 PASS를 재사용하지 않는다. 최초 BLOCKED 후 같은 Run의 실패한 QA job만 독립 QA 완료 후 재실행할 수 있으나, 승인 receipt의 head/base/run/attempt 일치 조건을 통과해야 하며 자동으로 릴리스가 승인되지는 않는다.

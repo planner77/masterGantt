@@ -159,6 +159,102 @@ class Cases(unittest.TestCase):
         self.assertEqual(out["source_ci_run_id"],88)
         self.assertEqual(check.call_args.args[0]["GITHUB_RUN_ID"],"88")
 
+    def test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs(self):
+        from unittest.mock import patch
+
+        class Stub:
+            repo = "planner77/masterGantt"
+            prefix = "/repos/planner77/masterGantt"
+            latest_e2e = None
+            duplicate = False
+            missing_original = False
+
+            def get(self, path):
+                if path == self.prefix+"/actions/runs/88":
+                    return {
+                        "id": 88, "event": "pull_request",
+                        "head_sha": "h"*40, "path": ".github/workflows/ci.yml",
+                        "status": "completed", "conclusion": "success",
+                        "run_attempt": 2, "repository": {"full_name": self.repo},
+                        "display_title": "PR CI [전체 검증]",
+                        "pull_requests": [
+                            {"number": 587, "head": {"sha": "h"*40},
+                             "base": {"sha": "b"*40}}]
+                    }
+                if path == self.prefix+"/pulls/587":
+                    return {
+                        "head": {"sha": "h"*40}, "base": {"sha": "b"*40},
+                        "merge_commit_sha": "m"*40
+                    }
+                raise AssertionError("Unexpected REST endpoint: "+path)
+
+            def collection(self, path, name):
+                assert name == "jobs", (path, name)
+                if path == self.prefix+"/actions/runs/88/attempts/1/jobs":
+                    if self.missing_original:
+                        return []
+                    return [
+                        {"name": label, "conclusion": status,
+                         "completed_at": "2026-10-10T09:00:00Z"}
+                        for label, status in (
+                            ("변경 경로 판정", "success"),
+                            ("Build, static checks, and unit tests", "success"),
+                            ("Chromium end-to-end tests", "success"),
+                            ("Docker build and runtime smoke test", "success"),
+                            ("Docker smoke 구현", "success"),
+                            ("Chromium E2E shard 1/6", "success"),
+                            ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증", "skipped"),
+                            ("QA Final — Automated", "failure"))]
+                if path == self.prefix+"/actions/runs/88/attempts/2/jobs":
+                    jobs = [{"name": "QA Final — Automated", "conclusion": "success",
+                             "completed_at": "2026-10-10T10:00:00Z"}]
+                    if self.latest_e2e is not None:
+                        jobs.append({"name": "Chromium end-to-end tests",
+                                     "conclusion": self.latest_e2e,
+                                     "completed_at": "2026-10-10T10:00:00Z"})
+                    if self.duplicate:
+                        jobs.append(dict(jobs[0]))
+                    return jobs
+                raise AssertionError("Incorrect attempt provenance: "+path)
+
+        stub = Stub()
+        with patch.object(qa, "check", return_value={"automated_qa": "PASS"}) as check:
+            result = qa.trusted_source(
+                {"GITHUB_RUN_ID": "999"}, {"workflow_run": {"id": 88}}, stub)
+        self.assertEqual(result["source_ci_run_attempt"], 2)
+        self.assertEqual(result["required_job_source_attempts"], {
+            "Build, static checks, and unit tests": 1,
+            "Chromium end-to-end tests": 1,
+            "Docker build and runtime smoke test": 1
+        })
+        env = check.call_args.args[0]
+        for name in ("NEED_QUALITY", "NEED_E2E", "NEED_DOCKER"):
+            self.assertEqual(env[name], "success")
+        self.assertEqual(env["GITHUB_RUN_ATTEMPT"], "2")
+        self.assertEqual(env["E2E_REQUIRED"], "true")
+        self.assertEqual(env["DOCKER_REQUIRED"], "true")
+
+        # A later attempt's failure MUST override an older successful aggregate.
+        stub.latest_e2e = "failure"
+        with patch.object(qa, "check", return_value={"automated_qa": "PASS"}):
+            self.blocked(
+                lambda: qa.trusted_source(
+                    {"GITHUB_RUN_ID": "999"}, {"workflow_run": {"id": 88}}, stub),
+                "FAIL")
+        jobs = qa.effective_run_jobs(stub, 88, 2)
+        self.assertEqual(jobs["Chromium end-to-end tests"]["source_attempt"], 2)
+        self.assertEqual(jobs["Chromium end-to-end tests"]["conclusion"], "failure")
+
+        stub.latest_e2e = None
+        stub.duplicate = True
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 2))
+        stub.duplicate = False
+        stub.missing_original = True
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 2))
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 11))
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 0))
+
+
     def test_trusted_workflow_definition_never_checks_out_pr_code(self):
         from pathlib import Path
         src=(Path(__file__).resolve().parents[1]/".github/workflows/qa-final-trusted.yml").read_text()

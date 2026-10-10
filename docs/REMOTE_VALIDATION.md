@@ -1,3 +1,7 @@
+## Issue #595 — QA-only 재실행 시 attempt 원장 검증
+
+현재 실행에 포함되지 않은 required Quality/E2E/Docker Job을 무조건 SKIPPED/FAIL로 간주하거나 과거 임의 CI run의 성공으로 대체해서는 안 된다. GitHub의 같은 CI Run ID에 대한 정확한 attempt별 Job API를 1..latest 순서로 조회하고, Job 이름별 마지막 실행 attempt의 결론만 권위로 인정한다. QA-only rerun이면 앞 attempt의 필수 aggregate PASS를 유지하고, 재실행된 aggregate 실패·취소, 누락된 attempt, 중복 Job 이름은 fail-closed 처리한다. PR Head/base/run/attempt/해당 job source_attempt를 보고서에 남긴다. 실제 독립 QA/Manager 승인 없이 보호 파일의 자동 QA를 PASS 처리하지 않는다.
+
 ## Issue #595 — 보호 변경의 독립 검토 증거
 
 보호 대상에 해당하는 릴리스 버전 원장 또는 CI/보안 설정을 변경하는 PR에서는 기존 필수 Quality/E2E/Docker 검증 결과와 독립 QA 승인 결과를 별도로 기록한다. QA를 구현한 사람이 자기 코드를 승인한 결과는 독립 검토로 인정하지 않는다. 정확한 PR Head와 Base, 독립 Reviewer의 현재 Head 승인 기록, 원본 CI Run/Attempt의 성공한 필수 세 Job, 저장소 소유자의 독립 리뷰 이후 Manager 승인 여부를 검증하는 경로를 사용한다. 자료가 없거나 충돌하면 BLOCKED로 판정한다. 새로운 검증기 자체는 별도 독립 검토 및 main 병합 전까지 운영에 적용되지 않았으며, GHCR/tag 릴리스 권한은 변경하지 않는다.

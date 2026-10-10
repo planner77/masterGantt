@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #595 PR #597 QA attempt provenance P1 보완
+
+- QA-only 재실행에서 GitHub의 일반 Run Job API가 최신 attempt만 반환하는 특성을 반영한다. 동일 Run의 개별 attempt별 Job 목록을 순서대로 결합하여 QA만 재시도할 때 이전 필수 Quality/E2E/Docker 성공을 보존하고, 나중에 재실행된 실패·취소 필수 Job은 차단한다. 검사 누락·중복·시도 수 초과를 fail-closed 처리하고 필수 Job의 실제 source_attempt를 기록한다.
+- 정식 보호 변경 승인, release/GHCR/기존 required check·권한 체계 불변. 독립 QA와 Manager 수용 전에는 구현 PR 자체도 protected BLOCKED를 유지한다.
+
 ## [Unreleased] — Issue #595 QA 보호 승인 증거 (검토 중)
 
 - 기존 기능·SQLite·애플리케이션 버전은 변경하지 않고 보호 경로 PR의 독립 QA 증거 확인 경로와 회귀 테스트를 추가한다.

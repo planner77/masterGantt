@@ -1,3 +1,11 @@
+## Issue #595 — CI #2391.1 P1: QA-only retry의 attempt별 required CI 복원 (2026-10-10)
+
+PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640)은 policy Python/TypeScript/Unit/Build/ESLint 및 Docker/required Quality·E2E가 PASS, 기존 base validator의 보호 파일 탐지로 자동 QA만 BLOCKED였다. E2E 구현 shard SKIPPED를 PASS로 재표시하지 않는다. P1 리뷰에서 `trusted_source()`의 기본 `/runs/{run_id}/jobs`가 GitHub의 최신 attempt에 한정되므로 **이전 시도 Quality/E2E/Docker 성공 + QA-only 재실행**에서 원장을 잃는 결함을 확인했다.
+
+교정 acceptance: 동일 GitHub run의 attempt 1..N(최대 10)을 **정확한 `/runs/{run_id}/attempts/{attempt}/jobs`**로 조회한다. 이름별 실제 최종 실행 attempt의 상태를 사용하고, aggregate가 최신 QA-only attempt에서 재실행되지 않았으면 이전 성공을 유지한다. 이후 attempt에 재실행된 required aggregate가 FAIL이면 이전 성공으로 대체하지 않고 거부한다. attempt 정보·Job 누락, 중복 name, 0 또는 안전 상한 초과 역시 BLOCKED다. Trusted 결과 원장에는 세 required aggregate의 실제 `source_attempt`를 보고한다.
+
+새 Python 테스트 `test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs`: attempt1 세 aggregate success/QA failure, attempt2 QA success만 존재할 때 Trusted가 이전 세 required PASS를 확인하고 provenance=attempt1을 기록하는 긍정 case; attempt2 E2E failure 시 기존 성공보다 최종 실패 우선, 원본 attempt 누락, 이름 중복, attempt0/11 차단 부정 case. 기존 `test_default_branch_workflow_run_has_distinct_trust_source` 및 `test_protected_agent_requires_independent_review_and_owner_accept` 유지. 실제 default-branch Trusted 성공은 #593 provenance·독립 Reviewer·Manager 승인/병합 이후에만 재검증 가능하며 현재 NOT TESTED다.
+
 ## Issue #595 — 보호 경로 AGENT QA 테스트 계획
 
 `scripts/test_qa_final_automated.py`의 기존 보호 경로·위험도·메타데이터 테스트는 유지한다. 독립 Reviewer의 GitHub APPROVED 검토/Head 일치, 별도 QA 결과, 원본 필수 Job의 성공 및 완료 시간, 저장소 owner의 검토 이후 승인, 정확한 PR/Issue/Head/base/Run/Attempt, 위험 수용 사유를 새로운 독립 증거 계약으로 검증한다.

@@ -1,3 +1,7 @@
+## Issue #595 — PR #597 CI #2391.1 P1/Attempt ledger REWORK (2026-10-10)
+
+[PR #597](https://github.com/planner77/masterGantt/pull/597), 기존 Head `1246cf3cd6cec6012158ccacc13cd91eb7428973`의 [CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640): Quality/정책 Python/TypeScript/Lint/Unit/Build 및 Docker/required E2E aggregate PASS, 구현 E2E shard는 경로상 SKIPPED; QA Final은 기존 main validator의 protected 변경 탐지로 BLOCKED(정상 보안 경계). 최신 리뷰 P1은 `trusted_source()`의 latest attempt Job 조회가 QA-only retry에서 이전 성공 aggregate를 잃는 결함임을 지적했다. `effective_run_jobs()`를 추가해 같은 Run attempt 원장을 완결성 확인하며 최신 실제 Job 상태를 우선하고 성공 Job source_attempt를 기록한다. 성공+QA만 재실행, 이후 required FAIL, 누락·중복·범위 초과의 Python 회귀를 포함한다. 문서 동기화 이후 새 exact Head PR CI를 시작하고, 독립 QA/Manager 없이 본 보호 검증기 PR을 병합하지 않는다. `release_required=false/release_authorized=false` 유지.
+
 ## Issue #595 — 보호 파일 AGENT 승인 증거 검증 (2026-10-10)
 
 선행 #580과 #565의 fail-closed 정책을 보존한다. #550 PR #559는 원본 required Quality/E2E/Docker가 성공해도 package manifest/lock 보호 차단 때문에 자동 QA가 실패한다. #595에서 이 문제를 버전 원장 제거가 아닌 독립 Reviewer·Manager의 정확한 Head 승인 증거로 해결하도록 설계·코드·회귀를 구현한다. `scripts/qa_final_automated.py`와 Python 테스트, QA/CI 가이드 및 Work Packet을 갱신한다. 테스트·문서에 없는 승인이나 실행은 PASS로 표기하지 않는다. 보호된 검증기 자체를 수정하는 본 PR은 HIGH/AGENT이므로 실제 독립 QA와 Manager 승인 전 병합/배포 금지. release_required=false, release_authorized=false. 첫 종료점은 원격 PR CI 시작까지.

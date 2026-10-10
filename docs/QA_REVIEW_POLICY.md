@@ -1,3 +1,7 @@
+## Issue #595 — QA Job 단독 재실행의 attempt 출처 검증 (P1, 2026-10-10)
+
+보호 PR에서 필수 Quality/E2E/Docker 세 Job은 첫 실행에서 성공하고 `QA Final — Automated`만 독립 승인 미확보로 차단될 수 있다. 이후 적법한 독립 QA/Manager 근거가 확보되어 같은 Run에서 QA Job만 재실행하는 경우, GitHub의 기본 `/runs/{id}/jobs` 결과(최신 시도 Job만 포함)를 필수 CI 전체 원장으로 사용하지 않는다. 동일 run의 정확한 attempt별 Job 목록을 조회해 각 이름의 **마지막 실제 실행 결과**를 적용한다. 필수 aggregate가 재실행되지 않았다면 이전 성공을 보존하며 이후 실패/취소된 aggregate는 이전 성공을 무효화한다. 정확한 source attempt를 기록하고 누락·중복·불명확한 조회를 BLOCKED 처리한다. 원본 CI/head/base, 독립 Reviewer/Manager의 승인 경계와 릴리스 권한은 그대로 유지한다.
+
 ## Issue #595 — AGENT + protected path: independent review와 Manager 승인 증거
 
 - 보호 경로 식별 집합(`CI_EXECUTION_EXACT`, `CI_EXECUTION_PREFIXES`, `CI_EXECUTION_GLOBS`, policy/validator 파일, rename 원본)은 완화하지 않는다. `AUTOMATED_MANAGER` 또는 비정상·불완전한 `AGENT`에는 기존 fail-closed BLOCKED가 계속 적용된다.

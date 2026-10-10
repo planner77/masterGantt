@@ -62,3 +62,12 @@
 ## Release 및 Merge Guard
 
 현재 구현 후보는 `release_required=false`이며 사용자의 정식 GHCR 승인 없이 release tag/image 게시를 진행하지 않는다. 본 PR은 자체 CI PASS 여부와 무관하게 **정책 보호 파일 변경의 독립 QA 및 owner Manager ACCEPT 전 병합 금지**. 신규 Trusted Workflow 실기능 테스트·운영배포는 NOT TESTED로 기록한다.
+
+## PR CI #2391.1 및 독립 Code Review P1 대응 (2026-10-10)
+
+- PR [#597](https://github.com/planner77/masterGantt/pull/597), 최초 Head `1246cf3cd6cec6012158ccacc13cd91eb7428973`, [CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640). Build/Unit/TypeScript/Lint/Policy Python 및 Docker/required Quality/E2E aggregate 모두 PASS. 제품 E2E shard는 경로 판정에 따라 SKIPPED로, 실실행 PASS로 계산하지 않는다. `QA Final — Automated`는 기존 base `36b0eaa74a0614a76d1ed867bddb548149feb4bc`의 보호 검증기가 QA script/정책·실행 가이드 수정을 발견하여 BLOCKED. 이는 본 보안 정책 PR에서 의도된 동작이며 독립 QA는 NOT TESTED.
+- [P1 리뷰](https://github.com/planner77/masterGantt/pull/597): `trusted_source()`가 run의 기본 `/actions/runs/{id}/jobs`를 최신 attempt 전용으로 조회한다. attempt1에서 성공한 Quality/E2E/Docker aggregate를 보존하고 실패 QA Job만 attempt2에서 재실행하면 최신 Job 목록엔 aggregate가 없어 Trusted가 `evidence()`에서 거부되어 #595 복구 절차가 진행되지 않는다.
+- 보완: `effective_run_jobs(gh, run_id, run_attempt)`는 동일 run의 `/attempts/{i}/jobs`를 1..최신 순서대로 제한(1~10회)·페이지 확인하여 이름별 **마지막으로 실제 실행된 attempt**의 결론과 source_attempt를 선택한다. 최신 QA-only attempt의 누락 aggregate는 이전 성공을 보존하고, 이후 attempt에서 실제 재실행된 실패·취소 aggregate는 이전 성공을 덮어써 반드시 BLOCKED/FAIL된다. attempt 누락·중복 이름·불명확한 Job은 fail-closed.
+- `trusted_source()`의 `evidence()`는 위 effective 원장을 사용하며 `required_job_source_attempts`를 감사 원장에 추가한다. receipt가 지목한 원본 Full CI aggregate 검증 자체는 기존 `/attempts/{ci_attempt}/jobs`의 동일 대상 확인을 유지하고, 더 최신 attempt에서 실패한 Job은 효과 원장에서 거부한다. `workflow_run.pull_requests=[]` 귀속 복구는 선행 [#593](https://github.com/planner77/masterGantt/issues/593) 범위로 남기며 제목 기반 추정 금지.
+- 단위 회귀: 기존 신뢰 source test + 신규 attempt1 aggregate success/attempt2 QA-only success 및 각 required source_attempt=1, attempt2 E2E 실패 override, 중복 Job, missing prior attempt, 0·11 attempt fail-closed. `scripts/test_qa_final_automated.py`의 기존 보호 리뷰·Owner 승인 부정 시나리오도 유지.
+- `AGENTS.md` 정책·`DESIGN.md` 제품 UI/권한·API·DB·Scheduler·workflow YAML·버전은 이번 P1에 변경 없음(N/A). 영향 문서만 동기화한다. 새 Head의 Quality/E2E/Docker/정책 Python 및 독립 QA/실제 Trusted positive는 실행 증거 확보 전 NOT TESTED. 승인 없는 merge/main/GHCR/tag/Issue close 금지.

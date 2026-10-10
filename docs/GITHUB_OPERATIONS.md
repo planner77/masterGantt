@@ -1,3 +1,9 @@
+## Issue #595 — PR #597 P1: 동일 Run에서 QA Job만 재실행하는 경우
+
+기존 `Quality/E2E/Docker` required aggregate가 첫 attempt에서 성공한 뒤 보호 경로 독립 QA가 미승인이라 자동 QA가 BLOCKED일 수 있다. 별도 인간 Reviewer의 현재 Head QA 및 repository owner의 해당 Run/Attempt 승인 후 실패한 QA Job만 재실행한 경우, GitHub의 일반 `/runs/{id}/jobs` API는 최신 attempt의 QA Job만 보여 원래 aggregate가 누락된다. `QA Final — Trusted`는 원본 CI Run ID 하나의 `/attempts/{i}/jobs` 원장을 확인하고 가장 나중에 실제 실행된 Job의 상태를 사용한다. QA-only attempt는 과거 필수 Job PASS를 보존하지만 뒤이은 필수 Job 재실행 실패는 무조건 거부한다. 원본 `ci_attempt`와 현재 `run_attempt` 및 각 aggregate의 `source_attempt`를 감사 기록에 명시한다.
+
+상기 복구 경로는 본 보안 정책의 독립 QA/Manager 승인·본 검증기 main 반영 이후에만 유효하며 #593의 workflow_run PR 귀속 보호, Ruleset·GHCR/태그 승인 절차를 우회하지 않는다.
+
 ## Issue #595 — protected AGENT PR의 증거 등록 운영 가이드
 
 일반 PR에서 Quality/E2E/Docker가 정확한 Head로 완료됐지만 `QA Final — Automated`가 보호 파일을 감지해 BLOCKED이면 코드/CI 체크를 약화하거나 `qa_method`를 위장하지 않는다. 승인된 협업 인간 Reviewer(작성자·owner·Bot과 다른 유효 collaborator)는 **해당 Head 커밋의 GitHub APPROVED 리뷰** 본문에 독립 검토 내용과 별도 줄 `QA_FINAL: PASS`를 남긴다. 기존 Codex COMMENTED는 대신할 수 없다.

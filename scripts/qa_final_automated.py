@@ -528,6 +528,33 @@ def manual_merge_readiness(*, risk, method, protected, doc_sync, ci_pass,
 
 
 
+def effective_run_jobs(gh, run_id, run_attempt):
+    """Resolve successful jobs across exact attempts of ONE immutable workflow run.
+
+    GitHub's plain /runs/{id}/jobs endpoint defaults to the latest attempt.
+    A rerun of only a failed QA job does NOT repeat the successful aggregate
+    jobs. Fetch each exact attempt; a later execution of the same job replaces
+    the earlier result, including a later failure/cancellation.
+    """
+    require(type(run_id) is int and run_id > 0 and
+            type(run_attempt) is int and 1 <= run_attempt <= 10,
+            "CI run/attempt가 없거나 안전한 조회 범위를 초과함")
+    selected = {}
+    for attempt in range(1, run_attempt + 1):
+        jobs = gh.collection(
+            f"{gh.prefix}/actions/runs/{run_id}/attempts/{attempt}/jobs", "jobs")
+        require(bool(jobs), f"CI attempt {attempt} Job 원장 누락")
+        seen = set()
+        for job in jobs:
+            name = job.get("name")
+            require(isinstance(name, str) and bool(name),
+                    f"CI attempt {attempt} Job 이름 누락")
+            require(name not in seen, f"CI attempt {attempt} 중복 Job 이름: {name}")
+            seen.add(name)
+            selected[name] = {**job, "source_attempt": attempt}
+    return selected
+
+
 def trusted_source(env, event, gh):
     """Official verdict comes only from this default-branch workflow_run, not a PR-editable job.
 
@@ -558,8 +585,8 @@ def trusted_source(env, event, gh):
     require(live.get("head", {}).get("sha") == head and
             live.get("base", {}).get("sha") == base,
             "CI 완료 이후 PR head/base 변경: 새로운 full CI 필요")
-    results = {j["name"]: j.get("conclusion")
-               for j in gh.collection(f"{gh.prefix}/actions/runs/{run_id}/jobs", "jobs")}
+    source_jobs = effective_run_jobs(gh, run_id, int(run["run_attempt"]))
+    results = {name: job.get("conclusion") for name, job in source_jobs.items()}
     metadata_only = "[메타데이터 검증]" in str(run.get("display_title") or "")
     if not metadata_only:
         require("[전체 검증]" in str(run.get("display_title") or ""),
@@ -599,6 +626,12 @@ def trusted_source(env, event, gh):
     report["trusted_run_id"] = int(env["GITHUB_RUN_ID"])
     report["source_ci_run_id"] = run_id
     report["source_ci_run_attempt"] = int(run["run_attempt"])
+    report["required_job_source_attempts"] = {
+        name: source_jobs[name]["source_attempt"]
+        for name in ("Build, static checks, and unit tests",
+                     "Chromium end-to-end tests",
+                     "Docker build and runtime smoke test")
+    }
     report["base_tree_equivalence"] = "HEAD_BASE_IDENTICAL_FROM_SOURCE_AND_CURRENT_PR"
     return report
 
