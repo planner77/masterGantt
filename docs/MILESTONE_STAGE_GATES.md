@@ -208,3 +208,6 @@ Milestone 직접 위치의 복귀 frame에는 검증한 원본 resourceScopeCont
 ## Issue #530 Resource·Milestone 통합 검증
 
 Resource 선택 진척과 전체 canonical Ready/Blocked는 별개다. R8 통합 원장의 M1/M2/미지정 소계, 계층·교차표·정확한 일정 이동·Excel 대조는 기존 소속·상속·명시 완료·잠금 계산을 바꾸지 않는다. [팀별 Milestone 사용 흐름](RESOURCE_KPI_DASHBOARD.md#팀별-milestone-공수에서-개인과-task-찾기)에서 같은 범위의 개인/Task로 내려가되 ancestor Summary를 KPI 분모로 추가하지 않는다.
+## Issue #549 — 표시 projection과 전체 Gate
+
+[Milestone Timeline](MILESTONE_TIMELINE.md)의 순수 조회 모델은 전체 canonical Task/Link를 기존 `projectStageGates`에 전달한다. WBS scope/작업 조건/접힘/표시 OFF/viewport clip으로 전체 Membership, E(M)/P(M), ready/manualEvent/completionInconsistent를 변경하지 않는다. 별도 active Milestone은 native 작업 선택과 분리하며 가시 일반 Task와 전체 member의 교집합만 강조한다. 전체 canonical subtree 영향 설명은 기존 Copy 제외·완료 구조 잠금·external Link/Assignment guard를 대체하지 않는다. MT1은 운영 행 제거·새 Gate 계산·API/DB mutation 계약 변경을 하지 않는다.

@@ -1,0 +1,178 @@
+{
+  "capturedAt": "2026-10-08T14:31:14.567Z",
+  "baseline": "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0",
+  "core": "2.7.3",
+  "store": "2.7.2",
+  "environment": "Chromium/Next dev, synthetic mocked canonical API",
+  "before": {
+    "instance": "svar-api-1",
+    "left": 0,
+    "top": 0,
+    "gridWidth": 480,
+    "start": "2026-03-10T04:00:00.000Z",
+    "end": "2026-10-24T04:00:00.000Z",
+    "width": 8208,
+    "chartWidth": 746,
+    "rows": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "y": 3,
+        "x": -15.5,
+        "height": 31
+      }
+    ],
+    "links": [],
+    "canonicalIds": [
+      "00000000-0000-4000-8000-000000000001"
+    ],
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      }
+    ]
+  },
+  "after": {
+    "instance": "svar-api-1",
+    "left": 0,
+    "top": 0,
+    "gridWidth": 480,
+    "start": "2026-03-10T04:00:00.000Z",
+    "end": "2026-10-25T04:00:00.000Z",
+    "width": 8244,
+    "chartWidth": 746,
+    "rows": [],
+    "links": [],
+    "canonicalIds": [
+      "00000000-0000-4000-8000-000000000001"
+    ],
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "filter-tasks",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      }
+    ]
+  },
+  "population": 1,
+  "coordinateAfter": {
+    "contentX": 0,
+    "viewportX": 0,
+    "insideRange": true,
+    "visible": true,
+    "unit": "day",
+    "cellWidth": 36
+  },
+  "mutationCount": 0,
+  "sourceHashes": {
+    "src/features/gantt/milestone-timeline-adapter.ts": "8f3dc6a6587def3f8fac6e5c585f0f2f944df04732dc13b9d4b4f5886f641798",
+    "src/features/gantt/project-gantt.tsx": "86b885a40a6d017488eec9de0457bfaabcd86e0505643cb4b3e88bca4bd7ab8d",
+    "tests/e2e/milestone-timeline-core.spec.ts": "ae608ffe280a0f0e9667a1e918523c85b61074d8b725f267e847238b1a42c2fb"
+  }
+}

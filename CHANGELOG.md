@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.104.0] - 2026-10-10
+
+### Fixed
+
+- Issue #549 Main CI #2359.1: 사용자 휠 이벤트의 Core 반영 완료 이전 programmatic right-edge scroll을 발행해 늦은 wheel 이벤트가 이동 위치를 되돌리는 E2E 경합 보완. 휠 후 실제 Core/native 좌표 정합을 관측한 다음 기존 #367 축 확대 및 canonical/Link/instance 보존을 검증한다. 제품 로직·가드·버전 불변.
+
+- PR #557 CI #2348.1의 #549 기술 E2E가 #530의 peer 복원 보호 상태에서 programmatic scroll을 새 사용자 입력으로 잘못 가정하던 회귀를 고친다. 실제 Chart wheel로 입력 의도를 전달한 뒤 #367 축 확장·Core instance/표시 행/Link/canonical 불변을 검사하며 timeout이나 필수 CI gate를 완화하지 않는다.
+
+### Added
+
+- Issue #549: Milestone Timeline 기반의 canonical 조회 원본, WBS 표시 집합, 프로젝트 전체 날짜순 Milestone 모집단, 표시 환경설정, 선택·member 강조를 분리한다. 설치 SVAR Core 2.7.3의 공개 동작과 단일 adapter·개발용 Chromium fixture로 후속 lane/행 분리의 호환성 gate를 정의한다. 기존 운영 Milestone 행·빠른 보기·서버 Gate/권한·데이터는 변경하지 않는다.
+
+### Changed
+
+- PR #557: v0.103.1 최신 main의 #530 peer viewport 복원, #568 Core trace, #569 좌표·기하 Adapter PoC 및 위험도 기반 QA 문서를 보존하며 #549 기능 기반을 통합한다. 기존 #549의 v0.103.0 예정 버전은 #538 main 발행과 충돌하여 v0.104.0으로 조정한다. #569 PoC의 제품 도입 DEFER 및 Week 월 헤더 의미 검증 필요성은 유지한다.
+
 ## [0.103.1] - 2026-10-09
 
 ### Fixed
