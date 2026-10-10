@@ -171,3 +171,8 @@ Resolver는 최신 인증 FINAL 경계를 따로 보존하고 OPEN Issue이며 �
 기존 supersede_failed_issue_retries 계약에 따라, 같은 Issue #586의 후속 **비문서(non-docs) PR**에서 새 Main CI·GHCR 검증이 성공한 경우에만 이전 실패를 SUPERSEDED ATTEMPT로 표시하고 PR #588의 브랜치 정리 의무를 교정 PR에 인계한다. 후속 PR이 docs-only이거나 Main CI가 실패하면 이전 SHA는 여전히 blocker이다. 다른 Issue가 중간에 있으면 first-parent 순서를 유지한다.
 
 새 교정 PR 병합 시 main_ci_run_name.py의 --as-merge-payload 및 --expected-head-sha로 한 줄 commit_title, 빈 commit_message, 정확한 expected_head_sha를 함께 생성하고 merge_method=merge로 호출한다. 새 exact Main CI/verified GHCR/Finalizer 근거 없이 FINAL 및 Issue close를 완료 주장하지 않는다. 정식 GHCR tag/release는 release_required=false이므로 허용하지 않는다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

@@ -80,3 +80,8 @@
 - 재발 방지: merge_api_payload() 및 --as-merge-payload CLI로 GitHub Merge 호출에 canonical 한 줄 제목 + 빈 본문 + 검증 Head SHA를 필수 세트로 전달. 잘못된 기존 메시지 거부와 CLI/계약 검증을 scripts/verify-issue-lifecycle.py에 추가한다.
 - 이전 Main CI FAIL은 다음 **같은 Issue #586의 non-docs exact Main CI SUCCESS** 대상이 있을 때만 supersede_failed_issue_retries()의 SUPERSEDED ATTEMPT로 감사한다. 새 corrective Main CI가 없거나 docs-only이면 기존 FAIL 상태를 유지한다. old PR #588 branch cleanup은 새로운 green target에만 인계한다.
 - QA/risk: risk_level=HIGH, qa_method=OWNER_MANAGED, qa_required=true. 독립 인간 검토는 N/A(실시하지 않음). Owner의 명시 병합 지시와 새 Head Required CI/Trusted 검증·남은 위험 인수는 별도. release_required=false, release_authorized=false, formal GHCR/tag N/A.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

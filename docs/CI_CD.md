@@ -664,3 +664,8 @@ PR #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 제목 외에 PR �
 scripts/main_ci_run_name.py의 --as-merge-payload --expected-head-sha 모드는 merge_method=merge, 정규화된 한 줄 commit_title, 비어 있는 commit_message, exact expected_head_sha의 전체 값을 JSON으로 출력한다. GitHub merge 도구는 검증된 모든 값을 함께 전달한다. 후속 non-docs 교정 PR의 새로운 Main CI가 성공하면 기존 실패 supersession 규칙으로 SHA별 증거·브랜치 정리 의무를 유지하고 Finalizer로 진행한다. 새 Main CI/GHCR 실패 시 old SHA를 green으로 취급하지 않는다.
 
 application 0.104.0 / release_required=false / release_authorized=false 유지. ci-<SHA>는 임시 검증 이미지이며 정식 version/tag GHCR 발행 권한이 아니다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

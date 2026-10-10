@@ -387,3 +387,8 @@ PR #588의 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 commit title은
 python3 scripts/main_ci_run_name.py --issue 586 --pr <교정 PR 번호> --summary "Main CI 실패 복구 및 Finalizer 재개" --as-merge-payload --expected-head-sha <PR 최신 정확 SHA>
 
 출력되는 merge_method=merge, commit_title(표준 단일 행), commit_message(반드시 빈 문자열), expected_head_sha(40자리 lowercase SHA)를 GitHub 병합 API에 함께 전달한다. DEFAULT body 또는 자동 PR 설명 삽입을 허용하지 않는다. 기존 실패 SHA를 rewrite하거나 기존 Run을 성공으로 소급하지 않는다. 성공한 후속 동일 Issue non-docs Merge만 first-parent Finalizer의 제한적 supersession 대상이다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

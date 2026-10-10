@@ -2935,3 +2935,8 @@ T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개�
 2. merge_api_payload() 순수 helper/CLI JSON은 merge_method=merge, 한 줄 canonical commit_title, 빈 commit_message, 정확 HEAD SHA lease를 반환하고 SHA 누락/대문자/잘못된 길이는 FAIL한다.
 3. 동일 Issue #586의 **후속 non-docs Main CI GREEN**에 한해서 supersede_failed_issue_retries()가 old failed SHA를 supersede하고 PR #588 cleanup 의무를 새 target에 넘긴다. docs-only correction·Main CI 실패 시 이전 SHA는 blocker로 남는다.
 4. 공식 원격 검증은 수정 Head의 Quality/E2E/Docker Required aggregate, Owner-managed QA, 병합된 Main SHA의 push CI, 임시 GHCR exact digest, Finalizer 및 Issue 상태를 각각 확인한다. CI 성공 전 어떠한 후보 삭제·정식 GHCR/tag·Issue 종료도 주장하지 않는다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

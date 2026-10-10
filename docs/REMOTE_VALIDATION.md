@@ -470,3 +470,8 @@ PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run
 교정 PR exact HEAD의 Required Quality/E2E/Docker PASS 및 Owner-managed QA는 새 원격 Run으로 검증한다. scripts/main_ci_run_name.py의 JSON payload helper와 실패 멀티라인 입력 차단을 Python 회귀로 검증하고, 병합 요청에서 한 줄 title + 빈 body + Head lease를 직접 전달한다.
 
 교정 SHA Main CI push SUCCESS, ci-<exact SHA> digest smoke/SBOM/provenance, Generic Finalizer의 SUPERSEDED ATTEMPT 및 실패 SHA/교정 SHA 대응, 두 PR 브랜치 cleanup, final marker와 Issue 상태를 구분하여 확인한다. 기존 #565의 타 tag·공유 GHCR 이미지 삭제·정식 Release는 금지한다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
