@@ -115,8 +115,10 @@ def validate_push(payload: dict[str, Any]) -> tuple[int | None, int | None]:
         return primary, pr_number
 
     subject = message.splitlines()[0]
-    if subject.startswith("Issue #") and "· PR #" in subject:
-        raise TraceError("표준 Merge 제목은 한 줄이어야 하며 번호·요약 형식이 정확해야 합니다")
+    # Issue # is a reserved canonical subject prefix. An incomplete or malformed
+    # candidate must not be classified as an unrelated direct push fallback.
+    if subject.startswith("Issue #"):
+        raise TraceError("Issue # 접두어는 정확한 단일 행 표준 Merge 제목만 허용합니다 (번호·PR·한글 요약 형식 확인)")
 
     pr_match = MERGE_PR_RE.match(subject)
     if pr_match is None:

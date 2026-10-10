@@ -366,6 +366,10 @@ for malformed in (
     "Issue #582 · PR #583 · English only",
     "Issue #582 · PR #583 · " + "한" * 31,
     "Issue #0 · PR #583 · 한글 제목",
+    "Issue #582 ·PR #583 · 구분자 누락",
+    "Issue #582 · PR 없이 입력",
+    "Issue #582",
+    "Issue #582\n추가 본문",
 ):
     require(main_run_name.parse_merge_title(malformed) is None, "malformed canonical title must be rejected")
     try:

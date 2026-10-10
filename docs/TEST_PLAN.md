@@ -70,6 +70,8 @@
 
 ## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
 
+- **#582 malformed 예약 접두어 회귀:** 표준 `Issue #`로 시작하면서 ` · PR #` 구분자가 빠졌거나(`Issue #582 ·PR #583`), PR 필드가 없는 제목(`Issue #582`), 새 줄을 가진 제목(`Issue #582\\n추가 본문`)은 `validate_push`가 모두 `TraceError`로 FAIL해야 한다. 이들 제목은 일반 직접 Push fallback으로 분류할 수 없다. 기존 `docs:` 직접 Push와 `Merge PR #N` 추적은 그대로 통과한다. 액션 실행명의 완전한 regex 검증이 가능해졌다는 뜻은 아니며 자동 QA의 보호 경로 BLOCKED는 유지한다.
+
 - **#580 보호된 PR QA 회귀:** [CI #2381.1](https://github.com/planner77/masterGantt/actions/runs/38038527473)은 세 Required Quality/E2E6/Docker PASS에도 `QA Final — Automated`가 **protected CI/QA 경로 감지로 BLOCKED** 처리되어 전체 Run이 실패했다. `risk_level: HIGH`, `qa_method: AGENT` 메타데이터를 명시해도 신뢰된 base validator의 `protected_paths()` 판정은 정당하게 유지된다. #595에서 안전한 독립 QA 승인 경로와 Actions 상태 구분을 별도 설계한다. 무조건 skip/성공 우회·위험도 하향은 회귀로 취급한다. 새로운 #582 PR CI 시작은 이 보호 차단 해소나 QA_FINAL PASS의 증거가 아니다.
 
 - **P2 추가 검토:** GitHub Actions `run-name`에는 정규식/문자 길이 검증을 직접 실행할 수 없으므로 단일 행·`Issue #` prefix·` · PR #` 구분자만 시작 시 검사한다. 위 조건을 모방한 한 줄의 영어/과장 제목은 제목에 남을 수 있으나 첫 CI trace gate의 `parse_merge_title()`은 이를 FAIL 처리한다. 따라서 malformed **모든** 한 줄이 SHA fallback으로 표시된다고 보장하지 않는다. 보수적인 운영은 merge 전 generator 및 PR trace 검증을 필수로 한다. 추가 표시명 엄격화가 필요하면 승인된 별도 메타데이터 전달 구조가 필요하다.
