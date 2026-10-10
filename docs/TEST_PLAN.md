@@ -1,3 +1,19 @@
+## #593 검증 매트릭스
+
+| Test | 조건 | 기대 결과 |
+| --- | --- | --- |
+| T1 | 안전한 새 PR, full CI SUCCESS, canonical title/Refs/Work Packet | Trusted Workflow 실제 PASS URL, run/attempt/validator/head/base/test merge; 병합 이후 실증 전 NOT TESTED |
+| T2 | 동일 Head/base의 metadata edit | heavy 6-shard/Docker 생략, 이전 full CI provenance+세 gate 재사용; 원격 NOT TESTED |
+| T3 | PR #396 canonical trace 불일치 | 차단 및 수정 후 복구 실증 |
+| T4 | CI payload pull_requests=[] | artifact+commit→PR API 단일 귀속일 때만 PASS 가능, 다중/누락 BLOCKED |
+| T5 | PR #591 원본 full CI FAIL | Trusted FAIL, 의도된 fail-closed |
+| T6 | head/base/merge/attempt 변경·중복 edited | stale 이전 증거 재사용 차단; 재실행 정책 검증 |
+| T7 | protected path/rename·API 403/404/429·main/non-PR | protected AGENT, 불확실 출처 BLOCKED, 비 PR N/A |
+| T8 | Trusted PASS지만 Manager 미승인 | automated_qa=PASS, manager=NOT TESTED, MERGE_READY=BLOCKED |
+| T9 | 기존 CI/문서/lifecycle 정책 | policy Python 회귀 및 full remote quality/e2e/docker 3 required |
+
+원격 실증은 GitHub run/job·attempt·SHA를 별도 증거로 연결한다. 로컬 mock만으로 T1을 PASS 처리하지 않는다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
