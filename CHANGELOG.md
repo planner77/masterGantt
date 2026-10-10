@@ -1,3 +1,18 @@
+## [Unreleased] — Issue #595 metadata-only Full CI Attempt 정합 보완
+
+- `verify_same_base_full_run()`도 동일 CI Run의 개별 attempt별 Job 원장을 활용하여 QA-only 재실행 이후 PR metadata-only 변경에서 원래 Required aggregate 성공을 정확하게 검증한다. 나중에 재실행된 Required Job의 실패는 과거 성공으로 대체하지 않으며 누락된 `run_attempt`/원장 자료는 BLOCKED로 유지한다.
+- 보호 파일 독립 QA·Manager 승인, PR source provenance, GitHub Ruleset/Release, 제품 버전 및 Required 3개 Check 불변.
+
+## [Unreleased] — Issue #595 PR #597 QA attempt provenance P1 보완
+
+- QA-only 재실행에서 GitHub의 일반 Run Job API가 최신 attempt만 반환하는 특성을 반영한다. 동일 Run의 개별 attempt별 Job 목록을 순서대로 결합하여 QA만 재시도할 때 이전 필수 Quality/E2E/Docker 성공을 보존하고, 나중에 재실행된 실패·취소 필수 Job은 차단한다. 검사 누락·중복·시도 수 초과를 fail-closed 처리하고 필수 Job의 실제 source_attempt를 기록한다.
+- 정식 보호 변경 승인, release/GHCR/기존 required check·권한 체계 불변. 독립 QA와 Manager 수용 전에는 구현 PR 자체도 protected BLOCKED를 유지한다.
+
+## [Unreleased] — Issue #595 QA 보호 승인 증거 (검토 중)
+
+- 기존 기능·SQLite·애플리케이션 버전은 변경하지 않고 보호 경로 PR의 독립 QA 증거 확인 경로와 회귀 테스트를 추가한다.
+- 승인 없는 보호 변경과 자동 처리 경로는 기존대로 차단한다. 검증기 자체 변경의 신뢰성·독립 QA 및 Manager ACCEPT는 PR CI와 별개이며, 기존 Required Quality/E2E/Docker·GHCR 승인 경계를 유지한다.
+
 # Changelog
 
 ## [0.105.0] - 2026-10-10
@@ -8,6 +23,7 @@
 - Issue #550 PR CI #2368.1 보완: 최신 main 통합에서 남은 관리 표 `Milestone 상세` 접근성 명칭, 빈 결과 한국어 조사, E2E의 `Milestone 검색` 선택자를 통일해 #463/#518/#550 회귀를 검증한다. domain/API/schema 변경 없음.
 - Issue #550 PR CI #2373.1: 기능 required gate 모두 PASS, 신규 QA Final의 Issue/Refs 메타데이터 차단 확인. Work Packet AC1~AC11/문서·테스트 대응표와 PR 위험도·검토 진입을 명문화. 0.105.0 및 기능 실행 의미 불변.
 - Issue #550 PR CI #2376.1: 세 required gate PASS, 자동 QA의 버전 파일 보호 차단을 별도 #595로 추적. 릴리스 버전·승인 정책은 변경하지 않음.
+- Issue #550 재정렬: #595의 Main CI #2401.1 SUCCESS를 포함한 기준 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`로 PR #559를 정렬한다. 새 CI와 정확한 Head의 별도 AGENT 독립 QA·Manager 수용은 별도 확인한다.
 
 ## [0.104.0] - 2026-10-10
 

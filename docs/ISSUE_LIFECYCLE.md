@@ -1,3 +1,7 @@
+## Issue #595 — 보호 경로 AGENT QA 복구 절차
+
+보호 경로 PR의 초기 `QA Final — Automated` BLOCKED는 독립 QA 미확보의 정상 차단이다. `AGENT` 경로에서 PR 작성자와 분리된 인간 Reviewer가 정확한 Head에 `APPROVED` + `QA_FINAL: PASS`를 남기고, 저장소 소유자가 동일 Head/base 및 기존 필수 세 CI의 성공한 원본 Run/Attempt를 인용하여 수동 Manager ACCEPT 영수증을 남긴 후 해당 QA job 재실행으로 확인할 수 있다. 자동 검증기 코드가 **기본 브랜치에 독립 검토 후 병합**되기 전에는 이 경로가 지원되는 것으로 간주하지 않는다. 검증기/CI 정책 PR 자체를 이 PR의 수정 코드로 자기 승인하지 않는다. 명시된 배포 승인 없이 tag/GHCR/Issue 종료 금지.
+
 
 ### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
 

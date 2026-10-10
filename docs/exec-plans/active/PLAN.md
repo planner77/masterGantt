@@ -1,3 +1,7 @@
+## Issue #550 — 최신 main 정렬 #595 통합 후 재검증 (2026-10-10)
+
+기존 PR #559 Head `7f14d94cf830ef7fc70d2c902ce4597e84c62844`와 최신 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`를 비교해 61개 feature 파일 중 `CHANGELOG.md`, `TEST_PLAN.md`, `PLAN.md`만 양쪽 수정임을 확인했다. 새 main의 #595 QA 승인/Attempt 원장·정책 문서 모두 보존하고 해당 3개 문서의 #550 변경을 합친다. package/rootlock의 0.105.0 및 UI/API/DB 의미와 기존 테스트는 유지한다. `AGENT` 보호 버전 파일은 별도 인간 QA 현재 Head 승인 및 Manager 위험 수용 영수증 필수이므로 새 CI 시작만으로 Merge Ready가 되지 않는다. 정렬 커밋 이후 새 exact Head Quality/E2E/Docker PR CI를 시작하고 병합·main CI·GHCR는 요청 범위에서 제외한다.
+
 ## Issue #550 — CI #2376.1 보호 버전 파일 QA 정책 BLOCKED 및 #595 분리 (2026-10-10)
 
 [PR #559](https://github.com/planner77/masterGantt/pull/559)의 [CI #2376.1](https://github.com/planner77/masterGantt/actions/runs/38036518629), exact head `f00835e8806c4c2dd73833a21d249890f62a2f7a`는 기존 세 required quality/e2e6/docker 모두 PASS이나 자동 `QA Final — Automated`는 `package.json`/`package-lock.json` 보호 정책으로 BLOCKED. #580의 fail-closed 조건은 제품 릴리스 0.105.0의 필수 version bump와 겹치며, 코드 버전 위장·원장 제거 또는 검증기 약화로 처리하지 않는다. [후속 Issue #595](https://github.com/planner77/masterGantt/issues/595)에 trusted AGENT 독립 QA 승인 복구 경로를 분리했다. 현재 요청은 #550 실행 계획/검증 원장 갱신, 신규 정확 SHA PR CI 시작까지다. 정책 보완 승인 및 독립 QA Final 전 merge/GHCR/issue close는 BLOCKED다.
@@ -14,6 +18,18 @@ PR #559 head `406d0e2e1b1794f5cefc4472a0443843dd9df210`의 [PR CI #2373.1](https
 ## Issue #550 — 최신 main 통합 및 Codex P2 수정 (2026-10-10)
 
 기준 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`, 후보 0.105.0. PR #559 최초 exact-head CI #2216.1 PASS는 과거 SHA이며 412 재제출 차단·관리 표 전용 cap·최신 Milestone 문구 및 관련 검증을 반영한 새 exact-head PR CI 시작 후 별도 판정한다. 병합/GHCR/종료 비범위.
+
+## Issue #595 — CI #2396.1 protected BLOCKED, metadata-only Attempt 수정 (2026-10-10)
+
+[PR #597](https://github.com/planner77/masterGantt/pull/597) Head `1035d7159a61edf170d88e97d103adb9bc68a4db`의 [CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): 기존 필수 Quality/E2E/Docker aggregate PASS, 구현 E2E shard SKIPPED, `QA Final — Automated`는 protected 정책 변경으로 정상 BLOCKED. 동일 Run QA-only retry에 대한 직전 P1 변경을 메타데이터 전용 CI의 `verify_same_base_full_run()`에도 일관 적용한다. 기존 같은 Head/base·Full CI 성공의 신뢰 귀속 검사를 유지하고, attempt1 필수 PASS / attempt2 QA-only 성공 및 이후 Job FAIL override와 누락 자료를 Python 테스트로 검증한다. 문서 영향 반영 후 새 exact-Head PR CI 시작까지 진행한다. 본 보안 검증기 자체는 별도 독립 Reviewer와 Manager 승인 전 병합/정식 GHCR 발행 금지.
+
+## Issue #595 — PR #597 CI #2391.1 P1/Attempt ledger REWORK (2026-10-10)
+
+[PR #597](https://github.com/planner77/masterGantt/pull/597), 기존 Head `1246cf3cd6cec6012158ccacc13cd91eb7428973`의 [CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640): Quality/정책 Python/TypeScript/Lint/Unit/Build 및 Docker/required E2E aggregate PASS, 구현 E2E shard는 경로상 SKIPPED; QA Final은 기존 main validator의 protected 변경 탐지로 BLOCKED(정상 보안 경계). 최신 리뷰 P1은 `trusted_source()`의 latest attempt Job 조회가 QA-only retry에서 이전 성공 aggregate를 잃는 결함임을 지적했다. `effective_run_jobs()`를 추가해 같은 Run attempt 원장을 완결성 확인하며 최신 실제 Job 상태를 우선하고 성공 Job source_attempt를 기록한다. 성공+QA만 재실행, 이후 required FAIL, 누락·중복·범위 초과의 Python 회귀를 포함한다. 문서 동기화 이후 새 exact Head PR CI를 시작하고, 독립 QA/Manager 없이 본 보호 검증기 PR을 병합하지 않는다. `release_required=false/release_authorized=false` 유지.
+
+## Issue #595 — 보호 파일 AGENT 승인 증거 검증 (2026-10-10)
+
+선행 #580과 #565의 fail-closed 정책을 보존한다. #550 PR #559는 원본 required Quality/E2E/Docker가 성공해도 package manifest/lock 보호 차단 때문에 자동 QA가 실패한다. #595에서 이 문제를 버전 원장 제거가 아닌 독립 Reviewer·Manager의 정확한 Head 승인 증거로 해결하도록 설계·코드·회귀를 구현한다. `scripts/qa_final_automated.py`와 Python 테스트, QA/CI 가이드 및 Work Packet을 갱신한다. 테스트·문서에 없는 승인이나 실행은 PASS로 표기하지 않는다. 보호된 검증기 자체를 수정하는 본 PR은 HIGH/AGENT이므로 실제 독립 QA와 Manager 승인 전 병합/배포 금지. release_required=false, release_authorized=false. 첫 종료점은 원격 PR CI 시작까지.
 
 ## Issue #549 — Main CI #2359.1 실패, Trace 기반 test-only corrective PR (2026-10-10)
 
