@@ -651,7 +651,7 @@ class Cases(unittest.TestCase):
             def get(self, path):
                 if "/pulls/" in path:
                     return {"title":"[Issue #598] owner policy",
-                            "body":"Refs #598\\nrisk_level: HIGH\\nqa_method: "+self.method}
+                            "body":"Refs #598\nrisk_level: HIGH\nqa_method: "+self.method}
                 if "/issues/" in path:
                     return {"body":"AC1 AC2"}
                 return {}
