@@ -2864,3 +2864,8 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 - 원본 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 Gantt public event 기록으로 **Core/native 이전 left26640 → right-edge API requested36960 → 지연된 wheel requested26671**의 순서를 확인했다. `mouse.wheel` Promise 완료만으로 native wheel→Core state 반영 완료를 가정한 시험의 관측 경쟁이다.
 - 수정 acceptance: 실제 `page.mouse.wheel(31,0)` 후 `expect.poll`에서 public Core left가 이전 값보다 증가하고 native Chart left와 오차 ≤1px인지 확인 → 5 RAF settle → 관측된 scale width−chart width만큼 공개 right-edge 이동 → `width > 이전 width` 실제 확장(기존 bounded10s) 강제. timeout 실패 시 자동 통과·skip 금지. 동시에 이전 instance, visibleTaskIds, Link, canonical IDs, POST/PATCH0, column/grid/fullscreen/peer-return 불변을 유지한다.
 - 로컬 Browser 재실행, 새 PR CI quality/e2e/docker와 독립 HIGH QA는 실제 근거 전 NOT TESTED. #569 PoC DEFER, #551 Week 날짜 헤더 미해결 gate 유지. 테스트 정합 보완으로 제품 #530 guard/#367 확장 알고리즘/CI required checks를 변경하지 않는다. version `0.104.0` 동일, API/DB/GHCR workflow 영향 N/A.
+
+## Issue #593 PR #594 리뷰 P2 회귀 (2026-10-10)
+
+- Fork PR의 source artifact `head_repository`와 실제 live PR `head.repo.full_name` 일치 시 인정한다. `base_repository`는 대상 저장소 및 live PR base repo와 일치해야 한다. 임의 Fork 표기를 기존 PR로 위장하거나 base repo를 바꾸면 BLOCKED; 원래 PR Head/base/merge/attempt 및 commit→PR 단일 귀속 검증을 유지한다.
+- 실패 초기화 단계부터 `rule_version=593-v1` 일치: `test_blocked_report_uses_current_rule_version`. 오류/권한/출처 증거 부족이 PASS가 되면 FAIL이다. 변경된 최신 Head의 GitHub CI 및 독립 QA Final은 별도 판정한다.
