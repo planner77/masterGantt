@@ -1,3 +1,7 @@
+## Issue #595 — metadata-only의 원본 Full CI 복원: exact Run/Attempt (2026-10-10)
+
+PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/Head/base의 가장 최신 성공 Full CI** 증거를 재사용할 때, 성공했던 Full CI Run을 QA Job만 재실행한 경우를 포함하여 해당 Run의 attempt별 Jobs를 검증해야 한다. 기본 `/runs/{id}/jobs` 최신 attempt만을 권위로 삼지 않고 `effective_run_jobs`의 `/runs/{id}/attempts/{i}/jobs` 원장으로 최종 실행 결론을 선택한다. 이후 aggregate FAIL/취소가 있었으면 오래된 성공으로 대체하지 않는다. `run_attempt` 누락, attempt 자료 오류, 불일치하는 Head/base/PR 귀속은 fail-closed. 실제 주체 승인과 `QA Final — Trusted` 보호 정책, GHCR·버전 변경 권한 및 Required Check 3개는 불변이다.
+
 ## Issue #595 — QA Final 재실행의 CI Job provenance (P1)
 
 보호 경로 AGENT PR의 원본 CI 세 aggregate가 완료 성공이고 QA 전용 Job만 독립 승인 미확보로 실패한 뒤, 같은 Run ID로 QA만 재실행할 수 있다. `workflow_run`의 latest attempt에 필수 aggregate가 없어도 `/actions/runs/{id}/attempts/{i}/jobs`를 1..최신으로 조회해 실제 마지막으로 실행된 Job 결론을 선택한다. 최신 attempt에 aggregate가 없으면 과거 같은 Run의 성공을 보존하되 다시 실행된 실패/취소 Job을 이전 성공으로 덮지 않는다. 조회 누락·중복은 BLOCKED, source_attempt를 verdict에 남긴다. 기존 required 3개, checkout 신뢰·GitHub Ruleset·릴리스 승인 경계는 불변이다.

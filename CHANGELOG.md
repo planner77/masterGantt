@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #595 metadata-only Full CI Attempt 정합 보완
+
+- `verify_same_base_full_run()`도 동일 CI Run의 개별 attempt별 Job 원장을 활용하여 QA-only 재실행 이후 PR metadata-only 변경에서 원래 Required aggregate 성공을 정확하게 검증한다. 나중에 재실행된 Required Job의 실패는 과거 성공으로 대체하지 않으며 누락된 `run_attempt`/원장 자료는 BLOCKED로 유지한다.
+- 보호 파일 독립 QA·Manager 승인, PR source provenance, GitHub Ruleset/Release, 제품 버전 및 Required 3개 Check 불변.
+
 ## [Unreleased] — Issue #595 PR #597 QA attempt provenance P1 보완
 
 - QA-only 재실행에서 GitHub의 일반 Run Job API가 최신 attempt만 반환하는 특성을 반영한다. 동일 Run의 개별 attempt별 Job 목록을 순서대로 결합하여 QA만 재시도할 때 이전 필수 Quality/E2E/Docker 성공을 보존하고, 나중에 재실행된 실패·취소 필수 Job은 차단한다. 검사 누락·중복·시도 수 초과를 fail-closed 처리하고 필수 Job의 실제 source_attempt를 기록한다.

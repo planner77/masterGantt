@@ -1,3 +1,11 @@
+## Issue #595 — CI #2396.1 / metadata-only의 QA Job 단독 재실행 원장 (2026-10-10)
+
+[PR #597 CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): Quality/Unit/Build/TypeScript/Lint/QA Python, E2E/Docker aggregate SUCCESS. E2E shard는 변경 경로에 따라 SKIPPED이며 실제 브라우저 테스트를 재수행한 증거는 아니다. QA Final은 base의 보호 정책에 따라 BLOCKED(정상 fail-closed). 실제 AGENT 독립 QA·Manager 수용은 NOT TESTED.
+
+검증기 추가 결함: `verify_same_base_full_run()`이 `/runs/{id}/jobs` 기본 최신 attempt만 조회해, 과거 동일 Full CI Run attempt1의 Quality/E2E/Docker가 성공하고 attempt2는 QA Job만 다시 실행된 **성공한 동일 Head/base 원장**을 metadata-only 경로에서 놓친다. `trusted_source()`에 이미 적용한 `effective_run_jobs()`를 동일 metadata full-run 검증에서도 사용한다.
+
+수용 테스트: `test_metadata_full_ci_requires_matching_base`에서 GitHub attempt 필드 누락과 다른 base는 BLOCKED, 정확 attempt1 조회만 허용한다. 신규 `test_metadata_reuses_exact_full_run_after_qa_only_retry`에서 동일 PR/Head/base Full CI attempt1 필수 세 aggregate PASS + attempt2 QA-only PASS는 기존 Full CI 증거로 인정한다. attempt2 E2E 재실행 실패(이전 성공 덮어쓰기 금지)는 FAIL, 누락 attempt는 BLOCKED. QA/Manager 승인·보호 경로 탐지·원본 run conclusion 및 provenance 확인은 기존 조건 그대로 유지한다. 독립 QA 없이 이 메타데이터 원장을 protected 자동 PASS로 간주하지 않는다.
+
 ## Issue #595 — CI #2391.1 P1: QA-only retry의 attempt별 required CI 복원 (2026-10-10)
 
 PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640)은 policy Python/TypeScript/Unit/Build/ESLint 및 Docker/required Quality·E2E가 PASS, 기존 base validator의 보호 파일 탐지로 자동 QA만 BLOCKED였다. E2E 구현 shard SKIPPED를 PASS로 재표시하지 않는다. P1 리뷰에서 `trusted_source()`의 기본 `/runs/{run_id}/jobs`가 GitHub의 최신 attempt에 한정되므로 **이전 시도 Quality/E2E/Docker 성공 + QA-only 재실행**에서 원장을 잃는 결함을 확인했다.

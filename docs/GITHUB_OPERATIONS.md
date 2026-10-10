@@ -1,3 +1,7 @@
+## Issue #595 — PR metadata edited 후 원본 Full CI 재사용 정합 (2026-10-10)
+
+PR #597의 QA-only 재실행 P1 보완은 `trusted_source()`뿐 아니라 `verify_same_base_full_run()`에도 적용한다. GitHub 메타데이터 전용 CI가 원본 Full CI 결과를 재사용할 때 같은 Run의 실제 각 attempt별 Job 상태를 정확히 조회한다. QA Job만 rerun된 최신 attempt에서 기존 Required Quality/E2E/Docker가 보이지 않더라도 과거 같은 Run의 정상 성공을 사용하고, 이후 재실행된 실패는 무효화한다. 원본 Run의 PR/Head/base·최신 full-run·최종 결론이 달라지면 거부한다. 이 정합은 독립 QA 검토나 Manager 승인, protected 파일 보안 정책을 자동 통과시키지 않는다.
+
 ## Issue #595 — PR #597 P1: 동일 Run에서 QA Job만 재실행하는 경우
 
 기존 `Quality/E2E/Docker` required aggregate가 첫 attempt에서 성공한 뒤 보호 경로 독립 QA가 미승인이라 자동 QA가 BLOCKED일 수 있다. 별도 인간 Reviewer의 현재 Head QA 및 repository owner의 해당 Run/Attempt 승인 후 실패한 QA Job만 재실행한 경우, GitHub의 일반 `/runs/{id}/jobs` API는 최신 attempt의 QA Job만 보여 원래 aggregate가 누락된다. `QA Final — Trusted`는 원본 CI Run ID 하나의 `/attempts/{i}/jobs` 원장을 확인하고 가장 나중에 실제 실행된 Job의 상태를 사용한다. QA-only attempt는 과거 필수 Job PASS를 보존하지만 뒤이은 필수 Job 재실행 실패는 무조건 거부한다. 원본 `ci_attempt`와 현재 `run_attempt` 및 각 aggregate의 `source_attempt`를 감사 기록에 명시한다.

@@ -280,8 +280,11 @@ def verify_same_base_full_run(gh, number, head, base, current_run_id):
     chosen = eligible[0]
     require(chosen.get("status") == "completed" and
             chosen.get("conclusion") == "success", "이전 전체 CI 미성공", "FAIL")
-    jobs = {j["name"]: j.get("conclusion")
-            for j in gh.collection(f"{gh.prefix}/actions/runs/{chosen['id']}/jobs", "jobs")}
+    attempt = chosen.get("run_attempt")
+    require(type(attempt) is int and attempt >= 1,
+            "원본 전체 CI attempt 정보가 없어 metadata 재사용 불가")
+    selected = effective_run_jobs(gh, int(chosen["id"]), attempt)
+    jobs = {name: job.get("conclusion") for name, job in selected.items()}
     required = {
         "Build, static checks, and unit tests",
         "Chromium end-to-end tests",

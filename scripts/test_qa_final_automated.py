@@ -110,14 +110,18 @@ class Cases(unittest.TestCase):
         class Stub:
             prefix="/repos/planner77/masterGantt"
             base="a"*40
+            missing_attempt=False
             def collection(self, url, name):
                 if name == "workflow_runs":
                     return [{"id":88,"event":"pull_request","head_sha":"h"*40,
                              "display_title":"PR CI [전체 검증]",
                              "status":"completed","conclusion":"success","run_number":55,
+                             **({} if self.missing_attempt else {"run_attempt":1}),
                              "pull_requests":[{"number":587,"head":{"sha":"h"*40},
                                                "base":{"sha":self.base}}]}]
-                return [{"name":name,"conclusion":status} for name,status in (
+                assert name == "jobs", name
+                assert url == self.prefix+"/actions/runs/88/attempts/1/jobs", url
+                return [{"name":job,"conclusion":status} for job,status in (
                     ("Build, static checks, and unit tests","success"),
                     ("Chromium end-to-end tests","success"),
                     ("Docker build and runtime smoke test","success"),
@@ -125,9 +129,55 @@ class Cases(unittest.TestCase):
         s=Stub()
         self.assertEqual(qa.verify_same_base_full_run(
             s,587,"h"*40,"a"*40,99),88)
+        s.missing_attempt=True
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            s,587,"h"*40,"a"*40,99))
+        s.missing_attempt=False
         s.base="b"*40
         self.blocked(lambda:qa.verify_same_base_full_run(
             s,587,"h"*40,"a"*40,99))
+
+    def test_metadata_reuses_exact_full_run_after_qa_only_retry(self):
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            latest_e2e=None
+            missing_attempt=False
+            def collection(self, url, name):
+                if name == "workflow_runs":
+                    assert "head_sha=" + "h"*40 in url, url
+                    return [{"id":88,"event":"pull_request","head_sha":"h"*40,
+                             "display_title":"PR CI [전체 검증]",
+                             "status":"completed","conclusion":"success","run_number":55,
+                             "run_attempt":2,
+                             "pull_requests":[{"number":587,
+                                               "head":{"sha":"h"*40},
+                                               "base":{"sha":"a"*40}}]}]
+                assert name == "jobs", (name,url)
+                if url == self.prefix+"/actions/runs/88/attempts/1/jobs":
+                    if self.missing_attempt:
+                        return []
+                    return [{"name":key,"conclusion":status} for key,status in (
+                        ("Build, static checks, and unit tests","success"),
+                        ("Chromium end-to-end tests","success"),
+                        ("Docker build and runtime smoke test","success"),
+                        ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증","skipped"),
+                        ("QA Final — Automated","failure"))]
+                assert url == self.prefix+"/actions/runs/88/attempts/2/jobs", url
+                jobs=[{"name":"QA Final — Automated","conclusion":"success"}]
+                if self.latest_e2e is not None:
+                    jobs.append({"name":"Chromium end-to-end tests",
+                                 "conclusion":self.latest_e2e})
+                return jobs
+        stub=Stub()
+        self.assertEqual(qa.verify_same_base_full_run(
+            stub,587,"h"*40,"a"*40,99),88)
+        stub.latest_e2e="failure"
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            stub,587,"h"*40,"a"*40,99), "FAIL")
+        stub.latest_e2e=None
+        stub.missing_attempt=True
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            stub,587,"h"*40,"a"*40,99))
 
     def test_default_branch_workflow_run_has_distinct_trust_source(self):
         from unittest.mock import patch
