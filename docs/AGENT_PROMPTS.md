@@ -1,3 +1,7 @@
+## Issue #598 — Owner 중심 QA 운영 (2026-10-10)
+
+기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER`는 호환 alias), `AGENT`는 선택적 독립 검토이다. 보호된 CI/workflow/scripts/package/QA·보안 정책과 HIGH를 포함하여 별도 인간 Reviewer GitHub APPROVED는 필수가 아니다. 대신 최신 PR Head/base에 관한 원본 Quality/E2E/Docker 세 required aggregate PASS, strict main, unresolved review thread 0, docs/AC, 기본 브랜치 trusted read-only validator 및 고위험 수동 점검을 모두 유지한다. `automated_qa=PASS`와 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`은 `manager_decision=ACCEPT`가 아니다. Owner의 명시적 병합 지시는 GitHub 인증 신원·대상 PR/HEAD/base/run/attempt/잔여위험을 확인한 뒤 감사 기록으로 남기며 수동 JSON 영수증은 요구하지 않는다. 변경 검증기 자기 승인, PR 내용/봇 댓글을 이용한 위조 승인, stale run 및 CI 우회는 차단한다. 이 정책 자체의 bootstrap PR은 기존 main validator가 protected를 BLOCKED하는 원장을 유지하며 세 필수 CI 성공·일회성 Owner 전환 승인 전 병합하지 않는다. 메인 임시 GHCR candidate와 finalizer는 동일, 정식 release는 `release_required && release_authorized`만 허용한다. [QA 정책](QA_REVIEW_POLICY.md)을 최신 기준으로 삼으며 아래 #565/#580/#595 이전 필수 인간 reviewer 지침보다 우선한다.
+
 ## Issue #595 — 독립 QA 역할과 보호 변경 검토
 
 QA 담당은 기능 PR과 보호된 CI/버전 파일 변경을 구분한다. 보호 변경 검토는 구현자와 다른 인간 Reviewer가 실제 현재 Head/문서·테스트·보안 경계를 검사하고 GitHub에서 별도 판정을 남긴다. Manager 승인은 그 뒤에 근거를 기록한다. Reviewer가 없으면 BLOCKED이고 구현자가 임의로 PASS하지 않는다. #595의 검증기 코드 자체도 같은 독립 QA를 통과하기 전에는 운영 정책이 아니다.
