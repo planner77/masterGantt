@@ -114,7 +114,7 @@ class Cases(unittest.TestCase):
                 if name == "workflow_runs":
                     return [{"id":88,"event":"pull_request","head_sha":"h"*40,
                              "display_title":"PR CI [전체 검증]",
-                             "status":"completed","conclusion":"success","run_number":55,
+                             "status":"completed","conclusion":"success","run_attempt":1,"run_number":55,
                              "pull_requests":[{"number":587,"head":{"sha":"h"*40},
                                                "base":{"sha":self.base}}]}]
                 return [{"name":name,"conclusion":status} for name,status in (
