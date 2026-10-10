@@ -80,3 +80,10 @@
 - 이와 별개로 코드 검토에서 `scripts/verify-ci-run-trace.py::validate_push()`의 `Issue #` 접두어에 ` · PR #` 구분자가 아예 없으면 **정상 직접 Push fallback으로 오인**하던 작은 예외를 발견했다. 예약된 `Issue #` 접두어는 표준 제목으로만 허용하여 이런 malformed 입력도 `TraceError` fail-closed 처리한다.
 - `scripts/verify-issue-lifecycle.py`에 미완성 접두어/PR 구분자 누락/추가 본문 사례를 추가한다. 기존 GitHub Actions `run-name` 사전 평가 및 정상 직접 Push·구형 Merge 추적·권한·required checks 불변.
 - [#595](https://github.com/planner77/masterGantt/issues/595) 독립 QA 보호 파일 승인/실행 상태 설계가 적용되기 전에는 `AGENT + protected` 경로의 자동 QA BLOCKED를 변경하지 않는다. 이 PR CI 신규 실행은 표준 제목 검증 회귀의 결과만 확인하며 QA_FINAL PASS가 아니다. 병합과 Main CI는 현재 범위에서 제외한다.
+
+## 2026-10-10 — CI #2402.1 shard2 E2E virtual clock 재현 및 테스트 전용 보완
+
+- [CI #2402.1](https://github.com/planner77/masterGantt/actions/runs/38048971400), Head `5f017a8cfc484fcedb949fa7bd7eb91c99706feb`: Quality/Docker SUCCESS, E2E shard1/3/4/5/6 SUCCESS, shard2의 기존 [#463 캐시 복귀 검사](https://github.com/planner77/masterGantt/blob/5f017a8cfc484fcedb949fa7bd7eb91c99706feb/tests/e2e/milestone-dashboard-state.spec.ts#L91) 1 FAIL (86 PASS, 1 FAIL, 1 SKIP). `data-ready`가 5초 이내 `true`로 전환되지 않음. 별개 `QA Final — Automated`는 최신 main/test merge 상태 또는 독립 AGENT 승인에 의해 BLOCKED.
+- E2E는 `page.clock.install()`로 timer/rAF를 제어한다. 이전 slow 요청을 보류한 동안 확정된 캐시 key로 돌아오는 렌더를 `page.clock.runFor(32)`로 **2프레임만** 처리한 후 **기존 `data-ready=true` 및 추가 fetch 0(`calls===2`)** 단언을 유지한다. 이것은 응답 대기 제거, timeout 증가, retry, skip이나 제품 기능 수정이 아니며 테스트 일정화 후보이다.
+- 재현 1건만으로 hook의 원인/제품 결함이 확정됐다고 단정하지 않음. 새 정확 Head CI에서 동일 E2E/Quality/Docker PASS를 확인해야 하며, 여전히 실패하면 #463 product cache/effect/Abort 증거를 trace로 재분석한다.
+- 제품 버전 `0.104.0`, `release_required=false`, `release_authorized=false` 유지. 영향: `tests/e2e/milestone-dashboard-state.spec.ts` + TEST_PLAN + Work Packet; `DESIGN.md` 및 제품 code 변화 없음. #595 독립 QA/owner 승인은 이 수정과 무관하게 별도 필요.
