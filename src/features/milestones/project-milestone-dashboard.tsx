@@ -15,6 +15,7 @@ import {
   displayEffort,
   displayPercent,
 } from "./milestone-dashboard-model";
+import { sortMilestoneManagementRows, type MilestoneManagementHandler } from "./milestone-management-model";
 import { useMilestoneDashboard } from "./use-milestone-dashboard";
 import styles from "./project-milestone-dashboard.module.css";
 
@@ -32,6 +33,10 @@ export interface ProjectMilestoneDashboardProps {
   onSourceContext?: (context: ResourceDrillSourceContext | null) => void;
   onResources: (scope: MilestoneResourceDrill) => void;
   onRefreshProject: () => void;
+  editable?: boolean;
+  onAddMilestone?: (trigger: HTMLElement) => void;
+  onManageMilestone?: MilestoneManagementHandler;
+  onManagementFocusUnavailable?: () => void;
 }
 
 export function ProjectMilestoneDashboard({
@@ -45,6 +50,10 @@ export function ProjectMilestoneDashboard({
   onResources,
   onSourceContext,
   onRefreshProject,
+  editable = false,
+  onAddMilestone,
+  onManageMilestone,
+  onManagementFocusUnavailable,
 }: ProjectMilestoneDashboardProps) {
   const id = useId();
   const [search, setSearch] = useState(""),
@@ -92,6 +101,7 @@ export function ProjectMilestoneDashboard({
     if (enabled && ids.length && data?.resourceScopeContext)
       onSchedule([...new Set(ids)], data.resourceScopeContext);
   };
+  const managementRows = useMemo(() => sortMilestoneManagementRows(data?.rows ?? [], tasks), [data?.rows, tasks]);
   const resourceAvailable = enabled && Boolean(data?.resourceScopeContext);
   const resourceScope = (
     assignmentIds: string[],
@@ -213,6 +223,7 @@ export function ProjectMilestoneDashboard({
     <div
       className={styles.dashboard}
       data-testid="milestone-dashboard"
+      data-project-public-id={publicId}
       data-ready={enabled}
       aria-busy={query.loading || undefined}
     >
@@ -226,9 +237,11 @@ export function ProjectMilestoneDashboard({
       ) : null}
       <div className={styles.sectionHeading}>
         <div>
-          <h2>Milestone 대시보드</h2>
+          <h2 tabIndex={-1} data-milestone-focus="heading">Milestone 대시보드</h2>
           <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
         </div>
+        <div className={styles.actions}>
+        <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? "프로젝트 최상위에 추가" : "편집 활성화 후 추가할 수 있습니다"}>Milestone 추가</button>
         <button
           type="button"
           className="secondary-button"
@@ -237,6 +250,7 @@ export function ProjectMilestoneDashboard({
         >
           {query.loading ? "조회 중…" : query.error ? "다시 시도" : "새로고침"}
         </button>
+        </div>
       </div>
       <div className={styles.filters}>
         {(filters.milestoneIds?.length ?? 0) > 1 ? (
@@ -270,7 +284,7 @@ export function ProjectMilestoneDashboard({
           <input
             type="search"
             value={search}
-            placeholder="이름·외부 ID·작업 ID"
+            placeholder="이름·외부 ID·작업 ID" data-milestone-focus="search"
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
@@ -570,21 +584,24 @@ export function ProjectMilestoneDashboard({
           <section className={styles.stageSection}>
             <h3>Milestone 전체 상태 · 표시 {data.rows.length}개</h3>
             <p className={styles.note}>
-              소속 작업과 직접 선행 Milestone 전체 기준입니다. 계획 공수의 범위와
+              프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와
               분모가 다릅니다.
             </p>
             {data.rows.length ? (
               <ProjectMilestoneStageTable
-                rows={data.rows}
+                rows={managementRows}
                 tasks={tasks}
                 enabled={enabled}
                 scheduleEnabled={resourceAvailable}
+                editable={editable}
+                onManage={onManageMilestone}
+                onFocusUnavailable={onManagementFocusUnavailable}
                 onOpenTask={onOpenTask}
                 onSchedule={schedule}
               />
             ) : (
               <p>
-                조건에 일치하는 Milestone이 없습니다. 전체 공수 bucket은
+                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 Milestone이 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
                 아래에서 별도로 확인합니다.
               </p>
             )}

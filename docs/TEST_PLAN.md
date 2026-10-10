@@ -1,7 +1,36 @@
+## Issue #550 — PR #559 CI #2414.1 및 #598 Owner-managed 정렬 검증 계획 (2026-10-11)
+
+- 이전 Head `cb360903dfac443547e9e16e1091273eca669400`의 [PR CI #2414.1](https://github.com/planner77/masterGantt/actions/runs/38051399462): Quality/TypeScript/Lint/Vitest/Build PASS, Chromium E2E 6/6 및 aggregate PASS, Docker smoke/aggregate PASS. `QA Final — Automated` job `114213762765`만 AGENT 보호 파일의 **독립 인간 `QA_FINAL: PASS` 리뷰 부재**로 BLOCKED/FAIL. 이전 Run은 FAILED 기록 유지.
+- [Issue #598](https://github.com/planner77/masterGantt/issues/598)의 main 정책에 따라 `risk_level=HIGH`, `qa_required=true`, `qa_method=OWNER_MANAGED`로 변경하되 protected version `package.json`/lock, QA 정책·필수 required checks를 완화하지 않는다. 독립 QA `N/A(Owner-managed, 미실시)`와 `automated_qa`/Owner `manager_decision=NOT TESTED`를 구분하고, trusted main QA·latest Head/base/run/attempt·review thread 해결 및 HIGH 잔여위험 수용은 별도 Gate다.
+- 최신 main `e41696430a78045998e35edad7cab5bb901a097e`의 #582 CI/Finalizer 실행명·#598 QA 정책/검증기·새 CI 문서와 2개 공통 문서 변경을 전체 보존한다. 변경된 TEST_PLAN에는 기존 #550 E2E/SQLite/Chromium 모든 실증 및 #598/#582 회귀 기록과 새로운 원장 요구를 함께 포함한다. 기능 코드/Version `0.105.0`은 불변.
+- 이번 문서 병합 후 새 Head Full PR CI에서 required Quality/E2E/Docker + QA 판정을 새로 받아야 한다. 이전 Head의 PASS는 신규 Head PASS 아님. 로컬 재실행, Trusted QA 및 Owner 승인, Main/GHCR/정식 Release는 미수행/NOT TESTED.
+
 ## Issue #598 — 정책 구현 및 PR CI (2026-10-10)
 [Work Packet](exec-plans/active/ISSUE_598.md): base main `31372f967159b2f993116c73f0adc228eb1ea0ff`, HIGH·protected QA 정책, version `0.104.0` 유지. OWNER_MANAGED 기본/AGENT 선택, Quality/E2E/Docker·trusted main·Owner 최종 허가 유지. 구 정책 validator BLOCKED는 보존, 새 자기 승인 불가. PR CI 시작까지만 실행하며 merge/main/GHCR/tag 금지.
 
 PR #599 / CI #2415.1 보완 검증: 정책 Job의 `check-markdown-links.mjs`에서 Work Packet 상대 경로 검증, `test_owner_managed_protected_path_and_legacy_alias`의 정확한 `TEST_MERGE_SHA` fixture, `test_composite_action_pr_is_not_automatically_accepted`의 HIGH 분류/자동 QA PASS와 `manager_decision=NOT TESTED` 분리 및 LOW 위험도 위장 차단을 검증한다. 리뷰 지적 2건 반영 후 새 PR CI로 Python 정책 테스트·세 Required aggregate를 재검증한다. 이전 실패 #2415.1은 소급 PASS 하지 않는다.
+
+## Issue #550 — #595 완료 후 최신 main 정렬 및 QA Gate 재검증 (2026-10-10)
+
+- [Issue #595](https://github.com/planner77/masterGantt/issues/595) PR #597은 merge SHA `26e72bbed046a6ad6721e1c3c19bda71ce42e570`, [Main CI #2401.1](https://github.com/planner77/masterGantt/actions/runs/38047530320) SUCCESS 및 Lifecycle FINAL 완료. `scripts/qa_final_automated.py`의 AGENT 보호 파일 승인 증거 검증·attempt별 Job 원장을 새 PR #559에서도 동일 main 기준으로 사용한다. 기존 #580/#595의 보호 파일 판정과 품질·Docker·E2E Required Check는 수정하지 않는다.
+- #550 기존 PR #559 Head `7f14d94cf830ef7fc70d2c902ce4597e84c62844`는 해당 main보다 4커밋 뒤처졌으며 `CHANGELOG.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md` 3개 파일이 중복 변경됐다. 양쪽 #595·#550 기록을 보존하여 본 문서, CHANGELOG와 PLAN을 합친다. 제품·UI·E2E/Unit·0.105.0 버전 및 412 stale guard 수정은 유지한다.
+- 새 exact-head PR CI에서는 Quality/Chromium E2E 6-shard/Docker를 실제 재검증한다. 이전 성공한 [#2382.1](https://github.com/planner77/masterGantt/actions/runs/38038568609)의 required PASS는 이전 Head 증거에 한정된다. `QA Final — Automated`는 AGENT protected version manifest의 독립 인간 Reviewer 현재 Head `APPROVED`+QA_FINAL PASS 및 repository owner의 정확 Head/base/원본 Run/Attempt Manager ACCEPT receipt가 없으면 **BLOCKED가 정상**이며 임의 version 제거·자동 권한 우회·허위 PASS 처리 금지.
+- 본 정렬의 로컬 실행 및 새로운 QA_FINAL/Manager ACCEPT 증거는 원격 CI 완료와 실제 Reviewer 제출 전 NOT TESTED. #593 PR #594의 Trusted provenance 변경은 별도 PR이므로 이 통합에서는 적용하지 않는다.
+
+## Issue #550 — CI #2376.1 기능 PASS와 보호 파일 자동 QA 차단 구분 (2026-10-10)
+
+- 원본 [PR #559 CI #2376.1](https://github.com/planner77/masterGantt/actions/runs/38036518629), head `f00835e8806c4c2dd73833a21d249890f62a2f7a`: Quality/Unit/Build, Chromium 6/6 shard 및 aggregate, Docker smoke/aggregate **PASS**. `QA Final — Automated` job `114171633994`만 FAIL, 결론은 보호된 `package.json`/`package-lock.json` 수정 때문에 **AGENT 독립 QA 및 Manager 승인 필요**.
+- [#580 신뢰 Validator](https://github.com/planner77/masterGantt/blob/36b0eaa74a0614a76d1ed867bddb548149feb4bc/scripts/qa_final_automated.py): `protected_paths()`는 두 파일을 CI 실행 제어 입력으로 분류하고 `qa_method=AGENT`도 자동 승인 PASS로 바꾸지 않는다. 이는 필수 3개 gate 실패가 아니다.
+- 대응: #550의 필수 SemVer 0.105.0을 유지한 채 안전한 수동 검토·승인 후 실제 QA 상태 검증 가능하도록 [Issue #595](https://github.com/planner77/masterGantt/issues/595)로 분리. #593의 Trusted source provenance와 연계하되 보호 파일 경계를 약화하지 않는다.
+- 이번 변경은 원인·상태·후속 의존성을 문서화하는 변경이다. 작업 코드·테스트·CI Workflow/validator·Ruleset/버전은 불변. 기존 PASS는 `f00835e...`에만 해당하며, 새 PR Head의 quality/e2e/docker 및 QA는 시작/종료 전 NOT TESTED. **자동 QA의 현 정책상 반복 BLOCKED가 예상됨을 숨기지 않는다.**
+
+## Issue #550 — CI #2373.1 자동 QA 차단의 계약 분석 (2026-10-10)
+
+- [PR #559 CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185) head `406d0e2e1b1794f5cefc4472a0443843dd9df210`: Quality/typecheck/lint/unit/build PASS, Chromium E2E 6개 shard와 aggregate PASS, Docker smoke 및 aggregate PASS. 실패는 자동 QA job 114165826438 한 건이며 이유는 `Primary Issue title/Refs 정확히 일치해야 합니다`.
+- 현재 신뢰 검증기 `scripts/qa_final_automated.py`는 PR 제목의 `Issue #550`와 본문 단일 `Refs #550`, `risk_level`, `qa_method`, 보호 경로, review thread 0, Issue `AC\d+`, Work Packet의 `## DOCUMENTATION_SYNC`와 `## AC_TEST_COVERAGE`를 순차 요구한다. 이번 보완은 명칭·스펙을 약화하지 않고 metadata/AC/문서 및 P2 review 해결에 한정한다.
+- `package.json`, `package-lock.json`의 0.105.0 증분은 신규 기능 출시 계약이고 #580의 `protected_paths` 차단 대상이다. 일반 자동 QA로 승인할 수 없는 독립 HIGH 검토/Manager 판단 경계를 보존한다. package/lock 삭제·자동 검증기 완화·CI skip으로 문제를 숨기지 않는다.
+- 새 Head의 Quality/E2E/Docker, `QA Final — Automated` 및 `QA Final — Trusted` 결과는 별도 run 전 NOT TESTED. 이전 CI PASS를 새 SHA의 PASS로 대체하지 않는다. 원본 CI run/job/first error는 증거로 유지한다.
+
 
 ## Issue #595 — CI #2396.1 / metadata-only의 QA Job 단독 재실행 원장 (2026-10-10)
 
@@ -2906,3 +2935,49 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 - 원본 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 Gantt public event 기록으로 **Core/native 이전 left26640 → right-edge API requested36960 → 지연된 wheel requested26671**의 순서를 확인했다. `mouse.wheel` Promise 완료만으로 native wheel→Core state 반영 완료를 가정한 시험의 관측 경쟁이다.
 - 수정 acceptance: 실제 `page.mouse.wheel(31,0)` 후 `expect.poll`에서 public Core left가 이전 값보다 증가하고 native Chart left와 오차 ≤1px인지 확인 → 5 RAF settle → 관측된 scale width−chart width만큼 공개 right-edge 이동 → `width > 이전 width` 실제 확장(기존 bounded10s) 강제. timeout 실패 시 자동 통과·skip 금지. 동시에 이전 instance, visibleTaskIds, Link, canonical IDs, POST/PATCH0, column/grid/fullscreen/peer-return 불변을 유지한다.
 - 로컬 Browser 재실행, 새 PR CI quality/e2e/docker와 독립 HIGH QA는 실제 근거 전 NOT TESTED. #569 PoC DEFER, #551 Week 날짜 헤더 미해결 gate 유지. 테스트 정합 보완으로 제품 #530 guard/#367 확장 알고리즘/CI required checks를 변경하지 않는다. version `0.104.0` 동일, API/DB/GHCR workflow 영향 N/A.
+
+## Issue #550 — Milestone 관리 진입 Local Fast Feedback
+
+현재 변경은 기존 Dashboard 목록/관리 메뉴/작은 root 생성 form 및 같은 Task/Relation Editor·보호 gateway의 진입이다. canonical date/ID 정렬은 stageFilterCandidates를 재사용하고 full E/P·Ready·수동 이벤트·완료 잠금은 기존 server 계산이다. #549의 Week 날짜 헤더 의미 FAIL와 원인/baseline NOT TESTED는 #551 활성화 gate로 유지하며 새 lane/M행 제거는 이 검증 범위가 아니다.
+
+| 검증 | 실제 범위와 결과 |
+| --- | --- |
+| Unit | milestone-management-model 신규 4 + 기존 milestone-dashboard-model/task-editor-view-model 66 = 70 PASS. 표시 정렬/인구 보존/입력 불변, canonical date, root payload, taskCreate의 유일 새 ID 대조 |
+| Chromium synthetic UI | milestone-management.spec.ts 19/19 PASS, exit 0, PRE_QA race/삭제 취소 보완 후 최종 44.5s. 390/768/1024/1440/1920, 긴 동명/같은 날짜/30행, readonly utility와 mutation disabled, native modal Tab/Escape/실제 trigger focus, 표 ArrowRight/PageDown 내부 scroll, 같은 Gantt instance, search0/단순조회 mutation0. 5폭 header/body 경계 최대 차이0px, 문서폭=viewport, sibling nonoverlap, 버튼의 td 경계/toolbar 경계/outline 선두께3px/offset3px/외곽 여유6px의 modal owner 경계 ±1px |
+| 저장 UI | 기존 saveTask POST root payload/created external ID, pending 중 중복·Escape 보호, 생성 및 기존 Editor dirty 폐기 확인, 401/412/network 입력 보존/자동 재전송 없음, 외부 revision stale 제출 차단, 단일 Copy/DELETE 명시 확인/정확 taskId/삭제 후 검색·추가·heading fallback. 열린 관리 대상의 외부 canonical 삭제/보고 population 탈락→visible source-guarded fallback 및 같은 대상 재등장시 자동 modal 재개 없음 |
+| 보고 응답 역전 | 늦은 첫 검색 응답을 보류하고 다음 검색 응답을 먼저 완료한 뒤 첫 route.fulfill 완료와 두 browser frame 이후 최신 조건/행/기준 revision 유지. 기존 hook의 abort/generation guard를 유지함 |
+| 실제 HTTP·SQLite | 별도 milestone-management-persistence.spec.ts와 development isolatedApplication에서 최종 2/2 PASS exit0, skipped/flaky0, 전체43.3s(주 JSON 합계43288.521ms). 실행 당시 UI/테스트/fixture/server/domain16개 SHA 검증 OK. root 생성→Editor PATCH→소속/관계/fullE/P/완료 잠금·보호 거절/restart 전체 canonical 일치, 완료 manual M 단독 Copy 성공/partial completed M acktrue에도409 거절, 빈→M-only 상세·소속·관계 조회 mutation0/readonly 생성401. production 및 원격 CI PASS로 확대하지 않음 |
+| 원격 quality/e2e/docker | 이 문서의 로컬 결과로 대체하지 않음. #550 exact PR head Actions 결과는 NOT TESTED이며 현재 권한은 CI 등록까지만 |
+
+직접 실행은 `npx vitest run --config tests/config/vitest.config.ts tests/features/milestones/milestone-management-model.test.ts tests/domain/milestone-dashboard-model.test.ts tests/features/gantt/task-editor-view-model.test.ts`와 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-management.spec.ts --project chromium --output=/tmp/issue550-frontend-preqa-final-results --reporter=line`를 사용한다. 변경 파일 ESLint, typecheck 및 Markdown 링크를 별도 검사한다. 역할별 /tmp output/reporter를 사용하여 backend/다른 실행의 report를 덮어쓰지 않는다.
+
+초기 synthetic UI 9/9 FAIL은 shared fixture의 초기 M gate를 undefined로 덮어쓴 새 report fixture가 shape/freshness 검증에서 거절된 결과였다. 수정 후 3 PASS/6 FAIL은 새 합성 M의 비근무일 날짜, 다음 4 PASS/6 FAIL은 unsupported weekendDays=[], 다음 4 PASS/6 FAIL은 중복 siblingOrder로 기존 계층 검증이 Editor를 거절한 fixture 결함이다. engine/guard를 약화하지 않고 지원 calendar [6,0], 근무일 2026-10-05, 고유 root siblingOrder 및 보고 gate를 정정했다. 이후 10/10 PASS, 추가 command/stale/order oracle 13/13 PASS(31.7s), 실제 keyboard scroll/응답 완료 oracle 보강 13/13 PASS(31.9s)다. 독립 UI/UX 비교에서 geometry evidence 부족과 열린 관리 대상 외부 소멸의 focus 누락을 찾아 PRE_QA 전에 소유 table/dashboard/Workspace의 bounded cleanup과 source-guarded fallback을 보완했다. header/body·sibling·button·toolbar·focus owner·document overflow oracle와 대상 소멸 2case를 추가한 UI/UX geometry·대상 소멸 보완15/15 PASS(36.4s)를 별도 source SHA로 보존한다. 이전13PASS/2실제PASS를 새 source의 결과로 재명명하지 않는다. 최초 source hash/time/stdout/trace와 각 실패를 /tmp에 보존했고 최종 합성 fixture는 기존 recalculateHierarchy/workingCalendarFromProjectCalendar/membershipProjection으로 browser 전에 검증한다.
+
+선별 합성 PNG/JSON은 `output/playwright/issue-550/review/`에 actual timestamp와 당시 source SHA-256을 기록한다. runtime DB/로그·Playwright trace·.next·실제 Task 내용/credential은 Git 증거에 포함하지 않는다. mock의 비관련 inactive logistics report GET 404는 합성 Project가 실제 backend에 없기 때문이며 실제 서버 검증 PASS와 분리한다. 모든 domain/auth/Assignment/legacy mixed 경계를 이 UI mock으로 검증했다고 확대하지 않는다. 기존 proxy/실기기/스크린리더/Windows Excel와 #551 date/header 의미는 NOT TESTED다.
+
+
+최종 visible-fallback 보완은 Workspace의 Dashboard focus helper 한 곳에서 `focus({preventScroll:true})`를 native `focus()`로 변경했다. 당시15case는 그 시점 UI source에서15/15 PASS exit0(36.2s)이며 실제 fallback bbox·3px outline/3px offset 포함 viewport containment·center hit-test·불투명 visible sticky/fixed 겹침0·기존 Chart scroll/instance 불변을 확인했다. 이전 bbox 미측정/viewport 밖 focus를 visible fallback PASS로 재명명하지 않는다.
+
+실제 HTTP·SQLite2/2 PASS(43.3s)는 nativefocus 마지막 한 줄 변경 **전** Workspace SHA `b49ce846e4588113c24ddd9ec6cf33bb8f69c9cb015e51959a1112edaff87458` 기준이다. Manager가 생성payload/transport/auth/Origin/If-Match/API/domain/DB/persistence spec 및 나머지4제품source 불변, Dashboard native focus·삭제 취소 focus bridge·관리 메뉴 ID 폐기의 UI-only 변경과 서버영향 N/A 조건으로 이 제한된 실제 서버 증거의 재사용을 승인했다. 최종 UI source와 동일한 실제 서버 재실행이라고 쓰지 않는다. 원본16파일 manifest와 현재 Workspace/table의 UI-only diff, sanitized2JSON 및 reuse 근거를 최종validation에 구분한다.
+
+
+PRE_QA에서 관리 ID를 폐기하는 RAF가 대상 복귀 render의 cleanup으로 취소될 수 있음을 확인했다. 최초에는 정적 후보였으며, 기존 제품 source의 실제 Chromium 집중 2case에서 소멸 modal/행 commit 뒤 application RAF를 보류한 채 같은 ID를 복귀시키자 메뉴가 자동 재개되어 2/2 FAIL exit1이었다. 기존15case는 RAF 후 복귀를 검증했으므로 이 경쟁조건의 증거가 아니다. 최초 원본은 `/tmp/issue550-frontend-preqa-first.log`, `preqa-first-source.sha256`, `preqa-first-results/` trace로 보존한다.
+
+관리 ID는 현재 컴포넌트의 조건부 render-state 조정으로 자식 commit 전에 폐기하고, 취소 가능한 RAF에는 focus 복원만 남긴다. 테스트 전용 application-world RAF gate는 React의 소멸 DOM commit/행 제거를 먼저 확인하고, 복귀 행이 나타날 때까지 callback을 실행하지 않는다. 자동 메뉴 재개가 없는 것을 검증한 뒤 명시 같은/다른 ID를 열고 보류 callback을 한 번 해제하여 새 dialog와 focus가 유지되는지 확인한다. 임의 timeout이나 생산 control hook을 추가하지 않는다. 삭제 취소/Escape의 disconnected trigger는 별도 정적 후보였으며 기존 source에서 runtime 재현한 것으로 표기하지 않는다. 보완 후 외부 canonical 삭제→취소/Escape가 현재 visible Dashboard 검색으로 복귀하고 outline 선두께3px/offset3px/전체6px 외곽이 viewport 내부, center hit=true/불투명 sticky 겹침0/DELETE0임을 실제 검증했다.
+
+최종19/19 PASS exit0(44.5s)는 `/tmp/issue550-frontend-preqa-final.log`와 `preqa-final-source.sha256`의 동일 UI source 기준이다. 기존15case/5폭도 이 source로 재실행하여 선별 PNG/JSON을 갱신했다. `expiry-race-same-id`, `expiry-race-other-id`, `delete-close-cancel`, `delete-close-escape`의 JSON/PNG를 추가한다. 이전19 실행 없는 상태를 PASS로 재명명하지 않으며 독립 QA·원격 CI는 별도 gate다. TASK_RELATIONS/MILESTONE_STAGE_GATES는 이번 focus/메뉴 수명 보완으로 관계/Gate 계약 변경이 없어 기존 #550 문단을 유지한다.
+
+
+### #550 Code Review 후속 (2026-10-10)
+
+412 POST 충돌시 동일 revision 재제출 금지 및 draft 보존을 Chromium E2E에서 검증한다. 기존 effort bucket 표는 vertical 480px 제한에서 제외하고 관리 stage 표만 scroll owner를 갖는다. 이전 CI #2216.1 PASS는 과거 SHA 근거이고 통합 head는 새 CI로 판정한다.
+
+## Issue #550 — PR CI #2368.1 실패 분석 및 새 exact-head 회귀 검증 (2026-10-10)
+
+원본 PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`, [CI #2368.1](https://github.com/planner77/masterGantt/actions/runs/38032386192)는 aggregate FAIL: Quality·Docker PASS, E2E shard1/3/4/6 PASS, shard2 **9 FAIL/82 PASS/1 SKIP** (job 114155887920), shard5 **1 FAIL/90 PASS** (job 114155887890), E2E aggregate FAIL.
+
+- `project-milestone-stage-table.tsx`의 상세 aria-label이 `<이름> 단계 상세`여서 기존 #463/#518 및 #550 실제 HTTP/SQLite 테스트의 `<이름> Milestone 상세` locator가 3건 Timeout. 관리 dialog 명령도 `Milestone 상세`로 맞춘다.
+- Dashboard가 결과 0개에 문법상 잘못된 `조건에 일치하는 Milestone가 없습니다.`를 표시해 #463 기대 `Milestone이 없습니다.` 1건이 실패. 프로젝트 전체 Milestone 0개와 검색 조건 결과 0개는 계속 구분.
+- #550 synthetic E2E의 `단계 검색` label 2곳이 실제 `Milestone 검색`과 달라 5폭 + 응답 역전 총6건 Timeout. label을 일치시키고 readonly Milestone 상세 접근성/활성 검증을 추가.
+
+변경 범위: UI 문구·accessibility name, E2E label 및 회귀 단언만. 서버 API/SQLite/Ready·Completed/권한/revision/시간축·Gantt/CI timeout 또는 shard 완화 없음. 기존 `milestone-dashboard-state.spec.ts`, `project-workspace-tabs-518.spec.ts`, `milestone-management-persistence.spec.ts`, `milestone-management.spec.ts`의 원래 요구를 유지하여 새 PR head quality/e2e/docker를 실행한다. 본 수정 source의 로컬 Chromium·독립 QA_FINAL은 NOT TESTED, 이전 run PASS를 신규 head PASS로 재사용하지 않는다.

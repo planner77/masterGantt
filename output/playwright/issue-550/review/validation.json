@@ -1,0 +1,270 @@
+{
+  "issue": 550,
+  "capturedAt": "2026-10-08T16:04:28.413639+00:00",
+  "baseline": "4bc4c31d9c5f46d90a83cbe4de878a52a2f2529b",
+  "environment": "Chromium/Next development; synthetic UI and real isolated SQLite separated",
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "26d977512c28bc880e4073a2d84a260110e9ba192c4c4df047d4eec3e1810af2",
+    "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+    "src/features/milestones/milestone-create-dialog.tsx": "0fd7a28bd2740871111dfc2ff6d7c1c564463db11772d13a031e1140afcc2cd1",
+    "src/features/milestones/project-milestone-dashboard.tsx": "0b99fc08dc1c42b008a923bb33c6ddee5bcf80406c3125fda476c4ce5ad75127",
+    "src/features/milestones/project-milestone-stage-table.tsx": "6cfc9f0b1627ee808ff364f83198ff57e001506702777fb1ca8f067f283214fe",
+    "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+    "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8",
+    "tests/features/milestones/milestone-management-model.test.ts": "47fe467603bc1abcfeda8a97ceeccd47d557151f178597d37e75f7d56b375475"
+  },
+  "documentHashes": {
+    "docs/MILESTONE_TIMELINE.md": "42ad71542715fb2e22231e8cf944d4b42a5478b81f68125e3a46de4565635f6d",
+    "docs/PROJECT_UX.md": "b3a15467226c71529a8623ce8afb20526be168deca3bc8479dbead5a5d82b80c",
+    "docs/TASK_EDITOR.md": "d458f6deec8e2049de74de010d8a195c88b73b4f6bd08ea8d0b71a4bc245159c",
+    "docs/TASK_RELATIONS.md": "45cc6a178161e92d74b3810bbe9b2dd8eab006dcf79551f209be62ef76ad546e",
+    "docs/REQUIREMENTS.md": "816dad070031daf9e5dd8053bc47e2df9ab8220a8634fbcf80ce4829dc87d989",
+    "docs/TEST_PLAN.md": "66e325ef9c1449e1ab5d9aa45f051d6b225442f20e251489680bbe59a6eafeef",
+    "docs/MILESTONE_STAGE_GATES.md": "d6c68dae5048d1495b559fade21c26fd746d98ed16165ed7b119ebb2c7c718b2"
+  },
+  "localFastFeedback": {
+    "vitest": {
+      "status": "PASS",
+      "new": 4,
+      "relatedExisting": 66,
+      "uniqueTotal": 70,
+      "exitCode": 0,
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/milestones/milestone-management-model.test.ts tests/domain/milestone-dashboard-model.test.ts tests/features/gantt/task-editor-view-model.test.ts"
+    },
+    "syntheticChromium": {
+      "status": "PASS",
+      "passed": 19,
+      "exitCode": 0,
+      "durationSeconds": 44.5,
+      "command": "CAPTURE_ISSUE_550=review npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-management.spec.ts --project chromium --output=/tmp/issue550-frontend-preqa-final-results --reporter=line"
+    },
+    "typecheck": {
+      "status": "PASS",
+      "exitCode": 0,
+      "command": "npx tsc --noEmit",
+      "generatedNextFilesRestoredToBaseline": true
+    },
+    "changedLint": {
+      "status": "PASS",
+      "exitCode": 0
+    },
+    "markdownLinks": {
+      "status": "PASS",
+      "exitCode": 0,
+      "files": 155
+    },
+    "diffCheck": {
+      "status": "PASS",
+      "exitCode": 0
+    }
+  },
+  "geometry": {
+    "390": {
+      "documentWidth": 390,
+      "ownerWidth": 354,
+      "headerBodyMaxEdgeDifferencePx": 0,
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "overallOutset": 6
+    },
+    "768": {
+      "documentWidth": 768,
+      "ownerWidth": 708,
+      "headerBodyMaxEdgeDifferencePx": 0,
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "overallOutset": 6
+    },
+    "1024": {
+      "documentWidth": 1024,
+      "ownerWidth": 964,
+      "headerBodyMaxEdgeDifferencePx": 0,
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "overallOutset": 6
+    },
+    "1440": {
+      "documentWidth": 1440,
+      "ownerWidth": 1380,
+      "headerBodyMaxEdgeDifferencePx": 0,
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "overallOutset": 6
+    },
+    "1920": {
+      "documentWidth": 1920,
+      "ownerWidth": 1860,
+      "headerBodyMaxEdgeDifferencePx": 0,
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "overallOutset": 6
+    }
+  },
+  "fallback": {
+    "canonical-delete": {
+      "kind": "search",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "rect": {
+        "x": 429,
+        "y": 308.5,
+        "right": 816,
+        "bottom": 344.5,
+        "width": 387,
+        "height": 36
+      },
+      "outline": "solid",
+      "outlineWidth": 3,
+      "ring": 6,
+      "centerHit": true,
+      "occluding": [],
+      "pageScroll": {
+        "x": 0,
+        "y": 0
+      },
+      "chartScroll": {
+        "left": 0,
+        "top": 0
+      }
+    },
+    "report-filter": {
+      "kind": "search",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "rect": {
+        "x": 429,
+        "y": 308.5,
+        "right": 816,
+        "bottom": 344.5,
+        "width": 387,
+        "height": 36
+      },
+      "outline": "solid",
+      "outlineWidth": 3,
+      "ring": 6,
+      "centerHit": true,
+      "occluding": [],
+      "pageScroll": {
+        "x": 0,
+        "y": 0
+      },
+      "chartScroll": {
+        "left": 0,
+        "top": 0
+      }
+    }
+  },
+  "realHttpSqlite": {
+    "status": "PASS",
+    "passed": 2,
+    "exitCode": 0,
+    "durationMilliseconds": 43288.521,
+    "skipped": 0,
+    "flaky": 0,
+    "unexpected": 0,
+    "sameAsFinalUiSource": false,
+    "reusedByManager": true,
+    "reuseScope": "Manager 승인: 이전 실행 manifest16 중 Workspace native focus/삭제 취소 bridge, stage-table 메뉴 ID 수명, synthetic UI spec 3개만 UI-only 변경. 나머지13 및 createRootMilestone/saveTask/confirmTaskDelete/transport/auth/Origin/If-Match/API/domain/DB/actual persistence spec 불변. 서버 LFF 한정 재사용이며 최신 UI 경계는 별도19case로 검증. 최신 동일소스 실제 서버 재실행 아님.",
+    "executedSourceHashes": {
+      "tests/e2e/milestone-management-persistence.spec.ts": "7e11e39f1d079000c5aed85a7e4e5850d6be6374315918f2ecc5de0b06faafc8",
+      "tests/e2e/fixtures/isolated-application.ts": "222ca04e2153a78c2416f0e2bc1d473b8b38928f88e3e14f99f206cb933941a2",
+      "src/features/projects/project-readonly-view.tsx": "b49ce846e4588113c24ddd9ec6cf33bb8f69c9cb015e51959a1112edaff87458",
+      "src/features/milestones/milestone-create-dialog.tsx": "0fd7a28bd2740871111dfc2ff6d7c1c564463db11772d13a031e1140afcc2cd1",
+      "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+      "src/features/milestones/project-milestone-dashboard.tsx": "0b99fc08dc1c42b008a923bb33c6ddee5bcf80406c3125fda476c4ce5ad75127",
+      "src/features/milestones/project-milestone-stage-table.tsx": "30a311b483c7398f849ffc95263bcd96f5fdd715bd9988b10ba28663bbbcb361",
+      "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+      "src/features/gantt/project-task-editor.tsx": "792fe8feb9489f7dba5e45aeefda1281ff7011be015dc84927e3d6cefc3fbe36",
+      "src/server/projects/project-service-core.ts": "ac9701ecfec38ccda6b91f9d6fe7696056d8b25bce93ff4238468dea56631990",
+      "src/server/projects/task-hierarchy-service-core.ts": "2138740f3ffc0510a2bb6b5464589448b832bf01f54ed0600202daeba349d124",
+      "src/server/projects/task-contract.ts": "9e5ff66a11a29c4e2cb7ee91ea594c6fe5964d7b9bbf574bbb77e6b8513801f7",
+      "src/server/projects/link-service-core.ts": "6f48a88626e58cc63449b1379f96596897d6f1984eab3c209e7c4fb3269cf21e",
+      "src/domain/milestones/stage-gates.ts": "8451f75117a15780f77a9b1d5f63f5d465a504217dfa19cfb536a699c0b6e9ec",
+      "src/domain/milestones/membership-copy-plan.ts": "e93871b8841f5d119efd35b8bfbacfef5e8e94aaf92422d7431b4b6e79a8d240",
+      "tests/e2e/milestone-management.spec.ts": "70dea0960f81aa7c9e5e80ab6051fac78b044a88347b06a4b3e40abd4e9713e3"
+    },
+    "currentDrift": [
+      {
+        "path": "src/features/projects/project-readonly-view.tsx",
+        "executedSha256": "b49ce846e4588113c24ddd9ec6cf33bb8f69c9cb015e51959a1112edaff87458",
+        "currentSha256": "26d977512c28bc880e4073a2d84a260110e9ba192c4c4df047d4eec3e1810af2",
+        "change": "Dashboard native focus 및 삭제 취소/Escape fallback bridge"
+      },
+      {
+        "path": "src/features/milestones/project-milestone-stage-table.tsx",
+        "executedSha256": "30a311b483c7398f849ffc95263bcd96f5fdd715bd9988b10ba28663bbbcb361",
+        "currentSha256": "6cfc9f0b1627ee808ff364f83198ff57e001506702777fb1ca8f067f283214fe",
+        "change": "자체 render-state 메뉴 ID 즉시 폐기와 취소 가능한 focus RAF 분리"
+      },
+      {
+        "path": "tests/e2e/milestone-management.spec.ts",
+        "executedSha256": "70dea0960f81aa7c9e5e80ab6051fac78b044a88347b06a4b3e40abd4e9713e3",
+        "currentSha256": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8",
+        "change": "synthetic RAF race/취소 focus oracle 4case 추가"
+      }
+    ],
+    "evidence": [
+      "backend-sqlite-http-restart.json",
+      "backend-empty-milestone-only.json"
+    ],
+    "unchangedManifestFiles": 13
+  },
+  "independentUiUx": {
+    "status": "PASS",
+    "role": "ui_ux read-only delta comparison after PRE_QA rework; 7-source and 4 new JSON drift0; independent qa_docs/Manager acceptance 별도"
+  },
+  "remoteQuality": "NOT TESTED",
+  "remoteE2e": "NOT TESTED",
+  "remoteDocker": "NOT TESTED",
+  "productionProxyDeviceScreenreader": "NOT TESTED",
+  "weekDateHeaderSemanticGate": "FAIL from #549; cause/baseline NOT TESTED; #551 activation gate retained",
+  "documentationNA": [
+    "API",
+    "DB_SCHEMA",
+    "SECURITY",
+    "SCHEDULING_ENGINE",
+    "IMPORT_SCHEMA",
+    "Export",
+    "CI_CD",
+    "REMOTE_VALIDATION",
+    "DEPLOYMENT",
+    "DESIGN",
+    "AGENTS"
+  ],
+  "notes": [
+    "synthetic inactive logistics GET404는 fake Project가 실제 backend에 없기 때문, 실제 server 결과와 분리",
+    "원본 실패 stdout/time/source manifests/trace는 /tmp에 보존; secrets/DB/runtime logs/trace/.next Git 제외",
+    "현재 native Milestone rows/quickviews 유지; 신규 lane/preference wiring 미활성"
+  ],
+  "preQaRework": {
+    "originalFinding": "정적 후보; 후속 Chromium 집중 실행에서 race만 실제 재현",
+    "firstRuntime": {
+      "status": "FAIL",
+      "failed": 2,
+      "exitCode": 1,
+      "sourceHashes": {
+        "src/features/projects/project-readonly-view.tsx": "71949d287c2cf0460de74eedcba81553bf54cccc3bbec5c2136d76d23b2683af",
+        "src/features/milestones/project-milestone-stage-table.tsx": "30a311b483c7398f849ffc95263bcd96f5fdd715bd9988b10ba28663bbbcb361",
+        "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8"
+      },
+      "log": "/tmp/issue550-frontend-preqa-first.log",
+      "traceDirectory": "/tmp/issue550-frontend-preqa-first-results",
+      "firstLoggedHttpTimestamp": "2026-10-08T16:00:48.640Z",
+      "failure": "committed missing → target returns while application RAF held → stale menu automatically visible"
+    },
+    "deleteCancelOriginal": "정적 후보, 기존 source runtime FAIL로 표기하지 않음",
+    "finalEvidence": [
+      "expiry-race-same-id.json",
+      "expiry-race-other-id.json",
+      "delete-close-cancel.json",
+      "delete-close-escape.json"
+    ],
+    "testOnlyFrameControl": true,
+    "productionControlHook": false,
+    "focusOutsetPixels": 6
+  }
+}

@@ -126,3 +126,52 @@ Milestone-only/empty는 canonical의 서로 다른 상태이며 Task identity·S
 #549 기술 probe의 right-edge 테스트는 사용자 휠→공개 `scroll-chart`의 **실제 처리 순서**를 검증해야 한다. 실패 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)의 [trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)는 Core/native left=26640 상태에서 프로그래밍 우측 이동 `scroll-chart(36960)`을 요청한 **이후** 앞서 발행된 사용자 wheel 이벤트 `scroll-chart(26671)`이 도착하는 역전이 발생했음을 기록한다. 최종 scroll이 오른쪽 extension 임계에 도달하지 않아 width=37404가 유지됐다.
 
 `await page.mouse.wheel()` 반환이 native wheel 및 Core state 갱신 완료를 보장한다는 종전 테스트 가정을 철회한다. 새 E2E는 trusted wheel 후 Core left 증가와 native scrollLeft 동기(±1px)를 실제 조건으로 bounded poll하고 몇 RAF를 settle한 다음 **최신 관측값**으로 right-edge API를 호출한다. 그 다음 실제 축 너비의 증가, 같은 instance/행·Link/canonical/no-mutation을 계속 검증한다. 기존 #530 복원 가드와 #367 범위 확장 로직, #569 PoC DEFER 및 #551 Week header 의미 gate는 변경하지 않는다. 이 기록은 실패 원본 trace와 수정 의도를 구별하며 새 CI 실행 전 PASS라고 표시하지 않는다.
+
+
+## Issue #550 — 기존 Dashboard의 독립 관리 진입
+
+관리 목록은 기존 Milestone Dashboard의 보고 population·검색·날짜·상태·범위·KPI·freshness를 유지하는 평면 표시다. canonical Task.start의 유효 날짜, externalId, taskId 순으로 기존 stageFilterCandidates를 재사용한다. 미설정/무효 날짜는 마지막에 표시하며 부모·siblingOrder·Dependency를 저장하지 않는다. 같은 이름·날짜도 data-milestone-task-id와 canonical taskId로 구분한다. 전체 Milestone 0개와 검색/다른 조건의 결과 0개를 구별한다. Gantt WBS scope 밖 단계와 소속/관계 endpoint는 전체 canonical snapshot에서 resolve한다.
+
+표의 기존 1052px 최소 예산과 조회 144px 열을 유지한다. 상세·소속·원인 조회를 보존하고 관리 버튼에 추가 명령을 모은다. 좁은 화면의 표 가로 스크롤과 480px 상한의 표 내부 세로 스크롤, toolbar reflow를 사용한다. 관리 대화상자는 기존 WorkspaceDialog의 native modal·Tab 보호·Escape와 semantic token을 재사용한다. 한 번에 관리 메뉴/생성 dialog/Editor 한 경로만 연다.
+
+| 명령 | 진입과 권한 | 기존 계약/지원 경계 |
+| --- | --- | --- |
+| Milestone 추가 | 편집 모드의 Dashboard toolbar, 이름/요청 시작일 작은 form | POST tasks의 type=milestone/duration=0/progress=0/parentExternalId=null, parentTaskId 생략. 프로젝트 root append이며 선택 Summary/scope를 부모로 사용하지 않음 |
+| 상세 / 소속 작업 | 이름·상세·소속 버튼 또는 관리 메뉴, readonly 조회 가능 | 같은 Task Editor의 task/memberships 탭. 기존 Description/URL/일정/명시 소속/상속/override 저장 단위 유지 |
+| 관계 조회·관리 | 관리 메뉴에서 같은 Editor의 relations 탭 | 같은 Relation Editor; readonly 조회, mutation은 기존 dirty/pending/revision/completed/endpoint guard |
+| 작업 ID 복사 | readonly에도 가능 | canonical task UUID, 기존 clipboard compatibility helper. Project/Task mutation 없음 |
+| Milestone 복사 | 편집 모드에서 단일 source를 자신의 다음 sibling 위치에 복사 | 기존 previewMembershipCopy/task-commands와 acknowledgement, Assignment·완료 단계 fullE/explicit/incident 경계와 서버 guard. 완료 수동 이벤트도 기존 경계를 통과하면 허용; 일괄 완료 잠금으로 Copy를 축소하지 않음 |
+| Milestone 삭제 | 편집 모드, 기존 삭제 계획과 명시 확인 | 완료 단계 구조 잠금/incident Link/Assignment/domain/revision 검증 유지. Summary subtree/다중 M 관리 명령을 새로 확대하지 않음 |
+| 완료 / 재개 | 상세 Editor에서 상태 선택 후 명시 저장 | Ready를 자동 Completed로 처리하지 않음. 재개 성공 후 소속/관계 구조 변경을 별도로 저장 |
+| 해당 날짜에서 보기 | 유효 canonical 예정일과 현재 원본 조회 문맥이 있을 때 | 현재 정상 native 일정 조회 경로; 새 lane 활성화나 숨은 native행 선택을 제공하지 않음 |
+| 소속 작업 일정에서 보기 | 전체 E(M)의 정확한 memberTaskIds와 원본 조회 문맥이 있을 때 | Milestone 날짜 조회와 별도 명령. 0-member/날짜없음/문맥없음은 사유와 비활성 표시 |
+
+추가 form의 입력 초안은 Escape/취소/닫기에서 폐기 확인을 거친다. 계속 입력 또는 Escape로 입력을 유지하며 명시 폐기만 닫는다. 저장 중에는 중복 제출과 닫기를 차단한다. 401/412/network 실패는 입력을 보존하고 자동 재전송하지 않는다. 열린 revision이 바뀌면 다시 제출하지 않고 취소 후 최신 canonical 검토를 안내한다.
+
+생성 성공은 기존 saveTask 보호 gateway와 applySnapshot의 canonical revision 검증 이후에만 처리한다. 서버는 별도 createdTaskId 필드가 없으므로 이전 Task ID 집합과 응답 Task ID 집합의 유일한 새 Milestone, taskCreate operation 및 changed external ID를 대조한다. 이름·배열 마지막 행으로 추측하지 않는다. 현재 생성 요청/Project/canonical 응답이 같을 때 기존 Editor로 넘기고, ID가 유일하지 않으면 자동 Editor를 열지 않고 목록 확인을 안내한다.
+
+닫기 focus는 원 Dashboard의 연결된 visible/non-inert 실제 trigger로 복귀한다. 관리 메뉴가 열린 상태에서 외부 canonical 삭제나 보고 population 변화로 대상이 사라지면 관리 ID를 현재 컴포넌트의 조건부 render-state 조정으로 자식 commit 전에 폐기한다. focus 복원만 취소 가능한 한정된 RAF에 맡긴다. 대상이 RAF 전에 복귀해도 폐기가 취소되지 않으며, 명시적인 같은/다른 ID의 새 열기 명령은 이전 focus frame을 취소한다. 같은 ID가 다시 등장해도 사용자 명령 없이 메뉴를 다시 열지 않는다. 삭제·갱신으로 trigger가 사라지면 보이는 검색→추가→heading으로 복귀한다. 복원은 현재 표시된 Dashboard의 Project identity를 확인하여 다른 Project나 숨은 panel에 오래된 focus를 적용하지 않는다. Dashboard 호출의 Task/Relation Editor가 숨은 Gantt에 focus를 넘기지 않는다. 단순 조회는 기존 Gantt 인스턴스와 필터·scope·Day/Week·열·scroll 보존 경로를 유지하며 mutation/revision 증가가 아니다.
+
+#549의 Week 날짜 헤더 의미 FAIL와 원인/baseline NOT TESTED 및 #551 date/header oracle activation gate는 유지한다. #550은 새로운 lane, preference wiring, M행/빠른 보기 제거를 활성화하지 않는다. 현재 URL scope는 #399 단일 Summary이며 #497 복합/M root가 현재 기능이라고 표기하지 않는다.
+
+
+### #550 로컬 검증과 문서 영향
+
+신규 관리 helper Unit4와 관련 기존66 총70 PASS, actual Chromium synthetic UI19/19 PASS exit0(44.5s), backend의 development isolated HTTP/SQLite2/2 PASS exit0(전체43.3s, skipped/flaky0)다. 실제 생성/편집/소속·관계/전체 Gate/완료 경계/보호 거절/restart canonical equality와 빈/M-only/readonly를 synthetic UI와 구별한다. 상세 범위·최초 fixture FAIL·한계는 [TEST_PLAN](TEST_PLAN.md#issue-550--milestone-관리-진입-local-fast-feedback)을 따른다. 원격 quality/e2e/docker 및 production/proxy/실기기·스크린리더는 NOT TESTED다.
+
+MILESTONE_TIMELINE/PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/REQUIREMENTS/TEST_PLAN/MILESTONE_STAGE_GATES에 실제 UI/command/검증 영향을 반영한다. API/DB/SECURITY/SCHEDULING/Import/Export/CI/배포 계약은 새로운 endpoint/schema/auth/revision/algorithm/persistence/renderer/workflow가 없어 N/A다. DESIGN/AGENTS의 기존 Light/system-font/semantic-token/Core/PRO/역할 규칙을 재사용하므로 새 디자인·역할 규칙을 추가하지 않는다. 현재 native M행과 types/quickview는 보존되고 #551 날짜 헤더 gate를 통과한 것으로 표기하지 않는다.
+
+
+표시된 Dashboard focus 복원은 native browser focus를 사용하여 검색/추가/heading 또는 실제 trigger가 viewport 안으로 드러나도록 한다. Gantt/Core 좌표나 DOM scroll을 강제 변경하지 않는다. 마지막 실제19case에서 fallback의 viewport/outline/center hit/불투명 sticky·fixed 가림 없음과 기존 Chart scroll을 확인했다. 실제HTTP/SQLite2PASS는 native focus, 관리 ID 폐기 및 삭제 취소 focus 보완 전 source의 증거이며 Manager의 서버 영향 N/A 재사용 결정과 이전Workspace SHA를 [TEST_PLAN](TEST_PLAN.md#issue-550--milestone-관리-진입-local-fast-feedback)에 기록한다.
+
+
+기존 Gantt의 Cut/Copy clipboard/Paste, 위·아래 이동/들여쓰기·내어쓰기/유형 변경 등 hierarchy 명령은 현재 native 행·메뉴·keyboard 경로와 기존 capabilities를 유지한다. 이 관리 메뉴는 그 경로를 새로 복제하거나 다중 Milestone 명령을 확장하지 않는다. #552에서 행을 제거하기 전에는 전체 기존 명령 inventory의 대체 진입·명시 비지원/후속 경계를 별도로 검토해야 하며 #550만으로 해당 명령을 제거하지 않는다.
+
+삭제 확인의 취소/Escape도 현재 Milestone Dashboard의 실제 trigger 또는 visible fallback으로 복귀한다. 확인 도중 외부 갱신으로 trigger가 사라져도 검색/추가/heading을 복원하며 취소는 삭제 요청을 보내지 않는다. 관리 ID의 조건부 자체 state 조정은 [React 공식 지침](https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)을 따른다(확인 2026-10-09). DOM focus와 frame cleanup은 effect/event에 유지하고 다른 컴포넌트 state나 render 중 ref를 변경하지 않는다.
+
+
+#550 PR 리뷰 보완: 412 POST 충돌 시 생성 초안을 stale로 전환해 동일 If-Match 재제출을 막고, 480px 높이 제한을 Milestone 관리 목록에만 적용하여 기존 공수 bucket 표에 전파하지 않는다.
+
+### #550 PR CI #2368.1 — Milestone 이름·검색·상세 진입 정합 (2026-10-10)
+
+최신 main 통합 시 관리 표의 사용자 표기 일부(`단계 상세`)와 결과 0건 텍스트의 조사(`Milestone가`), #550 테스트에 남은 `단계 검색`이 기존 Milestone UI 계약 및 #463/#518 E2E 선택자와 어긋났다. **표시 및 접근성 이름을 동일한 `Milestone` 계약으로 복구**하고 E2E가 올바른 이름을 검증한다. 빈 프로젝트와 조건 결과 0개를 계속 구분한다. #551/552 Timeline 활성화, domain/API/DB/상태 저장/Date·Week geometry 계약의 변경은 N/A다.

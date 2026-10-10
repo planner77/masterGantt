@@ -211,3 +211,9 @@ Resource 선택 진척과 전체 canonical Ready/Blocked는 별개다. R8 통합
 ## Issue #549 — 표시 projection과 전체 Gate
 
 [Milestone Timeline](MILESTONE_TIMELINE.md)의 순수 조회 모델은 전체 canonical Task/Link를 기존 `projectStageGates`에 전달한다. WBS scope/작업 조건/접힘/표시 OFF/viewport clip으로 전체 Membership, E(M)/P(M), ready/manualEvent/completionInconsistent를 변경하지 않는다. 별도 active Milestone은 native 작업 선택과 분리하며 가시 일반 Task와 전체 member의 교집합만 강조한다. 전체 canonical subtree 영향 설명은 기존 Copy 제외·완료 구조 잠금·external Link/Assignment guard를 대체하지 않는다. MT1은 운영 행 제거·새 Gate 계산·API/DB mutation 계약 변경을 하지 않는다.
+
+
+
+## Issue #550 — 관리 진입과 기존 전체 Gate
+
+관리 목록은 기존 Dashboard stageGate와 전체 canonical Task.stageGate를 조회하고 새 Ready/Completed 엔진을 만들지 않는다. fullE(M)/P(M), 수동 이벤트 ready=null, 완료불일치 진단·완료 잠금, 명시 소속/상속/override를 유지한다. 소속 일정 이동은 full memberTaskIds를 사용하고 0-member에서는 사유와 함께 비활성화한다. 날짜 정렬은 표시 순서이며 Dependency/siblingOrder/Gate 모집단 mutation이 아니다. 완료/재개는 같은 Editor의 명시 상태 저장이다. 단일 Copy는 기존 fullE/explicit/incident 경계의 server authority를 유지하며 0-member manual 완료 M도 경계를 통과하면 허용된다. acknowledgement로 Assignment/완료 잠금을 해제하지 않는다.

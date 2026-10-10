@@ -1214,3 +1214,23 @@ Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개�
 현재 `TaskFilterState.types`는 React 메모리와 scope별 Map에 보존하며 URL/localStorage에 저장하지 않는다. MT1은 표시 preference v1의 기본 ON 정규화와 types 변환 함수를 제공하지만 현재 화면에 적용하지 않는다. Task-only를 새 OFF로 자동 이식하지 않고 mixed 조합은 Milestone 유형만 제외하며 나머지 조건을 보존한다. Milestone-only는 원래 조건을 보존하고 Dashboard/명시 유형 해제 호환 UI를 후속 MT4에서 제공한다. OFF 날짜 조회의 일시 표시와 복귀 OFF, 사용자 toggle만 저장하는 계약도 후속 연결 대상이다.
 
 #399의 단일 Summary `rootTask` scope와 현재 작업 선택/Editor/clipboard/viewport를 유지한다. #497 복합 scope/Milestone root를 구현된 기능으로 간주하지 않는다. 숨은 Milestone은 Summary roll-up/전체 subtree 명령과 canonical JSON/Excel/이미지 export에 계속 포함한다. 새 Timeline 조회 선택은 native 작업 다중 선택과 분리하며 가시 일반 작업 교집합만 강조한다. [상세 계약과 기술 gate](MILESTONE_TIMELINE.md)를 따른다.
+
+
+
+## Issue #550 — Milestone Dashboard 관리
+
+기존 Dashboard의 평면 목록은 canonical 적용 예정일/externalId/taskId 순이며 보고 population·KPI·조회 조건을 보존한다. 조회 144px 열의 관리 버튼으로 상세/소속/관계/ID 복사와 허용 단일 복사·삭제·날짜/소속 일정 이동을 제공한다. 편집 모드의 Milestone 추가는 현재 Summary나 WBS scope와 무관한 프로젝트 root append이며 작은 name/date form 후 같은 Editor를 연다. 저장 성공의 유일한 새 canonical ID를 확인하며 동명이나 배열 순서를 추측하지 않는다.
+
+표는 최소 1052px 가로 예산과 480px 내부 세로 scroll, 좁은 폭 toolbar reflow를 사용한다. native modal/키보드/초안 폐기 확인/pending 닫기 보호를 유지한다. Editor·관계 닫기에서 실제 보이는 Dashboard trigger를 복원하며 삭제/갱신 뒤에는 검색·추가·heading fallback을 사용한다. 401/412/network와 revision 변경은 초안을 보존하고 자동 저장/재전송하지 않는다. 조회 전환의 Gantt instance와 기존 scope/filter/viewport 경계는 유지한다. 명령별 권한과 비지원 범위는 [Milestone Timeline](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다. #549 Week header FAIL의 #551 활성화 gate와 현재 M행/빠른 보기 유지 계약은 변경하지 않는다.
+
+
+열린 관리 메뉴의 대상이 외부 canonical 삭제 또는 보고 population 변화로 사라지면 메뉴 ID를 폐기하고 현재 Project의 보이는 Dashboard fallback으로 focus를 복원한다. 같은 대상이 재등장해도 메뉴를 자동으로 열지 않는다. 실제5폭 geometry는 표 header/body 경계 차이0px, 문서폭=viewport, sibling/button/toolbar/focus-owner containment ±1px와 표 키보드 scroll을 검증한다. 모달 screenshot의 폭만으로 표 전체 geometry를 PASS로 간주하지 않는다.
+
+#550 관리 대상 소멸은 자식 commit 전 현재 컴포넌트 state에서 ID를 폐기하며 focus만 한정된 RAF로 분리한다. 대상의 RAF 전 복귀로 메뉴를 자동 재개하지 않는다. 같은/다른 ID의 명시 열기는 오래된 focus를 취소한다. 삭제 확인 취소/Escape는 외부 갱신으로 trigger가 사라져도 현재 Dashboard의 보이는 검색/추가/heading으로 복귀하고 삭제 요청을 보내지 않는다.
+
+
+Issue #550 통합 보완: 412 생성 충돌 후 초안은 보존하지만 반복 제출은 비활성화한다. 세로 480px 상한은 관리 표만 적용한다.
+
+### Issue #550 — PR CI #2368.1 용어/접근성 회귀 보완 (2026-10-10)
+
+기존 #495의 사용자 표시 `Milestone` 용어를 새 관리 표와 기존 독립 Dashboard에 일관되게 사용한다. 표의 상세 버튼 접근성 이름은 `<Milestone 이름> Milestone 상세`, 검색 label은 `Milestone 검색`, 검색 결과 0개(프로젝트 Milestone은 존재)는 `조건에 일치하는 Milestone이 없습니다.`다. 프로젝트 전체에 Milestone이 없을 때의 `프로젝트에 Milestone이 없습니다.`와 구분한다. 관리 명령의 `Milestone 상세`도 같은 용어를 사용한다. 서버 canonical ID/조회 범위/전체 KPI·Ready·Revision·편집 권한은 변경하지 않는다.

@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-10-08T16:01:50.726Z",
+  "environment": "Chromium/Next dev synthetic mock API",
+  "revision": 40,
+  "requestCount": 1,
+  "draftPreserved": true,
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "26d977512c28bc880e4073a2d84a260110e9ba192c4c4df047d4eec3e1810af2",
+    "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+    "src/features/milestones/milestone-create-dialog.tsx": "0fd7a28bd2740871111dfc2ff6d7c1c564463db11772d13a031e1140afcc2cd1",
+    "src/features/milestones/project-milestone-dashboard.tsx": "0b99fc08dc1c42b008a923bb33c6ddee5bcf80406c3125fda476c4ce5ad75127",
+    "src/features/milestones/project-milestone-stage-table.tsx": "6cfc9f0b1627ee808ff364f83198ff57e001506702777fb1ca8f067f283214fe",
+    "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+    "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8"
+  }
+}

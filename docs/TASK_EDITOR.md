@@ -311,3 +311,13 @@ Footer는 Reload 왼쪽, Cancel/Commit 오른쪽을 유지하되 모든 action�
 Summary의 Description과 URL은 자손 일정에서 파생되는 값이 아니라 Summary 자체가 소유하는 비일정 메타데이터다. 따라서 편집 권한이 있는 Task Editor에서는 일반 Task와 같은 입력·정규화·검증을 사용한다. Description은 10,000 Unicode code point 이하이며 공백-only는 null, URL은 trim 후 4,096 code point 이하의 HTTP(S)만 허용한다.
 
 Summary의 요청 시작일·기간·일정 모드·진행률·상태·Baseline은 기존 파생/읽기 전용 계약을 유지한다. Description/URL 변경은 이 필드를 payload에 넣지 않으며, 하위 Task 추가·삭제·이동 또는 Summary 재계산이 저장된 Description/URL을 초기화하지 않는다. readonly, 다른 편집 단위의 dirty/pending, stale revision, 저장 중 잠금과 focus/Escape/초안 보호는 기존 Task Editor 규칙을 그대로 따른다.
+
+
+
+## Issue #550 — Milestone 관리 목록의 같은 Editor
+
+Dashboard의 canonical taskId와 실제 trigger로 기존 Editor의 task/memberships/relations 탭을 연다. 조회/readonly, dirty/pending, 명시 상태 저장, 완료·재개 및 리소스/물류/소속 저장 단위는 동일하다. 프로젝트 root Milestone 생성의 작은 name/date form은 별도 full Editor가 아니다. 기존 saveTask POST와 성공 canonical snapshot을 공유하고 taskCreate의 유일 새ID+changed external ID를 확인한 후 같은 Editor로 넘긴다. 401/412/network·revision 변경에서 생성 초안도 보존하며 Escape/취소/닫기에는 폐기 확인, pending에는 닫기/중복 전송 차단을 적용한다.
+
+Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의 검색/추가/heading으로 복귀한다. 완료·재개는 기존 상태 선택과 명시 저장이며 Ready/100%는 자동 Completed가 아니다. Copy는 기존 단일 source/sibling-after gateway와 완료 경계 판단을 재사용하므로 완료 manual 이벤트를 일괄 금지하지 않는다. 삭제는 명시 확인과 기존 완료/Link/Assignment/server guard를 유지한다. 자세한 inventory는 [관리 계약](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다.
+
+#550 관리 메뉴의 삭제 확인 취소/Escape는 저장 중 차단되며 삭제 요청을 보내지 않는다. 확인 중 외부 canonical 갱신으로 호출 trigger가 사라지면 현재 Dashboard의 보이는 검색/추가/heading으로 focus를 복귀한다. 공통 Dialog나 서버 삭제 계약은 변경하지 않는다.

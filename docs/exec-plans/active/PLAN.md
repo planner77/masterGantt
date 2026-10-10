@@ -1,10 +1,47 @@
+## Issue #550 — 최신 main #582/#598 정책 정렬 및 PR CI 재시작 (2026-10-11)
+
+이전 PR #559 Head `cb360903dfac443547e9e16e1091273eca669400`의 [CI #2414.1](https://github.com/planner77/masterGantt/actions/runs/38051399462): 세 Required Quality/E2E6/Docker aggregate는 PASS이나 자동 QA는 `qa_method=AGENT` 및 보호된 package/lock에 대한 현재 Head 독립 인간 `QA_FINAL: PASS` 리뷰가 없어 BLOCKED/FAIL. 제품·기능 검증 실패는 아니다.
+
+최신 main `e41696430a78045998e35edad7cab5bb901a097e`(base `31372f967159b2f993116c73f0adc228eb1ea0ff` 대비 41커밋/27파일) 통합. 제품/UI/권한/SQLite/E2E 및 `0.105.0` 버전은 보존한다. main 변경 25개 비중복 파일은 동일 blob으로 보존하고, `docs/TEST_PLAN.md`의 #582 CI 회귀·#598 QA 정책과 #550 테스트 원장, `docs/exec-plans/active/PLAN.md`의 #598 정책과 #550 이력을 함께 유지한다.
+
+채택된 [#598](https://github.com/planner77/masterGantt/issues/598) 정책에 맞춰 PR 메타데이터 `qa_method=OWNER_MANAGED`, `risk_level=HIGH`, `qa_required=true`를 적용한다. 독립 QA `N/A(선택 미실시)`, 자동 QA·Trusted QA와 Owner 최종 `Manager ACCEPT`는 분리한다. 기존 Quality/E2E/Docker, 리뷰 스레드0, 문서/AC 및 protected 버전의 위험 검토는 유지. `release_required=true/release_authorized=false`, 병합/정식 GHCR/tag/Issue 종료 미승인. 새 exact-head PR CI **시작까지만** 진행하고 실제 결과는 별도 확인한다.
+
 ## Issue #598 — Owner-managed QA 정책 적용
 
 Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.
 
+## Issue #550 — PR CI #2404.1 병합 검증 불일치 복구 및 #589 main 정렬 (2026-10-10)
+
+[PR #559](https://github.com/planner77/masterGantt/pull/559)의 이전 exact Head `de9eb8286ad237f47e1c3fef0767afcbacc410f4`에 대한 [PR CI #2404.1](https://github.com/planner77/masterGantt/actions/runs/38049115763)는 정책 검사, TypeScript/Lint/Vitest/production build, Chromium E2E 6/6 및 aggregate, Docker smoke 및 aggregate가 모두 PASS였다. 전체 workflow는 `QA Final — Automated` job `114208535287`만 **BLOCKED/FAIL**: 실제 로그의 직접 사유는 `mergeability 또는 test merge 불일치`였다. 이 실패를 앱/E2E 오류나 이미 승인된 독립 QA로 해석하지 않는다.
+
+후속 [Issue #589](https://github.com/planner77/masterGantt/issues/589) main `31372f967159b2f993116c73f0adc228eb1ea0ff`이 이전 기준 `26e72bbed046a6ad6721e1c3c19bda71ce42e570`에서 2개 commit 앞선 것을 확인했다. 변경은 `DESIGN.md`, `docs/exec-plans/active/ISSUE_589.md`, `docs/exec-plans/active/PLAN.md` 3개 문서만이다. #589의 DESIGN 신규 공통 원칙·Work Packet과 PLAN 절을 그대로 보존하고, #550 PLAN 전체 및 제품 `0.105.0`, 기존 HTTP/SQLite, feature/UI/E2E/lock, #595 기본 브랜치 신뢰 검증기를 그대로 보존하여 2-parent merge로 정렬한다. 관련 문서 이력은 서로 대체하거나 지우지 않는다.
+
+`risk_level=HIGH`, `qa_method=AGENT`, `qa_required=true` 및 `release_required=true/release_authorized=false` 불변. `package.json`/lockfile 보호 경로에 대한 현재 Head 독립 인간 Reviewer `APPROVED` + `QA_FINAL: PASS`, required CI 성공, 실제 repository owner의 Manager ACCEPT 영수증은 별도 필수다. 병합 정렬이 자동 QA 승인을 뜻하지 않으며 이번 요청은 새 exact-Head PR CI **시작**까지이고 그 결과/QA_FINAL/Manager ACCEPT/병합/Main CI/GHCR/Issue 종료는 수행하지 않는다.
+
 ## Issue #589 — Design Delta 문서 정합화 / 최신 main 재정렬 (2026-10-10)
 
 [Work Packet](ISSUE_589.md): `DESIGN.md` §8에 실제 채택된 신규 공통 원칙만 승격하고 A/B/C/D 판정과 A 부재 시 PR N/A 필수 기록을 적용한다. 기존 `AGENTS.md`/Agent Prompt/Lifecycle의 DESIGN 참조·DOCUMENTATION_SYNC 체계는 변경하지 않는다. 앞선 PR CI #2383.1/#2384.1은 보호 파일 변경으로 자동 QA BLOCKED였고, 이에 해당 파일 수정은 철회했다. 최신 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`에 rebase하며 다른 Issue의 PLAN 변경을 보존한다. **LOW / qa_required=false**, 세 required CI 및 Manager ACCEPT 전 병합 금지, version/release 변경 없음. 요청 범위는 새 PR CI 시작까지.
+
+## Issue #550 — 최신 main 정렬 #595 통합 후 재검증 (2026-10-10)
+
+기존 PR #559 Head `7f14d94cf830ef7fc70d2c902ce4597e84c62844`와 최신 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`를 비교해 61개 feature 파일 중 `CHANGELOG.md`, `TEST_PLAN.md`, `PLAN.md`만 양쪽 수정임을 확인했다. 새 main의 #595 QA 승인/Attempt 원장·정책 문서 모두 보존하고 해당 3개 문서의 #550 변경을 합친다. package/rootlock의 0.105.0 및 UI/API/DB 의미와 기존 테스트는 유지한다. `AGENT` 보호 버전 파일은 별도 인간 QA 현재 Head 승인 및 Manager 위험 수용 영수증 필수이므로 새 CI 시작만으로 Merge Ready가 되지 않는다. 정렬 커밋 이후 새 exact Head Quality/E2E/Docker PR CI를 시작하고 병합·main CI·GHCR는 요청 범위에서 제외한다.
+
+## Issue #550 — CI #2376.1 보호 버전 파일 QA 정책 BLOCKED 및 #595 분리 (2026-10-10)
+
+[PR #559](https://github.com/planner77/masterGantt/pull/559)의 [CI #2376.1](https://github.com/planner77/masterGantt/actions/runs/38036518629), exact head `f00835e8806c4c2dd73833a21d249890f62a2f7a`는 기존 세 required quality/e2e6/docker 모두 PASS이나 자동 `QA Final — Automated`는 `package.json`/`package-lock.json` 보호 정책으로 BLOCKED. #580의 fail-closed 조건은 제품 릴리스 0.105.0의 필수 version bump와 겹치며, 코드 버전 위장·원장 제거 또는 검증기 약화로 처리하지 않는다. [후속 Issue #595](https://github.com/planner77/masterGantt/issues/595)에 trusted AGENT 독립 QA 승인 복구 경로를 분리했다. 현재 요청은 #550 실행 계획/검증 원장 갱신, 신규 정확 SHA PR CI 시작까지다. 정책 보완 승인 및 독립 QA Final 전 merge/GHCR/issue close는 BLOCKED다.
+
+## Issue #550 — QA Final 규칙 정합화 및 새 PR CI (2026-10-10)
+
+PR #559 head `406d0e2e1b1794f5cefc4472a0443843dd9df210`의 [PR CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185)은 quality/e2e6/docker aggregate가 모두 **PASS**였으나 신규 `QA Final — Automated`가 `Primary Issue title/Refs` 조건으로 BLOCKED했다. 기존 feature/E2E/domain을 임의로 변경하지 않고 제목 `Issue #550`·단일 `Refs #550`, 명시 HIGH/AGENT, Issue AC1~AC11, Work Packet DOCUMENTATION_SYNC/AC_TEST_COVERAGE 및 review thread 정합을 보완한다. 버전 `0.105.0` 변경은 유지하므로 보호된 package/lock 정책으로 자동 QA는 독립 검토 대신 PASS할 수 없다. `qa_required=true` AGENT 경계와 신규 exact-head quality/e2e/docker 및 별도 QA를 구분한다. 새 CI **시작까지만** 수행하며 병합/main/GHCR/Issue 종료는 제외한다.
+
+
+## Issue #550 — PR CI #2368.1 E2E 10건 실패 보완 (2026-10-10)
+
+[#550 Work Packet](ISSUE_550.md)와 [검증 계획](../../TEST_PLAN.md)을 갱신한다. 기존 PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb` Actions [#2368.1](https://github.com/planner77/masterGantt/actions/runs/38032386192)의 quality/docker PASS, E2E shard2 9건과 shard5 1건 FAIL을 기록한다. 기존 #495 디자인 계약대로 `Milestone 상세`/`Milestone 검색`/zero-result 조사 정합을 맞추고 #550 테스트 선택자를 수정한다. 근본 도메인·보안·Gantt 변경 없이 문서 동기화 및 신규 head PR CI 시작까지만 진행하며 merge/main/GHCR/Issue 종료는 제외한다.
+
+## Issue #550 — 최신 main 통합 및 Codex P2 수정 (2026-10-10)
+
+기준 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`, 후보 0.105.0. PR #559 최초 exact-head CI #2216.1 PASS는 과거 SHA이며 412 재제출 차단·관리 표 전용 cap·최신 Milestone 문구 및 관련 검증을 반영한 새 exact-head PR CI 시작 후 별도 판정한다. 병합/GHCR/종료 비범위.
 
 ## Issue #595 — CI #2396.1 protected BLOCKED, metadata-only Attempt 수정 (2026-10-10)
 

@@ -1,0 +1,12 @@
+{
+  "environment": "Next development isolatedApplication + real SQLite",
+  "emptyTaskCount": 0,
+  "milestoneOnlyTaskCount": 1,
+  "publicId": "d60a3dbb-88e0-4966-9463-09cbbb037a34",
+  "milestoneTaskId": "375a77a7-63e8-4bd2-a42d-397e9f87ffd7",
+  "projectRevision": 2,
+  "manualEvent": true,
+  "ready": null,
+  "protectedNavigationMutations": 0,
+  "readonlyCreateStatus": 401
+}
