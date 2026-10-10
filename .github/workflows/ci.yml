@@ -44,6 +44,44 @@ jobs:
       current_version: ${{ steps.release_candidate.outputs.current_version }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
+      # Source-of-truth for PR attribution is the GitHub event captured before
+      # any PR checkout. Trusted QA treats this artifact as untrusted data and
+      # independently checks its run/attempt/PR/head/base/test-merge provenance.
+      - name: PR CI 원본 이벤트·base·test-merge 증거 생성 (#593)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
+          pr = event["pull_request"]
+          payload = {
+              "schema": "mastergantt-ci-pr-source-v1",
+              "repository": event["repository"]["full_name"],
+              "run_id": int(os.environ["GITHUB_RUN_ID"]),
+              "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+              "pr_number": int(pr["number"]),
+              "head_sha": pr["head"]["sha"],
+              "head_ref": pr["head"]["ref"],
+              "head_repository": pr["head"]["repo"]["full_name"],
+              "base_sha": pr["base"]["sha"],
+              "base_ref": pr["base"]["ref"],
+              "base_repository": pr["base"]["repo"]["full_name"],
+              "test_merge_sha": os.environ["GITHUB_SHA"],
+          }
+          Path("ci-pr-source.json").write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+      - name: PR 원본 출처 증거 보존 (run·attempt별 불변 artifact)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-pr-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-pr-source.json
+          retention-days: 30
+          if-no-files-found: error
       # actions/checkout v7.0.1
       - name: checkout 계측 시작
         id: checkout-start
