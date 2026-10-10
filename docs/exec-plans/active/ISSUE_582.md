@@ -1,5 +1,15 @@
 # Issue #582 Work Packet — Main CI 실행명 단일 행 간소화
 
+
+## 2026-10-10 — CI #2400.1 / 새 main #595 정렬·승인 경로 갱신
+
+- **원본 실패:** [PR CI #2400.1](https://github.com/planner77/masterGantt/actions/runs/38047330320) 원본 Head `614c9d5690bf5689c27cb670215446469ca51c2c`에서 Quality/Chromium E2E 6·Docker가 모두 SUCCESS. `QA Final — Automated` 단독 FAILURE, 로그의 정확 원인: `mergeability 또는 test merge 불일치`.
+- **기준 main 이동:** 원본 PR CI 실행 중 #595의 [PR #597](https://github.com/planner77/masterGantt/pull/597) 병합으로 `main`이 `36b0eaa74a0614a76d1ed867bddb548149feb4bc` → **`26e72bbed046a6ad6721e1c3c19bda71ce42e570`**이 됨. 이는 이전 보호 파일 BLOCKED와 구분되는 최신 main/test-merge SHA race다.
+- **해결:** 위 main을 강제 Push 없이 기존 PR 브랜치의 두 번째 부모로 통합. #595의 보호된 AGENT 승인 검증기와 운영·테스트 문서를 보존하고 #582의 Main/Finalizer 실행명/trace 기능을 유지. 새 Head에서 Quality/E2E6/Docker/QA 실행을 새로 평가할 때까지 NOT TESTED.
+- **#595 실제 승인 경로:** `AGENT` + protected 변경이므로 신뢰된 main `scripts/qa_final_automated.py`는 작성자/owner/bot과 다른 실제 협업자 인간의 **exact Head GitHub APPROVED** 리뷰에 `QA_FINAL: PASS` 및 독립 검토 내용을 요구한다. 그 이후 repository owner가 PR에 exact PR·Issue·Head·base·Review ID·CI Run/Attempt·잔여 위험 수용과 이유를 담은 `mastergantt-protected-qa-accept:v1` 원장을 남겨야 한다. 실재하지 않는 reviewer/승인을 자동 생성하거나 Manager 자신의 검토를 독립 QA로 위장하지 않는다.
+- **운영 순서:** (1) 새 exact Head 전체 필수 PR CI의 세 aggregate 실제 성공 확인 → (2) 별도 인간 Review 및 owner 승인 증거 확보 → (3) 새 Head를 변경하지 않은 같은 Run에서 `QA Final — Automated` 실패 Job만 재실행하며 latest attempt/기존 Quality Evidence 정확성 검증 → (4) 잔여 리뷰 thread 해결, Manager ACCEPT와 Ruleset 점검 후에만 병합.
+- **상태:** 사용자 요청은 정렬·보완 후 새 PR CI 시작까지. 보호된 파일 변경에 대한 독립 승인 증거는 아직 NOT TESTED, release_required=false/release_authorized=false, main/GHCR 미실행.
+
 - issue: [#582](https://github.com/planner77/masterGantt/issues/582)
 - pr: [#584](https://github.com/planner77/masterGantt/pull/584)
 - base_main: `36b0eaa74a0614a76d1ed867bddb548149feb4bc` (2026-10-10 정렬 기준)
@@ -70,10 +80,3 @@
 - 이와 별개로 코드 검토에서 `scripts/verify-ci-run-trace.py::validate_push()`의 `Issue #` 접두어에 ` · PR #` 구분자가 아예 없으면 **정상 직접 Push fallback으로 오인**하던 작은 예외를 발견했다. 예약된 `Issue #` 접두어는 표준 제목으로만 허용하여 이런 malformed 입력도 `TraceError` fail-closed 처리한다.
 - `scripts/verify-issue-lifecycle.py`에 미완성 접두어/PR 구분자 누락/추가 본문 사례를 추가한다. 기존 GitHub Actions `run-name` 사전 평가 및 정상 직접 Push·구형 Merge 추적·권한·required checks 불변.
 - [#595](https://github.com/planner77/masterGantt/issues/595) 독립 QA 보호 파일 승인/실행 상태 설계가 적용되기 전에는 `AGENT + protected` 경로의 자동 QA BLOCKED를 변경하지 않는다. 이 PR CI 신규 실행은 표준 제목 검증 회귀의 결과만 확인하며 QA_FINAL PASS가 아니다. 병합과 Main CI는 현재 범위에서 제외한다.
-
-## 2026-10-10 — CI #2397.1 보호 Gate 재현 및 Unicode 제목 스푸핑 보완
-
-- [PR CI #2397.1](https://github.com/planner77/masterGantt/actions/runs/38043637922) / Head `124fb4980780472ed853b0e55d0f9cacc2d4dbb6`: Quality/E2E6/Docker **모두 PASS**, `QA Final — Automated`만 protected Workflow/검증 스크립트 변경으로 **BLOCKED**하여 전체 workflow FAILURE. 제품/빌드 오류가 아닌 #595([PR #597](https://github.com/planner77/masterGantt/pull/597))의 승인 경로 선행 조건.
-- 실질 코드 보완: `scripts/main_ci_run_name.py`의 요약 문자열에서 C1 제어문자, bidi override, zero-width format 및 Unicode 줄/문단 구분 문자가 ASCII 제어 검사에서 누락된 위험을 발견. `unicodedata.category`의 Cc/Cf/Cs/Zl/Zp 검사로 canonical Merge 제목 생성·파싱·Main Push trace가 해당 문자를 모두 fail-closed 처리한다.
-- `scripts/verify-issue-lifecycle.py`에 신규 malformed Unicode 제목·생성기 부정 회귀를 추가하고 `docs/CI_CD.md` 및 `docs/TEST_PLAN.md` 검증 경계를 동기화한다. 기존 #580 CI/QA validator, Job 분기, 권한, 세 required aggregate, GHCR/release/보호 정책을 변경하지 않는다.
-- 새 Head PR CI 실행 결과는 실제 Run 확인 전 NOT TESTED. 보호 파일을 포함하므로 `QA Final — Automated`가 현행 main 정책상 BLOCKED될 것이 예측된다. 이를 숨기거나 자동 PASS로 바꾸지 않으며, 정확한 Head 독립 QA/Manager 승인 및 #595의 안전한 공식 절차 확보 전 MERGE_READY=BLOCKED.

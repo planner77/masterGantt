@@ -1,3 +1,27 @@
+## Issue #595 — CI #2396.1 / metadata-only의 QA Job 단독 재실행 원장 (2026-10-10)
+
+[PR #597 CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): Quality/Unit/Build/TypeScript/Lint/QA Python, E2E/Docker aggregate SUCCESS. E2E shard는 변경 경로에 따라 SKIPPED이며 실제 브라우저 테스트를 재수행한 증거는 아니다. QA Final은 base의 보호 정책에 따라 BLOCKED(정상 fail-closed). 실제 AGENT 독립 QA·Manager 수용은 NOT TESTED.
+
+검증기 추가 결함: `verify_same_base_full_run()`이 `/runs/{id}/jobs` 기본 최신 attempt만 조회해, 과거 동일 Full CI Run attempt1의 Quality/E2E/Docker가 성공하고 attempt2는 QA Job만 다시 실행된 **성공한 동일 Head/base 원장**을 metadata-only 경로에서 놓친다. `trusted_source()`에 이미 적용한 `effective_run_jobs()`를 동일 metadata full-run 검증에서도 사용한다.
+
+수용 테스트: `test_metadata_full_ci_requires_matching_base`에서 GitHub attempt 필드 누락과 다른 base는 BLOCKED, 정확 attempt1 조회만 허용한다. 신규 `test_metadata_reuses_exact_full_run_after_qa_only_retry`에서 동일 PR/Head/base Full CI attempt1 필수 세 aggregate PASS + attempt2 QA-only PASS는 기존 Full CI 증거로 인정한다. attempt2 E2E 재실행 실패(이전 성공 덮어쓰기 금지)는 FAIL, 누락 attempt는 BLOCKED. QA/Manager 승인·보호 경로 탐지·원본 run conclusion 및 provenance 확인은 기존 조건 그대로 유지한다. 독립 QA 없이 이 메타데이터 원장을 protected 자동 PASS로 간주하지 않는다.
+
+## Issue #595 — CI #2391.1 P1: QA-only retry의 attempt별 required CI 복원 (2026-10-10)
+
+PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640)은 policy Python/TypeScript/Unit/Build/ESLint 및 Docker/required Quality·E2E가 PASS, 기존 base validator의 보호 파일 탐지로 자동 QA만 BLOCKED였다. E2E 구현 shard SKIPPED를 PASS로 재표시하지 않는다. P1 리뷰에서 `trusted_source()`의 기본 `/runs/{run_id}/jobs`가 GitHub의 최신 attempt에 한정되므로 **이전 시도 Quality/E2E/Docker 성공 + QA-only 재실행**에서 원장을 잃는 결함을 확인했다.
+
+교정 acceptance: 동일 GitHub run의 attempt 1..N(최대 10)을 **정확한 `/runs/{run_id}/attempts/{attempt}/jobs`**로 조회한다. 이름별 실제 최종 실행 attempt의 상태를 사용하고, aggregate가 최신 QA-only attempt에서 재실행되지 않았으면 이전 성공을 유지한다. 이후 attempt에 재실행된 required aggregate가 FAIL이면 이전 성공으로 대체하지 않고 거부한다. attempt 정보·Job 누락, 중복 name, 0 또는 안전 상한 초과 역시 BLOCKED다. Trusted 결과 원장에는 세 required aggregate의 실제 `source_attempt`를 보고한다.
+
+새 Python 테스트 `test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs`: attempt1 세 aggregate success/QA failure, attempt2 QA success만 존재할 때 Trusted가 이전 세 required PASS를 확인하고 provenance=attempt1을 기록하는 긍정 case; attempt2 E2E failure 시 기존 성공보다 최종 실패 우선, 원본 attempt 누락, 이름 중복, attempt0/11 차단 부정 case. 기존 `test_default_branch_workflow_run_has_distinct_trust_source` 및 `test_protected_agent_requires_independent_review_and_owner_accept` 유지. 실제 default-branch Trusted 성공은 #593 provenance·독립 Reviewer·Manager 승인/병합 이후에만 재검증 가능하며 현재 NOT TESTED다.
+
+## Issue #595 — 보호 경로 AGENT QA 테스트 계획
+
+`scripts/test_qa_final_automated.py`의 기존 보호 경로·위험도·메타데이터 테스트는 유지한다. 독립 Reviewer의 GitHub APPROVED 검토/Head 일치, 별도 QA 결과, 원본 필수 Job의 성공 및 완료 시간, 저장소 owner의 검토 이후 승인, 정확한 PR/Issue/Head/base/Run/Attempt, 위험 수용 사유를 새로운 독립 증거 계약으로 검증한다.
+
+성공 시나리오: 현재 Head에 대한 별도 인간의 APPROVED 검토와 수동 QA_FINAL PASS, 원본 세 필수 CI 완료 이후의 owner 승인 기록이 모두 일치한다. 부정 시나리오: Reviewer 누락·작성자 자기 리뷰·Bot·비협업자·과거 SHA·COMMENTED-only·변경요청·다른 리뷰 ID·타 owner·잘못된 base/run/attempt·완료 전 승인·Job FAIL 및 `AUTOMATED_MANAGER`의 보호 경로 변경을 각각 거절한다. 사전 회귀는 `policy` Python 테스트와 원격 PR 전체 Quality/E2E/Docker로 확인한다.
+
+검증기 자체를 수정한 #595 PR은 HIGH/AGENT이므로 독립 QA와 Manager 검토 전에는 병합되지 않는다. 최초 #595 PR CI의 보호 변경 탐지 BLOCKED는 예상되는 정상 경계이며 세 기능 Required Check 결과와 구분한다. 신뢰된 정책이 main에 반영된 뒤에만 실제 정상 승인 경로를 독립적으로 실증할 수 있다. 별도 운영 실증 전 NOT TESTED다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
@@ -69,6 +93,9 @@
 # Test Plan
 
 ## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
+
+
+- **#595 병합 중 PR test-merge stale 실증:** [PR CI #2400.1](https://github.com/planner77/masterGantt/actions/runs/38047330320)의 Quality/E2E6/Docker는 PASS, QA Job은 기준 main의 `26e72bbed046a6ad6721e1c3c19bda71ce42e570` 이동으로 `mergeability 또는 test merge 불일치`를 기록해 BLOCKED. 새 main 부모를 포함하도록 feature Head를 정렬하고, 원래 PASS인 이전 Head의 required checks를 새 Head PASS로 소급하지 않는다. 별도 위험: #595 병합 후에는 보호된 CI 파일을 자동 검증기로 자체 승인하지 않고 독립 인간 `APPROVED` 리뷰(`QA_FINAL: PASS`, exact Head)와 owner의 사후 승인 원장이 없으면 계속 BLOCKED가 맞다. 승인 없이 QA 재시도만으로 PASS가 되는 것을 인수 기준으로 삼지 않는다.
 
 - **#582 Unicode 표시명 스푸핑 차단:** `format_merge_title()`는 bidi override(U+202E), zero-width space(U+200B), Unicode line separator(U+2028), C1 next-line(U+0085)과 C0/C1·Cs·Cf·Zl·Zp 문자를 표준 제목 생성 전에 ValueError로 거부한다. `parse_merge_title()`/Push trace 또한 이들을 승인하지 않아야 한다. 정상 한글·일반 공백 및 기존 legacy Merge/direct Push 처리는 불변이다. GitHub Actions `run-name` 전체 regex 검증을 완료했다고 주장하지 않으며 CI 보호 경로 `QA Final` BLOCKED 정책은 유지한다.
 

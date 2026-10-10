@@ -1,3 +1,9 @@
+## Issue #595 — AGENT 보호 변경 승인 설계 (병합 전 제안)
+
+정상적인 SemVer 변경도 package manifest가 보호 경로인 것은 의도된 보안 정책이다. 이를 검사 목록에서 삭제하거나 자체 PR 코드로 검사기를 덮어쓰지 않는다. 안전한 복구 경로는 이미 정의된 `AGENT` 독립 QA 의무에 정확한 Head·Review·원본 CI·owner 수용 증거를 추가하는 것이다. 보호 경로 수정에 대한 `AUTOMATED_MANAGER` 자동 승인 금지는 유지한다.
+
+별도 독립 인간 Reviewer와 owner가 각각 승인하고 원본 CI의 required 3개 aggregate 성공 시각 및 PR 귀속이 검증된 경우에만 그 기록을 인정한다. 현재 정책을 수정하는 #595 PR도 기존 main 정책과 독립 QA 검토를 통과하기 전에는 운영 적용으로 간주하지 않는다. GHCR·릴리스 승인 및 Ruleset Required Checks는 변경하지 않는다.
+
 ## #580 — 독립 QA F1–F4 보완 및 Source SHA 검증 (2026-10-10)
 
 - [독립 QA FAIL/REWORK](https://github.com/planner77/masterGantt/pull/587#issuecomment-6091333221) 후 보완: (F1) `.github/actions/**`, `scripts/**`, `deploy/**`, `tests/config/**` 및 CI 실행 설정 파일의 수정·rename을 AUTO QA에서 차단 (F2) trusted workflow는 event `github.sha`에 고정 checkout하고 실제 checkout `git rev-parse HEAD` 동등성 검사 및 `validator_sha` JSON 원장 기록 (F3) `policy` PR CI에서 Python QA unittest를 **실제로 실행**, LOW/MEDIUM/HIGH 및 HIGH Manager 위험 수용 누락, protected edit, metadata HEAD/base 회귀 보존 (F4) 현재 역할/소유권 표에 AGENT/AUTOMATED_MANAGER 기준 적용.

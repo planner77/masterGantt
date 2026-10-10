@@ -1,3 +1,15 @@
+## Issue #595 — metadata-only의 원본 Full CI 복원: exact Run/Attempt (2026-10-10)
+
+PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/Head/base의 가장 최신 성공 Full CI** 증거를 재사용할 때, 성공했던 Full CI Run을 QA Job만 재실행한 경우를 포함하여 해당 Run의 attempt별 Jobs를 검증해야 한다. 기본 `/runs/{id}/jobs` 최신 attempt만을 권위로 삼지 않고 `effective_run_jobs`의 `/runs/{id}/attempts/{i}/jobs` 원장으로 최종 실행 결론을 선택한다. 이후 aggregate FAIL/취소가 있었으면 오래된 성공으로 대체하지 않는다. `run_attempt` 누락, attempt 자료 오류, 불일치하는 Head/base/PR 귀속은 fail-closed. 실제 주체 승인과 `QA Final — Trusted` 보호 정책, GHCR·버전 변경 권한 및 Required Check 3개는 불변이다.
+
+## Issue #595 — QA Final 재실행의 CI Job provenance (P1)
+
+보호 경로 AGENT PR의 원본 CI 세 aggregate가 완료 성공이고 QA 전용 Job만 독립 승인 미확보로 실패한 뒤, 같은 Run ID로 QA만 재실행할 수 있다. `workflow_run`의 latest attempt에 필수 aggregate가 없어도 `/actions/runs/{id}/attempts/{i}/jobs`를 1..최신으로 조회해 실제 마지막으로 실행된 Job 결론을 선택한다. 최신 attempt에 aggregate가 없으면 과거 같은 Run의 성공을 보존하되 다시 실행된 실패/취소 Job을 이전 성공으로 덮지 않는다. 조회 누락·중복은 BLOCKED, source_attempt를 verdict에 남긴다. 기존 required 3개, checkout 신뢰·GitHub Ruleset·릴리스 승인 경계는 불변이다.
+
+## Issue #595 — QA Final AGENT/보호 파일 원본 Run 검증
+
+`package.json`/lockfile, CI·검증기·보안 정책 등 보호 경로는 계속 HIGH 및 독립 검토가 필수다. main의 신뢰된 QA validator가 `AGENT`에서 수동 승인 영수증을 검증하더라도 세 required aggregate 이름 및 Quality/E2E/Docker 실행·결론·동일 SHA 보존 계약은 불변이다. 원본 Run/Attempt의 required job `completed_at` 이전 Manager ACCEPT는 거부하고, 다른 CI run의 PASS를 재사용하지 않는다. 최초 BLOCKED 후 같은 Run의 실패한 QA job만 독립 QA 완료 후 재실행할 수 있으나, 승인 receipt의 head/base/run/attempt 일치 조건을 통과해야 하며 자동으로 릴리스가 승인되지는 않는다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
@@ -59,6 +71,9 @@
 # CI/CD
 
 ## Issue #582 — 짧은 한 줄 Main CI·Finalizer 실행명
+
+
+**2026-10-10 #595 기준 main 동기화:** PR #584의 [CI #2400.1](https://github.com/planner77/masterGantt/actions/runs/38047330320)은 Quality/E2E6/Docker SUCCESS였으나 실행 도중 기준 main이 `36b0eaa7...` → [#595 PR #597 병합 `26e72bbed046a6ad6721e1c3c19bda71ce42e570`](https://github.com/planner77/masterGantt/pull/597)으로 바뀌어 `QA Final — Automated`가 `mergeability 또는 test merge 불일치`로 BLOCKED 처리했다. 최종 상태가 변경된 이전 Head의 CI를 재사용하지 않고 최신 main으로 정렬한 새 PR Head에서 전체 CI를 다시 실행해야 한다. #595 승인 경로가 반영되어도 `AGENT + protected`는 독립 인간 `APPROVED`/해당 Head `QA_FINAL: PASS` 및 owner의 검증 가능한 구조화 승인 영수증 전에는 자동 PASS가 아니다. 정확한 CI run/attempt의 세 required aggregate 성공 후, 독립 검토와 Owner 승인을 확보한 경우 같은 Run의 **QA 실패 Job만 재실행**하여 신뢰된 검사 결과를 다시 확인한다. Reviewer/owner 증거 없이 QA를 우회하거나 형식상 승인을 작성하지 않는다.
 
 표준: `Main CI · Issue #<Primary Issue> · PR #<PR> · <한글 Issue명 축약> · Run #<N>.<attempt>`. Finalizer는 `Finalizer · Issue #... · PR #... · <요약> · Main #<원본 N>.<attempt> · Run #<N>.<attempt>`를 사용한다. Job output이 아닌 **Merge 요청 전에 입력한 commit title**을 event payload로 전달받는다.
 

@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## Issue #595 — 보호 파일을 포함한 AGENT QA 최종 판정
+
+`qa_method=AGENT` + `package.json`/lockfile·CI/보안 정책 등 보호 경로가 있는 PR에서 기존 자동 QA의 경로 차단을 제거하거나 기본 PASS로 바꾸지 않는다. 보호된 main validator는 **PR 작성자와 다른 신뢰된 인간 Reviewer의 현재 Head에 대한 `QA_FINAL: PASS` 승인**, 세 필수 Quality/E2E/Docker aggregate 완료·성공, 해당 독립 리뷰보다 늦고 정확 Head/base·원본 CI를 명시한 repository owner의 Manager ACCEPT를 모두 검증할 때에만 리뷰 영수증을 인정한다. 한 조건이라도 빠지면 BLOCKED이며 자동 Codex 댓글·개발자 자체 검토는 독립 QA가 아니다. 상세 신뢰·영수증 규격은 [QA_REVIEW_POLICY](docs/QA_REVIEW_POLICY.md)와 [GITHUB_OPERATIONS](docs/GITHUB_OPERATIONS.md)를 따른다. 릴리스 권한 및 기존 Ruleset 세 필수 Check는 그대로 유지한다.
+
+
 ## 1. Project Overview
 
 이 Repository는 **SVAR React Gantt 기반의 소규모 Project Gantt Management System**을 개발하기 위한 프로젝트이다.

@@ -110,14 +110,18 @@ class Cases(unittest.TestCase):
         class Stub:
             prefix="/repos/planner77/masterGantt"
             base="a"*40
+            missing_attempt=False
             def collection(self, url, name):
                 if name == "workflow_runs":
                     return [{"id":88,"event":"pull_request","head_sha":"h"*40,
                              "display_title":"PR CI [전체 검증]",
                              "status":"completed","conclusion":"success","run_number":55,
+                             **({} if self.missing_attempt else {"run_attempt":1}),
                              "pull_requests":[{"number":587,"head":{"sha":"h"*40},
                                                "base":{"sha":self.base}}]}]
-                return [{"name":name,"conclusion":status} for name,status in (
+                assert name == "jobs", name
+                assert url == self.prefix+"/actions/runs/88/attempts/1/jobs", url
+                return [{"name":job,"conclusion":status} for job,status in (
                     ("Build, static checks, and unit tests","success"),
                     ("Chromium end-to-end tests","success"),
                     ("Docker build and runtime smoke test","success"),
@@ -125,9 +129,55 @@ class Cases(unittest.TestCase):
         s=Stub()
         self.assertEqual(qa.verify_same_base_full_run(
             s,587,"h"*40,"a"*40,99),88)
+        s.missing_attempt=True
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            s,587,"h"*40,"a"*40,99))
+        s.missing_attempt=False
         s.base="b"*40
         self.blocked(lambda:qa.verify_same_base_full_run(
             s,587,"h"*40,"a"*40,99))
+
+    def test_metadata_reuses_exact_full_run_after_qa_only_retry(self):
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            latest_e2e=None
+            missing_attempt=False
+            def collection(self, url, name):
+                if name == "workflow_runs":
+                    assert "head_sha=" + "h"*40 in url, url
+                    return [{"id":88,"event":"pull_request","head_sha":"h"*40,
+                             "display_title":"PR CI [전체 검증]",
+                             "status":"completed","conclusion":"success","run_number":55,
+                             "run_attempt":2,
+                             "pull_requests":[{"number":587,
+                                               "head":{"sha":"h"*40},
+                                               "base":{"sha":"a"*40}}]}]
+                assert name == "jobs", (name,url)
+                if url == self.prefix+"/actions/runs/88/attempts/1/jobs":
+                    if self.missing_attempt:
+                        return []
+                    return [{"name":key,"conclusion":status} for key,status in (
+                        ("Build, static checks, and unit tests","success"),
+                        ("Chromium end-to-end tests","success"),
+                        ("Docker build and runtime smoke test","success"),
+                        ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증","skipped"),
+                        ("QA Final — Automated","failure"))]
+                assert url == self.prefix+"/actions/runs/88/attempts/2/jobs", url
+                jobs=[{"name":"QA Final — Automated","conclusion":"success"}]
+                if self.latest_e2e is not None:
+                    jobs.append({"name":"Chromium end-to-end tests",
+                                 "conclusion":self.latest_e2e})
+                return jobs
+        stub=Stub()
+        self.assertEqual(qa.verify_same_base_full_run(
+            stub,587,"h"*40,"a"*40,99),88)
+        stub.latest_e2e="failure"
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            stub,587,"h"*40,"a"*40,99), "FAIL")
+        stub.latest_e2e=None
+        stub.missing_attempt=True
+        self.blocked(lambda:qa.verify_same_base_full_run(
+            stub,587,"h"*40,"a"*40,99))
 
     def test_default_branch_workflow_run_has_distinct_trust_source(self):
         from unittest.mock import patch
@@ -158,6 +208,102 @@ class Cases(unittest.TestCase):
         self.assertEqual(out["trusted_source"],"PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN")
         self.assertEqual(out["source_ci_run_id"],88)
         self.assertEqual(check.call_args.args[0]["GITHUB_RUN_ID"],"88")
+
+    def test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs(self):
+        from unittest.mock import patch
+
+        class Stub:
+            repo = "planner77/masterGantt"
+            prefix = "/repos/planner77/masterGantt"
+            latest_e2e = None
+            duplicate = False
+            missing_original = False
+
+            def get(self, path):
+                if path == self.prefix+"/actions/runs/88":
+                    return {
+                        "id": 88, "event": "pull_request",
+                        "head_sha": "h"*40, "path": ".github/workflows/ci.yml",
+                        "status": "completed", "conclusion": "success",
+                        "run_attempt": 2, "repository": {"full_name": self.repo},
+                        "display_title": "PR CI [전체 검증]",
+                        "pull_requests": [
+                            {"number": 587, "head": {"sha": "h"*40},
+                             "base": {"sha": "b"*40}}]
+                    }
+                if path == self.prefix+"/pulls/587":
+                    return {
+                        "head": {"sha": "h"*40}, "base": {"sha": "b"*40},
+                        "merge_commit_sha": "m"*40
+                    }
+                raise AssertionError("Unexpected REST endpoint: "+path)
+
+            def collection(self, path, name):
+                assert name == "jobs", (path, name)
+                if path == self.prefix+"/actions/runs/88/attempts/1/jobs":
+                    if self.missing_original:
+                        return []
+                    return [
+                        {"name": label, "conclusion": status,
+                         "completed_at": "2026-10-10T09:00:00Z"}
+                        for label, status in (
+                            ("변경 경로 판정", "success"),
+                            ("Build, static checks, and unit tests", "success"),
+                            ("Chromium end-to-end tests", "success"),
+                            ("Docker build and runtime smoke test", "success"),
+                            ("Docker smoke 구현", "success"),
+                            ("Chromium E2E shard 1/6", "success"),
+                            ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증", "skipped"),
+                            ("QA Final — Automated", "failure"))]
+                if path == self.prefix+"/actions/runs/88/attempts/2/jobs":
+                    jobs = [{"name": "QA Final — Automated", "conclusion": "success",
+                             "completed_at": "2026-10-10T10:00:00Z"}]
+                    if self.latest_e2e is not None:
+                        jobs.append({"name": "Chromium end-to-end tests",
+                                     "conclusion": self.latest_e2e,
+                                     "completed_at": "2026-10-10T10:00:00Z"})
+                    if self.duplicate:
+                        jobs.append(dict(jobs[0]))
+                    return jobs
+                raise AssertionError("Incorrect attempt provenance: "+path)
+
+        stub = Stub()
+        with patch.object(qa, "check", return_value={"automated_qa": "PASS"}) as check:
+            result = qa.trusted_source(
+                {"GITHUB_RUN_ID": "999"}, {"workflow_run": {"id": 88}}, stub)
+        self.assertEqual(result["source_ci_run_attempt"], 2)
+        self.assertEqual(result["required_job_source_attempts"], {
+            "Build, static checks, and unit tests": 1,
+            "Chromium end-to-end tests": 1,
+            "Docker build and runtime smoke test": 1
+        })
+        env = check.call_args.args[0]
+        for name in ("NEED_QUALITY", "NEED_E2E", "NEED_DOCKER"):
+            self.assertEqual(env[name], "success")
+        self.assertEqual(env["GITHUB_RUN_ATTEMPT"], "2")
+        self.assertEqual(env["E2E_REQUIRED"], "true")
+        self.assertEqual(env["DOCKER_REQUIRED"], "true")
+
+        # A later attempt's failure MUST override an older successful aggregate.
+        stub.latest_e2e = "failure"
+        with patch.object(qa, "check", return_value={"automated_qa": "PASS"}):
+            self.blocked(
+                lambda: qa.trusted_source(
+                    {"GITHUB_RUN_ID": "999"}, {"workflow_run": {"id": 88}}, stub),
+                "FAIL")
+        jobs = qa.effective_run_jobs(stub, 88, 2)
+        self.assertEqual(jobs["Chromium end-to-end tests"]["source_attempt"], 2)
+        self.assertEqual(jobs["Chromium end-to-end tests"]["conclusion"], "failure")
+
+        stub.latest_e2e = None
+        stub.duplicate = True
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 2))
+        stub.duplicate = False
+        stub.missing_original = True
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 2))
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 11))
+        self.blocked(lambda: qa.effective_run_jobs(stub, 88, 0))
+
 
     def test_trusted_workflow_definition_never_checks_out_pr_code(self):
         from pathlib import Path
@@ -394,6 +540,125 @@ class Cases(unittest.TestCase):
             **{**params,"independent":"PASS","protected":True}))
         self.blocked(lambda:qa.manual_merge_readiness(
             risk="HIGH",method="AGENT",**params))
+
+    def protected_agent_fixture(self):
+        import json
+        head, base = "a"*40, "b"*40
+        pr = {"user":{"login":"planner77"}}
+        env = {"EVENT_HEAD_SHA":head, "EVENT_BASE_SHA":base,
+               "GITHUB_RUN_ID":"100", "GITHUB_RUN_ATTEMPT":"2"}
+        review = {"id":19, "submitted_at":"2026-10-10T10:05:00Z",
+                  "commit_id":head, "state":"APPROVED",
+                  "user":{"login":"external-reviewer","type":"User"},
+                  "author_association":"COLLABORATOR",
+                  "body":"QA_FINAL: PASS\nI independently checked AC requirements, source changes, tests, documentation and security evidence."}
+        receipt = {"authorized":True,"head_sha":head,"base_sha":base,
+                   "pr":559,"issue":550,"qa_review_id":19,"ci_run_id":100,
+                   "ci_attempt":1,"residual_risk_accepted":True,
+                   "reason":"Human reviewer checked exact Head and the three required CI jobs. Manager accepts remaining UX risk."}
+        comment = {"id":80, "created_at":"2026-10-10T10:09:00Z",
+                   "user":{"login":"planner77","type":"User"},
+                   "body":"<!-- mastergantt-protected-qa-accept:v1 " +
+                          json.dumps(receipt, separators=(",",":")) + " -->"}
+        jobs = [{"name":name,"conclusion":"success",
+                 "completed_at":"2026-10-10T10:06:00Z"}
+                for name in ("Build, static checks, and unit tests",
+                             "Chromium end-to-end tests",
+                             "Docker build and runtime smoke test")]
+
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self, path):
+                assert path == self.prefix, path
+                return {"owner":{"login":"planner77"}}
+            def pages(self, path):
+                assert path == self.prefix+"/issues/559/comments", path
+                return self.comments
+            def collection(self, path, name):
+                assert path == self.prefix+"/actions/runs/100/attempts/1/jobs", path
+                assert name == "jobs"
+                return self.jobs
+        stub=Stub()
+        stub.comments=[comment]
+        stub.jobs=jobs
+        return stub, pr, env, [review], receipt
+
+    def test_protected_agent_requires_independent_review_and_owner_accept(self):
+        stub, pr, env, reviews, receipt = self.protected_agent_fixture()
+        result=qa.verify_protected_agent_approval(stub,559,550,pr,env,reviews)
+        self.assertEqual(result["independent_qa"],"PASS")
+        self.assertEqual(result["manager_decision"],"ACCEPT")
+        self.assertEqual(result["qa_review_id"],19)
+        self.assertEqual(result["manager_receipt_comment_id"],80)
+        self.assertEqual(result["protected_ci_attempt"],1)
+        self.assertIn("원본 세 필수 CI",result["decision_reason"])
+        for mutate in ("missing_review","same_author","bot","stale_head",
+                       "outsider","no_attestation","comment_only","wrong_review",
+                       "missing_manager","wrong_manager","stale_base","risk_not_accepted",
+                       "short_reason","manager_before_jobs","wrong_ci",
+                       "failed_required_ci","future_attempt","unresolved_changes"):
+            stub, pr, env, reviews, receipt = self.protected_agent_fixture()
+            review=reviews[0]
+            if mutate=="missing_review": reviews=[]
+            if mutate=="same_author": review["user"]["login"]="planner77"
+            if mutate=="bot": review["user"]["type"]="Bot"
+            if mutate=="stale_head": review["commit_id"]="f"*40
+            if mutate=="outsider": review["author_association"]="NONE"
+            if mutate=="no_attestation": review["body"]="LGTM"
+            if mutate=="comment_only": review["state"]="COMMENTED"
+            if mutate=="wrong_review":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"qa_review_id":19','"qa_review_id":999')
+            if mutate=="missing_manager": stub.comments=[]
+            if mutate=="wrong_manager": stub.comments[0]["user"]["login"]="unknown"
+            if mutate=="stale_base":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"base_sha":"' + "b"*40 + '"','"base_sha":"' + "c"*40 + '"')
+            if mutate=="risk_not_accepted":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"residual_risk_accepted":true','"residual_risk_accepted":false')
+            if mutate=="short_reason":
+                import json
+                data = dict(receipt)
+                data["reason"]="ok"
+                stub.comments[0]["body"]="<!-- mastergantt-protected-qa-accept:v1 "+json.dumps(data)+" -->"
+            if mutate=="manager_before_jobs":
+                stub.comments[0]["created_at"]="2026-10-10T10:05:30Z"
+            if mutate=="wrong_ci":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"ci_run_id":100','"ci_run_id":101')
+            if mutate=="failed_required_ci": stub.jobs[0]["conclusion"]="failure"
+            if mutate=="future_attempt": env["GITHUB_RUN_ATTEMPT"]="0"
+            if mutate=="unresolved_changes":
+                reviews.append({"id":20,"submitted_at":"2026-10-10T10:08:00Z",
+                                "state":"CHANGES_REQUESTED",
+                                "user":{"login":"second-reviewer","type":"User"}})
+            with self.subTest(mutate=mutate):
+                self.blocked(lambda:qa.verify_protected_agent_approval(
+                    stub,559,550,pr,env,reviews))
+
+    def test_protected_agent_does_not_disable_automated_manager_guard(self):
+        self.assertIn("package.json",qa.protected_paths(
+            [{"filename":"package.json","status":"modified"}])[1])
+        self.assertIn("package-lock.json",qa.protected_paths(
+            [{"filename":"package-lock.json","status":"modified"}])[1])
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self,path):
+                if "/pulls/" in path:
+                    return {"title":"[Issue #550] Milestone","body":
+                            "Refs #550\nrisk_level: HIGH\nqa_method: AUTOMATED_MANAGER"}
+                return {}
+            def pages(self,path):
+                if path.endswith("/files"):
+                    return [{"filename":"package.json","status":"modified"}]
+                return []
+        env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"559",
+             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
+        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
+            self.blocked(lambda:qa.check(env,{},Stub()))
+
 
     def test_policy_ci_executes_qa_python_tests(self):
         from pathlib import Path
