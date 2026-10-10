@@ -44,3 +44,8 @@
 ## PR CI #2379.1 실패 및 보완
 - Run `38038368267`, Head `49475dbef3ddbe61edddfed24ae5af4a621d03f2`: 필수 Quality/E2E/Docker 모두 성공, protected diff로 자동 QA BLOCKED.
 - Trusted base validator 기반 PR/head/base/보호 파일 검증과 AGENT N/A routing 추가. 자동 QA SKIPPED를 PASS로 취급하지 않고 독립 QA + Manager 승인 필수. 다음 원격 CI는 새 Head에서 실행.
+
+## PR #594 리뷰 P2 보완 (2026-10-10)
+- Codex 리뷰 2건: Fork PR의 `head_repository`를 무조건 base와 동일하게 제한한 문제와 BLOCKED 보고서의 오래된 `rule_version=580-v1` 수정.
+- 실제 GitHub PR live `head.repo.full_name` 및 `base.repo.full_name`과 artifact 각각 대조하고 HEAD/branch/base/test-merge/run-attempt, 단일 commit→PR 교차 증거는 유지한다. Fork 및 잘못된 repository 반례 테스트를 추가한다.
+- `main()` 초기 보고서 버전도 `593-v1`로 수정하여 PASS/FAIL/BLOCKED 원장 동기화. 새 Head CI와 독립 QA는 아직 NOT TESTED, 이전 Head PASS 재사용 금지.
