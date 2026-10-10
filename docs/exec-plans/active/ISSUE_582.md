@@ -54,3 +54,12 @@
 - 메타데이터 보완: PR 본문에 `risk_level: HIGH`, `qa_method: AGENT`, `qa_required: true`, 보호 경로·근거·실제 미검증 상태를 명시. Issue 인수 조건을 원래 체크리스트의 AC1~AC7로 구조화하고 본 Work Packet에 테스트·문서 영향 매핑을 기록.
 - **정책상 남는 차단:** 보호된 `.github/**`, `scripts/**`, `AGENTS.md`, `docs/CI_CD.md` 등 파일이 PR에 포함돼 있어 #580 자동 QA는 위험도 메타데이터를 추가하더라도 `protected_paths()`에서 BLOCKED가 정상이다. 이를 CI 불량으로 위장해 자동 승인·skip·권한 완화하지 않는다. 별도 독립 Reviewer의 최신 Head QA_FINAL PASS 및 Manager ACCEPT 전 병합 금지.
 - 완료 조건: 새 exact-Head PR CI 시작 기록, 새 Quality/E2E/Docker 및 자동 QA의 결과 구분. `QA Final — Automated`의 정책상 BLOCKED를 PASS로 보고하지 않는다.
+
+## 2026-10-10 — PR CI #2381.1 보호 범위 자동 QA 차단, 후속 #595 연결
+
+- 원격 실행: [PR CI #2381.1](https://github.com/planner77/masterGantt/actions/runs/38038527473), Head `3f5f266a64406144aa07c72055fdf47b0ee3e0d3`, overall FAILURE.
+- 확인 결과: Quality aggregate PASS, E2E 6/6 PASS, Docker Smoke PASS. 유일한 실패는 [QA Final — Automated Job](https://github.com/planner77/masterGantt/actions/runs/38038527473/job/114177183425)으로 `automated_qa=BLOCKED`.
+- 실제 차단 근거: `.github/workflows/ci.yml`, `.github/workflows/release-finalizer.yml`, `AGENTS.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `scripts/main_ci_run_name.py`, `scripts/verify-ci-run-trace.py`, `scripts/verify-issue-lifecycle.py`의 **보호된 CI/QA 실행·정책 변경** 감지. PR `risk_level=HIGH` / `qa_method=AGENT`는 정확하며, 이 보호 판단은 #580의 의도된 fail-closed 동작이다.
+- 관련 설계·해소 Issue: [#595 — AGENT/보호 파일 독립 QA 승인 경로와 자동 QA 상태 분리](https://github.com/planner77/masterGantt/issues/595). 관련 신뢰 경계 안정화는 [#593](https://github.com/planner77/masterGantt/issues/593)과 별도 처리한다. #595가 설계·검증·채택되기 전에는 본 PR에서 #580 정책/보호 파일 검출을 우회하거나 자동 PASS로 변환하지 않는다.
+- 본 보완 범위는 재현 증거·QA 문서/Work Packet 정합성 갱신이다. Head가 바뀌면 신규 PR CI를 시작하지만 기존 #580 base validator가 변하지 않은 경우 **QA Final 자동 차단이 다시 발생하는 것이 예상 결과**이다. 이를 배포 코드 실패나 인수 PASS로 오해하지 않는다. 신뢰 가능한 별도 `qa_docs` 또는 승인된 인간 Reviewer exact-Head 검토 및 Manager ACCEPT는 별도 증거로 필요하며, 미확보 시 MERGE_READY=BLOCKED이다.
+- 기존 3개 required check, Ruleset, Main/GHCR/exact SHA, version, release authority는 무변경. CI 전체 SUCCESS 확보에는 후속 #595의 안전한 공식 승인 경로 정비가 선행된다.
