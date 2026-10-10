@@ -136,6 +136,16 @@ def validate_inputs(
 
 
 def validate_operation_inputs(args: argparse.Namespace) -> None:
+    if args.resolver_ordered and not re.fullmatch(r"[0-9a-f]{40}", args.resolver_main_sha):
+        raise LifecycleError("ordered resolver requires an exact --resolver-main-sha")
+    if not args.resolver_ordered and args.resolver_main_sha:
+        raise LifecycleError("manual lifecycle must not supply a resolver main snapshot")
+    if args.operation == "close_resume":
+        if not args.resolver_ordered or args.defer_close or args.cleanup_pr:
+            raise LifecycleError("close_resume is reserved for an ordered, cleanup-free resolver")
+        if parse_bool(args.release_required) or parse_bool(args.release_authorized):
+            raise LifecycleError("close_resume must use immutable prior FINAL release evidence")
+        return
     if args.operation not in {"release_start", "release_finalize"}:
         return
     if not parse_bool(args.release_required):
@@ -430,7 +440,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         with open(step_summary, "a", encoding="utf-8") as fp:
             fp.write("\n".join(summary) + "\n")
 
-    if args.operation in {"release", "release_start", "finalize", "release_finalize"} and gate != "PASS":
+    if args.operation in {"release", "release_start", "finalize", "release_finalize", "close_resume"} and gate != "PASS":
         raise LifecycleError(f"mutation blocked by lifecycle gate: {gate}")
 
     return Context(
@@ -738,6 +748,59 @@ def cleanup_temporary_main_candidate(repo: str, ctx: Context, *, preflight: bool
     return f"{'READY' if preflight else 'PASS'} — {evidence}"
 
 
+def resolver_snapshot_gate(repo: str, ctx: Context, args: argparse.Namespace) -> None:
+    """Refuse stale dispatcher decisions before any lifecycle mutation."""
+    if not args.resolver_ordered:
+        return
+    expected = args.resolver_main_sha
+    if not re.fullmatch(r"[0-9a-f]{40}", expected or ""):
+        raise LifecycleError("missing ordered resolver main snapshot")
+    if ctx.current_main_sha != expected:
+        raise LifecycleError(
+            f"ordered resolver snapshot stale: planned={expected}, context={ctx.current_main_sha}"
+        )
+    actual = ((gh(f"/repos/{repo}/git/ref/heads/main") or {}).get("object") or {}).get("sha", "")
+    if actual != expected:
+        raise LifecycleError(
+            f"main changed after resolver planning: planned={expected}, actual={actual}"
+        )
+
+
+def close_resume(ctx: Context, args: argparse.Namespace) -> None:
+    """Finish only the Issue close after an authenticated FINAL-write crash."""
+    repo = os.environ["GITHUB_REPOSITORY"]
+    if not args.resolver_ordered or args.defer_close or args.cleanup_pr:
+        raise LifecycleError("close_resume requires ordered resolver without cleanup/deferral")
+    resolver_snapshot_gate(repo, ctx, args)
+    records = audited_final_markers(repo, ctx)
+    if not ctx.merge_sha or records.get(ctx.merge_sha) != ctx.pr_number:
+        raise LifecycleError("close_resume requires the exact authenticated PR/SHA FINAL")
+    from auto_release_finalizer import collect_pending_work
+
+    boundary: list[Any] = []
+    pending = collect_pending_work(repo, args.resolver_main_sha, finalized_boundary=boundary)
+    if (
+        len(boundary) != 1
+        or boundary[0].target_sha != ctx.merge_sha
+        or boundary[0].pr_number != ctx.pr_number
+        or boundary[0].issue_number != ctx.issue_number
+    ):
+        raise LifecycleError("close_resume target is not the newest authenticated FINAL boundary")
+    if any(item.issue_number == ctx.issue_number for item in pending):
+        raise LifecycleError("close_resume cannot close an Issue with newer unfinished PRs")
+    resolver_snapshot_gate(repo, ctx, args)
+    path = f"/repos/{repo}/issues/{ctx.issue_number}"
+    issue = gh(path)
+    if issue.get("state") == "closed":
+        print(f"close_resume already complete for Issue #{ctx.issue_number}; idempotent PASS")
+        return
+    if issue.get("state") != "open":
+        raise LifecycleError("close_resume requires a recognized Issue state")
+    resolver_snapshot_gate(repo, ctx, args)
+    gh(path, method="PATCH", fields={"state": "closed", "state_reason": "completed"})
+    print(f"close_resume PASS: Issue #{ctx.issue_number} PR #{ctx.pr_number} / {ctx.merge_sha}")
+
+
 def manual_order_preflight(repo: str, ctx: Context) -> None:
     """Fail closed unless this manual target is the oldest pending main merge.
 
@@ -800,8 +863,10 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
     if not ctx.merge_sha:
         raise LifecycleError("finalize requires a merged PR")
 
-    phase = "FINAL_PREFLIGHT"
+    phase = "RESOLVER_SNAPSHOT_PREFLIGHT"
     try:
+        resolver_snapshot_gate(repo, ctx, args)
+        phase = "FINAL_PREFLIGHT"
         marker = final_marker(ctx.issue_number, ctx.merge_sha)
         records = audited_final_markers(repo, ctx)
         # Re-entry after FINAL is written must not repeat branch/image cleanup.
@@ -811,10 +876,8 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
             # pending. Closing after a previous FINAL-write crash is performed
             # only by an ordered resolver, never an unchecked manual fallback.
             if not args.defer_close and args.resolver_ordered:
-                issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
-                if issue.get("state") != "closed":
-                    gh(f"/repos/{repo}/issues/{ctx.issue_number}",
-                       method="PATCH", fields={"state": "closed", "state_reason": "completed"})
+                phase = "CLOSE_RESUME"
+                close_resume(ctx, args)
             print(f"FINAL already recorded for PR #{ctx.pr_number} / {ctx.merge_sha}; idempotent PASS")
             return
 
@@ -877,11 +940,15 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 "- lifecycle orchestration: generic auto-finalizer; per-Issue helper workflows are not used.",
             ]
         )
+        phase = "RESOLVER_SNAPSHOT_BEFORE_FINAL"
+        resolver_snapshot_gate(repo, ctx, args)
         phase = "FINAL_WRITE"
         gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments",
            method="POST", fields={"body": body})
 
         if not args.defer_close:
+            phase = "RESOLVER_SNAPSHOT_BEFORE_CLOSE"
+            resolver_snapshot_gate(repo, ctx, args)
             phase = "ISSUE_CLOSE"
             issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
             if issue.get("state") != "closed":
@@ -896,7 +963,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("operation", choices=("verify", "release", "release_start", "finalize", "release_finalize"))
+    parser.add_argument("operation", choices=("verify", "release", "release_start", "finalize", "release_finalize", "close_resume"))
     parser.add_argument("--issue", required=True)
     parser.add_argument("--pr", required=True)
     parser.add_argument("--release-required", default="false")
@@ -905,6 +972,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--authorization-note", default="")
     parser.add_argument("--defer-close", action="store_true", help="newer same-Issue main merge pending")
     parser.add_argument("--resolver-ordered", action="store_true", help="first-parent order verified by generic resolver")
+    parser.add_argument("--resolver-main-sha", default="", help="verified dispatcher main snapshot; internal only")
     parser.add_argument(
         "--cleanup-pr",
         action="append",
@@ -924,8 +992,11 @@ def main() -> int:
             tag, url = ensure_release(ctx, args)
             print(f"release PASS: {tag} {url}")
         elif args.operation == "release_start":
+            resolver_snapshot_gate(os.environ["GITHUB_REPOSITORY"], ctx, args)
             tag, url = start_release(ctx, args)
             print(f"release_start PASS: {tag} {url}")
+        elif args.operation == "close_resume":
+            close_resume(ctx, args)
         elif args.operation == "finalize":
             finalize(ctx, args)
             print("finalize PASS")

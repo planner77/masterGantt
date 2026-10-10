@@ -320,7 +320,9 @@ def is_closed_issue(repo: str, item: WorkItem) -> bool:
 
 
 def collect_pending_work(
-    repo: str, latest_main_sha: str, *, max_depth: int = MAX_BACKLOG_DEPTH
+    repo: str, latest_main_sha: str, *,
+    max_depth: int = MAX_BACKLOG_DEPTH,
+    finalized_boundary: list[WorkItem] | None = None,
 ) -> list[WorkItem]:
     pending_newest_first: list[WorkItem] = []
     cursor = latest_main_sha
@@ -333,6 +335,8 @@ def collect_pending_work(
             # rather than inventing an Issue identity.
             return list(reversed(pending_newest_first))
         if is_finalized_boundary(repo, item):
+            if finalized_boundary is not None:
+                finalized_boundary.append(item)
             return list(reversed(pending_newest_first))
         if is_closed_issue(repo, item) and not any(
             line.strip().startswith(f"{FINAL_MARKER_PREFIX}{item.issue_number}:")
@@ -579,7 +583,10 @@ def lifecycle_command(
     authorization_note: str,
     cleanup_pr_numbers: tuple[int, ...] = (),
     defer_close: bool = False,
+    main_snapshot_sha: str = "",
 ) -> list[str]:
+    if not SHA_RE.fullmatch(main_snapshot_sha):
+        raise AutoFinalizerError("ordered lifecycle command requires main snapshot SHA")
     command = [
         "python3",
         "scripts/issue_lifecycle.py",
@@ -597,6 +604,8 @@ def lifecycle_command(
         "--authorization-note",
         authorization_note,
         "--resolver-ordered",
+        "--resolver-main-sha",
+        main_snapshot_sha,
     ]
     if defer_close:
         command.append("--defer-close")
@@ -605,7 +614,7 @@ def lifecycle_command(
     return command
 
 
-def process_item(repo: str, item: WorkItem, release_state: str, *, defer_close: bool = False) -> str:
+def process_item(repo: str, item: WorkItem, release_state: str, *, main_snapshot_sha: str, defer_close: bool = False) -> str:
     release_required = item.previous_version != item.current_version
     operation = "finalize"
     release_authorized = False
@@ -666,6 +675,7 @@ def process_item(repo: str, item: WorkItem, release_state: str, *, defer_close: 
             authorization_note=authorization_note,
             cleanup_pr_numbers=item.cleanup_pr_numbers,
             defer_close=defer_close,
+            main_snapshot_sha=main_snapshot_sha,
         ),
         check=False,
     )
@@ -676,6 +686,37 @@ def process_item(repo: str, item: WorkItem, release_state: str, *, defer_close: 
             f"Issue #{item.issue_number} lifecycle command failed with {result.returncode}"
         )
     return operation
+
+
+def resume_unclosed_final(
+    repo: str, boundary: WorkItem, newer: list[WorkItem], main_snapshot_sha: str
+) -> bool:
+    """Recover a committed FINAL followed by a failed Issue close."""
+    if any(item.issue_number == boundary.issue_number for item in newer):
+        return False
+    if is_closed_issue(repo, boundary):
+        return False
+    result = run(
+        *lifecycle_command(
+            operation="close_resume",
+            issue_number=boundary.issue_number,
+            pr_number=boundary.pr_number,
+            release_required=False,
+            release_authorized=False,
+            expected_version="",
+            authorization_note="",
+            main_snapshot_sha=main_snapshot_sha,
+        ),
+        check=False,
+    )
+    sys.stdout.write(result.stdout)
+    sys.stderr.write(result.stderr)
+    if result.returncode != 0:
+        raise AutoFinalizerError(
+            f"Issue #{boundary.issue_number} PR #{boundary.pr_number} "
+            f"SHA {boundary.target_sha} phase=CLOSE_RESUME failed with {result.returncode}"
+        )
+    return True
 
 
 def execute(trigger_sha: str) -> int:
@@ -689,7 +730,8 @@ def execute(trigger_sha: str) -> int:
     # Boundary audit and history resolution must inspect the actual latest main.
     # Use process-scoped auth; do not persist checkout credentials.
     run_git_remote("fetch", "--no-tags", "origin", "main")
-    pending_raw = collect_pending_work(repo, latest_main)
+    finalized_boundary: list[WorkItem] = []
+    pending_raw = collect_pending_work(repo, latest_main, finalized_boundary=finalized_boundary)
     pending_with_barriers = coalesce_consecutive_issue_retries(pending_raw)
     closed_barriers = [item for item in pending_with_barriers if not item.actionable]
     pending_coalesced = [item for item in pending_with_barriers if item.actionable]
@@ -709,6 +751,19 @@ def execute(trigger_sha: str) -> int:
             for sha, (state, _url) in release_evidence.items()
         },
     )
+
+    if finalized_boundary:
+        recovered = resume_unclosed_final(
+            repo, finalized_boundary[0], pending_raw, latest_main
+        )
+        if recovered:
+            write_summary([
+                "### 이전 FINAL의 종료 단계 복구",
+                "",
+                f"- Issue #{finalized_boundary[0].issue_number} / PR #{finalized_boundary[0].pr_number}",
+                f"- exact SHA: {finalized_boundary[0].target_sha}",
+                "- 결과: 인증된 FINAL의 Issue close 재시도 PASS; FINAL comment/cleanup 재실행 없음",
+            ])
 
     if not pending:
         write_summary(
@@ -809,7 +864,7 @@ def execute(trigger_sha: str) -> int:
             candidate.issue_number == item.issue_number and candidate.target_sha != item.target_sha
             for candidate in pending[pending.index(item) + 1:]
         )
-        operation = process_item(repo, item, release_state, defer_close=newer_same_issue)
+        operation = process_item(repo, item, release_state, main_snapshot_sha=latest_main, defer_close=newer_same_issue)
         if operation == "release_start":
             write_summary(
                 [
