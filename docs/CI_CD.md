@@ -628,3 +628,9 @@ CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/tran
 - 설계 비교: 단일 workflow는 Ruleset·required check ID·token 범위를 유지하면서 짧게 보완 가능하지만 pending 자동 재개가 없다. 별도 metadata workflow 또는 `workflow_run` gate는 main의 신뢰된 코드 실행·workflow 존재 조건·PR/SHA/event/attempt 증거 결합·check name 충돌과 write 권한 위험이 있으므로 이번 범위에서는 도입하지 않는다.
 
 - PR #578 Codex P1 후속: metadata 증거 판정 Job은 다른 Runner와 workspace를 공유하지 않으므로 고정 SHA의 `actions/checkout`을 `persist-credentials: false`로 먼저 수행한다. `scripts/verify-issue-lifecycle.py`가 checkout 선행·인증 미보존 계약을 확인한다.
+
+## #593 보호 파일 QA 경로 CI 재검증
+
+- PR #594 CI run `38038368267`: Quality/E2E/Docker/policy 성공, `QA Final — Automated`는 보호 파일 변경으로 BLOCKED. 이는 정책상 차단이며 회귀를 의미하지 않는다.
+- Trusted base SHA의 `qa_bootstrap`은 GitHub API의 PR/head/base/변경 파일과 `qa_method`를 조회한다. `AGENT`는 자동 QA 비적용(SKIPPED), Step Summary `NOT TESTED` 및 독립 Reviewer QA Final PASS + Manager exact-Head ACCEPT 필수. 자동 승인이나 독립 QA PASS가 아니다.
+- `AUTOMATED_MANAGER`와 보호 파일 충돌, API 불확실성, stale head/base는 fail-closed. Quality/E2E/Docker 세 required 및 Ruleset/GHCR 경계 불변.
