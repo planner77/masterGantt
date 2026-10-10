@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Fail-closed, read-only QA Final: CI evidence is NOT independent QA/Manager approval."""
 import base64
+import io
+import zipfile
 from fnmatch import fnmatchcase
 import json
 import os
@@ -135,6 +137,87 @@ class GitHub:
         return base64.b64decode(result["content"]).decode("utf-8")
 
 
+def source_artifact(gh, run_id, attempt):
+    """Artifact bytes are untrusted; never extract or execute PR-provided data."""
+    name = f"ci-pr-source-{run_id}-{attempt}"
+    artifacts = gh.collection(f"{gh.prefix}/actions/runs/{run_id}/artifacts", "artifacts")
+    matched = [a for a in artifacts if a.get("name") == name and not a.get("expired")]
+    require(len(matched) == 1, "원본 CI PR event artifact 누락/중복/만료")
+    aid = int(matched[0].get("id") or 0)
+    require(aid > 0 and int(matched[0].get("size_in_bytes") or 0) <= 16384,
+            "원본 PR event artifact 크기/ID 오류")
+    url = f"https://api.github.com{gh.prefix}/actions/artifacts/{aid}/zip"
+    req = urllib.request.Request(url, headers={
+        "Authorization": "Bearer " + gh.token,
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "mastergantt-qa-final"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as response:
+            raw = response.read(16385)
+        require(len(raw) <= 16384, "원본 artifact 크기 초과")
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            require(archive.namelist() == ["ci-pr-source.json"],
+                    "원본 artifact에 예상하지 못한 파일 포함")
+            require(archive.getinfo("ci-pr-source.json").file_size <= 4096,
+                    "원본 artifact JSON 압축 해제 상한 초과")
+            data = json.loads(archive.read("ci-pr-source.json"))
+        require(isinstance(data, dict), "원본 event JSON 형식 오류")
+        return data
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError,
+            ValueError, zipfile.BadZipFile, KeyError, OSError) as error:
+        raise Blocked("BLOCKED", "원본 CI artifact 읽기 불가: " + type(error).__name__) from None
+
+
+def verified_source(gh, run, payload):
+    """Never infer PR ownership from run names or same-SHA alone."""
+    require(payload.get("schema") == "mastergantt-ci-pr-source-v1" and
+            payload.get("repository") == gh.repo and
+            payload.get("run_id") == run.get("id") and
+            payload.get("run_attempt") == run.get("run_attempt"),
+            "원본 event artifact의 run/repository/attempt 불일치")
+    n = payload.get("pr_number")
+    head, base, merge = (payload.get(x) for x in
+                         ("head_sha", "base_sha", "test_merge_sha"))
+    require(type(n) is int and n > 0 and all(
+        isinstance(x, str) and re.fullmatch(r"[a-f0-9]{40}", x)
+        for x in (head, base, merge)), "원본 PR/SHA 불완전")
+    require(payload.get("base_ref") == "main" and
+            payload.get("base_repository") == gh.repo and
+            isinstance(payload.get("head_repository"), str) and
+            bool(payload["head_repository"]) and
+            isinstance(payload.get("head_ref"), str) and
+            bool(payload["head_ref"]), "원본 repository/branch 출처 불일치")
+    require(run.get("head_sha") in (head, merge) and
+            run.get("head_branch") == payload["head_ref"],
+            "CI 실행 SHA/branch와 원본 event 불일치")
+    prs = run.get("pull_requests") or []
+    require(len(prs) <= 1, "원본 CI가 복수 PR을 가리킵니다")
+    if prs:
+        pr = prs[0]
+        require(pr.get("number") == n and
+                (pr.get("head") or {}).get("sha") == head and
+                (pr.get("base") or {}).get("sha") == base,
+                "API pull_requests와 원본 artifact 불일치")
+    live = gh.get(f"{gh.prefix}/pulls/{n}")
+    require(live.get("state") == "open" and live.get("number") == n and
+            live.get("head", {}).get("sha") == head and
+            live.get("head", {}).get("ref") == payload["head_ref"] and
+            (live.get("head", {}).get("repo") or {}).get("full_name") ==
+                payload["head_repository"] and
+            live.get("base", {}).get("sha") == base and
+            live.get("base", {}).get("ref") == "main" and
+            (live.get("base", {}).get("repo") or {}).get("full_name") ==
+                payload["base_repository"] and
+            live.get("merge_commit_sha") == merge,
+            "현재 PR head/base/test-merge/repository가 원본 검증과 다릅니다")
+    # The repository's commit→PR association is an independent read-only witness.
+    linked = gh.pages(f"{gh.prefix}/commits/{head}/pulls")
+    require(len(linked) == 1 and linked[0].get("number") == n,
+            "Commit→PR 귀속 API 단일 증거 부족/다중 후보")
+    return n, head, base, merge, live
+
+
 def primary_issue(title, body):
     t = re.search(r"Issue\s*#(\d+)", title, re.I)
     refs = re.findall(r"(?im)^\s*Refs\s+#(\d+)\s*$", body)
@@ -246,18 +329,12 @@ def docs_gate(plan, paths, ac):
             "ac_test_coverage": "MAPPING_PASS_SEMANTIC_REVIEW_PENDING"}
 
 
-def verify_same_base_full_run(gh, number, head, base, current_run_id):
-    """Metadata-only runs may reuse only the latest completed full run of THIS head+base.
-
-    PR title/body edits do not modify the merge tree; changing the base does.
-    Unknown source-base metadata is treated as BLOCKED (never as a pass).
-    """
+def verify_same_base_full_run(gh, number, head, base, current_run_id, merge=None):
+    """Same PR/head/base/test merge and latest attempt, never title-derived."""
     route = f"{gh.prefix}/actions/workflows/ci.yml/runs?event=pull_request&head_sha={head}"
-    runs = sorted(
-        gh.collection(route, "workflow_runs"),
-        key=lambda run: (int(run.get("run_number") or 0),
-                         int(run.get("run_attempt") or 0)), reverse=True)
-    eligible = []
+    runs = sorted(gh.collection(route, "workflow_runs"),
+                  key=lambda r: (int(r.get("run_number") or 0),
+                                 int(r.get("id") or 0)), reverse=True)
     for run in runs:
         if int(run.get("id") or 0) == int(current_run_id):
             continue
@@ -267,34 +344,28 @@ def verify_same_base_full_run(gh, number, head, base, current_run_id):
             continue
         if "[전체 검증]" not in str(run.get("display_title") or ""):
             continue
-        matches = [p for p in (run.get("pull_requests") or [])
-                   if int(p.get("number") or 0) == number]
-        require(len(matches) == 1, "원본 전체 CI run의 PR ref 확인 불가")
-        prior = matches[0]
-        require((prior.get("head") or {}).get("sha") == head and
-                (prior.get("base") or {}).get("sha") == base,
-                "이전 전체 CI의 base/head와 현재 test merge 입력이 다릅니다")
-        eligible.append(run)
-        break
-    require(bool(eligible), "동일 head/base의 전체 PR CI run 없음")
-    chosen = eligible[0]
-    require(chosen.get("status") == "completed" and
-            chosen.get("conclusion") == "success", "이전 전체 CI 미성공", "FAIL")
-    attempt = chosen.get("run_attempt")
-    require(type(attempt) is int and attempt >= 1,
-            "원본 전체 CI attempt 정보가 없어 metadata 재사용 불가")
-    selected = effective_run_jobs(gh, int(chosen["id"]), attempt)
-    jobs = {name: job.get("conclusion") for name, job in selected.items()}
-    required = {
-        "Build, static checks, and unit tests",
-        "Chromium end-to-end tests",
-        "Docker build and runtime smoke test",
-    }
-    require(all(jobs.get(name) == "success" for name in required) and
-            jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") == "skipped",
-            "동일 base의 full-run quality/e2e/docker 증거 불충분", "FAIL")
-    return int(chosen["id"])
-
+        # GitHub may omit run_attempt. Validate before any artifact/API access.
+        attempt = run.get("run_attempt")
+        require(type(attempt) is int and 1 <= attempt <= 10,
+                "원본 전체 CI attempt 정보 없거나 안전한 조회 범위 초과")
+        payload = source_artifact(gh, int(run["id"]), attempt)
+        prior_number, h, b, m, _ = verified_source(gh, run, payload)
+        require(prior_number == number and h == head and b == base and
+                (merge is None or merge == m),
+                "이전 전체 CI의 PR/head/base/test merge 불일치")
+        require(run.get("status") == "completed" and
+                run.get("conclusion") == "success",
+                "이전 전체 CI 미성공", "FAIL")
+        selected = effective_run_jobs(gh, int(run["id"]), attempt)
+        jobs = {name: job.get("conclusion") for name, job in selected.items()}
+        required = ("Build, static checks, and unit tests",
+                    "Chromium end-to-end tests",
+                    "Docker build and runtime smoke test")
+        require(all(jobs.get(name) == "success" for name in required) and
+                jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") == "skipped",
+                "동일 base의 full-run quality/e2e/docker 증거 불충분", "FAIL")
+        return int(run["id"])
+    raise Blocked("BLOCKED", "동일 PR/head/base의 전체 PR CI run 없음")
 
 def protected_paths(files):
     """Validate both sides of a rename; changed policy/workflow is never self-approved."""
@@ -471,7 +542,7 @@ def check(env, event, gh):
     if env.get("METADATA_ONLY") == "true":
         prior_full_run = verify_same_base_full_run(
             gh, n, env["EVENT_HEAD_SHA"], env["EVENT_BASE_SHA"],
-            int(env["GITHUB_RUN_ID"]))
+            int(env["GITHUB_RUN_ID"]), env.get("TEST_MERGE_SHA"))
     reviews = gh.pages(f"{gh.prefix}/pulls/{n}/reviews")
     require(not blocking_reviews(reviews),
             "REQUEST_CHANGES 해결되지 않음")
@@ -485,7 +556,7 @@ def check(env, event, gh):
     if protected:
         protected_receipt = verify_protected_agent_approval(
             gh, n, issue, pr, env, reviews)
-    return {"issue": issue, "pr": n, "rule_version": "595-v1",
+    return {"issue": issue, "pr": n, "rule_version": "595-593-v1",
             "qa_method": method, "risk_level": risk,
             "pr_head_sha": env["EVENT_HEAD_SHA"], "base_sha": env["EVENT_BASE_SHA"],
             "base_or_test_merge_sha": env["TEST_MERGE_SHA"],
@@ -576,18 +647,8 @@ def trusted_source(env, event, gh):
             "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
     require((run.get("repository") or {}).get("full_name") == gh.repo,
             "CI 검증 원본 repository 불일치")
-    prs = run.get("pull_requests") or []
-    require(len(prs) == 1, "workflow_run의 단일 PR/source refs 확인 불가")
-    source = prs[0]
-    number = int(source["number"])
-    head = (source.get("head") or {}).get("sha")
-    base = (source.get("base") or {}).get("sha")
-    require(bool(head) and bool(base) and run.get("head_sha") == head,
-            "CI 검증한 Head/base SHA 정보가 불완전합니다")
-    live = gh.get(f"{gh.prefix}/pulls/{number}")
-    require(live.get("head", {}).get("sha") == head and
-            live.get("base", {}).get("sha") == base,
-            "CI 완료 이후 PR head/base 변경: 새로운 full CI 필요")
+    payload = source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
+    number, head, base, merge, live = verified_source(gh, run, payload)
     source_jobs = effective_run_jobs(gh, run_id, int(run["run_attempt"]))
     results = {name: job.get("conclusion") for name, job in source_jobs.items()}
     metadata_only = "[메타데이터 검증]" in str(run.get("display_title") or "")
@@ -614,7 +675,7 @@ def trusted_source(env, event, gh):
         "PR_NUMBER": str(number),
         "EVENT_HEAD_SHA": head,
         "EVENT_BASE_SHA": base,
-        "TEST_MERGE_SHA": live.get("merge_commit_sha"),
+        "TEST_MERGE_SHA": merge,
         "GITHUB_RUN_ID": str(run_id),
         "GITHUB_RUN_ATTEMPT": str(run["run_attempt"]),
         "NEED_CHANGES": vals["changes"], "NEED_QUALITY": vals["quality"],
@@ -629,6 +690,8 @@ def trusted_source(env, event, gh):
     report["trusted_run_id"] = int(env["GITHUB_RUN_ID"])
     report["source_ci_run_id"] = run_id
     report["source_ci_run_attempt"] = int(run["run_attempt"])
+    report["source_ci_test_merge_sha"] = merge
+    report["source_pr_attribution"] = "EVENT_ARTIFACT_AND_COMMIT_PR_API"
     report["required_job_source_attempts"] = {
         name: source_jobs[name]["source_attempt"]
         for name in ("Build, static checks, and unit tests",
@@ -642,7 +705,7 @@ def trusted_source(env, event, gh):
 def main():
     env = dict(os.environ)
     report = {"automated_qa": "NOT TESTED", "independent_qa": "NOT TESTED",
-              "manager_decision": "NOT TESTED", "rule_version": "580-v1",
+              "manager_decision": "NOT TESTED", "rule_version": "595-593-v1",
               "pr_head_sha": env.get("EVENT_HEAD_SHA"),
               "base_or_test_merge_sha": env.get("TEST_MERGE_SHA"),
               "workflow_run_id": env.get("GITHUB_RUN_ID"),
