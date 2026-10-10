@@ -412,6 +412,37 @@ cli = subprocess.run(
     capture_output=True, text=True, check=True,
 )
 require(json.loads(cli.stdout) == correction_payload, "CLI merge payload must match the verified pure contract")
+# GitHub REST uses "sha" whereas the connected GitHub action accepts
+# "expected_head_sha". Neither adapter may silently drop the head lease.
+rest_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha, api_target="rest"
+)
+require(
+    rest_payload == {
+        "merge_method": "merge",
+        "commit_title": correction_payload["commit_title"],
+        "commit_message": "",
+        "sha": correction_sha,
+    } and "expected_head_sha" not in rest_payload,
+    "REST merge must use sha, not connector-only expected_head_sha",
+)
+rest_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--merge-api", "rest",
+     "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(rest_cli.stdout) == rest_payload, "REST CLI output must match its pure helper")
+try:
+    main_run_name.merge_api_payload(
+        586, 999, correction_summary, correction_sha, api_target="unknown"
+    )
+except ValueError:
+    pass
+else:
+    raise SystemExit("unknown merge API target must fail closed")
+
 for invalid_sha in ("", "a" * 39, "A" * 40, "a" * 41, "f" * 39 + "\n"):
     try:
         main_run_name.merge_api_payload(586, 999, correction_summary, invalid_sha)

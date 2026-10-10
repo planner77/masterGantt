@@ -55,25 +55,30 @@ def parse_merge_title(message: str) -> tuple[int, int, str] | None:
 
 
 def merge_api_payload(
-    issue_number: int, pr_number: int, summary: str, expected_head_sha: str
+    issue_number: int, pr_number: int, summary: str, expected_head_sha: str, *,
+    api_target: str = "connector",
 ) -> dict[str, str]:
-    """Return a lease-bound, body-free merge request for GitHub integrations.
+    """Return a lease-bound, body-free merge request for the selected API.
 
     A multiline merge message makes the immutable main commit fail CI trace
     validation.  Build the title and empty body together rather than relying
-    on GitHub's default merge-commit message.
+    on GitHub's default merge-commit message.  GitHub REST calls the head
+    lease `sha`; the connected tool uses `expected_head_sha`.
     """
     title = format_merge_title(issue_number, pr_number, summary)
     if not isinstance(expected_head_sha, str) or re.fullmatch(
         r"[0-9a-f]{40}", expected_head_sha
     ) is None:
         raise ValueError("병합 대상 PR Head는 정확한 40자리 소문자 SHA여야 합니다")
-    return {
+    if api_target not in {"connector", "rest"}:
+        raise ValueError("병합 API 대상은 connector 또는 rest여야 합니다")
+    payload = {
         "merge_method": "merge",
         "commit_title": title,
         "commit_message": "",
-        "expected_head_sha": expected_head_sha,
     }
+    payload["expected_head_sha" if api_target == "connector" else "sha"] = expected_head_sha
+    return payload
 
 
 def main() -> int:
@@ -85,15 +90,17 @@ def main() -> int:
     parser.add_argument("--summary", required=True, help="이슈를 설명하는 짧은 한글 제목(최대 30자)")
     parser.add_argument("--as-merge-payload", action="store_true", help="병합 API 입력의 제목·빈 본문·Head SHA를 함께 JSON 출력")
     parser.add_argument("--expected-head-sha", default="", help="--as-merge-payload에서 사용할 검증된 PR Head SHA")
+    parser.add_argument("--merge-api", choices=("connector", "rest"), default="connector", help="connector: expected_head_sha / REST: sha")
     args = parser.parse_args()
     try:
         if args.as_merge_payload:
             print(json.dumps(merge_api_payload(
-                args.issue, args.pr, args.summary, args.expected_head_sha
+                args.issue, args.pr, args.summary, args.expected_head_sha,
+                api_target=args.merge_api,
             ), ensure_ascii=False))
         else:
-            if args.expected_head_sha:
-                raise ValueError("--expected-head-sha는 --as-merge-payload와 함께 사용하세요")
+            if args.expected_head_sha or args.merge_api != "connector":
+                raise ValueError("--expected-head-sha 및 --merge-api는 --as-merge-payload와 함께 사용하세요")
             print(format_merge_title(args.issue, args.pr, args.summary))
     except ValueError as error:
         parser.error(str(error))
