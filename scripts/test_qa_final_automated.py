@@ -488,23 +488,49 @@ class Cases(unittest.TestCase):
             self.assertEqual("HIGH", qa.risk_floor({path}))
 
     def test_composite_action_pr_is_not_automatically_accepted(self):
+        """Protected CI execution input remains HIGH; automated QA is never Owner ACCEPT."""
         from unittest.mock import patch
+        path=".github/actions/node-setup/action.yml"
+        self.assertIn(path, qa.protected_paths(
+            [{"filename":path,"status":"modified"}])[1])
+        self.assertEqual(qa.risk_floor({path}), "HIGH")
+
         class Stub:
             prefix="/repos/planner77/masterGantt"
-            def get(self,url):
+            risk="HIGH"
+            def get(self, url):
                 if "/pulls/" in url:
-                    return {"title":"[Issue #580] 변경","body":"Refs #580\nrisk_level: HIGH\nqa_method: AUTOMATED_MANAGER"}
+                    return {"title":"[Issue #580] 변경",
+                            "body":"Refs #580\nrisk_level: "+self.risk+
+                                   "\nqa_method: OWNER_MANAGED"}
                 if "/issues/" in url:
                     return {"body":"AC1"}
                 return {}
-            def pages(self,url):
-                if "/files" in url:
-                    return [{"filename":".github/actions/node-setup/action.yml","status":"modified"}]
+            def pages(self, url):
+                if url.endswith("/files"):
+                    return [{"filename":path,"status":"modified"}]
                 return []
+            def open_threads(self, number):
+                return 0
+            def head_text(self, *args):
+                return "docs gate mocked; no external contents loaded"
+
         env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"587",
-             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
-        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
-            self.blocked(lambda: qa.check(env,{},Stub()))
+             "GITHUB_RUN_ID":"100","GITHUB_RUN_ATTEMPT":"1",
+             "EVENT_HEAD_SHA":"a"*40,"EVENT_BASE_SHA":"b"*40,
+             "TEST_MERGE_SHA":"c"*40,"METADATA_ONLY":"false"}
+        stub=Stub()
+        with (patch.object(qa,"snapshot"),
+              patch.object(qa,"evidence",return_value={}),
+              patch.object(qa,"docs_gate",return_value={})):
+            result=qa.check(env,{},stub)
+            self.assertEqual(result["automated_qa"],"PASS")
+            self.assertEqual(result["risk_level"],"HIGH")
+            self.assertIn(path, result["protected_paths"])
+            self.assertEqual(result["manager_decision"],"NOT TESTED")
+            self.assertIn("N/A(", result["independent_qa"])
+            stub.risk="LOW"
+            self.blocked(lambda: qa.check(env,{},stub))
 
     def test_validator_revision_immutable(self):
         self.assertEqual(qa.validate_validator_sha("a"*40,"a"*40),"a"*40)
@@ -532,9 +558,12 @@ class Cases(unittest.TestCase):
         self.blocked(lambda:qa.manual_merge_readiness(
             risk="MEDIUM",method="AUTOMATED_MANAGER",
             **{**params,"trusted_qa":"NOT TESTED"}))
-        self.blocked(lambda:qa.manual_merge_readiness(
-            risk="HIGH",method="AUTOMATED_MANAGER",
+        self.assertEqual("MERGE_READY", qa.manual_merge_readiness(
+            risk="HIGH",method="OWNER_MANAGED",
             **{**params,"protected":True}))
+        self.blocked(lambda:qa.manual_merge_readiness(
+            risk="HIGH",method="OWNER_MANAGED",
+            **{**params,"protected":True,"trusted_qa":"BLOCKED"}))
         self.assertEqual("MERGE_READY",qa.manual_merge_readiness(
             risk="HIGH",method="AGENT",
             **{**params,"independent":"PASS","protected":True}))
@@ -637,28 +666,53 @@ class Cases(unittest.TestCase):
                 self.blocked(lambda:qa.verify_protected_agent_approval(
                     stub,559,550,pr,env,reviews))
 
-    def test_protected_agent_does_not_disable_automated_manager_guard(self):
-        self.assertIn("package.json",qa.protected_paths(
-            [{"filename":"package.json","status":"modified"}])[1])
-        self.assertIn("package-lock.json",qa.protected_paths(
-            [{"filename":"package-lock.json","status":"modified"}])[1])
+    def test_owner_managed_protected_path_and_legacy_alias(self):
         from unittest.mock import patch
+        self.assertIn("package.json", qa.protected_paths(
+            [{"filename":"package.json","status":"modified"}])[1])
+        self.assertEqual("HIGH", qa.risk_floor({"package.json"}))
         class Stub:
             prefix="/repos/planner77/masterGantt"
-            def get(self,path):
+            method="OWNER_MANAGED"
+            def get(self, path):
                 if "/pulls/" in path:
-                    return {"title":"[Issue #550] Milestone","body":
-                            "Refs #550\nrisk_level: HIGH\nqa_method: AUTOMATED_MANAGER"}
+                    return {"title":"[Issue #598] owner policy",
+                            "body":"Refs #598\nrisk_level: HIGH\nqa_method: "+self.method}
+                if "/issues/" in path:
+                    return {"body":"AC1 AC2"}
                 return {}
             def pages(self,path):
                 if path.endswith("/files"):
                     return [{"filename":"package.json","status":"modified"}]
                 return []
-        env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"559",
-             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
-        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
-            self.blocked(lambda:qa.check(env,{},Stub()))
+            def open_threads(self,n):
+                return 0
+            def head_text(self,*args):
+                return "not used: mocked docs gate"
+        env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"598",
+             "GITHUB_RUN_ID":"100","GITHUB_RUN_ATTEMPT":"1",
+             "EVENT_HEAD_SHA":"a"*40,"EVENT_BASE_SHA":"b"*40,
+             "TEST_MERGE_SHA":"c"*40,"METADATA_ONLY":"false"}
+        stub=Stub()
+        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}), \
+             patch.object(qa,"docs_gate",return_value={}):
+            for method in ("OWNER_MANAGED","AUTOMATED_MANAGER"):
+                stub.method=method
+                result=qa.check(env,{},stub)
+                self.assertEqual(result["automated_qa"],"PASS")
+                self.assertEqual(result["qa_method"],"OWNER_MANAGED")
+                self.assertEqual(result["manager_decision"],"NOT TESTED")
+                self.assertIn("N/A(",result["independent_qa"])
 
+    def test_owner_managed_no_bypass_of_required_or_high_checks(self):
+        params=dict(risk="HIGH",method="OWNER_MANAGED",protected=True,
+                    doc_sync=True,ci_pass=True,reviewed=True,independent="N/A",
+                    trusted_qa="PASS",manager="ACCEPT",high_checklist=True,
+                    risk_accepted=True)
+        for override in ({"ci_pass":False},{"reviewed":False},{"manager":"NOT TESTED"},
+                         {"trusted_qa":"FAIL"},{"high_checklist":False},
+                         {"risk_accepted":False}):
+            self.blocked(lambda:qa.manual_merge_readiness(**{**params,**override}))
 
     def test_policy_ci_executes_qa_python_tests(self):
         from pathlib import Path
