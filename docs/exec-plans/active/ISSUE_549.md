@@ -102,3 +102,9 @@ DOCUMENTATION_SYNC: PASS. frontend Week header 관측 FAIL/원인 baseline NOT T
 - 테스트만 최소 수정: trusted wheel 직후 **Core left 증가 및 native Chart left와의 ±1px 정합을 유한 Playwright poll로 직접 확인**하고 기존 5 RAF settle 뒤, 최신 관측 scale width/chart width를 사용해 right-edge 이동. #367 **실제 width 증가** assertion은 그대로 유지하고 동일 instance·filtered rows·Link/canonical IDs·mutation0 assertion도 유지. 10초 bounded poll에서 해결되지 않으면 FAIL; retry/skip/timeout 증대나 #530 guard/제품 로직/CI required checks 완화는 하지 않는다.
 - 본 후속 PR은 이미 `0.104.0`이 main에 merge된 상태의 **test/docs-only corrective change**이며 package/lock/version 변경 없음. 실패 Main과 동일 Issue의 인접 corrective merge를 Generic Finalizer가 lifecycle version span으로 평가해야 하고, 정식 릴리스는 미승인(`release_authorized=false`). 성공한 main/GHCR candidate 또는 정식 v0.104.0 릴리스 증거는 아직 없다. 원 실패 기록은 보존한다.
 - Reviewer 정책: 다중 화면 스크롤 경쟁이므로 HIGH/`qa_required=true`; 이번 corrective Head에서 독립 QA_FINAL PASS가 필요하며 PR CI도 다시 통과해야 한다. API/DB/권한/엔진/Export/운영 코드는 N/A. 실행 방식: 단일 에이전트 순차 구현; 독립 Reviewer 실행은 실제 지원 여부에 따라 별도 기록. 사용자 요청 경계: 새 Main CI 시작, 정식 tag/GHCR promotion/Issue close는 미승인.
+
+## 2026-10-10 corrective PR #590 CI metadata trace 보완
+
+- 신규 PR #590의 최초 [CI #2361.1](https://github.com/planner77/masterGantt/actions/runs/38008693672)은 `verify-ci-run-trace.py`가 제목의 단독 `#549`를 Primary Issue 표현으로 인식하지 못해 변경 경로 판정에서 즉시 FAIL. 이 실행의 Quality/E2E/Docker 구현 Job은 SKIPPED이며, Main CI 회귀 재실행 증거가 아니다.
+- Title regex는 `Issue #549` 또는 `(#549)`를 허용하므로 제목을 `test: Main CI 휠 이벤트 순서 경합 보완 (#549)`로 수정했다. 제목만 수정하는 `pull_request.edited`의 metadata-only CI는 과거 동일 Head 전체 실패로 fail-closed될 수 있으므로, 원 실패·정정 기록을 Work Packet에 동기화하는 추가 commit을 통해 새 **push 기반 전체 PR CI**를 요청한다.
+- 기존 test code의 trusted wheel → Core/native 동기 관측 → right-edge command 순서는 불변. app `0.104.0`, #530/#367 제품 로직·required checks·timeout 불변. 새 PR CI 및 독립 QA는 실제 증거 전 NOT TESTED.
