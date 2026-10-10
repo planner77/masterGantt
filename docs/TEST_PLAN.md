@@ -1,3 +1,11 @@
+## Issue #550 — CI #2373.1 자동 QA 차단의 계약 분석 (2026-10-10)
+
+- [PR #559 CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185) head `406d0e2e1b1794f5cefc4472a0443843dd9df210`: Quality/typecheck/lint/unit/build PASS, Chromium E2E 6개 shard와 aggregate PASS, Docker smoke 및 aggregate PASS. 실패는 자동 QA job 114165826438 한 건이며 이유는 `Primary Issue title/Refs 정확히 일치해야 합니다`.
+- 현재 신뢰 검증기 `scripts/qa_final_automated.py`는 PR 제목의 `Issue #550`와 본문 단일 `Refs #550`, `risk_level`, `qa_method`, 보호 경로, review thread 0, Issue `AC\d+`, Work Packet의 `## DOCUMENTATION_SYNC`와 `## AC_TEST_COVERAGE`를 순차 요구한다. 이번 보완은 명칭·스펙을 약화하지 않고 metadata/AC/문서 및 P2 review 해결에 한정한다.
+- `package.json`, `package-lock.json`의 0.105.0 증분은 신규 기능 출시 계약이고 #580의 `protected_paths` 차단 대상이다. 일반 자동 QA로 승인할 수 없는 독립 HIGH 검토/Manager 판단 경계를 보존한다. package/lock 삭제·자동 검증기 완화·CI skip으로 문제를 숨기지 않는다.
+- 새 Head의 Quality/E2E/Docker, `QA Final — Automated` 및 `QA Final — Trusted` 결과는 별도 run 전 NOT TESTED. 이전 CI PASS를 새 SHA의 PASS로 대체하지 않는다. 원본 CI run/job/first error는 증거로 유지한다.
+
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.

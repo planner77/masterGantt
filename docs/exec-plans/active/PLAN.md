@@ -1,3 +1,8 @@
+## Issue #550 — QA Final 규칙 정합화 및 새 PR CI (2026-10-10)
+
+PR #559 head `406d0e2e1b1794f5cefc4472a0443843dd9df210`의 [PR CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185)은 quality/e2e6/docker aggregate가 모두 **PASS**였으나 신규 `QA Final — Automated`가 `Primary Issue title/Refs` 조건으로 BLOCKED했다. 기존 feature/E2E/domain을 임의로 변경하지 않고 제목 `Issue #550`·단일 `Refs #550`, 명시 HIGH/AGENT, Issue AC1~AC11, Work Packet DOCUMENTATION_SYNC/AC_TEST_COVERAGE 및 review thread 정합을 보완한다. 버전 `0.105.0` 변경은 유지하므로 보호된 package/lock 정책으로 자동 QA는 독립 검토 대신 PASS할 수 없다. `qa_required=true` AGENT 경계와 신규 exact-head quality/e2e/docker 및 별도 QA를 구분한다. 새 CI **시작까지만** 수행하며 병합/main/GHCR/Issue 종료는 제외한다.
+
+
 ## Issue #550 — PR CI #2368.1 E2E 10건 실패 보완 (2026-10-10)
 
 [#550 Work Packet](ISSUE_550.md)와 [검증 계획](../../TEST_PLAN.md)을 갱신한다. 기존 PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb` Actions [#2368.1](https://github.com/planner77/masterGantt/actions/runs/38032386192)의 quality/docker PASS, E2E shard2 9건과 shard5 1건 FAIL을 기록한다. 기존 #495 디자인 계약대로 `Milestone 상세`/`Milestone 검색`/zero-result 조사 정합을 맞추고 #550 테스트 선택자를 수정한다. 근본 도메인·보안·Gantt 변경 없이 문서 동기화 및 신규 head PR CI 시작까지만 진행하며 merge/main/GHCR/Issue 종료는 제외한다.

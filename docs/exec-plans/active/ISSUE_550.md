@@ -125,3 +125,47 @@ frontend 최종55파일 동결 manifest SHA-256 `9938792fe390ff094330af065e7b72a
 PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](https://github.com/planner77/masterGantt/actions/runs/38032386192)은 quality/docker PASS이나 Chromium shard2(9 FAIL)·shard5(1 FAIL)로 전체 FAIL. 독립 UI 명칭 계약은 이미 `DESIGN.md`/#495의 `Milestone`이다. 최신 main 통합에서 상세 aria-label이 `단계 상세`로 남고 빈 결과 문구가 `Milestone가`, #550 UI spec은 오래된 `단계 검색` 선택자를 사용한 것을 정확한 run/job/log와 현재 source로 확인했다.
 
 관리 표 상세 aria-label/메뉴 `Milestone 상세`, zero-result `Milestone이 없습니다`, #550 spec `Milestone 검색`으로 수렴시킨다. existing #463/#518/E2E HTTP/SQLite 기대 이름을 완화하지 않고 readonly 상세 명령이 활성인지를 추가 검증한다. `PROJECT_UX`, `MILESTONE_TIMELINE`, `TEST_PLAN`, 이 Packet/PLAN/CHANGELOG를 동기화한다. `DESIGN.md`, `AGENTS.md`, API/DB/SECURITY/SCHEDULING은 원칙·계약 변경 N/A. 버전 0.105.0 유지, release_required=true/release_authorized=false. 새 exact-head CI 전/시작 시 새 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED; 병합/main/GHCR/Issue 종료는 비범위.
+
+## 2026-10-10 PR CI #2373.1 — QA Final 계약 보완
+
+기존 PR #559 head `406d0e2e1b1794f5cefc4472a0443843dd9df210`의 [CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185)에서 **quality PASS / Chromium E2E 6개 shard 및 aggregate PASS / docker PASS**이며 전체 run은 `QA Final — Automated`의 BLOCKED로 failure다. 첫 차단 사유는 `Primary Issue title/Refs 정확히 일치해야 합니다`: PR 제목에 `Issue #550` 문구가 없고 기존 본문에 `Refs #550`만 있었기 때문이다.
+
+현행 main #580 검증기는 PR 본문의 `risk_level`/`qa_method`, 열린 review thread=0, Issue의 AC1... 식별자, Work Packet의 `DOCUMENTATION_SYNC`/`AC_TEST_COVERAGE` 명시 매핑을 순서대로 요구한다. 기존 #550 수용 기준 11개는 원문과 체크 상태를 보존하여 AC1~AC11 식별자를 부여한다. 완료된 Codex P2 2건은 구현 증거와 이전 PR CI 검증 결과를 답글로 기록한 뒤 review thread를 해결한다.
+
+위험도 HIGH / qa_required=true / qa_method=AGENT. 버전 `0.105.0`은 사용자 기능 MINOR 증분이며 `package.json`과 `package-lock.json`은 원격 보호 대상이다. 검증기의 보호 파일 차단은 **의도적 fail-closed**이므로 이 두 파일을 삭제하거나 위험도/자동 QA 정책을 축소하여 우회하지 않는다. 독립 QA와 Manager ACCEPT, trusted 정책의 승인/진화는 별도 경계이며 이 단위에서는 공식 quality/e2e/docker를 유지한 새 PR CI 시작까지만 수행한다.
+
+## DOCUMENTATION_SYNC
+
+- `DESIGN.md`: N/A(기존 Milestone 명칭과 화면 공통 디자인 원칙을 그대로 사용하여 신규 시각 정책이 없다)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(동일 canonical Task 및 기존 Gate와 의존성·Calendar 계산을 재사용하고 순수 일정 엔진 변경이 없다)
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/REQUIREMENTS.md`: UPDATED
+- `docs/TASK_EDITOR.md`: UPDATED
+- `docs/TASK_RELATIONS.md`: UPDATED
+- `docs/MILESTONE_STAGE_GATES.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_550.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `AGENTS.md`: N/A(기존 Issue lifecycle과 QA/보안 경계 및 역할 분담을 변경하지 않아 원칙을 재사용한다)
+- `docs/API.md`: N/A(새 HTTP endpoint와 DTO 스키마 없이 기존 저장 gateway 및 보호 요청을 재사용한다)
+- `docs/DB_SCHEMA.md`: N/A(신규 migration과 저장소·SQLite 스키마 변경 없이 기존 엔터티를 이용한다)
+- `docs/SECURITY.md`: N/A(기존 server-side session/Origin/If-Match/revision guard와 readonly 권한을 유지한다)
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH 보호 파일의 독립 리뷰 요구를 완화하지 않고 그 제한을 적용한다)
+
+## AC_TEST_COVERAGE
+
+- AC1: `tests/e2e/milestone-management.spec.ts`의 목록/생성/관리 명령 및 `milestone-management-persistence.spec.ts`의 실제 Editor·소속·관계·완료 경로
+- AC2: `milestone-management.spec.ts`의 Dashboard 독립 조회·scope 불변과 `milestone-management-persistence.spec.ts`의 Milestone-only/빈 프로젝트 검증
+- AC3: `tests/features/milestones/milestone-management-model.test.ts`의 root placement payload 및 `milestone-management.spec.ts`의 POST parent/sibling 불변
+- AC4: `tests/features/milestones/milestone-management-model.test.ts`와 `milestone-management.spec.ts`의 같은 이름·같은 날짜 taskId 선택과 생성 ID 차집합
+- AC5: `milestone-management-persistence.spec.ts`에서 기존 Task Editor와 POST/PATCH/관계/소속 API 동일 경로 검증, 새 Membership 저장소 없음
+- AC6: `milestone-management-persistence.spec.ts`의 full Gate·manual event·완료잠금·legacy mixed 및 `tests/features/milestones/milestone-management-model.test.ts`의 불변 모델
+- AC7: `milestone-management.spec.ts`의 dirty/pending/readonly/stale/401/412/network·응답 역전, 생성 성공 canonical revision 동기화 검증
+- AC8: `milestone-management-persistence.spec.ts`의 실제 Next HTTP/native SQLite 생성→수정→소속·관계→reload·restart 영속성 검증
+- AC9: `milestone-management.spec.ts`의 390/768/1024/1440/1920px 행/표 geometry·긴 명칭·keyboard/focus/Escape·내부 scroll 검증
+- AC10: `milestone-dashboard-state.spec.ts`와 `project-workspace-tabs-518.spec.ts`의 Dashboard 기존 KPI/검색 및 Gantt 인스턴스/상태 보존
+- AC11: `milestone-management.spec.ts`, `milestone-dashboard-state.spec.ts`와 `project-workspace-tabs-518.spec.ts`에서 기존 Grid 행·유형 quick-view·탭 보존 검증
+
+※ 위 매핑은 테스트 위치와 기존 수행 범위를 가리키며, 전체 검증/운영환경/독립 QA를 자동 PASS로 확정하지 않는다. #2373.1 required 3개 aggregate PASS는 이전 exact head의 증거이고 새 head 재검증은 별개다.

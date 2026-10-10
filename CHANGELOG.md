@@ -6,6 +6,7 @@
 
 - Issue #550: Milestone Dashboard의 독립 생성·관리 및 기존 Editor·관계·소속 진입. 412 반복 제출 방지와 관리 목록 전용 스크롤 높이.
 - Issue #550 PR CI #2368.1 보완: 최신 main 통합에서 남은 관리 표 `Milestone 상세` 접근성 명칭, 빈 결과 한국어 조사, E2E의 `Milestone 검색` 선택자를 통일해 #463/#518/#550 회귀를 검증한다. domain/API/schema 변경 없음.
+- Issue #550 PR CI #2373.1: 기능 required gate 모두 PASS, 신규 QA Final의 Issue/Refs 메타데이터 차단 확인. Work Packet AC1~AC11/문서·테스트 대응표와 PR 위험도·검토 진입을 명문화. 0.105.0 및 기능 실행 의미 불변.
 
 ## [0.104.0] - 2026-10-10
 
