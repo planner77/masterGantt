@@ -256,7 +256,7 @@ Issue #198 이후 Lifecycle 자동화와 저장소 보호 설정의 기준은 [I
 
 운영자는 `operation`, `issue_number`, `pr_number`, `release_required`, `release_authorized`를 지정한다. formal release가 필요하면 target manifest와 동일한 `expected_version`과 승인 근거 `authorization_note`도 제공한다. 우선 `verify`로 read-only 상태를 확인하고, exact merge SHA main CI가 성공한 뒤에만 `release` 또는 `finalize`를 실행한다.
 
-`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 target SHA marker로 중복 생성을 방지하며 다른 target marker가 있으면 fail-closed로 중단한다.
+`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 **Issue + exact merge SHA별** 불변 marker로 추적한다. 이미 존재하는 다른 정상 과거 SHA의 인증된 marker는 보존하며, 작성자·PR·head·canonical Refs·merge ancestry가 틀린 marker 또는 충돌하는 동일 SHA 기록은 fail-closed한다. 완료 경계 판단 시점에도 인증을 요구한다.
 
 
 ## Issue Lifecycle release_finalize 운영 (#248)
@@ -307,7 +307,7 @@ Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하�
 <!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
 ```
 
-comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 **동일 버전의 최신 trusted marker**를 적용한다. 다른 버전의 marker는 이 버전 승인 상태에 영향을 주지 않는다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
 
 수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
 
@@ -374,3 +374,8 @@ Release 성공 후 `release-finalizer-resume.yml`은 exact source run을 확인�
 PR 생성 시 제목의 단일 `Issue #N`, 본문의 단일 canonical `Refs #N`, `issue-N` 작업 브랜치를 맞춘다. 진행 상황·CI 결과는 PR/Issue **댓글**로 기록하고 제목/본문을 STATUS 용도로 반복 편집하지 않는다. 제목/본문의 실제 의미가 달라질 때만 편집한다. Push 이후 full CI 완료 전 edited 이벤트를 발생시키면 같은 SHA의 full/metadata 작업이 동시에 발생할 수 있으며, Push 우선만으로 중복이 제거되지는 않는다.
 
 메타데이터 CI는 long polling하지 않는다. `SUPERSEDED`는 구 SHA의 비권위 N/A이고, `DEFERRED/MISSING`은 현재 SHA 필수 Gate 승인 증거가 아니다. full CI의 세 required check가 성공한 뒤 기존 metadata-only 실패 Job을 재실행하여 성공으로 갱신해야 한다. API 오류·trace 오류는 원인을 수정한 뒤 재검증한다. 메타데이터 Run이 full E2E/Docker를 취소하지 않는지 Actions concurrency를 확인한다. PR CI 시작까지만 요청되면 Runner completion을 기다리지 않는다.
+
+
+### Issue #586 복수 PR 종료·복구
+
+Issue closed 상태만으로 새 PR이 이미 FINAL되었다고 추론하지 않는다. 해당 exact SHA marker가 없고 앞선 유효 FINAL이 있는 후속 merge는 다시 Main/GHCR 증거를 검증해 처리한다. 불변 기록과 PR/Issue identity 충돌을 감사하고 단계별 FAIL 로그(Issue/PR/SHA/phase)를 보존한다. #565 기존 실패 Run 재실행·GHCR 삭제/복구는 PR CI 시작 범위가 아니며 배포 후 별도 확인한다.

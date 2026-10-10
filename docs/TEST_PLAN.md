@@ -2906,3 +2906,25 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 - 원본 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 Gantt public event 기록으로 **Core/native 이전 left26640 → right-edge API requested36960 → 지연된 wheel requested26671**의 순서를 확인했다. `mouse.wheel` Promise 완료만으로 native wheel→Core state 반영 완료를 가정한 시험의 관측 경쟁이다.
 - 수정 acceptance: 실제 `page.mouse.wheel(31,0)` 후 `expect.poll`에서 public Core left가 이전 값보다 증가하고 native Chart left와 오차 ≤1px인지 확인 → 5 RAF settle → 관측된 scale width−chart width만큼 공개 right-edge 이동 → `width > 이전 width` 실제 확장(기존 bounded10s) 강제. timeout 실패 시 자동 통과·skip 금지. 동시에 이전 instance, visibleTaskIds, Link, canonical IDs, POST/PATCH0, column/grid/fullscreen/peer-return 불변을 유지한다.
 - 로컬 Browser 재실행, 새 PR CI quality/e2e/docker와 독립 HIGH QA는 실제 근거 전 NOT TESTED. #569 PoC DEFER, #551 Week 날짜 헤더 미해결 gate 유지. 테스트 정합 보완으로 제품 #530 guard/#367 확장 알고리즘/CI required checks를 변경하지 않는다. version `0.104.0` 동일, API/DB/GHCR workflow 영향 N/A.
+
+
+### Issue #586 FINAL 원자성·동일 Issue 복수 PR 회귀
+
+T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개별 검증·candidate; T3 중간 다른 Issue·closed Issue의 first-parent 순서; T4 동일 SHA 멱등/위조 marker 차단; T5 SHA lease·보호·OPEN PR 참조·branch 404; T6 cleanup preflight 및 candidate 다른 tag 차단; T7 #565 불변 #583 FINAL과 미완료 #585; T8 `scripts/verify-issue-lifecycle.py`, `scripts/verify-safe-branch-cleanup.py`와 PR Quality/E2E/Docker 유지. GitHub PR CI 전 결과는 NOT TESTED이며 정식 release 승인 불변.
+
+### Issue #586 리뷰 보완: 인증된 FINAL 경계·버전별 승인 (2026-10-10)
+
+- R1: Closed/no-marker는 first-parent ordering barrier로 보존하되 closed/이전 FINAL marker가 있는 후속 SHA는 actionable. `is_finalized_boundary`는 `audited_final_markers`로 인증된 정확한 SHA만 완료 boundary로 사용하며, 일반 댓글 작성자가 위조한 동일 marker는 SUCCESS/SKIPPED가 아니라 FAIL.
+- R2: 동일 Issue의 `v1.1.0`과 `v1.2.0` 승인 marker가 연속해도 각 대상 버전별 최종 trusted comment로 release 판정. `v1.1.0` 철회가 `v1.2.0` 승인에 영향을 주지 않으며 해당 버전은 BLOCKED.
+- R3: 자동 Finalizer, Manual Lifecycle, Resume mutation은 동일 concurrency group; 동일 bot/PR/SHA FINAL 중복은 인증 후 멱등, 다른 PR identity 또는 위조는 거부.
+- R4: `scripts/verify-issue-lifecycle.py`의 폐쇄 Issue Mock과 실제 인증 경계 회귀를 분리하고 PR 새 Head CI Quality/E2E/Docker/정책 계약으로 검증. HIGH 독립 QA와 Manager ACCEPT는 CI 성공과 별도.
+
+### Issue #586 수동 fallback 순서 누락 회귀 (#588 리뷰 P1)
+
+성공 Main CI인 동일 Issue A→B 중 A에 marker가 없을 때 수동 B FINAL은 FAIL(브랜치/GHCR/Issue 무변경). A→다른 Issue→B에서는 먼저 선행 target 처리 필수. 동일 Issue의 후속 B가 남아 있는 A는 close 금지. 이미 FINAL인 A를 수동 재호출해도 close mutation 금지. 최신 main SHA가 검증 도중 변경되거나 선택 PR/SHA가 first-parent pending identity와 일치하지 않으면 FAIL. 정규 자동 Resolver만 `--resolver-ordered`를 사용한다. 회귀 구현: `scripts/verify-issue-lifecycle.py`. 정확한 Head의 PR CI·독립 QA_FINAL은 별도로 확인.
+
+### #586 FINAL/close 복구 추가 회귀
+
+- FINAL 성공, Issue close PATCH 실패 후 동일 FINAL/cleanups 재실행 없이 Issue close-only 재시도·멱등 성공.
+- 후속 같은 Issue PR 존재, 위조 FINAL, main snapshot 변경 시 close 실패/부수효과 없음.
+- child 명령은 정확한 계획 시점 main SHA를 포함하고 mutation 전 다시 확인하며 기존 required PR check/QA Gate를 유지.
