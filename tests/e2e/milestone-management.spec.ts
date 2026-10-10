@@ -70,7 +70,7 @@ async function fallbackObservation(page: Page) {
 for (const width of [390, 768, 1024, 1440, 1920]) test(`#550 관리 목록 ${width}px · readonly/keyboard/긴 이름/많은 행`, async ({ page }, info) => {
   await page.setViewportSize({ width, height: 900 });
   const { state, identity } = await fixture(page, false), before = JSON.stringify({ tasks: state.tasks, links: state.links, revision: state.project.revision });
-  const table = panel(page).getByRole("region", { name: "완료 단계 전체 상태 표 가로 스크롤" });
+  const table = panel(page).getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" });
   await expect(panel(page).getByRole("button", { name: "Milestone 추가", exact: true })).toBeDisabled();
   const rows = panel(page).locator("tr[data-milestone-task-id]");
   expect(await rows.count()).toBe(30);
@@ -106,7 +106,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#550 관리 목록 ${wid
   expect(JSON.stringify({ tasks: state.tasks, links: state.links, revision: state.project.revision })).toBe(before);
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
   await panel(page).getByLabel("단계 검색", { exact: true }).fill("no-match-550");
-  await expect(panel(page).getByText("조건에 일치하는 완료 단계가 없습니다.", { exact: false })).toBeVisible();
+  await expect(panel(page).getByText("조건에 일치하는 Milestone이 없습니다.", { exact: false })).toBeVisible();
 });
 
 test("#550 생성 pending·성공 exact ID·dirty 보호·동일 instance", async ({ page }, info) => {
@@ -139,6 +139,10 @@ for (const outcome of ["401", "412", "network"] as const) test(`#550 생성 ${ou
   await expect(form.getByRole("alert").last()).toBeVisible(); await expect(form.getByLabel("Milestone 이름", { exact: true })).toHaveValue("실패 초안");
   await expect(form.getByLabel("요청 시작일", { exact: true })).toHaveValue("2026-10-09");
   expect(state.posts).toHaveLength(1); expect(state.project.revision).toBe(revision); expect(state.createdTaskIds).toHaveLength(0);
+  if (outcome === "412") {
+    await expect(form.getByRole("button", { name: "Milestone 생성", exact: true })).toBeDisabled();
+    await expect(form).toContainText("기준 Revision이 변경되었습니다");
+  }
   await capture(page, info, `create-${outcome}`, { revision, requestCount: state.posts.length, draftPreserved: true });
   await page.keyboard.press("Escape"); await expect(form).toContainText("초안을 버리고"); await form.getByRole("button", { name: "초안 버리고 닫기", exact: true }).click(); await expect(form).toBeHidden();
 });

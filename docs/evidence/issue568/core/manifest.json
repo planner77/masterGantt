@@ -1,0 +1,12 @@
+{
+  "sourceManifestSha256": "00cbfad2f05fcb0671b75dea81c4ce8472d884aacf7c268fd2d99a24f2ce8931",
+  "files": {
+    "fixture-1440.png": "0cd84eed6d2ea91c85d75fe0e14ebae04644ec70ccb81438c4f8473915a4c5ed",
+    "fixture-390.png": "e0b720a8828782eb463ccfa0d7a1ee28b0729b7e08e727c751117384efbec914",
+    "summary.json": "fc355d9b6f38477079302aff2a1756ddf1d5e0e2bbf04e463c3295583729d42f",
+    "trace-1440-repeat0.json": "3b5a4029c441728774ad8eddbed88ce0af9dd326490d91acb14fd10c58f15079",
+    "trace-1440-repeat1.json": "887e280a30adc63920995ba7fe4fc64faacb4ae6309a353a5c1792ed3d8b8e68",
+    "trace-390-repeat0.json": "6baa14c727271c995fe7b114cf37f39bd24d11127f2f6ab04f1af7e263ad2716",
+    "trace-390-repeat1.json": "55209a1ad8e490691d3c23cf18066881b32109fbe9267aafcb1922252b341f79"
+  }
+}

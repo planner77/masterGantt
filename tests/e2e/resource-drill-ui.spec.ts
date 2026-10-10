@@ -345,13 +345,13 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await expect(mRoot).toHaveAttribute('data-ready','true');
     await mRoot.getByLabel("수동 기준일", {exact:true}).check();
     await mRoot.getByLabel("기준일", {exact:true}).fill("2026-10-02");
-    await mRoot.getByText("단계 표시·공수 범위 조건", {exact:true}).click();
+    await mRoot.getByText("Milestone 표시·공수 범위 조건", {exact:true}).click();
     await mRoot.getByLabel("공수 시작일", {exact:true}).fill("2026-10-01");
     await mRoot.getByLabel("공수 종료일", {exact:true}).fill("2026-10-03");
     await mRoot.getByLabel("M/M 환산 기준").selectOption("query");
     await mRoot.getByLabel("1 M/M당 M/D", {exact:true}).fill("15");
     await expect(mRoot).toHaveAttribute("data-ready", "true");
-    await mRoot.getByRole('button',{name:'전체 일정에서 완료 단계 보기',exact:true}).click();
+    await mRoot.getByRole('button',{name:'전체 일정에서 Milestone 보기',exact:true}).click();
     await expect(strip).toContainText('Milestone 1개 일정 · 일반 Task 0');
     await expect(strip).toContainText('2026-10-01–2026-10-03');
     await expect(strip).toContainText('평가일 2026-10-02');

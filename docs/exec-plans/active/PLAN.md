@@ -1,13 +1,72 @@
-## Issue #550 — 독립 Milestone 관리 진입 구현
+## Issue #550 — 최신 main 통합 및 Codex P2 수정 (2026-10-10)
 
-[#550 Work Packet](ISSUE_550.md). 선행 #549 [PR #557](https://github.com/planner77/masterGantt/pull/557), head `4bc4c31d9c5f46d90a83cbe4de878a52a2f2529b`, CI [2210.1](https://github.com/planner77/masterGantt/actions/runs/37795569338) 등록 후 결과 모니터링 없이 MT2를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-550-milestone-management`/PR base `feat/issue-549-milestone-timeline-foundation`, 후보 MINOR `0.104.0`으로 진행한다. frontend가 기존 Dashboard/Workspace/Editor 관리 진입과 문서를, backend가 실제 SQLite/HTTP persistence 검증을 소유한다. 최종 로컬 UI19개/44.5초와 고유Unit88개 PASS, 실제HTTP/SQLite2개/43.3초는 이후 Dashboard focus·메뉴 상태·삭제 취소 bridge의 UI 영향 분석으로 재사용하며 실행 source를 구별한다. ui_ux geometry와 관리 대상 소멸·물리 focus 가시성 REWORK를 해소했다. ui_ux 설계·증거 비교와 qa_docs 독립 검토를 거친다. 원격 CI 결과/최종 ACCEPT 및 merge/main/GHCR/Issue 종료는 범위 밖이다.
+기준 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`, 후보 0.105.0. PR #559 최초 exact-head CI #2216.1 PASS는 과거 SHA이며 412 재제출 차단·관리 표 전용 cap·최신 Milestone 문구 및 관련 검증을 반영한 새 exact-head PR CI 시작 후 별도 판정한다. 병합/GHCR/종료 비범위.
+
+## Issue #549 — Main CI #2359.1 실패, Trace 기반 test-only corrective PR (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 merge SHA `45a248f723e11133a4bd4c73ca14bb69b3071cbe`에 대한 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)이 Chromium shard2 `milestone-timeline-core.spec.ts`의 `width37404` 유지로 FAIL, Main 임시 GHCR artifact SKIPPED. [Playwright trace 11651782948](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)에서는 `scroll-chart(36960)` 뒤에 지연된 trusted wheel `scroll-chart(26671)`이 도착해 최종 Core scroll이 오른쪽 임계 밖으로 되돌아간다. #530 guard 제거/timeout 증가가 아닌 실제 browser/Core 휠 반영 순서 누락을 수정한다.
+
+후속 #549 PR은 **제품 코드·CI·버전 `0.104.0` 불변**, 테스트에서 `await page.mouse.wheel(31,0)` 다음 public Core 및 native DOM scrollLeft 증가·±1px 정합의 bounded poll/RAF barrier를 명시하고, 그 후 관측 상태를 기준으로 우측 이동 → 동적 축 실제 증가와 기존 no-loss/instance/행/Link를 검증한다. 구현자 단독 검토는 독립 QA_FINAL이 아님. **HIGH/qa_required=true**, 새로운 exact Head에서 quality/E2E6/Docker 및 별도 qa_docs 또는 인간 Reviewer PASS/Manager ACCEPT 후에만 병합하여 새 Main CI를 시작한다. 실패 main의 `0.104.0` release_required는 유지하되 formal GHCR/tag/Issue 종료는 승인 없음.
+
+## Issue #549 — CI #2348.1 동적 날짜축 E2E 보완 (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 head `f636d3073c8153726be8b06d3e798d83a4752845`에 대한 [CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776)은 build/typecheck/lint/Vitest/Docker, Chromium shards 1/3/4/5/6 PASS이나 shard2의 `tests/e2e/milestone-timeline-core.spec.ts:171` 1건 FAIL(86 PASS/1 FAIL/1 SKIP)로 aggregate FAIL. 오른쪽 끝 programmatic `scroll-chart` 호출 후 축 width 37404가 유지되었다.
+
+최신 main #530은 peer return 뒤 stale programmatic `scroll-chart`를 막고 Chart 내부 trusted wheel/pointer/key에만 복원 가드를 해제한다. #549 E2E가 사용자 입력 없이 probe 명령을 보낸 경로와 일치하며, 별도 브라우저 trace/재현으로 root-cause가 확정된 것은 아니다. 실제 Chart wheel로 의도를 전환한 다음 기존 공개 `scroll-chart`로 right edge를 검증하도록 고친다. #367 한 RAF 예약 + Core/scale 갱신에 대한 bounded `expect.poll`을 적용하지만 축 확대량 조건은 그대로 두고, 확대 후 instance/filtered IDs/Link/canonical/mutation0도 비교한다. 제품 코드·CI workflow·server/domain은 수정하지 않는다.
+
+application `0.104.0`, current main `f1ac9fef186a635d08b51c878376925567653736` 기준 유지. 해당 검증은 remote exact new head 전체 quality/e2e/docker 재실행이 필요하며 시작 전 NOT TESTED다. #569 PoC DEFER/Week header 미검증은 그대로 유지. Independent QA_FINAL/Manager ACCEPT, merge/main CI/GHCR/tag/Issue close는 비범위다.
+
+## Issue #549 — 최신 main 정렬 및 PR 재검증 (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 이전 exact head `2ac846da822f8b67abea01ef9d1f535b1a8a54dc`는 [PR CI #2230.1](https://github.com/planner77/masterGantt/actions/runs/37848532318)의 quality/e2e/docker가 PASS였으나, 그 뒤 최신 main `f1ac9fef186a635d08b51c878376925567653736`로 93개 커밋이 추가되어 GitHub mergeable=dirty를 확인했다. 기존 성공 결과를 새 head의 검증 결과로 재사용하지 않는다.
+
+main application `0.103.1`에 대해 #549 신규 기능 기반은 MINOR `0.104.0`으로 재판정한다. #538의 이전 `0.103.0` 출시 및 #530 스크롤·peer state, #568 진단 추적, #569 좌표 Adapter PoC, QA 위험 정책 문서를 보존하고 #549 canonical/probe 계약을 3-way로 통합한다. #569의 제품 도입 DEFER와 Week 날짜 헤더 미검증 gate를 #549 dev probe PASS로 대체하지 않는다. Work Packet/CHANGELOG/manifest/lock을 함께 갱신하며 관련 없는 API/DB/CI contract는 N/A다.
+
+현재 요청 범위는 충돌 해소·새 head exact PR CI 시작까지이고 새 head의 unit/e2e/docker·독립 QA_FINAL/최종 ACCEPT는 실행 증거 전 NOT TESTED다. 후속 #550~#553 stacked PR은 #549의 head/version 이동에 따른 별도 정렬이 필요하다. `release_required=true / release_authorized=false`; merge/main/GHCR/tag/종료는 수행하지 않는다.
 
 <!-- Issue #549 인계: Unit72개 / Chromium 기술 실험9개 PASS. Week 월 헤더 의미 불일치 관측, 이전 baseline·원인 NOT TESTED이며 #551 활성화 전 gate로 검증한다. 사용자 요청에 따라 PR CI 결과를 모니터링하지 않는다. -->
 ## Milestone Timeline 순차 구현 — #549 → #550 → #551 → #552 → #553
 
 사용자 요청에 따라 각 Issue의 구현·관련 문서·Local Fast Feedback·DOCUMENTATION_SYNC·독립 PRE_QA 후 원격 PR과 exact-head CI 등록까지만 진행한다. CI 결과를 모니터링하지 않고 다음 Issue로 넘어가며 merge/release/main/GHCR/Issue 종료는 수행하지 않는다. 선행 구현이 필요한 후속 PR은 앞선 exact head의 stacked branch를 기반으로 하고 main 통합과 구별한다. Epic #548은 등록 때의 완료 체크를 변경하지 않고 실제 단계별 증거를 연결한다.
 
-현재 첫 대상은 [#549 Work Packet](ISSUE_549.md), 최초 착수 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / application `0.102.1`, branch `feat/issue-549-milestone-timeline-foundation`, 후보 MINOR `0.103.0`이다. MT1은 공통 표시 모델·Core 행 숨김/날짜 좌표/스크롤 기술 실험과 호환 계약을 구현하되 기존 Milestone 행/빠른 보기는 활성 변경하지 않는다. #550 관리 경로와 #551 lane을 준비한 뒤 #552에서 함께 전환하며 #553은 no-loss/교환/Export 및 종단간 회귀·사용자 가이드를 완성한다. release_required=true/release_authorized=false, 공식 quality/e2e/docker 및 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+현재 첫 대상은 [#549 Work Packet](ISSUE_549.md), 최초 착수 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / application `0.102.1`, branch `feat/issue-549-milestone-timeline-foundation`, 최초 후보 MINOR `0.103.0`(최신 main 통합으로 `0.104.0` 조정)이다. MT1은 공통 표시 모델·Core 행 숨김/날짜 좌표/스크롤 기술 실험과 호환 계약을 구현하되 기존 Milestone 행/빠른 보기는 활성 변경하지 않는다. #550 관리 경로와 #551 lane을 준비한 뒤 #552에서 함께 전환하며 #553은 no-loss/교환/Export 및 종단간 회귀·사용자 가이드를 완성한다. release_required=true/release_authorized=false, 공식 quality/e2e/docker 및 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
+## Issue #565 — 위험도 기반 QA_FINAL / 필수 Reviewer 정책 (2026-10-09)
+
+[실행 계획](ISSUE_565.md)과 [QA 위험도 정책](../../QA_REVIEW_POLICY.md)에 따라 기존 필수 CI·문서 동기화·GHCR 승인 경계는 보존하면서 LOW/MEDIUM/HIGH 위험 분류, Reviewer 의무/N/A, Manager ACCEPT를 명문화한다. 기준 main `d41032358c5cbeb4758e124d037d9ada18af9ee9`, app `0.103.1`, branch `docs/issue-565-risk-based-qa-policy`. 이 정책 변경 자체는 HIGH이므로 별도 QA 검토자 부재 시 병합 전 BLOCKED; 사용자 요청 범위는 PR CI 시작까지다. #580 Actions 자동 QA 대체는 후속 별도 구현이며 아직 채택된 대체 Gate가 아니다.
+
+## Issue #569 — 공개 API·시간축·기하 Adapter PoC
+
+#568 병합 main `6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca` 기반 `feat/issue-569-readonly-gantt-adapter`에서 [Work Packet](ISSUE_569.md)과 [ADR](../../GANTT_ADAPTER_ADR.md)을 따른다. 실제 설치 Core2.7.3의 A/B/C 대안을 비교하는 제품 미도입 설계/PoC로 application0.103.1 유지, release_required=false/release_authorized=false다. 구현·문서·독립 PRE_QA·원격 게시·PR CI 시작까지 진행하며 CI 모니터링·병합·release·Issue 종료는 제외한다.
+
+PR #576은 최신 `9f0458124198470872c6764cbd5b00dedc75417b`에서 반복 CI 실패를 종합 REWORK한다. #2291~#2295의 원인을 보존하고 검색 후 native clamp와 stale peer 복원을 구분하는 #463 테스트만 최소 보완한다. 이전 원격 변경을 유지하며 새 문서 동기화·독립 PRE_QA 후 새 head CI 시작에서 멈춘다.
+
+## Issue #568 — Gantt 동기화 재현·추적 도구 (2026-10-09)
+
+#567의 첫 단위 [Issue #568 실행 계획](ISSUE_568.md)에 따라 main `e1e6e2558481fe01d9f7e57c0148288f77a884de` 기반 `test/issue-568-core-action-trace`에서 dev/test-only trace·Core fixture를 구현한다. 비교 PR #562 head `afd5ec2899183a2464b64f91d34e9de5d8a8319c`의 제품 stack은 수정하지 않는다. application0.103.1 유지, 정식 release_required=false/release_authorized=false(진단 도구 범위). 요청 종료점은 문서 동기화·독립 PRE_QA·push·PR CI 등록이며 CI 모니터링·병합·release·Issue 종료는 제외한다.
+
+## Issue #530 — 최신 main 통합 후보 / 새 PR CI 등록 (2026-10-09)
+
+main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 통합한 후보 `0.102.3`. [현재 실행 계획](ISSUE_530.md)의 2026-10-09 절을 따른다. 원격 통합 준비의 version/typecheck/변경 lint·대상 Vitest 27개 PASS와 기존 PR CI #2199.1 성공 이력을 구분한다. 새 head 전체 PR CI 및 독립 QA는 NOT TESTED이며 병합·Main CI·GHCR/Release/tag·Issue 종료는 승인 범위 밖이다.
+
+## Issue #530 Resource KPI 통합 회귀·사용자 가이드 — 구현 / PR CI 시작까지
+
+main `599b824677cec2daa47743a60fcac422297f925b` / application `0.102.0`에서 선행 #523~#529를 같은 합성 원장으로 연결해 검증한다. branch `test/issue-530-resource-kpi-integration`, 상세 범위·소유권·기대값·검증은 [Issue #530 실행 계획](ISSUE_530.md)을 따른다. 알려진 11.5 M/D+미설정1, distinct Task4/Assignment5/Resource2, 다중 Group 비가산, 명시 환산20일 경우0.575 M/M, 고유 Capacity10이 Domain·실제 SQLite HTTP·UI·Excel에서 같은 raw ID/숫자/조건으로 나와야 한다.
+
+기존 Dashboard/Plan/정확한 일정 이동/Export를 재사용하여 세 계층·두 matrix·주월/일별 과투입·Gantt 상태 보존·5폭 keyboard 및 사용자 가이드 네 시나리오를 검증한다. 실제 fixed1440 Core/DOM240→0 및 최소120→0 결함으로 frame별 viewport 기록을 최소 수정한다. 최신 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / `0.102.1` 통합과 PATCH `0.102.2`를 적용했다. 검증된 제품·테스트 bytes를 보존했고 Vitest243개·브라우저18개(API1/UI17: 신규실제7·기존실제2·mock8), 통합 후 typecheck·version·Markdown153·테스트 발견이 PASS다. DOCUMENTATION_SYNC와 독립 PRE_QA 뒤 원격 게시·새 전체 PR CI 등록까지만 진행한다. CI 모니터링·병합·main/GHCR/tag·Issue 종료·branch 정리는 범위 밖이며 새 quality/e2e/docker와 최종 ACCEPT는 NOT TESTED다. `release_required=true`, `release_authorized=false`다.
+
+
+## Issue #495 — Milestone 화면·문서 용어 정합화 (2026-10-08)
+
+[Issue #495](https://github.com/planner77/masterGantt/issues/495) / [Work Packet](ISSUE_495.md). 기준 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / app `0.102.1`, branch `fix/issue-495-milestone-terminology`, PATCH 후보 `0.102.2`. UI·접근성·오류·리소스·물류·Template·Import/Copy/Export의 용어를 `Milestone`으로 통일하고 E2E·DESIGN/AGENTS 및 도메인·UX·Export 계약 문서를 동기화한다. Ready/Completed, Membership/Dependency, API/DB/JSON 및 Excel 고정 header/sheet는 보존한다. 이 connector 실행에는 로컬 npm/Chromium/독립 qa_docs가 없어 NOT TESTED. 공식 원격 CI는 PR head의 quality/e2e/docker에서 확인한다. 종료점은 PR CI 시작, 병합/Main CI/GHCR/Issue 종료 비범위. `release_required=true`, `release_authorized=false`.
+
+## Issue #487 — Main CI #2203.1 APT lock 경합 수정 후속 PR (2026-10-08)
+
+기존 [PR #488](https://github.com/planner77/masterGantt/pull/488)은 `08ac7749efc4544dfc125853d9e58ef3a9d56b21`에 병합됐다. [Main CI #2203.1](https://github.com/planner77/masterGantt/actions/runs/37793380955)은 quality/docker 및 Chromium shard 2~6 SUCCESS이나 shard 1/6의 Playwright `install-deps` 360초 timeout 뒤 잔존 `apt-get`이 APT lock을 잡고 있어 mirror fallback이 exit 100으로 실패했다. Main 임시 GHCR publish는 SKIPPED, Issue #487 미완료다.
+
+후속 브랜치 `fix/issue-487-main-ci-apt-lock`, base `08ac7749efc4544dfc125853d9e58ef3a9d56b21`. 공용 Playwright setup에서 Azure mirror 사전 공식 archive 정규화, APT native HTTP/HTTPS timeout/retry 및 첫 시도 실패 후 APT lists/dpkg lock의 해제 확인을 수행한다. 강제 PID kill/skip/무조건 PASS는 금지한다. `tests/scripts/test-config-layout.test.ts`에 사전 변경/잠금 해제/retry 순서·fail-closed 검증을 추가하고 CI_CD/REMOTE_VALIDATION/TEST_PLAN을 갱신한다. application source/API/DB/domain/버전 `0.102.1` 유지.
+
+요청 후속: 새 `Refs #487` PR 생성→정책/CI/최신 head Codex 리뷰→병합→새 merge SHA의 Main CI 시작 확인. Main GHCR `ci-<SHA>` 임시 게시·exact digest smoke·Generic Finalizer cleanup/Issue 종료는 실제 Main PASS 이후 단계이다. `release_required=false`, `release_authorized=false`, 정식 SemVer/GHCR release N/A이며 원인 로그 및 이전 FAIL 불변.
 
 ## Issue #487 — 완료 단계 스크롤 E2E 및 CI 설치 지연 복구 (2026-10-08)
 

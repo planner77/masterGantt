@@ -1,5 +1,12 @@
 # CI/CD
 
+## Issue #565 — 위험도 기반 QA는 CI Gate와 별도 운영 계약
+
+[QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 LOW/MEDIUM/HIGH 정책에 따라 PR `QA_FINAL`에 독립 Reviewer PASS가 필요한지, 명시적인 `N/A(reason)`가 가능한지를 Manager가 판단한다. **독립 QA N/A는 CI Required Check N/A가 아니다.** 각 PR의 최신 Head에 기존 `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test` aggregate 결과를 모두 확인하며 해당 실행에서 세부 shard가 SKIPPED면 실행 PASS로 과대 표시하지 않는다. GitHub Ruleset 승인 리뷰 수 0과 Manager ACCEPT도 서로 다르다.
+
+이슈 #565는 Workflow/Ruleset/Tag/GHCR 동작을 변경하지 않는다. GitHub Actions 기반 자동 QA 대체 Check/대상 Head·필수 검증 강화는 별도 #580에서 설계·검증한다. 정책 문서만 변경한 PR이 실제 Actions 검증을 시작했다는 사실과 결과 PASS는 분리 보고한다.
+
+
 ## Issue #361 CI/CD 실행 인스턴스 추적 표준
 
 GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름은 유지하고, Actions 목록에서 사람이 보는 실행 인스턴스 `run-name`만 trace metadata로 확장한다.
@@ -461,6 +468,15 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - 기존 자동 plan PR 조회는 inline Bash quote nesting을 사용하지 않고 `scripts/e2e-shard-optimizer-pr.mjs`가 GitHub CLI 인자를 배열로 전달한다. 검색 결과는 `[Issue #437] ci: E2E 샤드 계획 갱신` exact title만 기존 PR로 인정한다.
 - `shouldUpdate=false`이면 기존 PR 조회와 PR 생성은 모두 skip한다. `shouldUpdate=true`일 때 exact-title PR이 있으면 새 PR을 만들지 않고, 없을 때만 기존 자동 PR 생성·명시적 `ci.yml workflow_dispatch` 경로로 진행한다. 6-shard, median/LPT, threshold, cooldown과 자동 merge 금지 계약은 변경하지 않는다.
 
+### Issue #541 자동 PR 권한 차단 및 복구
+
+- `E2E 샤드 최적화 #10.1`(Run ID `37706501705`)에서는 15개 성공 run의 median/LPT 분석과 proposal artifact 업로드, 브랜치 push까지 성공했지만 `gh pr create`가 `GitHub Actions is not permitted to create or approve pull requests`로 차단되었다.
+- `permissions: pull-requests: write`는 workflow-scoped token 권한이며, 자동 PR 허용을 위한 repository-level 정책과 별개다. 관리자 승인 없이 Actions 설정이나 Secret 권한을 확대하지 않는다.
+- 권한 거부 또는 다른 자동 PR 생성 실패 시 생성된 변경 브랜치를 보존하고 `GITHUB_STEP_SUMMARY`에 BLOCKED 원인, 브랜치 SHA, GitHub compare 기반 수동 PR 생성 링크 및 Settings → Actions → General → Workflow permissions 설정 경로를 남긴다. **수동 복구 시 자동 PR과 정확히 동일한 제목 `[Issue #437] ci: E2E 샤드 계획 갱신` 및 canonical `Refs #437`가 정확히 한 번 포함된 본문을 복사하도록 Summary에 명시한다.** `exit 1`을 유지하여 자동화 실패를 SUCCESS로 위장하지 않는다.
+- 자동 PR이 성공했을 때만 exact branch의 `ci.yml workflow_dispatch`를 실행한다. 기존 PR이 있으면 추가 자동 PR을 생성하지 않는다.
+- 또한 `tests/config/e2e-shard-plan.json` 또는 `scripts/e2e-shard-planner.mjs` 변경은 Chromium E2E 실행에 직접 영향을 미치므로 `ci.yml`의 `e2e` path filter에 포함한다. PR aggregate E2E 성공이라도 shard job이 `SKIPPED`였다면 새 계획의 런타임 검증을 완료했다고 해석하지 않는다.
+- 장애 복구: #10에서 생성된 `ci/issue-437-e2e-shard-plan-37706501705` 브랜치를 별도 [PR #540](https://github.com/planner77/masterGantt/pull/540)으로 복구했다. required CI가 성공하기 전에는 병합하지 않으며 repository 설정 변경은 owner/maintainer의 별도 승인 대상이다.
+
 ## Issue #438 Build-once / verified digest promotion
 
 - Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. successful non-docs main candidate는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고, release-required candidate는 formal release에서 재사용한다.
@@ -523,3 +539,25 @@ Release quality의 setup/build duration recorder는 원래 제품·보안 gate�
 - `issues: write`, `packages: write`, `pull-requests: read`: 기존 finalize/cleanup 계약을 유지한다.
 - Resume는 trusted `main`만 checkout하며 source Release run의 path/head SHA/conclusion을 검증한 뒤 resolver를 실행한다.
 - 권한 누락은 `scripts/verify-issue-lifecycle.py`에서 PR CI 단계에 fail-closed로 검출한다.
+
+### Issue #487 Main CI #2203.1 — APT 잠금 충돌 재발 방지
+
+PR #488 merge SHA `08ac7749efc4544dfc125853d9e58ef3a9d56b21`의 Main CI #2203.1 (run `37793380955`)은 Quality/Docker 및 Chromium shard 2~6이 PASS, shard 1/6은 Playwright OS deps timeout 뒤 이전 `apt-get` (PID 2593)이 `/var/lib/apt/lists/lock`을 유지해 공식 Ubuntu archive 재시도가 lock exit 100으로 실패했다. E2E aggregate가 실패해 Main 임시 GHCR 게시 job은 SKIPPED였다.
+
+공용 `.github/actions/playwright-setup/action.yml`의 안전한 복구는 GitHub Ubuntu runner에 Azure archive URL이 구성된 경우 **첫 설치 시도 전** 해당 URL을 공식 `https://archive.ubuntu.com/ubuntu`로 치환한다(24.04 `/etc/apt/apt-mirrors.txt` 참조 포함). APT HTTP/HTTPS 자체 timeout 45초 및 Acquire retries 1회를 설정해 sudo `apt-get`이 상위 npm timeout 뒤에 불필요하게 살아남는 위험을 줄인다. 각 Playwright 설치 시도 전체의 360초 상한은 유지한다. 최초 시도가 실패하고 retry 가능 경로인 경우 `fuser`로 `/var/lib/apt/lists/lock`, `/var/lib/dpkg/lock-frontend`, `/var/lib/dpkg/lock`의 활성 점유를 최대 60초 확인한 뒤 **잠금이 모두 해제된 때만** 1회 재시도한다. 잠금이 남거나 `fuser`가 없으면 다른 프로세스를 강제 종료하지 않고 fail-closed한다.
+
+CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/transport/persistence 검사, metrics 측정 및 버전 정책은 유지한다. 이 보완은 추가 `Refs #487` PR 및 새 merge SHA의 PR/Main CI로 별도 검증하며 기존 실패를 PASS로 대체하지 않는다. 애플리케이션 버전 `0.102.1` 불변, 정식 SemVer tag는 N/A다.
+
+
+## Issue #577 PR metadata 증거 판정과 동시 실행 개선 (2026-10-09)
+
+- `name: CI`, 기존 세 Required Check 이름, main strict Ruleset, E2E 6 shard, release/finalizer/GHCR 계약을 변경하지 않는다. CI 실행명은 `[전체 검증]` / `[메타데이터 검증]`으로 구분하며 PR/Issue/Run/Attempt 추적을 보존한다.
+- `pull_request.edited`는 별도 `ci-pr-<PR>-metadata` concurrency group으로 묶는다. `synchronize`의 `ci-pr-<PR>-full`을 취소하지 않는다. 메타데이터 변경만으로 전체 CI를 재시작하지 않는다.
+- metadata-only job은 현재 PR API의 Head/제목/본문/브랜치 canonical trace를 재검증하고 이벤트 Head SHA와 비교한다. 달라진 구 SHA는 `SUPERSEDED`(비권위 N/A)로 즉시 반환한다. 새로운 SHA의 CI를 구 SHA에 귀속하지 않는다.
+- 현재 SHA에서는 동일 CI workflow의 가장 최근 판별 가능한 **full** 실행만 평가한다. `completed/success`와 세 required gate의 `success`, metadata job의 `skipped`가 모두 있어야 `VERIFIED`. 더 최근 full CI가 FAILED/CANCELLED이면 `FULL_FAILED`; 진행 중은 `DEFERRED`; 확인 불가는 `MISSING`; trace 오류는 `TRACE_INVALID`. API 실패도 fail-closed.
+- 1,200초 busy-wait를 제거하고 단발 조회로 제한한다. 진행 중/없는 full CI는 성공으로 꾸미지 않는다. **제약:** DEFERRED/MISSING의 metadata-only aggregate가 실패한 뒤 full CI가 성공하더라도 자동 재평가는 제공되지 않는다. 정확한 SHA로 전체 CI가 성공했는지 검증한 후 **metadata 실행의 실패 Job 재실행**을 수행한다. 새 코드 Push 없이 의도적 metadata 편집을 반복하지 않는다. 이 경로가 병합을 막으면 승인 하에서 경량 후속 이벤트 기반 재판정 도입을 별도 이슈로 추진한다.
+- 서버 API `actions: read`, `pull-requests: read`, `contents: read` 이외 권한을 쓰지 않는다. 검증 스크립트는 적절한 Job Summary에 event/current SHA와 full run ID/상태를 기록한다.
+- 변경 전 사례: PR #576 metadata #2296 Head `9f0458124198470872c6764cbd5b00dedc75417b` 실행 2026-10-09T09:50:27Z~10:10:33Z, 약 20분 Runner 사용; full #2297 Head `9d37571cef128c2f9a57c0616244412ca3354972` 성공. 변경 후 성공률/Runner-minutes의 실제 비교는 PR #577 후속 Actions 측정으로만 결정한다. 회귀 시 본 PR revert가 rollback 방안이다.
+- 설계 비교: 단일 workflow는 Ruleset·required check ID·token 범위를 유지하면서 짧게 보완 가능하지만 pending 자동 재개가 없다. 별도 metadata workflow 또는 `workflow_run` gate는 main의 신뢰된 코드 실행·workflow 존재 조건·PR/SHA/event/attempt 증거 결합·check name 충돌과 write 권한 위험이 있으므로 이번 범위에서는 도입하지 않는다.
+
+- PR #578 Codex P1 후속: metadata 증거 판정 Job은 다른 Runner와 workspace를 공유하지 않으므로 고정 SHA의 `actions/checkout`을 `persist-credentials: false`로 먼저 수행한다. `scripts/verify-issue-lifecycle.py`가 checkout 선행·인증 미보존 계약을 확인한다.

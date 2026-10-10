@@ -2,7 +2,7 @@
 
 ## 적용 범위와 현재 상태
 
-Issue #549는 Epic #548의 MT1 공통 모델과 설치 SVAR Core 연동 기술 기반이다. 현재 운영의 Milestone Grid/Chart 행, 전체/Task/Milestone 빠른 보기와 고급 유형 필터를 유지한다. #550의 관리 진입은 기존 Dashboard에서 구현한다. 날짜 lane은 #551, 표시 전환과 호환 UI는 #552, 통합 검증은 #553의 선행 gate 이후 범위다. 이 문서의 target은 현재 화면 기능 완료를 뜻하지 않는다.
+Issue #549는 Epic #548의 MT1 공통 모델과 설치 SVAR Core 연동 기술 기반이다. 현재 운영의 Milestone Grid/Chart 행, 전체/Task/Milestone 빠른 보기와 고급 유형 필터를 유지한다. 관리 진입은 #550, 날짜 lane은 #551, 표시 전환과 호환 UI는 #552, 통합 검증은 #553의 선행 gate 이후 범위다. 이 문서의 target은 현재 화면 기능 완료를 뜻하지 않는다.
 
 baseline은 `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0`, 설치 `@svar-ui/react-gantt` 2.7.3, 그 종속 `@svar-ui/gantt-store` 2.7.2, Next.js 16.3.8이다. 공식 문서 확인일은 2026-10-08이다. 원격 quality/e2e/docker와 독립 최종 QA는 실제 exact-head 증거를 확보하기 전 NOT TESTED다.
 
@@ -68,6 +68,12 @@ Membership/Gate는 기존 전체 `projectStageGates(stageSnapshotFromProject(tas
 
 MT1 probe는 기존 ProjectGantt의 개발 모드에서만 존재한다. frame namespace `__masterganttMilestoneTimeline`의 작은 diagnostic은 최대 500개 ID/좌표/Link endpoint와 64개 공개 이벤트만 보관하고 Task 본문/secret을 포함하지 않는다. 소유 listener/property는 cleanup한다. 운영에서 행 숨김을 노출하지 않는다. 필터 projection은 Core scale/config 갱신 뒤 기존 canonical 동기화 queue와 순서가 맞아야 한다. 첫 실험은 filter 직후 7행, Day→Week 설정 변경 뒤 원래 10행으로 돌아왔다. 개발 probe는 명시 요청 ID를 보관하고 같은 API/source/filter key/현재 요청 generation/현재 scale/가시 nonzero viewport를 확인한 뒤 queue 이후 공개 filter를 재적용한다. source/scope 변경은 요청을 폐기하고 소유 cleanup이 오래된 요청을 무효화한다. 이는 native filter 자체의 scale 지속성이 아니라 앱이 제어하는 표시 projection 기술 대안이다. 후속 production은 실제 visibleTaskIds와 공통 queue를 연결해야 하며 개발 probe ref를 제품 기능으로 사용할 수 없다. 기술 gate가 통과하기 전 후속 행 제거를 활성화하지 않는다.
 
+## CI #2348.1의 #530 복원 가드와 동적 날짜축 검증 경계
+
+최신 main의 #530 peer restore는 동일 Gantt viewport가 복귀한 직후 stale programmatic `scroll-chart(left)`를 차단한다. 실제 Chart 내부 wheel/pointer/key/touch는 새 사용자 의도이므로 이 guard를 해제하지만, 개발용 `__masterganttMilestoneTimeline.scroll` 호출은 사용자 입력이 아니다. 이는 복원 가드의 정상 보호 계약이며 #549 기술 시험이 그대로 강제 programmatic scroll을 보내고 축 확장을 기대해서는 안 된다.
+
+[PR CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776)의 Chromium shard2에서 우측 programmatic scroll 뒤 scale width가 37404에서 변하지 않은 현상을 확인했다. guard 차단은 source상 가능한 직접 원인이지만 해당 실패 trace를 전부 재현했다고 보고하지 않는다. #549 E2E는 실제 Chart trusted wheel로 이전 복원 보호를 해제한 뒤 개발용 공개 right-edge scroll과 RAF 기반 확대를 검사한다. 기존 `width > oldWidth`, 동일 instance/행·Link/canonical/mutation0 검증은 유지하며, `expect.poll`은 여러 비동기 Core/React 프레임의 완료까지 유한 시간 안에 확인하는 용도다. 확대되지 않으면 FAIL이며 축 확장 정책(#367)과 #530 복원 가드는 변경하지 않는다.
+
 ## 검증 증거와 미검증
 
 관련 Unit은 `tests/features/gantt/milestone-timeline-adapter.test.ts`, 모델 Unit은 `tests/domain/milestone-timeline-model.test.ts`다. 실제 synthetic ProjectGantt Chromium 실험은 `tests/e2e/milestone-timeline-core.spec.ts`이며 390/768/1024/1440/1920px, Day/Week, leap/month/year/DST, native Grid/Chart 행과 Task start geometry, canonical Link/no-loss/hidden endpoint, zero row/date axis, 같은 instance와 scroll/resize/fullscreen/peer return을 대상으로 한다.
@@ -104,6 +110,22 @@ Remote CI quality/e2e/docker, 독립 QA 최종 승인, 실제 운영 storage/rev
 Day 캡처의 헤더 일치는 UI/UX 비교에서 관찰했지만, 모든 Day/Week 헤더·timezone의 의미 oracle 자동화는 NOT TESTED다. Week 불일치의 원인과 변경 전 baseline 재현은 NOT TESTED다. 이것을 기존 baseline 결함이나 이번 adapter 결함 중 하나로 확정하지 않으며, native date scroll 오차/DST 하나로 원인을 단정하지 않는다. 제품 scale/date 알고리즘은 이번 문서 REWORK에서 수정하지 않았다.
 
 **#551 lane 활성화 전 별도 date/header 의미 gate**: 같은 Gregorian canonical 날짜를 adapter/native anchor와 대응하는 가시 Day 셀 또는 ISO week의 실제 날짜 구간, month/year 헤더 경계와 함께 대조해야 한다. Day/Week, leap/month/year/DST, 가로 scroll/resize/scale 전환·동적 축 이후를 포함하고, Week의 월·연도와 주 구간이 서로 일치해야 한다. 동일 source의 실제 브라우저 증거와 필요한 E2E assertion, 원인 및 검증된 대안을 확보하기 전 gate는 FAIL/NOT TESTED 상태이며 #551 lane의 좌표 표시를 활성화하지 않는다. 기존 Task bar와 adapter x의 ±1px 일치만으로 이 gate를 통과할 수 없다. 현재 운영 Milestone 행/빠른 보기 유지, canonical/domain/API/auth/revision 불변 및 기존 9개 자동 assertion PASS는 이 제한과 구별한다.
+
+## #569 공개 Core 좌표·기하 Adapter PoC와 병행 적용
+
+#549는 공통 조회 모델과 개발용 기술 probe를 제공하며 운영 Milestone 행을 제거하지 않는다. 최신 main에 병합된 #569 PoC는 아래 버전 제한 및 좌표/스크롤 안전 경계를 추가한다. PoC의 `DEFER` 제품 도입 판정은 #549 synthetic PASS로 해제되지 않는다.
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)에 따라 같은 Chart의 controlled origin/unit/cellWidth와 native scroll owner를 기준으로 날짜 좌표를 검증한다. Timeline에 독립 scroll authority를 만들지 않는다. 지원 범위는 균일한 단일 scale 행의 Day/Week이며 실제 tick 폭이 설정과 다른 짧은 축은 거부한다. 날짜 anchor와 native bar/tick ≤1 CSSpx 및 Grid가 보이는 경우의 행/bar y정렬을 실제 Chromium에서 확인한다.
+
+hidden/inert/zero-size에서는 측정·복원하지 않는다. 390px의 native capacity 부족은 NO_SCROLL_CAPACITY로 분리하고 기존 목록/Editor 조회 경로를 유지한다. 잘못된 오늘 날짜 보정이나 자동 전체 범위 확대를 하지 않는다. PoC의 Chart 공간 확대 후 회복과 구체적인 제품 fallback UI는 별개이며 후자는 #551 통합 gate에서 확정한다.
+
+Milestone-only/empty는 canonical의 서로 다른 상태이며 Task identity·Summary rollup·Membership/Dependency를 변경하지 않는다. #569 PoC의 M-only 모형은 #551의 전체 lane 사용성 PASS를 대신하지 않는다. 비교 #551 회귀는 PR #562의 고정 source로 별도 기록한다. 전체 폭의 반복 확장 지원은 확인되지 않았으므로 adapter의 제품 도입은 DEFER다.
+
+## #549 병합 후 Main CI #2359.1 — wheel/scroll event 순서 불변식
+
+#549 기술 probe의 right-edge 테스트는 사용자 휠→공개 `scroll-chart`의 **실제 처리 순서**를 검증해야 한다. 실패 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)의 [trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)는 Core/native left=26640 상태에서 프로그래밍 우측 이동 `scroll-chart(36960)`을 요청한 **이후** 앞서 발행된 사용자 wheel 이벤트 `scroll-chart(26671)`이 도착하는 역전이 발생했음을 기록한다. 최종 scroll이 오른쪽 extension 임계에 도달하지 않아 width=37404가 유지됐다.
+
+`await page.mouse.wheel()` 반환이 native wheel 및 Core state 갱신 완료를 보장한다는 종전 테스트 가정을 철회한다. 새 E2E는 trusted wheel 후 Core left 증가와 native scrollLeft 동기(±1px)를 실제 조건으로 bounded poll하고 몇 RAF를 settle한 다음 **최신 관측값**으로 right-edge API를 호출한다. 그 다음 실제 축 너비의 증가, 같은 instance/행·Link/canonical/no-mutation을 계속 검증한다. 기존 #530 복원 가드와 #367 범위 확장 로직, #569 PoC DEFER 및 #551 Week header 의미 gate는 변경하지 않는다. 이 기록은 실패 원본 trace와 수정 의도를 구별하며 새 CI 실행 전 PASS라고 표시하지 않는다.
 
 
 ## Issue #550 — 기존 Dashboard의 독립 관리 진입
@@ -146,3 +168,6 @@ MILESTONE_TIMELINE/PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/REQUIREMENTS/TEST_PLAN/
 기존 Gantt의 Cut/Copy clipboard/Paste, 위·아래 이동/들여쓰기·내어쓰기/유형 변경 등 hierarchy 명령은 현재 native 행·메뉴·keyboard 경로와 기존 capabilities를 유지한다. 이 관리 메뉴는 그 경로를 새로 복제하거나 다중 Milestone 명령을 확장하지 않는다. #552에서 행을 제거하기 전에는 전체 기존 명령 inventory의 대체 진입·명시 비지원/후속 경계를 별도로 검토해야 하며 #550만으로 해당 명령을 제거하지 않는다.
 
 삭제 확인의 취소/Escape도 현재 Milestone Dashboard의 실제 trigger 또는 visible fallback으로 복귀한다. 확인 도중 외부 갱신으로 trigger가 사라져도 검색/추가/heading을 복원하며 취소는 삭제 요청을 보내지 않는다. 관리 ID의 조건부 자체 state 조정은 [React 공식 지침](https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)을 따른다(확인 2026-10-09). DOM focus와 frame cleanup은 effect/event에 유지하고 다른 컴포넌트 state나 render 중 ref를 변경하지 않는다.
+
+
+#550 PR 리뷰 보완: 412 POST 충돌 시 생성 초안을 stale로 전환해 동일 If-Match 재제출을 막고, 480px 높이 제한을 Milestone 관리 목록에만 적용하여 기존 공수 bucket 표에 전파하지 않는다.

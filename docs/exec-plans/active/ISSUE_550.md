@@ -114,3 +114,8 @@ qa_docs 정적 실행순서 비교에서 대상 소멸 후 같은 ID가 폐기 R
 ## REWORK 후 DOCUMENTATION_SYNC PASS / QA_READY
 
 frontend 최종55파일 동결 manifest SHA-256 `9938792fe390ff094330af065e7b72ad261ce06369a6795148b039a005b7620c`와 제품·spec·선별40증거를 확인했다. required7개 문서는최초550변경을포함하며추가REWORK영향5개문서를갱신했고TASK_RELATIONS/MILESTONE_STAGE_GATES는추가관계/Gate변경없어기존550문단유지N/A다. 최종19PASS44.5초/exit0, typecheck/lint/Markdown155/diff PASS 및 Next생성파일parent불변을확인했다. actualHTTP/SQLite원본manifest16개·currentUI3파일변경/13불변·구체적재사용조건과최초race2FAIL·19PASS를분리했다. 독립UX delta와backend재사용영향PASS, Manager DOCUMENTATION_SYNC 재판정PASS다. 이전DOCSYNC와QA_FAIL을지우지않으며다음exactstagedtree독립deltaPRE_QA로넘긴다. quality/e2e/docker/QA_FINAL/Manager ACCEPT는NOT TESTED다.
+
+
+## 2026-10-10 main 통합 및 Review 보완
+
+최신 #549 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`에 맞춰 #550용 0.105.0 후보로 조정한다. Codex P2: 412 conflict 후 새 POST 차단, 관리 표만 480px cap 적용. 최신 Milestone 용어 및 E2E·문서를 동기화한다. #2216.1 성공은 이전 head에 한정하고 새 exact-head CI 및 독립 QA_FINAL/Manager ACCEPT는 미검증. release_required=true, release_authorized=false.

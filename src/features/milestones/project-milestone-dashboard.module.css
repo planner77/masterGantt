@@ -65,4 +65,4 @@
 .managementActions small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 @media (max-width: 600px) { .sectionHeading { flex-wrap: wrap; } .managementActions { grid-template-columns: minmax(0, 1fr); } }
 
-.tableOwner { max-height: 480px; overflow: auto; }
+.stageTableOwner { max-height: 480px; overflow: auto; }

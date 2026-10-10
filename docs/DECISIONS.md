@@ -1,5 +1,30 @@
 # Manager decisions
 
+## Issue #565 — 위험도 기반 QA_FINAL 운영 정책 (2026-10-09)
+
+**결정(적용은 문서 정책 PR의 main 병합 이후):** 모든 구현 Issue에 독립 QA Agent를 일괄 필수로 요구하는 대신, [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 LOW/MEDIUM/HIGH 트리거에 따라 독립 Reviewer 의무를 정한다. LOW·일부 MEDIUM은 구체적인 사유가 있을 때 `QA_FINAL=N/A`로 처리하고 Manager의 Head 연결 ACCEPT가 필수다. HIGH 및 독립 검토를 선택한 MEDIUM은 실제 별도 `qa_docs` 또는 별도 인간 Reviewer의 Head 연결 PASS 없이는 BLOCKED다.
+
+**근거:** 현재 Ruleset은 required Quality/E2E/Docker aggregate와 리뷰 스레드 해결을 강제하지만 승인 Review count가 0이므로 내부 독립 QA/Manager 승인을 대신하지 않는다. 기존 PR/Head 전체 CI·문서 동기화·main/GHCR·릴리스 승인 Gate는 유지한다. Sub-Agent 없는 단독 실행도 별도 인간 Reviewer를 확보할 수 있어야 하며 과거 병합 이력을 소급 정정하지 않는다.
+
+**후속 결정 경계:** 사용자 요청 #580은 GitHub Actions 자동 QA + Manager ACCEPT가 공식 대체 경로가 되도록 하는 *후속 구현 이슈*이며 #565 정책만으로 자동 대체가 승인·구현된 것은 아니다. 자동 QA 도입 후 HIGH 조건을 바꿀 때에는 이 결정과 모든 참조 지침을 동기 개정하고 실제 required check·Ruleset의 보장 범위를 재확인한다.
+
+
+## Issue #569 — 시간축 확장 대안과 Adapter ADR (2026-10-09)
+
+[ADR](GANTT_ADAPTER_ADR.md)에서 문서화된 autoScale/start/end, 같은 instance의 명시 범위 변경, 기존 synthetic resize의 세 대안을 실제 설치 Core2.7.3로 비교한다. 공식 최신 문서와 설치 타입/runtime을 같은 버전 계약으로 간주하지 않으며 exec resolve와 native settle을 분리한다.
+
+실험용 adapter 계약을 채택하되 전체 폭에서 연속 확장이 확인되지 않아 제품 도입은 DEFER한다. PoC의 지평 상한은 10 calendar years/1,000,000 CSSpx, trial당 3회 확장, settle 기본 1500ms/최대 5000ms와 3개 안정 frame이다. 실측·실패·불확실성과 rollback 근거를 ADR에 기록하고 제품의 최종 한도는 후속 도입에서 재검토한다. API/DB/domain/권한 계약은 유지한다.
+
+## Issue #568 — API 반환과 화면 안정화의 분리 (2026-10-09)
+
+PR #562의 pending filter→native0→Core0 feed-back은 두 번 관측했으나 최초 DOM writer와 Inline text writer는 미확정이다. Core 결함·adapter 수정 결정은 후속 이슈에 남기며 이번 도구의 PASS로 기존 제품 회귀를 종료하지 않는다.
+
+결정: #567의 제품 재설계 전에 실제 설치 Core 2.7.3와 Chromium에서 action/state/DOM 순서를 관측한다. 테스트 도구는 bounded allowlist trace와 명시적인 완료/취소/scroll-capacity/timeout 분류를 제공한다. 고정 RAF 대기만으로 모든 비동기 writer가 완료했다고 선언하지 않는다.
+
+[공식 exec 문서](https://docs.svar.dev/react/gantt/api/methods/exec/)는 반환을 void로 기술한다. 설치 타입과 runtime 반환 여부·thenable resolution은 별도 실측한다. 반환이 Promise여도 DOM settle 보장은 독립적으로 확인한다. [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/)의 width는 실제 chart container 크기이며 timeline content 확장으로 사용하는 현행 경로의 타당성은 #569에서 PoC에 근거해 판단한다.
+
+제품 Coordinator/adapter, viewport 우선순위 변경, Inline 저장·Milestone lane 수정은 이번 진단 PR에 포함하지 않는다. 비교 PR #562의 실패를 단독 Core 버그나 단순 테스트 지연으로 단정하지 않는다. 세부 측정·한계는 [Gantt Sync Trace](GANTT_SYNC_TRACE.md)를 따른다.
+
 최초 작성: 2026-09-10. 최종 갱신: 2026-09-12. 각 판단은 사용자 Confirmed 요구와 구현을 위한 Assumption을 구분한다. 이번 결과는 설계 승인 기준선이며 제품 release 승인이 아니다.
 
 | ID | 판단 | 내용 | 근거 / 후속 |
@@ -73,3 +98,15 @@ W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calenda
 ## Issue #8 — 내부망 production HTTP의 명시적 허용 (2026-09-14)
 
 사용자 요구에 따라 HTTPS 기본값은 유지하면서 `ALLOW_INSECURE_HTTP=true` opt-in을 채택한다. HTTP URL만 지정하거나 빈/잘못된 boolean 값이면 fail-closed. 요청 Host/Origin/forwarded header로 설정을 변경하지 않는다. HTTP 전송은 암호화되지 않으므로 조직 승인·네트워크 접근 제한이 별도로 필요하며 HTTPS와 동등한 보안으로 보지 않는다. 쿠키는 포트별로 격리되지 않는다. 운영 전환은 기존 Compose 프로젝트·volume 보존 및 재로그인을 전제로 한다. 코드/브라우저 검증은 [HTTP_OPERATION](HTTP_OPERATION.md)에 정의하고 실제 PASS는 PR/run/head 증거로 판단한다.
+
+## Issue #577 — PR metadata 단발 평가 선택 (2026-10-09)
+
+**결정:** 기존 CI workflow 내 metadata evidence job을 유지하고 stale early-exit와 strict same-SHA 단발 검증으로 대체. 다른 CI의 heavy check를 metadata edit로 취소하지 않는다.
+
+**선택 근거:** 기존 main strict Ruleset의 3개 required status context와 token 최소권한을 보존하며 20분 runner busy-wait 제거. 전체 CI의 성공을 제3자의 metadata-only 녹색 표시로 가장하지 않도록, 가장 최근 해당 SHA full run의 세 required job 완료·성공 증거를 확인한다. 운영상 제목/본문 편집보다 댓글을 우선한다.
+
+**한계·위험:** 동일 SHA full CI가 진행 중인 순간의 metadata-only 단발 검증은 `DEFERRED` 실패 상태가 된다. full CI가 나중에 성공해도 edited metadata check 자동 재실행 이벤트가 보장되지 않으므로, 운영자가 동일 metadata run의 failed job을 재실행하여 정상 증거를 반영한다. 이 흐름의 Ruleset 재평가/원격 Actions 리허설은 PR CI 이후 수행해야 하며 확인 전에는 자동 복구가 검증되었다고 주장하지 않는다. 추후 완전 자동화를 원하면 default-branch 신뢰 경계·동일 SHA·이벤트 체인과 check run 이름 충돌을 검증하는 별도 gate ADR 및 명시 승인이 필요하다.
+
+**Rollback:** 메타데이터 CI가 main strict required check를 부적절하게 덮거나 PR을 막으면 #577 merge 전 수정 또는 merge 후 해당 변경 revert. `pull_request_target`, write token, secret 확대는 금지. `DESIGN.md`는 UI 변화가 없어 N/A. 제품 SemVer/release_required=false.
+
+**충돌 해결:** main의 Issue #569 ADR 결정을 우선 보존하고 Issue #577의 설계 결정을 병합하였다. Codex P1 지적에 따른 metadata_evidence 독립 Runner checkout 단계와 회귀 계약을 추가하였다.

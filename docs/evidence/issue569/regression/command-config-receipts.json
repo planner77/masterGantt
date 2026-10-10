@@ -1,0 +1,12 @@
+[
+  {
+    "name": "main.config.cjs",
+    "sha256": "c9beb195d845ef356cc68a1ff670775756eefff6f03cc91a1b6085dbce06129c",
+    "configText": "const { defineConfig, devices } = require('${MAIN_SOURCE}/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${MAIN_SOURCE}/tests/e2e',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/main-trials/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/main-trials/results.json'}]],use:{baseURL:'http://127.0.0.1:3193',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3193',cwd:'${MAIN_SOURCE}',url:'http://127.0.0.1:3193',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3193',DATABASE_PATH:'${EVIDENCE_ROOT}/main-trials/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-issue569-main'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  },
+  {
+    "name": "pr562.config.cjs",
+    "sha256": "3acb38f73facb711789488572e0a6664e48100781dbb926d6a0fae76bf8846eb",
+    "configText": "const { defineConfig, devices } = require('${PR562_SOURCE}/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${PR562_SOURCE}/tests/e2e',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/pr562-trials/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/pr562-trials/results.json'}]],use:{baseURL:'http://127.0.0.1:3194',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3194',cwd:'${PR562_SOURCE}',url:'http://127.0.0.1:3194',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3194',DATABASE_PATH:'${EVIDENCE_ROOT}/pr562-trials/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-issue569-pr562'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  }
+]

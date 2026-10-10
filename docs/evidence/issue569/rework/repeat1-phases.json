@@ -1,0 +1,159 @@
+{
+  "observations": [
+    {
+      "phase": "before-filter",
+      "public": {
+        "left": 120,
+        "top": 96
+      },
+      "native": {
+        "left": 120,
+        "top": 96
+      },
+      "rows": 19,
+      "renderedGridRows": 18,
+      "vertical": {
+        "scrollHeight": 908,
+        "clientHeight": 532,
+        "capacity": 376
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "22개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460}]"
+    },
+    {
+      "phase": "filter-applied",
+      "public": {
+        "left": 120,
+        "top": 0
+      },
+      "native": {
+        "left": 120,
+        "top": 0
+      },
+      "rows": 3,
+      "renderedGridRows": 2,
+      "vertical": {
+        "scrollHeight": 504,
+        "clientHeight": 504,
+        "capacity": 0
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "1개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460}]"
+    },
+    {
+      "phase": "filter-cleared",
+      "public": {
+        "left": 120,
+        "top": 0
+      },
+      "native": {
+        "left": 120,
+        "top": 0
+      },
+      "rows": 18,
+      "renderedGridRows": 17,
+      "vertical": {
+        "scrollHeight": 908,
+        "clientHeight": 504,
+        "capacity": 404
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "22개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460}]"
+    },
+    {
+      "phase": "new-user-viewport",
+      "public": {
+        "left": 180,
+        "top": 128
+      },
+      "native": {
+        "left": 180,
+        "top": 128
+      },
+      "rows": 19,
+      "renderedGridRows": 18,
+      "vertical": {
+        "scrollHeight": 908,
+        "clientHeight": 504,
+        "capacity": 404
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "22개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":128,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":180,\"top\":128,\"visible\":true,\"requestedLeft\":180}]"
+    },
+    {
+      "phase": "capacity-preserving-filter",
+      "public": {
+        "left": 180,
+        "top": 128
+      },
+      "native": {
+        "left": 180,
+        "top": 128
+      },
+      "rows": 18,
+      "renderedGridRows": 17,
+      "vertical": {
+        "scrollHeight": 756,
+        "clientHeight": 504,
+        "capacity": 252
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "18개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":128,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":180,\"top\":128,\"visible\":true,\"requestedLeft\":180}]"
+    },
+    {
+      "phase": "capacity-preserving-filter-cleared",
+      "public": {
+        "left": 180,
+        "top": 128
+      },
+      "native": {
+        "left": 180,
+        "top": 128
+      },
+      "rows": 19,
+      "renderedGridRows": 18,
+      "vertical": {
+        "scrollHeight": 908,
+        "clientHeight": 504,
+        "capacity": 404
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "22개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":128,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":180,\"top\":128,\"visible\":true,\"requestedLeft\":180}]"
+    },
+    {
+      "phase": "new-user-layout-cycle",
+      "public": {
+        "left": 180,
+        "top": 128
+      },
+      "native": {
+        "left": 180,
+        "top": 128
+      },
+      "rows": 19,
+      "renderedGridRows": 18,
+      "vertical": {
+        "scrollHeight": 908,
+        "clientHeight": 504,
+        "capacity": 404
+      },
+      "identity": "svar-api-1",
+      "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120}",
+      "filterResult": "22개 일치 /  전체  22개 작업",
+      "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":-484,\"height\":-72},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":0,\"top\":96,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"scroll-chart\",\"left\":120,\"top\":96,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":922,\"height\":460},{\"action\":\"resize-chart\",\"left\":120,\"top\":96,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":460},{\"action\":\"scroll-chart\",\"left\":120,\"top\":128,\"visible\":true},{\"action\":\"scroll-chart\",\"left\":180,\"top\":128,\"visible\":true,\"requestedLeft\":180},{\"action\":\"resize-chart\",\"left\":180,\"top\":128,\"visible\":true,\"width\":922,\"height\":432},{\"action\":\"resize-chart\",\"left\":180,\"top\":128,\"visible\":true,\"width\":906,\"height\":432}]"
+    }
+  ],
+  "status": "passed"
+}

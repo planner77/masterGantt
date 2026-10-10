@@ -10,12 +10,24 @@ export interface ProjectMasterItemDto {
   usageCount?: number;
 }
 
+export interface ProjectMasterRelationDto {
+  businessUnitId: string;
+  productId: string;
+  siteEntityId: string | null;
+}
+export interface ProjectMasterRelationMutationRequest {
+  businessUnitId: string;
+  productId: string;
+  siteEntityId?: string | null;
+}
+
 export interface ProjectMasterSelectionResponse {
   data: {
     revision: number;
     businessUnits: ProjectMasterItemDto[];
     products: ProjectMasterItemDto[];
     siteEntities: ProjectMasterItemDto[];
+    relations: ProjectMasterRelationDto[];
   };
 }
 

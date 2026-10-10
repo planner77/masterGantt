@@ -1,5 +1,12 @@
 # GitHub-first 테스트 및 검증 정책
 
+## Issue #565 위험도 기반 독립 QA와 GitHub Required Validation 분리
+
+위험 분류/QA N/A·Reviewer·Manager 승인 계약은 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)를 따른다. LOW/일부 MEDIUM은 근거와 영향을 기록하고 독립 검토만 `N/A`가 가능하다. HIGH 및 `qa_required=true` MEDIUM은 실제 별도 qa_docs/인간 Reviewer가 필요한 상태이며 reviewer를 확보하지 못하면 **BLOCKED**다. 자동 리뷰 또는 CI만으로 독립 QA PASS라고 기록하지 않는다(#580 자동 QA 대체는 별도 후속).
+
+GitHub Actions exact-head `quality/e2e/docker` aggregate PASS와 path-based implementation Job SKIPPED를 분리 기록한다. 새 Head에서는 3개 required aggregate 결과를 다시 확인해야 한다. PR의 latest SHA와 run ID/attempt, 문서 동기화, review thread 해결, qa_final(PASS 또는 조건부 N/A) 및 Manager ACCEPT가 서로 다른 증거다. `main-lifecycle-gate` 승인 리뷰 수 0은 내부 Manager 승인 근거가 아니다. 실제 GitHub Settings/Ruleset 변경은 이번 범위에 없다.
+
+
 ## Issue #361 Actions 실행명 원격 검증
 
 PR 단계의 실제 원격 증거는 Actions run의 `display_title`이 Primary Issue, PR 번호와 `run_number.run_attempt`를 포함하는지 확인하는 것이다. 정적 Python contract만으로 GitHub UI에 적용됐다고 판정하지 않는다. 이 PR에서는 새 `run-name`이 적용된 PR CI와 기존 required `quality/e2e/docker` check 이름을 함께 확인한다.
@@ -113,8 +120,8 @@ PR과 동일한 `quality`/`e2e`/`docker` gate를 다시 수행한다. 별도 `cl
 
 - `frontend`, `backend`, `scheduler`, `excel_vba`: 구현 중 관련 로컬 fast feedback을 수행하고 원격 branch/PR 검증 대상으로 변경을 전달한다.
 - `infra`: GitHub Actions run, workflow, runner, permission, cache, Docker/GHCR 문제를 담당한다. CI 실패 시 run/job/step 근거를 확보한다.
-- `qa_docs`: 로컬 결과와 GitHub 원격 결과를 구분하여 독립 검토한다. 원격 CI 미실행은 `NOT TESTED`, 실행 불가/권한 문제는 `BLOCKED`로 기록한다.
-- `Manager`: PR 원격 gate 결과와 필요한 환경별 검증을 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
+- `qa_docs`: 위험도 정책에서 독립 검토가 필수인 경우 구현자와 분리해 로컬/원격 증거를 검토한다. 도구가 없으면 승인된 별도 인간 Reviewer를 배정한다. 독립 QA 미선택은 조건부 N/A, 필수 Reviewer 부재는 BLOCKED, 원격 CI 미실행은 NOT TESTED로 구분한다.
+- `Manager`: PR 원격 gate, 위험도별 QA_FINAL(필수 PASS 또는 N/A 근거), DOCUMENTATION_SYNC 및 필요한 환경 검증을 Head와 함께 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
 
 ## 6. 완료 보고 최소 증거
 
@@ -127,6 +134,8 @@ Local Fast Feedback: PASS | FAIL | NOT TESTED
 GitHub quality: PASS | FAIL | BLOCKED | NOT TESTED
 GitHub E2E: PASS | FAIL | BLOCKED | NOT TESTED
 GitHub Docker smoke: PASS | FAIL | BLOCKED | NOT TESTED
+risk_level / qa_required / risk_reason / reviewer / qa_final(PASS|FAIL|BLOCKED|NOT TESTED|N/A+reason):
+Manager ACCEPT/REWORK/DEFER와 해당 Head·근거:
 Main GHCR digest smoke: PASS | FAIL | BLOCKED | NOT TESTED | N/A
 Environment-specific validation: PASS | FAIL | BLOCKED | NOT TESTED | N/A
 Remaining risks:
@@ -351,3 +360,30 @@ PR head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI [#2191.1](https://gi
 PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex 재검토에서 P1 지적: OS deps의 360초 timeout + Azure→Ubuntu archive fallback 최대 2회(약 12분 20초)에도 `.github/workflows/ci.yml`의 `publish-commit-image`는 job 30분, `.github/workflows/release-image.yml`의 `container`는 20분이었다. 이 두 main/release job은 GHCR digest pull/build·transport·runtime/persistence 추가 검증이 필수여서 setup 지연 시 검증 전에 강제 취소될 위험이 있다.
 
 보완: Main `publish-commit-image` timeout 50분, Release `container` timeout 40분으로 조정한다. 기존 CI/Release Chromium E2E 35분, Docker smoke 40분, shared action 두 시도 각 360초 제한, 실패 후 최대 1회 retry 및 non-zero fail-closed, required aggregate와 GHCR exact digest/transport/runtime/persistence 검사 내용은 그대로 유지한다. `tests/scripts/test-config-layout.test.ts`에 두 job의 timeout 값 검증을 추가했다. 새 exact-head PR CI는 수정 사항의 PR quality/E2E/Docker를 검증하며, main image/Release 실제 경로는 병합 뒤 main 및 별도 승인 release 증거로 판단한다.
+
+## Issue #487 — 병합 후 Main CI #2203.1 Playwright APT lock 복구
+
+- 기존 [PR #488](https://github.com/planner77/masterGantt/pull/488)은 `08ac7749efc4544dfc125853d9e58ef3a9d56b21`로 병합됐다. 정확한 Main CI [#2203.1](https://github.com/planner77/masterGantt/actions/runs/37793380955)에서 Quality/Docker 및 E2E shard 2~6 PASS, shard 1/6 FAIL, E2E aggregate FAIL, Main 임시 GHCR publish SKIPPED가 확인됐다.
+- shard 1/6 로그: 첫 `playwright install-deps chromium` 360초 timeout (exit 124) 뒤 공식 Ubuntu archive로 재시도했으나 `/var/lib/apt/lists/lock`을 이전 `apt-get` PID 2593이 점유해 `Unable to lock directory` / exit 100. 외부 네트워크 불안정 자체와 **프로세스 간 APT 재시도 경합**을 구분한다.
+- 후속 수정은 Azure `mirror+file`/legacy source를 첫 설치 전에 공식 Ubuntu archive로 정규화하고, APT network timeout(45초)·retries(1회)로 자식 APT 지연을 제한하며, 실패 시 활성 lists/dpkg 잠금을 `fuser`로 최대 60초 감시하여 해제 확인 후에만 Playwright 1회 retry한다. 잠금이 유지되면 명시적으로 FAIL하고 kill/검증 skip으로 통과시키지 않는다.
+- 정적 회귀에서 미러 정규화가 첫 설치보다 앞서 수행되고 lock 감시가 retry보다 앞서는 실행 순서와 fail-closed 경계를 고정한다. 실제 검증은 새로운 후속 PR exact-head required quality/E2E 6 shard/Docker와 병합 뒤 새 merge SHA의 Main CI, 임시 GHCR `ci-<SHA>` image publish/exact digest pull/runtime/transport/persistence/SBOM·provenance, Generic Finalizer 결과로 분리한다.
+- 후속 PR 이전 Main #2203.1의 실패 결과는 불변이다. 관련 제품 API/DB/domain/version은 바꾸지 않는다.
+
+## Issue #541 자동 PR 권한 오류 원격 검증
+
+- 원 실행 [E2E 샤드 최적화 #10.1](https://github.com/planner77/masterGantt/actions/runs/37706501705)에서 timing 분석/plan proposal artifact/기존 PR 조회/branch push는 PASS, 자동 PR 생성은 GitHub repository permission restriction으로 FAIL이다. 기존 #508의 shell quoting/artifact 문제와 구별한다.
+- PR CI에서는 변경된 workflow에 `gh pr create` 실패 감지, BLOCKED Step Summary, head SHA/수동 PR 복구 링크 및 비정상 exit 조건이 존재하는지 정적 회귀로 확인한다. PR 자동 생성과 수동 복구 안내는 **같은 제목 변수**를 사용하며, Summary에 제목 및 `Refs #437`가 정확히 한 번 포함된 본문 원문을 명시해야 한다. 이 정보가 없는 compare URL만으로는 중복 PR 방지·Issue Lifecycle 추적을 검증하지 못한다.
+- 권한 차단 분기의 실제 원격 검증에는 같은 저장소 설정으로 새로운 `shouldUpdate=true` 재균형 후보가 있어야 한다. 기존 PR이 이미 열려있으면 해당 분기가 skip되므로 실제 권한 오류 재현 PASS로 과대 보고하지 않는다.
+- 자동 PR 생성이 차단된 상태에서 실제 plan은 브랜치에 보존되고 PR #540을 통해 별도 검증할 수 있다. 추가 token 생성, 저장소 PR 생성 허용 설정 변경, required checks 완화는 권한 있는 maintainer의 명시적 승인 없이는 진행하지 않는다.
+- PR #540의 최초 PR CI #2124는 aggregate E2E status가 SUCCESS이지만 Chromium 6-shard job은 SKIPPED다. 이 실행을 계획 변경에 대한 실제 E2E PASS로 사용하지 않는다. `ci.yml`의 E2E 경로 필터에 shard plan JSON과 planner script를 추가하여 새 head의 PR CI에서 실제 6-shard 실행을 요구한다.
+- 저장소 설정이 승인 후 변경되었다면 후속 신규 plan 생성 시 PR 생성과 exact head `ci.yml workflow_dispatch`를 확인한다. 생성 실패를 워크플로 성공으로 처리하지 않는다.
+
+### Issue #541 — main 정렬 후 재검증
+
+- 2026-10-09 기준 #542에 최신 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 병합했다. #463 수평 스크롤 실패는 주간 timeline의 실제 120px scroll buffer가 준비됐는지 확인한 후 기존 정확한 viewport 120px 불변식을 검사하도록 보완했다.
+- 새로운 PR CI의 실행 SHA가 갱신된 PR head와 동일한지 반드시 확인한다. 이전 SHA `ca6312ce2c53bb9ad4e11b8e959bcc6963f108a9`의 재실행은 새 변경에 대한 증거가 아니다.
+
+
+## Issue #577 — Metadata/Full CI 원격 회귀
+
+PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run-name, 이벤트/action, 이벤트 Head/current Head, same-SHA full-run ID, quality/E2E/Docker required check, 실행시간을 함께 기록한다. 현재 Head 변경으로 stale인 메타데이터는 즉시 `SUPERSEDED`여야 하며 20분 polling이 없어야 한다. metadata-only run이 full CI를 취소하면 FAIL. 현재 full-run pending/missing은 NOT TESTED 또는 FAIL이고 자동 PASS가 아니다. metadata-only 실패 뒤 full CI가 성공하면 해당 metadata 실패 Job 재실행으로 재판정하되 본 PR CI 시작 범위에서는 관측·리허설을 별도 기록한다. CI 변경 PR은 E2E/Docker 경로 판정에 포함되므로 실제 PR에서 세 필수 Gate를 모두 확인한다.

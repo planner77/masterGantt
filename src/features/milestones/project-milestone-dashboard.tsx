@@ -191,13 +191,13 @@ export function ProjectMilestoneDashboard({
           key: "ready",
           title: "Ready",
           metric: data.kpi.ready,
-          note: "미완료·소속 작업 있는 단계",
+          note: "미완료·소속 작업 있는 Milestone",
         },
         {
           key: "blocked",
           title: "선행 차단",
           metric: data.kpi.blocked,
-          note: "직접 선행 단계 미완료",
+          note: "직접 선행 Milestone 미완료",
         },
         {
           key: "overdue",
@@ -215,7 +215,7 @@ export function ProjectMilestoneDashboard({
           key: "atRisk",
           title: "계획 일정 위험",
           metric: data.kpi.atRisk,
-          note: "미완료 소속 작업 종료 > 단계 예정",
+          note: "미완료 소속 작업 종료 > Milestone 예정",
         },
       ]
     : [];
@@ -255,7 +255,7 @@ export function ProjectMilestoneDashboard({
       <div className={styles.filters}>
         {(filters.milestoneIds?.length ?? 0) > 1 ? (
           <div className={styles.multiSummary}>
-            <strong>여러 단계 {filters.milestoneIds!.length}개 선택</strong>
+            <strong>여러 Milestone {filters.milestoneIds!.length}개 선택</strong>
             <span>추가 조건에서 선택을 변경합니다.</span>
             <button
               type="button"
@@ -263,7 +263,7 @@ export function ProjectMilestoneDashboard({
                 setFilters((current) => ({ ...current, milestoneIds: [] }))
               }
             >
-              모든 단계 선택 해제
+              모든 Milestone 선택 해제
             </button>
           </div>
         ) : (
@@ -280,7 +280,7 @@ export function ProjectMilestoneDashboard({
           />
         )}
         <label className={styles.search}>
-          단계 검색
+          Milestone 검색
           <input
             type="search"
             value={search}
@@ -345,15 +345,15 @@ export function ProjectMilestoneDashboard({
         snapshot을 평가하며 과거 실제 상태를 복원하지 않습니다.
       </p>
       <details className={styles.advanced}>
-        <summary>단계 표시·공수 범위 조건</summary>
+        <summary>Milestone 표시·공수 범위 조건</summary>
         <p>
-          검색과 단계 선택은 표시 대상 S입니다. 리소스·물류·기간은 공수 범위
-          F이며 단계 전체 Ready와 소속 진척은 바뀌지 않습니다.
+          검색과 Milestone 선택은 표시 대상 S입니다. 리소스·물류·기간은 공수 범위
+          F이며 Milestone 전체 Ready와 소속 진척은 바뀌지 않습니다.
         </p>
         <div className={styles.advancedGrid}>
           {arrayFilter(
             "milestoneIds",
-            "표시 단계",
+            "표시 Milestone",
             data?.catalog.milestones ?? [],
           )}
           {arrayFilter(
@@ -497,7 +497,7 @@ export function ProjectMilestoneDashboard({
       </details>
       {query.loading ? (
         <p role="status">
-          현재 조건으로 완료 단계를 조회 중입니다. 이전 결과의 상세·일정·리소스
+          현재 조건으로 Milestone을 조회 중입니다. 이전 결과의 상세·일정·리소스
           이동은 잠깁니다.
         </p>
       ) : null}
@@ -527,7 +527,7 @@ export function ProjectMilestoneDashboard({
               <h3>완료 처리율</h3>
               <strong>{displayPercent(data.kpi.completion.percent)}</strong>
               <p>
-                완료 기록 {data.kpi.completion.numerator} / 표시 단계{" "}
+                완료 기록 {data.kpi.completion.numerator} / 표시 Milestone{" "}
                 {data.kpi.completion.denominator}
               </p>
               <button
@@ -540,7 +540,7 @@ export function ProjectMilestoneDashboard({
                   schedule(data.kpi.completion.completedMilestoneTaskIds)
                 }
               >
-                전체 일정에서 완료 단계 보기
+                전체 일정에서 Milestone 보기
               </button>
             </article>
             {countCards.map((card) => (
@@ -579,10 +579,10 @@ export function ProjectMilestoneDashboard({
           </div>
           <p className={styles.note}>
             Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐
-            전체 단계 수로 해석하지 않습니다.
+            전체 Milestone 수로 해석하지 않습니다.
           </p>
           <section className={styles.stageSection}>
-            <h3>단계 전체 상태 · 표시 {data.rows.length}개</h3>
+            <h3>Milestone 전체 상태 · 표시 {data.rows.length}개</h3>
             <p className={styles.note}>
               프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와
               분모가 다릅니다.
@@ -601,16 +601,16 @@ export function ProjectMilestoneDashboard({
               />
             ) : (
               <p>
-                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 완료 단계가 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
+                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 Milestone가 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
                 아래에서 별도로 확인합니다.
               </p>
             )}
           </section>
           <section>
-            <h3>범위 내 계획 공수 · 모든 단계 + 미지정</h3>
+            <h3>범위 내 계획 공수 · 모든 Milestone + 미지정</h3>
             <p className={styles.note}>
               {data.workloadRange.from} ~ {data.workloadRange.to} ·{" "}
-              {conversionLabel(data.mdPerMm, data.mdPerMmSource)}. 숨긴 단계
+              {conversionLabel(data.mdPerMm, data.mdPerMmSource)}. 숨긴 Milestone
               bucket도 전체 합계에 포함하며 위 표시 행의 합계가 아닙니다. 투입률
               미설정 {data.effort.unsetAllocationCount}건.
             </p>
@@ -641,7 +641,7 @@ export function ProjectMilestoneDashboard({
               className={styles.tableOwner}
               tabIndex={0}
               role="region"
-              aria-label="범위 내 단계 공수 표 가로 스크롤"
+              aria-label="범위 내 Milestone 공수 표 가로 스크롤"
             >
               <table className={styles.effortTable}>
                 <colgroup>
@@ -666,7 +666,7 @@ export function ProjectMilestoneDashboard({
                       <td>
                         <span className={styles.identity}>
                           {bucket.milestoneTaskId === null
-                            ? "미지정 단계"
+                            ? "미지정 Milestone"
                             : (data.catalog.milestones.find(
                                 (milestone) =>
                                   milestone.id === bucket.milestoneTaskId,

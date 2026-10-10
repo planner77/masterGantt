@@ -62,7 +62,58 @@ test("#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실
   const frame = page.locator(".project-gantt-frame"), viewport = () => frame.evaluate((element) => ({ public: Reflect.get(element, "__masterganttPublicViewport"), dom: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop }, columns: Array.from(element.querySelectorAll(".wx-header .wx-cell")).map((cell) => cell.getBoundingClientRect().width), selection: Array.from(element.querySelectorAll(".wx-row.wx-selected")).map((row) => row.getAttribute("data-id")) }));
   const summaryToggle = frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000001"] [data-action="open-task"]');
   await summaryToggle.click(); await expect(frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000002"]')).toHaveCount(0);
-  await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click(); await frame.locator(".wx-gantt").evaluate((element) => { element.scrollTop = 96; }); await frame.locator(".wx-chart").evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(async () => (await viewport()).dom).toEqual({ left: 120, top: 96 }); const before = await viewport(); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0);
+  // #525/#530 Main CI #2315.1: 선택한 Task의 공개 Core reveal(실측 1581px)이
+  // 수동으로 설정한 DOM-only 120px보다 늦게 적용될 수 있다.
+  // 직접 수평 좌표를 덮지 않고, 실제 선택 결과를 안정화된 복귀 원장으로 사용한다.
+  await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click();
+  await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
+  await expect.poll(async () => {
+    const current = await viewport();
+    return current.dom.left > 120 && current.public?.left === current.dom.left;
+  }).toBe(true);
+  await frame.locator(".wx-gantt").evaluate((element) => { element.scrollTop = 96; });
+  await expect.poll(async () => {
+    const current = await viewport();
+    return current.dom.left > 120 && current.dom.top === 96 &&
+      current.public?.left === current.dom.left && current.public?.top === current.dom.top;
+  }).toBe(true);
+  // 실제 RAF 8개 연속으로 Core/DOM 두 축 및 canonical sync가 모두 안정적이어야 한다.
+  // tick 상한 90은 종료 장치일 뿐 안정 프레임이나 허용오차를 완화하지 않는다.
+  await frame.evaluate(async (element) => {
+    let previous = "", stableFrames = 0;
+    const recentSamples: string[] = [];
+    for (let tick = 0; tick < 90 && stableFrames < 8; tick++) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const chart = element.querySelector<HTMLElement>(".wx-chart");
+      const gantt = element.querySelector<HTMLElement>(".wx-gantt");
+      const publicViewport = Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number } | undefined;
+      const syncDepth = element.getAttribute("data-gantt-canonical-sync-depth");
+      const sample = JSON.stringify([chart?.scrollLeft, gantt?.scrollTop, publicViewport?.left, publicViewport?.top, syncDepth]);
+      recentSamples.push(sample);
+      if (recentSamples.length > 8) recentSamples.shift();
+      const aligned = !!chart && !!gantt && !!publicViewport &&
+        chart.scrollLeft > 120 && gantt.scrollTop === 96 &&
+        publicViewport.left === chart.scrollLeft && publicViewport.top === gantt.scrollTop &&
+        syncDepth === "0";
+      stableFrames = aligned && sample === previous ? stableFrames + 1 : 0;
+      previous = sample;
+    }
+    if (stableFrames < 8)
+      throw new Error(`#525 selected Chart reveal did not settle: ${recentSamples.join(" -> ")}`);
+  });
+  const before = await viewport();
+  expect(before.dom.left).toBeGreaterThan(120);
+  expect(before.dom.top).toBe(96);
+  expect(before.public).toEqual(before.dom);
+  await testInfo.attach("selected-chart-reveal-baseline", { body: JSON.stringify({ public: before.public, dom: before.dom }), contentType: "application/json" });
+  // 기존 12 RAF 정지 후에도 원장·열·선택·스크롤의 strict equality를 유지한다.
+  await frame.evaluate(async () => {
+    for (let tick = 0; tick < 12; tick++)
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+  expect(await viewport()).toEqual(before);
+  expect(before.columns.length).toBeGreaterThan(0);
+  expect(before.selection.length).toBeGreaterThan(0);
   await page.getByRole("tab", { name: "리소스", exact: true }).click(); await ready(page); const root = panel(page); await root.getByRole("button", { name: "개발 견적", exact: true }).click(); await ready(page); await expect(root.getByRole("button", { name: "개인", exact: true })).toHaveAttribute("aria-pressed", "true"); await root.getByRole("button", { name: /^필터/ }).click(); await expect(root.getByLabel("Global Role", { exact: true })).toHaveValue("DEVELOPER"); await root.getByLabel("개발자 등급").selectOption("ADVANCED"); await ready(page); await root.getByLabel("개발자 등급").press("Escape"); await expect(root.getByRole("button", { name: /^필터/ })).toBeFocused(); await root.getByRole("button", { name: /테스트 리소스 \(R-01\)/ }).click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();
   const evidence = []; mkdirSync("output/playwright/issue-525", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 900 }); const result = await root.evaluate((element) => {

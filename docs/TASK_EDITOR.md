@@ -26,7 +26,7 @@ Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선�
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
-일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. 마일스톤 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 #493부터 이름·Description·URL·하위 작업 기본 완료 단계를 편집하고 일정·진척·Baseline은 계속 읽기 전용이다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
+일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. Milestone 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 #493부터 이름·Description·URL·하위 작업 기본 Milestone을 편집하고 일정·진척·Baseline은 계속 읽기 전용이다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
 
 취소/닫기/Escape는 미저장 변경이 있으면 먼저 버리기 확인을 요구한다. 편집기 하나가 열려 있는 동안 다른 작업으로 초안을 조용히 전환하지 않는다. 메뉴의 Escape는 원래 호출 대상으로 포커스를 복구한다. 편집기 종료 시 연결된 원래 대상이 없으면 해당 taskId의 현재 행이나 작업공간을 사용한다. 포커스 복구에는 preventScroll을 사용한다.
 
@@ -75,7 +75,7 @@ Auto의 비근무 요청 시작일은 preview에서도 다음 Project 근무일�
 
 2026-09-14 PR #26의 최초 CI [Run #55](https://github.com/planner77/masterGantt/actions/runs/34790707897)는 head `0adbccff88ddcd17e859c226d7803d410b845e7b`에서 quality와 docker는 PASS, e2e는 FAIL이었다. E2E 42개 중 12개가 메뉴 선택 없이 편집기를 기다리며 5초 timeout으로 실패했고 30개는 통과했다. 이는 편집 UI 흐름 변경에 따른 테스트 갱신 누락이다. timeout 연장·테스트 제외·게이트 완화로 해결하지 않는다.
 
-후속 테스트 커밋 `461af0ccef377a7ed7ab828d13fe3dffc381e507`은 공통 `chooseTaskInformation` helper를 추가해 메뉴 표시, 메뉴 단계에서 편집기 부재, 실제 항목 클릭/Enter, 메뉴 종료와 단일 편집기 표시를 검증한다. Grid/Chart·마일스톤·읽기 전용·실제 DB 저장·세 시간대 테스트 모두 같은 경로를 사용한다. 기존 저장/PATCH 횟수/권한/초안/오류 복구 검증을 유지하고 메뉴 자체의 부작용 및 두 viewport의 네 모서리 배치 검증을 추가했다.
+후속 테스트 커밋 `461af0ccef377a7ed7ab828d13fe3dffc381e507`은 공통 `chooseTaskInformation` helper를 추가해 메뉴 표시, 메뉴 단계에서 편집기 부재, 실제 항목 클릭/Enter, 메뉴 종료와 단일 편집기 표시를 검증한다. Grid/Chart·Milestone·읽기 전용·실제 DB 저장·세 시간대 테스트 모두 같은 경로를 사용한다. 기존 저장/PATCH 횟수/권한/초안/오류 복구 검증을 유지하고 메뉴 자체의 부작용 및 두 viewport의 네 모서리 배치 검증을 추가했다.
 
 | 계층 | 범위 | 파일 |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭�
   - 설비의 주 담당자(Owner) 및 시스템의 주 담당자(PI) 정보가 함께 표시되어 작업-설비-시스템-담당자 간 연계 책임을 즉시 파악할 수 있다.
 - **Summary 하위 상속 (subtree scope)**:
   - 대상 작업이 `type === 'summary'`인 경우, 설비/시스템 연결 시 `하위 자손 작업 상속(subtree)` 옵션을 선택할 수 있다.
-  - 일반 작업(Task) 또는 마일스톤(Milestone)인 경우 `subtree` 옵션은 비활성화되며 단일 작업 연결(`self`)로 동작한다.
+  - 일반 작업(Task) 또는 Milestone인 경우 `subtree` 옵션은 비활성화되며 단일 작업 연결(`self`)로 동작한다.
 - **상속된 연결(Inherited Links) 조회**:
   - 상위 조상 Summary로부터 `subtree` scope로 상속된 설비 및 시스템 목록을 별도 영역에 표시한다.
   - 상속 출처 작업명(`sourceTaskName`)을 함께 보여주며, 상속된 연결은 현재 작업에서 직접 해제할 수 없고 출처 Summary 작업에서 수정하도록 안내한다.
@@ -257,15 +257,15 @@ Chart 수직 DnD는 일정 PATCH가 아닌 hierarchy mutation이며 vertical ges
 - assignment PUT은 Resource에 `role`을 전송하지 않는다. 호환용 null은 허용할 수 있으나 non-null Task별 역할 입력은 거부한다.
 - allocation draft, dirty/stale/pending, Project/Catalog revision, inactive 대상, 401/412 복구 계약은 그대로 유지한다.
 - Group pane은 기존 담당 팀 참조 의미를 유지한다.
-## Issue #461 완료 단계 소속 Editor
+## Issue #461 Milestone 소속 Editor
 
-Task의 작업 정보에는 단일 `완료 단계`, Summary에는 `하위 작업 기본 완료 단계` combobox를 둔다. 이름·externalId·canonical taskId를 trim/case-insensitive 검색한다. #519부터 후보 행은 Milestone 이름과 날짜·상태만 표시하고 외부 ID·작업 ID는 노출하지 않는다. 동일 이름도 검색 결과의 canonical taskId로 선택하며 검색 입력의 ID 안내는 유지한다. 직접 지정·가장 가까운 Summary 상속·미지정을 구분한다. 직접 지정 해제는 null을 전송하여 상속으로 복귀하며 차단 sentinel은 없다. 해제 초안의 설명과 상속 출처 열기는 같은 preview membership을 사용한다. 이름과 소속은 기본 저장 한 PATCH에 담는다.
+Task의 작업 정보에는 단일 `Milestone`, Summary에는 `하위 작업 기본 Milestone` combobox를 둔다. 이름·externalId·canonical taskId를 trim/case-insensitive 검색한다. #519부터 후보 행은 Milestone 이름과 날짜·상태만 표시하고 외부 ID·작업 ID는 노출하지 않는다. 동일 이름도 검색 결과의 canonical taskId로 선택하며 검색 입력의 ID 안내는 유지한다. 직접 지정·가장 가까운 Summary 상속·미지정을 구분한다. 직접 지정 해제는 null을 전송하여 상속으로 복귀하며 차단 sentinel은 없다. 해제 초안의 설명과 상속 출처 열기는 같은 preview membership을 사용한다. 이름과 소속은 기본 저장 한 PATCH에 담는다.
 
 Milestone의 소속 작업 N은 중복 제거한 유효 일반 Task 수다. 직접 지정 root 수와 검색 행 수는 별도로 표시한다. 기본은 현재 단계이며 전체 후보/직접/상속/다른 단계/미지정 및 Task/Summary 유형·식별자 검색을 제공한다. Summary 선택은 explicit row 하나만 변경하고 기존 자손 override를 보존한다. 없는 explicit row를 해제 성공으로 표시하지 않으며 상속 출처 열기 또는 다른 직접 지정으로 안내한다. 이동은 이전/새 단계와 유효 일반 작업 영향 수를 preview하고 여러 초안은 milestone-memberships POST 하나로 적용한다.
 
 상속·Gate·영향 계산은 full canonical hierarchy/links를 `stageSnapshotFromProject`와 `previewMilestoneMemberships`에 전달한다. 최종 잠금/완료는 서버 권위다. 성공한 같은 전체 tasks/links/revision을 Workspace·열린 Editor base·소속 패널에 적용하며 dialog를 재등록하지 않는다. Resource/Logistics는 dirty/pending을 부모에 보고한다. 다른 저장 단위의 dirty가 있으면 교차 mutation을 막으며 각 초안은 탭 이동에 유지된다. 닫기/다른 작업 열기/일정에서 보기/최신 조회는 전체 초안 폐기를 명시 확인한다. 모든 pending에는 닫기/Escape/중복 저장을 막는다. 401/412/network 실패는 검색·선택·초안을 유지하고 412는 명시 최신 조회·폐기 검토 후 재시도한다.
 
-Milestone 본인 상태, memberProgress, 미완료 members, 미완료 predecessors, Ready를 분리한다. 0명은 수동 이벤트/N/A이며 predecessorsCompleted이면 명시 완료를 시도할 수 있다. 100% 또는 Ready가 자동 완료를 만들지 않는다. 완료 기록 불일치는 진단만 표시한다. 완료 단계의 소속/관계는 잠기며 상태를 먼저 명시 재개하고 별도 저장 성공 뒤 구조 변경을 한다.
+Milestone 본인 상태, memberProgress, 미완료 members, 미완료 predecessors, Ready를 분리한다. 0명은 수동 이벤트/N/A이며 predecessorsCompleted이면 명시 완료를 시도할 수 있다. 100% 또는 Ready가 자동 완료를 만들지 않는다. 완료 기록 불일치는 진단만 표시한다. Milestone의 소속/관계는 잠기며 상태를 먼저 명시 재개하고 별도 저장 성공 뒤 구조 변경을 한다.
 
 탭은 실제 노출 배열로 ArrowLeft/Right/Home/End 이동하고 active focus를 한 행 tablist 내부에서 보인다. Combobox는 label/expanded/controls/activedescendant, Arrow/Enter/Escape/Tab과 긴 후보 active option scroll을 제공한다. Escape는 후보, 확인, dialog 순서다. 필터는 390px에서 한 열이며 960px 최소 표만 가로 스크롤한다. 고정 Header/Tab/Footer와 본문 세로 scroll, Gantt instance 보존을 유지한다.
 
@@ -277,19 +277,19 @@ Readonly/완료 잠금에서도 후보 검색·metadata 조회는 가능하고 �
 
 ## Issue #462 Grid·메뉴의 공통 Editor 진입
 
-Task/Summary의 완료 단계 셀/완료 단계 연결…은 기존 작업 탭 Membership picker를 연다. Milestone 소속 작업 관리…은 initialTab=memberships로 같은 #461 Editor를 연다. 별도 편집기나 API를 만들지 않으며 readonly/완료는 검색·상세 조회를 유지하고 기존 mutation 잠금을 따른다. pending Grid 셀과 메뉴는 disabled이며 실제 진입 handler도 차단한다. 진입 자체의 mutation은 0회다. 저장 성공은 full canonical snapshot의 동일 revision을 적용하므로 scope별 단계 필터와 선택 열에도 같은 소속 결과가 나타난다.
+Task/Summary의 Milestone 셀/Milestone 연결…은 기존 작업 탭 Membership picker를 연다. Milestone 소속 작업 관리…은 initialTab=memberships로 같은 #461 Editor를 연다. 별도 편집기나 API를 만들지 않으며 readonly/완료는 검색·상세 조회를 유지하고 기존 mutation 잠금을 따른다. pending Grid 셀과 메뉴는 disabled이며 실제 진입 handler도 차단한다. 진입 자체의 mutation은 0회다. 저장 성공은 full canonical snapshot의 동일 revision을 적용하므로 scope별 Milestone 필터와 선택 열에도 같은 소속 결과가 나타난다.
 
-관계 삭제는 기준 작업뿐 아니라 full canonical Link 양 endpoint의 완료 Milestone 여부를 확인한다. 상대 완료 Milestone에 연결된 legacy 관계도 삭제할 수 없고 명시 reopen 후 활성화한다. 일반 Task의 completed 상태나 완료 단계 소속만으로 Task→Task 관계를 막지 않는다. 기존 mixed 관계의 조회는 유지한다.
+관계 삭제는 기준 작업뿐 아니라 full canonical Link 양 endpoint의 완료 Milestone 여부를 확인한다. 상대 완료 Milestone에 연결된 legacy 관계도 삭제할 수 없고 명시 reopen 후 활성화한다. 일반 Task의 completed 상태나 Milestone 소속만으로 Task→Task 관계를 막지 않는다. 기존 mixed 관계의 조회는 유지한다.
 
-## Issue #463 단계 대시보드에서 동일 Editor 조회
+## Issue #463 Milestone 대시보드에서 동일 Editor 조회
 
-일정 완료 단계 대시보드와 물류 관련 단계의 상세는 기존 작업 정보 탭, 소속 작업 조회는 기존 memberships 탭을 연다. 신규 편집기나 저장 API는 없다. 대시보드 GET과 Editor 진입은 mutation을 만들지 않으며 readonly의 상세 조회와 완료 단계 구조 잠금, 기본/Resource/Logistics 초안 보호를 유지한다. 닫기는 원래 일정 peer 또는 물류 보기와 trigger focus로 복원한다. Editor의 일정 이동은 명시 전체 일정 ID drill을 사용한다. stale 결과·진행 중 요청·열린 Editor와 다른 mutation의 pending 동안 새로운 대시보드 drill은 잠긴다. 저장 성공의 canonical revision을 동일 workspace에 적용하여 대시보드가 현재 snapshot을 다시 조회한다.
+일정 Milestone 대시보드와 물류 관련 단계의 상세는 기존 작업 정보 탭, 소속 작업 조회는 기존 memberships 탭을 연다. 신규 편집기나 저장 API는 없다. 대시보드 GET과 Editor 진입은 mutation을 만들지 않으며 readonly의 상세 조회와 Milestone 구조 잠금, 기본/Resource/Logistics 초안 보호를 유지한다. 닫기는 원래 일정 peer 또는 물류 보기와 trigger focus로 복원한다. Editor의 일정 이동은 명시 전체 일정 ID drill을 사용한다. stale 결과·진행 중 요청·열린 Editor와 다른 mutation의 pending 동안 새로운 대시보드 drill은 잠긴다. 저장 성공의 canonical revision을 동일 workspace에 적용하여 대시보드가 현재 snapshot을 다시 조회한다.
 
 ## Issue #464 Copy·Import·Export와 Editor 연결
 
 Task Editor의 기본 정보·Milestone 소속 작업 탭은 canonical Task ID를 그대로 조회한다. 작업 정보·Resource·물류·관계 초안이 열린 동안 Copy와 Import 진입 및 hierarchy mutation을 잠근다. Copy 영향 확인 또는 Import preview/commit은 별도의 저장 단위이며 Editor 저장을 암묵적으로 실행하거나 초안을 폐기하지 않는다. 저장 성공의 전체 canonical snapshot은 기존 Workspace 동기화 경로를 사용하고, Gantt를 재등록하거나 Editor를 remount하는 별도 경로를 만들지 않는다.
 
-Copy는 공유 순수 계획에서 Summary root의 상속 설정과 하위 override를 구분한다. 내부 Milestone 복제 시 연결을 새 ID로 remap하고, 외부 명시 소속 제외·외부/새 목적지 Summary 상속 변화는 같은 revision으로 확인받는다. 완료 단계 구성 잠금은 확인 dialog로 해제하지 않는다. JSON 1.1 교환은 Description·URL·Baseline과 명시 소속을 보존하지만 Resource/Logistics 배정은 제외하므로, 가져오기 후 해당 공수가 원본과 동일하다고 안내하지 않는다. 원본 Task UUID는 참고 값이며 대상 UUID는 새로 발급한다. effective membership/Ready는 서버의 대상 전체 hierarchy/Link 계산 결과를 조회한다.
+Copy는 공유 순수 계획에서 Summary root의 상속 설정과 하위 override를 구분한다. 내부 Milestone 복제 시 연결을 새 ID로 remap하고, 외부 명시 소속 제외·외부/새 목적지 Summary 상속 변화는 같은 revision으로 확인받는다. Milestone 구성 잠금은 확인 dialog로 해제하지 않는다. JSON 1.1 교환은 Description·URL·Baseline과 명시 소속을 보존하지만 Resource/Logistics 배정은 제외하므로, 가져오기 후 해당 공수가 원본과 동일하다고 안내하지 않는다. 원본 Task UUID는 참고 값이며 대상 UUID는 새로 발급한다. effective membership/Ready는 서버의 대상 전체 hierarchy/Link 계산 결과를 조회한다.
 
 #470 선택 리뷰의 Resource 신규 선택 해제 후 dirty 정리와 reload 후 유효 탭 정규화 회귀는 `tests/e2e/project-task-editor.spec.ts`의 #461 두 시나리오를 유지한다. #464의 실제 Editor→Milestone 탭→Grid→Dashboard→Logistics/Resource→JSON/Excel 연결 증거는 `tests/e2e/milestone-stage-exchange.spec.ts`, 요청 실패·취소 및 dialog geometry는 `tests/e2e/milestone-exchange-state.spec.ts`를 사용한다. 로컬 실행 결과는 TEST_PLAN 작성자에게 전달하며 원격 E2E 완료를 대체하지 않는다.
 
@@ -311,6 +311,7 @@ Footer는 Reload 왼쪽, Cancel/Commit 오른쪽을 유지하되 모든 action�
 Summary의 Description과 URL은 자손 일정에서 파생되는 값이 아니라 Summary 자체가 소유하는 비일정 메타데이터다. 따라서 편집 권한이 있는 Task Editor에서는 일반 Task와 같은 입력·정규화·검증을 사용한다. Description은 10,000 Unicode code point 이하이며 공백-only는 null, URL은 trim 후 4,096 code point 이하의 HTTP(S)만 허용한다.
 
 Summary의 요청 시작일·기간·일정 모드·진행률·상태·Baseline은 기존 파생/읽기 전용 계약을 유지한다. Description/URL 변경은 이 필드를 payload에 넣지 않으며, 하위 Task 추가·삭제·이동 또는 Summary 재계산이 저장된 Description/URL을 초기화하지 않는다. readonly, 다른 편집 단위의 dirty/pending, stale revision, 저장 중 잠금과 focus/Escape/초안 보호는 기존 Task Editor 규칙을 그대로 따른다.
+
 
 
 ## Issue #550 — Milestone 관리 목록의 같은 Editor

@@ -1,0 +1,121 @@
+{
+  "role": "추가 요청에 따른 원본 source 보완 재현",
+  "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+  "appVersion": "0.106.1",
+  "coreVersion": "2.7.3",
+  "agentExecution": "/root/repro568",
+  "exitCode": 0,
+  "startedAt": "2026-10-09T04:33:02.611Z",
+  "durationMs": 157267.278,
+  "command": "./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/supplement.config.cjs tests/e2e/project-task-delete-context.spec.ts tests/e2e/project-gantt-inline-name.spec.ts --grep 'repeated mutation rejection \\((401|412|network)\\)|Summary/Task inline and exact-ID Milestone Editor' --repeat-each=2",
+  "configReceipt": {
+    "sha256": "a1b5e18606567f2ee623f1d8dcf45a42d0bc5d881896a7c72c3a62baeeb5a9ff",
+    "configText": "const { defineConfig, devices } = require('${EVIDENCE_ROOT}/source/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${EVIDENCE_ROOT}/source/tests/e2e',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/supplement/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/supplement/results.json'}]],use:{baseURL:'http://127.0.0.1:3189',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3189',cwd:'${EVIDENCE_ROOT}/source',url:'http://127.0.0.1:3189',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3189',DATABASE_PATH:'${EVIDENCE_ROOT}/supplement/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-supplement'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  },
+  "sourceHashes": {
+    "tests/e2e/project-task-delete-context.spec.ts": "a7507dcfe962bb17b151d4f9db8b66a3375a9fe805022d26aaa80e69d2724252",
+    "tests/e2e/project-gantt-inline-name.spec.ts": "a6f30d120dbaadf01984e5ee2c206d884571cea6bf68b076ddfb178932f6cfb8",
+    "src/features/gantt/project-gantt.tsx": "a10670d0c96eec6b060d557f32b91a2e5ac6a4cc3e97000e1b7491593bd32e1b",
+    "src/features/projects/project-readonly-view.tsx": "546558789054c2c8563ea4522421ad4d00bc832764925b8f10d941b11c54969f"
+  },
+  "productAndTestSourceDiff": "없음",
+  "results": [
+    {
+      "title": "Summary/Task inline and exact-ID Milestone Editor each use one canonical PATCH",
+      "source": "project-gantt-inline-name.spec.ts",
+      "line": 84,
+      "workerIndex": 0,
+      "startTime": "2026-10-09T04:33:06.858Z",
+      "verificationStatus": "PASS",
+      "durationMs": 6769,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "Summary/Task inline and exact-ID Milestone Editor each use one canonical PATCH",
+      "source": "project-gantt-inline-name.spec.ts",
+      "line": 84,
+      "workerIndex": 1,
+      "startTime": "2026-10-09T04:34:19.471Z",
+      "verificationStatus": "PASS",
+      "durationMs": 10129,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "keeps confirmed deletions after repeated mutation rejection (401)",
+      "source": "project-task-delete-context.spec.ts",
+      "line": 108,
+      "workerIndex": 0,
+      "startTime": "2026-10-09T04:33:13.718Z",
+      "verificationStatus": "PASS",
+      "durationMs": 8977,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "keeps confirmed deletions after repeated mutation rejection (412)",
+      "source": "project-task-delete-context.spec.ts",
+      "line": 108,
+      "workerIndex": 0,
+      "startTime": "2026-10-09T04:33:37.572Z",
+      "verificationStatus": "PASS",
+      "durationMs": 7275,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "keeps confirmed deletions after repeated mutation rejection (network)",
+      "source": "project-task-delete-context.spec.ts",
+      "line": 108,
+      "workerIndex": 0,
+      "startTime": "2026-10-09T04:33:57.902Z",
+      "verificationStatus": "PASS",
+      "durationMs": 9190,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "keeps confirmed deletions after repeated mutation rejection (401)",
+      "source": "project-task-delete-context.spec.ts",
+      "line": 108,
+      "workerIndex": 1,
+      "startTime": "2026-10-09T04:34:29.760Z",
+      "verificationStatus": "PASS",
+      "durationMs": 9552,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "keeps confirmed deletions after repeated mutation rejection (412)",
+      "source": "project-task-delete-context.spec.ts",
+      "line": 108,
+      "workerIndex": 1,
+      "startTime": "2026-10-09T04:34:53.000Z",
+      "verificationStatus": "PASS",
+      "durationMs": 7161,
+      "assertion": "",
+      "errorLocation": null
+    },
+    {
+      "title": "keeps confirmed deletions after repeated mutation rejection (network)",
+      "source": "project-task-delete-context.spec.ts",
+      "line": 108,
+      "workerIndex": 1,
+      "startTime": "2026-10-09T04:35:14.727Z",
+      "verificationStatus": "PASS",
+      "durationMs": 6887,
+      "assertion": "",
+      "errorLocation": null
+    }
+  ],
+  "verifiedScope": [
+    "401/412/network 삭제 거부 각각2회: 선행 실제 삭제 결과·revision·DB/Reload·인스턴스·Week/Tree/scroll 보존 및 실패복구 assertion 실행. 에러는 명시 주입이며 실제 서버가 그 오류를 자연 발생시켰다는 증거 아님.",
+    "첫 Inline keyboard 저장/cancel2회: Summary/Task inline/정확 Milestone Editor PATCH 단건·키보드/취소·reload 검증."
+  ],
+  "nonReplacement": "별도 삭제 복구 PASS와 첫 keyboard test PASS는 invalid/Tab blur test의 Week 실패 뒤 미도달500/412/network Inline 복구를 대신하지 않음. pending wheel/Week native stale 현상은 원본 및 instrumented4회 FAIL 유지.",
+  "prCI": "NOT TESTED",
+  "mainGHCR": "NOT TESTED",
+  "environmentSpecific": "NOT TESTED",
+  "privacy": "attachments/base64/raw trace/network/cookie/password/DB/절대 임시 경로 없음"
+}
