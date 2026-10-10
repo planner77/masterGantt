@@ -1,3 +1,15 @@
+## Issue #550 — PR CI #2404.1 병합 검증 불일치 복구 및 #589 main 정렬 (2026-10-10)
+
+[PR #559](https://github.com/planner77/masterGantt/pull/559)의 이전 exact Head `de9eb8286ad237f47e1c3fef0767afcbacc410f4`에 대한 [PR CI #2404.1](https://github.com/planner77/masterGantt/actions/runs/38049115763)는 정책 검사, TypeScript/Lint/Vitest/production build, Chromium E2E 6/6 및 aggregate, Docker smoke 및 aggregate가 모두 PASS였다. 전체 workflow는 `QA Final — Automated` job `114208535287`만 **BLOCKED/FAIL**: 실제 로그의 직접 사유는 `mergeability 또는 test merge 불일치`였다. 이 실패를 앱/E2E 오류나 이미 승인된 독립 QA로 해석하지 않는다.
+
+후속 [Issue #589](https://github.com/planner77/masterGantt/issues/589) main `31372f967159b2f993116c73f0adc228eb1ea0ff`이 이전 기준 `26e72bbed046a6ad6721e1c3c19bda71ce42e570`에서 2개 commit 앞선 것을 확인했다. 변경은 `DESIGN.md`, `docs/exec-plans/active/ISSUE_589.md`, `docs/exec-plans/active/PLAN.md` 3개 문서만이다. #589의 DESIGN 신규 공통 원칙·Work Packet과 PLAN 절을 그대로 보존하고, #550 PLAN 전체 및 제품 `0.105.0`, 기존 HTTP/SQLite, feature/UI/E2E/lock, #595 기본 브랜치 신뢰 검증기를 그대로 보존하여 2-parent merge로 정렬한다. 관련 문서 이력은 서로 대체하거나 지우지 않는다.
+
+`risk_level=HIGH`, `qa_method=AGENT`, `qa_required=true` 및 `release_required=true/release_authorized=false` 불변. `package.json`/lockfile 보호 경로에 대한 현재 Head 독립 인간 Reviewer `APPROVED` + `QA_FINAL: PASS`, required CI 성공, 실제 repository owner의 Manager ACCEPT 영수증은 별도 필수다. 병합 정렬이 자동 QA 승인을 뜻하지 않으며 이번 요청은 새 exact-Head PR CI **시작**까지이고 그 결과/QA_FINAL/Manager ACCEPT/병합/Main CI/GHCR/Issue 종료는 수행하지 않는다.
+
+## Issue #589 — Design Delta 문서 정합화 / 최신 main 재정렬 (2026-10-10)
+
+[Work Packet](ISSUE_589.md): `DESIGN.md` §8에 실제 채택된 신규 공통 원칙만 승격하고 A/B/C/D 판정과 A 부재 시 PR N/A 필수 기록을 적용한다. 기존 `AGENTS.md`/Agent Prompt/Lifecycle의 DESIGN 참조·DOCUMENTATION_SYNC 체계는 변경하지 않는다. 앞선 PR CI #2383.1/#2384.1은 보호 파일 변경으로 자동 QA BLOCKED였고, 이에 해당 파일 수정은 철회했다. 최신 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`에 rebase하며 다른 Issue의 PLAN 변경을 보존한다. **LOW / qa_required=false**, 세 required CI 및 Manager ACCEPT 전 병합 금지, version/release 변경 없음. 요청 범위는 새 PR CI 시작까지.
+
 ## Issue #550 — 최신 main 정렬 #595 통합 후 재검증 (2026-10-10)
 
 기존 PR #559 Head `7f14d94cf830ef7fc70d2c902ce4597e84c62844`와 최신 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`를 비교해 61개 feature 파일 중 `CHANGELOG.md`, `TEST_PLAN.md`, `PLAN.md`만 양쪽 수정임을 확인했다. 새 main의 #595 QA 승인/Attempt 원장·정책 문서 모두 보존하고 해당 3개 문서의 #550 변경을 합친다. package/rootlock의 0.105.0 및 UI/API/DB 의미와 기존 테스트는 유지한다. `AGENT` 보호 버전 파일은 별도 인간 QA 현재 Head 승인 및 Manager 위험 수용 영수증 필수이므로 새 CI 시작만으로 Merge Ready가 되지 않는다. 정렬 커밋 이후 새 exact Head Quality/E2E/Docker PR CI를 시작하고 병합·main CI·GHCR는 요청 범위에서 제외한다.
