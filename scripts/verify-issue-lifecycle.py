@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from types import SimpleNamespace
 
 import importlib.util
 import pathlib
@@ -884,7 +885,6 @@ finally:
 # #586 P1: manual latest-target finalize must never skip earlier pending work,
 # including earlier same-Issue PRs and interleaving Issues. The generic resolver
 # is the authority for first-parent ordering; no branch/package mutation here.
-from types import SimpleNamespace
 manual_old = auto.WorkItem("1" * 40, "0" * 40, 583, 565, "0.103.1", "0.103.1")
 manual_other = auto.WorkItem("2" * 40, manual_old.target_sha, 584, 577, "0.103.1", "0.103.1")
 manual_new = auto.WorkItem("3" * 40, manual_other.target_sha, 585, 565, "0.103.1", "0.103.1")
@@ -954,7 +954,6 @@ finally:
         __import__("os").environ["GITHUB_REPOSITORY"] = saved_manual_repo
 
 # #586 immutable FINAL identity and phase-order fail closed regression.
-from types import SimpleNamespace
 existing_sha, next_sha = "1" * 40, "2" * 40
 ctx = SimpleNamespace(issue_number=565, pr_number=585, merge_sha=next_sha,
     head_sha="4" * 40, head_branch="fix/next", current_main_sha=next_sha,
