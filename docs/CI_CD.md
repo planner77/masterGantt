@@ -1,3 +1,6 @@
+## Issue #598 — Owner-managed QA 정책 (2026-10-10)
+기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](QA_REVIEW_POLICY.md)이다.
+
 ## Issue #595 — metadata-only의 원본 Full CI 복원: exact Run/Attempt (2026-10-10)
 
 PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/Head/base의 가장 최신 성공 Full CI** 증거를 재사용할 때, 성공했던 Full CI Run을 QA Job만 재실행한 경우를 포함하여 해당 Run의 attempt별 Jobs를 검증해야 한다. 기본 `/runs/{id}/jobs` 최신 attempt만을 권위로 삼지 않고 `effective_run_jobs`의 `/runs/{id}/attempts/{i}/jobs` 원장으로 최종 실행 결론을 선택한다. 이후 aggregate FAIL/취소가 있었으면 오래된 성공으로 대체하지 않는다. `run_attempt` 누락, attempt 자료 오류, 불일치하는 Head/base/PR 귀속은 fail-closed. 실제 주체 승인과 `QA Final — Trusted` 보호 정책, GHCR·버전 변경 권한 및 Required Check 3개는 불변이다.
@@ -70,6 +73,23 @@ PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/H
 
 # CI/CD
 
+## Issue #582 — 짧은 한 줄 Main CI·Finalizer 실행명
+
+- **#598 이후 #582 QA 적용:** 현재 default는 `qa_method=OWNER_MANAGED`, `risk_level=HIGH`; 보호된 `ci.yml`/Finalizer/검증기 변경에서 별도 인간 Reviewer는 필수가 아니다. 신뢰된 기본 브랜치의 QA verifier와 정확 Head/base 필수 Quality/E2E/Docker, 미해결 리뷰 0, 문서/AC, Owner의 명시적 위험 수용·병합 허가를 유지한다. #595 시점 `AGENT` 선택에 따른 과거 차단 이력은 보존하며 현재 PR에는 전용 metadata `OWNER_MANAGED`를 선언한다. [#2412.1](https://github.com/planner77/masterGantt/actions/runs/38050666118)은 required 세 gate SUCCESS지만 미해결 리뷰로 자동 QA BLOCKED였으므로 새 main 정렬 후 재검증하고, 단순 Head push로 리뷰가 자동 해소됐다고 주장하지 않는다.
+
+
+**2026-10-10 #595 기준 main 동기화:** PR #584의 [CI #2400.1](https://github.com/planner77/masterGantt/actions/runs/38047330320)은 Quality/E2E6/Docker SUCCESS였으나 실행 도중 기준 main이 `36b0eaa7...` → [#595 PR #597 병합 `26e72bbed046a6ad6721e1c3c19bda71ce42e570`](https://github.com/planner77/masterGantt/pull/597)으로 바뀌어 `QA Final — Automated`가 `mergeability 또는 test merge 불일치`로 BLOCKED 처리했다. 최종 상태가 변경된 이전 Head의 CI를 재사용하지 않고 최신 main으로 정렬한 새 PR Head에서 전체 CI를 다시 실행해야 한다. #595 승인 경로가 반영되어도 `AGENT + protected`는 독립 인간 `APPROVED`/해당 Head `QA_FINAL: PASS` 및 owner의 검증 가능한 구조화 승인 영수증 전에는 자동 PASS가 아니다. 정확한 CI run/attempt의 세 required aggregate 성공 후, 독립 검토와 Owner 승인을 확보한 경우 같은 Run의 **QA 실패 Job만 재실행**하여 신뢰된 검사 결과를 다시 확인한다. Reviewer/owner 증거 없이 QA를 우회하거나 형식상 승인을 작성하지 않는다.
+
+표준: `Main CI · Issue #<Primary Issue> · PR #<PR> · <한글 Issue명 축약> · Run #<N>.<attempt>`. Finalizer는 `Finalizer · Issue #... · PR #... · <요약> · Main #<원본 N>.<attempt> · Run #<N>.<attempt>`를 사용한다. Job output이 아닌 **Merge 요청 전에 입력한 commit title**을 event payload로 전달받는다.
+
+- `scripts/main_ci_run_name.py --issue 582 --pr <숫자> --summary "<짧은 한글 제목>"`로 단일 행 제목을 생성한다. 한글 요약 1~30자, ASCII/C1 제어·양방향 제어(Cf)·제로폭 비표시·Unicode 줄 구분(Zl/Zp) 문자·개행·중복 Issue/PR 번호·비한글 요약은 거부한다. 표준 `unicodedata.category` 검사로 허용되지 않는 코드 포인트를 Normalize 전에 거부하여 Actions 표시명/Issue·PR 추적을 혼동시키지 않는다. Merge API는 `merge_method=merge`, `commit_title=<결과>`, `commit_message=""`, GitHub REST API에는 `sha=<검증된 PR head>`를, 현재 연결 도구에는 `expected_head_sha=<검증된 PR head>`를 사용하며 CLI의 경우 `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`로 병합 방식·표준 제목·빈 본문·검증 Head SHA를 함께 고정한다. GitHub UI 병합도 제목을 수동 변경하고 설명 본문을 비워야 한다.
+- 새 제목 `Issue #N · PR #P · ...`은 **메시지가 단일 행이고 ` · PR #` 구분자를 포함할 때만** `run-name`에 사용한다. `toJSON(message)`에 포함된 `\n`/`\r` escape를 검출해 표준 prefix 뒤에 본문이 붙은 경우에도 SHA fallback으로 전환한다. 기존 Merge/직접 main Push는 다중 행을 피하도록 `Main CI · 기존 병합/직접 Push · <exact SHA> · Run #N.A`로 표시되며 이 경로에는 Issue/PR/제목이 자동 표시되지 않는다. `scripts/verify-ci-run-trace.py`는 구형 `Merge pull request #P`, `Merge PR #P` 추적을 유지하고 잘못된 신형 제목은 fail-closed한다.
+- Finalizer는 `workflow_run.head_commit.message`의 표준 한 줄(또는 `head_sha` fallback) 및 triggering `workflow_run.run_number/run_attempt`, 자체 Run/attempt를 표시해 불필요한 `Main CI` 중첩을 제거한다. Release/Finalizer authority는 여전히 exact merge SHA → merged PR → PR body canonical `Refs #Issue`다.
+- `Issue #` 접두어는 **표준 한 줄 병합 제목 전용**이다. ` · PR #` 구분자 누락, 불완전한 번호·요약, 여러 줄 등의 비정상 제목은 `scripts/verify-ci-run-trace.py` 첫 Push 검증에서 **FAIL**하고 직접 Push 예외로 처리하지 않는다. 정상적인 `docs:` 등 비-PR 직접 Push와 기존 `Merge PR`/`Merge pull request`는 호환성을 유지한다.
+- `run-name`은 시작 전에 평가되므로 멀티라인 커밋의 한글 제목을 job output으로 추출하여 이미 시작된 실행명에 넣을 수 없다. 이 단계에는 정규식/한글/최대 길이를 확인하는 실행 로직이 없으므로, 구조 조건만 통과한 비정상 단일 행은 표시될 수 있다. 첫 CI trace gate는 이를 실패로 판정하고 릴리스를 차단한다. 이 표시상 한계는 구조 개편 없이 완전히 제거할 수 없으며 표준 제목 생성기 사용이 필수다. 현재 저장소 Merge 기본 설정은 표준을 보장하지 않으며 관리자 설정을 변경하지 않는다. 작업 절차는 [GITHUB_OPERATIONS.md](GITHUB_OPERATIONS.md)를 따른다.
+- `name: CI`, required checks, trigger/concurrency, 권한, GHCR digest/release 승인 gate는 유지한다. 신규 Main/Finalizer 출력은 **사용자가 승인한 실제 병합 이후**에만 관측 가능하며 PR 단계에는 NOT TESTED다.
+- PR #584 CI #2319.1에서 기준 이미지 빌드의 `npm ci`가 `ECONNRESET`으로 중단됐으며 다른 Quality/E2E 검증은 성공했다. #582 보완은 **PR Docker 기준 이미지 빌드에만** 실패 로그에 `ECONNRESET`/`ETIMEDOUT`/`EAI_AGAIN`이 검출될 때 최대 1회 지연 재시도를 허용한다. 비네트워크 오류와 두 번째 실패는 그대로 FAIL하며 Docker 기준 크기 비교/Runtime/GHCR gate를 생략하지 않는다.
+
 ## Issue #565 — 위험도 기반 QA는 CI Gate와 별도 운영 계약
 
 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)의 LOW/MEDIUM/HIGH 정책에 따라 PR `QA_FINAL`에 독립 Reviewer PASS가 필요한지, 명시적인 `N/A(reason)`가 가능한지를 Manager가 판단한다. **독립 QA N/A는 CI Required Check N/A가 아니다.** 각 PR의 최신 Head에 기존 `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test` aggregate 결과를 모두 확인하며 해당 실행에서 세부 shard가 SKIPPED면 실행 PASS로 과대 표시하지 않는다. GitHub Ruleset 승인 리뷰 수 0과 Manager ACCEPT도 서로 다르다.
@@ -84,10 +104,10 @@ GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름�
 - PR CI는 PR 제목, PR 번호, `github.run_number`와 `github.run_attempt`를 표시한다. PR 제목에는 Primary Issue가 `Issue #NNN` 또는 `(#NNN)` 형식으로 포함되어야 한다.
 - PR CI의 첫 lightweight gate인 `scripts/verify-ci-run-trace.py`는 PR 본문의 canonical `Refs #NNN` 1개, head branch의 `issue-NNN`, PR 제목의 Issue가 같은 Primary Issue **하나만** 가리키는지 확인한다. `pull_request`의 `edited` 이벤트도 구독하여 title/body 수정 뒤 같은 head SHA라도 다시 검증한다. PR title/body/branch 문자열을 inline shell로 재평가하지 않고 GitHub event JSON을 데이터로 읽는다.
 - Dependabot은 Issue 기반 human workflow의 예외다. PR 작성자가 `dependabot[bot]`이고 동일 저장소의 `dependabot/` branch인 경우에만 trusted automation 경로로 통과시키며, 일반 사용자가 이름만 모방한 branch는 예외로 인정하지 않는다.
-- Main CI는 `push` 이벤트에 PR payload가 없으므로 merge commit message를 표시명에 포함한다. 저장소의 merge commit은 PR 번호와 head branch, PR 제목을 보존하므로 PR 단계에서 확정한 Primary Issue trace를 계승한다. 비-PR main push는 commit-message fallback으로 표시한다.
+- Main CI는 PR payload가 없으므로 **#582 한 줄 Merge 제목**을 사용한다. 기존 Merge/직접 Push는 SHA fallback으로 짧게 표시하고 기존 Merge metadata는 별도로 검증한다.
 - 수동 CI는 선택적 `issue_number` input을 받아 관련 작업이면 `Issue #NNN`을 표시하고, 진단성 실행은 Issue 없이 명시적 fallback 이름을 사용한다.
 - `Issue lifecycle`은 기존 `issue_number`, `pr_number`, `operation` input을 직접 표시한다.
-- Generic Release Finalizer는 triggering `workflow_run.display_title`을 계승하여 Main CI의 Issue/PR trace를 보존하고 자체 `run_number.run_attempt`를 추가한다.
+- Generic Release Finalizer는 triggering `workflow_run.head_commit.message`의 한 줄 제목(또는 `head_sha` fallback), 원본 Main run/attempt 및 자체 run/attempt를 표시한다.
 - 정식 GHCR release를 lifecycle에서 dispatch할 때 `inputs[issue_number]`, `inputs[pr_number]`을 REST `inputs` 객체로 전달한다. tag push 또는 trace input 없는 수동 release는 tag/version 기반 fallback 이름을 사용한다.
 - 재실행은 `run_number`가 동일하고 `run_attempt`만 증가하므로 `Run #N.1`, `Run #N.2`로 구분한다.
 - Generic Finalizer가 PR required checks를 검증할 때 같은 head SHA의 이전 attempt와 최신 재실행 check-run이 함께 반환될 수 있다. required check 이름별로 GitHub Actions check-run의 **가장 큰 check-run ID** 하나만 최신 결과로 채택한다. 최신 결과가 SUCCESS일 때만 PASS하며, 최신 failure/cancelled/pending을 오래된 성공으로 우회하지 않는다.

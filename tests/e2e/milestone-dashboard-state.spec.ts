@@ -92,7 +92,12 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   const state = await fixture(page), gate = deferred(), started = deferred(); let calls = 0;
   await page.clock.install({ time: new Date("2026-10-06T00:00:00Z") });
   await page.route(`**${projectPath}/milestone-dashboard?*`, async (route) => { calls++; const params = new URL(route.request().url()).searchParams; if (params.get("search") === "slow") { started.resolve(); await gate.promise; } await route.fulfill({ json: { data: dashboardFixture(state, params) } }); });
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill(""); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); gate.resolve();
+  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill("");
+  // Playwright's installed clock also owns React's timer/animation scheduling.
+  // Settle one bounded frame without releasing the stale server response: the
+  // confirmed cached query must be ready with zero additional network calls.
+  await page.clock.runFor(32);
+  await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); gate.resolve();
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 });
 

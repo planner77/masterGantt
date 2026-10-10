@@ -1,6 +1,10 @@
 ## Issue #586 — FINAL marker 회복 / QA Work Packet (2026-10-10)
 
-[Issue #586 Work Packet](ISSUE_586.md): docs-only·non-docs 후속 Merge별 불변 FINAL을 유지하며, 기존 [PR #588](https://github.com/planner77/masterGantt/pull/588)의 코드를 보존한다. 최신 main `31372f967159b2f993116c73f0adc228eb1ea0ff`와 정렬하고 PR 위험 메타데이터 `HIGH/AGENT`, T1–T8 ↔ AC1–AC8, DOCUMENTATION_SYNC를 기록한다. protected `scripts/**`·workflow 변경에 독립 인간 QA 및 Owner Manager 승인 필요; QA 완료로 간주하지 않는다. 목표는 새 Head full PR CI 시작까지이며 기존 main/GHCR/#565 운영 복구는 별도.
+[Issue #586 Work Packet](ISSUE_586.md): docs-only·non-docs 후속 Merge별 불변 FINAL을 유지하며, 기존 [PR #588](https://github.com/planner77/masterGantt/pull/588)의 코드를 보존한다. 최신 main `367b160b2f1db75feb7af1a5ea67046b9828b836`와 정렬하고 PR 위험 메타데이터 `HIGH/AGENT`, T1–T8 ↔ AC1–AC8, DOCUMENTATION_SYNC를 기록한다. protected `scripts/**`·workflow 변경에 최신 `docs/QA_REVIEW_POLICY.md`에 따른 Owner-managed 또는 별도 AGENT QA 및 Owner 승인 필요; QA 완료로 간주하지 않는다. 목표는 새 Head full PR CI 시작까지이며 기존 main/GHCR/#565 운영 복구는 별도.
+
+## Issue #598 — Owner-managed QA 정책 적용
+
+Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.
 
 ## Issue #589 — Design Delta 문서 정합화 / 최신 main 재정렬 (2026-10-10)
 

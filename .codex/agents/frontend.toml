@@ -69,3 +69,4 @@ Issue Lifecycle v2 (#109):
 - infra가 제공한 CI 실패가 frontend 원인이면 같은 Issue/branch/PR에서 수정하고 새 head 기준으로 재검증한다.
 - Result Contract에 files/commit 또는 head/tests/docs/미검증/회귀 위험/next owner를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """
+# Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.

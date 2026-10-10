@@ -457,12 +457,11 @@ def check(env, event, gh):
         "e2e_required": env.get("E2E_REQUIRED"), "docker_required": env.get("DOCKER_REQUIRED")})
     issue = primary_issue(pr.get("title") or "", pr.get("body") or "")
     risk = pr_field(pr.get("body") or "", "risk_level", {"LOW", "MEDIUM", "HIGH"})
-    method = pr_field(pr.get("body") or "", "qa_method", {"AGENT", "AUTOMATED_MANAGER"})
+    method = pr_field(pr.get("body") or "", "qa_method", {"AGENT", "OWNER_MANAGED", "AUTOMATED_MANAGER"})
     paths, protected = protected_paths(gh.pages(f"{gh.prefix}/pulls/{n}/files"))
     require(bool(paths), "PR diff 없음")
-    require(not protected or method == "AGENT",
-            "QA 검증기/Workflow/보안 정책의 변경·rename 감지: "
-            + ", ".join(sorted(protected)) + " — AUTOMATED_MANAGER 허용 불가")
+    # Protected changes retain HIGH classification. Only trusted main can judge
+    # this evidence; automated QA is not an Owner merge authorization.
     minimum_risk = risk_floor(paths)
     rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
     require(rank[risk] >= rank[minimum_risk],
@@ -482,11 +481,12 @@ def check(env, event, gh):
     plan = gh.head_text(f"docs/exec-plans/active/ISSUE_{issue}.md", env["EVENT_HEAD_SHA"])
     result = docs_gate(plan, paths, ac)
     protected_receipt = {}
-    if protected:
+    if protected and method == "AGENT":
         protected_receipt = verify_protected_agent_approval(
             gh, n, issue, pr, env, reviews)
-    return {"issue": issue, "pr": n, "rule_version": "595-v1",
-            "qa_method": method, "risk_level": risk,
+    return {"issue": issue, "pr": n, "rule_version": "598-v1",
+            "qa_method": "OWNER_MANAGED" if method == "AUTOMATED_MANAGER" else method,
+            "risk_level": risk,
             "pr_head_sha": env["EVENT_HEAD_SHA"], "base_sha": env["EVENT_BASE_SHA"],
             "base_or_test_merge_sha": env["TEST_MERGE_SHA"],
             "workflow_run_id": int(env["GITHUB_RUN_ID"]),
@@ -495,7 +495,7 @@ def check(env, event, gh):
             "decision_reason": "동일 PR Head/base에 대한 필수 CI, AC/documentation 구조·리뷰 증거 확인; 의미 검토와 Manager 승인 별도",
             "prior_full_run_id": prior_full_run,
             "independent_qa": "NOT TESTED" if method == "AGENT"
-                            else "N/A(독립 검토를 실행하지 않는 공식 대체 경로)",
+                            else "N/A(Owner-managed, 독립 검토 없음)",
             "manager_decision": "NOT TESTED",
             "unresolved_review": 0,
             "protected_paths": sorted(protected),
@@ -518,10 +518,10 @@ def manual_merge_readiness(*, risk, method, protected, doc_sync, ci_pass,
                            high_checklist, risk_accepted):
     """Pure manual merge checklist. An automated QA check never grants merge approval."""
     require(risk in {"LOW", "MEDIUM", "HIGH"}, "위험도 미확정")
-    require(method in {"AGENT", "AUTOMATED_MANAGER"}, "QA 경로 미확정")
+    require(method in {"AGENT", "OWNER_MANAGED", "AUTOMATED_MANAGER"}, "QA 경로 미확정")
     require(doc_sync and ci_pass and reviewed, "최신 CI/DOC_SYNC/리뷰 미해결")
-    if protected or method == "AGENT":
-        require(independent == "PASS", "보호 정책/AGENT의 실제 독립 QA PASS 필요")
+    if method == "AGENT":
+        require(independent == "PASS", "선택한 AGENT 경로의 독립 QA PASS 필요")
     else:
         require(trusted_qa == "PASS", "default-branch Trusted QA PASS 필요")
     if risk == "HIGH":
@@ -642,7 +642,7 @@ def trusted_source(env, event, gh):
 def main():
     env = dict(os.environ)
     report = {"automated_qa": "NOT TESTED", "independent_qa": "NOT TESTED",
-              "manager_decision": "NOT TESTED", "rule_version": "580-v1",
+              "manager_decision": "NOT TESTED", "rule_version": "598-v1",
               "pr_head_sha": env.get("EVENT_HEAD_SHA"),
               "base_or_test_merge_sha": env.get("TEST_MERGE_SHA"),
               "workflow_run_id": env.get("GITHUB_RUN_ID"),
