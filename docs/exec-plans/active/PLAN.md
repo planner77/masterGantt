@@ -1,3 +1,9 @@
+## Issue #549 — Main CI #2359.1 실패, Trace 기반 test-only corrective PR (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 merge SHA `45a248f723e11133a4bd4c73ca14bb69b3071cbe`에 대한 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)이 Chromium shard2 `milestone-timeline-core.spec.ts`의 `width37404` 유지로 FAIL, Main 임시 GHCR artifact SKIPPED. [Playwright trace 11651782948](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)에서는 `scroll-chart(36960)` 뒤에 지연된 trusted wheel `scroll-chart(26671)`이 도착해 최종 Core scroll이 오른쪽 임계 밖으로 되돌아간다. #530 guard 제거/timeout 증가가 아닌 실제 browser/Core 휠 반영 순서 누락을 수정한다.
+
+후속 #549 PR은 **제품 코드·CI·버전 `0.104.0` 불변**, 테스트에서 `await page.mouse.wheel(31,0)` 다음 public Core 및 native DOM scrollLeft 증가·±1px 정합의 bounded poll/RAF barrier를 명시하고, 그 후 관측 상태를 기준으로 우측 이동 → 동적 축 실제 증가와 기존 no-loss/instance/행/Link를 검증한다. 구현자 단독 검토는 독립 QA_FINAL이 아님. **HIGH/qa_required=true**, 새로운 exact Head에서 quality/E2E6/Docker 및 별도 qa_docs 또는 인간 Reviewer PASS/Manager ACCEPT 후에만 병합하여 새 Main CI를 시작한다. 실패 main의 `0.104.0` release_required는 유지하되 formal GHCR/tag/Issue 종료는 승인 없음.
+
 ## Issue #549 — CI #2348.1 동적 날짜축 E2E 보완 (2026-10-10)
 
 [PR #557](https://github.com/planner77/masterGantt/pull/557)의 head `f636d3073c8153726be8b06d3e798d83a4752845`에 대한 [CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776)은 build/typecheck/lint/Vitest/Docker, Chromium shards 1/3/4/5/6 PASS이나 shard2의 `tests/e2e/milestone-timeline-core.spec.ts:171` 1건 FAIL(86 PASS/1 FAIL/1 SKIP)로 aggregate FAIL. 오른쪽 끝 programmatic `scroll-chart` 호출 후 축 width 37404가 유지되었다.

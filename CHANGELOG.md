@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Issue #549 Main CI #2359.1: 사용자 휠 이벤트의 Core 반영 완료 이전 programmatic right-edge scroll을 발행해 늦은 wheel 이벤트가 이동 위치를 되돌리는 E2E 경합 보완. 휠 후 실제 Core/native 좌표 정합을 관측한 다음 기존 #367 축 확대 및 canonical/Link/instance 보존을 검증한다. 제품 로직·가드·버전 불변.
+
 - PR #557 CI #2348.1의 #549 기술 E2E가 #530의 peer 복원 보호 상태에서 programmatic scroll을 새 사용자 입력으로 잘못 가정하던 회귀를 고친다. 실제 Chart wheel로 입력 의도를 전달한 뒤 #367 축 확장·Core instance/표시 행/Link/canonical 불변을 검사하며 timeout이나 필수 CI gate를 완화하지 않는다.
 
 ### Added
