@@ -1,3 +1,6 @@
+## Issue #598 — Owner-managed QA 정책 (2026-10-10)
+기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](QA_REVIEW_POLICY.md)이다.
+
 ## Issue #595 — metadata-only의 원본 Full CI 복원: exact Run/Attempt (2026-10-10)
 
 PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/Head/base의 가장 최신 성공 Full CI** 증거를 재사용할 때, 성공했던 Full CI Run을 QA Job만 재실행한 경우를 포함하여 해당 Run의 attempt별 Jobs를 검증해야 한다. 기본 `/runs/{id}/jobs` 최신 attempt만을 권위로 삼지 않고 `effective_run_jobs`의 `/runs/{id}/attempts/{i}/jobs` 원장으로 최종 실행 결론을 선택한다. 이후 aggregate FAIL/취소가 있었으면 오래된 성공으로 대체하지 않는다. `run_attempt` 누락, attempt 자료 오류, 불일치하는 Head/base/PR 귀속은 fail-closed. 실제 주체 승인과 `QA Final — Trusted` 보호 정책, GHCR·버전 변경 권한 및 Required Check 3개는 불변이다.
@@ -71,6 +74,8 @@ PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/H
 # CI/CD
 
 ## Issue #582 — 짧은 한 줄 Main CI·Finalizer 실행명
+
+- **#598 이후 #582 QA 적용:** 현재 default는 `qa_method=OWNER_MANAGED`, `risk_level=HIGH`; 보호된 `ci.yml`/Finalizer/검증기 변경에서 별도 인간 Reviewer는 필수가 아니다. 신뢰된 기본 브랜치의 QA verifier와 정확 Head/base 필수 Quality/E2E/Docker, 미해결 리뷰 0, 문서/AC, Owner의 명시적 위험 수용·병합 허가를 유지한다. #595 시점 `AGENT` 선택에 따른 과거 차단 이력은 보존하며 현재 PR에는 전용 metadata `OWNER_MANAGED`를 선언한다. [#2412.1](https://github.com/planner77/masterGantt/actions/runs/38050666118)은 required 세 gate SUCCESS지만 미해결 리뷰로 자동 QA BLOCKED였으므로 새 main 정렬 후 재검증하고, 단순 Head push로 리뷰가 자동 해소됐다고 주장하지 않는다.
 
 
 **2026-10-10 #595 기준 main 동기화:** PR #584의 [CI #2400.1](https://github.com/planner77/masterGantt/actions/runs/38047330320)은 Quality/E2E6/Docker SUCCESS였으나 실행 도중 기준 main이 `36b0eaa7...` → [#595 PR #597 병합 `26e72bbed046a6ad6721e1c3c19bda71ce42e570`](https://github.com/planner77/masterGantt/pull/597)으로 바뀌어 `QA Final — Automated`가 `mergeability 또는 test merge 불일치`로 BLOCKED 처리했다. 최종 상태가 변경된 이전 Head의 CI를 재사용하지 않고 최신 main으로 정렬한 새 PR Head에서 전체 CI를 다시 실행해야 한다. #595 승인 경로가 반영되어도 `AGENT + protected`는 독립 인간 `APPROVED`/해당 Head `QA_FINAL: PASS` 및 owner의 검증 가능한 구조화 승인 영수증 전에는 자동 PASS가 아니다. 정확한 CI run/attempt의 세 required aggregate 성공 후, 독립 검토와 Owner 승인을 확보한 경우 같은 Run의 **QA 실패 Job만 재실행**하여 신뢰된 검사 결과를 다시 확인한다. Reviewer/owner 증거 없이 QA를 우회하거나 형식상 승인을 작성하지 않는다.

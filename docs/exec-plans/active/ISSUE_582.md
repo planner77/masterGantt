@@ -1,5 +1,14 @@
 # Issue #582 Work Packet — Main CI 실행명 단일 행 간소화
 
+## 2026-10-10 — #598 Owner-managed QA 및 최신 main 재정렬 (현재 유효한 정책)
+
+- **정렬 기준:** 새 main `46cf1fd6abffe84d02444ba2773d48fcc1f9234d` (#598 병합), 기존 PR head `748824c32dad51d7d2262253bdc49c26db00b6c7`. 차이: 25 commits behind / 13 ahead. #598에서 변경한 `AGENTS.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`를 보존한 채 #582 전용 hunk를 정확히 통합하고, 새 main의 정책·QA script/tests/.codex Agent 가이드가 그대로 남는 main tree 기반 merge를 사용한다.
+- **QA 경로:** #598 기본 `risk_level=HIGH / qa_method=OWNER_MANAGED` (기존 자동 대체 호환, 별도 인간 Reviewer 선택적)로 [PR #584](https://github.com/planner77/masterGantt/pull/584)의 metadata 및 본 Work Packet을 전환. `qa_required=true`는 필수 machine QA·Owner 수동 검토를 뜻하며 `independent_qa=N/A(Owner-managed, 선택적 독립 검토 미실시)`를 기록한다. `AGENT` 경로가 선택됐던 #595 시점의 **과거 BLOCKED/미검증 기록은 불변**으로 유지한다.
+- **기존 CI:** [PR CI #2412.1](https://github.com/planner77/masterGantt/actions/runs/38050666118), HEAD `748824c32dad51d7d2262253bdc49c26db00b6c7`에서 Quality/E2E6/Docker required aggregate SUCCESS, QA Final — Automated는 **미해결 PR 리뷰 스레드**로 BLOCKED. 새 Head에서 모든 검증 증거는 stale이므로 다시 실제 실행해야 한다.
+- **병합 Gate 불변:** #598도 strict HEAD/base 정렬·필수 세 aggregate SUCCESS·DOC_SYNC·AC 테스트·리뷰 thread 0·default-branch trusted QA provenance·정확 Head의 Owner 명시 병합 허가와 HIGH 잔여 위험 수용을 요구한다. 특히 [Codex P2](https://github.com/planner77/masterGantt/pull/584#discussion_r4232119266)는 미해결이며 QA/병합 준비 PASS로 선언하지 않는다. Owner가 별도 인간 Reviewer 없이 진행할 수 있는 것과 이미 승인됐다는 것은 다르다.
+- **범위:** 요청은 본 브랜치의 최신 main 정렬/충돌 해결/새 PR CI 시작까지. no force push; 제품 버전·required check·CI/QA script·GHCR authority 변경 없음. `release_required=false`, `release_authorized=false`, 병합/Main CI/정식 release 미진행. 새 Head Quality/E2E/Docker/QA final 실측 전 NOT TESTED.
+
+
 
 ## 2026-10-10 — CI #2400.1 / 새 main #595 정렬·승인 경로 갱신
 
@@ -16,10 +25,10 @@
 - branch: `ci/issue-582-main-run-name`
 - previous_head: `5ed043dff398b6420e4f8af243c2e32a050b29af`
 - risk_level: HIGH
-- risk_reason: `.github/workflows/ci.yml` / Finalizer 및 CI 검증 스크립트·운영 지침은 #580에서 보호된 CI/QA 실행·정책 경계
+- risk_reason: `.github/workflows/ci.yml` / Finalizer 및 CI 검증 스크립트·운영 지침은 보호된 HIGH 경계이며, main #598 Owner-managed 기본 경로를 사용해 별도 인적 리뷰 강제가 아닌 필수 CI·trusted QA/Owner 수용 검증을 유지
 - qa_required: true
-- qa_method: AGENT (보호된 파일이 있어 AUTOMATED_MANAGER 대체 불가)
-- reviewer: 별도 qa_docs 또는 지정된 독립 인간 Reviewer의 최신 Head 검토 필요; 현재 NOT TESTED
+- qa_method: OWNER_MANAGED (#598 기본 선택, AGENT는 선택적; 독립 검토 없이도 CI·리뷰·Owner 승인 증거 필수)
+- reviewer: N/A(OWNER_MANAGED로 선택적 독립 인간 Review 미사용; Codex 스레드 해결은 별개)
 - manager_decision: NOT TESTED (별도 명시적 승인 필요)
 - release_required: false
 - release_authorized: false
@@ -40,7 +49,7 @@
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
-- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH/AGENT 정책은 #580에서 확정됐으며 본 이슈에서는 정책을 수정하지 않음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(#598 Owner-managed 최신 정책은 이미 main에 적용되었고 #582는 QA 정책 자체를 수정하지 않음)
 - `docs/REMOTE_VALIDATION.md`: N/A(원격 검증 정책 자체는 변경하지 않고 현재 CI 로그·검사 결과만 활용함)
 - `DESIGN.md`: N/A(제품 화면 디자인/도메인 기능이 아닌 GitHub CI 표시명 개선)
 - `docs/API.md`: N/A(서버 API 동작과 계약 변경 없음)
@@ -51,9 +60,9 @@
 - AC1: `scripts/main_ci_run_name.py` 생성·파싱 회귀 및 `scripts/verify-issue-lifecycle.py` Main run-name 정적 계약; 실제 Main 표시명은 병합 후 확인 예정
 - AC2: `scripts/verify-issue-lifecycle.py` Finalizer run/attempt·SHA fallback 정적 검증; 실제 Finalizer 실행은 병합 후 별도 실증
 - AC3: `scripts/verify-ci-run-trace.py` 정상/구형 merge/수동 Push·PR metadata·Dependabot 시나리오와 malformed subject 실패 검증
-- AC4: 기존 PR CI #2377.1에서 Quality/E2E 6샤드/Docker SUCCESS 확인; 변경된 새 Head의 전체 CI 검사 결과는 새 Run ID로 별도 확인
+- AC4: PR CI #2412.1 Quality/E2E 6샤드/Docker required aggregate SUCCESS 및 리뷰 스레드 미해결에 따른 QA BLOCKED 확인; 새 Head의 Quality/E2E/Docker/QA 결과는 새 Run ID로 별도 판정
 - AC5: `AGENTS.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`, `docs/GENERIC_RELEASE_FINALIZER.md` 계약과 문서 영향표 비교
-- AC6: CI/QA 보호 파일 수정은 #580 신뢰된 base validator의 protected_paths 검증에 의해 자동 PASS 불허; 기존 required checks·release authority 보존과 별도 독립 QA 검토 필수
+- AC6: #598 main 신뢰 validator는 OWNER_MANAGED 보호 변경의 자동 QA를 Head/base/run/review/docs/AC 증거로 검증하고, 필수 세 checks·release authority와 Owner 최종 수용을 별도 요구. AGENT 독립 인간 QA는 선택했을 때만 필수
 - AC7: 제품 버전·기능·런타임 DB·릴리스 승인 불변; Main 병합/GHCR/태그 생성/Issue 종료는 이번 범위에서 실행하지 않음
 
 ## 2026-10-10 — PR CI #2377.1 QA Final BLOCKED 원인 및 REWORK

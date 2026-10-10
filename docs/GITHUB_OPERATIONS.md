@@ -1,3 +1,7 @@
+## Issue #598 — Owner 중심 QA 운영 (2026-10-10)
+
+기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER`는 호환 alias), `AGENT`는 선택적 독립 검토이다. 보호된 CI/workflow/scripts/package/QA·보안 정책과 HIGH를 포함하여 별도 인간 Reviewer GitHub APPROVED는 필수가 아니다. 대신 최신 PR Head/base에 관한 원본 Quality/E2E/Docker 세 required aggregate PASS, strict main, unresolved review thread 0, docs/AC, 기본 브랜치 trusted read-only validator 및 고위험 수동 점검을 모두 유지한다. `automated_qa=PASS`와 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`은 `manager_decision=ACCEPT`가 아니다. Owner의 명시적 병합 지시는 GitHub 인증 신원·대상 PR/HEAD/base/run/attempt/잔여위험을 확인한 뒤 감사 기록으로 남기며 수동 JSON 영수증은 요구하지 않는다. 변경 검증기 자기 승인, PR 내용/봇 댓글을 이용한 위조 승인, stale run 및 CI 우회는 차단한다. 이 정책 자체의 bootstrap PR은 기존 main validator가 protected를 BLOCKED하는 원장을 유지하며 세 필수 CI 성공·일회성 Owner 전환 승인 전 병합하지 않는다. 메인 임시 GHCR candidate와 finalizer는 동일, 정식 release는 `release_required && release_authorized`만 허용한다. [QA 정책](QA_REVIEW_POLICY.md)을 최신 기준으로 삼으며 아래 #565/#580/#595 이전 필수 인간 reviewer 지침보다 우선한다.
+
 ## Issue #595 — PR metadata edited 후 원본 Full CI 재사용 정합 (2026-10-10)
 
 PR #597의 QA-only 재실행 P1 보완은 `trusted_source()`뿐 아니라 `verify_same_base_full_run()`에도 적용한다. GitHub 메타데이터 전용 CI가 원본 Full CI 결과를 재사용할 때 같은 Run의 실제 각 attempt별 Job 상태를 정확히 조회한다. QA Job만 rerun된 최신 attempt에서 기존 Required Quality/E2E/Docker가 보이지 않더라도 과거 같은 Run의 정상 성공을 사용하고, 이후 재실행된 실패는 무효화한다. 원본 Run의 PR/Head/base·최신 full-run·최종 결론이 달라지면 거부한다. 이 정합은 독립 QA 검토나 Manager 승인, protected 파일 보안 정책을 자동 통과시키지 않는다.
