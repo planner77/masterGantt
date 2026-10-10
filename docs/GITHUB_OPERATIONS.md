@@ -1,3 +1,15 @@
+## Issue #595 — protected AGENT PR의 증거 등록 운영 가이드
+
+일반 PR에서 Quality/E2E/Docker가 정확한 Head로 완료됐지만 `QA Final — Automated`가 보호 파일을 감지해 BLOCKED이면 코드/CI 체크를 약화하거나 `qa_method`를 위장하지 않는다. 승인된 협업 인간 Reviewer(작성자·owner·Bot과 다른 유효 collaborator)는 **해당 Head 커밋의 GitHub APPROVED 리뷰** 본문에 독립 검토 내용과 별도 줄 `QA_FINAL: PASS`를 남긴다. 기존 Codex COMMENTED는 대신할 수 없다.
+
+독립 QA 및 필수 세 Job의 성공·완료를 확인한 뒤 저장소 owner가 **그 PR의 GitHub Conversation 댓글**에 아래 형태를 직접 남긴다. 아래는 실제 승인 아님/예제이며 기재된 계정·SHA·Run을 진짜로 검증해야 한다.
+
+```text
+<!-- mastergantt-protected-qa-accept:v1 {"authorized":true,"pr":559,"issue":550,"head_sha":"<40자리 실제 PR SHA>","base_sha":"<40자리 실제 base SHA>","qa_review_id":123456,"ci_run_id":12345678901,"ci_attempt":1,"residual_risk_accepted":true,"reason":"확인한 주요 기능, QA 검토 영역과 현재 Head의 남은 위험 수용 근거를 자세히 기록합니다."} -->
+```
+
+검증기는 GitHub REST의 reviewer 신원·association, 현재 Head review commit, owner 댓글 작성자·작성 시간, exact PR/Issue/Head/base, 원본 CI run+attempt의 세 required Job 성공·완료 시간, QA 리뷰 선행 여부를 대조한다. 원본 CI가 자동 QA만 실패한 상태면 영수증 등록 **이후 동일 CI의 QA job만 재실행**하는 것이 기본 복구 경로다. 리뷰 부재·권한/API 오류·stale·타 Run/옛 attempt·잘못된 주체는 BLOCKED. 정책 변경 자체는 현재 main의 독립 QA와 Manager 승인 전 병합 금지, GHCR/tag 승인은 별도.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.

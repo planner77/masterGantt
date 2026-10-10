@@ -1,3 +1,7 @@
+## Issue #595 — 보호 파일 AGENT 승인 증거 검증 (2026-10-10)
+
+선행 #580과 #565의 fail-closed 정책을 보존한다. #550 PR #559는 원본 required Quality/E2E/Docker가 성공해도 package manifest/lock 보호 차단 때문에 자동 QA가 실패한다. #595에서 이 문제를 버전 원장 제거가 아닌 독립 Reviewer·Manager의 정확한 Head 승인 증거로 해결하도록 설계·코드·회귀를 구현한다. `scripts/qa_final_automated.py`와 Python 테스트, QA/CI 가이드 및 Work Packet을 갱신한다. 테스트·문서에 없는 승인이나 실행은 PASS로 표기하지 않는다. 보호된 검증기 자체를 수정하는 본 PR은 HIGH/AGENT이므로 실제 독립 QA와 Manager 승인 전 병합/배포 금지. release_required=false, release_authorized=false. 첫 종료점은 원격 PR CI 시작까지.
+
 ## Issue #549 — Main CI #2359.1 실패, Trace 기반 test-only corrective PR (2026-10-10)
 
 [PR #557](https://github.com/planner77/masterGantt/pull/557)의 merge SHA `45a248f723e11133a4bd4c73ca14bb69b3071cbe`에 대한 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)이 Chromium shard2 `milestone-timeline-core.spec.ts`의 `width37404` 유지로 FAIL, Main 임시 GHCR artifact SKIPPED. [Playwright trace 11651782948](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)에서는 `scroll-chart(36960)` 뒤에 지연된 trusted wheel `scroll-chart(26671)`이 도착해 최종 Core scroll이 오른쪽 임계 밖으로 되돌아간다. #530 guard 제거/timeout 증가가 아닌 실제 browser/Core 휠 반영 순서 누락을 수정한다.

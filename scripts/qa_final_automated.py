@@ -339,6 +339,108 @@ def blocking_reviews(reviews):
     return "CHANGES_REQUESTED" in latest.values()
 
 
+def verify_protected_agent_approval(gh, number, issue, pr, env, reviews):
+    """Validate an independent human QA review and a later owner-issued receipt.
+
+    This exception is ONLY for qa_method=AGENT. The original protected-path
+    inventory remains unchanged and AUTOMATED_MANAGER cannot use it.
+    """
+    head, base = env["EVENT_HEAD_SHA"], env["EVENT_BASE_SHA"]
+    author = ((pr.get("user") or {}).get("login") or "").lower()
+    owner_info = gh.get(gh.prefix)
+    owner = (((owner_info.get("owner") or {}).get("login")) or "").lower()
+    require(owner and author, "PR 작성자 또는 repository owner 신원 확인 불가")
+
+    # The latest effective review per actor wins. A bot, PR author, outsider,
+    # stale-head review, or COMMENTED-only Codex suggestion is not independent QA.
+    latest = {}
+    for review in sorted(reviews, key=lambda r: (r.get("submitted_at") or "", r.get("id") or 0)):
+        actor = review.get("user") or {}
+        login = (actor.get("login") or "").lower()
+        if login and review.get("state") in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+            latest[login] = review
+    approvals = []
+    for login, review in latest.items():
+        actor = review.get("user") or {}
+        if (login == author or login == owner or actor.get("type") != "User" or
+                review.get("author_association") not in ("MEMBER", "COLLABORATOR", "OWNER") or
+                review.get("state") != "APPROVED" or review.get("commit_id") != head or
+                not re.search(r"(?im)^\s*QA_FINAL:\s*PASS\s*$", review.get("body") or "") or
+                len((review.get("body") or "").strip()) < 60 or
+                not review.get("submitted_at") or not isinstance(review.get("id"), int)):
+            continue
+        approvals.append(review)
+    require(bool(approvals), "AGENT 보호 파일: 현재 Head에 대한 독립 인간 QA_FINAL: PASS 리뷰 필요")
+    review_ids = {r["id"]: r for r in approvals}
+
+    # The owner must explicitly accept one of those independently authored
+    # reviews AFTER the successful quality/e2e/docker jobs of a named CI attempt.
+    comments = gh.pages(f"{gh.prefix}/issues/{number}/comments")
+    receipt_pattern = re.compile(
+        r"(?m)^<!-- mastergantt-protected-qa-accept:v1 (\{[^\r\n]*\}) -->$")
+    receipts = []
+    for comment in comments:
+        actor = comment.get("user") or {}
+        if (actor.get("login") or "").lower() != owner or actor.get("type") != "User":
+            continue
+        for match in receipt_pattern.finditer(comment.get("body") or ""):
+            try:
+                data = json.loads(match.group(1))
+            except (ValueError, TypeError):
+                continue
+            if (not isinstance(data, dict) or
+                    data.get("head_sha") != head or data.get("base_sha") != base or
+                    data.get("pr") != number or data.get("issue") != issue or
+                    data.get("authorized") is not True):
+                continue
+            receipts.append((comment, data))
+    require(bool(receipts), "AGENT 보호 파일: repository owner의 exact-Head Manager 승인 receipt 필요")
+    latest_comment, receipt = sorted(receipts, key=lambda pair: (
+        pair[0].get("created_at") or "", pair[0].get("id") or 0))[-1]
+    require(receipt.get("residual_risk_accepted") is True and
+            isinstance(receipt.get("reason"), str) and
+            len(receipt["reason"].strip()) >= 40,
+            "AGENT 보호 파일: 수동 점검·잔여 위험 명시 수용 부족")
+    qa_review = review_ids.get(receipt.get("qa_review_id"))
+    require(qa_review is not None, "AGENT 보호 파일: 승인 receipt의 독립 review ID 불일치")
+    require(bool(latest_comment.get("created_at")) and
+            latest_comment["created_at"] >= qa_review["submitted_at"],
+            "AGENT 보호 파일: Manager 승인은 독립 QA 이후여야 합니다")
+
+    ci_run_id = receipt.get("ci_run_id")
+    ci_attempt = receipt.get("ci_attempt")
+    require(type(ci_run_id) is int and ci_run_id == int(env["GITHUB_RUN_ID"]) and
+            type(ci_attempt) is int and 0 < ci_attempt <= int(env["GITHUB_RUN_ATTEMPT"]),
+            "AGENT 보호 파일: 원본 CI run/attempt 불일치")
+    jobs = gh.collection(
+        f"{gh.prefix}/actions/runs/{ci_run_id}/attempts/{ci_attempt}/jobs", "jobs")
+    expected = ("Build, static checks, and unit tests",
+                "Chromium end-to-end tests",
+                "Docker build and runtime smoke test")
+    validated_jobs = {}
+    for name in expected:
+        matches = [job for job in jobs if job.get("name") == name and
+                   job.get("conclusion") == "success" and job.get("completed_at")]
+        require(len(matches) == 1, "AGENT 보호 파일: 원본 필수 CI 성공/완료 증거 불충분")
+        validated_jobs[name] = matches[0]
+        require(latest_comment["created_at"] >= matches[0]["completed_at"],
+                "AGENT 보호 파일: Manager 승인이 필수 CI 완료 이전입니다")
+    require(not any(r.get("state") == "CHANGES_REQUESTED" for r in latest.values()),
+            "AGENT 보호 파일: 해결되지 않은 변경 요청")
+
+    return {
+        "independent_qa": "PASS",
+        "manager_decision": "ACCEPT",
+        "qa_review_id": qa_review["id"],
+        "qa_review_actor": (qa_review["user"]["login"]),
+        "manager_receipt_comment_id": latest_comment.get("id"),
+        "protected_ci_run_id": ci_run_id,
+        "protected_ci_attempt": ci_attempt,
+        "protected_reviewed_paths": "AGENT_INDEPENDENT_QA_AND_OWNER_ACCEPT",
+        "decision_reason": "보호 파일의 독립 인간 QA_FINAL, 원본 세 필수 CI와 repository owner의 exact-Head 위험 수용 receipt를 확인. 배포 승인은 별도"
+    }
+
+
 def check(env, event, gh):
     require(env.get("GITHUB_EVENT_NAME") == "pull_request", "PR 전용 Gate")
     n = int(env["PR_NUMBER"])
@@ -355,8 +457,9 @@ def check(env, event, gh):
     method = pr_field(pr.get("body") or "", "qa_method", {"AGENT", "AUTOMATED_MANAGER"})
     paths, protected = protected_paths(gh.pages(f"{gh.prefix}/pulls/{n}/files"))
     require(bool(paths), "PR diff 없음")
-    require(not protected, "QA 검증기/Workflow/보안 정책의 변경·rename 감지: "
-            + ", ".join(sorted(protected)) + " — 독립 검토 및 Manager 승인 필요")
+    require(not protected or method == "AGENT",
+            "QA 검증기/Workflow/보안 정책의 변경·rename 감지: "
+            + ", ".join(sorted(protected)) + " — AUTOMATED_MANAGER 허용 불가")
     minimum_risk = risk_floor(paths)
     rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
     require(rank[risk] >= rank[minimum_risk],
@@ -366,7 +469,8 @@ def check(env, event, gh):
         prior_full_run = verify_same_base_full_run(
             gh, n, env["EVENT_HEAD_SHA"], env["EVENT_BASE_SHA"],
             int(env["GITHUB_RUN_ID"]))
-    require(not blocking_reviews(gh.pages(f"{gh.prefix}/pulls/{n}/reviews")),
+    reviews = gh.pages(f"{gh.prefix}/pulls/{n}/reviews")
+    require(not blocking_reviews(reviews),
             "REQUEST_CHANGES 해결되지 않음")
     require(gh.open_threads(n) == 0, "미해결 review thread")
     issue_body = gh.get(f"{gh.prefix}/issues/{issue}").get("body") or ""
@@ -374,7 +478,11 @@ def check(env, event, gh):
     require(bool(ac), "Issue 인수 기준이 없음")
     plan = gh.head_text(f"docs/exec-plans/active/ISSUE_{issue}.md", env["EVENT_HEAD_SHA"])
     result = docs_gate(plan, paths, ac)
-    return {"issue": issue, "pr": n, "rule_version": "580-v1",
+    protected_receipt = {}
+    if protected:
+        protected_receipt = verify_protected_agent_approval(
+            gh, n, issue, pr, env, reviews)
+    return {"issue": issue, "pr": n, "rule_version": "595-v1",
             "qa_method": method, "risk_level": risk,
             "pr_head_sha": env["EVENT_HEAD_SHA"], "base_sha": env["EVENT_BASE_SHA"],
             "base_or_test_merge_sha": env["TEST_MERGE_SHA"],
@@ -387,8 +495,9 @@ def check(env, event, gh):
                             else "N/A(독립 검토를 실행하지 않는 공식 대체 경로)",
             "manager_decision": "NOT TESTED",
             "unresolved_review": 0,
+            "protected_paths": sorted(protected),
             "residual_risks": "실제 의미/UX/HIGH 수동 검토 및 Manager ACCEPT 대기",
-            **job_evidence, **result}
+            **job_evidence, **result, **protected_receipt}
 
 
 

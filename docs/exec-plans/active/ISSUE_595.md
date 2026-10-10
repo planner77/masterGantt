@@ -1,0 +1,64 @@
+# Issue #595 — 보호 경로 AGENT QA 승인 검증
+
+## Work Packet / 현재 단계
+
+- Issue: [#595](https://github.com/planner77/masterGantt/issues/595) / #580·#565 후속, #593 Trusted provenance 관련
+- 기준 main: `36b0eaa74a0614a76d1ed867bddb548149feb4bc` / app `0.104.0`
+- 유형: CI/QA 승인 정책과 신뢰 검증기, HIGH / qa_required=true / qa_method=AGENT
+- release_required=false / release_authorized=false. 기능·DB/Schema·GHCR·기존 필수 체크는 변경하지 않는다.
+- 기존 원인: #550 PR #559의 정상 제품 SemVer `0.105.0` package/lock 변경에 대해 #580 검증기의 `protected_paths`가 항상 자동 QA를 BLOCKED 처리. 기존 3개 required aggregate는 모두 PASS였다.
+- 본 구현 대상: `scripts/qa_final_automated.py` 및 `scripts/test_qa_final_automated.py`, 관련 정책·테스트·운영 문서. protected paths 목록과 자동 QA 위조 방지는 보존한다.
+- 단계: ANALYSIS → DESIGN → IMPLEMENTATION → DOCUMENTATION_SYNC → PR CI STARTED (원격 결과 및 독립 QA/Manager 승인 별도).
+- 신뢰 경계: PR 작성자가 관리 가능한 문서·코드·댓글만으로 QA PASS를 창작하지 않는다. 기본 브랜치의 검증기에서 GitHub Review의 승인 주체/커밋, repository owner의 별도 승인 증거, 원본 CI의 완료/성공을 read-only 재확인한다. 승인 부재는 BLOCKED.
+
+## 설계와 대안
+
+현행 `AUTOMATED_MANAGER`는 protected 파일이 있으면 그대로 BLOCKED다. `AGENT`의 protected PR은 보호를 해제하지 않고 독립 인간 APPROVED 리뷰(`QA_FINAL: PASS`, 구현자/owner/봇과 분리, 유효 협업자와 정확 Head 커밋), owner가 해당 리뷰 이후 제출한 정확 PR/Issue/Head/base/CI Run·Attempt/잔여 위험 수용 기록, 원본 CI의 Quality/E2E/Docker 모두 완료·SUCCESS를 확인한 경우에 한해 검증 기록을 인식한다. 검증기 변경 PR 자체는 처음에는 기존 main validator 기준으로 BLOCKED되므로 독립 QA/Manager 없이 자동 병합할 수 없다.
+
+댓글/PR metadata만의 자기 인증 금지. 비교 경로는 REST 제출자와 Review의 실제 `author_association`, 최신 최종 상태, `commit_id`, Github 발생 시간, exact Head/base 및 origin run/attempt/QA 증거를 함께 사용한다. GitHub API 접근 실패, 주체 불명확, 이전 head 재사용, 다른 Run/attempt, 검토자 분리 실패, 신뢰된 원본 체크 불일치는 fail-closed다. #593의 provenance 경로는 후속 통합 시 재조정한다.
+
+## Local Fast Feedback 및 원격 테스트
+
+로컬/Unit: `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py`; 필수 안전 사례는 정상 외부인 승인/Owner 수용, 동일 주체·봇·stale·COMMENTED·검토 누락·승인 누락·잘못된 PR/base/CI·미완료 필수 Job·원장 불명확 및 AUTOMATED_MANAGER 보호 접근 차단. 기존 CI policy Job이 동일 Python 테스트를 자동 실행한다. 실제 로컬 실행 결과는 별도 실행 전 NOT TESTED. 원격 `quality/e2e/docker` 각 aggregate는 PR의 exact HEAD로 새로 검증한다.
+
+원격 진정한 protected 승인 수용 시나리오는 해당 신뢰 검증기가 독립 QA/Manager 리뷰를 거쳐 main에 반영되고, 동작이 정상이라는 별도 보호 변경 검증용 PR의 실제 인간 APPROVED와 Owner comment, 성공한 required Full CI Run/Attempt를 확인한 이후에만 PASS라고 보고한다. 현행 #595 PR 자체는 기존 base 검증기에서 protected를 BLOCKED하는 것이 정상이다.
+
+## 문서·증거 확인
+
+- QA_FINAL: NOT TESTED. 독립 `qa_docs` 또는 지정된 인간 Reviewer의 실제 검토와 HEAD 증거 필요.
+- Manager ACCEPT: NOT TESTED. 동일 작성자의 순차 자체 검토는 독립 검토가 아니다.
+- #550의 기존 제품 HEAD, 버전·CI/QA 원장·QA BLOCKED 결과는 변경하지 않는다.
+- #595 보호 변경의 정확한 HEAD와 QA/CI 실패 원인, 위험 수용·출처 및 잔여 위험을 PR에 별도 남긴다.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/DECISIONS.md`: UPDATED
+- `docs/AGENT_PROMPTS.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_595.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `DESIGN.md`: N/A(제품 UI·접근성/시각 디자인을 변경하지 않고 QA 승인/증거 체계만 수정한다)
+- `docs/API.md`: N/A(외부 사용자 API와 DTO·네트워크 계약 변경이 없다)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 저장소·Migration·데이터 형식 변경이 없다)
+- `docs/SECURITY.md`: N/A(자격증명·세션과 서버 Authorization 계약을 변경하지 않고 기존 QA의 보호 입력을 유지한다)
+
+## AC_TEST_COVERAGE
+
+- AC1: `scripts/test_qa_final_automated.py` — 승인 증거 부재 BLOCKED, 정확 Head 독립 인간 Review+Owner 수용만 허용하는 시나리오
+- AC2: `scripts/test_qa_final_automated.py` — `AUTOMATED_MANAGER` protected 차단, stale Head/base 및 잘못된 Run/Review/comment 부정
+- AC3: `scripts/test_qa_final_automated.py` — 기존 LOW/MEDIUM/HIGH, 보호 경로 및 정상 non-protected QA 회귀 보존
+- AC4: `scripts/qa_final_automated.py`의 원격 GitHub REST review/comment/job receipt와 `test_protected_agent_requires_independent_review_and_owner_accept` 테스트
+- AC5: `docs/QA_REVIEW_POLICY.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/REMOTE_VALIDATION.md`, `docs/GITHUB_OPERATIONS.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md` 등 DOCUMENTATION_SYNC 및 원격 문서 링크
+- AC6: `.github/workflows/ci.yml` 수정 없음, 기존 Quality/E2E/Docker Required Check 유지 확인 및 정확한 HEAD 원격 PR CI(시작 전 NOT TESTED)
+- AC7: `scripts/qa_final_automated.py`의 보호 성공 상태와 `independent_qa`, `manager_decision` 분리, README/PR에서 기존 차단과 성공/승인을 구분
+
+## Release 및 Merge Guard
+
+현재 구현 후보는 `release_required=false`이며 사용자의 정식 GHCR 승인 없이 release tag/image 게시를 진행하지 않는다. 본 PR은 자체 CI PASS 여부와 무관하게 **정책 보호 파일 변경의 독립 QA 및 owner Manager ACCEPT 전 병합 금지**. 신규 Trusted Workflow 실기능 테스트·운영배포는 NOT TESTED로 기록한다.

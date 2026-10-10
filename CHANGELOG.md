@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #595 QA 보호 승인 증거 (검토 중)
+
+- 기존 기능·SQLite·애플리케이션 버전은 변경하지 않고 보호 경로 PR의 독립 QA 증거 확인 경로와 회귀 테스트를 추가한다.
+- 승인 없는 보호 변경과 자동 처리 경로는 기존대로 차단한다. 검증기 자체 변경의 신뢰성·독립 QA 및 Manager ACCEPT는 PR CI와 별개이며, 기존 Required Quality/E2E/Docker·GHCR 승인 경계를 유지한다.
+
 # Changelog
 
 ## [0.104.0] - 2026-10-10

@@ -1,3 +1,7 @@
+## Issue #595 — 보호 변경의 독립 검토 증거
+
+보호 대상에 해당하는 릴리스 버전 원장 또는 CI/보안 설정을 변경하는 PR에서는 기존 필수 Quality/E2E/Docker 검증 결과와 독립 QA 승인 결과를 별도로 기록한다. QA를 구현한 사람이 자기 코드를 승인한 결과는 독립 검토로 인정하지 않는다. 정확한 PR Head와 Base, 독립 Reviewer의 현재 Head 승인 기록, 원본 CI Run/Attempt의 성공한 필수 세 Job, 저장소 소유자의 독립 리뷰 이후 Manager 승인 여부를 검증하는 경로를 사용한다. 자료가 없거나 충돌하면 BLOCKED로 판정한다. 새로운 검증기 자체는 별도 독립 검토 및 main 병합 전까지 운영에 적용되지 않았으며, GHCR/tag 릴리스 권한은 변경하지 않는다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.

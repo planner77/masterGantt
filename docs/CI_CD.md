@@ -1,3 +1,7 @@
+## Issue #595 — QA Final AGENT/보호 파일 원본 Run 검증
+
+`package.json`/lockfile, CI·검증기·보안 정책 등 보호 경로는 계속 HIGH 및 독립 검토가 필수다. main의 신뢰된 QA validator가 `AGENT`에서 수동 승인 영수증을 검증하더라도 세 required aggregate 이름 및 Quality/E2E/Docker 실행·결론·동일 SHA 보존 계약은 불변이다. 원본 Run/Attempt의 required job `completed_at` 이전 Manager ACCEPT는 거부하고, 다른 CI run의 PASS를 재사용하지 않는다. 최초 BLOCKED 후 같은 Run의 실패한 QA job만 독립 QA 완료 후 재실행할 수 있으나, 승인 receipt의 head/base/run/attempt 일치 조건을 통과해야 하며 자동으로 릴리스가 승인되지는 않는다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.

@@ -1,3 +1,11 @@
+## Issue #595 — 보호 경로 AGENT QA 테스트 계획
+
+`scripts/test_qa_final_automated.py`의 기존 보호 경로·위험도·메타데이터 테스트는 유지한다. 독립 Reviewer의 GitHub APPROVED 검토/Head 일치, 별도 QA 결과, 원본 필수 Job의 성공 및 완료 시간, 저장소 owner의 검토 이후 승인, 정확한 PR/Issue/Head/base/Run/Attempt, 위험 수용 사유를 새로운 독립 증거 계약으로 검증한다.
+
+성공 시나리오: 현재 Head에 대한 별도 인간의 APPROVED 검토와 수동 QA_FINAL PASS, 원본 세 필수 CI 완료 이후의 owner 승인 기록이 모두 일치한다. 부정 시나리오: Reviewer 누락·작성자 자기 리뷰·Bot·비협업자·과거 SHA·COMMENTED-only·변경요청·다른 리뷰 ID·타 owner·잘못된 base/run/attempt·완료 전 승인·Job FAIL 및 `AUTOMATED_MANAGER`의 보호 경로 변경을 각각 거절한다. 사전 회귀는 `policy` Python 테스트와 원격 PR 전체 Quality/E2E/Docker로 확인한다.
+
+검증기 자체를 수정한 #595 PR은 HIGH/AGENT이므로 독립 QA와 Manager 검토 전에는 병합되지 않는다. 최초 #595 PR CI의 보호 변경 탐지 BLOCKED는 예상되는 정상 경계이며 세 기능 Required Check 결과와 구분한다. 신뢰된 정책이 main에 반영된 뒤에만 실제 정상 승인 경로를 독립적으로 실증할 수 있다. 별도 운영 실증 전 NOT TESTED다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.

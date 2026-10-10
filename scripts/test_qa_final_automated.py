@@ -395,6 +395,125 @@ class Cases(unittest.TestCase):
         self.blocked(lambda:qa.manual_merge_readiness(
             risk="HIGH",method="AGENT",**params))
 
+    def protected_agent_fixture(self):
+        import json
+        head, base = "a"*40, "b"*40
+        pr = {"user":{"login":"planner77"}}
+        env = {"EVENT_HEAD_SHA":head, "EVENT_BASE_SHA":base,
+               "GITHUB_RUN_ID":"100", "GITHUB_RUN_ATTEMPT":"2"}
+        review = {"id":19, "submitted_at":"2026-10-10T10:05:00Z",
+                  "commit_id":head, "state":"APPROVED",
+                  "user":{"login":"external-reviewer","type":"User"},
+                  "author_association":"COLLABORATOR",
+                  "body":"QA_FINAL: PASS\nI independently checked AC requirements, source changes, tests, documentation and security evidence."}
+        receipt = {"authorized":True,"head_sha":head,"base_sha":base,
+                   "pr":559,"issue":550,"qa_review_id":19,"ci_run_id":100,
+                   "ci_attempt":1,"residual_risk_accepted":True,
+                   "reason":"Human reviewer checked exact Head and the three required CI jobs. Manager accepts remaining UX risk."}
+        comment = {"id":80, "created_at":"2026-10-10T10:09:00Z",
+                   "user":{"login":"planner77","type":"User"},
+                   "body":"<!-- mastergantt-protected-qa-accept:v1 " +
+                          json.dumps(receipt, separators=(",",":")) + " -->"}
+        jobs = [{"name":name,"conclusion":"success",
+                 "completed_at":"2026-10-10T10:06:00Z"}
+                for name in ("Build, static checks, and unit tests",
+                             "Chromium end-to-end tests",
+                             "Docker build and runtime smoke test")]
+
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self, path):
+                assert path == self.prefix, path
+                return {"owner":{"login":"planner77"}}
+            def pages(self, path):
+                assert path == self.prefix+"/issues/559/comments", path
+                return self.comments
+            def collection(self, path, name):
+                assert path == self.prefix+"/actions/runs/100/attempts/1/jobs", path
+                assert name == "jobs"
+                return self.jobs
+        stub=Stub()
+        stub.comments=[comment]
+        stub.jobs=jobs
+        return stub, pr, env, [review], receipt
+
+    def test_protected_agent_requires_independent_review_and_owner_accept(self):
+        stub, pr, env, reviews, receipt = self.protected_agent_fixture()
+        result=qa.verify_protected_agent_approval(stub,559,550,pr,env,reviews)
+        self.assertEqual(result["independent_qa"],"PASS")
+        self.assertEqual(result["manager_decision"],"ACCEPT")
+        self.assertEqual(result["qa_review_id"],19)
+        self.assertEqual(result["manager_receipt_comment_id"],80)
+        self.assertEqual(result["protected_ci_attempt"],1)
+        self.assertIn("원본 세 필수 CI",result["decision_reason"])
+        for mutate in ("missing_review","same_author","bot","stale_head",
+                       "outsider","no_attestation","comment_only","wrong_review",
+                       "missing_manager","wrong_manager","stale_base","risk_not_accepted",
+                       "short_reason","manager_before_jobs","wrong_ci",
+                       "failed_required_ci","future_attempt","unresolved_changes"):
+            stub, pr, env, reviews, receipt = self.protected_agent_fixture()
+            review=reviews[0]
+            if mutate=="missing_review": reviews=[]
+            if mutate=="same_author": review["user"]["login"]="planner77"
+            if mutate=="bot": review["user"]["type"]="Bot"
+            if mutate=="stale_head": review["commit_id"]="f"*40
+            if mutate=="outsider": review["author_association"]="NONE"
+            if mutate=="no_attestation": review["body"]="LGTM"
+            if mutate=="comment_only": review["state"]="COMMENTED"
+            if mutate=="wrong_review":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"qa_review_id":19','"qa_review_id":999')
+            if mutate=="missing_manager": stub.comments=[]
+            if mutate=="wrong_manager": stub.comments[0]["user"]["login"]="unknown"
+            if mutate=="stale_base":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"base_sha":"' + "b"*40 + '"','"base_sha":"' + "c"*40 + '"')
+            if mutate=="risk_not_accepted":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"residual_risk_accepted":true','"residual_risk_accepted":false')
+            if mutate=="short_reason":
+                import json
+                data = dict(receipt)
+                data["reason"]="ok"
+                stub.comments[0]["body"]="<!-- mastergantt-protected-qa-accept:v1 "+json.dumps(data)+" -->"
+            if mutate=="manager_before_jobs":
+                stub.comments[0]["created_at"]="2026-10-10T10:05:30Z"
+            if mutate=="wrong_ci":
+                stub.comments[0]["body"]=stub.comments[0]["body"].replace(
+                    '"ci_run_id":100','"ci_run_id":101')
+            if mutate=="failed_required_ci": stub.jobs[0]["conclusion"]="failure"
+            if mutate=="future_attempt": env["GITHUB_RUN_ATTEMPT"]="0"
+            if mutate=="unresolved_changes":
+                reviews.append({"id":20,"submitted_at":"2026-10-10T10:08:00Z",
+                                "state":"CHANGES_REQUESTED",
+                                "user":{"login":"second-reviewer","type":"User"}})
+            with self.subTest(mutate=mutate):
+                self.blocked(lambda:qa.verify_protected_agent_approval(
+                    stub,559,550,pr,env,reviews))
+
+    def test_protected_agent_does_not_disable_automated_manager_guard(self):
+        self.assertIn("package.json",qa.protected_paths(
+            [{"filename":"package.json","status":"modified"}])[1])
+        self.assertIn("package-lock.json",qa.protected_paths(
+            [{"filename":"package-lock.json","status":"modified"}])[1])
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self,path):
+                if "/pulls/" in path:
+                    return {"title":"[Issue #550] Milestone","body":
+                            "Refs #550\nrisk_level: HIGH\nqa_method: AUTOMATED_MANAGER"}
+                return {}
+            def pages(self,path):
+                if path.endswith("/files"):
+                    return [{"filename":"package.json","status":"modified"}]
+                return []
+        env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"559",
+             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
+        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
+            self.blocked(lambda:qa.check(env,{},Stub()))
+
+
     def test_policy_ci_executes_qa_python_tests(self):
         from pathlib import Path
         workflow=(Path(__file__).resolve().parents[1]/".github/workflows/ci.yml").read_text()
