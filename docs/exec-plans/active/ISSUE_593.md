@@ -84,3 +84,8 @@
 - `scripts/qa_final_automated.py::snapshot()`의 fail-closed 동작과 `test_head_and_merge`의 stale base/merge 거부 회귀는 유지한다. 시차 있는 GitHub API 출처를 강제로 일치시키거나 FAIL을 허위 PASS로 바꾸지 않는다.
 - 최신 원본 증거/Trusted QA/Owner ACCEPT는 새 Head에서 다시 판정한다. #598 Owner-managed QA·3 required checks·strict main·GHCR 릴리스 정책은 그대로 유지한다. T1 Trusted QA 정상 경로 실증은 별도 후속 대상.
 
+
+## CI #2442.1 — Base/test merge 실패 및 최신 main 동기화 (2026-10-11)
+- [원본 CI Run #2442.1](https://github.com/planner77/masterGantt/actions/runs/38093658310) (Head `e5015d22c7e62f439bdff9d64ef99540f6e38e5b`)의 Quality/E2E/Docker 세 필수 aggregate는 SUCCESS이며, PR Base `367b160b2f1db75feb7af1a5ea67046b9828b836`에서 main이 새 SHA로 변경된 후 `QA Final — Automated`가 `mergeability 또는 test merge 불일치`로 BLOCKED된 것은 의도된 fail-closed 판정이다.
+- 현재 main `490c4ab70b0868729c8415f9f613bd45aa84926a`와 PR을 비파괴 2-parent merge commit으로 정렬한다. 6개 공통 문서 변경을 3-way로 결합하고 메인에서 독립 변경된 다른 파일도 모두 유지한다. 이를 검증기 PASS를 만드는 예외나 가짜 최신 run으로 취급하지 않는다.
+- 정렬 후 최신 PR Head의 새 Quality/E2E/Docker 필수 CI, QA 및 리뷰는 이전 Run과 별도 판정한다. 새 실행 전에 결과는 `NOT TESTED`.
