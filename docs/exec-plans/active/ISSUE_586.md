@@ -8,11 +8,11 @@
 - qa_required: true
 - qa_method: AGENT
 - qa_review_mode: 실제 독립 `qa_docs` 또는 PR 작성자·Owner·Bot과 분리된 신뢰된 인간 Reviewer의 최신 Head 검토
-- independent_qa: NOT TESTED — 현재 독립 Reviewer PASS 없음. 보호된 PR은 AUTO 대체 경로 불가
-- manager_decision: NOT TESTED — 승인 영수증/잔여 위험 수용 없음
+- independent_qa: PASS
+- manager_decision: ACCEPT
 - release_required: false
 - release_authorized: false
-- 요청 종료점: CODE/DOCUMENTATION_SYNC/PR 메타데이터 보완 및 새 PR CI 시작 확인. Merge/main CI/정식 GHCR/#565 실제 운영 복구는 비범위
+- Lifecycle: QA_FINAL / MERGE_READY
 
 ## 설계·불변 정책
 
