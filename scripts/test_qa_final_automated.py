@@ -123,11 +123,15 @@ class Cases(unittest.TestCase):
                     ("Docker build and runtime smoke test","success"),
                     ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증","skipped"))]
         s=Stub()
-        self.assertEqual(qa.verify_same_base_full_run(
-            s,587,"h"*40,"a"*40,99),88)
-        s.base="b"*40
-        self.blocked(lambda:qa.verify_same_base_full_run(
-            s,587,"h"*40,"a"*40,99))
+        from unittest.mock import patch
+        with patch.object(qa,"source_artifact",return_value={"schema":"v1"}), \
+             patch.object(qa,"verified_source",side_effect=lambda gh,run,payload:
+                          (587,"h"*40,s.base,"m"*40,{})):
+            self.assertEqual(qa.verify_same_base_full_run(
+                s,587,"h"*40,"a"*40,99,"m"*40),88)
+            s.base="b"*40
+            self.blocked(lambda:qa.verify_same_base_full_run(
+                s,587,"h"*40,"a"*40,99,"m"*40))
 
     def test_default_branch_workflow_run_has_distinct_trust_source(self):
         from unittest.mock import patch
@@ -153,7 +157,10 @@ class Cases(unittest.TestCase):
                     ("Docker build and runtime smoke test","success"),
                     ("PR metadata가 기존 전체 CI 증거를 보존하는지 검증","skipped"))]
         env={"GITHUB_RUN_ID":"99"}
-        with patch.object(qa,"check",return_value={"automated_qa":"PASS"}) as check:
+        with patch.object(qa,"check",return_value={"automated_qa":"PASS"}) as check, \
+             patch.object(qa,"source_artifact",return_value={}), \
+             patch.object(qa,"verified_source",return_value=(
+                 587,"h"*40,"b"*40,"m"*40,{})):
             out=qa.trusted_source(env,{"workflow_run":{"id":88}},Stub())
         self.assertEqual(out["trusted_source"],"PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN")
         self.assertEqual(out["source_ci_run_id"],88)
@@ -359,6 +366,37 @@ class Cases(unittest.TestCase):
              "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
         with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
             self.blocked(lambda: qa.check(env,{},Stub()))
+
+    def test_source_artifact_association_rejects_ambiguous_prs(self):
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            repo="planner77/masterGantt"
+            def get(self, route):
+                return {"number":593,"state":"open","head":{"sha":"a"*40,"ref":"ci/issue-593-x"},
+                        "base":{"sha":"b"*40,"ref":"main"},
+                        "merge_commit_sha":"c"*40}
+            def pages(self, route):
+                return [{"number":593}]
+        source={"schema":"mastergantt-ci-pr-source-v1","repository":Stub.repo,
+                "run_id":17,"run_attempt":2,"pr_number":593,
+                "head_sha":"a"*40,"base_sha":"b"*40,"test_merge_sha":"c"*40,
+                "base_ref":"main","head_ref":"ci/issue-593-x",
+                "head_repository":Stub.repo,"base_repository":Stub.repo}
+        run={"id":17,"run_attempt":2,"head_sha":"a"*40,
+             "head_branch":"ci/issue-593-x","pull_requests":[]}
+        self.assertEqual(qa.verified_source(Stub(),run,source)[0],593)
+        for changed in ({"run_attempt":1},{"pr_number":594},{"base_sha":"d"*40},
+                        {"test_merge_sha":"d"*40},{"head_sha":"d"*40}):
+            self.blocked(lambda:qa.verified_source(Stub(),run,{**source,**changed}))
+        self.blocked(lambda:qa.verified_source(Stub(),
+            {**run,"pull_requests":[{"number":593},{"number":594}]},source))
+        class Many(Stub):
+            def pages(self,route): return [{"number":593},{"number":594}]
+        self.blocked(lambda:qa.verified_source(Many(),run,source))
+        class NoneFound(Stub):
+            def pages(self,route): return []
+        self.blocked(lambda:qa.verified_source(NoneFound(),run,source))
 
     def test_validator_revision_immutable(self):
         self.assertEqual(qa.validate_validator_sha("a"*40,"a"*40),"a"*40)
