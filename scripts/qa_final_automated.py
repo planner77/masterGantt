@@ -184,7 +184,8 @@ def verified_source(gh, run, payload):
         for x in (head, base, merge)), "원본 PR/SHA 불완전")
     require(payload.get("base_ref") == "main" and
             payload.get("base_repository") == gh.repo and
-            payload.get("head_repository") == gh.repo and
+            isinstance(payload.get("head_repository"), str) and
+            bool(payload["head_repository"]) and
             isinstance(payload.get("head_ref"), str) and
             bool(payload["head_ref"]), "원본 repository/branch 출처 불일치")
     require(run.get("head_sha") in (head, merge) and
@@ -202,10 +203,14 @@ def verified_source(gh, run, payload):
     require(live.get("state") == "open" and live.get("number") == n and
             live.get("head", {}).get("sha") == head and
             live.get("head", {}).get("ref") == payload["head_ref"] and
+            (live.get("head", {}).get("repo") or {}).get("full_name") ==
+                payload["head_repository"] and
             live.get("base", {}).get("sha") == base and
             live.get("base", {}).get("ref") == "main" and
+            (live.get("base", {}).get("repo") or {}).get("full_name") ==
+                payload["base_repository"] and
             live.get("merge_commit_sha") == merge,
-            "현재 PR head/base/test-merge가 원본 검증과 다릅니다")
+            "현재 PR head/base/test-merge/repository가 원본 검증과 다릅니다")
     # The repository's commit→PR association is an independent read-only witness.
     linked = gh.pages(f"{gh.prefix}/commits/{head}/pulls")
     require(len(linked) == 1 and linked[0].get("number") == n,
@@ -554,7 +559,7 @@ def trusted_source(env, event, gh):
 def main():
     env = dict(os.environ)
     report = {"automated_qa": "NOT TESTED", "independent_qa": "NOT TESTED",
-              "manager_decision": "NOT TESTED", "rule_version": "580-v1",
+              "manager_decision": "NOT TESTED", "rule_version": "593-v1",
               "pr_head_sha": env.get("EVENT_HEAD_SHA"),
               "base_or_test_merge_sha": env.get("TEST_MERGE_SHA"),
               "workflow_run_id": env.get("GITHUB_RUN_ID"),
