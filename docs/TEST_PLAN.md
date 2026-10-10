@@ -1,3 +1,6 @@
+## Issue #598 — 정책 구현 및 PR CI (2026-10-10)
+[Work Packet](ISSUE_598.md): base main `31372f967159b2f993116c73f0adc228eb1ea0ff`, HIGH·protected QA 정책, version `0.104.0` 유지. OWNER_MANAGED 기본/AGENT 선택, Quality/E2E/Docker·trusted main·Owner 최종 허가 유지. 구 정책 validator BLOCKED는 보존, 새 자기 승인 불가. PR CI 시작까지만 실행하며 merge/main/GHCR/tag 금지.
+
 ## Issue #595 — CI #2396.1 / metadata-only의 QA Job 단독 재실행 원장 (2026-10-10)
 
 [PR #597 CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): Quality/Unit/Build/TypeScript/Lint/QA Python, E2E/Docker aggregate SUCCESS. E2E shard는 변경 경로에 따라 SKIPPED이며 실제 브라우저 테스트를 재수행한 증거는 아니다. QA Final은 base의 보호 정책에 따라 BLOCKED(정상 fail-closed). 실제 AGENT 독립 QA·Manager 수용은 NOT TESTED.
