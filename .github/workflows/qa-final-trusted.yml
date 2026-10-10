@@ -1,10 +1,9 @@
-name: QA Final Trusted
+name: QA Final 신뢰 검증
 
 run-name: >-
   ${{ format('QA Trusted · {0} · Run #{1}.{2}', github.event.workflow_run.display_title, github.run_number, github.run_attempt) }}
 
-# This workflow is loaded and executed from the protected default branch.
-# Its code and steps are NEVER taken from the untrusted PR/test-merge.
+# 본 Workflow는 기본 브랜치에서만 로딩하며 PR/test-merge 코드나 정의를 실행하지 않는다.
 on:
   workflow_run:
     workflows: ["CI"]
@@ -30,8 +29,14 @@ jobs:
       - name: 신뢰된 main 검증 코드만 checkout (PR 코드 실행 금지)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: main
+          ref: ${{ github.sha }}
           persist-credentials: false
+      - name: 실제 검증기 checkout SHA와 고정 이벤트 SHA 일치 확인
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          printf -- '신뢰된 검증기 SHA: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: 원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

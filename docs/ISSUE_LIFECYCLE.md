@@ -63,7 +63,7 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 | Calendar, Duration, Summary, Dependency, Auto Schedule | scheduler | backend/frontend, qa_docs |
 | Excel/VBA → JSON/CSV와 매핑 | excel_vba | backend, UI 변경이면 frontend/ui_ux, qa_docs |
 | GitHub branch/PR/CI/merge, Docker/Compose, GHCR 게시·검증 | infra | application 결함은 해당 구현 담당, qa_docs |
-| 요구사항·테스트·보안·문서·원격 증거 검토 | 위험도별 qa_docs 또는 승인된 별도 인간 Reviewer | `qa_required=true`에 독립 검토 의무. `qa_required=false`는 사유 있는 N/A와 Manager 교차 검토; 최종 판단은 Manager |
+| 요구사항·테스트·보안·문서·원격 증거 검토 | AGENT: qa_docs/승인된 별도 인간 Reviewer; AUTOMATED_MANAGER: main의 `QA Final — Trusted` + Manager 수동 검토 | Workflow/CI 실행 계약·보안·QA 정책 파일을 변경하면 AGENT 경로 의무; 변경이 허용된 경우에만 trusted QA 대체 가능, 모든 경우 Manager ACCEPT 별도 |
 
 `ui_ux`는 정보 구조·사용 흐름·상태·접근성·검증 기준을 제안하는 읽기 중심 역할이다. 실제 UI/test 수정은 frontend, 설계 문서 반영은 Manager 또는 명시된 문서 작성자가 맡는다. qa_docs는 read-only reviewer이며 문서를 직접 고치도록 배정하지 않는다. 두 역할 모두 MCP/API를 통한 쓰기까지 하지 않는다. 읽기 전용 sandbox만으로 connector 쓰기까지 차단된다고 가정하지 않는다.
 
@@ -90,9 +90,9 @@ PR을 조기에 만들 수 있으나 동일 이슈의 PR을 중복 생성하지 
 | branch/worktree | infra | 확인한 최신 main 기반 `fix/issue-N-...`, `feat/issue-N-...`, `docs/issue-N-...`; 기존 작업은 재사용 |
 | 구현/빠른 검증 | 지정 구현 담당 | 범위 내 diff, 회귀 테스트, 실제 실행 명령·exit 결과; version 수정도 작업 branch에서 수행 |
 | 문서 동기화 (DOCUMENTATION_SYNC) | Manager가 지정한 문서 작성자, 기본은 Work Packet 지정 구현 Agent | 문서 영향 분석, required docs 실제 갱신 또는 N/A 근거, 코드·계약·문서 정합성; 미완료 시 QA 진입 금지 |
-| QA 사전 검토 | Manager의 위험도 판정; `qa_required=true`면 qa_docs/별도 인간 Reviewer | 요구사항↔코드↔테스트↔문서 비교, DOCUMENTATION_SYNC, 영향 회귀와 N/A 근거. 구현 Agent의 자체 PASS는 독립 검토가 아님 |
+| QA 사전 검토 | Manager가 HIGH 우선 위험도·`qa_method` 선택. 보호 정책 변경은 실제 별도 독립 Reviewer 의무 | 요구사항↔코드↔테스트↔문서, DOC_SYNC, same-head/base CI·QA evidence. AUTOMATED_MANAGER는 기본 브랜치 Trusted run 및 Manager 위험 수용 필수; 구현자 자체 PASS 사용 불가 |
 | PR/CI | infra | PR head와 테스트된 merge/base ref, run/job/attempt; quality/e2e/docker 실제 성공 |
-| 병합 승인 | 위험도별 독립 Reviewer(필요 시) + Manager | 최신 Head 세 required checks, 필수 독립 QA PASS 또는 N/A(reason), DOCUMENTATION_SYNC, 미해결 차단 사항 없음, **Manager ACCEPT** 증거 |
+| 병합 승인 | Manager + AGENT 독립 Reviewer(필요 시) | 세 required checks, DOC_SYNC, review thread 0, AGENT 실제 독립 PASS 또는 허용된 AUTOMATED_MANAGER의 기본 브랜치 Trusted QA PASS, HIGH 수동 검토 및 정확한 HEAD **Manager ACCEPT** |
 | main 병합 | infra | 승인한 head를 지정한 merge, 실제 merge SHA; base 이동/충돌로 diff가 바뀌면 재검증 |
 | main CI/GHCR | infra, 위험도별 Reviewer 확인 및 Manager 판단 | merge SHA의 gate → 정책상 임시 ci-image → exact digest smoke → SBOM/provenance → cleanup; QA N/A가 GHCR 생략 사유는 아님 |
 | 정식 GHCR 게시 | infra, Manager의 명시적 release 승인 근거 확인 | release_required=true와 release_authorized=true 확인 후 아래 4절의 tag/Release CI/registry 검증. 필요 없는 경우만 사유와 함께 N/A |

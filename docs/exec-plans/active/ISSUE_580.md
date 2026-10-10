@@ -61,3 +61,17 @@
 - documentation sync: 보안/QA 정책 운영 문서와 `docs/exec-plans/active/ISSUE_580.md` 및 신규 `.github/workflows/qa-final-trusted.yml` 동기화.
 - `release_required=false`, `release_authorized=false`, 제품 버전 불변.
 - **독립 QA_FINAL=NOT TESTED**, **Manager ACCEPT=NOT TESTED**. reviewer 스레드 6건 해소 및 최신 Head CI 검증 전 병합 금지.
+
+## 2026-10-10 독립 QA F1–F4 REWORK (PR #587)
+
+- 독립 reviewer qa568 실제 [QA_FINAL=FAIL](https://github.com/planner77/masterGantt/pull/587#issuecomment-6091333221); F1 Composite CI action 우회, F2 mutable validator checkout, F3 Python 테스트 미연결+위험도 인수 시나리오 부족, F4 현재 QA 단계별 책임 표 충돌.
+- 보완: `scripts/qa_final_automated.py` protected execution paths, source SHA 검증, `manual_merge_readiness()`; `scripts/test_qa_final_automated.py` LOW/MEDIUM/HIGH, 재사용 base/rename/composite/SHA, `ci.yml` policy에서 Python 실행; Trusted Workflow immutably pinned; 현재 AGENTS/AGENT_PROMPTS/ISSUE_LIFECYCLE 등 표 동기화.
+- 추적 AC1: 최신 단계별 Ownership·`qa_method` 분기 일치 및 DOCUMENTATION_SYNC 독립 확인.
+- AC2/4: main에 Trusted QA workflow 설치 뒤 read-only 실제 CI workflow_run 검증 (현재 NOT TESTED).
+- AC3/7: protected_paths() composite/rename/security assertions 및 CI native Quality/E2E/Docker 유지.
+- AC5: validator_sha와 metadata same Head/base, stale·cancelled·review blocker 단위 및 원격 시나리오.
+- AC6: test_low_medium_high_merge_readiness, test_ci_execution_control_protection_rejects_composite_actions.
+- AC8: 새 Head PR CI의 policy QA Python Step + 3 required aggregates, main trusted 원격 실증은 별도.
+- AC9: 정책/운영/source revision/Manager 승인·rollback 문서 기록.
+- status: DOCUMENTATION_SYNC 재검토 전 NOT TESTED; independent_qa=NOT TESTED (이전 Head FAIL stale); manager_decision=NOT TESTED. 정책/Workflow Bootstrap은 AGENT 필수, MERGE_READY=BLOCKED.
+- 최신 main 45a248f723e11133a4bd4c73ca14bb69b3071cbe (#549 등) 정렬 필요. 제품 version은 최신 main 기준 0.104.0이며 이번 CI/QA 운영 수정 자체에 추가 버전 증분 없음, `release_required=false`, `release_authorized=false`.

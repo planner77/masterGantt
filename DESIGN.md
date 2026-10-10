@@ -268,3 +268,7 @@ UI/UX Issue를 시작할 때 최소 다음을 확인한다.
 - Gantt를 일반 dashboard/card UI로 감싸 정보 밀도를 낮추는 변경
 - 디자인 정합화를 이유로 API/DB/scheduling/security 정책 변경
 - 모든 기존 화면을 한 PR에서 일괄 restyle
+
+## Milestone Timeline 표시 분리 (#549)
+
+[Milestone Timeline](docs/MILESTONE_TIMELINE.md)의 MT1은 WBS 작업 행과 프로젝트 전체 날짜 모집단, 작업 필터와 별도 표시 환경설정을 분리한다. 기본 ON 설정과 가시 member 강조는 canonical 일정·전체 Gate 계산·권한·Export를 바꾸지 않는다. 현재 Milestone 행/빠른 보기는 유지하며 후속 lane/표시 전환은 기술 gate 이후다. 기존 파란 Light UI, system font와 semantic token, flat/compact 배치로 Grid/Chart 작업 면적을 유지한다.

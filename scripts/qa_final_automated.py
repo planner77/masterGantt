@@ -5,6 +5,7 @@ import json
 import os
 import re
 import sys
+import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -15,6 +16,17 @@ GATE_FILES = {
     "scripts/qa_final_automated.py", "scripts/test_qa_final_automated.py",
     "scripts/verify-issue-lifecycle.py", "scripts/verify-pr-metadata-evidence.py",
     "scripts/verify-ci-run-trace.py",
+}
+# Conservative execution-control surface. Ordinary application files remain Manager-reviewed.
+CI_EXECUTION_PREFIXES = (
+    ".github/", "scripts/", "deploy/", "tests/config/", "config/",
+)
+CI_EXECUTION_EXACT = {
+    "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
+    ".npmrc", ".dockerignore", "Dockerfile", "tsconfig.json",
+    "playwright.config.ts", "playwright.config.js",
+    "vitest.config.ts", "vitest.config.mts", "eslint.config.mjs",
+    "next.config.ts", "next.config.js", "next.config.mjs",
 }
 POLICY_FILES = {
     "AGENTS.md", "docs/QA_REVIEW_POLICY.md", "docs/SECURITY.md",
@@ -260,7 +272,8 @@ def protected_paths(files):
             all_paths.add(entry["previous_filename"])
     protected = {p for p in all_paths
                  if p in GATE_FILES or p in POLICY_FILES or
-                 p.startswith(".github/workflows/")}
+                 p in CI_EXECUTION_EXACT or
+                 p.startswith(CI_EXECUTION_PREFIXES)}
     return all_paths, protected
 
 
@@ -322,6 +335,33 @@ def check(env, event, gh):
             "unresolved_review": 0,
             "residual_risks": "실제 의미/UX/HIGH 수동 검토 및 Manager ACCEPT 대기",
             **job_evidence, **result}
+
+
+
+
+def validate_validator_sha(expected, actual):
+    """Pin source of truth: workflow_run event's immutable default-branch commit."""
+    require(re.fullmatch(r"[0-9a-f]{40}", str(expected or "")) is not None,
+            "trusted workflow validator expected SHA 없음")
+    require(actual == expected, "trusted workflow_checkout의 실제 SHA가 이벤트 SHA와 다릅니다")
+    return expected
+
+
+def manual_merge_readiness(*, risk, method, protected, doc_sync, ci_pass,
+                           reviewed, independent, trusted_qa, manager,
+                           high_checklist, risk_accepted):
+    """Pure manual merge checklist. An automated QA check never grants merge approval."""
+    require(risk in {"LOW", "MEDIUM", "HIGH"}, "위험도 미확정")
+    require(method in {"AGENT", "AUTOMATED_MANAGER"}, "QA 경로 미확정")
+    require(doc_sync and ci_pass and reviewed, "최신 CI/DOC_SYNC/리뷰 미해결")
+    if protected or method == "AGENT":
+        require(independent == "PASS", "보호 정책/AGENT의 실제 독립 QA PASS 필요")
+    else:
+        require(trusted_qa == "PASS", "default-branch Trusted QA PASS 필요")
+    if risk == "HIGH":
+        require(high_checklist and risk_accepted, "HIGH 체크리스트·잔여 위험 명시 수용 필요")
+    require(manager == "ACCEPT", "HEAD별 Manager ACCEPT 누락")
+    return "MERGE_READY"
 
 
 
@@ -413,13 +453,18 @@ def main():
         event = json.loads(Path(env["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
         gh = GitHub(env["GITHUB_REPOSITORY"], env.get("GH_TOKEN", ""))
         if env.get("GITHUB_EVENT_NAME") == "workflow_run":
+            checked_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], text=True, timeout=5).strip()
+            report["validator_sha"] = validate_validator_sha(
+                env.get("GITHUB_SHA"), checked_sha)
             report.update(trusted_source(env, event, gh))
         else:
             report.update(check(env, event, gh))
         code = 0
     except Blocked as error:
         report.update(automated_qa=error.status, decision_reason=error.reason)
-    except (KeyError, OSError, ValueError, TypeError, UnicodeError) as error:
+    except (KeyError, OSError, ValueError, TypeError, UnicodeError,
+            subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
         report.update(automated_qa="BLOCKED",
                       decision_reason="검증 증거 파싱 불가: " + type(error).__name__)
     Path("qa-final-automated-report.json").write_text(

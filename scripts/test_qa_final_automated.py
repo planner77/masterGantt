@@ -163,13 +163,93 @@ class Cases(unittest.TestCase):
         from pathlib import Path
         src=(Path(__file__).resolve().parents[1]/".github/workflows/qa-final-trusted.yml").read_text()
         self.assertIn('workflows: ["CI"]',src)
-        self.assertIn("ref: main",src)
+        self.assertIn("ref: ${{ github.sha }}",src)
         self.assertIn("persist-credentials: false",src)
         self.assertIn("github.event.workflow_run.event == 'pull_request'",src)
         self.assertNotIn("pull_request_target:",src)
         self.assertNotIn("github.event.workflow_run.head_sha",src)
+        self.assertIn("git rev-parse HEAD",src)
         self.assertNotIn("checks: write",src)
         self.assertNotIn("contents: write",src)
+
+
+    def test_ci_execution_control_protection_rejects_composite_actions(self):
+        for source in (".github/actions/node-setup/action.yml",
+                       ".github/actions/playwright-setup/action.yml",
+                       "scripts/verify-ci-run-trace.py",
+                       "scripts/verify-issue-lifecycle.py",
+                       "package.json", "package-lock.json", ".npmrc",
+                       "tests/config/e2e-shard-plan.json",
+                       "deploy/docker/container-entrypoint.sh"):
+            paths, protected = qa.protected_paths(
+                [{"filename":source,"status":"modified"}])
+            self.assertIn(source, protected)
+            self.assertIn(source, paths)
+            changed = [{"filename":"docs/renamed.md","status":"renamed",
+                        "previous_filename":source}]
+            self.assertIn(source, qa.protected_paths(changed)[1])
+        self.assertFalse(qa.protected_paths(
+            [{"filename":"src/features/example.ts","status":"modified"}])[1])
+
+    def test_composite_action_pr_is_not_automatically_accepted(self):
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self,url):
+                if "/pulls/" in url:
+                    return {"title":"[Issue #580] 변경","body":"Refs #580\nrisk_level: HIGH\nqa_method: AUTOMATED_MANAGER"}
+                if "/issues/" in url:
+                    return {"body":"AC1"}
+                return {}
+            def pages(self,url):
+                if "/files" in url:
+                    return [{"filename":".github/actions/node-setup/action.yml","status":"modified"}]
+                return []
+        env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"587",
+             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
+        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
+            self.blocked(lambda: qa.check(env,{},Stub()))
+
+    def test_validator_revision_immutable(self):
+        self.assertEqual(qa.validate_validator_sha("a"*40,"a"*40),"a"*40)
+        self.blocked(lambda: qa.validate_validator_sha("a"*40,"b"*40))
+        self.blocked(lambda: qa.validate_validator_sha("main","main"))
+
+    def test_low_medium_high_merge_readiness(self):
+        params={"protected":False,"doc_sync":True,"ci_pass":True,
+                "reviewed":True,"independent":"NOT TESTED",
+                "trusted_qa":"PASS","manager":"ACCEPT",
+                "high_checklist":True,"risk_accepted":True}
+        for risk in ("LOW","MEDIUM","HIGH"):
+            self.assertEqual("MERGE_READY", qa.manual_merge_readiness(
+                risk=risk,method="AUTOMATED_MANAGER",**params))
+        for risk in ("LOW","MEDIUM","HIGH"):
+            self.blocked(lambda:qa.manual_merge_readiness(
+                risk=risk,method="AUTOMATED_MANAGER",
+                **{**params,"manager":"NOT TESTED"}))
+        self.blocked(lambda:qa.manual_merge_readiness(
+            risk="HIGH",method="AUTOMATED_MANAGER",
+            **{**params,"high_checklist":False}))
+        self.blocked(lambda:qa.manual_merge_readiness(
+            risk="HIGH",method="AUTOMATED_MANAGER",
+            **{**params,"risk_accepted":False}))
+        self.blocked(lambda:qa.manual_merge_readiness(
+            risk="MEDIUM",method="AUTOMATED_MANAGER",
+            **{**params,"trusted_qa":"NOT TESTED"}))
+        self.blocked(lambda:qa.manual_merge_readiness(
+            risk="HIGH",method="AUTOMATED_MANAGER",
+            **{**params,"protected":True}))
+        self.assertEqual("MERGE_READY",qa.manual_merge_readiness(
+            risk="HIGH",method="AGENT",
+            **{**params,"independent":"PASS","protected":True}))
+        self.blocked(lambda:qa.manual_merge_readiness(
+            risk="HIGH",method="AGENT",**params))
+
+    def test_policy_ci_executes_qa_python_tests(self):
+        from pathlib import Path
+        workflow=(Path(__file__).resolve().parents[1]/".github/workflows/ci.yml").read_text()
+        policy=workflow.split("\n  policy:",1)[1].split("\n  typecheck:",1)[0]
+        self.assertIn("python3 scripts/test_qa_final_automated.py",policy)
 
 
 if __name__=="__main__":

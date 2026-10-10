@@ -1,0 +1,53 @@
+{
+  "issue": 549,
+  "baselineSha": "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0",
+  "baselineIsExactProbeSource": false,
+  "initialProbeSourceHash": "NOT CAPTURED",
+  "firstObservedAt": "2026-10-08T14:16:09Z",
+  "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-core.spec.ts --project chromium",
+  "exitCode": 1,
+  "result": {
+    "passed": 1,
+    "failed": 8
+  },
+  "originalTraceLocalOnly": "/tmp/mastergantt-549-initial-fail/test-results",
+  "errors": [
+    {
+      "status": "FAIL",
+      "case": "5 viewport filters after scale change",
+      "expectedRows": 7,
+      "actualRows": 10,
+      "diagnosis": "Public filter immediately yielded 7 rows; scale props rerender restored all 10. Explicit controlled projection reapplies public filtering after the canonical queue."
+    },
+    {
+      "status": "FAIL",
+      "case": "empty/milestone-only fixtures",
+      "rawError": "TypeError: Cannot read properties of undefined (reading 'taskId')",
+      "diagnosis": "Existing report/assignment fixture assumed an ordinary LEAF-1 and tasks[2]. Dedicated spec routes now isolate those unrelated reports without inserting fake ordinary tasks."
+    },
+    {
+      "status": "FAIL",
+      "case": "fullscreen exit locator",
+      "rawError": "Test timeout of 30000ms exceeded.",
+      "diagnosis": "Actual accessible name is Gantt 전체 화면 종료; test used 전체 화면 종료."
+    }
+  ],
+  "additionalReworkFailures": [
+    {
+      "case": "typed Date comparison",
+      "rawError": "Received: serializes to the same string",
+      "diagnosis": "Playwright preserves Date objects; compare semantic dates using toEqual."
+    },
+    {
+      "case": "Milestone-only monotonic right extent",
+      "expectedEnd": "2026-10-24T04:00:00.000Z",
+      "actualEnd": "2026-10-25T04:00:00.000Z",
+      "diagnosis": "Existing #367 extends the axis after scrollbar geometry change. Validate unchanged start, no shrinking range, same instance, valid visible date reveal and canonical/mutation zero."
+    }
+  ],
+  "firstTypecheck": {
+    "status": "FAIL",
+    "exitCode": 2,
+    "diagnosis": "Optional cellWidth narrowing, missing date adapter import and DataArray serialize method assumption corrected."
+  }
+}

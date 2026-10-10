@@ -296,10 +296,10 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 | Branch/worktree | infra | 구현 Agent는 지정 branch 사용 |
 | Implementation/tests | Work Packet 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) | Manager 파일 소유권 통제 |
 | Documentation sync | Manager 지정 문서 작성자; 기본은 지정 구현 Agent | 영향 문서 갱신 또는 N/A 근거, 정합성 확인 |
-| QA readiness/final QA | qa_required=true: qa_docs 또는 승인된 별도 인간 Reviewer; false: Manager N/A 판정 | DOCUMENTATION_SYNC는 모든 위험도 필수, UI 설계 비교는 ui_ux |
+| QA readiness/final QA | Manager가 `qa_method=AGENT\|AUTOMATED_MANAGER` 결정; AGENT의 의무 QA는 qa_docs/승인된 별도 인간 Reviewer, AUTOMATED_MANAGER는 main trusted QA evidence + Manager 수동 검토; 의무 아닌 QA는 N/A(reason) | DOC_SYNC는 모든 위험도 필수. **CI/보안/검증 정책 Bootstrap·변경은 AGENT 독립 검토 필수** |
 | PR/CI | infra | 실패 원인에 해당하는 Work Packet 지정 구현 Agent가 수정 |
-| Merge | Manager 승인 + infra 실행 | 독립 QA 의무 시 실제 PASS, 비의무 시 N/A(reason); HEAD별 required checks 필수 |
-| Main CI/GHCR ci image | infra | `qa_required=true`이면 qa_docs 또는 승인된 별도 인간 Reviewer가 증거 검토, `qa_required=false`이면 Manager가 CI/GHCR exact-SHA·digest 증거를 직접 확인하고 N/A 사유 기록 |
+| Merge | Manager의 정확한 HEAD ACCEPT 후 infra | 같은 HEAD/base의 Quality/E2E/Docker, DOC_SYNC, review thread 0; AGENT 독립 QA PASS 또는 허용 범위의 main trusted QA PASS + HIGH 잔여 위험 수용. 정책·Workflow 변경은 항상 독립 QA PASS |
+| Main CI/GHCR ci image | infra | `qa_method=AGENT`이면서 독립 QA가 의무라면 지정 독립 Reviewer가 증거 검토; `AUTOMATED_MANAGER` 또는 독립 QA N/A는 Manager가 exact SHA·digest와 운영 위험을 직접 확인. release 승인 별도 |
 | Formal release | Manager 승인 + infra | 명시적 release authorization 필수 |
 | Branch cleanup | infra | 안전성 확인 |
 | Issue closure | Manager 판단 | infra/GitHub 실행 가능 |
