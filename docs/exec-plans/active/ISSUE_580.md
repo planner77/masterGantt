@@ -85,3 +85,13 @@
 - **Work Packet 상태:** 이전 설명의 `45a248f...`는 1e0b Head에서 실제로 정렬 완료되었고 뒤이어 main이 `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`로 이동함. 해당 main의 새로운 #549 파일을 보존하며 새 Head로 재정렬/CI 실행 필요.
 - DOCUMENTATION_SYNC 갱신: QA validator·Python 회귀, `docs/TEST_PLAN.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 및 본 Work Packet. `DESIGN.md`/DB_SCHEMA 문서는 #580에서 제품 계약 변경 없음(N/A).
 - 진행 gate: `risk_level=HIGH`, `qa_method=AGENT`; 새 Head 독립 QA Final/Manager ACCEPT/리뷰 thread resolution 없이는 MERGE_READY 불가. `release_required=false`, `release_authorized=false`, 제품 v0.104.0 보존.
+
+## 2026-10-10 QA Review 추가 P1×2/P2×1 REWORK / PR #587
+
+- 최신 리뷰 HEAD `4134172614db006677fe0cc51d655364cc3276d3`, PR CI `38026205560` SUCCESS지만 새 [Codex Review P1×2/P2×1](https://github.com/planner77/masterGantt/pull/587) 지적.
+- F1/P1: `.codex/agents/qa-docs.toml` 등 정책 실행 지침 누락 → `.codex/**` protected 및 HIGH, rename 포함.
+- F2/P1: `src/server/repositories/project-repository-core.ts` password/session token hash 영속성에도 MEDIUM 오분류 → repository/service/auth/db/server API HIGH floor, 명시 MEDIUM/LOW 위장 거부.
+- F3/P2: `src/contracts/projects.ts` 등 공용 DTO 계약의 `docs/API.md` 누락 → contracts/service docs_required 합집합 강화.
+- 회귀: 추가 Python 단위 테스트 4건, 기존 `policy` Job에서 실제 실행; `docs/TEST_PLAN.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 동기화.
+- 현재 동작/범위: HIGH, AGENT 독립 QA 필수, release_required=false, release_authorized=false, 제품버전 0.104.0(추가 증분 없음).
+- 새 Head/CI/독립 QA Final/Manager ACCEPT는 실제 증거 전 NOT TESTED; 변경 전 PASS나 review resolve는 새 Head에 소급되지 않음.

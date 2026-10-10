@@ -211,7 +211,7 @@ class Cases(unittest.TestCase):
                      "db/migrations/0022_task_milestone_memberships.sql",
                      "src/features/gantt/scheduling.ts"):
             self.assertEqual(qa.risk_floor({path}), "HIGH", path)
-        self.assertEqual(qa.risk_floor({"src/app/api/projects/route.ts"}), "MEDIUM")
+        self.assertEqual(qa.risk_floor({"src/app/api/projects/route.ts"}), "HIGH")
         self.assertEqual(qa.risk_floor({"docs/README.md"}), "LOW")
 
     def test_high_import_low_pr_is_rejected(self):
@@ -248,6 +248,71 @@ class Cases(unittest.TestCase):
               "- \x60docs/TEST_PLAN.md\x60: UPDATED\n"
               "- \x60docs/DB_SCHEMA.md\x60: N/A(기존 DB 계약 그대로 유지하는 테스트 범위)\n"
               "## AC_TEST_COVERAGE\n- AC1: tests/domain/test_example.py 검증 예정\n")
+        self.blocked(lambda:qa.docs_gate(plan,paths,{"AC1"}))
+
+    def test_agent_instruction_files_always_protected(self):
+        """Fifth-head P1: all agent instructions, not just infra.toml."""
+        for path in (".codex/agents/qa-docs.toml",
+                     ".codex/agents/infra.toml",
+                     ".codex/agents/frontend.toml",
+                     ".codex/agents/ui-ux.toml",
+                     ".codex/agents/new-reviewer.toml",
+                     ".codex/config.toml"):
+            changed=[{"filename":path,"status":"modified"}]
+            self.assertIn(path, qa.protected_paths(changed)[1])
+            self.assertEqual("HIGH",qa.risk_floor({path}))
+            renamed=[{"filename":"docs/safe.md","previous_filename":path,
+                      "status":"renamed"}]
+            self.assertIn(path,qa.protected_paths(renamed)[1])
+
+    def test_auth_repository_is_high_even_without_security_filename(self):
+        """Project repository hashes password/session tokens; filename alone must not downgrade."""
+        for path in ("src/server/repositories/project-repository-core.ts",
+                     "src/server/repositories/project-repository.ts",
+                     "src/server/services/project-service.ts",
+                     "src/server/auth/project-access.ts",
+                     "src/server/db/project-db.ts",
+                     "src/app/api/projects/route.ts"):
+            self.assertEqual("HIGH", qa.risk_floor({path}), path)
+        self.assertEqual("HIGH",qa.risk_floor(
+            {"src/server/repositories/project-repository-core.ts",
+             "docs/TEST_PLAN.md"}))
+
+    def test_auth_repository_medium_risk_downgrade_blocked(self):
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self,url):
+                if "/pulls/" in url:
+                    return {"title":"[Issue #580] auth downgrade",
+                            "body":"Refs #580\nrisk_level: MEDIUM\nqa_method: AUTOMATED_MANAGER"}
+                return {}
+            def pages(self,url):
+                if "/files" in url:
+                    return [{"filename":"src/server/repositories/project-repository-core.ts",
+                             "status":"modified"}]
+                return []
+        with patch.object(qa,"snapshot"),patch.object(qa,"evidence",return_value={}):
+            self.blocked(lambda: qa.check(
+                {"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"587",
+                 "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}, {}, Stub()))
+
+    def test_shared_public_contract_always_requires_api_documentation(self):
+        """Public project DTO changes cannot structurally PASS without docs/API.md."""
+        for path in ("src/contracts/projects.ts",
+                     "src/contracts/resources.ts",
+                     "src/server/services/project-service-core.ts",
+                     "src/app/api/projects/route.ts"):
+            self.assertIn("docs/API.md",qa.docs_required({path}),path)
+        paths={"src/contracts/projects.ts","db/migrations/0022_x.sql",
+               "src/server/repositories/project-repository-core.ts"}
+        self.assertTrue({"docs/API.md","docs/DB_SCHEMA.md","DESIGN.md",
+                         "docs/TEST_PLAN.md"} <= qa.docs_required(paths))
+        plan=("## DOCUMENTATION_SYNC\n"
+              "- \x60DESIGN.md\x60: N/A(테스트 목적이며 공개 화면 구조를 변경하지 않음)\n"
+              "- \x60docs/TEST_PLAN.md\x60: UPDATED\n"
+              "- \x60docs/DB_SCHEMA.md\x60: N/A(스키마 불변을 확인한 테스트 변경만 해당)\n"
+              "## AC_TEST_COVERAGE\n- AC1: test_shared_public_contract_always_requires_api_documentation\n")
         self.blocked(lambda:qa.docs_gate(plan,paths,{"AC1"}))
 
     def test_composite_action_pr_is_not_automatically_accepted(self):

@@ -20,7 +20,7 @@ GATE_FILES = {
 }
 # Conservative execution-control surface. Ordinary application files remain Manager-reviewed.
 CI_EXECUTION_PREFIXES = (
-    ".github/", "scripts/", "deploy/", "tests/config/", "config/",
+    ".github/", ".codex/", "scripts/", "deploy/", "tests/config/", "config/",
 )
 CI_EXECUTION_EXACT = {
     "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
@@ -38,7 +38,7 @@ CI_EXECUTION_GLOBS = (
 POLICY_FILES = {
     "AGENTS.md", "docs/QA_REVIEW_POLICY.md", "docs/SECURITY.md",
     "docs/ISSUE_LIFECYCLE.md", "docs/AGENT_PROMPTS.md",
-    "docs/AGENT_CONFIGURATION.md", ".codex/agents/infra.toml",
+    "docs/AGENT_CONFIGURATION.md",
     "docs/GITHUB_OPERATIONS.md", "docs/REMOTE_VALIDATION.md",
     "docs/ISSUE_LIFECYCLE_AUTOMATION.md", "docs/CI_CD.md",
 }
@@ -209,8 +209,11 @@ def docs_required(paths):
         if p.startswith(("db/", "migrations/")) or re.search(
                 r"(?:^|/)(?:db|database|migrations?|schema)(?:/|[_.-])", p):
             required.add("docs/DB_SCHEMA.md")
-        if p.startswith(("src/app/api/", "app/api/", "src/pages/api/", "pages/api/")):
+        if p.startswith(("src/app/api/", "app/api/", "src/pages/api/", "pages/api/",
+                         "src/contracts/", "src/server/services/")):
             required.add("docs/API.md")
+        if p.startswith(("src/server/repositories/", "src/server/db/")):
+            required.add("docs/DB_SCHEMA.md")
         if re.search(r"calendar|schedul|dependency|duration|milestone", p):
             required.add("docs/SCHEDULING_ENGINE.md")
         if "import" in p or "export" in p:
@@ -318,7 +321,10 @@ def risk_floor(paths):
                 re.search(r"auth|security|session|permission|migration|calendar|"
                           r"schedul|dependency|release|ghcr|import|export|duration|"
                           r"milestone|safety|secret|credential|token", p) or
-                p.startswith(("db/", "migrations/", "src/contracts/"))):
+                p.startswith(("db/", "migrations/", "src/contracts/",
+                              "src/server/repositories/", "src/server/db/",
+                              "src/server/auth/", "src/server/services/",
+                              "src/app/api/"))):
             return "HIGH"
     if any(p.startswith(("src/", "app/", "db/", "tests/e2e/")) for p in paths):
         return "MEDIUM"
