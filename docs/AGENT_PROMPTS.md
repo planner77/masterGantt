@@ -1,3 +1,7 @@
+## Issue #595 — 독립 QA 역할과 보호 변경 검토
+
+QA 담당은 기능 PR과 보호된 CI/버전 파일 변경을 구분한다. 보호 변경 검토는 구현자와 다른 인간 Reviewer가 실제 현재 Head/문서·테스트·보안 경계를 검사하고 GitHub에서 별도 판정을 남긴다. Manager 승인은 그 뒤에 근거를 기록한다. Reviewer가 없으면 BLOCKED이고 구현자가 임의로 PASS하지 않는다. #595의 검증기 코드 자체도 같은 독립 QA를 통과하기 전에는 운영 정책이 아니다.
+
 
 ### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
 

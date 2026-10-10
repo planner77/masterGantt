@@ -1,3 +1,15 @@
+## Issue #595 — QA Job 단독 재실행의 attempt 출처 검증 (P1, 2026-10-10)
+
+보호 PR에서 필수 Quality/E2E/Docker 세 Job은 첫 실행에서 성공하고 `QA Final — Automated`만 독립 승인 미확보로 차단될 수 있다. 이후 적법한 독립 QA/Manager 근거가 확보되어 같은 Run에서 QA Job만 재실행하는 경우, GitHub의 기본 `/runs/{id}/jobs` 결과(최신 시도 Job만 포함)를 필수 CI 전체 원장으로 사용하지 않는다. 동일 run의 정확한 attempt별 Job 목록을 조회해 각 이름의 **마지막 실제 실행 결과**를 적용한다. 필수 aggregate가 재실행되지 않았다면 이전 성공을 보존하며 이후 실패/취소된 aggregate는 이전 성공을 무효화한다. 정확한 source attempt를 기록하고 누락·중복·불명확한 조회를 BLOCKED 처리한다. 원본 CI/head/base, 독립 Reviewer/Manager의 승인 경계와 릴리스 권한은 그대로 유지한다.
+
+## Issue #595 — AGENT + protected path: independent review와 Manager 승인 증거
+
+- 보호 경로 식별 집합(`CI_EXECUTION_EXACT`, `CI_EXECUTION_PREFIXES`, `CI_EXECUTION_GLOBS`, policy/validator 파일, rename 원본)은 완화하지 않는다. `AUTOMATED_MANAGER` 또는 비정상·불완전한 `AGENT`에는 기존 fail-closed BLOCKED가 계속 적용된다.
+- `AGENT` + 보호 경로는 **독립 인간 Reviewer**가 PR 작성자·repository owner·Bot이 아니고 GitHub 서버의 `author_association`이 `MEMBER/COLLABORATOR/OWNER`이며, 정확한 PR Head `commit_id`에 `APPROVED` 리뷰를 제출하고 본문에 독립 검토 내용을 충분히 남겨 `QA_FINAL: PASS`를 명시해야 한다. 오래된 Head 승인, COMMENTED-only 자동 Codex, 해제된 승인, REQUEST_CHANGES는 인정하지 않는다.
+- **Manager ACCEPT는 실제 repository owner가 PR에 새 댓글로 작성**한 `mastergantt-protected-qa-accept:v1` 구조화 영수증으로만 인식한다. 필드는 `authorized=true`, `pr`, `issue`, `head_sha`, `base_sha`, `qa_review_id`, `ci_run_id`, `ci_attempt`, `residual_risk_accepted=true`, 최소 40자의 검토 `reason`. GitHub의 실제 작성자, 작성 시간, 리뷰 작성 이후와 명시 CI attempt의 required 3종 성공 완료 이후인지 검증한다.
+- 원본 Full PR CI는 독립 검토 전 정상 실패할 수 있다. 이후 다른 인간 Reviewer의 exact-Head QA와 소유자 수동 승인 댓글을 남기고 **해당 동일 Run의 QA job만 재실행**하여 검증한다. `run_id`를 같은 Head로 재사용할 수 없는 경우 새 Head 또는 새 full PR CI를 검증해야 한다. 변경 전에 작성된 댓글/리뷰는 새 Head를 승인하지 않는다.
+- 영수증 PASS는 **독립 QA+Manager의 확인된 승인 원장**이며, 자동 코드 의미 검증의 허위 PASS가 아니다. 기존 Required Quality/E2E/Docker, 도메인 검증, GitHub Ruleset 및 정식 GHCR/태그 승인은 별개로 유지한다. #593의 source provenance 개선은 별도 PR로 통합 시 중복/충돌 검토한다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
