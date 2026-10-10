@@ -60,6 +60,11 @@ require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_r
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
+metadata_recovery = (ROOT / ".github" / "workflows" / "pr-metadata-reconcile.yml").read_text(encoding="utf-8")
+require("workflow_run:" in metadata_recovery and 'workflows: ["CI"]' in metadata_recovery, "metadata reconciliation must follow trusted default-branch CI completion")
+require("actions: write" in metadata_recovery and "rerun-failed-jobs" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8"), "reconciliation needs bounded write-scoped rerun operation")
+require("cancel-in-progress: false" in metadata_recovery and "persist-credentials: false" in metadata_recovery, "metadata reconciliation must not cancel full CI or persist privileged checkout credentials")
+require("pull_request_target:" not in metadata_recovery, "metadata reconciliation must not execute PR code with write privilege")
 baseline_retry = ci_workflow.split("      - name: PR 기준 image와 크기 비교", 1)[1].split("      - name: 잘못된 production HTTP 설정 조기 거부 검증", 1)[0]
 require("for attempt in 1 2; do" in baseline_retry, "baseline Docker build retry must be bounded")
 require("npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)" in baseline_retry, "retry only recognized npm transient network errors")
