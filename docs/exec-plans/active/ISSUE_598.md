@@ -50,3 +50,12 @@
 - 기존 QA Final BLOCKED run은 소급 변경 금지. 새 validator의 trusted 실행 증거는 main 반영 후.
 - Required Ruleset #24043042: approving reviewers 0; strict required checks Quality/E2E/Docker; unresolved review thread forbidden. Ruleset 설정 미변경.
 - Release: Main CI 비문서 GHCR 임시 ci-<SHA>·digest/SBOM/finalizer 유지. 정식 릴리스 승인 없음.
+
+## PR #599 / CI #2415.1 REWORK 기록 (2026-10-10 KST)
+
+- 실패 run: https://github.com/planner77/masterGantt/actions/runs/38053912562 (원본 Head `65284bab397c5e13ea264bdb515a53cb72146ca7`). Quality aggregate FAIL의 직접 원인은 정책 Job 내 markdown link 검사: `docs/TEST_PLAN.md`에서 Work Packet을 잘못된 `ISSUE_598.md` 상대 경로로 링크했다. `exec-plans/active/ISSUE_598.md`로 교정했으며 구 Run은 FAIL 원장에 그대로 남긴다.
+- Codex P1 #1: `test_owner_managed_protected_path_and_legacy_alias`의 `TEST_MERGE_SHA` 누락으로 다음 Python 회귀에서 KeyError 발생. 현재 fixture에 올바른 test merge SHA를 추가했다.
+- Codex P1 #2: 이전 `test_composite_action_pr_is_not_automatically_accepted`가 구 보호 경로의 전면 BLOCKED를 기대하고 `open_threads`도 구현하지 않았다. OWNER_MANAGED일 때 composite action의 HIGH 분류를 보존하면서, 정확한 PR 증거의 기계 검증 결과와 `manager_decision=NOT TESTED`를 분리하여 확인하고 risk LOW 위장 차단을 함께 테스트한다.
+- Node TypeScript/Lint/Unit/Build 및 Docker/E2E Required aggregate는 구 Run에서 성공했지만 최신 Head를 증명하지 않는다. 정책 Python 테스트는 Markdown 단계에서 실행되지 않았으므로 과거 PASS로 기록하지 않으며 새 exact-Head PR CI에서 재검증한다. 원격 실행 전 결과 NOT TESTED.
+- 문서 영향: `docs/TEST_PLAN.md` 수정, Work Packet에 원인/검증 mapping 추적 추가. `DESIGN.md`: N/A(제품 UI 변경 없음). 다른 보호 QA·Ruleset·Main/GHCR Gate는 수정 없음.
+- 병합/정식 Release/정책 bootstrap Owner 승인 및 GHCR는 이번 실행 요청 범위 밖이다.
