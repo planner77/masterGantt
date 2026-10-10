@@ -370,6 +370,10 @@ for malformed in (
     "Issue #582 · PR 없이 입력",
     "Issue #582",
     "Issue #582\n추가 본문",
+    "Issue #582 · PR #583 · 한글\u202e123",
+    "Issue #582 · PR #583 · 한글\u200b숨김",
+    "Issue #582 · PR #583 · 한글\u2028추가줄",
+    "Issue #582 · PR #583 · 한글\x85컨트롤",
 ):
     require(main_run_name.parse_merge_title(malformed) is None, "malformed canonical title must be rejected")
     try:
@@ -378,7 +382,17 @@ for malformed in (
         pass
     else:
         raise SystemExit(f"malformed canonical merge must fail-closed: {malformed!r}")
-for invalid_summary in ("English only", "한글 제목\n두 번째 줄", "한" * 31, "Issue #3 다른 번호", ""):
+for invalid_summary in (
+    "English only",
+    "한글 제목\n두 번째 줄",
+    "한" * 31,
+    "Issue #3 다른 번호",
+    "한글\u202e123",  # bidi override
+    "한글\u200b숨김",  # invisible zero-width separator
+    "한글\u2028추가줄",  # Unicode line separator
+    "한글\x85제어",  # C1 control / next-line
+    "",
+):
     try:
         main_run_name.format_merge_title(582, 583, invalid_summary)
     except ValueError:

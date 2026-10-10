@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import unicodedata
 
 MAX_SUMMARY_LENGTH = 30
 CANONICAL_SUBJECT_RE = re.compile(
@@ -18,10 +19,13 @@ def format_merge_title(issue_number: int, pr_number: int, summary: str) -> str:
         raise ValueError("Primary Issue 번호는 양의 정수여야 합니다")
     if type(pr_number) is not int or pr_number <= 0:
         raise ValueError("PR 번호는 양의 정수여야 합니다")
+    # C0/C1 controls, Unicode direction/zero-width formatting, surrogate code
+    # points and Unicode line separators can spoof or split Actions display names.
     if not isinstance(summary, str) or any(
-        ord(character) < 32 or ord(character) == 127 for character in summary
+        unicodedata.category(character) in {"Cc", "Cf", "Cs", "Zl", "Zp"}
+        for character in summary
     ):
-        raise ValueError("한글 Issue 요약은 단일 행이어야 합니다")
+        raise ValueError("한글 Issue 요약에는 제어·비표시·줄구분 문자를 사용할 수 없습니다")
 
     normalized = " ".join(summary.split()).strip(" .·-—")
     if not normalized or len(normalized) > MAX_SUMMARY_LENGTH:

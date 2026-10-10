@@ -70,6 +70,8 @@
 
 ## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
 
+- **#582 Unicode 표시명 스푸핑 차단:** `format_merge_title()`는 bidi override(U+202E), zero-width space(U+200B), Unicode line separator(U+2028), C1 next-line(U+0085)과 C0/C1·Cs·Cf·Zl·Zp 문자를 표준 제목 생성 전에 ValueError로 거부한다. `parse_merge_title()`/Push trace 또한 이들을 승인하지 않아야 한다. 정상 한글·일반 공백 및 기존 legacy Merge/direct Push 처리는 불변이다. GitHub Actions `run-name` 전체 regex 검증을 완료했다고 주장하지 않으며 CI 보호 경로 `QA Final` BLOCKED 정책은 유지한다.
+
 - **#582 malformed 예약 접두어 회귀:** 표준 `Issue #`로 시작하면서 ` · PR #` 구분자가 빠졌거나(`Issue #582 ·PR #583`), PR 필드가 없는 제목(`Issue #582`), 새 줄을 가진 제목(`Issue #582\\n추가 본문`)은 `validate_push`가 모두 `TraceError`로 FAIL해야 한다. 이들 제목은 일반 직접 Push fallback으로 분류할 수 없다. 기존 `docs:` 직접 Push와 `Merge PR #N` 추적은 그대로 통과한다. 액션 실행명의 완전한 regex 검증이 가능해졌다는 뜻은 아니며 자동 QA의 보호 경로 BLOCKED는 유지한다.
 
 - **#580 보호된 PR QA 회귀:** [CI #2381.1](https://github.com/planner77/masterGantt/actions/runs/38038527473)은 세 Required Quality/E2E6/Docker PASS에도 `QA Final — Automated`가 **protected CI/QA 경로 감지로 BLOCKED** 처리되어 전체 Run이 실패했다. `risk_level: HIGH`, `qa_method: AGENT` 메타데이터를 명시해도 신뢰된 base validator의 `protected_paths()` 판정은 정당하게 유지된다. #595에서 안전한 독립 QA 승인 경로와 Actions 상태 구분을 별도 설계한다. 무조건 skip/성공 우회·위험도 하향은 회귀로 취급한다. 새로운 #582 PR CI 시작은 이 보호 차단 해소나 QA_FINAL PASS의 증거가 아니다.
