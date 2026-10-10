@@ -2928,3 +2928,10 @@ T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개�
 - FINAL 성공, Issue close PATCH 실패 후 동일 FINAL/cleanups 재실행 없이 Issue close-only 재시도·멱등 성공.
 - 후속 같은 Issue PR 존재, 위조 FINAL, main snapshot 변경 시 close 실패/부수효과 없음.
 - child 명령은 정확한 계획 시점 main SHA를 포함하고 mutation 전 다시 확인하며 기존 required PR check/QA Gate를 유지.
+
+## Issue #586 — Main CI 병합 메시지 오류와 non-docs 복구 회귀 (2026-10-11)
+
+1. 실제 #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a의 멀티라인 message는 parse_merge_title()과 validate_push()에서 FAIL이며 기존 #2445.1을 PASS로 소급해서는 안 된다.
+2. merge_api_payload() 순수 helper/CLI JSON은 merge_method=merge, 한 줄 canonical commit_title, 빈 commit_message, 정확 HEAD SHA lease를 반환하고 SHA 누락/대문자/잘못된 길이는 FAIL한다.
+3. 동일 Issue #586의 **후속 non-docs Main CI GREEN**에 한해서 supersede_failed_issue_retries()가 old failed SHA를 supersede하고 PR #588 cleanup 의무를 새 target에 넘긴다. docs-only correction·Main CI 실패 시 이전 SHA는 blocker로 남는다.
+4. 공식 원격 검증은 수정 Head의 Quality/E2E/Docker Required aggregate, Owner-managed QA, 병합된 Main SHA의 push CI, 임시 GHCR exact digest, Finalizer 및 Issue 상태를 각각 확인한다. CI 성공 전 어떠한 후보 삭제·정식 GHCR/tag·Issue 종료도 주장하지 않는다.

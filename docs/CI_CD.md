@@ -656,3 +656,11 @@ CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/tran
 ### Issue #586 Finalizer SHA별 의무
 
 성공한 같은 Issue의 여러 PR은 docs-only 여부와 무관하게 각 exact merge SHA의 Main CI 및 GHCR candidate PASS/N/A, branch cleanup, FINAL 증거를 독립적으로 갖는다. 정상 성공 target의 검증 의무를 coalescing으로 생략하지 않는다. Finalizer는 historical marker 감사와 GHCR 삭제 사전 조회를 실제 변경 전 수행한다. 버전 bump, tag authority 및 정식 release 승인 정책은 불변이다.
+
+## Issue #586 Main CI #2445.1 실패 및 한 줄 Merge API 입력 (2026-10-11)
+
+PR #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 제목 외에 PR 설명 multiline commit body가 포함되어 Main CI trace 단계가 FAIL했다. E2E/Docker/Quality 결과 집계는 실행 누락에 따른 FAIL이고 GHCR candidate 및 Finalizer는 SKIPPED다. 원본 SHA와 실패 증거는 불변으로 보존한다.
+
+scripts/main_ci_run_name.py의 --as-merge-payload --expected-head-sha 모드는 merge_method=merge, 정규화된 한 줄 commit_title, 비어 있는 commit_message, exact expected_head_sha의 전체 값을 JSON으로 출력한다. GitHub merge 도구는 검증된 모든 값을 함께 전달한다. 후속 non-docs 교정 PR의 새로운 Main CI가 성공하면 기존 실패 supersession 규칙으로 SHA별 증거·브랜치 정리 의무를 유지하고 Finalizer로 진행한다. 새 Main CI/GHCR 실패 시 old SHA를 green으로 취급하지 않는다.
+
+application 0.104.0 / release_required=false / release_authorized=false 유지. ci-<SHA>는 임시 검증 이미지이며 정식 version/tag GHCR 발행 권한이 아니다.

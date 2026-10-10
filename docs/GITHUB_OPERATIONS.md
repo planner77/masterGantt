@@ -379,3 +379,11 @@ PR 생성 시 제목의 단일 `Issue #N`, 본문의 단일 canonical `Refs #N`,
 ### Issue #586 복수 PR 종료·복구
 
 Issue closed 상태만으로 새 PR이 이미 FINAL되었다고 추론하지 않는다. 해당 exact SHA marker가 없고 앞선 유효 FINAL이 있는 후속 merge는 다시 Main/GHCR 증거를 검증해 처리한다. 불변 기록과 PR/Issue identity 충돌을 감사하고 단계별 FAIL 로그(Issue/PR/SHA/phase)를 보존한다. #565 기존 실패 Run 재실행·GHCR 삭제/복구는 PR CI 시작 범위가 아니며 배포 후 별도 확인한다.
+
+## Issue #586 — Merge 호출에 한 줄 제목과 빈 본문 동시 지정 (2026-10-11)
+
+PR #588의 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 commit title은 표준이었지만 본문에 PR 설명을 전달해 Main CI #2445.1 trace 단계가 실패했다. 다음 병합은 아래 도구로 동일 요청에 필요한 모든 필드를 생성한다.
+
+python3 scripts/main_ci_run_name.py --issue 586 --pr <교정 PR 번호> --summary "Main CI 실패 복구 및 Finalizer 재개" --as-merge-payload --expected-head-sha <PR 최신 정확 SHA>
+
+출력되는 merge_method=merge, commit_title(표준 단일 행), commit_message(반드시 빈 문자열), expected_head_sha(40자리 lowercase SHA)를 GitHub 병합 API에 함께 전달한다. DEFAULT body 또는 자동 PR 설명 삽입을 허용하지 않는다. 기존 실패 SHA를 rewrite하거나 기존 Run을 성공으로 소급하지 않는다. 성공한 후속 동일 Issue non-docs Merge만 first-parent Finalizer의 제한적 supersession 대상이다.

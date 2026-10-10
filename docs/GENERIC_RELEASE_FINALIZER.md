@@ -163,3 +163,11 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 ### #586 FINAL 이후 close-only 복구
 
 Resolver는 최신 인증 FINAL 경계를 따로 보존하고 OPEN Issue이며 같은 Issue 후속 병합이 없을 때만 `close_resume`을 호출한다. 원본 FINAL·후보/브랜치 cleanup·정식 release는 재실행하지 않는다. 하위 Lifecycle은 Resolver main snapshot을 재검증하여 변경된 first-parent에서 잘못된 종료를 금지한다.
+
+### Issue #586 — 잘못된 Merge 메시지와 실패 Main CI의 복구 (2026-10-11)
+
+원본 PR #588의 merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 여러 줄의 Merge message로 Main CI #2445.1 trace 검증에서 실패했다. 구 SHA의 CI FAIL 및 GHCR/Finalizer SKIPPED 기록을 변경하지 않는다.
+
+기존 supersede_failed_issue_retries 계약에 따라, 같은 Issue #586의 후속 **비문서(non-docs) PR**에서 새 Main CI·GHCR 검증이 성공한 경우에만 이전 실패를 SUPERSEDED ATTEMPT로 표시하고 PR #588의 브랜치 정리 의무를 교정 PR에 인계한다. 후속 PR이 docs-only이거나 Main CI가 실패하면 이전 SHA는 여전히 blocker이다. 다른 Issue가 중간에 있으면 first-parent 순서를 유지한다.
+
+새 교정 PR 병합 시 main_ci_run_name.py의 --as-merge-payload 및 --expected-head-sha로 한 줄 commit_title, 빈 commit_message, 정확한 expected_head_sha를 함께 생성하고 merge_method=merge로 호출한다. 새 exact Main CI/verified GHCR/Finalizer 근거 없이 FINAL 및 Issue close를 완료 주장하지 않는다. 정식 GHCR tag/release는 release_required=false이므로 허용하지 않는다.

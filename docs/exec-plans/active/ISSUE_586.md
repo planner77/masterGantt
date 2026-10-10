@@ -31,23 +31,24 @@
 
 ## DOCUMENTATION_SYNC
 
-- `AGENTS.md`: UPDATED
+- `AGENTS.md`: N/A(현재 main의 기존 #582 한 줄 Merge API 및 SHA lease 지침을 재사용하여 수정 불필요)
 - `docs/QA_REVIEW_POLICY.md`: N/A(이미 main에 채택된 #598 OWNER_MANAGED 기본 경로를 PR/Work Packet에 적용; QA 검증기·정책 파일 자체는 변경하지 않음)
 - `docs/CI_CD.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
-- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 first-parent·CI/GHCR/Finalizer 실패 복구 원칙은 유지)
 - `docs/ISSUE_LIFECYCLE_AUTOMATION.md`: UPDATED
 - `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
 - `docs/ISSUE_586_FINAL_MARKER_ADR.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_586.md`: UPDATED
-- `.github/workflows/issue-lifecycle.yml`: UPDATED
-- `scripts/issue_lifecycle.py`: UPDATED
-- `scripts/auto_release_finalizer.py`: UPDATED
-- `scripts/delete-ghcr-package-version-by-tag.mjs`: UPDATED
+- `.github/workflows/issue-lifecycle.yml`: N/A(기존 수동 Lifecycle Workflow와 권한 정책 변경 없음)
+- `scripts/issue_lifecycle.py`: N/A(기존 exact Main CI와 GHCR 삭제 안전 게이트 불변)
+- `scripts/auto_release_finalizer.py`: N/A(기존 동일 Issue의 green 교정 supersession 함수 그대로 사용하고 회귀 추가)
+- `scripts/delete-ghcr-package-version-by-tag.mjs`: N/A(임시 GHCR 공유 태그·안전 삭제 함수 변경 없음)
 - `scripts/verify-issue-lifecycle.py`: UPDATED
+- `scripts/main_ci_run_name.py`: UPDATED
 - `DESIGN.md`: N/A(제품 UI·SVAR 화면 상호작용 없음)
 - `docs/API.md`: N/A(웹 애플리케이션 REST API·DTO 계약 불변)
 - `docs/DB_SCHEMA.md`: N/A(SQLite schema·migration 불변)
@@ -60,9 +61,9 @@
 - AC3: `scripts/verify-issue-lifecycle.py`의 first-parent oldest-first·중간 Issue·CLOSED/no FINAL boundary·수동 skip 차단
 - AC4: `scripts/verify-issue-lifecycle.py`의 FINAL 작성자·PR/head/Issue/merge SHA identity 감사, 동일 SHA 멱등/위조 FAIL
 - AC5: `scripts/verify-safe-branch-cleanup.py`의 SHA lease·OPEN PR·보호 branch·ancestry·404 멱등 시나리오; 삭제 직후 HTTP 200 경쟁은 분리/후속 검증 필요
-- AC6: `scripts/verify-issue-lifecycle.py`의 historical preflight, cleanup·GHCR tag 공유 보호, FINAL 이후 close-only 재개, main snapshot fail-closed
+- AC6: `scripts/verify-issue-lifecycle.py`의 historical preflight, cleanup·GHCR tag 공유 보호, FINAL 이후 close-only 재개, main snapshot fail-closed 및 #586 실패 Main SHA의 제한적 non-docs GREEN supersession 회귀
 - AC7: #565 #583/#585 원본 Merge·Main CI 증거 및 실패 Resume [Run 37958294541](https://github.com/planner77/masterGantt/actions/runs/37958294541) 보존; main 적용 뒤 별도 GHCR/branch 실조회 및 안전한 복구 NOT TESTED
-- AC8: `scripts/verify-issue-lifecycle.py` 및 `scripts/verify-safe-branch-cleanup.py`와 원격 Quality/E2E/Docker, AGENTS/운영 문서 정합성; HIGH 보호 경로는 현행 `OWNER_MANAGED`의 기본 브랜치 Trusted QA, Owner의 명시 병합 허가 및 잔여 위험 수용 전 MERGE_READY=BLOCKED
+- AC8: `scripts/verify-issue-lifecycle.py` 및 `scripts/verify-safe-branch-cleanup.py`와 원격 Quality/E2E/Docker, AGENTS/운영 문서 정합성; #586 멀티라인 실패 재현, 새 Merge API payload, exact Head/Main GHCR 증거 요구. HIGH 보호 경로는 현행 `OWNER_MANAGED`의 기본 브랜치 Trusted QA, Owner의 명시 병합 허가 및 잔여 위험 수용 전 MERGE_READY=BLOCKED
 
 ## QA/검토 및 잔여 위험
 
@@ -70,3 +71,12 @@
 - 현행 #598 정책에 따라 본 PR은 `OWNER_MANAGED` 선택. 독립 인간 검토는 N/A(실행 안 함)이며 자동 QA의 PASS도 Owner 승인/잔여 위험 수용·릴리스 권한을 대체하지 않는다. `AGENT` 선택 시 요구되는 독립 인간 QA는 생략이 아닌 선택 경로 차이이고 자동 승인·허위 영수증 금지
 - Main 이동 및 Issue PATCH의 TOCTOU, 여러 버전의 승인/취소 marker, share-tag GHCR cleanup, 실제 #565 회복은 독립적으로 검증할 사후 위험
 - release_required=false / release_authorized=false: 이 PR의 PR CI 시작은 GHCR/tag·이슈 종료 권한이 아님
+
+
+## Issue #586 — Main CI #2445.1 사고 복구 (2026-10-11)
+
+- 실제 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 [Main CI 38094304911](https://github.com/planner77/masterGantt/actions/runs/38094304911)에서 멀티라인 메시지 trace FAIL. Required Main CI, GHCR candidate, Generic Finalizer는 미완료. 기존 실패를 PASS로 소급하거나 main 강제 수정하지 않는다.
+- 현재 기준 main 및 app 0.104.0에서 비문서 회귀 수정 PR을 만든다. 변경 범위는 scripts/main_ci_run_name.py, scripts/verify-issue-lifecycle.py, docs/GENERIC_RELEASE_FINALIZER.md, docs/ISSUE_586_FINAL_MARKER_ADR.md, docs/ISSUE_LIFECYCLE_AUTOMATION.md, docs/CI_CD.md, docs/GITHUB_OPERATIONS.md, docs/REMOTE_VALIDATION.md, docs/TEST_PLAN.md, PLAN 및 이 Work Packet이다.
+- 재발 방지: merge_api_payload() 및 --as-merge-payload CLI로 GitHub Merge 호출에 canonical 한 줄 제목 + 빈 본문 + 검증 Head SHA를 필수 세트로 전달. 잘못된 기존 메시지 거부와 CLI/계약 검증을 scripts/verify-issue-lifecycle.py에 추가한다.
+- 이전 Main CI FAIL은 다음 **같은 Issue #586의 non-docs exact Main CI SUCCESS** 대상이 있을 때만 supersede_failed_issue_retries()의 SUPERSEDED ATTEMPT로 감사한다. 새 corrective Main CI가 없거나 docs-only이면 기존 FAIL 상태를 유지한다. old PR #588 branch cleanup은 새로운 green target에만 인계한다.
+- QA/risk: risk_level=HIGH, qa_method=OWNER_MANAGED, qa_required=true. 독립 인간 검토는 N/A(실시하지 않음). Owner의 명시 병합 지시와 새 Head Required CI/Trusted 검증·남은 위험 인수는 별도. release_required=false, release_authorized=false, formal GHCR/tag N/A.

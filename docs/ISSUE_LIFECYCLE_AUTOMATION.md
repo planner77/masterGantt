@@ -420,3 +420,7 @@ blocker가 해소된 뒤에는 다음 우선순위를 따른다.
 ### #586 FINAL 이후 종료 재개
 
 FINAL 쓰기 성공 뒤 Issue close 실패는 인증된 최신 FINAL 경계와 후속 동일 Issue PR 부재를 확인한 내부 `close_resume`으로 복구한다. 자동 Resolver의 정확한 main snapshot은 child에 전달·재검증한다. 수동 workflow에는 내부 `--resolver-main-sha` 및 `--resolver-ordered` 권한을 노출하지 않는다.
+
+### Issue #586 — Main CI Merge 메시지 사고의 제한적 Supersession (2026-10-11)
+
+기존 #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 immutable multiline message로 trace 실패했다. 기본 Merge 메시지는 재실행으로 변경되지 않는다. 후속 동일 Issue 비문서 corrective PR의 exact Main CI 성공만 기존 supersede_failed_issue_retries 로직에 따라 구 SHA를 FAILED → SUPERSEDED ATTEMPT로 감사 기록한다(구 Run의 FAIL은 그대로 유지). Main CI·GHCR 검증 없는 신규 Merge 또는 docs-only 교정은 대체 불가. 정상 Main CI 성공 후 기존 Generic Finalizer workflow_run이 자동으로 순서를 검증한다.

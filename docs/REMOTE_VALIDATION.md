@@ -462,3 +462,11 @@ PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run
 ### Issue #586 원격 검증 경계
 
 동일 Issue의 각 PR/merge SHA에 대응하는 PR required check, Main CI, GHCR candidate gate, FINAL comment와 branch 404를 개별 연결한다. 선행 FINAL이 존재하거나 Issue가 CLOSED라고 후속 성공·잔여 candidate cleanup을 주장하지 않는다. 사전 검증·로컬 모형 PASS와 실제 GitHub Workflow/GHCR 결과는 구분한다. 본 변경의 운영 복구는 배포 후 별도 실행한다.
+
+## Issue #586 후속 Main CI·Finalizer 원격 검증 (2026-10-11)
+
+과거 PR #588 merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a / Main CI Run 38094304911 FAIL, candidate GHCR/Finalizer SKIPPED. 동일 SHA의 이전 이력은 불변이다.
+
+교정 PR exact HEAD의 Required Quality/E2E/Docker PASS 및 Owner-managed QA는 새 원격 Run으로 검증한다. scripts/main_ci_run_name.py의 JSON payload helper와 실패 멀티라인 입력 차단을 Python 회귀로 검증하고, 병합 요청에서 한 줄 title + 빈 body + Head lease를 직접 전달한다.
+
+교정 SHA Main CI push SUCCESS, ci-<exact SHA> digest smoke/SBOM/provenance, Generic Finalizer의 SUPERSEDED ATTEMPT 및 실패 SHA/교정 SHA 대응, 두 PR 브랜치 cleanup, final marker와 Issue 상태를 구분하여 확인한다. 기존 #565의 타 tag·공유 GHCR 이미지 삭제·정식 Release는 금지한다.
