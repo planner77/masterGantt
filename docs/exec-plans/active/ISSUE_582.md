@@ -1,0 +1,56 @@
+# Issue #582 Work Packet — Main CI 실행명 단일 행 간소화
+
+- issue: [#582](https://github.com/planner77/masterGantt/issues/582)
+- pr: [#584](https://github.com/planner77/masterGantt/pull/584)
+- base_main: `36b0eaa74a0614a76d1ed867bddb548149feb4bc` (2026-10-10 정렬 기준)
+- branch: `ci/issue-582-main-run-name`
+- previous_head: `5ed043dff398b6420e4f8af243c2e32a050b29af`
+- risk_level: HIGH
+- risk_reason: `.github/workflows/ci.yml` / Finalizer 및 CI 검증 스크립트·운영 지침은 #580에서 보호된 CI/QA 실행·정책 경계
+- qa_required: true
+- qa_method: AGENT (보호된 파일이 있어 AUTOMATED_MANAGER 대체 불가)
+- reviewer: 별도 qa_docs 또는 지정된 독립 인간 Reviewer의 최신 Head 검토 필요; 현재 NOT TESTED
+- manager_decision: NOT TESTED (별도 명시적 승인 필요)
+- release_required: false
+- release_authorized: false
+- application_version: 유지 (제품 기능·DB·릴리스 변경 없음)
+- phase: REWORK / DOCUMENTATION_SYNC / NEW PR CI START (병합 제외)
+
+## 구현·검증 범위
+
+1. Main CI는 Merge 이전에 생성된 `Issue #N · PR #P · 한글 요약` 단일행 커밋 메시지에 대해 간결한 실행명을 표시한다. 기존 merge/직접 Push는 SHA fallback을 유지한다.
+2. Finalizer는 중복된 Main CI 표시명을 상속하지 않되, main run number/attempt 및 exact SHA 기반의 lifecycle authority를 유지한다.
+3. `scripts/main_ci_run_name.py` 및 `scripts/verify-ci-run-trace.py`와 lifecycle 정적 검증이 새·구형 제목/거부 입력을 검사한다. GitHub Actions expression의 형식 검증 한계를 별도로 명시한다.
+4. CI 필수 Quality/Chromium E2E/Docker와 릴리스 보호/권한을 변경·완화하지 않는다. 이전 PR CI의 SUCCESS는 새로운 Head의 PASS로 재사용하지 않는다.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH/AGENT 정책은 #580에서 확정됐으며 본 이슈에서는 정책을 수정하지 않음)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 검증 정책 자체는 변경하지 않고 현재 CI 로그·검사 결과만 활용함)
+- `DESIGN.md`: N/A(제품 화면 디자인/도메인 기능이 아닌 GitHub CI 표시명 개선)
+- `docs/API.md`: N/A(서버 API 동작과 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(DB 모델·마이그레이션 변경 없음)
+
+## AC_TEST_COVERAGE
+
+- AC1: `scripts/main_ci_run_name.py` 생성·파싱 회귀 및 `scripts/verify-issue-lifecycle.py` Main run-name 정적 계약; 실제 Main 표시명은 병합 후 확인 예정
+- AC2: `scripts/verify-issue-lifecycle.py` Finalizer run/attempt·SHA fallback 정적 검증; 실제 Finalizer 실행은 병합 후 별도 실증
+- AC3: `scripts/verify-ci-run-trace.py` 정상/구형 merge/수동 Push·PR metadata·Dependabot 시나리오와 malformed subject 실패 검증
+- AC4: 기존 PR CI #2377.1에서 Quality/E2E 6샤드/Docker SUCCESS 확인; 변경된 새 Head의 전체 CI 검사 결과는 새 Run ID로 별도 확인
+- AC5: `AGENTS.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`, `docs/GENERIC_RELEASE_FINALIZER.md` 계약과 문서 영향표 비교
+- AC6: CI/QA 보호 파일 수정은 #580 신뢰된 base validator의 protected_paths 검증에 의해 자동 PASS 불허; 기존 required checks·release authority 보존과 별도 독립 QA 검토 필수
+- AC7: 제품 버전·기능·런타임 DB·릴리스 승인 불변; Main 병합/GHCR/태그 생성/Issue 종료는 이번 범위에서 실행하지 않음
+
+## 2026-10-10 — PR CI #2377.1 QA Final BLOCKED 원인 및 REWORK
+
+- 원격 실행: [PR CI #2377.1](https://github.com/planner77/masterGantt/actions/runs/38036884036) / Head `5ed043dff398b6420e4f8af243c2e32a050b29af`
+- 필수 세 aggregate, 실제 E2E 6샤드 및 Docker smoke는 모두 SUCCESS.
+- 실패 Job: `QA Final — Automated`, Job `114172458209`. 기본 브랜치의 신뢰된 `scripts/qa_final_automated.py`가 `PR 본문 risk_level의 명시값 필요`로 BLOCKED 반환.
+- 메타데이터 보완: PR 본문에 `risk_level: HIGH`, `qa_method: AGENT`, `qa_required: true`, 보호 경로·근거·실제 미검증 상태를 명시. Issue 인수 조건을 원래 체크리스트의 AC1~AC7로 구조화하고 본 Work Packet에 테스트·문서 영향 매핑을 기록.
+- **정책상 남는 차단:** 보호된 `.github/**`, `scripts/**`, `AGENTS.md`, `docs/CI_CD.md` 등 파일이 PR에 포함돼 있어 #580 자동 QA는 위험도 메타데이터를 추가하더라도 `protected_paths()`에서 BLOCKED가 정상이다. 이를 CI 불량으로 위장해 자동 승인·skip·권한 완화하지 않는다. 별도 독립 Reviewer의 최신 Head QA_FINAL PASS 및 Manager ACCEPT 전 병합 금지.
+- 완료 조건: 새 exact-Head PR CI 시작 기록, 새 Quality/E2E/Docker 및 자동 QA의 결과 구분. `QA Final — Automated`의 정책상 BLOCKED를 PASS로 보고하지 않는다.
