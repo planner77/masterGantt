@@ -95,3 +95,12 @@
 - 회귀: 추가 Python 단위 테스트 4건, 기존 `policy` Job에서 실제 실행; `docs/TEST_PLAN.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 동기화.
 - 현재 동작/범위: HIGH, AGENT 독립 QA 필수, release_required=false, release_authorized=false, 제품버전 0.104.0(추가 증분 없음).
 - 새 Head/CI/독립 QA Final/Manager ACCEPT는 실제 증거 전 NOT TESTED; 변경 전 PASS나 review resolve는 새 Head에 소급되지 않음.
+
+## 2026-10-10 Codex 추가 P1×2 / P2×1 보완
+
+- 이전 Head `5b235c8fd6af9a966ac0e5515c041d5b737cad59`: [PR CI #2366.1](https://github.com/planner77/masterGantt/actions/runs/38029853144) 전체 SUCCESS, Python QA 24/24 PASS; 독립 QA_FINAL 새 HEAD 승인 없음.
+- **P1 실제 서비스 HIGH:** `src/server/**`를 최소 HIGH로 분류하여 실제 `projects/project-service-core.ts`, `templates/project-template-service-core.ts`, `resources/resource-catalog-service-core.ts` 등이 AUTH 문자열이 없어도 보호되도록 변경.
+- **P2 API 문서:** `docs_required()`는 실제 도메인 `src/server/**` 서비스 변경에 `docs/API.md` 요구; DB/Import/Scheduling 문서 영향 합집합 유지.
+- **P1 선언 입력:** `next-env.d.ts` 및 루트 `*.d.ts` 수정·rename은 CI 정책 변경에 준하는 protected set에 포함.
+- 신규 Python 회귀 2개와 `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 동기화.
+- 현 상태: `risk_level=HIGH`, `qa_method=AGENT`, 제품 버전 0.104.0 유지, `release_required=false`, `release_authorized=false`. 새 CI/독립 QA/Manager 승인과 리뷰 스레드 최종 검증 전 MERGE_READY=BLOCKED.

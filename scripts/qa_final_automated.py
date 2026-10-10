@@ -24,6 +24,7 @@ CI_EXECUTION_PREFIXES = (
 )
 CI_EXECUTION_EXACT = {
     "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
+    "next-env.d.ts", "global.d.ts", "env.d.ts",
     ".npmrc", ".dockerignore", "Dockerfile", "tsconfig.json",
     "playwright.config.ts", "playwright.config.js",
     "vitest.config.ts", "vitest.config.mts", "eslint.config.mjs",
@@ -33,7 +34,7 @@ CI_EXECUTION_EXACT = {
 # introduced after this policy version. Conservative by design.
 CI_EXECUTION_GLOBS = (
     "tsconfig*.json", "postcss.config.*", "*.config.*",
-    "*lock*.json", "*.lock", ".npmrc*", ".yarnrc*",
+    "*.d.ts", "*lock*.json", "*.lock", ".npmrc*", ".yarnrc*",
 )
 POLICY_FILES = {
     "AGENTS.md", "docs/QA_REVIEW_POLICY.md", "docs/SECURITY.md",
@@ -210,7 +211,7 @@ def docs_required(paths):
                 r"(?:^|/)(?:db|database|migrations?|schema)(?:/|[_.-])", p):
             required.add("docs/DB_SCHEMA.md")
         if p.startswith(("src/app/api/", "app/api/", "src/pages/api/", "pages/api/",
-                         "src/contracts/", "src/server/services/")):
+                         "src/contracts/", "src/server/")):
             required.add("docs/API.md")
         if p.startswith(("src/server/repositories/", "src/server/db/")):
             required.add("docs/DB_SCHEMA.md")
@@ -322,9 +323,7 @@ def risk_floor(paths):
                           r"schedul|dependency|release|ghcr|import|export|duration|"
                           r"milestone|safety|secret|credential|token", p) or
                 p.startswith(("db/", "migrations/", "src/contracts/",
-                              "src/server/repositories/", "src/server/db/",
-                              "src/server/auth/", "src/server/services/",
-                              "src/app/api/"))):
+                              "src/server/", "src/app/api/"))):
             return "HIGH"
     if any(p.startswith(("src/", "app/", "db/", "tests/e2e/")) for p in paths):
         return "MEDIUM"

@@ -315,6 +315,32 @@ class Cases(unittest.TestCase):
               "## AC_TEST_COVERAGE\n- AC1: test_shared_public_contract_always_requires_api_documentation\n")
         self.blocked(lambda:qa.docs_gate(plan,paths,{"AC1"}))
 
+    def test_real_project_services_are_high_and_require_api_docs(self):
+        """Real project topology is domain-rooted, not src/server/services/."""
+        for path in ("src/server/projects/project-service-core.ts",
+                     "src/server/templates/project-template-service-core.ts",
+                     "src/server/resources/resource-catalog-service-core.ts",
+                     "src/server/projects/project-service.ts",
+                     "src/server/repositories/project-repository-core.ts",
+                     "src/server/arbitrary/future-service.ts"):
+            self.assertEqual("HIGH", qa.risk_floor({path}), path)
+            self.assertIn("docs/API.md", qa.docs_required({path}), path)
+        combined={"src/server/projects/project-service-core.ts",
+                  "src/contracts/projects.ts",
+                  "db/migrations/0022_task_milestone_memberships.sql"}
+        self.assertTrue({"docs/API.md", "docs/DB_SCHEMA.md", "docs/TEST_PLAN.md"}
+                        <= qa.docs_required(combined))
+
+    def test_next_env_declaration_is_protected_even_on_rename(self):
+        """Ambient TypeScript declarations are a trusted typecheck input."""
+        for path in ("next-env.d.ts", "global.d.ts", "env.d.ts", "types.d.ts"):
+            self.assertIn(path, qa.protected_paths(
+                [{"filename":path,"status":"modified"}])[1])
+            self.assertIn(path, qa.protected_paths(
+                [{"filename":"docs/old-declaration.md","previous_filename":path,
+                  "status":"renamed"}])[1])
+            self.assertEqual("HIGH", qa.risk_floor({path}))
+
     def test_composite_action_pr_is_not_automatically_accepted(self):
         from unittest.mock import patch
         class Stub:
