@@ -40,3 +40,7 @@
 - AC7: scripts/test_qa_final_automated.py AGENT/보호 경계/Manager ACCEPT 및 docs/QA_REVIEW_POLICY.md 계약
 - AC8: 모든 DOCUMENTATION_SYNC 항목과 docs/TEST_PLAN.md T1~T9 매핑 및 실제 Head 원격 증거
 - AC9: PR CI 시작 후 정확한 Head quality/e2e/docker 성공, 독립 QA 및 Manager ACCEPT는 미수행 상태로 병합 금지
+
+## PR CI #2379.1 실패 및 보완
+- Run `38038368267`, Head `49475dbef3ddbe61edddfed24ae5af4a621d03f2`: 필수 Quality/E2E/Docker 모두 성공, protected diff로 자동 QA BLOCKED.
+- Trusted base validator 기반 PR/head/base/보호 파일 검증과 AGENT N/A routing 추가. 자동 QA SKIPPED를 PASS로 취급하지 않고 독립 QA + Manager 승인 필수. 다음 원격 CI는 새 Head에서 실행.
