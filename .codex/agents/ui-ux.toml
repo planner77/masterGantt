@@ -59,3 +59,4 @@ Issue Lifecycle v2 (#109):
 - table이 아닌 data-dense 관리 list/card/pane도 pane budget과 row의 identity/profile/action budget을 먼저 설계한다. 필드·role·action 추가 시 기존 CSS를 기계적으로 재사용하지 말고 search/create/list ownership, progressive disclosure 필요성, footer action hierarchy를 재계산한다.
 - Resource/Admin 관리 화면은 긴 name/code, 0/1/최대 role, 긴 select label, active/inactive/delete-unavailable 상태를 포함해 390/768/1024/1440/wide desktop에서 sibling pane/row/footer bounding box와 document overflow를 browser evidence로 확인한다.
 """
+# Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.
