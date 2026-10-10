@@ -46,3 +46,14 @@ Issue #565는 PR #583(docs-only, `1ed682dd062012f3d04c2517110835bf7c28ac13`)에 
 ### 추가 P1 보완: FINAL 이후 Close 재개와 main snapshot
 
 FINAL은 기록됐으나 Issue close PATCH가 실패하면, 최신 인증 FINAL 경계를 보존해 같은 Issue의 미완료 후속 PR이 없을 때만 내부 `close_resume`으로 close를 재시도한다. 이 경로는 FINAL 기록, 브랜치/GHCR 삭제, 정식 릴리스를 다시 실행하지 않는다. Resolver가 최초 검증한 main SHA를 `--resolver-main-sha`로 전달하며 하위 Lifecycle에서 mutation 전과 FINAL/close 직전 재검증한다. Main 이동 시 차단 후 새 Resolver에서 재시도한다. GitHub Issue PATCH 자체에 CAS가 없어 마지막 GET–PATCH 간 경쟁은 잔여 위험이다.
+
+### 운영 장애: #588 Main CI 병합 메시지 실패와 후속 교정 (2026-10-11)
+
+2026-10-11 병합된 PR #588의 Main SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 표준 한 줄 제목 뒤에 빈 줄·PR 설명 본문을 포함했다. 따라서 scripts/verify-ci-run-trace.py의 엄격한 단일 행 검증이 FAIL(https://github.com/planner77/masterGantt/actions/runs/38094304911). required Main CI·임시 GHCR·Generic Finalizer 성공 증거는 없다. 기존 main 및 과거 Run을 강제로 수정하거나 성공으로 소급하지 않는다.
+
+동일 Issue의 성공한 후속 non-docs corrective merge가 새 exact Main CI SUCCESS를 갖는 경우에만 기존 supersede_failed_issue_retries 계약으로 구 실패 target을 SUPERSEDED 기록하고 이전 브랜치 cleanup 채무를 인계한다. 후속 docs-only, CI 실패 또는 다른 Issue의 성공은 이 대체 조건을 충족하지 않는다. 올바른 후속 Merge API 입력에는 한 줄 제목·빈 본문·검증된 Head SHA lease를 함께 전달한다. Main CI/GHCR/Finalizer 완료 증거가 나올 때까지 현재 Issue는 OPEN이다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

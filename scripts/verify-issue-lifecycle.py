@@ -7,7 +7,9 @@ from dataclasses import replace
 from types import SimpleNamespace
 
 import importlib.util
+import json
 import pathlib
+import subprocess
 import re
 import sys
 
@@ -354,6 +356,101 @@ require(
     == (582, 583),
     "canonical single-line merge must trace to exact Issue/PR",
 )
+
+
+# Issue #586: an immutable multiline merge title caused exact Main CI #2445.1
+# to fail. Never weaken the parser or label the old run as successful.
+failed_586_message = (
+    "Issue #586 · PR #588 · FINAL marker 및 부분 종료 안정화\n\n"
+    "Merge PR #588 for Issue #586\n\n"
+    "Preserve exact per-merge FINAL evidence, safe candidate cleanup and first-parent checks.\n\n"
+    "Refs #586"
+)
+require(
+    main_run_name.parse_merge_title(failed_586_message) is None,
+    "historical multiline merge must remain invalid (not retroactively green)",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_586_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("the failed #586 merge message must not silently pass trace validation")
+
+# The merge tool's source payload requires one canonical title and *empty*
+# body.  A matching head lease prevents accidental merge of a newer PR head.
+correction_summary = "Main CI 실패 복구 및 Finalizer 재개"
+correction_sha = "a" * 40
+correction_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha
+)
+require(
+    correction_payload == {
+        "merge_method": "merge",
+        "commit_title": main_run_name.format_merge_title(
+            586, 999, correction_summary
+        ),
+        "commit_message": "",
+        "expected_head_sha": correction_sha,
+    },
+    "corrective merge payload must bind exact Head and omit a commit body",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": correction_payload["commit_title"]},
+    }) == (586, 999),
+    "body-free corrective merge must resolve the exact Issue/PR",
+)
+cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(cli.stdout) == correction_payload, "CLI merge payload must match the verified pure contract")
+# GitHub REST uses "sha" whereas the connected GitHub action accepts
+# "expected_head_sha". Neither adapter may silently drop the head lease.
+rest_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha, api_target="rest"
+)
+require(
+    rest_payload == {
+        "merge_method": "merge",
+        "commit_title": correction_payload["commit_title"],
+        "commit_message": "",
+        "sha": correction_sha,
+    } and "expected_head_sha" not in rest_payload,
+    "REST merge must use sha, not connector-only expected_head_sha",
+)
+rest_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--merge-api", "rest",
+     "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(rest_cli.stdout) == rest_payload, "REST CLI output must match its pure helper")
+try:
+    main_run_name.merge_api_payload(
+        586, 999, correction_summary, correction_sha, api_target="unknown"
+    )
+except ValueError:
+    pass
+else:
+    raise SystemExit("unknown merge API target must fail closed")
+
+for invalid_sha in ("", "a" * 39, "A" * 40, "a" * 41, "f" * 39 + "\n"):
+    try:
+        main_run_name.merge_api_payload(586, 999, correction_summary, invalid_sha)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit(f"invalid merge Head SHA must fail closed: {invalid_sha!r}")
+
 require(
     trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": "Merge PR #539: 기준정보 (#538)\n\nRefs #538"}})
     == (538, 539),
@@ -1146,6 +1243,43 @@ waiting_planned, waiting_superseded = auto.supersede_failed_issue_retries(
 require(waiting_superseded == [], "non-Green corrective target must not supersede earlier failure")
 require(waiting_planned[0] == failed_344, "failed attempt must remain until corrective exact main CI succeeds")
 
+
+
+# #586 actual failed Main SHA is immutable, and needs a later GREEN non-docs
+# merge of the *same Issue*. An unverified or docs-only successor cannot
+# manufacture old-SHA Main CI/GHCR success.
+failed_586 = auto.WorkItem(
+    "490c4ab70b0868729c8415f9f613bd45aa84926a",
+    "367b160b2f1db75feb7af1a5ea67046b9828b836",
+    588, 586, "0.104.0", "0.104.0", False,
+)
+corrected_586 = auto.WorkItem(
+    "a" * 40, failed_586.target_sha,
+    999, 586, "0.104.0", "0.104.0", False,
+)
+corrected_sequence, corrected_evidence = auto.supersede_failed_issue_retries(
+    [failed_586, corrected_586],
+    {failed_586.target_sha: False, corrected_586.target_sha: True},
+)
+require(
+    [item.target_sha for item in corrected_sequence] == [corrected_586.target_sha]
+    and corrected_sequence[0].cleanup_pr_numbers == (588,),
+    "GREEN non-docs corrective main CI must retain failed PR cleanup debt",
+)
+require(
+    corrected_evidence == [(failed_586, corrected_586)],
+    "historical failure must be attributed to exact corrective SHA",
+)
+for replacement_docs_only, candidate_success in ((True, True), (False, False)):
+    candidate = replace(corrected_586, validation_docs_only=replacement_docs_only)
+    blocked_sequence, blocked_evidence = auto.supersede_failed_issue_retries(
+        [failed_586, candidate],
+        {failed_586.target_sha: False, candidate.target_sha: candidate_success},
+    )
+    require(
+        not blocked_evidence and blocked_sequence[0] == failed_586,
+        "docs-only or non-GREEN correction may not conceal old failed Main CI",
+    )
 
 # A target whose exact main CI passed but immutable formal release repeatedly
 # failed may also be superseded by a later Green corrective merge for the same
