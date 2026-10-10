@@ -1,3 +1,7 @@
+## Issue #589 — Design Delta 문서 정합화 / 최신 main 재정렬 (2026-10-10)
+
+[Work Packet](ISSUE_589.md): `DESIGN.md` §8에 실제 채택된 신규 공통 원칙만 승격하고 A/B/C/D 판정과 A 부재 시 PR N/A 필수 기록을 적용한다. 기존 `AGENTS.md`/Agent Prompt/Lifecycle의 DESIGN 참조·DOCUMENTATION_SYNC 체계는 변경하지 않는다. 앞선 PR CI #2383.1/#2384.1은 보호 파일 변경으로 자동 QA BLOCKED였고, 이에 해당 파일 수정은 철회했다. 최신 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`에 rebase하며 다른 Issue의 PLAN 변경을 보존한다. **LOW / qa_required=false**, 세 required CI 및 Manager ACCEPT 전 병합 금지, version/release 변경 없음. 요청 범위는 새 PR CI 시작까지.
+
 ## Issue #595 — CI #2396.1 protected BLOCKED, metadata-only Attempt 수정 (2026-10-10)
 
 [PR #597](https://github.com/planner77/masterGantt/pull/597) Head `1035d7159a61edf170d88e97d103adb9bc68a4db`의 [CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): 기존 필수 Quality/E2E/Docker aggregate PASS, 구현 E2E shard SKIPPED, `QA Final — Automated`는 protected 정책 변경으로 정상 BLOCKED. 동일 Run QA-only retry에 대한 직전 P1 변경을 메타데이터 전용 CI의 `verify_same_base_full_run()`에도 일관 적용한다. 기존 같은 Head/base·Full CI 성공의 신뢰 귀속 검사를 유지하고, attempt1 필수 PASS / attempt2 QA-only 성공 및 이후 Job FAIL override와 누락 자료를 Python 테스트로 검증한다. 문서 영향 반영 후 새 exact-Head PR CI 시작까지 진행한다. 본 보안 검증기 자체는 별도 독립 Reviewer와 Manager 승인 전 병합/정식 GHCR 발행 금지.
