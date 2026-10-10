@@ -1,3 +1,7 @@
+## Issue #570 — Canonical projection 구현 재개 (2026-10-10)
+
+[Work Packet](ISSUE_570.md)에 따라 최신 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f` / application `0.104.0`에서 기존 `feat/issue-570-canonical-projection`을 재사용한다. metadata·structure·membership·layout 변경 경로를 분리하고 실제 Core/DOM 정합성 이후의 bounded receipt를 #571에 인계한다. #552 표시 전환과 #569 viewport writer 제품 도입은 활성화하지 않는다. 후보 PATCH `0.104.1`, HIGH / qa_required=true / qa_method=AGENT, release_required=true / release_authorized=false다. 이전 DNS 제약 후 분리 checkout을 확보했다. 최신 통합 main은 `36b0eaa74a0614a76d1ed867bddb548149feb4bc`이며 초기 baseline과 구분한다. 최종 변경 Unit38·실제 Core Chromium19·typecheck·변경 lint PASS(기존 hook 경고3개) 후 문서·독립 PRE_QA를 거쳐 원격 PR CI 시작까지만 진행한다. 공식 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #549 — Main CI #2359.1 실패, Trace 기반 test-only corrective PR (2026-10-10)
 
 [PR #557](https://github.com/planner77/masterGantt/pull/557)의 merge SHA `45a248f723e11133a4bd4c73ca14bb69b3071cbe`에 대한 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)이 Chromium shard2 `milestone-timeline-core.spec.ts`의 `width37404` 유지로 FAIL, Main 임시 GHCR artifact SKIPPED. [Playwright trace 11651782948](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)에서는 `scroll-chart(36960)` 뒤에 지연된 trusted wheel `scroll-chart(26671)`이 도착해 최종 Core scroll이 오른쪽 임계 밖으로 되돌아간다. #530 guard 제거/timeout 증가가 아닌 실제 browser/Core 휠 반영 순서 누락을 수정한다.

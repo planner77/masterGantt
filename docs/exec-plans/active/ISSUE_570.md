@@ -1,0 +1,85 @@
+# Issue #570 — Canonical→SVAR Projection 분리·멱등 동기화
+
+## Issue Work Packet
+
+- repository/issue: planner77/masterGantt #570; 상위 #567, 선행 #568/PR #575·#569/PR #576, 후행 #571.
+- baseline: main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`, application `0.104.0`, Core `2.7.3`.
+- working branch: 기존 `feat/issue-570-canonical-projection` 재사용; isolated clone `/tmp/mastergantt-issue570`.
+- approval/scope: 사용자 요청으로 이전 등록-only 범위를 구현·문서 갱신·원격 PR·exact-head CI 시작으로 전환한다. 이전 DNS BLOCKED 기록은 보존한다.
+- goal: canonical Task/Link 변경과 native membership/structure/layout 재투영을 분리하여 같은 metadata-only 변경의 불필요한 filter/column action을 없애고 검증된 projection-settled 입력을 제공한다.
+- acceptance: metadata-only filter/set-columns 0회와 정확한 텍스트/링크; 실제 membership/구조 재투영; 최신 revision/instance guard; collapsed/empty/M-only/readonly/rollback/Day·Week/5폭 회귀; 관련 문서; #571에 실제 Core/DOM 정합성 receipt 인계.
+- non-scope: #552 미병합 Milestone 표시 전환 활성화, #553 Export, #569 adapter의 제품 viewport writer 교체, #571 Coordinator, DB/API/auth/scheduler/CI gate 변경, merge/main/GHCR/release/Issue close.
+- risk_level=HIGH; risk_reason=비동기 Core projection·canonical revision·사용자 viewport 결합; risk_triggers=복합 UI 비동기 상태와 반복 회귀; affected_paths=Gantt projection 및 관련 Unit/E2E·문서.
+- qa_required=true; qa_review_mode=독립 PRE_QA 및 이후 exact-head QA_FINAL; qa_method=AGENT; reviewer=실제 독립 `/root/issue570_qa` Agent; qa_evidence=최종 후보 PRE_QA 대기; trusted_qa_run=N/A(AGENT 경로); manager_decision=NOT TESTED.
+- version decision: 기존 동작의 멱등 동기화 수정에 PATCH `0.104.1`; release_required=true, release_authorized=false. 버전 변경은 정식 게시 승인이 아니다.
+- ownership: frontend=project-gantt.tsx projection·신규 순수 adapter·최소 canonical-snapshot-sync 및 관련 Unit/E2E; infra=분리 checkout·manifest/lock 버전·commit/원격 게시/PR/CI 등록; ui_ux=read-only 설계; qa_docs=read-only 독립 검토; Manager=문서 및 범위·AC 통합 검토. 여러 작성자가 동일 파일을 수정하지 않는다.
+- documentation_owner=Manager; required_docs=ARCHITECTURE, PROJECT_UX, MILESTONE_TIMELINE, TEST_PLAN, active PLAN/ISSUE_570, CHANGELOG.
+- docs_n_a_with_reason: DESIGN/AGENTS는 시각 언어·공통 interaction·역할 계약 불변; API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/IMPORT_SCHEMA/VBA_EXPORT/DEPLOYMENT/CI_CD/REMOTE_VALIDATION은 서버·도메인·교환·배포·CI 계약 변경 없음. 구현 후 다시 확인한다.
+- Local Fast Feedback: 변경 직접 관련 Unit/typecheck/lint 및 실제 Core Chromium projection/기존 회귀; 전체 공식 회귀는 원격 quality/e2e/docker다. 실제 실행 결과와 미검증 AC를 분리한다.
+- environment: 기본 git fetch DNS FAIL 후 승인된 네트워크 fetch PASS. 원본 source/untracked 보존. 초기 node_modules 재사용에서 installed Next `16.3.4`와 manifest `16.3.8` 차이를 발견해 clone 전용 frozen npm ci로 교체했다. 실제 Next `16.3.8`/Core `2.7.3`이며 원본 dependencies는 보존했다. 원격 CI가 공식 전체 회귀 검증이다.
+- issue_comment_writer=manager; Agent 원격 댓글 금지; 주요 전환만 RESUME/STATUS/EXCEPTION 기록.
+- stop/next owner: 구현·DOCUMENTATION_SYNC·독립 PRE_QA → infra 원격 PR·exact-head full CI 등록. 결과 모니터링 및 QA_FINAL/Manager ACCEPT는 요청 범위 밖이며 NOT TESTED.
+
+## 실행 기록
+
+BRANCH_READY PASS: 기존 원격 branch의 baseline을 재확인했다. Node22.14.0/npm11.10.0·Chromium1243와 native SQLite in-memory 실행을 확인했다. 아직 구현·공식 CI PASS를 의미하지 않는다.
+
+격리 npm ci 447 packages/12초, Next16.3.8·Core2.7.3·native SQLite3.53.4 query와 version:check0.104.1 PASS. Chromium 기본 sandbox EPERM을 보존하고 승인된 실행 경로의 launch PASS를 확인했다. launch 결과는 제품 브라우저 AC PASS가 아니다.
+
+## DOCUMENTATION_SYNC
+
+- `DESIGN.md`: N/A(기존 시각 언어와 제품 용어 및 상태 보존 원칙을 유지한다)
+- `docs/ARCHITECTURE.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/API.md`: N/A(서버 API 요청 응답 및 authorization 계약은 변경하지 않는다)
+- `docs/DB_SCHEMA.md`: N/A(DB migration과 저장 모델 및 영속성 계약은 변경하지 않는다)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정 계산과 달력 및 Dependency 알고리즘은 변경하지 않는다)
+- `docs/SECURITY.md`: N/A(Origin 세션 비밀번호 및 서버 revision 보호는 변경하지 않는다)
+- `docs/CI_CD.md`: N/A(최신 main 정책을 상속하며 workflow와 required gate를 수정하지 않는다)
+- `docs/REMOTE_VALIDATION.md`: N/A(로컬 빠른 검증과 원격 전체 회귀의 기존 증거 경계를 유지한다)
+- `AGENTS.md`: N/A(최신 main 지침을 상속하며 역할 및 승인 정책을 수정하지 않는다)
+
+## AC_TEST_COVERAGE
+
+- AC1: 신규 canonical-projection Unit 및 실제 Core metadata Chromium의 native action 관찰과 텍스트·revision 검증. 실행 결과는 동결 이후 아래에 기록한다.
+- AC2: projection Unit의 nested Summary context/접힘/null·empty/M-only 및 실제 filter/scale 구조 회귀. 현재 Milestone 호환은 유지하고 미병합 #552 표시 전환은 활성화하지 않는다.
+- AC3: canonical-sync-execution의 stale 작업 중단 및 canonical snapshot recovery의 최신 revision 보호, 실제 Core instance와 부수 mutation 수 검증.
+- AC4: pure projection/receipt Unit과 실제 Core 5폭·Day/Week 및 기존 readonly/401·412 rollback 회귀. 실제 실행·미검증 범위는 동결 후 별도 기록한다.
+- AC5: 지정 source ownership과 네 필수 문서·CHANGELOG·실행 계획 동기화, local Markdown 링크 검사.
+- AC6: projection-settled의 실제 Core/DOM 정합성·timeout/supersession/cleanup 검증 및 #571 event contract. exact-head CI/QA_FINAL은 PR 시작 이후의 별도 gate다.
+
+## 독립 검토 중 발견한 구조 경계
+
+새 Task를 기존 형제 사이에 삽입할 때 기존 add-task의 append 경로가 canonical 순서를 놓칠 수 있어 before/after placement를 보완한다. 또 최신 snapshot이 중간 revision을 건너뛰어 부모 삭제와 surviving child의 root/reparent를 함께 포함하면 Core delete-task가 자식을 재귀 삭제할 수 있다. 보호 이동을 부모 삭제 전에 수행해야 하며 mock 호출 성공만으로 실제 Core PASS라고 보고하지 않는다. 기존 Summary 접힘·서버 mutation 0회와 실제 Core 구조 검증을 함께 확인한다.
+
+첫 browser 실행은 frame locator 오류로 FAIL했고 `/tmp/issue570-first-browser-failure`에 보존했다. 최초 matrix의 narrow pointer target 및 390px을 NOT_MEASURABLE로 가정한 오류도 보존한다. 실제 390px에서는 measurable SETTLED를 확인하여 기대값을 강화하며 중간 source가 섞인 실행은 최종 동결 결과와 분리한다.
+
+최신 추가 matrix의 13 PASS/3 FAIL을 보존했다. empty/M-only 두 건은 shared fixture가 task[2]를 고정 참조한 테스트 전제 오류였으며 해당 조회를 빈 fixture 응답으로 명시한다. nested Summary의 0-result→Week→검색 초기화 뒤 자식 노출은 제품 접힘 보존 오류로 분리해 공개 open-task로 사용자 intent와 불일치한 상태만 복원한다. 기대값을 완화하지 않고 최종 고정 source를 재검증한다.
+
+## 완료 신호의 보장 범위
+
+Manager는 receipt의 SETTLED 범위를 canonical Task/Link payload, 행 membership·순서, Grid/Chart 텍스트와 수직 행 정합으로 확정했다. bar X/width, native Link DOM 기하, 최종 viewport/date reveal 완료는 보장하지 않는다. #571은 #569의 별도 기하 검증과 최신 intent 확인을 추가해야 한다. 이 제한은 이벤트 계약과 테스트 계획에도 기록한다.
+
+## 로컬 검증 증거
+
+최종 소규모 delta 이전 고정 source의 Chromium matrix는 17 PASS(33.2초): 5폭×Day/Week metadata 10개, 구조 4개, readonly empty/M-only 2개, nested Summary 1개다. metadata native filter/set-columns 0회와 최신 텍스트·revision·동일 instance·columns/selection 보존을 확인했다. 독립 Reviewer는 같은 제품 source에서 관련 Unit 5파일40개 PASS(187ms), 실제 Core metadata 및 구조 5개 PASS(12.6초)를 재실행했다. 이후 columns/collapse delta의 최종 결과는 별도로 기록한다.
+
+기존 readonly/401/412/network/delete 20개 PASS(2.2분)는 앞선 source의 직접 회귀 증거이며 최종 source 전체 회귀로 확대하지 않는다. 전체 공식 회귀 및 QA_FINAL/Manager ACCEPT는 원격 exact-head CI 이후 별도 gate다.
+
+columns descriptor delta는 Unit37·typecheck PASS, lint0 errors(기존 hook 경고3개)와 actual Chromium12 PASS(24.7초)다. metadata10·nested Summary1·실제 사용자 grip resize→Week→Day1을 포함하며 일반 columns effect의 불필요한 set-columns0회와 scale 경로의 저장 width 복원 action1회씩을 확인했다. 이 증거는 후속 collapse delta 이전 source로 분리한다.
+
+독립 QA의 추가 actual Core 시험에서 collapsed Summary 대상으로 passive canonical reparent 시 Core의 child 이동이 자동으로 부모를 열어 기존 접힘이 풀리는 제품 회귀1 FAIL을 확인했다(`/tmp/issue570-collapsed-repro.log`). 기대값을 완화하지 않고 사용자 collapse intent 보호를 보완한 뒤 직접 영향 회귀를 재검증한다.
+
+접힘 회귀 보완은 동기화 시작 시 기존 자식이 있는 닫힌 Summary를 캡처하고 구조 적용 뒤 자동 열린 대상만 공개 open-task(false)로 복원한다. canonical 동기화 중 자동 open 이벤트가 사용자 preference를 덮어쓰지 않게 보호한다. 첫 자식이 추가되는 신규 container의 기존 auto-open 계약은 유지한다. 변경 관련 Unit38/typecheck PASS, lint0 errors·기존 hook 경고3개이며 최종 actual Core matrix를 실행한다.
+
+최종 source 동결 후 Chromium **19/19 PASS(38.5초, exit0)**: metadata5폭×Day/Week10개, 구조5개(기존4+collapsed target reparent), readonly empty/M-only2개, nested Summary1개, 실제 grip resize→Week→Day1개다. collapsed-target 시험은 접힘 보존과 strict SETTLED를 함께 확인했다. 제품4파일 hash는 실행 전후 모두 일치했다(`/tmp/issue570-final19-before.sha256`, 실행 로그 `/tmp/issue570-final19-browser.log`). 변경 직접 관련 Unit **38 PASS(169ms)**, typecheck PASS, 변경 lint **0 errors·기존 hook 경고3개**다. 앞선17/12개 실행을 최종19개와 중복 합산하지 않는다.
+
+Manager Markdown 링크 검사 **165파일 PASS**, git diff --check PASS. 합성 실제화면2개와 [증거 안내](../../evidence/issue570/README.md)를 포함한다. 전체 공식 원격 quality/e2e/docker, exact-head QA_FINAL, Manager ACCEPT, main/GHCR/release와 환경별 수동 UX는 NOT TESTED다. 독립 PRE_QA의 최종 후보 식별·판정은 Issue STATUS 및 PR에 연결하며 이 로컬 결과를 전체 회귀 PASS로 확대하지 않는다.
+
+최신 main 통합 기준은 `36b0eaa74a0614a76d1ed867bddb548149feb4bc`다. 초기 baseline과 구분하며 #580의 실제 독립 검토/신뢰 경계를 상속한다. AGENT 경로를 유지하고 advisory QA 또는 CI 시작으로 QA_FINAL/Manager ACCEPT를 추론하지 않는다. 통합 전후 제품 파일 hash 동일성과 문서 overlap 보존을 확인한 뒤 원격 게시한다.
+
+최종 columns/collapse delta에 대한 실제 독립 `/root/issue570_qa` 검증은 관련 Unit **5파일41/41 PASS(192ms)**, actual Chromium **2/2 PASS(6.6초)**다. 접힌 대상 Summary로 passive reparent한 뒤 strict SETTLED와 실제 grip resize→Week/Day를 재실행했다. 최신 main 통합 후 제품4파일 hash가 최종19개 실행 source와 동일하며 생성 next-env/tsconfig 변경과 .github/auth/DB 변경은 후보에서 제외한다. 독립 PRE_QA의 exact 후보 판정은 원격 게시 전 Issue/PR에 연결한다. 원격 QA_FINAL과 Manager ACCEPT는 여전히 NOT TESTED다.

@@ -68,6 +68,14 @@
 
 # Test Plan
 
+## Issue #570 — 멱등 canonical projection 회귀
+
+순수 projection Unit은 data/structure/membership/layout 차이, null filter와 0행, nested Summary context·접힘·순서, M-only 및 canonical Task/Link 원본 보존을 검증한다. canonical action 테스트는 stale generation/API instance에서 후속 action 중단과 실제 display payload 갱신을 확인한다.
+
+실제 Core Chromium은 같은 metadata payload 반복 시 불필요한 filter-tasks/set-columns 0회, 최신 Grid/Chart 텍스트·Link·revision, 구조/필터 변경의 필수 행, 접힘·선택·사용자 열폭·동일 instance를 관찰한다. Day/Week 및 390/768/1024/1440/1920px, readonly와 401/412 rollback은 각 실제 테스트 범위와 미검증을 [#570 AC 매핑](exec-plans/active/ISSUE_570.md)에 기록한다. Core 명령 resolve만으로 화면 완료를 판정하지 않는다.
+
+projection-settled 관찰은 실제 Core payload/논리 visible order와 DOM 가상화 subset·텍스트·Grid/Chart 행 정렬을 구분한다. hidden/inert/zero-size, supersession, timeout은 SETTLED와 별개 결과다. SETTLED는 Task/Link payload·행 membership/순서·텍스트·수직 정합 범위이며 bar X/width·native Link DOM·최종 viewport 기하는 별도 #569/#571 검증 대상이다. 유한 안정 frame은 관찰 이후 미래 writer가 없다는 증명이 아니다. 공식 quality/e2e/docker 전체 회귀와 QA_FINAL은 PR 시작·로컬 PASS로 대체하지 않는다. 최종 동결 source의 Chromium19개(38.5초)와 관련 Unit38개(169ms)는 PASS이며 최초 collapsed-target FAIL과 수정·실행별 경계는 Work Packet에 보존한다.
+
 ## Issue #530 / PR #581 — CI #2325.1 완료 영수증과 실제 검색 입력의 순서 분리
 
 - 원본 [PR CI #2325.1](https://github.com/planner77/masterGantt/actions/runs/37956141635), Head `3c9921aed4589bd408e2c37d6e344aac841e7c5d`: E2E shard2/job `113907106635`/step7에서 #463 `milestone-dashboard-state.spec.ts:142`가 검색 전 marker `null`과 검색 후 count1 완료 영수증 차이로 FAIL(85 PASS/1 FAIL/1 SKIP). Quality/나머지 5 E2E shard PASS, Docker aggregate PASS/실제 구현 SKIPPED를 구분한다. #525 자동 reveal 보완(shard4)과 #530 fixed/nested(shard6)은 해당 원격 실행에서 PASS였다.

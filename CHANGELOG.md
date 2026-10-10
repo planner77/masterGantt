@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.104.1] - 2026-10-10
+
+### Fixed
+
+- Issue #570: canonical Task/Link 갱신과 행·열 재투영의 변경 이유를 분리한다. 동일 membership의 metadata-only 변경에서는 불필요한 native filter/column 재설정을 방지하고 최신 revision·Core instance의 동기화만 적용한다. 실제 Core/DOM 정합성을 확인한 bounded projection receipt를 후속 viewport Coordinator에 제공한다. 형제 중간 삽입과 부모 삭제·신규 부모 생성이 함께 온 snapshot의 계층 순서를 보완하고 필터 초기화/scale 전환 뒤 사용자 Summary 접힘을 유지한다. 기존 Milestone 표시 호환과 서버 권한·revision 계약은 유지한다.
+
 ## [0.104.0] - 2026-10-10
 
 ### Fixed

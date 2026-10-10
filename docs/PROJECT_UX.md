@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #570 — 조회 투영과 메타데이터 갱신
+
+작업명·설명·상태·진척 등 canonical metadata만 바뀌고 표시 집합·계층·열 설정이 같으면 Grid/Chart를 같은 Core instance에서 갱신한다. 이 변경만으로 filter나 columns를 재설정하지 않는다. 활성 이름/상태 필터의 실제 결과가 달라지는 변경은 membership 변화로 처리하며 빈 결과를 전체 Task로 바꾸지 않는다.
+
+Summary 접힘, 선택, 사용자 열폭은 조회·canonical 갱신의 별도 상태다. 0건 필터·scale 전환 후 조건을 초기화할 때도 기존 Summary 접힘 의도를 실제 Core 상태에 다시 맞추며, 초기화가 자식을 임의로 여는 명령이 되지 않는다. 기존 자식이 있는 접힌 Summary로 passive canonical 이동이 발생해도 접힘 의도를 보존하며, 첫 자식 추가의 기존 auto-open 동작은 유지한다. 접힌 자식과 가상화된 offscreen 행을 누락 오류로 혼동하지 않되 실제 필수 행 누락·잘못된 순서는 승인하지 않는다. scope/filter/scale/instance가 달라진 오래된 동기화는 최신 상태를 덮지 않는다. 숨김·inert·zero-size 화면은 성공한 layout 완료로 보고하지 않는다.
+
+이 변경은 새 사용자 조작이나 Milestone 표시 전환을 추가하지 않는다. 현재 Milestone 행/빠른 보기 호환, readonly와 401/412 복구, draft/focus/viewport 보호 및 서버 revision 계약을 유지한다. 실제 제품 projection receipt와 검증 범위는 [#570 실행 기록](exec-plans/active/ISSUE_570.md)에 남긴다.
+
 ## Issue #569 — 기하·날짜 이동의 설계 실험
 
 [Adapter ADR](GANTT_ADAPTER_ADR.md)의 fixture는 개발·테스트 전용이며 기존 프로젝트 화면을 바꾸지 않는다. 명령 반환만으로 날짜 이동 완료를 알리지 않고 actual Core/native 좌표와3안정frame을 따로 확인한다. hidden/inert/zero-size/scroll capacity 부족은 측정·복원을 중지하는 명시적 결과로 다룬다.
