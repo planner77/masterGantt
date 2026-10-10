@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "issue": 437,
+  "shardCount": 6,
+  "generatedAt": "2026-10-08T00:12:42.975Z",
+  "estimator": "median",
+  "sourceRunIds": [
+    "37432240675",
+    "37443457749",
+    "37447103597",
+    "37531933475",
+    "37541715964",
+    "37547987963",
+    "37568817100",
+    "37576445569",
+    "37582418288",
+    "37593539783",
+    "37600769091",
+    "37611902407",
+    "37624477669",
+    "37674505447",
+    "37697789027"
+  ],
+  "metrics": {
+    "runCount": 15,
+    "fileCoverage": 1,
+    "recentImbalanceRatios": [
+      1.6739740684415219,
+      1.6124254950645767,
+      1.7775496264314505,
+      1.7437682886680608,
+      1.5776817414731612
+    ],
+    "imbalanceThreshold": 1.35,
+    "breachCount": 5,
+    "baselineCriticalMs": 472578,
+    "projectedCriticalMs": 302614.5,
+    "improvementMs": 169963.5,
+    "improvementRatio": 0.3596517400302172
+  },
+  "shards": [
+    {
+      "shard": 1,
+      "projectedMs": 302441,
+      "files": [
+        "tests/e2e/admin-legacy-button-spacing.spec.ts",
+        "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "tests/e2e/project-create-and-read.spec.ts",
+        "tests/e2e/project-create-layout.spec.ts",
+        "tests/e2e/project-edit-permission-recheck.spec.ts",
+        "tests/e2e/project-gantt-image-export.spec.ts",
+        "tests/e2e/project-summary-bar-visual.spec.ts",
+        "tests/e2e/project-task-editor-persistence.spec.ts",
+        "tests/e2e/project-task-editor.spec.ts",
+        "tests/e2e/resource-dashboard-api.spec.ts",
+        "tests/e2e/resource-error-recovery.spec.ts",
+        "tests/e2e/resource-global-roles.spec.ts",
+        "tests/e2e/skip-link.spec.ts"
+      ]
+    },
+    {
+      "shard": 2,
+      "projectedMs": 302548,
+      "files": [
+        "tests/e2e/admin-auth-layout.spec.ts",
+        "tests/e2e/gantt-demo.spec.ts",
+        "tests/e2e/milestone-stage-editor.spec.ts",
+        "tests/e2e/milestone-stage-gates.spec.ts",
+        "tests/e2e/project-empty-summary-persistence.spec.ts",
+        "tests/e2e/project-empty-summary.spec.ts",
+        "tests/e2e/project-gantt-stability.spec.ts",
+        "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "tests/e2e/project-master-admin.spec.ts",
+        "tests/e2e/project-resource-workload-status.spec.ts",
+        "tests/e2e/project-status.spec.ts",
+        "tests/e2e/project-transfer-layout-491.spec.ts",
+        "tests/e2e/resource-admin-layout.spec.ts"
+      ]
+    },
+    {
+      "shard": 3,
+      "projectedMs": 302228,
+      "files": [
+        "tests/e2e/master-controls-density.spec.ts",
+        "tests/e2e/milestone-dashboard-state.spec.ts",
+        "tests/e2e/milestone-stage-dashboard.spec.ts",
+        "tests/e2e/milestone-stage-grid.spec.ts",
+        "tests/e2e/new-project-draft-preservation.spec.ts",
+        "tests/e2e/project-create-isolation.spec.ts",
+        "tests/e2e/project-gantt-density.spec.ts",
+        "tests/e2e/project-gantt-inline-name.spec.ts",
+        "tests/e2e/project-gantt-inline-start-date.spec.ts",
+        "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "tests/e2e/project-repeated-input-accessibility.spec.ts",
+        "tests/e2e/project-search-filter.spec.ts",
+        "tests/e2e/project-workspace-ux.spec.ts",
+        "tests/e2e/workspace-header-version.spec.ts"
+      ]
+    },
+    {
+      "shard": 4,
+      "projectedMs": 302011,
+      "files": [
+        "tests/e2e/cross-screen-regression.spec.ts",
+        "tests/e2e/logistics-table-density.spec.ts",
+        "tests/e2e/milestone-stage-exchange.spec.ts",
+        "tests/e2e/project-chart-vertical-dnd.spec.ts",
+        "tests/e2e/project-edit-authorization.spec.ts",
+        "tests/e2e/project-gantt-fullscreen.spec.ts",
+        "tests/e2e/project-logistics-management.spec.ts",
+        "tests/e2e/project-notifications.spec.ts",
+        "tests/e2e/project-task-context-menu.spec.ts",
+        "tests/e2e/project-task-hover-tooltip.spec.ts",
+        "tests/e2e/project-task-quick-view.spec.ts",
+        "tests/e2e/resource-developer-grade.spec.ts",
+        "tests/e2e/template-picker-ux.spec.ts",
+        "tests/e2e/ui-semantic-tokens.spec.ts"
+      ]
+    },
+    {
+      "shard": 5,
+      "projectedMs": 302615,
+      "files": [
+        "tests/e2e/project-context-toolbar-responsive.spec.ts",
+        "tests/e2e/project-gantt-scale.spec.ts",
+        "tests/e2e/project-json-import.spec.ts",
+        "tests/e2e/project-list-search-filter.spec.ts",
+        "tests/e2e/project-modal-feedback.spec.ts",
+        "tests/e2e/project-resource-calendar-exceptions.spec.ts",
+        "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "tests/e2e/project-settings-layout-490.spec.ts",
+        "tests/e2e/project-task-persistence.spec.ts",
+        "tests/e2e/project-work-calendar-preview.spec.ts",
+        "tests/e2e/relation-dialog-ux.spec.ts",
+        "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "tests/e2e/task-context-menu-scroll.spec.ts",
+        "tests/e2e/task-editor-form-density.spec.ts"
+      ]
+    },
+    {
+      "shard": 6,
+      "projectedMs": 302253,
+      "files": [
+        "tests/e2e/derived-dialog-recovery.spec.ts",
+        "tests/e2e/error-boundary-regression.spec.ts",
+        "tests/e2e/logistics-type-catalog-admin.spec.ts",
+        "tests/e2e/milestone-exchange-state.spec.ts",
+        "tests/e2e/milestone-stage-grid-mock.spec.ts",
+        "tests/e2e/project-browser-title-favicon.spec.ts",
+        "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+        "tests/e2e/project-links-persistence.spec.ts",
+        "tests/e2e/project-settings-dialog-layout.spec.ts",
+        "tests/e2e/project-task-delete-context.spec.ts",
+        "tests/e2e/project-workspace-layout.spec.ts",
+        "tests/e2e/resource-catalog-delete.spec.ts",
+        "tests/e2e/resource-tabs.spec.ts",
+        "tests/e2e/task-link-load-safety.spec.ts"
+      ]
+    }
+  ]
+}
