@@ -716,8 +716,10 @@ auto.resolve_work_item = lambda _repo, target: {old_sha: old, a_sha: a_item, b_s
 auto.is_finalized_boundary = lambda _repo, item: item.target_sha == old_sha
 auto.is_closed_issue = lambda _repo, _item: False
 try:
-    backlog = auto.collect_pending_work(repo, b_sha)
+    retained_boundary = []
+    backlog = auto.collect_pending_work(repo, b_sha, finalized_boundary=retained_boundary)
     require([item.target_sha for item in backlog] == [a_sha, b_sha], "first-parent backlog order failed")
+    require(retained_boundary == [old], "FINAL boundary must remain available for close retry")
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
@@ -798,15 +800,86 @@ for sequence in ([retry_one, retry_two], [retry_one, docs_followup], [retry_one,
     require(auto.coalesce_consecutive_issue_retries(sequence) == sequence, "all merged targets must retain independent evidence")
 cleanup_command = auto.lifecycle_command(operation="finalize", issue_number=344, pr_number=11,
     release_required=False, release_authorized=False, expected_version="", authorization_note="",
-    cleanup_pr_numbers=(10,), defer_close=True)
+    cleanup_pr_numbers=(10,), defer_close=True, main_snapshot_sha=b_sha)
 require(cleanup_command[-3:] == ["--defer-close", "--cleanup-pr", "10"], "later target must defer close")
 parsed_cleanup = module.build_parser().parse_args(
     ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9", "--defer-close"])
 require(parsed_cleanup.cleanup_pr == [10, 9] and parsed_cleanup.defer_close, "lifecycle must parse cleanup/deferral flags")
 require("--resolver-ordered" in cleanup_command,
         "automatic Finalizer must identify its oldest-first verified orchestration")
+require(cleanup_command[cleanup_command.index("--resolver-main-sha")+1] == b_sha,
+        "child command must include verified main snapshot")
 require(not parsed_cleanup.resolver_ordered,
         "manual workflow must default to ordered-history preflight")
+
+
+# #586: ordered snapshot must fail closed on a moving main.
+saved_snapshot_gh = module.gh
+remote_snapshot = [b_sha]
+module.gh = lambda path, *, method="GET", fields=None: {"object": {"sha":remote_snapshot[0]}}
+snapshot_ctx = SimpleNamespace(current_main_sha=b_sha)
+snapshot_args = SimpleNamespace(resolver_ordered=True, resolver_main_sha=b_sha)
+try:
+    module.resolver_snapshot_gate("owner/repo", snapshot_ctx, snapshot_args)
+    remote_snapshot[0] = a_sha
+    try:
+        module.resolver_snapshot_gate("owner/repo", snapshot_ctx, snapshot_args)
+        raise SystemExit("moving main must block ordered lifecycle")
+    except module.LifecycleError:
+        pass
+finally:
+    module.gh = saved_snapshot_gh
+
+# #586: a successful FINAL write followed by failed Issue close must be
+# recoverable without new FINAL/cleanup and must reject newer same-Issue PRs.
+saved_close_audit, saved_close_gh = module.audited_final_markers, module.gh
+saved_close_collect, saved_close_gate = auto.collect_pending_work, module.resolver_snapshot_gate
+saved_close_repo = __import__("os").environ.get("GITHUB_REPOSITORY")
+closing_issue = {"state":"open"}
+close_patches = []
+boundary_item = auto.WorkItem(b_sha, a_sha, 3, 77, "1.0.0", "1.0.0")
+close_ctx = SimpleNamespace(issue_number=77, pr_number=3, merge_sha=b_sha, current_main_sha=b_sha)
+close_args = SimpleNamespace(resolver_ordered=True, resolver_main_sha=b_sha,
+                             defer_close=False, cleanup_pr=[])
+module.audited_final_markers = lambda _repo, _ctx: {b_sha:3}
+module.resolver_snapshot_gate = lambda _repo, _ctx, _args: None
+def fake_close_collect(_repo, _sha, *, finalized_boundary):
+    finalized_boundary.append(boundary_item)
+    return []
+auto.collect_pending_work = fake_close_collect
+def fake_close_api(path, *, method="GET", fields=None):
+    if path.endswith("/issues/77"):
+        if method == "PATCH":
+            close_patches.append(fields)
+            closing_issue["state"] = "closed"
+        return dict(closing_issue)
+    raise AssertionError(path)
+module.gh = fake_close_api
+__import__("os").environ["GITHUB_REPOSITORY"] = "owner/repo"
+try:
+    module.close_resume(close_ctx, close_args)
+    module.close_resume(close_ctx, close_args)
+    require(len(close_patches) == 1, "close-only retry must be idempotent")
+    closing_issue["state"] = "open"
+    def newer_same_issue(_repo, _sha, *, finalized_boundary):
+        finalized_boundary.append(boundary_item)
+        return [auto.WorkItem(a_sha, old_sha, 4, 77, "1.0.0", "1.0.0")]
+    auto.collect_pending_work = newer_same_issue
+    try:
+        module.close_resume(close_ctx, close_args)
+        raise SystemExit("newer same-Issue PR must block premature close")
+    except module.LifecycleError:
+        pass
+    require(len(close_patches) == 1, "blocked close must not mutate")
+finally:
+    auto.collect_pending_work = saved_close_collect
+    module.resolver_snapshot_gate = saved_close_gate
+    module.audited_final_markers = saved_close_audit
+    module.gh = saved_close_gh
+    if saved_close_repo is None:
+        __import__("os").environ.pop("GITHUB_REPOSITORY", None)
+    else:
+        __import__("os").environ["GITHUB_REPOSITORY"] = saved_close_repo
 
 # #586 P1: manual latest-target finalize must never skip earlier pending work,
 # including earlier same-Issue PRs and interleaving Issues. The generic resolver

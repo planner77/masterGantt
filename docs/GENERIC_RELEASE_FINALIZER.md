@@ -159,3 +159,7 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 ### #586 수동 Lifecycle 호출의 oldest-first 검증
 
 수동 `issue-lifecycle.yml`의 `finalize`와 `release_finalize`는 Generic Resolver가 사용하는 first-parent pending backlog를 재검사한다. 선택된 PR이 oldest actionable 대상이 아니거나 같은 Issue에 나중 PR이 미완료이면 **변경 전 BLOCKED**하고 자동 Generic Finalizer의 ordered resume을 사용한다. 자동 경로만 `--resolver-ordered`를 전달하며, 수동은 전달하지 않는다. 기존 FINAL을 수동으로 재호출해도 다른 후속 PR의 진행 상태를 확인하지 않고 Issue를 재종료하지 않는다.
+
+### #586 FINAL 이후 close-only 복구
+
+Resolver는 최신 인증 FINAL 경계를 따로 보존하고 OPEN Issue이며 같은 Issue 후속 병합이 없을 때만 `close_resume`을 호출한다. 원본 FINAL·후보/브랜치 cleanup·정식 release는 재실행하지 않는다. 하위 Lifecycle은 Resolver main snapshot을 재검증하여 변경된 first-parent에서 잘못된 종료를 금지한다.

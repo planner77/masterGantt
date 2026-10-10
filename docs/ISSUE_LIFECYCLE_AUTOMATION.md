@@ -384,3 +384,7 @@ blocker가 해소된 뒤에는 다음 우선순위를 따른다.
 ### Issue #586: 수동 FINAL 순서 검증
 
 수동 dispatch `finalize`/`release_finalize`는 현재 main의 first-parent backlog를 재검증하여 자신이 **최초 미완료 actionable PR**이고 동일 Issue의 더 최신 미완료 PR이 없는 경우에만 삭제/FINAL 단계로 진행한다. 그렇지 않으면 어떤 브랜치/GHCR/Issue mutation도 실행하지 않고 Generic Finalizer 재개를 요구한다. 자동 Resolver의 `--resolver-ordered`는 내부 검증 계약이며 수동 workflow input으로 노출하지 않는다. 이미 존재하는 정확한 FINAL의 수동 재호출은 close를 수행하지 않는다.
+
+### #586 FINAL 이후 종료 재개
+
+FINAL 쓰기 성공 뒤 Issue close 실패는 인증된 최신 FINAL 경계와 후속 동일 Issue PR 부재를 확인한 내부 `close_resume`으로 복구한다. 자동 Resolver의 정확한 main snapshot은 child에 전달·재검증한다. 수동 workflow에는 내부 `--resolver-main-sha` 및 `--resolver-ordered` 권한을 노출하지 않는다.

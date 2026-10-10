@@ -2766,3 +2766,9 @@ T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개�
 ### Issue #586 수동 fallback 순서 누락 회귀 (#588 리뷰 P1)
 
 성공 Main CI인 동일 Issue A→B 중 A에 marker가 없을 때 수동 B FINAL은 FAIL(브랜치/GHCR/Issue 무변경). A→다른 Issue→B에서는 먼저 선행 target 처리 필수. 동일 Issue의 후속 B가 남아 있는 A는 close 금지. 이미 FINAL인 A를 수동 재호출해도 close mutation 금지. 최신 main SHA가 검증 도중 변경되거나 선택 PR/SHA가 first-parent pending identity와 일치하지 않으면 FAIL. 정규 자동 Resolver만 `--resolver-ordered`를 사용한다. 회귀 구현: `scripts/verify-issue-lifecycle.py`. 정확한 Head의 PR CI·독립 QA_FINAL은 별도로 확인.
+
+### #586 FINAL/close 복구 추가 회귀
+
+- FINAL 성공, Issue close PATCH 실패 후 동일 FINAL/cleanups 재실행 없이 Issue close-only 재시도·멱등 성공.
+- 후속 같은 Issue PR 존재, 위조 FINAL, main snapshot 변경 시 close 실패/부수효과 없음.
+- child 명령은 정확한 계획 시점 main SHA를 포함하고 mutation 전 다시 확인하며 기존 required PR check/QA Gate를 유지.
