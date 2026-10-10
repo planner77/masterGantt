@@ -10,10 +10,12 @@ import re
 import sys
 from typing import Any
 
+from main_ci_run_name import parse_merge_title
+
 REF_RE = re.compile(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$")
 BRANCH_ISSUE_RE = re.compile(r"(?i)(?:^|[/_-])issue-([1-9][0-9]*)(?:$|[/_-])")
 TITLE_ISSUE_RE = re.compile(r"(?i)Issue\s*#\s*([1-9][0-9]*)\b|\(#\s*([1-9][0-9]*)\s*\)")
-MERGE_PR_RE = re.compile(r"(?m)^Merge pull request #([1-9][0-9]*)\b")
+MERGE_PR_RE = re.compile(r"^Merge (?:pull request|PR) #([1-9][0-9]*)\b", re.I)
 
 
 class TraceError(RuntimeError):
@@ -106,9 +108,21 @@ def validate_push(payload: dict[str, Any]) -> tuple[int | None, int | None]:
     if not message:
         raise TraceError("main push의 head commit message를 확인할 수 없습니다")
 
-    pr_match = MERGE_PR_RE.search(message)
+    canonical = parse_merge_title(message)
+    if canonical is not None:
+        primary, pr_number, _summary = canonical
+        print(f"Main 표준 실행 추적 PASS: Issue #{primary} · PR #{pr_number}")
+        return primary, pr_number
+
+    subject = message.splitlines()[0]
+    # Issue # is a reserved canonical subject prefix. An incomplete or malformed
+    # candidate must not be classified as an unrelated direct push fallback.
+    if subject.startswith("Issue #"):
+        raise TraceError("Issue # 접두어는 정확한 단일 행 표준 Merge 제목만 허용합니다 (번호·PR·한글 요약 형식 확인)")
+
+    pr_match = MERGE_PR_RE.match(subject)
     if pr_match is None:
-        print("비-PR main push: commit message 기반 fallback 실행명을 사용합니다")
+        print("비-PR main push: SHA 기반 짧은 fallback 실행명을 사용합니다")
         return None, None
 
     pr_number = int(pr_match.group(1))

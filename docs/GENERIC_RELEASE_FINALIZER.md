@@ -5,9 +5,9 @@
 
 GitHub는 같은 PR head SHA에서 이전 attempt의 실패/cancelled check-run과 최신 재실행의 성공 check-run을 함께 반환할 수 있다. Generic Finalizer는 required check 이름별로 **가장 큰 check-run ID(최신 실행)** 하나만 판정하며, 오래된 실패가 최신 성공을 덮어쓰거나 오래된 성공이 최신 실패를 가리는 것을 허용하지 않는다. 최신 required check가 모두 GitHub Actions SUCCESS인 경우에만 PR gate를 PASS로 취급한다.
 
-## 실행 인스턴스 추적 (#361)
+## 실행 인스턴스 추적 (#361 / #582)
 
-Generic Finalizer의 workflow 식별자와 trigger는 그대로 유지하면서 `run-name`은 triggering Main CI의 `workflow_run.display_title`을 계승한다. 따라서 PR 단계에서 검증된 Primary Issue/PR trace가 Main CI 표시명에 보존되어 있으면 Finalizer Actions 목록에서도 같은 문자열을 검색할 수 있다. Finalizer 자체 재실행은 별도의 `github.run_number.github.run_attempt`로 구분한다.
+Generic Finalizer의 workflow 식별자와 trigger는 유지한다. #582부터 `run-name`은 원본 Main의 한 줄 canonical `workflow_run.head_commit.message`를 사용하며 `workflow_run.run_number.run_attempt`와 자체 `github.run_number.github.run_attempt`를 구분하여 표시한다. 예: `Finalizer · Issue #530 · PR #579 · Gantt 복원 경합 보완 · Main #2315.1 · Run #117.1`. 과거 multi-line merge, 신형 prefix 뒤에 개행·본문이 있는 pseudo-canonical 메시지, 직접 Push는 triggering `workflow_run.head_sha`의 짧은 fallback을 사용한다. JSON-escaped CR/LF 검사로 Main CI/Finalizer의 멀티라인 표시를 방지한다. 표시명은 승인·릴리스 권한이 아니며 정확한 SHA → merged PR → canonical `Refs #Issue`를 별도로 확인한다.
 
 승인된 release 경로에서 `issue_lifecycle.py`는 `release-image.yml` workflow dispatch에 Primary Issue와 PR 번호를 input으로 전달한다. 이 metadata는 표시용이며 release authorization, version/tag authority, exact SHA/digest 검증이나 first-parent 처리 순서를 대체하지 않는다.
 

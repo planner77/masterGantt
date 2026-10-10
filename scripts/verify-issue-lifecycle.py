@@ -17,6 +17,7 @@ CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 IMPL = ROOT / "scripts" / "issue_lifecycle.py"
 AUTO_IMPL = ROOT / "scripts" / "auto_release_finalizer.py"
 TRACE_IMPL = ROOT / "scripts" / "verify-ci-run-trace.py"
+MAIN_RUN_NAME_IMPL = ROOT / "scripts" / "main_ci_run_name.py"
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 
 
@@ -39,9 +40,19 @@ require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목�
 require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
 
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
+ops_doc = (ROOT / "docs" / "GITHUB_OPERATIONS.md").read_text(encoding="utf-8")
+require('gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"' in ops_doc, "Issue #582 merge CLI must include method/subject/empty body/exact Head")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
 require("github.event.pull_request.number" in ci_workflow, "PR CI run-name must carry the PR number")
 require("github.event.head_commit.message" in ci_workflow, "main CI run-name must carry merge commit trace metadata")
+require("startsWith(github.event.head_commit.message, 'Issue #')" in ci_workflow, "main run-name must select canonical one-line message")
+require("contains(github.event.head_commit.message, ' · PR #')" in ci_workflow, "main display title must check the Issue/PR delimiter")
+for escape in (r"\n", r"\r"):
+    require(
+        f"!contains(toJSON(github.event.head_commit.message), '{escape}')" in ci_workflow,
+        f"Main CI run-name must reject escaped newline: {escape}",
+    )
+require("기존 병합/직접 Push" in ci_workflow and "github.sha" in ci_workflow, "main legacy/direct fallback must be short and SHA-bound")
 require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
@@ -49,6 +60,11 @@ require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_r
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
+baseline_retry = ci_workflow.split("      - name: PR 기준 image와 크기 비교", 1)[1].split("      - name: 잘못된 production HTTP 설정 조기 거부 검증", 1)[0]
+require("for attempt in 1 2; do" in baseline_retry, "baseline Docker build retry must be bounded")
+require("npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)" in baseline_retry, "retry only recognized npm transient network errors")
+require('[[ "$attempt" -eq 2 ]] || ! grep -Eq' in baseline_retry, "baseline must fail closed on retry/other errors")
+require("bash scripts/verify-image-size-reduction.sh" in baseline_retry, "baseline size comparison must remain mandatory")
 require("scripts/verify-pr-metadata-evidence.py --mode evidence" in ci_workflow, "metadata evidence must use exact Head state machine")
 metadata_section = ci_workflow.split("  metadata_evidence:", 1)[1].split("\n  policy:", 1)[0]
 require(
@@ -73,7 +89,16 @@ for token in ("inputs.issue_number", "inputs.pr_number", "inputs.operation", "gi
     require(token in workflow, f"Issue lifecycle run-name trace token missing: {token}")
 
 require("run-name:" in auto_workflow, "automatic finalizer run-name is required")
-require("github.event.workflow_run.display_title" in auto_workflow, "finalizer must inherit the triggering Main CI display title")
+require("github.event.workflow_run.head_commit.message" in auto_workflow, "finalizer must read the triggering Main commit subject")
+require("startsWith(github.event.workflow_run.head_commit.message, 'Issue #')" in auto_workflow, "finalizer must select canonical one-line message")
+require("contains(github.event.workflow_run.head_commit.message, ' · PR #')" in auto_workflow, "finalizer display title must check the Issue/PR delimiter")
+for escape in (r"\n", r"\r"):
+    require(
+        f"!contains(toJSON(github.event.workflow_run.head_commit.message), '{escape}')" in auto_workflow,
+        f"Finalizer run-name must reject escaped newline: {escape}",
+    )
+require("github.event.workflow_run.head_sha" in auto_workflow, "finalizer fallback must retain exact triggering SHA")
+require("github.event.workflow_run.run_number" in auto_workflow and "github.event.workflow_run.run_attempt" in auto_workflow, "finalizer must identify source Main run/attempt")
 require("github.run_number" in auto_workflow and "github.run_attempt" in auto_workflow, "finalizer run-name must distinguish attempts")
 
 require("run-name:" in release_workflow, "release image run-name is required")
@@ -240,6 +265,7 @@ def load_module(name: str, path: pathlib.Path):
 module = load_module("issue_lifecycle", IMPL)
 auto = load_module("auto_release_finalizer", AUTO_IMPL)
 trace = load_module("verify_ci_run_trace", TRACE_IMPL)
+main_run_name = load_module("main_ci_run_name", MAIN_RUN_NAME_IMPL)
 
 trace_pr_payload = {
     "number": 362,
@@ -314,6 +340,66 @@ trace_push_payload = {
     },
 }
 require(trace.validate_push(trace_push_payload) == (361, 362), "merge commit trace metadata must resolve Issue/PR")
+canonical_title = main_run_name.format_merge_title(582, 583, "Main CI 실행명 간소화")
+require(
+    canonical_title == "Issue #582 · PR #583 · Main CI 실행명 간소화",
+    "canonical merge title must include one Issue, PR and a short Korean subject",
+)
+require(main_run_name.parse_merge_title(canonical_title) == (582, 583, "Main CI 실행명 간소화"), "canonical merge subject must parse")
+require(
+    trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": canonical_title}})
+    == (582, 583),
+    "canonical single-line merge must trace to exact Issue/PR",
+)
+require(
+    trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": "Merge PR #539: 기준정보 (#538)\n\nRefs #538"}})
+    == (538, 539),
+    "legacy short Merge PR form must remain traceable",
+)
+require(
+    trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": "docs: 직접 푸시"}})
+    == (None, None),
+    "non-PR main push must use fallback",
+)
+for malformed in (
+    canonical_title + "\n\nRefs #582",
+    "Issue #582 · PR #583 · English only",
+    "Issue #582 · PR #583 · " + "한" * 31,
+    "Issue #0 · PR #583 · 한글 제목",
+    "Issue #582 ·PR #583 · 구분자 누락",
+    "Issue #582 · PR 없이 입력",
+    "Issue #582",
+    "Issue #582\n추가 본문",
+    "Issue #582 · PR #583 · 한글\u202e123",
+    "Issue #582 · PR #583 · 한글\u200b숨김",
+    "Issue #582 · PR #583 · 한글\u2028추가줄",
+    "Issue #582 · PR #583 · 한글\x85컨트롤",
+):
+    require(main_run_name.parse_merge_title(malformed) is None, "malformed canonical title must be rejected")
+    try:
+        trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": malformed}})
+    except trace.TraceError:
+        pass
+    else:
+        raise SystemExit(f"malformed canonical merge must fail-closed: {malformed!r}")
+for invalid_summary in (
+    "English only",
+    "한글 제목\n두 번째 줄",
+    "한" * 31,
+    "Issue #3 다른 번호",
+    "한글\u202e123",  # bidi override
+    "한글\u200b숨김",  # invisible zero-width separator
+    "한글\u2028추가줄",  # Unicode line separator
+    "한글\x85제어",  # C1 control / next-line
+    "",
+):
+    try:
+        main_run_name.format_merge_title(582, 583, invalid_summary)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit(f"invalid merge summary must fail: {invalid_summary!r}")
+
 require(trace.validate_dispatch({"inputs": {"issue_number": "361"}}) == (361, None), "manual CI Primary Issue must validate")
 require(trace.validate_dispatch({"inputs": {}}) == (None, None), "manual CI without Issue must use fallback")
 

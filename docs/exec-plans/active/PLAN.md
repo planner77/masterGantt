@@ -1,3 +1,15 @@
+## Issue #550 — 최신 main #582/#598 정책 정렬 및 PR CI 재시작 (2026-10-11)
+
+이전 PR #559 Head `cb360903dfac443547e9e16e1091273eca669400`의 [CI #2414.1](https://github.com/planner77/masterGantt/actions/runs/38051399462): 세 Required Quality/E2E6/Docker aggregate는 PASS이나 자동 QA는 `qa_method=AGENT` 및 보호된 package/lock에 대한 현재 Head 독립 인간 `QA_FINAL: PASS` 리뷰가 없어 BLOCKED/FAIL. 제품·기능 검증 실패는 아니다.
+
+최신 main `e41696430a78045998e35edad7cab5bb901a097e`(base `31372f967159b2f993116c73f0adc228eb1ea0ff` 대비 41커밋/27파일) 통합. 제품/UI/권한/SQLite/E2E 및 `0.105.0` 버전은 보존한다. main 변경 25개 비중복 파일은 동일 blob으로 보존하고, `docs/TEST_PLAN.md`의 #582 CI 회귀·#598 QA 정책과 #550 테스트 원장, `docs/exec-plans/active/PLAN.md`의 #598 정책과 #550 이력을 함께 유지한다.
+
+채택된 [#598](https://github.com/planner77/masterGantt/issues/598) 정책에 맞춰 PR 메타데이터 `qa_method=OWNER_MANAGED`, `risk_level=HIGH`, `qa_required=true`를 적용한다. 독립 QA `N/A(선택 미실시)`, 자동 QA·Trusted QA와 Owner 최종 `Manager ACCEPT`는 분리한다. 기존 Quality/E2E/Docker, 리뷰 스레드0, 문서/AC 및 protected 버전의 위험 검토는 유지. `release_required=true/release_authorized=false`, 병합/정식 GHCR/tag/Issue 종료 미승인. 새 exact-head PR CI **시작까지만** 진행하고 실제 결과는 별도 확인한다.
+
+## Issue #598 — Owner-managed QA 정책 적용
+
+Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.
+
 ## Issue #550 — PR CI #2404.1 병합 검증 불일치 복구 및 #589 main 정렬 (2026-10-10)
 
 [PR #559](https://github.com/planner77/masterGantt/pull/559)의 이전 exact Head `de9eb8286ad237f47e1c3fef0767afcbacc410f4`에 대한 [PR CI #2404.1](https://github.com/planner77/masterGantt/actions/runs/38049115763)는 정책 검사, TypeScript/Lint/Vitest/production build, Chromium E2E 6/6 및 aggregate, Docker smoke 및 aggregate가 모두 PASS였다. 전체 workflow는 `QA Final — Automated` job `114208535287`만 **BLOCKED/FAIL**: 실제 로그의 직접 사유는 `mergeability 또는 test merge 불일치`였다. 이 실패를 앱/E2E 오류나 이미 승인된 독립 QA로 해석하지 않는다.

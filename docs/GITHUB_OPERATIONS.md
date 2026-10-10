@@ -1,3 +1,7 @@
+## Issue #598 — Owner 중심 QA 운영 (2026-10-10)
+
+기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER`는 호환 alias), `AGENT`는 선택적 독립 검토이다. 보호된 CI/workflow/scripts/package/QA·보안 정책과 HIGH를 포함하여 별도 인간 Reviewer GitHub APPROVED는 필수가 아니다. 대신 최신 PR Head/base에 관한 원본 Quality/E2E/Docker 세 required aggregate PASS, strict main, unresolved review thread 0, docs/AC, 기본 브랜치 trusted read-only validator 및 고위험 수동 점검을 모두 유지한다. `automated_qa=PASS`와 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`은 `manager_decision=ACCEPT`가 아니다. Owner의 명시적 병합 지시는 GitHub 인증 신원·대상 PR/HEAD/base/run/attempt/잔여위험을 확인한 뒤 감사 기록으로 남기며 수동 JSON 영수증은 요구하지 않는다. 변경 검증기 자기 승인, PR 내용/봇 댓글을 이용한 위조 승인, stale run 및 CI 우회는 차단한다. 이 정책 자체의 bootstrap PR은 기존 main validator가 protected를 BLOCKED하는 원장을 유지하며 세 필수 CI 성공·일회성 Owner 전환 승인 전 병합하지 않는다. 메인 임시 GHCR candidate와 finalizer는 동일, 정식 release는 `release_required && release_authorized`만 허용한다. [QA 정책](QA_REVIEW_POLICY.md)을 최신 기준으로 삼으며 아래 #565/#580/#595 이전 필수 인간 reviewer 지침보다 우선한다.
+
 ## Issue #595 — PR metadata edited 후 원본 Full CI 재사용 정합 (2026-10-10)
 
 PR #597의 QA-only 재실행 P1 보완은 `trusted_source()`뿐 아니라 `verify_same_base_full_run()`에도 적용한다. GitHub 메타데이터 전용 CI가 원본 Full CI 결과를 재사용할 때 같은 Run의 실제 각 attempt별 Job 상태를 정확히 조회한다. QA Job만 rerun된 최신 attempt에서 기존 Required Quality/E2E/Docker가 보이지 않더라도 과거 같은 Run의 정상 성공을 사용하고, 이후 재실행된 실패는 무효화한다. 원본 Run의 PR/Head/base·최신 full-run·최종 결론이 달라지면 거부한다. 이 정합은 독립 QA 검토나 Manager 승인, protected 파일 보안 정책을 자동 통과시키지 않는다.
@@ -98,13 +102,23 @@ Actions 목록에서 하나의 업무 lifecycle을 검색할 때 **Primary Issue
 
 ```text
 PR CI · [Issue #361] ... · PR #<PR> · Run #<run>.<attempt>
-Main CI · Merge pull request #<PR> ... [Issue #361] ... · Run #<run>.<attempt>
+Main CI · Issue #361 · PR #<PR> · 실행명 표준화 · Run #<run>.<attempt>
 Lifecycle · Issue #361 · PR #<PR> · verify|release|finalize|release_finalize · Run #<run>.<attempt>
-Finalizer · <triggering Main CI display title> · Finalizer Run #<run>.<attempt>
+Finalizer · Issue #361 · PR #<PR> · 실행명 표준화 · Main #<main run>.<attempt> · Run #<run>.<attempt>
 GHCR Release · Issue #361 · PR #<PR> · v<version> · Run #<run>.<attempt>
 ```
 
-PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue가 정확히 하나의 Primary Issue로 일치하는지 먼저 검증한다. Title/body 편집도 `pull_request.edited`로 재검증한다. Dependabot은 작성자 `dependabot[bot]` + 동일 저장소 + `dependabot/` branch 조건이 모두 맞는 경우에만 automation 예외로 취급한다. Main CI에서는 별도 PR payload가 없으므로 merge commit metadata가 trace source다. Generic Finalizer는 `workflow_run.display_title`, Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
+PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue가 정확히 하나의 Primary Issue로 일치하는지 먼저 검증한다. Title/body 편집도 `pull_request.edited`로 재검증한다. Dependabot은 작성자 `dependabot[bot]` + 동일 저장소 + `dependabot/` branch 조건이 모두 맞는 경우에만 automation 예외로 취급한다. Main CI에는 PR payload가 없으므로 #582의 **한 줄 표준 merge commit 제목**이 표시용 trace source다. 기존 Merge/직접 Push는 복수 줄 제목을 피하기 위해 exact SHA fallback으로 나타난다. Generic Finalizer는 source `workflow_run.head_commit.message` 및 원본 Main run 번호/attempt를 이용하며 Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
+
+### Issue #582 — Main CI·Finalizer 단일 행 실행명과 Merge API 계약
+
+- **새 Merge Commit 제목**: `Issue #<Primary Issue> · PR #<PR> · <한글 Issue명 축약>` (한글 요약 1~30자, 실제 Issue 제목에 근거하여 작성). 본문은 빈 문자열로, 한 줄만 허용한다. 예: `Issue #530 · PR #579 · Gantt 복원 경합 보완`. Issue 번호는 PR body의 정확히 하나인 `Refs #NNN`와 일치해야 한다.
+- Merge 전: PR head SHA 및 최신 main 정렬, required checks 성공, 리뷰·QA, release 승인, PR body/branch/title의 동일 Primary Issue, 실제 Issue 제목을 확인한다. `python3 scripts/main_ci_run_name.py --issue 530 --pr 579 --summary "Gantt 복원 경합 보완"`의 출력을 사용한다.
+- **GitHub Merge API/연결 도구:** REST API는 `merge_method="merge"`, `commit_title="<생성 결과>"`, `commit_message=""`, `sha="<검증 PR head SHA>"`, **현재 연결 GitHub 도구는 `expected_head_sha`**로 동일 Head를 고정한다. GitHub CLI에서는 `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`로 병합 전략·한 줄 제목·빈 본문·검증 Head SHA를 모두 지정한다. `--match-head-commit`만 추가하면 commit 제목과 본문은 기본 설정을 따라 실행명 개선이 적용되지 않을 수 있다. 해당 파라미터는 모두 **병합 요청 전** 지정한다. Merge 설명에 PR 본문·긴 CI 기록을 복사하지 않는다. 브랜치 보호·기존 approval gate는 그대로다.
+- **GitHub UI 병합:** 제목란에 표준 한 줄 제목을 직접 입력하고 설명 본문을 비워야 동일 형식이 나온다. 현재 관측된 repository 기본값 `merge_commit_title=MERGE_MESSAGE` / `merge_commit_message=PR_TITLE`은 이를 자동 보장하지 않는다. 관리자 설정은 변경하지 않는다.
+- GitHub Actions `run-name`은 시작 전에 평가되며 표준 expression에는 split/substring/regex 치환이 없다. 따라서 `Issue #` 및 ` · PR #` 구조·CR/LF 조건을 검사하지만 한글·최대 길이를 포함하는 Python validator의 전체 조건을 `run-name`에서 동일하게 실행할 수는 없다. 위 구조를 모방한 한 줄 메시지는 표시될 수 있으나 첫 CI trace gate에서 FAIL 처리된다. Merge 운영자가 표준 generator를 사용해야 정확한 표기가 보장된다. 표준 제목이면 `Main CI · Issue #N · PR #P · <요약> · Run #R.A`, 표준 prefix로 시작해도 개행(LF/CR)을 포함하면 표시를 거부하고, 표준이 아닌 경우 `Main CI · 기존 병합/직접 Push · <exact SHA> · Run #R.A`로 표시한다. CR/LF는 `toJSON(message)`의 `\n`/`\r` escape를 검사한다. fallback은 Issue/PR/한글 제목을 자동 노출하지 않는 제한이 있다. Finalizer도 표준 제목 또는 SHA fallback과 원본 Main run/attempt를 표시한다.
+- `Merge pull request #N`, `Merge PR #N` 구형 커밋은 Primary Issue trace 검증에서 계속 허용하되 과거 Actions 실행명을 소급 수정하지 않는다. 신규 표준 접두어를 사용하면서 형식 오류/개행이 있으면 fail-closed한다. 표시명은 권한 근거가 아니며 실제 Finalizer는 exact merge SHA → merged PR → canonical `Refs #Issue`를 검증한다.
+- 기존 `name: CI`, 세 required checks, `workflow_run.workflows: ["CI"]`, trigger, concurrency, permissions, GHCR/release 승인 정책을 유지하고 앱 버전을 올리지 않는다.
 
 최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_required=true`인 경우 `qa_docs` 또는 승인된 별도 인간 Reviewer가 독립 검토한다. `qa_required=false`인 경우 Manager가 사유 있는 QA_FINAL N/A 및 검토 증거를 남긴다.
 
@@ -203,7 +217,7 @@ YAML/TOML/API의 key, `jobs.<job_id>`와 step `id`, `needs`, 조건·expression,
 
 신규 문구와 참조 영향이 없는 문구부터 적용한다. 이 정책은 새로 작성하거나 수정하는 CI 관련 콘텐츠의 기준이며, 과거 실행 기록을 다시 쓰거나 요청 범위 밖의 기존 workflow를 일괄 변경하라는 지시가 아니다. 다른 범위가 명시되지 않은 지침 변경 작업에서는 workflow 실행 로직과 application version을 변경하지 않는다.
 
-Issue 기반 PR은 제목에 `Issue #345`처럼 실제 Issue 번호를 포함한다. `ci.yml`의 실행 `run-name`은 `CI 검증 · <PR 제목>`으로 표시하며 main push는 commit message, 수동 실행은 ref 이름을 사용한다. Workflow `name: CI`는 Generic Finalizer의 `workflow_run.workflows` 참조를 보존하기 위해 유지한다. Required check 이름·job 식별자·권한·trigger·gate를 바꾸지 않으며, 표시 제목만으로 실행 대상이나 성공 여부를 판단하지 않고 exact head SHA와 run/job evidence를 함께 확인한다.
+Issue 기반 PR은 제목에 `Issue #345`처럼 실제 Issue 번호를 포함한다. `ci.yml` 실행명은 PR 제목·번호를 표시하며 main push는 #582 한 줄 표준 Merge 제목 또는 SHA fallback, 수동 실행은 ref/optional Issue를 사용한다. Workflow `name: CI`는 Generic Finalizer의 `workflow_run.workflows` 참조를 보존하기 위해 유지한다. Required check 이름·job 식별자·권한·trigger·gate를 바꾸지 않으며, 표시 제목만으로 실행 대상이나 성공 여부를 판단하지 않고 exact head SHA와 run/job evidence를 함께 확인한다.
 
 ### 담당과 검토
 
