@@ -1,3 +1,7 @@
+## Issue #598 — Owner-managed QA 정책 적용
+
+Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.
+
 ## Issue #595 — AGENT 보호 변경 승인 설계 (병합 전 제안)
 
 정상적인 SemVer 변경도 package manifest가 보호 경로인 것은 의도된 보안 정책이다. 이를 검사 목록에서 삭제하거나 자체 PR 코드로 검사기를 덮어쓰지 않는다. 안전한 복구 경로는 이미 정의된 `AGENT` 독립 QA 의무에 정확한 Head·Review·원본 CI·owner 수용 증거를 추가하는 것이다. 보호 경로 수정에 대한 `AUTOMATED_MANAGER` 자동 승인 금지는 유지한다.
