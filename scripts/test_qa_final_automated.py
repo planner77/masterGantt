@@ -2,6 +2,18 @@
 """QA Final Automated: fail-closed unit scenarios (no network)."""
 import unittest
 import qa_final_automated as qa
+from unittest.mock import patch
+
+
+def _recorded_pr_provenance(gh, run, payload):
+    """Legacy attempt tests use controlled provenance; dedicated tests verify it."""
+    prs = run.get("pull_requests") or []
+    if len(prs) != 1:
+        raise qa.Blocked("BLOCKED", "fixture PR 귀속 불명확")
+    pr = prs[0]
+    return pr["number"], run["head_sha"], pr["base"]["sha"], "m"*40, {}
+
+
 
 
 class Cases(unittest.TestCase):
@@ -85,6 +97,11 @@ class Cases(unittest.TestCase):
         self.assertIn("present=false", workflow)
         self.assertIn("QA Final — Automated: NOT TESTED (bootstrap)", workflow)
         self.assertIn("needs.qa_bootstrap.outputs.trusted_validator == 'true'", workflow)
+        self.assertIn("needs.qa_bootstrap.outputs.qa_mode == 'AUTO'", workflow)
+        self.assertIn('"AGENT", "AUTOMATED_MANAGER", "OWNER_MANAGED"', workflow)
+        self.assertIn("QA Final — AGENT: NOT TESTED", workflow)
+        self.assertIn("PR CI 원본 이벤트·base·test-merge 증거 생성 (#593)", workflow)
+        self.assertIn("ci-pr-source-${{ github.run_id }}-${{ github.run_attempt }}", workflow)
         self.assertIn("ref: ${{ github.event.pull_request.base.sha }}", workflow)
         self.assertIn("persist-credentials: false", workflow)
         self.assertNotIn("pull_request_target:", workflow)
@@ -106,7 +123,9 @@ class Cases(unittest.TestCase):
         self.blocked(lambda:qa.protected_paths(
             [{"filename":"docs/note.md","status":"renamed"}]))
 
-    def test_metadata_full_ci_requires_matching_base(self):
+    @patch.object(qa, "source_artifact", return_value={})
+    @patch.object(qa, "verified_source", side_effect=_recorded_pr_provenance)
+    def test_metadata_full_ci_requires_matching_base(self, mocked_verifier, mocked_artifact):
         class Stub:
             prefix="/repos/planner77/masterGantt"
             base="a"*40
@@ -137,7 +156,9 @@ class Cases(unittest.TestCase):
         self.blocked(lambda:qa.verify_same_base_full_run(
             s,587,"h"*40,"a"*40,99))
 
-    def test_metadata_reuses_exact_full_run_after_qa_only_retry(self):
+    @patch.object(qa, "source_artifact", return_value={})
+    @patch.object(qa, "verified_source", side_effect=_recorded_pr_provenance)
+    def test_metadata_reuses_exact_full_run_after_qa_only_retry(self, mocked_verifier, mocked_artifact):
         class Stub:
             prefix="/repos/planner77/masterGantt"
             latest_e2e=None
@@ -179,7 +200,9 @@ class Cases(unittest.TestCase):
         self.blocked(lambda:qa.verify_same_base_full_run(
             stub,587,"h"*40,"a"*40,99))
 
-    def test_default_branch_workflow_run_has_distinct_trust_source(self):
+    @patch.object(qa, "source_artifact", return_value={})
+    @patch.object(qa, "verified_source", side_effect=_recorded_pr_provenance)
+    def test_default_branch_workflow_run_has_distinct_trust_source(self, mocked_verifier, mocked_artifact):
         from unittest.mock import patch
         class Stub:
             repo="planner77/masterGantt"
@@ -209,7 +232,9 @@ class Cases(unittest.TestCase):
         self.assertEqual(out["source_ci_run_id"],88)
         self.assertEqual(check.call_args.args[0]["GITHUB_RUN_ID"],"88")
 
-    def test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs(self):
+    @patch.object(qa, "source_artifact", return_value={})
+    @patch.object(qa, "verified_source", side_effect=_recorded_pr_provenance)
+    def test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs(self, mocked_verifier, mocked_artifact):
         from unittest.mock import patch
 
         class Stub:
@@ -531,6 +556,70 @@ class Cases(unittest.TestCase):
             self.assertIn("N/A(", result["independent_qa"])
             stub.risk="LOW"
             self.blocked(lambda: qa.check(env,{},stub))
+
+    def test_source_artifact_association_rejects_ambiguous_prs(self):
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            repo="planner77/masterGantt"
+            def get(self, route):
+                return {"number":593,"state":"open","head":{"sha":"a"*40,"ref":"ci/issue-593-x",
+                                "repo":{"full_name":"planner77/masterGantt"}},
+                        "base":{"sha":"b"*40,"ref":"main",
+                                "repo":{"full_name":"planner77/masterGantt"}},
+                        "merge_commit_sha":"c"*40}
+            def pages(self, route):
+                return [{"number":593}]
+        source={"schema":"mastergantt-ci-pr-source-v1","repository":Stub.repo,
+                "run_id":17,"run_attempt":2,"pr_number":593,
+                "head_sha":"a"*40,"base_sha":"b"*40,"test_merge_sha":"c"*40,
+                "base_ref":"main","head_ref":"ci/issue-593-x",
+                "head_repository":Stub.repo,"base_repository":Stub.repo}
+        run={"id":17,"run_attempt":2,"head_sha":"a"*40,
+             "head_branch":"ci/issue-593-x","pull_requests":[]}
+        self.assertEqual(qa.verified_source(Stub(),run,source)[0],593)
+        class Fork(Stub):
+            def get(self, route):
+                pr = super().get(route)
+                pr["head"]["repo"] = {"full_name":"external/masterGantt"}
+                return pr
+        fork_source = {**source, "head_repository":"external/masterGantt"}
+        self.assertEqual(qa.verified_source(Fork(),run,fork_source)[0],593)
+        self.blocked(lambda:qa.verified_source(Stub(),run,fork_source))
+        self.blocked(lambda:qa.verified_source(Fork(),run,source))
+        self.blocked(lambda:qa.verified_source(Fork(),run,
+            {**fork_source,"base_repository":"external/masterGantt"}))
+        for changed in ({"run_attempt":1},{"pr_number":594},{"base_sha":"d"*40},
+                        {"test_merge_sha":"d"*40},{"head_sha":"d"*40}):
+            self.blocked(lambda:qa.verified_source(Stub(),run,{**source,**changed}))
+        self.blocked(lambda:qa.verified_source(Stub(),
+            {**run,"pull_requests":[{"number":593},{"number":594}]},source))
+        class Many(Stub):
+            def pages(self,route): return [{"number":593},{"number":594}]
+        self.blocked(lambda:qa.verified_source(Many(),run,source))
+        class NoneFound(Stub):
+            def pages(self,route): return []
+        self.blocked(lambda:qa.verified_source(NoneFound(),run,source))
+
+    def test_blocked_report_uses_current_rule_version(self):
+        from pathlib import Path
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(qa, "GitHub", side_effect=qa.Blocked("BLOCKED", "API 부재")), \
+                 patch.dict(qa.os.environ, {"GITHUB_EVENT_PATH":str(Path(tmp)/"event.json"),
+                                            "GITHUB_REPOSITORY":"planner77/masterGantt",
+                                            "GITHUB_EVENT_NAME":"pull_request"}):
+                Path(tmp,"event.json").write_text("{}",encoding="utf-8")
+                current=Path.cwd()
+                try:
+                    qa.os.chdir(tmp)
+                    self.assertEqual(qa.main(),1)
+                    report=qa.json.loads(Path("qa-final-automated-report.json").read_text())
+                    self.assertEqual(report["rule_version"],"598-593-v1")
+                    self.assertEqual(report["automated_qa"],"BLOCKED")
+                finally:
+                    qa.os.chdir(current)
 
     def test_validator_revision_immutable(self):
         self.assertEqual(qa.validate_validator_sha("a"*40,"a"*40),"a"*40)
