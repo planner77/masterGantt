@@ -1,3 +1,6 @@
+## Issue #598 — Owner-managed QA 정책 (2026-10-10)
+기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](docs/QA_REVIEW_POLICY.md)이다.
+
 # AGENTS.md
 
 ## Issue #595 — 보호 파일을 포함한 AGENT QA 최종 판정
