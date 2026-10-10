@@ -81,6 +81,8 @@ class Cases(unittest.TestCase):
         workflow = (Path(__file__).resolve().parents[1] /
                     ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
         self.assertIn("qa_bootstrap:", workflow)
+        self.assertIn("needs.qa_bootstrap.outputs.qa_mode == 'AUTO'", workflow)
+        self.assertIn("QA Final — AGENT: NOT TESTED", workflow)
         self.assertIn("name: QA Final — Automated", workflow)
         self.assertIn("present=false", workflow)
         self.assertIn("QA Final — Automated: NOT TESTED (bootstrap)", workflow)
