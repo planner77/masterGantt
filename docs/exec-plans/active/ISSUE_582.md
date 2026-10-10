@@ -1,5 +1,13 @@
 # Issue #582 Work Packet — Main CI 실행명 단일 행 간소화
 
+## 2026-10-11 — 리뷰 해소 및 QA Final 재검증·문서 영향 보완
+
+- PR Head `3b91aa413d31f295accdcd260890b06c96da1203`, base `46cf1fd6abffe84d02444ba2773d48fcc1f9234d`에서 CI #2422.1 attempt1의 Quality/E2E6/Docker 필수 3 aggregate **SUCCESS**, QA Final은 미해결 Codex P2 스레드로 BLOCKED.
+- #582 AC3 계약상, 비정상 단일행 제목은 GitHub Actions run-name 표현식으로 완전한 SHA fallback을 보장하지 못하지만 첫 push trace validator `parse_merge_title()`에서 fail-closed 처리한다. 일시적인 표시상 위험은 문서화하고 리뷰에 답변 후 스레드를 Resolved하여 미해결 0건 확인. 전체 형식 검증 구현 또는 Owner 최종 승인으로 주장하지 않음.
+- 동일 CI #2422.1의 QA Final job만 attempt2로 재실행했으나, 실제 default-branch validator는 **`문서 영향 기록 없음: docs/SCHEDULING_ENGINE.md`**로 BLOCKED. 저장소 정책에서 E2E Milestone 대시보드 검증 변경에 요구하는 scheduling 문서 영향 항목이 Work Packet에 누락되어 있었음.
+- 본 `DOCUMENTATION_SYNC`에 `docs/SCHEDULING_ENGINE.md: N/A(reason)`를 추가. 이번 테스트 전용 가상시계 보완은 scheduling engine 구현/동작/계약을 변경하지 않으므로 문서 본문 수정은 불필요. 필수 문서 영향 판단을 건너뛰지 않음.
+- 본 수정으로 **새 PR Head 생성**, 기존 #2422.1 Quality/E2E/Docker 검증 결과를 새 Head PASS로 재사용 불가. 새 전체 PR CI와 owner-managed trusted QA가 재평가되어야 하며, `manager_decision=NOT TESTED` / `release_required=false` / `release_authorized=false`, 병합·Main CI 미실행.
+
 ## 2026-10-10 — #598 Owner-managed QA 및 최신 main 재정렬 (현재 유효한 정책)
 
 - **정렬 기준:** 새 main `46cf1fd6abffe84d02444ba2773d48fcc1f9234d` (#598 병합), 기존 PR head `748824c32dad51d7d2262253bdc49c26db00b6c7`. 차이: 25 commits behind / 13 ahead. #598에서 변경한 `AGENTS.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/TEST_PLAN.md`를 보존한 채 #582 전용 hunk를 정확히 통합하고, 새 main의 정책·QA script/tests/.codex Agent 가이드가 그대로 남는 main tree 기반 merge를 사용한다.
@@ -54,6 +62,7 @@
 - `DESIGN.md`: N/A(제품 화면 디자인/도메인 기능이 아닌 GitHub CI 표시명 개선)
 - `docs/API.md`: N/A(서버 API 동작과 계약 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(DB 모델·마이그레이션 변경 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(변경된 `tests/e2e/milestone-dashboard-state.spec.ts`는 기존 #463 대시보드 조회 캐시의 가상시계/rAF 렌더 동기화 테스트 보완만 수행하며 일정 계산·작업 배치·선후행·휴일 처리 엔진 및 스케줄링 계약은 변경하지 않음)
 
 ## AC_TEST_COVERAGE
 
