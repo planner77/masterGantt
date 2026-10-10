@@ -1,12 +1,12 @@
 # Issue #593 Work Packet — Trusted QA 실행 출처/metadata 증거 강화
 - Repository: planner77/masterGantt / [Issue #593](https://github.com/planner77/masterGantt/issues/593)
-- Lifecycle: ANALYSIS → PLAN → IMPLEMENTING → DOCUMENTATION_SYNC → PR/CI (이번 사용자 승인 범위)
+- Lifecycle: QA_FINAL / MERGE_READY
 - Baseline: main `36b0eaa74a0614a76d1ed867bddb548149feb4bc`
 - Branch: `ci/issue-593-trusted-qa-evidence`
 - Risk: HIGH / protected CI workflow, QA policy and evidence validation; `qa_required=true`, `qa_method=AGENT`
 - Reviewer: 구현자와 별도인 `qa_docs` 또는 승인된 인간 Reviewer, 최신 PR Head 독립 검토 필요
-- Manager decision: NOT TESTED (PR CI 완료/독립 QA/최종 승인 전)
-- Implementation owner: infra; docs owner: Manager; QA owner: independent reviewer (실행 가능 여부 미확인)
+- Manager decision: ACCEPT
+- Implementation owner: infra; docs owner: Manager; QA owner: independent reviewer (PASS)
 - release_required: false / release_authorized: false (제품/DB/버전 변경 없음; PR 및 Ruleset 수정/정식 릴리스 미승인)
 - Scope: source CI event-provenance artifact (읽기 전용 검사), default-branch Trusted source association, metadata full-run provenance, deterministic regression tests, report and documentation
 - Exclusions: existing 3 required check names, SHA/strict merge protections, permission write, GHCR final release, Ruleset edit, main merge
