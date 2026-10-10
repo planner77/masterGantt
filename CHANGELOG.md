@@ -1,4 +1,35 @@
+## [Unreleased] — Issue #595 metadata-only Full CI Attempt 정합 보완
+
+- `verify_same_base_full_run()`도 동일 CI Run의 개별 attempt별 Job 원장을 활용하여 QA-only 재실행 이후 PR metadata-only 변경에서 원래 Required aggregate 성공을 정확하게 검증한다. 나중에 재실행된 Required Job의 실패는 과거 성공으로 대체하지 않으며 누락된 `run_attempt`/원장 자료는 BLOCKED로 유지한다.
+- 보호 파일 독립 QA·Manager 승인, PR source provenance, GitHub Ruleset/Release, 제품 버전 및 Required 3개 Check 불변.
+
+## [Unreleased] — Issue #595 PR #597 QA attempt provenance P1 보완
+
+- QA-only 재실행에서 GitHub의 일반 Run Job API가 최신 attempt만 반환하는 특성을 반영한다. 동일 Run의 개별 attempt별 Job 목록을 순서대로 결합하여 QA만 재시도할 때 이전 필수 Quality/E2E/Docker 성공을 보존하고, 나중에 재실행된 실패·취소 필수 Job은 차단한다. 검사 누락·중복·시도 수 초과를 fail-closed 처리하고 필수 Job의 실제 source_attempt를 기록한다.
+- 정식 보호 변경 승인, release/GHCR/기존 required check·권한 체계 불변. 독립 QA와 Manager 수용 전에는 구현 PR 자체도 protected BLOCKED를 유지한다.
+
+## [Unreleased] — Issue #595 QA 보호 승인 증거 (검토 중)
+
+- 기존 기능·SQLite·애플리케이션 버전은 변경하지 않고 보호 경로 PR의 독립 QA 증거 확인 경로와 회귀 테스트를 추가한다.
+- 승인 없는 보호 변경과 자동 처리 경로는 기존대로 차단한다. 검증기 자체 변경의 신뢰성·독립 QA 및 Manager ACCEPT는 PR CI와 별개이며, 기존 Required Quality/E2E/Docker·GHCR 승인 경계를 유지한다.
+
 # Changelog
+
+## [0.104.0] - 2026-10-10
+
+### Fixed
+
+- Issue #549 Main CI #2359.1: 사용자 휠 이벤트의 Core 반영 완료 이전 programmatic right-edge scroll을 발행해 늦은 wheel 이벤트가 이동 위치를 되돌리는 E2E 경합 보완. 휠 후 실제 Core/native 좌표 정합을 관측한 다음 기존 #367 축 확대 및 canonical/Link/instance 보존을 검증한다. 제품 로직·가드·버전 불변.
+
+- PR #557 CI #2348.1의 #549 기술 E2E가 #530의 peer 복원 보호 상태에서 programmatic scroll을 새 사용자 입력으로 잘못 가정하던 회귀를 고친다. 실제 Chart wheel로 입력 의도를 전달한 뒤 #367 축 확장·Core instance/표시 행/Link/canonical 불변을 검사하며 timeout이나 필수 CI gate를 완화하지 않는다.
+
+### Added
+
+- Issue #549: Milestone Timeline 기반의 canonical 조회 원본, WBS 표시 집합, 프로젝트 전체 날짜순 Milestone 모집단, 표시 환경설정, 선택·member 강조를 분리한다. 설치 SVAR Core 2.7.3의 공개 동작과 단일 adapter·개발용 Chromium fixture로 후속 lane/행 분리의 호환성 gate를 정의한다. 기존 운영 Milestone 행·빠른 보기·서버 Gate/권한·데이터는 변경하지 않는다.
+
+### Changed
+
+- PR #557: v0.103.1 최신 main의 #530 peer viewport 복원, #568 Core trace, #569 좌표·기하 Adapter PoC 및 위험도 기반 QA 문서를 보존하며 #549 기능 기반을 통합한다. 기존 #549의 v0.103.0 예정 버전은 #538 main 발행과 충돌하여 v0.104.0으로 조정한다. #569 PoC의 제품 도입 DEFER 및 Week 월 헤더 의미 검증 필요성은 유지한다.
 
 ## [0.103.1] - 2026-10-09
 

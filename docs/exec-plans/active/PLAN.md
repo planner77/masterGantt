@@ -1,3 +1,44 @@
+## Issue #595 — CI #2396.1 protected BLOCKED, metadata-only Attempt 수정 (2026-10-10)
+
+[PR #597](https://github.com/planner77/masterGantt/pull/597) Head `1035d7159a61edf170d88e97d103adb9bc68a4db`의 [CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): 기존 필수 Quality/E2E/Docker aggregate PASS, 구현 E2E shard SKIPPED, `QA Final — Automated`는 protected 정책 변경으로 정상 BLOCKED. 동일 Run QA-only retry에 대한 직전 P1 변경을 메타데이터 전용 CI의 `verify_same_base_full_run()`에도 일관 적용한다. 기존 같은 Head/base·Full CI 성공의 신뢰 귀속 검사를 유지하고, attempt1 필수 PASS / attempt2 QA-only 성공 및 이후 Job FAIL override와 누락 자료를 Python 테스트로 검증한다. 문서 영향 반영 후 새 exact-Head PR CI 시작까지 진행한다. 본 보안 검증기 자체는 별도 독립 Reviewer와 Manager 승인 전 병합/정식 GHCR 발행 금지.
+
+## Issue #595 — PR #597 CI #2391.1 P1/Attempt ledger REWORK (2026-10-10)
+
+[PR #597](https://github.com/planner77/masterGantt/pull/597), 기존 Head `1246cf3cd6cec6012158ccacc13cd91eb7428973`의 [CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640): Quality/정책 Python/TypeScript/Lint/Unit/Build 및 Docker/required E2E aggregate PASS, 구현 E2E shard는 경로상 SKIPPED; QA Final은 기존 main validator의 protected 변경 탐지로 BLOCKED(정상 보안 경계). 최신 리뷰 P1은 `trusted_source()`의 latest attempt Job 조회가 QA-only retry에서 이전 성공 aggregate를 잃는 결함임을 지적했다. `effective_run_jobs()`를 추가해 같은 Run attempt 원장을 완결성 확인하며 최신 실제 Job 상태를 우선하고 성공 Job source_attempt를 기록한다. 성공+QA만 재실행, 이후 required FAIL, 누락·중복·범위 초과의 Python 회귀를 포함한다. 문서 동기화 이후 새 exact Head PR CI를 시작하고, 독립 QA/Manager 없이 본 보호 검증기 PR을 병합하지 않는다. `release_required=false/release_authorized=false` 유지.
+
+## Issue #595 — 보호 파일 AGENT 승인 증거 검증 (2026-10-10)
+
+선행 #580과 #565의 fail-closed 정책을 보존한다. #550 PR #559는 원본 required Quality/E2E/Docker가 성공해도 package manifest/lock 보호 차단 때문에 자동 QA가 실패한다. #595에서 이 문제를 버전 원장 제거가 아닌 독립 Reviewer·Manager의 정확한 Head 승인 증거로 해결하도록 설계·코드·회귀를 구현한다. `scripts/qa_final_automated.py`와 Python 테스트, QA/CI 가이드 및 Work Packet을 갱신한다. 테스트·문서에 없는 승인이나 실행은 PASS로 표기하지 않는다. 보호된 검증기 자체를 수정하는 본 PR은 HIGH/AGENT이므로 실제 독립 QA와 Manager 승인 전 병합/배포 금지. release_required=false, release_authorized=false. 첫 종료점은 원격 PR CI 시작까지.
+
+## Issue #549 — Main CI #2359.1 실패, Trace 기반 test-only corrective PR (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 merge SHA `45a248f723e11133a4bd4c73ca14bb69b3071cbe`에 대한 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229)이 Chromium shard2 `milestone-timeline-core.spec.ts`의 `width37404` 유지로 FAIL, Main 임시 GHCR artifact SKIPPED. [Playwright trace 11651782948](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)에서는 `scroll-chart(36960)` 뒤에 지연된 trusted wheel `scroll-chart(26671)`이 도착해 최종 Core scroll이 오른쪽 임계 밖으로 되돌아간다. #530 guard 제거/timeout 증가가 아닌 실제 browser/Core 휠 반영 순서 누락을 수정한다.
+
+후속 #549 PR은 **제품 코드·CI·버전 `0.104.0` 불변**, 테스트에서 `await page.mouse.wheel(31,0)` 다음 public Core 및 native DOM scrollLeft 증가·±1px 정합의 bounded poll/RAF barrier를 명시하고, 그 후 관측 상태를 기준으로 우측 이동 → 동적 축 실제 증가와 기존 no-loss/instance/행/Link를 검증한다. 구현자 단독 검토는 독립 QA_FINAL이 아님. **HIGH/qa_required=true**, 새로운 exact Head에서 quality/E2E6/Docker 및 별도 qa_docs 또는 인간 Reviewer PASS/Manager ACCEPT 후에만 병합하여 새 Main CI를 시작한다. 실패 main의 `0.104.0` release_required는 유지하되 formal GHCR/tag/Issue 종료는 승인 없음.
+
+## Issue #549 — CI #2348.1 동적 날짜축 E2E 보완 (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 head `f636d3073c8153726be8b06d3e798d83a4752845`에 대한 [CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776)은 build/typecheck/lint/Vitest/Docker, Chromium shards 1/3/4/5/6 PASS이나 shard2의 `tests/e2e/milestone-timeline-core.spec.ts:171` 1건 FAIL(86 PASS/1 FAIL/1 SKIP)로 aggregate FAIL. 오른쪽 끝 programmatic `scroll-chart` 호출 후 축 width 37404가 유지되었다.
+
+최신 main #530은 peer return 뒤 stale programmatic `scroll-chart`를 막고 Chart 내부 trusted wheel/pointer/key에만 복원 가드를 해제한다. #549 E2E가 사용자 입력 없이 probe 명령을 보낸 경로와 일치하며, 별도 브라우저 trace/재현으로 root-cause가 확정된 것은 아니다. 실제 Chart wheel로 의도를 전환한 다음 기존 공개 `scroll-chart`로 right edge를 검증하도록 고친다. #367 한 RAF 예약 + Core/scale 갱신에 대한 bounded `expect.poll`을 적용하지만 축 확대량 조건은 그대로 두고, 확대 후 instance/filtered IDs/Link/canonical/mutation0도 비교한다. 제품 코드·CI workflow·server/domain은 수정하지 않는다.
+
+application `0.104.0`, current main `f1ac9fef186a635d08b51c878376925567653736` 기준 유지. 해당 검증은 remote exact new head 전체 quality/e2e/docker 재실행이 필요하며 시작 전 NOT TESTED다. #569 PoC DEFER/Week header 미검증은 그대로 유지. Independent QA_FINAL/Manager ACCEPT, merge/main CI/GHCR/tag/Issue close는 비범위다.
+
+## Issue #549 — 최신 main 정렬 및 PR 재검증 (2026-10-10)
+
+[PR #557](https://github.com/planner77/masterGantt/pull/557)의 이전 exact head `2ac846da822f8b67abea01ef9d1f535b1a8a54dc`는 [PR CI #2230.1](https://github.com/planner77/masterGantt/actions/runs/37848532318)의 quality/e2e/docker가 PASS였으나, 그 뒤 최신 main `f1ac9fef186a635d08b51c878376925567653736`로 93개 커밋이 추가되어 GitHub mergeable=dirty를 확인했다. 기존 성공 결과를 새 head의 검증 결과로 재사용하지 않는다.
+
+main application `0.103.1`에 대해 #549 신규 기능 기반은 MINOR `0.104.0`으로 재판정한다. #538의 이전 `0.103.0` 출시 및 #530 스크롤·peer state, #568 진단 추적, #569 좌표 Adapter PoC, QA 위험 정책 문서를 보존하고 #549 canonical/probe 계약을 3-way로 통합한다. #569의 제품 도입 DEFER와 Week 날짜 헤더 미검증 gate를 #549 dev probe PASS로 대체하지 않는다. Work Packet/CHANGELOG/manifest/lock을 함께 갱신하며 관련 없는 API/DB/CI contract는 N/A다.
+
+현재 요청 범위는 충돌 해소·새 head exact PR CI 시작까지이고 새 head의 unit/e2e/docker·독립 QA_FINAL/최종 ACCEPT는 실행 증거 전 NOT TESTED다. 후속 #550~#553 stacked PR은 #549의 head/version 이동에 따른 별도 정렬이 필요하다. `release_required=true / release_authorized=false`; merge/main/GHCR/tag/종료는 수행하지 않는다.
+
+<!-- Issue #549 인계: Unit72개 / Chromium 기술 실험9개 PASS. Week 월 헤더 의미 불일치 관측, 이전 baseline·원인 NOT TESTED이며 #551 활성화 전 gate로 검증한다. 사용자 요청에 따라 PR CI 결과를 모니터링하지 않는다. -->
+## Milestone Timeline 순차 구현 — #549 → #550 → #551 → #552 → #553
+
+사용자 요청에 따라 각 Issue의 구현·관련 문서·Local Fast Feedback·DOCUMENTATION_SYNC·독립 PRE_QA 후 원격 PR과 exact-head CI 등록까지만 진행한다. CI 결과를 모니터링하지 않고 다음 Issue로 넘어가며 merge/release/main/GHCR/Issue 종료는 수행하지 않는다. 선행 구현이 필요한 후속 PR은 앞선 exact head의 stacked branch를 기반으로 하고 main 통합과 구별한다. Epic #548은 등록 때의 완료 체크를 변경하지 않고 실제 단계별 증거를 연결한다.
+
+현재 첫 대상은 [#549 Work Packet](ISSUE_549.md), 최초 착수 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / application `0.102.1`, branch `feat/issue-549-milestone-timeline-foundation`, 최초 후보 MINOR `0.103.0`(최신 main 통합으로 `0.104.0` 조정)이다. MT1은 공통 표시 모델·Core 행 숨김/날짜 좌표/스크롤 기술 실험과 호환 계약을 구현하되 기존 Milestone 행/빠른 보기는 활성 변경하지 않는다. #550 관리 경로와 #551 lane을 준비한 뒤 #552에서 함께 전환하며 #553은 no-loss/교환/Export 및 종단간 회귀·사용자 가이드를 완성한다. release_required=true/release_authorized=false, 공식 quality/e2e/docker 및 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #565 — 위험도 기반 QA_FINAL / 필수 Reviewer 정책 (2026-10-09)
 
 [실행 계획](ISSUE_565.md)과 [QA 위험도 정책](../../QA_REVIEW_POLICY.md)에 따라 기존 필수 CI·문서 동기화·GHCR 승인 경계는 보존하면서 LOW/MEDIUM/HIGH 위험 분류, Reviewer 의무/N/A, Manager ACCEPT를 명문화한다. 기준 main `d41032358c5cbeb4758e124d037d9ada18af9ee9`, app `0.103.1`, branch `docs/issue-565-risk-based-qa-policy`. 이 정책 변경 자체는 HIGH이므로 별도 QA 검토자 부재 시 병합 전 BLOCKED; 사용자 요청 범위는 PR CI 시작까지다. #580 Actions 자동 QA 대체는 후속 별도 구현이며 아직 채택된 대체 Gate가 아니다.

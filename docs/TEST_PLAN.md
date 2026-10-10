@@ -1,3 +1,95 @@
+## Issue #595 — CI #2396.1 / metadata-only의 QA Job 단독 재실행 원장 (2026-10-10)
+
+[PR #597 CI #2396.1](https://github.com/planner77/masterGantt/actions/runs/38043610160): Quality/Unit/Build/TypeScript/Lint/QA Python, E2E/Docker aggregate SUCCESS. E2E shard는 변경 경로에 따라 SKIPPED이며 실제 브라우저 테스트를 재수행한 증거는 아니다. QA Final은 base의 보호 정책에 따라 BLOCKED(정상 fail-closed). 실제 AGENT 독립 QA·Manager 수용은 NOT TESTED.
+
+검증기 추가 결함: `verify_same_base_full_run()`이 `/runs/{id}/jobs` 기본 최신 attempt만 조회해, 과거 동일 Full CI Run attempt1의 Quality/E2E/Docker가 성공하고 attempt2는 QA Job만 다시 실행된 **성공한 동일 Head/base 원장**을 metadata-only 경로에서 놓친다. `trusted_source()`에 이미 적용한 `effective_run_jobs()`를 동일 metadata full-run 검증에서도 사용한다.
+
+수용 테스트: `test_metadata_full_ci_requires_matching_base`에서 GitHub attempt 필드 누락과 다른 base는 BLOCKED, 정확 attempt1 조회만 허용한다. 신규 `test_metadata_reuses_exact_full_run_after_qa_only_retry`에서 동일 PR/Head/base Full CI attempt1 필수 세 aggregate PASS + attempt2 QA-only PASS는 기존 Full CI 증거로 인정한다. attempt2 E2E 재실행 실패(이전 성공 덮어쓰기 금지)는 FAIL, 누락 attempt는 BLOCKED. QA/Manager 승인·보호 경로 탐지·원본 run conclusion 및 provenance 확인은 기존 조건 그대로 유지한다. 독립 QA 없이 이 메타데이터 원장을 protected 자동 PASS로 간주하지 않는다.
+
+## Issue #595 — CI #2391.1 P1: QA-only retry의 attempt별 required CI 복원 (2026-10-10)
+
+PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042395640)은 policy Python/TypeScript/Unit/Build/ESLint 및 Docker/required Quality·E2E가 PASS, 기존 base validator의 보호 파일 탐지로 자동 QA만 BLOCKED였다. E2E 구현 shard SKIPPED를 PASS로 재표시하지 않는다. P1 리뷰에서 `trusted_source()`의 기본 `/runs/{run_id}/jobs`가 GitHub의 최신 attempt에 한정되므로 **이전 시도 Quality/E2E/Docker 성공 + QA-only 재실행**에서 원장을 잃는 결함을 확인했다.
+
+교정 acceptance: 동일 GitHub run의 attempt 1..N(최대 10)을 **정확한 `/runs/{run_id}/attempts/{attempt}/jobs`**로 조회한다. 이름별 실제 최종 실행 attempt의 상태를 사용하고, aggregate가 최신 QA-only attempt에서 재실행되지 않았으면 이전 성공을 유지한다. 이후 attempt에 재실행된 required aggregate가 FAIL이면 이전 성공으로 대체하지 않고 거부한다. attempt 정보·Job 누락, 중복 name, 0 또는 안전 상한 초과 역시 BLOCKED다. Trusted 결과 원장에는 세 required aggregate의 실제 `source_attempt`를 보고한다.
+
+새 Python 테스트 `test_trusted_qa_only_retry_resolves_exact_prior_aggregate_jobs`: attempt1 세 aggregate success/QA failure, attempt2 QA success만 존재할 때 Trusted가 이전 세 required PASS를 확인하고 provenance=attempt1을 기록하는 긍정 case; attempt2 E2E failure 시 기존 성공보다 최종 실패 우선, 원본 attempt 누락, 이름 중복, attempt0/11 차단 부정 case. 기존 `test_default_branch_workflow_run_has_distinct_trust_source` 및 `test_protected_agent_requires_independent_review_and_owner_accept` 유지. 실제 default-branch Trusted 성공은 #593 provenance·독립 Reviewer·Manager 승인/병합 이후에만 재검증 가능하며 현재 NOT TESTED다.
+
+## Issue #595 — 보호 경로 AGENT QA 테스트 계획
+
+`scripts/test_qa_final_automated.py`의 기존 보호 경로·위험도·메타데이터 테스트는 유지한다. 독립 Reviewer의 GitHub APPROVED 검토/Head 일치, 별도 QA 결과, 원본 필수 Job의 성공 및 완료 시간, 저장소 owner의 검토 이후 승인, 정확한 PR/Issue/Head/base/Run/Attempt, 위험 수용 사유를 새로운 독립 증거 계약으로 검증한다.
+
+성공 시나리오: 현재 Head에 대한 별도 인간의 APPROVED 검토와 수동 QA_FINAL PASS, 원본 세 필수 CI 완료 이후의 owner 승인 기록이 모두 일치한다. 부정 시나리오: Reviewer 누락·작성자 자기 리뷰·Bot·비협업자·과거 SHA·COMMENTED-only·변경요청·다른 리뷰 ID·타 owner·잘못된 base/run/attempt·완료 전 승인·Job FAIL 및 `AUTOMATED_MANAGER`의 보호 경로 변경을 각각 거절한다. 사전 회귀는 `policy` Python 테스트와 원격 PR 전체 Quality/E2E/Docker로 확인한다.
+
+검증기 자체를 수정한 #595 PR은 HIGH/AGENT이므로 독립 QA와 Manager 검토 전에는 병합되지 않는다. 최초 #595 PR CI의 보호 변경 탐지 BLOCKED는 예상되는 정상 경계이며 세 기능 Required Check 결과와 구분한다. 신뢰된 정책이 main에 반영된 뒤에만 실제 정상 승인 경로를 독립적으로 실증할 수 있다. 별도 운영 실증 전 NOT TESTED다.
+
+## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
+
+- 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
+- `docs_required()`는 실제 `src/server/**` 서비스의 API/계약 영향도 분석에 `docs/API.md`를 포함한다. 다중 영역의 DB_SCHEMA/API/SCHEDULING_ENGINE/IMPORT_EXPORT/TEST_PLAN 문서 합집합과 각 문서의 UPDATED 또는 N/A(reason)를 유지한다.
+- CI TypeScript 입력 `next-env.d.ts` 및 모든 root `*.d.ts` ambient declaration은 protected path로 분류하며 rename 원본에도 동일한 차단을 적용한다.
+- Python 보안 회귀 2개 추가: `test_real_project_services_are_high_and_require_api_docs`, `test_next_env_declaration_is_protected_even_on_rename`; 기존 required Quality/E2E/Docker, 정책·릴리스 보호는 유지.
+- #580 자체는 `HIGH/AGENT` Bootstrap 이슈이며 `QA Final — Automated` SKIPPED는 PASS가 아님. 정확한 Head CI, 독립 QA_FINAL, reviewer thread 해결 및 Manager ACCEPT 이전 병합 불가.
+
+## Issue #580 — 리뷰 후속 P1×2/P2×1: QA 대체 경로 보안·API 문서 검증 (2026-10-10)
+
+- `POLICY_FILES` 단일 TOML 지정보다 넓게 모든 `.codex/**` 경로(특히 `.codex/agents/qa-docs.toml`)의 수정/rename을 보호된 QA 정책 변경으로 분류한다. 인수 기준: `qa_method=AUTOMATED_MANAGER`로 자동 승인 금지, 실제 독립 Reviewer 및 Manager 승인 필수. 회귀: `test_agent_instruction_files_always_protected`.
+- `src/server/repositories/**`는 실제 password hash/edit session token 등의 영속성·인증 영향으로 HIGH(추가로 `src/server/services/**`, `src/server/auth/**`, `src/server/db/**`, `src/app/api/**`를 보수적으로 HIGH)로 분류하고 MEDIUM 위험도 다운그레이드를 fail-closed 처리한다. 경로에 auth라는 단어가 없어도 위험도를 낮추지 않는다. 회귀: `test_auth_repository_is_high_even_without_security_filename`, `test_auth_repository_medium_risk_downgrade_blocked`.
+- 공개 DTO `src/contracts/**` 및 프로젝트 서비스 계약 변경에는 `docs/API.md` 영향 분석을 요구하며 DB repository의 `docs/DB_SCHEMA.md`와 합집합으로 계산한다. `docs_gate()`의 구조적 PASS는 업무·계약의 의미적 검토 및 독립 QA PASS를 대체하지 않는다. 회귀: `test_shared_public_contract_always_requires_api_documentation`.
+- 정식 GHCR/Ruleset/기존 3 required checks 변경 없음; 신규 QA Python 테스트는 기존 `policy` Job에서 실행. 이번 #580은 HIGH bootstrap `qa_method=AGENT`이므로 독립 검토, 최신 Head PR CI, 리뷰 스레드 해결, Manager ACCEPT 전 병합 불가.
+
+## Issue #580: Reviewer P1/P2 후속 — CI 실행 설정·위험도·도메인 문서 영향 강화 (2026-10-10)
+
+- `CI_EXECUTION_GLOBS`로 루트 `postcss.config.*`, `tsconfig*.json`, 그 외 `*.config.*` 및 잠금·CI 실행 설정의 수정/rename을 자동 QA 대체 차단 대상으로 분류. 이미 protected인 `.github/**`, `scripts/**`, `deploy/**`에 추가 적용.
+- HIGH 최소 위험도에 `src/contracts/import.ts`, `src/server/imports/**`, `src/server/exports/**`, `db/migrations/**`, Calendar/Scheduler/Dependency/Auth/Release 등을 포함. PR 본문 `risk_level=LOW`로 명시해도 파일 경로가 HIGH이면 BLOCKED. 실제 업무·의미 위험은 Manager가 추가 평가하며 자동 검사로 안전성을 확정하지 않는다.
+- `docs_required`는 DB→`docs/DB_SCHEMA.md`, API→`docs/API.md`, Scheduling→`docs/SCHEDULING_ENGINE.md`, Import/Export→`docs/IMPORT_SCHEMA.md`, `docs/IMPORT_EXPORT.md`를 영향 영역별 합집합으로 산출. Work Packet에서 UPDATED(실제 diff) 또는 `N/A(reason)` 증거 요구; 구조 검증이 문서 의미적 정합성 PASS를 뜻하지 않음.
+- 회귀: config files 수정/rename, HIGH import/export 위험도 위장 부정, 다중 도메인 문서 합집합/누락 BLOCKED. Python QA 단위 테스트는 PR CI Policy Job에서 실행. PR 자체는 기본 브랜치 trusted validator가 없는 Bootstrap이므로 실제 독립 QA 및 Manager ACCEPT 전 병합 금지.
+
+### #580 — 실제 QA Final 회귀 시나리오 / 실행 계약
+
+- 실행: `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py`를 `.github/workflows/ci.yml`의 **policy** Job에서 `python3 scripts/test-pr-metadata-evidence.py` 다음에 실행한다. 실행 Job/Step의 결과가 없으면 NOT TESTED (Vitest/npm test는 Python을 자동 실행하지 않음).
+- T-LOW: src-only, full Quality/E2E/Docker+DOC_SYNC, 실제 review 해결과 Manager ACCEPT → 사유 있는 AGENT QA N/A 또는 Trusted QA 근거.
+- T-MEDIUM: cross-area 요구 시 AGENT 독립 PASS 또는 protected 파일 미수정·Trusted QA+Manager 교차 검토; trusted 미실행 시 BLOCKED.
+- T-HIGH: CI/보안/QA 정책·composite-action/검증기·이전 경로 rename → 독립 AGENT PASS 필수; 일반 HIGH는 Trusted QA PASS와 강화된 체크리스트·잔여 위험 수용·Manager ACCEPT가 모두 있어야 MERGE_READY. 임의 risk=LOW 축소 금지.
+- T-METADATA: base/head 변경, 동일 SHA 과거 최신 full-run 부재, 취소·진행 중·실패, review thread·REQUEST_CHANGES → FAIL/BLOCKED.
+- T-SHA: default-branch workflow_run의 `github.sha`와 실제 checkout SHA 불일치 시 BLOCKED, JSON `validator_sha` 기록. 권한 read-only, PR 코드 checkout 금지.
+- 이들은 **의사결정 함수/정적 보안 계약의 단위 테스트**다. #580 최초 bootstrap에서 신뢰된 원격 Trusted QA PASS 및 독립 QA Final은 별도 증거 전 NOT TESTED.
+
+## #580 — 독립 QA F1–F4 보완 및 Source SHA 검증 (2026-10-10)
+
+- [독립 QA FAIL/REWORK](https://github.com/planner77/masterGantt/pull/587#issuecomment-6091333221) 후 보완: (F1) `.github/actions/**`, `scripts/**`, `deploy/**`, `tests/config/**` 및 CI 실행 설정 파일의 수정·rename을 AUTO QA에서 차단 (F2) trusted workflow는 event `github.sha`에 고정 checkout하고 실제 checkout `git rev-parse HEAD` 동등성 검사 및 `validator_sha` JSON 원장 기록 (F3) `policy` PR CI에서 Python QA unittest를 **실제로 실행**, LOW/MEDIUM/HIGH 및 HIGH Manager 위험 수용 누락, protected edit, metadata HEAD/base 회귀 보존 (F4) 현재 역할/소유권 표에 AGENT/AUTOMATED_MANAGER 기준 적용.
+- bootstrap의 `qa_bootstrap=success`는 Trusted QA를 실행하지 않았다는 의미를 보존하며 자동 QA PASS가 아니다. 신규 Trusted workflow가 main에 반영된 뒤에만 default-branch 검증이 가능하다. 이 Workflow Run은 기본 브랜치에 연결되므로 PR Head Ruleset required check로 자동 강제됐다고 보고하지 않는다. 독립 QA는 해당 검토자의 새 SHA 증거 필수, Manager ACCEPT는 별도.
+- SHA 변경 이후 기존 CI #2358.1와 독립 FAIL은 새 SHA의 PASS 근거가 아니다. 정책의 관리자 승인을 임의로 생략하거나 기존 3개 required checks/main/GHCR를 약화하지 않는다.
+
+
+### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
+
+- **신뢰 출처:** `.github/workflows/qa-final-trusted.yml`은 기본 브랜치에서 `workflow_run(CI completed)`를 수신하고, `main`의 검증 스크립트로 원본 CI Run ID/Attempt·Head/base·필수 세 Check·리뷰·문서/AC를 재조회한다. `pull_request` Workflow의 `QA Final — Automated`는 **참고용**이며 PR 작성자가 workflow를 바꿀 수 있기 때문에 신뢰된 병합 승인 근거가 아니다.
+- **API 검증:** 변경 파일의 `filename` 및 rename `previous_filename` 모두를 보호 목록/보안 정책 목록과 비교한다. 보안/QA/CI 정책 또는 실행 지침 자체를 변경하는 PR은 자동 PASS가 아니라 독립 Reviewer 필요. PR `edited`는 같은 Head라도 이전 성공한 **동일 base SHA**의 full-run 3개 gate 증거가 있어야 한다. 성공 보고서에는 `decision_reason`을 반드시 남긴다.
+- **Bootstrap·Required:** #580 PR은 아직 base에 trusted workflow가 없으므로 신뢰 검증 **NOT TESTED**. 독립 `qa_docs`/승인된 별도 인간 Reviewer의 exact-head QA Final 및 Manager ACCEPT 없이는 MERGE_READY가 아니다. `workflow_run`의 Status는 **기본 브랜치 SHA**에 붙으며 자동으로 PR Head의 Ruleset required check가 되지 않는다. 관리자 승인, 예상 source/검증 방식 확인 전 자동 차단 기능을 주장하거나 신규 Required Check를 추가하지 않는다.
+- **권한:** trusted workflow 자체는 `contents/actions/pull-requests/issues: read`만 사용, PR 코드 checkout/명령 실행, PAT/추가 Secret, `pull_request_target` 없음. GHCR/릴리스/기존 세 Required Gate 불변. 인증되지 않은 워크플로 이름만으로 Merge Gate를 자동 강제했다고 보고하지 않는다.
+- **적용:** 신규 정책은 #580 PR이 적법한 독립 검토·승인 뒤 main에 병합된 이후에만 적용한다. 자동 QA가 구현됐다 하더라도 실제 main Trusted Run을 확인하기 전까지 `AUTOMATED_MANAGER`를 사용할 수 없다.
+
+### 2026-10-10 — Issue #580 Bootstrap Gate 실패 보완
+
+- [PR #587 · 최초 CI #2334.1](https://github.com/planner77/masterGantt/actions/runs/37998967929): 기존 Quality, E2E 6/6, Docker 필수 aggregate **PASS**, 신설 `QA Final — Automated`만 최초 검증기 부재에 의한 명시적 `exit 1`으로 FAIL.
+- 최초 도입 시 `qa_bootstrap`에서 정확한 PR `base.sha`(신뢰된 main)의 검증기 존재를 확인한다. 없으면 `present=false`, 단계 요약 `QA Final — Automated: NOT TESTED (bootstrap)`, 실제 자동 QA Job은 **SKIPPED**로 남겨 허위 PASS를 방지한다. `qa_bootstrap=success`는 **독립 QA/QA_FINAL PASS가 아니다**.
+- 실제 자동 QA Job은 신뢰된 base validator가 존재할 때만 수행한다. 다른 정상 PR에서는 기존 3개 필수 CI와 실증 결과를 재사용하며 각 실패/중단/누락을 FAIL/BLOCKED로 판정한다.
+- 이 특별 단계는 최초 정책/Workflow/QA 검증기 변경 PR에만 적용되는 임시 부트스트랩 운영 경계다. #580 최초 PR은 HIGH이므로 별도 독립 reviewer의 실제 결과 및 Head별 Manager ACCEPT 없이는 `MERGE_READY=BLOCKED`. **신설 QA Check의 Ruleset Required 등록은 최초 도입/검증 완료 후 관리자 승인과 실효성 검증 전까지 금지.**
+- 메타데이터 편집 검증, 본문 변경, 뒤따르는 Head/base 변동, Ruleset 정책 적용·롤백은 별도 원격 검증이 필요하다. 현재 PR CI 시작은 결과 PASS/Manager 승인/병합이 아니다.
+
+## Issue #580 — Actions QA Final 대체 Gate (2026-10-10)
+
+- `qa_method=AGENT`: 실제 독립 `qa_docs`/별도 인간 Reviewer의 exact-HEAD 검토 증거가 있어야 한다. CI 성공으로 독립 QA PASS를 주장하지 않는다.
+- `qa_method=AUTOMATED_MANAGER`: 기본 브랜치의 실제 `QA Final — Trusted` 검증이 PASS하고 PR의 세 필수 CI도 완료된 후에도 Head별 `Manager ACCEPT`와 위험도별 수동/업무 검토를 분리해 기록한다. 독립 QA는 `N/A(대체 경로)`다.
+- LOW/MEDIUM/HIGH 및 기존 세 required checks, DOC_SYNC, 미해결 리뷰 해결, latest HEAD, main CI/GHCR/release gate는 유지한다. HIGH는 scope별 수동 검토·잔여 위험 명시적 수용이 필요하다.
+- `.github/workflows/ci.yml` / 검증기/보안 정책 자체가 변경되는 PR은 **trusted base validator가 자동 PASS하지 않으며**, 별도 독립 검토와 Manager 승인 필요. 최초 #580 bootstrap PR 역시 자동 PASS를 주장할 수 없다.
+- 현재 GitHub Ruleset Required Check에는 이 신규 Job이 자동 추가되지 않는다. 관리자 승인·설정·expected source 검증 전에는 **운영상 수동 Gate**다. GitHub review count=0도 Manager ACCEPT를 강제하지 않는다.
+- 관리자 승인 후 Ruleset을 설정하기 전, 최근 PR에서 QA Job 안정적 표시/성공·실패, expected source, path skip, 재검증/롤백을 확인한다. rollback 시 신규 required check만 사전 승인 후 제거하고 기존 세 check는 유지한다.
+- `AUTOMATED_MANAGER` 경로의 자동 판정은 문서 구조·AC 맵·review 상태만 검사한다. 의미적 요구사항/UX/보안 적합성은 Manager 수동 확인 사항이다. 결과 계약: `issue/pr/qa_method/risk_level/rule_version/pr_head_sha/base_or_test_merge_sha/workflow_run_id/run_attempt/quality_evidence/e2e_evidence/docker_evidence/documentation_sync/ac_test_coverage/unresolved_review/automated_qa/independent_qa/manager_decision/residual_risks/decision_reason`.
+- 계획·PR에는 `qa_method`, `risk_level`, 선택 이유, Head SHA, document impact, 각 AC의 test mapping, 잔여 위험을 필수로 기록한다. Manager ACCEPT 댓글은 승인 주체, 일시, 정확한 SHA, 범위, 미검증/위험수용을 담는다.
+- `AGENT` 경로와 `AUTOMATED_MANAGER` 선택은 독립 QA 실제 실행 유무에 기반한다. 차후 Head가 변경되면 기존 CI·QA·Manager ACCEPT 판정은 stale.
+- 이 정책은 #580 구현 PR이 병합되기 전에는 현행 #565 독립 QA 요구를 완화하지 않는다.
+
 # Test Plan
 
 ## Issue #530 / PR #581 — CI #2325.1 완료 영수증과 실제 검색 입력의 순서 분리
@@ -2750,6 +2842,36 @@ Core scale 단일 행·unit 일치·step=1 이외에는 forward/inverse/reveal `
 코드 판정 시나리오는 `python3 scripts/test-pr-metadata-evidence.py`, 정적 계약은 `python3 scripts/verify-issue-lifecycle.py`가 검증한다. 실제 Actions는 원격 검증으로 분리한다. PRE_QA/QA_FINAL은 해당 run 결과를 확보한 뒤에만 PASS 가능하다.
 
 - P1 수정: 별도 metadata_evidence Runner에서 pinned actions/checkout을 수행한 뒤 Python 증거 판정기를 호출하는 순서를 정적 테스트로 검사한다. 문서의 PASS/원격 CI 판정은 GitHub Actions 실측과 구분한다.
+
+## Issue #549 — Milestone Timeline MT1 검증
+
+`tests/domain/milestone-timeline-model.test.ts`는 canonical refs/no-loss, full Membership/Gate와 scope 밖 상속, 날짜 정렬/null/invalid/empty/manual/completion inconsistency, preference/types/selection 독립, 전체 subtree 영향의 신규 24개 Unit을 검증한다. 기존 관련 filter/Gate/subtree 32개와 구별한다. `tests/features/gantt/milestone-timeline-adapter.test.ts`는 설치 package-root runtime helper, 좌표/invalid/unsupported/zero geometry, 이미 가시 날짜 무이동, 축 밖 거부, 공개 filter/left 명령의 신규 5개 Unit이다.
+
+`tests/e2e/milestone-timeline-core.spec.ts`는 synthetic mocked canonical API의 실제 Chromium/Core 2.7.3 실험이다. 5폭(390/768/1024/1440/1920), Day/Week/leap/month/year/DST, Grid/Chart row와 Task-start ±1px, 숨은 Link endpoint/no-loss/Task→Task 유지, Milestone-only/empty axis, 같은 instance·scroll/resize/열/fullscreen/동적 축/peer return, mutation0을 검증한다. 최초 9개 중1PASS/8FAIL은 filter scale reset 및 fixture/name 오류로 기록하고 수정 후 결과와 소스 해시를 [상세 증거](MILESTONE_TIMELINE.md)에 구분한다.
+
+Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 전체 회귀·production build/Docker는 동일 PR exact-head GitHub Actions quality/e2e/docker로 판정한다. CI 미등록/진행 중은 NOT TESTED다. 공식 demo 실제 조작, 실기기/screen reader/Windows Excel/운영환경은 별도 NOT TESTED다.
+
+#549 Local Fast Feedback 최종: 모델 56 Unit과 adapter/date/timeline 16 Unit, 서로 다른 파일 합계 72 PASS. synthetic Chromium Core 9개 PASS, typecheck/변경 lint/Markdown/diff PASS다. native date 스크롤 NY Day -1px/Week -39px 불일치와 scale 변경 filter 초기화 최초 FAIL은 원본 근거를 남기고 단일 calendar-day/public-left adapter 및 dev-only controlled filter 재적용으로 검증했다. Milestone-only end가 기존 동적 축에 의해 관측 1일 확장된 최초 exact-end oracle FAIL도 보존하고 start 유지/end 비축소/날짜 reveal/원본·revision·mutation0을 검증했다. 첫 uncommitted probe exact source hash는 NOT CAPTURED이며 최종 실행 source SHA-256만 재현 비교한다. 원격 quality/e2e/docker와 독립 최종 QA는 NOT TESTED다.
+
+### #549 독립 UI/UX 비교 REWORK — Week 날짜 헤더 의미 gate
+
+현재 E2E 9개 PASS는 adapter x와 native Task start anchor의 ±1px, 행/Link/instance/viewport/no-loss assertion 결과이며 헤더 전체 날짜 의미를 검증한 결과가 아니다. 선별 Week `geometry-1440.png`의 T-year 시작 Jan 1, 2027 bar 위에 July 2026, `DST-reveal.png`의 Mar 10, 2026 bar 위에 November 2025가 표시된 불일치를 독립 비교에서 확인했다. 실제 캡처의 Week month/year 의미 일치는 FAIL이다. 원인·변경 전 baseline 재현은 NOT TESTED이며 제품/scale 알고리즘 수정 없이 제한을 기록했다. Day 헤더 일치는 비교 관찰 범위에 한정한다.
+
+#551 lane 활성화 전에 canonical 날짜/adapter x/native anchor/가시 Day 셀 또는 ISO week의 실제 날짜 구간/month-year 경계를 함께 비교하는 별도 E2E oracle을 추가하고, Day/Week·DST·월말/연말/윤일·scroll/resize/scale/동적 축 후 동일 source 브라우저 검증을 통과해야 한다. Task anchor 일치만으로 gate를 PASS하지 않는다. [불일치 화면과 활성화 gate](MILESTONE_TIMELINE.md#독립-uiux-비교에서-확인한-week-날짜-헤더-불일치)를 따른다.
+
+## #549 CI #2348.1 — #530 복원 가드와 #367 동적 축 연동 회귀 (2026-10-10)
+
+- 실패 증거: [PR CI #2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776), Chromium shard2 (86 PASS, 1 FAIL, 1 SKIP), `tests/e2e/milestone-timeline-core.spec.ts:171`에서 `width: 37404 → 37404`로 확장 기대 실패. Quality/Docker 및 다른 E2E shard들은 PASS, 전체 E2E aggregate FAIL. 확정된 browser trace source는 별도 확보하지 못했고 원인 판단은 코드 계약 기반이다.
+- 검증 경계: peer dashboard에서 일정으로 복귀하면 #530 guard가 programmatic `scroll-chart(left)` 요청을 이전 복원의 stale writer로 차단할 수 있다. #367 `nextTimelineScaleWidth`는 실제 public scrollLeft가 오른쪽 임계에 도달한 경우에만 확대한다. 이 둘을 하나의 E2E 시나리오로 검증하려면 실제 Chart 내부 trusted wheel로 새 사용자 의도를 전달해 guard를 해제하고, 그 뒤 개발용 공개 scroll probe로 오른쪽 임계점을 방문해야 한다.
+- E2E 수정: `chart.hover()` + `page.mouse.wheel(31, 0)` 후 오른쪽 공개 `scroll-chart` 명령 → `expect.poll` 최대10초 안에 **실제 width > 이전 width**. 빈 wait/일괄 skip이 아니다. 확대 후 같은 instance, 동일 filtered IDs, Link/canonical IDs 및 POST/PATCH0을 유지하며 기존 full screen/column resize/peer return assertions도 보존한다.
+- 정적 검토만으로 실제 브라우저 PASS를 주장하지 않는다. 새 PR exact head의 Chromium 6 shard, Quality, Docker aggregate 판정을 기다리되 요청 종료점은 CI 시작 확인이며 결과 모니터링은 별도 지시다. Backend/API/DB/Auth/Engine/Prod 동작의 변경은 N/A, `0.104.0` 후보 유지. #551 Week month-header 의미 gate와 #569 PoC DEFER는 별도다.
+
+## Issue #549 Main CI #2359.1 — 실제 trace의 휠 이벤트 역전 재발 방지 (2026-10-10)
+
+- [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229) / head `45a248f723e11133a4bd4c73ca14bb69b3071cbe`. E2E shard2 `milestone-timeline-core.spec.ts` 86 PASS/1 FAIL/1 SKIP; quality, 다른 shard5, Docker는 PASS, Main 임시 image job SKIPPED.
+- 원본 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 Gantt public event 기록으로 **Core/native 이전 left26640 → right-edge API requested36960 → 지연된 wheel requested26671**의 순서를 확인했다. `mouse.wheel` Promise 완료만으로 native wheel→Core state 반영 완료를 가정한 시험의 관측 경쟁이다.
+- 수정 acceptance: 실제 `page.mouse.wheel(31,0)` 후 `expect.poll`에서 public Core left가 이전 값보다 증가하고 native Chart left와 오차 ≤1px인지 확인 → 5 RAF settle → 관측된 scale width−chart width만큼 공개 right-edge 이동 → `width > 이전 width` 실제 확장(기존 bounded10s) 강제. timeout 실패 시 자동 통과·skip 금지. 동시에 이전 instance, visibleTaskIds, Link, canonical IDs, POST/PATCH0, column/grid/fullscreen/peer-return 불변을 유지한다.
+- 로컬 Browser 재실행, 새 PR CI quality/e2e/docker와 독립 HIGH QA는 실제 근거 전 NOT TESTED. #569 PoC DEFER, #551 Week 날짜 헤더 미해결 gate 유지. 테스트 정합 보완으로 제품 #530 guard/#367 확장 알고리즘/CI required checks를 변경하지 않는다. version `0.104.0` 동일, API/DB/GHCR workflow 영향 N/A.
 
 
 ### Issue #586 FINAL 원자성·동일 Issue 복수 PR 회귀
