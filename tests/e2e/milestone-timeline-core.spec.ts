@@ -170,9 +170,21 @@ test("#549 public event order/resize/columns/fullscreen/peer return retain filte
   // #530 protects a just-restored peer viewport against stale programmatic
   // scroll-chart commands. A trusted wheel inside the Chart is a new user
   // intent and releases that guard before the synthetic right-edge probe.
-  await frame.locator(".wx-chart").hover();
+  const chart = frame.locator(".wx-chart");
+  await chart.hover();
   await page.mouse.wheel(31, 0);
-  await probe(frame, "scroll", peerAfter.width - peerAfter.chartWidth);
+  // Main CI #2359.1 trace: the right-edge scroll-chart(36960) arrived
+  // BEFORE the delayed wheel scroll-chart(26671). Synchronize the actual
+  // Core and DOM wheel settlement, not merely mouse.wheel() completion.
+  await expect.poll(async () => {
+    const publicLeft = (await probe<Observation>(frame, "read")).left;
+    const nativeLeft = await chart.evaluate(node => (node as HTMLElement).scrollLeft);
+    return publicLeft > peerAfter.left && Math.abs(nativeLeft - publicLeft) <= 1;
+  }, { message: "trusted wheel settles in Core and native Chart before right-edge navigation", timeout: 10_000 }).toBe(true);
+  await settle(page);
+  const wheelApplied = await probe<Observation>(frame, "read");
+  expect(wheelApplied.left).toBeGreaterThan(peerAfter.left);
+  await probe(frame, "scroll", wheelApplied.width - wheelApplied.chartWidth);
   // #367 schedules extension on a requestAnimationFrame after Core scroll.
   // Preserve the real extension assertion; do not assume five RAFs always
   // include both the Core event and the new scale commit.

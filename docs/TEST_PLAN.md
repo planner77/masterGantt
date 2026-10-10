@@ -1,3 +1,10 @@
+## Issue #580: Reviewer P1/P2 후속 — CI 실행 설정·위험도·도메인 문서 영향 강화 (2026-10-10)
+
+- `CI_EXECUTION_GLOBS`로 루트 `postcss.config.*`, `tsconfig*.json`, 그 외 `*.config.*` 및 잠금·CI 실행 설정의 수정/rename을 자동 QA 대체 차단 대상으로 분류. 이미 protected인 `.github/**`, `scripts/**`, `deploy/**`에 추가 적용.
+- HIGH 최소 위험도에 `src/contracts/import.ts`, `src/server/imports/**`, `src/server/exports/**`, `db/migrations/**`, Calendar/Scheduler/Dependency/Auth/Release 등을 포함. PR 본문 `risk_level=LOW`로 명시해도 파일 경로가 HIGH이면 BLOCKED. 실제 업무·의미 위험은 Manager가 추가 평가하며 자동 검사로 안전성을 확정하지 않는다.
+- `docs_required`는 DB→`docs/DB_SCHEMA.md`, API→`docs/API.md`, Scheduling→`docs/SCHEDULING_ENGINE.md`, Import/Export→`docs/IMPORT_SCHEMA.md`, `docs/IMPORT_EXPORT.md`를 영향 영역별 합집합으로 산출. Work Packet에서 UPDATED(실제 diff) 또는 `N/A(reason)` 증거 요구; 구조 검증이 문서 의미적 정합성 PASS를 뜻하지 않음.
+- 회귀: config files 수정/rename, HIGH import/export 위험도 위장 부정, 다중 도메인 문서 합집합/누락 BLOCKED. Python QA 단위 테스트는 PR CI Policy Job에서 실행. PR 자체는 기본 브랜치 trusted validator가 없는 Bootstrap이므로 실제 독립 QA 및 Manager ACCEPT 전 병합 금지.
+
 ### #580 — 실제 QA Final 회귀 시나리오 / 실행 계약
 
 - 실행: `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py`를 `.github/workflows/ci.yml`의 **policy** Job에서 `python3 scripts/test-pr-metadata-evidence.py` 다음에 실행한다. 실행 Job/Step의 결과가 없으면 NOT TESTED (Vitest/npm test는 Python을 자동 실행하지 않음).
@@ -2819,3 +2826,10 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 - 검증 경계: peer dashboard에서 일정으로 복귀하면 #530 guard가 programmatic `scroll-chart(left)` 요청을 이전 복원의 stale writer로 차단할 수 있다. #367 `nextTimelineScaleWidth`는 실제 public scrollLeft가 오른쪽 임계에 도달한 경우에만 확대한다. 이 둘을 하나의 E2E 시나리오로 검증하려면 실제 Chart 내부 trusted wheel로 새 사용자 의도를 전달해 guard를 해제하고, 그 뒤 개발용 공개 scroll probe로 오른쪽 임계점을 방문해야 한다.
 - E2E 수정: `chart.hover()` + `page.mouse.wheel(31, 0)` 후 오른쪽 공개 `scroll-chart` 명령 → `expect.poll` 최대10초 안에 **실제 width > 이전 width**. 빈 wait/일괄 skip이 아니다. 확대 후 같은 instance, 동일 filtered IDs, Link/canonical IDs 및 POST/PATCH0을 유지하며 기존 full screen/column resize/peer return assertions도 보존한다.
 - 정적 검토만으로 실제 브라우저 PASS를 주장하지 않는다. 새 PR exact head의 Chromium 6 shard, Quality, Docker aggregate 판정을 기다리되 요청 종료점은 CI 시작 확인이며 결과 모니터링은 별도 지시다. Backend/API/DB/Auth/Engine/Prod 동작의 변경은 N/A, `0.104.0` 후보 유지. #551 Week month-header 의미 gate와 #569 PoC DEFER는 별도다.
+
+## Issue #549 Main CI #2359.1 — 실제 trace의 휠 이벤트 역전 재발 방지 (2026-10-10)
+
+- [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229) / head `45a248f723e11133a4bd4c73ca14bb69b3071cbe`. E2E shard2 `milestone-timeline-core.spec.ts` 86 PASS/1 FAIL/1 SKIP; quality, 다른 shard5, Docker는 PASS, Main 임시 image job SKIPPED.
+- 원본 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 Gantt public event 기록으로 **Core/native 이전 left26640 → right-edge API requested36960 → 지연된 wheel requested26671**의 순서를 확인했다. `mouse.wheel` Promise 완료만으로 native wheel→Core state 반영 완료를 가정한 시험의 관측 경쟁이다.
+- 수정 acceptance: 실제 `page.mouse.wheel(31,0)` 후 `expect.poll`에서 public Core left가 이전 값보다 증가하고 native Chart left와 오차 ≤1px인지 확인 → 5 RAF settle → 관측된 scale width−chart width만큼 공개 right-edge 이동 → `width > 이전 width` 실제 확장(기존 bounded10s) 강제. timeout 실패 시 자동 통과·skip 금지. 동시에 이전 instance, visibleTaskIds, Link, canonical IDs, POST/PATCH0, column/grid/fullscreen/peer-return 불변을 유지한다.
+- 로컬 Browser 재실행, 새 PR CI quality/e2e/docker와 독립 HIGH QA는 실제 근거 전 NOT TESTED. #569 PoC DEFER, #551 Week 날짜 헤더 미해결 gate 유지. 테스트 정합 보완으로 제품 #530 guard/#367 확장 알고리즘/CI required checks를 변경하지 않는다. version `0.104.0` 동일, API/DB/GHCR workflow 영향 N/A.

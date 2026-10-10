@@ -75,3 +75,13 @@
 - AC9: 정책/운영/source revision/Manager 승인·rollback 문서 기록.
 - status: DOCUMENTATION_SYNC 재검토 전 NOT TESTED; independent_qa=NOT TESTED (이전 Head FAIL stale); manager_decision=NOT TESTED. 정책/Workflow Bootstrap은 AGENT 필수, MERGE_READY=BLOCKED.
 - 최신 main 45a248f723e11133a4bd4c73ca14bb69b3071cbe (#549 등) 정렬 필요. 제품 version은 최신 main 기준 0.104.0이며 이번 CI/QA 운영 수정 자체에 추가 버전 증분 없음, `release_required=false`, `release_authorized=false`.
+
+## 2026-10-10 신규 QA P1/P2 재검토 및 최신 main 정렬
+
+- 기존 PR CI #2360.1 (run 38008686035) Quality/E2E/Docker SUCCESS; QA Final — Automated는 bootstrap SKIPPED/NOT TESTED, Trusted main workflow NOT TESTED. 신규 Python 보안 시나리오 16/16 PASS였으나 [독립 검토 후 정적 QA FAIL](https://github.com/planner77/masterGantt/pull/587#issuecomment-6092035103)로 구분.
+- **보완 A/P1:** `postcss.config.*`, `tsconfig*.json` 포함 루트 CI 빌드 구성 패턴과 rename 원본을 모두 보호하며 `test_all_tracked_ci_config_patterns_and_renames`를 추가.
+- **보완 B/P1:** `src/contracts/import.ts`, `src/server/imports/**`, `src/server/exports/**`, `db/migrations/**`, Scheduling/Calendar/Dependency 등의 파일 기반 최저 위험도를 HIGH로 처리하며 위험도 LOW 위장 PR을 BLOCKED로 처리.
+- **보완 C/P2:** `docs_required()`가 DB/API/Scheduling/Import·Export의 도메인 문서 계약을 합집합으로 계산하고 문서마다 UPDATED 또는 사유가 충분한 N/A를 요구. `docs/DB_SCHEMA.md`, `docs/API.md`, `docs/SCHEDULING_ENGINE.md`, `docs/IMPORT_SCHEMA.md`, `docs/IMPORT_EXPORT.md`의 실제 파일 존재를 확인.
+- **Work Packet 상태:** 이전 설명의 `45a248f...`는 1e0b Head에서 실제로 정렬 완료되었고 뒤이어 main이 `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`로 이동함. 해당 main의 새로운 #549 파일을 보존하며 새 Head로 재정렬/CI 실행 필요.
+- DOCUMENTATION_SYNC 갱신: QA validator·Python 회귀, `docs/TEST_PLAN.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` 및 본 Work Packet. `DESIGN.md`/DB_SCHEMA 문서는 #580에서 제품 계약 변경 없음(N/A).
+- 진행 gate: `risk_level=HIGH`, `qa_method=AGENT`; 새 Head 독립 QA Final/Manager ACCEPT/리뷰 thread resolution 없이는 MERGE_READY 불가. `release_required=false`, `release_authorized=false`, 제품 v0.104.0 보존.

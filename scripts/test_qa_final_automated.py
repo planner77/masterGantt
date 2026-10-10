@@ -191,6 +191,65 @@ class Cases(unittest.TestCase):
         self.assertFalse(qa.protected_paths(
             [{"filename":"src/features/example.ts","status":"modified"}])[1])
 
+    def test_all_tracked_ci_config_patterns_and_renames(self):
+        for path in ("postcss.config.mjs", "tsconfig.runtime-tools.json",
+                     "tsconfig.browser.json", "jest.config.ts",
+                     "tailwind.config.js", "next.config.ts",
+                     "playwright.config.ts", ".github/actions/node-setup/action.yml"):
+            self.assertIn(path, qa.protected_paths(
+                [{"filename":path,"status":"modified"}])[1])
+            self.assertIn(path, qa.protected_paths(
+                [{"filename":"docs/renamed.md","status":"renamed",
+                  "previous_filename":path}])[1])
+        self.assertFalse(qa.protected_paths(
+            [{"filename":"src/features/project-card.tsx","status":"modified"}])[1])
+
+    def test_high_import_and_export_no_low_disguise(self):
+        for path in ("src/contracts/import.ts",
+                     "src/server/imports/project-import-service-core.ts",
+                     "src/server/exports/project-export-service.ts",
+                     "db/migrations/0022_task_milestone_memberships.sql",
+                     "src/features/gantt/scheduling.ts"):
+            self.assertEqual(qa.risk_floor({path}), "HIGH", path)
+        self.assertEqual(qa.risk_floor({"src/app/api/projects/route.ts"}), "MEDIUM")
+        self.assertEqual(qa.risk_floor({"docs/README.md"}), "LOW")
+
+    def test_high_import_low_pr_is_rejected(self):
+        from unittest.mock import patch
+        class Stub:
+            prefix="/repos/planner77/masterGantt"
+            def get(self,url):
+                if "/pulls/" in url:
+                    return {"title":"[Issue #580] 위험도 위장",
+                            "body":"Refs #580\nrisk_level: LOW\nqa_method: AUTOMATED_MANAGER"}
+                return {}
+            def pages(self,url):
+                if "/files" in url:
+                    return [{"filename":"src/contracts/import.ts","status":"modified"}]
+                return []
+        env={"GITHUB_EVENT_NAME":"pull_request","PR_NUMBER":"587",
+             "GITHUB_RUN_ID":"100","METADATA_ONLY":"false"}
+        with patch.object(qa,"snapshot"), patch.object(qa,"evidence",return_value={}):
+            self.blocked(lambda: qa.check(env, {}, Stub()))
+
+    def test_domain_documents_union_and_missing_contract(self):
+        paths={"db/migrations/0022_task_milestone_memberships.sql",
+               "src/app/api/projects/route.ts",
+               "src/server/imports/project-import-service-core.ts",
+               "src/lib/scheduling.ts",
+               "docs/TEST_PLAN.md"}
+        required=qa.docs_required(paths)
+        for document in ("DESIGN.md", "docs/TEST_PLAN.md", "docs/DB_SCHEMA.md",
+                         "docs/API.md", "docs/SCHEDULING_ENGINE.md",
+                         "docs/IMPORT_EXPORT.md", "docs/IMPORT_SCHEMA.md"):
+            self.assertIn(document, required)
+        plan=("## DOCUMENTATION_SYNC\n"
+              "- \x60DESIGN.md\x60: N/A(이 PR은 구조 검증만 수행하며 UI 설계를 변경하지 않습니다)\n"
+              "- \x60docs/TEST_PLAN.md\x60: UPDATED\n"
+              "- \x60docs/DB_SCHEMA.md\x60: N/A(기존 DB 계약 그대로 유지하는 테스트 범위)\n"
+              "## AC_TEST_COVERAGE\n- AC1: tests/domain/test_example.py 검증 예정\n")
+        self.blocked(lambda:qa.docs_gate(plan,paths,{"AC1"}))
+
     def test_composite_action_pr_is_not_automatically_accepted(self):
         from unittest.mock import patch
         class Stub:

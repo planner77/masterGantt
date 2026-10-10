@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fail-closed, read-only QA Final: CI evidence is NOT independent QA/Manager approval."""
 import base64
+from fnmatch import fnmatchcase
 import json
 import os
 import re
@@ -28,6 +29,12 @@ CI_EXECUTION_EXACT = {
     "vitest.config.ts", "vitest.config.mts", "eslint.config.mjs",
     "next.config.ts", "next.config.js", "next.config.mjs",
 }
+# Root build/test tool configurations are executable CI inputs, including files
+# introduced after this policy version. Conservative by design.
+CI_EXECUTION_GLOBS = (
+    "tsconfig*.json", "postcss.config.*", "*.config.*",
+    "*lock*.json", "*.lock", ".npmrc*", ".yarnrc*",
+)
 POLICY_FILES = {
     "AGENTS.md", "docs/QA_REVIEW_POLICY.md", "docs/SECURITY.md",
     "docs/ISSUE_LIFECYCLE.md", "docs/AGENT_PROMPTS.md",
@@ -181,15 +188,36 @@ def snapshot(event, live, run, env):
 
 
 def docs_required(paths):
-    if paths & GATE_FILES or any(p.startswith(".github/workflows/") for p in paths):
-        return QA_DOCS
-    if any(p.startswith(".codex/agents/") for p in paths):
-        return {"AGENTS.md", "docs/AGENT_CONFIGURATION.md", "docs/QA_REVIEW_POLICY.md"}
-    if any(p.startswith(("src/", "app/", "migrations/")) for p in paths):
-        return {"DESIGN.md", "docs/TEST_PLAN.md"}
-    if any(p.startswith(("tests/", "scripts/test")) for p in paths):
-        return {"docs/TEST_PLAN.md"}
-    return set()
+    """All affected contracts form a UNION; no early return for mixed-scope PRs.
+
+    Structural verification only; a Manager separately confirms that each
+    contract is semantically up to date or the documented N/A is defensible.
+    """
+    required = set()
+    for path in paths:
+        p = path.lower()
+        if (path in GATE_FILES or path in POLICY_FILES or
+                p.startswith((".github/", "scripts/"))):
+            required.update(QA_DOCS)
+        if p.startswith(".codex/agents/"):
+            required.update({"AGENTS.md", "docs/AGENT_CONFIGURATION.md",
+                             "docs/QA_REVIEW_POLICY.md"})
+        if p.startswith(("src/", "app/", "db/", "migrations/")):
+            required.update({"DESIGN.md", "docs/TEST_PLAN.md"})
+        elif p.startswith("tests/"):
+            required.add("docs/TEST_PLAN.md")
+        if p.startswith(("db/", "migrations/")) or re.search(
+                r"(?:^|/)(?:db|database|migrations?|schema)(?:/|[_.-])", p):
+            required.add("docs/DB_SCHEMA.md")
+        if p.startswith(("src/app/api/", "app/api/", "src/pages/api/", "pages/api/")):
+            required.add("docs/API.md")
+        if re.search(r"calendar|schedul|dependency|duration|milestone", p):
+            required.add("docs/SCHEDULING_ENGINE.md")
+        if "import" in p or "export" in p:
+            required.update({"docs/IMPORT_EXPORT.md", "docs/IMPORT_SCHEMA.md"})
+            if "excel" in p:
+                required.add("docs/EXCEL_EXPORT.md")
+    return required
 
 
 def section(body, title):
@@ -273,8 +301,28 @@ def protected_paths(files):
     protected = {p for p in all_paths
                  if p in GATE_FILES or p in POLICY_FILES or
                  p in CI_EXECUTION_EXACT or
-                 p.startswith(CI_EXECUTION_PREFIXES)}
+                 p.startswith(CI_EXECUTION_PREFIXES) or
+                 ("/" not in p and any(fnmatchcase(p, pattern)
+                                      for pattern in CI_EXECUTION_GLOBS))}
     return all_paths, protected
+
+
+def risk_floor(paths):
+    """Fail closed for known HIGH/medium-impact paths; never infer semantic PASS."""
+    for path in paths:
+        p = path.lower()
+        if (p in GATE_FILES or p in POLICY_FILES or
+                p in CI_EXECUTION_EXACT or p.startswith(CI_EXECUTION_PREFIXES) or
+                ("/" not in p and any(fnmatchcase(p, g)
+                                       for g in CI_EXECUTION_GLOBS)) or
+                re.search(r"auth|security|session|permission|migration|calendar|"
+                          r"schedul|dependency|release|ghcr|import|export|duration|"
+                          r"milestone|safety|secret|credential|token", p) or
+                p.startswith(("db/", "migrations/", "src/contracts/"))):
+            return "HIGH"
+    if any(p.startswith(("src/", "app/", "db/", "tests/e2e/")) for p in paths):
+        return "MEDIUM"
+    return "LOW"
 
 
 def blocking_reviews(reviews):
@@ -304,9 +352,10 @@ def check(env, event, gh):
     require(bool(paths), "PR diff 없음")
     require(not protected, "QA 검증기/Workflow/보안 정책의 변경·rename 감지: "
             + ", ".join(sorted(protected)) + " — 독립 검토 및 Manager 승인 필요")
-    high = any(re.search(r"auth|security|migration|calendar|schedul|dependency|release|ghcr",
-                         p, re.I) or p.startswith(".github/workflows/") for p in paths)
-    require(not high or risk == "HIGH", "HIGH 위험 범위를 임의로 LOW/MEDIUM 처리 불가")
+    minimum_risk = risk_floor(paths)
+    rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+    require(rank[risk] >= rank[minimum_risk],
+            f"위험도 하향 금지: 제출 {risk}, 파일 기반 최소 {minimum_risk}")
     prior_full_run = None
     if env.get("METADATA_ONLY") == "true":
         prior_full_run = verify_same_base_full_run(
