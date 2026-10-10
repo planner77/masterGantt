@@ -75,3 +75,12 @@
 - 이전 PR CI [#2430.1](https://github.com/planner77/masterGantt/actions/runs/38088923929) exact Head `e6a925985ae89a6762961dbd3e6365f1ec5faaeb`의 required 3종 PASS와 리뷰 P2 두 건 resolved를 확인했다. 이 Work Packet 변경으로 Head가 바뀌므로 이전 CI/QA/Owner 검토를 새 Head의 PASS로 전용하지 않는다.
 - 새 Head의 Trusted QA `automated_qa` PASS 후에도 `manager_decision`은 기계 검증으로 자동 ACCEPT되지 않는다. 사용자 명시 병합 지시, GitHub 인증 Owner 신원, 최종 Head/base/Run/Attempt, HIGH 잔여 위험(새 provenance 검증기 자체의 의미/운영 검증 T1은 병합 후 필요) 확인을 독립적인 Owner 감사기록으로 남긴 후 병합한다.
 - Main CI 성공 및 `ghcr.io/planner77/mastergantt:ci-<merge SHA>` 검증은 병합 이후 비문서 main Job/Finalizer 범위이다. `release_required=false`; 정식 tag/rolling GHCR release는 승인된 범위 아님.
+
+## PR CI #2440.1 — 기준 Base 변경 경합에 대한 운영 보완 (2026-10-11)
+
+- [PR CI #2440.1](https://github.com/planner77/masterGantt/actions/runs/38092539854), Head `67066ea86fa4e708e9a63f54cd46edd4bcfe04bb`, run ID `38092539854`, attempt 1: Quality/Policy, E2E 6/6, Docker 3개 Required aggregate는 모두 SUCCESS. `QA Final — Automated`만 `BLOCKED`하여 전체 CI FAIL.
+- Actions 로그에서 검증 시 캡처된 `EVENT_BASE_SHA=e41696430a78045998e35edad7cab5bb901a097e`였으나, CI 중 PR base가 `367b160b2f1db75feb7af1a5ea67046b9828b836`로 재지정되었다. `snapshot()`은 현재 PR base와 이벤트 base가 다를 때 `기준 main/base 변경, test-merge stale`로 **의도적으로 차단**했다.
+- 처리: main과 PR base를 모두 `367b160b2f1db75feb7af1a5ea67046b9828b836`로 확인하고 변경을 멈춘 상태에서 이 문서/CI 운영 지침만 갱신한 **새 Head 전체 PR CI**를 시작한다. 검증 중 PR base/head 재지정 금지; 불가피하게 바뀌면 이전 run을 PASS로 재사용하지 않고 새 Head/PR event 기준으로 full CI를 다시 시작한다.
+- `scripts/qa_final_automated.py::snapshot()`의 fail-closed 동작과 `test_head_and_merge`의 stale base/merge 거부 회귀는 유지한다. 시차 있는 GitHub API 출처를 강제로 일치시키거나 FAIL을 허위 PASS로 바꾸지 않는다.
+- 최신 원본 증거/Trusted QA/Owner ACCEPT는 새 Head에서 다시 판정한다. #598 Owner-managed QA·3 required checks·strict main·GHCR 릴리스 정책은 그대로 유지한다. T1 Trusted QA 정상 경로 실증은 별도 후속 대상.
+

@@ -1,3 +1,10 @@
+## Issue #593 — PR CI 실행 중 Base 변경·test-merge stale 대응 (2026-10-11)
+
+- #2440.1의 Quality/E2E/Docker 세 필수 Job은 SUCCESS이나, PR CI 시작 **후** PR base를 최신 main으로 재설정하여 원본 `pull_request` 이벤트의 `EVENT_BASE_SHA`와 현재 PR `base.sha`가 불일치했다. base/merge fingerprint를 비교하는 `QA Final — Automated`는 `기준 main/base 변경, test-merge stale`로 차단한 것이 정상 동작이다.
+- 표준 순서: **(1)** main ref 확인 → **(2)** PR branch에 최신 main 통합·충돌 해결 → **(3)** PR의 base ref/SHA가 정확한 main인지 확인하고 필요하면 *CI 시작 전에* 수정 → **(4)** 이 상태를 고정하고 단일 새 Head push로 full PR CI 생성 → **(5)** 원본 Head/base/test-merge SHA·run ID/attempt 일치 및 세 required check 검증. 실행 중 PR base/head를 다시 지정하지 않는다.
+- 실행 중 base/head가 변경됐다면 CI 재시도를 통한 구 이벤트 우회, 이전 PASS 재사용 또는 validator 완화를 금지한다. 새로운 immutable Head/pull_request 이벤트의 전체 CI를 실행한다. `scripts/test_qa_final_automated.py::test_head_and_merge`의 stale base/merge fail-closed 검사는 보존한다.
+- `QA Final — Automated`/Trusted는 정책상 원본 CI 증거 검사이며 Owner 최종 병합 승인과 별개다. Ruleset과 GHCR/정식 release 승인 방식은 변경하지 않는다.
+
 ## Issue #598 — Owner-managed QA 정책 (2026-10-10)
 기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](QA_REVIEW_POLICY.md)이다.
 
