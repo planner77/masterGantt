@@ -1,3 +1,10 @@
+## Issue #550 — CI #2376.1 기능 PASS와 보호 파일 자동 QA 차단 구분 (2026-10-10)
+
+- 원본 [PR #559 CI #2376.1](https://github.com/planner77/masterGantt/actions/runs/38036518629), head `f00835e8806c4c2dd73833a21d249890f62a2f7a`: Quality/Unit/Build, Chromium 6/6 shard 및 aggregate, Docker smoke/aggregate **PASS**. `QA Final — Automated` job `114171633994`만 FAIL, 결론은 보호된 `package.json`/`package-lock.json` 수정 때문에 **AGENT 독립 QA 및 Manager 승인 필요**.
+- [#580 신뢰 Validator](https://github.com/planner77/masterGantt/blob/36b0eaa74a0614a76d1ed867bddb548149feb4bc/scripts/qa_final_automated.py): `protected_paths()`는 두 파일을 CI 실행 제어 입력으로 분류하고 `qa_method=AGENT`도 자동 승인 PASS로 바꾸지 않는다. 이는 필수 3개 gate 실패가 아니다.
+- 대응: #550의 필수 SemVer 0.105.0을 유지한 채 안전한 수동 검토·승인 후 실제 QA 상태 검증 가능하도록 [Issue #595](https://github.com/planner77/masterGantt/issues/595)로 분리. #593의 Trusted source provenance와 연계하되 보호 파일 경계를 약화하지 않는다.
+- 이번 변경은 원인·상태·후속 의존성을 문서화하는 변경이다. 작업 코드·테스트·CI Workflow/validator·Ruleset/버전은 불변. 기존 PASS는 `f00835e...`에만 해당하며, 새 PR Head의 quality/e2e/docker 및 QA는 시작/종료 전 NOT TESTED. **자동 QA의 현 정책상 반복 BLOCKED가 예상됨을 숨기지 않는다.**
+
 ## Issue #550 — CI #2373.1 자동 QA 차단의 계약 분석 (2026-10-10)
 
 - [PR #559 CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185) head `406d0e2e1b1794f5cefc4472a0443843dd9df210`: Quality/typecheck/lint/unit/build PASS, Chromium E2E 6개 shard와 aggregate PASS, Docker smoke 및 aggregate PASS. 실패는 자동 QA job 114165826438 한 건이며 이유는 `Primary Issue title/Refs 정확히 일치해야 합니다`.

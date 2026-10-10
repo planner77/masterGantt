@@ -1,3 +1,7 @@
+## Issue #550 — CI #2376.1 보호 버전 파일 QA 정책 BLOCKED 및 #595 분리 (2026-10-10)
+
+[PR #559](https://github.com/planner77/masterGantt/pull/559)의 [CI #2376.1](https://github.com/planner77/masterGantt/actions/runs/38036518629), exact head `f00835e8806c4c2dd73833a21d249890f62a2f7a`는 기존 세 required quality/e2e6/docker 모두 PASS이나 자동 `QA Final — Automated`는 `package.json`/`package-lock.json` 보호 정책으로 BLOCKED. #580의 fail-closed 조건은 제품 릴리스 0.105.0의 필수 version bump와 겹치며, 코드 버전 위장·원장 제거 또는 검증기 약화로 처리하지 않는다. [후속 Issue #595](https://github.com/planner77/masterGantt/issues/595)에 trusted AGENT 독립 QA 승인 복구 경로를 분리했다. 현재 요청은 #550 실행 계획/검증 원장 갱신, 신규 정확 SHA PR CI 시작까지다. 정책 보완 승인 및 독립 QA Final 전 merge/GHCR/issue close는 BLOCKED다.
+
 ## Issue #550 — QA Final 규칙 정합화 및 새 PR CI (2026-10-10)
 
 PR #559 head `406d0e2e1b1794f5cefc4472a0443843dd9df210`의 [PR CI #2373.1](https://github.com/planner77/masterGantt/actions/runs/38034499185)은 quality/e2e6/docker aggregate가 모두 **PASS**였으나 신규 `QA Final — Automated`가 `Primary Issue title/Refs` 조건으로 BLOCKED했다. 기존 feature/E2E/domain을 임의로 변경하지 않고 제목 `Issue #550`·단일 `Refs #550`, 명시 HIGH/AGENT, Issue AC1~AC11, Work Packet DOCUMENTATION_SYNC/AC_TEST_COVERAGE 및 review thread 정합을 보완한다. 버전 `0.105.0` 변경은 유지하므로 보호된 package/lock 정책으로 자동 QA는 독립 검토 대신 PASS할 수 없다. `qa_required=true` AGENT 경계와 신규 exact-head quality/e2e/docker 및 별도 QA를 구분한다. 새 CI **시작까지만** 수행하며 병합/main/GHCR/Issue 종료는 제외한다.

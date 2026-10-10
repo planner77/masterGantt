@@ -169,3 +169,11 @@ PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](htt
 - AC11: `milestone-management.spec.ts`, `milestone-dashboard-state.spec.ts`와 `project-workspace-tabs-518.spec.ts`에서 기존 Grid 행·유형 quick-view·탭 보존 검증
 
 ※ 위 매핑은 테스트 위치와 기존 수행 범위를 가리키며, 전체 검증/운영환경/독립 QA를 자동 PASS로 확정하지 않는다. #2373.1 required 3개 aggregate PASS는 이전 exact head의 증거이고 새 head 재검증은 별개다.
+
+## 2026-10-10 PR CI #2376.1 — 보호된 버전 원장과 AGENT QA 정책 차단
+
+[PR #559 CI #2376.1](https://github.com/planner77/masterGantt/actions/runs/38036518629), head `f00835e8806c4c2dd73833a21d249890f62a2f7a`: Quality/TypeScript/Lint/Vitest/Build **PASS**, Chromium E2E 6개 shard와 required aggregate **PASS**, Docker smoke/required aggregate **PASS**. 전체 workflow 결과만 FAIL. `QA Final — Automated` job `114171633994`의 정확한 사유는 `QA 검증기/Workflow/보안 정책의 변경·rename 감지: package-lock.json, package.json — 독립 검토 및 Manager 승인 필요`다.
+
+현재 base/main의 `scripts/qa_final_automated.py`는 `CI_EXECUTION_EXACT`에 두 버전 파일을 포함하며, `protected_paths()` 결과가 비어 있지 않으면 `qa_method=AGENT`에도 자동 QA를 BLOCKED로 처리한다. 이는 정상적인 HIGH/버전 증분 0.105.0에 대한 **유효한 승인 차단**이며 세 required 기능 검증 실패와 혼동하지 않는다. package/root lock의 버전을 되돌리거나 validator/Workflow/Ruleset을 임의 완화하지 않는다.
+
+후속 정책 설계: [Issue #595](https://github.com/planner77/masterGantt/issues/595). #593의 Trusted provenance 보완과 중복하지 않고, 별도 독립 Reviewer의 exact-head QA와 Manager 승인 없이 protected PR의 자동 PASS나 병합을 허용하지 않는 설계를 요청했다. #550은 HIGH, `qa_required=true`, `qa_method=AGENT`, `release_required=true`, `release_authorized=false` 유지. 새 문서-only 커밋은 기존 기능 코드를 수정하지 않지만 **새 Head의 CI 결과는 별도 증거**다. 자동 QA는 #595 정책/승인 경로가 변경되지 않는 한 계속 BLOCKED 예상; 결과를 QA_FINAL PASS로 기재하지 않는다.
