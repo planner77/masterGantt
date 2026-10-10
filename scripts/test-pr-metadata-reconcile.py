@@ -3,7 +3,6 @@
 import importlib.util
 import pathlib
 import unittest
-from unittest.mock import patch
 
 P = pathlib.Path(__file__).resolve().parent / "reconcile-pr-metadata.py"
 spec = importlib.util.spec_from_file_location("reconcile_metadata", P)
@@ -45,7 +44,10 @@ class GH:
         if "/pulls/" in path:
             return self.live
         if "/actions/runs/" in path:
-            return self.meta[0]
+            run_id = int(path.rsplit("/", 1)[-1])
+            matched = [entry for entry in self.meta if entry["id"] == run_id]
+            assert len(matched) == 1, f"unexpected run id: {path}"
+            return matched[0]
         raise AssertionError(path)
     def collection(self, path, name):
         if name == "workflow_runs":
@@ -91,12 +93,16 @@ class Reconcile(unittest.TestCase):
             self.assertEqual(ctx.exception.state, "TRACE_INVALID")
     def test_failed_nonmetadata_job_is_not_retried(self):
         for name in ("변경 경로 판정", m.META_JOB, *m.REQUIRED):
-            g = GH()
-            for job in g.jobs:
-                if job["name"] == name:
-                    job["conclusion"] = "success"
-            with self.assertRaises(m.NoRecovery):
-                self.checked(g)
+            with self.subTest(job=name):
+                g = GH()
+                for job in g.jobs:
+                    if job["name"] == name:
+                        # A failed trace/changes step is not an evidence-only
+                        # failure; other jobs must fail in the original case.
+                        job["conclusion"] = "failure" if name == "변경 경로 판정" else "success"
+                with self.assertRaises(m.NoRecovery) as caught:
+                    self.checked(g)
+                self.assertEqual(caught.exception.state, "NO_RETRY")
     def test_other_pr_and_stale_head_rejected(self):
         for source in [run(id=20, number=999), run(id=20, head="c"*40)]:
             with self.assertRaises(m.NoRecovery):
