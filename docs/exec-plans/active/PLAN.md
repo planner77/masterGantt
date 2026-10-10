@@ -1,3 +1,7 @@
+## Issue #550 — PR CI #2368.1 E2E 10건 실패 보완 (2026-10-10)
+
+[#550 Work Packet](ISSUE_550.md)와 [검증 계획](../../TEST_PLAN.md)을 갱신한다. 기존 PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb` Actions [#2368.1](https://github.com/planner77/masterGantt/actions/runs/38032386192)의 quality/docker PASS, E2E shard2 9건과 shard5 1건 FAIL을 기록한다. 기존 #495 디자인 계약대로 `Milestone 상세`/`Milestone 검색`/zero-result 조사 정합을 맞추고 #550 테스트 선택자를 수정한다. 근본 도메인·보안·Gantt 변경 없이 문서 동기화 및 신규 head PR CI 시작까지만 진행하며 merge/main/GHCR/Issue 종료는 제외한다.
+
 ## Issue #550 — 최신 main 통합 및 Codex P2 수정 (2026-10-10)
 
 기준 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`, 후보 0.105.0. PR #559 최초 exact-head CI #2216.1 PASS는 과거 SHA이며 412 재제출 차단·관리 표 전용 cap·최신 Milestone 문구 및 관련 검증을 반영한 새 exact-head PR CI 시작 후 별도 판정한다. 병합/GHCR/종료 비범위.

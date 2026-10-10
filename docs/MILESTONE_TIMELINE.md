@@ -171,3 +171,7 @@ MILESTONE_TIMELINE/PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/REQUIREMENTS/TEST_PLAN/
 
 
 #550 PR 리뷰 보완: 412 POST 충돌 시 생성 초안을 stale로 전환해 동일 If-Match 재제출을 막고, 480px 높이 제한을 Milestone 관리 목록에만 적용하여 기존 공수 bucket 표에 전파하지 않는다.
+
+### #550 PR CI #2368.1 — Milestone 이름·검색·상세 진입 정합 (2026-10-10)
+
+최신 main 통합 시 관리 표의 사용자 표기 일부(`단계 상세`)와 결과 0건 텍스트의 조사(`Milestone가`), #550 테스트에 남은 `단계 검색`이 기존 Milestone UI 계약 및 #463/#518 E2E 선택자와 어긋났다. **표시 및 접근성 이름을 동일한 `Milestone` 계약으로 복구**하고 E2E가 올바른 이름을 검증한다. 빈 프로젝트와 조건 결과 0개를 계속 구분한다. #551/552 Timeline 활성화, domain/API/DB/상태 저장/Date·Week geometry 계약의 변경은 N/A다.

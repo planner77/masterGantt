@@ -74,6 +74,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#550 관리 목록 ${wid
   await expect(panel(page).getByRole("button", { name: "Milestone 추가", exact: true })).toBeDisabled();
   const rows = panel(page).locator("tr[data-milestone-task-id]");
   expect(await rows.count()).toBe(30);
+  await expect(rows.first().getByRole("button", { name: /Milestone 상세$/ })).toBeEnabled();
   const trigger = rows.first().getByRole("button", { name: / 관리$/ });
   await trigger.focus(); await page.keyboard.press("Enter");
   const menu = page.getByRole("dialog", { name: / 관리$/ }); await expect(menu).toBeVisible();
@@ -105,7 +106,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#550 관리 목록 ${wid
   await expectSameGanttRoot(page, identity);
   expect(JSON.stringify({ tasks: state.tasks, links: state.links, revision: state.project.revision })).toBe(before);
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
-  await panel(page).getByLabel("단계 검색", { exact: true }).fill("no-match-550");
+  await panel(page).getByLabel("Milestone 검색", { exact: true }).fill("no-match-550");
   await expect(panel(page).getByText("조건에 일치하는 Milestone이 없습니다.", { exact: false })).toBeVisible();
 });
 
@@ -220,7 +221,7 @@ test("#550 보고 검색 응답 역전 · 최신 조건과 canonical revision �
     const report = dashboardFixture(state, params); started.resolve(); await gate.promise;
     await route.fulfill({ json: { data: report } }); delivered.resolve();
   });
-  const search = panel(page).getByLabel("단계 검색", { exact: true });
+  const search = panel(page).getByLabel("Milestone 검색", { exact: true });
   await search.fill("late-550"); await started.promise;
   await search.fill("M-001");
   await expect(panel(page).getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");

@@ -119,3 +119,9 @@ frontend 최종55파일 동결 manifest SHA-256 `9938792fe390ff094330af065e7b72a
 ## 2026-10-10 main 통합 및 Review 보완
 
 최신 #549 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f`에 맞춰 #550용 0.105.0 후보로 조정한다. Codex P2: 412 conflict 후 새 POST 차단, 관리 표만 480px cap 적용. 최신 Milestone 용어 및 E2E·문서를 동기화한다. #2216.1 성공은 이전 head에 한정하고 새 exact-head CI 및 독립 QA_FINAL/Manager ACCEPT는 미검증. release_required=true, release_authorized=false.
+
+## 2026-10-10 PR CI #2368.1 FAIL → 용어·E2E delta REWORK
+
+PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](https://github.com/planner77/masterGantt/actions/runs/38032386192)은 quality/docker PASS이나 Chromium shard2(9 FAIL)·shard5(1 FAIL)로 전체 FAIL. 독립 UI 명칭 계약은 이미 `DESIGN.md`/#495의 `Milestone`이다. 최신 main 통합에서 상세 aria-label이 `단계 상세`로 남고 빈 결과 문구가 `Milestone가`, #550 UI spec은 오래된 `단계 검색` 선택자를 사용한 것을 정확한 run/job/log와 현재 source로 확인했다.
+
+관리 표 상세 aria-label/메뉴 `Milestone 상세`, zero-result `Milestone이 없습니다`, #550 spec `Milestone 검색`으로 수렴시킨다. existing #463/#518/E2E HTTP/SQLite 기대 이름을 완화하지 않고 readonly 상세 명령이 활성인지를 추가 검증한다. `PROJECT_UX`, `MILESTONE_TIMELINE`, `TEST_PLAN`, 이 Packet/PLAN/CHANGELOG를 동기화한다. `DESIGN.md`, `AGENTS.md`, API/DB/SECURITY/SCHEDULING은 원칙·계약 변경 N/A. 버전 0.105.0 유지, release_required=true/release_authorized=false. 새 exact-head CI 전/시작 시 새 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED; 병합/main/GHCR/Issue 종료는 비범위.

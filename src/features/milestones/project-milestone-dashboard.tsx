@@ -601,7 +601,7 @@ export function ProjectMilestoneDashboard({
               />
             ) : (
               <p>
-                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 Milestone가 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
+                {tasks.some(task => task.type === "milestone") ? "조건에 일치하는 Milestone이 없습니다." : "프로젝트에 Milestone이 없습니다."} 전체 공수 bucket은
                 아래에서 별도로 확인합니다.
               </p>
             )}

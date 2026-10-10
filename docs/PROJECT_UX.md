@@ -1230,3 +1230,7 @@ Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개�
 
 
 Issue #550 통합 보완: 412 생성 충돌 후 초안은 보존하지만 반복 제출은 비활성화한다. 세로 480px 상한은 관리 표만 적용한다.
+
+### Issue #550 — PR CI #2368.1 용어/접근성 회귀 보완 (2026-10-10)
+
+기존 #495의 사용자 표시 `Milestone` 용어를 새 관리 표와 기존 독립 Dashboard에 일관되게 사용한다. 표의 상세 버튼 접근성 이름은 `<Milestone 이름> Milestone 상세`, 검색 label은 `Milestone 검색`, 검색 결과 0개(프로젝트 Milestone은 존재)는 `조건에 일치하는 Milestone이 없습니다.`다. 프로젝트 전체에 Milestone이 없을 때의 `프로젝트에 Milestone이 없습니다.`와 구분한다. 관리 명령의 `Milestone 상세`도 같은 용어를 사용한다. 서버 canonical ID/조회 범위/전체 KPI·Ready·Revision·편집 권한은 변경하지 않는다.
