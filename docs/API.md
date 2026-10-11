@@ -1505,3 +1505,27 @@ resourceDashboard: {
 신규 API나 DB 계약은 추가하지 않는다. GET은 Project UUID 기반 공개 읽기이고, 읽기 POST query는 exact Origin, readonly Excel POST는 exact Origin과 strong `If-Match`를 검증한다. 편집 session 없이 조회·Export할 수 있지만 Task 변경은 server session을 요구한다. 다른 Project Task 선택은400, stale drill은409, stale Export는412이며 전체 파일 생성 실패를 유지한다. 현재 제품에 별도의 private Project 모델은 없다. 공개 링크의 읽기 접근을 편집 권한이나 조직 SSO 권한으로 설명하지 않는다.
 
 실제 회귀는 `tests/server/resources/resource-kpi-integration.test.ts`와 `tests/e2e/resource-kpi-integration-api.spec.ts`에 있다. 원격 `quality/e2e/docker`와 실제 reverse proxy/SSO 운영 검증은 이 로컬 증거와 별도로 판정한다.
+
+## Issue #615 — Process Catalog F1 API
+
+기존 Project Master admin 로그인/cookie를 재사용한다. inline 공통 생성의 `401 PROJECT_MASTER_ADMIN_SESSION_REQUIRED`는 관리자 로그인/등록 권한 필요 안내 계약이며 Project edit cookie로 대체하지 않는다. 공통 공정 관리 화면은 후속 구현이다. 아래 `{kind}`는 `types | standards | occurrences | work-areas`이며 wire의 `work-areas`와 DTO의 `workAreas`를 구분한다. ID는 canonical UUID v4, 쓰기 요청은 JSON의 허용 필드만 받는다. 모든 응답/오류는 private, no-store다.
+
+| Method / path | 인증·revision / 동작 |
+| --- | --- |
+| GET `/api/process-catalog/admin` | admin; processCatalogRevision ETag, types/standards/occurrences/workAreas |
+| POST `/api/process-catalog/admin/{kind}` | admin + Origin + strong If-Match(catalog); create201 |
+| PATCH/DELETE `/api/process-catalog/admin/{kind}/{id}` | admin + Origin + strong If-Match(catalog); update/delete200 |
+| GET `/api/process-catalog/admin/standard-diff?businessUnitId=…&productId=…&siteEntityId=…` | admin; missingStandardIds/retiredOccurrenceIds/changed(fields,canApply) |
+| POST `/api/process-catalog/admin/occurrences/apply-standard` | admin + Origin + strong If-Match(catalog); body triple + standardIds |
+| GET `/api/projects/{publicId}/logistics/process-context` | 기존 direct-link public readonly/선택 edit session; 정확 triple의 bounded context, ETag=Project revision |
+| PUT `/api/projects/{publicId}/logistics/process-mappings/{processId}` | Project edit session + Origin + strong If-Match(Project); body processCatalogRevision, occurrenceId, optional workAreaId |
+
+공통 항목은 `{id,code,name,active,sortOrder,usageCount}`다. create의 code/name 필수, active 기본true, sortOrder 기본0. standards에는 productId/processTypeId, occurrences에는 businessUnitId/productId/siteEntityId/processTypeId와 nullable standardProcessId, WorkArea에는 occurrenceId가 필수다. Process Type code는 immutable이다. PATCH는 부분 필드이며 공통 부모 변경은 사용 중409, WorkArea reparent는 항상409다. 이름 중복은 허용하고 owner 범위 code 중복은409다. name≤200자, code≤64자, sortOrder 정수0..1000000이다.
+
+목록 query는 search/limit/active만 허용한다. HTTP search는 비어 있지 않은 최대100자, limit은1..200(기본200), active는 true/false다. 결정적 sortOrder/name/code/public ID 순서를 사용하고 상한 초과는 `422 PROCESS_CATALOG_LIMIT_EXCEEDED`로 거부한다. 잘린 목록을 전체로 가장하지 않는다. F1은 페이지네이션을 제공하지 않으며 전체 catalog의 entity별200개 상한을 넘기는 mutation도 응답 overflow로 전체 rollback한다. 규모 확대는 scoped 관리·페이지네이션을 포함한 후속 계약이 필요하다. Project context는 projectRevision/processCatalogRevision/projectMasterRevision, nullable public ID selection과 selectionValid를 함께 반환한다. 불완전·무효 legacy triple은 selectionValid=false와 빈 후보 배열로 남긴다. 다른 BU/product/site occurrence/WorkArea를 포함하지 않고 현재 매핑의 비활성 참조를 필터 때문에 잃지 않는다.
+
+표준 diff는 조회만 수행한다. 명시 apply는 지정한 활성 제품 표준의 missing occurrence 생성 또는 name/sortOrder 차이를 반영하며 다른 사업장 및 Project 자유 공정을 변경하지 않는다. retiredOccurrenceIds는 자동 삭제·재활성화하지 않는다. 공통 변경은 catalog revision만, Project 매핑 변경은 Project revision만 한 번 증가한다. 동일 값 no-op은 증가하지 않는다.
+
+매핑 body 예: `{ "processCatalogRevision": 3, "occurrenceId": "<UUID>", "workAreaId": null }`. occurrenceId=null은 명시 해제이며 WorkArea는 비어 있어야 한다. 성공 응답은 `{data:{project,logistics,permission:"edit",processCatalogRevision,mappings,operation:{kind:"processMapping",processId,changed}}}`로 canonical snapshot을 반환한다. WorkArea 미선택은 null, legacy 미매핑은 mappings 행 부재로 구분한다. mapping.active는 local 공정/occurrence/type/표준/BU·제품·사업장/선택 WorkArea의 전체 활성 경로를 반영하며 비활성 기존 참조도 ID를 보존한다. 외국 occurrence/WorkArea는 원자적으로 거부한다.
+
+401 관리자/편집 session 필요, 403 Origin, 400 허용하지 않은 입력·WorkArea 소유 불일치, 409 활성/사용 중/분류·중복 충돌, 412 stale catalog/Project revision을 구분한다. 기존 metadata는 사용 매핑의 triple 변경에 `409 PROJECT_PROCESS_MAPPING_IN_USE`, mapped Template 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`, mapped 공정 hard delete는 `409 PROCESS_IN_USE`다. 제약 원문을 공개하지 않는다. 후속 UI·Target/member/binding route는 이번 변경에 없다.

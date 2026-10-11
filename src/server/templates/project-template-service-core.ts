@@ -2,6 +2,7 @@ import { projectStageGates } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
 import { readStageSnapshot, withStageProjection } from "../projects/milestone-stage-core";
 import { PersistedScheduleInvalidError } from "../projects/project-service-core";
+import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -73,6 +74,7 @@ export class ProjectTemplateError extends Error {
   readonly code:
     | "TEMPLATE_NOT_FOUND"
     | "TEMPLATE_INACTIVE"
+    | "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED"
     | "INVALID_TEMPLATE_REQUEST"
     | "SOURCE_PROJECT_NOT_FOUND"
     | "UNAUTHORIZED"
@@ -82,6 +84,7 @@ export class ProjectTemplateError extends Error {
     code:
       | "TEMPLATE_NOT_FOUND"
       | "TEMPLATE_INACTIVE"
+      | "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED"
       | "INVALID_TEMPLATE_REQUEST"
       | "SOURCE_PROJECT_NOT_FOUND"
       | "UNAUTHORIZED"
@@ -188,6 +191,14 @@ export class ProjectTemplateService {
       }
       if (!source || source.revision !== expectedRevision) {
         throw new RevisionMismatchError();
+      }
+
+      // The current snapshot format has no versioned occurrence capability.
+      if (new ProcessCatalogRepository(this.database).hasMappings(source.id)) {
+        throw new ProjectTemplateError(
+          "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED",
+          "공정 occurrence 매핑을 보존하는 Template 형식이 지원되기 전에는 저장할 수 없습니다.",
+        );
       }
 
       const calendar = resolveProjectWorkingCalendar(this.database, source.id);

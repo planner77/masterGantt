@@ -1,3 +1,11 @@
+## [0.106.0] - 2026-10-12
+
+### Added
+
+- Issue #615: 공통 공정 종류·제품 공유 표준·사업부/제품/사업장 적용 공정·전용 WorkArea의 migration 0025와 관리자 API, 프로젝트 문맥 조회 및 명시 매핑 API를 추가한다.
+- 프로젝트 공정 트리·Task/설비 연결을 보존하며 공통 catalog와 Project revision을 분리한다. 참조 중 분류 변경·마스터 삭제·공정 삭제를 보호하고 프로젝트 복사에서 공통 ID를 유지한다.
+- 매핑이 있는 원본의 Template 저장은 versioned 참조 포맷 지원 전 409로 차단한다. 신규 화면·Target/member/binding은 후속 단계다. 후보 버전이며 정식 release는 미승인이다.
+
 ## [Unreleased] — Issue #614 Target F0 계약·공통 검산
 
 - Target 도메인/공정·WorkArea/전체·선택 연결/합집합 상속/관련 계획 공수/이관·UI 계약과 Resource 우선 실행 계획을 기록한다.

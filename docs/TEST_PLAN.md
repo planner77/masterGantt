@@ -3201,3 +3201,21 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 `tests/fixtures/logistics-targets.ts`와 `tests/domain/logistics-targets-contract.test.ts`는 [Target 계약](LOGISTICS_TARGETS.md)의 공통 F0-L/P/Q/F/R case ID를 검산한다. whole/subset·self/subtree 합집합/출처/legacy 무추론·공정 전용 WorkArea·15대/시스템3식·같은 binding/member 필터는 test-only 계약 oracle이고 신규 제품 구현이 아니다. 관련 계획 공수 A5/B5/전체5M/D·공동담당/중첩Group·T0/A/R·all-unset/partial/configured0·선택80/Project140은 기존 Resource KPI/Plan pure engine을 호출한다.
 
 실행 결과와 AC1~AC6 mapping은 [#614 Work Packet](exec-plans/active/ISSUE_614.md)에 기록한다. 신규 SQLite/API/copy/Template/JSON/Excel·브라우저 접근성/반응형·Gantt 보존·운영 backup-restore는 [후속 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)의 NOT TESTED이며 fixture PASS로 대체하지 않는다. 원격 quality/e2e/docker는 exact-head PR CI의 실제 결과만 증거다.
+
+## Issue #615 — 공정 catalog F1 검증
+
+관련 Local Fast Feedback은 `tests/server/process-catalog/`의 실제 SQLite service/migration/Request-Response/compatibility 검증이며 원격 전체 회귀와 구분한다. [Work Packet](exec-plans/active/ISSUE_615.md)의 최종 실행 원장과 AC mapping을 따른다.
+
+| AC | 필수 검증 |
+| --- | --- |
+| AC1 | 동일 product 표준의 두 사업장 공유, BU 포함 exact triple, 한 사업장 추가 비전파, 표준 apply가 Project 공정 자동 생성하지 않음 |
+| AC2 | WorkArea0..N·mapping null, assembly A/B와 inspection 구역 없음, 다른 occurrence 구역 원자적 거절 |
+| AC3 | 같은 label 다른 ID·owner별 duplicate409, inactive 기존 보존/신규 거절, usage·삭제/reparent 보호, diff 조회 무변경/명시 apply |
+| AC4 | fresh/0024 upgrade·restart/FK, 기존 자유 트리/Task·설비·미매핑 수정 유지, copy local ID 치환/global ID 유지, mapped Template409 |
+| AC5 | admin vs Project session401, Origin403, conflict409, Project/catalog stale412, body 대기 중 만료/폐기·revision 재검증, 실패 전체 rollback·성공 revision+1/no-op0 |
+| AC6 | scoped bounded context·selection/revision snapshot, owner/triple index query plan, N+1 없는 고정 SQL, overflow422·다른 triple 비노출 |
+| AC7 | API/DB/요구/보안/아키텍처/Target/copy/template/계획/CHANGELOG 정합 및 Markdown link/docs gate |
+
+기존 master/copy/template/logistics·DB migration 테스트를 직접 관련 회귀로 함께 실행한다. typecheck/변경 파일 lint/version/문서 링크/diff check는 보조 근거다. 새 UI가 없으므로 화면 캡처·390/768/1024/1440px·keyboard·SVAR demo 조작은 N/A다. 실제 운영 migration/DB backup-restore/proxy/TLS·Windows Excel은 NOT TESTED이며 테스트용 SQLite를 운영 검증으로 확대하지 않는다.
+
+최종 PR의 quality/e2e/docker 결과는 CI 시작 시점에는 NOT TESTED다. 이 요청에서는 시작만 확인하고 완료를 모니터링하지 않는다. QA_FINAL·Owner Manager ACCEPT·merge/main GHCR/release도 별도 gate다.

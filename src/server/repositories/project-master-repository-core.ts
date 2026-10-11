@@ -104,7 +104,10 @@ export class ProjectMasterRepository {
       SELECT
         (SELECT count(*) FROM projects WHERE business_unit_id = @id) +
         (SELECT count(*) FROM projects WHERE product_id = @id) +
-        (SELECT count(*) FROM projects WHERE site_entity_id = @id) AS count
+        (SELECT count(*) FROM projects WHERE site_entity_id = @id) +
+        (SELECT count(*) FROM product_standard_processes WHERE product_id = @id) +
+        (SELECT count(*) FROM site_product_processes
+          WHERE business_unit_id = @id OR product_id = @id OR site_entity_id = @id) AS count
     `).get({ id: itemId }) as { count: number };
     return row.count;
   }
@@ -134,8 +137,20 @@ export class ProjectMasterRepository {
   }
   relationProjectUsage(b: number,p: number,s: number | null): number {
     return s === null ?
-      (this.database.prepare("SELECT count(*) AS count FROM projects WHERE business_unit_id=? AND product_id=?").get(b,p) as {count:number}).count :
-      (this.database.prepare("SELECT count(*) AS count FROM projects WHERE business_unit_id=? AND product_id=? AND site_entity_id=?").get(b,p,s) as {count:number}).count;
+      (this.database.prepare(`SELECT
+        (SELECT count(*) FROM projects WHERE business_unit_id=@b AND product_id=@p) +
+        (SELECT count(*) FROM site_product_processes WHERE business_unit_id=@b AND product_id=@p) AS count
+      `).get({ b, p }) as {count:number}).count :
+      (this.database.prepare(`SELECT
+        (SELECT count(*) FROM projects WHERE business_unit_id=@b AND product_id=@p AND site_entity_id=@s) +
+        (SELECT count(*) FROM site_product_processes WHERE business_unit_id=@b AND product_id=@p AND site_entity_id=@s) AS count
+      `).get({ b, p, s }) as {count:number}).count;
+  }
+
+  projectHasProcessMappings(projectId: number): boolean {
+    return this.database.prepare(
+      "SELECT 1 FROM project_process_occurrence_mappings WHERE project_id = ? LIMIT 1",
+    ).get(projectId) !== undefined;
   }
   addRelation(b: number,p: number,s: number | null): void {
     if(s === null) this.database.prepare("INSERT INTO business_unit_products (business_unit_id,product_id) VALUES (?,?)").run(b,p);

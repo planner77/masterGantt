@@ -136,7 +136,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -177,6 +177,7 @@ describe("SQLite connection and schema", () => {
         "0022_task_milestone_memberships.sql",
         "0023_deprecate_task_assignment_roles.sql",
         "0024_project_master_relations.sql",
+        "0025_process_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -199,6 +200,9 @@ describe("SQLite connection and schema", () => {
         "logistics_equipment_types",
         "logistics_system_types",
         "logistics_type_catalog_state",
+        "process_catalog_state",
+        "process_types",
+        "product_standard_processes",
         "project_equipment",
         "project_equipment_resource_roles",
         "project_equipment_systems",
@@ -207,6 +211,7 @@ describe("SQLite connection and schema", () => {
         "project_master_admin_sessions",
         "project_master_catalog_state",
         "project_master_items",
+        "project_process_occurrence_mappings",
         "project_processes",
         "project_system_links",
         "project_system_processes",
@@ -221,11 +226,13 @@ describe("SQLite connection and schema", () => {
         "resource_roles",
         "resources",
         "schema_migrations",
+        "site_product_processes",
         "task_assignments",
         "task_equipment_links",
         "task_milestone_memberships",
         "task_system_links",
         "tasks",
+        "work_areas",
         "work_calendar_dates",
         "work_calendar_rules",
       ]);
@@ -245,6 +252,7 @@ describe("SQLite connection and schema", () => {
         "links_project_predecessor_idx",
         "links_project_successor_idx",
         "logistics_catalog_admin_sessions_expiry_idx",
+        "product_standard_processes_type_idx",
         "project_equipment_project_process_idx",
         "project_equipment_resource_roles_equipment_idx",
         "project_equipment_resource_roles_resource_idx",
@@ -252,6 +260,8 @@ describe("SQLite connection and schema", () => {
         "project_equipment_systems_system_idx",
         "project_master_admin_sessions_expiry_idx",
         "project_master_items_category_active_sort_idx",
+        "project_process_occurrence_mappings_occurrence_idx",
+        "project_process_occurrence_mappings_work_area_idx",
         "project_processes_project_parent_idx",
         "project_processes_project_sort_order_idx",
         "project_system_links_source_idx",
@@ -268,6 +278,8 @@ describe("SQLite connection and schema", () => {
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
         "resource_roles_role_resource_idx",
+        "site_product_processes_standard_idx",
+        "site_product_processes_type_idx",
         "system_resource_one_primary",
         "task_assignments_group_idx",
         "task_assignments_group_unique_idx",
