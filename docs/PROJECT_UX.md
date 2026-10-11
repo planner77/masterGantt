@@ -1,5 +1,21 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #570 — 조회 투영과 메타데이터 갱신
+
+작업명·설명·상태·진척 등 canonical metadata만 바뀌고 표시 집합·계층·열 설정이 같으면 Grid/Chart를 같은 Core instance에서 갱신한다. 이 변경만으로 filter나 columns를 재설정하지 않는다. 활성 이름/상태 필터의 실제 결과가 달라지는 변경은 membership 변화로 처리하며 빈 결과를 전체 Task로 바꾸지 않는다.
+
+Summary 접힘, 선택, 사용자 열폭은 조회·canonical 갱신의 별도 상태다. 0건 필터·scale 전환 후 조건을 초기화할 때도 기존 Summary 접힘 의도를 실제 Core 상태에 다시 맞추며, 초기화가 자식을 임의로 여는 명령이 되지 않는다. 기존 자식이 있는 접힌 Summary로 passive canonical 이동이 발생해도 접힘 의도를 보존하며, 첫 자식 추가의 기존 auto-open 동작은 유지한다. 접힌 자식과 가상화된 offscreen 행을 누락 오류로 혼동하지 않되 실제 필수 행 누락·잘못된 순서는 승인하지 않는다. scope/filter/scale/instance가 달라진 오래된 동기화는 최신 상태를 덮지 않는다. 숨김·inert·zero-size 화면은 성공한 layout 완료로 보고하지 않는다.
+
+빈 Summary와 마지막 자식을 삭제한 Summary는 필터·열·scale 변경 뒤에도 같은 Gantt instance의 행으로 남는다. 자식 없는 Summary의 저장된 열림 의도를 복원하기 위해 native 열기 명령을 발행하지 않는다. Milestone 조건과 일반 Task 필터를 바꿔도 정상적인 표시 집합·선택 정리 계약을 유지한다.
+
+마지막 dated 자식을 밖으로 이동해 Summary 일정이 미산정으로 돌아가면 해당 Summary의 bar를 제거한다. 행 ID가 같다는 이유로 이전 dated Summary 표시를 남기지 않으며 같은 Core instance에서 필요한 구조 재투영을 수행한다.
+
+metadata 저장 전후 표시 집합·일정 geometry가 같으면 public/DOM 가로 위치도 보존한다. 복원 직후 늦게 도착한 native scroll은 기존 보호 경로에서 처리하며, 실제 사용자 스크롤·검색/필터 입력·조회 집합·geometry·revision 변경에는 보호를 해제한다. active name filter의 실제 결과가 빈집합으로 바뀐 경우에는 원래 위치를 다시 적용하지 않는다.
+
+표시 결과가 빈집합이면 후속 metadata/no-op 동기화도 위치 보존 snapshot을 생성하지 않는다. 빈 결과에서 native clamp 중 잠시 관측한 비영점 좌표를 저장해 다시 적용하지 않으며, 같은 Gantt instance의 빈 결과와 public/DOM 위치 정합을 유지한다.
+
+이 변경은 새 사용자 조작이나 Milestone 표시 전환을 추가하지 않는다. 현재 Milestone 행/빠른 보기 호환, readonly와 401/412 복구, draft/focus/viewport 보호 및 서버 revision 계약을 유지한다. 실제 제품 projection receipt와 검증 범위는 [#570 실행 기록](exec-plans/active/ISSUE_570.md)에 남긴다.
+
 ## Issue #569 — 기하·날짜 이동의 설계 실험
 
 [Adapter ADR](GANTT_ADAPTER_ADR.md)의 fixture는 개발·테스트 전용이며 기존 프로젝트 화면을 바꾸지 않는다. 명령 반환만으로 날짜 이동 완료를 알리지 않고 actual Core/native 좌표와3안정frame을 따로 확인한다. hidden/inert/zero-size/scroll capacity 부족은 측정·복원을 중지하는 명시적 결과로 다룬다.
@@ -1055,9 +1071,13 @@ Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적�
 
 Task Editor 진입·탭 이동·취소는 동일 API/instance와 현재 WBS 범위·fullscreen·scale·행 선택·tree·실제 열 폭 및 public/DOM scroll을 보존한다. scoped 표시 ID 배열은 상위 렌더마다 새로 생성될 수 있으므로 filter-tasks는 같은 API와 정렬·중복 제거한 ID 집합에 대해 재적용하지 않는다. null(필터 해제), 빈집합, 실제 ID 변경 및 새 API는 구분하고 기존 `open:false`와 serialized queue를 유지한다. metadata는 기존 canonical sync가 소유하며 필터 dependency에 Task 객체 identity를 넣지 않는다. active name/status 필터의 metadata 변경으로 표시 ID 집합이 바뀌면 raw query가 같아도 metadata-only 복원 대상에서 제외한다.
 
-metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정렬·중복 제거한 ID 집합), Project Calendar, 행 순서와 각 Task의 taskId/externalId/parentExternalId/siblingOrder/type/start/end/duration/requestedStart/scheduleMode/baselineStart/baselineDuration/baselineEnd 및 scoped SVAR Link 의미가 같은 경우에 한정한다. name/description/url/progress/status의 실제 변경이 있어야 snapshot을 기록한다. 날짜·기간·유형·계층·Link 변경은 이 보존 경로를 사용하지 않는다.
+metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정렬·중복 제거한 ID 집합), Project Calendar, 행 순서와 각 Task의 taskId/externalId/parentExternalId/siblingOrder/type/start/end/duration/requestedStart/scheduleMode/baselineStart/baselineDuration/baselineEnd 및 scoped SVAR Link 의미가 같은 경우에 한정한다. name/description/url/progress/status 변경은 Task metadata signature로, Project metadata 저장은 canonical revision 진행으로 구분한다. 기존 Editor·no-op 렌더의 일회성 snapshot/복원은 유지하고 잔존 metadata guard만 실제 Task metadata 또는 Project revision 변경에 한정한다. 날짜·기간·유형·계층·Link 변경은 이 보존 경로를 사용하지 않는다.
 
-canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue의 layout settle 뒤 ensureTimelineEnd를 다시 확인한다. 같은 API, 실제 연결된 Gantt DOM, 동일한 현재 semantic filter signature, visible 상태, continuity key, 최신 sync version, scale, public gridWidth와 열 ID/width/hidden 의미가 유지되고 Chart/Grid pointer·wheel·keyboard 입력이 없을 때만 실제 0으로 reset된 축을 공개 scroll-chart로 한 번 복원한다. 91px처럼 0이 아닌 clamp를 임의 복원하지 않는다. scope/filter/date 이동이나 사용자 scale·열 변경을 이전 viewport로 덮지 않는다. 새 sync·stale request·catch·queue 완료(후속 columns 미실행 포함)·unmount에서 snapshot/input listener를 정리한다. unmount는 listener 제거와 함께 request ref를 null로 무효화하고, 뒤늦은 queue 실행은 연결된 root가 있을 때만 snapshot을 생성한다.
+canonical sync에서 public scroll 좌표를 기록하고 layout settle 뒤 ensureTimelineEnd를 다시 확인한다. 같은 API, 실제 연결된 Gantt DOM, 동일한 현재 semantic filter signature, visible 상태, continuity key, 최신 sync version, scale, public gridWidth와 열 ID/width/hidden 의미가 유지되고 Chart/Grid pointer·wheel·keyboard 입력이 없을 때만 공개 scroll-chart로 원래 좌표를 복원한다. #538 후속의 기존 helper는 0 reset뿐 아니라 120→91 같은 Core의 비영점 이동도 이 조건 안에서 복원한다. 실제 membership·geometry 변화에 의한 clamp는 이 경로의 복원 대상이 아니다. scope/filter/date 이동이나 사용자 scale·열 변경을 이전 viewport로 덮지 않는다. 새 sync에서는 유효한 인계 좌표를 먼저 확인하고 이전 listener를 교체한다. 입력·문맥 무효화·catch·API 교체·unmount에서는 snapshot/input listener를 정리한다. unmount는 listener 제거와 함께 request ref를 null로 무효화하고, 뒤늦은 queue 실행은 연결된 root가 있을 때만 snapshot을 생성한다.
+
+metadata request의 복원 시도는 한 번만 소비한다. 같은 API/DOM·geometry·scope/filter·scale/열·peer 문맥이고 실제 입력이 없으면 해당 capture의 인계 좌표와 입력 listener를 다음 metadata/revision 변경까지 유지한다. 새 render로 복원 시도가 대체된 경우도 인계 좌표는 유지하되 오래된 명령을 재실행하지 않는다. 중간 no-op 복원은 현재 좌표를 사용하므로 초기화와 Editor 취소의 기존 동작을 유지한다. 입력·문맥 무효화·API 교체·unmount에서는 listener와 capture를 정리한다.
+
+#570의 metadata 복원 완료 뒤에는 기존 peer scroll guard에 geometry·revision을 포함한 가로 위치 보호를 남겨 늦은 native scroll을 처리한다. 기존 peer guard가 있으면 덮지 않으며, 사용자 입력·숨김·scope/filter/scale/열·실제 DOM geometry 변경과 다음 revision에서 보호를 해제한다. native repair는 기존 최대 3회 예산을 사용한다. 실제 membership 변경으로 결과가 빈집합이 되면 metadata 보호를 동기 해제하고 이전 가로 위치를 복원하지 않는다.
 
 설치 SVAR Core 2.7.3의 공개 getState scrollLeft/scrollTop(pixel), scroll-chart(left/top), set-columns(columns)를 사용한다. Core/PRO 내부 구현을 복제하거나 새로운 controller/API를 도입하지 않는다. 반복 filter action 제거와 canonical/columns 뒤 복원은 실제 #456 브라우저 관찰을 위한 앱 보강이며 SVAR가 일반적으로 viewport 보존을 보장한다는 뜻은 아니다.
 
