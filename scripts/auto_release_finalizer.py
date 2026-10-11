@@ -424,6 +424,11 @@ def supersede_failed_issue_retries(
                 continue
             if not validation_scope_covers(item, candidate):
                 continue
+            if (item.release_required and release_failed.get(item.target_sha, False)
+                    and candidate.current_version == item.current_version):
+                # An existing immutable failed release tag is bound to the old
+                # SHA; never transfer the same tag to a different merge SHA.
+                continue
             if item.release_required and not ci_success.get(item.target_sha, False):
                 if candidate.current_version != item.current_version:
                     # No silent supersession across version differences for

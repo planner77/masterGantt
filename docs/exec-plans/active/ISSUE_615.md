@@ -135,3 +135,7 @@ DOCUMENTATION_SYNC: PASS(관련 계약 의미 검토 포함). QA_FINAL/Trusted/q
 
 - Existing #344 synthetic scenario asserted cross-version supersession for failed unissued release. Strengthened fail-closed #615 contract rightly rejects it; update regression expectation to retain old failed target and ordering barrier instead of removing it. Existing release-tag failure supersession #331 remains separately tested and allowed with a *new* SemVer.
 - First #2528 policy job FAIL, new exact-head CI required; no previous PASS reused.
+
+### PR CI #2529 정책 시나리오 보완
+
+- 기존 `release_failed=True` immutable SemVer fixture도 같은-version 교정 target의 tag 재지정을 금지해야 한다. 원본 Main CI failure(아직 tag 없음)의 안전 inheritance와, 이미 태그된 release failure는 별도 전이이다. 두 경계를 분리해 fail closed.
