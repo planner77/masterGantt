@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #550 PR #626 정식 Release 의무 승계 및 E2E 동기화
+
+- CI #2519.1의 #570 PASSIVE_RESTORE SETTLING 중 조기 native zero 주입 테스트 경합을 실제 완료 영수증 대기 후 엄격한 보호 차단 검증으로 보완한다. timeout, 기대값, 실제 wheel/검색 검증을 완화하지 않는다.
+- 실패한 version-changing Main Merge의 정식 GHCR 게시 의무를 동일 Issue/동일 버전 corrective가 승계한다. 원래 `v0.105.0` Owner 승인·immutable tag·exact digest·fail-closed 조건 및 제품 버전 `0.105.0` 유지.
 ## [Unreleased] — Issue #614 Target F0 계약·공통 검산
 
 - Target 도메인/공정·WorkArea/전체·선택 연결/합집합 상속/관련 계획 공수/이관·UI 계약과 Resource 우선 실행 계획을 기록한다.

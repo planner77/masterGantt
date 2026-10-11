@@ -1285,6 +1285,72 @@ require(waiting_planned[0] == failed_344, "failed attempt must remain until corr
 
 
 
+# #550 P1: the original failed non-docs merge introduced 0.105.0,
+# whereas the corrective commit keeps 0.105.0. The formal release may not
+# disappear just because the corrective Main first parent has that version.
+failed_release_550 = auto.WorkItem(
+    "1" * 40, "0" * 40, 559, 550, "0.104.4", "0.105.0", False,
+)
+corrected_release_550 = auto.WorkItem(
+    "2" * 40, failed_release_550.target_sha, 626, 550,
+    "0.105.0", "0.105.0", False,
+)
+retained_550, suppressed_550 = auto.supersede_failed_issue_retries(
+    [failed_release_550, corrected_release_550],
+    {failed_release_550.target_sha: False, corrected_release_550.target_sha: True},
+)
+require(
+    len(retained_550) == 1 and suppressed_550 == [(failed_release_550, corrected_release_550)],
+    "#550 failed Main CI must be superseded only by a Green same-Issue corrective merge",
+)
+require(
+    retained_550[0].first_parent_sha == failed_release_550.target_sha
+    and retained_550[0].previous_version == "0.105.0"
+    and retained_550[0].inherited_release_previous_version == "0.104.4"
+    and retained_550[0].current_version == "0.105.0"
+    and retained_550[0].cleanup_pr_numbers == (559,)
+    and auto.effective_previous_version(retained_550[0]) != retained_550[0].current_version,
+    "#550 corrective must preserve exact parent and pending version-scoped release authority",
+)
+old_remote = auto.run_git_remote
+try:
+    auto.run_git_remote = lambda *args, **kwargs: SimpleNamespace(returncode=1)
+    require(
+        auto.exact_release_state("owner/repo", retained_550[0]) == ("not-started", None),
+        "#550 inherited release must query immutable tag instead of returning not-required",
+    )
+finally:
+    auto.run_git_remote = old_remote
+docs_only_550, rejected_550 = auto.supersede_failed_issue_retries(
+    [failed_release_550, replace(corrected_release_550, validation_docs_only=True)],
+    {failed_release_550.target_sha: False, corrected_release_550.target_sha: True},
+)
+require(not rejected_550 and docs_only_550[0] == failed_release_550,
+        "docs-only repair must not bypass a failed release-bearing Main CI")
+try:
+    auto.supersede_failed_issue_retries(
+        [
+            failed_release_550,
+            replace(corrected_release_550, previous_version="0.106.0", current_version="0.106.0"),
+        ],
+        {failed_release_550.target_sha: False, corrected_release_550.target_sha: True},
+    )
+    raise SystemExit("different-version no-bump corrective must not drop older release debt")
+except auto.AutoFinalizerBlocked:
+    pass
+own_bump_550 = replace(corrected_release_550, previous_version="0.105.0", current_version="0.105.1")
+bumped_550, replaced_550 = auto.supersede_failed_issue_retries(
+    [failed_release_550, own_bump_550],
+    {failed_release_550.target_sha: False, own_bump_550.target_sha: True},
+)
+require(
+    replaced_550 == [(failed_release_550, own_bump_550)]
+    and bumped_550[0].inherited_release_previous_version is None
+    and auto.effective_previous_version(bumped_550[0]) == "0.105.0",
+    "new SemVer corrective must keep its own version-scoped release authorization",
+)
+
+
 # #586 actual failed Main SHA is immutable, and needs a later GREEN non-docs
 # merge of the *same Issue*. An unverified or docs-only successor cannot
 # manufacture old-SHA Main CI/GHCR success.

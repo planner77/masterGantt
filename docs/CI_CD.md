@@ -219,7 +219,7 @@ Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore
 
 `0.x`에서도 사용자 workflow나 저장/API 계약을 확장하면 MINOR를 올리고, 기존 계약 내 수정은 PATCH를 올린다. 버전은 낮추거나 재사용하지 않는다. Release workflow는 full Git tag history의 유효한 이전 SemVer를 비교하고 새 version이 모두보다 클 때만 진행한다.
 
-Release authority는 package version과 정확히 일치하는 annotated Git tag `vMAJOR.MINOR.PATCH[-PRERELEASE]`다. CI가 임의로 version commit이나 tag를 만들지 않는다. Tag push 전에 필수 CI 통과와 지정 release authority를 확인하며, GitHub의 필수 승인 review 수는 0명이다. Tag 이동·삭제·동일 version 재발행은 금지한다.
+Release authority는 package version과 정확히 일치하는 annotated Git tag `vMAJOR.MINOR.PATCH[-PRERELEASE]`다. CI가 임의로 version commit이나 tag를 만들지 않는다. Tag push 전에 필수 CI 통과와 지정 release authority를 확인하며, GitHub의 필수 승인 review 수는 0명이다. Tag 이동·삭제·동일 version 재발행은 금지한다. 실패한 버전 변경 Main Merge를 동일 버전의 corrective Merge가 supersede하면 원래 승인된 릴리스 의무를 반드시 승계한다. 변경 없는 corrective package version만으로 `release_required=false`로 축소하지 않으며, immutable tag·정확한 Main/GHCR digest·Owner의 동일 버전 승인 marker를 `GENERIC_RELEASE_FINALIZER.md` 기준으로 검증한다.
 
 ## 3. Container image 계약
 

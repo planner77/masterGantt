@@ -45,6 +45,16 @@ merge commit의 first parent와 merge target의 `package.json.version`을 비교
 
 CI 성공이나 version bump 자체는 release 승인이 아니다.
 
+### 실패한 버전 변경 Merge의 동일 Issue 보완 승계 (#550 / PR #626)
+
+Main CI가 실패한 원본 Merge에 아직 게시되지 않은 제품 버전 변경이 존재하고, 동일 Issue의 후속 non-docs corrective Merge가 해당 버전을 그대로 유지하더라도 **정식 Release 의무는 소거되지 않는다.**
+
+- Resolver는 corrective의 실제 first-parent 버전과 원본의 `inherited_release_previous_version`을 별도로 기록한다. 같은 Issue, 성공한 최신 Main CI, 원본과 동등 이상 비문서 검증 범위, 원본/교정 최종 버전 일치가 모두 필요하다.
+- 상속한 Release 의무에 대해서는 corrective의 정확한 SHA 기준 immutable tag/Release 상태를 다시 조회한다. `not-required`로 취급하지 않고 사용자 Owner가 등록한 정확한 `expected_version` 승인 marker를 검증하여 Release Start 또는 Release Finalize를 진행한다.
+- 승인 없는 정식 게시, 다른 SHA에 이미 귀속된 SemVer tag 변경, 임시 GHCR digest 검사 생략, 안전한 브랜치 정리 누락을 허용하지 않는다. 여러 다른 미완료 Release origin이 합쳐지거나 다른 버전의 무증가 corrective가 원본 의무를 덮으면 BLOCKED한다.
+- corrective 자체가 새 SemVer를 올린 경우에는 그 **새 버전**의 별도 Owner 승인이 필요하다. 기존 실패 SHA의 CI를 성공으로 소급하지 않는다.
+- 회귀 시나리오: `scripts/verify-issue-lifecycle.py`의 실패 original version delta → 같은 버전 Green non-docs corrective, no-tag Release Start, docs-only 거부, 불일치 버전 fail-closed, 신규 버전 보정의 승인 분리.
+
 ## Release authorization marker
 
 정식 release 승인은 **Issue comment**에 version-scoped marker로 남긴다. Manager/승인된 운영 도구는 사용자의 명시적 정식 release 요청을 확인한 뒤 merge 전에 다음 형식으로 기록한다.
