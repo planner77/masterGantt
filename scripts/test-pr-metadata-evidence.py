@@ -59,4 +59,5 @@ eq("M7-other-pr", inspect([run(pr=999)])[0], "MISSING")
 # M8 metadata edits must not count as full runs.
 eq("M8-metadata-only", inspect([run(label=m.METADATA_MARKER)], jobs(metadata="success"))[0], "MISSING")
 eq("M8-current-run-excluded", inspect([run()], current=20)[0], "MISSING")
+eq("T6-multiple-associated-PRs", inspect([{**run(),"pull_requests":[{"number":NUMBER},{"number":999}]}])[0], "MISSING")
 print("Issue #577 metadata evidence scenarios: PASS")

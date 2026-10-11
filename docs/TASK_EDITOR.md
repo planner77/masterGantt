@@ -1,5 +1,19 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #572 — Inline 이름의 확정 저장과 오류 복구
+
+기존 Core 이름 input과 name-only PATCH를 유지한다. Enter·실제 Tab/Shift+Tab·pointer blur는 동일 session/request에서 저장을 한 번만 요청한다. 서버 응답의 taskId/revision/name 확인과 현재 canonical/Core/Grid 표시 확인을 분리하며 화면 확인 전에 inline 성공을 알리지 않는다. Task Editor 저장과 Grid 저장은 같은 서버 canonical snapshot을 사용한다. 이름 변경 때문에 Task 일정·Link·Resource 계획이나 Gantt instance·뷰포트를 재설정하지 않는다.
+
+숫자처럼 보이는 `001`은 mounted input의 문자열 원문으로 저장하고 기존 trim·well-formed Unicode 1~200자 규칙을 사용한다. invalid input은 요청 없이 input·연결된 aria 오류를 유지한다. Escape는 저장하지 않으며 IME 조합 키를 앱 저장/취소로 소비하지 않는다. Tab/Shift+Tab은 Core의 다음 editor 열기 hotkey 전달만 막고 브라우저 기본 focus 이동을 유지하며 공통 blur 저장 gateway를 사용한다. 외부 대상 blur에서는 공개 Table focus-cell action으로 이전 셀의 Core focus 권한을 해제한 뒤 닫아 클릭 도착 focus를 유지한다. 늦은 성공·오류가 이미 이동한 focus를 가져오지 않는다.
+
+저장 실패의 원문 draft는 메모리에 남고 같은 작업을 명시적으로 다시 편집할 때 복원한다. 401의 readonly, 412의 stale·명시 최신 조회 계약은 유지하며 실패 draft를 새 revision에 자동 전송하지 않는다. 조회 뒤 revision이 증가해도 conflict 초안은 이전 기준으로 재열어 보여 주며 저장을 차단한다. Escape로 이전 초안을 명시적으로 폐기한 뒤 현재 canonical 이름을 새로 편집할 수 있다. 성공 응답·현재 canonical·Core와 실제 셀 확인은 각각 별개이며 가상화된 셀이 없다는 이유로 DOM 문자열을 직접 고치지 않는다. 실제 OS IME와 합성 composition 검증, mock-backed reload와 실제 SQLite 영속성은 [검증 원장](exec-plans/active/ISSUE_572.md)에서 구분한다.
+
+#552 Milestone WBS 분리 stack은 이 기준 main에 미통합이다. 이번 변경은 현재 main의 편집 범위를 유지하며 분리된 projection에 Milestone을 다시 주입하지 않는다. Dashboard canonical Editor 경로의 미통합 검증은 NOT TESTED다.
+
+## Issue #571 — '일정에서 보기'의 viewport 소유권
+
+소속 작업 등 Editor의 '일정에서 보기'는 Workspace 부모의 DOM scrollIntoView 복원 대신 Gantt Coordinator의 명시 Task reveal ingress로 연결한다. 새 이동은 대기 중인 peer/metadata 보존보다 우선하며 이후 metadata 저장도 이동한 현재 위치를 기준으로 한다. 명시 locate로 닫을 때는 일반 닫기의 이전 trigger focus 복원을 예약하지 않으며, Coordinator SETTLED 후 현재 연결되고 보이는 Grid 행에 preventScroll focus를 준다. Chart bar focus로 행 focus를 대체하지 않는다. 일반 취소·닫기의 기존 trigger focus 복원은 유지하고 다른 scope/빈 결과의 오래된 locate 요청을 재생하지 않는다. 날짜 없는 Summary는 현재 수평 위치를 보존하고 행만 이동한다. 날짜가 있는 Task는 실제 렌더 axis와 native capacity 안의 관측 좌표만 허용하며 범위 밖에서는 이동 성공을 주장하지 않는다. Editor 초안·저장·401/412/network 및 단일 Task 편집 권한 계약은 그대로다. [검증 범위](exec-plans/active/ISSUE_571.md)를 따른다.
+
 ## Issue #384 — Copy 선택 집합과 단일 편집 경계
 
 Copy clipboard는 `{mode:"copy", taskIds, revision}`, Cut은 `{mode:"cut", taskId, revision}`이다. 신규 Copy는 taskIds를 보내고 서버는 legacy taskId XOR 호환을 제공한다. canonical root 순서·ancestor 제거는 메뉴/keyboard에 동일하다. Paste target 선택은 clipboard를 유지하고 Project·revision·filter/scope 변화는 stale clipboard를 폐기한다.
@@ -151,6 +165,8 @@ Task Editor가 열린 동안 기존 shortcut guard, modal focus/Tab 처리, dirt
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
 Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint 이름 편집의 과거 409 제한은 #258에서 대체한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
+
+PR #610 / CI #2499.1 후속: 실제 이름 input의 focusout은 Core 공개 `close-editor` 저장 gateway로 전달하여 바깥 클릭 처리보다 먼저 scale toolbar가 editor를 교체해도 저장 요청을 잃지 않는다. 같은 session의 committed 상태로 중복 PATCH를 차단하고, 새 focusout 연결은 composition 중 Core 저장 gateway를 호출하지 않는다. 실제 IME composition 도중 바깥 클릭하는 환경의 Core 후속 동작은 별도 검증 대상이며 IME Enter 검증만으로 PASS를 확대하지 않는다. Escape의 비동기 닫기 완료 focus는 생성 당시 token/API identity가 유효할 때만 실행해 새 편집을 방해하지 않는다. Escape·invalid name·401/412/network 처리 및 canonical response 동기화는 기존 계약을 따른다.
 
 ## Issue #187 — 작업 정보 대화상자 물류 연결 (logistics) 탭
 

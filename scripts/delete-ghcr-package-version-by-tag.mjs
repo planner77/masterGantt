@@ -1,6 +1,7 @@
-const [tag] = process.argv.slice(2);
+const [tag, option] = process.argv.slice(2);
+const checkOnly = option === "--check-only";
 
-if (!tag || process.argv.length !== 3) {
+if (!tag || ![3, 4].includes(process.argv.length) || (process.argv.length === 4 && !checkOnly)) {
   throw new Error("Usage: node scripts/delete-ghcr-package-version-by-tag.mjs <tag>");
 }
 
@@ -72,6 +73,11 @@ if (otherTags.length > 0) {
   throw new Error(
     `Refusing to delete GHCR package version ${version.id}: ${tag} shares the version with ${otherTags.join(", ")}.`,
   );
+}
+
+if (checkOnly) {
+  console.log(`GHCR candidate ${tag} eligible for exact package-version cleanup.`);
+  process.exit(0);
 }
 
 await request(`${packagePath}/versions/${version.id}`, { method: "DELETE" });

@@ -20,6 +20,7 @@ from typing import Any, Callable
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TRACE_PATH = ROOT / "scripts" / "verify-ci-run-trace.py"
+QA_PATH = ROOT / "scripts" / "qa_final_automated.py"
 FULL_GATES = (
     "Build, static checks, and unit tests",
     "Chromium end-to-end tests",
@@ -55,7 +56,7 @@ def _matches_pr(run: dict[str, Any], number: int, head_sha: str, current_run_id:
     ):
         return False
     prs = run.get("pull_requests") or []
-    return not prs or any(int(p.get("number") or 0) == number for p in prs)
+    return not prs or (len(prs) == 1 and int(prs[0].get("number") or 0) == number)
 
 
 def _job_results(jobs: list[dict[str, Any]]) -> dict[str, str]:
@@ -125,6 +126,22 @@ def _api(path: str, token: str) -> dict[str, Any]:
     return data
 
 
+def validate_full_source(repo: str, token: str, run_id: int, number: int,
+                         head: str, base: str, merge: str) -> None:
+    """Cross-check PR event provenance against source full CI and live PR."""
+    spec = importlib.util.spec_from_file_location("qa_source", QA_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("trusted source validator를 불러올 수 없습니다")
+    qa = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(qa)
+    gh = qa.GitHub(repo, token)
+    run = gh.get(f"{gh.prefix}/actions/runs/{run_id}")
+    artifact = qa.source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
+    observed_n, observed_h, observed_b, observed_m, _ = qa.verified_source(gh, run, artifact)
+    if (observed_n, observed_h, observed_b, observed_m) != (number, head, base, merge):
+        raise RuntimeError("이전 full CI 원본 PR/head/base/merge 증거 불일치")
+
+
 def _current_pr(repo: str, number: int, token: str) -> dict[str, Any]:
     return _api(f"repos/{repo}/pulls/{number}", token)
 
@@ -158,6 +175,7 @@ def evaluate(
     current_run_id: int,
     api_get: Callable[[str], dict[str, Any]],
     mode: str,
+    source_check: Callable[[int, int, str, str, str], None] | None = None,
 ) -> tuple[str, int | None, str, str, str]:
     """Injectable API for deterministic scenarios; second live read closes head race."""
     number, event_sha = _event_head(payload)
@@ -190,6 +208,19 @@ def evaluate(
     latest_sha = str((latest.get("head") or {}).get("sha") or "")
     if latest_state != "TRACE_OK":
         return latest_state, full_run_id, latest_reason, event_sha, latest_sha
+    if state == "VERIFIED":
+        if not source_check:
+            # Classifier-only callers may inspect status, never publish evidence
+            # without a source validator in the actual Actions entrypoint.
+            return "SOURCE_UNVERIFIED", full_run_id, "원본 event 출처 검증 미설정", event_sha, latest_sha
+        base = str((latest.get("base") or {}).get("sha") or "")
+        merge = str(latest.get("merge_commit_sha") or "")
+        if len(base) != 40 or len(merge) != 40:
+            return "SOURCE_UNVERIFIED", full_run_id, "현재 PR base/merge 정보 없음", event_sha, latest_sha
+        try:
+            source_check(full_run_id, number, event_sha, base, merge)
+        except Exception as exc:
+            return "SOURCE_UNVERIFIED", full_run_id, "원본 full CI provenance 차단: " + str(exc), event_sha, latest_sha
     return state, full_run_id, reason, event_sha, latest_sha
 
 
@@ -232,6 +263,8 @@ def main() -> int:
         state, run_id, reason, event_sha, current_sha = evaluate(
             payload, repo=repo, current_run_id=current_run_id,
             api_get=lambda path: _api(path, token), mode=args.mode,
+            source_check=lambda run, number, head, base, merge:
+                validate_full_source(repo, token, run, number, head, base, merge),
         )
         _report(state, run_id, reason, event_sha, current_sha)
         # SUPERSEDED affects only an old SHA and cannot approve the latest head.

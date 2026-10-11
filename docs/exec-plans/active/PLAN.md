@@ -1,3 +1,7 @@
+## Issue #550 — 2026-10-11 23:45 KST 최신 main 정렬·충돌 해소
+
+PR #559 이전 Head `ab539c9cf03938754bbe2a74032b43a99ba9ca8e`와 최신 main `cbc73740236f3b3e177e2ed3196a0d02a292c741` 차이를 3-way 검증. 150커밋 후행·Main 변경 85경로 중 직접 overlap 9개, 비중복 76경로의 Main Blob 보존. 코드 1파일 `project-readonly-view.tsx`의 저장 callback/확정응답·명시 locate와 Dashboard 일반 닫기 focus 충돌 3곳을 의미적으로 병합했다. `CHANGELOG.md`는 main `0.104.4` 기록과 신규 `0.105.0` 기능 기록을 모두 유지, package/lock은 `0.105.0` 일치. #570/#571/#572 viewport/name/canonical 회귀와 #550 기존 E2E/SQLite 증거를 보존하며 관련 문서의 양쪽 기록을 통합한다. 실제 새 Head Quality/E2E/Docker/QA 결과는 아직 NOT TESTED. Owner-managed HIGH·독립 QA N/A·Manager ACCEPT 미확인, release_authorized=false. 병합/Main CI/GHCR는 이번 단계 범위 밖.
+
 ## Issue #550 — 최신 main #582/#598 정책 정렬 및 PR CI 재시작 (2026-10-11)
 
 이전 PR #559 Head `cb360903dfac443547e9e16e1091273eca669400`의 [CI #2414.1](https://github.com/planner77/masterGantt/actions/runs/38051399462): 세 Required Quality/E2E6/Docker aggregate는 PASS이나 자동 QA는 `qa_method=AGENT` 및 보호된 package/lock에 대한 현재 Head 독립 인간 `QA_FINAL: PASS` 리뷰가 없어 BLOCKED/FAIL. 제품·기능 검증 실패는 아니다.
@@ -5,6 +9,59 @@
 최신 main `e41696430a78045998e35edad7cab5bb901a097e`(base `31372f967159b2f993116c73f0adc228eb1ea0ff` 대비 41커밋/27파일) 통합. 제품/UI/권한/SQLite/E2E 및 `0.105.0` 버전은 보존한다. main 변경 25개 비중복 파일은 동일 blob으로 보존하고, `docs/TEST_PLAN.md`의 #582 CI 회귀·#598 QA 정책과 #550 테스트 원장, `docs/exec-plans/active/PLAN.md`의 #598 정책과 #550 이력을 함께 유지한다.
 
 채택된 [#598](https://github.com/planner77/masterGantt/issues/598) 정책에 맞춰 PR 메타데이터 `qa_method=OWNER_MANAGED`, `risk_level=HIGH`, `qa_required=true`를 적용한다. 독립 QA `N/A(선택 미실시)`, 자동 QA·Trusted QA와 Owner 최종 `Manager ACCEPT`는 분리한다. 기존 Quality/E2E/Docker, 리뷰 스레드0, 문서/AC 및 protected 버전의 위험 검토는 유지. `release_required=true/release_authorized=false`, 병합/정식 GHCR/tag/Issue 종료 미승인. 새 exact-head PR CI **시작까지만** 진행하고 실제 결과는 별도 확인한다.
+
+## Issue #572 — Inline 이름 저장·Revision·표시 정합 (2026-10-11)
+
+PR #612 Codex P2 숨겨진 일정 복귀 시 이름 확인 결함을 `3901aa48`에서 고치고 Resources/Milestone 탭 E2E 2건을 추가한 뒤 리뷰 스레드를 해결했다. #571 PR #611을 포함한 main `91178929` 정렬로 FILTER_RETURN 보호 보완을 유지하며 application 후보 버전을 `0.104.4`로 전진한다. 이전 PR CI #2506.1 SUCCESS와 QA Final #144 BLOCKED는 이전 Head/base 근거이며 최신 통합 Head의 검증이 아니다.
+
+
+[#572 Work Packet](ISSUE_572.md): 선행 #571 PR #610을 포함한 최신 main `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`에서 `fix/issue-572-inline-name-consistency`를 생성했다. 최초 PATCH `0.104.2 → 0.104.3`, 정렬 후 후보 PATCH `0.104.3 → 0.104.4`, HIGH / qa_required=true / qa_method=AGENT, release_required=true / release_authorized=false다. native inline editor의 단일 request/session·confirmed snapshot·Core/Grid 표시 확인과 실패 draft/IME/focus 계약을 보완한다. #552 표시 전환·서버 API·DB·권한·새 viewport writer는 범위 밖이며 DESIGN Delta B / DESIGN.md N/A다. 구현·관련 문서·독립 PRE_QA 후 새 exact-head full PR CI 시작까지만 진행하고 CI 결과는 모니터링하지 않는다. 공식 CI·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
+제품 freeze 후 inline Chromium11 PASS·관련 Unit100 PASS, 409 테스트 추가 후 관련3 PASS, 실제 Next/SQLite 왕복·프로세스 재시작2 PASS다. 초기 draft·composition·Tab/focus·실제 SQLite의30초 budget FAIL은 원장에 보존하며 timeout/skip을 완화하지 않았다. 별도 qa_docs의 동일 지문 Unit100·Chromium11 및 코드·AC·required7문서 의미 검토가 PASS해 PR CI 시작용 PRE_QA를 통과했다. 실제 OS IME·#552 미통합 Dashboard·부모의 실제 역순 응답 browser 통합 경쟁은 NOT TESTED이며 마지막 항목은 관련 Unit/정적 검토와 구분한다. 최종 인간 QA·Owner ACCEPT 및 필수 원격 결과 전 MERGE_READY=BLOCKED다.
+
+## Issue #571 — Main CI #2504.1 교정 및 새 PR CI (2026-10-11)
+
+[PR #610 병합](https://github.com/planner77/masterGantt/pull/610) SHA `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`의 [Main CI #2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)에서 #463 Chromium E2E 1 FAIL로 GHCR/Finalizer가 SKIPPED다. 실제 실행 원장에서는 FILTER_RETURN(120,0) 중 새로운 native/CORE(180,128) 스크롤이 되감겼고, 180px 범위는 실제 충분하므로 UI 쿼리 bookmark의 장기 보호가 문제다.
+
+`fix/issue-571-filter-return-viewport` corrective branch에서 FILTER_RETURN만 one-shot/no native repair/no persisted guard로 변경하고 #463 기존 strict E2E와 guard Unit을 다시 검사한다. PEER/PASSIVE 보호는 변경하지 않는다. 제품 PATCH 0.104.3로 manifest/lock/CHANGELOG를 동기화했으며 기존 v0.104.2 승인 마커는 보존하되 새 v0.104.3의 release_authorized=false다. 위험도 HIGH / OWNER_MANAGED / QA required true. 새 PR CI 뒤 Head별 Trusted QA·Owner ACCEPT·merge/main/정식 GHCR는 별도 gate다.
+
+## Issue #571 — 단일 Viewport Coordinator 구현 (2026-10-11)
+
+[#571 Work Packet](ISSUE_571.md): #570 PR #592 병합 main `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`에서 `feat/issue-571-viewport-coordinator`를 생성했다. 단일 intent/command ingress와 최신 projection·geometry settle, 사용자 입력 우선권·filter bookmark 및 parent 중복 native 복원 제거를 구현한다. #569 실험 adapter는 DEFER, 기존 #367 range compatibility는 회귀 보존, #551 미통합 lane은 별도 NOT TESTED다.
+
+HIGH / qa_required=true / qa_method=AGENT, 실제 독립 Reviewer `/root/issue570_qa_fix`. PATCH `0.104.2`, release_required=true / release_authorized=false. DESIGN Delta B / DESIGN.md N/A. 구현·문서 동기화·독립 PRE_QA 후 새 exact-head PR CI 시작까지만 진행하며 QA_FINAL·Manager ACCEPT·병합/main/GHCR/Release/Issue 종료는 범위 밖이다.
+
+단일 production viewport writer·latest projection/geometry·입력 우선권·filter bookmark·native-add 캡처 권한을 구현했다. 초기 FAIL과 독립 REWORK(잔존 guard의 revision/receipt, dated axis admission, 비동기 add의 stale capture, Resource 복귀의 일시적 zero geometry, 준비resize/accepted receipt 경쟁)는 Work Packet에 보존한다. 단계별 직접 영향 Chromium29와 복구/scale/resize7은 PASS이며 이후 보완의 전체 회귀 증거로 확대하지 않는다. 준비 단계 분리 후 같은 metadata case 반복3 PASS, 최종 독립 관련 Unit129 PASS·Chromium9 PASS, PRE_QA·문서 의미 검토 PASS다. 동일 후보로 PR CI를 시작하며 전체 원격 CI 성공 전 제품 PASS/Manager ACCEPT로 보고하지 않는다. 현재 Head의 별도 인간 QA·Owner ACCEPT 전 최종 병합은 BLOCKED다.
+
+PR #610 앞선 원본 CI #2499.1(Head `f10dfd0308cd6782f4ac908e7ec8905b09e12e5f`, attempt1)은 quality/e2e FAIL·docker PASS다. Unit fixture와 filter bookmark의 축별 권한, E2E 관찰자 순서 및 projection/inline 저장 회귀를 보완했다. 고정 소스에서 원실패6 Chromium PASS·typecheck/변경 lint PASS, 독립 관련9파일151 Unit PASS·Chromium5 PASS/1 FAIL 뒤 Escape 완료 focus의 token/API guard를 보완했다. 최종 별도 inline4 Chromium PASS 및 PR CI 시작용 PRE_QA PASS다. 최초768px 재진입의 정확 기전UNKNOWN과 실패 이력은 유지하며, 새pointercase의 이전소스PASS를 원인 증명으로 확대하지 않는다. 이전 로컬 PASS는 신규 Head의 공식 회귀 증거가 아니며, 이번 범위는 새 full PR CI 시작 확인까지다.
+
+PR #610 후속 CI #2500.1(Head `f001fdf922e59cccb961b1cd87112b251d89a3a5`, attempt1)은 quality/docker PASS·e2e2 FAIL이다. native Grid reveal의 입력 권한 및 이동 없는 선택 동기화를 보완하고 Editor locate·일반 닫기의 focus 소유권을 분리했다. 직접 Chromium22·Unit103 PASS, 독립 Chromium3+1 고유4건 PASS 및 PR CI 시작용 PRE_QA PASS다. 원격 Editor focus의 exact 기전 UNKNOWN을 유지하며, 다음 full PR CI 시작 확인 이후 결과 모니터링은 수행하지 않는다. 상세 최초 trace와 상태는 Work Packet에 보존한다.
+
+## Issue #570 — Canonical projection 구현 재개 (2026-10-10)
+
+후속 CI #2482.1은 Head `678fd90d75f3ceca8e061cabc584ffc2ed6ecc35`에서 Quality/Docker PASS, E2E shard5의 기존 #456 metadata viewport 2개 FAIL이다. 같은 ID 집합의 위치 보존과 실제 ID 집합 변경의 오래된 복원 취소를 구분해 보완하며 최신 main `c81285741610ad28dc5d6b50f9bb97264970a79d`의 Docker 정책을 상속한다. [실패 원장과 후속 검증](ISSUE_570.md#pr-ci-24821-viewport-회귀-보완-2026-10-11)을 보존하고 사용자 요청 종료점인 새 exact-head full PR CI 시작까지 진행한다. 원격 새 Head 결과·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
+2026-10-11에는 PR #592의 최신 정렬 Head `2b4d2d525bce81b9a7f03f26af1386f79f5a616b` / main `b4d566e29bf2f976f51796405fd7c6f1ec5e2638`에서 CI #2480.1 실패를 보완한다. 원본 Quality/Docker PASS, E2E 10 FAIL을 보존하고 빈 Summary의 native 열기 오류 및 조회 변경 receipt를 수정한다. 사용자 승인 종료점은 관련 검증·독립 PRE_QA·문서 갱신 후 새 exact-head PR CI 시작이며 QA_FINAL/Manager ACCEPT·병합·Main/GHCR/정식 release·Issue 종료는 포함하지 않는다. 실행별 증거는 [Work Packet](ISSUE_570.md#pr-ci-24801-실패-보완-2026-10-11)에 기록한다.
+
+[Work Packet](ISSUE_570.md)에 따라 최신 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f` / application `0.104.0`에서 기존 `feat/issue-570-canonical-projection`을 재사용한다. metadata·structure·membership·layout 변경 경로를 분리하고 실제 Core/DOM 정합성 이후의 bounded receipt를 #571에 인계한다. #552 표시 전환과 #569 viewport writer 제품 도입은 활성화하지 않는다. 후보 PATCH `0.104.1`, HIGH / qa_required=true / qa_method=AGENT, release_required=true / release_authorized=false다. 이전 DNS 제약 후 분리 checkout을 확보했다. 최신 통합 main은 `36b0eaa74a0614a76d1ed867bddb548149feb4bc`이며 초기 baseline과 구분한다. 최종 변경 Unit38·실제 Core Chromium19·typecheck·변경 lint PASS(기존 hook 경고3개) 후 문서·독립 PRE_QA를 거쳐 원격 PR CI 시작까지만 진행한다. 공식 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
+## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
+
+- 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
+- `.github/workflows/pr-metadata-reconcile.yml`은 신뢰된 default SHA checkout, PR 코드 실행 금지, job에만 한정된 `actions: write`, `contents/pull-requests: read`, 신규 Secret/PAT 없음. 실제 write는 검증된 실패 run ID의 GitHub Actions `rerun-failed-jobs` 한 번만. 그 외 승인·merge·release·GHCR 권한 없음.
+- `scripts/reconcile-pr-metadata.py`: source repo/PR/branch/head/base의 단일 귀속, 현재 살아 있는 제목/Refs trace, 최신 metadata run, 최초 attempt의 실패 Job topology, 동일 base 최신 Full CI의 exact attempt별 required 3종 SUCCESS를 검증 후 재조회. Full 미완료/실패/취소·stale·위조·attempt>1·중복 job·불명확한 API는 재실행하지 않으며 기존 FAIL/BLOCKED를 보존. Full CI 자체 취소 금지.
+- 같은 Head에서 빠른 edited 이벤트는 기존 metadata concurrency로 구 run을 취소한다. Full과 metadata의 완료 이벤트를 모두 관찰하되 latest 실패만 권위 있고 이전 이벤트를 성공 증거로 재사용하지 않는다. 기존 `QA Final — Trusted`는 읽기 전용 유지, 회복 중 FAIL source의 재중복 판정 억제는 별도 기능 개선 대상으로 남는다.
+- 측정: `#591` baseline #2425~#2428 / Trusted #57~#59. 이후 비교는 동일 PR/기간의 Actions run 수, 실패/취소, metadata+QA Runner 사용 분, 자동 회복 소요 시간(마지막 edited→required 집계 완료)을 기록한다. 실제 절감률은 Actions 실측 후 산출, CI 시작만으로 AC8 PASS 아님.
+- Rollback: `pr-metadata-reconcile.yml` 비활성화/삭제 및 `reconcile-pr-metadata.py` revert. 원본 CI·Ruleset·Trusted QA의 안전 상태는 그대로이며 복구 필요 시 최신 실패 metadata Job 수동 rerun. `DESIGN.md` N/A(UI 변경 없음); `API.md`/`DB_SCHEMA.md` N/A.
+- 위험도 HIGH / qa_method OWNER_MANAGED; 자동 QA 결과와 Owner 명시 병합·HIGH 위험 수용은 별도. Application version `0.104.0` 유지; `release_required=false`, `release_authorized=false`.
+
+## Issue #586 — Main CI #2445.1 오류 복구 / 후속 non-docs PR (2026-10-11)
+
+[Work Packet](ISSUE_586.md): PR #588의 병합은 성공했지만 main SHA 490c4ab70b0868729c8415f9f613bd45aa84926a의 메시지가 멀티라인이어서 Main CI/GHCR/Finalizer가 FAIL/SKIPPED됐다. 동일 Issue의 비문서 교정 PR에서 merge_api_payload() 보조 함수 및 기존 실패 supersession 경계 회귀를 추가한다. 새 PR CI 통과 후 한 줄 제목·빈 body·exact Head SHA로 병합하고, 새로운 Main CI/GHCR 성공 시 기존 실패를 SUPERSEDED ATTEMPT로 감사한 뒤 Finalizer를 실행한다. 제품 0.104.0·release_required=false/authorized=false, 기존 main 강제 수정·구 실패 소급 PASS 금지.
+
+## Issue #586 — FINAL marker 회복 / QA Work Packet (2026-10-10)
+
+[Issue #586 Work Packet](ISSUE_586.md): docs-only·non-docs 후속 Merge별 불변 FINAL을 유지하며, 기존 [PR #588](https://github.com/planner77/masterGantt/pull/588)의 코드를 보존한다. 최신 main `367b160b2f1db75feb7af1a5ea67046b9828b836`와 정렬하고 PR 위험 메타데이터 `HIGH/OWNER_MANAGED`, T1–T8 ↔ AC1–AC8, DOCUMENTATION_SYNC를 기록한다. protected `scripts/**`·workflow 변경에 최신 `docs/QA_REVIEW_POLICY.md`의 Owner-managed 기본 정책과 3 Required CI, Trusted QA 및 Owner의 최종 승인·HIGH 위험 수용 필요; QA 완료로 간주하지 않는다. 목표는 새 Head full PR CI 시작까지이며 기존 main/GHCR/#565 운영 복구는 별도.
 
 ## Issue #598 — Owner-managed QA 정책 적용
 

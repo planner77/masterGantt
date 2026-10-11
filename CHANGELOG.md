@@ -25,6 +25,37 @@
 - Issue #550 PR CI #2376.1: 세 required gate PASS, 자동 QA의 버전 파일 보호 차단을 별도 #595로 추적. 릴리스 버전·승인 정책은 변경하지 않음.
 - Issue #550 재정렬: #595의 Main CI #2401.1 SUCCESS를 포함한 기준 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`로 PR #559를 정렬한다. 새 CI와 정확한 Head의 별도 AGENT 독립 QA·Manager 수용은 별도 확인한다.
 
+## [0.104.4] - 2026-10-11
+
+### Fixed
+
+- Issue #572: native Grid 이름 편집의 단일 저장 요청과 확정 snapshot·표시 확인을 분리하고 실패 초안·IME·Tab/blur/focus의 비동기 경계를 보완한다. 기존 권한·revision·일정 및 Gantt 화면 상태 보존 계약을 유지한다.
+- PR #612 Codex P2: 숨겨지거나 비활성인 일정 탭으로 돌아올 때 확정된 이름 표시를 다시 검증한다. Resources·Milestone 탭 왕복 Chromium 회귀 2건을 보강한다.
+
+## [0.104.3] - 2026-10-11
+
+### Fixed
+
+- Issue #571 후속 Main CI #2504.1 시정: 필터 해제 후 `FILTER_RETURN`이 이전 120px bookmark로 새 native 180px 이동을 가로막던 경합을 보완한다. 필터 bookmark는 1회 복원만 수행하며 새로운 Core/native 정합 좌표가 생기면 `SUPERSEDED`로 종료한다. FILTER_RETURN의 native repair·settled scroll guard는 남기지 않고 PEER/PASSIVE stale rewind 보호는 유지한다.
+
+## [0.104.2] - 2026-10-11
+
+### Fixed
+
+- Issue #571: Gantt viewport의 peer/metadata 복원과 명시 Task 이동을 단일 Coordinator로 중재한다. 최신 사용자 이동을 지연된 복원이 덮지 않도록 intent 세대·우선순위와 projection/geometry 완료 관측을 분리하고 부모의 중복 native 복원을 제거한다. 기존 Core instance·canonical/권한·Day/Week 탐색 계약을 유지한다.
+- PR #610 / CI #2498.1 회귀 보완: 수평 Projection/Viewport 교착 분리, resize 시 stale peer 취소, native vertical scroll 비차단, physical-capacity preflight, admission receipt, 개발용 right-edge 진단 및 drag-edge single-flight 검증.
+- PR #610 / CI #2499.1 후속: 초기·후속 Core payload 정합, 필터 해제 시 수평 bookmark와 현재 세로 clamp 보존, scale toolbar로 blur할 때 inline 이름 저장 누락 및 브라우저 fixture·입력 관찰 순서 회귀를 보완한다.
+- PR #610 / CI #2500.1 후속: native Grid의 명시 시작일 이동 뒤 지연 복원이 이전 좌표를 재생하지 않도록 입력 권한을 갱신하고, Editor locate와 일반 닫기의 focus 소유권을 분리한다.
+
+## [0.104.1] - 2026-10-10
+
+### Fixed
+
+- Issue #570 PR CI #2482.1: 같은 metadata-only 조회의 가로 위치 복원 뒤 늦은 native scroll 이벤트가 위치를 덮는 경합을 기존 스크롤 보호 경로로 보완한다. 실제 membership·geometry·revision 변경과 사용자 입력의 보호 해제를 유지하며 기존 metadata 저장 회귀를 재검증한다.
+- Issue #570 PR CI #2480.1: 필터 뒤 자식 없는 Summary를 여는 동작이 Core 오류와 Gantt 복구·상태 유실을 유발하는 경로를 보완한다. 무필터에서도 구조가 바뀌면 행 ID 일치만으로 재투영을 생략하지 않아 마지막 dated 자식 이동 뒤 Summary bar를 제거한다. projection receipt의 조회 조건 변경 여부도 각 관찰 기준으로 갱신한다. 기존 필수 테스트와 CI gate는 유지한다.
+
+- Issue #570: canonical Task/Link 갱신과 행·열 재투영의 변경 이유를 분리한다. 동일 membership의 metadata-only 변경에서는 불필요한 native filter/column 재설정을 방지하고 최신 revision·Core instance의 동기화만 적용한다. 실제 Core/DOM 정합성을 확인한 bounded projection receipt를 후속 viewport Coordinator에 제공한다. 형제 중간 삽입과 부모 삭제·신규 부모 생성이 함께 온 snapshot의 계층 순서를 보완하고 필터 초기화/scale 전환 뒤 사용자 Summary 접힘을 유지한다. 기존 Milestone 표시 호환과 서버 권한·revision 계약은 유지한다.
+
 ## [0.104.0] - 2026-10-10
 
 ### Fixed
