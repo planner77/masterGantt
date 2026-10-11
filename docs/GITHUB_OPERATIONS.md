@@ -431,3 +431,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - #444가 닫히면 workflow는 no-op으로 종료하므로 완료 이후 불필요한 artifact download/comment mutation을 지속하지 않는다.
 - downloaded artifact의 자체 provenance는 untrusted data다. readiness collector는 run 목록 API의 ID/attempt/head SHA/path/event를 trusted metadata로 사용해 JSONL provenance를 binding한 뒤 analyzer의 `--require-bound-provenance true` 모드로만 자동 판정한다.
 - before/after에서 metric 집합이 다르면 최적화 효과를 부분 metric만으로 채택하지 않는다. 새 setup 단계 추가·metric rename도 workload 변경으로 취급해 동일 metric 집합의 새 baseline/after를 확보한다.
+
+## Issue #603 Docker BuildKit cache writer 운영
+
+PR은 default/base branch의 GHA BuildKit cache를 `cache-from`으로 재사용하지만 shared cache를 갱신하지 않는다. Main push만 docker_smoke에서 max-mode cache를 갱신하며, 후속 commit image publish는 동일 cache를 재사용하고 기존 publish writer 계약을 유지한다. PR의 cache write 권한을 확대하지 않고, cache miss를 정상 경로로 취급한다.

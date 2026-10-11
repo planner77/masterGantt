@@ -67,3 +67,17 @@
 초기 구현은 PR #448에서 진행했으나 #444를 측정 완료 전 OPEN 유지해야 하는 요구와 Generic Finalizer의 no-version finalize(close) 계약이 충돌했다. 저장소 Primary Issue trace 정책(branch/body/title 일치)을 보존하기 위해 구현 배포 lifecycle을 #450 / PR #451 / `ci/issue-450-phase2-readiness-deploy`로 분리했다. #450은 배포/Main CI 완료 후 종료 가능하지만 Parent #444는 baseline 수집 → READY → 실제 Phase 2 최적화 또는 DO_NOT_ADOPT → after 검증 완료 전까지 OPEN 유지한다.
 
 Issue #444의 실제 cache 최적화 채택 Acceptance Criteria는 10-run baseline과 동일 workload before/after evidence가 쌓인 뒤 후속 작업에서 완료한다.
+
+## Phase 2 후보 진행 (2026-10-11)
+
+- baseline authority: readiness Run #32.1 / artifact digest `sha256:22852bc04fc07d49f680e5d8bbca47a6e5a8f9a9779b8bd32c60129f0a8f8043`
+- Candidate 1 Playwright browser/headless-shell cache: **DO_NOT_ADOPT**
+  - 전체 Playwright setup runner-min/run-equivalent 9.749 중 OS deps 8.209(84.2%), headless shell 1.540(15.8%)
+  - Linux OS dependency는 cache 대상이 아니며 browser binary cache 이득이 제한적
+- Candidate 2 Docker BuildKit: **IMPLEMENT — Issue #603**
+  - PR docker-build-cache median 97.482s / p90 110.173s
+  - Main docker-build-cache median 112.402s / p90 183.530s
+  - PR cache export 21.8s, Main smoke export 69.6s 실측
+  - PR shared cache write 제거, Main writer 유지 후 동일 metric successful PR >=10으로 after 판정
+- Candidate 3 npm ci: Docker after 판정 뒤 진행
+
