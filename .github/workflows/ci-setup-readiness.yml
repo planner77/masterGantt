@@ -1,0 +1,216 @@
+name: CI setup Phase 2 readiness
+
+run-name: >-
+  ${{ github.event_name == 'workflow_run' && format('Setup readiness · after {0} · Run #{1}.{2}', github.event.workflow_run.name, github.run_number, github.run_attempt) || format('Setup readiness · {0} · Run #{1}.{2}', github.event_name, github.run_number, github.run_attempt) }}
+
+on:
+  workflow_run:
+    workflows: ["CI", "Publish release image"]
+    types: [completed]
+  schedule:
+    - cron: "43 20 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-setup-phase2-readiness
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  readiness:
+    name: Issue #444 Phase 2 readiness 판정
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Issue #444 활성 상태 확인
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state="$(gh api "/repos/$GITHUB_REPOSITORY/issues/444" --jq '.state')"
+          if [[ "$state" == "open" ]]; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Issue #444가 닫혀 있어 readiness 수집을 생략합니다."
+            echo "active=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # workflow_run은 PR head를 가리킬 수 있으므로 write 권한 workflow에서
+      # triggering ref의 코드를 실행하지 않고 trusted default branch만 checkout한다.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        if: steps.issue.outputs.active == 'true'
+        with:
+          ref: main
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        if: steps.issue.outputs.active == 'true'
+        with:
+          node-version: 22
+
+      - name: 최근 successful setup metric artifact 수집
+        if: steps.issue.outputs.active == 'true'
+        id: collect
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=".ci-setup-readiness/history"
+          mkdir -p "$root"
+
+          collect_runs() {
+            local workflow="$1"
+            local event="$2"
+            local pattern="$3"
+            local lane="$4"
+            local collected=0
+            local target
+            local run_id
+            local run_attempt
+            local head_sha
+            local run_path
+            local run_event
+            mapfile -t run_rows < <(
+              gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?event=$event&status=success&per_page=50" \
+                --jq '.workflow_runs[] | select(.status == "completed" and .conclusion == "success") | [.id, .run_attempt, .head_sha, .path, .event] | @tsv'
+            )
+            for row in "${run_rows[@]}"; do
+              IFS=            echo "$lane successful artifact runs: $collected"
+            echo "${lane}_runs=$collected" >> "$GITHUB_OUTPUT"
+          }
+
+          collect_runs "ci.yml" "pull_request" "ci-setup-metrics-*" "pr"
+          collect_runs "ci.yml" "push" "ci-setup-metrics-*" "main"
+          # Generic Release Finalizer의 canonical release 경로는 workflow_dispatch다.
+          collect_runs "release-image.yml" "workflow_dispatch" "release-setup-metrics-*" "release"
+
+      - name: Phase 2 readiness 분석
+        if: steps.issue.outputs.active == 'true'
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-setup-readiness
+          node scripts/analyze-ci-setup-metrics.mjs             --input .ci-setup-readiness/history             --min-samples 10             --require-bound-provenance true             --output .ci-setup-readiness/analysis.json             --summary "$GITHUB_STEP_SUMMARY"
+          node scripts/render-ci-setup-readiness.mjs             --input .ci-setup-readiness/analysis.json             --output .ci-setup-readiness/comment.md             --issue 444             --repository "$GITHUB_REPOSITORY"             --run-id "$GITHUB_RUN_ID"
+          cat .ci-setup-readiness/comment.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: readiness 분석 evidence 보존
+        if: steps.issue.outputs.active == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-setup-phase2-readiness-${{ github.run_id }}
+          path: |
+            .ci-setup-readiness/analysis.json
+            .ci-setup-readiness/comment.md
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Issue #444 readiness 댓글 갱신
+        if: steps.issue.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker='<!-- mastergantt-ci-setup-readiness:v1 -->'
+          comment_id="$(
+            gh api --paginate "/repos/$GITHUB_REPOSITORY/issues/444/comments?per_page=100"               --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("'"$marker"'"))) | .id'               | tail -n 1
+          )"
+          jq -Rs '{body: .}' .ci-setup-readiness/comment.md > /tmp/readiness-comment.json
+          if [[ -n "$comment_id" ]]; then
+            gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/comments/$comment_id"               --input /tmp/readiness-comment.json >/dev/null
+            echo "Issue #444 readiness comment updated: $comment_id"
+          else
+            gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/444/comments"               --input /tmp/readiness-comment.json >/dev/null
+            echo "Issue #444 readiness comment created."
+          fi
+\\t' read -r run_id run_attempt head_sha run_path run_event <<<"$row"
+              [[ "$run_path" == ".github/workflows/$workflow" ]] || {
+                echo "Unexpected workflow path for run $run_id: $run_path" >&2
+                continue
+              }
+              [[ "$run_event" == "$event" ]] || {
+                echo "Unexpected event for run $run_id: $run_event" >&2
+                continue
+              }
+              target="$root/$lane/$run_id"
+              mkdir -p "$target"
+              if gh run download "$run_id" -p "$pattern" -D "$target" >/tmp/setup-readiness-download.log 2>&1; then
+                node scripts/bind-ci-setup-artifact-provenance.mjs \
+                  --input "$target" \
+                  --run-id "$run_id" \
+                  --run-attempt "$run_attempt" \
+                  --workflow "$run_path" \
+                  --event "$run_event" \
+                  --head-sha "$head_sha"
+                collected=$((collected + 1))
+              else
+                rm -rf "$target"
+              fi
+              if (( collected >= 25 )); then
+                break
+              fi
+            done
+            echo "$lane successful artifact runs: $collected"
+            echo "${lane}_runs=$collected" >> "$GITHUB_OUTPUT"
+          }
+
+          collect_runs "ci.yml" "pull_request" "ci-setup-metrics-*" "pr"
+          collect_runs "ci.yml" "push" "ci-setup-metrics-*" "main"
+          # Generic Release Finalizer의 canonical release 경로는 workflow_dispatch다.
+          collect_runs "release-image.yml" "workflow_dispatch" "release-setup-metrics-*" "release"
+
+      - name: Phase 2 readiness 분석
+        if: steps.issue.outputs.active == 'true'
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-setup-readiness
+          node scripts/analyze-ci-setup-metrics.mjs             --input .ci-setup-readiness/history             --min-samples 10             --output .ci-setup-readiness/analysis.json             --summary "$GITHUB_STEP_SUMMARY"
+          node scripts/render-ci-setup-readiness.mjs             --input .ci-setup-readiness/analysis.json             --output .ci-setup-readiness/comment.md             --issue 444             --repository "$GITHUB_REPOSITORY"             --run-id "$GITHUB_RUN_ID"
+          cat .ci-setup-readiness/comment.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: readiness 분석 evidence 보존
+        if: steps.issue.outputs.active == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-setup-phase2-readiness-${{ github.run_id }}
+          path: |
+            .ci-setup-readiness/analysis.json
+            .ci-setup-readiness/comment.md
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Issue #444 readiness 댓글 갱신
+        if: steps.issue.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker='<!-- mastergantt-ci-setup-readiness:v1 -->'
+          comment_id="$(
+            gh api --paginate "/repos/$GITHUB_REPOSITORY/issues/444/comments?per_page=100"               --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("'"$marker"'"))) | .id'               | tail -n 1
+          )"
+          jq -Rs '{body: .}' .ci-setup-readiness/comment.md > /tmp/readiness-comment.json
+          if [[ -n "$comment_id" ]]; then
+            gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/comments/$comment_id"               --input /tmp/readiness-comment.json >/dev/null
+            echo "Issue #444 readiness comment updated: $comment_id"
+          else
+            gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/444/comments"               --input /tmp/readiness-comment.json >/dev/null
+            echo "Issue #444 readiness comment created."
+          fi
