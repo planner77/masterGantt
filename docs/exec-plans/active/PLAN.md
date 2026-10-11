@@ -1,5 +1,7 @@
 ## Issue #570 — Canonical projection 구현 재개 (2026-10-10)
 
+2026-10-11에는 PR #592의 최신 정렬 Head `2b4d2d525bce81b9a7f03f26af1386f79f5a616b` / main `b4d566e29bf2f976f51796405fd7c6f1ec5e2638`에서 CI #2480.1 실패를 보완한다. 원본 Quality/Docker PASS, E2E 10 FAIL을 보존하고 빈 Summary의 native 열기 오류 및 조회 변경 receipt를 수정한다. 사용자 승인 종료점은 관련 검증·독립 PRE_QA·문서 갱신 후 새 exact-head PR CI 시작이며 QA_FINAL/Manager ACCEPT·병합·Main/GHCR/정식 release·Issue 종료는 포함하지 않는다. 실행별 증거는 [Work Packet](ISSUE_570.md#pr-ci-24801-실패-보완-2026-10-11)에 기록한다.
+
 [Work Packet](ISSUE_570.md)에 따라 최신 main `cf1bb035f19ac18423c7f643fbda3a89dcd73a7f` / application `0.104.0`에서 기존 `feat/issue-570-canonical-projection`을 재사용한다. metadata·structure·membership·layout 변경 경로를 분리하고 실제 Core/DOM 정합성 이후의 bounded receipt를 #571에 인계한다. #552 표시 전환과 #569 viewport writer 제품 도입은 활성화하지 않는다. 후보 PATCH `0.104.1`, HIGH / qa_required=true / qa_method=AGENT, release_required=true / release_authorized=false다. 이전 DNS 제약 후 분리 checkout을 확보했다. 최신 통합 main은 `36b0eaa74a0614a76d1ed867bddb548149feb4bc`이며 초기 baseline과 구분한다. 최종 변경 Unit38·실제 Core Chromium19·typecheck·변경 lint PASS(기존 hook 경고3개) 후 문서·독립 PRE_QA를 거쳐 원격 PR CI 시작까지만 진행한다. 공식 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
 
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)

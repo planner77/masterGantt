@@ -139,6 +139,8 @@ PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042
 
 ## Issue #570 — 멱등 canonical projection 회귀
 
+PR CI #2480.1의 10개 E2E 실패는 [Work Packet](exec-plans/active/ISSUE_570.md#pr-ci-24801-실패-보완-2026-10-11)에 job·원인·수정 후 실행 경계를 보존한다. 빈 Summary 및 마지막 자식 삭제 뒤 filter/columns/Day·Week가 native 열기 오류나 instance 교체를 일으키지 않는지 검사한다. Milestone 필터의 필수 child/상태, scoped Summary 생성, 다중선택 정리 및 pending reveal의 기존 assertion은 유지한다. 조회 변경 receipt 전달 이후 select/open/layout 재관찰은 `queryConditionsChanged=false`이며 선택 action은 `taskSelectionChanged`와 구분해 확인한다.
+
 순수 projection Unit은 data/structure/membership/layout 차이, null filter와 0행, nested Summary context·접힘·순서, M-only 및 canonical Task/Link 원본 보존을 검증한다. canonical action 테스트는 stale generation/API instance에서 후속 action 중단과 실제 display payload 갱신을 확인한다.
 
 실제 Core Chromium은 같은 metadata payload 반복 시 불필요한 filter-tasks/set-columns 0회, 최신 Grid/Chart 텍스트·Link·revision, 구조/필터 변경의 필수 행, 접힘·선택·사용자 열폭·동일 instance를 관찰한다. Day/Week 및 390/768/1024/1440/1920px, readonly와 401/412 rollback은 각 실제 테스트 범위와 미검증을 [#570 AC 매핑](exec-plans/active/ISSUE_570.md)에 기록한다. Core 명령 resolve만으로 화면 완료를 판정하지 않는다.

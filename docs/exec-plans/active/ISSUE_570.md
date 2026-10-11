@@ -1,5 +1,46 @@
 # Issue #570 — Canonical→SVAR Projection 분리·멱등 동기화
 
+## PR CI #2480.1 실패 보완 (2026-10-11)
+
+사용자 요청 범위는 실패 원인 분석·보완·새 exact-head PR CI 시작까지다. 기존 PR #592와 `feat/issue-570-canonical-projection`을 재사용하며 병합·Main CI·GHCR·정식 릴리스·Issue 종료는 포함하지 않는다. 아래 기존 구현 증거는 정렬 전 Head의 역사 기록이며 새 후보의 검증 결과와 구분한다.
+
+- 분석 기준 Head: `2b4d2d525bce81b9a7f03f26af1386f79f5a616b`, main/base: `b4d566e29bf2f976f51796405fd7c6f1ec5e2638`.
+- 원본 실행: [CI #2480.1 / run38113622898 / attempt1](https://github.com/planner77/masterGantt/actions/runs/38113622898), `pull_request`, 결론 FAIL. Quality와 Docker required aggregate는 PASS, E2E required aggregate는 FAIL. `QA Final — Automated` SKIPPED는 QA PASS가 아니다.
+- 실행 방식: frontend Agent가 Gantt source와 관련 회귀를 소유하고 Manager가 문서·원격 게시를 소유한다. 별도 qa_docs Agent가 수정 후보를 읽기 전용으로 독립 검토한다. `risk_level=HIGH`, `qa_required=true`, `qa_method=AGENT`, `manager_decision=NOT TESTED`를 유지한다.
+- 버전 `0.104.1`, `release_required=true`, `release_authorized=false` 유지. 기존 required checks·CI policy·인증/API/DB/scheduling 계약은 변경하지 않는다.
+- 재현 환경: `/tmp/mastergantt-570-fix` 분리 clone, frozen `npm ci` 447 packages/12초 PASS, Next `16.3.8`. 최초 제한 네트워크 설치는 `EAI_AGAIN`으로 FAIL했고 승인된 실행으로 복구했다. production dependency audit 0건 PASS이며 의존성 파일은 수정하지 않는다.
+
+| 실패 shard / job | 실패 테스트 | 관측 |
+| --- | --- | --- |
+| 2/6 / `114394093382` | `grid-task-start-reveal.spec.ts:152`, `project-empty-summary-persistence.spec.ts:6` | Task 필터 변경 후 frame 조회 timeout, 마지막 자식 삭제 뒤 API instance 변경 |
+| 3/6 / `114394093381` | `milestone-stage-dashboard.spec.ts:9`, `milestone-stage-grid.spec.ts:22`, `project-multi-task-copy-paste.spec.ts:153`, `:219`, `:255` | Milestone 필터의 child/상태 누락, 필터 이후 다중선택 상태 및 메뉴 동작 유실 |
+| 4/6 / `114394093356` | `milestone-stage-exchange.spec.ts:130` | Milestone 선택 뒤 필수 child 행 누락 |
+| 5/6 / `114394093398` | `task-context-menu-hierarchy.spec.ts:189` | scope 내 추가한 empty Summary 행 누락 |
+| 6/6 / `114394093353` | `milestone-stage-grid-mock.spec.ts:56` | 열 변경 뒤 동일 Gantt root 보존 실패 |
+
+shard1은 PASS이며 총 10개 실패를 보존한다. 테스트 삭제·기대값 완화·timeout 확대 없이 공통 canonical/filter/접힘 복원 경로를 보완한다. 새 후보의 로컬 검증과 독립 PRE_QA는 아래에 추가하며, 공식 새 Head Quality/E2E/Docker·QA_FINAL·Manager ACCEPT는 CI 등록 시점 NOT TESTED다.
+
+### 재현과 보완 원인
+
+수정 전 대표 6개 실행은 3 FAIL/3 PASS였다. 원격과 같은 `milestone-stage-dashboard:80`, `milestone-stage-grid-mock:72`, `project-empty-summary-persistence:60`을 재현했으며 최초 trace는 `/tmp/issue570-baseline-failures`에 보존했다. 브라우저의 `Cannot read properties of null (reading 'forEach')`는 필터 뒤 빈 Summary를 `open-task(true)`로 여는 경로와 일치한다. 현재 Core `serialize()`의 parent ID 집합으로 실제 자식이 있는 container에만 열림/접힘 복원을 적용한다.
+
+첫 보완의 대표 6개는 5 PASS/1 FAIL이었다. 기존 empty Summary instance 실패 지점 `:60`은 통과했지만 뒤쪽 Outdent `:107`에서 nested empty Summary bar 잔존이 드러났으며 `/tmp/issue570-after-first-failures`에 보존했다. 이때 `serialize()`는 `summary-container`, duration0, start=end였지만 `_tasks`는 같은 ID에 `summary`, duration1, width36의 이전 표시 payload였다. 무필터 fast path가 행 ID 일치만 확인해 structure 변경의 재투영도 건너뛴 원인이다. 마지막 적용 structure key가 같을 때만 fast path를 허용하여 metadata-only의 불필요 action 0회와 필요한 구조 재투영을 구분한다.
+
+기존 리뷰 P2의 `queryConditionsChanged` effect closure 재사용도 보완한다. 각 관찰을 시작할 때 직전 전달 receipt의 query identity와 비교하며 이후 tree/select/layout 관찰에 최초 변경 flag를 반복하지 않는다. 실제 Core 회귀는 빈 Summary·필터로 자식이 제외된 Summary·Milestone 열·Day/Week·조회 receipt 이후 tree/select/layout 관찰을 추가한다. 원래 실패 테스트의 assertion·timeout·retry 및 workflow는 변경하지 않는다.
+
+신규 receipt 회귀의 최초 실행에서는 tree 뒤 이름 셀 선택으로 생긴 inline/editor·effect 재설치가 select 관찰을 대체해 flag를 잃는 경계를 확인했다. 독립 QA 지적을 반영해 native 선택 action뿐 아니라 같은 API instance의 마지막 전달 selected IDs와 현재 공개 selected IDs를 비교한다. 최초 실제 선택 변화가 다음 유효 receipt에 전달되는지 검사하며 같은 작업을 반복 선택해 실패를 우회하지 않는다.
+
+### 보완 로컬 검증과 인계
+
+- Summary/structure 수정 source에서 원래 CI 실패 10개 경로 모두 after PASS. 별도 나머지 7개 실행은 7/7 PASS(2.5분, `/tmp/issue570-remaining7.log`)이며 앞선 대표 실행 3개와 구분한다.
+- 기존 projection Chromium matrix 19개 PASS. 중간 22개 실행의 신규 receipt 1 FAIL은 위 selection 경계 보완 전 결과이며 삭제하지 않는다.
+- 마지막 read-only receipt delta 이후 신규 receipt/빈 Summary Chromium 2/2 PASS(9.2초, `/tmp/issue570-final-new2.log`). 최초 checkbox 선택의 flag·selected IDs, 뒤쪽 layout의 query/selection false, 빈 Summary 및 자식이 필터에서 제외된 Summary의 열/Day·Week를 검증했다. 기존 10개/19개 결과를 이 마지막 delta 이후 전체 재실행한 것으로 합산하지 않는다.
+- 관련 Unit 4파일38 PASS, 최종 typecheck PASS, 변경 lint 0 errors·기존 warnings3개. Manager의 version `0.104.1`, Markdown177파일 및 diff whitespace 검사 PASS.
+- 최종 제품 source SHA256: `f13f0866377afd7b34d4f601d28a84fa437ff7bd77e018a0da95204a6aeb0aa9`; 최종 E2E spec SHA256: `c3541f66c297fbf5fbdb5a3e50b3cca61073523c93e642f55141fddc93b5d14d`. 마지막 신규 실행 전후 지문 동일.
+- 게시 allowlist는 제품1개·E2E1개·문서6개다. 자동 생성 `next-env.d.ts`, `tsconfig.json`, 실행 중 갱신된 `output/playwright/**`, runtime DB/log/trace는 게시하지 않는다. manifest/lockfile·workflow·required gate는 이번 보완에서 수정하지 않는다.
+
+마지막 제품/spec source에 대한 별도 `/root/issue570_qa_fix`의 독립 PRE_QA 결과는 원격 게시 STATUS에 연결한다. 이 사전 검토는 새 Head required CI·QA_FINAL·신뢰된 승인 영수증 또는 Manager ACCEPT를 대신하지 않는다. 새 CI 시작 시 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED이며 병합 준비 완료로 보고하지 않는다.
+
 ## Issue Work Packet
 
 - repository/issue: planner77/masterGantt #570; 상위 #567, 선행 #568/PR #575·#569/PR #576, 후행 #571.

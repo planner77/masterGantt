@@ -6,6 +6,10 @@
 
 Summary 접힘, 선택, 사용자 열폭은 조회·canonical 갱신의 별도 상태다. 0건 필터·scale 전환 후 조건을 초기화할 때도 기존 Summary 접힘 의도를 실제 Core 상태에 다시 맞추며, 초기화가 자식을 임의로 여는 명령이 되지 않는다. 기존 자식이 있는 접힌 Summary로 passive canonical 이동이 발생해도 접힘 의도를 보존하며, 첫 자식 추가의 기존 auto-open 동작은 유지한다. 접힌 자식과 가상화된 offscreen 행을 누락 오류로 혼동하지 않되 실제 필수 행 누락·잘못된 순서는 승인하지 않는다. scope/filter/scale/instance가 달라진 오래된 동기화는 최신 상태를 덮지 않는다. 숨김·inert·zero-size 화면은 성공한 layout 완료로 보고하지 않는다.
 
+빈 Summary와 마지막 자식을 삭제한 Summary는 필터·열·scale 변경 뒤에도 같은 Gantt instance의 행으로 남는다. 자식 없는 Summary의 저장된 열림 의도를 복원하기 위해 native 열기 명령을 발행하지 않는다. Milestone 조건과 일반 Task 필터를 바꿔도 정상적인 표시 집합·선택 정리 계약을 유지한다.
+
+마지막 dated 자식을 밖으로 이동해 Summary 일정이 미산정으로 돌아가면 해당 Summary의 bar를 제거한다. 행 ID가 같다는 이유로 이전 dated Summary 표시를 남기지 않으며 같은 Core instance에서 필요한 구조 재투영을 수행한다.
+
 이 변경은 새 사용자 조작이나 Milestone 표시 전환을 추가하지 않는다. 현재 Milestone 행/빠른 보기 호환, readonly와 401/412 복구, draft/focus/viewport 보호 및 서버 revision 계약을 유지한다. 실제 제품 projection receipt와 검증 범위는 [#570 실행 기록](exec-plans/active/ISSUE_570.md)에 남긴다.
 
 ## Issue #569 — 기하·날짜 이동의 설계 실험

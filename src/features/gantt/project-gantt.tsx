@@ -1979,7 +1979,9 @@ export function ProjectGantt({
       const membershipCorrect = JSON.stringify(actualVisibleIds) === JSON.stringify(expected.logicalVisibleIds);
       if (applied?.api === api && applied.key === requestedProjection.keys.membership && applied.structure === requestedProjection.keys.structure && membershipCorrect) return;
       const visible = visibleTaskIds === null ? null : new Set(requestedProjection.membershipIds);
-      if (!visible && !taskFilterAppliedReference.current && membershipCorrect) {
+      // Matching IDs alone do not prove that Core's rendered tree has the new
+      // hierarchy/type payload. Structural commits still need a public refresh.
+      if (!visible && !taskFilterAppliedReference.current && membershipCorrect && applied?.api === api && applied.structure === requestedProjection.keys.structure) {
         appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
         return;
       }
@@ -1988,13 +1990,15 @@ export function ProjectGantt({
         open: false,
         filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
       });
-      // Core2.7.3 clear-filter restores its saved open flags. A scale commit
-      // may have captured older flags; preserve the user's tracked tree intent.
+      // A scale commit may have captured older flags; preserve the user's
+      // tracked tree intent only for actual containers. Core's open-task(true)
+      // on a leaf makes its tree traversal recurse into a null child collection.
       const summaryIntent = new Map(summaryToggleStateReference.current);
+      const parentIds = new Set(currentTasks.filter(task => task.parent).map(task => String(task.parent)));
       for (const [id, collapsed] of summaryIntent) {
         if (apiReference.current !== api || projectRevisionReference.current !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership) return;
         const task = api.getTask(id);
-        if (task && Boolean(task.open) === collapsed) await api.exec("open-task", { id, mode: !collapsed });
+        if (task && parentIds.has(id) && Boolean(task.open) === collapsed) await api.exec("open-task", { id, mode: !collapsed });
       }
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
@@ -2075,6 +2079,7 @@ export function ProjectGantt({
   const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
   const observedProjectionReference = useRef<CanonicalProjection | null>(null);
   const observedQueryReference = useRef<string | null>(null);
+  const observedSelectionReference = useRef<{ api: IApi; ids: readonly string[] } | null>(null);
   useEffect(() => {
     const api = apiReference.current, root = fullscreenFrameReference.current;
     if (!api || !root || !apiInstanceId) return;
@@ -2082,21 +2087,27 @@ export function ProjectGantt({
     let observation: ReturnType<typeof observeProjectionSettled> | null = null;
     const requested = projection;
     const reasons = diffProjection(observedProjectionReference.current, requested).reasons;
-    const queryConditionsChanged = observedQueryReference.current !== viewportContinuityKey;
     observedProjectionReference.current = requested;
-    observedQueryReference.current = viewportContinuityKey;
     const observe = (trigger: "projection" | "open-task" | "select-task" | "layout" = "projection") => {
       observation?.cancel();
+      const queryConditionsChanged = observedQueryReference.current !== viewportContinuityKey;
+      const selectedIds = (api.getState().selected ?? []).map(String);
+      const previousSelection = observedSelectionReference.current?.api === api ? observedSelectionReference.current.ids : [];
+      const taskSelectionChanged = trigger === "select-task" || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
       const generation = ++projectionReceiptGeneration.current;
       const isCurrent = () => !disposed && apiReference.current === api &&
         generation === projectionReceiptGeneration.current && projectRevisionReference.current === requested.revision &&
         projectionReference.current.keys.data === requested.keys.data && projectionReference.current.keys.structure === requested.keys.structure && projectionReference.current.keys.membership === requested.keys.membership &&
         projectionReference.current.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
       observation = observeProjectionSettled(api, root, requested, { apiInstance: apiInstanceId, generation,
-        reasons: trigger === "layout" ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged: trigger === "select-task", queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
+        reasons: trigger === "layout" ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
       void observation.promise.then(receipt => {
         if (disposed || generation !== projectionReceiptGeneration.current) return;
         deliverProjectionReceipt(receipt, isCurrent, receipt => {
+        // Later tree/selection/layout observations must compare with the last
+        // delivered query, rather than reuse the effect's initial change flag.
+        observedQueryReference.current = viewportContinuityKey;
+        observedSelectionReference.current = { api, ids: receipt.selectedIds };
         projectionReceiptReference.current = receipt;
         root.dispatchEvent(new CustomEvent("mastergantt:projection-settled", { bubbles: true, detail: receipt }));
         if (process.env.NODE_ENV !== "production") root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);

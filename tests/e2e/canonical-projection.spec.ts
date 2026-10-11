@@ -209,3 +209,78 @@ test("#570 passive reparent keeps its existing target Summary collapsed", async 
   await expect(rowNamed(page, "Existing summary child")).toHaveCount(0);
   await expectSameGanttRoot(page, identity);
 });
+
+test("#570 query receipt is consumed before later tree and selection observations", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const fixture = await installStatefulProjectFixture(page);
+  await page.goto(`/projects/${publicId}`);
+  const frame = page.locator(".project-gantt-frame");
+  const receipt = async () => JSON.parse((await frame.getAttribute("data-gantt-projection-receipt")) ?? "null");
+  await expect.poll(async () => (await receipt())?.outcome).toBe("SETTLED");
+  await page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" }).fill("Existing summary child");
+  await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
+  await expect.poll(async () => {
+    const value = await receipt();
+    return value?.outcome === "SETTLED" && value.queryConditionsChanged;
+  }).toBe(true);
+  const toggle = rowNamed(page, "Stable summary").locator('[data-action="open-task"]');
+  for (const visible of [false, true]) {
+    const previous = (await receipt()).generation;
+    await toggle.click();
+    await expect(rowNamed(page, "Existing summary child")).toHaveCount(visible ? 1 : 0);
+    await expect.poll(async () => {
+      const value = await receipt();
+      return value?.generation > previous && value.outcome === "SETTLED" && !value.queryConditionsChanged;
+    }).toBe(true);
+  }
+  const previous = (await receipt()).generation;
+  await rowNamed(page, "Existing summary child").locator("input[data-copy-selection]").check();
+  await expect.poll(async () => {
+    const value = await receipt();
+    return value?.generation > previous && value.outcome === "SETTLED" && value.taskSelectionChanged && value.selectedIds.includes(fixture.tasks[1].taskId) && !value.queryConditionsChanged;
+  }).toBe(true);
+  const selectionGeneration = (await receipt()).generation;
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await expect.poll(async () => {
+    const value = await receipt();
+    return value?.generation > selectionGeneration && value.outcome === "SETTLED" && value.reasons.includes("layout") && !value.taskSelectionChanged && !value.queryConditionsChanged;
+  }).toBe(true);
+});
+
+test("#570 filters and scale retain empty Summary containers without opening leaves", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.tasks.push({ ...fixture.tasks[0], taskId: "00000000-0000-4000-8000-000000000599", externalId: "EMPTY-570", name: "Empty Summary", start: null, end: null, duration: null, progress: null, siblingOrder: 3 });
+  await page.goto(`/projects/${publicId}`);
+  const identity = await rememberGanttRoot(page);
+  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
+  for (const query of ["Stable summary", "Existing summary child", "Empty Summary", "no matches 570", ""]) {
+    await search.fill(query);
+    const count = query === "Empty Summary" || query === "" ? 1 : 0;
+    await expect(rowNamed(page, "Empty Summary")).toHaveCount(count);
+    if (query === "Stable summary") {
+      await expect(rowNamed(page, "Existing summary child")).toHaveCount(0);
+      await frameColumnVisibility(true);
+      await frameColumnVisibility(false);
+    }
+    for (const scale of ["주", "일"]) {
+      await page.getByRole("button", { name: scale, exact: true }).click();
+      await expect(rowNamed(page, "Empty Summary")).toHaveCount(count);
+      await expectSameGanttRoot(page, identity);
+    }
+  }
+  expect(errors).toEqual([]);
+  expect(fixture.posts).toHaveLength(0);
+  expect(fixture.patchRequests).toHaveLength(0);
+
+  async function frameColumnVisibility(shown: boolean) {
+    await page.locator(".wx-table-container .wx-header").first().click({ button: "right" });
+    await page.locator(".project-column-menu").getByRole("checkbox", { name: "Milestone", exact: true }).setChecked(shown);
+    await page.keyboard.press("Escape");
+    await expect(rowNamed(page, "Stable summary")).toBeVisible();
+    await expect(rowNamed(page, "Existing summary child")).toHaveCount(0);
+    await expectSameGanttRoot(page, identity);
+  }
+});

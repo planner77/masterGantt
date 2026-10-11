@@ -16,7 +16,11 @@ Gantt frame은 `mastergantt:projection-settled` DOM event의 detail로 `revision
 
 SETTLED의 범위는 canonical Task/Link payload, 행 membership·순서, Grid/Chart 텍스트 및 수직 행 정합이다. bar의 수평 X/width, native Link DOM 기하, 최종 viewport/date reveal 완료는 이 receipt로 보장하지 않는다. #571 소비자는 #569의 기하 검증을 별도로 통과해야 한다.
 
-관찰은 유한 timeout과 RAF/timer cleanup을 가지며 조회 조건 변화와 실제 선택 action을 구분한다. 이 이벤트를 받았다는 이유만으로 #571의 scroll intent 우선순위/단일 writer 구현이 완료됐다고 보고하지 않는다.
+관찰은 유한 timeout과 RAF/timer cleanup을 가지며 조회 조건 변화와 실제 선택 action을 구분한다. `queryConditionsChanged`는 각 관찰을 시작할 때 직전 전달한 receipt의 조회 identity와 비교한다. 최초 effect 설치 시의 값을 선택·접힘·layout 재관찰에 재사용하지 않는다. `taskSelectionChanged`는 native 선택 action과 같은 API instance에서 마지막 전달 receipt 대비 실제 selected IDs의 차이를 확인한다. 선택 직후 effect 재설치나 layout 관찰이 앞선 관찰을 대체해도 아직 전달하지 않은 선택 변화는 다음 유효 receipt에 남는다. 이 이벤트를 받았다는 이유만으로 #571의 scroll intent 우선순위/단일 writer 구현이 완료됐다고 보고하지 않는다.
+
+필터 뒤 Summary 열림/접힘 복원은 현재 Core Task에 실제 자식이 있는 container에만 적용한다. 빈 Summary 및 마지막 자식이 삭제된 Summary에 `open-task(true)`를 보내면 Core 2.7.3의 null 자식 컬렉션 순회 오류로 복구 경로가 실행될 수 있다. 저장된 사용자 intent는 유지하되 자식 없는 행을 여는 명령으로 바꾸지 않는다.
+
+무필터 상태의 fast path도 마지막으로 적용한 structure key가 같아야 한다. `serialize()`의 canonical Task가 갱신되어도 Core `_tasks`에 이전 Summary 렌더 payload가 남을 수 있으므로 행 ID 일치만으로 구조 변경의 재투영을 생략하지 않는다. metadata-only의 같은 구조·membership에서는 기존 action 0회 계약을 유지한다.
 
 ## Issue #569 — 공개 API Adapter의 도입 전 경계
 
