@@ -1,3 +1,9 @@
+## Issue #571 — Main CI #2504.1 교정 및 새 PR CI (2026-10-11)
+
+[PR #610 병합](https://github.com/planner77/masterGantt/pull/610) SHA `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`의 [Main CI #2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)에서 #463 Chromium E2E 1 FAIL로 GHCR/Finalizer가 SKIPPED다. 실제 실행 원장에서는 FILTER_RETURN(120,0) 중 새로운 native/CORE(180,128) 스크롤이 되감겼고, 180px 범위는 실제 충분하므로 UI 쿼리 bookmark의 장기 보호가 문제다.
+
+`fix/issue-571-filter-return-viewport` corrective branch에서 FILTER_RETURN만 one-shot/no native repair/no persisted guard로 변경하고 #463 기존 strict E2E와 guard Unit을 다시 검사한다. PEER/PASSIVE 보호는 변경하지 않는다. 제품 PATCH 0.104.3로 manifest/lock/CHANGELOG를 동기화했으며 기존 v0.104.2 승인 마커는 보존하되 새 v0.104.3의 release_authorized=false다. 위험도 HIGH / OWNER_MANAGED / QA required true. 새 PR CI 뒤 Head별 Trusted QA·Owner ACCEPT·merge/main/정식 GHCR는 별도 gate다.
+
 ## Issue #571 — 단일 Viewport Coordinator 구현 (2026-10-11)
 
 [#571 Work Packet](ISSUE_571.md): #570 PR #592 병합 main `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`에서 `feat/issue-571-viewport-coordinator`를 생성했다. 단일 intent/command ingress와 최신 projection·geometry settle, 사용자 입력 우선권·filter bookmark 및 parent 중복 native 복원 제거를 구현한다. #569 실험 adapter는 DEFER, 기존 #367 range compatibility는 회귀 보존, #551 미통합 lane은 별도 NOT TESTED다.
