@@ -183,7 +183,9 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!current() || !sample.measurable || sample.capacity.left < target.left - 1 || sample.capacity.top < target.top - 1) return null;
     await exec("scroll-chart", { ...target, eventSource: tag });
     if (!current()) return null;
-    if (command.kind !== "DRAG_EDGE" && command.protect !== false) {
+    // A filter bookmark is one-shot; it cannot intercept a later native
+    // scroll-chart event. Peer/passive guards keep their stale-rewind policy.
+    if (command.kind !== "DRAG_EDGE" && command.kind !== "FILTER_RETURN" && command.protect !== false) {
       const accepted = read();
       if (accepted.core.left === target.left && accepted.core.top === target.top)
         authority = { target, current, geometry: accepted.geometry, repairs };

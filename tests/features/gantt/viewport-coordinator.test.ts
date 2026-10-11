@@ -99,6 +99,45 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.port.apply).toHaveBeenCalledTimes(1);
   });
 
+  it("does not retain write protection after a one-shot FILTER_RETURN settles", async () => {
+    const f = fixture(), command = { kind: "FILTER_RETURN", position: { left: 120, top: 0 } } as const;
+    const pending = f.coordinator.request(command);
+    await f.advance(8);
+    expect(await pending).toBe("SETTLED");
+    expect(f.port.protect).not.toHaveBeenCalled();
+    expect(f.port.repair).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["horizontal", { left: 180, top: 0 }],
+    ["vertical", { left: 120, top: 128 }],
+  ] as const)("supersedes an in-flight FILTER_RETURN for a coherent new %s offset", async (_axis, moved) => {
+    const f = fixture(), command = { kind: "FILTER_RETURN", position: { left: 120, top: 0 } } as const;
+    const pending = f.coordinator.request(command);
+    await f.advance(3);
+    expect(f.port.apply).toHaveBeenCalledTimes(1);
+    f.update({ core: moved, native: moved });
+    await f.advance();
+    expect(await pending).toBe("SUPERSEDED");
+    expect(f.sample.core).toEqual(moved);
+    expect(f.port.repair).not.toHaveBeenCalled();
+    expect(f.port.protect).not.toHaveBeenCalled();
+  });
+
+  it("does not repair an early native scroll while its matching Core event is delayed", async () => {
+    const f = fixture(), command = { kind: "FILTER_RETURN", position: { left: 120, top: 0 } } as const;
+    const pending = f.coordinator.request(command);
+    await f.advance(3);
+    f.update({ native: { left: 180, top: 0 } });
+    await f.advance();
+    expect(f.port.repair).not.toHaveBeenCalled();
+    f.update({ core: { left: 180, top: 0 } });
+    await f.advance();
+    expect(await pending).toBe("SUPERSEDED");
+    expect(f.port.apply).toHaveBeenCalledTimes(1);
+    expect(f.port.protect).not.toHaveBeenCalled();
+  });
+
   it("invalidates captured sources across A to B to A even when the final context looks identical", async () => {
     const f = fixture(), source = f.coordinator.stamp();
     f.context({ scope: "B" }); f.coordinator.contextChanged();

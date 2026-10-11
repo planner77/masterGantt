@@ -221,11 +221,17 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
         if (!sample.measurable) return complete("NOT_MEASURABLE");
         const coreCorrect = sample.core.left === target.left && sample.core.top === target.top;
         const nativeCorrect = Math.abs(sample.native.left - target.left) <= 1 && Math.abs(sample.native.top - target.top) <= 1;
-        if (coreCorrect && !nativeCorrect && repairs < 3 && port.repair(target)) { repairs++; stable = 0; }
+        // FILTER_RETURN is a one-shot bookmark, never long-lived viewport
+        // authority. A fresh aligned Core/native offset supersedes it even
+        // when the user moved the native DOM without a wheel/pointer event.
+        if (command.kind === "FILTER_RETURN" && !coreCorrect &&
+          Math.abs(sample.core.left - sample.native.left) <= 1 &&
+          Math.abs(sample.core.top - sample.native.top) <= 1) return complete("SUPERSEDED");
+        if (command.kind !== "FILTER_RETURN" && coreCorrect && !nativeCorrect && repairs < 3 && port.repair(target)) { repairs++; stable = 0; }
         else stable = animated && validViewportReceipt(sample) && coreCorrect && nativeCorrect && sample.geometry === settledGeometry ? stable + 1 : 0;
         settledGeometry = sample.geometry;
         if (stable >= 3) {
-          if (command.kind === "PEER_RETURN" || command.kind === "PASSIVE_RESTORE" || command.kind === "FILTER_RETURN") {
+          if (command.kind === "PEER_RETURN" || command.kind === "PASSIVE_RESTORE") {
             // A settled command cannot retain write authority over a newer
             // canonical queue or an invalidated observation of the same data.
             if (command.protect !== false) {

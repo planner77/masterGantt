@@ -1,3 +1,11 @@
+## Issue #571 / Main CI #2504.1 — FILTER_RETURN 경쟁 교정 (2026-10-11)
+
+원본 [Main CI #2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)은 Quality/Docker PASS, Chromium 3/6 샤드에서 #463 화면 전환·검색 회귀 1 FAIL(94 PASS/1 FAIL/1 SKIPPED)이다. 복귀 receipt 원래120/96, capacity2563px 확보, 검색 한 행→전체 복원 뒤 FILTER_RETURN120/0 APPLYING→SETTLING 중 새 native/Core180/128가120/128로 되감겨 FILTER_RETURN TIMED_OUT을 확인했다. 임시 GHCR와 Finalizer는 SKIPPED다.
+
+- 기존 strict `milestone-dashboard-state.spec.ts:117`에서 필터 해제 직후의 실제 DOM→Core180/128, 이후 필터/해제·resize·instance/영수증 보존을 같은 기대값으로 재검증한다. 기대값/timeout/retry/skip/gate 변경 금지.
+- Unit: FILTER_RETURN 정상 1회 복원의 post-settle protect0, 진행 중 새 Core/native 수평180 또는 세로128 정합→SUPERSEDED, native 선행·Core 지연 이동의 repair0. Production port intercept는 FILTER_RETURN 이후 native scroll을 허용하고 PEER_RETURN의 stale Core0은 계속 차단한다.
+- 원본 #2504.1 실패를 새 corrective PR의 성공으로 소급하지 않는다. 모든 6 E2E shards, Quality, Docker, Trusted QA의 exact-head 성공은 새 PR에서 확인해야 한다.
+
 ## PR #610 / CI #2500.1 후속 회귀
 
 [원본 CI](https://github.com/planner77/masterGantt/actions/runs/38135294369)는 quality/docker PASS·e2e2 FAIL이다. Grid filter-source 전환 후 native show:xy의19830을 late PASSIVE_RESTORE120이 덮는 최초 trace를 보존한다. 실제 native reveal이 오래된 복원을 취소하며 canonical 시작일 가시성과 Core/native 좌표가 clock300ms 뒤에도 유지되는지 확인한다. show:false·canonical·앱 선택 동기화 제외, 날짜 없는 Summary의 수평 위치 보존과 show:y, modifier/keyboard/context-menu 계약을 함께 검증한다. empty selection toggle의 show:false 및 modifier/Shift mirror의 reveal=false를 확인하여 checkbox Space 전후 좌표가 유지되고 앱 Task reveal이 발행되지 않아야 한다.
