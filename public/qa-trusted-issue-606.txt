@@ -1,0 +1,2 @@
+QA Final Trusted — T1/T2 evidence marker for Issue #606, following Issue #593.
+This is an inert public test fixture. No production behaviour is changed.
