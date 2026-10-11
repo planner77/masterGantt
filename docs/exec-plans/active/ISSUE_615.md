@@ -103,3 +103,10 @@ Reviewer `/root/f0_pre_qa`가 구현 주체와 분리되어 AC1~AC7·diff·실�
 기준 HEAD `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`의 미커밋 후보를 검토했다. 영수증 삽입 전 정렬된 변경·신규 경로의 `path NUL SHA256 LF` 지문은 전체50파일 `e854bb26db7cf43c5d10e57f41d6cde8de403dac9d73cbdb37d67534966b7292`, production28파일 `a10c943872aa6ebb3af9a3a0edfc39b69aa904b6ce0c599c050a5c783cf969e2`, tests5파일 `8772353395a0111a41666c284264cc4127f73679d6dade61cd844a6c23acf088`이다. 이 영수증 문서 추가 뒤 production/tests는 변경하지 않는다. 최초 inventory FAIL·duplicate500·활성 경로 표시·AC 사례 보강 이력은 유지한다.
 
 DOCUMENTATION_SYNC: PASS(관련 계약 의미 검토 포함). QA_FINAL/Trusted/quality/e2e/docker/Owner Manager ACCEPT: NOT TESTED. 독립 PRE_QA를 Owner-managed 병합 허가로 사용하지 않는다. 요청 종료점 이후의 병합·운영 적용·release·Issue 종료는 별도다.
+
+### CI #2520.1 실패 후 보완 — 2026-10-12
+
+- PR #627, 원본 HEAD `1c9dcf67cb02fb3a3b8f14ba62bd3529a9a9fa99`, [PR CI #2520.1](https://github.com/planner77/masterGantt/actions/runs/38178153973): 전체 Vitest 2103 PASS / 1 FAIL / 3 SKIP. 실패는 `tests/server/migration-cli.test.ts`가 migration 0024까지만 예상한 고정 적용 목록/24행 단언으로, 새 `0025_process_catalog.sql`을 포함한 실제 25행과 불일치한 테스트 fixture 누락이다. DB migration 자체 실패나 E2E 실패가 아니다.
+- TypeScript, ESLint, Next build, Chromium 6/6, Docker smoke PASS. quality aggregator는 Vitest 실패로 FAIL, QA Final — Automated는 required quality 미성공으로 종속 FAIL이다.
+- 수정: migration CLI 고정 목록에 0025와 25행 기대값을 반영하고 초기 `process_catalog_state`/빈 type catalog/FK 무결성 단언을 추가했다. 리뷰 P2로 지적된 `ProcessContextResponse.data.permission`의 `"readonly" | "edit"` 타입 누락을 보완하고 타입 계약 검증·readonly/edit HTTP 회귀·API 문서를 동기화했다.
+- 기존 로컬 PRE_QA 영수증은 원본 HEAD의 이력으로 보존한다. 새 HEAD의 전체 quality/e2e/docker, Trusted QA, QA Final 및 Owner ACCEPT는 새 CI 실행 전에는 NOT TESTED이며, 새 실행 결과로만 재판정한다. 범위 외 병합·GHCR·릴리스·Issue 종료는 진행하지 않는다.

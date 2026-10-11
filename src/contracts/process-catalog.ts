@@ -59,6 +59,7 @@ export interface ProcessCatalogResponse {
 }
 export interface ProcessContextResponse extends ProcessCatalogResponse {
   data: ProcessCatalogResponse["data"] & {
+    permission: "readonly" | "edit";
     projectRevision: number;
     projectMasterRevision: number;
     selection: {

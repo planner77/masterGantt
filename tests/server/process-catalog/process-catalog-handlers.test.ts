@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import type Database from "better-sqlite3";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 
+import type { ProcessContextResponse } from "../../../src/contracts/process-catalog";
 import { openDatabase } from "../../../src/server/db/core";
 import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
 import { ProcessCatalogService } from "../../../src/server/process-catalog/process-catalog-service-core";
@@ -138,7 +139,14 @@ describe("Process catalog native SQLite HTTP security and atomicity", () => {
     const context = handleGetProjectProcessContext(new Request(`${base}/api/projects/${f.project.publicId}/logistics/process-context`), f.project.publicId, f.d);
     expect(context.status).toBe(200);
     const body = await context.json();
+    expectTypeOf<ProcessContextResponse["data"]["permission"]>().toEqualTypeOf<"readonly" | "edit">();
     expect(body.data.permission).toBe("readonly");
+    const editingContext = handleGetProjectProcessContext(
+      new Request(`${base}/api/projects/${f.project.publicId}/logistics/process-context`, { headers: { Cookie: f.editorCookie } }),
+      f.project.publicId, f.d,
+    );
+    expect(editingContext.status).toBe(200);
+    expect((await editingContext.json()).data.permission).toBe("edit");
     expect(body.data.occurrences[0].id).toBe(occurrence.id);
     expect(body.data.workAreas[0].id).toBe(workArea.id);
     const params = new URLSearchParams(f.triple);
