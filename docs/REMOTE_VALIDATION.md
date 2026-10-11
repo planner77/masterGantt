@@ -1,3 +1,11 @@
+## Issue #550 / PR #626 — QA Final #2522.1 필수 운영 문서·릴리스 승계 (2026-10-12)
+
+- **검증 원본:** [PR #626 CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`, base `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`. `Build, static checks, and unit tests`, `Chromium end-to-end tests`(shard 1~6), `Docker build and runtime smoke test`는 SUCCESS. `QA Final — Automated`가 정확히 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 BLOCKED. 기존 성공 aggregate만으로 전체 CI/병합/GHCR PASS라고 표시하지 않는다.
+- **문서 Gate:** `scripts/auto_release_finalizer.py` 및 `scripts/verify-issue-lifecycle.py`는 보호 스크립트 경로이므로 Work Packet의 `## DOCUMENTATION_SYNC`에 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`의 **각각 UPDATE 또는 사유가 있는 N/A**가 반드시 존재해야 한다. UI source의 `DESIGN.md` 영향 역시 포함한다. 미기록 문서는 문서 검증이 차단하며 목록/QA 정책을 축소하지 않는다.
+- **새 PR Head 확인:** base/head/test-merge SHA 동일성, GitHub 미해결 리뷰 0, required Quality/E2E/Docker source run/attempt, Automated QA의 구조적 문서/AC 판정과 기본 브랜치의 Trusted QA를 구분한다. OWNER_MANAGED의 독립 인간 QA 선택 미실시는 N/A이지 Owner 최종 승인이나 환경 실행 PASS가 아니다.
+- **병합 이후:** 원본 실패 merge `0.104.4→0.105.0`과 같은 Issue의 보완 merge `0.105.0→0.105.0`를 first-parent 증거로 추적한다. 실패한 원본을 supersede해도 미게시 version `v0.105.0`의 release 의무를 `inherited_release_previous_version`으로 유지해야 하며, manifest와 실제 승인 marker, 새 정확 SHA의 verified Main CI·GHCR candidate를 검증한 뒤에만 annotated tag/Release CI/digest promotion/Issue close가 가능하다.
+- **실행 전 상태:** 이번 문서 보완으로 새 Head의 PR CI/Trusted/Main/정식 GHCR를 성공했다고 주장하지 않는다. 기존 Main CI #2515.1과 PR #626 CI #2522.1의 FAIL 및 GHCR SKIPPED 기록을 보존한다. 실패 원인은 새 Run의 job/step/log로 다시 판정한다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.

@@ -1,3 +1,12 @@
+## Issue #550 / PR #626 — QA Final #2522.1 필수 운영 문서·릴리스 승계 (2026-10-12)
+
+- [PR CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) / exact Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`: Quality·Chromium E2E 6개 샤드·Docker required aggregate **PASS**. `QA Final — Automated`은 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 **BLOCKED**. CI 전체는 FAILURE이며 문서 영향 원장을 최신 Head로 보완하고 재검증하기 전 병합하지 않는다.
+- Failed Main merge #550 (`40747252c389f2a4d1203a2262a4caa49c90728d`)의 `0.104.4 → 0.105.0` 정식 Release 의무는 [Issue #550 Owner 승인 원장](https://github.com/planner77/masterGantt/issues/550#issuecomment-6113115242)을 통해 이미 버전 범위가 승인됐지만, Main CI #2515.1의 실패로 정식 image는 **미게시** 상태다.
+- 동일 Issue corrective merge가 변경 없는 `0.105.0 → 0.105.0`을 가지더라도 최초 실패한 변경의 릴리스 의무를 버릴 수 없다. Generic Finalizer는 원본/보완 각각의 immutable first-parent delta를 따로 보존하고 `inherited_release_previous_version`으로 미발행 의무를 승계한다. 동일 Issue·원본과 동등 이상의 비문서 검증·보완 exact Main CI SUCCESS에서만 선행 실패를 supersede한다.
+- **실행 순서:** 정확한 Head/base PR CI 3 Required SUCCESS + QA Final/Trusted + Owner 병합 승인 → 한 줄 표준 제목 merge → 새 immutable merge SHA Main CI 3 Required SUCCESS → `ci-<SHA>` GHCR exact digest 검증·API/SQLite/restart smoke + SBOM/provenance → Generic Finalizer의 version-scoped `authorized=true`/`expected_version=0.105.0` Owner marker 검사 → annotated `v0.105.0` → `release-image.yml` exact digest promotion 검증 → safe branch cleanup/FINAL/Issue close.
+- Failure/중단: 누락·철회 승인, 기존 immutable tag가 다른 SHA를 가리킴, 다른 final version의 no-bump corrective, 복수 미발행 version origin, Main CI/임시 이미지 검증 실패는 **BLOCKED**. 구 SHA의 실패 기록을 PASS로 소급하거나 finalizer가 candidate를 먼저 삭제하고 Issue를 닫지 않는다. 정식 GHCR/운영 배포를 완료했다고 판단하려면 게시·digest를 별도로 재조회한다.
+- 이번 보완은 GitHub 운영 문서 영향 갱신이며 workflow/Ruleset/권한/QA 정책 자체를 변경하지 않는다. 검증 및 semantic review는 새 PR Head 별도.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.

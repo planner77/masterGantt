@@ -152,7 +152,10 @@ PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](htt
 - `docs/API.md`: N/A(새 HTTP endpoint와 DTO 스키마 없이 기존 저장 gateway 및 보호 요청을 재사용한다)
 - `docs/DB_SCHEMA.md`: N/A(신규 migration과 저장소·SQLite 스키마 변경 없이 기존 엔터티를 이용한다)
 - `docs/SECURITY.md`: N/A(기존 server-side session/Origin/If-Match/revision guard와 readonly 권한을 유지한다)
-- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH 보호 파일의 독립 리뷰 요구를 완화하지 않고 그 제한을 적용한다)
+- `docs/QA_REVIEW_POLICY.md`: N/A(현행 OWNER_MANAGED 선택적 독립 검토 정책을 유지하고 필수 CI Trusted QA와 Owner 최종 승인 조건을 변경하지 않는다)
+- `docs/CI_CD.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
 
 ## AC_TEST_COVERAGE
 
@@ -238,3 +241,10 @@ PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](htt
 - `scripts/verify-issue-lifecycle.py`: #550 원본 실패와 같은-version Green correction, release `not-started`, cleanup debt, docs-only correction 차단, 달라진 version no-bump 차단, 새로운 version bump authority 분리 시나리오 추가. 기존 #586/#344 supersede tests 유지. 실제 Runtime/CI/GHCR/Owner Final 인증은 새 Head 결과 전 NOT TESTED.
 - DOCUMENTATION_SYNC: `tests/e2e/task-editor-form-density.spec.ts`, `scripts/auto_release_finalizer.py`, `scripts/verify-issue-lifecycle.py`, `docs/GENERIC_RELEASE_FINALIZER.md`, `docs/CI_CD.md`, `CHANGELOG.md`, 본 TEST_PLAN/PLAN/ISSUE_550 UPDATED. AGENTS/DESIGN/API/DB/SECURITY/SCHEDULING/Project UX/CI workflow는 기능·설계 계약 불변으로 N/A.
 - 위험: HIGH, QA OWNER_MANAGED. PR #626 자체의 제품 version 변경 없음(`0.105.0` 유지)이 원래 Issue #550 정식 v0.105.0 Release 의무의 N/A 근거가 아니다. 원본 사용자 Owner 승인 marker는 [Issue #550](https://github.com/planner77/masterGantt/issues/550#issuecomment-6113115242)에 보존한다. 새 PR CI Quality/E2E/Docker/QA/Trusted, Main CI와 formal GHCR는 아직 NOT TESTED이며 병합·발행/Issue close는 범위 밖.
+
+## 2026-10-12 — PR #626 CI #2522.1 문서 영향 추적 보완
+
+[PR CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) exact Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`는 Quality/Vitest/Build, Chromium E2E 6/6, Docker 모두 SUCCESS이나 QA Final — Automated에서 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 BLOCKED/FAIL이었다. 제품 회귀·검증기 버그로 판정하거나 기존 FAIL을 성공으로 변경하지 않는다.
+스크립트 보호 변경의 QA_DOCS 6개 및 UI 변경의 DESIGN impact Union을 재확인했다. `docs/CI_CD.md`와 `docs/TEST_PLAN.md`는 기존 PR 코드에서 UPDATED 상태였고, `docs/GITHUB_OPERATIONS.md` 및 `docs/REMOTE_VALIDATION.md`에 release debt 승계 운영·원격 검증 Gate를 실제 기록한 뒤 본 Work Packet의 정형 `## DOCUMENTATION_SYNC`에 세 운영 문서 UPDATED 항목을 추가했다. AGENTS/QA_REVIEW_POLICY/DESIGN N/A는 기존 운영 원칙 자체가 바뀌지 않았기 때문에 항목별 기존 근거를 유지한다.
+원래 Issue #550의 Owner 승인 범위 `v0.105.0`, 실패한 원본 Main #2515.1, 동일 버전 non-docs corrective의 정식 GHCR 미게시 의무를 보존한다. 최종 정확 Head의 새 PR CI/Trusted·Owner 승인·병합/Main CI/GHCR/tag/Issue 종료는 새 원격 근거 전 NOT TESTED. 보호 Gate 삭제·더 느슨한 QA 조건·기능 코드 변경 없이 문서 및 감사 원장만 갱신한다.
+

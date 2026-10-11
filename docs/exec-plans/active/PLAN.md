@@ -1,3 +1,7 @@
+## Issue #550 / PR #626 — QA Final #2522.1 필수 운영 문서·릴리스 승계 (2026-10-12)
+
+[CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) exact Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`: Quality/E2E(6/6)/Docker PASS, QA Final BLOCKED(`문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`). 원인은 Generic Finalizer 보호 코드 변경의 필수 문서 영향 원장 누락이다. 본 PR에서 `docs/GITHUB_OPERATIONS.md` 운영 지침과 `docs/REMOTE_VALIDATION.md` 검증 기준을 추가하고 Work Packet `## DOCUMENTATION_SYNC`에 `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`를 각각 UPDATED로 기록한다. HIGH / OWNER_MANAGED / v0.105.0 원래 Owner 정식 Release 의무, fail-closed 후속 원장, 기존 AC1~AC11과 테스트 기대값·required gates 유지. 새 Head의 PR CI/Trusted/Owner 병합 결정 및 Main/GHCR는 아직 NOT TESTED.
+
 ## Issue #550 / PR #626 — PR CI #2519.1 회귀와 P1 Release 승계 보완 (2026-10-12)
 
 - 기준 Head `9f4656006648cc6c49c617699bd73feb7f109aa7`, [PR CI #2519.1](https://github.com/planner77/masterGantt/actions/runs/38177366596): Quality/TypeScript/Lint/Vitest/Build, Docker, Chromium E2E shard 1/2/3/4/6 PASS. Shard 5의 `tests/e2e/task-editor-form-density.spec.ts:279` #570 보호 블록 계측 1건 FAIL (97 PASS). E2E 집계·QA Final FAIL은 원본 상태로 보존한다.
