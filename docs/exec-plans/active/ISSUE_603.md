@@ -44,16 +44,16 @@ Docker는 IMPLEMENT:
 
 ## DOCUMENTATION_SYNC
 
-- `AGENTS.md`: N/A(기존 CI 캐시 정책과 fail-closed 운영 지침 그대로 유지하며 에이전트 지침 변경 없음)
-- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed 위험도와 QA 승인 정책 변경 없이 기존 문서 검증 계약 준수)
-- `docs/CI_CD.md`: UPDATED
+- `AGENTS.md`: N/A(기존 CI 실행명 생성기와 Issue lifecycle 지침은 유지하고 운영상 사용 누락만 복구)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner managed QA 신뢰 경계와 HIGH 위험도 정책을 변경하지 않음)
+- `docs/CI_CD.md`: N/A(캐시 writer와 required CI workflow 정의 변경 없이 merge 제목 사전 검증만 보완)
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
-- `docs/REMOTE_VALIDATION.md`: UPDATED
-- `docs/exec-plans/active/ISSUE_444.md`: UPDATED
-- `DESIGN.md`: N/A(사용자 화면이나 디자인 및 제품 UI 계약의 변경 없음)
-- `docs/API.md`: N/A(API 엔드포인트 또는 데이터 계약 변경 없음)
-- `docs/DB_SCHEMA.md`: N/A(영속 데이터 구조 및 마이그레이션 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(기존 Main CI 및 Generic Finalizer 원격 검증 절차 그대로 적용)
+- `docs/exec-plans/active/ISSUE_444.md`: N/A(장기 after 성능 검증은 #444에서 별도로 OPEN 추적)
+- `DESIGN.md`: N/A(제품 UX 디자인 변경 없음)
+- `docs/API.md`: N/A(제품 API 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(DB schema 변경 없음)
 
 ## AC_TEST_COVERAGE
 
@@ -73,3 +73,11 @@ Docker는 IMPLEMENT:
 - 새 PR Head에서 기존 실행 결과는 과거 참고 증거만으로 유지하고, 새 CI 및 신뢰된 QA 결과로 검증한다.
 - AC3, AC6, AC7은 실제 Main/after 측정 전에 완료로 표기하지 않으며, #444에서 독립 실행 표본 10회 및 비용·회귀를 확인한다.
 - 정식 GHCR release는 불필요하지만 Main CI 및 프로젝트의 요구되는 최종 검증 단계는 생략하지 않는다.
+
+## Main CI #2483.1 실패 복구 (2026-10-11)
+
+- 원인: #604 merge commit `09d8d51ccc09bc12353eb05315eb43df09034975`의 제목 `Issue #603 · PR #604 · Docker BuildKit PR cache read-only`에 한글 요약 없음. `verify-ci-run-trace.py`에서 fail-closed; 실제 Main Docker/build/E2E 미실행. 해당 SHA의 CI 기록 FAIL 유지.
+- 대응: `scripts/verify-issue-lifecycle.py`에 이 오류를 재현하는 exact-title FAIL 및 생성기 Korean-canonical PASS 회귀 테스트를 추가했다. 생성기를 사용하지 않은 병합을 반복하지 않도록 운영 지침과 테스트 계획 동기화.
+- 안전 경계: 기존 `main` immutable commit 재작성, 검사 우회, 정식 태그/GHCR release 발행 없음. 신규 same-Issue #603 PR은 **비문서 실행 검증 파일** 변경을 포함하여 기존 non-doc 실패 실행을 모두 포함하는 전범위 Main CI로 회복한다.
+- 이 PR의 인수 증거: 새 PR Head Quality/E2E/Docker required 모두 PASS, QA Automated/Trusted PASS, 최신 main 정렬 및 thread 0. 병합 commit은 반드시 `scripts/main_ci_run_name.py`의 generated `Issue #603 · PR #<새 번호> · Docker 캐시 Main CI 복구`, 빈 본문, exact Head SHA lease를 사용한다.
+- 새 Main이 성공하면 first-parent Generic Finalizer가 구 실패 시도 SUPERSEDED 기록을 남기고 마지막 정상 #603 target을 finalize/close한다. 정상 이전에는 이슈 OPEN 유지. #444 after 성능 측정/rollback 평가는 독립 OPEN.
