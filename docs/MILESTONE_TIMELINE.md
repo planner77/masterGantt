@@ -1,5 +1,13 @@
 # Milestone Timeline
 
+## Issue #571 — 표시 소비자와 viewport 의도
+
+Coordinator는 현재 일정의 peer 복귀·metadata 보존·명시 Task reveal을 중재한다. Milestone 전체 날짜 모집단·canonical Task/Link·Gate·Export를 viewport clip이나 native 행 목록으로 축소하지 않는다. #549 개발 probe와 현재 native Milestone 행/빠른 보기를 유지하며 #550~553 제품 lane/표시 전환은 별도 선행 gate다.
+
+#569 실험 adapter와 신규 날짜 좌표 지원은 DEFER다. 이번 구현의 기존 Core Grid/Task reveal 및 Day/Week range 회귀 결과는 #551 lane tick≤1px·Week header 의미의 PASS 근거가 아니다. Coordinator 소비자는 projection 성공 이후 실제 visible geometry와 viewport settle을 따로 확인하며 hidden/inert/zero-size나 stale API/context에서는 날짜 이동을 실행하지 않는다. [검증 범위](exec-plans/active/ISSUE_571.md)를 따른다.
+
+현재 native Grid reveal은 유지한다. 미통합 lane의 신규 DATE_REVEAL 요청은 UNSUPPORTED이며 typed intent의 존재만으로 날짜 이동 지원을 주장하지 않는다.
+
 ## Issue #570 — 표시 projection의 완료 계약
 
 #570은 현재 canonical 전체 입력과 native 표시 membership·접힘·가상화의 의미를 분리한다. Milestone을 WBS에서 제거하는 #552 전환은 활성화하지 않으며 현재 M-only/빠른 보기와 #549 개발 probe의 의미를 보존한다. Milestone·숨은 Link·Summary roll-up·Gate 원본은 서버 snapshot이며 native 표시 집합으로 저장·Export 대상을 줄이지 않는다.

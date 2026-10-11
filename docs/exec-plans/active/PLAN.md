@@ -1,3 +1,15 @@
+## Issue #571 — 단일 Viewport Coordinator 구현 (2026-10-11)
+
+[#571 Work Packet](ISSUE_571.md): #570 PR #592 병합 main `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`에서 `feat/issue-571-viewport-coordinator`를 생성했다. 단일 intent/command ingress와 최신 projection·geometry settle, 사용자 입력 우선권·filter bookmark 및 parent 중복 native 복원 제거를 구현한다. #569 실험 adapter는 DEFER, 기존 #367 range compatibility는 회귀 보존, #551 미통합 lane은 별도 NOT TESTED다.
+
+HIGH / qa_required=true / qa_method=AGENT, 실제 독립 Reviewer `/root/issue570_qa_fix`. PATCH `0.104.2`, release_required=true / release_authorized=false. DESIGN Delta B / DESIGN.md N/A. 구현·문서 동기화·독립 PRE_QA 후 새 exact-head PR CI 시작까지만 진행하며 QA_FINAL·Manager ACCEPT·병합/main/GHCR/Release/Issue 종료는 범위 밖이다.
+
+단일 production viewport writer·latest projection/geometry·입력 우선권·filter bookmark·native-add 캡처 권한을 구현했다. 초기 FAIL과 독립 REWORK(잔존 guard의 revision/receipt, dated axis admission, 비동기 add의 stale capture, Resource 복귀의 일시적 zero geometry, 준비resize/accepted receipt 경쟁)는 Work Packet에 보존한다. 단계별 직접 영향 Chromium29와 복구/scale/resize7은 PASS이며 이후 보완의 전체 회귀 증거로 확대하지 않는다. 준비 단계 분리 후 같은 metadata case 반복3 PASS, 최종 독립 관련 Unit129 PASS·Chromium9 PASS, PRE_QA·문서 의미 검토 PASS다. 동일 후보로 PR CI를 시작하며 전체 원격 CI 성공 전 제품 PASS/Manager ACCEPT로 보고하지 않는다. 현재 Head의 별도 인간 QA·Owner ACCEPT 전 최종 병합은 BLOCKED다.
+
+PR #610 앞선 원본 CI #2499.1(Head `f10dfd0308cd6782f4ac908e7ec8905b09e12e5f`, attempt1)은 quality/e2e FAIL·docker PASS다. Unit fixture와 filter bookmark의 축별 권한, E2E 관찰자 순서 및 projection/inline 저장 회귀를 보완했다. 고정 소스에서 원실패6 Chromium PASS·typecheck/변경 lint PASS, 독립 관련9파일151 Unit PASS·Chromium5 PASS/1 FAIL 뒤 Escape 완료 focus의 token/API guard를 보완했다. 최종 별도 inline4 Chromium PASS 및 PR CI 시작용 PRE_QA PASS다. 최초768px 재진입의 정확 기전UNKNOWN과 실패 이력은 유지하며, 새pointercase의 이전소스PASS를 원인 증명으로 확대하지 않는다. 이전 로컬 PASS는 신규 Head의 공식 회귀 증거가 아니며, 이번 범위는 새 full PR CI 시작 확인까지다.
+
+PR #610 후속 CI #2500.1(Head `f001fdf922e59cccb961b1cd87112b251d89a3a5`, attempt1)은 quality/docker PASS·e2e2 FAIL이다. native Grid reveal의 입력 권한 및 이동 없는 선택 동기화를 보완하고 Editor locate·일반 닫기의 focus 소유권을 분리했다. 직접 Chromium22·Unit103 PASS, 독립 Chromium3+1 고유4건 PASS 및 PR CI 시작용 PRE_QA PASS다. 원격 Editor focus의 exact 기전 UNKNOWN을 유지하며, 다음 full PR CI 시작 확인 이후 결과 모니터링은 수행하지 않는다. 상세 최초 trace와 상태는 Work Packet에 보존한다.
+
 ## Issue #570 — Canonical projection 구현 재개 (2026-10-10)
 
 후속 CI #2482.1은 Head `678fd90d75f3ceca8e061cabc584ffc2ed6ecc35`에서 Quality/Docker PASS, E2E shard5의 기존 #456 metadata viewport 2개 FAIL이다. 같은 ID 집합의 위치 보존과 실제 ID 집합 변경의 오래된 복원 취소를 구분해 보완하며 최신 main `c81285741610ad28dc5d6b50f9bb97264970a79d`의 Docker 정책을 상속한다. [실패 원장과 후속 검증](ISSUE_570.md#pr-ci-24821-viewport-회귀-보완-2026-10-11)을 보존하고 사용자 요청 종료점인 새 exact-head full PR CI 시작까지 진행한다. 원격 새 Head 결과·QA_FINAL·Manager ACCEPT는 NOT TESTED다.

@@ -249,3 +249,34 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
 });
+
+test("이름 클릭 의도는 pointerup 전 native layout 변경에도 유지된다", async ({ page }) => {
+  await installStatefulProjectFixture(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/projects/${publicId}`);
+  const text = nameCell(page, "Stable leaf").locator(".wx-content > .wx-text");
+  await expect(text).toBeVisible();
+  await text.scrollIntoViewIfNeeded();
+  const box = await text.boundingBox();
+  expect(box).not.toBeNull();
+  const point = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+  const taskAtPoint = () => page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest(".wx-content > .wx-text")?.closest(".wx-row")?.getAttribute("data-id"), point);
+  await expect.poll(taskAtPoint).toBe(`:${id(3)}`);
+  await page.mouse.move(point.x, point.y);
+  const frame = page.locator(".project-gantt-frame");
+  await expect.poll(async () => {
+    const value = await frame.getAttribute("data-gantt-projection-receipt");
+    return value === null ? null : JSON.parse(value).outcome;
+  }).toBe("SETTLED");
+  const beforeGeneration = JSON.parse((await frame.getAttribute("data-gantt-projection-receipt"))!).generation as number;
+  await page.mouse.down();
+  await page.setViewportSize({ width: 768, height: 844 });
+  await expect.poll(async () => {
+    const receipt = JSON.parse((await frame.getAttribute("data-gantt-projection-receipt"))!);
+    return receipt.generation > beforeGeneration && receipt.outcome === "SETTLED";
+  }).toBe(true);
+  await expect.poll(taskAtPoint).toBe(`:${id(3)}`);
+  await page.mouse.up();
+  await expect(inlineInput(page)).toBeFocused();
+  await inlineInput(page).press("Escape");
+});

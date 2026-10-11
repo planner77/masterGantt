@@ -25,6 +25,16 @@ describe("projection receipt observation", () => {
     expect((await observation.promise).outcome).toBe("SETTLED");
     expect(vi.getTimerCount()).toBe(0);
   });
+  it("settles canonical projection while horizontal Core/native offsets await #571 peer restoration", async () => {
+    const { api, root, chart, state } = fixture();
+    state.scrollLeft = 120; chart.scrollLeft = 108;
+    const observation = observeProjectionSettled(api, root, projection, context, () => true);
+    await vi.advanceTimersByTimeAsync(80);
+    expect((await observation.promise).outcome).toBe("SETTLED");
+    expect(chart.scrollLeft).toBe(108); // projection never writes/forges viewport
+    expect(state.scrollLeft).toBe(120);
+    expect(vi.getTimerCount()).toBe(0);
+  });
   it("does not approve zero-size native Chart", async () => {
     const { api, root, chart } = fixture(); chart.clientWidth = 0;
     const observation = observeProjectionSettled(api, root, projection, context, () => true);

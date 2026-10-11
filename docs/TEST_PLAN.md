@@ -1,3 +1,39 @@
+## PR #610 / CI #2500.1 후속 회귀
+
+[원본 CI](https://github.com/planner77/masterGantt/actions/runs/38135294369)는 quality/docker PASS·e2e2 FAIL이다. Grid filter-source 전환 후 native show:xy의19830을 late PASSIVE_RESTORE120이 덮는 최초 trace를 보존한다. 실제 native reveal이 오래된 복원을 취소하며 canonical 시작일 가시성과 Core/native 좌표가 clock300ms 뒤에도 유지되는지 확인한다. show:false·canonical·앱 선택 동기화 제외, 날짜 없는 Summary의 수평 위치 보존과 show:y, modifier/keyboard/context-menu 계약을 함께 검증한다. empty selection toggle의 show:false 및 modifier/Shift mirror의 reveal=false를 확인하여 checkbox Space 전후 좌표가 유지되고 앱 Task reveal이 발행되지 않아야 한다.
+
+Editor locate는 TASK_REVEAL SETTLED/Core/native top117 이후 현재 Grid 행 focus를 검증한다. bar/fallback focus나 좌표 이동만으로 PASS를 대신하지 않는다. 원격 최초 focus FAIL과 로컬 baseline PASS를 구분하고 후속 metadata가 이전 위치를 되살리지 않는 기존 assertion을 유지한다.
+
+## PR #610 / Issue #571 — 실패 원인 재현·보완 검증 기준 (2026-10-11)
+
+[원본 PR CI #2498.1](https://github.com/planner77/masterGantt/actions/runs/38130201016)의 Chromium 10 FAIL은 단일 원인으로 축소하지 않는다. Work Packet의 수평 Projection/Viewport 책임 경계와 각 실제 E2E Trace를 확인한다. Projection은 horizontal Core/native 동일성 없이 canonical payload·행/수직 정합을 증명하고, Coordinator는 peer/Task 의도별 실제 Core exact/native±1px 및 bounded3RAF를 별도로 검증한다. Resize/reflow/fullscreen은 대기 중인 복귀를 취소해야 하며, 같은 context 안의 늦은 120px 복원이 사용자 입력·검색 결과·명시 날짜 이동을 덮으면 실패다. 충분한 physical capacity에서 resize action0, 진단 계약 admissionCapacity와 #568 effect-request/cleanup, #549 dev-only diagnostic right-edge, #367 extension 및 vertical drag edge single-flight를 동일 E2E/Unit에서 검증한다. 실패 검증 테스트의 기대값·timeout·retry·skip 완화 금지.
+
+### CI #2499.1 후속 회귀
+
+[원본 CI #2499.1](https://github.com/planner77/masterGantt/actions/runs/38132372241)은 Head `f10dfd0308cd6782f4ac908e7ec8905b09e12e5f`, attempt1에서 quality/e2e FAIL·docker PASS다. port의 Node Unit fixture에 실제 browser geometry lease용 window/Fullscreen 환경을 제공하고, 충분한 capacity의 resize0과 부족한 capacity의 실제 resize·새 receipt 요구를 각각 검증한다. FILTER_RETURN은 수평120 복원을 유지하면서 세로96→0·24 clamp, 준비 중32→8 추가 clamp, Core/native 세로 불일치 중 쓰기0 및 실제 입력의 bookmark 폐기를 검증한다.
+
+실제 input 중 pending 취소 테스트는 제품 capture listener보다 먼저 테스트 관찰자를 설치하여 입력 직전 상태를 읽는다. 제품의 즉시 FILTER_INPUT 취소·writes0·marker 부재 assertion을 유지한다. 테스트 listener 등록 순서 보완은 제품 취소를 지연시키는 근거가 아니다.
+
+Stage 빈 Summary progress null/Core0과 Resource 초기/후속 projectDisplayKey 일치를 strict payload 비교 그대로 검증한다. renderer0을 서버 Summary progress0으로 저장하거나 사용자 `—`를0%로 표시하지 않는다. 기존 inline 전체 흐름에서 390/768/1024/1440px 편집, validation·IME·Escape, Week toolbar blur의 name-only PATCH1, 500/412/network 후 canonical 이름과 focus를 확인한다. Stage 복원 marker1 및 Resource export/no-export 양쪽 Core/native120을 유지하며 timeout/기대값을 완화하지 않는다.
+
+Inline 재진입의 독립 최초768px FAIL은 원장을 유지한다. Escape 완료 focus의 token/API identity guard를 검토하고, 기존 inline 전체3건과 실제 pointerdown→native resize→새 SETTLED receipt→동일 Task 이름 hit→pointerup 회귀를 확인한다. 화면 밖 클릭 준비 오류는 제품 FAIL 근거에서 제외하며 미실증 fallback 확대나 성공 반복으로 원인 확정을 대체하지 않는다.
+
+## Issue #571 — Coordinator 경쟁·완료 검증
+
+순수 Coordinator의 완료 authority는 accepted revision/generation과 최신 유효 receipt에 고정한다. 같은 geometry라도 새 revision/generation 또는 invalid receipt 뒤에는 native repair/차단을 실행하지 않아야 한다. Task reveal admission은 실제 axis start 포함/end 제외, invalid date·범위 밖 clamped x·capacity 부족을 거절하고, 날짜 없는 Summary의 기존 수평 위치를 보존하는지 검증한다.
+
+Local Fast Feedback와 exact-head PR 전체 quality/e2e/docker를 분리한다. 실제 독립 qa_docs의 PRE_QA는 QA_FINAL/Manager ACCEPT가 아니다. [Work Packet](exec-plans/active/ISSUE_571.md)에 source 지문과 실행별 PASS/FAIL/NOT TESTED를 남긴다.
+
+- Unit: priority와 생성 당시 gesture/context 토큰, API/projection/geometry 세대, stale pending supersession, filter bookmark 무효화, dispose·throw/false/reject·유한 timeout.
+- 실제 Core Chromium: Resource peer no-input120·실제 wheel≈30·늦은120 재적용0, Grid 시작일 reveal, Editor '일정에서 보기'→metadata 저장, 빈 결과→후속 no-op, scope/filter/scale/columns 변화.
+- 상태 보존: metadata·설정 저장 및 confirmed delete normal/401/412/network에서 instance/tree/selection/columns/scale/viewport/revision. readonly 조회·탭 전환의 보호 mutation0.
+- 기하: 최신 성공 projection 뒤 실제 visible/nonzero DOM, Core exact/native ±1px의 3연속 frame, hidden/inert/zero geometry·capacity 부족·bounded repair/timeout.
+- Resource 복귀의 일시적 zero geometry는 원래 intent의 유한 대기→측정 후 적용, 지속zero는 NOT_MEASURABLE, 대기 중 wheel/scope 변경은 명령0인지 검사한다. port의 detached/hidden/inert/documenthidden 구분을 Unit으로 검증한다.
+- 호환 resize 준비가 같은 canonical 데이터의 관측 generation을 바꿔도 새 성공 receipt·geometry 검증 뒤 좌표 적용이 가능해야 한다. 실제 resize 후 이전 generation receipt 재사용은 금지하고 준비 중 실제 revision/input 변경·준비 실패 및 좌표 적용 후 generation 변경은 취소/유한 실패로 검증한다.
+- delayed native-add는 실제 create operation schema와 font/glyph·hit target 준비 후 포인터를 사용한다. 응답 뒤 최신 revision receipt SETTLED·무입력 복원 SETTLED·실제 wheel 후 이전 요청 APPLYING0 및120 실제 RAF 동안 위치 보존을 검사한다. Grid 자체가 별도로 스크롤된 진단 실행과 최종 후보를 구분하며 최초 Grid scroll writer 미확정 경계를 보존한다.
+- 회귀: Day/Week 3회 right-edge, 390/768/1024/1440/1920 clipping·tab/keyboard/focus. #549 현재 probe와 #551 미통합 제품 lane의 증거를 분리한다.
+- source/trace 검토: 앱의 programmatic scroll-chart/native restore/range writer는 production port로 통합하고 parent 중복 loop·stale 후속 명령·unbounded RAF가 없는지 확인한다. native Core user action은 별도 소유권이다.
+
 ## Issue #600 — urllib artifact 리다이렉트 Python API 회귀 (#2466.1, 2026-10-11)
 
 - 원인: Request에 없는 `remove_unredirected_header()`를 사용해 `test_source_artifact_redirect_never_exposes_token`가 AttributeError. `remove_header()`는 일반/비리다이렉트 헤더를 모두 처리한다.
