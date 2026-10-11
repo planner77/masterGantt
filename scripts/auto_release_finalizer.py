@@ -385,6 +385,7 @@ def supersede_failed_issue_retries(
     items: list[WorkItem],
     ci_success: dict[str, bool],
     release_failed: dict[str, bool] | None = None,
+    first_parent_items: list[WorkItem] | None = None,
 ) -> tuple[list[WorkItem], list[tuple[WorkItem, WorkItem]]]:
     """Defer a failed attempt to a later Green merge for the same Issue.
 
@@ -400,6 +401,10 @@ def supersede_failed_issue_retries(
     inherited_release_by_index: dict[int, str] = {}
     superseded: list[tuple[WorkItem, WorkItem]] = []
     release_failed = release_failed or {}
+    # Include even closed/non-actionable merges when checking adjacency for
+    # previously unissued SemVer authority. They are ordering barriers.
+    first_parent_items = first_parent_items if first_parent_items is not None else items
+    positions = {work.target_sha: n for n, work in enumerate(first_parent_items)}
 
     for index, item in enumerate(items):
         item_failed = (
@@ -419,7 +424,11 @@ def supersede_failed_issue_retries(
                 continue
             if not validation_scope_covers(item, candidate):
                 continue
-            if item.release_required and candidate.current_version == item.current_version:
+            if item.release_required and not ci_success.get(item.target_sha, False):
+                if candidate.current_version != item.current_version:
+                    # No silent supersession across version differences for
+                    # a failed main target that never published its release.
+                    continue
                 # Main CI failed before the original version's tag was created.
                 # A later same-version corrective merge has a zero physical
                 # version delta; do not silently discard its approved release.
@@ -428,7 +437,11 @@ def supersede_failed_issue_retries(
                 # instead use a new immutable SemVer corrective release.
                 if ci_success.get(item.target_sha, False) or release_failed.get(item.target_sha, False):
                     continue
-                chain = items[index + 1 : candidate_index + 1]
+                start = positions.get(item.target_sha)
+                finish = positions.get(candidate.target_sha)
+                if start is None or finish is None or finish <= start:
+                    continue
+                chain = first_parent_items[start + 1 : finish + 1]
                 if any(
                     step.issue_number != item.issue_number
                     or step.validation_docs_only
@@ -781,6 +794,7 @@ def execute(trigger_sha: str) -> int:
             sha: state == "failed"
             for sha, (state, _url) in release_evidence.items()
         },
+        first_parent_items=pending_with_barriers,
     )
 
     if finalized_boundary:

@@ -1424,6 +1424,27 @@ require(len(replaced_chain_615) == 2 and len(chain_615) == 1
         and set(chain_615[0].cleanup_pr_numbers) == {627, 629},
         "consecutive same-Issue failed attempts must preserve release and cleanup debt")
 
+# P1 regressions: version-different successor and closed ordering barriers
+# cannot inherit an unissued release from the original failed main commit.
+version_jump_615 = replace(corrected_615, current_version="0.107.0")
+blocked_jump, blocked_jump_ev = auto.supersede_failed_issue_retries(
+    [failed_615, version_jump_615],
+    {failed_615.target_sha: False, version_jump_615.target_sha: True},
+)
+require(blocked_jump_ev == [] and blocked_jump[0] == failed_615,
+        "a heterogeneous version may not supersede a failed unissued release")
+closed_barrier_615 = auto.WorkItem(
+    "6" * 40, failed_615.target_sha, 631, 999, "0.106.0", "0.106.0", False,
+    actionable=False,
+)
+barrier_blocked, barrier_ev = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+    first_parent_items=[failed_615, closed_barrier_615, corrected_615],
+)
+require(barrier_ev == [] and barrier_blocked[0] == failed_615,
+        "a closed/non-actionable intervening Issue must block release inheritance")
+
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),
     (True, ("1", "2", False, True, "", "approved")),

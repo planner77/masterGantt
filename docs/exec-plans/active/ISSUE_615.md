@@ -124,3 +124,9 @@ DOCUMENTATION_SYNC: PASS(관련 계약 의미 검토 포함). QA_FINAL/Trusted/q
 - 원인 및 설계: 원본 병합 commit은 immutable이고 physical new main version이 이미0.106.0이다. 추가 same-Issue non-docs correction PR이 CI SUCCESS여도 원본 0.105→0.106 upgrade obligation을 잃지 않도록, old failed target에서 approved unissued SemVer를 안전 승계하는 `auto_release_finalizer.py` 보완 및 회귀 검사를 수행한다.
 - 범위: CI trace gate / release authorization 완화 없음. 신규 앱 기능·DB schema/UI/AGENTS/DESIGN/SVAR 계약 변경 N/A. VERSION=0.106.0 유지, release_required=true(승계), Owner 승인 true(기록된 v0.106.0 marker). 변경 문서: CI_CD, REMOTE_VALIDATION, GENERIC_RELEASE_FINALIZER, TEST_PLAN, CHANGELOG, ISSUE_615.
 - QA: risk HIGH / OWNER_MANAGED. 새 PR CI quality/E2E/Docker·Trusted, protected 정책, 리뷰·head/base 동기화와 exact main SHA 검증, 정식 GHCR 후보/승격 및 Issue cleanup은 실제 원격 증거 전까지 NOT TESTED. 신규 PR merge commit에는 한 줄 한국어 제목/빈 본문/head lease 필수.
+
+### PR #628 첫 전체 CI/Review P1 대응
+
+- PR CI #2527.1에서 필수 Quality/E2E/Docker SUCCESS, 그러나 QA Final Automated는 2개 P1 Review Thread가 미해결로 BLOCKED.
+- P1: 원본 failed version bump와 교정 target 버전이 다르면 silent supersession 거부. closed/non-actionable first-parent ordering barrier도 inheritance chain에 포함하여 다른 Issue의 중간 통과를 거부. main/Release Gate 완화 없음.
+- 변경 후 exact-head CI/Trusted QA·리뷰 재검증 전까지 NOT TESTED. 
