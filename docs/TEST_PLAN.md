@@ -3024,3 +3024,11 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - `ci-setup-readiness.yml`: Phase 2 analyzer의 `--require-bound-provenance true` 필수 옵션 복원. `verify-ci-cache-contract.mjs` 및 `ci-cache-phase2.test.ts`/`ci-setup-readiness.test.ts`로 provenance binding 회귀를 fail-closed 검증한다.
 - Milestone dashboard `#463 aborted request to cached query`는 fake clock의 React frame commit만 최대 8프레임(각 16ms)으로 진행해 CI runner 스케줄링 지터를 흡수한다. 기존 stale response gate와 **HTTP 호출 2회 한정**, 캐시 복귀 성공 검증을 유지한다.
 - `qa_method: OWNER_MANAGED`, `risk_level: HIGH` 및 `ISSUE_450.md`의 AC/문서 매핑은 CI 메타데이터 검증 조건이다. Trusted QA PASS와 Owner ACCEPT, 실제 Main/GHCR 배포는 별개이며 이번 작업은 PR CI 시작까지이다.
+
+## Issue #603 Docker PR cache read-only 검증
+
+- PR event: `cache-from` 유지, `cache-to` 비활성, metric label `gha-readonly`.
+- Main push: `cache-to type=gha,mode=max` 유지, metric label `gha-write-max`.
+- static guard는 unconditional shared writer가 Main publish 1개뿐이고 docker_smoke writer가 push-only인지 고정한다.
+- PR cache miss에서도 Docker image policy/runtime/SQLite persistence gate가 그대로 PASS해야 한다.
+- after successful PR run >=10에서 baseline median/p90/runner-minutes 대비 5% 이상 개선 여부를 #444에서 판정한다.
