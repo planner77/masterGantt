@@ -70,7 +70,7 @@ import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEdito
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
-import { findTaskContextElement } from "@/features/gantt/task-context-target";
+import { findTaskContextElement, taskIdFromElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
@@ -995,11 +995,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function closeTaskEditor() {
+    finishTaskEditor(true);
+  }
+  function finishTaskEditor(restoreFocus: boolean) {
     const taskId = editorSession?.task.taskId;
     const trigger = editorTriggerReference.current;
     setEditorSession(null);
     setActiveView(editorOriginViewReference.current);
     editorOpeningReference.current = false;
+    if (!restoreFocus) return;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
       const target = trigger?.isConnected ? trigger : root && taskId ? findTaskContextElement(root, taskId) ?? root : root;
@@ -1063,7 +1067,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function locateEditorTask(taskId: string) {
     const fromOtherView = editorOriginViewReference.current !== "schedule";
     editorOriginViewReference.current = "schedule";
-    closeTaskEditor();
+    // Explicit locate owns the destination; ordinary close restores its trigger.
+    finishTaskEditor(false);
     if (fromOtherView) {
       requestAnimationFrame(() =>
         drillDashboardSchedule([taskId], resourceBinding?.sourceContext ?? resourceReportReference.current[resourceViewId]?.resourceScopeContext ?? milestoneSourceReference.current ?? undefined),
@@ -1075,8 +1080,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (outcome !== "SETTLED" || viewportController.current !== controller) return;
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
       if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
-      const target = findTaskContextElement(root, taskId);
-      if (!target) return;
+      const target = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]"))
+        .find(row => taskIdFromElement(row) === taskId);
+      if (!target?.isConnected || !target.getClientRects().length || target.closest("[hidden], [inert]")) return;
       if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
       target.focus({ preventScroll: true });
     });

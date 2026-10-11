@@ -614,7 +614,7 @@ export function ProjectGantt({
     const state: unknown = api?.getState().selected;
     const primary = Array.isArray(state) ? state : typeof state === "string" || typeof state === "number" ? [state] : [];
     if (api && !next.length) {
-      for (const id of primary) if (typeof id === "string" || typeof id === "number") void api.exec("select-task", { id, toggle: true, eventSource: "project-owned-selection" });
+      for (const id of primary) if (typeof id === "string" || typeof id === "number") void api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
     }
   }, []);
 
@@ -632,7 +632,7 @@ export function ProjectGantt({
 
   const stageMembership = useMemo(() => membershipProjection(tasks, links).membership, [tasks, links]);
   const selectionContext = useMemo(() => ({
-    tasksById, selectedTaskIds, stageMembership, stageLocked: mutationLocked, onGesture: applySelectionGesture, onStageOpen: (id: string) => { if (!mutationLockedReference.current) onTaskEditorOpenReference.current(id, "task"); },
+    tasksById, selectedTaskIds, stageMembership, stageLocked: mutationLocked, onGesture: (id: string, gesture: "single" | "toggle" | "range") => applySelectionGesture(id, gesture, true, false), onStageOpen: (id: string) => { if (!mutationLockedReference.current) onTaskEditorOpenReference.current(id, "task"); },
   }), [tasksById, selectedTaskIds, applySelectionGesture, stageMembership, mutationLocked]);
 
   useEffect(() => {
@@ -2799,6 +2799,14 @@ export function ProjectGantt({
       if (canonicalSyncDepthReference.current > 0 || event.eventSource === "project-canonical-sync" ||
         event.eventSource === "project-owned-selection" || typeof event.id !== "string" ||
         !tasksByIdReference.current.has(event.id)) return;
+      if (event.show === true || event.show === "x" || event.show === "y" || event.show === "xy") {
+        // Core owns native Grid reveal. Revoke older app captures without
+        // replacing its show action with another coordinate writer.
+        viewportCoordinatorReference.current?.userInput();
+        metadataViewportReference.current?.cleanup();
+        metadataViewportReference.current = null;
+        nativeAddContinuityReference.current = null;
+      }
       if (!selectedTaskIdsReference.current.includes(event.id)) {
         selectionAnchorReference.current = event.id;
         updateSelection([event.id]);
@@ -3050,7 +3058,7 @@ export function ProjectGantt({
     const taskId = match?.taskId ?? nameIntentTaskId ?? startIntentTaskId;
     if (!taskId) return;
     const modifier = event.ctrlKey || event.metaKey;
-    applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", modifier || event.shiftKey);
+    applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", modifier || event.shiftKey, false);
     if (!modifier && !event.shiftKey) {
       const directCell = startDateCellFrom(event.target);
       const intendedStartClick = directCell !== null || startIntentTaskId === taskId;

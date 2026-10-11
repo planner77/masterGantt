@@ -8,6 +8,8 @@
 
 순수 Coordinator는 API/context·intent/projection/geometry·user gesture 세대와 pending operation을 검사한다. 실제 사용자 입력 및 명시 reveal > scope/filter > peer return > passive preservation 순으로 처리하며 늦게 도착한 passive 이벤트가 최근 사용자 의도를 덮지 않는다. production port가 앱 scroll-chart/native 보정과 기존 range compatibility 명령의 실행 경계다. Native Core wheel/Grid reveal은 Core 소유로 유지하고 관측 이벤트를 새 앱 명령으로 재귀 처리하지 않는다. 단일 writer 근거는 production 앱 경로에 한정한다. 기존 #549 개발 전용 __masterganttMilestoneTimeline.reveal→revealMilestoneDate와 #569 PoC/trace fixture의 직접 명령은 진단 예외이며 제품 DATE_REVEAL 지원·단일 writer 실증에 포함하지 않는다.
 
+native Core의 명시 select-task show 이동은 기존 관측 경계에서 Coordinator user-input 세대를 갱신하고 오래된 metadata capture를 폐기한다. 포인터 capture와 실제 Core reveal 사이에 등록된 passive 작업도 취소해야 한다. show:false·canonical-sync·project-owned-selection은 제외하며 새 앱 reveal 명령을 중복 발행하지 않는다.
+
 projection receipt는 행 정합을 보장할 뿐 viewport 완료가 아니다. 동일 canonical revision의 대기 중 관측 generation 변경은 최신 receipt를 따라 geometry 안정 관측을 재시작하며, 적용 직전 고정한 generation이 명령 후 바뀌면 추가 쓰기를 중단한다. metadata/peer 요청은 canonical queue에서 등록한 뒤 queue 밖에서 최신 receipt와 visible geometry를 기다려야 한다. receipt를 생성하는 queue 안에서 viewport 완료를 기다려 교착시키지 않는다. Core exact/native ±1px의 연속 안정 frame과 유한 예산으로 완료·SUPERSEDED·NOT_MEASURABLE·NO_SCROLL_CAPACITY·TIMED_OUT·FAILED를 구분한다.
 
 필터 bookmark는 source context·gesture와 수평 left만 저장한다. FILTER_RETURN은 준비와 실제 적용 각각에서 현재 Core top을 사용하고, 최신 receipt와 함께 Core/native 세로 정합·top 안정성을 확인한다. 조회 결과 감소에 따른 native 세로 clamp를 과거 bookmark top으로 되돌리지 않는다. 대기 중 새 입력·조회 문맥 변경의 취소 계약은 유지한다.

@@ -219,3 +219,36 @@ DESIGN Delta B: 기존 UX-12 상태 보존 원칙의 구체화. `DESIGN.md: N/A`
 - 최종 manifest `/tmp/issue571-ci2499-final3-source.sha256` 8항목 독립 실행 전후 일치. 최종 project-gantt.tsx SHA256 `362bacf4b6ee7bd8aeed9b24ba3e0c8938880d09b8cb1c8573c487aee4697726`, 신규 inline E2E `ca4a9a084c30ddcc4c50585ab43d60caf02f6f60d6e2555c14097880165ef89c`. 공용 adapter/pure/기존 시험 지문은 앞선 기록과 동일하다. 임시 진단0·projection-settled.ts diff0·미실증 fallback 확장0을 확인했다.
 - DOCUMENTATION_SYNC 의미 검토와 구조/AC mapping을 구분한다. 관련 문서·실패 이력·새 준비 조건·IME 실제 blur 미검증 경계를 동기화했다. generated Next 설정·runtime DB/log·실행별 output 그림/JSON은 후속 commit 대상에서 제외한다.
 - Manager의 이번 승인은 동일 후보 게시 및 full PR CI 시작에 한정한다. canonical PR title/Refs를 유지하고 기존 branch/PR #610을 재사용한다. quality/e2e/docker의 신규 결과는 **NOT TESTED**, 최종 Manager ACCEPT는 **NOT TESTED**, 보호 AGENT의 현재 Head 인간 QA_FINAL/후속 Owner ACCEPT 전 병합은 **BLOCKED**다. 사용자 요청대로 CI 시작 확인 후 결과 모니터링·merge/main/GHCR/release/Issue 종료를 수행하지 않는다. 실제 새 Head/run URL은 Issue/PR STATUS 댓글에 남긴다.
+
+
+## 2026-10-11 원격 PR CI #2500.1 실패 및 후속 보완
+
+- 원본 [Run38135294369](https://github.com/planner77/masterGantt/actions/runs/38135294369), attempt1, Head `f001fdf922e59cccb961b1cd87112b251d89a3a5`, base `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`, test merge `a2913ab44054fcdc3c87d9a374f5c93f9b2d28b9`. 원본 event artifact와 workflow/job API를 대조했다. quality PASS(job114458059325), docker PASS(job114458232489), e2e FAIL(job114460892532). 이전 #2499의 Unit10/E2E6 실패는 이번 run에서 재발하지 않았다.
+- shard2 job114457848219: 1 FAIL/71 PASS. `grid-task-start-reveal.spec.ts:152`의 :167에서 clock300ms 뒤 canonical 시작일 startVisible이 false다. PEER_RETURN은 FILTER_INPUT/writes0으로 정상 취소됐지만 후속 PASSIVE_RESTORE가 native Core Grid reveal로19830에 이동한 뒤 old120을 APPLY/SETTLED(writes2)하여 사용자의 명시 이동을 되돌렸다. 로컬 baseline에서도 동일 원인을 재현했다.
+- shard4 job114457848310: 1 FAIL/104 PASS/1 skipped. `viewport-coordinator.spec.ts:5`의 :30은 대상 행이 존재하나 focus inactive다. TASK_REVEAL은 SETTLED/Core/native top117/writes6으로 성공했다. 스크롤 성공과 후속 focus 처리를 분리하며, 로컬 baseline의 Editor PASS로 원격 실패를 덮어쓰지 않는다.
+- 증거: `/tmp/issue571-ci2500-manifest.json`, 원본 event artifact11700512950, shard2 HTML/trace11700878528, shard4 HTML/trace11701260381 및 `/tmp/issue571-ci2500-job-<jobid>.log`. frontend baseline2는 Grid FAIL/Editor PASS(14.3초), 최초 artifacts는 `/tmp/issue571-ci2500-baseline2-artifacts`에 보존한다.
+- Grid 보완 방향: 기존 native select-task의 명시 show:x/y/xy/true를 최신 사용자 이동으로 관측하여 stale pending/passive·metadata capture 권한을 취소한다. Core show 동작은 그대로이고 새 앱 reveal writer를 추가하지 않는다. show:false·canonical-sync·project-owned-selection을 실제 사용자 이동으로 오인하지 않는다.
+- 이번 범위는 기존 PR #610의 새 full CI 시작 확인까지이며 이후 결과 모니터링은 수행하지 않는다. 같은 미릴리스 application 후보0.104.2, HIGH/AGENT/qa_required=true, release_required=true/release_authorized=false를 유지한다. 기존 실패·UNKNOWN·인간 최종 QA gate는 소급 변경하지 않는다.
+
+### Grid 보완 첫 회귀와 선택 명령 보강
+
+- native reveal 관측 보완 후 `/tmp/issue571-ci2500-grid-final.log` 전체 Grid 파일: **15 PASS/1 FAIL(1.2분)**. 원격 filter-source 실패는 PASS로 바뀌었지만 modifier/keyboard 계약의 :218에서 checkbox Space 뒤 old0→20664 이동을 관측했다. 최초 artifacts는 `/tmp/issue571-ci2500-grid-after-artifacts`에 보존한다.
+- 실제 마지막 select-task는 project-owned-selection이고 show가 미지정이다. 새 native-user 관측은 이 source를 이미 제외하므로 사용자 입력 승격 오류로 귀속하지 않는다. empty selection의 Core toggle에서 show:false 누락, modifier/Shift mirror의 기본 reveal=true에 따른 앱 TASK_REVEAL 발행이라는 기존 코드 누락을 확인했다.
+- 선택 동기화는 show:false를 명시하고 modifier/Shift mirror는 reveal=false로 전달해 복수 선택·checkbox가 viewport를 이동하지 않도록 보완한다. 일반 native Grid show와 명시 Editor locate는 유지한다. 이 첫 회귀 실패를 숨기거나 expectation을 변경하지 않는다.
+- Editor 제한 진단3회는 모두 PASS(20.9초), SETTLED→동일 controller→현재 Grid 행 focus 직후 active=true이며 이후 settings 입력 전 추가 focus가 없었다. 원격 exact focus 소실 기전은 UNKNOWN으로 유지한다. 명시 locate가 일반 닫기의 이전 trigger RAF를 예약하지 않도록 분리하고, 완료 후 현재 Grid 행만 focus하는 소유권 보완을 진행한다.
+
+### 고정 소스 Local Fast Feedback
+
+- checkbox 호출 경계 확인 중 시작한 첫22건 명령은 exit130으로 중단했다. 그 뒤 소유 파일 편집을 마치고 새 서버로 실행했으며, 중단 실행을 고정 소스 PASS로 사용하지 않는다.
+- 최종 `/tmp/issue571-ci2500-final22.log`: **22 Chromium PASS(1.4분)**. Grid 전체16건, Editor locate, 일반 취소/readonly dialog, metadata3을 포함한다. 원격 filter-source 및 로컬 checkbox 회귀의 assertion·timeout은 그대로다.
+- 관련3파일 **103 Unit PASS(336ms)**. `/tmp/issue571-ci2500-final-typecheck.log`: PASS. `/tmp/issue571-ci2500-final-lint.log`: 0 errors/기존 warnings3. `git diff --check` PASS.
+- `/tmp/issue571-ci2500-final-source.sha256`의 제품2파일 실행 전후 일치: Gantt `f0620246f785ef67eff18e0399f445eb2f3b41c549be7c83d37fe678300f65e3`, Workspace `9d4447910706142b71fa4e71c86fdd75ef0b474f9a29b281cf537585082c022e`. 임시 진단0, pure/port·테스트/expectation/timeout 변경0. generated Next 설정·runtime output은 제외한다.
+- Editor의 일반 close callback은 기존 무인수 wrapper를 유지하며 명시 locate만 이전 trigger 복원 RAF를 생성하지 않는다. SETTLED/동일 controller 및 현재 visible/connected Grid 행에만 focus한다. 원격 focus 소실의 exact 기전은 UNKNOWN이며 소스상 focus 소유권 보완과 현재 PASS를 구분한다.
+
+### 최종 독립 PRE_QA와 새 full PR CI 인계
+
+- 별도 Reviewer `/root/issue570_qa_fix`의 `/tmp/issue571-ci2500-independent4.log`는 **3 Chromium PASS(16.7초)**: Grid filter-source :152, Editor locate :5, 일반 취소 focus :233이다. modifier/keyboard의 잘못된 line174 선택으로 이 실행에서 누락된 :175는 --list로1개를 확인한 뒤 `/tmp/issue571-ci2500-independent-modifier1.log`에서 **1 PASS(6.9초)**다. 3+1 실행 경계를 유지하며 첫 실행을4 PASS로 부풀리지 않는다.
+- 최종 독립 고유4건 PASS 및 source/문서 검토로 **동일 후보의 PR CI 시작용 PRE_QA PASS**다. 제품2파일 manifest 전후 일치, 제품/테스트 diff SHA256 `86c5b55644b65995583d6af73c6afd2b18ab920c4f1c2353f4b51c611659b644`. 원격 Editor exact 원인 UNKNOWN, 앞선 baseline/첫 Grid 회귀 FAIL 및 일반 취소·명시 locate 계약을 보존한다.
+- 관련 문서/AC 구조 검사 PASS, Markdown179문서 링크 PASS, staged diffcheck PASS. DOCUMENTATION_SYNC 의미 검토는 독립 Reviewer가 따로 수행하며 구조 검사를 의미 PASS로 대체하지 않는다.
+- 게시 후보는 제품2파일 및 문서7개(Work Packet/PLAN/ARCHITECTURE/PROJECT_UX/TASK_EDITOR/TEST_PLAN/CHANGELOG)의9파일이다. 테스트·pure/port·CI/권한/버전·generated 설정·runtime output 변경은 없다. 기존 PR #610/branch와 application0.104.2를 유지한다.
+- Manager는 동일 후보 게시와 새 full PR CI 시작 확인까지만 진행한다. 신규 quality/e2e/docker는 **NOT TESTED**, QA_FINAL/Manager ACCEPT는 미완료이며 사용자 AGENT 보호 인간 최종 gate 전 병합은 **BLOCKED**다. CI 시작 뒤 결과 모니터링·병합/main/GHCR/Release·Issue 종료는 수행하지 않는다. 새 Head/run URL과 시작 확인은 Issue/PR STATUS 댓글에 남긴다.

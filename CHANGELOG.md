@@ -22,6 +22,7 @@
 - Issue #571: Gantt viewport의 peer/metadata 복원과 명시 Task 이동을 단일 Coordinator로 중재한다. 최신 사용자 이동을 지연된 복원이 덮지 않도록 intent 세대·우선순위와 projection/geometry 완료 관측을 분리하고 부모의 중복 native 복원을 제거한다. 기존 Core instance·canonical/권한·Day/Week 탐색 계약을 유지한다.
 - PR #610 / CI #2498.1 회귀 보완: 수평 Projection/Viewport 교착 분리, resize 시 stale peer 취소, native vertical scroll 비차단, physical-capacity preflight, admission receipt, 개발용 right-edge 진단 및 drag-edge single-flight 검증.
 - PR #610 / CI #2499.1 후속: 초기·후속 Core payload 정합, 필터 해제 시 수평 bookmark와 현재 세로 clamp 보존, scale toolbar로 blur할 때 inline 이름 저장 누락 및 브라우저 fixture·입력 관찰 순서 회귀를 보완한다.
+- PR #610 / CI #2500.1 후속: native Grid의 명시 시작일 이동 뒤 지연 복원이 이전 좌표를 재생하지 않도록 입력 권한을 갱신하고, Editor locate와 일반 닫기의 focus 소유권을 분리한다.
 
 ## [0.104.1] - 2026-10-10
 

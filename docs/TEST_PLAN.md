@@ -1,3 +1,9 @@
+## PR #610 / CI #2500.1 후속 회귀
+
+[원본 CI](https://github.com/planner77/masterGantt/actions/runs/38135294369)는 quality/docker PASS·e2e2 FAIL이다. Grid filter-source 전환 후 native show:xy의19830을 late PASSIVE_RESTORE120이 덮는 최초 trace를 보존한다. 실제 native reveal이 오래된 복원을 취소하며 canonical 시작일 가시성과 Core/native 좌표가 clock300ms 뒤에도 유지되는지 확인한다. show:false·canonical·앱 선택 동기화 제외, 날짜 없는 Summary의 수평 위치 보존과 show:y, modifier/keyboard/context-menu 계약을 함께 검증한다. empty selection toggle의 show:false 및 modifier/Shift mirror의 reveal=false를 확인하여 checkbox Space 전후 좌표가 유지되고 앱 Task reveal이 발행되지 않아야 한다.
+
+Editor locate는 TASK_REVEAL SETTLED/Core/native top117 이후 현재 Grid 행 focus를 검증한다. bar/fallback focus나 좌표 이동만으로 PASS를 대신하지 않는다. 원격 최초 focus FAIL과 로컬 baseline PASS를 구분하고 후속 metadata가 이전 위치를 되살리지 않는 기존 assertion을 유지한다.
+
 ## PR #610 / Issue #571 — 실패 원인 재현·보완 검증 기준 (2026-10-11)
 
 [원본 PR CI #2498.1](https://github.com/planner77/masterGantt/actions/runs/38130201016)의 Chromium 10 FAIL은 단일 원인으로 축소하지 않는다. Work Packet의 수평 Projection/Viewport 책임 경계와 각 실제 E2E Trace를 확인한다. Projection은 horizontal Core/native 동일성 없이 canonical payload·행/수직 정합을 증명하고, Coordinator는 peer/Task 의도별 실제 Core exact/native±1px 및 bounded3RAF를 별도로 검증한다. Resize/reflow/fullscreen은 대기 중인 복귀를 취소해야 하며, 같은 context 안의 늦은 120px 복원이 사용자 입력·검색 결과·명시 날짜 이동을 덮으면 실패다. 충분한 physical capacity에서 resize action0, 진단 계약 admissionCapacity와 #568 effect-request/cleanup, #549 dev-only diagnostic right-edge, #367 extension 및 vertical drag edge single-flight를 동일 E2E/Unit에서 검증한다. 실패 검증 테스트의 기대값·timeout·retry·skip 완화 금지.
