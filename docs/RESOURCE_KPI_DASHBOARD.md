@@ -1,5 +1,9 @@
 # Resource KPI 공통 집계 계약
 
+## Target 분석 축 후속 계약 (#614)
+
+[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md) §5~6의 Target/member 같은 binding 경로 필터와 관련 계획 공수 사전을 F0 계약으로 고정한다. 구현 순서는 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)의 #619~#622이며 현재 report/plan API가 신규 축을 지원한다는 뜻은 아니다. 기존 T0/A/R·same-assignment·Calendar·null/partial/configured0·full Milestone Gate와 exact snapshot/detail/export 계약을 유지한다. Target별 소계는 겹칠 수 있고 전체는 distinct(Project,Assignment)에서 재계산한다. 선택 Target80%가 Project 전체140%를 숨기거나 Capacity R을 축소하지 않는다. 공통 fixture의 A5/B5/전체5M/D·공동담당7.5·15대/시스템3식은 기존 엔진 검산과 신규 Target test-only 검산을 구분한다. API/UI/Excel 통합 증거는 후속 이슈에서 기록한다.
+
 이 문서는 Resource KPI Epic #522의 공통 계약과 사용자 가이드다. 현재 Dashboard·Milestone 비교·Resource Plan·정확한 일정 이동·Excel 기능은 #524~#529로 확장됐다. 아래 R1~R7 설명은 단계별 계약과 당시 검증 범위를 보존하며, 현재 사용 흐름은 [통합 사용자 가이드](#issue-530-통합-사용자-가이드)를 따른다.
 
 Issue #523은 Resource KPI Epic #522의 R1이다. `src/domain/resources/resource-kpi.ts`의 실행 가능한 pure projection과 typed input/output, KPI 사전 및 고정 fixture를 제공한다. HTTP/UI 공개는 #524 이후이며 시간축 capacity, 실제 실적 원장, DB migration은 이 단위 범위 밖이다. 현재 상태의 계산을 다른 기준일과 비교할 수 있지만 과거 상태를 복원하지 않는다.

@@ -1,5 +1,9 @@
 # 물류 구축 프로젝트 도메인 설계
 
+## Issue #614 — 현행 물류와 Target 확장 계약
+
+이 문서의 최초 계획 상태와 과거 고정 type 목록은 당시 설계 이력이다. 현재 구현은 `src/contracts/logistics.ts`·Service·migration ledger와 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)를 우선하며 Equipment/System type은 동적 catalog code string이다. 새 공정 master·occurrence/WorkArea·Target/member/binding·관련 Resource 공수 계약은 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md), 우선순위와 책임은 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)을 따른다. F0는 문서·합성 fixture 검산이며 신규 runtime/DDL 구현을 의미하지 않는다. 기존 직접 연결·합집합 상속·권한·일정 계약은 보존한다.
+
 ## 1. 상태·요구·근거
 
 - 상위: [Epic #183](https://github.com/planner77/masterGantt/issues/183).

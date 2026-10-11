@@ -3113,3 +3113,8 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - static guard는 unconditional shared writer가 Main publish 1개뿐이고 docker_smoke writer가 push-only인지 고정한다.
 - PR cache miss에서도 Docker image policy/runtime/SQLite persistence gate가 그대로 PASS해야 한다.
 - after successful PR run >=10에서 baseline median/p90/runner-minutes 대비 5% 이상 개선 여부를 #444에서 판정한다.
+# Issue #614 — Target F0 계약 fixture
+
+`tests/fixtures/logistics-targets.ts`와 `tests/domain/logistics-targets-contract.test.ts`는 [Target 계약](LOGISTICS_TARGETS.md)의 공통 F0-L/P/Q/F/R case ID를 검산한다. whole/subset·self/subtree 합집합/출처/legacy 무추론·공정 전용 WorkArea·15대/시스템3식·같은 binding/member 필터는 test-only 계약 oracle이고 신규 제품 구현이 아니다. 관련 계획 공수 A5/B5/전체5M/D·공동담당/중첩Group·T0/A/R·all-unset/partial/configured0·선택80/Project140은 기존 Resource KPI/Plan pure engine을 호출한다.
+
+실행 결과와 AC1~AC6 mapping은 [#614 Work Packet](exec-plans/active/ISSUE_614.md)에 기록한다. 신규 SQLite/API/copy/Template/JSON/Excel·브라우저 접근성/반응형·Gantt 보존·운영 backup-restore는 [후속 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)의 NOT TESTED이며 fixture PASS로 대체하지 않는다. 원격 quality/e2e/docker는 exact-head PR CI의 실제 결과만 증거다.
