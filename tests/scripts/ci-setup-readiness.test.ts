@@ -127,43 +127,15 @@ describe("Issue #444 Phase 2 readiness automation", () => {
     for (const label of ["Phase 2 readiness 분석", "readiness 분석 evidence 보존", "Issue #444 readiness 댓글 갱신"]) {
       expect(workflow.split("- name: " + label).length - 1).toBe(1);
     }
-    expect(workflow).toContain("IFS=
-    const workflow = readFileSync(resolve(root, ".github/workflows/ci-setup-readiness.yml"), "utf8");
-
-    expect(workflow).toContain('workflows: ["CI", "Publish release image"]');
-    expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
-    expect(workflow).toContain('cron: "43 20 * * *"');
-    expect(workflow).toContain("ref: main");
-    expect(workflow).toContain("persist-credentials: false");
-    expect(workflow).not.toContain("ref: ${{ github.event.workflow_run.head");
-    expect(workflow).toContain("actions: read");
-    expect(workflow).toContain("contents: read");
-    expect(workflow).toContain("issues: write");
-    expect(workflow).not.toContain("contents: write");
-    expect(workflow).not.toContain("pull-requests: write");
-    expect(workflow).toContain('collect_runs "ci.yml" "pull_request"');
-    expect(workflow).toContain('collect_runs "ci.yml" "push"');
-    expect(workflow).toContain('collect_runs "release-image.yml" "workflow_dispatch"');
-    expect(workflow).toContain("bind-ci-setup-artifact-provenance.mjs");
-    expect(workflow).toContain('--workflow "$run_path"');
-    expect(workflow).toContain('--run-id "$run_id"');
-    expect(workflow).toContain('--head-sha "$head_sha"');
-    expect(workflow).toContain("--min-samples 10");
-    expect(workflow).toContain("--require-bound-provenance true");
-    expect(workflow).toContain("mastergantt-ci-setup-readiness:v1");
-    expect(workflow).toContain("--method PATCH");
-    expect(workflow).toContain("--method POST");
-  });
-});
-\\t' read -r run_id run_attempt head_sha run_path run_event");
+    expect(workflow).toContain("IFS=$\u0027\\t\u0027 read -r run_id run_attempt head_sha run_path run_event");
     expect(workflow).not.toContain("IFS=            echo");
     if (process.platform !== "win32") {
-      const matches = [...workflow.matchAll(/^        run: \|$/gm)];
-      expect(matches.length).toBeGreaterThanOrEqual(3);
-      for (const match of matches) {
-        const lines = workflow.slice((match.index ?? 0) + match[0].length).split("\n").slice(1);
+      const marker = "        run: |";
+      const sections = workflow.split(marker).slice(1);
+      expect(sections.length).toBeGreaterThanOrEqual(3);
+      for (const section of sections) {
         const script: string[] = [];
-        for (const line of lines) {
+        for (const line of section.split("\n").slice(1)) {
           if (line && !line.startsWith("          ")) break;
           script.push(line.startsWith("          ") ? line.slice(10) : line);
         }
@@ -172,7 +144,6 @@ describe("Issue #444 Phase 2 readiness automation", () => {
       }
     }
   });
-
   it("keeps the write-capable workflow on trusted main and updates one marker comment", () => {
     const workflow = readFileSync(resolve(root, ".github/workflows/ci-setup-readiness.yml"), "utf8");
 
