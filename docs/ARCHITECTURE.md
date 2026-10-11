@@ -1,5 +1,19 @@
 # Architecture draft
 
+## Issue #571 — Viewport Coordinator와 명령 소유권
+
+#570 projection receipt의 후속 소비자는 단일 Viewport Coordinator다. canonical 데이터·조회 projection의 authority는 그대로 유지하고, viewport 의도/실행/완료 관측만 분리한다. 부모 Workspace는 유효한 visible capture와 typed peer/Task reveal 요청을 전달하며 Gantt native DOM 복원을 별도 실행하지 않는다.
+
+순수 Coordinator는 API/context·intent/projection/geometry·user gesture 세대와 pending operation을 검사한다. 실제 사용자 입력 및 명시 reveal > scope/filter > peer return > passive preservation 순으로 처리하며 늦게 도착한 passive 이벤트가 최근 사용자 의도를 덮지 않는다. production port가 앱 scroll-chart/native 보정과 기존 range compatibility 명령의 실행 경계다. Native Core wheel/Grid reveal은 Core 소유로 유지하고 관측 이벤트를 새 앱 명령으로 재귀 처리하지 않는다. 단일 writer 근거는 production 앱 경로에 한정한다. 기존 #549 개발 전용 __masterganttMilestoneTimeline.reveal→revealMilestoneDate와 #569 PoC/trace fixture의 직접 명령은 진단 예외이며 제품 DATE_REVEAL 지원·단일 writer 실증에 포함하지 않는다.
+
+projection receipt는 행 정합을 보장할 뿐 viewport 완료가 아니다. 동일 canonical revision의 대기 중 관측 generation 변경은 최신 receipt를 따라 geometry 안정 관측을 재시작하며, 적용 직전 고정한 generation이 명령 후 바뀌면 추가 쓰기를 중단한다. metadata/peer 요청은 canonical queue에서 등록한 뒤 queue 밖에서 최신 receipt와 visible geometry를 기다려야 한다. receipt를 생성하는 queue 안에서 viewport 완료를 기다려 교착시키지 않는다. Core exact/native ±1px의 연속 안정 frame과 유한 예산으로 완료·SUPERSEDED·NOT_MEASURABLE·NO_SCROLL_CAPACITY·TIMED_OUT·FAILED를 구분한다.
+
+기존 range compatibility 준비는 좌표 적용 전에 PREPARING_GEOMETRY에서 수행한다. 실제 resize를 발행한 경우 준비 전 generation보다 새로운 성공 projection을 요구하고 최신 geometry를 다시 검증한 뒤 좌표 명령의 generation을 고정한다. 준비 중 같은 canonical 데이터의 관측 갱신은 허용하지만 실제 revision·입력·API/조회 문맥 변경은 취소한다. 좌표 명령 이후의 stale generation/receipt 차단은 유지한다.
+
+탭 복귀 직후 논리적으로 visible이지만 chart 크기가 일시적으로0이면 원래 intent 권한으로 중앙 상태 머신에서 유한 대기한다. 측정 전에는 명령을 발행하지 않으며 새 입력·조회 문맥 변경은 대기를 취소한다. port는 detached, hidden/inert, document hidden 및 자체 display/visibility 비활성을 별도로 visible=false로 전달하므로 일시적 크기0과 구분한다. 지속되는 크기0은 실패로 끝내며 새 snapshot으로 재승인하지 않는다.
+
+#569 실험 adapter 제품 채택과 새 날짜 좌표 수식은 DEFER다. 기존 #367 range compatibility를 단일 port로 옮기는 것은 공식 무한 capacity 지원의 실증이 아니다. native-add continuity는 클릭 때의 입력 권한과 API/scope/filter/scale/columns/visible 문맥을 캡처한다. 정상 add의 canonical geometry 갱신을 인계하더라도 실제 사용자 입력·filter·명시 reveal·API 교체는 이전 capture를 취소하며 대기 뒤 fresh 입력 권한으로 재승인하지 않는다. window 복원과 focus도 같은 stale/측정 검사를 따른다. metadata revision만으로 reset/remount하지 않으며 hidden/inert/zero-size capture, stale async write, 무한 RAF를 금지한다. [구현·검증 Work Packet](exec-plans/active/ISSUE_571.md)을 따른다.
+
 ## Issue #570 — Canonical projection과 native 동기화 경계
 
 서버 ProjectSnapshot/revision은 계속 유일한 저장 authority다. Gantt projection은 canonical Task/Link 전체 입력, scope/filter/display mode의 membership, 접힘 상태의 논리 visible order, 가상화된 DOM subset을 구분한다. DOM에 없는 접힌 자식이나 offscreen 행은 데이터 삭제를 뜻하지 않으며, 허용 ID의 부분집합 검사만으로 필수 행 정합성을 승인하지 않는다.

@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #571 — 사용자 이동 우선의 화면 복귀
+
+같은 일정으로 돌아올 때 유효한 직전 위치를 보존하되, 돌아오는 동안 사용자가 wheel/pan·Task 선택·명시 날짜 이동을 하면 그 새 위치를 우선한다. 지연된 peer/metadata 복원이 새 위치를 덮지 않는다. Grid/Chart의 pointer/wheel/touch/keyboard 입력은 오래된 복원을 취소한다. toolbar·Editor 입력 자체는 일정 이동으로 취급하지 않으며 Editor의 '일정에서 보기'는 명시 Task reveal이다.
+
+검색/유형/selected ID/scope는 조회 의도다. 필터 중 이동·reveal·scope 전환이 있었다면 검색 전 bookmark를 폐기한다. 빈 결과에 이전 비영점 위치를 재생하지 않는다. 숨겨진 일정은 0좌표로 저장하지 않으며 다시 보인 뒤 최신 projection과 실제 geometry를 확인한다.
+
+화면 배치·공통 색상·폰트는 유지한다. DESIGN Delta B로 기존 상태 보존 원칙을 구체화하며 DESIGN.md 수정은 N/A다. parent는 capture/request만 전달하고 일정 native 복원은 Coordinator가 실행한다. Resource 표·tablist/focus는 해당 화면의 스크롤 소유권을 유지한다. readonly 조회·탭 전환의 server mutation0, canonical revision·권한 및 draft/selection/columns/scale/instance 보존 계약은 그대로다. [#571 Work Packet](exec-plans/active/ISSUE_571.md)의 환경별 증거를 전체 UX PASS로 확대하지 않는다.
+
 ## Issue #570 — 조회 투영과 메타데이터 갱신
 
 작업명·설명·상태·진척 등 canonical metadata만 바뀌고 표시 집합·계층·열 설정이 같으면 Grid/Chart를 같은 Core instance에서 갱신한다. 이 변경만으로 filter나 columns를 재설정하지 않는다. 활성 이름/상태 필터의 실제 결과가 달라지는 변경은 membership 변화로 처리하며 빈 결과를 전체 Task로 바꾸지 않는다.

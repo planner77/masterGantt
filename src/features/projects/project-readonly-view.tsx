@@ -63,7 +63,8 @@ import {
 } from "@/features/projects/project-status-mutation";
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
-import { capturePeerViewportCoordinates, type PeerViewportRestore, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
+import type { ViewportController } from "@/features/gantt/viewport/viewport-coordinator";
+import { type PeerViewportRestore, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
@@ -238,6 +239,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeView, setActiveView] = useState<WorkspaceView>("schedule");
   const scheduleGanttPanel = useRef<HTMLElement>(null);
+  const viewportController = useRef<ViewportController | null>(null);
+  const registerViewportController = useCallback((controller: ViewportController | null) => { viewportController.current = controller; }, []);
   const publicGanttViewportReader = useRef<PublicGanttViewportReader | null>(null);
   const registerPublicGanttViewportReader = useCallback((reader: PublicGanttViewportReader | null) => {
     publicGanttViewportReader.current = reader;
@@ -247,7 +250,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; snapshot: ProjectSnapshotResponse; generation: number; instanceId: string | null; syncGeneration: string | null; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
   const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
-  const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
+  const [taskFilter, setTaskFilterState] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
+  const setTaskFilter = useCallback((update: React.SetStateAction<TaskFilterState>) => {
+    viewportController.current?.filterInput();
+    setTaskFilterState(update);
+  }, []);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
   const [targetPickerQuery, setTargetPickerQuery] = useState("");
@@ -1063,7 +1070,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       );
     return;
     }
-    requestAnimationFrame(() => { const root = document.querySelector<HTMLElement>(".project-gantt-scroll"); const target = root ? findTaskContextElement(root, taskId) : null; target?.scrollIntoView({ block: "nearest", inline: "nearest" }); target?.focus({ preventScroll: true }); });
+    const controller = viewportController.current;
+    void controller?.request({ kind: "TASK_REVEAL", taskId }).then(outcome => {
+      if (outcome !== "SETTLED" || viewportController.current !== controller) return;
+      const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
+      if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
+      const target = findTaskContextElement(root, taskId);
+      if (!target) return;
+      if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+    });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
     const snapshot = await fetchCanonicalSnapshot();
@@ -1187,10 +1203,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       !panel?.isConnected || panel.closest("[hidden], [inert]")) return;
     const chart = panel.querySelector<HTMLElement>(".wx-chart"), frame = panel.querySelector<HTMLElement>(".project-gantt-frame");
     if (!chart?.getClientRects().length || !frame) return;
-    const nativeGantt = panel.querySelector<HTMLElement>(".wx-gantt");
-    const captured = capturePeerViewportCoordinates(publicGanttViewportReader.current, {
-      left: chart.scrollLeft, top: nativeGantt?.scrollTop ?? 0,
-    });
+    const sample = viewportController.current?.capture();
+    const captured = sample ? { public: sample.core, dom: sample.native } : null;
     // Never manufacture a Core position from DOM if no SVAR public reader exists.
     if (!captured) { navigationViewport.current = null; peerViewport.current = null; setPeerChartRestore(null); return; }
     if (process.env.NODE_ENV !== "production") frame.dataset.ganttPeerCapture = JSON.stringify(captured);
@@ -1199,10 +1213,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       publicId, rootTaskId: activeRootTaskId, filter: taskFilter, snapshot: state.snapshot,
       generation: ganttResetGeneration, instanceId: frame.dataset.projectGanttApiInstance ?? null,
       syncGeneration: frame.dataset.ganttCanonicalSyncGeneration ?? null,
-      positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap(selector => {
-        const owner = panel.querySelector<HTMLElement>(selector);
-        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
-      }),
+      positions: [...(sample?.positions ?? [])],
     };
     navigationViewport.current = captureResourceNavigationViewport(
       state.snapshot, ganttResetGeneration, publicGanttViewportReader.current,
@@ -1210,7 +1221,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     );
     setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`,
       left: captured.public.left, top: captured.public.top,
-      snapshot: state.snapshot, generation: ganttResetGeneration });
+      snapshot: state.snapshot, generation: ganttResetGeneration, positions: peerViewport.current.positions });
   }
   function activateWorkspaceView(view: WorkspaceView) {
     if (navigationPending.current || navigationConfirmation.current)
@@ -2042,55 +2053,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     activateWorkspaceView(next);
   }
 
-  useEffect(() => {
-    const saved = peerViewport.current;
-    if (activeView !== "schedule" || !saved) return;
-    peerViewport.current = null;
-    // Explicit ID/scope drills own their new viewport. Only a plain peer return
-    // restores native DOM scroll, after Core has resized the visible frame.
-    const frame = scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-frame");
-    if (state.status !== "ready" || saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId ||
-      saved.filter !== taskFilter || saved.snapshot !== state.snapshot || saved.generation !== ganttResetGeneration ||
-      saved.instanceId !== (frame?.dataset.projectGanttApiInstance ?? null) ||
-      saved.syncGeneration !== (frame?.dataset.ganttCanonicalSyncGeneration ?? null)) {
-      setPeerChartRestore(null);
-      return;
-    }
-    if (!frame) return;
-    const panel = scheduleGanttPanel.current;
-    if (!panel) return;
-    const geometry = () => JSON.stringify({
-      scale: frame.dataset.ganttScaleMode, cellWidth: frame.dataset.ganttCellWidth,
-      columns: Array.from(frame.querySelectorAll(".wx-header .wx-cell")).map(cell => cell.getBoundingClientRect().width),
-      gridWidth: frame.querySelector(".wx-table-container")?.getBoundingClientRect().width,
-    });
-    const initialGeometry = geometry();
-    let secondFrame = 0, cancelled = false;
-    const inputEvents = ["pointerdown", "wheel", "keydown"];
-    const markInput = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) cancelled = true;
-    };
-    for (const event of inputEvents) frame.addEventListener(event, markInput, true);
-    const cleanupInput = () => { for (const event of inputEvents) frame.removeEventListener(event, markInput, true); };
-    const current = () => !cancelled && frame.isConnected && panel === scheduleGanttPanel.current &&
-      !panel.closest("[hidden], [inert]") && frame.getClientRects().length > 0 &&
-      saved.instanceId === (frame.dataset.projectGanttApiInstance ?? null) &&
-      saved.syncGeneration === (frame.dataset.ganttCanonicalSyncGeneration ?? null) && geometry() === initialGeometry;
-    const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => {
-        try {
-          if (!current()) return;
-          for (const position of saved.positions) {
-            const owner = panel.querySelector<HTMLElement>(position.selector);
-            if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
-          }
-        } finally {
-          cleanupInput();
-        }
-      });
-    });
-    return () => { cancelled = true; cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); cleanupInput(); };
-  }, [activeView, publicId, activeRootTaskId, taskFilter, state, ganttResetGeneration]);
 
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
@@ -2631,7 +2593,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
         </div> ) : (
-                  <ProjectGantt viewVisible={activeView === "schedule"} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+                  <ProjectGantt onViewportController={registerViewportController} viewVisible={activeView === "schedule"} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -2644,7 +2606,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                       setWorkspaceSelection(ids);
                     }}
                     selectionRestore={selectionRestore}
-                    tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />)}
+                    tasks={tasks} filterActive={activeFilters > 0} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />)}
         </div>
       </section>
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"

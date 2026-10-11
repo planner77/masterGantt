@@ -1,5 +1,9 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #571 — '일정에서 보기'의 viewport 소유권
+
+소속 작업 등 Editor의 '일정에서 보기'는 Workspace 부모의 DOM scrollIntoView 복원 대신 Gantt Coordinator의 명시 Task reveal ingress로 연결한다. 새 이동은 대기 중인 peer/metadata 보존보다 우선하며 이후 metadata 저장도 이동한 현재 위치를 기준으로 한다. 행 focus는 preventScroll을 유지하고 다른 scope/빈 결과의 오래된 요청을 재생하지 않는다. 날짜 없는 Summary는 현재 수평 위치를 보존하고 행만 이동한다. 날짜가 있는 Task는 실제 렌더 axis와 native capacity 안의 관측 좌표만 허용하며 범위 밖에서는 이동 성공을 주장하지 않는다. Editor 초안·저장·401/412/network 및 단일 Task 편집 권한 계약은 그대로다. [검증 범위](exec-plans/active/ISSUE_571.md)를 따른다.
+
 ## Issue #384 — Copy 선택 집합과 단일 편집 경계
 
 Copy clipboard는 `{mode:"copy", taskIds, revision}`, Cut은 `{mode:"cut", taskId, revision}`이다. 신규 Copy는 taskIds를 보내고 서버는 legacy taskId XOR 호환을 제공한다. canonical root 순서·ancestor 제거는 메뉴/keyboard에 동일하다. Paste target 선택은 clipboard를 유지하고 Project·revision·filter/scope 변화는 stale clipboard를 폐기한다.

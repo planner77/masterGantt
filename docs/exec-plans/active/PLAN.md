@@ -1,3 +1,11 @@
+## Issue #571 — 단일 Viewport Coordinator 구현 (2026-10-11)
+
+[#571 Work Packet](ISSUE_571.md): #570 PR #592 병합 main `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`에서 `feat/issue-571-viewport-coordinator`를 생성했다. 단일 intent/command ingress와 최신 projection·geometry settle, 사용자 입력 우선권·filter bookmark 및 parent 중복 native 복원 제거를 구현한다. #569 실험 adapter는 DEFER, 기존 #367 range compatibility는 회귀 보존, #551 미통합 lane은 별도 NOT TESTED다.
+
+HIGH / qa_required=true / qa_method=AGENT, 실제 독립 Reviewer `/root/issue570_qa_fix`. PATCH `0.104.2`, release_required=true / release_authorized=false. DESIGN Delta B / DESIGN.md N/A. 구현·문서 동기화·독립 PRE_QA 후 새 exact-head PR CI 시작까지만 진행하며 QA_FINAL·Manager ACCEPT·병합/main/GHCR/Release/Issue 종료는 범위 밖이다.
+
+단일 production viewport writer·latest projection/geometry·입력 우선권·filter bookmark·native-add 캡처 권한을 구현했다. 초기 FAIL과 독립 REWORK(잔존 guard의 revision/receipt, dated axis admission, 비동기 add의 stale capture, Resource 복귀의 일시적 zero geometry, 준비resize/accepted receipt 경쟁)는 Work Packet에 보존한다. 단계별 직접 영향 Chromium29와 복구/scale/resize7은 PASS이며 이후 보완의 전체 회귀 증거로 확대하지 않는다. 준비 단계 분리 후 같은 metadata case 반복3 PASS, 최종 독립 관련 Unit129 PASS·Chromium9 PASS, PRE_QA·문서 의미 검토 PASS다. 동일 후보로 PR CI를 시작하며 전체 원격 CI 성공 전 제품 PASS/Manager ACCEPT로 보고하지 않는다. 현재 Head의 별도 인간 QA·Owner ACCEPT 전 최종 병합은 BLOCKED다.
+
 ## Issue #570 — Canonical projection 구현 재개 (2026-10-10)
 
 후속 CI #2482.1은 Head `678fd90d75f3ceca8e061cabc584ffc2ed6ecc35`에서 Quality/Docker PASS, E2E shard5의 기존 #456 metadata viewport 2개 FAIL이다. 같은 ID 집합의 위치 보존과 실제 ID 집합 변경의 오래된 복원 취소를 구분해 보완하며 최신 main `c81285741610ad28dc5d6b50f9bb97264970a79d`의 Docker 정책을 상속한다. [실패 원장과 후속 검증](ISSUE_570.md#pr-ci-24821-viewport-회귀-보완-2026-10-11)을 보존하고 사용자 요청 종료점인 새 exact-head full PR CI 시작까지 진행한다. 원격 새 Head 결과·QA_FINAL·Manager ACCEPT는 NOT TESTED다.

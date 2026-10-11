@@ -1,3 +1,19 @@
+## Issue #571 — Coordinator 경쟁·완료 검증
+
+순수 Coordinator의 완료 authority는 accepted revision/generation과 최신 유효 receipt에 고정한다. 같은 geometry라도 새 revision/generation 또는 invalid receipt 뒤에는 native repair/차단을 실행하지 않아야 한다. Task reveal admission은 실제 axis start 포함/end 제외, invalid date·범위 밖 clamped x·capacity 부족을 거절하고, 날짜 없는 Summary의 기존 수평 위치를 보존하는지 검증한다.
+
+Local Fast Feedback와 exact-head PR 전체 quality/e2e/docker를 분리한다. 실제 독립 qa_docs의 PRE_QA는 QA_FINAL/Manager ACCEPT가 아니다. [Work Packet](exec-plans/active/ISSUE_571.md)에 source 지문과 실행별 PASS/FAIL/NOT TESTED를 남긴다.
+
+- Unit: priority와 생성 당시 gesture/context 토큰, API/projection/geometry 세대, stale pending supersession, filter bookmark 무효화, dispose·throw/false/reject·유한 timeout.
+- 실제 Core Chromium: Resource peer no-input120·실제 wheel≈30·늦은120 재적용0, Grid 시작일 reveal, Editor '일정에서 보기'→metadata 저장, 빈 결과→후속 no-op, scope/filter/scale/columns 변화.
+- 상태 보존: metadata·설정 저장 및 confirmed delete normal/401/412/network에서 instance/tree/selection/columns/scale/viewport/revision. readonly 조회·탭 전환의 보호 mutation0.
+- 기하: 최신 성공 projection 뒤 실제 visible/nonzero DOM, Core exact/native ±1px의 3연속 frame, hidden/inert/zero geometry·capacity 부족·bounded repair/timeout.
+- Resource 복귀의 일시적 zero geometry는 원래 intent의 유한 대기→측정 후 적용, 지속zero는 NOT_MEASURABLE, 대기 중 wheel/scope 변경은 명령0인지 검사한다. port의 detached/hidden/inert/documenthidden 구분을 Unit으로 검증한다.
+- 호환 resize 준비가 같은 canonical 데이터의 관측 generation을 바꿔도 새 성공 receipt·geometry 검증 뒤 좌표 적용이 가능해야 한다. 실제 resize 후 이전 generation receipt 재사용은 금지하고 준비 중 실제 revision/input 변경·준비 실패 및 좌표 적용 후 generation 변경은 취소/유한 실패로 검증한다.
+- delayed native-add는 실제 create operation schema와 font/glyph·hit target 준비 후 포인터를 사용한다. 응답 뒤 최신 revision receipt SETTLED·무입력 복원 SETTLED·실제 wheel 후 이전 요청 APPLYING0 및120 실제 RAF 동안 위치 보존을 검사한다. Grid 자체가 별도로 스크롤된 진단 실행과 최종 후보를 구분하며 최초 Grid scroll writer 미확정 경계를 보존한다.
+- 회귀: Day/Week 3회 right-edge, 390/768/1024/1440/1920 clipping·tab/keyboard/focus. #549 현재 probe와 #551 미통합 제품 lane의 증거를 분리한다.
+- source/trace 검토: 앱의 programmatic scroll-chart/native restore/range writer는 production port로 통합하고 parent 중복 loop·stale 후속 명령·unbounded RAF가 없는지 확인한다. native Core user action은 별도 소유권이다.
+
 ## Issue #600 — urllib artifact 리다이렉트 Python API 회귀 (#2466.1, 2026-10-11)
 
 - 원인: Request에 없는 `remove_unredirected_header()`를 사용해 `test_source_artifact_redirect_never_exposes_token`가 AttributeError. `remove_header()`는 일반/비리다이렉트 헤더를 모두 처리한다.

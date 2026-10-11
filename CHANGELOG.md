@@ -15,6 +15,12 @@
 
 # Changelog
 
+## [0.104.2] - 2026-10-11
+
+### Fixed
+
+- Issue #571: Gantt viewport의 peer/metadata 복원과 명시 Task 이동을 단일 Coordinator로 중재한다. 최신 사용자 이동을 지연된 복원이 덮지 않도록 intent 세대·우선순위와 projection/geometry 완료 관측을 분리하고 부모의 중복 native 복원을 제거한다. 기존 Core instance·canonical/권한·Day/Week 탐색 계약을 유지한다.
+
 ## [0.104.1] - 2026-10-10
 
 ### Fixed

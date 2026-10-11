@@ -1,5 +1,11 @@
 # ADR — SVAR 2.7.3 공개 API와 Chart 기하 Adapter (#569)
 
+## Issue #571 — 기존 제품 명령의 단일 port 통합
+
+#571은 이 ADR의 A/B/C 실험 adapter 전체를 제품에 채택하지 않는다. 현재 검증된 공개 scroll-chart와 기존 peer/metadata/native 보정, #367 range compatibility의 명령 소유권을 production port로 모은다. synthetic range compatibility를 그대로 인수하는 것은 공식 resize-chart capacity 계약이나 A/B/C 전체 성공의 근거가 아니다. 새 capacity 우회·비문서화 date action·same-instance controlled origin 변경은 도입하지 않는다.
+
+Coordinator는 명령 반환과 완료를 분리하며 최신 projection receipt, API/context, 실제 visible geometry 및 Core/native 정합을 유한 관찰한다. hidden/zero-size·범위 부족·superseded·timeout을 성공으로 바꾸지 않는다. dated Task reveal은 실제 Core axis 날짜 bounds를 확인하고 clamped $x를 실제 날짜 가시성으로 승인하지 않는다. 날짜 없는 summary-container는 현재 수평 위치를 보존한다. 기존 #549 개발 전용 revealMilestoneDate 직접 명령과 #569 PoC/trace fixture는 production 단일 writer 근거에서 제외한다. 기존 PoC의 DEFER·390 Day failure·Week header 미검증 원장은 유지한다. [#571 Work Packet](exec-plans/active/ISSUE_571.md)은 새 제품 후보의 회귀 증거를 별도로 기록한다.
+
 ## 상태와 범위
 
 실험용 adapter 계약을 채택하되 제품 도입은 DEFER한다. 구현·문서·독립 PRE_QA 후 PR CI 시작까지가 현재 요청이며 제품 adapter 도입/기존 writer 교체는 승인하지 않는다. [Work Packet](exec-plans/active/ISSUE_569.md), 선행 [관측 계약](GANTT_SYNC_TRACE.md)을 따른다. 최신 main에는 #568이 포함되지만 #549~#553의 Milestone 표시 stack은 없어 동일 source로 취급하지 않는다.
