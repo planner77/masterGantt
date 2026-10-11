@@ -1,0 +1,320 @@
+{
+  "capturedAt": "2026-10-08T16:01:41.681Z",
+  "environment": "Chromium/Next dev synthetic mock API",
+  "width": 1920,
+  "bounds": {
+    "x": 656,
+    "y": 252,
+    "width": 608,
+    "height": 396
+  },
+  "layout": {
+    "viewport": {
+      "width": 1920,
+      "height": 900
+    },
+    "documentWidth": 1920,
+    "dashboard": {
+      "x": 24,
+      "y": -398,
+      "right": 1896,
+      "bottom": 1131,
+      "width": 1872,
+      "height": 1529
+    },
+    "owner": {
+      "x": 30,
+      "y": 341.5,
+      "right": 1890,
+      "bottom": 821.5,
+      "width": 1860,
+      "height": 480
+    },
+    "headers": [
+      {
+        "x": 31,
+        "y": 342.5,
+        "right": 1097,
+        "bottom": 381,
+        "width": 1066,
+        "height": 38.5
+      },
+      {
+        "x": 1097,
+        "y": 342.5,
+        "right": 1209,
+        "bottom": 381,
+        "width": 112,
+        "height": 38.5
+      },
+      {
+        "x": 1209,
+        "y": 342.5,
+        "right": 1305,
+        "bottom": 381,
+        "width": 96,
+        "height": 38.5
+      },
+      {
+        "x": 1305,
+        "y": 342.5,
+        "right": 1465,
+        "bottom": 381,
+        "width": 160,
+        "height": 38.5
+      },
+      {
+        "x": 1465,
+        "y": 342.5,
+        "right": 1569,
+        "bottom": 381,
+        "width": 104,
+        "height": 38.5
+      },
+      {
+        "x": 1569,
+        "y": 342.5,
+        "right": 1657,
+        "bottom": 381,
+        "width": 88,
+        "height": 38.5
+      },
+      {
+        "x": 1657,
+        "y": 342.5,
+        "right": 1745,
+        "bottom": 381,
+        "width": 88,
+        "height": 38.5
+      },
+      {
+        "x": 1745,
+        "y": 342.5,
+        "right": 1889,
+        "bottom": 381,
+        "width": 144,
+        "height": 38.5
+      }
+    ],
+    "cells": [
+      {
+        "x": 31,
+        "y": 381.5,
+        "right": 1097,
+        "bottom": 566,
+        "width": 1066,
+        "height": 184.5
+      },
+      {
+        "x": 1097,
+        "y": 381.5,
+        "right": 1209,
+        "bottom": 566,
+        "width": 112,
+        "height": 184.5
+      },
+      {
+        "x": 1209,
+        "y": 381.5,
+        "right": 1305,
+        "bottom": 566,
+        "width": 96,
+        "height": 184.5
+      },
+      {
+        "x": 1305,
+        "y": 381.5,
+        "right": 1465,
+        "bottom": 566,
+        "width": 160,
+        "height": 184.5
+      },
+      {
+        "x": 1465,
+        "y": 381.5,
+        "right": 1569,
+        "bottom": 566,
+        "width": 104,
+        "height": 184.5
+      },
+      {
+        "x": 1569,
+        "y": 381.5,
+        "right": 1657,
+        "bottom": 566,
+        "width": 88,
+        "height": 184.5
+      },
+      {
+        "x": 1657,
+        "y": 381.5,
+        "right": 1745,
+        "bottom": 566,
+        "width": 88,
+        "height": 184.5
+      },
+      {
+        "x": 1745,
+        "y": 381.5,
+        "right": 1889,
+        "bottom": 566,
+        "width": 144,
+        "height": 184.5
+      }
+    ],
+    "buttons": [
+      {
+        "button": {
+          "x": 39,
+          "y": 391.5,
+          "right": 381.703125,
+          "bottom": 423.5,
+          "width": 342.703125,
+          "height": 32
+        },
+        "cell": {
+          "x": 31,
+          "y": 381.5,
+          "right": 1097,
+          "bottom": 566,
+          "width": 1066,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 1759,
+          "y": 397.5,
+          "right": 1801,
+          "bottom": 429.5,
+          "width": 42,
+          "height": 32
+        },
+        "cell": {
+          "x": 1745,
+          "y": 381.5,
+          "right": 1889,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 1759,
+          "y": 437.5,
+          "right": 1828.34375,
+          "bottom": 469.5,
+          "width": 69.34375,
+          "height": 32
+        },
+        "cell": {
+          "x": 1745,
+          "y": 381.5,
+          "right": 1889,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 1759,
+          "y": 477.5,
+          "right": 1828.34375,
+          "bottom": 509.5,
+          "width": 69.34375,
+          "height": 32
+        },
+        "cell": {
+          "x": 1745,
+          "y": 381.5,
+          "right": 1889,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 1759,
+          "y": 517.5,
+          "right": 1801,
+          "bottom": 549.5,
+          "width": 42,
+          "height": 32
+        },
+        "cell": {
+          "x": 1745,
+          "y": 381.5,
+          "right": 1889,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      }
+    ],
+    "toolbar": {
+      "x": 30,
+      "y": -354,
+      "right": 1890,
+      "bottom": -303,
+      "width": 1860,
+      "height": 51
+    },
+    "controls": [
+      {
+        "x": 1713.296875,
+        "y": -348,
+        "right": 1810,
+        "bottom": -316,
+        "width": 96.703125,
+        "height": 32
+      },
+      {
+        "x": 1818,
+        "y": -348,
+        "right": 1884,
+        "bottom": -316,
+        "width": 66,
+        "height": 32
+      }
+    ],
+    "focus": {
+      "rect": {
+        "x": 964,
+        "y": 471,
+        "right": 1243,
+        "bottom": 503,
+        "width": 279,
+        "height": 32
+      },
+      "outline": "solid",
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "owner": {
+        "x": 656,
+        "y": 252,
+        "right": 1264,
+        "bottom": 648,
+        "width": 608,
+        "height": 396
+      }
+    }
+  },
+  "rows": 30,
+  "readonly": true,
+  "instance": {
+    "apiId": "svar-api-1",
+    "instanceId": "project-gantt-i0rro43r56"
+  },
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "26d977512c28bc880e4073a2d84a260110e9ba192c4c4df047d4eec3e1810af2",
+    "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+    "src/features/milestones/milestone-create-dialog.tsx": "0fd7a28bd2740871111dfc2ff6d7c1c564463db11772d13a031e1140afcc2cd1",
+    "src/features/milestones/project-milestone-dashboard.tsx": "0b99fc08dc1c42b008a923bb33c6ddee5bcf80406c3125fda476c4ce5ad75127",
+    "src/features/milestones/project-milestone-stage-table.tsx": "6cfc9f0b1627ee808ff364f83198ff57e001506702777fb1ca8f067f283214fe",
+    "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+    "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8"
+  }
+}
