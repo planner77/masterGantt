@@ -129,4 +129,9 @@ DOCUMENTATION_SYNC: PASS(관련 계약 의미 검토 포함). QA_FINAL/Trusted/q
 
 - PR CI #2527.1에서 필수 Quality/E2E/Docker SUCCESS, 그러나 QA Final Automated는 2개 P1 Review Thread가 미해결로 BLOCKED.
 - P1: 원본 failed version bump와 교정 target 버전이 다르면 silent supersession 거부. closed/non-actionable first-parent ordering barrier도 inheritance chain에 포함하여 다른 Issue의 중간 통과를 거부. main/Release Gate 완화 없음.
-- 변경 후 exact-head CI/Trusted QA·리뷰 재검증 전까지 NOT TESTED. 
+- 변경 후 exact-head CI/Trusted QA·리뷰 재검증 전까지 NOT TESTED.
+
+### PR CI #2528 policy regression correction
+
+- Existing #344 synthetic scenario asserted cross-version supersession for failed unissued release. Strengthened fail-closed #615 contract rightly rejects it; update regression expectation to retain old failed target and ordering barrier instead of removing it. Existing release-tag failure supersession #331 remains separately tested and allowed with a *new* SemVer.
+- First #2528 policy job FAIL, new exact-head CI required; no previous PASS reused.

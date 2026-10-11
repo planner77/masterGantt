@@ -1264,9 +1264,11 @@ planned, superseded = auto.supersede_failed_issue_retries(
     [failed_344, middle_356, fixed_344],
     {failed_344.target_sha: False, middle_356.target_sha: True, fixed_344.target_sha: True},
 )
-require([item.issue_number for item in planned] == [356, 344], "intervening Issue order must be preserved")
-require(len(superseded) == 1 and superseded[0] == (failed_344, fixed_344), "failed attempt must map to later corrective target")
-require(planned[-1].cleanup_pr_numbers == (20,), "superseded PR must become corrective cleanup obligation")
+require([item.issue_number for item in planned] == [344, 356, 344],
+        "a heterogeneous version correction must not inherit a failed version bump")
+require(superseded == [], "failed main version bump must remain blocked without safe SemVer inheritance")
+require(planned[0] == failed_344,
+        "the original unissued release cannot disappear from the first-parent backlog")
 
 docs_repair = auto.WorkItem("b" * 40, "9" * 40, 23, 344, "0.58.5", "0.58.5", True)
 not_planned, not_superseded = auto.supersede_failed_issue_retries(
