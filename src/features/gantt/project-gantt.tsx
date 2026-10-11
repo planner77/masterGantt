@@ -3439,6 +3439,12 @@ export function ProjectGantt({
       inlineNameVerificationReference.current?.();
       inlineNameVerificationReference.current = cleanup;
       observer.observe(root, { childList: true, subtree: true, characterData: true });
+      // Switching workspace tabs changes the containing panel, not the Gantt
+      // subtree. Recheck a previously deferred name once the panel is visible.
+      const schedulePanel = root.closest<HTMLElement>("#project-panel-schedule");
+      if (schedulePanel) {
+        observer.observe(schedulePanel, { attributes: true, attributeFilter: ["hidden", "inert"] });
+      }
       const deadline = performance.now() + 2000;
       // Initial observation is finite. If virtualization unmounts this row,
       // subsequent actual row mounts can acknowledge this same request.

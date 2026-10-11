@@ -137,6 +137,40 @@ test("#572 pointer blur의 늦은 응답은 toolbar focus와 서버 확정 이�
   } finally { release(); }
 });
 
+for (const [tab, visibilityAttribute] of [
+  ["resources", "hidden"],
+  ["milestones", "inert"],
+] as const) {
+  test(`#572 ${tab} 탭에 숨겨진 동안 저장된 이름은 일정 복귀 때 확인된다`, async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    const route = await routeRenames(page, fixture);
+    await page.goto(`/projects/${publicId}`);
+    const rootIdentity = await rememberGanttRoot(page);
+    const input = await openName(page, "Stable leaf");
+    const release = route.pauseNext();
+    try {
+      const name = `Saved while ${tab} hidden`;
+      await input.fill(name);
+      await page.locator(`#project-tab-${tab}`).click();
+      await expect.poll(() => route.patches.length).toBe(1);
+      const schedulePanel = page.locator("#project-panel-schedule");
+      await expect(schedulePanel).toHaveAttribute(visibilityAttribute, "");
+      release();
+      await expect.poll(() => fixture.project.revision).toBe(fixture.initialRevision + 1);
+      // Allow the finite two-second verification to expire while the Gantt is
+      // hidden/inert. Returning to the schedule must trigger a new check.
+      const status = page.locator(".project-gantt-inline-name-status");
+      await expect(status).toContainText("해당 행이 표시되면", { timeout: 7000 });
+      await page.locator("#project-tab-schedule").click();
+      await expect(schedulePanel).not.toHaveAttribute(visibilityAttribute, "");
+      await expect(nameCell(page, name)).toBeVisible();
+      await expect(status).toHaveText("작업명을 저장했습니다.");
+      await expectSameGanttRoot(page, rootIdentity);
+      expect(route.patches).toHaveLength(1);
+    } finally { release(); }
+  });
+}
+
 test("#572 실패한 이름 초안은 같은 작업을 명시적으로 다시 열 때 복원된다", async ({ page }) => {
   await installStatefulProjectFixture(page);
   let patches = 0;
