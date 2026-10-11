@@ -1,5 +1,9 @@
 ## [0.106.0] - 2026-10-12
 
+### Fixed
+
+- Issue #615 Main CI 회복: 다중 행 merge message로 실패한 원본 main Run을 보존하면서 같은 Issue의 동일 버전 non-docs 교정 Main CI 성공 시 승인된 v0.106.0 release 의무를 소실하지 않고 안전 승계한다. 다른 Issue/문서 전용·tag 실패는 차단하며 GHCR/버전/기존 required gate는 불변이다.
+
 ### Added
 
 - Issue #615: 공통 공정 종류·제품 공유 표준·사업부/제품/사업장 적용 공정·전용 WorkArea의 migration 0025와 관리자 API, 프로젝트 문맥 조회 및 명시 매핑 API를 추가한다.

@@ -117,3 +117,25 @@ DOCUMENTATION_SYNC: PASS(관련 계약 의미 검토 포함). QA_FINAL/Trusted/q
 - 원인: `ProcessContextResponse.data.permission`은 HTTP Handler가 인증 상태에 따라 추가하지만 `ProcessCatalogService.context()`가 여전히 HTTP 최종 응답 전체를 반환한다고 선언되어 서비스 snapshot에는 없는 `permission` 필드가 필수로 요구되었다. 서비스에 임의 permission을 채우거나 public contract를 optional로 약화시키지 않는다.
 - 보완: Service 응답 계약을 `Omit<ProcessContextResponse["data"], "permission">` snapshot으로 분리하고 Handler에서 인증 결과를 결합한 `ProcessContextResponse`를 명시 타입 검사하게 했다. 기존 readonly/edit HTTP 테스트 및 contract typing assertion, API 문서는 유지한다.
 - 정확한 신규 HEAD의 official quality/E2E/Docker/Trusted QA/Owner 판정은 새 실행 전 NOT TESTED이며, 원본 실패 증거를 성공으로 재판정하지 않는다. PR CI 시작만 범위에 포함하고 병합/릴리스/GHCR/Issue 종료는 제외한다.
+
+## Main CI #2526.1 실패 및 교정 PR (2026-10-12)
+
+- PR #627의 merge `c8949da48e7465db45d871887c3f55f9fb6dc743`는 본문이 붙은 `Issue #615` merge message로 `verify-ci-run-trace.py`에서 FAIL. Main CI Run [#2526.1](https://github.com/planner77/masterGantt/actions/runs/38183855873), release Finalizer [#143](https://github.com/planner77/masterGantt/actions/runs/38183876259)은 각각 FAIL/SKIPPED. 원본 PR CI #2525.1과 Trusted QA #162 PASS, Owner v0.106.0 승인 marker는 보존한다.
+- 원인 및 설계: 원본 병합 commit은 immutable이고 physical new main version이 이미0.106.0이다. 추가 same-Issue non-docs correction PR이 CI SUCCESS여도 원본 0.105→0.106 upgrade obligation을 잃지 않도록, old failed target에서 approved unissued SemVer를 안전 승계하는 `auto_release_finalizer.py` 보완 및 회귀 검사를 수행한다.
+- 범위: CI trace gate / release authorization 완화 없음. 신규 앱 기능·DB schema/UI/AGENTS/DESIGN/SVAR 계약 변경 N/A. VERSION=0.106.0 유지, release_required=true(승계), Owner 승인 true(기록된 v0.106.0 marker). 변경 문서: CI_CD, REMOTE_VALIDATION, GENERIC_RELEASE_FINALIZER, TEST_PLAN, CHANGELOG, ISSUE_615.
+- QA: risk HIGH / OWNER_MANAGED. 새 PR CI quality/E2E/Docker·Trusted, protected 정책, 리뷰·head/base 동기화와 exact main SHA 검증, 정식 GHCR 후보/승격 및 Issue cleanup은 실제 원격 증거 전까지 NOT TESTED. 신규 PR merge commit에는 한 줄 한국어 제목/빈 본문/head lease 필수.
+
+### PR #628 첫 전체 CI/Review P1 대응
+
+- PR CI #2527.1에서 필수 Quality/E2E/Docker SUCCESS, 그러나 QA Final Automated는 2개 P1 Review Thread가 미해결로 BLOCKED.
+- P1: 원본 failed version bump와 교정 target 버전이 다르면 silent supersession 거부. closed/non-actionable first-parent ordering barrier도 inheritance chain에 포함하여 다른 Issue의 중간 통과를 거부. main/Release Gate 완화 없음.
+- 변경 후 exact-head CI/Trusted QA·리뷰 재검증 전까지 NOT TESTED.
+
+### PR CI #2528 policy regression correction
+
+- Existing #344 synthetic scenario asserted cross-version supersession for failed unissued release. Strengthened fail-closed #615 contract rightly rejects it; update regression expectation to retain old failed target and ordering barrier instead of removing it. Existing release-tag failure supersession #331 remains separately tested and allowed with a *new* SemVer.
+- First #2528 policy job FAIL, new exact-head CI required; no previous PASS reused.
+
+### PR CI #2529 정책 시나리오 보완
+
+- 기존 `release_failed=True` immutable SemVer fixture도 같은-version 교정 target의 tag 재지정을 금지해야 한다. 원본 Main CI failure(아직 tag 없음)의 안전 inheritance와, 이미 태그된 release failure는 별도 전이이다. 두 경계를 분리해 fail closed.

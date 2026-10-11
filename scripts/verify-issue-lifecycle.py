@@ -1264,9 +1264,11 @@ planned, superseded = auto.supersede_failed_issue_retries(
     [failed_344, middle_356, fixed_344],
     {failed_344.target_sha: False, middle_356.target_sha: True, fixed_344.target_sha: True},
 )
-require([item.issue_number for item in planned] == [356, 344], "intervening Issue order must be preserved")
-require(len(superseded) == 1 and superseded[0] == (failed_344, fixed_344), "failed attempt must map to later corrective target")
-require(planned[-1].cleanup_pr_numbers == (20,), "superseded PR must become corrective cleanup obligation")
+require([item.issue_number for item in planned] == [344, 356, 344],
+        "a heterogeneous version correction must not inherit a failed version bump")
+require(superseded == [], "failed main version bump must remain blocked without safe SemVer inheritance")
+require(planned[0] == failed_344,
+        "the original unissued release cannot disappear from the first-parent backlog")
 
 docs_repair = auto.WorkItem("b" * 40, "9" * 40, 23, 344, "0.58.5", "0.58.5", True)
 not_planned, not_superseded = auto.supersede_failed_issue_retries(
@@ -1366,6 +1368,84 @@ require(
     failed_candidate_planned[0] == release_failed_331,
     "older release failure must remain blocker without a healthy corrective target",
 )
+
+# Issue #615: failed Main CI after a version bump must not lose its
+# approved formal release when an adjacent same-Issue non-docs correction
+# merges with the same physical package.json version.
+failed_615 = auto.WorkItem(
+    "1" * 40, "0" * 40, 627, 615, "0.105.0", "0.106.0", False,
+)
+corrected_615 = auto.WorkItem(
+    "2" * 40, failed_615.target_sha, 628, 615, "0.106.0", "0.106.0", False,
+)
+recovery_615, replaced_615 = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+)
+require(replaced_615 == [(failed_615, corrected_615)], "only the failed #615 SHA is superseded")
+require(len(recovery_615) == 1, "the corrected #615 target must remain")
+require(recovery_615[0].previous_version == "0.106.0", "physical first-parent version must remain immutable")
+require(recovery_615[0].release_base_version == "0.105.0" and recovery_615[0].release_required,
+        "the missed 0.106.0 release must remain required on the corrective target")
+require(recovery_615[0].cleanup_pr_numbers == (627,), "original PR branch cleanup must be preserved")
+require(auto.exact_release_state.__name__ == "exact_release_state", "exact release tag verification must remain enabled")
+
+# A different Issue between the two targets or a docs-only correction cannot
+# inherit release authority. A previously attempted immutable tag must not be
+# reused for the same SemVer on another merge SHA.
+intervening_615 = auto.WorkItem(
+    "3" * 40, failed_615.target_sha, 629, 999, "0.106.0", "0.106.0", False,
+)
+blocked_615, blocked_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, intervening_615, corrected_615],
+    {failed_615.target_sha: False, intervening_615.target_sha: True, corrected_615.target_sha: True},
+)
+require(blocked_ev_615 == [] and blocked_615[0] == failed_615,
+        "intervening Issues must not silently transfer the original release")
+docs_615 = replace(corrected_615, validation_docs_only=True)
+blocked_docs_615, blocked_docs_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, docs_615], {failed_615.target_sha: False, docs_615.target_sha: True},
+)
+require(blocked_docs_ev_615 == [] and blocked_docs_615[0] == failed_615,
+        "docs-only fixes may not inherit a failed non-docs release")
+blocked_tag_615, blocked_tag_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: True, corrected_615.target_sha: True},
+    {failed_615.target_sha: True},
+)
+require(blocked_tag_ev_615 == [] and blocked_tag_615[0] == failed_615,
+        "an existing failed immutable release cannot be retargeted")
+failed_mid_615 = replace(corrected_615, pr_number=629, target_sha="4" * 40)
+final_615 = replace(corrected_615, pr_number=630, target_sha="5" * 40)
+chain_615, replaced_chain_615 = auto.supersede_failed_issue_retries(
+    [failed_615, failed_mid_615, final_615],
+    {failed_615.target_sha: False, failed_mid_615.target_sha: False, final_615.target_sha: True},
+)
+require(len(replaced_chain_615) == 2 and len(chain_615) == 1
+        and chain_615[0].release_base_version == "0.105.0"
+        and set(chain_615[0].cleanup_pr_numbers) == {627, 629},
+        "consecutive same-Issue failed attempts must preserve release and cleanup debt")
+
+# P1 regressions: version-different successor and closed ordering barriers
+# cannot inherit an unissued release from the original failed main commit.
+version_jump_615 = replace(corrected_615, current_version="0.107.0")
+blocked_jump, blocked_jump_ev = auto.supersede_failed_issue_retries(
+    [failed_615, version_jump_615],
+    {failed_615.target_sha: False, version_jump_615.target_sha: True},
+)
+require(blocked_jump_ev == [] and blocked_jump[0] == failed_615,
+        "a heterogeneous version may not supersede a failed unissued release")
+closed_barrier_615 = auto.WorkItem(
+    "6" * 40, failed_615.target_sha, 631, 999, "0.106.0", "0.106.0", False,
+    actionable=False,
+)
+barrier_blocked, barrier_ev = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+    first_parent_items=[failed_615, closed_barrier_615, corrected_615],
+)
+require(barrier_ev == [] and barrier_blocked[0] == failed_615,
+        "a closed/non-actionable intervening Issue must block release inheritance")
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),
