@@ -494,3 +494,25 @@ PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run
 #### Connector / REST head lease 경계 (Codex P2 후속)
 
 GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
+
+## Issue #444 Phase 2·3 원격 검증
+
+1. PR/Main/Release의 successful setup metric artifact를 동일 기간·동일 workload 기준으로 수집하고 analyzer의 lane별 `readyGroups/notReadyGroups`를 확인한다.
+2. 어떤 비교 대상 그룹이라도 distinct successful run ID <10이면 `phase2Ready=false`를 유지하고 신규 cache 도입을 중단한다.
+3. baseline 충족 후 비용 후보는 runner-minutes/run, median, p90 순으로 확인하되 서로 다른 workflow/event/job/metric을 합쳐 평균내지 않는다.
+4. 변경 후 동일 metric 정의와 workload에서 10-run 표본을 다시 모아 compare script의 `ADOPT | DO_NOT_ADOPT | COLLECT_MORE`를 확인한다.
+5. cache miss run에서도 exact PR head의 quality/e2e/docker required gate가 동일하게 실행되고 성공해야 한다. cache hit만으로 PASS를 판정하지 않는다.
+6. Node/Next version 또는 package-lock 변경 후 npm/Next exact key가 바뀌는지, runner OS/arch 변경 시 npm/Next/Docker cache namespace가 분리되는지 workflow와 로그로 확인한다.
+7. setup metric artifact에는 JSONL timing/cache metadata만 존재하고 secret/token/`.env`/runtime DB/test result PASS evidence가 없는지 확인한다.
+8. #444 PR CI 시작 시점에는 표본 부족으로 실제 Playwright browser cache 도입/효과 판정은 N/A이며, PR exact head의 cache contract static test와 기존 required gate 실행 여부를 구현 증거로 사용한다.
+
+### Readiness workflow 검증
+
+- #448 병합 후 default branch에 `CI setup Phase 2 readiness` workflow가 존재하는지 확인한다.
+- successful PR CI/Main CI/Release 완료 시 readiness run이 생성되고, 실패/취소 source에서는 실행 job이 skip되는지 확인한다.
+- readiness run의 checkout ref가 `main`인지, permissions에 contents/pull-request write가 없는지 확인한다.
+- #444에는 `mastergantt-ci-setup-readiness:v1` marker 댓글이 하나만 존재하고 새 run마다 같은 comment ID가 갱신되어야 한다.
+- readiness evidence artifact의 `analysis.json`과 댓글의 lane별 최소 distinct run 수가 일치해야 한다.
+- 모든 lane이 READY가 되기 전에는 실제 cache 최적화 PR이 자동 생성되지 않아야 하며, READY 이후에도 사용자/Manager의 명시적 재개 전에는 repository mutation을 추가로 수행하지 않는다.
+9. readiness artifact의 각 JSONL record가 source run API의 run ID/attempt/head SHA/workflow path/event와 일치하고 `provenanceBound=true`인지 확인한다. artifact가 주장하는 원래 provenance 값은 readiness 표본 권위로 사용하지 않는다.
+10. before/after analysis의 metric key 집합이 다르면 `workloadComparable=false`와 `WORKLOAD_MISMATCH`가 기록되고 ADOPT 그룹이 0인지 확인한다.

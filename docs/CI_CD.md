@@ -701,3 +701,29 @@ application 0.104.0 / release_required=false / release_authorized=false 유지. 
 #### Connector / REST head lease 경계 (Codex P2 후속)
 
 GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
+
+## Issue #444 setup/cache Phase 2·3 최적화·guard
+
+#439 Phase 1 계측 이후의 최적화는 **표본 충족 전에는 cache 도입을 진행하지 않는다**. PR/Main/Release의 비교 대상 workflow/event/job/metric 그룹별로 서로 다른 successful run ID가 10개 이상인 경우에만 Phase 2 후보를 평가한다.
+
+- `scripts/analyze-ci-setup-metrics.mjs`는 기존 median/p90/cache 분포에 PR/Main/Release lane, runner-minutes/run, exact cache hit rate, lane별 readiness와 비용 후보 순위를 추가한다. matrix shard와 rerun은 record 수에는 포함될 수 있으나 distinct run 표본을 늘리지 않는다.
+- `scripts/compare-ci-setup-metrics.mjs`는 동일 workflow/event/job/metric 키의 before/after만 비교한다. 기본 정책은 median wall-clock 5% 이상 개선, runner-minutes 증가 0% 이하이며 표본 부족 그룹은 `COLLECT_MORE`, 기준 미달은 `DO_NOT_ADOPT`로 판정한다. 실제 채택 기준은 Issue evidence에서 필요 시 더 엄격하게 조정할 수 있다.
+- 현재 #444 착수 시점에는 #439 정식 release 직후라 PR/Main/Release 10-run baseline이 충족되지 않았다. 따라서 Playwright browser cache나 추가 cache 계층은 도입하지 않고 분석/비교/guard만 구현한다.
+- Next `.next/cache` key는 OS/arch/Node/Next/package-lock/commit을 포함하고 restore key도 동일 runtime/tool/lockfile 범위 안에서만 공유한다.
+- Docker BuildKit GHA cache namespace는 OS/arch별로 분리한다. BuildKit의 content-addressed layer invalidation을 유지하며 cache miss에서도 동일 Docker build/image policy/runtime smoke가 실행된다.
+- npm cache는 `~/.npm`만 사용하고 OS/arch/Node/package-lock hash를 key에 포함한다. `node_modules` cache는 계속 금지한다.
+- Playwright browser cache는 baseline evidence가 충분해지고 download/install이 상위 비용으로 확인되기 전까지 비활성이다.
+- `scripts/verify-ci-cache-contract.mjs`는 npm/Next/Docker/Playwright cache key·fallback·금지 항목과 setup metric artifact 경계를 정적으로 검사하며 PR CI policy job에서 실행한다.
+- cache hit/miss는 required quality/e2e/docker PASS를 대체하지 않는다. secret/token/`.env`/runtime DB/test PASS evidence는 cache 또는 setup metric artifact에 저장하지 않는다.
+
+#444의 이번 PR은 Phase 2 실행 도구와 Phase 3 guard를 준비하는 변경이며, 실제 최적화 채택은 각 비교 그룹의 10-run baseline과 동일 workload의 before/after evidence가 확보된 뒤 수행한다.
+
+### Phase 2 readiness 자동화
+
+- `.github/workflows/ci-setup-readiness.yml`은 성공한 `CI` 또는 `Publish release image` 완료 뒤와 일일 schedule에서 #444의 readiness를 자동 재평가한다. Issue가 닫힌 뒤에는 artifact 수집과 댓글 갱신을 생략한다.
+- write 권한 workflow는 `workflow_run`의 PR head를 실행하지 않고 항상 trusted `main`을 checkout한다. 외부 artifact는 JSONL 데이터로만 파싱하며 command/script로 실행하지 않는다.
+- canonical 입력은 PR=`ci.yml/pull_request`, Main=`ci.yml/push`, Release=`release-image.yml/workflow_dispatch`의 **successful run**이다. 각 lane에서 최근 setup-metric artifact가 있는 최대 25개 run을 수집하고 analyzer의 distinct run 기준을 그대로 적용한다.
+- 결과는 `ci-setup-phase2-readiness-<run id>` artifact와 #444의 단일 `mastergantt-ci-setup-readiness:v1` marker 댓글에 기록한다. 동일 marker 댓글은 새로 쌓지 않고 PATCH 갱신한다.
+- `READY`가 되어도 cache 변경/PR 생성/Issue close를 자동 수행하지 않는다. Manager/infra가 비용 상위 후보와 stale/security risk를 검토한 뒤 Phase 2 최적화를 명시적으로 재개한다.
+- readiness 자동화는 PR artifact 내부의 `runId/workflow/event/headSha/runAttempt`를 신뢰하지 않는다. GitHub Actions run API가 반환한 successful run metadata로 해당 필드를 overwrite하고 `provenanceBound=true`로 표시한 record만 자동 readiness 표본으로 인정한다.
+- before/after 비교는 양쪽의 workflow/event/job/metric key **전체 집합이 동일할 때만** 채택 판정을 허용한다. metric 추가·삭제·rename이 있으면 retained metric이 빨라졌더라도 전체 결과를 `WORKLOAD_MISMATCH`로 두고 동일 workload로 다시 측정한다.

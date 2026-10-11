@@ -411,3 +411,23 @@ python3 scripts/main_ci_run_name.py --issue 586 --pr <교정 PR 번호> --summar
 #### Connector / REST head lease 경계 (Codex P2 후속)
 
 GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
+
+## Issue #444 setup/cache Phase 2·3 운영
+
+- #444는 #439 Phase 1 artifact를 기반으로 동작한다. successful workflow run artifact만 분석하며 PR/Main/Release의 workflow/event/job/metric별 distinct run 10개 미만이면 최적화 PR을 만들거나 cache를 추가하지 않는다.
+- baseline 수집 후 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output baseline.json`으로 readiness와 비용 후보를 산출한다.
+- 변경 후 동일 workload 표본을 다시 수집하고 `node scripts/compare-ci-setup-metrics.mjs --baseline baseline.json --current after.json --output comparison.json`으로 median/p90/runner-minutes를 비교한다.
+- 기본 채택 기준은 median wall-clock 5% 이상 개선과 runner-minutes 비증가다. security/staleness 복잡도가 증가하거나 개선이 미미하면 `DO_NOT_ADOPT`를 유지한다.
+- npm/Next/Docker cache key 또는 Playwright cache 정책을 변경할 때는 `node scripts/verify-ci-cache-contract.mjs`가 PASS해야 한다. required check, audit, Docker/runtime smoke를 줄여 성능을 만드는 변경은 금지한다.
+- fork/external PR을 이유로 cache write 권한을 확대하지 않는다. cache miss는 정상 경로이며 cache hit은 품질 증거가 아니다.
+- #444 이번 착수에서는 10-run baseline이 아직 충족되지 않았으므로 실제 신규 cache 도입은 DEFER하고 분석·비교·guard 준비만 수행한다.
+
+### Readiness 자동 운영
+
+- `.github/workflows/ci-setup-readiness.yml`이 성공한 CI/Release 완료 후 즉시, 그리고 매일 한 번 fallback으로 현재 표본을 재계산한다.
+- readiness workflow의 권한은 `actions: read`, `contents: read`, `issues: write`로 제한하며 contents/PR write는 부여하지 않는다. `workflow_run` source가 PR이어도 trusted `main`만 checkout한다.
+- #444의 bot marker 댓글에는 PR/Main/Release별 ready groups, 최소 distinct run/10, 표본 부족 그룹, 현재 비용 상위 후보를 기록한다.
+- 상태가 `COLLECTING`이면 추가 cache 작업을 시작하지 않는다. `READY`는 분석 재개 신호일 뿐 자동 구현/병합 권한이 아니다.
+- #444가 닫히면 workflow는 no-op으로 종료하므로 완료 이후 불필요한 artifact download/comment mutation을 지속하지 않는다.
+- downloaded artifact의 자체 provenance는 untrusted data다. readiness collector는 run 목록 API의 ID/attempt/head SHA/path/event를 trusted metadata로 사용해 JSONL provenance를 binding한 뒤 analyzer의 `--require-bound-provenance true` 모드로만 자동 판정한다.
+- before/after에서 metric 집합이 다르면 최적화 효과를 부분 metric만으로 채택하지 않는다. 새 setup 단계 추가·metric rename도 workload 변경으로 취급해 동일 metric 집합의 새 baseline/after를 확보한다.
