@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #614 Target F0 계약·공통 검산
+
+- Target 도메인/공정·WorkArea/전체·선택 연결/합집합 상속/관련 계획 공수/이관·UI 계약과 Resource 우선 실행 계획을 기록한다.
+- 운영 자료 없는 공통 합성 fixture를 추가하고 기존 Resource 엔진 수치와 test-only Target 정규화를 구분해 검산한다. 신규 runtime/DB/API/UI 변경은 없으며 application `0.104.4`를 유지한다.
+
 ## [Unreleased] — Issue #595 metadata-only Full CI Attempt 정합 보완
 
 - `verify_same_base_full_run()`도 동일 CI Run의 개별 attempt별 Job 원장을 활용하여 QA-only 재실행 이후 PR metadata-only 변경에서 원래 Required aggregate 성공을 정확하게 검증한다. 나중에 재실행된 Required Job의 실패는 과거 성공으로 대체하지 않으며 누락된 `run_attempt`/원장 자료는 BLOCKED로 유지한다.

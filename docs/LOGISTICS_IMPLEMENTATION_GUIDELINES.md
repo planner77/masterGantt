@@ -6,6 +6,8 @@
 
 업무 모델은 [LOGISTICS_DOMAIN_DESIGN](LOGISTICS_DOMAIN_DESIGN.md), 계산은 [LOGISTICS_DASHBOARD](LOGISTICS_DASHBOARD.md), 의존성과 현재 작업 위치는 [LOGISTICS_ROLLOUT](exec-plans/active/LOGISTICS_ROLLOUT.md)를 읽는다. 이 문서의 존재는 모델/코드/migration/API가 이미 구현되었다는 증거가 아니다.
 
+Target 후속 Epic #613에는 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 신규 계약과 [TARGET_RESOURCE_ROLLOUT](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)의 F0→F4→Resource 우선 R1~R4/Q1→V1 순서를 추가 적용한다. 기존 동적 type catalog·직접 연결·revision·canonical 경로를 재사용하고 legacy 이름으로 공정/WorkArea/Target을 추론하지 않는다. 공통 `tests/fixtures/logistics-targets.ts`의 F0-L/P/Q/F/R ID·기대 원시ID/출처/수치를 후속 Domain/API/UI/Excel adapter에서 재사용한다. F0 test-only oracle PASS는 제품 Target 구현 PASS가 아니다. 각 단계의 DB/API/문서·이관·silent loss guard와 공식 원격 검증을 같은 PR에서 완료하며 Q1까지 미루지 않는다.
+
 ## 1. 착수 Work Packet
 
 Manager는 현재 Issue 본문/댓글, 최신 main SHA/version, 관련 open PR, 실제 DB migration ledger와 구현 상태를 읽는다. 과거 계획의 완료 문구를 현재 완료 증거로 재사용하지 않는다. 다음을 Issue의 PLAN에 남긴다.

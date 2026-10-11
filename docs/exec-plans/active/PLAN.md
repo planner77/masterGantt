@@ -1,3 +1,9 @@
+## Issue #614 — Target F0 계약·공통 fixture (2026-10-11)
+
+[#614 Work Packet](ISSUE_614.md)과 [Target/Resource 실행 계획](TARGET_RESOURCE_ROLLOUT.md)에 따라 main `cbc73740236f3b3e177e2ed3196a0d02a292c741` / app `0.104.4`에서 `docs/issue-614-target-resource-contract`를 생성했다. [LOGISTICS_TARGETS](../../LOGISTICS_TARGETS.md)에 ER/연결/집계/이관·UI 계약을 고정하고 공통 합성 fixture를 추가한다. F0는 runtime 변경 비범위이며 version 유지, MEDIUM / OWNER_MANAGED / qa_required=true, release_required=false / release_authorized=false다.
+
+사용자 요청은 구현·문서 동기화·빠른 검증·사전 검토 후 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료는 포함하지 않는다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED. #615~#624는 별도 착수하며 Resource 우선 M2 이후 V1 순서를 유지한다.
+
 ## Issue #550 — 2026-10-11 23:45 KST 최신 main 정렬·충돌 해소
 
 PR #559 이전 Head `ab539c9cf03938754bbe2a74032b43a99ba9ca8e`와 최신 main `cbc73740236f3b3e177e2ed3196a0d02a292c741` 차이를 3-way 검증. 150커밋 후행·Main 변경 85경로 중 직접 overlap 9개, 비중복 76경로의 Main Blob 보존. 코드 1파일 `project-readonly-view.tsx`의 저장 callback/확정응답·명시 locate와 Dashboard 일반 닫기 focus 충돌 3곳을 의미적으로 병합했다. `CHANGELOG.md`는 main `0.104.4` 기록과 신규 `0.105.0` 기능 기록을 모두 유지, package/lock은 `0.105.0` 일치. #570/#571/#572 viewport/name/canonical 회귀와 #550 기존 E2E/SQLite 증거를 보존하며 관련 문서의 양쪽 기록을 통합한다. 실제 새 Head Quality/E2E/Docker/QA 결과는 아직 NOT TESTED. Owner-managed HIGH·독립 QA N/A·Manager ACCEPT 미확인, release_authorized=false. 병합/Main CI/GHCR는 이번 단계 범위 밖.
