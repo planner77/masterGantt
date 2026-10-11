@@ -161,9 +161,13 @@ class _ArtifactRedirect(urllib.request.HTTPRedirectHandler):
                     any(target.hostname.endswith(host)
                         for host in self._trusted_download_hosts),
                     "예상하지 못한 CI artifact 다운로드 호스트")
-            for header in ("Authorization", "Cookie", "Proxy-Authorization"):
-                redirected.remove_header(header)
-                redirected.remove_unredirected_header(header)
+            # Request.remove_header() removes from both dictionaries. urllib
+            # canonicalizes "Proxy-Authorization" to "Proxy-authorization", so
+            # strip actual header keys case-insensitively (no nonexistent API).
+            sensitive = {"authorization", "cookie", "proxy-authorization"}
+            for header in (*redirected.headers, *redirected.unredirected_hdrs):
+                if header.lower() in sensitive:
+                    redirected.remove_header(header)
         return redirected
 
 
