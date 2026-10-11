@@ -880,7 +880,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     notify("error", message, operation, error);
     return message;
   }
-  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false): Promise<TaskEditorSaveResult> {
+  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false, deferredSuccess = false): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready" || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
     if (expectedRevision !== undefined && expectedRevision !== state.snapshot.data.project.revision) {
       return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 최신 정보를 다시 불러온 뒤 검토해 주세요." };
@@ -912,8 +912,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const adjusted = currentTask?.requestedStart && currentTask.requestedStart !== currentTask.start
           ? ` 요청 시작일 ${currentTask.requestedStart} → 적용 시작일 ${currentTask.start}.` : "";
         const changed = successors.length ? ` 후행 작업 ${successors.length}건의 일정이 조정되었습니다: ${successors.slice(0, 3).map((task) => `${task.name} (${task.externalId})`).join(", ")}${successors.length > 3 ? ` 외 ${successors.length - 3}건` : ""}.` : "";
-        notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
-        return { status: "saved" };
+        if (!deferredSuccess) notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
+        return { status: "saved", ...(currentTask ? { confirmed: {
+          taskId: currentTask.taskId, revision: snapshot.data.project.revision, name: currentTask.name,
+        } } : {}) };
       }
       if (expectedRevision !== undefined) {
         if (response.status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
@@ -1139,8 +1141,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setGanttResetGeneration((generation) => generation + 1);
     notify("error", "일정 화면을 최신 서버 정보로 복구했습니다.", "일정 화면 복구");
   }, [notify]);
-  function saveTaskCommand(command: ProjectTaskUpdateCommand, expectedRevision?: number): Promise<TaskEditorSaveResult> {
-    if (Object.keys(command.payload).length > 0) return saveTask("PATCH", command.taskId, command.payload, expectedRevision);
+  function saveTaskCommand(command: ProjectTaskUpdateCommand, expectedRevision?: number, options?: { readonly successFeedback: "deferred" }): Promise<TaskEditorSaveResult> {
+    if (Object.keys(command.payload).length > 0) return saveTask("PATCH", command.taskId, command.payload, expectedRevision, false, options?.successFeedback === "deferred");
     return Promise.resolve({ status: "failed", message: "변경할 작업 정보가 없습니다." });
   }
 

@@ -1,5 +1,13 @@
 # Architecture draft
 
+## Issue #572 — Inline 이름 요청·확정·표시의 분리
+
+native Table `close-editor → update-cell`을 앱의 단일 name-only mutation gateway로 연결한다. 순수 `inline-name-session.ts`는 편집 session·request identity, base revision·원문 draft, Committing/AwaitingConfirmation/Confirmed/Rejected 전이를 소유한다. `saved`는 서버 저장 결과이며 렌더 완료가 아니다. 부모는 검증·적용한 동일 응답 snapshot에서 taskId/revision/name을 반환하고 inline 요청의 전역 성공 toast를 지연한다. 다른 Task Editor·날짜/Chart 명령의 기존 피드백 계약은 유지한다.
+
+Gantt 연결부는 같은 API/session/request의 정확한 confirmation과 현재 canonical DTO, Core `getTask().text`, 실제 mounted Grid 이름 및 관측 가능한 Chart 이름의 정합을 확인한다. 명령 반환이나 projection receipt만으로 이름 렌더 PASS를 만들지 않는다. 정상 자기 PATCH의 revision이 Promise callback보다 먼저 React에 도착해도 요청 identity를 유지하며, 외부 최신 revision·새 세션·API 교체의 늦은 결과는 현재 draft/focus를 덮지 않는다. 원본 native `update-cell`은 계속 차단하고 서버 확정 payload만 기존 #570 projection 경로로 적용한다. 임의 DOM 텍스트 수정·private store write·새 scroll writer는 추가하지 않는다.
+
+실패 draft는 메모리에만 보존하고 같은 작업의 명시 재편집에 연결한다. 자동 재전송·stale base의 묵시적 revision 승격은 금지한다. 이름 변경은 기존 metadata-only 경로이므로 일정/Link/Resource 원장과 #571 viewport 소유권을 바꾸지 않는다. #552 미통합 표시 stack의 활성화는 범위 밖이며 projection에서 제외된 Milestone을 재삽입하지 않는다. [정확한 적용 범위·검증 원장](exec-plans/active/ISSUE_572.md)을 따른다.
+
 ## Issue #571 — Viewport Coordinator와 명령 소유권
 
 ### Main CI #2504.1: FILTER_RETURN의 완료 후 보호 권한 분리

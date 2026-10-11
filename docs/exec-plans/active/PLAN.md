@@ -1,3 +1,12 @@
+## Issue #572 — Inline 이름 저장·Revision·표시 정합 (2026-10-11)
+
+PR #612 Codex P2 숨겨진 일정 복귀 시 이름 확인 결함을 `3901aa48`에서 고치고 Resources/Milestone 탭 E2E 2건을 추가한 뒤 리뷰 스레드를 해결했다. #571 PR #611을 포함한 main `91178929` 정렬로 FILTER_RETURN 보호 보완을 유지하며 application 후보 버전을 `0.104.4`로 전진한다. 이전 PR CI #2506.1 SUCCESS와 QA Final #144 BLOCKED는 이전 Head/base 근거이며 최신 통합 Head의 검증이 아니다.
+
+
+[#572 Work Packet](ISSUE_572.md): 선행 #571 PR #610을 포함한 최신 main `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`에서 `fix/issue-572-inline-name-consistency`를 생성했다. 최초 PATCH `0.104.2 → 0.104.3`, 정렬 후 후보 PATCH `0.104.3 → 0.104.4`, HIGH / qa_required=true / qa_method=AGENT, release_required=true / release_authorized=false다. native inline editor의 단일 request/session·confirmed snapshot·Core/Grid 표시 확인과 실패 draft/IME/focus 계약을 보완한다. #552 표시 전환·서버 API·DB·권한·새 viewport writer는 범위 밖이며 DESIGN Delta B / DESIGN.md N/A다. 구현·관련 문서·독립 PRE_QA 후 새 exact-head full PR CI 시작까지만 진행하고 CI 결과는 모니터링하지 않는다. 공식 CI·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
+제품 freeze 후 inline Chromium11 PASS·관련 Unit100 PASS, 409 테스트 추가 후 관련3 PASS, 실제 Next/SQLite 왕복·프로세스 재시작2 PASS다. 초기 draft·composition·Tab/focus·실제 SQLite의30초 budget FAIL은 원장에 보존하며 timeout/skip을 완화하지 않았다. 별도 qa_docs의 동일 지문 Unit100·Chromium11 및 코드·AC·required7문서 의미 검토가 PASS해 PR CI 시작용 PRE_QA를 통과했다. 실제 OS IME·#552 미통합 Dashboard·부모의 실제 역순 응답 browser 통합 경쟁은 NOT TESTED이며 마지막 항목은 관련 Unit/정적 검토와 구분한다. 최종 인간 QA·Owner ACCEPT 및 필수 원격 결과 전 MERGE_READY=BLOCKED다.
+
 ## Issue #571 — Main CI #2504.1 교정 및 새 PR CI (2026-10-11)
 
 [PR #610 병합](https://github.com/planner77/masterGantt/pull/610) SHA `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`의 [Main CI #2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)에서 #463 Chromium E2E 1 FAIL로 GHCR/Finalizer가 SKIPPED다. 실제 실행 원장에서는 FILTER_RETURN(120,0) 중 새로운 native/CORE(180,128) 스크롤이 되감겼고, 180px 범위는 실제 충분하므로 UI 쿼리 bookmark의 장기 보호가 문제다.

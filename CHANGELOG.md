@@ -15,6 +15,13 @@
 
 # Changelog
 
+## [0.104.4] - 2026-10-11
+
+### Fixed
+
+- Issue #572: native Grid 이름 편집의 단일 저장 요청과 확정 snapshot·표시 확인을 분리하고 실패 초안·IME·Tab/blur/focus의 비동기 경계를 보완한다. 기존 권한·revision·일정 및 Gantt 화면 상태 보존 계약을 유지한다.
+- PR #612 Codex P2: 숨겨지거나 비활성인 일정 탭으로 돌아올 때 확정된 이름 표시를 다시 검증한다. Resources·Milestone 탭 왕복 Chromium 회귀 2건을 보강한다.
+
 ## [0.104.3] - 2026-10-11
 
 ### Fixed
