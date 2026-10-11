@@ -1,3 +1,9 @@
+## Issue #600 — Trusted QA artifact redirect 회귀 (2026-10-11)
+
+- QA Trusted [#97.1/#97.2](https://github.com/planner77/masterGantt/actions/runs/38101359507)는 정확 Head PR CI #2463.1 Quality/E2E/Docker SUCCESS에도 불구하고 `source_artifact()` 단계에서 HTTPError를 기록했다. 원본 ZIP artifact 존재/connector download는 확인되었으나 GitHub Runner HTTP error code는 구 main 검증기가 숨겨 원인 확정 전이다.
+- `scripts/qa_final_automated.py::_ArtifactRedirect`는 cross-host redirect에서 Bearer/Cookie/Proxy-Authorization을 제거하고 HTTPS·신뢰된 GitHub artifact CDN만 허용한다. `scripts/test_qa_final_automated.py::test_source_artifact_redirect_never_exposes_token`이 정상(동일 origin 유지)·CDN 분기·잘못된 domain/downgrade 차단을 실행한다.
+- PR CI의 Python 회귀 PASS는 default-branch QA Trusted 실제 PASS가 아니다. main validator가 갱신되기 전 기존 Trusted 실패를 수용/소급 전환하지 않는다. No-trust bypass: 원본 Head/base/run/attempt·세 required aggregate·zip schema/size·미해결 리뷰/문서 계약 유지.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
