@@ -68,7 +68,7 @@ Refs [#614](https://github.com/planner77/masterGantt/issues/614), 상위 [#613](
 
 - AC1: LOGISTICS_TARGETS §1~3, ER/identity/cardinality/기본안·비범위의 코드 대조와 독립 문서 의미 검토. 실제 신규 DDL은 후속 NOT TESTED.
 - AC2: tests/domain/logistics-targets-contract.test.ts F0-L01~L20의 whole/subset/self/subtree/legacy 직접·조상 혼합·명시 재매핑·정렬 출처·중복/순열 golden 검산.
-- AC3: 같은 테스트의 F0-P01~P08/Q01~Q02/F01~F12/R01~R11. 15대/3식/A5 B5 전체5, same-binding, T0/A/R·null·M/M·80/140 기대값.
+- AC3: 같은 테스트의 F0-P01~P13/Q01~Q02/F01~F12/R01~R11. 15대/3식/A5 B5 전체5, same-binding, T0/A/R·null·M/M·80/140 기대값.
 - AC4: LOGISTICS_TARGETS §7~8 및 기존 project-copy/template/import/migration 경로 대조, 호환·rollback 표. 신규 통합 API/Excel/복구는 NOT TESTED.
 - AC5: LOGISTICS_TARGETS §10 공식 SVAR URL/설치2.7.3 package·types 대조, filter-tasks 확인. 실제 demo 조작은 NOT TESTED.
 - AC6: 물류 설계·지침·Resource KPI·active PLAN·Epic 하위 실행계획 연결과 node scripts/check-markdown-links.mjs 검증.
@@ -102,3 +102,10 @@ Reviewer `/root/f0_pre_qa`가 초기44개 후보에서 P2 두 건을 확인했�
 최종53개 후보의 독립 재검토는 PR CI 시작용 PRE_QA다. OWNER_MANAGED의 자동 구조 검증·Owner 병합 허가·QA_FINAL·전체 CI 판정과 구분한다.
 
 Reviewer `/root/f0_pre_qa`의 최종 PRE_QA는 PASS(PR CI 시작 범위), 미해결 material finding0이다. Reviewer가 대상53/53·Markdown links183·diff check를 직접 실행했다. 검토 snapshot11파일 SHA256은 `5f749537dcd0bde8a1b58c87f554f2a3e080b91cb2cbeb81910d9b5c75baea3f`이며 이 영수증과 실행 실패 원장 보충 전의 문서 상태를 가리킨다. 최종 테스트 SHA256 `e9c0f17630cd756c87d7fb787a10cb383cf4903a38e7aa26ad8da8e1a6d0b73d`, fixture SHA256 `5ce37600a6bd8cf5dd8b3a2b39f43ace3aef42bfbc77461c5dcfdd14e9a5dc56`은 보존한다. 이 기록은 원격 CI·QA_FINAL·Owner 허가·Manager ACCEPT를 의미하지 않는다.
+
+### 2026-10-12 PR #625 Codex P2 후속 보완 — 신규 Head 검증 대기
+
+- 리뷰1 [P2](https://github.com/planner77/masterGantt/pull/625#discussion_r4242062812): `site_product_processes`의 occurrence identity·unique·FK에 #538의 `businessUnitId`를 포함. 프로젝트 triple 매핑과 WorkArea 경계, 제품 표준의 productId 공유를 문서에 명시한다.
+- 리뷰2 [P2](https://github.com/planner77/masterGantt/pull/625#discussion_r4242062815): 동일 SITE-A의 다른 PRODUCT-Q(F0-P09), 동일 site/product지만 다른 BU(F0-P10), 다른 BU의 올바른 triple(F0-P11), triple+unique(F0-P12), 관계 미연결 project triple(F0-P13)을 추가한다. Oracle의 제품 하드코딩을 없애고 세 FK 문맥을 모두 비교한다.
+- 이전 53/53 PASS는 첫 PR Head `b23d54a`에만 유효하다. 이번 변경의 예상 Vitest 수는 **58건**이며 새 Head에서의 lint/typecheck/Vitest/전체 CI 성공은 실행 결과가 나올 때까지 **NOT TESTED**다. F0 test-only 계약은 실제 DB/API/운영 통합 검증이 아니다.
+- 사용자가 요청한 종료점: 보완 commit 반영 → 신규 exact-head PR CI **시작**, 완료·병합·GHCR·Issue 종료는 후속 별도 판단.

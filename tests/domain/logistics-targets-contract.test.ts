@@ -117,16 +117,33 @@ describe("Issue #614 F0 synthetic Target contract (not production implementation
     if (input.scope === "project_common") {
       if (input.occurrenceId !== null || input.workAreaId !== null) result = "PROJECT_COMMON_LOCATION_FORBIDDEN";
     } else if (!occurrence) result = "PROCESS_REQUIRED";
-    else if (occurrence.siteId !== input.projectSiteId || occurrence.productId !== "PRODUCT-P") result = "PROJECT_SITE_PRODUCT_MISMATCH";
+    else if (!base.siteProductTriples.some(({ businessUnitId, productId, siteId }) =>
+      businessUnitId === input.projectBusinessUnitId && productId === input.projectProductId && siteId === input.projectSiteId)) result = "PROJECT_TRIPLE_UNLINKED";
+    else if (occurrence.businessUnitId !== input.projectBusinessUnitId || occurrence.siteId !== input.projectSiteId || occurrence.productId !== input.projectProductId) result = "PROJECT_SITE_PRODUCT_MISMATCH";
     else if (input.workAreaId !== null && workArea?.occurrenceId !== occurrence.id) result = "WORK_AREA_OCCURRENCE_MISMATCH";
     expect(result).toBe(input.expected);
   });
 
   it("F0-P08 shares product standards across sites and keeps site additions distinct", () => {
-    expect(base.occurrences.filter((row) => row.standardId === "STANDARD-ASSEMBLY").map((row) => row.siteId)).toEqual(["SITE-A", "SITE-B"]);
-    expect(base.occurrences.filter((row) => row.standardId === "STANDARD-INSPECTION").map((row) => row.siteId)).toEqual(["SITE-A", "SITE-B"]);
+    expect(base.occurrences.filter((row) => row.businessUnitId === "BU-A" && row.standardId === "STANDARD-ASSEMBLY").map((row) => row.siteId)).toEqual(["SITE-A", "SITE-B"]);
+    expect(base.occurrences.filter((row) => row.businessUnitId === "BU-A" && row.standardId === "STANDARD-INSPECTION").map((row) => row.siteId)).toEqual(["SITE-A", "SITE-B"]);
+    expect(base.occurrences.find((row) => row.id === "OCC-A-OTHER-BU")).toMatchObject({ standardId: "STANDARD-ASSEMBLY", productId: "PRODUCT-P", businessUnitId: "BU-B" });
     expect(base.occurrences.find((row) => row.id === "OCC-B-SPECIAL")).toMatchObject({ standardId: null, siteId: "SITE-B" });
     expect(base.workAreas.filter((row) => row.occurrenceId === "OCC-A-INSPECTION")).toEqual([]);
+  });
+
+  it("F0-P12 retains business-unit identity in occurrence keys and the authoritative triple", () => {
+    const keys = base.occurrences.map(({ businessUnitId, productId, siteId, code }) => `${businessUnitId}|${productId}|${siteId}|${code}`);
+    const keysMissingBusinessUnit = base.occurrences.map(({ productId, siteId, code }) => `${productId}|${siteId}|${code}`);
+    expect(new Set(keys).size).toBe(base.occurrences.length);
+    expect(new Set(keysMissingBusinessUnit).size).toBeLessThan(keys.length);
+    const sameSiteProductAndCode = base.occurrences.filter((row) => row.siteId === "SITE-A" && row.productId === "PRODUCT-P" && row.code === "ASSEMBLY");
+    expect(sameSiteProductAndCode.map((row) => row.businessUnitId).sort()).toEqual(["BU-A", "BU-B"]);
+    for (const occurrence of base.occurrences) {
+      expect(base.siteProductTriples).toContainEqual({
+        businessUnitId: occurrence.businessUnitId, productId: occurrence.productId, siteId: occurrence.siteId,
+      });
+    }
   });
 
   it(`${logisticsTargetQuantityCase.id} counts distinct physical IDs, not repeated Target membership`, () => {

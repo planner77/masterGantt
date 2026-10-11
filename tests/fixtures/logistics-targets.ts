@@ -19,16 +19,24 @@ export interface F0LinkCase {
 
 export const logisticsTargetBase = {
   projectId: "PROJECT-A",
+  siteProductTriples: [
+    { businessUnitId: "BU-A", productId: "PRODUCT-P", siteId: "SITE-A" },
+    { businessUnitId: "BU-A", productId: "PRODUCT-P", siteId: "SITE-B" },
+    { businessUnitId: "BU-A", productId: "PRODUCT-Q", siteId: "SITE-A" },
+    { businessUnitId: "BU-B", productId: "PRODUCT-P", siteId: "SITE-A" },
+  ],
   productStandards: [
     { id: "STANDARD-ASSEMBLY", productId: "PRODUCT-P", processTypeId: "TYPE-ASSEMBLY" },
     { id: "STANDARD-INSPECTION", productId: "PRODUCT-P", processTypeId: "TYPE-INSPECTION" },
   ],
   occurrences: [
-    { id: "OCC-A-ASSEMBLY", siteId: "SITE-A", productId: "PRODUCT-P", standardId: "STANDARD-ASSEMBLY", processTypeId: "TYPE-ASSEMBLY" },
-    { id: "OCC-A-INSPECTION", siteId: "SITE-A", productId: "PRODUCT-P", standardId: "STANDARD-INSPECTION", processTypeId: "TYPE-INSPECTION" },
-    { id: "OCC-B-ASSEMBLY", siteId: "SITE-B", productId: "PRODUCT-P", standardId: "STANDARD-ASSEMBLY", processTypeId: "TYPE-ASSEMBLY" },
-    { id: "OCC-B-INSPECTION", siteId: "SITE-B", productId: "PRODUCT-P", standardId: "STANDARD-INSPECTION", processTypeId: "TYPE-INSPECTION" },
-    { id: "OCC-B-SPECIAL", siteId: "SITE-B", productId: "PRODUCT-P", standardId: null, processTypeId: "TYPE-SPECIAL" },
+    { id: "OCC-A-ASSEMBLY", businessUnitId: "BU-A", siteId: "SITE-A", productId: "PRODUCT-P", standardId: "STANDARD-ASSEMBLY", processTypeId: "TYPE-ASSEMBLY", code: "ASSEMBLY" },
+    { id: "OCC-A-INSPECTION", businessUnitId: "BU-A", siteId: "SITE-A", productId: "PRODUCT-P", standardId: "STANDARD-INSPECTION", processTypeId: "TYPE-INSPECTION", code: "INSPECTION" },
+    { id: "OCC-B-ASSEMBLY", businessUnitId: "BU-A", siteId: "SITE-B", productId: "PRODUCT-P", standardId: "STANDARD-ASSEMBLY", processTypeId: "TYPE-ASSEMBLY", code: "ASSEMBLY" },
+    { id: "OCC-B-INSPECTION", businessUnitId: "BU-A", siteId: "SITE-B", productId: "PRODUCT-P", standardId: "STANDARD-INSPECTION", processTypeId: "TYPE-INSPECTION", code: "INSPECTION" },
+    { id: "OCC-B-SPECIAL", businessUnitId: "BU-A", siteId: "SITE-B", productId: "PRODUCT-P", standardId: null, processTypeId: "TYPE-SPECIAL", code: "SPECIAL" },
+    { id: "OCC-A-OTHER-PRODUCT", businessUnitId: "BU-A", siteId: "SITE-A", productId: "PRODUCT-Q", standardId: null, processTypeId: "TYPE-ASSEMBLY", code: "ASSEMBLY" },
+    { id: "OCC-A-OTHER-BU", businessUnitId: "BU-B", siteId: "SITE-A", productId: "PRODUCT-P", standardId: "STANDARD-ASSEMBLY", processTypeId: "TYPE-ASSEMBLY", code: "ASSEMBLY" },
   ],
   workAreas: [
     { id: "WA-A", occurrenceId: "OCC-A-ASSEMBLY", name: "A" },
@@ -98,14 +106,20 @@ export const logisticsTargetLinkCases: F0LinkCase[] = [
 
 export const logisticsTargetRemapCase: F0LinkCase = { id: "F0-L19", taskId: "T", bindings: [subset("B9", "T", ["MEM-A-ACS"])], legacy: [], expected: { members: [member("system", "ACS-A", [source("B9", "T", "TARGET-A", "MEM-A-ACS")])], legacyEntityIds: [], legacySources: [] } };
 
+const locationContext = { projectBusinessUnitId: "BU-A", projectProductId: "PRODUCT-P", projectSiteId: "SITE-A" } as const;
+
 export const logisticsTargetLocationCases = [
-  { id: "F0-P01", projectSiteId: "SITE-A", occurrenceId: "OCC-A-ASSEMBLY", workAreaId: "WA-A", scope: "process", expected: "VALID" },
-  { id: "F0-P02", projectSiteId: "SITE-A", occurrenceId: "OCC-A-INSPECTION", workAreaId: null, scope: "process", expected: "VALID" },
-  { id: "F0-P03", projectSiteId: "SITE-A", occurrenceId: "OCC-A-INSPECTION", workAreaId: "WA-A", scope: "process", expected: "WORK_AREA_OCCURRENCE_MISMATCH" },
-  { id: "F0-P04", projectSiteId: "SITE-A", occurrenceId: "OCC-B-ASSEMBLY", workAreaId: null, scope: "process", expected: "PROJECT_SITE_PRODUCT_MISMATCH" },
-  { id: "F0-P05", projectSiteId: "SITE-A", occurrenceId: null, workAreaId: null, scope: "project_common", expected: "VALID" },
-  { id: "F0-P06", projectSiteId: "SITE-A", occurrenceId: null, workAreaId: null, scope: "process", expected: "PROCESS_REQUIRED" },
-  { id: "F0-P07", projectSiteId: "SITE-A", occurrenceId: "OCC-A-ASSEMBLY", workAreaId: null, scope: "project_common", expected: "PROJECT_COMMON_LOCATION_FORBIDDEN" },
+  { id: "F0-P01", ...locationContext, occurrenceId: "OCC-A-ASSEMBLY", workAreaId: "WA-A", scope: "process", expected: "VALID" },
+  { id: "F0-P02", ...locationContext, occurrenceId: "OCC-A-INSPECTION", workAreaId: null, scope: "process", expected: "VALID" },
+  { id: "F0-P03", ...locationContext, occurrenceId: "OCC-A-INSPECTION", workAreaId: "WA-A", scope: "process", expected: "WORK_AREA_OCCURRENCE_MISMATCH" },
+  { id: "F0-P04", ...locationContext, occurrenceId: "OCC-B-ASSEMBLY", workAreaId: null, scope: "process", expected: "PROJECT_SITE_PRODUCT_MISMATCH" },
+  { id: "F0-P05", ...locationContext, occurrenceId: null, workAreaId: null, scope: "project_common", expected: "VALID" },
+  { id: "F0-P06", ...locationContext, occurrenceId: null, workAreaId: null, scope: "process", expected: "PROCESS_REQUIRED" },
+  { id: "F0-P07", ...locationContext, occurrenceId: "OCC-A-ASSEMBLY", workAreaId: null, scope: "project_common", expected: "PROJECT_COMMON_LOCATION_FORBIDDEN" },
+  { id: "F0-P09", ...locationContext, occurrenceId: "OCC-A-OTHER-PRODUCT", workAreaId: null, scope: "process", expected: "PROJECT_SITE_PRODUCT_MISMATCH" },
+  { id: "F0-P10", ...locationContext, occurrenceId: "OCC-A-OTHER-BU", workAreaId: null, scope: "process", expected: "PROJECT_SITE_PRODUCT_MISMATCH" },
+  { id: "F0-P11", ...locationContext, projectBusinessUnitId: "BU-B", occurrenceId: "OCC-A-OTHER-BU", workAreaId: null, scope: "process", expected: "VALID" },
+  { id: "F0-P13", ...locationContext, projectBusinessUnitId: "BU-UNLINKED", occurrenceId: "OCC-A-ASSEMBLY", workAreaId: null, scope: "process", expected: "PROJECT_TRIPLE_UNLINKED" },
 ] as const;
 
 /** Same five valid working days for every MD case; Group references never expand into people. */

@@ -37,6 +37,7 @@ erDiagram
   PROCESS_TYPE ||--o{ PRODUCT_STANDARD_PROCESS : type
   PRODUCT ||--o{ PRODUCT_STANDARD_PROCESS : standard
   PRODUCT_STANDARD_PROCESS o|--o{ SITE_PRODUCT_PROCESS : applies
+  BUSINESS_UNIT_PRODUCT_SITE ||--o{ SITE_PRODUCT_PROCESS : valid_triple
   SITE_PRODUCT_PROCESS ||--o{ WORK_AREA : owns
   PROJECT_PROCESS ||--o| PROCESS_OCCURRENCE_MAPPING : maps
   SITE_PRODUCT_PROCESS ||--o{ PROCESS_OCCURRENCE_MAPPING : occurrence
@@ -56,13 +57,15 @@ erDiagram
 | --- | --- |
 | `process_types` | UUID identity, immutable code unique, name/active/sortOrder. 설비 유형 catalog와 혼동하지 않음 |
 | `product_standard_processes` | productId + processTypeId, `UNIQUE(productId,code)`. 같은 type의 별도 표준 공정은 서로 다른 occurrence code/ID로 구분 |
-| `site_product_processes` | siteId/productId + processTypeId, optional standardProcessId, `UNIQUE(siteId,productId,code)`. standard가 있으면 product/type 일치. 추가 공정은 standard=null. #538 유효 triple 검증 |
+| `site_product_processes` | businessUnitId/productId/siteId + processTypeId, optional standardProcessId, `UNIQUE(businessUnitId,productId,siteId,code)`. `(businessUnitId,productId,siteId)`는 #538 유효 triple FK로 강제. standard가 있으면 product/type 일치, 추가 공정은 standard=null |
 | `work_areas` | occurrenceId 필수, `UNIQUE(occurrenceId,code)`. 다른 occurrence로 이동하지 않고 새 ID로 명시 재배치 |
 | `project_process_occurrence_mappings` | `UNIQUE(projectId,projectProcessId)`, occurrenceId 필수. 여러 자유 공정을 같은 occurrence에 명시 매핑 가능. Project product/site/triple과 일치 |
 | `logistics_targets` | projectId, `UNIQUE(projectId,code)`, scope=`process\|project_common`. process이면 projectProcessId와 occurrence mapping 필수, workAreaId는 선택이며 매핑 occurrence와 일치. project_common이면 둘 다 null |
 | `logistics_target_members` | project/target FK, kind=`equipment\|system`, equipmentId/systemId 정확히 하나. `UNIQUE(projectId,targetId,equipmentId)` 및 System 동등 제약. 빈 Target 저장 불가, member UUID는 재추가 시 신규 |
 | `task_target_bindings` | project/task/target FK, `UNIQUE(projectId,taskId,targetId)`, scope=`self\|subtree`, selection=`whole\|subset`. subtree는 Summary만 |
 | `task_target_binding_members` | project/binding/target/member 복합FK로 같은 Target에 구속, unique(bindingId,memberId), coverage 선택. subset은1건 이상, whole은0건 |
+
+`BUSINESS_UNIT_PRODUCT_SITE`은 신규 마스터가 아니라 #538의 기존 `business_unit_product_sites(business_unit_id,product_id,site_entity_id)` 관계다. 제품 표준은 **productId만으로 공유**하지만 적용 공정 occurrence는 사업부가 달라지면 별개다. 따라서 같은 site/product/code라도 사업부가 다르면 각각 저장·조회하며 사업부 차원을 제거한 `UNIQUE(siteId,productId,code)` 또는 FK는 금지한다. `site_product_processes`의 `(id,businessUnitId,productId,siteId)` 복합 후보키를 제공하고, `project_process_occurrence_mappings`에서 occurrence ID와 triple을 함께 복합 FK로 참조한다. 현재 `projects.business_unit_id/product_id/site_entity_id`의 선택과 매핑 triple이 일치하는지 Service의 IMMEDIATE transaction에서도 확인한다. 부분·legacy null Project의 공정 Target은 유효 triple을 명시 선택하기 전 거부하고, 단순 동일 site/product나 표시 이름으로 다른 사업부의 occurrence를 가져오지 않는다.
 
 SQLite 복합FK의 부모 key도 명시한다. bindings에는 `UNIQUE(projectId,id,targetId)`, members에는 `UNIQUE(projectId,targetId,id)`를 두고 subset의 `(projectId,bindingId,targetId)`와 `(projectId,targetId,memberId)`를 각각 참조한다. 따라서 다른 Target의 member가 같은 Project에 있다는 이유로 통과하지 않는다. WorkArea에는 `UNIQUE(occurrenceId,id)`, 매핑에는 `UNIQUE(projectId,projectProcessId,occurrenceId)`를 둔다. Target은 검증용 occurrenceId도 저장해 `(projectId,projectProcessId,occurrenceId)`를 매핑에, `(occurrenceId,workAreaId)`를 WorkArea에 참조한다. process scope는 process/occurrence 모두 필수, project_common은 process/occurrence/WorkArea 모두 null이다. 제품 표준의 `(id,productId,processTypeId)` unique를 occurrence의 동일 세 참조 FK로 결속한다.
 
@@ -146,7 +149,7 @@ report provenance에는 schemaVersion/project revision/process catalog revision/
 Project Workspace > 물류 대상
 [대상 검색] [추가]                    기존 파란색 Light / system font
 대상 목록 | 대상 이름·코드 / 공정 대상 또는 프로젝트 공통
-          | 사업장·제품(현재 Project) > 공정 occurrence > WorkArea(선택)
+          | 사업부·제품·사업장(현재 Project의 유효 triple) > 공정 occurrence > WorkArea(선택)
           | 구성원: [기존 인스턴스 검색·재사용] [새 설비/시스템]
           | 종류 / 라벨 / 원본 수량 / 선택 상태
           | 영향: whole 연결 범위 변경·삭제 충돌·영향 Task
@@ -205,14 +208,14 @@ F0은 migration을 실행하지 않으므로 운영 DB 적용/backup-restore는 
 
 `tests/fixtures/logistics-targets.ts`와 `tests/domain/logistics-targets-contract.test.ts`는 운영 자료가 아닌 **F0 계약 oracle**이다. 후속 Domain/API/UI/Excel adapter는 같은 case ID·입력·기대 원시ID/출처/수치를 소비한다. test-only 정규화 성공은 신규 runtime/DB/API 구현 성공이 아니다. 실행 명령·결과는 [Work Packet](exec-plans/active/ISSUE_614.md)에 기록하며 문서 기대값만으로 PASS를 부여하지 않는다.
 
-기본 fixture: 제품P 조립/검사 표준, siteA 조립 WorkArea A/B, siteB 동일 표준+특수검사, 검사 WorkArea 없음. TargetA=AMR A10+ACS A+MCS1, TargetB=AMR B5+ACS B+동일 MCS1. 고유 Equipment15대/System3식(ACS2/MCS1). ACS-only Task는 AMR0대. 통합 Task의5유효근무일·한 개인100% Assignment는 A5/B5/전체5 M/D. 공동담당자50%를 추가하면 raw5+2.5=7.5이며 같은 개인의 복수 Group 소계가 이를 전체에서 복제하지 않는다.
+기본 fixture: 사업부 BU-A·제품P의 조립/검사 표준, siteA 조립 WorkArea A/B, siteB 동일 표준+특수검사, 검사 WorkArea 없음. 동일 siteA·제품P·공정코드에 사업부 BU-B의 별도 occurrence, 동일 siteA·사업부 BU-A의 다른 제품Q occurrence를 추가해 triple 분리와 오귀속 거부를 검증한다. 표준 공정은 사업부별로 복제하지 않는다. TargetA=AMR A10+ACS A+MCS1, TargetB=AMR B5+ACS B+동일 MCS1. 고유 Equipment15대/System3식(ACS2/MCS1). ACS-only Task는 AMR0대. 통합 Task의5유효근무일·한 개인100% Assignment는 A5/B5/전체5 M/D. 공동담당자50%를 추가하면 raw5+2.5=7.5이며 같은 개인의 복수 Group 소계가 이를 전체에서 복제하지 않는다.
 
 공통 cases는 공정/WorkArea 오귀속, whole/subset·self/subtree·직접+조상 중복, subset 삭제·명시 재매핑, legacy 무추론, coverage, 미연결/개인미배정/Group only, empty/all-unset/partial/configured0, M/M 기준없음, selected80%/Project140%와 same-binding 반례를 포함한다. 실제 저장 API/Excel·브라우저·운영 복구의 통합 기대값은 후속 #615~#623의 NOT TESTED 항목이다.
 
 | 공통 case ID | 검산 범위 |
 | --- | --- |
 | F0-L01~L20 | whole/subset·self/subtree·합집합 출처·legacy 직접/조상 혼합·삭제·명시 재매핑·오귀속·whole 입력 오류·순열/중복 |
-| F0-P01~P08 | occurrence/WorkArea 귀속·project_common·두 사업장 표준 공유/추가 |
+| F0-P01~P13 | occurrence/WorkArea 귀속·project_common·두 사업장 제품 표준 공유/추가; 동일 site의 다른 제품/사업부 거부·다른 유효 사업부 허용·triple/unique·미연결 triple 거부 |
 | F0-Q01~Q02 | Equipment15/System3 및 physical10과 coverage C1=2/C2=3 개별 출처·multiple 상태 |
 | F0-F01~F12 | 선택된 binding/member 경로의 조건 일치; A ACS-only가 A AMR/MCS로 확대되지 않음·Equipment/System 동시 조건 |
 | F0-R01~R11 | 관련 raw M/D·공동담당/Group·미배정/null/partial/설정0·A5 B5 전체5·80/140·T0·M/M 기준없음 |
