@@ -25,6 +25,7 @@ REQUIRED_CHECKS = (
 )
 MAIN_ARTIFACT_JOB = "Main 임시 commit 이미지 게시·검증·정리"
 FINAL_MARKER_PREFIX = "<!-- issue-lifecycle-final:"
+FINAL_MARKER_RE = re.compile(r"<!-- issue-lifecycle-final:([1-9][0-9]*):([0-9a-f]{40}) -->")
 
 
 class LifecycleError(RuntimeError):
@@ -135,6 +136,16 @@ def validate_inputs(
 
 
 def validate_operation_inputs(args: argparse.Namespace) -> None:
+    if args.resolver_ordered and not re.fullmatch(r"[0-9a-f]{40}", args.resolver_main_sha):
+        raise LifecycleError("ordered resolver requires an exact --resolver-main-sha")
+    if not args.resolver_ordered and args.resolver_main_sha:
+        raise LifecycleError("manual lifecycle must not supply a resolver main snapshot")
+    if args.operation == "close_resume":
+        if not args.resolver_ordered or args.defer_close or args.cleanup_pr:
+            raise LifecycleError("close_resume is reserved for an ordered, cleanup-free resolver")
+        if parse_bool(args.release_required) or parse_bool(args.release_authorized):
+            raise LifecycleError("close_resume must use immutable prior FINAL release evidence")
+        return
     if args.operation not in {"release_start", "release_finalize"}:
         return
     if not parse_bool(args.release_required):
@@ -429,7 +440,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         with open(step_summary, "a", encoding="utf-8") as fp:
             fp.write("\n".join(summary) + "\n")
 
-    if args.operation in {"release", "release_start", "finalize", "release_finalize"} and gate != "PASS":
+    if args.operation in {"release", "release_start", "finalize", "release_finalize", "close_resume"} and gate != "PASS":
         raise LifecycleError(f"mutation blocked by lifecycle gate: {gate}")
 
     return Context(
@@ -595,10 +606,83 @@ def final_marker(issue_number: int, target_sha: str) -> str:
     return f"{FINAL_MARKER_PREFIX}{issue_number}:{target_sha} -->"
 
 
+def audited_final_markers(repo: str, ctx: Context) -> dict[str, int]:
+    """Authenticate historical per-merge FINAL records before mutation."""
+    first_parent = run("git", "rev-list", "--first-parent", "origin/main").stdout.splitlines()
+    positions = {sha: index for index, sha in enumerate(first_parent)}
+    if not ctx.merge_sha or ctx.merge_sha not in positions:
+        raise LifecycleError("FINAL target must belong to main first-parent history")
+
+    records: dict[str, int] = {}
+    for page in range(1, 1001):
+        comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100&page={page}")
+        if not isinstance(comments, list):
+            raise LifecycleError("FINAL comment pagination returned a non-list")
+        for comment in comments:
+            body = comment.get("body") or ""
+            lines = [line.strip() for line in body.splitlines()
+                     if line.strip().startswith(FINAL_MARKER_PREFIX)]
+            if not lines:
+                continue
+            if len(lines) != 1:
+                raise LifecycleError("a FINAL comment must contain exactly one marker")
+            match = FINAL_MARKER_RE.fullmatch(lines[0])
+            if not match or int(match.group(1)) != ctx.issue_number:
+                raise LifecycleError("malformed or cross-Issue FINAL marker")
+            target_sha = match.group(2)
+            # Duplicate bot-origin comments may exist after an interrupted
+            # concurrent run; permit only the same authenticated PR identity.
+            # Authentication below is still mandatory for every occurrence.
+            if target_sha not in positions:
+                raise LifecycleError(f"historical FINAL is not on main first-parent: {target_sha}")
+            author = (comment.get("user") or {}).get("login")
+            if author != "github-actions[bot]":
+                raise LifecycleError(f"untrusted FINAL marker author for {target_sha}: {author}")
+            pr_match = re.search(r"(?m)^- PR: #([1-9][0-9]*)$", body)
+            head_match = re.search(r"(?m)^- PR head SHA: .([0-9a-f]{40}).$", body)
+            branch_match = re.search(r"(?m)^- PR head branch: \x60([^\x60\r\n]+)\x60$", body)
+            merge_match = re.search(r"(?m)^- merge/release target SHA: .([0-9a-f]{40}).$", body)
+            if not all((pr_match, head_match, branch_match, merge_match)):
+                raise LifecycleError(f"incomplete historical FINAL identity: {target_sha}")
+            pr_number = int(pr_match.group(1))
+            if merge_match.group(1) != target_sha:
+                raise LifecycleError(f"FINAL body SHA mismatch: {target_sha}")
+            pr = gh(f"/repos/{repo}/pulls/{pr_number}")
+            if (
+                not isinstance(pr, dict) or not pr.get("merged")
+                or pr.get("merge_commit_sha") != target_sha
+                or (pr.get("base") or {}).get("ref") != "main"
+                or ((pr.get("head") or {}).get("repo") or {}).get("full_name") != repo
+                or (pr.get("head") or {}).get("sha") != head_match.group(1)
+                or (pr.get("head") or {}).get("ref") != branch_match.group(1)
+            ):
+                raise LifecycleError(f"historical FINAL PR identity mismatch: PR #{pr_number} / {target_sha}")
+            refs = re.findall(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$", pr.get("body") or "")
+            if refs != [str(ctx.issue_number)]:
+                raise LifecycleError(f"historical FINAL PR #{pr_number} canonical Refs mismatch")
+            if target_sha in records and records[target_sha] != pr_number:
+                raise LifecycleError(f"conflicting immutable FINAL PR identity: {target_sha}")
+            records[target_sha] = pr_number
+        if len(comments) < 100:
+            break
+    else:
+        raise LifecycleError("FINAL comment pagination exceeded safety limit")
+
+    if ctx.merge_sha in records and records[ctx.merge_sha] != ctx.pr_number:
+        raise LifecycleError("current FINAL marker belongs to a different PR")
+    if ctx.merge_sha not in records:
+        newer = [sha for sha in records if positions[sha] < positions[ctx.merge_sha]]
+        if newer:
+            raise LifecycleError("refusing older target after a newer FINAL: " + ", ".join(newer))
+    return records
+
+
 def cleanup_merged_pr_branches(
     repo: str,
     ctx: Context,
     extra_pr_numbers: list[int],
+    *,
+    preflight: bool = False,
 ) -> list[str]:
     cleanup_numbers = list(dict.fromkeys([*extra_pr_numbers, ctx.pr_number]))
     evidence: list[str] = []
@@ -632,13 +716,13 @@ def cleanup_merged_pr_branches(
             branch,
             "--target-sha",
             ctx.merge_sha or "",
-            "--delete",
+            *([] if preflight else ["--delete"]),
         )
         evidence.append(f"#{pr_number} `{branch}`")
     return evidence
 
 
-def cleanup_temporary_main_candidate(repo: str, ctx: Context) -> str:
+def cleanup_temporary_main_candidate(repo: str, ctx: Context, *, preflight: bool = False) -> str:
     if ctx.main_docs_only:
         return "N/A — docs-only main merge has no temporary GHCR candidate"
     if not ctx.merge_sha:
@@ -657,10 +741,121 @@ def cleanup_temporary_main_candidate(repo: str, ctx: Context) -> str:
         "node",
         "scripts/delete-ghcr-package-version-by-tag.mjs",
         tag,
+        *(["--check-only"] if preflight else []),
         env=env,
     )
     evidence = result.stdout.strip() or f"temporary GHCR candidate {tag} cleanup completed"
-    return f"PASS — {evidence}"
+    return f"{'READY' if preflight else 'PASS'} — {evidence}"
+
+
+def resolver_snapshot_gate(repo: str, ctx: Context, args: argparse.Namespace) -> None:
+    """Refuse stale dispatcher decisions before any lifecycle mutation."""
+    if not args.resolver_ordered:
+        return
+    expected = args.resolver_main_sha
+    if not re.fullmatch(r"[0-9a-f]{40}", expected or ""):
+        raise LifecycleError("missing ordered resolver main snapshot")
+    if ctx.current_main_sha != expected:
+        raise LifecycleError(
+            f"ordered resolver snapshot stale: planned={expected}, context={ctx.current_main_sha}"
+        )
+    actual = ((gh(f"/repos/{repo}/git/ref/heads/main") or {}).get("object") or {}).get("sha", "")
+    if actual != expected:
+        raise LifecycleError(
+            f"main changed after resolver planning: planned={expected}, actual={actual}"
+        )
+
+
+def close_resume(ctx: Context, args: argparse.Namespace) -> None:
+    """Finish only the Issue close after an authenticated FINAL-write crash."""
+    repo = os.environ["GITHUB_REPOSITORY"]
+    if not args.resolver_ordered or args.defer_close or args.cleanup_pr:
+        raise LifecycleError("close_resume requires ordered resolver without cleanup/deferral")
+    resolver_snapshot_gate(repo, ctx, args)
+    records = audited_final_markers(repo, ctx)
+    if not ctx.merge_sha or records.get(ctx.merge_sha) != ctx.pr_number:
+        raise LifecycleError("close_resume requires the exact authenticated PR/SHA FINAL")
+    from auto_release_finalizer import collect_pending_work
+
+    boundary: list[Any] = []
+    pending = collect_pending_work(repo, args.resolver_main_sha, finalized_boundary=boundary)
+    if (
+        len(boundary) != 1
+        or boundary[0].target_sha != ctx.merge_sha
+        or boundary[0].pr_number != ctx.pr_number
+        or boundary[0].issue_number != ctx.issue_number
+    ):
+        raise LifecycleError("close_resume target is not the newest authenticated FINAL boundary")
+    if any(item.issue_number == ctx.issue_number for item in pending):
+        raise LifecycleError("close_resume cannot close an Issue with newer unfinished PRs")
+    resolver_snapshot_gate(repo, ctx, args)
+    path = f"/repos/{repo}/issues/{ctx.issue_number}"
+    issue = gh(path)
+    if issue.get("state") == "closed":
+        print(f"close_resume already complete for Issue #{ctx.issue_number}; idempotent PASS")
+        return
+    if issue.get("state") != "open":
+        raise LifecycleError("close_resume requires a recognized Issue state")
+    resolver_snapshot_gate(repo, ctx, args)
+    gh(path, method="PATCH", fields={"state": "closed", "state_reason": "completed"})
+    print(f"close_resume PASS: Issue #{ctx.issue_number} PR #{ctx.pr_number} / {ctx.merge_sha}")
+
+
+def manual_order_preflight(repo: str, ctx: Context) -> None:
+    """Fail closed unless this manual target is the oldest pending main merge.
+
+    The generic resolver owns first-parent ordering, failed-attempt supersession
+    and defer-close decisions. The manual fallback must not bypass that order.
+    """
+    # Import only for manual invocation: automatic resolver imports this module.
+    from auto_release_finalizer import (
+        AutoFinalizerError,
+        collect_pending_work,
+        current_main_sha,
+    )
+
+    try:
+        latest_main = current_main_sha(repo)
+        if latest_main != ctx.current_main_sha:
+            raise LifecycleError("main moved during manual lifecycle verification")
+        backlog = collect_pending_work(repo, latest_main)
+    except AutoFinalizerError as exc:
+        raise LifecycleError(f"manual first-parent preflight blocked: {exc}") from exc
+
+    if any(
+        item.issue_number == ctx.issue_number and not item.actionable
+        for item in backlog
+    ):
+        raise LifecycleError(
+            "manual FINAL cannot bypass an older closed same-Issue PR "
+            "without an authenticated FINAL marker"
+        )
+    pending = [item for item in backlog if item.actionable]
+    if not pending:
+        raise LifecycleError(
+            "manual FINAL is not the oldest pending first-parent target; "
+            "use the generic release finalizer"
+        )
+    oldest = pending[0]
+    if (
+        oldest.target_sha != ctx.merge_sha
+        or oldest.issue_number != ctx.issue_number
+        or oldest.pr_number != ctx.pr_number
+    ):
+        raise LifecycleError(
+            f"manual FINAL for Issue #{ctx.issue_number} PR #{ctx.pr_number} "
+            f"cannot skip oldest pending Issue #{oldest.issue_number} "
+            f"PR #{oldest.pr_number} SHA {oldest.target_sha}; "
+            "resume the ordered generic finalizer"
+        )
+    if any(
+        item.issue_number == ctx.issue_number
+        for item in pending[1:]
+    ):
+        raise LifecycleError(
+            "manual FINAL would close an Issue with newer pending PRs; "
+            "use the generic finalizer to defer close"
+        )
 
 
 def finalize(ctx: Context, args: argparse.Namespace) -> None:
@@ -668,46 +863,66 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
     if not ctx.merge_sha:
         raise LifecycleError("finalize requires a merged PR")
 
-    release_required = parse_bool(args.release_required)
-    tag = "N/A"
-    release_url = "N/A"
-    if release_required:
-        tag, release_url = ensure_release(ctx, args)
+    phase = "RESOLVER_SNAPSHOT_PREFLIGHT"
+    try:
+        resolver_snapshot_gate(repo, ctx, args)
+        phase = "FINAL_PREFLIGHT"
+        marker = final_marker(ctx.issue_number, ctx.merge_sha)
+        records = audited_final_markers(repo, ctx)
+        # Re-entry after FINAL is written must not repeat branch/image cleanup.
+        # An earlier valid FINAL for a different SHA remains immutable.
+        if ctx.merge_sha in records:
+            # A repeated FINAL must not close an Issue whose later PR is still
+            # pending. Closing after a previous FINAL-write crash is performed
+            # only by an ordered resolver, never an unchecked manual fallback.
+            if not args.defer_close and args.resolver_ordered:
+                phase = "CLOSE_RESUME"
+                close_resume(ctx, args)
+            print(f"FINAL already recorded for PR #{ctx.pr_number} / {ctx.merge_sha}; idempotent PASS")
+            return
 
-    cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
-    candidate_lifecycle_evidence = (
-        "RETAINED — formal release candidate/provenance alias"
-        if release_required
-        else cleanup_temporary_main_candidate(repo, ctx)
-    )
+        phase = "MANUAL_ORDER_PREFLIGHT"
+        if not args.resolver_ordered:
+            manual_order_preflight(repo, ctx)
 
-    marker = final_marker(ctx.issue_number, ctx.merge_sha)
-    comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100")
-    lifecycle_markers = [
-        line.strip()
-        for item in comments
-        for line in (item.get("body") or "").splitlines()
-        if line.strip().startswith(FINAL_MARKER_PREFIX)
-    ]
-    if any(m != marker for m in lifecycle_markers):
-        raise LifecycleError("different lifecycle FINAL marker already exists; refusing close")
-    if marker not in lifecycle_markers:
+        phase = "BRANCH_PREFLIGHT"
+        cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr, preflight=True)
+        release_required = parse_bool(args.release_required)
+        phase = "CANDIDATE_PREFLIGHT"
+        if not release_required:
+            cleanup_temporary_main_candidate(repo, ctx, preflight=True)
+
+        tag = "N/A"
+        release_url = "N/A"
+        if release_required:
+            phase = "FORMAL_RELEASE"
+            tag, release_url = ensure_release(ctx, args)
+
+        phase = "BRANCH_CLEANUP"
+        cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
+        phase = "CANDIDATE_CLEANUP"
+        candidate_lifecycle_evidence = (
+            "RETAINED — formal release candidate/provenance alias"
+            if release_required
+            else cleanup_temporary_main_candidate(repo, ctx)
+        )
         formal = (
             f"{tag} / {release_url}"
             if release_required
             else "N/A — release_required=false"
         )
+        tick = chr(96)
         body = "\n".join(
             [
                 marker,
                 f"## Lifecycle FINAL · Issue #{ctx.issue_number}",
                 "",
                 f"- PR: #{ctx.pr_number}",
-                f"- PR head branch: `{ctx.head_branch}`",
-                f"- PR head SHA: `{ctx.head_sha}`",
-                f"- merge/release target SHA: `{ctx.merge_sha}`",
-                f"- current main SHA at finalization: `{ctx.current_main_sha}`",
-                f"- application version: `{ctx.version}`",
+                f"- PR head branch: {tick}{ctx.head_branch}{tick}",
+                f"- PR head SHA: {tick}{ctx.head_sha}{tick}",
+                f"- merge/release target SHA: {tick}{ctx.merge_sha}{tick}",
+                f"- current main SHA at finalization: {tick}{ctx.current_main_sha}{tick}",
+                f"- application version: {tick}{ctx.version}{tick}",
                 "- PR required checks: PASS",
                 f"- exact main CI: {ctx.main_ci_url}",
                 f"- main change docs-only: {str(ctx.main_docs_only).lower()}",
@@ -720,34 +935,44 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 f"- formal release: {formal}",
                 "- GHCR exact digest: release-image workflow evidence when formal release is required; otherwise N/A",
                 f"- branch cleanup: PASS ({', '.join(cleanup_evidence)})",
+                f"- issue close: {'DEFERRED — newer same-Issue merge pending' if args.defer_close else 'eligible after FINAL'}",
                 "- environment-specific validation: N/A for CI/GitHub orchestration change",
                 "- lifecycle orchestration: generic auto-finalizer; per-Issue helper workflows are not used.",
             ]
         )
-        gh(
-            f"/repos/{repo}/issues/{ctx.issue_number}/comments",
-            method="POST",
-            fields={"body": body},
-        )
+        phase = "RESOLVER_SNAPSHOT_BEFORE_FINAL"
+        resolver_snapshot_gate(repo, ctx, args)
+        phase = "FINAL_WRITE"
+        gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments",
+           method="POST", fields={"body": body})
 
-    issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
-    if issue.get("state") != "closed":
-        gh(
-            f"/repos/{repo}/issues/{ctx.issue_number}",
-            method="PATCH",
-            fields={"state": "closed", "state_reason": "completed"},
-        )
-
+        if not args.defer_close:
+            phase = "RESOLVER_SNAPSHOT_BEFORE_CLOSE"
+            resolver_snapshot_gate(repo, ctx, args)
+            phase = "ISSUE_CLOSE"
+            issue = gh(f"/repos/{repo}/issues/{ctx.issue_number}")
+            if issue.get("state") != "closed":
+                gh(f"/repos/{repo}/issues/{ctx.issue_number}",
+                   method="PATCH", fields={"state": "closed", "state_reason": "completed"})
+    except LifecycleError as exc:
+        raise LifecycleError(
+            f"Issue #{ctx.issue_number} PR #{ctx.pr_number} SHA {ctx.merge_sha} "
+            f"phase={phase}: {exc}; recovery=retry exact target after resolving blocker; "
+            "do not recreate tags or bypass cleanup gates"
+        ) from exc
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("operation", choices=("verify", "release", "release_start", "finalize", "release_finalize"))
+    parser.add_argument("operation", choices=("verify", "release", "release_start", "finalize", "release_finalize", "close_resume"))
     parser.add_argument("--issue", required=True)
     parser.add_argument("--pr", required=True)
     parser.add_argument("--release-required", default="false")
     parser.add_argument("--release-authorized", default="false")
     parser.add_argument("--expected-version", default="")
     parser.add_argument("--authorization-note", default="")
+    parser.add_argument("--defer-close", action="store_true", help="newer same-Issue main merge pending")
+    parser.add_argument("--resolver-ordered", action="store_true", help="first-parent order verified by generic resolver")
+    parser.add_argument("--resolver-main-sha", default="", help="verified dispatcher main snapshot; internal only")
     parser.add_argument(
         "--cleanup-pr",
         action="append",
@@ -767,8 +992,11 @@ def main() -> int:
             tag, url = ensure_release(ctx, args)
             print(f"release PASS: {tag} {url}")
         elif args.operation == "release_start":
+            resolver_snapshot_gate(os.environ["GITHUB_REPOSITORY"], ctx, args)
             tag, url = start_release(ctx, args)
             print(f"release_start PASS: {tag} {url}")
+        elif args.operation == "close_resume":
+            close_resume(ctx, args)
         elif args.operation == "finalize":
             finalize(ctx, args)
             print("finalize PASS")

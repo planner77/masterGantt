@@ -34,6 +34,15 @@ PR #597의 QA-only 재실행 P1 보완은 `trusted_source()`뿐 아니라 `verif
 
 검증기는 GitHub REST의 reviewer 신원·association, 현재 Head review commit, owner 댓글 작성자·작성 시간, exact PR/Issue/Head/base, 원본 CI run+attempt의 세 required Job 성공·완료 시간, QA 리뷰 선행 여부를 대조한다. 원본 CI가 자동 QA만 실패한 상태면 영수증 등록 **이후 동일 CI의 QA job만 재실행**하는 것이 기본 복구 경로다. 리뷰 부재·권한/API 오류·stale·타 Run/옛 attempt·잘못된 주체는 BLOCKED. 정책 변경 자체는 현재 main의 독립 QA와 Manager 승인 전 병합 금지, GHCR/tag 승인은 별도.
 
+## Issue #593 — Trusted QA 원본 이벤트 귀속 및 metadata 재검증 (2026-10-10)
+
+- `workflow_run.pull_requests=[]`를 PR 실행명/제목에서 추측하지 않는다. 원본 `CI`의 PR 이벤트에서 **checkout 전에** 만든 `ci-pr-source-<run_id>-<attempt>` artifact를 기본 브랜치 검증기가 읽기 전용으로 조회한다. Artifact 자체는 PR 측 비신뢰 자료이며 스키마/repository/run ID·attempt/Head SHA·branch/base SHA/test merge SHA와 현재 PR 및 commit→PR GitHub API의 단일 귀속을 교차 확인한다. zip을 실행하거나 PR 코드를 checkout하지 않는다.
+- artifact가 없거나 만료·중복되거나 commit→PR 조회가 비어 있거나 여러 PR에 귀속되거나, Head/base/merge/attempt가 바뀌면 **BLOCKED**한다. 이전 성공을 재사용할 때도 동일 **PR + Head + base + test merge + 최신 full run attempt**와 세 Required Aggregate의 완료 성공을 확인한다. 잘못된 canonical title/Refs는 자동 수정·우회하지 않는다.
+- `CI` Workflow의 existing required `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test`, full/metadata concurrency, 6-shard E2E, main/GHCR/Finalizer 및 write 권한·Ruleset은 유지한다. `QA Final — Trusted`는 기본 브랜치 SHA의 **운영상 수동 Gate**이며 PR Head Ruleset check가 아니다.
+- `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
+- **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
+- 운영: [ISSUE_593 Work Packet](exec-plans/active/ISSUE_593.md)과 [원격 검증](REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
@@ -266,7 +275,7 @@ Issue #198 이후 Lifecycle 자동화와 저장소 보호 설정의 기준은 [I
 
 운영자는 `operation`, `issue_number`, `pr_number`, `release_required`, `release_authorized`를 지정한다. formal release가 필요하면 target manifest와 동일한 `expected_version`과 승인 근거 `authorization_note`도 제공한다. 우선 `verify`로 read-only 상태를 확인하고, exact merge SHA main CI가 성공한 뒤에만 `release` 또는 `finalize`를 실행한다.
 
-`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 target SHA marker로 중복 생성을 방지하며 다른 target marker가 있으면 fail-closed로 중단한다.
+`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 **Issue + exact merge SHA별** 불변 marker로 추적한다. 이미 존재하는 다른 정상 과거 SHA의 인증된 marker는 보존하며, 작성자·PR·head·canonical Refs·merge ancestry가 틀린 marker 또는 충돌하는 동일 SHA 기록은 fail-closed한다. 완료 경계 판단 시점에도 인증을 요구한다.
 
 
 ## Issue Lifecycle release_finalize 운영 (#248)
@@ -317,7 +326,7 @@ Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하�
 <!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
 ```
 
-comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 **동일 버전의 최신 trusted marker**를 적용한다. 다른 버전의 marker는 이 버전 승인 상태에 영향을 주지 않는다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
 
 수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
 
@@ -384,3 +393,21 @@ Release 성공 후 `release-finalizer-resume.yml`은 exact source run을 확인�
 PR 생성 시 제목의 단일 `Issue #N`, 본문의 단일 canonical `Refs #N`, `issue-N` 작업 브랜치를 맞춘다. 진행 상황·CI 결과는 PR/Issue **댓글**로 기록하고 제목/본문을 STATUS 용도로 반복 편집하지 않는다. 제목/본문의 실제 의미가 달라질 때만 편집한다. Push 이후 full CI 완료 전 edited 이벤트를 발생시키면 같은 SHA의 full/metadata 작업이 동시에 발생할 수 있으며, Push 우선만으로 중복이 제거되지는 않는다.
 
 메타데이터 CI는 long polling하지 않는다. `SUPERSEDED`는 구 SHA의 비권위 N/A이고, `DEFERRED/MISSING`은 현재 SHA 필수 Gate 승인 증거가 아니다. full CI의 세 required check가 성공한 뒤 기존 metadata-only 실패 Job을 재실행하여 성공으로 갱신해야 한다. API 오류·trace 오류는 원인을 수정한 뒤 재검증한다. 메타데이터 Run이 full E2E/Docker를 취소하지 않는지 Actions concurrency를 확인한다. PR CI 시작까지만 요청되면 Runner completion을 기다리지 않는다.
+
+
+### Issue #586 복수 PR 종료·복구
+
+Issue closed 상태만으로 새 PR이 이미 FINAL되었다고 추론하지 않는다. 해당 exact SHA marker가 없고 앞선 유효 FINAL이 있는 후속 merge는 다시 Main/GHCR 증거를 검증해 처리한다. 불변 기록과 PR/Issue identity 충돌을 감사하고 단계별 FAIL 로그(Issue/PR/SHA/phase)를 보존한다. #565 기존 실패 Run 재실행·GHCR 삭제/복구는 PR CI 시작 범위가 아니며 배포 후 별도 확인한다.
+
+## Issue #586 — Merge 호출에 한 줄 제목과 빈 본문 동시 지정 (2026-10-11)
+
+PR #588의 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 commit title은 표준이었지만 본문에 PR 설명을 전달해 Main CI #2445.1 trace 단계가 실패했다. 다음 병합은 아래 도구로 동일 요청에 필요한 모든 필드를 생성한다.
+
+python3 scripts/main_ci_run_name.py --issue 586 --pr <교정 PR 번호> --summary "Main CI 실패 복구 및 Finalizer 재개" --as-merge-payload --expected-head-sha <PR 최신 정확 SHA>
+
+출력되는 merge_method=merge, commit_title(표준 단일 행), commit_message(반드시 빈 문자열), expected_head_sha(40자리 lowercase SHA)를 GitHub 병합 API에 함께 전달한다. DEFAULT body 또는 자동 PR 설명 삽입을 허용하지 않는다. 기존 실패 SHA를 rewrite하거나 기존 Run을 성공으로 소급하지 않는다. 성공한 후속 동일 Issue non-docs Merge만 first-parent Finalizer의 제한적 supersession 대상이다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

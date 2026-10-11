@@ -3,8 +3,13 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+from types import SimpleNamespace
+
 import importlib.util
+import json
 import pathlib
+import subprocess
 import re
 import sys
 
@@ -65,6 +70,8 @@ require("workflow_run:" in metadata_recovery and 'workflows: ["CI"]' in metadata
 require("actions: write" in metadata_recovery and "rerun-failed-jobs" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8"), "reconciliation needs bounded write-scoped rerun operation")
 require("cancel-in-progress: false" in metadata_recovery and "persist-credentials: false" in metadata_recovery, "metadata reconciliation must not cancel full CI or persist privileged checkout credentials")
 require("pull_request_target:" not in metadata_recovery, "metadata reconciliation must not execute PR code with write privilege")
+require("source_artifact" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8") and "verified_source" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8"), "#593 source provenance must protect #600 write-capable recovery")
+
 baseline_retry = ci_workflow.split("      - name: PR 기준 image와 크기 비교", 1)[1].split("      - name: 잘못된 production HTTP 설정 조기 거부 검증", 1)[0]
 require("for attempt in 1 2; do" in baseline_retry, "baseline Docker build retry must be bounded")
 require("npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)" in baseline_retry, "retry only recognized npm transient network errors")
@@ -115,7 +122,7 @@ require("REF_RE" in trace_impl and "BRANCH_ISSUE_RE" in trace_impl and "TITLE_IS
 
 require("workflow_dispatch:" in workflow, "workflow_dispatch entry point is required")
 require("operation:" in workflow and "verify, release, finalize, release_finalize" in workflow, "four operations are required")
-require("group: issue-lifecycle-${{ inputs.issue_number }}" in workflow, "per-Issue concurrency is required")
+require("group: mastergantt-release-finalizer" in workflow, "manual lifecycle mutation must share generic finalizer serialization")
 require("queue: max" in workflow, "manual lifecycle runs must preserve queued work")
 require("packages: write" in workflow, "lifecycle finalize operations need scoped packages: write for temporary GHCR cleanup")
 require("pull_request_target" not in workflow, "pull_request_target is forbidden")
@@ -221,7 +228,7 @@ require("gh_paginated(" in auto_impl, "comment and PR pagination helper is requi
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
 require("def is_closed_issue(" in auto_impl, "closed Issue skip classifier is required")
 require("replace(item, actionable=False)" in auto_impl, "closed unmarked Issue must remain as a non-actionable ordering barrier")
-require("coalesced[-1].actionable" in auto_impl and "item.actionable" in auto_impl, "retry coalescing must not cross non-actionable closed barriers")
+require("return list(items)" in auto_impl, "every per-merge lifecycle obligation must be preserved")
 require("pending_with_barriers" in auto_impl and "if item.actionable" in auto_impl, "closed ordering barriers must be filtered only after adjacency-sensitive coalescing")
 require("return issue.get(\"state\") == \"closed\"" not in auto_impl.split("def is_finalized_boundary", 1)[1].split("def is_closed_issue", 1)[0], "closed Issue must not be treated as an exact finalized boundary")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
@@ -356,6 +363,101 @@ require(
     == (582, 583),
     "canonical single-line merge must trace to exact Issue/PR",
 )
+
+
+# Issue #586: an immutable multiline merge title caused exact Main CI #2445.1
+# to fail. Never weaken the parser or label the old run as successful.
+failed_586_message = (
+    "Issue #586 · PR #588 · FINAL marker 및 부분 종료 안정화\n\n"
+    "Merge PR #588 for Issue #586\n\n"
+    "Preserve exact per-merge FINAL evidence, safe candidate cleanup and first-parent checks.\n\n"
+    "Refs #586"
+)
+require(
+    main_run_name.parse_merge_title(failed_586_message) is None,
+    "historical multiline merge must remain invalid (not retroactively green)",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_586_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("the failed #586 merge message must not silently pass trace validation")
+
+# The merge tool's source payload requires one canonical title and *empty*
+# body.  A matching head lease prevents accidental merge of a newer PR head.
+correction_summary = "Main CI 실패 복구 및 Finalizer 재개"
+correction_sha = "a" * 40
+correction_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha
+)
+require(
+    correction_payload == {
+        "merge_method": "merge",
+        "commit_title": main_run_name.format_merge_title(
+            586, 999, correction_summary
+        ),
+        "commit_message": "",
+        "expected_head_sha": correction_sha,
+    },
+    "corrective merge payload must bind exact Head and omit a commit body",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": correction_payload["commit_title"]},
+    }) == (586, 999),
+    "body-free corrective merge must resolve the exact Issue/PR",
+)
+cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(cli.stdout) == correction_payload, "CLI merge payload must match the verified pure contract")
+# GitHub REST uses "sha" whereas the connected GitHub action accepts
+# "expected_head_sha". Neither adapter may silently drop the head lease.
+rest_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha, api_target="rest"
+)
+require(
+    rest_payload == {
+        "merge_method": "merge",
+        "commit_title": correction_payload["commit_title"],
+        "commit_message": "",
+        "sha": correction_sha,
+    } and "expected_head_sha" not in rest_payload,
+    "REST merge must use sha, not connector-only expected_head_sha",
+)
+rest_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--merge-api", "rest",
+     "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(rest_cli.stdout) == rest_payload, "REST CLI output must match its pure helper")
+try:
+    main_run_name.merge_api_payload(
+        586, 999, correction_summary, correction_sha, api_target="unknown"
+    )
+except ValueError:
+    pass
+else:
+    raise SystemExit("unknown merge API target must fail closed")
+
+for invalid_sha in ("", "a" * 39, "A" * 40, "a" * 41, "f" * 39 + "\n"):
+    try:
+        main_run_name.merge_api_payload(586, 999, correction_summary, invalid_sha)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit(f"invalid merge Head SHA must fail closed: {invalid_sha!r}")
+
 require(
     trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": "Merge PR #539: 기준정보 (#538)\n\nRefs #538"}})
     == (538, 539),
@@ -733,6 +835,24 @@ comments = [
 auth = auto.select_authorization(comments, expected_version="1.2.3")
 require(auth is not None and auth.actor == "owner", "trusted authorization selection failed")
 
+# Multiple retained successful same-Issue merges have independently authorized
+# releases. Only the latest trusted approval/revocation *for that version*
+# can govern its target; newer other-version markers may coexist.
+version_one = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.1.0","note":"v1 approved"} -->'
+version_two = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.2.0","note":"v2 approved"} -->'
+multi_version_comments = [
+    {"id": 10, "author_association": "OWNER", "body": version_one,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/10"},
+    {"id": 11, "author_association": "OWNER", "body": version_two,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/11"},
+]
+for version in ("1.1.0", "1.2.0"):
+    result = auto.select_authorization(multi_version_comments, expected_version=version)
+    require(result is not None and result.expected_version == version,
+            "cross-version approval may not shadow retained target")
+require(auto.select_authorization(multi_version_comments, expected_version="1.3.0") is None,
+        "missing exact-version approval must never authorize release")
+
 revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.2.3","note":"revoked"} -->'
 try:
     auto.select_authorization(
@@ -742,6 +862,19 @@ try:
     raise SystemExit("latest trusted revocation must block release")
 except auto.AutoFinalizerBlocked:
     pass
+
+version_one_revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.1.0","note":"v1 revoked"} -->'
+revocation_comments = multi_version_comments + [
+    {"id": 12, "author_association": "OWNER", "body": version_one_revoked,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/12"},
+]
+try:
+    auto.select_authorization(revocation_comments, expected_version="1.1.0")
+    raise SystemExit("latest version-specific revocation must block release")
+except auto.AutoFinalizerBlocked:
+    pass
+require(auto.select_authorization(revocation_comments, expected_version="1.2.0") is not None,
+        "another version's revocation must not invalidate independent authorization")
 
 # Pagination must read beyond the first 100 comments so later revocation/approval
 # cannot be ignored.
@@ -774,8 +907,10 @@ auto.resolve_work_item = lambda _repo, target: {old_sha: old, a_sha: a_item, b_s
 auto.is_finalized_boundary = lambda _repo, item: item.target_sha == old_sha
 auto.is_closed_issue = lambda _repo, _item: False
 try:
-    backlog = auto.collect_pending_work(repo, b_sha)
+    retained_boundary = []
+    backlog = auto.collect_pending_work(repo, b_sha, finalized_boundary=retained_boundary)
     require([item.target_sha for item in backlog] == [a_sha, b_sha], "first-parent backlog order failed")
+    require(retained_boundary == [old], "FINAL boundary must remain available for close retry")
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
@@ -793,6 +928,8 @@ closed_item = auto.WorkItem(closed_sha, pending_sha, 474, 452, "0.86.0", "0.86.0
 saved_resolve = auto.resolve_work_item
 saved_boundary = auto.is_finalized_boundary
 saved_closed = auto.is_closed_issue
+saved_issue_comments = auto.issue_comments
+auto.issue_comments = lambda _repo, _issue: []
 auto.resolve_work_item = lambda _repo, target: {
     finalized_sha: finalized_item,
     pending_sha: pending_item,
@@ -819,6 +956,7 @@ finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
     auto.is_closed_issue = saved_closed
+    auto.issue_comments = saved_issue_comments
 
 # Two pending retries for the same Issue must not become adjacent when a
 # closed/no-marker merge sits between them in first-parent order.
@@ -844,39 +982,243 @@ require(
     "barrier filtering must preserve both actionable retry targets",
 )
 
-# Adjacent corrective merges for the same Issue converge only when their
-# validation scope is equivalent. Collapsed PR identities remain cleanup
-# obligations. Different Issue or docs-only/non-docs scope prevents convergence.
+# Issue #586: no green per-target Main CI/GHCR obligation may coalesce away.
 retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4", False)
 retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5", False)
-collapsed = auto.coalesce_consecutive_issue_retries([retry_one, retry_two])
-require(len(collapsed) == 1, "adjacent same-Issue retries with equal scope must converge")
-require(collapsed[0].target_sha == retry_two.target_sha, "latest retry target must win")
-require(collapsed[0].pr_number == retry_two.pr_number, "latest retry PR must win")
-require(collapsed[0].cleanup_pr_numbers == (retry_one.pr_number,), "earlier retry PR must remain a cleanup obligation")
-require(collapsed[0].first_parent_sha == retry_one.first_parent_sha, "version span must start before first retry")
-require(collapsed[0].previous_version == "0.58.3" and collapsed[0].current_version == "0.58.5", "version span must cover all adjacent retries")
 docs_followup = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 344, "0.58.4", "0.58.4", True)
-scope_split = auto.coalesce_consecutive_issue_retries([retry_one, docs_followup])
-require(len(scope_split) == 2, "docs-only/non-docs validation scope mismatch must prevent convergence")
 other_issue = auto.WorkItem("7" * 40, retry_one.target_sha, 13, 999, "0.58.4", "0.58.4", False)
-not_collapsed = auto.coalesce_consecutive_issue_retries([retry_one, other_issue, retry_two])
-require(len(not_collapsed) == 3, "different Issue boundary must prevent convergence")
-cleanup_command = auto.lifecycle_command(
-    operation="finalize",
-    issue_number=344,
-    pr_number=11,
-    release_required=False,
-    release_authorized=False,
-    expected_version="",
-    authorization_note="",
-    cleanup_pr_numbers=(10,),
-)
-require(cleanup_command[-2:] == ["--cleanup-pr", "10"], "collapsed cleanup PR must be forwarded to lifecycle")
+for sequence in ([retry_one, retry_two], [retry_one, docs_followup], [retry_one, other_issue, retry_two]):
+    require(auto.coalesce_consecutive_issue_retries(sequence) == sequence, "all merged targets must retain independent evidence")
+cleanup_command = auto.lifecycle_command(operation="finalize", issue_number=344, pr_number=11,
+    release_required=False, release_authorized=False, expected_version="", authorization_note="",
+    cleanup_pr_numbers=(10,), defer_close=True, main_snapshot_sha=b_sha)
+require(cleanup_command[-3:] == ["--defer-close", "--cleanup-pr", "10"], "later target must defer close")
 parsed_cleanup = module.build_parser().parse_args(
-    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9"]
-)
-require(parsed_cleanup.cleanup_pr == [10, 9], "lifecycle must accept repeated cleanup PR identities")
+    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9", "--defer-close"])
+require(parsed_cleanup.cleanup_pr == [10, 9] and parsed_cleanup.defer_close, "lifecycle must parse cleanup/deferral flags")
+require("--resolver-ordered" in cleanup_command,
+        "automatic Finalizer must identify its oldest-first verified orchestration")
+require(cleanup_command[cleanup_command.index("--resolver-main-sha")+1] == b_sha,
+        "child command must include verified main snapshot")
+require(not parsed_cleanup.resolver_ordered,
+        "manual workflow must default to ordered-history preflight")
+
+
+# #586: ordered snapshot must fail closed on a moving main.
+saved_snapshot_gh = module.gh
+remote_snapshot = [b_sha]
+module.gh = lambda path, *, method="GET", fields=None: {"object": {"sha":remote_snapshot[0]}}
+snapshot_ctx = SimpleNamespace(current_main_sha=b_sha)
+snapshot_args = SimpleNamespace(resolver_ordered=True, resolver_main_sha=b_sha)
+try:
+    module.resolver_snapshot_gate("owner/repo", snapshot_ctx, snapshot_args)
+    remote_snapshot[0] = a_sha
+    try:
+        module.resolver_snapshot_gate("owner/repo", snapshot_ctx, snapshot_args)
+        raise SystemExit("moving main must block ordered lifecycle")
+    except module.LifecycleError:
+        pass
+finally:
+    module.gh = saved_snapshot_gh
+
+# #586: a successful FINAL write followed by failed Issue close must be
+# recoverable without new FINAL/cleanup and must reject newer same-Issue PRs.
+saved_close_audit, saved_close_gh = module.audited_final_markers, module.gh
+saved_close_collect, saved_close_gate = auto.collect_pending_work, module.resolver_snapshot_gate
+saved_close_repo = __import__("os").environ.get("GITHUB_REPOSITORY")
+closing_issue = {"state":"open"}
+close_patches = []
+boundary_item = auto.WorkItem(b_sha, a_sha, 3, 77, "1.0.0", "1.0.0")
+close_ctx = SimpleNamespace(issue_number=77, pr_number=3, merge_sha=b_sha, current_main_sha=b_sha)
+close_args = SimpleNamespace(resolver_ordered=True, resolver_main_sha=b_sha,
+                             defer_close=False, cleanup_pr=[])
+module.audited_final_markers = lambda _repo, _ctx: {b_sha:3}
+module.resolver_snapshot_gate = lambda _repo, _ctx, _args: None
+def fake_close_collect(_repo, _sha, *, finalized_boundary):
+    finalized_boundary.append(boundary_item)
+    return []
+auto.collect_pending_work = fake_close_collect
+def fake_close_api(path, *, method="GET", fields=None):
+    if path.endswith("/issues/77"):
+        if method == "PATCH":
+            close_patches.append(fields)
+            closing_issue["state"] = "closed"
+        return dict(closing_issue)
+    raise AssertionError(path)
+module.gh = fake_close_api
+__import__("os").environ["GITHUB_REPOSITORY"] = "owner/repo"
+try:
+    module.close_resume(close_ctx, close_args)
+    module.close_resume(close_ctx, close_args)
+    require(len(close_patches) == 1, "close-only retry must be idempotent")
+    closing_issue["state"] = "open"
+    def newer_same_issue(_repo, _sha, *, finalized_boundary):
+        finalized_boundary.append(boundary_item)
+        return [auto.WorkItem(a_sha, old_sha, 4, 77, "1.0.0", "1.0.0")]
+    auto.collect_pending_work = newer_same_issue
+    try:
+        module.close_resume(close_ctx, close_args)
+        raise SystemExit("newer same-Issue PR must block premature close")
+    except module.LifecycleError:
+        pass
+    require(len(close_patches) == 1, "blocked close must not mutate")
+finally:
+    auto.collect_pending_work = saved_close_collect
+    module.resolver_snapshot_gate = saved_close_gate
+    module.audited_final_markers = saved_close_audit
+    module.gh = saved_close_gh
+    if saved_close_repo is None:
+        __import__("os").environ.pop("GITHUB_REPOSITORY", None)
+    else:
+        __import__("os").environ["GITHUB_REPOSITORY"] = saved_close_repo
+
+# #586 P1: manual latest-target finalize must never skip earlier pending work,
+# including earlier same-Issue PRs and interleaving Issues. The generic resolver
+# is the authority for first-parent ordering; no branch/package mutation here.
+manual_old = auto.WorkItem("1" * 40, "0" * 40, 583, 565, "0.103.1", "0.103.1")
+manual_other = auto.WorkItem("2" * 40, manual_old.target_sha, 584, 577, "0.103.1", "0.103.1")
+manual_new = auto.WorkItem("3" * 40, manual_other.target_sha, 585, 565, "0.103.1", "0.103.1")
+manual_ctx = SimpleNamespace(issue_number=565, pr_number=585,
+    merge_sha=manual_new.target_sha, current_main_sha=manual_new.target_sha)
+saved_auto_latest = auto.current_main_sha
+saved_auto_pending = auto.collect_pending_work
+auto.current_main_sha = lambda _repo: manual_new.target_sha
+pending_manual = []
+auto.collect_pending_work = lambda _repo, _head: pending_manual
+try:
+    for scenario, target_ctx in (
+        ([manual_old, manual_new], manual_ctx),
+        ([manual_old, manual_other, manual_new], manual_ctx),
+        ([replace(manual_old, actionable=False), manual_new], manual_ctx),
+        ([manual_old, manual_new], SimpleNamespace(
+            issue_number=565, pr_number=583, merge_sha=manual_old.target_sha,
+            current_main_sha=manual_new.target_sha)),
+        ([manual_other, manual_new], manual_ctx),
+        ([], manual_ctx),
+    ):
+        pending_manual[:] = scenario
+        try:
+            module.manual_order_preflight("owner/repo", target_ctx)
+            raise SystemExit("manual FINAL may not skip an older/newer pending target")
+        except module.LifecycleError:
+            pass
+    pending_manual[:] = [manual_new]
+    module.manual_order_preflight("owner/repo", manual_ctx)
+    try:
+        module.manual_order_preflight(
+            "owner/repo", SimpleNamespace(issue_number=565, pr_number=999,
+                merge_sha=manual_new.target_sha, current_main_sha=manual_new.target_sha))
+        raise SystemExit("manual target PR identity must match ordered resolver")
+    except module.LifecycleError:
+        pass
+    try:
+        module.manual_order_preflight(
+            "owner/repo", SimpleNamespace(issue_number=565, pr_number=585,
+                merge_sha=manual_new.target_sha, current_main_sha="f" * 40))
+        raise SystemExit("moving main must block manual FINAL")
+    except module.LifecycleError:
+        pass
+finally:
+    auto.current_main_sha = saved_auto_latest
+    auto.collect_pending_work = saved_auto_pending
+
+# A repeated historical FINAL during manual fallback must be read-only. Manual
+# re-entry is not authority to close while a later same-Issue target may exist.
+saved_manual_audit = module.audited_final_markers
+saved_manual_gh = module.gh
+saved_manual_repo = __import__("os").environ.get("GITHUB_REPOSITORY")
+module.audited_final_markers = lambda _repo, _ctx: {
+    manual_new.target_sha: manual_new.pr_number}
+def no_manual_mutation(*args, **kwargs):
+    raise AssertionError("manual duplicate FINAL cannot mutate Issue or cleanup")
+module.gh = no_manual_mutation
+__import__("os").environ["GITHUB_REPOSITORY"] = "owner/repo"
+try:
+    module.finalize(manual_ctx, SimpleNamespace(defer_close=False, resolver_ordered=False))
+finally:
+    module.audited_final_markers = saved_manual_audit
+    module.gh = saved_manual_gh
+    if saved_manual_repo is None:
+        __import__("os").environ.pop("GITHUB_REPOSITORY", None)
+    else:
+        __import__("os").environ["GITHUB_REPOSITORY"] = saved_manual_repo
+
+# #586 immutable FINAL identity and phase-order fail closed regression.
+existing_sha, next_sha = "1" * 40, "2" * 40
+ctx = SimpleNamespace(issue_number=565, pr_number=585, merge_sha=next_sha,
+    head_sha="4" * 40, head_branch="fix/next", current_main_sha=next_sha,
+    version="0.103.1", main_docs_only=False, main_ci_url="https://example.invalid/ci",
+    main_artifact_evidence="PASS")
+existing_body = "\n".join([
+    module.final_marker(565, existing_sha), "## Lifecycle FINAL · Issue #565",
+    "- PR: #583", "- PR head branch: "+chr(96)+"docs/previous"+chr(96),
+    "- PR head SHA: "+chr(96)+"3"*40+chr(96),
+    "- merge/release target SHA: "+chr(96)+existing_sha+chr(96),
+])
+saved_gh, saved_run = module.gh, module.run
+calls = []
+audit_comments = [{"body": existing_body, "user":{"login":"github-actions[bot]"}}]
+def fake_audit_run(*args, **kwargs):
+    if args[:3] == ("git", "rev-list", "--first-parent"):
+        return SimpleNamespace(stdout=next_sha+"\n"+existing_sha+"\n", returncode=0)
+    raise AssertionError(args)
+def fake_audit_gh(path, *, method="GET", fields=None):
+    calls.append((path, method))
+    if "/comments?" in path:
+        return audit_comments
+    if path.endswith("/pulls/583"):
+        return {"merged":True,"merge_commit_sha":existing_sha,"base":{"ref":"main"},
+            "head":{"ref":"docs/previous","sha":"3"*40,"repo":{"full_name":"owner/repo"}},
+            "body":"Refs #565"}
+    if path.endswith("/pulls/585"):
+        return {"merged":True,"merge_commit_sha":next_sha,"base":{"ref":"main"},
+            "head":{"ref":"fix/next","sha":"4"*40,"repo":{"full_name":"owner/repo"}},
+            "body":"Refs #565"}
+    if path.endswith("/pulls/999"):
+        # Simulate a real API lookup resolving to an unrelated, unmerged PR.
+        # The lifecycle validator, not the test transport mock, must reject it.
+        return {"merged":False, "merge_commit_sha":None,
+                "base":{"ref":"main"}, "head":{"ref":"other", "sha":"9"*40,
+                "repo":{"full_name":"owner/repo"}}, "body":"Refs #999"}
+    raise AssertionError(path)
+module.gh, module.run = fake_audit_gh, fake_audit_run
+try:
+    records = module.audited_final_markers("owner/repo", ctx)
+    require(records == {existing_sha:583}, "older valid FINAL must coexist with newer target")
+    require(not any(method != "GET" for _,method in calls), "FINAL preflight must remain read only")
+    bad = existing_body.replace("#583", "#999")
+    audit_comments[0]["body"] = bad
+    try:
+        module.audited_final_markers("owner/repo", ctx)
+        raise SystemExit("tampered FINAL must fail closed")
+    except module.LifecycleError:
+        pass
+
+    audit_comments[0]["body"] = existing_body
+    audit_comments.append({"body": existing_body, "user":{"login":"github-actions[bot]"}})
+    require(module.audited_final_markers("owner/repo", ctx) == {existing_sha:583},
+            "identical independently authenticated FINAL write must be idempotent")
+    audit_comments[:] = [{"body":existing_body, "user":{"login":"github-actions[bot]"}}]
+    newer_body = "\n".join([
+        module.final_marker(565, next_sha), "## Lifecycle FINAL · Issue #565",
+        "- PR: #585", "- PR head branch: "+chr(96)+"fix/next"+chr(96),
+        "- PR head SHA: "+chr(96)+"4"*40+chr(96),
+        "- merge/release target SHA: "+chr(96)+next_sha+chr(96),
+    ])
+    next_item = auto.WorkItem(next_sha, existing_sha, 585, 565, "0.103.1", "0.103.1")
+    require(not auto.is_finalized_boundary("owner/repo", next_item),
+            "older FINAL must never finish current unmarked SHA")
+    audit_comments[:] = [{"body":newer_body, "user":{"login":"external-commenter"}}]
+    try:
+        auto.is_finalized_boundary("owner/repo", next_item)
+        raise SystemExit("forged FINAL boundary must fail closed during collection")
+    except auto.AutoFinalizerError as exc:
+        require("phase=FINAL_BOUNDARY_AUDIT" in str(exc), "boundary error must identify audit phase")
+    audit_comments[:] = [{"body":newer_body, "user":{"login":"github-actions[bot]"}}]
+    require(auto.is_finalized_boundary("owner/repo", next_item),
+            "authenticated exact merge FINAL must terminate first-parent scan")
+finally:
+    module.gh, module.run = saved_gh, saved_run
 
 # A failed older attempt may be superseded by a later Green corrective merge
 # for the same Issue even when independent Issues are in between. Intervening
@@ -908,6 +1250,43 @@ waiting_planned, waiting_superseded = auto.supersede_failed_issue_retries(
 require(waiting_superseded == [], "non-Green corrective target must not supersede earlier failure")
 require(waiting_planned[0] == failed_344, "failed attempt must remain until corrective exact main CI succeeds")
 
+
+
+# #586 actual failed Main SHA is immutable, and needs a later GREEN non-docs
+# merge of the *same Issue*. An unverified or docs-only successor cannot
+# manufacture old-SHA Main CI/GHCR success.
+failed_586 = auto.WorkItem(
+    "490c4ab70b0868729c8415f9f613bd45aa84926a",
+    "367b160b2f1db75feb7af1a5ea67046b9828b836",
+    588, 586, "0.104.0", "0.104.0", False,
+)
+corrected_586 = auto.WorkItem(
+    "a" * 40, failed_586.target_sha,
+    999, 586, "0.104.0", "0.104.0", False,
+)
+corrected_sequence, corrected_evidence = auto.supersede_failed_issue_retries(
+    [failed_586, corrected_586],
+    {failed_586.target_sha: False, corrected_586.target_sha: True},
+)
+require(
+    [item.target_sha for item in corrected_sequence] == [corrected_586.target_sha]
+    and corrected_sequence[0].cleanup_pr_numbers == (588,),
+    "GREEN non-docs corrective main CI must retain failed PR cleanup debt",
+)
+require(
+    corrected_evidence == [(failed_586, corrected_586)],
+    "historical failure must be attributed to exact corrective SHA",
+)
+for replacement_docs_only, candidate_success in ((True, True), (False, False)):
+    candidate = replace(corrected_586, validation_docs_only=replacement_docs_only)
+    blocked_sequence, blocked_evidence = auto.supersede_failed_issue_retries(
+        [failed_586, candidate],
+        {failed_586.target_sha: False, candidate.target_sha: candidate_success},
+    )
+    require(
+        not blocked_evidence and blocked_sequence[0] == failed_586,
+        "docs-only or non-GREEN correction may not conceal old failed Main CI",
+    )
 
 # A target whose exact main CI passed but immutable formal release repeatedly
 # failed may also be superseded by a later Green corrective merge for the same

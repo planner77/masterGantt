@@ -16,7 +16,8 @@ import sys
 import urllib.error
 import urllib.request
 
-from qa_final_automated import Blocked, GitHub, verify_same_base_full_run
+from qa_final_automated import (Blocked, GitHub, verify_same_base_full_run,
+                                source_artifact, verified_source)
 
 TRACE_PATH = Path(__file__).with_name("verify-ci-run-trace.py")
 _spec = importlib.util.spec_from_file_location("verify_ci_run_trace", TRACE_PATH)
@@ -52,20 +53,33 @@ def positive(value: object) -> int:
 
 
 def exact_source(run: dict, number: int, head: str, base: str, repo: str) -> bool:
-    """Require an unambiguous PR/Head/base source for any rerun target."""
+    """Pre-filter source metadata. Full authenticity uses #593 event artifacts."""
     refs = run.get("pull_requests") or []
-    if not isinstance(refs, list) or len(refs) != 1:
+    if not isinstance(refs, list) or len(refs) > 1:
         return False
-    p = refs[0]
-    return (
-        positive(p.get("number")) == number
-        and (p.get("head") or {}).get("sha") == head
-        and (p.get("base") or {}).get("sha") == base
-        and run.get("head_sha") == head
-        and str(run.get("path") or "").split("@")[0] == ".github/workflows/ci.yml"
-        and run.get("event") == "pull_request"
-        and (run.get("head_repository") or {}).get("full_name", repo) == repo
-    )
+    if refs:
+        p = refs[0]
+        if (positive(p.get("number")) != number
+                or (p.get("head") or {}).get("sha") != head
+                or (p.get("base") or {}).get("sha") != base):
+            return False
+    # #593 permits an empty workflow_run.pull_requests only when verified
+    # against the immutable source artifact and the commit->PR API.
+    return (run.get("head_sha") == head
+            and str(run.get("path") or "").split("@")[0] == ".github/workflows/ci.yml"
+            and run.get("event") == "pull_request"
+            and (run.get("head_repository") or {}).get("full_name", repo) == repo)
+
+
+def attested_source(gh: GitHub, run: dict) -> tuple:
+    """Use main's fail-closed run/attempt artifact and commit-to-PR witness."""
+    run_id, attempt = positive(run.get("id")), run.get("run_attempt")
+    if run_id <= 0 or type(attempt) is not int or not 1 <= attempt <= 10:
+        raise NoRecovery("BLOCKED", "원본 CI run/attempt 불완전")
+    try:
+        return verified_source(gh, run, source_artifact(gh, run_id, attempt))
+    except Blocked as error:
+        raise NoRecovery("BLOCKED", "원본 CI provenance 미검증: " + error.reason) from error
 
 
 def source_pr(gh: GitHub, trigger: dict) -> dict:
@@ -76,38 +90,22 @@ def source_pr(gh: GitHub, trigger: dict) -> dict:
     repo = gh.repo
     if ((trigger.get("repository") or {}).get("full_name") != repo
             or (trigger.get("head_repository") or {}).get("full_name") != repo):
-        raise NoRecovery("BLOCKED", "원본 repository / fork 신뢰 경계 불일치")
-    head, branch = trigger.get("head_sha") or "", trigger.get("head_branch") or ""
-    if not SHA_RE.fullmatch(head) or not branch:
-        raise NoRecovery("BLOCKED", "원본 Head SHA/branch 확인 불가")
-    refs = trigger.get("pull_requests") or []
-    if not isinstance(refs, list) or len(refs) > 1:
-        raise NoRecovery("BLOCKED", "원본 CI PR 귀속 불명확")
-    # GitHub workflow_run.pull_requests may be empty. Accept only a UNIQUE
-    # same-repository open PR matching the immutable source SHA and branch.
-    candidates = []
-    for pr in gh.pages(f"{gh.prefix}/pulls?state=open"):
-        h = pr.get("head") or {}
-        if (h.get("sha") == head and h.get("ref") == branch
-                and (h.get("repo") or {}).get("full_name") == repo):
-            candidates.append(pr)
-    if len(candidates) != 1:
-        raise NoRecovery("BLOCKED", "단일 현재 PR의 exact ref 귀속 실패")
-    initial = candidates[0]
-    number = positive(initial.get("number"))
-    base = (initial.get("base") or {}).get("sha")
-    if not number or not SHA_RE.fullmatch(str(base)):
-        raise NoRecovery("BLOCKED", "PR 번호/base 누락")
-    if refs and not exact_source(trigger, number, head, base, repo):
-        raise NoRecovery("BLOCKED", "원본 workflow_run PR/Head/base 불일치")
-    latest = gh.get(f"{gh.prefix}/pulls/{number}")
-    h = latest.get("head") or {}
-    if (latest.get("state") != "open"
-            or h.get("sha") != head or h.get("ref") != branch
-            or (h.get("repo") or {}).get("full_name") != repo
-            or (latest.get("base") or {}).get("sha") != base):
-        raise NoRecovery("STALE", "최신 PR Head/base 변경")
-    return latest
+        raise NoRecovery("BLOCKED", "원본 repository/fork 신뢰 경계 불일치")
+    run_id = positive(trigger.get("id"))
+    if not run_id:
+        raise NoRecovery("BLOCKED", "원본 CI run ID 누락")
+    original = gh.get(f"{gh.prefix}/actions/runs/{run_id}")
+    fields = ("id", "run_attempt", "head_sha", "head_branch", "event", "path")
+    if (any(original.get(field) != trigger.get(field) for field in fields)
+            or original.get("status") != "completed"
+            or (original.get("repository") or {}).get("full_name") != repo):
+        raise NoRecovery("BLOCKED", "workflow_run 이벤트와 실제 CI 원장 불일치")
+    number, head, base, merge, live = attested_source(gh, original)
+    if (trigger.get("head_sha") not in (head, merge)
+            or trigger.get("head_branch") != (live.get("head") or {}).get("ref")
+            or (live.get("head", {}).get("repo") or {}).get("full_name") != repo):
+        raise NoRecovery("BLOCKED", "원본 event artifact/현재 PR 출처 불일치")
+    return live
 
 
 def classify(gh: GitHub, trigger: dict, *, verify_full=verify_same_base_full_run,
@@ -143,6 +141,11 @@ def classify(gh: GitHub, trigger: dict, *, verify_full=verify_same_base_full_run
         raise NoRecovery("NO_RETRY", "최신 edited run 취소/중립/기타 결론")
     if meta.get("run_attempt") != 1:
         raise NoRecovery("RETRY_LIMIT", "자동 재실행은 최초 실패 1회에 한정")
+    # Match the metadata-only run to #593's immutable CI event artifact,
+    # not a possibly empty pull_requests field or a user-editable run title.
+    source_n, source_h, source_b, _, _ = attested_source(gh, meta)
+    if (source_n, source_h, source_b) != (number, head, base):
+        raise NoRecovery("BLOCKED", "metadata run 출처 PR/head/base 불일치")
     meta_id = positive(meta.get("id"))
     if not meta_id:
         raise NoRecovery("BLOCKED", "metadata run id 누락")

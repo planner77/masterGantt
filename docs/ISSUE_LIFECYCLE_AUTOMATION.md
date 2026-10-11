@@ -332,7 +332,7 @@ Issue #198에서 정의한 목표를 Issue #211에서 `.github/workflows/issue-l
 - `release_required / release_authorized / expected_version / authorization_note` 경계를 fail-closed로 검증한다.
 - formal release는 기존 `release-image.yml`, branch 삭제는 `scripts/safe_branch_cleanup.py`를 재사용한다.
 - lifecycle workflow 자체에는 `packages: write`를 부여하지 않는다.
-- FINAL은 `<!-- issue-lifecycle-final:<issue>:<target_sha> -->` marker로 중복 생성과 다른 target 재종료를 방지한다.
+- FINAL은 `<!-- issue-lifecycle-final:<issue>:<target_sha> -->`로 PR/merge SHA별 불변 증거를 남긴다. 완료 경계 판단 시점에 bot 작성자·canonical Refs·head/merge SHA·main first-parent를 인증한다. 동일 identity의 재진입은 멱등, 다른 과거 exact SHA의 정상 marker는 허용하되 위조·충돌 기록은 fail-closed한다. 수동·자동·Resume lifecycle mutation은 동일 직렬화 group으로 동시 쓰기 경쟁을 방지한다.
 - PR 단계 contract/scenario 검증은 `scripts/verify-issue-lifecycle.py`를 CI quality job에서 수행한다.
 - main 병합 후 non-destructive `verify` 실제 실행을 확보한 다음 기존 Issue별 helper의 퇴역 가능 여부를 판단한다.
 
@@ -407,3 +407,20 @@ blocker가 해소된 뒤에는 다음 우선순위를 따른다.
 
 재실행 전에는 Issue가 아직 open인지, FINAL marker가 없는지, feature branch가 존재하는지, blocker였던 Open PR 참조가 실제로 제거됐는지 다시 확인한다. 재실행 후에는 일반 Main CI와 finalizer run을 혼동하지 않고 각각의 결과를 Issue STATUS/FINAL에 기록한다.
 
+
+
+### #586 다중 PR FINAL·부분 종료 방지
+
+동일 Issue의 모든 성공 Main merge를 개별 SHA로 검증한다. 과거 FINAL marker는 불변 감사 대상이며 안전한 PR/head/merge/base/canonical Refs/first-parent 확인을 통과할 때만 후속 FINAL을 기록한다. Finalizer는 FINAL과 candidate/branch preflight를 삭제보다 앞서 수행하고 중간 실패 뒤에는 기존 부수효과를 멱등 확인하여 재시도한다. 동일 Issue 후속 target이 pending이면 close하지 않는다. 원본 사건 #565/#583/#585는 [GENERIC_RELEASE_FINALIZER.md](GENERIC_RELEASE_FINALIZER.md)를 참조한다.
+
+### Issue #586: 수동 FINAL 순서 검증
+
+수동 dispatch `finalize`/`release_finalize`는 현재 main의 first-parent backlog를 재검증하여 자신이 **최초 미완료 actionable PR**이고 동일 Issue의 더 최신 미완료 PR이 없는 경우에만 삭제/FINAL 단계로 진행한다. 그렇지 않으면 어떤 브랜치/GHCR/Issue mutation도 실행하지 않고 Generic Finalizer 재개를 요구한다. 자동 Resolver의 `--resolver-ordered`는 내부 검증 계약이며 수동 workflow input으로 노출하지 않는다. 이미 존재하는 정확한 FINAL의 수동 재호출은 close를 수행하지 않는다.
+
+### #586 FINAL 이후 종료 재개
+
+FINAL 쓰기 성공 뒤 Issue close 실패는 인증된 최신 FINAL 경계와 후속 동일 Issue PR 부재를 확인한 내부 `close_resume`으로 복구한다. 자동 Resolver의 정확한 main snapshot은 child에 전달·재검증한다. 수동 workflow에는 내부 `--resolver-main-sha` 및 `--resolver-ordered` 권한을 노출하지 않는다.
+
+### Issue #586 — Main CI Merge 메시지 사고의 제한적 Supersession (2026-10-11)
+
+기존 #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 immutable multiline message로 trace 실패했다. 기본 Merge 메시지는 재실행으로 변경되지 않는다. 후속 동일 Issue 비문서 corrective PR의 exact Main CI 성공만 기존 supersede_failed_issue_retries 로직에 따라 구 SHA를 FAILED → SUPERSEDED ATTEMPT로 감사 기록한다(구 Run의 FAIL은 그대로 유지). Main CI·GHCR 검증 없는 신규 Merge 또는 docs-only 교정은 대체 불가. 정상 Main CI 성공 후 기존 Generic Finalizer workflow_run이 자동으로 순서를 검증한다.

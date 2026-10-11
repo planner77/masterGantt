@@ -11,6 +11,27 @@
 ## Issue #598 — Owner-managed QA 정책 (2026-10-10)
 기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](docs/QA_REVIEW_POLICY.md)이다.
 
+## Issue #593 — Trusted QA 원본 이벤트 귀속 및 metadata 재검증 (2026-10-10)
+
+- `workflow_run.pull_requests=[]`를 PR 실행명/제목에서 추측하지 않는다. 원본 `CI`의 PR 이벤트에서 **checkout 전에** 만든 `ci-pr-source-<run_id>-<attempt>` artifact를 기본 브랜치 검증기가 읽기 전용으로 조회한다. Artifact 자체는 PR 측 비신뢰 자료이며 스키마/repository/run ID·attempt/Head SHA·branch/base SHA/test merge SHA와 현재 PR 및 commit→PR GitHub API의 단일 귀속을 교차 확인한다. zip을 실행하거나 PR 코드를 checkout하지 않는다.
+- artifact가 없거나 만료·중복되거나 commit→PR 조회가 비어 있거나 여러 PR에 귀속되거나, Head/base/merge/attempt가 바뀌면 **BLOCKED**한다. 이전 성공을 재사용할 때도 동일 **PR + Head + base + test merge + 최신 full run attempt**와 세 Required Aggregate의 완료 성공을 확인한다. 잘못된 canonical title/Refs는 자동 수정·우회하지 않는다.
+- `CI` Workflow의 existing required `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test`, full/metadata concurrency, 6-shard E2E, main/GHCR/Finalizer 및 write 권한·Ruleset은 유지한다. `QA Final — Trusted`는 기본 브랜치 SHA의 **운영상 수동 Gate**이며 PR Head Ruleset check가 아니다.
+- `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
+- **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
+- 운영: [ISSUE_593 Work Packet](docs/exec-plans/active/ISSUE_593.md)과 [원격 검증](docs/REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
+
+## Issue #593 — Trusted QA 원본 이벤트 귀속 및 metadata 재검증 (2026-10-10)
+
+- `workflow_run.pull_requests=[]`를 PR 실행명/제목에서 추측하지 않는다. 원본 `CI`의 PR 이벤트에서 **checkout 전에** 만든 `ci-pr-source-<run_id>-<attempt>` artifact를 기본 브랜치 검증기가 읽기 전용으로 조회한다. Artifact 자체는 PR 측 비신뢰 자료이며 스키마/repository/run ID·attempt/Head SHA·branch/base SHA/test merge SHA와 현재 PR 및 commit→PR GitHub API의 단일 귀속을 교차 확인한다. zip을 실행하거나 PR 코드를 checkout하지 않는다.
+- artifact가 없거나 만료·중복되거나 commit→PR 조회가 비어 있거나 여러 PR에 귀속되거나, Head/base/merge/attempt가 바뀌면 **BLOCKED**한다. 이전 성공을 재사용할 때도 동일 **PR + Head + base + test merge + 최신 full run attempt**와 세 Required Aggregate의 완료 성공을 확인한다. 잘못된 canonical title/Refs는 자동 수정·우회하지 않는다.
+- `CI` Workflow의 existing required `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test`, full/metadata concurrency, 6-shard E2E, main/GHCR/Finalizer 및 write 권한·Ruleset은 유지한다. `QA Final — Trusted`는 기본 브랜치 SHA의 **운영상 수동 Gate**이며 PR Head Ruleset check가 아니다.
+- `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
+- **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
+- 운영: [ISSUE_593 Work Packet](docs/exec-plans/active/ISSUE_593.md)과 [원격 검증](docs/REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
+
+## Issue #598 — Owner-managed QA 정책 (2026-10-10)
+기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](docs/QA_REVIEW_POLICY.md)이다.
+
 # AGENTS.md
 
 ## Issue #595 — 보호 파일을 포함한 AGENT QA 최종 판정
@@ -412,3 +433,8 @@ release/finalize의 target은 PR의 exact `merge_commit_sha`이고, 해당 SHA�
 ### Issue #577 PR CI 메타데이터 운영
 
 PR 생성 시 canonical Primary Issue trace를 완성한다. 이후 진행 기록은 PR/Issue 댓글을 사용하고 상태 전달만을 위한 제목/본문 `edited`를 유발하지 않는다. Metadata-only는 같은 SHA의 최신 full CI required gate 성공을 즉시 확인하며, 오래된 Head는 SUPERSEDED/N/A로 조기 종료한다. full CI 진행 중/실패/미존재는 성공으로 취급하지 않는다. `DEFERRED/MISSING`은 full CI 성공을 확인한 후 해당 metadata 실패 Job 재실행으로 복구한다. 해당 재실행이 실제 strict Ruleset에 반영되었는지 별도 검증한다. 승인 범위가 'PR CI 시작까지'라면 완료를 기다리지 않는다.
+
+
+### Issue #586 — 후속 PR FINAL 정책
+
+동일 Issue의 성공한 여러 병합은 PR/merge SHA별 CI·GHCR·branch·불변 FINAL 근거를 보존한다. FINAL 전 역사적 marker/identity/first-parent와 비파괴 cleanup preflight를 통과해야 하며, 후속 미완료 target이 있으면 Issue close를 지연한다. [Generic Finalizer](docs/GENERIC_RELEASE_FINALIZER.md)를 source of truth로 따른다. 자동 Resolver는 main snapshot을 하위 작업에서 재검증하며, FINAL 직후 close 실패는 인증된 최신 FINAL 경계의 close-only 재시도로 복구한다. 이 정책은 PR 병합 Gate·독립 QA와 정식 GHCR 승인 요건을 완화하지 않는다.

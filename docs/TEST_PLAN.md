@@ -39,6 +39,22 @@ PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042
 
 검증기 자체를 수정한 #595 PR은 HIGH/AGENT이므로 독립 QA와 Manager 검토 전에는 병합되지 않는다. 최초 #595 PR CI의 보호 변경 탐지 BLOCKED는 예상되는 정상 경계이며 세 기능 Required Check 결과와 구분한다. 신뢰된 정책이 main에 반영된 뒤에만 실제 정상 승인 경로를 독립적으로 실증할 수 있다. 별도 운영 실증 전 NOT TESTED다.
 
+## #593 검증 매트릭스
+
+| Test | 조건 | 기대 결과 |
+| --- | --- | --- |
+| T1 | 안전한 새 PR, full CI SUCCESS, canonical title/Refs/Work Packet | Trusted Workflow 실제 PASS URL, run/attempt/validator/head/base/test merge; 병합 이후 실증 전 NOT TESTED |
+| T2 | 동일 Head/base의 metadata edit | heavy 6-shard/Docker 생략, 이전 full CI provenance+세 gate 재사용; 원격 NOT TESTED |
+| T3 | PR #396 canonical trace 불일치 | 차단 및 수정 후 복구 실증 |
+| T4 | CI payload pull_requests=[] | artifact+commit→PR API 단일 귀속일 때만 PASS 가능, 다중/누락 BLOCKED |
+| T5 | PR #591 원본 full CI FAIL | Trusted FAIL, 의도된 fail-closed |
+| T6 | head/base/merge/attempt 변경·중복 edited | stale 이전 증거 재사용 차단; 재실행 정책 검증 |
+| T7 | protected path/rename·API 403/404/429·main/non-PR | protected AGENT, 불확실 출처 BLOCKED, 비 PR N/A |
+| T8 | Trusted PASS지만 Manager 미승인 | automated_qa=PASS, manager=NOT TESTED, MERGE_READY=BLOCKED |
+| T9 | 기존 CI/문서/lifecycle 정책 | policy Python 회귀 및 full remote quality/e2e/docker 3 required |
+
+원격 실증은 GitHub run/job·attempt·SHA를 별도 증거로 연결한다. 로컬 mock만으로 T1을 PASS 처리하지 않는다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
@@ -2918,3 +2934,47 @@ Local Fast Feedback은 이 범위의 Unit/typecheck/lint/실제 browser이며 �
 - 원본 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 Gantt public event 기록으로 **Core/native 이전 left26640 → right-edge API requested36960 → 지연된 wheel requested26671**의 순서를 확인했다. `mouse.wheel` Promise 완료만으로 native wheel→Core state 반영 완료를 가정한 시험의 관측 경쟁이다.
 - 수정 acceptance: 실제 `page.mouse.wheel(31,0)` 후 `expect.poll`에서 public Core left가 이전 값보다 증가하고 native Chart left와 오차 ≤1px인지 확인 → 5 RAF settle → 관측된 scale width−chart width만큼 공개 right-edge 이동 → `width > 이전 width` 실제 확장(기존 bounded10s) 강제. timeout 실패 시 자동 통과·skip 금지. 동시에 이전 instance, visibleTaskIds, Link, canonical IDs, POST/PATCH0, column/grid/fullscreen/peer-return 불변을 유지한다.
 - 로컬 Browser 재실행, 새 PR CI quality/e2e/docker와 독립 HIGH QA는 실제 근거 전 NOT TESTED. #569 PoC DEFER, #551 Week 날짜 헤더 미해결 gate 유지. 테스트 정합 보완으로 제품 #530 guard/#367 확장 알고리즘/CI required checks를 변경하지 않는다. version `0.104.0` 동일, API/DB/GHCR workflow 영향 N/A.
+
+
+### Issue #586 FINAL 원자성·동일 Issue 복수 PR 회귀
+
+T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개별 검증·candidate; T3 중간 다른 Issue·closed Issue의 first-parent 순서; T4 동일 SHA 멱등/위조 marker 차단; T5 SHA lease·보호·OPEN PR 참조·branch 404; T6 cleanup preflight 및 candidate 다른 tag 차단; T7 #565 불변 #583 FINAL과 미완료 #585; T8 `scripts/verify-issue-lifecycle.py`, `scripts/verify-safe-branch-cleanup.py`와 PR Quality/E2E/Docker 유지. GitHub PR CI 전 결과는 NOT TESTED이며 정식 release 승인 불변.
+
+### Issue #586 리뷰 보완: 인증된 FINAL 경계·버전별 승인 (2026-10-10)
+
+- R1: Closed/no-marker는 first-parent ordering barrier로 보존하되 closed/이전 FINAL marker가 있는 후속 SHA는 actionable. `is_finalized_boundary`는 `audited_final_markers`로 인증된 정확한 SHA만 완료 boundary로 사용하며, 일반 댓글 작성자가 위조한 동일 marker는 SUCCESS/SKIPPED가 아니라 FAIL.
+- R2: 동일 Issue의 `v1.1.0`과 `v1.2.0` 승인 marker가 연속해도 각 대상 버전별 최종 trusted comment로 release 판정. `v1.1.0` 철회가 `v1.2.0` 승인에 영향을 주지 않으며 해당 버전은 BLOCKED.
+- R3: 자동 Finalizer, Manual Lifecycle, Resume mutation은 동일 concurrency group; 동일 bot/PR/SHA FINAL 중복은 인증 후 멱등, 다른 PR identity 또는 위조는 거부.
+- R4: `scripts/verify-issue-lifecycle.py`의 폐쇄 Issue Mock과 실제 인증 경계 회귀를 분리하고 PR 새 Head CI Quality/E2E/Docker/정책 계약으로 검증. HIGH 독립 QA와 Manager ACCEPT는 CI 성공과 별도.
+
+### Issue #586 수동 fallback 순서 누락 회귀 (#588 리뷰 P1)
+
+성공 Main CI인 동일 Issue A→B 중 A에 marker가 없을 때 수동 B FINAL은 FAIL(브랜치/GHCR/Issue 무변경). A→다른 Issue→B에서는 먼저 선행 target 처리 필수. 동일 Issue의 후속 B가 남아 있는 A는 close 금지. 이미 FINAL인 A를 수동 재호출해도 close mutation 금지. 최신 main SHA가 검증 도중 변경되거나 선택 PR/SHA가 first-parent pending identity와 일치하지 않으면 FAIL. 정규 자동 Resolver만 `--resolver-ordered`를 사용한다. 회귀 구현: `scripts/verify-issue-lifecycle.py`. 정확한 Head의 PR CI·독립 QA_FINAL은 별도로 확인.
+
+### #586 FINAL/close 복구 추가 회귀
+
+- FINAL 성공, Issue close PATCH 실패 후 동일 FINAL/cleanups 재실행 없이 Issue close-only 재시도·멱등 성공.
+- 후속 같은 Issue PR 존재, 위조 FINAL, main snapshot 변경 시 close 실패/부수효과 없음.
+- child 명령은 정확한 계획 시점 main SHA를 포함하고 mutation 전 다시 확인하며 기존 required PR check/QA Gate를 유지.
+
+## Issue #593 PR #594 리뷰 P2 회귀 (2026-10-10)
+
+- Fork PR의 source artifact `head_repository`와 실제 live PR `head.repo.full_name` 일치 시 인정한다. `base_repository`는 대상 저장소 및 live PR base repo와 일치해야 한다. 임의 Fork 표기를 기존 PR로 위장하거나 base repo를 바꾸면 BLOCKED; 원래 PR Head/base/merge/attempt 및 commit→PR 단일 귀속 검증을 유지한다.
+- 실패 초기화 단계부터 `rule_version=593-v1` 일치: `test_blocked_report_uses_current_rule_version`. 오류/권한/출처 증거 부족이 PASS가 되면 FAIL이다. 변경된 최신 Head의 GitHub CI 및 독립 QA Final은 별도 판정한다.
+
+## Issue #593 CI #2403.1 metadata attempt 누락 regression (2026-10-10)
+
+- `test_metadata_full_ci_requires_matching_base`: 원본 run의 `run_attempt` 누락, `None`, `0`, `-1`, `11`, `"1"`, `True` 각각 `Blocked`이며 출처 artifact 조회 전에 실패. 정상 integer 1과 동일 PR/Head/base/merge 검증은 유지한다.
+- 기존 #595 `effective_run_jobs`의 attempt별 마지막 결과 및 AGENT protected 독립 QA/Manager acceptance, #593 source run provenance 회귀를 PR CI Policy Python에서 함께 실행한다. 정확한 새 Head의 GitHub PR CI 결과는 실행 완료 전 NOT TESTED.
+
+## Issue #586 — Main CI 병합 메시지 오류와 non-docs 복구 회귀 (2026-10-11)
+
+1. 실제 #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a의 멀티라인 message는 parse_merge_title()과 validate_push()에서 FAIL이며 기존 #2445.1을 PASS로 소급해서는 안 된다.
+2. merge_api_payload() 순수 helper/CLI JSON은 merge_method=merge, 한 줄 canonical commit_title, 빈 commit_message, 정확 HEAD SHA lease를 반환하고 SHA 누락/대문자/잘못된 길이는 FAIL한다.
+3. 동일 Issue #586의 **후속 non-docs Main CI GREEN**에 한해서 supersede_failed_issue_retries()가 old failed SHA를 supersede하고 PR #588 cleanup 의무를 새 target에 넘긴다. docs-only correction·Main CI 실패 시 이전 SHA는 blocker로 남는다.
+4. 공식 원격 검증은 수정 Head의 Quality/E2E/Docker Required aggregate, Owner-managed QA, 병합된 Main SHA의 push CI, 임시 GHCR exact digest, Finalizer 및 Issue 상태를 각각 확인한다. CI 성공 전 어떠한 후보 삭제·정식 GHCR/tag·Issue 종료도 주장하지 않는다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

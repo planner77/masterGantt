@@ -8,6 +8,14 @@
 - Rollback: `pr-metadata-reconcile.yml` 비활성화/삭제 및 `reconcile-pr-metadata.py` revert. 원본 CI·Ruleset·Trusted QA의 안전 상태는 그대로이며 복구 필요 시 최신 실패 metadata Job 수동 rerun. `DESIGN.md` N/A(UI 변경 없음); `API.md`/`DB_SCHEMA.md` N/A.
 - 위험도 HIGH / qa_method OWNER_MANAGED; 자동 QA 결과와 Owner 명시 병합·HIGH 위험 수용은 별도. Application version `0.104.0` 유지; `release_required=false`, `release_authorized=false`.
 
+## Issue #586 — Main CI #2445.1 오류 복구 / 후속 non-docs PR (2026-10-11)
+
+[Work Packet](ISSUE_586.md): PR #588의 병합은 성공했지만 main SHA 490c4ab70b0868729c8415f9f613bd45aa84926a의 메시지가 멀티라인이어서 Main CI/GHCR/Finalizer가 FAIL/SKIPPED됐다. 동일 Issue의 비문서 교정 PR에서 merge_api_payload() 보조 함수 및 기존 실패 supersession 경계 회귀를 추가한다. 새 PR CI 통과 후 한 줄 제목·빈 body·exact Head SHA로 병합하고, 새로운 Main CI/GHCR 성공 시 기존 실패를 SUPERSEDED ATTEMPT로 감사한 뒤 Finalizer를 실행한다. 제품 0.104.0·release_required=false/authorized=false, 기존 main 강제 수정·구 실패 소급 PASS 금지.
+
+## Issue #586 — FINAL marker 회복 / QA Work Packet (2026-10-10)
+
+[Issue #586 Work Packet](ISSUE_586.md): docs-only·non-docs 후속 Merge별 불변 FINAL을 유지하며, 기존 [PR #588](https://github.com/planner77/masterGantt/pull/588)의 코드를 보존한다. 최신 main `367b160b2f1db75feb7af1a5ea67046b9828b836`와 정렬하고 PR 위험 메타데이터 `HIGH/OWNER_MANAGED`, T1–T8 ↔ AC1–AC8, DOCUMENTATION_SYNC를 기록한다. protected `scripts/**`·workflow 변경에 최신 `docs/QA_REVIEW_POLICY.md`의 Owner-managed 기본 정책과 3 Required CI, Trusted QA 및 Owner의 최종 승인·HIGH 위험 수용 필요; QA 완료로 간주하지 않는다. 목표는 새 Head full PR CI 시작까지이며 기존 main/GHCR/#565 운영 복구는 별도.
+
 ## Issue #598 — Owner-managed QA 정책 적용
 
 Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.

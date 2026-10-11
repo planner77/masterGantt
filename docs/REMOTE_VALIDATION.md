@@ -20,6 +20,15 @@
 
 보호 대상에 해당하는 릴리스 버전 원장 또는 CI/보안 설정을 변경하는 PR에서는 기존 필수 Quality/E2E/Docker 검증 결과와 독립 QA 승인 결과를 별도로 기록한다. QA를 구현한 사람이 자기 코드를 승인한 결과는 독립 검토로 인정하지 않는다. 정확한 PR Head와 Base, 독립 Reviewer의 현재 Head 승인 기록, 원본 CI Run/Attempt의 성공한 필수 세 Job, 저장소 소유자의 독립 리뷰 이후 Manager 승인 여부를 검증하는 경로를 사용한다. 자료가 없거나 충돌하면 BLOCKED로 판정한다. 새로운 검증기 자체는 별도 독립 검토 및 main 병합 전까지 운영에 적용되지 않았으며, GHCR/tag 릴리스 권한은 변경하지 않는다.
 
+## Issue #593 — Trusted QA 원본 이벤트 귀속 및 metadata 재검증 (2026-10-10)
+
+- `workflow_run.pull_requests=[]`를 PR 실행명/제목에서 추측하지 않는다. 원본 `CI`의 PR 이벤트에서 **checkout 전에** 만든 `ci-pr-source-<run_id>-<attempt>` artifact를 기본 브랜치 검증기가 읽기 전용으로 조회한다. Artifact 자체는 PR 측 비신뢰 자료이며 스키마/repository/run ID·attempt/Head SHA·branch/base SHA/test merge SHA와 현재 PR 및 commit→PR GitHub API의 단일 귀속을 교차 확인한다. zip을 실행하거나 PR 코드를 checkout하지 않는다.
+- artifact가 없거나 만료·중복되거나 commit→PR 조회가 비어 있거나 여러 PR에 귀속되거나, Head/base/merge/attempt가 바뀌면 **BLOCKED**한다. 이전 성공을 재사용할 때도 동일 **PR + Head + base + test merge + 최신 full run attempt**와 세 Required Aggregate의 완료 성공을 확인한다. 잘못된 canonical title/Refs는 자동 수정·우회하지 않는다.
+- `CI` Workflow의 existing required `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test`, full/metadata concurrency, 6-shard E2E, main/GHCR/Finalizer 및 write 권한·Ruleset은 유지한다. `QA Final — Trusted`는 기본 브랜치 SHA의 **운영상 수동 Gate**이며 PR Head Ruleset check가 아니다.
+- `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
+- **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
+- 운영: [ISSUE_593 Work Packet](exec-plans/active/ISSUE_593.md)과 [원격 검증](REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
+
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
 - 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
@@ -467,3 +476,21 @@ PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex
 ## Issue #577 — Metadata/Full CI 원격 회귀
 
 PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run-name, 이벤트/action, 이벤트 Head/current Head, same-SHA full-run ID, quality/E2E/Docker required check, 실행시간을 함께 기록한다. 현재 Head 변경으로 stale인 메타데이터는 즉시 `SUPERSEDED`여야 하며 20분 polling이 없어야 한다. metadata-only run이 full CI를 취소하면 FAIL. 현재 full-run pending/missing은 NOT TESTED 또는 FAIL이고 자동 PASS가 아니다. metadata-only 실패 뒤 full CI가 성공하면 해당 metadata 실패 Job 재실행으로 재판정하되 본 PR CI 시작 범위에서는 관측·리허설을 별도 기록한다. CI 변경 PR은 E2E/Docker 경로 판정에 포함되므로 실제 PR에서 세 필수 Gate를 모두 확인한다.
+
+
+### Issue #586 원격 검증 경계
+
+동일 Issue의 각 PR/merge SHA에 대응하는 PR required check, Main CI, GHCR candidate gate, FINAL comment와 branch 404를 개별 연결한다. 선행 FINAL이 존재하거나 Issue가 CLOSED라고 후속 성공·잔여 candidate cleanup을 주장하지 않는다. 사전 검증·로컬 모형 PASS와 실제 GitHub Workflow/GHCR 결과는 구분한다. 본 변경의 운영 복구는 배포 후 별도 실행한다.
+
+## Issue #586 후속 Main CI·Finalizer 원격 검증 (2026-10-11)
+
+과거 PR #588 merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a / Main CI Run 38094304911 FAIL, candidate GHCR/Finalizer SKIPPED. 동일 SHA의 이전 이력은 불변이다.
+
+교정 PR exact HEAD의 Required Quality/E2E/Docker PASS 및 Owner-managed QA는 새 원격 Run으로 검증한다. scripts/main_ci_run_name.py의 JSON payload helper와 실패 멀티라인 입력 차단을 Python 회귀로 검증하고, 병합 요청에서 한 줄 title + 빈 body + Head lease를 직접 전달한다.
+
+교정 SHA Main CI push SUCCESS, ci-<exact SHA> digest smoke/SBOM/provenance, Generic Finalizer의 SUPERSEDED ATTEMPT 및 실패 SHA/교정 SHA 대응, 두 PR 브랜치 cleanup, final marker와 Issue 상태를 구분하여 확인한다. 기존 #565의 타 tag·공유 GHCR 이미지 삭제·정식 Release는 금지한다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

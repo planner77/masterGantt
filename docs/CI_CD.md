@@ -8,6 +8,13 @@
 - Rollback: `pr-metadata-reconcile.yml` 비활성화/삭제 및 `reconcile-pr-metadata.py` revert. 원본 CI·Ruleset·Trusted QA의 안전 상태는 그대로이며 복구 필요 시 최신 실패 metadata Job 수동 rerun. `DESIGN.md` N/A(UI 변경 없음); `API.md`/`DB_SCHEMA.md` N/A.
 - 위험도 HIGH / qa_method OWNER_MANAGED; 자동 QA 결과와 Owner 명시 병합·HIGH 위험 수용은 별도. Application version `0.104.0` 유지; `release_required=false`, `release_authorized=false`.
 
+## Issue #593 — PR CI 실행 중 Base 변경·test-merge stale 대응 (2026-10-11)
+
+- #2440.1의 Quality/E2E/Docker 세 필수 Job은 SUCCESS이나, PR CI 시작 **후** PR base를 최신 main으로 재설정하여 원본 `pull_request` 이벤트의 `EVENT_BASE_SHA`와 현재 PR `base.sha`가 불일치했다. base/merge fingerprint를 비교하는 `QA Final — Automated`는 `기준 main/base 변경, test-merge stale`로 차단한 것이 정상 동작이다.
+- 표준 순서: **(1)** main ref 확인 → **(2)** PR branch에 최신 main 통합·충돌 해결 → **(3)** PR의 base ref/SHA가 정확한 main인지 확인하고 필요하면 *CI 시작 전에* 수정 → **(4)** 이 상태를 고정하고 단일 새 Head push로 full PR CI 생성 → **(5)** 원본 Head/base/test-merge SHA·run ID/attempt 일치 및 세 required check 검증. 실행 중 PR base/head를 다시 지정하지 않는다.
+- 실행 중 base/head가 변경됐다면 CI 재시도를 통한 구 이벤트 우회, 이전 PASS 재사용 또는 validator 완화를 금지한다. 새로운 immutable Head/pull_request 이벤트의 전체 CI를 실행한다. `scripts/test_qa_final_automated.py::test_head_and_merge`의 stale base/merge fail-closed 검사는 보존한다.
+- `QA Final — Automated`/Trusted는 정책상 원본 CI 증거 검사이며 Owner 최종 병합 승인과 별개다. Ruleset과 GHCR/정식 release 승인 방식은 변경하지 않는다.
+
 ## Issue #598 — Owner-managed QA 정책 (2026-10-10)
 기본 `qa_method=OWNER_MANAGED` (기존 `AUTOMATED_MANAGER` 호환); `AGENT`는 선택적 독립 QA다. HIGH 및 보호된 scripts/workflow/package/lock/QA 정책 변경도 별도 인간 Reviewer의 APPROVED가 의무가 아니다. 단 세 Required aggregate (Build, static checks, and unit tests / Chromium end-to-end tests / Docker build and runtime smoke test), strict 최신 main, 리뷰 스레드 0, HEAD/base/run/attempt 및 main trusted 검증·docs/AC 매핑은 보존한다. 자동 QA 성공 시에도 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`·`manager_decision=NOT TESTED`; Owner의 인증된 명시 병합 허가와 감사 원장·HIGH 잔여 위험 수용은 별도다. PR 본문·봇/위조 댓글·기계 PASS는 승인 근거가 아니며 수동 JSON 승인은 요구하지 않는다. 검증기의 자기 승인은 금지한다. 본 정책 변경 PR은 구 main 보호 QA 기준 BLOCKED 증거를 유지하고 세 Required CI가 성공한 정확한 Head에서 Owner의 일회성 명시적 정책 전환 승인 후에만 병합한다. 기존 실패 결과를 소급 PASS하지 않는다. Main CI → ci-<SHA> GHCR digest/SBOM/provenance/finalizer 유지. 정식 release는 release_required=true 및 정확한 버전 Owner release_authorized=true가 모두 필요하다. Ruleset #24043042 확인: human approving_review_count=0, thread resolution=true, strict three required aggregates; 설정 변경 없음. 상세 기준은 [QA 정책](QA_REVIEW_POLICY.md)이다.
 
@@ -22,6 +29,15 @@ PR 제목·본문 `edited`로 metadata-only 검증이 요청되면 **동일 PR/H
 ## Issue #595 — QA Final AGENT/보호 파일 원본 Run 검증
 
 `package.json`/lockfile, CI·검증기·보안 정책 등 보호 경로는 계속 HIGH 및 독립 검토가 필수다. main의 신뢰된 QA validator가 `AGENT`에서 수동 승인 영수증을 검증하더라도 세 required aggregate 이름 및 Quality/E2E/Docker 실행·결론·동일 SHA 보존 계약은 불변이다. 원본 Run/Attempt의 required job `completed_at` 이전 Manager ACCEPT는 거부하고, 다른 CI run의 PASS를 재사용하지 않는다. 최초 BLOCKED 후 같은 Run의 실패한 QA job만 독립 QA 완료 후 재실행할 수 있으나, 승인 receipt의 head/base/run/attempt 일치 조건을 통과해야 하며 자동으로 릴리스가 승인되지는 않는다.
+
+## Issue #593 — Trusted QA 원본 이벤트 귀속 및 metadata 재검증 (2026-10-10)
+
+- `workflow_run.pull_requests=[]`를 PR 실행명/제목에서 추측하지 않는다. 원본 `CI`의 PR 이벤트에서 **checkout 전에** 만든 `ci-pr-source-<run_id>-<attempt>` artifact를 기본 브랜치 검증기가 읽기 전용으로 조회한다. Artifact 자체는 PR 측 비신뢰 자료이며 스키마/repository/run ID·attempt/Head SHA·branch/base SHA/test merge SHA와 현재 PR 및 commit→PR GitHub API의 단일 귀속을 교차 확인한다. zip을 실행하거나 PR 코드를 checkout하지 않는다.
+- artifact가 없거나 만료·중복되거나 commit→PR 조회가 비어 있거나 여러 PR에 귀속되거나, Head/base/merge/attempt가 바뀌면 **BLOCKED**한다. 이전 성공을 재사용할 때도 동일 **PR + Head + base + test merge + 최신 full run attempt**와 세 Required Aggregate의 완료 성공을 확인한다. 잘못된 canonical title/Refs는 자동 수정·우회하지 않는다.
+- `CI` Workflow의 existing required `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test`, full/metadata concurrency, 6-shard E2E, main/GHCR/Finalizer 및 write 권한·Ruleset은 유지한다. `QA Final — Trusted`는 기본 브랜치 SHA의 **운영상 수동 Gate**이며 PR Head Ruleset check가 아니다.
+- `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
+- **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
+- 운영: [ISSUE_593 Work Packet](exec-plans/active/ISSUE_593.md)과 [원격 검증](REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
 
 ## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
 
@@ -661,3 +677,27 @@ CI/Release E2E 6개 shard·workers 1, job timeout, Docker/GHCR exact digest/tran
 - 설계 비교: 단일 workflow는 Ruleset·required check ID·token 범위를 유지하면서 짧게 보완 가능하지만 pending 자동 재개가 없다. 별도 metadata workflow 또는 `workflow_run` gate는 main의 신뢰된 코드 실행·workflow 존재 조건·PR/SHA/event/attempt 증거 결합·check name 충돌과 write 권한 위험이 있으므로 이번 범위에서는 도입하지 않는다.
 
 - PR #578 Codex P1 후속: metadata 증거 판정 Job은 다른 Runner와 workspace를 공유하지 않으므로 고정 SHA의 `actions/checkout`을 `persist-credentials: false`로 먼저 수행한다. `scripts/verify-issue-lifecycle.py`가 checkout 선행·인증 미보존 계약을 확인한다.
+
+
+### Issue #586 Finalizer SHA별 의무
+
+성공한 같은 Issue의 여러 PR은 docs-only 여부와 무관하게 각 exact merge SHA의 Main CI 및 GHCR candidate PASS/N/A, branch cleanup, FINAL 증거를 독립적으로 갖는다. 정상 성공 target의 검증 의무를 coalescing으로 생략하지 않는다. Finalizer는 historical marker 감사와 GHCR 삭제 사전 조회를 실제 변경 전 수행한다. 버전 bump, tag authority 및 정식 release 승인 정책은 불변이다.
+
+## #593 보호 파일 QA 경로 CI 재검증
+
+- PR #594 CI run `38038368267`: Quality/E2E/Docker/policy 성공, `QA Final — Automated`는 보호 파일 변경으로 BLOCKED. 이는 정책상 차단이며 회귀를 의미하지 않는다.
+- Trusted base SHA의 `qa_bootstrap`은 GitHub API의 PR/head/base/변경 파일과 `qa_method`를 조회한다. `AGENT`는 자동 QA 비적용(SKIPPED), Step Summary `NOT TESTED` 및 독립 Reviewer QA Final PASS + Manager exact-Head ACCEPT 필수. 자동 승인이나 독립 QA PASS가 아니다.
+- `AUTOMATED_MANAGER`와 보호 파일 충돌, API 불확실성, stale head/base는 fail-closed. Quality/E2E/Docker 세 required 및 Ruleset/GHCR 경계 불변.
+
+## Issue #586 Main CI #2445.1 실패 및 한 줄 Merge API 입력 (2026-10-11)
+
+PR #588 Merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 제목 외에 PR 설명 multiline commit body가 포함되어 Main CI trace 단계가 FAIL했다. E2E/Docker/Quality 결과 집계는 실행 누락에 따른 FAIL이고 GHCR candidate 및 Finalizer는 SKIPPED다. 원본 SHA와 실패 증거는 불변으로 보존한다.
+
+scripts/main_ci_run_name.py의 --as-merge-payload --expected-head-sha 모드는 merge_method=merge, 정규화된 한 줄 commit_title, 비어 있는 commit_message, exact expected_head_sha의 전체 값을 JSON으로 출력한다. GitHub merge 도구는 검증된 모든 값을 함께 전달한다. 후속 non-docs 교정 PR의 새로운 Main CI가 성공하면 기존 실패 supersession 규칙으로 SHA별 증거·브랜치 정리 의무를 유지하고 Finalizer로 진행한다. 새 Main CI/GHCR 실패 시 old SHA를 green으로 취급하지 않는다.
+
+application 0.104.0 / release_required=false / release_authorized=false 유지. ci-<SHA>는 임시 검증 이미지이며 정식 version/tag GHCR 발행 권한이 아니다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
