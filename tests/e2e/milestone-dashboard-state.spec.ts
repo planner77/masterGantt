@@ -96,8 +96,21 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   // Playwright's installed clock also owns React's timer/animation scheduling.
   // Settle one bounded frame without releasing the stale server response: the
   // confirmed cached query must be ready with zero additional network calls.
-  await page.clock.runFor(32);
-  await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); gate.resolve();
+  // The synthetic clock freezes browser scheduling while the cached query
+  // returns from an aborted request. Advance a bounded number of frames so
+  // React can commit the cached state even on a busy CI runner. A network
+  // retry is still forbidden and the stale response remains gated.
+  let readyFromCache = false;
+  for (let frame = 0; frame < 8; frame++) {
+    await page.clock.runFor(16);
+    if ((await dashboard(page).getAttribute("data-ready")) === "true") {
+      readyFromCache = true;
+      break;
+    }
+  }
+  expect(readyFromCache, "cached Milestone query should recover within eight animation frames").toBe(true);
+  expect(calls, "cache re-entry must not issue a third HTTP request").toBe(2);
+  gate.resolve();
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 });
 

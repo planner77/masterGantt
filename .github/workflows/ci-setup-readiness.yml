@@ -129,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .ci-setup-readiness
-          node scripts/analyze-ci-setup-metrics.mjs             --input .ci-setup-readiness/history             --min-samples 10             --output .ci-setup-readiness/analysis.json             --summary "$GITHUB_STEP_SUMMARY"
+          node scripts/analyze-ci-setup-metrics.mjs             --input .ci-setup-readiness/history             --min-samples 10             --require-bound-provenance true             --output .ci-setup-readiness/analysis.json             --summary "$GITHUB_STEP_SUMMARY"
           node scripts/render-ci-setup-readiness.mjs             --input .ci-setup-readiness/analysis.json             --output .ci-setup-readiness/comment.md             --issue 444             --repository "$GITHUB_REPOSITORY"             --run-id "$GITHUB_RUN_ID"
           cat .ci-setup-readiness/comment.md >> "$GITHUB_STEP_SUMMARY"
 

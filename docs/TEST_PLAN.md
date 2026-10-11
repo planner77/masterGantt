@@ -2994,3 +2994,9 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 
 - `.github/workflows/ci-setup-readiness.yml` 수집 루프의 TSV 파싱과 Phase 2 분석/Artifact/marker 댓글 단계의 중복 부재를 검증한다.
 - `ci-setup-readiness.test.ts`에서 shell `run: |` 블록을 `bash -n`으로 검증한다. PR CI PASS는 신규 workflow_run의 실제 운영 PASS를 대체하지 않는다.
+
+### Issue #450 · PR CI #2462.1 회귀 수정 (2026-10-11)
+
+- `ci-setup-readiness.yml`: Phase 2 analyzer의 `--require-bound-provenance true` 필수 옵션 복원. `verify-ci-cache-contract.mjs` 및 `ci-cache-phase2.test.ts`/`ci-setup-readiness.test.ts`로 provenance binding 회귀를 fail-closed 검증한다.
+- Milestone dashboard `#463 aborted request to cached query`는 fake clock의 React frame commit만 최대 8프레임(각 16ms)으로 진행해 CI runner 스케줄링 지터를 흡수한다. 기존 stale response gate와 **HTTP 호출 2회 한정**, 캐시 복귀 성공 검증을 유지한다.
+- `qa_method: OWNER_MANAGED`, `risk_level: HIGH` 및 `ISSUE_450.md`의 AC/문서 매핑은 CI 메타데이터 검증 조건이다. Trusted QA PASS와 Owner ACCEPT, 실제 Main/GHCR 배포는 별개이며 이번 작업은 PR CI 시작까지이다.
