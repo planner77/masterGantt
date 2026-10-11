@@ -31,12 +31,13 @@ describe("SVAR observed Task reveal admission", () => {
 describe("SVAR visibility admission", () => {
   afterEach(() => vi.unstubAllGlobals());
   function portFor(mode: string) {
-    const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: 200, scrollLeft: 0 };
+    const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: mode === "commands" ? 125 : 200, scrollLeft: 0 };
     const vertical = { clientHeight: 100, scrollHeight: 200, scrollTop: 0 };
     const root = { isConnected: mode !== "detached", clientWidth: 100, clientHeight: 100,
       closest: () => ["hidden", "inert"].includes(mode) ? {} : null,
       getClientRects: () => [{ width: 100, height: 100 }], matches: () => false,
       querySelector: (selector: string) => selector === ".wx-chart" ? horizontal : selector === ".wx-gantt" ? vertical : null };
+    vi.stubGlobal("window", { innerWidth: 1440, innerHeight: 900 });
     vi.stubGlobal("document", { visibilityState: mode === "document-hidden" ? "hidden" : "visible", addEventListener: vi.fn(), removeEventListener: vi.fn() });
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { queueMicrotask(() => callback(0)); return 1; });
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
@@ -45,6 +46,7 @@ describe("SVAR visibility admission", () => {
     const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: 100 }, _chartWidth: 100, _chartHeight: 100 };
     const api = { getState: () => state, intercept: vi.fn(), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
       commands.push(action);
+      if (action === "resize-chart") horizontal.scrollWidth = 200;
       if (action === "scroll-chart") { state.scrollLeft = position.left ?? 0; state.scrollTop = position.top ?? 0; }
     } } as unknown as IApi;
     const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: {} as HTMLElement,
@@ -66,6 +68,17 @@ describe("SVAR visibility admission", () => {
     expect((await port.prepare!(command, () => true)).ready).toBe(true);
     expect(await port.apply(command, () => false)).toBeNull();
     expect(port.commands).toEqual(["resize-chart", "resize-chart"]);
+  });
+  it("does not resize or require another observation when actual capacity already admits the saved position", async () => {
+    const port = portFor("ready");
+    expect(await port.prepare!({ kind: "PEER_RETURN", position: { left: 50, top: 0 }, compatibility: true }, () => true)).toEqual({ ready: true });
+    expect(port.commands).toEqual([]);
+  });
+  it.each(["resize", "fullscreen"])("includes physical %s in the lease even before React renders", mode => {
+    const port = portFor("ready"), before = port.read().context.geometry;
+    if (mode === "resize") window.innerWidth = 1024;
+    else Object.assign(document, { fullscreenElement: {} });
+    expect(port.read().context.geometry).not.toBe(before);
   });
   it("keeps visible zero geometry eligible for bounded measurement without permitting a write", () => {
     const sample = portFor("zero").read();

@@ -221,6 +221,13 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
 });
 
 test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다", async ({ page }, testInfo) => {
+  // Observe the trusted input before React installs its cancellation listener.
+  // Native event dispatch can run Promise callbacks between capture listeners.
+  await page.addInitScript(() => {
+    const input = (event: Event) => Reflect.get(window, "__issue530ObserveInput")?.(event);
+    document.addEventListener("input", input, true);
+    Reflect.set(window, "__issue530DisposeInput", () => document.removeEventListener("input", input, true));
+  });
   const state = await fixture(page);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
@@ -267,13 +274,13 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
       inputEvents.push({ at: performance.now(), trusted: event.isTrusted, targetIsSearch: event.target.type === "search", expectedValue: event.target.value === "Stable leaf",
         holding, autoReleased, heldFrames: held.size, ...peerState(), marker: element.getAttribute("data-gantt-peer-restore") });
     };
-    document.addEventListener("input", input, true);
+    Reflect.set(window, "__issue530ObserveInput", input);
     const safety = setTimeout(() => release(true), 1500);
     Object.defineProperty(element, "__issue530PendingBarrier", { configurable: true, value: {
       release: () => release(),
       sample: () => ({ holding, autoReleased, rafRestored: window.requestAnimationFrame === originalRaf && window.cancelAnimationFrame === originalCancel, heldFrames: held.size, marker: element.getAttribute("data-gantt-peer-restore"), inputEvents,
         ...peerState() }),
-      dispose() { if (disposed) return; disposed = true; release(); clearTimeout(safety); window.requestAnimationFrame = originalRaf; window.cancelAnimationFrame = originalCancel; document.removeEventListener("input", input, true); },
+      dispose() { if (disposed) return; disposed = true; release(); clearTimeout(safety); window.requestAnimationFrame = originalRaf; window.cancelAnimationFrame = originalCancel; Reflect.deleteProperty(window, "__issue530ObserveInput"); Reflect.get(window, "__issue530DisposeInput")(); },
     } });
   });
   const barrier = () => frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").sample());

@@ -156,6 +156,8 @@ Task Editor가 열린 동안 기존 shortcut guard, modal focus/Tab 처리, dirt
 
 Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint 이름 편집의 과거 409 제한은 #258에서 대체한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
 
+PR #610 / CI #2499.1 후속: 실제 이름 input의 focusout은 Core 공개 `close-editor` 저장 gateway로 전달하여 바깥 클릭 처리보다 먼저 scale toolbar가 editor를 교체해도 저장 요청을 잃지 않는다. 같은 session의 committed 상태로 중복 PATCH를 차단하고, 새 focusout 연결은 composition 중 Core 저장 gateway를 호출하지 않는다. 실제 IME composition 도중 바깥 클릭하는 환경의 Core 후속 동작은 별도 검증 대상이며 IME Enter 검증만으로 PASS를 확대하지 않는다. Escape의 비동기 닫기 완료 focus는 생성 당시 token/API identity가 유효할 때만 실행해 새 편집을 방해하지 않는다. Escape·invalid name·401/412/network 처리 및 canonical response 동기화는 기존 계약을 따른다.
+
 ## Issue #187 — 작업 정보 대화상자 물류 연결 (logistics) 탭
 
 기존 3개 탭(작업 정보 / 리소스 / 관계)에 이어 4번째 탭으로 **물류 연결 (logistics)** 탭이 추가되었다 (`TASK_EDITOR_TABS = ["info", "resources", "relations", "logistics"]`).

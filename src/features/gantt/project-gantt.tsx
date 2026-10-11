@@ -1412,7 +1412,7 @@ export function ProjectGantt({
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
-  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId).map((task, index) => ({ ...task, projectDisplayKey: JSON.stringify(tasks[index]) })), [tasks, viewRootTaskId]);
+  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
@@ -3499,9 +3499,12 @@ export function ProjectGantt({
     event.preventDefault();
     event.stopPropagation();
     inlineSessionReference.current = null;
-    inlineOpenTokenReference.current += 1;
+    const token = ++inlineOpenTokenReference.current;
+    const api = apiReference.current;
     setInlineNameMessage("");
     void session.table.exec("close-editor", { ignore: true }).finally(() => {
+      // A later name gesture owns focus even if this close finishes last.
+      if (inlineOpenTokenReference.current !== token || apiReference.current !== api) return;
       focusInlineNameCell(session.taskId, session.cell);
     });
     return true;
@@ -3820,6 +3823,15 @@ export function ProjectGantt({
           }}
           onClickCapture={handleSelectionClick}
           onClick={(event) => { void handleNameClick(event); }}
+          onBlurCapture={(event) => {
+            if (!isCurrentInlineNameInput(event.target) || inlineComposingReference.current) return;
+            const session = inlineSessionReference.current;
+            if (session && !session.committed) {
+              // Save before toolbar changes can replace the native editor and
+              // remove Core's document clickOutside handler.
+              void session.table.exec("close-editor", { ignore: false });
+            }
+          }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
           onInput={(event) => {

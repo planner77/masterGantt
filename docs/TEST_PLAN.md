@@ -2,6 +2,16 @@
 
 [원본 PR CI #2498.1](https://github.com/planner77/masterGantt/actions/runs/38130201016)의 Chromium 10 FAIL은 단일 원인으로 축소하지 않는다. Work Packet의 수평 Projection/Viewport 책임 경계와 각 실제 E2E Trace를 확인한다. Projection은 horizontal Core/native 동일성 없이 canonical payload·행/수직 정합을 증명하고, Coordinator는 peer/Task 의도별 실제 Core exact/native±1px 및 bounded3RAF를 별도로 검증한다. Resize/reflow/fullscreen은 대기 중인 복귀를 취소해야 하며, 같은 context 안의 늦은 120px 복원이 사용자 입력·검색 결과·명시 날짜 이동을 덮으면 실패다. 충분한 physical capacity에서 resize action0, 진단 계약 admissionCapacity와 #568 effect-request/cleanup, #549 dev-only diagnostic right-edge, #367 extension 및 vertical drag edge single-flight를 동일 E2E/Unit에서 검증한다. 실패 검증 테스트의 기대값·timeout·retry·skip 완화 금지.
 
+### CI #2499.1 후속 회귀
+
+[원본 CI #2499.1](https://github.com/planner77/masterGantt/actions/runs/38132372241)은 Head `f10dfd0308cd6782f4ac908e7ec8905b09e12e5f`, attempt1에서 quality/e2e FAIL·docker PASS다. port의 Node Unit fixture에 실제 browser geometry lease용 window/Fullscreen 환경을 제공하고, 충분한 capacity의 resize0과 부족한 capacity의 실제 resize·새 receipt 요구를 각각 검증한다. FILTER_RETURN은 수평120 복원을 유지하면서 세로96→0·24 clamp, 준비 중32→8 추가 clamp, Core/native 세로 불일치 중 쓰기0 및 실제 입력의 bookmark 폐기를 검증한다.
+
+실제 input 중 pending 취소 테스트는 제품 capture listener보다 먼저 테스트 관찰자를 설치하여 입력 직전 상태를 읽는다. 제품의 즉시 FILTER_INPUT 취소·writes0·marker 부재 assertion을 유지한다. 테스트 listener 등록 순서 보완은 제품 취소를 지연시키는 근거가 아니다.
+
+Stage 빈 Summary progress null/Core0과 Resource 초기/후속 projectDisplayKey 일치를 strict payload 비교 그대로 검증한다. renderer0을 서버 Summary progress0으로 저장하거나 사용자 `—`를0%로 표시하지 않는다. 기존 inline 전체 흐름에서 390/768/1024/1440px 편집, validation·IME·Escape, Week toolbar blur의 name-only PATCH1, 500/412/network 후 canonical 이름과 focus를 확인한다. Stage 복원 marker1 및 Resource export/no-export 양쪽 Core/native120을 유지하며 timeout/기대값을 완화하지 않는다.
+
+Inline 재진입의 독립 최초768px FAIL은 원장을 유지한다. Escape 완료 focus의 token/API identity guard를 검토하고, 기존 inline 전체3건과 실제 pointerdown→native resize→새 SETTLED receipt→동일 Task 이름 hit→pointerup 회귀를 확인한다. 화면 밖 클릭 준비 오류는 제품 FAIL 근거에서 제외하며 미실증 fallback 확대나 성공 반복으로 원인 확정을 대체하지 않는다.
+
 ## Issue #571 — Coordinator 경쟁·완료 검증
 
 순수 Coordinator의 완료 authority는 accepted revision/generation과 최신 유효 receipt에 고정한다. 같은 geometry라도 새 revision/generation 또는 invalid receipt 뒤에는 native repair/차단을 실행하지 않아야 한다. Task reveal admission은 실제 axis start 포함/end 제외, invalid date·범위 밖 clamped x·capacity 부족을 거절하고, 날짜 없는 Summary의 기존 수평 위치를 보존하는지 검증한다.

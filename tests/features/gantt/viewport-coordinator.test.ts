@@ -287,7 +287,43 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
     await f.advance(8);
     if (moved) expect(f.port.apply).not.toHaveBeenCalled();
-    else expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 96 } }, expect.any(Function));
+    else expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } }, expect.any(Function));
+  });
+
+  it.each([0, 24])("restores horizontal bookmark while preserving a legal filtered vertical clamp to %s", async top => {
+    const f = fixture(); f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top }, native: { left: 0, top } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.advance(8);
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top } }, expect.any(Function));
+    expect(f.sample.core).toEqual({ left: 120, top });
+    expect(f.sample.native).toEqual({ left: 120, top });
+  });
+
+  it("uses the latest coherent vertical clamp at apply rather than the one before preparation", async () => {
+    const f = fixture(); let finish!: (result: { ready: boolean }) => void;
+    f.port.prepare = vi.fn<NonNullable<ViewportPort["prepare"]>>(() => new Promise(resolve => { finish = resolve; }));
+    f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top: 32 }, native: { left: 0, top: 32 } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.flush();
+    expect(f.port.prepare).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 32 } }, expect.any(Function));
+    f.update({ core: { left: 0, top: 8 }, native: { left: 0, top: 8 } }); finish({ ready: true });
+    await f.advance(8);
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 8 } }, expect.any(Function));
+  });
+
+  it("does not restore horizontal bookmark before a pending native vertical clamp becomes coherent", async () => {
+    const f = fixture(); f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top: 96 }, native: { left: 0, top: 0 } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.advance(4); expect(f.port.apply).not.toHaveBeenCalled();
+    f.update({ core: { left: 0, top: 0 } });
+    await f.advance(8);
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } }, expect.any(Function));
   });
 
   it.each(["reveal", "columns"] as const)("discards filter bookmark after %s", async change => {

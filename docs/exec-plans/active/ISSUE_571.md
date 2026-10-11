@@ -175,3 +175,47 @@ DESIGN Delta B: 기존 UX-12 상태 보존 원칙의 구체화. `DESIGN.md: N/A`
 - #549: `__masterganttMilestoneTimeline.scroll`은 기존 개발용 수평 직접 검증을 위해 typed DIAGNOSTIC_SCROLL 포트로 이동. Production에서는 UNSUPPORTED이며 Core/native 실제 연속3프레임 없이 성공을 주장하지 않는다. #367 RANGE_EXTENSION도 canonical receipt가 아닌 실제 Core/native 기하3프레임 수렴을 독립 기준으로 삼는다.
 - #571/RFC: 물리 capacity가 이미 충분한 경우 불필요한 resize-chart와 추가 projection epoch를 만들지 않는다. Codex P2 vertical drag-edge 반복 supersession은 single-flight로 차단한다.
 - 테스트: projection의 임시 가로 불일치·range pending receipt·dev diagnostics Unit 보강, 원본 10 E2E assertion/timeout/skip/retry는 변경하지 않는다. 현 원격 신규 전체 CI 검증은 START 이전 NOT TESTED이며 완료 PASS로 소급하지 않는다. 변경된 샘플/trace가 의미하는 범위 외의 사용자 환경 검증은 별도다.
+
+
+## 2026-10-11 원격 전체 PR CI #2499.1 실패 및 후속 보완
+
+- 최신 원본 [Run 38132372241](https://github.com/planner77/masterGantt/actions/runs/38132372241), run_attempt=1, Head `f10dfd0308cd6782f4ac908e7ec8905b09e12e5f`, base `ac2a3f69d09da1cbc7e4f833da0fa0515434f895`, test merge `9171e7339c136e1ad7134a7495ed4cb0c07ed6bc`. quality FAIL, e2e FAIL, docker PASS. 이전 #2498.1 실패와 구분한다.
+- Vitest job114449211771: 10 FAIL/1958 PASS/3 skipped. Chromium shard3 job114449211766: 4 FAIL/90 PASS/1 skipped, shard5 job114449211811: 2 FAIL/94 PASS. shard2/4는 이번 run에서 PASS다.
+- 원인1: port가 window 크기/Fullscreen lease를 읽지만 Node Unit fixture에 window가 없어 `window is not defined`. 제품 browser lease를 제거하지 않고 coherent fixture와 sufficient/insufficient capacity 테스트를 보완한다.
+- 원인2: `milestone-dashboard-state.spec.ts:117`의 검색 해제 후 FILTER_RETURN이 과거 top96을 재생했다. 필터 1행의 합법적인 native top0 clamp는 복원 대상이 아니다. bookmark를 left+context+gesture로 제한하고 prepare/apply 각각 최신 정합 Core top을 사용한다. 세로96→0/24, 준비 중32→8, native/Core 정합 전 쓰기0, 사용자 이동 후 bookmark 폐기를 Unit으로 검증한다.
+- 원인3: 같은 spec의 pending 실제 input 테스트는 제품 capture listener보다 늦게 등록된 관찰자가 listener 사이 cleanup을 본 순서 오류다. 제품은 즉시 FILTER_INPUT→SUPERSEDED/writes0으로 올바르게 취소한다. 테스트 관찰자를 addInitScript로 먼저 설치하며 제품 취소·기존 assertion·RAF barrier/cleanup 계약을 유지한다.
+- 원인4: Stage peer return은 빈 Summary expected progress 미지정/Core0으로 strict payload 검사가 막혔다. Resource export 및 no-export control은 초기 Core tasks의 projectDisplayKey 누락/후속 projection의 canonical 표시 키 불일치다. 다른 predicate가 정합한 실제 임시 진단으로 확인했으며, strict 검사를 완화하지 않고 초기·후속 adapter 입력을 일치시킨다. renderer progress0은 canonical Summary null/표시 `—`를 바꾸지 않는다.
+- 원인5: inline 이름 `Blur saved`는 PATCH0이며, 실행 trace에는 입력값 반영·revision40/편집 가능 유지·PATCH0이 있으며, 설치 Core 소스상 document bubbling 바깥 클릭 저장보다 React scale 변경이 먼저 editor를 교체하는 경합으로 진단했다. 실제 focusout/click 호출 스택은 trace에 없어 기전의 근거는 소스와 실행 순서다. 실제 focusout을 기존 close-editor/update-cell 저장 gateway로 연결하되 Escape·IME·검증·중복 저장·500/412/network 계약을 유지한다.
+- frontend baseline6 실행 `/tmp/issue571-ci2499-baseline6.log`: 동일 6 FAIL 재현. 최초 trace는 `/tmp/issue571-ci2499-baseline6-failures`에 보존한다. 각 보완 후 결과는 아래에 별도 기록하며 실패 원장을 성공으로 덮어쓰지 않는다.
+- 위험 분류는 HIGH/AGENT/qa_required=true, application 후보0.104.2를 유지한다. 새 버전 bump·CI workflow/timeout/retry/skip/gate 변경은 하지 않는다. 실제 별도 qa_docs PRE_QA 이후 기존 PR #610의 새 full CI 시작까지만 수행한다. 공식 전체 회귀 결과와 QA_FINAL/Manager ACCEPT·병합은 별도다.
+
+### 후속 Local Fast Feedback와 고정 소스
+
+- frontend 고정 소스 `/tmp/issue571-ci2499-after6.log`: 원격 실패6건 **6 Chromium PASS(1.6분)**. Stage 실제 SQLite, Milestone 필터·pending trusted input, inline 전체 실패 처리 흐름, Resource export/no-export 양쪽을 포함한다.
+- `/tmp/issue571-ci2499-adapter-port-unit.log`: adapter/port **33 Unit PASS(298ms)**. `/tmp/issue571-ci2499-canonical-unit.log`: canonical/projection **39 Unit PASS(328ms)**. pure Coordinator **70 Unit PASS**, typecheck PASS. 중복 파일을 포함한 실행 수를 독립 테스트 수로 합산하지 않는다.
+- `/tmp/issue571-ci2499-typecheck.log`: PASS. `/tmp/issue571-ci2499-lint.log`: 0 errors/기존 hook warnings3. `git diff --check` PASS. 임시 predicate 진단 제거 및 projection-settled.ts diff0, 실패6건의 timeout/retry/skip과 제품 strict projection 검사를 유지했다.
+- 고정 소스 manifest `/tmp/issue571-ci2499-final-source.sha256` 실행 전후7항목 일치. 제품 지문: project-gantt.tsx `06898ca4530d4cd0f0772dffa0392046feea3a34ba330652df15355833c0a601`, project-task-adapter.ts `4996769eef4cc65959da810ec16130944b2821ef9e3cb3b4ce0dceeffdaea3cd`, viewport-coordinator.ts `2c0de5a87d7bcc94ac90429d7a0bc259312a68dc23e03e386d59655f3e7624b8`.
+- DOCUMENTATION_SYNC 구조/AC1~AC6 mapping 검사 PASS, Markdown179문서 링크 검사 PASS. 구조 PASS는 독립 의미 검토와 구분한다.
+- 실제 IME 조합 도중 바깥 클릭 blur의 Core 후속 동작은 NOT TESTED다. 새 focusout 연결의 composition guard와 기존 IME Enter 검증을 이 사용자 환경 전체 PASS로 확대하지 않는다. 최종 수동 UX·#551 미통합 lane 등 이전 미검증 경계도 유지한다.
+
+### 독립 PRE_QA 첫 후속 실행 — REWORK
+
+- 별도 `/root/issue570_qa_fix`: 관련9파일 **151 Unit PASS(383ms)**, `/tmp/issue571-ci2499-independent-unit9.log`. 최초 sandbox browser 시도는 webServer 시작 Exit1/실제 테스트0으로 준비 실패이며 제품 FAIL로 분류하지 않는다.
+- 고정 manifest7 전후일치 상태에서 독립 `/tmp/issue571-ci2499-independent-browser6.log`: **5 Chromium PASS/1 FAIL(1.7분)**. Milestone2/Stage1/Resource2는 PASS다. inline 이름 case는 390px 열기→Escape/input0까지 성공한 뒤768px resize→두 번째 이름 클릭에서 input 부재로 spec137/helper33 `toBeFocused`가 실패했다. 기존 원격의 Week blur PATCH0 지점에 도달하기 전이므로 이를 동일 저장 실패로 귀속하지 않는다.
+- 최초 독립 실패 trace/context/log는 `/tmp/issue571-ci2499-independent-inline-firstfail.tar.gz`에 보존한다. PRE_QA REWORK로 PR 게시를 보류하고 실제 resize·편집기 재진입 원인을 확인한다. source/test 변경 없는 단순 retry로 이 결과를 숨기지 않는다.
+
+### Inline 재진입 추가 조사와 권한 보완
+
+- 독립 최초768px 실패에는 Core open/close/focusout 기록이 없어 정확 분기는 UNKNOWN이다. 제한한 임시 진단 반복에서는 재현되지 않았고, 이를 최초 실패의 PASS 전환이나 원인 증명으로 사용하지 않는다.
+- 첫 pointerdown→resize→pointerup 통제 실패는 y859.5/viewport844의 화면 밖 좌표라는 테스트 준비 오류여서 제품 재현 근거에서 제외했다. 실제 화면 안의 동일 Task 이름 hit을 확인한 통제는 기존 코드에서도 PASS다. 이 결과로 미실증 click fallback 확대를 도입하지 않는다.
+- 정적 검토에서 Escape의 close-editor Promise 완료 focus가 생성 당시 권한을 재확인하지 않는 누락을 확인했다. 이전 Escape 완료가 다음 편집으로 focus를 빼앗지 않도록 token 및 API identity가 그대로일 때만 focus한다. 원래768px 실패의 직접 원인이라고 확정하지 않는다.
+- 새 회귀는 실제 이름 영역에서 pointerdown한 뒤 native viewport resize·새 projection SETTLED receipt·동일 Task 이름 hit을 확인하고 pointerup→편집 focus를 검증한다. 기존 inline3개 전체와 함께 확인하며 임시 console/DOM 진단은 제거한다.
+
+### 최종 독립 검토와 PR CI 시작 인계
+
+- frontend 후속 `/tmp/issue571-ci2499-inline-final4.log`: 기존 inline 3건+신규 pointer 1건 **4 Chromium PASS(21.7초)**. 후속 typecheck PASS, lint 0 errors/기존 warnings3. 그 뒤 신규 test의 초기 실제 SETTLED poll·한글 title만 보완했고 test lint 0 errors/0 warnings다.
+- 별도 Reviewer `/root/issue570_qa_fix`의 최종 `/tmp/issue571-ci2499-independent-inline-final4.log`: 동일 최종 후보 **4 Chromium PASS(21.9초)**. 기존390/768/1024/1440 재진입·invalid·IME Enter·Escape·Week blur PATCH1·500/412/network/401과 실제 pointer/resize를 포함한다. 최초 독립5 PASS/1 FAIL 이력을 유지하고, 원래768px exact 기전 UNKNOWN 및 새 pointer의 이전 소스 PASS를 숨기지 않는 조건에서 **PR CI 시작용 PRE_QA PASS**다.
+- 관련9파일151 Unit PASS 및 Milestone2/Stage1/Resource2의 앞선 독립5 PASS는 해당 코드 영향이 유지된 범위의 재사용 증거이며 최종4건과 별도다. 중복 실행을 서로 다른 테스트 수로 합산하지 않는다. 모든 원격 공식 전체 CI 결과는 새 Head에서 별도 확인해야 한다.
+- 최종 manifest `/tmp/issue571-ci2499-final3-source.sha256` 8항목 독립 실행 전후 일치. 최종 project-gantt.tsx SHA256 `362bacf4b6ee7bd8aeed9b24ba3e0c8938880d09b8cb1c8573c487aee4697726`, 신규 inline E2E `ca4a9a084c30ddcc4c50585ab43d60caf02f6f60d6e2555c14097880165ef89c`. 공용 adapter/pure/기존 시험 지문은 앞선 기록과 동일하다. 임시 진단0·projection-settled.ts diff0·미실증 fallback 확장0을 확인했다.
+- DOCUMENTATION_SYNC 의미 검토와 구조/AC mapping을 구분한다. 관련 문서·실패 이력·새 준비 조건·IME 실제 blur 미검증 경계를 동기화했다. generated Next 설정·runtime DB/log·실행별 output 그림/JSON은 후속 commit 대상에서 제외한다.
+- Manager의 이번 승인은 동일 후보 게시 및 full PR CI 시작에 한정한다. canonical PR title/Refs를 유지하고 기존 branch/PR #610을 재사용한다. quality/e2e/docker의 신규 결과는 **NOT TESTED**, 최종 Manager ACCEPT는 **NOT TESTED**, 보호 AGENT의 현재 Head 인간 QA_FINAL/후속 Owner ACCEPT 전 병합은 **BLOCKED**다. 사용자 요청대로 CI 시작 확인 후 결과 모니터링·merge/main/GHCR/release/Issue 종료를 수행하지 않는다. 실제 새 Head/run URL은 Issue/PR STATUS 댓글에 남긴다.

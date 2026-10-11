@@ -10,6 +10,8 @@
 
 projection receipt는 행 정합을 보장할 뿐 viewport 완료가 아니다. 동일 canonical revision의 대기 중 관측 generation 변경은 최신 receipt를 따라 geometry 안정 관측을 재시작하며, 적용 직전 고정한 generation이 명령 후 바뀌면 추가 쓰기를 중단한다. metadata/peer 요청은 canonical queue에서 등록한 뒤 queue 밖에서 최신 receipt와 visible geometry를 기다려야 한다. receipt를 생성하는 queue 안에서 viewport 완료를 기다려 교착시키지 않는다. Core exact/native ±1px의 연속 안정 frame과 유한 예산으로 완료·SUPERSEDED·NOT_MEASURABLE·NO_SCROLL_CAPACITY·TIMED_OUT·FAILED를 구분한다.
 
+필터 bookmark는 source context·gesture와 수평 left만 저장한다. FILTER_RETURN은 준비와 실제 적용 각각에서 현재 Core top을 사용하고, 최신 receipt와 함께 Core/native 세로 정합·top 안정성을 확인한다. 조회 결과 감소에 따른 native 세로 clamp를 과거 bookmark top으로 되돌리지 않는다. 대기 중 새 입력·조회 문맥 변경의 취소 계약은 유지한다.
+
 기존 range compatibility 준비는 좌표 적용 전에 PREPARING_GEOMETRY에서 수행한다. 실제 resize를 발행한 경우 준비 전 generation보다 새로운 성공 projection을 요구하고 최신 geometry를 다시 검증한 뒤 좌표 명령의 generation을 고정한다. 준비 중 같은 canonical 데이터의 관측 갱신은 허용하지만 실제 revision·입력·API/조회 문맥 변경은 취소한다. 좌표 명령 이후의 stale generation/receipt 차단은 유지한다.
 
 탭 복귀 직후 논리적으로 visible이지만 chart 크기가 일시적으로0이면 원래 intent 권한으로 중앙 상태 머신에서 유한 대기한다. 측정 전에는 명령을 발행하지 않으며 새 입력·조회 문맥 변경은 대기를 취소한다. port는 detached, hidden/inert, document hidden 및 자체 display/visibility 비활성을 별도로 visible=false로 전달하므로 일시적 크기0과 구분한다. 지속되는 크기0은 실패로 끝내며 새 snapshot으로 재승인하지 않는다.
