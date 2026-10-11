@@ -1,3 +1,19 @@
+## Issue #550 — PR #626 CI #2517.1 #571 Editor locate 포커스 검증 보완 (2026-10-12)
+
+- 원본 [PR CI #2517.1](https://github.com/planner77/masterGantt/actions/runs/38172515105) / head `a876772004394e006b15be852145f14e9b19a13b`은 전체 FAILURE. Main #2515.1의 원래 실패가 포함된 Chromium shard2는 **72/72 PASS**, Quality/Vitest/Build/Docker 및 E2E shard1/2/3/5/6 PASS. Chromium **shard4 106 PASS/1 FAIL/1 SKIP**의 `tests/e2e/viewport-coordinator.spec.ts:30` `toBeFocused()`가 실패; E2E aggregate와 자동 QA도 FAIL. 두 실패는 별개의 수용조건이며 하나의 PASS가 나머지를 대체하지 않는다.
+- [shard4 Playwright trace](https://github.com/planner77/masterGantt/actions/runs/38172515105/artifacts/11714409132)는 Editor 소속 작업의 `일정에서 보기` 이후 `TASK_REVEAL` 코디네이터가 `WAIT_GEOMETRY → APPLYING → SETTLING → SETTLED`를 거쳐 Core/native 스크롤 위치가 `0/117`로 일치했음을 보여준다. 그러나 실제 대상 Grid 행의 focus는 확인되지 않음. `core.top < 300` 조건은 아직 SETTLING 중에도 성립하므로 포커스 완료의 근거가 아니다. 정확한 DOM 포커스 소실 시점을 단일 trace만으로 단정하지 않는다.
+- 앱 조치: `project-readonly-view.tsx` 명시 Task reveal SETTLED callback에 **최대 12개 requestAnimationFrame**의 bounded DOM focus handoff를 추가한다. 일시적인 SVAR 가상화 행 교체 뒤에는 현재 visible Grid 행을 다시 찾아 focus를 전달하고, 3연속 프레임/최소7번째 프레임에서 identity를 확인한다. Controller/API instance·canonical revision/projection·Core/native 위치 정합, hidden/inert, 새 modal/Editor, 사용자 제3 control focus를 검사하여 intent가 낡으면 abort한다. scroll writer/다른 기능·아티팩트 권한 확대·무기한 retry 없음.
+- 테스트 조치: `viewport-coordinator.spec.ts` 기존 실제 `toBeFocused()` 및 Core/native±1px·후속 metadata strict equality를 그대로 두고 `TASK_REVEAL:SETTLED/SETTLED`를 bounded poll로 확인한다. 추가로 8RAF 뒤에도 **동일 실제 Grid row가 focused**인지 다시 검사한다. expectation/timeouts/shard/skip/retry 약화 없음. 기존 #525 복귀 SETTLED 검증도 유지.
+- **Main 정렬:** 보완 PR #626 base `40747252c389f2a4d1203a2262a4caa49c90728d`, 최신 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`(#614 Target domain/fixture) 추가 4 commits. Main의 #614 CODE/문서와 TEST_PLAN 후미 증거, PLAN의 #614 신규 Work Packet 절을 그대로 보존한다. 이 변경은 #550 추가 요구/Target runtime 확대가 아니다.
+- **DOCUMENTATION_SYNC:** `src/features/projects/project-readonly-view.tsx`, `tests/e2e/viewport-coordinator.spec.ts`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_550.md`, `CHANGELOG.md` UPDATED. `DESIGN.md`, AGENTS/CI_CD, API/DB/SECURITY/SCHEDULING, 리소스 도메인 문서/fixture는 계약 변화 없거나 Main 최신 그대로여서 N/A. 기존 #550 AC1~11 테스트 원장과 실패 원본 보존.
+- Version `0.105.0` 및 package/lock은 기존 릴리스 후보로 유지하고 `CHANGELOG.md`에는 이번 focus 보완을 기록(새 tag/정식 GHCR 아직 게시된 증거 없음). HIGH, `qa_method=OWNER_MANAGED`, 3 Required Quality/E2E/Docker·Trusted QA/Owner 승인 유지. Issue #550의 정식 v0.105.0 승인 marker는 별도 권위이며 corrective PR 자체는 추가 버전 bump 없음. 새 Head PR CI·Trusted QA·Main CI/임시 GHCR/정식 Release는 성공 전 **NOT TESTED**, 이번 사용자 요청은 새 PR CI 시작까지만. 결과 확인/병합은 별도 Gate.
+
+## Issue #614 — Target F0 계약·공통 fixture (2026-10-11)
+
+[#614 Work Packet](ISSUE_614.md)과 [Target/Resource 실행 계획](TARGET_RESOURCE_ROLLOUT.md)에 따라 main `cbc73740236f3b3e177e2ed3196a0d02a292c741` / app `0.104.4`에서 `docs/issue-614-target-resource-contract`를 생성했다. [LOGISTICS_TARGETS](../../LOGISTICS_TARGETS.md)에 ER/연결/집계/이관·UI 계약을 고정하고 공통 합성 fixture를 추가한다. F0는 runtime 변경 비범위이며 version 유지, MEDIUM / OWNER_MANAGED / qa_required=true, release_required=false / release_authorized=false다.
+
+사용자 요청은 구현·문서 동기화·빠른 검증·사전 검토 후 PR CI 시작까지이며 CI 모니터링·병합·main/GHCR·Issue 종료는 포함하지 않는다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED. #615~#624는 별도 착수하며 Resource 우선 M2 이후 V1 순서를 유지한다.
+
 ## Issue #550 — Main CI #2515.1 #525 Resource→Gantt peer 복원 경합 보완 (2026-10-12)
 
 - 기준 병합 SHA `40747252c389f2a4d1203a2262a4caa49c90728d`, [Main CI #2515.1](https://github.com/planner77/masterGantt/actions/runs/38170382648), Chromium shard2 job `114561630041`: **71 PASS/1 FAIL**. 실패 `tests/e2e/project-resource-workload-status.spec.ts:132`의 `summaryToggle` `toHaveClass(/wxi-menu-right/)` 호출은 대상 Summary native row가 보이지 않아 5초 timeout. 다른 E2E 5샤드/Quality/Docker는 PASS이며 전체 Main CI와 GHCR publish는 FAIL/SKIPPED.

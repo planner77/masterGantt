@@ -1149,15 +1149,47 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return;
     }
     const controller = viewportController.current;
-    void controller?.request({ kind: "TASK_REVEAL", taskId }).then(outcome => {
+    void controller?.request({ kind: "TASK_REVEAL", taskId }).then(async outcome => {
       if (outcome !== "SETTLED" || viewportController.current !== controller) return;
-      const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
-      if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
-      const target = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]"))
-        .find(row => taskIdFromElement(row) === taskId);
-      if (!target?.isConnected || !target.getClientRects().length || target.closest("[hidden], [inert]")) return;
-      if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
-      target.focus({ preventScroll: true });
+      const settled = controller.capture();
+      if (!settled) return;
+      const priorFocus = document.activeElement;
+      let lastRow: HTMLElement | null = null;
+      let stableFrames = 0;
+      // #550/#571: SVAR may replace a virtual row just after the viewport
+      // receipt settles. Transfer focus to the current row, not a stale node.
+      for (let frame = 0; frame < 12; frame++) {
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+        if (viewportController.current !== controller || editorOpeningReference.current) return;
+        const live = controller.capture();
+        if (!live || live.context.apiInstance !== settled.context.apiInstance ||
+          live.context.revision !== settled.context.revision ||
+          live.context.projectionEpoch !== settled.context.projectionEpoch ||
+          Math.abs(live.core.left - settled.core.left) > 1 ||
+          Math.abs(live.core.top - settled.core.top) > 1 ||
+          Math.abs(live.native.left - live.core.left) > 1 ||
+          Math.abs(live.native.top - live.core.top) > 1) return;
+        // Never focus behind a newer modal or take focus from another control.
+        if (document.querySelector("dialog[open]")) { stableFrames = 0; continue; }
+        const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
+        if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
+        const row = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]"))
+          .find(candidate => taskIdFromElement(candidate) === taskId);
+        if (!row?.isConnected || !row.getClientRects().length || row.closest("[hidden], [inert]")) {
+          lastRow = null; stableFrames = 0;
+          continue;
+        }
+        const focused = document.activeElement;
+        if (focused !== document.body && focused !== row && focused !== lastRow && focused !== priorFocus) return;
+        if (!row.hasAttribute("tabindex")) row.tabIndex = -1;
+        if (focused !== row) row.focus({ preventScroll: true });
+        if (document.activeElement !== row) { lastRow = null; stableFrames = 0; continue; }
+        stableFrames = row === lastRow ? stableFrames + 1 : 1;
+        lastRow = row;
+        // Observe the row beyond the immediate post-settle Core render and
+        // URL decoration. This is finite, never an unbounded focus retry.
+        if (frame >= 6 && stableFrames >= 3) return;
+      }
     });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {

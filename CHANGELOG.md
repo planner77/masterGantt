@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #614 Target F0 계약·공통 검산
+
+- Target 도메인/공정·WorkArea/전체·선택 연결/합집합 상속/관련 계획 공수/이관·UI 계약과 Resource 우선 실행 계획을 기록한다.
+- 운영 자료 없는 공통 합성 fixture를 추가하고 기존 Resource 엔진 수치와 test-only Target 정규화를 구분해 검산한다. 신규 runtime/DB/API/UI 변경은 없으며 application `0.104.4`를 유지한다.
+
 ## [Unreleased] — Issue #595 metadata-only Full CI Attempt 정합 보완
 
 - `verify_same_base_full_run()`도 동일 CI Run의 개별 attempt별 Job 원장을 활용하여 QA-only 재실행 이후 PR metadata-only 변경에서 원래 Required aggregate 성공을 정확하게 검증한다. 나중에 재실행된 Required Job의 실패는 과거 성공으로 대체하지 않으며 누락된 `run_attempt`/원장 자료는 BLOCKED로 유지한다.
@@ -24,6 +29,11 @@
 - Issue #550 PR CI #2373.1: 기능 required gate 모두 PASS, 신규 QA Final의 Issue/Refs 메타데이터 차단 확인. Work Packet AC1~AC11/문서·테스트 대응표와 PR 위험도·검토 진입을 명문화. 0.105.0 및 기능 실행 의미 불변.
 - Issue #550 PR CI #2376.1: 세 required gate PASS, 자동 QA의 버전 파일 보호 차단을 별도 #595로 추적. 릴리스 버전·승인 정책은 변경하지 않음.
 - Issue #550 재정렬: #595의 Main CI #2401.1 SUCCESS를 포함한 기준 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`로 PR #559를 정렬한다. 새 CI와 정확한 Head의 별도 AGENT 독립 QA·Manager 수용은 별도 확인한다.
+
+
+### Fixed
+
+- Issue #550 / corrective PR #626: #571 Editor ‘일정에서 보기’의 TASK_REVEAL SETTLED 후 가상화된 Grid 행 포커스 인계를 최신 DOM·revision·projection·Core/native 좌표로 재검증하여 제한된 RAF 내에서 복원한다. 기존 Resource→Gantt peer 복귀 E2E와 실제 Grid focus의 장기 유지 검증을 보강하며 사용자 조작 및 다른 모달의 포커스를 탈취하지 않는다. application 버전 0.105.0 유지, 정식 릴리스 증거는 아직 미확보.
 
 ## [0.104.4] - 2026-10-11
 

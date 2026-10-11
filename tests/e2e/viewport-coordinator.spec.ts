@@ -26,7 +26,19 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
   await dialog.getByRole("row").filter({ hasText: locatedTask.name }).getByRole("button", { name: "일정에서 보기", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect.poll(async () => (await viewport()).core.top).toBeLessThan(before.core.top);
+  // Scroll position may move while TASK_REVEAL is still SETTLING. Require the
+  // actual completion receipt, then keep the original Grid focus assertion.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+    const receipt = raw ? JSON.parse(raw) as { kind?: string; phase?: string; outcome?: string } : null;
+    return receipt?.kind === "TASK_REVEAL" ? { phase: receipt.phase, outcome: receipt.outcome } : null;
+  }).toEqual({ phase: "SETTLED", outcome: "SETTLED" });
   const target = frame.locator(`.wx-table-container .wx-row[data-id=":${locatedTask.taskId}"]`);
+  await expect(target).toBeFocused();
+  // A late SVAR virtual-row replacement must not silently steal the focus.
+  await frame.evaluate(async () => {
+    for (let frame = 0; frame < 8; frame++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+  });
   await expect(target).toBeFocused();
   const located = await viewport();
   expect(Math.abs(located.core.top - located.native.top)).toBeLessThanOrEqual(1);
