@@ -681,11 +681,11 @@ jobs:
           build-args: VERSION=ci-${{ github.sha }}
           platforms: linux/amd64
           cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
-          cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
+          cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}
       - name: Docker build/cache 시간 기록
         if: always()
         shell: bash
-        run: node scripts/record-ci-setup-metric.mjs --metric docker-build-cache --started-ms "${{ steps.docker-build-start.outputs.started_ms }}" --cache "gha-summary"
+        run: node scripts/record-ci-setup-metric.mjs --metric docker-build-cache --started-ms "${{ steps.docker-build-start.outputs.started_ms }}" --cache "${{ github.event_name == 'push' && 'gha-write-max' || 'gha-readonly' }}"
       - name: image content policy 검증
         run: sh scripts/verify-image-policy.sh mastergantt:ci
       - name: PR 기준 image와 크기 비교

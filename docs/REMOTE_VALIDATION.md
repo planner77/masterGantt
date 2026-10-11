@@ -516,3 +516,11 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - 모든 lane이 READY가 되기 전에는 실제 cache 최적화 PR이 자동 생성되지 않아야 하며, READY 이후에도 사용자/Manager의 명시적 재개 전에는 repository mutation을 추가로 수행하지 않는다.
 9. readiness artifact의 각 JSONL record가 source run API의 run ID/attempt/head SHA/workflow path/event와 일치하고 `provenanceBound=true`인지 확인한다. artifact가 주장하는 원래 provenance 값은 readiness 표본 권위로 사용하지 않는다.
 10. before/after analysis의 metric key 집합이 다르면 `workloadComparable=false`와 `WORKLOAD_MISMATCH`가 기록되고 ADOPT 그룹이 0인지 확인한다.
+
+## Issue #603 Docker cache after 실측
+
+1. PR Actions 로그에 `cache-from type=gha`가 있고 docker_smoke build command에 `cache-to`가 없는지 확인한다.
+2. Main push docker_smoke에는 `cache-to type=gha,mode=max`가 존재하는지 확인한다.
+3. PR Docker required aggregate와 image policy/runtime/persistence smoke가 PASS해야 한다.
+4. #603 병합 후 successful PR run 10개 이상에서 `docker-build-cache` median/p90/runner-minutes를 baseline Run #32.1과 비교한다.
+5. Main cache reuse 또는 publish 성능이 악화되면 ADOPT하지 않고 rollback한다.

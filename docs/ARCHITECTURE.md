@@ -22,6 +22,12 @@ SETTLED의 범위는 canonical Task/Link payload, 행 membership·순서, Grid/C
 
 무필터 상태의 fast path도 마지막으로 적용한 structure key가 같아야 한다. `serialize()`의 canonical Task가 갱신되어도 Core `_tasks`에 이전 Summary 렌더 payload가 남을 수 있으므로 행 ID 일치만으로 구조 변경의 재투영을 생략하지 않는다. metadata-only의 같은 구조·membership에서는 기존 action 0회 계약을 유지한다.
 
+metadata viewport 복원 직후에도 Core의 늦은 native scroll event가 원래 가로 위치를 덮을 수 있다. 기존 Editor·no-op canonical sync의 일회성 snapshot/복원은 유지한다. 잔존 guard는 직전 완료한 baseline 대비 실제 Task metadata 또는 Project revision 변경이 있고, 같은 geometry·semantic filter·API/DOM·scale·열폭·사용자 입력 없음이 확인된 복원에 한정하여 기존 peer scroll guard를 재사용한다. metadata guard에는 완료한 geometry와 revision을 추가하고 다음 revision·geometry·조회 문맥 변경 시 layout effect에서 해제한다. 기존 peer authority를 덮지 않으며 동일 guard의 사용자 입력 취소와 native repair 최대 3회 예산을 유지한다. 새 viewport writer나 #571 Coordinator를 도입하는 변경은 아니다.
+
+기존 metadata request의 복원 시도는 한 번만 소비하고, 유효한 capture는 다음 같은 문맥의 canonical metadata/revision 변경에 인계할 좌표로 보존한다. RAF 대기 중 supersede되어 명령을 실행하지 못한 경우에도 입력·geometry·API/DOM·peer 문맥이 같으면 좌표 인계는 유지하되 오래된 명령을 다시 실행하지 않는다. 중간 no-op 복원은 현재 좌표를 사용하고 이 인계 좌표를 transient native reset으로 교체하지 않는다. baseline의 metadata/revision은 최신 복원 시도가 끝난 뒤 갱신한다. Chart/Grid pointer·wheel·keyboard·touch, 명시 검색/필터 입력, geometry·scope/숨김, API 교체, peer 복원 및 unmount는 capture를 폐기하고 listener를 정리한다.
+
+빈 projection에는 보존할 행 viewport가 없으므로 metadata snapshot을 만들지 않는다. 실제 ID 집합이 빈집합으로 바뀐 뒤 후속 no-op sync가 native clamp 중의 임시 비영점 좌표를 다시 보존하는 것을 방지하며, 별도 scroll writer 없이 기존 Core의 빈 결과 처리를 따른다.
+
 ## Issue #569 — 공개 API Adapter의 도입 전 경계
 
 [Adapter ADR](GANTT_ADAPTER_ADR.md)은 Core/native 읽기와 공개 scroll/date reveal/finite settle 명령을 분리하는 인터페이스·PoC다. 제품 ProjectGantt의 기존 viewport writer나 Coordinator를 교체하지 않는다. 공개 controlled scale 설정과 native chart를 같은 좌표계로 검증하고 hidden/inert/zero-size를 유효한 viewport로 저장하지 않는다.

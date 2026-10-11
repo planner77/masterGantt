@@ -387,6 +387,39 @@ except trace.TraceError:
 else:
     raise SystemExit("the failed #586 merge message must not silently pass trace validation")
 
+# Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
+# This exact historical main SHA cannot be rewritten; a later same-Issue PR
+# with full-scope CI and a Korean canonical title must supersede its failed CI.
+failed_603_message = "Issue #603 · PR #604 · Docker BuildKit PR cache read-only"
+require(
+    main_run_name.parse_merge_title(failed_603_message) is None,
+    "the original #603 English-only main commit must remain invalid",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main", "head_commit": {"message": failed_603_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("the failed #603 Main CI must not silently become PASS")
+recovery_603_summary = "Docker 캐시 Main CI 복구"
+recovery_603_title = main_run_name.format_merge_title(
+    603, 605, recovery_603_summary
+)
+require(
+    main_run_name.parse_merge_title(recovery_603_title)
+    == (603, 605, recovery_603_summary),
+    "the #603 follow-up merge must have a one-line Korean summary",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main", "head_commit": {"message": recovery_603_title},
+    }) == (603, 605),
+    "the corrected #603 merge must retain exact Issue/PR trace",
+)
+
+
 # The merge tool's source payload requires one canonical title and *empty*
 # body.  A matching head lease prevents accidental merge of a newer PR head.
 correction_summary = "Main CI 실패 복구 및 Finalizer 재개"

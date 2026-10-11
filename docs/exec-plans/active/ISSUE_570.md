@@ -1,5 +1,49 @@
 # Issue #570 — Canonical→SVAR Projection 분리·멱등 동기화
 
+## PR CI #2482.1 viewport 회귀 보완 (2026-10-11)
+
+기존 PR #592의 Head `678fd90d75f3ceca8e061cabc584ffc2ed6ecc35`에서 [CI #2482.1 / run38117137762 / attempt1](https://github.com/planner77/masterGantt/actions/runs/38117137762)이 FAIL했다. Quality aggregate `114404433549`와 Docker aggregate `114404664469`는 PASS이며, Chromium shard5 job `114404200673`의 step7에서 93 PASS/2 FAIL로 E2E aggregate `114406936056`이 FAIL했다. 나머지 5개 shard는 PASS다. 이전 #2480.1의 실패 및 보완 증거는 아래에 그대로 보존한다.
+
+| 기존 실패 테스트 | 실제 관측 | 유지할 계약 |
+| --- | --- | --- |
+| `task-editor-form-density.spec.ts:148`, assertion `:193` | metadata 저장 후 Chart/public left가 120에서 0으로 변경 | 같은 semantic filter·geometry·instance에서는 원래 public/DOM viewport와 작업 상태 보존 |
+| `task-editor-form-density.spec.ts:218`, assertion `:236` | active name filter의 실제 ID 집합이 빈집합으로 바뀌어도 public.left가 91로 잔존 | 실제 membership 변경에서는 오래된 viewport를 복원하지 않고 native/public 위치 정합 |
+
+사용자 요청 범위는 원인 보완·관련 Local Fast Feedback·독립 PRE_QA·문서 동기화 후 새 exact-head full PR CI 시작까지다. 테스트 assertion·timeout·retry 및 필수 gate를 완화하지 않는다. `risk_level=HIGH`, `qa_required=true`, `qa_method=AGENT`, 버전 `0.104.1`, `release_required=true`, `release_authorized=false`를 유지한다. QA_FINAL/Manager ACCEPT는 NOT TESTED, MERGE_READY는 BLOCKED다.
+
+분리 worktree `/tmp/mastergantt-570-retry`에서 최신 main `c81285741610ad28dc5d6b50f9bb97264970a79d`의 #603 Docker PR read-only cache 정책을 정상 merge로 통합했다. `TEST_PLAN.md` 충돌은 #570 회귀와 #603 Main 제목 검증을 모두 보존해 해소했다. main 지침을 상속하며 이번 수정에서 workflow·권한·Ruleset을 별도 변경하지 않는다. Next `16.3.8`/Core `2.7.3`의 기존 frozen 설치를 재사용하며 manifest/lockfile과 생성 파일은 수정 범위에서 제외한다.
+
+### 수정 전 재현 경계
+
+최초 dependency symlink 실행은 Turbopack의 filesystem root 경계로 BLOCKED였다. 같은 exact dependency를 worktree 내부에 hardlink 복사한 뒤 기존 실패 2개를 실행한 결과는 2 PASS/12.7초이며 원격 FAIL을 반증하는 것으로 사용하지 않는다. 같은 2개를 각 5회 반복한 수정 전 실행은 8 PASS/2 FAIL(50.2초)로 fullscreen metadata 저장 실패를 재현했다. 공개 scroll event에서 복원 `scroll-chart(120)` 뒤 늦은 native `scroll-chart(0)`이 반복되어 원래 위치를 덮는 순서를 관측했다. 원본 로그 `/tmp/issue570-retry-repeat10.log`를 최종 수정 후 결과와 분리한다. 테스트 timeout·retry를 변경하지 않는다.
+
+첫 guard 초안의 반복 실행은 5 PASS/5 FAIL(56.8초)이었다. 이 실패는 원격의 저장 후 `:193`이 아니라 저장 전 위치 설정 `:166`에서 120을 0으로 되돌린 회귀다. 같은 geometry인 no-op canonical sync에도 가로 보호를 설치하는 경계를 구분해야 하므로 이 초안을 성공으로 사용하지 않는다. `/tmp/issue570-retry-after10.log` 및 실패 trace를 후속 결과와 분리해 보존한다.
+
+두 번째 실험은 일회성 snapshot까지 실제 Task metadata 변경으로 제한하여 Editor 열기·탭 이동·취소의 복원을 놓쳤다. `/tmp/issue570-retry-after6.log`는 3 PASS/3 FAIL(39.2초)이며 저장 전 Editor 취소 후 `:187` 실패다. 일회성 복원과 복원 후 잔존 guard의 적격성을 분리하고 Project metadata 저장의 revision 변경 경로도 보존한다. 이 실험도 최종 PASS 증거에 합산하지 않는다.
+
+세 번째 실험 `/tmp/issue570-retry-after6b.log`는 4 PASS/2 FAIL(37.3초)이며 원래 저장 후 `:193` 실패가 남았다. 후속 관찰 `/tmp/issue570-guard-debug2.log`에서는 guard 설치 적격성은 유효했지만 이미 request.left와 Core가 0이었다. 앞선 Editor 복원은 120을 완료했으므로 metadata effect의 snapshot 캡처 전에 도착한 native reset이 원래 authority를 잃게 한 경계로 구분한다. 이후 기존 metadata owner 안에서 직전 유효 snapshot의 안전한 인계를 보완하며, 별도 writer나 Coordinator를 만들지 않는다.
+
+최초 handoff 실험 `/tmp/issue570-retry-handoff6.log`도 3 PASS/3 FAIL(44.3초)로 원래 `:193` 실패가 남았다. 중간 no-op sync가 완료 snapshot을 reset된 현재 좌표로 교체하는 경계와 touch/filter/API cleanup을 별도 검토했다. 이 중간 후보와 임시 관측 코드는 최종 동결 후보 및 검증으로 사용하지 않는다.
+
+후속 `/tmp/issue570-retry-carry6.log`는 4 PASS/2 FAIL(38.9초)이다. 읽기 전용 `/root/issue570_queue_review`의 추가 독립 분석은 새 effect의 sync version 증가가 RAF 대기 중 요청을 supersede하고, restore finally와 queued cleanup이 미완료 request의 유효 handoff까지 지우는 경로를 확인했다. 완료 snapshot만 허용하는 다음 sync는 이미 reset된 Core 0을 캡처한다. 오래된 요청의 실행을 허용하는 대신 동일 API/root/continuity/geometry/filter/scale/columns/peerEpoch·입력 없음의 좌표 인계만 보존하는 방향으로 세 cleanup/승계 경계를 함께 보완한다.
+
+소비된 시도와 유효 handoff를 분리한 `/tmp/issue570-retry-consumed3.log`는 기존 2개+신규 경계 1개가 3 PASS(12.9초)였다. 그러나 반복 `/tmp/issue570-retry-final9.log`는 8 PASS/1 FAIL(47.7초)이며 active name filter 빈집합에서 원격과 같은 `:236` public.left=91을 재현했다. fullscreen 및 신규 경계는 각각 3회 PASS지만 최종 전체 성공으로 합산하지 않는다. 빈 projection의 후속 no-op sync가 임시 91 좌표를 보존 후보로 다시 기록하지 않도록 metadata snapshot 생성을 제외하고 기존 native clamp/reset을 존중한다.
+
+`/tmp/issue570-guard-empty-debug.log`의 실제 순서는 version9에서 IDs0/geometry 변경/Core91로 snapshot 미생성 → version10에서 IDs0/geometry 동일/Core91을 snapshot으로 캡처 → Core가 정상 0으로 초기화 → metadata owner가 91을 다시 복원하는 것이다. 필터 변경 자체의 native reset 실패가 아니라 빈 결과 후속 no-op의 잘못된 위치 보존임을 구분하며, `logicalVisibleIds.length>0`일 때만 snapshot을 생성하도록 보완한다.
+
+### 최종 후보의 검증
+
+최종 보완은 기존 metadata owner 안에서 한 번 소비한 복원 시도와 다음 요청에 인계할 유효 좌표를 구분한다. superseded 명령을 다시 실행하지 않으며, 같은 API/root/continuity/geometry/filter/scale/columns/peerEpoch·입력 없음의 capture만 유지한다. no-op 복원은 현재 좌표를 사용하고 실제 Task metadata 또는 Project revision 변경에서만 인계 좌표와 기존 잔존 guard를 사용한다. 0행 projection에는 snapshot을 생성하지 않는다. 기존 peer 우선권·native repair 최대 3회 및 입력/조회/geometry/API/peer/unmount 무효화를 유지한다.
+
+- 최종 원래 실패 2개+신규 late native0/실제 wheel/동일 query 빈집합 회귀를 각 3회 실행하여 **9/9 PASS(39.9초)**. `/tmp/issue570-retry-empty-final9.log`이며 앞선 8 PASS/1 FAIL 실행과 구분한다.
+- 같은 동결 source의 관련 Chromium **26/26 PASS(1.6분)**: canonical projection21, pending peer/입력3, Project metadata mock/실제 API2. `/tmp/issue570-retry-final-matrix.log`이며 9회 반복과 합쳐 고유 테스트 수로 표시하지 않는다. typecheck PASS, 변경 lint 0 errors·기존 warnings3개, diff check PASS다.
+- 최종 동결 source SHA256: product `4ee7f340b8407511820a1145b34e4acaadef1837d9999ef9920cc2a870220baf`, E2E spec `1d4a6970ec551d70887b5aa5b349b7778642ed9d002d2ebaabb2291419609efb`.
+- 독립 `/root/issue570_qa_fix` Unit **6파일45/45 PASS(330ms)**, 같은 제품/spec 지문 및 diff whitespace·Markdown178파일 PASS. 독립 browser와 최종 관련 matrix는 별도 결과로 기록한다.
+- 별도 qa_docs의 같은 동결 source Chromium **5/5 PASS(36.2초)**: 기존 fullscreen/빈 filter2, 신규 late0·wheel·membership1, pending peer native Grid reveal1, Project metadata1. 구현자의 9회 반복·26개 matrix와 구분한다. PRE_QA는 원격 QA_FINAL·Required CI 또는 Manager ACCEPT 영수증을 대신하지 않는다.
+- 실제 독립 Reviewer `/root/issue570_qa_fix`의 최종 **PRE_QA PASS**는 이번 CI 실패 보완 및 새 PR CI 시작 범위다. 추가 Milestone 소속 작업의 `일정에서 보기 → Project metadata 저장` 탐색은 임시 harness의 가상화된 목표 행 준비 오류로 실제 이동·저장에 도달하지 못해 **NOT TESTED**다. 제품 새 회귀를 재현한 결과가 아니며, 해당 경로에서 새 위치의 인계 여부는 잔여 UX 위험으로 유지한다. 전체 UX·QA_FINAL·Manager ACCEPT로 확대하지 않는다.
+
+자동 생성 next-env/tsconfig, output 이미지·JSON, runtime DB/log/trace와 임시 디버그 관측은 게시하지 않는다. 최종 원격 Quality/E2E/Docker·QA_FINAL·Manager ACCEPT는 새 Head CI 시작 시 NOT TESTED이며 MERGE_READY는 BLOCKED다.
+
 ## PR CI #2480.1 실패 보완 (2026-10-11)
 
 사용자 요청 범위는 실패 원인 분석·보완·새 exact-head PR CI 시작까지다. 기존 PR #592와 `feat/issue-570-canonical-projection`을 재사용하며 병합·Main CI·GHCR·정식 릴리스·Issue 종료는 포함하지 않는다. 아래 기존 구현 증거는 정렬 전 Head의 역사 기록이며 새 후보의 검증 결과와 구분한다.

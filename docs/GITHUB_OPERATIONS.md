@@ -129,6 +129,12 @@ GHCR Release · Issue #361 · PR #<PR> · v<version> · Run #<run>.<attempt>
 
 PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue가 정확히 하나의 Primary Issue로 일치하는지 먼저 검증한다. Title/body 편집도 `pull_request.edited`로 재검증한다. Dependabot은 작성자 `dependabot[bot]` + 동일 저장소 + `dependabot/` branch 조건이 모두 맞는 경우에만 automation 예외로 취급한다. Main CI에는 PR payload가 없으므로 #582의 **한 줄 표준 merge commit 제목**이 표시용 trace source다. 기존 Merge/직접 Push는 복수 줄 제목을 피하기 위해 exact SHA fallback으로 나타난다. Generic Finalizer는 source `workflow_run.head_commit.message` 및 원본 Main run 번호/attempt를 이용하며 Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
 
+### Issue #603 — 실패 Main CI #2483.1의 복구와 병합 제목 사전 검증 (2026-10-11)
+
+- PR #604 / merge SHA `09d8d51ccc09bc12353eb05315eb43df09034975`는 `Issue #603 · PR #604 · Docker BuildKit PR cache read-only`라는 한글 없는 제목으로 병합됐다. `scripts/verify-ci-run-trace.py`가 Main `changes` 첫 단계를 FAIL 처리했고, Quality/E2E/Docker는 실행되지 않았다. 이 결과를 Docker 캐시 실패로 보고하거나 구 Main CI를 소급 PASS 처리하지 않는다.
+- **병합 API 호출 직전** `python3 scripts/main_ci_run_name.py --issue 603 --pr <실제 PR 번호> --summary "Docker 캐시 Main CI 복구" --as-merge-payload --expected-head-sha <실제 40자리 Head SHA>`로 생성·검증한 제목·빈 본문·Head lease를 그대로 사용한다. 제목을 영문만으로 임의 작성하거나 PR 설명을 Merge 본문으로 넘기지 않는다. 검증 후 Head/base가 움직였으면 새 Head에서 CI/QA를 다시 검증한다.
+- 기존 실패 merge를 rewrite/force-push하지 않는다. 같은 Primary Issue #603의 **비문서 변경 포함** 보완 PR을 정확한 한국어 표준 제목으로 병합해 새로운 push Main CI를 실행한다. 신규 exact Main PASS 이후 Generic Finalizer의 first-parent/failed-attempt supersession, candidate GHCR·브랜치 정리를 통과해야 #603 종료 가능하다. #444의 장기 after 실측은 OPEN을 유지한다.
+
 ### Issue #582 — Main CI·Finalizer 단일 행 실행명과 Merge API 계약
 
 - **새 Merge Commit 제목**: `Issue #<Primary Issue> · PR #<PR> · <한글 Issue명 축약>` (한글 요약 1~30자, 실제 Issue 제목에 근거하여 작성). 본문은 빈 문자열로, 한 줄만 허용한다. 예: `Issue #530 · PR #579 · Gantt 복원 경합 보완`. Issue 번호는 PR body의 정확히 하나인 `Refs #NNN`와 일치해야 한다.
@@ -431,3 +437,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - #444가 닫히면 workflow는 no-op으로 종료하므로 완료 이후 불필요한 artifact download/comment mutation을 지속하지 않는다.
 - downloaded artifact의 자체 provenance는 untrusted data다. readiness collector는 run 목록 API의 ID/attempt/head SHA/path/event를 trusted metadata로 사용해 JSONL provenance를 binding한 뒤 analyzer의 `--require-bound-provenance true` 모드로만 자동 판정한다.
 - before/after에서 metric 집합이 다르면 최적화 효과를 부분 metric만으로 채택하지 않는다. 새 setup 단계 추가·metric rename도 workload 변경으로 취급해 동일 metric 집합의 새 baseline/after를 확보한다.
+
+## Issue #603 Docker BuildKit cache writer 운영
+
+PR은 default/base branch의 GHA BuildKit cache를 `cache-from`으로 재사용하지만 shared cache를 갱신하지 않는다. Main push만 docker_smoke에서 max-mode cache를 갱신하며, 후속 commit image publish는 동일 cache를 재사용하고 기존 publish writer 계약을 유지한다. PR의 cache write 권한을 확대하지 않고, cache miss를 정상 경로로 취급한다.

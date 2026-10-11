@@ -207,6 +207,19 @@ describe("Issue #444 CI setup/cache Phase 2/3", () => {
       .toMatchObject({ presentBefore: false, presentAfter: true, comparable: false });
   });
 
+  it("keeps Docker shared cache read-only on PR and writes on main push", () => {
+    const workflow = readFileSync(resolve(root, ".github/workflows/ci.yml"), "utf8");
+    expect(workflow).toContain(
+      "cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}",
+    );
+    expect(workflow).toContain(
+      '--cache "${{ github.event_name == \'push\' && \'gha-write-max\' || \'gha-readonly\' }}"',
+    );
+    expect(
+      workflow.split("cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}").length - 1,
+    ).toBe(1);
+  });
+
   it("enforces cache invalidation and fallback contracts statically", () => {
     const output = execFileSync(process.execPath, ["scripts/verify-ci-cache-contract.mjs"], {
       cwd: root,

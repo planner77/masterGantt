@@ -7,6 +7,10 @@ const requireText = (text, needle, label) => {
 const forbidText = (text, needle, label) => {
   if (text.includes(needle)) throw new Error(`cache contract violation: ${label} must not contain ${JSON.stringify(needle)}`);
 };
+const requireCount = (text, needle, expected, label) => {
+  const actual = text.split(needle).length - 1;
+  if (actual !== expected) throw new Error(`cache contract violation: ${label} expected ${expected} occurrences of ${JSON.stringify(needle)}, got ${actual}`);
+};
 
 const nodeSetup = read(".github/actions/node-setup/action.yml");
 const playwrightSetup = read(".github/actions/playwright-setup/action.yml");
@@ -41,11 +45,25 @@ for (const token of [
 }
 for (const token of [
   "cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}",
+  "cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}",
   "cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}",
+  "--cache \"${{ github.event_name == 'push' && 'gha-write-max' || 'gha-readonly' }}\"",
   "platforms: linux/amd64",
 ]) {
   requireText(ci, token, "Docker BuildKit cache contract");
 }
+requireCount(
+  ci,
+  "cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}",
+  1,
+  "Docker shared cache unconditional writer must remain Main publish only",
+);
+requireCount(
+  ci,
+  "cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}",
+  1,
+  "Docker smoke cache writer must be push-only",
+);
 
 for (const token of [
   'workflows: ["CI", "Publish release image"]',

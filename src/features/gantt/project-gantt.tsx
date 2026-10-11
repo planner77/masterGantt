@@ -1727,7 +1727,7 @@ export function ProjectGantt({
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
   // Explicit peer/navigation restoration outranks an older metadata-only scroll.
   const peerRestoreAuthorityEpoch = useRef(0);
-  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; peerEpoch: number; hasInput: () => boolean; cleanup: () => void } | null>(null);
+  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; peerEpoch: number; protect: boolean; consumed: boolean; handoff: { left: number; top: number }; geometry: string; root: HTMLDivElement; hasInput: () => boolean; cleanup: () => void } | null>(null);
   // The visible navigation return has stronger authority than metadata-only
   // reconciliation. Hold it from the layout phase until its queued restore
   // settles, not just while scroll-chart is issued (nested frame returns).
@@ -1740,6 +1740,7 @@ export function ProjectGantt({
     rootWidth: number; rootHeight: number; filter: string;
     scale: GanttScaleMode; gridWidth: number | undefined; columns: string;
     nativeRepairs: number;
+    metadata?: { geometry: string; revision: number };
   };
   const protectedPeerScrollReference = useRef<PeerScrollGuard | null>(null);
   // A search/filter edit is a new explicit viewport intent. Capture its
@@ -1752,9 +1753,15 @@ export function ProjectGantt({
     Boolean(event.target.closest(".project-schedule-filter-toolbar, .project-task-filter-panel")), []);
   useLayoutEffect(() => {
     const guard = protectedPeerScrollReference.current;
-    if (guard && (!viewVisible || guard.key !== viewportContinuityKey))
+    if (guard && (!viewVisible || guard.key !== viewportContinuityKey ||
+      (guard.metadata && (guard.metadata.geometry !== canonicalViewportGeometry || guard.metadata.revision !== projectRevision))))
       protectedPeerScrollReference.current = null;
-  }, [viewVisible, viewportContinuityKey]);
+    const snapshot = metadataViewportReference.current;
+    if (snapshot && (!viewVisible || snapshot.key !== viewportContinuityKey || snapshot.geometry !== canonicalViewportGeometry)) {
+      snapshot.cleanup();
+      metadataViewportReference.current = null;
+    }
+  }, [viewVisible, viewportContinuityKey, canonicalViewportGeometry, projectRevision]);
   useEffect(() => {
     const api = apiReference.current;
     if (!api || !apiInstanceId) return;
@@ -1826,6 +1833,10 @@ export function ProjectGantt({
         (root && target instanceof Element && root.contains(target) &&
           target.closest(".wx-chart, .wx-gantt, .wx-table-container")))
         protectedPeerScrollReference.current = null;
+      if (isExplicitFilterInput(event)) {
+        metadataViewportReference.current?.cleanup();
+        metadataViewportReference.current = null;
+      }
     };
     const inputEvents = ["pointerdown", "wheel", "keydown", "touchstart"] as const;
     for (const type of inputEvents)
@@ -1840,6 +1851,10 @@ export function ProjectGantt({
       document.removeEventListener("change", releaseOnUserInput, true);
       if (protectedPeerScrollReference.current?.api === api)
         protectedPeerScrollReference.current = null;
+      if (metadataViewportReference.current?.api === api) {
+        metadataViewportReference.current.cleanup();
+        metadataViewportReference.current = null;
+      }
     };
   }, [apiInstanceId, isExplicitFilterInput]);
   useLayoutEffect(() => {
@@ -1862,7 +1877,8 @@ export function ProjectGantt({
   const restoreCanonicalMetadataViewport = useCallback(async (api: IApi) => {
     const request = metadataViewportReference.current;
     if (request) {
-      const currentRequest = () => request === metadataViewportReference.current && !pendingPeerRestoreReference.current && request.peerEpoch === peerRestoreAuthorityEpoch.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
+      if (request.consumed) return;
+      const currentRequest = () => request === metadataViewportReference.current && !pendingPeerRestoreReference.current && request.peerEpoch === peerRestoreAuthorityEpoch.current && ganttScrollReference.current === request.root && request.root.isConnected && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
       try {
         await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
         if (currentRequest()) {
@@ -1880,15 +1896,39 @@ export function ProjectGantt({
               diagnosticTraceReference.current?.record("effect-apply", "metadata-restore", restore);
               await api.exec("scroll-chart", restore);
             }
+            const root = ganttScrollReference.current;
+            const chart = root?.querySelector<HTMLElement>(".wx-chart");
+            if (request.protect && currentRequest() && root && chart && api.getState().scrollLeft === request.left &&
+              chart.scrollWidth - chart.clientWidth >= request.left - 1 &&
+              !protectedPeerScrollReference.current) {
+              // Reuse the existing viewport authority for Core's later native
+              // scroll event. Metadata authority expires on the next revision
+              // or geometry/query change as well as the existing input guards.
+              protectedPeerScrollReference.current = {
+                api, key: request.key, left: request.left, root,
+                rootWidth: root.clientWidth, rootHeight: root.clientHeight,
+                filter: request.filter, scale: request.scale, gridWidth: request.gridWidth,
+                columns: request.columns, nativeRepairs: 0,
+                metadata: { geometry: appliedCanonicalViewportGeometryReference.current!, revision: projectRevisionReference.current },
+              };
+            }
           }
         }
       } finally {
-        request.cleanup();
-        if (metadataViewportReference.current === request) metadataViewportReference.current = null;
+        // A newer render may supersede the command during its RAF wait.
+        // Retire the attempt, but keep its input-guarded capture for the next
+        // same-geometry metadata handoff instead of recapturing Core's transient zero.
+        request.consumed = true;
+        if (request.hasInput() || metadataViewportReference.current !== request) {
+          request.cleanup();
+          if (metadataViewportReference.current === request) metadataViewportReference.current = null;
+        }
       }
     }
   }, [ensureTimelineEnd]);
   const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
+  const appliedCanonicalViewportMetadataReference = useRef<string | null>(null);
+  const appliedCanonicalViewportRevisionReference = useRef<number | null>(null);
   useEffect(() => {
     const requestedApi = apiReference.current;
     const syncVersion = ++canonicalSyncVersionReference.current;
@@ -1916,16 +1956,30 @@ export function ProjectGantt({
       const root = ganttScrollReference.current;
       let viewportInput = false;
       const markViewportInput = (event: Event) => {
-        if (event.target instanceof Element && !event.target.closest("dialog") && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) viewportInput = true;
+        if (event.target instanceof Element && !event.target.closest("dialog") && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) {
+          viewportInput = true;
+          metadataViewportReference.current?.cleanup();
+          metadataViewportReference.current = null;
+        }
       };
-      metadataViewportReference.current?.cleanup();
+      const previousSnapshot = metadataViewportReference.current;
+      const protectAfterRestore = appliedCanonicalViewportMetadataReference.current !== canonicalViewportMetadata || appliedCanonicalViewportRevisionReference.current !== projectRevision;
+      const columns = JSON.stringify((viewport.columns ?? []).map(column => [column.id, column.width, column.hidden]));
+      const preserveSnapshot = geometryUnchanged && previousSnapshot?.consumed &&
+        !previousSnapshot.hasInput() && previousSnapshot.api === api && previousSnapshot.root === root &&
+        previousSnapshot.key === context.key && previousSnapshot.filter === visibleTaskFilterKey &&
+        previousSnapshot.geometry === canonicalViewportGeometry && previousSnapshot.scale === scaleModeReference.current &&
+        previousSnapshot.gridWidth === viewport.gridWidth && previousSnapshot.columns === columns &&
+        previousSnapshot.peerEpoch === peerRestoreAuthorityEpoch.current;
+      previousSnapshot?.cleanup();
       metadataViewportReference.current = null;
-      if (geometryUnchanged && context.visible && !pendingPeerRestoreReference.current && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
-        for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
-        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), peerEpoch: peerRestoreAuthorityEpoch.current, hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
+      if (geometryUnchanged && projection.logicalVisibleIds.length > 0 && context.visible && !pendingPeerRestoreReference.current && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+        for (const event of ["pointerdown", "wheel", "keydown", "touchstart"]) root?.addEventListener(event, markViewportInput, true);
+        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: protectAfterRestore && preserveSnapshot ? previousSnapshot.handoff.left : viewport.scrollLeft, top: protectAfterRestore && preserveSnapshot ? previousSnapshot.handoff.top : viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), peerEpoch: peerRestoreAuthorityEpoch.current, protect: protectAfterRestore, consumed: false, handoff: preserveSnapshot ? previousSnapshot.handoff : { left: viewport.scrollLeft, top: viewport.scrollTop }, geometry: canonicalViewportGeometry, root, hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown", "touchstart"]) root?.removeEventListener(event, markViewportInput, true); } };
         metadataViewportReference.current = request;
-        const cleanup = () => { request.cleanup(); if (metadataViewportReference.current === request) metadataViewportReference.current = null; };
-        // The queue tail also clears requests when no columns update follows.
+        const cleanup = () => { if (!request.consumed) { request.cleanup(); if (metadataViewportReference.current === request) metadataViewportReference.current = null; } };
+        // Keep a retired capture only for the next metadata/revision handoff.
+        // Repeated restore calls cannot reapply it; real chart input revokes it.
         void canonicalSyncQueueReference.current.then(cleanup, cleanup);
       }
       try {
@@ -1943,6 +1997,10 @@ export function ProjectGantt({
         appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
         if (projectionDiff.structure || !geometryUnchanged) ensureTimelineEnd(api);
         await restoreCanonicalMetadataViewport(api);
+        if (isCurrent()) {
+          appliedCanonicalViewportMetadataReference.current = canonicalViewportMetadata;
+          appliedCanonicalViewportRevisionReference.current = projectRevision;
+        }
 
       } catch {
         metadataViewportReference.current?.cleanup();

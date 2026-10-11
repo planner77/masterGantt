@@ -139,13 +139,23 @@ PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042
 
 ## Issue #570 — 멱등 canonical projection 회귀
 
+후속 [CI #2482.1](https://github.com/planner77/masterGantt/actions/runs/38117137762)의 E2E shard5는 93 PASS/2 FAIL이다. `task-editor-form-density.spec.ts:148`의 scoped/fullscreen/Week/선택·접힘·열폭·public/DOM viewport 전체 보존과 `:218`의 active name filter metadata 변경 후 빈 결과·public/DOM left=0을 원래 assertion 그대로 재검증한다. 동일 ID 집합에서는 불필요한 filter/columns 없이 기존 viewport 보존을 완료하고, 실제 membership 변경에서는 오래된 복원을 취소해야 한다. 실행별 수정 전/후 결과와 독립 PRE_QA는 [Work Packet](exec-plans/active/ISSUE_570.md#pr-ci-24821-viewport-회귀-보완-2026-10-11)에 기록하며 이전 Head PASS를 새 Head PASS로 재사용하지 않는다.
+
 PR CI #2480.1의 10개 E2E 실패는 [Work Packet](exec-plans/active/ISSUE_570.md#pr-ci-24801-실패-보완-2026-10-11)에 job·원인·수정 후 실행 경계를 보존한다. 빈 Summary 및 마지막 자식 삭제 뒤 filter/columns/Day·Week가 native 열기 오류나 instance 교체를 일으키지 않는지 검사한다. Milestone 필터의 필수 child/상태, scoped Summary 생성, 다중선택 정리 및 pending reveal의 기존 assertion은 유지한다. 조회 변경 receipt 전달 이후 select/open/layout 재관찰은 `queryConditionsChanged=false`이며 선택 action은 `taskSelectionChanged`와 구분해 확인한다.
+
+신규 `task-editor-form-density.spec.ts`의 #570 회귀는 metadata 저장과 canonical 동기화 뒤 native DOM left=0 알림을 주입하여 기존 guard의 차단 증가와 Core/DOM 120 일치를 확인한다. 이어 실제 mouse wheel로 0과 120 이동을 허용하고, 같은 검색어의 실제 ID 집합이 빈집합으로 바뀌면 Core/DOM 0·같은 API·PATCH2회를 확인한다. 이는 자연 발생 순서의 기존 실패 2개를 대체하지 않는다. 최종 보완은 일회성 복원·superseded capture 인계·잔존 guard를 구분하고 0행 snapshot을 금지하며, 관련 projection/peer/Project metadata 회귀와 독립 PRE_QA를 별도로 수행한다.
 
 순수 projection Unit은 data/structure/membership/layout 차이, null filter와 0행, nested Summary context·접힘·순서, M-only 및 canonical Task/Link 원본 보존을 검증한다. canonical action 테스트는 stale generation/API instance에서 후속 action 중단과 실제 display payload 갱신을 확인한다.
 
 실제 Core Chromium은 같은 metadata payload 반복 시 불필요한 filter-tasks/set-columns 0회, 최신 Grid/Chart 텍스트·Link·revision, 구조/필터 변경의 필수 행, 접힘·선택·사용자 열폭·동일 instance를 관찰한다. Day/Week 및 390/768/1024/1440/1920px, readonly와 401/412 rollback은 각 실제 테스트 범위와 미검증을 [#570 AC 매핑](exec-plans/active/ISSUE_570.md)에 기록한다. Core 명령 resolve만으로 화면 완료를 판정하지 않는다.
 
 projection-settled 관찰은 실제 Core payload/논리 visible order와 DOM 가상화 subset·텍스트·Grid/Chart 행 정렬을 구분한다. hidden/inert/zero-size, supersession, timeout은 SETTLED와 별개 결과다. SETTLED는 Task/Link payload·행 membership/순서·텍스트·수직 정합 범위이며 bar X/width·native Link DOM·최종 viewport 기하는 별도 #569/#571 검증 대상이다. 유한 안정 frame은 관찰 이후 미래 writer가 없다는 증명이 아니다. 공식 quality/e2e/docker 전체 회귀와 QA_FINAL은 PR 시작·로컬 PASS로 대체하지 않는다. 최종 동결 source의 Chromium19개(38.5초)와 관련 Unit38개(169ms)는 PASS이며 최초 collapsed-target FAIL과 수정·실행별 경계는 Work Packet에 보존한다.
+
+## Issue #603 — 잘못된 Main 병합 제목의 fail-closed 복구 검증
+
+- 재현: PR #604의 실제 병합 제목 `Issue #603 · PR #604 · Docker BuildKit PR cache read-only`는 한글 요약이 없어 `parse_merge_title`가 `None`을 반환하고 `validate_push`가 `TraceError`로 거부해야 한다. 해당 Main CI #2483.1 결과는 FAIL로 보존하며 다른 원인(캐시/빌드)으로 오분류하지 않는다.
+- 교정: 동일 #603의 보완 PR에는 `format_merge_title` 생성기로 1~30자 한글 요약, 정확한 Issue/PR 번호, 빈 commit body, 최신 PR Head lease를 강제한다. `scripts/verify-issue-lifecycle.py`의 직접 회귀 테스트가 예전 제목 FAIL/새 표준 제목 PASS를 모두 확인한다.
+- 재검증: 새 보완 PR의 required Quality/E2E/Docker와 Trusted QA 성공 → 표준 제목으로 merge → 새 SHA의 Main CI 전체 gate, Main cache writer 및 임시 GHCR candidate → Generic Finalizer에서 구 실패 SHA의 동일 이슈 최신 정상 비문서 실행 supersession과 브랜치/임시 이미지 정리 확인. 실행 전에는 Main/Finalizer 모두 NOT TESTED.
 
 ## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
 
@@ -3034,3 +3044,11 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - `ci-setup-readiness.yml`: Phase 2 analyzer의 `--require-bound-provenance true` 필수 옵션 복원. `verify-ci-cache-contract.mjs` 및 `ci-cache-phase2.test.ts`/`ci-setup-readiness.test.ts`로 provenance binding 회귀를 fail-closed 검증한다.
 - Milestone dashboard `#463 aborted request to cached query`는 fake clock의 React frame commit만 최대 8프레임(각 16ms)으로 진행해 CI runner 스케줄링 지터를 흡수한다. 기존 stale response gate와 **HTTP 호출 2회 한정**, 캐시 복귀 성공 검증을 유지한다.
 - `qa_method: OWNER_MANAGED`, `risk_level: HIGH` 및 `ISSUE_450.md`의 AC/문서 매핑은 CI 메타데이터 검증 조건이다. Trusted QA PASS와 Owner ACCEPT, 실제 Main/GHCR 배포는 별개이며 이번 작업은 PR CI 시작까지이다.
+
+## Issue #603 Docker PR cache read-only 검증
+
+- PR event: `cache-from` 유지, `cache-to` 비활성, metric label `gha-readonly`.
+- Main push: `cache-to type=gha,mode=max` 유지, metric label `gha-write-max`.
+- static guard는 unconditional shared writer가 Main publish 1개뿐이고 docker_smoke writer가 push-only인지 고정한다.
+- PR cache miss에서도 Docker image policy/runtime/SQLite persistence gate가 그대로 PASS해야 한다.
+- after successful PR run >=10에서 baseline median/p90/runner-minutes 대비 5% 이상 개선 여부를 #444에서 판정한다.
