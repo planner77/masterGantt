@@ -109,9 +109,13 @@ export function observeProjectionSettled(api: IApi, root: HTMLElement, projectio
       const verticalCorrect = vertical !== null && Math.abs(vertical.scrollTop - state.scrollTop) <= 1;
       selectedIds = (state.selected ?? []).map(String);
       const columnsCorrect = context.expectedColumns.every(expected => state.columns?.some(actual => actual.id === expected.id && Boolean(actual.hidden) === expected.hidden));
+      // #571: canonical data/rows settle independently of the horizontal
+      // viewport. A hidden peer return may leave Core=120/native=108 until the
+      // coordinator owns the correction; requiring X equality here deadlocks
+      // the projection receipt needed to authorize that very correction.
+      // Vertical row alignment stays a projection requirement.
       const valid = verticalCorrect && requiredRowsPresent && columnsCorrect && actualScale === context.scale.toLowerCase() && requiredBarsPresent && payloadCorrect && sameIds(logicalVisibleIds, coreVisibleIds) && new Set(domIds).size === domIds.length && sameIds(domOrder, domIds) &&
-        (rows.length > 0 || logicalVisibleIds.length === 0 || state.gridWidth === 0) && textCorrect && barsCorrect &&
-        Math.abs(chart.scrollLeft - state.scrollLeft) <= 1;
+        (rows.length > 0 || logicalVisibleIds.length === 0 || state.gridWidth === 0) && textCorrect && barsCorrect;
       const signature = JSON.stringify([selectedIds, coreVisibleIds, domIds, rows.map(row => [row.textContent, row.getBoundingClientRect().y]), columns, state.scrollLeft, state.scrollTop, chart?.scrollLeft, vertical?.scrollTop, chart?.scrollWidth, box.width, box.height]);
       stable = valid && signature === previous ? stable + 1 : 0;
       previous = signature;

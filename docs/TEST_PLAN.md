@@ -1,3 +1,7 @@
+## PR #610 / Issue #571 — 실패 원인 재현·보완 검증 기준 (2026-10-11)
+
+[원본 PR CI #2498.1](https://github.com/planner77/masterGantt/actions/runs/38130201016)의 Chromium 10 FAIL은 단일 원인으로 축소하지 않는다. Work Packet의 수평 Projection/Viewport 책임 경계와 각 실제 E2E Trace를 확인한다. Projection은 horizontal Core/native 동일성 없이 canonical payload·행/수직 정합을 증명하고, Coordinator는 peer/Task 의도별 실제 Core exact/native±1px 및 bounded3RAF를 별도로 검증한다. Resize/reflow/fullscreen은 대기 중인 복귀를 취소해야 하며, 같은 context 안의 늦은 120px 복원이 사용자 입력·검색 결과·명시 날짜 이동을 덮으면 실패다. 충분한 physical capacity에서 resize action0, 진단 계약 admissionCapacity와 #568 effect-request/cleanup, #549 dev-only diagnostic right-edge, #367 extension 및 vertical drag edge single-flight를 동일 E2E/Unit에서 검증한다. 실패 검증 테스트의 기대값·timeout·retry·skip 완화 금지.
+
 ## Issue #571 — Coordinator 경쟁·완료 검증
 
 순수 Coordinator의 완료 authority는 accepted revision/generation과 최신 유효 receipt에 고정한다. 같은 geometry라도 새 revision/generation 또는 invalid receipt 뒤에는 native repair/차단을 실행하지 않아야 한다. Task reveal admission은 실제 axis start 포함/end 제외, invalid date·범위 밖 clamped x·capacity 부족을 거절하고, 날짜 없는 Summary의 기존 수평 위치를 보존하는지 검증한다.

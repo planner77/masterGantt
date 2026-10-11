@@ -27,7 +27,10 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       rootStyle.display !== "none" && rootStyle.visibility !== "hidden" && chartStyle?.display !== "none" && chartStyle?.visibility !== "hidden";
     const measurable = hardAvailable && !!horizontal?.clientWidth && !!horizontal.clientHeight && root.getClientRects().length > 0;
     const context = options.context();
-    return { context: { ...context, visible: context.visible && hardAvailable }, receipt: options.receipt(), measurable,
+    // Window geometry/fullscreen is part of the intent lease. A physical
+    // resize must revoke a pending peer return even without a React render.
+    return { context: { ...context, geometry: JSON.stringify([context.geometry, window.innerWidth, window.innerHeight, Boolean(document.fullscreenElement)]),
+      visible: context.visible && hardAvailable }, receipt: options.receipt(), measurable,
       geometry: JSON.stringify([root.clientWidth, root.clientHeight, horizontal?.clientWidth, horizontal?.clientHeight, horizontal?.scrollWidth, y?.scrollHeight]),
       capacity: { left: horizontal ? Math.max(0, horizontal.scrollWidth - horizontal.clientWidth) : 0, top: y ? Math.max(0, y.scrollHeight - y.clientHeight) : 0 },
       core: { left: state.scrollLeft, top: state.scrollTop },
@@ -83,10 +86,12 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
   const tag = "project-viewport-coordinator-port";
   api.intercept("scroll-chart", event => {
     const guard = authority;
-    if (!guard || (typeof event.left !== "number" && typeof event.top !== "number") || event.eventSource === tag) return;
+    // Only guard stale horizontal rewinds. SVAR/native vertical scrolling
+    // (including programmatic scrollTop=0 for a virtualized Grid) must pass.
+    if (!guard || typeof event.left !== "number" || event.eventSource === tag) return;
     const sample = read();
     if (!guard.current() || !sample.measurable || guard.geometry !== sample.geometry || (sample.core.left !== guard.target.left || sample.core.top !== guard.target.top)) { authority = null; return; }
-    if ((event.left === undefined || event.left === guard.target.left) && (event.top === undefined || event.top === guard.target.top)) return;
+    if (event.left === guard.target.left) return;
     if (Math.abs(sample.native.left - guard.target.left) > 1 || Math.abs(sample.native.top - guard.target.top) > 1) {
       if (repairs >= 3 || !repair(guard.target)) { authority = null; return; }
       guard.repairs = repairs;
@@ -112,6 +117,11 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     const target = command.position, state = api.getState();
     const beforeWrites = writes, projectionBefore = read().context.projectionEpoch;
     if (![target.left, target.top].every(value => Number.isFinite(value) && value >= 0)) return { ready: false };
+    // The coordinator independently requires three stable geometry frames
+    // before APPLY. Avoid a compatibility resize (and its extra projection
+    // epoch) if physical capacity already admits the saved position.
+    const existing = read();
+    if (existing.capacity.left >= target.left - 1 && existing.capacity.top >= target.top - 1) return { ready: true };
     const end = state._end, start = state._start;
     if (start instanceof Date && end instanceof Date && end < options.requestedEnd())
       await resizeCompatibility(minimumTimelineScaleWidthForEnd({ start, end: options.requestedEnd(), scaleMode: options.context().scale as "day" | "week" }), current);
@@ -132,6 +142,11 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (!current() || !read().measurable) return null;
     const state = api.getState();
     if (command.kind === "RANGE_EXTENSION") { await resizeCompatibility(command.width, current); return read().core; }
+    if (command.kind === "DIAGNOSTIC_SCROLL") {
+      if (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0 || read().capacity.left < command.left - 1) return null;
+      await exec("scroll-chart", { left: command.left, eventSource: tag });
+      return read().core;
+    }
     repairs = 0;
     let target: ViewportPosition = read().core;
     if (command.kind === "TASK_REVEAL") {

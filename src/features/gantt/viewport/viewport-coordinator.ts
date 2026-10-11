@@ -12,6 +12,7 @@ export type ViewportCommand =
   | { kind: "TASK_REVEAL"; taskId: string }
   | { kind: "DATE_REVEAL"; date: Date }
   | { kind: "DIAGNOSTIC_DATE_REVEAL"; date: Date }
+  | { kind: "DIAGNOSTIC_SCROLL"; left: number }
   | { kind: "RANGE_EXTENSION"; width: number }
   | { kind: "NATIVE_ADD"; positions: readonly NativeViewportPosition[] }
   | { kind: "DRAG_EDGE"; top: number };
@@ -96,13 +97,15 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     if (source.gesture !== gesture) return reject("SUPERSEDED", "STALE_GESTURE");
     if (source.intent < explicitEpoch) return reject("SUPERSEDED", "STALE_INTENT");
     if (pending && level < pending.priority && command.kind !== "RANGE_EXTENSION") return reject("SUPERSEDED", "LOWER_PRIORITY");
-    if (!initial.context.visible || (!initial.measurable && command.kind === "RANGE_EXTENSION")) return reject("NOT_MEASURABLE", "HIDDEN_OR_UNMEASURABLE");
+    if (!initial.context.visible || (!initial.measurable && (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL"))) return reject("NOT_MEASURABLE", "HIDDEN_OR_UNMEASURABLE");
     if (initial.context.empty && command.kind !== "RANGE_EXTENSION") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
     // #367 changes capacity, not viewport intent. Keep the validated resize
     // pair synchronous with ingress and never repair a captured old position.
-    if (command.kind === "RANGE_EXTENSION") {
-      if (!Number.isFinite(command.width) || command.width <= 0 || command.width > 1_000_000)
+    if (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL") {
+      if (command.kind === "RANGE_EXTENSION" && (!Number.isFinite(command.width) || command.width <= 0 || command.width > 1_000_000))
         return reject("UNSUPPORTED", "INVALID_RANGE_WIDTH");
+      if (command.kind === "DIAGNOSTIC_SCROLL" && (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0))
+        return reject("UNSUPPORTED", "DIAGNOSTIC_ONLY");
       rangeController?.abort("NEW_RANGE");
       const controller = new AbortController();
       rangeController = controller;
@@ -119,8 +122,13 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
           const animated = await port.frame(controller.signal), sample = port.read();
           if (!current()) return result = "SUPERSEDED";
           if (!sample.measurable) return result = "NOT_MEASURABLE";
-          const coherent = Math.abs(sample.core.left - sample.native.left) <= 1 && Math.abs(sample.core.top - sample.native.top) <= 1;
-          stable = animated && validViewportReceipt(sample) && coherent && geometry === sample.geometry ? stable + 1 : 0;
+          // Range growth is physical capacity preparation, not a canonical
+          // projection operation. A stale projection receipt must not block
+          // safe, three-frame Core/native geometry observation. The dev-only
+          // scroll probe likewise must not acquire production restore authority.
+          const coherent = Math.abs(sample.core.left - sample.native.left) <= 1 && Math.abs(sample.core.top - sample.native.top) <= 1 &&
+            (command.kind !== "DIAGNOSTIC_SCROLL" || sample.core.left === command.left);
+          stable = animated && coherent && geometry === sample.geometry ? stable + 1 : 0;
           geometry = sample.geometry;
           if (stable >= 3) return result = "SETTLED";
         }

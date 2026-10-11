@@ -2,6 +2,8 @@
 
 ## Issue #571 — Viewport Coordinator와 명령 소유권
 
+2026-10-11 PR #610 보완: #570 canonical projection receipt는 데이터·행·수직 정합까지만 증명한다. 가로 Core/native 불일치는 #571 단일 프로그램 writer/실측 settle의 소유이며, 가로 불일치를 projection success 조건에 넣으면 peer 복구 스크롤 발행 자체가 차단되는 교착을 만든다. 브라우저 viewport/Fullscreen은 restore intent context lease에 포함된다. 확장 준비는 물리 capacity가 충분할 때 no-op, dev-only 날짜 probe/수평 probe는 production adapter의 별도 unsupported ingress다.
+
 #570 projection receipt의 후속 소비자는 단일 Viewport Coordinator다. canonical 데이터·조회 projection의 authority는 그대로 유지하고, viewport 의도/실행/완료 관측만 분리한다. 부모 Workspace는 유효한 visible capture와 typed peer/Task reveal 요청을 전달하며 Gantt native DOM 복원을 별도 실행하지 않는다.
 
 순수 Coordinator는 API/context·intent/projection/geometry·user gesture 세대와 pending operation을 검사한다. 실제 사용자 입력 및 명시 reveal > scope/filter > peer return > passive preservation 순으로 처리하며 늦게 도착한 passive 이벤트가 최근 사용자 의도를 덮지 않는다. production port가 앱 scroll-chart/native 보정과 기존 range compatibility 명령의 실행 경계다. Native Core wheel/Grid reveal은 Core 소유로 유지하고 관측 이벤트를 새 앱 명령으로 재귀 처리하지 않는다. 단일 writer 근거는 production 앱 경로에 한정한다. 기존 #549 개발 전용 __masterganttMilestoneTimeline.reveal→revealMilestoneDate와 #569 PoC/trace fixture의 직접 명령은 진단 예외이며 제품 DATE_REVEAL 지원·단일 writer 실증에 포함하지 않는다.

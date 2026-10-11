@@ -481,6 +481,7 @@ export function ProjectGantt({
   const chartDragTargetReference = useRef<HTMLElement | null>(null);
   const chartDragPointerYReference = useRef<number | null>(null);
   const chartEdgeScrollFrameReference = useRef<number | null>(null);
+  const chartEdgeScrollPendingReference = useRef(false);
 
   useEffect(() => {
     if (prevProjectPublicIdReference.current === projectPublicId) return;
@@ -954,7 +955,7 @@ export function ProjectGantt({
     };
 
     const scheduleEdgeScroll = () => {
-      if (chartEdgeScrollFrameReference.current !== null) return;
+      if (chartEdgeScrollFrameReference.current !== null || chartEdgeScrollPendingReference.current) return;
       const tick = () => {
         chartEdgeScrollFrameReference.current = null;
         const drag = chartDragReference.current;
@@ -976,10 +977,19 @@ export function ProjectGantt({
         if (delta === 0) return;
 
         const before = verticalScroller.scrollTop;
-        void viewportCoordinatorReference.current?.request({ kind: "DRAG_EDGE", top: Math.max(0, Math.min(verticalScroller.scrollHeight - verticalScroller.clientHeight, before + delta)) }).then(() => {
-          if (chartDragReference.current !== drag) return;
-          renderVerticalDrag(pointerY);
-          chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+        const top = Math.max(0, Math.min(verticalScroller.scrollHeight - verticalScroller.clientHeight, before + delta));
+        const coordinator = viewportCoordinatorReference.current;
+        if (!coordinator || top === before) return;
+        // Single-flight: mousemove cannot supersede its own in-flight edge
+        // command before the coordinator's three-frame admission and settle.
+        chartEdgeScrollPendingReference.current = true;
+        void coordinator.request({ kind: "DRAG_EDGE", top }).then(outcome => {
+          if (chartDragReference.current === drag && outcome === "SETTLED")
+            renderVerticalDrag(chartDragPointerYReference.current ?? pointerY);
+        }).finally(() => {
+          chartEdgeScrollPendingReference.current = false;
+          if (chartDragReference.current === drag && drag.intent === "vertical")
+            chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
         });
       };
       chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
@@ -1705,7 +1715,7 @@ export function ProjectGantt({
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
       reveal: (date: string) => revealMilestoneDate(api, date),
       nativeDateReveal: (date: string) => viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }),
-      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "PASSIVE_RESTORE", position: { left, top: api.getState().scrollTop }, protect: false }) : Promise.resolve(),
+      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),
       filter: async (ids: string[] | null) => {
         if (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string"))) return;
         const generation = ++milestoneProbeGeneration.current;
@@ -2112,13 +2122,17 @@ export function ProjectGantt({
         continuity.scale !== sample.context.scale || continuity.columns !== sample.context.columns ||
         continuity.viewportWidth !== window.innerWidth || continuity.viewportHeight !== window.innerHeight ||
         continuity.fullscreen !== (document.fullscreenElement !== null) || continuity.fullscreenElement !== document.fullscreenElement)) return;
+      // Preserve the existing #568 trace contract: it identifies the
+      // actual pending peer operation, not a resurrected second scroll writer.
+      diagnosticTraceReference.current?.record("effect-request", "peer-restore", { left: request.left, top: request.top });
       const outcome = await coordinator?.request({ kind: "PEER_RETURN", position: { left: request.left, top: request.top }, positions: request.positions, compatibility: true }, source);
+      diagnosticTraceReference.current?.record("effect-cleanup", "peer-restore");
       if (pendingPeerRestoreReference.current === request) pendingPeerRestoreReference.current = null;
       if (!cancelled && outcome === "SETTLED") {
         peerViewportRestoreCount.current++;
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
           const sample = viewportPortReference.current?.read();
-          fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: sample?.core.left, publicTop: sample?.core.top, domLeft: sample?.native.left, nativeCapacity: sample?.capacity.left, capacityStableFrames: 3, settleStableFrames: 3 });
+          fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: sample?.core.left, publicTop: sample?.core.top, domLeft: sample?.native.left, nativeCapacity: sample?.capacity.left, admissionCapacity: sample?.capacity.left, capacityStableFrames: 3, settleStableFrames: 3 });
         }
       } else if (!cancelled && outcome && !["SUPERSEDED", "NOT_MEASURABLE"].includes(outcome)) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환");
     });

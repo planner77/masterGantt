@@ -237,6 +237,30 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.port.apply).not.toHaveBeenCalled();
   });
 
+  it("can extend physical range when canonical projection is pending, without forging a projection receipt", async () => {
+    const f = fixture(); f.update({ receipt: null });
+    const pending = f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 });
+    await f.advance(5);
+    expect(await pending).toBe("SETTLED");
+    expect(f.sample.receipt).toBeNull();
+    expect(f.port.protect).not.toHaveBeenCalled();
+  });
+
+  it("allows only dev diagnostic scroll to test the native right edge without a canonical receipt", async () => {
+    const f = fixture(); f.update({ receipt: null });
+    vi.mocked(f.port.apply).mockImplementation(async command => {
+      const position = { left: command.kind === "DIAGNOSTIC_SCROLL" ? command.left : 0, top: 96 };
+      f.update({ core: position, native: position });
+      return position;
+    });
+    const pending = f.coordinator.request({ kind: "DIAGNOSTIC_SCROLL", left: 240 });
+    await f.advance(5);
+    expect(await pending).toBe("SETTLED");
+    expect(f.port.apply).toHaveBeenCalledTimes(1);
+    expect(f.port.protect).not.toHaveBeenCalled();
+    expect(f.sample.receipt).toBeNull();
+  });
+
   it("keeps range extension on its immediate path without geometry preparation", async () => {
     const f = fixture(); f.port.prepare = vi.fn<NonNullable<ViewportPort["prepare"]>>(async () => ({ ready: false }));
     const pending = f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 });
