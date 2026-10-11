@@ -2940,3 +2940,26 @@ T1 docs-only A 이후 non-docs B: 각 exact Main/GHCR; T2 동범위 A/B도 개�
 #### Connector / REST head lease 경계 (Codex P2 후속)
 
 GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
+
+## Issue #444 setup/cache Phase 2·3 검증
+
+- Analyzer readiness: PR/Main/Release lane별 workload group을 분리하고 모든 비교 대상 그룹의 distinct successful run ID가 최소 10개일 때만 `phase2Ready=true`가 된다.
+- Cost ranking: 충분한 표본이 있는 그룹에 대해 median/p90, runner-minutes/run, exact cache hit rate를 계산하고 비용 상위 후보를 deterministic하게 정렬한다.
+- Before/after: 동일 workflow/event/job/metric만 비교하며 양쪽 모두 충분한 표본일 때만 comparable이다. 기본 채택 정책은 median 5% 이상 개선과 runner-minutes 비증가다.
+- Cache key invalidation: npm은 OS/arch/Node/lockfile, Next는 OS/arch/Node/Next/lockfile, Docker namespace는 OS/arch를 포함한다. runtime/tool version 또는 lockfile 변경 시 이전 exact key를 재사용하지 않는다.
+- Cache miss fallback: npm miss에서도 `npm ci`, Next miss에서도 production build, Docker miss에서도 image build/policy/runtime smoke가 동일하게 실행된다.
+- Playwright guard: Phase 2 evidence 전에는 `actions/cache` 또는 `ms-playwright` browser cache를 사용하지 않으며 install-deps/headless-shell install을 그대로 실행한다.
+- Artifact security: setup metric artifact는 runner temp의 JSONL만 업로드하며 secret/token/`.env`/runtime SQLite/test result PASS evidence를 포함하지 않는다.
+- Static policy: `scripts/verify-ci-cache-contract.mjs`를 CI policy job과 Vitest에서 실행해 cache 책임/invalidation/fallback 계약 drift를 차단한다.
+- 공식 구현 판정은 #444 PR exact head의 required quality/e2e/docker 결과다. baseline/비교 표본 부족 상태에서는 실제 cache 최적화 효과를 PASS로 주장하지 않는다.
+
+### Readiness automation 회귀
+
+- Trigger: `CI`와 `Publish release image`의 successful `workflow_run.completed`, 일일 schedule, 수동 dispatch를 지원한다. 실패/취소 source run은 readiness job을 실행하지 않는다.
+- Trusted checkout: write 권한 workflow는 `ref: main` + `persist-credentials: false`를 사용하고 triggering PR/tag/head SHA를 checkout하지 않는다.
+- Source selection: PR=`ci.yml/pull_request`, Main=`ci.yml/push`, canonical Release=`release-image.yml/workflow_dispatch` successful run만 수집한다.
+- Comment idempotency: `mastergantt-ci-setup-readiness:v1` bot marker가 있으면 PATCH, 없으면 POST하여 #444에 readiness 댓글을 하나만 유지한다.
+- READY contract: 세 lane의 모든 입력 그룹이 distinct successful run 10개 이상이어야 하며 READY에서도 자동 cache 변경·PR 생성·Issue close를 수행하지 않는다.
+- Closed Issue: #444가 closed이면 history download, analysis, artifact upload, comment mutation을 모두 생략한다.
+- Provenance poisoning: artifact JSONL이 가짜 run ID/workflow/event/head SHA를 포함해도 readiness 수집 단계가 GitHub run API metadata로 overwrite하고 bound record만 분석한다. unbound record 10개가 있어도 distinct successful run 10개로 인정하지 않는다.
+- Workload-set mismatch: after에 metric이 추가되거나 before metric이 제거/rename되면 union key를 모두 결과에 남기고 `workloadComparable=false`, `adoptGroups=0`, `WORKLOAD_MISMATCH`로 fail-closed한다.
