@@ -137,6 +137,12 @@ PR [#597 CI #2391.1](https://github.com/planner77/masterGantt/actions/runs/38042
 
 # Test Plan
 
+## Issue #603 — 잘못된 Main 병합 제목의 fail-closed 복구 검증
+
+- 재현: PR #604의 실제 병합 제목 `Issue #603 · PR #604 · Docker BuildKit PR cache read-only`는 한글 요약이 없어 `parse_merge_title`가 `None`을 반환하고 `validate_push`가 `TraceError`로 거부해야 한다. 해당 Main CI #2483.1 결과는 FAIL로 보존하며 다른 원인(캐시/빌드)으로 오분류하지 않는다.
+- 교정: 동일 #603의 보완 PR에는 `format_merge_title` 생성기로 1~30자 한글 요약, 정확한 Issue/PR 번호, 빈 commit body, 최신 PR Head lease를 강제한다. `scripts/verify-issue-lifecycle.py`의 직접 회귀 테스트가 예전 제목 FAIL/새 표준 제목 PASS를 모두 확인한다.
+- 재검증: 새 보완 PR의 required Quality/E2E/Docker와 Trusted QA 성공 → 표준 제목으로 merge → 새 SHA의 Main CI 전체 gate, Main cache writer 및 임시 GHCR candidate → Generic Finalizer에서 구 실패 SHA의 동일 이슈 최신 정상 비문서 실행 supersession과 브랜치/임시 이미지 정리 확인. 실행 전에는 Main/Finalizer 모두 NOT TESTED.
+
 ## Issue #582 — Main CI·Finalizer 실행명 축약 및 CI 계약 검증
 
 - **#598 정책 전환 + 새 main 정렬 인수 기준:** 기존 `AGENT` 모드에서 신뢰 검증기가 요구하던 독립 인간 승인·별도 Owner JSON 영수증을 #598의 `OWNER_MANAGED` default에 기계적으로 전용하지 않는다. 현재 [#584](https://github.com/planner77/masterGantt/pull/584)는 `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, 독립 QA `N/A(선택 미실시)`이며, main HEAD/PR test-merge, 세 required aggregate, docs/AC 및 리뷰 스레드 0을 새 exact Head에서 검증한다. 직전 [#2412.1](https://github.com/planner77/masterGantt/actions/runs/38050666118)은 required 3종 PASS지만 QA가 unresolved review thread로 BLOCKED였다. 기존 P2를 임의 Resolve하거나 제품/Release Gate를 완화해서 새 PR CI를 성공시켜서는 안 된다.
