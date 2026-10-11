@@ -43,16 +43,17 @@ describe("SVAR visibility admission", () => {
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     vi.stubGlobal("getComputedStyle", (element: unknown) => ({ display: mode === "display-none" ? "none" : "block", visibility: mode === "chart-hidden" && element === horizontal ? "hidden" : "visible" }));
     const commands: string[] = [];
+    const interceptors: Array<(event: { left?: number; top?: number; eventSource?: string }) => boolean | void> = [];
     const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: 100 }, _chartWidth: 100, _chartHeight: 100 };
-    const api = { getState: () => state, intercept: vi.fn(), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
+    const api = { getState: () => state, intercept: vi.fn((_action: string, listener: (event: { left?: number; top?: number; eventSource?: string }) => boolean | void) => { interceptors.push(listener); }), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
       commands.push(action);
       if (action === "resize-chart") horizontal.scrollWidth = 200;
       if (action === "scroll-chart") { state.scrollLeft = position.left ?? 0; state.scrollTop = position.top ?? 0; }
     } } as unknown as IApi;
-    const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: {} as HTMLElement,
+    const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: { dataset: {} } as unknown as HTMLElement,
       context: () => ({ visible: true, projectionEpoch: 7 } as ViewportContext), receipt: () => null, requestedEnd: () => new Date(), recordEnd: vi.fn() });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { commands });
+    return Object.assign(port, { commands, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
   it("prepares resize geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {
     const port = portFor("commands");
@@ -62,6 +63,15 @@ describe("SVAR visibility admission", () => {
     expect(await port.apply(command, () => true)).toEqual({ left: 50, top: 0 });
     expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
   });
+  it("allows native scroll after filter return but blocks stale Core rewinds after peer return", async () => {
+    const filter = portFor("ready"), position = { left: 20, top: 0 };
+    expect(await filter.apply({ kind: "FILTER_RETURN", position }, () => true)).toEqual(position);
+    expect(filter.intercept({ left: 30, top: 0 })).toBeUndefined();
+    const peer = portFor("ready");
+    expect(await peer.apply({ kind: "PEER_RETURN", position }, () => true)).toEqual(position);
+    expect(peer.intercept({ left: 0, top: 0 })).toBe(false);
+  });
+
   it("does not issue a coordinate command after preparation loses input authority", async () => {
     const port = portFor("commands");
     const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };

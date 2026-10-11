@@ -8,13 +8,15 @@ Enter는 저장, Tab/Shift+Tab과 pointer blur는 저장과 native 도착 focus�
 
 DESIGN Delta B: 기존 precise feedback·SVAR-native·keyboard/focus·상태 보존의 구체화다. 새 전역 시각 규칙은 없다. main에 미통합인 #552 표시 전환을 대신 활성화하지 않으며 현재 projection에서 제외된 Milestone의 재주입은 금지한다. 실행별 PASS/FAIL과 실제 OS IME·미통합 Dashboard·원격 CI 경계는 [#572 Work Packet](exec-plans/active/ISSUE_572.md)을 따른다.
 
+
+리소스 탭의 `hidden` 또는 Milestone 탭의 `inert` 상태에서 저장된 인라인 이름은 일정 복귀 시 canonical/Core/Grid 표시 확인을 재실행한다. 이미 저장한 PATCH를 중복 발행하지 않고 현재 Gantt instance와 viewport를 유지한다.
 ## Issue #571 — 사용자 이동 우선의 화면 복귀
 
 같은 일정으로 돌아올 때 유효한 직전 위치를 보존하되, 돌아오는 동안 사용자가 wheel/pan·Task 선택·명시 날짜 이동을 하면 그 새 위치를 우선한다. 지연된 peer/metadata 복원이 새 위치를 덮지 않는다. Grid/Chart의 pointer/wheel/touch/keyboard 입력은 오래된 복원을 취소한다. toolbar·Editor 입력 자체는 일정 이동으로 취급하지 않으며 Editor의 '일정에서 보기'는 명시 Task reveal이다. 명시 locate는 이전 Editor trigger 대신 완료한 대상 Grid 행을 focus 소유자로 삼고, 일반 취소·닫기는 기존 trigger 복원을 유지한다.
 
 Grid의 일반 선택은 native Core가 날짜 있는 Task를 show:xy, 날짜 없는 Summary를 show:y로 이동한다. 포인터 입력 뒤 비동기로 발생한 이 명시 native reveal도 최신 사용자 이동으로 관측하여 이전 passive/metadata 복원을 취소한다. show:false 및 canonical·앱의 선택 동기화는 새 사용자 이동으로 승격하지 않는다. 복수 선택·checkbox의 Core toggle은 show:false를 명시하고 modifier/Shift 선택 mirror는 별도 Task reveal을 발행하지 않는다.
 
-검색/유형/selected ID/scope는 조회 의도다. 필터 중 이동·reveal·scope 전환이 있었다면 검색 전 bookmark를 폐기한다. 빈 결과에 이전 비영점 위치를 재생하지 않는다. 필터 해제 bookmark의 복원 권한은 수평 위치에 한정한다. 필터 결과의 행 수 감소로 합법적으로 clamp된 세로 위치는 과거 top으로 되살리지 않으며, 준비 단계와 실제 적용 직전의 최신 정합 Core top을 유지한다. 숨겨진 일정은 0좌표로 저장하지 않으며 다시 보인 뒤 최신 projection과 실제 geometry를 확인한다.
+검색/유형/selected ID/scope는 조회 의도다. 필터 중 이동·reveal·scope 전환이 있었다면 검색 전 bookmark를 폐기한다. 빈 결과에 이전 비영점 위치를 재생하지 않는다. 필터 해제 bookmark의 복원 권한은 수평 위치에 한정한다. 이 bookmark는 한 번만 복원하며 복원 도중 native Core/DOM의 새 정합 좌표가 생기면 이전 bookmark를 포기한다. 복원 완료 뒤에도 이전 filter bookmark가 새 native scroll을 가로채거나 되감지 않는다. 실제 사용자 wheel/peer stale0 차단은 기존 권한 계약대로 유지한다. 필터 결과의 행 수 감소로 합법적으로 clamp된 세로 위치는 과거 top으로 되살리지 않으며, 준비 단계와 실제 적용 직전의 최신 정합 Core top을 유지한다. 숨겨진 일정은 0좌표로 저장하지 않으며 다시 보인 뒤 최신 projection과 실제 geometry를 확인한다.
 
 화면 배치·공통 색상·폰트는 유지한다. DESIGN Delta B로 기존 상태 보존 원칙을 구체화하며 DESIGN.md 수정은 N/A다. parent는 capture/request만 전달하고 일정 native 복원은 Coordinator가 실행한다. Resource 표·tablist/focus는 해당 화면의 스크롤 소유권을 유지한다. readonly 조회·탭 전환의 server mutation0, canonical revision·권한 및 draft/selection/columns/scale/instance 보존 계약은 그대로다. [#571 Work Packet](exec-plans/active/ISSUE_571.md)의 환경별 증거를 전체 UX PASS로 확대하지 않는다.
 

@@ -15,11 +15,18 @@
 
 # Changelog
 
-## [0.104.3] - 2026-10-11
+## [0.104.4] - 2026-10-11
 
 ### Fixed
 
 - Issue #572: native Grid 이름 편집의 단일 저장 요청과 확정 snapshot·표시 확인을 분리하고 실패 초안·IME·Tab/blur/focus의 비동기 경계를 보완한다. 기존 권한·revision·일정 및 Gantt 화면 상태 보존 계약을 유지한다.
+- PR #612 Codex P2: 숨겨지거나 비활성인 일정 탭으로 돌아올 때 확정된 이름 표시를 다시 검증한다. Resources·Milestone 탭 왕복 Chromium 회귀 2건을 보강한다.
+
+## [0.104.3] - 2026-10-11
+
+### Fixed
+
+- Issue #571 후속 Main CI #2504.1 시정: 필터 해제 후 `FILTER_RETURN`이 이전 120px bookmark로 새 native 180px 이동을 가로막던 경합을 보완한다. 필터 bookmark는 1회 복원만 수행하며 새로운 Core/native 정합 좌표가 생기면 `SUPERSEDED`로 종료한다. FILTER_RETURN의 native repair·settled scroll guard는 남기지 않고 PEER/PASSIVE stale rewind 보호는 유지한다.
 
 ## [0.104.2] - 2026-10-11
 

@@ -10,6 +10,10 @@ Gantt 연결부는 같은 API/session/request의 정확한 confirmation과 현�
 
 ## Issue #571 — Viewport Coordinator와 명령 소유권
 
+### Main CI #2504.1: FILTER_RETURN의 완료 후 보호 권한 분리
+
+2026-10-11 Main CI의 실제 #463 Playwright Trace는 FILTER_RETURN(120,0)의 APPLYING/SETTLING 도중 새 Core/native 이동(180,128)이 허용되지 않고 기존 좌표120으로 되돌아가며 TIMED_OUT으로 끝난 것을 보여준다. 수평 DOM capacity는 2563px로 180px을 허용하므로 capacity 문제가 아니라 필터 bookmark의 과도한 scroll-chart intercept/reconciliation 문제다. FILTER_RETURN은 현재 쿼리에서만 1회 복원하고, 이후 다른 정합 Core/native 위치가 보이면 SUPERSEDED로 끝내며 native repair/장기 guard를 획득하지 않는다. PEER_RETURN/PASSIVE_RESTORE의 최신 권한 검증 및 늦은 0px rewind 보호는 유지한다. 원본 실패 [#2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)를 보존한다.
+
 2026-10-11 PR #610 보완: #570 canonical projection receipt는 데이터·행·수직 정합까지만 증명한다. 가로 Core/native 불일치는 #571 단일 프로그램 writer/실측 settle의 소유이며, 가로 불일치를 projection success 조건에 넣으면 peer 복구 스크롤 발행 자체가 차단되는 교착을 만든다. 브라우저 viewport/Fullscreen은 restore intent context lease에 포함된다. 확장 준비는 물리 capacity가 충분할 때 no-op, dev-only 날짜 probe/수평 probe는 production adapter의 별도 unsupported ingress다.
 
 #570 projection receipt의 후속 소비자는 단일 Viewport Coordinator다. canonical 데이터·조회 projection의 authority는 그대로 유지하고, viewport 의도/실행/완료 관측만 분리한다. 부모 Workspace는 유효한 visible capture와 typed peer/Task reveal 요청을 전달하며 Gantt native DOM 복원을 별도 실행하지 않는다.

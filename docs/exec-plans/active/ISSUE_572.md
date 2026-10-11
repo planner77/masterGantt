@@ -8,7 +8,7 @@
 - lifecycle_phase: PRE_QA_VALIDATED → PR_CI_START_READY. 기준 main `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`.
 - branch: `fix/issue-572-inline-name-consistency`, worktree `/tmp/mastergantt-572`.
 - 선행 #568/#570 및 #571 PR #610 Head `eb8eebfd29261bcc4c271b0ad9c1c17b0480c03c`는 main에 포함되어 stacked branch가 필요하지 않다. 착수 시 #572 기존 PR/branch 없음.
-- version: 기존 기능 회귀 수정 PATCH `0.104.2 → 0.104.3`. package.json/lockfile/CHANGELOG를 함께 갱신한다.
+- version(최초 계획): 기존 기능 회귀 수정 PATCH `0.104.2 → 0.104.3`. #571 main 선행 버전과 중복되어 정렬 후 후보는 `0.104.4`로 수정하고 package.json/lockfile/CHANGELOG를 동기화한다.
 - release_required=true, release_authorized=false. release 승인은 요청에 포함되지 않았다.
 - risk_level=HIGH, qa_required=true, qa_method=AGENT, qa_review_mode=qa_docs. 반복된 canonical/native 비동기 상태·focus 경합과 저장 영속성 회귀 영역이다.
 - reviewer: `/root/issue570_qa_fix`; pre_qa=PASS(PR CI 시작 범위), qa_final=NOT TESTED, manager_decision=NOT TESTED. 보호된 manifest/lock 변경의 최종 인간 QA_FINAL·필수 CI·Owner ACCEPT는 사용자 제공 AGENTS #595의 gate를 유지하며 Agent PRE_QA로 대체하지 않는다.
@@ -163,3 +163,11 @@ EventBus interceptor는 prepend 순서이며 false에서 후속 체인을 중단
 baseline 설정 복원 뒤 Manager의 최종 `npm run typecheck` exit0(receipt `f97198`)다. version·변경 lint·Markdown180파일 link·diffcheck 및 Work Packet DOCUMENTATION_SYNC/AC1~AC5 구조 검사를 통과했고, 구조 PASS와 별도 의미 검토를 구분한다. 제품과 테스트의 최종 지문은 위 표와 동일하다.
 
 최신 canonical 역순 응답 차단은 FSM·기존 canonical-snapshot-recovery Unit 및 부모 코드 검토의 분리 증거다. 새 지연 browser case는 focus 보존이며 부모의 실제 역순 응답 통합 경쟁 자체는 NOT TESTED로 구분한다. 실제 OS IME·미통합 #552 Dashboard·원격 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. 원격 main과 작업 branch는 게시 준비 시 baseline과 동일함을 재확인했다. 실행·문서 기록까지 포함한 정확 후보를 커밋해 새 PR의 full CI 시작만 확인하며 결과 모니터링·병합·후속 lifecycle은 수행하지 않는다.
+
+
+## 2026-10-11 — PR #612 리뷰 P2 및 main 정렬
+
+- 기존 Head `9898f1c3`의 [PR CI #2506.1](https://github.com/planner77/masterGantt/actions/runs/38142247302)은 SUCCESS였으나, [Trusted QA #144](https://github.com/planner77/masterGantt/actions/runs/38143468969)는 최신 PR의 Head/base/test-merge가 원본과 달라 BLOCKED였다. 이 두 실행을 새로운 Head의 증거로 재사용하지 않는다.
+- Codex P2의 2초 후 리소스(`hidden`)·Milestone(`inert`) 탭 복귀 시 inline 이름 확인 미완료를 수정하고 E2E 2건을 추가했으며 [리뷰 스레드](https://github.com/planner77/masterGantt/pull/612#discussion_r4241706162)는 해결했다. 최신 commit의 CI 결과는 별도 판정한다.
+- #571 PR #611을 포함한 main `91178929d899c26b11f45e6253badc8b78f7d20a`의 viewport FILTER_RETURN one-shot 보완, Unit/문서·계획을 보존했다. 충돌한 CHANGELOG/ARCHITECTURE/PROJECT_UX/TEST_PLAN/PLAN 및 manifest/lock을 통합했다.
+- #571에 이미 반영된 `0.104.3`을 유지하고 #572 후보는 `0.104.4`로 전진한다. QA_FINAL/Owner ACCEPT/정식 Release는 자동 승인되지 않는다.

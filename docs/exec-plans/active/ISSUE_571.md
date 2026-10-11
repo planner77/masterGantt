@@ -252,3 +252,12 @@ DESIGN Delta B: 기존 UX-12 상태 보존 원칙의 구체화. `DESIGN.md: N/A`
 - 관련 문서/AC 구조 검사 PASS, Markdown179문서 링크 PASS, staged diffcheck PASS. DOCUMENTATION_SYNC 의미 검토는 독립 Reviewer가 따로 수행하며 구조 검사를 의미 PASS로 대체하지 않는다.
 - 게시 후보는 제품2파일 및 문서7개(Work Packet/PLAN/ARCHITECTURE/PROJECT_UX/TASK_EDITOR/TEST_PLAN/CHANGELOG)의9파일이다. 테스트·pure/port·CI/권한/버전·generated 설정·runtime output 변경은 없다. 기존 PR #610/branch와 application0.104.2를 유지한다.
 - Manager는 동일 후보 게시와 새 full PR CI 시작 확인까지만 진행한다. 신규 quality/e2e/docker는 **NOT TESTED**, QA_FINAL/Manager ACCEPT는 미완료이며 사용자 AGENT 보호 인간 최종 gate 전 병합은 **BLOCKED**다. CI 시작 뒤 결과 모니터링·병합/main/GHCR/Release·Issue 종료는 수행하지 않는다. 새 Head/run URL과 시작 확인은 Issue/PR STATUS 댓글에 남긴다.
+
+## 2026-10-11 Main CI #2504.1 실패 시정 및 새로운 CI 근거
+
+- 원본 [Main CI #2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072) / PR #610 merge `2815d7b3de273afaaed301e6f0fc5d0071ce2b24`. Build/Unit/ESLint/TypeScript 및 Docker PASS, Chromium shard3 `milestone-dashboard-state.spec.ts:181` 1 FAIL(94 PASS/1 FAIL/1 SKIPPED), E2E aggregate FAIL, commit GHCR/Generic Finalizer SKIPPED. #571 Issue는 OPEN이고 FINAL marker 없음.
+- 실제 원본 Playwright Trace: Peer receipt 120/96(capacity 2563); 1건 필터→전체 해제 이후 FILTER_RETURN의 `APPLYING→SETTLING` 중 새 DOM scrollLeft=180, scrollTop=128 시도, Core/native left120 top128 유지. Coordinator history에 `FILTER_RETURN TIMED_OUT` 기록. 180px physical capacity 부족으로 귀속하지 않음.
+- 교정 정책: FILTER_RETURN은 사용자 쿼리의 one-shot bookmark일 뿐 다른 새 Core/native 움직임을 가로채는 stale scroll guard가 아니다. 새로운 정합 위치가 관찰되면 SUPERSEDED로 종료하고 native repair/지속 protection을 설치하지 않는다. 이전 PEER_RETURN/PASSIVE_RESTORE의 늦은0 보호는 유지한다. 제품 두 모듈 변경 및 Unit 신규 회귀로 부작용을 통제한다.
+- 문서 영향: ARCHITECTURE·PROJECT_UX·TEST_PLAN·활성 PLAN·본 Work Packet·CHANGELOG 업데이트, DESIGN.md/UI 배치와 API/DB schema/CI gate는 N/A(변경 없음). 기존 strict #463 Chromium E2E의 기대값·timeout·retry는 유지한다.
+- 원본 Main CI의 실패는 자동 재실행으로 단순 녹색화하지 않고 corrective PR의 정확 Head 전체 Quality/E2E/Docker 검증을 통해 다시 확인한다. 로컬 브라우저 실행은 이 도구 환경에서 NOT TESTED이며 새 원격 PR CI 결과를 PASS 전에 미리 주장하지 않는다.
+- application `0.104.2 → 0.104.3` PATCH, 위험도 HIGH, qa_method OWNER_MANAGED, qa_required=true. v0.104.3 정식 GHCR 게시 marker는 아직 없으므로 `release_authorized=false`; 기존 v0.104.2 승인 marker는 그대로 유지하며 신규 버전에 소급 적용하지 않는다. 새 Main CI는 corrective PR 검증·별도 Owner 병합 승인 이후에만 시작 가능하다.
