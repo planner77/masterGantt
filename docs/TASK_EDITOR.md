@@ -1,5 +1,15 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #572 — Inline 이름의 확정 저장과 오류 복구
+
+기존 Core 이름 input과 name-only PATCH를 유지한다. Enter·실제 Tab/Shift+Tab·pointer blur는 동일 session/request에서 저장을 한 번만 요청한다. 서버 응답의 taskId/revision/name 확인과 현재 canonical/Core/Grid 표시 확인을 분리하며 화면 확인 전에 inline 성공을 알리지 않는다. Task Editor 저장과 Grid 저장은 같은 서버 canonical snapshot을 사용한다. 이름 변경 때문에 Task 일정·Link·Resource 계획이나 Gantt instance·뷰포트를 재설정하지 않는다.
+
+숫자처럼 보이는 `001`은 mounted input의 문자열 원문으로 저장하고 기존 trim·well-formed Unicode 1~200자 규칙을 사용한다. invalid input은 요청 없이 input·연결된 aria 오류를 유지한다. Escape는 저장하지 않으며 IME 조합 키를 앱 저장/취소로 소비하지 않는다. Tab/Shift+Tab은 Core의 다음 editor 열기 hotkey 전달만 막고 브라우저 기본 focus 이동을 유지하며 공통 blur 저장 gateway를 사용한다. 외부 대상 blur에서는 공개 Table focus-cell action으로 이전 셀의 Core focus 권한을 해제한 뒤 닫아 클릭 도착 focus를 유지한다. 늦은 성공·오류가 이미 이동한 focus를 가져오지 않는다.
+
+저장 실패의 원문 draft는 메모리에 남고 같은 작업을 명시적으로 다시 편집할 때 복원한다. 401의 readonly, 412의 stale·명시 최신 조회 계약은 유지하며 실패 draft를 새 revision에 자동 전송하지 않는다. 조회 뒤 revision이 증가해도 conflict 초안은 이전 기준으로 재열어 보여 주며 저장을 차단한다. Escape로 이전 초안을 명시적으로 폐기한 뒤 현재 canonical 이름을 새로 편집할 수 있다. 성공 응답·현재 canonical·Core와 실제 셀 확인은 각각 별개이며 가상화된 셀이 없다는 이유로 DOM 문자열을 직접 고치지 않는다. 실제 OS IME와 합성 composition 검증, mock-backed reload와 실제 SQLite 영속성은 [검증 원장](exec-plans/active/ISSUE_572.md)에서 구분한다.
+
+#552 Milestone WBS 분리 stack은 이 기준 main에 미통합이다. 이번 변경은 현재 main의 편집 범위를 유지하며 분리된 projection에 Milestone을 다시 주입하지 않는다. Dashboard canonical Editor 경로의 미통합 검증은 NOT TESTED다.
+
 ## Issue #571 — '일정에서 보기'의 viewport 소유권
 
 소속 작업 등 Editor의 '일정에서 보기'는 Workspace 부모의 DOM scrollIntoView 복원 대신 Gantt Coordinator의 명시 Task reveal ingress로 연결한다. 새 이동은 대기 중인 peer/metadata 보존보다 우선하며 이후 metadata 저장도 이동한 현재 위치를 기준으로 한다. 명시 locate로 닫을 때는 일반 닫기의 이전 trigger focus 복원을 예약하지 않으며, Coordinator SETTLED 후 현재 연결되고 보이는 Grid 행에 preventScroll focus를 준다. Chart bar focus로 행 focus를 대체하지 않는다. 일반 취소·닫기의 기존 trigger focus 복원은 유지하고 다른 scope/빈 결과의 오래된 locate 요청을 재생하지 않는다. 날짜 없는 Summary는 현재 수평 위치를 보존하고 행만 이동한다. 날짜가 있는 Task는 실제 렌더 axis와 native capacity 안의 관측 좌표만 허용하며 범위 밖에서는 이동 성공을 주장하지 않는다. Editor 초안·저장·401/412/network 및 단일 Task 편집 권한 계약은 그대로다. [검증 범위](exec-plans/active/ISSUE_571.md)를 따른다.

@@ -3081,6 +3081,19 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - Milestone dashboard `#463 aborted request to cached query`는 fake clock의 React frame commit만 최대 8프레임(각 16ms)으로 진행해 CI runner 스케줄링 지터를 흡수한다. 기존 stale response gate와 **HTTP 호출 2회 한정**, 캐시 복귀 성공 검증을 유지한다.
 - `qa_method: OWNER_MANAGED`, `risk_level: HIGH` 및 `ISSUE_450.md`의 AC/문서 매핑은 CI 메타데이터 검증 조건이다. Trusted QA PASS와 Owner ACCEPT, 실제 Main/GHCR 배포는 별개이며 이번 작업은 PR CI 시작까지이다.
 
+## Issue #572 — Inline 요청·확정 Revision·실제 이름 표시
+
+검증은 순수 session 상태, mock-backed 실제 Core/Chromium, 실제 Next/SQLite 영속성 및 OS IME 환경을 구분한다. 과거 CI #2278과 #568 비교 stack의 Inline Tab/Week 표시 FAIL은 그 source의 증거이며 최신 main의 PASS로 덮지 않는다. 신규 실패를 포함한 명령·source manifest·결과는 [Work Packet](exec-plans/active/ISSUE_572.md)에 보존한다.
+
+- `tests/features/gantt/inline-name-session.test.ts`: Enter/Tab/blur 중복 request 차단, own canonical revision의 callback 선도착, saved와 실제 표시 확인 분리, 새 session/역순 응답, stale revision, Rejected 원문·명시 retry, composition·Escape·Unicode·001·변경 없음. 이 합성 Unit 결과는 실제 Grid 렌더·네트워크·OS IME PASS가 아니다.
+- `tests/e2e/project-gantt-inline-name.spec.ts`: native input의 Enter/blur/Escape·invalid·숫자 문자열·readonly·linked/nonlinked·Summary·기존 Milestone·4폭과 name-only payload·If-Match·단일 PATCH·reload·instance를 검증한다. #572에서는 실제 Tab/Shift+Tab 도착 focus, 실패 draft 재진입, 지연 응답의 focus 보존, 가상화 후 표시, Task Editor 양방향 동기화 및 오류 경계를 보강한다. 최신 canonical의 역순 응답 차단은 session 및 기존 canonical-snapshot-recovery Unit과 부모 코드 검토를 분리한 증거이며, 이 새 browser case를 부모의 실제 역순 경쟁 통합 검증으로 확대하지 않는다. mock fixture의 reload는 실제 SQLite 재시작 증거로 사용하지 않는다.
+- `tests/e2e/inline-name-persistence.spec.ts`: route mock 없이 격리된 Next/SQLite에서 Enter·실제 Tab의 name-only PATCH, If-Match와 revision 증가, Grid/Chart·reload·Task Editor 양방향 일치 및 같은 SQLite의 실제 Next 프로세스 재시작 뒤 이름·revision·일정·Link 유지를 검사한다. 실행 결과는 Work Packet의 최종 원장을 따른다.
+- 실패 응답은 401/409/412/5xx/network 각각 canonical 이름·권한/stale·draft 보존과 자동 재전송 0회를 검사한다. 412 뒤 명시 최신 조회로도 이전 draft를 새 revision에 묵시적으로 전송하지 않아야 한다.
+- 저장 성공은 정확한 taskId/revision/name의 응답 및 현재 canonical/Core text, 실제 mounted Grid와 관측 가능한 Chart 이름의 일치로 판정한다. 가상화로 cell이 없는 상태는 저장 실패와 분리하며 remount 후 canonical getter가 실제 표시를 제공해야 한다. DOM textContent 직접 수정·강제 remount는 금지한다.
+- metadata-only rename 전후 Grid/Chart instance, tree/selection/columns/viewport와 Link·일정·Resource 원장의 불필요 변경을 검사한다. #571의 사용자 입력 우선권을 유지하고 새 scroll writer를 추가하지 않는다.
+
+초기 실제 관측은 기존 Chromium 4 PASS(29.5초), 새 실패 draft 재진입 1 FAIL이다. 첫 통합 5건은 4 PASS/1 FAIL(26.7초)로 draft 복원은 통과했지만 composition Enter에서 input이 사라졌다. 이 최초 FAIL을 보존하고 조합 키의 native 저장 전달 경계를 보완한다. 실제 OS IME, #552 미통합 Dashboard 경로, 신규 원격 full CI 결과 및 최종 QA/Manager ACCEPT는 별도로 NOT TESTED다. 로컬 보완 결과와 독립 PRE_QA는 Work Packet의 최종 원장을 따른다.
+
 ## Issue #603 Docker PR cache read-only 검증
 
 - PR event: `cache-from` 유지, `cache-to` 비활성, metric label `gha-readonly`.

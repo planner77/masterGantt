@@ -15,6 +15,12 @@
 
 # Changelog
 
+## [0.104.3] - 2026-10-11
+
+### Fixed
+
+- Issue #572: native Grid 이름 편집의 단일 저장 요청과 확정 snapshot·표시 확인을 분리하고 실패 초안·IME·Tab/blur/focus의 비동기 경계를 보완한다. 기존 권한·revision·일정 및 Gantt 화면 상태 보존 계약을 유지한다.
+
 ## [0.104.2] - 2026-10-11
 
 ### Fixed

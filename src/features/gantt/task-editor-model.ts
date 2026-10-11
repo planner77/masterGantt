@@ -28,7 +28,10 @@ export interface TaskEditorDraft {
   readonly baselineDuration: string;
   readonly baselineEnd: string;
 }
-export type TaskEditorSaveResult = { readonly status: "saved" } | { readonly status: "failed"; readonly message: string; readonly conflict?: boolean };
+export type TaskEditorSaveResult = {
+  readonly status: "saved";
+  readonly confirmed?: { readonly taskId: string; readonly revision: number; readonly name: string };
+} | { readonly status: "failed"; readonly message: string; readonly conflict?: boolean };
 export type TaskEditorScheduleBasis = "duration" | "end";
 export type TaskEditorScheduleField = "start" | "duration" | "requestedEnd";
 export interface TaskEditorScheduleIssue {

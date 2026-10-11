@@ -1,5 +1,7 @@
 "use client";
 
+import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
+
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
 import { createSvarViewportPort } from "./viewport/svar-viewport-port";
 
@@ -334,7 +336,7 @@ interface ProjectGanttProps {
   readonly links: readonly ProjectLinkDto[];
   readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
-  readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
+  readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number, options?: { readonly successFeedback: "deferred" }) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string, initialTab?: "task" | "memberships") => void;
   readonly onTaskOpenAsRoot: (taskId: string) => void;
@@ -490,12 +492,17 @@ export function ProjectGantt({
     summaryToggleStateReference.current.clear();
   }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
+  const inlineNameStateReference = useRef(createInlineNameSession());
+  const inlineNameCauseReference = useRef<InlineNameSubmitCause>("blur");
+  const inlineNameVerificationReference = useRef<(() => void) | null>(null);
+  const inlineNameIdentityReference = useRef("");
   const namePointerIntentReference = useRef<{ taskId: string; x: number; y: number } | null>(null);
   const startDatePointerIntentReference = useRef<{ taskId: string; x: number; y: number; cell: HTMLElement } | null>(null);
   const contextPointerTaskIdReference = useRef<string | null>(null);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
   const inlineSessionReference = useRef<{
+    sessionId: number;
     taskId: string;
     revision: number;
     cell: HTMLElement;
@@ -595,6 +602,10 @@ export function ProjectGantt({
     () => new Map(tasks.map((task) => [task.taskId, task])),
     [tasks],
   );
+  const inlineCanonicalReference = useRef({ revision: projectRevision, tasksById });
+  useLayoutEffect(() => {
+    inlineCanonicalReference.current = { revision: projectRevision, tasksById };
+  }, [projectRevision, tasksById]);
   useLayoutEffect(() => {
     visibleTaskIdsReference.current = visibleTaskIds;
     matchingTaskIdsReference.current = matchingTaskIds;
@@ -1063,11 +1074,25 @@ export function ProjectGantt({
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
+    inlineNameVerificationReference.current?.();
+    inlineNameVerificationReference.current = null;
     inlineTableReference.current?.detach("project-inline-name");
     inlineTableReference.current = null;
     inlineSessionReference.current = null;
     if (startDateOpenTimerReference.current !== null) window.clearTimeout(startDateOpenTimerReference.current);
   }, []);
+
+  useLayoutEffect(() => {
+    const identity = `${projectPublicId}:${apiInstanceId}`;
+    if (inlineNameIdentityReference.current === identity) return;
+    inlineNameIdentityReference.current = identity;
+    inlineOpenTokenReference.current += 1;
+    inlineNameVerificationReference.current?.();
+    inlineNameVerificationReference.current = null;
+    inlineNameStateReference.current = createInlineNameSession();
+    inlineComposingReference.current = false;
+    inlineSessionReference.current = null;
+  }, [projectPublicId, apiInstanceId]);
 
   useEffect(() => {
     if (editable && !mutationLocked) return;
@@ -1086,9 +1111,16 @@ export function ProjectGantt({
   useLayoutEffect(() => {
     if (projectRevisionReference.current === projectRevision) return;
     projectRevisionReference.current = projectRevision;
-    inlineOpenTokenReference.current += 1;
     const session = inlineSessionReference.current;
-    inlineSessionReference.current = null;
+    const pendingName = inlineNameStateReference.current.getState();
+    const pendingTask = pendingName.phase !== "IDLE" ? tasksById.get(pendingName.taskId) : null;
+    if (pendingTask) inlineNameStateReference.current.observeCanonical({ taskId: pendingTask.taskId, revision: projectRevision, name: pendingTask.name });
+    // Own successful PATCH can commit React props before its Promise resolves.
+    // Keep that request identity until its exact response and projection agree.
+    if (!session?.committed) {
+      inlineOpenTokenReference.current += 1;
+      inlineSessionReference.current = null;
+    }
     if (startDateOpenTimerReference.current !== null) {
       window.clearTimeout(startDateOpenTimerReference.current);
       startDateOpenTimerReference.current = null;
@@ -1096,12 +1128,15 @@ export function ProjectGantt({
     if (session && !session.committed) void session.table.exec("close-editor", { ignore: true });
     queueMicrotask(() => {
       setStartDatePicker(null);
-      setInlineNameError(false);
-      setInlineNameMessage("");
+      if (!session?.committed) {
+        const nameState = inlineNameStateReference.current.getState();
+        setInlineNameError(nameState.phase === "REJECTED");
+        setInlineNameMessage(nameState.phase === "REJECTED" ? nameState.error : "");
+      }
       setInlineStartError(false);
       setInlineStartMessage("");
     });
-  }, [projectRevision]);
+  }, [projectRevision, tasksById]);
 
   useEffect(() => {
     const root = ganttScrollReference.current;
@@ -3293,7 +3328,8 @@ export function ProjectGantt({
   const commitInlineName = useCallback((value: unknown, session: NonNullable<typeof inlineSessionReference.current>): void => {
     if (session.committed) return;
     if (!canCreateReference.current || session.revision !== projectRevisionReference.current) {
-      inlineSessionReference.current = null;
+      setInlineNameError(true);
+      setInlineNameMessage("기준 Revision 또는 편집 권한이 변경되었습니다. 초안을 검토하거나 Escape로 취소한 뒤 다시 편집해 주세요.");
       return;
     }
     const task = tasksByIdReference.current.get(session.taskId);
@@ -3305,7 +3341,12 @@ export function ProjectGantt({
       if (input) {
         input.setAttribute("aria-invalid", "true");
         input.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
-        requestAnimationFrame(() => input.isConnected && input.focus({ preventScroll: true }));
+        const token = inlineOpenTokenReference.current;
+        const api = apiReference.current;
+        requestAnimationFrame(() => {
+          if (input.isConnected && inlineSessionReference.current === session &&
+            inlineOpenTokenReference.current === token && apiReference.current === api) input.focus({ preventScroll: true });
+        });
       } else {
         inlineSessionReference.current = null;
         requestAnimationFrame(() => focusInlineNameCell(session.taskId, session.cell));
@@ -3317,20 +3358,117 @@ export function ProjectGantt({
       setInlineNameMessage("");
       return;
     }
+    const model = inlineNameStateReference.current;
+    model.updateDraft(session.sessionId, String(value ?? ""));
+    const state = model.getState();
+    if (state.phase === "REJECTED" && !state.conflict) model.retry(session.sessionId);
+    const submission = model.submit(session.sessionId, inlineNameCauseReference.current);
+    if (!submission) return;
     session.committed = true;
     setInlineNameError(false);
     setInlineNameMessage("작업명을 저장하는 중…");
     const token = inlineOpenTokenReference.current;
     const api = apiReference.current;
-    void onTaskCommandReference.current({ taskId: task.taskId, payload: { name: normalized.name } }, session.revision).then((result) => {
-      if (inlineOpenTokenReference.current !== token || apiReference.current !== api) return;
-      if (result.status === "saved") {
-        setInlineNameMessage("작업명을 저장했습니다.");
-      } else {
+    const current = () => {
+      const pending = model.getState();
+      return inlineOpenTokenReference.current === token && apiReference.current === api &&
+        pending.phase !== "IDLE" && pending.sessionId === session.sessionId &&
+        "requestId" in pending && pending.requestId === submission.requestId;
+    };
+    void onTaskCommandReference.current({ taskId: task.taskId, payload: { name: submission.name } }, session.revision,
+      { successFeedback: "deferred" }).then(async result => {
+      if (!current()) return;
+      if (result.status === "failed") {
+        model.reject(submission.requestId, result);
         setInlineNameError(true);
         setInlineNameMessage(result.message);
-        requestAnimationFrame(() => focusInlineNameCell(session.taskId, session.cell));
+        return;
       }
+      if (!result.confirmed || !model.confirm(submission.requestId, result.confirmed)) {
+        model.reject(submission.requestId, { message: "저장 결과를 확인할 수 없습니다. 최신 정보를 확인해 주세요." });
+        setInlineNameError(true);
+        setInlineNameMessage("저장 결과를 확인할 수 없습니다. 최신 정보를 확인해 주세요.");
+        return;
+      }
+      setInlineNameMessage("저장한 작업명의 화면 반영을 확인하는 중…");
+      const confirmed = result.confirmed;
+      const root = ganttScrollReference.current;
+      if (!root) return;
+      let cancelled = false, pendingFrame = 0, pendingTimer = 0;
+      let finishWait: (() => void) | null = null;
+      const observer = new MutationObserver(() => { verify(); });
+      const cleanup = () => {
+        if (cancelled) return;
+        cancelled = true;
+        observer.disconnect();
+        cancelAnimationFrame(pendingFrame);
+        window.clearTimeout(pendingTimer);
+        finishWait?.();
+        if (inlineNameVerificationReference.current === cleanup) inlineNameVerificationReference.current = null;
+      };
+      const verify = () => {
+        if (cancelled || !current()) { cleanup(); return false; }
+        const root = ganttScrollReference.current;
+        const committedCanonical = inlineCanonicalReference.current;
+        const canonical = committedCanonical.tasksById.get(confirmed.taskId);
+        if (!root?.isConnected || root.closest("[hidden], [inert]")) return false;
+        if (canonical) model.observeCanonical({ taskId: canonical.taskId, revision: committedCanonical.revision, name: canonical.name });
+        const pending = model.getState();
+        if (pending.phase === "REJECTED") {
+          setInlineNameError(true);
+          setInlineNameMessage(pending.error);
+          cleanup();
+          return false;
+        }
+        const core = api?.getTask(confirmed.taskId);
+        const row = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+          .find(candidate => taskIdFromElement(candidate) === confirmed.taskId);
+        const label = row?.querySelector<HTMLElement>('[data-col-id=":text"] .wx-content > .wx-text');
+        const bars = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+          .filter(bar => taskIdFromElement(bar) === confirmed.taskId);
+        const barsAgree = bars.every(bar => (bar.querySelector(".wx-text-out") ?? bar.querySelector(".wx-content"))?.textContent === confirmed.name);
+        if (canonical?.name === confirmed.name && committedCanonical.revision === confirmed.revision &&
+          core?.text === confirmed.name && label?.textContent === confirmed.name && barsAgree &&
+          model.projectionConfirmed(submission.requestId, confirmed)) {
+          setInlineNameMessage("작업명을 저장했습니다.");
+          cleanup();
+          return true;
+        }
+        return false;
+      };
+      inlineNameVerificationReference.current?.();
+      inlineNameVerificationReference.current = cleanup;
+      observer.observe(root, { childList: true, subtree: true, characterData: true });
+      const deadline = performance.now() + 2000;
+      // Initial observation is finite. If virtualization unmounts this row,
+      // subsequent actual row mounts can acknowledge this same request.
+      for (let frame = 0; frame < 120 && performance.now() < deadline && !cancelled; frame += 1) {
+        if (verify()) return;
+        await new Promise<void>(resolve => {
+          let finished = false;
+          const finish = () => {
+            if (finished) return;
+            finished = true;
+            cancelAnimationFrame(pendingFrame);
+            window.clearTimeout(pendingTimer);
+            finishWait = null;
+            resolve();
+          };
+          finishWait = finish;
+          pendingTimer = window.setTimeout(finish, 100);
+          pendingFrame = requestAnimationFrame(finish);
+        });
+      }
+      if (!cancelled && current()) {
+        setInlineNameError(false);
+        setInlineNameMessage("작업명은 저장되었습니다. 해당 행이 표시되면 화면 반영을 확인합니다.");
+      }
+    }).catch(() => {
+      if (!current()) return;
+      const message = "네트워크 연결을 확인해 주세요. 입력은 유지되며 자동으로 다시 보내지 않습니다.";
+      model.reject(submission.requestId, { message });
+      setInlineNameError(true);
+      setInlineNameMessage(message);
     }).finally(() => {
       if (inlineSessionReference.current === session) inlineSessionReference.current = null;
     });
@@ -3355,16 +3493,34 @@ export function ProjectGantt({
       if (!cell) return false;
       const current = inlineSessionReference.current;
       if (current) return false;
+      inlineNameVerificationReference.current?.();
+      inlineNameVerificationReference.current = null;
+      const model = inlineNameStateReference.current;
+      const previous = model.getState();
+      const rejected = previous.phase === "REJECTED" && previous.taskId === taskId ? previous : null;
+      const staleDraft = rejected && (rejected.conflict || rejected.baseRevision !== projectRevisionReference.current);
+      const sessionId = staleDraft ? rejected.sessionId : model.begin({ taskId, baseRevision: projectRevisionReference.current, rawDraft: task.name });
+      if (rejected) model.updateDraft(sessionId, rejected.rawDraft);
       inlineOpenTokenReference.current += 1;
-      inlineSessionReference.current = { taskId, revision: projectRevisionReference.current, cell, table, committed: false };
-      setInlineNameMessage("");
-      setInlineNameError(false);
+      inlineNameCauseReference.current = "blur";
+      inlineComposingReference.current = false;
+      inlineSessionReference.current = { sessionId, taskId, revision: staleDraft ? rejected.baseRevision : projectRevisionReference.current, cell, table, committed: false };
+      setInlineNameMessage(staleDraft ? "기준 Revision이 변경되었습니다. 초안을 검토하거나 Escape로 취소한 뒤 다시 편집해 주세요." : "");
+      setInlineNameError(Boolean(staleDraft));
       return undefined;
+    }, { tag: "project-inline-name" });
+    table.on("open-editor", () => {
+      const session = inlineSessionReference.current;
+      const state = inlineNameStateReference.current.getState();
+      if (session && (state.phase === "EDITING" || state.phase === "REJECTED") && state.sessionId === session.sessionId && state.rawDraft !== state.originalName) {
+        void table.exec("editor", { value: state.rawDraft });
+      }
     }, { tag: "project-inline-name" });
     // Installed before user interaction: native double-click and keyboard
     // editor entries use the same protected gateway as single click.
     table.intercept("update-cell", (change) => {
       if (change.column !== "text") return undefined;
+      if (inlineComposingReference.current) return false;
       const current = inlineSessionReference.current;
       if (current && change.id === current.taskId) {
         // Core may coerce numeric-looking text before update-cell (e.g. "001"
@@ -3377,7 +3533,17 @@ export function ProjectGantt({
     table.intercept("close-editor", (change) => {
       const current = inlineSessionReference.current;
       const editor = table.getState().editor;
+      if (current && !change?.ignore && inlineComposingReference.current) return false;
       if (!current || current.committed || change?.ignore || editor?.id !== current.taskId || editor.column !== "text") return undefined;
+      const state = inlineNameStateReference.current.getState();
+      if (current.revision !== projectRevisionReference.current || (state.phase === "REJECTED" && state.conflict)) {
+        setInlineNameError(true);
+        setInlineNameMessage("기준 Revision이 변경되었습니다. 초안을 검토하거나 Escape로 취소한 뒤 다시 편집해 주세요.");
+        const input = findInlineNameInput(current.taskId);
+        input?.setAttribute("aria-invalid", "true");
+        input?.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
+        return false;
+      }
       const checked = normalizeInlineTaskName(editor.value);
       if (!checked.error) return undefined;
       setInlineNameError(true);
@@ -3385,7 +3551,12 @@ export function ProjectGantt({
       const input = findInlineNameInput(current.taskId);
       input?.setAttribute("aria-invalid", "true");
       input?.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
-      requestAnimationFrame(() => input?.isConnected && input.focus({ preventScroll: true }));
+      const token = inlineOpenTokenReference.current;
+      const api = apiReference.current;
+      requestAnimationFrame(() => {
+        if (input?.isConnected && inlineSessionReference.current === current &&
+          inlineOpenTokenReference.current === token && apiReference.current === api) input.focus({ preventScroll: true });
+      });
       return false;
     }, { tag: "project-inline-name" });
     table.on("close-editor", () => {
@@ -3504,9 +3675,16 @@ export function ProjectGantt({
   function handleInlineEscape(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
     const session = inlineSessionReference.current;
     if (event.key !== "Escape" || !session || session.committed) return false;
+    if (inlineComposingReference.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+      // Preserve the IME's default key behavior; keep Core's editor hotkey
+      // handler from treating the same composition key as an edit command.
+      event.stopPropagation();
+      return true;
+    }
     event.preventDefault();
     event.stopPropagation();
     inlineSessionReference.current = null;
+    inlineNameStateReference.current.cancel(session.sessionId);
     const token = ++inlineOpenTokenReference.current;
     const api = apiReference.current;
     setInlineNameMessage("");
@@ -3520,14 +3698,26 @@ export function ProjectGantt({
 
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === "Enter" && isCurrentInlineNameInput(event.target)) {
+      if (inlineComposingReference.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) {
+        event.stopPropagation();
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       // Core's input saves on Enter while its editor wrapper also cancels on
       // the bubbling Enter. Own the key before either handler can run.
       if (!inlineComposingReference.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) {
         const session = inlineSessionReference.current;
+        inlineNameCauseReference.current = "enter";
         if (session && !session.committed) void session.table.exec("close-editor", { ignore: false });
       }
+      return;
+    }
+    if (event.key === "Tab" && isCurrentInlineNameInput(event.target)) {
+      inlineNameCauseReference.current = "tab";
+      // Core's Tab opens another editor before saving this app-owned session.
+      // Preserve browser traversal; its resulting blur uses the same gateway.
+      event.stopPropagation();
       return;
     }
     if (handleInlineEscape(event)) return;
@@ -3837,13 +4027,24 @@ export function ProjectGantt({
             if (session && !session.committed) {
               // Save before toolbar changes can replace the native editor and
               // remove Core's document clickOutside handler.
+              if (event.relatedTarget instanceof HTMLElement) void session.table.exec("focus-cell", {});
               void session.table.exec("close-editor", { ignore: false });
             }
           }}
-          onCompositionStart={() => { inlineComposingReference.current = true; }}
-          onCompositionEnd={() => { inlineComposingReference.current = false; }}
+          onCompositionStart={() => {
+            inlineComposingReference.current = true;
+            const session = inlineSessionReference.current;
+            if (session) inlineNameStateReference.current.setComposing(session.sessionId, true);
+          }}
+          onCompositionEnd={() => {
+            inlineComposingReference.current = false;
+            const session = inlineSessionReference.current;
+            if (session) inlineNameStateReference.current.setComposing(session.sessionId, false);
+          }}
           onInput={(event) => {
             if (!isCurrentInlineNameInput(event.target)) return;
+            const session = inlineSessionReference.current;
+            if (session) inlineNameStateReference.current.updateDraft(session.sessionId, event.target.value);
             event.target.removeAttribute("aria-invalid");
             event.target.removeAttribute("aria-describedby");
             setInlineNameError(false);
