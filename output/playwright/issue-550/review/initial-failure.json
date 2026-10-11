@@ -1,0 +1,59 @@
+{
+  "issue": 550,
+  "baseline": "4bc4c31d9c5f46d90a83cbe4de878a52a2f2529b",
+  "firstAttempt": {
+    "exitCode": 1,
+    "passed": 0,
+    "failed": 9,
+    "sourceHashManifestCapturedAt": "2026-10-08T15:10:41.313522+00:00",
+    "sourceHashes": {
+      "src/features/projects/project-readonly-view.tsx": "90483221640c140d4fba752db47b2c4d7c6934898df9b9f20bf00c3d821c2ced",
+      "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+      "src/features/milestones/milestone-create-dialog.tsx": "36ee27bd56ca67d7ec1bd9f02c16902a98cf1f21a46562eb3ae8fbfff3c48fb8",
+      "src/features/milestones/project-milestone-dashboard.tsx": "44232adcdb254764a0f26f1839bfe00eb3c3c9371f7d83981c8eb1cf703380bc",
+      "src/features/milestones/project-milestone-stage-table.tsx": "ec99eaa30eb64ae06b5e519f306e298fc310750402a79f4d449ca80bfd735e61",
+      "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+      "tests/e2e/milestone-management.spec.ts": "544992756b5039abcbaaf6e3f66dfc579054b16323f5695880faef1b02ae501c"
+    },
+    "cause": "합성 report에서 초기 Milestone stageGate를 undefined로 덮어 shape/freshness guard 거절"
+  },
+  "laterFixtureFailures": [
+    "비근무일 M 날짜",
+    "unsupported weekendDays=[]",
+    "중복 root siblingOrder"
+  ],
+  "resolution": "기존 guard/engine 변경 없이 지원 calendar [6,0], working date, unique sibling order, report gate를 정정하고 기존 hierarchy/membership 검증으로 fixture 선검증",
+  "independentUxRework": [
+    "표 전체 geometry evidence 추가",
+    "관리 대상 외부 소멸 시 staleID expire/Project-guarded focus",
+    "native focus로 실제 fallback viewport 보이기"
+  ],
+  "preservation": "원본 stdout/time/manifest/trace는 /tmp 역할별 경로에 보존, runtime 로그/DB/trace는 Git 제외",
+  "preQaRaceRework": {
+    "originalFinding": "정적 후보; 후속 Chromium 집중 실행에서 race만 실제 재현",
+    "firstRuntime": {
+      "status": "FAIL",
+      "failed": 2,
+      "exitCode": 1,
+      "sourceHashes": {
+        "src/features/projects/project-readonly-view.tsx": "71949d287c2cf0460de74eedcba81553bf54cccc3bbec5c2136d76d23b2683af",
+        "src/features/milestones/project-milestone-stage-table.tsx": "30a311b483c7398f849ffc95263bcd96f5fdd715bd9988b10ba28663bbbcb361",
+        "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8"
+      },
+      "log": "/tmp/issue550-frontend-preqa-first.log",
+      "traceDirectory": "/tmp/issue550-frontend-preqa-first-results",
+      "firstLoggedHttpTimestamp": "2026-10-08T16:00:48.640Z",
+      "failure": "committed missing → target returns while application RAF held → stale menu automatically visible"
+    },
+    "deleteCancelOriginal": "정적 후보, 기존 source runtime FAIL로 표기하지 않음",
+    "finalEvidence": [
+      "expiry-race-same-id.json",
+      "expiry-race-other-id.json",
+      "delete-close-cancel.json",
+      "delete-close-escape.json"
+    ],
+    "testOnlyFrameControl": true,
+    "productionControlHook": false,
+    "focusOutsetPixels": 6
+  }
+}

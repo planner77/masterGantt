@@ -1,0 +1,320 @@
+{
+  "capturedAt": "2026-10-08T16:01:36.104Z",
+  "environment": "Chromium/Next dev synthetic mock API",
+  "width": 1024,
+  "bounds": {
+    "x": 208,
+    "y": 252,
+    "width": 608,
+    "height": 396
+  },
+  "layout": {
+    "viewport": {
+      "width": 1024,
+      "height": 900
+    },
+    "documentWidth": 1024,
+    "dashboard": {
+      "x": 24,
+      "y": -876,
+      "right": 1000,
+      "bottom": 1131,
+      "width": 976,
+      "height": 2007
+    },
+    "owner": {
+      "x": 30,
+      "y": 341.5,
+      "right": 994,
+      "bottom": 821.5,
+      "width": 964,
+      "height": 480
+    },
+    "headers": [
+      {
+        "x": 31,
+        "y": 342.5,
+        "right": 291,
+        "bottom": 381,
+        "width": 260,
+        "height": 38.5
+      },
+      {
+        "x": 291,
+        "y": 342.5,
+        "right": 403,
+        "bottom": 381,
+        "width": 112,
+        "height": 38.5
+      },
+      {
+        "x": 403,
+        "y": 342.5,
+        "right": 499,
+        "bottom": 381,
+        "width": 96,
+        "height": 38.5
+      },
+      {
+        "x": 499,
+        "y": 342.5,
+        "right": 659,
+        "bottom": 381,
+        "width": 160,
+        "height": 38.5
+      },
+      {
+        "x": 659,
+        "y": 342.5,
+        "right": 763,
+        "bottom": 381,
+        "width": 104,
+        "height": 38.5
+      },
+      {
+        "x": 763,
+        "y": 342.5,
+        "right": 851,
+        "bottom": 381,
+        "width": 88,
+        "height": 38.5
+      },
+      {
+        "x": 851,
+        "y": 342.5,
+        "right": 939,
+        "bottom": 381,
+        "width": 88,
+        "height": 38.5
+      },
+      {
+        "x": 939,
+        "y": 342.5,
+        "right": 1083,
+        "bottom": 381,
+        "width": 144,
+        "height": 38.5
+      }
+    ],
+    "cells": [
+      {
+        "x": 31,
+        "y": 381.5,
+        "right": 291,
+        "bottom": 566,
+        "width": 260,
+        "height": 184.5
+      },
+      {
+        "x": 291,
+        "y": 381.5,
+        "right": 403,
+        "bottom": 566,
+        "width": 112,
+        "height": 184.5
+      },
+      {
+        "x": 403,
+        "y": 381.5,
+        "right": 499,
+        "bottom": 566,
+        "width": 96,
+        "height": 184.5
+      },
+      {
+        "x": 499,
+        "y": 381.5,
+        "right": 659,
+        "bottom": 566,
+        "width": 160,
+        "height": 184.5
+      },
+      {
+        "x": 659,
+        "y": 381.5,
+        "right": 763,
+        "bottom": 566,
+        "width": 104,
+        "height": 184.5
+      },
+      {
+        "x": 763,
+        "y": 381.5,
+        "right": 851,
+        "bottom": 566,
+        "width": 88,
+        "height": 184.5
+      },
+      {
+        "x": 851,
+        "y": 381.5,
+        "right": 939,
+        "bottom": 566,
+        "width": 88,
+        "height": 184.5
+      },
+      {
+        "x": 939,
+        "y": 381.5,
+        "right": 1083,
+        "bottom": 566,
+        "width": 144,
+        "height": 184.5
+      }
+    ],
+    "buttons": [
+      {
+        "button": {
+          "x": 39,
+          "y": 391.5,
+          "right": 283,
+          "bottom": 423.5,
+          "width": 244,
+          "height": 32
+        },
+        "cell": {
+          "x": 31,
+          "y": 381.5,
+          "right": 291,
+          "bottom": 566,
+          "width": 260,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 953,
+          "y": 397.5,
+          "right": 995,
+          "bottom": 429.5,
+          "width": 42,
+          "height": 32
+        },
+        "cell": {
+          "x": 939,
+          "y": 381.5,
+          "right": 1083,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 953,
+          "y": 437.5,
+          "right": 1022.34375,
+          "bottom": 469.5,
+          "width": 69.34375,
+          "height": 32
+        },
+        "cell": {
+          "x": 939,
+          "y": 381.5,
+          "right": 1083,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 953,
+          "y": 477.5,
+          "right": 1022.34375,
+          "bottom": 509.5,
+          "width": 69.34375,
+          "height": 32
+        },
+        "cell": {
+          "x": 939,
+          "y": 381.5,
+          "right": 1083,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 953,
+          "y": 517.5,
+          "right": 995,
+          "bottom": 549.5,
+          "width": 42,
+          "height": 32
+        },
+        "cell": {
+          "x": 939,
+          "y": 381.5,
+          "right": 1083,
+          "bottom": 566,
+          "width": 144,
+          "height": 184.5
+        }
+      }
+    ],
+    "toolbar": {
+      "x": 30,
+      "y": -832,
+      "right": 994,
+      "bottom": -781,
+      "width": 964,
+      "height": 51
+    },
+    "controls": [
+      {
+        "x": 817.296875,
+        "y": -826,
+        "right": 914,
+        "bottom": -794,
+        "width": 96.703125,
+        "height": 32
+      },
+      {
+        "x": 922,
+        "y": -826,
+        "right": 988,
+        "bottom": -794,
+        "width": 66,
+        "height": 32
+      }
+    ],
+    "focus": {
+      "rect": {
+        "x": 516,
+        "y": 471,
+        "right": 795,
+        "bottom": 503,
+        "width": 279,
+        "height": 32
+      },
+      "outline": "solid",
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "owner": {
+        "x": 208,
+        "y": 252,
+        "right": 816,
+        "bottom": 648,
+        "width": 608,
+        "height": 396
+      }
+    }
+  },
+  "rows": 30,
+  "readonly": true,
+  "instance": {
+    "apiId": "svar-api-1",
+    "instanceId": "project-gantt-xjpl00bmw6c"
+  },
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "26d977512c28bc880e4073a2d84a260110e9ba192c4c4df047d4eec3e1810af2",
+    "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+    "src/features/milestones/milestone-create-dialog.tsx": "0fd7a28bd2740871111dfc2ff6d7c1c564463db11772d13a031e1140afcc2cd1",
+    "src/features/milestones/project-milestone-dashboard.tsx": "0b99fc08dc1c42b008a923bb33c6ddee5bcf80406c3125fda476c4ce5ad75127",
+    "src/features/milestones/project-milestone-stage-table.tsx": "6cfc9f0b1627ee808ff364f83198ff57e001506702777fb1ca8f067f283214fe",
+    "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+    "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8"
+  }
+}

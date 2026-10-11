@@ -484,3 +484,16 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 ## Issue #549 — Milestone Timeline 공통 기반
 
 MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Milestone 날짜 모집단, 기본 ON의 독립 표시 설정과 별도 Milestone 조회 선택을 구분한다. 기존 전체 Membership/Gate projector와 전체 subtree/export 의미를 유지하며 검색/scope/viewport로 E(M)/P(M)를 줄이지 않는다. null/invalid 날짜, 수동 이벤트, 완료 기록 불일치를 구별한다. 현재 native Milestone 행·빠른 보기·types를 유지하고 관리/lane/호환 표시 전환 UI는 #550~#553의 선행 gate 후 범위다. 상세 current/target/compatibility와 설치 Core 기술 제한은 [Milestone Timeline](MILESTONE_TIMELINE.md)을 따른다.
+
+
+
+## Issue #550 — Milestone 독립 관리 진입
+
+기존 Milestone Dashboard의 canonical 날짜/ID 평면 목록과 project-root 추가로 native 행/현재 viewport 없이도 관리할 수 있다. name/date 생성 form은 type=milestone/duration=0을 기존 보호 gateway로 보내며 parentTaskId를 생략하고 현재 Summary/scope를 부모로 추론하지 않는다. 성공 revision 검증 뒤 유일한 새 canonical M taskId로 같은 Editor를 연다. 상세·소속·관계·Copy ID/허용 단일 복사/삭제/완료·재개 및 날짜/정확 member 일정 조회를 기존 gateway로 재사용한다. readonly와 완료 구조 잠금·Assignment·incident Link·revision/session/Origin/server authority, fullE/P/manual Ready=null을 유지한다.
+
+보고 필터/KPI/freshness와 Gantt 인스턴스를 보존하며 같은 이름/날짜·전체0/조건0·scope 밖 endpoint를 구분한다. dirty 생성 초안의 폐기 확인, pending 닫기/중복 제출 차단, 401/412/network/stale 입력 보존과 실제 목록 focus/삭제 fallback을 요구한다. 현재 M행·quickview를 제거하지 않고 새 lane을 활성화하지 않는다. #549 Week header 의미 FAIL는 #551 활성화 전 독립 gate로 남는다. 명령 inventory/비지원 범위는 [MILESTONE_TIMELINE](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다.
+
+#550 관리 대상의 소멸이 commit된 뒤 RAF 전에 같은 대상이 복귀해도 메뉴를 자동 재개하지 않아야 한다. 명시적 같은/다른 ID 열기를 오래된 focus 복원이 방해하지 않아야 하며, 삭제 확인 취소/Escape는 disconnected trigger에서도 visible Dashboard fallback과 삭제 요청0을 유지해야 한다.
+
+
+Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하고 최신 revision 확인을 요구한다.

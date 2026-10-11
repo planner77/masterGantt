@@ -1,0 +1,320 @@
+{
+  "capturedAt": "2026-10-08T16:01:30.835Z",
+  "environment": "Chromium/Next dev synthetic mock API",
+  "width": 390,
+  "bounds": {
+    "x": 19,
+    "y": 112.5,
+    "width": 352,
+    "height": 675
+  },
+  "layout": {
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "documentWidth": 390,
+    "dashboard": {
+      "x": 12,
+      "y": -1635,
+      "right": 378,
+      "bottom": 1226.5,
+      "width": 366,
+      "height": 2861.5
+    },
+    "owner": {
+      "x": 18,
+      "y": 365,
+      "right": 372,
+      "bottom": 845,
+      "width": 354,
+      "height": 480
+    },
+    "headers": [
+      {
+        "x": -681,
+        "y": 366,
+        "right": -421,
+        "bottom": 404.5,
+        "width": 260,
+        "height": 38.5
+      },
+      {
+        "x": -421,
+        "y": 366,
+        "right": -309,
+        "bottom": 404.5,
+        "width": 112,
+        "height": 38.5
+      },
+      {
+        "x": -309,
+        "y": 366,
+        "right": -213,
+        "bottom": 404.5,
+        "width": 96,
+        "height": 38.5
+      },
+      {
+        "x": -213,
+        "y": 366,
+        "right": -53,
+        "bottom": 404.5,
+        "width": 160,
+        "height": 38.5
+      },
+      {
+        "x": -53,
+        "y": 366,
+        "right": 51,
+        "bottom": 404.5,
+        "width": 104,
+        "height": 38.5
+      },
+      {
+        "x": 51,
+        "y": 366,
+        "right": 139,
+        "bottom": 404.5,
+        "width": 88,
+        "height": 38.5
+      },
+      {
+        "x": 139,
+        "y": 366,
+        "right": 227,
+        "bottom": 404.5,
+        "width": 88,
+        "height": 38.5
+      },
+      {
+        "x": 227,
+        "y": 366,
+        "right": 371,
+        "bottom": 404.5,
+        "width": 144,
+        "height": 38.5
+      }
+    ],
+    "cells": [
+      {
+        "x": -681,
+        "y": 405,
+        "right": -421,
+        "bottom": 589.5,
+        "width": 260,
+        "height": 184.5
+      },
+      {
+        "x": -421,
+        "y": 405,
+        "right": -309,
+        "bottom": 589.5,
+        "width": 112,
+        "height": 184.5
+      },
+      {
+        "x": -309,
+        "y": 405,
+        "right": -213,
+        "bottom": 589.5,
+        "width": 96,
+        "height": 184.5
+      },
+      {
+        "x": -213,
+        "y": 405,
+        "right": -53,
+        "bottom": 589.5,
+        "width": 160,
+        "height": 184.5
+      },
+      {
+        "x": -53,
+        "y": 405,
+        "right": 51,
+        "bottom": 589.5,
+        "width": 104,
+        "height": 184.5
+      },
+      {
+        "x": 51,
+        "y": 405,
+        "right": 139,
+        "bottom": 589.5,
+        "width": 88,
+        "height": 184.5
+      },
+      {
+        "x": 139,
+        "y": 405,
+        "right": 227,
+        "bottom": 589.5,
+        "width": 88,
+        "height": 184.5
+      },
+      {
+        "x": 227,
+        "y": 405,
+        "right": 371,
+        "bottom": 589.5,
+        "width": 144,
+        "height": 184.5
+      }
+    ],
+    "buttons": [
+      {
+        "button": {
+          "x": -673,
+          "y": 415,
+          "right": -429,
+          "bottom": 447,
+          "width": 244,
+          "height": 32
+        },
+        "cell": {
+          "x": -681,
+          "y": 405,
+          "right": -421,
+          "bottom": 589.5,
+          "width": 260,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 241,
+          "y": 421,
+          "right": 283,
+          "bottom": 453,
+          "width": 42,
+          "height": 32
+        },
+        "cell": {
+          "x": 227,
+          "y": 405,
+          "right": 371,
+          "bottom": 589.5,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 241,
+          "y": 461,
+          "right": 310.34375,
+          "bottom": 493,
+          "width": 69.34375,
+          "height": 32
+        },
+        "cell": {
+          "x": 227,
+          "y": 405,
+          "right": 371,
+          "bottom": 589.5,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 241,
+          "y": 501,
+          "right": 310.34375,
+          "bottom": 533,
+          "width": 69.34375,
+          "height": 32
+        },
+        "cell": {
+          "x": 227,
+          "y": 405,
+          "right": 371,
+          "bottom": 589.5,
+          "width": 144,
+          "height": 184.5
+        }
+      },
+      {
+        "button": {
+          "x": 241,
+          "y": 541,
+          "right": 283,
+          "bottom": 573,
+          "width": 42,
+          "height": 32
+        },
+        "cell": {
+          "x": 227,
+          "y": 405,
+          "right": 371,
+          "bottom": 589.5,
+          "width": 144,
+          "height": 184.5
+        }
+      }
+    ],
+    "toolbar": {
+      "x": 18,
+      "y": -1567,
+      "right": 372,
+      "bottom": -1460,
+      "width": 354,
+      "height": 107
+    },
+    "controls": [
+      {
+        "x": 24,
+        "y": -1498,
+        "right": 120.703125,
+        "bottom": -1466,
+        "width": 96.703125,
+        "height": 32
+      },
+      {
+        "x": 128.703125,
+        "y": -1498,
+        "right": 194.703125,
+        "bottom": -1466,
+        "width": 66,
+        "height": 32
+      }
+    ],
+    "focus": {
+      "rect": {
+        "x": 40,
+        "y": 486.5,
+        "right": 350,
+        "bottom": 518.5,
+        "width": 310,
+        "height": 32
+      },
+      "outline": "solid",
+      "outlineWidth": 3,
+      "outlineOffset": 3,
+      "owner": {
+        "x": 19,
+        "y": 112.5,
+        "right": 371,
+        "bottom": 787.5,
+        "width": 352,
+        "height": 675
+      }
+    }
+  },
+  "rows": 30,
+  "readonly": true,
+  "instance": {
+    "apiId": "svar-api-1",
+    "instanceId": "project-gantt-xux1jytzhle"
+  },
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "26d977512c28bc880e4073a2d84a260110e9ba192c4c4df047d4eec3e1810af2",
+    "src/features/milestones/milestone-management-model.ts": "a9edcc22ea8acdc67d9bbcba0b620d006155ef9066d8b3d11f3297f20cd6679e",
+    "src/features/milestones/milestone-create-dialog.tsx": "0fd7a28bd2740871111dfc2ff6d7c1c564463db11772d13a031e1140afcc2cd1",
+    "src/features/milestones/project-milestone-dashboard.tsx": "0b99fc08dc1c42b008a923bb33c6ddee5bcf80406c3125fda476c4ce5ad75127",
+    "src/features/milestones/project-milestone-stage-table.tsx": "6cfc9f0b1627ee808ff364f83198ff57e001506702777fb1ca8f067f283214fe",
+    "src/features/milestones/project-milestone-dashboard.module.css": "6d5adeddde675598631189c56681dae5b2e693bf399968499ed150d44a41fcfe",
+    "tests/e2e/milestone-management.spec.ts": "296eba3a4da5fb698ca80726a1d8196a9c4d63db6bdfb52689a027fc101e41b8"
+  }
+}
