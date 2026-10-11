@@ -11,7 +11,10 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass, replace
+from types import SimpleNamespace
 from typing import Any
+
+from issue_lifecycle import LifecycleError, audited_final_markers
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 REF_RE = re.compile(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$")
@@ -189,6 +192,10 @@ def select_authorization(
         marker = parse_authorization_marker(comment.get("body") or "")
         if marker is None:
             continue
+        if marker["expected_version"] != expected_version:
+            # An independent version's approval or revocation must not
+            # supersede this exact release target's trusted decision.
+            continue
         trusted_markers.append((int(comment.get("id") or 0), comment, marker))
 
     if not trusted_markers:
@@ -204,11 +211,6 @@ def select_authorization(
         actor=actor,
         evidence_url=evidence_url,
     )
-    if authorization.expected_version != expected_version:
-        raise AutoFinalizerBlocked(
-            "최신 신뢰 승인 marker의 대상 version이 "
-            f"{authorization.expected_version}이며 현재 {expected_version}과 다릅니다"
-        )
     if not authorization.authorized:
         raise AutoFinalizerBlocked(
             f"최신 신뢰 승인 marker가 {expected_version} release 승인을 명시적으로 철회했습니다"
@@ -290,13 +292,24 @@ def issue_comments(repo: str, issue_number: int) -> list[dict[str, Any]]:
 
 
 def is_finalized_boundary(repo: str, item: WorkItem) -> bool:
-    comments = issue_comments(repo, item.issue_number)
-    marker = final_marker(item.issue_number, item.target_sha)
-    return any(
-        line.strip() == marker
-        for comment in comments
-        for line in (comment.get("body") or "").splitlines()
+    """Only authenticated, exact PR/main FINAL evidence can end traversal.
+
+    A user-authored marker must fail closed rather than silently skip branch
+    cleanup, GHCR candidate cleanup, or per-target lifecycle recording.
+    """
+    context = SimpleNamespace(
+        issue_number=item.issue_number,
+        pr_number=item.pr_number,
+        merge_sha=item.target_sha,
     )
+    try:
+        records = audited_final_markers(repo, context)
+    except LifecycleError as exc:
+        raise AutoFinalizerError(
+            f"Issue #{item.issue_number} PR #{item.pr_number} "
+            f"SHA {item.target_sha} phase=FINAL_BOUNDARY_AUDIT: {exc}"
+        ) from exc
+    return item.target_sha in records
 
 
 def is_closed_issue(repo: str, item: WorkItem) -> bool:
@@ -307,7 +320,9 @@ def is_closed_issue(repo: str, item: WorkItem) -> bool:
 
 
 def collect_pending_work(
-    repo: str, latest_main_sha: str, *, max_depth: int = MAX_BACKLOG_DEPTH
+    repo: str, latest_main_sha: str, *,
+    max_depth: int = MAX_BACKLOG_DEPTH,
+    finalized_boundary: list[WorkItem] | None = None,
 ) -> list[WorkItem]:
     pending_newest_first: list[WorkItem] = []
     cursor = latest_main_sha
@@ -320,8 +335,14 @@ def collect_pending_work(
             # rather than inventing an Issue identity.
             return list(reversed(pending_newest_first))
         if is_finalized_boundary(repo, item):
+            if finalized_boundary is not None:
+                finalized_boundary.append(item)
             return list(reversed(pending_newest_first))
-        if is_closed_issue(repo, item):
+        if is_closed_issue(repo, item) and not any(
+            line.strip().startswith(f"{FINAL_MARKER_PREFIX}{item.issue_number}:")
+            for comment in issue_comments(repo, item.issue_number)
+            for line in (comment.get("body") or "").splitlines()
+        ):
             # A later maintenance/fix PR may legitimately reference an Issue
             # whose older target was already finalized.  Keep it as a
             # non-actionable ordering barrier so adjacency-sensitive retry
@@ -338,47 +359,8 @@ def collect_pending_work(
 
 
 def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
-    """Collapse adjacent same-Issue retries only when validation scope matches.
-
-    The latest target can stand in for earlier attempts only when both merges
-    require the same docs-only/non-docs main validation scope. This prevents a
-    docs-only follow-up from masking an earlier code merge whose exact main CI
-    never produced the required E2E/Docker/GHCR evidence. Every collapsed PR
-    identity is retained so all merged branches can be safely cleaned before
-    FINAL/Issue close.
-    """
-    coalesced: list[WorkItem] = []
-    for item in items:
-        if (
-            coalesced
-            and coalesced[-1].actionable
-            and item.actionable
-            and coalesced[-1].issue_number == item.issue_number
-            and coalesced[-1].validation_docs_only == item.validation_docs_only
-        ):
-            previous = coalesced[-1]
-            cleanup_pr_numbers = tuple(
-                dict.fromkeys(
-                    (
-                        *previous.cleanup_pr_numbers,
-                        previous.pr_number,
-                        *item.cleanup_pr_numbers,
-                    )
-                )
-            )
-            coalesced[-1] = WorkItem(
-                target_sha=item.target_sha,
-                first_parent_sha=previous.first_parent_sha,
-                pr_number=item.pr_number,
-                issue_number=item.issue_number,
-                previous_version=previous.previous_version,
-                current_version=item.current_version,
-                validation_docs_only=item.validation_docs_only,
-                cleanup_pr_numbers=cleanup_pr_numbers,
-            )
-            continue
-        coalesced.append(item)
-    return coalesced
+    """Preserve every successful target; no per-merge CI/GHCR obligation may vanish."""
+    return list(items)
 
 
 def validation_scope_covers(older: WorkItem, replacement: WorkItem) -> bool:
@@ -600,7 +582,11 @@ def lifecycle_command(
     expected_version: str,
     authorization_note: str,
     cleanup_pr_numbers: tuple[int, ...] = (),
+    defer_close: bool = False,
+    main_snapshot_sha: str = "",
 ) -> list[str]:
+    if not SHA_RE.fullmatch(main_snapshot_sha):
+        raise AutoFinalizerError("ordered lifecycle command requires main snapshot SHA")
     command = [
         "python3",
         "scripts/issue_lifecycle.py",
@@ -617,13 +603,18 @@ def lifecycle_command(
         expected_version,
         "--authorization-note",
         authorization_note,
+        "--resolver-ordered",
+        "--resolver-main-sha",
+        main_snapshot_sha,
     ]
+    if defer_close:
+        command.append("--defer-close")
     for cleanup_pr_number in cleanup_pr_numbers:
         command.extend(["--cleanup-pr", str(cleanup_pr_number)])
     return command
 
 
-def process_item(repo: str, item: WorkItem, release_state: str) -> str:
+def process_item(repo: str, item: WorkItem, release_state: str, *, main_snapshot_sha: str, defer_close: bool = False) -> str:
     release_required = item.previous_version != item.current_version
     operation = "finalize"
     release_authorized = False
@@ -683,6 +674,8 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
             expected_version=item.current_version if release_required else "",
             authorization_note=authorization_note,
             cleanup_pr_numbers=item.cleanup_pr_numbers,
+            defer_close=defer_close,
+            main_snapshot_sha=main_snapshot_sha,
         ),
         check=False,
     )
@@ -695,6 +688,37 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
     return operation
 
 
+def resume_unclosed_final(
+    repo: str, boundary: WorkItem, newer: list[WorkItem], main_snapshot_sha: str
+) -> bool:
+    """Recover a committed FINAL followed by a failed Issue close."""
+    if any(item.issue_number == boundary.issue_number for item in newer):
+        return False
+    if is_closed_issue(repo, boundary):
+        return False
+    result = run(
+        *lifecycle_command(
+            operation="close_resume",
+            issue_number=boundary.issue_number,
+            pr_number=boundary.pr_number,
+            release_required=False,
+            release_authorized=False,
+            expected_version="",
+            authorization_note="",
+            main_snapshot_sha=main_snapshot_sha,
+        ),
+        check=False,
+    )
+    sys.stdout.write(result.stdout)
+    sys.stderr.write(result.stderr)
+    if result.returncode != 0:
+        raise AutoFinalizerError(
+            f"Issue #{boundary.issue_number} PR #{boundary.pr_number} "
+            f"SHA {boundary.target_sha} phase=CLOSE_RESUME failed with {result.returncode}"
+        )
+    return True
+
+
 def execute(trigger_sha: str) -> int:
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     if not repo:
@@ -703,7 +727,11 @@ def execute(trigger_sha: str) -> int:
         raise AutoFinalizerError("trigger SHA는 40자리 SHA여야 합니다")
 
     latest_main = current_main_sha(repo)
-    pending_raw = collect_pending_work(repo, latest_main)
+    # Boundary audit and history resolution must inspect the actual latest main.
+    # Use process-scoped auth; do not persist checkout credentials.
+    run_git_remote("fetch", "--no-tags", "origin", "main")
+    finalized_boundary: list[WorkItem] = []
+    pending_raw = collect_pending_work(repo, latest_main, finalized_boundary=finalized_boundary)
     pending_with_barriers = coalesce_consecutive_issue_retries(pending_raw)
     closed_barriers = [item for item in pending_with_barriers if not item.actionable]
     pending_coalesced = [item for item in pending_with_barriers if item.actionable]
@@ -723,6 +751,19 @@ def execute(trigger_sha: str) -> int:
             for sha, (state, _url) in release_evidence.items()
         },
     )
+
+    if finalized_boundary:
+        recovered = resume_unclosed_final(
+            repo, finalized_boundary[0], pending_raw, latest_main
+        )
+        if recovered:
+            write_summary([
+                "### 이전 FINAL의 종료 단계 복구",
+                "",
+                f"- Issue #{finalized_boundary[0].issue_number} / PR #{finalized_boundary[0].pr_number}",
+                f"- exact SHA: {finalized_boundary[0].target_sha}",
+                "- 결과: 인증된 FINAL의 Issue close 재시도 PASS; FINAL comment/cleanup 재실행 없음",
+            ])
 
     if not pending:
         write_summary(
@@ -819,7 +860,11 @@ def execute(trigger_sha: str) -> int:
                 ]
             )
             return 0
-        operation = process_item(repo, item, release_state)
+        newer_same_issue = any(
+            candidate.issue_number == item.issue_number and candidate.target_sha != item.target_sha
+            for candidate in pending[pending.index(item) + 1:]
+        )
+        operation = process_item(repo, item, release_state, main_snapshot_sha=latest_main, defer_close=newer_same_issue)
         if operation == "release_start":
             write_summary(
                 [

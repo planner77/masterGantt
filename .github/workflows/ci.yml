@@ -1,6 +1,6 @@
 name: CI
 run-name: >-
-  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
 
 on:
   pull_request:
@@ -44,6 +44,44 @@ jobs:
       current_version: ${{ steps.release_candidate.outputs.current_version }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
+      # Source-of-truth for PR attribution is the GitHub event captured before
+      # any PR checkout. Trusted QA treats this artifact as untrusted data and
+      # independently checks its run/attempt/PR/head/base/test-merge provenance.
+      - name: PR CI 원본 이벤트·base·test-merge 증거 생성 (#593)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
+          pr = event["pull_request"]
+          payload = {
+              "schema": "mastergantt-ci-pr-source-v1",
+              "repository": event["repository"]["full_name"],
+              "run_id": int(os.environ["GITHUB_RUN_ID"]),
+              "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"]),
+              "pr_number": int(pr["number"]),
+              "head_sha": pr["head"]["sha"],
+              "head_ref": pr["head"]["ref"],
+              "head_repository": pr["head"]["repo"]["full_name"],
+              "base_sha": pr["base"]["sha"],
+              "base_ref": pr["base"]["ref"],
+              "base_repository": pr["base"]["repo"]["full_name"],
+              "test_merge_sha": os.environ["GITHUB_SHA"],
+          }
+          Path("ci-pr-source.json").write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+      - name: PR 원본 출처 증거 보존 (run·attempt별 불변 artifact)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-pr-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-pr-source.json
+          retention-days: 30
+          if-no-files-found: error
       # actions/checkout v7.0.1
       - name: checkout 계측 시작
         id: checkout-start
@@ -281,6 +319,8 @@ jobs:
         run: node scripts/verify-test-discovery.mjs
       - name: production dependency audit
         run: npm audit --omit=dev
+      - name: CI cache invalidation·fallback 계약 검증
+        run: node scripts/verify-ci-cache-contract.mjs
       - run: node scripts/check-markdown-links.mjs
       - name: 작업 브랜치 cleanup 안전 정책 검증
         run: python3 scripts/verify-safe-branch-cleanup.py
@@ -288,6 +328,8 @@ jobs:
         run: python3 scripts/verify-issue-lifecycle.py
       - name: PR metadata 증거 판정 M1~M8 회귀
         run: python3 scripts/test-pr-metadata-evidence.py
+      - name: PR metadata full CI 완료 자동 복구 시나리오 (#600)
+        run: python3 scripts/test-pr-metadata-reconcile.py
       - name: QA Final LOW/MEDIUM/HIGH·보안 경계 Python 회귀 (#580)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py
       - name: 배포 shell 구문 검증
@@ -394,6 +436,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       # Next.js 공식 CI build cache 대상인 .next/cache를 commit 간 재사용한다.
+      - name: Next.js cache runtime/tool version 확인
+        id: next-cache-version
+        shell: bash
+        run: |
+          echo "node=$(node --version)" >> "$GITHUB_OUTPUT"
+          echo "next=$(node -p 'require("next/package.json").version')" >> "$GITHUB_OUTPUT"
       - name: Next.js cache 계측 시작
         id: next-cache-start
         shell: bash
@@ -403,9 +451,9 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .next/cache
-          key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.next-cache-version.outputs.node }}-next-${{ steps.next-cache-version.outputs.next }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.next-cache-version.outputs.node }}-next-${{ steps.next-cache-version.outputs.next }}-${{ hashFiles('package-lock.json') }}-
       - name: Next.js cache 시간·hit 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric next-build-cache --started-ms "${{ steps.next-cache-start.outputs.started_ms }}" --cache "exact-hit=${{ steps.next-cache.outputs.cache-hit || 'false' }}"
@@ -632,8 +680,8 @@ jobs:
           tags: mastergantt:ci
           build-args: VERSION=ci-${{ github.sha }}
           platforms: linux/amd64
-          cache-from: type=gha,scope=mastergantt-docker
-          cache-to: type=gha,mode=max,scope=mastergantt-docker
+          cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
+          cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
       - name: Docker build/cache 시간 기록
         if: always()
         shell: bash
@@ -649,11 +697,23 @@ jobs:
           set -euo pipefail
           baseline_dir="$RUNNER_TEMP/mastergantt-image-baseline"
           git worktree add --detach "$baseline_dir" "$BASE_SHA"
-          docker build \
-            --file "$baseline_dir/deploy/docker/Dockerfile" \
-            --tag mastergantt:baseline \
-            --build-arg VERSION=baseline-"$BASE_SHA" \
-            "$baseline_dir"
+          baseline_build_log="$RUNNER_TEMP/mastergantt-baseline-build.log"
+          for attempt in 1 2; do
+            # npm registry 연결 오류만 한 차례 재시도한다. 그 외 build 실패는 즉시 실패 처리.
+            if docker build --progress=plain \
+              --file "$baseline_dir/deploy/docker/Dockerfile" \
+              --tag mastergantt:baseline \
+              --build-arg VERSION=baseline-"$BASE_SHA" \
+              "$baseline_dir" 2>&1 | tee "$baseline_build_log"; then
+              break
+            fi
+            if [[ "$attempt" -eq 2 ]] || ! grep -Eq 'npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)' "$baseline_build_log"; then
+              echo "Docker 기준 이미지 빌드가 실패했습니다. transient npm 연결 오류 외에는 재시도하지 않습니다." >&2
+              exit 1
+            fi
+            echo "npm registry 일시 연결 오류로 Docker 기준 이미지 빌드를 1회 재시도합니다."
+            sleep 5
+          done
 
           baseline_standalone=false
           candidate_standalone=false
@@ -813,8 +873,10 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      pull-requests: read
     outputs:
       trusted_validator: ${{ steps.validator.outputs.present }}
+      qa_mode: ${{ steps.route.outputs.qa_mode }}
     steps:
       - name: 현재 PR base SHA checkout (PR 코드·Secret 실행 금지)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -839,6 +901,71 @@ jobs:
               echo "기존 Quality/E2E/Docker와 DOC_SYNC/리뷰/merge gate를 모두 유지합니다."
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+      # Existing base script (not PR code) classifies protected diff and declared
+      # review mode. AGENT route has no automated QA verdict: it is intentionally
+      # skipped, with an explicit manual gate in the step summary. API/mode
+      # uncertainty causes bootstrap FAIL, never a false skip/PASS.
+      - name: 보호 변경·AGENT 경로 판정 (read-only, base 검증기)
+        id: route
+        if: steps.validator.outputs.present == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 - <<'PY'
+          import importlib.util
+          import os
+          import sys
+          from pathlib import Path
+
+          spec = importlib.util.spec_from_file_location(
+              "trusted_qa", Path("scripts/qa_final_automated.py"))
+          if spec is None or spec.loader is None:
+              sys.exit("BLOCKED: 신뢰된 base QA 검증기 import 불가")
+          qa = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(qa)
+          try:
+              gh = qa.GitHub(os.environ["GITHUB_REPOSITORY"], os.environ["GH_TOKEN"])
+              number = int(os.environ["PR_NUMBER"])
+              pr = gh.get(f"{gh.prefix}/pulls/{number}")
+              qa.require(pr.get("number") == number and pr.get("state") == "open" and
+                         pr.get("head", {}).get("sha") == os.environ["EVENT_HEAD_SHA"] and
+                         pr.get("base", {}).get("sha") == os.environ["EVENT_BASE_SHA"],
+                         "최신 PR/head/base 귀속 검증 실패 (stale이면 재실행 필요)")
+              body = pr.get("body") or ""
+              method = qa.pr_field(body, "qa_method", {"AGENT", "AUTOMATED_MANAGER", "OWNER_MANAGED"})
+              risk = qa.pr_field(body, "risk_level", {"LOW", "MEDIUM", "HIGH"})
+              paths, protected = qa.protected_paths(
+                  gh.pages(f"{gh.prefix}/pulls/{number}/files"))
+              qa.require(bool(paths), "PR 변경 파일 목록 없음")
+              qa.require(not protected or risk == "HIGH",
+                         "보호된 CI/QA/정책 파일 변경은 HIGH 위험도 필수")
+              route = "AGENT" if method == "AGENT" else "AUTO"
+          except (qa.Blocked, ValueError, KeyError, TypeError) as error:
+              sys.exit("QA 경로 BLOCKED: " + str(error))
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write("qa_mode=" + route + "\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              if route == "AGENT":
+                  summary.write(
+                      "## QA Final — AGENT: NOT TESTED (별도 독립 검토 필수)\n"
+                      f"- PR #{number}, Head: `{os.environ['EVENT_HEAD_SHA']}`\n"
+                      f"- 보호 파일 감지: {len(protected)}개, risk_level: {risk}\n"
+                      "- `QA Final — Automated`는 **비적용(SKIPPED)**: 자동 QA PASS 아님\n"
+                      "- 필수 Quality/E2E/Docker CI와 분리하며, 독립 Reviewer PASS + "
+                      "Manager exact-Head ACCEPT 전 **MERGE_READY=BLOCKED**\n"
+                  )
+              else:
+                  summary.write(
+                      "## QA Final — Automated 검사 대상\n"
+                      f"- PR #{number}: AUTOMATED_MANAGER / protected=0\n"
+                      "- 기본 브랜치 검증의 실제 PASS·별도 Manager 판단 필요\n"
+                  )
+          PY
 
   qa_final_automated:
     name: QA Final — Automated
@@ -846,7 +973,8 @@ jobs:
       always() &&
       github.event_name == 'pull_request' &&
       needs.qa_bootstrap.result == 'success' &&
-      needs.qa_bootstrap.outputs.trusted_validator == 'true'
+      needs.qa_bootstrap.outputs.trusted_validator == 'true' &&
+      needs.qa_bootstrap.outputs.qa_mode == 'AUTO'
     needs: [qa_bootstrap, changes, metadata_evidence, quality, e2e, docker]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -969,8 +1097,8 @@ jobs:
             org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
           build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
-          cache-from: type=gha,scope=mastergantt-docker
-          cache-to: type=gha,mode=max,scope=mastergantt-docker
+          cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
+          cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           provenance: mode=max
           sbom: true
       - name: Main image build/push 시간 기록

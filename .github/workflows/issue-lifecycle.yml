@@ -45,7 +45,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: issue-lifecycle-${{ inputs.issue_number }}
+  group: mastergantt-release-finalizer
   cancel-in-progress: false
   queue: max
 

@@ -131,3 +131,5 @@ Issue Lifecycle v2 (#109):
 # - one-shot finalizer PR main push에서는 일반 Main CI와 finalizer run이 별개로 실행될 수 있으므로 run number만 보고 동일시하지 않는다. workflow/job 이름과 run ID를 구분해 기록한다.
 # - safe_branch_cleanup이 다른 Open PR의 base/head 참조 때문에 실패하면 해당 PR을 최신 main/올바른 base로 재정렬해 blocker를 제거한 뒤 기존 failed finalizer run/job 재실행을 우선한다.
 # - 기존 failed run을 재사용할 수 있는데 새 finalizer PR을 반복 만들거나 수동 branch 삭제/Issue close로 fail-closed gate를 우회하지 않는다.
+
+# Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.
