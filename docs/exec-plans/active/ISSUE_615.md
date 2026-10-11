@@ -110,3 +110,10 @@ DOCUMENTATION_SYNC: PASS(관련 계약 의미 검토 포함). QA_FINAL/Trusted/q
 - TypeScript, ESLint, Next build, Chromium 6/6, Docker smoke PASS. quality aggregator는 Vitest 실패로 FAIL, QA Final — Automated는 required quality 미성공으로 종속 FAIL이다.
 - 수정: migration CLI 고정 목록에 0025와 25행 기대값을 반영하고 초기 `process_catalog_state`/빈 type catalog/FK 무결성 단언을 추가했다. 리뷰 P2로 지적된 `ProcessContextResponse.data.permission`의 `"readonly" | "edit"` 타입 누락을 보완하고 타입 계약 검증·readonly/edit HTTP 회귀·API 문서를 동기화했다.
 - 기존 로컬 PRE_QA 영수증은 원본 HEAD의 이력으로 보존한다. 새 HEAD의 전체 quality/e2e/docker, Trusted QA, QA Final 및 Owner ACCEPT는 새 CI 실행 전에는 NOT TESTED이며, 새 실행 결과로만 재판정한다. 범위 외 병합·GHCR·릴리스·Issue 종료는 진행하지 않는다.
+
+### CI #2523.1 실패 후 수정 — 2026-10-12
+
+- 원본 HEAD `e5993554fc498653c855a22a852e358664f2a244`, [PR CI #2523.1](https://github.com/planner77/masterGantt/actions/runs/38180024365): migration CLI 고정 목록/25행 보완 후 Vitest PASS, ESLint PASS, E2E 6/6 PASS. 그러나 typecheck/Next build/Docker image build는 동일 원인의 TypeScript `TS2322`로 FAIL했고 quality/docker aggregator 및 종속 QA Final — Automated가 FAIL했다.
+- 원인: `ProcessContextResponse.data.permission`은 HTTP Handler가 인증 상태에 따라 추가하지만 `ProcessCatalogService.context()`가 여전히 HTTP 최종 응답 전체를 반환한다고 선언되어 서비스 snapshot에는 없는 `permission` 필드가 필수로 요구되었다. 서비스에 임의 permission을 채우거나 public contract를 optional로 약화시키지 않는다.
+- 보완: Service 응답 계약을 `Omit<ProcessContextResponse["data"], "permission">` snapshot으로 분리하고 Handler에서 인증 결과를 결합한 `ProcessContextResponse`를 명시 타입 검사하게 했다. 기존 readonly/edit HTTP 테스트 및 contract typing assertion, API 문서는 유지한다.
+- 정확한 신규 HEAD의 official quality/E2E/Docker/Trusted QA/Owner 판정은 새 실행 전 NOT TESTED이며, 원본 실패 증거를 성공으로 재판정하지 않는다. PR CI 시작만 범위에 포함하고 병합/릴리스/GHCR/Issue 종료는 제외한다.

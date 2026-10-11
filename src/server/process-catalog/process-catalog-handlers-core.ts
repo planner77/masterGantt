@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { ProcessContextResponse } from "../../contracts/process-catalog";
 
 import { apiErrorResponse, PublicApiError } from "../http/api-error-core";
 import { parseRequiredIfMatch, readBoundedJson } from "../http/request-core";
@@ -155,7 +156,10 @@ export function handleGetProjectProcessContext(request: Request, publicId: strin
     const url = applicationUrl(d);
     const authorization = projectAuthorization(request, publicId, d, url);
     const result = resolve(d.service).context(publicId, listQuery(request));
-    return json({ data: { ...result.data, permission: authorization.kind === "authorized" ? "edit" : "readonly" } }, result.data.projectRevision);
+    const response: ProcessContextResponse = {
+      data: { ...result.data, permission: authorization.kind === "authorized" ? "edit" : "readonly" },
+    };
+    return json(response, result.data.projectRevision);
   } catch (error) { return fail(error, d); }
 }
 

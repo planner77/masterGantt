@@ -15,6 +15,11 @@ export class ProcessCatalogError extends Error {
     this.name = "ProcessCatalogError";
   }
 }
+/** A catalog snapshot has no HTTP/session presentation permission. */
+type ProcessContextServiceResponse = {
+  data: Omit<ProcessContextResponse["data"], "permission">;
+};
+
 export const PROCESS_CATALOG_LIMIT = 200;
 function fail(status: number, code: string): never {
   throw new ProcessCatalogError(status, code);
@@ -382,7 +387,7 @@ export class ProcessCatalogService {
       return this.getCatalog(rawToken);
     });
   }
-  context(projectPublicId: string, query: ProcessCatalogQuery = {}): ProcessContextResponse {
+  context(projectPublicId: string, query: ProcessCatalogQuery = {}): ProcessContextServiceResponse {
     return this.database.transaction(() => {
       const project = this.projects.findByPublicId(uuid(projectPublicId));
       if (!project) {
