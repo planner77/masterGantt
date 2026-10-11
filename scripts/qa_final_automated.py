@@ -137,6 +137,40 @@ class GitHub:
         return base64.b64decode(result["content"]).decode("utf-8")
 
 
+class _ArtifactRedirect(urllib.request.HTTPRedirectHandler):
+    """Keep the GitHub API bearer out of the cross-origin signed ZIP URL.
+
+    urllib's default HTTPRedirectHandler copies Authorization on a 302, unlike
+    clients that strip credentials when following a redirect to blob storage.
+    An unexpected destination remains blocked instead of leaking a token.
+    """
+    _trusted_download_hosts = (".actions.githubusercontent.com",
+                               ".blob.core.windows.net", ".githubusercontent.com")
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is None:
+            return None
+        origin = urllib.parse.urlsplit(req.full_url)
+        target = urllib.parse.urlsplit(redirected.full_url)
+        require(target.scheme == "https" and target.hostname is not None
+                and not target.username and not target.password,
+                "원본 CI artifact HTTPS 리다이렉트 검증 실패")
+        if (origin.hostname, origin.port) != (target.hostname, target.port):
+            require(target.hostname == "api.github.com" or
+                    any(target.hostname.endswith(host)
+                        for host in self._trusted_download_hosts),
+                    "예상하지 못한 CI artifact 다운로드 호스트")
+            # Request.remove_header() removes from both dictionaries. urllib
+            # canonicalizes "Proxy-Authorization" to "Proxy-authorization", so
+            # strip actual header keys case-insensitively (no nonexistent API).
+            sensitive = {"authorization", "cookie", "proxy-authorization"}
+            for header in (*redirected.headers, *redirected.unredirected_hdrs):
+                if header.lower() in sensitive:
+                    redirected.remove_header(header)
+        return redirected
+
+
 def source_artifact(gh, run_id, attempt):
     """Artifact bytes are untrusted; never extract or execute PR-provided data."""
     name = f"ci-pr-source-{run_id}-{attempt}"
@@ -153,7 +187,7 @@ def source_artifact(gh, run_id, attempt):
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "mastergantt-qa-final"})
     try:
-        with urllib.request.urlopen(req, timeout=20) as response:
+        with urllib.request.build_opener(_ArtifactRedirect()).open(req, timeout=20) as response:
             raw = response.read(16385)
         require(len(raw) <= 16384, "원본 artifact 크기 초과")
         with zipfile.ZipFile(io.BytesIO(raw)) as archive:
@@ -164,8 +198,10 @@ def source_artifact(gh, run_id, attempt):
             data = json.loads(archive.read("ci-pr-source.json"))
         require(isinstance(data, dict), "원본 event JSON 형식 오류")
         return data
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError,
-            ValueError, zipfile.BadZipFile, KeyError, OSError) as error:
+    except urllib.error.HTTPError as error:
+        raise Blocked("BLOCKED", f"원본 CI artifact HTTP {error.code} (출처 검증 실패)") from None
+    except (urllib.error.URLError, TimeoutError, ValueError,
+            zipfile.BadZipFile, KeyError, OSError) as error:
         raise Blocked("BLOCKED", "원본 CI artifact 읽기 불가: " + type(error).__name__) from None
 
 

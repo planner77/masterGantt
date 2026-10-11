@@ -17,6 +17,40 @@ def _recorded_pr_provenance(gh, run, payload):
 
 
 class Cases(unittest.TestCase):
+    def test_source_artifact_redirect_never_exposes_token(self):
+        import urllib.request
+        handler = qa._ArtifactRedirect()
+        original = urllib.request.Request(
+            "https://api.github.com/repos/planner77/masterGantt/actions/artifacts/12/zip",
+            headers={"Authorization": "Bearer secret", "User-Agent": "qa-test",
+                     "Cookie": "sid=private", "Proxy-Authorization": "Bearer proxy"})
+        signed = ("https://productionresultssa0.blob.core.windows.net/"
+                  "git-actions-results/download?sig=example")
+        result = handler.redirect_request(original, None, 302, "Found", {}, signed)
+        self.assertEqual(result.full_url, signed)
+        self.assertIsNone(result.get_header("Authorization"))
+        self.assertFalse({"authorization", "cookie", "proxy-authorization"}.intersection(
+            key.lower() for key in (*result.headers, *result.unredirected_hdrs)))
+        self.assertEqual(result.get_header("User-agent"), "qa-test")
+        self.assertEqual(original.get_header("Authorization"), "Bearer secret")
+        # urllib.Request's actual API clears both regular and unredirected keys.
+        unredirected = urllib.request.Request("https://example.com")
+        unredirected.add_unredirected_header("Authorization", "Bearer private")
+        unredirected.remove_header("Authorization")
+        self.assertFalse(unredirected.unredirected_hdrs)
+        same = handler.redirect_request(original, None, 302, "Found", {},
+                                        "https://api.github.com/repos/other")
+        self.assertEqual(same.get_header("Authorization"), "Bearer secret")
+        actions = handler.redirect_request(
+            original, None, 302, "Found", {},
+            "https://pipelinesghubeus7.actions.githubusercontent.com/path?sig=example")
+        self.assertIsNone(actions.get_header("Authorization"))
+        for malicious in ("http://productionresultssa0.blob.core.windows.net/a",
+                          "https://untrusted.example.invalid/a",
+                          "https://someone:password@productionresultssa0.blob.core.windows.net/a"):
+            self.blocked(lambda url=malicious: handler.redirect_request(
+                original, None, 302, "Found", {}, url))
+
     def blocked(self, f, status="BLOCKED"):
         with self.assertRaises(qa.Blocked) as cm:
             f()
