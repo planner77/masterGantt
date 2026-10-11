@@ -497,3 +497,11 @@ MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Mile
 
 
 Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하고 최신 revision 확인을 요구한다.
+
+## Issue #615 — F1 공통 공정·제품 표준·WorkArea
+
+제품 표준 공정은 동일 product ID에 공유한다. 적용 공정은 #538의 유효 BUSINESS_UNIT/PRODUCT/SITE_ENTITY 조합에 소속하고 표준 유래 또는 사업장 추가의 출처를 구분한다. 한 사업장의 추가 공정은 다른 occurrence에 전파하지 않는다. WorkArea는 적용 공정 하나에만 소속하며 선택 사항이다. 같은 표시명은 다른 ID로 허용하고 가짜 기본 구역은 생성하지 않는다.
+
+기존 `project_processes` 자유 트리·ID·Task/설비 연결을 유지한다. 명시 mapping endpoint만 공통 occurrence/선택 WorkArea를 연결·해제한다. 미매핑 legacy는 계속 조회·편집 가능하며 이름/부모 계층으로 변환하지 않는다. 표준 diff 조회 후 명시 apply로 occurrence만 반영하고 Project 공정·물류는 자동 변경하지 않는다.
+
+공통 쓰기는 기존 Project Master 관리자 세션으로만 허용한다. Project 편집자는 global master를 변경할 수 없다. Project 매핑은 edit session/Origin/If-Match 및 processCatalogRevision 검증 후 실제 매핑 변경 성공당 Project revision을 한 번 증가시키고 동일 값 no-op은 증가시키지 않는다. 사용 중 삭제·reparent·분류 변경은 409이며 명시 해제 후 다시 선택한다. copy는 동일 triple에서 local 공정 ID를 새로 만들고 공통 ID는 유지한다. 매핑 원본 Template 저장은 포맷 확장 전 409다. 신규 관리 UI·Target CRUD·Resource 축은 #616 이후다.

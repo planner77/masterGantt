@@ -47,6 +47,7 @@ import {
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { LogisticsTypeCatalogRepository } from "../repositories/logistics-type-catalog-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
+import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
 import {
   EditSessionInvalidError,
   RevisionMismatchError,
@@ -489,6 +490,9 @@ export class LogisticsService {
 
       if (hardDelete) {
         // Check if in use
+        if (new ProcessCatalogRepository(this.database).mapping(projectId, current.id)) {
+          throw new LogisticsConflictError("PROCESS_IN_USE", "공정 occurrence 매핑을 먼저 해제해야 영구 삭제할 수 있습니다.");
+        }
         const childCount = this.logisticsRepo.countChildProcesses(projectId, current.id);
         if (childCount > 0) {
           throw new LogisticsConflictError("PROCESS_IN_USE", `Cannot permanently delete process with ${childCount} child processes.`);

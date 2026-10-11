@@ -8,8 +8,8 @@
 
 | 단계 | Issue | 작성 책임 / 산출물 | 직접 선행 | 현재 상태 |
 | --- | --- | --- | --- | --- |
-| F0 | [#614](https://github.com/planner77/masterGantt/issues/614) | Manager 문서·backend fixture, read-only ui_ux/qa_docs: ER/연결/집계/이관/공통 검산 | 없음 | 구현·문서 작성, PR CI 시작 준비; 공식 CI NOT TESTED |
-| F1 | [#615](https://github.com/planner77/masterGantt/issues/615) | backend: 공정 master·제품 표준·사업장 occurrence·WorkArea DB/API | #614 | NOT TESTED |
+| F0 | [#614](https://github.com/planner77/masterGantt/issues/614) | Manager 문서·backend fixture, read-only ui_ux/qa_docs: ER/연결/집계/이관/공통 검산 | 없음 | 계약 main 병합 PR #625 / 9f17dbb2; Issue 전체·main artifact 완료 별도 |
+| F1 | [#615](https://github.com/planner77/masterGantt/issues/615) | backend: 공정 master·제품 표준·사업장 occurrence·WorkArea DB/API | #614 | 구현 중, migration0025·API/호환 보호·문서; #615 Work Packet, PR CI 시작까지 |
 | F2 | [#616](https://github.com/planner77/masterGantt/issues/616) | backend: Target/member CRUD·재사용·copy/Template guard | #615 | NOT TESTED |
 | F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | NOT TESTED |
 | F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | NOT TESTED |

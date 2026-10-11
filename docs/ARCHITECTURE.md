@@ -344,3 +344,11 @@ actual target report context와 original drill provenance는 별도다. source �
 `milestone-timeline-model.ts`는 전체 canonical Task/Link와 기존 Gate 계산을 유지하는 순수 조회 projection이다. 단일 `milestone-timeline-adapter.ts`는 공개 Core filter/scroll/state와 기존 local date adapter를 연결한다. react-gantt 2.7.3의 타입/runtime calendar helper reexport 차이를 격리하기 위해 이미 설치된 gantt-store 2.7.2 package-root getDiffer를 사용한다. typed `_scales`/viewport derived fields는 read-only 관찰이며 공식 안정 geometry API 보장이 아니다. 검증한 Day/Week 설정 밖은 fail-closed다. source 복제/private store write/PRO markers/독립 Gantt/remount/DOM 강제 scroll은 사용하지 않는다.
 
 Core scale/config 갱신은 단발 filter를 초기화할 수 있으므로 표시 projection 재적용은 기존 canonical sync queue 이후 같은 API/source/현재 요청 조건에서 수행해야 한다. MT1의 개발 전용 bounded probe는 운영 row 전환을 제공하지 않으며 후속 production 통합은 실제 visibleTaskIds/공통 queue 경계를 사용해야 한다. [Milestone Timeline](MILESTONE_TIMELINE.md)에 실제 gate와 실패·제약을 기록한다. Route Handler → Service → Repository → SQLite와 server authorization/revision 계약은 불변이다.
+
+## Issue #615 — Process Catalog 경계
+
+`src/app/api/process-catalog/**` 및 Project logistics의 process-context/process-mappings route는 `process-catalog-handlers-core → ProcessCatalogService → ProcessCatalogRepository → SQLite`로 연결한다. Node runtime과 기존 DB singleton을 사용하며 Next Route Handler는 Request/Response adapter에 한정한다. 공통 관리자 인증은 ProjectMasterService의 기존 세션 검증을 재사용한다.
+
+공통 process catalog revision과 Project revision, Project Master revision은 별개다. context는 Project의 정확 triple만 읽고 전체 global master를 Project 응답에 넣지 않는다. 고정 수 SQL과 owner/triple index를 사용하며 항목별 N+1을 만들지 않는다. mapping 성공은 canonical Project/logistics aggregate와 매핑·revision을 반환한다. 기존 aggregate DTO에 새 필수 필드를 끼우지 않고 전용 endpoint에서 확장한다.
+
+기존 ProjectMaster 선택/참조, Logistics 공정 삭제, ProjectCopy, ProjectTemplate service는 새 매핑 guard를 같은 transaction에 포함한다. 이는 Project-local 자유 공정과 공통 occurrence를 분리하는 additive 모델이며 Gantt/Scheduling Engine 변경이나 자동 공정 생성이 아니다. 상세 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [Target 계약](LOGISTICS_TARGETS.md)을 따른다.

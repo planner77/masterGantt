@@ -1,3 +1,9 @@
+## Issue #615 — F1 공정 catalog·WorkArea 기반 모델 (2026-10-12)
+
+[#615 Work Packet](ISSUE_615.md): #614 PR #625의 F0 계약이 병합된 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 `feat/issue-615-process-catalog`를 생성했다. migration0025/공통 admin·Project context·명시 mapping API와 기존 master/copy/template/logistics 보호를 구현한다. #614 Issue 전체 완료나 main/GHCR PASS는 추론하지 않는다. 새로운 화면과 #616~#624는 별도다.
+
+HIGH / OWNER_MANAGED / qa_required=true, 후보 MINOR0.106.0, release_required=true / release_authorized=false. backend3명이 schema/domain·HTTP·기존 호환 경로를 분리 소유하고 Manager가 문서·버전·통합, qa_docs가 read-only PRE_QA를 수행한다. 구현/문서/빠른 검증/사전 검토 뒤 exact-head PR CI 시작까지 진행하며 CI 모니터링·병합·main/GHCR·Issue 종료는 요청 범위 밖이다. 공식 quality/e2e/docker·Trusted·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #614 — Target F0 계약·공통 fixture (2026-10-11)
 
 [#614 Work Packet](ISSUE_614.md)과 [Target/Resource 실행 계획](TARGET_RESOURCE_ROLLOUT.md)에 따라 main `cbc73740236f3b3e177e2ed3196a0d02a292c741` / app `0.104.4`에서 `docs/issue-614-target-resource-contract`를 생성했다. [LOGISTICS_TARGETS](../../LOGISTICS_TARGETS.md)에 ER/연결/집계/이관·UI 계약을 고정하고 공통 합성 fixture를 추가한다. F0는 runtime 변경 비범위이며 version 유지, MEDIUM / OWNER_MANAGED / qa_required=true, release_required=false / release_authorized=false다.

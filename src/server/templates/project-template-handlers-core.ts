@@ -83,6 +83,8 @@ function mapServiceError(error: unknown): never {
     switch (error.code) {
       case "TEMPLATE_NOT_FOUND":
         throw new PublicApiError(404, "TEMPLATE_NOT_FOUND", error.message);
+      case "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED":
+        throw new PublicApiError(409, "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED", error.message);
       case "TEMPLATE_INACTIVE":
         throw new PublicApiError(400, "TEMPLATE_INACTIVE", error.message);
       case "SOURCE_PROJECT_NOT_FOUND":

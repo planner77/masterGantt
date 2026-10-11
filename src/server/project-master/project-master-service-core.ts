@@ -23,6 +23,7 @@ export class ProjectMasterItemInactiveError extends Error {}
 export class ProjectMasterItemInUseError extends Error {}
 export class ProjectMasterRelationInvalidError extends Error {}
 export class ProjectMasterRelationInUseError extends Error {}
+export class ProjectMasterProcessMappingInUseError extends Error {}
 
 export interface ProjectMasterServiceOptions {
   clock?: () => Date;
@@ -339,6 +340,10 @@ export class ProjectMasterService {
     // Unchanged legacy/incomplete Project combinations remain readable and editable.
     if (b !== (current.businessUnit?.id ?? null) || p !== (current.product?.id ?? null) ||
         s !== (current.siteEntity?.id ?? null)) {
+      // An explicit unmap/remap is required before changing the owning triple.
+      if (this.repository.projectHasProcessMappings(projectId)) {
+        throw new ProjectMasterProcessMappingInUseError();
+      }
       // The previous inactive/legacy triple is preserved only when unchanged.
       // A new combination must not inherit an inactive parent retained from
       // the current project, even when its newly selected child is active.

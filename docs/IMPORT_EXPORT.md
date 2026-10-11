@@ -422,3 +422,9 @@ Phase 2가 완료되기 전에는 빈 Gantt sheet나 오해할 수 있는 부분
 빈 Summary는 schemaVersion 1.0에서 생략 또는 null 일정으로 표현할 수 있고 기존 유효 Summary source snapshot도 검증 후 자손으로 재파생한다. `src/contracts/import.ts`는 파싱된 JSON object의 순수 schema/domain 검증을 제공한다. 당시 #345는 pure validator만 구현했다. 현재 JSON HTTP preview/commit과 저장 transaction은 위 #464 계약을 따른다. CSV/byte/encoding/원본 Excel 처리와 실제 Windows VBA 검증은 이 pure validator PASS와 구분한다.
 
 Excel Export는 미산정 Summary의 WBS/행을 유지하고 날짜·기간·진척 셀을 공란으로 내보낸다. 전체 일정 범위는 실제 날짜 집합만 사용한다. SVG/PNG 행·bar 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 현재 workbook은 Project direct hyperlink를 생성하지 않는다. 공유 URL에 비밀값을 넣지 않는 기존 정책은 유지한다.
+
+## Issue #615 — 공정 매핑과 포맷 경계
+
+F1의 Project copy는 local 공정 ID만 치환하고 같은 BU/product/site의 공통 occurrence·WorkArea 참조를 보존한다. 매핑이 있는 원본에서 기존 Template snapshot 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`이며 silent loss를 허용하지 않는다. Template versioned 확장은 #616에서 수행한다.
+
+현행 WBS JSON·Excel은 full Project/DB backup 포맷이 아니며 신규 공통 공정 catalog/매핑을 round-trip하지 않는다. 이 변경은 기존 Import schema를 확장하지 않는다. 공통 참조를 포함하는 versioned 전체 참조 포맷은 #379 및 Target 후속 계약으로 관리한다. 전체 DB backup/restore와 부분 내보내기를 혼동하지 않는다.
