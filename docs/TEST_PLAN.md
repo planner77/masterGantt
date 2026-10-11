@@ -1,3 +1,9 @@
+## Issue #615 — 실패 Main CI 및 정식 릴리스 승계 회귀 (2026-10-12)
+
+- 재현: merge SHA `c8949da48e7465db45d871887c3f55f9fb6dc743`의 multi-line `Issue #615 · PR #627 ...` message를 `parse_merge_title`/Main trace가 거부한다. 원본 CI #2526.1은 FAILED로 유지한다.
+- `python3 scripts/verify-issue-lifecycle.py`: version changed+old Main FAIL+같은 Issue 최신 non-docs CI Green => 원본 PR cleanup 보존/교정 target release_base=0.105.0, physical prior=0.106.0; 여러 번 같은 Issue 재시도 시 릴리스/cleanup 보존. 다른 Issue 간섭·docs-only·tag/release 실패는 안전 승계 거부.
+- 후속 main correction: 한 줄 Merge commit message, release candidate GHCR `ci-<SHA>` exact digest, v0.106.0 tag/release-image/Resume가 실제 PASS인지 각각 원격 확인. PR CI가 성공했어도 Main CI 및 릴리스는 별개 판정한다.
+
 ## Issue #550 — 2026-10-11 23:45 KST 최신 main 정렬·충돌 해소
 
 - 동일 source의 두 분기: 최신 main `cbc73740236f3b3e177e2ed3196a0d02a292c741` (#570 canonical projection, #571 viewport controller, #572 inline 이름 확정저장 포함)과 #550 기존 Head `ab539c9cf03938754bbe2a74032b43a99ba9ca8e`. 충돌 후보 9경로의 변경을 병합하며 두 브랜치의 단독 PASS가 새 병합 소스의 PASS를 의미하지 않는다.
