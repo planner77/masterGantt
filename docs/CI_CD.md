@@ -727,3 +727,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 - `READY`가 되어도 cache 변경/PR 생성/Issue close를 자동 수행하지 않는다. Manager/infra가 비용 상위 후보와 stale/security risk를 검토한 뒤 Phase 2 최적화를 명시적으로 재개한다.
 - readiness 자동화는 PR artifact 내부의 `runId/workflow/event/headSha/runAttempt`를 신뢰하지 않는다. GitHub Actions run API가 반환한 successful run metadata로 해당 필드를 overwrite하고 `provenanceBound=true`로 표시한 record만 자동 readiness 표본으로 인정한다.
 - before/after 비교는 양쪽의 workflow/event/job/metric key **전체 집합이 동일할 때만** 채택 판정을 허용한다. metric 추가·삭제·rename이 있으면 retained metric이 빨라졌더라도 전체 결과를 `WORKLOAD_MISMATCH`로 두고 동일 workload로 다시 측정한다.
+
+## Issue #603 — Docker BuildKit PR cache read-only
+
+PR `docker_smoke`는 shared GHA BuildKit cache를 읽기만 하고 `cache-to`는 `push`에서만 활성화한다. Main `docker_smoke`와 Main publish 경로가 cache writer 책임을 유지한다. PR required Docker build/policy/runtime smoke는 cache miss에서도 동일하게 실행한다. baseline은 #444 readiness Run #32.1이며 after는 동일 `docker_smoke/docker-build-cache` metric의 successful PR run >=10으로 비교한다.
