@@ -1,3 +1,8 @@
+## Issue #633 — Private GHCR UNKNOWN(HTTP 404) 처리 (2026-10-12)
+
+- `release-debt-audit.yml`과 `release-finalizer.yml`의 trusted default branch runner에서 GHCR 로그인 후 실제 `docker buildx imagetools inspect ghcr.io/planner77/mastergantt:X.Y.Z` 실패가 generic 404/not found이면 `gh api` 패키지 버전 목록을 **읽기 전용·인증 200·전체 pagination·exact container tags**로 교차 검증한다. 증거 불충분은 UNKNOWN으로 유지.
+- 본 정책-only 교정 PR의 app version은 0.106.1 그대로, 기존 #635 Merge SHA 및 ci-<SHA> digest가 정식 릴리스 authority다. PR CI/Trusted/Main 후보 검증은 새 Merge SHA에서 별도로 확인하고 Owner 승인의 SHA를 자동 이전하지 않는다.
+
 ## Issue #633 — B2 교정 Release Pipeline 가드 (2026-10-12)
 
 - 원본 v0.105.0/v0.106.0 미발행 부채는 CI FAIL을 소급 PASS하지 않고, authenticated release_debt_audit의 `--inventory-only` 증거와 별도의 Owner 구버전 철회/B2 exact SHA/v0.106.1 신규 발행 승인 이후에만 회복한다.

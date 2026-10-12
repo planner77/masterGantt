@@ -1,3 +1,42 @@
+## Issue #633 — GHCR 실감사 실패 #1.1 / PR 후속 보완 Work Packet (2026-10-12)
+
+- 배경: private GHCR `UNKNOWN`, Git/Release tag `ABSENT`, [Finalizer #153.1](https://github.com/planner77/masterGantt/actions/runs/38216994785) 차단. 기존 Main #2579.1 SUCCESS, 신규 ci-tag 검증 digest `0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`.
+- Primary Issue: #633, 이후 감사 보완 PR, release_required=false (현재 package/lock =0.106.1 **유지**), release_authorized=false (후속 정책 PR은 정식 release target이 아님), risk_level=HIGH, qa_method=OWNER_MANAGED, qa_required=true. 기존 v0.106.1 정식 승인 marker의 release authority target SHA=09bee924... 절대 변경 금지.
+- SHA 보존: 기존 exact approved release target은 #635 Merge `09bee924032b4126ff794ec7a485542fd72dd7bf`. 후속 같은 Issue/같은 physical version, non-docs 감사 보완 Merge 1건만 허용. Main CI/GHCR exact candidate를 별도로 검증하여 신뢰 경계 보존.
+- 실행: Docker registry `404/not found`와 `gh api` authenticated `GET /users/planner77/packages/container/mastergantt/versions` API를 대조. `GH_TOKEN` 기존 토큰/읽기 권한만 활용, REST 200 응답을 모든 페이지 정상 조회한 경우 태그 부재 확인. auth/permission/404/rate limit/metadata 불완전은 UNKNOWN. read-only audit 스크립트와 trusted Generic Finalizer의 기존 mutation Gate 변경하지 않음.
+- 정책 복구: B2 `Plan.sha`는 immutable release 대상이며 `Plan.main_sha`는 감사/cleanup 정책의 현재 main snapshot. 새 correction으로 기존 v0.106.1 정식 태그를 새 SHA에 붙이지 않고, candidate digest는 원본 verified ci-09bee와 정식 exact image의 일치를 요구. 다른 Issue/version 변화는 차단.
+- 현재 원격 CI/QA/감사 재실행: 아직 NOT TESTED; 위 조건 충족 전 Release tag/Issue close 금지.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: N/A(이미 정의된 Owner/Release main immutable 보호 정책 불변)
+- `DESIGN.md`: N/A(UI/UX 변경 없음)
+- `docs/API.md`: N/A(제품 API 변경 없음, GitHub REST 내부 read-only 조회만)
+- `docs/DB_SCHEMA.md`: N/A(스키마 변경 없음)
+- `scripts/release_debt_audit.py`: UPDATED (GHCR API evidence)
+- `scripts/release_debt_recovery.py`: UPDATED (SHA original vs current main 분리)
+- `scripts/test-release-debt-audit.py`: UPDATED
+- `scripts/test-release-debt-recovery.py`: UPDATED
+- `scripts/verify-issue-lifecycle.py`: UPDATED
+- `docs/exec-plans/active/ISSUE_633.md`: UPDATED
+- `docs/ISSUE_633_RELEASE_DEBT.md`: UPDATED
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+
+## AC_TEST_COVERAGE
+
+- AC1: original exact #550/#615/633 Main CI 원장 및 Git tag/Release ABSENT, GHCR UNKNOWN 실패 증거·재검증; audit `--inventory-only`가 UNKNOWN을 PASS로 해석하지 않도록 음성/양성.
+- AC2: 기존 #550/#615 각각의 Owner release 승인 철회 + #633 Owner B2/0.106.1 승인 marker 보존; 원본 SHA approval을 신규 CI-only policy fix로 변경하지 않는 regression.
+- AC3: original first-parent 실패 및 cross-Issue auto-supersession 금지; SHA 후속 한 번의 같은 Issue/동일 SemVer/아티팩트 PASS만 허용.
+- AC4: `ghcr_digest` ambiguous 404→Github Packages API 인증/완전 pagination/데이터 형식 검사; 오류 시 UNKNOWN. v0.106.1 exact GHCR 신규 Release와 이전 2버전 퇴역은 old SHA CI FAIL 불변.
+- AC5: 상기 docs_sync 및 `test-release-debt-audit.py`, `test-release-debt-recovery.py`, 전체 `verify-issue-lifecycle.py` 정책 회귀를 공식 PR CI에 포함.
+- AC6: trusted default main, 기존 packages read/write scope·GitHub Owner 조건·Tag immutable 및 Required checks/Ruleset 유지.
+
 # Issue #633 — B2 재발행·원본 미발행 폐기 Work Packet (2026-10-12)
 
 ## 실행 정책

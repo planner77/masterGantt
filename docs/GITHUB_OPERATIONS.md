@@ -1,3 +1,9 @@
+## Issue #633 — GHCR 미발행 증거의 실제 판정 및 Release SHA 고정 (2026-10-12)
+
+- GHCR Private manifest lookup에서 `404`를 받은 경우 Docker login 성공만으로 임의 ABSENT 처리 금지. `gh api -H 'Accept: application/vnd.github+json' /users/planner77/packages/container/mastergantt/versions?per_page=100&page=N`을 기존 `GH_TOKEN/GITHUB_TOKEN`으로 조회, metadata.container.tags를 전 페이지 검증하여 exact `:0.105.0`, `:0.106.0` 부재 확정. API가 401/403/404/429 또는 missing tags이면 UNKNOWN·중단.
+- 신규 PR은 본 #633 audit code만 수정하는 동일 0.106.1 SemVer correction. 기존 승인된 정식 v0.106.1 발행 대상은 PR #635 Merge SHA 09bee924...와 candidate digest 0ab78272...로 **유지**, 새로운 policy-only PR Merge SHA로 정식 tag 이동 금지.
+- 사용자 Owner 인증 v2 B2 승인 및 구버전 철회 이력과 Main CI/Registry 실감사를 순서대로 확인. 실패 시 Finalizer 자체를 성공으로 꾸미거나 Repo Ruleset/Required checks 완화 금지.
+
 ## Issue #633 — B2 Owner 발행/폐기 댓글과 재개 절차 (2026-10-12)
 
 - GitHub trusted main read-only audit `release-debt-audit.yml`은 Issue #633 Main CI SUCCESS에서 자동 inventory를 생성한다. 두 과거 SemVer의 현재 Git tag/GitHub Release/GHCR exact `:X.Y.Z` 부재 실확인 후 #550 v0.105.0 / #615 v0.106.0 Owner 기존 정식 릴리스 승인을 각 Issue에 `mastergantt-release-authorization:v1`의 `authorized=false`로 **기존 댓글 삭제 없이 철회**한다.

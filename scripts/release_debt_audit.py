@@ -323,7 +323,7 @@ def authenticated_packages_tag_state(image: str) -> str:
     registry 404, failed gh token, rate-limit, missing metadata, or incomplete
     pagination is never proof of absence. The endpoint is read-only.
     """
-    match = re.fullmatch(r"ghcr[.]io/planner77/mastergantt:(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)", image)
+    match = re.fullmatch(r"ghcr[.]io/planner77/mastergantt:(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", image)
     if not match:
         return "UNKNOWN"
     tag = image.rsplit(":", 1)[1]

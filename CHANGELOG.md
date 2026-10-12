@@ -1,3 +1,9 @@
+## [Unreleased] — Issue #633 GHCR Private Registry 감사·복구 (2026-10-12)
+
+- `0.106.1` 신규 후보의 첫 Main #2579.1은 PASS, GHCR 정식 Release는 아직 차단: Git/GitHub Release 구버전 태그는 ABSENT, Docker private GHCR 응답은 `UNKNOWN`.
+- 감사 개선: authenticated GitHub Packages REST tag inventory 200/전 페이지 schema + exact tag 부재가 확인된 경우에만 Docker ambiguous 404→ABSENT로 보조 판정, auth·permission·rate-limit·corrupt response/other repo는 UNKNOWN.
+- B2 개선: original immutable v0.106.1 Owner approved SHA `09bee924032b4126ff794ec7a485542fd72dd7bf` 유지, 뒤에 오는 #633 same-version policy-only corrective SHA는 별도 exact Main CI/digest 검증 및 current main cleanup lease로만 사용한다. 과거 #550/#615 Main CI 실패 보존, Git tag 이동/override·release 승인 확장 없음.
+
 ## [Unreleased] — Issue #633 B2 두 미발행 버전 폐기와 교정 릴리스 후보 (2026-10-12)
 
 - 신규 application 후보 `0.106.1` (package/lock 동기화). #550 v0.105.0/#615 v0.106.0은 원본 CI FAIL 기록·Owner 원장 보존, 자동 발행·다른 SHA로 tag 승계 금지.
