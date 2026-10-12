@@ -149,7 +149,8 @@ try:
     require(audit.authenticated_packages_tag_state(inspect_image)=="ABSENT",
             "successful complete listing without exact tag is ABSENT")
     calls.clear()
-    audit.subprocess.run=pages({1:(0,json.dumps([package_version([inspect_image.split(":")[-1])]))})
+    published_version = package_version([inspect_image.rsplit(":", 1)[1]])
+    audit.subprocess.run=pages({1:(0,json.dumps([published_version]))})
     require(audit.authenticated_packages_tag_state(inspect_image)=="PRESENT",
             "known tag in Packages API cannot be deemed absent")
     audit.subprocess.run=pages({1:(1,"404 package read denied")})
