@@ -148,6 +148,8 @@ def assess(
     reasons: list[str] = []
     by_sha = {item.target_sha: item for item in chain}
     require(len(by_sha) == len(chain), "first-parent 원장에 중복 SHA가 있습니다")
+    require(all(item.actionable for item in chain),
+            "closed/non-actionable 중간 Issue는 별도 감사 없이 자동 복구할 수 없습니다")
     for sha in (source_sha, original_successor_sha, successor_sha):
         require(sha in by_sha, f"first-parent 원장에 필수 merge SHA가 없습니다: {sha}")
     source, original, successor = (
