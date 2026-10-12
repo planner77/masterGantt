@@ -1,3 +1,13 @@
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Operational invocation: after merging #639, add a NEW Issue #616 Owner comment with marker `<!-- mastergantt-main-ci-recovery:v1 {"authorized":true,"issue":616,"pr":631,"merge_sha":"b97709df8b5c0974f3c8252ac97819f45f73a5b9","expected_version":"0.107.0","note":"원본 병합 SHA에 대한 전체 CI 및 digest 검증에 한하여 복구를 승인합니다."} -->`. Trigger CI > Run workflow > main with exact SHA/Issue/PR/version and newest comment ID; avoid ordinary manual CI. No GHCR or tag mutation before full successful run.
+
 ## Issue #633 — GHCR 미발행 증거의 실제 판정 및 Release SHA 고정 (2026-10-12)
 
 - GHCR Private manifest lookup에서 `404`를 받은 경우 Docker login 성공만으로 임의 ABSENT 처리 금지. `gh api -H 'Accept: application/vnd.github+json' /users/planner77/packages/container/mastergantt/versions?per_page=100&page=N`을 기존 `GH_TOKEN/GITHUB_TOKEN`으로 조회, metadata.container.tags를 전 페이지 검증하여 exact `:0.105.0`, `:0.106.0` 부재 확정. API가 401/403/404/429 또는 missing tags이면 UNKNOWN·중단.

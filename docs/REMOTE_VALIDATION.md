@@ -1,3 +1,13 @@
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Issue #639 remote evidence pending (NOT TESTED): record exact PR Head/Base, 3 required checks, Trusted QA, recovery Run ID/attempt, full job conclusions, original SHA and digest, SBOM/provenance, release Finalizer and v0.107.0 tag. Negative tests must prove normal workflow_dispatch never publishes and stale/wrong approval is BLOCKED. No simulated GHCR PASS.
+
 ## Issue #637 — Release 원본 정렬 FAIL 및 신규 PR CI 경계 (2026-10-12)
 
 - 원본 [Release #165.1](https://github.com/planner77/masterGantt/actions/runs/38221400193), immutable v0.106.1 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`: shard5 97PASS/1FAIL, `canonical-projection.spec.ts` actual Core insert-before의 revision41 SETTLED 기대에 TIMED_OUT. [artifact11735576081](https://github.com/planner77/masterGantt/actions/runs/38221400193/artifacts/11735576081) zip SHA256 `e0924a18493eb16ae756303a52120ff528946dc062637cbb5047b9707eea77a7`를 Git 외부 보존했다.

@@ -1,3 +1,13 @@
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Flow: owner-authenticated trusted controller -> historical checkout Quality/E2E6/Docker (same immutable merge source) -> guarded ci-SHA digest/SBOM/provenance -> only trusted workflow_run verified by default-main Finalizer -> first-parent backlog release. Required aggregates are NOT enough without exact attempt attestation, full jobs, repository and Owner markers. Manual diagnostic remains no-publish.
+
 ## Issue #633 — Private GHCR UNKNOWN(HTTP 404) 처리 (2026-10-12)
 
 - `release-debt-audit.yml`과 `release-finalizer.yml`의 trusted default branch runner에서 GHCR 로그인 후 실제 `docker buildx imagetools inspect ghcr.io/planner77/mastergantt:X.Y.Z` 실패가 generic 404/not found이면 `gh api` 패키지 버전 목록을 **읽기 전용·인증 200·전체 pagination·exact container tags**로 교차 검증한다. 증거 불충분은 UNKNOWN으로 유지.

@@ -242,7 +242,9 @@ def exact_main_ci(
     )
     runs = [r for r in data.get("workflow_runs", []) if r.get("head_sha") == sha]
     if not runs:
-        return False, None, False, "NOT TESTED — exact main CI run not found"
+        from main_ci_recovery import discover_completed_recovery
+        evidence = discover_completed_recovery(repo, sha)
+        return (True, evidence[0], True, "PASS — authenticated manual_recovery digest=" + evidence[1]) if evidence else (False, None, False, "NOT TESTED — exact main CI absent")
 
     def run_order(run_data: dict[str, Any]) -> tuple[str, int, int]:
         return (

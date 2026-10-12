@@ -510,7 +510,9 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
         if run_data.get("head_sha") == sha
     ]
     if not runs:
-        return False, None
+        from main_ci_recovery import discover_completed_recovery
+        evidence = discover_completed_recovery(repo, sha)
+        return (True, evidence[0]) if evidence else (False, None)
 
     def run_order(run_data: dict[str, Any]) -> tuple[str, int, int]:
         return (

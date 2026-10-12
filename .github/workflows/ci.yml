@@ -1,6 +1,6 @@
 name: CI
 run-name: >-
-  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'pull_request' && format('PR CI {0} · {1} · PR #{2} · Run #{3}.{4}', github.event.action == 'edited' && '[메타데이터 검증]' || '[전체 검증]', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Issue #') && contains(github.event.head_commit.message, ' · PR #') && !contains(toJSON(github.event.head_commit.message), '\n') && !contains(toJSON(github.event.head_commit.message), '\r') && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · 기존 병합/직접 Push · {0} · Run #{1}.{2}', github.sha, github.run_number, github.run_attempt) || inputs.target_sha != '' && format('정확 Main SHA 복구 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.target_issue, inputs.target_sha, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
 
 on:
   pull_request:
@@ -13,6 +13,26 @@ on:
         description: "관련 Primary Issue 번호(선택; 진단 실행은 비워 둘 수 있음)"
         required: false
         type: string
+      target_sha:
+        description: "과거 Main merge SHA (40자리, 비우면 수동 진단)"
+        required: false
+        type: string
+      target_issue:
+        description: "복구 대상 Issue"
+        required: false
+        type: string
+      target_pr:
+        description: "복구 대상 PR"
+        required: false
+        type: string
+      expected_version:
+        description: "정확한 SemVer"
+        required: false
+        type: string
+      owner_comment_id:
+        description: "최신 Owner recovery 승인 comment ID"
+        required: false
+        type: string
 
 permissions:
   actions: read
@@ -21,7 +41,7 @@ permissions:
 
 concurrency:
   # 새 PR head가 올라오면 이전 실행을 즉시 취소해 runner 낭비를 줄인다.
-  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'edited' && 'metadata' || 'full') || format('ci-main-{0}', github.sha) }}
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && format('ci-exact-recovery-{0}', inputs.target_sha) || github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'edited' && 'metadata' || 'full') || format('ci-main-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -41,7 +61,9 @@ jobs:
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
       version_changed: ${{ steps.release_candidate.outputs.changed || 'false' }}
-      current_version: ${{ steps.release_candidate.outputs.current_version }}
+      current_version: ${{ steps.recovery.outputs.version || steps.release_candidate.outputs.current_version }}
+      checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}
+      recovery_authorized: ${{ steps.recovery.outputs.authorized || 'false' }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
       # Source-of-truth for PR attribution is the GitHub event captured before
@@ -90,7 +112,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}
+          fetch-depth: ${{ (github.event_name == 'push' || inputs.target_sha != '') && '0' || '1' }}
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
@@ -98,6 +120,21 @@ jobs:
       - name: CI 실행 추적 메타데이터 검증
         run: python3 scripts/verify-ci-run-trace.py
 
+      # Owner may authorize only the trusted default-branch controller.
+      - name: 인증된 Owner exact-main-recovery 검증 (#639)
+        id: recovery
+        if: github.event_name == 'workflow_dispatch' && inputs.target_sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/main_ci_recovery.py authorize
+      - name: 원본 복구 Run·Attempt·SHA 감사 artifact
+        if: steps.recovery.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ci-main-recovery-source-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ci-main-recovery.json
+          if-no-files-found: error
+          retention-days: 30
       # dorny/paths-filter v4.0.3
       # workflow-level paths는 required check를 Pending으로 남길 수 있어 사용하지 않는다.
       - name: 무거운 CI 대상 경로 판정
@@ -381,6 +418,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -406,6 +444,9 @@ jobs:
         run: python3 scripts/test-release-debt-audit.py
       - name: Issue #633 B2 Owner 원장·GHCR·cleanup 보호 회귀
         run: python3 scripts/test-release-debt-recovery.py
+      - name: Issue #639 정확 SHA 회복 단위/보안 회귀
+        if: github.event_name != 'workflow_dispatch' || inputs.target_sha == ''
+        run: python3 scripts/test_main_ci_recovery.py
       - name: PR metadata 증거 판정 M1~M8 회귀
         run: python3 scripts/test-pr-metadata-evidence.py
       - name: PR metadata full CI 완료 자동 복구 시나리오 (#600)
@@ -437,6 +478,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -471,6 +513,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -498,6 +541,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -525,6 +569,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -646,6 +691,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -771,6 +817,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
           persist-credentials: false
           fetch-depth: 0
       - name: checkout 시간 기록
@@ -796,7 +843,7 @@ jobs:
           file: deploy/docker/Dockerfile
           load: true
           tags: mastergantt:ci
-          build-args: VERSION=ci-${{ github.sha }}
+          build-args: VERSION=ci-${{ needs.changes.outputs.checkout_sha }}
           platforms: linux/amd64
           cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope=mastergantt-docker-{0}-{1}', runner.os, runner.arch) || '' }}
@@ -1145,8 +1192,10 @@ jobs:
     # explicit direct-result checks keep this registry mutation fail-closed.
     if: >-
       always() &&
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main' &&
+        needs.changes.outputs.recovery_authorized == 'true')) &&
       needs.changes.result == 'success' &&
       needs.quality.result == 'success' &&
       needs.e2e.result == 'success' &&
@@ -1159,7 +1208,12 @@ jobs:
     needs: [changes, quality, e2e, docker]
     permissions:
       contents: read
+      actions: read
+      issues: read
+      pull-requests: read
       packages: write
+    env:
+      SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}
     steps:
       - name: checkout 계측 시작
         id: checkout-start
@@ -1167,6 +1221,8 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.sha }}
+          fetch-depth: ${{ needs.changes.outputs.recovery_authorized == 'true' && '0' || '1' }}
           persist-credentials: false
       - name: checkout 시간 기록
         shell: bash
@@ -1179,9 +1235,27 @@ jobs:
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
           {
             echo "name=$image_name"
-            echo "tag=ci-$GITHUB_SHA"
-            echo "reference=$image_name:ci-$GITHUB_SHA"
+            echo "tag=ci-$SOURCE_SHA"
+            echo "reference=$image_name:ci-$SOURCE_SHA"
           } >> "$GITHUB_OUTPUT"
+      - name: 정확 SHA 복구·Owner 승인·Private GHCR 재검증
+        if: needs.changes.outputs.recovery_authorized == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/main_ci_recovery.py prepublish
+      - name: 승인된 immutable merge SHA checkout
+        if: needs.changes.outputs.recovery_authorized == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 배포 원본 SHA 강제 검산
+        run: test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: 복구할 과거 Main SHA와 원본 버전 확인
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(node -p 'require("./package.json").version')" = '${{ needs.changes.outputs.current_version }}'
       - name: Main image Buildx setup 계측 시작
         id: main-buildx-start
         shell: bash
@@ -1195,6 +1269,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Owner/repository checks run on trusted main before historical checkout.
       - name: 기존 임시 commit 이미지 덮어쓰기 거부
         shell: bash
         run: |
@@ -1217,7 +1292,7 @@ jobs:
           tags: ${{ steps.image.outputs.reference }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}
             org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
           build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
@@ -1311,13 +1386,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+          RECOVERY: ${{ needs.changes.outputs.recovery_authorized }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ "${{ job.status }}" != "success" ]]; then
-            node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"
-            echo "- GHCR cleanup: failed validation candidate ci-${GITHUB_SHA} deleted." >> "$GITHUB_STEP_SUMMARY"
-            echo "Main artifact 검증이 성공하지 않아 ci-${GITHUB_SHA}를 lifecycle candidate로 보존하지 않습니다." >&2
+            if [[ "$RECOVERY" == "true" ]]; then
+              echo "BLOCKED: recovery candidate retained for explicit audit; no automatic GHCR deletion" >&2
+              exit 1
+            fi
+            node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"
+            echo "- GHCR cleanup: failed validation candidate ci-${SOURCE_SHA} deleted." >> "$GITHUB_STEP_SUMMARY"
+            echo "Main artifact 검증이 성공하지 않아 ci-${SOURCE_SHA}를 lifecycle candidate로 보존하지 않습니다." >&2
             exit 1
           fi
-          echo "- GHCR retention: verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup." >> "$GITHUB_STEP_SUMMARY"
+          echo "- GHCR retention: verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup." >> "$GITHUB_STEP_SUMMARY"

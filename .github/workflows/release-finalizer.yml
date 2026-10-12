@@ -26,7 +26,9 @@ jobs:
   finalize:
     name: 정확한 Merge Lifecycle Finalize
     if: >-
-      github.event.workflow_run.event == 'push' &&
+      (github.event.workflow_run.event == 'push' ||
+       (github.event.workflow_run.event == 'workflow_dispatch' &&
+        startsWith(github.event.workflow_run.display_title, '정확 Main SHA 복구 CI'))) &&
       github.event.workflow_run.head_branch == 'main' &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
@@ -34,10 +36,28 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: main
           fetch-depth: 0
           persist-credentials: false
 
+      - name: trusted workflow_run 출처 확인
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$SOURCE_EVENT" == workflow_dispatch ]]; then
+            python3 - "$SOURCE_RUN" <<'PY'
+          import sys
+          import main_ci_recovery as recovery
+          repo = __import__('os').environ['GITHUB_REPOSITORY']
+          recovery.completed_evidence(repo, int(sys.argv[1]))
+          PY
+          fi
       - name: GHCR 버전 원장 조회 도구 준비
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
       - name: 비공개 GHCR 인증 (감사 + 신규 릴리스 확인)

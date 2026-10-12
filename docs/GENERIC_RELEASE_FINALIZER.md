@@ -1,3 +1,13 @@
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Trusted manual_recovery provenance may supplement missing push run on exact immutable historical merge SHA only after fresh evidence verification. Default branch verifier reauthenticates CI source workflow/run/attempt, artifact, full Quality/E2E6/Docker job conclusions, ancestor, PR, Owner marker, GHCR digest. Neither diagnostic workflow_dispatch nor failed/older run is equivalent to main push SUCCESS. Oldest-first barriers and release authority are unchanged.
+
 ## Issue #633 — Authenticated GHCR 404 교차 확인 및 원본 v0.106.1 Release SHA 유지 (2026-10-12)
 
 - GHCR Docker manifest 조회 generic 404/`not found`를 직접 ABSENT로 해석하지 않는다. 동일 저장소에 대해 Github Packages 사용자 Container Versions API의 인증된 200/모든 페이지·`metadata.container.tags` 완전 조회 후 exact tag가 없는 경우만 ABSENT를 반환한다. 토큰 문제·응답 오염·pagination 미완료면 UNKNOWN을 유지하여 Finalizer mutation 차단.

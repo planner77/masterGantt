@@ -1,3 +1,13 @@
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Active #639: from main b97709df, branch fix/639-exact-main-recovery; trusted full CI source recovery, provenance validator, CI/GHCR/Finalizer lifecycle equivalence, negative tests, docs synchronization. Next: PR required CI and Trusted QA; Owner review/merge separately, then exact #616 recovery.
+
 ## #616 PR #631 CI #2545.1 실패 보완·latest main 재정렬 (2026-10-12)
 
 Shard6 `project-links-persistence.spec.ts` 두 번째 생성 이름 입력이 브라우저 trace의 `fill` 이후 이미 비어 있고 제출 validation이 POST를 차단함을 확인. 응답 타임아웃이 아닌 SSR→hydration 준비 시점의 테스트 경합이므로 catalog `ready`/client mount를 **입력 전**에 검증하고 제출 직전 name equality assertion을 추가한다. timeout·retry·skip·API/DB/UI 계약 불변. 신규 main의 #629 preflight 및 #550 임시 E2E 보호를 손실 없이 정렬하고 full PR CI를 시작한다. QA/Owner 최종 결정·main/GHCR/Issue close는 요청 범위 밖이며 신규 Head PASS 전 NOT TESTED.
