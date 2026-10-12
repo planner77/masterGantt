@@ -40,7 +40,8 @@ auth = {"id":10,"author_association":"OWNER","user":{"login":"planner77"},
         "body": '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"0.106.0","note":"v0.106.0 승인"} -->'}
 def check(chain=chain, ev=ev, states=states, source_comments=None,
           successor_comments=None, corrective_sha=None):
-    return audit.assess(chain,ev,states,source_comments or [],successor_comments or [auth],
+    return audit.assess(chain,ev,states,source_comments if source_comments is not None else [],
+        successor_comments if successor_comments is not None else [auth],
         owner_login="planner77",source_sha=a.target_sha,
         original_successor_sha=b.target_sha,successor_sha=c.target_sha,
         corrective_sha=corrective_sha)
