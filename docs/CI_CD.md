@@ -1,3 +1,9 @@
+## Issue #645 — 정확 SHA recovery의 GitHub commit-to-PR source 다중 입증 (2026-10-13)
+
+- #616 `b97709dfb8.../PR #631` 복구 [CI #2617.1](https://github.com/planner77/masterGantt/actions/runs/38310183123) 실패는 `changes`/Owner `authorize` 단계. `GET /commits/{sha}/pulls` = 0건인 반면 직접 PR #631의 `merge_commit_sha`/실제 git parents 및 closed PR history 일치. 이 인덱스 조회 한 건만으로 유효 병합을 거부하는 거짓 음성 수정.
+- `verified_merge_pr_association`: commit index 1건은 정확 번호/SHA/closed/merged_at 요구. 인덱스 **0건에만** 독립 closed PR 이력 전체 페이지(100/page, max 100 pages) 조회로 같은 SHA 후보를 조사하여 유일한 대상만 허용. 복수/무결성 이상·잘못된 API 형식·끝에 미달한 paging 모두 `BLOCKED`. GitHub 직접 `/pulls/{PR}`와 git 두 부모(pr.base.sha, pr.head.sha), Issue Refs, Owner marker/최신 main 및 컨트롤러 인증은 유지.
+- 구현/회귀는 trusted `scripts/main_ci_recovery.py`·`scripts/test_main_ci_recovery.py`·`scripts/verify-issue-lifecycle.py`. `workflow_dispatch`/GHCR/Finalizer gate, required Quality/Chromium6/Docker, SHA/artifact/run/attempt, release authorization 및 `ci.yml` 권한 불변. 새 코드 반영은 PR CI/Trusted QA + 새 안전 병합으로만 가능; 이전 SHA/Run 성공으로 소급하지 않는다.
+
 ## Issue #643 — manual_recovery CI 워크플로 원본 ID 검증 (2026-10-13)
 
 - GitHub Actions `ci.yml`은 워크플로 정의명 `CI`와 event마다 변경되는 `run-name` 표현식을 별도로 가진다. 실제 push [Main #2612.1](https://github.com/planner77/masterGantt/actions/runs/38302427091) 응답 `run.name`은 `Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1`, `workflow_id=356198495`, `path=.github/workflows/ci.yml`; `run.name == "CI"` 조건은 잘못된 식별이다. 실제 Owner recovery `workflow_dispatch`는 아직 실행되지 않았으므로 해당 정상 경로에서 BLOCKED가 실증되었다고 단정하지 않는다.

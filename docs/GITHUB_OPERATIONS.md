@@ -1,3 +1,9 @@
+## Issue #645 — #2617.1 commit-PR 연계 인덱스 공백 검증 절차 (2026-10-13)
+
+- [원본 복구 CI #2617.1](https://github.com/planner77/masterGantt/actions/runs/38310183123)은 `변경 경로 판정`의 Owner `authorize`에서 `commit-to-PR identity not uniquely verified`로 차단됐다. 실제 `GET /commits/b97709df.../pulls`는 `[]`, 반면 `GET /pulls/631`은 merged=true/merge_commit_sha 일치, `GET /pulls?state=closed&sort=updated&direction=desc`에도 #631이 유일한 병합 대상으로 존재한다. *CI 전체 실패와 애플리케이션 검증 실패를 구별한다.*
+- trusted 복구 컨트롤러는 빠른 commit index가 1건이면 해당 병합 PR을 엄격히 확인한다. 0건일 때만 독립 닫힌 PR 전체를 유한 페이지 조회하여 해당 SHA의 병합 PR이 **정확히 1건**인지 검증한다. API UNKNOWN/partial/truncated, 중복, 잘못된 PR/타 저장소·미병합, parent1/base 또는 parent2/head 오류는 BLOCKED.
+- #645는 별도 검증기 보완 PR로 배포/Tag 권한 없음. 동일 원본 SHA의 Owner 승인 [#6132769240](https://github.com/planner77/masterGantt/issues/616#issuecomment-6132769240)과 버전별 release 승인 #6124632287은 유지하지만, 실제 #616 recovery `workflow_dispatch`/GHCR 후보/Finalizer 결과는 새 검증기 병합 이후 별도 증거로 확인한다. 기존 실패 #2617을 rerun해 검증기 변경을 소급 적용하지 않는다.
+
 ## Issue #643 — 복구 실행명과 워크플로 원본 구분 (2026-10-13)
 
 - `GET /repos/planner77/masterGantt/actions/runs/38302427091`은 `name=`에 동적 run-name을 반환하며, `workflow_id=356198495`와 `path=.github/workflows/ci.yml`는 원본 워크플로 식별자를 나타낸다. `name=="CI"`로 판단하지 않는다.

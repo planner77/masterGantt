@@ -1,3 +1,10 @@
+## Issue #645 — CI #2617.1 commit→PR 인덱스 공백 회귀 (2026-10-13)
+
+- 실측: 원본 `b97709df8b5c0974f3c8252ac97819f45f73a5b9`의 `/commits/{sha}/pulls?per_page=100&page=1` 응답 `[]`, 독립 `/pulls?state=closed`의 #631 `merged_at=2026-10-12T12:52:38Z`/Merge SHA 일치. #2617.1은 `commit-to-PR identity not uniquely verified`로 Owner authorize 단계 FAIL; E2E6/Docker/GHCR 실제 미실행.
+- `python3 scripts/test_main_ci_recovery.py`: real #2617 0→unique closed PR fallback PASS, direct 1건 exact association PASS, 불일치·2개 이상의 index/closed history, not merged/empty merged_at/wrong PR/typed ID, GitHub API UNKNOWN/truncated/invalid payload, 100-row pagination 2페이지 소진 부정·긍정. 완전 mocking으로 외부 네트워크/registry 쓰기 없음.
+- `validate()` mocked full contract: PR #631의 base/head는 Git 부모 SHA와 양쪽 모두 일치해야 하고 Owner release/recovery markers/Issue Open/source SHA/first-parent/version/원본 push CI 부재가 유지된다. parent base/head mismatch는 `BLOCKED`.
+- `python3 scripts/verify-issue-lifecycle.py` 정적 보호 regression 필수. 새 PR CI 세 Required aggregates/Trusted QA·리뷰 0은 실제 Actions 결과만 PASS 인정. #616 원본 복구/정식 릴리스 원격 end-to-end는 **NOT TESTED** until separate dispatch; #2617 실패는 불변 FAIL.
+
 ## Issue #643 — Actions 실행명/ID 정합성 보안 테스트 (2026-10-13)
 
 - **실데이터 근거:** #639 `ci.yml` push Main Run #2612.1 API의 `run.name`은 동적이고 `workflow_id=356198495`, `run.path=.github/workflows/ci.yml`이며 정의 name은 `CI`. 기존 `run.name=="CI"` 비교 제거.
