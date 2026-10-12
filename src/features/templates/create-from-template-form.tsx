@@ -210,7 +210,7 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
                   className="stat-pill">작업 {item.taskCount}
                 </span>
                 <span
-                  className="stat-pill">마일스톤 {item.milestoneCount}
+                  className="stat-pill">Milestone {item.milestoneCount}
                 </span>
                 {item.processCount > 0 ? <span
                   className="stat-pill">공정 {item.processCount}

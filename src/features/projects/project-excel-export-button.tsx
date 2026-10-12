@@ -328,14 +328,14 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
             onChange={() => setIncludeDependencies(true)} /> 일정 Dependency 포함</label>
           <label><input type="radio" name="excel-dependencies" checked={!includeDependencies}
             onChange={() => setIncludeDependencies(false)} /> 일정 Dependency 제외</label>
-          <p>일정 Dependency를 포함하면 Gantt 화살표와 관계 정보 시트가 생성됩니다. 명시·유효 단계 및 상속 출처는 이 선택과 관계없이 출력합니다.</p>
-          <p>단계 요약은 서버 기본 프로젝트 전체 공수·오늘 Project timezone 기준·임박 14일·서버 환산 기준입니다. 현재 Dashboard의 검색·선택·공수 조건·수동 기준일은 적용하지 않습니다.</p>
+          <p>일정 Dependency를 포함하면 Gantt 화살표와 관계 정보 시트가 생성됩니다. 명시·유효 Milestone 및 상속 출처는 이 선택과 관계없이 출력합니다.</p>
+          <p>Milestone 요약은 서버 기본 프로젝트 전체 공수·오늘 Project timezone 기준·임박 14일·서버 환산 기준입니다. 현재 Dashboard의 검색·선택·공수 조건·수동 기준일은 적용하지 않습니다.</p>
           <label><input type="checkbox" checked={includeLogistics} disabled={busy}
             onChange={(event) => setIncludeLogistics(event.target.checked)} /> 물류 구성 보고서 포함 (공정·설비·시스템·연결 시트)</label>
           <label><input type="checkbox" checked={includeResourceDashboard}
             onChange={event => { setIncludeResourceDashboard(event.target.checked); setMessage(null); }} /> 리소스 현황 보고서 포함 (7개 시트)</label>
           {includeResourceDashboard ? <div className={styles.resourceReport}>
-            <p>아래 범위는 추가 리소스 7개 시트에만 적용합니다. 기존 일정·단계·물류·견적 시트는 Project 전체 기준입니다.</p>
+            <p>아래 범위는 추가 리소스 7개 시트에만 적용합니다. 기존 일정·Milestone·물류·견적 시트는 Project 전체 기준입니다.</p>
             <label><input type="radio" name="resource-report-basis" checked={resourceBasis === "current"}
               onChange={() => setResourceBasis("current")} /> 현재 선택 조건</label>
             <label><input type="radio" name="resource-report-basis" checked={resourceBasis === "project"}
@@ -366,11 +366,11 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
           <label><input type="checkbox" checked={includeResourceEffort} disabled={busy}
             onChange={(event) => setIncludeResourceEffort(event.target.checked)} /> 리소스 공수 견적 포함 (역할·개발자 Summary/Detail)</label>
         </fieldset> : format === "json" ? <>
-          <p>JSON 1.1은 프로젝트 전체 일정·일정 Dependency·명시 단계 소속을 보존합니다. Description·URL·Baseline을 포함하며 Resource·Logistics는 제외합니다.</p>
+          <p>JSON 1.1은 프로젝트 전체 일정·일정 Dependency·명시 Milestone 소속을 보존합니다. Description·URL·Baseline을 포함하며 Resource·Logistics는 제외합니다.</p>
           <p>작업 UUID는 원본 참고 metadata입니다. 가져오기 대상의 Task UUID는 새로 생성하고 대상 Calendar를 적용합니다.</p>
           {jsonReview ? <p role="alert">검토 revision {jsonReview.revision}: 서로 다른 유형의 기존 Dependency {jsonReview.mixedCount}개를 원형대로 내보냅니다. 이 파일은 현재 JSON 가져오기의 유형 제한으로 다시 가져올 수 없습니다. 관계를 삭제하지 않습니다.</p> : null}
         </> : <>
-          <p>이미지의 전체 Grid는 작업명·시작일·기간 고정 열입니다. 화면의 선택 열 전체나 단계 소속 상세는 포함하지 않으며, 단계 정보는 Excel·JSON으로 내보내 주세요.</p>
+          <p>이미지의 전체 Grid는 작업명·시작일·기간 고정 열입니다. 화면의 선택 열 전체나 Milestone 소속 상세는 포함하지 않으며, Milestone 정보는 Excel·JSON으로 내보내 주세요.</p>
           <fieldset disabled={busy}>
             <legend>범위</legend>
             <label><input type="radio" name="gantt-export-scope" checked={scope === "project"}

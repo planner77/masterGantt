@@ -37,8 +37,8 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   await expect(inactive).toHaveAttribute("inert", "");
   await expect(inactive).toHaveCSS("visibility", "hidden");
   expect(await gantt.evaluate((element) => element.getBoundingClientRect().width)).toBeGreaterThan(0);
-  const detail = dashboard.getByRole("region", { name: "완료 단계 전체 상태 표 가로 스크롤" })
-    .getByRole("row").nth(1).getByRole("button", { name: /단계 상세$/ });
+  const detail = dashboard.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" })
+    .getByRole("row").nth(1).getByRole("button", { name: /Milestone 상세$/ });
   await detail.click();
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor).toBeVisible();

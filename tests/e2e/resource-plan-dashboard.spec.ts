@@ -347,7 +347,7 @@ test("#527 selected80/project140 parent warning, detail stack and paging focus",
   await expect(first).toContainText("활성");
   await expect(
     plan.locator('tr[data-plan-row="resourceMilestone"]').first(),
-  ).toContainText("단계 기여(선택)");
+  ).toContainText("Milestone 기여(선택)");
   await plan.getByLabel("부하 범위").selectOption("project");
   await expect(
     plan.locator('tr[data-plan-row="resourceMilestone"]').first(),

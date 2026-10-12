@@ -1,0 +1,54 @@
+{
+  "start": {
+    "capturedAt": "2026-10-08T13:21:26.974767+00:00",
+    "sourceHashes": {
+      "src/features/projects/project-readonly-view.tsx": "ab68cec1f160829df97c65ef02f0887384b7edf15509fe4b8d6ed562b504f3ec",
+      "src/features/resources/resource-navigation-viewport.ts": "fe75ab5492ea59b7ce3a8fc79b79c8c460612776a10ad23c3aaa0e00e63f177c",
+      "src/features/gantt/project-gantt.tsx": "e189fed9d4255b3f9faaad7b687119f3c1f94154ae3c9b0eaa675b7663e99519",
+      "src/features/gantt/peer-viewport-capture.ts": "095e9cf87fd3110523384bb64d0a1a8df806c910e4227d8776e5fceb9f6c3f8c",
+      "tests/features/resources/resource-navigation-viewport.test.ts": "ac78b01cd72bbe57b5ad8b792c46b694d286dec7dccd707a9aeb9e1a79a59a2e",
+      "tests/e2e/resource-kpi-integration-ui.spec.ts": "15ae93f77c88f02271ab48986fbb7b51501d345963c56a2239fce5719fd7b994",
+      "tests/e2e/fixtures/resource-kpi-integration-ui.ts": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+      "tests/fixtures/resource-kpi-integration.ts": "ae0ba5740332bbc120b6b78c78f75c0b6f4bdcb61f60b61328563637e6c857f6",
+      "docs/PROJECT_UX.md": "80c82308a84584d3765e5e8df10894fcadd9ea775c3de8f7d1556a072d816090",
+      "docs/UI_UX_GUIDELINES.md": "310b938953130343615501e3e72311a05ec45afbd4c1c75bc7ea6fed49549407"
+    },
+    "node": "v22.14.0",
+    "packages": {
+      "next": "16.3.8",
+      "@svar-ui/react-gantt": "2.7.3",
+      "@playwright/test": "1.63.0"
+    },
+    "command": "CAPTURE_ISSUE_530=1 npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-kpi-integration-ui.spec.ts tests/e2e/resource-milestone-views.spec.ts tests/e2e/resource-plan-dashboard.spec.ts tests/e2e/resource-excel-export-dashboard.spec.ts tests/e2e/resource-excel-export-ui.spec.ts --grep \"#530|populated Group|retained expansions|matrix metric|selected80|unknown and nonworking|dialog 5\ud3ed|pending peer restore\" --workers=1"
+  },
+  "end": {
+    "capturedAt": "2026-10-08T13:25:33.621746+00:00",
+    "sourceHashes": {
+      "src/features/projects/project-readonly-view.tsx": "ab68cec1f160829df97c65ef02f0887384b7edf15509fe4b8d6ed562b504f3ec",
+      "src/features/resources/resource-navigation-viewport.ts": "fe75ab5492ea59b7ce3a8fc79b79c8c460612776a10ad23c3aaa0e00e63f177c",
+      "src/features/gantt/project-gantt.tsx": "e189fed9d4255b3f9faaad7b687119f3c1f94154ae3c9b0eaa675b7663e99519",
+      "src/features/gantt/peer-viewport-capture.ts": "095e9cf87fd3110523384bb64d0a1a8df806c910e4227d8776e5fceb9f6c3f8c",
+      "tests/features/resources/resource-navigation-viewport.test.ts": "ac78b01cd72bbe57b5ad8b792c46b694d286dec7dccd707a9aeb9e1a79a59a2e",
+      "tests/e2e/resource-kpi-integration-ui.spec.ts": "15ae93f77c88f02271ab48986fbb7b51501d345963c56a2239fce5719fd7b994",
+      "tests/e2e/fixtures/resource-kpi-integration-ui.ts": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+      "tests/fixtures/resource-kpi-integration.ts": "ae0ba5740332bbc120b6b78c78f75c0b6f4bdcb61f60b61328563637e6c857f6",
+      "docs/PROJECT_UX.md": "80c82308a84584d3765e5e8df10894fcadd9ea775c3de8f7d1556a072d816090",
+      "docs/UI_UX_GUIDELINES.md": "310b938953130343615501e3e72311a05ec45afbd4c1c75bc7ea6fed49549407"
+    },
+    "node": "v22.14.0",
+    "packages": {
+      "next": "16.3.8",
+      "@svar-ui/react-gantt": "2.7.3",
+      "@playwright/test": "1.63.0"
+    },
+    "command": "CAPTURE_ISSUE_530=1 npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-kpi-integration-ui.spec.ts tests/e2e/resource-milestone-views.spec.ts tests/e2e/resource-plan-dashboard.spec.ts tests/e2e/resource-excel-export-dashboard.spec.ts tests/e2e/resource-excel-export-ui.spec.ts --grep \"#530|populated Group|retained expansions|matrix metric|selected80|unknown and nonworking|dialog 5\ud3ed|pending peer restore\" --workers=1",
+    "sourceHashesUnchanged": true,
+    "testCount": 13,
+    "uniqueNewActualTests": 6,
+    "existingMockTests": 6,
+    "existingActualNativeTests": 1,
+    "log": "/tmp/issue530-ui-final-r1.log",
+    "browserVersion": "153.0.8010.12",
+    "status": "PASS"
+  }
+}

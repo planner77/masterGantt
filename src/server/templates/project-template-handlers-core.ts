@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { parseDateOnly } from "../../domain/scheduling";
+import { ProjectMasterRelationInvalidError } from "../project-master/project-master-service-core";
 import type {
   CreateTemplateFromProjectRequest,
   DuplicateProjectTemplateRequest,
@@ -74,10 +75,16 @@ function verifyOrigin(request: Request, dependencies: ProjectTemplateHandlerDepe
 }
 
 function mapServiceError(error: unknown): never {
+  if (error instanceof ProjectMasterRelationInvalidError) {
+    throw new PublicApiError(409, "PROJECT_MASTER_RELATION_INVALID",
+      "The template references a project-master hierarchy that is no longer valid.");
+  }
   if (error instanceof ProjectTemplateError) {
     switch (error.code) {
       case "TEMPLATE_NOT_FOUND":
         throw new PublicApiError(404, "TEMPLATE_NOT_FOUND", error.message);
+      case "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED":
+        throw new PublicApiError(409, "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED", error.message);
       case "TEMPLATE_INACTIVE":
         throw new PublicApiError(400, "TEMPLATE_INACTIVE", error.message);
       case "SOURCE_PROJECT_NOT_FOUND":

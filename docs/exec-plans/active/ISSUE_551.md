@@ -1,5 +1,12 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-12 — 최신 main 정렬 및 PR CI 재실행 준비
+
+- 최초 #551 HEAD `81f8143e7887e10885a8a4268f3ec79e9f0e5d38`의 PR CI [#2244.1](https://github.com/planner77/masterGantt/actions/runs/37852680599)는 Quality/E2E 6 shard/Docker 모두 SUCCESS였다. 이 결과는 현재 새 통합 tree의 검증 결과가 아니다.
+- 최신 main 기준 `1dc89522192ae2c64c6951c282116a0a34af3a13`에 #551 변경 71개 경로를 3-way 합쳤다. 직접 미충돌 59개, 양측 변경 12개 중 문서/Workspace/CSS 10개는 변경 의도를 통합했고 package.json/package-lock.json은 현재 main의 0.106.2 값을 유지했다. 구버전 후보 0.105.0을 재부여하지 않는다.
+- #550 PR #559는 main 병합 및 Issue 종료 완료다. 기존 stacked base/구버전/당시 NOT TESTED 문장은 원래 구현 시점의 역사적 증거이며 현재 상태가 아니다. 후속 #552 PR #561은 #551을 기반으로 하므로 #551 정렬 이후 별도 정렬·회귀 검증이 필요하다.
+- 이번 작업의 범위는 main 정렬·충돌 해결·새 exact-head PR CI 시작까지다. 통합 HEAD 기준 로컬 TypeScript/Chromium/QA Final·Owner ACCEPT/병합/Main CI/GHCR/태그/Issue 종료는 별도의 증거 전 NOT TESTED. `release_required=true`, `release_authorized=false`를 유지한다.
+
 ## Issue Work Packet
 
 - issue: https://github.com/planner77/masterGantt/issues/551, Epic #548 MT3. 최신 OPEN/comments0, 조회된 branch 없음. 등록-only 과거 문구는 최신 #549~#553 구현·PR CI 시작 요청으로 대체한다.

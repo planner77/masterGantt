@@ -1,12 +1,15 @@
 name: 범용 Release Finalizer
 
-run-name: "Finalizer · ${{ github.event.workflow_run.display_title }} · Finalizer Run #${{ github.run_number }}.${{ github.run_attempt }}"
+run-name: >-
+  ${{ github.event_name == 'issue_comment' && format('B2 미발행 릴리스 복구 · Issue #633 · Run #{0}.{1}', github.run_number, github.run_attempt) || github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_commit.message, 'Issue #') && contains(github.event.workflow_run.head_commit.message, ' · PR #') && !contains(toJSON(github.event.workflow_run.head_commit.message), '\n') && !contains(toJSON(github.event.workflow_run.head_commit.message), '\r') && format('Finalizer · {0} · Main #{1}.{2} · Run #{3}.{4}', github.event.workflow_run.head_commit.message, github.event.workflow_run.run_number, github.event.workflow_run.run_attempt, github.run_number, github.run_attempt) || format('Finalizer · 기존 병합/직접 Push · {0} · Main #{1}.{2} · Run #{3}.{4}', github.event.workflow_run.head_sha, github.event.workflow_run.run_number, github.event.workflow_run.run_attempt, github.run_number, github.run_attempt) }}
 
 on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
     branches: [main]
+  issue_comment:
+    types: [created]
 
 concurrency:
   group: mastergantt-release-finalizer
@@ -35,9 +38,53 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: GHCR 버전 원장 조회 도구 준비
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+      - name: 비공개 GHCR 인증 (감사 + 신규 릴리스 확인)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: 정확한 merge lifecycle 해석 및 실행
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
         run: python3 scripts/auto_release_finalizer.py --target-sha "$TARGET_SHA"
+
+  owner_recovery:
+    name: 인증된 Owner B2 승인 후 범용 Finalizer 재개
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.number == 633 &&
+      !github.event.issue.pull_request &&
+      github.event.comment.user.login == github.repository_owner &&
+      contains(github.event.comment.body, 'mastergantt-release-debt-authorization:v2')
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      # Only a trusted main checkout. The comment is a trigger, not an
+      # executable instruction or proof of authority; the Python verifier
+      # independently retrieves and authenticates the current Owner ledger.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Owner trigger용 trusted main 코드 SHA 확인
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: GHCR 버전 원장 조회 도구 준비
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+      - name: 비공개 GHCR 인증 (승인 범위 검증)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: B2 승인 범위와 first-parent 증거 재검증 후 범용 Finalizer 실행
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/auto_release_finalizer.py --target-sha "$GITHUB_SHA"

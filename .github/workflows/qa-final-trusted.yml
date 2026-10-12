@@ -1,0 +1,51 @@
+name: QA Final 신뢰 검증
+
+run-name: >-
+  ${{ format('QA Trusted · {0} · Run #{1}.{2}', github.event.workflow_run.display_title, github.run_number, github.run_attempt) }}
+
+# 본 Workflow는 기본 브랜치에서만 로딩하며 PR/test-merge 코드나 정의를 실행하지 않는다.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: qa-trusted-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  qa_trusted:
+    name: QA Final — Trusted
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 신뢰된 main 검증 코드만 checkout (PR 코드 실행 금지)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: 실제 검증기 checkout SHA와 고정 이벤트 SHA 일치 확인
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          printf -- '신뢰된 검증기 SHA: %s\n' "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: 원본 PR CI/Head/base 및 차단 리뷰·문서 증거 독립 조회
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/qa_final_automated.py
+      - name: default-branch 검증 결과 증거 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qa-final-trusted-${{ github.event.workflow_run.id }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-final-automated-report.json
+          retention-days: 30
+          if-no-files-found: ignore

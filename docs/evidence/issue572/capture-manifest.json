@@ -1,0 +1,45 @@
+{
+  "issue": 572,
+  "base_sha": "2815d7b3de273afaaed301e6f0fc5d0071ce2b24",
+  "environment": "로컬 Chromium, 합성 stateful Project fixture",
+  "captures": [
+    {
+      "file": "confirmed-name-1280.png",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "scenario": "지연된 pointer blur PATCH의 canonical 이름, 실제 Grid 이름과 인라인 완료 상태가 일치하며 주 버튼 focus를 유지한다."
+    },
+    {
+      "file": "restored-draft-390.png",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scenario": "이름 PATCH 거부 후 같은 작업을 명시적으로 다시 열면 저장되지 않은 원문 초안이 native 이름 input에 복원된다. 실패 aria 표시를 증명하는 캡처는 아니다."
+    }
+  ],
+  "local_evidence": {
+    "inline_suite": "11 PASS; /tmp/issue572-inline-final11.log",
+    "409_and_capture": "3 PASS; /tmp/issue572-409-evidence3.log",
+    "related_unit": "5개 파일 / 100 PASS; /tmp/issue572-final-unit.log",
+    "typecheck": "PASS",
+    "changed_lint": "오류 0개 / 기존 경고 3개"
+  },
+  "limitations": [
+    "캡처는 합성 fixture의 UI 상태만 보여 준다. 실제 SQLite 영속성이나 원격 CI 성공의 증거가 아니다.",
+    "실제 OS IME는 NOT TESTED이며 composition 검증은 합성 이벤트를 사용했다.",
+    "캡처 시점 Issue #572 원격 CI는 NOT TESTED다.",
+    "원본 CI #2278 실패의 정확한 기전은 UNKNOWN을 유지한다. 현재 기존 baseline 4개 테스트는 PASS했다."
+  ],
+  "source_sha256": {
+    "src/features/gantt/project-gantt.tsx": "6ebd212012f3ae1c4cbea7a6a3b8b6bb94b40e666a77db23bd02fe042bc4d258",
+    "src/features/gantt/task-editor-model.ts": "3d2c62dc170317071c80689158637edb1dbe0ea98dc1594303133ea0efd64dd6",
+    "src/features/projects/project-readonly-view.tsx": "23db4920122f39437f96cef9256b83e167b5294e168aa4a05fb2df7a37f67dcf",
+    "src/features/gantt/inline-name-session.ts": "14a83d0aeeee8f330e09151c90e320920370aaa23f3c6bb056810b8199fd978b",
+    "tests/features/gantt/inline-name-session.test.ts": "cb53908d7fd940e6672e0a66fae9173b7a52e2a8bd8051d8594f5156be3bb0f5",
+    "tests/e2e/project-gantt-inline-name.spec.ts": "453688eb01b4a79671e7239fec953bea1e8f6ecf78bdf948063da2d2e1f8a8a1",
+    "tests/e2e/inline-name-persistence.spec.ts": "ba485de18930e45decf6b3aa209c5527df8edc684ad327cc1c1ede4f639132ca"
+  }
+}

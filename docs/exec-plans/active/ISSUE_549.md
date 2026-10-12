@@ -77,3 +77,34 @@ native 날짜 reveal은 NY Day -1px/Week -39px, calendar helper+public left는0p
 게시 직전 main drift `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0 → 08ac7749efc4544dfc125853d9e58ef3a9d56b21`(PR #488/#487)을 확인했다. branch를 fast-forward하고 공용 Playwright setup/CI timeout·관련 정적 검증/기존 E2E 및 문서를 모두 보존했다. TEST_PLAN/PLAN의 양쪽 추가 문단을 통합했다. 제품 source/domain/API/version 변경은 없고 최종 기술 실험 source hashes도 불변이므로 해당 Local Fast Feedback은 재사용한다. 실험 baseline은 이전 dca2 SHA, 최종 게시 parent는08ac SHA로 구별한다. version은0.103.0 유지한다. 기존 runtime 산출물은 게시하지 않는다.
 
 DOCUMENTATION_SYNC: PASS. frontend Week header 관측 FAIL/원인 baseline NOT TESTED 문서 REWORK를 확인했고 required docs/N/A와 version/Markdown/diff 검증을 완료했다. 최종 exact staged tree를 독립 PRE_QA 대상으로 전달한다. PR CI 결과/최종 ACCEPT는 NOT TESTED다.
+
+## 2026-10-10 최신 main 재정렬·재검증 인계
+
+- 이전 PR #557 head `2ac846da822f8b67abea01ef9d1f535b1a8a54dc`의 [CI #2230.1](https://github.com/planner77/masterGantt/actions/runs/37848532318)은 quality/e2e/docker 모두 PASS다. 최초 #2210.1 Chromium #514 wheel 실패는 이후 정확한 DOM 이동 관측 보완으로 해소했다. 과거 head의 PASS를 새 head의 PASS로 표시하지 않는다.
+- 2026-10-10 기준 main `f1ac9fef186a635d08b51c878376925567653736`, application `0.103.1`; 선행 기준 `3457d1fac8e50c43beafa7d662fbaf692e72127c` 대비 93커밋 진척으로 PR 충돌 상태를 확인했다. 신규 공통 기반에는 version `0.104.0`(MINOR)을 사용하며 package/lock/CHANGELOG를 함께 갱신한다. 기존 `0.103.0`은 이미 #538의 main 릴리스이므로 재사용할 수 없다.
+- 기존 #549 원본(공통 순수 모델, Core version-bound adapter, unit/synthetic Chromium, canonical 보존)과 이전 #514 E2E 보완을 보존한다. 충돌 범위는 문서·source/manifest로 제한하며 #530 peer viewport 정합, #568 진단 추적, #569 PoC/ADR, 위험도 기반 QA 문서를 최신 main 기준으로 유지한다. Milestone display 전환은 MT4 #552까지 하지 않는다.
+- [MILESTONE_TIMELINE](../../MILESTONE_TIMELINE.md)에는 #549 current→target 계약과 #569 PoC의 native scroll 단일 소유, 좁은 폭 NO_SCROLL_CAPACITY, 제품 도입 DEFER를 분리 기록한다. #549 dev-only 기술 probe의 9 PASS는 #569/#551 통합 제품 검증이나 Week header 의미 PASS를 의미하지 않는다.
+- DOCUMENTATION_SYNC은 해당 source/문서/버전 통합 내용을 포함하며 API·SQLite DB schema·Security·Scheduling Engine·Export 동작·GitHub workflow 의미 변경은 N/A다. 단일 에이전트 순차 검토이며 독립 QA의 새 head 검증은 NOT TESTED. 새 PR CI 결과는 actual run/head를 별도 확인해야 한다.
+- 관련 후속 PR #559/#560/#561/#562는 stacked 선행 관계와 버전 재정렬이 별도로 필요하다. 이번 승인 범위는 **새 exact-head PR CI 시작 확인**까지다. merge/main CI/GHCR/tag/Release/Issue 종료는 하지 않는다; `release_required=true / release_authorized=false`.
+
+## 2026-10-10 PR CI #2348.1 회귀 수정
+
+- Run [#2348.1](https://github.com/planner77/masterGantt/actions/runs/38000871776), exact head `f636d3073c8153726be8b06d3e798d83a4752845`: Chromium shard2 `tests/e2e/milestone-timeline-core.spec.ts:171` FAIL(기대 축 width >37404, 실제 37404). 같은 shard 86 PASS/1 FAIL/1 SKIP, shards 1/3/4/5/6와 Quality/Docker는 PASS. E2E aggregate FAIL. 원본 log·trace artifact ID `11649692848` 보존.
+- #530 peer viewport의 프로그램식 scroll guard는 대시보드에서 일정 복귀 직후 동일 identity 동안 다른 `scroll-chart(left)`를 차단할 수 있다. 이 시험은 실제 사용자 입력 없이 dev-only probe의 `scroll()`을 호출했으므로 extension precondition인 public left 변화가 발생하지 않았을 가능성이 높다. 실측 trace까지 원인 확정한 것은 아님.
+- 테스트는 실제 Chart 내부 `page.mouse.wheel(31,0)`로 새 user intent를 발생시켜 이전 guard를 해제한 뒤 synthetic right-edge를 사용한다. 축 확장은 고정 5 RAF가 아니라 bounded poll로 검증하며 `nextTimelineScaleWidth`의 오른쪽 임계/축 실제 증가 assertion을 제거하지 않는다. 확대 뒤 동일 Core instance, filtered Task IDs, Link, canonical IDs, 요청 없음(POST/PATCH=0)을 검사한다. 이 수정은 본래 제품의 복원 보호를 약화하거나 bypass하지 않는다.
+- Product `0.104.0` 유지, 최신 main `f1ac9fef186a635d08b51c878376925567653736`. E2E 테스트와 설명 문서만 변경, API/DB/auth/engine/export/CI/GHCR 계약은 N/A. Local Playwright 재현/독립 QA_FINAL 및 새로운 exact-head 원격 checks는 실제 실행 전 NOT TESTED. 요청 종료점은 새 PR CI 등록이다.
+
+## 2026-10-10 Main CI #2359.1 재현 기반 보완 — 휠/Core 이벤트 순서
+
+- Issue #549 PR #557 merge `45a248f723e11133a4bd4c73ca14bb69b3071cbe`의 [Main CI #2359.1](https://github.com/planner77/masterGantt/actions/runs/38006587229) (run38006587229) completed/failure. Chromium shard2 job114076706278: 86 PASS, 1 FAIL, 1 SKIP. Quality/다른 E2E5 shard/Docker PASS, E2E aggregate FAIL, Main 임시 GHCR publish SKIPPED.
+- [원본 Playwright trace artifact 11651782948](https://github.com/planner77/masterGantt/actions/runs/38006587229/artifacts/11651782948)의 실제 `data-gantt-public-scroll-events`: 복귀 Core/native `left=26640`, probe의 `scroll-chart(requestedLeft=36960)` **다음에** 앞선 휠의 `scroll-chart(requestedLeft=26671)`가 늦게 발생. 최종 좌표는 우측 임계에 미달, `width=37404` 불변. 이는 단순 Core resize 지연이 아니라 **wheel 이벤트의 browser/Core 반영 완료 전 programmatic right-edge 이동을 요청한 경쟁**이다.
+- 원인 분리: #530 복원 guard 해제에는 trusted wheel 사용이 필요하지만 `await page.mouse.wheel()` 완료는 Core와 native scrollLeft 반영 완료를 보장하지 않는다. 기존 Main 테스트는 두 호출을 연속 실행하여 늦은 wheel이 마지막에 덮었다. 실패 본문과 Trace가 실제 위 이벤트 역전을 증명한다.
+- 테스트만 최소 수정: trusted wheel 직후 **Core left 증가 및 native Chart left와의 ±1px 정합을 유한 Playwright poll로 직접 확인**하고 기존 5 RAF settle 뒤, 최신 관측 scale width/chart width를 사용해 right-edge 이동. #367 **실제 width 증가** assertion은 그대로 유지하고 동일 instance·filtered rows·Link/canonical IDs·mutation0 assertion도 유지. 10초 bounded poll에서 해결되지 않으면 FAIL; retry/skip/timeout 증대나 #530 guard/제품 로직/CI required checks 완화는 하지 않는다.
+- 본 후속 PR은 이미 `0.104.0`이 main에 merge된 상태의 **test/docs-only corrective change**이며 package/lock/version 변경 없음. 실패 Main과 동일 Issue의 인접 corrective merge를 Generic Finalizer가 lifecycle version span으로 평가해야 하고, 정식 릴리스는 미승인(`release_authorized=false`). 성공한 main/GHCR candidate 또는 정식 v0.104.0 릴리스 증거는 아직 없다. 원 실패 기록은 보존한다.
+- Reviewer 정책: 다중 화면 스크롤 경쟁이므로 HIGH/`qa_required=true`; 이번 corrective Head에서 독립 QA_FINAL PASS가 필요하며 PR CI도 다시 통과해야 한다. API/DB/권한/엔진/Export/운영 코드는 N/A. 실행 방식: 단일 에이전트 순차 구현; 독립 Reviewer 실행은 실제 지원 여부에 따라 별도 기록. 사용자 요청 경계: 새 Main CI 시작, 정식 tag/GHCR promotion/Issue close는 미승인.
+
+## 2026-10-10 corrective PR #590 CI metadata trace 보완
+
+- 신규 PR #590의 최초 [CI #2361.1](https://github.com/planner77/masterGantt/actions/runs/38008693672)은 `verify-ci-run-trace.py`가 제목의 단독 `#549`를 Primary Issue 표현으로 인식하지 못해 변경 경로 판정에서 즉시 FAIL. 이 실행의 Quality/E2E/Docker 구현 Job은 SKIPPED이며, Main CI 회귀 재실행 증거가 아니다.
+- Title regex는 `Issue #549` 또는 `(#549)`를 허용하므로 제목을 `test: Main CI 휠 이벤트 순서 경합 보완 (#549)`로 수정했다. 제목만 수정하는 `pull_request.edited`의 metadata-only CI는 과거 동일 Head 전체 실패로 fail-closed될 수 있으므로, 원 실패·정정 기록을 Work Packet에 동기화하는 추가 commit을 통해 새 **push 기반 전체 PR CI**를 요청한다.
+- 기존 test code의 trusted wheel → Core/native 동기 관측 → right-edge command 순서는 불변. app `0.104.0`, #530/#367 제품 로직·required checks·timeout 불변. 새 PR CI 및 독립 QA는 실제 증거 전 NOT TESTED.

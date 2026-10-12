@@ -217,7 +217,7 @@ export function ResourceMilestoneMatrix(props: Props) {
         disabled={stale}
       />
       <Pager
-        label="단계"
+        label="Milestone"
         offset={columnOffset}
         size={6}
         total={stages.length}
@@ -462,7 +462,7 @@ function MilestoneNodes(
   return (
     <>
       <Pager
-        label="계층 단계"
+        label="Milestone 계층"
         offset={offset}
         size={6}
         total={stages.length}
@@ -488,7 +488,7 @@ function MilestoneNodes(
             />
             {stage ? (
               <p>
-                단계 전체 소속 {stage.full.completedMemberCount}/
+                Milestone 전체 소속 {stage.full.completedMemberCount}/
                 {stage.full.memberCount} ·{" "}
                 {stage.full.ready === null
                   ? "준비 판정 해당 없음"

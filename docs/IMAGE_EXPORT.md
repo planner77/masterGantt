@@ -46,9 +46,9 @@ SVG와 PNG는 같은 서버 SVG를 사용한다. PNG는 브라우저에서 SVG�
 
 JSON은 전체 schedule-stage 교환용이다. Description·URL·Baseline·Task/Link·명시 Membership을 포함하며 Resource/Logistics 배정은 제외한다. source Task UUID는 참고 metadata이고 Import 대상에서는 새 ID를 생성한다. legacy mixed Dependency가 최신 export snapshot에 존재하면 원형 보존과 현재 외부 Import 전체 거부를 다운로드 전에 설명한다. 확인한 동일 revision만 사용하고 412에는 확인을 폐기한다. 원본 Link를 사용자 모르게 삭제하거나 같은 파일을 재가져올 수 있다고 안내하지 않는다.
 
-Excel에서는 명시·유효 소속 및 상속 출처와 단계 요약을 일정 Dependency 선택과 독립 출력한다. 단계 요약의 기본값은 서버 전체 Project 공수, 오늘 Project timezone 기준, horizon 14일 및 서버 M/M 환산 기준이다. 화면 Dashboard의 S 표시 선택/F 공수 조건/수동 평가일을 전송하지 않으며 해당 차이를 Excel 선택 직후 표시한다. 이 추가 형식은 이미지 Export에 새로운 기간·공수 계산을 도입하지 않는다.
+Excel에서는 명시·유효 소속 및 상속 출처와 Milestone 요약을 일정 Dependency 선택과 독립 출력한다. Milestone 요약의 기본값은 서버 전체 Project 공수, 오늘 Project timezone 기준, horizon 14일 및 서버 M/M 환산 기준이다. 화면 Dashboard의 S 표시 선택/F 공수 조건/수동 평가일을 전송하지 않으며 해당 차이를 Excel 선택 직후 표시한다. 이 추가 형식은 이미지 Export에 새로운 기간·공수 계산을 도입하지 않는다.
 
-SVG/PNG의 전체 Grid는 기존 고정 `exportLayout`의 작업명 224px·시작일 128px·기간 84px만 출력한다. live Grid의 선택 열·사용자 조절 폭·완료 단계 열 전체를 그대로 출력하는 계약이 아니다. 표시 이름/유형/일정 값은 같은 canonical snapshot에서 가져오며 단계 소속 상세는 Excel/JSON으로 제공한다. 이 경계를 이미지 형식 선택 직후 안내한다. Dashboard 전용 이미지 exporter와 새로운 image stage column/API는 #464 범위 밖이다.
+SVG/PNG의 전체 Grid는 기존 고정 `exportLayout`의 작업명 224px·시작일 128px·기간 84px만 출력한다. live Grid의 선택 열·사용자 조절 폭·Milestone 열 전체를 그대로 출력하는 계약이 아니다. 표시 이름/유형/일정 값은 같은 canonical snapshot에서 가져오며 Milestone 소속 상세는 Excel/JSON으로 제공한다. 이 경계를 이미지 형식 선택 직후 안내한다. Dashboard 전용 이미지 exporter와 새로운 image stage column/API는 #464 범위 밖이다.
 
 ## Issue #491 이미지 옵션 presentation
 

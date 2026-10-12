@@ -22,6 +22,13 @@
 - **SVAR-native interaction**: Gantt 내부 동작은 설치된 SVAR React Gantt Core의 공식 기능/API와 사용자 기대를 우선한다.
 - **Scope-relative command semantics**: 동일한 native action은 현재 WBS scope의 사용자 의미와 canonical hierarchy를 함께 반영하는 단일 resolver로 해석한다. 표시된 enabled/disabled 상태, pointer/keyboard target, 실제 서버 command가 서로 다른 의미를 가져서는 안 되며 scope 변경을 Gantt remount나 임시 client state로 해결하지 않는다.
 
+### 1.2 Product Terminology (Issue #495)
+
+- 프로젝트 일정의 확인 지점인 엔터티는 모든 사용자 화면, 검색·필터, Editor, Dashboard, 도움말, 오류 및 접근성 이름에서 **Milestone**이라고 표기한다. 같은 엔터티를 `완료 단계`, `마일스톤`, `Stage Gate`로 별도 명명하지 않는다.
+- Milestone의 `Ready`(완료 가능 판정)와 `Completed`(명시 완료 상태)는 다르다. 일반 Task의 완료 상태, 구현·배포·CI 단계, Gantt 계층 깊이는 별개의 의미다.
+- 내부 `stageGate` DTO/guard, API 경로, DB 스키마 및 JSON·Excel의 기존 고정 key/header는 호환성 계약이다. 표시 용어만을 이유로 변경하지 않으며 외부 형식 변경은 별도 versioning 검토를 요구한다.
+- `Milestone` 표기의 길이가 Grid/Table/Popover의 geometry·접근성·keyboard/focus 계약을 깨지 않아야 한다. 구체 동작은 UI_UX_GUIDELINES와 화면별 Source of Truth를 따른다.
+
 ## 2. Reference Hierarchy
 
 외부 제품의 CSS나 비공개 구현을 복제하지 않는다. 다음 순서로 **설계 언어와 interaction을 참고**한다.
@@ -237,6 +244,21 @@ UI/UX Issue를 시작할 때 최소 다음을 확인한다.
 3. 관련 화면 계약 문서
 4. 관련 기존/후속 Issue
 5. SVAR 영향이 있으면 공식 demo/API와 설치 버전
+
+### UI/UX Skill 기반 Design Delta와 조건부 원칙 승격 (Issue #589)
+
+UI/UX 관련 Skill을 **실제로 사용**해 화면을 설계·구현·검토했다면, DOCUMENTATION_SYNC에서 Skill의 제안 중 **프로젝트가 실제 채택한 지침**을 기존 설계·계약과 비교한다. Skill 사용 자체는 의무가 아니며 재사용 가능한 제안이라고 자동 채택하거나 기존 계약을 덮어쓰지 않는다.
+
+| 판정 | 기준 | 문서 처리 |
+| --- | --- | --- |
+| **A. 신규 공통 원칙** | 기존 `DESIGN.md`에 없고, 정보 구조·시각 계층·배치·상태·탐색·상호작용 방향에 여러 화면/공통 컴포넌트에 걸쳐 지속 적용되며, 프로젝트가 실제 채택함 | **같은 구현 PR에서 `DESIGN.md` 갱신**. 적절한 기존 절에 원칙·의도·적용 대상·예외를 간결하게 통합하고 필요한 상세 가이드를 연결 |
+| **B. 기존 원칙의 구체화** | 상위 방향은 이미 이 문서에 있으며, 세부 interaction·keyboard/focus·반응형·접근성·검증 또는 화면별 계약만 새로 확정 | 중복된 전역 원칙을 추가하지 않고 `docs/UI_UX_GUIDELINES.md` 또는 해당 화면 계약만 필요에 따라 갱신. `DESIGN.md: N/A` |
+| **C. 국소적 수정** | 한 화면의 padding·버튼 폭·아이콘 위치·일회성 CSS 보정·개별 버그 해결처럼 공통 원칙이 아님 | `DESIGN.md` 수정 없음. 필요한 경우 Issue/PR·컴포넌트·테스트에만 기록하고 `DESIGN.md: N/A` |
+| **D. 충돌·미확정** | Skill 권고가 기존 DESIGN 또는 더 우선하는 보안·도메인·API·revision·canonical snapshot·SVAR 계약과 충돌하거나 범위/채택 여부가 미확정 | 자동 승격·무단 덮어쓰기 금지. Manager가 근거/대안을 검토하고 별도 의사결정·필요 승인 전에는 원칙 변경 보류 |
+
+예시: 여러 화면에 채택한 **새 탐색·상태 표시 방향**은 A, 기존 compact controls에 따른 **툴바 간격 조정**은 C, 특정 Dialog의 **Escape/focus 복원 세칙**은 B(하위 가이드/화면 문서), 보안·SVAR Core 계약에 반하는 Skill 권고는 D다. 제안이 여러 곳에 적용 가능하다는 이유만으로 A가 되지 않는다.
+
+`ui_ux`는 read-only로 제안과 기존 원칙 간 차이·근거를 제공하고, `frontend`는 승인된 UI/test 변경을 구현한다. **Manager 또는 지정된 문서 작성자**가 원칙 채택 여부와 `DESIGN.md` 변경의 최종 책임을 진다. A라면 PR에 채택 이유, 영향 화면/공통 컴포넌트, 하위 문서 연결을 설명한다. A가 없다면 **구현 PR에 반드시** `DESIGN.md: N/A — 기존 원칙 구체화 / 국소 변경`처럼 짧은 판정 사유를 남기고, 필요하면 최종 보고에도 반복한다. 기존 Source of Truth 우선순위, read-only 역할, DOCUMENTATION_SYNC 및 QA/CI/release gate는 그대로 유지한다.
 
 구현 전에는 current-state 문제, 목표 사용자 흐름, text wireframe 또는 layout 설명, state matrix, responsive/accessibility 기준을 남긴다.
 

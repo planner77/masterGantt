@@ -1,0 +1,72 @@
+{
+  "schema": "mastergantt-issue569-rework-v1",
+  "baselineHead": "9f0458124198470872c6764cbd5b00dedc75417b",
+  "baselineTree": "8f7906d325c53d8ba1c9ee6e52f8a9a7fef8e1c7",
+  "source": {
+    "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+    "originalSha256": "bfb0b6994be6cd605f8bc56152962eaa9a1c8436563dbc0b759081ae8a75e901",
+    "finalSha256": "14c3ca85cde5ef14dc0eea64bc851eaca282509de99b108552c8f9ec5d2ca4c5"
+  },
+  "scope": "#463 viewport 테스트1개만 변경. 제품 writer/adapter/다른 tests/workflow/version 변경 없음.",
+  "cause": "검색1match의 native vertical capacity0으로 public/native top이 함께0으로 clamp. 검색 해제 시 과거96 복원 의무 없음. 원본120/96 peer/layout 검증은 계속 유지. 직접 writer귀속은 이 event자료만으로 확정하지 않는다.",
+  "local": {
+    "originalTarget": "FAIL: L122 expected public/native12096, actual1200",
+    "instrumentedOriginalTarget": "FAIL: 동일96기대. 행수/capacity0 원인 관측",
+    "finalTargetRepeats": "3회 각각1 PASS",
+    "fullSpec": "6 PASS",
+    "typecheck": "PASS",
+    "changedFileLint": "PASS",
+    "unit": "N/A: E2E 테스트 assertion만 변경, domain/제품 logic 불변",
+    "targetRepeatDurationsSeconds": [
+      11.5,
+      7.4,
+      6.0
+    ],
+    "fullSpecDurationSeconds": 23.8
+  },
+  "remoteCI": "NOT TESTED: 새 head PR CI는 infra 다음 단계",
+  "commands": {
+    "target": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-dashboard-state.spec.ts --grep \"public viewport and native scroll survive peer/layout\"",
+    "fullSpec": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-dashboard-state.spec.ts",
+    "typecheck": "npm run typecheck",
+    "lint": "npx eslint tests/e2e/milestone-dashboard-state.spec.ts"
+  },
+  "oracle": {
+    "peerLayout": "public/native exact120/96; sameinstance",
+    "searchApplied": "1match/22task, Grid header+task=2rows, native capacity0, public/native exact120/0",
+    "searchCleared": "22match/22task, capacity>=96, public/native exact120/0; marker(null가능)불변/sameinstance",
+    "newUser": "public/native exact180/128; search18match→clear→실제width변화및원복→3RAF도exact180/128/marker불변/sameinstance"
+  },
+  "historyArtifacts": [
+    {
+      "run": "original",
+      "file": "/tmp/issue569-rework-original-failure/milestone-dashboard-state--79160-t-stale-restore-is-consumed-chromium/trace.zip",
+      "sha256": "460212936dd06a33016f156019345a9625de69ab1a78364ef218db0b710ab692",
+      "capturedTestSources": [
+        {
+          "file": "src/9327f01bffcea9dd9c0d39c3abfa55e519439d6b.ts",
+          "sha256": "ae7cc0e656b566d51944d1022cbbf328b5fdac3c9704054eded2254c0e1fe06e"
+        },
+        {
+          "file": "src/76e3d194d0972405bf1a8582d8d9074b5221dc67.ts",
+          "sha256": "bfb0b6994be6cd605f8bc56152962eaa9a1c8436563dbc0b759081ae8a75e901"
+        }
+      ]
+    },
+    {
+      "run": "probe",
+      "file": "/tmp/issue569-rework-probe-failure/milestone-dashboard-state--79160-t-stale-restore-is-consumed-chromium/trace.zip",
+      "sha256": "6e6a1538cb3d7d3f40c035111926f9404bd15780b3bd57186b1d50a6bf44115b",
+      "capturedTestSources": [
+        {
+          "file": "src/9327f01bffcea9dd9c0d39c3abfa55e519439d6b.ts",
+          "sha256": "ae7cc0e656b566d51944d1022cbbf328b5fdac3c9704054eded2254c0e1fe06e"
+        },
+        {
+          "file": "src/76e3d194d0972405bf1a8582d8d9074b5221dc67.ts",
+          "sha256": "ec8d0454e6f86d6059ed0060fcb2bd744bb26daa4df258dce3ad3551cdcea854"
+        }
+      ]
+    }
+  ]
+}

@@ -16,6 +16,9 @@ Manager가 작업을 배정하면 조사, 변경, 검증과 결과 보고를 수
 먼저 읽을 기준 문서:
 - AGENTS.md
 - docs/REMOTE_VALIDATION.md
+- docs/ISSUE_LIFECYCLE.md
+- docs/AGENT_PROMPTS.md
+- docs/QA_REVIEW_POLICY.md
 - docs/GITHUB_OPERATIONS.md
 - docs/CI_CD.md
 - docs/DEPLOYMENT.md
@@ -76,10 +79,13 @@ CI/CD와 GHCR:
 - D05의 private repository ruleset 미강제 위험 수용과 GitHub Artifact Attestation 비활성 결정을 유지하며 BuildKit SBOM/provenance는 필수다.
 
 승인과 협업:
+- #580 반영 이후 `qa_method=AUTOMATED_MANAGER`는 main의 `QA Final — Trusted`(workflow_run, read-only)가 최신 Head/base의 required CI·문서·리뷰를 실제 검증하고 PASS한 경우에만 선택한다. PR 작성자가 바꿀 수 있는 `QA Final — Automated` Job 성공/skip은 신뢰 가능한 대체 QA가 아니다. Manager는 HIGH 강화 체크리스트·미검증·잔여 위험·정확한 HEAD의 ACCEPT를 남긴다. 정책/보안/QA Workflow 자체 변경은 독립 Reviewer가 필요하며 이번 최초 도입 PR은 bootstrap 신뢰 검토 전까지 BLOCKED다.
 - .env, PAT, password, token, secret 원문을 출력·commit·Issue/PR·artifact에 남기지 않는다.
 - 공개 전환, 접근 권한 확대, 보호 약화, Secret 생성·교체·삭제, image/tag/volume 삭제, 신규 유료 서비스, release 발행·운영 배포는 명시적 승인 범위에서만 수행한다.
 - Force push, tag 이동/재발행, gate 우회로 문제를 해결하지 않는다.
-- qa_docs가 독립 검토하며 Manager가 최종 ACCEPT/REWORK/BLOCKED를 판단한다.
+- docs/QA_REVIEW_POLICY.md의 HIGH 우선 위험도 판정에서 `qa_method=AGENT`이면서 `qa_required=true`이면 별도 `qa_docs` 또는 승인된 구현자 외 인간 Reviewer의 최신 Head QA Final PASS가 필수다. `AUTOMATED_MANAGER`는 *신뢰된 main workflow_run의 실제 QA PASS*와 Manager의 범위별 수동 검토·잔여 위험 수용 후에만 독립 검토 `N/A(대체 경로)`를 허용한다. Gate/Workflow/권한/보안 정책 변경과 Bootstrap PR은 AGENT 독립 QA 필수이며 사용 가능 경로가 없으면 BLOCKED다.
+- `qa_required=false`인 LOW/근거 있는 MEDIUM은 Manager가 `QA_FINAL=N/A(reason)` 및 교차 검토 근거를 남긴다. QA N/A를 독립 PASS로 위장하지 않는다. 두 경로 모두 최종 ACCEPT/REWORK/BLOCKED는 Manager가 판단한다.
+- 병합 후 main CI/GHCR 증거는 `qa_method=AGENT`에서 별도 Reviewer(필요한 경우)가, `qa_method=AUTOMATED_MANAGER`/`qa_required=false`에서는 Manager가 exact SHA/digest와 Gate 상태를 확인한다. QA 생략이 main/Release 검증 생략이나 승인으로 확장되지 않는다.
 
 산출물과 보고:
 - 변경 범위에 따라 docs/REMOTE_VALIDATION.md, docs/GITHUB_OPERATIONS.md, docs/CI_CD.md, docs/DEPLOYMENT.md, docs/TEST_PLAN.md의 영향도를 분석한다. infra가 해당 문서의 documentation_owner인 경우에만 직접 수정하고, 아니면 필요한 변경을 지정 작성자에게 handoff하여 DOCUMENTATION_SYNC에서 정합성을 확인한다.
@@ -100,7 +106,9 @@ Issue Lifecycle v2 (#109):
 - PR/QA 단계로 넘기기 전에 DOCUMENTATION_SYNC Gate가 PASS인지 확인한다. 실제 갱신된 required docs는 해당 head에 포함되어야 하며, 문서 갱신이 N/A인 항목은 Result Contract·Issue·PR에 기록된 항목별 근거를 유효한 증거로 인정한다. 미완료면 진행하지 않고 Manager에게 반환한다.
 - version은 Manager의 version_decision만 반영한다. release_required/release_authorized와 승인 근거 없이 정식 tag/GHCR release를 만들지 않는다.
 - PR head SHA의 quality/e2e/docker와 main merge SHA의 CI를 실제 run/job/attempt로 확인한다. PR head가 바뀌면 이전 head의 required PR CI와 최종 QA 판정을 전부 stale 처리하고 새 head에서 전체 required gate를 다시 확인한다.
-- Manager ACCEPT와 qa_docs 최종 gate 전에는 merge하지 않는다. gate 삭제/continue-on-error/무조건 retry로 상태를 녹색으로 만들지 않는다.
+- 최신 PR Head의 `quality/e2e/docker` 세 필수 aggregate 성공, DOCUMENTATION_SYNC PASS, blocking review/thread 해결, 선택한 `qa_method=AGENT`의 독립 Reviewer PASS 또는 `qa_method=AUTOMATED_MANAGER`의 **default-branch trusted QA PASS**(자체 보호 파일은 예외로 독립 Reviewer), 사유 있는 LOW/MEDIUM N/A 및 Manager의 exact-Head ACCEPT가 모두 확인되기 전에는 merge하지 않는다.
+- `qa_required=true`에서 선택한 AGENT 독립 QA 또는 AUTOMATED_MANAGER 신뢰된 QA run이 실행 불가·실패하면 BLOCKED/REWORK다. Gate/Workflow/보안 정책을 변경하는 HIGH는 독립 QA 필수다. 새 Head/base의 stale 증거는 무효이며 `qa_required=false`의 적법한 N/A만 예외다. Ruleset required 승인 리뷰 0은 QA/Manager 승인 근거가 아니며, gate 삭제/continue-on-error/무조건 retry로 상태를 녹색으로 만들지 않는다.
+- #580 자체의 최초 Bootstrap PR에는 trusted workflow_run 실행 근거가 존재하지 않으므로 반드시 기존 독립 Reviewer 경로로 최종 검토한다. 이후에도 trusted QA 미실행·SKIPPED·실패, 미해결 thread, Manager ACCEPT 부재는 MERGE_READY 차단 사유다.
 - main 정책상 ci-<full SHA> 게시, exact digest smoke, SBOM/provenance, cleanup을 각각 증거로 남긴다.
 - branch 삭제 전 merge 여부, 미병합 commit, 다른 PR 참조를 확인한다. Issue close는 Manager의 완료 판단 뒤 승인 범위에서 실행한다.
 - Result Contract에 branch/PR/head/merge SHA/run IDs/digest/cleanup/미검증/위험/next phase를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
@@ -123,3 +131,5 @@ Issue Lifecycle v2 (#109):
 # - one-shot finalizer PR main push에서는 일반 Main CI와 finalizer run이 별개로 실행될 수 있으므로 run number만 보고 동일시하지 않는다. workflow/job 이름과 run ID를 구분해 기록한다.
 # - safe_branch_cleanup이 다른 Open PR의 base/head 참조 때문에 실패하면 해당 PR을 최신 main/올바른 base로 재정렬해 blocker를 제거한 뒤 기존 failed finalizer run/job 재실행을 우선한다.
 # - 기존 failed run을 재사용할 수 있는데 새 finalizer PR을 반복 만들거나 수동 branch 삭제/Issue close로 fail-closed gate를 우회하지 않는다.
+
+# Issue #598 (2026-10-10): OWNER_MANAGED QA 기본, AUTOMATED_MANAGER 호환; AGENT 독립 QA 선택. HIGH/protected도 인간 APPROVED 필수 아님. 세 required Quality/E2E/Docker, strict main, trusted default-branch validator, HEAD/base/run, review threads, 문서/AC, 인증된 Owner 최종 승인과 별도 release gate는 보존. 본 policy PR의 구 validator BLOCKED는 소급 변경 금지. docs/QA_REVIEW_POLICY.md 최신 지침 우선.

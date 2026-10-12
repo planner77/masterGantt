@@ -97,6 +97,29 @@ describe("test configuration repository layout", () => {
     expect(playwrightSetup).toContain('azure_sources+=("$source")');
     expect(playwrightSetup).toContain("sudo sed -i");
     expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
+    // #487 Main #2203.1: timed-out npx can leave sudo apt-get holding its lock.
+    // Runner mirror normalization must precede the first Playwright attempt;
+    // retry is legal only after the original apt process released its locks.
+    const normalizedAt = playwrightSetup.indexOf('sudo sed -i');
+    const firstInstallAt = playwrightSetup.indexOf('install_deps || install_status=$?');
+    const lockWaitAt = playwrightSetup.indexOf('if ! apt_locked; then');
+    const retryInstallAt = playwrightSetup.lastIndexOf('            install_deps');
+    expect(normalizedAt).toBeGreaterThan(0);
+    expect(normalizedAt).toBeLessThan(firstInstallAt);
+    expect(lockWaitAt).toBeGreaterThan(firstInstallAt);
+    expect(retryInstallAt).toBeGreaterThan(lockWaitAt);
+    expect(playwrightSetup).toContain('Acquire::http::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::https::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::Retries "1"');
+    expect(playwrightSetup).toContain("command -v fuser");
+    expect(playwrightSetup).toContain("::notice::Playwright 의존성 설치 전에 Ubuntu 공식 미러를 선택했습니다.");
+    expect(playwrightSetup).toContain("::warning::Playwright OS 의존성 첫 설치 실패");
+    expect(playwrightSetup).toContain("APT 잠금 해제 확인 불가");
+    expect(playwrightSetup).toContain("sudo fuser -s");
+    expect(playwrightSetup).toContain("/var/lib/apt/lists/lock");
+    expect(playwrightSetup).toContain("/var/lib/dpkg/lock-frontend");
+    expect(playwrightSetup).toContain("APT 잠금이 60초 동안 해제되지 않아 Playwright install-deps 중복 실행을 거부합니다.");
+    expect(playwrightSetup).toContain('exit "$install_status"');
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");

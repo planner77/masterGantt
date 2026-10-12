@@ -1,0 +1,125 @@
+{
+  "issue": 569,
+  "task": "공식 SVAR React Gantt 데모 read-only 브라우저 조작",
+  "status": "PASS",
+  "observed_at": "2026-10-09",
+  "baseline_repository_sha": "6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca",
+  "repository_mutations": false,
+  "remote_mutations": false,
+  "source": {
+    "sample_index": "https://docs.svar.dev/react/gantt/samples/",
+    "willow": "https://docs.svar.dev/react/gantt/samples/#/base/willow",
+    "scroll_to_date": "https://docs.svar.dev/react/gantt/samples/#/scroll-date/willow",
+    "scale_cell_sizes": "https://docs.svar.dev/react/gantt/samples/#/sizes/willow",
+    "flexible_grid_columns": "https://docs.svar.dev/react/gantt/samples/#/grid-fill-space-columns/willow",
+    "source_version": "UNKNOWN; documentation homepage announces Gantt 2.8; sample bundle version not identifiable"
+  },
+  "browser": {
+    "automation": "Playwright CLI via /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh",
+    "browser": "Chromium cached build 1243",
+    "viewport_css_px": [
+      1440,
+      1000
+    ],
+    "headless": true,
+    "external_access": "Official docs site only"
+  },
+  "observations": [
+    {
+      "sample": "Willow",
+      "action": "Opened the official base Willow route and captured its accessibility snapshot.",
+      "result": "PASS",
+      "evidence": [
+        "willow.yml"
+      ]
+    },
+    {
+      "sample": "Scroll to date",
+      "actions": [
+        "Clicked Scroll to scale start",
+        "Clicked Scroll to scale end"
+      ],
+      "measurements": {
+        "at_start": {
+          "scrollLeft": 0,
+          "scrollWidth": 3300,
+          "clientWidth": 995
+        },
+        "at_end": {
+          "scrollLeft": 2304,
+          "maxScrollLeft": 2305,
+          "scrollWidth": 3300,
+          "clientWidth": 995
+        }
+      },
+      "result": "PASS",
+      "evidence": [
+        "scroll-date.yml",
+        "scroll-date-after.yml",
+        "scroll-date-start.png",
+        "scroll-date-end.png"
+      ],
+      "note": "끝 위치 native max와의 차이 1 CSS px를 관찰했으며 date coordinate 정확도 판정은 아니다."
+    },
+    {
+      "sample": "Scale / cell sizes",
+      "action": "Focused Cell width slider and pressed ArrowRight once.",
+      "measurements": {
+        "slider_value_before": 100,
+        "slider_value_after": 111,
+        "chart_scrollWidth_before": 3300,
+        "chart_scrollWidth_after": 3663,
+        "chart_clientWidth": 995
+      },
+      "result": "PASS",
+      "evidence": [
+        "scale-cell.yml",
+        "scale-cell-adjusted.yml",
+        "scale-cell-adjusted.png"
+      ]
+    },
+    {
+      "sample": "Flexible grid columns",
+      "action": "Dragged Task name column resize grip 50 CSS px to the right.",
+      "measurements": {
+        "before_widths_css_px": {
+          "text": 171.5,
+          "start": 94.25,
+          "duration": 94.25,
+          "add_task": 37
+        },
+        "after_widths_css_px": {
+          "text": 221,
+          "start": 69.5,
+          "duration": 69.5,
+          "add_task": 37
+        }
+      },
+      "result": "PASS",
+      "evidence": [
+        "flexible-columns.yml",
+        "flexible-columns-adjusted.png"
+      ]
+    }
+  ],
+  "not_tested": [
+    "Live demo exact package/Core version",
+    "Installed project @svar-ui/react-gantt 2.7.3 A/B/C PoC",
+    "Core getState coordinate semantics and date-to-pixel accuracy",
+    "Repeated three-cycle right-edge extension and project preservation contracts",
+    "Any product behavior or product acceptance criteria"
+  ],
+  "sha256": {
+    "willow.yml": "8f14a678ced5a375b8dd3f5c4e29df2d8a128187bc718bd2577892e83be1aa59",
+    "scroll-date.yml": "6d85f8f1264b2cdfd88716953a6a591bdda8e01884aec85f71fc089d512f51af",
+    "scroll-date-after.yml": "f6fba005123748e4c6899fb013dedc4ec4d38adc54520e0642aba4b71985f22c",
+    "scale-cell.yml": "18d196bba431713ebf071b0a743210ed9a2cab36b0a6d3a144206f3ddb05b5ab",
+    "scale-cell-adjusted.yml": "7d7d6eaaa851fd6d5d70590ab324e94803ecba70003aa0cb4b74d26b2899c638",
+    "flexible-columns.yml": "56050e9e87bd14845e33afd5b0361b3d1c972a6e2e0b528aebfd3cbf5d72d622",
+    "scroll-date-start.png": "3d1ed1ae76d4f983730efa4b758b4dbdee965653f27db03e544b1ef622d2e849",
+    "scroll-date-end.png": "c036c5e41fcfbde666922bfbe3b1ff487c7b14a9f16af9ff692e4571b98138f3",
+    "scale-cell-adjusted.png": "89798ebcf917818e87fc1e22916579240694b7ecdcabd3dffaf5bbee901841a8",
+    "flexible-columns-adjusted.png": "5723fff39940c1e5e267abf35fecaf3262fdd8843565cdb15ac91bcb6e60233d"
+  },
+  "status_scope": "공식 demo에서 기록한 UI control 조작과 DOM 측정에 한함. 설치 프로젝트 PoC/제품 기준은 NOT TESTED."
+}

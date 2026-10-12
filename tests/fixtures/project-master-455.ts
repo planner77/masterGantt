@@ -15,7 +15,7 @@ export function master455Catalog(): ProjectMasterAdminResponse {
   for (const item of items) {
     if (Array.from(item.name).length > 200 || Array.from(item.code).length > 64 || !Number.isSafeInteger(item.sortOrder) || item.sortOrder < 0 || item.sortOrder > 1000000 || !/^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-8[\da-f]{3}-[\da-f]{12}$/i.test(item.id)) throw new Error("Invalid #455 synthetic API fixture");
   }
-  return { data: { revision: 7, items, businessUnits: items.filter(i => i.category === "BUSINESS_UNIT" && i.active), products: items.filter(i => i.category === "PRODUCT" && i.active), siteEntities: items.filter(i => i.category === "SITE_ENTITY" && i.active) } };
+  return { data: { revision: 7, items, businessUnits: items.filter(i => i.category === "BUSINESS_UNIT" && i.active), products: items.filter(i => i.category === "PRODUCT" && i.active), siteEntities: items.filter(i => i.category === "SITE_ENTITY" && i.active), relations: [] } };
 }
 
 export async function mockMaster455(page: Page) {

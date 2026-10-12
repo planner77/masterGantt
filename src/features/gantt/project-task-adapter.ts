@@ -96,7 +96,10 @@ export function projectTasksToSvarTasks(
       id: task.taskId,
       text: task.name,
       ...dates,
-      ...(task.progress !== null ? { progress: task.progress } : {}),
+      // Core defaults absent progress to zero. Keep renderer payloads exact
+      // while the display key retains the canonical null meaning.
+      progress: task.progress ?? 0,
+      projectDisplayKey: JSON.stringify(task),
       type: task.type === "summary" && task.start === null ? "summary-container" : task.type,
       // A scoped WBS view may promote one Summary to a visual root. The
       // canonical DTO parent remains unchanged and all mutations still use the

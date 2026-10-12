@@ -14,6 +14,8 @@ export function NewProjectTabs() {
   const [pending, setPending] = useState(false);
   const pendingRef = useRef(false);
   const [skipNavigationActive, setSkipNavigationActive] = useState(false);
+  const skipNavigationActiveRef = useRef(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const blankTabRef = useRef<HTMLButtonElement | null>(null);
   const templateTabRef = useRef<HTMLButtonElement | null>(null);
 
@@ -21,15 +23,30 @@ export function NewProjectTabs() {
     const skipLink = document.querySelector<HTMLAnchorElement>('a.skip-link[href="#main-content"]');
     if (!skipLink) return;
 
-    const handleSkipNavigation = () => setSkipNavigationActive(true);
+    const handleSkipNavigation = () => {
+      skipNavigationActiveRef.current = true;
+      // The native anchor focuses main immediately. Update the browser tab order
+      // before the next keypress; React's state commit can occur afterward.
+      blankTabRef.current?.setAttribute("tabindex", "-1");
+      templateTabRef.current?.setAttribute("tabindex", "-1");
+      setSkipNavigationActive(true);
+    };
     skipLink.addEventListener("click", handleSkipNavigation);
-    return () => skipLink.removeEventListener("click", handleSkipNavigation);
+    const container = containerRef.current;
+    container?.setAttribute("data-skip-link-ready", "true");
+    return () => {
+      skipLink.removeEventListener("click", handleSkipNavigation);
+      container?.removeAttribute("data-skip-link-ready");
+    };
   }, []);
 
   function handleContainerFocus(event: FocusEvent<HTMLDivElement>) {
-    if (!skipNavigationActive || !(event.target instanceof HTMLElement)) return;
+    if (!skipNavigationActiveRef.current || !(event.target instanceof HTMLElement)) return;
     const activePanel = event.target.closest<HTMLElement>('[role="tabpanel"]');
     if (activePanel?.id === `panel-${mode}`) {
+      skipNavigationActiveRef.current = false;
+      // Restore the selected tab's roving focus after entering the active panel.
+      (mode === "blank" ? blankTabRef.current : templateTabRef.current)?.setAttribute("tabindex", "0");
       setSkipNavigationActive(false);
     }
   }
@@ -71,7 +88,7 @@ export function NewProjectTabs() {
   }
 
   return (
-    <div className="new-project-container" onFocusCapture={handleContainerFocus}>
+    <div ref={containerRef} className="new-project-container" onFocusCapture={handleContainerFocus}>
       <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 생성 방식">
         <button
           ref={blankTabRef}

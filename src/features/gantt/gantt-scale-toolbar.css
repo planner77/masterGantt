@@ -8,6 +8,14 @@
   padding: 0 0 0.5rem;
 }
 
+/* SVAR's four-row Grid overscan must not create a second vertical scroll
+   range. Clip it at the table viewport while its parent keeps native X scroll. */
+.project-gantt-widget .wx-table-container > .wx-table {
+  min-height: 100% !important;
+  max-height: 100%;
+  overflow: clip;
+}
+
 .project-gantt-widget [data-summary-state]::after {
   content: " · " attr(data-summary-state);
   color: var(--text-muted, var(--muted-foreground));

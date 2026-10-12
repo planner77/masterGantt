@@ -1,0 +1,204 @@
+{
+  "agentExecution": "/root/repro568",
+  "role": "독립 기존 회귀 executor, QA_FINAL 아님",
+  "issue": 569,
+  "baselineVerification": "PASS",
+  "scope": "새 #569 adapter 변경 전의 기존 계약 baseline. 새 PoC/adapter 구현 검증과 분리.",
+  "mainBaseline": {
+    "head": "6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca",
+    "appVersion": "0.103.1",
+    "coreVersion": "2.7.3",
+    "sourceHashes": {
+      "src/features/gantt/project-gantt.tsx": "c5aee94c7071d8835e2d293dca1f9838188815b54f1456c65c158a31e0ef8f2b",
+      "src/features/projects/project-readonly-view.tsx": "e900829428f9e668cf61bf094973705e37600e4ddf1fe3779530ea45226effc0",
+      "tests/e2e/project-gantt-scale.spec.ts": "f63c9d7043300da9bbe1643f99deee14e9f0d8e3c86593aa015e2e9e12d2ea14",
+      "tests/e2e/grid-task-start-reveal.spec.ts": "8f51dd5b54b0e4ff9d9719e1478f42cacb274b50438cfb9804e6416bdc54dbff"
+    }
+  },
+  "pr562Baseline": {
+    "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+    "appVersion": "0.106.1",
+    "coreVersion": "2.7.3",
+    "sourceHashes": {
+      "src/features/gantt/project-gantt.tsx": "a10670d0c96eec6b060d557f32b91a2e5ac6a4cc3e97000e1b7491593bd32e1b",
+      "src/features/projects/project-readonly-view.tsx": "546558789054c2c8563ea4522421ad4d00bc832764925b8f10d941b11c54969f",
+      "tests/e2e/milestone-timeline-lane.spec.ts": "4d22f4cffc9c91a9d98ed4d4403dab71dbada53025d339e461940777c02b11cd"
+    }
+  },
+  "runs": [
+    {
+      "run": "main-trials",
+      "head": "6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca",
+      "actualGitHead": "6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca",
+      "appVersion": "0.103.1",
+      "coreVersion": "2.7.3",
+      "startTime": "2026-10-09T06:58:40.766Z",
+      "durationMs": 49914.257000000005,
+      "exitCode": 0,
+      "results": [
+        {
+          "title": "#514 matrix readonly/day/normal root+nested",
+          "source": "grid-task-start-reveal.spec.ts",
+          "line": 71,
+          "workerIndex": 0,
+          "startTime": "2026-10-09T06:58:43.374Z",
+          "durationMs": 4970,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "#514 matrix editable/week/fullscreen root+nested",
+          "source": "grid-task-start-reveal.spec.ts",
+          "line": 71,
+          "workerIndex": 0,
+          "startTime": "2026-10-09T06:58:48.548Z",
+          "durationMs": 3651,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "#514 narrow logical viewport smoke and three-wide page start reveal geometry",
+          "source": "grid-task-start-reveal.spec.ts",
+          "line": 225,
+          "workerIndex": 0,
+          "startTime": "2026-10-09T06:58:52.209Z",
+          "durationMs": 9568,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "#514 matrix readonly/day/normal root+nested",
+          "source": "grid-task-start-reveal.spec.ts",
+          "line": 71,
+          "workerIndex": 1,
+          "startTime": "2026-10-09T06:59:11.231Z",
+          "durationMs": 3989,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "#514 matrix editable/week/fullscreen root+nested",
+          "source": "grid-task-start-reveal.spec.ts",
+          "line": 71,
+          "workerIndex": 1,
+          "startTime": "2026-10-09T06:59:13.937Z",
+          "durationMs": 3662,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "#514 narrow logical viewport smoke and three-wide page start reveal geometry",
+          "source": "grid-task-start-reveal.spec.ts",
+          "line": 225,
+          "workerIndex": 1,
+          "startTime": "2026-10-09T06:59:17.607Z",
+          "durationMs": 6512,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "switches the Gantt timeline between day and ISO week headers without remounting",
+          "source": "project-gantt-scale.spec.ts",
+          "line": 5,
+          "workerIndex": 0,
+          "startTime": "2026-10-09T06:59:01.794Z",
+          "durationMs": 8780,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "switches the Gantt timeline between day and ISO week headers without remounting",
+          "source": "project-gantt-scale.spec.ts",
+          "line": 5,
+          "workerIndex": 1,
+          "startTime": "2026-10-09T06:59:24.131Z",
+          "durationMs": 3636,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        }
+      ],
+      "productAndTestSourceDiff": "없음"
+    },
+    {
+      "run": "pr562-trials",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "actualGitHead": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "appVersion": "0.106.1",
+      "coreVersion": "2.7.3",
+      "startTime": "2026-10-09T06:58:53.316Z",
+      "durationMs": 21450.099000000002,
+      "exitCode": 0,
+      "results": [
+        {
+          "title": "#551 opt-in sibling lane 390px actual geometry",
+          "source": "milestone-timeline-lane.spec.ts",
+          "line": 277,
+          "workerIndex": 0,
+          "startTime": "2026-10-09T06:59:01.400Z",
+          "durationMs": 8820,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        },
+        {
+          "title": "#551 opt-in sibling lane 390px actual geometry",
+          "source": "milestone-timeline-lane.spec.ts",
+          "line": 277,
+          "workerIndex": 1,
+          "startTime": "2026-10-09T06:59:11.012Z",
+          "durationMs": 3514,
+          "verificationStatus": "PASS",
+          "firstFailure": null,
+          "failureLocation": null
+        }
+      ],
+      "productAndTestSourceDiff": "없음"
+    }
+  ],
+  "commands": {
+    "main": "./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/main.config.cjs tests/e2e/project-gantt-scale.spec.ts tests/e2e/grid-task-start-reveal.spec.ts --grep 'switches the Gantt timeline|matrix readonly/day/normal|matrix editable/week/fullscreen|narrow logical viewport smoke' --repeat-each=2",
+    "pr562": "./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/pr562.config.cjs tests/e2e/milestone-timeline-lane.spec.ts --grep 'opt-in sibling lane 390px actual geometry' --repeat-each=2"
+  },
+  "verifiedScope": [
+    "#367 Day/ISO Week 전환·인스턴스 보존·right-edge 연속3회 extension 원본 전체 test2회 PASS. extension loop 이후 mutationRequests0 assertion도 실행. endpoint 숫자 trace는 test가 제공하지 않으므로 별도 실측값을 창작하지 않음.",
+    "#514 readonly/day/normal 및 editable/week/fullscreen root+nested 양방향 start reveal 각2회 PASS. 변경 없는 instance/columns/rows/scale/revision 및 POST/PATCH0 assertion 실행.",
+    "#514 narrow logical viewport smoke와 three-wide page intersection 원본5폭 test2회 PASS. 390/768은 Core logical viewport smoke 범위이며 자동 page intersection 지원을 주장하지 않음.",
+    "#551 fixed PR562390px lane Day/Week geometry 원본 test2회 PASS. source가 main과 다르므로 main/newadapter PASS로 이관 금지."
+  ],
+  "documentationBoundary": {
+    "mainMilestoneLaneSpecExists": false,
+    "mainMilestoneTimelineDocExists": false,
+    "explanation": "#551 spec 및 docs/MILESTONE_TIMELINE.md는 main6d31aefd에 미통합. PR562 afd5ec28 별도 checkout에서만 검증했고 main에 파일을 복사/변경하지 않음."
+  },
+  "environment": {
+    "platform": "Linux",
+    "nodeVersion": "22.14.0",
+    "playwrightVersion": "1.63.0",
+    "nextVersion": "16.3.8",
+    "reactVersion": "19.3.0",
+    "applicationMode": "Next dev/mock-backed synthetic canonical API",
+    "isolation": "두 source checkout·서로 다른 localhost port·출력/DB/dist. main source clone은 frontend clone과 별도. 반복은 Playwright repeat-each2/worker1, 각 test 독립 browser context.",
+    "dependencies": "기존 node_modules 사본; 독립 npm ci의 frozen-install 검증 아님.",
+    "runtimeGeneratedFiles": "Next가 next-env.d.ts/tsconfig 생성 경로를 갱신할 수 있음. 제품·테스트 source 변경 없음."
+  },
+  "security": "Curated artifact는 numeric/allowlisted observer JSON과 명령/config/hash만 포함. raw ZIP/HTTP/network/DB/cookie/password/opaque attachment/DOM outerHTML/task label/스크린샷 미포함.",
+  "remainingValidation": {
+    "newIssue569Adapter": "NOT TESTED (frontend 별도 실험)",
+    "PR_CI": "NOT TESTED (모니터링 없음)",
+    "main_GHCR": "NOT TESTED",
+    "environmentSpecific": "NOT TESTED",
+    "QA_FINAL": "NOT TESTED (별도 reviewer)"
+  },
+  "issue_log_type": "STATUS",
+  "issue_log_summary": "기존 baseline main #367/#5144개×2=8PASS, fixed PR562 #551390DayWeek1개×2=2PASS. source 경계·narrow 논리viewport 제한 유지. 신규adapter/CI PASS 아님.",
+  "decision_required": false,
+  "nextPhase": "Manager 문서 작성자에게 baseline 증거 전달 후 새 adapter PoC·독립 QA evidence와 비교."
+}

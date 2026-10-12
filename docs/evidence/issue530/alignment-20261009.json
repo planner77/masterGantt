@@ -1,0 +1,74 @@
+{
+  "issue": 530,
+  "pr": 555,
+  "sourceHead": "a87954a7ce76ac14e1095953486aafbb03f33e02",
+  "workflowHead": "13ca0ca477d875ffdfbd7907169e4b53a0ba641d",
+  "mainHead": "4f2d8d084c011a33a3fbd633695f97f4b4ec5893",
+  "mergeBase": "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0",
+  "version": "0.102.3",
+  "conflicts": [
+    "CHANGELOG.md",
+    "docs/EXCEL_EXPORT.md",
+    "docs/TEST_PLAN.md",
+    "docs/exec-plans/active/PLAN.md"
+  ],
+  "resolutions": [
+    {
+      "path": "docs/EXCEL_EXPORT.md",
+      "method": "preserve-main-and-source-append"
+    },
+    {
+      "path": "docs/TEST_PLAN.md",
+      "method": "preserve-main-and-source-append"
+    },
+    {
+      "path": "docs/exec-plans/active/PLAN.md",
+      "method": "preserve-source-prefix-and-main"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "method": "retain-both-release-entries-and-reassign-source-patch"
+    }
+  ],
+  "locatorChanges": [
+    {
+      "old": "단계 검색",
+      "new": "Milestone 검색",
+      "count": 2
+    },
+    {
+      "old": "단계 표시·공수 범위 조건",
+      "new": "Milestone 표시·공수 범위 조건",
+      "count": 1
+    },
+    {
+      "old": "M1 · 전체 단계 원인",
+      "new": "M1 · 전체 Milestone 원인",
+      "count": 1
+    },
+    {
+      "old": "범위 내 단계 공수 표 가로 스크롤",
+      "new": "범위 내 Milestone 공수 표 가로 스크롤",
+      "count": 1
+    }
+  ],
+  "fastFeedback": {
+    "location": "GitHub Actions branch preparation, not full PR CI",
+    "version": "PASS",
+    "typecheck": "PASS",
+    "changedLint": "PASS",
+    "vitest": {
+      "status": "PASS",
+      "passed": 27,
+      "failed": 0,
+      "suites": 6
+    },
+    "fullPrQuality": "NOT TESTED",
+    "fullPrE2e": "NOT TESTED",
+    "fullPrDocker": "NOT TESTED",
+    "independentQa": "NOT TESTED",
+    "windowsExcelDrm": "NOT TESTED"
+  },
+  "releaseAuthorized": false,
+  "preparationRun": "https://github.com/planner77/masterGantt/actions/runs/37845384010"
+}

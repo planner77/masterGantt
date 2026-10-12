@@ -8,6 +8,7 @@ import type {
 } from "@/contracts/project-master";
 import { AdminAuth, adminAuthStyles } from "@/components/admin-auth";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
+import { ProjectMasterRelationsEditor } from "./project-master-relations-editor";
 import styles from "./project-master-admin.module.css";
 
 const CATEGORIES: Array<{ value: ProjectMasterCategory; label: string }> = [
@@ -138,7 +139,7 @@ export function ProjectMasterAdmin() {
     finally { pending.current = false; setPassword(""); setBusy(false); }
   }
 
-  async function mutate(url: string, method: "POST" | "PATCH", body: unknown): Promise<boolean> {
+  async function mutate(url: string, method: "POST" | "PATCH" | "DELETE", body: unknown): Promise<boolean> {
     if (!catalog || state !== "ready" || pending.current) return false;
     pending.current = true;
     setBusy(true); setError(null); setNotice(null);
@@ -160,7 +161,7 @@ export function ProjectMasterAdmin() {
       }
       if (!response.ok || !isAdminCatalog(value)) {
         setError(response.status === 409
-          ? "사용 중인 기준정보의 안정 코드(code)는 변경할 수 없습니다."
+          ? "사용 중인 기준정보 코드나 연결 관계는 변경·해제할 수 없습니다. 하위 관계와 프로젝트 사용 여부를 확인하세요."
           : "변경사항을 저장하지 못했습니다. 입력값과 중복 코드를 확인해 주세요.");
         return false;
       }
@@ -430,6 +431,8 @@ export function ProjectMasterAdmin() {
           )}
         </section>
       </div>
+      {catalog && state === "ready" ? <ProjectMasterRelationsEditor catalog={catalog} busy={busy}
+        mutate={(url, method, body) => mutate(url, method, body)} /> : null}
     </section>
 
     {passwordOpen ? <WorkspaceDialog title="프로젝트 기준정보 관리자 비밀번호 변경" restoreFocusRef={passwordTrigger} busy={busy}

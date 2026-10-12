@@ -167,10 +167,40 @@ test("#549 public event order/resize/columns/fullscreen/peer return retain filte
   expect(Math.abs(peerAfter.left - peerBefore.left)).toBeLessThanOrEqual(1);
   expect(peerAfter.instance).toBe(before.instance); expect(peerAfter.rows.map(row => row.id)).toEqual(ids);
   expect(peerAfter.links).toEqual(before.links);
-  await probe(frame, "scroll", peerAfter.width - peerAfter.chartWidth); await settle(page);
-  expect((await probe<Observation>(frame, "read")).width).toBeGreaterThan(peerAfter.width);
-  const after = await probe<Observation>(frame, "read"); expect(after.events.some(event => event.action === "filter-tasks")).toBe(true);
-  expect(after.events.some(event => event.action === "resize-chart")).toBe(true); expect(after.events.some(event => event.action === "scroll-chart")).toBe(true);
+  // #530 protects a just-restored peer viewport against stale programmatic
+  // scroll-chart commands. A trusted wheel inside the Chart is a new user
+  // intent and releases that guard before the synthetic right-edge probe.
+  const chart = frame.locator(".wx-chart");
+  await chart.hover();
+  await page.mouse.wheel(31, 0);
+  // Main CI #2359.1 trace: the right-edge scroll-chart(36960) arrived
+  // BEFORE the delayed wheel scroll-chart(26671). Synchronize the actual
+  // Core and DOM wheel settlement, not merely mouse.wheel() completion.
+  await expect.poll(async () => {
+    const publicLeft = (await probe<Observation>(frame, "read")).left;
+    const nativeLeft = await chart.evaluate(node => (node as HTMLElement).scrollLeft);
+    return publicLeft > peerAfter.left && Math.abs(nativeLeft - publicLeft) <= 1;
+  }, { message: "trusted wheel settles in Core and native Chart before right-edge navigation", timeout: 10_000 }).toBe(true);
+  await settle(page);
+  const wheelApplied = await probe<Observation>(frame, "read");
+  expect(wheelApplied.left).toBeGreaterThan(peerAfter.left);
+  await probe(frame, "scroll", wheelApplied.width - wheelApplied.chartWidth);
+  // #367 schedules extension on a requestAnimationFrame after Core scroll.
+  // Preserve the real extension assertion; do not assume five RAFs always
+  // include both the Core event and the new scale commit.
+  await expect.poll(
+    async () => (await probe<Observation>(frame, "read")).width,
+    { message: "timeline extends near its right edge after a trusted user wheel", timeout: 10_000 },
+  ).toBeGreaterThan(peerAfter.width);
+  await settle(page);
+  const after = await probe<Observation>(frame, "read");
+  expect(after.instance).toBe(before.instance);
+  expect(after.rows.map(row => row.id)).toEqual(ids);
+  expect(after.links).toEqual(before.links);
+  expect(after.canonicalIds).toEqual(before.canonicalIds);
+  expect(after.events.some(event => event.action === "filter-tasks")).toBe(true);
+  expect(after.events.some(event => event.action === "resize-chart")).toBe(true);
+  expect(after.events.some(event => event.action === "scroll-chart")).toBe(true);
   expect(state.patchRequests).toHaveLength(0); expect(state.posts).toHaveLength(0);
   await evidence(info, "viewport-events", { before, resized, peerBefore, peerAfter, after, mutationCount: 0 }, page);
 });

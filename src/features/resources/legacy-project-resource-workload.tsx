@@ -317,10 +317,10 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
       {drillScope ? <div className="resource-workload-note" role="status">
-        <strong>완료 단계에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
-        <p>단계 Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. 단계 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. 단계의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
-        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 완료 단계에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
-        <button type="button" className="secondary-button" onClick={onClearDrillScope}>완료 단계 전달 범위 해제</button>
+        <strong>Milestone에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
+        <p>Milestone Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. Milestone 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. Milestone의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
+        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 Milestone에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
+        <button type="button" className="secondary-button" onClick={onClearDrillScope}>Milestone 전달 범위 해제</button>
       </div> : null}
       <div className="resource-workload-header">
         <div>

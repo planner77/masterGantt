@@ -1047,8 +1047,8 @@ function milestoneStagesSheet(stage: MilestoneDashboardDto): string {
         value: value === null || value === undefined ? undefined : typeof value === "boolean" ? String(value) : value };
     })));
   };
-  append(["단계 보고서 — 기본 전체 Project 범위"], true);
-  append(["안내", "현재 Dashboard 화면 필터와 별개인 서버 기본 전체 F 범위입니다. Excel은 보고용이며 JSON 1.1이 일정·단계 재가져오기 파일입니다."]);
+  append(["Milestone 보고서 — 기본 전체 Project 범위"], true);
+  append(["안내", "현재 Dashboard 화면 필터와 별개인 서버 기본 전체 F 범위입니다. Excel은 보고용이며 JSON 1.1이 일정·Milestone 재가져오기 파일입니다."]);
   for (const [key, value] of Object.entries({
     projectPublicId: stage.projectPublicId, projectRevision: stage.projectRevision, catalogRevision: stage.catalogRevision,
     calculatedAt: stage.calculatedAt, timezone: stage.timezone, asOfDate: stage.asOfDate, horizonDays: stage.horizonDays,
