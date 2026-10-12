@@ -1,3 +1,6 @@
+## Issue #629 — QA Preflight 테스트 (2026-10-12)
+`scripts/test_qa_preflight.py`는 synthetic #550 #2373 (Primary Issue title/Refs), #626 #2522 (필수 운영 문서 누락), 위험도/QA 방식/복수 필드, 보호 파일 rename, merge pending/conflict, stale SHA/API 실패, metadata-only 제외, aggregate `always()` 의존성을 검증한다. #2376/#2382/#2404/#2414/#2435는 동일한 오류 종류 replay와 실제 Actions 원본 로그 대조가 별도로 필요하다. 구조 테스트 실행 결과와 원격 P1~P5 증거를 구분한다. 관련 최종 QA Python 회귀, #600 metadata M1~M8와 정책 계약을 CI에서 함께 수행한다.
+
 ## Issue #615 — 실패 Main CI 및 정식 릴리스 승계 회귀 (2026-10-12)
 
 - 재현: merge SHA `c8949da48e7465db45d871887c3f55f9fb6dc743`의 multi-line `Issue #615 · PR #627 ...` message를 `parse_merge_title`/Main trace가 거부한다. 원본 CI #2526.1은 FAILED로 유지한다.
