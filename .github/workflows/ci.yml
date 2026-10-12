@@ -274,6 +274,78 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
 
+  # Base SHA only: PR metadata and Work Packet are untrusted data, never code.
+  # On the introducing PR the validator is absent in main: NOT TESTED,
+  # all existing full CI and final QA gates still run.
+  preflight:
+    name: QA Preflight — 정책·문서 사전 검사
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      needs.changes.result == 'success'
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    outputs:
+      enforced: ${{ steps.availability.outputs.enforced }}
+    steps:
+      - name: PR 코드가 아닌 원본 base SHA 검증기 checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: 신뢰된 Preflight 검증기 존재 확인 (도입 PR Bootstrap)
+        id: availability
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -f scripts/qa_preflight.py ]]; then
+            echo "enforced=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enforced=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## QA Preflight: NOT TESTED (기본 브랜치 도입 전 Bootstrap)"
+              echo "- 신뢰된 base SHA에 사전 검증기가 없으므로 기존 전체 CI를 수행합니다."
+              echo "- PR Head 코드를 실행하지 않으며 QA Final/Trusted/Owner 승인을 우회하지 않습니다."
+            } >> "$GITHUB_STEP_SUMMARY"
+            python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = {
+              "status": "NOT TESTED", "reason": "TRUSTED_BASE_VALIDATOR_NOT_INSTALLED",
+              "pr": os.environ.get("PR_NUMBER"), "head_sha": os.environ.get("EVENT_HEAD_SHA"),
+              "base_sha": os.environ.get("EVENT_BASE_SHA"),
+              "run_id": os.environ.get("GITHUB_RUN_ID"), "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+              "decision": "Full CI and Final QA remain mandatory"}
+          Path("qa-preflight-report.json").write_text(
+              json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+          fi
+      - name: 원본 base SHA의 QA Preflight 실행 (read-only)
+        if: steps.availability.outputs.enforced == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/qa_preflight.py
+      - name: Preflight Run·Attempt 진단 artifact 보존
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: qa-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: qa-preflight-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
   metadata_evidence:
     name: PR metadata가 기존 전체 CI 증거를 보존하는지 검증
     if: github.event_name == 'pull_request' && github.event.action == 'edited'
