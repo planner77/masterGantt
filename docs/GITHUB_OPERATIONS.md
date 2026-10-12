@@ -1,3 +1,20 @@
+## Issue #639 — merge 제목 31자 실패 #2606.1 재발 방지 (2026-10-13)
+
+원본 Main [#2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 PR #641 merge `5c79b658...`에 대한 실제 `push` Run이었지만, 제목의 한글 요약이 31자(MAX=30)라 변경 경로 판정에서 실패했다. `rerun-failed-jobs`는 동일 불변 제목을 검사하므로 해결할 수 없다. 기존 실패를 삭제·성공으로 변경하거나 `main`을 force-push하지 않는다.
+
+새 같은-Issue 교정 PR을 만든 뒤 `PR`과 `Head SHA`를 **최신 실조회**한 다음 다음 두 단계를 모두 실행한다.
+
+```bash
+python3 scripts/main_ci_run_name.py --issue 639 --pr <PR번호> \
+  --summary "Main CI 제목 검증 교정" --as-merge-payload \
+  --expected-head-sha <40자리 PR Head SHA>
+python3 scripts/main_ci_run_name.py --issue 639 --pr <PR번호> \
+  --validate-title "<직전 payload의 commit_title 원문>" --as-merge-payload \
+  --expected-head-sha <동일 PR Head SHA>
+```
+
+두 번째 명령이 반환하는 `merge_method="merge"`, `commit_title`, `commit_message=""`, `expected_head_sha`를 GitHub 병합 API에 **그대로** 넘긴다. `--validate-title`의 Issue/PR·30자·한글·한 줄 불일치, 빈 본문 누락, Head/base 경합이면 병합을 중단한다. 제목에 보조 설명을 추가하지 않는다. 교정 후 새 Merge SHA의 실제 `push` Main CI와 candidate/Finalizer를 별도로 확인한다. #616의 독립 수동 복구·v0.107.0 정식 게시 승인은 확대하지 않는다.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

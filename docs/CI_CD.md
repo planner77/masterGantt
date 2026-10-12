@@ -1,3 +1,9 @@
+## Issue #639 — #2606.1 invalid merge title corrective first-parent Main CI (2026-10-13)
+
+- PR #641 `c61787d0...`은 [PR CI #2604.1](https://github.com/planner77/masterGantt/actions/runs/38298408282) 및 [Trusted QA #241.1](https://github.com/planner77/masterGantt/actions/runs/38300487544) SUCCESS였지만 merge SHA `5c79b658...`의 `push` [Main CI #2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 `verify-ci-run-trace.py`가 reject. 제목 요약 `Main SHA 복구 및 GHCR 출처 검증 경로 안정화` = 31자, `MAX_SUMMARY_LENGTH=30`; Quality/E2E/Docker와 GHCR candidate는 미실행.
+- Parser/Required checks/merge protection 변경 금지. `scripts/main_ci_run_name.py --validate-title`은 **실제 API `commit_title` 전체**가 Issue/PR/한글 요약 길이/한 줄 canonical 인지 사전 검사, 잘못된 31자 제목을 수용하거나 절단하지 않는다. `--as-merge-payload`와 함께 commit_body=""·Head SHA lease를 검증하여 전달한다.
+- 새로운 같은-Issue non-docs corrective PR을 Required3/Trusted QA에서 검증하고 **30자 이하** 단일 행 제목으로 새 병합 SHA를 만들면 새 push Main CI가 자동 시작된다. 기존 #2606 FAIL을 성공으로 재해석하지 않고, 기존 Finalizer first-parent ordering 및 GHCR exact SHA evidence를 유지한다. 별도 #616 과거 SHA 수동 복구는 이 교정과 분리한다.
+
 ## Issue #639 — PR #641 CI #2601.1 Chromium E2E collision (2026-10-13)
 
 - The latest full CI failed on E2E shard 5, `#525 resource-dashboard-ui.spec.ts`: unscoped `2건` KPI button locator returned two elements (Assigned Task and another count metric, e.g. Delayed Task). Quality and Docker passed and other 5 E2E shards passed. E2E aggregate/QA failed by design.

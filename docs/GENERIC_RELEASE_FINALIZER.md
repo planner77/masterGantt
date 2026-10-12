@@ -1,3 +1,9 @@
+## Issue #639 — invalid Main merge subject 후속 교정 (2026-10-13)
+
+- `5c79b658c83b86f163826055fa7da6efadef4e63` (#639/#641)은 불변의 Main CI #2606.1 trace FAILURE이며 GHCR 검증 후보가 없다. `main_ci_run_name.py`의 30자 한글 canonical title은 릴리스 증거 자격이 아닌 **CI 사전조건**이다.
+- 같은 #639의 새 PR에서 유효한 제목·세 Required PR CI·Trusted QA를 통과해 병합되더라도 Finalizer는 자체 규칙으로 원본 first-parent 실패/후속 동일-Issue corrective의 허용 범위와 검증된 exact commit candidate를 판단해야 한다. 기존 실패 Run을 PASS로 바꾸지 않는다. #616 release authority는 다른 Issue이며 자동 승계/태그 재지정 금지.
+- 병합 전 CLI `--as-merge-payload`와 `--validate-title`의 실제 제목·Head SHA preflight가 필수이다. `main` 보호, 자동 release 권한, candidate immutable digest 정책은 변경하지 않는다.
+
 ## Issue #639 — PR #641 P1 review correction (2026-10-13)
 
 - Write-token `release-finalizer.yml` always checks out trusted `main` without persisted credentials and verifies the current HEAD.

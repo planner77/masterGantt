@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #639 Main CI #2606.1 failed merge-title correction (2026-10-13)
+
+- Introduce fail-closed `--validate-title` preflight for the **actual** merge commit subject so an invalid >30-character, noncanonical or wrong Issue/PR title cannot silently reach protected main. Add immutable #639/#641 31-char failure regression + positive exact Head connector payload and direct push trace tests. Preserve failed run/history, update merge operations and first-parent lifecycle documentation. No product version bump, DB/API/UI change, or formal GHCR release authority.
+
 ## [Unreleased] — Issue #639 PR #641 Chromium 5/6 E2E count-selector regression (2026-10-13)
 
 - Fix the Issue #525 Resource Dashboard E2E to select `할당 Task` KPI identity before clicking the potentially duplicated `2건` label. Keep Strict Mode and task API assertions; update regression/remote-validation work packet. No application/DB/API/version or GHCR policy changes.

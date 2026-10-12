@@ -1,3 +1,9 @@
+## Issue #639 — Main CI #2606.1 원인 교정 same-Issue PR (2026-10-13)
+
+- 현 상태: 원본 merge SHA `5c79b658...`, Main push Run #2606.1 생성되었으나 trace title 실패(31자 > 30). Quality/E2E/Docker SKIPPED, candidate/finalizer 미검증. 원본 기록 불변.
+- 교정 branch `fix/issue-639-main-merge-title-repair`, base latest main SHA `5c79b658...`; HIGH, OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED; release_required=false, release_authorized=false. 구현은 `scripts/main_ci_run_name.py` 실 병합 제목 `--validate-title` preflight, `scripts/verify-issue-lifecycle.py` #2606 음성/양성 fixtures, 운영 문서/Work Packet 동기화.
+- 수행 순서: 수정 PR 생성→3 Required+Trusted QA→리뷰 0/Owner 범위 확인→CLI로 `commit_title`/빈 본문/Head lease 사전 검증→같은 #639 corrective merge→**새 push Main CI** 생성 확인. #616 원본 대상 복구와 formal GHCR release 별개. Main CI 성공/GHCR 검증/Issue 종료는 실원장 기반으로만.
+
 ## Issue #639 — PR #641 CI #2601.1 Chromium Shard 5 correction (2026-10-13)
 
 - Cause: #525 Resource Dashboard E2E count-only Playwright locator `2건` resolves to both Assigned Task and Delayed Task. Shard 5: 97 PASS/1 FAIL; quality + docker PASS, other E2E shards PASS, QA cascaded FAIL.
