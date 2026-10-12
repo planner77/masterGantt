@@ -1,3 +1,10 @@
+## Issue #643 — Actions 실행명/ID 정합성 보안 테스트 (2026-10-13)
+
+- **실데이터 근거:** #639 `ci.yml` push Main Run #2612.1 API의 `run.name`은 동적이고 `workflow_id=356198495`, `run.path=.github/workflows/ci.yml`이며 정의 name은 `CI`. 기존 `run.name=="CI"` 비교 제거.
+- `python3 scripts/test_main_ci_recovery.py` (offline mocks): 동일 trusted `GET /actions/workflows/ci.yml` ID/name/path/state의 **동적 또는 누락 run.name**과 source artifact/attempt/Quality E2E6 Docker digest 조합은 승인; `run.name="CI"` 문자열만 spoof한 다른 workflow ID/path/repo/head_repo, missing/invalid ID, 비활성/다른 name/path/UNKNOWN workflow metadata, wrong event/branch/status/conclusion/run_id/attempt/head SHA, artifact wrong SHA/attempt는 BLOCKED.
+- `scripts/verify-issue-lifecycle.py`는 `run.name` 비신뢰 및 workflow metadata cross-check, `workflow_dispatch`·Run/Attempt·필수 Job 검증 보존을 정적 검사한다. 기존 #639 Owner marker negative/digest 검사도 그대로 유지한다.
+- 새 PR Head의 required Quality/E2E/Docker aggregate 및 default-main Trusted QA, 리뷰 0건을 완료한다. **실제 복구 이벤트/GHCR/정식 게시 end-to-end는 여기서 테스트하지 않았음 (NOT TESTED)**. 추가 모의 원격 PASS나 fake Run을 실증으로 기록하지 않는다.
+
 ## Issue #551 — #2613.3 대형 milestone timeline readiness 재발 (2026-10-13)
 
 - 원본 [PR CI #2613 attempt3](https://github.com/planner77/masterGantt/actions/runs/38303775005) shard4에서 129 PASS/1 FAIL: `tests/e2e/milestone-timeline-lane.spec.ts:60`의 Task1000+Milestone2000 설치 확인 predicate 5초 timeout. Quality/Vitest/Typecheck/Build/Docker 및 Chromium shard1/2/3/5/6 PASS; E2E aggregate와 QA Automated는 이에 종속되어 FAIL.

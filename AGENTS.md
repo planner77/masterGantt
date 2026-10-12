@@ -1,3 +1,9 @@
+## Issue #643 — Actions 소스 실행 검증의 ID·메타데이터 원칙 (2026-10-13)
+
+- GitHub Actions workflow 파일의 정의명(`name: CI`)과 실행별 동적 표시명(`run.name`, `run-name:`)은 구분한다. 예: CI #2612.1의 `run.name="Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1"`. 표시명이나 임의의 `display_title` 문자열을 source identity·Owner 승인 증거로 사용하지 않는다.
+- 보호된 `manual_recovery` source는 GitHub Actions `Get a workflow`(filename `ci.yml`) 응답의 양의 `id`, `name=CI`, 정확한 `path=.github/workflows/ci.yml`, `state=active`와 원본 Run의 `workflow_id/path/repository/head_repository`를 교차 검증한다. API 확인 불가/불일치 시 `BLOCKED`로 처리하며 기존 `workflow_dispatch`·Owner/Issue/PR/first-parent SHA/attempt·필수 Quality/E2E6/Docker/후보 digest 확인을 유지한다.
+- Issue #643 보완은 보호 경로 HIGH/OWNER_MANAGED, 세 Required PR CI + default-main Trusted QA와 별도의 Owner 병합 승인 후에만 merge 한다. 앱 버전 `0.107.0` 유지, `release_required=false`/`release_authorized=false`; #616 복구 dispatch 및 정식 GHCR tag 발행은 추가 승인과 실증 전 `NOT TESTED`.
+
 ## Issue #639 — Main CI #2606.1 immutable 제목 오류 재발 방지 (2026-10-13)
 
 - Merge SHA `5c79b658c83b86f163826055fa7da6efadef4e63`의 push Main CI [#2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 제목 `Issue #639 · PR #641 · Main SHA 복구 및 GHCR 출처 검증 경로 안정화`의 요약 31자(MAX=30)로 `verify-ci-run-trace.py`에서 차단됐다. 이전 커밋 메시지/CI 결론은 불변이다.

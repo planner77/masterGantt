@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #643 trusted Actions workflow source identity (2026-10-13)
+
+- Correct protected manual Main CI recovery validator: dynamic `run.name` is not the `CI` workflow name. Authenticate actual `ci.yml` metadata id/name/path/active state against Run workflow_id/path/repository/head repository, retain full attempt/Owner/evidence/Quality/E2E6/Docker/digest checks. Add offline positive/negative provenance fixtures and policy regressions. No product version, UI/API/DB, workflow permissions, Git tag or GHCR publication changes.
+
 ## [Unreleased] — Issue #639 Main CI #2606.1 failed merge-title correction (2026-10-13)
 
 - Introduce fail-closed `--validate-title` preflight for the **actual** merge commit subject so an invalid >30-character, noncanonical or wrong Issue/PR title cannot silently reach protected main. Add immutable #639/#641 31-char failure regression + positive exact Head connector payload and direct push trace tests. Preserve failed run/history, update merge operations and first-parent lifecycle documentation. No product version bump, DB/API/UI change, or formal GHCR release authority.

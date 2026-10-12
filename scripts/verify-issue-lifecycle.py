@@ -45,6 +45,29 @@ require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목�
 require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
 
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
+# Issue #643: Actions `run.name` is the user-facing run-name, not the
+# definition name. The identity gate must use metadata id/path/state instead.
+recovery_impl = (ROOT / "scripts" / "main_ci_recovery.py").read_text(encoding="utf-8")
+require("def verified_workflow_identity(" in recovery_impl
+        and "verified_workflow_identity(repo, run)" in recovery_impl,
+        "manual recovery must authenticate the workflow identity before evidence")
+require('TRUSTED_CI_WORKFLOW_FILE = "ci.yml"' in recovery_impl
+        and 'TRUSTED_CI_WORKFLOW_PATH = ".github/workflows/ci.yml"' in recovery_impl,
+        "the trusted CI source must be selected by its exact workflow path")
+require('run.get("workflow_id")' in recovery_impl
+        and 'gh(f"/repos/{repo}/actions/workflows/{TRUSTED_CI_WORKFLOW_FILE}")' in recovery_impl
+        and 'workflow.get("state") == "active"' in recovery_impl,
+        "recovery must cross-check source workflow id with read-only GitHub metadata")
+require('(run.get("repository") or {}).get("full_name") == repo' in recovery_impl
+        and '(run.get("head_repository") or {}).get("full_name") == repo' in recovery_impl,
+        "cross-repository or foreign-head recovery runs must be rejected")
+require('run.get("name") == "CI"' not in recovery_impl,
+        "dynamic Actions run name must never be used as a trusted workflow ID")
+require("run.get(\"event\") == \"workflow_dispatch\"" in recovery_impl
+        and 'run.get("run_attempt")' in recovery_impl
+        and "checked_jobs(all_jobs(repo, run_id))" in recovery_impl,
+        "manual recovery must retain exact dispatch/event/attempt/aggregate trust checks")
+
 ops_doc = (ROOT / "docs" / "GITHUB_OPERATIONS.md").read_text(encoding="utf-8")
 require('gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"' in ops_doc, "Issue #582 merge CLI must include method/subject/empty body/exact Head")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
