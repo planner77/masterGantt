@@ -332,7 +332,9 @@ def ghcr_digest(image: str) -> tuple[str, str | None]:
                     return "PRESENT", digest
         return "UNKNOWN", None
     error = (result.stderr + result.stdout).lower()
-    if "manifest unknown" in error or "not found" in error or "404" in error:
+    # Only an explicit registry manifest absence is authoritative; generic
+    # HTTP 404 and "not found" may also describe auth/permission failures.
+    if "manifest unknown" in error and "unauthorized" not in error and "denied" not in error:
         return "ABSENT", None
     return "UNKNOWN", None
 
@@ -344,7 +346,8 @@ def version_states(repo: str, versions: set[str]) -> dict[str, VersionState]:
     states = {}
     for version in sorted(versions, key=semver):
         version_tag = f"v{version}"
-        presence, digest = ghcr_digest(f"ghcr.io/{repo.lower()}:{version_tag}")
+        # Git/GitHub release tags use vX.Y.Z; the registry publishes exact X.Y.Z.
+        presence, digest = ghcr_digest(f"ghcr.io/{repo.lower()}:{version}")
         states[version] = VersionState(
             git_tag=git_tag_state(version),
             github_release="PRESENT" if version_tag in release_tags else "ABSENT",
