@@ -1,3 +1,8 @@
+## Issue #633 — HIGH 릴리스 부채 B2 독립 판정 경계 (2026-10-12)
+
+- Owner-managed라 해도 PR 자체의 수정된 B2 검증기는 trusted QA 자기 승인이 아니다. 정확한 Head/base Required 세 종·default-branch Trusted QA·리뷰 스레드0·Owner HIGH 위험 수용과 **별도 버전별 두 기존 승인 철회 + 신규 v0.106.1 및 exact B2 승인**을 분리한다.
+- 원본 #550/#615 실패 CI는 불변 FAIL, GHCR exact tag 미발행은 인증된 read-only GitHub Actions 실감사 없이는 UNKNOWN. `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`/일반 CI SUCCESS는 발행 승인·폐기 승인이 아니다. Issue #633 B2 정책은 사용자 승인 범위 외 다른 Issue/버전 자동 슈퍼시전 확장 금지.
+
 ## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
 
 - #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.

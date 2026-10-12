@@ -1,3 +1,9 @@
+## Issue #633 — B2 미발행 두 버전 안전 복구 (2026-10-12)
+
+- `scripts/test-release-debt-recovery.py`의 SHA·버전·Issue·PR 다섯 역사적 original fixture, old Main CI FAIL, Owner v1 철회/v2 신규 source identity, 위조·재사용·stale·registry UNKNOWN/EXISTS, 신규 release in-progress 차단, exact candidate digest, safe cleanup branch5·candidate2/RETIRE marker/Issue close2 검증을 CI policy job에서 수행한다.
+- `scripts/test-release-debt-audit.py` 기존 CI/Tag/registry 음성/양성 및 `scripts/verify-issue-lifecycle.py` #615/#586/#344/#595/#593 회귀 유지. B2 정책/권한/Workflow 재진입 trace 검증은 exact Repo GitHub Actions·등록된 source run/job/digest로 최종 판정한다.
+- 실제 private GHCR/Release tag 상태를 GitHub Actions `workflow_run` read-only inventory 성공으로 기록하고 Owner version-scoped 승인 이후 신규 SemVer에만 정식 발행. UNKNOWN/PRESENT 상태에서는 구버전 폐기를 불허한다.
+
 ## Issue #633 — PR #634 리뷰 P1 registry 회귀 테스트 (2026-10-12)
 
 - `scripts/test-release-debt-audit.py`에 Git tag `v0.105.0` 대 GHCR exact image `:0.105.0` 구별, 이미 발행된 GHCR exact digest의 BLOCKED 처리, registry unauthorized/HTTP 404→UNKNOWN 및 명시적 manifest-unknown→ABSENT fixture를 추가한다. 네트워크 없이 read-only 결과만 모킹한다.

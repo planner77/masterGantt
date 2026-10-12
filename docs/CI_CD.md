@@ -1,3 +1,9 @@
+## Issue #633 — B2 교정 Release Pipeline 가드 (2026-10-12)
+
+- 원본 v0.105.0/v0.106.0 미발행 부채는 CI FAIL을 소급 PASS하지 않고, authenticated release_debt_audit의 `--inventory-only` 증거와 별도의 Owner 구버전 철회/B2 exact SHA/v0.106.1 신규 발행 승인 이후에만 회복한다.
+- 기존 PR Required quality/E2E6/Docker·QA Trusted·main `ci-<SHA>` digest/SBOM/provenance 및 release-image immutable tag 정책은 변경 없음. GitHub `vX.Y.Z` vs GHCR `:X.Y.Z` 정확 비교. 계정/GHCR 조회 실패는 `UNKNOWN`으로 중단한다.
+- B2 실제 cleanup/Issue close는 새 Release 최종 PASS 후에만. 상세 [Issue #633 B2](ISSUE_633_RELEASE_DEBT.md).
+
 ## Issue #633 — Private GHCR 읽기 전용 감사 인증 (2026-10-12)
 
 - `release-debt-audit.yml`은 permission `packages: read`뿐 아니라 `docker/login-action`으로 GHCR에 인증한 뒤 read-only `docker buildx imagetools inspect ghcr.io/<repo>:X.Y.Z`를 수행한다. GitHub tag의 v-prefix를 Docker tag에 붙이지 않는다.

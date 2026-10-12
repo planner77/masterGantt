@@ -1,3 +1,9 @@
+## [Unreleased] — Issue #633 B2 두 미발행 버전 폐기와 교정 릴리스 후보 (2026-10-12)
+
+- 신규 application 후보 `0.106.1` (package/lock 동기화). #550 v0.105.0/#615 v0.106.0은 원본 CI FAIL 기록·Owner 원장 보존, 자동 발행·다른 SHA로 tag 승계 금지.
+- Generic Finalizer의 별도 B2 exact Owner revoke+authorization, 기존 oldest-first 보존, 신규 Release 성공 후에만 원본 임시 후보/branch 안전 정리·RETIRE 증거·Issue close 경로 구현. Read-only GHCR 자동 감사, private registry 인증, 회귀 fixture 추가.
+- 신규 PR CI/Trusted/Main CI·실제 정식 GHCR 발행 및 Owner version-scoped 최종 승인 이전까지 v0.106.1 공식 릴리스는 NOT TESTED이며 기존 버전의 미발행 상태 유지.
+
 ## [Unreleased] — Issue #633 PR #634 GHCR 감사 P1 보완 (2026-10-12)
 
 - PR CI #2559.1은 Quality/E2E 6 shard/Docker 성공, QA Automated 미해결 2건으로 전체 실패. 비공개 GHCR 감사에 pinned 로그인 단계 추가, Git tag `vX.Y.Z`와 정식 GHCR exact `:X.Y.Z` 구별 및 registry 모호한 오류 fail-closed. negative/positive fixture와 운영/테스트/QA 문서 동기화. 버전 `0.106.0`, 기존 릴리스 승계 차단·읽기 권한·정식 게시 미승인은 유지.

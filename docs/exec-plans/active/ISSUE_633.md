@@ -1,3 +1,66 @@
+# Issue #633 — B2 재발행·원본 미발행 폐기 Work Packet (2026-10-12)
+
+## 실행 정책
+
+- Primary Issue #633; 신규 PR 범위: `scripts/release_debt_recovery.py`, trusted Generic Finalizer와 Resume Owner 재개, GHCR 읽기 전용 inventory 자동 기동, 교정 SemVer 후보 `0.106.1`, negative/positive fixtures·문서 동기화.
+- 기준 main `f839ad01cd395004e623ae171f1684cfc49e482e`; branch `fix/issue-633-b2-release-recovery`.
+- `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `manager_decision=NOT TESTED`, `release_required=true`, `release_authorized=false` (실제 exact SHA/버전별 Owner marker·인증된 레지스트리 실감사 전 게시 금지).
+- B2는 #550의 v0.105.0 / #615의 v0.106.0을 **정식 발행한 적 없는 버전으로 승인하에 폐기**하며, 새 `v0.106.1`은 현재 수정된 main 코드를 대상으로 후보 제작. 이전 실패 CI를 PASS로 변경하거나 오래된 immutable SemVer tag를 덮어쓰지 않는다.
+- 본 PR의 CODE/POLICY 자체 변경은 Trusted main QA 검증기의 자기 승인으로 취급하지 않는다. exact HEAD required CI PASS, 미해결 리뷰 0, Owner HIGH 잔여 위험 수용과 별도의 v2 승인 원장이 모두 필요하다.
+- 감사 자동 실행은 Main CI 성공 후 read-only `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`; Owner 승인 대상 main SHA가 고정된 뒤에만 B2 reissue mutation 경로를 열 수 있다. default main 외 PR 소스 실행 없음.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: N/A(기존 Owner·Release/Fail-closed 계약 유지, 상세 운영 문서에서 새 B2 제한만 정의)
+- `docs/QA_REVIEW_POLICY.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/ISSUE_633_RELEASE_DEBT.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_633.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `package.json`: UPDATED
+- `package-lock.json`: UPDATED
+- `.github/workflows/ci.yml`: UPDATED
+- `.github/workflows/release-debt-audit.yml`: UPDATED
+- `.github/workflows/release-finalizer.yml`: UPDATED
+- `.github/workflows/release-finalizer-resume.yml`: UPDATED
+- `scripts/release_debt_audit.py`: UPDATED
+- `scripts/release_debt_recovery.py`: UPDATED
+- `scripts/test-release-debt-recovery.py`: UPDATED
+- `scripts/auto_release_finalizer.py`: UPDATED
+- `scripts/verify-issue-lifecycle.py`: UPDATED
+- `DESIGN.md`: N/A(사용자 UI 변경 없음)
+- `docs/API.md`: N/A(제품 HTTP API 변경 없음; GitHub Actions REST 내부만 사용)
+- `docs/DB_SCHEMA.md`: N/A(SQLite migration 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Gantt 일정 알고리즘 계약 변경 없음)
+
+## AC_TEST_COVERAGE
+
+- AC1: 기존 #550 Main #2515 FAIL, #615 Main #2526 FAIL 및 #628/#632/#634 성공 SHA/digest를 감사 fixture에 고정하고 trusted `--inventory-only` Git tag/Release/Private GHCR 상태를 별도 실조회.
+- AC2: `test-release-debt-recovery.py`의 구버전 승인 철회, B2 Owner exact SHA·PR·version 인증, 타인 marker·stale·revoked negative. 신규 v0.106.1 marker는 exact merge SHA 이후에만 생성.
+- AC3: 기존 `verify-issue-lifecycle.py` #615/closed/doc-only/unissued fail-closed와 새 `plan_b2`의 다섯 역사적 SHA만 승인된 특별 예외. 일반 자동 cross-Issue 승계 금지.
+- AC4: `finalize_b2`는 신규 Main CI·GHCR candidate 검증, exact immutable formal Release SUCCESS, 실 digest 동일 뒤 old branches/candidates/RETIRE marker/Issue close 처리; Readiness≠Release, RELEASE in-progress는 BLOCKED.
+- AC5: QA/GENERIC_FINALIZER/CI_CD/GITHUB_OPERATIONS/REMOTE_VALIDATION/TEST_PLAN/PLAN/CHANGELOG 및 package/lock 버전 동기화; 기존 #628/#586/#344/#595/#593 PR CI 회귀 및 신규 fixtures.
+- AC6: `release-finalizer.yml`의 Owner issue_comment 트리거와 main trusted checkout, GHCR 인증·권한/기존 Required3와 concurrency 유지, 별도 one-shot workflow/Ruleset 완화 없음. 실제 trusted Actions / GHCR는 최신 Main 반영 후 따로 판정.
+
+## 확인·복구 순서
+
+1. exact-head PR CI 3 Required PASS, Trusted QA 및 리뷰 스레드 해결. B2 rollback/안전 조건 검토 후 Owner가 병합을 허가해야 한다.
+2. Merge SHA/Main CI 성공 후 자동 read-only GHCR 감사 로그에서 구버전 exact tag 2개의 **ABSENT**를 확인한다.
+3. 원본 #550/#615의 기존 version-scoped 발행 승인 각각 `authorized=false`로 철회, Issue #633에 새 v0.106.1 독립 Release 승인과 exact SHA scoped B2 marker를 신규 Owner comment로 기록한다.
+4. Trusted generic Finalizer 재기동 → v0.106.1 annotated tag/Release CI/digest promotion → Resume → 구 버전 safely retired/cleanup/Issue 종료를 검증한다.
+5. Registry/Git 태그 UNKNOWN/PRESENT, CI non-success, PR branch cleanup 실패, RuleSet/Trusted 오류가 발생하면 FAIL-CLOSED하고 원본 원장을 보존한다.
+
+## 잔여 위험 / Rollback
+
+- 원격 GitHub/GHCR 실제 실행·SBOM/provenance/Issue close는 **현재 NOT TESTED**; 로컬 fixture/PR 성공으로 소급 PASS하지 않는다.
+- 새 feature package version `0.106.1`은 후보이며 이미 임의로 tag 생성하지 않는다. Owner의 원본 승인 marker를 다른 버전으로 재사용하지 않는다.
+- Release 이전: 변경 PR revert하여 기존 Generic oldest-first Fail-closed 복구. 정식 Release 이후: tag를 덮어쓰지 않고 새로운 교정 SemVer로만 roll forward 한다.
+
 ## PR CI #2559.1 / 리뷰 P1 후속 보완 (2026-10-12)
 
 - [Run #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645): QA Preflight, 정책/품질/Vitest/ESLint/TypeScript/Next.js, Chromium 6/6 shard 및 Docker Required aggregate 전부 SUCCESS; `QA Final — Automated`만 미해결 리뷰 2건 때문에 BLOCKED. 원본 CI conclusion FAILURE와 두 리뷰의 감사 기록을 보존한다.

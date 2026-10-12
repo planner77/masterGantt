@@ -1,3 +1,9 @@
+## Issue #633 — B2 신규 SemVer PR/실제 GHCR 실행 증거 (2026-10-12)
+
+- 원본 #550 #2515 FAIL, #615 #2526 FAIL은 기존 기록에 보존. #615 교정 #2531 PASS (digest de76273a…), #550 후속 #2553 PASS (digest 7700bffc…), #633 초기 감사 #2565 PASS (digest c36138dd…)는 전부 `ci-<SHA>` 후보 성공이지 정식 SemVer 게시 PASS가 아니다.
+- 신규 B2 PR의 Head/base required CI 3종, default Trusted, latest main CI candidate, read-only `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`, Github/GHCR exact states, Owner 구버전 철회/신규 version/B2 v2 marker, Release-image digest, Resume·Issue 종료를 각각 독립적으로 기록한다. 원격 시작 자체를 PASS로 간주하지 않는다.
+- 등록돼 있는 기존 #615 v0.106.0과 #550 v0.105.0 승인 marker를 새 v0.106.1의 승인으로 재사용하지 않는다. 미발행 버전 exact registry가 PRESENT/UNKNOWN이면 B2 workflow는 NO-GO.
+
 ## Issue #633 — PR #634 CI #2559.1 원격 검증 및 P1 보완 (2026-10-12)
 
 - [원본 Full PR CI #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645), HEAD `36b061ad8970d94014805105211c126410175b53`: QA Preflight/Policy/TypeScript/ESLint/Vitest/Next.js, Chromium 6/6, Docker Build+Smoke, Required aggregate 3종 SUCCESS. `QA Final — Automated`는 PR #634의 미해결 리뷰 P1 두 스레드로 `BLOCKED`, Run 전체 FAILURE. 원본 증거 유지.

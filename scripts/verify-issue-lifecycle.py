@@ -1573,4 +1573,29 @@ require(_workflow633.index("docker/login-action@") < _workflow633.index("name: e
 require('ghcr_digest(f"ghcr.io/{repo.lower()}:{version}")' in _audit633, "GHCR exact image tag must be bare SemVer, not annotated Git vSemVer")
 require("return \"UNKNOWN\", None" in _audit633 and 'if "manifest unknown" in error' in _audit633, "ambiguous registry inspection must fail closed")
 
+# Issue #633 B2: explicit Owner SHA/version authority, read-only inventory,
+# and release-after cleanup in the same generic/Resume concurrency group.
+_recovery633 = _Path633("scripts/release_debt_recovery.py").read_text(encoding="utf-8")
+_generic633 = _Path633(".github/workflows/release-finalizer.yml").read_text(encoding="utf-8")
+_resume633 = _Path633(".github/workflows/release-finalizer-resume.yml").read_text(encoding="utf-8")
+require("plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)" in auto_impl, "B2 recovery must remain inside trusted main generic resolver")
+require("finalize_b2(sys.modules[__name__], repo, latest_main, recovery_plan)" in auto_impl, "B2 release success must precede historical cleanup")
+require("mastergantt-release-debt-authorization:v2" in _recovery633 and "B2_RETIRE_BOTH" in _recovery633, "separate exact Owner B2 decision required")
+require('last["authorized"] is False' in _recovery633, "old SemVer Owner publication grants must be revoked")
+require('state=="success"' in _recovery633 and "replacement_digest" in _recovery633, "new release/digest must be proved before retirement")
+require("mastergantt-release-debt-retired:v1" in _recovery633, "unissued releases need immutable retirement evidence distinct from FINAL")
+require("def source_history(" in _recovery633 and '"--first-parent"' in _recovery633 and "core.resolve_work_item(repo,sha)" in _recovery633, "B2 release Resume must recover immutable old SHA history across prior FINAL boundary")
+require("authenticated_retirement(" in _recovery633, "partial closed Issue replay must require authenticated bot retirement evidence")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST"' in _recovery633, "retirement marker must use write-capable trusted GitHub API")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}",method="PATCH"' in _recovery633, "post-release Issue close must use write-capable trusted GitHub API")
+
+require('github.event_name == \'issue_comment\'' in _generic633 and "github.repository_owner" in _generic633, "Owner Issue-trigger must be authenticated")
+require("ref: ${{ github.sha }}" in _generic633, "Owner trigger may not checkout user-controlled code")
+require("packages: write" in _generic633 and "mastergantt-release-finalizer" in _generic633, "default Finalizer permissions/concurrency must be retained")
+for _w633 in (_generic633,_resume633):
+    require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _w633, "B2 registry inspection requires authenticated read before mutation")
+    require("docker/setup-buildx-action@" in _w633, "B2 registry inspection needs verified buildx")
+require("--inventory-only" in _audit633 and "INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED" in _audit633, "registry inventory must not be publication authority")
+require("workflow_run:" in _workflow633 and "packages: write" not in _workflow633, "default trusted audit must be read-only")
+
 print("issue-lifecycle generic/automatic contract scenarios: PASS")

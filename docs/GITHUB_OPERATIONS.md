@@ -1,3 +1,9 @@
+## Issue #633 — B2 Owner 발행/폐기 댓글과 재개 절차 (2026-10-12)
+
+- GitHub trusted main read-only audit `release-debt-audit.yml`은 Issue #633 Main CI SUCCESS에서 자동 inventory를 생성한다. 두 과거 SemVer의 현재 Git tag/GitHub Release/GHCR exact `:X.Y.Z` 부재 실확인 후 #550 v0.105.0 / #615 v0.106.0 Owner 기존 정식 릴리스 승인을 각 Issue에 `mastergantt-release-authorization:v1`의 `authorized=false`로 **기존 댓글 삭제 없이 철회**한다.
+- PR/새 Merge SHA/검증 `ci-<SHA>` digest가 확정된 뒤 Issue #633에 신규 `v0.106.1` Owner Release marker 및 독립 `mastergantt-release-debt-authorization:v2` (B2_RETIRE_BOTH / exact SHA·Issue·PR·버전·승인 사유)를 남긴다. `issue_comment`은 기존 Generic Finalizer 하나만 재개하며, 승인 없는 코멘트·PR 코드 실행 금지.
+- Owner marker를 붙였더라도 결과가 `BLOCKED`면 원본 GitHub Actions 로그로 원인을 수정하고 새로운 인증 근거 확보 전 tag 임의 push·release-image 직접 dispatch·Issue 수동 close 금지. 자세한 실행·Rollback [B2 설계](ISSUE_633_RELEASE_DEBT.md).
+
 ## Issue #633 — 릴리스 부채 감사 수동 진입 (2026-10-12)
 
 - `release-debt-audit.yml`의 수동 입력은 main snapshot/source #550/원본 #615/교정 #615 full SHA 및 선택적 신규 corrective full SHA이다. Read-only 토큰, default branch `main` checkout으로만 검증하고, 증거 미확정·tag 충돌·Owner 버전별 승인 누락은 `BLOCKED`로 처리한다.
