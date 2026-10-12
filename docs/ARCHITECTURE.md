@@ -352,3 +352,7 @@ Core scale/config 갱신은 단발 filter를 초기화할 수 있으므로 표�
 공통 process catalog revision과 Project revision, Project Master revision은 별개다. context는 Project의 정확 triple만 읽고 전체 global master를 Project 응답에 넣지 않는다. 고정 수 SQL과 owner/triple index를 사용하며 항목별 N+1을 만들지 않는다. mapping 성공은 canonical Project/logistics aggregate와 매핑·revision을 반환한다. 기존 aggregate DTO에 새 필수 필드를 끼우지 않고 전용 endpoint에서 확장한다.
 
 기존 ProjectMaster 선택/참조, Logistics 공정 삭제, ProjectCopy, ProjectTemplate service는 새 매핑 guard를 같은 transaction에 포함한다. 이는 Project-local 자유 공정과 공통 occurrence를 분리하는 additive 모델이며 Gantt/Scheduling Engine 변경이나 자동 공정 생성이 아니다. 상세 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [Target 계약](LOGISTICS_TARGETS.md)을 따른다.
+
+## F2 Project Target aggregate (#616)
+
+Target is Project-local grouping of existing logistics instances, not a new Equipment/System catalog or WBS node. `logistics-targets-service-core` holds transactional orchestration, `logistics-targets-handlers-core` owns HTTP authorization, and typed members are enforced by `0026_logistics_targets.sql`. F1 common process occurrence WorkArea identity remains global and stable, local process and equipment/system IDs are remapped on Project Copy. Canonical Task and Resource identity are unchanged. Template/JSON schedule-only export is explicitly unsupported when Target graph exists. #617 and #619 add downstream bindings/projections independently.
