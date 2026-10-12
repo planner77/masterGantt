@@ -84,7 +84,7 @@ describe("Issue #616 Target persistence",()=>{
         scryptP:3,scryptKeyLength:32,calendarTimezone:"Asia/Seoul",
         createdAt:now.toISOString(),updatedAt:now.toISOString()
       });
-      expect(()=>copyLogisticsTargets(f.db,f.project.id,p2.id,new Map(),new Map(),new Map(),now.toISOString())).toThrow();
+      expect(()=>f.db.transaction(()=>copyLogisticsTargets(f.db,f.project.id,p2.id,new Map(),new Map(),new Map(),now.toISOString())).immediate()).toThrow();
       expect(f.service.list(p2.publicId).total).toBe(0);
       const copied=f.logistics.insertSystem({publicId:randomUUID(),projectId:p2.id,code:"MCS1",name:"MCS",systemType:"mcs",layer:"coordinator",scope:"project",now:now.toISOString()});
       expect(copyLogisticsTargets(f.db,f.project.id,p2.id,new Map(),new Map(),new Map([[f.system.id,copied.id]]),now.toISOString())).toBe(1);
