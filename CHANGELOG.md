@@ -1,3 +1,6 @@
+## Unreleased — Issue #629 QA Preflight (2026-10-12)
+- PR CI의 고비용 E2E/Docker 이전 QA title/Refs, risk/method/QA, 문서 영향/AC 구조 사전 검증을 추가한다. 기본 브랜치 검증기 신뢰·도입 Bootstrap NOT TESTED·최종 Trusted QA와 Owner 결정 분리·기존 세 required aggregate fail-closed 계약을 유지한다. 제품 버전/사용자 UI/API/DB 스키마 변경 없음.
+
 ## [0.106.0] - 2026-10-12
 
 ### Fixed
