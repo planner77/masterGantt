@@ -27,6 +27,7 @@
 - `docs/PROJECT_UX.md`: N/A(Project creation behavior remains unchanged; existing hydrated form test now synchronizes before input)
 - `AGENTS.md`: N/A(Existing Issue lifecycle and QA preflight policy inherited from main, unchanged by this PR)
 - `docs/QA_REVIEW_POLICY.md`: N/A(Existing OWNER_MANAGED and required checks unchanged)
+- `docs/GITHUB_OPERATIONS.md`: N/A(GitHub Actions and release operations are inherited unchanged from the trusted main branch; only project link test synchronization changed)
 
 | Artifact | Status | Reason |
 |---|---|---|
@@ -82,3 +83,8 @@
 - DESIGN.md / UI_UX_GUIDELINES / docs/PROJECT_UX.md / API / DB_SCHEMA / SECURITY / AGENTS.md **N/A**: 제품 폼 UI·서버·보안 계약은 변경하지 않음. `tests/e2e/project-links-persistence.spec.ts`, docs/TEST_PLAN.md, docs/REMOTE_VALIDATION.md, active PLAN, root CHANGELOG / 본 Work Packet은 UPDATED. F2 Template v2·Target migration·ID 회귀 테스트 보존.
 - 새 main의 변경은 `#629` trusted QA preflight/QA policy, `#550` 관련 E2E 증거와 병행 중이며 정렬시 main blob과 양쪽 문서 추가를 전부 보존한다. 새 exact-head PR CI 실행 전 Quality/E2E/Docker/QA/Trusted는 **NOT TESTED**; release_authorized=false, Owner merge/main/GHCR/Issue close 미승인.
 
+## PR CI #2554.1 사전 검증 보완 — 2026-10-12
+
+- [PR CI #2554.1](https://github.com/planner77/masterGantt/actions/runs/38196096065) Head `cc1af8b7cd8da40637400167f46368f254cb61d2`, base `d69749753fb9db002232d92d51446237a0fe042d`. Main #629에 추가된 QA Preflight가 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 FAIL하면서 Quality/E2E/Docker heavy jobs를 SKIPPED했고 필수 집계를 FAIL 처리. 변경 코드의 새 실패 증거가 아니라 필수 영향 원장 누락이며 과거 PASS로 간주하지 않는다.
+- `docs/GITHUB_OPERATIONS.md`는 이번 PR에서 수정되지 않았고, CI/릴리스 운영 계약을 완화하지 않으므로 Work Packet DOCUMENTATION_SYNC에 명시적으로 `N/A` 이유를 추가한다. 나머지 필수 문서·AC1~AC7 원장과 수정된 Playwright hydration-ready 검증은 그대로 유지한다.
+- 신규 PR CI 시작 후 QA Preflight→필수 Quality/E2E/Docker→QA Final gate를 정확한 새 Head로 재검증해야 하며 Owner merge/Main/GHCR/Release는 여전히 미승인이다.
