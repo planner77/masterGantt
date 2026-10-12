@@ -194,8 +194,8 @@ def main():
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     summary = ["## QA Preflight (#629)",
                f"- 결론: **{report['status']}** (최종 QA/Owner 승인 아님)",
-               f"- PR: #{report['pr']}; Head: \`{report['head_sha']}\`; Base: \`{report['base_sha']}\`",
-               f"- Run/attempt: \`{report['run_id']}.{report['run_attempt']}\`",
+               f"- PR: #{report['pr']}; Head: `{report['head_sha']}`; Base: `{report['base_sha']}`",
+               f"- Run/attempt: `{report['run_id']}.{report['run_attempt']}`",
                f"- 경과: {report['duration_seconds']}s; FAIL: {report['deterministic_failures']}; DEFERRED: {report['pending_checks']}"]
     for item in report["checks"]:
         summary.append(f"- {item['status']} / {item['name']}: {item['where']}" +
