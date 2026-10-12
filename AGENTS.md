@@ -1,3 +1,9 @@
+## Issue #639 — Main CI #2606.1 immutable 제목 오류 재발 방지 (2026-10-13)
+
+- Merge SHA `5c79b658c83b86f163826055fa7da6efadef4e63`의 push Main CI [#2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 제목 `Issue #639 · PR #641 · Main SHA 복구 및 GHCR 출처 검증 경로 안정화`의 요약 31자(MAX=30)로 `verify-ci-run-trace.py`에서 차단됐다. 이전 커밋 메시지/CI 결론은 불변이다.
+- 새 PR의 병합 요청은 **커밋 생성 이전** 반드시 `scripts/main_ci_run_name.py --as-merge-payload --expected-head-sha ...`에서 완전한 제목/빈 commit_message/PR Head SHA를 생성하고, `--validate-title`로 **실제 전달할 제목 문자열 그대로** 검사한 페이로드만 전달한다. 요약 임의 추가·기본 GitHub Merge 본문 사용 금지; 제목 30자 초과, 한글 미포함, 복수 줄 또는 Issue/PR 불일치 시 병합 금지.
+- #639 본문 범위를 변경하지 않고 같은 Issue의 별도 보호 PR/Required3/Trusted QA/Owner 승인 → 새로운 push Main SHA의 테스트·GHCR/Finalizer 증거 확인으로 교정한다. 기존 실패 SHA를 재실행/force-update/소급 PASS하지 않는다. #639 교정 릴리스 권한은 `release_required=false`, `release_authorized=false`; #616 복구/발행 승인과 분리한다.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

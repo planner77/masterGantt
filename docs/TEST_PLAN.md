@@ -1,3 +1,10 @@
+## Issue #639 — Main CI #2606.1 merge-title reject regression (2026-10-13)
+
+- Reproduce **exact** `Issue #639 · PR #641 · Main SHA 복구 및 GHCR 출처 검증 경로 안정화` (31-character summary) through `main_ci_run_name.parse_merge_title`, `format_merge_title`, `validate_merge_title` and `trace.validate_push`. Must reject without treating failed Main #2606 as PASS.
+- Positive: Issue #639 and corrective PR fixture with short Korean summary `Main CI 제목 계약 교정` resolves exactly, validates verbatim, and `--validate-title --as-merge-payload --expected-head-sha` emits `merge_method=merge`, canonical `commit_title`, `commit_message=""`, and exact Head lease. Confirm CLI negative rejects 31-char input **without emitting payload**.
+- Negatives: forged Issue/PR, multiline merge with body, no Hangul, control chars, stale/malformed Head SHA, API adapter mixing. Old #586/#603 canonical/release regressions remain; no fail-open parser/required CI weakening.
+- `python3 scripts/verify-issue-lifecycle.py` is included by PR policy and must pass locally and in official full PR CI. Fresh Quality/E2E6/Docker aggregates + default-main Trusted QA required before corrective merge. Afterwards use actual push Main run and immutable GHCR candidate evidence, not a synthetic diagnostic workflow_dispatch.
+
 ## Issue #639 / PR #641 — Shard 5 strict-mode collision regression (2026-10-13)
 
 - Repro evidence: Run #2601.1, E2E Shard 5 (`tests/e2e/resource-dashboard-ui.spec.ts` #525). `KPI getByRole(button, name="2건")` found 2 buttons; 97 tests PASS, one strict-mode FAIL. Aggregate E2E/QA subsequent FAIL.

@@ -469,6 +469,92 @@ require(
 )
 
 
+# Issue #639: PR #641 generated a genuinely immutable main merge with a
+# 31-character summary and no body. Its push CI #2606.1 failed in the trace
+# gate. A mere rerun of that SHA cannot fix its immutable commit metadata.
+failed_639_summary = "Main SHA 복구 및 GHCR 출처 검증 경로 안정화"
+failed_639_title = f"Issue #639 · PR #641 · {failed_639_summary}"
+require(
+    len(failed_639_summary) == main_run_name.MAX_SUMMARY_LENGTH + 1,
+    "#2606 forensic fixture must preserve the original 31-character summary",
+)
+require(
+    main_run_name.parse_merge_title(failed_639_title) is None,
+    "#2606 invalid merge title must never be interpreted as a valid push",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_639_title},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("#2606 immutable failed Main CI may not be retroactively green")
+
+for factory in (
+    lambda: main_run_name.format_merge_title(639, 641, failed_639_summary),
+    lambda: main_run_name.validate_merge_title(failed_639_title, 639, 641),
+):
+    try:
+        factory()
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("31-character unverified merge subject must be BLOCKED")
+
+corrected_639_title = main_run_name.format_merge_title(
+    639, 642, "Main CI 제목 계약 교정"
+)
+require(
+    main_run_name.validate_merge_title(corrected_639_title, 639, 642)
+    == corrected_639_title,
+    "exact preflight must preserve the valid title, without rewriting it",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": corrected_639_title},
+    }) == (639, 642),
+    "corrective canonical merge must be recognized by the existing push gate",
+)
+for forged in (
+    corrected_639_title + "\n\nRefs #639",
+    corrected_639_title.replace("PR #642", "PR #641"),
+    corrected_639_title.replace("Issue #639", "Issue #640"),
+):
+    try:
+        main_run_name.validate_merge_title(forged, 639, 642)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("wrong Issue/PR or multiline merge preflight must reject")
+
+preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "642",
+     "--validate-title", corrected_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=True,
+)
+require(
+    json.loads(preflight_cli.stdout) == main_run_name.merge_api_payload(
+        639, 642, "Main CI 제목 계약 교정", "a" * 40
+    ),
+    "preflight CLI must emit an exact connector merge payload bound to Head SHA",
+)
+failed_preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "641", "--validate-title", failed_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=False,
+)
+require(
+    failed_preflight_cli.returncode != 0 and not failed_preflight_cli.stdout.strip(),
+    "#2606 invalid title must produce no merge payload or positive result",
+)
+
+
 # The merge tool's source payload requires one canonical title and *empty*
 # body.  A matching head lease prevents accidental merge of a newer PR head.
 correction_summary = "Main CI 실패 복구 및 Finalizer 재개"

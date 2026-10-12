@@ -1,3 +1,11 @@
+# Issue #639 — Main CI #2606.1 title failure corrective PR Work Packet (2026-10-13)
+
+- Base main `5c79b658c83b86f163826055fa7da6efadef4e63`; branch `fix/issue-639-main-merge-title-repair`; Primary Issue #639.
+- Original PR #641 full PR CI #2604.1 and Trusted QA #241.1 SUCCESS. Main push #2606.1 created but **FAILURE** at `changes`, with 31-character summary (MAX=30). Source SHA and failed run are immutable, not to be rerun as a green replacement.
+- This follow-up adds **fail-closed actual-title preflight** `scripts/main_ci_run_name.py --validate-title`, exact #2606 negative + new bounded corrective positive fixture in `scripts/verify-issue-lifecycle.py`, related procedural docs. Neither the existing merge-title parser nor Required checks are weakened.
+- Risk HIGH; qa_method=OWNER_MANAGED; qa_required=true; manager_decision=NOT TESTED; independent_qa=N/A(Owner-managed); release_required=false; release_authorized=false; current application version 0.107.0 unchanged.
+- This PR must pass Full PR CI required three + default-main Trusted QA; **only then** use exact validated and lease-bound one-line merge API payload to generate the new push Main CI. Source test and GHCR candidate remain **NOT TESTED** until real Actions evidence.
+
 ## PR #641 / CI #2601.1 E2E Shard 5 flaky locator correction (2026-10-13)
 
 - **Observed:** [CI #2601.1](https://github.com/planner77/masterGantt/actions/runs/38294610523), head `70bbd429b4cd9146d43cfec11a68773ca720b047`. Quality/Policy/Vitest/Typecheck/Lint/Build and Docker PASS. Chromium 5 of 6 shards PASS; Shard 5 failed 1 of 98 cases (97 PASS). Required E2E aggregate then FAIL, automated/Trusted QA cannot pass.
@@ -40,37 +48,33 @@
 - `scripts/test_main_ci_recovery.py`: negative and positive local deterministic tests.
 
 ## DOCUMENTATION_SYNC
-- `tests/e2e/resource-dashboard-ui.spec.ts`: UPDATED
-- `scripts/verify-issue-lifecycle.py`: UPDATED
-- `tests/scripts/deployment-layout.test.ts`: UPDATED
 - `AGENTS.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/CI_CD.md`: UPDATED
-- `docs/QA_REVIEW_POLICY.md`: UPDATED
-- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
-- `CHANGELOG.md`: UPDATED
-- `.github/workflows/ci.yml`: UPDATED
-- `.github/workflows/release-finalizer.yml`: UPDATED
-- `scripts/main_ci_recovery.py`: UPDATED
-- `scripts/test_main_ci_recovery.py`: UPDATED
-- `scripts/issue_lifecycle.py`: UPDATED
-- `scripts/auto_release_finalizer.py`: UPDATED
 - `docs/exec-plans/active/ISSUE_639.md`: UPDATED
-- `DESIGN.md`: N/A(no product UI/UX).
-- `docs/API.md`: N/A(no product public REST contract).
-- `docs/DB_SCHEMA.md`: N/A(no database migration).
-- `package.json` and lock: N/A(no application version change).
+- `CHANGELOG.md`: UPDATED
+- `scripts/main_ci_run_name.py`: UPDATED
+- `scripts/verify-issue-lifecycle.py`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(HIGH Owner-managed QA requirements remain unchanged)
+- `DESIGN.md`: N/A(no UI or UX scope)
+- `docs/API.md`: N/A(no product API change)
+- `docs/DB_SCHEMA.md`: N/A(no schema change)
+- `package.json`: N/A(no application version change)
+- `package-lock.json`: N/A(no application dependency change)
+- `.github/workflows/ci.yml`: N/A(existing push and required checks remain)
+- `scripts/verify-ci-run-trace.py`: N/A(existing canonical trace gate is already correct)
 
 ## AC_TEST_COVERAGE
-- AC1: original missing push SHA/Check evidence and GitHub Actions event suppression hypothesis documented; historical identity immutable.
-- AC2: Owner exact marker, source/current main SHA, ancestor/first-parent, merged PR/issue/version, authenticated revocation and stale negative.
-- AC3: all quality/e2e six/docker job SUCCESS and same attempt artifact; publish GHCR only after verified gates; digest + BuildKit SBOM/provenance.
-- AC4: exact release/finalizer trust boundary reuses existing lifecycle ordering, formal v0.107.0 Owner marker, immutable tag checks and cleanup.
-- AC5: duplicate run/job, forged event, missing artifacts, registry UNKNOWN, wrong SHA/actor, old manual diagnostic negative.
-- AC6: 3 Required checks/Trusted QA, main/PR original paths retained; docs fully synced.
+- AC1: #616 원본 SHA 미생성 기록과 #639/#641의 실패 SHA 5c79b658/Run #2606.1 정확한 원인 구분, 실패 이력 변경 금지. scripts/verify-issue-lifecycle.py 회귀에서 실제 31자 실패 제목을 그대로 사용한다.
+- AC2: 기존 Owner/Issue/PR/first-parent SHA 검증기 정책 불변; 교정 PR에서는 canonical Issue #639/새 PR 제목과 최신 HEAD lease를 검증한다.
+- AC3: 새로운 교정 Merge에서 기존 CI Quality/E2E6/Docker 및 GHCR image 게시 단계 필요, PR CI만으로 Main 증거 PASS 판정하지 않는다.
+- AC4: Generic Finalizer의 first-parent 동일 Issue 교정/기존 실패 배리어 및 정식 release 권한 분리, 버전/Tag/이전 후보 덮어쓰기 금지를 유지한다.
+- AC5: --validate-title CLI와 merge_api_payload가 31자, 다중 행, 잘못된 Issue/PR, 누락 Head SHA를 차단하고 정형 한글 요약만 허용함을 regression에서 확인한다.
+- AC6: PR의 기존 세 Required CI 및 Trusted QA 게이트와 원본 Main push trace 파서를 그대로 유지하고 AGENTS/CI_CD/GITHUB_OPERATIONS/TEST_PLAN/REMOTE_VALIDATION 문서를 동기화한다.
 
 ## Evidence
 Local deterministic test outcomes and exact remote PR CI/QA remain **NOT TESTED** until observed. GitHub Actions production recovery requires a *separate new* #616 Owner recovery approval after #639 is merged. Failed historical runs are never rewritten. Rollback: revert workflow/validator changes; original push CI/Finalizer remains fail-closed.

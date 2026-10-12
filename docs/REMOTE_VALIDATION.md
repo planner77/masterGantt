@@ -1,3 +1,9 @@
+## Issue #639 — Main CI #2606.1 trace failure evidence and corrective plan (2026-10-13)
+
+- [Main CI #2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947) event=`push`, SHA `5c79b658c83b86f163826055fa7da6efadef4e63`, conclusion=`failure`, `변경 경로 판정` failure. `verify-ci-run-trace.py` rejects 31-character Korean summary; Quality, Chromium, Docker SKIPPED/aggregate not SUCCESS, GHCR candidate NOT TESTED. Earlier PR #641 full CI #2604.1 and Trusted QA #241.1 both SUCCESS; no review threads open.
+- Corrective: new same-Issue #639 branch/PR changes **only** merge title preflight/negative regression + operational docs, with `--validate-title` for the actual final connector title, `--as-merge-payload` exactly leased Head and empty message. Protect original SHA/tag/run evidence and retain failed outcome.
+- Next gates: PR CI three required checks and Trusted QA/0 reviews, explicit Owner scope, new immutable merge with verified <=30-character Korean summary; inspect subsequent push Main CI/GHCR/Finalizer live. v0.107.0 formal release and Issue #616 history recovery remain separately authorized. Remote positive results pending.
+
 ## Issue #639 / PR #641 — CI #2601.1 E2E strict-mode evidence (2026-10-13)
 
 - [CI #2601.1](https://github.com/planner77/masterGantt/actions/runs/38294610523) head `70bbd429`: Quality PASS, Docker PASS, Chromium shards 1/2/3/4/6 PASS. Shard 5 failed one #525 Resource Dashboard test: accessible `2건` matched both assigned and delayed KPI counts. Aggregate E2E FAIL, Automated QA FAIL as downstream result.
