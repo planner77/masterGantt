@@ -1,3 +1,8 @@
+## Issue #629 — QA Preflight 선행 차단 구현 (2026-10-12)
+- 기준 main `6eaec3331fcbc720ab42106789a505c5ee5eefb4`, 브랜치 `ci/issue-629-qa-preflight`; Issue #598 OWNER_MANAGED, #593 Trusted provenance, #600 metadata auto reconcile 유지.
+- 도입 단계: base에 사전 검증기 없음 → Bootstrap NOT TESTED, full required 3종 실행 및 최종 Trusted QA 검증. 이후 full PR에만 최신 base SHA verifier로 preflight 실행; PR 메타데이터/Work Packet은 읽기 전용 data. 사전 실패 시 heavy jobs skipped·required aggregate FAILURE.
+- 검증: Python replay/CI YAML syntax, 신규 PR CI 실행·원본/현재 세 required 결과는 PR Run에서 판정. 병합·Main CI·GHCR·이슈 종료는 요청 범위 밖. Version bump/release 없음.
+
 ## Issue #615 — F1 공정 catalog·WorkArea 기반 모델 (2026-10-12)
 
 [#615 Work Packet](ISSUE_615.md): #614 PR #625의 F0 계약이 병합된 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 `feat/issue-615-process-catalog`를 생성했다. migration0025/공통 admin·Project context·명시 mapping API와 기존 master/copy/template/logistics 보호를 구현한다. #614 Issue 전체 완료나 main/GHCR PASS는 추론하지 않는다. 새로운 화면과 #616~#624는 별도다.
