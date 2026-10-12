@@ -1,3 +1,11 @@
+## PR CI #2537.1 — Chromium shard5 Projection timeout 및 재검증 (2026-10-12 KST)
+
+- [원본 Full PR CI #2537.1](https://github.com/planner77/masterGantt/actions/runs/38188347560), head `70e5b1d3180e10bbefda3fa16d599331fe824dc0`: Policy Python 10/10·Quality/TS/ESLint/Vitest/Build·Docker PASS; E2E shard5 97 PASS/1 FAIL (#570 `actual Core structure insert-before`), 나머지 5개 shard PASS. E2E aggregate 및 QA Automated FAIL은 종속 실패(`required e2e 미성공`). 원본 기록은 FAIL로 보존한다.
+- [shard5 실패 report](https://github.com/planner77/masterGantt/actions/runs/38188347560/artifacts/11720797482): revision 41의 projection `TIMED_OUT`(내부 observer 1,500ms)인데 논리/실제 Core/DOM visible IDs가 모두 `[0001,0002,0570,0003,0004]` 순서로 일치하고 실제 Grid에 새 행이 렌더됐다. 단, native/grid/chart/payload/column 등 개별 조건의 실패 predicate는 기존 receipt에 없으므로 원인 특정 불가; flaky라고 단정하거나 기존 assertion을 완화하지 않는다.
+- 보완: `tests/e2e/canonical-projection.spec.ts`의 동일 엄격 `revision:SETTLED` 5초 검증·내부 1,500ms timeout·업무 mutation/assertion은 불변. 실패 시에만 동일 browser frame의 원본 receipt, canonical sync generation/depth, Grid 행 실제 rect/text, Chart bar rect/label 및 #568 trace 최근 이벤트를 JSON artifact로 보존하여 후속 결함 판정 근거를 확보. 재시도/skip/expected 값 완화 없음.
+- 본 PR의 #629 Preflight 코드와 별개인 #570 테스트 관찰 문제를 진단하되 기능 코드 변경·#570 acceptance 재정의는 하지 않는다. main `e51b99cb25f37c8909de356a089a56b4139415a3`(기준 대비 6 commits) 정렬 및 공통 문서 충돌 해소 뒤 새 Full PR CI로 다시 판단한다.
+- QA Bootstrap은 신뢰된 base에 preflight validator가 아직 없으므로 `NOT TESTED`이며 이 Job의 SUCCESS를 본체 사전검증 PASS로 주장하지 않는다. New HEAD CI/Trusted/Owner decision는 NOT TESTED, 병합·GHCR·release 미승인.
+
 ## PR CI #2532.1 원본 실패 및 보완 (2026-10-12 KST)
 - [원본 PR CI #2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545) — HEAD `541b4b36ff6ba007ac79e8cb562a9565ceba5927`, run `38186982545.1`: 변경 경로/QA bootstrap PASS, Preflight는 base 미도입으로 `NOT TESTED`(Job 자체 SUCCESS), Chromium E2E 6/6·Docker smoke 및 aggregate SUCCESS. Policy Job의 `scripts/test_qa_preflight.py::test_workflow_aggregate_guard_contract` 10개 중 9개 PASS/1개 FAIL.
 - 직접 원인: Python assert가 `ref: ${{ github.event.pull_request.base.sha }}`(literal backslash 포함)을 기대하나 workflow의 실제 값은 `ref: ${{ github.event.pull_request.base.sha }}`. 문자열 `\$`의 불필요한 역슬래시를 제거하고 일치/잘못된 escaped form 불일치 회귀를 추가. 신규 Policy Job 실패 → required `Build, static checks, and unit tests` FAILURE → `QA Final — Automated`는 `required quality 미성공`으로 FAIL. E2E·Docker의 원본 성공은 수정 후 새 Head의 성공 근거가 아니다.
@@ -30,6 +38,7 @@
 - `scripts/qa_preflight.py`: UPDATED
 - `scripts/test_qa_preflight.py`: UPDATED
 - `.github/workflows/ci.yml`: UPDATED
+- `tests/e2e/canonical-projection.spec.ts`: UPDATED
 - `DESIGN.md`: N/A(제품 UI 및 UX 지침 변경 없음)
 - `docs/API.md`: N/A(애플리케이션 서버 API 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(데이터베이스 구조 변경 없음)
