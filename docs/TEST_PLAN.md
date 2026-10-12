@@ -1,3 +1,10 @@
+## Issue #639 / PR #641 — Shard 5 strict-mode collision regression (2026-10-13)
+
+- Repro evidence: Run #2601.1, E2E Shard 5 (`tests/e2e/resource-dashboard-ui.spec.ts` #525). `KPI getByRole(button, name="2건")` found 2 buttons; 97 tests PASS, one strict-mode FAIL. Aggregate E2E/QA subsequent FAIL.
+- Regression: Select `dl[aria-label="선택 범위 KPI"]` and then its unique direct KPI row labeled exactly `할당 Task`; `toHaveCount(1)` before selecting/clicking scoped `2건`. This must work when any other KPI (e.g. delayed Task) shares the displayed count. Avoid `first()/nth()` and disabling strict locator validation.
+- Keep existing `view=tasks` request/HTTP200/totalCount2/one row for shared Task, readonly scope, assignment/Milestone, filtering, stale/revision and persistence assertions. For independent local validation: `npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-dashboard-ui.spec.ts --project=chromium --workers=1 --repeat-each=5`; actual repeat result NOT TESTED.
+- New PR CI: Quality/E2E6/Docker required three aggregates + Trusted QA all tied to **new head/base/test merge**. Only Actions result can establish remote PASS. No app business logic or version mutation.
+
 ## Issue #639 — PR #641 review P1 regression matrix (2026-10-13)
 
 - `python3 scripts/verify-issue-lifecycle.py`: trusted default-main checkout (no persisted credentials), correct `scripts` namespace import, source SHA recheck, Buildx + authenticated private GHCR before `completed_evidence`, Finalizer after proven candidate, original push acceptance.

@@ -1,3 +1,9 @@
+## Issue #639 / PR #641 — CI #2601.1 E2E strict-mode evidence (2026-10-13)
+
+- [CI #2601.1](https://github.com/planner77/masterGantt/actions/runs/38294610523) head `70bbd429`: Quality PASS, Docker PASS, Chromium shards 1/2/3/4/6 PASS. Shard 5 failed one #525 Resource Dashboard test: accessible `2건` matched both assigned and delayed KPI counts. Aggregate E2E FAIL, Automated QA FAIL as downstream result.
+- Corrective code: `tests/e2e/resource-dashboard-ui.spec.ts` binds to exactly one `할당 Task` KPI row before examining/clicking the count; no product/runtime changes. Confirm API `view=tasks`, totalCount2 and Task row, then full PR CI and Trusted QA on updated SHA.
+- New run/attempt and actual browser rerun pending; historical failed CI must stay FAIL. This is not evidence of original #616 Main CI or verified GHCR image. Release Finalizer remains blocked until #639 merged and #616 authorized separately.
+
 ## Issue #639 — PR #641 verified-source review remediation (2026-10-13)
 
 - Remote CI #2599.1 passed all 3 required aggregate jobs but Automated QA BLOCKED on three unresolved P1 review threads. Two protected code defects were identified in the trusted Finalizer: root-relative Python import and GHCR login after digest inspection.

@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 CI #2601.1 Chromium Shard 5 correction (2026-10-13)
+
+- Cause: #525 Resource Dashboard E2E count-only Playwright locator `2건` resolves to both Assigned Task and Delayed Task. Shard 5: 97 PASS/1 FAIL; quality + docker PASS, other E2E shards PASS, QA cascaded FAIL.
+- Change only the E2E semantic locator: uniquely identify KPI row `할당 Task` before asserting/clicking `2건`; retain response/data checks and strict selector validation. Synchronize test plan, remote validation and changelog. Fresh PR full CI required for new Head; no change to #639 release policy or production.
+- Primary Issue #639 HIGH/OWNER_MANAGED, `release_required=false`, `release_authorized=false`. Owner merge and #616 recovery approval remain separate.
+
 ## Issue #639 — PR #641 review P1 remediation / New PR CI (2026-10-13)
 
 - Root causes: Codex P1×3 (offline mocked no-env test already fixed; inline root import; private GHCR digest authentication ordering). Existing required CI #2599.1 Quality/E2E/Docker PASS, Automated QA BLOCKED on unresolved threads.

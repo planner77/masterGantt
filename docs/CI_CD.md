@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 CI #2601.1 Chromium E2E collision (2026-10-13)
+
+- The latest full CI failed on E2E shard 5, `#525 resource-dashboard-ui.spec.ts`: unscoped `2건` KPI button locator returned two elements (Assigned Task and another count metric, e.g. Delayed Task). Quality and Docker passed and other 5 E2E shards passed. E2E aggregate/QA failed by design.
+- Update the Playwright test to use exact KPI semantic label and assert a single matching metric before click, preserving 6 shards/required aggregates and strict mode. No workflow job skip, E2E retry-bypass, policy change or production resource KPI alteration.
+- Only a successful **fresh PR CI + Trusted QA** on corrected head may establish merge readiness; earlier runs remain immutable FAIL.
+
 ## Issue #639 — PR #641 Codex P1 Finalizer boundary fixes (2026-10-13)
 
 - Review P1: protected release Finalizer's inline Python from repo root previously imported a module outside `sys.path`; use `scripts.main_ci_recovery`.

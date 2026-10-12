@@ -1,3 +1,11 @@
+## PR #641 / CI #2601.1 E2E Shard 5 flaky locator correction (2026-10-13)
+
+- **Observed:** [CI #2601.1](https://github.com/planner77/masterGantt/actions/runs/38294610523), head `70bbd429b4cd9146d43cfec11a68773ca720b047`. Quality/Policy/Vitest/Typecheck/Lint/Build and Docker PASS. Chromium 5 of 6 shards PASS; Shard 5 failed 1 of 98 cases (97 PASS). Required E2E aggregate then FAIL, automated/Trusted QA cannot pass.
+- **Root cause:** `tests/e2e/resource-dashboard-ui.spec.ts:35-36`, Issue #525 fixture. `getByLabel("선택 범위 KPI").getByRole("button", {name:"2건", exact:true})` returned two accessible buttons. Both assigned Task and delayed Task can show `2건` on the same date; the test's count-only locator does not identify the intended metric. Compare to prior CI #2599.1 where this test passed against the same file/blob: this is a selector/data-date sensitivity, not proven recovery code regression.
+- **Correction:** Within KPI DL select the **unique direct KPI `div` with exact `할당 Task` label**, assert exactly one matching metric, then verify and click that metric's `2건` button. Reuse the same locator for the response assertion (`view=tasks`, HTTP 200, totalCount 2 and deduplicated Task IDs). Do not use positional `first()/nth()`, relax Strict Mode or change KPI model.
+- **Evidence/coverage:** new Head E2E/Quality/Docker and Trusted QA **NOT TESTED until Actions completion**; targeted repeated Playwright test recommended to disambiguate residual timing. No product logic, API, DB, or version change; `release_required=false`, `release_authorized=false`. Main/Release and #616 restoration unchanged.
+- **DOCUMENTATION_SYNC delta:** `tests/e2e/resource-dashboard-ui.spec.ts`, `docs/exec-plans/active/ISSUE_639.md`, `docs/exec-plans/active/PLAN.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `CHANGELOG.md` UPDATED. `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `AGENTS.md` N/A(existing contract unchanged).
+
 ## PR #641 Codex P1×3 보완 (2026-10-13)
 
 - #2599.1: Required Quality/E2E6/Docker 3종 PASS, Automated QA BLOCKED(`unresolved review thread`), Trusted QA 원본 run non-success로 FAIL; 회귀 방지 위해 reviewer 스레드를 해결하기 전 새로운 PR Head를 검증한다.
@@ -32,6 +40,7 @@
 - `scripts/test_main_ci_recovery.py`: negative and positive local deterministic tests.
 
 ## DOCUMENTATION_SYNC
+- `tests/e2e/resource-dashboard-ui.spec.ts`: UPDATED
 - `scripts/verify-issue-lifecycle.py`: UPDATED
 - `tests/scripts/deployment-layout.test.ts`: UPDATED
 - `AGENTS.md`: UPDATED
