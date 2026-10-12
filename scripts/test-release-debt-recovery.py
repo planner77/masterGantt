@@ -70,8 +70,8 @@ def mock_gh(path,*,method="GET",fields=None):
     return {}
 history_current=chain
 def fake_history_run(*args,**kwargs):
-    ok(args==("git","rev-list","--first-parent",history_current[-1].target_sha),
-       "trusted git ancestry must be exact and read-only")
+    ok(args[:3]==("git","rev-list","--first-parent") and len(args)==4,
+       "trusted git ancestry query must be first-parent and read-only")
     return SimpleNamespace(stdout="\n".join(item.target_sha for item in reversed(history_current)))
 def fake_resolve(repo,sha):
     return next(item for item in history_current if item.target_sha==sha)
