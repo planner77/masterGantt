@@ -1,3 +1,8 @@
+## Issue #633 — PR #634 QA Preflight 계약 보완 (2026-10-12)
+
+- PR CI #2556.1 (`38199169784.1`) QA Preflight는 `docs/exec-plans/active/ISSUE_633.md` Work Packet 404로 `BLOCKED`되었으며 Quality/E2E/Docker Required aggregate FAIL, 본체 테스트 SKIPPED. 앱 결함 검증은 수행되지 않았다.
+- 후속: #633 Work Packet의 DOCUMENTATION_SYNC/AC_TEST_COVERAGE, QA 정책/원격검증/테스트 문서 동기화 → 신규 Head PR CI 실행. 본 PR은 read-only 감사·기존 fail-closed·비릴리스(`release_authorized=false`) 유지; 정식 GHCR 게시/Owner 부채 승계 승인 별도.
+
 ## Issue #550 — Main #2543.1 E2E FILTER_RETURN 보완 및 후속 릴리스 검증 (2026-10-12)
 
 - 기준 main `e51b99cb25f37c8909de356a089a56b4139415a3` / `0.106.0`; 새 #550 교정 브랜치 `fix/issue-550-main-ci-filter-return-receipt`. [Main #2543.1](https://github.com/planner77/masterGantt/actions/runs/38191560895)에서 Quality·Docker와 E2E 5 shard PASS, shard3 #463 `FILTER_RETURN` 1 FAIL/122 PASS/1 SKIP으로 전체 FAIL. 임시 GHCR/Finalizer 미실행.

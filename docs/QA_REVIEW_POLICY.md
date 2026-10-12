@@ -1,3 +1,9 @@
+## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
+
+- #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.
+- `scripts/release_debt_audit.py` 및 `.github/workflows/release-debt-audit.yml`은 **trusted main read-only** 감사 전용이며, Owner의 별도 exact SHA·버전별 복구 결정과 GHCR digest·tag 상태를 판정한다. 결과 `READY_FOR_SEPARATE_TRUSTED_RECOVERY`도 정식 tag·GHCR 게시·Issue close 권한이 아니다.
+- 독립 QA/Owner HIGH 승인, PR Required 세 종, Main candidate digest/SBOM/provenance, immutable SemVer/Release/Resume/cleanup 순서는 유지한다. 자세한 결정·실패 감사 원장·rollback은 [Issue #633 복구 계획](ISSUE_633_RELEASE_DEBT.md)을 참조한다.
+
 ## Issue #629 — 자동 QA 사전/최종 판정 경계 (2026-10-12)
 Preflight는 #598 OWNER_MANAGED 기본 경로와 선택 AGENT·LOW/MEDIUM/HIGH 위험도·보호 경로 감지를 기존 `qa_final_automated.py`의 공통 함수로 검증한다. 구조적 FAIL만 E2E/Docker 이전 차단하고, 리뷰/Owner ACCEPT/최신 Trusted QA/정확한 test merge/aggregate 3종 완료 여부는 DEFERRED(최종 QA 담당)이다. 사전 PASS는 `QA_FINAL PASS`나 `MERGE_READY`가 아니다. AGENT 독립 QA나 Owner 승인을 자동 생성하지 않는다. PR Head 검증기 코드는 신뢰·실행하지 않는다.
 

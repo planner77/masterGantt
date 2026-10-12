@@ -1,3 +1,8 @@
+## Issue #633 — 릴리스 부채 감사 수동 진입 (2026-10-12)
+
+- `release-debt-audit.yml`의 수동 입력은 main snapshot/source #550/원본 #615/교정 #615 full SHA 및 선택적 신규 corrective full SHA이다. Read-only 토큰, default branch `main` checkout으로만 검증하고, 증거 미확정·tag 충돌·Owner 버전별 승인 누락은 `BLOCKED`로 처리한다.
+- `READY_FOR_SEPARATE_TRUSTED_RECOVERY`는 **정식 발행 승인·기존 원장 복구·이슈 종료가 아니다**. Release Finalizer/immutable tag/digest promotion/cleanup 변경 금지; 후속 실행기는 별도 설계·Owner 승인 필요. [상세 운영 결정](ISSUE_633_RELEASE_DEBT.md).
+
 ## Issue #629 — Preflight 조기 차단 운영 (2026-10-12)
 - PR 제목은 정확한 `Issue #N`, 본문은 단일 `Refs #N`, `risk_level`/`qa_method`/`qa_required`를 선언한다. `docs/exec-plans/active/ISSUE_N.md`는 `DOCUMENTATION_SYNC`(변경 파일 근거의 UPDATED/N/A 사유)와 AC별 `AC_TEST_COVERAGE`를 포함한다.
 - Preflight 실패 시 해당 Job summary와 Run·Attempt별 artifact에서 FAIL 항목·수정 위치를 확인하고 PR Head를 보완한 뒤 새 PR CI를 시작한다. base/head가 바뀌면 기존 PASS 사용 금지. 첫 도입에서는 기본 브랜치 검증기 부재로 NOT TESTED이며 정상적인 기존 CI/Trusted QA를 반드시 완료한다. #600 metadata 자동 복구 및 별도의 Owner 승인 경계를 유지한다.

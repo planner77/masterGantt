@@ -1557,4 +1557,20 @@ finally:
     else:
         __import__("os").environ["GITHUB_TOKEN"] = saved_auto_token
 
+# Issue #633: release-debt policy is audit-only, with no automatic cross-Issue bypass.
+from pathlib import Path as _Path633
+_audit633 = _Path633("scripts/release_debt_audit.py").read_text(encoding="utf-8")
+_workflow633 = _Path633(".github/workflows/release-debt-audit.yml").read_text(encoding="utf-8")
+require("supersede_failed_issue_retries(" in _audit633, "cross-Issue audit must reuse fail-closed generic policy")
+require("READY_FOR_SEPARATE_TRUSTED_RECOVERY" in _audit633, "audit result must not mean release publication")
+require("release-debt-authorization:v1" in _audit633, "new owner-scoped retirement decision must be separate from release approval")
+require("ref: main" in _workflow633 and "persist-credentials: false" in _workflow633, "audit must use trusted main")
+require("workflow_dispatch:" in _workflow633 and "packages: read" in _workflow633, "audit must be read-only manual workflow")
+require("packages: write" not in _workflow633 and "actions: write" not in _workflow633 and "issues: write" not in _workflow633, "audit must not grant mutation authority")
+require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _workflow633, "private GHCR audit must use pinned Docker Registry login")
+require("registry: ghcr.io" in _workflow633 and "username: ${{ github.actor }}" in _workflow633 and "password: ${{ secrets.GITHUB_TOKEN }}" in _workflow633, "private GHCR login must use existing GITHUB_TOKEN")
+require(_workflow633.index("docker/login-action@") < _workflow633.index("name: exact first-parent"), "GHCR authentication must precede registry read")
+require('ghcr_digest(f"ghcr.io/{repo.lower()}:{version}")' in _audit633, "GHCR exact image tag must be bare SemVer, not annotated Git vSemVer")
+require("return \"UNKNOWN\", None" in _audit633 and 'if "manifest unknown" in error' in _audit633, "ambiguous registry inspection must fail closed")
+
 print("issue-lifecycle generic/automatic contract scenarios: PASS")

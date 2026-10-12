@@ -1,3 +1,15 @@
+## Issue #633 — PR #634 리뷰 P1 registry 회귀 테스트 (2026-10-12)
+
+- `scripts/test-release-debt-audit.py`에 Git tag `v0.105.0` 대 GHCR exact image `:0.105.0` 구별, 이미 발행된 GHCR exact digest의 BLOCKED 처리, registry unauthorized/HTTP 404→UNKNOWN 및 명시적 manifest-unknown→ABSENT fixture를 추가한다. 네트워크 없이 read-only 결과만 모킹한다.
+- `scripts/verify-issue-lifecycle.py`: pinned `docker/login-action`, 기존 `GITHUB_TOKEN`/GHCR 경로의 login-before-inspect, 읽기 전용 permissions, bare-SemVer 조회 불변을 확인한다. 새로운 원격 GHCR 등록/Release/Finalizer는 실행하지 않는다.
+- [PR CI #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645)의 Required 세 종 SUCCESS와 QA Automated review-thread BLOCKED를 구별한다. 새로운 Head의 CI로 재검증한다.
+
+## Issue #633 — 교차 릴리스 부채 감사 검증 (2026-10-12)
+
+- `python3 scripts/test-release-debt-audit.py`: #550 실패 Main SHA→BLOCKED, #615 same-Issue corrective/중간 Issue·docs-only·closed barrier·SemVer 변화, immutable tag/GHCR UNKNOWN, Owner marker 위조·철회 및 버전별 승인 positive/negative fixture.
+- `python3 scripts/verify-issue-lifecycle.py`: 기존 #615/#586/#344 finalizer 계약·정적 workflow 권한 회귀 포함. `python3 -m py_compile scripts/release_debt_audit.py` 문법 검증.
+- 실제 default-branch audit/CI exact SHA/GHCR digest/SBOM/Resume는 별도 Owner 승인·trusted 실행 전 `NOT TESTED`. QA Preflight #2556.1 HTTP 404는 `docs/exec-plans/active/ISSUE_633.md` 누락으로 재현된 `BLOCKED`; 세 필수 aggregate 종속 실패·heavy CI 미실행이며 새 Head로 재검증한다.
+
 ## Issue #550 — Main CI #2543.1 FILTER_RETURN 완료 경합 보완 (2026-10-12)
 
 - 원본 [Main CI #2543.1](https://github.com/planner77/masterGantt/actions/runs/38191560895), 병합 SHA `e51b99cb25f37c8909de356a089a56b4139415a3`: Quality(TypeScript/Lint/Vitest/Build)·Docker PASS, Chromium shard 3/6에서 `tests/e2e/milestone-dashboard-state.spec.ts:181` 1 FAIL/122 PASS/1 SKIP, 다른 5 shard PASS. Chromium aggregate FAIL, Main GHCR candidate 및 Finalizer SKIPPED. 기존 실패는 변경하지 않는다.
