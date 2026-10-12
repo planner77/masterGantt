@@ -1,0 +1,67 @@
+name: 릴리스 부채 신뢰 감사
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_main_sha:
+        description: "감사 기준 main full SHA"
+        required: true
+        type: string
+      source_sha:
+        description: "실패한 원본 merge SHA"
+        required: true
+        type: string
+      original_successor_sha:
+        description: "다른 Issue의 최초 실패 merge SHA"
+        required: true
+        type: string
+      successor_sha:
+        description: "다른 Issue의 성공한 교정 merge SHA"
+        required: true
+        type: string
+      corrective_sha:
+        description: "새 버전 교정 merge SHA (없으면 승인 대기 BLOCKED)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+  packages: read
+
+concurrency:
+  group: mastergantt-release-debt-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: 신뢰된 main의 exact 릴리스 증거 판정
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Python 정적 계약 검증
+        run: python3 -m py_compile scripts/release_debt_audit.py
+      - name: GHCR read-only 조회 도구 준비
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+      - name: exact first-parent 및 Owner 버전 승인 감사
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED_MAIN: ${{ inputs.expected_main_sha }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          ORIGINAL_SUCCESSOR_SHA: ${{ inputs.original_successor_sha }}
+          SUCCESSOR_SHA: ${{ inputs.successor_sha }}
+          CORRECTIVE_SHA: ${{ inputs.corrective_sha }}
+        run: |
+          args=(--expected-main-sha "$EXPECTED_MAIN" --source-sha "$SOURCE_SHA" --original-successor-sha "$ORIGINAL_SUCCESSOR_SHA" --successor-sha "$SUCCESSOR_SHA")
+          if [ -n "$CORRECTIVE_SHA" ]; then
+            args+=(--corrective-sha "$CORRECTIVE_SHA")
+          fi
+          python3 scripts/release_debt_audit.py "${args[@]}"
