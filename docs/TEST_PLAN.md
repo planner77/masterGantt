@@ -3225,3 +3225,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 기존 master/copy/template/logistics·DB migration 테스트를 직접 관련 회귀로 함께 실행한다. typecheck/변경 파일 lint/version/문서 링크/diff check는 보조 근거다. 새 UI가 없으므로 화면 캡처·390/768/1024/1440px·keyboard·SVAR demo 조작은 N/A다. 실제 운영 migration/DB backup-restore/proxy/TLS·Windows Excel은 NOT TESTED이며 테스트용 SQLite를 운영 검증으로 확대하지 않는다.
 
 최종 PR의 quality/e2e/docker 결과는 CI 시작 시점에는 NOT TESTED다. 이 요청에서는 시작만 확인하고 완료를 모니터링하지 않는다. QA_FINAL·Owner Manager ACCEPT·merge/main GHCR/release도 별도 gate다.
+
+## Issue #616 Target verification
+
+Integration fixture covers project_common MCS identity reuse, duplicate Target/member protection, empty member/cross-project rejection, stale revision, and copy remap/atomic failure; `tests/server/logistics/logistics-targets.test.ts`. Required follow-on CI: migration26 fresh + 25→26 upgrade, foreign_key_check, restart, active/inactive, process occurrence/WorkArea validation, equipment unit/fleet counts, System=1, shared MCS with 2 ACS, atomic inline partial failure, HTTP 401/403/409/412, duplicate submit, usage and target list bounds, Template/JSON loss guard, and Project Copy source/destination FK. Current tests are *committed, not executed locally*; full regression PASS is NOT TESTED pending GitHub Actions. No claim of complete AC1–AC7 coverage yet.
