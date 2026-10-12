@@ -158,6 +158,9 @@ def assess(
             "source → 다른 Issue → same-Issue corrective 순서가 아닙니다")
     require(source.issue_number != original.issue_number,
             "교차 Issue 릴리스 부채가 아닙니다")
+    require(all(item.issue_number != source.issue_number for item in
+                chain[indices[source_sha]+1:indices[original_successor_sha]+1]),
+            "source와 후속 release 사이의 다른 merge가 원장에 존재합니다")
     require(source.current_version == original.previous_version,
             "실패 버전과 후속 release baseline이 다릅니다")
     require(original.issue_number == successor.issue_number,
