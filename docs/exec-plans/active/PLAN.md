@@ -1,3 +1,7 @@
+## Issue #639 — CI #2596.1 branch trace fail-close / corrective PR (2026-10-12)
+- PR #640 최초 CI의 root cause는 `fix/639-` 브랜치가 `issue-NNN` 필수 패턴에 어긋나 `verify-ci-run-trace.py`가 Fail-close한 것. Required 세 집계 실패는 `changes` 실패의 파생 효과. 구현 Job 자체 테스트는 실행되지 않았음.
+- `fix/issue-639-exact-main-recovery` 규정 준수 브랜치로 corrective PR을 생성해 full PR CI를 새로 시작한다. #640은 superseded; main/protected policy/서명 검증을 완화하지 않음. 아직 PR success/Trusted QA/Owner approval NOT TESTED.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

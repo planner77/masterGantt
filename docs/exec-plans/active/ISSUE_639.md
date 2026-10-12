@@ -1,6 +1,12 @@
+## PR CI #2596.1 실패 원인 및 수정 (2026-10-12)
+- 실패 근거: PR #640 / CI run 38259369778 (#2596.1), `변경 경로 판정` job 114845641671, `scripts/verify-ci-run-trace.py`의 branch `issue-NNN` 규칙 불일치. 기존 branch `fix/639-exact-main-recovery`에서 파싱된 Issue 집합은 `[]`이며 PR Primary Issue `#639`와 일치하지 않았다.
+- 영향: `changes=FAILURE` → QA Preflight=SKIPPED, 세 required aggregate=FAIL, Automated QA=FAIL. 아직 Quality/E2E/Docker 구현 실패로 판정할 증거는 없다.
+- 조치: 검증 규칙을 완화하지 않고 명세에 맞는 `fix/issue-639-exact-main-recovery` 신규 브랜치 및 후속 PR에서 full CI를 새로 기동한다. 최초 PR #640은 superseded로 종료하며 해당 실패 run을 PASS로 소급하지 않는다.
+- 현재 시점: 수정 CI, 실행 테스트, GHCR 검증 모두 **NOT TESTED**. Owner 승인 전 병합/Release/Registry mutation 금지.
+
 # Issue #639 — Main SHA recovery Work Packet
 
-**Primary Issue:** #639; base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`; branch `fix/639-exact-main-recovery`. HIGH / OWNER_MANAGED / qa_required=true / manager_decision=NOT TESTED / release_required=false / release_authorized=false.
+**Primary Issue:** #639; base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`; branch `fix/issue-639-exact-main-recovery`. HIGH / OWNER_MANAGED / qa_required=true / manager_decision=NOT TESTED / release_required=false / release_authorized=false.
 
 ## Implementation
 - Secure default branch controller `scripts/main_ci_recovery.py`; original merge SHA only data after Owner authentication.
