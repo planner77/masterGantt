@@ -377,8 +377,11 @@ def run_audit(args: argparse.Namespace) -> int:
     expected_versions = {item.current_version for item in chain}
     states = version_states(repo, expected_versions)
     repo_owner = repo.split("/", 1)[0]
-    source = next(item for item in chain if item.target_sha == args.source_sha)
-    bridge = next(item for item in chain if item.target_sha == args.successor_sha)
+    by_sha = {item.target_sha: item for item in chain}
+    require(args.source_sha in by_sha and args.successor_sha in by_sha,
+            "요청한 source/successor SHA가 main first-parent에 없습니다")
+    source = by_sha[args.source_sha]
+    bridge = by_sha[args.successor_sha]
     source_comments = finalizer.issue_comments(repo, source.issue_number)
     bridge_comments = finalizer.issue_comments(repo, bridge.issue_number)
 
