@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #647 #616 recovery CI #2621 Milestone focus stability (2026-10-13)
+
+- Fix bounded Milestone Dashboard focus restoration after a native WorkspaceDialog closes during delete, including a deleted management trigger, hidden/foreign panel and another modal. Strengthen Playwright E2E to verify the actual active element belongs to the visible Milestone panel and is the search fallback. Current main already has #639's Resource Dashboard `할당 Task` KPI count-selector fix; the immutable #616 v0.107.0 original SHA lacks it and is not rewritten. Version, schema, API, CI workflow and formal release authority unchanged.
+
 ## [Unreleased] — Issue #645 immutable merge-PR identity recovery #2617 (2026-10-13)
 
 - Resolve false-negative trusted CI recovery when GitHub's commit-to-PR association index is empty for a real merged PR. Verify unique matching merged PR by exhaustively paginating the independent closed PR history; keep direct association strict, block missing/duplicate/unmerged/unavailable history, and cross-check both merge parents against PR base/head. Add mocked positive/negative and authenticated pagination regressions, update release/security operation documents. No application version, API/schema/UI changes or weakening of GHCR/Owner release permissions; old CI #2617.1 remains immutable FAIL.

@@ -1,3 +1,9 @@
+## Issue #647 — exact historical SHA recovery E2E failure is not PR CI (2026-10-13)
+
+- [CI #2621.1](https://github.com/planner77/masterGantt/actions/runs/38313359094) is a **manual immutable-source recovery** (`workflow_dispatch`), not PR CI: `changes` selects checkout SHA `b97709df...` while Controller main is `c9e695f2...`. All six E2E shards execute the **old tree**; main-only test changes are unavailable. Shard3/Milestone post-delete focus null and shard5/duplicate KPI count selector failed. Required Chromium aggregate FAILED, so formal candidate GHCR did not run. Do not rerun completed failed recovery as success or claim #616 closed.
+- Shard5's exact test case is already corrected on main in #639; source SHA comparison proves old `b977...` lacks it. #647 only fixes current-main Milestone UI focus after native Dialog cleanup and adds strict actual-focus E2E assertion. New PR CI/Trusted QA validates the new Head and cannot be used to mark original SHA source E2E successful.
+- Release management must preserve #616 original Owner approval and pending v0.107.0 release requirement. To publish a corrected SHA instead of historical immutable source requires a separately authenticated version/release disposition; no overlay, skip, bypass or retag of old GHCR artifacts is authorized by this PR. Existing CI.yml/Ruleset/Owner/QA/Finalizer source trust unchanged.
+
 ## Issue #645 — 정확 SHA recovery의 GitHub commit-to-PR source 다중 입증 (2026-10-13)
 
 - #616 `b97709dfb8.../PR #631` 복구 [CI #2617.1](https://github.com/planner77/masterGantt/actions/runs/38310183123) 실패는 `changes`/Owner `authorize` 단계. `GET /commits/{sha}/pulls` = 0건인 반면 직접 PR #631의 `merge_commit_sha`/실제 git parents 및 closed PR history 일치. 이 인덱스 조회 한 건만으로 유효 병합을 거부하는 거짓 음성 수정.

@@ -1,3 +1,8 @@
+## Issue #647 — 삭제 후 관리 진입점 focus 보존 (2026-10-13)
+
+- Milestone 독립 목록에서 native WorkspaceDialog가 닫히기 전 예약된 RAF는 `:modal` trap에 의해 거부될 수 있다. 삭제한 원 관리 버튼이 DOM에서 소멸하면 같은 활성 프로젝트 Dashboard의 검색·추가·heading 중 실제 연결/표시 상태인 후보에 focus를 인계하되, 현재 활성 프로젝트/패널에 한정하고 또 다른 modal이 열려 있으면 기다린다. 한정된 RAF만 허용, 다른 날짜 좌표·SVAR viewport·WBS membership·Task source는 변화시키지 않는다.
+- 원본 #616의 복구 CI #2621 샤드3 포커스 FAIL과 샤드5 이전 KPI 선택자 FAIL은 별개다. #639가 modern main의 KPI 선택자를 수정했지만 과거 immutable SHA에 새 테스트를 소급 반영한 것으로 간주하지 않는다. 새로운 변경 PR CI는 현재 main의 회귀 검증이며 원본 복구의 신뢰된 exact SHA 테스트를 대체하지 않는다.
+
 # Milestone Timeline
 
 ## Issue #571 — 표시 소비자와 viewport 의도

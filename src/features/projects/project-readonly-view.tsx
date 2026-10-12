@@ -1013,12 +1013,36 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (activeView === "milestones") focusMilestoneDashboard(deleteTriggerReference.current);
   }
   function focusMilestoneDashboard(trigger?: HTMLElement | null) {
-    requestAnimationFrame(() => {
+    // #647 / CI #2621 shard 3: a delete request closes a native WorkspaceDialog
+    // asynchronously. Focusing the Dashboard in the first RAF can be refused
+    // while the dialog is still :modal; its cleanup then leaves focus on <body>.
+    // Retry only while the original Milestone panel is visible/owned by this
+    // project, and never focus through another open native modal.
+    const maxFrames = 24;
+    const restore = (frame: number) => {
       const panel = document.getElementById("project-panel-milestones");
-      if (panel?.querySelector("[data-testid=milestone-dashboard]")?.getAttribute("data-project-public-id") !== publicId) return;
-      const target = isVisibleFocusTarget(trigger) ? trigger : ["search", "add", "heading"].map(kind => panel?.querySelector<HTMLElement>(`[data-milestone-focus="${kind}"]`)).find(isVisibleFocusTarget);
-      target?.focus();
-    });
+      if (!panel || panel.hidden ||
+          panel.querySelector("[data-testid=milestone-dashboard]")?.getAttribute("data-project-public-id") !== publicId) return;
+      const anotherModalOwnsFocus = document.querySelector("dialog:modal") !== null;
+      if (anotherModalOwnsFocus) {
+        if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+        return;
+      }
+      // Preserve a deliberate focus move already completed in this panel.
+      const active = document.activeElement;
+      if (active instanceof HTMLElement && panel.contains(active) &&
+          active.hasAttribute("data-milestone-focus")) return;
+      const fallback = ["search", "add", "heading"]
+        .map(kind => panel.querySelector<HTMLElement>(`[data-milestone-focus="${kind}"]`))
+        .find(isVisibleFocusTarget);
+      const target = isVisibleFocusTarget(trigger) && panel.contains(trigger) ? trigger : fallback;
+      if (target) {
+        target.focus({ preventScroll: true });
+        if (document.activeElement === target) return;
+      }
+      if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+    };
+    requestAnimationFrame(() => restore(0));
   }
   function closeMilestoneCreate() {
     if (taskMutationReference.current) return;
