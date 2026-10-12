@@ -233,6 +233,9 @@ def assess(
             "새 corrective가 최초 source Issue에 속하지 않습니다")
     require(not corrective.validation_docs_only and corrective.release_required,
             "새 corrective는 검증된 non-docs version-bump merge여야 합니다")
+    require(all(item.current_version == successor.current_version for item in
+                chain[indices[successor_sha]+1:indices[corrective_sha]]),
+            "교정 버전 이전에 또 다른 version bump가 있습니다")
     require(semver(corrective.current_version) > semver(successor.current_version)
             and corrective.previous_version == successor.current_version,
             "새 corrective SemVer는 후속 버전보다 커야 하며 baseline이 정확해야 합니다")
