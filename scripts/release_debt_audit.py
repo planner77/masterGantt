@@ -324,6 +324,7 @@ def ghcr_digest(image: str) -> tuple[str, str | None]:
 
 def version_states(repo: str, versions: set[str]) -> dict[str, VersionState]:
     releases = finalizer.gh_paginated(f"/repos/{repo}/releases")
+    require(all(isinstance(item, dict) for item in releases), "GitHub Release 원장 형식 오류")
     release_tags = {item.get("tag_name") for item in releases}
     states = {}
     for version in sorted(versions, key=semver):
