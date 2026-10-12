@@ -136,23 +136,27 @@ PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](htt
 
 ## DOCUMENTATION_SYNC
 
-- `DESIGN.md`: N/A(기존 Milestone 명칭과 화면 공통 디자인 원칙을 그대로 사용하여 신규 시각 정책이 없다)
+- `DESIGN.md`: N/A(Design Delta B: 기존 precise feedback·SVAR-native·focus/상태 보존 계약 구체화, 신규 전역 시각 원칙 없음)
 - `docs/TEST_PLAN.md`: UPDATED
-- `docs/SCHEDULING_ENGINE.md`: N/A(동일 canonical Task 및 기존 Gate와 의존성·Calendar 계산을 재사용하고 순수 일정 엔진 변경이 없다)
-- `docs/MILESTONE_TIMELINE.md`: UPDATED
 - `docs/PROJECT_UX.md`: UPDATED
-- `docs/REQUIREMENTS.md`: UPDATED
 - `docs/TASK_EDITOR.md`: UPDATED
-- `docs/TASK_RELATIONS.md`: UPDATED
-- `docs/MILESTONE_STAGE_GATES.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_550.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
-- `AGENTS.md`: N/A(기존 Issue lifecycle과 QA/보안 경계 및 역할 분담을 변경하지 않아 원칙을 재사용한다)
-- `docs/API.md`: N/A(새 HTTP endpoint와 DTO 스키마 없이 기존 저장 gateway 및 보호 요청을 재사용한다)
-- `docs/DB_SCHEMA.md`: N/A(신규 migration과 저장소·SQLite 스키마 변경 없이 기존 엔터티를 이용한다)
-- `docs/SECURITY.md`: N/A(기존 server-side session/Origin/If-Match/revision guard와 readonly 권한을 유지한다)
-- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH 보호 파일의 독립 리뷰 요구를 완화하지 않고 그 제한을 적용한다)
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(순수 일정/Gate/Calendar 계산 변경 없음)
+- `docs/MILESTONE_TIMELINE.md`: N/A(최신 main의 canonical/Timeline 표시 계약과 기존 #550 문서 보존)
+- `docs/REQUIREMENTS.md`: N/A(기존 #550 요구 및 최신 #615 main 원본 보존, 신규 업무 계약 없음)
+- `docs/TASK_RELATIONS.md`: N/A(관계 편집/Dependency 계약 변경 없음)
+- `docs/MILESTONE_STAGE_GATES.md`: N/A(Membership/Ready/완료 엔진 변경 없음)
+- `AGENTS.md`: N/A(최신 main의 Lifecycle·QA·역할 원칙 준수)
+- `docs/API.md`: N/A(새 endpoint/DTO/인증 계약 없음, #615 main 원본 보존)
+- `docs/DB_SCHEMA.md`: N/A(이번 변경의 신규 migration 없음, #615 migration0025/main 원본 보존)
+- `docs/SECURITY.md`: N/A(인증/Origin/revision/runtime 로그 정책 불변, test-only 안전 진단은 TEST_PLAN/REMOTE_VALIDATION에 기록)
+- `docs/QA_REVIEW_POLICY.md`: N/A(현행 HIGH/OWNER_MANAGED·필수 CI/Trusted/Owner 승인 조건 유지)
+- `docs/CI_CD.md`: N/A(최신 main PR #628 원본 채택, 이번 CI/Finalizer 정책 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(최신 main 원본 채택, GitHub 운영 권한·정책 불변)
+- `docs/GENERIC_RELEASE_FINALIZER.md`: N/A(최신 main PR #628 원본 채택, 이전 PR #626의 중복 구현을 대체)
 
 ## AC_TEST_COVERAGE
 
@@ -210,3 +214,73 @@ PR #559 head `bf47b25b2970df4025a318459c04c2e20a1a86cb`의 Actions [#2368.1](htt
 - `DOCUMENTATION_SYNC`: 본 Work Packet, PLAN, TEST_PLAN **UPDATED**(정렬·충돌 근거·검증 계획). MILESTONE_TIMELINE/PROJECT_UX/TASK_EDITOR/CHANGELOG는 양쪽 변경 문단을 보존해 병합. `AGENTS.md`/기타 QA/CI/docs 및 #570·#571·#572 실행코드는 main Blob 그대로 사용. DESIGN/API/DB/SECURITY/SCHEDULING은 새 계약 변경 없음 N/A.
 - 이번 커밋의 정적 문자열/중복 코드 경계 확인은 수행했지만, 새로운 Head의 TypeScript/Unit/Chromium E2E/SQLite/Docker, 실기기·운영 테스트는 아직 NOT TESTED. 실제 결과는 새 exact-Head PR CI로 검증해야 한다. `qa_method=OWNER_MANAGED`, `risk_level=HIGH`, `qa_required=true`, `release_required=true/release_authorized=false`; 독립 QA 선택 미실시와 Owner 승인 부재를 자동 PASS로 간주하지 않는다. 이번 사용자 요청은 재정렬/충돌 해결까지만, 병합/Main CI/정식 GHCR/tag/Issue 종료 금지.
 
+## Issue #550 — Main CI #2515.1 #525 Resource→Gantt peer 복원 경합 보완 (2026-10-12)
+
+- 기준 병합 SHA `40747252c389f2a4d1203a2262a4caa49c90728d`, [Main CI #2515.1](https://github.com/planner77/masterGantt/actions/runs/38170382648), Chromium shard2 job `114561630041`: **71 PASS/1 FAIL**. 실패 `tests/e2e/project-resource-workload-status.spec.ts:132`의 `summaryToggle` `toHaveClass(/wxi-menu-right/)` 호출은 대상 Summary native row가 보이지 않아 5초 timeout. 다른 E2E 5샤드/Quality/Docker는 PASS이며 전체 Main CI와 GHCR publish는 FAIL/SKIPPED.
+- 실제 [실패 Playwright report·trace](https://github.com/planner77/masterGantt/actions/runs/38170382648/artifacts/11714103415)에서 일정 탭 복귀 직후 최초 Core/native position `left=1581,top=96`가 동일해도 `data-gantt-viewport-coordinator`는 아직 `kind=PEER_RETURN,phase=WAIT_GEOMETRY`였다. 다음 테스트가 `.wx-gantt.scrollTop=0`을 수행하는 동안 복원 의도가 완료되어 실패 snapshot에서 `top=96`, `phase=SETTLED,outcome=SETTLED`와 Summary row 비표시를 확인했다. 좌표 동등성은 비동기 복원 완료 영수증이 아니다.
+- 테스트 보완: 동일 test `#525`에서 복귀 원본 `before` 좌표/instance/Week 검증 이후 coordinator의 **실제** `PEER_RETURN:SETTLED/SETTLED` 상태를 bounded `expect.poll`로 확인한 다음 좌표를 다시 strict 확인하고 기존 scrollTop0→Summary collapsed·하위 미표시→scrollTop96·원장 equality를 그대로 수행한다. 고정 sleep/기다림 시간 증가/skip/retry/기대치 완화는 하지 않는다. 제품 코드, viewport writer·API/auth/SQLite·CI 검증기 및 Ruleset 변경 없음.
+- `DOCUMENTATION_SYNC`: `tests/e2e/project-resource-workload-status.spec.ts` UPDATED, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_550.md` UPDATED. `DESIGN.md`, `AGENTS.md`, `docs/REQUIREMENTS.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`, `docs/SCHEDULING_ENGINE.md`, `docs/PROJECT_UX.md`, `docs/REMOTE_VALIDATION.md`는 업무·도메인·운영 계약 불변으로 N/A. 원래 AC1~AC11의 테스트 매핑은 유지하고 #525 추가 교차 회귀를 덧붙인다.
+- `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`; 버전 `0.105.0` 변경 없음(이 변경은 회귀 테스트 실행 순서 안정화만). 기존 사용자 GHCR 정식 게시 승인 marker (Issue #550, `v0.105.0`)는 유지하지만 실패한 Main SHA를 release 성공 근거로 사용할 수 없다. #550 Issue는 미완료 Main/GHCR를 이유로 OPEN으로 재개했다. 후속 동일 이슈 corrective PR의 exact-Head Quality/E2E6/Docker, Trusted QA, Manager 승인, 병합 후 **새 immutable SHA Main CI**가 SUCCESS여야 릴리스 진행 가능. PR CI/운영/정식 GHCR PASS는 실제 실행 전 NOT TESTED.
+
+## Issue #550 — PR #626 CI #2517.1 #571 Editor locate 포커스 검증 보완 (2026-10-12)
+
+- 원본 [PR CI #2517.1](https://github.com/planner77/masterGantt/actions/runs/38172515105) / head `a876772004394e006b15be852145f14e9b19a13b`은 전체 FAILURE. Main #2515.1의 원래 실패가 포함된 Chromium shard2는 **72/72 PASS**, Quality/Vitest/Build/Docker 및 E2E shard1/2/3/5/6 PASS. Chromium **shard4 106 PASS/1 FAIL/1 SKIP**의 `tests/e2e/viewport-coordinator.spec.ts:30` `toBeFocused()`가 실패; E2E aggregate와 자동 QA도 FAIL. 두 실패는 별개의 수용조건이며 하나의 PASS가 나머지를 대체하지 않는다.
+- [shard4 Playwright trace](https://github.com/planner77/masterGantt/actions/runs/38172515105/artifacts/11714409132)는 Editor 소속 작업의 `일정에서 보기` 이후 `TASK_REVEAL` 코디네이터가 `WAIT_GEOMETRY → APPLYING → SETTLING → SETTLED`를 거쳐 Core/native 스크롤 위치가 `0/117`로 일치했음을 보여준다. 그러나 실제 대상 Grid 행의 focus는 확인되지 않음. `core.top < 300` 조건은 아직 SETTLING 중에도 성립하므로 포커스 완료의 근거가 아니다. 정확한 DOM 포커스 소실 시점을 단일 trace만으로 단정하지 않는다.
+- 앱 조치: `project-readonly-view.tsx` 명시 Task reveal SETTLED callback에 **최대 12개 requestAnimationFrame**의 bounded DOM focus handoff를 추가한다. 일시적인 SVAR 가상화 행 교체 뒤에는 현재 visible Grid 행을 다시 찾아 focus를 전달하고, 3연속 프레임/최소7번째 프레임에서 identity를 확인한다. Controller/API instance·canonical revision/projection·Core/native 위치 정합, hidden/inert, 새 modal/Editor, 사용자 제3 control focus를 검사하여 intent가 낡으면 abort한다. scroll writer/다른 기능·아티팩트 권한 확대·무기한 retry 없음.
+- 테스트 조치: `viewport-coordinator.spec.ts` 기존 실제 `toBeFocused()` 및 Core/native±1px·후속 metadata strict equality를 그대로 두고 `TASK_REVEAL:SETTLED/SETTLED`를 bounded poll로 확인한다. 추가로 8RAF 뒤에도 **동일 실제 Grid row가 focused**인지 다시 검사한다. expectation/timeouts/shard/skip/retry 약화 없음. 기존 #525 복귀 SETTLED 검증도 유지.
+- **Main 정렬:** 보완 PR #626 base `40747252c389f2a4d1203a2262a4caa49c90728d`, 최신 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`(#614 Target domain/fixture) 추가 4 commits. Main의 #614 CODE/문서와 TEST_PLAN 후미 증거, PLAN의 #614 신규 Work Packet 절을 그대로 보존한다. 이 변경은 #550 추가 요구/Target runtime 확대가 아니다.
+- **DOCUMENTATION_SYNC:** `src/features/projects/project-readonly-view.tsx`, `tests/e2e/viewport-coordinator.spec.ts`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_550.md`, `CHANGELOG.md` UPDATED. `DESIGN.md`, AGENTS/CI_CD, API/DB/SECURITY/SCHEDULING, 리소스 도메인 문서/fixture는 계약 변화 없거나 Main 최신 그대로여서 N/A. 기존 #550 AC1~11 테스트 원장과 실패 원본 보존.
+- Version `0.105.0` 및 package/lock은 기존 릴리스 후보로 유지하고 `CHANGELOG.md`에는 이번 focus 보완을 기록(새 tag/정식 GHCR 아직 게시된 증거 없음). HIGH, `qa_method=OWNER_MANAGED`, 3 Required Quality/E2E/Docker·Trusted QA/Owner 승인 유지. Issue #550의 정식 v0.105.0 승인 marker는 별도 권위이며 corrective PR 자체는 추가 버전 bump 없음. 새 Head PR CI·Trusted QA·Main CI/임시 GHCR/정식 Release는 성공 전 **NOT TESTED**, 이번 사용자 요청은 새 PR CI 시작까지만. 결과 확인/병합은 별도 Gate.
+
+## Issue #550 / PR #626 — PR CI #2519.1 회귀와 P1 Release 승계 보완 (2026-10-12)
+
+- 기준 Head `9f4656006648cc6c49c617699bd73feb7f109aa7`, [PR CI #2519.1](https://github.com/planner77/masterGantt/actions/runs/38177366596): Quality/TypeScript/Lint/Vitest/Build, Docker, Chromium E2E shard 1/2/3/4/6 PASS. Shard 5의 `tests/e2e/task-editor-form-density.spec.ts:279` #570 보호 블록 계측 1건 FAIL (97 PASS). E2E 집계·QA Final FAIL은 원본 상태로 보존한다.
+- [Playwright 실패 trace](https://github.com/planner77/masterGantt/actions/runs/38177366596/artifacts/11717290669)에서 metadata `PASSIVE_RESTORE`는 `SETTLING` 단계인데 테스트가 좌표 일치를 완료로 오인하고 `chart.scrollLeft=0`을 주입했다. `data-gantt-peer-native-repairs` 1→2와 이후 `PASSIVE_RESTORE:SETTLED`는 보였지만 `data-gantt-peer-scroll-guard-blocks` 증가 기록은 없었다.
+- 보완 테스트는 실제 `PASSIVE_RESTORE`의 `SETTLED`/`outcome=SETTLED` 영수증과 Core/native left=120을 Playwright 기본 bounded poll로 확인한 뒤 **동일한** 비사용자 native zero를 주입한다. 기존 `blocks > before`, 실제 Core/native 120 복원, 사용자의 wheel 좌우 이동, 검색 결과0·PATCH2·Gantt instance 불변 조건을 한 건도 삭제·완화하지 않는다. Workflows/test timeout/retry/skip 변경 N/A.
+- Codex P1 Review [PR #626](https://github.com/planner77/masterGantt/pull/626): 실패 Main #2515.1의 최초 #550 merge가 `0.104.4 → 0.105.0`을 도입했고, 새로운 corrective는 manifest `0.105.0 → 0.105.0`이다. 기존 Generic Finalizer에서 실패 SHA supersede 시 release-required를 원장 없이 소거하는 것은 승인된 정식 GHCR 게시를 누락하고 Issue를 닫을 위험이다.
+- `scripts/auto_release_finalizer.py`: immutable first-parent 버전과 미완료 Release origin을 `inherited_release_previous_version`으로 분리하고, 동일 Issue+정확한 Main CI 성공+동등 검증+동일 최종 버전 corrective에 상속한다. 상속된 effective item의 exact tag/Release evidence 재판정 후 기존 Owner 승인 `expected_version=0.105.0` 없이는 tag/registry mutation 금지. 임시 candidate/cleanup, 버전 충돌·tag immutability fail-closed 유지.
+- `scripts/verify-issue-lifecycle.py`: #550 원본 실패와 같은-version Green correction, release `not-started`, cleanup debt, docs-only correction 차단, 달라진 version no-bump 차단, 새로운 version bump authority 분리 시나리오 추가. 기존 #586/#344 supersede tests 유지. 실제 Runtime/CI/GHCR/Owner Final 인증은 새 Head 결과 전 NOT TESTED.
+- DOCUMENTATION_SYNC: `tests/e2e/task-editor-form-density.spec.ts`, `scripts/auto_release_finalizer.py`, `scripts/verify-issue-lifecycle.py`, `docs/GENERIC_RELEASE_FINALIZER.md`, `docs/CI_CD.md`, `CHANGELOG.md`, 본 TEST_PLAN/PLAN/ISSUE_550 UPDATED. AGENTS/DESIGN/API/DB/SECURITY/SCHEDULING/Project UX/CI workflow는 기능·설계 계약 불변으로 N/A.
+- 위험: HIGH, QA OWNER_MANAGED. PR #626 자체의 제품 version 변경 없음(`0.105.0` 유지)이 원래 Issue #550 정식 v0.105.0 Release 의무의 N/A 근거가 아니다. 원본 사용자 Owner 승인 marker는 [Issue #550](https://github.com/planner77/masterGantt/issues/550#issuecomment-6113115242)에 보존한다. 새 PR CI Quality/E2E/Docker/QA/Trusted, Main CI와 formal GHCR는 아직 NOT TESTED이며 병합·발행/Issue close는 범위 밖.
+
+## 2026-10-12 — PR #626 CI #2522.1 문서 영향 추적 보완
+
+[PR CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) exact Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`는 Quality/Vitest/Build, Chromium E2E 6/6, Docker 모두 SUCCESS이나 QA Final — Automated에서 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 BLOCKED/FAIL이었다. 제품 회귀·검증기 버그로 판정하거나 기존 FAIL을 성공으로 변경하지 않는다.
+스크립트 보호 변경의 QA_DOCS 6개 및 UI 변경의 DESIGN impact Union을 재확인했다. `docs/CI_CD.md`와 `docs/TEST_PLAN.md`는 기존 PR 코드에서 UPDATED 상태였고, `docs/GITHUB_OPERATIONS.md` 및 `docs/REMOTE_VALIDATION.md`에 release debt 승계 운영·원격 검증 Gate를 실제 기록한 뒤 본 Work Packet의 정형 `## DOCUMENTATION_SYNC`에 세 운영 문서 UPDATED 항목을 추가했다. AGENTS/QA_REVIEW_POLICY/DESIGN N/A는 기존 운영 원칙 자체가 바뀌지 않았기 때문에 항목별 기존 근거를 유지한다.
+원래 Issue #550의 Owner 승인 범위 `v0.105.0`, 실패한 원본 Main #2515.1, 동일 버전 non-docs corrective의 정식 GHCR 미게시 의무를 보존한다. 최종 정확 Head의 새 PR CI/Trusted·Owner 승인·병합/Main CI/GHCR/tag/Issue 종료는 새 원격 근거 전 NOT TESTED. 보호 Gate 삭제·더 느슨한 QA 조건·기능 코드 변경 없이 문서 및 감사 원장만 갱신한다.
+
+
+## 2026-10-12 — 공유 분석 후속·CI #2524.1 기능/E2E 경계
+
+### 원본과 최신 main 정렬
+
+- [공유 분석1](https://chatgpt.com/s/t_6acc206bffc88191943b2f6ff78b6113)과 [분석2](https://chatgpt.com/s/t_6acc20b3d84c8191b95862bbcfea3ae7)의 본문을 확인했다. 주요 조치는 좌표·Coordinator·DOM focus 완료의 분리와 연결 오류의 cleanup 전 진단이다. #629 QA preflight 등 비기능 CI 정책은 사용자 별도 작업이다.
+- [PR #626 CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391), Head `ddb4fe246e06bea6f6a9b5a3b193594566450cc8`: Quality/Docker PASS, E2E shard2 job `114595815902` #461 실제 SQLite Editor GET의 ECONNRESET1FAIL/71PASS, 나머지5샤드 PASS. [실패 report](https://github.com/planner77/masterGantt/actions/runs/38181808391/artifacts/11717859352). 프로세스 종료·OOM 근인 UNKNOWN. 직전 #2522 대비5문서만 바뀐 점은 기능 회귀 단정의 근거가 아니다.
+- 격리 worktree `/tmp/mastergantt-issue-550-fix`, 로컬 `fix/issue-550-analysis-followup`은 기존 PR #626 Head에서 시작한다. main `c8949da48e7465db45d871887c3f55f9fb6dc743` 병합 `e2c03fac58a77f1228be4205b78cccc3d0eb7374`는 CHANGELOG/PLAN 양쪽 이력을 보존한다. 이어 main `6eaec3331fcbc720ab42106789a505c5ee5eefb4` 병합 `f0b89d699e569f0e8761f7134bf1ebd63c699d2b`로 PR #628을 상속한다. REMOTE/TEST 양쪽 이력을 보존하고 Finalizer 두 스크립트 및 CI_CD/GENERIC_RELEASE_FINALIZER/GITHUB_OPERATIONS는 최신 main exact blob을 채택한다.
+- #615 모델/API/migration0025와 manifest/lock0.106.0를 보존한다. 이전 PR #626의 `inherited_release_previous_version` 구현은 main의 `inherited_release_base_version`/`release_base_version` 및 stricter 승계 규칙으로 대체한다. 과거 원장을 삭제하지 않으며 현재 PR이 v0.105.0의 기존 승인을 다른 버전으로 확대하지 않는다. release 의무 해결/권한은 별도 사용자 작업이며 새 CI 시작은 그 승인·완료가 아니다.
+
+### 분리 소유권·구현 계약
+
+- Manager: 통합/문서/DOCUMENTATION_SYNC/Issue 공식 댓글. frontend `gantt550`: view/controller/최소 Gantt 등록 seam/focus helper·관련 Unit/strict viewport E2E. backend `domain_audit`: isolated fixture/진단 helper·Unit/#461 spec. ui_ux `ux_contract`: read-only 설계·공식 SVAR 비교. qa_docs `f0_pre_qa`: 독립 read-only 사전 검토. infra `publish_pr`: 동결 후 기존 PR branch 게시·CI 시작 확인만. 동시 파일 writer/재귀 위임 없음.
+- UI 검토에서 기존12RAF 인계가 SETTLED 후 동일 좌표 사용자 입력·새 intent와 짧게 열리는 modal 이후 focus를 가져올 수 있는 gap을 확인했다. 정확한 Coordinator intent/gesture/context stamp 및 local locate generation으로 권한을 제한하고 새 modal은 대기 대신 영구 취소한다. Grid viewport 가시성을 확인하며 좌표 SETTLED와 별도 focus 결과를 구분한다. 일반 Editor 닫기/Dashboard fallback을 유지한다. 좌표 미완료 시 focus SUPERSEDED는 인계 미시작이며 원래 좌표 실패/timeout 영수증을 대체하지 않는다.
+- 공식 SVAR `select-task`/`scroll-chart`와 설치 Core2.7.3 types를 비교한다. 설치 `select-task.focus`는 `grid|chart`이며 온라인의 `subGrid`는 PRO 범위다. 공개 API가 가상화 DOM focus 안정 완료를 보장한다고 가정하지 않는다. 실제 demo 조작은 NOT TESTED, 제품 Chromium 실행과 구분한다. Design Delta B, DESIGN.md N/A.
+- fixture는 bounded allowlist stdout/stderr 구조화 기록과 PID/generation/exit/signal/expected shutdown, test-side 호출·기존 서버 완료 requestId, 실패 직전1회 readiness 및 가능한 numeric 자원을 수집한다. 서버 request-start·raw Next stderr/stack·headers/cookies/body/query/env/DB는 수집하지 않는다. 종료137만으로 OOM 단정 금지. 진단은 원래 transport 오류를 보존하며 business retry0이다.
+- 기존 #525/#570 strict SETTLED 후 조작·실제 좌표/tree/instance/selection/guard/wheel/검색 검증과 #571 실제 Grid focus+후속8RAF를 유지한다. 제한 시간·retry·skip·CI shard/required checks·runtime 권한 변경 없음.
+
+### 검증 상태와 종료점
+
+정확한 lockfile `npm ci --no-audit --no-fund` PASS. 최초 shared node_modules symlink/Next16.3.4의 baseline setup3FAIL은 환경 오류로 보존하고 원격 ECONNRESET 재현으로 세지 않는다. 새 lockfile Next16.3.8 조건의 scoped Unit/Chromium과 독립 PRE_QA 결과는 아래 실행 원장에 기록한다. HIGH / qa_required=true / qa_method=OWNER_MANAGED. 새 exact-head PR CI Quality/E2E/Docker·Trusted·Owner ACCEPT는 NOT TESTED이며 요청 종료점은 기존 PR #626의 full CI 시작까지다. 병합·Main/GHCR·tag/release·브랜치 정리·Issue 종료는 수행하지 않는다.
+
+### 후속 Local Fast Feedback 실행 원장
+
+- frontend 최종 동일 소스: 관련 Unit6파일133/133 PASS, `npm run typecheck` PASS, 변경 ESLint0error/기존 project-gantt hook warning3. 관련 Chromium3spec 최종23/23 PASS(1.3분), 핵심6case×repeat3=18/18 PASS(1.1분). 반복 검증 후 transient-modal E2E의 인과성 assertion만 강화했고 최종23건에는 해당 강화분을 포함했다. 중간5PASS·22PASS와 합산해 고유 테스트 수를 부풀리지 않는다.
+- 최종 helper Git blob `bddcee5340b542834c6ad381fd1d56b827fb3b24`, viewport E2E `6e3947bafbe1e76cdfa0f8f31b28d73dd082ae1e`. source/helper는09:04 KST, 최종 E2E는09:07 KST에 동결했다. 로컬 `/tmp/issue550-frontend/result.json`·full23-report·repeat18-report의 manifest/실행 원본으로 연결한다. 로컬 임시 config/build/캡처는 Git에 포함하지 않고 generated next-env/tsconfig와 기존 tracked 캡처를 원복했다.
+- ui_ux 최종 read-only 설계 비교: transient modal MutationObserver/cleanup으로 이전 REWORK 해소, exact stamp/local generation/Task ID/행 가시성·별도 focus 결과/일반 닫기 보존 계약 일치. viewport 교차는 전체 focus ring 비가림 검증과 다르며 이를 새 PASS로 확대하지 않는다.
+- qa_docs 독립 frontend 직접 Unit2suite92/92 PASS 및 정적 검토 material blocker0. 이92건은 구현자133건과 겹치며 합산하지 않는다. backend·최종 문서·staged tree의 통합 PRE_QA는 뒤에 별도로 기록한다.
+
+- 실제 SQLite #461은 Manager 환경에서 변경 전 fixture3/3 PASS(1.0분), 최종 변경 fixture3/3 PASS(1.0분), workers1/retries0으로 실행했다. 두 실행 모두 final frontend·Next16.3.8·lockfile0.106.0 조건이다. baseline은 변경 전 fixture/spec 복사본의 repositoryRoot만 worktree로 고정했다. `/tmp/issue550-sqlite-evidence/result.json`에 명령·조건을 보존하며 수정 후 geometry만 별도로 보존했다. 두 번의1.0분 표시로 성능 개선을 주장하지 않는다. ECONNRESET 미재현이며 원격 근인 UNKNOWN 유지.
+- subagent 환경은 exact dependency 후에도 loopback EPERM setup3FAIL/BLOCKED였다. 승인 대기 상태를 중단하고 Manager 실행으로 인계했다. 최초 shared dependency symlink/16.3.4 setup3FAIL과 이 EPERM은 원격 연결 오류 재현이 아니다. Manager 일반 실행에서는 loopback·실제 Next/native SQLite 검증이 가능했다.
+- backend 진단 Unit7/7·typecheck·scoped ESLint PASS. real child 검증의 최초80ms 타이머를 stdout/stdin handshake로 바꾼 뒤 독립 실행에서6PASS/1FAIL(5000ms timeout) 및 해당1건 재실행FAIL이 발생했고, 동일 소스 Manager Unit7PASS와 구분해 REWORK했다. 독립 최소 probe는 해당 실행 환경에서 실제 exit7을 관측해도 stdout data0회인 차이를 보였으나 정확한 원인은 UNKNOWN이다.
+- 최종 Unit은 전용IPC ready→자원 관측→stop→stopping ACK→exit7/close로 제어하고 early error/close·안전한 실패 phase를 관측한다. 기존5000ms를 늘리지 않았다. 구현자 수정 후2회 Unit7PASS·typecheck/lint PASS 및 Manager 최종 Unit7PASS(09:14:42). 최종 Unit SHA-256 `96d7213c17dd214355595f96227d8010d7c08a73e6af0a201aa1989b7090e36f`. 이 수정은 Unit만 바꾸므로 fixture/helper/spec의 실제 SQLite3PASS는 유효하며 초기 독립 FAIL을 지우지 않는다.
+
+- qa_docs 최종IPC Unit7/7 직접 PASS(09:14:40,166ms). frontend직접92Unit과 최종보고서 full23/repeat18의 expected/실패/flaky/skip 수를 독립 확인했다. 이전 stdout/stdin 실패는 삭제하지 않는다. 통합 PRE_QA와 exact staged tree 판정은 Issue STATUS 및 PR 본문에 기록하며 QA_FINAL/Owner ACCEPT와 구분한다.

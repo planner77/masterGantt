@@ -129,6 +129,16 @@ test("#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실
     evidence.push({ width, ...result, focus }); await page.locator("#project-panel-resources").evaluate((element) => { element.scrollTop = 0; }); await page.screenshot({ path: `output/playwright/issue-525/dashboard-${width}.png`, fullPage: false }); }
   writeFileSync("output/playwright/issue-525/geometry.json", JSON.stringify(evidence, null, 2)); await testInfo.attach("dashboard-geometry", { body: JSON.stringify(evidence), contentType: "application/json" });
   await page.setViewportSize({ width: 1440, height: 900 }); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expectSameGanttRoot(page, identity); await expect.poll(viewport).toEqual(before); await expect(page.getByRole("button", { name: "주", exact: true })).toHaveAttribute("aria-pressed", "true");
+  // #550 Main CI #2515.1: exact Core/DOM coordinates can already match while
+  // #571 PEER_RETURN is still WAIT_GEOMETRY. Do not move the virtualized Grid
+  // before the viewport coordinator reports real SETTLED, or its pending restore
+  // may put scrollTop back at 96 and hide the summary row under test.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+    const last = raw ? JSON.parse(raw) as { kind?: string; phase?: string; outcome?: string } : null;
+    return last?.kind === "PEER_RETURN" && last.phase === "SETTLED" && last.outcome === "SETTLED";
+  }).toBe(true);
+  await expect.poll(viewport).toEqual(before);
   await frame.locator(".wx-gantt").evaluate((element) => { element.scrollTop = 0; }); await expect(summaryToggle).toHaveClass(/wxi-menu-right/); await expect(frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000002"]')).toHaveCount(0); await frame.locator(".wx-gantt").evaluate((element) => { element.scrollTop = 96; }); await expect.poll(viewport).toEqual(before);
 });
 

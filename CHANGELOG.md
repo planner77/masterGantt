@@ -14,6 +14,16 @@
 ### Validation
 - HIGH / OWNER_MANAGED; local full test, PR CI/QA/Manager ACCEPT and production migration **NOT TESTED**. F3 WBS bindings and later Resource roll-up are out of scope. Release authorization **false**.
 
+## [Unreleased] — Issue #550 공유 분석 후속
+
+- 명시 Task reveal의 좌표 완료와 DOM focus 인계를 구분하고 정확한 intent/gesture/context·최신 요청을 확인한다. 동일 좌표 사용자 입력·새 Editor/modal 이후 오래된 focus 복원을 취소한다.
+- 격리 SQLite E2E에 cleanup 전 안전한 bounded 서버 lifecycle·요청 완료·readiness·자원 진단을 추가한다. 원오류와 business retry0을 유지하며 ECONNRESET 근인은 아직 UNKNOWN이다.
+- 최신 main PR #615/#628의 모델/API/migration0025·application0.106.0와 Finalizer 정책을 보존한다. 아래 PR #626의0.105.0/이전 승계 구현 기록은 당시 이력이며 새 release 승인이 아니다.
+
+## [Unreleased] — Issue #550 PR #626 정식 Release 의무 승계 및 E2E 동기화
+
+- CI #2519.1의 #570 PASSIVE_RESTORE SETTLING 중 조기 native zero 주입 테스트 경합을 실제 완료 영수증 대기 후 엄격한 보호 차단 검증으로 보완한다. timeout, 기대값, 실제 wheel/검색 검증을 완화하지 않는다.
+- 실패한 version-changing Main Merge의 정식 GHCR 게시 의무를 동일 Issue/동일 버전 corrective가 승계한다. 원래 `v0.105.0` Owner 승인·immutable tag·exact digest·fail-closed 조건 및 제품 버전 `0.105.0` 유지.
 ## [0.106.0] - 2026-10-12
 
 ### Fixed
@@ -57,6 +67,11 @@
 - Issue #550 PR CI #2373.1: 기능 required gate 모두 PASS, 신규 QA Final의 Issue/Refs 메타데이터 차단 확인. Work Packet AC1~AC11/문서·테스트 대응표와 PR 위험도·검토 진입을 명문화. 0.105.0 및 기능 실행 의미 불변.
 - Issue #550 PR CI #2376.1: 세 required gate PASS, 자동 QA의 버전 파일 보호 차단을 별도 #595로 추적. 릴리스 버전·승인 정책은 변경하지 않음.
 - Issue #550 재정렬: #595의 Main CI #2401.1 SUCCESS를 포함한 기준 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`로 PR #559를 정렬한다. 새 CI와 정확한 Head의 별도 AGENT 독립 QA·Manager 수용은 별도 확인한다.
+
+
+### Fixed
+
+- Issue #550 / corrective PR #626: #571 Editor ‘일정에서 보기’의 TASK_REVEAL SETTLED 후 가상화된 Grid 행 포커스 인계를 최신 DOM·revision·projection·Core/native 좌표로 재검증하여 제한된 RAF 내에서 복원한다. 기존 Resource→Gantt peer 복귀 E2E와 실제 Grid focus의 장기 유지 검증을 보강하며 사용자 조작 및 다른 모달의 포커스를 탈취하지 않는다. application 버전 0.105.0 유지, 정식 릴리스 증거는 아직 미확보.
 
 ## [0.104.4] - 2026-10-11
 

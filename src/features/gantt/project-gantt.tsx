@@ -1814,7 +1814,7 @@ export function ProjectGantt({
     });
     const coordinator = createViewportCoordinator(port);
     viewportPortReference.current = port; viewportCoordinatorReference.current = coordinator;
-    onViewportController?.({ filterInput: () => { nativeAddContinuityReference.current = null; coordinator.filterInput(); metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }, capture: () => { const sample = port.read(); return sample.measurable ? sample : null; }, request: command => {
+    onViewportController?.({ stamp: coordinator.stamp, isCurrent: coordinator.isCurrent, filterInput: () => { nativeAddContinuityReference.current = null; coordinator.filterInput(); metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }, capture: () => { const sample = port.read(); return sample.measurable ? sample : null; }, request: command => {
       if (command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL") { nativeAddContinuityReference.current = null; metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }
       return coordinator.request(command);
     } });

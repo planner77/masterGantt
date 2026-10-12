@@ -1,3 +1,18 @@
+## Issue #550 후속 — 격리 E2E 실패 진단의 증거 경계 (2026-10-12)
+
+[CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391)의 #461 GET ECONNRESET은 연결 오류 증거다. 프로세스 종료·OOM·기능 회귀 원인을 확정하지 않는다. 후속 fixture는 cleanup 전 bounded 안전 JSON을 실패 report에 첨부한다. PID/generation·exit/signal·expected shutdown, 별도 stdout/stderr allowlist 기록, test-side 호출과 기존 서버 requestId 완료 기록,1회 readiness probe·이용 가능한 숫자형 자원 수치를 구분한다. 서버 request-start 계측·raw stderr/stack·headers/cookies/body/query/env/DB는 수집하지 않는다. 단일 exit137이나 완료 로그 부재는 OOM/요청 미도착의 확정 근거가 아니다. probe·진단 수집은 business 재시도가 아니며 원래 실패를 rethrow한다.
+
+수집 JSON/trace의 로컬 증거와 GitHub Actions report artifact는 별개다. 실제 새 exact-head CI의 Quality/E2E6/Docker·Trusted 결과 전에는 공식 PASS가 아니다. 기존 원격 FAIL과 baseline 환경 FAIL을 숨기지 않으며 timeout·retry·skip/필수 gate를 변경하지 않는다.
+
+현재 main `6eaec3331fcbc720ab42106789a505c5ee5eefb4`의 Finalizer 두 스크립트와 운영 문서를 그대로 사용한다. 아래 #550 PR #626의 `inherited_release_previous_version`은 이전 구현 이력이고 현행 필드는 `inherited_release_base_version`/`release_base_version`이다. 다른 Issue/버전·closed barrier를 넘는 승계는 최신 main의 fail-closed 정책을 따른다. #550 v0.105.0 승인으로 현재0.106.0 게시 권위를 추론하지 않는다. 이번 작업은 PR CI 시작까지이며 병합·release·Issue 종료를 수행하지 않는다.
+
+## Issue #550 / PR #626 — QA Final #2522.1 필수 운영 문서·릴리스 승계 (2026-10-12)
+
+- **검증 원본:** [PR #626 CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`, base `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`. `Build, static checks, and unit tests`, `Chromium end-to-end tests`(shard 1~6), `Docker build and runtime smoke test`는 SUCCESS. `QA Final — Automated`가 정확히 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 BLOCKED. 기존 성공 aggregate만으로 전체 CI/병합/GHCR PASS라고 표시하지 않는다.
+- **문서 Gate:** `scripts/auto_release_finalizer.py` 및 `scripts/verify-issue-lifecycle.py`는 보호 스크립트 경로이므로 Work Packet의 `## DOCUMENTATION_SYNC`에 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`의 **각각 UPDATE 또는 사유가 있는 N/A**가 반드시 존재해야 한다. UI source의 `DESIGN.md` 영향 역시 포함한다. 미기록 문서는 문서 검증이 차단하며 목록/QA 정책을 축소하지 않는다.
+- **새 PR Head 확인:** base/head/test-merge SHA 동일성, GitHub 미해결 리뷰 0, required Quality/E2E/Docker source run/attempt, Automated QA의 구조적 문서/AC 판정과 기본 브랜치의 Trusted QA를 구분한다. OWNER_MANAGED의 독립 인간 QA 선택 미실시는 N/A이지 Owner 최종 승인이나 환경 실행 PASS가 아니다.
+- **병합 이후:** 원본 실패 merge `0.104.4→0.105.0`과 같은 Issue의 보완 merge `0.105.0→0.105.0`를 first-parent 증거로 추적한다. 실패한 원본을 supersede해도 미게시 version `v0.105.0`의 release 의무를 `inherited_release_previous_version`으로 유지해야 하며, manifest와 실제 승인 marker, 새 정확 SHA의 verified Main CI·GHCR candidate를 검증한 뒤에만 annotated tag/Release CI/digest promotion/Issue close가 가능하다.
+- **실행 전 상태:** 이번 문서 보완으로 새 Head의 PR CI/Trusted/Main/정식 GHCR를 성공했다고 주장하지 않는다. 기존 Main CI #2515.1과 PR #626 CI #2522.1의 FAIL 및 GHCR SKIPPED 기록을 보존한다. 실패 원인은 새 Run의 job/step/log로 다시 판정한다.
 ## Issue #615 — Main CI 단일 행 병합 실패 및 승인된 v0.106.0 승계 (2026-10-12)
 
 - PR #627 병합 `c8949da48e7465db45d871887c3f55f9fb6dc743`의 추가 본문으로 Main CI #2526.1 trace가 FAIL하고 세 필수 quality/E2E/Docker 및 임시 GHCR 검증은 SKIPPED되었다. 기존 SHA/Run은 불변 FAIL이며 force-rewrite·gate 완화·rerun으로 PASS 처리하지 않는다.

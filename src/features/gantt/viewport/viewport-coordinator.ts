@@ -278,7 +278,10 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     if (restore !== null) { bookmark = null; void request({ kind: "FILTER_RETURN", position: { left: restore, top: port.read().core.top } }); }
   };
   const validSource = (source: ViewportStamp) => source.context === identity(port.read().context) && source.contextEpoch === contextEpoch && source.gesture === gesture && source.intent >= explicitEpoch;
-  return { stamp, validSource, request, userInput, filterInput, contextChanged, dispose() { disposed = true; bookmark = null; cancel("DISPOSED"); } };
+  // Post-settlement consumers (DOM focus) must belong to this exact intent,
+  // not merely a source still eligible to submit a future restore request.
+  const isCurrent = (source: ViewportStamp) => !disposed && validSource(source) && source.intent === epoch;
+  return { stamp, isCurrent, validSource, request, userInput, filterInput, contextChanged, dispose() { disposed = true; bookmark = null; cancel("DISPOSED"); } };
 }
 export type ViewportCoordinator = ReturnType<typeof createViewportCoordinator>;
-export type ViewportController = Readonly<{ capture(): ViewportSample | null; filterInput(): void; request(command: ViewportCommand): Promise<ViewportOutcome> }>;
+export type ViewportController = Readonly<{ capture(): ViewportSample | null; stamp(): ViewportStamp; isCurrent(stamp: ViewportStamp): boolean; filterInput(): void; request(command: ViewportCommand): Promise<ViewportOutcome> }>;
