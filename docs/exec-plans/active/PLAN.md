@@ -1,3 +1,7 @@
+## Issue #616 — Target/member F2 implementation candidate (2026-10-12)
+
+[Work Packet](ISSUE_616.md) tracks F2 implementation after F1 #615 merged. Branch `feat/issue-616-logistics-targets` contains migration 0026, typed Target/member REST and transaction service, Project Copy typed ID remap, Template/JSON fail-closed guards and fixture tests. Prior original Equipment/System control/Resource roles and process/WorkArea identities are preserved. Exact-head PR CI and operational migration checks remain NOT TESTED before workflow completion. Risk HIGH, QA method OWNER_MANAGED, Owner merge authority and release authorization separate; no merge/GHCR/deployment authorized. Target F3/#617 and Resource stages not included.
+
 ## Issue #615 — F1 공정 catalog·WorkArea 기반 모델 (2026-10-12)
 
 [#615 Work Packet](ISSUE_615.md): #614 PR #625의 F0 계약이 병합된 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 `feat/issue-615-process-catalog`를 생성했다. migration0025/공통 admin·Project context·명시 mapping API와 기존 master/copy/template/logistics 보호를 구현한다. #614 Issue 전체 완료나 main/GHCR PASS는 추론하지 않는다. 새로운 화면과 #616~#624는 별도다.
