@@ -432,3 +432,7 @@ Resource GET의 Project UUID 공개 읽기, query POST의 exact Origin, Excel PO
 Project context는 현재 direct-link public readonly 정책을 적용한다. 존재하는 Project는 edit cookie 없이 readonly context를 읽고 유효한 Project edit session이면 permission=edit다. 이 API가 새로운 private Project 모드를 도입하지 않으며 public ID+정확 선택 triple로만 데이터를 제한한다. Project mapping은 edit session/Origin/strong If-Match(Project revision) + body processCatalogRevision을 transaction 안에서 검증한다. foreign Project process·다른 BU/product/site occurrence·다른 occurrence WorkArea를 거부하고 실패 시 전체 rollback한다. 공통 admin 권한으로 Project edit 권한을 대신하지 않는다.
 
 미인증401, Origin403, 참조/활성/분류 충돌409, stale revision412를 구분하며 일반500으로 FK 원문/SQL/비밀값을 노출하지 않는다. UUID/허용 필드/검색 길이/limit/JSON body 크기를 제한한다. 비활성 기존 참조는 보존하고 신규 참조만 거부한다. 관리자 비밀값·세션·실제 DB/log를 Git/Issue/PR에 기록하지 않는다. 운영 TLS/proxy 검증은 별도다.
+
+## Target write authority (#616)
+
+GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Operational security tests and CI are NOT TESTED until exact-head PR checks.
