@@ -55,7 +55,6 @@ blocked(lambda:check(chain=[a,replace(b,issue_number=550),c,d,e]),"same Issue sh
 blocked(lambda:check(chain=[a,b,replace(c,validation_docs_only=True),d,e]),"docs-only correction")
 blocked(lambda:check(chain=[a,b,replace(c,issue_number=999),d,e]),"foreign correction Issue")
 blocked(lambda:check(chain=[a,b,replace(c,current_version="0.107.0"),d,e]),"version change")
-blocked(lambda:check(chain=[a,b,c,replace(d,actionable=False),e]),"closed ordering barrier does not bypass source") if False else None
 require(audit.semver("0.106.1")>audit.semver("0.106.0"),"SemVer comparison")
 blocked(lambda:audit.semver("0.106.01"),"leading zero")
 require(audit.owner_debt_decision([],owner_login="planner77",expected={})[0] is False,"no owner")
