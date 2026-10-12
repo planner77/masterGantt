@@ -1,6 +1,12 @@
 name: 릴리스 부채 신뢰 감사
 
 on:
+  # The default-branch workflow independently inventories exact GHCR tags
+  # after a verified Issue #633 Main CI. No PR code or registry write executes.
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       expected_main_sha:
@@ -38,6 +44,12 @@ concurrency:
 jobs:
   audit:
     name: 신뢰된 main의 exact 릴리스 증거 판정
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_commit.message, 'Issue #633 · PR #'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -61,14 +73,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EXPECTED_MAIN: ${{ inputs.expected_main_sha }}
-          SOURCE_SHA: ${{ inputs.source_sha }}
-          ORIGINAL_SUCCESSOR_SHA: ${{ inputs.original_successor_sha }}
-          SUCCESSOR_SHA: ${{ inputs.successor_sha }}
+          EXPECTED_MAIN: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.expected_main_sha }}
+          SOURCE_SHA: ${{ github.event_name == 'workflow_run' && '40747252c389f2a4d1203a2262a4caa49c90728d' || inputs.source_sha }}
+          ORIGINAL_SUCCESSOR_SHA: ${{ github.event_name == 'workflow_run' && 'c8949da48e7465db45d871887c3f55f9fb6dc743' || inputs.original_successor_sha }}
+          SUCCESSOR_SHA: ${{ github.event_name == 'workflow_run' && '6eaec3331fcbc720ab42106789a505c5ee5eefb4' || inputs.successor_sha }}
           CORRECTIVE_SHA: ${{ inputs.corrective_sha }}
         run: |
           args=(--expected-main-sha "$EXPECTED_MAIN" --source-sha "$SOURCE_SHA" --original-successor-sha "$ORIGINAL_SUCCESSOR_SHA" --successor-sha "$SUCCESSOR_SHA")
           if [ -n "$CORRECTIVE_SHA" ]; then
             args+=(--corrective-sha "$CORRECTIVE_SHA")
+          fi
+          if [ "$GITHUB_EVENT_NAME" = "workflow_run" ]; then
+            args+=(--inventory-only)
           fi
           python3 scripts/release_debt_audit.py "${args[@]}"
