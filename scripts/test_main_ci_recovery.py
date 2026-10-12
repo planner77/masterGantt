@@ -131,9 +131,11 @@ class RecoveryTests(unittest.TestCase):
                 recovery.package_tag_state("planner77/masterGantt", "ci-" + SHA_A)
 
     def test_no_inherited_implicit_recovery(self):
-        with patch.dict(os.environ, {}, clear=True):
+        with patch.dict(os.environ, {}, clear=True), \
+             patch.object(recovery, "discover_completed_recovery", return_value=None) as discover:
             self.assertIsNone(
                 recovery.verified_recovery_from_environment("planner77/masterGantt", SHA_A))
+            discover.assert_called_once_with("planner77/masterGantt", SHA_A)
         with patch.dict(os.environ,
                         {"MAIN_RECOVERY_RUN_ID": "123", "MAIN_RECOVERY_TARGET_SHA": SHA_B}):
             with self.assertRaises(recovery.Blocked):

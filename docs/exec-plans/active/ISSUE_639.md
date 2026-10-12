@@ -1,3 +1,12 @@
+## PR #641 CI #2597.1 실패 2건 / 회귀 검사 동기화 (2026-10-12)
+
+- 근거: [PR CI #2597.1](https://github.com/planner77/masterGantt/actions/runs/38260278020). Quality FAIL, Chromium E2E 6/6 PASS, Docker PASS, Build/Typecheck/Lint PASS, QA Preflight PASS.
+- 원인 A: Policy job `scripts/verify-issue-lifecycle.py`가 기존 `ci-${GITHUB_SHA}` 문자열만 허용해 새 인증된 `SOURCE_SHA` 참조를 거부함. 실제 lifecycle 보호 로직 실패가 아닌 **계약 검사와 의도적 구현 변경의 불일치**.
+- 원인 B: Vitest `tests/scripts/deployment-layout.test.ts`가 기존 push 전용 `fetch-depth` 표현식만 검사함. Recovery에 필요한 history checkout을 추가해 표현식이 달라졌음.
+- 수정: 서로 다른 Source SHA 사용 시 tag/OCI revision/cleanup/retention에 정확한 검증된 SHA를 사용하도록 *정책 검증을 강화*하고, 기존 `push` 및 Owner 인증 `workflow_dispatch` 게이트가 그대로 유지되는지 확인한다. 회복 후보 실패 시 자동 삭제 금지·수동 진단 게시 금지를 포함한다. 기존 Main CI/Ruleset/QA 완화는 없음.
+- 추가 수정: test fixture에서 정상적인 recovery discovery를 mock해 외부 GitHub API에 의존하지 않도록 하고, wrong-SHA push API 응답이 manual recovery 증거를 호출하지 못하게 명시적으로 거부한다.
+- 검증: 새 PR CI required 세 집계·Trusted QA는 새로운 HEAD에서 재실행되어야 함. 현재 NOT TESTED(수정 전 이전 run 결과를 소급 PASS할 수 없음).
+
 ## PR CI #2596.1 실패 원인 및 수정 (2026-10-12)
 - 실패 근거: PR #640 / CI run 38259369778 (#2596.1), `변경 경로 판정` job 114845641671, `scripts/verify-ci-run-trace.py`의 branch `issue-NNN` 규칙 불일치. 기존 branch `fix/639-exact-main-recovery`에서 파싱된 Issue 집합은 `[]`이며 PR Primary Issue `#639`와 일치하지 않았다.
 - 영향: `changes=FAILURE` → QA Preflight=SKIPPED, 세 required aggregate=FAIL, Automated QA=FAIL. 아직 Quality/E2E/Docker 구현 실패로 판정할 증거는 없다.

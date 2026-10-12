@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 CI #2597.1 negative / policy test correction (2026-10-12)
+
+- Original failure: `scripts/verify-issue-lifecycle.py` only accepted literal `ci-${GITHUB_SHA}`; `tests/scripts/deployment-layout.test.ts` only accepted old `fetch-depth` string. Both fail after introducing source-bound recovery.
+- Required regression: exact push fallback, recovery Source SHA tag/OCI/cleanup/retention, authorized manual gate, original push branch gate; mocked discovery for no recovered run; reject wrong-SHA push run lists. Re-run full PR CI Quality + Chromium 6 shards + Docker and Trusted QA.
+- Previous #2597.1: Quality FAIL, E2E/Docker PASS. New code validation NOT TESTED until rerun.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

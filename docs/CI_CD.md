@@ -1,3 +1,8 @@
+## Issue #639 — CI #2597.1 검증 계약 보완 (2026-10-12)
+
+- 기존 Main push의 `GITHUB_SHA`와 approved manual recovery의 original merge SHA는 상황에 따라 다르다. `SOURCE_SHA=needs.changes.outputs.checkout_sha`는 push에서 `github.sha`, 복구에서 확인된 immutable merge SHA를 유지한다. SHA를 임의 변경하지 않는다.
+- `verify-issue-lifecycle.py`, `deployment-layout.test.ts`는 구 문자열 고정 검증 대신 정해진 bound SHA, 6-shard/Quality/Docker success, GHCR candidate+OCI revision, failure cleanup gate, Owner manual recovery 제한을 검사하도록 보완. #2597.1 실패는 이 2곳의 정합 검사이며 테스트 범위를 축소하거나 required gate를 비활성화하지 않는다.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

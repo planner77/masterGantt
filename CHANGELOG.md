@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #639 PR #641 CI #2597.1 회귀 계약 보완 (2026-10-12)
+
+- Replace stale, literal push-only SHA/depth assertions with provenance-bound `SOURCE_SHA` and explicit push/manual recovery guards. Fail-close wrong-SHA run data; isolate manual-recovery unit fixture from GitHub network. No product version/DB/API changes.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

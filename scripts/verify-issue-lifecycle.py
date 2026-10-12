@@ -199,11 +199,29 @@ require(release_workflow.index("verified candidate digest GitHub Attestation") <
 require(release_workflow.index("최종 exact·rolling tag를 verified digest로 promotion") < release_workflow.index("release-finalizer-resume.yml/dispatches"), "lifecycle handoff must occur only after publication")
 require("docker/build-push-action@" not in release_workflow, "release workflow must not rebuild the container")
 require("version_changed:" in ci_workflow and "current_version:" in ci_workflow, "main CI must classify release candidate version changes")
-require("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow, "successful non-docs main CI must hand the verified candidate to Generic Finalizer")
+# #639: exact target SHA comes from trusted verifier, ordinary main push from github.sha.
+require("SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate image must bind to independently resolved checkout SHA")
+require("checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}" in ci_workflow,
+        "push/PR SHA fallback is required")
+require("tag=ci-$SOURCE_SHA" in ci_workflow and
+        "org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate tag and OCI revision must use verified immutable source")
+require("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow,
+        "successful main/recovery CI must hand exact candidate to Generic Finalizer")
 handoff_index = ci_workflow.index("GHCR main commit image lifecycle handoff")
-failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"')
-retention_index = ci_workflow.index("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup")
-require(handoff_index < failed_cleanup_index < retention_index, "main CI must clean failed pushed candidates before successful lifecycle handoff")
+failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"')
+retention_index = ci_workflow.index("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup")
+require(handoff_index < failed_cleanup_index < retention_index,
+        "original main push must clean failed candidates before lifecycle handoff")
+require('if [[ "$RECOVERY" == "true" ]]' in ci_workflow,
+        "failed recovery candidates require audit, not automatic deletion")
+require("python3 scripts/main_ci_recovery.py authorize" in ci_workflow and
+        "python3 scripts/main_ci_recovery.py prepublish" in ci_workflow and
+        "needs.changes.outputs.recovery_authorized == 'true'" in ci_workflow,
+        "manual diagnostic may never acquire GHCR publish authority")
+require("github.event_name == 'push' && github.ref == 'refs/heads/main'" in ci_workflow,
+        "existing main push publish gate must remain")
 require('if [[ "${{ job.status }}" != "success" ]]' in ci_workflow, "main CI candidate cleanup must be restricted to failed validation")
 require("GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}" in ci_workflow, "main failed-candidate cleanup must bind repository owner type")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")

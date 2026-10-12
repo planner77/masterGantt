@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 CI #2597.1 원인 분석/보완 (2026-10-12)
+
+- Policy job: `verify-issue-lifecycle.py`의 hardcoded `GITHUB_SHA` GHCR 경로 문자열. Vitest: `deployment-layout.test.ts`가 구 push-only checkout depth 문구를 고정 검증해 실패. 앱 Build/Typecheck/Lint, E2E6, Docker, Preflight는 PASS.
+- 실제 보안 계약을 유지하도록 정합 검증을 `SOURCE_SHA` 바인딩 + 정상 push fallback + 인증 recovery 분기 + 실패 후보 cleanup 제한으로 갱신. Recovery discovery 테스트에서 외부 API 접근을 막고 wrong SHA 선택을 fail-closed.
+- 신규 exact HEAD commit 및 PR CI 재검증. 이전 실패 #2597.1/QA를 성공 증거로 사용하지 않음. #616 exact GHCR는 여전히 별도 Owner 승인 필요.
+
 ## Issue #639 — CI #2596.1 branch trace fail-close / corrective PR (2026-10-12)
 - PR #640 최초 CI의 root cause는 `fix/639-` 브랜치가 `issue-NNN` 필수 패턴에 어긋나 `verify-ci-run-trace.py`가 Fail-close한 것. Required 세 집계 실패는 `changes` 실패의 파생 효과. 구현 Job 자체 테스트는 실행되지 않았음.
 - `fix/issue-639-exact-main-recovery` 규정 준수 브랜치로 corrective PR을 생성해 full PR CI를 새로 시작한다. #640은 superseded; main/protected policy/서명 검증을 완화하지 않음. 아직 PR success/Trusted QA/Owner approval NOT TESTED.
