@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #633 교차 Issue 미발행 릴리스 감사 (2026-10-12)
+
+- #550 v0.105.0 / #615 v0.106.0의 교차 병합 릴리스 부채를 읽기 전용 trusted main 검증기·수동 audit workflow·negative/positive fixture로 진단한다. 기존 Finalizer 자동 승계 차단과 Owner 버전별 승인·GHCR 불변성을 유지하며, 릴리스 mutation·version bump·Required CI/Ruleset 변경 없음. 자세한 내용: [Issue #633 복구 계획](docs/ISSUE_633_RELEASE_DEBT.md).
+
 ## [Unreleased] — Issue #550 Main CI #2543.1 FILTER_RETURN 완료 경합 교정 (2026-10-12)
 
 - #463 Gantt 필터 해제 후 새 `FILTER_RETURN` 명령이 아직 `WAIT_GEOMETRY`인 상태에서 후속 viewport 직접 입력이 늦게 되감기는 원격 E2E 경합을 구별한다. 가장 최신 `FILTER_RETURN:SETTLED` 영수증을 bounded poll한 뒤 기존 엄격한 좌표·필터·3RAF 보존 검증을 유지한다.
