@@ -50,6 +50,13 @@ jobs:
         run: python3 -m py_compile scripts/release_debt_audit.py
       - name: GHCR read-only 조회 도구 준비
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+      # GHCR package is private; packages:read does not authenticate Docker by itself.
+      - name: GHCR 비공개 이미지 조회용 읽기 전용 로그인
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: exact first-parent 및 Owner 버전 승인 감사
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
