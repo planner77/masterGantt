@@ -54,3 +54,7 @@ M1=#614~#618, M2=M1+#619~#623, M3=M2+#624. M2 수용이 Epic 전체 완료를 �
 F0 공통 검산은 `tests/fixtures/logistics-targets.ts` / `tests/domain/logistics-targets-contract.test.ts`다. F0-L/P/Q/F/R case ID를 후속 API/SQLite/UI/Excel에서 재사용하며 기대값을 약화해 통과시키지 않는다. 종단간 실패는 Q1까지 미루지 않고 발생 PR에서 수정한다.
 
 운영 DB·Windows Excel/VBA/DRM·실제 proxy/TLS·off-host backup-restore·실기기/screen reader/최종 수동 UX는 해당 환경별 증거를 별도로 기록한다. GitHub Actions나 F0 fixture 검산으로 대체하지 않는다.
+
+## F2 implementation candidate status — #616 (2026-10-12)
+
+F1 #615 PR #627/#628 integrated before branch creation. F2 branch `feat/issue-616-logistics-targets`: migration0026, typed existing Equipment/System member reuse, Target CRUD and atomic Project revision, bounded list and member usage, Project Copy member identity remap, Template/JSON lossy-path guard. Implementation and tests committed; CI and post-migration runtime validation NOT TESTED. AC6 versioned Template persistence is **not** implemented: present loss guard returns conflict until a versioned snapshot is designed. F3 WBS bindings and R* Resource are still NOT TESTED. Treat F2 row above as in progress, not completed; no downstream merge assumptions.
