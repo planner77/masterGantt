@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #645 immutable merge-PR identity recovery #2617 (2026-10-13)
+
+- Resolve false-negative trusted CI recovery when GitHub's commit-to-PR association index is empty for a real merged PR. Verify unique matching merged PR by exhaustively paginating the independent closed PR history; keep direct association strict, block missing/duplicate/unmerged/unavailable history, and cross-check both merge parents against PR base/head. Add mocked positive/negative and authenticated pagination regressions, update release/security operation documents. No application version, API/schema/UI changes or weakening of GHCR/Owner release permissions; old CI #2617.1 remains immutable FAIL.
+
 ## [Unreleased] — Issue #643 trusted Actions workflow source identity (2026-10-13)
 
 - Correct protected manual Main CI recovery validator: dynamic `run.name` is not the `CI` workflow name. Authenticate actual `ci.yml` metadata id/name/path/active state against Run workflow_id/path/repository/head repository, retain full attempt/Owner/evidence/Quality/E2E6/Docker/digest checks. Add offline positive/negative provenance fixtures and policy regressions. No product version, UI/API/DB, workflow permissions, Git tag or GHCR publication changes.

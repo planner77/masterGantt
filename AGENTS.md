@@ -1,3 +1,9 @@
+## Issue #645 — 누락된 GitHub commit→PR 인덱스의 독립 검증 (2026-10-13)
+
+- `GET /commits/{mergeSHA}/pulls` 결과가 `[]`일 수 있다. 빈 인덱스는 PR 인증 성공도 부정도 아니며, 별도의 GitHub **닫힌 PR 이력 전체**를 상한 있는 페이지 조회로 확인하고 `merge_commit_sha`가 정확히 일치하는 유일한 실제 병합 PR을 검증해야 한다. API 오류·상한 초과·다중 후보·미병합은 `BLOCKED`; 비어 있다는 이유로 무조건 통과시키지 않는다.
+- 현재 main의 신뢰된 복구 컨트롤러는 원본 PR `merged/state/Refs/base/head`, 양쪽 Git 부모 SHA, first-parent, 현재 main, Issue/PR/Owner의 최신 복구·버전별 릴리스 승인, 전체 CI Job/Attempt/artefact, GHCR digest를 **추가**로 교차 검증한다. 기존 source workflow/이벤트/권한/릴리스 순서는 유지한다.
+- #616 원본 병합 SHA `b97709df...`는 불변이고 #2617.1의 검증 실패 이력도 변경하지 않는다. 교정 #645는 보호 경로 HIGH/OWNER_MANAGED·`release_required=false`이며, PR CI3/Trusted QA와 별도의 Owner 병합 결정 후에만 진행. #616의 정식 v0.107.0 배포/이슈 종료는 별도 운영 결과가 필요하다.
+
 ## Issue #643 — Actions 소스 실행 검증의 ID·메타데이터 원칙 (2026-10-13)
 
 - GitHub Actions workflow 파일의 정의명(`name: CI`)과 실행별 동적 표시명(`run.name`, `run-name:`)은 구분한다. 예: CI #2612.1의 `run.name="Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1"`. 표시명이나 임의의 `display_title` 문자열을 source identity·Owner 승인 증거로 사용하지 않는다.

@@ -1,3 +1,9 @@
+## Issue #645 — #616 recovery CI #2617 commit association index gap (2026-10-13)
+
+- Root: authentic Owner `workflow_dispatch` #2617.1 on trusted `a7779bd...` blocked before tests. GitHub commit PR association `/commits/b97709df.../pulls` returns empty while `/pulls/631` and closed PR list prove correct merged SHA. Older missing original push CI, Owner marker and conditional version publish marker remain intact.
+- Dedicated HIGH/OWNER_MANAGED `#645` protects #616 original formal `release_required=true` obligation; #645 itself version-neutral `release_required=false`, `release_authorized=false`. Branch `fix/issue-645-commit-pr-recovery-proof` from current main `a7779bd027d2c1093be0cb67388d671ba02b4800`.
+- Change only `scripts/main_ci_recovery.py` fail-closed association verifier + parent head/base assertions, `scripts/test_main_ci_recovery.py` real-case positive and malformed/duplicate/partial negatives, `scripts/verify-issue-lifecycle.py` protected policy checks. Sync AGENTS/GITHUB_OPERATIONS/CI_CD/GENERIC_RELEASE_FINALIZER/TEST_PLAN/REMOTE_VALIDATION/CHANGELOG/Work Packet. PR full CI 3 required + Trusted QA must pass; separate Owner approval before merge. No #616 GHCR or release until real successful manual recovery Run.
+
 ## Issue #643 — actions workflow_id source verification (2026-10-13)
 
 - Linked #639(Closed, Main CI/Finalizer SUCCESS) → #643 protected source-validator regression → #616(Opened, original merge Main CI/GHCR/release pending).

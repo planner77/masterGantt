@@ -68,6 +68,29 @@ require("run.get(\"event\") == \"workflow_dispatch\"" in recovery_impl
         and "checked_jobs(all_jobs(repo, run_id))" in recovery_impl,
         "manual recovery must retain exact dispatch/event/attempt/aggregate trust checks")
 
+# Issue #645: GitHub's /commits/{merge}/pulls index can be empty for a
+# verified two-parent merge; a zero-association answer is NOT authorization.
+# Require an independent exhaustive closed PR ledger and unique exact SHA.
+require("def verified_merge_pr_association(" in recovery_impl
+        and "verified_merge_pr_association(" in recovery_impl.split("def validate(", 1)[1],
+        "#2617 recovery must invoke exact unique merged PR association verifier")
+require('f"/repos/{repo}/commits/{merge_sha}/pulls"' in recovery_impl
+        and 'f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc"' in recovery_impl,
+        "zero-entry commit index must use read-only paginated closed PR history")
+require('if indexed:' in recovery_impl
+        and 'len(candidates) == 1' in recovery_impl
+        and 'only.get("merged_at")' in recovery_impl
+        and 'only.get("merge_commit_sha") == merge_sha' in recovery_impl
+        and 'only.get("state") == "closed"' in recovery_impl,
+        "missing, duplicate, wrong-SHA, or unmerged PR identity may never pass")
+require('parents[1]["sha"] == (pr.get("head") or {}).get("sha")' in recovery_impl
+        and '(pr.get("base") or {}).get("sha")' in recovery_impl,
+        "source merged PR must match both immutable commit parent SHAs")
+require('raise Blocked("pagination truncated")' in recovery_impl,
+        "PR ledger enumeration must fail closed when history cannot be exhausted")
+require('commit-to-PR identity not uniquely verified' not in recovery_impl,
+        "recovery must distinguish GitHub empty commit index from validated merge")
+
 ops_doc = (ROOT / "docs" / "GITHUB_OPERATIONS.md").read_text(encoding="utf-8")
 require('gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"' in ops_doc, "Issue #582 merge CLI must include method/subject/empty body/exact Head")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")

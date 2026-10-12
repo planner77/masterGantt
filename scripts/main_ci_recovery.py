@@ -171,6 +171,47 @@ def git(*args: str) -> str:
     return command("git", *args).stdout.strip()
 
 
+def verified_merge_pr_association(repo: str, merge_sha: str, pr_number: int) -> str:
+    """Prove a unique merged PR without relying solely on the commit index.
+
+    GitHub's /commits/{sha}/pulls association index can return [] for a real
+    two-parent merge. Treat an empty index as UNKNOWN, not as authorization:
+    independently enumerate ALL closed PRs with bounded pagination and require
+    one unique merged PR holding the exact immutable merge SHA. Any ambiguity,
+    unavailable page or truncated history must remain BLOCKED.
+    """
+    require(SHA.fullmatch(merge_sha) is not None and type(pr_number) is int
+            and pr_number > 0, "commit-to-PR proof input invalid")
+    indexed = pages(f"/repos/{repo}/commits/{merge_sha}/pulls")
+    source = "commit_association"
+    if indexed:
+        candidates = indexed
+    else:
+        source = "closed_pull_history"
+        candidates = pages(
+            f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc"
+        )
+        # The independent list includes unrelated PRs; use SHA to select
+        # potential associations, but do NOT filter away unmerged duplicates.
+        candidates = [
+            item for item in candidates if item.get("merge_commit_sha") == merge_sha
+        ]
+    require(
+        len(candidates) == 1,
+        "commit-to-PR identity missing or ambiguous in authenticated history",
+    )
+    only = candidates[0]
+    require(
+        type(only.get("number")) is int and only["number"] == pr_number
+        and only.get("merge_commit_sha") == merge_sha
+        and only.get("state") == "closed"
+        and isinstance(only.get("merged_at"), str)
+        and bool(only["merged_at"].strip()),
+        "commit-to-PR identity mismatch or unmerged association",
+    )
+    return source
+
+
 def validate(identity: Identity, *, actor: str, source_event: str,
              require_local_head: bool = True) -> Identity:
     """Read-only, repeated before publication and before Finalizer mutation."""
@@ -196,10 +237,11 @@ def validate(identity: Identity, *, actor: str, source_event: str,
             "PR repository/base mismatch")
     require(re.search(rf"(?im)^\s*Refs\s+#\s*{identity.issue}\s*$", pr.get("body") or "") is not None,
             "PR canonical issue trace mismatch")
-    assigned = pages(f"/repos/{identity.repo}/commits/{identity.sha}/pulls")
-    require(len(assigned) == 1 and assigned[0].get("number") == identity.pr
-            and assigned[0].get("merge_commit_sha") == identity.sha,
-            "commit-to-PR identity not uniquely verified")
+    association_source = verified_merge_pr_association(
+        identity.repo, identity.sha, identity.pr
+    )
+    print(f"exact-main-recovery merged PR source: {association_source}; "
+          f"Issue #{identity.issue} PR #{identity.pr} SHA {identity.sha}")
     issue = gh(f"/repos/{identity.repo}/issues/{identity.issue}")
     require(issue.get("state") == "open" and not issue.get("pull_request"),
             "target Issue is not open")
@@ -207,8 +249,11 @@ def validate(identity: Identity, *, actor: str, source_event: str,
     parents = commit.get("parents") or []
     require(len(parents) == 2 and all(SHA.fullmatch(p.get("sha", "")) for p in parents),
             "target is not a two-parent merge")
-    require(parents[0]["sha"] == git("rev-parse", identity.sha + "^1"),
-            "first-parent provenance mismatch")
+    require(parents[0]["sha"] == git("rev-parse", identity.sha + "^1")
+            and parents[0]["sha"] == (pr.get("base") or {}).get("sha"),
+            "first-parent PR base provenance mismatch")
+    require(parents[1]["sha"] == (pr.get("head") or {}).get("sha"),
+            "second-parent PR head provenance mismatch")
     def version_at(sha: str) -> str:
         return str(json.loads(git("show", sha + ":package.json")).get("version", ""))
     previous = version_at(parents[0]["sha"])

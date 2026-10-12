@@ -1,3 +1,10 @@
+## Issue #645 — actual CI #2617.1 recovery false-negative and verified fallback (2026-10-13)
+
+- [Run #2617.1](https://github.com/planner77/masterGantt/actions/runs/38310183123) (`run_id=38310183123`, `workflow_dispatch`, controller SHA `a7779bd027d2c1093be0cb67388d671ba02b4800`) complete FAILURE. `변경 경로 판정` job #115013710881 `scripts/main_ci_recovery.py authorize`: `BLOCKED: exact-main-recovery BLOCKED: commit-to-PR identity not uniquely verified`; three required aggregate failures are cascade, original Quality/E2E/Docker implementation SKIPPED, GHCR not published.
+- Live REST: original SHA `b97709df...` `/commits/{sha}/pulls` returned 0, while `/pulls/631` returned `merged=true` + exact `merge_commit_sha` + parent SHA match and closed PR enumeration included uniquely #631. This is an index gap; do not infer authorization from 0 alone.
+- Corrective method: bounded complete closed PR listing and unique merged SHA match **only** when commit association list is empty; preserve exact Issue/PR/Owner/branch/source/workflow ID/version/Run artifact/candidate digest and both Git parents. Test positive and ambiguous/stale/pagination negative offline.
+- No remote positive recovery CI, `v0.107.0` tag, GHCR release, #616 Finalizer or Issue close is asserted; those require the updated protected verifier merged and a **new** manual recovery attempt. Existing approved Owner marker comment #6132769240 stays scoped to #616/#631/original SHA/version.
+
 ## Issue #643 — dynamic GitHub Actions run.name source 보안 교정 (2026-10-13)
 
 - 증거: [Main CI #2612.1](https://github.com/planner77/masterGantt/actions/runs/38302427091) (push, SHA `5da9c039422647490a947c5cd1e80ec24df22db2`)의 GitHub REST `run.name="Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1"`, `workflow_id=356198495`, `path=".github/workflows/ci.yml"`, source repo/head repo `planner77/masterGantt`. 해당 run은 성공이며 이번 증거는 **API shape**만 입증한다. 실제 Owner recovery `workflow_dispatch`는 아직 발생하지 않았다.

@@ -1,3 +1,8 @@
+## Issue #645 — original SHA Main CI source PR provenance false-negative 보완 (2026-10-13)
+
+- 복구 source `/commits/{sha}/pulls` 인덱스가 비어 있는 경우만 `/pulls?state=closed` 전수 read-only 조회로 원본 `merge_commit_sha`/PR 번호/실제 merged_at의 **유일성**을 검증한다. 독립 `GET /pulls/{PR}`, 병합 커밋 두 부모↔PR base/head, first-parent, Owner/Issue/PR/version/recovery approval 등은 추가 확인이므로 보안 강도를 낮추지 않는다.
+- missing/ambiguous/pagination failure/foreign PR/미병합 API는 `BLOCKED`; 성공·실패 Run을 지우거나 기존 태그/후속 릴리스 부채를 재작성하지 않는다. #645 PR은 `release_required=false` 운영 검증기 변경이며, #616 원본 SHA의 Quality/E2E6/Docker·private GHCR digest·SBOM/provenance·정식 v0.107.0 Finalizer까지 수행한 증거가 아니다. 그 작업은 별도 인증 Owner 복구 dispatch와 immutable Run 결과가 필요하다.
+
 ## Issue #643 — 수동 Main 복구 Run 원본 확인 및 False-negative 방지 (2026-10-13)
 
 - `scripts/main_ci_recovery.py::completed_evidence`는 trusted default-main에서 정확한 원본 CI workflow metadata (`ci.yml`의 id/name/path/state)와 Actions Run `workflow_id`·`path`·`repository/head_repository`를 교차 확인한다. `run.name`은 `run-name`이 있는 모든 워크플로에서 가변 표시명이므로 인증/임계치에 사용하면 안 된다.
