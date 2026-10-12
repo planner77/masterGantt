@@ -1584,6 +1584,11 @@ require("mastergantt-release-debt-authorization:v2" in _recovery633 and "B2_RETI
 require('last["authorized"] is False' in _recovery633, "old SemVer Owner publication grants must be revoked")
 require('state=="success"' in _recovery633 and "replacement_digest" in _recovery633, "new release/digest must be proved before retirement")
 require("mastergantt-release-debt-retired:v1" in _recovery633, "unissued releases need immutable retirement evidence distinct from FINAL")
+require("def source_history(" in _recovery633 and '"--first-parent"' in _recovery633 and "core.resolve_work_item(repo,sha)" in _recovery633, "B2 release Resume must recover immutable old SHA history across prior FINAL boundary")
+require("authenticated_retirement(" in _recovery633, "partial closed Issue replay must require authenticated bot retirement evidence")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST"' in _recovery633, "retirement marker must use write-capable trusted GitHub API")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}",method="PATCH"' in _recovery633, "post-release Issue close must use write-capable trusted GitHub API")
+
 require('github.event_name == \'issue_comment\'' in _generic633 and "github.repository_owner" in _generic633, "Owner Issue-trigger must be authenticated")
 require("ref: ${{ github.sha }}" in _generic633, "Owner trigger may not checkout user-controlled code")
 require("packages: write" in _generic633 and "mastergantt-release-finalizer" in _generic633, "default Finalizer permissions/concurrency must be retained")
