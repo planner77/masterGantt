@@ -193,6 +193,16 @@ export class ProjectTemplateService {
         throw new RevisionMismatchError();
       }
 
+      // Fail closed: versioned Target/occurrence graph must not be silently dropped.
+      // A future versioned snapshot must explicitly encode global occurrence IDs and
+      // local instance/member remaps before this guard can be removed.
+      if (this.database.prepare("SELECT 1 FROM logistics_targets WHERE project_id=? LIMIT 1").get(source.id)) {
+        throw new ProjectTemplateError(
+          "TARGET_TEMPLATE_NOT_SUPPORTED",
+          "Target 구성원이 있는 프로젝트는 현재 Template 형식으로 저장할 수 없습니다. Project Copy를 이용하세요.",
+        );
+      }
+
       // The current snapshot format has no versioned occurrence capability.
       if (new ProcessCatalogRepository(this.database).hasMappings(source.id)) {
         throw new ProjectTemplateError(
