@@ -1,3 +1,24 @@
+## Issue #550 — Main CI #2543.1 FILTER_RETURN 완료 경합 보완 (2026-10-12)
+
+- 원본 [Main CI #2543.1](https://github.com/planner77/masterGantt/actions/runs/38191560895), 병합 SHA `e51b99cb25f37c8909de356a089a56b4139415a3`: Quality(TypeScript/Lint/Vitest/Build)·Docker PASS, Chromium shard 3/6에서 `tests/e2e/milestone-dashboard-state.spec.ts:181` 1 FAIL/122 PASS/1 SKIP, 다른 5 shard PASS. Chromium aggregate FAIL, Main GHCR candidate 및 Finalizer SKIPPED. 기존 실패는 변경하지 않는다.
+- [실패 Playwright Trace](https://github.com/planner77/masterGantt/actions/runs/38191560895/artifacts/11720949544)의 검색 해제 직후 이전 좌표 Core/native `120/0` 일치는 새 `FILTER_RETURN` 완료가 아니다. `WAIT_GEOMETRY` 중 테스트가 직접 `scrollLeft=180`, `scrollTop=128`을 주입했고, 지연 `FILTER_RETURN:SETTLED`가 Core/native 수평을 `120`으로 되돌렸다. 실제 사용자 입력(wheel/pointer) 이벤트가 아닌 DOM 직접 설정이므로 gesture 갱신이 없었다. 서버/SQLite/ECONNRESET과는 별개다.
+- 보완: 기존 `PEER_RETURN` marker 불변 확인과 필터 수직 clamp `120/0` 이후, `data-gantt-viewport-coordinator-history`에서 **가장 최신 FILTER_RETURN의 phase/outcome=SETTLED/SETTLED**를 bounded Playwright `expect.poll`로 확인한다. 그 이후 **기존 동일한** `180/128` 입력, 필터 재적용/해제, 조회/resize 후 public/native 동등성, marker 불변, instance 동일, 3개 RAF 안정 검증을 수행한다. sleep/timeout/retry/skip/expectation 완화, Gantt 제품 writer/Coordinator/권한/CI 변경 없음.
+- 검증: 새 Head의 TypeScript/Chromium full 6 shard/Quality/Docker/Trusted QA는 PR CI로 재검증한다. 이전 PR #626의 성공은 다른 Head의 증거다. 새 PR은 HIGH·OWNER_MANAGED, `release_required=false`(물리적 manifest/version 변화 없음); 기존 #550의 승인된 v0.105.0 정식 릴리스 미완료와 #615 v0.106.0 중간 병합으로 인한 Finalizer 의무·차단은 유지한다. 사용자 GHCR 요청이 있어도 릴리스 증거·버전 승인·first-parent 순서의 fail-closed를 우회하지 않는다.
+
+## Issue #629 — CI #2537.1 shard5 Projection timeout 진단 (2026-10-12)
+
+- 원본 [#2537.1](https://github.com/planner77/masterGantt/actions/runs/38188347560)의 `#570 actual Core structure insert-before`: 97 PASS/1 FAIL, 기대 `41:SETTLED`, 관찰 `41:TIMED_OUT` (서버가 아닌 browser 내부 observer 제한 시간 1500ms). 원본 Playwright report에서 논리/Core/DOM IDs 및 순서는 5개 모두 일치하며 새 행의 시각적 표시를 확인했지만 원래 실패한 정합성 predicate는 기존 receipt에서 재구성 불가하다.
+- `canonical-projection.spec.ts` 실패 분기에만 실제 root/receipt, Grid·Chart DOM rect/text 및 Core trace를 `projection-timeout-actual-core-and-dom`으로 부착한다. 기존 timeout, 기대 SETTLED, transaction error 422, root identity/행 순서 및 fail-on-error는 유지. 통과 여부는 새 원격 exact-head CI를 확인해야 한다.
+- 작업 #629의 제품/UI 기능 변경이 아니며 #570 Projection 동작 변경 금지. 원인 특정 이전 재시도·대기 확대·skip·허위 PASS 금지.
+
+## Issue #629 — PR #630 CI #2532.1 회귀 보완 (2026-10-12)
+- 실제 Policy 실패: `test_workflow_aggregate_guard_contract`의 잘못된 Python expected GitHub Actions ref 문자열. 실제 YAML은 `ref: ${{ github.event.pull_request.base.sha }}`; Python의 escaping으로 불필요한 역슬래시가 들어가 원본 Unit 9/10 PASS에도 Aggregate FAIL.
+- 재발 방지: assert의 예상값은 실제 YAML과 동일한 unescaped 표현식을 검증하고 escaped expression 존재는 거부한다. `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py`를 Policy에 유지한다.
+- [원본 Run #2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545)에서 E2E 6/6 및 Docker PASS, Preflight bootstrap(Job SUCCESS, 검증 본체 NOT TESTED), Quality/QA Automated FAIL을 구분한다. 새 Head 검증 결과는 PR CI 시작 전 NOT TESTED.
+
+## Issue #629 — QA Preflight 테스트 (2026-10-12)
+`scripts/test_qa_preflight.py`는 synthetic #550 #2373 (Primary Issue title/Refs), #626 #2522 (필수 운영 문서 누락), 위험도/QA 방식/복수 필드, 보호 파일 rename, merge pending/conflict, stale SHA/API 실패, metadata-only 제외, aggregate `always()` 의존성을 검증한다. #2376/#2382/#2404/#2414/#2435는 동일한 오류 종류 replay와 실제 Actions 원본 로그 대조가 별도로 필요하다. 구조 테스트 실행 결과와 원격 P1~P5 증거를 구분한다. 관련 최종 QA Python 회귀, #600 metadata M1~M8와 정책 계약을 CI에서 함께 수행한다.
+
 ## Issue #550 / PR #626 — 공유 분석 후속 검증 (2026-10-12)
 
 - 실패 원본: [CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391), Head `ddb4fe246e06bea6f6a9b5a3b193594566450cc8`. Quality/Docker PASS, E2E shard2 #461 `milestone-stage-editor.spec.ts`의 GET `ECONNRESET` 1 FAIL/71 PASS, 다른5샤드 PASS. 프로세스 종료·OOM·실제 HTTP 도착의 근거는 부족하므로 근인 UNKNOWN을 유지한다.
@@ -3279,3 +3300,10 @@ Integration fixture covers project_common MCS identity reuse, duplicate Target/m
 ## #616 Template v2 검증
 
 `tests/server/templates/logistics-template-graph.test.ts`: 두 공정/선택 WorkArea, TargetA(AMR10+ACS A+MCS1), TargetB(AMR5+ACS B+MCS1), 공통형 System-only Target; 신규 Project 인스턴스 ID, MCS 단일 인스턴스 및3개 Target member 참조, 물류 총15대, 공정 occurrence/WorkArea 일치와 PRAGMA foreign_key_check 검증. 부재/중복 member, 타 공정 WorkArea, 알 수 없는 graph version 전체 Project rollback과 구 Template snapshot 호환을 검증하도록 작성. 기존 #2534.1의 타입 검사/마이그레이션·route 보안 inventory 실패를 보완했으며 신규 CI 실행 결과는 별도로 판정한다.
+
+## Issue #616 PR #631 · E2E shard6 project create hydration regression (2026-10-12)
+
+- 기준: [#2545.1](https://github.com/planner77/masterGantt/actions/runs/38192860417) Shard6 `project-links-persistence.spec.ts:36` 88 PASS/1 FAIL/1 Skip. Trace에서 첫 프로젝트 POST201, 두 번째 프로젝트 이름의 Playwright `fill` after-snapshot이 빈 값, `aria-invalid=true` validation, POST 요청 0건을 확인. 서버 타임아웃/응답 장애로 분류하지 않는다.
+- `createProject()`에서 `waitForProjectMasterCatalogReady(page)`를 이름/비밀번호 입력 전 실행하여 `useEffect` 이후 서버 기준정보 로딩 완료에 근거한 폼 hydration/readiness를 보장한다. 저장 전 `expect(projectName).toHaveValue(name)`을 추가해 상태 초기화 시 올바른 필드 오류를 표면화한다. 두 프로젝트 ID/링크 구분·인증·clipboard/읽기전용·탭 왕복 원 검증, 30s timeout/Playwright retry/skip 및 서버 요청 재시도는 불변.
+- 새 CI에서 Shard6 및 전체 6 shard, Docker, Quality, QA Preflight/Final, 최신 test merge를 다시 판정한다. PR CI 시작 사실은 PASS가 아니다.
+

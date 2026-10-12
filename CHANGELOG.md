@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #616 PR CI Shard6 회귀 보완 (2026-10-12)
+
+- 프로젝트 링크 E2E에서 두 번째 새 Project 화면의 SSR→hydration 타이밍으로 name 입력이 초기화돼 POST 없이 client validation에서 차단된 실패를 추적한다. 클라이언트 기준정보 준비가 끝난 뒤 입력하고 submit 직전 이름 상태를 검증해 30초 HTTP 타임아웃으로 오진하지 않도록 한다.
+- 제품/API/SQLite 계약, 기존 Playwright assertions·timeout·retry·skip 변경 없음. 최신 main QA preflight/E2E 개선 병합 및 신규 exact-head CI 검증은 별도 Gate.
+
 ## [Unreleased] — #616 Template v2 보완
 
 - Project Template에서 F1 공정 occurrence/WorkArea와 Target/member 전체 관계를 versioned graph v2에 저장·복원한다. System/Equipment는 기존 Template 복원 단일 인스턴스를 참조하고 MCS 공유 정체성을 보존한다.
@@ -13,6 +18,14 @@
 
 ### Validation
 - HIGH / OWNER_MANAGED; local full test, PR CI/QA/Manager ACCEPT and production migration **NOT TESTED**. F3 WBS bindings and later Resource roll-up are out of scope. Release authorization **false**.
+
+## [Unreleased] — Issue #550 Main CI #2543.1 FILTER_RETURN 완료 경합 교정 (2026-10-12)
+
+- #463 Gantt 필터 해제 후 새 `FILTER_RETURN` 명령이 아직 `WAIT_GEOMETRY`인 상태에서 후속 viewport 직접 입력이 늦게 되감기는 원격 E2E 경합을 구별한다. 가장 최신 `FILTER_RETURN:SETTLED` 영수증을 bounded poll한 뒤 기존 엄격한 좌표·필터·3RAF 보존 검증을 유지한다.
+- 제품 코드·workflow·release tag·version `0.106.0` 불변. 기존 #550 v0.105.0 미완료 릴리스와 #615 중간 병합의 Finalizer 차단을 해제·우회하지 않는다. CI/Main/GHCR 성공 여부는 새 exact Head에서 별도 확인한다.
+
+## Unreleased — Issue #629 QA Preflight (2026-10-12)
+- PR CI의 고비용 E2E/Docker 이전 QA title/Refs, risk/method/QA, 문서 영향/AC 구조 사전 검증을 추가한다. 기본 브랜치 검증기 신뢰·도입 Bootstrap NOT TESTED·최종 Trusted QA와 Owner 결정 분리·기존 세 required aggregate fail-closed 계약을 유지한다. 제품 버전/사용자 UI/API/DB 스키마 변경 없음.
 
 ## [Unreleased] — Issue #550 공유 분석 후속
 
