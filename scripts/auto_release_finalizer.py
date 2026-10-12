@@ -802,6 +802,23 @@ def execute(trigger_sha: str) -> int:
         first_parent_items=pending_with_barriers,
     )
 
+    # B2 retirement is a separate, narrow Owner-authorized exception. Without
+    # the exact current main SHA and the two original revocations, it remains
+    # a NO-OP and the historical failed CI is the oldest ordering blocker.
+    from release_debt_recovery import plan_b2, finalize_b2
+    recovery_plan = plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)
+    if recovery_plan is not None:
+        pending = [
+            item for item in pending if item.target_sha not in recovery_plan.retired_shas
+        ]
+        write_summary([
+            "### Owner B2 승인된 미발행 릴리스 예외",
+            f"- Owner audit evidence: {recovery_plan.marker_url}",
+            "- v0.105.0/v0.106.0 old Main CI: FAIL unchanged; release not authorized",
+            f"- new release: v{recovery_plan.target.current_version} / {recovery_plan.sha}",
+            "- old PR cleanup/Issue close: ONLY after new exact release succeeded",
+        ])
+
     if finalized_boundary:
         recovered = resume_unclosed_final(
             repo, finalized_boundary[0], pending_raw, latest_main
@@ -915,6 +932,11 @@ def execute(trigger_sha: str) -> int:
             candidate.issue_number == item.issue_number and candidate.target_sha != item.target_sha
             for candidate in pending[pending.index(item) + 1:]
         )
+        if (recovery_plan is not None and item.target_sha == recovery_plan.sha
+                and release_state == "success"):
+            # Verified immutable release and digest promotion BEFORE retiring
+            # historical versions. Partial cleanup fails closed and is replayable.
+            finalize_b2(sys.modules[__name__], repo, latest_main, recovery_plan)
         operation = process_item(repo, item, release_state, main_snapshot_sha=latest_main, defer_close=newer_same_issue)
         if operation == "release_start":
             write_summary(
