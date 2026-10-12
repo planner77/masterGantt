@@ -1,3 +1,13 @@
+## [Unreleased] — Issue #616 Logistics Target F2 (PR candidate)
+
+### Added
+- Project-local Logistics Target/typed Equipment·System membership (migration 0026), transactional CRUD, explicit process/optional WorkArea, common System grouping, usage API and inline Project-local instance creation with catalog reuse.
+- Many Targets may reuse one System/Equipment identity; no automatic control/coordination/Resource modification. Project Copy remaps members through the existing one-instance-to-one-instance mapping.
+- Template creation and schedule-stage JSON export with Target content fail closed until a versioned full graph can be represented; no silent truncation.
+
+### Validation
+- HIGH / OWNER_MANAGED; local full test, PR CI/QA/Manager ACCEPT and production migration **NOT TESTED**. F3 WBS bindings and later Resource roll-up are out of scope. Release authorization **false**.
+
 ## [0.106.0] - 2026-10-12
 
 ### Fixed
