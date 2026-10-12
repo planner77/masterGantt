@@ -1,3 +1,10 @@
+## PR #634 후속: Private GHCR 검사 및 태그 명세 정합화 (2026-10-12)
+
+- 2026-10-12 PR CI #2559.1의 Quality/E2E 6-shard/Docker Required aggregate는 모두 SUCCESS, 마지막 QA Automated는 미해결 P1 리뷰 2건 때문에 BLOCKED(전체 CI FAILURE).
+- GHCR `packages:read`는 읽기 API 권한일 뿐 Docker CLI 로그인은 아니다. read-only audit workflow에서 pinned `docker/login-action`, `github.actor` 및 기존 `GITHUB_TOKEN`으로 **검사 이전에 인증**한다. token을 로그/코드에 직렬화하지 않으며 registry/tag/Issue는 수정하지 않는다.
+- annotated Git tag와 GitHub Release tag는 `vX.Y.Z`; 정식 GHCR exact image tag는 `ghcr.io/planner77/mastergantt:X.Y.Z`이다. 조회 대상이 없을 때 `vX.Y.Z`를 조회하는 오류는 기존 발행물을 숨길 수 있으므로 금지한다.
+- 비인증·권한 부족·모호한 404는 `UNKNOWN`으로 fail-closed한다. 인증된 레지스트리의 명시적인 `manifest unknown`만 `ABSENT`로 분류하고, 발견한 exact digest는 원장에 그대로 기록한다. 추가 fixture는 두 P1 회귀와 기존 #615·#586/#344 contract를 검증한다. Trusted main 실증·Owner 승인 및 GHCR 실제 내용 판정은 아직 NOT TESTED.
+
 # Issue #633 — 교차 Issue 미발행 Release 부채: 읽기 전용 복구 판정
 
 2026-10-12 / HIGH / `qa_method=OWNER_MANAGED` / `release_required=false` (본 감사 PR) / `release_authorized=false`.

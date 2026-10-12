@@ -1,3 +1,10 @@
+## PR CI #2559.1 / 리뷰 P1 후속 보완 (2026-10-12)
+
+- [Run #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645): QA Preflight, 정책/품질/Vitest/ESLint/TypeScript/Next.js, Chromium 6/6 shard 및 Docker Required aggregate 전부 SUCCESS; `QA Final — Automated`만 미해결 리뷰 2건 때문에 BLOCKED. 원본 CI conclusion FAILURE와 두 리뷰의 감사 기록을 보존한다.
+- 리뷰 P1 #4244416867: private GHCR은 `packages: read` 선언만으로 Docker 인증되지 않는다. pinned `docker/login-action` 및 기존 `GITHUB_TOKEN`으로 `ghcr.io`에 로그인한 뒤 `imagetools inspect` 실행한다. permissions/registry mutation 추가 없음.
+- 리뷰 P1 #4244416874: Git/GitHub Release tag는 `v0.106.0`, GHCR 이미지 exact tag는 `0.106.0`. 감사 조회를 unprefixed SemVer로 수정하고, 이미 발행된 exact digest를 ABSENT로 오판하면 반드시 차단한다. 승인 오류·모호한 HTTP 404를 `UNKNOWN`으로 분류한다.
+- `scripts/test-release-debt-audit.py`에 private GHCR exact tag·digest/unauthorized/404/manifest unknown 분류 fixture 추가; `verify-issue-lifecycle.py`에 audit workflow registry 인증·권한·순서 static contract 추가. 새 exact Head에서 PR CI 재검증. Trusted QA/Owner 위험 수용·정식 게시 승인은 별도다.
+
 # Issue #633 — 교차 병합 미발행 릴리스 부채 감사 Work Packet
 
 ## 작업 범위와 검증 경계

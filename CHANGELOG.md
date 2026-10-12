@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #633 PR #634 GHCR 감사 P1 보완 (2026-10-12)
+
+- PR CI #2559.1은 Quality/E2E 6 shard/Docker 성공, QA Automated 미해결 2건으로 전체 실패. 비공개 GHCR 감사에 pinned 로그인 단계 추가, Git tag `vX.Y.Z`와 정식 GHCR exact `:X.Y.Z` 구별 및 registry 모호한 오류 fail-closed. negative/positive fixture와 운영/테스트/QA 문서 동기화. 버전 `0.106.0`, 기존 릴리스 승계 차단·읽기 권한·정식 게시 미승인은 유지.
+
 ## [Unreleased] — Issue #633 교차 Issue 미발행 릴리스 감사 (2026-10-12)
 
 - #550 v0.105.0 / #615 v0.106.0의 교차 병합 릴리스 부채를 읽기 전용 trusted main 검증기·수동 audit workflow·negative/positive fixture로 진단한다. 기존 Finalizer 자동 승계 차단과 Owner 버전별 승인·GHCR 불변성을 유지하며, 릴리스 mutation·version bump·Required CI/Ruleset 변경 없음. 자세한 내용: [Issue #633 복구 계획](docs/ISSUE_633_RELEASE_DEBT.md).

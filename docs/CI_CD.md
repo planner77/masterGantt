@@ -1,3 +1,8 @@
+## Issue #633 — Private GHCR 읽기 전용 감사 인증 (2026-10-12)
+
+- `release-debt-audit.yml`은 permission `packages: read`뿐 아니라 `docker/login-action`으로 GHCR에 인증한 뒤 read-only `docker buildx imagetools inspect ghcr.io/<repo>:X.Y.Z`를 수행한다. GitHub tag의 v-prefix를 Docker tag에 붙이지 않는다.
+- 신규 토큰·Write 권한·RuleSet/Required Check 변경은 없으며 ambiguity는 BLOCKED. 별도 release authorization 없이 formal GHCR/Issue lifecycle mutation 금지.
+
 ## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
 
 - #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.

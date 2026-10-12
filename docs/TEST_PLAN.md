@@ -1,3 +1,9 @@
+## Issue #633 — PR #634 리뷰 P1 registry 회귀 테스트 (2026-10-12)
+
+- `scripts/test-release-debt-audit.py`에 Git tag `v0.105.0` 대 GHCR exact image `:0.105.0` 구별, 이미 발행된 GHCR exact digest의 BLOCKED 처리, registry unauthorized/HTTP 404→UNKNOWN 및 명시적 manifest-unknown→ABSENT fixture를 추가한다. 네트워크 없이 read-only 결과만 모킹한다.
+- `scripts/verify-issue-lifecycle.py`: pinned `docker/login-action`, 기존 `GITHUB_TOKEN`/GHCR 경로의 login-before-inspect, 읽기 전용 permissions, bare-SemVer 조회 불변을 확인한다. 새로운 원격 GHCR 등록/Release/Finalizer는 실행하지 않는다.
+- [PR CI #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645)의 Required 세 종 SUCCESS와 QA Automated review-thread BLOCKED를 구별한다. 새로운 Head의 CI로 재검증한다.
+
 ## Issue #633 — 교차 릴리스 부채 감사 검증 (2026-10-12)
 
 - `python3 scripts/test-release-debt-audit.py`: #550 실패 Main SHA→BLOCKED, #615 same-Issue corrective/중간 Issue·docs-only·closed barrier·SemVer 변화, immutable tag/GHCR UNKNOWN, Owner marker 위조·철회 및 버전별 승인 positive/negative fixture.

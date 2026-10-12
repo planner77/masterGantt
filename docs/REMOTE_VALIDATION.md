@@ -1,3 +1,8 @@
+## Issue #633 — PR #634 CI #2559.1 원격 검증 및 P1 보완 (2026-10-12)
+
+- [원본 Full PR CI #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645), HEAD `36b061ad8970d94014805105211c126410175b53`: QA Preflight/Policy/TypeScript/ESLint/Vitest/Next.js, Chromium 6/6, Docker Build+Smoke, Required aggregate 3종 SUCCESS. `QA Final — Automated`는 PR #634의 미해결 리뷰 P1 두 스레드로 `BLOCKED`, Run 전체 FAILURE. 원본 증거 유지.
+- 보완: private GHCR registry에 audit-before-read 로그인 추가 및 실제 Docker exact tag의 v-prefix 제거, 모호한 404를 UNKNOWN으로 fail-closed. 새 Head fixture/CI 수행; original Main CI/GHCR/Release/Owner 기록 불변.
+
 ## Issue #633 — 원격 감사/CI 증거 경계 (2026-10-12)
 
 - PR #634 run #2556.1 (`38199169784.1`): QA Preflight `BLOCKED` HTTP 404, `docs/exec-plans/active/ISSUE_633.md` 누락. Quality/E2E/Docker aggregate FAIL은 preflight 연쇄 실패이며 본체 테스트는 SKIPPED. 파일 추가 후 새 SHA에서 CI를 재검증하고 과거 FAIL은 보존한다.

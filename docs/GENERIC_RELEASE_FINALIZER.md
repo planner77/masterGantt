@@ -1,3 +1,8 @@
+## Issue #633 — GHCR 감사의 태그·인증 구분 (2026-10-12)
+
+- GitHub/Git의 immutable annotated `vX.Y.Z`와 GHCR의 exact image `:X.Y.Z`는 서로 다른 naming 계약이다. 기본 브랜치 수동 read-only 감사는 `packages: read` + `docker/login-action`으로 private GHCR 인증 후 실제 `:X.Y.Z` manifest/digest를 조회한다.
+- 레지스트리 권한/네트워크·HTTP 404가 모호하면 `UNKNOWN`으로 fail-closed; 이미 발행된 이미지 digest는 미발행 버전 폐기를 차단한다. Generic Finalizer의 cross-Issue supersession 정책·tag mutation/Release 권한은 변경하지 않는다.
+
 ## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
 
 - #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.
