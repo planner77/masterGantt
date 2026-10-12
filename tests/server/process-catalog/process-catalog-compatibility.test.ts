@@ -166,7 +166,7 @@ describe("Issue #615 compatibility of explicit process mappings", () => {
     });
     const copiedId = (f.database.prepare("SELECT id FROM projects WHERE public_id=?")
       .get(created.response.data.project.publicId) as {id:number}).id;
-    const mappings = new ProcessCatalogRepository(f.database).rawMappings(copiedId);
+    const mappings = f.database.prepare("SELECT occurrence_id,work_area_id FROM project_process_occurrence_mappings WHERE project_id=?").all(copiedId) as Array<{occurrence_id:number;work_area_id:number|null}>;
     expect(mappings).toHaveLength(1);
     expect(mappings[0].occurrence_id).toBe(f.occurrenceId);
     expect(mappings[0].work_area_id).toBe(f.workAreaId);
