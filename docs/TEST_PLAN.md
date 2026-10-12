@@ -1,3 +1,9 @@
+## Issue #629 — CI #2537.1 shard5 Projection timeout 진단 (2026-10-12)
+
+- 원본 [#2537.1](https://github.com/planner77/masterGantt/actions/runs/38188347560)의 `#570 actual Core structure insert-before`: 97 PASS/1 FAIL, 기대 `41:SETTLED`, 관찰 `41:TIMED_OUT` (서버가 아닌 browser 내부 observer 제한 시간 1500ms). 원본 Playwright report에서 논리/Core/DOM IDs 및 순서는 5개 모두 일치하며 새 행의 시각적 표시를 확인했지만 원래 실패한 정합성 predicate는 기존 receipt에서 재구성 불가하다.
+- `canonical-projection.spec.ts` 실패 분기에만 실제 root/receipt, Grid·Chart DOM rect/text 및 Core trace를 `projection-timeout-actual-core-and-dom`으로 부착한다. 기존 timeout, 기대 SETTLED, transaction error 422, root identity/행 순서 및 fail-on-error는 유지. 통과 여부는 새 원격 exact-head CI를 확인해야 한다.
+- 작업 #629의 제품/UI 기능 변경이 아니며 #570 Projection 동작 변경 금지. 원인 특정 이전 재시도·대기 확대·skip·허위 PASS 금지.
+
 ## Issue #629 — PR #630 CI #2532.1 회귀 보완 (2026-10-12)
 - 실제 Policy 실패: `test_workflow_aggregate_guard_contract`의 잘못된 Python expected GitHub Actions ref 문자열. 실제 YAML은 `ref: ${{ github.event.pull_request.base.sha }}`; Python의 escaping으로 불필요한 역슬래시가 들어가 원본 Unit 9/10 PASS에도 Aggregate FAIL.
 - 재발 방지: assert의 예상값은 실제 YAML과 동일한 unescaped 표현식을 검증하고 escaped expression 존재는 거부한다. `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py`를 Policy에 유지한다.
