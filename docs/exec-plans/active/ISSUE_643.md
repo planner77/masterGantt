@@ -27,7 +27,7 @@
 - `scripts/main_ci_recovery.py`: UPDATED
 - `scripts/test_main_ci_recovery.py`: UPDATED
 - `scripts/verify-issue-lifecycle.py`: UPDATED
-- `AGENTS.md`: UPDATED (general trusted source identity guidance)
+- `AGENTS.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/CI_CD.md`: UPDATED
 - `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
@@ -36,20 +36,25 @@
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_643.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
-- `docs/QA_REVIEW_POLICY.md`: N/A (existing HIGH/OWNER_MANAGED boundaries unchanged)
-- `.github/workflows/ci.yml`, `.github/workflows/release-finalizer.yml`: N/A (workflow event/permissions unchanged)
-- `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/API.md`, `docs/DB_SCHEMA.md`: N/A (no UI/API/schema changes)
-- `package.json`, `package-lock.json`: N/A (no version/dependency changes)
-- `docs/LOGISTICS_TARGETS.md`: N/A (not changing business feature)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Existing HIGH OWNER_MANAGED policy remains unchanged)
+- `.github/workflows/ci.yml`: N/A(Workflow trigger and permission contracts remain unchanged)
+- `.github/workflows/release-finalizer.yml`: N/A(Finalizer authentication order remains unchanged)
+- `DESIGN.md`: N/A(No user interface or shared UX guidance changes)
+- `docs/UI_UX_GUIDELINES.md`: N/A(No user interface changes in this protected tooling fix)
+- `docs/API.md`: N/A(No application API or HTTP contract changes)
+- `docs/DB_SCHEMA.md`: N/A(No database schema or migration changes)
+- `package.json`: N/A(Application package version remains unchanged)
+- `package-lock.json`: N/A(Dependency package lock remains unchanged)
+- `docs/LOGISTICS_TARGETS.md`: N/A(Target F2 domain logic and schema remain unchanged)
 
 ## AC_TEST_COVERAGE
 
-- **AC1:** Dynamic `run.name` and spoofed `display_title` do not authenticate/reject an otherwise exact trusted source. Cross-check `run.workflow_id/path/repo/head_repo` to metadata `CI/ci.yml/active/id`, with immutable run ID.
-- **AC2:** Missing/foreign ID/path/repository/head repository, metadata UNKNOWN or inactive/mismatch, even with `run.name="CI"`, all BLOCKED. No API fallback to display strings.
-- **AC3:** `event=workflow_dispatch`, main, success, Owner, exact first-parent/PR/Issue/version/comment/artifact/attempt, all Quality/E2E6/Docker, GHCR digest remain unchanged and fail-closed. Push/ordinary diagnostic cannot gain posting rights.
-- **AC4:** `python3 scripts/test_main_ci_recovery.py` offline deterministic positive/negative; `python3 scripts/verify-issue-lifecycle.py` static contract. No forged remote PASS.
-- **AC5:** PR CI three Required aggregates on exact Head/Base + Trusted QA + 0 unresolved review threads. HIGH Owner merge approval separate. Main CI/GHCR after merge still requires live check.
-- **AC6:** #616 explicit Owner recovery dispatch, v0.107.0 GHCR image/tag/Finalizer, candidate-provenance and Issue close all **not within this step**.
+- AC1: Dynamic `run.name` and spoofed `display_title` do not authenticate/reject an otherwise exact trusted source. Cross-check `run.workflow_id/path/repo/head_repo` to metadata `CI/ci.yml/active/id`, with immutable run ID.
+- AC2: Missing/foreign ID/path/repository/head repository, metadata UNKNOWN or inactive/mismatch, even with `run.name="CI"`, all BLOCKED. No API fallback to display strings.
+- AC3: `event=workflow_dispatch`, main, success, Owner, exact first-parent/PR/Issue/version/comment/artifact/attempt, all Quality/E2E6/Docker, GHCR digest remain unchanged and fail-closed. Push/ordinary diagnostic cannot gain posting rights.
+- AC4: `python3 scripts/test_main_ci_recovery.py` offline deterministic positive/negative; `python3 scripts/verify-issue-lifecycle.py` static contract. No forged remote PASS.
+- AC5: PR CI three Required aggregates on exact Head/Base + Trusted QA + 0 unresolved review threads. HIGH Owner merge approval separate. Main CI/GHCR after merge still requires live check.
+- AC6: #616 explicit Owner recovery dispatch, v0.107.0 GHCR image/tag/Finalizer, candidate-provenance and Issue close all **not within this step**.
 
 ## Evidence and next gates
 
