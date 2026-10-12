@@ -11,10 +11,11 @@ from __future__ import annotations
 import json
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 import release_debt_audit as audit
+import issue_lifecycle as lifecycle
 
 REPO = "planner77/masterGantt"
 OWNER = "planner77"
@@ -162,6 +163,36 @@ def authenticated_retirement(core: Any, repo: str, issue: int,
     return len(matching)==1
 
 
+def source_history(core: Any, repo: str, latest_main: str) -> list[Any]:
+    """Independently rebuild the authorized chain across prior FINAL boundaries.
+
+    collect_pending_work intentionally stops at a valid FINAL marker (such as
+    Issue #633's earlier audit-only PR #634). After Release Resume, that
+    pending slice no longer contains the old failed issues. NEVER use it to
+    authenticate B2 retirement or silently suppress the original debt.
+    """
+    history=core.run("git","rev-list","--first-parent",latest_main).stdout.splitlines()
+    require(core,bool(history) and history[0]==latest_main,
+            "trusted main first-parent 조회 실패")
+    anchor=SOURCES[0][0]
+    require(core,anchor in history,"원본 실패 SHA가 main first-parent에 없음")
+    depth=history.index(anchor)
+    require(core,depth<100,"B2 감사 first-parent 범위(100) 초과")
+    ordered=list(reversed(history[:depth+1]))
+    items=[]
+    for sha in ordered:
+        item=core.resolve_work_item(repo,sha)
+        require(core,item is not None and item.target_sha==sha,
+                f"main exact merge PR/Issue mapping 누락: {sha}")
+        if items:
+            require(core,item.first_parent_sha==items[-1].target_sha,
+                    "first-parent 연결 불일치")
+        if core.is_closed_issue(repo,item):
+            item=replace(item,actionable=False)
+        items.append(item)
+    return items
+
+
 def exact_first_parent(core: Any, repo: str, items: list[Any],
                        replacement_sha: str) -> list[Any]:
     indexed={item.target_sha:item for item in items}
@@ -189,8 +220,9 @@ def plan_b2(core: Any, repo: str, latest_main: str, pending_raw: list[Any]) -> P
     marker=read_approval(core,repo,latest_main)
     if marker is None:
         return None
-    originals=exact_first_parent(core,repo,pending_raw,marker["recovery_sha"])
-    current=[w for w in pending_raw if w.target_sha==latest_main]
+    historical=source_history(core,repo,latest_main)
+    originals=exact_first_parent(core,repo,historical,marker["recovery_sha"])
+    current=[w for w in historical if w.target_sha==latest_main]
     require(core,len(current)==1,"B2 교정 merge는 현재 main의 first-parent여야 함")
     target=current[0]
     require(core,target.issue_number==ISSUE and
@@ -204,7 +236,7 @@ def plan_b2(core: Any, repo: str, latest_main: str, pending_raw: list[Any]) -> P
             "복구 SHA와 과거 SHA 동일")
     require(core,all(item.current_version=="0.106.0" and
                 item.previous_version=="0.106.0"
-                for item in pending_raw[pending_raw.index(originals[-1])+1:-1]),
+                for item in historical[historical.index(originals[-1])+1:-1]),
             "과거 수정과 새 교정 사이에 다른 버전 변경 존재")
 
     require_revoked(core,repo,550,"0.105.0")
@@ -333,7 +365,7 @@ def finalize_b2(core: Any, repo: str, latest_main: str, plan: Plan) -> None:
         require(core,len(existing)<=1 and (not existing or marker in existing[0]),
                 "퇴역 완료 증거 충돌")
         if not existing:
-            core.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST",
+            lifecycle.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST",
                 fields={"body":"\n".join((
                     marker, f"## Release debt RETIRED · Issue #{issue}",
                     "",
@@ -350,7 +382,7 @@ def finalize_b2(core: Any, repo: str, latest_main: str, plan: Plan) -> None:
         existing_issue=core.gh(f"/repos/{repo}/issues/{issue}")
         if existing_issue.get("state")!="closed":
             require(core,existing_issue.get("state")=="open","미상 Issue state")
-            core.gh(f"/repos/{repo}/issues/{issue}",method="PATCH",
+            lifecycle.gh(f"/repos/{repo}/issues/{issue}",method="PATCH",
                     fields={"state":"closed","state_reason":"completed"})
     core.write_summary([
         "### B2 미발행 원장 정리 PASS",
