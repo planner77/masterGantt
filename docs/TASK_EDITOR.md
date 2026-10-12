@@ -1,3 +1,9 @@
+## Issue #550 후속 — 명시 locate의 bounded focus 권한
+
+`일정에서 보기`의 일반 trigger 복원 생략은 유지한다. 이번 요청의 Coordinator 좌표 SETTLED를 확인한 뒤 최대12RAF 동안 현재 가시 Grid 행에 focus를 인계하며, 정확한 intent/gesture/context·API·revision·projection이 유지될 때만 계속한다. 새 locate/사용자 입력/Editor/modal은 이전 인계를 영구 취소한다. 동일 좌표 입력과 짧게 열렸다 닫힌 modal도 예외가 아니다. 가상화 행 교체 후에는 현재 행을 다시 확인하고 실제 Grid viewport 밖의 DOM을 성공 근거로 사용하지 않는다.
+
+좌표 SETTLED는 focus 완료 영수증이 아니며 실제 행 focus와 후속 유지 검증을 별도로 수행한다. 일반 닫기·Escape·취소, readonly·pending·초안·401/412 및 Dashboard fallback 계약은 그대로다. [Project UX](PROJECT_UX.md)와 [후속 검증](exec-plans/active/ISSUE_550.md)을 따른다.
+
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
 ## Issue #572 — Inline 이름의 확정 저장과 오류 복구
