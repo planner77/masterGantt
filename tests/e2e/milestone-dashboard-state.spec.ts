@@ -171,6 +171,16 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     await observe("filter-cleared");
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
+    // Main CI #2543.1: (120, 0) 좌표만 같아도 FILTER_RETURN은 WAIT_GEOMETRY일 수 있다.
+    // 이전 복원이 실제 SETTLED한 뒤 별도의 새 viewport 입력을 검증한다.
+    await expect.poll(() => frame.evaluate((element) => {
+      const history = JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{
+        kind?: string; phase?: string; outcome?: string;
+      }>;
+      const latest = history.filter((event) => event.kind === "FILTER_RETURN").at(-1);
+      return latest ? { phase: latest.phase, outcome: latest.outcome } : null;
+    }), { message: "FILTER_RETURN must settle before independent viewport input" })
+      .toEqual({ phase: "SETTLED", outcome: "SETTLED" });
     // 필터가 한 행으로 줄면서 발생한 합법적 clamp를 과거 peer 좌표로 복원하지 않는다.
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);

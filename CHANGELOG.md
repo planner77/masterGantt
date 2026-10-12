@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #550 Main CI #2543.1 FILTER_RETURN 완료 경합 교정 (2026-10-12)
+
+- #463 Gantt 필터 해제 후 새 `FILTER_RETURN` 명령이 아직 `WAIT_GEOMETRY`인 상태에서 후속 viewport 직접 입력이 늦게 되감기는 원격 E2E 경합을 구별한다. 가장 최신 `FILTER_RETURN:SETTLED` 영수증을 bounded poll한 뒤 기존 엄격한 좌표·필터·3RAF 보존 검증을 유지한다.
+- 제품 코드·workflow·release tag·version `0.106.0` 불변. 기존 #550 v0.105.0 미완료 릴리스와 #615 중간 병합의 Finalizer 차단을 해제·우회하지 않는다. CI/Main/GHCR 성공 여부는 새 exact Head에서 별도 확인한다.
+
 ## [Unreleased] — Issue #550 공유 분석 후속
 
 - 명시 Task reveal의 좌표 완료와 DOM focus 인계를 구분하고 정확한 intent/gesture/context·최신 요청을 확인한다. 동일 좌표 사용자 입력·새 Editor/modal 이후 오래된 focus 복원을 취소한다.

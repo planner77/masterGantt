@@ -1,3 +1,10 @@
+## Issue #550 — Main CI #2543.1 FILTER_RETURN 완료 경합 보완 (2026-10-12)
+
+- 원본 [Main CI #2543.1](https://github.com/planner77/masterGantt/actions/runs/38191560895), 병합 SHA `e51b99cb25f37c8909de356a089a56b4139415a3`: Quality(TypeScript/Lint/Vitest/Build)·Docker PASS, Chromium shard 3/6에서 `tests/e2e/milestone-dashboard-state.spec.ts:181` 1 FAIL/122 PASS/1 SKIP, 다른 5 shard PASS. Chromium aggregate FAIL, Main GHCR candidate 및 Finalizer SKIPPED. 기존 실패는 변경하지 않는다.
+- [실패 Playwright Trace](https://github.com/planner77/masterGantt/actions/runs/38191560895/artifacts/11720949544)의 검색 해제 직후 이전 좌표 Core/native `120/0` 일치는 새 `FILTER_RETURN` 완료가 아니다. `WAIT_GEOMETRY` 중 테스트가 직접 `scrollLeft=180`, `scrollTop=128`을 주입했고, 지연 `FILTER_RETURN:SETTLED`가 Core/native 수평을 `120`으로 되돌렸다. 실제 사용자 입력(wheel/pointer) 이벤트가 아닌 DOM 직접 설정이므로 gesture 갱신이 없었다. 서버/SQLite/ECONNRESET과는 별개다.
+- 보완: 기존 `PEER_RETURN` marker 불변 확인과 필터 수직 clamp `120/0` 이후, `data-gantt-viewport-coordinator-history`에서 **가장 최신 FILTER_RETURN의 phase/outcome=SETTLED/SETTLED**를 bounded Playwright `expect.poll`로 확인한다. 그 이후 **기존 동일한** `180/128` 입력, 필터 재적용/해제, 조회/resize 후 public/native 동등성, marker 불변, instance 동일, 3개 RAF 안정 검증을 수행한다. sleep/timeout/retry/skip/expectation 완화, Gantt 제품 writer/Coordinator/권한/CI 변경 없음.
+- 검증: 새 Head의 TypeScript/Chromium full 6 shard/Quality/Docker/Trusted QA는 PR CI로 재검증한다. 이전 PR #626의 성공은 다른 Head의 증거다. 새 PR은 HIGH·OWNER_MANAGED, `release_required=false`(물리적 manifest/version 변화 없음); 기존 #550의 승인된 v0.105.0 정식 릴리스 미완료와 #615 v0.106.0 중간 병합으로 인한 Finalizer 의무·차단은 유지한다. 사용자 GHCR 요청이 있어도 릴리스 증거·버전 승인·first-parent 순서의 fail-closed를 우회하지 않는다.
+
 ## Issue #550 / PR #626 — 공유 분석 후속 검증 (2026-10-12)
 
 - 실패 원본: [CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391), Head `ddb4fe246e06bea6f6a9b5a3b193594566450cc8`. Quality/Docker PASS, E2E shard2 #461 `milestone-stage-editor.spec.ts`의 GET `ECONNRESET` 1 FAIL/71 PASS, 다른5샤드 PASS. 프로세스 종료·OOM·실제 HTTP 도착의 근거는 부족하므로 근인 UNKNOWN을 유지한다.

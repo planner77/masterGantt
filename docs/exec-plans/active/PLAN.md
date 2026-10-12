@@ -1,3 +1,10 @@
+## Issue #550 — Main #2543.1 E2E FILTER_RETURN 보완 및 후속 릴리스 검증 (2026-10-12)
+
+- 기준 main `e51b99cb25f37c8909de356a089a56b4139415a3` / `0.106.0`; 새 #550 교정 브랜치 `fix/issue-550-main-ci-filter-return-receipt`. [Main #2543.1](https://github.com/planner77/masterGantt/actions/runs/38191560895)에서 Quality·Docker와 E2E 5 shard PASS, shard3 #463 `FILTER_RETURN` 1 FAIL/122 PASS/1 SKIP으로 전체 FAIL. 임시 GHCR/Finalizer 미실행.
+- Trace 기준 필터 해제 `120/0` → FILTER_RETURN `WAIT_GEOMETRY` → 조기 직접 DOM 입력 `180/128` → 늦은 FILTER_RETURN `SETTLED`로 `120/128` 복귀. 좌표는 완료 receipt가 아니다.
+- 테스트 한정 수정: FILTER_RETURN 최신 완료 영수증 bounded poll 뒤 기존 strict public/native, userViewport, 필터/viewport geometry, 3RAF assertions 실행. 단순 sleep/timeout/retry/skip·요구값 감소 및 제품/CI/Finalizer 정책 변경 금지. TEST_PLAN·ISSUE_550·PLAN·CHANGELOG 동기화, 기타 DESIGN/AGENTS/API/DB/SCHEDULING/SECURITY/NFR 계약 불변 N/A.
+- 순서: 별도 Issue #550 교정 PR → exact-head PR CI 3 Required PASS → default-branch Trusted QA 및 잔여 리뷰 해결 → Owner 승인 후 한 줄 Merge → immutable SHA Main CI 및 `ci-SHA` digest 검증 → Generic Finalizer. 기존 #550 v0.105.0 미발행 의무는 #615의 v0.106.0 중간 병합을 넘어 자동 승계할 수 없으며 명시적 안전 정책/버전별 owner authorization 해결 전 정식 GHCR tag·Issue close를 PASS로 보고하지 않는다.
+
 ## Issue #550 / PR #626 — 공유 분석 후속·main 정렬 (2026-10-12)
 
 [Work Packet](ISSUE_550.md)의 공유 분석 후속 범위는 Gantt 비동기 완료·focus 권한과 격리 E2E 진단이다. 원본 CI #2524.1의 Quality/Docker PASS, shard2 #461 GET ECONNRESET 1 FAIL(71 PASS)을 보존한다. 연결 종료의 실제 원인은 UNKNOWN이며 OOM이나 기능 회귀로 단정하지 않는다.
