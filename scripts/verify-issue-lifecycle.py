@@ -1557,4 +1557,15 @@ finally:
     else:
         __import__("os").environ["GITHUB_TOKEN"] = saved_auto_token
 
+# Issue #633: release-debt policy is audit-only, with no automatic cross-Issue bypass.
+from pathlib import Path as _Path633
+_audit633 = _Path633("scripts/release_debt_audit.py").read_text(encoding="utf-8")
+_workflow633 = _Path633(".github/workflows/release-debt-audit.yml").read_text(encoding="utf-8")
+require("supersede_failed_issue_retries(" in _audit633, "cross-Issue audit must reuse fail-closed generic policy")
+require("READY_FOR_SEPARATE_TRUSTED_RECOVERY" in _audit633, "audit result must not mean release publication")
+require("release-debt-authorization:v1" in _audit633, "new owner-scoped retirement decision must be separate from release approval")
+require("ref: main" in _workflow633 and "persist-credentials: false" in _workflow633, "audit must use trusted main")
+require("workflow_dispatch:" in _workflow633 and "packages: read" in _workflow633, "audit must be read-only manual workflow")
+require("packages: write" not in _workflow633 and "actions: write" not in _workflow633 and "issues: write" not in _workflow633, "audit must not grant mutation authority")
+
 print("issue-lifecycle generic/automatic contract scenarios: PASS")
