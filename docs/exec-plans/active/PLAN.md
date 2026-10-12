@@ -1,3 +1,10 @@
+## Issue #643 — actions workflow_id source verification (2026-10-13)
+
+- Linked #639(Closed, Main CI/Finalizer SUCCESS) → #643 protected source-validator regression → #616(Opened, original merge Main CI/GHCR/release pending).
+- Start main `5da9c039422647490a947c5cd1e80ec24df22db2` (app 0.107.0); branch `fix/issue-643-recovery-workflow-identity`. Root cause: dynamic `run.name` was incorrectly compared to workflow-definition `name: CI`; #2612.1 run evidence ID 356198495 + path.
+- Implement `verified_workflow_identity(repo,run)` using trusted GET workflow metadata id/name/path/state, exact run workflow_id/path/repository/head_repository checks; preserve event/main/Owner/Issue/PR/source SHA/run attempt/artifact/full Job/digest fail-closed gates.
+- Offline positive dynamic-name and negative spoof/UNKNOWN test fixtures + static lifecycle policy + AGENTS, CI_CD, GITHUB_OPERATIONS, GENERIC_RELEASE_FINALIZER, TEST_PLAN, REMOTE_VALIDATION, CHANGELOG, active Work Packet. Verify official PR CI three required jobs and Trusted QA, review 0; Owner-controlled merge separate. #616 recovery not authorized/scheduled by this change.
+
 ## Issue #639 — Main CI #2606.1 원인 교정 same-Issue PR (2026-10-13)
 
 - 현 상태: 원본 merge SHA `5c79b658...`, Main push Run #2606.1 생성되었으나 trace title 실패(31자 > 30). Quality/E2E/Docker SKIPPED, candidate/finalizer 미검증. 원본 기록 불변.

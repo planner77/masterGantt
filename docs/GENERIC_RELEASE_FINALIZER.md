@@ -1,3 +1,9 @@
+## Issue #643 — 수동 Main 복구 Run 원본 확인 및 False-negative 방지 (2026-10-13)
+
+- `scripts/main_ci_recovery.py::completed_evidence`는 trusted default-main에서 정확한 원본 CI workflow metadata (`ci.yml`의 id/name/path/state)와 Actions Run `workflow_id`·`path`·`repository/head_repository`를 교차 확인한다. `run.name`은 `run-name`이 있는 모든 워크플로에서 가변 표시명이므로 인증/임계치에 사용하면 안 된다.
+- Run은 여전히 정확한 `workflow_dispatch/main/completed/success`, active Owner actor, SHA/Issue/PR/version/first-parent, 변경 불가 artifact Run/Attempt, 필수 Quality/E2E6/Docker Job SUCCESS 및 GHCR exact candidate digest를 요구한다. metadata ID 불일치/비활성/UNKNOWN 또는 다른 source는 **fail-closed**. 일반 수동 진단이 GHCR 게시/Finalizer를 통과하도록 변경하지 않는다.
+- 현재는 source verifier의 offline fixture와 새 PR CI 대상 변경만 허용한다. 실제 #616 수동 recovery run, formal v0.107.0 release/cleanup/Issue 종료는 별도 Owner 승인과 원격 증거 확보 전 `NOT TESTED`.
+
 ## Issue #639 — invalid Main merge subject 후속 교정 (2026-10-13)
 
 - `5c79b658c83b86f163826055fa7da6efadef4e63` (#639/#641)은 불변의 Main CI #2606.1 trace FAILURE이며 GHCR 검증 후보가 없다. `main_ci_run_name.py`의 30자 한글 canonical title은 릴리스 증거 자격이 아닌 **CI 사전조건**이다.
