@@ -87,7 +87,9 @@ finally:
     audit.ghcr_digest, audit.git_tag_state, auto.gh_paginated = saved_registry
 
 saved_inspect_run = audit.subprocess.run
+saved_registry_inventory = audit.authenticated_packages_tag_state
 inspect_image = "ghcr.io/planner77/mastergantt:0.105.0"
+audit.authenticated_packages_tag_state = lambda name: "UNKNOWN"
 def fake_run_for_inspect(returncode, stdout, stderr):
     def invoke(args, **kwargs):
         require(args == ["docker", "buildx", "imagetools", "inspect", inspect_image],
@@ -106,6 +108,13 @@ try:
     audit.subprocess.run = fake_run_for_inspect(1, "", "HTTP 404 Not Found")
     require(audit.ghcr_digest(inspect_image)[0] == "UNKNOWN",
             "ambiguous HTTP 404 cannot prove immutable image absence")
+    audit.authenticated_packages_tag_state = lambda image: "ABSENT"
+    require(audit.ghcr_digest(inspect_image) == ("ABSENT",None),
+            "authenticated complete Packages inventory may prove absent tag")
+    audit.authenticated_packages_tag_state = lambda image: "PRESENT"
+    require(audit.ghcr_digest(inspect_image) == ("PRESENT",None),
+            "published exact tag without digest is never absent")
+    audit.authenticated_packages_tag_state = lambda image: "UNKNOWN"
     audit.subprocess.run = fake_run_for_inspect(1, "", "manifest unknown: manifest unknown")
     require(audit.ghcr_digest(inspect_image)[0] == "ABSENT",
             "explicit registry manifest-unknown may prove no tag after trusted login")
@@ -115,6 +124,58 @@ try:
             "authentication failure overrides ambiguous manifest-unknown text")
 finally:
     audit.subprocess.run = saved_inspect_run
+    audit.authenticated_packages_tag_state = saved_registry_inventory
+import json
+
+# GitHub Packages REST inventory: only a complete, authenticated 200 JSON
+# page sequence can prove private GHCR's exact SemVer tag absent.
+calls=[]
+def pages(values):
+    def run(args,**kwargs):
+        require(args[:4]==["gh","api","-H","Accept: application/vnd.github+json"],
+                "GHCR inventory must use authenticated gh api")
+        require("/users/planner77/packages/container/mastergantt/versions?" in args[4],
+                "inventory must target exact GHCR owner/container package")
+        calls.append(args[4])
+        page=int(args[4].split("page=")[-1])
+        rc,payload=values.get(page,(1,"Unauthorized"))
+        return SimpleNamespace(returncode=rc,stdout=payload,stderr="")
+    return run
+def package_version(tags):
+    return {"metadata":{"container":{"tags":tags}}}
+saved_run=audit.subprocess.run
+try:
+    audit.subprocess.run=pages({1:(0,json.dumps([package_version(["ci-existing"])]))})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="ABSENT",
+            "successful complete listing without exact tag is ABSENT")
+    calls.clear()
+    audit.subprocess.run=pages({1:(0,json.dumps([package_version([inspect_image.split(":")[-1])]))})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="PRESENT",
+            "known tag in Packages API cannot be deemed absent")
+    audit.subprocess.run=pages({1:(1,"404 package read denied")})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="UNKNOWN",
+            "404 from package list may be authorization or missing package")
+    audit.subprocess.run=pages({1:(0,'{"message":"bad schema"}')})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="UNKNOWN",
+            "malformed data cannot prove package absence")
+    audit.subprocess.run=pages({1:(0,json.dumps([{"metadata": {}}]))})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="UNKNOWN",
+            "untrusted missing tag metadata cannot prove absence")
+    audit.subprocess.run=pages({1:(0,json.dumps([package_version([])]*100)),
+                                    2:(0,json.dumps([package_version(["ci-next"])]))})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="ABSENT",
+            "all pages must be checked before recording absence")
+    require(any("page=2" in url for url in calls),
+            "pagination must advance beyond first full page")
+    audit.subprocess.run=pages({1:(0,json.dumps([package_version([])]*100)),
+                                    2:(1,"403 token scope")})
+    require(audit.authenticated_packages_tag_state(inspect_image)=="UNKNOWN",
+            "mid-pagination 403 must not establish absence")
+    require(audit.authenticated_packages_tag_state("ghcr.io/other/repo:0.105.0")=="UNKNOWN",
+            "inventory may not be reused for another repository")
+finally:
+    audit.subprocess.run=saved_run
+
 # An explicit future corrective merge is necessary, but it is not sufficient.
 f = auto.WorkItem("f"*40,e.target_sha,700,550,"0.106.0","0.106.1")
 full = [*chain,f]
