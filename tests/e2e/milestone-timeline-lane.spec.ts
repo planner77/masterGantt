@@ -322,7 +322,8 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   for(const scale of ["day","week"] as const) {
   await page.getByRole("button",{name:scale==="day"?"일":"주",exact:true}).click();
   await expect(lane.locator(".project-milestone-lane-plot")).toBeVisible();
-  await probe(frame, "reveal", "2026-03-10"); await settle(page);
+  const revealOutcome = await probe<string>(frame, "reveal", "2026-03-10");
+  expect(revealOutcome).toBe("SETTLED"); await settle(page);
   const owner = frame.locator(".project-gantt-scroll");
   if (width === 390) { await owner.focus(); await page.keyboard.press("End"); await owner.evaluate(node => node.scrollTo({ left: node.scrollWidth - node.clientWidth })); await settle(page); }
   const observed = await frame.evaluate(node => {
@@ -342,6 +343,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   // state scrollLeft: real Chart scrolling can temporarily diverge from state.
   const canonicalDate = await probe<{contentX:number}>(frame,"coordinate","2026-03-10");
   expect(canonicalDate).not.toBeNull();expect(observed.axisStartX).not.toBeNull();
+  await info.attach(`anchor-diagnostic-${width}-${scale}`, { body: JSON.stringify({observed,canonicalDate, state:await probe(frame,"read"), metrics:await probe(frame,"laneMeasurement"), ticks:await lane.locator("[data-milestone-tick]").evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute("data-milestone-tick"),x:n.getBoundingClientRect().x}))), status:await lane.locator("[role=status]").allTextContents()}),contentType:"application/json"});
   expect(observed.anchor).not.toBeNull();
   expect(Math.abs(observed.anchor!.tick!-(observed.axisStartX!+canonicalDate.contentX))).toBeLessThanOrEqual(1);
   expect(Math.abs(observed.anchor!.tick-observed.anchor!.native)).toBeLessThanOrEqual(1);

@@ -1,5 +1,43 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-12 — PR CI #2595.1 반복 실패 분석·보완
+
+- 요청 범위: 원인 분석·관련 코드/테스트/문서 보완·기존 PR #560의 새 full CI 시작. 새 CI의 결과 모니터링, 병합, main/GHCR/Release, Issue 종료 및 브랜치 정리는 수행하지 않는다.
+- 기준 Head `b25bb4e72c1f769d47ec3b7f03c9a31740ac299b`, base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`, test merge `3be6f67c08312631058cefd70dc96fcdfff65497`. [원본 CI #2595.1](https://github.com/planner77/masterGantt/actions/runs/38258293115) / attempt1 / shard4 job114842184289 / step7: 123 PASS, 6 FAIL, 1 skipped. quality, Docker 및 다른 Chromium 5 shard PASS. E2E aggregate FAIL에 따른 QA Automated FAIL은 독립 원인으로 합산하지 않는다.
+- #551 5폭(390/768/1024/1440/1920px)은 `milestone-timeline-lane.spec.ts:345`의 `observed.anchor=null`로 FAIL. 직전 #2594.1의 3018~3036px 오차와 대형 probe 준비 실패, 초기 #2217.1의 17px 폭 guard 및 #2234.1의 TS18048과 구별한다. #2595.1의 대형 1000 Task+2000 Milestone case는 PASS다.
+- 별도 #464 `milestone-stage-exchange.spec.ts:223`은 copy POST 200 후 canonical GET `ECONNRESET`. 원본 diagnostics는 generation1/alive/exit null, readiness 200(17ms), cgroup OOM 0이며 요청 observer 기록은 비어 있다. 서버 종료·OOM·제품 API 결함 또는 단순 flake로 확정할 수 없다. 직전 #2594.1의 같은 테스트는 PASS(49.9s)였다. 원본 오류를 재시도로 숨기지 않고 실패 직전 요청과 lifecycle/health/resource 관측을 보강한다.
+- 실제 역할: Manager(범위·문서·통합), `infra`(원격 실패 증거 read-only), `frontend`(Gantt 및 lane 회귀), `backend`(#464 요청 관측), 별도 `qa_docs`(read-only PRE_QA). 기존 worktree를 보존하고 `/tmp/mastergantt-issue551-ci-fix`의 exact remote Head에서 작업한다. 원격 로그/trace의 쿠키·runtime DB·민감한 원문 로그는 Git 또는 Issue 댓글에 복사하지 않는다.
+- 위험도 HIGH / qa_required=true. 기존 PR의 OWNER_MANAGED 경로와 별도로 실제 독립 PRE_QA를 수행하며, 이를 새 Head의 원격 QA_FINAL 또는 Manager ACCEPT로 확대하지 않는다. package/lock `0.107.0`은 현재 main 통합본 그대로이며 release_required=true/release_authorized=false를 유지한다.
+
+### 원인과 보완 범위
+
+Day→Week의 실제 관측에서 Core `scrollLeft=7218`/날짜 `contentX=7218`로 state-only `visible=true`였지만 `.wx-scale` 원점 `-9737px + contentX7218px = -2519px`로 대상 날짜는 화면 밖이었다. 실제 축을 기준으로 그리는 lane은 tick을 올바르게 clip했고 기존 probe `revealMilestoneDate()` 호출은 상태 가시성만 보고 이동을 생략했다. 개발 probe만 canonical queue/현재 API/표시 문맥/날짜 범위 확인 후 기존 `DIAGNOSTIC_DATE_REVEAL` coordinator를 사용하도록 바꾼다. 순수 adapter의 기존 in-view 무이동 계약과 production lane geometry/clip은 유지한다. 테스트에는 실제 `SETTLED` 결과와 좌표 diagnostic attachment를 추가하고 기존 null/±1px/row/hit/focus/instance/mutation assertions를 보존한다.
+
+#464의 `createProject()`에 기존 `observeIsolatedApi`를 주입해 Project 생성/GET/mutation/edit-session 호출을 기록한다. operation은 한 번만 실행하며 오류를 그대로 rethrow한다. 실패 순간 수집은 기존 fixture의 정규화 route/status/request ID 및 lifecycle/health/resource allowlist를 사용한다. 재시도·HTTP status 우회·API/domain 변경은 없다. transport 근인은 UNKNOWN으로 남는다.
+
+### 로컬 환경과 최초 실패 보존
+
+- 최초 Node22.14.0/npm11.10.0/Next16.3.8, 기존 node_modules 외부 symlink 조건에서 변경 전 5폭은 4 FAIL/1 PASS였다. 진단 attachment 후 warm 재실행 5 PASS는 최초 FAIL을 무효화하지 않는다.
+- 같은 symlink의 webpack 환경에서 보완 suite는 첫 혼합 실행17 PASS/2 FAIL, 이후 cold 단독 실행18 PASS/1 FAIL(1.5분). 실패들은 대형/displayMode fixture의 probe 준비5초 timeout이며, 5폭 날짜 geometry 통과와 별개다. `/tmp/issue551-first-full-failures/`, `/tmp/issue551-final-cold-failures/`에 원형을 보존한다. 테스트 실행 중 CPU 경합·개발 HMR이 있었으나 근인을 단정하지 않는다.
+- #464 로컬 원형의 최초 loopback EPERM은 sandbox BLOCKED이며 승인 후 실행했다. 외부 node_modules symlink는 기본 Turbopack의 `Symlink [project]/node_modules is invalid, it points out of the filesystem root`로 시작 BLOCKED였다. 임시 webpack fixture의 원형2 FAIL은 Next `load-manifest.external.js`의 `Unexpected end of JSON input`/HTTP500이며 원격 ECONNRESET 재현이 아니다.
+- CI와 같은 lockfile의 `npm ci --no-audit --no-fund`를 실제 node_modules 디렉터리에 실행해447 packages/13초/exit0을 확인했다. package/lock 변경 없이 기본 Turbopack·fresh dist에서 다시 검증한다. 이전 환경의 PASS/FAIL·미검증을 이 실행으로 소급 변경하지 않는다.
+
+### 최종 Local Fast Feedback
+
+- 환경: 실제 frozen dependencies, Node22.14.0/npm11.10.0, Next16.3.8/React19.3.0/Playwright1.63.0/Core2.7.3/store2.7.2. 기본 Turbopack/fresh dist, workers1/retries0. `frontend`의 lane 전체19/19 PASS(58.3초), 같은 소스 5폭 각2회10/10 PASS(30.6초). 고유19개에 반복10개를 더해 고유29개로 합산하지 않는다. 대형 fixture 준비·peer/Grid/fullscreen도 PASS다. 로그 `/tmp/issue551-turbo-lane.log`, `/tmp/issue551-turbo-geometry-repeat.log`; 원형 report `/tmp/issue551-turbo-full-evidence/`.
+- `backend`의 #464 실제 SQLite/HTTP 원형2/2 PASS(81.147505초), 관측 보완 실제 spec2/2 PASS(74.724009초), skipped/flaky0. 동일 수정 없는 repository isolated fixture/default Turbopack이며 임시 config는 shared mock webServer만 생략하고 출력 경로를 격리했다. 원형 실행 복사본은 import 경로만 절대화했다. `/tmp/issue551-transport-local/result.json`에 실행 시각/조건/hash, `/tmp/issue551-transport-native-{baseline,final}.log`에 원본을 보존한다. 시간 차이로 성능 개선을 주장하지 않는다. ECONNRESET 미재현이며 근인 UNKNOWN이다.
+- 실제 frozen 환경의 직접 Unit3파일17/17 PASS(248ms): `isolated-application-diagnostics.test.ts`7개 + `milestone-timeline-adapter.test.ts`5개 + `milestone-timeline-lane-model.test.ts`5개. `npm test -- tests/server/e2e/isolated-application-diagnostics.test.ts tests/features/gantt/milestone-timeline-adapter.test.ts tests/features/gantt/milestone-timeline-lane-model.test.ts`로 실행했다. `/tmp/issue551-frozen-unit17.log` 보존. 이전 frontend Unit10과 중복 합산하지 않는다.
+- `npm run typecheck`, 변경된3파일 ESLint, version check0.107.0, 문서 링크191파일 및 diff check PASS. ESLint error0/기존 hook warning3이며 warning을 해소하거나 새 warning0으로 과장하지 않는다. Next 자동 생성 next-env/tsconfig 및 #464 자동 캡처PNG는 원형으로 복원했고 runtime DB/빌드/로그/trace는 게시 대상에서 제외한다.
+- source SHA256: `project-gantt.tsx`=`4b8f5fa767777bdcd1f85bcf7a628ac8073dc1189e560ef3e6b5bad45c685d58`, `milestone-timeline-lane.spec.ts`=`2a92395780cb72e9330f1e6e7fffa3a15b13f3256c8048193741f64c2d3ce349`, `milestone-stage-exchange.spec.ts`=`19c62430a7461f205f3fd07b4fe79bb09001380e1d1a5877681bbf0529676424`. 독립 Reviewer는 같은 source와 원본 로그를 대조한다. 새 Head 원격 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
+
+### DOCUMENTATION_SYNC 영향 분석
+
+이번 보완의 UPDATED 문서는 MILESTONE_TIMELINE, ARCHITECTURE, TEST_PLAN, active PLAN, 본 Work Packet, CHANGELOG다. PROJECT_UX/UI_UX_GUIDELINES/PRO_FEATURE_MATRIX의 기존64px/44px/실제축/같은 인스턴스 계약은 그대로다. DESIGN/AGENTS는 시각 언어·역할 불변으로 N/A, API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/IMPORT_SCHEMA/IMPORT_EXPORT는 서버/원장/Calendar/교환 계약 불변으로 N/A다. CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/DEPLOYMENT는 workflow·6 shards·권한/Ruleset/배포 계약을 변경하지 않아 N/A다. 원격 실패 원인과 로컬 실행 기록은 TEST_PLAN 및 본 문서에 보존한다.
+
+Manager의 코드·문서 영향 대조 및 링크/version/diff 검증으로 DOCUMENTATION_SYNC PASS다. 다음은 실제 분리된 `qa_docs`의 범위 한정 PRE_QA와 exact diff 게시이며 새 CI 결과는 모니터링하지 않는다. 최초 실패/환경 한계/transport UNKNOWN을 없애거나 전체 Lifecycle 완료로 판정하지 않는다.
+
+독립 Reviewer 실제 실행ID `/root/independent_review`는 baseline/base 대비9파일 diff, Issue AC1~AC10, 원본 CI 안전 진단·직접 LFF 로그, 문서와 새 PR 본문을 읽기 전용으로 대조해 범위 한정 PRE_QA PASS/추가 blocker0을 반환했다. 검토 당시 freeze9/9 SHA 일치/drift0, manifest SHA256 `ab3db3557c085d9fb681636e8cc070742fde15a68660ff8ea3aa2907a64d64db`다. 뒤에 추가한 본 검토 영수증은 source 변경이 없는 metadata 기록이다. 독립 재실행을 고유 테스트 수에 추가하지 않는다. 이는 게시 준비 검토이며 새 Head의 공식 원격 QA_FINAL·Owner/Manager ACCEPT·MERGE_READY 성공 판정이 아니다. 사용자 요청에 따라 원격 게시 및 exact Head full CI 등록 후 모니터링 없이 인계한다.
+
 ## 2026-10-12 — PR CI #2594.1 Chromium shard4 실패와 exact-head 수정
 
 - [전체 Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533), HEAD `442564b7e14c24b49358351fb55e30c7ecd31230`: QA Preflight, 정책, TypeScript, ESLint, Vitest, Next.js production build, Docker, Chromium shard 1/2/3/5/6 PASS. Chromium shard 4/6은 123 PASS / 6 FAIL / 1 SKIP이며 전체 E2E·자동 QA FAIL. 이 실행 결과를 다른 HEAD의 성적으로 승계하지 않는다.

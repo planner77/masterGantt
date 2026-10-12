@@ -1,5 +1,11 @@
 # Milestone Timeline
 
+## Issue #551 — 개발 날짜 reveal의 viewport 소유권 (2026-10-12)
+
+PR CI #2595.1의 5폭 `anchor=null`은 실제 날짜축을 따르는 lane이 화면 밖 날짜 tick을 clip한 결과다. Day→Week 전환 시 Core의 날짜 좌표/scroll 상태와 native 날짜축의 물리 위치가 서로 다른 순간이 있었고, 개발 전용 `reveal`은 state의 `visible`만 보고 이동을 생략했다. 이는 앞선 #2594.1의 3018~3036px 좌표 오차와 구별한다.
+
+개발 진단의 날짜 reveal도 canonical queue 이후 기존 viewport coordinator의 `DIAGNOSTIC_DATE_REVEAL`을 사용한다. 같은 API·현재 표시 문맥·지원 날짜 범위를 확인하고 기존 조정기의 실제 Core/native 위치 정착 영수증을 반환한다. 새 scrollbar·독립 scroll writer·private store write를 추가하지 않는다. lane은 계속 실제 `.wx-scale` 원점과 canonical `contentX`로 그리며 원래 clip을 유지한다. 테스트는 정착 영수증을 확인한 뒤 native Task bar/날짜축/tick의 ±1px, 5폭×Day/Week, 같은 인스턴스 및 mutation0을 검사한다. production 기본 OFF와 #552 활성화 경계는 유지한다.
+
 ## Issue #551 — native 날짜축을 기준으로 한 물리 X 정합성 (2026-10-12)
 
 #551 opt-in lane은 설치 SVAR의 canonical date-only → `contentX`를 보존한다. 실제 화면의 좌표는 Core 상태 `scrollLeft` 단독이 아닌 동일 Chart 내부 `.wx-scale`의 렌더링된 원점(`axisOrigin`)에 `contentX`를 더한 값으로 측정한다. 이 원점은 read-only DOM bbox 측정이며 공개 Core geometry API를 새로 가정하거나 private store를 수정하지 않는다. native Chart scroll·기존 Core action·resize/peer 전환 시 제한된 observer/RAF로 갱신하고 unmount시 해제한다.

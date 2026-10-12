@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #551 PR #560 날짜 reveal 정착·실패 진단 보완 (2026-10-12)
+
+- Day→Week 전환 뒤 개발 Timeline reveal이 Core 상태만으로 이동을 생략하는 경계를 기존 viewport coordinator의 날짜 reveal/정착 경로로 통합한다. 실제 5폭 날짜축·Task bar·tick의 ±1px 및 같은 인스턴스 검증을 유지하고 정착 결과 검증을 추가한다.
+- 별도 Milestone 교환 통합 테스트의 Project 요청에 기존 격리 서버 진단 수집기를 연결한다. GET `ECONNRESET` 원본 실패를 재시도 없이 보존하며, 진단 보강을 transport 근인 해결로 보고하지 않는다. production 기본 OFF, 일정/서버 API/DB·패키지 버전·CI Gate는 유지한다.
+
 ## [Unreleased] — Issue #551 PR #560 CI #2594.1 날짜 Timeline 표시 좌표 보완 (2026-10-12)
 
 - Chromium shard4의 5폭 실제 Task bar와 Milestone lane tick의 약 3,018~3,036px 불일치 원본을 보존했다. Core 스크롤 상태만 이용한 viewportX 대신 실제 native `.wx-scale` 원점과 canonical 날짜 contentX를 결합하고 Chart DOM scroll listener와 cleanup을 추가한다.

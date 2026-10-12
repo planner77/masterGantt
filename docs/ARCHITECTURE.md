@@ -1,5 +1,9 @@
 # Architecture draft
 
+## Issue #551 — 개발 reveal도 단일 viewport coordinator 사용 (2026-10-12)
+
+Milestone Timeline 개발 probe의 `reveal`은 canonical queue 이후 현재 API/표시 문맥/날짜 범위를 검사하고 기존 `DIAGNOSTIC_DATE_REVEAL`을 요청한다. Core state-only `visible`을 실제 DOM 정착으로 간주하지 않는다. Day→Week 뒤 Core/native 위치의 일시적 차이는 기존 coordinator의 intent/정착/취소 계약으로 다루고 새 scroll writer나 무기한 polling을 추가하지 않는다. lane의 native scale 원점 측정과 clipping 및 production 기본 OFF는 유지한다. 진단 hook은 개발 전용이며 제품 DATE_REVEAL 기능 확대나 #552 표시 전환을 뜻하지 않는다.
+
 ## Issue #551 — 실제 native 날짜축 원점과 앱 Timeline lane (2026-10-12)
 
 설치 SVAR Core2.7.3/store2.7.2의 계산 날짜 `contentX`와 화면의 native Chart 물리 scroll은 viewport 제어 과정에서 일시적으로 차이가 발생할 수 있다. `readMilestonePlotGeometry`는 이미 사용하는 실제 Chart plot bbox와 동일 native `.wx-scale` bbox의 상대 원점 `axisOrigin`을 함께 측정하고 앱 소유 sibling lane은 `axisOrigin + contentX`로 마커를 렌더링한다. private Core store write·Chart 자동 선택·새 인스턴스/별도 scrollbar는 추가하지 않는다. Native Chart `scroll`/resize와 기존 queue-version bounded 구독을 유지하며 mount teardown에서 제거한다. 이 계약은 날짜 헤더/Task bar/marker의 실제 DOM X 동등성으로 검증해야 하고, Node-only 계산의 PASS로 대체하지 않는다.

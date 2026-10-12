@@ -37,7 +37,7 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
-import { filterMilestoneWbsRows, milestoneDateCoordinate, revealMilestoneDate, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
+import { filterMilestoneWbsRows, milestoneDateCoordinate, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
 import { MilestoneTimelineLane, type MilestoneTimelineCapability } from "./milestone-timeline-lane";
 import type { MilestoneLanePoint } from "./milestone-timeline-lane-model";
 import { localDateFromDateOnly, type DateOnly } from "./date-adapter";
@@ -1811,7 +1811,14 @@ export function ProjectGantt({
       display: (mode: string) => { if (mode === "all" || mode === "grid" || mode === "chart") setTimelinePreviewDisplay(mode); },
       laneMeasurement: () => laneMeasurement.current,
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
-      reveal: (date: string) => revealMilestoneDate(api, date),
+      reveal: async (date: string) => {
+        await canonicalSyncQueueReference.current;
+        if (apiReference.current !== api || !peerViewportContext.current.visible || !milestoneDateCoordinate(api, date)?.insideRange) return false;
+        // Use the existing diagnostic owner: a scale commit can update Core
+        // offsets before its native scroll settles. State-only visibility is
+        // insufficient, and direct scroll-chart bypasses the intent lease.
+        return viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) });
+      },
       nativeDateReveal: (date: string) => viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }),
       scroll: (left: number) => Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),
       filter: async (ids: string[] | null) => {

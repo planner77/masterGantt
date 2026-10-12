@@ -1,3 +1,10 @@
+## Issue #551 — CI #2595.1 날짜 reveal 정착·#464 transport 관측 (2026-10-12)
+
+- [원본 CI #2595.1](https://github.com/planner77/masterGantt/actions/runs/38258293115), Head `b25bb4e72c1f769d47ec3b7f03c9a31740ac299b`, base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`, test merge `3be6f67c08312631058cefd70dc96fcdfff65497`, attempt1: quality/Docker/Chromium 다른 5 shard PASS, shard4(job114842184289/step7) 123 PASS/6 FAIL/1 skipped. #551 5폭 `anchor=null`과 #464 copy 이후 GET `ECONNRESET`을 별개로 기록한다. 자동 QA FAIL은 필수 E2E FAIL에 따른 연쇄 차단이다.
+- #551: Day→Week 전환 후 Core state의 날짜 가시성과 실제 native 날짜축 위치가 다를 때도 개발 probe의 날짜 reveal은 기존 viewport coordinator를 거쳐야 한다. 5폭×Day/Week에서 `DIAGNOSTIC_DATE_REVEAL`의 실제 `SETTLED` 결과를 확인하고, 기존 native Task bar/날짜축/Milestone tick ±1px, row y/height, clip/focus, 같은 API 및 mutation0 assertions를 유지한다. sleep/timeout 증가·skip/retry·허용오차 확대는 하지 않는다.
+- #464: 기존 격리 fixture의 `observeIsolatedApi`를 Project 생성/GET/mutation/edit-session 요청에 연결한다. 요청별 정규화 route·method·status·request ID, 실패 직전 lifecycle/health/resource를 수집하고 원래 operation은 한 번만 실행한다. 원본 오류를 그대로 rethrow하며 HTTP 응답/Revision·authorization·원장 assertions를 유지한다. 쿠키/입력 body/원문 error·runtime DB는 진단 allowlist에 넣지 않는다.
+- 원본 #464 실패 시 서버는 alive/exit null, readiness200(17ms), OOM0이었다. 관측 보강은 transport 근인 해결이나 제품 성공을 뜻하지 않는다. 직접 로컬 실행·환경 차이·최초 실패 및 새 source 검증은 [#551 Work Packet](exec-plans/active/ISSUE_551.md)에 구분한다. 새 Head의 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 NOT TESTED이며 새 full PR CI 등록 뒤 결과를 모니터링하지 않는다.
+
 ## Issue #551 — CI #2594.1 실제 날짜축 오프셋·대형 진단 초기화 회귀 (2026-10-12)
 
 - 최초 원본 [Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533), HEAD `442564b7`: Chromium shard4 123 PASS/6 FAIL/1 SKIP. Native Tick ↔ Task bar 오차가 5폭에서 3018·3018·3036·3028·3024px, 대형 1000 Task+2000 Milestone에서 dev probe 설치 predicate는 5초 TIMEOUT. Quality·TypeScript·ESLint·Vitest·production build·Docker·다른 Chromium 5 shard는 PASS였다.

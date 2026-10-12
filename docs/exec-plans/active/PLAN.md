@@ -1,3 +1,9 @@
+## Issue #551 — PR #560 CI #2595.1 반복 실패 보완 (2026-10-12)
+
+최신 Head `b25bb4e72c1f769d47ec3b7f03c9a31740ac299b` / base `b97709df8b5c0974f3c8252ac97819f45f73a5b9` / [CI #2595.1](https://github.com/planner77/masterGantt/actions/runs/38258293115)의 quality/Docker 및 다른 E2E 5 shard는 PASS, shard4는 123 PASS/6 FAIL/1 skipped다. #551 5폭 `anchor=null`은 개발 날짜 reveal의 state-only 가시성 판단과 기존 viewport 조정기 우회 경계로 분석하고 기존 `DIAGNOSTIC_DATE_REVEAL` 정착 경로로 통합한다. 별도 #464 GET `ECONNRESET`은 서버 alive/health200/OOM0으로 근인 UNKNOWN이며 기존 안전한 요청 observer를 연결해 원본 실패를 재시도 없이 보존한다.
+
+관련 코드/테스트/문서와 직접 회귀·별도 read-only PRE_QA 후 기존 PR의 새 full CI 시작까지만 수행한다. `0.107.0`/package/lock 및 main 통합 기능 유지, HIGH/qa_required=true, production 기본OFF, release_required=true/release_authorized=false다. 새 CI 모니터링/병합/main/GHCR/Issue 종료/브랜치 정리는 비범위다. exact source 검증·미검증과 기존 실행별 실패는 [#551 Work Packet](ISSUE_551.md)에 기록하며 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #551 — PR #560 CI #2594.1 실제 날짜 Timeline 좌표 회귀 보완 (2026-10-12)
 
 기준 CI [Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533)의 QA Preflight/TypeScript/Build/Unit/Docker 성공, Chromium shard4 123 PASS/6 FAIL/1 SKIP을 분리한다. 5개 viewport에서 실제 Gantt Task bar와 lane tick의 3,018~3,036px 불일치를 보존하고 canonical contentX+실제 native scale origin으로 projection을 통합한다. 3000 Task 초기화 시 dev-only probe를 layout commit에서 등록한다. 관련 E2E·TEST_PLAN·MILESTONE_TIMELINE·ARCHITECTURE·CHANGELOG·Work Packet을 함께 보완한다. ±1px/5초/3000Task fixture, PRO·Core 변경 금지, 새 전체 PR CI exact Head 시작 전 최종 PASS/QA/Owner/merge/GHCR는 NOT TESTED. `release_required=true`, `release_authorized=false`.
