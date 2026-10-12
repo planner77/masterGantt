@@ -1,3 +1,10 @@
+## Issue #633 — Owner B2 두 미발행 SemVer 안전 복구 (2026-10-12)
+
+- #550 v0.105.0과 #615 v0.106.0은 최초 Main CI FAIL/교차 Issue 변경 때문에 기존 same-Issue supersession 경로를 절대로 사용하지 않는다. 기존 일반 계약은 변경 없이 별도 `scripts/release_debt_recovery.py`의 exact historical SHA, Owner revoke+v2 authorization, 새 Issue #633 release `v0.106.1`로 **한정된 예외만** 분리한다.
+- `mastergantt-release-debt-authorization:v2`는 Owner/원본 다섯 Issue·PR·SHA/새 PR·Main SHA·버전/사유를 식별한다. 이전 v0.105.0/v0.106.0 게시 승인은 `authorized=false`인 해당 버전별 최신 Owner marker로 명시 철회한 뒤에만 실행. 새 v0.106.1 발행 승인은 별도 v1 marker다. 어느 것도 PR 본문/CI PASS에서 추론하지 않는다.
+- Generic Finalizer는 `issue_comment` Owner 신원/Issue #633만 재진입하고 무조건 default main trusted code를 checkout한다. 사전 감사를 통한 old exact Git tag/Release/GHCR 모두 ABSENT·새 정확 main CI verified candidate·new release owner authorization 없으면 원본 실패 barrier를 유지한다. 새 formal release 성공과 digest 비교 후에만 source 5개 브랜치 안전 cleanup 및 two old candidates 삭제/각 old Issue의 `release-debt-retired:v1` 독립 감사 증거·close를 수행한다. 구 FAIL SHA는 FINAL/PASS로 표시하지 않는다.
+- 기존 `release-finalizer.yml`·`release-finalizer-resume.yml`에 pinned GHCR 인증 검사와 동일 concurrency 권한 내 Owner 재개만 추가한다. tag 충돌/등록된 다른 image·권한 오류·경쟁 main 이동에는 fail-closed. [상세](ISSUE_633_RELEASE_DEBT.md).
+
 ## Issue #633 — GHCR 감사의 태그·인증 구분 (2026-10-12)
 
 - GitHub/Git의 immutable annotated `vX.Y.Z`와 GHCR의 exact image `:X.Y.Z`는 서로 다른 naming 계약이다. 기본 브랜치 수동 read-only 감사는 `packages: read` + `docker/login-action`으로 private GHCR 인증 후 실제 `:X.Y.Z` manifest/digest를 조회한다.

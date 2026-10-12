@@ -1,3 +1,40 @@
+# Issue #633 — B2 미발행 2버전 공식 정리 및 v0.106.1 교정 Release (2026-10-12)
+
+**현 상태: 구현 PR 검증 중, 정식 발행 NOT TESTED.** #550의 v0.105.0 및 #615의 v0.106.0은 과거 Main CI 실패·중간 병합으로 자동 발행·자동 상속 불가. 두 버전은 삭제하거나 다른 SHA로 위장하지 않고 **미발행 폐기/승계 원장**으로 보존한다. 최신 수정은 신규 **v0.106.1 후보 버전**으로 검증하되, 실제 Owner v2 승인·정확한 새 main Merge SHA·GHCR 실감사 이전에는 릴리스와 Issue close를 자동 실행하지 않는다.
+
+## B2 결정의 선행 근거
+
+- PR #559 / Issue #550: `40747252c389f2a4d1203a2262a4caa49c90728d`, version 0.104.4→0.105.0, Main #2515.1 **FAIL**.
+- PR #627 / Issue #615: `c8949da48e7465db45d871887c3f55f9fb6dc743`, version 0.105.0→0.106.0, Main #2526.1 **FAIL**.
+- PR #628 / Issue #615: `6eaec3331fcbc720ab42106789a505c5ee5eefb4`, Main #2531.1 **PASS**와 candidate digest `de76273aa07dfd2132b6a23e24501fba477692b4f3f97cc58146382ae65ac88b` (v0.106.0 정식 발행은 아님).
+- PR #626 / Issue #550: `e51b99cb25f37c8909de356a089a56b4139415a3`, Main #2543.1 **FAIL**. PR #632 `d69749753fb9db002232d92d51446237a0fe042d` Main #2553.1 **PASS**, candidate digest `7700bffcf8f2bb4006d485bae440ef39da23a95d5cd8375342d437282883fa9b`.
+- PR #634 / Issue #633 `f839ad01cd395004e623ae171f1684cfc49e482e`, Main #2565.1 **PASS** / candidate `c36138dd914b2c1632119fe969bd0c427dc5b9ed9ad99fb183c05f40221f38b9`. Finalizer #148.1 SUCCESS job이지만 first-parent 최초 #550 CI FAIL에서 **DEFERRED/mutation NONE**.
+- 현재 GitHub API에서 v0.105.0/v0.106.0 annotated tag 및 GitHub Release **부재**, GHCR exact 이미지 부재는 **인증된 read-only Main Workflow 실조회 필요**. GHCR `:X.Y.Z` vs Git/GitHub `vX.Y.Z` 차이를 보존한다.
+
+## 엄격한 B2 처리 계약
+
+1. `release-debt-audit.yml`은 Issue #633의 성공한 Main CI 완료 이벤트에서 trusted **default main checkout**, `actions/packages: read` 및 pinned GHCR 로그인 후 `--inventory-only`로 자동 기동한다. `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`는 **GHCR 부재 증거만 수집**, 미발행 폐기/Release/Issue close 승인 아님. 레지스트리 오류/미확정/기존 exact tag가 있으면 BLOCKED.
+2. 최초 원본 `v0.105.0`(Issue #550)과 `v0.106.0`(Issue #615)의 Owner 정식 게시 승인 marker를 각 버전에서 **명시적으로 철회(authorized=false)**한다. 기존 승인 댓글을 수정·삭제하지 않는다.
+3. 신규 versioned PR은 current main `0.106.0`을 `0.106.1`로 올리고 exact Head PR CI Quality/E2E/Docker + Trusted QA + 코드 리뷰/Owner HIGH 위험수용을 검증한다. 이를 **새 Merge SHA**로 병합해 Main CI와 `ci-<SHA>` digest/SBOM/provenance를 검증한다.
+4. 위와 독립적으로 Issue #633에는 `mastergantt-release-authorization:v1` (`expected_version=0.106.1`) 및 **별도** `mastergantt-release-debt-authorization:v2` (B2_RETIRE_BOTH, #550/#615 다섯 PR SHA, 새 corrective PR number/merge SHA, Owner note ≥20자)를 최신 인증 Owner 댓글로 남긴다. 구버전 승인·일반 “GHCR 게시”를 이 marker 대신 사용하지 않는다.
+5. Generic Release Finalizer는 새 코드가 이미 **trusted main**인 시점에서 Owner marker를 재조회한다. exact first-parent·원본 Issue/PR·버전·구버전 Main FAIL 및 교정 Main PASS·기존 2버전 Git tag/Release/GHCR **모두 ABSENT**·새 version main SUCCESS·Owner 철회/승인을 검사한다. 조건 하나라도 틀리면 이전 순서 BLOCKED를 유지한다. 자동 Cross-Issue 일반 supersession 계약은 그대로 유지한다.
+6. 통과한 경우 **별도 인증된 B2 대상 원본만** oldest-first 처리를 보류하고, 일반 pending PR(#629/#633 등)은 기존 exact Main/cleanup gate로 수행한다. `v0.106.1`은 기존 Generic Release `release_start` → immutable annotated Git tag → `Publish release image` exact digest promotion → `Release Finalizer Resume` 경로를 사용한다.
+7. **새 정식 Release SUCCESS 이후에만** 구버전 미발행 상태를 재검증하고 신규 exact digest와 보존된 main `ci-<SHA>` digest 일치 검증 → #550/#615 역사적 5개 merged branch의 safe lease preflight/cleanup, #628/#632 두 임시 후보의 check-only·정리 → 각 Issue에 별도 github-actions[bot] 작성 `mastergantt-release-debt-retired:v1` (구버전 미발행·원본 FAIL·new target SHA/digest/Owner decision) → #550/#615 close 순서. 이후 #633 새 release FINAL 및 close를 기존 Generic helper로 처리한다. 원본 실패 SHA를 PASS/F‌INAL로 위장하지 않는다.
+8. Owner marker가 나중에 기록돼도 Issue #633의 Owner issue_comment 이벤트는 **기존 `release-finalizer.yml`** 에서만 trusted current main 코드를 실행한다. 임의 원격 PR/comment 본문을 실행하지 않으며 same lifecycle concurrency, 기존 secret/permissions 범위 유지. 임시 일회성 Issue workflow 추가 금지.
+
+## Negative/positive 검증과 Rollback
+
+- `scripts/test-release-debt-recovery.py`: Owner 위조/구 marker 재사용/최신 철회/stale SHA/원장 version mismatch/추가 PR/main failure/UNKNOWN GHCR/미완료 Release/상이한 digest/cleanup-then-close 불변을 포함한다. `scripts/verify-issue-lifecycle.py`에서 trusted workflow 권한·기본 branch checkout·oldest-first/Owner 승인 조건을 정적으로 검증한다.
+- 기존 Issue #615 (adjacent same-Issue 승계), #586/#344 immutable FINAL, #595/#593 QA 검증은 변경하지 않고 PR CI에서 전체 회귀한다.
+- Owner 승인 전 rollback: B2 모듈·workflow hook·version bump·문서를 revert하고 기존 Generic 자동 차단 유지. **tag 발행 후 rollback은 기존 immutability 정책에 따라 tag 이동/삭제를 하지 않고 새로운 SemVer 교정 PR로 처리**. 중간 cleanup 실패는 별도 immutable RETIRED 표시 전에서 중단해 재실행 가능, 실패 사유와 실행 원본을 보존한다.
+- 프로덕션 실제 DB 백업·복구, 운영 TLS, 운영 배포는 원격 CI와 독립이며 미검증. 정식 GHCR 발행 ≠ 실제 운영 배포 승인.
+
+## 상태·판정 기준
+
+- 지금: B2 코드 구현 및 신규 SemVer 후보 준비. **신규 PR CI / Main CI / GHCR Registry live Audit / Formal Release / Issue close: NOT TESTED**.
+- 정식 Release GO 판정: 정확한 new Merge SHA의 Main CI/GHCR 후보 digest 검증 PASS, 이전 SemVer GHCR 부재 PASS, Owner 구버전 철회·B2 exact Scope·신규 version release 승인 PASS, generic trusted validator PASS.
+- 마지막 FINISH 판정: `Publish release image` SUCCESS 및 exact tag/digest 동일·Resume/역사적 cleanup/각 RETIRED marker/Issue close까지 모두 실제 GitHub evidence 확인.
+
 ## PR #634 후속: Private GHCR 검사 및 태그 명세 정합화 (2026-10-12)
 
 - 2026-10-12 PR CI #2559.1의 Quality/E2E 6-shard/Docker Required aggregate는 모두 SUCCESS, 마지막 QA Automated는 미해결 P1 리뷰 2건 때문에 BLOCKED(전체 CI FAILURE).

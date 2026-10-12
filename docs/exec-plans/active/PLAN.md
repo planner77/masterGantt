@@ -1,3 +1,8 @@
+## Issue #633 — B2 미발행 버전2개 정리·v0.106.1 교정 PR 실행 (2026-10-12)
+
+- main `f839ad01cd395004e623ae171f1684cfc49e482e` / 기존 `0.106.0`에서 B2 read-only inventory, 명시 Owner 철회·승인 가드 및 신규 SemVer `0.106.1` 후보를 별도 `fix/issue-633-b2-release-recovery` 브랜치로 구현. 기존 #550/#615 원본 CI FAIL·GHCR 미발행 부채는 대체·소급 PASS 금지.
+- PR Quality/E2E/Docker/Trusted, Git/GHCR authenticated audit, 새 exact Main CI/digest 및 Owner 재승인 이전에는 formal tag/Release/cleanup/Issue close NO-GO. 자세한 AC/계약은 [Issue #633 Work Packet](ISSUE_633.md)과 [B2 복구 설계](../../ISSUE_633_RELEASE_DEBT.md) 참조.
+
 ## Issue #633 — PR #634 QA Preflight 계약 보완 (2026-10-12)
 
 - PR CI #2556.1 (`38199169784.1`) QA Preflight는 `docs/exec-plans/active/ISSUE_633.md` Work Packet 404로 `BLOCKED`되었으며 Quality/E2E/Docker Required aggregate FAIL, 본체 테스트 SKIPPED. 앱 결함 검증은 수행되지 않았다.
