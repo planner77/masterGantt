@@ -126,21 +126,60 @@ def require_revoked(core: Any, repo: str, issue: int, version: str) -> None:
             f"Issue #{issue} v{version} 릴리스 승인 철회(authorized=false)가 필요")
 
 
-def exact_first_parent(core: Any, items: list[Any]) -> list[Any]:
+def authenticated_retirement(core: Any, repo: str, issue: int,
+                             replacement_sha: str) -> bool:
+    """A closed historical Issue is only valid after our exact bot retirement.
+
+    Issue closure can be interrupted after the first old Issue. Preserve
+    idempotent replay without allowing arbitrary closed/non-actionable merges
+    to bypass the first-parent barrier.
+    """
+    shas=[row[0] for row in SOURCES if row[1]==issue]
+    prs=[row[2] for row in SOURCES if row[1]==issue]
+    matching=[]
+    for c in core.issue_comments(repo,issue):
+        found=RETIRED_MARKER.findall(c.get("body") or "")
+        require(core,len(found)<=1,"퇴역 marker 중복 또는 위조")
+        if not found:
+            continue
+        require(core,(c.get("user") or {}).get("login")=="github-actions[bot]",
+                "인증되지 않은 RETIRED 증거 작성자")
+        try:
+            payload=json.loads(found[0])
+        except (ValueError,TypeError) as exc:
+            raise core.AutoFinalizerBlocked("Issue #633 RETIRED JSON 파손") from exc
+        require(core,isinstance(payload,dict)
+                and payload.get("issue")==issue
+                and payload.get("original_shas")==shas
+                and payload.get("original_prs")==prs
+                and payload.get("unissued_version")==("0.105.0" if issue==550 else "0.106.0")
+                and payload.get("replacement_sha")==replacement_sha
+                and payload.get("replacement_version")==VERSION
+                and audit.DIGEST_RE.fullmatch(payload.get("replacement_digest") or "") is not None,
+                "퇴역 marker source/target/digest 위조 또는 불일치")
+        matching.append(payload)
+    require(core,len(matching)<=1,"서로 다른 RETIRED 완료 원장")
+    return len(matching)==1
+
+
+def exact_first_parent(core: Any, repo: str, items: list[Any],
+                       replacement_sha: str) -> list[Any]:
     indexed={item.target_sha:item for item in items}
-    require(core, len(indexed)==len(items), "first-parent 중복 SHA")
+    require(core,len(indexed)==len(items),"first-parent 중복 SHA")
     expected=[]
     for sha,issue,pr,previous,current in SOURCES:
         item=indexed.get(sha)
-        require(core, item is not None and item.issue_number==issue
+        require(core,item is not None and item.issue_number==issue
                 and item.pr_number==pr and item.previous_version==previous
-                and item.current_version==current and not item.validation_docs_only
-                and item.actionable, f"원본 SHA/Issue/PR/version 구간 변조: {sha}")
+                and item.current_version==current and not item.validation_docs_only,
+                f"원본 SHA/Issue/PR/version 구간 변조: {sha}")
+        if not item.actionable:
+            require(core,authenticated_retirement(core,repo,issue,replacement_sha),
+                    f"닫힌 Issue #{issue}은 authenticated B2 RETIRED 근거가 필요")
         expected.append(item)
     same_issues=[item for item in items if item.issue_number in {550,615}]
     require(core,[item.target_sha for item in same_issues]==[t[0] for t in SOURCES],
             "과거 #550/#615의 추가 merge 또는 변경된 순서")
-    # No cross-Issue automatic supersession of version-changing failed targets.
     return expected
 
 
@@ -150,7 +189,7 @@ def plan_b2(core: Any, repo: str, latest_main: str, pending_raw: list[Any]) -> P
     marker=read_approval(core,repo,latest_main)
     if marker is None:
         return None
-    originals=exact_first_parent(core,pending_raw)
+    originals=exact_first_parent(core,repo,pending_raw,marker["recovery_sha"])
     current=[w for w in pending_raw if w.target_sha==latest_main]
     require(core,len(current)==1,"B2 교정 merge는 현재 main의 first-parent여야 함")
     target=current[0]
