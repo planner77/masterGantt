@@ -713,6 +713,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const targetMemberships = (this.database.prepare(
+          "SELECT COUNT(*) count FROM logistics_target_members WHERE project_id=? AND equipment_id=?",
+        ).get(projectId,current.id) as {count:number}).count;
+        if (targetMemberships>0) {
+          throw new LogisticsConflictError("EQUIPMENT_IN_USE",
+            "Cannot delete equipment referenced by "+targetMemberships+" Target(s).");
+        }
         const systemMappings = this.logisticsRepo.listEquipmentSystems(projectId, current.id).length;
         const resourceRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId, current.id).length;
         if (systemMappings > 0 || resourceRoles > 0) {
@@ -1014,6 +1021,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const targetMemberships = (this.database.prepare(
+          "SELECT COUNT(*) count FROM logistics_target_members WHERE project_id=? AND system_id=?",
+        ).get(projectId,current.id) as {count:number}).count;
+        if (targetMemberships>0) {
+          throw new LogisticsConflictError("SYSTEM_IN_USE",
+            "Cannot delete System referenced by "+targetMemberships+" Target(s).");
+        }
         const controllingCount = this.logisticsRepo.countControllingEquipment(projectId, current.id);
         if (controllingCount > 0) {
           throw new LogisticsConflictError("SYSTEM_IN_USE", `Cannot permanently delete system controlling ${controllingCount} equipment.`);

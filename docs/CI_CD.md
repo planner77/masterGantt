@@ -743,3 +743,7 @@ PR `docker_smoke`는 shared GHA BuildKit cache를 읽기만 하고 `cache-to`는
 ## Issue #616 F2 candidate validation
 
 High-risk DB migration 0026, Target service/REST, Copy/Template/export modifications require full exact-head required aggregate checks (quality/E2E/Docker), revision/authorization negative tests, migration checksum/foreign_key_check and restart. PR only; no main artifact publish before explicit Owner merge decision. Local checks unavailable when repository runtime/node_modules are absent; track as NOT TESTED rather than PASS. Candidate version bump alone is not release authorization.
+
+## #616 F2 Template v2 release gate
+
+Required PR aggregate quality/e2e/docker must now cover Template v2 graph persisted save/instantiate, migration 26 deferred FK, legacy Template compatibility, shared MCS mapping and missing/invalid member all-or-nothing rollback. Previous #2534.1 CI FAILED (new TemplateError discriminant, migration expected count and route security inventory), which this candidate corrects without weakening gates. Version 0.107.0 remains unapproved: exact-head successful PR CI is not Owner merge/release authorization.

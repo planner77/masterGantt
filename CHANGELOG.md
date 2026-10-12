@@ -1,3 +1,9 @@
+## [Unreleased] — #616 Template v2 보완
+
+- Project Template에서 F1 공정 occurrence/WorkArea와 Target/member 전체 관계를 versioned graph v2에 저장·복원한다. System/Equipment는 기존 Template 복원 단일 인스턴스를 참조하고 MCS 공유 정체성을 보존한다.
+- 강한 triple·global ID 검증, legacy snapshot 지원, 잘못된 그래프의 atomic rollback, Target/Mapping count를 추가한다. 기존 Template 409 미지원 임시 정책을 대체하며 schedule-stage JSON 내보내기 보호는 유지한다.
+- Deferred anchor-member composite FK, 이동 PATCH ordering, full inactive ancestry, shared instance DELETE in-use409, duplicate Target code PATCH409, migration/route inventory 기대값을 보완한다.
+
 ## [Unreleased] — Issue #616 Logistics Target F2 (PR candidate)
 
 ### Added

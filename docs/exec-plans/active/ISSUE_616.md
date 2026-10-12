@@ -37,3 +37,12 @@
 - No GitHub Actions/Trusted QA/Manager approval evidence exists until exact-head workflow. Inaccessible repo runtime on tool host prevents local npm typecheck, Vitest, E2E, Docker; do not assert PASS.
 - Verify DB triggers on migration and Project Copy, stale body session after await, composite FK and SQLite foreign_key_check, copy rollback/retry on real CI.
 - Track reviewers and act on CI failures on separate user instruction, not automatic merge.
+
+## AC6 Template v2 미구현 보완 — 2026-10-12
+
+- code: `src/server/templates/logistics-template-graph-core.ts`, `src/contracts/project-templates.ts`, Template create/instantiate/handler; Process mappings+Targets/members typed versioned graph 저장, new local IDs 복원, global occurrence/WorkArea triple revalidate. Shared MCS single System instance.
+- tests: `tests/server/templates/logistics-template-graph.test.ts` real SQLite fixture (TargetA AMR10+ACS A+MCS1 / TargetB AMR5+ACS B+MCS1 / common Target; schema2 snapshot, 15대, 동일 MCS, original distinct, invalid/duplicate/cross-area rollback, legacy compat). DB migration/route inventory test expectations corrected.
+- DB: migration26 deferred anchor-member composite FK for nonempty Target at COMMIT and member reparent movement; 4 review points (inactive full-path, duplicate PATCH code409, hard-delete in-use409, process change member replacement).
+- Docs: API/DB_SCHEMA/REQUIREMENTS/ARCHITECTURE/SECURITY/LOGISTICS_TARGETS/TEST_PLAN/CI_CD/REMOTE_VALIDATION/root CHANGELOG/active PLAN/rollout synced. DESIGN and UX N/A (no UI), Resource KPI and Task binding N/A (#617+).
+- Previous Run #2534.1 FAIL is preserved, new exact-head Quality/E2E/Docker and QA are NOT TESTED until Actions. release_required=true/release_authorized=false; no merge/GHCR authorized.
+

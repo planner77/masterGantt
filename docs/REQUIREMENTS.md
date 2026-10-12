@@ -509,3 +509,7 @@ Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하�
 ## Issue #616 — Target grouping
 
 A Project Target groups one or more existing Project Equipment/System instances and may share an instance with other Targets. Process scope requires explicit mapped Project Process (WorkArea optional within occurrence); project_common scope permits Project-scoped System only. Labels are not identities, original quantities and control/coordinator/Resource role relations remain intact. Changes advance a single Project revision and preserve strict session/Origin/CAS. Full Template/JSON backup is not implied by schedule-only JSON; unsupported Target-bearing exports are rejected. #617 owns WBS whole/subset binding.
+
+## #616 Target Template roundtrip
+
+Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를 빠짐없이 저장해 새 Project에서 원본 물류 인스턴스가 아닌 새 공정·설비·시스템·Target/member identity를 생성해야 한다. 동일 MCS가 여러 Target에 속해도 신규 Project에 System 한 건만 있어야 하고 공정/WorkArea global 참조는 유효 BU/Product/Site triple에 속해야 한다. 파손된 관계·존재하지 않는 member는 Project 전체 rollback, 이전 Template schema는 하위 호환한다. WBS Binding은 #617, full JSON은 #379 분리.

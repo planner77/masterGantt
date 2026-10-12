@@ -436,3 +436,7 @@ Project context는 현재 direct-link public readonly 정책을 적용한다. �
 ## Target write authority (#616)
 
 GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Operational security tests and CI are NOT TESTED until exact-head PR checks.
+
+## #616 versioned Template graph security
+
+Template 저장은 유효한 소스 Project edit-session/strong revision을 확인한 transactional source snapshot에서 F1 occurrence/WorkArea와 F2 typed instance/Target 관계를 수집한다. Template 생성 시 common catalog를 수정하지 않는다. Instantiate는 기존 Origin/create rate limit과 새 Project atomic write를 재사용하며 BU/Product/Site triple·global occurrence/WorkArea·typed member ID를 서버에서 재검증한다. 부재, 중복, 외부 공정, unsupported graphVersion은 409로 전체 rollback한다. Legacy Template은 무그래프 호환, schedule-only JSON 1.1은 Target이 있으면 기존 409 차단 유지.

@@ -2,7 +2,10 @@ import { projectStageGates } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
 import { readStageSnapshot, withStageProjection } from "../projects/milestone-stage-core";
 import { PersistedScheduleInvalidError } from "../projects/project-service-core";
-import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
+import {
+  snapshotLogisticsTemplateGraph,
+  restoreLogisticsTemplateGraph,
+} from "./logistics-template-graph-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -193,23 +196,9 @@ export class ProjectTemplateService {
         throw new RevisionMismatchError();
       }
 
-      // Fail closed: versioned Target/occurrence graph must not be silently dropped.
-      // A future versioned snapshot must explicitly encode global occurrence IDs and
-      // local instance/member remaps before this guard can be removed.
-      if (this.database.prepare("SELECT 1 FROM logistics_targets WHERE project_id=? LIMIT 1").get(source.id)) {
-        throw new ProjectTemplateError(
-          "TARGET_TEMPLATE_NOT_SUPPORTED",
-          "Target 구성원이 있는 프로젝트는 현재 Template 형식으로 저장할 수 없습니다. Project Copy를 이용하세요.",
-        );
-      }
-
-      // The current snapshot format has no versioned occurrence capability.
-      if (new ProcessCatalogRepository(this.database).hasMappings(source.id)) {
-        throw new ProjectTemplateError(
-          "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED",
-          "공정 occurrence 매핑을 보존하는 Template 형식이 지원되기 전에는 저장할 수 없습니다.",
-        );
-      }
+      // F2 snapshots include global occurrence/WorkArea identities and local
+      // typed Target member codes; no unversioned graph can be silently dropped.
+      const logisticsGraph = snapshotLogisticsTemplateGraph(this.database, source.id);
 
       const calendar = resolveProjectWorkingCalendar(this.database, source.id);
       const sourceStage = readStageSnapshot(this.database, source.id);
@@ -388,6 +377,7 @@ export class ProjectTemplateService {
           systems: systemSnapshots,
           taskEquipmentLinks: taskEquipmentLinkSnapshots,
           taskSystemLinks: taskSystemLinkSnapshots,
+          ...logisticsGraph,
         },
       };
 
@@ -785,6 +775,8 @@ export class ProjectTemplateService {
 
       // 7. 물류 마스터 복제
       const logisticsSnapshot = snapshot.logistics;
+      let restoredTargetCount = 0;
+      let restoredMappingCount = 0;
       if (logisticsSnapshot) {
         // 7.1 공정
         const processByCode = new Map<string, { id: number; publicId: string }>();
@@ -947,6 +939,15 @@ export class ProjectTemplateService {
         for (const [taskId, links] of sysLinksByTaskId.entries()) {
           this.logisticsRepo.replaceTaskSystemLinks(project.id, taskId, links, nowText);
         }
+
+        const restored = restoreLogisticsTemplateGraph(this.database, project.id, logisticsSnapshot, {
+          processes: processByCode,
+          equipment: equipmentByCode,
+          systems: systemByCode,
+        }, nowText);
+        restoredTargetCount = restored.targets;
+        restoredMappingCount = restored.processMappings;
+        warnings.push(...restored.warnings);
       }
 
       // 8. 세션 생성
@@ -1029,6 +1030,8 @@ export class ProjectTemplateService {
               processes: logisticsSnapshot?.processes.length ?? 0,
               equipment: logisticsSnapshot?.equipment.length ?? 0,
               systems: logisticsSnapshot?.systems.length ?? 0,
+              targets: restoredTargetCount,
+              processMappings: restoredMappingCount,
             },
           },
           warnings,
@@ -1043,12 +1046,16 @@ export class ProjectTemplateService {
     let processCount = 0;
     let equipmentCount = 0;
     let systemCount = 0;
+    let targetCount = 0;
+    let processMappingCount = 0;
     try {
       const parsed = JSON.parse(record.contentJson) as ProjectTemplateSnapshot;
       if (parsed.logistics) {
         processCount = parsed.logistics.processes?.length ?? 0;
         equipmentCount = parsed.logistics.equipment?.length ?? 0;
         systemCount = parsed.logistics.systems?.length ?? 0;
+        targetCount = parsed.logistics.targets?.length ?? 0;
+        processMappingCount = parsed.logistics.processMappings?.length ?? 0;
       }
     } catch {
       // ignore parse errors for counts
@@ -1066,6 +1073,8 @@ export class ProjectTemplateService {
       processCount,
       equipmentCount,
       systemCount,
+      targetCount,
+      processMappingCount,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };

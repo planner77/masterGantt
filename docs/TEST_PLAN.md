@@ -3229,3 +3229,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 ## Issue #616 Target verification
 
 Integration fixture covers project_common MCS identity reuse, duplicate Target/member protection, empty member/cross-project rejection, stale revision, and copy remap/atomic failure; `tests/server/logistics/logistics-targets.test.ts`. Required follow-on CI: migration26 fresh + 25→26 upgrade, foreign_key_check, restart, active/inactive, process occurrence/WorkArea validation, equipment unit/fleet counts, System=1, shared MCS with 2 ACS, atomic inline partial failure, HTTP 401/403/409/412, duplicate submit, usage and target list bounds, Template/JSON loss guard, and Project Copy source/destination FK. Current tests are *committed, not executed locally*; full regression PASS is NOT TESTED pending GitHub Actions. No claim of complete AC1–AC7 coverage yet.
+
+## #616 Template v2 검증
+
+`tests/server/templates/logistics-template-graph.test.ts`: 두 공정/선택 WorkArea, TargetA(AMR10+ACS A+MCS1), TargetB(AMR5+ACS B+MCS1), 공통형 System-only Target; 신규 Project 인스턴스 ID, MCS 단일 인스턴스 및3개 Target member 참조, 물류 총15대, 공정 occurrence/WorkArea 일치와 PRAGMA foreign_key_check 검증. 부재/중복 member, 타 공정 WorkArea, 알 수 없는 graph version 전체 Project rollback과 구 Template snapshot 호환을 검증하도록 작성. 기존 #2534.1의 타입 검사/마이그레이션·route 보안 inventory 실패를 보완했으며 신규 CI 실행 결과는 별도로 판정한다.

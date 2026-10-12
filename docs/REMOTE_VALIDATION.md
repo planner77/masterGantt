@@ -536,3 +536,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 ## #616 Target F2
 
 Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate checks on exact PR head and latest main baseline. Verify SQLite migration 25→26, cross-project FK, atomic inline creation/revision, shared System copy and Target-bearing Template/JSON rejection. Runtime/prod proxy, backup restore, and full manual Target UI are separate NOT TESTED. Owner merge and release authorization remain distinct.
+
+## #616 Template graph v2 CI
+
+신규 Head PR CI는 Template v2 소스 snapshot→설비/시스템 단일 복원→공정/WorkArea 검증→Target/member remap을 종단간 테스트한다. MCS 동일 새 ID, 원본과 다른 UUID, 15대/ACS2/MCS1, 이전 Template fallback, cross-occurrence/duplicate/missing member rollback, migration25→26 및 deferred anchor FK를 검증한다. 원본 PR #631 Run #2534.1은 Quality/E2E/Docker FAIL이며 신규 Head의 PASS로 재해석하지 않는다. 실제 운영 DB backup/restore·release/GHCR 및 Owner ACCEPT는 별도.

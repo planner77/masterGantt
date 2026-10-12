@@ -3,6 +3,9 @@ CREATE TABLE logistics_targets (
   id INTEGER PRIMARY KEY,
   public_id TEXT NOT NULL UNIQUE,
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  -- Deferred composite FK makes an empty persisted Target impossible, while
+  -- permitting an atomic reparent + replacement within a single transaction.
+  anchor_member_id INTEGER NOT NULL DEFAULT -1,
   code TEXT NOT NULL CHECK(length(trim(code)) BETWEEN 1 AND 64),
   name TEXT NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 200),
   scope TEXT NOT NULL CHECK(scope IN ('process','project_common')),
@@ -15,6 +18,9 @@ CREATE TABLE logistics_targets (
   updated_at TEXT NOT NULL,
   UNIQUE(project_id,id),
   UNIQUE(project_id,code),
+  FOREIGN KEY(project_id,id,anchor_member_id)
+    REFERENCES logistics_target_members(project_id,target_id,id)
+    DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY(project_id,project_process_id) REFERENCES project_processes(project_id,id) ON DELETE RESTRICT,
   FOREIGN KEY(project_id,project_process_id,occurrence_id)
     REFERENCES project_process_occurrence_mappings(project_id,project_process_id,occurrence_id)
@@ -68,13 +74,9 @@ WHEN NEW.kind='system' AND NOT EXISTS(
 BEGIN SELECT RAISE(ABORT,'TARGET_SYSTEM_SCOPE_MISMATCH'); END;
 
 -- Membership is immutable: remove/re-add with a fresh member public ID.
+-- Nonempty at COMMIT is enforced by logistics_targets.anchor_member_id deferred FK.
 CREATE TRIGGER target_member_no_reparent BEFORE UPDATE ON logistics_target_members
 BEGIN SELECT RAISE(ABORT,'TARGET_MEMBER_IMMUTABLE'); END;
-CREATE TRIGGER target_member_no_empty BEFORE DELETE ON logistics_target_members
-WHEN EXISTS(SELECT 1 FROM logistics_targets WHERE project_id=OLD.project_id AND id=OLD.target_id)
-AND (SELECT COUNT(*) FROM logistics_target_members WHERE project_id=OLD.project_id AND target_id=OLD.target_id)=1
-BEGIN SELECT RAISE(ABORT,'TARGET_LAST_MEMBER'); END;
-
 CREATE TRIGGER target_process_guard BEFORE UPDATE OF scope,project_process_id ON logistics_targets
 WHEN EXISTS(SELECT 1 FROM logistics_target_members m JOIN project_equipment e
   ON e.project_id=m.project_id AND e.id=m.equipment_id

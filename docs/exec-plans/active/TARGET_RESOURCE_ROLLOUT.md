@@ -58,3 +58,7 @@ F0 공통 검산은 `tests/fixtures/logistics-targets.ts` / `tests/domain/logist
 ## F2 implementation candidate status — #616 (2026-10-12)
 
 F1 #615 PR #627/#628 integrated before branch creation. F2 branch `feat/issue-616-logistics-targets`: migration0026, typed existing Equipment/System member reuse, Target CRUD and atomic Project revision, bounded list and member usage, Project Copy member identity remap, Template/JSON lossy-path guard. Implementation and tests committed; CI and post-migration runtime validation NOT TESTED. AC6 versioned Template persistence is **not** implemented: present loss guard returns conflict until a versioned snapshot is designed. F3 WBS bindings and R* Resource are still NOT TESTED. Treat F2 row above as in progress, not completed; no downstream merge assumptions.
+
+## #616 F2 Template v2 후속 구현 후보
+
+기존 Template 409 미지원 정책을 versioned `logistics.schemaVersion=2`의 Process occurrence/WorkArea mapping 및 Target/member 전체 저장·복원으로 교체한다. 새 Project-local Process/Equipment/System/Target/Member UUID를 재발급하며 공통 MCS는 단일 System 인스턴스를 공유한다. Legacy Template은 기존 복원을 보존하고 잘못된 triple/멤버/WorkArea는 전체 transaction을 409로 거부한다. JSON full graph는 #379에 남는다. PR #631 최종 CI/AC6 확정 이전 완료 판정은 금지한다.

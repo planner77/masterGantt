@@ -1,3 +1,7 @@
+## Issue #616 — Template v2 완성 후보와 기존 실패 보완 (2026-10-12)
+
+PR #631에서 미구현이던 Template F1 occurrence/WorkArea→Target/member 저장·복원을 versioned snapshot v2로 추가한다. 새 Project-local ID 발급 및 공유 MCS 단일 인스턴스, server triple 재검증, 구 snapshot 호환, invalid 참조 전체 rollback이 구현 대상이다. 기존 #2534.1 CI의 TypeScript unknown Template error literal, migration26 기대값, route inventory 실패 및 Codex P2 리뷰 지적도 수정한다. F3 WBS binding 및 전체 JSON #379는 범위 밖; 후속 Head CI PASS/Owner merge/Release 승인 전 완료 판정 금지.
+
 ## Issue #616 — Target/member F2 implementation candidate (2026-10-12)
 
 [Work Packet](ISSUE_616.md) tracks F2 implementation after F1 #615 merged. Branch `feat/issue-616-logistics-targets` contains migration 0026, typed Target/member REST and transaction service, Project Copy typed ID remap, Template/JSON fail-closed guards and fixture tests. Prior original Equipment/System control/Resource roles and process/WorkArea identities are preserved. Exact-head PR CI and operational migration checks remain NOT TESTED before workflow completion. Risk HIGH, QA method OWNER_MANAGED, Owner merge authority and release authorization separate; no merge/GHCR/deployment authorized. Target F3/#617 and Resource stages not included.

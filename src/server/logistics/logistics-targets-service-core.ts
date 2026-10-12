@@ -260,9 +260,25 @@ export class LogisticsTargetService {
     if (!processPublicId) return invalid("TARGET_PROCESS_REQUIRED");
     const p=this.logistics.findProcessByPublicId(projectId,uuid(processPublicId));
     if (!p || p.active===0) return conflict("TARGET_PROCESS_INVALID");
-    const m = this.db.prepare("SELECT m.*,o.active occurrence_active,pt.active type_active FROM project_process_occurrence_mappings m JOIN site_product_processes o ON o.id=m.occurrence_id JOIN process_types pt ON pt.id=o.process_type_id WHERE m.project_id=? AND m.project_process_id=?")
-      .get(projectId,p.id) as {occurrence_id:number;occurrence_active:number;type_active:number}|undefined;
-    if (!m || !m.occurrence_active || !m.type_active) return conflict("TARGET_PROCESS_MAPPING_REQUIRED");
+    const m = this.db.prepare(
+      "SELECT m.*,o.active occurrence_active,pt.active type_active, " +
+      "COALESCE(st.active,1) standard_active,b.active business_unit_active, " +
+      "pr.active product_active,si.active site_active " +
+      "FROM project_process_occurrence_mappings m " +
+      "JOIN site_product_processes o ON o.id=m.occurrence_id " +
+      "JOIN process_types pt ON pt.id=o.process_type_id " +
+      "LEFT JOIN product_standard_processes st ON st.id=o.standard_process_id " +
+      "JOIN project_master_items b ON b.id=o.business_unit_id " +
+      "JOIN project_master_items pr ON pr.id=o.product_id " +
+      "JOIN project_master_items si ON si.id=o.site_entity_id " +
+      "WHERE m.project_id=? AND m.project_process_id=?",
+    ).get(projectId,p.id) as ({
+      occurrence_id:number;occurrence_active:number;type_active:number;standard_active:number;
+      business_unit_active:number;product_active:number;site_active:number;
+    }|undefined);
+    if (!m || [m.occurrence_active,m.type_active,m.standard_active,
+      m.business_unit_active,m.product_active,m.site_active].some(active=>active!==1))
+      return conflict("TARGET_PROCESS_MAPPING_REQUIRED");
     let areaId:number|null=null;
     if (workAreaPublicId) {
       const a=this.db.prepare("SELECT id,occurrence_id,active FROM work_areas WHERE public_id=?")
@@ -366,6 +382,12 @@ export class LogisticsTargetService {
         .run(targetId,projectId,input.code,input.name,input.scope,where.processId,where.occurrenceId,
           where.workAreaId,input.active?1:0,input.description??"",now,now);
       for (const m of resolved) this.addMember(projectId,Number(inserted.lastInsertRowid),m,input.scope,where.processId,now);
+      const anchor=this.db.prepare(
+        "SELECT id FROM logistics_target_members WHERE project_id=? AND target_id=? ORDER BY id LIMIT 1",
+      ).get(projectId,Number(inserted.lastInsertRowid)) as {id:number}|undefined;
+      if (!anchor) return conflict("TARGET_MEMBERS_REQUIRED");
+      this.db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE project_id=? AND id=?")
+        .run(anchor.id,projectId,Number(inserted.lastInsertRowid));
       return {targetId,operation:"create",changed:true};
     });
   }
@@ -373,41 +395,72 @@ export class LogisticsTargetService {
     const input=parseTargetUpdate(raw);
     return this.write(auth,expected,(projectId,now)=>{
       const current=this.row(projectId,targetId);
+      if (input.code && input.code !== current.code) {
+        const duplicate=this.db.prepare("SELECT 1 FROM logistics_targets WHERE project_id=? AND code=? AND id<>?")
+          .get(projectId,input.code,current.id);
+        if (duplicate) return conflict("TARGET_CODE_ALREADY_EXISTS");
+      }
       const nextScope=input.scope??current.scope;
-      const nextProcess=input.projectProcessId!==undefined ? input.projectProcessId : current.process_public_id;
-      const nextArea=input.workAreaId!==undefined ? input.workAreaId : current.area_public_id;
-      const where=this.location(projectId,nextScope,nextProcess,nextArea);
+      const nextProcess=input.projectProcessId!==undefined?input.projectProcessId:current.process_public_id;
+      const nextArea=input.workAreaId!==undefined?input.workAreaId:current.area_public_id;
+      const locationChanged=nextScope!==current.scope || nextProcess!==current.process_public_id ||
+        nextArea!==current.area_public_id;
+      // Existing inactive references are retained during unrelated metadata edits.
+      // New/reparented references must pass the complete active mapping path.
+      const where=locationChanged
+        ? this.location(projectId,nextScope,nextProcess,nextArea)
+        : {processId:current.project_process_id,occurrenceId:current.occurrence_id,
+           workAreaId:current.work_area_id};
       const details=[input.code??current.code,input.name??current.name,nextScope,
-        where.processId,where.occurrenceId,where.workAreaId,input.active===undefined?current.active:(input.active?1:0),
+        where.processId,where.occurrenceId,where.workAreaId,
+        input.active===undefined?current.active:(input.active?1:0),
         input.description??current.description] as const;
-      const old=[current.code,current.name,current.scope,current.project_process_id,current.occurrence_id,
-        current.work_area_id,current.active,current.description];
+      const old=[current.code,current.name,current.scope,current.project_process_id,
+        current.occurrence_id,current.work_area_id,current.active,current.description];
       const metadataChanged=details.some((d,i)=>d!==old[i]);
       const existing=this.members(projectId,[current.id]).get(current.id)??[];
+      const desiredSource=input.members;
+      if (desiredSource) this.ensureUniqueMembers(desiredSource);
+      const desired=desiredSource?.map(value=>{
+        const oldMember=existing.some(m=>m.kind===value.kind && m.entity_public_id===value.entityId);
+        const resolved=this.instance(projectId,nextScope,where.processId,value,oldMember);
+        return {input:value,key:resolved.kind+":"+resolved.entityId};
+      });
+      const keep=new Set((desired??[]).map(x=>x.key));
       let changed=metadataChanged;
-      if (input.members) {
-        this.ensureUniqueMembers(input.members);
-        const desired=input.members.map(v=>this.instance(projectId,nextScope,where.processId,v,
-          existing.some(m=>m.kind===v.kind&&m.entity_public_id===v.entityId)));
-        const signatures=new Set(desired.map(v=>v.kind+":"+v.entityId));
-        for (const [i,source] of input.members.entries()) {
-          if (existing.some(m=>m.kind===source.kind && m.entity_public_id===source.entityId)) continue;
-          this.addMember(projectId,current.id,source,nextScope,where.processId,now);
+
+      // Remove incompatible old members before changing process or scope. The
+      // deferred anchor-member FK guarantees the Target is nonempty at COMMIT.
+      // This avoids the former insert-before-move trigger collision.
+      if (desired) {
+        for (const m of existing) {
+          if (keep.has(m.kind+":"+(m.equipment_id??m.system_id))) continue;
+          this.db.prepare("DELETE FROM logistics_target_members WHERE project_id=? AND target_id=? AND id=?")
+            .run(projectId,current.id,m.id);
           changed=true;
         }
-        for (const m of existing) {
-          if (!signatures.has(m.kind+":"+(m.equipment_id??m.system_id))) {
-            this.db.prepare("DELETE FROM logistics_target_members WHERE project_id=? AND target_id=? AND id=?")
-              .run(projectId,current.id,m.id);
-            changed=true;
-          }
-        }
-      } else if (metadataChanged) {
+      } else if (locationChanged) {
         for (const m of existing) this.instance(projectId,nextScope,where.processId,
           {kind:m.kind,entityId:m.entity_public_id},true);
       }
-      if (metadataChanged) this.db.prepare("UPDATE logistics_targets SET code=?,name=?,scope=?,project_process_id=?,occurrence_id=?,work_area_id=?,active=?,description=?,updated_at=? WHERE project_id=? AND id=?")
-        .run(...details,now,projectId,current.id);
+      if (metadataChanged) {
+        this.db.prepare("UPDATE logistics_targets SET code=?,name=?,scope=?,project_process_id=?,occurrence_id=?,work_area_id=?,active=?,description=?,updated_at=? WHERE project_id=? AND id=?")
+          .run(...details,now,projectId,current.id);
+      }
+      if (desired) {
+        for (const m of desired) {
+          if (existing.some(old=>old.kind===m.input.kind&&old.entity_public_id===m.input.entityId))
+            continue;
+          this.addMember(projectId,current.id,m.input,nextScope,where.processId,now);
+          changed=true;
+        }
+        const anchor=this.db.prepare(
+          "SELECT id FROM logistics_target_members WHERE project_id=? AND target_id=? ORDER BY id LIMIT 1",
+        ).get(projectId,current.id) as {id:number}|undefined;
+        if (!anchor) return conflict("TARGET_MEMBERS_REQUIRED");
+        this.db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE project_id=? AND id=?")
+          .run(anchor.id,projectId,current.id);
+      }
       return {targetId:current.public_id,operation:"update",changed};
     });
   }
@@ -445,6 +498,12 @@ export function copyLogisticsTargets(db:Database.Database,sourceId:number,target
       db.prepare("INSERT INTO logistics_target_members(public_id,project_id,target_id,kind,equipment_id,system_id,created_at) VALUES(?,?,?,?,?,?,?)")
         .run(randomUUID(),targetId,Number(inserted.lastInsertRowid),m.kind,m.kind==="equipment"?id:null,m.kind==="system"?id:null,now);
     }
+    const anchor=db.prepare(
+      "SELECT id FROM logistics_target_members WHERE project_id=? AND target_id=? ORDER BY id LIMIT 1",
+    ).get(targetId,Number(inserted.lastInsertRowid)) as {id:number}|undefined;
+    if (!anchor) return conflict("TARGET_COPY_EMPTY");
+    db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE project_id=? AND id=?")
+      .run(anchor.id,targetId,Number(inserted.lastInsertRowid));
   }
   return targets.length;
 }
