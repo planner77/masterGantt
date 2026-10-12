@@ -1,3 +1,7 @@
+## Issue #629 — Preflight 조기 차단 운영 (2026-10-12)
+- PR 제목은 정확한 `Issue #N`, 본문은 단일 `Refs #N`, `risk_level`/`qa_method`/`qa_required`를 선언한다. `docs/exec-plans/active/ISSUE_N.md`는 `DOCUMENTATION_SYNC`(변경 파일 근거의 UPDATED/N/A 사유)와 AC별 `AC_TEST_COVERAGE`를 포함한다.
+- Preflight 실패 시 해당 Job summary와 Run·Attempt별 artifact에서 FAIL 항목·수정 위치를 확인하고 PR Head를 보완한 뒤 새 PR CI를 시작한다. base/head가 바뀌면 기존 PASS 사용 금지. 첫 도입에서는 기본 브랜치 검증기 부재로 NOT TESTED이며 정상적인 기존 CI/Trusted QA를 반드시 완료한다. #600 metadata 자동 복구 및 별도의 Owner 승인 경계를 유지한다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.

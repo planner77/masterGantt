@@ -1,3 +1,13 @@
+## Issue #629 — 최초 PR CI #2532.1 실패 원장 / 수정 검증 (2026-10-12)
+- [#2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545)은 Policy의 Preflight 테스트 expected ref 문자열에 불필요한 `\$`이 포함되어 9/10 PASS 후 1건 AssertionError; Required Quality와 QA Final Automated가 연쇄 FAIL. E2E 6/6 및 Docker 구현·aggregate는 SUCCESS. bootstrap 단계의 Preflight Job SUCCESS는 내부 검증 `NOT TESTED`와 구분한다.
+- 원본 Run은 FAIL로 보존, 후속 새 Head에서도 모두 재검증. 수정은 실제 `ref: ${{ github.event.pull_request.base.sha }}` 리터럴 비교와 부정 Assertion으로 원인 회귀 차단하며 세 Required 검사명/Workflow Gate를 완화하지 않는다.
+
+## Issue #629 — QA Preflight 비용·Required 집계 계약 (2026-10-12)
+- Full PR opened/reopened/synchronize에만 `changes → preflight → policy/node/E2E shards/Docker smoke` 순서를 적용한다. `edited` metadata, Main push, manual dispatch는 새 사전 검증을 강제하지 않는다.
+- 신뢰된 PR event `base.sha` checkout의 `scripts/qa_preflight.py`만 실행하고, PR head의 Work Packet/본문은 GitHub API 읽기 전용 데이터로 다룬다. 검증기 자기승인 금지. Bootstrap은 base에 파일 부재를 `NOT TESTED`로 보고하면서 기존 full CI를 그대로 실행한다.
+- 사전 불합격 시 E2E 6 shard/Docker와 정책·Node CI를 멈추되 세 Required aggregate(`Build, static checks, and unit tests`, `Chromium end-to-end tests`, `Docker build and runtime smoke test`)는 `always()`로 시작하여 preflight 미성공을 `failure`로 마감한다. skipped-success/pending을 병합 허가로 사용하지 않는다.
+- `qa-preflight-<run_id>-<attempt>` artifact에 Head/Base/PR/판정/실패 항목/경과초 기록. 전후 비교는 동일 PR workload, exact head/base, 실행 시점 및 GitHub Actions jobs의 실제 runner 시간으로 수행한다. 측정 수치 미확정: `NOT TESTED`. 회귀 시 `.github/workflows/ci.yml` gate와 `scripts/qa_preflight.py`를 같은 변경 PR에서 되돌리고 새 Full CI의 세 aggregate를 재검증한다. Owner 승인·QA Trusted·GHCR gate는 불변.
+
 ## Issue #615 — Main CI 단일 행 병합 실패 및 승인된 v0.106.0 승계 (2026-10-12)
 
 - PR #627 병합 `c8949da48e7465db45d871887c3f55f9fb6dc743`의 추가 본문으로 Main CI #2526.1 trace가 FAIL하고 세 필수 quality/E2E/Docker 및 임시 GHCR 검증은 SKIPPED되었다. 기존 SHA/Run은 불변 FAIL이며 force-rewrite·gate 완화·rerun으로 PASS 처리하지 않는다.

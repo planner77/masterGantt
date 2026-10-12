@@ -1,3 +1,11 @@
+## Issue #629 — QA Preflight 원격 시나리오 (2026-10-12)
+- P1: 올바른 최신 PR Head·base/문서 AC 매핑 → Preflight PASS, Quality/E2E/Docker 3종 정상 완료 확인.
+- P2: title/Refs 불일치 또는 필수 문서 영향 누락 → Preflight FAIL, E2E 6 shard/Docker smoke 미실행, 기존 3 aggregate 전부 FAILURE인지 실제 Actions jobs 확인.
+- P3: 보호 스크립트/CI Workflow 변경, AGENT/OWNER_MANAGED, rename 원본, 위험도 하향·승인 선언 모순 차단 확인.
+- P4: mergeable=null은 DEFERRED, 실제 conflict=false는 사전 FAIL, main 재정렬 후 최신 exact Head/base에서 최종 QA 재평가.
+- P5: metadata edited/#600 완료 후 재조정, Dependabot, docs-only, fork, Main push, dispatch, cancelled/stale/API 오류에서 세 required check 영구 Pending/잘못된 SUCCESS/Trusted QA 자기승인이 없는지 확인.
+- 원격 bootstrap 및 회귀 결과·Run ID·소요 runner-minutes는 실측 후 Work Packet에 기록. 테스트 스크립트 PASS만으로 원격 통합 PASS를 주장하지 않는다.
+
 ## Issue #550 후속 — 격리 E2E 실패 진단의 증거 경계 (2026-10-12)
 
 [CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391)의 #461 GET ECONNRESET은 연결 오류 증거다. 프로세스 종료·OOM·기능 회귀 원인을 확정하지 않는다. 후속 fixture는 cleanup 전 bounded 안전 JSON을 실패 report에 첨부한다. PID/generation·exit/signal·expected shutdown, 별도 stdout/stderr allowlist 기록, test-side 호출과 기존 서버 requestId 완료 기록,1회 readiness probe·이용 가능한 숫자형 자원 수치를 구분한다. 서버 request-start 계측·raw stderr/stack·headers/cookies/body/query/env/DB는 수집하지 않는다. 단일 exit137이나 완료 로그 부재는 OOM/요청 미도착의 확정 근거가 아니다. probe·진단 수집은 business 재시도가 아니며 원래 실패를 rethrow한다.
