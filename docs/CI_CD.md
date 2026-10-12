@@ -1,3 +1,7 @@
+## Issue #629 — 최초 PR CI #2532.1 실패 원장 / 수정 검증 (2026-10-12)
+- [#2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545)은 Policy의 Preflight 테스트 expected ref 문자열에 불필요한 `\$`이 포함되어 9/10 PASS 후 1건 AssertionError; Required Quality와 QA Final Automated가 연쇄 FAIL. E2E 6/6 및 Docker 구현·aggregate는 SUCCESS. bootstrap 단계의 Preflight Job SUCCESS는 내부 검증 `NOT TESTED`와 구분한다.
+- 원본 Run은 FAIL로 보존, 후속 새 Head에서도 모두 재검증. 수정은 실제 `ref: ${{ github.event.pull_request.base.sha }}` 리터럴 비교와 부정 Assertion으로 원인 회귀 차단하며 세 Required 검사명/Workflow Gate를 완화하지 않는다.
+
 ## Issue #629 — QA Preflight 비용·Required 집계 계약 (2026-10-12)
 - Full PR opened/reopened/synchronize에만 `changes → preflight → policy/node/E2E shards/Docker smoke` 순서를 적용한다. `edited` metadata, Main push, manual dispatch는 새 사전 검증을 강제하지 않는다.
 - 신뢰된 PR event `base.sha` checkout의 `scripts/qa_preflight.py`만 실행하고, PR head의 Work Packet/본문은 GitHub API 읽기 전용 데이터로 다룬다. 검증기 자기승인 금지. Bootstrap은 base에 파일 부재를 `NOT TESTED`로 보고하면서 기존 full CI를 그대로 실행한다.
