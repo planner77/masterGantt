@@ -806,7 +806,14 @@ def execute(trigger_sha: str) -> int:
     # the exact current main SHA and the two original revocations, it remains
     # a NO-OP and the historical failed CI is the oldest ordering blocker.
     from release_debt_recovery import plan_b2, finalize_b2
-    recovery_plan = plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)
+    # Once the B2 target has its authenticated FINAL marker, the old Owner
+    # decision must not affect later unrelated first-parent lifecycles.
+    recovery_plan = (
+        plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)
+        if any(item.target_sha == latest_main and item.issue_number == 633
+               and item.current_version == "0.106.1" for item in pending_raw)
+        else None
+    )
     if recovery_plan is not None:
         pending = [
             item for item in pending if item.target_sha not in recovery_plan.retired_shas
