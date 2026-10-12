@@ -1,3 +1,24 @@
+## [Unreleased] — Issue #616 PR CI Shard6 회귀 보완 (2026-10-12)
+
+- 프로젝트 링크 E2E에서 두 번째 새 Project 화면의 SSR→hydration 타이밍으로 name 입력이 초기화돼 POST 없이 client validation에서 차단된 실패를 추적한다. 클라이언트 기준정보 준비가 끝난 뒤 입력하고 submit 직전 이름 상태를 검증해 30초 HTTP 타임아웃으로 오진하지 않도록 한다.
+- 제품/API/SQLite 계약, 기존 Playwright assertions·timeout·retry·skip 변경 없음. 최신 main QA preflight/E2E 개선 병합 및 신규 exact-head CI 검증은 별도 Gate.
+
+## [Unreleased] — #616 Template v2 보완
+
+- Project Template에서 F1 공정 occurrence/WorkArea와 Target/member 전체 관계를 versioned graph v2에 저장·복원한다. System/Equipment는 기존 Template 복원 단일 인스턴스를 참조하고 MCS 공유 정체성을 보존한다.
+- 강한 triple·global ID 검증, legacy snapshot 지원, 잘못된 그래프의 atomic rollback, Target/Mapping count를 추가한다. 기존 Template 409 미지원 임시 정책을 대체하며 schedule-stage JSON 내보내기 보호는 유지한다.
+- Deferred anchor-member composite FK, 이동 PATCH ordering, full inactive ancestry, shared instance DELETE in-use409, duplicate Target code PATCH409, migration/route inventory 기대값을 보완한다.
+
+## [Unreleased] — Issue #616 Logistics Target F2 (PR candidate)
+
+### Added
+- Project-local Logistics Target/typed Equipment·System membership (migration 0026), transactional CRUD, explicit process/optional WorkArea, common System grouping, usage API and inline Project-local instance creation with catalog reuse.
+- Many Targets may reuse one System/Equipment identity; no automatic control/coordination/Resource modification. Project Copy remaps members through the existing one-instance-to-one-instance mapping.
+- Template creation and schedule-stage JSON export with Target content fail closed until a versioned full graph can be represented; no silent truncation.
+
+### Validation
+- HIGH / OWNER_MANAGED; local full test, PR CI/QA/Manager ACCEPT and production migration **NOT TESTED**. F3 WBS bindings and later Resource roll-up are out of scope. Release authorization **false**.
+
 ## [Unreleased] — 0.106.2 / Issue #637 Grid·Chart 행 정렬 교정 후보 (2026-10-12)
 
 - Release #165.1의 구조 삽입 후 실제 Grid·Chart 중심 차이27.5px를 분석했다. 클릭 전 자동 scrollIntoView가 Grid 내부 pane만28px 움직여 canonical membership/queue 완료와 화면 정렬이 어긋났다. 기존 실제 중심±1px·observer1500ms·E2E5s 검증을 유지한다.

@@ -1,3 +1,15 @@
+## #616 PR #631 CI #2545.1 실패 보완·latest main 재정렬 (2026-10-12)
+
+Shard6 `project-links-persistence.spec.ts` 두 번째 생성 이름 입력이 브라우저 trace의 `fill` 이후 이미 비어 있고 제출 validation이 POST를 차단함을 확인. 응답 타임아웃이 아닌 SSR→hydration 준비 시점의 테스트 경합이므로 catalog `ready`/client mount를 **입력 전**에 검증하고 제출 직전 name equality assertion을 추가한다. timeout·retry·skip·API/DB/UI 계약 불변. 신규 main의 #629 preflight 및 #550 임시 E2E 보호를 손실 없이 정렬하고 full PR CI를 시작한다. QA/Owner 최종 결정·main/GHCR/Issue close는 요청 범위 밖이며 신규 Head PASS 전 NOT TESTED.
+
+## Issue #616 — Template v2 완성 후보와 기존 실패 보완 (2026-10-12)
+
+PR #631에서 미구현이던 Template F1 occurrence/WorkArea→Target/member 저장·복원을 versioned snapshot v2로 추가한다. 새 Project-local ID 발급 및 공유 MCS 단일 인스턴스, server triple 재검증, 구 snapshot 호환, invalid 참조 전체 rollback이 구현 대상이다. 기존 #2534.1 CI의 TypeScript unknown Template error literal, migration26 기대값, route inventory 실패 및 Codex P2 리뷰 지적도 수정한다. F3 WBS binding 및 전체 JSON #379는 범위 밖; 후속 Head CI PASS/Owner merge/Release 승인 전 완료 판정 금지.
+
+## Issue #616 — Target/member F2 implementation candidate (2026-10-12)
+
+[Work Packet](ISSUE_616.md) tracks F2 implementation after F1 #615 merged. Branch `feat/issue-616-logistics-targets` contains migration 0026, typed Target/member REST and transaction service, Project Copy typed ID remap, Template/JSON fail-closed guards and fixture tests. Prior original Equipment/System control/Resource roles and process/WorkArea identities are preserved. Exact-head PR CI and operational migration checks remain NOT TESTED before workflow completion. Risk HIGH, QA method OWNER_MANAGED, Owner merge authority and release authorization separate; no merge/GHCR/deployment authorized. Target F3/#617 and Resource stages not included.
+
 ## Issue #637 — 구조 삽입 Grid·Chart 정렬 교정 (2026-10-12)
 
 최신 main `48b978f8529555f34148ea1f01be0b0c63ca0071`에서 `fix/issue-637-projection-row-alignment`를 생성했다. 원본 Release #165.1 / v0.106.1 / SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`의 Grid·Chart 중심 Y27.5px 불일치와 rev41 TIMED_OUT 원인을 조사하고 최소 교정한다. strict±1px·1500ms/5s·Core public API·기존 required gates와 immutable release를 유지한다.

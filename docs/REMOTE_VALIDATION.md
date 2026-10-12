@@ -587,3 +587,16 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 3. PR Docker required aggregate와 image policy/runtime/persistence smoke가 PASS해야 한다.
 4. #603 병합 후 successful PR run 10개 이상에서 `docker-build-cache` median/p90/runner-minutes를 baseline Run #32.1과 비교한다.
 5. Main cache reuse 또는 publish 성능이 악화되면 ADOPT하지 않고 rollback한다.
+
+## #616 Target F2
+
+Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate checks on exact PR head and latest main baseline. Verify SQLite migration 25→26, cross-project FK, atomic inline creation/revision, shared System copy and Target-bearing Template/JSON rejection. Runtime/prod proxy, backup restore, and full manual Target UI are separate NOT TESTED. Owner merge and release authorization remain distinct.
+
+## #616 Template graph v2 CI
+
+신규 Head PR CI는 Template v2 소스 snapshot→설비/시스템 단일 복원→공정/WorkArea 검증→Target/member remap을 종단간 테스트한다. MCS 동일 새 ID, 원본과 다른 UUID, 15대/ACS2/MCS1, 이전 Template fallback, cross-occurrence/duplicate/missing member rollback, migration25→26 및 deferred anchor FK를 검증한다. 원본 PR #631 Run #2534.1은 Quality/E2E/Docker FAIL이며 신규 Head의 PASS로 재해석하지 않는다. 실제 운영 DB backup/restore·release/GHCR 및 Owner ACCEPT는 별도.
+
+## Issue #616 PR #631 신규 Head QA 검증 요구 (2026-10-12)
+
+[Run #2545.1](https://github.com/planner77/masterGantt/actions/runs/38192860417)의 실패는 Chromium shard6 프로젝트 생성 입력 SSR→hydration 전환에서 이름이 빈 값으로 돌아온 trace 및 새 main과 test merge 불일치이다. 기존 Shard6의 두 개 프로젝트 생성/클립보드/권한 원 assertions를 그대로 유지하고 기준정보 클라이언트 ready 확인을 입력 전으로 이동한다. 새 exact-head PR CI에서 `project-links-persistence.spec.ts`와 6-shard 전부, migration/Template v2/Target, Quality, Docker 및 QA Final을 재검증한다. 이전 Run #2545.1은 불변 FAIL이다. 프록시/운영 DB/실기기/Owner release 허가는 여전히 별도.
+

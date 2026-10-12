@@ -54,3 +54,11 @@ M1=#614~#618, M2=M1+#619~#623, M3=M2+#624. M2 수용이 Epic 전체 완료를 �
 F0 공통 검산은 `tests/fixtures/logistics-targets.ts` / `tests/domain/logistics-targets-contract.test.ts`다. F0-L/P/Q/F/R case ID를 후속 API/SQLite/UI/Excel에서 재사용하며 기대값을 약화해 통과시키지 않는다. 종단간 실패는 Q1까지 미루지 않고 발생 PR에서 수정한다.
 
 운영 DB·Windows Excel/VBA/DRM·실제 proxy/TLS·off-host backup-restore·실기기/screen reader/최종 수동 UX는 해당 환경별 증거를 별도로 기록한다. GitHub Actions나 F0 fixture 검산으로 대체하지 않는다.
+
+## F2 implementation candidate status — #616 (2026-10-12)
+
+F1 #615 PR #627/#628 integrated before branch creation. F2 branch `feat/issue-616-logistics-targets`: migration0026, typed existing Equipment/System member reuse, Target CRUD and atomic Project revision, bounded list and member usage, Project Copy member identity remap, Template/JSON lossy-path guard. Implementation and tests committed; CI and post-migration runtime validation NOT TESTED. AC6 versioned Template persistence is **not** implemented: present loss guard returns conflict until a versioned snapshot is designed. F3 WBS bindings and R* Resource are still NOT TESTED. Treat F2 row above as in progress, not completed; no downstream merge assumptions.
+
+## #616 F2 Template v2 후속 구현 후보
+
+기존 Template 409 미지원 정책을 versioned `logistics.schemaVersion=2`의 Process occurrence/WorkArea mapping 및 Target/member 전체 저장·복원으로 교체한다. 새 Project-local Process/Equipment/System/Target/Member UUID를 재발급하며 공통 MCS는 단일 System 인스턴스를 공유한다. Legacy Template은 기존 복원을 보존하고 잘못된 triple/멤버/WorkArea는 전체 transaction을 409로 거부한다. JSON full graph는 #379에 남는다. PR #631 최종 CI/AC6 확정 이전 완료 판정은 금지한다.

@@ -1,12 +1,22 @@
 import type { Page } from "@playwright/test";
-import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, submitProjectUnlock } from "./fixtures/isolated-application";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, submitProjectUnlock, waitForProjectMasterCatalogReady } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
 async function createProject(page: Page, name: string, password: string) {
   await page.goto("/projects/new");
-  await page.getByLabel("프로젝트 이름").fill(name);
+  // #616 CI #2545.1: after the second navigation, Playwright filled the SSR
+  // input before React had mounted; hydration replaced it and the client-side
+  // validator rejected a blank name without sending POST /api/projects.
+  // The catalog selector only exists after the client's useEffect fetch resolves.
+  // Wait for that observable readiness BEFORE editing any controlled input.
+  await waitForProjectMasterCatalogReady(page);
+  const projectName = page.getByLabel("프로젝트 이름");
+  await projectName.fill(name);
   await page.getByLabel("편집 비밀번호").fill(password);
+  // Fail on the actual form-state regression rather than a misleading 30s
+  // page.waitForResponse timeout. No retry, timer increase, or skipped check.
+  await expect(projectName).toHaveValue(name);
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();

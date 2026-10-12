@@ -3325,3 +3325,18 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 기존 master/copy/template/logistics·DB migration 테스트를 직접 관련 회귀로 함께 실행한다. typecheck/변경 파일 lint/version/문서 링크/diff check는 보조 근거다. 새 UI가 없으므로 화면 캡처·390/768/1024/1440px·keyboard·SVAR demo 조작은 N/A다. 실제 운영 migration/DB backup-restore/proxy/TLS·Windows Excel은 NOT TESTED이며 테스트용 SQLite를 운영 검증으로 확대하지 않는다.
 
 최종 PR의 quality/e2e/docker 결과는 CI 시작 시점에는 NOT TESTED다. 이 요청에서는 시작만 확인하고 완료를 모니터링하지 않는다. QA_FINAL·Owner Manager ACCEPT·merge/main GHCR/release도 별도 gate다.
+
+## Issue #616 Target verification
+
+Integration fixture covers project_common MCS identity reuse, duplicate Target/member protection, empty member/cross-project rejection, stale revision, and copy remap/atomic failure; `tests/server/logistics/logistics-targets.test.ts`. Required follow-on CI: migration26 fresh + 25→26 upgrade, foreign_key_check, restart, active/inactive, process occurrence/WorkArea validation, equipment unit/fleet counts, System=1, shared MCS with 2 ACS, atomic inline partial failure, HTTP 401/403/409/412, duplicate submit, usage and target list bounds, Template/JSON loss guard, and Project Copy source/destination FK. Current tests are *committed, not executed locally*; full regression PASS is NOT TESTED pending GitHub Actions. No claim of complete AC1–AC7 coverage yet.
+
+## #616 Template v2 검증
+
+`tests/server/templates/logistics-template-graph.test.ts`: 두 공정/선택 WorkArea, TargetA(AMR10+ACS A+MCS1), TargetB(AMR5+ACS B+MCS1), 공통형 System-only Target; 신규 Project 인스턴스 ID, MCS 단일 인스턴스 및3개 Target member 참조, 물류 총15대, 공정 occurrence/WorkArea 일치와 PRAGMA foreign_key_check 검증. 부재/중복 member, 타 공정 WorkArea, 알 수 없는 graph version 전체 Project rollback과 구 Template snapshot 호환을 검증하도록 작성. 기존 #2534.1의 타입 검사/마이그레이션·route 보안 inventory 실패를 보완했으며 신규 CI 실행 결과는 별도로 판정한다.
+
+## Issue #616 PR #631 · E2E shard6 project create hydration regression (2026-10-12)
+
+- 기준: [#2545.1](https://github.com/planner77/masterGantt/actions/runs/38192860417) Shard6 `project-links-persistence.spec.ts:36` 88 PASS/1 FAIL/1 Skip. Trace에서 첫 프로젝트 POST201, 두 번째 프로젝트 이름의 Playwright `fill` after-snapshot이 빈 값, `aria-invalid=true` validation, POST 요청 0건을 확인. 서버 타임아웃/응답 장애로 분류하지 않는다.
+- `createProject()`에서 `waitForProjectMasterCatalogReady(page)`를 이름/비밀번호 입력 전 실행하여 `useEffect` 이후 서버 기준정보 로딩 완료에 근거한 폼 hydration/readiness를 보장한다. 저장 전 `expect(projectName).toHaveValue(name)`을 추가해 상태 초기화 시 올바른 필드 오류를 표면화한다. 두 프로젝트 ID/링크 구분·인증·clipboard/읽기전용·탭 왕복 원 검증, 30s timeout/Playwright retry/skip 및 서버 요청 재시도는 불변.
+- 새 CI에서 Shard6 및 전체 6 shard, Docker, Quality, QA Preflight/Final, 최신 test merge를 다시 판정한다. PR CI 시작 사실은 PASS가 아니다.
+
