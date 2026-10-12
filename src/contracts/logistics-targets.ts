@@ -43,6 +43,7 @@ export interface LogisticsTargetInlineEquipment {
     code: string; name: string; equipmentType: string;
     managementUnit: "unit" | "fleet"; quantity: number;
     manufacturer?: string; model?: string; description?: string;
+    confirmDuplicateLabel?: boolean;
   };
 }
 export interface LogisticsTargetInlineSystem {
@@ -51,6 +52,7 @@ export interface LogisticsTargetInlineSystem {
     code: string; name?: string; systemType: string;
     layer: "controller" | "coordinator"; scope: "project" | "processes";
     processIds?: string[]; vendor?: string; description?: string;
+    confirmDuplicateLabel?: boolean;
   };
 }
 export type LogisticsTargetCreateMember =
