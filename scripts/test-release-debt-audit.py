@@ -60,6 +60,61 @@ blocked(lambda:check(chain=[a,b,replace(c,current_version="0.107.0"),d,e]),"vers
 require(audit.semver("0.106.1")>audit.semver("0.106.0"),"SemVer comparison")
 blocked(lambda:audit.semver("0.106.01"),"leading zero")
 require(audit.owner_debt_decision([],owner_login="planner77",expected={})[0] is False,"no owner")
+
+# Issue #633 P1: v-prefix is only for annotated Git and GitHub Release;
+# Docker publishes exact unprefixed SemVer, even for private GHCR packages.
+from types import SimpleNamespace
+saved_registry = (audit.ghcr_digest, audit.git_tag_state, auto.gh_paginated)
+inspected_images = []
+def fake_registry_inspect(image):
+    inspected_images.append(image)
+    if image.endswith(":0.105.0"):
+        return "PRESENT", "sha256:"+"f"*64
+    return "ABSENT", None
+try:
+    audit.ghcr_digest = fake_registry_inspect
+    audit.git_tag_state = lambda version: "ABSENT"
+    auto.gh_paginated = lambda route: []
+    observed = audit.version_states("planner77/masterGantt", {"0.106.0", "0.105.0"})
+    require(inspected_images == [
+        "ghcr.io/planner77/mastergantt:0.105.0",
+        "ghcr.io/planner77/mastergantt:0.106.0",
+    ], "GHCR exact tags must omit v-prefix and follow semantic version order")
+    require(observed["0.105.0"].ghcr_digest == "sha256:"+"f"*64,
+            "exact existing private-package tag must preserve immutable digest")
+    blocked(lambda:check(states=observed), "published old exact GHCR image must block retirement")
+finally:
+    audit.ghcr_digest, audit.git_tag_state, auto.gh_paginated = saved_registry
+
+saved_inspect_run = audit.subprocess.run
+inspect_image = "ghcr.io/planner77/mastergantt:0.105.0"
+def fake_run_for_inspect(returncode, stdout, stderr):
+    def invoke(args, **kwargs):
+        require(args == ["docker", "buildx", "imagetools", "inspect", inspect_image],
+                "read-only digest inspection must use exact tag")
+        return SimpleNamespace(returncode=returncode, stdout=stdout, stderr=stderr)
+    return invoke
+try:
+    audit.subprocess.run = fake_run_for_inspect(
+        0, "Name: ghcr.io/planner77/mastergantt:0.105.0\nDigest: sha256:"+"a"*64+"\n", "")
+    require(audit.ghcr_digest(inspect_image) == ("PRESENT", "sha256:"+"a"*64),
+            "successful exact digest inspection must report PRESENT")
+    audit.subprocess.run = fake_run_for_inspect(
+        1, "", "ERROR: unauthorized: authentication required")
+    require(audit.ghcr_digest(inspect_image)[0] == "UNKNOWN",
+            "unauthenticated private GHCR image cannot be deemed absent")
+    audit.subprocess.run = fake_run_for_inspect(1, "", "HTTP 404 Not Found")
+    require(audit.ghcr_digest(inspect_image)[0] == "UNKNOWN",
+            "ambiguous HTTP 404 cannot prove immutable image absence")
+    audit.subprocess.run = fake_run_for_inspect(1, "", "manifest unknown: manifest unknown")
+    require(audit.ghcr_digest(inspect_image)[0] == "ABSENT",
+            "explicit registry manifest-unknown may prove no tag after trusted login")
+    audit.subprocess.run = fake_run_for_inspect(
+        1, "", "unauthorized: manifest unknown")
+    require(audit.ghcr_digest(inspect_image)[0] == "UNKNOWN",
+            "authentication failure overrides ambiguous manifest-unknown text")
+finally:
+    audit.subprocess.run = saved_inspect_run
 # An explicit future corrective merge is necessary, but it is not sufficient.
 f = auto.WorkItem("f"*40,e.target_sha,700,550,"0.106.0","0.106.1")
 full = [*chain,f]
