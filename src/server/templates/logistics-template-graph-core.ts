@@ -159,7 +159,7 @@ export function restoreLogisticsTemplateGraph(
       catalog.find("workAreas", requiredText(raw.workAreaId));
     if (raw.workAreaId !== null && (!area || area.occurrence_id !== occurrence.id))
       reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Template WorkArea belongs to another process occurrence.");
-    catalog.setMapping(projectId, process.id, occurrence, area, now);
+    catalog.setMapping(projectId, process.id, occurrence, area ?? null, now);
     if (!occurrence.active || (area && !area.active))
       warnings.push("INACTIVE_PROCESS_REFERENCE:" + processCode);
   }
@@ -181,7 +181,7 @@ export function restoreLogisticsTemplateGraph(
       reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Invalid Target process/common scope.");
     const process = processCode ? local.processes.get(processCode) : undefined;
     const mapping = process ? catalog.mapping(projectId, process.id) : undefined;
-    const mappedOccurrence = occurrenceId && catalog.find("occurrences", occurrenceId);
+    const mappedOccurrence = occurrenceId === null ? null : catalog.find("occurrences", occurrenceId);
     if (isProcess && (!process || !mapping || !mappedOccurrence ||
       mapping.occurrence_id !== mappedOccurrence.id))
       reject("TEMPLATE_LOGISTICS_REFERENCE_INVALID", "Target process occurrence no longer matches the Template.");

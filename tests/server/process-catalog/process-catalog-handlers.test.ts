@@ -221,7 +221,7 @@ describe("Process catalog native SQLite HTTP security and atomicity", () => {
     expect(context.data.mappings[0]).toMatchObject({ occurrenceId: occurrence.id, workAreaId: workArea.id });
   });
 
-  it("returns explicit 409 for mapped project classification changes and unsupported template snapshots", async () => {
+  it("returns 409 for mapped project classification changes and saves Template v2 safely", async () => {
     const f = setup(); const { occurrence, process } = await seedContext(f);
     const mapped = await handleMapProjectProcess(f.request({ processCatalogRevision: f.revision(), occurrenceId: occurrence.id }, f.projectRevision(), f.editorCookie), f.project.publicId, process.id, f.d);
     expect(mapped.status).toBe(200);
@@ -230,9 +230,12 @@ describe("Process catalog native SQLite HTTP security and atomicity", () => {
     expect(changed.status).toBe(409);
     expect((await changed.json()).error.code).toBe("PROJECT_PROCESS_MAPPING_IN_USE");
     const template = await handleCreateTemplateFromProject(f.request({ sourceProjectPublicId: f.project.publicId, name: "무손실 지원 전 거부" }, revision, f.editorCookie), { ...f.d, templateService: new ProjectTemplateService(f.database, { clock: () => now }) });
-    expect(template.status).toBe(409);
-    expect((await template.json()).error.code).toBe("PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED");
+    expect(template.status).toBe(201);
     expect(f.projectRevision()).toBe(revision);
-    expect(f.database.prepare("SELECT count(*) AS n FROM project_templates").get()).toEqual({ n: 0 });
+    const saved=f.database.prepare("SELECT content_json FROM project_templates").get() as {content_json:string};
+    expect(JSON.parse(saved.content_json).logistics).toMatchObject({
+      schemaVersion: 2, processMappings: [expect.objectContaining({occurrenceId: occurrence.id})],
+    });
+    expect(f.database.prepare("SELECT count(*) AS n FROM project_templates").get()).toEqual({ n: 1 });
   });
 });

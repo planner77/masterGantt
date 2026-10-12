@@ -153,11 +153,24 @@ describe("Issue #615 compatibility of explicit process mappings", () => {
     expect(f.database.prepare("SELECT count(*) AS count FROM project_process_occurrence_mappings").get()).toEqual({ count: 1 });
   });
 
-  it("rejects mapped Template save until a versioned capability can preserve occurrences", async () => {
+  it("roundtrips explicit process occurrence and WorkArea in Template v2", async () => {
     const f = await projectFixture();
     const templates = new ProjectTemplateService(f.database, { clock: () => now, hashPassword: fixedHash });
-    expect(() => templates.createTemplateFromProject(f.authorization, 1, { name: "손실 위험" })).toThrow(expect.objectContaining({ code: "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED" }));
-    expect(f.database.prepare("SELECT count(*) AS count FROM project_templates").get()).toEqual({ count: 0 });
+    const template = templates.createTemplateFromProject(f.authorization, 1, { name: "F2 공정 보존" });
+    const row = f.database.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(template.id) as {content_json:string};
+    const saved = JSON.parse(row.content_json);
+    expect(saved.logistics.schemaVersion).toBe(2);
+    expect(saved.logistics.processMappings).toHaveLength(1);
+    const created = await templates.instantiateProject(template.id, {
+      name: "F2 신규 Project", ownerName: "QA", editPassword: "pw", projectStartDate: "2026-10-12",
+    });
+    const copiedId = (f.database.prepare("SELECT id FROM projects WHERE public_id=?")
+      .get(created.response.data.project.publicId) as {id:number}).id;
+    const mappings = new ProcessCatalogRepository(f.database).rawMappings(copiedId);
+    expect(mappings).toHaveLength(1);
+    expect(mappings[0].occurrence_id).toBe(f.occurrenceId);
+    expect(mappings[0].work_area_id).toBe(f.workAreaId);
+    expect(created.response.data.operation.counts.processMappings).toBe(1);
     expect(f.projects.getReadonlySnapshot(f.authorization.projectPublicId)?.data.project.revision).toBe(1);
   });
 
