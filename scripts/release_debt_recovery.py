@@ -307,7 +307,6 @@ def finalize_b2(core: Any, repo: str, latest_main: str, plan: Plan) -> None:
                     "- 기존 verified ci-SHA candidate cleanup: PASS (해당 시)",
                     "- original FINAL marker 위장 없음",
                 ))})
-            )
         require(core,core.current_main_sha(repo)==plan.sha,"Issue 종료 중 main 이동")
         existing_issue=core.gh(f"/repos/{repo}/issues/{issue}")
         if existing_issue.get("state")!="closed":
