@@ -366,8 +366,12 @@ jobs:
 
   policy:
     name: 정책·저장소 계약 검사
-    if: needs.changes.outputs.policy == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.policy == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -404,6 +408,8 @@ jobs:
         run: python3 scripts/test-pr-metadata-reconcile.py
       - name: QA Final LOW/MEDIUM/HIGH·보안 경계 Python 회귀 (#580)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py
+      - name: QA Preflight 사전 정책·신뢰 경계 replay (#629)
+        run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py
       - name: 배포 shell 구문 검증
         run: |
           sh -n deploy/docker/container-entrypoint.sh
@@ -412,8 +418,12 @@ jobs:
 
   typecheck:
     name: TypeScript 타입 검사
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -442,8 +452,12 @@ jobs:
 
   lint:
     name: ESLint
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -465,8 +479,12 @@ jobs:
 
   unit:
     name: Vitest 단위·통합 테스트
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -488,8 +506,12 @@ jobs:
 
   build:
     name: Next.js production build
-    if: needs.changes.outputs.node == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -543,7 +565,7 @@ jobs:
   quality:
     name: Build, static checks, and unit tests
     if: always()
-    needs: [changes, metadata_evidence, policy, typecheck, lint, unit, build]
+    needs: [changes, preflight, metadata_evidence, policy, typecheck, lint, unit, build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -551,6 +573,8 @@ jobs:
         shell: bash
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+          PREFLIGHT: ${{ needs.preflight.result }}
           NODE_REQUIRED: ${{ needs.changes.outputs.node }}
           POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
@@ -562,6 +586,10 @@ jobs:
           BUILD: ${{ needs.build.result }}
         run: |
           set -euo pipefail
+          if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
+            echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
+            exit 1
+          fi
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 quality 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
@@ -592,8 +620,12 @@ jobs:
   # workers=1 안정성 계약은 유지하고 runner 6개로 test-level sharding
   e2e_shard:
     name: Chromium E2E shard ${{ matrix.shard }}/6
-    if: needs.changes.outputs.e2e == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.e2e == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     # Playwright OS dependency install can stall on runner mirrors.
     # #487: allow healthy tests to finish after bounded setup/retry.
@@ -675,7 +707,7 @@ jobs:
   e2e:
     name: Chromium end-to-end tests
     if: always()
-    needs: [changes, metadata_evidence, e2e_shard]
+    needs: [changes, preflight, metadata_evidence, e2e_shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -683,12 +715,18 @@ jobs:
         shell: bash
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+          PREFLIGHT: ${{ needs.preflight.result }}
           REQUIRED: ${{ needs.changes.outputs.e2e }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ needs.e2e_shard.result }}
         run: |
           set -euo pipefail
+          if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
+            echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
+            exit 1
+          fi
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 E2E 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
@@ -713,8 +751,12 @@ jobs:
   # Docker smoke도 quality를 기다리지 않고 변경 판정 직후 병렬 시작
   docker_smoke:
     name: Docker smoke 구현
-    if: needs.changes.outputs.docker == 'true'
-    needs: changes
+    if: >-
+      always() && needs.changes.result == 'success' &&
+      needs.changes.outputs.docker == 'true' &&
+      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
+       needs.preflight.result == 'success')
+    needs: [changes, preflight]
     runs-on: ubuntu-latest
     # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
     timeout-minutes: 40
@@ -901,7 +943,7 @@ jobs:
   docker:
     name: Docker build and runtime smoke test
     if: always()
-    needs: [changes, metadata_evidence, docker_smoke]
+    needs: [changes, preflight, metadata_evidence, docker_smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -909,12 +951,18 @@ jobs:
         shell: bash
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
+          IS_FULL_PR: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' }}
+          PREFLIGHT: ${{ needs.preflight.result }}
           REQUIRED: ${{ needs.changes.outputs.docker }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ needs.docker_smoke.result }}
         run: |
           set -euo pipefail
+          if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
+            echo "QA Preflight가 미성공이므로 필수 집계를 실패 처리합니다: $PREFLIGHT" >&2
+            exit 1
+          fi
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 Docker smoke 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
