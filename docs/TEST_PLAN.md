@@ -1,3 +1,9 @@
+## Issue #551 / PR #560 — PR CI #2603.1 Resource KPI 중복 버튼 선택자 교정 (2026-10-13)
+
+- 원본 [PR CI #2603.1](https://github.com/planner77/masterGantt/actions/runs/38296891101), HEAD `3f39ba6d5788fc5d8a8ae81f18ce515b45f13ee4`: QA Preflight, TypeScript, ESLint, Vitest, Next production build, Docker 및 Chromium 1/2/3/4/6 shard PASS. Chromium 5/6 shard는 97 PASS / 1 FAIL. 실패 항목은 `tests/e2e/resource-dashboard-ui.spec.ts:35`의 #525 Resource Dashboard 실물 SQLite/HTTP/읽기전용 통합 테스트이며 #549/#551 날짜축·Milestone E2E 직접 실패가 아니다.
+- 원인은 `선택 범위 KPI`에 **할당 Task**와 **공수 미설정**의 서로 다른 버튼이 모두 `2건`을 표시하는 정상 데이터 조건에서, `getByRole('button',{name:'2건',exact:true})`가 두 요소를 반환한 Playwright strict-mode locator 위반이다. 이 단계에서 상세 API 호출은 실행되지 않아 KPI 집계나 API 응답 실패를 의미하지 않는다.
+- 선택자만 수정한다. `선택 범위 KPI`의 직접 자식 metric 항목 중 정확한 `할당 Task` 라벨을 가진 행을 선택한 다음 그 안의 `2건` 버튼을 단일 확인하고 클릭한다. 기존 `view=tasks` 응답 totalCount=2, 공동 Task 중복 제거, 상세 영역, 읽기전용/필터/diagnostics/외부 수정·snapshot/권한 검증은 모두 유지한다.
+- 테스트에서 임의의 `.first()`/`.nth()`로 중복을 무시하거나 timeout·retries·skip·기능 assertion을 완화하지 않는다. 제품 JSX/KPI 계산/API/DB/일정·#549/#551 소스/패키지/CI workflow는 불변이다. 신규 HEAD의 전체 CI 결과와 QA_FINAL/Manager ACCEPT는 검증 전 NOT TESTED.
 ## Issue #551 — CI #2600.1 공유 #549 calendar reveal 회귀 (2026-10-13)
 
 - 원본 #2600.1은 lane19+#464교환2 PASS지만 Core7 FAIL이다. 이전 native date 통합의 잘못된 완료/날짜 의미를 보존하고, 단일 calendar adapter의 contentX 및 실제 native 날짜축 가시성으로 교정한다. nativeDateReveal 비교 경로는 원형대로 남긴다.

@@ -1,5 +1,12 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-13 — CI #2603.1 #525 Resource Dashboard 중복 KPI 버튼 locator 회귀
+
+- [원본 full PR CI #2603.1](https://github.com/planner77/masterGantt/actions/runs/38296891101), 정확한 HEAD `3f39ba6d5788fc5d8a8ae81f18ce515b45f13ee4` / main `b97709df8b5c0974f3c8252ac97819f45f73a5b9`: QA Preflight, TypeScript/ESLint/Vitest/Build, Docker 및 Chromium shard1/2/3/4/6 SUCCESS. Shard5(job114970191274/step7)는 97 PASS·1 FAIL, E2E aggregate 및 QA Automated는 이 실패로 연쇄 FAIL이다.
+- 단일 실패는 `tests/e2e/resource-dashboard-ui.spec.ts:35`, #525 실물 SQLite/HTTP Resource Dashboard. `선택 범위 KPI`의 두 정상 KPI 항목인 `할당 Task`, `공수 미설정`이 모두 `2건`이어서 Playwright가 `strict mode violation: resolved to 2 elements`를 반환했다. 이는 Milestone 날짜축 회귀와 별개이며 제품의 잘못된 2건 집계·버튼 중복 렌더링 버그라고 단정할 증거가 아니다.
+- 보완: 기존 KPI 라벨 `할당 Task`의 직접 자식 metric 행을 고유하게 찾아 내부의 `2건` 버튼만 열도록 `tests/e2e/resource-dashboard-ui.spec.ts` selector를 강화한다. 기존 상세 응답 `view=tasks`, `totalCount=2`, 공동 Task 1회, 읽기전용·필터·진단·revision·external refresh 검증은 전부 유지한다. `.first()`/`.nth()`로 잘못된 KPI 버튼을 선택하거나 타임아웃·검증 의무를 완화하지 않는다.
+- 문서 영향은 `docs/TEST_PLAN.md` 및 이 Work Packet 업데이트, 제품/기준정보/UI·데이터/API/DB/보안/CI workflow/버전은 불변으로 N/A. 기존 `## DOCUMENTATION_SYNC`, `## AC_TEST_COVERAGE`는 그대로 보존하며 QA Preflight 통과 후 exact HEAD의 전체 PR CI 검증이 필수다. 이 커밋에 대한 직접 로컬 Chromium 실행은 GitHub API만 이용한 범위에서 NOT TESTED, QA Final/Owner ACCEPT/merge/Main CI/GHCR는 요청 범위 밖이다.
+
 ## 2026-10-13 — PR CI #2600.1의 공유 #549 reveal 회귀 REWORK
 
 - 요청 범위: 실패 원인 분석·보완·기존 PR #560의 새 exact-head 전체 PR CI 시작. 새 CI 결과 모니터링·병합·main/GHCR·release·Issue 종료·branch 정리는 수행하지 않는다.
