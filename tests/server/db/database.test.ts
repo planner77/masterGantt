@@ -136,7 +136,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -178,6 +178,7 @@ describe("SQLite connection and schema", () => {
         "0023_deprecate_task_assignment_roles.sql",
         "0024_project_master_relations.sql",
         "0025_process_catalog.sql",
+        "0026_logistics_targets.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -199,6 +200,8 @@ describe("SQLite connection and schema", () => {
         "logistics_catalog_admin_sessions",
         "logistics_equipment_types",
         "logistics_system_types",
+        "logistics_target_members",
+        "logistics_targets",
         "logistics_type_catalog_state",
         "process_catalog_state",
         "process_types",
@@ -252,6 +255,13 @@ describe("SQLite connection and schema", () => {
         "links_project_predecessor_idx",
         "links_project_successor_idx",
         "logistics_catalog_admin_sessions_expiry_idx",
+        "logistics_target_member_equipment_uq",
+        "logistics_target_member_equipment_usage_idx",
+        "logistics_target_member_system_uq",
+        "logistics_target_member_system_usage_idx",
+        "logistics_targets_process_idx",
+        "logistics_targets_project_scope_idx",
+        "logistics_targets_work_area_idx",
         "product_standard_processes_type_idx",
         "project_equipment_project_process_idx",
         "project_equipment_resource_roles_equipment_idx",

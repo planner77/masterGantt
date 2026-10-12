@@ -703,3 +703,11 @@ Project mapping insert/update와 Project triple 변경 trigger가 정확한 Proj
 Service가 `IMMEDIATE` transaction에서 admin/edit session·expected revision·활성 상태·유효 triple·사용량을 다시 검사한다. 표준은 product ID만으로 공유하고 occurrence는 BU/product/site별로 독립이다. WorkArea는 0..N이며 NULL은 구역 미선택, 매핑 행 부재는 legacy/unmapped다. 표준 변경은 Project 공정 생성·삭제·자동 재매핑을 하지 않는다. F2 Target/member/binding 테이블은 아직 없다.
 
 기존 migration checksum을 수정하지 않는다. fresh/0024 upgrade·foreign_key_check·restart는 관련 SQLite 테스트로 검증한다. 운영 적용/backup restore는 별도 NOT TESTED. 0025 적용 DB를 구버전 앱으로 단순 downgrade하지 않으며 사전 backup+대응 구버전 앱 복원 또는 forward migration을 사용한다.
+
+## 0026 — Logistics Target typed membership (#616)
+
+`db/migrations/0026_logistics_targets.sql` adds `logistics_targets` and `logistics_target_members`. Targets carry stable public UUID, project-local unique code, process/project_common scope, optional mapped occurrence-bound WorkArea, active/description. Typed members reference original `project_equipment` or `project_logistics_systems` through composite project FKs, with exactly-one checks and kind-specific unique indexes; member public IDs are fresh on re-add. Many Targets can reference the same original System or Equipment (including one MCS shared across Targets). Trigger guards stop equipment process changes and common System scope changes that would break Target invariants. An individual Target cannot persist empty members; deleting a Target removes membership references, not original equipment/system instances. Current same-project process mapping is mandatory for process scope. Scope mismatch, wrong WorkArea, duplicate pair and cross-project references fail rather than silently remap. Schema runs through the existing checksum migration ledger; operational replay/restart remains NOT TESTED until CI/production smoke.
+
+## #616 Target nonempty COMMIT FK
+
+Migration 0026은 `logistics_targets.anchor_member_id` required 필드와 `(project_id,id,anchor_member_id)` → `logistics_target_members(project_id,target_id,id)` `DEFERRABLE INITIALLY DEFERRED` composite FK로 빈 구성 commit을 막는다. 기존 last-member DELETE 트리거는 제거하고 서비스가 Target 생성·복사·Template 복원·멤버 교체 후 살아 있는 member를 anchor로 설정한다. 단일 transaction 내부의 old member 삭제→공정 전환→new member 생성은 허용하지만 마지막 member만 지운 COMMIT은 FK 실패한다. migration0026은 아직 병합 전 candidate이므로 정확 파일 checksum은 이 PR 확정본을 기준으로 한다.

@@ -1,5 +1,55 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-12 — 후속 main #616 동기화
+
+- 구조 QA 수정을 준비하는 도중 `main`이 `1dc89522192ae2c64c6951c282116a0a34af3a13`에서 `b97709df8b5c0974f3c8252ac97819f45f73a5b9`로 전진했다. #616 Target/Template 계약·DB migration0026 및 애플리케이션 버전 `0.107.0`은 최신 main의 내용이며 #551에서 되돌리지 않는다.
+- #551 브랜치의 69개 변경 경로와 이 기간의 main 39개 변경 경로를 비교해 양쪽이 변경한 4개 공통 문서(CHANGELOG, ARCHITECTURE, TEST_PLAN, active PLAN)를 본문·검증 기록을 보존하는 방식으로 합쳤다. 나머지 서로 독립인 코드 및 신규 DB/API/테스트 파일은 현재 main 버전을 유지한다.
+- 이 작업은 Milestone opt-in lane의 추가 기능 구현 자체를 변경하지 않는다. 최신 버전의 Gantt/DB/UX 통합 테스트는 새 full PR CI 결과 전 NOT TESTED이며 기존 #2244.1 성공을 재사용하지 않는다. release_required=true, release_authorized=false; merge/main CI/GHCR/Issue 종료는 수행하지 않는다.
+
+## DOCUMENTATION_SYNC
+
+현행 `scripts/qa_final_automated.py`의 `docs_gate` 형식에 따른 PR #560의 변경 경로별 판정이다. `UPDATED`는 이 PR diff의 실제 문서 변경, `N/A(reason)`는 불변 계약을 뜻한다. 의미 타당성 및 QA Final은 별도 판정이며 구조적 기록만으로 완료·승인을 선언하지 않는다.
+
+- `DESIGN.md`: N/A(제품 공통 시각 언어와 semantic token 및 44px 접근성 기본 원칙은 유지하며 Timeline 세부 배치는 프로젝트 UX 지침에 이미 반영)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(이번 변경은 앱 표시용 Week 구간과 Timeline 좌표 계층이며 canonical scheduling 알고리즘 및 서버 Calendar 연산은 변경하지 않음)
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/ARCHITECTURE.md`: UPDATED
+- `docs/PRO_FEATURE_MATRIX.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_551.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `AGENTS.md`: N/A(기존 에이전트 역할과 Source of Truth 및 공통 QA 운영 원칙 변경 없음)
+- `docs/API.md`: N/A(신규 API route 및 canonical Revision·session·authorization 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 테이블, migration 및 Milestone 데이터 저장 형식 변경 없음)
+- `docs/SECURITY.md`: N/A(기존 편집 권한·세션·Origin·If-Match 및 조회 권한 계약 변경 없음)
+- `docs/IMPORT_EXPORT.md`: N/A(전체 canonical import 및 export 모집단과 기존 형식·출력 계약 변경 없음)
+- `docs/IMPORT_SCHEMA.md`: N/A(교환용 JSON 스키마 및 Milestone 원본 ID 관계 계약 변경 없음)
+
+## AC_TEST_COVERAGE
+
+각 AC는 Issue #551 수용 기준의 원문을 유지한 식별자이다. 아래는 추적 가능한 테스트·증거와 미검증을 연결하는 기록이며, 전 항목 최종 PASS 판정이 아니다. `#2244.1`의 성공은 이전 정확 HEAD `81f8143e` 한정이고, `#2592.1`은 메타데이터 사전검증 FAIL로 실제 테스트 미실행이다. 신규 통합 HEAD에서 다시 실행해야 한다.
+
+- AC1: `tests/e2e/milestone-timeline-lane.spec.ts`의 `#551 public ISO interval date/header semantics independent oracle` 및 5폭 `opt-in sibling lane`에서 native anchor와 Timeline tick의 실제 x좌표 ±1px assertion; `tests/features/gantt/week-calendar-interval.test.ts` Gregorian/ISO week 경계.
+- AC2: `tests/e2e/milestone-timeline-lane.spec.ts`의 `enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment`, `dynamic axis/latest native horizontal scroll`, Day/Week 5폭 검증. Grid 개별 열 표시·숨김의 직접 assertion은 NOT TESTED이며 후속 #552로 인계.
+- AC3: `tests/e2e/milestone-timeline-lane.spec.ts`의 `opt-in sibling lane` 390·768·1024·1440·1920px에서 native row 높이·Grid/Chart 중심 Y ±1px, ON 64px lane 및 OFF 후 동일 instance/공간 반환 관찰.
+- AC4: `tests/features/gantt/milestone-timeline-lane-model.test.ts` 클러스터·clip·anchor 비변경, `tests/e2e/milestone-timeline-lane.spec.ts` 같은 날짜·근접 날짜 50개 paging·긴 이름/접근성 이름·focus, mixed-date guide 및 clipping 후 focus 회복.
+- AC5: `tests/e2e/milestone-timeline-lane.spec.ts` `full population empty vs date viewport and Task-only filter stay independent` 및 `milestone-only` fixture, `milestone-timeline-lane-model.test.ts`의 미정/잘못된 날짜·물리 화면 밖·전체 0/viewport 0 구별.
+- AC6: `tests/e2e/milestone-timeline-lane.spec.ts` singleton 및 cluster `exact-ID Editor return`, `dynamic axis/latest native horizontal scroll and Task pointer selection`에서 Task selection checkbox 보존·가짜 POST/PATCH 없음. 전체 clipboard 복사·붙여넣기 시나리오는 NOT TESTED.
+- AC7: `tests/e2e/milestone-timeline-lane.spec.ts` singleton guide의 hover/focus 및 실제 Task bar elementFromPoint·context menu·checkbox 간섭 없음. Task 전체 drag·resize·Dependency hit-area 포괄 회귀는 NOT TESTED로 #552/#553에 인계.
+- AC8: `tests/e2e/milestone-timeline-lane.spec.ts` ON/OFF, milestone-only dirty Editor, 동일 instance와 synthetic canonical API의 posts/patchRequests 0 검사. 실제 서버 revision/GET/authorization/SQLite 회귀는 NOT TESTED.
+- AC9: `tests/e2e/milestone-timeline-lane.spec.ts` peer 복귀·Grid resize·dynamic scroll에서 settled viewport와 새 사용자 scroll 유지, `project-gantt.tsx` bounded projection queue 로직. stale 복원 queue와 경쟁하는 전 사용자 gesture 조합의 완전 재현은 NOT TESTED.
+- AC10: `tests/e2e/milestone-timeline-lane.spec.ts`의 5폭×Day/Week 실제 Chromium anchor/row/focus bbox 검증, cluster keyboard/Home/End/Escape 및 390px touch emulation. Grid 열 hide 및 document scrollWidth 직접 검증, 실물 터치·screen reader는 NOT TESTED; #552 후속 검증 대상.
+
+## 2026-10-12 — PR CI #2592.1 실패 원인 및 재실행 경계
+
+- [Run #2592.1](https://github.com/planner77/masterGantt/actions/runs/38250992819) / exact HEAD `a9bfdcd3dfec892fe3260deda7bcc0d67a90de72`: QA Preflight `PRIMARY_ISSUE` FAIL. PR 제목 `(#551)`가 신뢰된 `main` 검증기의 `Issue #N` 필수 정규식을 충족하지 않았다. Quality/E2E/Docker required aggregate는 사전검사 실패로 FAIL, 실제 TypeScript/Vitest/E2E/Docker 구현 Job은 SKIPPED. 따라서 앱 결함이나 원격 회귀 PASS/FAIL로 해석하지 않는다.
+- PR 제목 `feat: Issue #551 Milestone Timeline lane과 Week 구간 표시 구현`으로 갱신하고 Issue #551 원문 수용 기준 체크리스트 10개에 AC1~AC10 식별자만 부여하였다. `Refs #551`은 PR 본문에서 단일 선언이며 HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false는 유지한다.
+- 기존 Work Packet의 서술형 DOCUMENTATION_SYNC·테스트 증거는 그대로 보존하고, 이번에는 현재 검증기에서 읽을 수 있는 두 개의 정형 section과 AC별 부분 검증·미검증을 위에 추가하였다. 관련 변경의 최신 `main` SHA `1dc89522192ae2c64c6951c282116a0a34af3a13`이며 후속 push는 새 exact HEAD의 전체 PR CI 시작만 승인한다.
+- PR title edited 이벤트로 실행될 수 있는 metadata-only 검증은 실패한 기존 full run을 대체하지 않는다. 새 HEAD TypeScript/Quality/E2E/Docker/Trusted QA·Manager ACCEPT/merge/Main CI/GHCR는 실제 원격 확인 전 NOT TESTED; 기존 #552 stacked PR은 따로 정렬한다.
+
 ## 2026-10-12 — 최신 main 정렬 및 PR CI 재실행 준비
 
 - 최초 #551 HEAD `81f8143e7887e10885a8a4268f3ec79e9f0e5d38`의 PR CI [#2244.1](https://github.com/planner77/masterGantt/actions/runs/37852680599)는 Quality/E2E 6 shard/Docker 모두 SUCCESS였다. 이 결과는 현재 새 통합 tree의 검증 결과가 아니다.

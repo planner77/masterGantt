@@ -1,3 +1,4 @@
+import { copyLogisticsTargets } from "../logistics/logistics-targets-service-core";
 import { readStageSnapshot, withStageProjection } from "./milestone-stage-core";
 import { projectStageGates } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
@@ -588,6 +589,15 @@ export class ProjectCopyService {
             );
           }
         }
+
+        // Target identity is project-local; shared Equipment/System copy maps stay one-to-one.
+        copyLogisticsTargets(
+          this.database, source.id, project.id,
+          new Map([...newBySourceProcessId].map(([oldId, row]) => [oldId, row.id])),
+          new Map([...newBySourceEquipmentId].map(([oldId, row]) => [oldId, row.id])),
+          new Map([...newBySourceSystemId].map(([oldId, row]) => [oldId, row.id])),
+          nowText,
+        );
 
         // 6. 태스크 물류 연결(Task Logistics Links) 복사
         const sourceEqLinks = this.logistics.listAllTaskEquipmentLinks(source.id);

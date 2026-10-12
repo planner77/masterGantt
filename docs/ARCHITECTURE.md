@@ -363,6 +363,14 @@ Core scale/config 갱신은 단발 filter를 초기화할 수 있으므로 표�
 
 기존 ProjectMaster 선택/참조, Logistics 공정 삭제, ProjectCopy, ProjectTemplate service는 새 매핑 guard를 같은 transaction에 포함한다. 이는 Project-local 자유 공정과 공통 occurrence를 분리하는 additive 모델이며 Gantt/Scheduling Engine 변경이나 자동 공정 생성이 아니다. 상세 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [Target 계약](LOGISTICS_TARGETS.md)을 따른다.
 
+## F2 Project Target aggregate (#616)
+
+Target is Project-local grouping of existing logistics instances, not a new Equipment/System catalog or WBS node. `logistics-targets-service-core` holds transactional orchestration, `logistics-targets-handlers-core` owns HTTP authorization, and typed members are enforced by `0026_logistics_targets.sql`. F1 common process occurrence WorkArea identity remains global and stable, local process and equipment/system IDs are remapped on Project Copy. Canonical Task and Resource identity are unchanged. Template/JSON schedule-only export is explicitly unsupported when Target graph exists. #617 and #619 add downstream bindings/projections independently.
+
+## #616 Template portable logistics graph
+
+`src/server/templates/logistics-template-graph-core.ts`의 snapshotLogisticsTemplateGraph()/restoreLogisticsTemplateGraph()는 Template v2의 F1 Process Mapping+F2 Target/member ID 관계를 담당한다. 전역 occurrence/WorkArea UUID는 그대로, Project-local Process/Equipment/System/Target/member는 새 UUID로 재발급한다. 새 System은 기존 Template 복원 코드에서 먼저 1회 만들고 N개 Target에서 참조한다. 이 복원은 동일 프로젝트 transaction에 있으며 별도 common admin/master create가 없다. Legacy Template snapshot은 기존 분기, JSON schedule-stage Target 참조는 미포함 409 차단 유지.
+
 ## Issue #551 — 앱 소유 opt-in lane 경계
 
 Workspace는 전체 canonical snapshot에서 Timeline 모델을 memoize하고 단일 ProjectGantt에 기본 OFF capability를 전달한다. scroll/resize RAF는 모델의 유효 날짜 좌표/clip/cluster만 측정하며 전체 E/P graph를 다시 계산하지 않는다. 같은 wrapper/key의 sibling 64px → native owner 구조로 Core 내부 DOM 삽입/scaleHeight/fake Task/독립 Gantt/remount 없이 배치한다. ON인 숨은 peer view도 공간을 유지한다. 원래 날짜 tick과 control clamp/physical clip은 별도다.

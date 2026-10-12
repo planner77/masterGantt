@@ -1,3 +1,15 @@
+## #616 PR #631 CI #2545.1 실패 보완·latest main 재정렬 (2026-10-12)
+
+Shard6 `project-links-persistence.spec.ts` 두 번째 생성 이름 입력이 브라우저 trace의 `fill` 이후 이미 비어 있고 제출 validation이 POST를 차단함을 확인. 응답 타임아웃이 아닌 SSR→hydration 준비 시점의 테스트 경합이므로 catalog `ready`/client mount를 **입력 전**에 검증하고 제출 직전 name equality assertion을 추가한다. timeout·retry·skip·API/DB/UI 계약 불변. 신규 main의 #629 preflight 및 #550 임시 E2E 보호를 손실 없이 정렬하고 full PR CI를 시작한다. QA/Owner 최종 결정·main/GHCR/Issue close는 요청 범위 밖이며 신규 Head PASS 전 NOT TESTED.
+
+## Issue #616 — Template v2 완성 후보와 기존 실패 보완 (2026-10-12)
+
+PR #631에서 미구현이던 Template F1 occurrence/WorkArea→Target/member 저장·복원을 versioned snapshot v2로 추가한다. 새 Project-local ID 발급 및 공유 MCS 단일 인스턴스, server triple 재검증, 구 snapshot 호환, invalid 참조 전체 rollback이 구현 대상이다. 기존 #2534.1 CI의 TypeScript unknown Template error literal, migration26 기대값, route inventory 실패 및 Codex P2 리뷰 지적도 수정한다. F3 WBS binding 및 전체 JSON #379는 범위 밖; 후속 Head CI PASS/Owner merge/Release 승인 전 완료 판정 금지.
+
+## Issue #616 — Target/member F2 implementation candidate (2026-10-12)
+
+[Work Packet](ISSUE_616.md) tracks F2 implementation after F1 #615 merged. Branch `feat/issue-616-logistics-targets` contains migration 0026, typed Target/member REST and transaction service, Project Copy typed ID remap, Template/JSON fail-closed guards and fixture tests. Prior original Equipment/System control/Resource roles and process/WorkArea identities are preserved. Exact-head PR CI and operational migration checks remain NOT TESTED before workflow completion. Risk HIGH, QA method OWNER_MANAGED, Owner merge authority and release authorization separate; no merge/GHCR/deployment authorized. Target F3/#617 and Resource stages not included.
+
 ## Issue #551 — compact Milestone Timeline 최초 구현 기록 (2026-10-09)
 
 [#551 Work Packet](ISSUE_551.md). 선행 #550 [PR #559](https://github.com/planner77/masterGantt/pull/559), head `31345da9346dfbdc1ac02e4e7ca567edafec775f`, CI [2216.1](https://github.com/planner77/masterGantt/actions/runs/37806909407) 등록 후 결과 모니터링 없이 MT3를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-551-milestone-timeline-lane`/PR base `feat/issue-550-milestone-management`, 후보 MINOR `0.105.0`으로 진행한다. ui_ux의 배치·interaction 설계와 researcher의 공식 Core 자료를 따라 frontend가 단일 Gantt/Workspace writer로 구현·검증·관련 문서를 소유한다. #549 Week 헤더 의미 FAIL을 date/header 실제 oracle로 해결하기 전 lane 좌표 표시를 활성화하지 않는다. 현재 M native 행과 quickview는 유지하며 실제 기본 전환은 #552이다. 관련 문서 동기화와 독립 QA 뒤 PR CI 등록까지만 진행한다.
