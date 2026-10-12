@@ -1,3 +1,25 @@
+## Issue #633 — Private GHCR UNKNOWN(HTTP 404) 처리 (2026-10-12)
+
+- `release-debt-audit.yml`과 `release-finalizer.yml`의 trusted default branch runner에서 GHCR 로그인 후 실제 `docker buildx imagetools inspect ghcr.io/planner77/mastergantt:X.Y.Z` 실패가 generic 404/not found이면 `gh api` 패키지 버전 목록을 **읽기 전용·인증 200·전체 pagination·exact container tags**로 교차 검증한다. 증거 불충분은 UNKNOWN으로 유지.
+- 본 정책-only 교정 PR의 app version은 0.106.1 그대로, 기존 #635 Merge SHA 및 ci-<SHA> digest가 정식 릴리스 authority다. PR CI/Trusted/Main 후보 검증은 새 Merge SHA에서 별도로 확인하고 Owner 승인의 SHA를 자동 이전하지 않는다.
+
+## Issue #633 — B2 교정 Release Pipeline 가드 (2026-10-12)
+
+- 원본 v0.105.0/v0.106.0 미발행 부채는 CI FAIL을 소급 PASS하지 않고, authenticated release_debt_audit의 `--inventory-only` 증거와 별도의 Owner 구버전 철회/B2 exact SHA/v0.106.1 신규 발행 승인 이후에만 회복한다.
+- 기존 PR Required quality/E2E6/Docker·QA Trusted·main `ci-<SHA>` digest/SBOM/provenance 및 release-image immutable tag 정책은 변경 없음. GitHub `vX.Y.Z` vs GHCR `:X.Y.Z` 정확 비교. 계정/GHCR 조회 실패는 `UNKNOWN`으로 중단한다.
+- B2 실제 cleanup/Issue close는 새 Release 최종 PASS 후에만. 상세 [Issue #633 B2](ISSUE_633_RELEASE_DEBT.md).
+
+## Issue #633 — Private GHCR 읽기 전용 감사 인증 (2026-10-12)
+
+- `release-debt-audit.yml`은 permission `packages: read`뿐 아니라 `docker/login-action`으로 GHCR에 인증한 뒤 read-only `docker buildx imagetools inspect ghcr.io/<repo>:X.Y.Z`를 수행한다. GitHub tag의 v-prefix를 Docker tag에 붙이지 않는다.
+- 신규 토큰·Write 권한·RuleSet/Required Check 변경은 없으며 ambiguity는 BLOCKED. 별도 release authorization 없이 formal GHCR/Issue lifecycle mutation 금지.
+
+## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
+
+- #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.
+- `scripts/release_debt_audit.py` 및 `.github/workflows/release-debt-audit.yml`은 **trusted main read-only** 감사 전용이며, Owner의 별도 exact SHA·버전별 복구 결정과 GHCR digest·tag 상태를 판정한다. 결과 `READY_FOR_SEPARATE_TRUSTED_RECOVERY`도 정식 tag·GHCR 게시·Issue close 권한이 아니다.
+- 독립 QA/Owner HIGH 승인, PR Required 세 종, Main candidate digest/SBOM/provenance, immutable SemVer/Release/Resume/cleanup 순서는 유지한다. 자세한 결정·실패 감사 원장·rollback은 [Issue #633 복구 계획](ISSUE_633_RELEASE_DEBT.md)을 참조한다.
+
 ## Issue #629 — 최초 PR CI #2532.1 실패 원장 / 수정 검증 (2026-10-12)
 - [#2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545)은 Policy의 Preflight 테스트 expected ref 문자열에 불필요한 `\$`이 포함되어 9/10 PASS 후 1건 AssertionError; Required Quality와 QA Final Automated가 연쇄 FAIL. E2E 6/6 및 Docker 구현·aggregate는 SUCCESS. bootstrap 단계의 Preflight Job SUCCESS는 내부 검증 `NOT TESTED`와 구분한다.
 - 원본 Run은 FAIL로 보존, 후속 새 Head에서도 모두 재검증. 수정은 실제 `ref: ${{ github.event.pull_request.base.sha }}` 리터럴 비교와 부정 Assertion으로 원인 회귀 차단하며 세 Required 검사명/Workflow Gate를 완화하지 않는다.

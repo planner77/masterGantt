@@ -102,6 +102,15 @@ jobs:
           echo "Source Release run 완료를 제한 시간 안에 확인하지 못했습니다: $RELEASE_RUN_ID" >&2
           exit 1
 
+      - name: GHCR 버전 원장 조회 도구 준비
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
+      - name: 비공개 GHCR 인증 (감사 + 신규 릴리스 확인)
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: release 완료 evidence로 lifecycle 재개
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

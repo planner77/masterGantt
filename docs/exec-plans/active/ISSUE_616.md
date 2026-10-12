@@ -88,3 +88,12 @@
 - [PR CI #2554.1](https://github.com/planner77/masterGantt/actions/runs/38196096065) Head `cc1af8b7cd8da40637400167f46368f254cb61d2`, base `d69749753fb9db002232d92d51446237a0fe042d`. Main #629에 추가된 QA Preflight가 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 FAIL하면서 Quality/E2E/Docker heavy jobs를 SKIPPED했고 필수 집계를 FAIL 처리. 변경 코드의 새 실패 증거가 아니라 필수 영향 원장 누락이며 과거 PASS로 간주하지 않는다.
 - `docs/GITHUB_OPERATIONS.md`는 이번 PR에서 수정되지 않았고, CI/릴리스 운영 계약을 완화하지 않으므로 Work Packet DOCUMENTATION_SYNC에 명시적으로 `N/A` 이유를 추가한다. 나머지 필수 문서·AC1~AC7 원장과 수정된 Playwright hydration-ready 검증은 그대로 유지한다.
 - 신규 PR CI 시작 후 QA Preflight→필수 Quality/E2E/Docker→QA Final gate를 정확한 새 Head로 재검증해야 하며 Owner merge/Main/GHCR/Release는 여전히 미승인이다.
+
+## 2026-10-12 — PR #631 최신 main 병합·충돌 해결 및 새 CI 요청
+
+- **원본 성공 증거**: [PR CI #2555.1](https://github.com/planner77/masterGantt/actions/runs/38196198002) Head `22630ea380211af4cb751112e41999358e7b837e`, base `d69749753fb9db002232d92d51446237a0fe042d`, conclusion SUCCESS. 이는 최신 main 통합 후 검증을 대체하지 않는다.
+- **기준 이동**: 최신 main `1dc89522192ae2c64c6951c282116a0a34af3a13`은 이전 base 대비 61 commits 선행, `0.106.2`, Issue #633 Release debt/GHCR 운영 및 #637 Grid·Chart 정렬 수정을 포함한다. #616 PR의 Target migration0026/Template v2/Project Copy 변경은 그대로 보존하며, 후보 버전 `0.107.0` 유지.
+- **충돌 8개 파일**: `CHANGELOG.md`, `docs/ARCHITECTURE.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `package.json`, `package-lock.json`. main 및 PR 문서 변경을 모두 보존하고 package/lock의 단일/두 version 필드만 가장 높은 후보인 `0.107.0`으로 일치시킨다. 나머지 최신 main 변경은 그대로 통합한다.
+- **변경 범위**: 충돌 문서와 Git merge DAG 정렬뿐이며, Target/Template 실제 제품·마이그레이션·추가 E2E 코드의 Blob은 이전 검증 Head에서 유지한다. CI 규칙·QA Preflight/Finalizer/릴리스/GHCR 경계를 완화하지 않는다. 신규 exact-head Full PR CI 시작 이후 Quality/E2E/Docker/Trusted/QA 결과는 새 Head로만 판정한다.
+- **추가 문서 영향**: CHANGELOG, ARCHITECTURE, CI_CD, TEST_PLAN, REMOTE_VALIDATION, active PLAN 및 본 Work Packet은 병합 보존. AGENTS/QA_REVIEW_POLICY/GITHUB_OPERATIONS/ISSUE_LIFECYCLE/GENERIC_RELEASE_FINALIZER는 새 main을 변경 없이 상속(기존 Work Packet N/A 영향 판정 유지). DESIGN.md는 제품 UI 변경 없음으로 N/A.
+- **승인 경계**: Issue HIGH·qa_method=OWNER_MANAGED, release_required=true, release_authorized=false. Owner ACCEPT/병합/main CI/GHCR/Issue close는 이번 요청 범위 밖이다. 이전 Head PASS를 최종 MERGE_READY로 확대하지 않는다.

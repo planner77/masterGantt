@@ -1,3 +1,20 @@
+## Issue #633 — GHCR 미발행 증거의 실제 판정 및 Release SHA 고정 (2026-10-12)
+
+- GHCR Private manifest lookup에서 `404`를 받은 경우 Docker login 성공만으로 임의 ABSENT 처리 금지. `gh api -H 'Accept: application/vnd.github+json' /users/planner77/packages/container/mastergantt/versions?per_page=100&page=N`을 기존 `GH_TOKEN/GITHUB_TOKEN`으로 조회, metadata.container.tags를 전 페이지 검증하여 exact `:0.105.0`, `:0.106.0` 부재 확정. API가 401/403/404/429 또는 missing tags이면 UNKNOWN·중단.
+- 신규 PR은 본 #633 audit code만 수정하는 동일 0.106.1 SemVer correction. 기존 승인된 정식 v0.106.1 발행 대상은 PR #635 Merge SHA 09bee924...와 candidate digest 0ab78272...로 **유지**, 새로운 policy-only PR Merge SHA로 정식 tag 이동 금지.
+- 사용자 Owner 인증 v2 B2 승인 및 구버전 철회 이력과 Main CI/Registry 실감사를 순서대로 확인. 실패 시 Finalizer 자체를 성공으로 꾸미거나 Repo Ruleset/Required checks 완화 금지.
+
+## Issue #633 — B2 Owner 발행/폐기 댓글과 재개 절차 (2026-10-12)
+
+- GitHub trusted main read-only audit `release-debt-audit.yml`은 Issue #633 Main CI SUCCESS에서 자동 inventory를 생성한다. 두 과거 SemVer의 현재 Git tag/GitHub Release/GHCR exact `:X.Y.Z` 부재 실확인 후 #550 v0.105.0 / #615 v0.106.0 Owner 기존 정식 릴리스 승인을 각 Issue에 `mastergantt-release-authorization:v1`의 `authorized=false`로 **기존 댓글 삭제 없이 철회**한다.
+- PR/새 Merge SHA/검증 `ci-<SHA>` digest가 확정된 뒤 Issue #633에 신규 `v0.106.1` Owner Release marker 및 독립 `mastergantt-release-debt-authorization:v2` (B2_RETIRE_BOTH / exact SHA·Issue·PR·버전·승인 사유)를 남긴다. `issue_comment`은 기존 Generic Finalizer 하나만 재개하며, 승인 없는 코멘트·PR 코드 실행 금지.
+- Owner marker를 붙였더라도 결과가 `BLOCKED`면 원본 GitHub Actions 로그로 원인을 수정하고 새로운 인증 근거 확보 전 tag 임의 push·release-image 직접 dispatch·Issue 수동 close 금지. 자세한 실행·Rollback [B2 설계](ISSUE_633_RELEASE_DEBT.md).
+
+## Issue #633 — 릴리스 부채 감사 수동 진입 (2026-10-12)
+
+- `release-debt-audit.yml`의 수동 입력은 main snapshot/source #550/원본 #615/교정 #615 full SHA 및 선택적 신규 corrective full SHA이다. Read-only 토큰, default branch `main` checkout으로만 검증하고, 증거 미확정·tag 충돌·Owner 버전별 승인 누락은 `BLOCKED`로 처리한다.
+- `READY_FOR_SEPARATE_TRUSTED_RECOVERY`는 **정식 발행 승인·기존 원장 복구·이슈 종료가 아니다**. Release Finalizer/immutable tag/digest promotion/cleanup 변경 금지; 후속 실행기는 별도 설계·Owner 승인 필요. [상세 운영 결정](ISSUE_633_RELEASE_DEBT.md).
+
 ## Issue #629 — Preflight 조기 차단 운영 (2026-10-12)
 - PR 제목은 정확한 `Issue #N`, 본문은 단일 `Refs #N`, `risk_level`/`qa_method`/`qa_required`를 선언한다. `docs/exec-plans/active/ISSUE_N.md`는 `DOCUMENTATION_SYNC`(변경 파일 근거의 UPDATED/N/A 사유)와 AC별 `AC_TEST_COVERAGE`를 포함한다.
 - Preflight 실패 시 해당 Job summary와 Run·Attempt별 artifact에서 FAIL 항목·수정 위치를 확인하고 PR Head를 보완한 뒤 새 PR CI를 시작한다. base/head가 바뀌면 기존 PASS 사용 금지. 첫 도입에서는 기본 브랜치 검증기 부재로 NOT TESTED이며 정상적인 기존 CI/Trusted QA를 반드시 완료한다. #600 metadata 자동 복구 및 별도의 Owner 승인 경계를 유지한다.

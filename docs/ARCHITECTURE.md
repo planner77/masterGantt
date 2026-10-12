@@ -1,5 +1,15 @@
 # Architecture draft
 
+## Issue #637 — canonical projection과 pane overflow 경계
+
+원본 Release #165.1의 실제 DOM trace에서 header add locator의 자동 `scrollIntoView` 구간(44852.545~44853.646ms)에 Grid pane scrollTop이0→28이 됐다. 실제 click(44863.804ms)·add/canonical 적용 이전의 변화이며 Core/Gantt/Chart top은0이었다. Grid 행 y400/h38와 Chart bar y431/h31의 중심 차이27.5px는 이 독립 pane 이동으로 설명된다. 행/바38px 간격·bar top3px/높이31px·scale72px는 유지되어 payload/ID/queue 완료와 정렬 완료가 구별된다.
+
+관찰자는 같은 viewport의 Grid 행과 바깥 `.wx-bar` rect를 비교한다. CSS transform된 내부 Milestone content, Core `$y`, 문서 좌표를 혼합하지 않는다. 원본 TIMED_OUT은 올바른 실패이며 observer1500ms·E2E expect.poll5s·±1px 조건을 유지한다. 수정은 비소유 Grid 세로 overflow 발생 경계에 한정하고 public Core/Gantt의 기존 viewport ownership·가로 Grid scroll·canonical queue·filter/columns/selection 계약을 보존한다. 새 복원 명령·private Core write·retry/remount를 도입하지 않는다.
+
+설치 Grid는 viewport632px에서 내부 `.wx-table`에 `min-height:784px`를 설정해4행(38×4)의 overscan 높이가 X-scroll container의 비소유 Y scrollrange로 노출된다. 앱의 `.project-gantt-widget .wx-table-container > .wx-table`만 `min-height:100% !important; max-height:100%; overflow:clip`으로 실제 viewport에 제한한다. 내부 overscan 데이터·렌더링은 Core에 남기고 table 밖으로 넘친 부분만 clip한다. X-scroll container의 `overflow-x:auto`는 유지한다. [CSS Overflow3](https://www.w3.org/TR/css-overflow-3/#overflow-properties)의 축 계산대로 X auto와 Y clip을 같은 요소에 설정하면 computed Y가 hidden으로 바뀌므로 container 자체 Y clip은 해결책이 아니다. CSS의 기존 Core inline min-height를 이 경계에서만 재정의하며 스크롤 state/좌표를 쓰지 않는다.
+
+설치 Core2.7.3의 `cellHeight`/`scaleHeight`, `resize-chart`/`filter-tasks`는 각각 공식 크기·표시 API이며 DOM 정렬 완료 보증은 아니다. [cellHeight](https://docs.svar.dev/react/gantt/api/properties/cellheight/), [scaleHeight](https://docs.svar.dev/react/gantt/api/properties/scaleheight/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/), [filter-tasks](https://docs.svar.dev/react/gantt/api/actions/filter-tasks/)를2026-10-12 설치 타입과 대조했다. 실제 demo 조작과 별개다. [#637 근거·AC](exec-plans/active/ISSUE_637.md) 참조.
+
 ## Issue #572 — Inline 이름 요청·확정·표시의 분리
 
 native Table `close-editor → update-cell`을 앱의 단일 name-only mutation gateway로 연결한다. 순수 `inline-name-session.ts`는 편집 session·request identity, base revision·원문 draft, Committing/AwaitingConfirmation/Confirmed/Rejected 전이를 소유한다. `saved`는 서버 저장 결과이며 렌더 완료가 아니다. 부모는 검증·적용한 동일 응답 snapshot에서 taskId/revision/name을 반환하고 inline 요청의 전역 성공 toast를 지연한다. 다른 Task Editor·날짜/Chart 명령의 기존 피드백 계약은 유지한다.

@@ -1,3 +1,35 @@
+## Issue #637 — Release 원본 정렬 FAIL 및 신규 PR CI 경계 (2026-10-12)
+
+- 원본 [Release #165.1](https://github.com/planner77/masterGantt/actions/runs/38221400193), immutable v0.106.1 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`: shard5 97PASS/1FAIL, `canonical-projection.spec.ts` actual Core insert-before의 revision41 SETTLED 기대에 TIMED_OUT. [artifact11735576081](https://github.com/planner77/masterGantt/actions/runs/38221400193/artifacts/11735576081) zip SHA256 `e0924a18493eb16ae756303a52120ff528946dc062637cbb5047b9707eea77a7`를 Git 외부 보존했다.
+- membership/순서5개·queue settled와 실제 Grid/Chart 중심 차이27.5px를 함께 보존한다. trace의 클릭 전 Gridpane scrollTop28/Core·Gantt·Chart0이 원인이며 실제 rect observer의 올바른 FAIL을 timeout/threshold 조정으로 우회하지 않는다.
+- 같은 원본 SHA의 [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) 성공은 원본 Release 실패를 덮지 않는다. 동일 Release run attempt2 재실행은 별도 attempt이며 이번 작업은 결과 모니터링을 하지 않는다.
+- 신규 교정 후보0.106.2는 새 branch/PR·exact Head required Quality/E2E6/Docker·기본 브랜치 Trusted·Owner 최종 판정을 요구한다. 이번 사용자 요청은 PR CI 시작까지이며 시작/진행 중 상태는 NOT TESTED, PRE_QA/Local PASS를 원격 PASS로 확대하지 않는다.
+- 기존 v0.106.1 tag/승인 SHA를 수정·재사용하지 않는다. 새 version의 `release_authorized=false`; main/GHCR candidate/digest·새 Owner 승인·정식 release는 별도 미실행 단계다. [#637 Work Packet](exec-plans/active/ISSUE_637.md) 참조.
+
+로컬 관련 unit97PASS·distinct browser41PASS 및 원형 삽입3회 반복PASS. 최초 신규 ChartY 기대 오류2FAIL과 이후 assertion 교정·음성/visible ID 보강은 Work Packet 원장에 보존한다. 이는 dev 환경 Local Fast Feedback이며 원격 required3종/production/main/Release PASS가 아니다.
+
+## Issue #633 — 0.105.0/0.106.0 GHCR UNKNOWN·새 Corrective 감사 (2026-10-12)
+
+- [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) SUCCESS, source `09bee924032b4126ff794ec7a485542fd72dd7bf`/candidate digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`/HTTP-HTTPS PASS. 정식 GHCR v0.106.1 tag/Release 없음.
+- [Read-only audit #1.1](https://github.com/planner77/masterGantt/actions/runs/38216994751) FAIL/BLOCKED(0.105.0,0.106.0,0.106.1 GHCR UNKNOWN). [Finalizer #153.1](https://github.com/planner77/masterGantt/actions/runs/38216994785) FAIL/BLOCKED 구버전 GHCR ABSENT 미확인, mutation NONE.
+- 신규 PR에서는 git tag/Release / GHCR exact digest 상태와 Packages API 인증 pagination을 별도 검증한다. Owner marker 보존, 기존 릴리스 원본 SHA와 신규 audit-only Main SHA를 구분하고 새 PR CI 및 후속 Main evidence를 각각 기록한다.
+
+## Issue #633 — B2 신규 SemVer PR/실제 GHCR 실행 증거 (2026-10-12)
+
+- 원본 #550 #2515 FAIL, #615 #2526 FAIL은 기존 기록에 보존. #615 교정 #2531 PASS (digest de76273a…), #550 후속 #2553 PASS (digest 7700bffc…), #633 초기 감사 #2565 PASS (digest c36138dd…)는 전부 `ci-<SHA>` 후보 성공이지 정식 SemVer 게시 PASS가 아니다.
+- 신규 B2 PR의 Head/base required CI 3종, default Trusted, latest main CI candidate, read-only `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`, Github/GHCR exact states, Owner 구버전 철회/신규 version/B2 v2 marker, Release-image digest, Resume·Issue 종료를 각각 독립적으로 기록한다. 원격 시작 자체를 PASS로 간주하지 않는다.
+- 등록돼 있는 기존 #615 v0.106.0과 #550 v0.105.0 승인 marker를 새 v0.106.1의 승인으로 재사용하지 않는다. 미발행 버전 exact registry가 PRESENT/UNKNOWN이면 B2 workflow는 NO-GO.
+
+## Issue #633 — PR #634 CI #2559.1 원격 검증 및 P1 보완 (2026-10-12)
+
+- [원본 Full PR CI #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645), HEAD `36b061ad8970d94014805105211c126410175b53`: QA Preflight/Policy/TypeScript/ESLint/Vitest/Next.js, Chromium 6/6, Docker Build+Smoke, Required aggregate 3종 SUCCESS. `QA Final — Automated`는 PR #634의 미해결 리뷰 P1 두 스레드로 `BLOCKED`, Run 전체 FAILURE. 원본 증거 유지.
+- 보완: private GHCR registry에 audit-before-read 로그인 추가 및 실제 Docker exact tag의 v-prefix 제거, 모호한 404를 UNKNOWN으로 fail-closed. 새 Head fixture/CI 수행; original Main CI/GHCR/Release/Owner 기록 불변.
+
+## Issue #633 — 원격 감사/CI 증거 경계 (2026-10-12)
+
+- PR #634 run #2556.1 (`38199169784.1`): QA Preflight `BLOCKED` HTTP 404, `docs/exec-plans/active/ISSUE_633.md` 누락. Quality/E2E/Docker aggregate FAIL은 preflight 연쇄 실패이며 본체 테스트는 SKIPPED. 파일 추가 후 새 SHA에서 CI를 재검증하고 과거 FAIL은 보존한다.
+- Trusted main의 read-only `release-debt-audit.yml`은 source/bridge/corrective exact SHA·Owner marker·git tag/Release/GHCR digest를 재조회한다. PR 본체의 자신이 수정한 validator 성공을 Trusted 실행 증거로 인정하지 않는다. 실서비스 GHCR/Release/Resume/cleanup은 별도 승인 전 NOT TESTED.
+
 ## Issue #629 — QA Preflight 원격 시나리오 (2026-10-12)
 - P1: 올바른 최신 PR Head·base/문서 AC 매핑 → Preflight PASS, Quality/E2E/Docker 3종 정상 완료 확인.
 - P2: title/Refs 불일치 또는 필수 문서 영향 누락 → Preflight FAIL, E2E 6 shard/Docker smoke 미실행, 기존 3 aggregate 전부 FAILURE인지 실제 Actions jobs 확인.

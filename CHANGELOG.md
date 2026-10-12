@@ -19,6 +19,32 @@
 ### Validation
 - HIGH / OWNER_MANAGED; local full test, PR CI/QA/Manager ACCEPT and production migration **NOT TESTED**. F3 WBS bindings and later Resource roll-up are out of scope. Release authorization **false**.
 
+## [Unreleased] — 0.106.2 / Issue #637 Grid·Chart 행 정렬 교정 후보 (2026-10-12)
+
+- Release #165.1의 구조 삽입 후 실제 Grid·Chart 중심 차이27.5px를 분석했다. 클릭 전 자동 scrollIntoView가 Grid 내부 pane만28px 움직여 canonical membership/queue 완료와 화면 정렬이 어긋났다. 기존 실제 중심±1px·observer1500ms·E2E5s 검증을 유지한다.
+- 비소유 Grid 세로 overflow 경계의 최소 교정과 관련 회귀·UX/Architecture/Test/Remote/Work Packet 문서를 동기화한다. package/lock PATCH 후보0.106.2, dependency 변경 없음. 기존 v0.106.1 immutable; 새 정식 release는 미승인이다.
+- 로컬 검증·독립 PRE_QA와 새 PR exact Head CI 시작을 구분한다. 원격3종/Trusted/Owner·main/GHCR/정식 release는 별도 완료 증거 전 NOT TESTED다.
+
+## [Unreleased] — Issue #633 GHCR Private Registry 감사·복구 (2026-10-12)
+
+- `0.106.1` 신규 후보의 첫 Main #2579.1은 PASS, GHCR 정식 Release는 아직 차단: Git/GitHub Release 구버전 태그는 ABSENT, Docker private GHCR 응답은 `UNKNOWN`.
+- 감사 개선: authenticated GitHub Packages REST tag inventory 200/전 페이지 schema + exact tag 부재가 확인된 경우에만 Docker ambiguous 404→ABSENT로 보조 판정, auth·permission·rate-limit·corrupt response/other repo는 UNKNOWN.
+- B2 개선: original immutable v0.106.1 Owner approved SHA `09bee924032b4126ff794ec7a485542fd72dd7bf` 유지, 뒤에 오는 #633 same-version policy-only corrective SHA는 별도 exact Main CI/digest 검증 및 current main cleanup lease로만 사용한다. 과거 #550/#615 Main CI 실패 보존, Git tag 이동/override·release 승인 확장 없음.
+
+## [Unreleased] — Issue #633 B2 두 미발행 버전 폐기와 교정 릴리스 후보 (2026-10-12)
+
+- 신규 application 후보 `0.106.1` (package/lock 동기화). #550 v0.105.0/#615 v0.106.0은 원본 CI FAIL 기록·Owner 원장 보존, 자동 발행·다른 SHA로 tag 승계 금지.
+- Generic Finalizer의 별도 B2 exact Owner revoke+authorization, 기존 oldest-first 보존, 신규 Release 성공 후에만 원본 임시 후보/branch 안전 정리·RETIRE 증거·Issue close 경로 구현. Read-only GHCR 자동 감사, private registry 인증, 회귀 fixture 추가.
+- 신규 PR CI/Trusted/Main CI·실제 정식 GHCR 발행 및 Owner version-scoped 최종 승인 이전까지 v0.106.1 공식 릴리스는 NOT TESTED이며 기존 버전의 미발행 상태 유지.
+
+## [Unreleased] — Issue #633 PR #634 GHCR 감사 P1 보완 (2026-10-12)
+
+- PR CI #2559.1은 Quality/E2E 6 shard/Docker 성공, QA Automated 미해결 2건으로 전체 실패. 비공개 GHCR 감사에 pinned 로그인 단계 추가, Git tag `vX.Y.Z`와 정식 GHCR exact `:X.Y.Z` 구별 및 registry 모호한 오류 fail-closed. negative/positive fixture와 운영/테스트/QA 문서 동기화. 버전 `0.106.0`, 기존 릴리스 승계 차단·읽기 권한·정식 게시 미승인은 유지.
+
+## [Unreleased] — Issue #633 교차 Issue 미발행 릴리스 감사 (2026-10-12)
+
+- #550 v0.105.0 / #615 v0.106.0의 교차 병합 릴리스 부채를 읽기 전용 trusted main 검증기·수동 audit workflow·negative/positive fixture로 진단한다. 기존 Finalizer 자동 승계 차단과 Owner 버전별 승인·GHCR 불변성을 유지하며, 릴리스 mutation·version bump·Required CI/Ruleset 변경 없음. 자세한 내용: [Issue #633 복구 계획](docs/ISSUE_633_RELEASE_DEBT.md).
+
 ## [Unreleased] — Issue #550 Main CI #2543.1 FILTER_RETURN 완료 경합 교정 (2026-10-12)
 
 - #463 Gantt 필터 해제 후 새 `FILTER_RETURN` 명령이 아직 `WAIT_GEOMETRY`인 상태에서 후속 viewport 직접 입력이 늦게 되감기는 원격 E2E 경합을 구별한다. 가장 최신 `FILTER_RETURN:SETTLED` 영수증을 bounded poll한 뒤 기존 엄격한 좌표·필터·3RAF 보존 검증을 유지한다.
