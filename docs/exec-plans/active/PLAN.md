@@ -1,3 +1,9 @@
+## Issue #637 — 구조 삽입 Grid·Chart 정렬 교정 (2026-10-12)
+
+최신 main `48b978f8529555f34148ea1f01be0b0c63ca0071`에서 `fix/issue-637-projection-row-alignment`를 생성했다. 원본 Release #165.1 / v0.106.1 / SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`의 Grid·Chart 중심 Y27.5px 불일치와 rev41 TIMED_OUT 원인을 조사하고 최소 교정한다. strict±1px·1500ms/5s·Core public API·기존 required gates와 immutable release를 유지한다.
+
+HIGH / OWNER_MANAGED / qa_required=true. 구현·관련 문서·Local Fast Feedback·독립 PRE_QA 후 새 PR exact Head full CI 시작까지만 수행하며 결과 모니터링·병합·release는 이번 범위에 없다. 새 PATCH 후보0.106.2의 정식 발행은 미승인(`release_authorized=false`), 원격 gate/Trusted/Owner/main/GHCR는 NOT TESTED. [Issue #637 Work Packet](ISSUE_637.md) 참조.
+
 ## Issue #633 — GHCR UNKNOWN 차단 보완 및 정확 릴리스 SHA 유지 (2026-10-12)
 
 - v0.106.1 초기 교정 PR #635 merge `09bee924032b4126ff794ec7a485542fd72dd7bf`, Main CI #2579.1 PASS, candidate sha256:0ab78272… 검증. 기존 두 태그 Git/GitHub Release ABSENT, private GHCR `UNKNOWN`으로 audit #1/Generic Finalizer #153 FAIL-CLOSED·mutation NONE.

@@ -1,3 +1,11 @@
+## Issue #637 — Grid 내부 스크롤과 실제 행 정렬
+
+구조 삽입 후 같은 Task ID의 Grid 행과 Chart 바깥 `.wx-bar` 중심 Y는 같은 viewport 좌표에서 ±1px 이내여야 한다. 행 높이38px와 bar높이31px의 차이는 중심 계산에 포함된다. 내부 Milestone diamond의 회전/축소는 이 비교에 사용하지 않는다. membership·canonical queue 완료만으로 화면 정렬 성공을 알리지 않는다.
+
+Release #165.1의 header add 클릭 전 자동 `scrollIntoView`가 Grid 내부 pane만28px 이동시켰고, Core/Chart/공통 Gantt scrollTop0과 어긋난 상태가 유지되어 중심 차이27.5px가 발생했다. Grid 비소유 세로 overflow를 실제로 제거하되 기존 Grid 가로 스크롤과 Core/Gantt 세로 스크롤·keyboard focus를 보존해야 한다. 상수 보정·중심 허용치 완화·강제 remount·새 scroll writer로 숨기지 않는다. 숨김/inert·가상화·새 입력·selection/viewport 보존의 기존 계약은 유지한다.
+
+DESIGN Delta B이며 시각 언어·기능·서버 권한을 바꾸지 않는다. 원본 실패와 수정별 실행 범위는 [#637 Work Packet](exec-plans/active/ISSUE_637.md)을 따른다.
+
 ## Issue #550 후속 — Task reveal 좌표와 focus 완료 분리
 
 Editor의 명시 `일정에서 보기`는 Coordinator의 이번 `TASK_REVEAL` 좌표 SETTLED 이후 현재 가시 Grid 행으로 focus를 인계한다. 좌표 완료·projection 완료·DOM 행 존재·실제 focus 완료는 별개다. 최대12RAF의 기존 제한 안에서 정확한 controller/API·revision·projection과 Coordinator intent/gesture/context를 확인하며 새 사용자 입력, 새 locate, scope/geometry 변경 또는 새 Editor/modal이면 오래된 인계를 종료한다. 좌표가 움직이지 않은 입력도 취소 근거다. modal이 잠깐 열렸다 닫혀도 이전 인계를 재개하지 않는다.
