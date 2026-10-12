@@ -1,3 +1,10 @@
+## Issue #643 — dynamic GitHub Actions run.name source 보안 교정 (2026-10-13)
+
+- 증거: [Main CI #2612.1](https://github.com/planner77/masterGantt/actions/runs/38302427091) (push, SHA `5da9c039422647490a947c5cd1e80ec24df22db2`)의 GitHub REST `run.name="Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1"`, `workflow_id=356198495`, `path=".github/workflows/ci.yml"`, source repo/head repo `planner77/masterGantt`. 해당 run은 성공이며 이번 증거는 **API shape**만 입증한다. 실제 Owner recovery `workflow_dispatch`는 아직 발생하지 않았다.
+- 오류: #639 `completed_evidence()`의 `run.name=="CI"`는 동적 실행명과 혼동하고 정상 복구를 차단할 수 있다.
+- 교정 검증: trusted metadata `GET /actions/workflows/ci.yml`의 id/name/path/state와 Run workflow_id/path/repo/head_repo 일치, dynamic/spoofed labels 모두 판단에 사용되지 않는지 검사한다. Metadata UNKNOWN·다른 workflow ID 등 negative fixtures 모두 BLOCKED. PR CI/Trusted QA 최신 결과는 해당 PR 생성 후 별도 기록.
+- #616의 원본 SHA `b97709df8b5c0974f3c8252ac97819f45f73a5b9`, v0.107.0 Owner release marker, immutable merge, 기존 실패/릴리스 부채는 유지. Remote private GHCR digest, #616 explicit Owner recovery and formal release remain NOT TESTED; 순서를 우회하지 않는다.
+
 ## Issue #639 — Main CI #2606.1 trace failure evidence and corrective plan (2026-10-13)
 
 - [Main CI #2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947) event=`push`, SHA `5c79b658c83b86f163826055fa7da6efadef4e63`, conclusion=`failure`, `변경 경로 판정` failure. `verify-ci-run-trace.py` rejects 31-character Korean summary; Quality, Chromium, Docker SKIPPED/aggregate not SUCCESS, GHCR candidate NOT TESTED. Earlier PR #641 full CI #2604.1 and Trusted QA #241.1 both SUCCESS; no review threads open.

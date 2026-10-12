@@ -1,3 +1,9 @@
+## Issue #643 — manual_recovery CI 워크플로 원본 ID 검증 (2026-10-13)
+
+- GitHub Actions `ci.yml`은 워크플로 정의명 `CI`와 event마다 변경되는 `run-name` 표현식을 별도로 가진다. 실제 push [Main #2612.1](https://github.com/planner77/masterGantt/actions/runs/38302427091) 응답 `run.name`은 `Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1`, `workflow_id=356198495`, `path=.github/workflows/ci.yml`; `run.name == "CI"` 조건은 잘못된 식별이다. 실제 Owner recovery `workflow_dispatch`는 아직 실행되지 않았으므로 해당 정상 경로에서 BLOCKED가 실증되었다고 단정하지 않는다.
+- `completed_evidence`는 trusted `GET /repos/{owner}/{repo}/actions/workflows/ci.yml`(GitHub 공식 Actions read-only API)에서 `id/name/path/state`를 확인한 뒤 `run.workflow_id`, `run.path`, `run.repository` 및 `run.head_repository`와 비교한다. `run.name`과 `display_title`은 불변 신뢰 속성이 아님. 메타데이터/API 오류는 `BLOCKED`.
+- 기존 `workflow_dispatch/main/Owner/Issue/PR/source SHA/attempt`·source artifact·필수 Quality/E2E6/Docker·GHCR 후보 digest/supply-chain·Immutable first-parent·Main push/Finalizer 순서는 수정하지 않는다. 이 교정 PR은 앱/DB/API/태그/CI workflow 변경 없이 PR required 3종·Trusted QA로만 검증하고 #616 dispatch는 별도 단계에서 실행한다.
+
 ## Issue #639 — #2606.1 invalid merge title corrective first-parent Main CI (2026-10-13)
 
 - PR #641 `c61787d0...`은 [PR CI #2604.1](https://github.com/planner77/masterGantt/actions/runs/38298408282) 및 [Trusted QA #241.1](https://github.com/planner77/masterGantt/actions/runs/38300487544) SUCCESS였지만 merge SHA `5c79b658...`의 `push` [Main CI #2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 `verify-ci-run-trace.py`가 reject. 제목 요약 `Main SHA 복구 및 GHCR 출처 검증 경로 안정화` = 31자, `MAX_SUMMARY_LENGTH=30`; Quality/E2E/Docker와 GHCR candidate는 미실행.

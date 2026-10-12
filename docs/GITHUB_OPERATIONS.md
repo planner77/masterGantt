@@ -1,3 +1,10 @@
+## Issue #643 — 복구 실행명과 워크플로 원본 구분 (2026-10-13)
+
+- `GET /repos/planner77/masterGantt/actions/runs/38302427091`은 `name=`에 동적 run-name을 반환하며, `workflow_id=356198495`와 `path=.github/workflows/ci.yml`는 원본 워크플로 식별자를 나타낸다. `name=="CI"`로 판단하지 않는다.
+- Owner가 복구 dispatch를 시작하기 전, `gh api /repos/planner77/masterGantt/actions/workflows/ci.yml --jq '{id,name,path,state}'`로 trusted metadata가 `id` 양의 정수·`name: CI`·`path: .github/workflows/ci.yml`·`state: active`인지 read-only 확인하고 실제 run `workflow_id`와 비교한다. 주석·화면 표제의 문자열은 검증 경계가 아니다.
+- Issue #643이 PR CI 3종·Trusted QA를 통과하고 main에 병합된 **다음에** #616의 신규 Owner exact-recovery 댓글 ID로 `workflow_dispatch` (main) 복구 실행을 진행한다. 복구와 버전별 정식 게시 승인은 별개이며, 현재 원본 `b97709df8b5c0974f3c8252ac97819f45f73a5b9`의 push Main CI는 0건인 사실을 보존한다.
+- 시나리오별 `workflow_id/path/name/state`, Owner/issue/PR/target SHA, `run_attempt`, required jobs·digest·Finalizer 결과를 기록한다. `run.name` spoof/다른 워크플로/빈 API는 `BLOCKED`로 기록한다.
+
 ## Issue #639 — merge 제목 31자 실패 #2606.1 재발 방지 (2026-10-13)
 
 원본 Main [#2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 PR #641 merge `5c79b658...`에 대한 실제 `push` Run이었지만, 제목의 한글 요약이 31자(MAX=30)라 변경 경로 판정에서 실패했다. `rerun-failed-jobs`는 동일 불변 제목을 검사하므로 해결할 수 없다. 기존 실패를 삭제·성공으로 변경하거나 `main`을 force-push하지 않는다.

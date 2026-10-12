@@ -92,30 +92,112 @@ class RecoveryTests(unittest.TestCase):
             with self.subTest(names=value), self.assertRaises(recovery.Blocked):
                 recovery.checked_jobs(value)
 
-    def test_missing_attempt_and_forged_workflow_run(self):
-        record = {
-            "id": 100, "path": ".github/workflows/ci.yml", "name": "CI",
-            "event": "workflow_dispatch", "head_branch": "main",
-            "head_sha": SHA_B, "status": "completed", "conclusion": "success",
-            "run_attempt": 1, "actor": {"login": "planner77"},
+    def test_dynamic_name_and_source_workflow_identity_fail_closed(self):
+        # Real API shape observed on #639 Main CI #2612.1: run.name is
+        # dynamic while workflow metadata name=CI and ID=356198495.
+        repo = "planner77/masterGantt"
+        endpoint = f"/repos/{repo}"
+        workflow = {
+            "id": 356198495,
+            "name": "CI",
+            "path": ".github/workflows/ci.yml",
+            "state": "active",
+        }
+        run = {
+            "id": 100,
+            "name": "정확 Main SHA 복구 CI · Issue #616 · " + SHA_A + " · Run #2613.1",
+            "display_title": "untrusted human-readable run label",
+            "workflow_id": 356198495,
+            "path": ".github/workflows/ci.yml",
+            "repository": {"full_name": repo},
+            "head_repository": {"full_name": repo},
+            "event": "workflow_dispatch",
+            "head_branch": "main",
+            "head_sha": SHA_B,
+            "status": "completed",
+            "conclusion": "success",
+            "run_attempt": 1,
+            "actor": {"login": "planner77"},
             "html_url": "https://github.com/planner77/masterGantt/actions/runs/100",
         }
-        payload = identity().artifact(100, 1)
-        with patch.object(recovery, "gh", return_value=record), \
-             patch.object(recovery, "get_attestation", return_value=payload), \
-             patch.object(recovery, "validate", side_effect=lambda i, **kw: i), \
-             patch.object(recovery, "all_jobs", return_value=jobs()), \
-             patch.object(recovery, "digest_for_tag", return_value="sha256:" + "a" * 64):
-            evidence = recovery.completed_evidence("planner77/masterGantt", 100, SHA_A)
-            self.assertEqual(evidence[0].sha, SHA_A)
-            for key, wrong in (("event", "push"), ("conclusion", "failure"),
-                               ("head_branch", "feature"), ("path", "other.yml")):
-                with self.subTest(key=key), patch.object(recovery, "gh", return_value={**record, key: wrong}):
-                    with self.assertRaises(recovery.Blocked):
-                        recovery.completed_evidence("planner77/masterGantt", 100, SHA_A)
-            with patch.object(recovery, "get_attestation", return_value={**payload, "target_sha": SHA_B}):
-                with self.assertRaises(recovery.Blocked):
-                    recovery.completed_evidence("planner77/masterGantt", 100, SHA_A)
+        artifact = identity().artifact(100, 1)
+
+        def evidence(run_value=None, workflow_value=None, artifact_value=None):
+            actual_run = run if run_value is None else run_value
+            actual_workflow = workflow if workflow_value is None else workflow_value
+            actual_artifact = artifact if artifact_value is None else artifact_value
+            requests = []
+
+            def fake_gh(path):
+                requests.append(path)
+                if path == endpoint + "/actions/runs/100":
+                    return actual_run
+                if path == endpoint + "/actions/workflows/ci.yml":
+                    return actual_workflow
+                raise AssertionError("unexpected network/GitHub API request: " + path)
+
+            with patch.object(recovery, "gh", side_effect=fake_gh), \
+                 patch.object(recovery, "get_attestation", return_value=actual_artifact), \
+                 patch.object(recovery, "validate", side_effect=lambda i, **kw: i), \
+                 patch.object(recovery, "all_jobs", return_value=jobs()), \
+                 patch.object(recovery, "digest_for_tag", return_value="sha256:" + "a" * 64):
+                result = recovery.completed_evidence(repo, 100, SHA_A)
+            self.assertIn(endpoint + "/actions/workflows/ci.yml", requests)
+            return result
+
+        got, url, digest = evidence()
+        self.assertEqual(got.sha, SHA_A)
+        self.assertEqual(url, run["html_url"])
+        self.assertEqual(digest, "sha256:" + "a" * 64)
+        # The run's display name never authenticates its actual workflow.
+        evidence(run_value={**run, "name": "CI", "display_title": "spoofed"})
+        evidence(run_value={**run, "name": "arbitrary-localized-dynamic-run-name"})
+        evidence(run_value={key: value for key, value in run.items() if key != "name"})
+
+        wrong_runs = (
+            {"id": 101},
+            {"id": "100"},
+            {"workflow_id": 356198496, "name": "CI"},
+            {"workflow_id": None, "name": "CI"},
+            {"workflow_id": True, "name": "CI"},
+            {"workflow_id": "356198495", "name": "CI"},
+            {"path": ".github/workflows/other.yml", "name": "CI"},
+            {"repository": {"full_name": "attacker/masterGantt"}, "name": "CI"},
+            {"head_repository": {"full_name": "attacker/masterGantt"}, "name": "CI"},
+            {"event": "push"},
+            {"head_branch": "feature"},
+            {"status": "in_progress"},
+            {"conclusion": "failure"},
+            {"run_attempt": 0},
+            {"run_attempt": 2},
+            {"head_sha": SHA_A},
+        )
+        for changed in wrong_runs:
+            with self.subTest(forged_run=changed), self.assertRaises(recovery.Blocked):
+                evidence(run_value={**run, **changed})
+
+        wrong_workflows = (
+            {"id": 356198496},
+            {"id": None},
+            {"id": "356198495"},
+            {"id": True},
+            {"name": "not CI"},
+            {"path": ".github/workflows/attacker.yml"},
+            {"state": "disabled_manually"},
+            {"state": None},
+        )
+        for changed in wrong_workflows:
+            with self.subTest(forged_workflow=changed), self.assertRaises(recovery.Blocked):
+                evidence(workflow_value={**workflow, **changed})
+
+        with self.assertRaises(recovery.Blocked):
+            evidence(workflow_value={})
+        with self.assertRaises(recovery.Blocked):
+            evidence(workflow_value=[])  # wrong API response type
+        with self.assertRaises(recovery.Blocked):
+            evidence(artifact_value={**artifact, "target_sha": SHA_B})
+        with self.assertRaises(recovery.Blocked):
+            evidence(artifact_value={**artifact, "run_attempt": 2})
 
     def test_read_only_registry_inventory(self):
         with patch.object(recovery, "gh", return_value=[]):

@@ -31,6 +31,9 @@ OTHER_JOBS = (
     "Docker smoke 구현", "Main 임시 commit 이미지 게시·검증·정리",
 )
 SCHEMA = "mastergantt-exact-main-recovery-v1"
+TRUSTED_CI_WORKFLOW_PATH = ".github/workflows/ci.yml"
+TRUSTED_CI_WORKFLOW_FILE = "ci.yml"
+TRUSTED_CI_WORKFLOW_NAME = "CI"
 
 
 class Blocked(RuntimeError):
@@ -302,11 +305,45 @@ def get_attestation(repo: str, run_id: int, attempt: int) -> dict[str, Any]:
     return value
 
 
+def verified_workflow_identity(repo: str, run: dict[str, Any]) -> None:
+    """Authenticate the configured Actions workflow, never its presentation label.
+
+    `run.name` is a *dynamic run-name* when CI.yml declares `run-name:`.
+    The stable workflow metadata endpoint reports the definition's name, id,
+    path, and state. Every unavailable/mismatched field must block publication.
+    """
+    require(isinstance(run, dict), "Actions run response missing")
+    run_workflow_id = run.get("workflow_id")
+    require(
+        type(run_workflow_id) is int and run_workflow_id > 0
+        and run.get("path") == TRUSTED_CI_WORKFLOW_PATH,
+        "source run workflow ID/path missing or invalid",
+    )
+    require(
+        (run.get("repository") or {}).get("full_name") == repo
+        and (run.get("head_repository") or {}).get("full_name") == repo,
+        "source run repository/head repository mismatch",
+    )
+
+    workflow = gh(f"/repos/{repo}/actions/workflows/{TRUSTED_CI_WORKFLOW_FILE}")
+    require(
+        isinstance(workflow, dict)
+        and type(workflow.get("id")) is int
+        and workflow["id"] > 0
+        and workflow["id"] == run_workflow_id
+        and workflow.get("path") == TRUSTED_CI_WORKFLOW_PATH
+        and workflow.get("name") == TRUSTED_CI_WORKFLOW_NAME
+        and workflow.get("state") == "active",
+        "trusted CI workflow metadata unavailable, inactive, or ID/path/name mismatch",
+    )
+
+
 def completed_evidence(repo: str, run_id: int, target_sha: str | None = None) -> tuple[Identity, str, str]:
     """Independently authenticate exact original SHA; never infer it from a run title."""
     run = gh(f"/repos/{repo}/actions/runs/{run_id}")
-    require(run.get("id") == run_id and run.get("path") == ".github/workflows/ci.yml"
-            and run.get("name") == "CI", "source workflow identity mismatch")
+    require(type(run.get("id")) is int and run.get("id") == run_id,
+            "source Actions run ID mismatch")
+    verified_workflow_identity(repo, run)
     require(run.get("event") == "workflow_dispatch"
             and run.get("head_branch") == "main"
             and run.get("status") == "completed" and run.get("conclusion") == "success",
