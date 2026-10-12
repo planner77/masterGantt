@@ -46,6 +46,7 @@ MARKER_FIELDS = frozenset((
 class Plan:
     sha: str
     pr: int
+    main_sha: str
     marker_url: str
     previous_items: tuple[Any, ...]
     target: Any
@@ -111,8 +112,9 @@ def read_approval(core: Any, repo: str, latest_main: str) -> dict[str, Any] | No
     require(core, url.startswith("https://github.com/planner77/masterGantt/issues/633#issuecomment-"),
             "Owner B2 source Issue comment의 인증된 증거 URL 필요")
     require(core, selected["authorized"], "최신 B2 승인 철회")
-    require(core, selected["recovery_sha"] == latest_main,
-            "B2 승인 대상 main SHA와 현재 HEAD 불일치")
+    # SHA authority remains bound to the original version-changing merge,
+    # not to a future no-version-change audit code correction. First-parent
+    # ancestry and exact post-release invariants are checked by plan_b2.
     return {**selected, "evidence_url":url}
 
 
@@ -224,9 +226,13 @@ def plan_b2(core: Any, repo: str, latest_main: str, pending_raw: list[Any]) -> P
         return None
     historical=source_history(core,repo,latest_main)
     originals=exact_first_parent(core,repo,historical,marker["recovery_sha"])
-    current=[w for w in historical if w.target_sha==latest_main]
-    require(core,len(current)==1,"B2 교정 merge는 현재 main의 first-parent여야 함")
-    target=current[0]
+    # The Owner approved the immutable release candidate SHA, not whichever
+    # commit becomes latest main after an audit-only same-version correction.
+    target_matches=[w for w in historical if w.target_sha==marker["recovery_sha"]]
+    require(core,len(target_matches)==1,"B2 승인 Release SHA가 main first-parent에 없음")
+    target=target_matches[0]
+    require(core, historical[-1].target_sha == latest_main,
+            "B2 복구 검증기 기준 main snapshot drift")
     require(core,target.issue_number==ISSUE and
             target.pr_number==marker["recovery_pr"] and
             target.current_version==VERSION and
@@ -236,10 +242,27 @@ def plan_b2(core: Any, repo: str, latest_main: str, pending_raw: list[Any]) -> P
     require(core,marker["recovery_sha"]==target.target_sha,"B2 릴리스 SHA 불일치")
     require(core,target.target_sha not in [row[0] for row in SOURCES],
             "복구 SHA와 과거 SHA 동일")
+    before_target=historical[historical.index(originals[-1])+1:historical.index(target)]
     require(core,all(item.current_version=="0.106.0" and
-                item.previous_version=="0.106.0"
-                for item in historical[historical.index(originals[-1])+1:-1]),
-            "과거 수정과 새 교정 사이에 다른 버전 변경 존재")
+                item.previous_version=="0.106.0" for item in before_target),
+            "과거 수정과 승인된 release SHA 사이에 다른 버전 변경 존재")
+    # At most one later policy-only corrective PR of the same Issue is allowed.
+    # No intervening other Issue, version change, docs-only or failed CI may
+    # silently extend the authority granted to the earlier exact release SHA.
+    after_target=historical[historical.index(target)+1:]
+    require(core,len(after_target) <= 1 and all(
+        item.issue_number == ISSUE and item.previous_version == VERSION
+        and item.current_version == VERSION and not item.release_required
+        and not item.validation_docs_only and item.actionable
+        for item in after_target), "허용되지 않은 B2 post-release-SHA merge")
+    for item in after_target:
+        success,_url=core.exact_main_ci_success(repo,item.target_sha)
+        require(core,success, "최신 B2 감사 교정 Main CI SUCCESS 미확인")
+        green, _ci_url, candidate_ok, _details = lifecycle.exact_main_ci(
+            repo, item.target_sha, docs_only=False
+        )
+        require(core,green and candidate_ok,
+                "최신 B2 감사 교정 GHCR exact candidate 검증 누락")
 
     require_revoked(core,repo,550,"0.105.0")
     require_revoked(core,repo,615,"0.106.0")
@@ -274,7 +297,7 @@ def plan_b2(core: Any, repo: str, latest_main: str, pending_raw: list[Any]) -> P
     else:
         require(core, release_state in {"tagged","in-progress"},
                 f"새 릴리스 상태가 복구 불가능: {release_state}")
-    return Plan(sha=target.target_sha,pr=target.pr_number,
+    return Plan(sha=target.target_sha,pr=target.pr_number,main_sha=latest_main,
                 marker_url=marker["evidence_url"],
                 previous_items=tuple(originals),target=target)
 
@@ -307,8 +330,8 @@ def finalize_b2(core: Any, repo: str, latest_main: str, plan: Plan) -> None:
     Cannot run early, even if the Owner marker is valid. If cleanup fails,
     leave old Issues open and retry idempotently (never rewrite old CI).
     """
-    require(core,repo==REPO and latest_main==plan.sha,
-            "B2 Finalize는 approved current main에만 가능")
+    require(core,repo==REPO and latest_main==plan.main_sha,
+            "B2 Finalize는 audited main snapshot에만 가능")
     state,_url=core.exact_release_state(repo,plan.target)
     require(core,state=="success","신규 릴리스의 정확한 성공 실행 결과 필요")
     versions=audit.version_states(repo,{"0.105.0","0.106.0",VERSION})
@@ -325,24 +348,24 @@ def finalize_b2(core: Any, repo: str, latest_main: str, plan: Plan) -> None:
     )
     require(core,candidate=="PRESENT" and digest==new.ghcr_digest,
             "새 정식 이미지가 Main 검증 후보 digest와 다름")
-    require(core,core.current_main_sha(repo)==plan.sha,
+    require(core,core.current_main_sha(repo)==plan.main_sha,
             "retirement 처리 중 main SHA 이동")
 
     # Every known branch and old verified candidate must preflight before
     # any destructive operation. Never treat failed CI as green.
     for item in plan.previous_items:
-        _branch_cleanup(core,repo,item,plan.sha,delete=False)
+        _branch_cleanup(core,repo,item,plan.main_sha,delete=False)
     for item in plan.previous_items:
         if item.pr_number in (628,632):
             _candidate_cleanup(core,item.target_sha,delete=False)
 
     for item in plan.previous_items:
-        require(core,core.current_main_sha(repo)==plan.sha,
+        require(core,core.current_main_sha(repo)==plan.main_sha,
                 "branch cleanup 중 main 변경")
-        _branch_cleanup(core,repo,item,plan.sha,delete=True)
+        _branch_cleanup(core,repo,item,plan.main_sha,delete=True)
     for item in plan.previous_items:
         if item.pr_number in (628,632):
-            require(core,core.current_main_sha(repo)==plan.sha,
+            require(core,core.current_main_sha(repo)==plan.main_sha,
                     "candidate cleanup 중 main 변경")
             _candidate_cleanup(core,item.target_sha,delete=True)
 
@@ -380,7 +403,7 @@ def finalize_b2(core: Any, repo: str, latest_main: str, plan: Plan) -> None:
                     "- 기존 verified ci-SHA candidate cleanup: PASS (해당 시)",
                     "- original FINAL marker 위장 없음",
                 ))})
-        require(core,core.current_main_sha(repo)==plan.sha,"Issue 종료 중 main 이동")
+        require(core,core.current_main_sha(repo)==plan.main_sha,"Issue 종료 중 main 이동")
         existing_issue=core.gh(f"/repos/{repo}/issues/{issue}")
         if existing_issue.get("state")!="closed":
             require(core,existing_issue.get("state")=="open","미상 Issue state")

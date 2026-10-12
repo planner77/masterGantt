@@ -315,6 +315,52 @@ def git_tag_state(version: str) -> str:
     return "UNKNOWN"
 
 
+def authenticated_packages_tag_state(image: str) -> str:
+    """Cross-check an ambiguous private GHCR lookup with the authenticated API.
+
+    Only a successful, schema-checked enumeration of *all* GitHub Packages
+    container versions may establish the exact SemVer tag is absent. A generic
+    registry 404, failed gh token, rate-limit, missing metadata, or incomplete
+    pagination is never proof of absence. The endpoint is read-only.
+    """
+    match = re.fullmatch(r"ghcr[.]io/planner77/mastergantt:(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)", image)
+    if not match:
+        return "UNKNOWN"
+    tag = image.rsplit(":", 1)[1]
+    found = False
+    for page in range(1, 101):
+        endpoint = f"/users/planner77/packages/container/mastergantt/versions?per_page=100&page={page}"
+        try:
+            result = subprocess.run(
+                ["gh", "api", "-H", "Accept: application/vnd.github+json", endpoint],
+                capture_output=True, text=True, timeout=30, check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return "UNKNOWN"
+        if result.returncode != 0:
+            # Never treat 401/403/404/429 or an unexpected response as absence.
+            return "UNKNOWN"
+        try:
+            versions = json.loads(result.stdout)
+        except (ValueError, TypeError):
+            return "UNKNOWN"
+        if not isinstance(versions, list) or len(versions) > 100:
+            return "UNKNOWN"
+        for item in versions:
+            if not isinstance(item, dict):
+                return "UNKNOWN"
+            metadata = item.get("metadata")
+            container = metadata.get("container") if isinstance(metadata, dict) else None
+            tags = container.get("tags") if isinstance(container, dict) else None
+            if not isinstance(tags, list) or not all(isinstance(v, str) for v in tags):
+                return "UNKNOWN"
+            if tag in tags:
+                found = True
+        if len(versions) < 100:
+            return "PRESENT" if found else "ABSENT"
+    return "UNKNOWN"  # Truncated pagination is never affirmative absence.
+
+
 def ghcr_digest(image: str) -> tuple[str, str | None]:
     """Read registry metadata only. Auth/timeouts/errors are UNKNOWN, not absent."""
     try:
@@ -334,8 +380,17 @@ def ghcr_digest(image: str) -> tuple[str, str | None]:
     error = (result.stderr + result.stdout).lower()
     # Only an explicit registry manifest absence is authoritative; generic
     # HTTP 404 and "not found" may also describe auth/permission failures.
-    if "manifest unknown" in error and "unauthorized" not in error and "denied" not in error:
+    if "unauthorized" in error or "denied" in error or "forbidden" in error:
+        return "UNKNOWN", None
+    if "manifest unknown" in error:
         return "ABSENT", None
+    # The GitHub registry often reports a private absent manifest as generic
+    # "not found" or HTTP 404. Authenticate *again* through the paginated
+    # GitHub Packages API rather than treating that ambiguity as absence.
+    if "not found" in error or "404" in error or "manifest" in error:
+        state = authenticated_packages_tag_state(image)
+        print(f"GHCR exact tag authenticated inventory: {image.rsplit(':',1)[1]} = {state}")
+        return state, None
     return "UNKNOWN", None
 
 

@@ -1586,6 +1586,13 @@ require('state=="success"' in _recovery633 and "replacement_digest" in _recovery
 require("mastergantt-release-debt-retired:v1" in _recovery633, "unissued releases need immutable retirement evidence distinct from FINAL")
 require("def source_history(" in _recovery633 and '"--first-parent"' in _recovery633 and "core.resolve_work_item(repo,sha)" in _recovery633, "B2 release Resume must recover immutable old SHA history across prior FINAL boundary")
 require("authenticated_retirement(" in _recovery633, "partial closed Issue replay must require authenticated bot retirement evidence")
+require("def authenticated_packages_tag_state(" in _audit633
+        and "packages/container/mastergantt/versions?per_page=100&page=" in _audit633,
+        "ambiguous registry 404 must be cross-checked against authenticated paginated Packages API")
+require("main_sha=latest_main" in _recovery633 and "latest_main==plan.main_sha" in _recovery633,
+        "B2 recovery must pin original release SHA independently of latest approved main")
+require("len(after_target) <= 1" in _recovery633 and "item.issue_number == ISSUE" in _recovery633,
+        "B2 audit correction may not authorize other Issues or version jumps")
 require('lifecycle.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST"' in _recovery633, "retirement marker must use write-capable trusted GitHub API")
 require('lifecycle.gh(f"/repos/{repo}/issues/{issue}",method="PATCH"' in _recovery633, "post-release Issue close must use write-capable trusted GitHub API")
 

@@ -1,3 +1,12 @@
+## Issue #633 — GHCR Private 404 read-only 증거 보강 및 기존 승인 SHA 보존 (2026-10-12)
+
+- [PR #635](https://github.com/planner77/masterGantt/pull/635) 신규 SemVer `0.106.1`은 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`로 병합, [Main CI #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) Quality/E2E/Docker/`ci-<SHA>` digest(sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f) 모두 PASS.
+- [감사 #1.1](https://github.com/planner77/masterGantt/actions/runs/38216994751)의 private registry 조회에서 `v0.105.0`/`v0.106.0`/신규 `v0.106.1` Git tag / GitHub Release는 ABSENT이나, `ghcr.io/planner77/mastergantt:X.Y.Z`는 `UNKNOWN`. [Finalizer #153.1](https://github.com/planner77/masterGantt/actions/runs/38216994785) 역시 구버전 GHCR ABSENT의 정확한 인증 근거 누락으로 BLOCKED; **릴리스/Issue/branch 변경 mutation 0**.
+- 보완: `scripts/release_debt_audit.py`의 Docker `imagetools inspect` 모호한 404/`not found`은 별도 `gh api /users/planner77/packages/container/mastergantt/versions?per_page=100&page=N`의 Owner Private GHCR `packages:read` 인증·완전 pagination·metadata.container.tags 검증을 수행한다. REST 200인 모든 페이지를 확인하고 exact tag가 없을 때만 ABSENT. 401/403/404/429/오염·파손 응답·pagination 누락은 UNKNOWN; 다른 tag 사용 금지. 기존 manifest unknown 외의 단순 404를 ABSENT로 변경하지 않는다.
+- 원래 릴리스 Owner 승인: `#550 v0.105.0`, `#615 v0.106.0`은 각 Issue에 별도 철회 기록으로 보존. 승인된 정식 `#633 v0.106.1` Release 원본 SHA는 `09bee924032b4126ff794ec7a485542fd72dd7bf`로 고정하고, 본 `same-Issue` policy-only `0.106.1 → 0.106.1` 후속 Merge의 자체 Main CI/digest를 검증한 뒤에도 **기존 immutable release tag 대상 SHA를 이동하지 않는다**. 최신 main과 original release SHA는 first-parent ancestor로 확인하며, 다른 Issue/버전/다중 교정으로 승인 자동 확장 금지.
+- PR 승인 전: 원래 실패한 구버전 Main SHA/CI FAIL 보존, 본 정책 변경 PR Required Quality/E2E/Docker·Trusted QA·리뷰0 및 Owner HIGH 위험 수용 확인. 정식 tag/Release/ghcr promotion은 후속 main CI·private authenticated inventory 모두 PASS 전 NO-GO.
+- Merge 후 실행: Issue #633 Main CI push→`release-debt-audit.yml` 자동 read-only inventory 및 Generic Finalizer→new original release SHA에 정확한 v0.106.1 annotated tag/Release CI→digest 동일 확인→Resume→historical cleanup/RETIRE evidence/Issue close. 인증된 UNKNOWN/PRESENT가 있거나 target 충돌 시 모든 발행·퇴역 중단.
+
 # Issue #633 — B2 미발행 2버전 공식 정리 및 v0.106.1 교정 Release (2026-10-12)
 
 **현 상태: 구현 PR 검증 중, 정식 발행 NOT TESTED.** #550의 v0.105.0 및 #615의 v0.106.0은 과거 Main CI 실패·중간 병합으로 자동 발행·자동 상속 불가. 두 버전은 삭제하거나 다른 SHA로 위장하지 않고 **미발행 폐기/승계 원장**으로 보존한다. 최신 수정은 신규 **v0.106.1 후보 버전**으로 검증하되, 실제 Owner v2 승인·정확한 새 main Merge SHA·GHCR 실감사 이전에는 릴리스와 Issue close를 자동 실행하지 않는다.

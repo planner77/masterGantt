@@ -1,3 +1,9 @@
+## Issue #633 — Authenticated GHCR 404 교차 확인 및 원본 v0.106.1 Release SHA 유지 (2026-10-12)
+
+- GHCR Docker manifest 조회 generic 404/`not found`를 직접 ABSENT로 해석하지 않는다. 동일 저장소에 대해 Github Packages 사용자 Container Versions API의 인증된 200/모든 페이지·`metadata.container.tags` 완전 조회 후 exact tag가 없는 경우만 ABSENT를 반환한다. 토큰 문제·응답 오염·pagination 미완료면 UNKNOWN을 유지하여 Finalizer mutation 차단.
+- 안전한 same-Issue audit-only main correction이 병합되어도 B2 `Plan.sha`는 원래 Owner가 승인한 v0.106.1 Merge `09bee924032b4126ff794ec7a485542fd72dd7bf`로 유지한다. 최신 audit correction Merge SHA는 `Plan.main_sha`로 별도 검증하고 경합 방지·branch cleanup target에만 사용한다. version jump/other Issue/여러 PR CI를 통한 authority 확대는 금지.
+- 이전 불변 FAIL Main CI 및 Owner marker를 변경하지 않고, original Release 성공과 exact digest 일치가 입증된 이후에만 B2 퇴역 원장을 finalize한다. 모든 신규 정책 변경은 PR full Required CI/QA Trusted와 Owner 검증 후 병합한다.
+
 ## Issue #633 — Owner B2 두 미발행 SemVer 안전 복구 (2026-10-12)
 
 - #550 v0.105.0과 #615 v0.106.0은 최초 Main CI FAIL/교차 Issue 변경 때문에 기존 same-Issue supersession 경로를 절대로 사용하지 않는다. 기존 일반 계약은 변경 없이 별도 `scripts/release_debt_recovery.py`의 exact historical SHA, Owner revoke+v2 authorization, 새 Issue #633 release `v0.106.1`로 **한정된 예외만** 분리한다.

@@ -1,3 +1,9 @@
+## Issue #633 — GHCR 미발행 UNKNOWN 복구 + 원본 Release SHA 회귀 (2026-10-12)
+
+- `test-release-debt-audit.py`: github packages authenticated exact tag 200 complete pagination absent/present, 401/403/404, schema-missing, second page failure, unrelated package scope 및 Docker 404→Packages cross-check ABSENT 조건을 Mock으로 재현한다. 인증 없는 404는 UNKNOWN 보존.
+- `test-release-debt-recovery.py`: v0.106.1 immutable Owner approved 09bee... target이 후속 non-version-changing same-Issue audit correction 뒤에도 original candidate로 남는지; 다른 Issue/버전 변경, latest Main CI 비성공/아티팩트 실패는 재진입 금지; `Plan.main_sha`와 원래 `Plan.sha`를 분리 검증한다.
+- `verify-issue-lifecycle.py`: Owner marker, authenticated GHCR API pagination, strict first-parent/version/cleanup, cross-Issue fail-closed 기존 계약을 유지. 신규 full PR CI/Trusted QA/Main CI/실제 Registry audit/정식 Publish 모두 별도 원격 증거 필요.
+
 ## Issue #633 — B2 미발행 두 버전 안전 복구 (2026-10-12)
 
 - `scripts/test-release-debt-recovery.py`의 SHA·버전·Issue·PR 다섯 역사적 original fixture, old Main CI FAIL, Owner v1 철회/v2 신규 source identity, 위조·재사용·stale·registry UNKNOWN/EXISTS, 신규 release in-progress 차단, exact candidate digest, safe cleanup branch5·candidate2/RETIRE marker/Issue close2 검증을 CI policy job에서 수행한다.

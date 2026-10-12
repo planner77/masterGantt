@@ -1,3 +1,9 @@
+## Issue #633 — 0.105.0/0.106.0 GHCR UNKNOWN·새 Corrective 감사 (2026-10-12)
+
+- [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) SUCCESS, source `09bee924032b4126ff794ec7a485542fd72dd7bf`/candidate digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`/HTTP-HTTPS PASS. 정식 GHCR v0.106.1 tag/Release 없음.
+- [Read-only audit #1.1](https://github.com/planner77/masterGantt/actions/runs/38216994751) FAIL/BLOCKED(0.105.0,0.106.0,0.106.1 GHCR UNKNOWN). [Finalizer #153.1](https://github.com/planner77/masterGantt/actions/runs/38216994785) FAIL/BLOCKED 구버전 GHCR ABSENT 미확인, mutation NONE.
+- 신규 PR에서는 git tag/Release / GHCR exact digest 상태와 Packages API 인증 pagination을 별도 검증한다. Owner marker 보존, 기존 릴리스 원본 SHA와 신규 audit-only Main SHA를 구분하고 새 PR CI 및 후속 Main evidence를 각각 기록한다.
+
 ## Issue #633 — B2 신규 SemVer PR/실제 GHCR 실행 증거 (2026-10-12)
 
 - 원본 #550 #2515 FAIL, #615 #2526 FAIL은 기존 기록에 보존. #615 교정 #2531 PASS (digest de76273a…), #550 후속 #2553 PASS (digest 7700bffc…), #633 초기 감사 #2565 PASS (digest c36138dd…)는 전부 `ci-<SHA>` 후보 성공이지 정식 SemVer 게시 PASS가 아니다.

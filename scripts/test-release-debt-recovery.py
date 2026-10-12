@@ -70,8 +70,8 @@ def mock_gh(path,*,method="GET",fields=None):
     return {}
 history_current=chain
 def fake_history_run(*args,**kwargs):
-    ok(args==("git","rev-list","--first-parent",new.target_sha),
-       "trusted git ancestry must be exact and read-only")
+    ok(args[:3]==("git","rev-list","--first-parent") and len(args)==4,
+       "trusted git ancestry query must be first-parent and read-only")
     return SimpleNamespace(stdout="\n".join(item.target_sha for item in reversed(history_current)))
 def fake_resolve(repo,sha):
     return next(item for item in history_current if item.target_sha==sha)
@@ -96,6 +96,33 @@ try:
        good.retired_shas==frozenset(row[0] for row in b2.SOURCES),
        "B2 must skip ONLY explicitly authorized exact old merges")
     ok(len(good.previous_items)==5,"cleanup debt must include all five PRs")
+    # A later non-version-bumping Issue #633 audit correction does not move
+    # the Owner-approved v0.106.1 tag authority away from original PR #635.
+    same_version_fix=auto.WorkItem("d"*40,new.target_sha,701,633,
+                                   "0.106.1","0.106.1",False)
+    history_current=[*chain,same_version_fix]
+    main_ci_results[same_version_fix.target_sha]=(True,"fixed audit main CI")
+    saved_ci=audit.lifecycle.exact_main_ci
+    try:
+        audit.lifecycle.exact_main_ci=lambda repo,sha,docs_only=False:(True,"ok",True,"candidate PASS")
+        future=b2.plan_b2(core,b2.REPO,same_version_fix.target_sha,[same_version_fix])
+        ok(future.sha==new.target_sha and future.main_sha==same_version_fix.target_sha,
+           "policy-only correction must preserve immutable release SHA/PR authority")
+        # Another Issue and another version-changing merge are not allowed.
+        history_current=[*chain,replace(same_version_fix,issue_number=629)]
+        blocked(lambda:b2.plan_b2(core,b2.REPO,same_version_fix.target_sha,[same_version_fix]),
+                "different Issue cannot extend release approval")
+        history_current=[*chain,replace(same_version_fix,current_version="0.106.2")]
+        blocked(lambda:b2.plan_b2(core,b2.REPO,same_version_fix.target_sha,[same_version_fix]),
+                "post-approval version change cannot extend exact Owner authority")
+        history_current=[*chain,same_version_fix]
+        main_ci_results[same_version_fix.target_sha]=(False,"CI failed")
+        blocked(lambda:b2.plan_b2(core,b2.REPO,same_version_fix.target_sha,[same_version_fix]),
+                "policy-only correction needs own Main CI SUCCESS")
+    finally:
+        audit.lifecycle.exact_main_ci=saved_ci
+        history_current=chain
+        main_ci_results.pop(same_version_fix.target_sha,None)
     ok(b2.plan_b2(core,b2.REPO,new.target_sha,[new]) is not None,
        "Resume must independently recover old source past #633 prior FINAL boundary")
     # Incomplete cleanup after the first old Issue closes must be restartable.

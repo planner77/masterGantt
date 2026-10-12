@@ -1,3 +1,8 @@
+## Issue #633 — GHCR UNKNOWN 차단 보완 및 정확 릴리스 SHA 유지 (2026-10-12)
+
+- v0.106.1 초기 교정 PR #635 merge `09bee924032b4126ff794ec7a485542fd72dd7bf`, Main CI #2579.1 PASS, candidate sha256:0ab78272… 검증. 기존 두 태그 Git/GitHub Release ABSENT, private GHCR `UNKNOWN`으로 audit #1/Generic Finalizer #153 FAIL-CLOSED·mutation NONE.
+- 후속 `fix/issue-633-ghcr-inventory-auth`는 GHCR 없는 태그의 authenticated GitHub Packages 원장을 검증하여 200·pagination complete·tag ABSENT 일 때만 safe B2 경로를 연다. 기존 v0.106.1 Owner 승인 대상 SHA는 09bee...로 고정하고 같은 버전·같은 Issue 신규 audit PR의 exact Main CI·candidate를 요구한다. 병합/Release 발행 전 PR CI·Trusted QA·리뷰0 필수.
+
 ## Issue #633 — B2 미발행 버전2개 정리·v0.106.1 교정 PR 실행 (2026-10-12)
 
 - main `f839ad01cd395004e623ae171f1684cfc49e482e` / 기존 `0.106.0`에서 B2 read-only inventory, 명시 Owner 철회·승인 가드 및 신규 SemVer `0.106.1` 후보를 별도 `fix/issue-633-b2-release-recovery` 브랜치로 구현. 기존 #550/#615 원본 CI FAIL·GHCR 미발행 부채는 대체·소급 PASS 금지.
