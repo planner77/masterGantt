@@ -1,3 +1,9 @@
+## Issue #629 — PR #630 CI #2537.1 E2E 실패 진단·최신 main 재정렬 (2026-10-12)
+
+- #2537.1 Quality/Docker 및 5개 E2E shard PASS, shard5 #570 Core insert-before 41:TIMED_OUT(97 PASS/1 FAIL); QA Final은 E2E 미성공의 종속 FAIL. 실제 trace에서 logical/Core/DOM 5개 작업 순서는 정확하지만 내부 안정 predicate 원인은 미상.
+- 구조 테스트 PASS를 근거로 원격 E2E를 PASS라 하지 않는다. 신규 E2E 실패 diagnostics(실제 DOM rect/label/core trace)만 최소 보완, 판정 완화 없음.
+- 기준 main이 `6eaec333...`에서 `e51b99cb...`로 이동하여 6 commits의 변경을 정확히 통합하고 공통 문서의 상단 최신 이력을 보존한 뒤 Full PR CI를 재시작한다. 제품 버전·QA/Owner 권한은 불변.
+
 ## Issue #629 — QA Preflight 선행 차단 구현 (2026-10-12)
 - 기준 main `6eaec3331fcbc720ab42106789a505c5ee5eefb4`, 브랜치 `ci/issue-629-qa-preflight`; Issue #598 OWNER_MANAGED, #593 Trusted provenance, #600 metadata auto reconcile 유지.
 - 도입 단계: base에 사전 검증기 없음 → Bootstrap NOT TESTED, full required 3종 실행 및 최종 Trusted QA 검증. 이후 full PR에만 최신 base SHA verifier로 preflight 실행; PR 메타데이터/Work Packet은 읽기 전용 data. 사전 실패 시 heavy jobs skipped·required aggregate FAILURE.
