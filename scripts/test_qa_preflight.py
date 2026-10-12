@@ -194,7 +194,7 @@ class Contract(unittest.TestCase):
         self.assertIn("needs: [changes, preflight, metadata_evidence, policy,", ci)
         self.assertIn("needs: [changes, preflight, metadata_evidence, e2e_shard]", ci)
         self.assertIn("needs: [changes, preflight, metadata_evidence, docker_smoke]", ci)
-        self.assertGreaterEqual(ci.count('if [[ "$PREFLIGHT" != "success" ]]'), 3)
+        self.assertGreaterEqual(ci.count('"$PREFLIGHT" != "success"'), 3)
         self.assertIn("scripts/test_qa_preflight.py", ci)
         self.assertIn("ref: \${{ github.event.pull_request.base.sha }}", ci)
 
