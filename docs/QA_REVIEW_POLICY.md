@@ -1,3 +1,6 @@
+## Issue #629 — 자동 QA 사전/최종 판정 경계 (2026-10-12)
+Preflight는 #598 OWNER_MANAGED 기본 경로와 선택 AGENT·LOW/MEDIUM/HIGH 위험도·보호 경로 감지를 기존 `qa_final_automated.py`의 공통 함수로 검증한다. 구조적 FAIL만 E2E/Docker 이전 차단하고, 리뷰/Owner ACCEPT/최신 Trusted QA/정확한 test merge/aggregate 3종 완료 여부는 DEFERRED(최종 QA 담당)이다. 사전 PASS는 `QA_FINAL PASS`나 `MERGE_READY`가 아니다. AGENT 독립 QA나 Owner 승인을 자동 생성하지 않는다. PR Head 검증기 코드는 신뢰·실행하지 않는다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
