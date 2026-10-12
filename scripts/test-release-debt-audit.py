@@ -53,6 +53,7 @@ blocked(lambda:check(states={**states,"0.105.0":audit.VersionState("ABSENT","ABS
 blocked(lambda:check(ev={**ev,c.target_sha:audit.MainEvidence(False,True,False,"incomplete")}),"candidate missing")
 blocked(lambda:check(chain=[a,replace(b,issue_number=550),c,d,e]),"same Issue should not qualify")
 blocked(lambda:check(chain=[a,b,replace(c,validation_docs_only=True),d,e]),"docs-only correction")
+blocked(lambda:check(chain=[a,b,replace(c,issue_number=999),d,e]),"foreign correction Issue")
 blocked(lambda:check(chain=[a,b,replace(c,current_version="0.107.0"),d,e]),"version change")
 blocked(lambda:check(chain=[a,b,c,replace(d,actionable=False),e]),"closed ordering barrier does not bypass source") if False else None
 require(audit.semver("0.106.1")>audit.semver("0.106.0"),"SemVer comparison")
