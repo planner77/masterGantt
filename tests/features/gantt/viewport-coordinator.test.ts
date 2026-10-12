@@ -321,6 +321,55 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.sample.receipt).toBeNull();
   });
 
+  it("repairs one delayed native diagnostic offset without acquiring production authority", async () => {
+    const f = fixture(); f.update({ receipt: null });
+    const target = { left: 240, top: 96 };
+    vi.mocked(f.port.apply).mockImplementation(async () => { f.update({ core: target }); return target; });
+    vi.mocked(f.port.repair).mockImplementation(position => { f.update({ native: position }); return true; });
+    const pending = f.coordinator.request({ kind: "DIAGNOSTIC_SCROLL", left: target.left });
+    await f.advance(8);
+    expect(await pending).toBe("SETTLED");
+    expect(f.port.repair).toHaveBeenCalledExactlyOnceWith(target, true);
+    expect(f.port.protect).not.toHaveBeenCalled();
+    expect(f.sample.receipt).toBeNull();
+  });
+
+  it("bounds persistent diagnostic native disagreement to three repairs per operation", async () => {
+    const f = fixture(), target = { left: 240, top: 96 };
+    vi.mocked(f.port.apply).mockImplementation(async () => { f.update({ core: target }); return target; });
+    vi.mocked(f.port.repair).mockReturnValue(true);
+    const pending = f.coordinator.request({ kind: "DIAGNOSTIC_SCROLL", left: target.left });
+    await f.advance(14);
+    expect(await pending).toBe("TIMED_OUT");
+    expect(f.port.repair).toHaveBeenCalledTimes(3);
+    expect(f.port.protect).not.toHaveBeenCalled();
+  });
+
+  it.each(["gesture", "hidden", "context", "revision", "projection"])("stops diagnostic repair on a new %s before touching native scroll", async change => {
+    const f = fixture(), target = { left: 240, top: 96 };
+    vi.mocked(f.port.apply).mockImplementation(async () => { f.update({ core: target }); return target; });
+    const pending = f.coordinator.request({ kind: "DIAGNOSTIC_SCROLL", left: target.left });
+    await f.advance();
+    if (change === "gesture") f.coordinator.userInput();
+    else if (change === "hidden") f.context({ visible: false });
+    else if (change === "revision") f.context({ revision: 4 });
+    else if (change === "projection") f.context({ projectionEpoch: 6 });
+    else { f.context({ key: "other" }); f.coordinator.contextChanged(); }
+    await f.advance(2);
+    expect(await pending).toBe("SUPERSEDED");
+    expect(f.port.repair).not.toHaveBeenCalled();
+  });
+
+  it("does not repair diagnostic scroll after native capacity shrinks", async () => {
+    const f = fixture(), target = { left: 240, top: 96 };
+    vi.mocked(f.port.apply).mockImplementation(async () => { f.update({ core: target }); return target; });
+    const pending = f.coordinator.request({ kind: "DIAGNOSTIC_SCROLL", left: target.left });
+    await f.advance(); f.update({ capacity: { left: 100, top: 1000 } });
+    await f.advance(14);
+    expect(await pending).toBe("TIMED_OUT");
+    expect(f.port.repair).not.toHaveBeenCalled();
+  });
+
   it("keeps range extension on its immediate path without geometry preparation", async () => {
     const f = fixture(); f.port.prepare = vi.fn<NonNullable<ViewportPort["prepare"]>>(async () => ({ ready: false }));
     const pending = f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 });

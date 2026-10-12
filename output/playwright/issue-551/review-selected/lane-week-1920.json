@@ -1,0 +1,168 @@
+{
+  "capturedAt": "2026-10-08T17:40:55.001Z",
+  "environment": "Chromium/Next dev/Core2.7.3, synthetic API, America/New_York",
+  "width": 1920,
+  "scale": "week",
+  "observed": {
+    "lane": {
+      "x": 25,
+      "y": 356,
+      "right": 1895,
+      "bottom": 420,
+      "width": 1870,
+      "height": 64
+    },
+    "plot": {
+      "x": 510,
+      "y": 420,
+      "right": 1895,
+      "bottom": 988,
+      "width": 1385,
+      "height": 568
+    },
+    "clip": {
+      "x": 24,
+      "y": 355,
+      "right": 1896,
+      "bottom": 989,
+      "width": 1872,
+      "height": 634
+    },
+    "list": {
+      "x": 33,
+      "y": 366,
+      "right": 123,
+      "bottom": 410,
+      "width": 90,
+      "height": 44
+    },
+    "anchor": {
+      "tick": 510,
+      "native": 511
+    },
+    "alignment": [
+      {
+        "id": ":00000000-0000-4000-8000-000000000001",
+        "gridCenter": 512,
+        "chartCenter": 511.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000002",
+        "gridCenter": 550,
+        "chartCenter": 549.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000003",
+        "gridCenter": 588,
+        "chartCenter": 587.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000004",
+        "gridCenter": 626,
+        "chartCenter": 625.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000005",
+        "gridCenter": 664,
+        "chartCenter": 663.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000006",
+        "gridCenter": 702,
+        "chartCenter": 701.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000007",
+        "gridCenter": 740,
+        "chartCenter": 739.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000008",
+        "gridCenter": 778,
+        "chartCenter": 777.5
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000009",
+        "gridCenter": 816,
+        "chartCenter": 815.5
+      }
+    ],
+    "markers": [
+      {
+        "rect": {
+          "x": 518,
+          "y": 366,
+          "right": 678,
+          "bottom": 410,
+          "width": 160,
+          "height": 44
+        },
+        "label": "M-DST · 2026-03-10 · M-DST · 읽기 전용 · 미완료 · 수동 단계"
+      }
+    ],
+    "rows": [
+      {
+        "id": ":00000000-0000-4000-8000-000000000001",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000002",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000003",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000004",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000005",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000006",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000007",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000008",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000009",
+        "height": 38
+      },
+      {
+        "id": ":00000000-0000-4000-8000-000000000010",
+        "height": 38
+      }
+    ]
+  },
+  "metrics": {
+    "count": 7,
+    "coordinateCount": 3,
+    "durationMs": 0,
+    "sourceTasks": 10,
+    "sourceMilestones": 3,
+    "queueVersion": 2
+  },
+  "mutationCount": 0,
+  "instance": "svar-api-1",
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "f4371b59243bd9301e5abaece578e69b89635a85f36ad2da65054432cf1efb06",
+    "src/features/projects/project-readonly-view.tsx": "4c379fe3054a72b49da6c80b3ae8a9194914d47fd7a84b0a16bb645a9b0c65b2",
+    "src/features/gantt/milestone-timeline-adapter.ts": "3c0b19b960e2ea36f35fbe84af83e39f3c02e3a70819c4eafd4275446cdcd1bf",
+    "src/features/gantt/milestone-timeline-lane.tsx": "e730b5df8c017c5593d57569c5ab6c049f41aecb84975f1113c98d269db98dc9",
+    "src/features/gantt/milestone-timeline-lane-model.ts": "35183ab987f8675478817428ef297c12978f85528f3b9dbd59013545a15a4a98",
+    "src/features/gantt/milestone-timeline-lane.css": "a1ce1b2dbc8e0f9f886af304f93d6295d7e0ef8bc74b30b54d3bf68e14005074",
+    "src/features/gantt/gantt-scale-toolbar.css": "8251d7d5f789ae2647a9228a0803ae357fbb9fab87058b84625abed4313cdc56",
+    "src/features/gantt/week-calendar-interval.ts": "226e09e3d1936d3db8214b9d27947cff19ef8552cb6d96fe3777745c909934d1",
+    "src/features/gantt/week-timeline-tooltip.ts": "a83100852e5cdc3b198179f7caa7dab52062a4f4cf9a812831ba2d2bccfd929a",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "aff1b1a044fd0e779e2ff64dcfbcc228143396095bdc77c4c1df54c86a72a143"
+  }
+}

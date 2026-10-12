@@ -80,7 +80,8 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#549 Core filter geometr
     // Scale rerenders must retain the same filtered rows and public instance.
     expect((await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
     for (const task of state.tasks.filter(task => task.type === "task")) {
-      await probe(frame, "reveal", task.start); await settle(page);
+      const outcome = await probe(frame, "reveal", task.start); await settle(page);
+      await info.attach(`reveal-${width}-${scale}-${task.externalId}`, { body: JSON.stringify({ outcome, date: task.start, coordinate: await probe(frame, "coordinate", task.start), state: await probe(frame, "read"), viewport: await frame.evaluate(node => { const chart = node.querySelector<HTMLElement>(".wx-chart")!; return { left: chart.scrollLeft, capacity: chart.scrollWidth-chart.clientWidth, coordinator: node.getAttribute("data-gantt-viewport-coordinator") }; }) }), contentType: "application/json" });
       const coordinate = await probe<{ contentX: number; visible: boolean }>(frame, "coordinate", task.start);
       const measured = (await geometry(frame)).find(row => row.id === `:${task.taskId}`)!;
       expect(coordinate.visible).toBe(true);
@@ -116,8 +117,11 @@ test("#549 DST reveal uses the same calendar-day geometry as native Task bars", 
     await probe(frame, "scroll", 0); await probe(frame, "reveal", "2026-03-10"); await settle(page);
     const corrected = await probe<Observation>(frame, "read");
     expect(Math.abs(corrected.left - coordinate.contentX)).toBeLessThanOrEqual(1);
-    const left = corrected.left; await probe(frame, "reveal", "2026-03-10"); await settle(page);
-    expect((await probe<Observation>(frame, "read")).left).toBe(left);
+    const left = corrected.left, scrollEvents = corrected.events.filter(event => event.action === "scroll-chart").length;
+    expect(await probe(frame, "reveal", "2026-03-10")).toBe("SETTLED"); await settle(page);
+    const repeated = await probe<Observation>(frame, "read");
+    expect(repeated.left).toBe(left);
+    expect(repeated.events.filter(event => event.action === "scroll-chart")).toHaveLength(scrollEvents);
     observations.push({ scale, coordinate, native, corrected, nativeError: native.left - coordinate.contentX });
   }
   await evidence(info, "DST-reveal", { observations }, page);
@@ -134,7 +138,7 @@ for (const kind of ["milestone-only", "empty"] as const) test(`#549 ${kind} date
   expect(after.end.getTime()).toBeGreaterThanOrEqual(before.end.getTime()); expect(after.instance).toBe(before.instance);
   let coordinateAfter = null;
   if (kind === "milestone-only") {
-    expect(await probe(frame, "reveal", state.tasks[0].start)).toBe(true); await settle(page);
+    expect(await probe(frame, "reveal", state.tasks[0].start)).toBe("SETTLED"); await settle(page);
     coordinateAfter = await probe<{ insideRange: boolean; visible: boolean }>(frame, "coordinate", state.tasks[0].start);
     expect(coordinateAfter.insideRange).toBe(true); expect(coordinateAfter.visible).toBe(true);
   }

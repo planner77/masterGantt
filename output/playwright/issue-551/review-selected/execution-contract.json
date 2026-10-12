@@ -1,0 +1,79 @@
+{
+  "issue": 551,
+  "baseline": "31345da9346dfbdc1ac02e4e7ca567edafec775f",
+  "environment": "Chromium / Next dev / Core2.7.3 / America/New_York / synthetic API",
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "f4371b59243bd9301e5abaece578e69b89635a85f36ad2da65054432cf1efb06",
+    "src/features/projects/project-readonly-view.tsx": "4c379fe3054a72b49da6c80b3ae8a9194914d47fd7a84b0a16bb645a9b0c65b2",
+    "src/features/gantt/milestone-timeline-adapter.ts": "3c0b19b960e2ea36f35fbe84af83e39f3c02e3a70819c4eafd4275446cdcd1bf",
+    "src/features/gantt/milestone-timeline-lane.tsx": "e730b5df8c017c5593d57569c5ab6c049f41aecb84975f1113c98d269db98dc9",
+    "src/features/gantt/milestone-timeline-lane-model.ts": "35183ab987f8675478817428ef297c12978f85528f3b9dbd59013545a15a4a98",
+    "src/features/gantt/milestone-timeline-lane.css": "a1ce1b2dbc8e0f9f886af304f93d6295d7e0ef8bc74b30b54d3bf68e14005074",
+    "src/features/gantt/gantt-scale-toolbar.css": "8251d7d5f789ae2647a9228a0803ae357fbb9fab87058b84625abed4313cdc56",
+    "src/features/gantt/week-calendar-interval.ts": "226e09e3d1936d3db8214b9d27947cff19ef8552cb6d96fe3777745c909934d1",
+    "src/features/gantt/week-timeline-tooltip.ts": "a83100852e5cdc3b198179f7caa7dab52062a4f4cf9a812831ba2d2bccfd929a",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "aff1b1a044fd0e779e2ff64dcfbcc228143396095bdc77c4c1df54c86a72a143"
+  },
+  "browser": {
+    "status": "PASS",
+    "passed": 17,
+    "durationSeconds": 46.4,
+    "exit": 0,
+    "startedAt": "2026-10-08T17:40:10Z",
+    "finishedAt": "2026-10-08T17:40:55Z",
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts --project chromium --output=/tmp/issue551-frontend-browser-rework-results --reporter=line",
+    "rawLog": "/tmp/issue551-frontend-browser-rework.log",
+    "sourceCheck": "10/10 OK",
+    "observations": "5 widths × Day/Week; header/date, interaction, cluster, touch emulation, peer/resize, display modes, upper date boundary"
+  },
+  "unit": {
+    "status": "PASS",
+    "uniqueTests": 29,
+    "exit": 0,
+    "rawLog": "/tmp/issue551-frontend-freeze-unit.log",
+    "scope": "new interval11/lane model5 + existing tooltip8/adapter5",
+    "reuse": false,
+    "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/week-calendar-interval.test.ts tests/features/gantt/milestone-timeline-lane-model.test.ts tests/features/week-header-tooltip.test.ts tests/features/gantt/milestone-timeline-adapter.test.ts",
+    "note": "Pure helpers/tests unchanged after prior29 PASS; final freeze reran only these four targeted files on latest source."
+  },
+  "checks": {
+    "typecheck": {
+      "exit": 0,
+      "log": "/tmp/issue551-frontend-freeze-typecheck.log"
+    },
+    "changedLint": {
+      "exit": 0,
+      "log": "/tmp/issue551-frontend-freeze-lint.log"
+    },
+    "markdown": {
+      "exit": 0,
+      "log": "/tmp/issue551-frontend-freeze-markdown.log"
+    },
+    "diffCheck": {
+      "exit": 0
+    }
+  },
+  "firstFailures": {
+    "before": "Actual Week native month3/lower ISO mismatch; before-source/hash/log preserved under /tmp/issue551-frontend-header-before.*",
+    "diagnostic": "Actual lower11424px/upper13668px/weekStart0; /tmp/issue551-frontend-header-diagnostic.*",
+    "peerResize": "Initial oracle-only hypothesis superseded by actual repeated5s missing projection. Queue-completion version/identity and request coalescing fixed; original first/repeated FAIL retained under /tmp and raw evidence directory",
+    "other": "390 clipped list, maximum-date fixture timeout, incorrect existing button selector, hidden Grid DOM/42px rail oracle, duplicate displayMode prop type/lint failures preserved; see TEST_PLAN"
+  },
+  "warning": {
+    "observed": "React child-key warning, render Lt, in development displayMode case",
+    "cause": "unconfirmed; TimeScale rowIdx/cellIdx keys under separate parents do not establish two-week-row collision",
+    "notObserved": "Week header-only / lane Week logs; not asserted as baseline warning"
+  },
+  "rawEvidence": "/tmp/mastergantt-551-frontend-raw-evidence",
+  "notTested": [
+    "Remote quality/e2e/docker",
+    "production build/runtime",
+    "real touch device/screen reader",
+    "HTTP authorization/SQLite persistence for551",
+    "full Task drag/Dependency regression",
+    "invalid canonical server DTO",
+    "minimum1900 full UI"
+  ],
+  "defaultProductionActivation": false,
+  "generatedCleanup": "next-env.d.ts restored to HEAD baseline; tsconfig.json unchanged"
+}

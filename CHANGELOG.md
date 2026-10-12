@@ -32,6 +32,26 @@
 
 - **Area impact:** [Unreleased] Issue #639 — adds narrowly scoped authenticated manual recovery for missing immutable merge Main CI, preserving original push evidence and GHCR/Release fail-closed guards.
 
+## [Unreleased] — Issue #551 CI #2605.1 대형 Timeline 진단 초기화 순서 보완 (2026-10-13)
+
+- 1000 Task+2000 Milestone Chromium fixture에서 Gantt native API와 Grid가 보이나 dev-only Milestone probe가 5초 내 준비되지 않는 실패를 분석했다. Probe를 React 후속 state/effect 등록에서 SVAR `init(api)` 즉시 등록으로 바꾸고 중복 리스너·StrictMode lifecycle 및 API 교체 cleanup을 관리한다.
+- 3000-item 테스트의 기존 5초 readiness/전체 fixture/geometry·scroll/동일 instance assertions는 유지하면서 실제 API instance ID와 dev probe `read().instance` 일치를 검증한다. 앱 production/일정 API/DB/계산/버전은 불변이며 새 전체 CI에서 최종 판정한다.
+
+## [Unreleased] — Issue #551 PR #560 공유 calendar reveal 회귀 교정 (2026-10-13)
+
+- 앞선 개발 probe의 native 날짜 reveal 통합으로 발생한 #549 Core7개 실패를 교정한다. 단일 calendar adapter의 contentX와 실제 native 가시성으로 이미 보이는 날짜의 무이동 계약을 유지하고 화면 밖 날짜는 기존 coordinator의 개발 진단 left 명령을 사용한다.
+- 기존 개발 진단 scroll 정착만 최대3회 native repair로 제한해 보완하고 Core/lane 회귀를 함께 검증한다. production 기본 OFF·지원 범위·서버/데이터/패키지/CI gate·기존 정확도 기준은 유지한다. 원본 실패 및 새 원격 검증 전 NOT TESTED 경계를 보존한다.
+
+## [Unreleased] — Issue #551 PR #560 날짜 reveal 정착·실패 진단 보완 (2026-10-12)
+
+- Day→Week 전환 뒤 개발 Timeline reveal이 Core 상태만으로 이동을 생략하는 경계를 기존 viewport coordinator의 날짜 reveal/정착 경로로 통합한다. 실제 5폭 날짜축·Task bar·tick의 ±1px 및 같은 인스턴스 검증을 유지하고 정착 결과 검증을 추가한다.
+- 별도 Milestone 교환 통합 테스트의 Project 요청에 기존 격리 서버 진단 수집기를 연결한다. GET `ECONNRESET` 원본 실패를 재시도 없이 보존하며, 진단 보강을 transport 근인 해결로 보고하지 않는다. production 기본 OFF, 일정/서버 API/DB·패키지 버전·CI Gate는 유지한다.
+
+## [Unreleased] — Issue #551 PR #560 CI #2594.1 날짜 Timeline 표시 좌표 보완 (2026-10-12)
+
+- Chromium shard4의 5폭 실제 Task bar와 Milestone lane tick의 약 3,018~3,036px 불일치 원본을 보존했다. Core 스크롤 상태만 이용한 viewportX 대신 실제 native `.wx-scale` 원점과 canonical 날짜 contentX를 결합하고 Chart DOM scroll listener와 cleanup을 추가한다.
+- 대형 1000 Task+2000 Milestone에서 dev-only probe 등록을 passive effect 뒤가 아닌 layout commit에 맞춰 준비한다. 기존 strict±1px·5s, 실패 artifact, 64px opt-in/production OFF, 일정 데이터 원본·API·DB 불변. 전체 새 PR CI/QA 성공은 별도 확인한다.
+
 ## [Unreleased] — Issue #616 PR CI Shard6 회귀 보완 (2026-10-12)
 
 - 프로젝트 링크 E2E에서 두 번째 새 Project 화면의 SSR→hydration 타이밍으로 name 입력이 초기화돼 POST 없이 client validation에서 차단된 실패를 추적한다. 클라이언트 기준정보 준비가 끝난 뒤 입력하고 submit 직전 이름 상태를 검증해 30초 HTTP 타임아웃으로 오진하지 않도록 한다.
@@ -130,6 +150,17 @@
 - 승인 없는 보호 변경과 자동 처리 경로는 기존대로 차단한다. 검증기 자체 변경의 신뢰성·독립 QA 및 Manager ACCEPT는 PR CI와 별개이며, 기존 Required Quality/E2E/Docker·GHCR 승인 경계를 유지한다.
 
 # Changelog
+
+## [Unreleased] — Issue #551 Milestone Timeline main 통합 (2026-10-12)
+
+### Added
+
+- Issue #551: 같은 Gantt 날짜축에 맞춘 앱 소유 compact Milestone Timeline capability를 준비하고 날짜·스크롤·레이아웃 동기화와 기존 Editor 진입을 제공한다. 기본 화면 전환은 #552에서 수행한다.
+
+### Fixed
+
+- Week 모드의 일요일 축과 ISO 주차 의미 차이를 월요일 locale로 정합화한다. 월별 부분 주 올림이 누적되는 상단 월 셀 대신 각 ISO 주가 포함하는 Gregorian 월·연도 범위를 표시한다.
+- PR #560 CI 보완: Grid splitter 후 실제 Chart DOM 폭과 Core 내부 폭이 달라도 Timeline 좌표를 유지하고 cluster 날짜 guide·키보드 focus를 복원한다.
 
 ## [0.105.0] - 2026-10-10
 

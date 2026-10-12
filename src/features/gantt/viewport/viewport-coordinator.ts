@@ -39,7 +39,7 @@ export interface ViewportPort {
   frame(signal: AbortSignal): Promise<boolean>;
   prepare?(command: ViewportCommand, current: () => boolean): Promise<ViewportPreparation>;
   apply(command: ViewportCommand, current: () => boolean): Promise<ViewportPosition | null>;
-  repair(position: ViewportPosition): boolean;
+  repair(position: ViewportPosition, diagnostic?: true): boolean;
   protect(position: ViewportPosition, current: () => boolean): void;
   release(): void;
   trace(phase: ViewportPhase, command?: ViewportCommand, outcome?: ViewportOutcome, metadata?: ViewportTraceMetadata): void;
@@ -109,7 +109,12 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       rangeController?.abort("NEW_RANGE");
       const controller = new AbortController();
       rangeController = controller;
-      const current = () => !disposed && !controller.signal.aborted && validSource(source) && port.read().context.visible;
+      const current = () => {
+        const sample = port.read();
+        return !disposed && !controller.signal.aborted && validSource(source) && sample.context.visible &&
+          (command.kind !== "DIAGNOSTIC_SCROLL" || (sample.context.revision === initial.context.revision &&
+            sample.context.projectionEpoch === initial.context.projectionEpoch));
+      };
       let result: ViewportOutcome = "TIMED_OUT";
       try {
         trace("APPLYING");
@@ -117,7 +122,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
         if (!current()) return result = "SUPERSEDED";
         if (!applied) return result = "NO_SCROLL_CAPACITY";
         trace("SETTLING");
-        let stable = 0, geometry = "";
+        let stable = 0, geometry = "", diagnosticRepairs = 0;
         for (let count = 0; count < maxFrames && current(); count++) {
           const animated = await port.frame(controller.signal), sample = port.read();
           if (!current()) return result = "SUPERSEDED";
@@ -128,6 +133,15 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
           // scroll probe likewise must not acquire production restore authority.
           const coherent = Math.abs(sample.core.left - sample.native.left) <= 1 && Math.abs(sample.core.top - sample.native.top) <= 1 &&
             (command.kind !== "DIAGNOSTIC_SCROLL" || sample.core.left === command.left);
+          if (command.kind === "DIAGNOSTIC_SCROLL" && !coherent && animated && geometry === sample.geometry &&
+            sample.core.left === command.left && sample.core.top === applied.top && diagnosticRepairs < 3 &&
+            sample.capacity.left >= command.left - 1 && sample.capacity.top >= applied.top - 1 && current()) {
+            // Core may commit the correct numeric offset before native scroll.
+            // Reuse the bounded port repair under this diagnostic lease only;
+            // a new gesture/context, hidden view or insufficient capacity wins.
+            diagnosticRepairs++;
+            port.repair({ left: command.left, top: applied.top }, true);
+          }
           stable = animated && coherent && geometry === sample.geometry ? stable + 1 : 0;
           geometry = sample.geometry;
           if (stable >= 3) return result = "SETTLED";
