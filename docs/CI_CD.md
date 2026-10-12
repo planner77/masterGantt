@@ -739,3 +739,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 ## Issue #603 — Docker BuildKit PR cache read-only
 
 PR `docker_smoke`는 shared GHA BuildKit cache를 읽기만 하고 `cache-to`는 `push`에서만 활성화한다. Main `docker_smoke`와 Main publish 경로가 cache writer 책임을 유지한다. PR required Docker build/policy/runtime smoke는 cache miss에서도 동일하게 실행한다. baseline은 #444 readiness Run #32.1이며 after는 동일 `docker_smoke/docker-build-cache` metric의 successful PR run >=10으로 비교한다.
+
+## Issue #616 F2 candidate validation
+
+High-risk DB migration 0026, Target service/REST, Copy/Template/export modifications require full exact-head required aggregate checks (quality/E2E/Docker), revision/authorization negative tests, migration checksum/foreign_key_check and restart. PR only; no main artifact publish before explicit Owner merge decision. Local checks unavailable when repository runtime/node_modules are absent; track as NOT TESTED rather than PASS. Candidate version bump alone is not release authorization.
