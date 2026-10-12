@@ -162,6 +162,12 @@ def assess(
             "실패 버전과 후속 release baseline이 다릅니다")
     require(original.issue_number == successor.issue_number,
             "중간 Release와 교정 PR은 동일 Issue여야 합니다")
+    require(all(item.issue_number == original.issue_number and
+                not item.validation_docs_only and
+                item.current_version == successor.current_version and
+                item.previous_version == successor.current_version
+                for item in chain[indices[original_successor_sha]+1:indices[successor_sha]+1]),
+            "후속 Release의 교정 구간에 다른 Issue/버전/docs-only가 있습니다")
     require(original.current_version == successor.current_version
             and successor.previous_version == successor.current_version,
             "후속 교정의 immutable version이 바뀌었습니다")
