@@ -35,6 +35,8 @@
 - `docs/exec-plans/active/ISSUE_647.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `AGENTS.md`: N/A(Existing lifecycle, accessibility and QA guard unchanged)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Existing HIGH OWNER_MANAGED and independent QA contract unchanged)
+- `docs/GITHUB_OPERATIONS.md`: N/A(No GitHub workflow, merge protocol or Actions permission change)
 - `DESIGN.md`: N/A(Existing Design Delta B focus rule unchanged; no new design direction)
 - `docs/UI_UX_GUIDELINES.md`: N/A(Existing keyboard focus and modal guidance sufficient)
 - `docs/SCHEDULING_ENGINE.md`: N/A(No Milestone Task status or scheduling algorithm changed)
