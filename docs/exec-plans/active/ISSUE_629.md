@@ -1,3 +1,9 @@
+## PR CI #2532.1 원본 실패 및 보완 (2026-10-12 KST)
+- [원본 PR CI #2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545) — HEAD `541b4b36ff6ba007ac79e8cb562a9565ceba5927`, run `38186982545.1`: 변경 경로/QA bootstrap PASS, Preflight는 base 미도입으로 `NOT TESTED`(Job 자체 SUCCESS), Chromium E2E 6/6·Docker smoke 및 aggregate SUCCESS. Policy Job의 `scripts/test_qa_preflight.py::test_workflow_aggregate_guard_contract` 10개 중 9개 PASS/1개 FAIL.
+- 직접 원인: Python assert가 `ref: ${{ github.event.pull_request.base.sha }}`(literal backslash 포함)을 기대하나 workflow의 실제 값은 `ref: ${{ github.event.pull_request.base.sha }}`. 문자열 `\$`의 불필요한 역슬래시를 제거하고 일치/잘못된 escaped form 불일치 회귀를 추가. 신규 Policy Job 실패 → required `Build, static checks, and unit tests` FAILURE → `QA Final — Automated`는 `required quality 미성공`으로 FAIL. E2E·Docker의 원본 성공은 수정 후 새 Head의 성공 근거가 아니다.
+- Codex PR #630 P1 review도 동일 Assertion 오류를 지적했다. 리뷰 스레드는 재확인·응답 전까지 미해결로 취급. 원본 #2532.1의 FAIL 상태는 소급 수정하지 않는다.
+- 새 Head Python policy tests / Quality·E2E·Docker·Trusted QA는 새 PR CI에서만 판정. Owner ACCEPT, merge/Main CI/GHCR/Issue close는 이번 재작업 범위 밖.
+
 # Issue #629 — QA Final 사전 검증(Preflight)
 
 ## Work Packet
