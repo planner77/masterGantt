@@ -1,5 +1,13 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-13 — CI #2613.3 대형 fixture readiness 재발 교정 (source Head df1d5a14)
+
+- [PR CI #2613.3](https://github.com/planner77/masterGantt/actions/runs/38303775005) / run_id 38303775005 attempt3 / Head `df1d5a14c8ef2d41b32c8d6cdd90cd01424c7ec8`: TypeScript, ESLint, Vitest, Next build, Docker, Chromium shards1/2/3/5/6 PASS; shard4(job115005654126) 129 PASS, 1 FAIL(대형 Task1000+Milestone2000, `milestone-timeline-lane.spec.ts:60` 5초 준비 검사). E2E 집계 FAIL, QA Automated BLOCKED는 종속 실패이며 Trusted QA의 이전 attempt2 artifact 누락과는 별도다.
+- 기존 `installMilestoneProbe`는 SVAR `init(api)` 즉시 등록했지만, E2E 준비 predicate가 단지 `instance`를 확인하려고 `probe.read()` 전체를 매번 실행했다. `read()`는 Core derived `_tasks` 상위500개·링크 상위500개·scale rows·canonical IDs 및 이벤트 배열을 매 호출 수집한다. 3000건 렌더 부하가 있는 Chromium에서 불필요한 동기 work와 readiness gate를 결합한 불안정성을 확인했다. 이번 로그만으로 시간 초과가 probe 부재/동일성 불일치/렌더 지연 중 어느 원인인지는 미확정이다.
+- 개발 전용 객체에 단순 `instance: instanceId` 필드를 추가하고 Playwright readiness는 native `data-project-gantt-api-instance`와 해당 필드의 정확한 동일성 및 `read` 함수 존재만 5초 안에 확인한다. `read()` 기능/결과·일반 기능 검증·SVAR API identity·3000개 fixture·5초·전체 E2E 6 shard/±1px/skip0/retry0은 유지한다. production/DB/API/Calendar/scroll/UX 불변.
+- 검증: 소스 대응 정적 확인 및 신뢰된 CI 전체 재실행 필요. 로컬 Chromium/Unit 직접 실행 환경 미확보 시 NOT TESTED로 유지한다. 이전 attempt2 PR CI PASS는 현재 시도 및 새 Head 검증을 대체하지 않는다. HIGH/OWNER_MANAGED, Owner ACCEPT/Trusted QA/merge/main/GHCR는 새 공식 증거 전 BLOCKED/NOT TESTED.
+
+
 ## 2026-10-13 — 최신 main #639 통합 기준
 
 - 신규 main `5da9c039422647490a947c5cd1e80ec24df22db2`는 이전 `5c79b658c83b86f163826055fa7da6efadef4e63` 이후에도 #639의 Main CI merge-title 검증·문서 및 운영 도구 수정이 추가된 상태다. 기존 Issue #551 base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`와 별개로 최신 main 변경을 두 번째 merge parent로 통합해 보존한다.

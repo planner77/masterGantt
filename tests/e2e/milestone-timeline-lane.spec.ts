@@ -55,8 +55,10 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   // Keep the original 5s readiness gate; no sleeps or retry/timeout increase.
   await expect.poll(() => frame.evaluate(node => {
     const identity = node.dataset.projectGanttApiInstance;
-    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { read?: () => { instance: string } } | undefined;
-    return Boolean(identity && probe?.read?.().instance === identity);
+    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; read?: () => { instance: string } } | undefined;
+    // Avoid repeatedly enumerating 500 native rows and scale cells during
+    // the 3000-item readiness gate. Still require the exact SVAR API identity.
+    return Boolean(identity && probe?.instance === identity && typeof probe.read === "function");
   })).toBe(true);
   await settle(page);
   return { state, frame };

@@ -1813,6 +1813,9 @@ export function ProjectGantt({
       }, { tag });
     }
     Object.defineProperty(frame, "__masterganttMilestoneTimeline", { configurable: true, value: {
+      // Readiness must not enumerate Core's large derived task/scale arrays.
+      // The value belongs to the same initialized API as read().instance.
+      instance: instanceId,
       preview: (enabled: boolean) => { if (typeof enabled === "boolean") setTimelinePreview(enabled); },
       display: (mode: string) => { if (mode === "all" || mode === "grid" || mode === "chart") setTimelinePreviewDisplay(mode); },
       laneMeasurement: () => laneMeasurement.current,

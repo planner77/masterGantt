@@ -1,3 +1,9 @@
+## Issue #551 — #2613.3 대형 milestone timeline readiness 재발 (2026-10-13)
+
+- 원본 [PR CI #2613 attempt3](https://github.com/planner77/masterGantt/actions/runs/38303775005) shard4에서 129 PASS/1 FAIL: `tests/e2e/milestone-timeline-lane.spec.ts:60`의 Task1000+Milestone2000 설치 확인 predicate 5초 timeout. Quality/Vitest/Typecheck/Build/Docker 및 Chromium shard1/2/3/5/6 PASS; E2E aggregate와 QA Automated는 이에 종속되어 FAIL.
+- 이전 `init(api)` 즉시 개발 probe 설치 자체는 유지. 불필요한 `probe.read()` 반복 호출이 500 native rows·scale cells·500 links 등을 렌더 부하 중 매번 수집하는 구간을 제거하고, `probe.instance`와 DOM API ID의 exact equality + `read` 함수 존재로 검사한다. 원래 5초·3000건 fixture·동일 API instance 계약·본 검증에서 사용하는 full `read()`/geometry/scroll/peer/resize/fullscreen/±1px·zero-mutation을 그대로 유지한다.
+- 정적 수정은 remote CI 결과가 아니다. 새로운 Head의 exact-commit Full PR CI와 trusted QA를 확인하기 전까지 PASS 또는 병합 허가를 선언하지 않는다.
+
 ## Issue #639 — Main CI #2606.1 merge-title reject regression (2026-10-13)
 
 - Reproduce **exact** `Issue #639 · PR #641 · Main SHA 복구 및 GHCR 출처 검증 경로 안정화` (31-character summary) through `main_ci_run_name.parse_merge_title`, `format_merge_title`, `validate_merge_title` and `trace.validate_push`. Must reject without treating failed Main #2606 as PASS.
