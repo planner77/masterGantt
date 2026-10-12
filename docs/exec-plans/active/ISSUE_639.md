@@ -1,3 +1,11 @@
+## PR #641 Codex P1×3 보완 (2026-10-13)
+
+- #2599.1: Required Quality/E2E6/Docker 3종 PASS, Automated QA BLOCKED(`unresolved review thread`), Trusted QA 원본 run non-success로 FAIL; 회귀 방지 위해 reviewer 스레드를 해결하기 전 새로운 PR Head를 검증한다.
+- P1 `scripts/test_main_ci_recovery.py`의 no-env 외부 API 호출은 `c49c64ca`에서 Mock으로 이미 조치되어 정책/Vitest PASS 확인. 재검증 후 해당 스레드 해결.
+- P1 `.github/workflows/release-finalizer.yml` inline Python은 root-relative import를 `from scripts import main_ci_recovery as recovery`로 변경.
+- P1 Private GHCR `ci-<SHA>` digest 증거는 trusted main SHA 검증 → Buildx 설치 → Docker 로그인 → completed_evidence() 검증 → generic lifecycle 순으로 재배치. `GH_TOKEN` GitHub API 인증과 Docker registry 인증의 경계를 유지하며 Owner/source SHA 교차 검산.
+- `scripts/verify-issue-lifecycle.py` + `scripts/test_main_ci_recovery.py`에서 변경된 정상/오류 정적 계약을 검증. 새 PR CI와 Trusted QA는 NOT TESTED; Owner 승인 전 병합/Release/GHCR 쓰기 금지.
+
 ## PR #641 CI #2597.1 실패 2건 / 회귀 검사 동기화 (2026-10-12)
 
 - 근거: [PR CI #2597.1](https://github.com/planner77/masterGantt/actions/runs/38260278020). Quality FAIL, Chromium E2E 6/6 PASS, Docker PASS, Build/Typecheck/Lint PASS, QA Preflight PASS.
@@ -24,6 +32,8 @@
 - `scripts/test_main_ci_recovery.py`: negative and positive local deterministic tests.
 
 ## DOCUMENTATION_SYNC
+- `scripts/verify-issue-lifecycle.py`: UPDATED
+- `tests/scripts/deployment-layout.test.ts`: UPDATED
 - `AGENTS.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/CI_CD.md`: UPDATED

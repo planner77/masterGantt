@@ -1,3 +1,7 @@
+## [Unreleased] — Issue #639 PR #641 protected Finalizer review fixes (2026-10-13)
+
+- Fix root-level recovery import and ensure authenticated private GHCR digest verification occurs only after Buildx setup/login. Add source-SHA/order regressions; preserve push and explicit Owner/manual recovery fail-closed gates. No app-version change or formal release in this PR.
+
 ## [Unreleased] — Issue #639 PR #641 CI #2597.1 회귀 계약 보완 (2026-10-12)
 
 - Replace stale, literal push-only SHA/depth assertions with provenance-bound `SOURCE_SHA` and explicit push/manual recovery guards. Fail-close wrong-SHA run data; isolate manual-recovery unit fixture from GitHub network. No product version/DB/API changes.

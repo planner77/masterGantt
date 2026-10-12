@@ -1,3 +1,8 @@
+## Issue #639 — PR #641 review P1 remediation / New PR CI (2026-10-13)
+
+- Root causes: Codex P1×3 (offline mocked no-env test already fixed; inline root import; private GHCR digest authentication ordering). Existing required CI #2599.1 Quality/E2E/Docker PASS, Automated QA BLOCKED on unresolved threads.
+- Correct trusted Finalizer import and registry login order, retain default-main-only write code, add static policy+unit regressions, align operation docs and Work Packet, create new Head PR CI; fix comments and resolve threads. release_required=false, release_authorized=false, merge and GHCR explicitly excluded.
+
 ## Issue #639 — PR #641 CI #2597.1 원인 분석/보완 (2026-10-12)
 
 - Policy job: `verify-issue-lifecycle.py`의 hardcoded `GITHUB_SHA` GHCR 경로 문자열. Vitest: `deployment-layout.test.ts`가 구 push-only checkout depth 문구를 고정 검증해 실패. 앱 Build/Typecheck/Lint, E2E6, Docker, Preflight는 PASS.

@@ -141,6 +141,25 @@ class RecoveryTests(unittest.TestCase):
             with self.assertRaises(recovery.Blocked):
                 recovery.verified_recovery_from_environment("planner77/masterGantt", SHA_A)
 
+
+    def test_finalizer_private_digest_provenance_order(self):
+        from pathlib import Path
+        workflow = (Path(__file__).resolve().parents[1]
+                    / ".github/workflows/release-finalizer.yml").read_text(encoding="utf-8")
+        finalize = workflow.split("  finalize:", 1)[1].split("\n  owner_recovery:", 1)[0]
+        expected = (
+            "trusted default-main checkout SHA 검증",
+            "GHCR 버전 원장 조회 도구 준비",
+            "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+            "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+            "정확한 merge lifecycle 해석 및 실행",
+        )
+        indices = [finalize.index(name) for name in expected]
+        self.assertEqual(indices, sorted(indices))
+        self.assertIn("from scripts import main_ci_recovery as recovery", finalize)
+        self.assertIn("identity.source_sha == os.environ[\"SOURCE_SHA\"]", finalize)
+        self.assertIn("if: github.event.workflow_run.event == 'workflow_dispatch'", finalize)
+
     def test_different_sha_or_old_version_not_reusable(self):
         with self.assertRaises(recovery.Blocked):
             recovery.owner_decision([owner_comment(44, True), release_comment()],

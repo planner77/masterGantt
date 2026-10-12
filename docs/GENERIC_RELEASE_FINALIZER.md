@@ -1,3 +1,10 @@
+## Issue #639 — PR #641 P1 review correction (2026-10-13)
+
+- Write-token `release-finalizer.yml` always checks out trusted `main` without persisted credentials and verifies the current HEAD.
+- The `workflow_dispatch` manual recovery verifier runs **after** Buildx setup and authenticated `docker/login-action` for private GHCR. `GH_TOKEN` is only GitHub API authentication; it must not be treated as Docker registry credentials.
+- Root-running inline Python imports `from scripts import main_ci_recovery as recovery` (not a top-level `main_ci_recovery`). The authenticated exact source CI run/attempt, target SHA, Owner marker, required Quality/E2E6/Docker and immutable `ci-<SHA>` digest must pass before the Generic First-Parent Finalizer runs. Source `head_sha` is matched against the verified controller SHA.
+- Original push CI handling is preserved. Regular manual diagnostic runs cannot satisfy the recovery source gate. Remote GHCR/Finalizer end-to-end acceptance remains NOT TESTED until #639 has merged and #616 separately authorizes recovery.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

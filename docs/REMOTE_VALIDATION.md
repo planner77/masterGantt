@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 verified-source review remediation (2026-10-13)
+
+- Remote CI #2599.1 passed all 3 required aggregate jobs but Automated QA BLOCKED on three unresolved P1 review threads. Two protected code defects were identified in the trusted Finalizer: root-relative Python import and GHCR login after digest inspection.
+- Correction: import via `scripts` and verify the exact manual recovery after authenticated Buildx/registry setup. The older no-environment unit test P1 was addressed earlier via isolated mocked discovery.
+- New HEAD should run Full PR CI + Trusted QA; all three review threads must be resolved after inspection. Do not report original SHA `b97709df...` Main CI, `ci-<SHA>` digest, SBOM/provenance or v0.107.0 GHCR formal release as PASS before real production evidence.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

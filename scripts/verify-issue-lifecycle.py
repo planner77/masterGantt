@@ -170,6 +170,37 @@ require("group: mastergantt-release-finalizer" in resume_workflow, "release resu
 require("queue: max" in resume_workflow, "release resume must preserve queued completion events")
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
+# #639 P1 review: the trusted root checkout uses a Python namespace package,
+# and private GHCR must be logged in before any recovered digest inspection.
+recovery_finalizer = auto_workflow.split("  finalize:", 1)[1].split("\n  owner_recovery:", 1)[0]
+require("ref: main" in recovery_finalizer and "persist-credentials: false" in recovery_finalizer,
+        "write-capable Generic Finalizer must always checkout trusted default main without stored credentials")
+require("from scripts import main_ci_recovery as recovery" in recovery_finalizer,
+        "inline Python in repository root must import the verifier from scripts/")
+require("if: github.event.workflow_run.event == 'workflow_dispatch'" in recovery_finalizer,
+        "only explicit manual_recovery should run private-source attestation")
+require("identity.source_sha == os.environ[\"SOURCE_SHA\"]" in recovery_finalizer,
+        "manual recovery must cross-check source workflow run SHA")
+for name in ("trusted default-main checkout SHA 검증",
+             "GHCR 버전 원장 조회 도구 준비",
+             "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+             "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+             "정확한 merge lifecycle 해석 및 실행"):
+    require(name in recovery_finalizer, f"#639 trusted Finalizer step missing: {name}")
+recovery_step_order = [
+    recovery_finalizer.index(label)
+    for label in ("trusted default-main checkout SHA 검증",
+                  "GHCR 버전 원장 조회 도구 준비",
+                  "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+                  "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+                  "정확한 merge lifecycle 해석 및 실행")
+]
+require(recovery_step_order == sorted(recovery_step_order),
+        "authenticated private GHCR login must precede recovered digest inspection and mutation")
+require("recovery.completed_evidence(" in recovery_finalizer,
+        "manual_recovery may not skip the exact Run/Attempt/source validation")
+require("github.event.workflow_run.event == 'push'" in recovery_finalizer,
+        "normal automatic Main push lifecycle must remain supported")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
 require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" in auto_workflow, "automatic finalizer needs scoped package write for temporary candidate cleanup")

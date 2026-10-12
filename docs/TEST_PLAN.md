@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 review P1 regression matrix (2026-10-13)
+
+- `python3 scripts/verify-issue-lifecycle.py`: trusted default-main checkout (no persisted credentials), correct `scripts` namespace import, source SHA recheck, Buildx + authenticated private GHCR before `completed_evidence`, Finalizer after proven candidate, original push acceptance.
+- `python3 scripts/test_main_ci_recovery.py`: workflow order and import regression; no-environment discovery uses Mock, never an actual network call; full required job set and SHA/source/Owner negative cases unchanged.
+- PR CI: the same three required Quality/E2E6/Docker aggregates and trusted QA must be evaluated at the new HEAD; previous #2599.1 is not reused for merge. Actual private GHCR recovery still NOT TESTED.
+
 ## Issue #639 — PR #641 CI #2597.1 negative / policy test correction (2026-10-12)
 
 - Original failure: `scripts/verify-issue-lifecycle.py` only accepted literal `ci-${GITHUB_SHA}`; `tests/scripts/deployment-layout.test.ts` only accepted old `fetch-depth` string. Both fail after introducing source-bound recovery.

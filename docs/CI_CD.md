@@ -1,3 +1,9 @@
+## Issue #639 — PR #641 Codex P1 Finalizer boundary fixes (2026-10-13)
+
+- Review P1: protected release Finalizer's inline Python from repo root previously imported a module outside `sys.path`; use `scripts.main_ci_recovery`.
+- Review P1: private `ci-<SHA>` `docker buildx imagetools inspect` must follow pinned Buildx setup and `docker/login-action` with job-scoped `GITHUB_TOKEN`. GitHub API `GH_TOKEN` alone does not authenticate Docker.
+- Added deterministic static regression for trusted main checkout, import scope, login-before-evidence and source SHA, including normal push behavior. This is a no-release remediation; exact remote positive scenario is NOT TESTED.
+
 ## Issue #639 — CI #2597.1 검증 계약 보완 (2026-10-12)
 
 - 기존 Main push의 `GITHUB_SHA`와 approved manual recovery의 original merge SHA는 상황에 따라 다르다. `SOURCE_SHA=needs.changes.outputs.checkout_sha`는 push에서 `github.sha`, 복구에서 확인된 immutable merge SHA를 유지한다. SHA를 임의 변경하지 않는다.

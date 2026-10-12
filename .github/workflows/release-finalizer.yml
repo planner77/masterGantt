@@ -40,24 +40,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: trusted workflow_run 출처 확인
+      # No checkout of event-provided or historical source in a write-token job.
+      - name: trusted default-main checkout SHA 검증
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE_RUN: ${{ github.event.workflow_run.id }}
-          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         shell: bash
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          if [[ "$SOURCE_EVENT" == workflow_dispatch ]]; then
-            python3 - "$SOURCE_RUN" <<'PY'
-          import sys
-          import main_ci_recovery as recovery
-          repo = __import__('os').environ['GITHUB_REPOSITORY']
-          recovery.completed_evidence(repo, int(sys.argv[1]))
-          PY
-          fi
       - name: GHCR 버전 원장 조회 도구 준비
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
       - name: 비공개 GHCR 인증 (감사 + 신규 릴리스 확인)
@@ -66,6 +56,30 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # The authenticated private GHCR candidate digest is required for this
+      # branch. GH_TOKEN authenticates GitHub API, not Docker registry traffic.
+      - name: 인증된 수동 Main 복구 Run·Attempt·digest 증거 확인
+        if: github.event.workflow_run.event == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$SOURCE_RUN" <<'PY'
+          import os
+          import sys
+          from scripts import main_ci_recovery as recovery
+          identity, url, digest = recovery.completed_evidence(
+              os.environ["GITHUB_REPOSITORY"], int(sys.argv[1])
+          )
+          recovery.require(
+              identity.source_sha == os.environ["SOURCE_SHA"],
+              "workflow_run source SHA and verified controller differ",
+          )
+          print(f"Authenticated manual_recovery: {url} SHA={identity.sha} digest={digest}")
+          PY
 
       - name: 정확한 merge lifecycle 해석 및 실행
         env:
