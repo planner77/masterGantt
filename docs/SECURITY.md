@@ -424,3 +424,11 @@ opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bund
 Resource GET의 Project UUID 공개 읽기, query POST의 exact Origin, Excel POST의 exact Origin·strong `If-Match`와 보호 Task mutation의 edit session을 실제 HTTP로 각각 확인한다. 공개 읽기와 Export는 edit session 없이 허용한다. `private, no-store`는 응답 cache 정책이며 private Project authorization 모델을 뜻하지 않는다. 현재 별도의 private Project 모델은 없고 공개 링크 보유자의 읽기를 차단하는 신규 권한을 이 회귀에 추가하지 않는다. 조직 SSO/reverse proxy 접근 통제는 해당 운영 환경의 별도 검증이다.
 
 회귀는 foreign Project ID 거부, stale report/export 실패, 조회/Export 전후 canonical snapshot 불변, 쿠키 발급 없음과 Workbook 내 credential 필드 없음·서버 생성 Project hyperlink를 확인한다. 합성 admin/edit password는 disposable test instance의 fixture에만 사용하며 운영 secret이나 SQLite 파일을 게시하지 않는다. 신규 session/token 저장소·Origin 예외·권한 우회는 없다.
+
+## Issue #615 — 공정 catalog 권한·동시성
+
+공통 catalog 읽기/쓰기 및 standard diff/apply는 기존 Project Master admin cookie/session을 요구한다. Project edit cookie로 관리자 권한을 얻지 못한다. mutation은 정확 Origin + strong If-Match(process catalog revision)을 요구하고 body 대기 이후 IMMEDIATE transaction에서 관리자 만료/폐기·revision을 재검증한다. catalog 조회/오류에도 `Cache-Control: private, no-store`를 사용한다.
+
+Project context는 현재 direct-link public readonly 정책을 적용한다. 존재하는 Project는 edit cookie 없이 readonly context를 읽고 유효한 Project edit session이면 permission=edit다. 이 API가 새로운 private Project 모드를 도입하지 않으며 public ID+정확 선택 triple로만 데이터를 제한한다. Project mapping은 edit session/Origin/strong If-Match(Project revision) + body processCatalogRevision을 transaction 안에서 검증한다. foreign Project process·다른 BU/product/site occurrence·다른 occurrence WorkArea를 거부하고 실패 시 전체 rollback한다. 공통 admin 권한으로 Project edit 권한을 대신하지 않는다.
+
+미인증401, Origin403, 참조/활성/분류 충돌409, stale revision412를 구분하며 일반500으로 FK 원문/SQL/비밀값을 노출하지 않는다. UUID/허용 필드/검색 길이/limit/JSON body 크기를 제한한다. 비활성 기존 참조는 보존하고 신규 참조만 거부한다. 관리자 비밀값·세션·실제 DB/log를 Git/Issue/PR에 기록하지 않는다. 운영 TLS/proxy 검증은 별도다.

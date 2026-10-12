@@ -1,3 +1,13 @@
+## Issue #550 / PR #626 — 공유 분석 후속·main 정렬 (2026-10-12)
+
+[Work Packet](ISSUE_550.md)의 공유 분석 후속 범위는 Gantt 비동기 완료·focus 권한과 격리 E2E 진단이다. 원본 CI #2524.1의 Quality/Docker PASS, shard2 #461 GET ECONNRESET 1 FAIL(71 PASS)을 보존한다. 연결 종료의 실제 원인은 UNKNOWN이며 OOM이나 기능 회귀로 단정하지 않는다.
+
+PR #626의 `ddb4fe246e06bea6f6a9b5a3b193594566450cc8`에 main `c8949da48e7465db45d871887c3f55f9fb6dc743`, 추가 PR #628의 `6eaec3331fcbc720ab42106789a505c5ee5eefb4`를 순서대로 병합한다. #615 모델/API/migration0025와 application0.106.0를 보존하고 Finalizer 두 스크립트·CI_CD/GENERIC_RELEASE_FINALIZER/GITHUB_OPERATIONS는 최신 main 원본을 채택한다. 아래의 PR #626 이전 승계 구현·0.105.0 유지 설명은 당시 이력이다. 현재 코드/승인 권위는 최신 main이며 #550 v0.105.0 승인으로 다른 버전을 발행하지 않는다.
+
+frontend는 12RAF focus handoff를 정확한 intent/gesture/context와 연결하고 새 modal/사용자 입력/새 locate 이후 취소한다. backend는 실패 전 프로세스 lifecycle·안전한 구조화 기록·readiness 및 가능한 자원 수치를 남긴다. Manager 문서, ui_ux 읽기 전용 계약 검토, qa_docs 독립 PRE_QA, infra 원격 게시로 소유권을 분리한다. 기존 strict assertion·timeout·retry·skip·6-shard/Required CI는 유지한다. #629 QA preflight 등 비기능 CI 정책은 별도 작업이다.
+
+HIGH / OWNER_MANAGED / qa_required=true. 관련 빠른 검증·문서 동기화·독립 사전 검토 후 기존 PR #626의 새 exact-head full CI 시작까지 진행한다. 원격 Quality/E2E/Docker·Trusted·Owner ACCEPT는 NOT TESTED이며 병합·main/GHCR·release·Issue 종료는 범위 밖이다.
+
 ## Issue #550 / PR #626 — QA Final #2522.1 필수 운영 문서·릴리스 승계 (2026-10-12)
 
 [CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) exact Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`: Quality/E2E(6/6)/Docker PASS, QA Final BLOCKED(`문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`). 원인은 Generic Finalizer 보호 코드 변경의 필수 문서 영향 원장 누락이다. 본 PR에서 `docs/GITHUB_OPERATIONS.md` 운영 지침과 `docs/REMOTE_VALIDATION.md` 검증 기준을 추가하고 Work Packet `## DOCUMENTATION_SYNC`에 `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`를 각각 UPDATED로 기록한다. HIGH / OWNER_MANAGED / v0.105.0 원래 Owner 정식 Release 의무, fail-closed 후속 원장, 기존 AC1~AC11과 테스트 기대값·required gates 유지. 새 Head의 PR CI/Trusted/Owner 병합 결정 및 Main/GHCR는 아직 NOT TESTED.
@@ -21,6 +31,11 @@
 - **Main 정렬:** 보완 PR #626 base `40747252c389f2a4d1203a2262a4caa49c90728d`, 최신 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`(#614 Target domain/fixture) 추가 4 commits. Main의 #614 CODE/문서와 TEST_PLAN 후미 증거, PLAN의 #614 신규 Work Packet 절을 그대로 보존한다. 이 변경은 #550 추가 요구/Target runtime 확대가 아니다.
 - **DOCUMENTATION_SYNC:** `src/features/projects/project-readonly-view.tsx`, `tests/e2e/viewport-coordinator.spec.ts`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`, `docs/exec-plans/active/ISSUE_550.md`, `CHANGELOG.md` UPDATED. `DESIGN.md`, AGENTS/CI_CD, API/DB/SECURITY/SCHEDULING, 리소스 도메인 문서/fixture는 계약 변화 없거나 Main 최신 그대로여서 N/A. 기존 #550 AC1~11 테스트 원장과 실패 원본 보존.
 - Version `0.105.0` 및 package/lock은 기존 릴리스 후보로 유지하고 `CHANGELOG.md`에는 이번 focus 보완을 기록(새 tag/정식 GHCR 아직 게시된 증거 없음). HIGH, `qa_method=OWNER_MANAGED`, 3 Required Quality/E2E/Docker·Trusted QA/Owner 승인 유지. Issue #550의 정식 v0.105.0 승인 marker는 별도 권위이며 corrective PR 자체는 추가 버전 bump 없음. 새 Head PR CI·Trusted QA·Main CI/임시 GHCR/정식 Release는 성공 전 **NOT TESTED**, 이번 사용자 요청은 새 PR CI 시작까지만. 결과 확인/병합은 별도 Gate.
+## Issue #615 — F1 공정 catalog·WorkArea 기반 모델 (2026-10-12)
+
+[#615 Work Packet](ISSUE_615.md): #614 PR #625의 F0 계약이 병합된 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 `feat/issue-615-process-catalog`를 생성했다. migration0025/공통 admin·Project context·명시 mapping API와 기존 master/copy/template/logistics 보호를 구현한다. #614 Issue 전체 완료나 main/GHCR PASS는 추론하지 않는다. 새로운 화면과 #616~#624는 별도다.
+
+HIGH / OWNER_MANAGED / qa_required=true, 후보 MINOR0.106.0, release_required=true / release_authorized=false. backend3명이 schema/domain·HTTP·기존 호환 경로를 분리 소유하고 Manager가 문서·버전·통합, qa_docs가 read-only PRE_QA를 수행한다. 구현/문서/빠른 검증/사전 검토 뒤 exact-head PR CI 시작까지 진행하며 CI 모니터링·병합·main/GHCR·Issue 종료는 요청 범위 밖이다. 공식 quality/e2e/docker·Trusted·QA_FINAL·Manager ACCEPT는 NOT TESTED다.
 
 ## Issue #614 — Target F0 계약·공통 fixture (2026-10-11)
 

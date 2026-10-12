@@ -1,7 +1,25 @@
+## [Unreleased] — Issue #550 공유 분석 후속
+
+- 명시 Task reveal의 좌표 완료와 DOM focus 인계를 구분하고 정확한 intent/gesture/context·최신 요청을 확인한다. 동일 좌표 사용자 입력·새 Editor/modal 이후 오래된 focus 복원을 취소한다.
+- 격리 SQLite E2E에 cleanup 전 안전한 bounded 서버 lifecycle·요청 완료·readiness·자원 진단을 추가한다. 원오류와 business retry0을 유지하며 ECONNRESET 근인은 아직 UNKNOWN이다.
+- 최신 main PR #615/#628의 모델/API/migration0025·application0.106.0와 Finalizer 정책을 보존한다. 아래 PR #626의0.105.0/이전 승계 구현 기록은 당시 이력이며 새 release 승인이 아니다.
+
 ## [Unreleased] — Issue #550 PR #626 정식 Release 의무 승계 및 E2E 동기화
 
 - CI #2519.1의 #570 PASSIVE_RESTORE SETTLING 중 조기 native zero 주입 테스트 경합을 실제 완료 영수증 대기 후 엄격한 보호 차단 검증으로 보완한다. timeout, 기대값, 실제 wheel/검색 검증을 완화하지 않는다.
 - 실패한 version-changing Main Merge의 정식 GHCR 게시 의무를 동일 Issue/동일 버전 corrective가 승계한다. 원래 `v0.105.0` Owner 승인·immutable tag·exact digest·fail-closed 조건 및 제품 버전 `0.105.0` 유지.
+## [0.106.0] - 2026-10-12
+
+### Fixed
+
+- Issue #615 Main CI 회복: 다중 행 merge message로 실패한 원본 main Run을 보존하면서 같은 Issue의 동일 버전 non-docs 교정 Main CI 성공 시 승인된 v0.106.0 release 의무를 소실하지 않고 안전 승계한다. 다른 Issue/문서 전용·tag 실패는 차단하며 GHCR/버전/기존 required gate는 불변이다.
+
+### Added
+
+- Issue #615: 공통 공정 종류·제품 공유 표준·사업부/제품/사업장 적용 공정·전용 WorkArea의 migration 0025와 관리자 API, 프로젝트 문맥 조회 및 명시 매핑 API를 추가한다.
+- 프로젝트 공정 트리·Task/설비 연결을 보존하며 공통 catalog와 Project revision을 분리한다. 참조 중 분류 변경·마스터 삭제·공정 삭제를 보호하고 프로젝트 복사에서 공통 ID를 유지한다.
+- 매핑이 있는 원본의 Template 저장은 versioned 참조 포맷 지원 전 409로 차단한다. 신규 화면·Target/member/binding은 후속 단계다. 후보 버전이며 정식 release는 미승인이다.
+
 ## [Unreleased] — Issue #614 Target F0 계약·공통 검산
 
 - Target 도메인/공정·WorkArea/전체·선택 연결/합집합 상속/관련 계획 공수/이관·UI 계약과 Resource 우선 실행 계획을 기록한다.

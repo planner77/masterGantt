@@ -2,6 +2,16 @@
 
 상위 [Epic #613](https://github.com/planner77/masterGantt/issues/613). 기준은 2026-10-11 main `cbc73740236f3b3e177e2ed3196a0d02a292c741`, application `0.104.4`, `@svar-ui/react-gantt 2.7.3`다. 이 문서는 **후속 구현의 확정 설계 계약**이며 F0에서 runtime/SQL/API/UI를 추가하지 않는다. 실행 순서·담당·Gate는 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md), 이번 증거는 [#614 Work Packet](exec-plans/active/ISSUE_614.md)에서 관리한다.
 
+## F1 구현 경계 — Issue #615
+
+F0 계약 이후 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 F1을 구현한다. 후보 app `0.106.0`, migration `0025_process_catalog.sql`; 실제 운영 적용·원격 CI·release 성공은 별도다. [#615 Work Packet](exec-plans/active/ISSUE_615.md), [현행 API](API.md), [실제 DDL](DB_SCHEMA.md)을 함께 따른다.
+
+F1은 ER의 process_types/product_standard_processes/site_product_processes/work_areas/project_process_occurrence_mappings까지만 추가한다. 제품 표준은 product ID로 공유하고 occurrence는 #538의 BU/product/site triple로 구분한다. 자유 공정에 occurrence와 선택 WorkArea를 명시 연결하며 미매핑 legacy·Task/설비·parent tree를 보존한다. 공정당 WorkArea0..N, 선택 null은 정상이며 가짜 기본 구역은 없다. 공통 관리자 API만 제공하고 화면은 #618에서 구현한다.
+
+표준 diff/apply는 catalog occurrence의 missing/name/sortOrder 반영이며 Project 공정 생성·삭제·Target 자동 변경을 수행하지 않는다. 매핑 참조 중 Project triple 변경은409로 거부하고 명시 해제→분류 변경→재매핑한다. 같은 triple copy에서 local 공정 ID만 치환하고 비활성 공통 참조도 유지한다. 기존 Template 형식은 매핑을 담지 못하므로 mapped source의 저장은409로 차단한다. versioned Template은 #616에서 확장한다. 기존 WBS JSON/Excel은 새 참조를 포함한 전체 backup 포맷이 아니다.
+
+F1 API는 bounded query/overflow422와 별도 catalog/Project revision을 제공한다. 후속 Target/member/binding 및 Resource snapshot은 아직 제안 계약이며 이 문서의 아래 전체 ER을 구현 완료로 읽지 않는다. SVAR Core2.7.3/Gantt API·UI는 변경하지 않으므로 새 demo 조작·화면 캡처·반응형 검증은 N/A다.
+
 ## 1. 결정·우선순위·비범위
 
 | 구분 | 계약 |

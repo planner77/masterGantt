@@ -1,3 +1,11 @@
+## Issue #615 — Main CI 단일 행 병합 실패 및 승인된 v0.106.0 승계 (2026-10-12)
+
+- PR #627 병합 `c8949da48e7465db45d871887c3f55f9fb6dc743`의 추가 본문으로 Main CI #2526.1 trace가 FAIL하고 세 필수 quality/E2E/Docker 및 임시 GHCR 검증은 SKIPPED되었다. 기존 SHA/Run은 불변 FAIL이며 force-rewrite·gate 완화·rerun으로 PASS 처리하지 않는다.
+- 해당 실패는 이미 version `0.105.0 → 0.106.0`을 main에 반영했으나 annotated tag/release가 시작되기 전이다. 뒤따르는 **동일 Issue의 비문서 교정 PR**이 동일한 `0.106.0`을 유지하면서 exact Main CI 성공 시, 원본 릴리스 의무(`0.105.0` baseline)를 명시적으로 inherited release baseline으로 전달한다. 물리적 first-parent version은 `0.106.0 → 0.106.0`으로 보존한다.
+- 릴리스 승계는 원본 Main CI 미성공, 중간에 **동일 Issue·non-docs·동일 version**만 존재, 교정 exact Main CI 성공일 때에만 가능하다. 종료된 Issue의 non-actionable barrier를 포함해 다른 Issue가 중간에 있거나 docs-only, release-tag 시도·불변 tag 충돌, 이종 version이면 조용히 상속하지 않고 이전 FAIL을 blocker로 유지한다. 정식 release 승인 marker도 그대로 필요한 별도 gate이다.
+- Generic Resolver는 supersession 뒤 교정 SHA의 exact SemVer tag 존재·target 검증을 **재수행**하며, v0.106.0 release_start → exact digest release-image → Resume / 원본·교정 브랜치 cleanup / Issue 종료 순으로 처리한다. 기존 Main CI #2526.1 실패 및 원본 SHA와 PR의 cleanup 부채는 기록한다.
+- 후속 PR 병합에는 `main_ci_run_name.py --as-merge-payload --expected-head-sha`를 사용하여 `commit_title`은 한 줄 한글 표준 형식, `commit_message`는 빈 문자열, `merge_method=merge` 및 lease를 함께 넘긴다. 개발 중 로컬 정적 회귀 PASS는 원격 CI/GHCR PASS가 아니다.
+
 # Generic Release Finalizer
 
 
@@ -44,16 +52,6 @@ merge commit의 first parent와 merge target의 `package.json.version`을 비교
 - version 변경 → `release_required=true` → 명시적 release 승인 필요
 
 CI 성공이나 version bump 자체는 release 승인이 아니다.
-
-### 실패한 버전 변경 Merge의 동일 Issue 보완 승계 (#550 / PR #626)
-
-Main CI가 실패한 원본 Merge에 아직 게시되지 않은 제품 버전 변경이 존재하고, 동일 Issue의 후속 non-docs corrective Merge가 해당 버전을 그대로 유지하더라도 **정식 Release 의무는 소거되지 않는다.**
-
-- Resolver는 corrective의 실제 first-parent 버전과 원본의 `inherited_release_previous_version`을 별도로 기록한다. 같은 Issue, 성공한 최신 Main CI, 원본과 동등 이상 비문서 검증 범위, 원본/교정 최종 버전 일치가 모두 필요하다.
-- 상속한 Release 의무에 대해서는 corrective의 정확한 SHA 기준 immutable tag/Release 상태를 다시 조회한다. `not-required`로 취급하지 않고 사용자 Owner가 등록한 정확한 `expected_version` 승인 marker를 검증하여 Release Start 또는 Release Finalize를 진행한다.
-- 승인 없는 정식 게시, 다른 SHA에 이미 귀속된 SemVer tag 변경, 임시 GHCR digest 검사 생략, 안전한 브랜치 정리 누락을 허용하지 않는다. 여러 다른 미완료 Release origin이 합쳐지거나 다른 버전의 무증가 corrective가 원본 의무를 덮으면 BLOCKED한다.
-- corrective 자체가 새 SemVer를 올린 경우에는 그 **새 버전**의 별도 Owner 승인이 필요하다. 기존 실패 SHA의 CI를 성공으로 소급하지 않는다.
-- 회귀 시나리오: `scripts/verify-issue-lifecycle.py`의 실패 original version delta → 같은 버전 Green non-docs corrective, no-tag Release Start, docs-only 거부, 불일치 버전 fail-closed, 신규 버전 보정의 승인 분리.
 
 ## Release authorization marker
 

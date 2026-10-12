@@ -684,3 +684,22 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 `0023_deprecate_task_assignment_roles.sql`은 기존 값을 모두 `NULL`로 정규화하고 `task_assignments_resource_role_idx`, assignment role INSERT/UPDATE guard, `resource_roles_assignment_delete_guard`를 제거한다. 신규 repository 저장도 항상 null을 기록한다.
 
 역할의 Source of Truth는 `resource_roles(resource_id, role)`뿐이다. Global Role 변경은 Task assignment 참조 때문에 차단하지 않으며 `(project_id, task_id, resource_id)` unique invariant와 allocation index/Calendar 계약은 유지한다. Project Copy/Template은 Task별 역할을 복제하지 않는다.
+
+## Issue #615 — 공통 공정 catalog와 명시 프로젝트 매핑
+
+`0025_process_catalog.sql`은 0024 다음 additive migration이다. 기존 공정/Task/설비를 다시 쓰거나 이름·parent로 매핑을 추론하지 않는다. UUID public ID와 내부 INTEGER PK를 구분한다.
+
+| 테이블 | 핵심 제약 |
+| --- | --- |
+| `process_catalog_state` | singleton(id=1), 독립 revision≥1 |
+| `process_types` | public_id/code UNIQUE, name/active/sort_order |
+| `product_standard_processes` | PRODUCT master FK + type FK, UNIQUE(product_id,code), UNIQUE(id,product_id,process_type_id), PRODUCT category insert/update trigger |
+| `site_product_processes` | #538 business_unit_product_sites의 정확 triple FK, optional standard_process_id와 product/type 복합 FK, UNIQUE(triple,code), UNIQUE(triple,standard_process_id), UNIQUE(id,triple) |
+| `work_areas` | occurrence 필수, UNIQUE(occurrence_id,code), UNIQUE(occurrence_id,id), occurrence reparent 금지 trigger |
+| `project_process_occurrence_mappings` | PRIMARY KEY(project_id,project_process_id), local process 복합 FK, occurrence+triple 복합 FK, optional WorkArea+occurrence 복합 FK |
+
+Project mapping insert/update와 Project triple 변경 trigger가 정확한 Project 선택 일치를 방어한다. 프로젝트 삭제는 local 매핑을 CASCADE하되 공통 master는 유지한다. occurrence/standard/type/WorkArea 참조는 RESTRICT와 Service 사용량 검사로 보호한다. 조회용 occurrence type/standard, mapping occurrence/WorkArea index와 triple/owner unique index를 둔다.
+
+Service가 `IMMEDIATE` transaction에서 admin/edit session·expected revision·활성 상태·유효 triple·사용량을 다시 검사한다. 표준은 product ID만으로 공유하고 occurrence는 BU/product/site별로 독립이다. WorkArea는 0..N이며 NULL은 구역 미선택, 매핑 행 부재는 legacy/unmapped다. 표준 변경은 Project 공정 생성·삭제·자동 재매핑을 하지 않는다. F2 Target/member/binding 테이블은 아직 없다.
+
+기존 migration checksum을 수정하지 않는다. fresh/0024 upgrade·foreign_key_check·restart는 관련 SQLite 테스트로 검증한다. 운영 적용/backup restore는 별도 NOT TESTED. 0025 적용 DB를 구버전 앱으로 단순 downgrade하지 않으며 사전 backup+대응 구버전 앱 복원 또는 forward migration을 사용한다.

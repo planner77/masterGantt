@@ -27,8 +27,10 @@ import {
   type LogisticsSystemRecord,
 } from "../repositories/logistics-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
-import { LogisticsService, LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
+import { LogisticsService, LogisticsConflictError, LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
 import { ProjectMasterService } from "../project-master/project-master-service-core";
+import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
+import { ProjectMasterRepository } from "../repositories/project-master-repository-core";
 import {
   hashEditPassword,
   type PasswordHashRecord,
@@ -453,6 +455,22 @@ export class ProjectCopyService {
           if (insertedCount === 0) {
             throw new Error("Cycle detected in source process hierarchy.");
           }
+        }
+
+        // Global occurrence/WorkArea identities remain stable; only local IDs change.
+        const processCatalog = new ProcessCatalogRepository(this.database);
+        const targetSelection = new ProjectMasterRepository(this.database).getProjectSelection(project.id);
+        for (const mapping of processCatalog.rawMappings(source.id)) {
+          const copiedProcess = newBySourceProcessId.get(mapping.project_process_id);
+          if (!copiedProcess || targetSelection.businessUnit?.id !== mapping.business_unit_id ||
+              targetSelection.product?.id !== mapping.product_id ||
+              targetSelection.siteEntity?.id !== mapping.site_entity_id) {
+            throw new LogisticsConflictError(
+              "PROJECT_PROCESS_MAPPING_IN_USE",
+              "공정 매핑과 복사 대상의 사업부·제품·사업장이 일치하지 않습니다.",
+            );
+          }
+          processCatalog.insertCopiedMapping(project.id, copiedProcess.id, mapping, nowText);
         }
 
         // 3. 물류 시스템(Systems) 복사 및 담당 공정, 리소스 역할 복사

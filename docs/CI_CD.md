@@ -1,3 +1,11 @@
+## Issue #615 — Main CI 단일 행 병합 실패 및 승인된 v0.106.0 승계 (2026-10-12)
+
+- PR #627 병합 `c8949da48e7465db45d871887c3f55f9fb6dc743`의 추가 본문으로 Main CI #2526.1 trace가 FAIL하고 세 필수 quality/E2E/Docker 및 임시 GHCR 검증은 SKIPPED되었다. 기존 SHA/Run은 불변 FAIL이며 force-rewrite·gate 완화·rerun으로 PASS 처리하지 않는다.
+- 해당 실패는 이미 version `0.105.0 → 0.106.0`을 main에 반영했으나 annotated tag/release가 시작되기 전이다. 뒤따르는 **동일 Issue의 비문서 교정 PR**이 동일한 `0.106.0`을 유지하면서 exact Main CI 성공 시, 원본 릴리스 의무(`0.105.0` baseline)를 명시적으로 inherited release baseline으로 전달한다. 물리적 first-parent version은 `0.106.0 → 0.106.0`으로 보존한다.
+- 릴리스 승계는 원본 Main CI 미성공, 중간에 **동일 Issue·non-docs·동일 version**만 존재, 교정 exact Main CI 성공일 때에만 가능하다. 다른 Issue가 중간에 있거나 docs-only, release-tag 시도·불변 tag 충돌, 이종 version이면 조용히 상속하지 않고 이전 FAIL을 blocker로 유지한다. 정식 release 승인 marker도 그대로 필요한 별도 gate이다.
+- Generic Resolver는 supersession 뒤 교정 SHA의 exact SemVer tag 존재·target 검증을 **재수행**하며, v0.106.0 release_start → exact digest release-image → Resume / 원본·교정 브랜치 cleanup / Issue 종료 순으로 처리한다. 기존 Main CI #2526.1 실패 및 원본 SHA와 PR의 cleanup 부채는 기록한다.
+- 후속 PR 병합에는 `main_ci_run_name.py --as-merge-payload --expected-head-sha`를 사용하여 `commit_title`은 한 줄 한글 표준 형식, `commit_message`는 빈 문자열, `merge_method=merge` 및 lease를 함께 넘긴다. 개발 중 로컬 정적 회귀 PASS는 원격 CI/GHCR PASS가 아니다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
@@ -219,7 +227,7 @@ Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore
 
 `0.x`에서도 사용자 workflow나 저장/API 계약을 확장하면 MINOR를 올리고, 기존 계약 내 수정은 PATCH를 올린다. 버전은 낮추거나 재사용하지 않는다. Release workflow는 full Git tag history의 유효한 이전 SemVer를 비교하고 새 version이 모두보다 클 때만 진행한다.
 
-Release authority는 package version과 정확히 일치하는 annotated Git tag `vMAJOR.MINOR.PATCH[-PRERELEASE]`다. CI가 임의로 version commit이나 tag를 만들지 않는다. Tag push 전에 필수 CI 통과와 지정 release authority를 확인하며, GitHub의 필수 승인 review 수는 0명이다. Tag 이동·삭제·동일 version 재발행은 금지한다. 실패한 버전 변경 Main Merge를 동일 버전의 corrective Merge가 supersede하면 원래 승인된 릴리스 의무를 반드시 승계한다. 변경 없는 corrective package version만으로 `release_required=false`로 축소하지 않으며, immutable tag·정확한 Main/GHCR digest·Owner의 동일 버전 승인 marker를 `GENERIC_RELEASE_FINALIZER.md` 기준으로 검증한다.
+Release authority는 package version과 정확히 일치하는 annotated Git tag `vMAJOR.MINOR.PATCH[-PRERELEASE]`다. CI가 임의로 version commit이나 tag를 만들지 않는다. Tag push 전에 필수 CI 통과와 지정 release authority를 확인하며, GitHub의 필수 승인 review 수는 0명이다. Tag 이동·삭제·동일 version 재발행은 금지한다.
 
 ## 3. Container image 계약
 
