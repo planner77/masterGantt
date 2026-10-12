@@ -68,6 +68,13 @@ def mock_gh(path,*,method="GET",fields=None):
     if path.startswith("/repos/planner77/masterGantt/issues/") and method=="GET":
         return {"state":"open"}
     return {}
+history_current=chain
+def fake_history_run(*args,**kwargs):
+    ok(args==("git","rev-list","--first-parent",new.target_sha),
+       "trusted git ancestry must be exact and read-only")
+    return SimpleNamespace(stdout="\n".join(item.target_sha for item in reversed(history_current)))
+def fake_resolve(repo,sha):
+    return next(item for item in history_current if item.target_sha==sha)
 core=SimpleNamespace(
     AutoFinalizerBlocked=auto.AutoFinalizerBlocked,
     issue_comments=lambda repo,issue:mocked_source(issue),
@@ -76,7 +83,9 @@ core=SimpleNamespace(
     exact_main_ci_success=lambda repo,sha:main_ci_results[sha],
     exact_release_state=lambda repo,item:("not-started",None),
     current_main_sha=lambda repo:new.target_sha,
-    gh=mock_gh, run=lambda *args,**kw:None,
+    gh=mock_gh, run=fake_history_run,
+    resolve_work_item=fake_resolve,
+    is_closed_issue=lambda repo,item:not item.actionable,
     write_summary=lambda lines:None,
 )
 saved_states=audit.version_states
@@ -87,14 +96,16 @@ try:
        good.retired_shas==frozenset(row[0] for row in b2.SOURCES),
        "B2 must skip ONLY explicitly authorized exact old merges")
     ok(len(good.previous_items)==5,"cleanup debt must include all five PRs")
+    ok(b2.plan_b2(core,b2.REPO,new.target_sha,[new]) is not None,
+       "Resume must independently recover old source past #633 prior FINAL boundary")
     # Incomplete cleanup after the first old Issue closes must be restartable.
     # Arbitrarily closed historical Issues remain blockers without the exact
     # github-actions[bot] immutable RETIRED source/target evidence.
-    closed_sources=[
+    history_current=[
         replace(t,actionable=False) if t.issue_number==550 else t
         for t in chain
     ]
-    blocked(lambda:b2.plan_b2(core,b2.REPO,new.target_sha,closed_sources),
+    blocked(lambda:b2.plan_b2(core,b2.REPO,new.target_sha,[new]),
             "closed old Issue without authenticated retirement marker")
     retirement={
         "issue":550,
@@ -112,10 +123,11 @@ try:
                +json.dumps(retirement,sort_keys=True,separators=(",",":"))+" -->",
     }
     comments[550].append(bot_proof)
-    recovered=b2.plan_b2(core,b2.REPO,new.target_sha,closed_sources)
+    recovered=b2.plan_b2(core,b2.REPO,new.target_sha,[new])
     ok(recovered is not None and len(recovered.previous_items)==5,
        "verified partial retirement replay must preserve all old PR obligations")
     comments[550].pop()
+    history_current=chain
     # Default remains unchanged until Owner's explicit v2 scope.
     comments[633]=[v1("0.106.1",True)]
     ok(b2.plan_b2(core,b2.REPO,new.target_sha,chain) is None,
@@ -142,8 +154,10 @@ try:
     blocked(lambda:b2.plan_b2(core,b2.REPO,new.target_sha,chain),
             "old failed Main CI cannot be silently reinterpreted")
     main_ci_results[old_items[0].target_sha]=(False,"retained failure")
-    blocked(lambda:b2.plan_b2(core,b2.REPO,new.target_sha,chain+[replace(new,target_sha="e"*40)]),
-            "extra source or ambiguous first parent")
+    history_current=chain+[replace(new,target_sha="e"*40)]
+    blocked(lambda:b2.plan_b2(core,b2.REPO,new.target_sha,[new]),
+            "extra version-changing target or ambiguous first parent")
+    history_current=chain
     audit.version_states=lambda repo,versions:{
         v:(audit.VersionState("ABSENT","ABSENT","UNKNOWN") if v=="0.105.0" else base_states[v])
         for v in versions
@@ -162,9 +176,11 @@ audit.version_states=lambda repo,versions:{
 saved_digest=audit.ghcr_digest
 saved_branch=b2._branch_cleanup
 saved_candidate=b2._candidate_cleanup
+saved_issue_write=b2.lifecycle.gh
 events=[]
 try:
     audit.ghcr_digest=lambda name:("PRESENT","sha256:"+"f"*64)
+    b2.lifecycle.gh=mock_gh
     b2._branch_cleanup=lambda core,repo,item,sha,*,delete:events.append(
         ("branch",item.pr_number,"delete" if delete else "preflight"))
     b2._candidate_cleanup=lambda core,sha,*,delete:events.append(
@@ -192,4 +208,5 @@ finally:
     audit.ghcr_digest=saved_digest
     b2._branch_cleanup=saved_branch
     b2._candidate_cleanup=saved_candidate
+    b2.lifecycle.gh=saved_issue_write
 print("Issue #633 B2 exact Owner/CI/GHCR/cleanup fixtures: PASS")
