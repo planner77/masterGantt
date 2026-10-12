@@ -1,3 +1,8 @@
+## Issue #629 — PR #630 CI #2532.1 회귀 보완 (2026-10-12)
+- 실제 Policy 실패: `test_workflow_aggregate_guard_contract`의 잘못된 Python expected GitHub Actions ref 문자열. 실제 YAML은 `ref: ${{ github.event.pull_request.base.sha }}`; Python의 escaping으로 불필요한 역슬래시가 들어가 원본 Unit 9/10 PASS에도 Aggregate FAIL.
+- 재발 방지: assert의 예상값은 실제 YAML과 동일한 unescaped 표현식을 검증하고 escaped expression 존재는 거부한다. `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py`를 Policy에 유지한다.
+- [원본 Run #2532.1](https://github.com/planner77/masterGantt/actions/runs/38186982545)에서 E2E 6/6 및 Docker PASS, Preflight bootstrap(Job SUCCESS, 검증 본체 NOT TESTED), Quality/QA Automated FAIL을 구분한다. 새 Head 검증 결과는 PR CI 시작 전 NOT TESTED.
+
 ## Issue #629 — QA Preflight 테스트 (2026-10-12)
 `scripts/test_qa_preflight.py`는 synthetic #550 #2373 (Primary Issue title/Refs), #626 #2522 (필수 운영 문서 누락), 위험도/QA 방식/복수 필드, 보호 파일 rename, merge pending/conflict, stale SHA/API 실패, metadata-only 제외, aggregate `always()` 의존성을 검증한다. #2376/#2382/#2404/#2414/#2435는 동일한 오류 종류 replay와 실제 Actions 원본 로그 대조가 별도로 필요하다. 구조 테스트 실행 결과와 원격 P1~P5 증거를 구분한다. 관련 최종 QA Python 회귀, #600 metadata M1~M8와 정책 계약을 CI에서 함께 수행한다.
 
