@@ -272,8 +272,19 @@ test("#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel�
   };
   await saveName(`${fixture.tasks[3].name} metadata`);
   await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
-  // Native scroll notification arrives after the metadata owner's queued restore.
-  // No pointer/wheel input precedes it, so it carries no new navigation intent.
+  // No pointer/wheel input precedes the synthetic native zero. Wait for
+  // PASSIVE_RESTORE to SETTLE before testing its stale scroll guard, rather
+  // than treating Core/native coordinate equality as a completion receipt.
+  // Equality of Core/native positions does not prove PASSIVE_RESTORE has
+  // installed its post-settlement guard. Wait for the actual coordinator
+  // receipt before injecting the late *non-user* native zero event.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+    const trace = raw ? JSON.parse(raw) as { kind?: string; phase?: string; outcome?: string } : null;
+    return trace?.kind === "PASSIVE_RESTORE" ? { phase: trace.phase, outcome: trace.outcome } : null;
+  }).toEqual({ phase: "SETTLED", outcome: "SETTLED" });
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
+  await expect.poll(async () => (await viewport()).nativeLeft).toBe(120);
   const blocks = (await viewport()).blocks;
   await chart.evaluate(element => { element.scrollLeft = 0; });
   await expect.poll(async () => (await viewport()).blocks).toBeGreaterThan(blocks);

@@ -67,13 +67,14 @@ import {
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ViewportController } from "@/features/gantt/viewport/viewport-coordinator";
+import { handoffTaskRevealFocus } from "@/features/gantt/viewport/task-focus-handoff";
 import { type PeerViewportRestore, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
-import { findTaskContextElement, taskIdFromElement } from "@/features/gantt/task-context-target";
+import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
@@ -243,6 +244,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [activeView, setActiveView] = useState<WorkspaceView>("schedule");
   const scheduleGanttPanel = useRef<HTMLElement>(null);
   const viewportController = useRef<ViewportController | null>(null);
+  const taskFocusGeneration = useRef(0);
   const registerViewportController = useCallback((controller: ViewportController | null) => { viewportController.current = controller; }, []);
   const publicGanttViewportReader = useRef<PublicGanttViewportReader | null>(null);
   const registerPublicGanttViewportReader = useCallback((reader: PublicGanttViewportReader | null) => {
@@ -1001,6 +1003,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setEditorInitialTab(initialTab);
     editorOriginViewReference.current = activeView;
     editorOpeningReference.current = true;
+    taskFocusGeneration.current++;
     editorTriggerReference.current = trigger;
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
@@ -1042,7 +1045,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (!created) { notify("info", "생성 결과의 작업 ID를 유일하게 확인하지 못했습니다. 목록에서 단계를 확인해 주세요.", "Milestone 추가"); focusMilestoneDashboard(); return; }
       editorOriginViewReference.current = "milestones";
       editorTriggerReference.current = milestoneCreateTriggerReference.current;
-      editorOpeningReference.current = true; setEditorInitialTab("task");
+      editorOpeningReference.current = true; taskFocusGeneration.current++; setEditorInitialTab("task");
       setEditorSession({ task: { ...created }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
     });
   }
@@ -1138,6 +1141,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (task) setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function locateEditorTask(taskId: string) {
+    const focusGeneration = ++taskFocusGeneration.current;
     const fromOtherView = editorOriginViewReference.current !== "schedule";
     editorOriginViewReference.current = "schedule";
     // Explicit locate owns the destination; ordinary close restores its trigger.
@@ -1149,15 +1153,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return;
     }
     const controller = viewportController.current;
-    void controller?.request({ kind: "TASK_REVEAL", taskId }).then(outcome => {
-      if (outcome !== "SETTLED" || viewportController.current !== controller) return;
-      const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
-      if (!root?.isConnected || root.closest("[hidden], [inert]")) return;
-      const target = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]"))
-        .find(row => taskIdFromElement(row) === taskId);
-      if (!target?.isConnected || !target.getClientRects().length || target.closest("[hidden], [inert]")) return;
-      if (!target.hasAttribute("tabindex")) target.tabIndex = -1;
-      target.focus({ preventScroll: true });
+    if (!controller) return;
+    const sourceContext = controller.capture()?.context;
+    const completion = controller.request({ kind: "TASK_REVEAL", taskId });
+    // Request ingress advances the intent synchronously. Preserve that exact
+    // stamp before any later request or user gesture can replace it.
+    const stamp = controller.stamp();
+    const current = () => {
+      const context = controller.capture()?.context;
+      return taskFocusGeneration.current === focusGeneration && viewportController.current === controller && !editorOpeningReference.current &&
+        context?.apiInstance === sourceContext?.apiInstance && context?.revision === sourceContext?.revision;
+    };
+    const frame = scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-frame");
+    let focusContext = controller.capture()?.context;
+    const report = (outcome: string) => {
+      if (taskFocusGeneration.current === focusGeneration) frame?.setAttribute("data-gantt-task-focus-handoff", JSON.stringify({ taskId, generation: focusGeneration, ...stamp,
+        apiInstance: focusContext?.apiInstance, revision: focusContext?.revision, projectionEpoch: focusContext?.projectionEpoch, outcome }));
+    };
+    report("WAITING");
+    void completion.then(async outcome => {
+      if (outcome !== "SETTLED" || !current() || !controller.isCurrent(stamp)) { report("SUPERSEDED"); return; }
+      focusContext = controller.capture()?.context;
+      const focusOutcome = await handoffTaskRevealFocus({ controller, stamp, taskId, current,
+        root: () => scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-scroll") ?? null });
+      report(focusOutcome);
     });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {

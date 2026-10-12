@@ -65,6 +65,27 @@ const peer: ViewportCommand = { kind: "PEER_RETURN", position: { left: 120, top:
 const passive: ViewportCommand = { kind: "PASSIVE_RESTORE", position: { left: 120, top: 96 } };
 
 describe("Viewport Coordinator arbitration and bounded observation", () => {
+  it("invalidates settled consumer stamps on another accepted intent, unchanged-position input, context round-trip, and disposal", async () => {
+    const f = fixture(), first = f.coordinator.request({ kind: "TASK_REVEAL", taskId: "task" });
+    const firstStamp = f.coordinator.stamp();
+    await f.advance(8); expect(await first).toBe("SETTLED");
+    expect(f.coordinator.isCurrent(firstStamp)).toBe(true);
+    const second = f.coordinator.request(passive);
+    expect(f.coordinator.validSource(firstStamp)).toBe(true);
+    expect(f.coordinator.isCurrent(firstStamp)).toBe(false);
+    await f.advance(8); expect(await second).toBe("SETTLED");
+    const secondStamp = f.coordinator.stamp(), position = f.sample.core;
+    f.coordinator.userInput();
+    expect(f.sample.core).toEqual(position);
+    expect(f.coordinator.isCurrent(secondStamp)).toBe(false);
+    const gestureStamp = f.coordinator.stamp();
+    f.context({ scope: "B" }); f.coordinator.contextChanged();
+    f.context({ scope: null }); f.coordinator.contextChanged();
+    expect(f.coordinator.isCurrent(gestureStamp)).toBe(false);
+    const finalStamp = f.coordinator.stamp(); f.coordinator.dispose();
+    expect(f.coordinator.isCurrent(finalStamp)).toBe(false);
+  });
+
   it("requires geometry frames and three actual post-command frames before reporting settled", async () => {
     const f = fixture(), pending = f.coordinator.request(peer);
     await f.advance(2);

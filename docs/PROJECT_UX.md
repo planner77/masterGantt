@@ -1,3 +1,9 @@
+## Issue #550 후속 — Task reveal 좌표와 focus 완료 분리
+
+Editor의 명시 `일정에서 보기`는 Coordinator의 이번 `TASK_REVEAL` 좌표 SETTLED 이후 현재 가시 Grid 행으로 focus를 인계한다. 좌표 완료·projection 완료·DOM 행 존재·실제 focus 완료는 별개다. 최대12RAF의 기존 제한 안에서 정확한 controller/API·revision·projection과 Coordinator intent/gesture/context를 확인하며 새 사용자 입력, 새 locate, scope/geometry 변경 또는 새 Editor/modal이면 오래된 인계를 종료한다. 좌표가 움직이지 않은 입력도 취소 근거다. modal이 잠깐 열렸다 닫혀도 이전 인계를 재개하지 않는다.
+
+행은 현재 연결되고 hidden/inert가 아니며 실제 Grid viewport와 교차해야 한다. 인계는 별도 focus 결과로 관찰하고 Coordinator의 SETTLED 의미를 확대하지 않는다. 좌표 단계가 SETTLED에 이르지 않으면 focus 결과 SUPERSEDED는 인계 미시작을 뜻하며, 원래 좌표 실패·timeout은 Coordinator 영수증에 그대로 남는다. 일반 Editor 닫기·취소의 trigger 복원과 Dashboard의 visible trigger/검색/추가/heading fallback은 기존 계약을 유지한다. Design Delta B: 기존 focus·상태 보존 계약의 구체화이며 새 전역 시각 규칙은 없다. [실행·검증 원장](exec-plans/active/ISSUE_550.md)을 따른다.
+
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
 ## Issue #572 — 반복 이름 편집의 저장·표시 피드백

@@ -26,7 +26,23 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
   await dialog.getByRole("row").filter({ hasText: locatedTask.name }).getByRole("button", { name: "일정에서 보기", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect.poll(async () => (await viewport()).core.top).toBeLessThan(before.core.top);
+  // Scroll position may move while TASK_REVEAL is still SETTLING. Require the
+  // actual completion receipt, then keep the original Grid focus assertion.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+    const receipt = raw ? JSON.parse(raw) as { kind?: string; phase?: string; outcome?: string } : null;
+    return receipt?.kind === "TASK_REVEAL" ? { phase: receipt.phase, outcome: receipt.outcome } : null;
+  }).toEqual({ phase: "SETTLED", outcome: "SETTLED" });
   const target = frame.locator(`.wx-table-container .wx-row[data-id=":${locatedTask.taskId}"]`);
+  await expect(target).toBeFocused();
+  await expect.poll(async () => {
+    const receipt = JSON.parse((await frame.getAttribute("data-gantt-task-focus-handoff")) ?? "null");
+    return receipt && { taskId: receipt.taskId, outcome: receipt.outcome };
+  }).toEqual({ taskId: locatedTask.taskId, outcome: "SETTLED" });
+  // A late SVAR virtual-row replacement must not silently steal the focus.
+  await frame.evaluate(async () => {
+    for (let frame = 0; frame < 8; frame++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+  });
   await expect(target).toBeFocused();
   const located = await viewport();
   expect(Math.abs(located.core.top - located.native.top)).toBeLessThanOrEqual(1);
@@ -44,6 +60,83 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
   await expect(settings).toHaveCount(0);
   await expect.poll(viewport).toEqual(located);
   await info.attach("locate-metadata-viewport", { body: JSON.stringify({ before, located, after: await viewport(), trace: await frame.getAttribute("data-gantt-viewport-coordinator-history") }), contentType: "application/json" });
+});
+
+for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#571 settled viewport의 DOM focus handoff는 좌표 불변 ${input} 의도 뒤 재개하지 않는다`, async ({ page }, info) => {
+  const fixture = await setup(page, { longList: true });
+  const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
+  milestone.siblingOrder = 0;
+  fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
+  await page.reload();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const frame = page.locator(".project-gantt-frame");
+  await frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
+  await chooseTaskInformation(page);
+  const dialog = editor(page);
+  await dialog.getByRole("tab", { name: /소속 작업/ }).click();
+  await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
+  await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
+  await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollTop)).toBe(300);
+  // Hold subsequent browser frames after the first actual row focus. This
+  // establishes the in-flight handoff boundary without racing its 12RAF budget.
+  // Release every held callback; no product completion/assertion is mocked.
+  await page.evaluate(taskId => {
+    const original = window.requestAnimationFrame.bind(window);
+    const gate = { held: false, armed: true, focusEvents: 0, callbacks: [] as Array<() => void> };
+    window.requestAnimationFrame = callback => original(time => {
+      if (gate.held) gate.callbacks.push(() => callback(time)); else callback(time);
+    });
+    const focused = (event: FocusEvent) => {
+      if ((event.target as HTMLElement).getAttribute("data-id") === `:${taskId}`) {
+        gate.focusEvents++;
+        if (gate.armed) gate.held = true;
+      }
+    };
+    document.addEventListener("focusin", focused, true);
+    Reflect.set(window, "__focusHandoffTestGate", gate);
+    Reflect.set(window, "__releaseFocusHandoffTestGate", () => {
+      gate.held = false; gate.armed = false; window.requestAnimationFrame = original;
+      gate.callbacks.splice(0).forEach(callback => callback());
+    });
+    Reflect.set(window, "__cleanupFocusHandoffTestGate", () => document.removeEventListener("focusin", focused, true));
+  }, locatedTask.taskId);
+  try {
+    await dialog.getByRole("row").filter({ hasText: locatedTask.name }).getByRole("button", { name: "일정에서 보기", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => Reflect.get(window, "__focusHandoffTestGate").held)).toBe(true);
+    const target = frame.locator(`.wx-table-container .wx-row[data-id=":${locatedTask.taskId}"]`);
+    await expect(target).toBeFocused();
+    const before = await frame.evaluate(element => ({ core: Reflect.get(element, "__masterganttPublicViewport"),
+      left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop }));
+    expect(before.left).toBe(0);
+    if (input === "wheel") { await frame.locator(".wx-chart").hover(); await page.mouse.wheel(-500, 0); }
+    else if (input === "keyboard") await page.keyboard.press("Shift");
+    else await page.evaluate(() => {
+      const dialog = document.createElement("dialog");
+      document.body.append(dialog); dialog.showModal(); dialog.close(); dialog.remove();
+    });
+    const chosen = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
+    // For transient-modal, first prove cancellation while native dialog close
+    // has restored the original row. A different focused control must not be
+    // the reason this case passes instead of the open-attribute observer.
+    if (input === "transient-modal") await expect(target).toBeFocused();
+    else await chosen.focus();
+    const focusEvents = await page.evaluate(() => Reflect.get(window, "__focusHandoffTestGate").focusEvents);
+    await page.evaluate(() => Reflect.get(window, "__releaseFocusHandoffTestGate")());
+    await expect.poll(async () => {
+      const receipt = JSON.parse((await frame.getAttribute("data-gantt-task-focus-handoff")) ?? "null");
+      return receipt && { taskId: receipt.taskId, outcome: receipt.outcome };
+    }).toEqual({ taskId: locatedTask.taskId, outcome: "SUPERSEDED" });
+    if (input === "transient-modal") await chosen.focus();
+    await page.evaluate(async () => { for (let i = 0; i < 12; i++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+    const after = await frame.evaluate(element => ({ core: Reflect.get(element, "__masterganttPublicViewport"),
+      left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop }));
+    expect(after).toEqual(before);
+    await expect(chosen).toBeFocused();
+    expect(await page.evaluate(() => Reflect.get(window, "__focusHandoffTestGate").focusEvents)).toBe(focusEvents);
+    expect(fixture.patches).toHaveLength(0);
+    await info.attach("focus-handoff-user-cancel", { body: JSON.stringify({ input, before, after, focus: await frame.getAttribute("data-gantt-task-focus-handoff") }), contentType: "application/json" });
+  } finally { await page.evaluate(() => { Reflect.get(window, "__releaseFocusHandoffTestGate")(); Reflect.get(window, "__cleanupFocusHandoffTestGate")(); }); }
 });
 
 test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다", async ({ page }, info) => {
