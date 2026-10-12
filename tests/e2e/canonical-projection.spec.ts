@@ -58,7 +58,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["Day", "W
 }
 
 for (const scenario of ["insert-before", "surviving-child-root", "surviving-child-new-parent", "new-parent-mixed-children"] as const) {
-  test(`#570 actual Core structure ${scenario}`, async ({ page }) => {
+  test(`#570 actual Core structure ${scenario}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     const fixture = await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}?__coreTrace=1`);
@@ -82,10 +82,52 @@ for (const scenario of ["insert-before", "surviving-child-root", "surviving-chil
     await page.locator('.project-gantt-widget .wx-header [data-action="add-task"]').first().click();
     await expect(rowNamed(page, scenario === "insert-before" ? "Inserted before leaf" : "Existing summary child")).toBeVisible();
     await expectSameGanttRoot(page, identity);
-    await expect.poll(async () => {
-      const raw = await page.locator(".project-gantt-frame").getAttribute("data-gantt-projection-receipt");
-      return raw ? `${JSON.parse(raw).revision}:${JSON.parse(raw).outcome}` : "";
-    }).toBe(`${fixture.project.revision}:SETTLED`);
+    try {
+      await expect.poll(async () => {
+        const raw = await page.locator(".project-gantt-frame").getAttribute("data-gantt-projection-receipt");
+        return raw ? `${JSON.parse(raw).revision}:${JSON.parse(raw).outcome}` : "";
+      }).toBe(`${fixture.project.revision}:SETTLED`);
+    } catch (error) {
+      // #629 CI #2537.1: keep the strict SETTLED assertion, timeout and
+      // business behaviour unchanged. A one-off TIMED_OUT receipt used to
+      // retain only IDs/order, hiding which native Grid/Chart predicate stalled.
+      // Capture read-only evidence from the same failing frame, never retry.
+      try {
+        const diagnostic = await page.locator(".project-gantt-frame").evaluate(root => {
+          const box = (node: HTMLElement) => {
+            const rect = node.getBoundingClientRect();
+            return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+          };
+          const rows = [...root.querySelectorAll<HTMLElement>(
+            ".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]"
+          )].filter(row => row.getClientRects().length > 0).map(row => ({
+            id: row.dataset.taskId ?? row.dataset.id,
+            text: row.querySelector<HTMLElement>('[data-col-id=":text"] .wx-content > .wx-text')?.textContent ?? null,
+            rect: box(row)
+          }));
+          const bars = [...root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]")].map(bar => ({
+            id: bar.dataset.taskId,
+            label: (bar.querySelector<HTMLElement>(".wx-text-out") ??
+              bar.querySelector<HTMLElement>(".wx-content"))?.textContent ?? null,
+            rect: box(bar)
+          }));
+          const trace = Reflect.get(root, "__issue568Trace")?.snapshot?.();
+          return {
+            expectedRevision: root.getAttribute("data-gantt-projection-receipt"),
+            canonicalSyncGeneration: root.getAttribute("data-gantt-canonical-sync-generation"),
+            canonicalSettledGeneration: root.getAttribute("data-gantt-canonical-sync-settled-generation"),
+            canonicalSyncDepth: root.getAttribute("data-gantt-canonical-sync-depth"),
+            rows, bars, traceEntries: trace?.entries?.slice(-100) ?? [],
+          };
+        });
+        await testInfo.attach("projection-timeout-actual-core-and-dom", {
+          body: JSON.stringify(diagnostic), contentType: "application/json"
+        });
+      } catch {
+        // Preserve the original SETTLED failure even if diagnostic collection fails.
+      }
+      throw error;
+    }
     if (scenario === "insert-before") {
       const names = await page.locator('.wx-table-container .wx-row [data-col-id=":text"] .wx-content > .wx-text').allTextContents();
       expect(names.indexOf("Inserted before leaf")).toBeLessThan(names.indexOf("Stable leaf"));
