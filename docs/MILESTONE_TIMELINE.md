@@ -1,10 +1,12 @@
 # Milestone Timeline
 
-## Issue #551 — 개발 날짜 reveal의 viewport 소유권 (2026-10-12)
+## Issue #551 — 개발 calendar reveal의 viewport 소유권 (2026-10-13)
 
-PR CI #2595.1의 5폭 `anchor=null`은 실제 날짜축을 따르는 lane이 화면 밖 날짜 tick을 clip한 결과다. Day→Week 전환 시 Core의 날짜 좌표/scroll 상태와 native 날짜축의 물리 위치가 서로 다른 순간이 있었고, 개발 전용 `reveal`은 state의 `visible`만 보고 이동을 생략했다. 이는 앞선 #2594.1의 3018~3036px 좌표 오차와 구별한다.
+PR CI #2595.1의 5폭 `anchor=null`은 state-only 가시성 판단과 실제 native 날짜축 위치의 차이였다. 이후 #2600.1에서는 lane19개는 PASS였지만 공유 #549 Core7개가 FAIL했다. 앞선 보완에서 calendar `reveal`을 native `scroll-chart({date})`와 같은 경로로 바꾸어 이미 확인한 native date 오차를 교정 reveal에 재도입했다. 두 실패와 기존 검증 누락을 구별하여 보존한다.
 
-개발 진단의 날짜 reveal도 canonical queue 이후 기존 viewport coordinator의 `DIAGNOSTIC_DATE_REVEAL`을 사용한다. 같은 API·현재 표시 문맥·지원 날짜 범위를 확인하고 기존 조정기의 실제 Core/native 위치 정착 영수증을 반환한다. 새 scrollbar·독립 scroll writer·private store write를 추가하지 않는다. lane은 계속 실제 `.wx-scale` 원점과 canonical `contentX`로 그리며 원래 clip을 유지한다. 테스트는 정착 영수증을 확인한 뒤 native Task bar/날짜축/tick의 ±1px, 5폭×Day/Week, 같은 인스턴스 및 mutation0을 검사한다. production 기본 OFF와 #552 활성화 경계는 유지한다.
+개발 `reveal`은 canonical queue 이후 같은 API·현재 표시 문맥·지원 날짜 범위를 확인하고, 단일 adapter의 calendar `contentX`와 실제 native `.wx-scale` 원점으로 가시성을 판단한다. 이미 실제 보이는 날짜는 이동하지 않으며 화면 밖 날짜는 기존 `DIAGNOSTIC_SCROLL(left)` coordinator 경로를 사용한다. 기존 진단 scroll의 유한 frame·현재 의도/가시성/capacity 검사와 최대3회 native repair로 Core/native 정착을 확인한다. production DATE_REVEAL·새 scrollbar·독립 writer·private store write를 추가하지 않는다. 진단 보정 예산은 기존 peer/restore 예산과 분리하고 production에서 거부한다. 진단 중 revision/projection generation 변경은 취소한다. in-view 판단은 실제 native Chart 논리 plot 기준이며 좁은 화면의 외부 wrapper clip과 구별한다. 오른쪽 끝 날짜의 scroll target은 실제 최대 offset을 넘지 않으며 canonical contentX/날짜 anchor는 바꾸지 않는다. `nativeDateReveal`은 원형 native 오차 비교용으로 유지한다.
+
+공유 probe `reveal`의 성공 영수증은 `SETTLED`다. 축 밖/지원 불가/숨은 문맥은 성공으로 취급하지 않는다. 기존 #367 날짜축 확장이 진단 요청을 취소한 `SUPERSEDED`도 성공 영수증이 아니다. Core geometry 기술 시험은 이 상태를 진단에 보존하고 원형의 실제 날짜 가시성·좌표±1px·행/no-loss를 독립 검사한다. 해당 시험에 새로 추가했다가 제거한 무조건 SETTLED 기대와 중간 실패는 Work Packet에 기록한다. 테스트는 #549의 exact calendar left±1px·in-view 반복 무이동·custom filter/0행 축 보존과 #551의 실제 날짜축/Task bar/tick±1px를 함께 검사한다. production 기본 OFF와 #552 활성화 경계는 유지한다.
 
 ## Issue #551 — native 날짜축을 기준으로 한 물리 X 정합성 (2026-10-12)
 
@@ -100,7 +102,7 @@ Membership/Gate는 기존 전체 `projectStageGates(stageSnapshotFromProject(tas
 
 주의: react-gantt 2.7.3의 타입은 getDiffer를 재export하지만 runtime은 재export하지 않는다. 이미 lockfile에 있는 gantt-store 2.7.2의 root export를 사용하며 새 패키지/버전을 추가하지 않는다. 이 package는 내부 state management 설명을 가진다. 공개 타입의 derived field와 exported helper 조합은 **문서화된 안정 widget geometry API가 아니다**. 해당 결합을 이 버전 제한 adapter에 격리하고 실제 DOM 기준점과 ±1px로 검증한다. 알 수 없는 scale/step, 날짜 오류, zero-size/유효하지 않은 geometry는 null/false이며 lane 활성화를 허용하지 않는다. 새 수식으로 ms/day 또는 week=7 pixel 산술을 복제하지 않는다.
 
-공개 `scroll-chart({date})`는 설치 Core에서 hour 차이와 `_start`를 사용한다는 정적 source 관찰이 있다. 실제 America/New_York fixture의 Day/Week 결과는 calendar-day bar와 달랐다. hour 차이 및 원래 `_start`와 normalized `_scales.start` 차이가 원인 후보이며, 전체 차이를 DST 하나로 확정하지 않는다. 단일 adapter는 실제 Task geometry와 같은 calendar-day helper의 contentX를 공개 left 명령으로 전달한다. 강제 DOM scroll은 하지 않는다.
+공개 `scroll-chart({date})`는 설치 Core에서 hour 차이와 `_start`를 사용한다는 정적 source 관찰이 있다. 실제 America/New_York fixture의 Day/Week 결과는 calendar-day bar와 달랐다. hour 차이 및 원래 `_start`와 normalized `_scales.start` 차이가 원인 후보이며, 전체 차이를 DST 하나로 확정하지 않는다. 단일 adapter는 실제 Task geometry와 같은 calendar-day helper의 contentX를 공개 left 명령으로 전달한다. 이 순수 adapter 자체는 DOM을 쓰지 않는다. 통합 개발 probe의 물리 위치 정착은 위의 기존 coordinator/port만 소유한다.
 
 MT1 probe는 기존 ProjectGantt의 개발 모드에서만 존재한다. frame namespace `__masterganttMilestoneTimeline`의 작은 diagnostic은 최대 500개 ID/좌표/Link endpoint와 64개 공개 이벤트만 보관하고 Task 본문/secret을 포함하지 않는다. 소유 listener/property는 cleanup한다. 운영에서 행 숨김을 노출하지 않는다. 필터 projection은 Core scale/config 갱신 뒤 기존 canonical 동기화 queue와 순서가 맞아야 한다. 첫 실험은 filter 직후 7행, Day→Week 설정 변경 뒤 원래 10행으로 돌아왔다. 개발 probe는 명시 요청 ID를 보관하고 같은 API/source/filter key/현재 요청 generation/현재 scale/가시 nonzero viewport를 확인한 뒤 queue 이후 공개 filter를 재적용한다. source/scope 변경은 요청을 폐기하고 소유 cleanup이 오래된 요청을 무효화한다. 이는 native filter 자체의 scale 지속성이 아니라 앱이 제어하는 표시 projection 기술 대안이다. 후속 production은 실제 visibleTaskIds와 공통 queue를 연결해야 하며 개발 probe ref를 제품 기능으로 사용할 수 없다. 기술 gate가 통과하기 전 후속 행 제거를 활성화하지 않는다.
 

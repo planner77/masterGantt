@@ -1,4 +1,17 @@
+## Issue #551 — CI #2600.1 공유 #549 calendar reveal 회귀 (2026-10-13)
+
+- 원본 #2600.1은 lane19+#464교환2 PASS지만 Core7 FAIL이다. 이전 native date 통합의 잘못된 완료/날짜 의미를 보존하고, 단일 calendar adapter의 contentX 및 실제 native 날짜축 가시성으로 교정한다. nativeDateReveal 비교 경로는 원형대로 남긴다.
+- `milestone-timeline-core.spec.ts` 9개 전체: 390/768/1024/1440/1920px×Day/Week에서 필터 행/no-loss·좌표±1px·축/행 정렬, DST calendar exact-left±1px·반복 in-view 무이동, Milestone-only 0행·날짜 insideRange/visible·SETTLED와 empty 구별, peer/resize/동적 확장·동일 instance/canonical/revision/mutation0을 유지한다.
+- Core geometry의 outcome attachment는 보존한다. 기존 #367 확장에 의한 SUPERSEDED는 성공 영수증이 아니며 원래 날짜 가시성·실제 좌표/행±1px/no-loss assertions를 독립 검사한다. 이번에 추가했던 무조건 SETTLED assertion만 제거한 oracle 교정은 원형 테스트 약화와 구별한다. Milestone-only/lane/DST 반복의 SETTLED 검사는 유지한다.
+- `milestone-timeline-lane.spec.ts` 19개를 함께 실행하여 native 축·Task bar·tick±1px 및 대형/peer/clip/focus 계약의 반대 방향 회귀를 검사한다. 고유 case와 반복 실행 수는 구분한다.
+- 직접 Unit에서 기존 DIAGNOSTIC_SCROLL만 허용된 최대3회 native 보정, 지연 수렴·예산 소진·새 사용자 intent/hidden/stale 취소를 검사한다. 진단/peer 보정 예산 분리, production 진단 보정 거부, revision/projection generation 변경 취소도 검사한다. production DATE_REVEAL 미지원/receipt gate/restore authority는 변경하지 않는다.
+- Local PASS/독립 사전 검토는 새 exact-head PR quality/e2e/docker·Trusted·Owner 승인 PASS가 아니다. 새 CI는 시작 등록까지만 확인한다. ±1px/timeout/fixture/skip/retry·6-shard/필수 gate 유지.
+
+최종 Local Fast Feedback은 Core9+lane19 고유28/28 PASS(표시1.5분), 관련 Unit4파일117/117 PASS(522ms)다. 중간 반복을 고유 수에 더하지 않는다. 최초 원형7FAIL/2PASS·중간22PASS/6FAIL·oracle23PASS/5FAIL 및 source/명령·환경은 [Work Packet](exec-plans/active/ISSUE_551.md)에 보존한다. 공식 새 Head CI/QA/Owner 승인 결과는 NOT TESTED다.
+
 ## Issue #551 — CI #2595.1 날짜 reveal 정착·#464 transport 관측 (2026-10-12)
+
+아래는 당시 보완 이력이다. native 날짜 reveal 통합은 #2600.1에서 공유 Core 회귀가 확인되어 위 2026-10-13의 calendar left 경로로 대체한다.
 
 - [원본 CI #2595.1](https://github.com/planner77/masterGantt/actions/runs/38258293115), Head `b25bb4e72c1f769d47ec3b7f03c9a31740ac299b`, base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`, test merge `3be6f67c08312631058cefd70dc96fcdfff65497`, attempt1: quality/Docker/Chromium 다른 5 shard PASS, shard4(job114842184289/step7) 123 PASS/6 FAIL/1 skipped. #551 5폭 `anchor=null`과 #464 copy 이후 GET `ECONNRESET`을 별개로 기록한다. 자동 QA FAIL은 필수 E2E FAIL에 따른 연쇄 차단이다.
 - #551: Day→Week 전환 후 Core state의 날짜 가시성과 실제 native 날짜축 위치가 다를 때도 개발 probe의 날짜 reveal은 기존 viewport coordinator를 거쳐야 한다. 5폭×Day/Week에서 `DIAGNOSTIC_DATE_REVEAL`의 실제 `SETTLED` 결과를 확인하고, 기존 native Task bar/날짜축/Milestone tick ±1px, row y/height, clip/focus, 같은 API 및 mutation0 assertions를 유지한다. sleep/timeout 증가·skip/retry·허용오차 확대는 하지 않는다.

@@ -1,5 +1,53 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-13 — PR CI #2600.1의 공유 #549 reveal 회귀 REWORK
+
+- 요청 범위: 실패 원인 분석·보완·기존 PR #560의 새 exact-head 전체 PR CI 시작. 새 CI 결과 모니터링·병합·main/GHCR·release·Issue 종료·branch 정리는 수행하지 않는다.
+- 기준 Head `301579a838865ab5f100824f10ccb9986bb9fbd4`, base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`, test merge `65299d512135264b7d44dc23200f569c217fd24d`. [원본 CI #2600.1](https://github.com/planner77/masterGantt/actions/runs/38264149134), run38264149134/attempt1은 FAIL이다. quality job114862916192와 Docker job114863071170, Chromium 다른 5 shard는 PASS다.
+- 기존 실패였던 shard4의 #551 lane19/19 및 #464 교환2/2는 모두 PASS(전체129 PASS/1 skipped). 이번 실패는 shard5 job114862093885/step7의 `milestone-timeline-core.spec.ts`: 5폭 `coordinate.visible=false`, DST exact calendar left 기대에 30px 차이, Milestone-only reveal `TIMED_OUT`의 7 FAIL이다. shard5는91 PASS/7 FAIL이며 QA Automated job114870347998의 FAIL은 E2E 필수 aggregate 실패에 따른 연쇄 판정이다.
+
+원본 실패 artifact는 [playwright-report-shard-5 /11754906161](https://github.com/planner77/masterGantt/actions/runs/38264149134/artifacts/11754906161), ZIP SHA256 `779c70f3cb9f0a039e70cc3790554d75220ad76dfbdd34d818163ac779eac023`(9,609,548 bytes)다. 경로 검증 후 `/tmp/issue551-ci2600-shard5/`에 데이터로만 추출했다. trace의 synthetic cookie/body/header 등 원문은 Git/Issue/PR에 게시하지 않는다. 진단 보고서는 `/tmp/issue551-ci2600-diagnosis.md`이며 새 CI 실행 증거와 구별한다.
+
+### 원인·교정 계약
+
+앞선 #2595 보완에서 공유 개발 probe의 calendar `revealMilestoneDate`를 `DIAGNOSTIC_DATE_REVEAL`로 대체하여 기존 `nativeDateReveal`과 같은 native `scroll-chart({date})`를 실행했다. #549에서 이미 관측한 native date와 calendar-day bar의 차이를 교정 경로에 재도입했으며 boolean 반환도 `ViewportOutcome`으로 바뀌었다. lane19개만 실행하여 공유 Core9개 회귀를 놓친 검증 범위 결함도 인정한다. 이 오류를 native 오차에 맞춘 기대값 변경이나 timeout 확대로 숨기지 않는다.
+
+개발 `reveal`은 단일 adapter의 calendar `contentX`와 실제 native 날짜축 가시성을 읽어, 이미 실제 보이는 날짜는 이동하지 않고 화면 밖 날짜는 기존 `DIAGNOSTIC_SCROLL(left)`의 coordinator 경로로 보낸다. 기존 custom filter는 production projection receipt와 다르므로 native date/projection receipt 경로로 억지 통합하지 않는다. 기존 진단 scroll 분기의 Core/native 정착에 최대3회 bounded repair를 한정하여 추가하며 새 command·production DATE_REVEAL·별도 scroll writer·private Core store write는 도입하지 않는다. 현재 intent/visibility/capacity/취소·숨김·stale 검사를 유지한다. 진단 보정 예산은 기존 peer/restore 예산과 분리하며 production에서는 진단 보정을 거부한다. 진단 요청 도중 revision/projection generation이 바뀌면 취소한다. native Chart 논리 plot 가시성과 좁은 화면의 외부 wrapper clip을 구별해 이미 보이는 날짜에 재명령하지 않는다. 축 오른쪽 끝 날짜는 실제 최대 scroll offset 안에서 reveal하되 canonical contentX/anchor는 그대로 유지한다. `nativeDateReveal`은 원형 오차 비교용으로 별도 유지한다.
+
+Core 테스트의 Milestone-only 성공 반환은 새 `SETTLED` 계약으로 명시하되 0행/날짜 insideRange+visible/축 비축소/canonical·revision 불변 검증을 유지한다. DST exact calendar left±1px·반복 in-view 무이동과 5폭 Day/Week·no-loss 조건은 유지한다. #551 lane19개를 함께 재검증하여 반대 방향 회귀를 검사한다.
+
+### 로컬 원형·중간 후보 실패 보존
+
+- frozen 실제 dependencies/default Turbopack의 원형 Core9는7 FAIL/2 PASS(47.7초)로 원격과 같은 실패 목록을 재현했다. `/tmp/issue551-core-before.log`와 `/tmp/issue551-core-before-evidence/`에 보존한다.
+- 첫 numeric 후보의 Core+lane28은22 PASS/6 FAIL(1.1분)이다. DST/Milestone-only는 복원됐지만 far-right 날짜의 `contentX`가 native 최대 scroll을 넘어 기존 진단 명령이 거부됐다. `/tmp/issue551-core-lane-after.log`, `/tmp/issue551-core-first-candidate-evidence/` 보존. axis 안 날짜의 target만 native capacity로 제한하고 canonical contentX/anchor는 유지했다.
+- 다음 후보는23 PASS/5 FAIL(1.6분), lane19 전부 PASS다. 마지막2027-01-01의 진단은 기존 #367 `RANGE_EXTENSION`이 같은 rangeController를 갱신해 `SUPERSEDED`였으나 실제 날짜는 visible=true(contentX37332/nativeleft37167/viewportX165)였다. 추가했던 geometry5개의 `SETTLED` 반환 검사가 원형 조건보다 강한 잘못된 oracle였다. 이 신규 assertion만 제거하고 원래 visible/좌표±1px/행·no-loss 조건 및 outcome attachment를 유지한다. 기존 날짜축 취소 동작을 바꾸거나 SUPERSEDED를 성공 영수증으로 해석하지 않는다. `/tmp/issue551-oct13-terminal-oracle-evidence/`에 원형 report/trace/log를 보존했다.
+- 실제 독립 Reviewer는 이 판정을 검토했다. Milestone-only/lane의 SETTLED, DST exact calendar-left±1px·반복 scroll-chart event 불변, 원래 geometry assertions는 유지한다. 최종 Core9+lane19 실행 전까지 위 중간 기록을 PASS로 대체하지 않는다.
+
+### Work Packet·소유권·위험
+
+- Manager: 본 Packet/PLAN/CHANGELOG/ARCHITECTURE/MILESTONE_TIMELINE/TEST_PLAN, 문서 영향 분석, 공식 Issue 댓글 및 게시 GO.
+- frontend `/root/frontend_fix`: `project-gantt.tsx` 개발 probe, `viewport/viewport-coordinator.ts` 및 `svar-viewport-port.ts`의 기존 개발 진단 scroll 분기, `milestone-timeline-core.spec.ts` 및 직접 관련 Unit. 다른 production command/receipt 정책 변경 금지.
+- infra `/root/ci_diagnosis`: 원격 실패 job/log/artifact read-only 진단 및 최종 GO 뒤 기존 branch의 expected-parent/force=false 동등 게시·exact Head CI 등록만 확인. source/docs/Issue 댓글 쓰기 금지.
+- 독립 Reviewer `/root/independent_review`: 요구·source/test/docs·실제 로그의 read-only PRE_QA. 최종 QA/Owner 승인과 구별한다. 모든 Agent는 소유권 밖/동일 파일 동시 쓰기·무단 재귀 위임을 하지 않는다.
+- risk_level=HIGH / qa_required=true / qa_method=OWNER_MANAGED. 공유 viewport 진단과 반복 회귀 영향으로 HIGH 유지. version0.107.0/package/lock 불변, release_required=true/release_authorized=false.
+- 재개 초기 phase=REWORK이며 최종 Local Fast Feedback/PRE_QA는 아래 실행 원장을 따른다. 새 Head quality/e2e/docker·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED. 앞선 PASS/실패 원장은 보존한다.
+
+### 최종 Local Fast Feedback와 인계
+
+- 실제 frozen dependencies(Node22.14.0/npm11.10.0, Next16.3.8/React19.3.0/Playwright1.63.0/Core2.7.3/store2.7.2), default Turbopack/fresh dist `.next-issue551-final-oct13`, Chromium America/New_York, workers1/retries0, synthetic canonical API. 최종 고정 source의 Core9+lane19 전체28/28 PASS(표시1.5분, exit0), skipped0/retry0. 고유28개이며 중간/원형 실행을 고유 테스트 수에 더하지 않는다.
+- 직접 Unit4파일117/117 PASS(522ms, exit0): viewport coordinator/port·Milestone date adapter/lane model. 지연 native 보정·3회 상한/receipt-null·gesture/hidden/context/revision/projection 취소·capacity 축소·진단/peer 예산 분리·production 진단 보정/명령 거부·ordinary repair 보존을 검증했다.
+- typecheck exit0, 변경 소스/테스트6파일 scoped ESLint error0/기존 hook warning3, 마지막 변경 test2파일 재검사 error0/warning0. version0.107.0·Markdown191파일·diff check PASS. 서버 종료 후 Next가 생성한 next-env/tsconfig는 원래 HEAD byte로 복원하여 게시 대상에서 제외한다.
+- 최종 로그 `/tmp/issue551-oct13-verified-browser.log`, `/tmp/issue551-core-final-unit.log`, `/tmp/issue551-oct13-final-typecheck.log`(generated 복원 뒤 exit0), `/tmp/issue551-oct13-lint.log`, `/tmp/issue551-oct13-final-tests-lint.log`. report/trace는 `/tmp/issue551-oct13-verified-evidence/`, 최초/중간 FAIL은 위 원장을 따른다. runtime DB·server log·원문 trace·build 산출물은 게시하지 않는다.
+- 실제 분리된 frontend 구현, infra 진단, Manager의 최종 browser/정적 검증, qa_docs의 read-only 계약·소스·문서·로그 대조로 실행했다. 독립 PRE_QA와 최종 source freeze는 게시 전 별도 확인한다. 문서 동기화 후 정확한 동결 tree만 기존 PR에 게시하며 원격 full CI 등록까지만 확인한다.
+- #464는 이번 교정 source 영향이 없는 실제 서버 통합이다. 원본 #2600의2/2 PASS를 그 Head의 증거로 보존하며 새 Head의 원격 회귀 PASS로 재사용하지 않는다. transport 근인 UNKNOWN과 전체 AC/실기기 미검증은 계속 남긴다.
+- lifecycle_phase=LOCAL_VALIDATED → DOCUMENTATION_SYNC → PRE_QA → PR_CI_STARTED(각 단계 실제 근거 후 전환). 새 Head quality/e2e/docker/QA_FINAL/Owner·Manager ACCEPT/main/GHCR/정식 release는 NOT TESTED, MERGE_READY=BLOCKED.
+
+실제 독립 Reviewer `/root/independent_review`의 범위 한정 PRE_QA는 PASS/추가 blocker0이다. 검토 manifest SHA256 `87ce867020e6bb7f2d970811f07c81b708da7a535f7d6cbe3a47687b97cca49f`의12/12 bytes/SHA256/base64·allowlist·기준 HEAD와 generated 복원 byte 일치를 대조했다. HTML report의 report.json에서28 expected/unexpected0/flaky0/skipped0/errors0, Unit117 및 typecheck/lint 원문을 직접 확인하고 link191/version/diff 검사도 독립 실행했다. browser/Unit을 별도로 재실행한 것은 아니다. 본 영수증은 source 변경 없는 후속 metadata1문단이다. DOCUMENTATION_SYNC=PASS, 게시 준비 PRE_QA=PASS이며 새 원격 QA_FINAL·Owner/Manager ACCEPT와는 별개다. 원격 동등 게시와 정확 Head full PR CI 등록까지만 수행하도록 Manager가 인계한다.
+
+### 이번 DOCUMENTATION_SYNC 영향
+
+MILESTONE_TIMELINE/ARCHITECTURE/TEST_PLAN/PLAN/본 Packet/CHANGELOG는 UPDATED 대상으로 공유 calendar reveal·진단 정착·회귀 범위를 동기화한다. DESIGN/PROJECT_UX/UI_UX_GUIDELINES는 제품 배치·interaction·접근성 변경이 없어 이번 교정 영향 N/A이며 PR 전체의 기존 UPDATED 기록은 유지한다. API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/IMPORT_EXPORT/IMPORT_SCHEMA/PRO_FEATURE_MATRIX는 서버/도메인/표시 adapter 공개 범위 불변으로 추가 변경 N/A다. AGENTS/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS는 QA/CI/권한·release 계약을 변경하지 않아 N/A다. workflow/package/lock/required check/Ruleset·timeout/retry/skip/±1px/fixture를 유지한다.
+
 ## 2026-10-12 — PR CI #2595.1 반복 실패 분석·보완
 
 - 요청 범위: 원인 분석·관련 코드/테스트/문서 보완·기존 PR #560의 새 full CI 시작. 새 CI의 결과 모니터링, 병합, main/GHCR/Release, Issue 종료 및 브랜치 정리는 수행하지 않는다.

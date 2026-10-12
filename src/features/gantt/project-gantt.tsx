@@ -1813,11 +1813,23 @@ export function ProjectGantt({
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
       reveal: async (date: string) => {
         await canonicalSyncQueueReference.current;
-        if (apiReference.current !== api || !peerViewportContext.current.visible || !milestoneDateCoordinate(api, date)?.insideRange) return false;
-        // Use the existing diagnostic owner: a scale commit can update Core
-        // offsets before its native scroll settles. State-only visibility is
-        // insufficient, and direct scroll-chart bypasses the intent lease.
-        return viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) });
+        if (apiReference.current !== api || !peerViewportContext.current.visible) return false;
+        const coordinate = milestoneDateCoordinate(api, date), widget = timelineWidget.current;
+        if (!coordinate?.insideRange || !widget) return false;
+        const geometry = readMilestonePlotGeometry(api, widget);
+        if (!geometry) return "NOT_MEASURABLE";
+        const actualX = coordinate.contentX + geometry.axisOrigin;
+        // Preserve calendar-day coordinates and an already-visible viewport.
+        // Native {date} scrolling has distinct DST/week semantics. Only the
+        // existing diagnostic owner may reconcile a delayed native offset.
+        if (coordinate.visible && Math.abs(geometry.axisOrigin + api.getState().scrollLeft) <= 1 &&
+          actualX >= 0 && actualX < geometry.width) return "SETTLED";
+        const chart = widget.querySelector<HTMLElement>(".wx-chart");
+        if (!chart) return "NOT_MEASURABLE";
+        // Near the axis end Core reveals a date at the last scrollable offset;
+        // its calendar contentX and native bar anchor remain unchanged.
+        const left = Math.min(coordinate.contentX, Math.max(0, chart.scrollWidth - chart.clientWidth));
+        return viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left });
       },
       nativeDateReveal: (date: string) => viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }),
       scroll: (left: number) => Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),

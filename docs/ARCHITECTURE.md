@@ -1,8 +1,10 @@
 # Architecture draft
 
-## Issue #551 — 개발 reveal도 단일 viewport coordinator 사용 (2026-10-12)
+## Issue #551 — 개발 calendar reveal과 진단 정착 경계 (2026-10-13)
 
-Milestone Timeline 개발 probe의 `reveal`은 canonical queue 이후 현재 API/표시 문맥/날짜 범위를 검사하고 기존 `DIAGNOSTIC_DATE_REVEAL`을 요청한다. Core state-only `visible`을 실제 DOM 정착으로 간주하지 않는다. Day→Week 뒤 Core/native 위치의 일시적 차이는 기존 coordinator의 intent/정착/취소 계약으로 다루고 새 scroll writer나 무기한 polling을 추가하지 않는다. lane의 native scale 원점 측정과 clipping 및 production 기본 OFF는 유지한다. 진단 hook은 개발 전용이며 제품 DATE_REVEAL 기능 확대나 #552 표시 전환을 뜻하지 않는다.
+Milestone Timeline 개발 probe의 `reveal`은 canonical queue 이후 현재 API/표시 문맥/단일 adapter의 날짜 범위를 확인한다. calendar `contentX`와 실제 native `.wx-scale` 원점으로 가시성을 읽고 이미 보이는 날짜는 이동하지 않는다. 화면 밖 날짜는 기존 `DIAGNOSTIC_SCROLL(left)`의 coordinator/port에 요청하며 실제 Core/native 정착 결과를 반환한다. native `scroll-chart({date})`를 사용하는 `nativeDateReveal`은 별도 원형 비교 진단이다. 공개 native date와 calendar-day 좌표가 같다고 가정하지 않는다.
+
+기존 개발 진단 scroll은 custom filter가 production projection receipt와 다른 기술 실험에도 쓰인다. 기존 receipt 비의존 경로를 유지하며 현재 의도·가시성·capacity를 검사하고 최대3회 native 보정과 유한 frame 안에서 Core/native 위치를 검증한다. 진단 보정 예산은 peer/restore와 분리하며 production에서 거부한다. 진단 중 revision/projection generation 변경은 취소한다. native Chart 논리 plot의 가시성과 외부 wrapper clip을 구별하고 축 끝 reveal의 target은 실제 최대 offset을 넘지 않는다. canonical contentX/anchor는 변경하지 않는다. 이 보완은 개발 진단에 한정하며 production DATE_REVEAL 지원, restore authority, projection receipt 검사나 별도 scroll writer를 추가하지 않는다. lane의 실제 원점·clip과 production 기본 OFF는 유지한다. #2600.1의 원본 Core7 FAIL과 앞선 #2595 교정에서의 공유 테스트 누락은 Work Packet에 보존한다.
 
 ## Issue #551 — 실제 native 날짜축 원점과 앱 Timeline lane (2026-10-12)
 
@@ -36,7 +38,7 @@ Gantt 연결부는 같은 API/session/request의 정확한 confirmation과 현�
 
 #570 projection receipt의 후속 소비자는 단일 Viewport Coordinator다. canonical 데이터·조회 projection의 authority는 그대로 유지하고, viewport 의도/실행/완료 관측만 분리한다. 부모 Workspace는 유효한 visible capture와 typed peer/Task reveal 요청을 전달하며 Gantt native DOM 복원을 별도 실행하지 않는다.
 
-순수 Coordinator는 API/context·intent/projection/geometry·user gesture 세대와 pending operation을 검사한다. 실제 사용자 입력 및 명시 reveal > scope/filter > peer return > passive preservation 순으로 처리하며 늦게 도착한 passive 이벤트가 최근 사용자 의도를 덮지 않는다. production port가 앱 scroll-chart/native 보정과 기존 range compatibility 명령의 실행 경계다. Native Core wheel/Grid reveal은 Core 소유로 유지하고 관측 이벤트를 새 앱 명령으로 재귀 처리하지 않는다. 단일 writer 근거는 production 앱 경로에 한정한다. 기존 #549 개발 전용 __masterganttMilestoneTimeline.reveal→revealMilestoneDate와 #569 PoC/trace fixture의 직접 명령은 진단 예외이며 제품 DATE_REVEAL 지원·단일 writer 실증에 포함하지 않는다.
+순수 Coordinator는 API/context·intent/projection/geometry·user gesture 세대와 pending operation을 검사한다. 실제 사용자 입력 및 명시 reveal > scope/filter > peer return > passive preservation 순으로 처리하며 늦게 도착한 passive 이벤트가 최근 사용자 의도를 덮지 않는다. production port가 앱 scroll-chart/native 보정과 기존 range compatibility 명령의 실행 경계다. Native Core wheel/Grid reveal은 Core 소유로 유지하고 관측 이벤트를 새 앱 명령으로 재귀 처리하지 않는다. 단일 writer 근거는 production 앱 경로에 한정한다. 기존 #549 개발 전용 __masterganttMilestoneTimeline.reveal은 단일 calendar adapter의 좌표를 읽어 기존 DIAGNOSTIC_SCROLL coordinator 경로를 사용한다. #569 PoC/trace fixture의 직접 명령은 별도 진단 예외이며 제품 DATE_REVEAL 지원·단일 writer 실증에 포함하지 않는다.
 
 native Core의 명시 select-task show 이동은 기존 관측 경계에서 Coordinator user-input 세대를 갱신하고 오래된 metadata capture를 폐기한다. 포인터 capture와 실제 Core reveal 사이에 등록된 passive 작업도 취소해야 한다. show:false·canonical-sync·project-owned-selection은 제외하며 새 앱 reveal 명령을 중복 발행하지 않는다.
 

@@ -17,7 +17,7 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
   const { api, root, frame } = options;
   let disposed = false, resizing = false;
   let authority: { target: ViewportPosition; current: () => boolean; geometry: string; repairs: number } | null = null;
-  let writes = 0, repairs = 0;
+  let writes = 0, repairs = 0, diagnosticRepairs = 0;
   const chart = () => root.querySelector<HTMLElement>(".wx-chart");
   const vertical = () => root.querySelector<HTMLElement>(".wx-gantt");
   const read = (): ViewportSample => {
@@ -76,10 +76,12 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       await Promise.all([expansion, physical]);
     } finally { resizing = false; if (current()) options.recordEnd(); }
   };
-  const repair = (target: ViewportPosition) => {
+  const repair = (target: ViewportPosition, diagnostic = false) => {
+    if (diagnostic && process.env.NODE_ENV === "production") return false;
     const sample = read(), horizontal = chart(), y = vertical();
-    if (repairs >= 3 || !sample.measurable || !horizontal || !y || sample.capacity.left < target.left - 1 || sample.capacity.top < target.top - 1) return false;
-    horizontal.scrollLeft = target.left; y.scrollTop = target.top; writes++; repairs++;
+    if ((diagnostic ? diagnosticRepairs : repairs) >= 3 || !sample.measurable || !horizontal || !y || sample.capacity.left < target.left - 1 || sample.capacity.top < target.top - 1) return false;
+    horizontal.scrollLeft = target.left; y.scrollTop = target.top; writes++;
+    if (diagnostic) diagnosticRepairs++; else repairs++;
     if (process.env.NODE_ENV !== "production") frame.dataset.ganttPeerNativeRepairs = String(Number(frame.dataset.ganttPeerNativeRepairs ?? 0) + 1);
     return Math.abs(horizontal.scrollLeft - target.left) <= 1 && Math.abs(y.scrollTop - target.top) <= 1;
   };
@@ -144,6 +146,8 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     if (command.kind === "RANGE_EXTENSION") { await resizeCompatibility(command.width, current); return read().core; }
     if (command.kind === "DIAGNOSTIC_SCROLL") {
       if (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0 || read().capacity.left < command.left - 1) return null;
+      // Diagnostic requests cannot replenish an existing peer repair budget.
+      diagnosticRepairs = 0;
       await exec("scroll-chart", { left: command.left, eventSource: tag });
       return read().core;
     }

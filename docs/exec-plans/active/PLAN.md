@@ -1,3 +1,9 @@
+## Issue #551 — PR #560 CI #2600.1 공유 Core reveal 회귀 보완 (2026-10-13)
+
+[CI #2600.1](https://github.com/planner77/masterGantt/actions/runs/38264149134), Head301579a838865ab5f100824f10ccb9986bb9fbd4/baseb97709df8b5c0974f3c8252ac97819f45f73a5b9: quality/Docker 및 기존 lane19+#464교환2를 포함한5 shard PASS, shard5의 #549 Core7개 FAIL이다. 앞선 공유 dev reveal의 native date 통합이 calendar contentX·custom filter·반환 계약을 깨뜨렸다. 기존 단일 adapter의 calendar left와 실제 native 가시성/in-view 무이동을 복원하고 기존 dev DIAGNOSTIC_SCROLL 정착만 bounded 보완한다. ±1px/원래 fixture/timeout·retry0·required gate를 유지하며 Core9+lane19 및 직접 Unit으로 함께 검증한다.
+
+frontend가 제한된 probe/진단 port/coordinator·관련 테스트, Manager가 문서, infra가 진단/최종 동등 게시, 실제 qa_docs가 read-only PRE_QA를 소유한다. HIGH/OWNER_MANAGED/qa_required=true·0.107.0 유지, release_required=true/release_authorized=false. 새 전체 PR CI 시작까지만 수행하며 결과 모니터링·병합·main/GHCR·최종 승인은 NOT TESTED다. [#551 Work Packet](ISSUE_551.md)에 원본 실패·보완·실제 검증 원장을 기록한다. 최종 Local Fast Feedback은 Core9+lane19 전체28 PASS(1.5분)와 관련 Unit117 PASS(522ms), typecheck/lint·version/link/diff PASS다. 최초 원형7FAIL/2PASS·중간22PASS/6FAIL·신규oracle23PASS/5FAIL은 보존한다. 새 remote exact Head 결과와 독립 PRE_QA/Owner 최종 판정은 별개다.
+
 ## Issue #551 — PR #560 CI #2595.1 반복 실패 보완 (2026-10-12)
 
 최신 Head `b25bb4e72c1f769d47ec3b7f03c9a31740ac299b` / base `b97709df8b5c0974f3c8252ac97819f45f73a5b9` / [CI #2595.1](https://github.com/planner77/masterGantt/actions/runs/38258293115)의 quality/Docker 및 다른 E2E 5 shard는 PASS, shard4는 123 PASS/6 FAIL/1 skipped다. #551 5폭 `anchor=null`은 개발 날짜 reveal의 state-only 가시성 판단과 기존 viewport 조정기 우회 경계로 분석하고 기존 `DIAGNOSTIC_DATE_REVEAL` 정착 경로로 통합한다. 별도 #464 GET `ECONNRESET`은 서버 alive/health200/OOM0으로 근인 UNKNOWN이며 기존 안전한 요청 observer를 연결해 원본 실패를 재시도 없이 보존한다.

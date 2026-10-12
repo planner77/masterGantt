@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #551 PR #560 공유 calendar reveal 회귀 교정 (2026-10-13)
+
+- 앞선 개발 probe의 native 날짜 reveal 통합으로 발생한 #549 Core7개 실패를 교정한다. 단일 calendar adapter의 contentX와 실제 native 가시성으로 이미 보이는 날짜의 무이동 계약을 유지하고 화면 밖 날짜는 기존 coordinator의 개발 진단 left 명령을 사용한다.
+- 기존 개발 진단 scroll 정착만 최대3회 native repair로 제한해 보완하고 Core/lane 회귀를 함께 검증한다. production 기본 OFF·지원 범위·서버/데이터/패키지/CI gate·기존 정확도 기준은 유지한다. 원본 실패 및 새 원격 검증 전 NOT TESTED 경계를 보존한다.
+
 ## [Unreleased] — Issue #551 PR #560 날짜 reveal 정착·실패 진단 보완 (2026-10-12)
 
 - Day→Week 전환 뒤 개발 Timeline reveal이 Core 상태만으로 이동을 생략하는 경계를 기존 viewport coordinator의 날짜 reveal/정착 경로로 통합한다. 실제 5폭 날짜축·Task bar·tick의 ±1px 및 같은 인스턴스 검증을 유지하고 정착 결과 검증을 추가한다.
