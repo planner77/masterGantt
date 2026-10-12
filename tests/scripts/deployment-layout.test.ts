@@ -133,16 +133,27 @@ describe("deployment repository layout", () => {
     expect(text("AGENTS.md")).toContain("successful non-docs main merge의 verified `ci-<SHA>`");
     expect(ci).toContain("version_changed:");
     expect(ci).toContain("BEFORE_SHA: ${{ github.event.before }}");
-    expect(ci).toContain("fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}");
+    expect(ci).toContain(
+      "fetch-depth: ${{ (github.event_name == 'push' || inputs.target_sha != '') && '0' || '1' }}",
+    );
+    expect(ci).toContain("ref: ${{ needs.changes.outputs.checkout_sha }}");
+    expect(ci).toContain("checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}");
     expect(ci).toContain('git show "$BEFORE_SHA:package.json"');
     expect(ci).not.toContain('git show "${GITHUB_SHA}^1:package.json"');
     expect(ci).toContain("org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}");
     expect(ci).toContain(
-      "verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup",
+      "verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup",
     );
-    expect(ci).toContain('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"');
+    expect(ci).toContain("SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}");
+    expect(ci).toContain("tag=ci-$SOURCE_SHA");
+    expect(ci).toContain("org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}");
+    expect(ci).toContain('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"');
     expect(ci).toContain('if [[ "${{ job.status }}" != "success" ]]');
-    expect(ci).toContain("GHCR cleanup: failed validation candidate ci-${GITHUB_SHA} deleted.");
+    expect(ci).toContain("GHCR cleanup: failed validation candidate ci-${SOURCE_SHA} deleted.");
+    expect(ci).toContain('if [[ "$RECOVERY" == "true" ]]');
+    expect(ci).toContain("python3 scripts/main_ci_recovery.py authorize");
+    expect(ci).toContain("python3 scripts/main_ci_recovery.py prepublish");
+    expect(ci).toContain("needs.changes.outputs.recovery_authorized == 'true'");
     expect(text("scripts/issue_lifecycle.py")).toContain("cleanup_temporary_main_candidate");
     expect(text("scripts/issue_lifecycle.py")).toContain("scripts/delete-ghcr-package-version-by-tag.mjs");
     expect(text(".github/workflows/release-finalizer.yml")).toContain("packages: write");

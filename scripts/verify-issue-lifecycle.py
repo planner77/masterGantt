@@ -170,6 +170,37 @@ require("group: mastergantt-release-finalizer" in resume_workflow, "release resu
 require("queue: max" in resume_workflow, "release resume must preserve queued completion events")
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
+# #639 P1 review: the trusted root checkout uses a Python namespace package,
+# and private GHCR must be logged in before any recovered digest inspection.
+recovery_finalizer = auto_workflow.split("  finalize:", 1)[1].split("\n  owner_recovery:", 1)[0]
+require("ref: main" in recovery_finalizer and "persist-credentials: false" in recovery_finalizer,
+        "write-capable Generic Finalizer must always checkout trusted default main without stored credentials")
+require("from scripts import main_ci_recovery as recovery" in recovery_finalizer,
+        "inline Python in repository root must import the verifier from scripts/")
+require("if: github.event.workflow_run.event == 'workflow_dispatch'" in recovery_finalizer,
+        "only explicit manual_recovery should run private-source attestation")
+require("identity.source_sha == os.environ[\"SOURCE_SHA\"]" in recovery_finalizer,
+        "manual recovery must cross-check source workflow run SHA")
+for name in ("trusted default-main checkout SHA 검증",
+             "GHCR 버전 원장 조회 도구 준비",
+             "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+             "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+             "정확한 merge lifecycle 해석 및 실행"):
+    require(name in recovery_finalizer, f"#639 trusted Finalizer step missing: {name}")
+recovery_step_order = [
+    recovery_finalizer.index(label)
+    for label in ("trusted default-main checkout SHA 검증",
+                  "GHCR 버전 원장 조회 도구 준비",
+                  "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+                  "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+                  "정확한 merge lifecycle 해석 및 실행")
+]
+require(recovery_step_order == sorted(recovery_step_order),
+        "authenticated private GHCR login must precede recovered digest inspection and mutation")
+require("recovery.completed_evidence(" in recovery_finalizer,
+        "manual_recovery may not skip the exact Run/Attempt/source validation")
+require("github.event.workflow_run.event == 'push'" in recovery_finalizer,
+        "normal automatic Main push lifecycle must remain supported")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
 require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" in auto_workflow, "automatic finalizer needs scoped package write for temporary candidate cleanup")
@@ -199,11 +230,29 @@ require(release_workflow.index("verified candidate digest GitHub Attestation") <
 require(release_workflow.index("최종 exact·rolling tag를 verified digest로 promotion") < release_workflow.index("release-finalizer-resume.yml/dispatches"), "lifecycle handoff must occur only after publication")
 require("docker/build-push-action@" not in release_workflow, "release workflow must not rebuild the container")
 require("version_changed:" in ci_workflow and "current_version:" in ci_workflow, "main CI must classify release candidate version changes")
-require("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow, "successful non-docs main CI must hand the verified candidate to Generic Finalizer")
+# #639: exact target SHA comes from trusted verifier, ordinary main push from github.sha.
+require("SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate image must bind to independently resolved checkout SHA")
+require("checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}" in ci_workflow,
+        "push/PR SHA fallback is required")
+require("tag=ci-$SOURCE_SHA" in ci_workflow and
+        "org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate tag and OCI revision must use verified immutable source")
+require("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow,
+        "successful main/recovery CI must hand exact candidate to Generic Finalizer")
 handoff_index = ci_workflow.index("GHCR main commit image lifecycle handoff")
-failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"')
-retention_index = ci_workflow.index("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup")
-require(handoff_index < failed_cleanup_index < retention_index, "main CI must clean failed pushed candidates before successful lifecycle handoff")
+failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"')
+retention_index = ci_workflow.index("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup")
+require(handoff_index < failed_cleanup_index < retention_index,
+        "original main push must clean failed candidates before lifecycle handoff")
+require('if [[ "$RECOVERY" == "true" ]]' in ci_workflow,
+        "failed recovery candidates require audit, not automatic deletion")
+require("python3 scripts/main_ci_recovery.py authorize" in ci_workflow and
+        "python3 scripts/main_ci_recovery.py prepublish" in ci_workflow and
+        "needs.changes.outputs.recovery_authorized == 'true'" in ci_workflow,
+        "manual diagnostic may never acquire GHCR publish authority")
+require("github.event_name == 'push' && github.ref == 'refs/heads/main'" in ci_workflow,
+        "existing main push publish gate must remain")
 require('if [[ "${{ job.status }}" != "success" ]]' in ci_workflow, "main CI candidate cleanup must be restricted to failed validation")
 require("GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}" in ci_workflow, "main failed-candidate cleanup must bind repository owner type")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
@@ -417,6 +466,92 @@ require(
         "ref": "refs/heads/main", "head_commit": {"message": recovery_603_title},
     }) == (603, 605),
     "the corrected #603 merge must retain exact Issue/PR trace",
+)
+
+
+# Issue #639: PR #641 generated a genuinely immutable main merge with a
+# 31-character summary and no body. Its push CI #2606.1 failed in the trace
+# gate. A mere rerun of that SHA cannot fix its immutable commit metadata.
+failed_639_summary = "Main SHA 복구 및 GHCR 출처 검증 경로 안정화"
+failed_639_title = f"Issue #639 · PR #641 · {failed_639_summary}"
+require(
+    len(failed_639_summary) == main_run_name.MAX_SUMMARY_LENGTH + 1,
+    "#2606 forensic fixture must preserve the original 31-character summary",
+)
+require(
+    main_run_name.parse_merge_title(failed_639_title) is None,
+    "#2606 invalid merge title must never be interpreted as a valid push",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_639_title},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("#2606 immutable failed Main CI may not be retroactively green")
+
+for factory in (
+    lambda: main_run_name.format_merge_title(639, 641, failed_639_summary),
+    lambda: main_run_name.validate_merge_title(failed_639_title, 639, 641),
+):
+    try:
+        factory()
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("31-character unverified merge subject must be BLOCKED")
+
+corrected_639_title = main_run_name.format_merge_title(
+    639, 642, "Main CI 제목 계약 교정"
+)
+require(
+    main_run_name.validate_merge_title(corrected_639_title, 639, 642)
+    == corrected_639_title,
+    "exact preflight must preserve the valid title, without rewriting it",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": corrected_639_title},
+    }) == (639, 642),
+    "corrective canonical merge must be recognized by the existing push gate",
+)
+for forged in (
+    corrected_639_title + "\n\nRefs #639",
+    corrected_639_title.replace("PR #642", "PR #641"),
+    corrected_639_title.replace("Issue #639", "Issue #640"),
+):
+    try:
+        main_run_name.validate_merge_title(forged, 639, 642)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("wrong Issue/PR or multiline merge preflight must reject")
+
+preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "642",
+     "--validate-title", corrected_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=True,
+)
+require(
+    json.loads(preflight_cli.stdout) == main_run_name.merge_api_payload(
+        639, 642, "Main CI 제목 계약 교정", "a" * 40
+    ),
+    "preflight CLI must emit an exact connector merge payload bound to Head SHA",
+)
+failed_preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "641", "--validate-title", failed_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=False,
+)
+require(
+    failed_preflight_cli.returncode != 0 and not failed_preflight_cli.stdout.strip(),
+    "#2606 invalid title must produce no merge payload or positive result",
 )
 
 

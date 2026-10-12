@@ -50,7 +50,14 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
-  await expect.poll(() => frame.evaluate(node => Boolean(Reflect.get(node, "__masterganttMilestoneTimeline")))).toBe(true);
+  // Diagnostic installation must belong to the *same* initialized SVAR API
+  // as the visible Gantt frame, even when the 3000-item projection is busy.
+  // Keep the original 5s readiness gate; no sleeps or retry/timeout increase.
+  await expect.poll(() => frame.evaluate(node => {
+    const identity = node.dataset.projectGanttApiInstance;
+    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { read?: () => { instance: string } } | undefined;
+    return Boolean(identity && probe?.read?.().instance === identity);
+  })).toBe(true);
   await settle(page);
   return { state, frame };
 }

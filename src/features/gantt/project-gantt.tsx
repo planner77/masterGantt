@@ -1790,14 +1790,20 @@ export function ProjectGantt({
 
   const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
   const milestoneProbeGeneration = useRef(0);
-  // MT1 technical probe only: no production row transition or preference UI.
-  // Attach it at layout commit so a large Core render cannot delay the test-only
-  // probe behind unrelated passive effects; never install in production.
-  useLayoutEffect(() => {
-    if (process.env.NODE_ENV === "production") return;
-    const api = apiReference.current, frame = fullscreenFrameReference.current;
-    if (!api || !apiInstanceId || !frame) return;
+  // The development-only probe is installed by the SVAR init callback itself:
+  // a 3000-item projection can delay a subsequent React state commit, although
+  // the native Gantt DOM and API already exist. Keep one owner per API instance.
+  const milestoneProbeLifecycleReference = useRef<{ api: IApi; frame: HTMLDivElement; id: string; cleanup: () => void } | null>(null);
+  const latestInitializedApiIdReference = useRef<string | null>(null);
+  // MT1 technical probe only; never attach it in production. Initialize it
+  // synchronously in SVAR init and reconcile StrictMode mount/cleanup here.
+  const installMilestoneProbe = useCallback((api: IApi, instanceId: string, frame: HTMLDivElement) => {
+    if (process.env.NODE_ENV === "production" || !frame.isConnected) return;
+    const previous = milestoneProbeLifecycleReference.current;
+    if (previous?.api === api && previous.frame === frame && previous.id === instanceId) return;
+    previous?.cleanup();
     const tag = "project-milestone-timeline-probe";
+    api.detach(tag);
     const events: { action: string; left: number; top: number }[] = [];
     for (const action of ["filter-tasks", "scroll-chart", "resize-chart"] as const) {
       api.on(action, () => {
@@ -1844,7 +1850,7 @@ export function ProjectGantt({
       },
       read: () => {
         const state = api.getState();
-        return { instance: apiInstanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
+        return { instance: instanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
           start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
           weekStart: state._weekStart,
           scaleRows: state._scales?.rows.map(row => ({ count: row.cells.length, width: row.cells.reduce((sum, cell) => sum + cell.width, 0), first: row.cells.slice(0, 3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })), last: row.cells.slice(-3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })) })),
@@ -1853,8 +1859,27 @@ export function ProjectGantt({
           canonicalIds: tasksReference.current.slice(0, 500).map(task => task.taskId), events: [...events] };
       },
     } });
-    return () => { api.detach(tag); Reflect.deleteProperty(frame, "__masterganttMilestoneTimeline"); milestoneProbeRequest.current = null; milestoneProbeGeneration.current += 1; };
-  }, [apiInstanceId]);
+    const published = Reflect.get(frame, "__masterganttMilestoneTimeline");
+    const cleanup = () => {
+      api.detach(tag);
+      if (Reflect.get(frame, "__masterganttMilestoneTimeline") === published)
+        Reflect.deleteProperty(frame, "__masterganttMilestoneTimeline");
+      milestoneProbeRequest.current = null;
+      milestoneProbeGeneration.current += 1;
+      if (milestoneProbeLifecycleReference.current?.cleanup === cleanup)
+        milestoneProbeLifecycleReference.current = null;
+    };
+    milestoneProbeLifecycleReference.current = { api, frame, id: instanceId, cleanup };
+  }, []);
+  useLayoutEffect(() => {
+    const api = apiReference.current, frame = fullscreenFrameReference.current;
+    const id = latestInitializedApiIdReference.current ?? apiInstanceId;
+    if (api && frame && id) installMilestoneProbe(api, id, frame);
+    return () => {
+      const owned = milestoneProbeLifecycleReference.current;
+      if (owned?.api === api && owned.frame === frame) owned.cleanup();
+    };
+  }, [apiInstanceId, installMilestoneProbe]);
 
   const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "compatibility", columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode]);
   const projectionReference = useRef(projection);
@@ -2862,7 +2887,13 @@ export function ProjectGantt({
 
   const initialize = useMemo(() => (api: IApi) => {
     apiReference.current = api;
-    setApiInstanceId(`svar-api-${nextApiInstanceId++}`);
+    const initializedId = `svar-api-${nextApiInstanceId++}`;
+    latestInitializedApiIdReference.current = initializedId;
+    // Do not defer the test probe behind React's 3000-row projection render.
+    // SVAR init has the actual API; the surrounding frame ref is committed.
+    const frame = fullscreenFrameReference.current;
+    if (frame) installMilestoneProbe(api, initializedId, frame);
+    setApiInstanceId(initializedId);
     api.detach("project-native-add");
     api.intercept(
       "add-task",
@@ -2924,7 +2955,7 @@ export function ProjectGantt({
     }, { tag: "project-owned-selection" });
   // SVAR retains this initializer for the mounted instance. Refs keep the
   // revision and callback current without re-registering EventBus handlers.
-  }, [updateSelection]);
+  }, [updateSelection, installMilestoneProbe]);
 
   function headerFrom(target: EventTarget | null): HTMLElement | null {
     if (!(target instanceof Element)) return null;

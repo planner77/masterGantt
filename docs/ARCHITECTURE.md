@@ -1,5 +1,10 @@
 # Architecture draft
 
+## Issue #551 — Milestone 진단 프로브의 SVAR API 초기화 소유권 (2026-10-13)
+
+Milestone Timeline의 개발 전용 `__masterganttMilestoneTimeline` 진단 hook은 React의 후속 state commit/effect 완료가 아니라 native SVAR `init(api)`가 실제 API를 제공하는 시점에 소유권을 등록한다. 최초 설치는 동기식이고, `apiInstanceId`/frame/lifecycle identity가 동일하면 중복 수신기를 두지 않는다. React layout cleanup·StrictMode 재실행과 API 교체 시 이전 tagged listener/DOM property만 정리하고 현재 인스턴스의 상태·selection·canonical data는 변경하지 않는다. `process.env.NODE_ENV === "production"`에서는 hook을 등록하지 않으며 Viewer/Editor/DB/ViewportCoordinator의 production 계약을 확장하지 않는다.
+
+
 ## Issue #551 — 개발 calendar reveal과 진단 정착 경계 (2026-10-13)
 
 Milestone Timeline 개발 probe의 `reveal`은 canonical queue 이후 현재 API/표시 문맥/단일 adapter의 날짜 범위를 확인한다. calendar `contentX`와 실제 native `.wx-scale` 원점으로 가시성을 읽고 이미 보이는 날짜는 이동하지 않는다. 화면 밖 날짜는 기존 `DIAGNOSTIC_SCROLL(left)`의 coordinator/port에 요청하며 실제 Core/native 정착 결과를 반환한다. native `scroll-chart({date})`를 사용하는 `nativeDateReveal`은 별도 원형 비교 진단이다. 공개 native date와 calendar-day 좌표가 같다고 가정하지 않는다.

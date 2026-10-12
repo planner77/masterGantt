@@ -1,3 +1,19 @@
+## Issue #639 — Main CI #2606.1 immutable 제목 오류 재발 방지 (2026-10-13)
+
+- Merge SHA `5c79b658c83b86f163826055fa7da6efadef4e63`의 push Main CI [#2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 제목 `Issue #639 · PR #641 · Main SHA 복구 및 GHCR 출처 검증 경로 안정화`의 요약 31자(MAX=30)로 `verify-ci-run-trace.py`에서 차단됐다. 이전 커밋 메시지/CI 결론은 불변이다.
+- 새 PR의 병합 요청은 **커밋 생성 이전** 반드시 `scripts/main_ci_run_name.py --as-merge-payload --expected-head-sha ...`에서 완전한 제목/빈 commit_message/PR Head SHA를 생성하고, `--validate-title`로 **실제 전달할 제목 문자열 그대로** 검사한 페이로드만 전달한다. 요약 임의 추가·기본 GitHub Merge 본문 사용 금지; 제목 30자 초과, 한글 미포함, 복수 줄 또는 Issue/PR 불일치 시 병합 금지.
+- #639 본문 범위를 변경하지 않고 같은 Issue의 별도 보호 PR/Required3/Trusted QA/Owner 승인 → 새로운 push Main SHA의 테스트·GHCR/Finalizer 증거 확인으로 교정한다. 기존 실패 SHA를 재실행/force-update/소급 PASS하지 않는다. #639 교정 릴리스 권한은 `release_required=false`, `release_authorized=false`; #616 복구/발행 승인과 분리한다.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Operational recovery is not a second push CI: only Owner-scoped full immutable source verification + audited artifact may substitute for missing Main push evidence in lifecycle. Existing required checks/QA and release approval remain unchanged.
+
 ## Issue #629 — QA Preflight 운영 계약 (2026-10-12)
 Full PR CI는 changes 이후 base SHA의 read-only `qa_preflight.py`로 Primary Issue/정책/문서 구조를 선행 검증한다. 도입 Bootstrap에서는 NOT TESTED로 기존 전체 CI를 보존한다. Preflight FAIL/BLOCKED는 무거운 CI를 실행하지 않더라도 필수 3개 aggregate가 FAILURE로 귀결되어야 한다. 최종 Trusted QA와 Owner ACCEPT를 대체하지 않는다. metadata-only/Main/manual은 기존 경로를 유지하며 release는 별도 승인한다.
 

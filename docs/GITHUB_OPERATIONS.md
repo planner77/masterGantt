@@ -1,3 +1,30 @@
+## Issue #639 — merge 제목 31자 실패 #2606.1 재발 방지 (2026-10-13)
+
+원본 Main [#2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 PR #641 merge `5c79b658...`에 대한 실제 `push` Run이었지만, 제목의 한글 요약이 31자(MAX=30)라 변경 경로 판정에서 실패했다. `rerun-failed-jobs`는 동일 불변 제목을 검사하므로 해결할 수 없다. 기존 실패를 삭제·성공으로 변경하거나 `main`을 force-push하지 않는다.
+
+새 같은-Issue 교정 PR을 만든 뒤 `PR`과 `Head SHA`를 **최신 실조회**한 다음 다음 두 단계를 모두 실행한다.
+
+```bash
+python3 scripts/main_ci_run_name.py --issue 639 --pr <PR번호> \
+  --summary "Main CI 제목 검증 교정" --as-merge-payload \
+  --expected-head-sha <40자리 PR Head SHA>
+python3 scripts/main_ci_run_name.py --issue 639 --pr <PR번호> \
+  --validate-title "<직전 payload의 commit_title 원문>" --as-merge-payload \
+  --expected-head-sha <동일 PR Head SHA>
+```
+
+두 번째 명령이 반환하는 `merge_method="merge"`, `commit_title`, `commit_message=""`, `expected_head_sha`를 GitHub 병합 API에 **그대로** 넘긴다. `--validate-title`의 Issue/PR·30자·한글·한 줄 불일치, 빈 본문 누락, Head/base 경합이면 병합을 중단한다. 제목에 보조 설명을 추가하지 않는다. 교정 후 새 Merge SHA의 실제 `push` Main CI와 candidate/Finalizer를 별도로 확인한다. #616의 독립 수동 복구·v0.107.0 정식 게시 승인은 확대하지 않는다.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Operational invocation: after merging #639, add a NEW Issue #616 Owner comment with marker `<!-- mastergantt-main-ci-recovery:v1 {"authorized":true,"issue":616,"pr":631,"merge_sha":"b97709df8b5c0974f3c8252ac97819f45f73a5b9","expected_version":"0.107.0","note":"원본 병합 SHA에 대한 전체 CI 및 digest 검증에 한하여 복구를 승인합니다."} -->`. Trigger CI > Run workflow > main with exact SHA/Issue/PR/version and newest comment ID; avoid ordinary manual CI. No GHCR or tag mutation before full successful run.
+
 ## Issue #633 — GHCR 미발행 증거의 실제 판정 및 Release SHA 고정 (2026-10-12)
 
 - GHCR Private manifest lookup에서 `404`를 받은 경우 Docker login 성공만으로 임의 ABSENT 처리 금지. `gh api -H 'Accept: application/vnd.github+json' /users/planner77/packages/container/mastergantt/versions?per_page=100&page=N`을 기존 `GH_TOKEN/GITHUB_TOKEN`으로 조회, metadata.container.tags를 전 페이지 검증하여 exact `:0.105.0`, `:0.106.0` 부재 확정. API가 401/403/404/429 또는 missing tags이면 UNKNOWN·중단.

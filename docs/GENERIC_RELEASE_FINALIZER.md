@@ -1,3 +1,26 @@
+## Issue #639 — invalid Main merge subject 후속 교정 (2026-10-13)
+
+- `5c79b658c83b86f163826055fa7da6efadef4e63` (#639/#641)은 불변의 Main CI #2606.1 trace FAILURE이며 GHCR 검증 후보가 없다. `main_ci_run_name.py`의 30자 한글 canonical title은 릴리스 증거 자격이 아닌 **CI 사전조건**이다.
+- 같은 #639의 새 PR에서 유효한 제목·세 Required PR CI·Trusted QA를 통과해 병합되더라도 Finalizer는 자체 규칙으로 원본 first-parent 실패/후속 동일-Issue corrective의 허용 범위와 검증된 exact commit candidate를 판단해야 한다. 기존 실패 Run을 PASS로 바꾸지 않는다. #616 release authority는 다른 Issue이며 자동 승계/태그 재지정 금지.
+- 병합 전 CLI `--as-merge-payload`와 `--validate-title`의 실제 제목·Head SHA preflight가 필수이다. `main` 보호, 자동 release 권한, candidate immutable digest 정책은 변경하지 않는다.
+
+## Issue #639 — PR #641 P1 review correction (2026-10-13)
+
+- Write-token `release-finalizer.yml` always checks out trusted `main` without persisted credentials and verifies the current HEAD.
+- The `workflow_dispatch` manual recovery verifier runs **after** Buildx setup and authenticated `docker/login-action` for private GHCR. `GH_TOKEN` is only GitHub API authentication; it must not be treated as Docker registry credentials.
+- Root-running inline Python imports `from scripts import main_ci_recovery as recovery` (not a top-level `main_ci_recovery`). The authenticated exact source CI run/attempt, target SHA, Owner marker, required Quality/E2E6/Docker and immutable `ci-<SHA>` digest must pass before the Generic First-Parent Finalizer runs. Source `head_sha` is matched against the verified controller SHA.
+- Original push CI handling is preserved. Regular manual diagnostic runs cannot satisfy the recovery source gate. Remote GHCR/Finalizer end-to-end acceptance remains NOT TESTED until #639 has merged and #616 separately authorizes recovery.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Trusted manual_recovery provenance may supplement missing push run on exact immutable historical merge SHA only after fresh evidence verification. Default branch verifier reauthenticates CI source workflow/run/attempt, artifact, full Quality/E2E6/Docker job conclusions, ancestor, PR, Owner marker, GHCR digest. Neither diagnostic workflow_dispatch nor failed/older run is equivalent to main push SUCCESS. Oldest-first barriers and release authority are unchanged.
+
 ## Issue #633 — Authenticated GHCR 404 교차 확인 및 원본 v0.106.1 Release SHA 유지 (2026-10-12)
 
 - GHCR Docker manifest 조회 generic 404/`not found`를 직접 ABSENT로 해석하지 않는다. 동일 저장소에 대해 Github Packages 사용자 Container Versions API의 인증된 200/모든 페이지·`metadata.container.tags` 완전 조회 후 exact tag가 없는 경우만 ABSENT를 반환한다. 토큰 문제·응답 오염·pagination 미완료면 UNKNOWN을 유지하여 Finalizer mutation 차단.

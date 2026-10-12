@@ -1,3 +1,44 @@
+## Issue #639 — Main CI #2606.1 원인 교정 same-Issue PR (2026-10-13)
+
+- 현 상태: 원본 merge SHA `5c79b658...`, Main push Run #2606.1 생성되었으나 trace title 실패(31자 > 30). Quality/E2E/Docker SKIPPED, candidate/finalizer 미검증. 원본 기록 불변.
+- 교정 branch `fix/issue-639-main-merge-title-repair`, base latest main SHA `5c79b658...`; HIGH, OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED; release_required=false, release_authorized=false. 구현은 `scripts/main_ci_run_name.py` 실 병합 제목 `--validate-title` preflight, `scripts/verify-issue-lifecycle.py` #2606 음성/양성 fixtures, 운영 문서/Work Packet 동기화.
+- 수행 순서: 수정 PR 생성→3 Required+Trusted QA→리뷰 0/Owner 범위 확인→CLI로 `commit_title`/빈 본문/Head lease 사전 검증→같은 #639 corrective merge→**새 push Main CI** 생성 확인. #616 원본 대상 복구와 formal GHCR release 별개. Main CI 성공/GHCR 검증/Issue 종료는 실원장 기반으로만.
+
+## Issue #639 — PR #641 CI #2601.1 Chromium Shard 5 correction (2026-10-13)
+
+- Cause: #525 Resource Dashboard E2E count-only Playwright locator `2건` resolves to both Assigned Task and Delayed Task. Shard 5: 97 PASS/1 FAIL; quality + docker PASS, other E2E shards PASS, QA cascaded FAIL.
+- Change only the E2E semantic locator: uniquely identify KPI row `할당 Task` before asserting/clicking `2건`; retain response/data checks and strict selector validation. Synchronize test plan, remote validation and changelog. Fresh PR full CI required for new Head; no change to #639 release policy or production.
+- Primary Issue #639 HIGH/OWNER_MANAGED, `release_required=false`, `release_authorized=false`. Owner merge and #616 recovery approval remain separate.
+
+## Issue #639 — PR #641 review P1 remediation / New PR CI (2026-10-13)
+
+- Root causes: Codex P1×3 (offline mocked no-env test already fixed; inline root import; private GHCR digest authentication ordering). Existing required CI #2599.1 Quality/E2E/Docker PASS, Automated QA BLOCKED on unresolved threads.
+- Correct trusted Finalizer import and registry login order, retain default-main-only write code, add static policy+unit regressions, align operation docs and Work Packet, create new Head PR CI; fix comments and resolve threads. release_required=false, release_authorized=false, merge and GHCR explicitly excluded.
+
+## Issue #639 — PR #641 CI #2597.1 원인 분석/보완 (2026-10-12)
+
+- Policy job: `verify-issue-lifecycle.py`의 hardcoded `GITHUB_SHA` GHCR 경로 문자열. Vitest: `deployment-layout.test.ts`가 구 push-only checkout depth 문구를 고정 검증해 실패. 앱 Build/Typecheck/Lint, E2E6, Docker, Preflight는 PASS.
+- 실제 보안 계약을 유지하도록 정합 검증을 `SOURCE_SHA` 바인딩 + 정상 push fallback + 인증 recovery 분기 + 실패 후보 cleanup 제한으로 갱신. Recovery discovery 테스트에서 외부 API 접근을 막고 wrong SHA 선택을 fail-closed.
+- 신규 exact HEAD commit 및 PR CI 재검증. 이전 실패 #2597.1/QA를 성공 증거로 사용하지 않음. #616 exact GHCR는 여전히 별도 Owner 승인 필요.
+
+## Issue #639 — CI #2596.1 branch trace fail-close / corrective PR (2026-10-12)
+- PR #640 최초 CI의 root cause는 `fix/639-` 브랜치가 `issue-NNN` 필수 패턴에 어긋나 `verify-ci-run-trace.py`가 Fail-close한 것. Required 세 집계 실패는 `changes` 실패의 파생 효과. 구현 Job 자체 테스트는 실행되지 않았음.
+- `fix/issue-639-exact-main-recovery` 규정 준수 브랜치로 corrective PR을 생성해 full PR CI를 새로 시작한다. #640은 superseded; main/protected policy/서명 검증을 완화하지 않음. 아직 PR success/Trusted QA/Owner approval NOT TESTED.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Active #639: from main b97709df, branch fix/639-exact-main-recovery; trusted full CI source recovery, provenance validator, CI/GHCR/Finalizer lifecycle equivalence, negative tests, docs synchronization. Next: PR required CI and Trusted QA; Owner review/merge separately, then exact #616 recovery.
+
+## Issue #551 — PR #560 CI #2605.1 3000-item dev probe 초기화 실패 보완 (2026-10-13)
+
+원본 [#2605.1](https://github.com/planner77/masterGantt/actions/runs/38299775278)의 QA Preflight·TypeScript·Build·Unit·Docker와 Chromium 5 shard는 PASS, shard4의 #551 3000-item 진단 property readiness만 1 FAIL(128 PASS/1 SKIP)이다. SVAR API/DOM은 실제 렌더링됐지만 `useLayoutEffect([apiInstanceId])` 의존 probe가 지정 5초 이내 붙지 않았다. 개발 전용 probe를 `init(api)`에서 sync 설치하고 React mount/StrictMode/교체 cleanup과 동등 API ID 검증을 보강한다. timeout/fixture/skip/retry·원래 geometry 검증 불변. 새 main #639 CI·Finalizer/Resource KPI 갱신, CHANGELOG/ARCHITECTURE/MILESTONE_TIMELINE/TEST_PLAN/ISSUE_551 동기화를 보존하고 새 full PR CI 시작 후 결과는 별도 판정한다. HIGH / OWNER_MANAGED, release_required=true, release_authorized=false; merge/Main CI/GHCR/Issue close 비범위.
+
 ## Issue #551 — PR #560 CI #2600.1 공유 Core reveal 회귀 보완 (2026-10-13)
 
 [CI #2600.1](https://github.com/planner77/masterGantt/actions/runs/38264149134), Head301579a838865ab5f100824f10ccb9986bb9fbd4/baseb97709df8b5c0974f3c8252ac97819f45f73a5b9: quality/Docker 및 기존 lane19+#464교환2를 포함한5 shard PASS, shard5의 #549 Core7개 FAIL이다. 앞선 공유 dev reveal의 native date 통합이 calendar contentX·custom filter·반환 계약을 깨뜨렸다. 기존 단일 adapter의 calendar left와 실제 native 가시성/in-view 무이동을 복원하고 기존 dev DIAGNOSTIC_SCROLL 정착만 bounded 보완한다. ±1px/원래 fixture/timeout·retry0·required gate를 유지하며 Core9+lane19 및 직접 Unit으로 함께 검증한다.

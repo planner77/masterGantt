@@ -1,3 +1,46 @@
+## Issue #639 — Main CI #2606.1 merge-title reject regression (2026-10-13)
+
+- Reproduce **exact** `Issue #639 · PR #641 · Main SHA 복구 및 GHCR 출처 검증 경로 안정화` (31-character summary) through `main_ci_run_name.parse_merge_title`, `format_merge_title`, `validate_merge_title` and `trace.validate_push`. Must reject without treating failed Main #2606 as PASS.
+- Positive: Issue #639 and corrective PR fixture with short Korean summary `Main CI 제목 계약 교정` resolves exactly, validates verbatim, and `--validate-title --as-merge-payload --expected-head-sha` emits `merge_method=merge`, canonical `commit_title`, `commit_message=""`, and exact Head lease. Confirm CLI negative rejects 31-char input **without emitting payload**.
+- Negatives: forged Issue/PR, multiline merge with body, no Hangul, control chars, stale/malformed Head SHA, API adapter mixing. Old #586/#603 canonical/release regressions remain; no fail-open parser/required CI weakening.
+- `python3 scripts/verify-issue-lifecycle.py` is included by PR policy and must pass locally and in official full PR CI. Fresh Quality/E2E6/Docker aggregates + default-main Trusted QA required before corrective merge. Afterwards use actual push Main run and immutable GHCR candidate evidence, not a synthetic diagnostic workflow_dispatch.
+
+## Issue #639 / PR #641 — Shard 5 strict-mode collision regression (2026-10-13)
+
+- Repro evidence: Run #2601.1, E2E Shard 5 (`tests/e2e/resource-dashboard-ui.spec.ts` #525). `KPI getByRole(button, name="2건")` found 2 buttons; 97 tests PASS, one strict-mode FAIL. Aggregate E2E/QA subsequent FAIL.
+- Regression: Select `dl[aria-label="선택 범위 KPI"]` and then its unique direct KPI row labeled exactly `할당 Task`; `toHaveCount(1)` before selecting/clicking scoped `2건`. This must work when any other KPI (e.g. delayed Task) shares the displayed count. Avoid `first()/nth()` and disabling strict locator validation.
+- Keep existing `view=tasks` request/HTTP200/totalCount2/one row for shared Task, readonly scope, assignment/Milestone, filtering, stale/revision and persistence assertions. For independent local validation: `npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-dashboard-ui.spec.ts --project=chromium --workers=1 --repeat-each=5`; actual repeat result NOT TESTED.
+- New PR CI: Quality/E2E6/Docker required three aggregates + Trusted QA all tied to **new head/base/test merge**. Only Actions result can establish remote PASS. No app business logic or version mutation.
+
+## Issue #639 — PR #641 review P1 regression matrix (2026-10-13)
+
+- `python3 scripts/verify-issue-lifecycle.py`: trusted default-main checkout (no persisted credentials), correct `scripts` namespace import, source SHA recheck, Buildx + authenticated private GHCR before `completed_evidence`, Finalizer after proven candidate, original push acceptance.
+- `python3 scripts/test_main_ci_recovery.py`: workflow order and import regression; no-environment discovery uses Mock, never an actual network call; full required job set and SHA/source/Owner negative cases unchanged.
+- PR CI: the same three required Quality/E2E6/Docker aggregates and trusted QA must be evaluated at the new HEAD; previous #2599.1 is not reused for merge. Actual private GHCR recovery still NOT TESTED.
+
+## Issue #639 — PR #641 CI #2597.1 negative / policy test correction (2026-10-12)
+
+- Original failure: `scripts/verify-issue-lifecycle.py` only accepted literal `ci-${GITHUB_SHA}`; `tests/scripts/deployment-layout.test.ts` only accepted old `fetch-depth` string. Both fail after introducing source-bound recovery.
+- Required regression: exact push fallback, recovery Source SHA tag/OCI/cleanup/retention, authorized manual gate, original push branch gate; mocked discovery for no recovered run; reject wrong-SHA push run lists. Re-run full PR CI Quality + Chromium 6 shards + Docker and Trusted QA.
+- Previous #2597.1: Quality FAIL, E2E/Docker PASS. New code validation NOT TESTED until rerun.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Issue #639: python3 scripts/test_main_ci_recovery.py covers malformed inputs, wrong SHA/version/Owner, revoked approval, duplicate markers/jobs, skipped/failed shards, forged source run, missing artifact and registry UNKNOWN. CI Full required three + Trusted QA after PR creation. Remote positive full-image publish/Finalizer only after #639 merges and independent #616 Owner recovery authorization.
+
+## Issue #551 / PR #560 — CI #2605.1 3000-item init/diagnostic lifecycle regression (2026-10-13)
+
+- 원본 [PR CI #2605.1](https://github.com/planner77/masterGantt/actions/runs/38299775278), exact HEAD `2986c418870ae624a43a1a6aef5f3af0fb4efb81`: QA Preflight, policy/TypeScript/Vitest/ESLint/build/Docker, Chromium 1/2/3/5/6 PASS; shard4는 128 PASS, 1 FAIL, 1 SKIP. 실패 위치 `milestone-timeline-lane.spec.ts:53`(large fixture test :164)은 dev-only `__masterganttMilestoneTimeline` 등록 5초 제한이다. 해당 trace에서 UI는 3000개 작업과 렌더링된 SVAR API를 표시했다.
+- 개발용 probe의 bootstrap은 Gantt `init(api)`에서 즉시 이루어져야 하고, layout effect는 React StrictMode cleanup·동일 API/DOM 인스턴스의 idempotent 재부착을 관리해야 한다. 축/date-coordinate/read/guide/viewport API는 현재 API 인스턴스에만 귀속되고 이전 API 이벤트 핸들러·프로퍼티는 청소된다. production dev probe 설치 금지.
+- `tests/e2e/milestone-timeline-lane.spec.ts`는 기존 5초 predicate 내에서 `frame.dataset.projectGanttApiInstance`와 `__masterganttMilestoneTimeline.read().instance` 일치를 요구한다. 전체 1000 Task+2000 Milestone, 390~1920px×Day/Week, peer 복귀·Grid resize·fullscreen, `canonical` 수정 0·동일 Gantt API·±1px 원형 assertion을 유지한다.
+- #549 Core9 + #551 Lane19, #525 Resource Dashboard KPI 선택자, #464 통합 및 나머지 Chromium 전체 shard, 최신 main의 #639 CI 정책·workflow와 함께 원격 full PR CI에서 확인한다. 계측 trace나 local compile 없이 소스 검사만 한 상태는 NOT TESTED이며 새로운 Head의 전체 CI 결과를 원본 #2605.1와 별도로 기록한다. timeout/retry/skip 또는 검증 축소 불가.
+
 ## Issue #551 / PR #560 — PR CI #2603.1 Resource KPI 중복 버튼 선택자 교정 (2026-10-13)
 
 - 원본 [PR CI #2603.1](https://github.com/planner77/masterGantt/actions/runs/38296891101), HEAD `3f39ba6d5788fc5d8a8ae81f18ce515b45f13ee4`: QA Preflight, TypeScript, ESLint, Vitest, Next production build, Docker 및 Chromium 1/2/3/4/6 shard PASS. Chromium 5/6 shard는 97 PASS / 1 FAIL. 실패 항목은 `tests/e2e/resource-dashboard-ui.spec.ts:35`의 #525 Resource Dashboard 실물 SQLite/HTTP/읽기전용 통합 테스트이며 #549/#551 날짜축·Milestone E2E 직접 실패가 아니다.

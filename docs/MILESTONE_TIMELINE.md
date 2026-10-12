@@ -1,5 +1,10 @@
 # Milestone Timeline
 
+## Issue #551 — 대형 fixture용 개발 진단 hook 준비 수명 (2026-10-13)
+
+SVAR 2.7.3 Core 인스턴스가 초기화된 뒤 1000 Task + 2000 Milestone projection을 처리하는 동안에도 개발 `__masterganttMilestoneTimeline` API는 같은 frame·API 인스턴스에 즉시 등록되어야 한다. `init(api)` 시점의 synchronous setup과 layout effect의 bounded reconciliation/cleanup을 사용하고, 실제 차트 geometry 측정/scroll projection이 끝났다고 잘못 선언하지 않는다. 각 진단 명령의 기존 제한·제품 기본 OFF·Milestone 좌표와 native bar ±1px·canonical 원본 무변경 원칙은 유지한다. 원본 #2605.1 readiness 5초 실패는 독립 증거로 보존한다.
+
+
 ## Issue #551 — 개발 calendar reveal의 viewport 소유권 (2026-10-13)
 
 PR CI #2595.1의 5폭 `anchor=null`은 state-only 가시성 판단과 실제 native 날짜축 위치의 차이였다. 이후 #2600.1에서는 lane19개는 PASS였지만 공유 #549 Core7개가 FAIL했다. 앞선 보완에서 calendar `reveal`을 native `scroll-chart({date})`와 같은 경로로 바꾸어 이미 확인한 native date 오차를 교정 reveal에 재도입했다. 두 실패와 기존 검증 누락을 구별하여 보존한다.

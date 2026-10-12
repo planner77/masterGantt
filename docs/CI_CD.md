@@ -1,3 +1,36 @@
+## Issue #639 — #2606.1 invalid merge title corrective first-parent Main CI (2026-10-13)
+
+- PR #641 `c61787d0...`은 [PR CI #2604.1](https://github.com/planner77/masterGantt/actions/runs/38298408282) 및 [Trusted QA #241.1](https://github.com/planner77/masterGantt/actions/runs/38300487544) SUCCESS였지만 merge SHA `5c79b658...`의 `push` [Main CI #2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947)은 `verify-ci-run-trace.py`가 reject. 제목 요약 `Main SHA 복구 및 GHCR 출처 검증 경로 안정화` = 31자, `MAX_SUMMARY_LENGTH=30`; Quality/E2E/Docker와 GHCR candidate는 미실행.
+- Parser/Required checks/merge protection 변경 금지. `scripts/main_ci_run_name.py --validate-title`은 **실제 API `commit_title` 전체**가 Issue/PR/한글 요약 길이/한 줄 canonical 인지 사전 검사, 잘못된 31자 제목을 수용하거나 절단하지 않는다. `--as-merge-payload`와 함께 commit_body=""·Head SHA lease를 검증하여 전달한다.
+- 새로운 같은-Issue non-docs corrective PR을 Required3/Trusted QA에서 검증하고 **30자 이하** 단일 행 제목으로 새 병합 SHA를 만들면 새 push Main CI가 자동 시작된다. 기존 #2606 FAIL을 성공으로 재해석하지 않고, 기존 Finalizer first-parent ordering 및 GHCR exact SHA evidence를 유지한다. 별도 #616 과거 SHA 수동 복구는 이 교정과 분리한다.
+
+## Issue #639 — PR #641 CI #2601.1 Chromium E2E collision (2026-10-13)
+
+- The latest full CI failed on E2E shard 5, `#525 resource-dashboard-ui.spec.ts`: unscoped `2건` KPI button locator returned two elements (Assigned Task and another count metric, e.g. Delayed Task). Quality and Docker passed and other 5 E2E shards passed. E2E aggregate/QA failed by design.
+- Update the Playwright test to use exact KPI semantic label and assert a single matching metric before click, preserving 6 shards/required aggregates and strict mode. No workflow job skip, E2E retry-bypass, policy change or production resource KPI alteration.
+- Only a successful **fresh PR CI + Trusted QA** on corrected head may establish merge readiness; earlier runs remain immutable FAIL.
+
+## Issue #639 — PR #641 Codex P1 Finalizer boundary fixes (2026-10-13)
+
+- Review P1: protected release Finalizer's inline Python from repo root previously imported a module outside `sys.path`; use `scripts.main_ci_recovery`.
+- Review P1: private `ci-<SHA>` `docker buildx imagetools inspect` must follow pinned Buildx setup and `docker/login-action` with job-scoped `GITHUB_TOKEN`. GitHub API `GH_TOKEN` alone does not authenticate Docker.
+- Added deterministic static regression for trusted main checkout, import scope, login-before-evidence and source SHA, including normal push behavior. This is a no-release remediation; exact remote positive scenario is NOT TESTED.
+
+## Issue #639 — CI #2597.1 검증 계약 보완 (2026-10-12)
+
+- 기존 Main push의 `GITHUB_SHA`와 approved manual recovery의 original merge SHA는 상황에 따라 다르다. `SOURCE_SHA=needs.changes.outputs.checkout_sha`는 push에서 `github.sha`, 복구에서 확인된 immutable merge SHA를 유지한다. SHA를 임의 변경하지 않는다.
+- `verify-issue-lifecycle.py`, `deployment-layout.test.ts`는 구 문자열 고정 검증 대신 정해진 bound SHA, 6-shard/Quality/Docker success, GHCR candidate+OCI revision, failure cleanup gate, Owner manual recovery 제한을 검사하도록 보완. #2597.1 실패는 이 2곳의 정합 검사이며 테스트 범위를 축소하거나 required gate를 비활성화하지 않는다.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Flow: owner-authenticated trusted controller -> historical checkout Quality/E2E6/Docker (same immutable merge source) -> guarded ci-SHA digest/SBOM/provenance -> only trusted workflow_run verified by default-main Finalizer -> first-parent backlog release. Required aggregates are NOT enough without exact attempt attestation, full jobs, repository and Owner markers. Manual diagnostic remains no-publish.
+
 ## Issue #633 — Private GHCR UNKNOWN(HTTP 404) 처리 (2026-10-12)
 
 - `release-debt-audit.yml`과 `release-finalizer.yml`의 trusted default branch runner에서 GHCR 로그인 후 실제 `docker buildx imagetools inspect ghcr.io/planner77/mastergantt:X.Y.Z` 실패가 generic 404/not found이면 `gh api` 패키지 버전 목록을 **읽기 전용·인증 200·전체 pagination·exact container tags**로 교차 검증한다. 증거 불충분은 UNKNOWN으로 유지.

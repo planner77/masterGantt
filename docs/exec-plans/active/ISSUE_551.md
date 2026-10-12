@@ -1,5 +1,21 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-13 — 최신 main #639 통합 기준
+
+- 신규 main `5da9c039422647490a947c5cd1e80ec24df22db2`는 이전 `5c79b658c83b86f163826055fa7da6efadef4e63` 이후에도 #639의 Main CI merge-title 검증·문서 및 운영 도구 수정이 추가된 상태다. 기존 Issue #551 base `b97709df8b5c0974f3c8252ac97819f45f73a5b9`와 별개로 최신 main 변경을 두 번째 merge parent로 통합해 보존한다.
+- 공통 CHANGELOG/TEST_PLAN/PLAN의 양측 추가 기록을 순서대로 포함하고, Resource KPI 회귀 검증은 이미 latest main의 #639 semantic locator 버전을 채택한다. AGENTS/CI workflow/Finalizer/복구 스크립트는 latest main 그대로 유지한다.
+- 본 PR의 새 diagnostic bootstrap·E2E identity·문서 변경만 추가한다. 최신 통합 Head의 required full PR CI/QA Final 및 Owner ACCEPT는 새 run 결과 확인 전 NOT TESTED. main/GHCR/Issue 종료는 수행하지 않는다.
+
+## 2026-10-13 — Full PR CI #2605.1 대형 fixture 진단 초기화 실패 보완
+
+- 원본 [Run #2605.1](https://github.com/planner77/masterGantt/actions/runs/38299775278), 정확한 HEAD `2986c418870ae624a43a1a6aef5f3af0fb4efb81`: QA Preflight/TypeScript/ESLint/Vitest/Build/Docker 및 Chromium shards 1·2·3·5·6 PASS. Shard 4(job114979723093/step7)는 128 PASS / 1 FAIL / 1 skipped; 단일 실패는 `tests/e2e/milestone-timeline-lane.spec.ts:164`의 1000 Task+2000 Milestone fixture 준비 시 개발 `__masterganttMilestoneTimeline` probe 존재 확인이 5초 내 완료되지 않은 것이다. E2E aggregate 및 QA Automated FAIL은 종속 판정이다. 직전 #2603.1 Resource KPI strict selector 오류는 이번 shard5에서 재발하지 않았다.
+- [원본 Playwright report](https://github.com/planner77/masterGantt/actions/runs/38299775278/artifacts/11770946451) trace의 화면에는 3000개 작업 상태, Gantt Grid 및 `data-project-gantt-api-instance=svar-api-1`가 존재한다. 따라서 로딩/HTTP 실패나 native API 전무라고 판단하지 않는다. 프로브의 등록은 `useLayoutEffect([apiInstanceId])`에만 묶여 있어 대형 React projection/render와 별도로 `init(api)`가 이미 호출된 뒤에도 표시 프레임에 probe가 제때 연결되지 않을 수 있는 초기화 순서 경계다. 정확한 내부 스케줄링 원인은 CI 계측만으로 미확정이며 해당 경계를 제거한다.
+- 보완: 개발 전용 `installMilestoneProbe(api,instanceId,frame)`를 안정적인 lifecycle 보유 객체로 만들고, SVAR `initialize(api)` 콜백에서 즉시 설치한다. React commit/layout effect는 StrictMode mount/cleanup과 API 교체의 재등록 안전망이다. 인스턴스/프레임 ID가 같은 경우 중복 이벤트 리스너를 설치하지 않고, old API 분리·DOM 프로퍼티 소유권 검사·영구 리소스 cleanup을 보장한다. production에서 진단 훅은 계속 설치하지 않으며 제품 UI/스크롤/계약은 변경하지 않는다.
+- 회귀: `tests/e2e/milestone-timeline-lane.spec.ts`의 동일 5초 readiness 검증을 `data-project-gantt-api-instance`와 dev probe `read().instance`의 identity 동등성으로 강화한다. 기존 1000+2000 fixture, peer/tab/Grid splitter/fullscreen/scroll, native plot ±1px, 390~1920px, no canonical mutations, Task selection 등 원래 assertions는 변경하지 않는다. `timeout` 상향·retry/skip·fixture 축소/분할은 하지 않는다.
+- 현재 `main`은 #639 CI·Finalizer·Resource KPI locator 업데이트를 포함해 `5c79b658c83b86f163826055fa7da6efadef4e63`로 전진했다. 기존 base `b97709df8b5c0974f3c8252ac97819f45f73a5b9` 대비 공통 문서와 Resource KPI 테스트의 양측 변경을 보존하며 main의 #639 계약·권한·워크플로 동작을 되돌리지 않는다. 오래된 base의 PR CI는 유효한 최신 검증이 아니다.
+- 범위: 제품 변경은 dev-only probe 설치 순서/cleanup, 회귀 테스트/관련 문서다. `AGENTS.md`, `DESIGN.md`, `docs/SCHEDULING_ENGINE.md` 등 시스템 설계/스케줄링/DB/API/Security는 계약 불변으로 N/A이며 최신 main 문서는 그대로 승계한다. exact-head TypeScript·E2E·Docker/QA_FINAL/Owner 승인·병합/Main CI/GHCR/Issue 종료는 새 run 성공 결과 확인 전 NOT TESTED. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false` 유지.
+
+
 ## 2026-10-13 — CI #2603.1 #525 Resource Dashboard 중복 KPI 버튼 locator 회귀
 
 - [원본 full PR CI #2603.1](https://github.com/planner77/masterGantt/actions/runs/38296891101), 정확한 HEAD `3f39ba6d5788fc5d8a8ae81f18ce515b45f13ee4` / main `b97709df8b5c0974f3c8252ac97819f45f73a5b9`: QA Preflight, TypeScript/ESLint/Vitest/Build, Docker 및 Chromium shard1/2/3/4/6 SUCCESS. Shard5(job114970191274/step7)는 97 PASS·1 FAIL, E2E aggregate 및 QA Automated는 이 실패로 연쇄 FAIL이다.

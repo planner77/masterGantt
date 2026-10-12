@@ -1,3 +1,34 @@
+## [Unreleased] — Issue #639 Main CI #2606.1 failed merge-title correction (2026-10-13)
+
+- Introduce fail-closed `--validate-title` preflight for the **actual** merge commit subject so an invalid >30-character, noncanonical or wrong Issue/PR title cannot silently reach protected main. Add immutable #639/#641 31-char failure regression + positive exact Head connector payload and direct push trace tests. Preserve failed run/history, update merge operations and first-parent lifecycle documentation. No product version bump, DB/API/UI change, or formal GHCR release authority.
+
+## [Unreleased] — Issue #639 PR #641 Chromium 5/6 E2E count-selector regression (2026-10-13)
+
+- Fix the Issue #525 Resource Dashboard E2E to select `할당 Task` KPI identity before clicking the potentially duplicated `2건` label. Keep Strict Mode and task API assertions; update regression/remote-validation work packet. No application/DB/API/version or GHCR policy changes.
+
+## [Unreleased] — Issue #639 PR #641 protected Finalizer review fixes (2026-10-13)
+
+- Fix root-level recovery import and ensure authenticated private GHCR digest verification occurs only after Buildx setup/login. Add source-SHA/order regressions; preserve push and explicit Owner/manual recovery fail-closed gates. No app-version change or formal release in this PR.
+
+## [Unreleased] — Issue #639 PR #641 CI #2597.1 회귀 계약 보완 (2026-10-12)
+
+- Replace stale, literal push-only SHA/depth assertions with provenance-bound `SOURCE_SHA` and explicit push/manual recovery guards. Fail-close wrong-SHA run data; isolate manual-recovery unit fixture from GitHub network. No product version/DB/API changes.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** [Unreleased] Issue #639 — adds narrowly scoped authenticated manual recovery for missing immutable merge Main CI, preserving original push evidence and GHCR/Release fail-closed guards.
+
+## [Unreleased] — Issue #551 CI #2605.1 대형 Timeline 진단 초기화 순서 보완 (2026-10-13)
+
+- 1000 Task+2000 Milestone Chromium fixture에서 Gantt native API와 Grid가 보이나 dev-only Milestone probe가 5초 내 준비되지 않는 실패를 분석했다. Probe를 React 후속 state/effect 등록에서 SVAR `init(api)` 즉시 등록으로 바꾸고 중복 리스너·StrictMode lifecycle 및 API 교체 cleanup을 관리한다.
+- 3000-item 테스트의 기존 5초 readiness/전체 fixture/geometry·scroll/동일 instance assertions는 유지하면서 실제 API instance ID와 dev probe `read().instance` 일치를 검증한다. 앱 production/일정 API/DB/계산/버전은 불변이며 새 전체 CI에서 최종 판정한다.
+
 ## [Unreleased] — Issue #551 PR #560 공유 calendar reveal 회귀 교정 (2026-10-13)
 
 - 앞선 개발 probe의 native 날짜 reveal 통합으로 발생한 #549 Core7개 실패를 교정한다. 단일 calendar adapter의 contentX와 실제 native 가시성으로 이미 보이는 날짜의 무이동 계약을 유지하고 화면 밖 날짜는 기존 coordinator의 개발 진단 left 명령을 사용한다.
