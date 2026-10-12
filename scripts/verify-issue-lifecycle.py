@@ -1567,5 +1567,10 @@ require("release-debt-authorization:v1" in _audit633, "new owner-scoped retireme
 require("ref: main" in _workflow633 and "persist-credentials: false" in _workflow633, "audit must use trusted main")
 require("workflow_dispatch:" in _workflow633 and "packages: read" in _workflow633, "audit must be read-only manual workflow")
 require("packages: write" not in _workflow633 and "actions: write" not in _workflow633 and "issues: write" not in _workflow633, "audit must not grant mutation authority")
+require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _workflow633, "private GHCR audit must use pinned Docker Registry login")
+require("registry: ghcr.io" in _workflow633 and "username: ${{ github.actor }}" in _workflow633 and "password: ${{ secrets.GITHUB_TOKEN }}" in _workflow633, "private GHCR login must use existing GITHUB_TOKEN")
+require(_workflow633.index("docker/login-action@") < _workflow633.index("name: exact first-parent"), "GHCR authentication must precede registry read")
+require('ghcr_digest(f"ghcr.io/{repo.lower()}:{version}")' in _audit633, "GHCR exact image tag must be bare SemVer, not annotated Git vSemVer")
+require("return \"UNKNOWN\", None" in _audit633 and 'if "manifest unknown" in error' in _audit633, "ambiguous registry inspection must fail closed")
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")
