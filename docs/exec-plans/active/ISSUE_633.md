@@ -21,6 +21,7 @@
 - `docs/exec-plans/active/ISSUE_633.md`: UPDATED
 - `docs/ISSUE_633_RELEASE_DEBT.md`: UPDATED
 - `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH Owner-managed 독립 QA와 Required check 의미·권한 변경 없음)
 - `docs/CI_CD.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
