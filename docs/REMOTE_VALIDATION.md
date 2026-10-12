@@ -532,3 +532,7 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 3. PR Docker required aggregate와 image policy/runtime/persistence smoke가 PASS해야 한다.
 4. #603 병합 후 successful PR run 10개 이상에서 `docker-build-cache` median/p90/runner-minutes를 baseline Run #32.1과 비교한다.
 5. Main cache reuse 또는 publish 성능이 악화되면 ADOPT하지 않고 rollback한다.
+
+## #616 Target F2
+
+Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate checks on exact PR head and latest main baseline. Verify SQLite migration 25→26, cross-project FK, atomic inline creation/revision, shared System copy and Target-bearing Template/JSON rejection. Runtime/prod proxy, backup restore, and full manual Target UI are separate NOT TESTED. Owner merge and release authorization remain distinct.
