@@ -404,12 +404,32 @@ def run_audit(args: argparse.Namespace) -> int:
     source_comments = finalizer.issue_comments(repo, source.issue_number)
     bridge_comments = finalizer.issue_comments(repo, bridge.issue_number)
 
-    decision, reasons = assess(
-        chain, evidence, states, source_comments, bridge_comments,
-        owner_login=repo_owner, source_sha=args.source_sha,
-        original_successor_sha=args.original_successor_sha,
-        successor_sha=args.successor_sha, corrective_sha=args.corrective_sha,
-    )
+    if args.inventory_only:
+        # Read-only evidence collection is distinct from recovery readiness.
+        # In particular an inventory SUCCESS cannot authorize skipping either
+        # previous release or publishing the proposed new SemVer.
+        clear = all(
+            states[version].git_tag == "ABSENT"
+            and states[version].github_release == "ABSENT"
+            and states[version].ghcr_tag == "ABSENT"
+            for version in ("0.105.0", "0.106.0")
+        )
+        decision = (
+            "INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED" if clear else "BLOCKED"
+        )
+        reasons = [
+            "인증된 GHCR/Git 태그/Release 증거만 조회했습니다; 발행/폐기 승인 아님",
+            "기존 실패 SHA와 원장 기록을 변경하지 않았습니다",
+        ] if clear else [
+            "이전 SemVer 상태가 PRESENT/UNKNOWN입니다; 폐기나 승계 불가"
+        ]
+    else:
+        decision, reasons = assess(
+            chain, evidence, states, source_comments, bridge_comments,
+            owner_login=repo_owner, source_sha=args.source_sha,
+            original_successor_sha=args.original_successor_sha,
+            successor_sha=args.successor_sha, corrective_sha=args.corrective_sha,
+        )
     report = {
         "main_sha": live_head, "mutation": "NONE", "decision": decision,
         "first_parent": [
@@ -440,7 +460,7 @@ def run_audit(args: argparse.Namespace) -> int:
             for reason in reasons:
                 stream.write(f"- {reason}\n")
     # Positive readiness still has no authority to mutate.
-    return 0 if decision == "READY_FOR_SEPARATE_TRUSTED_RECOVERY" else 2
+    return 0 if decision in {"READY_FOR_SEPARATE_TRUSTED_RECOVERY", "INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED"} else 2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -450,6 +470,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--original-successor-sha", required=True)
     parser.add_argument("--successor-sha", required=True)
     parser.add_argument("--corrective-sha")
+    parser.add_argument("--inventory-only", action="store_true", help="GHCR/Git/CI evidence only; never release readiness")
     return parser
 
 
