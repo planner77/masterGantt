@@ -196,7 +196,10 @@ class Contract(unittest.TestCase):
         self.assertIn("needs: [changes, preflight, metadata_evidence, docker_smoke]", ci)
         self.assertGreaterEqual(ci.count('"$PREFLIGHT" != "success"'), 3)
         self.assertIn("scripts/test_qa_preflight.py", ci)
-        self.assertIn("ref: \${{ github.event.pull_request.base.sha }}", ci)
+        # Compare against literal Actions syntax; an escaped dollar prefix
+        # would always fail despite a valid bootstrap workflow.
+        self.assertIn("ref: ${{ github.event.pull_request.base.sha }}", ci)
+        self.assertNotIn("ref: \\$"+"{{ github.event.pull_request.base.sha }}", ci)
 
 
 if __name__ == "__main__":
