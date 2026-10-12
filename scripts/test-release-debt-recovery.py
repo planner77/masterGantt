@@ -87,6 +87,35 @@ try:
        good.retired_shas==frozenset(row[0] for row in b2.SOURCES),
        "B2 must skip ONLY explicitly authorized exact old merges")
     ok(len(good.previous_items)==5,"cleanup debt must include all five PRs")
+    # Incomplete cleanup after the first old Issue closes must be restartable.
+    # Arbitrarily closed historical Issues remain blockers without the exact
+    # github-actions[bot] immutable RETIRED source/target evidence.
+    closed_sources=[
+        replace(t,actionable=False) if t.issue_number==550 else t
+        for t in chain
+    ]
+    blocked(lambda:b2.plan_b2(core,b2.REPO,new.target_sha,closed_sources),
+            "closed old Issue without authenticated retirement marker")
+    retirement={
+        "issue":550,
+        "original_shas":[row[0] for row in b2.SOURCES if row[1]==550],
+        "original_prs":[row[2] for row in b2.SOURCES if row[1]==550],
+        "unissued_version":"0.105.0",
+        "replacement_sha":new.target_sha,"replacement_version":b2.VERSION,
+        "replacement_digest":"sha256:"+"f"*64,
+        "decision_url":"https://github.com/planner77/masterGantt/issues/633#issuecomment-99",
+    }
+    bot_proof={
+        "id":201,"user":{"login":"github-actions[bot]"},
+        "author_association":"CONTRIBUTOR",
+        "body":"<!-- mastergantt-release-debt-retired:v1 "
+               +json.dumps(retirement,sort_keys=True,separators=(",",":"))+" -->",
+    }
+    comments[550].append(bot_proof)
+    recovered=b2.plan_b2(core,b2.REPO,new.target_sha,closed_sources)
+    ok(recovered is not None and len(recovered.previous_items)==5,
+       "verified partial retirement replay must preserve all old PR obligations")
+    comments[550].pop()
     # Default remains unchanged until Owner's explicit v2 scope.
     comments[633]=[v1("0.106.1",True)]
     ok(b2.plan_b2(core,b2.REPO,new.target_sha,chain) is None,
