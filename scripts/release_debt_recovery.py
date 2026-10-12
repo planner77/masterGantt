@@ -108,6 +108,8 @@ def read_approval(core: Any, repo: str, latest_main: str) -> dict[str, Any] | No
     if not found:
         return None
     _n, selected, url = max(found, key=lambda v: v[0])
+    require(core, url.startswith("https://github.com/planner77/masterGantt/issues/633#issuecomment-"),
+            "Owner B2 source Issue comment의 인증된 증거 URL 필요")
     require(core, selected["authorized"], "최신 B2 승인 철회")
     require(core, selected["recovery_sha"] == latest_main,
             "B2 승인 대상 main SHA와 현재 HEAD 불일치")
