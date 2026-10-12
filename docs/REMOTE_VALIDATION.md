@@ -1,3 +1,13 @@
+## Issue #637 — Release 원본 정렬 FAIL 및 신규 PR CI 경계 (2026-10-12)
+
+- 원본 [Release #165.1](https://github.com/planner77/masterGantt/actions/runs/38221400193), immutable v0.106.1 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`: shard5 97PASS/1FAIL, `canonical-projection.spec.ts` actual Core insert-before의 revision41 SETTLED 기대에 TIMED_OUT. [artifact11735576081](https://github.com/planner77/masterGantt/actions/runs/38221400193/artifacts/11735576081) zip SHA256 `e0924a18493eb16ae756303a52120ff528946dc062637cbb5047b9707eea77a7`를 Git 외부 보존했다.
+- membership/순서5개·queue settled와 실제 Grid/Chart 중심 차이27.5px를 함께 보존한다. trace의 클릭 전 Gridpane scrollTop28/Core·Gantt·Chart0이 원인이며 실제 rect observer의 올바른 FAIL을 timeout/threshold 조정으로 우회하지 않는다.
+- 같은 원본 SHA의 [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) 성공은 원본 Release 실패를 덮지 않는다. 동일 Release run attempt2 재실행은 별도 attempt이며 이번 작업은 결과 모니터링을 하지 않는다.
+- 신규 교정 후보0.106.2는 새 branch/PR·exact Head required Quality/E2E6/Docker·기본 브랜치 Trusted·Owner 최종 판정을 요구한다. 이번 사용자 요청은 PR CI 시작까지이며 시작/진행 중 상태는 NOT TESTED, PRE_QA/Local PASS를 원격 PASS로 확대하지 않는다.
+- 기존 v0.106.1 tag/승인 SHA를 수정·재사용하지 않는다. 새 version의 `release_authorized=false`; main/GHCR candidate/digest·새 Owner 승인·정식 release는 별도 미실행 단계다. [#637 Work Packet](exec-plans/active/ISSUE_637.md) 참조.
+
+로컬 관련 unit97PASS·distinct browser41PASS 및 원형 삽입3회 반복PASS. 최초 신규 ChartY 기대 오류2FAIL과 이후 assertion 교정·음성/visible ID 보강은 Work Packet 원장에 보존한다. 이는 dev 환경 Local Fast Feedback이며 원격 required3종/production/main/Release PASS가 아니다.
+
 ## Issue #633 — 0.105.0/0.106.0 GHCR UNKNOWN·새 Corrective 감사 (2026-10-12)
 
 - [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) SUCCESS, source `09bee924032b4126ff794ec7a485542fd72dd7bf`/candidate digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`/HTTP-HTTPS PASS. 정식 GHCR v0.106.1 tag/Release 없음.

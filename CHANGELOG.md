@@ -1,3 +1,9 @@
+## [Unreleased] — 0.106.2 / Issue #637 Grid·Chart 행 정렬 교정 후보 (2026-10-12)
+
+- Release #165.1의 구조 삽입 후 실제 Grid·Chart 중심 차이27.5px를 분석했다. 클릭 전 자동 scrollIntoView가 Grid 내부 pane만28px 움직여 canonical membership/queue 완료와 화면 정렬이 어긋났다. 기존 실제 중심±1px·observer1500ms·E2E5s 검증을 유지한다.
+- 비소유 Grid 세로 overflow 경계의 최소 교정과 관련 회귀·UX/Architecture/Test/Remote/Work Packet 문서를 동기화한다. package/lock PATCH 후보0.106.2, dependency 변경 없음. 기존 v0.106.1 immutable; 새 정식 release는 미승인이다.
+- 로컬 검증·독립 PRE_QA와 새 PR exact Head CI 시작을 구분한다. 원격3종/Trusted/Owner·main/GHCR/정식 release는 별도 완료 증거 전 NOT TESTED다.
+
 ## [Unreleased] — Issue #633 GHCR Private Registry 감사·복구 (2026-10-12)
 
 - `0.106.1` 신규 후보의 첫 Main #2579.1은 PASS, GHCR 정식 Release는 아직 차단: Git/GitHub Release 구버전 태그는 ABSENT, Docker private GHCR 응답은 `UNKNOWN`.

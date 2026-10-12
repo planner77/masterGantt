@@ -1,3 +1,12 @@
+## Issue #637 — 독립 Grid 스크롤·projection 회귀 (2026-10-12)
+
+- 원형 fixture1440×1000/revision40→41/NEW-570/422 fallback/insert-before를 수정 없이 먼저 실행하고, 원본 실패 artifact·trace와 비교한다. 우연히 PASS한 단일 실행으로 Release #165.1의 실제 FAIL을 무효화하지 않는다.
+- Grid/Chart header/body/row/bar rect와 각 native pane·Core/Gantt scrollTop을 별도로 관찰하여 실제 viewport 중심 차이≤1px를 유지한다. 독립 Grid overflow/focus·scrollIntoView 유발 경로를 deterministic fixture로 검사하고 실제 불일치 음성 oracle가 TIMED_OUT으로 끝나는지 확인한다.
+- 기존 canonical-projection의 삽입·삭제/재부모화·Summary 접힘/빈 Summary·필터/metadata, Day/Week와390/768/1024/1440/1920px, 동일 instance/columns/selection·snapshot 의도 외 mutation0을 관련 fast-feedback으로 확인한다. 범위별 실행 수와 미검증은 Work Packet에 기록한다.
+- Core private write·강제 remount·wait/retry 추가·1500ms/5s 확대·±1px 완화·skip/CI shard·required gate 변경은 허용하지 않는다. Local PASS와 원격 exact Head required3종·Trusted·Owner ACCEPT는 구분한다.
+
+로컬 관련 unit97PASS·distinct browser41PASS 및 원형 삽입3회 반복PASS. 최초 신규 ChartY 기대 오류2FAIL과 이후 assertion 교정·음성/visible ID 보강은 Work Packet 원장에 보존한다. 이는 dev 환경 Local Fast Feedback이며 원격 required3종/production/main/Release PASS가 아니다.
+
 ## Issue #633 — GHCR 미발행 UNKNOWN 복구 + 원본 Release SHA 회귀 (2026-10-12)
 
 - `test-release-debt-audit.py`: github packages authenticated exact tag 200 complete pagination absent/present, 401/403/404, schema-missing, second page failure, unrelated package scope 및 Docker 404→Packages cross-check ABSENT 조건을 Mock으로 재현한다. 인증 없는 404는 UNKNOWN 보존.
