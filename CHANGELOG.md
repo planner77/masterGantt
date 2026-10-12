@@ -1,3 +1,25 @@
+## [Unreleased] — Issue #639 PR #641 Chromium 5/6 E2E count-selector regression (2026-10-13)
+
+- Fix the Issue #525 Resource Dashboard E2E to select `할당 Task` KPI identity before clicking the potentially duplicated `2건` label. Keep Strict Mode and task API assertions; update regression/remote-validation work packet. No application/DB/API/version or GHCR policy changes.
+
+## [Unreleased] — Issue #639 PR #641 protected Finalizer review fixes (2026-10-13)
+
+- Fix root-level recovery import and ensure authenticated private GHCR digest verification occurs only after Buildx setup/login. Add source-SHA/order regressions; preserve push and explicit Owner/manual recovery fail-closed gates. No app-version change or formal release in this PR.
+
+## [Unreleased] — Issue #639 PR #641 CI #2597.1 회귀 계약 보완 (2026-10-12)
+
+- Replace stale, literal push-only SHA/depth assertions with provenance-bound `SOURCE_SHA` and explicit push/manual recovery guards. Fail-close wrong-SHA run data; isolate manual-recovery unit fixture from GitHub network. No product version/DB/API changes.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** [Unreleased] Issue #639 — adds narrowly scoped authenticated manual recovery for missing immutable merge Main CI, preserving original push evidence and GHCR/Release fail-closed guards.
+
 ## [Unreleased] — Issue #616 PR CI Shard6 회귀 보완 (2026-10-12)
 
 - 프로젝트 링크 E2E에서 두 번째 새 Project 화면의 SSR→hydration 타이밍으로 name 입력이 초기화돼 POST 없이 client validation에서 차단된 실패를 추적한다. 클라이언트 기준정보 준비가 끝난 뒤 입력하고 submit 직전 이름 상태를 검증해 30초 HTTP 타임아웃으로 오진하지 않도록 한다.

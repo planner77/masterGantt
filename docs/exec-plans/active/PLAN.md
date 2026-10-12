@@ -1,3 +1,34 @@
+## Issue #639 — PR #641 CI #2601.1 Chromium Shard 5 correction (2026-10-13)
+
+- Cause: #525 Resource Dashboard E2E count-only Playwright locator `2건` resolves to both Assigned Task and Delayed Task. Shard 5: 97 PASS/1 FAIL; quality + docker PASS, other E2E shards PASS, QA cascaded FAIL.
+- Change only the E2E semantic locator: uniquely identify KPI row `할당 Task` before asserting/clicking `2건`; retain response/data checks and strict selector validation. Synchronize test plan, remote validation and changelog. Fresh PR full CI required for new Head; no change to #639 release policy or production.
+- Primary Issue #639 HIGH/OWNER_MANAGED, `release_required=false`, `release_authorized=false`. Owner merge and #616 recovery approval remain separate.
+
+## Issue #639 — PR #641 review P1 remediation / New PR CI (2026-10-13)
+
+- Root causes: Codex P1×3 (offline mocked no-env test already fixed; inline root import; private GHCR digest authentication ordering). Existing required CI #2599.1 Quality/E2E/Docker PASS, Automated QA BLOCKED on unresolved threads.
+- Correct trusted Finalizer import and registry login order, retain default-main-only write code, add static policy+unit regressions, align operation docs and Work Packet, create new Head PR CI; fix comments and resolve threads. release_required=false, release_authorized=false, merge and GHCR explicitly excluded.
+
+## Issue #639 — PR #641 CI #2597.1 원인 분석/보완 (2026-10-12)
+
+- Policy job: `verify-issue-lifecycle.py`의 hardcoded `GITHUB_SHA` GHCR 경로 문자열. Vitest: `deployment-layout.test.ts`가 구 push-only checkout depth 문구를 고정 검증해 실패. 앱 Build/Typecheck/Lint, E2E6, Docker, Preflight는 PASS.
+- 실제 보안 계약을 유지하도록 정합 검증을 `SOURCE_SHA` 바인딩 + 정상 push fallback + 인증 recovery 분기 + 실패 후보 cleanup 제한으로 갱신. Recovery discovery 테스트에서 외부 API 접근을 막고 wrong SHA 선택을 fail-closed.
+- 신규 exact HEAD commit 및 PR CI 재검증. 이전 실패 #2597.1/QA를 성공 증거로 사용하지 않음. #616 exact GHCR는 여전히 별도 Owner 승인 필요.
+
+## Issue #639 — CI #2596.1 branch trace fail-close / corrective PR (2026-10-12)
+- PR #640 최초 CI의 root cause는 `fix/639-` 브랜치가 `issue-NNN` 필수 패턴에 어긋나 `verify-ci-run-trace.py`가 Fail-close한 것. Required 세 집계 실패는 `changes` 실패의 파생 효과. 구현 Job 자체 테스트는 실행되지 않았음.
+- `fix/issue-639-exact-main-recovery` 규정 준수 브랜치로 corrective PR을 생성해 full PR CI를 새로 시작한다. #640은 superseded; main/protected policy/서명 검증을 완화하지 않음. 아직 PR success/Trusted QA/Owner approval NOT TESTED.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Active #639: from main b97709df, branch fix/639-exact-main-recovery; trusted full CI source recovery, provenance validator, CI/GHCR/Finalizer lifecycle equivalence, negative tests, docs synchronization. Next: PR required CI and Trusted QA; Owner review/merge separately, then exact #616 recovery.
+
 ## #616 PR #631 CI #2545.1 실패 보완·latest main 재정렬 (2026-10-12)
 
 Shard6 `project-links-persistence.spec.ts` 두 번째 생성 이름 입력이 브라우저 trace의 `fill` 이후 이미 비어 있고 제출 validation이 POST를 차단함을 확인. 응답 타임아웃이 아닌 SSR→hydration 준비 시점의 테스트 경합이므로 catalog `ready`/client mount를 **입력 전**에 검증하고 제출 직전 name equality assertion을 추가한다. timeout·retry·skip·API/DB/UI 계약 불변. 신규 main의 #629 preflight 및 #550 임시 E2E 보호를 손실 없이 정렬하고 full PR CI를 시작한다. QA/Owner 최종 결정·main/GHCR/Issue close는 요청 범위 밖이며 신규 Head PASS 전 NOT TESTED.

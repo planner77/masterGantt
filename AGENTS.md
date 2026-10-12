@@ -1,3 +1,13 @@
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Operational recovery is not a second push CI: only Owner-scoped full immutable source verification + audited artifact may substitute for missing Main push evidence in lifecycle. Existing required checks/QA and release approval remain unchanged.
+
 ## Issue #629 — QA Preflight 운영 계약 (2026-10-12)
 Full PR CI는 changes 이후 base SHA의 read-only `qa_preflight.py`로 Primary Issue/정책/문서 구조를 선행 검증한다. 도입 Bootstrap에서는 NOT TESTED로 기존 전체 CI를 보존한다. Preflight FAIL/BLOCKED는 무거운 CI를 실행하지 않더라도 필수 3개 aggregate가 FAILURE로 귀결되어야 한다. 최종 Trusted QA와 Owner ACCEPT를 대체하지 않는다. metadata-only/Main/manual은 기존 경로를 유지하며 release는 별도 승인한다.
 

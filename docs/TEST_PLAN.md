@@ -1,3 +1,32 @@
+## Issue #639 / PR #641 — Shard 5 strict-mode collision regression (2026-10-13)
+
+- Repro evidence: Run #2601.1, E2E Shard 5 (`tests/e2e/resource-dashboard-ui.spec.ts` #525). `KPI getByRole(button, name="2건")` found 2 buttons; 97 tests PASS, one strict-mode FAIL. Aggregate E2E/QA subsequent FAIL.
+- Regression: Select `dl[aria-label="선택 범위 KPI"]` and then its unique direct KPI row labeled exactly `할당 Task`; `toHaveCount(1)` before selecting/clicking scoped `2건`. This must work when any other KPI (e.g. delayed Task) shares the displayed count. Avoid `first()/nth()` and disabling strict locator validation.
+- Keep existing `view=tasks` request/HTTP200/totalCount2/one row for shared Task, readonly scope, assignment/Milestone, filtering, stale/revision and persistence assertions. For independent local validation: `npx playwright test --config tests/config/playwright.config.ts tests/e2e/resource-dashboard-ui.spec.ts --project=chromium --workers=1 --repeat-each=5`; actual repeat result NOT TESTED.
+- New PR CI: Quality/E2E6/Docker required three aggregates + Trusted QA all tied to **new head/base/test merge**. Only Actions result can establish remote PASS. No app business logic or version mutation.
+
+## Issue #639 — PR #641 review P1 regression matrix (2026-10-13)
+
+- `python3 scripts/verify-issue-lifecycle.py`: trusted default-main checkout (no persisted credentials), correct `scripts` namespace import, source SHA recheck, Buildx + authenticated private GHCR before `completed_evidence`, Finalizer after proven candidate, original push acceptance.
+- `python3 scripts/test_main_ci_recovery.py`: workflow order and import regression; no-environment discovery uses Mock, never an actual network call; full required job set and SHA/source/Owner negative cases unchanged.
+- PR CI: the same three required Quality/E2E6/Docker aggregates and trusted QA must be evaluated at the new HEAD; previous #2599.1 is not reused for merge. Actual private GHCR recovery still NOT TESTED.
+
+## Issue #639 — PR #641 CI #2597.1 negative / policy test correction (2026-10-12)
+
+- Original failure: `scripts/verify-issue-lifecycle.py` only accepted literal `ci-${GITHUB_SHA}`; `tests/scripts/deployment-layout.test.ts` only accepted old `fetch-depth` string. Both fail after introducing source-bound recovery.
+- Required regression: exact push fallback, recovery Source SHA tag/OCI/cleanup/retention, authorized manual gate, original push branch gate; mocked discovery for no recovered run; reject wrong-SHA push run lists. Re-run full PR CI Quality + Chromium 6 shards + Docker and Trusted QA.
+- Previous #2597.1: Quality FAIL, E2E/Docker PASS. New code validation NOT TESTED until rerun.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Issue #639: python3 scripts/test_main_ci_recovery.py covers malformed inputs, wrong SHA/version/Owner, revoked approval, duplicate markers/jobs, skipped/failed shards, forged source run, missing artifact and registry UNKNOWN. CI Full required three + Trusted QA after PR creation. Remote positive full-image publish/Finalizer only after #639 merges and independent #616 Owner recovery authorization.
+
 ## Issue #637 — 독립 Grid 스크롤·projection 회귀 (2026-10-12)
 
 - 원형 fixture1440×1000/revision40→41/NEW-570/422 fallback/insert-before를 수정 없이 먼저 실행하고, 원본 실패 artifact·trace와 비교한다. 우연히 PASS한 단일 실행으로 Release #165.1의 실제 FAIL을 무효화하지 않는다.
