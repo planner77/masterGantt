@@ -1,3 +1,6 @@
+## Issue #629 — QA Preflight 운영 계약 (2026-10-12)
+Full PR CI는 changes 이후 base SHA의 read-only `qa_preflight.py`로 Primary Issue/정책/문서 구조를 선행 검증한다. 도입 Bootstrap에서는 NOT TESTED로 기존 전체 CI를 보존한다. Preflight FAIL/BLOCKED는 무거운 CI를 실행하지 않더라도 필수 3개 aggregate가 FAILURE로 귀결되어야 한다. 최종 Trusted QA와 Owner ACCEPT를 대체하지 않는다. metadata-only/Main/manual은 기존 경로를 유지하며 release는 별도 승인한다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
