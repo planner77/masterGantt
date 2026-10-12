@@ -1,5 +1,9 @@
 # Architecture draft
 
+## Issue #551 — 실제 native 날짜축 원점과 앱 Timeline lane (2026-10-12)
+
+설치 SVAR Core2.7.3/store2.7.2의 계산 날짜 `contentX`와 화면의 native Chart 물리 scroll은 viewport 제어 과정에서 일시적으로 차이가 발생할 수 있다. `readMilestonePlotGeometry`는 이미 사용하는 실제 Chart plot bbox와 동일 native `.wx-scale` bbox의 상대 원점 `axisOrigin`을 함께 측정하고 앱 소유 sibling lane은 `axisOrigin + contentX`로 마커를 렌더링한다. private Core store write·Chart 자동 선택·새 인스턴스/별도 scrollbar는 추가하지 않는다. Native Chart `scroll`/resize와 기존 queue-version bounded 구독을 유지하며 mount teardown에서 제거한다. 이 계약은 날짜 헤더/Task bar/marker의 실제 DOM X 동등성으로 검증해야 하고, Node-only 계산의 PASS로 대체하지 않는다.
+
 ## Issue #637 — canonical projection과 pane overflow 경계
 
 원본 Release #165.1의 실제 DOM trace에서 header add locator의 자동 `scrollIntoView` 구간(44852.545~44853.646ms)에 Grid pane scrollTop이0→28이 됐다. 실제 click(44863.804ms)·add/canonical 적용 이전의 변화이며 Core/Gantt/Chart top은0이었다. Grid 행 y400/h38와 Chart bar y431/h31의 중심 차이27.5px는 이 독립 pane 이동으로 설명된다. 행/바38px 간격·bar top3px/높이31px·scale72px는 유지되어 payload/ID/queue 완료와 정렬 완료가 구별된다.

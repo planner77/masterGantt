@@ -1,5 +1,14 @@
 # Issue #551 — compact Milestone Timeline / 날짜·레이아웃 동기화
 
+## 2026-10-12 — PR CI #2594.1 Chromium shard4 실패와 exact-head 수정
+
+- [전체 Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533), HEAD `442564b7e14c24b49358351fb55e30c7ecd31230`: QA Preflight, 정책, TypeScript, ESLint, Vitest, Next.js production build, Docker, Chromium shard 1/2/3/5/6 PASS. Chromium shard 4/6은 123 PASS / 6 FAIL / 1 SKIP이며 전체 E2E·자동 QA FAIL. 이 실행 결과를 다른 HEAD의 성적으로 승계하지 않는다.
+- 실패 5건은 `tests/e2e/milestone-timeline-lane.spec.ts:340`의 390/768/1024/1440/1920px native Task anchor ↔ sibling lane tick ±1px 검증으로, 실제 차이 3018/3018/3036/3028/3024px였다. 허용오차가 잘못된 것이 아니라 Chart의 실제 렌더링된 좌표계와 앱 lane이 Core 상태 scrollLeft만 사용한 좌표계가 서로 어긋나는 것을 실증했다. 원인이 된 Core/DOM scroll 이벤트 순서 전체는 별도 계측 전 확정하지 않는다.
+- 수정은 공개 설치 Core의 canonical date `contentX` 변환을 유지하되, read-only 실제 DOM `.wx-scale`의 렌더링된 X원점을 같은 Chart plot 기준으로 측정해 `axisOrigin + contentX`를 lane tick/cluster에 사용한다. Chart DOM scroll 자체도 mount-scoped observer로 구독하고 cleanup한다. native header/bar와 별도 날짜 Tick을 같은 실제 축에 정렬하되 서버·canonical 일정·private Core store/선택 상태는 변경하지 않는다.
+- E2E에서 기존 native Task bar ↔ lane tick ±1px assertion을 보존하고, 독립 원점 `.wx-scale.getBoundingClientRect().x + contentX` ↔ lane tick ±1px 검증을 추가했다. 5개 실제 폭과 Day/Week, peer/scroll/grid/fullscreen·same Gantt instance/zero writes의 기존 검증 조건을 완화하지 않는다.
+- 별개 FAIL `milestone-timeline-lane.spec.ts:53`은 1000 Task+2000 Milestone 첫 로딩 후 개발 전용 `__masterganttMilestoneTimeline` 진단 인터페이스가 5초 이내 설치되지 않은 조건이다. Trace에는 3000 원본 Task와 Grid 화면이 보인다. 진단 등록을 passive effect 대신 React layout commit에서 수행하도록 바꿔 후속 passive 작업 대기 경계를 제거했다. 5초 제한·대량 fixture·timeout/retry/skip 정책은 변경하지 않는다.
+- Chrome trace/스크린샷과 해당 shard의 원래 FAIL 증거는 Run artifact `playwright-report-shard-4`로 보존. 로컬 Node/Chromium 실행은 이 GitHub 연결 환경에서 NOT TESTED. 모든 새 수정은 exact HEAD의 새 전체 PR CI에서 TypeScript·Vitest·ESLint·Chromium·Docker를 재검증하며 결과/Owner ACCEPT·main 병합/GHCR는 시작 시 NOT TESTED다.
+
 ## 2026-10-12 — 후속 main #616 동기화
 
 - 구조 QA 수정을 준비하는 도중 `main`이 `1dc89522192ae2c64c6951c282116a0a34af3a13`에서 `b97709df8b5c0974f3c8252ac97819f45f73a5b9`로 전진했다. #616 Target/Template 계약·DB migration0026 및 애플리케이션 버전 `0.107.0`은 최신 main의 내용이며 #551에서 되돌리지 않는다.

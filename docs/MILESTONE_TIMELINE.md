@@ -1,5 +1,11 @@
 # Milestone Timeline
 
+## Issue #551 — native 날짜축을 기준으로 한 물리 X 정합성 (2026-10-12)
+
+#551 opt-in lane은 설치 SVAR의 canonical date-only → `contentX`를 보존한다. 실제 화면의 좌표는 Core 상태 `scrollLeft` 단독이 아닌 동일 Chart 내부 `.wx-scale`의 렌더링된 원점(`axisOrigin`)에 `contentX`를 더한 값으로 측정한다. 이 원점은 read-only DOM bbox 측정이며 공개 Core geometry API를 새로 가정하거나 private store를 수정하지 않는다. native Chart scroll·기존 Core action·resize/peer 전환 시 제한된 observer/RAF로 갱신하고 unmount시 해제한다.
+
+CI #2594.1의 기존 lane/native bar ±1px FAIL(5폭 3018~3036px)을 결함 증거로 보존하며, 수용 검증에는 별도 native scale 원점 + date `contentX` ↔ lane tick ±1px 및 같은 날짜 Task bar ↔ lane tick ±1px를 모두 요구한다. 개발 1000 Task+2000 Milestone 초기 진단 hook은 layout commit 시 등록하지만 대량 성능 PASS는 새 Chromium 실행 전 NOT TESTED다. 64px opt-in, production 기본 OFF, canonical 원본·Task selection·clip의 기존 계약은 그대로다.
+
 ## Issue #571 — 표시 소비자와 viewport 의도
 
 Coordinator는 현재 일정의 peer 복귀·metadata 보존·명시 Task reveal을 중재한다. Milestone 전체 날짜 모집단·canonical Task/Link·Gate·Export를 viewport clip이나 native 행 목록으로 축소하지 않는다. #549 개발 probe와 현재 native Milestone 행/빠른 보기를 유지하며 #550~553 제품 lane/표시 전환은 별도 선행 gate다.

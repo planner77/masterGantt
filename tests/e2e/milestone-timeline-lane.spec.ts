@@ -333,11 +333,18 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
       if (!bar) return []; const r = row.getBoundingClientRect(), b = bar.getBoundingClientRect(); return [{id,gridCenter:r.y+r.height/2,chartCenter:b.y+b.height/2}];
     });
     const tick=lane.querySelector<HTMLElement>('[data-milestone-tick="00000000-0000-4000-8000-000000000008"]'), native=node.querySelector<HTMLElement>('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000006"]');
-    return { lane:rect(lane),plot:rect(plot),clip:rect(clip),list:rect(lane.querySelector<HTMLElement>(".project-milestone-lane-list")!),anchor:tick&&native?{tick:tick.getBoundingClientRect().x,native:native.getBoundingClientRect().x+1}:null,alignment,markers:Array.from(lane.querySelectorAll<HTMLButtonElement>(".project-milestone-lane-marker")).map(e=>({rect:rect(e), label:e.getAttribute("aria-label")})), rows:Array.from(node.querySelectorAll<HTMLElement>('.wx-table-container .wx-row[data-id]')).map(e=>({id:e.getAttribute("data-id"),height:e.getBoundingClientRect().height})) };
+    const nativeScale = plot.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
+    return { lane:rect(lane),plot:rect(plot),clip:rect(clip),axisStartX:nativeScale?.x ?? null,list:rect(lane.querySelector<HTMLElement>(".project-milestone-lane-list")!),anchor:tick&&native?{tick:tick.getBoundingClientRect().x,native:native.getBoundingClientRect().x+1}:null,alignment,markers:Array.from(lane.querySelectorAll<HTMLButtonElement>(".project-milestone-lane-marker")).map(e=>({rect:rect(e), label:e.getAttribute("aria-label")})), rows:Array.from(node.querySelectorAll<HTMLElement>('.wx-table-container .wx-row[data-id]')).map(e=>({id:e.getAttribute("data-id"),height:e.getBoundingClientRect().height})) };
   });
   expect(observed.rows).toEqual(beforeRows); expect(observed.plot.y).toBeGreaterThanOrEqual(observed.lane.bottom);
   expect(observed.list.x).toBeGreaterThanOrEqual(Math.max(0, observed.clip.x));
-  expect(observed.anchor).not.toBeNull(); expect(Math.abs(observed.anchor!.tick-observed.anchor!.native)).toBeLessThanOrEqual(1);
+  // Assert against both independent rendered references, not only the Core
+  // state scrollLeft: real Chart scrolling can temporarily diverge from state.
+  const canonicalDate = await probe<{contentX:number}>(frame,"coordinate","2026-03-10");
+  expect(canonicalDate).not.toBeNull();expect(observed.axisStartX).not.toBeNull();
+  expect(observed.anchor).not.toBeNull();
+  expect(Math.abs(observed.anchor!.tick!-(observed.axisStartX!+canonicalDate.contentX))).toBeLessThanOrEqual(1);
+  expect(Math.abs(observed.anchor!.tick-observed.anchor!.native)).toBeLessThanOrEqual(1);
   expect(observed.alignment.length).toBeGreaterThan(0); for(const row of observed.alignment) expect(Math.abs(row.gridCenter-row.chartCenter)).toBeLessThanOrEqual(1);
   for (const marker of observed.markers) {
     expect(marker.rect.width).toBe(160); expect(marker.rect.height).toBe(44);

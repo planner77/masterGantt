@@ -60,6 +60,11 @@ export async function filterMilestoneWbsRows(api: Pick<IApi, "exec">, visibleTas
 export interface MilestonePlotGeometry {
   readonly left: number;
   readonly width: number;
+  /** Native scale's rendered content origin relative to the visible Chart plot.
+   * Unlike Core scrollLeft, this includes the actual scroll/transform applied
+   * to both the header cells and Task bars in the current DOM frame.
+   */
+  readonly axisOrigin: number;
   readonly visibleLeft: number;
   readonly visibleRight: number;
   readonly controlLeft: number;
@@ -78,6 +83,11 @@ export function readMilestonePlotGeometry(api: Pick<IApi, "getState">, widget: H
   // Use rendered Chart bounds for lane placement and visible clipping.
   if (!plot.width || !plot.height || !root.width || !root.height || typeof state._chartWidth !== "number" || !Number.isFinite(state._chartWidth) || state._chartWidth <= 0) return null;
   const header = chart.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
+  // Place the sibling lane against the same *rendered* axis as native bars.
+  // Core scrollLeft and DOM scroll/transform can transiently diverge after
+  // viewport coordination, especially on programmatic date reveal.
+  const axisOrigin = header ? header.left - plot.left : NaN;
+  if (!Number.isFinite(axisOrigin) || !header?.width || !header.height) return null;
   const owner = widget.closest<HTMLElement>(".project-gantt-scroll");
   const ownerBox = owner?.getBoundingClientRect();
   const clipLeft = Math.max(0, ownerBox ? ownerBox.x + owner!.clientLeft : 0);
@@ -85,6 +95,6 @@ export function readMilestonePlotGeometry(api: Pick<IApi, "getState">, widget: H
   const visibleLeft = Math.max(0, clipLeft - plot.x), visibleRight = Math.min(plot.width, clipRight - plot.x);
   const list = widget.querySelector<HTMLElement>(".project-milestone-lane-list")?.getBoundingClientRect();
   const controlLeft = list && list.right > plot.x ? Math.max(visibleLeft, list.right - plot.x) : visibleLeft;
-  return { left: plot.x - root.x, width: plot.width, visibleLeft, visibleRight, controlLeft,
+  return { left: plot.x - root.x, width: plot.width, axisOrigin, visibleLeft, visibleRight, controlLeft,
     bodyTop: (header?.bottom ?? plot.y) - root.y, bodyHeight: Math.max(0, plot.bottom - (header?.bottom ?? plot.y)) };
 }

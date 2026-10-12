@@ -1765,7 +1765,10 @@ export function ProjectGantt({
         const points: MilestoneLanePoint[] = [];
         if (geometry) for (const row of model.timeline.datedMilestones) {
           const coordinate = milestoneDateCoordinate(reader, row.date!);
-          if (coordinate?.insideRange && coordinate.viewportX >= geometry.visibleLeft && coordinate.viewportX < geometry.visibleRight) points.push({ row, viewportX: coordinate.viewportX });
+          // Project against the rendered native scale origin, not a potentially
+          // stale Core scrollLeft. Native bars and the scale share this DOM axis.
+          const viewportX = coordinate ? coordinate.contentX + geometry.axisOrigin : NaN;
+          if (coordinate?.insideRange && Number.isFinite(viewportX) && viewportX >= geometry.visibleLeft && viewportX < geometry.visibleRight) points.push({ row, viewportX });
         }
         setLaneGeometry(geometry); setLanePoints(points);
         setLaneSource({ model, context: viewportContinuityKey, scale: scaleMode, api: apiInstanceId, display: timelinePreviewDisplay });
@@ -1780,14 +1783,17 @@ export function ProjectGantt({
     const owner = ganttScrollReference.current, chart = widget.querySelector<HTMLElement>(".wx-chart");
     for (const action of ["scroll-chart", "resize-chart", "resize-grid", "filter-tasks", "update-task"] as const) api.on(action, schedule, { tag });
     const resize = new ResizeObserver(schedule); resize.observe(widget); if (chart) resize.observe(chart); if (owner) resize.observe(owner);
-    owner?.addEventListener("scroll", schedule, { passive: true }); window.addEventListener("resize", schedule); schedule();
-    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
+    // Native Chart scrolling does not necessarily bubble to the outer wrapper.
+    owner?.addEventListener("scroll", schedule, { passive: true }); chart?.addEventListener("scroll", schedule, { passive: true }); window.addEventListener("resize", schedule); schedule();
+    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", schedule); chart?.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
   }, [apiInstanceId, timelineEnabled, viewVisible, milestoneTimeline?.timelineModel, scaleMode, viewportContinuityKey, timelinePreviewDisplay]);
 
   const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
   const milestoneProbeGeneration = useRef(0);
   // MT1 technical probe only: no production row transition or preference UI.
-  useEffect(() => {
+  // Attach it at layout commit so a large Core render cannot delay the test-only
+  // probe behind unrelated passive effects; never install in production.
+  useLayoutEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const api = apiReference.current, frame = fullscreenFrameReference.current;
     if (!api || !apiInstanceId || !frame) return;

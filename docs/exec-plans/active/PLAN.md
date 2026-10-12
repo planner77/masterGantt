@@ -1,3 +1,7 @@
+## Issue #551 — PR #560 CI #2594.1 실제 날짜 Timeline 좌표 회귀 보완 (2026-10-12)
+
+기준 CI [Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533)의 QA Preflight/TypeScript/Build/Unit/Docker 성공, Chromium shard4 123 PASS/6 FAIL/1 SKIP을 분리한다. 5개 viewport에서 실제 Gantt Task bar와 lane tick의 3,018~3,036px 불일치를 보존하고 canonical contentX+실제 native scale origin으로 projection을 통합한다. 3000 Task 초기화 시 dev-only probe를 layout commit에서 등록한다. 관련 E2E·TEST_PLAN·MILESTONE_TIMELINE·ARCHITECTURE·CHANGELOG·Work Packet을 함께 보완한다. ±1px/5초/3000Task fixture, PRO·Core 변경 금지, 새 전체 PR CI exact Head 시작 전 최종 PASS/QA/Owner/merge/GHCR는 NOT TESTED. `release_required=true`, `release_authorized=false`.
+
 ## #616 PR #631 CI #2545.1 실패 보완·latest main 재정렬 (2026-10-12)
 
 Shard6 `project-links-persistence.spec.ts` 두 번째 생성 이름 입력이 브라우저 trace의 `fill` 이후 이미 비어 있고 제출 validation이 POST를 차단함을 확인. 응답 타임아웃이 아닌 SSR→hydration 준비 시점의 테스트 경합이므로 catalog `ready`/client mount를 **입력 전**에 검증하고 제출 직전 name equality assertion을 추가한다. timeout·retry·skip·API/DB/UI 계약 불변. 신규 main의 #629 preflight 및 #550 임시 E2E 보호를 손실 없이 정렬하고 full PR CI를 시작한다. QA/Owner 최종 결정·main/GHCR/Issue close는 요청 범위 밖이며 신규 Head PASS 전 NOT TESTED.

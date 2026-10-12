@@ -1,3 +1,11 @@
+## Issue #551 — CI #2594.1 실제 날짜축 오프셋·대형 진단 초기화 회귀 (2026-10-12)
+
+- 최초 원본 [Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533), HEAD `442564b7`: Chromium shard4 123 PASS/6 FAIL/1 SKIP. Native Tick ↔ Task bar 오차가 5폭에서 3018·3018·3036·3028·3024px, 대형 1000 Task+2000 Milestone에서 dev probe 설치 predicate는 5초 TIMEOUT. Quality·TypeScript·ESLint·Vitest·production build·Docker·다른 Chromium 5 shard는 PASS였다.
+- 실제 좌표 검증: Day/Week의 canonical date-only `contentX`와 Chart 날짜축 `.wx-scale`의 실제 렌더링된 X를 사용한 lane tick을 비교한 뒤, 같은 날짜의 독립 native Task bar X와 ±1px를 그대로 확인한다. Core `scrollLeft`/DOM scroll event 간 차이가 있어도 실제 날짜축과 일치해야 하며 오차/scroll 값은 결코 보정된 PASS로 숨기지 않는다.
+- `tests/e2e/milestone-timeline-lane.spec.ts` 390/768/1024/1440/1920px×Day/Week, 사용자/프로그램 scroll·peer 복귀·Grid width/fullscreen·동적 축·표시 OFF 후 같은 API instance·canonical mutation 0 assertions를 유지한다. Chart scroll 구독/cleanup과 native header 기준점의 일치성을 재검증한다.
+- 대형 fixture의 API 진단 hook을 mount 시 layout commit에서 붙여 개발 진단 준비가 무관한 passive effects 뒤로 밀리지 않도록 한다. 3000 원본 Task, 첫 화면, 5초 predicate 및 원본 Gantt 성능 의무는 유지한다. 새 remote exact-head 결과 전에는 원인 보완 가설을 PASS로 기록하지 않는다.
+- 수정 범위는 표시 좌표/관찰 및 개발용 diagnostic timing, 관련 E2E·문서뿐이며 Core private write·Core remount·서버 scheduling/DB/API·CI shards·timeout/skip/retry 완화는 하지 않는다.
+
 ## Issue #551 / PR #560 — QA Preflight #2592.1 구조 보완 (2026-10-12)
 
 - [전체 PR CI #2592.1](https://github.com/planner77/masterGantt/actions/runs/38250992819)은 exact HEAD `a9bfdcd3dfec892fe3260deda7bcc0d67a90de72`의 `PRIMARY_ISSUE` 제목 형식 불일치로 QA Preflight FAIL이었다. Quality/E2E/Docker required aggregate FAIL은 의도된 fail-closed 전파이며, Node/Vitest/Playwright/Docker 구현 Job은 SKIPPED로 실제 기능 결함을 판정하지 못했다.

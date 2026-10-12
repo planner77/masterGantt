@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #551 PR #560 CI #2594.1 날짜 Timeline 표시 좌표 보완 (2026-10-12)
+
+- Chromium shard4의 5폭 실제 Task bar와 Milestone lane tick의 약 3,018~3,036px 불일치 원본을 보존했다. Core 스크롤 상태만 이용한 viewportX 대신 실제 native `.wx-scale` 원점과 canonical 날짜 contentX를 결합하고 Chart DOM scroll listener와 cleanup을 추가한다.
+- 대형 1000 Task+2000 Milestone에서 dev-only probe 등록을 passive effect 뒤가 아닌 layout commit에 맞춰 준비한다. 기존 strict±1px·5s, 실패 artifact, 64px opt-in/production OFF, 일정 데이터 원본·API·DB 불변. 전체 새 PR CI/QA 성공은 별도 확인한다.
+
 ## [Unreleased] — Issue #616 PR CI Shard6 회귀 보완 (2026-10-12)
 
 - 프로젝트 링크 E2E에서 두 번째 새 Project 화면의 SSR→hydration 타이밍으로 name 입력이 초기화돼 POST 없이 client validation에서 차단된 실패를 추적한다. 클라이언트 기준정보 준비가 끝난 뒤 입력하고 submit 직전 이름 상태를 검증해 30초 HTTP 타임아웃으로 오진하지 않도록 한다.
