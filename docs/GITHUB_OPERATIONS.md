@@ -1,3 +1,9 @@
+## Issue #657 — 감사 #16 Refs 소스 계약 회복 (2026-10-13)
+
+- [Audit #16.1](https://github.com/planner77/masterGantt/actions/runs/38388876066)는 `historical PR identity` / `historical PR #559 Issue #550 귀속 불일치`로 BLOCKED, 게시/퇴역/종료 조치 0. 원본 PR #559는 merged/main/exact SHA 및 독립 `Refs #550` 정상. 검사기 raw-regex 이중 escape를 수정하고 5개 실제 형태 fixture + 음성 테스트를 추가한다.
+- `python3 -m unittest discover -s tests/python -p 'test_release_succession_*.py' -v`는 CI policy Job의 필수 검증으로 운영한다. Work Packet `docs/exec-plans/active/ISSUE_657.md`의 AC1~AC6 증거 매핑을 따른다.
+- 수정 PR Quality/E2E6/Docker·default-main Trusted QA/Owner HIGH 승인 → main 성공 이후에만 **Owner가** `release-succession-audit.yml` `workflow_dispatch`를 별도로 실행한다. `BLOCKED`는 실패 exit 1 유지하며 새 승인·이미지·퇴역·#616 종료로 해석하거나 우회하지 않는다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
