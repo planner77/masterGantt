@@ -786,3 +786,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 `auto_release_finalizer.py`는 exact immutable SHA의 successful Main run을 보존하고, `issue_lifecycle.py`는 그 successful run의 main artifact gate까지 확인한다. PR latest-check 정책, GHCR immutable overwrite 거부, failed/cancelled run 보존 정책은 유지한다. `verify-issue-lifecycle.py`에 success→later failure와 all-failure 회귀를 추가한다.
 
 #520이 main에서 SUCCESS하면 Generic Finalizer가 backlog의 #502를 다시 평가해 Main #2083.1의 valid success evidence를 사용할 수 있어야 한다. #517 환경 검증은 별도 OPEN 상태를 유지한다.
+
+## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
+
+원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.

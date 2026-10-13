@@ -2201,7 +2201,7 @@ export function ProjectGantt({
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds]);
+  }, [apiInstanceId, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, timelinePreviewDisplay]);
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const request = milestoneProbeRequest.current;

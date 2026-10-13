@@ -103,7 +103,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#549 Core filter geometr
   await evidence(info, `geometry-${width}`, { before, after, observations, mutationCount: 0 }, page);
   await probe(frame, "filter", null); await settle(page);
   // #552 production owns the Summary/Task projection after a public reset.
-  expect((await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
+  await expect.poll(async () => (await probe<Observation>(frame, "read")).rows.map(row => row.id)).toEqual(ids);
 });
 
 test("#549 DST reveal uses the same calendar-day geometry as native Task bars", async ({ page }, info) => {

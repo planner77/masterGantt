@@ -102,8 +102,8 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   // 9월 23일은 이 viewport의 초기 표시 범위 안에 있었다. 초기 작업과 충분히
   // 떨어진 Milestone을 두고 실제 geometry로 화면 밖이라는 준비 조건을 확인한다.
   const task: ProjectTaskDto = {
-    taskId, externalId: "SCROLL-5", name: "Far milestone", type: "milestone", scheduleMode: "auto",
-    requestedStart: "2026-10-16", start: "2026-10-16", end: "2026-10-16", duration: 0, progress: 0,
+    taskId, externalId: "SCROLL-5", name: "Far task", type: "task", scheduleMode: "auto",
+    requestedStart: "2026-10-16", start: "2026-10-16", end: "2026-10-16", duration: 1, progress: 0,
     parentExternalId: null, siblingOrder: 1,
   };
   const firstTask: ProjectTaskDto = {

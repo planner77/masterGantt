@@ -831,3 +831,8 @@ High-risk DB migration 0026, Target service/REST, Copy/Template/export modificat
 ## #616 F2 Template v2 release gate
 
 Required PR aggregate quality/e2e/docker must now cover Template v2 graph persisted save/instantiate, migration 26 deferred FK, legacy Template compatibility, shared MCS mapping and missing/invalid member all-or-nothing rollback. Previous #2534.1 CI FAILED (new TemplateError discriminant, migration expected count and route security inventory), which this candidate corrects without weakening gates. Version 0.107.0 remains unapproved: exact-head successful PR CI is not Owner merge/release authorization.
+
+
+## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
+
+원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.

@@ -97,3 +97,8 @@
 - **변경 범위**: 충돌 문서와 Git merge DAG 정렬뿐이며, Target/Template 실제 제품·마이그레이션·추가 E2E 코드의 Blob은 이전 검증 Head에서 유지한다. CI 규칙·QA Preflight/Finalizer/릴리스/GHCR 경계를 완화하지 않는다. 신규 exact-head Full PR CI 시작 이후 Quality/E2E/Docker/Trusted/QA 결과는 새 Head로만 판정한다.
 - **추가 문서 영향**: CHANGELOG, ARCHITECTURE, CI_CD, TEST_PLAN, REMOTE_VALIDATION, active PLAN 및 본 Work Packet은 병합 보존. AGENTS/QA_REVIEW_POLICY/GITHUB_OPERATIONS/ISSUE_LIFECYCLE/GENERIC_RELEASE_FINALIZER는 새 main을 변경 없이 상속(기존 Work Packet N/A 영향 판정 유지). DESIGN.md는 제품 UI 변경 없음으로 N/A.
 - **승인 경계**: Issue HIGH·qa_method=OWNER_MANAGED, release_required=true, release_authorized=false. Owner ACCEPT/병합/main CI/GHCR/Issue close는 이번 요청 범위 밖이다. 이전 Head PASS를 최종 MERGE_READY로 확대하지 않는다.
+
+
+## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
+
+원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.

@@ -1,5 +1,6 @@
 import { expect, test, type Page, type Request, type Route } from "@playwright/test";
 import type { TaskMutationResponse } from "../../src/contracts/projects";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import {
   expectSameGanttRoot,
   ganttRoot,
@@ -101,6 +102,7 @@ test("Grid 시작일 single click Date Picker는 start-only canonical PATCH를 �
 
 test("Summary/readonly는 차단하고 keyboard Escape와 실패는 canonical 값을 보존한다", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
+  await installMilestoneDashboardFixture(page, fixture);
   const route = await routeStartUpdates(page, fixture);
   await page.goto(`/projects/${publicId}`);
 
@@ -108,14 +110,12 @@ test("Summary/readonly는 차단하고 keyboard Escape와 실패는 canonical �
   await expect(startPicker(page)).toHaveCount(0);
   expect(route.patches).toHaveLength(0);
 
-  const milestoneCell = startCell(page, "Stable milestone");
-  await milestoneCell.focus();
-  await milestoneCell.press("Enter");
-  await expect(startPicker(page)).toBeVisible();
-  await expect(startInput(page)).toBeFocused();
-  await startInput(page).press("Escape");
-  await expect(startPicker(page)).toHaveCount(0);
-  await expect(milestoneCell).toBeFocused();
+  await expect(startCell(page, "Stable milestone")).toHaveCount(0);
+  const milestoneEditor = await openMilestoneEditor(page, fixture.tasks[3].taskId);
+  await expect(milestoneEditor.getByLabel("요청 시작일", { exact: true })).toBeVisible();
+  await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expect(milestoneEditor).toHaveCount(0);
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   expect(route.patches).toHaveLength(0);
 
   const originalStart = fixture.tasks[2].start;

@@ -3531,3 +3531,12 @@ Documentation N/A는 항목별로 다음과 같다. API는 Route/DTO/Origin/sess
 순수 Unit56의 직접4파일과 참조 model/adapter/selection/domain 의존성은 불변이므로 영향 범위 내 이전 PASS를 재사용한다. 제품 UI가 바뀌었으므로 이전 UI42와 HTTP3의 재사용 근거는 폐기하고 UI44 전체와 backend 실제HTTP3을 새 동결 source에서 실행한다. resize 보완은 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth] 동일요청 중복차단이며 새 layoutKey는 다시 보완할 수 있다. idle polling/자체resize 재진입은 없다.
 
 visibility 수정 후 source125 aggregate `f320261b0fddc7f0ddee041a4efd31881a778c88209768ab3e6bba542856947d`는 실행 전후 동일했고 UI44/44 PASS(2.6분)를 다시 확보했다. frontend가 최신390px fallback PNG를 직접 열어 관리 버튼(241,639)~(283,671)과6px focus 외곽, Toolbar/Grid 미노출을 JSON과 대조했다. schedule·scope owner·frame·toolbar·native Gantt/Grid/Chart의7개 hidden paint/양수 bbox가 실제 관측된다. 최신 visibility71+lane24 총95 record는 원본 JSON과 pool 역변환 완전일치다. 기존94 record와 이전 날짜2 증거는 별도 source/history로 보존하며 최신동결 관측으로 합치지 않는다. backend fresh HTTP run6은3/3 PASS(57.1s), UTC2026-10-08T20:07:46.813251Z~20:08:42.226880Z, source405 aggregate `2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a` 전후동일이다. Unit56은 직접4파일·pure의존불변으로 영향재사용했다. 최신변경2파일 lint/typecheck exit0이며 원격 quality/e2e/docker/QA_FINAL은 NOT TESTED다.
+
+## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
+
+원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+## Issue #552 — PR CI #2639 Chromium E2E WBS 분리 전환 (2026-10-13)
+
+- Source #552 removes Milestone rows/bars from native WBS, while preserving full canonical Task/Link/Membership and an independent Milestone Dashboard/Timeline. Existing tests must enter Milestone Editor/Copy ID via exact-ID Dashboard management, not force a hidden native Grid bar or relation line. Summary/Task Grid coverage remains.
+- CI #2639.1 Quality/Docker succeeded, Chromium six shards failed, run later cancelled. Prior results are not current-head PASS; retain project WBS geometry/viewport/selection tests without skip, false-pass or tolerance enlargement. New full PR CI must exercise current main and all six shards.

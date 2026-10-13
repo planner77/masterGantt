@@ -34,8 +34,11 @@ test("#552 readonly visibility independent from membership, filters, reset and p
   const state = await fixture(page); const identity = await rememberGanttRoot(page); const canonical = JSON.stringify([state.tasks, state.links]);
   const writes: string[] = [], reads: string[] = [];
   page.on("request", request => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.method()); if (new URL(request.url()).pathname === projectPath && request.method() === "GET") reads.push(request.url()); });
-  const picker = page.locator(".project-schedule-filter-toolbar").getByRole("button", { name: "완료 단계: 전체", exact: true });
-  await picker.click(); await page.getByRole("option", { name: /Stable milestone/ }).click();
+  const picker = page.locator("#project-panel-schedule .project-stage-filter-trigger");
+  await picker.click();
+  const stageSearch = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" });
+  await stageSearch.fill(state.tasks[3].taskId);
+  await stageSearch.press("End"); await stageSearch.press("Enter");
   await expect(rowNamed(page, "Existing summary child")).toBeVisible(); await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
   for (const on of [false, true]) {
     await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", String(on));
@@ -102,7 +105,7 @@ for (const width of [390, 1024]) test(`#552 OFF date request ${width}px exact ma
   await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").scroll(200));
   const original = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().left);
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
-  await panel.getByLabel("단계 검색", { exact: true }).fill("Stable milestone");
+  await panel.getByLabel("Milestone 검색", { exact: true }).fill("Stable milestone");
   const id = state.tasks[3].taskId, row = panel.locator(`[data-milestone-task-id="${id}"]`);
   const trigger = row.getByRole("button", { name: / 관리$/ });
   if (width === 390) { await trigger.focus(); await page.keyboard.press("Enter"); }
@@ -113,7 +116,7 @@ for (const width of [390, 1024]) test(`#552 OFF date request ${width}px exact ma
   if (width === 390) {
     await expect(panel).toBeVisible(); await expect(row).toHaveAttribute("data-date-highlight", "true");
     await expect.poll(() => page.evaluate(() => document.activeElement?.closest("[data-milestone-task-id]")?.getAttribute("data-milestone-task-id"))).toBe(id);
-    await expect(panel.getByLabel("단계 검색", { exact: true })).toHaveValue("Stable milestone");
+    await expect(panel.getByLabel("Milestone 검색", { exact: true })).toHaveValue("Stable milestone");
     const physicalFocus = await page.evaluate(() => {
       const inactivePeer = document.querySelector<HTMLElement>('.project-schedule[data-dashboard-inactive="true"]')!;
       const inactivePaint = [inactivePeer, ...Array.from(inactivePeer.querySelectorAll<HTMLElement>(".project-gantt-scope-owner, .project-gantt-frame, .project-gantt-scale-toolbar, .wx-gantt, .wx-table-container, .wx-chart"))].map(element => {
@@ -161,7 +164,7 @@ for (const width of [390, 1024]) test(`#552 OFF date request ${width}px exact ma
     await expect(marker).toBeFocused(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
     expect(await page.evaluate(id => JSON.parse(localStorage.getItem(`mastergantt:milestone-timeline:${id}`)!).showMilestones, publicId)).toBe(false);
     await page.getByRole("button", { name: "원래 보기로 돌아가기", exact: true }).click();
-    await expect(panel).toBeVisible(); await expect(trigger).toBeFocused(); await expect(panel.getByLabel("단계 검색", { exact: true })).toHaveValue("Stable milestone");
+    await expect(panel).toBeVisible(); await expect(trigger).toBeFocused(); await expect(panel.getByLabel("Milestone 검색", { exact: true })).toHaveValue("Stable milestone");
     await page.getByRole("tab", { name: "일정", exact: true }).click();
     await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
     await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().left)).toBe(original);

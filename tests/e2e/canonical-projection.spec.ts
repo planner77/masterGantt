@@ -152,8 +152,8 @@ for (const variant of ["empty", "milestone-only"] as const) {
       return raw ? JSON.parse(raw).outcome : null;
     }).toBe("SETTLED");
     const receipt = JSON.parse((await frame.getAttribute("data-gantt-projection-receipt"))!);
-    expect(receipt.coreVisibleIds).toHaveLength(variant === "empty" ? 0 : 1);
-    if (variant === "milestone-only") await expect(rowNamed(page, "Stable milestone")).toBeVisible();
+    expect(receipt.coreVisibleIds).toHaveLength(0); // Both empty and Milestone-only have zero ordinary WBS rows.
+    if (variant === "milestone-only") await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
     expect(fixture.posts).toHaveLength(0); expect(fixture.patchRequests).toHaveLength(0);
   });
 }

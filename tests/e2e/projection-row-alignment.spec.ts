@@ -100,7 +100,7 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
     // that happened to mount, to require every visible virtual row.
     expect(sample.rowHeight).toBeGreaterThan(0);
     const coreIds = sample.receipt.coreVisibleIds as string[];
-    expect(coreIds).toHaveLength(fixture.tasks.length);
+    expect(coreIds).toHaveLength(fixture.tasks.filter(task => task.type !== "milestone").length);
     const requiredGridIds = coreIds.filter((_, index) => index * sample.rowHeight + sample.rowHeight > top && index * sample.rowHeight < top + sample.gridHeight - sample.headerHeight);
     expect(requiredGridIds.length).toBeGreaterThan(5);
     expect(requiredGridIds.every(id => sample.mountedGridIds.includes(id))).toBe(true);
@@ -131,7 +131,7 @@ test("#637 genuine visible Grid Y mismatch still times out with matching canonic
   const failed = await geometry(page);
   expect(failed.receipt.logicalVisibleIds).toEqual(failed.receipt.coreVisibleIds);
   expect(failed.receipt.domIds).toEqual(failed.receipt.coreVisibleIds);
-  expect(failed.pairs.length).toBe(fixture.tasks.length);
+  expect(failed.pairs.length).toBe(fixture.tasks.filter(task => task.type !== "milestone").length);
   expect(failed.pairs.every(pair => Math.abs(pair.delta - 27.5) <= 1)).toBe(true);
   await corruption.evaluate(element => element.parentNode?.removeChild(element));
   await page.setViewportSize({ width: 1440, height: 1000 });

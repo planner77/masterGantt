@@ -2,9 +2,10 @@ import { expect, test, type Page, type Request } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { installStatefulProjectFixture, publicId, projectPath, deferred, rememberGanttRoot, expectSameGanttRoot } from "../fixtures/stateful-project";
 import { exchangePreview, exchangeSnapshot, withExternalMembership } from "../fixtures/milestone-exchange";
+import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
 
 const importDialog=(page:Page)=>page.getByRole("dialog",{name:"JSON 파일 가져오기",exact:true});
-const copyDialog=(page:Page)=>page.getByRole("dialog",{name:"복사 시 Milestone 소속 변경",exact:true});
+const copyDialog=(page:Page)=>page.getByRole("dialog",{name:"복사 시 단계 소속 변경",exact:true});
 const file={name:"stage-source.json",mimeType:"application/json",buffer:Buffer.from('{"schemaVersion":"1.1","synthetic":true}')};
 async function selectFile(page:Page){const more=page.locator('summary[aria-label="프로젝트 작업 더보기"]');if(!await more.evaluate(el=>(el.parentElement as HTMLDetailsElement).open))await more.click();const chooser=page.waitForEvent("filechooser");await page.getByRole("button",{name:"가져오기 (JSON)",exact:true}).click();await(await chooser).setFiles(file);}
 async function start(page:Page){await page.goto(`/projects/${publicId}`);await expect(page.getByText("편집 중",{exact:true})).toBeVisible();}
@@ -97,7 +98,17 @@ test("#464 external canonical revision invalidates Copy acknowledgement and Impo
 test("#464 completed Milestone boundary cannot be bypassed by Copy acknowledgement",async({page})=>{
  const fixture=await installStatefulProjectFixture(page);withExternalMembership(fixture);fixture.tasks[3].status="completed";fixture.tasks[3].progress=100;let commands=0;
  await page.route(`**${projectPath}/task-commands`,async route=>{commands++;await route.fulfill({status:500,json:{error:{code:"UNEXPECTED_COPY"}}});});
- await start(page);await pasteSummary(page,fixture.tasks[3].taskId,fixture.tasks[2].taskId);await expect(page.getByRole("menu",{name:"작업 메뉴",exact:true})).toHaveCount(0);await expect(copyDialog(page)).toHaveCount(0);await expect(page.getByText("Milestone의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.",{exact:true}).first()).toBeVisible();expect(commands).toBe(0);
+ await installMilestoneDashboardFixture(page,fixture);
+ await start(page);
+ await expect(page.locator(`.wx-row[data-id=":${fixture.tasks[3].taskId}"]`)).toHaveCount(0);
+ await page.getByRole("tab",{name:"Milestone 대시보드",exact:true}).click();
+ const row=page.locator(`[data-milestone-task-id="${fixture.tasks[3].taskId}"]`);
+ await expect(row).toBeVisible();
+ await row.getByRole("button",{name:"Stable milestone 관리",exact:true}).click();
+ await page.getByRole("dialog",{name:"Stable milestone 관리",exact:true}).getByRole("button",{name:"Milestone 복사",exact:true}).click();
+ await expect(copyDialog(page)).toHaveCount(0);
+ await expect(page.getByText("완료 단계의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.",{exact:true}).first()).toBeVisible();
+ expect(commands).toBe(0);
 });
 
 test("#464 Import 412 explicitly refreshes canonical revision and re-previews retained File before manual commit",async({page})=>{
