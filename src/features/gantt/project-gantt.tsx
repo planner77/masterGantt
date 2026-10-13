@@ -38,7 +38,6 @@ import {
 
 import { createTaskMoveGateway } from "./task-move-gateway";
 import { filterMilestoneWbsRows, milestoneDateCoordinate, readMilestoneChartResizeCorrection, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
-import { canonicalSubtreeImpact } from "../milestones/milestone-timeline-model";
 import { MilestoneTimelineLane, type MilestoneTimelineCapability } from "./milestone-timeline-lane";
 import { canonicalSubtreeImpact } from "../milestones/milestone-timeline-model";
 import type { MilestoneLanePoint } from "./milestone-timeline-lane-model";

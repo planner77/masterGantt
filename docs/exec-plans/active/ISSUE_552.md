@@ -167,3 +167,12 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - AC12: `tests/e2e/milestone-visibility.spec.ts` and `tests/e2e/milestone-timeline-lane.spec.ts` assert Day/Week, 390/768/1024/1440/1920 widths, split/fullscreen, keyboard/focus and overflow.
 
 모든 AC는 실제 최신 Head 전체 PR CI 전 `NOT TESTED`; 본문 매핑이나 과거 #552 국소 44/44를 현재 QA Final PASS로 승격하지 않는다. CI 결과가 나올 때까지 보완 PR #563의 과거 실패를 보관한다.
+
+## 2026-10-13 — CI #2633.1 compile blocker correction
+
+- PR #561 Run [#2633.1](https://github.com/planner77/masterGantt/actions/runs/38336799481), exact head `4a3aabaa3fdf6d0db241ad7f2a14f1cc396941ac`: QA trust check, QA Preflight, lint, unit and policy checks SUCCESS; TypeScript, Next.js production build and Docker image build FAILED. The Chromium E2E shard failures repeatedly show the same Next.js compile error. The overall run cannot become successful with this head.
+- First deterministic error: `src/features/gantt/project-gantt.tsx` imports `canonicalSubtreeImpact` twice from `../milestones/milestone-timeline-model` at lines 41 and 43. TypeScript TS2300, SWC parse error and Docker build failure share this source root cause, not separate release/environment failures.
+- Minimal repair: remove only the redundant second import. Preserve the remaining import and all `canonicalSubtreeImpact` uses, current main merge parents and tests. Duplicate count changes 2 → 1, static inspection only. No runtime semantics, API, DB/schema, scheduling, presentation or security contract change.
+- DOC_SYNC: this Work Packet UPDATED with actual evidence; other required documents retain their prior UPDATED or reasoned N/A status. `docs/TEST_PLAN.md` does not require a test expectation change; no assertions, shards, CI gates or workflow definitions are altered. Version and release authority unchanged.
+- The user reported cancelling CI #2623, but the exact #552 source run here is #2633.1; GitHub still reported #2633.1 IN_PROGRESS during investigation. Updating the existing PR #561 head triggers a fresh full pull_request synchronize CI, and the CI's configured same-PR concurrency can cancel the superseded run. Never claim the old run was cancelled until the API confirms it.
+- Remote TypeScript/Build/Docker/E2E for the new exact head remain NOT TESTED before the next full CI result. `qa_method=OWNER_MANAGED` remains a route, not Owner acceptance. No merge, Main CI, GHCR/tag/release, Issue close or branch cleanup authorized.
