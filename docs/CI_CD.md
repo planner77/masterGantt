@@ -1,3 +1,15 @@
+## Issue #659 — Full PR CI E2E Fail-Fast 및 Fast Gate 최적화 (2026-10-13)
+
+**목표:** 실패 PR의 불필요한 Runner 사용량 축소. 정상 PR은 기존 동시 시작 방식보다 wall-clock이 길어질 수 있어 사후 실측으로 채택 여부를 판단한다. 실패한 CI Run의 취소를 성공으로 바꾸거나 Required Check를 생략하는 기능이 아니다.
+
+- **PR full 경로:** `changes → preflight → policy/typecheck/lint/unit (병렬) → pr_fast_gate → pr_build/pr_e2e_shard(6개 병렬)/pr_docker_smoke (병렬)`. 경로 판정의 `policy/node=true`면 각 Job 결과가 success여야 하고, false면 해당 Job은 실제 skipped여야 한다. 결측/오류/취소는 FAIL. `pr_fast_gate` 자체는 merge gate가 아니며 세 Required aggregate가 정확한 원본 검증 근거다.
+- **PR E2E A:** `pr_e2e_shard.strategy.fail-fast=true`이며 Shard 실패 후 나머지 Shard 취소가 요청된다. 요청 시점/Runner 종료는 즉시 보장되지 않으며 취소된 Shard의 timing/report 업로드도 보장되지 않는다. 원본 실패 Shard 로그/Playwright report와 Run/Attempt를 보존한다.
+- **Main/수동 B 비적용:** 기존 `build`, `e2e_shard`(fail-fast=false), `docker_smoke`가 `changes,preflight` 결과 이후 본래처럼 병렬 시작한다. 별도의 `pr_*` Job은 Main/수동에서는 skip. GitHub Actions의 정적 `needs`로 Main을 직렬화하지 않는다. 동일 실행 단계는 `steps` YAML anchor/alias를 사용해 중복 및 drift를 방지한다(GitHub Actions 공식 지원).
+- **집계:** `quality/e2e/docker`는 `if: always()` 및 `needs` 결과를 사용한다. full PR에서 Fast Gate가 실패·취소되면 Required Check 3종은 FAIL; `edited`는 기존 exact Head/base/run 증거 재사용, 경로 분류로 정상 skip된 일반 PR은 기존 success 기준 적용. 이름 `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test` 유지.
+- **비변경:** 6-shard·workers=1·historical plan/fallback, 보안·출처 검증/QA Final/Owner 수용, main commit image GHCR exact digest/SBOM/Finalizer, Release 승인 경로. CI-only 변경이므로 app version 0.107.0 유지, release_required=false.
+- **회귀:** `python3 scripts/test_pr_fast_gate.py`와 `python3 scripts/test_qa_preflight.py`를 CI policy Job에서 실행한다. main/manual 병렬성, alias, required aggregation, metadata-only, skip/fail/cancelled 상황을 정적·단위 계약으로 검증한다.
+- **측정/롤백:** 실제 Actions에서 정확 Head/base를 기준으로 정상·실패 Run의 시작~완료 wall-clock, 각 Runner started_at~completed_at 합계(Runner-minutes), 실행하지 않은 heavy Job 수, 실제 first-failure~Run completion을 전후 비교한다. 계측 전 절감률은 NOT TESTED. 정상 PR 임계 경로가 과도하게 증가하거나 required gate가 Pending/잘못된 SUCCESS로 바뀌면 A/B를 분리해 되돌린다(우선 B 의존성/PR 분기 복원, 필요 시 A fail-fast 비활성화). Main·Release·Ruleset 이름은 유지한다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
