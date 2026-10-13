@@ -263,5 +263,82 @@ class TestReadOnlyAudit(unittest.TestCase):
                 with self.assertRaises(SuccessionBlocked):
                     audit.authenticated_manifest_digest("0.106.1")
 
+
+    def test_confirmed_digest_survives_later_owner_block_in_json_and_summary(self):
+        import json
+        import os
+        import tempfile
+        from contextlib import chdir
+        from pathlib import Path
+
+        expected = audit.policy.PUBLISHED_DIGEST
+        def blocked_owner():
+            audit.stage("authenticated OCI digest", version="0.106.1",
+                        tag="0.106.1", expected_digest=expected)
+            audit.record_authenticated_oci(
+                version="0.106.1", tag="0.106.1",
+                expected_digest=expected, actual_digest=expected)
+            audit.stage("Owner policy")
+            raise audit.AuditBlocked("Owner marker missing", "OWNER_MISSING")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            summary = Path(tmp) / "summary.md"
+            with chdir(tmp), patch.dict(os.environ, {
+                "GITHUB_RUN_ID": "38403028531", "GITHUB_RUN_ATTEMPT": "1",
+                "GITHUB_SHA": "a" * 40, "GITHUB_STEP_SUMMARY": str(summary),
+            }), patch.object(audit, "collect", side_effect=blocked_owner):
+                self.assertEqual(audit.main(), 1)
+            result = json.loads((Path(tmp) / "release-succession-audit.json").read_text())
+            self.assertEqual(result["stage"], "Owner policy")
+            self.assertEqual(result["reason_code"], "OWNER_MISSING")
+            self.assertEqual(result["decision"], "BLOCKED")
+            self.assertEqual(result["evidence_context_source"], "last_authenticated_oci")
+            self.assertEqual(result["version"], "0.106.1")
+            self.assertEqual(result["tag"], "0.106.1")
+            self.assertEqual(result["expected_digest"], expected)
+            self.assertEqual(result["actual_digest"], expected)
+            self.assertEqual(result["last_authenticated_oci"]["actual_digest"], expected)
+            self.assertFalse(result["publish"])
+            self.assertFalse(result["retire"])
+            self.assertFalse(result["close_issue_616"])
+            content = summary.read_text()
+            self.assertIn("Owner policy", content)
+            self.assertIn(expected, content)
+            self.assertIn("last_authenticated_oci", content)
+
+    def test_current_failure_stage_not_mislabelled_as_confirmed_digest(self):
+        import json
+        import os
+        import tempfile
+        from contextlib import chdir
+        from pathlib import Path
+
+        digest = audit.policy.PUBLISHED_DIGEST
+        ci_tag = f"ci-{audit.policy.PUBLISHED_SHA}"
+
+        def candidate_missing():
+            audit.stage("authenticated OCI digest", version="0.106.1",
+                        tag="0.106.1", expected_digest=digest)
+            audit.record_authenticated_oci(
+                version="0.106.1", tag="0.106.1",
+                expected_digest=digest, actual_digest=digest)
+            audit.stage("Main verified ci-SHA candidate", version="0.106.1",
+                        tag=ci_tag, expected_digest=digest)
+            raise audit.AuditBlocked("Missing candidate", "MAIN_CANDIDATE_MISSING")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with chdir(tmp), patch.dict(os.environ, {
+                "GITHUB_RUN_ID": "38403028531", "GITHUB_RUN_ATTEMPT": "1",
+                "GITHUB_SHA": "a" * 40, "GITHUB_STEP_SUMMARY": "",
+            }), patch.object(audit, "collect", side_effect=candidate_missing):
+                self.assertEqual(audit.main(), 1)
+            result = json.loads((Path(tmp) / "release-succession-audit.json").read_text())
+            self.assertEqual(result["stage"], "Main verified ci-SHA candidate")
+            self.assertEqual(result["tag"], ci_tag)
+            self.assertIsNone(result["actual_digest"])
+            self.assertEqual(result["evidence_context_source"], "current_stage")
+            self.assertEqual(result["last_authenticated_oci"]["tag"], "0.106.1")
+            self.assertEqual(result["last_authenticated_oci"]["actual_digest"], digest)
+
 if __name__ == "__main__":
     unittest.main()
