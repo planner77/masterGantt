@@ -262,6 +262,33 @@ def b2_decision(rows: list[tuple[int, str, dict[str, Any]]],
     return f"https://github.com/{REPO}/issues/633#issuecomment-{number}"
 
 
+def historical_prs_verified(chain: list[str]) -> bool:
+    """Independent REST authentication of every immutable B2 PR / merge-SHA.
+
+    A signed retirement comment alone is not proof that a listed SHA belongs
+    to its claimed merged PR. Check both GitHub PR identity and main ancestry.
+    """
+    require(len(chain) == len(set(chain)), "historical first-parent SHA 중복")
+    for sha, issue, number in B2_SOURCES:
+        require(sha in chain, f"historical PR #{number} first-parent SHA 누락")
+        pr = api(f"/repos/{REPO}/pulls/{number}")
+        require(isinstance(pr, dict)
+                and type(pr.get("number")) is int and pr["number"] == number
+                and pr.get("state") == "closed" and pr.get("merged") is True
+                and pr.get("merge_commit_sha") == sha
+                and (pr.get("base") or {}).get("ref") == "main"
+                and ((pr.get("base") or {}).get("repo") or {}).get("full_name") == REPO
+                and ((pr.get("head") or {}).get("repo") or {}).get("full_name") == REPO,
+                f"historical PR #{number} 병합/저장소/main/SHA 출처 불일치")
+        # The immutable PR's primary issue is cross-checked via its canonical
+        # body rather than accepting a bot marker's independently typed issue.
+        body = pr.get("body") or ""
+        refs = re.findall(r"(?im)^\\s*Refs\\s+#([1-9][0-9]*)\\s*$", body)
+        require(refs == [str(issue)],
+                f"historical PR #{number} Issue #{issue} 귀속 불일치")
+    return True
+
+
 def retirement_verified(issue: int, decision_url: str | None) -> bool:
     rows = pages(f"/repos/{REPO}/issues/{issue}/comments")
     original = [row for row in B2_SOURCES if row[1] == issue]
@@ -381,6 +408,8 @@ def collect() -> tuple[dict[str, Any], dict[str, Any]]:
     markers_616 = owner_markers(616)
     markers_633 = owner_markers(633)
     decision_url = b2_decision(markers_633, chain)
+    stage("historical PR identity")
+    historical_prs_verified(chain)
     stage("original CI")
     original_run = api(f"/repos/{REPO}/actions/runs/38313359094")
     require(original_run.get("conclusion") == "failure"
