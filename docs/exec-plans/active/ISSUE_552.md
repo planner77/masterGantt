@@ -1,5 +1,15 @@
 # Issue #552 — WBS 표시 분리와 Milestone 표시 전환
 
+## 2026-10-13 — PR CI #2669.1 Preflight 문서 원장 보완
+
+[원본 CI #2669.1](https://github.com/planner77/masterGantt/actions/runs/38379375572), run_attempt=1, Head `eb898c54d2cf9f4994e0b99cc0a76ed1493b2220`, base `9b16ac5fdd48628062f151380c144a40125dc721`는 QA Preflight job `115235751471`의 DOCUMENTATION_SYNC에서 FAIL했다. 직전 보완에 `resource-excel-export-ui.spec.ts`가 추가되어 전체 PR의 required docs 합집합에 IMPORT_SCHEMA와 EXCEL_EXPORT가 포함됐지만 항목별 영향 기록을 빠뜨렸다. 제품 테스트 자체가 실행되어 실패한 것이 아니며 Quality/E2E/Docker 구현 Job은 SKIPPED, 세 Required aggregate는 FAIL이다. 직전 로컬 PASS를 이 원격 실행의 PASS로 표시하지 않는다.
+
+이번 변경은 문서 원장 보완만이다. IMPORT_SCHEMA는 JSON/CSV DTO·버전·검증/정규화·Import 실행 불변, EXCEL_EXPORT는 workbook/시트·수식 안전성·서버 집계·Export API 불변을 근거로 해당 문서 추가 수정 N/A를 명시한다. Excel E2E 변경은 native show commit 후 pending restore와 사용자 wheel 위치를 검증하는 시점 보완이었다. main/base의 검증기 두 파일을 정확한 SHA에서 읽어 전체 PR 변경 경로와 새 문서 원장을 입력으로 구조적 docs_gate와 Preflight를 로컬 재생한다. 검증기·CI·Required gate·테스트·제품·버전·릴리스 권한은 변경하지 않는다.
+
+HIGH/qa_required=true/OWNER_MANAGED 및 release_required=true/release_authorized=false 유지. 독립 read-only 문서 검토 후 같은 PR의 새 전체 CI를 시작하고 등록만 확인한다. 새 Head의 원격 quality/e2e/docker·Trusted QA·QA_FINAL·Owner ACCEPT는 NOT TESTED이며 CI 모니터링·병합·Main/GHCR·Issue 종료는 비범위다.
+
+로컬 재생은 실제 base 검증기 두 파일과 인증된 PR/Issue snapshot·후보 Work Packet, 전체112경로·required6문서·AC12를 사용해 Preflight PASS(9 PASS/5 DEFERRED/0 FAIL)를 반환했다. 이는 로컬 후보 데이터의 구조적 검증이며 현재 GitHub 실행·provenance/문서 의미·최종 QA 승인을 대체하지 않는다. Markdown200파일·diff check도 PASS다. 제품·테스트 bytes는 직전 Head와 같아 로컬 전체 회귀를 반복하지 않는다.
+
 ## 2026-10-13 — PR CI #2667.1 반복 실패 보완
 
 현재 작업 기준은 PR #561 Head `290119bcfe859a26c1e095dcd4611e751e2a72af`, main/base `9b16ac5fdd48628062f151380c144a40125dc721`, test merge `cba673b3c9993f72baa1107f842b4966a1eaed05`다. 아래 최초 stacked 기준과 로컬 검증 기록은 당시 이력이며 현재 Head의 전체 회귀 성공을 뜻하지 않는다. 사용자 승인 범위는 보완·관련 문서 동기화·새 전체 PR CI 시작까지이며 CI 모니터링·병합·Main CI/GHCR/tag/release/Issue 종료는 제외한다. application `0.107.0`, HIGH / qa_required=true / qa_method=OWNER_MANAGED, release_required=true / release_authorized=false를 유지한다.
@@ -188,6 +198,8 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - `docs/DB_SCHEMA.md`: N/A(No SQLite schema or migration changes)
 - `docs/SECURITY.md`: N/A(No authentication, cookie or permission contract change)
 - `docs/IMPORT_EXPORT.md`: N/A(Existing full canonical interchange including hidden Milestones unchanged)
+- `docs/IMPORT_SCHEMA.md`: N/A(viewport E2E 정착 검증만 보완하며 JSON/CSV 스키마 버전·DTO 검증·정규화·Import 실행 계약은 변경 없음)
+- `docs/EXCEL_EXPORT.md`: N/A(pending viewport 복원 E2E 시점만 보완하며 workbook·시트·수식 안전성·서버 집계·Export API 계약은 변경 없음)
 - `docs/GITHUB_OPERATIONS.md`: N/A(No branch policy, GH Actions permissions or workflow changes)
 - `package.json`: N/A(Version and dependencies preserved; no new release authority)
 - `package-lock.json`: N/A(No dependency change and package version unchanged)

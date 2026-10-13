@@ -1,3 +1,7 @@
+## Issue #552 — CI #2669.1 문서 영향 기록 보완 (2026-10-13)
+
+[Work Packet](ISSUE_552.md): 새 전체 CI #2669.1은 제품 검사 전 Preflight DOCUMENTATION_SYNC에서 차단됐다. 직전 수정의 Excel E2E 경로가 요구하는 IMPORT_SCHEMA/EXCEL_EXPORT 항목별 N/A 근거를 보완하고 immutable base의 검증기로 전체 PR 경로 합집합을 로컬 재생한다. 이번 변경은 문서뿐이며 제품·테스트·QA/CI gate·version0.107.0·release 권한 불변이다. 독립 문서 사전 검토 후 새 전체 PR CI 등록까지 수행하고 결과를 모니터링하지 않는다. 원본 FAIL·구현 Job SKIPPED는 보존한다.
+
 ## Issue #552 — CI #2667.1 회귀 보완 및 새 PR CI 시작 (2026-10-13)
 
 [Work Packet](ISSUE_552.md): PR #561 원본 Head `290119bcfe859a26c1e095dcd4611e751e2a72af`의 Unit1/E2E9 FAIL을 보존한다. Native add query identity·metadata 우선순위와 OFF390 fallback focus를 보완하고 Copy 제목·알림 경계·supported DATE_REVEAL·native show/pending restore 테스트를 현재 계약에 맞춘다. 직접 관련 Unit111/별도Copy guard67, Chromium14 및 viewport고유6 PASS를 환경·최신source/제한재사용별로 구분한다. 문서 동기화·독립 사전 검토·최종 정적 검사 후 같은 PR에 한 번 게시하여 새 전체 CI를 시작하고 결과는 모니터링하지 않는다. HIGH/qa_required=true/OWNER_MANAGED, application0.107.0·release_required=true/release_authorized=false 유지. 새 Head quality/e2e/docker·QA_FINAL/Owner ACCEPT, merge/main/GHCR/tag/Issue 종료는 NOT TESTED/비범위다.

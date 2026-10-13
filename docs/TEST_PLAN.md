@@ -1,3 +1,7 @@
+## Issue #552 — CI #2669.1 Preflight 문서 원장 회귀 (2026-10-13)
+
+Head `eb898c54d2cf9f4994e0b99cc0a76ed1493b2220`의 [CI #2669.1](https://github.com/planner77/masterGantt/actions/runs/38379375572)은 QA Preflight DOCUMENTATION_SYNC에서 IMPORT_SCHEMA 영향 기록 누락으로 FAIL했다. Excel E2E 수정 경로가 요구하는 IMPORT_SCHEMA/EXCEL_EXPORT의 N/A 근거를 Work Packet의 정확한 DOCUMENTATION_SYNC section에 추가한다. 전체 PR 변경 경로의 합집합을 immutable base `9b16ac5fdd48628062f151380c144a40125dc721`의 실제 docs_required/docs_gate 및 Preflight에 입력해 누락이 없는지 로컬 재생한다. 구조적 PASS는 문서 의미·최신 원격 Quality/E2E/Docker PASS 또는 Owner 승인이 아니다. 제품·테스트·정책·버전은 불변이며 원본 구현 Job SKIPPED와 aggregate FAIL을 유지한다.
+
 ## Issue #552 — PR CI #2667.1 실패 재현과 집중 회귀 (2026-10-13)
 
 원본 [CI #2667.1](https://github.com/planner77/masterGantt/actions/runs/38371554385), Head `290119bcfe859a26c1e095dcd4611e751e2a72af`: quality FAIL(Unit 2177 PASS/1 FAIL), E2E FAIL(9건, shards4/5/6), Docker PASS. 이전 #2666 cancelled/13 E2E FAIL 이력은 별도로 보존한다. 로컬 집중 검증은 새 Head 전체 CI 성공을 대체하지 않는다.
