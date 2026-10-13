@@ -11,6 +11,15 @@
 - 세 Required aggregate의 이름·fail-closed, `pull_request.edited` metadata-only, 신뢰된 Preflight/QA, main GHCR/Finalizer/Release 정책 불변. 새로운 Gate 성공은 Owner 병합 승인이 아니다. 이 변경 자체는 HIGH/OWNER_MANAGED, 검증 전 NOT TESTED; 정식 이미지 버전/릴리스 변경 없음.
 - 구현·회귀: [Work Packet](docs/exec-plans/active/ISSUE_659.md), [CI/CD](docs/CI_CD.md), [원격 검증](docs/REMOTE_VALIDATION.md).
 
+## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 PR #668 P2: Owner/퇴역/main/policy 단계가 나중에 BLOCKED되어도 이미 인증된 OCI manifest version/tag/expected·actual digest는 별도 `last_authenticated_oci`로 보존하고 JSON/Job Summary에 표시한다. 현재 실패 단계의 미확인 후보 digest를 다른 이미지의 확인된 digest로 오인하거나 PASS로 승격하지 않는다.
+
+- Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
+- 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
+- `ci-09bee924032b4126ff794ec7a485542fd72dd7bf` 후보는 exact manifest/source SHA/digest를 별도 증명한다. 누락 시 cleanup 원장 조사 전 자동 재게시 금지. Git peeled SHA, 원본 Main/Release Run+attempt, #633 B2 Owner/퇴역, #616 별도 철회/준비 승인 및 first-parent fail-closed 유지.
+- Audit JSON/Job Summary는 stage/reason_code/run/attempt/main SHA/version/tag/expected·actual digest(확인된 경우)만 기록한다. 인증 stderr/Owner 원문 제외, BLOCKED는 exit 1 및 publish/retire/close=false. PR은 감사 실행·재게시·릴리스·승인/퇴역 수행 금지.
+- `tests/python/test_release_succession_*.py`는 CI policy 필수 실행 (기존 workflow 조건 유지). HIGH/OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED, release_required=false, release_authorized=false. PR 3 required checks/Trusted QA/리뷰 0/Owner 별도 수용 및 Main 검증 전 완료 아님. 운영 감사 #17 실패 원장은 불변.
+
 ## Issue #657 — 감사 #16 PR Refs 정규표현식 및 Python CI 필수 회귀 (2026-10-13)
 
 - 운영 [승계 감사 #16.1](https://github.com/planner77/masterGantt/actions/runs/38388876066)의 `historical PR #559 Issue #550 귀속 불일치`는 실제 GitHub PR `Refs #550`이 정상임에도 Python raw-regex에 잘못 쓴 이중 escape로 발생한 검증기 결함이다.
@@ -154,6 +163,14 @@ Manager와 모든 Sub-Agent는 사람이 읽는 대화·진행 보고·최종 �
 
 상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
 
+### Gantt 상태 정합성 작업의 필수 참조 (#661)
+
+Gantt/Grid/Task Editor/Milestone/Calendar/Resource drill 및 그 동기화·복구·날짜축·선택·포커스·테스트를 변경하는 Manager와 모든 담당 에이전트는 작업 시작과 REWORK 전에 [Gantt State Consistency](docs/GANTT_STATE_CONSISTENCY.md), [누적 검증 기준](docs/GANTT_STATE_CONFORMANCE.md), [기존 Adapter ADR](docs/GANTT_ADAPTER_ADR.md), [Sync Trace](docs/GANTT_SYNC_TRACE.md)를 반드시 읽는다. 이번 구조적 보완의 파일 소유권·의존성은 [실행계획](docs/exec-plans/active/GANTT_STATE_REMEDIATION.md)을 따른다.
+
+Work Packet에 표준 버전과 읽은 문서 commit, 적용 GSC 규칙, 상태/쓰기 소유권 영향, 누적 SC 시나리오와 제외 이유, 예외 ADR, 실제 검증·미검증을 기록한다. 상세 규칙은 표준 문서의 단일 원본을 유지하며 이 파일에 복제하지 않는다. 실제 Core 검증 없는 no-op, 거부된 변경의 복구 누락, 비승인 viewport 변경을 발견하면 해당 단위를 REWORK한다. 같은 파일의 동시 쓰기와 직전 실패만을 위한 검증 축소를 금지한다.
+
+문서 참조 기록만으로 준수를 승인하지 않고 Reviewer가 diff·테스트·원본 증거를 확인한다. 새로운 자동 검사/CI enforcement는 실제 구현·실증 전 NOT IMPLEMENTED로 남긴다. 문서 PR의 main 반영 전 전역 적용 완료나 제품 수정 완료를 주장하지 않는다. 기존 보안·QA·Owner 승인·Required CI·릴리스 권한은 변경하지 않는다.
+
 ### UI/UX 작업 시 참조
 
 화면 신설·수정·검토를 시작할 때 아래에서 해당하는 문서를 읽는다. 상세 원칙은 기존 문서를 Source of Truth로 유지하고 AGENTS.md에 중복 정의하지 않는다.
@@ -198,7 +215,7 @@ Manager와 모든 Sub-Agent는 CI/CD 관련 내용 중 사람이 읽는 제목·
 
 ### Main CI 실행명 / Merge Commit 표준 (#582)
 
-정식 병합 시 저장소 기본 Merge 메시지에 PR 본문과 장문의 검증 기록이 포함되지 않게 한다. 리뷰·required checks·명시 승인 뒤 `python3 scripts/main_ci_run_name.py --issue N --pr P --summary "한글 Issue명 축약"` 출력으로 `merge_method=merge`, `commit_title=<결과>`, `commit_message=""`, REST API에서는 `sha=<검증 SHA>`, 현재 GitHub 연결 도구에서는 `expected_head_sha=<검증 SHA>`를 **병합 전에** 전달한다. GitHub CLI 사용자는 `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`와 같이 Merge 전략·표준 한 줄 제목·빈 본문·검증 Head SHA를 모두 지정한다. 요약은 한글 30자 이하, Primary Issue는 PR body의 단일 `Refs #N`와 일치한다. GitHub UI 병합이면 같은 제목을 수동 입력하고 본문을 비운다. 기본 GitHub 설정은 이 형식을 자동 보장하지 않으며 표준이 없으면 Main/Finalizer는 SHA 기반 짧은 fallback을 표시한다. 상세 절차는 [GITHUB_OPERATIONS.md](docs/GITHUB_OPERATIONS.md)를 따른다. `name: CI`, required checks, exact SHA 및 release authority는 불변이다.
+정식 병합 시 저장소 기본 Merge 메시지에 PR 본문과 장문의 검증 기록이 포함되지 않게 한다. 리뷰·required checks·명시 승인 뒤 `python3 scripts/main_ci_run_name.py --issue N --pr P --summary "한글 Issue명 축약"` 출력으로 `merge_method=merge`, `commit_title=<결과>`, `commit_message=""`, REST API에서는 `sha=<검증 SHA>`, 현재 GitHub 연결 도구에서는 `expected_head_sha=<검증 SHA>`를 **병합 전에** 전달한다. GitHub CLI 사용자는 `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`와 같이 Merge 전략·표준 한 줄 제목·빈 본문·검증 Head SHA를 모두 지정한다. 요약은 한글 30자 이하, Primary Issue는 PR body의 단일 `Refs #N`와 일치한다. GitHub UI 병합이면 같은 제목을 수동 입력하고 본문을 비운다. 기본 GitHub 설정은 이 형식을 자동 보장하지 않으며 표준이 없으면 Main CI/Finalizer는 SHA 기반 짧은 fallback을 표시한다. 상세 절차는 [GITHUB_OPERATIONS.md](docs/GITHUB_OPERATIONS.md)를 따른다. `name: CI`, required checks, exact SHA 및 release authority는 불변이다.
 
 기본 흐름:
 
@@ -452,7 +469,7 @@ Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECY
 - GHCR 게시 단계는 Lifecycle에 포함하되 정식 릴리스 필요성(release_required)과 명시적 게시 승인(release_authorized)은 별개다. 단순 '전체 Lifecycle 진행'만으로 정식 릴리스 범위나 승인을 간주하지 않는다. 사용자 또는 지정 maintainer의 명확한 정식 GHCR 게시 요청/승인 근거가 있어야 annotated tag·정식 게시·rolling tag 변경을 실행한다. 이미 확인한 동일 범위의 승인은 반복 요청하지 않는다. 필요한 릴리스의 승인이 없으면 BLOCKED/승인 대기로 남긴다.
 - 문서/Agent 지침만의 변경은 제품 영향이 없음을 확인해 application version 유지와 정식 release N/A를 기록할 수 있다. Lifecycle 문서 수정 요청 자체를 제품 릴리스 승인으로 해석하지 않으며 실제 main 임시 GHCR workflow 결과는 생략하지 않는다.
 - 필요한 GHCR 게시·검증과 main gate가 남아 있으면 병합만으로 이슈를 종료하지 않는다. PR에는 조기 자동 종료 대신 Refs 연결을 사용한다. 안전한 branch 정리와 완료 증거를 남긴 뒤 승인 범위에서 종료한다.
-- 도구 부재 시 단일 에이전트 순차 처리임을 밝히고 독립 Sub-Agent/QA 실행을 주장하지 않는다. `qa_required=false`로 판정된 LOW/일부 MEDIUM은 독립 QA만 사유 있는 N/A로 처리하되 Manager 검토와 필수 CI는 유지한다. HIGH 또는 `qa_required=true` MEDIUM은 `qa_method=AGENT`에서 별도 Reviewer가 없으면 BLOCKED다. 보호된 CI/보안/QA 정책을 변경하지 않은 후속 PR은 **기본 브랜치** `QA Final — Trusted`의 정확한 Head/base PASS와 Manager 위험 수용으로 `AUTOMATED_MANAGER`를 선택할 수 있으나, #580 최초 Bootstrap은 실제 독립 Reviewer가 의무다. CI/GHCR 미실행을 PASS로 간주하지 않으며 TOML 존재는 runtime 검증이 아니다.
+- 도구 부재 시 단일 에이전트 순차 처리임을 밝히고 독립 Sub-Agent/QA 실행을 주장하지 않는다. `qa_required=false`로 판정된 LOW/일부 MEDIUM은 독립 QA만 사유 있는 N/A로 처리하되 Manager 검토와 필수 CI는 유지한다. HIGH 또는 `qa_required=true` MEDIUM은 `qa_method=AGENT`에서 별도 Reviewer가 없으면 BLOCKED다. 보호된 CI/보안/QA 정책 파일이 변경되지 않은 후속 PR은 **기본 브랜치** `QA Final — Trusted`의 정확한 Head/base PASS와 Manager 위험 수용으로 `AUTOMATED_MANAGER`를 선택할 수 있으나, #580 최초 Bootstrap은 실제 독립 Reviewer가 의무다. CI/GHCR 미실행을 PASS로 간주하지 않으며 TOML 존재는 runtime 검증이 아니다.
 - CI 실패는 근거에 따라 담당 Agent에 REWORK하고, 중단/추가 요청은 Issue/PR에 재개 지점을 기록한다. main PASS, 정식 GHCR PASS, 실제 운영 배포는 서로 대체하지 않는다.
 
 이 지침은 기존 CI/보안/권한 gate를 완화하거나 GitHub에서 상시 Agent 서버를 실행하는 설정이 아니다. 모델·effort·동시 실행 제한의 실제 적용은 사용하는 Codex 환경에서 별도 확인한다.

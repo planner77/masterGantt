@@ -22,6 +22,15 @@
 - **Main/보안:** push/manual/과거 SHA 복구에서 불필요한 Fast Gate 선행 대기가 없는지 시각을 비교한다. CI Workflow 변경 PR은 HIGH/OWNER_MANAGED 및 Trusted QA/Owner 명시 수용 필수; GHCR/Finalizer는 병합 후에만 검증.
 - **비용 비교:** identical lane 및 가능한 동일 변경 범위에서 이전/이후 Run wall-clock과 Runner-minutes(각 Job started_at~completed_at 합계), 회피한 heavy Job 수, 실패 이후 잔여 실행시간을 기록. 아직 기준 Run 2종 비교는 NOT TESTED; 추정 개선 퍼센트를 보고하지 않는다. Shard 취소 시 미완료 artifact가 없다는 이유로 테스트 성공으로 처리하지 않는다.
 
+## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 원격 확인: PR #668의 latest Head에서 Preflight `RISK_LEVEL`/`QA_METHOD`/`QA_REQUIRED`/`DOCUMENTATION_SYNC` PASS 후 실제 policy Python suite 로그와 Quality/E2E6/Docker Required PASS를 각각 확인한다. Owner 거부/결핍을 mock으로 재현해 BLOCKED JSON·Job Summary에 마지막 인증 OCI digest 출처가 남고, 미확인 candidate는 `actual_digest=null`로 유지됨을 검사한다. 현재 운영 감사 #17은 소급 PASS 금지.
+
+- Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
+- 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
+- `ci-09bee924032b4126ff794ec7a485542fd72dd7bf` 후보는 exact manifest/source SHA/digest를 별도 증명한다. 누락 시 cleanup 원장 조사 전 자동 재게시 금지. Git peeled SHA, 원본 Main/Release Run+attempt, #633 B2 Owner/퇴역, #616 별도 철회/준비 승인 및 first-parent fail-closed 유지.
+- Audit JSON/Job Summary는 stage/reason_code/run/attempt/main SHA/version/tag/expected·actual digest(확인된 경우)만 기록한다. 인증 stderr/Owner 원문 제외, BLOCKED는 exit 1 및 publish/retire/close=false. PR은 감사 실행·재게시·릴리스·승인/퇴역 수행 금지.
+- `tests/python/test_release_succession_*.py`는 CI policy 필수 실행 (기존 workflow 조건 유지). HIGH/OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED, release_required=false, release_authorized=false. PR 3 required checks/Trusted QA/리뷰 0/Owner 별도 수용 및 Main 검증 전 완료 아님. 운영 감사 #17 실패 원장은 불변.
+
 ## Issue #657 — 감사 #16 원인 재현 및 변경 검증 (2026-10-13)
 
 - T1: 독립 GitHub 원본 [PR #559](https://github.com/planner77/masterGantt/pull/559)의 `Refs #550` + merged/main + immutable SHA `40747252c389f2a4d1203a2262a4caa49c90728d`가 Python local mock/CI에서 정상 검증되어야 한다. #627/#628/#626/#632도 각각 `Refs #615/#550`로 정상.

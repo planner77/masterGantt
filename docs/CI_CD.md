@@ -27,6 +27,15 @@
 - **회귀:** `python3 scripts/test_pr_fast_gate.py`와 `python3 scripts/test_qa_preflight.py`를 CI policy Job에서 실행한다. main/manual 병렬성, alias, required aggregation, metadata-only, skip/fail/cancelled 상황을 정적·단위 계약으로 검증한다.
 - **측정/롤백:** 실제 Actions에서 정확 Head/base를 기준으로 정상·실패 Run의 시작~완료 wall-clock, 각 Runner started_at~completed_at 합계(Runner-minutes), 실행하지 않은 heavy Job 수, 실제 first-failure~Run completion을 전후 비교한다. 계측 전 절감률은 NOT TESTED. 정상 PR 임계 경로가 과도하게 증가하거나 required gate가 Pending/잘못된 SUCCESS로 바뀌면 A/B를 분리해 되돌린다(우선 B 의존성/PR 분기 복원, 필요 시 A fail-fast 비활성화). Main·Release·Ruleset 이름은 유지한다.
 
+## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 P2 회귀: `test_confirmed_digest_survives_later_owner_block_in_json_and_summary`와 `test_current_failure_stage_not_mislabelled_as_confirmed_digest`를 기존 `policy` Python unittest 필수 실행에 포함한다. PR #668 CI #2692.1은 PR 본문 standalone metadata 및 Work Packet DOC_SYNC 형식 위반으로 Preflight FAIL·heavy tests SKIPPED였으며 Python 테스트 실패 증거가 아니다.
+
+- Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
+- 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
+- `ci-09bee924032b4126ff794ec7a485542fd72dd7bf` 후보는 exact manifest/source SHA/digest를 별도 증명한다. 누락 시 cleanup 원장 조사 전 자동 재게시 금지. Git peeled SHA, 원본 Main/Release Run+attempt, #633 B2 Owner/퇴역, #616 별도 철회/준비 승인 및 first-parent fail-closed 유지.
+- Audit JSON/Job Summary는 stage/reason_code/run/attempt/main SHA/version/tag/expected·actual digest(확인된 경우)만 기록한다. 인증 stderr/Owner 원문 제외, BLOCKED는 exit 1 및 publish/retire/close=false. PR은 감사 실행·재게시·릴리스·승인/퇴역 수행 금지.
+- `tests/python/test_release_succession_*.py`는 CI policy 필수 실행 (기존 workflow 조건 유지). HIGH/OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED, release_required=false, release_authorized=false. PR 3 required checks/Trusted QA/리뷰 0/Owner 별도 수용 및 Main 검증 전 완료 아님. 운영 감사 #17 실패 원장은 불변.
+
 ## Issue #657 — release succession Python regression policy gate (2026-10-13)
 
 - CI의 기존 `policy` Job에서 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_succession_*.py' -v` 필수 실행. 대상: `test_release_succession_audit.py` + `test_release_succession_preflight.py`, PR/Main checkout 소스 기준. unittest 실패 시 `policy` 실패 → Quality required aggregate 실패; skip/timeout/retry 완화 없음.

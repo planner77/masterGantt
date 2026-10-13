@@ -81,3 +81,11 @@ independent_qa: N/A(Owner-managed, 별도 독립 QA 미실시)
 - DOCUMENTATION_SYNC: `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/exec-plans/active/ISSUE_659.md`, `CHANGELOG.md` 갱신; `docs/QA_REVIEW_POLICY.md`/API/DB/UI N/A(정책·제품 계약 변경 없음).
 - 신규 결과가 PASS이거나 Owner가 재작업을 승인하기 전까지 merge/Main CI/GHCR/Finalizer/Issue close 금지. risk_level HIGH/OWNER_MANAGED, release_required=false.
 
+
+## 2026-10-14 — 최신 main 재정렬 및 충돌 해결
+
+- PR #660 기존 Head `5f931dbad989e48a3f58b49f846845537a9e30ff` / 기존 Base `89f4ab7936fe74062f0398601d4a6596e3e51924`에서 이후 main `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`(Issue #661 PR #669 포함)까지 37개 commit이 앞서 병합 충돌 및 QA Final `mergeability/test-merge 불일치`를 확인했다.
+- `AGENTS.md`, `CHANGELOG.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md` 7개 공통 변경은 **#659의 실제 PR prepend delta만** 새 main 문서 전체 앞에 결합했다. main의 #661/#662 및 릴리스 감사/동기화 정책 변경을 삭제하거나 재해석하지 않았다.
+- main과 경로가 겹치지 않는 `.github/workflows/ci.yml`, `docs/DECISIONS.md`, 본 Work Packet, `scripts/pr_fast_gate.py`, `scripts/test_pr_fast_gate.py`, `scripts/test_qa_preflight.py`, `tests/e2e/project-edit-authorization.spec.ts`는 기존 PR 버전을 보존한다. 6-shard PR fail-fast, PR-only `--max-failures=1`, W05 단일 테스트 유한 60초, Main/manual 전수 검사와 Required 3종 안전 Gate를 유지한다.
+- CI #2701.1은 빠른 검사·E2E 6/6·Docker 및 Required 3종 PASS, 최종 QA는 과거 test-merge 불일치로 BLOCKED. 이 **과거 Run은 FAIL 그대로 유지**하며 새 exact Head/현재 main에서 Full PR CI + QA Final을 새로 검증해야 한다.
+- DOCUMENTATION_SYNC: 새 main에서 수정된 문서를 보존하면서 위 7개와 본 Work Packet을 통합. 리스크 HIGH/OWNER_MANAGED, release_required=false/authorized=false 변경 없음; 신규 PR CI 실제 결과 전 NOT TESTED.
