@@ -1,5 +1,31 @@
 # Issue #552 — WBS 표시 분리와 Milestone 표시 전환
 
+## 2026-10-13 — PR CI #2679.1 날짜축·Calendar 회귀 보완
+
+기준 PR #561 Head `ea25c48115cad88bfbbf182c1f33700c21c4c2f3`, main/base `65c66b711f6ba1bd18caa53bd56042b54b391d80`, [원본 CI #2679.1](https://github.com/planner77/masterGantt/actions/runs/38388682185), run_attempt=1, event=pull_request. Quality/Docker 및 Chromium shard1/2/3/4/6 PASS, shard5 job `115266877238`는 96 PASS/2 FAIL이다. `milestone-timeline-core.spec.ts:139`의 empty 날짜축 end가 `1795582800000→1794459600000`으로 축소됐고, `project-resource-calendar-persistence.spec.ts:75`의 저장 후 Core/native 위치가 `120→0`으로 돌아가 5000ms poll에도 유지됐다. QA Final FAIL은 required E2E 미성공의 후속이며 독립 원인으로 해석하지 않는다.
+
+원격 Playwright artifact `11808572157`의 두 trace를 읽기 전용으로 대조하고 관련 실제 Chromium을 재현한다. 선행 `3bdbf820383876b7cbdbffcf13cf162b344b4cfd`의 Stage gate 성능 개선·초기 wheel capacity·exact-ID Dashboard 조회와 main #655 통합은 보존한다. Gantt/직접 테스트는 frontend 단일 writer, 문서·원격 운영은 Manager, 별도 qa_docs는 동결 결과의 읽기 전용 독립 사전 검토를 맡는다.
+
+조회 전환으로 canonical 날짜축을 축소하거나 calendar-only 저장의 동일 geometry viewport를 잃지 않도록 보완한다. 새 사용자 입력·scope/filter/scale/열/peer·hidden/unmount 취소 권한, 단일 public viewport writer와 bounded queue/cleanup을 유지한다. assertion·timeout·skip·허용오차·Required 세 aggregate·6 shard·QA/CI 권한·application0.107.0·release_required=true/release_authorized=false는 변경하지 않는다. HIGH/qa_required=true/OWNER_MANAGED 유지. 직접 관련 Local Fast Feedback·DOCUMENTATION_SYNC·독립 사전 검토 후 새 전체 PR CI 등록까지만 진행하며 결과 모니터링·병합·Main/GHCR/tag/release/Issue 종료는 비범위다.
+
+### 실제 보완과 로컬 검증
+
+Empty axis는 원본 source로 로컬 FAIL을 재현했고 공개 filter-tasks에도 기존 날짜축 재확인을 예약한 최종 source에서 같은 assertion으로 PASS했다. Calendar 원본은 로컬 단독 PASS였으나 원격 trace는 revision3 restore generation7의 APPLY120 뒤 같은 revision3 observation generation8이 STALE_PROJECTION을 만드는 순서를 보였다. 단독 PASS를 원본 실패 재현으로 주장하지 않는다.
+
+동일 applied API·revision·projection 4개 의미 key의 canonical commit만 생략한다. SETTLED observation은 유효 receipt·실제 API/문맥/열/scale·가시성·측정 가능성·물리 geometry·native 날짜축 start/end/scaleWidth/chartWidth가 모두 같을 때만 유지하며 명시 layout/tree/selection 이벤트 구독은 남긴다. API 교체/회수·metadata/revision/내용/layout·hidden·invalid receipt·물리 날짜축 변화는 재사용하지 않는다. 새 passive scroll writer·private Core 쓰기·상시 polling을 추가하지 않는다.
+
+- 관련 Unit 3파일122 PASS(270ms), 신규 경계15개 포함. `/tmp/issue552-ci2679-unit-final.log`.
+- Milestone-only/empty/actual isolated HTTP·SQLite Calendar 3고유 case×repeat2=6/6 PASS(42.6초). `/tmp/issue552-ci2679-final.log`. Calendar 원본 로컬 FAIL 미재현 한계와 원격 race 증거를 유지한다.
+- 최종 구현5파일 source SHA는 `/tmp/issue552-ci2679-source.sha256`, 변경 lint0 errors/기존 hook warnings3 PASS, diff check PASS. E2E 원본 spec·assertion·timeout 변경0이다.
+
+DOCUMENTATION_SYNC: PROJECT_UX/MILESTONE_TIMELINE의 no-op·0행 축 계약, TEST_PLAN/active PLAN/CHANGELOG/본 Packet을 갱신한다. DESIGN은 기존 시각 언어이며 신규 공통 원칙 없음 B/N/A, API/DB/SECURITY/SCHEDULING/IMPORT_SCHEMA/IMPORT_EXPORT/EXCEL_EXPORT/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/배포·version·AGENTS는 계약 변경 없음 N/A다. 이전 전체 PR의 required docs 변경과 N/A 원장은 유지하며 immutable 현재 base의 실제 docs_required/docs_gate로 합집합을 다시 확인한다.
+
+통합 경계 검증은 별도 Chromium7/7 PASS(35.1초)다. DST/date reveal, resize/columns/fullscreen/peer/동적 날짜축, #571 Editor reveal·좌표 불변 wheel/keyboard/modal 취소·filter bookmark를 확인했다(`/tmp/issue552-ci2679-boundary.log`). 관련 typecheck·lint0 errors/기존 warnings3·version0.107.0·Markdown201·diff check PASS이며 개발 서버 teardown 뒤 next-env/tsconfig 원본 복원 후 typecheck도 PASS다. Git에 런타임 DB·로그·trace·Next 산출물은 포함하지 않는다.
+
+immutable base `65c66b711f6ba1bd18caa53bd56042b54b391d80`의 실제 검증기 두 파일에 인증된 PR/Issue snapshot과 후보 Packet, 전체 PR116경로·required6문서·AC12를 입력한 로컬 Preflight는 9 PASS/5 DEFERRED/0 FAIL이다. 로컬 후보 구조 검사이며 새 원격 CI의 provenance·문서 의미·최종 QA/Owner 승인을 대체하지 않는다. 별도 `/root/qa_review`는 동결 source/문서/원본·최종 로그를 대조하고 Unit122를 직접 실행해 독립 사전 검토를 수행한다. 사전 검토와 최종 원격 QA_FINAL·Owner ACCEPT는 구분한다.
+
+독립 사전 검토는 새 CI 시작 범위 PASS(blocker0)를 반환했고 Unit122/122 PASS(252ms)를 별도 실행했다. 구현5파일 SHA 불변과 full PR docs 합집합을 재확인했다. Manager DOCUMENTATION_SYNC PASS이며 최신 원격 품질/E2E/Docker·Trusted QA·QA_FINAL·Owner ACCEPT는 NOT TESTED로 유지한다.
+
 ## 2026-10-13 — PR CI #2669.1 Preflight 문서 원장 보완
 
 [원본 CI #2669.1](https://github.com/planner77/masterGantt/actions/runs/38379375572), run_attempt=1, Head `eb898c54d2cf9f4994e0b99cc0a76ed1493b2220`, base `9b16ac5fdd48628062f151380c144a40125dc721`는 QA Preflight job `115235751471`의 DOCUMENTATION_SYNC에서 FAIL했다. 직전 보완에 `resource-excel-export-ui.spec.ts`가 추가되어 전체 PR의 required docs 합집합에 IMPORT_SCHEMA와 EXCEL_EXPORT가 포함됐지만 항목별 영향 기록을 빠뜨렸다. 제품 테스트 자체가 실행되어 실패한 것이 아니며 Quality/E2E/Docker 구현 Job은 SKIPPED, 세 Required aggregate는 FAIL이다. 직전 로컬 PASS를 이 원격 실행의 PASS로 표시하지 않는다.

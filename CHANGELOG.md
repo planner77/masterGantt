@@ -6,6 +6,11 @@
 - 감사 실패 artifact JSON과 Actions Job Summary에는 stage/reason/run/attempt/main SHA를 기록한다. 발행·퇴역·#616 종료·태그 이동/삭제 모두 금지, BLOCKED exit 1 유지. PR CI와 default-main workflow_dispatch audit는 별도이며 신규 운영 감사는 병합/Main CI 이후 Owner 실행만 가능하다.
 - HIGH / OWNER_MANAGED / qa_required=true / release_required=false / release_authorized=false. Required Quality + Chromium E2E 6/6 + Docker, Trusted QA·리뷰 스레드 0 및 Owner 위험 수용은 원격 검증 전 NOT TESTED. DESIGN.md/API/DB: UI·API·schema 변경 없음으로 N/A.
 
+## [Unreleased] — Issue #552 날짜축·Calendar 복원 경계 보완 (2026-10-13)
+
+- 0행 filter-tasks 뒤 관측한 날짜축 end를 기존 bounded 확장 경로에서 보존한다. 같은 API/revision/projection의 중복 commit을 생략하고 실제 축·물리 geometry·context가 동일한 유효 projection observation만 재사용하여 Calendar metadata 복원을 보호한다.
+- API 교체·내용/layout/가시성·날짜축 변경 부정 Unit을 추가하고 원본 E2E assertion·timeout·skip을 유지한다. 기존 CI #2679 FAIL과 Calendar 원본 로컬 미재현 한계를 보존하며 version0.107.0·QA/CI/릴리스 권한은 변경하지 않는다.
+
 ## [Unreleased] — Issue #552 반복 PR CI 회귀 보완 (2026-10-13)
 
 - Native Task 추가를 파생 표시 ID 변경으로 취소하지 않도록 조회 의도 기준을 사용하고 낮은 우선순위 metadata 복원의 선점을 차단한다. OFF 날짜 탐색의 Dashboard 행 교체/일시 비활성화 뒤 잃은 focus를 복구하며 새 사용자 입력과 modal 경계를 유지한다.

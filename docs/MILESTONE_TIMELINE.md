@@ -299,6 +299,10 @@ OFF 날짜 탐색에서 좁은 물리 Chart를 대신하는 전체 목록 fallba
 
 390/1024/1440px OFF 날짜 탐색·원래 보기 복귀와 390px의 물리 focus ring·center hit·inactive peer paint, fallback 이후 검색 focus 보존을 직접 관련 Chromium에서 검증한다. 해당 국소 실행은 원격 전체 PR CI나 실제 screen reader·device 검증의 대체가 아니다.
 
+## Issue #552 — 0행 필터의 날짜축 범위
+
+빈 canonical 또는 Milestone-only 프로젝트의 날짜축과 native WBS 행의 유무는 별개다. 동일 context에서 filter-tasks로 0행이 되어도 기존 start와 관측한 end 범위를 보존하며, Core가 축을 재계산하면 기존 bounded 날짜축 확장 경로로 재확인한다. 공개 action·단일 viewport Coordinator·새 사용자 입력 우선권을 유지하고 canonical Task/Link/Membership/revision을 변경하지 않는다. 실제 날짜/scale/context 변경의 기존 축 계산과 혼동하지 않는다.
+
 
 ### #552 initial viewport and large Stage gate correction
 

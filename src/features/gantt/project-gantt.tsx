@@ -110,6 +110,7 @@ import {
 } from "./project-task-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { buildProjection, diffProjection, type CanonicalProjection } from "./canonical-projection";
+import { projectionObservationKey, sameAppliedProjection } from "./viewport/projection-observation";
 import { observeProjectionSettled, deliverProjectionReceipt, type ProjectionReceipt } from "./projection-settled";
 import { registerTaskUrlSnapshot, findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
@@ -1489,6 +1490,7 @@ export function ProjectGantt({
   const projectionReference = useRef<CanonicalProjection | null>(null);
   useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
   const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
+  const appliedProjectionApiReference = useRef<IApi | null>(null);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
       const task = typeof local.taskId === "string" ? tasksById.get(local.taskId) : undefined;
@@ -1670,6 +1672,9 @@ export function ProjectGantt({
       if (viewportPortReference.current?.resizing()) return;
       scheduleTimelineExtension(api);
     }, { tag });
+    // Core can recompute the date axis when row membership changes without a
+    // physical resize. Preserve the observed horizon for zero-row filters too.
+    api.on("filter-tasks", () => scheduleTimelineExtension(api), { tag });
 
     ensureTimelineEnd(api);
     scheduleTimelineExtension(api);
@@ -2084,6 +2089,10 @@ export function ProjectGantt({
   const appliedCanonicalViewportMetadataReference = useRef<string | null>(null);
   const appliedCanonicalViewportRevisionReference = useRef<number | null>(null);
   useEffect(() => {
+    const applied = appliedProjectionReference.current;
+    // Fresh DTO arrays from metadata reads are not a new canonical commit.
+    // Replaying an identical commit can invalidate an in-flight restore.
+    if (sameAppliedProjection(applied, projection, appliedProjectionApiReference.current, apiReference.current)) return;
     const requestedApi = apiReference.current;
     const viewportSource = viewportCoordinatorReference.current?.stamp() ?? null;
     const registeredViewport = viewportPortReference.current?.read();
@@ -2153,6 +2162,7 @@ export function ProjectGantt({
         );
         if (!isCurrent()) return;
         appliedProjectionReference.current = projection;
+        appliedProjectionApiReference.current = api;
         appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
         ensureTimelineEnd(api);
         await restoreCanonicalMetadataViewport(api);
@@ -2295,6 +2305,7 @@ export function ProjectGantt({
   const projectionReceiptGeneration = useRef(0);
   const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
   const observedProjectionReference = useRef<CanonicalProjection | null>(null);
+  const settledProjectionObservationReference = useRef<string | null>(null);
   const observedQueryReference = useRef<string | null>(null);
   const observedSelectionReference = useRef<{ api: IApi; ids: readonly string[] } | null>(null);
   useEffect(() => {
@@ -2303,7 +2314,12 @@ export function ProjectGantt({
     let disposed = false;
     let observation: ReturnType<typeof observeProjectionSettled> | null = null;
     const requested = projection;
-    const reasons = diffProjection(observedProjectionReference.current, requested).reasons;
+    const previous = observedProjectionReference.current;
+    const reasons = diffProjection(previous, requested).reasons;
+    const reuseReceipt = () => {
+      const key = projectionObservationKey(requested, viewportPortReference.current?.read() ?? null);
+      return key !== null && key === settledProjectionObservationReference.current;
+    };
     observedProjectionReference.current = requested;
     const observe = (trigger: "projection" | "open-task" | "select-task" | "layout" = "projection") => {
       observation?.cancel();
@@ -2326,13 +2342,14 @@ export function ProjectGantt({
         observedQueryReference.current = viewportContinuityKey;
         observedSelectionReference.current = { api, ids: receipt.selectedIds };
         projectionReceiptReference.current = receipt;
+        settledProjectionObservationReference.current = projectionObservationKey(requested, viewportPortReference.current?.read() ?? null);
         root.dispatchEvent(new CustomEvent("mastergantt:projection-settled", { bubbles: true, detail: receipt }));
         if (process.env.NODE_ENV !== "production") root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);
         });
       });
     };
     // The queue is only an ordering barrier; success is determined by observation.
-    void canonicalSyncQueueReference.current.then(() => { if (!disposed) observe(); });
+    void canonicalSyncQueueReference.current.then(() => { if (!disposed && !reuseReceipt()) observe(); });
     const tag = "project-projection-settled";
     for (const action of ["open-task", "select-task"] as const) api.on(action, () => {
       queueMicrotask(() => { if (!disposed) observe(action); });

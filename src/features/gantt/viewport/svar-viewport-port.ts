@@ -32,7 +32,8 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     // resize must revoke a pending peer return even without a React render.
     return { context: { ...context, geometry: JSON.stringify([context.geometry, window.innerWidth, window.innerHeight, Boolean(document.fullscreenElement)]),
       visible: context.visible && hardAvailable }, receipt: options.receipt(), measurable,
-      geometry: JSON.stringify([root.clientWidth, root.clientHeight, horizontal?.clientWidth, horizontal?.clientHeight, horizontal?.scrollWidth, y?.scrollHeight]),
+      geometry: JSON.stringify([root.clientWidth, root.clientHeight, horizontal?.clientWidth, horizontal?.clientHeight, horizontal?.scrollWidth, y?.scrollHeight,
+        state._start?.getTime(), state._end?.getTime(), state._scales?.width, state._chartWidth]),
       capacity: { left: horizontal ? Math.max(0, horizontal.scrollWidth - horizontal.clientWidth) : 0, top: y ? Math.max(0, y.scrollHeight - y.clientHeight) : 0 },
       core: { left: state.scrollLeft, top: state.scrollTop },
       native: { left: horizontal?.scrollLeft ?? 0, top: y?.scrollTop ?? 0 },

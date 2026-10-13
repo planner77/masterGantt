@@ -1330,3 +1330,9 @@ Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 
 Native Task 추가 전 캡처한 viewport는 새 Task가 파생 표시 ID에 포함되었다는 이유로 취소하지 않는다. 동일 API·scope·명시 조회 의도 fingerprint·scale·열·가시성·측정 가능성·화면 크기·fullscreen과 최신 사용자 입력을 비교한다. 추가의 projection/viewport 완료 전에는 더 낮은 우선순위 metadata 복원을 발행하지 않으며, 이미 등록된 canonical queue callback도 같은 소유권을 재확인한다. 새 wheel·키보드·scope/filter 변경은 계속 기존 캡처를 취소한다.
 
 OFF 날짜 탐색의 목록 fallback은 정확한 Milestone ID의 실제 관리 버튼에 focus를 인계한다. Dashboard 재조회가 같은 ID의 행을 교체하거나 일시 disable하여 focus가 BODY로 빠진 경우에는 현재 DOM target의 실제 focus 성공을 확인한다. 다른 control의 focus와 새 pointerdown/keydown, 다른 native modal·hidden/inert 상태를 우선하며 무제한 재시도하지 않는다. 원래 Dashboard 조건·저장된 OFF·Gantt instance/viewport를 유지한다.
+
+## Issue #552 — 동일 canonical 재조회와 날짜축 보존
+
+같은 canonical revision과 data/structure/membership/layout 의미를 가진 새 DTO 배열은 새 저장·표시 변경으로 취급하지 않는다. 같은 API에 이미 적용된 내용의 no-op 갱신은 진행 중 metadata viewport 복원과 완료된 projection 영수증을 불필요하게 교체하지 않는다. 실제 revision·내용·scope/filter/scale/열/API·가시성 변경과 명시 tree/selection/layout 관측은 기존 검증·갱신 경로를 유지한다. 이전 영수증을 다른 문맥에 재사용하거나 새 사용자 입력을 무시하는 authority를 추가하지 않는다.
+
+동일 canonical/context의 행 필터로 WBS가 0행이 되어도 관측한 날짜축 end를 축소하지 않는다. 공개 filter-tasks가 물리 resize 없이 Core 축을 다시 계산한 경우에도 기존 bounded 날짜축 확장 경로가 범위를 재확인한다. canonical 날짜·Link·revision을 수정하거나 Core private state/별도 scroll writer로 보완하지 않는다.

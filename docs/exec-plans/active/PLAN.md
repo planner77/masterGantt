@@ -6,6 +6,10 @@
 - 감사 실패 artifact JSON과 Actions Job Summary에는 stage/reason/run/attempt/main SHA를 기록한다. 발행·퇴역·#616 종료·태그 이동/삭제 모두 금지, BLOCKED exit 1 유지. PR CI와 default-main workflow_dispatch audit는 별도이며 신규 운영 감사는 병합/Main CI 이후 Owner 실행만 가능하다.
 - HIGH / OWNER_MANAGED / qa_required=true / release_required=false / release_authorized=false. Required Quality + Chromium E2E 6/6 + Docker, Trusted QA·리뷰 스레드 0 및 Owner 위험 수용은 원격 검증 전 NOT TESTED. DESIGN.md/API/DB: UI·API·schema 변경 없음으로 N/A.
 
+## Issue #552 — CI #2679.1 날짜축·Calendar 경계 보완 (2026-10-13)
+
+[Work Packet](ISSUE_552.md): 최신 main #655 통합 Head `ea25c48115cad88bfbbf182c1f33700c21c4c2f3`의 Quality/Docker/E2E5개shard PASS·shard5의2FAIL을 보존한다. 0행 filter 이후 날짜축 end를 유지하고 동일 API/revision/내용의 중복 canonical·observation이 metadata 복원을 취소하지 않게 보완한다. 실제 축/geometry/context·유효 receipt 및 API 교체/내용/layout/hidden 부정 경계를 확인한다. Unit122, Chromium3고유×repeat2 PASS이며 Calendar 원본 로컬 FAIL 미재현 한계는 명시한다. 문서 동기화·독립 PRE_QA 후 새 PR CI 등록까지 진행하고 모니터링·병합·Main/GHCR/Issue 종료는 수행하지 않는다. HIGH/OWNER_MANAGED/qa_required=true·version0.107.0·release_authorized=false 유지.
+
 ## Issue #552 — CI #2669.1 문서 영향 기록 보완 (2026-10-13)
 
 [Work Packet](ISSUE_552.md): 새 전체 CI #2669.1은 제품 검사 전 Preflight DOCUMENTATION_SYNC에서 차단됐다. 직전 수정의 Excel E2E 경로가 요구하는 IMPORT_SCHEMA/EXCEL_EXPORT 항목별 N/A 근거를 보완하고 immutable base의 검증기로 전체 PR 경로 합집합을 로컬 재생한다. 이번 변경은 문서뿐이며 제품·테스트·QA/CI gate·version0.107.0·release 권한 불변이다. 독립 문서 사전 검토 후 새 전체 PR CI 등록까지 수행하고 결과를 모니터링하지 않는다. 원본 FAIL·구현 Job SKIPPED는 보존한다.

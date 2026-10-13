@@ -6,6 +6,17 @@
 - 감사 실패 artifact JSON과 Actions Job Summary에는 stage/reason/run/attempt/main SHA를 기록한다. 발행·퇴역·#616 종료·태그 이동/삭제 모두 금지, BLOCKED exit 1 유지. PR CI와 default-main workflow_dispatch audit는 별도이며 신규 운영 감사는 병합/Main CI 이후 Owner 실행만 가능하다.
 - HIGH / OWNER_MANAGED / qa_required=true / release_required=false / release_authorized=false. Required Quality + Chromium E2E 6/6 + Docker, Trusted QA·리뷰 스레드 0 및 Owner 위험 수용은 원격 검증 전 NOT TESTED. DESIGN.md/API/DB: UI·API·schema 변경 없음으로 N/A.
 
+## Issue #552 — PR CI #2679.1 날짜축·Calendar 회귀 (2026-10-13)
+
+원본 [CI #2679.1](https://github.com/planner77/masterGantt/actions/runs/38388682185), Head `ea25c48115cad88bfbbf182c1f33700c21c4c2f3`, base `65c66b711f6ba1bd18caa53bd56042b54b391d80`는 Quality/Docker 및 E2E shard1/2/3/4/6 PASS, shard5 96 PASS/2 FAIL이다. 원본 assertion/timeout/skip을 유지한다.
+
+- Empty 날짜축의 end 축소는 로컬 원본 FAIL을 재현했다. filter-tasks 이후에도 기존 bounded 날짜축 확장 경로를 재예약하여 0행 필터가 날짜 범위를 줄이지 않도록 보완한다. 기존 start·end 비축소·양수 geometry·동일 instance·canonical/Link·mutation0 검증을 그대로 사용한다.
+- Calendar는 원격 artifact `11808572157`의 trace에서 metadata restore generation7 뒤 동일 revision3의 새 observation generation8이 이를 STALE_PROJECTION으로 종료한 경계를 확인했다. 같은 API/revision/data·structure·membership·layout의 no-op commit은 생략하고, 실제 물리 축/geometry/context·유효 receipt가 같은 경우만 observation을 재사용한다. 실제 API 교체·내용/revision/열/scale·hidden·invalid receipt·날짜축 변경의 부정 경계를 새 Unit15개로 검증한다.
+- 최종 관련 Unit 3파일122 PASS(270ms). Milestone-only/empty/실제 isolated HTTP·SQLite Calendar의 3고유 Chromium case를 2회 실행해 6/6 PASS(42.6초). 반복을 6고유 case로 합산하지 않는다. Calendar 원본 실패는 로컬에서 재현하지 못했으므로 원격 race 증거·경계 Unit·최종 반복 PASS를 구분한다.
+- 별도 DST reveal·resize/columns/fullscreen/peer/동적 날짜축 및 #571 Editor reveal·좌표 불변 wheel/keyboard/modal 취소·filter bookmark의 Chromium7/7 PASS(35.1초)로 실제 axis geometry와 기존 사용자 의도 경계를 재검증했다. 구현자의 Unit122와 별도 Reviewer의 같은 Unit122 재실행은 고유244개로 합산하지 않는다.
+
+직전 실패·중간 source 실행과 최신 동결 결과를 보존한다. 새 Head의 전체 quality/e2e/docker·Trusted QA·QA_FINAL·Owner ACCEPT는 원격 실행 전 NOT TESTED다. 이번 보완은 기존 단일 writer/새 사용자 입력 우선권/cleanup을 유지하며 CI·권한·릴리스 계약을 변경하지 않는다.
+
 ## Issue #552 — CI #2669.1 Preflight 문서 원장 회귀 (2026-10-13)
 
 Head `eb898c54d2cf9f4994e0b99cc0a76ed1493b2220`의 [CI #2669.1](https://github.com/planner77/masterGantt/actions/runs/38379375572)은 QA Preflight DOCUMENTATION_SYNC에서 IMPORT_SCHEMA 영향 기록 누락으로 FAIL했다. Excel E2E 수정 경로가 요구하는 IMPORT_SCHEMA/EXCEL_EXPORT의 N/A 근거를 Work Packet의 정확한 DOCUMENTATION_SYNC section에 추가한다. 전체 PR 변경 경로의 합집합을 immutable base `9b16ac5fdd48628062f151380c144a40125dc721`의 실제 docs_required/docs_gate 및 Preflight에 입력해 누락이 없는지 로컬 재생한다. 구조적 PASS는 문서 의미·최신 원격 Quality/E2E/Docker PASS 또는 Owner 승인이 아니다. 제품·테스트·정책·버전은 불변이며 원본 구현 Job SKIPPED와 aggregate FAIL을 유지한다.

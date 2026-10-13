@@ -53,8 +53,19 @@ describe("SVAR visibility admission", () => {
     const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: { dataset: {} } as unknown as HTMLElement,
       context: () => ({ visible: true, projectionEpoch: 7 } as ViewportContext), receipt: () => null, requestedEnd: () => new Date(), recordEnd: vi.fn() });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { commands, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
+    return Object.assign(port, { state, commands, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
+  it("distinguishes a changed date axis even when native pixel geometry is identical", () => {
+    const port = portFor("ready"), before = port.read().geometry;
+    Reflect.set(port.state, "_start", new Date("2026-10-01"));
+    expect(port.read().geometry).not.toBe(before);
+    const start = port.read().geometry;
+    Reflect.set(port.state, "_end", new Date("2026-11-01"));
+    expect(port.read().geometry).not.toBe(start);
+    const end = port.read().geometry;
+    port.state._scales.width = 250;
+    expect(port.read().geometry).not.toBe(end);
+  });
   it("prepares resize geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {
     const port = portFor("commands");
     const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
