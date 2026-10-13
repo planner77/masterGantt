@@ -165,7 +165,7 @@ Work Packet에 표준 버전과 읽은 문서 commit, 적용 GSC 규칙, 상태/
 
 Milestone 등 사용자-facing 엔터티 표기의 Source of Truth는 [DESIGN.md](DESIGN.md)의 Product Terminology를 따른다. 상세 도메인·API 계약은 기존 관련 문서를 유지하고 AGENTS.md에 복제하지 않는다.
 
-기본 방향은 기존 파란색 Light UI·system font와 공통 semantic token을 재사용하는 것이다. 외부 디자인 참조보다 security/domain/API/revision/canonical snapshot 계약을 우선한다. 화면 캡처만으로 keyboard·권한·상태 보존 검증을 대신하지 않는다.
+기본 방향은 기존 파란색 Light UI·system font와 공통 semantic token을 재사용하고 Gantt/Grid의 작업 면적을 우선하는 것이다. 외부 디자인 참조보다 security/domain/API/revision/canonical snapshot 계약을 우선한다. 화면 캡처만으로 keyboard·권한·상태 보존 검증을 대신하지 않는다.
 
 ## 3. Core Architecture and Security
 
@@ -193,7 +193,7 @@ Manager와 모든 Sub-Agent는 CI/CD 관련 내용 중 사람이 읽는 제목·
 
 ### Main CI 실행명 / Merge Commit 표준 (#582)
 
-정식 병합 시 저장소 기본 Merge 메시지에 PR 본문과 장문의 검증 기록이 포함되지 않게 한다. 리뷰·required checks·명시 승인 뒤 `python3 scripts/main_ci_run_name.py --issue N --pr P --summary "한글 Issue명 축약"` 출력으로 `merge_method=merge`, `commit_title=<결과>`, `commit_message=""`, REST API에서는 `sha=<검증 SHA>`, 현재 GitHub 연결 도구에서는 `expected_head_sha=<검증 SHA>`를 **병합 전에** 전달한다. GitHub CLI 사용자는 `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`와 같이 Merge 전략·표준 한 줄 제목·빈 본문·검증 Head SHA를 모두 지정한다. 요약은 한글 30자 이하, Primary Issue는 PR body의 단일 `Refs #N`와 일치한다. GitHub UI 병합이면 같은 제목을 수동 입력하고 본문을 비운다. 기본 GitHub 설정은 이 형식을 자동 보장하지 않으며 표준이 없으면 Main/Finalizer는 SHA 기반 짧은 fallback을 표시한다. 상세 절차는 [GITHUB_OPERATIONS.md](docs/GITHUB_OPERATIONS.md)를 따른다. `name: CI`, required checks, exact SHA 및 release authority는 불변이다.
+정식 병합 시 저장소 기본 Merge 메시지에 PR 본문과 장문의 검증 기록이 포함되지 않게 한다. 리뷰·required checks·명시 승인 뒤 `python3 scripts/main_ci_run_name.py --issue N --pr P --summary "한글 Issue명 축약"` 출력으로 `merge_method=merge`, `commit_title=<결과>`, `commit_message=""`, REST API에서는 `sha=<검증 SHA>`, 현재 GitHub 연결 도구에서는 `expected_head_sha=<검증 SHA>`를 **병합 전에** 전달한다. GitHub CLI 사용자는 `gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"`와 같이 Merge 전략·표준 한 줄 제목·빈 본문·검증 Head SHA를 모두 지정한다. 요약은 한글 30자 이하, Primary Issue는 PR body의 단일 `Refs #N`와 일치한다. GitHub UI 병합이면 같은 제목을 수동 입력하고 본문을 비운다. 기본 GitHub 설정은 이 형식을 자동 보장하지 않으며 표준이 없으면 Main CI/Finalizer는 SHA 기반 짧은 fallback을 표시한다. 상세 절차는 [GITHUB_OPERATIONS.md](docs/GITHUB_OPERATIONS.md)를 따른다. `name: CI`, required checks, exact SHA 및 release authority는 불변이다.
 
 기본 흐름:
 
@@ -447,7 +447,7 @@ Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECY
 - GHCR 게시 단계는 Lifecycle에 포함하되 정식 릴리스 필요성(release_required)과 명시적 게시 승인(release_authorized)은 별개다. 단순 '전체 Lifecycle 진행'만으로 정식 릴리스 범위나 승인을 간주하지 않는다. 사용자 또는 지정 maintainer의 명확한 정식 GHCR 게시 요청/승인 근거가 있어야 annotated tag·정식 게시·rolling tag 변경을 실행한다. 이미 확인한 동일 범위의 승인은 반복 요청하지 않는다. 필요한 릴리스의 승인이 없으면 BLOCKED/승인 대기로 남긴다.
 - 문서/Agent 지침만의 변경은 제품 영향이 없음을 확인해 application version 유지와 정식 release N/A를 기록할 수 있다. Lifecycle 문서 수정 요청 자체를 제품 릴리스 승인으로 해석하지 않으며 실제 main 임시 GHCR workflow 결과는 생략하지 않는다.
 - 필요한 GHCR 게시·검증과 main gate가 남아 있으면 병합만으로 이슈를 종료하지 않는다. PR에는 조기 자동 종료 대신 Refs 연결을 사용한다. 안전한 branch 정리와 완료 증거를 남긴 뒤 승인 범위에서 종료한다.
-- 도구 부재 시 단일 에이전트 순차 처리임을 밝히고 독립 Sub-Agent/QA 실행을 주장하지 않는다. `qa_required=false`로 판정된 LOW/일부 MEDIUM은 독립 QA만 사유 있는 N/A로 처리하되 Manager 검토와 필수 CI는 유지한다. HIGH 또는 `qa_required=true` MEDIUM은 `qa_method=AGENT`에서 별도 Reviewer가 없으면 BLOCKED다. 보호된 CI/보안/QA 정책을 변경하지 않은 후속 PR은 **기본 브랜치** `QA Final — Trusted`의 정확한 Head/base PASS와 Manager 위험 수용으로 `AUTOMATED_MANAGER`를 선택할 수 있으나, #580 최초 Bootstrap은 실제 독립 Reviewer가 의무다. CI/GHCR 미실행을 PASS로 간주하지 않으며 TOML 존재는 runtime 검증이 아니다.
+- 도구 부재 시 단일 에이전트 순차 처리임을 밝히고 독립 Sub-Agent/QA 실행을 주장하지 않는다. `qa_required=false`로 판정된 LOW/일부 MEDIUM은 독립 QA만 사유 있는 N/A로 처리하되 Manager 검토와 필수 CI는 유지한다. HIGH 또는 `qa_required=true` MEDIUM은 `qa_method=AGENT`에서 별도 Reviewer가 없으면 BLOCKED다. 보호된 CI/보안/QA 정책 파일이 변경되지 않은 후속 PR은 **기본 브랜치** `QA Final — Trusted`의 정확한 Head/base PASS와 Manager 위험 수용으로 `AUTOMATED_MANAGER`를 선택할 수 있으나, #580 최초 Bootstrap은 실제 독립 Reviewer가 의무다. CI/GHCR 미실행을 PASS로 간주하지 않으며 TOML 존재는 runtime 검증이 아니다.
 - CI 실패는 근거에 따라 담당 Agent에 REWORK하고, 중단/추가 요청은 Issue/PR에 재개 지점을 기록한다. main PASS, 정식 GHCR PASS, 실제 운영 배포는 서로 대체하지 않는다.
 
 이 지침은 기존 CI/보안/권한 gate를 완화하거나 GitHub에서 상시 Agent 서버를 실행하는 설정이 아니다. 모델·effort·동시 실행 제한의 실제 적용은 사용하는 Codex 환경에서 별도 확인한다.
