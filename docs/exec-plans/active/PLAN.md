@@ -1,3 +1,9 @@
+## Issue #657 — 감사 #16 PR–Issue Refs 정규표현식 교정 및 Python CI 연동 (2026-10-13)
+
+- 선행 #655 PR #656 Main #2678.1/Finalizer #216.1 완료. 운영 Audit [#16.1](https://github.com/planner77/masterGantt/actions/runs/38388876066)은 `Refs #550`를 인식 못하는 raw-regex escape 결함으로 `historical PR identity` BLOCKED.
+- `fix/issue-657-release-audit-refs-ci`에서 standalone Ref/CRLF 검사, 5개 PR 유효·음성 테스트, `ci.yml` 필수 정책 Python test 2 suite, 문서 영향 원장 동기화를 처리. 코드 변경은 검증기만이며 release·Owner 정책 변경 없음.
+- HIGH/OWNER_MANAGED/qa_required=true, `release_required=false`, `release_authorized=false`; 새 PR CI 시작까지. Required Quality/E2E6/Docker, trusted QA·Owner 리뷰/병합 결정 및 Main CI 결과는 실행 후에만 판단한다. 운영 read-only 감사 및 #616 마커 변경은 별도다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
