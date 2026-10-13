@@ -98,7 +98,8 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     if (source.intent < explicitEpoch) return reject("SUPERSEDED", "STALE_INTENT");
     if (pending && level < pending.priority && command.kind !== "RANGE_EXTENSION") return reject("SUPERSEDED", "LOWER_PRIORITY");
     if (!initial.context.visible || (!initial.measurable && (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL"))) return reject("NOT_MEASURABLE", "HIDDEN_OR_UNMEASURABLE");
-    if (initial.context.empty && command.kind !== "RANGE_EXTENSION") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
+    // Milestone-only projects have no ordinary WBS rows but retain a valid date axis.
+    if (initial.context.empty && command.kind !== "RANGE_EXTENSION" && command.kind !== "DATE_REVEAL") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
     // #367 changes capacity, not viewport intent. Keep the validated resize
     // pair synchronous with ingress and never repair a captured old position.
     if (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL") {
@@ -171,7 +172,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     let result: ViewportOutcome = "TIMED_OUT";
     const complete = (outcome: ViewportOutcome) => { result = outcome; return outcome; };
     try {
-      if (command.kind === "DATE_REVEAL") return complete("UNSUPPORTED");
+      // DATE_REVEAL is handled through the public Core port, not a hidden native row.
       phase("WAIT_PROJECTION");
       let ready = false;
       for (let count = 0; count < maxFrames && current(); count++) {

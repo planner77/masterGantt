@@ -590,9 +590,8 @@ export function ProjectGantt({
   const [selectionHiddenCount, setSelectionHiddenCount] = useState(0);
   const selectionProjectReference = useRef(projectPublicId);
   // Content equality prevents ordinary React renders from clearing clipboard.
-  const selectionBoundary = JSON.stringify([viewRootTaskId, selectionBoundaryKey,
-    visibleTaskIds === null ? null : [...visibleTaskIds].sort(),
-    matchingTaskIds === null ? null : [...matchingTaskIds].sort()]);
+  // Derived result hydration must not erase a copied root when the explicit query is unchanged.
+  const selectionBoundary = JSON.stringify([viewRootTaskId, selectionBoundaryKey]);
   const selectionBoundaryReference = useRef(selectionBoundary);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
@@ -1976,7 +1975,8 @@ export function ProjectGantt({
     };
   }, [apiInstanceId, installMilestoneProbe]);
 
-  const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
+  // Working-calendar metadata does not change displayed geometry unless canonical Task dates change.
+  const canonicalViewportGeometry = JSON.stringify([visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
   // Explicit peer/navigation restoration outranks an older metadata-only scroll.
   const peerRestoreAuthorityEpoch = useRef(0);
@@ -3304,7 +3304,10 @@ export function ProjectGantt({
 
   function copyCurrentSelection(fallbackTaskId?: string) {
     if (!editable || mutationLocked) return;
-    const ids = selectedTaskIdsReference.current.length ? selectedTaskIdsReference.current : fallbackTaskId ? [fallbackTaskId] : [];
+    const selected = selectedTaskIdsReference.current;
+    // Never borrow a stale selection from another row when Copy was invoked on a context-menu target.
+    const ids = fallbackTaskId && !selected.includes(fallbackTaskId)
+      ? [fallbackTaskId] : selected.length ? selected : fallbackTaskId ? [fallbackTaskId] : [];
     const taskIds = normalizeCopySelection(tasks, wbsClipboardRootIds(tasks, ids));
     if (!taskIds.length || taskIds.length > 500) {
       setSelectionMessage(taskIds.length > 500 ? "한 번에 최대 500개 root를 복사할 수 있습니다." : "복사할 작업을 선택해 주세요.");

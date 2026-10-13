@@ -1,4 +1,5 @@
 import { taskRevealTarget } from "./task-reveal-target";
+import { milestoneDateCoordinate } from "../milestone-timeline-adapter";
 import type { IApi } from "@svar-ui/react-gantt";
 import type { ProjectionReceipt } from "../projection-settled";
 import { minimumTimelineScaleWidthForEnd } from "../timeline-range";
@@ -165,7 +166,19 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       if (!target) return null;
       await exec("scroll-chart", { ...target, eventSource: tag }); return target;
     }
-    if (command.kind === "DATE_REVEAL") return null;
+    if (command.kind === "DATE_REVEAL") {
+      if (!Number.isFinite(command.date.getTime())) return null;
+      const date = command.date;
+      const day = [String(date.getFullYear()).padStart(4, "0"), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+      const coordinate = milestoneDateCoordinate(api, day);
+      const sample = read(), width = chart()?.clientWidth ?? 0;
+      if (!coordinate?.insideRange || !width || !sample.measurable) return null;
+      // Center the exact date outside the fixed Milestone-list control without using select-task.
+      const target = { left: Math.min(sample.capacity.left, Math.max(0, Math.round(coordinate.contentX - width / 2))), top: sample.core.top };
+      if (!current()) return null;
+      await exec("scroll-chart", { ...target, eventSource: tag });
+      return target;
+    }
     if (command.kind === "DIAGNOSTIC_DATE_REVEAL") {
       if (process.env.NODE_ENV === "production" || !Number.isFinite(command.date.getTime())) return null;
       // Preserve the existing dev-only #549 native date-action probe. This is
