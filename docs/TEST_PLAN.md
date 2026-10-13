@@ -1,3 +1,10 @@
+## Issue #653 — 릴리스 승계 read-only 수집기 테스트 (2026-10-13)
+
+- 정책 검사: tests/python/test_release_succession_preflight.py.
+- 수집기 negative mock: tests/python/test_release_succession_audit.py (pagination, API 404, Git tag peel, GHCR metadata, stale main, Owner decision).
+- 실제 운영 인증 GHCR·GitHub 조회, Owner marker 및 실행 provenance는 PR CI만으로 증명할 수 없다. 운영 감사 전 BLOCKED/NOT TESTED를 유지한다.
+- main workflow_dispatch 감사를 PR 코드 또는 write 권한으로 실행하지 않는다. 게시·태그 변경·퇴역·이슈 종료는 금지한다.
+
 ## Issue #651 — 이미 발행된 v0.106.1 승계 감사 (2026-10-13)
 
 - #649의 모든 선행 SemVer ABSENT 가정은 잘못됨. #633의 v0.106.1 annotated tag 원본 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`, verified candidate/promotion digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`, Main CI #2579.1 및 Release #165.2 성공을 원장에 보존한다. GitHub Releases API by-tag 404는 tag/GHCR 부재가 아니다.
