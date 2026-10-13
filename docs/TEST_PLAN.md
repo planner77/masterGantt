@@ -1,3 +1,9 @@
+## Issue #552 / PR #561: Milestone-only filter fixture mismatch (#2645.1)
+
+- E2E #463 stateful long-list fixture had 18 Milestone records named `단계` which are no longer rendered as native WBS rows under #552. Searching their name cannot preserve native 128px vertical scroll capacity; the old 18-result assertion was not a product failure.
+- The same test now filters 24 regular `Viewport task` records, asserts 24 ordinary matches, 0 Summary, 27 total WBS, and retains exact Core/native user scroll (180,128), no stale peer restore, unchanged Gantt instance. This is a precise oracle correction, not a skipped viewport test.
+- Old Run #2645.1 is CANCELLED, while #2648.1 was IN_PROGRESS at diagnosis. Neither is new-head PASS evidence. All six shards remain required and all other failures remain subject to real CI regression analysis.
+
 ## Issue #552 / PR #561 E2E contract updates after CI #2643.1 (2026-10-13)
 
 - Prior Run #2643.1 had verified Chromium E2E failures, including a #571 test invoking the removed `작업 유형 빠른 보기` Milestone button. The new #552 product contract uses a standalone Milestone show/hide toggle (which does **not** empty WBS). Preserve the #571 empty WBS/reopen scroll-bookmark assertion using the supported Task search filter: expect 120→0→120, then real wheel 0 wins and no hidden state is mutated.

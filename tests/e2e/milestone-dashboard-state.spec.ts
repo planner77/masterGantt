@@ -195,9 +195,12 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await chart.evaluate(element => { element.scrollLeft = 180; });
     await expect.poll(viewport).toEqual(userViewport);
     await observe("new-user-viewport");
-    // 18행이 남아 128px capacity를 유지하는 필터로 오래된 120/96 재실행을 구분한다.
-    await search.fill("단계");
-    await expect(page.locator(".project-filter-result")).toHaveText(`18개 일치 / 전체 ${state.tasks.length}개 작업`);
+    // #552: hidden Milestone names cannot provide native WBS row capacity.
+    // Keep 24 ordinary fixture rows to distinguish a late 120/96 restore from
+    // the new user-owned 180/128 viewport without relaxing scroll assertions.
+    const visibleViewportTasks = state.tasks.filter(task => task.type === "task" && task.name.startsWith("Viewport task")).length;
+    await search.fill("Viewport task");
+    await expect(page.locator(".project-filter-result")).toHaveText(`${visibleViewportTasks}개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
     await expect.poll(viewport).toEqual(userViewport);
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);

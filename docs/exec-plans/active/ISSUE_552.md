@@ -223,3 +223,11 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - `tests/e2e/milestone-exchange-state.spec.ts` #464 completed Milestone copy test expected the obsolete `완료 단계의 구성원...` text. Product currently emits `Milestone의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.` for `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`; replace literal only, keeping dialog-absence and zero command POST/guard assertions.
 - No product code, React/QA gate, workflow definition, fixture server behavior, typecheck rules, shard count, timeouts, assertion precision or failure masking changed. Local browser/Node verification is NOT TESTED in this GitHub tool session. Unresolved #464 initial Copy acknowledgement, #529/#530/#571 native/Core viewport, #552 OFF date return and E2E failures remain remote validation requirements.
 - Active Work Packet UPDATED; `docs/TEST_PLAN.md` UPDATED with new #552 E2E contract, other design/API/DB/scheduling/security/CI rules unchanged. `release_required=true`, `release_authorized=false`; new exact-head full pull_request CI only, no merge/Main CI/GHCR/tag/Issue close.
+
+## PR #561 E2E #2645.1 후속 정합성 — 2026-10-13
+
+- 최초 조회에서 source head `f03051ed1e2a4e78d952e2a6f784be4222ffc009`의 CI [#2648.1](https://github.com/planner77/masterGantt/actions/runs/38351816899)은 PENDING이었다. 두 번째 조회에서 실제 `in_progress`를 확인했다. 반면 #2645.1 (run `38351001998`)은 `cancelled`로 확정됐다. 최신 #2648.1 실패·성공 판정은 아직 없다.
+- #2645.1 shard3의 실증 실패: `tests/e2e/milestone-dashboard-state.spec.ts`에서 `search.fill("단계")`는 #552에서 WBS에서 제외된 18개의 Milestone 이름을 검색하지만 테스트는 화면에 18행이 남아 scrollTop 128px 용량이 생긴다고 기대했다. 이를 일반 WBS Task 24개의 `Viewport task` fixture 검색으로 변경하고 실제 타입별 검색 결과 `24개 일반 Task / 0 Summary / 총 27개 WBS`와 수직 128px 용량, 새로운 user viewport 180/128, 이전 복원 receipt 불변을 그대로 강하게 검증한다.
+- 테스트 실패를 skip하거나 스크롤/키보드/접근성 기준을 완화하지 않았다. 기존 #464 소속 보존 Copy, #529/#530/#571 Core/native viewport, #552 OFF date restore/focus, DatePicker, long-stage E2E는 이번 변경으로 해결됐다고 주장하지 않는다. 새 전체 CI의 exact-head 결과를 별도로 판정해야 한다.
+- 변경 범위는 테스트 한 파일과 이 Work Packet/TEST_PLAN 설명으로 제한. 제품 source, Domain/API/DB/scheduling, CI/QA gate, package/version, release 권한 불변. local browser 실행 NOT TESTED; `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`. Merge/Main CI/GHCR/Issue close 미승인.
+
