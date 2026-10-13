@@ -16,7 +16,7 @@
 - `src/features/gantt/project-gantt.tsx`: UPDATED
 - `src/features/gantt/gantt-api-identity.ts`: UPDATED
 - `tests/gantt-api-identity.test.ts`: UPDATED
-- `tests/e2e/milestone-timeline-lane.spec.ts`: N/A(기존 5초 실제 브라우저 기준과 대형 Fixture 유지)
+- `tests/e2e/milestone-timeline-lane.spec.ts`: UPDATED
 - `docs/ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md`: UPDATED
 - `docs/MILESTONE_TIMELINE.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
@@ -65,3 +65,10 @@ release_authorized: false
 - **누적 SC 지도:** SC-07(API identity 갱신) unit exact/stale 검증, SC-12(Day/Week/resize/fullscreen geometry) 및 SC-14(1,000+2,000/mount/5초) 기존 #551 E2E 직접 검증. SC-08(milestone-only/empty) 및 SC-11(peer return) 기존 E2E 포함. SC-01~06/09/10/13은 변경 대상 아니라도 전체 PR/Main E2E 정상 실행 시 보호 회귀를 확인하며 개별 새 증거 없으면 NOT TESTED. U1 machine-readable SC harness 및 U5 통합 전체 SC-01~14는 별도 #663~#667/#573/#574 담당, 이 PR로 완료했다고 주장하지 않는다.
 - **중복 source/병렬 충돌 방지:** #667 issue OPEN(계획 단계), #552 PR #561은 기존 기능 브랜치 OPEN. #674의 patch와 ADR을 #667 담당자에게 전달하고 U5 제품 연결 시 정확한 main SHA 기준으로 재정렬·3-way reconcile, 같은 source의 동시 쓰기를 금지한다. 이후 U5가 dev 직접 stamp를 대체할 수 있으며 실제로 대체했을 경우 단위·E2E 보존 확인 후 ADR 종료.
 - **검증:** 새 Head exact PR required Quality/E2E 6/6/Docker, QA Final/Trusted, review unresolved0 및 새 Main E2E shard4의 동일 5s oracle 결과는 실제 CI 전에 **NOT TESTED**. 원본 #2712 PASS로 소급 변경, U5 전체 SC 채택, 테스트 timeout 증가/skip/retry, 릴리스 게시 승인 모두 불가.
+
+## CI #2720.1 actual trace — first locator evaluation starved by 3,000-row render
+
+- [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648) Head `9113da5b623fcbb580a31f77f09f9151a6507f22`: Preflight/Policy/TypeScript/Lint/Vitest/Build/Docker/Quality aggregate PASS; **same Chromium Shard4 #551 5-second timeout** after 35 PASS, 1 FAIL; PR test-level `--max-failures=1` prevented running remaining shard tests and other shards were cancelled. **Initial DOM synchronous API ID stamp alone is insufficient**; this historical CI cannot prove the bug fixed.
+- [Shard4 saved Playwright Trace artifact](https://github.com/planner77/masterGantt/actions/runs/38479618648/artifacts/11857063158): `expect.poll` started at Playwright monotonic ~319004ms. **First** `frame.evaluate` began ~319005ms; no successful evaluation returned before 5-second expiration ~324004ms. Locator diagnostic at ~323889ms **already shows** `data-project-gantt-api-instance="svar-api-1"` on a connected visible `project-gantt-frame`, 3000 matched Tasks loaded. Thus the original expectation timed out without establishing probe mismatch; a browser main-thread/locator-evaluation scheduling delay dominates. This does not assert the test's other Core/geometry checks passed.
+- **Two-stage bounded readiness:** before the unchanged exact 5-second `probe.instance===frame.dataset.projectGanttApiInstance && typeof read==="function"` predicate, first require the real `frame` **visible** with Playwright's standard bounded `expect(frame).toBeVisible()` (default expect timeout, no sleeps/retries/skip). Navigation→actual Gantt frame mount and already-mounted frame→correct API probe are distinct lifecycle stages. The 5-second identity predicate, 1000+2000 fixture and all native geometry/scroll/mutation assertions remain unchanged. This is a test harness stage-order improvement, not a claim that initial navigation resolves within the probe's original 5 seconds.
+- **SC/GSC & ownership:** GSC-08 observation readiness vs mount, GSC-09 identity, GSC-11 non-weakening, SC-14 large mount/identity split. [ADR-674](../../ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md) and #667 handoff updated to include existing `milestone-timeline-lane.spec.ts` test readiness sequencing, no product Coordinator/writer change. Source `project-gantt.tsx` helper remains exact, and unit `tests/gantt-api-identity.test.ts` now checks order plus preservation of original 5-second predicate. **New exact-head remote full CI is NOT TESTED before execution.**

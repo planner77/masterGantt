@@ -1,3 +1,9 @@
+## Issue #674 — #2720 실제 Browser Trace와 #551 준비 두 단계 분리 (2026-10-14)
+
+- #674 [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648): 이전 ID stamping patch에 대한 TypeScript/Lint/Vitest/Build/Docker PASS였으나 Chromium shard4의 #551 3,000-row 5초 probe timeout 재발. Playwright `--max-failures=1`은 첫 실패 뒤 잔여 케이스를 중단했고 결과 FAIL은 보존된다.
+- 실패 trace: 첫 `frame.evaluate` 호출이 5초 budget 안에 완료되지 않았고 timeout 직전 locator는 API ID `svar-api-1`가 있는 연결된 Gantt frame을 보고했다. ID 부재로 단정하지 않고 `expect(frame).toBeVisible()`로 native frame mount를 별도 bounded stage로 확인한 후, **같은** 정확한 API ID / probe instance / read 함수 5초 검증을 실행한다. 화면 데이터·기하 단언/원본 3,000 Fixture·5초 각 단계/CI 검증 모두 유지한다.
+- 이 테스트용 관측 순서 수정은 E2E shard 경로/Required aggregate/QA trust/Owner/GHCR/Finalizer/Release 권한을 바꾸지 않는다. 새 exact Head CI의 실제 Full PASS 전 승격·병합 금지.
+
 ## Issue #674 — Main E2E #551 초기화 식별자 진단·복구 경계 (2026-10-14)
 
 - Main #2712.1 (merge `3b21fe6e...`) failed one Chromium shard4 test: 3,000-row #551 development probe identity was not identical to `data-project-gantt-api-instance` within **5 seconds**. Quality/Docker passed, E2E failed and dependent temporary GHCR/Finalizer steps did not run. Retain the failure ledger.

@@ -5,7 +5,7 @@
 - 승인 범위: 사용자가 직접 요청한 `#659 Main CI 실패 보완 후 새 CI 시작`에 필요한 **개발 진단 코드만**. Repository Manager의 본 한정 정합성 설계 예외 기록이며 **Owner의 GSC 전체 완료/제품 U5 통합/릴리스 위험 수용이나 브랜치 보호 우회 승인이 아님**.
 - 예외 소유: #674 수정 PR #675 담당 / 후속 U5 #667 및 PR #561의 단일 통합 소유자에게 귀속 인계
 - 규범: `GSC 1.0.0-candidate` (상태 `REVIEW_PENDING`) / source main `e195780227a504536d0d9f7f27924f24267f8caf` / 설치 `@svar-ui/react-gantt` 2.7.3. 읽은 source: `docs/GANTT_STATE_CONSISTENCY.md`, `docs/GANTT_STATE_CONFORMANCE.md`, `docs/GANTT_ADAPTER_ADR.md`, `docs/GANTT_SYNC_TRACE.md`, `docs/exec-plans/active/GANTT_STATE_REMEDIATION.md` (위 main), 관련 `AGENTS.md`와 `ISSUE_551.md`.
-- 대상 파일: `src/features/gantt/project-gantt.tsx`의 **non-production `installMilestoneProbe` 내 1회 호출만**, `src/features/gantt/gantt-api-identity.ts` 순수 도우미, `tests/gantt-api-identity.test.ts` 단위3, 문서. 제품 Canonical Reconciler/Observation/Axis/Coordinator, port, interactive control/Viewport owner와 어떤 연결도 변경하지 않음.
+- 대상 파일: `src/features/gantt/project-gantt.tsx`의 **non-production `installMilestoneProbe` 내 1회 호출만**, `src/features/gantt/gantt-api-identity.ts` 순수 도우미, `tests/gantt-api-identity.test.ts` 단위·정적 계약, `tests/e2e/milestone-timeline-lane.spec.ts`의 실제 프레임 가시성 확인 후 **동일한 5초 API identity probe** 및 문서. 제품 Canonical Reconciler/Observation/Axis/Coordinator, port, interactive control/Viewport owner와 어떤 연결도 변경하지 않음.
 
 ## 문제와 대안
 
@@ -40,3 +40,10 @@
 - **만료**: #667 U5가 해당 initialization/observer 소유를 실제 채택하고 #552 PR #561에 병합하는 시점 또는 규범 정식 v1.0.0 Accepted에서 재검토. 그때 dev-only 직접 DOM stamp가 불필요해졌다면 제거한다. 만료 전에는 dev 진단 한정 소유 예외이며 새 기능 작성 허용권이 아니다.
 - **롤백**: #674에서 추가한 `stampInitializedGanttApiIdentity` 호출·도우미·unit를 함께 되돌린다. E2E 원래 5초 FAIL 가능성을 명시하고 QA Final/CI가 PASS라고 우회 보고하지 않는다.
 - 승인 경계: GSC 개정·Owner 제품 위험 승인·릴리스 승인은 별도. 변경 PR의 원격 Required Quality/E2E6/Docker와 QA Final/리뷰 0, 최신 Main 정렬 후 **사용자 요청의 병합** 및 새로운 Main CI가 실제 6-shard를 실행하는 증거 없이는 FINAL READY가 아니다.
+
+## 2026-10-14 — CI #2720 Trace에 따른 진단 fixture 순서 한정 보완
+
+- [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648)의 동일 5초 FAIL Trace는 locator `frame.evaluate` 호출이 첫 실행에서도 main-thread scheduling 때문에 종료될 수 없었다는 것을 보여 준다. Timeout 직전 DOM frame에는 `svar-api-1`가 존재했다. 기존 개발 ID 동기 게시 자체는 필요하지만 충분하지 않았으며, **5초에 probe 불일치가 입증됐다고 주장하지 않는다**.
+- 대안 1: `expect.poll`의 5초 기간 증가/skip/retry → GSC-08/11, SC-14 위반이므로 거부. 대안 2: 3000-row fixture 축소, API false probe/mock inject/조건 완화 → 무의미한 PASS이므로 거부. **결정:** `expect(frame).toBeVisible()`로 실제 Gantt frame mount를 먼저 요구한 후, **기존 5초/정확한 native ID/개발 진단 API/read 함수 predicate를 byte-identical 유지**한다. 두 구간은 서로 다른 완료 조건이며 프레임 가시성은 실행된 DOM으로 검증한다. 별도 고정 sleep이나 무한 대기 없음.
+- 기존 5초는 **frame가 보이기 시작한 이후** API probe 확인 구간에 적용되므로 첫 navigation부터 전체 wall-clock 5초라는 과거 의미를 명시적으로 분리했다. 이 변화는 숨겨진 성능 합격이 아니며 **initial frame visibility도 Playwright 기본 bounded expect(5초)**로 요구한다. 따라서 초기 mount가 5초를 넘으면 여전히 FAIL, 초기화 후 API 준비가 5초를 넘으면 FAIL.
+- U5 제품 wiring 소유권 한정 예외는 확대하지 않는다. Test-side sequencing은 데이터/source/축·viewport writer를 바꾸지 않으며 동일 Scene geometry/세션·원본 mutation0·전체 기존 E2E 테스트는 보존. 새 E2E 실패 시 두 단계 중 어느 것이 실패했는지 구분하여 원본 Trace와 기록하고 이 ADR을 재검토한다.

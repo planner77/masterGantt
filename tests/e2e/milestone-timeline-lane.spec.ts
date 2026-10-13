@@ -50,6 +50,11 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
+  // #674 trace: under a 3,000-row initial render, the very first locator
+  // evaluation may consume the entire 5s API-probe budget before it runs.
+  // Separately require the real frame to mount first (bounded and visible).
+  // The original exact native-ID/probe match must still settle within 5s.
+  await expect(frame).toBeVisible();
   // Diagnostic installation must belong to the *same* initialized SVAR API
   // as the visible Gantt frame, even when the 3000-item projection is busy.
   // Keep the original 5s readiness gate; no sleeps or retry/timeout increase.

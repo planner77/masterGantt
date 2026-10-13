@@ -1,3 +1,8 @@
+## Issue #674 — #2720 Trace 기반 프레임/진단 API 준비 단계 분리 (2026-10-14)
+
+- [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648) 실패 Trace에서는 실제 Gantt frame의 `data-project-gantt-api-instance="svar-api-1"` 게시가 확인됐음에도 최초 Playwright locator evaluate가 5초 예산 안에 끝나지 않았다. DOM 속성 불일치로 확정하지 않는다.
+- 대형 3,000 Task/Milestone fixture의 **브라우저 frame visible** 상태를 기본 Playwright `expect(...).toBeVisible()` 5초 한도로 검증한 다음, 동일 native ID와 개발 probe의 exact identity/`read()`가 **별도의 기존 5초 검사**를 통과하도록 한다. 테스트 값/원본 데이터를 줄이거나 지연 sleep/재시도를 넣지 않고 두 실제 readiness 실패를 구분한다. [ADR-674](ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md)와 [Work Packet](exec-plans/active/ISSUE_674.md)에 소유권·GSC 및 원본 CI 실패 증거를 보존한다.
+
 ## Issue #674 — 3,000건 SVAR 초기화 진단 식별자 경쟁 상태 교정 (2026-10-14)
 
 - #659 병합 [Main CI #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933)의 #551 `1,000 Task + 2,000 Milestone` E2E는 첫 화면에서 **5초 내 동기화된 `data-project-gantt-api-instance`와 `__masterganttMilestoneTimeline.instance`**를 요구했으나 FAIL. 화면 Core 초기화가 이미 되었어도 `setApiInstanceId` 이후 대형 projection React render가 DOM 속성 반영을 지연시킬 수 있다. 이는 소스의 순서 차이이며 CI 스케줄링의 완전한 원인은 trace 없는 상태에서 확정하지 않는다.

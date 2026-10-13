@@ -1,3 +1,10 @@
+## Issue #674 — PR #675 CI #2720 Trace 후 실제 E2E 초기 mount/API 검증 분리 (2026-10-14)
+
+- [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648)에서도 1000 Task+2000 Milestone의 #551 E2E 5초 timeout 재발. 실제 [Shard4 Trace](https://github.com/planner77/masterGantt/actions/runs/38479618648/artifacts/11857063158)에서 첫 `locator.evaluate`는 5초 내 결과를 반환하지 않았지만 DOM native frame은 이미 `data-project-gantt-api-instance="svar-api-1"`를 표시했다. ID 값 불일치가 확정된 것이 아니다.
+- 새 Fixture는 (1) `expect(frame).toBeVisible()`의 실제 브라우저 frame 가시성 기본 5초 검사, (2) 기존 `expect.poll(frame.evaluate(...)).toBe(true)`의 ID/probe.instance/read 정확 일치 기본 5초 검사를 **순차** 수행한다. 지연 sleep, retry, timeout 증액, Fixture 축소·mock 대체가 없으며 각 단계 실패를 별도로 기록한다.
+- 새 exact Head full PR CI에서 Chromium E2E6 전체(특히 Shard4 #551 동일 native geometry), policy/TypeScript/Lint/Vitest/Next build/Docker 및 3 Required aggregate/QA Final, review0을 검증한다. API identity 상태만 PASS라고 3000-row geometry/SC 전체 검증 성공으로 승격하지 않는다.
+- 사용자 요청의 새 Main CI는 안전한 PR merge 이후 정확한 push SHA에서 E2E6이 실제로 실행될 때에만 달성된다. 이전 Main #2712/PR #2720 실패 원본은 불변, v0.108.0 정식 추가 릴리스 권한 없음. #667 U5 관련 한정 예외는 [ADR-674](ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md)와 Work Packet에 유지한다.
+
 ## Issue #674 — #659 Main E2E #551 3,000개 Fixture 초기화 동일성 원격 재검증 (2026-10-14)
 
 - Original FAIL [Main #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) was exact merge SHA `3b21fe6e17ccc8abcdc9dc634c0a73b82dfa78bb` (E2E shard4 #551 5초 API/DOM 진단 동일성 timeout; other 5 shards / TypeScript/Lint/Vitest/Build/Docker pass). Do **not** silently rerun against a changed SHA or reinterpret old FAIL. Latest [Main #2718.1](https://github.com/planner77/masterGantt/actions/runs/38473289913) did not run E2E shards, so its aggregate success cannot validate this issue.

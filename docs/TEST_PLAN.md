@@ -1,3 +1,12 @@
+## Issue #674 — #2720 Playwright Trace 재현·프레임 mount/API identity 분리 회귀 (2026-10-14)
+
+- #659 Main [#2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) 후 첫 보완 [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648)에서 같은 #551 Shard4 E2E 5초 timeout 재발. PR fail-fast는 첫 실패 후 다른 Shard를 취소했고 기존 원본 결과는 모두 FAIL로 보존한다.
+- **저장된 Playwright Trace**: 첫 `frame.evaluate`가 ~319005ms 시작해서 expect.poll 제한 종료 ~324004ms까지 반환되지 않았고, timeout 직전 DOM에는 `data-project-gantt-api-instance="svar-api-1"`가 확인됐다. 따라서 ID 불일치로 확정할 수 없고 3,000-row 렌더링의 JS main-thread 평가 지연을 분리해야 한다.
+- **Browser 두 단계:** `tests/e2e/milestone-timeline-lane.spec.ts` fixture는 실제 frame visible를 먼저 `expect(frame).toBeVisible()` (기본 5초)로 검증하고 그다음 원본 `expect.poll(() => frame.evaluate(...)).toBe(true)`(기본 5초)를 수행한다. 두 단계 모두 bounded 실패, timeout 증액/재시도/sleep/3,000 Fixture 축소/실제 API identity 단언 삭제 없음.
+- **Unit 4건:** `tests/gantt-api-identity.test.ts`의 초기화 ID, 재init ID, 연결 해제 불변 3건 및 E2E source에서 visible-gate 선행·원본 ID/read 5s oracle 보존을 확인하는 정적 계약 1건.
+- **AC/SC:** AC1~6, GSC-08/09/11, SC-07/12/14. E2E6 전체에서 특히 #551 full native geometry, fullscreen/Grid/resize/scroll, canonical/저장 mutation0, 모든 기존 원형 단언을 검증할 때까지 NOT TESTED.
+- 기존 정책과 제품 version 0.108.0 변경 없음. [ADR-674](ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md)의 U5 한정 예외/인계 유지.
+
 ## Issue #674 — Main CI #2712 Milestone 대량 진단 API 인스턴스 타임아웃 교정 (2026-10-14)
 
 - 원본 [Main CI #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) / merge `3b21fe6e17ccc8abcdc9dc634c0a73b82dfa78bb`: Chromium shard4 128 PASS, 1 FAIL, 1 SKIP. 단독 실패 `tests/e2e/milestone-timeline-lane.spec.ts:173` 대형 1,000 Task + 2,000 Milestone fixture의 정확한 dev probe/React frame identity **5,000ms timeout**. other 5 shard / Quality / Docker PASS. 이전 원본 FAIL 보존.

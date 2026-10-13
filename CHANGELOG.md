@@ -1,3 +1,9 @@
+## Issue #674 — #2720 Trace 기반 Milestone E2E 초기 mount/API 진단 두 단계 분리 (2026-10-14)
+
+- 첫 개발 API ID 동기 게시만 반영한 [#674 PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648)에서도 #551 3000-row Chromium shard4의 첫 `frame.evaluate`가 기존 5초 안에 끝나지 않아 E2E 실패. DOM frame에는 `svar-api-1` 값이 존재했다. 원본 실패 보존.
+- 대량 fixture의 **실제 frame 가시성**을 Playwright 기본 5초 bounded 검사로 확인한 후 원본 **동일 5초 API identity/probe predicate**를 검증한다. 원본 1,000 Task/2,000 Milestone, chart/grid/fullscreen/resize/scroll native geometry·canonical mutation0는 유지하며 단위 계약 1건 추가.
+- 제품/UI/DB/보안/CI workflow/Owner·Release 정책 및 package version 0.108.0 불변. 새 CI PASS 전 NOT TESTED.
+
 ## Issue #674 — Main CI #2712 대량 Milestone probe readiness 진단 경합 보완 (2026-10-14)
 
 - #659 PR #660 병합 Main #2712.1에서 3,000개 원본 Task+Milestone E2E 화면의 5초 Gantt dev-probe API identity 체크 한 건이 실패(Shard4 1 FAIL·128 PASS·1 SKIP). 이전 원본 CI 실패와 후속 skipped E2E CI의 증거를 분리 보존한다.
