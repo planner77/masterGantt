@@ -1,3 +1,10 @@
+## Issue #659 — PR E2E Fail-Fast·단계별 Fast Gate (2026-10-13)
+
+- Full PR(opened/reopened/synchronize)에서만 policy/typecheck/lint/unit 빠른 검사 후 `pr_fast_gate`를 판정한다. 필수 결과 failure/cancelled/skipped 또는 경로 판정 불명확 시 PR Next.js build/E2E 6-shard/Docker smoke를 시작하지 않는다. docs-only의 정당한 skip은 별도 판정한다.
+- PR E2E `pr_e2e_shard`는 matrix fail-fast=true로 하나의 Shard 실패 시 나머지 취소를 요청한다. Main push/workflow_dispatch/recovery는 기존 `e2e_shard` fail-fast=false 및 병렬 Build/E2E/Docker 경로를 보존한다. 공통 step은 GitHub YAML anchor/alias로 공유한다.
+- 세 Required aggregate의 이름·fail-closed, `pull_request.edited` metadata-only, 신뢰된 Preflight/QA, main GHCR/Finalizer/Release 정책 불변. 새로운 Gate 성공은 Owner 병합 승인이 아니다. 이 변경 자체는 HIGH/OWNER_MANAGED, 검증 전 NOT TESTED; 정식 이미지 버전/릴리스 변경 없음.
+- 구현·회귀: [Work Packet](docs/exec-plans/active/ISSUE_659.md), [CI/CD](docs/CI_CD.md), [원격 검증](docs/REMOTE_VALIDATION.md).
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
