@@ -36,6 +36,15 @@
 
 CI policy에 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py`와 `scripts/test_qa_preflight.py`를 실행한다. Runner에서 기록하지 않은 실증은 NOT TESTED로 유지한다. 앱/E2E 테스트 자체를 삭제하거나 생략하는 것이 아니라 full PR에서 실행 순서와 실패 시 비용을 바꾸는 작업이다.
 
+## Issue #670 — v0.108.0 승계 후보 기능·버전 검증 (2026-10-14)
+
+- **Version positive:** `tests/scripts/verify-release-version.test.ts`가 실제 checked-in manifest/lockfile root/top의 동일 SemVer, `v0.108.0` 후보와 `v0.106.1` published predecessor의 version precedence를 검증한다. `npm run version:check`와 기존 SemVer/prerelease unit suite 유지.
+- **Version negative:** manifest와 lock top/root 각각의 0.107.0 잔존/불일치, 구버전 `v0.107.0` tag 재사용을 거부. 외부 tag/OCI 충돌 판정은 Node 순수 verifier가 아니고 인증된 read-only audit/후속 release gate 담당.
+- **#616 F2 fixture:** `tests/server/logistics/logistics-targets.test.ts` (공정/공통 Target, typed member FK, 공유 System 사용·삭제 안전, Project copy remap), `tests/server/templates/logistics-template-graph.test.ts` (AMR A10/B5, ACS A/B, 동일 MCS1, v2 Template ID remap, legacy/중복/cross-occurrence rollback), `db/migrations/0026_logistics_targets.sql`, API Origin/Session/strong revision. 기존 테스트 존재는 현재 새 release QA/업무 수락의 PASS가 아니며 실제 CI/run을 확인한다.
+- **Historical E2E:** `tests/e2e/resource-dashboard-ui.spec.ts` 의 '할당 Task' 고유 KPI locator(#639), `tests/e2e/milestone-management.spec.ts` 삭제 후 눈에 보이는 검색 포커스/viewport hit check(#647). #616 historical SHA #2621.1 실패는 수정 불가/소급 PASS 금지.
+- **PR gates:** #670 exact Head의 Required Quality+policy Python, Chromium E2E 6/6, Docker, QA Final—Trusted 및 미해결 리뷰 0, Owner HIGH 위험 수용. 기능 테스트/부하/운영 DB fixture gaps는 pass와 구분.
+- **Release gates:** 감사 #19 PREPARE_ONLY, #616 v0.107.0 Owner revoke 및 v0.108.0 prepare 별도. 새 merge SHA의 main CI, 인증 GHCR exact candidate digest/provenance와 버전 tag 부재, fresh Owner release authorization/Release CI 없이는 publish/retire/close PASS 주장 금지. `docs/exec-plans/active/ISSUE_670.md` AC1~AC9 참조.
+
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
 - #662 P2 regression: Owner 정책이 뒤늦게 BLOCKED될 때 기존 인증 `0.106.1` digest/version/tag가 JSON+Job Summary에 남는 positive, `ci-<SHA>` 누락 시 그 후보의 `actual_digest`는 `null`로 남고 `last_authenticated_oci`에만 앞선 release digest가 있는 negative, 매 감사마다 진단 컨텍스트를 초기화하는 격리 계약. QA Preflight #2692.1 metadata/doc 형식 FAIL는 별도 계약; PR Head의 Python/Quality/E2E/Docker는 새 CI로 검증.
 

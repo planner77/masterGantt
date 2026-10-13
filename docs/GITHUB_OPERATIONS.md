@@ -18,6 +18,14 @@
 - Main push/manual/정확 SHA 복구는 `build/e2e_shard/docker_smoke` 원래 병렬 경로 및 E2E fail-fast=false 유지. `pull_request.edited`는 정확 Head 성공한 원본 Full CI 증거 재사용 규칙(#577/#600) 유지.
 - 성공/실패/skip/cancelled/timeout/unknown을 구별하며 QA Final, Ruleset 3종, Owner 위험 수용, GHCR/Finalizer를 우회하지 않는다. 운영 검증은 [Issue #659 Work Packet](exec-plans/active/ISSUE_659.md) 및 [REMOTE_VALIDATION](REMOTE_VALIDATION.md)을 따른다. 정상 PR 지연 증가 또는 잘못된 집계가 발생하면 PR Lane만 롤백하고 Main 병렬 검사를 계속 보호한다.
 
+## Issue #670 — v0.108.0 승계 준비 운영 순서 (2026-10-14)
+
+- 신뢰된 [#19.1 PREPARE_ONLY 감사](https://github.com/planner77/masterGantt/actions/runs/38452926077) Run/attempt/SHA/artifact 및 #616 두 Owner 결정([철회](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153135410) / [준비](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153144664))을 immutable 원장으로 보존. 원본 실패 #2621.1과 #17/#18을 소급 성공으로 바꾸지 않는다.
+- #670 버전 준비 PR은 `0.108.0` manifest+lock과 회귀 검사·문서 변경만 포함하며, 본문의 `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: true`, `release_authorized: false`를 독립 선언 행으로 둔다. `docs/exec-plans/active/ISSUE_670.md` AC1~AC9와 DOCUMENTATION_SYNC를 형식에 맞춰 관리한다.
+- PR CI / default-main Trusted QA, 최신 main 정렬·충돌, unresolved review 0와 Owner HIGH 위험 수용이 확인되기 전 Merge 금지. PR CI와 승계 `workflow_dispatch` 감사/정식 `release-image.yml`은 다른 신뢰 경계임.
+- **Main 및 발행은 별도 단계:** 새 PR 병합은 새 SHA를 생성하므로 감사 #19의 old main SHA 및 준비 marker로 태그를 찍을 수 없다. 정확한 새 push Main CI Quality/E2E6/Docker, 보존된 `ci-<SHA>` digest/SBOM/provenance, 신규 Git annotated tag·GitHub Release·인증 GHCR exact tag 충돌/UNKNOWN 상태를 독립 확인하고 새 Owner `v0.108.0` 발행 승인 후에만 기존 Release/Finalizer 경로 사용. 이 범위를 벗어난 `issue-lifecycle.yml release_finalize`/tag push 금지.
+- 수동 실패/UNKNOWN, 임시 candidate 정리 또는 Owner scope mismatch 때는 BLOCKED로 남기고 기존 OCI/태그를 이동·삭제/덮어쓰기 하지 않는다. 후속 Issue #616은 신규 정식 릴리스/원래 Target F2 인수 기준 확인 전 Open 유지.
+
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
 
 - Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.

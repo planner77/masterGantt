@@ -11,6 +11,13 @@
 - `quality/e2e/docker` 세 Required 집계 및 Trusted QA/Owner 신뢰 경계는 유지. HIGH/OWNER_MANAGED/qa_required=true; release_required=false, release_authorized=false. 원격 PR CI 완료 전 PASS 불가.
 - 구현 후 `scripts/test_pr_fast_gate.py`, 기존 Preflight 테스트, 전체 PR CI 실행. 실패 주입·원격 Main/수동 검증과 비용 전후 실측은 각각 증거가 없으면 NOT TESTED; Owner 승인 전 병합하지 않는다.
 
+## Issue #670 — v0.108.0 승계 릴리스 준비·정식 게시 보류 (2026-10-14)
+
+- 상위 #616(OPEN), 이전 승계 감사/검증 #649/#651/#653/#655/#657/#662. [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) `38452926077.1` main `bdfd1ea1...` SUCCESS/`PREPARE_ONLY`; v0.107.0 Owner 철회 및 새 v0.108.0 준비 결정은 #616 별도 댓글로 검증했다. #17/#18/#2621 원본 실패는 불변.
+- 준비 branch `release/issue-670-v0.108.0-preparation`에서 manifest 1개 + lock root/top 2개만 `0.108.0` 변경, 의존성 그래프 무변경. `tests/scripts/verify-release-version.test.ts`에 checked-in version pair/old tag negative 추가. 기존 Target F2+Template, #639 KPI, #647 focus E2E는 새 Head CI에서 재검증하며 무관한 서비스/UI/SQL 변경 없음.
+- HIGH/OWNER_MANAGED, `qa_required=true`, `release_required=true`, `release_authorized=false`, Manager NOT TESTED. 이번 지시는 구현·문서 동기화·PR 생성 및 CI 시작까지; PR CI PASS/Trusted QA/Owner merge acceptance, Main push CI/ci-SHA OCI/Release, 정식 annotated tag `v0.108.0`, GHCR exact `0.108.0`, #616 Issue 종료는 모두 수행 전 별도 증거/승인 필요.
+- Work Packet `docs/exec-plans/active/ISSUE_670.md` AC1~AC9에 실제 변경 파일·문서 영향·미검증 단계 기록. main 변경 시 본 Owner 준비 marker의 SHA를 새 merge 후보로 임의 대체하지 말 것.
+
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
 
 - Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.

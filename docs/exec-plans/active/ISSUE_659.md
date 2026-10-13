@@ -89,3 +89,10 @@ independent_qa: N/A(Owner-managed, 별도 독립 QA 미실시)
 - main과 경로가 겹치지 않는 `.github/workflows/ci.yml`, `docs/DECISIONS.md`, 본 Work Packet, `scripts/pr_fast_gate.py`, `scripts/test_pr_fast_gate.py`, `scripts/test_qa_preflight.py`, `tests/e2e/project-edit-authorization.spec.ts`는 기존 PR 버전을 보존한다. 6-shard PR fail-fast, PR-only `--max-failures=1`, W05 단일 테스트 유한 60초, Main/manual 전수 검사와 Required 3종 안전 Gate를 유지한다.
 - CI #2701.1은 빠른 검사·E2E 6/6·Docker 및 Required 3종 PASS, 최종 QA는 과거 test-merge 불일치로 BLOCKED. 이 **과거 Run은 FAIL 그대로 유지**하며 새 exact Head/현재 main에서 Full PR CI + QA Final을 새로 검증해야 한다.
 - DOCUMENTATION_SYNC: 새 main에서 수정된 문서를 보존하면서 위 7개와 본 Work Packet을 통합. 리스크 HIGH/OWNER_MANAGED, release_required=false/authorized=false 변경 없음; 신규 PR CI 실제 결과 전 NOT TESTED.
+
+## 2026-10-14 — PR CI #2708.1 PASS 후 v0.108.0 main 정렬·재검증
+
+- 검증 원본: [PR CI #2708.1](https://github.com/planner77/masterGantt/actions/runs/38451958896) Head `5464011b8c07564f6d6e92b23d46e83564b39a2e`, 당시 main `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`: Quality/E2E 6-shard/Docker 세 Required aggregate, QA Final 모두 SUCCESS. 리뷰 스레드 미해결 0. 이 성공은 이전 Head/base에 속하며 새 main의 합격 증거로 재사용하지 않는다.
+- 이후 [Issue #670 · PR #671](https://github.com/planner77/masterGantt/pull/671)의 `v0.108.0` 승계 릴리스 **준비**가 main `2016f38e5039894e5d6ac1d414eaac42221470fe`에 병합되었다. `package.json` 및 lockfile의 현행 app version은 **0.108.0**이며 #659에서는 버전을 올리거나 변경하지 않는다. 앞쪽 `0.107.0 유지` 기록은 이전 기준 시점의 역사적 기록이며 현행 버전을 의미하지 않는다.
+- #659의 PR-only Fast Gate, E2E `fail-fast:true`/`--max-failures=1`, W05 개별 60초 제한, QA·Required 세 check·main/manual 전체 회귀 불변. 공통 문서 `CHANGELOG.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/PLAN.md`는 #659 prepend delta와 최신 main의 #670 섹션 및 하위 원장을 함께 유지한다. #670의 승계 준비는 Owner의 정식 release 게시 승인과 다르며 이 PR에서 새 version tag·formal release/rolling tag를 발행하지 않는다.
+- 최신 main과 정렬된 새 Head에서 정확한 source SHA/base/test-merge provenance, 세 Required PASS, QA Final PASS, open thread 0, mergeable=true 재검증 후 사용자가 명시 지시한 병합을 수행한다. 새 CI 결론 확인 전에는 NOT TESTED이며 기존 CI PASS를 소급 사용하지 않는다.
