@@ -1,4 +1,5 @@
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 원격 확인: PR #668의 latest Head에서 Preflight `RISK_LEVEL`/`QA_METHOD`/`QA_REQUIRED`/`DOCUMENTATION_SYNC` PASS 후 실제 policy Python suite 로그와 Quality/E2E6/Docker Required PASS를 각각 확인한다. Owner 거부/결핍을 mock으로 재현해 BLOCKED JSON·Job Summary에 마지막 인증 OCI digest 출처가 남고, 미확인 candidate는 `actual_digest=null`로 유지됨을 검사한다. 현재 운영 감사 #17은 소급 PASS 금지.
 
 - Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
 - 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
