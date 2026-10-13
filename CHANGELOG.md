@@ -3778,3 +3778,7 @@
 - Next.js, SQLite migration/repository, SVAR Core와 Project 생성·직접 Readonly 기반
 - Project edit password/session lifecycle
 - Working Calendar와 Leaf/Milestone Scheduling Engine 기반
+
+
+### #649 릴리스 승계 안전 준비 (미게시)
+- 실패한 #616 v0.107.0을 유지하고 #647 수정 SHA 기반 신규 후보 사전 감사·차단 테스트를 추가했다. 신규 발행과 버전 변경은 승인 전 NOT TESTED.
