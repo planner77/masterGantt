@@ -21,6 +21,21 @@ REPO = "planner77/masterGantt"
 VERSIONS = (*policy.VERSIONS, policy.CANDIDATE)
 RELEASE_MAIN = (38215065244, 1, "success")
 RELEASE_RUN = (38221400193, 2, "success")
+# Immutable five-merge release debt source identities from #633 B2.
+B2_SOURCES = (
+    ("40747252c389f2a4d1203a2262a4caa49c90728d", 550, 559),
+    ("c8949da48e7465db45d871887c3f55f9fb6dc743", 615, 627),
+    ("6eaec3331fcbc720ab42106789a505c5ee5eefb4", 615, 628),
+    ("e51b99cb25f37c8909de356a089a56b4139415a3", 550, 626),
+    ("d69749753fb9db002232d92d51446237a0fe042d", 550, 632),
+)
+STAGE = "precondition"
+
+
+def stage(name: str) -> None:
+    global STAGE
+    STAGE = name
+
 MARKER = re.compile(r"<!--\s*(mastergantt-[\w-]+:v\d+)\s+({.*?})\s*-->", re.S)
 
 
@@ -77,21 +92,28 @@ def ancestry(main: str) -> list[str]:
 
 
 def tag_inventory() -> dict[str, str]:
-    refs = pages(f"/repos/{REPO}/git/matching-refs/tags/v")
+    """Git matching-refs returns one complete, non-paginated JSON array."""
+    refs = api(f"/repos/{REPO}/git/matching-refs/tags/v")
+    require(isinstance(refs, list) and all(isinstance(x, dict) for x in refs),
+            "Git matching-refs 전체 배열 형식 오류")
     tags: dict[str, str] = {}
     for ref in refs:
         name = ref.get("ref")
-        obj = ref.get("object") or {}
-        require(isinstance(name, str) and name.startswith("refs/tags/v")
-                and obj.get("type") in ("tag", "commit")
-                and isinstance(obj.get("sha"), str), "Git tag ref 형식 오류")
-        if name in tags:
-            raise policy.SuccessionBlocked("중복 Git tag")
+        obj = ref.get("object")
+        require(isinstance(name, str)
+                and re.fullmatch(r"refs/tags/v[^\s/]+", name) is not None
+                and isinstance(obj, dict) and obj.get("type") in ("tag", "commit")
+                and isinstance(obj.get("sha"), str)
+                and bool(policy.SHA.fullmatch(obj["sha"])), "Git tag ref 형식 오류")
+        require(name not in tags, "중복 Git tag")
         sha = obj["sha"]
         if obj["type"] == "tag":
-            # Annotated tag is resolved to its commit, not the tag-object SHA.
-            target = api(f"/repos/{REPO}/git/tags/{sha}").get("object") or {}
-            require(target.get("type") == "commit", "중첩/비정상 annotated tag")
+            annotation = api(f"/repos/{REPO}/git/tags/{sha}")
+            require(isinstance(annotation, dict) and annotation.get("sha") == sha,
+                    "annotated tag object SHA 출처 불일치")
+            target = annotation.get("object")
+            require(isinstance(target, dict) and target.get("type") == "commit",
+                    "중첩/비정상 annotated tag")
             sha = target.get("sha")
         require(isinstance(sha, str) and bool(policy.SHA.fullmatch(sha)),
                 "Git tag peeled commit 불명확")
@@ -146,16 +168,30 @@ def registry_inventory() -> tuple[set[str], dict[str, str]]:
 
 def run_verified(run_id: int, attempt: int, conclusion: str, expected_sha: str) -> str:
     run = api(f"/repos/{REPO}/actions/runs/{run_id}")
-    require(run.get("id") == run_id and run.get("run_attempt") == attempt
+    path = ".github/workflows/ci.yml" if run_id == RELEASE_MAIN[0] else ".github/workflows/release-image.yml"
+    event = "push" if run_id == RELEASE_MAIN[0] else "workflow_dispatch"
+    require(isinstance(run, dict) and type(run.get("id")) is int
+            and run["id"] == run_id and run.get("run_attempt") == attempt
             and run.get("status") == "completed"
             and run.get("conclusion") == conclusion
             and run.get("head_sha") == expected_sha
+            and run.get("path") == path and run.get("event") == event
             and ((run.get("repository") or {}).get("full_name") == REPO),
-            "원본 릴리스 CI/attempt/SHA 출처 불일치")
+            "원본 릴리스 CI/attempt/SHA/source 출처 불일치")
     jobs = pages(f"/repos/{REPO}/actions/runs/{run_id}/attempts/{attempt}/jobs", key="jobs")
-    require(bool(jobs) and all(job.get("conclusion") in ("success", "skipped")
-            for job in jobs) and any(job.get("conclusion") == "success" for job in jobs),
-            "CI job 전부 성공 증거 불충분")
+    require(bool(jobs) and all(type(job.get("id")) is int
+            and job.get("status") == "completed"
+            and job.get("conclusion") in ("success", "skipped") for job in jobs)
+            and len({job["id"] for job in jobs}) == len(jobs),
+            "CI job 누락·중복·미완료 또는 실패")
+    success = {job.get("name") for job in jobs if job["conclusion"] == "success"}
+    required = ({"정책·저장소 계약 검사", "Docker smoke 구현"}
+                if run_id == RELEASE_MAIN[0] else {
+                    "Release quality gates", "Main verified digest 릴리스 후보 재검증",
+                    "Verified digest attestation·최종 tag promotion",
+                    "Release 완료 lifecycle handoff",
+                })
+    require(required <= success, "원본 릴리스 CI 필수 job 성공 증거 누락")
     return f"{run_id}:{attempt}:SUCCESS"
 
 
@@ -174,6 +210,9 @@ def owner_markers(issue: int) -> list[tuple[int, str, dict[str, Any]]]:
                 raise policy.SuccessionBlocked("Owner marker JSON 오류") from exc
             require(isinstance(data, dict) and type(row.get("id")) is int,
                     "Owner marker 유형/ID 오류")
+            require(row["id"] > 0 and row.get("html_url") ==
+                    f"https://github.com/{REPO}/issues/{issue}#issuecomment-{row['id']}",
+                    "Owner marker 출처 댓글 URL 불일치")
             result.append((row["id"], match.group(1), data))
     return result
 
@@ -187,7 +226,10 @@ def latest_marker(rows: list[tuple[int, str, dict[str, Any]]],
     ids = [n for n, _ in candidates]
     require(len(ids) == len(set(ids)), "동일 Owner 댓글의 중복·충돌 marker")
     decision = max(candidates, key=lambda item: item[0])[1]
-    return type(decision.get("authorized")) is bool and decision["authorized"] is authorized
+    require(type(decision.get("authorized")) is bool
+            and isinstance(decision.get("note"), str)
+            and bool(decision["note"].strip()), "최신 Owner marker schema 오류")
+    return decision["authorized"] is authorized
 
 
 def collect() -> tuple[dict[str, Any], dict[str, Any]]:
