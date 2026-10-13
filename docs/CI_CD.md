@@ -1,4 +1,5 @@
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 P2 회귀: `test_confirmed_digest_survives_later_owner_block_in_json_and_summary`와 `test_current_failure_stage_not_mislabelled_as_confirmed_digest`를 기존 `policy` Python unittest 필수 실행에 포함한다. PR #668 CI #2692.1은 PR 본문 standalone metadata 및 Work Packet DOC_SYNC 형식 위반으로 Preflight FAIL·heavy tests SKIPPED였으며 Python 테스트 실패 증거가 아니다.
 
 - Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
 - 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
