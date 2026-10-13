@@ -17,6 +17,7 @@
 - `src/features/gantt/gantt-api-identity.ts`: UPDATED
 - `tests/gantt-api-identity.test.ts`: UPDATED
 - `tests/e2e/milestone-timeline-lane.spec.ts`: N/A(기존 5초 실제 브라우저 기준과 대형 Fixture 유지)
+- `docs/ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md`: UPDATED
 - `docs/MILESTONE_TIMELINE.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
@@ -55,3 +56,12 @@ release_required: false
 release_authorized: false
 
 - Owner requested: correct Main CI failure and start a fresh Main CI. Safe chain is corrective PR exact-head CI, review threads and source main alignment, merge with canonical one-line subject and new Main CI push. A rerun of #2712 on the *old immutable SHA* is diagnostic recovery, not validation of the new patch. If CI is still running, do not bypass its result or claim merge readiness.
+
+## GSC 1.0.0-candidate 준수·예외·U5 작성권 인계
+
+- 현재 적용 표준 **GSC 1.0.0-candidate / REVIEW_PENDING**, 읽은 문서 commit `e195780227a504536d0d9f7f27924f24267f8caf`: `AGENTS.md`, `docs/GANTT_STATE_CONSISTENCY.md`, `docs/GANTT_STATE_CONFORMANCE.md`, `docs/GANTT_ADAPTER_ADR.md`, `docs/GANTT_SYNC_TRACE.md`, `docs/exec-plans/active/GANTT_STATE_REMEDIATION.md`, #551 Work Packet. GSC-01~12 중 관련 01/02/03/04/05/06/07/08/09/10/11/12 모두 영향 검토; **정규화 대상은 data/viewport가 아닌 dev-only native API identity 표시**.
+- **파일 소유권 예외:** U5 #667 / 기존 #552 PR #561이 본래 `project-gantt.tsx` 단독 작성자. 본 #674는 #659 병합 Main #2712의 조기 복구를 위해 production observer나 data writer를 변경하지 않는 `installMilestoneProbe` 내부 dev-only 1개 호출로 한정. [ADR-674](../../ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md)에 목적/배제한 대안/규범·버전/Manager 한정 승인/리스크/수명/롤백/인계를 기록했다. 승인 범위는 dev diagnostic-only이며 원래 U5 제품 wiring·Owner QA·릴리스 승계를 허가하지 않는다.
+- **상태·쓰기 소유권 매핑:** native `initialize(api)`가 실제 `svar-api-*` ID를 생성하고 기존 `apiReference`에 보존한다. Dev-only connected frame의 `data-project-gantt-api-instance`는 이 ID를 표시하는 관측 속성; 서버 canonical/revision, native Core data/tree/links, React projection 목표, viewport scroll/axis, focus/Task/Milestone mutation writer는 변경 없음. 이 속성의 일치가 **native data/geometry settle PASS를 의미하지 않는다**(GSC-08/09).
+- **누적 SC 지도:** SC-07(API identity 갱신) unit exact/stale 검증, SC-12(Day/Week/resize/fullscreen geometry) 및 SC-14(1,000+2,000/mount/5초) 기존 #551 E2E 직접 검증. SC-08(milestone-only/empty) 및 SC-11(peer return) 기존 E2E 포함. SC-01~06/09/10/13은 변경 대상 아니라도 전체 PR/Main E2E 정상 실행 시 보호 회귀를 확인하며 개별 새 증거 없으면 NOT TESTED. U1 machine-readable SC harness 및 U5 통합 전체 SC-01~14는 별도 #663~#667/#573/#574 담당, 이 PR로 완료했다고 주장하지 않는다.
+- **중복 source/병렬 충돌 방지:** #667 issue OPEN(계획 단계), #552 PR #561은 기존 기능 브랜치 OPEN. #674의 patch와 ADR을 #667 담당자에게 전달하고 U5 제품 연결 시 정확한 main SHA 기준으로 재정렬·3-way reconcile, 같은 source의 동시 쓰기를 금지한다. 이후 U5가 dev 직접 stamp를 대체할 수 있으며 실제로 대체했을 경우 단위·E2E 보존 확인 후 ADR 종료.
+- **검증:** 새 Head exact PR required Quality/E2E 6/6/Docker, QA Final/Trusted, review unresolved0 및 새 Main E2E shard4의 동일 5s oracle 결과는 실제 CI 전에 **NOT TESTED**. 원본 #2712 PASS로 소급 변경, U5 전체 SC 채택, 테스트 timeout 증가/skip/retry, 릴리스 게시 승인 모두 불가.
