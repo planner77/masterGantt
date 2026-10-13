@@ -1,3 +1,9 @@
+## Issue #657 — 릴리스 감사 #16 Refs 인식 회귀 및 CI 보호 보완 (2026-10-13)
+
+- `historical_prs_verified`에서 raw-regex 이중 escape로 정상 `Refs #550`가 거부되던 버그 수정. GitHub 원본 PR/Issue/SHA/first-parent 출처 검증과 fail-closed 정책은 보존.
+- 다섯 과거 PR의 실제 여러 줄/CRLF `Refs` 및 중복·변조·누락 테스트 추가; 감사/승계 preflight Python suite를 `.github/workflows/ci.yml` policy 필수 gate로 등록. 원본 Audit #16 실패 기록 변경 없음.
+- HIGH/OWNER_MANAGED, 앱 신규 버전 발행 불필요(`release_required=false`), 자동 GHCR 게시·태그 이동·Owner 승인 작성·퇴역·#616 종료 없음. 수정 후 별도 Owner 운영 감사가 필요.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.

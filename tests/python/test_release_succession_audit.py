@@ -83,18 +83,29 @@ class TestReadOnlyAudit(unittest.TestCase):
 
     def test_exact_historical_pr_source_ledger(self):
         chain = [row[0] for row in audit.B2_SOURCES] + [audit.policy.PUBLISHED_SHA]
+        # Short fixtures mirror the five authenticated PR body layouts.
+        # #559 has an introduction before Refs; #627/#628 use a header after
+        # the first line, and #626/#632 add metadata immediately after Refs.
+        bodies = {
+            559: 'Milestone Dashboard에서 별도 목록에 진입합니다.\n\nRefs #550\nrisk_level: HIGH\nqa_method: OWNER_MANAGED\n',
+            627: 'Refs #615\n\n## 요약\n제품 공정과 공통 목록을 정의합니다.\n',
+            628: 'Refs #615\n\n## 요약\n- Main CI 회복 범위와 정책\n',
+            626: 'Refs #550\nrisk_level: HIGH\nqa_method: OWNER_MANAGED\nqa_required: true\n\n## 변경 결과\n',
+            632: 'Refs #550\nrisk_level: HIGH\nqa_method: OWNER_MANAGED\nqa_required: true\n\n## 배경 및 실패 증거\n',
+        }
         def verified(path):
             number = int(path.rsplit('/', 1)[1])
             sha, issue, _ = next(row for row in audit.B2_SOURCES if row[2] == number)
             return {'number':number, 'state':'closed', 'merged':True,
-                    'merge_commit_sha':sha, 'body':f'Refs #{issue}',
+                    'merge_commit_sha':sha,
+                    'body': bodies[number],
                     'base':{'ref':'main','repo':{'full_name':audit.REPO}},
                     'head':{'repo':{'full_name':audit.REPO}}}
         with patch.object(audit, 'api', side_effect=verified) as calls:
             self.assertTrue(audit.historical_prs_verified(chain))
             self.assertEqual(calls.call_count, 5)
         for field, value in [('merge_commit_sha','f'*40), ('state','open'),
-                             ('merged',False), ('body','Refs #999')]:
+                             ('merged',False), ('body','Refs #999'), ('base', {}), ('head', {})]:
             def tampered(path):
                 pr = verified(path)
                 if path.endswith('/628'): pr[field] = value
@@ -107,6 +118,61 @@ class TestReadOnlyAudit(unittest.TestCase):
                 audit.historical_prs_verified(chain)
         with self.assertRaises(SuccessionBlocked):
             audit.historical_prs_verified(chain[1:])
+
+    def test_historical_refs_fail_closed_on_ambiguous_and_inline_text(self):
+        chain = [row[0] for row in audit.B2_SOURCES] + [audit.policy.PUBLISHED_SHA]
+        def pr_with_body(body):
+            def fake_api(path):
+                number = int(path.rsplit('/', 1)[1])
+                sha, issue, _ = next(row for row in audit.B2_SOURCES if row[2] == number)
+                return {
+                    'number':number, 'state':'closed', 'merged':True,
+                    'merge_commit_sha':sha,
+                    'body':body if number == 559 else f'Refs #{issue}',
+                    'base':{'ref':'main','repo':{'full_name':audit.REPO}},
+                    'head':{'repo':{'full_name':audit.REPO}},
+                }
+            return fake_api
+        # These deliberately do not assert a git-history problem: the only
+        # changed evidence is the primary Issue line from a PR's live body.
+        invalid = (
+            '## Details\n\nRefs #550\nRefs #550\n',
+            '## Details\n\nRefs #550\nRefs #615\n',
+            '## Details\n\nRefs #615\n',
+            '## Details\n\nThis fixes Refs #550 in prose\n',
+            '- Refs #550\n',
+            'Refs #550 extra words\n',
+            'Refs #0\n',
+            'Refs #550\n\n설명에 숨긴 Refs #615는 거부\n',
+            'Refs #550\n\n> Refs #550\n',
+            'Refs #550\n\n예시 refs #550과 중복\n',
+            '',
+        )
+        for body in invalid:
+            with self.subTest(body=body), patch.object(
+                audit, 'api', side_effect=pr_with_body(body)
+            ):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.historical_prs_verified(chain)
+        for invalid_body in (None, [], {'Refs': '#550'}):
+            with self.subTest(invalid_body=invalid_body), patch.object(
+                audit, 'api', side_effect=pr_with_body(invalid_body)
+            ):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.historical_prs_verified(chain)
+        for invalid_response in (None, {}, {'number': 559}):
+            with self.subTest(invalid_response=invalid_response), patch.object(
+                audit, 'api', return_value=invalid_response
+            ):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.historical_prs_verified(chain)
+
+        with patch.object(
+            audit, 'api', side_effect=pr_with_body(
+                '## Title\r\n\r\n \tRefs #550 \t\r\nOther comments\r\n'
+            )
+        ):
+            self.assertTrue(audit.historical_prs_verified(chain))
 
     def test_latest_owner_note_is_required(self):
         rows=[(8,'mastergantt-release-authorization:v1',
