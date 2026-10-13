@@ -31,6 +31,12 @@ DESIGN Delta B: 기존 precise feedback·SVAR-native·keyboard/focus·상태 보
 
 
 리소스 탭의 `hidden` 또는 Milestone 탭의 `inert` 상태에서 저장된 인라인 이름은 일정 복귀 시 canonical/Core/Grid 표시 확인을 재실행한다. 이미 저장한 PATCH를 중복 발행하지 않고 현재 Gantt instance와 viewport를 유지한다.
+## Issue #552 — 날짜 탐색 포커스와 작업 추가의 상태 연속성
+
+OFF 날짜 탐색이 전체 Milestone 목록으로 안내한 뒤 조회 갱신이 해당 행의 관리 버튼을 일시 비활성화하거나 교체하면, 활성 panel의 동일 canonical ID로 잃은 focus만 복구한다. 이후 사용자가 pointer/keyboard로 검색 등 다른 control을 조작하면 그 입력을 우선하고, 갱신된 목록이 focus를 다시 빼앗지 않는다. 숨은 panel이나 modal 뒤의 대상에는 focus를 적용하지 않는다.
+
+Native 작업 추가의 복원 문맥은 작업 추가로 달라지는 표시 ID 집합과 별개로 현재 조회 조건·scope·instance·scale·열·가시성을 확인한다. 같은 조건의 canonical 추가 때문에 저장한 위치를 폐기하지 않으며, 추가 전 위치의 복원이 끝나기 전에 metadata-only 복원이 새 의도로 끼어들지 않는다. 실제 조건 변경이나 새 사용자 입력의 취소 경계는 유지한다. canonical 추가만으로 기존 Task clipboard를 조회 조건 변경으로 판정하지 않는다.
+
 ## Issue #571 — 사용자 이동 우선의 화면 복귀
 
 같은 일정으로 돌아올 때 유효한 직전 위치를 보존하되, 돌아오는 동안 사용자가 wheel/pan·Task 선택·명시 날짜 이동을 하면 그 새 위치를 우선한다. 지연된 peer/metadata 복원이 새 위치를 덮지 않는다. Grid/Chart의 pointer/wheel/touch/keyboard 입력은 오래된 복원을 취소한다. toolbar·Editor 입력 자체는 일정 이동으로 취급하지 않으며 Editor의 '일정에서 보기'는 명시 Task reveal이다. 명시 locate는 이전 Editor trigger 대신 완료한 대상 Grid 행을 focus 소유자로 삼고, 일반 취소·닫기는 기존 trigger 복원을 유지한다.
@@ -1112,7 +1118,7 @@ Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적�
 
 Task Editor 진입·탭 이동·취소는 동일 API/instance와 현재 WBS 범위·fullscreen·scale·행 선택·tree·실제 열 폭 및 public/DOM scroll을 보존한다. scoped 표시 ID 배열은 상위 렌더마다 새로 생성될 수 있으므로 filter-tasks는 같은 API와 정렬·중복 제거한 ID 집합에 대해 재적용하지 않는다. null(필터 해제), 빈집합, 실제 ID 변경 및 새 API는 구분하고 기존 `open:false`와 serialized queue를 유지한다. metadata는 기존 canonical sync가 소유하며 필터 dependency에 Task 객체 identity를 넣지 않는다. active name/status 필터의 metadata 변경으로 표시 ID 집합이 바뀌면 raw query가 같아도 metadata-only 복원 대상에서 제외한다.
 
-metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정렬·중복 제거한 ID 집합), Project Calendar, 행 순서와 각 Task의 taskId/externalId/parentExternalId/siblingOrder/type/start/end/duration/requestedStart/scheduleMode/baselineStart/baselineDuration/baselineEnd 및 scoped SVAR Link 의미가 같은 경우에 한정한다. name/description/url/progress/status 변경은 Task metadata signature로, Project metadata 저장은 canonical revision 진행으로 구분한다. 기존 Editor·no-op 렌더의 일회성 snapshot/복원은 유지하고 잔존 metadata guard만 실제 Task metadata 또는 Project revision 변경에 한정한다. 날짜·기간·유형·계층·Link 변경은 이 보존 경로를 사용하지 않는다.
+metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정렬·중복 제거한 ID 집합), 행 순서와 각 Task의 taskId/externalId/parentExternalId/siblingOrder/type/start/end/duration/requestedStart/scheduleMode/baselineStart/baselineDuration/baselineEnd 및 scoped SVAR Link 의미가 같은 경우에 한정한다. name/description/url/progress/status 변경은 Task metadata signature로, Project metadata 저장은 canonical revision 진행으로 구분한다. 기존 Editor·no-op 렌더의 일회성 snapshot/복원은 유지하고 잔존 metadata guard만 실제 Task metadata 또는 Project revision 변경에 한정한다. 날짜·기간·유형·계층·Link 변경은 이 보존 경로를 사용하지 않는다. Project Calendar 메타데이터 저장만으로 무효화하지 않으며, 실제 canonical Task 날짜와 Link·표시 geometry가 그대로인 경우에만 보존한다.
 
 canonical sync에서 public scroll 좌표를 기록하고 layout settle 뒤 ensureTimelineEnd를 다시 확인한다. 같은 API, 실제 연결된 Gantt DOM, 동일한 현재 semantic filter signature, visible 상태, continuity key, 최신 sync version, scale, public gridWidth와 열 ID/width/hidden 의미가 유지되고 Chart/Grid pointer·wheel·keyboard 입력이 없을 때만 공개 scroll-chart로 원래 좌표를 복원한다. #538 후속의 기존 helper는 0 reset뿐 아니라 120→91 같은 Core의 비영점 이동도 이 조건 안에서 복원한다. 실제 membership·geometry 변화에 의한 clamp는 이 경로의 복원 대상이 아니다. scope/filter/date 이동이나 사용자 scale·열 변경을 이전 viewport로 덮지 않는다. 새 sync에서는 유효한 인계 좌표를 먼저 확인하고 이전 listener를 교체한다. 입력·문맥 무효화·catch·API 교체·unmount에서는 snapshot/input listener를 정리한다. unmount는 listener 제거와 함께 request ref를 null로 무효화하고, 뒤늦은 queue 실행은 연결된 root가 있을 때만 snapshot을 생성한다.
 
@@ -1149,7 +1155,7 @@ SVAR 공식 Tooltip API는 설계 참고로 확인했지만 설치 2.7.3의 실�
 
 기본 정보 초안은 탭 전환과 Escape/reopen 사이에 기존 부모 state로 남는다. 작업 캘린더 내부 초안과 비밀번호 입력의 기존 수명·민감 입력 초기화는 변경하지 않는다. 401은 readonly 전환, 412는 설정 닫기와 canonical 재조회/metadata 재작성이라는 기존 정책을 따른다. 모든 초안을 412 뒤 보존한다는 계약을 추가하지 않는다.
 
-Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 반환할 때도 canonical geometry가 같으면 기존 Gantt viewport 복원 후보가 된다. 같은 instance/context/filter/scale/grid/columns, 사용자 입력 없음과 scroll이 0으로 붕괴한 조건을 계속 확인하며 geometry/date/calendar/filter 변경에는 복원을 적용하지 않는다. 실제 API의 복합 조건 PASS와 정식 DTO를 사용한 mock canonical 경로의 가로 scroll 120→0 FAIL은 별도 근거다. 전체 실제 API 결함으로 확대하지 않는다. 검증 범위와 원본 이력은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 반환할 때도 canonical geometry가 같으면 기존 Gantt viewport 복원 후보가 된다. 같은 instance/context/filter/scale/grid/columns, 사용자 입력 없음과 scroll이 0으로 붕괴한 조건을 계속 확인하며 실제 geometry/date/filter 변경에는 복원을 적용하지 않는다. Calendar 저장 뒤에도 canonical 날짜와 Link geometry가 같으면 보존 후보를 유지한다. 실제 API의 복합 조건 PASS와 정식 DTO를 사용한 mock canonical 경로의 가로 scroll 120→0 FAIL은 별도 근거다. 전체 실제 API 결함으로 확대하지 않는다. 검증 범위와 원본 이력은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
 ### Issue #490 비밀번호 변경 검증 보완
 
@@ -1317,3 +1323,10 @@ Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 
 날짜 조회는 저장 OFF를 쓰지 않고 일시 표시한다. 원래 보기는 출발 Dashboard 조건/현재 canonical 관리 trigger와 이전 peer/public viewport로 복귀하되 최신 사용자 입력을 덮지 않는다. 물리 폭 부족은 날짜 범위 밖 0과 구별하고 exactID 목록 fallback을 제공한다. invalid Summary root는 삭제/M drift를 구별하여 명시 복귀 전 hidden/inert 같은 Gantt로 보류한다. 상세는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
 
 #552 비활성 Dashboard peer에서는 정상 scope owner가 조상의 `visibility:hidden`을 상속한다. invalid Summary scope만 별도 hidden/inert를 지정한다. schedule/Core의 양수 bbox와 같은 instance는 보존하지만 Toolbar/Grid/Chart가 Dashboard 위에 그려지지 않아야 한다. 390px 날짜 fallback은 exact-ID focus·검색·저장 OFF·원래 viewport와 실제 hidden paint를 함께 검증한다.
+
+
+## Issue #552 — native 추가와 날짜 fallback의 연속성
+
+Native Task 추가 전 캡처한 viewport는 새 Task가 파생 표시 ID에 포함되었다는 이유로 취소하지 않는다. 동일 API·scope·명시 조회 의도 fingerprint·scale·열·가시성·측정 가능성·화면 크기·fullscreen과 최신 사용자 입력을 비교한다. 추가의 projection/viewport 완료 전에는 더 낮은 우선순위 metadata 복원을 발행하지 않으며, 이미 등록된 canonical queue callback도 같은 소유권을 재확인한다. 새 wheel·키보드·scope/filter 변경은 계속 기존 캡처를 취소한다.
+
+OFF 날짜 탐색의 목록 fallback은 정확한 Milestone ID의 실제 관리 버튼에 focus를 인계한다. Dashboard 재조회가 같은 ID의 행을 교체하거나 일시 disable하여 focus가 BODY로 빠진 경우에는 현재 DOM target의 실제 focus 성공을 확인한다. 다른 control의 focus와 새 pointerdown/keydown, 다른 native modal·hidden/inert 상태를 우선하며 무제한 재시도하지 않는다. 원래 Dashboard 조건·저장된 OFF·Gantt instance/viewport를 유지한다.

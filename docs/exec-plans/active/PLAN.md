@@ -1,3 +1,11 @@
+## Issue #552 — CI #2667.1 회귀 보완 및 새 PR CI 시작 (2026-10-13)
+
+[Work Packet](ISSUE_552.md): PR #561 원본 Head `290119bcfe859a26c1e095dcd4611e751e2a72af`의 Unit1/E2E9 FAIL을 보존한다. Native add query identity·metadata 우선순위와 OFF390 fallback focus를 보완하고 Copy 제목·알림 경계·supported DATE_REVEAL·native show/pending restore 테스트를 현재 계약에 맞춘다. 직접 관련 Unit111/별도Copy guard67, Chromium14 및 viewport고유6 PASS를 환경·최신source/제한재사용별로 구분한다. 문서 동기화·독립 사전 검토·최종 정적 검사 후 같은 PR에 한 번 게시하여 새 전체 CI를 시작하고 결과는 모니터링하지 않는다. HIGH/qa_required=true/OWNER_MANAGED, application0.107.0·release_required=true/release_authorized=false 유지. 새 Head quality/e2e/docker·QA_FINAL/Owner ACCEPT, merge/main/GHCR/tag/Issue 종료는 NOT TESTED/비범위다.
+
+## Issue #552 — PR #561 반복 실패 보완과 새 전체 CI 시작 (2026-10-13)
+
+[Work Packet](ISSUE_552.md): Head `290119bcfe859a26c1e095dcd4611e751e2a72af` / base `9b16ac5fdd48628062f151380c144a40125dc721`, [원본 CI #2667.1](https://github.com/planner77/masterGantt/actions/runs/38371554385)의 Unit1/E2E9 FAIL과 Docker PASS를 구분한다. Copy 접근성 이름·DATE_REVEAL Unit 계약, Dashboard 날짜 fallback의 유실 focus/새 사용자 입력, native 추가의 조회 조건 기반 continuity와 metadata 복원 우선순위를 보완한다. 집중 Unit/Chromium 및 실제 HTTP/SQLite 회귀·문서 동기화·별도 read-only PRE_QA 뒤 새 exact Head 전체 PR CI 등록까지만 진행한다. 결과 모니터링·병합·Main CI/GHCR/tag/release/Issue 종료는 제외한다. HIGH / qa_required=true, version0.107.0 및 release_required=true/release_authorized=false 유지, 새 원격 세 gate와 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #653 — 인증된 릴리스 승계 감사 수집기 (2026-10-13)
 
 - `scripts/release_succession_audit.py` 및 `.github/workflows/release-succession-audit.yml`은 default main `workflow_dispatch`에서 GitHub REST·authenticated GHCR·first-parent 자료를 조회하는 **읽기 전용** 감사 경로다. PR CI가 감사를 실행하거나 패키지 게시를 하지 않는다.

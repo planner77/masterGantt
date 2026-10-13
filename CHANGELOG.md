@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #552 반복 PR CI 회귀 보완 (2026-10-13)
+
+- Native Task 추가를 파생 표시 ID 변경으로 취소하지 않도록 조회 의도 기준을 사용하고 낮은 우선순위 metadata 복원의 선점을 차단한다. OFF 날짜 탐색의 Dashboard 행 교체/일시 비활성화 뒤 잃은 focus를 복구하며 새 사용자 입력과 modal 경계를 유지한다.
+- Copy 확인창 용어·알림 clipboard 경계·지원된 날짜 탐색·가시 native layout 이후 pending 복원·Calendar Core/native 정착 검증을 정합화한다. 원본 CI #2667.1 FAIL은 보존하고 QA gate·6 shard·assertion 허용오차·application0.107.0·release 권한은 유지한다.
+
 ## Issue #653 — 인증된 릴리스 승계 감사 수집기 (2026-10-13)
 
 - `scripts/release_succession_audit.py` 및 `.github/workflows/release-succession-audit.yml`은 default main `workflow_dispatch`에서 GitHub REST·authenticated GHCR·first-parent 자료를 조회하는 **읽기 전용** 감사 경로다. PR CI가 감사를 실행하거나 패키지 게시를 하지 않는다.

@@ -681,13 +681,15 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.port.repair).not.toHaveBeenCalled();
   });
 
-  it("classifies no-capacity and unsupported date requests without retries", async () => {
+  it("classifies no-capacity restore and supported date requests without retries", async () => {
     const f = fixture(); vi.mocked(f.port.apply).mockResolvedValue(null);
     const pending = f.coordinator.request(peer); await f.advance(8);
     expect(await pending).toBe("NO_SCROLL_CAPACITY");
     expect(f.port.apply).toHaveBeenCalledTimes(1);
-    expect(await f.coordinator.request({ kind: "DATE_REVEAL", date: new Date("2026-10-11") })).toBe("UNSUPPORTED");
-    expect(f.port.apply).toHaveBeenCalledTimes(1);
+    const date = f.coordinator.request({ kind: "DATE_REVEAL", date: new Date("2026-10-11") });
+    await f.advance(8);
+    expect(await date).toBe("NO_SCROLL_CAPACITY");
+    expect(f.port.apply).toHaveBeenCalledTimes(2);
   });
 
   it.each([["TIMED_OUT", "TIMED_OUT"], ["command rejected", "FAILED"]] as const)("classifies command rejection %s as %s", async (message, outcome) => {

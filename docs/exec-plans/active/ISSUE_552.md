@@ -1,5 +1,46 @@
 # Issue #552 — WBS 표시 분리와 Milestone 표시 전환
 
+## 2026-10-13 — PR CI #2667.1 반복 실패 보완
+
+현재 작업 기준은 PR #561 Head `290119bcfe859a26c1e095dcd4611e751e2a72af`, main/base `9b16ac5fdd48628062f151380c144a40125dc721`, test merge `cba673b3c9993f72baa1107f842b4966a1eaed05`다. 아래 최초 stacked 기준과 로컬 검증 기록은 당시 이력이며 현재 Head의 전체 회귀 성공을 뜻하지 않는다. 사용자 승인 범위는 보완·관련 문서 동기화·새 전체 PR CI 시작까지이며 CI 모니터링·병합·Main CI/GHCR/tag/release/Issue 종료는 제외한다. application `0.107.0`, HIGH / qa_required=true / qa_method=OWNER_MANAGED, release_required=true / release_authorized=false를 유지한다.
+
+참조: [사용자 제공 분석](https://chatgpt.com/s/t_6acdf69d6b3c8191836b4513af8c4bf9), [원본 CI #2667.1](https://github.com/planner77/masterGantt/actions/runs/38371554385), Issue #552의 AC1~AC12, #571의 단일 viewport writer·새 사용자 입력 우선순위, #529/#530의 peer 복귀, #464의 canonical Copy 경계 및 기존 Source of Truth. 공유 분석의 #2666까지 진단과 이후 #2667 결과를 구분한다.
+
+### 원본 실패 증거
+
+- Quality FAIL: job `115209695947`, Unit 1 FAIL / 2177 PASS. `viewport-coordinator.test.ts`가 지원된 DATE_REVEAL을 여전히 즉시 UNSUPPORTED로 기대하고 geometry frame을 전진시키지 않아 5000ms timeout.
+- E2E FAIL 9건: shard4 job `115209695957` 4건(390px OFF 날짜 fallback focus, 알림 clipboard 안내, #530 wheel 이후 위치 보존, #571 delayed native add SETTLED), shard5 job `115209696051` 2건(Resource Calendar 120→0, #529 wheel 이후 31→0), shard6 job `115209696059` Copy 확인 3건.
+- Docker PASS. 정책·TypeScript·ESLint·production build PASS. QA Final — Automated는 required quality 미성공으로 FAIL이며 독립 제품 QA의 대체 근거가 아니다.
+- 이전 [#2666.1](https://github.com/planner77/masterGantt/actions/runs/38363844306)은 전체 cancelled / E2E 13 FAIL 이력으로 보존한다. 최신 실패 9건과 합산하거나 이전 성공을 새 Head 성공으로 재사용하지 않는다.
+
+### 작업 소유와 검증 경계
+
+Manager는 문서·게시·Issue 기록, infra는 기존 실패 로그의 읽기 전용 분석, viewport frontend는 Gantt/Coordinator와 해당 Unit·Resource·Calendar·viewport E2E, copy/date frontend는 Workspace/Timeline과 Copy·알림·날짜 E2E를 맡는다. 파일 writer를 분리하고 qa_docs는 최종 동결 변경과 문서를 읽기 전용으로 독립 검토한다. 이 사전 검토는 인간 APPROVED나 원격 QA_FINAL·Owner ACCEPT가 아니다.
+
+직접 실패한 경로를 먼저 재현·보완하고 관련 집중 Unit/Chromium, typecheck·변경 lint·version·Markdown link·diff 검사를 수행한다. 실제 SQLite/HTTP 검증은 기존 isolated-application fixture를 사용하며 mock/외부 공유 서버 실행과 구별한다. 개발 서버의 자동 next-env/tsconfig 변경·DB·trace·runtime log는 게시하지 않는다. assertion·skip·timeout·허용오차·6 shard·Required aggregate·QA 신뢰 경계·release 권한은 완화하지 않는다.
+
+새 Head의 quality/e2e/docker, QA_FINAL 및 Manager ACCEPT는 실행 결과 전 NOT TESTED다. 새 전체 PR CI의 등록 식별자만 확인하고 결과를 모니터링하지 않는다.
+
+### 보완 결과와 로컬 증거
+
+Native add는 명시 조회 의도 fingerprint를 비교하고 완료 전 metadata PASSIVE_RESTORE를 진입부와 queue callback 양쪽에서 차단한다. Copy 확인창은 정상 생성돼 있었으며 옛 accessible title을 찾던 E2E를 현행 Milestone 용어로 맞췄다. 알림 검증은 canonical Task 추가와 명시 filter/scope 경계를 분리한다. OFF390은 query 재평가의 같은-ID 행 교체/일시 disable 뒤 실제 focus 상실을 재현하여 DOM target 기반 인계를 보완했고 새 pointerdown/keydown·다른 focus/modal·hidden/inert 우선권을 유지했다.
+
+Wheel의 원본 31→0은 paused clock의 native show layout commit 전 입력과 겹쳤다. Layout commit 후에도 app restore가 pending임을 새 phase assertion으로 확인한 뒤 실제 wheel을 보내며 기존 정확 Core/native 좌표·동일 instance·옛120 재발행0 assertion을 유지한다. Calendar는 native120 이벤트가 Core에도 정착했는지 저장 전에 확인하고 저장 후 exact Core/native 쌍을 검증한다. timeout·skip·허용오차 변경은 없다.
+
+| 로컬 실행 | 결과와 경계 |
+| --- | --- |
+| Coordinator/Port 관련 Unit | 111 PASS(517ms), 지원된 DATE_REVEAL frame 진행 포함 |
+| Copy/confirmation/server membership/visibility Unit | 별도 4파일 67 PASS(1.91초), `/tmp/issue552-copy-guard-unit.log` |
+| Copy·알림·OFF390/1024/1440·기존 관리 focus | 최신 14/14 PASS(32.7초), `/tmp/issue552-copy-final2-results`; 중간13/14 FAIL·390 단독반복3/3과 고유 수 구분 |
+| Calendar·Export/KPI wheel·resize·native add | 6/6 PASS(1.9분), `/tmp/issue552-viewport-final.log`; 앞4개는 실제 isolated HTTP/SQLite, 뒤2개는 mock actual Core |
+| 최종 queue ingress guard 이후 native add | 2/2 PASS(9.8초), `/tmp/issue552-native-final.log`; 이전6개 중2개를 대체하고 무관4개만 제한 재사용 |
+
+문서 영향: PROJECT_UX의 Calendar 동일 조건을 실제 canonical geometry 기준으로 정정하고 native add/metadata 소유권·fallback focus를 명시했다. MILESTONE_TIMELINE/TEST_PLAN/active PLAN/CHANGELOG/본 Packet을 갱신한다. DESIGN/UI_UX_GUIDELINES/REQUIREMENTS/TASK_EDITOR/TASK_RELATIONS/MILESTONE_STAGE_GATES/ARCHITECTURE/PRO_FEATURE_MATRIX는 기존 단일 writer·canonical subtree·최신 사용자 의도·focus 계약을 복구하는 범위여서 추가 계약 변경 N/A다. API/DB/SECURITY/SCHEDULING/Import·Export/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/배포·버전·AGENTS도 변경 없음 N/A다. 기존 전체 PR의 관련 문서 변경은 유지한다.
+
+최종 정적 검증은 typecheck, 변경 9파일 ESLint(0 errors/기존 hook warnings3), production build/runtime tools, version0.107.0, Markdown200파일, diff check PASS다. 서버 teardown 뒤 next-env/tsconfig를 원본으로 복원하고 typecheck도 다시 PASS했다. 자동 생성된 기존 tracked 화면 산출물은 로컬 별도 보존 후 원본 복원하며 게시 변경은 코드/테스트9·문서6의15파일이다.
+
+별도 `/root/qa_review`의 읽기 전용 PRE_QA는 동결 SHA·요구사항·코드·테스트·문서/로그를 직접 대조해 새 CI 시작 범위 PASS를 반환했다. Coordinator/Port 2파일 107/107 PASS(239ms)를 독립 실행했으며 구현자의 metadata restore4개 포함 3파일111개 실행과 구분한다. 독립 browser 재실행은 없고 Copy14 stdout은 별도 파일 미저장으로 도구 session/chunk 전사와 실제 .last-run PASS를 대조한 한계가 있다. 이 사전 검토는 최신 원격 QA_FINAL·Owner ACCEPT나 병합/릴리스 허가가 아니다. Manager DOCUMENTATION_SYNC는 이 범위 PASS다.
+
 ## Issue Work Packet
 
 - issue: https://github.com/planner77/masterGantt/issues/552, Epic #548 MT4. 최신 OPEN/comments0. 과거 등록-only 본문은 최신 사용자의 구현·PR CI 시작 요청으로 대체한다.

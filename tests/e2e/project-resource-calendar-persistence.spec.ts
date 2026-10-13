@@ -35,6 +35,11 @@ test("실제 SQLite에 그룹·리소스 WORKING 예외를 저장하고 재열�
   await chart.evaluate((element)=>{element.scrollLeft=120;});
   const scroll=await chart.evaluate((element)=>element.scrollLeft);
   expect(scroll).toBeGreaterThan(0);
+  const viewport = () => frame.evaluate(element => ({
+    core: Reflect.get(element, "__masterganttPublicViewport")?.left,
+    native: element.querySelector(".wx-chart")?.scrollLeft,
+  }));
+  await expect.poll(viewport).toEqual({ core: scroll, native: scroll });
   await page.getByRole("button",{name:"프로젝트 설정",exact:true}).click();
   const dialog=page.getByRole("dialog",{name:"프로젝트 설정",exact:true});
   await dialog.getByRole("tab",{name:"작업 캘린더"}).click();
@@ -67,7 +72,7 @@ test("실제 SQLite에 그룹·리소스 WORKING 예외를 저장하고 재열�
   await expect(frame).toHaveAttribute("data-project-gantt-instance",instance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance",apiInstance!);
   await expect(row).toHaveClass(/wx-selected/);
-  expect(await chart.evaluate((element)=>element.scrollLeft)).toBeCloseTo(scroll,0);
+  await expect.poll(viewport).toEqual({ core: scroll, native: scroll });
   await page.getByRole("button",{name:"프로젝트 설정",exact:true}).click();
   await dialog.getByRole("tab",{name:"작업 캘린더"}).click();
   await expect(dialog.getByLabel("일 유형 1")).toHaveValue("WORKING");

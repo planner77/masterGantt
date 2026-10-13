@@ -1,3 +1,7 @@
+## Issue #552 — OFF 날짜 탐색의 목록 focus (2026-10-13)
+
+날짜 탐색의 전체 목록 fallback은 현재 canonical ID의 관리 버튼 또는 조건 밖 대상의 안내 heading에 focus를 준다. 조회 중 비활성화·행 교체로 body에 focus가 유실되면 같은 활성 Dashboard에서만 복구하며, 후속 사용자 pointer/keyboard 입력이 있으면 검색·다른 control의 focus를 우선한다. 조회 조건·저장 OFF·원래 일정 viewport와 기존 modal/hidden/inert 경계는 유지한다. 자동 focus는 canonical 데이터나 native WBS selection을 변경하지 않는다. 390/1024/1440px 날짜 탐색 및 검색 focus 회귀와 실행 상태는 [검증 계획](TEST_PLAN.md)과 [Work Packet](exec-plans/active/ISSUE_552.md)을 따른다.
+
 ## Issue #647 — 삭제 후 관리 진입점 focus 보존 (2026-10-13)
 
 - Milestone 독립 목록에서 native WorkspaceDialog가 닫히기 전 예약된 RAF는 `:modal` trap에 의해 거부될 수 있다. 삭제한 원 관리 버튼이 DOM에서 소멸하면 같은 활성 프로젝트 Dashboard의 검색·추가·heading 중 실제 연결/표시 상태인 후보에 focus를 인계하되, 현재 활성 프로젝트/패널에 한정하고 또 다른 modal이 열려 있으면 기다린다. 한정된 RAF만 허용, 다른 날짜 좌표·SVAR viewport·WBS membership·Task source는 변화시키지 않는다.
@@ -287,3 +291,10 @@ Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하�
 ### #552 Date reveal correction (2026-10-13)
 
 A production `DATE_REVEAL` request now uses the canonical date coordinate via the public SVAR scroll-chart command, preserving vertical position and retaining Milestone rows outside WBS. Invalid or out-of-axis dates must fail closed and retain explicit Dashboard fallback. This does not enable private SVAR APIs or change stored visibility authority.
+
+
+## Issue #552 — 날짜 목록 fallback focus 재검증
+
+OFF 날짜 탐색에서 좁은 물리 Chart를 대신하는 전체 목록 fallback은 canonical ID가 같은 실제 관리 버튼의 focus 성공을 확인한다. 같은 ID라도 Dashboard query 재평가가 DOM 행을 교체하거나 일시 disable하여 BODY focus를 만들 수 있으므로 이전 ID만으로 인계 완료를 판정하지 않는다. 현재 query/render 변화에서 잃은 focus만 복구하며 새 pointerdown/keydown·다른 살아 있는 focus·modal·hidden/inert를 우선한다. RAF cleanup을 유지하고 상시 polling을 추가하지 않는다. 조건을 명시 해제하는 기존 경로만 새 focus 의도로 재개한다.
+
+390/1024/1440px OFF 날짜 탐색·원래 보기 복귀와 390px의 물리 focus ring·center hit·inactive peer paint, fallback 이후 검색 focus 보존을 직접 관련 Chromium에서 검증한다. 해당 국소 실행은 원격 전체 PR CI나 실제 screen reader·device 검증의 대체가 아니다.

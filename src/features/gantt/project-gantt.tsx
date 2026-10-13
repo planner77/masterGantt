@@ -785,7 +785,9 @@ export function ProjectGantt({
 
   const currentNativeAddContext = useCallback((): string => {
     const sample = viewportPortReference.current?.read(), context = sample?.context;
-    return JSON.stringify([context?.apiInstance, context?.key, context?.scope, context?.filter, context?.scale,
+    // Adding a Task changes derived visible IDs, while the user query stays
+    // unchanged. Continuity compares query intent, not the previous ID set.
+    return JSON.stringify([context?.apiInstance, context?.key, context?.scope, context?.receiptFilter, context?.scale,
       context?.columns, context?.visible, sample?.measurable, window.innerWidth, window.innerHeight,
       document.fullscreenElement === fullscreenFrameReference.current]);
   }, []);
@@ -2059,14 +2061,16 @@ export function ProjectGantt({
   }, []);
   const restoreCanonicalMetadataViewport = useCallback(async (api: IApi) => {
     const request = metadataViewportReference.current;
-    if (!request || request.consumed) return;
+    // Native add owns its pre-mutation continuity until the new projection settles.
+    // A metadata-only render must not supersede that stronger intent.
+    if (!request || request.consumed || nativeAddContinuityReference.current) return;
     request.consumed = true;
     // A no-op render has no authority to replay coordinates after receipt wait.
     if (!request.protect && request.left === 0 && request.top === 0) return;
     // The data queue must finish before #570 can observe a projection receipt.
     // Enqueue viewport intent without awaiting that receipt inside the data queue.
     void canonicalSyncQueueReference.current.then(() => {
-      if (metadataViewportReference.current !== request || request.hasInput() || pendingPeerRestoreReference.current ||
+      if (metadataViewportReference.current !== request || request.hasInput() || pendingPeerRestoreReference.current || nativeAddContinuityReference.current ||
         request.peerEpoch !== peerRestoreAuthorityEpoch.current || api !== apiReference.current ||
         request.root !== ganttScrollReference.current || !request.stamp) return;
       void viewportCoordinatorReference.current?.request({ kind: "PASSIVE_RESTORE", position: { left: request.left, top: request.top }, protect: request.protect }, request.stamp);

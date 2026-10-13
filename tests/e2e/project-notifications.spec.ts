@@ -67,7 +67,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   const identity = await rememberGanttRoot(page);
   const chart = page.locator(".wx-chart");
   await chart.evaluate((element) => { element.scrollLeft = 200; });
-  let before = await geometry(page);
+  const before = await geometry(page);
   const layoutBounds = () => page.evaluate(() => { const rect=(selector:string)=>{const r=document.querySelector(selector)!.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};return {frame:rect(".project-gantt-frame"),lane:rect(".project-milestone-lane")}; });
   const frameAndLane = await layoutBounds(); expect(frameAndLane.lane.height).toBe(64);
   await captureNotificationLayout(page,"before");
@@ -88,14 +88,10 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await captureNotificationLayout(page,"after-success");
   expect(fixture.project.revision).toBe(beforeCreateRevision+1); expect(fixture.createdTaskIds).toHaveLength(1);
   expect(fixture.tasks.map(task=>task.taskId).sort()).toEqual([...beforeCreateIds,fixture.createdTaskIds[0]].sort());
-  const scopeNotice=page.locator(".project-copy-selection-status"); await expect(scopeNotice).toHaveText("표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
-  const occupied=await scopeNotice.evaluate(node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {height:r.height,marginTop:parseFloat(s.marginTop),marginBottom:parseFloat(s.marginBottom)};});
-  expect(occupied).toEqual({height:20,marginTop:4,marginBottom:4}); const noticeHeight=occupied.height+occupied.marginTop+occupied.marginBottom; expect(noticeHeight).toBe(28);
-  const afterCreate=await geometry(page); expect(afterCreate.grid.height).toBe(before.grid.height-noticeHeight); expect(afterCreate.chart.height).toBe(before.chart.height-noticeHeight);
-  expect({...afterCreate,grid:{...afterCreate.grid,height:before.grid.height},chart:{...afterCreate.chart,height:before.chart.height}}).toEqual(before);
+  // A canonical task addition preserves the explicit selection boundary and clipboard.
+  await expect(page.locator(".project-copy-selection-status")).toHaveCount(0);
+  expect(await geometry(page)).toEqual(before);
   expect(await layoutBounds()).toEqual(frameAndLane);
-  // Canonical creation adds the existing scope notice; later notification operations use its exact stable layout.
-  before=afterCreate;
   await expectSameGanttRoot(page, identity);
   await page.clock.fastForward(5_100);
   await expect(page.getByTestId("workspace-toast")).toBeEmpty();

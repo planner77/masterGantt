@@ -497,6 +497,12 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await page.clock.install({ time: new Date(pauseTime.getTime() - 60_000) });
   await page.clock.pauseAt(pauseTime);
   await schedule.evaluate(node=>(node as HTMLElement).click()); await expect(frame).toBeVisible();
+  // Commit the native show layout before wheel input, while the app restore
+  // still awaits its projection/geometry proof. Frozen pre-paint DOM can report
+  // a scrollbar that Core has not yet committed for the visible Chart.
+  await page.clock.runFor(32);
+  const pendingRestore = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]").findLast((event: { kind: string }) => event.kind === "PEER_RETURN");
+  expect(["WAIT_PROJECTION", "PREPARING_GEOMETRY", "WAIT_GEOMETRY"]).toContain(pendingRestore?.phase);
   const bounds=await chart.boundingBox(); if(!bounds) throw Error("visible chart required");
   await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2); await page.mouse.wheel(40,0);
   await expect.poll(async()=> (await ganttIntegrationState(page)).publicViewport.left).toBeGreaterThan(0);

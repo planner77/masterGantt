@@ -5,7 +5,7 @@ import { exchangePreview, exchangeSnapshot, withExternalMembership } from "../fi
 import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
 
 const importDialog=(page:Page)=>page.getByRole("dialog",{name:"JSON 파일 가져오기",exact:true});
-const copyDialog=(page:Page)=>page.getByRole("dialog",{name:"복사 시 단계 소속 변경",exact:true});
+const copyDialog=(page:Page)=>page.getByRole("dialog",{name:"복사 시 Milestone 소속 변경",exact:true});
 const file={name:"stage-source.json",mimeType:"application/json",buffer:Buffer.from('{"schemaVersion":"1.1","synthetic":true}')};
 async function selectFile(page:Page){const more=page.locator('summary[aria-label="프로젝트 작업 더보기"]');if(!await more.evaluate(el=>(el.parentElement as HTMLDetailsElement).open))await more.click();const chooser=page.waitForEvent("filechooser");await page.getByRole("button",{name:"가져오기 (JSON)",exact:true}).click();await(await chooser).setFiles(file);}
 async function start(page:Page){await page.goto(`/projects/${publicId}`);await expect(page.getByText("편집 중",{exact:true})).toBeVisible();}

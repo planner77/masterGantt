@@ -98,7 +98,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#552 enabled Day/Week co
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });
 
-for (const width of [390, 1024]) test(`#552 OFF date request ${width}px exact marker/list fallback and original Dashboard conditions/viewport`, async ({ page }) => {
+for (const width of [390, 1024, 1440]) test(`#552 OFF date request ${width}px exact marker/list fallback and original Dashboard conditions/viewport`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 }); const state = await fixture(page), identity = await rememberGanttRoot(page);
   const frame = page.locator(".project-gantt-frame"), panel = page.locator("#project-panel-milestones");
   await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
@@ -156,6 +156,14 @@ for (const width of [390, 1024]) test(`#552 OFF date request ${width}px exact ma
     expect(physicalFocus.rect.right+6).toBeLessThanOrEqual(Math.min(physicalFocus.viewport.width,physicalFocus.ownerClip.right));
     expect(physicalFocus.rect.y-6).toBeGreaterThanOrEqual(Math.max(0,physicalFocus.ownerClip.y));
     expect(physicalFocus.rect.bottom+6).toBeLessThanOrEqual(Math.min(physicalFocus.viewport.height,physicalFocus.ownerClip.bottom));
+    // A later user search owns focus even while the highlighted row refreshes.
+    const search = panel.getByLabel("Milestone 검색", { exact: true });
+    await search.fill("Stable");
+    await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+    await expect(search).toBeFocused();
+    await search.fill("Stable milestone");
+    await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+    await expect(search).toBeFocused();
     await page.getByRole("tab", { name: "일정", exact: true }).click();
     await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
     await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().left)).toBe(original);

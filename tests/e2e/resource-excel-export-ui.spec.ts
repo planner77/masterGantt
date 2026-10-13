@@ -238,6 +238,10 @@ test("#529 pending peer restore cancels on native wheel and canonical filter cha
   await page.clock.install(); await page.clock.pauseAt(new Date());
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await expect(frame).toBeVisible();
+  // Observe the native show commit without completing the pending app restore.
+  await page.clock.runFor(32);
+  const pendingRestore = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]").findLast((event: { kind: string }) => event.kind === "PEER_RETURN");
+  expect(["WAIT_PROJECTION", "PREPARING_GEOMETRY", "WAIT_GEOMETRY"]).toContain(pendingRestore?.phase);
   await page.mouse.move(position.x + position.width / 2, position.y + position.height / 2);
   await page.mouse.wheel(40, 0);
   const viewport = () => frame.evaluate(node => ({ public: Reflect.get(node, "__masterganttPublicViewport"),

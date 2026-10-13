@@ -104,16 +104,43 @@ export function ProjectMilestoneDashboard({
       onSchedule([...new Set(ids)], data.resourceScopeContext);
   };
   const managementRows = useMemo(() => sortMilestoneManagementRows(data?.rows ?? [], tasks), [data?.rows, tasks]);
-  const focusedHighlight = useRef<string | null>(null);
+  const focusedHighlight = useRef<{ taskId: string; target: HTMLElement } | null>(null);
+  const highlightFocusCancelled = useRef(false);
+  useEffect(() => {
+    highlightFocusCancelled.current = false;
+    if (!active || !highlightTaskId) return;
+    const cancel = () => { highlightFocusCancelled.current = true; };
+    document.addEventListener("pointerdown", cancel, true);
+    document.addEventListener("keydown", cancel, true);
+    return () => {
+      document.removeEventListener("pointerdown", cancel, true);
+      document.removeEventListener("keydown", cancel, true);
+    };
+  }, [active, highlightTaskId]);
   useEffect(() => {
     if (!active) { focusedHighlight.current = null; return; }
-    if (!enabled || !highlightTaskId || focusedHighlight.current === highlightTaskId) return;
+    if (!enabled || !highlightTaskId || highlightFocusCancelled.current) return;
+    const previous = focusedHighlight.current;
+    if (previous?.taskId === highlightTaskId) {
+      if (document.activeElement === previous.target) return;
+      // Query refresh can replace or temporarily disable the focused row.
+      // Repair only lost focus; a newer user-selected control keeps its focus.
+      const activeElement = document.activeElement;
+      if (activeElement && activeElement !== document.body && activeElement !== document.documentElement) return;
+    }
     const frame = requestAnimationFrame(() => {
       const root = document.getElementById("project-panel-milestones");
-      if (!root?.isConnected || root.closest("[hidden], [inert]") || document.querySelector("dialog:modal")) return;
+      if (highlightFocusCancelled.current || !root?.isConnected || root.closest("[hidden], [inert]") || document.querySelector("dialog:modal")) return;
+      if (previous?.taskId === highlightTaskId) {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement !== document.body && activeElement !== document.documentElement) return;
+      }
       const row = Array.from(root.querySelectorAll<HTMLElement>("[data-milestone-task-id]")).find(node => node.dataset.milestoneTaskId === highlightTaskId);
       const target = row?.querySelector<HTMLElement>('button[aria-label$=" 관리"]') ?? root.querySelector<HTMLElement>("[data-milestone-focus=heading]");
-      if (target) { target.focus(); focusedHighlight.current = highlightTaskId; }
+      if (target) {
+        target.focus();
+        if (document.activeElement === target) focusedHighlight.current = { taskId: highlightTaskId, target };
+      }
     });
     return () => cancelAnimationFrame(frame);
   }, [active, enabled, highlightTaskId, managementRows]);
@@ -257,7 +284,7 @@ export function ProjectMilestoneDashboard({
           <h2 tabIndex={-1} data-milestone-focus="heading">Milestone 대시보드</h2>
           <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
           {highlightTaskId ? <p role="status">{!tasks.some(task => task.taskId === highlightTaskId && task.type === "milestone") ? "요청한 Milestone이 삭제되었거나 현재 정보에 없습니다." : managementRows.some(row => row.milestoneTaskId === highlightTaskId) ? `날짜 보기 대상: ${tasks.find(task => task.taskId === highlightTaskId)?.name} · 작업 ID ${highlightTaskId}` : "요청한 Milestone은 현재 대시보드 조건에 포함되지 않습니다. 조회 조건은 유지했습니다."}</p> : null}
-          {highlightTaskId && tasks.some(task => task.taskId === highlightTaskId && task.type === "milestone") && !managementRows.some(row => row.milestoneTaskId === highlightTaskId) ? <button type="button" disabled={!enabled} onClick={() => { focusedHighlight.current = null; resetDashboardConditions(); }}>조건 해제하여 전체 목록 보기</button> : null}
+          {highlightTaskId && tasks.some(task => task.taskId === highlightTaskId && task.type === "milestone") && !managementRows.some(row => row.milestoneTaskId === highlightTaskId) ? <button type="button" disabled={!enabled} onClick={() => { focusedHighlight.current = null; highlightFocusCancelled.current = false; resetDashboardConditions(); }}>조건 해제하여 전체 목록 보기</button> : null}
         </div>
         <div className={styles.actions}>
         <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? "프로젝트 최상위에 추가" : "편집 활성화 후 추가할 수 있습니다"}>Milestone 추가</button>

@@ -1,3 +1,16 @@
+## Issue #552 — PR CI #2667.1 실패 재현과 집중 회귀 (2026-10-13)
+
+원본 [CI #2667.1](https://github.com/planner77/masterGantt/actions/runs/38371554385), Head `290119bcfe859a26c1e095dcd4611e751e2a72af`: quality FAIL(Unit 2177 PASS/1 FAIL), E2E FAIL(9건, shards4/5/6), Docker PASS. 이전 #2666 cancelled/13 E2E FAIL 이력은 별도로 보존한다. 로컬 집중 검증은 새 Head 전체 CI 성공을 대체하지 않는다.
+
+- `tests/features/gantt/viewport-coordinator.test.ts`: 지원된 DATE_REVEAL의 geometry frame을 진행하여 NO_SCROLL_CAPACITY 영수증과 요청 횟수를 검증한다. 이미 지원하는 경로를 UNSUPPORTED로 기대하지 않는다.
+- `tests/e2e/milestone-exchange-state.spec.ts`: 실제 접근성 이름 `복사 시 Milestone 소속 변경`으로 공통 Copy 확인 Dialog를 찾는다. 외부 소속 제외·취소·401·412·revision 무효화·5폭 geometry와 mutation 원자성 assertion은 유지한다.
+- `tests/e2e/milestone-visibility.spec.ts`: 390/1024/1440px OFF 날짜 탐색의 exact-ID marker/list, 실제 focus·가시성·hit-test·원래 조건/viewport 복귀를 확인하고, fallback 후 사용자 검색 focus를 재조회가 빼앗지 않는지 검증한다.
+- `tests/e2e/viewport-coordinator.spec.ts`: delayed native add의 SETTLED 및 새 사용자 wheel에 의한 취소를 함께 검증한다. 추가로 바뀐 표시 ID와 실제 조회 조건을 구별하며 metadata-only 복원이 추가 전 위치 복원을 덮지 않아야 한다.
+- `tests/e2e/project-notifications.spec.ts`: canonical 추가만으로 clipboard 범위 변경 안내를 만들지 않으며 frame/lane/Grid/Chart geometry·instance·revision+1·Task ID 및 후속 notification 동작을 유지한다.
+- 실제 isolated Next HTTP/SQLite: `project-resource-calendar-persistence.spec.ts`의 저장 후 위치, `resource-kpi-integration-ui.spec.ts`의 peer/nested/wheel/resize, `resource-excel-export-ui.spec.ts`의 pending peer wheel을 대상 회귀로 구분한다.
+
+skip/timeout/허용오차/필수 aggregate/6 shard/QA 정책은 변경하지 않는다. 로컬 실행 결과·중간 실패·독립 PRE_QA 범위는 [Work Packet](exec-plans/active/ISSUE_552.md)에 기록하고 새 원격 quality/e2e/docker·QA_FINAL·Manager ACCEPT는 실제 결과 전 NOT TESTED로 유지한다.
+
 ## Issue #653 — 릴리스 승계 read-only 수집기 테스트 (2026-10-13)
 
 - 정책 검사: tests/python/test_release_succession_preflight.py.
@@ -3594,3 +3607,18 @@ visibility 수정 후 source125 aggregate `f320261b0fddc7f0ddee041a4efd31881a778
 ### #552 (2026-10-13) CI #2666 regression plan
 
 Verify production Milestone DATE_REVEAL with exact canonical date through public `scroll-chart`, including saved OFF preference and marker/fallback focus. Verify Copy Preview impact, zero mutation before acknowledgement, clipboard survival under unchanged query but invalidation on explicit filter/scope change. Verify calendar-only revision viewport preservation, explicit user wheel priority, #571 Schedule-origin Task Reveal and #528 Dashboard-origin drill independently. Keep six full E2E shards, actual HTTP, readonly/401/412 and completed boundaries; do not skip/relax checks.
+
+
+## Issue #552 — CI #2667.1 집중 회귀 보완
+
+원본 [CI #2667.1](https://github.com/planner77/masterGantt/actions/runs/38371554385), Head `290119bcfe859a26c1e095dcd4611e751e2a72af`는 Unit 1 FAIL / 2177 PASS, Chromium shard4/5/6 각각 4/2/3 FAIL, Docker PASS다. 최초 실패·이전 #2666 cancelled 이력을 변경하지 않는다.
+
+- DATE_REVEAL Unit은 지원된 요청을 즉시 UNSUPPORTED로 기대하던 무한 대기를 수정한다. geometry frame을 전진해 실제 apply(null)의 NO_SCROLL_CAPACITY·명령 횟수를 검증한다. Coordinator/Port 관련 Unit 111 PASS이며 timeout/skip을 바꾸지 않았다.
+- Native 추가의 파생 표시 ID 변화를 명시 query 변화와 분리하고 낮은 우선순위 metadata 복원의 선점을 차단한다. 실제 delayed add 무입력 보존/실제 wheel 취소 2개를 마지막 queue ingress guard 이후 재실행해 2/2 PASS(9.8초).
+- #529/#530 wheel 테스트는 paused clock의 native show commit 전 입력과 실제 pending app restore를 구별한다. 32ms 진행 뒤 PEER_RETURN이 WAIT_PROJECTION/PREPARING_GEOMETRY/WAIT_GEOMETRY임을 먼저 입증하고 실제 wheel을 보낸다. Core exact/native 원시 위치·동일 instance·후행 과거 120px 미발행 assertion은 유지한다. Calendar 테스트는 저장 전 scroll 이벤트의 Core/native 쌍이 정착한 뒤 캡처하고 저장 후에도 정확한 쌍을 poll한다.
+- Calendar·#529 wheel/filter·#530 wheel/resize의 4개는 실제 isolated Next HTTP/SQLite에서 PASS. Native add 2개와 묶은 6/6 실행은 1.9분이며, 뒤의 native add guard 보완은 이 4경로에 영향이 없어 제한 재사용한다. 마지막 native add 2개와 중복 합산하지 않는다.
+- Copy 3개는 정상 생성된 확인창을 옛 제목으로 찾은 오류다. exact accessible title `복사 시 Milestone 소속 변경`으로 맞추고 preview·취소 mutation0·revision 변경 무효화·5폭 Copy/Import의 기존 assertion을 유지한다. 알림 테스트는 canonical Task 추가가 명시 조회 경계를 바꾸지 않을 때 clipboard 안내를 생성하지 않는 계약과 기존 정확 geometry를 함께 확인한다.
+- 390px fallback focus는 행 교체/일시 disable 뒤 BODY로 유실되는 실제 경계를 보완한다. 첫 재현 FAIL 및 중간 13 PASS/1 FAIL을 보존하고, 최신 source의 OFF390/1024/1440·Copy3·알림·기존 관리 focus 7개는 14/14 PASS(32.7초). 390 단독 3/3 재검증은 별도 반복이며 고유 수에 더하지 않는다. fallback 이후 사용자 검색 focus 보존을 추가했다.
+- Copy preview/confirmation model·서버 membership Copy·Milestone visibility의 관련 Unit 4파일 67 PASS(1.91초)는 별도 명령이다. 111 Unit과 환경/실행을 합친 전체 회귀로 표시하지 않는다.
+
+로컬 PASS는 새 Head의 원격 quality/e2e/docker·Trusted QA·Owner ACCEPT가 아니다. CI/권한/Required checks/6 shard/timeout/허용오차는 불변이다. production/reverse proxy·실물 touch/device·screen reader·Windows Excel/DRM은 NOT TESTED다.
