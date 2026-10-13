@@ -10,8 +10,9 @@
 - `docs/exec-plans/active/ISSUE_616.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_649.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/ISSUE_633_RELEASE_DEBT.md`: UPDATED
 - `docs/QA_REVIEW_POLICY.md`: N/A(이번 변경에서 해당 계약·UI·API·DB 동작은 변경하지 않음)
-- `docs/GITHUB_OPERATIONS.md`: N/A(이번 변경에서 해당 계약·UI·API·DB 동작은 변경하지 않음)
 - `DESIGN.md`: N/A(이번 변경에서 해당 계약·UI·API·DB 동작은 변경하지 않음)
 - `docs/API.md`: N/A(이번 변경에서 해당 계약·UI·API·DB 동작은 변경하지 않음)
 - `docs/DB_SCHEMA.md`: N/A(이번 변경에서 해당 계약·UI·API·DB 동작은 변경하지 않음)
