@@ -19,18 +19,25 @@
 - AC7: Only after Owner-authorized merge and successful Main CI, Owner separately runs default-main `release-succession-audit.yml` workflow_dispatch; BLOCKED if Owner v0.107.0 revocation/v0.108.0 prepare absent. PREPARE_ONLY is not publish permission.
 
 ## DOCUMENTATION_SYNC
-- AGENTS.md: UPDATED (runtime contract and guardrails)
-- docs/CI_CD.md: UPDATED (CI suite and fail-closed provenance)
-- docs/GITHUB_OPERATIONS.md: UPDATED (Owner vs implementation responsibility)
-- docs/REMOTE_VALIDATION.md: UPDATED (validation boundary)
-- docs/TEST_PLAN.md: UPDATED (AC/fixture coverage)
-- docs/exec-plans/active/PLAN.md: UPDATED
-- docs/exec-plans/active/ISSUE_662.md: ADDED
-- CHANGELOG.md: UPDATED
-- docs/QA_REVIEW_POLICY.md: N/A — existing HIGH OWNER_MANAGED/Trusted QA/manager approval gate unchanged.
-- DESIGN.md: N/A — no application UI or UX changes.
-- docs/API.md: N/A — no product HTTP API changes.
-- docs/DB_SCHEMA.md: N/A — no schema or migrations.
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_662.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(HIGH OWNER_MANAGED 및 Trusted QA 정책 불변)
+- `DESIGN.md`: N/A(제품 UI 또는 디자인 체계에 변경이 없음)
+- `docs/API.md`: N/A(제품 HTTP API 또는 계약 변경이 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 스키마와 마이그레이션 변경이 없음)
+
+## Review #668 — P2 / fail-closed 진단
+- [P2 #4259506390](https://github.com/planner77/masterGantt/pull/668#discussion_r4259506390): authenticated manifest evidence is recorded in a separate `LAST_AUTHENTICATED_OCI` context. A later Owner/retirement/main/policy BLOCKED retains the original version/tag/expected+actual digest in artifact and Summary without changing the failing stage or granting PASS.
+- An OCI candidate's own missing digest remains explicit `actual_digest=null` and the previously authenticated release manifest is preserved only as `last_authenticated_oci`, not substituted as candidate proof.
+- `test_confirmed_digest_survives_later_owner_block_in_json_and_summary` and `test_current_failure_stage_not_mislabelled_as_confirmed_digest` cover the two boundaries.
+- PR metadata must contain one independent line each: `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: false`, `release_authorized: false`. Never wrap all declarations in inline code or one list line. 
+- QA Preflight #2692.1 correctly FAIL before full tests due to metadata/doc syntax; subsequent head requires new tests and review verification.
 
 ## Independent provenance and remaining blockers
 - Audit #17.1 https://github.com/planner77/masterGantt/actions/runs/38403028531 is immutable historical FAILURE, not retconned.
