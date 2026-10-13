@@ -30,23 +30,54 @@ B2_SOURCES = (
     ("d69749753fb9db002232d92d51446237a0fe042d", 550, 632),
 )
 STAGE = "precondition"
+# Failure context is kept separate from caller-supplied evidence and contains
+# no credentials, private Owner comment text or external command stderr.
+EVIDENCE_CONTEXT: dict[str, str | None] = {}
+OBSERVED_INVENTORY: dict[str, Any] = {}
 
 
-def stage(name: str) -> None:
-    global STAGE
+class AuditBlocked(policy.SuccessionBlocked):
+    def __init__(self, reason: str, code: str = "EVIDENCE_INVALID") -> None:
+        super().__init__(reason)
+        self.code = code
+
+
+def stage(
+    name: str, *, version: str | None = None, tag: str | None = None,
+    expected_digest: str | None = None, actual_digest: str | None = None,
+) -> None:
+    global STAGE, EVIDENCE_CONTEXT
     STAGE = name
+    EVIDENCE_CONTEXT = dict(
+        version=version, tag=tag, expected_digest=expected_digest,
+        actual_digest=actual_digest,
+    )
+
 
 MARKER = re.compile(r"<!--\s*(mastergantt-[\w-]+:v\d+)\s+({.*?})\s*-->", re.S)
 
 
-def require(value: bool, reason: str) -> None:
+def require(value: bool, reason: str, *, code: str = "EVIDENCE_INVALID") -> None:
     if not value:
-        raise policy.SuccessionBlocked(reason)
+        raise AuditBlocked(reason, code)
 
 
 def process(*args: str) -> str:
-    p = subprocess.run(args, capture_output=True, text=True, check=False, timeout=90)
-    require(p.returncode == 0, f"명령 실패: {args[:2]}: {p.stderr[:200]}")
+    # No raw stderr in the diagnostic artifact: it can contain auth details.
+    try:
+        p = subprocess.run(args, capture_output=True, text=True, check=False, timeout=90)
+    except (subprocess.TimeoutExpired, OSError) as exc:
+        raise AuditBlocked(f"{args[0]} {args[1]} 실행 불가 또는 timeout",
+                           "EXTERNAL_UNAVAILABLE") from exc
+    if p.returncode != 0:
+        match = re.search(r"\b(401|403|404|429)\b", p.stderr or "")
+        status = match.group(1) if match else None
+        code = f"HTTP_{status}" if status else "EXTERNAL_COMMAND_FAILED"
+        raise AuditBlocked(
+            f"{args[0]} {args[1]} 호출 실패"
+            + (f" (HTTP {status})" if status else " (상태 미확인)"),
+            code,
+        )
     return p.stdout.strip()
 
 
@@ -132,39 +163,84 @@ def release_inventory() -> set[str]:
     return names
 
 
+def authenticated_manifest_digest(tag: str) -> str:
+    """Read the canonical top-level manifest/index digest for an exact tag.
+
+    docker/buildx uses the previously authenticated GHCR credentials. The
+    descriptor must identify the requested image and an OCI/Docker manifest;
+    a child platform digest, malformed output or a 404 is never proof of
+    absence. Do not combine a format query and a second racing inspect.
+    """
+    image = f"ghcr.io/planner77/mastergantt:{tag}"
+    raw = process("docker", "buildx", "imagetools", "inspect", image)
+    header = raw.split("Manifests:", 1)[0]
+    names = re.findall(r"(?m)^Name:\s*(\S+)\s*$", header)
+    media = re.findall(r"(?m)^MediaType:\s*(\S+)\s*$", header)
+    digests = re.findall(r"(?m)^Digest:\s*(\S+)\s*$", header)
+    valid_media = {
+        "application/vnd.oci.image.index.v1+json",
+        "application/vnd.oci.image.manifest.v1+json",
+        "application/vnd.docker.distribution.manifest.list.v2+json",
+        "application/vnd.docker.distribution.manifest.v2+json",
+    }
+    require(names == [image] and len(media) == 1 and media[0] in valid_media
+            and len(digests) == 1 and policy.DIGEST.fullmatch(digests[0]) is not None,
+            "인증 OCI manifest의 name/mediaType/top-level digest 누락 또는 손상",
+            code="OCI_MANIFEST_INVALID")
+    return digests[0]
+
+
 def registry_inventory() -> tuple[set[str], dict[str, str]]:
-    # Authenticated GitHub Packages inventory MUST be complete. 404 is BLOCKED.
+    """Canonical GHCR tags are bare SemVer; historical CI tags are separate.
+
+    Only a complete authenticated GitHub Packages inventory can establish an
+    ABSENT tag. Manifest lookup failure for an existing tag is UNKNOWN/BLOCKED.
+    """
+    stage("GHCR exact SemVer tag")
     versions = pages(
         "/users/planner77/packages/container/mastergantt/versions?state=active",
     )
     tags: set[str] = set()
-    digest_map: dict[str, str] = {}
+    seen_ids: set[int] = set()
+    wanted = set(VERSIONS) | {f"ci-{policy.PUBLISHED_SHA}"}
     for version in versions:
-        meta = (version.get("metadata") or {}).get("container") or {}
-        values = meta.get("tags")
-        require(isinstance(values, list) and all(isinstance(v, str) for v in values),
-                "인증 GHCR package metadata 누락")
+        metadata = version.get("metadata")
+        require(isinstance(metadata, dict), "GHCR package metadata 누락",
+                code="PACKAGE_METADATA_INVALID")
+        container = metadata.get("container")
+        require(isinstance(container, dict), "GHCR container metadata 누락",
+                code="PACKAGE_METADATA_INVALID")
+        values = container.get("tags")
+        require(isinstance(values, list)
+                and all(isinstance(v, str) and
+                        re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}", v)
+                        for v in values),
+                "인증 GHCR tag 형식/목록 불명확", code="PACKAGE_METADATA_INVALID")
         version_id = version.get("id")
-        require(type(version_id) is int and version_id > 0, "GHCR package version ID 누락")
+        require(type(version_id) is int and version_id > 0
+                and version_id not in seen_ids,
+                "GHCR package version ID 누락/중복", code="PACKAGE_DUPLICATE")
+        seen_ids.add(version_id)
         for tag in values:
-            require(tag not in tags, "GHCR package tag 중복")
+            require(tag not in tags, "GHCR package tag 중복",
+                    code="PACKAGE_DUPLICATE")
             tags.add(tag)
-            if tag in {"v" + v for v in VERSIONS}:
-                # Docker manifest is fetched from authenticated registry, never
-                # guessed from GitHub Release or package metadata.
-                image_ref = f"ghcr.io/planner77/mastergantt:{tag}"
-                manifest = process("docker", "buildx", "imagetools", "inspect",
-                                   image_ref, "--format", "{{json .Manifest}}")
-                obj = json.loads(manifest)
-                # Buildx manifest does not assert its own top-level canonical digest.
-                # Parse the authenticated raw descriptor supplied by inspect.
-                raw = process("docker", "buildx", "imagetools", "inspect", image_ref)
-                match = re.search(r"(?m)^Digest:\s*(sha256:[0-9a-f]{64})\s*$", raw)
-                require(match is not None and isinstance(obj, dict),
-                        "인증된 OCI manifest digest 조회 불가")
-                digest_map[tag] = match.group(1)
-    return tags, digest_map
 
+    digest_map: dict[str, str] = {}
+    for tag in sorted(tags & wanted):
+        version = "0.106.1" if tag.startswith("ci-") else tag
+        expected = (policy.PUBLISHED_DIGEST
+                    if tag in ("0.106.1", f"ci-{policy.PUBLISHED_SHA}") else None)
+        stage("Main verified ci-SHA candidate" if tag.startswith("ci-")
+              else "authenticated OCI digest",
+              version=version, tag=tag, expected_digest=expected)
+        digest = authenticated_manifest_digest(tag)
+        EVIDENCE_CONTEXT["actual_digest"] = digest
+        require(expected is None or digest == expected,
+                f"{tag}: 인증 OCI exact digest가 보존된 게시 증거와 불일치",
+                code="OCI_DIGEST_MISMATCH")
+        digest_map[tag] = digest
+    return tags, digest_map
 
 def run_verified(run_id: int, attempt: int, conclusion: str, expected_sha: str) -> str:
     run = api(f"/repos/{REPO}/actions/runs/{run_id}")
@@ -336,27 +412,44 @@ def release_lifecycle_verified(
     chain: list[str], tags: dict[str, str], ghcr: set[str],
     digests: dict[str, str], decision_url: str | None,
 ) -> bool:
+    # The three sources have deliberately different tag names/contracts.
+    stage("Git annotated tag/peeled SHA", version="0.106.1", tag="v0.106.1")
     require(policy.PUBLISHED_SHA in chain
-            and tags.get("refs/tags/v0.106.1") == policy.PUBLISHED_SHA
-            and "v0.106.1" in ghcr
-            and digests.get("v0.106.1") == policy.PUBLISHED_DIGEST,
-            "v0.106.1 Git/OCI exact release 누락")
+            and tags.get("refs/tags/v0.106.1") == policy.PUBLISHED_SHA,
+            "v0.106.1 Git annotated tag/peeled SHA 불일치",
+            code="GIT_TAG_SHA_MISMATCH")
+    stage("GHCR exact SemVer tag", version="0.106.1", tag="0.106.1")
+    require("0.106.1" in ghcr, "GHCR exact tag 0.106.1 누락",
+            code="GHCR_EXACT_TAG_MISSING")
+    stage("authenticated OCI digest", version="0.106.1", tag="0.106.1",
+          expected_digest=policy.PUBLISHED_DIGEST,
+          actual_digest=digests.get("0.106.1"))
+    require(digests.get("0.106.1") == policy.PUBLISHED_DIGEST,
+            "GHCR 0.106.1 authenticated OCI digest 불일치",
+            code="OCI_DIGEST_MISMATCH")
+    stage("published PR provenance", version="0.106.1", tag="v0.106.1")
     pr = api(f"/repos/{REPO}/pulls/635")
     require(isinstance(pr, dict) and pr.get("number") == 635
             and pr.get("merged") is True
             and pr.get("merge_commit_sha") == policy.PUBLISHED_SHA
             and (pr.get("base") or {}).get("ref") == "main",
-            "v0.106.1 병합 PR/source 검증 실패")
-    require(bool(decision_url), "#633 Owner B2 원장 부재")
-    candidate = f"ci-{policy.PUBLISHED_SHA}"
-    require(candidate in ghcr, "v0.106.1 Main 검증 이미지 tag 누락")
-    raw = process("docker", "buildx", "imagetools", "inspect",
-                  f"ghcr.io/planner77/mastergantt:{candidate}")
-    match = re.search(r"(?m)^Digest:\s*(sha256:[0-9a-f]{64})\s*$", raw)
-    require(match is not None and match.group(1) == policy.PUBLISHED_DIGEST,
-            "Main verified candidate / v0.106.1 OCI digest 불일치")
-    return True
+            "v0.106.1 병합 PR/source 검증 실패", code="PUBLISHED_PR_INVALID")
+    stage("#633 B2 Owner/retirement provenance", version="0.106.1")
+    require(bool(decision_url), "#633 Owner B2 원장 부재",
+            code="OWNER_B2_MISSING")
 
+    candidate = f"ci-{policy.PUBLISHED_SHA}"
+    stage("Main verified ci-SHA candidate", version="0.106.1",
+          tag=candidate, expected_digest=policy.PUBLISHED_DIGEST,
+          actual_digest=digests.get(candidate))
+    require(candidate in ghcr,
+            "v0.106.1 당시 Main 검증 후보 ci-SHA 현재 존재 증거 누락; "
+            "cleanup/lifecycle 원장 확인 필요, 자동 재게시 금지",
+            code="MAIN_CANDIDATE_MISSING")
+    require(digests.get(candidate) == policy.PUBLISHED_DIGEST,
+            "Main verified candidate / v0.106.1 OCI digest 불일치",
+            code="MAIN_CANDIDATE_DIGEST_MISMATCH")
+    return True
 
 def successor_prepare(rows: list[tuple[int, str, dict[str, Any]]], main: str) -> bool:
     found = [(n, d) for n, kind, d in rows
@@ -392,21 +485,30 @@ def collect() -> tuple[dict[str, Any], dict[str, Any]]:
     tags = tag_inventory()
     stage("GitHub Releases")
     releases = release_inventory()
-    stage("GHCR")
+    stage("GHCR exact SemVer tag")
     ghcr, digests = registry_inventory()
     inventory = {}
     for v in VERSIONS:
-        key = "v" + v
-        git_sha = tags.get("refs/tags/" + key)
-        digest = digests.get(key)
+        git_key = "v" + v
+        git_sha = tags.get("refs/tags/" + git_key)
+        # GHCR does NOT use the Git v-prefix. Never accept v-prefixed aliases.
         inventory[v] = dict(
             git_tag="PRESENT" if git_sha else "ABSENT", git_sha=git_sha,
-            github_release="PRESENT" if key in releases else "ABSENT",
-            ghcr_tag="PRESENT" if key in ghcr else "ABSENT",
-            ghcr_digest=digest,
+            github_release="PRESENT" if git_key in releases else "ABSENT",
+            ghcr_tag="PRESENT" if v in ghcr else "ABSENT",
+            ghcr_digest=digests.get(v),
         )
-    require(all((v not in ghcr) or (v in digests) for v in ("v" + x for x in VERSIONS)),
-            "GHCR 태그의 OCI digest 누락")
+    global OBSERVED_INVENTORY
+    OBSERVED_INVENTORY = dict(inventory)
+    require(all((v not in ghcr) or (v in digests) for v in VERSIONS),
+            "GHCR exact tag의 인증 OCI digest 누락",
+            code="OCI_DIGEST_UNKNOWN")
+    historical_candidate_tag = f"ci-{policy.PUBLISHED_SHA}"
+    historical_candidate = dict(
+        tag=historical_candidate_tag, source_sha=policy.PUBLISHED_SHA,
+        status="PRESENT" if historical_candidate_tag in ghcr else "ABSENT",
+        digest=digests.get(historical_candidate_tag),
+    )
     stage("Owner")
     markers_550 = owner_markers(550)
     markers_615 = owner_markers(615)
@@ -419,11 +521,12 @@ def collect() -> tuple[dict[str, Any], dict[str, Any]]:
     original_run = api(f"/repos/{REPO}/actions/runs/38313359094")
     require(original_run.get("conclusion") == "failure"
             and original_run.get("run_attempt") == 1, "#616 원본 실패 증거 누락")
-    stage("release lifecycle")
+    stage("historical Main Run+Attempt", version="0.106.1")
     main_run = run_verified(*RELEASE_MAIN, policy.PUBLISHED_SHA)
+    stage("historical Release Run+Attempt", version="0.106.1")
     release_run = run_verified(*RELEASE_RUN, policy.PUBLISHED_SHA)
     lifecycle = release_lifecycle_verified(chain, tags, ghcr, digests, decision_url)
-    stage("retirement")
+    stage("#633 B2 Owner/retirement provenance")
     retired_550 = retirement_verified(550, decision_url)
     retired_615 = retirement_verified(615, decision_url)
     stage("Owner policy")
@@ -449,8 +552,8 @@ def collect() -> tuple[dict[str, Any], dict[str, Any]]:
         main_sha=main, candidate_sha=main, candidate_version=policy.CANDIDATE,
         first_parent=chain, contains_f2=True, contains_correction=True,
         original_ci="FAIL", original_owner_marker_preserved=bool(markers_616),
-        release_inventory=inventory, owner_new_version_authorized=False,
-        evidence=evidence,
+        release_inventory=inventory, published_candidate=historical_candidate,
+        owner_new_version_authorized=False, evidence=evidence,
     )
     provenance = dict(
         schema="mastergantt-release-succession-audit-v1", repository=REPO,
@@ -483,20 +586,30 @@ def main() -> int:
         stage("policy")
         result["result"] = policy.evaluate(record)
         result["decision"] = result["result"]["decision"]
-    except (policy.SuccessionBlocked, KeyError, TypeError, ValueError,
-            subprocess.TimeoutExpired, OSError) as exc:
-        result["reason"] = str(exc)[:350]
+    except Exception as exc:
+        result["reason"] = (str(exc) if isinstance(exc, policy.SuccessionBlocked)
+                            else type(exc).__name__)[:350]
+        result["reason_code"] = (exc.code if isinstance(exc, AuditBlocked)
+                                 else "POLICY_BLOCKED" if isinstance(exc, policy.SuccessionBlocked)
+                                 else "UNEXPECTED_EVIDENCE_ERROR")
+    if OBSERVED_INVENTORY and "inventory" not in result:
+        result["inventory"] = OBSERVED_INVENTORY
     result["stage"] = STAGE
+    result.update(EVIDENCE_CONTEXT)
     Path("release-succession-audit.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     def clean(value: Any) -> str:
         return re.sub(r"[\r\n|<>]", " ", str(value or ""))[:350]
     summary = (
-        "### Release succession read-only audit · #655\n"
+        "### Release succession read-only audit · #662\n"
         f"- Decision: **{clean(result['decision'])}**\n"
         f"- Stage: `{clean(result['stage'])}`\n"
+        f"- Reason code: `{clean(result.get('reason_code', 'NONE'))}`\n"
         f"- Reason: {clean(result.get('reason', 'policy evidence complete'))}\n"
+        f"- Version/tag: {clean(result.get('version'))} / {clean(result.get('tag'))}\n"
+        f"- Expected digest: {clean(result.get('expected_digest'))}\n"
+        f"- Actual digest: {clean(result.get('actual_digest'))}\n"
         f"- Run / attempt: {clean(result['run_id'])} / {clean(result['run_attempt'])}\n"
         f"- main SHA: `{clean(result['main_sha'])}`\n"
         "- Authority: read-only; publish/retire/close disabled.\n"
