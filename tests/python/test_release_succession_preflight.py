@@ -17,7 +17,7 @@ def valid():
         "inventory_authenticated": True, "owner_new_version_authorized": False,
         "release_inventory": {
             v: {"git_tag": "ABSENT", "github_release": "ABSENT",
-                "ghcr_tag": "ABSENT", "ghcr_digest": None} for v in VERSIONS
+                "ghcr_tag": "ABSENT", "ghcr_digest": None} for v in (*VERSIONS, "0.108.0")
         },
     }
 
@@ -44,6 +44,12 @@ class TestSuccessionPreflight(unittest.TestCase):
             x = valid()
             x["release_inventory"]["0.107.0"]["ghcr_tag"] = edit
             cases.append(x)
+        x = valid()
+        x["release_inventory"]["0.108.0"]["git_tag"] = "PRESENT"
+        cases.append(x)
+        x = valid()
+        x["release_inventory"]["0.106.0"]["github_release"] = "PRESENT"
+        cases.append(x)
         x = valid()
         x["first_parent"].insert(1, ORIGINAL)
         cases.append(x)
