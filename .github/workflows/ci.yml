@@ -440,7 +440,7 @@ jobs:
         run: python3 scripts/verify-safe-branch-cleanup.py
       - name: 범용 Issue Lifecycle 계약·시나리오 검증
         run: python3 scripts/verify-issue-lifecycle.py
-      - name: Issue #657 승계 감사 Python3 전체 회귀 (#653/#655)
+      - name: "Issue #657 승계 감사 Python3 전체 회귀 (#653/#655)"
         run: PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_succession_*.py' -v
       - name: Issue #633 릴리스 부채 negative/positive fixture
         run: python3 scripts/test-release-debt-audit.py

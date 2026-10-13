@@ -283,9 +283,13 @@ def historical_prs_verified(chain: list[str]) -> bool:
         # Validate exactly one standalone Refs #issue line (including CRLF); never
         # trust a retirement bot's independently typed Issue number or an inline
         # prose mention. Repeated/conflicting Refs fail closed.
-        body = pr.get("body") or ""
-        refs = re.findall(r"(?im)^[ \t]*Refs[ \t]+#([1-9][0-9]*)[ \t]*\r?$", body)
-        require(refs == [str(issue)],
+        body = pr.get("body")
+        require(isinstance(body, str),
+                f"historical PR #{number} Issue refs 본문 미인증/누락")
+        refs = re.findall(r"(?m)^[ \t]*Refs[ \t]+#([1-9][0-9]*)[ \t]*\r?$", body)
+        # A valid line must not coexist with a spoofed inline/quoted Refs.
+        mentions = re.findall(r"(?i)\bRefs[ \t]+#[0-9]+", body)
+        require(refs == [str(issue)] and len(mentions) == 1,
                 f"historical PR #{number} Issue #{issue} 귀속 불일치")
     return True
 
