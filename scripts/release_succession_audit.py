@@ -152,7 +152,7 @@ def run_verified(run_id: int, attempt: int, conclusion: str, expected_sha: str) 
             and run.get("head_sha") == expected_sha
             and ((run.get("repository") or {}).get("full_name") == REPO),
             "원본 릴리스 CI/attempt/SHA 출처 불일치")
-    jobs = pages(f"/repos/{REPO}/actions/runs/{run_id}/attempts/{attempt}/jobs")
+    jobs = pages(f"/repos/{REPO}/actions/runs/{run_id}/attempts/{attempt}/jobs", key="jobs")
     require(bool(jobs) and all(job.get("conclusion") in ("success", "skipped")
             for job in jobs) and any(job.get("conclusion") == "success" for job in jobs),
             "CI job 전부 성공 증거 불충분")
@@ -184,6 +184,8 @@ def latest_marker(rows: list[tuple[int, str, dict[str, Any]]],
                   if name == prefix and d.get("expected_version") == version]
     if not candidates:
         return False
+    ids = [n for n, _ in candidates]
+    require(len(ids) == len(set(ids)), "동일 Owner 댓글의 중복·충돌 marker")
     decision = max(candidates, key=lambda item: item[0])[1]
     return type(decision.get("authorized")) is bool and decision["authorized"] is authorized
 
