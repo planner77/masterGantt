@@ -308,7 +308,7 @@ test("#527 실제 SQLite/HTTP 선택80·Project140·Group75·일별개인과 투
     const mrow = plan
       .locator('tr[data-plan-row="resourceMilestone"]')
       .filter({ hasText: "인수 Milestone" });
-    await expect(mrow).toContainText("단계 기여(선택) · 80.00 %");
+    await expect(mrow).toContainText("Milestone 기여(선택) · 80.00 %");
     await expect(mrow).toContainText("개인 전체 참고 140.00 %");
     await root.getByLabel("기간 단위", { exact: true }).selectOption("month");
     await expect(root).toHaveAttribute("data-ready", "true");

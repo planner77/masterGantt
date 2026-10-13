@@ -1,4 +1,205 @@
+## Issue #645 — actual CI #2617.1 recovery false-negative and verified fallback (2026-10-13)
+
+- [Run #2617.1](https://github.com/planner77/masterGantt/actions/runs/38310183123) (`run_id=38310183123`, `workflow_dispatch`, controller SHA `a7779bd027d2c1093be0cb67388d671ba02b4800`) complete FAILURE. `변경 경로 판정` job #115013710881 `scripts/main_ci_recovery.py authorize`: `BLOCKED: exact-main-recovery BLOCKED: commit-to-PR identity not uniquely verified`; three required aggregate failures are cascade, original Quality/E2E/Docker implementation SKIPPED, GHCR not published.
+- Live REST: original SHA `b97709df...` `/commits/{sha}/pulls` returned 0, while `/pulls/631` returned `merged=true` + exact `merge_commit_sha` + parent SHA match and closed PR enumeration included uniquely #631. This is an index gap; do not infer authorization from 0 alone.
+- Corrective method: bounded complete closed PR listing and unique merged SHA match **only** when commit association list is empty; preserve exact Issue/PR/Owner/branch/source/workflow ID/version/Run artifact/candidate digest and both Git parents. Test positive and ambiguous/stale/pagination negative offline.
+- No remote positive recovery CI, `v0.107.0` tag, GHCR release, #616 Finalizer or Issue close is asserted; those require the updated protected verifier merged and a **new** manual recovery attempt. Existing approved Owner marker comment #6132769240 stays scoped to #616/#631/original SHA/version.
+
+## Issue #643 — dynamic GitHub Actions run.name source 보안 교정 (2026-10-13)
+
+- 증거: [Main CI #2612.1](https://github.com/planner77/masterGantt/actions/runs/38302427091) (push, SHA `5da9c039422647490a947c5cd1e80ec24df22db2`)의 GitHub REST `run.name="Main CI · Issue #639 · PR #642 · Main CI 제목 계약 교정 · Run #2612.1"`, `workflow_id=356198495`, `path=".github/workflows/ci.yml"`, source repo/head repo `planner77/masterGantt`. 해당 run은 성공이며 이번 증거는 **API shape**만 입증한다. 실제 Owner recovery `workflow_dispatch`는 아직 발생하지 않았다.
+- 오류: #639 `completed_evidence()`의 `run.name=="CI"`는 동적 실행명과 혼동하고 정상 복구를 차단할 수 있다.
+- 교정 검증: trusted metadata `GET /actions/workflows/ci.yml`의 id/name/path/state와 Run workflow_id/path/repo/head_repo 일치, dynamic/spoofed labels 모두 판단에 사용되지 않는지 검사한다. Metadata UNKNOWN·다른 workflow ID 등 negative fixtures 모두 BLOCKED. PR CI/Trusted QA 최신 결과는 해당 PR 생성 후 별도 기록.
+- #616의 원본 SHA `b97709df8b5c0974f3c8252ac97819f45f73a5b9`, v0.107.0 Owner release marker, immutable merge, 기존 실패/릴리스 부채는 유지. Remote private GHCR digest, #616 explicit Owner recovery and formal release remain NOT TESTED; 순서를 우회하지 않는다.
+
+## Issue #639 — Main CI #2606.1 trace failure evidence and corrective plan (2026-10-13)
+
+- [Main CI #2606.1](https://github.com/planner77/masterGantt/actions/runs/38300825947) event=`push`, SHA `5c79b658c83b86f163826055fa7da6efadef4e63`, conclusion=`failure`, `변경 경로 판정` failure. `verify-ci-run-trace.py` rejects 31-character Korean summary; Quality, Chromium, Docker SKIPPED/aggregate not SUCCESS, GHCR candidate NOT TESTED. Earlier PR #641 full CI #2604.1 and Trusted QA #241.1 both SUCCESS; no review threads open.
+- Corrective: new same-Issue #639 branch/PR changes **only** merge title preflight/negative regression + operational docs, with `--validate-title` for the actual final connector title, `--as-merge-payload` exactly leased Head and empty message. Protect original SHA/tag/run evidence and retain failed outcome.
+- Next gates: PR CI three required checks and Trusted QA/0 reviews, explicit Owner scope, new immutable merge with verified <=30-character Korean summary; inspect subsequent push Main CI/GHCR/Finalizer live. v0.107.0 formal release and Issue #616 history recovery remain separately authorized. Remote positive results pending.
+
+## Issue #639 / PR #641 — CI #2601.1 E2E strict-mode evidence (2026-10-13)
+
+- [CI #2601.1](https://github.com/planner77/masterGantt/actions/runs/38294610523) head `70bbd429`: Quality PASS, Docker PASS, Chromium shards 1/2/3/4/6 PASS. Shard 5 failed one #525 Resource Dashboard test: accessible `2건` matched both assigned and delayed KPI counts. Aggregate E2E FAIL, Automated QA FAIL as downstream result.
+- Corrective code: `tests/e2e/resource-dashboard-ui.spec.ts` binds to exactly one `할당 Task` KPI row before examining/clicking the count; no product/runtime changes. Confirm API `view=tasks`, totalCount2 and Task row, then full PR CI and Trusted QA on updated SHA.
+- New run/attempt and actual browser rerun pending; historical failed CI must stay FAIL. This is not evidence of original #616 Main CI or verified GHCR image. Release Finalizer remains blocked until #639 merged and #616 authorized separately.
+
+## Issue #639 — PR #641 verified-source review remediation (2026-10-13)
+
+- Remote CI #2599.1 passed all 3 required aggregate jobs but Automated QA BLOCKED on three unresolved P1 review threads. Two protected code defects were identified in the trusted Finalizer: root-relative Python import and GHCR login after digest inspection.
+- Correction: import via `scripts` and verify the exact manual recovery after authenticated Buildx/registry setup. The older no-environment unit test P1 was addressed earlier via isolated mocked discovery.
+- New HEAD should run Full PR CI + Trusted QA; all three review threads must be resolved after inspection. Do not report original SHA `b97709df...` Main CI, `ci-<SHA>` digest, SBOM/provenance or v0.107.0 GHCR formal release as PASS before real production evidence.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Issue #639 remote evidence pending (NOT TESTED): record exact PR Head/Base, 3 required checks, Trusted QA, recovery Run ID/attempt, full job conclusions, original SHA and digest, SBOM/provenance, release Finalizer and v0.107.0 tag. Negative tests must prove normal workflow_dispatch never publishes and stale/wrong approval is BLOCKED. No simulated GHCR PASS.
+
+## Issue #637 — Release 원본 정렬 FAIL 및 신규 PR CI 경계 (2026-10-12)
+
+- 원본 [Release #165.1](https://github.com/planner77/masterGantt/actions/runs/38221400193), immutable v0.106.1 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`: shard5 97PASS/1FAIL, `canonical-projection.spec.ts` actual Core insert-before의 revision41 SETTLED 기대에 TIMED_OUT. [artifact11735576081](https://github.com/planner77/masterGantt/actions/runs/38221400193/artifacts/11735576081) zip SHA256 `e0924a18493eb16ae756303a52120ff528946dc062637cbb5047b9707eea77a7`를 Git 외부 보존했다.
+- membership/순서5개·queue settled와 실제 Grid/Chart 중심 차이27.5px를 함께 보존한다. trace의 클릭 전 Gridpane scrollTop28/Core·Gantt·Chart0이 원인이며 실제 rect observer의 올바른 FAIL을 timeout/threshold 조정으로 우회하지 않는다.
+- 같은 원본 SHA의 [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) 성공은 원본 Release 실패를 덮지 않는다. 동일 Release run attempt2 재실행은 별도 attempt이며 이번 작업은 결과 모니터링을 하지 않는다.
+- 신규 교정 후보0.106.2는 새 branch/PR·exact Head required Quality/E2E6/Docker·기본 브랜치 Trusted·Owner 최종 판정을 요구한다. 이번 사용자 요청은 PR CI 시작까지이며 시작/진행 중 상태는 NOT TESTED, PRE_QA/Local PASS를 원격 PASS로 확대하지 않는다.
+- 기존 v0.106.1 tag/승인 SHA를 수정·재사용하지 않는다. 새 version의 `release_authorized=false`; main/GHCR candidate/digest·새 Owner 승인·정식 release는 별도 미실행 단계다. [#637 Work Packet](exec-plans/active/ISSUE_637.md) 참조.
+
+로컬 관련 unit97PASS·distinct browser41PASS 및 원형 삽입3회 반복PASS. 최초 신규 ChartY 기대 오류2FAIL과 이후 assertion 교정·음성/visible ID 보강은 Work Packet 원장에 보존한다. 이는 dev 환경 Local Fast Feedback이며 원격 required3종/production/main/Release PASS가 아니다.
+
+## Issue #633 — 0.105.0/0.106.0 GHCR UNKNOWN·새 Corrective 감사 (2026-10-12)
+
+- [Main #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) SUCCESS, source `09bee924032b4126ff794ec7a485542fd72dd7bf`/candidate digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`/HTTP-HTTPS PASS. 정식 GHCR v0.106.1 tag/Release 없음.
+- [Read-only audit #1.1](https://github.com/planner77/masterGantt/actions/runs/38216994751) FAIL/BLOCKED(0.105.0,0.106.0,0.106.1 GHCR UNKNOWN). [Finalizer #153.1](https://github.com/planner77/masterGantt/actions/runs/38216994785) FAIL/BLOCKED 구버전 GHCR ABSENT 미확인, mutation NONE.
+- 신규 PR에서는 git tag/Release / GHCR exact digest 상태와 Packages API 인증 pagination을 별도 검증한다. Owner marker 보존, 기존 릴리스 원본 SHA와 신규 audit-only Main SHA를 구분하고 새 PR CI 및 후속 Main evidence를 각각 기록한다.
+
+## Issue #633 — B2 신규 SemVer PR/실제 GHCR 실행 증거 (2026-10-12)
+
+- 원본 #550 #2515 FAIL, #615 #2526 FAIL은 기존 기록에 보존. #615 교정 #2531 PASS (digest de76273a…), #550 후속 #2553 PASS (digest 7700bffc…), #633 초기 감사 #2565 PASS (digest c36138dd…)는 전부 `ci-<SHA>` 후보 성공이지 정식 SemVer 게시 PASS가 아니다.
+- 신규 B2 PR의 Head/base required CI 3종, default Trusted, latest main CI candidate, read-only `INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED`, Github/GHCR exact states, Owner 구버전 철회/신규 version/B2 v2 marker, Release-image digest, Resume·Issue 종료를 각각 독립적으로 기록한다. 원격 시작 자체를 PASS로 간주하지 않는다.
+- 등록돼 있는 기존 #615 v0.106.0과 #550 v0.105.0 승인 marker를 새 v0.106.1의 승인으로 재사용하지 않는다. 미발행 버전 exact registry가 PRESENT/UNKNOWN이면 B2 workflow는 NO-GO.
+
+## Issue #633 — PR #634 CI #2559.1 원격 검증 및 P1 보완 (2026-10-12)
+
+- [원본 Full PR CI #2559.1](https://github.com/planner77/masterGantt/actions/runs/38199684645), HEAD `36b061ad8970d94014805105211c126410175b53`: QA Preflight/Policy/TypeScript/ESLint/Vitest/Next.js, Chromium 6/6, Docker Build+Smoke, Required aggregate 3종 SUCCESS. `QA Final — Automated`는 PR #634의 미해결 리뷰 P1 두 스레드로 `BLOCKED`, Run 전체 FAILURE. 원본 증거 유지.
+- 보완: private GHCR registry에 audit-before-read 로그인 추가 및 실제 Docker exact tag의 v-prefix 제거, 모호한 404를 UNKNOWN으로 fail-closed. 새 Head fixture/CI 수행; original Main CI/GHCR/Release/Owner 기록 불변.
+
+## Issue #633 — 원격 감사/CI 증거 경계 (2026-10-12)
+
+- PR #634 run #2556.1 (`38199169784.1`): QA Preflight `BLOCKED` HTTP 404, `docs/exec-plans/active/ISSUE_633.md` 누락. Quality/E2E/Docker aggregate FAIL은 preflight 연쇄 실패이며 본체 테스트는 SKIPPED. 파일 추가 후 새 SHA에서 CI를 재검증하고 과거 FAIL은 보존한다.
+- Trusted main의 read-only `release-debt-audit.yml`은 source/bridge/corrective exact SHA·Owner marker·git tag/Release/GHCR digest를 재조회한다. PR 본체의 자신이 수정한 validator 성공을 Trusted 실행 증거로 인정하지 않는다. 실서비스 GHCR/Release/Resume/cleanup은 별도 승인 전 NOT TESTED.
+
+## Issue #629 — QA Preflight 원격 시나리오 (2026-10-12)
+- P1: 올바른 최신 PR Head·base/문서 AC 매핑 → Preflight PASS, Quality/E2E/Docker 3종 정상 완료 확인.
+- P2: title/Refs 불일치 또는 필수 문서 영향 누락 → Preflight FAIL, E2E 6 shard/Docker smoke 미실행, 기존 3 aggregate 전부 FAILURE인지 실제 Actions jobs 확인.
+- P3: 보호 스크립트/CI Workflow 변경, AGENT/OWNER_MANAGED, rename 원본, 위험도 하향·승인 선언 모순 차단 확인.
+- P4: mergeable=null은 DEFERRED, 실제 conflict=false는 사전 FAIL, main 재정렬 후 최신 exact Head/base에서 최종 QA 재평가.
+- P5: metadata edited/#600 완료 후 재조정, Dependabot, docs-only, fork, Main push, dispatch, cancelled/stale/API 오류에서 세 required check 영구 Pending/잘못된 SUCCESS/Trusted QA 자기승인이 없는지 확인.
+- 원격 bootstrap 및 회귀 결과·Run ID·소요 runner-minutes는 실측 후 Work Packet에 기록. 테스트 스크립트 PASS만으로 원격 통합 PASS를 주장하지 않는다.
+
+## Issue #550 후속 — 격리 E2E 실패 진단의 증거 경계 (2026-10-12)
+
+[CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391)의 #461 GET ECONNRESET은 연결 오류 증거다. 프로세스 종료·OOM·기능 회귀 원인을 확정하지 않는다. 후속 fixture는 cleanup 전 bounded 안전 JSON을 실패 report에 첨부한다. PID/generation·exit/signal·expected shutdown, 별도 stdout/stderr allowlist 기록, test-side 호출과 기존 서버 requestId 완료 기록,1회 readiness probe·이용 가능한 숫자형 자원 수치를 구분한다. 서버 request-start 계측·raw stderr/stack·headers/cookies/body/query/env/DB는 수집하지 않는다. 단일 exit137이나 완료 로그 부재는 OOM/요청 미도착의 확정 근거가 아니다. probe·진단 수집은 business 재시도가 아니며 원래 실패를 rethrow한다.
+
+수집 JSON/trace의 로컬 증거와 GitHub Actions report artifact는 별개다. 실제 새 exact-head CI의 Quality/E2E6/Docker·Trusted 결과 전에는 공식 PASS가 아니다. 기존 원격 FAIL과 baseline 환경 FAIL을 숨기지 않으며 timeout·retry·skip/필수 gate를 변경하지 않는다.
+
+현재 main `6eaec3331fcbc720ab42106789a505c5ee5eefb4`의 Finalizer 두 스크립트와 운영 문서를 그대로 사용한다. 아래 #550 PR #626의 `inherited_release_previous_version`은 이전 구현 이력이고 현행 필드는 `inherited_release_base_version`/`release_base_version`이다. 다른 Issue/버전·closed barrier를 넘는 승계는 최신 main의 fail-closed 정책을 따른다. #550 v0.105.0 승인으로 현재0.106.0 게시 권위를 추론하지 않는다. 이번 작업은 PR CI 시작까지이며 병합·release·Issue 종료를 수행하지 않는다.
+
+## Issue #550 / PR #626 — QA Final #2522.1 필수 운영 문서·릴리스 승계 (2026-10-12)
+
+- **검증 원본:** [PR #626 CI #2522.1](https://github.com/planner77/masterGantt/actions/runs/38179746368) Head `b871c381ead864dc0a699526f965fd08f2e8c4ec`, base `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`. `Build, static checks, and unit tests`, `Chromium end-to-end tests`(shard 1~6), `Docker build and runtime smoke test`는 SUCCESS. `QA Final — Automated`가 정확히 `문서 영향 기록 없음: docs/GITHUB_OPERATIONS.md`로 BLOCKED. 기존 성공 aggregate만으로 전체 CI/병합/GHCR PASS라고 표시하지 않는다.
+- **문서 Gate:** `scripts/auto_release_finalizer.py` 및 `scripts/verify-issue-lifecycle.py`는 보호 스크립트 경로이므로 Work Packet의 `## DOCUMENTATION_SYNC`에 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`의 **각각 UPDATE 또는 사유가 있는 N/A**가 반드시 존재해야 한다. UI source의 `DESIGN.md` 영향 역시 포함한다. 미기록 문서는 문서 검증이 차단하며 목록/QA 정책을 축소하지 않는다.
+- **새 PR Head 확인:** base/head/test-merge SHA 동일성, GitHub 미해결 리뷰 0, required Quality/E2E/Docker source run/attempt, Automated QA의 구조적 문서/AC 판정과 기본 브랜치의 Trusted QA를 구분한다. OWNER_MANAGED의 독립 인간 QA 선택 미실시는 N/A이지 Owner 최종 승인이나 환경 실행 PASS가 아니다.
+- **병합 이후:** 원본 실패 merge `0.104.4→0.105.0`과 같은 Issue의 보완 merge `0.105.0→0.105.0`를 first-parent 증거로 추적한다. 실패한 원본을 supersede해도 미게시 version `v0.105.0`의 release 의무를 `inherited_release_previous_version`으로 유지해야 하며, manifest와 실제 승인 marker, 새 정확 SHA의 verified Main CI·GHCR candidate를 검증한 뒤에만 annotated tag/Release CI/digest promotion/Issue close가 가능하다.
+- **실행 전 상태:** 이번 문서 보완으로 새 Head의 PR CI/Trusted/Main/정식 GHCR를 성공했다고 주장하지 않는다. 기존 Main CI #2515.1과 PR #626 CI #2522.1의 FAIL 및 GHCR SKIPPED 기록을 보존한다. 실패 원인은 새 Run의 job/step/log로 다시 판정한다.
+## Issue #615 — Main CI 단일 행 병합 실패 및 승인된 v0.106.0 승계 (2026-10-12)
+
+- PR #627 병합 `c8949da48e7465db45d871887c3f55f9fb6dc743`의 추가 본문으로 Main CI #2526.1 trace가 FAIL하고 세 필수 quality/E2E/Docker 및 임시 GHCR 검증은 SKIPPED되었다. 기존 SHA/Run은 불변 FAIL이며 force-rewrite·gate 완화·rerun으로 PASS 처리하지 않는다.
+- 해당 실패는 이미 version `0.105.0 → 0.106.0`을 main에 반영했으나 annotated tag/release가 시작되기 전이다. 뒤따르는 **동일 Issue의 비문서 교정 PR**이 동일한 `0.106.0`을 유지하면서 exact Main CI 성공 시, 원본 릴리스 의무(`0.105.0` baseline)를 명시적으로 inherited release baseline으로 전달한다. 물리적 first-parent version은 `0.106.0 → 0.106.0`으로 보존한다.
+- 릴리스 승계는 원본 Main CI 미성공, 중간에 **동일 Issue·non-docs·동일 version**만 존재, 교정 exact Main CI 성공일 때에만 가능하다. 다른 Issue가 중간에 있거나 docs-only, release-tag 시도·불변 tag 충돌, 이종 version이면 조용히 상속하지 않고 이전 FAIL을 blocker로 유지한다. 정식 release 승인 marker도 그대로 필요한 별도 gate이다.
+- Generic Resolver는 supersession 뒤 교정 SHA의 exact SemVer tag 존재·target 검증을 **재수행**하며, v0.106.0 release_start → exact digest release-image → Resume / 원본·교정 브랜치 cleanup / Issue 종료 순으로 처리한다. 기존 Main CI #2526.1 실패 및 원본 SHA와 PR의 cleanup 부채는 기록한다.
+- 후속 PR 병합에는 `main_ci_run_name.py --as-merge-payload --expected-head-sha`를 사용하여 `commit_title`은 한 줄 한글 표준 형식, `commit_message`는 빈 문자열, `merge_method=merge` 및 lease를 함께 넘긴다. 개발 중 로컬 정적 회귀 PASS는 원격 CI/GHCR PASS가 아니다.
+
+## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
+
+- 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
+- `.github/workflows/pr-metadata-reconcile.yml`은 신뢰된 default SHA checkout, PR 코드 실행 금지, job에만 한정된 `actions: write`, `contents/pull-requests: read`, 신규 Secret/PAT 없음. 실제 write는 검증된 실패 run ID의 GitHub Actions `rerun-failed-jobs` 한 번만. 그 외 승인·merge·release·GHCR 권한 없음.
+- `scripts/reconcile-pr-metadata.py`: source repo/PR/branch/head/base의 단일 귀속, 현재 살아 있는 제목/Refs trace, 최신 metadata run, 최초 attempt의 실패 Job topology, 동일 base 최신 Full CI의 exact attempt별 required 3종 SUCCESS를 검증 후 재조회. Full 미완료/실패/취소·stale·위조·attempt>1·중복 job·불명확한 API는 재실행하지 않으며 기존 FAIL/BLOCKED를 보존. Full CI 자체 취소 금지.
+- 같은 Head에서 빠른 edited 이벤트는 기존 metadata concurrency로 구 run을 취소한다. Full과 metadata의 완료 이벤트를 모두 관찰하되 latest 실패만 권위 있고 이전 이벤트를 성공 증거로 재사용하지 않는다. 기존 `QA Final — Trusted`는 읽기 전용 유지, 회복 중 FAIL source의 재중복 판정 억제는 별도 기능 개선 대상으로 남는다.
+- 측정: `#591` baseline #2425~#2428 / Trusted #57~#59. 이후 비교는 동일 PR/기간의 Actions run 수, 실패/취소, metadata+QA Runner 사용 분, 자동 회복 소요 시간(마지막 edited→required 집계 완료)을 기록한다. 실제 절감률은 Actions 실측 후 산출, CI 시작만으로 AC8 PASS 아님.
+- Rollback: `pr-metadata-reconcile.yml` 비활성화/삭제 및 `reconcile-pr-metadata.py` revert. 원본 CI·Ruleset·Trusted QA의 안전 상태는 그대로이며 복구 필요 시 최신 실패 metadata Job 수동 rerun. `DESIGN.md` N/A(UI 변경 없음); `API.md`/`DB_SCHEMA.md` N/A.
+- 위험도 HIGH / qa_method OWNER_MANAGED; 자동 QA 결과와 Owner 명시 병합·HIGH 위험 수용은 별도. Application version `0.104.0` 유지; `release_required=false`, `release_authorized=false`.
+
+## Issue #598 — Owner 중심 QA 운영 (2026-10-10)
+
+기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER`는 호환 alias), `AGENT`는 선택적 독립 검토이다. 보호된 CI/workflow/scripts/package/QA·보안 정책과 HIGH를 포함하여 별도 인간 Reviewer GitHub APPROVED는 필수가 아니다. 대신 최신 PR Head/base에 관한 원본 Quality/E2E/Docker 세 required aggregate PASS, strict main, unresolved review thread 0, docs/AC, 기본 브랜치 trusted read-only validator 및 고위험 수동 점검을 모두 유지한다. `automated_qa=PASS`와 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`은 `manager_decision=ACCEPT`가 아니다. Owner의 명시적 병합 지시는 GitHub 인증 신원·대상 PR/HEAD/base/run/attempt/잔여위험을 확인한 뒤 감사 기록으로 남기며 수동 JSON 영수증은 요구하지 않는다. 변경 검증기 자기 승인, PR 내용/봇 댓글을 이용한 위조 승인, stale run 및 CI 우회는 차단한다. 이 정책 자체의 bootstrap PR은 기존 main validator가 protected를 BLOCKED하는 원장을 유지하며 세 필수 CI 성공·일회성 Owner 전환 승인 전 병합하지 않는다. 메인 임시 GHCR candidate와 finalizer는 동일, 정식 release는 `release_required && release_authorized`만 허용한다. [QA 정책](QA_REVIEW_POLICY.md)을 최신 기준으로 삼으며 아래 #565/#580/#595 이전 필수 인간 reviewer 지침보다 우선한다.
+
+## Issue #595 — QA-only 재실행 시 attempt 원장 검증
+
+현재 실행에 포함되지 않은 required Quality/E2E/Docker Job을 무조건 SKIPPED/FAIL로 간주하거나 과거 임의 CI run의 성공으로 대체해서는 안 된다. GitHub의 같은 CI Run ID에 대한 정확한 attempt별 Job API를 1..latest 순서로 조회하고, Job 이름별 마지막 실행 attempt의 결론만 권위로 인정한다. QA-only rerun이면 앞 attempt의 필수 aggregate PASS를 유지하고, 재실행된 aggregate 실패·취소, 누락된 attempt, 중복 Job 이름은 fail-closed 처리한다. PR Head/base/run/attempt/해당 job source_attempt를 보고서에 남긴다. 실제 독립 QA/Manager 승인 없이 보호 파일의 자동 QA를 PASS 처리하지 않는다.
+
+## Issue #595 — 보호 변경의 독립 검토 증거
+
+보호 대상에 해당하는 릴리스 버전 원장 또는 CI/보안 설정을 변경하는 PR에서는 기존 필수 Quality/E2E/Docker 검증 결과와 독립 QA 승인 결과를 별도로 기록한다. QA를 구현한 사람이 자기 코드를 승인한 결과는 독립 검토로 인정하지 않는다. 정확한 PR Head와 Base, 독립 Reviewer의 현재 Head 승인 기록, 원본 CI Run/Attempt의 성공한 필수 세 Job, 저장소 소유자의 독립 리뷰 이후 Manager 승인 여부를 검증하는 경로를 사용한다. 자료가 없거나 충돌하면 BLOCKED로 판정한다. 새로운 검증기 자체는 별도 독립 검토 및 main 병합 전까지 운영에 적용되지 않았으며, GHCR/tag 릴리스 권한은 변경하지 않는다.
+
+## Issue #593 — Trusted QA 원본 이벤트 귀속 및 metadata 재검증 (2026-10-10)
+
+- `workflow_run.pull_requests=[]`를 PR 실행명/제목에서 추측하지 않는다. 원본 `CI`의 PR 이벤트에서 **checkout 전에** 만든 `ci-pr-source-<run_id>-<attempt>` artifact를 기본 브랜치 검증기가 읽기 전용으로 조회한다. Artifact 자체는 PR 측 비신뢰 자료이며 스키마/repository/run ID·attempt/Head SHA·branch/base SHA/test merge SHA와 현재 PR 및 commit→PR GitHub API의 단일 귀속을 교차 확인한다. zip을 실행하거나 PR 코드를 checkout하지 않는다.
+- artifact가 없거나 만료·중복되거나 commit→PR 조회가 비어 있거나 여러 PR에 귀속되거나, Head/base/merge/attempt가 바뀌면 **BLOCKED**한다. 이전 성공을 재사용할 때도 동일 **PR + Head + base + test merge + 최신 full run attempt**와 세 Required Aggregate의 완료 성공을 확인한다. 잘못된 canonical title/Refs는 자동 수정·우회하지 않는다.
+- `CI` Workflow의 existing required `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test`, full/metadata concurrency, 6-shard E2E, main/GHCR/Finalizer 및 write 권한·Ruleset은 유지한다. `QA Final — Trusted`는 기본 브랜치 SHA의 **운영상 수동 Gate**이며 PR Head Ruleset check가 아니다.
+- `automated_qa=PASS`는 정확한 구조·provenance 검사 결과이지 독립 의미/업무 QA·Manager ACCEPT가 아니다. `manager_decision=NOT TESTED`인 동안 `MERGE_READY=BLOCKED`. `AGENT`/protected 변경에는 실제 별도 독립 Reviewer가 필요하며 HIGH는 Manager의 범위별 위험 수용이 필요하다.
+- **실증 경계:** #593 자체가 검증기/CI 정책을 변경하므로 `HIGH/AGENT`; 이번 PR은 자기 Trusted PASS로 병합하지 않는다. 별도 독립 QA·Manager 결정 및 main 병합 이후 새로운 비보호 검증 PR을 통해 T1 정상 Trusted PASS/run URL·run_attempt·Head/base/merge·validator SHA 실증을 완료한다. 실증 전 T1/T2는 `NOT TESTED`. 이전 #580 Main CI/Finalizer 성공은 유지한다. #396 canonical 오류/빈 PR 귀속과 #591 원본 CI FAIL을 구별한다.
+- 운영: [ISSUE_593 Work Packet](exec-plans/active/ISSUE_593.md)과 [원격 검증](REMOTE_VALIDATION.md) T1~T9를 참조. 원본 run 결론 FAIL은 `FAIL`, 불충분한 출처는 `BLOCKED`, 낡은 PR event는 `SUPERSEDED/N/A`; skipped를 필요한 검증의 PASS로 사용하지 않는다. 실패한 metadata-only는 유효한 full CI 이후 해당 job 재실행으로 복구하며, run/attempt/총 실행 수·runner 비용 비교는 실제 Actions에서 측정한다.
+
+## Issue #580 — 실제 서버 서비스 경로 및 TypeScript 선언 입력 보호 (2026-10-10)
+
+- 독립 QA 대체 경로의 최소 위험 분류는 실제 프로젝트 배치인 `src/server/projects/**`, `src/server/templates/**`, `src/server/resources/**`를 포함한 **`src/server/**` 전체를 HIGH**로 취급한다. 보안/세션/영속성 관련 파일에 auth/session 명칭이 없어도 MEDIUM/LOW로 낮출 수 없다.
+- `docs_required()`는 실제 `src/server/**` 서비스의 API/계약 영향도 분석에 `docs/API.md`를 포함한다. 다중 영역의 DB_SCHEMA/API/SCHEDULING_ENGINE/IMPORT_EXPORT/TEST_PLAN 문서 합집합과 각 문서의 UPDATED 또는 N/A(reason)를 유지한다.
+- CI TypeScript 입력 `next-env.d.ts` 및 모든 root `*.d.ts` ambient declaration은 protected path로 분류하며 rename 원본에도 동일한 차단을 적용한다.
+- Python 보안 회귀 2개 추가: `test_real_project_services_are_high_and_require_api_docs`, `test_next_env_declaration_is_protected_even_on_rename`; 기존 required Quality/E2E/Docker, 정책·릴리스 보호는 유지.
+- #580 자체는 `HIGH/AGENT` Bootstrap 이슈이며 `QA Final — Automated` SKIPPED는 PASS가 아님. 정확한 Head CI, 독립 QA_FINAL, reviewer thread 해결 및 Manager ACCEPT 이전 병합 불가.
+
+## Issue #580 — 리뷰 후속 P1×2/P2×1: QA 대체 경로 보안·API 문서 검증 (2026-10-10)
+
+- `POLICY_FILES` 단일 TOML 지정보다 넓게 모든 `.codex/**` 경로(특히 `.codex/agents/qa-docs.toml`)의 수정/rename을 보호된 QA 정책 변경으로 분류한다. 인수 기준: `qa_method=AUTOMATED_MANAGER`로 자동 승인 금지, 실제 독립 Reviewer 및 Manager 승인 필수. 회귀: `test_agent_instruction_files_always_protected`.
+- `src/server/repositories/**`는 실제 password hash/edit session token 등의 영속성·인증 영향으로 HIGH(추가로 `src/server/services/**`, `src/server/auth/**`, `src/server/db/**`, `src/app/api/**`를 보수적으로 HIGH)로 분류하고 MEDIUM 위험도 다운그레이드를 fail-closed 처리한다. 경로에 auth라는 단어가 없어도 위험도를 낮추지 않는다. 회귀: `test_auth_repository_is_high_even_without_security_filename`, `test_auth_repository_medium_risk_downgrade_blocked`.
+- 공개 DTO `src/contracts/**` 및 프로젝트 서비스 계약 변경에는 `docs/API.md` 영향 분석을 요구하며 DB repository의 `docs/DB_SCHEMA.md`와 합집합으로 계산한다. `docs_gate()`의 구조적 PASS는 업무·계약의 의미적 검토 및 독립 QA PASS를 대체하지 않는다. 회귀: `test_shared_public_contract_always_requires_api_documentation`.
+- 정식 GHCR/Ruleset/기존 3 required checks 변경 없음; 신규 QA Python 테스트는 기존 `policy` Job에서 실행. 이번 #580은 HIGH bootstrap `qa_method=AGENT`이므로 독립 검토, 최신 Head PR CI, 리뷰 스레드 해결, Manager ACCEPT 전 병합 불가.
+
+## Issue #580: Reviewer P1/P2 후속 — CI 실행 설정·위험도·도메인 문서 영향 강화 (2026-10-10)
+
+- `CI_EXECUTION_GLOBS`로 루트 `postcss.config.*`, `tsconfig*.json`, 그 외 `*.config.*` 및 잠금·CI 실행 설정의 수정/rename을 자동 QA 대체 차단 대상으로 분류. 이미 protected인 `.github/**`, `scripts/**`, `deploy/**`에 추가 적용.
+- HIGH 최소 위험도에 `src/contracts/import.ts`, `src/server/imports/**`, `src/server/exports/**`, `db/migrations/**`, Calendar/Scheduler/Dependency/Auth/Release 등을 포함. PR 본문 `risk_level=LOW`로 명시해도 파일 경로가 HIGH이면 BLOCKED. 실제 업무·의미 위험은 Manager가 추가 평가하며 자동 검사로 안전성을 확정하지 않는다.
+- `docs_required`는 DB→`docs/DB_SCHEMA.md`, API→`docs/API.md`, Scheduling→`docs/SCHEDULING_ENGINE.md`, Import/Export→`docs/IMPORT_SCHEMA.md`, `docs/IMPORT_EXPORT.md`를 영향 영역별 합집합으로 산출. Work Packet에서 UPDATED(실제 diff) 또는 `N/A(reason)` 증거 요구; 구조 검증이 문서 의미적 정합성 PASS를 뜻하지 않음.
+- 회귀: config files 수정/rename, HIGH import/export 위험도 위장 부정, 다중 도메인 문서 합집합/누락 BLOCKED. Python QA 단위 테스트는 PR CI Policy Job에서 실행. PR 자체는 기본 브랜치 trusted validator가 없는 Bootstrap이므로 실제 독립 QA 및 Manager ACCEPT 전 병합 금지.
+
+## #580 — 독립 QA F1–F4 보완 및 Source SHA 검증 (2026-10-10)
+
+- [독립 QA FAIL/REWORK](https://github.com/planner77/masterGantt/pull/587#issuecomment-6091333221) 후 보완: (F1) `.github/actions/**`, `scripts/**`, `deploy/**`, `tests/config/**` 및 CI 실행 설정 파일의 수정·rename을 AUTO QA에서 차단 (F2) trusted workflow는 event `github.sha`에 고정 checkout하고 실제 checkout `git rev-parse HEAD` 동등성 검사 및 `validator_sha` JSON 원장 기록 (F3) `policy` PR CI에서 Python QA unittest를 **실제로 실행**, LOW/MEDIUM/HIGH 및 HIGH Manager 위험 수용 누락, protected edit, metadata HEAD/base 회귀 보존 (F4) 현재 역할/소유권 표에 AGENT/AUTOMATED_MANAGER 기준 적용.
+- bootstrap의 `qa_bootstrap=success`는 Trusted QA를 실행하지 않았다는 의미를 보존하며 자동 QA PASS가 아니다. 신규 Trusted workflow가 main에 반영된 뒤에만 default-branch 검증이 가능하다. 이 Workflow Run은 기본 브랜치에 연결되므로 PR Head Ruleset required check로 자동 강제됐다고 보고하지 않는다. 독립 QA는 해당 검토자의 새 SHA 증거 필수, Manager ACCEPT는 별도.
+- SHA 변경 이후 기존 CI #2358.1와 독립 FAIL은 새 SHA의 PASS 근거가 아니다. 정책의 관리자 승인을 임의로 생략하거나 기존 3개 required checks/main/GHCR를 약화하지 않는다.
+
+
+### Issue #580 · Review P1/P2 후속: protected main QA 신뢰 경계
+
+- **신뢰 출처:** `.github/workflows/qa-final-trusted.yml`은 기본 브랜치에서 `workflow_run(CI completed)`를 수신하고, `main`의 검증 스크립트로 원본 CI Run ID/Attempt·Head/base·필수 세 Check·리뷰·문서/AC를 재조회한다. `pull_request` Workflow의 `QA Final — Automated`는 **참고용**이며 PR 작성자가 workflow를 바꿀 수 있기 때문에 신뢰된 병합 승인 근거가 아니다.
+- **API 검증:** 변경 파일의 `filename` 및 rename `previous_filename` 모두를 보호 목록/보안 정책 목록과 비교한다. 보안/QA/CI 정책 또는 실행 지침 자체를 변경하는 PR은 자동 PASS가 아니라 독립 Reviewer 필요. PR `edited`는 같은 Head라도 이전 성공한 **동일 base SHA**의 full-run 3개 gate 증거가 있어야 한다. 성공 보고서에는 `decision_reason`을 반드시 남긴다.
+- **Bootstrap·Required:** #580 PR은 아직 base에 trusted workflow가 없으므로 신뢰 검증 **NOT TESTED**. 독립 `qa_docs`/승인된 별도 인간 Reviewer의 exact-head QA Final 및 Manager ACCEPT 없이는 MERGE_READY가 아니다. `workflow_run`의 Status는 **기본 브랜치 SHA**에 붙으며 자동으로 PR Head의 Ruleset required check가 되지 않는다. 관리자 승인, 예상 source/검증 방식 확인 전 자동 차단 기능을 주장하거나 신규 Required Check를 추가하지 않는다.
+- **권한:** trusted workflow 자체는 `contents/actions/pull-requests/issues: read`만 사용, PR 코드 checkout/명령 실행, PAT/추가 Secret, `pull_request_target` 없음. GHCR/릴리스/기존 세 Required Gate 불변. 인증되지 않은 워크플로 이름만으로 Merge Gate를 자동 강제했다고 보고하지 않는다.
+- **적용:** 신규 정책은 #580 PR이 적법한 독립 검토·승인 뒤 main에 병합된 이후에만 적용한다. 자동 QA가 구현됐다 하더라도 실제 main Trusted Run을 확인하기 전까지 `AUTOMATED_MANAGER`를 사용할 수 없다.
+
+### 2026-10-10 — Issue #580 Bootstrap Gate 실패 보완
+
+- [PR #587 · 최초 CI #2334.1](https://github.com/planner77/masterGantt/actions/runs/37998967929): 기존 Quality, E2E 6/6, Docker 필수 aggregate **PASS**, 신설 `QA Final — Automated`만 최초 검증기 부재에 의한 명시적 `exit 1`으로 FAIL.
+- 최초 도입 시 `qa_bootstrap`에서 정확한 PR `base.sha`(신뢰된 main)의 검증기 존재를 확인한다. 없으면 `present=false`, 단계 요약 `QA Final — Automated: NOT TESTED (bootstrap)`, 실제 자동 QA Job은 **SKIPPED**로 남겨 허위 PASS를 방지한다. `qa_bootstrap=success`는 **독립 QA/QA_FINAL PASS가 아니다**.
+- 실제 자동 QA Job은 신뢰된 base validator가 존재할 때만 수행한다. 다른 정상 PR에서는 기존 3개 필수 CI와 실증 결과를 재사용하며 각 실패/중단/누락을 FAIL/BLOCKED로 판정한다.
+- 이 특별 단계는 최초 정책/Workflow/QA 검증기 변경 PR에만 적용되는 임시 부트스트랩 운영 경계다. #580 최초 PR은 HIGH이므로 별도 독립 reviewer의 실제 결과 및 Head별 Manager ACCEPT 없이는 `MERGE_READY=BLOCKED`. **신설 QA Check의 Ruleset Required 등록은 최초 도입/검증 완료 후 관리자 승인과 실효성 검증 전까지 금지.**
+- 메타데이터 편집 검증, 본문 변경, 뒤따르는 Head/base 변동, Ruleset 정책 적용·롤백은 별도 원격 검증이 필요하다. 현재 PR CI 시작은 결과 PASS/Manager 승인/병합이 아니다.
+
+## Issue #580 — Actions QA Final 대체 Gate (2026-10-10)
+
+- `qa_method=AGENT`: 실제 독립 `qa_docs`/별도 인간 Reviewer의 exact-HEAD 검토 증거가 있어야 한다. CI 성공으로 독립 QA PASS를 주장하지 않는다.
+- `qa_method=AUTOMATED_MANAGER`: 기본 브랜치의 실제 `QA Final — Trusted` 검증이 PASS하고 PR의 세 필수 CI도 완료된 후에도 Head별 `Manager ACCEPT`와 위험도별 수동/업무 검토를 분리해 기록한다. 독립 QA는 `N/A(대체 경로)`다.
+- LOW/MEDIUM/HIGH 및 기존 세 required checks, DOC_SYNC, 미해결 리뷰 해결, latest HEAD, main CI/GHCR/release gate는 유지한다. HIGH는 scope별 수동 검토·잔여 위험 명시적 수용이 필요하다.
+- `.github/workflows/ci.yml` / 검증기/보안 정책 자체가 변경되는 PR은 **trusted base validator가 자동 PASS하지 않으며**, 별도 독립 검토와 Manager 승인 필요. 최초 #580 bootstrap PR 역시 자동 PASS를 주장할 수 없다.
+- 현재 GitHub Ruleset Required Check에는 이 신규 Job이 자동 추가되지 않는다. 관리자 승인·설정·expected source 검증 전에는 **운영상 수동 Gate**다. GitHub review count=0도 Manager ACCEPT를 강제하지 않는다.
+- 관리자 승인 후 Ruleset을 설정하기 전, 최근 PR에서 QA Job 안정적 표시/성공·실패, expected source, path skip, 재검증/롤백을 확인한다. rollback 시 신규 required check만 사전 승인 후 제거하고 기존 세 check는 유지한다.
+- `AUTOMATED_MANAGER` 경로의 자동 판정은 문서 구조·AC 맵·review 상태만 검사한다. 의미적 요구사항/UX/보안 적합성은 Manager 수동 확인 사항이다. 결과 계약: `issue/pr/qa_method/risk_level/rule_version/pr_head_sha/base_or_test_merge_sha/workflow_run_id/run_attempt/quality_evidence/e2e_evidence/docker_evidence/documentation_sync/ac_test_coverage/unresolved_review/automated_qa/independent_qa/manager_decision/residual_risks/decision_reason`.
+- 계획·PR에는 `qa_method`, `risk_level`, 선택 이유, Head SHA, document impact, 각 AC의 test mapping, 잔여 위험을 필수로 기록한다. Manager ACCEPT 댓글은 승인 주체, 일시, 정확한 SHA, 범위, 미검증/위험수용을 담는다.
+- `AGENT` 경로와 `AUTOMATED_MANAGER` 선택은 독립 QA 실제 실행 유무에 기반한다. 차후 Head가 변경되면 기존 CI·QA·Manager ACCEPT 판정은 stale.
+- 이 정책은 #580 구현 PR이 병합되기 전에는 현행 #565 독립 QA 요구를 완화하지 않는다.
+
 # GitHub-first 테스트 및 검증 정책
+
+## Issue #565 위험도 기반 독립 QA와 GitHub Required Validation 분리
+
+위험 분류/QA N/A·Reviewer·Manager 승인 계약은 [QA_REVIEW_POLICY.md](QA_REVIEW_POLICY.md)를 따른다. LOW/일부 MEDIUM은 근거와 영향을 기록하고 독립 검토만 `N/A`가 가능하다. HIGH 및 `qa_required=true` MEDIUM은 실제 별도 qa_docs/인간 Reviewer가 필요한 상태이며 reviewer를 확보하지 못하면 **BLOCKED**다. 자동 리뷰 또는 CI만으로 독립 QA PASS라고 기록하지 않는다(#580 자동 QA 대체는 별도 후속).
+
+GitHub Actions exact-head `quality/e2e/docker` aggregate PASS와 path-based implementation Job SKIPPED를 분리 기록한다. 새 Head에서는 3개 required aggregate 결과를 다시 확인해야 한다. PR의 latest SHA와 run ID/attempt, 문서 동기화, review thread 해결, qa_final(PASS 또는 조건부 N/A) 및 Manager ACCEPT가 서로 다른 증거다. `main-lifecycle-gate` 승인 리뷰 수 0은 내부 Manager 승인 근거가 아니다. 실제 GitHub Settings/Ruleset 변경은 이번 범위에 없다.
+
 
 ## Issue #361 Actions 실행명 원격 검증
 
@@ -113,8 +314,8 @@ PR과 동일한 `quality`/`e2e`/`docker` gate를 다시 수행한다. 별도 `cl
 
 - `frontend`, `backend`, `scheduler`, `excel_vba`: 구현 중 관련 로컬 fast feedback을 수행하고 원격 branch/PR 검증 대상으로 변경을 전달한다.
 - `infra`: GitHub Actions run, workflow, runner, permission, cache, Docker/GHCR 문제를 담당한다. CI 실패 시 run/job/step 근거를 확보한다.
-- `qa_docs`: 로컬 결과와 GitHub 원격 결과를 구분하여 독립 검토한다. 원격 CI 미실행은 `NOT TESTED`, 실행 불가/권한 문제는 `BLOCKED`로 기록한다.
-- `Manager`: PR 원격 gate 결과와 필요한 환경별 검증을 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
+- `qa_docs`: 위험도 정책에서 독립 검토가 필수인 경우 구현자와 분리해 로컬/원격 증거를 검토한다. 도구가 없으면 승인된 별도 인간 Reviewer를 배정한다. 독립 QA 미선택은 조건부 N/A, 필수 Reviewer 부재는 BLOCKED, 원격 CI 미실행은 NOT TESTED로 구분한다.
+- `Manager`: PR 원격 gate, 위험도별 QA_FINAL(필수 PASS 또는 N/A 근거), DOCUMENTATION_SYNC 및 필요한 환경 검증을 Head와 함께 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
 
 ## 6. 완료 보고 최소 증거
 
@@ -127,6 +328,8 @@ Local Fast Feedback: PASS | FAIL | NOT TESTED
 GitHub quality: PASS | FAIL | BLOCKED | NOT TESTED
 GitHub E2E: PASS | FAIL | BLOCKED | NOT TESTED
 GitHub Docker smoke: PASS | FAIL | BLOCKED | NOT TESTED
+risk_level / qa_required / risk_reason / reviewer / qa_final(PASS|FAIL|BLOCKED|NOT TESTED|N/A+reason):
+Manager ACCEPT/REWORK/DEFER와 해당 Head·근거:
 Main GHCR digest smoke: PASS | FAIL | BLOCKED | NOT TESTED | N/A
 Environment-specific validation: PASS | FAIL | BLOCKED | NOT TESTED | N/A
 Remaining risks:
@@ -351,3 +554,91 @@ PR head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI [#2191.1](https://gi
 PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex 재검토에서 P1 지적: OS deps의 360초 timeout + Azure→Ubuntu archive fallback 최대 2회(약 12분 20초)에도 `.github/workflows/ci.yml`의 `publish-commit-image`는 job 30분, `.github/workflows/release-image.yml`의 `container`는 20분이었다. 이 두 main/release job은 GHCR digest pull/build·transport·runtime/persistence 추가 검증이 필수여서 setup 지연 시 검증 전에 강제 취소될 위험이 있다.
 
 보완: Main `publish-commit-image` timeout 50분, Release `container` timeout 40분으로 조정한다. 기존 CI/Release Chromium E2E 35분, Docker smoke 40분, shared action 두 시도 각 360초 제한, 실패 후 최대 1회 retry 및 non-zero fail-closed, required aggregate와 GHCR exact digest/transport/runtime/persistence 검사 내용은 그대로 유지한다. `tests/scripts/test-config-layout.test.ts`에 두 job의 timeout 값 검증을 추가했다. 새 exact-head PR CI는 수정 사항의 PR quality/E2E/Docker를 검증하며, main image/Release 실제 경로는 병합 뒤 main 및 별도 승인 release 증거로 판단한다.
+
+## Issue #487 — 병합 후 Main CI #2203.1 Playwright APT lock 복구
+
+- 기존 [PR #488](https://github.com/planner77/masterGantt/pull/488)은 `08ac7749efc4544dfc125853d9e58ef3a9d56b21`로 병합됐다. 정확한 Main CI [#2203.1](https://github.com/planner77/masterGantt/actions/runs/37793380955)에서 Quality/Docker 및 E2E shard 2~6 PASS, shard 1/6 FAIL, E2E aggregate FAIL, Main 임시 GHCR publish SKIPPED가 확인됐다.
+- shard 1/6 로그: 첫 `playwright install-deps chromium` 360초 timeout (exit 124) 뒤 공식 Ubuntu archive로 재시도했으나 `/var/lib/apt/lists/lock`을 이전 `apt-get` PID 2593이 점유해 `Unable to lock directory` / exit 100. 외부 네트워크 불안정 자체와 **프로세스 간 APT 재시도 경합**을 구분한다.
+- 후속 수정은 Azure `mirror+file`/legacy source를 첫 설치 전에 공식 Ubuntu archive로 정규화하고, APT network timeout(45초)·retries(1회)로 자식 APT 지연을 제한하며, 실패 시 활성 lists/dpkg 잠금을 `fuser`로 최대 60초 감시하여 해제 확인 후에만 Playwright 1회 retry한다. 잠금이 유지되면 명시적으로 FAIL하고 kill/검증 skip으로 통과시키지 않는다.
+- 정적 회귀에서 미러 정규화가 첫 설치보다 앞서 수행되고 lock 감시가 retry보다 앞서는 실행 순서와 fail-closed 경계를 고정한다. 실제 검증은 새로운 후속 PR exact-head required quality/E2E 6 shard/Docker와 병합 뒤 새 merge SHA의 Main CI, 임시 GHCR `ci-<SHA>` image publish/exact digest pull/runtime/transport/persistence/SBOM·provenance, Generic Finalizer 결과로 분리한다.
+- 후속 PR 이전 Main #2203.1의 실패 결과는 불변이다. 관련 제품 API/DB/domain/version은 바꾸지 않는다.
+
+## Issue #541 자동 PR 권한 오류 원격 검증
+
+- 원 실행 [E2E 샤드 최적화 #10.1](https://github.com/planner77/masterGantt/actions/runs/37706501705)에서 timing 분석/plan proposal artifact/기존 PR 조회/branch push는 PASS, 자동 PR 생성은 GitHub repository permission restriction으로 FAIL이다. 기존 #508의 shell quoting/artifact 문제와 구별한다.
+- PR CI에서는 변경된 workflow에 `gh pr create` 실패 감지, BLOCKED Step Summary, head SHA/수동 PR 복구 링크 및 비정상 exit 조건이 존재하는지 정적 회귀로 확인한다. PR 자동 생성과 수동 복구 안내는 **같은 제목 변수**를 사용하며, Summary에 제목 및 `Refs #437`가 정확히 한 번 포함된 본문 원문을 명시해야 한다. 이 정보가 없는 compare URL만으로는 중복 PR 방지·Issue Lifecycle 추적을 검증하지 못한다.
+- 권한 차단 분기의 실제 원격 검증에는 같은 저장소 설정으로 새로운 `shouldUpdate=true` 재균형 후보가 있어야 한다. 기존 PR이 이미 열려있으면 해당 분기가 skip되므로 실제 권한 오류 재현 PASS로 과대 보고하지 않는다.
+- 자동 PR 생성이 차단된 상태에서 실제 plan은 브랜치에 보존되고 PR #540을 통해 별도 검증할 수 있다. 추가 token 생성, 저장소 PR 생성 허용 설정 변경, required checks 완화는 권한 있는 maintainer의 명시적 승인 없이는 진행하지 않는다.
+- PR #540의 최초 PR CI #2124는 aggregate E2E status가 SUCCESS이지만 Chromium 6-shard job은 SKIPPED다. 이 실행을 계획 변경에 대한 실제 E2E PASS로 사용하지 않는다. `ci.yml`의 E2E 경로 필터에 shard plan JSON과 planner script를 추가하여 새 head의 PR CI에서 실제 6-shard 실행을 요구한다.
+- 저장소 설정이 승인 후 변경되었다면 후속 신규 plan 생성 시 PR 생성과 exact head `ci.yml workflow_dispatch`를 확인한다. 생성 실패를 워크플로 성공으로 처리하지 않는다.
+
+### Issue #541 — main 정렬 후 재검증
+
+- 2026-10-09 기준 #542에 최신 main `4f2d8d084c011a33a3fbd633695f97f4b4ec5893`를 병합했다. #463 수평 스크롤 실패는 주간 timeline의 실제 120px scroll buffer가 준비됐는지 확인한 후 기존 정확한 viewport 120px 불변식을 검사하도록 보완했다.
+- 새로운 PR CI의 실행 SHA가 갱신된 PR head와 동일한지 반드시 확인한다. 이전 SHA `ca6312ce2c53bb9ad4e11b8e959bcc6963f108a9`의 재실행은 새 변경에 대한 증거가 아니다.
+
+
+## Issue #577 — Metadata/Full CI 원격 회귀
+
+PR #577에서 M1~M8 검증 시 `[전체 검증]`/ `[메타데이터 검증]` run-name, 이벤트/action, 이벤트 Head/current Head, same-SHA full-run ID, quality/E2E/Docker required check, 실행시간을 함께 기록한다. 현재 Head 변경으로 stale인 메타데이터는 즉시 `SUPERSEDED`여야 하며 20분 polling이 없어야 한다. metadata-only run이 full CI를 취소하면 FAIL. 현재 full-run pending/missing은 NOT TESTED 또는 FAIL이고 자동 PASS가 아니다. metadata-only 실패 뒤 full CI가 성공하면 해당 metadata 실패 Job 재실행으로 재판정하되 본 PR CI 시작 범위에서는 관측·리허설을 별도 기록한다. CI 변경 PR은 E2E/Docker 경로 판정에 포함되므로 실제 PR에서 세 필수 Gate를 모두 확인한다.
+
+
+### Issue #586 원격 검증 경계
+
+동일 Issue의 각 PR/merge SHA에 대응하는 PR required check, Main CI, GHCR candidate gate, FINAL comment와 branch 404를 개별 연결한다. 선행 FINAL이 존재하거나 Issue가 CLOSED라고 후속 성공·잔여 candidate cleanup을 주장하지 않는다. 사전 검증·로컬 모형 PASS와 실제 GitHub Workflow/GHCR 결과는 구분한다. 본 변경의 운영 복구는 배포 후 별도 실행한다.
+
+## Issue #586 후속 Main CI·Finalizer 원격 검증 (2026-10-11)
+
+과거 PR #588 merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a / Main CI Run 38094304911 FAIL, candidate GHCR/Finalizer SKIPPED. 동일 SHA의 이전 이력은 불변이다.
+
+교정 PR exact HEAD의 Required Quality/E2E/Docker PASS 및 Owner-managed QA는 새 원격 Run으로 검증한다. scripts/main_ci_run_name.py의 JSON payload helper와 실패 멀티라인 입력 차단을 Python 회귀로 검증하고, 병합 요청에서 한 줄 title + 빈 body + Head lease를 직접 전달한다.
+
+교정 SHA Main CI push SUCCESS, ci-<exact SHA> digest smoke/SBOM/provenance, Generic Finalizer의 SUPERSEDED ATTEMPT 및 실패 SHA/교정 SHA 대응, 두 PR 브랜치 cleanup, final marker와 Issue 상태를 구분하여 확인한다. 기존 #565의 타 tag·공유 GHCR 이미지 삭제·정식 Release는 금지한다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.
+
+## Issue #444 Phase 2·3 원격 검증
+
+1. PR/Main/Release의 successful setup metric artifact를 동일 기간·동일 workload 기준으로 수집하고 analyzer의 lane별 `readyGroups/notReadyGroups`를 확인한다.
+2. 어떤 비교 대상 그룹이라도 distinct successful run ID <10이면 `phase2Ready=false`를 유지하고 신규 cache 도입을 중단한다.
+3. baseline 충족 후 비용 후보는 runner-minutes/run, median, p90 순으로 확인하되 서로 다른 workflow/event/job/metric을 합쳐 평균내지 않는다.
+4. 변경 후 동일 metric 정의와 workload에서 10-run 표본을 다시 모아 compare script의 `ADOPT | DO_NOT_ADOPT | COLLECT_MORE`를 확인한다.
+5. cache miss run에서도 exact PR head의 quality/e2e/docker required gate가 동일하게 실행되고 성공해야 한다. cache hit만으로 PASS를 판정하지 않는다.
+6. Node/Next version 또는 package-lock 변경 후 npm/Next exact key가 바뀌는지, runner OS/arch 변경 시 npm/Next/Docker cache namespace가 분리되는지 workflow와 로그로 확인한다.
+7. setup metric artifact에는 JSONL timing/cache metadata만 존재하고 secret/token/`.env`/runtime DB/test result PASS evidence가 없는지 확인한다.
+8. #444 PR CI 시작 시점에는 표본 부족으로 실제 Playwright browser cache 도입/효과 판정은 N/A이며, PR exact head의 cache contract static test와 기존 required gate 실행 여부를 구현 증거로 사용한다.
+
+### Readiness workflow 검증
+
+- #448 병합 후 default branch에 `CI setup Phase 2 readiness` workflow가 존재하는지 확인한다.
+- successful PR CI/Main CI/Release 완료 시 readiness run이 생성되고, 실패/취소 source에서는 실행 job이 skip되는지 확인한다.
+- readiness run의 checkout ref가 `main`인지, permissions에 contents/pull-request write가 없는지 확인한다.
+- #444에는 `mastergantt-ci-setup-readiness:v1` marker 댓글이 하나만 존재하고 새 run마다 같은 comment ID가 갱신되어야 한다.
+- readiness evidence artifact의 `analysis.json`과 댓글의 lane별 최소 distinct run 수가 일치해야 한다.
+- 모든 lane이 READY가 되기 전에는 실제 cache 최적화 PR이 자동 생성되지 않아야 하며, READY 이후에도 사용자/Manager의 명시적 재개 전에는 repository mutation을 추가로 수행하지 않는다.
+9. readiness artifact의 각 JSONL record가 source run API의 run ID/attempt/head SHA/workflow path/event와 일치하고 `provenanceBound=true`인지 확인한다. artifact가 주장하는 원래 provenance 값은 readiness 표본 권위로 사용하지 않는다.
+10. before/after analysis의 metric key 집합이 다르면 `workloadComparable=false`와 `WORKLOAD_MISMATCH`가 기록되고 ADOPT 그룹이 0인지 확인한다.
+
+## Issue #603 Docker cache after 실측
+
+1. PR Actions 로그에 `cache-from type=gha`가 있고 docker_smoke build command에 `cache-to`가 없는지 확인한다.
+2. Main push docker_smoke에는 `cache-to type=gha,mode=max`가 존재하는지 확인한다.
+3. PR Docker required aggregate와 image policy/runtime/persistence smoke가 PASS해야 한다.
+4. #603 병합 후 successful PR run 10개 이상에서 `docker-build-cache` median/p90/runner-minutes를 baseline Run #32.1과 비교한다.
+5. Main cache reuse 또는 publish 성능이 악화되면 ADOPT하지 않고 rollback한다.
+
+## #616 Target F2
+
+Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate checks on exact PR head and latest main baseline. Verify SQLite migration 25→26, cross-project FK, atomic inline creation/revision, shared System copy and Target-bearing Template/JSON rejection. Runtime/prod proxy, backup restore, and full manual Target UI are separate NOT TESTED. Owner merge and release authorization remain distinct.
+
+## #616 Template graph v2 CI
+
+신규 Head PR CI는 Template v2 소스 snapshot→설비/시스템 단일 복원→공정/WorkArea 검증→Target/member remap을 종단간 테스트한다. MCS 동일 새 ID, 원본과 다른 UUID, 15대/ACS2/MCS1, 이전 Template fallback, cross-occurrence/duplicate/missing member rollback, migration25→26 및 deferred anchor FK를 검증한다. 원본 PR #631 Run #2534.1은 Quality/E2E/Docker FAIL이며 신규 Head의 PASS로 재해석하지 않는다. 실제 운영 DB backup/restore·release/GHCR 및 Owner ACCEPT는 별도.
+
+## Issue #616 PR #631 신규 Head QA 검증 요구 (2026-10-12)
+
+[Run #2545.1](https://github.com/planner77/masterGantt/actions/runs/38192860417)의 실패는 Chromium shard6 프로젝트 생성 입력 SSR→hydration 전환에서 이름이 빈 값으로 돌아온 trace 및 새 main과 test merge 불일치이다. 기존 Shard6의 두 개 프로젝트 생성/클립보드/권한 원 assertions를 그대로 유지하고 기준정보 클라이언트 ready 확인을 입력 전으로 이동한다. 새 exact-head PR CI에서 `project-links-persistence.spec.ts`와 6-shard 전부, migration/Template v2/Target, Quality, Docker 및 QA Final을 재검증한다. 이전 Run #2545.1은 불변 FAIL이다. 프록시/운영 DB/실기기/Owner release 허가는 여전히 별도.
+

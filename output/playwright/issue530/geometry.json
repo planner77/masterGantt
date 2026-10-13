@@ -1,0 +1,310 @@
+{
+  "environment": "actual SQLite HTTP Chromium",
+  "browserVersion": "153.0.8010.12",
+  "devicePixelRatio": 1,
+  "observations": [
+    {
+      "kind": "tree",
+      "mode": "group",
+      "order": "milestone",
+      "text": "현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.\n\n계층 모두 접기\n상위 행 1–2 / 2\n이전\n다음\n▸\nG2\n▾\nG1\n4 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n11.50 M/D · 알려진 부분합\n계층 단계 1–3 / 3\n이전\n다음\n▾\nM1\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n7.50 M/D\n\n단계 전체 소속 0/1 · 준비 전 · 선행 차단 없음\n\n그룹 개인 1–2 / 2\n이전\n다음\n▸\nB\n▾\nA\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n2.50 M/D\n▸\nM2\n▸\nMilestone 미지정"
+    },
+    {
+      "kind": "tree",
+      "mode": "group",
+      "order": "resource",
+      "text": "현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.\n\n계층 모두 접기\n상위 행 1–2 / 2\n이전\n다음\n▸\nG2\n▾\nG1\n4 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n11.50 M/D · 알려진 부분합\n그룹 개인 1–2 / 2\n이전\n다음\n▸\nB\n▾\nA\n3 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n5.50 M/D · 알려진 부분합\n계층 단계 1–3 / 3\n이전\n다음\n▾\nM1\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n2.50 M/D\n\n단계 전체 소속 0/1 · 준비 전 · 선행 차단 없음\n\n▸\nM2\n▸\nMilestone 미지정"
+    },
+    {
+      "kind": "matrix",
+      "mode": "group",
+      "width": 390,
+      "documentWidth": 390,
+      "clientWidth": 364,
+      "scrollWidth": 852,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 129,
+        "right": 261,
+        "top": 754,
+        "bottom": 802,
+        "ownerTop": 618,
+        "ownerBottom": 816.5,
+        "viewportHeight": 900,
+        "ownerLeft": 12,
+        "ownerRight": 378,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "group",
+      "width": 768,
+      "documentWidth": 768,
+      "clientWidth": 718,
+      "scrollWidth": 852,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 311,
+        "right": 443,
+        "top": 754.5,
+        "bottom": 802.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 744,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "group",
+      "width": 1024,
+      "documentWidth": 1024,
+      "clientWidth": 974,
+      "scrollWidth": 974,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 504.234375,
+        "right": 650.234375,
+        "top": 754.5,
+        "bottom": 784.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 1000,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "group",
+      "width": 1440,
+      "documentWidth": 1440,
+      "clientWidth": 1390,
+      "scrollWidth": 1390,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 706.296875,
+        "right": 852.296875,
+        "top": 754.5,
+        "bottom": 784.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 1416,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "group",
+      "width": 1920,
+      "documentWidth": 1920,
+      "clientWidth": 1870,
+      "scrollWidth": 1870,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 939.4375,
+        "right": 1085.4375,
+        "top": 754.5,
+        "bottom": 784.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 1896,
+        "painted": true
+      }
+    },
+    {
+      "kind": "tree",
+      "mode": "resource",
+      "order": "milestone",
+      "text": "현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.\n\n계층 모두 접기\n상위 행 1–2 / 2\n이전\n다음\n▸\nB\n▾\nA\n3 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n5.50 M/D · 알려진 부분합\n계층 단계 1–3 / 3\n이전\n다음\n▾\nM1\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n2.50 M/D\n\n단계 전체 소속 0/1 · 준비 전 · 선행 차단 없음\n\n▸\nM2\n▸\nMilestone 미지정"
+    },
+    {
+      "kind": "matrix",
+      "mode": "resource",
+      "width": 390,
+      "documentWidth": 390,
+      "clientWidth": 364,
+      "scrollWidth": 852,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 129,
+        "right": 261,
+        "top": 754,
+        "bottom": 802,
+        "ownerTop": 618,
+        "ownerBottom": 816.5,
+        "viewportHeight": 900,
+        "ownerLeft": 12,
+        "ownerRight": 378,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "resource",
+      "width": 768,
+      "documentWidth": 768,
+      "clientWidth": 718,
+      "scrollWidth": 852,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 311,
+        "right": 443,
+        "top": 754.5,
+        "bottom": 802.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 744,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "resource",
+      "width": 1024,
+      "documentWidth": 1024,
+      "clientWidth": 974,
+      "scrollWidth": 974,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 504.234375,
+        "right": 650.234375,
+        "top": 754.5,
+        "bottom": 784.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 1000,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "resource",
+      "width": 1440,
+      "documentWidth": 1440,
+      "clientWidth": 1390,
+      "scrollWidth": 1390,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 706.296875,
+        "right": 852.296875,
+        "top": 754.5,
+        "bottom": 784.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 1416,
+        "painted": true
+      }
+    },
+    {
+      "kind": "matrix",
+      "mode": "resource",
+      "width": 1920,
+      "documentWidth": 1920,
+      "clientWidth": 1870,
+      "scrollWidth": 1870,
+      "rows": 2,
+      "columns": 5,
+      "controlsContained": true,
+      "nativeTab": {
+        "tag": "BUTTON",
+        "ring": 6,
+        "left": 939.4375,
+        "right": 1085.4375,
+        "top": 754.5,
+        "bottom": 784.5,
+        "ownerTop": 618.5,
+        "ownerBottom": 817,
+        "viewportHeight": 900,
+        "ownerLeft": 24,
+        "ownerRight": 1896,
+        "painted": true
+      }
+    },
+    {
+      "kind": "plan",
+      "width": 390,
+      "documentWidth": 390,
+      "rows": 3,
+      "columns": 3
+    },
+    {
+      "kind": "plan",
+      "width": 768,
+      "documentWidth": 768,
+      "rows": 3,
+      "columns": 3
+    },
+    {
+      "kind": "plan",
+      "width": 1024,
+      "documentWidth": 1024,
+      "rows": 3,
+      "columns": 3
+    },
+    {
+      "kind": "plan",
+      "width": 1440,
+      "documentWidth": 1440,
+      "rows": 3,
+      "columns": 3
+    },
+    {
+      "kind": "plan",
+      "width": 1920,
+      "documentWidth": 1920,
+      "rows": 3,
+      "columns": 3
+    }
+  ]
+}

@@ -50,7 +50,16 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
-  await expect.poll(() => frame.evaluate(node => Boolean(Reflect.get(node, "__masterganttMilestoneTimeline")))).toBe(true);
+  // Diagnostic installation must belong to the *same* initialized SVAR API
+  // as the visible Gantt frame, even when the 3000-item projection is busy.
+  // Keep the original 5s readiness gate; no sleeps or retry/timeout increase.
+  await expect.poll(() => frame.evaluate(node => {
+    const identity = node.dataset.projectGanttApiInstance;
+    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; read?: () => { instance: string } } | undefined;
+    // Avoid repeatedly enumerating 500 native rows and scale cells during
+    // the 3000-item readiness gate. Still require the exact SVAR API identity.
+    return Boolean(identity && probe?.instance === identity && typeof probe.read === "function");
+  })).toBe(true);
   await settle(page);
   return { state, frame };
 }
@@ -121,6 +130,44 @@ test("#551 same-date/near-date cluster pagination keyboard and exact-ID Editor r
   await page.keyboard.press("Enter");const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toContainText("M-0002");await page.keyboard.press("Escape");await expect(editor).toBeHidden();await expect(items.nth(1)).toBeFocused();
   await page.keyboard.press("Escape");await expect(list).toBeHidden();await expect(markers.first()).toBeFocused();
   expect(state.posts.length+state.patchRequests.length).toBe(0);await captureLane(page,info,"cluster-keyboard",{clusterCount:2,firstCluster:56,pageSize:50,secondPage:6,openedTaskId:id,mutationCount:0});
+});
+
+
+test("#551 focus on mixed-date cluster item moves guide to that date after Editor",async({page})=>{
+  await page.setViewportSize({width:1440,height:1000});
+  const {state,frame}=await fixture(page,"cluster");
+  await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");
+  await frame.locator(".project-milestone-lane-marker").first().click();
+  const list=page.getByRole("dialog",{name:"Milestone 날짜 목록",exact:true});
+  await list.getByRole("button",{name:"다음 50개",exact:true}).click();
+  const item=list.locator("[data-milestone-lane-trigger]").nth(1);
+  await expect(item).toContainText("2026-10-06");await item.focus();
+  const offset=async()=>{
+    const date=await probe<{viewportX:number}>(frame,"coordinate","2026-10-06");
+    return frame.evaluate((node,x)=>{
+      const guide=node.querySelector<HTMLElement>(".project-milestone-lane-guide");
+      const chart=node.querySelector<HTMLElement>(".wx-chart");
+      return guide&&chart?Math.abs(guide.getBoundingClientRect().left-chart.getBoundingClientRect().left-x):Infinity;
+    },date.viewportX);
+  };
+  await expect.poll(offset).toBeLessThanOrEqual(1);
+  await page.keyboard.press("Enter");
+  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});
+  await expect(editor).toBeVisible();await page.keyboard.press("Escape");
+  await expect(editor).toBeHidden();await expect(item).toBeFocused();
+  await expect.poll(offset).toBeLessThanOrEqual(1);
+  expect(state.posts.length+state.patchRequests.length).toBe(0);
+});
+
+test("#551 keyboard focus survives marker disappearing by horizontal clipping",async({page})=>{
+  await page.setViewportSize({width:1440,height:1000});
+  const {state,frame}=await fixture(page,"cluster");
+  await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");
+  const markers=frame.locator(".project-milestone-lane-marker");
+  await expect(markers).toHaveCount(2);await markers.first().focus();
+  await probe(frame,"scroll",300);
+  await expect(markers).toHaveCount(1);await expect(markers.first()).toBeFocused();
+  expect(state.posts.length+state.patchRequests.length).toBe(0);
 });
 
 test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",async({page},info)=>{
@@ -283,7 +330,8 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   for(const scale of ["day","week"] as const) {
   await page.getByRole("button",{name:scale==="day"?"일":"주",exact:true}).click();
   await expect(lane.locator(".project-milestone-lane-plot")).toBeVisible();
-  await probe(frame, "reveal", "2026-03-10"); await settle(page);
+  const revealOutcome = await probe<string>(frame, "reveal", "2026-03-10");
+  expect(revealOutcome).toBe("SETTLED"); await settle(page);
   const owner = frame.locator(".project-gantt-scroll");
   if (width === 390) { await owner.focus(); await page.keyboard.press("End"); await owner.evaluate(node => node.scrollTo({ left: node.scrollWidth - node.clientWidth })); await settle(page); }
   const observed = await frame.evaluate(node => {
@@ -294,11 +342,19 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
       if (!bar) return []; const r = row.getBoundingClientRect(), b = bar.getBoundingClientRect(); return [{id,gridCenter:r.y+r.height/2,chartCenter:b.y+b.height/2}];
     });
     const tick=lane.querySelector<HTMLElement>('[data-milestone-tick="00000000-0000-4000-8000-000000000008"]'), native=node.querySelector<HTMLElement>('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000006"]');
-    return { lane:rect(lane),plot:rect(plot),clip:rect(clip),list:rect(lane.querySelector<HTMLElement>(".project-milestone-lane-list")!),anchor:tick&&native?{tick:tick.getBoundingClientRect().x,native:native.getBoundingClientRect().x+1}:null,alignment,markers:Array.from(lane.querySelectorAll<HTMLButtonElement>(".project-milestone-lane-marker")).map(e=>({rect:rect(e), label:e.getAttribute("aria-label")})), rows:Array.from(node.querySelectorAll<HTMLElement>('.wx-table-container .wx-row[data-id]')).map(e=>({id:e.getAttribute("data-id"),height:e.getBoundingClientRect().height})) };
+    const nativeScale = plot.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
+    return { lane:rect(lane),plot:rect(plot),clip:rect(clip),axisStartX:nativeScale?.x ?? null,list:rect(lane.querySelector<HTMLElement>(".project-milestone-lane-list")!),anchor:tick&&native?{tick:tick.getBoundingClientRect().x,native:native.getBoundingClientRect().x+1}:null,alignment,markers:Array.from(lane.querySelectorAll<HTMLButtonElement>(".project-milestone-lane-marker")).map(e=>({rect:rect(e), label:e.getAttribute("aria-label")})), rows:Array.from(node.querySelectorAll<HTMLElement>('.wx-table-container .wx-row[data-id]')).map(e=>({id:e.getAttribute("data-id"),height:e.getBoundingClientRect().height})) };
   });
   expect(observed.rows).toEqual(beforeRows); expect(observed.plot.y).toBeGreaterThanOrEqual(observed.lane.bottom);
   expect(observed.list.x).toBeGreaterThanOrEqual(Math.max(0, observed.clip.x));
-  expect(observed.anchor).not.toBeNull(); expect(Math.abs(observed.anchor!.tick-observed.anchor!.native)).toBeLessThanOrEqual(1);
+  // Assert against both independent rendered references, not only the Core
+  // state scrollLeft: real Chart scrolling can temporarily diverge from state.
+  const canonicalDate = await probe<{contentX:number}>(frame,"coordinate","2026-03-10");
+  expect(canonicalDate).not.toBeNull();expect(observed.axisStartX).not.toBeNull();
+  await info.attach(`anchor-diagnostic-${width}-${scale}`, { body: JSON.stringify({observed,canonicalDate, state:await probe(frame,"read"), metrics:await probe(frame,"laneMeasurement"), ticks:await lane.locator("[data-milestone-tick]").evaluateAll(nodes=>nodes.map(n=>({id:n.getAttribute("data-milestone-tick"),x:n.getBoundingClientRect().x}))), status:await lane.locator("[role=status]").allTextContents()}),contentType:"application/json"});
+  expect(observed.anchor).not.toBeNull();
+  expect(Math.abs(observed.anchor!.tick!-(observed.axisStartX!+canonicalDate.contentX))).toBeLessThanOrEqual(1);
+  expect(Math.abs(observed.anchor!.tick-observed.anchor!.native)).toBeLessThanOrEqual(1);
   expect(observed.alignment.length).toBeGreaterThan(0); for(const row of observed.alignment) expect(Math.abs(row.gridCenter-row.chartCenter)).toBeLessThanOrEqual(1);
   for (const marker of observed.markers) {
     expect(marker.rect.width).toBe(160); expect(marker.rect.height).toBe(44);

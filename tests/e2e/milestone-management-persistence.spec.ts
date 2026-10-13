@@ -171,7 +171,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   await page.reload();
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
   const durableRow = panel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`);
-  await durableRow.getByRole("button", { name: "관리 목록 편집 단계 단계 상세", exact: true }).click();
+  await durableRow.getByRole("button", { name: "관리 목록 편집 단계 Milestone 상세", exact: true }).click();
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("관리 목록 편집 단계");
   await expect(editor).toContainText(milestone.externalId);
   await expect(editor).toContainText("완료 기록과 현재 소속/선행 상태가 일치하지 않습니다");
@@ -233,7 +233,7 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
     if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) &&
       (path === `${api}/tasks` || path.startsWith(`${api}/tasks/`) || path === `${api}/milestone-memberships` || path.startsWith(`${api}/links`))) protectedMutations++;
   });
-  await row.getByRole("button", { name: `${milestone.name} 단계 상세`, exact: true }).click();
+  await row.getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true }).click();
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(milestone.name);
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await row.getByRole("button", { name: `${milestone.name} 소속 작업 조회`, exact: true }).click();
@@ -256,7 +256,7 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
     await readonlyPage.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
     const readonlyPanel = readonlyPage.locator("#project-panel-milestones");
     await expect(readonlyPanel.getByRole("button", { name: "Milestone 추가", exact: true })).toBeDisabled();
-    await readonlyPanel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`).getByRole("button", { name: `${milestone.name} 단계 상세`, exact: true }).click();
+    await readonlyPanel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`).getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true }).click();
     const readonlyEditor = readonlyPage.getByRole("dialog", { name: "작업 정보", exact: true });
     await expect(readonlyEditor.getByLabel("작업명", { exact: true })).toHaveValue(milestone.name);
     await expect(readonlyEditor.getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");

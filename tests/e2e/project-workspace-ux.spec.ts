@@ -339,11 +339,16 @@ test("Issue #195 새 프로젝트 생성 탭은 키보드로 순환 이동한다
   const blankTab = tabs.getByRole("tab", { name: "빈 프로젝트 만들기", exact: true });
   const templateTab = tabs.getByRole("tab", { name: "템플릿에서 만들기", exact: true });
 
+  // Server-rendered tabs can appear before the client skip-navigation listener mounts.
+  await expect(page.locator(".new-project-container")).toHaveAttribute("data-skip-link-ready", "true");
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "본문으로 바로가기", exact: true });
   await expect(skipLink).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("main")).toBeFocused();
+  // Clicking the native Skip Link removes the tab button from sequential navigation
+  // synchronously, not after a potentially delayed React render.
+  await expect(blankTab).toHaveAttribute("tabindex", "-1");
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("프로젝트 이름", { exact: true })).toBeFocused();
   await expect(blankTab).toHaveAttribute("tabindex", "0");

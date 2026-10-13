@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import type { CreateProjectMasterItemRequest, UpdateProjectMasterItemRequest } from "../../contracts/project-master";
+import type { CreateProjectMasterItemRequest, ProjectMasterRelationMutationRequest, UpdateProjectMasterItemRequest } from "../../contracts/project-master";
 import { apiErrorResponse, PublicApiError } from "../http/api-error-core";
 import { parseRequiredIfMatch, readBoundedJson } from "../http/request-core";
 import { ConfigurationError, isExactAllowedOrigin, parseApplicationBaseUrl } from "../security/origin-core";
@@ -18,6 +18,9 @@ import {
   ProjectMasterInvalidInputError,
   ProjectMasterItemInUseError,
   ProjectMasterItemNotFoundError,
+  ProjectMasterItemInactiveError,
+  ProjectMasterRelationInvalidError,
+  ProjectMasterRelationInUseError,
   ProjectMasterRevisionMismatchError,
   type ProjectMasterService,
 } from "./project-master-service-core";
@@ -60,6 +63,9 @@ function mapped(error: unknown): unknown {
   if (error instanceof ProjectMasterAuthorizationError) return new PublicApiError(401, "PROJECT_MASTER_ADMIN_REQUIRED", "Project master administrator authentication is required.");
   if (error instanceof ProjectMasterRevisionMismatchError) return new PublicApiError(412, "PROJECT_MASTER_REVISION_MISMATCH", "Project master catalog changed. Reload and retry.");
   if (error instanceof ProjectMasterItemNotFoundError) return new PublicApiError(400, "PROJECT_MASTER_ITEM_NOT_FOUND", "The selected project master item is invalid.");
+  if (error instanceof ProjectMasterRelationInvalidError) return new PublicApiError(409,"PROJECT_MASTER_RELATION_INVALID","The catalog relationship is invalid.");
+  if (error instanceof ProjectMasterRelationInUseError) return new PublicApiError(409,"PROJECT_MASTER_RELATION_IN_USE","The relationship is referenced by a project or child relation.");
+  if (error instanceof ProjectMasterItemInactiveError) return new PublicApiError(409,"PROJECT_MASTER_INACTIVE","Inactive catalog items cannot be newly linked.");
   if (error instanceof ProjectMasterItemInUseError) return new PublicApiError(409, "PROJECT_MASTER_ITEM_IN_USE", "A referenced master code cannot be changed.");
   if (error instanceof ProjectMasterInvalidInputError) return new PublicApiError(400, "INVALID_REQUEST", "The project master input is invalid.");
   return error;
@@ -121,6 +127,17 @@ export async function handleUpdateProjectMasterItem(request: Request, itemId: st
     const result = resolve(dependencies.service).updateItem(itemId, token(request, dependencies, url), revision, body);
     return response(result, 200, result.data.revision);
   } catch (error) { return fail(error, requestId); }
+}
+
+export async function handleMutateProjectMasterRelation(request: Request, dependencies: Dependencies, remove: boolean): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    const url=appUrl(dependencies); requireOrigin(request,url);
+    const revision=parseRequiredIfMatch(request);
+    const body=await readBoundedJson(request) as ProjectMasterRelationMutationRequest;
+    const result=resolve(dependencies.service).mutateRelation(token(request,dependencies,url),revision,body,remove);
+    return response(result,200,result.data.revision);
+  } catch(error) { return fail(error,requestId); }
 }
 
 export async function handleUnlockProjectMasterAdmin(request: Request, dependencies: Dependencies): Promise<Response> {

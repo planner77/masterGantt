@@ -1,0 +1,22 @@
+[
+  {
+    "name": "trial1.config.cjs",
+    "sha256": "8bf99e10da94f633016029b648ae90f80b72c065b6860737817f4313bbcdc0a2",
+    "configText": "const { defineConfig, devices } = require('${EVIDENCE_ROOT}/source/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${EVIDENCE_ROOT}/source/tests/e2e',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/trial1/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/trial1/results.json'}]],use:{baseURL:'http://127.0.0.1:3187',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3187',cwd:'${EVIDENCE_ROOT}/source',url:'http://127.0.0.1:3187',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3187',DATABASE_PATH:'${EVIDENCE_ROOT}/trial1/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-trial1'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  },
+  {
+    "name": "trial2.config.cjs",
+    "sha256": "d7c8cab3982b4fccea7ebe01676eb4f9911433889d2f483459dfd879bf2e909d",
+    "configText": "const { defineConfig, devices } = require('${EVIDENCE_ROOT}/source/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${EVIDENCE_ROOT}/source/tests/e2e',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/trial2/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/trial2/results.json'}]],use:{baseURL:'http://127.0.0.1:3187',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3187',cwd:'${EVIDENCE_ROOT}/source',url:'http://127.0.0.1:3187',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3187',DATABASE_PATH:'${EVIDENCE_ROOT}/trial2/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-trial2'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  },
+  {
+    "name": "trace1.config.cjs",
+    "sha256": "9261dc8ec0256b4d5da73aaa32169965b8d21bfba230676f832bc7b5a9d62427",
+    "configText": "const { defineConfig, devices } = require('${EVIDENCE_ROOT}/instrumented/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${EVIDENCE_ROOT}/observer-tests',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/trace1/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/trace1/results.json'}]],use:{baseURL:'http://127.0.0.1:3188',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3188',cwd:'${EVIDENCE_ROOT}/instrumented',url:'http://127.0.0.1:3188',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3188',DATABASE_PATH:'${EVIDENCE_ROOT}/trace1/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-trace1'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  },
+  {
+    "name": "trace2.config.cjs",
+    "sha256": "e5350e0eeb089dda1e93d5e25accb0f31b1ad135797cc8c4a57b355c1f007645",
+    "configText": "const { defineConfig, devices } = require('${EVIDENCE_ROOT}/instrumented/node_modules/@playwright/test');\nmodule.exports = defineConfig({testDir:'${EVIDENCE_ROOT}/observer-tests',workers:1,retries:0,outputDir:'${EVIDENCE_ROOT}/trace2/test-results',reporter:[['list'],['json',{outputFile:'${EVIDENCE_ROOT}/trace2/results.json'}]],use:{baseURL:'http://127.0.0.1:3188',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'npm run dev -- --hostname 127.0.0.1 --port 3188',cwd:'${EVIDENCE_ROOT}/instrumented',url:'http://127.0.0.1:3188',reuseExistingServer:false,timeout:120000,env:{APP_BASE_URL:'http://127.0.0.1:3188',DATABASE_PATH:'${EVIDENCE_ROOT}/trace2/shared.sqlite3',NEXT_DIST_DIR:'.next-repro-trace2'}},projects:[{name:'chromium',use:{...devices['Desktop Chrome']}}]});\n"
+  }
+]

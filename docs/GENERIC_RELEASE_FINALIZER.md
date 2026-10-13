@@ -1,3 +1,69 @@
+## Issue #645 — original SHA Main CI source PR provenance false-negative 보완 (2026-10-13)
+
+- 복구 source `/commits/{sha}/pulls` 인덱스가 비어 있는 경우만 `/pulls?state=closed` 전수 read-only 조회로 원본 `merge_commit_sha`/PR 번호/실제 merged_at의 **유일성**을 검증한다. 독립 `GET /pulls/{PR}`, 병합 커밋 두 부모↔PR base/head, first-parent, Owner/Issue/PR/version/recovery approval 등은 추가 확인이므로 보안 강도를 낮추지 않는다.
+- missing/ambiguous/pagination failure/foreign PR/미병합 API는 `BLOCKED`; 성공·실패 Run을 지우거나 기존 태그/후속 릴리스 부채를 재작성하지 않는다. #645 PR은 `release_required=false` 운영 검증기 변경이며, #616 원본 SHA의 Quality/E2E6/Docker·private GHCR digest·SBOM/provenance·정식 v0.107.0 Finalizer까지 수행한 증거가 아니다. 그 작업은 별도 인증 Owner 복구 dispatch와 immutable Run 결과가 필요하다.
+
+## Issue #643 — 수동 Main 복구 Run 원본 확인 및 False-negative 방지 (2026-10-13)
+
+- `scripts/main_ci_recovery.py::completed_evidence`는 trusted default-main에서 정확한 원본 CI workflow metadata (`ci.yml`의 id/name/path/state)와 Actions Run `workflow_id`·`path`·`repository/head_repository`를 교차 확인한다. `run.name`은 `run-name`이 있는 모든 워크플로에서 가변 표시명이므로 인증/임계치에 사용하면 안 된다.
+- Run은 여전히 정확한 `workflow_dispatch/main/completed/success`, active Owner actor, SHA/Issue/PR/version/first-parent, 변경 불가 artifact Run/Attempt, 필수 Quality/E2E6/Docker Job SUCCESS 및 GHCR exact candidate digest를 요구한다. metadata ID 불일치/비활성/UNKNOWN 또는 다른 source는 **fail-closed**. 일반 수동 진단이 GHCR 게시/Finalizer를 통과하도록 변경하지 않는다.
+- 현재는 source verifier의 offline fixture와 새 PR CI 대상 변경만 허용한다. 실제 #616 수동 recovery run, formal v0.107.0 release/cleanup/Issue 종료는 별도 Owner 승인과 원격 증거 확보 전 `NOT TESTED`.
+
+## Issue #639 — invalid Main merge subject 후속 교정 (2026-10-13)
+
+- `5c79b658c83b86f163826055fa7da6efadef4e63` (#639/#641)은 불변의 Main CI #2606.1 trace FAILURE이며 GHCR 검증 후보가 없다. `main_ci_run_name.py`의 30자 한글 canonical title은 릴리스 증거 자격이 아닌 **CI 사전조건**이다.
+- 같은 #639의 새 PR에서 유효한 제목·세 Required PR CI·Trusted QA를 통과해 병합되더라도 Finalizer는 자체 규칙으로 원본 first-parent 실패/후속 동일-Issue corrective의 허용 범위와 검증된 exact commit candidate를 판단해야 한다. 기존 실패 Run을 PASS로 바꾸지 않는다. #616 release authority는 다른 Issue이며 자동 승계/태그 재지정 금지.
+- 병합 전 CLI `--as-merge-payload`와 `--validate-title`의 실제 제목·Head SHA preflight가 필수이다. `main` 보호, 자동 release 권한, candidate immutable digest 정책은 변경하지 않는다.
+
+## Issue #639 — PR #641 P1 review correction (2026-10-13)
+
+- Write-token `release-finalizer.yml` always checks out trusted `main` without persisted credentials and verifies the current HEAD.
+- The `workflow_dispatch` manual recovery verifier runs **after** Buildx setup and authenticated `docker/login-action` for private GHCR. `GH_TOKEN` is only GitHub API authentication; it must not be treated as Docker registry credentials.
+- Root-running inline Python imports `from scripts import main_ci_recovery as recovery` (not a top-level `main_ci_recovery`). The authenticated exact source CI run/attempt, target SHA, Owner marker, required Quality/E2E6/Docker and immutable `ci-<SHA>` digest must pass before the Generic First-Parent Finalizer runs. Source `head_sha` is matched against the verified controller SHA.
+- Original push CI handling is preserved. Regular manual diagnostic runs cannot satisfy the recovery source gate. Remote GHCR/Finalizer end-to-end acceptance remains NOT TESTED until #639 has merged and #616 separately authorizes recovery.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** Trusted manual_recovery provenance may supplement missing push run on exact immutable historical merge SHA only after fresh evidence verification. Default branch verifier reauthenticates CI source workflow/run/attempt, artifact, full Quality/E2E6/Docker job conclusions, ancestor, PR, Owner marker, GHCR digest. Neither diagnostic workflow_dispatch nor failed/older run is equivalent to main push SUCCESS. Oldest-first barriers and release authority are unchanged.
+
+## Issue #633 — Authenticated GHCR 404 교차 확인 및 원본 v0.106.1 Release SHA 유지 (2026-10-12)
+
+- GHCR Docker manifest 조회 generic 404/`not found`를 직접 ABSENT로 해석하지 않는다. 동일 저장소에 대해 Github Packages 사용자 Container Versions API의 인증된 200/모든 페이지·`metadata.container.tags` 완전 조회 후 exact tag가 없는 경우만 ABSENT를 반환한다. 토큰 문제·응답 오염·pagination 미완료면 UNKNOWN을 유지하여 Finalizer mutation 차단.
+- 안전한 same-Issue audit-only main correction이 병합되어도 B2 `Plan.sha`는 원래 Owner가 승인한 v0.106.1 Merge `09bee924032b4126ff794ec7a485542fd72dd7bf`로 유지한다. 최신 audit correction Merge SHA는 `Plan.main_sha`로 별도 검증하고 경합 방지·branch cleanup target에만 사용한다. version jump/other Issue/여러 PR CI를 통한 authority 확대는 금지.
+- 이전 불변 FAIL Main CI 및 Owner marker를 변경하지 않고, original Release 성공과 exact digest 일치가 입증된 이후에만 B2 퇴역 원장을 finalize한다. 모든 신규 정책 변경은 PR full Required CI/QA Trusted와 Owner 검증 후 병합한다.
+
+## Issue #633 — Owner B2 두 미발행 SemVer 안전 복구 (2026-10-12)
+
+- #550 v0.105.0과 #615 v0.106.0은 최초 Main CI FAIL/교차 Issue 변경 때문에 기존 same-Issue supersession 경로를 절대로 사용하지 않는다. 기존 일반 계약은 변경 없이 별도 `scripts/release_debt_recovery.py`의 exact historical SHA, Owner revoke+v2 authorization, 새 Issue #633 release `v0.106.1`로 **한정된 예외만** 분리한다.
+- `mastergantt-release-debt-authorization:v2`는 Owner/원본 다섯 Issue·PR·SHA/새 PR·Main SHA·버전/사유를 식별한다. 이전 v0.105.0/v0.106.0 게시 승인은 `authorized=false`인 해당 버전별 최신 Owner marker로 명시 철회한 뒤에만 실행. 새 v0.106.1 발행 승인은 별도 v1 marker다. 어느 것도 PR 본문/CI PASS에서 추론하지 않는다.
+- Generic Finalizer는 `issue_comment` Owner 신원/Issue #633만 재진입하고 무조건 default main trusted code를 checkout한다. 사전 감사를 통한 old exact Git tag/Release/GHCR 모두 ABSENT·새 정확 main CI verified candidate·new release owner authorization 없으면 원본 실패 barrier를 유지한다. 새 formal release 성공과 digest 비교 후에만 source 5개 브랜치 안전 cleanup 및 two old candidates 삭제/각 old Issue의 `release-debt-retired:v1` 독립 감사 증거·close를 수행한다. 구 FAIL SHA는 FINAL/PASS로 표시하지 않는다.
+- 기존 `release-finalizer.yml`·`release-finalizer-resume.yml`에 pinned GHCR 인증 검사와 동일 concurrency 권한 내 Owner 재개만 추가한다. tag 충돌/등록된 다른 image·권한 오류·경쟁 main 이동에는 fail-closed. [상세](ISSUE_633_RELEASE_DEBT.md).
+
+## Issue #633 — GHCR 감사의 태그·인증 구분 (2026-10-12)
+
+- GitHub/Git의 immutable annotated `vX.Y.Z`와 GHCR의 exact image `:X.Y.Z`는 서로 다른 naming 계약이다. 기본 브랜치 수동 read-only 감사는 `packages: read` + `docker/login-action`으로 private GHCR 인증 후 실제 `:X.Y.Z` manifest/digest를 조회한다.
+- 레지스트리 권한/네트워크·HTTP 404가 모호하면 `UNKNOWN`으로 fail-closed; 이미 발행된 이미지 digest는 미발행 버전 폐기를 차단한다. Generic Finalizer의 cross-Issue supersession 정책·tag mutation/Release 권한은 변경하지 않는다.
+
+## Issue #633 — 교차 Issue 미발행 Release 부채 감사 (2026-10-12)
+
+- #550 v0.105.0 실패 Main CI와 #615 v0.106.0 중간 병합은 같은 Issue/동일 버전 자동 승계가 아니다. 과거 실패를 PASS로 재해석하거나 release-required=false로 숨기지 않는다.
+- `scripts/release_debt_audit.py` 및 `.github/workflows/release-debt-audit.yml`은 **trusted main read-only** 감사 전용이며, Owner의 별도 exact SHA·버전별 복구 결정과 GHCR digest·tag 상태를 판정한다. 결과 `READY_FOR_SEPARATE_TRUSTED_RECOVERY`도 정식 tag·GHCR 게시·Issue close 권한이 아니다.
+- 독립 QA/Owner HIGH 승인, PR Required 세 종, Main candidate digest/SBOM/provenance, immutable SemVer/Release/Resume/cleanup 순서는 유지한다. 자세한 결정·실패 감사 원장·rollback은 [Issue #633 복구 계획](ISSUE_633_RELEASE_DEBT.md)을 참조한다.
+
+## Issue #615 — Main CI 단일 행 병합 실패 및 승인된 v0.106.0 승계 (2026-10-12)
+
+- PR #627 병합 `c8949da48e7465db45d871887c3f55f9fb6dc743`의 추가 본문으로 Main CI #2526.1 trace가 FAIL하고 세 필수 quality/E2E/Docker 및 임시 GHCR 검증은 SKIPPED되었다. 기존 SHA/Run은 불변 FAIL이며 force-rewrite·gate 완화·rerun으로 PASS 처리하지 않는다.
+- 해당 실패는 이미 version `0.105.0 → 0.106.0`을 main에 반영했으나 annotated tag/release가 시작되기 전이다. 뒤따르는 **동일 Issue의 비문서 교정 PR**이 동일한 `0.106.0`을 유지하면서 exact Main CI 성공 시, 원본 릴리스 의무(`0.105.0` baseline)를 명시적으로 inherited release baseline으로 전달한다. 물리적 first-parent version은 `0.106.0 → 0.106.0`으로 보존한다.
+- 릴리스 승계는 원본 Main CI 미성공, 중간에 **동일 Issue·non-docs·동일 version**만 존재, 교정 exact Main CI 성공일 때에만 가능하다. 종료된 Issue의 non-actionable barrier를 포함해 다른 Issue가 중간에 있거나 docs-only, release-tag 시도·불변 tag 충돌, 이종 version이면 조용히 상속하지 않고 이전 FAIL을 blocker로 유지한다. 정식 release 승인 marker도 그대로 필요한 별도 gate이다.
+- Generic Resolver는 supersession 뒤 교정 SHA의 exact SemVer tag 존재·target 검증을 **재수행**하며, v0.106.0 release_start → exact digest release-image → Resume / 원본·교정 브랜치 cleanup / Issue 종료 순으로 처리한다. 기존 Main CI #2526.1 실패 및 원본 SHA와 PR의 cleanup 부채는 기록한다.
+- 후속 PR 병합에는 `main_ci_run_name.py --as-merge-payload --expected-head-sha`를 사용하여 `commit_title`은 한 줄 한글 표준 형식, `commit_message`는 빈 문자열, `merge_method=merge` 및 lease를 함께 넘긴다. 개발 중 로컬 정적 회귀 PASS는 원격 CI/GHCR PASS가 아니다.
+
 # Generic Release Finalizer
 
 
@@ -5,9 +71,9 @@
 
 GitHub는 같은 PR head SHA에서 이전 attempt의 실패/cancelled check-run과 최신 재실행의 성공 check-run을 함께 반환할 수 있다. Generic Finalizer는 required check 이름별로 **가장 큰 check-run ID(최신 실행)** 하나만 판정하며, 오래된 실패가 최신 성공을 덮어쓰거나 오래된 성공이 최신 실패를 가리는 것을 허용하지 않는다. 최신 required check가 모두 GitHub Actions SUCCESS인 경우에만 PR gate를 PASS로 취급한다.
 
-## 실행 인스턴스 추적 (#361)
+## 실행 인스턴스 추적 (#361 / #582)
 
-Generic Finalizer의 workflow 식별자와 trigger는 그대로 유지하면서 `run-name`은 triggering Main CI의 `workflow_run.display_title`을 계승한다. 따라서 PR 단계에서 검증된 Primary Issue/PR trace가 Main CI 표시명에 보존되어 있으면 Finalizer Actions 목록에서도 같은 문자열을 검색할 수 있다. Finalizer 자체 재실행은 별도의 `github.run_number.github.run_attempt`로 구분한다.
+Generic Finalizer의 workflow 식별자와 trigger는 유지한다. #582부터 `run-name`은 원본 Main의 한 줄 canonical `workflow_run.head_commit.message`를 사용하며 `workflow_run.run_number.run_attempt`와 자체 `github.run_number.github.run_attempt`를 구분하여 표시한다. 예: `Finalizer · Issue #530 · PR #579 · Gantt 복원 경합 보완 · Main #2315.1 · Run #117.1`. 과거 multi-line merge, 신형 prefix 뒤에 개행·본문이 있는 pseudo-canonical 메시지, 직접 Push는 triggering `workflow_run.head_sha`의 짧은 fallback을 사용한다. JSON-escaped CR/LF 검사로 Main CI/Finalizer의 멀티라인 표시를 방지한다. 표시명은 승인·릴리스 권한이 아니며 정확한 SHA → merged PR → canonical `Refs #Issue`를 별도로 확인한다.
 
 승인된 release 경로에서 `issue_lifecycle.py`는 `release-image.yml` workflow dispatch에 Primary Issue와 PR 번호를 input으로 전달한다. 이 metadata는 표시용이며 release authorization, version/tag authority, exact SHA/digest 검증이나 first-parent 처리 순서를 대체하지 않는다.
 
@@ -56,7 +122,7 @@ CI 성공이나 version bump 자체는 release 승인이 아니다.
 검증 규칙:
 
 - 현재 개인 소유 저장소에서는 `author_association=OWNER`인 comment만 신뢰한다. 조직 저장소로 이전할 경우 별도 permission-check 설계 없이 이 범위를 넓히지 않는다.
-- Issue comment를 100개 단위로 끝까지 pagination한 뒤 최신 trusted marker를 authority로 사용한다. 100번째 이후의 승인·철회도 반드시 반영한다.
+- Issue comment를 100개 단위로 끝까지 pagination한 뒤 **해당 exact application version**의 trusted marker 가운데 가장 최신 comment ID를 authority로 사용한다. 같은 Issue에 서로 다른 버전의 Release가 있더라도 다른 버전의 승인·철회는 현재 버전의 결정을 덮어쓰지 않는다. 동일 버전의 최신 철회는 반드시 BLOCKED이며, 100번째 이후의 승인·철회도 반영한다.
 - `expected_version`이 merge target version과 정확히 일치해야 한다.
 - `authorized=false`는 동일 version의 명시적 철회다.
 - version이 변경됐는데 유효 marker가 없으면 finalizer는 `BLOCKED`로 실패하고 mutation하지 않는다.
@@ -138,3 +204,41 @@ PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 �
 - 이 규칙은 immutable `ci-<SHA>`를 overwrite하는 허용이 아니다. 이미 검증된 exact SHA evidence를 lifecycle이 재사용하는 규칙이다.
 
 #502 merge SHA `36cf2db8ab0c6d04ab904b01c6bc8a0bb6b1cdab`에서 #2083.1 SUCCESS 뒤 #2084.1이 기존 `ci-<SHA>` overwrite 거부로 실패한 사례가 #520의 회귀 기준이다.
+
+
+## Issue #586 — 동일 Issue 다중 Merge의 불변 FINAL (2026-10-10)
+
+설계 결정·대안 비교·운영 복구 조건은 [#586 ADR](ISSUE_586_FINAL_MARKER_ADR.md)을 따른다.
+
+최초 완료 PR의 FINAL marker는 변경하지 않는다. 이후 같은 Issue의 PR이 병합되더라도 각 exact merge SHA의 PR Quality/E2E/Docker, Main CI, docs-only 분류 및 필요한 GHCR candidate 검증을 별도 수행한다. coalesce는 검증된 성공 merge를 삭제하지 않는다. 실패 target의 명시적 corrective supersession만 제한적으로 유지한다.
+
+**first-parent backlog의 완료 경계 판정 전** 그리고 FINAL 기록 전에 모든 기존 FINAL comment를 pagination하여 marker 형식·작성자·PR number·canonical Refs·head SHA/branch·base main·동일 repo·exact merge SHA·main first-parent 계보를 검증한다. 다른 사용자/PR/SHA가 넣은 위조 marker는 정상 완료 경계로 SKIPPED하지 않고 FAIL 처리한다. 동일한 bot-origin PR identity·SHA로 중복 생성된 과거 marker는 중복 mutation 없이 멱등하게 해석하되, 충돌하는 PR identity는 거부한다. 이어서 관련 브랜치(리스·보호·참조·조상)와 GHCR candidate(다른 tag 공유 없음)를 읽기 전용 preflight한다. 안전하지 않은 경우 삭제·FINAL 기록 전에 FAIL한다.
+
+수동 `issue-lifecycle.yml`과 자동 `release-finalizer.yml`/Resume는 `mastergantt-release-finalizer` concurrency group을 공유하고 `queue: max`로 직렬화한다. 동일 SHA의 병렬 FINAL 쓰기 경쟁을 줄이되, 기존에 생성된 완전히 동일한 인증 marker의 멱등 처리는 유지한다. 후속 같은 Issue merge가 미완료라면 앞선 target의 FINAL을 기록하되 Issue close는 지연한다. 정확히 같은 SHA/PR의 재진입은 중복 FINAL/정리 없이 멱등 통과한다. 부수효과 도중 중단된 경우 기존 브랜치 404와 GHCR candidate absent를 안전하게 재검증하고 이어서 진행한다. 새로운/위조된 marker는 무시하지 않고 BLOCKED한다.
+
+실제 #565: PR #583 merge `1ed682dd062012f3d04c2517110835bf7c28ac13`의 기존 FINAL은 불변. PR #585 merge `1839ddb138808068ca06590163ad687d12cab50a`의 Main CI [37954486201](https://github.com/planner77/masterGantt/actions/runs/37954486201) SUCCESS 및 기존 Resume Run [37958294541](https://github.com/planner77/masterGantt/actions/runs/37958294541) FAIL은 과거 증거로 유지한다. 새 버전이 main에 병합되기 전에는 #585 FINAL을 성공으로 소급 기록하지 않으며 GHCR 현재 잔존 여부는 별도 조회해야 한다.
+
+- risk_level=HIGH / qa_required=true; 독립 Reviewer의 exact PR Head 검토 필요
+- version 0.103.1 유지; release_required=false / release_authorized=false
+- PR 단계에는 병합·Main CI·정식 tag/release·#565 자동 복구를 포함하지 않는다
+
+### #586 수동 Lifecycle 호출의 oldest-first 검증
+
+수동 `issue-lifecycle.yml`의 `finalize`와 `release_finalize`는 Generic Resolver가 사용하는 first-parent pending backlog를 재검사한다. 선택된 PR이 oldest actionable 대상이 아니거나 같은 Issue에 나중 PR이 미완료이면 **변경 전 BLOCKED**하고 자동 Generic Finalizer의 ordered resume을 사용한다. 자동 경로만 `--resolver-ordered`를 전달하며, 수동은 전달하지 않는다. 기존 FINAL을 수동으로 재호출해도 다른 후속 PR의 진행 상태를 확인하지 않고 Issue를 재종료하지 않는다.
+
+### #586 FINAL 이후 close-only 복구
+
+Resolver는 최신 인증 FINAL 경계를 따로 보존하고 OPEN Issue이며 같은 Issue 후속 병합이 없을 때만 `close_resume`을 호출한다. 원본 FINAL·후보/브랜치 cleanup·정식 release는 재실행하지 않는다. 하위 Lifecycle은 Resolver main snapshot을 재검증하여 변경된 first-parent에서 잘못된 종료를 금지한다.
+
+### Issue #586 — 잘못된 Merge 메시지와 실패 Main CI의 복구 (2026-10-11)
+
+원본 PR #588의 merge SHA 490c4ab70b0868729c8415f9f613bd45aa84926a는 여러 줄의 Merge message로 Main CI #2445.1 trace 검증에서 실패했다. 구 SHA의 CI FAIL 및 GHCR/Finalizer SKIPPED 기록을 변경하지 않는다.
+
+기존 supersede_failed_issue_retries 계약에 따라, 같은 Issue #586의 후속 **비문서(non-docs) PR**에서 새 Main CI·GHCR 검증이 성공한 경우에만 이전 실패를 SUPERSEDED ATTEMPT로 표시하고 PR #588의 브랜치 정리 의무를 교정 PR에 인계한다. 후속 PR이 docs-only이거나 Main CI가 실패하면 이전 SHA는 여전히 blocker이다. 다른 Issue가 중간에 있으면 first-parent 순서를 유지한다.
+
+새 교정 PR 병합 시 main_ci_run_name.py의 --as-merge-payload 및 --expected-head-sha로 한 줄 commit_title, 빈 commit_message, 정확한 expected_head_sha를 함께 생성하고 merge_method=merge로 호출한다. 새 exact Main CI/verified GHCR/Finalizer 근거 없이 FINAL 및 Issue close를 완료 주장하지 않는다. 정식 GHCR tag/release는 release_required=false이므로 허용하지 않는다.
+
+
+#### Connector / REST head lease 경계 (Codex P2 후속)
+
+GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, GitHub REST /pulls/{number}/merge POST는 sha이다. --as-merge-payload의 기본 --merge-api connector는 expected_head_sha를 출력하고 --merge-api rest는 sha를 출력한다. 동일 요청에 두 필드를 섞지 않는다. 각각 body=""와 merge_method=merge, canonical title을 유지하고, 잘못된 대상 값은 거부한다. 해당 양쪽 CLI·helper 회귀를 추가했다.

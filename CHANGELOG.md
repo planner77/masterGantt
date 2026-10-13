@@ -1,12 +1,161 @@
-# Changelog
+## [Unreleased] — Issue #552 WBS/Milestone display integration (2026-10-13)
 
-## [0.106.0] - 2026-10-09
+- Keep the #552 Milestone timeline visibility/WBS split, keyboard/date fallback and canonical Copy/Selection changes while aligning with main #551 and #570–#572 projection/viewport code. Release version stays at main 0.107.0 until an independently approved version change; historical branch 0.106.0 is not a current publication. Full exact-head PR CI/Trusted QA required after integration; no formal release claimed.
+
+## [Unreleased] — Issue #645 immutable merge-PR identity recovery #2617 (2026-10-13)
+
+- Resolve false-negative trusted CI recovery when GitHub's commit-to-PR association index is empty for a real merged PR. Verify unique matching merged PR by exhaustively paginating the independent closed PR history; keep direct association strict, block missing/duplicate/unmerged/unavailable history, and cross-check both merge parents against PR base/head. Add mocked positive/negative and authenticated pagination regressions, update release/security operation documents. No application version, API/schema/UI changes or weakening of GHCR/Owner release permissions; old CI #2617.1 remains immutable FAIL.
+
+## [Unreleased] — Issue #643 trusted Actions workflow source identity (2026-10-13)
+
+- Correct protected manual Main CI recovery validator: dynamic `run.name` is not the `CI` workflow name. Authenticate actual `ci.yml` metadata id/name/path/active state against Run workflow_id/path/repository/head repository, retain full attempt/Owner/evidence/Quality/E2E6/Docker/digest checks. Add offline positive/negative provenance fixtures and policy regressions. No product version, UI/API/DB, workflow permissions, Git tag or GHCR publication changes.
+
+## [Unreleased] — Issue #639 Main CI #2606.1 failed merge-title correction (2026-10-13)
+
+- Introduce fail-closed `--validate-title` preflight for the **actual** merge commit subject so an invalid >30-character, noncanonical or wrong Issue/PR title cannot silently reach protected main. Add immutable #639/#641 31-char failure regression + positive exact Head connector payload and direct push trace tests. Preserve failed run/history, update merge operations and first-parent lifecycle documentation. No product version bump, DB/API/UI change, or formal GHCR release authority.
+
+## [Unreleased] — Issue #639 PR #641 Chromium 5/6 E2E count-selector regression (2026-10-13)
+
+- Fix the Issue #525 Resource Dashboard E2E to select `할당 Task` KPI identity before clicking the potentially duplicated `2건` label. Keep Strict Mode and task API assertions; update regression/remote-validation work packet. No application/DB/API/version or GHCR policy changes.
+
+## [Unreleased] — Issue #639 PR #641 protected Finalizer review fixes (2026-10-13)
+
+- Fix root-level recovery import and ensure authenticated private GHCR digest verification occurs only after Buildx setup/login. Add source-SHA/order regressions; preserve push and explicit Owner/manual recovery fail-closed gates. No app-version change or formal release in this PR.
+
+## [Unreleased] — Issue #639 PR #641 CI #2597.1 회귀 계약 보완 (2026-10-12)
+
+- Replace stale, literal push-only SHA/depth assertions with provenance-bound `SOURCE_SHA` and explicit push/manual recovery guards. Fail-close wrong-SHA run data; isolate manual-recovery unit fixture from GitHub network. No product version/DB/API changes.
+
+## Issue #639 — immutable Main CI recovery (2026-10-12)
+
+- #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.
+- Trusted default-main `CI workflow_dispatch` with target_sha/target_issue/target_pr/expected_version/owner_comment_id: isolated `manual_recovery` path; only repository Owner actor and most recent authenticated exact-scoped recovery marker plus independent positive exact-version release marker. A normal manual diagnostic cannot publish.
+- Validate target first-parent ancestor, single merged PR, issue, versions, current main controller snapshot, absent original push run, no changed release version. Checkout immutable target for Quality / Chromium six shards / Docker and candidate image. Three aggregates + implementation jobs must succeed on exact attempt; verified artifact and immutable SHA/digest allow trusted Finalizer evidence. Old push path stays unchanged.
+- Auth/rate limit/registry UNKNOWN, stale main, competing runs, version/tag mismatch, missing Owner marker, ambiguous PR or failed tests => BLOCKED without releasing or retroactively marking old runs PASS. Publish job must verify candidate absence by authenticated package inventory. Recovery never deletes existing formal tags or candidates automatically.
+- Application 0.107.0 unchanged; #639 itself release_required=false, release_authorized=false; HIGH, OWNER_MANAGED. Owner must separately authorize merger and specific #616 recovery. PR CI/Trusted QA required prior to merge. Run/attempt and remote GHCR are NOT TESTED until Actions evidence.
+
+- **Area impact:** [Unreleased] Issue #639 — adds narrowly scoped authenticated manual recovery for missing immutable merge Main CI, preserving original push evidence and GHCR/Release fail-closed guards.
+
+## [Unreleased] — Issue #551 CI #2605.1 대형 Timeline 진단 초기화 순서 보완 (2026-10-13)
+
+- 1000 Task+2000 Milestone Chromium fixture에서 Gantt native API와 Grid가 보이나 dev-only Milestone probe가 5초 내 준비되지 않는 실패를 분석했다. Probe를 React 후속 state/effect 등록에서 SVAR `init(api)` 즉시 등록으로 바꾸고 중복 리스너·StrictMode lifecycle 및 API 교체 cleanup을 관리한다.
+- 3000-item 테스트의 기존 5초 readiness/전체 fixture/geometry·scroll/동일 instance assertions는 유지하면서 실제 API instance ID와 dev probe `read().instance` 일치를 검증한다. 앱 production/일정 API/DB/계산/버전은 불변이며 새 전체 CI에서 최종 판정한다.
+
+## [Unreleased] — Issue #551 PR #560 공유 calendar reveal 회귀 교정 (2026-10-13)
+
+- 앞선 개발 probe의 native 날짜 reveal 통합으로 발생한 #549 Core7개 실패를 교정한다. 단일 calendar adapter의 contentX와 실제 native 가시성으로 이미 보이는 날짜의 무이동 계약을 유지하고 화면 밖 날짜는 기존 coordinator의 개발 진단 left 명령을 사용한다.
+- 기존 개발 진단 scroll 정착만 최대3회 native repair로 제한해 보완하고 Core/lane 회귀를 함께 검증한다. production 기본 OFF·지원 범위·서버/데이터/패키지/CI gate·기존 정확도 기준은 유지한다. 원본 실패 및 새 원격 검증 전 NOT TESTED 경계를 보존한다.
+
+## [Unreleased] — Issue #551 PR #560 날짜 reveal 정착·실패 진단 보완 (2026-10-12)
+
+- Day→Week 전환 뒤 개발 Timeline reveal이 Core 상태만으로 이동을 생략하는 경계를 기존 viewport coordinator의 날짜 reveal/정착 경로로 통합한다. 실제 5폭 날짜축·Task bar·tick의 ±1px 및 같은 인스턴스 검증을 유지하고 정착 결과 검증을 추가한다.
+- 별도 Milestone 교환 통합 테스트의 Project 요청에 기존 격리 서버 진단 수집기를 연결한다. GET `ECONNRESET` 원본 실패를 재시도 없이 보존하며, 진단 보강을 transport 근인 해결로 보고하지 않는다. production 기본 OFF, 일정/서버 API/DB·패키지 버전·CI Gate는 유지한다.
+
+## [Unreleased] — Issue #551 PR #560 CI #2594.1 날짜 Timeline 표시 좌표 보완 (2026-10-12)
+
+- Chromium shard4의 5폭 실제 Task bar와 Milestone lane tick의 약 3,018~3,036px 불일치 원본을 보존했다. Core 스크롤 상태만 이용한 viewportX 대신 실제 native `.wx-scale` 원점과 canonical 날짜 contentX를 결합하고 Chart DOM scroll listener와 cleanup을 추가한다.
+- 대형 1000 Task+2000 Milestone에서 dev-only probe 등록을 passive effect 뒤가 아닌 layout commit에 맞춰 준비한다. 기존 strict±1px·5s, 실패 artifact, 64px opt-in/production OFF, 일정 데이터 원본·API·DB 불변. 전체 새 PR CI/QA 성공은 별도 확인한다.
+
+## [Unreleased] — Issue #616 PR CI Shard6 회귀 보완 (2026-10-12)
+
+- 프로젝트 링크 E2E에서 두 번째 새 Project 화면의 SSR→hydration 타이밍으로 name 입력이 초기화돼 POST 없이 client validation에서 차단된 실패를 추적한다. 클라이언트 기준정보 준비가 끝난 뒤 입력하고 submit 직전 이름 상태를 검증해 30초 HTTP 타임아웃으로 오진하지 않도록 한다.
+- 제품/API/SQLite 계약, 기존 Playwright assertions·timeout·retry·skip 변경 없음. 최신 main QA preflight/E2E 개선 병합 및 신규 exact-head CI 검증은 별도 Gate.
+
+## [Unreleased] — #616 Template v2 보완
+
+- Project Template에서 F1 공정 occurrence/WorkArea와 Target/member 전체 관계를 versioned graph v2에 저장·복원한다. System/Equipment는 기존 Template 복원 단일 인스턴스를 참조하고 MCS 공유 정체성을 보존한다.
+- 강한 triple·global ID 검증, legacy snapshot 지원, 잘못된 그래프의 atomic rollback, Target/Mapping count를 추가한다. 기존 Template 409 미지원 임시 정책을 대체하며 schedule-stage JSON 내보내기 보호는 유지한다.
+- Deferred anchor-member composite FK, 이동 PATCH ordering, full inactive ancestry, shared instance DELETE in-use409, duplicate Target code PATCH409, migration/route inventory 기대값을 보완한다.
+
+## [Unreleased] — Issue #616 Logistics Target F2 (PR candidate)
+
+### Added
+- Project-local Logistics Target/typed Equipment·System membership (migration 0026), transactional CRUD, explicit process/optional WorkArea, common System grouping, usage API and inline Project-local instance creation with catalog reuse.
+- Many Targets may reuse one System/Equipment identity; no automatic control/coordination/Resource modification. Project Copy remaps members through the existing one-instance-to-one-instance mapping.
+- Template creation and schedule-stage JSON export with Target content fail closed until a versioned full graph can be represented; no silent truncation.
+
+### Validation
+- HIGH / OWNER_MANAGED; local full test, PR CI/QA/Manager ACCEPT and production migration **NOT TESTED**. F3 WBS bindings and later Resource roll-up are out of scope. Release authorization **false**.
+
+## [Unreleased] — 0.106.2 / Issue #637 Grid·Chart 행 정렬 교정 후보 (2026-10-12)
+
+- Release #165.1의 구조 삽입 후 실제 Grid·Chart 중심 차이27.5px를 분석했다. 클릭 전 자동 scrollIntoView가 Grid 내부 pane만28px 움직여 canonical membership/queue 완료와 화면 정렬이 어긋났다. 기존 실제 중심±1px·observer1500ms·E2E5s 검증을 유지한다.
+- 비소유 Grid 세로 overflow 경계의 최소 교정과 관련 회귀·UX/Architecture/Test/Remote/Work Packet 문서를 동기화한다. package/lock PATCH 후보0.106.2, dependency 변경 없음. 기존 v0.106.1 immutable; 새 정식 release는 미승인이다.
+- 로컬 검증·독립 PRE_QA와 새 PR exact Head CI 시작을 구분한다. 원격3종/Trusted/Owner·main/GHCR/정식 release는 별도 완료 증거 전 NOT TESTED다.
+
+## [Unreleased] — Issue #633 GHCR Private Registry 감사·복구 (2026-10-12)
+
+- `0.106.1` 신규 후보의 첫 Main #2579.1은 PASS, GHCR 정식 Release는 아직 차단: Git/GitHub Release 구버전 태그는 ABSENT, Docker private GHCR 응답은 `UNKNOWN`.
+- 감사 개선: authenticated GitHub Packages REST tag inventory 200/전 페이지 schema + exact tag 부재가 확인된 경우에만 Docker ambiguous 404→ABSENT로 보조 판정, auth·permission·rate-limit·corrupt response/other repo는 UNKNOWN.
+- B2 개선: original immutable v0.106.1 Owner approved SHA `09bee924032b4126ff794ec7a485542fd72dd7bf` 유지, 뒤에 오는 #633 same-version policy-only corrective SHA는 별도 exact Main CI/digest 검증 및 current main cleanup lease로만 사용한다. 과거 #550/#615 Main CI 실패 보존, Git tag 이동/override·release 승인 확장 없음.
+
+## [Unreleased] — Issue #633 B2 두 미발행 버전 폐기와 교정 릴리스 후보 (2026-10-12)
+
+- 신규 application 후보 `0.106.1` (package/lock 동기화). #550 v0.105.0/#615 v0.106.0은 원본 CI FAIL 기록·Owner 원장 보존, 자동 발행·다른 SHA로 tag 승계 금지.
+- Generic Finalizer의 별도 B2 exact Owner revoke+authorization, 기존 oldest-first 보존, 신규 Release 성공 후에만 원본 임시 후보/branch 안전 정리·RETIRE 증거·Issue close 경로 구현. Read-only GHCR 자동 감사, private registry 인증, 회귀 fixture 추가.
+- 신규 PR CI/Trusted/Main CI·실제 정식 GHCR 발행 및 Owner version-scoped 최종 승인 이전까지 v0.106.1 공식 릴리스는 NOT TESTED이며 기존 버전의 미발행 상태 유지.
+
+## [Unreleased] — Issue #633 PR #634 GHCR 감사 P1 보완 (2026-10-12)
+
+- PR CI #2559.1은 Quality/E2E 6 shard/Docker 성공, QA Automated 미해결 2건으로 전체 실패. 비공개 GHCR 감사에 pinned 로그인 단계 추가, Git tag `vX.Y.Z`와 정식 GHCR exact `:X.Y.Z` 구별 및 registry 모호한 오류 fail-closed. negative/positive fixture와 운영/테스트/QA 문서 동기화. 버전 `0.106.0`, 기존 릴리스 승계 차단·읽기 권한·정식 게시 미승인은 유지.
+
+## [Unreleased] — Issue #633 교차 Issue 미발행 릴리스 감사 (2026-10-12)
+
+- #550 v0.105.0 / #615 v0.106.0의 교차 병합 릴리스 부채를 읽기 전용 trusted main 검증기·수동 audit workflow·negative/positive fixture로 진단한다. 기존 Finalizer 자동 승계 차단과 Owner 버전별 승인·GHCR 불변성을 유지하며, 릴리스 mutation·version bump·Required CI/Ruleset 변경 없음. 자세한 내용: [Issue #633 복구 계획](docs/ISSUE_633_RELEASE_DEBT.md).
+
+## [Unreleased] — Issue #550 Main CI #2543.1 FILTER_RETURN 완료 경합 교정 (2026-10-12)
+
+- #463 Gantt 필터 해제 후 새 `FILTER_RETURN` 명령이 아직 `WAIT_GEOMETRY`인 상태에서 후속 viewport 직접 입력이 늦게 되감기는 원격 E2E 경합을 구별한다. 가장 최신 `FILTER_RETURN:SETTLED` 영수증을 bounded poll한 뒤 기존 엄격한 좌표·필터·3RAF 보존 검증을 유지한다.
+- 제품 코드·workflow·release tag·version `0.106.0` 불변. 기존 #550 v0.105.0 미완료 릴리스와 #615 중간 병합의 Finalizer 차단을 해제·우회하지 않는다. CI/Main/GHCR 성공 여부는 새 exact Head에서 별도 확인한다.
+
+## Unreleased — Issue #629 QA Preflight (2026-10-12)
+- PR CI의 고비용 E2E/Docker 이전 QA title/Refs, risk/method/QA, 문서 영향/AC 구조 사전 검증을 추가한다. 기본 브랜치 검증기 신뢰·도입 Bootstrap NOT TESTED·최종 Trusted QA와 Owner 결정 분리·기존 세 required aggregate fail-closed 계약을 유지한다. 제품 버전/사용자 UI/API/DB 스키마 변경 없음.
+
+## [Unreleased] — Issue #550 공유 분석 후속
+
+- 명시 Task reveal의 좌표 완료와 DOM focus 인계를 구분하고 정확한 intent/gesture/context·최신 요청을 확인한다. 동일 좌표 사용자 입력·새 Editor/modal 이후 오래된 focus 복원을 취소한다.
+- 격리 SQLite E2E에 cleanup 전 안전한 bounded 서버 lifecycle·요청 완료·readiness·자원 진단을 추가한다. 원오류와 business retry0을 유지하며 ECONNRESET 근인은 아직 UNKNOWN이다.
+- 최신 main PR #615/#628의 모델/API/migration0025·application0.106.0와 Finalizer 정책을 보존한다. 아래 PR #626의0.105.0/이전 승계 구현 기록은 당시 이력이며 새 release 승인이 아니다.
+
+## [Unreleased] — Issue #550 PR #626 정식 Release 의무 승계 및 E2E 동기화
+
+- CI #2519.1의 #570 PASSIVE_RESTORE SETTLING 중 조기 native zero 주입 테스트 경합을 실제 완료 영수증 대기 후 엄격한 보호 차단 검증으로 보완한다. timeout, 기대값, 실제 wheel/검색 검증을 완화하지 않는다.
+- 실패한 version-changing Main Merge의 정식 GHCR 게시 의무를 동일 Issue/동일 버전 corrective가 승계한다. 원래 `v0.105.0` Owner 승인·immutable tag·exact digest·fail-closed 조건 및 제품 버전 `0.105.0` 유지.
+## [0.106.0] - 2026-10-12
+
+### Fixed
+
+- Issue #615 Main CI 회복: 다중 행 merge message로 실패한 원본 main Run을 보존하면서 같은 Issue의 동일 버전 non-docs 교정 Main CI 성공 시 승인된 v0.106.0 release 의무를 소실하지 않고 안전 승계한다. 다른 Issue/문서 전용·tag 실패는 차단하며 GHCR/버전/기존 required gate는 불변이다.
 
 ### Added
 
-- Issue #552: Milestone native 행과 유형 빠른 보기를 Summary/Task WBS 및 프로젝트별 Milestone 표시 설정으로 전환한다. 작업 필터·전체 canonical 데이터·관리/날짜 탐색·구조 명령의 전체 영향 계약을 보존한다.
+- Issue #615: 공통 공정 종류·제품 공유 표준·사업부/제품/사업장 적용 공정·전용 WorkArea의 migration 0025와 관리자 API, 프로젝트 문맥 조회 및 명시 매핑 API를 추가한다.
+- 프로젝트 공정 트리·Task/설비 연결을 보존하며 공통 catalog와 Project revision을 분리한다. 참조 중 분류 변경·마스터 삭제·공정 삭제를 보호하고 프로젝트 복사에서 공통 ID를 유지한다.
+- 매핑이 있는 원본의 Template 저장은 versioned 참조 포맷 지원 전 409로 차단한다. 신규 화면·Target/member/binding은 후속 단계다. 후보 버전이며 정식 release는 미승인이다.
 
-## [0.105.0] - 2026-10-09
+## [Unreleased] — Issue #614 Target F0 계약·공통 검산
+
+- Target 도메인/공정·WorkArea/전체·선택 연결/합집합 상속/관련 계획 공수/이관·UI 계약과 Resource 우선 실행 계획을 기록한다.
+- 운영 자료 없는 공통 합성 fixture를 추가하고 기존 Resource 엔진 수치와 test-only Target 정규화를 구분해 검산한다. 신규 runtime/DB/API/UI 변경은 없으며 application `0.104.4`를 유지한다.
+
+## [Unreleased] — Issue #595 metadata-only Full CI Attempt 정합 보완
+
+- `verify_same_base_full_run()`도 동일 CI Run의 개별 attempt별 Job 원장을 활용하여 QA-only 재실행 이후 PR metadata-only 변경에서 원래 Required aggregate 성공을 정확하게 검증한다. 나중에 재실행된 Required Job의 실패는 과거 성공으로 대체하지 않으며 누락된 `run_attempt`/원장 자료는 BLOCKED로 유지한다.
+- 보호 파일 독립 QA·Manager 승인, PR source provenance, GitHub Ruleset/Release, 제품 버전 및 Required 3개 Check 불변.
+
+## [Unreleased] — Issue #595 PR #597 QA attempt provenance P1 보완
+
+- QA-only 재실행에서 GitHub의 일반 Run Job API가 최신 attempt만 반환하는 특성을 반영한다. 동일 Run의 개별 attempt별 Job 목록을 순서대로 결합하여 QA만 재시도할 때 이전 필수 Quality/E2E/Docker 성공을 보존하고, 나중에 재실행된 실패·취소 필수 Job은 차단한다. 검사 누락·중복·시도 수 초과를 fail-closed 처리하고 필수 Job의 실제 source_attempt를 기록한다.
+- 정식 보호 변경 승인, release/GHCR/기존 required check·권한 체계 불변. 독립 QA와 Manager 수용 전에는 구현 PR 자체도 protected BLOCKED를 유지한다.
+
+## [Unreleased] — Issue #595 QA 보호 승인 증거 (검토 중)
+
+- 기존 기능·SQLite·애플리케이션 버전은 변경하지 않고 보호 경로 PR의 독립 QA 증거 확인 경로와 회귀 테스트를 추가한다.
+- 승인 없는 보호 변경과 자동 처리 경로는 기존대로 차단한다. 검증기 자체 변경의 신뢰성·독립 QA 및 Manager ACCEPT는 PR CI와 별개이며, 기존 Required Quality/E2E/Docker·GHCR 승인 경계를 유지한다.
+
+# Changelog
+
+## [Unreleased] — Issue #551 Milestone Timeline main 통합 (2026-10-12)
 
 ### Added
 
@@ -15,18 +164,111 @@
 ### Fixed
 
 - Week 모드의 일요일 축과 ISO 주차 의미 차이를 월요일 locale로 정합화한다. 월별 부분 주 올림이 누적되는 상단 월 셀 대신 각 ISO 주가 포함하는 Gregorian 월·연도 범위를 표시한다.
+- PR #560 CI 보완: Grid splitter 후 실제 Chart DOM 폭과 Core 내부 폭이 달라도 Timeline 좌표를 유지하고 cluster 날짜 guide·키보드 focus를 복원한다.
 
-## [0.104.0] - 2026-10-09
-
-### Added
-
-- Issue #550: 기존 Milestone Dashboard에 날짜순 독립 관리 목록과 명시적 프로젝트 root 생성·기존 Editor/소속/관계/utility 명령 진입을 제공한다. 현재 Milestone 행과 빠른 보기는 유지한다.
-
-## [0.103.0] - 2026-10-08
+## [0.105.0] - 2026-10-10
 
 ### Added
 
-- Issue #549: Milestone Timeline의 전체 원본과 WBS 표시·날짜순 조회·표시 환경설정·조회 선택을 분리하는 공통 모델과 설치 Core 연동 adapter를 추가한다. 기존 운영의 Milestone 행과 빠른 보기는 유지하며 후속 전환의 호환·기술 검증 계약을 문서화한다.
+- Issue #550: Milestone Dashboard의 독립 생성·관리 및 기존 Editor·관계·소속 진입. 412 반복 제출 방지와 관리 목록 전용 스크롤 높이.
+- Issue #550 PR CI #2368.1 보완: 최신 main 통합에서 남은 관리 표 `Milestone 상세` 접근성 명칭, 빈 결과 한국어 조사, E2E의 `Milestone 검색` 선택자를 통일해 #463/#518/#550 회귀를 검증한다. domain/API/schema 변경 없음.
+- Issue #550 PR CI #2373.1: 기능 required gate 모두 PASS, 신규 QA Final의 Issue/Refs 메타데이터 차단 확인. Work Packet AC1~AC11/문서·테스트 대응표와 PR 위험도·검토 진입을 명문화. 0.105.0 및 기능 실행 의미 불변.
+- Issue #550 PR CI #2376.1: 세 required gate PASS, 자동 QA의 버전 파일 보호 차단을 별도 #595로 추적. 릴리스 버전·승인 정책은 변경하지 않음.
+- Issue #550 재정렬: #595의 Main CI #2401.1 SUCCESS를 포함한 기준 main `26e72bbed046a6ad6721e1c3c19bda71ce42e570`로 PR #559를 정렬한다. 새 CI와 정확한 Head의 별도 AGENT 독립 QA·Manager 수용은 별도 확인한다.
+
+
+### Fixed
+
+- Issue #550 / corrective PR #626: #571 Editor ‘일정에서 보기’의 TASK_REVEAL SETTLED 후 가상화된 Grid 행 포커스 인계를 최신 DOM·revision·projection·Core/native 좌표로 재검증하여 제한된 RAF 내에서 복원한다. 기존 Resource→Gantt peer 복귀 E2E와 실제 Grid focus의 장기 유지 검증을 보강하며 사용자 조작 및 다른 모달의 포커스를 탈취하지 않는다. application 버전 0.105.0 유지, 정식 릴리스 증거는 아직 미확보.
+
+## [0.104.4] - 2026-10-11
+
+### Fixed
+
+- Issue #572: native Grid 이름 편집의 단일 저장 요청과 확정 snapshot·표시 확인을 분리하고 실패 초안·IME·Tab/blur/focus의 비동기 경계를 보완한다. 기존 권한·revision·일정 및 Gantt 화면 상태 보존 계약을 유지한다.
+- PR #612 Codex P2: 숨겨지거나 비활성인 일정 탭으로 돌아올 때 확정된 이름 표시를 다시 검증한다. Resources·Milestone 탭 왕복 Chromium 회귀 2건을 보강한다.
+
+## [0.104.3] - 2026-10-11
+
+### Fixed
+
+- Issue #571 후속 Main CI #2504.1 시정: 필터 해제 후 `FILTER_RETURN`이 이전 120px bookmark로 새 native 180px 이동을 가로막던 경합을 보완한다. 필터 bookmark는 1회 복원만 수행하며 새로운 Core/native 정합 좌표가 생기면 `SUPERSEDED`로 종료한다. FILTER_RETURN의 native repair·settled scroll guard는 남기지 않고 PEER/PASSIVE stale rewind 보호는 유지한다.
+
+## [0.104.2] - 2026-10-11
+
+### Fixed
+
+- Issue #571: Gantt viewport의 peer/metadata 복원과 명시 Task 이동을 단일 Coordinator로 중재한다. 최신 사용자 이동을 지연된 복원이 덮지 않도록 intent 세대·우선순위와 projection/geometry 완료 관측을 분리하고 부모의 중복 native 복원을 제거한다. 기존 Core instance·canonical/권한·Day/Week 탐색 계약을 유지한다.
+- PR #610 / CI #2498.1 회귀 보완: 수평 Projection/Viewport 교착 분리, resize 시 stale peer 취소, native vertical scroll 비차단, physical-capacity preflight, admission receipt, 개발용 right-edge 진단 및 drag-edge single-flight 검증.
+- PR #610 / CI #2499.1 후속: 초기·후속 Core payload 정합, 필터 해제 시 수평 bookmark와 현재 세로 clamp 보존, scale toolbar로 blur할 때 inline 이름 저장 누락 및 브라우저 fixture·입력 관찰 순서 회귀를 보완한다.
+- PR #610 / CI #2500.1 후속: native Grid의 명시 시작일 이동 뒤 지연 복원이 이전 좌표를 재생하지 않도록 입력 권한을 갱신하고, Editor locate와 일반 닫기의 focus 소유권을 분리한다.
+
+## [0.104.1] - 2026-10-10
+
+### Fixed
+
+- Issue #570 PR CI #2482.1: 같은 metadata-only 조회의 가로 위치 복원 뒤 늦은 native scroll 이벤트가 위치를 덮는 경합을 기존 스크롤 보호 경로로 보완한다. 실제 membership·geometry·revision 변경과 사용자 입력의 보호 해제를 유지하며 기존 metadata 저장 회귀를 재검증한다.
+- Issue #570 PR CI #2480.1: 필터 뒤 자식 없는 Summary를 여는 동작이 Core 오류와 Gantt 복구·상태 유실을 유발하는 경로를 보완한다. 무필터에서도 구조가 바뀌면 행 ID 일치만으로 재투영을 생략하지 않아 마지막 dated 자식 이동 뒤 Summary bar를 제거한다. projection receipt의 조회 조건 변경 여부도 각 관찰 기준으로 갱신한다. 기존 필수 테스트와 CI gate는 유지한다.
+
+- Issue #570: canonical Task/Link 갱신과 행·열 재투영의 변경 이유를 분리한다. 동일 membership의 metadata-only 변경에서는 불필요한 native filter/column 재설정을 방지하고 최신 revision·Core instance의 동기화만 적용한다. 실제 Core/DOM 정합성을 확인한 bounded projection receipt를 후속 viewport Coordinator에 제공한다. 형제 중간 삽입과 부모 삭제·신규 부모 생성이 함께 온 snapshot의 계층 순서를 보완하고 필터 초기화/scale 전환 뒤 사용자 Summary 접힘을 유지한다. 기존 Milestone 표시 호환과 서버 권한·revision 계약은 유지한다.
+
+## [0.104.0] - 2026-10-10
+
+### Fixed
+
+- Issue #549 Main CI #2359.1: 사용자 휠 이벤트의 Core 반영 완료 이전 programmatic right-edge scroll을 발행해 늦은 wheel 이벤트가 이동 위치를 되돌리는 E2E 경합 보완. 휠 후 실제 Core/native 좌표 정합을 관측한 다음 기존 #367 축 확대 및 canonical/Link/instance 보존을 검증한다. 제품 로직·가드·버전 불변.
+
+- PR #557 CI #2348.1의 #549 기술 E2E가 #530의 peer 복원 보호 상태에서 programmatic scroll을 새 사용자 입력으로 잘못 가정하던 회귀를 고친다. 실제 Chart wheel로 입력 의도를 전달한 뒤 #367 축 확장·Core instance/표시 행/Link/canonical 불변을 검사하며 timeout이나 필수 CI gate를 완화하지 않는다.
+
+### Added
+
+- Issue #549: Milestone Timeline 기반의 canonical 조회 원본, WBS 표시 집합, 프로젝트 전체 날짜순 Milestone 모집단, 표시 환경설정, 선택·member 강조를 분리한다. 설치 SVAR Core 2.7.3의 공개 동작과 단일 adapter·개발용 Chromium fixture로 후속 lane/행 분리의 호환성 gate를 정의한다. 기존 운영 Milestone 행·빠른 보기·서버 Gate/권한·데이터는 변경하지 않는다.
+
+### Changed
+
+- PR #557: v0.103.1 최신 main의 #530 peer viewport 복원, #568 Core trace, #569 좌표·기하 Adapter PoC 및 위험도 기반 QA 문서를 보존하며 #549 기능 기반을 통합한다. 기존 #549의 v0.103.0 예정 버전은 #538 main 발행과 충돌하여 v0.104.0으로 조정한다. #569 PoC의 제품 도입 DEFER 및 Week 월 헤더 의미 검증 필요성은 유지한다.
+
+## [0.103.1] - 2026-10-09
+
+### Fixed
+
+- Issue #530 PR #581 CI #2325.1의 #463 E2E read→fill 경쟁을 보완한다. 정상 peer 복귀의 3-frame 완료 영수증을 resize/검색 이전에 확정하고, 실제 trusted 검색 입력이 진행 중 복원을 취소하는 별도 유한 RAF barrier 회귀를 추가한다. 기존 120/96·180/128·#530 fixed120/240/nested 검증과 제품·버전·CI gate를 유지한다.
+- Issue #530 Main CI #2315.1의 기존 #525 E2E 좌표 경합을 보완한다. Grid Task 선택 후 늦게 끝나는 Core Chart 자동 reveal(실측 1581px)을 수동 native120px로 경쟁시키지 않고, 실제 비영점 public/Core·DOM 두 축 8연속 RAF 안정화 좌표를 원장으로 고정해 추가12RAF/일정↔리소스 복귀 strict 상태 보존을 검사한다. 제품/버전/필수 CI gate는 불변이다.
+- Issue #530 PR #579 CI #2313.1 후속: 검색/필터 input·change를 명시적 사용자 intent로 수용해 대기 중인 peer viewport 복원을 React Projection 업데이트 전에 취소하고, 완료된 복원 가드도 무효화한다. 네이티브 Chart 보정의 settle 단계 예산과 이후 guard 단계 예산을 구분하며, hidden·취소로 정상 종료되는 요청의 guard를 인스턴스 동일성으로 정리한다. #463 필터 중 stale restore 영수증 방지와 #530 post-settle 반복 native-only reset의 Core/DOM 복귀를 strict E2E로 보강한다.
+- Issue #530 Main CI #2311.1 후속 복원 안정화: SVAR 시간축 확장 시 native Chart의 실제 수평 capacity가 31px로 제한된 순간 Core120 복원 명령을 발행해 좌표가 Core/native31로 재덮이는 경합을 보완한다. Chart 물리 capacity가 target을 3프레임 연속 지원할 때만 명시 복원을 시작하고, Core/native 3프레임 정합 뒤 성공 receipt를 남긴다. 사용자/geometry 변화는 취소하며 bounded timeout·진단을 추가하고 기존 엄격한 #530 E2E를 유지한다. 배경화면 RAF 중지 시 독립 timer·visibilitychange로 기다림을 깨우고, timer wake/실제 native 보정은 3개의 연속 안정 프레임으로 계상하지 않으며 E2E receipt는 실제 안정화 이후 읽는다.
+- Issue #530 PR #566 CI #2302.1 재보완: SVAR peer 복귀의 Core 좌표가 120px이나 실제 Chart DOM이 늦게 0px이 되는 현상을 native-first trace로 식별하고, 유효한 같은 viewport·물리 scroll capacity에 한정해 기존 복원 소유자에서 native 좌표를 최대 3회 재정합한다. Core 변경·사용자 입력·숨김·물리 capacity 부족 시 보정 취소 및 진단을 유지하며 E2E에서 실제 native-only 0 재현과 Core/DOM strict 복귀를 검증한다.
+- Issue #530 동일 v0.103.1 Main CI 재보완: 명시적 Resource→일정 복원 이후 지연된 SVAR native scroll-chart(0)이 nonzero 120/240 좌표를 덮지 못하도록 유효한 같은 viewport 문맥에서 Event Bus intercept를 적용하고, 실제 Gantt 차트·그리드 내부 사용자 wheel/키보드/포인터와 범위·레이아웃 변경만 보호를 해제한다. Gantt 외부 Task Editor·툴바·타 패널 입력은 복원 보호를 유지한다. nested pop/clear와 사용자 좌측 끝 이동을 E2E로 검증한다.
+- Issue #530 후속 PR #564: Resource→정확한 Task 일정→원래 보기 복귀 시 메타데이터-only Gantt 동기화가 보존한 이전 0 좌표를 명시적 peer viewport 복원(비영점) 이후 다시 덮는 경합을 해결한다. 명시적 복원 epoch로 오래된 요청을 무효화하고, 중첩 LIFO 복귀의 layout~queue/DOM 안정화 동안 metadata-only 캡처·적용을 보류하여 재진입한 0 좌표의 늦은 재적용도 차단한다. 입력·scope·API instance·geometry guard와 원래 Core/native 위치의 엄격한 불변식은 유지한다.
+- E2E 회귀에 복원 직후뿐 아니라 12 animation frame 이후에도 공개 Core/native 위치가 유지되고, 나중에 `scroll-chart(0)` 재적용이 없다는 판정을 추가한다. 기존 반응형·키보드·권한·집계·Excel 검증과 CI gate는 유지한다.
+
+## [0.103.0] - 2026-10-09
+
+### Added
+
+- Issue #538: 프로젝트 기준정보 사업부→제품→사업장/법인 연결 관계를 별도 권한으로 관리하고 종속 선택 및 서버 유효성 검증을 제공한다. 기존 Project 참조는 보존하고 확인된 조합만 migration 0024에서 연결한다.
+
+### Fixed
+
+- Issue #538 PR 회귀 보완: 새 프로젝트 생성에서 본문 바로가기 직후 활성 생성 방식 탭을 순차 Tab에서 즉시 제외하고 폼 진입 시 roving 탭 순서를 복원하여 키보드 탐색을 안정화한다.
+- 메타데이터 저장 뒤 Gantt 비영점 스크롤 위치와 독립 E2E 서버의 읽기 전용 GET 일시적 연결 리셋 검증을 보완한다. 최신 main의 #519 Milestone 후보 ID 숨김 및 Resource KPI/Excel 보고·워크스페이스 변경을 보존한다.
+
+## [0.102.3] - 2026-10-09
+
+### Fixed
+
+- Issue #530: Resource·Milestone drill-down 이동 기록마다 Gantt 공개 Core·DOM viewport 관측값을 보존하고, 원래 보기로 복귀할 때 같은 snapshot·instance·범위의 유효한 좌표를 복원한다. 오래된 복원과 새 사용자 입력의 충돌을 방지한다.
+
+### Changed
+
+- Issue #530: 공통 합성 fixture로 Domain·SQLite HTTP·UI·Excel의 원시 공수·고유 Assignment·scope 정합성을 비교하는 통합 회귀 검증과 사용자 가이드를 추가한다. 외부 ID 표시를 제거한 최신 #519 Milestone picker와 기존 회귀 검증을 보존한다.
+
+## [0.102.2] - 2026-10-08
+
+### Fixed
+
+- Issue #495: Gantt/Grid, Task Editor, Milestone Dashboard, 필터, 물류·리소스 및 Template·Import/Copy/Export 안내의 사용자 표기를 `Milestone`으로 통일하고 접근성 이름·E2E·관련 문서를 동기화한다. Stage Gate 내부 판정과 Membership/Dependency/API/DB 의미는 유지한다.
+- 기존 Excel 시트·고정 열 헤더와 JSON schema/key는 하위 호환을 위해 보존한다. 일반 완료 상태, CI 단계와 이동 이력의 `단계`는 용도에 맞게 유지한다.
+
 
 ## [0.102.1] - 2026-10-08
 

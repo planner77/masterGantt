@@ -5,26 +5,31 @@ import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 test.use(isolatedApplicationOptions);
 
-test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry", async ({ page, baseURL }) => {
+test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry", async ({ page, baseURL, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   const origin = baseURL!;
-  const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Editor #461", description: "실제 SQLite Editor", ownerName: "E2E 자동화", editPassword: "Stage461!" } });
+  const apiRequest = {
+    get: (path: string, options?: Parameters<typeof page.request.get>[1]) => observeIsolatedApi(path, "GET", () => page.request.get(path, options)),
+    post: (path: string, options?: Parameters<typeof page.request.post>[1]) => observeIsolatedApi(path, "POST", () => page.request.post(path, options)),
+    patch: (path: string, options?: Parameters<typeof page.request.patch>[1]) => observeIsolatedApi(path, "PATCH", () => page.request.patch(path, options)),
+  };
+  const created = await apiRequest.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Editor #461", description: "실제 SQLite Editor", ownerName: "E2E 자동화", editPassword: "Stage461!" } });
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
-  const get = async () => (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  const get = async () => (await (await apiRequest.get(api)).json()) as ProjectSnapshotResponse;
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const add = async (name: string, type: ProjectTaskDto["type"], parentTaskId?: string) => {
-    const response = await page.request.post(`${api}/tasks`, { headers: headers(), data: type === "summary" ? { name, type, parentTaskId } : { name, type, start: "2026-10-05", duration: type === "milestone" ? 0 : 2, progress: 0, parentTaskId } });
+    const response = await apiRequest.post(`${api}/tasks`, { headers: headers(), data: type === "summary" ? { name, type, parentTaskId } : { name, type, start: "2026-10-05", duration: type === "milestone" ? 0 : 2, progress: 0, parentTaskId } });
     expect(response.status()).toBe(201); const value = await response.json() as TaskMutationResponse; snapshot = { data: { ...value.data, permission: "edit" } }; return value.data.tasks.filter((task) => task.name === name).at(-1)!;
   };
-  const m1 = await add("설계 완료 단계 긴 한글 English milestone alpha", "milestone"), m2 = await add("설계 완료 단계 긴 한글 English milestone alpha", "milestone");
+  const m1 = await add("설계 Milestone 긴 한글 English milestone alpha", "milestone"), m2 = await add("설계 Milestone 긴 한글 English milestone alpha", "milestone");
   const summary = await add("Summary 기본 단계", "summary"), child = await add("Inherited child", "task", summary.taskId), override = await add("Override child", "task", summary.taskId);
   for (let index = 0; index < 18; index++) await add(`미지정 후보 ${index} 긴 한글 English extraordinary task identity`, "task");
-  const assign = await page.request.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: override.taskId, milestoneTaskId: m2.taskId }] } });
+  const assign = await apiRequest.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: override.taskId, milestoneTaskId: m2.taskId }] } });
   expect(assign.status()).toBe(200); snapshot = await get();
-  const dependency = await page.request.post(`${api}/links`, { headers: headers(), data: { predecessorExternalId: m1.externalId, successorExternalId: m2.externalId, type: "FS", lag: 0 } }); expect(dependency.status()).toBe(201); snapshot = await get();
+  const dependency = await apiRequest.post(`${api}/links`, { headers: headers(), data: { predecessorExternalId: m1.externalId, successorExternalId: m2.externalId, type: "FS", lag: 0 } }); expect(dependency.status()).toBe(201); snapshot = await get();
   await page.setViewportSize({ width: 1440, height: 844 });
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
@@ -36,7 +41,7 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   };
   await open(child.taskId);
   await expect(dialog).toContainText("Summary 기본 단계에서 상속");
-  const picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
+  const picker = dialog.getByRole("combobox", { name: "Milestone", exact: true });
   await picker.fill(`  ${m2.taskId.toUpperCase()}  `);
   await expect(dialog.getByRole("listbox").getByRole("option")).toHaveCount(1);
   await picker.press("Enter");
@@ -53,7 +58,7 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   await expect(dialog).toContainText("유효 일반 작업 2개");
   await dialog.getByRole("combobox", { name: "소속 상태", exact: true }).selectOption("all");
   const summaryRow = dialog.getByRole("row", { name: /Summary 기본 단계/ });
-  await summaryRow.getByRole("button", { name: "이 단계로 이동", exact: true }).click();
+  await summaryRow.getByRole("button", { name: "이 Milestone으로 이동", exact: true }).click();
   await expect(dialog).toContainText("유효 일반 작업 영향 0개");
   await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
@@ -74,15 +79,15 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   await dialog.getByRole("button", { name: "저장", exact: true }).click();
   await expect(dialog).toContainText("완료 조건");
   snapshot = await get(); const rollback = snapshot;
-  const refused = await page.request.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: m1.taskId, milestoneTaskId: m2.taskId }] } });
+  const refused = await apiRequest.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: m1.taskId, milestoneTaskId: m2.taskId }] } });
   expect(refused.status()).toBe(409); expect(await get()).toEqual(rollback);
   await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await dialog.getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click();
-  for (const member of [child, override]) { const response = await page.request.patch(`${api}/tasks/${member.taskId}`, { headers: headers(), data: { status: "completed" } }); expect(response.status()).toBe(200); snapshot = await get(); }
+  for (const member of [child, override]) { const response = await apiRequest.patch(`${api}/tasks/${member.taskId}`, { headers: headers(), data: { status: "completed" } }); expect(response.status()).toBe(200); snapshot = await get(); }
   await page.reload(); await open(m2.taskId);
   const currentInstance = await frame.getAttribute("data-project-gantt-instance");
   await expect(dialog).toContainText("소속 작업 진척 100%");
-  await expect(dialog).toContainText("미완료 선행 단계 1개");
+  await expect(dialog).toContainText("미완료 선행 Milestone 1개");
   await dialog.getByLabel("상태", { exact: true }).selectOption("completed"); await dialog.getByRole("button", { name: "저장", exact: true }).click();
   await expect(dialog).toContainText("완료 조건");
   await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click();

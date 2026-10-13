@@ -3,8 +3,13 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+from types import SimpleNamespace
+
 import importlib.util
+import json
 import pathlib
+import subprocess
 import re
 import sys
 
@@ -17,6 +22,7 @@ CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 IMPL = ROOT / "scripts" / "issue_lifecycle.py"
 AUTO_IMPL = ROOT / "scripts" / "auto_release_finalizer.py"
 TRACE_IMPL = ROOT / "scripts" / "verify-ci-run-trace.py"
+MAIN_RUN_NAME_IMPL = ROOT / "scripts" / "main_ci_run_name.py"
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 
 
@@ -39,9 +45,65 @@ require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목�
 require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
 
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
+# Issue #643: Actions `run.name` is the user-facing run-name, not the
+# definition name. The identity gate must use metadata id/path/state instead.
+recovery_impl = (ROOT / "scripts" / "main_ci_recovery.py").read_text(encoding="utf-8")
+require("def verified_workflow_identity(" in recovery_impl
+        and "verified_workflow_identity(repo, run)" in recovery_impl,
+        "manual recovery must authenticate the workflow identity before evidence")
+require('TRUSTED_CI_WORKFLOW_FILE = "ci.yml"' in recovery_impl
+        and 'TRUSTED_CI_WORKFLOW_PATH = ".github/workflows/ci.yml"' in recovery_impl,
+        "the trusted CI source must be selected by its exact workflow path")
+require('run.get("workflow_id")' in recovery_impl
+        and 'gh(f"/repos/{repo}/actions/workflows/{TRUSTED_CI_WORKFLOW_FILE}")' in recovery_impl
+        and 'workflow.get("state") == "active"' in recovery_impl,
+        "recovery must cross-check source workflow id with read-only GitHub metadata")
+require('(run.get("repository") or {}).get("full_name") == repo' in recovery_impl
+        and '(run.get("head_repository") or {}).get("full_name") == repo' in recovery_impl,
+        "cross-repository or foreign-head recovery runs must be rejected")
+require('run.get("name") == "CI"' not in recovery_impl,
+        "dynamic Actions run name must never be used as a trusted workflow ID")
+require("run.get(\"event\") == \"workflow_dispatch\"" in recovery_impl
+        and 'run.get("run_attempt")' in recovery_impl
+        and "checked_jobs(all_jobs(repo, run_id))" in recovery_impl,
+        "manual recovery must retain exact dispatch/event/attempt/aggregate trust checks")
+
+# Issue #645: GitHub's /commits/{merge}/pulls index can be empty for a
+# verified two-parent merge; a zero-association answer is NOT authorization.
+# Require an independent exhaustive closed PR ledger and unique exact SHA.
+require("def verified_merge_pr_association(" in recovery_impl
+        and "verified_merge_pr_association(" in recovery_impl.split("def validate(", 1)[1],
+        "#2617 recovery must invoke exact unique merged PR association verifier")
+require('f"/repos/{repo}/commits/{merge_sha}/pulls"' in recovery_impl
+        and 'f"/repos/{repo}/pulls?state=closed&sort=updated&direction=desc"' in recovery_impl,
+        "zero-entry commit index must use read-only paginated closed PR history")
+require('if indexed:' in recovery_impl
+        and 'len(candidates) == 1' in recovery_impl
+        and 'only.get("merged_at")' in recovery_impl
+        and 'only.get("merge_commit_sha") == merge_sha' in recovery_impl
+        and 'only.get("state") == "closed"' in recovery_impl,
+        "missing, duplicate, wrong-SHA, or unmerged PR identity may never pass")
+require('parents[1]["sha"] == (pr.get("head") or {}).get("sha")' in recovery_impl
+        and '(pr.get("base") or {}).get("sha")' in recovery_impl,
+        "source merged PR must match both immutable commit parent SHAs")
+require('raise Blocked("pagination truncated")' in recovery_impl,
+        "PR ledger enumeration must fail closed when history cannot be exhausted")
+require('commit-to-PR identity not uniquely verified' not in recovery_impl,
+        "recovery must distinguish GitHub empty commit index from validated merge")
+
+ops_doc = (ROOT / "docs" / "GITHUB_OPERATIONS.md").read_text(encoding="utf-8")
+require('gh pr merge "$pr" --repo "$repo" --merge --subject "$title" --body "" --match-head-commit "$head"' in ops_doc, "Issue #582 merge CLI must include method/subject/empty body/exact Head")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
 require("github.event.pull_request.number" in ci_workflow, "PR CI run-name must carry the PR number")
 require("github.event.head_commit.message" in ci_workflow, "main CI run-name must carry merge commit trace metadata")
+require("startsWith(github.event.head_commit.message, 'Issue #')" in ci_workflow, "main run-name must select canonical one-line message")
+require("contains(github.event.head_commit.message, ' · PR #')" in ci_workflow, "main display title must check the Issue/PR delimiter")
+for escape in (r"\n", r"\r"):
+    require(
+        f"!contains(toJSON(github.event.head_commit.message), '{escape}')" in ci_workflow,
+        f"Main CI run-name must reject escaped newline: {escape}",
+    )
+require("기존 병합/직접 Push" in ci_workflow and "github.sha" in ci_workflow, "main legacy/direct fallback must be short and SHA-bound")
 require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
@@ -49,6 +111,33 @@ require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_r
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
 require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
 require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
+metadata_recovery = (ROOT / ".github" / "workflows" / "pr-metadata-reconcile.yml").read_text(encoding="utf-8")
+require("workflow_run:" in metadata_recovery and 'workflows: ["CI"]' in metadata_recovery, "metadata reconciliation must follow trusted default-branch CI completion")
+require("actions: write" in metadata_recovery and "rerun-failed-jobs" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8"), "reconciliation needs bounded write-scoped rerun operation")
+require("cancel-in-progress: false" in metadata_recovery and "persist-credentials: false" in metadata_recovery, "metadata reconciliation must not cancel full CI or persist privileged checkout credentials")
+require("pull_request_target:" not in metadata_recovery, "metadata reconciliation must not execute PR code with write privilege")
+require("source_artifact" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8") and "verified_source" in (ROOT / "scripts" / "reconcile-pr-metadata.py").read_text(encoding="utf-8"), "#593 source provenance must protect #600 write-capable recovery")
+
+baseline_retry = ci_workflow.split("      - name: PR 기준 image와 크기 비교", 1)[1].split("      - name: 잘못된 production HTTP 설정 조기 거부 검증", 1)[0]
+require("for attempt in 1 2; do" in baseline_retry, "baseline Docker build retry must be bounded")
+require("npm error code (ECONNRESET|ETIMEDOUT|EAI_AGAIN)" in baseline_retry, "retry only recognized npm transient network errors")
+require('[[ "$attempt" -eq 2 ]] || ! grep -Eq' in baseline_retry, "baseline must fail closed on retry/other errors")
+require("bash scripts/verify-image-size-reduction.sh" in baseline_retry, "baseline size comparison must remain mandatory")
+require("scripts/verify-pr-metadata-evidence.py --mode evidence" in ci_workflow, "metadata evidence must use exact Head state machine")
+metadata_section = ci_workflow.split("  metadata_evidence:", 1)[1].split("\n  policy:", 1)[0]
+require(
+    "uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in metadata_section,
+    "metadata evidence must checkout its own runner with a pinned action",
+)
+require("persist-credentials: false" in metadata_section, "metadata checkout must not retain credentials")
+require(
+    metadata_section.index("uses: actions/checkout@") <
+    metadata_section.index("run: python3 scripts/verify-pr-metadata-evidence.py --mode evidence"),
+    "metadata evidence must checkout before invoking repo-local script",
+)
+require("deadline=$((SECONDS + 1200))" not in ci_workflow and "sleep 10" not in ci_workflow, "metadata evidence must not poll for 20 minutes")
+require("[전체 검증]" in ci_workflow and "[메타데이터 검증]" in ci_workflow, "CI run names must identify type")
+require("timeout-minutes: 5" in ci_workflow.split("  metadata_evidence:", 1)[1].split("  policy:", 1)[0], "metadata evidence timeout must be bounded")
 require("PR metadata가 기존 전체 CI 증거를 보존하는지 검증" in ci_workflow, "metadata evidence job name is required")
 require("metadata_only" in ci_workflow, "CI summary must expose metadata-only routing")
 require('CI_E2E_FULLY_PARALLEL: "true"' in ci_workflow, "PR/Main E2E shards must use balanced test-level distribution")
@@ -58,7 +147,16 @@ for token in ("inputs.issue_number", "inputs.pr_number", "inputs.operation", "gi
     require(token in workflow, f"Issue lifecycle run-name trace token missing: {token}")
 
 require("run-name:" in auto_workflow, "automatic finalizer run-name is required")
-require("github.event.workflow_run.display_title" in auto_workflow, "finalizer must inherit the triggering Main CI display title")
+require("github.event.workflow_run.head_commit.message" in auto_workflow, "finalizer must read the triggering Main commit subject")
+require("startsWith(github.event.workflow_run.head_commit.message, 'Issue #')" in auto_workflow, "finalizer must select canonical one-line message")
+require("contains(github.event.workflow_run.head_commit.message, ' · PR #')" in auto_workflow, "finalizer display title must check the Issue/PR delimiter")
+for escape in (r"\n", r"\r"):
+    require(
+        f"!contains(toJSON(github.event.workflow_run.head_commit.message), '{escape}')" in auto_workflow,
+        f"Finalizer run-name must reject escaped newline: {escape}",
+    )
+require("github.event.workflow_run.head_sha" in auto_workflow, "finalizer fallback must retain exact triggering SHA")
+require("github.event.workflow_run.run_number" in auto_workflow and "github.event.workflow_run.run_attempt" in auto_workflow, "finalizer must identify source Main run/attempt")
 require("github.run_number" in auto_workflow and "github.run_attempt" in auto_workflow, "finalizer run-name must distinguish attempts")
 
 require("run-name:" in release_workflow, "release image run-name is required")
@@ -70,7 +168,7 @@ require("REF_RE" in trace_impl and "BRANCH_ISSUE_RE" in trace_impl and "TITLE_IS
 
 require("workflow_dispatch:" in workflow, "workflow_dispatch entry point is required")
 require("operation:" in workflow and "verify, release, finalize, release_finalize" in workflow, "four operations are required")
-require("group: issue-lifecycle-${{ inputs.issue_number }}" in workflow, "per-Issue concurrency is required")
+require("group: mastergantt-release-finalizer" in workflow, "manual lifecycle mutation must share generic finalizer serialization")
 require("queue: max" in workflow, "manual lifecycle runs must preserve queued work")
 require("packages: write" in workflow, "lifecycle finalize operations need scoped packages: write for temporary GHCR cleanup")
 require("pull_request_target" not in workflow, "pull_request_target is forbidden")
@@ -118,6 +216,37 @@ require("group: mastergantt-release-finalizer" in resume_workflow, "release resu
 require("queue: max" in resume_workflow, "release resume must preserve queued completion events")
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
+# #639 P1 review: the trusted root checkout uses a Python namespace package,
+# and private GHCR must be logged in before any recovered digest inspection.
+recovery_finalizer = auto_workflow.split("  finalize:", 1)[1].split("\n  owner_recovery:", 1)[0]
+require("ref: main" in recovery_finalizer and "persist-credentials: false" in recovery_finalizer,
+        "write-capable Generic Finalizer must always checkout trusted default main without stored credentials")
+require("from scripts import main_ci_recovery as recovery" in recovery_finalizer,
+        "inline Python in repository root must import the verifier from scripts/")
+require("if: github.event.workflow_run.event == 'workflow_dispatch'" in recovery_finalizer,
+        "only explicit manual_recovery should run private-source attestation")
+require("identity.source_sha == os.environ[\"SOURCE_SHA\"]" in recovery_finalizer,
+        "manual recovery must cross-check source workflow run SHA")
+for name in ("trusted default-main checkout SHA 검증",
+             "GHCR 버전 원장 조회 도구 준비",
+             "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+             "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+             "정확한 merge lifecycle 해석 및 실행"):
+    require(name in recovery_finalizer, f"#639 trusted Finalizer step missing: {name}")
+recovery_step_order = [
+    recovery_finalizer.index(label)
+    for label in ("trusted default-main checkout SHA 검증",
+                  "GHCR 버전 원장 조회 도구 준비",
+                  "비공개 GHCR 인증 (감사 + 신규 릴리스 확인)",
+                  "인증된 수동 Main 복구 Run·Attempt·digest 증거 확인",
+                  "정확한 merge lifecycle 해석 및 실행")
+]
+require(recovery_step_order == sorted(recovery_step_order),
+        "authenticated private GHCR login must precede recovered digest inspection and mutation")
+require("recovery.completed_evidence(" in recovery_finalizer,
+        "manual_recovery may not skip the exact Run/Attempt/source validation")
+require("github.event.workflow_run.event == 'push'" in recovery_finalizer,
+        "normal automatic Main push lifecycle must remain supported")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
 require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" in auto_workflow, "automatic finalizer needs scoped package write for temporary candidate cleanup")
@@ -147,11 +276,29 @@ require(release_workflow.index("verified candidate digest GitHub Attestation") <
 require(release_workflow.index("최종 exact·rolling tag를 verified digest로 promotion") < release_workflow.index("release-finalizer-resume.yml/dispatches"), "lifecycle handoff must occur only after publication")
 require("docker/build-push-action@" not in release_workflow, "release workflow must not rebuild the container")
 require("version_changed:" in ci_workflow and "current_version:" in ci_workflow, "main CI must classify release candidate version changes")
-require("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow, "successful non-docs main CI must hand the verified candidate to Generic Finalizer")
+# #639: exact target SHA comes from trusted verifier, ordinary main push from github.sha.
+require("SOURCE_SHA: ${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate image must bind to independently resolved checkout SHA")
+require("checkout_sha: ${{ steps.recovery.outputs.target_sha || github.sha }}" in ci_workflow,
+        "push/PR SHA fallback is required")
+require("tag=ci-$SOURCE_SHA" in ci_workflow and
+        "org.opencontainers.image.revision=${{ needs.changes.outputs.checkout_sha }}" in ci_workflow,
+        "candidate tag and OCI revision must use verified immutable source")
+require("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow,
+        "successful main/recovery CI must hand exact candidate to Generic Finalizer")
 handoff_index = ci_workflow.index("GHCR main commit image lifecycle handoff")
-failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"')
-retention_index = ci_workflow.index("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup")
-require(handoff_index < failed_cleanup_index < retention_index, "main CI must clean failed pushed candidates before successful lifecycle handoff")
+failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${SOURCE_SHA}"')
+retention_index = ci_workflow.index("verified ci-${SOURCE_SHA} retained until Generic Release Finalizer resolves release or cleanup")
+require(handoff_index < failed_cleanup_index < retention_index,
+        "original main push must clean failed candidates before lifecycle handoff")
+require('if [[ "$RECOVERY" == "true" ]]' in ci_workflow,
+        "failed recovery candidates require audit, not automatic deletion")
+require("python3 scripts/main_ci_recovery.py authorize" in ci_workflow and
+        "python3 scripts/main_ci_recovery.py prepublish" in ci_workflow and
+        "needs.changes.outputs.recovery_authorized == 'true'" in ci_workflow,
+        "manual diagnostic may never acquire GHCR publish authority")
+require("github.event_name == 'push' && github.ref == 'refs/heads/main'" in ci_workflow,
+        "existing main push publish gate must remain")
 require('if [[ "${{ job.status }}" != "success" ]]' in ci_workflow, "main CI candidate cleanup must be restricted to failed validation")
 require("GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}" in ci_workflow, "main failed-candidate cleanup must bind repository owner type")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
@@ -176,7 +323,7 @@ require("gh_paginated(" in auto_impl, "comment and PR pagination helper is requi
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
 require("def is_closed_issue(" in auto_impl, "closed Issue skip classifier is required")
 require("replace(item, actionable=False)" in auto_impl, "closed unmarked Issue must remain as a non-actionable ordering barrier")
-require("coalesced[-1].actionable" in auto_impl and "item.actionable" in auto_impl, "retry coalescing must not cross non-actionable closed barriers")
+require("return list(items)" in auto_impl, "every per-merge lifecycle obligation must be preserved")
 require("pending_with_barriers" in auto_impl and "if item.actionable" in auto_impl, "closed ordering barriers must be filtered only after adjacency-sensitive coalescing")
 require("return issue.get(\"state\") == \"closed\"" not in auto_impl.split("def is_finalized_boundary", 1)[1].split("def is_closed_issue", 1)[0], "closed Issue must not be treated as an exact finalized boundary")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
@@ -225,6 +372,7 @@ def load_module(name: str, path: pathlib.Path):
 module = load_module("issue_lifecycle", IMPL)
 auto = load_module("auto_release_finalizer", AUTO_IMPL)
 trace = load_module("verify_ci_run_trace", TRACE_IMPL)
+main_run_name = load_module("main_ci_run_name", MAIN_RUN_NAME_IMPL)
 
 trace_pr_payload = {
     "number": 362,
@@ -299,6 +447,280 @@ trace_push_payload = {
     },
 }
 require(trace.validate_push(trace_push_payload) == (361, 362), "merge commit trace metadata must resolve Issue/PR")
+canonical_title = main_run_name.format_merge_title(582, 583, "Main CI 실행명 간소화")
+require(
+    canonical_title == "Issue #582 · PR #583 · Main CI 실행명 간소화",
+    "canonical merge title must include one Issue, PR and a short Korean subject",
+)
+require(main_run_name.parse_merge_title(canonical_title) == (582, 583, "Main CI 실행명 간소화"), "canonical merge subject must parse")
+require(
+    trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": canonical_title}})
+    == (582, 583),
+    "canonical single-line merge must trace to exact Issue/PR",
+)
+
+
+# Issue #586: an immutable multiline merge title caused exact Main CI #2445.1
+# to fail. Never weaken the parser or label the old run as successful.
+failed_586_message = (
+    "Issue #586 · PR #588 · FINAL marker 및 부분 종료 안정화\n\n"
+    "Merge PR #588 for Issue #586\n\n"
+    "Preserve exact per-merge FINAL evidence, safe candidate cleanup and first-parent checks.\n\n"
+    "Refs #586"
+)
+require(
+    main_run_name.parse_merge_title(failed_586_message) is None,
+    "historical multiline merge must remain invalid (not retroactively green)",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_586_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("the failed #586 merge message must not silently pass trace validation")
+
+# Issue #603 / PR #604: a *one-line* English-only merge title was invalid.
+# This exact historical main SHA cannot be rewritten; a later same-Issue PR
+# with full-scope CI and a Korean canonical title must supersede its failed CI.
+failed_603_message = "Issue #603 · PR #604 · Docker BuildKit PR cache read-only"
+require(
+    main_run_name.parse_merge_title(failed_603_message) is None,
+    "the original #603 English-only main commit must remain invalid",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main", "head_commit": {"message": failed_603_message},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("the failed #603 Main CI must not silently become PASS")
+recovery_603_summary = "Docker 캐시 Main CI 복구"
+recovery_603_title = main_run_name.format_merge_title(
+    603, 605, recovery_603_summary
+)
+require(
+    main_run_name.parse_merge_title(recovery_603_title)
+    == (603, 605, recovery_603_summary),
+    "the #603 follow-up merge must have a one-line Korean summary",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main", "head_commit": {"message": recovery_603_title},
+    }) == (603, 605),
+    "the corrected #603 merge must retain exact Issue/PR trace",
+)
+
+
+# Issue #639: PR #641 generated a genuinely immutable main merge with a
+# 31-character summary and no body. Its push CI #2606.1 failed in the trace
+# gate. A mere rerun of that SHA cannot fix its immutable commit metadata.
+failed_639_summary = "Main SHA 복구 및 GHCR 출처 검증 경로 안정화"
+failed_639_title = f"Issue #639 · PR #641 · {failed_639_summary}"
+require(
+    len(failed_639_summary) == main_run_name.MAX_SUMMARY_LENGTH + 1,
+    "#2606 forensic fixture must preserve the original 31-character summary",
+)
+require(
+    main_run_name.parse_merge_title(failed_639_title) is None,
+    "#2606 invalid merge title must never be interpreted as a valid push",
+)
+try:
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": failed_639_title},
+    })
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("#2606 immutable failed Main CI may not be retroactively green")
+
+for factory in (
+    lambda: main_run_name.format_merge_title(639, 641, failed_639_summary),
+    lambda: main_run_name.validate_merge_title(failed_639_title, 639, 641),
+):
+    try:
+        factory()
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("31-character unverified merge subject must be BLOCKED")
+
+corrected_639_title = main_run_name.format_merge_title(
+    639, 642, "Main CI 제목 계약 교정"
+)
+require(
+    main_run_name.validate_merge_title(corrected_639_title, 639, 642)
+    == corrected_639_title,
+    "exact preflight must preserve the valid title, without rewriting it",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": corrected_639_title},
+    }) == (639, 642),
+    "corrective canonical merge must be recognized by the existing push gate",
+)
+for forged in (
+    corrected_639_title + "\n\nRefs #639",
+    corrected_639_title.replace("PR #642", "PR #641"),
+    corrected_639_title.replace("Issue #639", "Issue #640"),
+):
+    try:
+        main_run_name.validate_merge_title(forged, 639, 642)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit("wrong Issue/PR or multiline merge preflight must reject")
+
+preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "642",
+     "--validate-title", corrected_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=True,
+)
+require(
+    json.loads(preflight_cli.stdout) == main_run_name.merge_api_payload(
+        639, 642, "Main CI 제목 계약 교정", "a" * 40
+    ),
+    "preflight CLI must emit an exact connector merge payload bound to Head SHA",
+)
+failed_preflight_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "639", "--pr", "641", "--validate-title", failed_639_title,
+     "--as-merge-payload", "--expected-head-sha", "a" * 40],
+    capture_output=True, text=True, check=False,
+)
+require(
+    failed_preflight_cli.returncode != 0 and not failed_preflight_cli.stdout.strip(),
+    "#2606 invalid title must produce no merge payload or positive result",
+)
+
+
+# The merge tool's source payload requires one canonical title and *empty*
+# body.  A matching head lease prevents accidental merge of a newer PR head.
+correction_summary = "Main CI 실패 복구 및 Finalizer 재개"
+correction_sha = "a" * 40
+correction_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha
+)
+require(
+    correction_payload == {
+        "merge_method": "merge",
+        "commit_title": main_run_name.format_merge_title(
+            586, 999, correction_summary
+        ),
+        "commit_message": "",
+        "expected_head_sha": correction_sha,
+    },
+    "corrective merge payload must bind exact Head and omit a commit body",
+)
+require(
+    trace.validate_push({
+        "ref": "refs/heads/main",
+        "head_commit": {"message": correction_payload["commit_title"]},
+    }) == (586, 999),
+    "body-free corrective merge must resolve the exact Issue/PR",
+)
+cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(cli.stdout) == correction_payload, "CLI merge payload must match the verified pure contract")
+# GitHub REST uses "sha" whereas the connected GitHub action accepts
+# "expected_head_sha". Neither adapter may silently drop the head lease.
+rest_payload = main_run_name.merge_api_payload(
+    586, 999, correction_summary, correction_sha, api_target="rest"
+)
+require(
+    rest_payload == {
+        "merge_method": "merge",
+        "commit_title": correction_payload["commit_title"],
+        "commit_message": "",
+        "sha": correction_sha,
+    } and "expected_head_sha" not in rest_payload,
+    "REST merge must use sha, not connector-only expected_head_sha",
+)
+rest_cli = subprocess.run(
+    [sys.executable, str(MAIN_RUN_NAME_IMPL),
+     "--issue", "586", "--pr", "999", "--summary", correction_summary,
+     "--as-merge-payload", "--merge-api", "rest",
+     "--expected-head-sha", correction_sha],
+    capture_output=True, text=True, check=True,
+)
+require(json.loads(rest_cli.stdout) == rest_payload, "REST CLI output must match its pure helper")
+try:
+    main_run_name.merge_api_payload(
+        586, 999, correction_summary, correction_sha, api_target="unknown"
+    )
+except ValueError:
+    pass
+else:
+    raise SystemExit("unknown merge API target must fail closed")
+
+for invalid_sha in ("", "a" * 39, "A" * 40, "a" * 41, "f" * 39 + "\n"):
+    try:
+        main_run_name.merge_api_payload(586, 999, correction_summary, invalid_sha)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit(f"invalid merge Head SHA must fail closed: {invalid_sha!r}")
+
+require(
+    trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": "Merge PR #539: 기준정보 (#538)\n\nRefs #538"}})
+    == (538, 539),
+    "legacy short Merge PR form must remain traceable",
+)
+require(
+    trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": "docs: 직접 푸시"}})
+    == (None, None),
+    "non-PR main push must use fallback",
+)
+for malformed in (
+    canonical_title + "\n\nRefs #582",
+    "Issue #582 · PR #583 · English only",
+    "Issue #582 · PR #583 · " + "한" * 31,
+    "Issue #0 · PR #583 · 한글 제목",
+    "Issue #582 ·PR #583 · 구분자 누락",
+    "Issue #582 · PR 없이 입력",
+    "Issue #582",
+    "Issue #582\n추가 본문",
+    "Issue #582 · PR #583 · 한글\u202e123",
+    "Issue #582 · PR #583 · 한글\u200b숨김",
+    "Issue #582 · PR #583 · 한글\u2028추가줄",
+    "Issue #582 · PR #583 · 한글\x85컨트롤",
+):
+    require(main_run_name.parse_merge_title(malformed) is None, "malformed canonical title must be rejected")
+    try:
+        trace.validate_push({"ref": "refs/heads/main", "head_commit": {"message": malformed}})
+    except trace.TraceError:
+        pass
+    else:
+        raise SystemExit(f"malformed canonical merge must fail-closed: {malformed!r}")
+for invalid_summary in (
+    "English only",
+    "한글 제목\n두 번째 줄",
+    "한" * 31,
+    "Issue #3 다른 번호",
+    "한글\u202e123",  # bidi override
+    "한글\u200b숨김",  # invisible zero-width separator
+    "한글\u2028추가줄",  # Unicode line separator
+    "한글\x85제어",  # C1 control / next-line
+    "",
+):
+    try:
+        main_run_name.format_merge_title(582, 583, invalid_summary)
+    except ValueError:
+        pass
+    else:
+        raise SystemExit(f"invalid merge summary must fail: {invalid_summary!r}")
+
 require(trace.validate_dispatch({"inputs": {"issue_number": "361"}}) == (361, None), "manual CI Primary Issue must validate")
 require(trace.validate_dispatch({"inputs": {}}) == (None, None), "manual CI without Issue must use fallback")
 
@@ -627,6 +1049,24 @@ comments = [
 auth = auto.select_authorization(comments, expected_version="1.2.3")
 require(auth is not None and auth.actor == "owner", "trusted authorization selection failed")
 
+# Multiple retained successful same-Issue merges have independently authorized
+# releases. Only the latest trusted approval/revocation *for that version*
+# can govern its target; newer other-version markers may coexist.
+version_one = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.1.0","note":"v1 approved"} -->'
+version_two = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.2.0","note":"v2 approved"} -->'
+multi_version_comments = [
+    {"id": 10, "author_association": "OWNER", "body": version_one,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/10"},
+    {"id": 11, "author_association": "OWNER", "body": version_two,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/11"},
+]
+for version in ("1.1.0", "1.2.0"):
+    result = auto.select_authorization(multi_version_comments, expected_version=version)
+    require(result is not None and result.expected_version == version,
+            "cross-version approval may not shadow retained target")
+require(auto.select_authorization(multi_version_comments, expected_version="1.3.0") is None,
+        "missing exact-version approval must never authorize release")
+
 revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.2.3","note":"revoked"} -->'
 try:
     auto.select_authorization(
@@ -636,6 +1076,19 @@ try:
     raise SystemExit("latest trusted revocation must block release")
 except auto.AutoFinalizerBlocked:
     pass
+
+version_one_revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.1.0","note":"v1 revoked"} -->'
+revocation_comments = multi_version_comments + [
+    {"id": 12, "author_association": "OWNER", "body": version_one_revoked,
+     "user":{"login":"owner"}, "html_url":"https://example.invalid/12"},
+]
+try:
+    auto.select_authorization(revocation_comments, expected_version="1.1.0")
+    raise SystemExit("latest version-specific revocation must block release")
+except auto.AutoFinalizerBlocked:
+    pass
+require(auto.select_authorization(revocation_comments, expected_version="1.2.0") is not None,
+        "another version's revocation must not invalidate independent authorization")
 
 # Pagination must read beyond the first 100 comments so later revocation/approval
 # cannot be ignored.
@@ -668,8 +1121,10 @@ auto.resolve_work_item = lambda _repo, target: {old_sha: old, a_sha: a_item, b_s
 auto.is_finalized_boundary = lambda _repo, item: item.target_sha == old_sha
 auto.is_closed_issue = lambda _repo, _item: False
 try:
-    backlog = auto.collect_pending_work(repo, b_sha)
+    retained_boundary = []
+    backlog = auto.collect_pending_work(repo, b_sha, finalized_boundary=retained_boundary)
     require([item.target_sha for item in backlog] == [a_sha, b_sha], "first-parent backlog order failed")
+    require(retained_boundary == [old], "FINAL boundary must remain available for close retry")
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
@@ -687,6 +1142,8 @@ closed_item = auto.WorkItem(closed_sha, pending_sha, 474, 452, "0.86.0", "0.86.0
 saved_resolve = auto.resolve_work_item
 saved_boundary = auto.is_finalized_boundary
 saved_closed = auto.is_closed_issue
+saved_issue_comments = auto.issue_comments
+auto.issue_comments = lambda _repo, _issue: []
 auto.resolve_work_item = lambda _repo, target: {
     finalized_sha: finalized_item,
     pending_sha: pending_item,
@@ -713,6 +1170,7 @@ finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
     auto.is_closed_issue = saved_closed
+    auto.issue_comments = saved_issue_comments
 
 # Two pending retries for the same Issue must not become adjacent when a
 # closed/no-marker merge sits between them in first-parent order.
@@ -738,39 +1196,243 @@ require(
     "barrier filtering must preserve both actionable retry targets",
 )
 
-# Adjacent corrective merges for the same Issue converge only when their
-# validation scope is equivalent. Collapsed PR identities remain cleanup
-# obligations. Different Issue or docs-only/non-docs scope prevents convergence.
+# Issue #586: no green per-target Main CI/GHCR obligation may coalesce away.
 retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4", False)
 retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5", False)
-collapsed = auto.coalesce_consecutive_issue_retries([retry_one, retry_two])
-require(len(collapsed) == 1, "adjacent same-Issue retries with equal scope must converge")
-require(collapsed[0].target_sha == retry_two.target_sha, "latest retry target must win")
-require(collapsed[0].pr_number == retry_two.pr_number, "latest retry PR must win")
-require(collapsed[0].cleanup_pr_numbers == (retry_one.pr_number,), "earlier retry PR must remain a cleanup obligation")
-require(collapsed[0].first_parent_sha == retry_one.first_parent_sha, "version span must start before first retry")
-require(collapsed[0].previous_version == "0.58.3" and collapsed[0].current_version == "0.58.5", "version span must cover all adjacent retries")
 docs_followup = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 344, "0.58.4", "0.58.4", True)
-scope_split = auto.coalesce_consecutive_issue_retries([retry_one, docs_followup])
-require(len(scope_split) == 2, "docs-only/non-docs validation scope mismatch must prevent convergence")
 other_issue = auto.WorkItem("7" * 40, retry_one.target_sha, 13, 999, "0.58.4", "0.58.4", False)
-not_collapsed = auto.coalesce_consecutive_issue_retries([retry_one, other_issue, retry_two])
-require(len(not_collapsed) == 3, "different Issue boundary must prevent convergence")
-cleanup_command = auto.lifecycle_command(
-    operation="finalize",
-    issue_number=344,
-    pr_number=11,
-    release_required=False,
-    release_authorized=False,
-    expected_version="",
-    authorization_note="",
-    cleanup_pr_numbers=(10,),
-)
-require(cleanup_command[-2:] == ["--cleanup-pr", "10"], "collapsed cleanup PR must be forwarded to lifecycle")
+for sequence in ([retry_one, retry_two], [retry_one, docs_followup], [retry_one, other_issue, retry_two]):
+    require(auto.coalesce_consecutive_issue_retries(sequence) == sequence, "all merged targets must retain independent evidence")
+cleanup_command = auto.lifecycle_command(operation="finalize", issue_number=344, pr_number=11,
+    release_required=False, release_authorized=False, expected_version="", authorization_note="",
+    cleanup_pr_numbers=(10,), defer_close=True, main_snapshot_sha=b_sha)
+require(cleanup_command[-3:] == ["--defer-close", "--cleanup-pr", "10"], "later target must defer close")
 parsed_cleanup = module.build_parser().parse_args(
-    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9"]
-)
-require(parsed_cleanup.cleanup_pr == [10, 9], "lifecycle must accept repeated cleanup PR identities")
+    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9", "--defer-close"])
+require(parsed_cleanup.cleanup_pr == [10, 9] and parsed_cleanup.defer_close, "lifecycle must parse cleanup/deferral flags")
+require("--resolver-ordered" in cleanup_command,
+        "automatic Finalizer must identify its oldest-first verified orchestration")
+require(cleanup_command[cleanup_command.index("--resolver-main-sha")+1] == b_sha,
+        "child command must include verified main snapshot")
+require(not parsed_cleanup.resolver_ordered,
+        "manual workflow must default to ordered-history preflight")
+
+
+# #586: ordered snapshot must fail closed on a moving main.
+saved_snapshot_gh = module.gh
+remote_snapshot = [b_sha]
+module.gh = lambda path, *, method="GET", fields=None: {"object": {"sha":remote_snapshot[0]}}
+snapshot_ctx = SimpleNamespace(current_main_sha=b_sha)
+snapshot_args = SimpleNamespace(resolver_ordered=True, resolver_main_sha=b_sha)
+try:
+    module.resolver_snapshot_gate("owner/repo", snapshot_ctx, snapshot_args)
+    remote_snapshot[0] = a_sha
+    try:
+        module.resolver_snapshot_gate("owner/repo", snapshot_ctx, snapshot_args)
+        raise SystemExit("moving main must block ordered lifecycle")
+    except module.LifecycleError:
+        pass
+finally:
+    module.gh = saved_snapshot_gh
+
+# #586: a successful FINAL write followed by failed Issue close must be
+# recoverable without new FINAL/cleanup and must reject newer same-Issue PRs.
+saved_close_audit, saved_close_gh = module.audited_final_markers, module.gh
+saved_close_collect, saved_close_gate = auto.collect_pending_work, module.resolver_snapshot_gate
+saved_close_repo = __import__("os").environ.get("GITHUB_REPOSITORY")
+closing_issue = {"state":"open"}
+close_patches = []
+boundary_item = auto.WorkItem(b_sha, a_sha, 3, 77, "1.0.0", "1.0.0")
+close_ctx = SimpleNamespace(issue_number=77, pr_number=3, merge_sha=b_sha, current_main_sha=b_sha)
+close_args = SimpleNamespace(resolver_ordered=True, resolver_main_sha=b_sha,
+                             defer_close=False, cleanup_pr=[])
+module.audited_final_markers = lambda _repo, _ctx: {b_sha:3}
+module.resolver_snapshot_gate = lambda _repo, _ctx, _args: None
+def fake_close_collect(_repo, _sha, *, finalized_boundary):
+    finalized_boundary.append(boundary_item)
+    return []
+auto.collect_pending_work = fake_close_collect
+def fake_close_api(path, *, method="GET", fields=None):
+    if path.endswith("/issues/77"):
+        if method == "PATCH":
+            close_patches.append(fields)
+            closing_issue["state"] = "closed"
+        return dict(closing_issue)
+    raise AssertionError(path)
+module.gh = fake_close_api
+__import__("os").environ["GITHUB_REPOSITORY"] = "owner/repo"
+try:
+    module.close_resume(close_ctx, close_args)
+    module.close_resume(close_ctx, close_args)
+    require(len(close_patches) == 1, "close-only retry must be idempotent")
+    closing_issue["state"] = "open"
+    def newer_same_issue(_repo, _sha, *, finalized_boundary):
+        finalized_boundary.append(boundary_item)
+        return [auto.WorkItem(a_sha, old_sha, 4, 77, "1.0.0", "1.0.0")]
+    auto.collect_pending_work = newer_same_issue
+    try:
+        module.close_resume(close_ctx, close_args)
+        raise SystemExit("newer same-Issue PR must block premature close")
+    except module.LifecycleError:
+        pass
+    require(len(close_patches) == 1, "blocked close must not mutate")
+finally:
+    auto.collect_pending_work = saved_close_collect
+    module.resolver_snapshot_gate = saved_close_gate
+    module.audited_final_markers = saved_close_audit
+    module.gh = saved_close_gh
+    if saved_close_repo is None:
+        __import__("os").environ.pop("GITHUB_REPOSITORY", None)
+    else:
+        __import__("os").environ["GITHUB_REPOSITORY"] = saved_close_repo
+
+# #586 P1: manual latest-target finalize must never skip earlier pending work,
+# including earlier same-Issue PRs and interleaving Issues. The generic resolver
+# is the authority for first-parent ordering; no branch/package mutation here.
+manual_old = auto.WorkItem("1" * 40, "0" * 40, 583, 565, "0.103.1", "0.103.1")
+manual_other = auto.WorkItem("2" * 40, manual_old.target_sha, 584, 577, "0.103.1", "0.103.1")
+manual_new = auto.WorkItem("3" * 40, manual_other.target_sha, 585, 565, "0.103.1", "0.103.1")
+manual_ctx = SimpleNamespace(issue_number=565, pr_number=585,
+    merge_sha=manual_new.target_sha, current_main_sha=manual_new.target_sha)
+saved_auto_latest = auto.current_main_sha
+saved_auto_pending = auto.collect_pending_work
+auto.current_main_sha = lambda _repo: manual_new.target_sha
+pending_manual = []
+auto.collect_pending_work = lambda _repo, _head: pending_manual
+try:
+    for scenario, target_ctx in (
+        ([manual_old, manual_new], manual_ctx),
+        ([manual_old, manual_other, manual_new], manual_ctx),
+        ([replace(manual_old, actionable=False), manual_new], manual_ctx),
+        ([manual_old, manual_new], SimpleNamespace(
+            issue_number=565, pr_number=583, merge_sha=manual_old.target_sha,
+            current_main_sha=manual_new.target_sha)),
+        ([manual_other, manual_new], manual_ctx),
+        ([], manual_ctx),
+    ):
+        pending_manual[:] = scenario
+        try:
+            module.manual_order_preflight("owner/repo", target_ctx)
+            raise SystemExit("manual FINAL may not skip an older/newer pending target")
+        except module.LifecycleError:
+            pass
+    pending_manual[:] = [manual_new]
+    module.manual_order_preflight("owner/repo", manual_ctx)
+    try:
+        module.manual_order_preflight(
+            "owner/repo", SimpleNamespace(issue_number=565, pr_number=999,
+                merge_sha=manual_new.target_sha, current_main_sha=manual_new.target_sha))
+        raise SystemExit("manual target PR identity must match ordered resolver")
+    except module.LifecycleError:
+        pass
+    try:
+        module.manual_order_preflight(
+            "owner/repo", SimpleNamespace(issue_number=565, pr_number=585,
+                merge_sha=manual_new.target_sha, current_main_sha="f" * 40))
+        raise SystemExit("moving main must block manual FINAL")
+    except module.LifecycleError:
+        pass
+finally:
+    auto.current_main_sha = saved_auto_latest
+    auto.collect_pending_work = saved_auto_pending
+
+# A repeated historical FINAL during manual fallback must be read-only. Manual
+# re-entry is not authority to close while a later same-Issue target may exist.
+saved_manual_audit = module.audited_final_markers
+saved_manual_gh = module.gh
+saved_manual_repo = __import__("os").environ.get("GITHUB_REPOSITORY")
+module.audited_final_markers = lambda _repo, _ctx: {
+    manual_new.target_sha: manual_new.pr_number}
+def no_manual_mutation(*args, **kwargs):
+    raise AssertionError("manual duplicate FINAL cannot mutate Issue or cleanup")
+module.gh = no_manual_mutation
+__import__("os").environ["GITHUB_REPOSITORY"] = "owner/repo"
+try:
+    module.finalize(manual_ctx, SimpleNamespace(defer_close=False, resolver_ordered=False))
+finally:
+    module.audited_final_markers = saved_manual_audit
+    module.gh = saved_manual_gh
+    if saved_manual_repo is None:
+        __import__("os").environ.pop("GITHUB_REPOSITORY", None)
+    else:
+        __import__("os").environ["GITHUB_REPOSITORY"] = saved_manual_repo
+
+# #586 immutable FINAL identity and phase-order fail closed regression.
+existing_sha, next_sha = "1" * 40, "2" * 40
+ctx = SimpleNamespace(issue_number=565, pr_number=585, merge_sha=next_sha,
+    head_sha="4" * 40, head_branch="fix/next", current_main_sha=next_sha,
+    version="0.103.1", main_docs_only=False, main_ci_url="https://example.invalid/ci",
+    main_artifact_evidence="PASS")
+existing_body = "\n".join([
+    module.final_marker(565, existing_sha), "## Lifecycle FINAL · Issue #565",
+    "- PR: #583", "- PR head branch: "+chr(96)+"docs/previous"+chr(96),
+    "- PR head SHA: "+chr(96)+"3"*40+chr(96),
+    "- merge/release target SHA: "+chr(96)+existing_sha+chr(96),
+])
+saved_gh, saved_run = module.gh, module.run
+calls = []
+audit_comments = [{"body": existing_body, "user":{"login":"github-actions[bot]"}}]
+def fake_audit_run(*args, **kwargs):
+    if args[:3] == ("git", "rev-list", "--first-parent"):
+        return SimpleNamespace(stdout=next_sha+"\n"+existing_sha+"\n", returncode=0)
+    raise AssertionError(args)
+def fake_audit_gh(path, *, method="GET", fields=None):
+    calls.append((path, method))
+    if "/comments?" in path:
+        return audit_comments
+    if path.endswith("/pulls/583"):
+        return {"merged":True,"merge_commit_sha":existing_sha,"base":{"ref":"main"},
+            "head":{"ref":"docs/previous","sha":"3"*40,"repo":{"full_name":"owner/repo"}},
+            "body":"Refs #565"}
+    if path.endswith("/pulls/585"):
+        return {"merged":True,"merge_commit_sha":next_sha,"base":{"ref":"main"},
+            "head":{"ref":"fix/next","sha":"4"*40,"repo":{"full_name":"owner/repo"}},
+            "body":"Refs #565"}
+    if path.endswith("/pulls/999"):
+        # Simulate a real API lookup resolving to an unrelated, unmerged PR.
+        # The lifecycle validator, not the test transport mock, must reject it.
+        return {"merged":False, "merge_commit_sha":None,
+                "base":{"ref":"main"}, "head":{"ref":"other", "sha":"9"*40,
+                "repo":{"full_name":"owner/repo"}}, "body":"Refs #999"}
+    raise AssertionError(path)
+module.gh, module.run = fake_audit_gh, fake_audit_run
+try:
+    records = module.audited_final_markers("owner/repo", ctx)
+    require(records == {existing_sha:583}, "older valid FINAL must coexist with newer target")
+    require(not any(method != "GET" for _,method in calls), "FINAL preflight must remain read only")
+    bad = existing_body.replace("#583", "#999")
+    audit_comments[0]["body"] = bad
+    try:
+        module.audited_final_markers("owner/repo", ctx)
+        raise SystemExit("tampered FINAL must fail closed")
+    except module.LifecycleError:
+        pass
+
+    audit_comments[0]["body"] = existing_body
+    audit_comments.append({"body": existing_body, "user":{"login":"github-actions[bot]"}})
+    require(module.audited_final_markers("owner/repo", ctx) == {existing_sha:583},
+            "identical independently authenticated FINAL write must be idempotent")
+    audit_comments[:] = [{"body":existing_body, "user":{"login":"github-actions[bot]"}}]
+    newer_body = "\n".join([
+        module.final_marker(565, next_sha), "## Lifecycle FINAL · Issue #565",
+        "- PR: #585", "- PR head branch: "+chr(96)+"fix/next"+chr(96),
+        "- PR head SHA: "+chr(96)+"4"*40+chr(96),
+        "- merge/release target SHA: "+chr(96)+next_sha+chr(96),
+    ])
+    next_item = auto.WorkItem(next_sha, existing_sha, 585, 565, "0.103.1", "0.103.1")
+    require(not auto.is_finalized_boundary("owner/repo", next_item),
+            "older FINAL must never finish current unmarked SHA")
+    audit_comments[:] = [{"body":newer_body, "user":{"login":"external-commenter"}}]
+    try:
+        auto.is_finalized_boundary("owner/repo", next_item)
+        raise SystemExit("forged FINAL boundary must fail closed during collection")
+    except auto.AutoFinalizerError as exc:
+        require("phase=FINAL_BOUNDARY_AUDIT" in str(exc), "boundary error must identify audit phase")
+    audit_comments[:] = [{"body":newer_body, "user":{"login":"github-actions[bot]"}}]
+    require(auto.is_finalized_boundary("owner/repo", next_item),
+            "authenticated exact merge FINAL must terminate first-parent scan")
+finally:
+    module.gh, module.run = saved_gh, saved_run
 
 # A failed older attempt may be superseded by a later Green corrective merge
 # for the same Issue even when independent Issues are in between. Intervening
@@ -783,9 +1445,11 @@ planned, superseded = auto.supersede_failed_issue_retries(
     [failed_344, middle_356, fixed_344],
     {failed_344.target_sha: False, middle_356.target_sha: True, fixed_344.target_sha: True},
 )
-require([item.issue_number for item in planned] == [356, 344], "intervening Issue order must be preserved")
-require(len(superseded) == 1 and superseded[0] == (failed_344, fixed_344), "failed attempt must map to later corrective target")
-require(planned[-1].cleanup_pr_numbers == (20,), "superseded PR must become corrective cleanup obligation")
+require([item.issue_number for item in planned] == [344, 356, 344],
+        "a heterogeneous version correction must not inherit a failed version bump")
+require(superseded == [], "failed main version bump must remain blocked without safe SemVer inheritance")
+require(planned[0] == failed_344,
+        "the original unissued release cannot disappear from the first-parent backlog")
 
 docs_repair = auto.WorkItem("b" * 40, "9" * 40, 23, 344, "0.58.5", "0.58.5", True)
 not_planned, not_superseded = auto.supersede_failed_issue_retries(
@@ -802,6 +1466,43 @@ waiting_planned, waiting_superseded = auto.supersede_failed_issue_retries(
 require(waiting_superseded == [], "non-Green corrective target must not supersede earlier failure")
 require(waiting_planned[0] == failed_344, "failed attempt must remain until corrective exact main CI succeeds")
 
+
+
+# #586 actual failed Main SHA is immutable, and needs a later GREEN non-docs
+# merge of the *same Issue*. An unverified or docs-only successor cannot
+# manufacture old-SHA Main CI/GHCR success.
+failed_586 = auto.WorkItem(
+    "490c4ab70b0868729c8415f9f613bd45aa84926a",
+    "367b160b2f1db75feb7af1a5ea67046b9828b836",
+    588, 586, "0.104.0", "0.104.0", False,
+)
+corrected_586 = auto.WorkItem(
+    "a" * 40, failed_586.target_sha,
+    999, 586, "0.104.0", "0.104.0", False,
+)
+corrected_sequence, corrected_evidence = auto.supersede_failed_issue_retries(
+    [failed_586, corrected_586],
+    {failed_586.target_sha: False, corrected_586.target_sha: True},
+)
+require(
+    [item.target_sha for item in corrected_sequence] == [corrected_586.target_sha]
+    and corrected_sequence[0].cleanup_pr_numbers == (588,),
+    "GREEN non-docs corrective main CI must retain failed PR cleanup debt",
+)
+require(
+    corrected_evidence == [(failed_586, corrected_586)],
+    "historical failure must be attributed to exact corrective SHA",
+)
+for replacement_docs_only, candidate_success in ((True, True), (False, False)):
+    candidate = replace(corrected_586, validation_docs_only=replacement_docs_only)
+    blocked_sequence, blocked_evidence = auto.supersede_failed_issue_retries(
+        [failed_586, candidate],
+        {failed_586.target_sha: False, candidate.target_sha: candidate_success},
+    )
+    require(
+        not blocked_evidence and blocked_sequence[0] == failed_586,
+        "docs-only or non-GREEN correction may not conceal old failed Main CI",
+    )
 
 # A target whose exact main CI passed but immutable formal release repeatedly
 # failed may also be superseded by a later Green corrective merge for the same
@@ -848,6 +1549,84 @@ require(
     failed_candidate_planned[0] == release_failed_331,
     "older release failure must remain blocker without a healthy corrective target",
 )
+
+# Issue #615: failed Main CI after a version bump must not lose its
+# approved formal release when an adjacent same-Issue non-docs correction
+# merges with the same physical package.json version.
+failed_615 = auto.WorkItem(
+    "1" * 40, "0" * 40, 627, 615, "0.105.0", "0.106.0", False,
+)
+corrected_615 = auto.WorkItem(
+    "2" * 40, failed_615.target_sha, 628, 615, "0.106.0", "0.106.0", False,
+)
+recovery_615, replaced_615 = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+)
+require(replaced_615 == [(failed_615, corrected_615)], "only the failed #615 SHA is superseded")
+require(len(recovery_615) == 1, "the corrected #615 target must remain")
+require(recovery_615[0].previous_version == "0.106.0", "physical first-parent version must remain immutable")
+require(recovery_615[0].release_base_version == "0.105.0" and recovery_615[0].release_required,
+        "the missed 0.106.0 release must remain required on the corrective target")
+require(recovery_615[0].cleanup_pr_numbers == (627,), "original PR branch cleanup must be preserved")
+require(auto.exact_release_state.__name__ == "exact_release_state", "exact release tag verification must remain enabled")
+
+# A different Issue between the two targets or a docs-only correction cannot
+# inherit release authority. A previously attempted immutable tag must not be
+# reused for the same SemVer on another merge SHA.
+intervening_615 = auto.WorkItem(
+    "3" * 40, failed_615.target_sha, 629, 999, "0.106.0", "0.106.0", False,
+)
+blocked_615, blocked_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, intervening_615, corrected_615],
+    {failed_615.target_sha: False, intervening_615.target_sha: True, corrected_615.target_sha: True},
+)
+require(blocked_ev_615 == [] and blocked_615[0] == failed_615,
+        "intervening Issues must not silently transfer the original release")
+docs_615 = replace(corrected_615, validation_docs_only=True)
+blocked_docs_615, blocked_docs_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, docs_615], {failed_615.target_sha: False, docs_615.target_sha: True},
+)
+require(blocked_docs_ev_615 == [] and blocked_docs_615[0] == failed_615,
+        "docs-only fixes may not inherit a failed non-docs release")
+blocked_tag_615, blocked_tag_ev_615 = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: True, corrected_615.target_sha: True},
+    {failed_615.target_sha: True},
+)
+require(blocked_tag_ev_615 == [] and blocked_tag_615[0] == failed_615,
+        "an existing failed immutable release cannot be retargeted")
+failed_mid_615 = replace(corrected_615, pr_number=629, target_sha="4" * 40)
+final_615 = replace(corrected_615, pr_number=630, target_sha="5" * 40)
+chain_615, replaced_chain_615 = auto.supersede_failed_issue_retries(
+    [failed_615, failed_mid_615, final_615],
+    {failed_615.target_sha: False, failed_mid_615.target_sha: False, final_615.target_sha: True},
+)
+require(len(replaced_chain_615) == 2 and len(chain_615) == 1
+        and chain_615[0].release_base_version == "0.105.0"
+        and set(chain_615[0].cleanup_pr_numbers) == {627, 629},
+        "consecutive same-Issue failed attempts must preserve release and cleanup debt")
+
+# P1 regressions: version-different successor and closed ordering barriers
+# cannot inherit an unissued release from the original failed main commit.
+version_jump_615 = replace(corrected_615, current_version="0.107.0")
+blocked_jump, blocked_jump_ev = auto.supersede_failed_issue_retries(
+    [failed_615, version_jump_615],
+    {failed_615.target_sha: False, version_jump_615.target_sha: True},
+)
+require(blocked_jump_ev == [] and blocked_jump[0] == failed_615,
+        "a heterogeneous version may not supersede a failed unissued release")
+closed_barrier_615 = auto.WorkItem(
+    "6" * 40, failed_615.target_sha, 631, 999, "0.106.0", "0.106.0", False,
+    actionable=False,
+)
+barrier_blocked, barrier_ev = auto.supersede_failed_issue_retries(
+    [failed_615, corrected_615],
+    {failed_615.target_sha: False, corrected_615.target_sha: True},
+    first_parent_items=[failed_615, closed_barrier_615, corrected_615],
+)
+require(barrier_ev == [] and barrier_blocked[0] == failed_615,
+        "a closed/non-actionable intervening Issue must block release inheritance")
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),
@@ -958,5 +1737,53 @@ finally:
         __import__("os").environ.pop("GITHUB_TOKEN", None)
     else:
         __import__("os").environ["GITHUB_TOKEN"] = saved_auto_token
+
+# Issue #633: release-debt policy is audit-only, with no automatic cross-Issue bypass.
+from pathlib import Path as _Path633
+_audit633 = _Path633("scripts/release_debt_audit.py").read_text(encoding="utf-8")
+_workflow633 = _Path633(".github/workflows/release-debt-audit.yml").read_text(encoding="utf-8")
+require("supersede_failed_issue_retries(" in _audit633, "cross-Issue audit must reuse fail-closed generic policy")
+require("READY_FOR_SEPARATE_TRUSTED_RECOVERY" in _audit633, "audit result must not mean release publication")
+require("release-debt-authorization:v1" in _audit633, "new owner-scoped retirement decision must be separate from release approval")
+require("ref: main" in _workflow633 and "persist-credentials: false" in _workflow633, "audit must use trusted main")
+require("workflow_dispatch:" in _workflow633 and "packages: read" in _workflow633, "audit must be read-only manual workflow")
+require("packages: write" not in _workflow633 and "actions: write" not in _workflow633 and "issues: write" not in _workflow633, "audit must not grant mutation authority")
+require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _workflow633, "private GHCR audit must use pinned Docker Registry login")
+require("registry: ghcr.io" in _workflow633 and "username: ${{ github.actor }}" in _workflow633 and "password: ${{ secrets.GITHUB_TOKEN }}" in _workflow633, "private GHCR login must use existing GITHUB_TOKEN")
+require(_workflow633.index("docker/login-action@") < _workflow633.index("name: exact first-parent"), "GHCR authentication must precede registry read")
+require('ghcr_digest(f"ghcr.io/{repo.lower()}:{version}")' in _audit633, "GHCR exact image tag must be bare SemVer, not annotated Git vSemVer")
+require("return \"UNKNOWN\", None" in _audit633 and 'if "manifest unknown" in error' in _audit633, "ambiguous registry inspection must fail closed")
+
+# Issue #633 B2: explicit Owner SHA/version authority, read-only inventory,
+# and release-after cleanup in the same generic/Resume concurrency group.
+_recovery633 = _Path633("scripts/release_debt_recovery.py").read_text(encoding="utf-8")
+_generic633 = _Path633(".github/workflows/release-finalizer.yml").read_text(encoding="utf-8")
+_resume633 = _Path633(".github/workflows/release-finalizer-resume.yml").read_text(encoding="utf-8")
+require("plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)" in auto_impl, "B2 recovery must remain inside trusted main generic resolver")
+require("finalize_b2(sys.modules[__name__], repo, latest_main, recovery_plan)" in auto_impl, "B2 release success must precede historical cleanup")
+require("mastergantt-release-debt-authorization:v2" in _recovery633 and "B2_RETIRE_BOTH" in _recovery633, "separate exact Owner B2 decision required")
+require('last["authorized"] is False' in _recovery633, "old SemVer Owner publication grants must be revoked")
+require('state=="success"' in _recovery633 and "replacement_digest" in _recovery633, "new release/digest must be proved before retirement")
+require("mastergantt-release-debt-retired:v1" in _recovery633, "unissued releases need immutable retirement evidence distinct from FINAL")
+require("def source_history(" in _recovery633 and '"--first-parent"' in _recovery633 and "core.resolve_work_item(repo,sha)" in _recovery633, "B2 release Resume must recover immutable old SHA history across prior FINAL boundary")
+require("authenticated_retirement(" in _recovery633, "partial closed Issue replay must require authenticated bot retirement evidence")
+require("def authenticated_packages_tag_state(" in _audit633
+        and "packages/container/mastergantt/versions?per_page=100&page=" in _audit633,
+        "ambiguous registry 404 must be cross-checked against authenticated paginated Packages API")
+require("main_sha=latest_main" in _recovery633 and "latest_main==plan.main_sha" in _recovery633,
+        "B2 recovery must pin original release SHA independently of latest approved main")
+require("len(after_target) <= 1" in _recovery633 and "item.issue_number == ISSUE" in _recovery633,
+        "B2 audit correction may not authorize other Issues or version jumps")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}/comments",method="POST"' in _recovery633, "retirement marker must use write-capable trusted GitHub API")
+require('lifecycle.gh(f"/repos/{repo}/issues/{issue}",method="PATCH"' in _recovery633, "post-release Issue close must use write-capable trusted GitHub API")
+
+require('github.event_name == \'issue_comment\'' in _generic633 and "github.repository_owner" in _generic633, "Owner Issue-trigger must be authenticated")
+require("ref: ${{ github.sha }}" in _generic633, "Owner trigger may not checkout user-controlled code")
+require("packages: write" in _generic633 and "mastergantt-release-finalizer" in _generic633, "default Finalizer permissions/concurrency must be retained")
+for _w633 in (_generic633,_resume633):
+    require("docker/login-action@dbcb813823bdd20940b903addbd779551569679f" in _w633, "B2 registry inspection requires authenticated read before mutation")
+    require("docker/setup-buildx-action@" in _w633, "B2 registry inspection needs verified buildx")
+require("--inventory-only" in _audit633 and "INVENTORY_ONLY_NOT_RELEASE_AUTHORIZED" in _audit633, "registry inventory must not be publication authority")
+require("workflow_run:" in _workflow633 and "packages: write" not in _workflow633, "default trusted audit must be read-only")
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")

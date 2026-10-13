@@ -6,6 +6,7 @@ import { createServer, type AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
+import { healthObservation, IsolatedApplicationDiagnostics, observeIsolatedApi, resourceSnapshot, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 const repositoryRoot = resolve(__dirname, "../../..");
 const startupMilliseconds = 90_000;
@@ -61,6 +62,7 @@ async function stopApplication(child: ChildProcess, closed: Promise<void>): Prom
 interface IsolatedApplicationRuntime {
   origin: string;
   restart: () => Promise<void>;
+  observeApi: ObserveIsolatedApi;
 }
 
 export const test = base.extend<{
@@ -68,6 +70,7 @@ export const test = base.extend<{
   isolatedResourceAdminPassword: string | undefined;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: () => Promise<void>;
+  observeIsolatedApi: ObserveIsolatedApi;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
@@ -76,11 +79,14 @@ export const test = base.extend<{
   restartIsolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.restart);
   },
+  observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.observeApi);
+  },
   isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      await provide({ origin: external, restart: async () => {
+      await provide({ origin: external, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
         testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
         throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
       } });
@@ -93,9 +99,26 @@ export const test = base.extend<{
     const distName = `.next-e2e-isolated-${randomUUID()}`;
     let child: ChildProcess | undefined;
     let closed = Promise.resolve();
+    const diagnostics = new IsolatedApplicationDiagnostics();
+    let origin: string | undefined;
+    let baselineResources: Awaited<ReturnType<typeof resourceSnapshot>> | undefined;
+    let capturedFailure = false;
+    const captureDiagnostics = async (reason: "api_transport_failure" | "setup_failure" | "test_failure") => {
+      if (capturedFailure) return;
+      capturedFailure = true;
+      const beforeProbe = diagnostics.snapshot();
+      const [resources, health] = await Promise.all([
+        resourceSnapshot(diagnostics.currentPid()),
+        origin ? healthObservation(origin) : Promise.resolve(null),
+      ]);
+      await testInfo.attach("isolated-application-diagnostics", {
+        contentType: "application/json",
+        body: Buffer.from(JSON.stringify({ reason, beforeProbe, afterProbe: diagnostics.snapshot(), baselineResources, resources, health }, null, 2)),
+      });
+    };
     try {
       const port = await unusedLoopbackPort();
-      const origin = `http://127.0.0.1:${port}`;
+      origin = `http://127.0.0.1:${port}`;
       const applicationEnvironment: NodeJS.ProcessEnv = {
         ...process.env,
         NODE_ENV: "development",
@@ -116,7 +139,6 @@ export const test = base.extend<{
       const startApplication = async (): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
-        let output = "";
         child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
           cwd: repositoryRoot,
           detached: process.platform !== "win32",
@@ -125,15 +147,13 @@ export const test = base.extend<{
           env: applicationEnvironment,
         });
         child.once("error", (error) => { spawnError = error; });
+        diagnostics.track(child);
         const application = child;
         closed = new Promise<void>((done) => application.once("close", () => done()));
-        const capture = (chunk: Buffer) => { output = (output + chunk.toString()).slice(-16_384); };
-        child.stdout?.on("data", capture);
-        child.stderr?.on("data", capture);
         let ready = false;
         while (Date.now() < deadline) {
           if (spawnError || child.exitCode !== null || child.signalCode !== null) {
-            throw new Error(`Isolated E2E server exited before readiness: ${spawnError?.message ?? child.exitCode ?? child.signalCode}\n${output}`);
+            throw new Error("격리 E2E 서버가 준비 완료 전에 종료되었습니다. isolated-application-diagnostics 첨부를 확인하세요.");
           }
           try {
             const response = await fetch(`${origin}/api/health/ready`, { signal: AbortSignal.timeout(2_000) });
@@ -142,7 +162,7 @@ export const test = base.extend<{
           } catch { /* Fresh development server is still starting or compiling. */ }
           await delay(100);
         }
-        if (!ready) throw new Error(`Isolated E2E server readiness timed out.\n${output}`);
+        if (!ready) throw new Error("격리 E2E 서버 준비 시간이 초과되었습니다. isolated-application-diagnostics 첨부를 확인하세요.");
         // Read-only route warmup belongs to fixture setup, not the test's 30s
         // behavior budget. GET/405 does not consume create/unlock attempts.
         const missing = "00000000-0000-4000-8000-000000000001";
@@ -152,16 +172,18 @@ export const test = base.extend<{
           if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
           const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
           await response.arrayBuffer();
-          if (response.status >= 500) throw new Error(`Isolated E2E warmup failed: ${path} HTTP ${response.status}\n${output}`);
+          if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
         }
       };
       await startApplication();
+      baselineResources = await resourceSnapshot(diagnostics.currentPid());
       let restarting = false;
       const restart = async (): Promise<void> => {
         if (restarting) throw new Error("격리 E2E 서버 재시작이 이미 진행 중입니다.");
         if (!child) throw new Error("격리 E2E fixture의 실행 프로세스가 없습니다.");
         restarting = true;
         try {
+          diagnostics.expectShutdown(child);
           await stopApplication(child, closed);
           child = undefined;
           // Preserve port/origin, SQLite, build output and environment; no migration rerun.
@@ -169,9 +191,16 @@ export const test = base.extend<{
         } finally { restarting = false; }
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
-      await provide({ origin, restart });
+      await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
+    } catch (error) {
+      await captureDiagnostics("setup_failure").catch(() => undefined);
+      throw error;
     } finally {
-      if (child) await stopApplication(child, closed);
+      if (testInfo.status !== testInfo.expectedStatus) await captureDiagnostics("test_failure").catch(() => undefined);
+      if (child) {
+        diagnostics.expectShutdown(child);
+        await stopApplication(child, closed);
+      }
       // Remove only paths allocated by this fixture, after its server exits.
       await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
       await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

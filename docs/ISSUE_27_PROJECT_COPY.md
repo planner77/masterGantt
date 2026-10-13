@@ -60,3 +60,9 @@ CI의 version consistency, typecheck, lint, Vitest, production build, Chromium E
 원본 일정의 canonical 검증에는 원본 Link 전체를 함께 전달한다. FS/lag로 유효 시작일이 requestedStart보다 늦어진 정상 일정은 Dependency 재계산을 포함해 비교하므로 진척률 초기화 여부와 관계없이 복사할 수 있다. 기존 일정 validator와 Summary Dependency endpoint 금지 규칙을 유지하며 잘못 저장된 일정은 전체 복사를 거부한다. Template은 저장된 유효 시작일의 상대 offset과 Link를 보관하고 새 Project Calendar에서 다시 계산한다.
 
 관련 검증은 `tests/server/projects/milestone-membership-copy.test.ts`의 새 FK/상속/override·source 불변·reset·legacy·401/412·강제 write 실패 rollback과 기존 전체 Copy 회귀에 포함한다. Local Fast Feedback는 공식 PR quality/e2e/docker 검증을 대체하지 않는다.
+
+## Issue #615 — 공통 공정 매핑 복사
+
+매핑 원본 copy는 source와 destination의 BUSINESS_UNIT/PRODUCT/SITE_ENTITY가 같아야 한다. local 공정 ID는 copy의 source→new process map으로 치환하고 occurrence/WorkArea 등 global public identity는 그대로 참조한다. 비활성 기존 참조도 보존한다. Task/설비의 local ID 치환과 기존 authorization/revision 계약은 유지한다.
+
+다른 triple로 매핑을 조용히 넘기지 않으며 `409 PROJECT_PROCESS_MAPPING_IN_USE`로 전체 생성 transaction을 rollback한다. 미매핑 legacy copy는 기존대로 동작한다. Template의 현행 snapshot은 새 참조를 표현하지 못하므로 매핑이 있는 source의 Template 저장을 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`로 차단한다. versioned Template 확장·명시 remap은 후속 #616 책임이며 공통 master를 Project별 복제하지 않는다.

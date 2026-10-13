@@ -69,7 +69,9 @@ import {
 } from "@/features/projects/project-status-mutation";
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
-import { capturePeerViewportCoordinates, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
+import type { ViewportController } from "@/features/gantt/viewport/viewport-coordinator";
+import { handoffTaskRevealFocus } from "@/features/gantt/viewport/task-focus-handoff";
+import { type PeerViewportRestore, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
@@ -83,6 +85,8 @@ import { ProjectLogisticsManagement } from "@/features/logistics/project-logisti
 import { todayLocalDateString } from "@/lib/date-display";
 import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
 import { mergePendingProjectRevision, shouldRetireDurableProjectRevision } from "./project-revision-sync";
+
+import { captureResourceNavigationViewport, cloneResourceNavigationViewport, canRestoreResourceNavigationViewport, type ResourceNavigationViewport } from "@/features/resources/resource-navigation-viewport";
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
@@ -103,6 +107,7 @@ type ResourceNavigationState = {
   selection: readonly string[];
   trigger: HTMLElement | null;
   positions: { element: HTMLElement; left: number; top: number }[];
+  viewport?: ResourceNavigationViewport | null;
 };
 type ResourceNavigationFrame = ResourceDrillFrame<ResourceNavigationState> & {
   scope: ResourceDrillScopeDto;
@@ -245,15 +250,23 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeView, setActiveView] = useState<WorkspaceView>("schedule");
   const scheduleGanttPanel = useRef<HTMLElement>(null);
+  const viewportController = useRef<ViewportController | null>(null);
+  const taskFocusGeneration = useRef(0);
+  const registerViewportController = useCallback((controller: ViewportController | null) => { viewportController.current = controller; }, []);
   const publicGanttViewportReader = useRef<PublicGanttViewportReader | null>(null);
   const registerPublicGanttViewportReader = useCallback((reader: PublicGanttViewportReader | null) => {
     publicGanttViewportReader.current = reader;
   }, []);
-  const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number; snapshot: ProjectSnapshotResponse; generation: number } | null>(null);
+  const [peerChartRestore, setPeerChartRestore] = useState<(PeerViewportRestore & { snapshot: ProjectSnapshotResponse; generation: number }) | null>(null);
+  const navigationViewport = useRef<ResourceNavigationViewport | null>(null);
   const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; snapshot: ProjectSnapshotResponse; generation: number; instanceId: string | null; syncGeneration: string | null; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
   const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
-  const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
+  const [taskFilter, setTaskFilterState] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
+  const setTaskFilter = useCallback((update: React.SetStateAction<TaskFilterState>) => {
+    viewportController.current?.filterInput();
+    setTaskFilterState(update);
+  }, []);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
   const [targetPickerQuery, setTargetPickerQuery] = useState("");
@@ -878,13 +891,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       : code === "EMPTY_SUMMARY_NOT_ALLOWED" ? "선택 범위를 삭제하면 상위 요약 작업이 비게 됩니다. 상위 작업 구조를 먼저 변경해 주세요."
         : code === "SUMMARY_DELETE_UNSUPPORTED" ? "하위 작업이 있는 작업은 우클릭 메뉴에서 하위 작업 포함 삭제를 확인해 주세요."
           : code === "PARENT_CONVERSION_REQUIRED" ? "부모 작업 전환을 처리하지 못했습니다. 최신 정보를 확인한 뒤 다시 추가해 주세요."
-            : code === "INVALID_PARENT_TASK" ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
+            : code === "INVALID_PARENT_TASK" ? "Milestone에는 하위 작업을 추가할 수 없습니다."
               : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
     if (!recovered && status !== 412) message += " 최신 일정 조회에 실패하여 마지막으로 확인한 일정을 유지합니다. 다시 조회해 주세요.";
     notify("error", message, operation, error);
     return message;
   }
-  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false, onCanonicalSuccess?: (response: TaskMutationResponse, snapshot: ProjectSnapshotResponse) => void): Promise<TaskEditorSaveResult> {
+  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false, deferredSuccess = false, onCanonicalSuccess?: (response: TaskMutationResponse, snapshot: ProjectSnapshotResponse) => void): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready" || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
     if (expectedRevision !== undefined && expectedRevision !== state.snapshot.data.project.revision) {
       return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 최신 정보를 다시 불러온 뒤 검토해 주세요." };
@@ -916,9 +929,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const adjusted = currentTask?.requestedStart && currentTask.requestedStart !== currentTask.start
           ? ` 요청 시작일 ${currentTask.requestedStart} → 적용 시작일 ${currentTask.start}.` : "";
         const changed = successors.length ? ` 후행 작업 ${successors.length}건의 일정이 조정되었습니다: ${successors.slice(0, 3).map((task) => `${task.name} (${task.externalId})`).join(", ")}${successors.length > 3 ? ` 외 ${successors.length - 3}건` : ""}.` : "";
-        notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
+        if (!deferredSuccess) notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
         onCanonicalSuccess?.(body as TaskMutationResponse, snapshot);
-        return { status: "saved" };
+        return { status: "saved", ...(currentTask ? { confirmed: {
+          taskId: currentTask.taskId, revision: snapshot.data.project.revision, name: currentTask.name,
+        } } : {}) };
       }
       if (expectedRevision !== undefined) {
         if (response.status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
@@ -966,7 +981,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         }
       } catch (error) {
         const code = error && typeof error === "object" && "code" in error ? String(error.code) : "INVALID_COPY_MEMBERSHIP_SNAPSHOT";
-        notify("error", code === "TASK_COPY_TASK_LIMIT_EXCEEDED" ? "복사 후 프로젝트의 작업 수가 최대 5000개를 초과합니다." : code === "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED" ? "완료 단계의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다." : code === "COMPLETED_MILESTONE_STRUCTURE_LOCKED" ? "완료 단계의 구성이 변경되는 복사는 잠겨 있습니다." : "현재 소속 정보를 안전하게 확인할 수 없습니다. 최신 일정을 조회해 주세요.", "작업 복사", { code }); return;
+        notify("error", code === "TASK_COPY_TASK_LIMIT_EXCEEDED" ? "복사 후 프로젝트의 작업 수가 최대 5000개를 초과합니다." : code === "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED" ? "Milestone의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다." : code === "COMPLETED_MILESTONE_STRUCTURE_LOCKED" ? "Milestone의 구성이 변경되는 복사는 잠겨 있습니다." : "현재 소속 정보를 안전하게 확인할 수 없습니다. 최신 일정을 조회해 주세요.", "작업 복사", { code }); return;
       }
     }
     await performTaskHierarchyCommand(command, revision);
@@ -996,6 +1011,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setEditorInitialTab(initialTab);
     editorOriginViewReference.current = activeView;
     editorOpeningReference.current = true;
+    taskFocusGeneration.current++;
     editorTriggerReference.current = trigger;
     editorLaneOriginReference.current = Boolean(trigger?.closest(".project-milestone-lane"));
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
@@ -1031,7 +1047,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     try { payload = milestoneRootPayload(name, start); if (!payload.name) throw new Error("Empty name"); }
     catch { return { status: "failed", message: "Milestone 이름과 유효한 요청 시작일을 입력해 주세요." }; }
     const previous = state.snapshot.data.tasks;
-    return saveTask("POST", null, payload, request.revision, false, (response, snapshot) => {
+    return saveTask("POST", null, payload, request.revision, false, false, (response, snapshot) => {
       if (milestoneCreateReference.current !== request || confirmedSnapshotReference.current !== snapshot || snapshot.data.project.publicId !== request.publicId) return;
       milestoneCreateReference.current = null; setMilestoneCreate(null);
       const created = resolveCreatedMilestone(previous, response);
@@ -1039,7 +1055,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       editorOriginViewReference.current = "milestones";
       editorTriggerReference.current = milestoneCreateTriggerReference.current;
       editorLaneOriginReference.current = false;
-      editorOpeningReference.current = true; setEditorInitialTab("task");
+      editorOpeningReference.current = true; taskFocusGeneration.current++; setEditorInitialTab("task");
       setEditorSession({ task: { ...created }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
     });
   }
@@ -1072,11 +1088,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (task.status !== "completed") requestTaskDelete(taskId, trigger, true);
   }
   function closeTaskEditor() {
+    finishTaskEditor(true);
+  }
+  function finishTaskEditor(restoreFocus: boolean) {
     const taskId = editorSession?.task.taskId;
     const trigger = editorTriggerReference.current;
     setEditorSession(null);
     setActiveView(editorOriginViewReference.current);
     editorOpeningReference.current = false;
+    if (!restoreFocus) return;
     if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
@@ -1132,11 +1152,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         const current = snapshot.data.tasks.find((task) => task.taskId === editorSession?.task.taskId);
         if (current) projectTaskEditorReference.current?.applyCanonicalSession({ task: current, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
-        notify("success", "소속 변경을 적용했습니다.", "완료 단계 소속");
+        notify("success", "소속 변경을 적용했습니다.", "Milestone 소속");
         return { status: "saved" };
       }
       if (response.status === 401) { setPermission("readonly"); }
-      return { status: "failed", conflict: response.status === 412, message: response.status === 412 ? "기준 Revision이 변경되었습니다. 초안은 유지됩니다. 최신 정보를 명시적으로 조회하여 검토해 주세요." : response.status === 401 ? "편집 권한이 만료되었습니다. 초안은 유지됩니다." : "소속 변경을 적용할 수 없습니다. 완료 단계 잠금과 입력을 확인해 주세요. 초안은 유지됩니다." };
+      return { status: "failed", conflict: response.status === 412, message: response.status === 412 ? "기준 Revision이 변경되었습니다. 초안은 유지됩니다. 최신 정보를 명시적으로 조회하여 검토해 주세요." : response.status === 401 ? "편집 권한이 만료되었습니다. 초안은 유지됩니다." : "소속 변경을 적용할 수 없습니다. Milestone 잠금과 입력을 확인해 주세요. 초안은 유지됩니다." };
     } catch { return { status: "failed", message: "네트워크 연결을 확인해 주세요. 검색과 초안은 유지됩니다. 자동으로 다시 보내지 않습니다." }; }
     finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
@@ -1146,16 +1166,43 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (task) setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function locateEditorTask(taskId: string) {
+    const focusGeneration = ++taskFocusGeneration.current;
     const fromOtherView = editorOriginViewReference.current !== "schedule";
     editorOriginViewReference.current = "schedule";
-    closeTaskEditor();
+    // Explicit locate owns the destination; ordinary close restores its trigger.
+    finishTaskEditor(false);
     if (fromOtherView) {
       requestAnimationFrame(() =>
         drillDashboardSchedule([taskId], resourceBinding?.sourceContext ?? resourceReportReference.current[resourceViewId]?.resourceScopeContext ?? milestoneSourceReference.current ?? undefined),
       );
     return;
     }
-    requestAnimationFrame(() => { const root = document.querySelector<HTMLElement>(".project-gantt-scroll"); const target = root ? findTaskContextElement(root, taskId) : null; target?.scrollIntoView({ block: "nearest", inline: "nearest" }); target?.focus({ preventScroll: true }); });
+    const controller = viewportController.current;
+    if (!controller) return;
+    const sourceContext = controller.capture()?.context;
+    const completion = controller.request({ kind: "TASK_REVEAL", taskId });
+    // Request ingress advances the intent synchronously. Preserve that exact
+    // stamp before any later request or user gesture can replace it.
+    const stamp = controller.stamp();
+    const current = () => {
+      const context = controller.capture()?.context;
+      return taskFocusGeneration.current === focusGeneration && viewportController.current === controller && !editorOpeningReference.current &&
+        context?.apiInstance === sourceContext?.apiInstance && context?.revision === sourceContext?.revision;
+    };
+    const frame = scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-frame");
+    let focusContext = controller.capture()?.context;
+    const report = (outcome: string) => {
+      if (taskFocusGeneration.current === focusGeneration) frame?.setAttribute("data-gantt-task-focus-handoff", JSON.stringify({ taskId, generation: focusGeneration, ...stamp,
+        apiInstance: focusContext?.apiInstance, revision: focusContext?.revision, projectionEpoch: focusContext?.projectionEpoch, outcome }));
+    };
+    report("WAITING");
+    void completion.then(async outcome => {
+      if (outcome !== "SETTLED" || !current() || !controller.isCurrent(stamp)) { report("SUPERSEDED"); return; }
+      focusContext = controller.capture()?.context;
+      const focusOutcome = await handoffTaskRevealFocus({ controller, stamp, taskId, current,
+        root: () => scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-scroll") ?? null });
+      report(focusOutcome);
+    });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
     const snapshot = await fetchCanonicalSnapshot();
@@ -1166,7 +1213,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (state.status !== "ready" || taskMutationReference.current || pendingTaskDelete) return;
     const parent = command.parentTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === command.parentTaskId) : undefined;
     if (command.parentTaskId && !parent) { notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.", "하위 작업 추가"); return; }
-    if (parent?.type === "milestone") { notify("error", "마일스톤에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가"); return; }
+    if (parent?.type === "milestone") { notify("error", "Milestone에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가"); return; }
     const convert = parent?.type === "task" && !state.snapshot.data.tasks.some((task) => task.parentExternalId === parent.externalId);
     void saveTask("POST", null, { ...command,
       ...(command.type === "summary" ? { name: "새 요약 작업" } : { name: "새 작업", start: todayLocalDateString(), duration: 1 }),
@@ -1196,7 +1243,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   function rejectNativeTaskAdd(reason: "scope" | "missing" | "milestone") {
     if (reason === "milestone") {
-      notify("error", "마일스톤에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가");
+      notify("error", "Milestone에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가");
       return;
     }
     if (reason === "missing") {
@@ -1209,8 +1256,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setGanttResetGeneration((generation) => generation + 1);
     notify("error", "일정 화면을 최신 서버 정보로 복구했습니다.", "일정 화면 복구");
   }, [notify]);
-  function saveTaskCommand(command: ProjectTaskUpdateCommand, expectedRevision?: number): Promise<TaskEditorSaveResult> {
-    if (Object.keys(command.payload).length > 0) return saveTask("PATCH", command.taskId, command.payload, expectedRevision);
+  function saveTaskCommand(command: ProjectTaskUpdateCommand, expectedRevision?: number, options?: { readonly successFeedback: "deferred" }): Promise<TaskEditorSaveResult> {
+    if (Object.keys(command.payload).length > 0) return saveTask("PATCH", command.taskId, command.payload, expectedRevision, false, options?.successFeedback === "deferred");
     return Promise.resolve({ status: "failed", message: "변경할 작업 정보가 없습니다." });
   }
 
@@ -1224,7 +1271,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
     const canonicalTasks = state.snapshot.data.tasks;
     if (method === "POST" && !canCreateSchedulingLink(canonicalTasks.find((task) => task.taskId === sourceTaskId), canonicalTasks.find((task) => task.taskId === targetTaskId))) { notify("error", MIXED_LINK_EXPLANATION, "일정 관계 연결 제한"); return false; }
-    if (method !== "POST" && linkStructureLocked(state.snapshot.data.links.find((link) => link.id === linkId), canonicalTasks)) { notify("error", COMPLETED_LINK_EXPLANATION, "완료 단계 잠금"); return false; }
+    if (method !== "POST" && linkStructureLocked(state.snapshot.data.links.find((link) => link.id === linkId), canonicalTasks)) { notify("error", COMPLETED_LINK_EXPLANATION, "Milestone 잠금"); return false; }
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     try {
       const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
@@ -1279,26 +1326,25 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       !panel?.isConnected || panel.closest("[hidden], [inert]")) return;
     const chart = panel.querySelector<HTMLElement>(".wx-chart"), frame = panel.querySelector<HTMLElement>(".project-gantt-frame");
     if (!chart?.getClientRects().length || !frame) return;
-    const nativeGantt = panel.querySelector<HTMLElement>(".wx-gantt");
-    const captured = capturePeerViewportCoordinates(publicGanttViewportReader.current, {
-      left: chart.scrollLeft, top: nativeGantt?.scrollTop ?? 0,
-    });
+    const sample = viewportController.current?.capture();
+    const captured = sample ? { public: sample.core, dom: sample.native } : null;
     // Never manufacture a Core position from DOM if no SVAR public reader exists.
-    if (!captured) { peerViewport.current = null; setPeerChartRestore(null); return; }
+    if (!captured) { navigationViewport.current = null; peerViewport.current = null; setPeerChartRestore(null); return; }
     if (process.env.NODE_ENV !== "production") frame.dataset.ganttPeerCapture = JSON.stringify(captured);
     // Native scroll positions and SVAR public viewport are distinct (often 1px apart).
     peerViewport.current = {
       publicId, rootTaskId: activeRootTaskId, filter: taskFilter, snapshot: state.snapshot,
       generation: ganttResetGeneration, instanceId: frame.dataset.projectGanttApiInstance ?? null,
       syncGeneration: frame.dataset.ganttCanonicalSyncGeneration ?? null,
-      positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap(selector => {
-        const owner = panel.querySelector<HTMLElement>(selector);
-        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
-      }),
+      positions: [...(sample?.positions ?? [])],
     };
+    navigationViewport.current = captureResourceNavigationViewport(
+      state.snapshot, ganttResetGeneration, publicGanttViewportReader.current,
+      `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, peerViewport.current.positions.map(position => ({ ...position, owner: panel.querySelector<HTMLElement>(position.selector) ?? undefined })),
+    );
     setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`,
       left: captured.public.left, top: captured.public.top,
-      snapshot: state.snapshot, generation: ganttResetGeneration });
+      snapshot: state.snapshot, generation: ganttResetGeneration, positions: peerViewport.current.positions });
   }
   function activateWorkspaceView(view: WorkspaceView, focusTab = true) {
     if (navigationPending.current || navigationConfirmation.current)
@@ -1345,7 +1391,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     );
   }
   function captureNavigation(): ResourceNavigationState {
+    if (activeView === "schedule") capturePeerViewport();
     return {
+      viewport: navigationViewport.current,
       view: activeView,
       rootTaskId: activeRootTaskId,
       filter: taskFilter,
@@ -1369,7 +1417,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function focusNavigation(state: ResourceNavigationState, origin: boolean) {
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        for (const position of state.positions)
+        for (const position of state.view === "schedule" ? [] : state.positions)
           if (
             position.element.isConnected &&
             !position.element.closest("[hidden],[inert]")
@@ -1407,13 +1455,23 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }),
     );
   }
-  function applyNavigation(target: ResourceNavigationState, origin: boolean) {
+  function applyNavigation(target: ResourceNavigationState, origin: boolean, returning = false) {
+    if (returning) {
+      navigationViewport.current = target.viewport ?? null;
+      peerViewport.current = null;
+      const saved = target.viewport;
+      if (saved && state.status === "ready" && canRestoreResourceNavigationViewport(
+        saved, state.snapshot, ganttResetGeneration, publicGanttViewportReader.current,
+        `${publicId}:${target.rootTaskId ?? ""}:${JSON.stringify(target.filter)}`,
+      )) setPeerChartRestore({ ...saved.request, snapshot: state.snapshot, generation: ganttResetGeneration });
+      else setPeerChartRestore(null);
+    }
     activateScope(target.rootTaskId, false);
     setTaskFilter(target.filter);
     setResourceViewId(target.resourceViewId);
     setResourceBinding(target.binding);
     setResourceInitialFilters(target.initialFilters);
-    if (activeView === "schedule" && target.view !== "schedule") capturePeerViewport();
+    if (!returning && activeView === "schedule" && target.view !== "schedule") capturePeerViewport();
     setActiveView(target.view);
     setSelectionRestore({
       generation: ++navigationSequence.current,
@@ -1451,9 +1509,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ...source,
             view: "schedule" as const,
           };
+    if (source.view === "schedule" && activeView === "schedule") {
+      capturePeerViewport();
+      source = { ...source, viewport: navigationViewport.current };
+    }
     const frame: ResourceNavigationFrame = {
-      source,
-      destinationBefore: before,
+      source: { ...source, viewport: cloneResourceNavigationViewport(source.viewport) },
+      destinationBefore: { ...before, viewport: cloneResourceNavigationViewport(source.viewport) },
       destination: nextDestination,
       scope,
       label,
@@ -2031,7 +2093,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }
       setNavigationFrames(result.frames as ResourceNavigationFrame[]);
       if (clear) setResourceCacheGeneration((v) => v + 1);
-      applyNavigation(result.state, !clear);
+      applyNavigation(result.state, !clear, true);
     } catch (error) {
       if (!controller.signal.aborted)
         notify(
@@ -2134,55 +2196,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     activateWorkspaceView(next);
   }
 
-  useEffect(() => {
-    const saved = peerViewport.current;
-    if (activeView !== "schedule" || !saved) return;
-    peerViewport.current = null;
-    // Explicit ID/scope drills own their new viewport. Only a plain peer return
-    // restores native DOM scroll, after Core has resized the visible frame.
-    const frame = scheduleGanttPanel.current?.querySelector<HTMLElement>(".project-gantt-frame");
-    if (state.status !== "ready" || saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId ||
-      saved.filter !== taskFilter || saved.snapshot !== state.snapshot || saved.generation !== ganttResetGeneration ||
-      saved.instanceId !== (frame?.dataset.projectGanttApiInstance ?? null) ||
-      saved.syncGeneration !== (frame?.dataset.ganttCanonicalSyncGeneration ?? null)) {
-      setPeerChartRestore(null);
-      return;
-    }
-    if (!frame) return;
-    const panel = scheduleGanttPanel.current;
-    if (!panel) return;
-    const geometry = () => JSON.stringify({
-      scale: frame.dataset.ganttScaleMode, cellWidth: frame.dataset.ganttCellWidth,
-      columns: Array.from(frame.querySelectorAll(".wx-header .wx-cell")).map(cell => cell.getBoundingClientRect().width),
-      gridWidth: frame.querySelector(".wx-table-container")?.getBoundingClientRect().width,
-    });
-    const initialGeometry = geometry();
-    let secondFrame = 0, cancelled = false;
-    const inputEvents = ["pointerdown", "wheel", "keydown"];
-    const markInput = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) cancelled = true;
-    };
-    for (const event of inputEvents) frame.addEventListener(event, markInput, true);
-    const cleanupInput = () => { for (const event of inputEvents) frame.removeEventListener(event, markInput, true); };
-    const current = () => !cancelled && frame.isConnected && panel === scheduleGanttPanel.current &&
-      !panel.closest("[hidden], [inert]") && frame.getClientRects().length > 0 &&
-      saved.instanceId === (frame.dataset.projectGanttApiInstance ?? null) &&
-      saved.syncGeneration === (frame.dataset.ganttCanonicalSyncGeneration ?? null) && geometry() === initialGeometry;
-    const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => {
-        try {
-          if (!current()) return;
-          for (const position of saved.positions) {
-            const owner = panel.querySelector<HTMLElement>(position.selector);
-            if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
-          }
-        } finally {
-          cleanupInput();
-        }
-      });
-    });
-    return () => { cancelled = true; cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); cleanupInput(); };
-  }, [activeView, publicId, activeRootTaskId, taskFilter, state, ganttResetGeneration]);
 
   const milestoneTimelineModel = useMemo(() => state.status === "ready" ? buildMilestoneTimelineModel({ tasks: state.snapshot.data.tasks, links: state.snapshot.data.links }) : null, [state]);
 
@@ -2705,7 +2718,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
         </div> ) : null}
         <div className="project-gantt-scope-owner" style={{ visibility: subtreeScopeInvalid ? "hidden" : undefined }} inert={subtreeScopeInvalid || undefined} aria-hidden={subtreeScopeInvalid || undefined}>
-                  <ProjectGantt viewVisible={activeView === "schedule" && !subtreeScopeInvalid} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+                  <ProjectGantt onViewportController={registerViewportController} viewVisible={activeView === "schedule" && !subtreeScopeInvalid} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           milestoneTimeline={milestoneTimelineModel ? { enabled: milestonePreference.showMilestones || Boolean(milestoneDateRequest && milestoneDateRequest.snapshot === state.snapshot), timelineModel: milestoneTimelineModel, activeMilestoneTaskId: milestoneDateRequest?.snapshot === state.snapshot ? milestoneDateRequest.taskId : null, dateRequest: milestoneDateRequest?.snapshot === state.snapshot ? milestoneDateRequest : null, onOpenMilestone: (taskId, trigger) => openTaskEditor(taskId, "task", trigger), onDateRevealComplete: (generation, result) => { if (result === "dashboard" && generation === milestoneDateGeneration.current) setMilestoneDateRequest(current => current?.generation === generation ? null : current); }, onOpenDashboard: (taskId) => { setHighlightMilestoneId(taskId ?? null); if (taskId && milestoneDateRequest?.taskId === taskId && milestoneDateRequest.snapshot === state.snapshot) returnFromMilestoneDate(); else activateWorkspaceView("milestones", !taskId); } } : undefined}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
@@ -2719,7 +2732,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                       setWorkspaceSelection(ids);
                     }}
                     selectionRestore={selectionRestore}
-                    tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={activeRootTaskId} />
+                    tasks={tasks} filterActive={activeFilters > 0} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={activeRootTaskId} />
         </div>
         </div>
       </section>

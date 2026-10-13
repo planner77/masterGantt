@@ -1,0 +1,325 @@
+{
+  "role": "Independent reproduction (QA_FINAL 아님)",
+  "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+  "appVersion": "0.106.1",
+  "coreVersion": "2.7.3",
+  "nodeVersion": "22.14.0",
+  "nextVersion": "16.3.8",
+  "reactVersion": "19.3.0",
+  "playwrightVersion": "1.63.0",
+  "platform": "Linux",
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "a10670d0c96eec6b060d557f32b91a2e5ac6a4cc3e97000e1b7491593bd32e1b",
+    "src/features/projects/project-readonly-view.tsx": "546558789054c2c8563ea4522421ad4d00bc832764925b8f10d941b11c54969f",
+    "tests/e2e/resource-excel-export-ui.spec.ts": "3ed069ad5fcb11a08ebe7c999c082879faa5fc41a069e099a5f2fbf013805f3d",
+    "tests/e2e/task-editor-form-density.spec.ts": "0cd90e9e8cf3a5ccf6a40a3e41f6b0d42eea2f8d888cc7b94ad93787572d7903",
+    "tests/e2e/project-gantt-inline-name.spec.ts": "a6f30d120dbaadf01984e5ee2c206d884571cea6bf68b076ddfb178932f6cfb8",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "4d22f4cffc9c91a9d98ed4d4403dab71dbada53025d339e461940777c02b11cd"
+  },
+  "productAndTestSourceDiff": "없음(원본 trials). Next 생성 next-env.d.ts/tsconfig 경로만 시험 사이 복원.",
+  "dependencyInstall": "기존 설치 node_modules의 로컬 사본; top-level 실제 버전 확인. 독립 npm ci를 수행한 공식 frozen-install 검증 아님.",
+  "trialIsolation": "trial마다 독립 Next dev shared server/browser/출력 폴더. Resource fixture는 매 test fresh process/SQLite; 나머지는 mock-backed UI. 동일 port 재사용은 이전 프로세스 종료 후에만 수행.",
+  "originalTrials": [
+    {
+      "trial": "trial1",
+      "exitCode": 1,
+      "startedAt": "2026-10-09T04:27:39.615Z",
+      "durationMs": 65253.397000000004,
+      "command": "./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/trial1.config.cjs tests/e2e/resource-excel-export-ui.spec.ts tests/e2e/task-editor-form-density.spec.ts tests/e2e/project-gantt-inline-name.spec.ts tests/e2e/milestone-timeline-lane.spec.ts --grep '진단 control|pending peer restore cancels|비기본 WBS fullscreen|invalid input stays focused|opt-in sibling lane 390px'",
+      "results": [
+        {
+          "title": "#551 opt-in sibling lane 390px actual geometry",
+          "source": "milestone-timeline-lane.spec.ts",
+          "line": 277,
+          "durationMs": 4303,
+          "assertion": "",
+          "verificationStatus": "PASS"
+        },
+        {
+          "title": "invalid input stays focused, Escape cancels, blur saves once, and failures keep canonical names",
+          "source": "project-gantt-inline-name.spec.ts",
+          "line": 147,
+          "durationMs": 8190,
+          "assertion": "Error: expect(locator).toBeVisible() failed\n\nLocator: locator('.project-gantt-widget .wx-row').filter({ hasText: 'Blur saved' }).first().locator('[role=\"gridcell\"][data-col-id=\":text\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('.project-gantt-widget .wx-row').filter({ hasText: 'Blur saved' }).first().locator('[role=\"gridcell\"][data-col-id=\":text\"]') with timeout 5000ms\n  - waiting for locator('.project-gantt-widget .wx-row').filter({ hasText: 'Blur saved' }).first().locator('[role=\"gridcell\"][data-col-id=\":text\"]')\n",
+          "verificationStatus": "FAIL",
+          "errorLocation": {
+            "file": "project-gantt-inline-name.spec.ts",
+            "column": 46,
+            "line": 198
+          }
+        },
+        {
+          "title": "#529 진단 control: Export 없는 동일 native fixture의 일정·리소스 peer viewport",
+          "source": "resource-excel-export-ui.spec.ts",
+          "line": 199,
+          "durationMs": 5390,
+          "assertion": "",
+          "verificationStatus": "PASS"
+        },
+        {
+          "title": "#529 pending peer restore cancels on native wheel and canonical filter change",
+          "source": "resource-excel-export-ui.spec.ts",
+          "line": 229,
+          "durationMs": 10630,
+          "assertion": "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 2\n+ Received  + 2\n\n  Object {\n-   \"domWithinOnePixel\": true,\n+   \"domWithinOnePixel\": false,\n    \"notStale\": true,\n    \"public\": Object {\n-     \"left\": 30,\n+     \"left\": 0,\n      \"top\": 0,\n    },\n    \"top\": 0,\n  }\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+          "verificationStatus": "FAIL",
+          "errorLocation": {
+            "file": "resource-excel-export-ui.spec.ts",
+            "column": 32,
+            "line": 259
+          }
+        },
+        {
+          "title": "#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+          "source": "task-editor-form-density.spec.ts",
+          "line": 150,
+          "durationMs": 5582,
+          "assertion": "",
+          "verificationStatus": "PASS"
+        }
+      ]
+    },
+    {
+      "trial": "trial2",
+      "exitCode": 1,
+      "startedAt": "2026-10-09T04:29:00.977Z",
+      "durationMs": 60070.751,
+      "command": "./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/trial2.config.cjs tests/e2e/resource-excel-export-ui.spec.ts tests/e2e/task-editor-form-density.spec.ts tests/e2e/project-gantt-inline-name.spec.ts tests/e2e/milestone-timeline-lane.spec.ts --grep '진단 control|pending peer restore cancels|비기본 WBS fullscreen|invalid input stays focused|opt-in sibling lane 390px'",
+      "results": [
+        {
+          "title": "#551 opt-in sibling lane 390px actual geometry",
+          "source": "milestone-timeline-lane.spec.ts",
+          "line": 277,
+          "durationMs": 4407,
+          "assertion": "",
+          "verificationStatus": "PASS"
+        },
+        {
+          "title": "invalid input stays focused, Escape cancels, blur saves once, and failures keep canonical names",
+          "source": "project-gantt-inline-name.spec.ts",
+          "line": 147,
+          "durationMs": 8016,
+          "assertion": "Error: expect(locator).toBeVisible() failed\n\nLocator: locator('.project-gantt-widget .wx-row').filter({ hasText: 'Blur saved' }).first().locator('[role=\"gridcell\"][data-col-id=\":text\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" locator('.project-gantt-widget .wx-row').filter({ hasText: 'Blur saved' }).first().locator('[role=\"gridcell\"][data-col-id=\":text\"]') with timeout 5000ms\n  - waiting for locator('.project-gantt-widget .wx-row').filter({ hasText: 'Blur saved' }).first().locator('[role=\"gridcell\"][data-col-id=\":text\"]')\n",
+          "verificationStatus": "FAIL",
+          "errorLocation": {
+            "file": "project-gantt-inline-name.spec.ts",
+            "column": 46,
+            "line": 198
+          }
+        },
+        {
+          "title": "#529 진단 control: Export 없는 동일 native fixture의 일정·리소스 peer viewport",
+          "source": "resource-excel-export-ui.spec.ts",
+          "line": 199,
+          "durationMs": 5231,
+          "assertion": "",
+          "verificationStatus": "PASS"
+        },
+        {
+          "title": "#529 pending peer restore cancels on native wheel and canonical filter change",
+          "source": "resource-excel-export-ui.spec.ts",
+          "line": 229,
+          "durationMs": 9516,
+          "assertion": "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 2\n+ Received  + 2\n\n  Object {\n-   \"domWithinOnePixel\": true,\n+   \"domWithinOnePixel\": false,\n    \"notStale\": true,\n    \"public\": Object {\n-     \"left\": 30,\n+     \"left\": 0,\n      \"top\": 0,\n    },\n    \"top\": 0,\n  }\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate",
+          "verificationStatus": "FAIL",
+          "errorLocation": {
+            "file": "resource-excel-export-ui.spec.ts",
+            "column": 32,
+            "line": 259
+          }
+        },
+        {
+          "title": "#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+          "source": "task-editor-form-density.spec.ts",
+          "line": 150,
+          "durationMs": 5132,
+          "assertion": "",
+          "verificationStatus": "PASS"
+        }
+      ]
+    }
+  ],
+  "matrix": [
+    {
+      "scenario": "resource-peer120",
+      "spec": "tests/e2e/resource-excel-export-ui.spec.ts:199",
+      "reproduction": "NOT_REPRODUCED",
+      "originalTrialStatuses": [
+        "PASS",
+        "PASS"
+      ],
+      "observed": "Core/native left120 복귀 유지. 기존 CI 실패를 해소했다는 판정이 아님.",
+      "firstObservedDistortion": null,
+      "rootCauseConfirmed": false
+    },
+    {
+      "scenario": "pending-wheel30",
+      "spec": "tests/e2e/resource-excel-export-ui.spec.ts:229",
+      "reproduction": "REPRODUCED",
+      "originalTrialStatuses": [
+        "FAIL",
+        "FAIL"
+      ],
+      "observed": "사용자 wheel 후 Core30/native31이 RAF 진행 뒤 Core0/native0이 되어 exact public 및 DOM ±1 보존 검사 실패.",
+      "firstObservedDistortion": {
+        "traceTrials": [
+          "trace1",
+          "trace2"
+        ],
+        "sequenceBefore": 78,
+        "sequenceAfter": 79,
+        "before": {
+          "event": "core-after",
+          "action": "filter-tasks",
+          "coreLeft": 30,
+          "nativeLeft": 31
+        },
+        "after": {
+          "event": "core-before",
+          "action": "resize-chart",
+          "coreLeft": 30,
+          "nativeLeft": 0
+        },
+        "coreWriter": {
+          "sequenceBefore": 83,
+          "sequenceAfter": 84,
+          "action": "scroll-chart",
+          "params": {
+            "left": 0
+          },
+          "coreBefore": 30,
+          "coreAfter": 0
+        },
+        "causalBoundary": "native 왜곡은 filter-tasks 반환 관측과 다음 resize-chart 호출 관측 사이. 해당 DOM commit 직접 writer는 포착되지 않음."
+      },
+      "rootCauseConfirmed": false
+    },
+    {
+      "scenario": "fullscreen-metadata120",
+      "spec": "tests/e2e/task-editor-form-density.spec.ts:150",
+      "reproduction": "NOT_REPRODUCED",
+      "originalTrialStatuses": [
+        "PASS",
+        "PASS"
+      ],
+      "observed": "비기본 WBS/fullscreen/Week/column/선택/scroll 및 metadata 저장 후 chart120/vertical38 전체 state 보존.",
+      "firstObservedDistortion": null,
+      "rootCauseConfirmed": false
+    },
+    {
+      "scenario": "inline-blur-week",
+      "spec": "tests/e2e/project-gantt-inline-name.spec.ts:147",
+      "reproduction": "REPRODUCED",
+      "originalTrialStatuses": [
+        "FAIL",
+        "FAIL"
+      ],
+      "observed": "Tab blur PATCH1 및 최초 새 이름 표시(line196)는 PASS. Week 전환 후 text cell 가시성(line198) FAIL. 실패 snapshot에서 canonical checkbox label은 최신이고 native text cell은 이전 이름.",
+      "firstObservedDistortion": null,
+      "observedActions": "Week React commit 다음 set-columns/filter-tasks가 관측되지만 text 값/close-editor/action payload 데이터는 수집하지 않아 text 최초 writer 미확정.",
+      "rootCauseConfirmed": false
+    },
+    {
+      "scenario": "milestone390-plot",
+      "spec": "tests/e2e/milestone-timeline-lane.spec.ts:277",
+      "reproduction": "NOT_REPRODUCED",
+      "originalTrialStatuses": [
+        "PASS",
+        "PASS"
+      ],
+      "observed": "390px Day/Week plot 표시 및 tick/native1px·Grid/Chart0.5px·marker160×44/owner bounds PASS. 숫자 근거는 lane-390-numeric-geometry.json.",
+      "firstObservedDistortion": null,
+      "rootCauseConfirmed": false
+    }
+  ],
+  "instrumentedTrials": [
+    {
+      "trial": "trace1",
+      "exitCode": 1,
+      "inlineAssertionLine": 198,
+      "pendingAssertionLine": 259,
+      "command": "REPRO_RUN=trace1 ./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/trace1.config.cjs --grep 'pending peer restore cancels|invalid input stays focused'",
+      "traces": {
+        "inline": {
+          "file": "trace1-inline-observer.json",
+          "sha256": "c4b912be9a62451b8baa080e44a1f824ebf9bb41a7a08623c96bf092a581ae70",
+          "entries": 122,
+          "dropped": 0
+        },
+        "pending": {
+          "file": "trace1-pending-observer.json",
+          "sha256": "fc506e07fc61ae23d882360503fdfefa5a1ca894fb441c574e124cb02e78220b",
+          "entries": 93,
+          "dropped": 0
+        }
+      }
+    },
+    {
+      "trial": "trace2",
+      "exitCode": 1,
+      "inlineAssertionLine": 198,
+      "pendingAssertionLine": 259,
+      "command": "REPRO_RUN=trace2 ./node_modules/.bin/playwright test --config ${EVIDENCE_ROOT}/trace2.config.cjs --grep 'pending peer restore cancels|invalid input stays focused'",
+      "traces": {
+        "inline": {
+          "file": "trace2-inline-observer.json",
+          "sha256": "e5d052e95ab9da51d1130c43fc981727d17605dd146ca77445e3de047f58e5d0",
+          "entries": 123,
+          "dropped": 0
+        },
+        "pending": {
+          "file": "trace2-pending-observer.json",
+          "sha256": "5aa90d89a367a4f03e48ddd7f8ba6fa17b2e1abcd0a6b2122880ed4a854cf48c",
+          "entries": 94,
+          "dropped": 0
+        }
+      }
+    }
+  ],
+  "instrumentation": {
+    "baseHead": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+    "sourcePatchSha256": "b6a932425fcd294ae699ed29ffbeee986d26148827570766d2ec468372baa578",
+    "coreActionTraceSha256": "4ad762311d04fb52bc264740f7781e70004e400ffabc1d3a6dd783f8712bb797",
+    "coreTraceObserverSha256": "c03ebae6c500b5cb9d65fbce235ae13e69cbcd3ff2cd9d55634bd8fd74e4ecc2",
+    "wrapperHashes": {
+      "inline.spec.ts": "795fff65e247483ca435cc3804f549ee294db89a3f30bccf7afe89160963a9d1",
+      "resource.spec.ts": "59323a95d22f36b213f8008298dbf4d137dc24db7d3c8761e1dfb1bc06e42a30"
+    },
+    "changes": "읽기 전용 observer imports/effects와 helper 두 파일. 외부 wrapper의 beforeEach는 __coreTrace query/configure만 설정하고 afterEach는 allowlisted trace snapshot만 수집. 기존 assertion/body 변경 없음.",
+    "draftLimits": [
+      "trace elapsedMs는 page.clock.install/pauseAt 때문에 역행·음수가 됨. 이 trace의 정렬 권위는 sequence이며 elapsedMs를 wall clock으로 해석 금지.",
+      "두 trace는 동일 draft helper를 사용. horizontal 관측에 한정하며 native.top은 .wx-chart에서 읽는 구버전임. 수직 writer/settle PASS에 사용 금지.",
+      "rafTick은 explicit settle 호출 없어서0. 자동으로 3-frame settle을 실측했다는 증거가 아님.",
+      "close-editor·Task field 값·effect source tag·native DOM write callsite가 누락되어 Inline 최초 writer와 직접 native clamp writer는 미확정.",
+      "타 helper의 후속 수정은 이 두 instrumented trial로 검증되지 않음.",
+      "filterKey는 이 draft에서 visibleTaskFilterKey 문자열의 truthiness로 coarse 표기하므로 JSON null도 filtered로 표시될 수 있음. 실제 active filter 판정이나 scope 전환 증거로 이 label 사용 금지."
+    ]
+  },
+  "security": "Curated JSON에는 base64/opaque inlineBody, 절대 /tmp 경로, raw Playwright ZIP/HTTP/network/DB/cookie/password를 포함하지 않음. 원문 raw artifact는 로컬 임시 위치에만 보존. 스크린샷은 curated 산출물에 미포함.",
+  "verificationBoundary": {
+    "localReproductionEvidence": "PASS",
+    "productRegression": "FAIL (2/5 targeted ×2)",
+    "prCI": "NOT TESTED (#568 신규 CI 모니터링 없음)",
+    "mainGHCR": "NOT TESTED",
+    "environmentSpecific": "NOT TESTED",
+    "coreStandaloneAndWrapper": "담당 범위 밖; frontend 별도 evidence와 합쳐 판단",
+    "qaFinal": "NOT TESTED (별도 independent QA 담당)"
+  },
+  "issue_log_type": "STATUS",
+  "issue_log_summary": "afd5ec28 원본5×2: 3 PASS/2 FAIL 일치. Observer2×2에서도 동일2 FAIL, pending filter→native clamp→Core0 feed-back sequence 반복. 3건은 이 환경에서 재현 불가이며 원인 확정 아님.",
+  "decision_required": false,
+  "nextPhase": "Manager/문서 작성자가 근거와 미확정을 architecture/test plan/project UX/decisions/exec plan에 반영하고 별도 PRE_QA/PR CI gate 유지.",
+  "unreachedInlineAssertions": {
+    "test": "tests/e2e/project-gantt-inline-name.spec.ts:147",
+    "stoppedAt": 198,
+    "unreached": [
+      "500 rejection",
+      "412 rejection",
+      "network rejection",
+      "linked metadata race"
+    ],
+    "status": "NOT TESTED",
+    "explanation": "모든 원본/observer trial은 Week 후 name cell line198에서 종료. 401 주입은 이 test body에 없음. 별도 삭제 rejection 검증은 Inline 실패복구를 대체하지 않음."
+  },
+  "agentExecution": "/root/repro568"
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "mastergantt-evidence-manifest-v1",
+  "baselineHead": "6d31aefd9fec9d6fc390daa79f2a5ef3f02a38ca",
+  "sourceSha256": {
+    "src/features/gantt/diagnostics/core-action-trace.ts": "9cb1e377794fbd9725097825b404286d9e676d769b53baf7a0c8f0d4e6b9e3c8",
+    "src/features/gantt/diagnostics/core-trace-observer.ts": "d09118da6b4ae9f9dd5667857595fa572a3676c47520c564c01afa960cffa99c",
+    "tests/config/playwright.config.ts": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+    "package-lock.json": "4b1273783da579a797e03e0f4c58f5fca89e300538c6cc989ae0f0e1f7d36923",
+    "src/features/gantt/adapter/gantt-adapter.ts": "1f6780c0cecb39b9ca4c1836d9dbd453ace83bba448dd8800f695c208b26f146",
+    "src/features/gantt/diagnostics/gantt-adapter-fixture.tsx": "15ca651ee45e3b6fae0720157cea150c4910268b12f70180593721b637737b84",
+    "src/features/gantt/diagnostics/gantt-adapter-loader.tsx": "ff44c767e5ec7533f395ccd9ceb09b1b895dad0a04ced2dc0e0ce81d5c455c8c",
+    "src/app/diagnostics/gantt-adapter/page.tsx": "487a75b2f784695b7dc789c5a12972f0ff6e45729439a2ec21fbdbf35b25cbe9",
+    "tests/domain/gantt-adapter.test.ts": "58883e836d90ff3cfede86b199a4f222d3947770483aca5c5c581bf06d76ccdb",
+    "tests/e2e/gantt-adapter-poc.spec.ts": "ac30666faef7cf0f43536074f8e6f623232a541c537666a08bf0eebce8b03104"
+  },
+  "artifacts": [
+    {
+      "file": "docs/evidence/issue569/adapter/fixture-1440-day.png",
+      "sha256": "4db74b317a1b7fb25f042c91ce153158eaa513e94808676032a577a174bb956f",
+      "bytes": 68754,
+      "run": "freeze"
+    },
+    {
+      "file": "docs/evidence/issue569/adapter/fixture-390-week.png",
+      "sha256": "0707aed3897f219ee2eee4c6465d88b564d8738b2f543a3e5d8d1663401ed46a",
+      "bytes": 42512,
+      "run": "freeze"
+    },
+    {
+      "file": "docs/evidence/issue569/adapter/initial-divergence-trace.json",
+      "sha256": "070c8396cbea94b7d38f7d335faea60946159d62224fadbef55571e5ed0e4038",
+      "bytes": 199729,
+      "run": "summary 또는 bounded trace"
+    },
+    {
+      "file": "docs/evidence/issue569/adapter/success-390-week-B-trace.json",
+      "sha256": "de70aa496c72ddccc1a4ffdc473f7c7339f46f896d3b3cc8abeb278be6ba7c12",
+      "bytes": 238737,
+      "run": "summary 또는 bounded trace"
+    },
+    {
+      "file": "docs/evidence/issue569/adapter/summary.json",
+      "sha256": "96b0b87c0b47eabadb6e7acfc78c3bc35cb5ae117f53efdee8e75641bdd3f395",
+      "bytes": 1541124,
+      "run": "summary 또는 bounded trace"
+    },
+    {
+      "file": "docs/evidence/issue569/adapter/unsupported-1440-day-B-trace.json",
+      "sha256": "7c46e19ab057683faf002784f101c8f8376a311c1a31f7a04b35a9ee7926422b",
+      "bytes": 319205,
+      "run": "summary 또는 bounded trace"
+    },
+    {
+      "file": "docs/evidence/issue569/adapter/unsupported-390-day-C-trace.json",
+      "sha256": "eb2c351e00e1b0bca098d9fe23090054c8e94d27a8195738330e919cbbb38c76",
+      "bytes": 333073,
+      "run": "summary 또는 bounded trace"
+    }
+  ]
+}

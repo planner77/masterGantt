@@ -22,6 +22,9 @@ export type RouteSecurityPolicy =
   | "origin-logistics-admin-if-match"
   | "project-master-catalog-read"
   | "project-master-admin-read"
+  // Process catalog uses Project Master admin sessions and its own catalog revision.
+  | "process-catalog-admin-read"
+  | "origin-process-catalog-admin-if-match"
   | "origin-project-master-admin-auth"
   | "origin-project-master-admin-logout"
   | "origin-project-master-admin-password"
@@ -43,9 +46,26 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/project-master/admin/items", method: "GET", policy: "project-master-admin-read", mutatesState: false },
   { template: "/api/project-master/admin/items", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-master/admin/items/{itemId}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/relations", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/relations", method: "DELETE", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "POST", policy: "origin-project-master-admin-auth", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "DELETE", policy: "origin-project-master-admin-logout", mutatesState: true },
   { template: "/api/project-master/admin-password", method: "PUT", policy: "origin-project-master-admin-password", mutatesState: true },
+  { template: "/api/process-catalog/admin", method: "GET", policy: "process-catalog-admin-read", mutatesState: false },
+  { template: "/api/process-catalog/admin/standard-diff", method: "GET", policy: "process-catalog-admin-read", mutatesState: false },
+  { template: "/api/process-catalog/admin/types", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/types/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/types/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/standards", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/standards/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/standards/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/work-areas", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/work-areas/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/work-areas/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences/apply-standard", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
   { template: "/api/project-templates", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/project-templates", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/project-templates/{templateId}", method: "GET", policy: "public-read", mutatesState: false },
@@ -113,6 +133,14 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/work-calendar/preview", method: "POST", policy: "origin-session-if-match", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks/{taskId}/assignments", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/process-context", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/process-mappings/{processId}", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/targets", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}/usage", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/logistics", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/logistics/processes", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/processes/{processId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },

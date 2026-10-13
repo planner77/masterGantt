@@ -32,6 +32,10 @@ const projectMasterCatalog = {
     siteEntities: [
       { id: "site-1", category: "SITE_ENTITY", code: "VIETNAM-MANUFACTURING-CORP", name: "베트남 생산 법인 및 장기 명칭 사업장", active: true, sortOrder: 10 },
     ],
+    relations: [
+      { businessUnitId: "bu-1", productId: "product-1", siteEntityId: null },
+      { businessUnitId: "bu-1", productId: "product-1", siteEntityId: "site-1" },
+    ],
   },
 };
 

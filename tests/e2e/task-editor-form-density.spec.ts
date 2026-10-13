@@ -240,3 +240,67 @@ test("#456 active name filter의 metadata 저장으로 실제 ID 집합이 바�
   await writeFile(`${output}/gantt-filter-membership.json`, JSON.stringify({ before, after, query: await search.inputValue(), visibleRows: 0, patchCount: fixture.patches.length }, null, 2));
   await page.screenshot({ path: `${output}/gantt-filter-membership.png` });
 });
+
+test("#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel과 동일 검색의 빈집합은 존중한다", async ({ page }) => {
+  const fixture = await setup(page, { longList: true });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const frame = page.locator(".project-gantt-frame");
+  const target = frame.locator('.wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
+  const chart = frame.locator(".wx-chart").first();
+  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
+  await frame.getByRole("button", { name: "주", exact: true }).click();
+  await search.fill("긴 작업명");
+  await expect(target).toBeVisible();
+  await chart.evaluate(element => { element.scrollLeft = 120; });
+  const viewport = () => frame.evaluate(element => ({
+    api: element.getAttribute("data-project-gantt-api-instance"),
+    publicLeft: (Reflect.get(element, "__masterganttPublicViewport") as { left: number }).left,
+    nativeLeft: element.querySelector(".wx-chart")!.scrollLeft,
+    blocks: Number(element.getAttribute("data-gantt-peer-scroll-guard-blocks") ?? 0),
+    settled: element.getAttribute("data-gantt-canonical-sync-generation") === element.getAttribute("data-gantt-canonical-sync-settled-generation"),
+  }));
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
+  const before = await viewport();
+  const saveName = async (name: string) => {
+    await target.click({ button: "right", position: { x: 12, y: 19 } });
+    await chooseTaskInformation(page);
+    const dialog = editor(page);
+    await dialog.getByLabel("작업명", { exact: true }).fill(name);
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect.poll(async () => (await viewport()).settled).toBe(true);
+  };
+  await saveName(`${fixture.tasks[3].name} metadata`);
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
+  // No pointer/wheel input precedes the synthetic native zero. Wait for
+  // PASSIVE_RESTORE to SETTLE before testing its stale scroll guard, rather
+  // than treating Core/native coordinate equality as a completion receipt.
+  // Equality of Core/native positions does not prove PASSIVE_RESTORE has
+  // installed its post-settlement guard. Wait for the actual coordinator
+  // receipt before injecting the late *non-user* native zero event.
+  await expect.poll(async () => {
+    const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+    const trace = raw ? JSON.parse(raw) as { kind?: string; phase?: string; outcome?: string } : null;
+    return trace?.kind === "PASSIVE_RESTORE" ? { phase: trace.phase, outcome: trace.outcome } : null;
+  }).toEqual({ phase: "SETTLED", outcome: "SETTLED" });
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
+  await expect.poll(async () => (await viewport()).nativeLeft).toBe(120);
+  const blocks = (await viewport()).blocks;
+  await chart.evaluate(element => { element.scrollLeft = 0; });
+  await expect.poll(async () => (await viewport()).blocks).toBeGreaterThan(blocks);
+  await expect.poll(async () => (await viewport()).nativeLeft).toBe(120);
+  expect((await viewport()).publicLeft).toBe(120);
+  await chart.hover();
+  await page.mouse.wheel(-120, 0);
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(0);
+  await expect.poll(async () => (await viewport()).nativeLeft).toBe(0);
+  await page.mouse.wheel(120, 0);
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(120);
+  await saveName("No longer matches the active query");
+  await expect(search).toHaveValue("긴 작업명");
+  await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
+  await expect.poll(async () => (await viewport()).publicLeft).toBe(0);
+  await expect.poll(async () => (await viewport()).nativeLeft).toBe(0);
+  expect((await viewport()).api).toBe(before.api);
+  expect(fixture.patches).toHaveLength(2);
+});

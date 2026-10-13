@@ -47,6 +47,7 @@ import {
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { LogisticsTypeCatalogRepository } from "../repositories/logistics-type-catalog-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
+import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
 import {
   EditSessionInvalidError,
   RevisionMismatchError,
@@ -489,6 +490,9 @@ export class LogisticsService {
 
       if (hardDelete) {
         // Check if in use
+        if (new ProcessCatalogRepository(this.database).mapping(projectId, current.id)) {
+          throw new LogisticsConflictError("PROCESS_IN_USE", "공정 occurrence 매핑을 먼저 해제해야 영구 삭제할 수 있습니다.");
+        }
         const childCount = this.logisticsRepo.countChildProcesses(projectId, current.id);
         if (childCount > 0) {
           throw new LogisticsConflictError("PROCESS_IN_USE", `Cannot permanently delete process with ${childCount} child processes.`);
@@ -709,6 +713,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const targetMemberships = (this.database.prepare(
+          "SELECT COUNT(*) count FROM logistics_target_members WHERE project_id=? AND equipment_id=?",
+        ).get(projectId,current.id) as {count:number}).count;
+        if (targetMemberships>0) {
+          throw new LogisticsConflictError("EQUIPMENT_IN_USE",
+            "Cannot delete equipment referenced by "+targetMemberships+" Target(s).");
+        }
         const systemMappings = this.logisticsRepo.listEquipmentSystems(projectId, current.id).length;
         const resourceRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId, current.id).length;
         if (systemMappings > 0 || resourceRoles > 0) {
@@ -1010,6 +1021,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const targetMemberships = (this.database.prepare(
+          "SELECT COUNT(*) count FROM logistics_target_members WHERE project_id=? AND system_id=?",
+        ).get(projectId,current.id) as {count:number}).count;
+        if (targetMemberships>0) {
+          throw new LogisticsConflictError("SYSTEM_IN_USE",
+            "Cannot delete System referenced by "+targetMemberships+" Target(s).");
+        }
         const controllingCount = this.logisticsRepo.countControllingEquipment(projectId, current.id);
         if (controllingCount > 0) {
           throw new LogisticsConflictError("SYSTEM_IN_USE", `Cannot permanently delete system controlling ${controllingCount} equipment.`);

@@ -1,0 +1,185 @@
+{
+  "projectPublicId": "000c40a7-49d5-476d-9bee-699537034d6c",
+  "snapshotId": "64a05ae8f095cca4f67d0dc426d2443be3220b9860905f88e16d16ff48593df0",
+  "revisions": {
+    "project": 16,
+    "catalog": 7,
+    "calendar": "e427d5347254469b6f9643cfe4a846cdd4288977f1e7a05f2c80f97e5c0aee99"
+  },
+  "raw": [
+    {
+      "key": "T2-A",
+      "taskId": "2156c585-d1ff-4ccd-84b5-895dbd7d25a1",
+      "assignmentId": "e1fd9ae3-5652-40c2-8fcc-12610d4174e9",
+      "resourceId": "9ef36a6e-f82f-4dd5-8972-e2a95e378b13",
+      "resourceName": "A",
+      "resourceCode": "A",
+      "active": true,
+      "roles": [
+        "DEVELOPER",
+        "PI"
+      ],
+      "developerGrade": "ADVANCED",
+      "groupIds": [
+        "19e5549a-f386-4509-b3ea-aba466bf8262",
+        "5be730b5-12c2-4fd9-a3d6-05297fcfd9a2"
+      ],
+      "assignmentStart": null,
+      "assignmentEnd": null,
+      "from": "2026-10-05",
+      "to": "2026-10-09",
+      "allocationPercent": 60,
+      "effectiveWorkingDays": 5,
+      "plannedMd": 3,
+      "plannedMm": 0.15
+    },
+    {
+      "key": "T1-B",
+      "taskId": "5fb0c8bc-9891-4f0c-a3d1-17c4c489f999",
+      "assignmentId": "939f2d49-9e49-47e4-b4c7-bc76d6a28d0b",
+      "resourceId": "f10a04af-7950-4e2b-aa7d-a2b806079c17",
+      "resourceName": "B",
+      "resourceCode": "B",
+      "active": true,
+      "roles": [
+        "EQUIPMENT_OWNER"
+      ],
+      "developerGrade": "INTERMEDIATE",
+      "groupIds": [
+        "19e5549a-f386-4509-b3ea-aba466bf8262"
+      ],
+      "assignmentStart": null,
+      "assignmentEnd": null,
+      "from": "2026-10-05",
+      "to": "2026-10-09",
+      "allocationPercent": 100,
+      "effectiveWorkingDays": 5,
+      "plannedMd": 5,
+      "plannedMm": 0.25
+    },
+    {
+      "key": "T1-A",
+      "taskId": "5fb0c8bc-9891-4f0c-a3d1-17c4c489f999",
+      "assignmentId": "cded5a51-9dfb-4803-9bd0-6dfd4950a036",
+      "resourceId": "9ef36a6e-f82f-4dd5-8972-e2a95e378b13",
+      "resourceName": "A",
+      "resourceCode": "A",
+      "active": true,
+      "roles": [
+        "DEVELOPER",
+        "PI"
+      ],
+      "developerGrade": "ADVANCED",
+      "groupIds": [
+        "19e5549a-f386-4509-b3ea-aba466bf8262",
+        "5be730b5-12c2-4fd9-a3d6-05297fcfd9a2"
+      ],
+      "assignmentStart": null,
+      "assignmentEnd": null,
+      "from": "2026-10-05",
+      "to": "2026-10-09",
+      "allocationPercent": 50,
+      "effectiveWorkingDays": 5,
+      "plannedMd": 2.5,
+      "plannedMm": 0.125
+    },
+    {
+      "key": "T6-A",
+      "taskId": "89e6bb8b-005a-4333-95f4-a10d3e45ffa6",
+      "assignmentId": "62e54de0-4565-43a1-bad3-645e4d05f566",
+      "resourceId": "9ef36a6e-f82f-4dd5-8972-e2a95e378b13",
+      "resourceName": "A",
+      "resourceCode": "A",
+      "active": true,
+      "roles": [
+        "DEVELOPER",
+        "PI"
+      ],
+      "developerGrade": "ADVANCED",
+      "groupIds": [
+        "19e5549a-f386-4509-b3ea-aba466bf8262",
+        "5be730b5-12c2-4fd9-a3d6-05297fcfd9a2"
+      ],
+      "assignmentStart": null,
+      "assignmentEnd": null,
+      "from": "2026-10-05",
+      "to": "2026-10-09",
+      "allocationPercent": null,
+      "effectiveWorkingDays": 5,
+      "plannedMd": null,
+      "plannedMm": null
+    },
+    {
+      "key": "T3-B",
+      "taskId": "a55ce20f-410f-4f48-a8d4-0bacf427e0ea",
+      "assignmentId": "b3395c30-cae6-4787-9110-dbfe54990105",
+      "resourceId": "f10a04af-7950-4e2b-aa7d-a2b806079c17",
+      "resourceName": "B",
+      "resourceCode": "B",
+      "active": true,
+      "roles": [
+        "EQUIPMENT_OWNER"
+      ],
+      "developerGrade": "INTERMEDIATE",
+      "groupIds": [
+        "19e5549a-f386-4509-b3ea-aba466bf8262"
+      ],
+      "assignmentStart": null,
+      "assignmentEnd": null,
+      "from": "2026-10-05",
+      "to": "2026-10-09",
+      "allocationPercent": 20,
+      "effectiveWorkingDays": 5,
+      "plannedMd": 1,
+      "plannedMm": 0.05
+    }
+  ],
+  "totals": {
+    "taskCount": 4,
+    "resourceCount": 2,
+    "assignmentCount": 5,
+    "notStarted": 4,
+    "inProgress": 0,
+    "completed": 0,
+    "delayed": 4,
+    "completion": {
+      "numerator": 0,
+      "denominator": 4,
+      "percent": 0
+    },
+    "assignedTaskProgress": {
+      "numerator": 0,
+      "denominator": 20,
+      "percent": 0
+    },
+    "effort": {
+      "knownMd": 11.5,
+      "plannedMd": 11.5,
+      "plannedMm": 0.575,
+      "state": "partial",
+      "partial": true,
+      "unsetCount": 1
+    },
+    "selector": {
+      "assignmentScope": "selected",
+      "dimension": "all",
+      "id": null,
+      "metric": "all"
+    }
+  },
+  "xlsxBytes": 33902,
+  "sheets": [
+    "Gantt",
+    "Tasks",
+    "Project",
+    "Milestone Stages",
+    "Resource Report",
+    "Resource Milestones",
+    "Group Milestones",
+    "Resource Plan",
+    "Resource Assignments",
+    "Resource Quality",
+    "Resource Relations"
+  ],
+  "restartSnapshotId": "64a05ae8f095cca4f67d0dc426d2443be3220b9860905f88e16d16ff48593df0"
+}

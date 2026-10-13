@@ -125,12 +125,13 @@ test("#514 pending peer wheel and rapid selections preserve latest actual user i
   await page.clock.install(); await page.clock.pauseAt(new Date());
   await page.getByRole("tab", { name: "일정", exact: true }).evaluate(node => (node as HTMLElement).click());
   await chart.hover({ force: true }); await page.mouse.wheel(31, 0);
-  // Let the native scroll observer settle independently of the paused peer RAF.
-  await expect.poll(async () => (await observe(page, task.start!)).dom.left).not.toBe(0);
+  // The browser can commit a native wheel after the first non-zero observation.
+  // Observe the intended +31px DOM scroll before advancing the paused peer RAF.
+  await expect.poll(async () => (await observe(page, task.start!)).dom.left).toBe(151);
   const wheel = await observe(page, task.start!);
   await page.clock.runFor(300);
   const afterWheel = await observe(page, task.start!);
-  expect(afterWheel.public.left).toBe(wheel.public.left);
+  expect(afterWheel.public.left).toBe(wheel.dom.left);
   expect(afterWheel.dom.left).toBe(wheel.dom.left);
   expect(afterWheel.public.left).not.toBe(120);
   expect(afterWheel.dom.left).not.toBe(120);
