@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
 import { handleGetTarget, handleListTargets, handleMutateTarget } from "../../../src/server/logistics/logistics-targets-handlers-core";
-import { LogisticsTargetError, LogisticsTargetService } from "../../../src/server/logistics/logistics-targets-service-core";
+import { LogisticsTargetService } from "../../../src/server/logistics/logistics-targets-service-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
 import { LogisticsTypeCatalogRepository } from "../../../src/server/repositories/logistics-type-catalog-repository-core";
@@ -245,6 +245,15 @@ describe("Issue #672 — #616 F2 acceptance: domain and SQL", () => {
       f.logistics.setEquipmentSystems(f.project.id, eqB.id,
         [{ systemId: acsB.id, controlRole: "primary" }], stamp);
       f.logistics.setCoordinatedSystems(f.project.id, f.mcs.id, [acsA.id, acsB.id], stamp);
+      const resourceId = Number(f.db.prepare(
+        "INSERT INTO resources(public_id,name,code,description,developer_grade,active,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)",
+      ).run(randomUUID(), "F2 Owner", "F2-OWNER", "", "ADVANCED", 1, stamp, stamp).lastInsertRowid);
+      f.db.prepare(
+        "INSERT INTO project_equipment_resource_roles(project_id,equipment_id,resource_id,role,is_primary,created_at,updated_at) VALUES(?,?,?,?,?,?,?)",
+      ).run(f.project.id, eqA.id, resourceId, "owner", 1, stamp, stamp);
+      f.db.prepare(
+        "INSERT INTO project_system_resource_roles(project_id,system_id,resource_id,role,is_primary,created_at,updated_at) VALUES(?,?,?,?,?,?,?)",
+      ).run(f.project.id, f.mcs.id, resourceId, "pi", 1, stamp, stamp);
       const source = () => JSON.stringify([
         f.db.prepare("SELECT * FROM project_equipment ORDER BY id").all(),
         f.db.prepare("SELECT * FROM project_logistics_systems ORDER BY id").all(),
@@ -305,9 +314,8 @@ describe("Issue #672 — #616 F2 acceptance: domain and SQL", () => {
             layer: "controller", scope: "project" } },
         ],
       };
-      expect(() => f.targets.create(f.auth, before, payload)).toThrowError(
-        expect.objectContaining({ code: "TARGET_SYSTEM_TYPE_INACTIVE" }) as LogisticsTargetError,
-      );
+      expect(() => f.targets.create(f.auth, before, payload))
+        .toThrow("TARGET_SYSTEM_TYPE_INACTIVE");
       expect(f.logistics.findEquipmentByCode(f.project.id, "NEW-AMR")).toBeUndefined();
       expect(count(f, "logistics_targets")).toBe(0);
       expect(revision(f)).toBe(before);
