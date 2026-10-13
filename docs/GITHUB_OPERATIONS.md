@@ -1,3 +1,10 @@
+## Issue #659 — PR CI 실패 조기 중단·Fast Gate 운영 지침 (2026-10-13)
+
+- PR full CI는 QA Preflight 다음에 policy/typecheck/lint/unit을 먼저 실행한다. `PR 빠른 검사 판정` 실패 시 `pr_build`, `pr_e2e_shard`, `pr_docker_smoke`의 **skipped는 의도된 비용 차단**이지 PASS가 아니다. 반드시 세 Required aggregate가 failure로 결론 났는지 확인한다.
+- E2E의 한 Shard 실패는 `pr_e2e_shard` matrix의 `fail-fast=true` 때문에 다른 Shard 취소를 요청한다. 첫 실패 Job의 Playwright report/log를 우선 확보하고, 취소된 Shard에 로그/artifact가 없을 수 있음을 기록한다. 전체 PR CI Run이 자동 Cancelled 되는 기능은 아니다.
+- Main push/manual/정확 SHA 복구는 `build/e2e_shard/docker_smoke` 원래 병렬 경로 및 E2E fail-fast=false 유지. `pull_request.edited`는 정확 Head 성공한 원본 Full CI 증거 재사용 규칙(#577/#600) 유지.
+- 성공/실패/skip/cancelled/timeout/unknown을 구별하며 QA Final, Ruleset 3종, Owner 위험 수용, GHCR/Finalizer를 우회하지 않는다. 운영 검증은 [Issue #659 Work Packet](exec-plans/active/ISSUE_659.md) 및 [REMOTE_VALIDATION](REMOTE_VALIDATION.md)을 따른다. 정상 PR 지연 증가 또는 잘못된 집계가 발생하면 PR Lane만 롤백하고 Main 병렬 검사를 계속 보호한다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
