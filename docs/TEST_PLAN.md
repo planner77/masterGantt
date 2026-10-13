@@ -1,3 +1,11 @@
+## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
+
+- Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
+- Owner #550/#615의 최신 version-scoped 철회 marker, #633의 exact B2_RETIRE_BOTH Owner 결정, 양쪽 bot release-debt-retired:v1의 source 5 SHA·PR·교체 SHA·digest·comment URL·Issue closed 및 v0.106.1 CI/PR/Git/OCI 증거를 별도 검증한다. 누락·위조·open/불일치 시 FALSE/BLOCKED; read-only collector가 승인/comment를 생성하지 않는다.
+- #616 v0.107.0의 별도 Owner 철회와 v0.108.0 exact main SHA 준비 승인(`mastergantt-release-succession-prepare:v1`)은 현재 원장에 없으므로 **BLOCKED**가 정상이다. 이 marker는 게시 승인이 아니며 별도의 새 정식 GHCR 게이트가 필요하다.
+- 감사 실패 artifact JSON과 Actions Job Summary에는 stage/reason/run/attempt/main SHA를 기록한다. 발행·퇴역·#616 종료·태그 이동/삭제 모두 금지, BLOCKED exit 1 유지. PR CI와 default-main workflow_dispatch audit는 별도이며 신규 운영 감사는 병합/Main CI 이후 Owner 실행만 가능하다.
+- HIGH / OWNER_MANAGED / qa_required=true / release_required=false / release_authorized=false. Required Quality + Chromium E2E 6/6 + Docker, Trusted QA·리뷰 스레드 0 및 Owner 위험 수용은 원격 검증 전 NOT TESTED. DESIGN.md/API/DB: UI·API·schema 변경 없음으로 N/A.
+
 ## Issue #552 — CI #2669.1 Preflight 문서 원장 회귀 (2026-10-13)
 
 Head `eb898c54d2cf9f4994e0b99cc0a76ed1493b2220`의 [CI #2669.1](https://github.com/planner77/masterGantt/actions/runs/38379375572)은 QA Preflight DOCUMENTATION_SYNC에서 IMPORT_SCHEMA 영향 기록 누락으로 FAIL했다. Excel E2E 수정 경로가 요구하는 IMPORT_SCHEMA/EXCEL_EXPORT의 N/A 근거를 Work Packet의 정확한 DOCUMENTATION_SYNC section에 추가한다. 전체 PR 변경 경로의 합집합을 immutable base `9b16ac5fdd48628062f151380c144a40125dc721`의 실제 docs_required/docs_gate 및 Preflight에 입력해 누락이 없는지 로컬 재생한다. 구조적 PASS는 문서 의미·최신 원격 Quality/E2E/Docker PASS 또는 Owner 승인이 아니다. 제품·테스트·정책·버전은 불변이며 원본 구현 Job SKIPPED와 aggregate FAIL을 유지한다.
