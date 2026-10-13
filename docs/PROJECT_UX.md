@@ -1,3 +1,10 @@
+## Issue #647 — Milestone 삭제 확인 뒤 native modal 포커스 인계 (2026-10-13)
+
+- 삭제 확인 Dialog의 성공/충돌/취소 경로는 기존 원 Milestone 목록의 **연결된 가시 관리 버튼**으로 포커스를 되돌리고, 삭제로 버튼이 소멸하면 같은 Dashboard에서 검색→추가→heading의 순서로 대체한다. modal `:modal` 상태에서는 외부 focus가 거부될 수 있으므로 WorkspaceDialog의 비동기 unmount/cleanup을 확인한 뒤 제한된 RAF로 복원한다. 다른 열린 modal·숨은 탭·다른 프로젝트·disabled/inert 노드로 포커스를 옮기거나 오래된 복원 요청을 무한 지속하지 않는다.
+- 원본 Merge `b97709df...`의 복구 [CI #2621.1](https://github.com/planner77/masterGantt/actions/runs/38313359094) shard3에서 삭제 후 `data-milestone-focus=null`이 재현되었으며 native modal 종료/React cleanup 경쟁은 검토 가능한 유력 경로다. 실제 원격 브라우저 원인은 수정 PR의 targeted Playwright 실증 전까지 단정하지 않는다. 별도 shard5 `2건` 중복 selector는 현재 main의 #639 교정 테스트로 이미 해결되어 있고 원본 SHA에는 부재한다.
+- 신규 디자인 언어/레이아웃 변경 없음(Design Delta B). 원본 Gantt instance·작업 ID·권한·일정 엔진 및 기존 목록 키보드/편집·readonly 정책을 유지한다. [Issue #647 Work Packet](exec-plans/active/ISSUE_647.md)에 검증 범위를 기록한다.
+- [PR CI #2626.1](https://github.com/planner77/masterGantt/actions/runs/38320235805) detected four focus-visibility regressions caused by focus restoration with `preventScroll:true`: Milestone toolbar focus existed but was outside the viewport (y≈−363.5px) or failed `elementFromPoint` hit-testing. Keep native focus scroll for Milestone-panel fallback after async native dialog closure; retain closed-dialog bounded RAF, connected same-project guard and Gantt chart's own scroll invariant. Add E2E assertion that the restored focus is not merely DOM-active but visibly keyboard-accessible.
+
 ## Issue #637 — Grid 내부 스크롤과 실제 행 정렬
 
 구조 삽입 후 같은 Task ID의 Grid 행과 Chart 바깥 `.wx-bar` 중심 Y는 같은 viewport 좌표에서 ±1px 이내여야 한다. 행 높이38px와 bar높이31px의 차이는 중심 계산에 포함된다. 내부 Milestone diamond의 회전/축소는 이 비교에 사용하지 않는다. membership·canonical queue 완료만으로 화면 정렬 성공을 알리지 않는다.

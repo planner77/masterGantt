@@ -246,6 +246,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const scheduleGanttPanel = useRef<HTMLElement>(null);
   const viewportController = useRef<ViewportController | null>(null);
   const taskFocusGeneration = useRef(0);
+  const milestoneFocusGeneration = useRef(0);
   const registerViewportController = useCallback((controller: ViewportController | null) => { viewportController.current = controller; }, []);
   const publicGanttViewportReader = useRef<PublicGanttViewportReader | null>(null);
   const registerPublicGanttViewportReader = useCallback((reader: PublicGanttViewportReader | null) => {
@@ -1016,12 +1017,47 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (activeView === "milestones") focusMilestoneDashboard(deleteTriggerReference.current);
   }
   function focusMilestoneDashboard(trigger?: HTMLElement | null) {
-    requestAnimationFrame(() => {
+    // #647 / CI #2621 shard 3: a delete request closes a native WorkspaceDialog
+    // asynchronously. Focusing the Dashboard in the first RAF can be refused
+    // while the dialog is still :modal; its cleanup then leaves focus on <body>.
+    // Retry only while the original Milestone panel is visible/owned by this
+    // project, and never focus through another open native modal.
+    const maxFrames = 24;
+    const generation = ++milestoneFocusGeneration.current;
+    // Only the dialog that initiated this request may delay its restoration.
+    // A subsequently opened modal belongs to a newer user interaction.
+    const originalModal = document.querySelector("dialog:modal");
+    const restore = (frame: number) => {
+      if (generation !== milestoneFocusGeneration.current) return;
       const panel = document.getElementById("project-panel-milestones");
-      if (panel?.querySelector("[data-testid=milestone-dashboard]")?.getAttribute("data-project-public-id") !== publicId) return;
-      const target = isVisibleFocusTarget(trigger) ? trigger : ["search", "add", "heading"].map(kind => panel?.querySelector<HTMLElement>(`[data-milestone-focus="${kind}"]`)).find(isVisibleFocusTarget);
-      target?.focus();
-    });
+      if (!panel || panel.hidden ||
+          panel.querySelector("[data-testid=milestone-dashboard]")?.getAttribute("data-project-public-id") !== publicId) return;
+      const currentModal = document.querySelector("dialog:modal");
+      if (currentModal) {
+        if (currentModal !== originalModal) return;
+        if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+        return;
+      }
+      const active = document.activeElement;
+      // A deliberate focus move to another control (or modal opened and
+      // closed between frames) supersedes the stale restoration request.
+      if (active instanceof HTMLElement && active !== document.body &&
+          !panel.contains(active) && active !== originalModal &&
+          !originalModal?.contains(active)) return;
+      // Any live focus owner in this panel wins over an earlier delete request.
+      if (active instanceof HTMLElement && panel.contains(active) &&
+          active !== document.body) return;
+      const fallback = ["search", "add", "heading"]
+        .map(kind => panel.querySelector<HTMLElement>(`[data-milestone-focus="${kind}"]`))
+        .find(isVisibleFocusTarget);
+      const target = isVisibleFocusTarget(trigger) && panel.contains(trigger) ? trigger : fallback;
+      if (target) {
+        target.focus();
+        if (document.activeElement === target) return;
+      }
+      if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+    };
+    requestAnimationFrame(() => restore(0));
   }
   function closeMilestoneCreate() {
     if (taskMutationReference.current) return;
