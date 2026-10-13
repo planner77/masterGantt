@@ -3626,3 +3626,10 @@ Verify production Milestone DATE_REVEAL with exact canonical date through public
 - Copy preview/confirmation model·서버 membership Copy·Milestone visibility의 관련 Unit 4파일 67 PASS(1.91초)는 별도 명령이다. 111 Unit과 환경/실행을 합친 전체 회귀로 표시하지 않는다.
 
 로컬 PASS는 새 Head의 원격 quality/e2e/docker·Trusted QA·Owner ACCEPT가 아니다. CI/권한/Required checks/6 shard/timeout/허용오차는 불변이다. production/reverse proxy·실물 touch/device·screen reader·Windows Excel/DRM은 NOT TESTED다.
+
+
+### #552 PR CI #2670 regression verification
+
+- Large 1000 Task / 2000 Milestone fixture: Stage gate aggregation deterministic canonical order, same SVAR API instance, unchanged 5s readiness and full geometry alignment assertions.
+- Short one-day project: initial real horizontal wheel range and Core/native exact scroll preservation through Resource dashboard drill, user-input cancellation and peer return, with dynamic range extension preserved.
+- Actual HTTP #464: Dashboard exact canonical Milestone ID search before opening its editor; no native Milestone row, server revision and membership guard preserved.

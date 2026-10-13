@@ -329,3 +329,10 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - Calendar changes with unchanged Task date geometry no longer invalidate the passive viewport reconciliation geometry fingerprint. Actual dates still drive invalidation.
 - #571 test begins same-view Task Reveal from Schedule marker rather than Dashboard-origin drill; the Relation modal test dismisses its still-open parent Editor prior to Gantt focus assertion.
 - Existing QA gates, E2E assertions, completed/revision/membership guard and original FAIL history preserved. New Head Quality/E2E/Docker are NOT TESTED until a new complete CI result. Merge/main/release/GHCR excluded.
+
+
+## PR CI #2670.1 focused failure analysis (2026-10-13)
+
+Quality, Docker, and E2E shards 1/2/3/5/6 passed. Shard 4 failed four cases: actual #464 canonical Milestone editor lookup (row missing from current Dashboard page), #551 1000 ordinary Task + 2000 Milestone probe readiness (five-second bound), and two #530 initial horizontal wheel cases where Core/native Chart remained at zero. Automated QA failure was dependent on the E2E gate.
+
+The pure Stage gate model previously scanned all Task/Link entries for each Milestone; this change groups memberships and predecessor links in canonical order once, retaining all completed/readonly/guard semantics. The initial chart horizon now guarantees positive native horizontal capacity based on viewport width even in one-day Task projects; dynamic range extension remains unchanged. The shared E2E Milestone Editor helper filters the Dashboard by exact canonical task UUID. No skip/timeout expansion/assertion relaxation. The new Head's Quality/E2E/Docker remain NOT TESTED pending full PR CI; no merge, Main, GHCR or release.

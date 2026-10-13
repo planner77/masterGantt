@@ -37,6 +37,9 @@ export async function openMilestoneEditor(page: Page, taskId: string) {
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
   const panel = page.locator("#project-panel-milestones");
   await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  // The Dashboard can show only filtered or paged rows. Resolve the exact
+  // canonical UUID before opening the editor; do not recreate native WBS rows.
+  await panel.getByLabel("Milestone 검색", { exact: true }).fill(taskId);
   const row = panel.locator(`[data-milestone-task-id="${taskId}"]`);
   await expect(row).toHaveCount(1);
   await row.getByRole("button", { name: / Milestone 상세$/ }).click();

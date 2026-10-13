@@ -82,12 +82,33 @@ export function projectStageGates(snapshot: StageSnapshot) {
       inheritedFromTaskId: inheritedFrom,
     });
   }
+  // Group each canonical member/link once. A large Milestone timeline must
+  // not scan all Tasks and Links separately for every Stage.
+  const membersByMilestone = new Map<string, StageTask[]>();
+  for (const task of snapshot.tasks) {
+    if (task.type !== "task") continue;
+    const milestoneId = membership.get(task.taskId)?.effectiveMilestoneTaskId;
+    if (!milestoneId) continue;
+    const group = membersByMilestone.get(milestoneId) ?? [];
+    group.push(task);
+    membersByMilestone.set(milestoneId, group);
+  }
+  const predecessorsByMilestone = new Map<string, string[]>();
+  const seenPredecessors = new Map<string, Set<string>>();
+  for (const link of snapshot.links) {
+    if (byId.get(link.predecessorTaskId)?.type !== "milestone") continue;
+    const seen = seenPredecessors.get(link.successorTaskId) ?? new Set<string>();
+    if (seen.has(link.predecessorTaskId)) continue;
+    seen.add(link.predecessorTaskId);
+    seenPredecessors.set(link.successorTaskId, seen);
+    const group = predecessorsByMilestone.get(link.successorTaskId) ?? [];
+    group.push(link.predecessorTaskId);
+    predecessorsByMilestone.set(link.successorTaskId, group);
+  }
   const gates = new Map<string, MilestoneStageGateDto>();
   for (const milestone of snapshot.tasks.filter((task) => task.type === "milestone")) {
-    const members = snapshot.tasks.filter((task) => task.type === "task" &&
-      membership.get(task.taskId)?.effectiveMilestoneTaskId === milestone.taskId);
-    const predecessors = [...new Set(snapshot.links.filter((link) => link.successorTaskId === milestone.taskId &&
-      byId.get(link.predecessorTaskId)?.type === "milestone").map((link) => link.predecessorTaskId))];
+    const members = membersByMilestone.get(milestone.taskId) ?? [];
+    const predecessors = predecessorsByMilestone.get(milestone.taskId) ?? [];
     const incomplete = members.filter((task) => task.status !== "completed");
     const incompletePredecessors = predecessors.filter((id) => byId.get(id)?.status !== "completed");
     const duration = members.reduce((sum, task) => sum + (task.duration ?? 0), 0);

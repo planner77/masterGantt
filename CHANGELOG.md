@@ -3804,3 +3804,5 @@
 - Next.js, SQLite migration/repository, SVAR Core와 Project 생성·직접 Readonly 기반
 - Project edit password/session lifecycle
 - Working Calendar와 Leaf/Milestone Scheduling Engine 기반
+
+- #552 CI #2670: address large Stage-gate projection cost, short-project initial native horizontal wheel capacity, and exact-ID Dashboard Milestone Editor tests; full CI results pending.

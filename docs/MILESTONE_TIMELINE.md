@@ -298,3 +298,8 @@ A production `DATE_REVEAL` request now uses the canonical date coordinate via th
 OFF 날짜 탐색에서 좁은 물리 Chart를 대신하는 전체 목록 fallback은 canonical ID가 같은 실제 관리 버튼의 focus 성공을 확인한다. 같은 ID라도 Dashboard query 재평가가 DOM 행을 교체하거나 일시 disable하여 BODY focus를 만들 수 있으므로 이전 ID만으로 인계 완료를 판정하지 않는다. 현재 query/render 변화에서 잃은 focus만 복구하며 새 pointerdown/keydown·다른 살아 있는 focus·modal·hidden/inert를 우선한다. RAF cleanup을 유지하고 상시 polling을 추가하지 않는다. 조건을 명시 해제하는 기존 경로만 새 focus 의도로 재개한다.
 
 390/1024/1440px OFF 날짜 탐색·원래 보기 복귀와 390px의 물리 focus ring·center hit·inactive peer paint, fallback 이후 검색 focus 보존을 직접 관련 Chromium에서 검증한다. 해당 국소 실행은 원격 전체 PR CI나 실제 screen reader·device 검증의 대체가 아니다.
+
+
+### #552 initial viewport and large Stage gate correction
+
+Initial Gantt timeline range accommodates the current viewport plus a short horizontal scroll buffer before any user wheel event, while the existing dynamic extension continues beyond the initial horizon. Full-project Stage gates group effective member Tasks and Milestone predecessor links in their existing canonical order rather than scanning every Task for each Milestone. Milestone Editor test navigation resolves exact IDs through the independent Dashboard.

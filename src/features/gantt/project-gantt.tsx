@@ -392,7 +392,11 @@ function emptyWorkspaceRange(): { start: Date; end: Date } {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);
-  end.setDate(end.getDate() + 14);
+  // A first paint must have native horizontal wheel capacity even if every
+  // canonical Task has a one-day range. Dynamic expansion still owns later growth.
+  const visibleWidth = typeof window === "undefined" ? 720 : Math.max(720, window.innerWidth);
+  const days = Math.max(14, Math.ceil(visibleWidth / GANTT_CELL_WIDTH.day) + 6);
+  end.setDate(end.getDate() + days);
   return { start, end };
 }
 
