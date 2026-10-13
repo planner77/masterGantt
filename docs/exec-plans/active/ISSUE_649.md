@@ -20,10 +20,28 @@
 4. 신규 merge SHA의 push Main CI + exact GHCR candidate digest·SBOM/provenance를 확인하고 별도 version-scoped Finalizer로 게시한다. 선행 부채별 retired 기록과 #616 F2 채무 확인 후 종료한다.
 
 ## DOCUMENTATION_SYNC
-- UPDATED: 이 문서, scripts/release_succession_preflight.py, tests/python/test_release_succession_preflight.py.
-- N/A: DESIGN.md/UI_UX_GUIDELINES.md/API.md/DB_SCHEMA.md (UI/API/DB 무변경).
-- 기존 AGENTS.md/QA_REVIEW_POLICY.md/ISSUE_LIFECYCLE.md/GITHUB_OPERATIONS.md/GENERIC_RELEASE_FINALIZER.md/CI_CD.md/REMOTE_VALIDATION.md/TEST_PLAN.md는 **보안 및 검증 조건 변경 없이 상속**. 본 문서는 #649의 추가 read-only 제약과 NOT TESTED 범위만 규정.
-- 테스트: Python unittest 정상 후보(준비만), SHA 변조·v0.107.0 중복·UNKNOWN·digest 불일치·Owner flag·first-parent 중복·누락 inventory 부정. 실제 PR CI와 원격 자격 증명 감사는 별도 증거 전 NOT TESTED.
+- `AGENTS.md`: N/A(기존 개발 및 CI 원칙 준수, 정책 파일 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 Owner 관리 QA 정책 유지)
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `DESIGN.md`: N/A(제품 UI 화면 수정 없음)
+- `docs/API.md`: N/A(API 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(DB 구조 및 마이그레이션 변경 없음)
+- `docs/GENERIC_RELEASE_FINALIZER.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_616.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_649.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+
+## AC_TEST_COVERAGE
+- AC1: 원본 SHA와 교정 SHA, 실패 증거 보존 및 검증기는 tests/python/test_release_succession_preflight.py에 대응. 실 Run 감사 NOT TESTED.
+- AC2: authenticated inventory 및 GHCR digest 입력의 fail-closed 부정 테스트 작성. 실제 원격 감사 NOT TESTED.
+- AC3: 신규 SemVer 유효성 및 기존 v0.107.0 재사용 차단 테스트 작성. Owner revocation/new authorization NOT TESTED.
+- AC4: 원본 SHA 변조, 중복, UNKNOWN, foreign candidate SHA, 역전 first-parent, 잘못된 digest 차단 테스트 작성.
+- AC5: Required CI 세 집계 및 Chromium E2E6, Trusted QA, 미해결 스레드 0은 신규 Head PR CI와 최종 리뷰 전 NOT TESTED.
+- AC6: 병합/Main GHCR/Finalizer와 #616 완료는 신규 Owner 명시 게시 승인 전 BLOCKED로 유지. 본 PR에서 실행하지 않음.
 
 ## 2026-10-13 — CI #2634 QA Preflight 정정
 
