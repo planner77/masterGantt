@@ -1,3 +1,9 @@
+## Issue #659 — PR 전용 단계별 실행과 E2E fail-fast 선택 (2026-10-13)
+
+- 의사결정: 모든 이벤트를 직렬화하는 단일 Job `needs` 체인은 채택하지 않는다. Main/manual의 wall-clock 회귀를 피하려고 PR 경로만 `pr_fast_gate → pr_build/pr_e2e_shard/pr_docker_smoke`로 분리한다.
+- Runner 비용과 정상 소요시간의 교환: Preflight 이후 빠른 policy/typecheck/lint/unit을 모두 통과해야 고비용 검사를 시작하므로 실패 PR의 Runner 사용량은 감소할 가능성이 있지만, 정상 PR은 이 단계만큼 늦게 E2E/Docker가 시작한다. 성공/실패 실제 Run의 total Runner-minutes와 wall-clock을 비교한 뒤 유지 여부를 판단한다.
+- GitHub Actions YAML anchors/aliases로 기존 step을 단일 정의로 공유한다. E2E fail-fast는 PR full에만 true; Main/manual false. Required 집계, Owner/QA/릴리스 권한은 불변이다.
+
 ## Issue #600 — PR metadata 완료 이벤트 자동 복구 (2026-10-11)
 
 - 방식 A: 기존 `ci.yml`의 전체/metadata 분리와 Ruleset required 세 집계 이름을 그대로 유지한다. metadata edited의 `DEFERRED`는 실제 FAIL(녹색 아님), Full CI 완료 이후 별도 **기본 브랜치** `workflow_run(CI completed)`가 최신 실패 metadata run의 `rerun-failed-jobs`만 자동 요청한다. 편집 이벤트 자체의 Run 생성 비용은 제거하지 못하며 재실행까지의 결과는 `NOT TESTED`.
