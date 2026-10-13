@@ -33,6 +33,12 @@
 - AC5: 최신 main Full PR CI 3 Required Quality/E2E6/Docker + default-main Trusted QA·미해결 리뷰0·별도 Owner 병합 승인; 미실행 시 NOT TESTED.
 - AC6: 병합 + Main CI 성공 후 Owner가 별도 `workflow_dispatch` 감사 재실행 (현 단계 실행 금지). BLOCKED / PREPARE_ONLY는 실제 증거로만 판정.
 
+## P1 리뷰 보완 및 원격 검증 원장 (2026-10-13)
+- [PR #658 Codex P1 스레드](https://github.com/planner77/masterGantt/pull/658#discussion_r4258066481): canonical `Refs #550` 한 행이 있어도 다른 문장에 `Refs #615`가 포함되면 검사기가 수락하는 결함을 지적. `a11747ecae380abdca2871e2454b876dc758b537`에서 별도 전체 `Refs #N` 출현 검증과 duplicate/inline/quoted/mismatched 음성 테스트를 추가했다. 기존 독립 PR/merge SHA/repo/first-parent 인증은 유지한다.
+- [PR CI #2680.1](https://github.com/planner77/masterGantt/actions/runs/38390599006) 및 [#2681.1](https://github.com/planner77/masterGantt/actions/runs/38392977701): 두 Run 모두 Required Quality, Chromium E2E 6/6, Docker 성공. `QA Final — Automated`만 해당 미해결 P1 리뷰 스레드로 `BLOCKED`/exit 1이며, 과거 실패 원장과 테스트 실행 결과는 그대로 보존한다.
+- P1 스레드에 exact 커밋/로직/negative fixture/CI 성공 근거를 답글로 남기고 GitHub에서 `is_resolved=true` 확인했다. 현재 미해결 리뷰 스레드는 0건 (해결 당시 관측이며 이후 신규 리뷰는 다시 검사).
+- 이 문서의 후속 커밋은 리뷰 해결 증거를 보존하고 `pull_request.synchronize` 신규 Full PR CI 검증을 시작하기 위한 것이다. 최신 commit의 CI·default-main Trusted QA·최종 Owner HIGH 위험 수용 및 병합은 실원격 결과 확인 전 `NOT TESTED`/미승인이다. CI 재실행으로 Owner 병합 또는 릴리스 승인과 감사 `workflow_dispatch`를 대체하지 않는다.
+
 ## 정책
 risk_level: HIGH
 qa_method: OWNER_MANAGED
