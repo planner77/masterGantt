@@ -1,0 +1,46 @@
+name: 릴리스 승계 읽기 전용 감사
+run-name: ${{ format('승계 감사 · Issue #653 · Run #{0}.{1}', github.run_number, github.run_attempt) }}
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+  packages: read
+concurrency:
+  group: release-succession-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    name: 인증된 GHCR·GitHub 증거 감사
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: default main 코드만 checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: 신뢰된 실행 SHA 확인
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: GHCR 인증
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 읽기 전용 승계 감사 및 정책 판정
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -m scripts.release_succession_audit
+      - name: 실패 포함 감사 자료 보관
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-succession-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-succession-audit.json
+          if-no-files-found: ignore
+          retention-days: 30
