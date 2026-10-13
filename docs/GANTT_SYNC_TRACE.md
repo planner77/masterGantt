@@ -79,3 +79,13 @@ ARCHITECTURE/PROJECT_UX/TEST_PLAN/DECISIONS/active PLAN을 동기화한다. DESI
 PR #575의 `4ad246c3616fd8699585ecb06095f4bc931292e8`에서 Chromium shard6은 기존 #530 중첩 frame 2번째 복귀의 원본 `left=120`을 유지하지 못했다. Playwright의 실제 Core event snapshot은 명시적 `scroll-chart(120)`을 적용한 직후 `scroll-chart(0)` 재실행을 기록한다. 초기 명시적 peer restore 자체의 누락이 아니며 정확한 후속 writer/발생 경로는 **미확정**이다.
 
 후속 #568 계측은 dev/test `?__coreTrace=1`에서 두 번째 복귀 직전 실행별 ring reset과 `nested-second-pop` 시나리오 시작을 지원한다. 테스트는 기존 Core/native/instance/columns/tree strict equality를 유지하고, PASS/FAIL 모두 bounded trace와 `data-gantt-public-scroll-events`/peer receipt를 artifact로 남긴다. 정상 제품 동작 수정이나 #530 회귀의 PASS를 의미하지 않는다. 실패 증거: [PR CI #2285.1](https://github.com/planner77/masterGantt/actions/runs/37886327633).
+
+## Issue #661 — 누적 상태 정합성 진단 지침
+
+[Gantt State Consistency](GANTT_STATE_CONSISTENCY.md)의 GSC-02/04/05/06/08/11과 [Conformance](GANTT_STATE_CONFORMANCE.md)의 SC-01~14에 진단을 연결한다. 기존 observer의 읽기 전용·opt-in·bounded ring·민감정보 제외·cleanup 계약은 유지한다. 추가 필드의 실제 구현은 #663/#667에서 수행하며 이 문서만으로 새 계측이 설치된 것은 아니다.
+
+관측 attempt, canonical revision, desired semantic identity, actual-Core dirty/recovery generation, query/scope, axis/layout, user intent lease는 서로 다른 필드로 기록한다. 동일 서버 데이터의 재조회인지, 실제 Core의 낙관적 변경인지, 의미 없는 재관측인지 구분 가능한 before/after 차이 요약이 필요하다. 순수 판별 함수가 참을 반환한 사실만으로 실제 Core 정합성을 승인하지 않는다.
+
+viewport 분석에는 직접 scroll 명령뿐 아니라 resize-chart/filter-tasks/set-columns와 실제 native DOM 변화의 sequence를 포함한다. 날짜 coverage/physical capacity/승인된 X/Y를 함께 검증하며 최초 왜곡 경로가 계측되지 않았으면 원인을 가설로 남긴다. 사용자 의도를 대신 발행하거나 별도의 복원 loop를 observer에 넣지 않는다.
+
+추적 연결값은 GSC/SC ID, exact source/patch hash, Head/base/test-merge, run/attempt, 설치 버전, 실행 명령과 fixture 종류다. Task 원문/description/URL/password/cookie/session/실제 DB를 추가하지 않고 허용된 합성 식별자·지문·numeric/boolean 값만 사용한다. 실패/취소 뒤 미도달 분기와 만료된 artifact의 한계를 명시한다. 기존 historical PASS/FAIL은 새 구현 결과로 재표시하지 않는다.
