@@ -197,9 +197,9 @@ class TestReadOnlyAudit(unittest.TestCase):
         from scripts.release_succession_preflight import PUBLISHED_SHA, PUBLISHED_DIGEST
         tags = ["0.106.1", f"ci-{PUBLISHED_SHA}"]
         packages = [{"id": 1, "metadata": {"container": {"tags": tags}}}]
-        raw = lambda tag: (f"Name: ghcr.io/planner77/mastergantt:{tag}\\n"
-                           "MediaType: application/vnd.oci.image.index.v1+json\\n"
-                           f"Digest: {PUBLISHED_DIGEST}\\n")
+        raw = lambda tag: (f"Name: ghcr.io/planner77/mastergantt:{tag}\n"
+                           "MediaType: application/vnd.oci.image.index.v1+json\n"
+                           f"Digest: {PUBLISHED_DIGEST}\n")
         with patch.object(audit, "pages", return_value=packages), patch.object(
             audit, "process", side_effect=lambda *args: raw(args[4].split(":")[-1])
         ) as call:
@@ -212,9 +212,9 @@ class TestReadOnlyAudit(unittest.TestCase):
         from scripts.release_succession_preflight import PUBLISHED_SHA, PUBLISHED_DIGEST
         tag = "0.106.1"
         packages = [{"id": 1, "metadata": {"container": {"tags": [tag]}}}]
-        raw = (f"Name: ghcr.io/planner77/mastergantt:{tag}\\n"
-               "MediaType: application/vnd.oci.image.index.v1+json\\n"
-               f"Digest: {PUBLISHED_DIGEST}\\n")
+        raw = (f"Name: ghcr.io/planner77/mastergantt:{tag}\n"
+               "MediaType: application/vnd.oci.image.index.v1+json\n"
+               f"Digest: {PUBLISHED_DIGEST}\n")
         with patch.object(audit, "pages", return_value=packages), patch.object(
             audit, "process", return_value=raw
         ):
@@ -246,14 +246,14 @@ class TestReadOnlyAudit(unittest.TestCase):
 
     def test_oci_manifest_exact_name_and_top_level_descriptor(self):
         from scripts.release_succession_preflight import PUBLISHED_DIGEST
-        good = ("Name: ghcr.io/planner77/mastergantt:0.106.1\\n"
-                "MediaType: application/vnd.oci.image.index.v1+json\\n"
-                f"Digest: {PUBLISHED_DIGEST}\\n")
+        good = ("Name: ghcr.io/planner77/mastergantt:0.106.1\n"
+                "MediaType: application/vnd.oci.image.index.v1+json\n"
+                f"Digest: {PUBLISHED_DIGEST}\n")
         invalid = [
             good.replace("0.106.1", "v0.106.1"),
             good.replace("sha256:", "sha512:"),
             good.replace("image.index", "image.layer"),
-            good + f"Digest: {PUBLISHED_DIGEST}\\n",
+            good + f"Digest: {PUBLISHED_DIGEST}\n",
             "",
         ]
         with patch.object(audit, "process", return_value=good):
