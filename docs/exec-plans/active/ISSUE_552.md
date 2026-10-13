@@ -266,3 +266,13 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - Milestone lane의 관찰 전용 geometry 보정이 **사용자 Core/native 스크롤 위치를 덮어쓰지 않도록**, 실질적으로 표시할 날짜 Milestone이 존재하고 Core 위치가 원점이며 native resize 조정 중이 아닐 때만 공개 `resize-chart` 보정을 허용한다. Native 프로젝트 캘린더/Resource 화면 이동 후 좌표 불변 테스트의 경계로 검증한다.
 - Relation Editor의 선택된 후보는 검색 필드를 대체하므로 테스트에서 명시적 **변경** 후 키보드 재선택; #530 실제 SQLite 검증은 일반 Task native행 존재+Milestone native행 부재를 동시 확인; #464 Summary 접힘 증명은 실제 native virtualization 구간 밖에서 동일 스크롤 소유자를 통해 확인 후 좌표 복귀한다.
 - #571 Editor locate/focus, #464 Copy 경고, #552 DATE_REVEAL, #529 wheel 보존 등 다른 실패 건은 별도 원인 미확정. 모든 AC는 새 PR CI에서만 판정하고 **NOT TESTED**를 임의 PASS로 바꾸지 않는다. PR 병합·Main CI·GHCR는 이 변경의 범위 밖이다.
+
+
+## #2666 failure remediation — 2026-10-13
+
+- Six-shard E2E: shard 4/5/6 observed 7/3/3 FAIL on `f42afe10`; Quality/Docker PASS, CI historical result not retrospectively altered.
+- DATE_REVEAL was a product UNSUPPORTED stub in the Coordinator plus null in the Port. Connect canonical Milestone date to the public SVAR `scroll-chart` action through date coordinate adapter; preserve current Y, no native milestone row selection, fail closed outside valid axis.
+- Context Copy now prioritizes the explicit source when selection belongs to another row, retaining genuine selected multi-root Copy. Asynchronously derived filter membership no longer acts as a user query boundary that clears the clipboard. Explicit filter/scope/project changes still clear it.
+- Calendar changes with unchanged Task date geometry no longer invalidate the passive viewport reconciliation geometry fingerprint. Actual dates still drive invalidation.
+- #571 test begins same-view Task Reveal from Schedule marker rather than Dashboard-origin drill; the Relation modal test dismisses its still-open parent Editor prior to Gantt focus assertion.
+- Existing QA gates, E2E assertions, completed/revision/membership guard and original FAIL history preserved. New Head Quality/E2E/Docker are NOT TESTED until a new complete CI result. Merge/main/release/GHCR excluded.

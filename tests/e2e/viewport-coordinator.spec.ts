@@ -1,6 +1,16 @@
-import { expect, test } from "@playwright/test";
-import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
+import { expect, test, type Page } from "@playwright/test";
+import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
 import { editor, setup } from "./fixtures/task-editor-density";
+
+// #571 same-view TASK_REVEAL starts from the Schedule lane, while Dashboard-origin requests use the #528 drill path.
+async function scheduleMilestoneEditor(page: Page, taskId: string) {
+  const marker = page.locator(".project-gantt-frame").locator(`[data-milestone-lane-trigger="${taskId}"]`);
+  await expect(marker).toBeVisible();
+  await marker.click();
+  const dialog = editor(page);
+  await expect(dialog).toBeVisible();
+  return dialog;
+}
 
 test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다", async ({ page }, info) => {
   const fixture = await setup(page, { longList: true });
@@ -16,7 +26,7 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
     core: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number },
     native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop },
   }));
-  const dialog = await openMilestoneEditor(page, milestone.taskId);
+  const dialog = await scheduleMilestoneEditor(page, milestone.taskId);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
@@ -70,7 +80,7 @@ for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#57
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame");
-  const dialog = await openMilestoneEditor(page, milestone.taskId);
+  const dialog = await scheduleMilestoneEditor(page, milestone.taskId);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });

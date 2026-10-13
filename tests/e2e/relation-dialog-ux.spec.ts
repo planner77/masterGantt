@@ -67,7 +67,12 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await expect(modal).toHaveCount(0);
   await expectSameGanttRoot(page, root);
-  expect(await page.evaluate(() => document.activeElement?.closest(".project-gantt-frame") !== null)).toBe(true);
+  // The nested Relation Editor closes first; dismiss its Task Editor owner before asserting Gantt focus.
+  const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(taskEditor).toBeVisible();
+  await taskEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expect(taskEditor).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.activeElement?.closest(".project-gantt-frame") !== null)).toBe(true);
 });
 
 test("명시적 닫기는 후보 popup보다 우선해 dirty 닫기 확인으로 진입한다", async ({ page }) => {

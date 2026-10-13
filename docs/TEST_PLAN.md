@@ -3589,3 +3589,8 @@ visibility 수정 후 source125 aggregate `f320261b0fddc7f0ddee041a4efd31881a778
 
 - Source #552 removes Milestone rows/bars from native WBS, while preserving full canonical Task/Link/Membership and an independent Milestone Dashboard/Timeline. Existing tests must enter Milestone Editor/Copy ID via exact-ID Dashboard management, not force a hidden native Grid bar or relation line. Summary/Task Grid coverage remains.
 - CI #2639.1 Quality/Docker succeeded, Chromium six shards failed, run later cancelled. Prior results are not current-head PASS; retain project WBS geometry/viewport/selection tests without skip, false-pass or tolerance enlargement. New full PR CI must exercise current main and all six shards.
+
+
+### #552 (2026-10-13) CI #2666 regression plan
+
+Verify production Milestone DATE_REVEAL with exact canonical date through public `scroll-chart`, including saved OFF preference and marker/fallback focus. Verify Copy Preview impact, zero mutation before acknowledgement, clipboard survival under unchanged query but invalidation on explicit filter/scope change. Verify calendar-only revision viewport preservation, explicit user wheel priority, #571 Schedule-origin Task Reveal and #528 Dashboard-origin drill independently. Keep six full E2E shards, actual HTTP, readonly/401/412 and completed boundaries; do not skip/relax checks.
