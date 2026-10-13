@@ -1926,7 +1926,10 @@ export function ProjectGantt({
         milestoneProbeRequest.current = ids === null ? null : { api, ids: [...ids], source, filterKey: visibleTaskFilterKeyReference.current, request: generation };
         await canonicalSyncQueueReference.current;
         if (apiReference.current !== api || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
-        await filterMilestoneWbsRows(api, ids);
+        // Resetting the development probe must restore the production-owned
+        // Summary/Task projection, not reintroduce hidden Milestone WBS rows.
+        // Preserve caller-specified IDs for explicit diagnostic filtering.
+        await filterMilestoneWbsRows(api, ids ?? projectionReference.current.membershipIds);
       },
       read: () => {
         const state = api.getState();

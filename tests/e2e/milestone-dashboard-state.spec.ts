@@ -162,7 +162,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
     await observe("before-filter");
     await search.fill("Stable leaf");
-    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
     await expect(frame.getByRole("row")).toHaveCount(2);
@@ -244,6 +244,13 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
     Reflect.set(window, "__issue530DisposeInput", () => document.removeEventListener("input", input, true));
   });
   const state = await fixture(page);
+  // Preserve a real scrollable ordinary WBS after #552 removes native Milestone rows.
+  const ordinary = state.tasks.find(task => task.type === "task")!;
+  for (let i = 125; i < 149; i++) state.tasks.push({
+    ...ordinary, taskId: `00000000-0000-4000-8000-${String(i).padStart(12,"0")}`,
+    externalId: `INPUT-SCROLL-${i}`, name: `Scroll input task ${i}`,
+    siblingOrder: i, parentExternalId: null,
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}?__coreTrace=1`);
@@ -314,7 +321,7 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
     expect(atInput.heldFrames).toBeGreaterThan(0);
     expect(atInput.inputEvents[0].heldFrames).toBeGreaterThan(0);
     await frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").release());
-    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect(frame.getByRole("row")).toHaveCount(2);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, native: { left: 120, top: 0 } });

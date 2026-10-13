@@ -73,7 +73,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await captureNotificationLayout(page,"before");
   // Native dispatch avoids Playwright actionability auto-scroll from changing the Grid position.
   await rejectRootForNotification(page, fixture, 1);
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+  await expect(page.getByTestId("workspace-toast")).toContainText("Milestone에는 하위 작업");
   await expect(page.getByRole("button", { name: "알림함, 미확인 1건" })).toBeVisible();
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
@@ -281,7 +281,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
 
     // Native dispatch avoids scrolling the workspace away from the header while creating unread state.
     await rejectRootForNotification(page, fixture, 1);
-    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+    await expect(page.getByTestId("workspace-toast")).toContainText("Milestone에는 하위 작업");
     const unreadBell = page.getByRole("button", { name: "알림함, 미확인 1건", exact: true });
     await expect(unreadBell).toBeVisible();
     const unreadBellBox = await unreadBell.boundingBox();

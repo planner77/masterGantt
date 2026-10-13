@@ -39,7 +39,7 @@ export async function openMilestoneEditor(page: Page, taskId: string) {
   await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   const row = panel.locator(`[data-milestone-task-id="${taskId}"]`);
   await expect(row).toHaveCount(1);
-  await row.getByRole("button", { name: / 단계 상세$/ }).click();
+  await row.getByRole("button", { name: / Milestone 상세$/ }).click();
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(dialog).toBeVisible();
   return dialog;

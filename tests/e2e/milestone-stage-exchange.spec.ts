@@ -8,6 +8,7 @@ import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse, Cop
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
 import type { InstantiateProjectTemplateResponse, ProjectTemplateDetailResponse } from "../../src/contracts/project-templates";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 
 const editPassword = "Stage464!";
 const adminPassword = "Stage464SyntheticAdmin!";
@@ -62,8 +63,17 @@ function taskMeaning(snapshot: ProjectSnapshotResponse) {
 const linkMeaning = (snapshot: ProjectSnapshotResponse) => snapshot.data.links.map((link) => ({ predecessorExternalId: link.predecessorExternalId, successorExternalId: link.successorExternalId, type: link.type, lag: link.lag, legacyMixed: link.legacyMixed })).sort((a, b) => a.predecessorExternalId.localeCompare(b.predecessorExternalId) || a.successorExternalId.localeCompare(b.successorExternalId));
 const row = (page: Page, taskId: string) => page.locator(`#project-panel-schedule .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
 async function openTask(page: Page, taskId: string) {
-  await row(page, taskId).click({ button: "right" }); await chooseTaskInformation(page);
-  const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true }); await expect(dialog).toBeVisible(); return dialog;
+  const nativeRow = row(page, taskId);
+  if (await nativeRow.count() === 0) {
+    // #552: canonical Milestones stay editable through the independent dashboard,
+    // never by manufacturing a native Grid row.
+    return openMilestoneEditor(page, taskId);
+  }
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await nativeRow.click({ button: "right" }); await chooseTaskInformation(page);
+  const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 async function downloadBytes(download: Download) {
   const stream = await download.createReadStream(); expect(stream).not.toBeNull();
