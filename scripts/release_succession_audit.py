@@ -280,10 +280,11 @@ def historical_prs_verified(chain: list[str]) -> bool:
                 and ((pr.get("base") or {}).get("repo") or {}).get("full_name") == REPO
                 and ((pr.get("head") or {}).get("repo") or {}).get("full_name") == REPO,
                 f"historical PR #{number} 병합/저장소/main/SHA 출처 불일치")
-        # The immutable PR's primary issue is cross-checked via its canonical
-        # body rather than accepting a bot marker's independently typed issue.
+        # Validate exactly one standalone Refs #issue line (including CRLF); never
+        # trust a retirement bot's independently typed Issue number or an inline
+        # prose mention. Repeated/conflicting Refs fail closed.
         body = pr.get("body") or ""
-        refs = re.findall(r"(?im)^\\s*Refs\\s+#([1-9][0-9]*)\\s*$", body)
+        refs = re.findall(r"(?im)^[ \t]*Refs[ \t]+#([1-9][0-9]*)[ \t]*\r?$", body)
         require(refs == [str(issue)],
                 f"historical PR #{number} Issue #{issue} 귀속 불일치")
     return True
