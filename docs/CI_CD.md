@@ -1,3 +1,12 @@
+## Issue #659 — PR #660 CI #2691 E2E 타임아웃 보완 및 Shard 내부 첫 실패 중단 (2026-10-13)
+
+- **원인 실증:** [PR CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 PR Fast Gate·TypeScript·ESLint·Vitest·Policy·Next Build·Docker는 PASS. Chromium E2E shard 4/6의 `project-edit-authorization.spec.ts` W05 편집 권한 세션 테스트는 **30,000ms 타임아웃** 후 `otherContext.close()` 시점에 브라우저 컨텍스트를 찾지 못해 1 FAIL/128 PASS/1 SKIP. [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)에서는 동일 검증이 22.6초 PASS였고 두 Head 사이 앱/해당 테스트 코드 차이는 없다. 컨텍스트 종료 오류만 예외 처리하거나 인증 단언/쓰기 제약을 완화하지 않는다.
+- **보완:** 해당 단일 W05 E2E 테스트 본문에서 `test.setTimeout(60_000)`으로 유한한 여유 확보. 기본 Playwright 30초 제한, 나머지 테스트, 분리 격리 fixture(120초), JS/UI 기능/검증 단언, retry=0 불변. 원격 CI에서 정상 PASS·실행시간 및 실패 Trace로 확인 전 성공 단정 금지.
+- **2단계 Fail-Fast:** 기존 matrix `pr_e2e_shard.strategy.fail-fast=true`는 **실패한 Shard Job이 완료된 이후** 다른 Shard 취소를 요청한다. #2691에서 Shard 4의 53번째 테스트가 실패해도 130번째까지 계속 실행해 취소가 지연되었다. 공통 E2E shard step에 `PR_E2E_STOP_ON_FAILURE`(full PR만 true)를 추가하고 과거 타이밍 계획/Playwright native fallback **양쪽** 실행에 `--max-failures=1`을 인자로 전달한다. PR E2E 과정에서 첫 실패 시 해당 Shard의 잔여 테스트를 중단→matrix fail-fast가 다른 Shard 취소를 요청; Main push/수동·과거 SHA 복구는 flag 없이 `fail-fast=false`·전체 E2E 계속 수행. 공식 Playwright 옵션이며 재시도나 패스 처리 기능이 아니다.
+- **계약 보존:** PR Source run/attempt, GitHub concurrency, 6개 shard·workers=1, timing/history/fallback, `if: always()`의 실패 report/timing 업로드, 세 Required aggregate Quality/E2E/Docker, Default-main QA Final/Trusted, Owner/Ruleset, Main GHCR/Finalizer/정식 Release 불변. 취소된 다른 shard의 미완료 artifact는 보존되지 않을 수 있다. 실제 취소·로그 및 전체 비용 효과는 원격 실증으로 구분한다.
+- **회귀:** `scripts/test_pr_fast_gate.py`가 PR 전용 환경 경로 및 두 shard 실행 분기 옵션, Main 비적용, W05 테스트 한 건 60초 범위·기존 권한 단언/컨텍스트 종료 유지 확인. PR full test suite / E2E6 / Docker 실제 PASS는 새 Head 원격 CI 후 판정, 실패 주입/Runner 절감률은 별도 실증 전 NOT TESTED.
+- 이 PR은 HIGH/OWNER_MANAGED, `release_required=false`/`release_authorized=false`, 앱 version 0.107.0 유지. 실패 원본 #2691은 원본 SHA/Run 상태 FAILURE 그대로 둔다.
+
 ## Issue #659 — Full PR CI E2E Fail-Fast 및 Fast Gate 최적화 (2026-10-13)
 
 ### PR #660 P1 후속 — 원본 검증 Job 표시 이름 충돌 해결 (2026-10-13)

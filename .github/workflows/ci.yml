@@ -751,6 +751,8 @@ jobs:
       - name: E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
+          # #659: PR 전용 첫 실패 중단. Main/수동은 전체 케이스 유지.
+          PR_E2E_STOP_ON_FAILURE: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && 'true' || 'false' }}
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
           E2E_TIMING_SHARD_COUNT: "6"
@@ -758,6 +760,11 @@ jobs:
         run: |
           set -euo pipefail
           export E2E_RUN_STARTED_MS="$(date +%s%3N)"
+          fail_fast_args=()
+          if [[ "$PR_E2E_STOP_ON_FAILURE" == "true" ]]; then
+            fail_fast_args=(--max-failures=1)
+            echo "PR 첫 E2E 실패 시 shard 내 미실행 테스트를 중단합니다."
+          fi
           set +e
           selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
           selection_status=$?
@@ -769,10 +776,10 @@ jobs:
               exit 1
             fi
             echo "Historical timing shard plan 사용: ${#shard_files[@]} files"
-            npm run test:e2e -- "${shard_files[@]}"
+            npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"
           else
             echo "Historical timing plan 없음/불일치 — Playwright native 6-way sharding fallback"
-            npm run test:e2e -- --shard=${{ matrix.shard }}/6
+            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/6
           fi
       - name: E2E timing artifact 업로드
         if: always()

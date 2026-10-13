@@ -1,3 +1,9 @@
+## Issue #659 — PR E2E 2계층 조기 중단·W05 테스트 범위 보완 (2026-10-13)
+
+- PR Full Chromium E2E는 빠른 검사 Gate 통과 후 6 Shard로 실행한다. `--max-failures=1`으로 각 **PR Shard 내부 첫 테스트 실패 시 미실행 케이스 중단**하고 `strategy.fail-fast=true`가 다른 Shard 중단을 요청한다. Main push/수동/정확 SHA 복구는 `maxFailures` CLI를 설정하지 않고 `fail-fast=false`로 전체 케이스를 실행한다. 모범 운영 계약은 `docs/CI_CD.md` 및 `docs/REMOTE_VALIDATION.md`를 따른다.
+- 테스트 시간을 임의로 전체 증가·무제한으로 만들지 않는다. #2691 W05 권한 세션 테스트에서 30s 타임아웃이 실증되어 해당 한 테스트만 유한 60s로 변경했고 모든 권한 단언과 실패·Trace/Artifact를 유지한다. Runner 절감효과와 새 Head 전체 CI는 원격 실증 전 NOT TESTED.
+- Required Quality/E2E/Docker, QA Final/Trusted/Owner 승인, source run/attempt, Main GHCR·Finalizer·Release 절차는 변경하지 않는다.
+
 ## Issue #659 — PR E2E Fail-Fast·단계별 Fast Gate (2026-10-13)
 
 - Full PR(opened/reopened/synchronize)에서만 policy/typecheck/lint/unit 빠른 검사 후 `pr_fast_gate`를 판정한다. 필수 결과 failure/cancelled/skipped 또는 경로 판정 불명확 시 PR Next.js build/E2E 6-shard/Docker smoke를 시작하지 않는다. docs-only의 정당한 skip은 별도 판정한다.

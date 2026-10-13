@@ -1,3 +1,11 @@
+## Issue #659 — PR #660 E2E 첫 실패 중단 및 W05 타임아웃 회귀 검증 (2026-10-13)
+
+- [CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683) 최초 실패: Shard 4의 `project-edit-authorization.spec.ts:45` W05 단일 테스트가 default 30초를 초과하고 `otherContext.close: Target.disposeBrowserContext Failed to find context`를 기록했다. 1 FAIL/128 PASS/1 SKIP. 다른 샤드 2/3은 Job-level fail-fast에 따라 취소, 1/5/6 PASS. Quality/Docker PASS, Chromium aggregate FAIL, QA Final `required e2e 미성공` FAIL.
+- 단위/정적 계약: `python3 scripts/test_pr_fast_gate.py`에서 `test.setTimeout(60_000)`이 W05 본문 한 곳에만 존재하고 401 권한 검사·`await otherContext.close()`를 유지하는지 검사한다. 공유 E2E Steps의 PR-only `PR_E2E_STOP_ON_FAILURE`, `--max-failures=1`이 historical-plan 명령 및 native fallback 양쪽에 전달되고 Main/manual에서는 비활성인지 검사한다.
+- **실제 원격 확인:** 새 Head 전체 PR CI에서 W05 E2E가 정상 PASS하고 해당 테스트 예상/실제 소요시간, shard 6/6, Required Quality/E2E/Docker/QA Final 결과, Playwright report artifact 및 default-main Trusted QA 신뢰/인증 결과를 확인한다. 이후에도 실패하면 저장된 Shard trace/문맥을 분석하고 권한 검증 누락, 타임아웃 무제한, retry 우회, `--ignore-snapshots` 등으로 녹색화하지 않는다.
+- **조기 중단 실패 주입:** 별도 안전한 PR 테스트에서 실패 하나를 주입하여 해당 shard 내부 잔여 테스트 미실행(첫 failure 즉시 exit nonzero), 다른 shard GitHub 취소, 3 Required Check 중 E2E FAIL 및 QA Final FAIL을 확인한다. 이전 #2691은 첫 실패 이후 77개 잔여 테스트 실행이라는 기준이지만 새 구현의 조기 중단/Runner 절감률은 *실증 전* NOT TESTED.
+- **정상 Main/manual:** `PR_E2E_STOP_ON_FAILURE=false`, `e2e_shard.strategy.fail-fast=false`, 6-shard 실행/집계와 GHCR/Finalizer 인계가 기존 그대로인지 해당 경로에서 별도 검증한다. 이 PR 자체의 신규 Head 결과·Fail-Fast 비용 개선을 미리 PASS로 표기하지 않는다.
+
 ## Issue #659 — Full PR CI Fast Gate / E2E Fail-Fast 원격 검증 (2026-10-13)
 
 ### #659 PR #660 — P1 Job 이름 중복 검증 및 재실행 (2026-10-13)

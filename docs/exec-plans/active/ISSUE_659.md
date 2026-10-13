@@ -69,3 +69,15 @@ independent_qa: N/A(Owner-managed, 별도 독립 QA 미실시)
 - 해결: PR Build/E2E 표시명을 구분하고, legacy Docker의 **PR 비대상 이름만** 동적으로 변경. 정확한 `Docker smoke 구현`은 PR 실행 Job과 Main/manual legacy 실행 Job에서 각각 그대로 유지하여 기존 default-main Trusted QA 및 `main_ci_recovery.OTHER_JOBS`를 변경하거나 자기 승인하지 않는다.
 - 회귀: `scripts/test_pr_fast_gate.py`에 PR 실제·비실행 Job 원장 replay, exact trusted validator 선택, 동일 이름 중복 시 BLOCKED, Main/manual 복구 이름 정합 검사 추가. Code/doc sync 후 스레드 해결, 새 Head PR CI 시작. PASS 판정은 신규 원격 Run 완료 후에만.
 - DOCUMENTATION_SYNC 후속: `docs/CI_CD.md` UPDATED, `docs/GITHUB_OPERATIONS.md` UPDATED, `docs/REMOTE_VALIDATION.md` UPDATED, `docs/TEST_PLAN.md` UPDATED, `docs/exec-plans/active/ISSUE_659.md` UPDATED, `docs/DECISIONS.md` UPDATED. `docs/QA_REVIEW_POLICY.md` N/A(불변 신뢰 경계). `AGENTS.md` N/A(기존 지침 보존). API/DB/UI/버전 N/A.
+
+## 2026-10-13 — CI #2691 E2E Shard4 30초 타임아웃 근본 원인 후속
+
+- [PR CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683), Head `0f647de240aa8c2f1c6af87b4a3b8a022a96a6f2`: Preflight/TypeScript/ESLint/Vitest/Policy/Fast Gate/Build/Docker/Required Quality·Docker PASS. Shard4의 W05 편집 권한 수명주기 테스트 30,000ms timeout 뒤 `otherContext.close()` protocol exception 동반, 1 FAIL/128 PASS/1 SKIP. Shard 2/3은 matrix fail-fast로 CANCELLED, E2E aggregate 및 QA Final FAIL. 기존 미해결 리뷰 0.
+- 같은 테스트는 [#2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)에서 22.6초 PASS였고 그 뒤 제품/테스트 코드 변경은 없었다. 테스트는 실제 다중 페이지·권한 session/revision/패스워드 교체까지 수행하므로 W05 테스트 하나만 60초의 **유한 상한**으로 변경한다. 401/412 등 모든 권한 단언, E2E 격리, context close 오류 전달과 retries=0은 불변.
+- 추가 원인: shard4의 53번째 테스트가 실패해도 shard Job이 130번째까지 진행하면서 다른 shard cancel이 지연됨. PR event에서만 `PR_E2E_STOP_ON_FAILURE`를 활성화하고 두 E2E 분기(historical planner 및 native fallback)에 `--max-failures=1`을 넘긴다. 기존 matrix fail-fast는 유지하고 Main/manual은 테스트 단위 조기 종료 없이 전수 실행.
+- AC1/AC3: PR 조기 중단 2계층/후속 3 Required fail-closed 경로는 정적 테스트 및 신규 원격 Run으로 검증; 실패 주입 효과 증거는 실증 전 NOT TESTED.
+- AC4/AC7: 새 Head에서 W05 테스트·E2E 6/6·Quality/Docker·QA Final 재검증. 기존 FAIL 원본 불변. AC2/AC6: Main/manual 전수 실행과 GHCR/Finalizer는 병합 전 별도 원격 검증 없으므로 NOT TESTED.
+- AC8: #2691의 첫 실패~Shard 완료 지연 개선량/Runner-minutes는 새 실패 Run 전후 실제 계측 전 NOT TESTED.
+- DOCUMENTATION_SYNC: `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/GITHUB_OPERATIONS.md`, `docs/exec-plans/active/ISSUE_659.md`, `CHANGELOG.md` 갱신; `docs/QA_REVIEW_POLICY.md`/API/DB/UI N/A(정책·제품 계약 변경 없음).
+- 신규 결과가 PASS이거나 Owner가 재작업을 승인하기 전까지 merge/Main CI/GHCR/Finalizer/Issue close 금지. risk_level HIGH/OWNER_MANAGED, release_required=false.
+

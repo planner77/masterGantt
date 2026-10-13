@@ -1,3 +1,9 @@
+## Issue #659 — PR Shard 내부 `--max-failures=1` 및 W05 개별 타임아웃 결정 (2026-10-13)
+
+- 관찰: #2691 E2E shard4 테스트 53번 W05가 30s timeout으로 실패한 뒤 130개 중 나머지 검증이 진행되며 matrix fail-fast 취소가 늦었다. 첫 오류는 단언 완화 없이 별도 Test에 유한 60s 상한을 설정한다(이전 #2690 22.6s PASS, #2691 30.2s FAIL). `browserContext.close` protocol 오류는 타임아웃 이후 2차 예외로 보고, 무시/억제하지 않는다.
+- 결정: PR Full만 공통 E2E step의 historical/native 두 실행 경로에 Playwright CLI `--max-failures=1`을 전달한다. 이 조합은 Playwright test-level 빠른 중단 후 GitHub matrix job-level cancel을 유도한다. Main/manual에서 원본 전체 회귀 데이터를 수집하도록 flag는 false; 6 shards/workers1 및 필수 집계/신뢰 검증은 변경하지 않는다.
+- 실증 기준: 새 Head의 실제 전체 PR CI Quality/E2E6/Docker/QA와 최초 실패~잡 종료시각, Runner-minutes, 실패 Trace 보존 확인. 실패 주입/비용 개선률이 없으면 NOT TESTED로 보고하며 합리적인 수치 추정만으로 채택 결과를 확정하지 않는다.
+
 ## Issue #659 — PR 전용 단계별 실행과 E2E fail-fast 선택 (2026-10-13)
 
 ### #659 P1 — PR/Main Job 표시 이름 호환 전략 (2026-10-13)

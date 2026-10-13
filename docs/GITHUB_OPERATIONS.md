@@ -1,3 +1,9 @@
+## Issue #659 — E2E 테스트 내부 조기 종료 및 실패 진단 (2026-10-13)
+
+- PR `pr_e2e_shard`는 `--max-failures=1`으로 **첫 테스트 실패 후 해당 Shard에서 나머지 테스트를 중단**한다. Job이 실패 결론에 도달하면 기존 matrix `fail-fast=true`가 다른 진행/대기 Shard 취소를 요청한다. Main/수동의 `e2e_shard`에는 이 CLI 옵션을 전달하지 않고 기존 전체 오류 수집·`fail-fast=false`를 유지한다.
+- #2691의 W05 테스트는 30초 timeout이 최초 실패이고 `browserContext.close` protocol 오류는 타임아웃 후 finally에 동반되었다. 단일 테스트만 60초로 제한을 늘리고 `401/412` 등의 권한 검증/실패 보고, 컨텍스트 정리 예외는 숨기지 않는다. 실패 Shard report/trace는 업로드하고 취소된 다른 Shard report 존재를 PASS 증거로 가정하지 않는다.
+- 동일 Head의 기존 실패 run 재실행 대신 보완 commit 새 Head의 전체 PR CI + QA Final을 확인한다. 조기 종료로 전체 오류 수집이 필요한 상황은 Main/수동 전체 실행 경로를 사용한다. 유효한 Owner 지시/QA/Required Check 전 병합하지 않는다.
+
 ## Issue #659 — PR CI 실패 조기 중단·Fast Gate 운영 지침 (2026-10-13)
 
 ### PR #660 — 표시 Job 이름의 불변 검증기 호환성 (2026-10-13)

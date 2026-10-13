@@ -191,6 +191,35 @@ class WorkflowContract(unittest.TestCase):
                 Attempt(names + [("Docker smoke 구현", "skipped")]), 88, 1
             )
 
+    def test_pr_e2e_stops_after_first_test_failure_only(self):
+        """#2691: test failure at item 53 must not run 77 more cases.
+
+        Main/recovery should still collect every shard's failures as before.
+        """
+        main_e2e = job(self.yaml, "e2e_shard")
+        pr_e2e = job(self.yaml, "pr_e2e_shard")
+        self.assertIn("fail-fast: false", main_e2e)
+        self.assertIn("fail-fast: true", pr_e2e)
+        self.assertIn("steps: &e2e_shard_steps", main_e2e)
+        self.assertIn("steps: *e2e_shard_steps", pr_e2e)
+        self.assertIn("PR_E2E_STOP_ON_FAILURE:", main_e2e)
+        self.assertIn("github.event_name == 'pull_request'", main_e2e)
+        self.assertIn("fail_fast_args=(--max-failures=1)", main_e2e)
+        self.assertIn('if [[ "$PR_E2E_STOP_ON_FAILURE" == "true" ]]', main_e2e)
+        self.assertIn('npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"', main_e2e)
+        self.assertIn('npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/6', main_e2e)
+        self.assertIn("github.event.action != 'edited'", main_e2e)
+
+    def test_w05_timeout_adjustment_is_finite_and_test_scoped(self):
+        source = (ROOT / "tests/e2e/project-edit-authorization.spec.ts").read_text(
+            encoding="utf-8"
+        )
+        self.assertEqual(source.count("test.setTimeout(60_000)"), 1)
+        self.assertIn("keeps direct reads readonly and enforces the W05 edit session lifecycle", source)
+        self.assertIn("expect(crossProjectPatch.status()).toBe(401)", source)
+        self.assertIn("await otherContext.close()", source)
+        self.assertNotIn("catch (error) { /* ignore", source)
+
     def test_metadata_and_preflight_boundaries(self):
         self.assertIn("github.event.action == 'edited'", job(self.yaml, "metadata_evidence"))
         self.assertIn("needs.preflight.result == 'success'", job(self.yaml, "policy"))

@@ -1,3 +1,16 @@
+## Issue #659 — CI #2691 실패 보완 및 조기 Fail-Fast 회귀 검증 (2026-10-13)
+
+| 범위 | 실제/예상 증거 | 완료 기준 |
+| --- | --- | --- |
+| W05 단일 E2E (AC4) | #2690 22.6초 PASS vs #2691 기본 30초 timeout + context close 2차 오류 | 테스트 하나의 `test.setTimeout(60_000)`에서 권한·revision·session 회귀 검증 전부 PASS, 종료 오류를 포착·무시하지 않음 |
+| PR 내부 fail-fast (AC1/AC3) | #2691에서 Shard 4의 53번째 failure 후 나머지 77개 실행, Shard 2/3 취소 | `PR_E2E_STOP_ON_FAILURE=true` + `--max-failures=1`이 historical plan/native fallback 양쪽에 적용, 최초 실패 발생 시 해당 Shard 내 잔여 테스트 중단 |
+| Main/manual (AC2/AC6) | 기존 `fail-fast=false`/6-shard 전수 실행 | 같은 공통 E2E step을 사용해도 PR-only 변수 false로 `--max-failures=1`을 전달하지 않음 |
+| 기존 보호 유지 (AC5/AC7) | #2691 Quality/Docker Required PASS, E2E FAIL, QA Final `required e2e 미성공` | 새 Head 전체 CI에서 Quality/E2E/Docker·QA Final 결과 정확성, source/attempt, branch/thread/QA 불변 |
+| 실패 진단 및 절감률 (AC8) | 실패 Shard report/trace 보존, 다른 Shard 일부 CANCELLED | 실패 시 원본 로그와 Playwright report retained; Runner-minutes·중단 시간 전후 실측 없으면 NOT TESTED |
+| 문서 (AC9) | #659 Work Packet/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/CHANGELOG | 실행 계약·회귀 테스트 경로·원본 Run FAIL 불변을 일치시킴 |
+
+**로컬 계약 테스트:** `python3 scripts/test_pr_fast_gate.py`에서 E2E PR-only arg routing / 6-shard matrix / W05 테스트 한정 60초 timeout / 필수 권한 assert 및 context close 불변을 검증한다. 이번 변경에 의해 기존 전체 E2E, 정상/오류 시나리오나 Required Check를 skip/완화하는 것은 허용하지 않는다. 새 PR CI 실제 성공 및 절감률은 실행 완료 전 NOT TESTED.
+
 ## Issue #659 — PR Fast Gate / E2E Fail-Fast 검증 계획 (2026-10-13)
 
 ### PR #660 P1 — CI 표시 Job 이름 / Trusted QA 연결 회귀 (2026-10-13)
