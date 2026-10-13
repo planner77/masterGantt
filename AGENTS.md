@@ -5,6 +5,13 @@
 - 세 Required aggregate의 이름·fail-closed, `pull_request.edited` metadata-only, 신뢰된 Preflight/QA, main GHCR/Finalizer/Release 정책 불변. 새로운 Gate 성공은 Owner 병합 승인이 아니다. 이 변경 자체는 HIGH/OWNER_MANAGED, 검증 전 NOT TESTED; 정식 이미지 버전/릴리스 변경 없음.
 - 구현·회귀: [Work Packet](docs/exec-plans/active/ISSUE_659.md), [CI/CD](docs/CI_CD.md), [원격 검증](docs/REMOTE_VALIDATION.md).
 
+## Issue #657 — 감사 #16 PR Refs 정규표현식 및 Python CI 필수 회귀 (2026-10-13)
+
+- 운영 [승계 감사 #16.1](https://github.com/planner77/masterGantt/actions/runs/38388876066)의 `historical PR #559 Issue #550 귀속 불일치`는 실제 GitHub PR `Refs #550`이 정상임에도 Python raw-regex에 잘못 쓴 이중 escape로 발생한 검증기 결함이다.
+- 변경된 `historical_prs_verified`는 GitHub REST가 인증한 과거 다섯 PR의 merged/main/PR·Issue/source SHA/first-parent를 그대로 독립 검증하면서 **정확히 하나의 standalone `Refs #N`** (CRLF·좌우 공백/탭 허용)만 수락한다. 복수·다른 Issue·인라인 문자열·API 오류는 BLOCKED.
+- `.github/workflows/ci.yml` 정책 Job에서 `tests/python/test_release_succession_*.py`의 unittest discover를 PR/Main CI의 필수 단계로 실행한다. 실패 시 Quality aggregate FAIL, 기존 Chromium E2E6/Docker/Trusted QA 및 Owner 승인 정책 유지.
+- HIGH / OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false. `docs/exec-plans/active/ISSUE_657.md` AC/문서 영향 원장 참조. 감사 자체는 read-only, 새 release/태그/승인/퇴역/Issue #616 종료 권한 없음. 실제 재감사는 별도 Owner `workflow_dispatch` 실행 이후만 판정한다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.

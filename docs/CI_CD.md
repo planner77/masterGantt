@@ -10,6 +10,12 @@
 - **회귀:** `python3 scripts/test_pr_fast_gate.py`와 `python3 scripts/test_qa_preflight.py`를 CI policy Job에서 실행한다. main/manual 병렬성, alias, required aggregation, metadata-only, skip/fail/cancelled 상황을 정적·단위 계약으로 검증한다.
 - **측정/롤백:** 실제 Actions에서 정확 Head/base를 기준으로 정상·실패 Run의 시작~완료 wall-clock, 각 Runner started_at~completed_at 합계(Runner-minutes), 실행하지 않은 heavy Job 수, 실제 first-failure~Run completion을 전후 비교한다. 계측 전 절감률은 NOT TESTED. 정상 PR 임계 경로가 과도하게 증가하거나 required gate가 Pending/잘못된 SUCCESS로 바뀌면 A/B를 분리해 되돌린다(우선 B 의존성/PR 분기 복원, 필요 시 A fail-fast 비활성화). Main·Release·Ruleset 이름은 유지한다.
 
+## Issue #657 — release succession Python regression policy gate (2026-10-13)
+
+- CI의 기존 `policy` Job에서 `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_succession_*.py' -v` 필수 실행. 대상: `test_release_succession_audit.py` + `test_release_succession_preflight.py`, PR/Main checkout 소스 기준. unittest 실패 시 `policy` 실패 → Quality required aggregate 실패; skip/timeout/retry 완화 없음.
+- 배경: 감사 [#16.1](https://github.com/planner77/masterGantt/actions/runs/38388876066)에서 `Refs #550`를 찾지 못한 raw-regex 이중 escape 문제는 CI에 Python suite가 연결되지 않아 #655 PR CI 통과 뒤 운영에서 발견됐다. 이제 실제 multiline/CRLF `Refs #550`와 다섯 PR 매핑·negative fixture로 검증한다.
+- 기존 E2E 6개 shard, Docker, QA Final/Trusted, Owner HIGH 수용 및 main/GHCR/Finalizer 프로세스는 변경하지 않는다. read-only 승계 감사 `workflow_dispatch`는 PR CI에서 자동 실행하거나 릴리스 게시하지 않는다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.

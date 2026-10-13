@@ -14,6 +14,13 @@
 
 CI policy에 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py`와 `scripts/test_qa_preflight.py`를 실행한다. Runner에서 기록하지 않은 실증은 NOT TESTED로 유지한다. 앱/E2E 테스트 자체를 삭제하거나 생략하는 것이 아니라 full PR에서 실행 순서와 실패 시 비용을 바꾸는 작업이다.
 
+## Issue #657 — PR Refs 인식 회귀 / CI 실행 계약 (2026-10-13)
+
+- **Positive:** `tests/python/test_release_succession_audit.py::test_exact_historical_pr_source_ledger` — #559의 multiline CRLF/탭 `Refs #550`, #627/#628 `Refs #615`, #626/#632 `Refs #550`; 5개 PR merged/main/repo/merge SHA 전체 검사. 독립 5 API fetch.
+- **Negative:** `test_historical_refs_fail_closed_on_ambiguous_and_inline_text` — 동일/다른 Issue 두 줄, 다른 단일 Issue, prose `Refs`, 목록형, trailing words, 0번, 빈 본문은 BLOCKED; 기존 `test_exact_historical_pr_source_ledger`의 SHA/상태/병합/Issue 변조 및 API 403/first-parent 누락도 계속 BLOCKED.
+- **Full suites:** `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests/python -p 'test_release_succession_*.py' -v`는 PR + Main CI policy 필수 단계. `test_release_succession_preflight.py`의 정책 음성/양성 포함. 테스트 미실행 시 PASS 금지.
+- **운영:** Audit #16.1 BLOCKED 보존, 수정 후 #17 이상 Owner 수동 감사에서 stage 전진 여부/정책 판정 별도 검증. 새 release·GHCR·원장 mutate 테스트 금지.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.

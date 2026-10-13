@@ -7,6 +7,13 @@
 - **Main/보안:** push/manual/과거 SHA 복구에서 불필요한 Fast Gate 선행 대기가 없는지 시각을 비교한다. CI Workflow 변경 PR은 HIGH/OWNER_MANAGED 및 Trusted QA/Owner 명시 수용 필수; GHCR/Finalizer는 병합 후에만 검증.
 - **비용 비교:** identical lane 및 가능한 동일 변경 범위에서 이전/이후 Run wall-clock과 Runner-minutes(각 Job started_at~completed_at 합계), 회피한 heavy Job 수, 실패 이후 잔여 실행시간을 기록. 아직 기준 Run 2종 비교는 NOT TESTED; 추정 개선 퍼센트를 보고하지 않는다. Shard 취소 시 미완료 artifact가 없다는 이유로 테스트 성공으로 처리하지 않는다.
 
+## Issue #657 — 감사 #16 원인 재현 및 변경 검증 (2026-10-13)
+
+- T1: 독립 GitHub 원본 [PR #559](https://github.com/planner77/masterGantt/pull/559)의 `Refs #550` + merged/main + immutable SHA `40747252c389f2a4d1203a2262a4caa49c90728d`가 Python local mock/CI에서 정상 검증되어야 한다. #627/#628/#626/#632도 각각 `Refs #615/#550`로 정상.
+- T2: 여러 줄/CRLF/좌우 공백·탭은 한 행만 ACCEPT. 중복 Refs, 다른 issue, prose embedded, 변조 PR/SHA/권한/API 오류는 BLOCKED.
+- T3: PR CI `policy` Job에 두 `test_release_succession_*.py` suite 실행 성공 **로그**와 세 Required Quality/E2E6/Docker, Trusted QA, review 0 확인. 단순 코드 존재나 PR CI 녹색만으로 Python 실행을 주장하지 않는다.
+- T4: Owner 승인 별도 병합/Main CI 이후 read-only `workflow_dispatch` 재검증. 감사 Run/Attempt/main SHA/artifact의 stage/reason을 비교하며, 미확인 Owner 철회·v0.108.0 준비는 정책 BLOCKED일 수 있다. 기존 `v0.106.1` GHCR digest, #616 원본 실패, 발행·퇴역·종료 금지 보존.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
