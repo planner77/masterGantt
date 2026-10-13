@@ -1,3 +1,12 @@
+## Issue #659 — Full PR CI Fast Gate / E2E Fail-Fast 원격 검증 (2026-10-13)
+
+- 목표: #659 PR exact Head/base의 `QA Preflight → policy/typecheck/lint/unit → PR Fast Gate → PR Next build/E2E 6-shard/Docker` 순서를 GitHub Jobs `started_at/completed_at`으로 확인한다. main/manual에는 원래의 병렬 Job(`build/e2e_shard/docker_smoke`)이 실행되고 PR Lane이 skipped되어야 한다.
+- **정적·단위:** `python3 scripts/test_pr_fast_gate.py`는 required 성공, failure/cancelled/skipped/unknown의 fail-closed, 정당한 비대상 skip, YAML job routing/alias, required aggregate, metadata-only를 검증. 기존 `scripts/test_qa_preflight.py`와 동시에 수행한다.
+- **운영 실패 시나리오:** 안전한 별도 테스트 PR/fixture에서 policy/typecheck/unit 중 하나를 의도적으로 실패시키고 heavy Job `skipped`, 세 Required aggregate `failure`, 원본 Job 로그를 확인한다. PR의 E2E 한 Shard 실패 시 나머지 Shard 취소 요청과 E2E aggregate 실패를 확인한다. **실제 실패 주입 Run이 없다면 AC1/AC3 원격 증거는 NOT TESTED**(정적 검사 PASS로 승격 금지). 기존 production PR에 고의 결함을 병합하지 않는다.
+- **정상 시나리오:** 하나의 Full PR에서 Preflight, 4개 빠른 검사, Fast Gate, Next.js build, Chromium6/6, Docker, Quality/E2E/Docker aggregate가 모두 success임을 확인한다. PR `edited`는 heavy skip 및 정확한 Full CI 증거 결합으로 처리한다.
+- **Main/보안:** push/manual/과거 SHA 복구에서 불필요한 Fast Gate 선행 대기가 없는지 시각을 비교한다. CI Workflow 변경 PR은 HIGH/OWNER_MANAGED 및 Trusted QA/Owner 명시 수용 필수; GHCR/Finalizer는 병합 후에만 검증.
+- **비용 비교:** identical lane 및 가능한 동일 변경 범위에서 이전/이후 Run wall-clock과 Runner-minutes(각 Job started_at~completed_at 합계), 회피한 heavy Job 수, 실패 이후 잔여 실행시간을 기록. 아직 기준 Run 2종 비교는 NOT TESTED; 추정 개선 퍼센트를 보고하지 않는다. Shard 취소 시 미완료 artifact가 없다는 이유로 테스트 성공으로 처리하지 않는다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
