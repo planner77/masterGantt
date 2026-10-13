@@ -1,3 +1,9 @@
+## Issue #670 — v0.108.0 승계 릴리스 준비 (2026-10-14)
+
+- #616의 미발행 `v0.107.0` 게시 승인 철회와 [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) 성공/`PREPARE_ONLY`를 바탕으로 다음 후보 `0.108.0` 준비. `package.json` 및 `package-lock.json`의 세 버전 값을 동기화하고 종속성 그래프는 변경하지 않았다.
+- 실제 manifest/lockfile 기반 버전 불일치·old `v0.107.0` tag negative 및 발행된 선행 `v0.106.1` SemVer regression 추가. #616 Target/Template, #639 KPI, #647 Milestone 회귀 구현은 그대로 보존하며 새 CI 전 PASS 단정 금지.
+- **정식 릴리스 아님:** `release_required=true`, `release_authorized=false`. Git annotated `v0.108.0`, GHCR exact `0.108.0`, 신규 Owner 게시 승인, 별도 Main CI/Finalizer 및 #616 종료는 이번 준비 PR에서 미수행.
+
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
 - #662 PR #668 Codex P2: stage 교체로 지워지던 이미 인증된 OCI 버전/태그/expected·actual digest를 마지막 인증 증거 컨텍스트로 보존한다. 실패 단계는 별도 표기하고 후보 digest 부재를 앞선 release digest로 대체하지 않는다. 두 Python 회귀 테스트 및 Preflight PR/Work Packet 선언 형식 교정; 새 CI가 실행되기 전 실제 PASS는 주장하지 않는다.
 
