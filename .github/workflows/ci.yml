@@ -681,7 +681,7 @@ jobs:
     # Six shards, workers=1 and fail-closed aggregate checks stay unchanged.
     timeout-minutes: 35
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'pull_request' }}
       matrix:
         shard: [1, 2, 3, 4, 5, 6]
     steps:
