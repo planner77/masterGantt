@@ -1,3 +1,10 @@
+## Issue #659 — PR CI E2E Fail-Fast + Fast Gate (2026-10-13)
+
+- Baseline main `65c66b711f6ba1bd18caa53bd56042b54b391d80`, app version `0.107.0` 유지, 브랜치 `ci/issue-659-pr-fast-gate`. 실행 계약은 [ISSUE_659 Work Packet](ISSUE_659.md).
+- PR full: policy/typecheck/lint/unit 검사와 `pr_fast_gate` 결과 판정 후 Build/E2E 6-shard/Docker 실행. E2E matrix fail-fast=true; Main/manual은 기존 동시 시작·fail-fast=false 및 `steps` 앵커 공유.
+- `quality/e2e/docker` 세 Required 집계 및 Trusted QA/Owner 신뢰 경계는 유지. HIGH/OWNER_MANAGED/qa_required=true; release_required=false, release_authorized=false. 원격 PR CI 완료 전 PASS 불가.
+- 구현 후 `scripts/test_pr_fast_gate.py`, 기존 Preflight 테스트, 전체 PR CI 실행. 실패 주입·원격 Main/수동 검증과 비용 전후 실측은 각각 증거가 없으면 NOT TESTED; Owner 승인 전 병합하지 않는다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
