@@ -1,3 +1,19 @@
+## Issue #659 — PR Fast Gate / E2E Fail-Fast 검증 계획 (2026-10-13)
+
+| AC | 검증 | 성공 조건 |
+| --- | --- | --- |
+| AC1 | 분리된 원격 실패 주입 E2E shard | 다른 shard 취소 요청, E2E aggregate failure, 실패 로그 확인; 미실행 시 NOT TESTED |
+| AC2 | `scripts/test_pr_fast_gate.py` 정적 계약 및 실제 main/manual | 기존 `e2e_shard` fail-fast=false; 6-shard/timeout 불변 |
+| AC3 | `pr_fast_gate.assess` unit (failure/cancelled/skipped/unknown), 별도 실패 PR | 요구된 검사 비성공은 Fast Gate FAIL, heavy 미시작, 3 Required FAIL |
+| AC4 | 실제 full PR CI | build/E2E 6/6/Docker 모두 PASS 및 3 Required SUCCESS |
+| AC5 | unit + 기존 `scripts/test_qa_preflight.py`, metadata-only 원격 | docs-only의 정확한 skip, `edited` 원본 증거 재사용, stale/fork 차단 |
+| AC6 | main/manual 별도 CI 실증 | 기존 동시 시작 경로·GHCR/Finalizer·Release 정책 유지 |
+| AC7 | unit & CI policy Workflow contract | `always()` 집계, missing/skip/취소가 false PASS 또는 Pending이 되지 않음 |
+| AC8 | GitHub Actions jobs/timestamps 전후 비교 | 성공/실패 각각 wall-clock, runner-minutes, 회피 Job 수, 롤백 조건 기록 |
+| AC9 | DOCUMENTATION_SYNC 및 Work Packet | CI_CD/GITHUB_OPERATIONS/REMOTE_VALIDATION/TEST_PLAN/PLAN/AGENTS/CHANGELOG 반영 |
+
+CI policy에 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py`와 `scripts/test_qa_preflight.py`를 실행한다. Runner에서 기록하지 않은 실증은 NOT TESTED로 유지한다. 앱/E2E 테스트 자체를 삭제하거나 생략하는 것이 아니라 full PR에서 실행 순서와 실패 시 비용을 바꾸는 작업이다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
