@@ -3491,3 +3491,8 @@ Baseline `31345da9346dfbdc1ac02e4e7ca567edafec775f`, 설치 react-gantt2.7.3/sto
 실제 dev displayMode case에서 관측한 React child-key warning(render Lt, 원인 미확정), synthetic Project가 실제 DB에 없어서 Editor logistics-link/비활성 보고 GET404·503을 반환하는 경계는 fixture 경계로 기록한다. Week header-only 및 lane Week 실행의 로그에는 해당 warning이 기록되지 않았다. 설치 TimeScale의 rowIdx/cellIdx는 별도 부모 아래 key이므로 두 week 행 자체가 key 충돌 원인이라는 근거가 없고, baseline warning으로 확대하지 않는다. 경고는 숨기거나 라이브러리를 수정하지 않는다. 이 시험으로 실제 HTTP authorization/SQLite persistence PASS를 주장하지 않는다. API/DB/SCHEDULING/SECURITY/Import/Export/CI는 경계/저장/알고리즘/권한계약 소스 변경이 없어 이번 documentation N/A다. 기존 Task drag/Dependency 전체 회귀, invalid 서버 DTO, 최소1900 전체UI와 runtime observer/listener 수의 독립 계측은 이번 실제 assertion 밖이며 관련 최신 PR CI와 후속 통합 gate가 필요하다.
 
 OFF 뒤 window resize의 측정 횟수가 증가하지 않는 cleanup 경계를 실제5폭 case에서 확인했다. 최종 typecheck/변경 lint exit0이며 기존 ProjectGantt hook 경고4개는 유지한다. [선별 실행 계약과 전체 관측 JSON](../output/playwright/issue-551/review-selected/execution-contract.json), [제품/UX 계약](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다. 원본 로그/trace/DB는 `/tmp` 또는 runtime 경로에 유지하고 Git에는 합성 선별 PNG/JSON만 포함한다. 첫 FAIL/진단/지원 대안과 최신 source를 시점별로 구별하고 이전17PASS44.5초가 최신 검사로 대체되었다고 원본을 삭제하지 않는다.
+
+
+## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
+
+원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
