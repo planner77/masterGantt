@@ -23,7 +23,7 @@
 - AC1: tests/python/test_release_succession_audit.py, 153개 단일 응답/중복·비정상 ref/peel. 운영 재실행은 미실시.
 - AC2: pages()는 Release/GHCR/jobs/comments 유지, 인증 API 오류 및 GHCR digest 차단. 운영 GHCR 검사 결과 미확인.
 - AC3: main() JSON + GITHUB_STEP_SUMMARY stage/reason/run/attempt/SHA; read-only 실패 exit 1. 운영 실증 미실시.
-- AC4: #550/#615 Owner marker, B2 #633 원장, bot retirement 및 정확한 source SHA/digest; #616 신규 인증 없는 PREPARE_ONLY 금지. source positive와 missing negative 검증.
+- AC4: #550/#615 Owner marker, B2 #633 원장, bot retirement 및 정확한 source SHA/digest; #559/#627/#628/#626/#632의 GitHub API 실조회 merged/main/PR 번호/merge SHA/Refs Issue 및 first-parent 매핑 독립 확인. tests/python/test_release_succession_audit.py의 정상/변조/미인증 사례 검증. #616 신규 인증 없는 PREPARE_ONLY 금지.
 - AC5: PR 세 Required Quality/Chromium 6 shards/Docker 및 Trusted QA·리뷰 확인 후 별도 Owner 병합 승인. 원격 결과 NOT TESTED.
 - AC6: 병합 이후 Owner가 직접 default-main workflow_dispatch를 실행해야 하며, 릴리스/퇴역/이슈 종료 자동 실행은 금지.
 
@@ -38,3 +38,9 @@ release_authorized: false
 ## Verification
 `python3 -m unittest tests.python.test_release_succession_audit tests.python.test_release_succession_preflight`
 추가 검증: `python3 -m compileall -q scripts/release_succession_audit.py tests/python/test_release_succession_audit.py`.
+
+## CI #2673 리뷰 후속 보완 (2026-10-13)
+- Required Build/Quality, Chromium E2E, Docker 및 QA Preflight 모두 PASS. QA Final은 미해결 P1 review 2건으로 BLOCKED (기존 실패 결과 불변).
+- P1-A: RETIRED bot 댓글의 자기선언 배열뿐 아니라 역사적 PR 다섯 건의 merged/main/정확한 SHA/primary Issue를 GitHub REST로 직접 재조회. 누락·중복·403/404·불일치 전부 BLOCKED.
+- P1-B: 최신 Owner release-authorization note 필수 필드와 unit test fixtures 정합. 의도적으로 note가 비어 있는 음성 테스트는 차단 유지.
+- reviewer thread 해결 및 새 exact-Head Required PR CI/Trusted QA 완료 전 Owner ACCEPT 및 병합 금지.
