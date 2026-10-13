@@ -234,7 +234,7 @@ class TestReadOnlyAudit(unittest.TestCase):
         cases = [[base, dict(base, id=2)],
                  [base, dict(base)],
                  [{"id": 1, "metadata": {"container": {"tags": ["invalid tag"]}}}],
-                 [{"id": 1, "metadata": {"container": {"tags": "0.106.1"}}]]
+                 [{"id": 1, "metadata": {"container": {"tags": "0.106.1"}}}]]
         for rows in cases:
             with self.subTest(rows=rows), patch.object(audit, "pages", return_value=rows):
                 with self.assertRaises(SuccessionBlocked):
