@@ -358,6 +358,13 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await dialog.getByRole("button", { name: "작업 관계 관리 (Relation Editor) 닫기" }).click();
     await expect(dialog).toHaveCount(0);
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    // The Relation Editor was launched from the Task Editor. Closing the
+    // child dialog does not close its modal parent, which still intercepts
+    // pointer input. Dismiss the parent through the supported editor action
+    // before using the fullscreen toolbar.
+    await parentEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+    await expect(parentEditor).toHaveCount(0);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await expectSameGanttRoot(page, identity);
     await restoreExitFullscreen(page);
     await exitButton(page).click();

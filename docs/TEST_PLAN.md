@@ -1,3 +1,16 @@
+## Issue #653 — 릴리스 승계 read-only 수집기 테스트 (2026-10-13)
+
+- 정책 검사: tests/python/test_release_succession_preflight.py.
+- 수집기 negative mock: tests/python/test_release_succession_audit.py (pagination, API 404, Git tag peel, GHCR metadata, stale main, Owner decision).
+- 실제 운영 인증 GHCR·GitHub 조회, Owner marker 및 실행 provenance는 PR CI만으로 증명할 수 없다. 운영 감사 전 BLOCKED/NOT TESTED를 유지한다.
+- main workflow_dispatch 감사를 PR 코드 또는 write 권한으로 실행하지 않는다. 게시·태그 변경·퇴역·이슈 종료는 금지한다.
+
+## Issue #552 PR #561 CI #2661.1 — fullscreen modal lifecycle and remaining E2E gates
+
+- Actual CI #2661.1: required Quality/Docker SUCCESS; Chromium 1/2/3 SUCCESS and 4/5/6 FAILURE, QA Final failure. Keep individual failure evidence, including #464 Summary copy acknowledgement, #529/#530/#571 user-intent/peer/scroll invariants, #551 lane readiness, #552 OFF marker focus and real SQLite calendar left-coordinate loss.
+- Fullscreen Relation Editor opens *from* Task Editor. After the child Relation Editor closes, first close the still-open parent `작업 정보` with its `작업 편집기 닫기` button, assert the Task Editor is gone and native fullscreen still active, then exit fullscreen. Never use a force click through a modal, skip dialogs or relax Core instance assertions.
+- PR current-main alignment includes #653's strict read-only release-succession audit sources and server regression timeout deltas, without weakening the existing full PR CI (Quality/Chromium six shards/Docker), QA trust or Owner release gates. Before new CI, all unrerun E2E cases are NOT TESTED at the new Head.
+
 ## Issue #552 PR CI #2654.1 — 읽기 전용 Relation, 좁은 Date Picker, dirty dialog 회귀 (2026-10-13)
 
 - Exact PR #561 Head `0e3d39b6e012b757ec66ebfbfb3055ca4021f180`, [Run #2654.1](https://github.com/planner77/masterGantt/actions/runs/38354836221) completed FAIL: QA Preflight/TypeScript/ESLint/Vitest/Next production build/Docker PASS, Chromium shards 1·2 PASS, 3–6 FAIL. Never count the E2E aggregate as PASS.
