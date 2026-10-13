@@ -1,3 +1,11 @@
+## Issue #670 — v0.108.0 승계 준비 PR / 정식 발행 Gate (2026-10-14)
+
+- [승계 감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) (`38452926077.1`, trusted main `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`)은 인증 Git/Release/GHCR·Owner provenance에 대한 **PREPARE_ONLY**: 최종 릴리스 승인이나 새 Main candidate가 아니다. #616 [기존 0.107.0 게시 승인 철회](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153135410)와 [0.108.0 준비 결정](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153144664)은 버전별로 분리된 Owner marker다.
+- #670 PR 준비 단계에서 `package.json`과 `package-lock.json`(top/root) 정확히 3개 버전 값을 `0.108.0`으로 올리되 dependency graph 변경 없이 유지. `npm run version:check` + `tests/scripts/verify-release-version.test.ts`의 실제 manifest/lock·이전 게시 `v0.106.1`/철회 `v0.107.0` 음성 fixture를 검증한다.
+- 최신 PR Head/base에서 Required Quality(정책 Python 회귀 포함), Chromium 6/6, Docker 및 default-main Trusted QA와 리뷰 스레드 0을 실검증한다. CI 시작만으로 QA_PASS 주장 금지. 새 Head/base의 병합·Main CI·verified `ci-<mergeSHA>` digest/SBOM/provenance는 Owner 별도 지시 전 미수행.
+- **정식 게시 차단:** `release_required=true`, `release_authorized=false`. 감사 #19의 `bdfd1ea1...`을 새 이미지 source로 재사용하거나 이전 Owner 준비 marker를 release permission으로 확대하지 않는다. 후속 정확 릴리스 SHA, 인증된 tag/GHCR 부재, 새 Owner `v0.108.0` release authorization을 확보한 후에만 annotated Git tag `v0.108.0` / GHCR exact `0.108.0` 및 Release CI를 진행한다. Owner 재승인 없이 기존 이미지/태그 덮어쓰기나 임시 이미지 재게시 금지.
+- Traceability: `docs/exec-plans/active/ISSUE_670.md` AC1~AC9, `docs/TEST_PLAN.md`의 선행 F2/Template 및 회귀 테스트 매핑을 참조. #616 Open/원본 FAIL 불변. 앱 UI·DB/제품 API 변경 N/A.
+
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
 - #662 P2 회귀: `test_confirmed_digest_survives_later_owner_block_in_json_and_summary`와 `test_current_failure_stage_not_mislabelled_as_confirmed_digest`를 기존 `policy` Python unittest 필수 실행에 포함한다. PR #668 CI #2692.1은 PR 본문 standalone metadata 및 Work Packet DOC_SYNC 형식 위반으로 Preflight FAIL·heavy tests SKIPPED였으며 Python 테스트 실패 증거가 아니다.
 

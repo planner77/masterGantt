@@ -1,3 +1,10 @@
+## Issue #670 — v0.108.0 승계 준비와 Finalizer 차단 경계 (2026-10-14)
+
+- [감사 #19](https://github.com/planner77/masterGantt/actions/runs/38452926077)의 `PREPARE_ONLY`는 #616 Owner의 `v0.107.0` 철회 및 `v0.108.0` *준비* marker가 감사 SHA `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`에 대해 유효하다는 독립 read-only 결과다. 신규 릴리스의 발행 권한·`v0.108.0` tag/source SHA로 해석하지 않는다.
+- Issue #670 준비 PR은 `package.json`·`package-lock.json` 후보 `0.108.0`으로 변경하며 `release_required=true`, `release_authorized=false`. 정식 GHCR release, annotated tag, rolling alias 변경 및 Issue #616 종료는 실행하지 않는다.
+- Owner가 이후 **새로운 정확한 merge SHA·SemVer·출처**에 대한 정식 게시를 별도로 승인하기 전에는 Generic Finalizer 또는 `issue-lifecycle release_finalize`의 승인된 릴리스 경계를 통과한 것으로 취급하지 않는다. 릴리스 전 새 push Main CI Required3와 인증된 보존 `ci-<SHA>` OCI digest/SBOM/provenance·정식 버전 충돌 부재를 검증한다.
+- 최종 publication/Finalizer 성공만으로 #616 Target F2 업무 AC가 자동 수락되거나 역사적 #2621.1 FAIL이 소급 성공하는 것은 아니다. 이미 발행된 `v0.106.1` tag/digest와 버전별 Owner 철회 원장 불변; 감사/권한 불명확 때 BLOCKED 유지.
+
 ## Issue #651 — 이미 발행된 v0.106.1 승계 감사 (2026-10-13)
 
 - #649의 모든 선행 SemVer ABSENT 가정은 잘못됨. #633의 v0.106.1 annotated tag 원본 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`, verified candidate/promotion digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`, Main CI #2579.1 및 Release #165.2 성공을 원장에 보존한다. GitHub Releases API by-tag 404는 tag/GHCR 부재가 아니다.
