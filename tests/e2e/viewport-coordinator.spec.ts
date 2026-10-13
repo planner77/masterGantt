@@ -137,7 +137,7 @@ for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#57
   } finally { await page.evaluate(() => { Reflect.get(window, "__releaseFocusHandoffTestGate")(); Reflect.get(window, "__cleanupFocusHandoffTestGate")(); }); }
 });
 
-test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다", async ({ page }, info) => {
+test("#571 WBS 범위의 검색 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다", async ({ page }, info) => {
   const fixture = await setup(page, { longList: true, editable: false });
   const mutations: string[] = [];
   page.on("request", request => { if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method()); });
@@ -153,13 +153,15 @@ test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤
   }));
   await chart.evaluate(element => { element.scrollLeft = 120; });
   await expect.poll(async () => (await viewport()).core).toBe(120);
-  const quick = page.getByRole("group", { name: "작업 유형 빠른 보기" });
-  await quick.getByRole("button", { name: "Milestone", exact: true }).click();
+  // #552 replaces the old three-option quick-view buttons with an independent
+  // Milestone visibility toggle. Exercise the same empty-WBS bookmark through
+  // the supported Task search filter instead of a deleted control.
+  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
+  await search.fill("no matching WBS task");
   await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
   await expect.poll(viewport).toEqual({ core: 0, native: 0 });
-  await quick.getByRole("button", { name: "전체", exact: true }).click();
+  await search.fill("");
   await expect.poll(viewport).toEqual({ core: 120, native: 120 });
-  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
   await search.fill("긴 작업명");
   await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${fixture.tasks[3].taskId}"]`)).toBeVisible();
   await chart.hover();

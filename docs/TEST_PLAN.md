@@ -1,3 +1,9 @@
+## Issue #552 / PR #561 E2E contract updates after CI #2643.1 (2026-10-13)
+
+- Prior Run #2643.1 had verified Chromium E2E failures, including a #571 test invoking the removed `작업 유형 빠른 보기` Milestone button. The new #552 product contract uses a standalone Milestone show/hide toggle (which does **not** empty WBS). Preserve the #571 empty WBS/reopen scroll-bookmark assertion using the supported Task search filter: expect 120→0→120, then real wheel 0 wins and no hidden state is mutated.
+- #464 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED` UI error is displayed as `Milestone의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.` rather than the historical `완료 단계의` string. Test still requires no copy review dialog and zero command POST; do not weaken the domain lock.
+- On first investigation of exact Head `2e1eb032...`, Full CI #2645.1 was still running; Quality/Docker PASSED and Chromium shards were IN_PROGRESS. Any newer result must be confirmed from the exact run's completed jobs before asserting a fix. Keep #464 Copy review, viewport/focus, date-return and all six Chromium shards mandatory.
+
 ## Issue #552 PR CI #2643.1 — 최신 WBS 표시 계약의 E2E 정합성 및 미해결 회귀 (2026-10-13)
 
 - Previous [#2643.1](https://github.com/planner77/masterGantt/actions/runs/38348440262) QA/TypeScript/Vitest/Build/Docker PASS; ESLint React ref immutability 1 error; Chromium shards 1/2 PASS, 3–6 FAIL. Fix hooks layout ordering without changing semantics or disabling rule.

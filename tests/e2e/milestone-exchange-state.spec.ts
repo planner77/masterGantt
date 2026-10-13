@@ -107,7 +107,7 @@ test("#464 completed Milestone boundary cannot be bypassed by Copy acknowledgeme
  await row.getByRole("button",{name:"Stable milestone 관리",exact:true}).click();
  await page.getByRole("dialog",{name:"Stable milestone 관리",exact:true}).getByRole("button",{name:"Milestone 복사",exact:true}).click();
  await expect(copyDialog(page)).toHaveCount(0);
- await expect(page.getByText("완료 단계의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.",{exact:true}).first()).toBeVisible();
+ await expect(page.getByText("Milestone의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다.",{exact:true}).first()).toBeVisible();
  expect(commands).toBe(0);
 });
 
