@@ -1,5 +1,11 @@
 ## Issue #659 — PR 전용 단계별 실행과 E2E fail-fast 선택 (2026-10-13)
 
+### #659 P1 — PR/Main Job 표시 이름 호환 전략 (2026-10-13)
+
+- 선택: 기존 기본 브랜치 `qa_final_automated.effective_run_jobs`의 duplicate-fail 및 Docker 성공 인식(`Docker smoke 구현`)과 `main_ci_recovery.OTHER_JOBS`의 Main 필수 이름을 변경하지 않는다. 실행 이벤트마다 legacy `docker_smoke` **표시명만** PR에서는 `Main Docker smoke (PR 비대상)`, Main/manual에서는 `Docker smoke 구현`으로 결정한다.
+- PR 전용 Build/E2E에 PR 구분 표시명을 사용하고 E2E `Chromium E2E shard ` prefix를 그대로 유지한다. 이 구조는 검증기 자기승인, 오래된 SHA 소급 PASS, Main release 정책 변경을 만들지 않는다. 부정확한 Job 이름은 fail-closed로 차단한다.
+
+
 - 의사결정: 모든 이벤트를 직렬화하는 단일 Job `needs` 체인은 채택하지 않는다. Main/manual의 wall-clock 회귀를 피하려고 PR 경로만 `pr_fast_gate → pr_build/pr_e2e_shard/pr_docker_smoke`로 분리한다.
 - Runner 비용과 정상 소요시간의 교환: Preflight 이후 빠른 policy/typecheck/lint/unit을 모두 통과해야 고비용 검사를 시작하므로 실패 PR의 Runner 사용량은 감소할 가능성이 있지만, 정상 PR은 이 단계만큼 늦게 E2E/Docker가 시작한다. 성공/실패 실제 Run의 total Runner-minutes와 wall-clock을 비교한 뒤 유지 여부를 판단한다.
 - GitHub Actions YAML anchors/aliases로 기존 step을 단일 정의로 공유한다. E2E fail-fast는 PR full에만 true; Main/manual false. Required 집계, Owner/QA/릴리스 권한은 불변이다.

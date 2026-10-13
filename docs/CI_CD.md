@@ -1,5 +1,13 @@
 ## Issue #659 — Full PR CI E2E Fail-Fast 및 Fast Gate 최적화 (2026-10-13)
 
+### PR #660 P1 후속 — 원본 검증 Job 표시 이름 충돌 해결 (2026-10-13)
+
+- [PR CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)은 세 Required Quality/E2E6/Docker 및 Fast Gate 모두 PASS였지만, `QA Final — Automated`가 미해결 P1 리뷰 스레드로 BLOCKED. Codex P1은 PR full Run의 skipped legacy Build/Docker와 실제 PR Job이 동일 이름으로 중복되어 default-main `effective_run_jobs`가 후속 Trusted QA를 차단할 것이라고 지적했다.
+- 수정: `pr_build` 표시명에 `PR` 구분, `pr_e2e_shard` 표시명에 `· PR` 구분을 더한다. `docker_smoke` 기존 Job은 PR에서 비대상 이름 `Main Docker smoke (PR 비대상)`, Main/manual에서는 정확한 `Docker smoke 구현`을 유지한다. 실제 PR `pr_docker_smoke`도 정확히 `Docker smoke 구현`을 유지해 병합 전 기본 브랜치의 Trusted QA와 Main recovery 검증기 양쪽을 동시에 만족한다.
+- 기본 브랜치 `scripts/qa_final_automated.py`는 PR의 `Docker smoke 구현` 성공 및 `Chromium E2E shard ` 접두를 사용한다. `scripts/main_ci_recovery.py::OTHER_JOBS`는 Main의 `Docker smoke 구현`을 사용한다. 신뢰된 검증기 변경·우회 없이 두 모드 모두 원본 이름 규격을 보존한다.
+- `scripts/test_pr_fast_gate.py`는 정확한 PR Run의 미실행/실행 Job 이름을 시뮬레이션하여 `effective_run_jobs`가 중복 없이 provenance를 수집하고, 실제 이름 중복은 여전히 차단하는지 확인한다. Main/recovery/metadata-only 및 세 Required Check 이름은 바꾸지 않는다. 새 원격 PR CI·Trusted QA 결과는 실행 전 NOT TESTED.
+
+
 **목표:** 실패 PR의 불필요한 Runner 사용량 축소. 정상 PR은 기존 동시 시작 방식보다 wall-clock이 길어질 수 있어 사후 실측으로 채택 여부를 판단한다. 실패한 CI Run의 취소를 성공으로 바꾸거나 Required Check를 생략하는 기능이 아니다.
 
 - **PR full 경로:** `changes → preflight → policy/typecheck/lint/unit (병렬) → pr_fast_gate → pr_build/pr_e2e_shard(6개 병렬)/pr_docker_smoke (병렬)`. 경로 판정의 `policy/node=true`면 각 Job 결과가 success여야 하고, false면 해당 Job은 실제 skipped여야 한다. 결측/오류/취소는 FAIL. `pr_fast_gate` 자체는 merge gate가 아니며 세 Required aggregate가 정확한 원본 검증 근거다.

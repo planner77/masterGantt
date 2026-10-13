@@ -1,5 +1,12 @@
 ## Issue #659 — PR CI 실패 조기 중단·Fast Gate 운영 지침 (2026-10-13)
 
+### PR #660 — 표시 Job 이름의 불변 검증기 호환성 (2026-10-13)
+
+- PR Fast Gate 후속 Job은 수행 여부와 무관하게 Actions Job 원장에 남을 수 있어 Full PR 동일 Attempt 안에서 **모든 Job 이름이 유일**해야 한다. #2690.1의 unresolved P1은 Job 이름 중복을 지적했다.
+- PR 전용 Build는 `PR Next.js production build`, E2E는 `Chromium E2E shard N/6 · PR`; PR의 실제 Docker는 `Docker smoke 구현`이다. 비실행 legacy Docker는 PR 이벤트에서 `Main Docker smoke (PR 비대상)`이고 Main/manual 실행 시 원래 `Docker smoke 구현`으로 복원된다. 이 구분은 신뢰된 기본 브랜치 QA 및 Main immutable recovery 검사기에 맞춘 것이며 임의의 이름 변경을 허용하지 않는다.
+- Job 이름 중복 해결/리뷰 thread 종료 후에는 새로운 exact Head PR CI 3종과 QA Final을 새로 검증한다. 지난 CI #2690.1 FAIL은 변경되지 않으며, 실패를 리뷰 해결만으로 PASS로 소급 처리하지 않는다.
+
+
 - PR full CI는 QA Preflight 다음에 policy/typecheck/lint/unit을 먼저 실행한다. `PR 빠른 검사 판정` 실패 시 `pr_build`, `pr_e2e_shard`, `pr_docker_smoke`의 **skipped는 의도된 비용 차단**이지 PASS가 아니다. 반드시 세 Required aggregate가 failure로 결론 났는지 확인한다.
 - E2E의 한 Shard 실패는 `pr_e2e_shard` matrix의 `fail-fast=true` 때문에 다른 Shard 취소를 요청한다. 첫 실패 Job의 Playwright report/log를 우선 확보하고, 취소된 Shard에 로그/artifact가 없을 수 있음을 기록한다. 전체 PR CI Run이 자동 Cancelled 되는 기능은 아니다.
 - Main push/manual/정확 SHA 복구는 `build/e2e_shard/docker_smoke` 원래 병렬 경로 및 E2E fail-fast=false 유지. `pull_request.edited`는 정확 Head 성공한 원본 Full CI 증거 재사용 규칙(#577/#600) 유지.

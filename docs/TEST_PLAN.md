@@ -1,5 +1,14 @@
 ## Issue #659 — PR Fast Gate / E2E Fail-Fast 검증 계획 (2026-10-13)
 
+### PR #660 P1 — CI 표시 Job 이름 / Trusted QA 연결 회귀 (2026-10-13)
+
+- **원본:** [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292) Required 3종 PASS, QA Final은 미해결 P1 review로 BLOCKED. 이 상태는 이전 Run FAILURE로 보존.
+- **단위:** `scripts/test_pr_fast_gate.py::WorkflowContract.test_pr_job_labels_are_unique_and_trusted_names_are_preserved`가 PR/legacy 표시 이름 계약, 비실행 Job을 포함한 모의 Actions attempt 원장 유일성, `qa_final_automated.effective_run_jobs` 원본 성공 선택, 중복 시 `Blocked`를 검증한다.
+- **실제 PR 확인:** legacy skipped Build `Next.js production build`, PR Build `PR Next.js production build`, E2E PR `Chromium E2E shard 1/6 · PR`~`6/6 · PR`, legacy skipped Docker `Main Docker smoke (PR 비대상)`, 실행 PR Docker `Docker smoke 구현`으로 중복이 없어야 한다.
+- **신뢰 경계:** 원본 기본 브랜치 `qa_final_automated.py`는 PR `Docker smoke 구현` 정확 이름과 `Chromium E2E shard ` 접두를 감지하고, `main_ci_recovery.py`는 Main `Docker smoke 구현` 정확 이름을 사용한다. 검증기를 편집/우회하지 않고 이 둘의 원본 계약을 동시에 지켜야 한다.
+- **결과:** 새 정확 Head의 Full PR CI 및 QA Final/Trusted QA, unresolved review thread 0 확인 전 원격 결과 NOT TESTED. Main/manual/provenance·E2E fail-fast 실패 주입과 비용 효과는 별도 실증.
+
+
 | AC | 검증 | 성공 조건 |
 | --- | --- | --- |
 | AC1 | 분리된 원격 실패 주입 E2E shard | 다른 shard 취소 요청, E2E aggregate failure, 실패 로그 확인; 미실행 시 NOT TESTED |

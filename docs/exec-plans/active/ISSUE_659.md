@@ -61,3 +61,11 @@ independent_qa: N/A(Owner-managed, 별도 독립 QA 미실시)
 ## Next
 - PR metadata: `[Issue #659] ...` 제목, 본문 단일 `Refs #659`, HIGH/OWNER_MANAGED/release flags, AC_TEST_COVERAGE와 DOCUMENTATION_SYNC를 명확히 기록한다.
 - PR CI 시작 이후 결과·미해결 리뷰 검토. 병합·Main CI·GHCR·Finalizer·Issue 종료는 Owner 별도 지시 전 실행 금지.
+
+## 2026-10-13 — PR #660 CI #2690.1 P1 리뷰 후속 보완
+
+- 최신 main 정렬·충돌 해결 Head `ea4a15ab3dc24822cfd6832cecd40c7a1ab1f3f5`, [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292): TypeScript/ESLint/Vitest/Policy/Fast Gate/Build/E2E6/Docker 및 세 Required aggregate 모두 PASS. `QA Final — Automated`는 unresolved P1 리뷰 스레드로 BLOCKED(원본 Run 결과 불변).
+- P1 [discussion_r4258622127](https://github.com/planner77/masterGantt/pull/660#discussion_r4258622127): skipped legacy Job과 PR Job 이름 중복은 `qa_final_automated.effective_run_jobs`의 strict 중복 거부를 유발한다. 이를 고치지 않고 스레드만 닫으면 Trusted QA가 실패한다.
+- 해결: PR Build/E2E 표시명을 구분하고, legacy Docker의 **PR 비대상 이름만** 동적으로 변경. 정확한 `Docker smoke 구현`은 PR 실행 Job과 Main/manual legacy 실행 Job에서 각각 그대로 유지하여 기존 default-main Trusted QA 및 `main_ci_recovery.OTHER_JOBS`를 변경하거나 자기 승인하지 않는다.
+- 회귀: `scripts/test_pr_fast_gate.py`에 PR 실제·비실행 Job 원장 replay, exact trusted validator 선택, 동일 이름 중복 시 BLOCKED, Main/manual 복구 이름 정합 검사 추가. Code/doc sync 후 스레드 해결, 새 Head PR CI 시작. PASS 판정은 신규 원격 Run 완료 후에만.
+- DOCUMENTATION_SYNC 후속: `docs/CI_CD.md` UPDATED, `docs/GITHUB_OPERATIONS.md` UPDATED, `docs/REMOTE_VALIDATION.md` UPDATED, `docs/TEST_PLAN.md` UPDATED, `docs/exec-plans/active/ISSUE_659.md` UPDATED, `docs/DECISIONS.md` UPDATED. `docs/QA_REVIEW_POLICY.md` N/A(불변 신뢰 경계). `AGENTS.md` N/A(기존 지침 보존). API/DB/UI/버전 N/A.

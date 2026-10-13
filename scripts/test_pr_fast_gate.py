@@ -129,6 +129,68 @@ class WorkflowContract(unittest.TestCase):
         for gate in ("quality", "e2e", "docker"):
             self.assertIn("needs." + gate + ".result == 'success'", publish)
 
+    def test_pr_job_labels_are_unique_and_trusted_names_are_preserved(self):
+        """P1 #660: skipped legacy jobs also appear in exact Actions attempts.
+
+        Keep Main recovery's legacy names and the trusted default-main QA
+        validator's exact PR Docker name without weakening either verifier.
+        """
+        main_build = job(self.yaml, "build")
+        pr_build = job(self.yaml, "pr_build")
+        main_e2e = job(self.yaml, "e2e_shard")
+        pr_e2e = job(self.yaml, "pr_e2e_shard")
+        main_docker = job(self.yaml, "docker_smoke")
+        pr_docker = job(self.yaml, "pr_docker_smoke")
+        self.assertIn("    name: Next.js production build\n", main_build)
+        self.assertIn("    name: PR Next.js production build\n", pr_build)
+        self.assertIn("    name: Chromium E2E shard ${{ matrix.shard }}/6\n", main_e2e)
+        self.assertIn("    name: Chromium E2E shard ${{ matrix.shard }}/6 · PR\n", pr_e2e)
+        self.assertIn(
+            "name: ${{ github.event_name == 'pull_request' && "
+            "'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현' }}",
+            main_docker,
+        )
+        self.assertIn("    name: Docker smoke 구현\n", pr_docker)
+
+        from qa_final_automated import effective_run_jobs, Blocked
+        from main_ci_recovery import OTHER_JOBS
+        self.assertIn("Docker smoke 구현", OTHER_JOBS)
+        self.assertIn("Next.js production build", OTHER_JOBS)
+        names = [
+            ("Next.js production build", "skipped"),
+            ("PR Next.js production build", "success"),
+            ("Main Docker smoke (PR 비대상)", "skipped"),
+            ("Docker smoke 구현", "success"),
+            ("Chromium E2E shard ${{ matrix.shard }}/6", "skipped"),
+            *( (f"Chromium E2E shard {shard}/6 · PR", "success")
+               for shard in range(1, 7)),
+        ]
+        class Attempt:
+            prefix = "/repos/planner77/masterGantt"
+
+            def __init__(self, rows):
+                self.rows = rows
+
+            def collection(self, route, key):
+                assert key == "jobs"
+                assert route.endswith("/actions/runs/88/attempts/1/jobs")
+                return [{"name": name, "status": "completed",
+                         "conclusion": outcome}
+                        for name, outcome in self.rows]
+
+        source = effective_run_jobs(Attempt(names), 88, 1)
+        self.assertEqual(len(source), len(names))
+        self.assertEqual(source["Docker smoke 구현"]["conclusion"], "success")
+        self.assertTrue(any(
+            name.startswith("Chromium E2E shard ") and job_data["conclusion"] == "success"
+            for name, job_data in source.items()
+        ))
+        # Old failing #2690 names must remain a hard error, not silently collapsed.
+        with self.assertRaises(Blocked):
+            effective_run_jobs(
+                Attempt(names + [("Docker smoke 구현", "skipped")]), 88, 1
+            )
+
     def test_metadata_and_preflight_boundaries(self):
         self.assertIn("github.event.action == 'edited'", job(self.yaml, "metadata_evidence"))
         self.assertIn("needs.preflight.result == 'success'", job(self.yaml, "policy"))

@@ -1,5 +1,12 @@
 ## Issue #659 — Full PR CI Fast Gate / E2E Fail-Fast 원격 검증 (2026-10-13)
 
+### #659 PR #660 — P1 Job 이름 중복 검증 및 재실행 (2026-10-13)
+
+- 이전 [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)의 Quality/E2E6/Docker/PR Fast Gate는 PASS, QA Final은 `미해결 review thread`로 BLOCKED. P1은 legacy와 PR 런의 Build/Docker Job 이름 중복을 지적한다.
+- 새 Head Full PR CI에서 모든 Job 이름(건너뛴 legacy Job 포함)의 유일성을 Actions Job API 원장으로 검증. 실제 PR Docker `Docker smoke 구현`, Chromium `Chromium E2E shard N/6 · PR`, PR Build `PR Next.js production build`을 확인; Main/manual의 Docker `Docker smoke 구현` 유지 및 PR 비대상 legacy `Main Docker smoke (PR 비대상)`를 구별한다. `scripts/test_pr_fast_gate.py`의 신뢰된 validator `effective_run_jobs` replay 및 중복 거부 테스트를 policy에서 실행한다.
+- 원래 P1 thread가 해결됐는지 확인한 뒤 자동 QA Final과 default-main Trusted QA가 실제 최신 Head/run/attempt로 검증되는지 확인한다. CI가 아직 진행 중이면 NOT TESTED; Main 복구/실패 주입은 별도 실증이다.
+
+
 - 목표: #659 PR exact Head/base의 `QA Preflight → policy/typecheck/lint/unit → PR Fast Gate → PR Next build/E2E 6-shard/Docker` 순서를 GitHub Jobs `started_at/completed_at`으로 확인한다. main/manual에는 원래의 병렬 Job(`build/e2e_shard/docker_smoke`)이 실행되고 PR Lane이 skipped되어야 한다.
 - **정적·단위:** `python3 scripts/test_pr_fast_gate.py`는 required 성공, failure/cancelled/skipped/unknown의 fail-closed, 정당한 비대상 skip, YAML job routing/alias, required aggregate, metadata-only를 검증. 기존 `scripts/test_qa_preflight.py`와 동시에 수행한다.
 - **운영 실패 시나리오:** 안전한 별도 테스트 PR/fixture에서 policy/typecheck/unit 중 하나를 의도적으로 실패시키고 heavy Job `skipped`, 세 Required aggregate `failure`, 원본 Job 로그를 확인한다. PR의 E2E 한 Shard 실패 시 나머지 Shard 취소 요청과 E2E aggregate 실패를 확인한다. **실제 실패 주입 Run이 없다면 AC1/AC3 원격 증거는 NOT TESTED**(정적 검사 PASS로 승격 금지). 기존 production PR에 고의 결함을 병합하지 않는다.
