@@ -26,36 +26,36 @@
 
 | ID | 구현 단위 | 주요 소유 경로(구현 시 존재/분기 확인) | 독립 완료 / 통합 조건 |
 | --- | --- | --- | --- |
-| U1 | 공통 state/port/recovery 계약과 누적 하니스 | 신규 `src/features/gantt/state-consistency/**`, `tests/fixtures/gantt-state-consistency/**`, 신규 `tests/config/gantt-state-conformance.json` 및 전용 Unit | 가짜 API만 아닌 drift/identity/order/unknown-result 반례 모델, machine-readable manifest, 기존 진단 재사용. 제품 연결하지 않음 |
-| U2 | actual Core 기반 canonical 정합/실패 복구 | `canonical-snapshot-sync.ts`, 신규 `core-conformance.ts`/`canonical-recovery.ts`와 전용 tests | 412/422/500/네트워크, 같은 revision drift와 정상 no-op 동시 검증. public API 비교/차이 적용. viewport writes 없음 |
-| U3 | 의미 기반 observation/receipt 재사용 | `viewport/projection-observation.ts`, `projection-settled.ts` 및 전용 tests | dirty Core/새 의미면 무효, 동일 의미 재관측은 무해; data receipt와 viewport settle 분리. Core/DOM 쓰기 없음 |
-| U4 | 날짜축 transaction·물리 geometry·X/Y 정책 | 신규 `viewport/axis-transaction.ts`, 필요 시 `timeline-range.ts`, 전용 port adapter fixture/tests | 설치2.7.3 실제 browser로 대안 비교·선택, zero rows/axis/scroll/user-cancel 불변식. production port 연결은 U5에 handoff |
-| U5 | 제품 Coordinator·Workspace 연결 및 레거시 제거 | `project-gantt.tsx`, `viewport/viewport-coordinator.ts`, `viewport/svar-viewport-port.ts`, `project-readonly-view.tsx`, 필요 최소 연결부와 해당 E2E | U2/U3/U4를 실제 호출하고 redundant early-return/restore 경로 제거; SC 누적 통과. 기존 #552/PR #561 유지 |
+| U1 / #663 | 공통 state/port/recovery 계약과 누적 하니스 | 신규 `src/features/gantt/state-consistency/**`, `tests/fixtures/gantt-state-consistency/**`, 신규 `tests/config/gantt-state-conformance.json` 및 전용 Unit | 가짜 API만 아닌 drift/identity/order/unknown-result 반례 모델, machine-readable manifest, 기존 진단 재사용. 제품 연결하지 않음 |
+| U2 / #664 | actual Core 기반 canonical 정합/실패 복구 | `canonical-snapshot-sync.ts`, 신규 `core-conformance.ts`/`canonical-recovery.ts`와 전용 tests | 412/422/500/네트워크, 같은 revision drift와 정상 no-op 동시 검증. public API 비교/차이 적용. viewport writes 없음 |
+| U3 / #665 | 의미 기반 observation/receipt 재사용 | `viewport/projection-observation.ts`, `projection-settled.ts` 및 전용 tests | dirty Core/새 의미면 무효, 동일 의미 재관측은 무해; data receipt와 viewport settle 분리. Core/DOM 쓰기 없음 |
+| U4 / #666 | 날짜축 transaction·물리 geometry·X/Y 정책 | 신규 `viewport/axis-transaction.ts`, 필요 시 `timeline-range.ts`, 전용 port adapter fixture/tests | 설치2.7.3 실제 browser로 대안 비교·선택, zero rows/axis/scroll/user-cancel 불변식. production port 연결은 U5에 handoff |
+| U5 / #667 | 제품 Coordinator·Workspace 연결 및 레거시 제거 | `project-gantt.tsx`, `viewport/viewport-coordinator.ts`, `viewport/svar-viewport-port.ts`, `project-readonly-view.tsx`, 필요 최소 연결부와 해당 E2E | U2/U3/U4를 실제 호출하고 redundant early-return/restore 경로 제거; SC 누적 통과. 기존 #552/PR #561 유지 |
 
-각 모듈의 기존 함수 signature를 불필요하게 깨지 않는다. adapter outputs/input port는 U1으로 고정하고 U2/U3/U4 사이 직접 구현 의존을 만들지 않는다. 기존 main에 없는 #552 전용 코드를 공통 모듈 PR에 통째로 이식하지 않는다. MODULE_READY와 실제 제품 적용 완료를 구분한다.
+각 모듈의 기존 함수 signature를 불필요하게 깨지 않는다. adapter outputs/input port는 U1으로 고정하고 U2/U3/U4 사이 직접 구현 의존을 만들지 않는다. 기존 main에 없는 #552 전용 코드를 공통 모듈 PR에 통째로 이식하지 않는다. MODULE_READY와 실제 제품 적용 완료를 구분한다. 기존 호출자가 사용하는 공통 함수를 수정할 경우 U2/U3/U4는 별도 opt-in facade로 준비하여 U5 이전 제품 행동이 달라지지 않도록 검증한다.
 
 ## 작업 순서와 PR 전략
 
 ```text
 #661 문서/지침 PR 검토 및 main 반영 (별도 승인)
           |
-          U1 계약·하니스
+       #663 U1 계약·하니스
           |
-          +---- U2 canonical 복구 ----+
-          +---- U3 observation -------+---- U5 제품 연결 (#552 PR #561)
-          +---- U4 axis transaction --+                 |
-                                               #573 기존 390px 범위
-                                                         |
-                                               #574 최종 통합 검증
-                                                         |
-                                               #552 최종 CI/QA/승인
+          +---- #664 U2 canonical 복구 ----+
+          +---- #665 U3 observation -------+---- #667 U5 제품 연결 (#552 PR #561)
+          +---- #666 U4 axis transaction --+                 |
+                                                     #573 기존 390px 범위
+                                                               |
+                                                     #574 최종 통합 검증
+                                                               |
+                                                     #552 최종 CI/QA/승인
 ```
 
-1. #661은 main 기반 독립 문서 PR이다. 제품 PR #561에 섞지 않으며 원본 docs/보안/릴리스 원장을 보존한다. main 적용은 별도 Owner 승인과 기존 gate 후이다.
-2. U1은 문서가 반영된 최신 main에서 별도 issue branch/PR. 공개 계약과 test-only 기반이며 제품 행동 활성화 없음. 승인된 merge/main 증거와 interface fingerprint를 인계한다.
-3. U2/U3/U4는 U1이 통합된 같은 main에서 별도 branch/PR로 개발한다. 파일이 분리되어 parallel 가능하나 각각의 latest-main 정렬/Required CI/QA/병합 gate를 수행한다. 권장 merge 순서는 U2 → U3 → U4이며 실제 공유 파일이 생기면 순차 인계한다.
+1. #661은 main 기반 독립 문서 PR이다. 제품 PR #561에 섞지 않으며 기존 docs/보안/릴리스 정책 의미를 보존한다. main 적용은 별도 Owner 승인과 기존 gate 후이다.
+2. #663/U1은 문서가 반영된 최신 main에서 별도 issue branch/PR. 공개 계약과 test-only 기반이며 제품 행동 활성화 없음. 승인된 merge/main 증거와 interface fingerprint를 인계한다.
+3. #664/U2, #665/U3, #666/U4는 U1이 통합된 같은 main에서 별도 branch/PR로 개발한다. 파일이 분리되어 parallel 가능하나 각각의 latest-main 정렬/Required CI/QA/병합 gate를 수행한다. 권장 merge 순서는 U2 → U3 → U4이며 실제 공유 파일이 생기면 순차 인계한다.
 4. 모듈은 U5 전까지 제품에 연결되지 않은 준비 상태다. 모듈 CI가 #552 실패 해결 증거는 아니다. 부분 탑재를 사용자가 볼 수 있는 완료로 표시하지 않는다.
-5. U5는 공통 모듈이 포함된 main을 기존 #552 branch에 정렬하고 기존 PR #561에서 제품 연결을 전담한다. standalone `Refs #552` primary 귀속은 보존하고 U5는 관련 이슈로 연결한다. U5 구현을 위해 새 main 대상 중복 제품 PR을 만들지 않는다. 충돌에서 main의 감사/CI 변경과 #552 기능을 모두 보존하고 force-push로 이력을 지우지 않는다.
+5. #667/U5는 공통 모듈이 포함된 main을 기존 #552 branch에 정렬하고 기존 PR #561에서 제품 연결을 전담한다. standalone `Refs #552` primary 귀속은 보존하고 U5는 관련 이슈로 연결한다. U5 구현을 위해 새 main 대상 중복 제품 PR을 만들지 않는다. 충돌에서 main의 감사/CI 변경과 #552 기능을 모두 보존하고 force-push로 이력을 지우지 않는다.
 6. #573과 U5가 같은 adapter/연결 파일을 동시에 쓰지 않는다. U5 local 통합 후 #573 담당에게 동결 source를 전달한다. 이미 해결된 항목은 같은 source의 AC 증거로 확인하고 미해결 변경은 해당 담당자가 제안하되 제품 연결 적용은 U5 단일 작성자가 순차 수행한다. 별도 stacked PR이 꼭 필요하면 Manager가 실제 base·gate·승인 경로를 먼저 기록한다.
 7. #574를 최종 cross-feature gate로 재사용한다. #553의 교환 기능을 대신하지 않는다. 전체 #552 최종 병합은 누적 시나리오와 #573/#574 적용 가능한 기준이 충족된 후 별도 승인으로 수행한다.
 
@@ -88,18 +88,18 @@ U1 완료: 타입/port 계약·SC manifest·negative cases와 독립 test runner
 
 ## 이슈 등록표
 
-문서 원격 반영 후 U1~U5의 실제 번호·URL을 아래에 기록한다. 등록 전 번호를 추정하지 않는다.
+| 단위 | 실제 이슈 | 선행 / 상태 |
+| --- | --- | --- |
+| U1 | [#663 공통 계약·하니스](https://github.com/planner77/masterGantt/issues/663) | #661 문서 승인·main 반영 후 / PLANNED |
+| U2 | [#664 실제 Core 정합·복구](https://github.com/planner77/masterGantt/issues/664) | #663 / PLANNED |
+| U3 | [#665 의미 기반 관측·receipt](https://github.com/planner77/masterGantt/issues/665) | #663 / PLANNED |
+| U4 | [#666 날짜축 transaction](https://github.com/planner77/masterGantt/issues/666) | #663 / PLANNED |
+| U5 | [#667 제품 통합](https://github.com/planner77/masterGantt/issues/667) | #664/#665/#666 통합 source / PLANNED |
+| 390px 검증 | [기존 #573](https://github.com/planner77/masterGantt/issues/573) | #667 동결 candidate와 순차 인계 |
+| 최종 통합 검증 | [기존 #574](https://github.com/planner77/masterGantt/issues/574) | #667/#573 적용 가능 기준 완료 후 |
 
-| 단위 | 등록 상태 |
-| --- | --- |
-| U1 | 문서 커밋 뒤 등록 예정 |
-| U2 | 문서 커밋 뒤 등록 예정 |
-| U3 | 문서 커밋 뒤 등록 예정 |
-| U4 | 문서 커밋 뒤 등록 예정 |
-| U5 | 문서 커밋 뒤 등록 예정 |
-| 390px 검증 | 기존 #573 |
-| 최종 통합 검증 | 기존 #574 |
+의존성은 이 표와 이슈 본문에 기록했다. GitHub의 native blocked-by/sub-issue 관계가 자동 설정되었다는 의미는 아니다. 구현 시작 전 최신 이슈/PR 상태를 다시 확인한다.
 
 ## 결과 기록
 
-문서 구조/링크/원본 보존과 제품 Unit/E2E/remote CI를 분리한다. 본 계획에 적힌 명령/수용 기준은 실행 결과가 아니다. 실제 검증·미검증·독립 검토·main 적용은 [#661 Work Packet](ISSUE_661.md)에 기록한다.
+문서 구조/링크/정책 보존과 제품 Unit/E2E/remote CI를 분리한다. 본 계획에 적힌 명령/수용 기준은 실행 결과가 아니다. 실제 검증·미검증·독립 검토·main 적용은 [#661 Work Packet](ISSUE_661.md)에 기록한다.
