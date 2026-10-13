@@ -13,22 +13,30 @@
 - No polling/sleep/timeout increase, retry/skip/Fixture reduction, semantically earlier fake `read()`, production probe, duplicate Gantt API, explicit Core private store mutation or change to canonical Task/Milestone data. Existing 5s predicate, 1,000+2,000 fixture, layout/scroll/fullscreen/resize/zero-mutation assertions remain byte-identical.
 
 ## DOCUMENTATION_SYNC
-- `src/features/gantt/project-gantt.tsx`: UPDATED — publish the real API identity in synchronous SVAR init's diagnostic setup.
-- `src/features/gantt/gantt-api-identity.ts`: ADDED — narrow pure helper for connected frame and repeated initialization.
-- `tests/gantt-api-identity.test.ts`: ADDED — exact ID, stale ID replacement and disconnected frame regression.
-- `tests/e2e/milestone-timeline-lane.spec.ts`: N/A — original 5s performance/geometry/large fixture gate intentionally unchanged.
-- `docs/MILESTONE_TIMELINE.md`: UPDATED — dev probe publication/lifecycle order, no geometry readiness overclaim.
-- `docs/TEST_PLAN.md`: UPDATED — targeted fast unit and immutable 5s actual Chromium E2E test conditions.
-- `docs/REMOTE_VALIDATION.md`: UPDATED — #2712 failure and new exact-head PR/Main E2E 6/6 validation.
-- `docs/CI_CD.md`: UPDATED — rerun vs new SHA/PR/Main safety and path filter gap.
-- `docs/exec-plans/active/PLAN.md`: UPDATED — corrective issue execution and release scope.
-- `docs/exec-plans/active/ISSUE_674.md`: ADDED — AC trace, risk and decisions.
-- `CHANGELOG.md`: UPDATED — dev-only diagnostic fix; immutable #2712 failure.
-- `AGENTS.md`: N/A — lifecycle/role/review guidance and CI QA contracts unchanged.
-- `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/PROJECT_UX.md`: N/A — no layout, visual or interaction contract change.
-- `docs/ARCHITECTURE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/GITHUB_OPERATIONS.md`: N/A — no public API, trust boundary, review or owner policy change.
-- `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`, `docs/SCHEDULING_ENGINE.md`: N/A — service contracts/DB/security/schedule immutable.
-- `package.json`/`package-lock.json`: N/A — version `0.108.0` remains; CI-only dev diagnostic repair, no new SemVer release/GHCR formal promotion.
+- `src/features/gantt/project-gantt.tsx`: UPDATED
+- `src/features/gantt/gantt-api-identity.ts`: UPDATED
+- `tests/gantt-api-identity.test.ts`: UPDATED
+- `tests/e2e/milestone-timeline-lane.spec.ts`: N/A(기존 5초 실제 브라우저 기준과 대형 Fixture 유지)
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_674.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `AGENTS.md`: N/A(기존 코딩 에이전트 업무 절차와 승인 규칙 변경 없음)
+- `DESIGN.md`: N/A(공통 화면 디자인과 UX 기능 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(레이아웃과 상호작용 변경 없음)
+- `docs/PROJECT_UX.md`: N/A(프로젝트 작업공간 화면 계약 변경 없음)
+- `docs/ARCHITECTURE.md`: N/A(제품 아키텍처 및 Core adapter 공개 계약 불변)
+- `docs/QA_REVIEW_POLICY.md`: N/A(고위험 QA 및 Owner 승인 정책 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(GitHub CI 권한 및 수명주기 절차 불변)
+- `docs/API.md`: N/A(HTTP 공개 API 라우트와 데이터 계약 불변)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 테이블과 마이그레이션 불변)
+- `docs/SECURITY.md`: N/A(인증 세션과 보안 정책 변경 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Milestone 일정 연산과 날짜 계산 불변)
+- `package.json`: N/A(현재 정식 제품 SemVer 0.108.0 불변)
+- `package-lock.json`: N/A(제품 종속성 및 lockfile 불변)
 
 ## AC_TEST_COVERAGE
 - AC1: `tests/gantt-api-identity.test.ts` publishes an exact initialized ID to a connected frame without a React update and follows the same `initialize(api)` callpath as the milestone probe; original E2E oracle retains exact identity requirement. Full running integration NOT TESTED before CI.
