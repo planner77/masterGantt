@@ -1,3 +1,13 @@
+## Issue #670 — 승계 준비 / 원격 검증 기준 (2026-10-14)
+
+- R1 — [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) `38452926077.1` SUCCESS 및 `PREPARE_ONLY`, 원본 main `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`, artifact `11841746774`를 기준 증거로 기록한다. 이전 감사 #17/#18 실패는 삭제/수정하지 않는다.
+- R2 — PR HEAD의 `package.json`+ `package-lock.json` 루트·최상위 모두 `0.108.0`, lock 종속성 차이 0, `npm run version:check`, `tests/scripts/verify-release-version.test.ts`의 success/old-tag mismatch/partial lock negative가 실제 CI 로그에 남아야 한다. 실행 전 NOT TESTED.
+- R3 — #616 Target F2의 typed Equipment/System member, shared MCS, 합계 AMR 15, 공정/WorkArea/Project-common, atomic revision·Origin·Session/CAS, Copy/Template v2 remap/legacy 및 migration 0026을 `tests/server/logistics/logistics-targets.test.ts`, `tests/server/templates/logistics-template-graph.test.ts`/API E2E로 확인한다. #639의 특정 KPI 선택자와 #647의 실제 viewport-visible Milestone 포커스 복원 E2E도 실검증한다. 최신 PR 실행 전 동작 의미/운영 DB 인수 검증 NOT TESTED.
+- R4 — PR CI latest Head/base 세 Required aggregate+policy suite/Chromium 6/6/Docker, default-main Trusted QA 정확 Run/Attempt, unresolved review 0 확인. 현 PR의 CI 결과를 병합 후 main push CI의 증거로 재사용 금지.
+- R5 — 현재 확인된 Git refs `v0.108.0`/ `v0.107.0`는 baseline에서 없음, GitHub Release 전체 목록에도 없음. 인증된 `ghcr.io/planner77/mastergantt:0.108.0` 현재 부재는 **원격 후속 릴리스 직전에 새로 검증해야 하며**, audit #19 과거 상태나 generic 404로 단정 금지.
+- R6 — 승인된 미래 Merge의 immutable SHA에서 push Main CI3, GHCR exact candidate source label/digest/SBOM/attestation, Owner `v0.108.0` release authorization, annotated Git `v0.108.0` → GHCR exact `0.108.0`, Release CI, Finalizer 및 #616 F2 acceptance를 분리 확인. 게시/Issue close는 후속 권한 없이는 NOT TESTED/BLOCKED.
+- 현재 변경은 **preparation only**. Runtime 디바이스/운영 DB migration/외부 사이트 인수 검증은 별도이고 이번 PR의 release authority=false.
+
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
 - #662 원격 확인: PR #668의 latest Head에서 Preflight `RISK_LEVEL`/`QA_METHOD`/`QA_REQUIRED`/`DOCUMENTATION_SYNC` PASS 후 실제 policy Python suite 로그와 Quality/E2E6/Docker Required PASS를 각각 확인한다. Owner 거부/결핍을 mock으로 재현해 BLOCKED JSON·Job Summary에 마지막 인증 OCI digest 출처가 남고, 미확인 candidate는 `actual_digest=null`로 유지됨을 검사한다. 현재 운영 감사 #17은 소급 PASS 금지.
 
