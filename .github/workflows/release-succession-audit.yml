@@ -1,5 +1,6 @@
 name: 릴리스 승계 읽기 전용 감사
-run-name: ${{ format('승계 감사 · Issue #653 · Run #{0}.{1}', github.run_number, github.run_attempt) }}
+run-name: >-
+  ${{ format('승계 감사 · Issue #653 · Run #{0}.{1}', github.run_number, github.run_attempt) }}
 on:
   workflow_dispatch:
 permissions:
