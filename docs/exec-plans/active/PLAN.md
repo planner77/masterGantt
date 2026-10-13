@@ -1,3 +1,16 @@
+## Issue #659 — PR CI #2691 W05 timeout 및 PR 내부 Fail-Fast 보완 (2026-10-13)
+
+- [#2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683) Fast Gate/Quality/Docker PASS, Chromium Shard4 W05 수명주기 테스트 30s timeout, E2E aggregate/QA Final FAIL. 리뷰 스레드 0건, 현재 PR Head `0f647de2`에서 새 보완 Head 검증 필요.
+- 타임아웃은 해당 W05 테스트에만 유한한 60초 상한으로 보완하고 검증 단언/Playwright trace/권한 정책을 완화하지 않는다. PR E2E Job은 Playwright `--max-failures=1`을 양쪽 historical/native 실행 분기에 전달해 첫 실패 즉시 해당 Shard 내부 테스트 중단; 기존 matrix 취소를 신속하게 유도한다. Main/manual full E2E는 기존대로 유지.
+- 범위: `ci.yml`, `tests/e2e/project-edit-authorization.spec.ts`, `scripts/test_pr_fast_gate.py`, 관련 CI·검증/운영 문서. **HIGH/OWNER_MANAGED**·required 3종/Trusted QA·Main GHCR/Finalizer 불변. 신규 CI 결과 및 비용 측정 전 NOT TESTED.
+
+## Issue #659 — PR CI E2E Fail-Fast + Fast Gate (2026-10-13)
+
+- Baseline main `65c66b711f6ba1bd18caa53bd56042b54b391d80`, app version `0.107.0` 유지, 브랜치 `ci/issue-659-pr-fast-gate`. 실행 계약은 [ISSUE_659 Work Packet](ISSUE_659.md).
+- PR full: policy/typecheck/lint/unit 검사와 `pr_fast_gate` 결과 판정 후 Build/E2E 6-shard/Docker 실행. E2E matrix fail-fast=true; Main/manual은 기존 동시 시작·fail-fast=false 및 `steps` 앵커 공유.
+- `quality/e2e/docker` 세 Required 집계 및 Trusted QA/Owner 신뢰 경계는 유지. HIGH/OWNER_MANAGED/qa_required=true; release_required=false, release_authorized=false. 원격 PR CI 완료 전 PASS 불가.
+- 구현 후 `scripts/test_pr_fast_gate.py`, 기존 Preflight 테스트, 전체 PR CI 실행. 실패 주입·원격 Main/수동 검증과 비용 전후 실측은 각각 증거가 없으면 NOT TESTED; Owner 승인 전 병합하지 않는다.
+
 ## Issue #670 — v0.108.0 승계 릴리스 준비·정식 게시 보류 (2026-10-14)
 
 - 상위 #616(OPEN), 이전 승계 감사/검증 #649/#651/#653/#655/#657/#662. [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) `38452926077.1` main `bdfd1ea1...` SUCCESS/`PREPARE_ONLY`; v0.107.0 Owner 철회 및 새 v0.108.0 준비 결정은 #616 별도 댓글로 검증했다. #17/#18/#2621 원본 실패는 불변.

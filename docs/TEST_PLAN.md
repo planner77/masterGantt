@@ -1,3 +1,41 @@
+## Issue #659 — CI #2691 실패 보완 및 조기 Fail-Fast 회귀 검증 (2026-10-13)
+
+| 범위 | 실제/예상 증거 | 완료 기준 |
+| --- | --- | --- |
+| W05 단일 E2E (AC4) | #2690 22.6초 PASS vs #2691 기본 30초 timeout + context close 2차 오류 | 테스트 하나의 `test.setTimeout(60_000)`에서 권한·revision·session 회귀 검증 전부 PASS, 종료 오류를 포착·무시하지 않음 |
+| PR 내부 fail-fast (AC1/AC3) | #2691에서 Shard 4의 53번째 failure 후 나머지 77개 실행, Shard 2/3 취소 | `PR_E2E_STOP_ON_FAILURE=true` + `--max-failures=1`이 historical plan/native fallback 양쪽에 적용, 최초 실패 발생 시 해당 Shard 내 잔여 테스트 중단 |
+| Main/manual (AC2/AC6) | 기존 `fail-fast=false`/6-shard 전수 실행 | 같은 공통 E2E step을 사용해도 PR-only 변수 false로 `--max-failures=1`을 전달하지 않음 |
+| 기존 보호 유지 (AC5/AC7) | #2691 Quality/Docker Required PASS, E2E FAIL, QA Final `required e2e 미성공` | 새 Head 전체 CI에서 Quality/E2E/Docker·QA Final 결과 정확성, source/attempt, branch/thread/QA 불변 |
+| 실패 진단 및 절감률 (AC8) | 실패 Shard report/trace 보존, 다른 Shard 일부 CANCELLED | 실패 시 원본 로그와 Playwright report retained; Runner-minutes·중단 시간 전후 실측 없으면 NOT TESTED |
+| 문서 (AC9) | #659 Work Packet/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/CHANGELOG | 실행 계약·회귀 테스트 경로·원본 Run FAIL 불변을 일치시킴 |
+
+**로컬 계약 테스트:** `python3 scripts/test_pr_fast_gate.py`에서 E2E PR-only arg routing / 6-shard matrix / W05 테스트 한정 60초 timeout / 필수 권한 assert 및 context close 불변을 검증한다. 이번 변경에 의해 기존 전체 E2E, 정상/오류 시나리오나 Required Check를 skip/완화하는 것은 허용하지 않는다. 새 PR CI 실제 성공 및 절감률은 실행 완료 전 NOT TESTED.
+
+## Issue #659 — PR Fast Gate / E2E Fail-Fast 검증 계획 (2026-10-13)
+
+### PR #660 P1 — CI 표시 Job 이름 / Trusted QA 연결 회귀 (2026-10-13)
+
+- **원본:** [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292) Required 3종 PASS, QA Final은 미해결 P1 review로 BLOCKED. 이 상태는 이전 Run FAILURE로 보존.
+- **단위:** `scripts/test_pr_fast_gate.py::WorkflowContract.test_pr_job_labels_are_unique_and_trusted_names_are_preserved`가 PR/legacy 표시 이름 계약, 비실행 Job을 포함한 모의 Actions attempt 원장 유일성, `qa_final_automated.effective_run_jobs` 원본 성공 선택, 중복 시 `Blocked`를 검증한다.
+- **실제 PR 확인:** legacy skipped Build `Next.js production build`, PR Build `PR Next.js production build`, E2E PR `Chromium E2E shard 1/6 · PR`~`6/6 · PR`, legacy skipped Docker `Main Docker smoke (PR 비대상)`, 실행 PR Docker `Docker smoke 구현`으로 중복이 없어야 한다.
+- **신뢰 경계:** 원본 기본 브랜치 `qa_final_automated.py`는 PR `Docker smoke 구현` 정확 이름과 `Chromium E2E shard ` 접두를 감지하고, `main_ci_recovery.py`는 Main `Docker smoke 구현` 정확 이름을 사용한다. 검증기를 편집/우회하지 않고 이 둘의 원본 계약을 동시에 지켜야 한다.
+- **결과:** 새 정확 Head의 Full PR CI 및 QA Final/Trusted QA, unresolved review thread 0 확인 전 원격 결과 NOT TESTED. Main/manual/provenance·E2E fail-fast 실패 주입과 비용 효과는 별도 실증.
+
+
+| AC | 검증 | 성공 조건 |
+| --- | --- | --- |
+| AC1 | 분리된 원격 실패 주입 E2E shard | 다른 shard 취소 요청, E2E aggregate failure, 실패 로그 확인; 미실행 시 NOT TESTED |
+| AC2 | `scripts/test_pr_fast_gate.py` 정적 계약 및 실제 main/manual | 기존 `e2e_shard` fail-fast=false; 6-shard/timeout 불변 |
+| AC3 | `pr_fast_gate.assess` unit (failure/cancelled/skipped/unknown), 별도 실패 PR | 요구된 검사 비성공은 Fast Gate FAIL, heavy 미시작, 3 Required FAIL |
+| AC4 | 실제 full PR CI | build/E2E 6/6/Docker 모두 PASS 및 3 Required SUCCESS |
+| AC5 | unit + 기존 `scripts/test_qa_preflight.py`, metadata-only 원격 | docs-only의 정확한 skip, `edited` 원본 증거 재사용, stale/fork 차단 |
+| AC6 | main/manual 별도 CI 실증 | 기존 동시 시작 경로·GHCR/Finalizer·Release 정책 유지 |
+| AC7 | unit & CI policy Workflow contract | `always()` 집계, missing/skip/취소가 false PASS 또는 Pending이 되지 않음 |
+| AC8 | GitHub Actions jobs/timestamps 전후 비교 | 성공/실패 각각 wall-clock, runner-minutes, 회피 Job 수, 롤백 조건 기록 |
+| AC9 | DOCUMENTATION_SYNC 및 Work Packet | CI_CD/GITHUB_OPERATIONS/REMOTE_VALIDATION/TEST_PLAN/PLAN/AGENTS/CHANGELOG 반영 |
+
+CI policy에 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py`와 `scripts/test_qa_preflight.py`를 실행한다. Runner에서 기록하지 않은 실증은 NOT TESTED로 유지한다. 앱/E2E 테스트 자체를 삭제하거나 생략하는 것이 아니라 full PR에서 실행 순서와 실패 시 비용을 바꾸는 작업이다.
+
 ## Issue #670 — v0.108.0 승계 후보 기능·버전 검증 (2026-10-14)
 
 - **Version positive:** `tests/scripts/verify-release-version.test.ts`가 실제 checked-in manifest/lockfile root/top의 동일 SemVer, `v0.108.0` 후보와 `v0.106.1` published predecessor의 version precedence를 검증한다. `npm run version:check`와 기존 SemVer/prerelease unit suite 유지.

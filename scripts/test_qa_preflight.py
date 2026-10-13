@@ -192,8 +192,8 @@ class Contract(unittest.TestCase):
             encoding="utf-8")
         self.assertIn("  preflight:\n", ci)
         self.assertIn("needs: [changes, preflight, metadata_evidence, policy,", ci)
-        self.assertIn("needs: [changes, preflight, metadata_evidence, e2e_shard]", ci)
-        self.assertIn("needs: [changes, preflight, metadata_evidence, docker_smoke]", ci)
+        self.assertIn("needs: [changes, preflight, metadata_evidence, e2e_shard, pr_e2e_shard, pr_fast_gate]", ci)
+        self.assertIn("needs: [changes, preflight, metadata_evidence, docker_smoke, pr_docker_smoke, pr_fast_gate]", ci)
         self.assertGreaterEqual(ci.count('"$PREFLIGHT" != "success"'), 3)
         self.assertIn("scripts/test_qa_preflight.py", ci)
         # Compare against literal Actions syntax; an escaped dollar prefix

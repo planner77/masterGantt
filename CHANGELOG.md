@@ -1,3 +1,15 @@
+## Issue #659 — PR E2E Shard4 30초 타임아웃 안정화 및 2계층 Fail-Fast 보완 (2026-10-13)
+
+- [CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 130개 테스트 중 W05 프로젝트 편집 권한 수명주기가 기본 30초를 초과한 뒤 context close 오류가 동반되어 Shard4 FAIL, shard2/3 CANCELLED, Required E2E/QA Final FAIL. #2690에서는 동일 테스트 22.6초 PASS.
+- W05 한 테스트에만 유한한 60초 상한을 적용하고 기존 세션/Revision/401/412 권한 검증과 실패 보고는 유지한다. PR Full의 E2E 실행에만 Playwright `--max-failures=1`을 historical/native 6-shard 양쪽에 전달해 첫 테스트 실패 후 해당 Shard의 잔여 테스트를 중단; 이미 구현된 matrix Fail-Fast가 다른 Shard를 취소한다. Main/manual E2E 전수 실행과 QA/Required/Release 보호 불변.
+- 기존 #2691 실패 원본은 보존하며 실제 신규 Head 전체 CI·실패 주입 및 Runner 비용 개선은 검증 전 NOT TESTED.
+
+## Issue #659 — PR CI Fail-Fast / 단계별 Fast Gate (2026-10-13)
+
+- Full PR CI는 policy/typecheck/lint/unit 빠른 검사 후 Fast Gate가 성공해야 Next.js build/E2E/Docker를 실행한다. 요구된 검사의 실패·취소·예기치 않은 skip은 차단하며 세 Required Check를 FAIL로 집계한다.
+- PR E2E 6-shard만 fail-fast=true; Main push, workflow_dispatch, 복구 CI는 기존 fail-fast=false/병렬 실행 유지. GitHub Actions YAML anchor로 동일 실행 단계를 공유한다.
+- 기존 Preflight/metadata-only/QA/Owner/Ruleset/GHCR/Finalizer 및 제품 version 0.107.0 불변. 판정기·정적 회귀·관련 문서를 보강한다. 원격 CI, 실패 주입, 정상/실패 Runner 시간 측정은 별도 검증이다.
+
 ## Issue #670 — v0.108.0 승계 릴리스 준비 (2026-10-14)
 
 - #616의 미발행 `v0.107.0` 게시 승인 철회와 [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) 성공/`PREPARE_ONLY`를 바탕으로 다음 후보 `0.108.0` 준비. `package.json` 및 `package-lock.json`의 세 버전 값을 동기화하고 종속성 그래프는 변경하지 않았다.

@@ -1,3 +1,32 @@
+## Issue #659 — PR #660 CI #2691 E2E 타임아웃 보완 및 Shard 내부 첫 실패 중단 (2026-10-13)
+
+- **원인 실증:** [PR CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 PR Fast Gate·TypeScript·ESLint·Vitest·Policy·Next Build·Docker는 PASS. Chromium E2E shard 4/6의 `project-edit-authorization.spec.ts` W05 편집 권한 세션 테스트는 **30,000ms 타임아웃** 후 `otherContext.close()` 시점에 브라우저 컨텍스트를 찾지 못해 1 FAIL/128 PASS/1 SKIP. [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)에서는 동일 검증이 22.6초 PASS였고 두 Head 사이 앱/해당 테스트 코드 차이는 없다. 컨텍스트 종료 오류만 예외 처리하거나 인증 단언/쓰기 제약을 완화하지 않는다.
+- **보완:** 해당 단일 W05 E2E 테스트 본문에서 `test.setTimeout(60_000)`으로 유한한 여유 확보. 기본 Playwright 30초 제한, 나머지 테스트, 분리 격리 fixture(120초), JS/UI 기능/검증 단언, retry=0 불변. 원격 CI에서 정상 PASS·실행시간 및 실패 Trace로 확인 전 성공 단정 금지.
+- **2단계 Fail-Fast:** 기존 matrix `pr_e2e_shard.strategy.fail-fast=true`는 **실패한 Shard Job이 완료된 이후** 다른 Shard 취소를 요청한다. #2691에서 Shard 4의 53번째 테스트가 실패해도 130번째까지 계속 실행해 취소가 지연되었다. 공통 E2E shard step에 `PR_E2E_STOP_ON_FAILURE`(full PR만 true)를 추가하고 과거 타이밍 계획/Playwright native fallback **양쪽** 실행에 `--max-failures=1`을 인자로 전달한다. PR E2E 과정에서 첫 실패 시 해당 Shard의 잔여 테스트를 중단→matrix fail-fast가 다른 Shard 취소를 요청; Main push/수동·과거 SHA 복구는 flag 없이 `fail-fast=false`·전체 E2E 계속 수행. 공식 Playwright 옵션이며 재시도나 패스 처리 기능이 아니다.
+- **계약 보존:** PR Source run/attempt, GitHub concurrency, 6개 shard·workers=1, timing/history/fallback, `if: always()`의 실패 report/timing 업로드, 세 Required aggregate Quality/E2E/Docker, Default-main QA Final/Trusted, Owner/Ruleset, Main GHCR/Finalizer/정식 Release 불변. 취소된 다른 shard의 미완료 artifact는 보존되지 않을 수 있다. 실제 취소·로그 및 전체 비용 효과는 원격 실증으로 구분한다.
+- **회귀:** `scripts/test_pr_fast_gate.py`가 PR 전용 환경 경로 및 두 shard 실행 분기 옵션, Main 비적용, W05 테스트 한 건 60초 범위·기존 권한 단언/컨텍스트 종료 유지 확인. PR full test suite / E2E6 / Docker 실제 PASS는 새 Head 원격 CI 후 판정, 실패 주입/Runner 절감률은 별도 실증 전 NOT TESTED.
+- 이 PR은 HIGH/OWNER_MANAGED, `release_required=false`/`release_authorized=false`, 앱 version 0.107.0 유지. 실패 원본 #2691은 원본 SHA/Run 상태 FAILURE 그대로 둔다.
+
+## Issue #659 — Full PR CI E2E Fail-Fast 및 Fast Gate 최적화 (2026-10-13)
+
+### PR #660 P1 후속 — 원본 검증 Job 표시 이름 충돌 해결 (2026-10-13)
+
+- [PR CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)은 세 Required Quality/E2E6/Docker 및 Fast Gate 모두 PASS였지만, `QA Final — Automated`가 미해결 P1 리뷰 스레드로 BLOCKED. Codex P1은 PR full Run의 skipped legacy Build/Docker와 실제 PR Job이 동일 이름으로 중복되어 default-main `effective_run_jobs`가 후속 Trusted QA를 차단할 것이라고 지적했다.
+- 수정: `pr_build` 표시명에 `PR` 구분, `pr_e2e_shard` 표시명에 `· PR` 구분을 더한다. `docker_smoke` 기존 Job은 PR에서 비대상 이름 `Main Docker smoke (PR 비대상)`, Main/manual에서는 정확한 `Docker smoke 구현`을 유지한다. 실제 PR `pr_docker_smoke`도 정확히 `Docker smoke 구현`을 유지해 병합 전 기본 브랜치의 Trusted QA와 Main recovery 검증기 양쪽을 동시에 만족한다.
+- 기본 브랜치 `scripts/qa_final_automated.py`는 PR의 `Docker smoke 구현` 성공 및 `Chromium E2E shard ` 접두를 사용한다. `scripts/main_ci_recovery.py::OTHER_JOBS`는 Main의 `Docker smoke 구현`을 사용한다. 신뢰된 검증기 변경·우회 없이 두 모드 모두 원본 이름 규격을 보존한다.
+- `scripts/test_pr_fast_gate.py`는 정확한 PR Run의 미실행/실행 Job 이름을 시뮬레이션하여 `effective_run_jobs`가 중복 없이 provenance를 수집하고, 실제 이름 중복은 여전히 차단하는지 확인한다. Main/recovery/metadata-only 및 세 Required Check 이름은 바꾸지 않는다. 새 원격 PR CI·Trusted QA 결과는 실행 전 NOT TESTED.
+
+
+**목표:** 실패 PR의 불필요한 Runner 사용량 축소. 정상 PR은 기존 동시 시작 방식보다 wall-clock이 길어질 수 있어 사후 실측으로 채택 여부를 판단한다. 실패한 CI Run의 취소를 성공으로 바꾸거나 Required Check를 생략하는 기능이 아니다.
+
+- **PR full 경로:** `changes → preflight → policy/typecheck/lint/unit (병렬) → pr_fast_gate → pr_build/pr_e2e_shard(6개 병렬)/pr_docker_smoke (병렬)`. 경로 판정의 `policy/node=true`면 각 Job 결과가 success여야 하고, false면 해당 Job은 실제 skipped여야 한다. 결측/오류/취소는 FAIL. `pr_fast_gate` 자체는 merge gate가 아니며 세 Required aggregate가 정확한 원본 검증 근거다.
+- **PR E2E A:** `pr_e2e_shard.strategy.fail-fast=true`이며 Shard 실패 후 나머지 Shard 취소가 요청된다. 요청 시점/Runner 종료는 즉시 보장되지 않으며 취소된 Shard의 timing/report 업로드도 보장되지 않는다. 원본 실패 Shard 로그/Playwright report와 Run/Attempt를 보존한다.
+- **Main/수동 B 비적용:** 기존 `build`, `e2e_shard`(fail-fast=false), `docker_smoke`가 `changes,preflight` 결과 이후 본래처럼 병렬 시작한다. 별도의 `pr_*` Job은 Main/수동에서는 skip. GitHub Actions의 정적 `needs`로 Main을 직렬화하지 않는다. 동일 실행 단계는 `steps` YAML anchor/alias를 사용해 중복 및 drift를 방지한다(GitHub Actions 공식 지원).
+- **집계:** `quality/e2e/docker`는 `if: always()` 및 `needs` 결과를 사용한다. full PR에서 Fast Gate가 실패·취소되면 Required Check 3종은 FAIL; `edited`는 기존 exact Head/base/run 증거 재사용, 경로 분류로 정상 skip된 일반 PR은 기존 success 기준 적용. 이름 `Build, static checks, and unit tests` / `Chromium end-to-end tests` / `Docker build and runtime smoke test` 유지.
+- **비변경:** 6-shard·workers=1·historical plan/fallback, 보안·출처 검증/QA Final/Owner 수용, main commit image GHCR exact digest/SBOM/Finalizer, Release 승인 경로. CI-only 변경이므로 app version 0.107.0 유지, release_required=false.
+- **회귀:** `python3 scripts/test_pr_fast_gate.py`와 `python3 scripts/test_qa_preflight.py`를 CI policy Job에서 실행한다. main/manual 병렬성, alias, required aggregation, metadata-only, skip/fail/cancelled 상황을 정적·단위 계약으로 검증한다.
+- **측정/롤백:** 실제 Actions에서 정확 Head/base를 기준으로 정상·실패 Run의 시작~완료 wall-clock, 각 Runner started_at~completed_at 합계(Runner-minutes), 실행하지 않은 heavy Job 수, 실제 first-failure~Run completion을 전후 비교한다. 계측 전 절감률은 NOT TESTED. 정상 PR 임계 경로가 과도하게 증가하거나 required gate가 Pending/잘못된 SUCCESS로 바뀌면 A/B를 분리해 되돌린다(우선 B 의존성/PR 분기 복원, 필요 시 A fail-fast 비활성화). Main·Release·Ruleset 이름은 유지한다.
+
 ## Issue #670 — v0.108.0 승계 준비 PR / 정식 발행 Gate (2026-10-14)
 
 - [승계 감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) (`38452926077.1`, trusted main `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`)은 인증 Git/Release/GHCR·Owner provenance에 대한 **PREPARE_ONLY**: 최종 릴리스 승인이나 새 Main candidate가 아니다. #616 [기존 0.107.0 게시 승인 철회](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153135410)와 [0.108.0 준비 결정](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153144664)은 버전별로 분리된 Owner marker다.

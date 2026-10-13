@@ -457,6 +457,8 @@ jobs:
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py
       - name: QA Preflight 사전 정책·신뢰 경계 replay (#629)
         run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_preflight.py
+      - name: PR Fast Gate 검증 (#659)
+        run: PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py
       - name: 배포 shell 구문 검증
         run: |
           sh -n deploy/docker/container-entrypoint.sh
@@ -557,14 +559,13 @@ jobs:
   build:
     name: Next.js production build
     if: >-
-      always() && needs.changes.result == 'success' &&
-      needs.changes.outputs.node == 'true' &&
-      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
-       needs.preflight.result == 'success')
+      always() && github.event_name != 'pull_request' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true'
     needs: [changes, preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    steps:
+    steps: &build_steps
       - name: checkout 계측 시작
         id: checkout-start
         shell: bash
@@ -613,10 +614,49 @@ jobs:
           retention-days: 30
 
   # Ruleset의 기존 required check 이름을 유지하는 aggregate gate
+  # PR full에서 가벼운 검증 성공 후 실행하는 Next.js build
+  pr_build:
+    name: PR Next.js production build
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      needs.pr_fast_gate.result == 'success' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.node == 'true'
+    needs: [changes, preflight, pr_fast_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps: *build_steps
+
+  # PR full 전용: Main/수동/metadata CI는 기존 병렬 경로 그대로 유지
+  pr_fast_gate:
+    name: PR 빠른 검사 판정
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited'
+    needs: [changes, preflight, policy, typecheck, lint, unit]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.changes.outputs.checkout_sha }}
+          persist-credentials: false
+      - name: PR 필수 빠른 검사 결과 검증
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+          POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
+          POLICY_RESULT: ${{ needs.policy.result }}
+          NODE_REQUIRED: ${{ needs.changes.outputs.node }}
+          TYPECHECK_RESULT: ${{ needs.typecheck.result }}
+          LINT_RESULT: ${{ needs.lint.result }}
+          UNIT_RESULT: ${{ needs.unit.result }}
+        run: python3 scripts/pr_fast_gate.py
   quality:
     name: Build, static checks, and unit tests
     if: always()
-    needs: [changes, preflight, metadata_evidence, policy, typecheck, lint, unit, build]
+    needs: [changes, preflight, metadata_evidence, policy, typecheck, lint, unit, build, pr_build, pr_fast_gate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -634,7 +674,8 @@ jobs:
           TYPECHECK: ${{ needs.typecheck.result }}
           LINT: ${{ needs.lint.result }}
           UNIT: ${{ needs.unit.result }}
-          BUILD: ${{ needs.build.result }}
+          BUILD: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_build.result || needs.build.result }}
+          PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
           if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
@@ -657,7 +698,11 @@ jobs:
             echo "정책·저장소 계약 검사가 실패하거나 취소되었습니다: $POLICY" >&2
             exit 1
           fi
-          if [[ "$NODE_REQUIRED" != "true" ]]; then
+          if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
+             echo "PR Fast Gate 미성공: $PR_FAST_GATE" >&2
+             exit 1
+           fi
+           if [[ "$NODE_REQUIRED" != "true" ]]; then
             echo "관련 코드 변경이 없어 typecheck/lint/unit/build 검사를 생략했습니다."
             exit 0
           fi
@@ -672,10 +717,9 @@ jobs:
   e2e_shard:
     name: Chromium E2E shard ${{ matrix.shard }}/6
     if: >-
-      always() && needs.changes.result == 'success' &&
-      needs.changes.outputs.e2e == 'true' &&
-      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
-       needs.preflight.result == 'success')
+      always() && github.event_name != 'pull_request' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.e2e == 'true'
     needs: [changes, preflight]
     runs-on: ubuntu-latest
     # Playwright OS dependency install can stall on runner mirrors.
@@ -686,7 +730,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6]
-    steps:
+    steps: &e2e_shard_steps
       - name: checkout 계측 시작
         id: checkout-start
         shell: bash
@@ -707,6 +751,8 @@ jobs:
       - name: E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
+          # #659: PR 전용 첫 실패 중단. Main/수동은 전체 케이스 유지.
+          PR_E2E_STOP_ON_FAILURE: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && 'true' || 'false' }}
           E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           E2E_TIMING_SHARD: ${{ matrix.shard }}
           E2E_TIMING_SHARD_COUNT: "6"
@@ -714,6 +760,11 @@ jobs:
         run: |
           set -euo pipefail
           export E2E_RUN_STARTED_MS="$(date +%s%3N)"
+          fail_fast_args=()
+          if [[ "$PR_E2E_STOP_ON_FAILURE" == "true" ]]; then
+            fail_fast_args=(--max-failures=1)
+            echo "PR 첫 E2E 실패 시 shard 내 미실행 테스트를 중단합니다."
+          fi
           set +e
           selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
           selection_status=$?
@@ -725,10 +776,10 @@ jobs:
               exit 1
             fi
             echo "Historical timing shard plan 사용: ${#shard_files[@]} files"
-            npm run test:e2e -- "${shard_files[@]}"
+            npm run test:e2e -- "${fail_fast_args[@]}" "${shard_files[@]}"
           else
             echo "Historical timing plan 없음/불일치 — Playwright native 6-way sharding fallback"
-            npm run test:e2e -- --shard=${{ matrix.shard }}/6
+            npm run test:e2e -- "${fail_fast_args[@]}" --shard=${{ matrix.shard }}/6
           fi
       - name: E2E timing artifact 업로드
         if: always()
@@ -756,10 +807,27 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # PR E2E: 하나의 Shard 실패 시 나머지 Shard 취소 요청
+  pr_e2e_shard:
+    name: Chromium E2E shard ${{ matrix.shard }}/6 · PR
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.e2e == 'true' &&
+      needs.pr_fast_gate.result == 'success'
+    needs: [changes, preflight, pr_fast_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+    steps: *e2e_shard_steps
   e2e:
     name: Chromium end-to-end tests
     if: always()
-    needs: [changes, preflight, metadata_evidence, e2e_shard]
+    needs: [changes, preflight, metadata_evidence, e2e_shard, pr_e2e_shard, pr_fast_gate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -772,7 +840,8 @@ jobs:
           REQUIRED: ${{ needs.changes.outputs.e2e }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
-          RESULT: ${{ needs.e2e_shard.result }}
+          RESULT: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_e2e_shard.result || needs.e2e_shard.result }}
+          PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
           if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
@@ -791,7 +860,11 @@ jobs:
             echo "PR metadata trace와 기존 전체 E2E 증거를 함께 확인했습니다."
             exit 0
           fi
-          if [[ "$REQUIRED" != "true" ]]; then
+          if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
+             echo "PR Fast Gate 미성공이므로 E2E 차단: $PR_FAST_GATE" >&2
+             exit 1
+           fi
+           if [[ "$REQUIRED" != "true" ]]; then
             echo "E2E 관련 변경이 없어 Chromium E2E를 생략했습니다."
             exit 0
           fi
@@ -802,17 +875,18 @@ jobs:
 
   # Docker smoke도 quality를 기다리지 않고 변경 판정 직후 병렬 시작
   docker_smoke:
-    name: Docker smoke 구현
+    # #659 P1: PR에서는 legacy Job이 skipped여도 원장에 기록된다.
+    # Main/manual 복구기의 정확한 표시 이름 및 PR Trusted QA의 Docker 원본 이름을 모두 보존한다.
+    name: ${{ github.event_name == 'pull_request' && 'Main Docker smoke (PR 비대상)' || 'Docker smoke 구현' }}
     if: >-
-      always() && needs.changes.result == 'success' &&
-      needs.changes.outputs.docker == 'true' &&
-      (github.event_name != 'pull_request' || github.event.action == 'edited' ||
-       needs.preflight.result == 'success')
+      always() && github.event_name != 'pull_request' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.docker == 'true'
     needs: [changes, preflight]
     runs-on: ubuntu-latest
     # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
     timeout-minutes: 40
-    steps:
+    steps: &docker_smoke_steps
       - name: checkout 계측 시작
         id: checkout-start
         shell: bash
@@ -993,10 +1067,23 @@ jobs:
         if: always()
         run: docker rm --force --volumes mastergantt-ci || true
 
+  # PR Docker: Fast Gate 성공 이후에만 시작
+  pr_docker_smoke:
+    name: Docker smoke 구현
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.action != 'edited' &&
+      needs.changes.result == 'success' &&
+      needs.changes.outputs.docker == 'true' &&
+      needs.pr_fast_gate.result == 'success'
+    needs: [changes, preflight, pr_fast_gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps: *docker_smoke_steps
   docker:
     name: Docker build and runtime smoke test
     if: always()
-    needs: [changes, preflight, metadata_evidence, docker_smoke]
+    needs: [changes, preflight, metadata_evidence, docker_smoke, pr_docker_smoke, pr_fast_gate]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -1009,7 +1096,8 @@ jobs:
           REQUIRED: ${{ needs.changes.outputs.docker }}
           METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
           METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
-          RESULT: ${{ needs.docker_smoke.result }}
+          RESULT: ${{ github.event_name == 'pull_request' && github.event.action != 'edited' && needs.pr_docker_smoke.result || needs.docker_smoke.result }}
+          PR_FAST_GATE: ${{ needs.pr_fast_gate.result }}
         run: |
           set -euo pipefail
           if [[ "$IS_FULL_PR" == "true" && "$PREFLIGHT" != "success" ]]; then
@@ -1028,7 +1116,11 @@ jobs:
             echo "PR metadata trace와 기존 전체 Docker 증거를 함께 확인했습니다."
             exit 0
           fi
-          if [[ "$REQUIRED" != "true" ]]; then
+          if [[ "$IS_FULL_PR" == "true" && "$PR_FAST_GATE" != "success" ]]; then
+             echo "PR Fast Gate 미성공이므로 Docker 차단: $PR_FAST_GATE" >&2
+             exit 1
+           fi
+           if [[ "$REQUIRED" != "true" ]]; then
             echo "Docker/runtime 관련 변경이 없어 smoke test를 생략했습니다."
             exit 0
           fi

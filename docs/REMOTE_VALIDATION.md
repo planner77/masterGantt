@@ -1,3 +1,27 @@
+## Issue #659 — PR #660 E2E 첫 실패 중단 및 W05 타임아웃 회귀 검증 (2026-10-13)
+
+- [CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683) 최초 실패: Shard 4의 `project-edit-authorization.spec.ts:45` W05 단일 테스트가 default 30초를 초과하고 `otherContext.close: Target.disposeBrowserContext Failed to find context`를 기록했다. 1 FAIL/128 PASS/1 SKIP. 다른 샤드 2/3은 Job-level fail-fast에 따라 취소, 1/5/6 PASS. Quality/Docker PASS, Chromium aggregate FAIL, QA Final `required e2e 미성공` FAIL.
+- 단위/정적 계약: `python3 scripts/test_pr_fast_gate.py`에서 `test.setTimeout(60_000)`이 W05 본문 한 곳에만 존재하고 401 권한 검사·`await otherContext.close()`를 유지하는지 검사한다. 공유 E2E Steps의 PR-only `PR_E2E_STOP_ON_FAILURE`, `--max-failures=1`이 historical-plan 명령 및 native fallback 양쪽에 전달되고 Main/manual에서는 비활성인지 검사한다.
+- **실제 원격 확인:** 새 Head 전체 PR CI에서 W05 E2E가 정상 PASS하고 해당 테스트 예상/실제 소요시간, shard 6/6, Required Quality/E2E/Docker/QA Final 결과, Playwright report artifact 및 default-main Trusted QA 신뢰/인증 결과를 확인한다. 이후에도 실패하면 저장된 Shard trace/문맥을 분석하고 권한 검증 누락, 타임아웃 무제한, retry 우회, `--ignore-snapshots` 등으로 녹색화하지 않는다.
+- **조기 중단 실패 주입:** 별도 안전한 PR 테스트에서 실패 하나를 주입하여 해당 shard 내부 잔여 테스트 미실행(첫 failure 즉시 exit nonzero), 다른 shard GitHub 취소, 3 Required Check 중 E2E FAIL 및 QA Final FAIL을 확인한다. 이전 #2691은 첫 실패 이후 77개 잔여 테스트 실행이라는 기준이지만 새 구현의 조기 중단/Runner 절감률은 *실증 전* NOT TESTED.
+- **정상 Main/manual:** `PR_E2E_STOP_ON_FAILURE=false`, `e2e_shard.strategy.fail-fast=false`, 6-shard 실행/집계와 GHCR/Finalizer 인계가 기존 그대로인지 해당 경로에서 별도 검증한다. 이 PR 자체의 신규 Head 결과·Fail-Fast 비용 개선을 미리 PASS로 표기하지 않는다.
+
+## Issue #659 — Full PR CI Fast Gate / E2E Fail-Fast 원격 검증 (2026-10-13)
+
+### #659 PR #660 — P1 Job 이름 중복 검증 및 재실행 (2026-10-13)
+
+- 이전 [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)의 Quality/E2E6/Docker/PR Fast Gate는 PASS, QA Final은 `미해결 review thread`로 BLOCKED. P1은 legacy와 PR 런의 Build/Docker Job 이름 중복을 지적한다.
+- 새 Head Full PR CI에서 모든 Job 이름(건너뛴 legacy Job 포함)의 유일성을 Actions Job API 원장으로 검증. 실제 PR Docker `Docker smoke 구현`, Chromium `Chromium E2E shard N/6 · PR`, PR Build `PR Next.js production build`을 확인; Main/manual의 Docker `Docker smoke 구현` 유지 및 PR 비대상 legacy `Main Docker smoke (PR 비대상)`를 구별한다. `scripts/test_pr_fast_gate.py`의 신뢰된 validator `effective_run_jobs` replay 및 중복 거부 테스트를 policy에서 실행한다.
+- 원래 P1 thread가 해결됐는지 확인한 뒤 자동 QA Final과 default-main Trusted QA가 실제 최신 Head/run/attempt로 검증되는지 확인한다. CI가 아직 진행 중이면 NOT TESTED; Main 복구/실패 주입은 별도 실증이다.
+
+
+- 목표: #659 PR exact Head/base의 `QA Preflight → policy/typecheck/lint/unit → PR Fast Gate → PR Next build/E2E 6-shard/Docker` 순서를 GitHub Jobs `started_at/completed_at`으로 확인한다. main/manual에는 원래의 병렬 Job(`build/e2e_shard/docker_smoke`)이 실행되고 PR Lane이 skipped되어야 한다.
+- **정적·단위:** `python3 scripts/test_pr_fast_gate.py`는 required 성공, failure/cancelled/skipped/unknown의 fail-closed, 정당한 비대상 skip, YAML job routing/alias, required aggregate, metadata-only를 검증. 기존 `scripts/test_qa_preflight.py`와 동시에 수행한다.
+- **운영 실패 시나리오:** 안전한 별도 테스트 PR/fixture에서 policy/typecheck/unit 중 하나를 의도적으로 실패시키고 heavy Job `skipped`, 세 Required aggregate `failure`, 원본 Job 로그를 확인한다. PR의 E2E 한 Shard 실패 시 나머지 Shard 취소 요청과 E2E aggregate 실패를 확인한다. **실제 실패 주입 Run이 없다면 AC1/AC3 원격 증거는 NOT TESTED**(정적 검사 PASS로 승격 금지). 기존 production PR에 고의 결함을 병합하지 않는다.
+- **정상 시나리오:** 하나의 Full PR에서 Preflight, 4개 빠른 검사, Fast Gate, Next.js build, Chromium6/6, Docker, Quality/E2E/Docker aggregate가 모두 success임을 확인한다. PR `edited`는 heavy skip 및 정확한 Full CI 증거 결합으로 처리한다.
+- **Main/보안:** push/manual/과거 SHA 복구에서 불필요한 Fast Gate 선행 대기가 없는지 시각을 비교한다. CI Workflow 변경 PR은 HIGH/OWNER_MANAGED 및 Trusted QA/Owner 명시 수용 필수; GHCR/Finalizer는 병합 후에만 검증.
+- **비용 비교:** identical lane 및 가능한 동일 변경 범위에서 이전/이후 Run wall-clock과 Runner-minutes(각 Job started_at~completed_at 합계), 회피한 heavy Job 수, 실패 이후 잔여 실행시간을 기록. 아직 기준 Run 2종 비교는 NOT TESTED; 추정 개선 퍼센트를 보고하지 않는다. Shard 취소 시 미완료 artifact가 없다는 이유로 테스트 성공으로 처리하지 않는다.
+
 ## Issue #670 — 승계 준비 / 원격 검증 기준 (2026-10-14)
 
 - R1 — [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) `38452926077.1` SUCCESS 및 `PREPARE_ONLY`, 원본 main `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`, artifact `11841746774`를 기준 증거로 기록한다. 이전 감사 #17/#18 실패는 삭제/수정하지 않는다.

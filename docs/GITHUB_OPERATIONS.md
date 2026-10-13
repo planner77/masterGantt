@@ -1,3 +1,23 @@
+## Issue #659 — E2E 테스트 내부 조기 종료 및 실패 진단 (2026-10-13)
+
+- PR `pr_e2e_shard`는 `--max-failures=1`으로 **첫 테스트 실패 후 해당 Shard에서 나머지 테스트를 중단**한다. Job이 실패 결론에 도달하면 기존 matrix `fail-fast=true`가 다른 진행/대기 Shard 취소를 요청한다. Main/수동의 `e2e_shard`에는 이 CLI 옵션을 전달하지 않고 기존 전체 오류 수집·`fail-fast=false`를 유지한다.
+- #2691의 W05 테스트는 30초 timeout이 최초 실패이고 `browserContext.close` protocol 오류는 타임아웃 후 finally에 동반되었다. 단일 테스트만 60초로 제한을 늘리고 `401/412` 등의 권한 검증/실패 보고, 컨텍스트 정리 예외는 숨기지 않는다. 실패 Shard report/trace는 업로드하고 취소된 다른 Shard report 존재를 PASS 증거로 가정하지 않는다.
+- 동일 Head의 기존 실패 run 재실행 대신 보완 commit 새 Head의 전체 PR CI + QA Final을 확인한다. 조기 종료로 전체 오류 수집이 필요한 상황은 Main/수동 전체 실행 경로를 사용한다. 유효한 Owner 지시/QA/Required Check 전 병합하지 않는다.
+
+## Issue #659 — PR CI 실패 조기 중단·Fast Gate 운영 지침 (2026-10-13)
+
+### PR #660 — 표시 Job 이름의 불변 검증기 호환성 (2026-10-13)
+
+- PR Fast Gate 후속 Job은 수행 여부와 무관하게 Actions Job 원장에 남을 수 있어 Full PR 동일 Attempt 안에서 **모든 Job 이름이 유일**해야 한다. #2690.1의 unresolved P1은 Job 이름 중복을 지적했다.
+- PR 전용 Build는 `PR Next.js production build`, E2E는 `Chromium E2E shard N/6 · PR`; PR의 실제 Docker는 `Docker smoke 구현`이다. 비실행 legacy Docker는 PR 이벤트에서 `Main Docker smoke (PR 비대상)`이고 Main/manual 실행 시 원래 `Docker smoke 구현`으로 복원된다. 이 구분은 신뢰된 기본 브랜치 QA 및 Main immutable recovery 검사기에 맞춘 것이며 임의의 이름 변경을 허용하지 않는다.
+- Job 이름 중복 해결/리뷰 thread 종료 후에는 새로운 exact Head PR CI 3종과 QA Final을 새로 검증한다. 지난 CI #2690.1 FAIL은 변경되지 않으며, 실패를 리뷰 해결만으로 PASS로 소급 처리하지 않는다.
+
+
+- PR full CI는 QA Preflight 다음에 policy/typecheck/lint/unit을 먼저 실행한다. `PR 빠른 검사 판정` 실패 시 `pr_build`, `pr_e2e_shard`, `pr_docker_smoke`의 **skipped는 의도된 비용 차단**이지 PASS가 아니다. 반드시 세 Required aggregate가 failure로 결론 났는지 확인한다.
+- E2E의 한 Shard 실패는 `pr_e2e_shard` matrix의 `fail-fast=true` 때문에 다른 Shard 취소를 요청한다. 첫 실패 Job의 Playwright report/log를 우선 확보하고, 취소된 Shard에 로그/artifact가 없을 수 있음을 기록한다. 전체 PR CI Run이 자동 Cancelled 되는 기능은 아니다.
+- Main push/manual/정확 SHA 복구는 `build/e2e_shard/docker_smoke` 원래 병렬 경로 및 E2E fail-fast=false 유지. `pull_request.edited`는 정확 Head 성공한 원본 Full CI 증거 재사용 규칙(#577/#600) 유지.
+- 성공/실패/skip/cancelled/timeout/unknown을 구별하며 QA Final, Ruleset 3종, Owner 위험 수용, GHCR/Finalizer를 우회하지 않는다. 운영 검증은 [Issue #659 Work Packet](exec-plans/active/ISSUE_659.md) 및 [REMOTE_VALIDATION](REMOTE_VALIDATION.md)을 따른다. 정상 PR 지연 증가 또는 잘못된 집계가 발생하면 PR Lane만 롤백하고 Main 병렬 검사를 계속 보호한다.
+
 ## Issue #670 — v0.108.0 승계 준비 운영 순서 (2026-10-14)
 
 - 신뢰된 [#19.1 PREPARE_ONLY 감사](https://github.com/planner77/masterGantt/actions/runs/38452926077) Run/attempt/SHA/artifact 및 #616 두 Owner 결정([철회](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153135410) / [준비](https://github.com/planner77/masterGantt/issues/616#issuecomment-6153144664))을 immutable 원장으로 보존. 원본 실패 #2621.1과 #17/#18을 소급 성공으로 바꾸지 않는다.
