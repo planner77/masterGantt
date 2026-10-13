@@ -51,6 +51,16 @@ class TestSuccessionPreflight(unittest.TestCase):
         del x["release_inventory"]["0.106.1"]
         cases.append(x)
         x = valid()
+        x["release_inventory"]["0.107.0"]["ghcr_tag"] = "PRESENT"
+        x["release_inventory"]["0.107.0"]["ghcr_digest"] = "sha256:invalid"
+        cases.append(x)
+        x = valid()
+        x["candidate_sha"] = "b" * 40
+        cases.append(x)
+        x = valid()
+        x["first_parent"] = [CORRECTION, ORIGINAL, x["main_sha"]]
+        cases.append(x)
+        x = valid()
         del x["candidate_sha"]
         cases.append(x)
         for case in cases:
