@@ -301,8 +301,9 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   const milestoneEditor = await openMilestoneEditor(page, id(4));
   await milestoneEditor.getByLabel("작업명", { exact: true }).fill("Renamed milestone");
   await milestoneEditor.getByRole("button", { name: "저장", exact: true }).click();
-  await expect(milestoneEditor).toHaveCount(0);
   await expect.poll(() => fixture.tasks[3].name).toBe("Renamed milestone");
+  await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expect(milestoneEditor).toHaveCount(0);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect(nameCell(page, "Renamed milestone")).toHaveCount(0);
   expect(await nameCell(page, "Renamed summary").locator('[data-action="open-task"]').getAttribute("class")).toBe(summaryToggleClass);
@@ -445,8 +446,9 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
   const unrelated = await openMilestoneEditor(page, id(4));
   await unrelated.getByLabel("작업명", { exact: true }).fill("Unrelated rename");
   await unrelated.getByRole("button", { name: "저장", exact: true }).click();
+  await expect.poll(() => fixture.tasks[3].name).toBe("Unrelated rename");
+  await unrelated.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await expect(unrelated).toHaveCount(0);
-  expect(fixture.tasks[3].name).toBe("Unrelated rename");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect(nameCell(page, "Unrelated rename")).toHaveCount(0);
 

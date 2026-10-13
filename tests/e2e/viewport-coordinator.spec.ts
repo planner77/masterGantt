@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { editor, setup } from "./fixtures/task-editor-density";
 
 test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다", async ({ page }, info) => {
@@ -7,6 +7,7 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
   const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
   milestone.siblingOrder = 0;
   fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
+  await installMilestoneDashboardFixture(page, fixture);
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame");
@@ -15,9 +16,7 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
     core: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number },
     native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop },
   }));
-  await frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
-  await chooseTaskInformation(page);
-  const dialog = editor(page);
+  const dialog = await openMilestoneEditor(page, milestone.taskId);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
@@ -67,12 +66,11 @@ for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#57
   const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
   milestone.siblingOrder = 0;
   fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
+  await installMilestoneDashboardFixture(page, fixture);
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame");
-  await frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
-  await chooseTaskInformation(page);
-  const dialog = editor(page);
+  const dialog = await openMilestoneEditor(page, milestone.taskId);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });

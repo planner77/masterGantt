@@ -1929,7 +1929,7 @@ export function ProjectGantt({
         // Resetting the development probe must restore the production-owned
         // Summary/Task projection, not reintroduce hidden Milestone WBS rows.
         // Preserve caller-specified IDs for explicit diagnostic filtering.
-        await filterMilestoneWbsRows(api, ids ?? projectionReference.current.membershipIds);
+        await filterMilestoneWbsRows(api, ids ?? projectionReference.current?.membershipIds ?? []);
       },
       read: () => {
         const state = api.getState();
@@ -1965,7 +1965,7 @@ export function ProjectGantt({
   }, [apiInstanceId, installMilestoneProbe]);
 
   const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "separate-milestones", columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode]);
-  const projectionReference = useRef(projection);
+  const projectionReference = useRef<CanonicalProjection | null>(null);
   useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
   const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
@@ -2079,7 +2079,7 @@ export function ProjectGantt({
       fullscreenFrameReference.current.dataset.ganttCanonicalSyncGeneration = String(syncVersion);
     }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
-      if (syncVersion !== canonicalSyncVersionReference.current || projectionReference.current.revision !== projection.revision || projectionReference.current.keys.data !== projection.keys.data || projectionReference.current.keys.structure !== projection.keys.structure) return;
+      if (syncVersion !== canonicalSyncVersionReference.current || projectionReference.current?.revision !== projection.revision || projectionReference.current?.keys.data !== projection.keys.data || projectionReference.current?.keys.structure !== projection.keys.structure) return;
       // Compare with the geometry that actually completed the previous canonical sync.
       // A render that was superseded before its queued sync ran must not become the
       // viewport-restoration baseline for the surviving update.
@@ -2088,7 +2088,7 @@ export function ProjectGantt({
         appliedCanonicalViewportGeometryReference.current === canonicalViewportGeometry;
       const api = apiReference.current;
       if (!api || api !== requestedApi) return;
-      const isCurrent = () => syncVersion === canonicalSyncVersionReference.current && apiReference.current === api && projectionReference.current.revision === projection.revision && projectionReference.current.keys.data === projection.keys.data && projectionReference.current.keys.structure === projection.keys.structure && projectRevisionReference.current === projection.revision;
+      const isCurrent = () => syncVersion === canonicalSyncVersionReference.current && apiReference.current === api && projectionReference.current?.revision === projection.revision && projectionReference.current?.keys.data === projection.keys.data && projectionReference.current?.keys.structure === projection.keys.structure && projectRevisionReference.current === projection.revision;
 
       canonicalSyncDepthReference.current += 1;
       if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
@@ -2169,7 +2169,7 @@ export function ProjectGantt({
     diagnosticTraceReference.current?.record("effect-request", "filter-tasks");
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
-      if (!api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
+      if (!api || api !== requestedApi || !apiInstanceId || projectionReference.current?.revision !== requestedProjection.revision || projectionReference.current?.keys.membership !== requestedProjection.keys.membership || projectionReference.current?.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
       const applied = appliedTaskFilterReference.current;
       // Parent renders produce fresh arrays; avoid reapplying the same
       // filter while the project editor owns focus.
@@ -2197,7 +2197,7 @@ export function ProjectGantt({
       const summaryIntent = new Map(summaryToggleStateReference.current);
       const parentIds = new Set(currentTasks.filter(task => task.parent).map(task => String(task.parent)));
       for (const [id, collapsed] of summaryIntent) {
-        if (apiReference.current !== api || projectRevisionReference.current !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership) return;
+        if (apiReference.current !== api || projectRevisionReference.current !== requestedProjection.revision || projectionReference.current?.keys.membership !== requestedProjection.keys.membership) return;
         const task = api.getTask(id);
         if (task && parentIds.has(id) && Boolean(task.open) === collapsed) await api.exec("open-task", { id, mode: !collapsed });
       }
@@ -2298,8 +2298,8 @@ export function ProjectGantt({
       const generation = ++projectionReceiptGeneration.current;
       const isCurrent = () => !disposed && apiReference.current === api &&
         generation === projectionReceiptGeneration.current && projectRevisionReference.current === requested.revision &&
-        projectionReference.current.keys.data === requested.keys.data && projectionReference.current.keys.structure === requested.keys.structure && projectionReference.current.keys.membership === requested.keys.membership &&
-        projectionReference.current.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
+        projectionReference.current?.keys.data === requested.keys.data && projectionReference.current?.keys.structure === requested.keys.structure && projectionReference.current?.keys.membership === requested.keys.membership &&
+        projectionReference.current?.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
       observation = observeProjectionSettled(api, root, requested, { apiInstance: apiInstanceId, generation,
         reasons: trigger === "layout" ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
       void observation.promise.then(receipt => {

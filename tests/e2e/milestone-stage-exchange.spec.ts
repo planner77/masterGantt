@@ -150,6 +150,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   await editor.getByRole("button", { name: "저장", exact: true }).click(); await expect(editor).toHaveCount(0); await project.refresh();
   expect(project.snapshot.data.project.revision).toBe(beforeEdit + 1);
   const milestoneEditor = await openTask(page, join.taskId); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   const header = page.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "Milestone", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(page, child.taskId).getByRole("button", { name: /Milestone:/ })).toContainText(join.name);
   const stageTrigger = page.locator("#project-panel-schedule .project-stage-filter-trigger"); await stageTrigger.click(); const stageSearch = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" }); await stageSearch.fill(join.taskId); await stageSearch.press("End"); await stageSearch.press("Enter"); await expect(row(page, child.taskId)).toBeVisible(); await expect(row(page, free.taskId)).toHaveCount(0);
