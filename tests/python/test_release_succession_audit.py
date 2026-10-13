@@ -59,8 +59,8 @@ class TestReadOnlyAudit(unittest.TestCase):
             audit.latest_marker(rows, "mastergantt-release-authorization:v1", "0.107.0", False)
 
     def test_latest_owner_revocation(self):
-        rows=[(1,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":True}),
-              (2,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":False})]
+        rows=[(1,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":True,"note":"original permission"}),
+              (2,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":False,"note":"latest revocation"})]
         self.assertTrue(audit.latest_marker(rows,"mastergantt-release-authorization:v1","0.107.0",False))
         self.assertFalse(audit.latest_marker(rows,"mastergantt-release-authorization:v1","0.107.0",True))
 
