@@ -39,17 +39,43 @@ issue_comment_allowed_types: PLAN, STATUS, HANDOFF
 
 ## AC_TEST_COVERAGE
 
-| AC | 산출물 / 확인 방법 | 이번 판정 범위 |
-| --- | --- | --- |
-| AC1 | GSC-01~12 및 candidate/승인/구현 상태를 표준에서 확인 | 문서 작성·원격 존재 확인, 규범 승인/제품 준수는 별도 |
-| AC2 | same-revision Core drift, 412/422/500/네트워크, empty axis, Calendar/사용자 의도 경쟁을 SC-01~14에서 확인 | 요구·검증 설계만 확인; 제품 테스트 미실행 |
-| AC3 | AGENTS의 필수 참조와 Work Packet 기록 의무, ADR/Trace의 규범 링크 | 필수 참조 등록 확인; main 전역 적용 전 |
-| AC4 | #663~#667의 scope/non-scope·선행·파일 소유·독립 테스트·rollback 및 #573/#574 경계 | 계획 등록 확인; 구현·독립 QA·병합 미수행 |
-| AC5 | 문서 내 상대 링크 대조, issue 번호 대조, 계획 의존성 순환·병렬 소유권 교집합 검사 | 아래 검증 범위/한계와 원본 결과 보존 |
+- AC1: `docs/GANTT_STATE_CONSISTENCY.md`의 GSC-01~12 및 candidate/승인/구현 상태를 확인한다. 문서 작성·원격 존재 확인 범위이며 규범 승인/제품 준수는 별도다.
+- AC2: `docs/GANTT_STATE_CONFORMANCE.md`의 SC-01~14에서 same-revision Core drift, 412/422/500/네트워크, empty axis, Calendar/사용자 의도 경쟁을 확인한다. 요구·검증 설계만 확인하며 제품 테스트는 미실행이다.
+- AC3: `AGENTS.md`의 필수 참조·Work Packet 기록 의무와 `docs/GANTT_ADAPTER_ADR.md` / `docs/GANTT_SYNC_TRACE.md`의 규범 링크를 확인한다. 필수 참조 등록 범위이며 main 전역 적용 전이다.
+- AC4: `docs/exec-plans/active/GANTT_STATE_REMEDIATION.md`와 #663~#667의 scope/non-scope·선행·파일 소유·독립 테스트·rollback 및 #573/#574 경계를 대조한다. 계획 등록만 확인하며 구현·독립 QA·병합은 미수행이다.
+- AC5: `node scripts/check-markdown-links.mjs`로 저장소 상대 링크를 검사하고 기본 브랜치의 `qa_final_automated.docs_gate`로 실제 PR 변경 경로와 AC1~AC5 매핑을 검사한다. 이슈 번호·계획 DAG·병렬 소유권의 이전 수동 전사 검증 한계와 원본 실패는 아래 원장에 보존한다.
 
-이 표의 작성/존재 확인을 원격 Required CI PASS, 최종 QA_FINAL 또는 Owner ACCEPT로 사용하지 않는다.
+이 매핑의 작성/존재 확인을 원격 Required CI PASS, 최종 QA_FINAL 또는 Owner ACCEPT로 사용하지 않는다.
 
 ## DOCUMENTATION_SYNC
+
+기본 브랜치 검증기가 읽는 파일별 기록이다. 새 문서도 PR diff에 존재하는 변경 파일이므로 검사 상태는 UPDATED로 기록하고, 아래 표에는 ADDED 여부와 의미적 영향 근거를 유지한다.
+
+- `AGENTS.md`: UPDATED
+- `docs/GANTT_STATE_CONSISTENCY.md`: UPDATED
+- `docs/GANTT_STATE_CONFORMANCE.md`: UPDATED
+- `docs/exec-plans/active/GANTT_STATE_REMEDIATION.md`: UPDATED
+- `docs/GANTT_ADAPTER_ADR.md`: UPDATED
+- `docs/GANTT_SYNC_TRACE.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_661.md`: UPDATED
+- `docs/ARCHITECTURE.md`: N/A(제품 구조 변경 없이 장기 규범 원본을 연결하며 실제 제품 연결은 #667에서 동기화)
+- `docs/PROJECT_UX.md`: N/A(기존 화면 동작 변경 없음이며 실제 제품 연결 시 #667에서 동기화)
+- `docs/MILESTONE_TIMELINE.md`: N/A(기존 Milestone 동작 계약 불변이며 실제 구현 변경 시 #667에서 동기화)
+- `docs/TEST_PLAN.md`: N/A(누적 검증 설계 문서만 추가하며 실제 test manifest와 runner 연결은 #663/#667/#574에서 수행)
+- `docs/exec-plans/active/PLAN.md`: N/A(이번 범위의 실행계획은 GANTT_STATE_REMEDIATION과 본 Packet으로 관리하며 기존 실패 원장 보존)
+- `DESIGN.md`: N/A(새로운 시각 언어와 제품 화면 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(화면 interaction과 접근성 계약 변경 없음)
+- `docs/API.md`: N/A(제품 REST API 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite schema와 migration 변경 없음)
+- `docs/SECURITY.md`: N/A(인증과 권한 및 보안 정책 변경 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정 계산 알고리즘과 도메인 계약 변경 없음)
+- `docs/IMPORT_SCHEMA.md`: N/A(Import 데이터 계약 변경 없음)
+- `docs/EXCEL_EXPORT.md`: N/A(Excel Export 형식과 동작 변경 없음)
+- `docs/CI_CD.md`: N/A(workflow와 Required checks 및 릴리스 권한 불변이며 기존 검증기에 맞춘 Work Packet 형식만 보완)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 검증 gate와 증거 계약 불변이며 이 PR의 실패와 재개는 본 Packet에 기록)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 #629 Preflight 운영 절차를 적용하며 GitHub 운영 계약 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(HIGH와 OWNER_MANAGED 및 qa_required=true 유지하며 Trusted QA와 Owner 승인 기준 불변)
+- `CHANGELOG.md`: N/A(제품 동작과 버전 불변이며 문서 변경 이력은 표준 변경 원장과 본 Packet에 기록)
 
 | 문서 | 판정 | 이유 / 책임 |
 | --- | --- | --- |
@@ -88,6 +114,15 @@ U2/U3/U4 병렬 개발은 파일·인터페이스의 독립성을 뜻하며 무�
 4. 공식 serialize/resize-chart/exec 및 Willow sample URL을 확인했다. 최신 웹 문서 조회는 설치2.7.3의 실제 동작/브라우저 조작 PASS가 아니다. 실제 전략 검증은 #666의 책임이다.
 5. 이 세션의 컨테이너에서 github.com DNS 조회 실패로 git checkout 및 저장소 전체 Markdown validator/Unit/E2E를 실행하지 못했다. 도구로 확인한 원격 파일/링크 대조와 로컬 계획 모델 검사만 수행했다. 미실행 검증은 NOT TESTED로 유지한다.
 6. 실제 별도 Reviewer를 실행하지 않았다. 문서 검토 상태 REVIEW_PENDING, Required CI/Trusted QA/Owner ACCEPT 및 main 반영은 별도다. 문서 PR 등록 후 자동 CI 결과를 기다리거나 제품 CI를 재실행하지 않는다.
+
+## PR CI #2703.1 실패 보완 (2026-10-13)
+
+- 원본 [PR CI #2703.1](https://github.com/planner77/masterGantt/actions/runs/38411412048), attempt `1`, Head `53d185180f5e9ca54ca3031888ffe3892da7caaa`, base `89f4ab7936fe74062f0398601d4a6596e3e51924`는 FAIL이다. QA Preflight Job `115344527174`에서 `DOCUMENTATION_SYNC — DOC_SYNC 기록 누락`이 최초 실패했다.
+- Work Packet의 표만으로는 기본 브랜치 `scripts/qa_final_automated.py::docs_gate`가 요구하는 파일별 `- 경로: UPDATED / N/A(사유)` 행을 충족하지 못했다. AC 표도 같은 검증기가 요구하는 `- ACn: 근거` 행으로 보완했다. 검증기와 CI gate를 수정하지 않는다.
+- Preflight 차단으로 실제 policy/typecheck/lint/unit/build/E2E/Docker 구현 Job은 SKIPPED였으며, 세 Required aggregate와 QA Final의 FAIL은 연쇄 결과다. 제품 테스트 실패나 PASS로 재분류하지 않는다.
+- PR #669의 리뷰 스레드는 재개 조회 시 0건이었다. 새 Head 반영 직전에 다시 확인하며 자동 Codex 검토를 독립 QA PASS로 사용하지 않는다.
+- 이번 보완의 로컬 검증은 원본 Packet의 실패 재현, 보완 Packet의 문서 영향·AC 매핑 검사 및 저장소 Markdown 상대 링크 검사다. 실행 결과와 새 Head/CI 시작 URL은 Issue/PR 댓글에 기록한다. 로컬 구조 검사는 최종 의미 QA나 원격 CI PASS가 아니다.
+- 사용자 요청에 따라 새 Head의 PR CI를 시작하고 결과 모니터링은 하지 않는다. 최신 Required CI/Trusted QA와 Owner 승인·main 반영은 실제 증거 확인 전 NOT TESTED다. 기존 #552/PR #561, Main CI, GHCR·태그·릴리스와 이슈 종료는 실행하지 않는다.
 
 ## 최종 재개 지점
 
