@@ -1,3 +1,9 @@
+## Issue #674 — 3,000건 SVAR 초기화 진단 식별자 경쟁 상태 교정 (2026-10-14)
+
+- #659 병합 [Main CI #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933)의 #551 `1,000 Task + 2,000 Milestone` E2E는 첫 화면에서 **5초 내 동기화된 `data-project-gantt-api-instance`와 `__masterganttMilestoneTimeline.instance`**를 요구했으나 FAIL. 화면 Core 초기화가 이미 되었어도 `setApiInstanceId` 이후 대형 projection React render가 DOM 속성 반영을 지연시킬 수 있다. 이는 소스의 순서 차이이며 CI 스케줄링의 완전한 원인은 trace 없는 상태에서 확정하지 않는다.
+- 개발 한정 `installMilestoneProbe`에서 실제 SVAR `init(api)`가 생성한 **동일 API ID**를 연결된 frame.dataset에 먼저 게시하고 probe를 같은 frame/instance에 등록한다. state/DOM 동기 렌더 뒤 React는 동일한 ID를 재확인한다. StrictMode/재초기화에서 바뀐 API ID로 즉시 교체하고 unmounted/disconnected frame에는 게시하지 않는다. 프로덕션 hook, Core private store, canonical row/scroll/date UI는 변경하지 않는다.
+- 기존 #551 Browser의 **5초 readiness gate, 1,000+2,000 fixture, chart/grid/fullscreen/resize/scroll/64px/원본 revision 무변경** 요구는 그대로 유지한다. `read()` 결과/geometry가 즉시 준비되었다고 선언하는 shortcut이 아니며 실제 새 전체 E2E 실행에서 검증한다.
+
 ## Issue #647 — 삭제 후 관리 진입점 focus 보존 (2026-10-13)
 
 - Milestone 독립 목록에서 native WorkspaceDialog가 닫히기 전 예약된 RAF는 `:modal` trap에 의해 거부될 수 있다. 삭제한 원 관리 버튼이 DOM에서 소멸하면 같은 활성 프로젝트 Dashboard의 검색·추가·heading 중 실제 연결/표시 상태인 후보에 focus를 인계하되, 현재 활성 프로젝트/패널에 한정하고 또 다른 modal이 열려 있으면 기다린다. 한정된 RAF만 허용, 다른 날짜 좌표·SVAR viewport·WBS membership·Task source는 변화시키지 않는다.

@@ -1,3 +1,10 @@
+## Issue #674 — #659 Main CI #2712 대량 Milestone 진단 API 준비 경합 교정 (2026-10-14)
+
+- 원본 [#659 Main CI #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) exact merge `3b21fe6e...`에서 E2E shard4의 #551 1,000 Task + 2,000 Milestone fixture 5초 readiness FAIL. Quality/Docker/나머지 E2E5 성공, Required E2E 실패→Main temporary GHCR 건너뜀. #672 최신 Main #2718 성공은 해당 E2E shard SKIPPED라 결함 미해결 증거.
+- 새 [Issue #674](https://github.com/planner77/masterGantt/issues/674), 브랜치 `fix/issue-674-main-e2e-api-identity`, 기준 main `e195780227a504536d0d9f7f27924f24267f8caf`, package/lock `0.108.0` 불변, HIGH/OWNER_MANAGED, release_required=false/authorized=false.
+- 개발 전용 SVAR init->DOM frame identity는 실제 API 초기화에서 동기 게시하고, React state와 동일 ID로 후속 reconcile. 기존 5초 readiness/대형 fixture/geometry/fullscreen/Chart/Grid/zero mutation 불변. 유닛 3건 및 CI full E2E 여섯 shard를 반드시 별도 수행.
+- 작업: Issue → branch → dev-only code+unit+docs → exact PR CI/QA/review → Owner가 요청한 병합 → 새로운 Main CI 시작·실제 E2E 실행 확인. FAIL과 BLOCKED의 원형을 보존, GitHub action 성공 전 결과 NOT TESTED. Main 버전 0.108.0/공식 GHCR release 추가 게시/승계 감사 작업 수행하지 않음.
+
 ## Issue #672 — #616 F2 AC2~AC7 인수·회귀 보완 (2026-10-14)
 - 선행: #616 AC 검증 댓글 https://github.com/planner77/masterGantt/issues/616#issuecomment-6155300627; #670 v0.108.0 Release #167.1/Finalizer #32.2 완료. 원본 #616 v0.107.0 실패/철회는 불변.
 - 검증 Work Packet: `docs/exec-plans/active/ISSUE_672.md`. 신규 Target 전용 SQLite/HTTP/partial inline rollback/0025→0026 persisted restart, 공유 장비·System 및 Resource role 보호, bounded listing/usage. 부족한 실제 코드 결함만 수정하고 #617 WBS binding은 별도.

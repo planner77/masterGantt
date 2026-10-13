@@ -1,3 +1,9 @@
+## Issue #674 — Main CI #2712 대량 Milestone probe readiness 진단 경합 보완 (2026-10-14)
+
+- #659 PR #660 병합 Main #2712.1에서 3,000개 원본 Task+Milestone E2E 화면의 5초 Gantt dev-probe API identity 체크 한 건이 실패(Shard4 1 FAIL·128 PASS·1 SKIP). 이전 원본 CI 실패와 후속 skipped E2E CI의 증거를 분리 보존한다.
+- 개발 빌드의 SVAR init 단계에서 실제 API ID를 연결된 Gantt frame DOM attribute에 즉시 게시해 진단 hook과의 최초 일치 여부가 3,000-row React 후속 render에 묶이지 않게 한다. 두 API init 연속 및 연결 해제 상황의 Vitest 회귀 3건 추가. 기존 E2E 5초/3,000 fixture/모든 geometry·full screen·origin source 검증을 유지한다.
+- 제품 기능/공통 UI/타입·API·DB·보안·CI workflow/필수 QA·release policy 불변, main 0.108.0 유지, 별도 정식 GHCR/version/tag 생성 없음. 새 PR/Main CI E2E 결과는 원격 실행 전 NOT TESTED.
+
 ## [Unreleased] — Issue #672 #616 Target F2 검증 보완 (2026-10-14)
 - 추가 Target 전용 HTTP Origin/session/strong-CAS·중복/요청 한도, 도메인 shared MCS/기존 Resource 담당·제어 원장 불변, inline member rollback, 기존 0025 DB → 0026 upgrade + Target persistence/restart 통합 회귀.
 - v0.108.0 Release #167.1/Finalizer #32.2의 기존 SUCCESS 증거를 보존하고, #616 F2 AC2~AC7의 부족한 실제 검증을 별도 #672 PR로 추적한다. 신규 테스트가 CI에서 PASS하기 전에는 인수 완료로 주장하지 않는다.
