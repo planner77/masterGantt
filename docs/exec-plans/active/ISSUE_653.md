@@ -1,15 +1,24 @@
-# Issue #653 — 승계 감사 운영 수집기
+# Issue #653 — 인증 GHCR 승계 감사
 
 ## DOCUMENTATION_SYNC
-AGENTS.md / docs/CI_CD.md / docs/REMOTE_VALIDATION.md / docs/exec-plans/active/PLAN.md / CHANGELOG.md: UPDATED
-DESIGN.md / docs/API.md / docs/DB_SCHEMA.md: N/A (UI·API·DB 영향 없음)
+- `AGENTS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(이번 변경은 해당 계약을 수정하지 않음)
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `DESIGN.md`: N/A(이번 변경은 해당 계약을 수정하지 않음)
+- `docs/API.md`: N/A(이번 변경은 해당 계약을 수정하지 않음)
+- `docs/DB_SCHEMA.md`: N/A(이번 변경은 해당 계약을 수정하지 않음)
 
 ## AC_TEST_COVERAGE
-- AC1: 실제 default-main SHA/first-parent 검증; PR CI는 원격 실행 확인 필요.
-- AC2: full Git tag/Release/GHCR authenticated inventory, OCI digest strict check; 운영 증거는 NOT TESTED.
-- AC3: Owner 철회 및 v0.108.0 준비는 미확인 시 BLOCKED.
-- AC4: pagination/404/중복/tag peel/main 변경 negative mock unit tests, immutable policy evaluate.
-- AC5: 세 Required PR CI·Trusted QA·리뷰 스레드·Owner QA를 별도로 확인. GHCR 게시/Issue 종료 없음.
+- AC1: tests/python/test_release_succession_audit.py — main SHA/first-parent; 실제 main 조회 NOT TESTED.
+- AC2: tests/python/test_release_succession_audit.py — Git tag peel/Release/GHCR 페이지 및 OCI metadata; 실제 GHCR NOT TESTED.
+- AC3: tests/python/test_release_succession_audit.py — Owner marker 및 누락 시 BLOCKED; 실증 NOT TESTED.
+- AC4: tests/python/test_release_succession_preflight.py — strict 정책; provenance 전부 검증 전 BLOCKED.
+- AC5: PR #654 Required 3종/Trusted QA 및 Owner 판단 필요, 병합·게시 금지.
 
-## 잔여 차단 조건
-퇴역·Owner lifecycle 증거의 독립적인 운영 수집은 미완성으로 fail-closed; 실제 PREPARE_ONLY는 아직 실증되지 않음. #616 불변 실패와 #633 원본 릴리스 유지.
+## 제한 사항
+현재 독립 퇴역·release lifecycle·신규 준비 Owner 원장의 운영 수집은 미완성이므로 PREPARE_ONLY를 주장할 수 없다. #616 역사적 실패와 #633의 정식 발행 사실은 보존한다.
