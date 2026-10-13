@@ -61,9 +61,14 @@ def evaluate(record: dict[str, Any]) -> dict[str, Any]:
     require(record["original_owner_marker_preserved"] is True, "원본 Owner marker 보존 필요")
     require(record["inventory_authenticated"] is True, "인증 기반 Git/GHCR 조회 불충분")
     inv = record["release_inventory"]
-    require(isinstance(inv, dict) and set(inv) == set(VERSIONS),
-            "선행 버전 전체 inventory 필요")
-    for version in VERSIONS:
+    version = record["candidate_version"]
+    require(isinstance(version, str) and SEMVER.fullmatch(version) is not None,
+            "명시 SemVer 필요")
+    require(tuple(map(int, version.split("."))) >
+            tuple(map(int, VERSIONS[-1].split("."))), "원본 v0.107.0 재사용·retag 금지")
+    require(isinstance(inv, dict) and set(inv) == set(VERSIONS) | {version},
+            "선행 및 신규 후보 버전 전체 inventory 필요")
+    for version in (*VERSIONS, record["candidate_version"]):
         row = inv[version]
         require(isinstance(row, dict)
                 and set(row) == {"git_tag", "github_release", "ghcr_tag", "ghcr_digest"},
@@ -76,12 +81,8 @@ def evaluate(record: dict[str, Any]) -> dict[str, Any]:
                 f"{version} digest UNKNOWN/오류")
         require((row["ghcr_tag"] == "PRESENT") == (row["ghcr_digest"] is not None),
                 f"{version} GHCR 태그/digest 증거 불일치")
-    version = record["candidate_version"]
-    require(isinstance(version, str) and SEMVER.fullmatch(version) is not None,
-            "명시 SemVer 필요")
-    require(tuple(map(int, version.split("."))) >
-            tuple(map(int, VERSIONS[-1].split("."))), "원본 v0.107.0 재사용·retag 금지")
-    require(version not in inv, "이미 감사된 버전 중복")
+        require(all(row[k] == "ABSENT" for k in ("git_tag", "github_release", "ghcr_tag")),
+                f"{version} 기존 게시 흔적 존재: 별도 릴리스 부채 절차 필요")
     require(record["owner_new_version_authorized"] is False,
             "이 gate는 신규 게시 승인 이전 준비 전용; 승인 완료시 별도 release gate 사용")
     return {"decision": "PREPARE_ONLY", "candidate_sha": record["candidate_sha"],
