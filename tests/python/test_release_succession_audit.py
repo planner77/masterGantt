@@ -48,6 +48,18 @@ class TestReadOnlyAudit(unittest.TestCase):
             with self.assertRaises(SuccessionBlocked):
                 audit.registry_inventory()
 
+    def test_jobs_api_envelope(self):
+        with patch.object(audit, "api", return_value={"total_count": 1, "jobs": [{"conclusion": "success"}]}):
+            self.assertEqual(len(audit.pages("/jobs", key="jobs")), 1)
+
+    def test_conflicting_owner_markers_block(self):
+        rows = [(7, "mastergantt-release-authorization:v1",
+                 {"expected_version": "0.107.0", "authorized": False}),
+                (7, "mastergantt-release-authorization:v1",
+                 {"expected_version": "0.107.0", "authorized": True})]
+        with self.assertRaises(SuccessionBlocked):
+            audit.latest_marker(rows, "mastergantt-release-authorization:v1", "0.107.0", False)
+
     def test_latest_owner_revocation(self):
         rows=[(1,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":True}),
               (2,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":False})]
