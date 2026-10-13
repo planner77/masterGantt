@@ -111,3 +111,59 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 2026-10-08T18:21:40Z에 backend가 기존 3파일의 직접 관련 case를 `vitest -t`로 선별 실행했다. exit0, 1.19s, 고유23 PASS이며 35개는 선택 정규식의 비대상이다. 새 skip이나 guard 약화는 없다. Copy/Stage는 실제 native better-sqlite3 in-memory transaction, Delete recovery는 임시 파일 SQLite reopen을 사용한다. Request/Response handler는 in-process이며 이 시점의 새 화면 Next HTTP 연결은 NOT TESTED였다. Password hash helper는 fixture 주입이다.
 
 전체 subtree/internal remap/외부 소속 확인/completed full E·incident endpoint/Assignment Copy 제한/Cut identity/삭제 rollback/401·412·403 원자성을 검증했다. server/domain/contracts/migrations 173파일의 전후 변경0이며 aggregate SHA256은 `f36bd89f609975425123de4e2cf921d43884d70b4baa0edef2cc266cbf13e339`다. 실행 계약은 `/tmp/issue552-backend-guard-execution.json`, 원본 로그는 `/tmp/issue552-backend-guard-run.log`에 보존했다. 기존 또는 이후 동일 case 실행과 고유 수를 중복 합산하지 않는다.
+
+## 2026-10-13 — PR #561 최신 main 통합 및 QA 정책 복구
+
+- 사용자 요청 범위: Issue #552 정책/AC/문서 보완 → 필요한 코드 정합성 검증·수정 → **새 전체 PR CI START**. `release_required=true`, `release_authorized=false`. Merge, Main CI, GHCR, tag, release, Issue close, branch cleanup은 명시적 후속 승인까지 금지.
+- 실제 Issue #549/#550/#551은 CLOSED. PR #561은 2026-10-13 `main`이 진전되기 전 head `81a90b51e92b36765902d89deb9d89c9541a7579`에서 QA Preflight/QA trust가 차단되어 Quality/E2E/Docker 본검사가 SKIPPED됐다. Run [#2628.1](https://github.com/planner77/masterGantt/actions/runs/38326098951) 결과를 제품 버그 또는 E2E PASS로 해석하지 않는다.
+- QA Preflight #629의 실제 단일 필드 계약: `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`; PR title의 정확한 Issue #552와 본문 독립 `Refs #552` 한 행. 리스크 HIGH는 Milestone 소스/검증 파일을 변경하므로 최소 위험도에 부합한다. `OWNER_MANAGED`는 최종 Owner 승인 완료를 뜻하지 않으며 승인 전 `QA_FINAL`, `MERGE_READY`는 미검증/차단이다.
+- Issue 원본 수용 기준의 의미·12개 미체크 상태는 유지하고 `AC1`~`AC12`를 부여했다. 본 Work Packet의 coverage는 **테스트 위치/인수 기준 매핑**이지 최신 Head의 실행 결과가 아니다.
+- 최신 main `f8d0036ab4a5566df418a09f2eb9b5e1b918d08b`까지의 #647 독립 포커스 복구와 좁은 화면 hit-test 강화를 보존한다. main-only CI_CD/REMOTE_VALIDATION/ISSUE_647/milestone-management E2E와 변경 이력 상단·ProjectReadonly focus function을 합치되 #552 WBS/Timeline 표시 projection은 유지한다. main 기준 5커밋, 10파일 영향; 6개의 양측 변경 파일은 code-aware 결합 후 검증한다.
+- 별도 보완 PR #563 (과거 head `1879d9aa...`, E2E 실패 run #2247.1)은 PR #561/현재 main의 newer #570–#572 source/tests와 가지가 달라 그대로 병합/덮어쓰지 않는다. old E2E 563의 변경을 최신 PASS로 표기하지 않고 전체 CI 실패 시 정확한 테스트/성격별로 다시 검토한다.
+- 제품 신규 기능/DB/API/schema/version 변경 없음. 구조적 QA Preflight는 신뢰된 base SHA 코드로 검사한다. AGENTS.md, QA workflow, policy script, test suite assertion/CI 보호 gate를 수정하지 않는다.
+
+## DOCUMENTATION_SYNC
+
+- `DESIGN.md`: N/A(Existing visual tokens and layout direction unchanged by Milestone WBS projection)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(No scheduling algorithm, calendar or dependency calculation changed)
+- `docs/REQUIREMENTS.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/TASK_EDITOR.md`: UPDATED
+- `docs/TASK_RELATIONS.md`: UPDATED
+- `docs/MILESTONE_STAGE_GATES.md`: UPDATED
+- `docs/ARCHITECTURE.md`: UPDATED
+- `docs/PRO_FEATURE_MATRIX.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_647.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_552.md`: UPDATED
+- `AGENTS.md`: N/A(No new agent role, source-of-truth or lifecycle instruction)
+- `docs/API.md`: N/A(Route, request, response, authorization and revision contracts unchanged)
+- `docs/DB_SCHEMA.md`: N/A(No SQLite schema or migration changes)
+- `docs/SECURITY.md`: N/A(No authentication, cookie or permission contract change)
+- `docs/IMPORT_EXPORT.md`: N/A(Existing full canonical interchange including hidden Milestones unchanged)
+- `docs/GITHUB_OPERATIONS.md`: N/A(No branch policy, GH Actions permissions or workflow changes)
+- `package.json`: N/A(Version and dependencies preserved; no new release authority)
+- `package-lock.json`: N/A(No dependency change and package version unchanged)
+
+## AC_TEST_COVERAGE
+
+- AC1: `tests/e2e/milestone-visibility.spec.ts` verifies native WBS Milestone row absent and sole independent display toggle, with `tests/features/gantt/milestone-visibility.test.ts` for projection.
+- AC2: `tests/e2e/milestone-stage-grid.spec.ts` and `tests/e2e/milestone-timeline-core.spec.ts` cover Summary/Task hierarchy, roll-up/row geometry and ordinary dependency preservation.
+- AC3: `tests/e2e/milestone-visibility.spec.ts` verifies Milestone ON/OFF with membership scope/filter as orthogonal state, including readonly.
+- AC4: `tests/e2e/milestone-visibility-persistence.spec.ts` and `tests/e2e/milestone-visibility.spec.ts` cover persistence, filter reset, workspace tab and scope return.
+- AC5: `tests/e2e/milestone-visibility.spec.ts` checks Milestone-only legacy type, empty WBS, deep-link, canonical identity and explicit return path.
+- AC6: `tests/e2e/milestone-visibility.spec.ts` with `tests/features/gantt/milestone-visibility.test.ts` verifies legacy native selected Milestone removal and safe Task clipboard boundary.
+- AC7: `tests/e2e/milestone-timeline-lane.spec.ts`, `tests/e2e/milestone-visibility.spec.ts` and `tests/e2e/milestone-visibility-persistence.spec.ts` cover date reveal/fallback and exact member drill/return.
+- AC8: `tests/e2e/milestone-stage-grid.spec.ts` and `tests/e2e/milestone-timeline-core.spec.ts` verify hidden mixed endpoint display exclusion and full canonical Milestone Link.
+- AC9: `tests/e2e/milestone-visibility-persistence.spec.ts` verifies full canonical Summary subtree Copy/Link/Membership remap and completed/401/412 guard without partial state.
+- AC10: `tests/e2e/milestone-visibility.spec.ts` and `tests/e2e/milestone-visibility-persistence.spec.ts` assert zero unauthorized mutation, revision increment and avoid remount from display-only operations.
+- AC11: `tests/e2e/milestone-visibility.spec.ts`, `tests/e2e/milestone-stage-grid.spec.ts` and `tests/e2e/milestone-visibility-persistence.spec.ts` cover empty/manual/M-only, readonly/dirty/stale and completed guard.
+- AC12: `tests/e2e/milestone-visibility.spec.ts` and `tests/e2e/milestone-timeline-lane.spec.ts` assert Day/Week, 390/768/1024/1440/1920 widths, split/fullscreen, keyboard/focus and overflow.
+
+모든 AC는 실제 최신 Head 전체 PR CI 전 `NOT TESTED`; 본문 매핑이나 과거 #552 국소 44/44를 현재 QA Final PASS로 승격하지 않는다. CI 결과가 나올 때까지 보완 PR #563의 과거 실패를 보관한다.

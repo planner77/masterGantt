@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #647 #616 recovery CI #2621 Milestone focus stability (2026-10-13)
+
+- Fix bounded Milestone Dashboard focus restoration after a native WorkspaceDialog closes during delete, including a deleted management trigger, hidden/foreign panel and another modal. Strengthen Playwright E2E to verify the actual active element belongs to the visible Milestone panel and is the search fallback. Current main already has #639's Resource Dashboard `할당 Task` KPI count-selector fix; the immutable #616 v0.107.0 original SHA lacks it and is not rewritten. Version, schema, API, CI workflow and formal release authority unchanged.
+- #647 follow-up for PR CI #2626.1: fix four Milestone focus-visibility regressions caused by `focus({ preventScroll: true })` after native-dialog unmount. Preserve bounded modal-aware retries but restore default browser focus scrolling so the keyboard focus ring is onscreen; strengthen deletion E2E viewport and hit-test assertions. Also retain #551 main changes and immutable #616 recovery evidence.
+
 ## [Unreleased] — Issue #552 WBS/Milestone display integration (2026-10-13)
 
 - Keep the #552 Milestone timeline visibility/WBS split, keyboard/date fallback and canonical Copy/Selection changes while aligning with main #551 and #570–#572 projection/viewport code. Release version stays at main 0.107.0 until an independently approved version change; historical branch 0.106.0 is not a current publication. Full exact-head PR CI/Trusted QA required after integration; no formal release claimed.

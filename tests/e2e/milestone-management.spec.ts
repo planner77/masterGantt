@@ -194,7 +194,23 @@ test("#550 동일 ID utility·단일 Copy·삭제 확인·삭제 후 목록 focu
   const confirm = page.getByRole("dialog", { name: "작업 삭제", exact: true }); await expect(confirm).toBeVisible();
   expect(deleted).toHaveLength(0); await confirm.getByRole("button", { name: "하위 작업 포함 삭제", exact: true }).click();
   await expect(confirm).toBeHidden(); await expect(row).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-milestone-focus"))).toMatch(/search|add|heading/);
+  // #647 / historical #616 recovery #2621 (shard 3): a disconnected
+  // management trigger may not reclaim focus from a native closing dialog.
+  // Verify a live, visible Milestone-panel focus owner, not merely a CSS
+  // selector that could pass on a hidden tab or disconnected element.
+  await expect.poll(() => page.evaluate(() => {
+    const active = document.activeElement;
+    const owner = document.getElementById("project-panel-milestones");
+    if (!(active instanceof HTMLElement) || !owner || owner.hidden || !owner.contains(active)) return null;
+    return active.getAttribute("data-milestone-focus");
+  })).toMatch(/^(search|add|heading)$/);
+  await expect(panel(page).getByLabel("Milestone 검색", { exact: true })).toBeFocused();
+  // #2626 shard 3: DOM focus alone is insufficient if preventScroll leaves the
+  // restored toolbar above the viewport; the visible focus ring must be hittable.
+  const restored = await fallbackObservation(page);
+  expect(restored.rect.y - restored.ring).toBeGreaterThanOrEqual(0);
+  expect(restored.rect.bottom + restored.ring).toBeLessThanOrEqual(restored.viewport.height);
+  expect(restored.centerHit).toBe(true);
   expect(deleted).toEqual([original.taskId]); await expectSameGanttRoot(page, identity);
   await capture(page, info, "commands-focus", { commands, deleted, revision: state.project.revision, instance: identity });
 });
