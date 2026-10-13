@@ -66,3 +66,13 @@ CI의 version consistency, typecheck, lint, Vitest, production build, Chromium E
 매핑 원본 copy는 source와 destination의 BUSINESS_UNIT/PRODUCT/SITE_ENTITY가 같아야 한다. local 공정 ID는 copy의 source→new process map으로 치환하고 occurrence/WorkArea 등 global public identity는 그대로 참조한다. 비활성 기존 참조도 보존한다. Task/설비의 local ID 치환과 기존 authorization/revision 계약은 유지한다.
 
 다른 triple로 매핑을 조용히 넘기지 않으며 `409 PROJECT_PROCESS_MAPPING_IN_USE`로 전체 생성 transaction을 rollback한다. 미매핑 legacy copy는 기존대로 동작한다. Template의 현행 snapshot은 새 참조를 표현하지 못하므로 매핑이 있는 source의 Template 저장을 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`로 차단한다. versioned Template 확장·명시 remap은 후속 #616 책임이며 공통 master를 Project별 복제하지 않는다.
+
+## Issue #617 — 명시 Target binding 복사
+
+전체 Project Copy는 F2의 새 Target/member graph를 만든 뒤 명시 Task–Target binding/subset/coverage를 Task/Target/member local ID map으로 한 번씩 치환한다. binding UUID도 새로 발급한다. 동일 원본 MCS를 N개 Target이 공유하면 새 Project에서도 복사한 System 1개를 재사용한다. 전역 occurrence/WorkArea와 Resource는 기존 참조·정확 triple 계약을 유지한다.
+
+같은 Project의 subtree Copy는 새 Task/binding UUID를 만들고 Target/member/instance를 재사용한다. #617부터 기존 Task의 명시 legacy Equipment/System self/subtree row도 새 Task에 복사한다. 과거 subtree Copy의 legacy 물류 omission 동작을 확장한 것이며 원본 row/instance는 변경하지 않는다. 직접 binding만 복사하고 원본 조상에서 상속된 연결을 leaf의 직접 row로 평탄화하지 않는다. 따라서 destination의 조상에 따라 실제 합집합은 달라질 수 있어 기존 복사 영향 확인과 함께 검증한다. cut/reparent는 Task/binding identity를 유지하며 새 조상으로 인한 유효 Target 변경을 확인한다.
+
+Project Template는 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings=[{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}]`를 저장한다. binding 없는 기존 v2와 legacy snapshot은 계속 지원하되 v2/unversioned에 신규 binding 필드를 끼워 넣지 못한다. 복원은 Project/Task/물류 graph와 같은 outer transaction에서 모든 참조를 검증하고 새 UUID로 생성한다. broken/unknown 참조는 `409 TASK_TARGET_TRANSFER_INVALID` 등 명시 오류로 전체 rollback한다. 앞의 #615 “mapped Template 미지원”은 당시 이력이며 현재 v2/v3 구현이 우선한다.
+
+명시 연결/상속 구분·새 ID·원본 불변·legacy·Milestone·실패 rollback 검증과 exact Head 상태는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다.

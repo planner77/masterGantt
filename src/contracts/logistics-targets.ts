@@ -72,11 +72,16 @@ export interface UpdateLogisticsTargetRequest {
   active?: boolean; description?: string;
   /** Omission preserves members; supplied array atomically replaces membership (nonempty). */
   members?: LogisticsTargetMemberInput[];
+  /** Exact read-only impact preview receipt; stale project/member snapshots are rejected. */
+  impactToken?: string;
+  confirmImpact?: boolean;
 }
 export interface LogisticsTargetUsageDto {
   targetId: string;
   memberCount: number;
-  referencedByTaskCount: number;
+  /** Unique effective regular Tasks; Summary/Milestone excluded. null means unsupported/not calculated. */
+  referencedByTaskCount: number | null;
+  referencedBySummaryCount: number | null;
   members: Array<LogisticsTargetMemberDto & { targetCount: number; directTaskCount: number }>;
 }
 export interface LogisticsTargetListResponse {

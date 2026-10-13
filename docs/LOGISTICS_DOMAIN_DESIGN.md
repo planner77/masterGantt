@@ -221,3 +221,9 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 ## Issue #345: 빈 컨테이너의 연결
 
 Summary는 자손 0개여도 `self/subtree` 연결을 그대로 보존한다. 마지막 자식 삭제·이동은 부모 연결의 scope를 바꾸거나 삭제하지 않으며 나중에 추가되는 실제 자손은 기존 ancestor subtree 상속 규칙을 적용받는다. 미산정 Summary는 날짜 있는 Leaf로 취급하지 않는다. 명시적으로 Summary 자체를 삭제할 때만 그 row의 직접 연결이 기존 FK 삭제 계약을 따른다.
+
+## Issue #617 — WBS–Target 연결과 단일 해석기
+
+F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결한다. 모든 Summary 조상의 subtree와 직접 연결을 합집합으로 읽으며 하위 명시는 조상을 대체하지 않는다. Project-local UUID와 typed member 소유를 저장 경계에서 검증하고 effective instance dedup 뒤에도 모든 Target 경로와 legacy 직접 연결 출처를 보존한다. 공유 System 직접 연결만으로 Target을 추론하지 않는다. Equipment coverage는 연결의 작업 수량이고 instance quantity와 Resource 공수 원장을 변경하지 않는다.
+
+[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 F3 절 및 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)가 신규 runtime 계약이다. 모든 후속 보기/Resource 계산은 같은 pure resolver를 재사용하며 별도 화면 해석기를 만들지 않는다. 현재 물류 Dashboard/Resource KPI의 기존 필터·분모를 조용히 Target 축으로 확대하지 않는다. Target UI/Resource 축은 #618/#619 이후, 이번 원격 CI·운영 적용 증거는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에서 별도로 판정한다.

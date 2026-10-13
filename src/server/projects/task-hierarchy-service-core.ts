@@ -1,3 +1,9 @@
+import { createHash } from "node:crypto";
+import { compareTaskTargetImpact, resolveAllTaskTargetBindings } from "../../domain/logistics/task-target-bindings";
+import { loadTaskTargetBindingSnapshot } from "../logistics/task-target-bindings-service-core";
+import { PublicApiError } from "../http/api-error-core";
+import { LogisticsRepository } from "../repositories/logistics-repository-core";
+import { copyTaskTargetBindings } from "../logistics/task-target-transfer-core";
 import { planMembershipCopy, trustedCopyCompletionBaseline } from "../../domain/milestones/membership-copy-plan";
 import { assertStageStructureChange, assertMilestoneCompletionTransitions, StageGateError } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
@@ -407,8 +413,9 @@ export class TaskHierarchyService {
     command: TaskHierarchyCommandRequest,
   ): TaskMutationResponse {
     // Direct service callers share HTTP validation and legacy source normalization.
-    const parsedCopy = command.kind === "copy" ? parseTaskHierarchyCommand(command) : null;
-    if (parsedCopy && !parsedCopy.success) throw new InvalidTaskInputError();
+    const parsedCommand = parseTaskHierarchyCommand(command);
+    if (!parsedCommand.success) throw new InvalidTaskInputError();
+    const parsedCopy = command.kind === "copy" ? parsedCommand : null;
     const copyIds = parsedCopy?.success && parsedCopy.data.kind === "copy"
       ? parsedCopy.data.taskIds : undefined;
     const mutate = this.database.transaction(() => {
@@ -417,6 +424,8 @@ export class TaskHierarchyService {
       const project = this.requireCurrentProject(authorization, now);
       if (project.revision !== expectedRevision) throw new RevisionMismatchError();
 
+      const changesParent = command.kind === "indent" || command.kind === "outdent" || command.kind === "reparent";
+      const targetBefore = changesParent ? loadTaskTargetBindingSnapshot(this.database, project.id) : null;
       const stageBefore = readStageSnapshot(this.database, project.id);
       const initialTasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
@@ -476,6 +485,9 @@ export class TaskHierarchyService {
         if (!task) throw new TaskNotFoundError();
         assertTasksNotLinked(links, [task.id]);
         if (task.type === command.targetType) throw new TaskHierarchyNoopError();
+        if (command.targetType === "milestone" && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? AND task_id=? LIMIT 1").get(project.id, task.id)) {
+          throw new PublicApiError(409, "TARGET_BINDING_TYPE_CONFLICT", "Remove explicit Target bindings before converting this Task to a Milestone.");
+        }
         assertMembershipTaskTypeChange(this.database, project.id, task.publicId, command.targetType);
         if (command.targetType === "summary" || task.type === "summary") {
           throw new TaskHierarchyNoopError();
@@ -639,6 +651,17 @@ export class TaskHierarchyService {
           copiedBySource.set(original.publicId, inserted.publicId);
           changed.add(inserted.externalId);
         }
+        copyTaskTargetBindings(this.database, project.id, project.id,
+          new Map([...newBySource].map(([id, task]) => [id, task.id])), nowText);
+        const logisticsRows = new LogisticsRepository(this.database);
+        const equipmentLinks = logisticsRows.listAllTaskEquipmentLinks(project.id);
+        const systemLinks = logisticsRows.listAllTaskSystemLinks(project.id);
+        for (const [sourceId, copied] of newBySource) {
+          logisticsRows.replaceTaskEquipmentLinks(project.id, copied.id,
+            equipmentLinks.filter(row => row.taskId === sourceId).map(row => ({equipmentId: row.equipmentId, scope: row.scope})), nowText);
+          logisticsRows.replaceTaskSystemLinks(project.id, copied.id,
+            systemLinks.filter(row => row.taskId === sourceId).map(row => ({systemId: row.systemId, scope: row.scope})), nowText);
+        }
         const memberships = new MilestoneMembershipRepository(this.database);
         for (const row of plan.preservedExplicitMemberships) {
           const originalMember = byPublicId.get(row.taskId), originalMilestone = byPublicId.get(row.milestoneTaskId);
@@ -673,6 +696,31 @@ export class TaskHierarchyService {
             createdAt: nowText,
             updatedAt: nowText,
           });
+        }
+      }
+
+      if (targetBefore && changesParent) {
+        const targetAfter = loadTaskTargetBindingSnapshot(this.database, project.id);
+        const impact = compareTaskTargetImpact(targetBefore, targetAfter);
+        // Resolve every affected descendant, retaining duplicate binding provenance.
+        // Throwing the preview rolls back placement/type writes and leaves revision untouched.
+        const before = resolveAllTaskTargetBindings(targetBefore), after = resolveAllTaskTargetBindings(targetAfter);
+        const changed = impact.changedTaskIds.filter(id =>
+          (before.get(id)?.effectiveTargetIds.length ?? 0) > 0 || (after.get(id)?.effectiveTargetIds.length ?? 0) > 0);
+        const {targetImpactDigest, ...operation} = command;
+        const digest = createHash("sha256").update(JSON.stringify({
+          version: 1, projectId: project.publicId, revision: project.revision, operation,
+          before: [...before], after: [...after],
+        })).digest("hex");
+        if (changed.length > 0 && targetImpactDigest !== digest) {
+          throw new PublicApiError(409, "TASK_TARGET_IMPACT_REVIEW_REQUIRED",
+            "Review all changed Task Target sources and retry with the exact impact digest and current revision.", [
+              {path: "targetImpactDigest", code: "TARGET_IMPACT_DIGEST", message: digest},
+              ...changed.map(id => ({path: "taskId", code: "TASK_TARGET_IMPACT", message: JSON.stringify({taskId: id, before: before.get(id), after: after.get(id)})})),
+            ]);
+        }
+        if (changed.length === 0 && targetImpactDigest !== undefined) {
+          throw new PublicApiError(409, "TASK_TARGET_IMPACT_STALE", "The supplied Target impact confirmation no longer matches this operation.");
         }
       }
 

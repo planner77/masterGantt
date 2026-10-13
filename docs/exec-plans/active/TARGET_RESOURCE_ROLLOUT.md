@@ -11,7 +11,7 @@
 | F0 | [#614](https://github.com/planner77/masterGantt/issues/614) | Manager 문서·backend fixture, read-only ui_ux/qa_docs: ER/연결/집계/이관/공통 검산 | 없음 | 계약 main 병합 PR #625 / 9f17dbb2; Issue 전체·main artifact 완료 별도 |
 | F1 | [#615](https://github.com/planner77/masterGantt/issues/615) | backend: 공정 master·제품 표준·사업장 occurrence·WorkArea DB/API | #614 | 구현 중, migration0025·API/호환 보호·문서; #615 Work Packet, PR CI 시작까지 |
 | F2 | [#616](https://github.com/planner77/masterGantt/issues/616) | backend: Target/member CRUD·재사용·copy/Template guard | #615 | NOT TESTED |
-| F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | NOT TESTED |
+| F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | `0.109.0` 구현 후보; #617 Work Packet, exact-Head PR CI 시작까지 / 원격 결과 NOT TESTED |
 | F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | NOT TESTED |
 | R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | NOT TESTED |
 | R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | NOT TESTED |
@@ -62,3 +62,9 @@ F1 #615 PR #627/#628 integrated before branch creation. F2 branch `feat/issue-61
 ## #616 F2 Template v2 후속 구현 후보
 
 기존 Template 409 미지원 정책을 versioned `logistics.schemaVersion=2`의 Process occurrence/WorkArea mapping 및 Target/member 전체 저장·복원으로 교체한다. 새 Project-local Process/Equipment/System/Target/Member UUID를 재발급하며 공통 MCS는 단일 System 인스턴스를 공유한다. Legacy Template은 기존 복원을 보존하고 잘못된 triple/멤버/WorkArea는 전체 transaction을 409로 거부한다. JSON full graph는 #379에 남는다. PR #631 최종 CI/AC6 확정 이전 완료 판정은 금지한다.
+
+## Issue #617 — F3 현재 구현 후보 (2026-10-14)
+
+기준 main `e1957802`의 F2/Template v2를 재사용하여 migration0027, typed binding·subset/coverage·합집합 provenance, legacy 직접 연결 호환, whole/이동 영향 확인, Copy/Template v3·unsupported-format guard 및 usage nullable/실제 일반 Task·Summary 분리를 구현한다. 상단 F1/F2 candidate 문단은 착수 당시 이력이며 현재 F3 완료 근거로 사용하지 않는다. 후속 F4/R1을 이번 요청에 포함하지 않는다.
+
+실제 Agent 분리 구현 및 독립 read-only qa_docs 검토를 사용한다. `qa_method=AGENT`, `risk_level=HIGH`, `qa_required=true`, `release_required=true`, `release_authorized=false`. 실행/AC/문서 원장은 [ISSUE_617](ISSUE_617.md)이며 이번 마지막 단계는 미해결 리뷰 처리 및 PR CI 시작이다. CI 모니터링·병합·Main artifact·정식 릴리스·Issue 종료는 별도다.

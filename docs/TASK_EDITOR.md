@@ -343,3 +343,9 @@ Dashboard의 canonical taskId와 실제 trigger로 기존 Editor의 task/members
 Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의 검색/추가/heading으로 복귀한다. 완료·재개는 기존 상태 선택과 명시 저장이며 Ready/100%는 자동 Completed가 아니다. Copy는 기존 단일 source/sibling-after gateway와 완료 경계 판단을 재사용하므로 완료 manual 이벤트를 일괄 금지하지 않는다. 삭제는 명시 확인과 기존 완료/Link/Assignment/server guard를 유지한다. 자세한 inventory는 [관리 계약](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다.
 
 #550 관리 메뉴의 삭제 확인 취소/Escape는 저장 중 차단되며 삭제 요청을 보내지 않는다. 확인 중 외부 canonical 갱신으로 호출 trigger가 사라지면 현재 Dashboard의 보이는 검색/추가/heading으로 focus를 복귀한다. 공통 Dialog나 서버 삭제 계약은 변경하지 않는다.
+
+## Issue #617 — Target 연결의 저장 경계 (UI 후속 #618)
+
+F3의 Target binding API는 Task/Summary의 명시 연결과 모든 조상 Summary subtree에서 온 상속 연결을 분리해 반환한다. self는 현재 행만, Summary의 subtree는 모든 실제 자손에 적용된다. 관리 Summary는 연결 없이 또는 self만으로 유지할 수 있다. 하위에서 선택한 Target은 상속 Target을 자동 override하지 않는다. whole은 현재 전체 구성, subset은 같은 Target의 실제 member 선택이며 빈 subset을 whole로 확대하지 않는다.
+
+이번 변경에 새 Target authoring 화면은 없다. #618은 일반 Task/Summary용 editor에서 직접·상속·legacy 출처와 coverage/영향 확인을 표시하고 기존 dirty/pending/readonly/401/412/초안·focus 계약을 따라야 한다. Milestone의 기존 직접 물류 편집은 보존하며 Target UI를 Milestone에 자동 추가하지 않는다. 저장은 Resource 배정·일정·status·Dependency·Milestone membership/Ready를 변경하지 않는다. 서버와 pure resolver의 계약은 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md#f3-구현-후보--issue-617-2026-10-14)를 따른다.

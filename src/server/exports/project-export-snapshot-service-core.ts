@@ -32,6 +32,10 @@ export class ProjectExportSnapshotService {
       const snapshot = new TaskFieldProjectService(this.database, { clock }).getReadonlySnapshot(publicId);
       if (!snapshot) return undefined;
       if (expectedRevision !== undefined && snapshot.data.project.revision !== expectedRevision) throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
+      const projectId = this.database.prepare("SELECT id FROM projects WHERE public_id=?").get(publicId) as {id:number}|undefined;
+      if (projectId && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? LIMIT 1").get(projectId.id)) {
+        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "Task Target bindings cannot be represented by the schedule Excel format. Use Project Copy or Template.");
+      }
       const stageDashboard = new MilestoneDashboardService(this.database, {
         clock, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
       }).getDashboard(publicId);

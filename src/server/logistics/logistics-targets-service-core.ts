@@ -1,10 +1,12 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type {
   CreateLogisticsTargetRequest, LogisticsTargetCreateMember, LogisticsTargetDto,
   LogisticsTargetMemberDto, LogisticsTargetMemberInput, LogisticsTargetMutationResponse,
   LogisticsTargetUsageDto, LogisticsTargetScope, UpdateLogisticsTargetRequest,
 } from "../../contracts/logistics-targets";
+import { resolveAllTaskTargetBindings } from "../../domain/logistics/task-target-bindings";
+import { loadTaskTargetBindingSnapshot } from "./task-target-bindings-service-core";
 import { isCanonicalUuidV4 } from "../projects/project-contract";
 import type { AuthorizedEditSession } from "../projects/project-service-core";
 import { EditSessionRepository, ProjectRepository } from "../repositories/project-repository-core";
@@ -93,11 +95,14 @@ export function parseTargetCreate(input: unknown): ParsedTargetCreate {
   };
 }
 export function parseTargetUpdate(input: unknown): UpdateLogisticsTargetRequest {
-  const d = object(input, ["code","name","scope","projectProcessId","workAreaId","active","description","members"]);
+  const d = object(input, ["code","name","scope","projectProcessId","workAreaId","active","description","members","impactToken","confirmImpact"]);
+  if (d.impactToken !== undefined && (typeof d.impactToken !== "string" || !/^[a-f0-9]{64}$/.test(d.impactToken))) return invalid();
   if (!Object.keys(d).length) return invalid();
   const members = d.members === undefined ? undefined : d.members;
   if (members !== undefined && (!Array.isArray(members) || members.length < 1 || members.length > 100)) return invalid("TARGET_MEMBERS_REQUIRED");
   return {
+    ...(d.impactToken !== undefined ? {impactToken:d.impactToken as string} : {}),
+    ...(d.confirmImpact !== undefined ? {confirmImpact:bool(d.confirmImpact)} : {}),
     ...(d.code !== undefined ? {code:code(d.code)} : {}),
     ...(d.name !== undefined ? {name:plain(d.name,200)} : {}),
     ...(d.scope !== undefined ? {scope:scope(d.scope)} : {}),
@@ -248,7 +253,12 @@ export class LogisticsTargetService {
           " WHERE project_id=? AND "+(m.kind==="equipment"?"equipment_id":"system_id")+"=?")
           .get(project.id,m.equipment_id??m.system_id) as {n:number}).n,
       }));
-      return { targetId:targetId, memberCount:members.length, referencedByTaskCount:0, members:usageMembers };
+      const snapshot=loadTaskTargetBindingSnapshot(this.db,project.id);
+      const resolutions=resolveAllTaskTargetBindings(snapshot);
+      const connected=snapshot.tasks.filter(t=>resolutions.get(t.id)?.effectiveTargetIds.includes(targetId));
+      return { targetId:targetId, memberCount:members.length,
+        referencedByTaskCount:connected.filter(t=>t.type==="task").length,
+        referencedBySummaryCount:connected.filter(t=>t.type==="summary").length, members:usageMembers };
     }).deferred();
   }
   private location(projectId:number, targetScope:LogisticsTargetScope,
@@ -391,6 +401,49 @@ export class LogisticsTargetService {
       return {targetId,operation:"create",changed:true};
     });
   }
+  private impact(projectId:number,target:TargetRow,input:UpdateLogisticsTargetRequest,revision:number) {
+    const existing=this.members(projectId,[target.id]).get(target.id)??[];
+    const desired=input.members??existing.map(m=>({kind:m.kind,entityId:m.entity_public_id}));
+    this.ensureUniqueMembers(desired);
+    const desiredKeys=new Set(desired.map(m=>m.kind+":"+m.entityId));
+    const oldKeys=new Set(existing.map(m=>m.kind+":"+m.entity_public_id));
+    const removed=existing.filter(m=>!desiredKeys.has(m.kind+":"+m.entity_public_id));
+    const added=desired.filter(m=>!oldKeys.has(m.kind+":"+m.entityId));
+    const snapshot=loadTaskTargetBindingSnapshot(this.db,projectId);
+    const targetBindings=snapshot.bindings.filter(b=>b.targetId===target.public_id);
+    const resolved=resolveAllTaskTargetBindings(snapshot);
+    const affectedTaskIds=snapshot.tasks.filter(t=>resolved.get(t.id)?.effectiveTargetIds.includes(target.public_id)).map(t=>t.id).sort();
+    const blockedSubsetMemberIds=removed.filter(m=>targetBindings.some(b=>b.selection==="subset" && b.memberIds.includes(m.public_id))).map(m=>m.public_id).sort();
+    const {impactToken: _token,confirmImpact: _confirmed,...patch}=input;
+    void _token; void _confirmed;
+    const canonicalPatch={...patch,...(patch.members?{members:[...patch.members].sort((a,b)=>(a.kind+":"+a.entityId).localeCompare(b.kind+":"+b.entityId))}:{})};
+    const catalogs=[this.db.prepare("SELECT revision FROM process_catalog_state WHERE id=1").get(),this.db.prepare("SELECT revision FROM logistics_type_catalog_state WHERE id=1").get()];
+    const impactToken=createHash("sha256").update(JSON.stringify({revision,catalogs,target,existing,snapshot,patch:canonicalPatch})).digest("hex");
+    return {projectRevision:revision,targetId:target.public_id,impactToken,
+      wholeBindingIds:targetBindings.filter(b=>b.selection==="whole").map(b=>b.id).sort(),
+      subsetBindingIds:targetBindings.filter(b=>b.selection==="subset").map(b=>b.id).sort(),
+      affectedTaskIds,removedMemberIds:removed.map(m=>m.public_id).sort(),
+      addedEntityIds:added.map(m=>m.entityId).sort(),blockedSubsetMemberIds,
+      membershipChanged:removed.length>0||added.length>0};
+  }
+  previewUpdate(auth:AuthorizedEditSession,expected:number,targetId:string,raw:unknown) {
+    const input=parseTargetUpdate(raw),now=this.now();
+    return this.db.transaction(()=>{
+      this.check(auth,expected,now);
+      const current=this.row(auth.projectId,targetId);
+      const nextScope=input.scope??current.scope;
+      const nextProcess=input.projectProcessId!==undefined?input.projectProcessId:current.process_public_id;
+      const nextArea=input.workAreaId!==undefined?input.workAreaId:current.area_public_id;
+      const where=nextScope!==current.scope || nextProcess!==current.process_public_id || nextArea!==current.area_public_id
+        ? this.location(auth.projectId,nextScope,nextProcess,nextArea)
+        : {processId:current.project_process_id};
+      const existing=this.members(auth.projectId,[current.id]).get(current.id)??[];
+      for(const value of input.members??existing.map(m=>({kind:m.kind,entityId:m.entity_public_id}))) {
+        this.instance(auth.projectId,nextScope,where.processId,value,existing.some(m=>m.kind===value.kind&&m.entity_public_id===value.entityId));
+      }
+      return {data:this.impact(auth.projectId,current,input,expected)};
+    }).deferred();
+  }
   update(auth:AuthorizedEditSession,expected:number,targetId:string,raw:unknown):LogisticsTargetMutationResponse {
     const input=parseTargetUpdate(raw);
     return this.write(auth,expected,(projectId,now)=>{
@@ -427,6 +480,12 @@ export class LogisticsTargetService {
         return {input:value,key:resolved.kind+":"+resolved.entityId};
       });
       const keep=new Set((desired??[]).map(x=>x.key));
+      const impact=this.impact(projectId,current,input,expected);
+      if (impact.blockedSubsetMemberIds.length) return conflict("TARGET_SUBSET_MEMBER_IN_USE");
+      if (impact.membershipChanged && impact.wholeBindingIds.length) {
+        if (!input.confirmImpact || !input.impactToken) return conflict("TARGET_IMPACT_CONFIRMATION_REQUIRED");
+        if (input.impactToken!==impact.impactToken) throw new LogisticsTargetError(412,"TARGET_IMPACT_STALE");
+      }
       let changed=metadataChanged;
 
       // Remove incompatible old members before changing process or scope. The
@@ -467,8 +526,8 @@ export class LogisticsTargetService {
   delete(auth:AuthorizedEditSession,expected:number,targetId:string):LogisticsTargetMutationResponse {
     return this.write(auth,expected,(projectId)=>{
       const current=this.row(projectId,targetId);
-      // F3 will introduce RESTRICTed WBS bindings. Existing targets may be deleted without
-      // changing Equipment, System, controls, coordinators, Resource roles or direct Task links.
+      if (this.db.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? AND target_id=? LIMIT 1").get(projectId,current.id))
+        return conflict("TARGET_IN_USE");
       this.db.prepare("DELETE FROM logistics_targets WHERE project_id=? AND id=?").run(projectId,current.id);
       return {targetId:null,operation:"delete",changed:true};
     });

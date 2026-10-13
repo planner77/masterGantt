@@ -259,7 +259,7 @@ describe("Process catalog migration persistence and SQLite guards", () => {
     const f = setup(filename, migrations);
     const legacyRows = f.database.prepare("SELECT * FROM project_processes").all();
     const beforeRevision = f.projectRevision();
-    expect(runMigrations(f.database, migrationsDirectory).applied).toEqual(["0025_process_catalog.sql","0026_logistics_targets.sql"]);
+    expect(runMigrations(f.database, migrationsDirectory).applied).toEqual(["0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql"]);
     expect(f.database.prepare("SELECT * FROM project_processes").all()).toEqual(legacyRows);
     expect(f.repository.rawMappings(f.project.id)).toEqual([]);
     expect(f.projectRevision()).toBe(beforeRevision);

@@ -517,4 +517,14 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 
 ## #672 — Target F2 추가 인수 검증 (2026-10-14)
 
-현재 v0.108.0의 F2 Target CRUD 및 Template v2를 기존 공유 인스턴스 무손상/원자성·권한·0025→0026 파일 DB 재시작·bounded HTTP 테스트로 검증한다. #617 WBS–Target binding 구현 전 `referencedByTaskCount=0`은 미지원 표시용 임시 필드일 뿐 실제 연결 Task 개수를 의미하지 않는다. 정식 릴리스 #167.1 PASS와 F2의 모든 인수 AC 증거는 별도로 판정한다.
+#672의 v0.108.0 기준 F2 Target CRUD 및 Template v2를 기존 공유 인스턴스 무손상/원자성·권한·0025→0026 파일 DB 재시작·bounded HTTP 테스트로 검증한다. #617 WBS–Target binding 구현 전 `referencedByTaskCount=0`은 미지원 표시용 임시 필드일 뿐 실제 연결 Task 개수를 의미하지 않는다. 정식 릴리스 #167.1 PASS와 F2의 모든 인수 AC 증거는 별도로 판정한다.
+
+## Issue #617 — WBS–Target 연결 수용 범위
+
+- AC1~AC3: Task의 여러 Target, ACS-only subset, 설비단독 legacy Task, 연결 없는 관리 Summary를 지원한다. self/subtree의 직접+모든 조상 합집합은 입력 순서와 무관하며 모든 출처를 보존한다. legacy shared MCS를 Target 배정으로 확대하지 않는다.
+- AC4: whole 구성 변경/새 조상의 영향은 최신 revision으로 확인한다. subset member 삭제·coverage 초과·사용 중 Target 삭제는 전체 rollback하며 빈 subset을 whole로 확대하지 않는다.
+- AC5: reparent/cut은 identity를 유지하고 copy/Project Copy/Template은 명시 연결만 보존·재매핑한다. 상속 평탄화·원본 WBS/Milestone 수정·미지원 형식의 silent loss를 허용하지 않는다.
+- AC6~AC7: 기존 read/edit session·Origin·strong If-Match를 재사용하며 읽기는 revision을 변경하지 않는다. Domain/API/DB/Target/Editor/테스트/Copy·Template·포맷/계획/변경 이력을 동기화한다.
+- AC8: `referencedByTaskCount`의 null=미지원, 0=실제 0건, N=고유 일반 Task N건을 구분하며 Summary는 별도로 세고 Milestone은 일반 Task 수에서 제외한다. legacy directTaskCount와 targetCount는 다른 의미다. 미산출 값을 삭제·KPI 근거로 사용하지 않는다.
+
+`0.109.0` 구현 후보이며 전체 인수는 exact-Head 원격 검증 이후 별도 판정한다. Target authoring UI/Resource 계산은 #618/#619 이후, 정식 릴리스 승인과 병합은 이번 PR CI 시작 범위에 포함하지 않는다.

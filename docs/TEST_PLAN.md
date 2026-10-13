@@ -3584,3 +3584,16 @@ OFF 뒤 window resize의 측정 횟수가 증가하지 않는 cleanup 경계를 
 ## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+## Issue #617 — F3 binding·상속·영향·호환 검증
+
+| 수용 기준 | 검증 범위 |
+| --- | --- |
+| AC1~AC2 | 통합 A/B·ACS-only subset·관리 Summary, self/subtree/중첩/중복 경로의 ID 합집합과 전체 provenance, 입력 순열·중복 불변 |
+| AC3 | shared MCS legacy 직접 연결의 Target 비확대, Target+legacy instance dedup 및 출처 보존 |
+| AC4 | whole 구성 변경 영향 확인, token을 다른 diff/revision/snapshot에 재사용 거부, subset member 삭제/coverage 초과/사용 중 삭제 atomic rollback |
+| AC5 | reparent/cut 영향 확인 및 identity 보존, subtree/Project Copy·Template 새 local ID remap, 명시/상속 구분·legacy·Milestone 보존, migration·persisted restart |
+| AC6 | read-only 조회 무변경, Origin/session/strong If-Match·stale·타 Project/member·Summary-only subtree·Milestone authoring·malformed/byte bound 음성 HTTP |
+| AC7~AC8 | 문서/DTO 소비자 정합성, usage null/실제0/고유N·Summary 별도·Milestone 제외·whole/subset/직접/상속 중복 제거, legacy 수량 분리 |
+
+F0 oracle은 `tests/fixtures/logistics-targets.ts` 및 `tests/domain/logistics-targets-contract.test.ts`다. 신규 runtime/API/SQLite/Copy·Template 테스트와 실제 실행 결과는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에 기록한다. Local Fast Feedback PASS는 PR quality/e2e/docker PASS를 대체하지 않는다. 이번 범위는 PR CI 시작까지이며 CI 모니터링·main artifact·정식 릴리스·운영 DB backup/restore·새 UI 수동 UX는 NOT TESTED다.

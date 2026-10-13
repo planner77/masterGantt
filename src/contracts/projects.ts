@@ -279,10 +279,13 @@ export type TaskHierarchyCommandRequest =
   | {
       kind: "indent" | "outdent";
       taskId: string;
+      /** Exact revision-bound Target impact receipt returned by the server. */
+      targetImpactDigest?: string;
     }
   | {
       kind: "reparent";
       taskId: string;
+      targetImpactDigest?: string;
       anchorTaskId: string;
       placement: TaskHierarchyPlacement;
     }

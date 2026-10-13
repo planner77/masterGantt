@@ -262,3 +262,7 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 통합 회귀는 실제 native SQLite HTTP handler와 Next HTTP의 Export 응답 ZIP을 풀어7개 Resource 시트의 OOXML을 검사한다. 동일 Assignment ID별 raw 계획값2.5/5/3/1/null과 unknown 공란, 전체11.5 M/D, 개인·Group×Milestone partition, Plan selected/project 숫자와 report의 기간/asOf/환산/revision/Calendar/snapshot metadata를 비교한다. Group 소계17은 중첩 분류 결과이며 전체11.5로 대체하지 않는다. null 공란과 numeric0을 합계 표시만으로 판정하지 않는다.
 
 readonly Export, exact Origin·strong `If-Match`, stale 전체 실패, ID·scope 보존과 credential 없는 단일 서버 생성 Project hyperlink를 함께 확인한다. 시트 숫자는 report와 같은 raw 값을 유지하고 KPI와 Plan 사이의 부동소수 연산 순서 차이만 기존 정밀도 허용범위에서 비교한다. 실제 Windows Excel/VBA/DRM에서 파일을 열고 표시하는 검증과 원격 CI는 로컬 OOXML 검사로 대체하지 않는다. 새 Export endpoint·시트·예산이나 재가져오기 계약을 추가하지 않는다.
+
+## Issue #617 — Task Target binding을 포함한 일정 Export
+
+현행 일정 Excel은 Task Target binding/선택 구성원/coverage의 왕복 형식이 아니다. binding이 있는 Project의 일정 Excel 내보내기는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`로 거부하며 일부 연결을 누락한 workbook을 성공으로 반환하지 않는다. 이 보호는 일정 workbook의 선택적 Resource 부록에도 적용된다. binding을 보존하려면 Project Copy 또는 Template logistics schemaVersion 3을 사용한다. 별도 Resource 보고서 및 이미지/SVG 출력은 전체 복원 포맷이 아니며 이 일정 Excel 보호 경로를 사용하지 않는다. 전체 JSON/Excel 포맷 확장은 #379 및 후속 보고서 범위에서 별도 검증한다.
