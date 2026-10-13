@@ -34,6 +34,20 @@ class TestReadOnlyAudit(unittest.TestCase):
             with self.assertRaises(SuccessionBlocked):
                 audit.main_snapshot()
 
+    def test_unconfirmed_prepare_decision_never_authorizes_release(self):
+        rows = []
+        self.assertFalse(audit.latest_marker(
+            rows, "mastergantt-release-authorization:v1", "0.108.0", True
+        ))
+        self.assertFalse(audit.latest_marker(
+            rows, "mastergantt-release-authorization:v1", "0.107.0", False
+        ))
+
+    def test_ghcr_missing_metadata_blocks(self):
+        with patch.object(audit, "pages", return_value=[{"id": 1}]):
+            with self.assertRaises(SuccessionBlocked):
+                audit.registry_inventory()
+
     def test_latest_owner_revocation(self):
         rows=[(1,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":True}),
               (2,"mastergantt-release-authorization:v1",{"expected_version":"0.107.0","authorized":False})]
