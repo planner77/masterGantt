@@ -119,3 +119,13 @@ C의 synthetic width 적용과 physical width 복원 사이에 취소되면 Core
 최초 `evidence/issue569/adapter/manifest.json`과 summary는 PR 최초 head `469de57567d8b06269b649f76caa67071fc0d613`에 대응하는 source snapshot이다. 이후 P2 및 CI 보완의 현재 source hash로 재표시하지 않는다. 최신 작업 baseline은 `9f0458124198470872c6764cbd5b00dedc75417b`이며 그 CI #2295.1에서는 #569 PoC를 포함한 shard 1이 PASS였다. 이 실행의 전체 E2E는 별도 #463 검색 후 viewport 기대값 때문에 FAIL이므로 전체 PASS로 해석하지 않는다.
 
 Empty는 공개 serialize 결과를 정규화하고 Milestone은 종료일이 없는 시점으로 검증한다. Chart-only 확대는 native 측정 가능 조건을 기다린 뒤 기존 3-frame settle을 요구한다. 이 기존 보완을 유지하며 현재 REWORK는 #463의 peer/layout 보존과 filter 축소의 native clamp를 구분하는 검증 보완이다. adapter 구현·지원 분류·제품 도입 DEFER와 PoC 상한은 이번 보완에서 변경하지 않는다. 상세 최초 오류와 실행별 연결은 Work Packet의 종합 실패 이력으로 관리한다.
+
+## Issue #661 — 상태 정합성 표준과 후속 Adapter 결정
+
+상태: `REVIEW_PENDING`. 장기 규범은 [Gantt State Consistency](GANTT_STATE_CONSISTENCY.md), 적합성 검증은 [Conformance Matrix](GANTT_STATE_CONFORMANCE.md), 구현 단위·파일 소유권은 [구조적 보완 계획](exec-plans/active/GANTT_STATE_REMEDIATION.md)을 따른다. 기존 위쪽 실험/실패/DEFER 원장은 그대로 보존한다. 문서 갱신은 A/B/C 제품 채택이나 기존 #552 실패 해결의 증거가 아니다.
+
+후속 결정은 세 경계를 명시적으로 보강한다. GSC-02는 canonical key 동일성뿐 아니라 실제 Core payload/tree/order/link와 recovery 상태를 검사한다. GSC-05는 synthetic resize도 간접 viewport writer로 취급하며 날짜 범위·물리 container·X/Y 보존 정책을 각각 검증한다. GSC-06은 의미가 같은 재관측과 실제 Core/query/axis/사용자 의도 변경을 구별한다. 기존 receipt의 유효성을 자기신고로 승인하거나 모든 관측 generation 변경을 무조건 무시하지 않는다.
+
+U4는 설치 2.7.3에서 실제 Core fixture로 A/B/C 또는 최소 개선안을 비교하고, 지원 프로파일·취소 중 임시 geometry·원래 X/Y·실제 사용자 입력의 우선권·상한을 증명한 한 가지 전략을 U5에 전달한다. 최신 문서의 props를 설치 버전의 런타임 보장으로 확대하지 않으며 library upgrade, private Store 변경, 새 scroll controller는 이 결정의 범위가 아니다. 실제 source를 확인한 후에도 불충분하면 `DECISION_REQUIRED/DEFER`와 대안을 기록한다.
+
+표준 예외/전략 채택 기록에는 적용 GSC ID, 버전·프로파일, 원본 실패와 반례, 선택/기각 대안, 실제 검증 source와 결과·미검증, rollback·재평가 조건, 승인 주체를 포함한다. 규범 승인과 제품 연결 및 CI 성공은 별도 gate다. 이 문서 변경 자체로 보호된 CI/QA/Owner·릴리스 권한을 바꾸지 않는다.
