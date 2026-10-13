@@ -1,6 +1,7 @@
 import { inflateRawSync } from "node:zlib";
 import type { Page, Download } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import type { ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
 import type { ImportPayload11 } from "../../src/contracts/import";
 import type { ProjectImportPreviewResponse } from "../../src/contracts/project-import";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse, CopyProjectResponse } from "../../src/contracts/projects";
@@ -12,18 +13,19 @@ const editPassword = "Stage464!";
 const adminPassword = "Stage464SyntheticAdmin!";
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: adminPassword, viewport: { width: 1440, height: 900 } });
 
-async function createProject(page: Page, origin: string, name: string) {
-  const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name, description: "합성 일정 교환 fixture", ownerName: "E2E 자동화", editPassword } });
+async function createProject(page: Page, origin: string, name: string, observeApi: ObserveIsolatedApi) {
+  const created = await observeApi("/api/projects", "POST", () => page.request.post("/api/projects", { headers: { Origin: origin }, data: { name, description: "합성 일정 교환 fixture", ownerName: "E2E 자동화", editPassword } }));
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string, api = `/api/projects/${publicId}`;
   const get = async () => {
-    const response = await page.request.get(api); expect(response.status()).toBe(200);
+    // Capture transport/lifecycle evidence before cleanup; preserve the original error without retry.
+    const response = await observeApi(api, "GET", () => page.request.get(api)); expect(response.status()).toBe(200);
     return await response.json() as ProjectSnapshotResponse;
   };
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const mutate = async (path: string, data: unknown, method: "post" | "put" | "patch" = "post", status = 200) => {
-    const response = await page.request[method](`${api}${path}`, { headers: headers(), data });
+    const response = await observeApi(`${api}${path}`, method.toUpperCase(), () => page.request[method](`${api}${path}`, { headers: headers(), data }));
     expect(response.status(), `${method} ${path}: ${await response.text()}`).toBe(status);
     snapshot = await get(); return response;
   };
@@ -33,7 +35,7 @@ async function createProject(page: Page, origin: string, name: string) {
   };
   const refresh = async () => { snapshot = await get(); return snapshot; };
   const unlock = async () => {
-    expect((await page.request.post(`${api}/edit-sessions`, { headers: { Origin: origin }, data: { editPassword } })).status()).toBe(204);
+    expect((await observeApi(`${api}/edit-sessions`, "POST", () => page.request.post(`${api}/edit-sessions`, { headers: { Origin: origin }, data: { editPassword } }))).status()).toBe(204);
     return refresh();
   };
   return { publicId, api, get, refresh, headers, mutate, add, unlock, get snapshot() { return snapshot; } };
@@ -92,8 +94,8 @@ function namedSheets(entries: Map<string, string>) {
   return new Map(Array.from(entries.get("xl/workbook.xml")!.matchAll(/<sheet\b[^>]*name="([^"]+)"[^>]*sheetId="(\d+)"/g), ([, name, id]) => [xmlText(name), sheetRows(entries.get(`xl/worksheets/sheet${id}.xml`)!) ]));
 }
 
-async function seed(page: Page, origin: string) {
-  const project = await createProject(page, origin, "Stage exchange #464"), { add, mutate } = project;
+async function seed(page: Page, origin: string, observeApi: ObserveIsolatedApi) {
+  const project = await createProject(page, origin, "Stage exchange #464", observeApi), { add, mutate } = project;
   const a = await add("동명 병렬 단계", "milestone", "M-A"), b = await add("동명 병렬 단계", "milestone", "M-B"), join = await add("합류 단계", "milestone", "M-JOIN"), manual = await add("수동 이벤트", "milestone", "M-MANUAL"), completed = await add("완료 기록 단계", "milestone", "M-CLOSED");
   const summary = await add("Summary 기본 단계", "summary", "S"), nested = await add("중첩 Summary override", "summary", "NESTED", summary.taskId), child = await add("상속 일반 작업", "task", "CHILD", summary.taskId, 5), nestedChild = await add("중첩 상속 완료 작업", "task", "NESTED-T", nested.taskId), override = await add("직접 override 작업", "task", "OVERRIDE", summary.taskId);
   const empty = await add("빈 Summary", "summary", "EMPTY"), direct = await add("직접 지정 DAG 시작", "task", "DAG-P", undefined, 1), successor = await add("DAG 후행 작업", "task", "DAG-Q"), free = await add("미지정 개인 공수", "task", "FREE"), closedChild = await add("Milestone 구성 작업", "task", "CLOSED-T");
@@ -127,9 +129,9 @@ async function dashboard(page: Page, project: ProjectHarness, query = "") {
   const response = await page.request.get(`${project.api}/milestone-dashboard${query}`); expect(response.status()).toBe(200); return (await response.json() as MilestoneDashboardResponse).data;
 }
 
-test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합", async ({ page, baseURL, browser }, testInfo) => {
+test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합", async ({ page, baseURL, browser, observeIsolatedApi }, testInfo) => {
   test.setTimeout(360_000); page.setDefaultTimeout(20_000);
-  const origin = baseURL!, fixture = await seed(page, origin), { project, child, summary, join, b, free, warningSource, destination } = fixture;
+  const origin = baseURL!, fixture = await seed(page, origin, observeIsolatedApi), { project, child, summary, join, b, free, warningSource, destination } = fixture;
   for (const path of ["/milestone-dashboard", "/assigned-targets", "/resource-workload", "/logistics/dashboard", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`, "/exports/json", "/exports/excel", "/imports/preview", "/imports"]) await (await page.request.get(`${project.api}${path}`)).body();
   await page.goto(`/projects/${project.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const editor = await openTask(page, child.taskId); await expect(editor).toContainText("Summary 기본 단계에서 상속");
@@ -188,7 +190,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect(defaultWorkload.projectRevision).toBe(full.projectRevision); expect(defaultWorkload.grandTotalMd).toBe(full.effort.plannedMd); expect(sheets.get("Resource Effort Summary")!.find((cells) => cells.get("A") === "전체 계획 M/D")!.get("B")).toBe(defaultWorkload.grandTotalMd);
 
   const original = await project.refresh();
-  const target = await createProject(page, origin, "JSON 동일 Calendar 대상"); expect(target.snapshot.data.project.calendar).toEqual(original.data.project.calendar); await page.goto(`/projects/${target.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  const target = await createProject(page, origin, "JSON 동일 Calendar 대상", observeIsolatedApi); expect(target.snapshot.data.project.calendar).toEqual(original.data.project.calendar); await page.goto(`/projects/${target.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   let previews = 0, commits = 0; page.on("request", (request) => { if (request.method() === "POST" && new URL(request.url()).pathname === `${target.api}/imports/preview`) previews++; if (request.method() === "POST" && new URL(request.url()).pathname === `${target.api}/imports`) commits++; });
   await page.locator('summary[aria-label="프로젝트 작업 더보기"]').click(); const previewRead = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${target.api}/imports/preview`); await page.locator('input[type="file"][accept=".json,application/json"]').setInputFiles({ name: "stage-roundtrip.json", mimeType: "application/json", buffer: jsonBytes });
   const importDialog = page.getByRole("dialog", { name: "JSON 파일 가져오기", exact: true }); const preview = (await (await previewRead).json() as ProjectImportPreviewResponse).data;
@@ -258,9 +260,9 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   await testInfo.attach("actual-464-contract-evidence", { body: JSON.stringify({ projectRevision: full.projectRevision, catalogRevision: full.catalogRevision, sourceStageIds: full.rows.map((stage) => stage.milestoneTaskId), assignmentIds: full.effort.assignmentIds, defaultGrandMd: full.effort.plannedMd, scopedGrandMd: partial.effort.plannedMd, importedProjectRevision: imported.data.project.revision, copiedProjectId: copied.data.project.publicId, instantiatedProjectId: instantiated.data.project.publicId, copyReviewPostCount: commands.length, finalRevision: project.snapshot.data.project.revision, legacyMixedBrowser: "NOT TESTED: native SQLite server fixtures cover legacy cases; browser does not scan or write test DBs" }), contentType: "application/json" });
 });
 
-test("#464 실제 Import 검토 이후 변경은 412·파일 보존·자동 재전송 0과 readonly 권한으로 보호한다", async ({ page, baseURL, browser }) => {
+test("#464 실제 Import 검토 이후 변경은 412·파일 보존·자동 재전송 0과 readonly 권한으로 보호한다", async ({ page, baseURL, browser, observeIsolatedApi }) => {
   test.setTimeout(120_000); page.setDefaultTimeout(20_000);
-  const project = await createProject(page, baseURL!, "Import stale #464");
+  const project = await createProject(page, baseURL!, "Import stale #464", observeIsolatedApi);
   const file = Buffer.from(JSON.stringify({ schemaVersion: "1.1", project: { name: "외부 일정", description: "Create-only" }, tasks: [{ externalId: "M", name: "새 Milestone", type: "milestone", requestedStart: "2026-10-06", duration: 0, progress: 0, status: "not_started", parentExternalId: null, predecessors: [] }, { externalId: "T", name: "외부 작업", type: "task", requestedStart: "2026-10-06", duration: 2, progress: 0, status: "not_started", parentExternalId: null, predecessors: [] }], memberships: [{ taskExternalId: "T", milestoneExternalId: "M" }] }));
   await (await page.request.get(`${project.api}/imports/preview`)).body(); await (await page.request.get(`${project.api}/imports`)).body();
   await page.goto(`/projects/${project.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();

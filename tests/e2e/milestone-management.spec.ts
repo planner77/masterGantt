@@ -205,6 +205,12 @@ test("#550 동일 ID utility·단일 Copy·삭제 확인·삭제 후 목록 focu
     return active.getAttribute("data-milestone-focus");
   })).toMatch(/^(search|add|heading)$/);
   await expect(panel(page).getByLabel("Milestone 검색", { exact: true })).toBeFocused();
+  // #2626 shard 3: DOM focus alone is insufficient if preventScroll leaves the
+  // restored toolbar above the viewport; the visible focus ring must be hittable.
+  const restored = await fallbackObservation(page);
+  expect(restored.rect.y - restored.ring).toBeGreaterThanOrEqual(0);
+  expect(restored.rect.bottom + restored.ring).toBeLessThanOrEqual(restored.viewport.height);
+  expect(restored.centerHit).toBe(true);
   expect(deleted).toEqual([original.taskId]); await expectSameGanttRoot(page, identity);
   await capture(page, info, "commands-focus", { commands, deleted, revision: state.project.revision, instance: identity });
 });

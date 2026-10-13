@@ -3,6 +3,7 @@
 - #616 original PR #631 merged SHA `b97709df...` remains immutable and formal `v0.107.0` GHCR unissued. Owner manual exact recovery #2621.1 failed only E2E shard3 (#550 Milestone focus null on deleted trigger) and shard5 (#525 KPI `2건` strict locator duplicated). Quality/Docker, other 4 shards SUCCESS. #639 modern main contains shard5 focused selector; old blob differs. Milestone focus test blob is identical on old/main.
 - #647 is focused HIGH/OWNER_MANAGED current-main fix on `fix/issue-647-milestone-delete-focus-recovery` from `c9e695f2c6757d941f73e2c8d009442c9e5a74f0`. `focusMilestoneDashboard` bounded RAF waits for native modal cleanup and validates active visible project panel; Playwright verifies actual list/search owner focus after deleted-row removal. Do not change app version/schema/API or relax CI/Owner guards. Documentation: PROJECT_UX/MILESTONE_TIMELINE/TEST_PLAN/REMOTE_VALIDATION/CI_CD/PLAN/Work Packet/CHANGELOG.
 - New exact PR Head CI 3 required + Trusted QA are remote gates. Historical #616 recovery source still checks out old sha; **modern PR success does not fix the original immutable test**. Discuss the safe version/source disposition after review rather than promising auto-GHCR completion from this PR.
+- Corrective on #647 PR #648 after failed [CI #2626.1](https://github.com/planner77/masterGantt/actions/runs/38320235805): QA/TypeScript/Vitest/Build/Docker PASS; 5 Chromium shards PASS; shard3 4 access-focus visibility failures (`-363.5px` or `centerHit=false`). Specific introduced regression `target.focus({preventScroll:true})` blocked browser scroll; repair by native `.focus()` and add success-case onscreen focus/hit-test E2E. Preserve 24-RAF native modal unmount guard and chart scroll assertions. Integrate merged #551 main SHA `b9d01674a0bf4e8136b30d4a7a6d77ee3c19cbfc` with all concurrent documentation/product code before new PR CI. No original #616 SHA replacement or formal GHCR release.
 
 ## Issue #645 — #616 recovery CI #2617 commit association index gap (2026-10-13)
 
@@ -54,6 +55,26 @@
 
 - **Area impact:** Active #639: from main b97709df, branch fix/639-exact-main-recovery; trusted full CI source recovery, provenance validator, CI/GHCR/Finalizer lifecycle equivalence, negative tests, docs synchronization. Next: PR required CI and Trusted QA; Owner review/merge separately, then exact #616 recovery.
 
+## Issue #551 — PR #560 CI #2605.1 3000-item dev probe 초기화 실패 보완 (2026-10-13)
+
+원본 [#2605.1](https://github.com/planner77/masterGantt/actions/runs/38299775278)의 QA Preflight·TypeScript·Build·Unit·Docker와 Chromium 5 shard는 PASS, shard4의 #551 3000-item 진단 property readiness만 1 FAIL(128 PASS/1 SKIP)이다. SVAR API/DOM은 실제 렌더링됐지만 `useLayoutEffect([apiInstanceId])` 의존 probe가 지정 5초 이내 붙지 않았다. 개발 전용 probe를 `init(api)`에서 sync 설치하고 React mount/StrictMode/교체 cleanup과 동등 API ID 검증을 보강한다. timeout/fixture/skip/retry·원래 geometry 검증 불변. 새 main #639 CI·Finalizer/Resource KPI 갱신, CHANGELOG/ARCHITECTURE/MILESTONE_TIMELINE/TEST_PLAN/ISSUE_551 동기화를 보존하고 새 full PR CI 시작 후 결과는 별도 판정한다. HIGH / OWNER_MANAGED, release_required=true, release_authorized=false; merge/Main CI/GHCR/Issue close 비범위.
+
+## Issue #551 — PR #560 CI #2600.1 공유 Core reveal 회귀 보완 (2026-10-13)
+
+[CI #2600.1](https://github.com/planner77/masterGantt/actions/runs/38264149134), Head301579a838865ab5f100824f10ccb9986bb9fbd4/baseb97709df8b5c0974f3c8252ac97819f45f73a5b9: quality/Docker 및 기존 lane19+#464교환2를 포함한5 shard PASS, shard5의 #549 Core7개 FAIL이다. 앞선 공유 dev reveal의 native date 통합이 calendar contentX·custom filter·반환 계약을 깨뜨렸다. 기존 단일 adapter의 calendar left와 실제 native 가시성/in-view 무이동을 복원하고 기존 dev DIAGNOSTIC_SCROLL 정착만 bounded 보완한다. ±1px/원래 fixture/timeout·retry0·required gate를 유지하며 Core9+lane19 및 직접 Unit으로 함께 검증한다.
+
+frontend가 제한된 probe/진단 port/coordinator·관련 테스트, Manager가 문서, infra가 진단/최종 동등 게시, 실제 qa_docs가 read-only PRE_QA를 소유한다. HIGH/OWNER_MANAGED/qa_required=true·0.107.0 유지, release_required=true/release_authorized=false. 새 전체 PR CI 시작까지만 수행하며 결과 모니터링·병합·main/GHCR·최종 승인은 NOT TESTED다. [#551 Work Packet](ISSUE_551.md)에 원본 실패·보완·실제 검증 원장을 기록한다. 최종 Local Fast Feedback은 Core9+lane19 전체28 PASS(1.5분)와 관련 Unit117 PASS(522ms), typecheck/lint·version/link/diff PASS다. 최초 원형7FAIL/2PASS·중간22PASS/6FAIL·신규oracle23PASS/5FAIL은 보존한다. 새 remote exact Head 결과와 독립 PRE_QA/Owner 최종 판정은 별개다.
+
+## Issue #551 — PR #560 CI #2595.1 반복 실패 보완 (2026-10-12)
+
+최신 Head `b25bb4e72c1f769d47ec3b7f03c9a31740ac299b` / base `b97709df8b5c0974f3c8252ac97819f45f73a5b9` / [CI #2595.1](https://github.com/planner77/masterGantt/actions/runs/38258293115)의 quality/Docker 및 다른 E2E 5 shard는 PASS, shard4는 123 PASS/6 FAIL/1 skipped다. #551 5폭 `anchor=null`은 개발 날짜 reveal의 state-only 가시성 판단과 기존 viewport 조정기 우회 경계로 분석하고 기존 `DIAGNOSTIC_DATE_REVEAL` 정착 경로로 통합한다. 별도 #464 GET `ECONNRESET`은 서버 alive/health200/OOM0으로 근인 UNKNOWN이며 기존 안전한 요청 observer를 연결해 원본 실패를 재시도 없이 보존한다.
+
+관련 코드/테스트/문서와 직접 회귀·별도 read-only PRE_QA 후 기존 PR의 새 full CI 시작까지만 수행한다. `0.107.0`/package/lock 및 main 통합 기능 유지, HIGH/qa_required=true, production 기본OFF, release_required=true/release_authorized=false다. 새 CI 모니터링/병합/main/GHCR/Issue 종료/브랜치 정리는 비범위다. exact source 검증·미검증과 기존 실행별 실패는 [#551 Work Packet](ISSUE_551.md)에 기록하며 QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
+## Issue #551 — PR #560 CI #2594.1 실제 날짜 Timeline 좌표 회귀 보완 (2026-10-12)
+
+기준 CI [Run #2594.1](https://github.com/planner77/masterGantt/actions/runs/38253274533)의 QA Preflight/TypeScript/Build/Unit/Docker 성공, Chromium shard4 123 PASS/6 FAIL/1 SKIP을 분리한다. 5개 viewport에서 실제 Gantt Task bar와 lane tick의 3,018~3,036px 불일치를 보존하고 canonical contentX+실제 native scale origin으로 projection을 통합한다. 3000 Task 초기화 시 dev-only probe를 layout commit에서 등록한다. 관련 E2E·TEST_PLAN·MILESTONE_TIMELINE·ARCHITECTURE·CHANGELOG·Work Packet을 함께 보완한다. ±1px/5초/3000Task fixture, PRO·Core 변경 금지, 새 전체 PR CI exact Head 시작 전 최종 PASS/QA/Owner/merge/GHCR는 NOT TESTED. `release_required=true`, `release_authorized=false`.
+
 ## #616 PR #631 CI #2545.1 실패 보완·latest main 재정렬 (2026-10-12)
 
 Shard6 `project-links-persistence.spec.ts` 두 번째 생성 이름 입력이 브라우저 trace의 `fill` 이후 이미 비어 있고 제출 validation이 POST를 차단함을 확인. 응답 타임아웃이 아닌 SSR→hydration 준비 시점의 테스트 경합이므로 catalog `ready`/client mount를 **입력 전**에 검증하고 제출 직전 name equality assertion을 추가한다. timeout·retry·skip·API/DB/UI 계약 불변. 신규 main의 #629 preflight 및 #550 임시 E2E 보호를 손실 없이 정렬하고 full PR CI를 시작한다. QA/Owner 최종 결정·main/GHCR/Issue close는 요청 범위 밖이며 신규 Head PASS 전 NOT TESTED.
@@ -65,6 +86,16 @@ PR #631에서 미구현이던 Template F1 occurrence/WorkArea→Target/member �
 ## Issue #616 — Target/member F2 implementation candidate (2026-10-12)
 
 [Work Packet](ISSUE_616.md) tracks F2 implementation after F1 #615 merged. Branch `feat/issue-616-logistics-targets` contains migration 0026, typed Target/member REST and transaction service, Project Copy typed ID remap, Template/JSON fail-closed guards and fixture tests. Prior original Equipment/System control/Resource roles and process/WorkArea identities are preserved. Exact-head PR CI and operational migration checks remain NOT TESTED before workflow completion. Risk HIGH, QA method OWNER_MANAGED, Owner merge authority and release authorization separate; no merge/GHCR/deployment authorized. Target F3/#617 and Resource stages not included.
+
+## Issue #551 — compact Milestone Timeline 최초 구현 기록 (2026-10-09)
+
+[#551 Work Packet](ISSUE_551.md). 선행 #550 [PR #559](https://github.com/planner77/masterGantt/pull/559), head `31345da9346dfbdc1ac02e4e7ca567edafec775f`, CI [2216.1](https://github.com/planner77/masterGantt/actions/runs/37806909407) 등록 후 결과 모니터링 없이 MT3를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-551-milestone-timeline-lane`/PR base `feat/issue-550-milestone-management`, 후보 MINOR `0.105.0`으로 진행한다. ui_ux의 배치·interaction 설계와 researcher의 공식 Core 자료를 따라 frontend가 단일 Gantt/Workspace writer로 구현·검증·관련 문서를 소유한다. #549 Week 헤더 의미 FAIL을 date/header 실제 oracle로 해결하기 전 lane 좌표 표시를 활성화하지 않는다. 현재 M native 행과 quickview는 유지하며 실제 기본 전환은 #552이다. 관련 문서 동기화와 독립 QA 뒤 PR CI 등록까지만 진행한다.
+
+최신 #551 로컬 검증은 같은 source Chromium17/17 PASS(46.4초), 직접 관련 Unit29 PASS, typecheck/변경lint PASS다. 5폭×Day/Week와 peer/resize 측정 요청 유실 보완을 포함한다. 관련6개 문서와 원본 실패·환경별 제한을 동기화하여 DOCUMENTATION_SYNC PASS, 정확 staged tree의 독립 UI/UX 및 PRE_QA를 진행한다. 기본 Timeline OFF·기존 M 행/빠른 보기 유지, 공식 원격 결과는 NOT TESTED다.
+
+독립 ui_ux bounded 비교/PRE_QA PASS, 추가 blocker0. reviewer Unit29 재실행은 고유 테스트 수에 중복 합산하지 않는다. Grid 열 표시·숨김/5폭 document overflow 직접 assertion은 #552 actual 표시 전환에 인계하며, 전체 drag/Dependency/clipboard·환경·원격 최종 검증은 별도다. Manager는 후보 PR 게시와 exact-head CI 등록까지만 승인한다.
+
+<!-- #550 인계: 독립 PRE_QA PASS, 로컬 UI19/44.5초·Unit88 PASS, 이전 실제 HTTP/SQLite2/43.3초 제한 재사용. PR559/head31345da9346dfbdc1ac02e4e7ca567edafec775f/CI37806909407 등록 확인, 원격 결과 NOT TESTED. -->
 
 ## Issue #637 — 구조 삽입 Grid·Chart 정렬 교정 (2026-10-12)
 

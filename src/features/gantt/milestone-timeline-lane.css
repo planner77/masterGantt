@@ -1,0 +1,15 @@
+.project-gantt-widget.project-gantt-lane-layout { display: flex; flex-direction: column; position: relative; overflow: clip; }
+.project-gantt-native-owner { flex: 1 1 0; min-height: 0; }
+.project-milestone-lane { height: 64px; flex: 0 0 64px; position: relative; border-bottom: 1px solid var(--border); background: var(--background); }
+.project-milestone-lane-list { position: sticky; left: 8px; margin: 10px 8px; height: 44px; max-width: 160px; background: var(--background); border: 1px solid var(--border); border-radius: var(--radius); color: var(--foreground); z-index: 2; }
+.project-milestone-lane-plot { position: absolute; top: 0; height: 64px; overflow: hidden; }
+.project-milestone-lane-marker { position: absolute; top: 10px; width: 160px; height: 44px; padding: 6px; border: 1px solid var(--primary); border-radius: var(--radius); background: var(--background); color: var(--primary); display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.project-milestone-lane-marker:focus-visible, .project-milestone-lane-list:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.project-milestone-lane-tick { position: absolute; width: 1px; height: 8px; top: 0; background: var(--primary); pointer-events: none; }
+.project-milestone-lane-guide { position: absolute; width: 1px; background: var(--primary); pointer-events: none; z-index: 3; }
+.project-milestone-cluster-items { max-height: 50vh; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.project-milestone-cluster-items button { min-height: 44px; text-align: left; }
+.project-milestone-marker-title { display: flex; gap: 4px; width: 100%; font-size: 12px; line-height: 16px; }
+.project-milestone-marker-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 16px; }
+.project-milestone-marker-status { display: block; font-size: 10px; line-height: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.project-milestone-lane-state { position: absolute; top: 10px; left: 180px; max-width: calc(100% - 188px); font-size: 12px; line-height: 20px; color: var(--muted-foreground); }

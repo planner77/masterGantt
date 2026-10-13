@@ -3,8 +3,17 @@
 **Primary Issue:** #647 (HIGH/OWNER_MANAGED, qa_required=true).
 **Upstream:** original Issue #616/PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` (open/immutable).
 **Branch/base:** `fix/issue-647-milestone-delete-focus-recovery` from main `c9e695f2c6757d941f73e2c8d009442c9e5a74f0`.
+**Integrated main target:** `b9d01674a0bf4e8136b30d4a7a6d77ee3c19cbfc` (#551 merge), after PR #648 initial test failure.
 **Version:** 0.107.0 unchanged; `release_required=false` for this isolated QA/accessibility fix; `release_authorized=false`, `manager_decision=NOT TESTED`, `independent_qa=N/A(Owner-managed)`.
 **Requested boundary:** analyze #616's manual recovery CI failure; correct current-main focus and retain already-corrected resource KPI strict selector, synchronize documentation, start full PR CI. No merge/GHCR/formal v0.107.0 release authorization in this request.
+
+## PR #648 CI #2626.1 focus-visible regression and main integration
+
+- Actual [PR CI #2626.1](https://github.com/planner77/masterGantt/actions/runs/38320235805) at Head `55840d176869619e1707a2f1fa78d316dc833b88` FAILED: required Quality/Docker SUCCESS, Chromium shards 1,2,4,5,6 SUCCESS; shard3 job #115046498961: **4 FAIL, 119 PASS, 1 SKIP**. Deleted-target canonical/report loss had browser focused element 363.5px above viewport; confirmation cancel/Escape focus was not hit-testable.
+- Identified direct regression introduced by this PR: `target.focus({preventScroll:true})` in `focusMilestoneDashboard` suppresses native scroll for restored Milestone toolbar, leaving DOM active focus inaccessible. Keep existing bounded 24-RAF native `:modal` closing guard and same-project visible panel checks, change Milestone fallback to `target.focus()`, with no chart scroll mutation. Existing four strict accessibility checks must remain.
+- Extend positive successful delete case to check restored focus ring fully inside viewport and `elementFromPoint` hit test; preserve prior actual active ownership, deletion command count, Gantt instance and 6-shard enforcement.
+- Main advanced through #551 PR #560 to `b9d01674a0bf4e8136b30d4a7a6d77ee3c19cbfc` after original #647 branch. Merge current main as an additional parent and construct a union of unrelated #551 code/docs plus current #647 changes; do not overwrite #551 timeline/date/viewport work.
+- Latest amended PR CI/Trusted QA are **NOT TESTED** until new exact-head full run completes. Original #616 source SHA, conditionally authorized `v0.107.0` and both original #2621 E2E failures remain unchanged. This repair is a modern-main product focus correction, not a historical source substitution.
 
 ## Verified failure / evidence
 

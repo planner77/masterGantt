@@ -29,7 +29,7 @@ describe("SVAR observed Task reveal admission", () => {
 
 
 describe("SVAR visibility admission", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
   function portFor(mode: string) {
     const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: mode === "commands" ? 125 : 200, scrollLeft: 0 };
     const vertical = { clientHeight: 100, scrollHeight: 200, scrollTop: 0 };
@@ -70,6 +70,32 @@ describe("SVAR visibility admission", () => {
     const peer = portFor("ready");
     expect(await peer.apply({ kind: "PEER_RETURN", position }, () => true)).toEqual(position);
     expect(peer.intercept({ left: 0, top: 0 })).toBe(false);
+  });
+
+  it("gives each dev diagnostic scroll a fresh bounded native repair budget", async () => {
+    const port = portFor("ready"), target = { left: 20, top: 0 };
+    await port.apply({ kind: "PEER_RETURN", position: target }, () => true);
+    for (let count = 0; count < 3; count++) expect(port.repair(target)).toBe(true);
+    expect(port.repair(target)).toBe(false);
+    await port.apply({ kind: "DIAGNOSTIC_SCROLL", left: target.left }, () => true);
+    for (let count = 0; count < 3; count++) expect(port.repair(target, true)).toBe(true);
+    expect(port.repair(target, true)).toBe(false);
+    await port.apply({ kind: "DIAGNOSTIC_SCROLL", left: 40 }, () => true);
+    expect(port.repair({ left: 40, top: 0 }, true)).toBe(true);
+    expect(port.repair(target)).toBe(false);
+    port.dispose();
+  });
+
+  it("rejects diagnostic apply and repair in production while preserving ordinary repair", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const port = portFor("ready"), target = { left: 20, top: 0 };
+    expect(await port.apply({ kind: "DIAGNOSTIC_SCROLL", left: target.left }, () => true)).toBeNull();
+    expect(port.repair(target, true)).toBe(false);
+    expect(port.commands).toEqual([]);
+    expect(port.read().native).toEqual({ left: 0, top: 0 });
+    expect(port.repair(target)).toBe(true);
+    expect(port.read().native).toEqual(target);
+    port.dispose();
   });
 
   it("does not issue a coordinate command after preparation loses input authority", async () => {
