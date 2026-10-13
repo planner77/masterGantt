@@ -192,5 +192,76 @@ class TestReadOnlyAudit(unittest.TestCase):
         with self.assertRaises(SuccessionBlocked):
             audit.b2_decision([(1,"mastergantt-release-debt-authorization:v2",dict(d,recovery_sha="a"*40))],chain)
 
+
+    def test_ghcr_bare_semver_and_published_candidate_digest(self):
+        from scripts.release_succession_preflight import PUBLISHED_SHA, PUBLISHED_DIGEST
+        tags = ["0.106.1", f"ci-{PUBLISHED_SHA}"]
+        packages = [{"id": 1, "metadata": {"container": {"tags": tags}}}]
+        raw = lambda tag: (f"Name: ghcr.io/planner77/mastergantt:{tag}\\n"
+                           "MediaType: application/vnd.oci.image.index.v1+json\\n"
+                           f"Digest: {PUBLISHED_DIGEST}\\n")
+        with patch.object(audit, "pages", return_value=packages), patch.object(
+            audit, "process", side_effect=lambda *args: raw(args[4].split(":")[-1])
+        ) as call:
+            found, digests = audit.registry_inventory()
+        self.assertEqual(found, set(tags))
+        self.assertEqual(digests, {tag: PUBLISHED_DIGEST for tag in tags})
+        self.assertEqual(call.call_count, 2)
+
+    def test_ghcr_missing_candidate_not_silently_positive(self):
+        from scripts.release_succession_preflight import PUBLISHED_SHA, PUBLISHED_DIGEST
+        tag = "0.106.1"
+        packages = [{"id": 1, "metadata": {"container": {"tags": [tag]}}}]
+        raw = (f"Name: ghcr.io/planner77/mastergantt:{tag}\\n"
+               "MediaType: application/vnd.oci.image.index.v1+json\\n"
+               f"Digest: {PUBLISHED_DIGEST}\\n")
+        with patch.object(audit, "pages", return_value=packages), patch.object(
+            audit, "process", return_value=raw
+        ):
+            found, digests = audit.registry_inventory()
+        self.assertNotIn(f"ci-{PUBLISHED_SHA}", found)
+        with patch.object(audit, "api", return_value={
+            "number": 635, "merged": True,
+            "merge_commit_sha": PUBLISHED_SHA, "base": {"ref": "main"}
+        }):
+            with self.assertRaisesRegex(SuccessionBlocked, "후보"):
+                audit.release_lifecycle_verified([PUBLISHED_SHA],
+                    {"refs/tags/v0.106.1": PUBLISHED_SHA},
+                    found, digests, "https://github.com/planner77/masterGantt/issues/633")
+
+    def test_ghcr_invalid_and_duplicate_metadata_fail_closed(self):
+        base = {"id": 1, "metadata": {"container": {"tags": ["0.105.0"]}}}
+        cases = [[base, dict(base, id=2)],
+                 [base, dict(base)],
+                 [{"id": 1, "metadata": {"container": {"tags": ["invalid tag"]}}}],
+                 [{"id": 1, "metadata": {"container": {"tags": "0.106.1"}}]]
+        for rows in cases:
+            with self.subTest(rows=rows), patch.object(audit, "pages", return_value=rows):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.registry_inventory()
+        for status in ("401", "403", "404", "429"):
+            with patch.object(audit, "pages", side_effect=SuccessionBlocked("HTTP "+status)):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.registry_inventory()
+
+    def test_oci_manifest_exact_name_and_top_level_descriptor(self):
+        from scripts.release_succession_preflight import PUBLISHED_DIGEST
+        good = ("Name: ghcr.io/planner77/mastergantt:0.106.1\\n"
+                "MediaType: application/vnd.oci.image.index.v1+json\\n"
+                f"Digest: {PUBLISHED_DIGEST}\\n")
+        invalid = [
+            good.replace("0.106.1", "v0.106.1"),
+            good.replace("sha256:", "sha512:"),
+            good.replace("image.index", "image.layer"),
+            good + f"Digest: {PUBLISHED_DIGEST}\\n",
+            "",
+        ]
+        with patch.object(audit, "process", return_value=good):
+            self.assertEqual(audit.authenticated_manifest_digest("0.106.1"), PUBLISHED_DIGEST)
+        for output in invalid:
+            with self.subTest(output=output), patch.object(audit, "process", return_value=output):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.authenticated_manifest_digest("0.106.1")
+
 if __name__ == "__main__":
     unittest.main()
