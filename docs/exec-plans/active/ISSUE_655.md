@@ -7,6 +7,7 @@
 
 ## DOCUMENTATION_SYNC
 - `AGENTS.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A (기존 HIGH / OWNER_MANAGED, Trusted QA 및 Owner 승인 Gate 불변; 검증기 계약 완화 없음)
 - `docs/CI_CD.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
