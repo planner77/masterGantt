@@ -502,3 +502,8 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 ## Issue #603 Docker BuildKit cache writer 운영
 
 PR은 default/base branch의 GHA BuildKit cache를 `cache-from`으로 재사용하지만 shared cache를 갱신하지 않는다. Main push만 docker_smoke에서 max-mode cache를 갱신하며, 후속 commit image publish는 동일 cache를 재사용하고 기존 publish writer 계약을 유지한다. PR의 cache write 권한을 확대하지 않고, cache miss를 정상 경로로 취급한다.
+
+
+## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
+
+원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
