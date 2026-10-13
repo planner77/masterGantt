@@ -39,6 +39,11 @@
 - PR metadata must contain one independent line each: `risk_level: HIGH`, `qa_method: OWNER_MANAGED`, `qa_required: true`, `release_required: false`, `release_authorized: false`. Never wrap all declarations in inline code or one list line. 
 - QA Preflight #2692.1 correctly FAIL before full tests due to metadata/doc syntax; subsequent head requires new tests and review verification.
 
+## PR review resolution and latest CI gate (2026-10-13)
+- [PR #668 P2 discussion](https://github.com/planner77/masterGantt/pull/668#discussion_r4259506390): reviewer comment #4259506390 answered by #4259630697 with exact code/test provenance; GraphQL review thread `PRRT_kwDOUUB7Bc6r5Dmj` observed `is_resolved=true` after repair.
+- Prior PR CI #2692.1 Preflight FAIL is immutable; failure root cause was non-standalone PR metadata and DOC_SYNC format, not an executed Python test failure. Both defects are repaired; the final PR CI against the latest Head must still be checked independently.
+- New Head changes invalidate earlier QA/CI statuses. Required Quality, Chromium E2E 6/6, Docker, default-main trusted QA, and Owner HIGH acceptance remain NOT TESTED or pending until observed on the final Head. No merge or release authorized.
+
 ## Independent provenance and remaining blockers
 - Audit #17.1 https://github.com/planner77/masterGantt/actions/runs/38403028531 is immutable historical FAILURE, not retconned.
 - Main #2579.1 / Release #165.2 and expected `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f` are historical release evidence only.
