@@ -1405,7 +1405,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     // still matches. The existing peer reader/restore rejects newer user input.
     if (request.rootTaskId === activeRootTaskId && request.filter === taskFilter) {
       peerViewport.current = request.peer;
-      setPeerChartRestore(request.chart);
+      // A previous date reveal may have consumed this exact restore request.
+      // Returning to the original Schedule is a new explicit navigation intent;
+      // publish a fresh identity while retaining its captured context/geometry.
+      setPeerChartRestore(request.chart ? { ...request.chart } : null);
     }
     requestAnimationFrame(() => {
       if (generation !== milestoneDateGeneration.current || confirmedSnapshotReference.current !== request.snapshot) return;

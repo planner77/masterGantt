@@ -1,3 +1,14 @@
+## Issue #651 — 이미 발행된 v0.106.1 승계 감사 (2026-10-13)
+
+- #649의 모든 선행 SemVer ABSENT 가정은 잘못됨. #633의 v0.106.1 annotated tag 원본 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`, verified candidate/promotion digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`, Main CI #2579.1 및 Release #165.2 성공을 원장에 보존한다. GitHub Releases API by-tag 404는 tag/GHCR 부재가 아니다.
+- `release_succession_preflight.py`는 v0.106.1 PRESENT를 exact SHA/digest로 인정하고 v0.105.0/v0.106.0 미발행 퇴역, v0.107.0 미발행, v0.108.0 후보 미게시를 구분한다. GHCR 전체 인증 조회·Git tag peeled SHA·GitHub Release 전체 페이지·Main/Release CI/Owner/퇴역 bot 원장·first-parent가 모두 검증돼야 한다. `evidence` 객체는 순수 함수의 입력이므로 자기 신고를 인증으로 간주하지 않는다. 실제 read-only runner 수집 및 provenance 연결이 없으면 운영 판정은 BLOCKED/NOT TESTED다.
+- #616의 v0.107.0 기존 Owner 승인 철회와 신규 v0.108.0 준비 결정은 별도 인증 Owner marker가 필요하며 아직 확보되지 않았다. 이번 #651은 `release_required=false`, `release_authorized=false`, HIGH/OWNER_MANAGED; publication, retirement, Issue #616 종료, 기존 태그 삭제/이동 금지. PR CI Quality/E2E6/Docker 및 Trusted QA는 새 Head에서 별도 검증한다.
+
+## Issue #552 CI #2648.1 — OFF date-return viewport request identity regression (2026-10-13)
+
+- Existing #552 OFF date 390px case recorded a captured Core left 200 and then 0 on explicit return. Date return previously reissued the *same* `peerChartRestore` object from before temporary reveal, but the viewport adapter consumes identical request identities once. On explicit user return, submit a **fresh shallow copy** with identical project/scope/filter/revision/coordinates so the normal Core/DOM guarded restore can occur; verify left 200, view toggle OFF retained, no new project mutation and same Gantt instance.
+- The 1024px marker focus failure is not established as solved by that change. Keep its real DOM focus check and all #530/#571 user-wheel cancellation and task focus tests intact. #464 Copy acknowledgement modal absence and narrow date-picker remain pending, without E2E exclusions.
+- Main #651 release-audit docs/CI/safety history must be preserved when integrating #552. The pending new exact-head full CI is the authority for Quality, six Chromium shards, Docker and QA_FINAL, not a stale completed previous run.
 ## Issue #552 / PR #561: Milestone-only filter fixture mismatch (#2645.1)
 
 - E2E #463 stateful long-list fixture had 18 Milestone records named `단계` which are no longer rendered as native WBS rows under #552. Searching their name cannot preserve native 128px vertical scroll capacity; the old 18-result assertion was not a product failure.

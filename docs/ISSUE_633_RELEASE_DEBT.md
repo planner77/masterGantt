@@ -1,3 +1,9 @@
+## Issue #651 — #633 v0.106.1 정식 발행 완료에 따른 이전 실행 절차 폐기 (2026-10-13)
+
+- **완료된 과거 릴리스:** #633 PR #635 merge `09bee924032b4126ff794ec7a485542fd72dd7bf`, Main CI [#2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) SUCCESS, 정식 Release CI [#165.2](https://github.com/planner77/masterGantt/actions/runs/38221400193) SUCCESS, 기존 digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`. #550/#615 각각 Owner 철회 및 bot `release-debt-retired:v1` 완료 원장 존재.
+- **아래 #633 B2 승인 marker 신규 작성·v0.106.1 Finalizer 재진입·재발행 단계는 2026-10-12 당시의 과거 절차이며 현재 실행 금지.** 과거 로그/명령은 감사 자료로 보존하고 이미 존재하는 annotated tag·GHCR digest를 삭제·재지정하지 않는다. GitHub Release by-tag 404는 Git tag/GHCR 부재 증명이 아니다.
+- 이후 운영상 실행 대상은 #616의 신규 승계 후보 **v0.108.0 준비 감사**뿐이며, 이 역시 #616 v0.107.0 기존 Owner 승인 명시 철회와 신규 Owner 결정, authenticated Git/GHCR 원장 없이는 BLOCKED. #651은 read-only 정책 수정이며 신규 게시/퇴역/Issue #616 종료 승인 아님.
+
 ## Issue #633 — GHCR Private 404 read-only 증거 보강 및 기존 승인 SHA 보존 (2026-10-12)
 
 - [PR #635](https://github.com/planner77/masterGantt/pull/635) 신규 SemVer `0.106.1`은 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`로 병합, [Main CI #2579.1](https://github.com/planner77/masterGantt/actions/runs/38215065244) Quality/E2E/Docker/`ci-<SHA>` digest(sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f) 모두 PASS.
