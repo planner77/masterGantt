@@ -1,3 +1,8 @@
+## Issue #552 — 읽기 전용 관계 조회 경로 (2026-10-13)
+
+- Milestone native WBS 행을 제거한 상태에서도 일반 Task의 Relation Editor는 Task 정보 → 관계 탭 → 해당 Link의 **관계 조회**로 진입한다. 읽기 전용에서는 링크 조회 버튼을 제공하고 관계 추가·삭제/수정 제출은 제공하지 않는다. 편집 권한이 있으면 기존 **관계 편집**과 보호된 변경·삭제가 가능하다.
+- 유효하지 않은/stale 링크 또는 현재 편집 중 잠금일 때 조회 버튼의 활성화도 차단한다. 기존 관계 ID, Summary/Task scheduling, read-only 상태, focus·모달 동작을 유지한다.
+
 # Issue #34 — Task Editor 작업 관계 표시
 
 ## Issue #460 — Dependency 종류와 Stage Membership

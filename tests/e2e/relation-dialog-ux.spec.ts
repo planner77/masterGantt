@@ -19,7 +19,8 @@ async function setup(page: Page, readonly = false, longNames = false) {
   await chooseTaskInformation(page);
   const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await taskEditor.getByRole("tab", { name: /관계/ }).click();
-  await taskEditor.getByRole("button", { name: "Existing summary child 관계 편집", exact: true }).click();
+  if (readonly) await expect(taskEditor.getByRole("button", { name: "Existing summary child 관계 삭제", exact: true })).toHaveCount(0);
+  await taskEditor.getByRole("button", { name: readonly ? "Existing summary child 관계 조회" : "Existing summary child 관계 편집", exact: true }).click();
   await expect(dialog(page)).toBeVisible();
   return { fixture, root };
 }
@@ -53,8 +54,7 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await expect(modal.getByText("저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?")).toBeVisible();
   await modal.getByRole("button", { name: "계속 편집" }).click();
   await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
-  await modal.getByRole("button", { name: "닫기", exact: true }).click();
-  await modal.getByRole("button", { name: "변경 버리기" }).click();
+  // Keep the same dirty editor open until the final dismiss/discard.
   await search.fill("후보");
   await candidate.focus();
   await page.keyboard.press("Space");

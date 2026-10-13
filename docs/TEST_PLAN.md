@@ -1,3 +1,10 @@
+## Issue #552 PR CI #2654.1 — 읽기 전용 Relation, 좁은 Date Picker, dirty dialog 회귀 (2026-10-13)
+
+- Exact PR #561 Head `0e3d39b6e012b757ec66ebfbfb3055ca4021f180`, [Run #2654.1](https://github.com/planner77/masterGantt/actions/runs/38354836221) completed FAIL: QA Preflight/TypeScript/ESLint/Vitest/Next production build/Docker PASS, Chromium shards 1·2 PASS, 3–6 FAIL. Never count the E2E aggregate as PASS.
+- #514 WBS Grid start-date cell belongs only to ordinary Task/Summary; the 390/768/1024/1440 browser accessibility/overflow matrix must target **Stable leaf**, not the removed native Milestone row. Separate Milestone Editor tests retain its own date contract.
+- #266 Relation Editor dirty-dialog regression discarded/closed the modal then attempted to interact with its detached search field. Keep the same live editor until the final dismiss/discard. In readonly Task Info relations, allow **Link 조회** to the read-only Relation Editor while keeping mutation/삭제 button absent and no POST/PATCH/DELETE capability. Test modal focus trapping, Escape and zero edit commands at all four widths.
+- #464 external-membership Copy acknowledgement dialog, #529/#530/#571 viewport user input, #551 large lane readiness, #552 OFF date reveal/focus, fullscreen and native Y alignment remain NOT TESTED on the new Head. No E2E skip, lower tolerance, longer timeouts, secret/policy changes, or fabricated QA approval.
+
 ## Issue #651 — 이미 발행된 v0.106.1 승계 감사 (2026-10-13)
 
 - #649의 모든 선행 SemVer ABSENT 가정은 잘못됨. #633의 v0.106.1 annotated tag 원본 SHA `09bee924032b4126ff794ec7a485542fd72dd7bf`, verified candidate/promotion digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`, Main CI #2579.1 및 Release #165.2 성공을 원장에 보존한다. GitHub Releases API by-tag 404는 tag/GHCR 부재가 아니다.

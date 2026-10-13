@@ -167,7 +167,8 @@ test("Date Picker는 좁은 viewport에서도 열리고 document overflow를 추
 
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
-    const cell = startCell(page, "Stable milestone");
+    // Milestones are absent from the native WBS since #552; Grid date picker belongs to an ordinary Task.
+    const cell = startCell(page, "Stable leaf");
     await cell.click();
     await expect(startPicker(page)).toBeVisible();
     const bounds = await startPicker(page).boundingBox();
