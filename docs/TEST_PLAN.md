@@ -1,4 +1,5 @@
 ## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 P2 regression: Owner 정책이 뒤늦게 BLOCKED될 때 기존 인증 `0.106.1` digest/version/tag가 JSON+Job Summary에 남는 positive, `ci-<SHA>` 누락 시 그 후보의 `actual_digest`는 `null`로 남고 `last_authenticated_oci`에만 앞선 release digest가 있는 negative, 매 감사마다 진단 컨텍스트를 초기화하는 격리 계약. QA Preflight #2692.1 metadata/doc 형식 FAIL는 별도 계약; PR Head의 Python/Quality/E2E/Docker는 새 CI로 검증.
 
 - Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
 - 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
