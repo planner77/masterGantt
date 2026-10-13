@@ -135,6 +135,29 @@ describe("Issue #617 binding persistence and membership guards",()=>{
       expect(()=>f.bindings.replace(f.auth,f.revision(),f.child.publicId,{bindings:[whole(target.id)]})).toThrow("TARGET_INACTIVE");
     }finally{f.db.close();}
   });
+  it("blocks inactive reference widening or reselection but allows unchanged retention",()=>{
+    const f=setup();try {
+      const target=f.target("A"),memberId=target.members[0].id;
+      f.bindings.replace(f.auth,f.revision(),f.summary.publicId,{bindings:[whole(target.id)]});
+      f.db.prepare("UPDATE project_logistics_systems SET active=0 WHERE id=?").run(f.systems[0].id);
+      expect(()=>f.bindings.replace(f.auth,f.revision(),f.summary.publicId,
+        {bindings:[whole(target.id,"subtree")]})).toThrow("TARGET_MEMBER_INACTIVE");
+      expect(()=>f.bindings.replace(f.auth,f.revision(),f.summary.publicId,
+        {bindings:[{targetId:target.id,scope:"self",selection:"subset",memberIds:[memberId]}]})).toThrow("TARGET_MEMBER_INACTIVE");
+      expect(()=>f.bindings.replace(f.auth,f.revision(),f.summary.publicId,
+        {bindings:[whole(target.id)]})).not.toThrow();
+      f.targets.update(f.auth,f.revision(),target.id,{active:false});
+      expect(()=>f.bindings.replace(f.auth,f.revision(),f.summary.publicId,
+        {bindings:[whole(target.id,"subtree")]})).toThrow("TARGET_INACTIVE");
+      expect(()=>f.bindings.replace(f.auth,f.revision(),f.summary.publicId,
+        {bindings:[{targetId:target.id,scope:"self",selection:"subset",memberIds:[memberId]}]})).toThrow("TARGET_INACTIVE");
+      expect(()=>f.bindings.replace(f.auth,f.revision(),f.summary.publicId,
+        {bindings:[whole(target.id)]})).not.toThrow();
+      expect(f.bindings.get(f.project.publicId,f.summary.publicId).bindings).toMatchObject([
+        {targetId:target.id,scope:"self",selection:"whole",memberIds:[]},
+      ]);
+    }finally{f.db.close();}
+  });
   it("enforces immutable binding ownership and whole/subset SQL transitions and preserves whole Project deletion",()=>{
     const f=setup();try {
       const target=f.target("A"),memberId=target.members[0].id;

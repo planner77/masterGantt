@@ -20,6 +20,18 @@ const object = (value: unknown, keys: string[]): Record<string, unknown> => {
   return row;
 };
 const uuid = (value: unknown): string => typeof value === "string" && isCanonicalUuidV4(value) ? value : invalid();
+
+/** Do not turn a grandfathered inactive reference into a new assignment. */
+function unchangedInactiveReference(previous: TaskTargetBindingDto | undefined, next: TaskTargetBindingDto): boolean {
+  if (!previous || previous.scope !== next.scope || previous.selection !== next.selection ||
+      previous.memberIds.length !== next.memberIds.length ||
+      previous.memberIds.some((id, index) => id !== next.memberIds[index])) return false;
+  // Omitted coverage and an explicit null both mean unspecified; a changed
+  // quantity on an inactive reference is not a passive retention.
+  return previous.memberIds.every(id =>
+    (previous.coverageByMember?.find(row => row.memberId === id)?.coverage ?? null) ===
+    (next.coverageByMember?.find(row => row.memberId === id)?.coverage ?? null));
+}
 export function parseTaskTargetBindings(raw: unknown): TaskTargetBindingInput[] {
   const root = object(raw, ["bindings"]);
   if (!Array.isArray(root.bindings) || root.bindings.length > 100) return invalid();
@@ -93,9 +105,10 @@ export class TaskTargetBindingService {
       for (const b of bindings) {
         const target = this.bindings.findTarget(auth.projectId,b.targetId);
         if (!target) return invalid("TARGET_NOT_FOUND");
-        if (!target.active && !previous.some(p=>p.targetId===b.targetId)) throw new LogisticsTargetError(409,"TARGET_INACTIVE");
+        const retained = unchangedInactiveReference(previous.find(p => p.targetId === b.targetId), b);
+        if (!target.active && !retained) throw new LogisticsTargetError(409,"TARGET_INACTIVE");
         const selected = candidate.targets.find(t=>t.id===b.targetId)?.members.filter(m=>b.selection==="whole" || b.memberIds.includes(m.id))??[];
-        for (const m of selected) if (m.active===false && !previous.some(p=>p.targetId===b.targetId && (p.selection==="whole" || p.memberIds.includes(m.id)))) throw new LogisticsTargetError(409,"TARGET_MEMBER_INACTIVE");
+        for (const m of selected) if (m.active===false && !retained) throw new LogisticsTargetError(409,"TARGET_MEMBER_INACTIVE");
       }
       const text = now.toISOString();
       this.bindings.replace(auth.projectId,task.id,bindings,text);

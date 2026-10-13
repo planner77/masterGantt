@@ -88,3 +88,11 @@ release_authorized: false
 - Task copy는 새로운 Target binding과 기존 명시 self/subtree Equipment/System 링크를 함께 복사한다. 원본 참조는 유지하고 inherited 출처는 저장 행으로 평탄화하지 않는다. 기존 legacy copy 생략 기대값은 이 명시 복사 계약으로 갱신했다.
 - 전체 ProjectSnapshot은 기존 형식을 유지하며 신규 GET/PUT target-bindings 전용 aggregate로 명시/상속/legacy 유효집합을 제공한다.
 - 최종 QA_FINAL/Trusted human receipt/Manager ACCEPT는 원격 CI 및 별도 승인 전 NOT TESTED이며 MERGE_READY=BLOCKED다.
+
+## PR #676 리뷰 후속 (2026-10-14)
+
+- Source PR CI #2723.1 (run 38482212214) Required Quality/E2E 6개/Docker: PASS (이전 Head b7686b686beb9ee7a58474701037eab455d11146). 새 리뷰 보완 Head에서는 재검증 필수.
+- Trusted QA #363.1 (run 38484216563): BLOCKED — 원본 Head의 미해결 리뷰 스레드 2건. Required 세 종 PASS를 QA_FINAL 또는 MERGE_READY PASS로 오인하지 않는다.
+- 리뷰 P1: 전체 바인딩/legacy 목록의 task별 O(tasks × links) 반복 검색을 sourceTask별 인덱스 조회로 대체한다. 5,000 Task × 10 binding 규모 회귀를 추가하고 기존 순서 불변 golden 결과는 유지한다.
+- 리뷰 P2: inactive Target/member는 기존 scope·selection·memberIds·coverage가 변경되지 않은 참조만 재저장할 수 있다. 동일 Target ID의 self→subtree/whole→subset 확장·변경을 409로 거부하고 SQLite 회귀를 추가한다.
+- 이 변경의 원격 PR CI·Trusted QA 및 인간 QA/Manager 위험 수용·정식 GHCR 릴리스는 신규 증거 전 NOT TESTED/BLOCKED다. 기존 QA_METHOD=AGENT, release_required=true, release_authorized=false를 바꾸지 않는다.

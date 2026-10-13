@@ -92,13 +92,23 @@ function prepare(input: TaskTargetResolutionInput) {
     bindings.set(binding.id, normalized);
     selected.set(binding.id, binding.selection === "whole" ? target.members : memberIds.map(id => membersById.get(id)!));
   }
+  const legacyByTask = new Map<string, TaskTargetLegacyLink[]>();
   for (const link of input.legacy) {
     const source = tasks.get(link.taskId);
     if (!source) fail("LEGACY_SOURCE_TASK_UNAVAILABLE");
     if (link.scope !== "self" && link.scope !== "subtree") fail("INVALID_LEGACY_SCOPE");
     if (link.scope === "subtree" && source.type !== "summary") fail("LEGACY_SUBTREE_REQUIRES_SUMMARY");
+    const group = legacyByTask.get(link.taskId) ?? [];
+    group.push(link);
+    legacyByTask.set(link.taskId, group);
   }
-  return { tasks, ancestors, bindings: stable(bindings.values()), selected };
+  const bindingsByTask = new Map<string, TaskTargetBindingDto[]>();
+  for (const binding of stable(bindings.values())) {
+    const group = bindingsByTask.get(binding.taskId) ?? [];
+    group.push(binding);
+    bindingsByTask.set(binding.taskId, group);
+  }
+  return { tasks, ancestors, bindingsByTask, legacyByTask, selected };
 }
 
 /** One instance union, retaining every explicit Target path and separate legacy path.
@@ -106,8 +116,11 @@ function prepare(input: TaskTargetResolutionInput) {
 function resolve(taskId: string, input: TaskTargetResolutionInput, index: ReturnType<typeof prepare>): TaskTargetBindingsDto {
   const lineage = index.ancestors.get(taskId);
   if (!lineage) fail("TASK_UNAVAILABLE");
-  const applicable = index.bindings.filter(binding => lineage.has(binding.taskId) &&
-    (binding.taskId === taskId || binding.scope === "subtree"));
+  // Visit only the task's own bindings and ancestor subtree bindings.
+  // A full-array filter per task would be O(taskCount * bindingCount).
+  const applicable = stable([...lineage].flatMap(sourceId =>
+    (index.bindingsByTask.get(sourceId) ?? []).filter(binding =>
+      sourceId === taskId || binding.scope === "subtree")));
   const memberMap = new Map<string, { kind: LogisticsTargetMemberKind; entityId: string; sources: Map<string, TaskTargetBindingProvenance> }>();
   for (const binding of applicable) {
     for (const member of index.selected.get(binding.id)!) {
@@ -131,11 +144,13 @@ function resolve(taskId: string, input: TaskTargetResolutionInput, index: Return
       coverageState: states.size > 1 ? "multiple" : provenance[0].coverageMode === "unspecified" ? "unspecified" : "single" };
   }).sort((a, b) => compare(key(a.kind, a.entityId), key(b.kind, b.entityId)));
   const legacy = new Map<string, TaskTargetLegacySource>();
-  for (const link of input.legacy) {
-    if (!lineage.has(link.taskId) || link.taskId !== taskId && link.scope !== "subtree") continue;
-    const source: TaskTargetLegacySource = { sourceKind: "legacy_direct", sourceTaskId: link.taskId,
-      kind: link.kind, entityId: link.entityId, scope: link.scope, inherited: link.taskId !== taskId };
-    legacy.set(JSON.stringify(source), source);
+  for (const sourceId of lineage) {
+    for (const link of index.legacyByTask.get(sourceId) ?? []) {
+      if (sourceId !== taskId && link.scope !== "subtree") continue;
+      const source: TaskTargetLegacySource = { sourceKind: "legacy_direct", sourceTaskId: link.taskId,
+        kind: link.kind, entityId: link.entityId, scope: link.scope, inherited: link.taskId !== taskId };
+      legacy.set(JSON.stringify(source), source);
+    }
   }
   const legacySources = stable(legacy.values());
   const union = [...effectiveMembers, ...legacySources];

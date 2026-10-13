@@ -72,6 +72,25 @@ describe("Issue #617 production Target resolver consumes F0 golden contract", ()
     expect(JSON.stringify(initial)).toBe(original);
   });
 
+  it("resolves 5,000 tasks with ten indexed bindings each without leaking other task paths", () => {
+    const tasks = Array.from({ length: 5000 }, (_, i) => ({ id: `T-${i}`, parentId: null, type: "task" as const }));
+    const targets = Array.from({ length: 10 }, (_, i) => ({
+      id: `TARGET-${i}`, members: [{ id: `MEMBER-${i}`, kind: "system" as const, entityId: `SYSTEM-${i}` }],
+    }));
+    const bindings = tasks.flatMap(task => targets.map((target, i) => ({
+      id: `B-${task.id}-${i}`, taskId: task.id, targetId: target.id,
+      scope: "self" as const, selection: "whole" as const, memberIds: [],
+    })));
+    const result = resolveAllTaskTargetBindings({ tasks, targets, bindings, legacy: [] });
+    expect(result.size).toBe(5000);
+    for (const id of ["T-0", "T-2500", "T-4999"]) {
+      expect(result.get(id)?.bindings).toHaveLength(10);
+      expect(result.get(id)?.effectiveTargetIds).toHaveLength(10);
+      expect(result.get(id)?.effectiveSystemIds).toHaveLength(10);
+      expect(result.get(id)?.inheritedBindings).toEqual([]);
+    }
+  });
+
   it("never infers Target usage from shared legacy MCS and deduplicates overlapping instances", () => {
     const legacyOnly = snapshot(logisticsTargetLinkCases.find(input => input.id === "F0-L06")!);
     expect(resolveTaskTargetBindings("T", legacyOnly)).toMatchObject({ effectiveSystemIds: ["MCS-1"], effectiveTargetIds: [], effectiveMembers: [] });
