@@ -1,3 +1,11 @@
+## Issue #672 — #616 F2 인수 추가 검증 및 #617 경계 (2026-10-14)
+- Source baseline: completed v0.108.0 exact Main CI #2710.1 / Release #167.1 / #670 FINAL. v0.107.0 failure ledger is immutable; do not create a new SemVer release for this version-neutral acceptance patch.
+- QA1: new `tests/server/logistics/logistics-targets-acceptance.test.ts` must PASS actual Target HTTP Origin/session/strong If-Match/400·401·403·409·412·413·415 and rollback. A policy-only inventory or F0 oracle is not a substitute.
+- QA2: verify SQLite Equipment/System-only, mixed and shared MCS identity, original quantities+control+role rows unchanged, FK protection, atomic inline partial rollback and unchanged Project revision.
+- QA3: verify persisted 0025→0026 actual file DB upgrade, fresh Target write, connection close/reopen, stable public IDs and FK check; legacy Template v2/copy test remains required.
+- QA4: `referencedByTaskCount=0` before #617 is not an authoritative Task metric. Verify bounded list/search/usage in actual HTTP handler and explicitly distinguish direct Task count from WBS Target bindings.
+- Evidence: exact PR Head/base, required Quality (new targeted Vitest + Python policy), Chromium E2E 6/6, Docker, default-main Trusted QA and review threads 0; until actual workflow conclusion all NOT TESTED. No release/merge/issue close in this request.
+
 ## Issue #659 — PR #660 E2E 첫 실패 중단 및 W05 타임아웃 회귀 검증 (2026-10-13)
 
 - [CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683) 최초 실패: Shard 4의 `project-edit-authorization.spec.ts:45` W05 단일 테스트가 default 30초를 초과하고 `otherContext.close: Target.disposeBrowserContext Failed to find context`를 기록했다. 1 FAIL/128 PASS/1 SKIP. 다른 샤드 2/3은 Job-level fail-fast에 따라 취소, 1/5/6 PASS. Quality/Docker PASS, Chromium aggregate FAIL, QA Final `required e2e 미성공` FAIL.

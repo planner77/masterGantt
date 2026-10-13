@@ -3542,7 +3542,11 @@ GitHub 연결 도구의 merge_pull_request 입력은 expected_head_sha이며, Gi
 
 ## Issue #616 Target verification
 
-Integration fixture covers project_common MCS identity reuse, duplicate Target/member protection, empty member/cross-project rejection, stale revision, and copy remap/atomic failure; `tests/server/logistics/logistics-targets.test.ts`. Required follow-on CI: migration26 fresh + 25→26 upgrade, foreign_key_check, restart, active/inactive, process occurrence/WorkArea validation, equipment unit/fleet counts, System=1, shared MCS with 2 ACS, atomic inline partial failure, HTTP 401/403/409/412, duplicate submit, usage and target list bounds, Template/JSON loss guard, and Project Copy source/destination FK. Current tests are *committed, not executed locally*; full regression PASS is NOT TESTED pending GitHub Actions. No claim of complete AC1–AC7 coverage yet.
+**이미 PASS한 원본 evidence:** v0.108.0 Main [#2710.1](https://github.com/planner77/masterGantt/actions/runs/38459371982) / Release [#167.1](https://github.com/planner77/masterGantt/actions/runs/38463844956)에서 `tests/server/logistics/logistics-targets.test.ts` 4, `tests/server/templates/logistics-template-graph.test.ts` 3, `tests/server/migration-cli.test.ts` 3이 PASS. F0 `tests/domain/logistics-targets-contract.test.ts` 58은 test-only oracle이며 제품 Target API 인수와 구별한다.
+
+**#672 전용 신규 회귀 (실행 전 NOT TESTED):** `tests/server/logistics/logistics-targets-acceptance.test.ts`에서 설비 단독·시스템 단독·혼합, 공정/WorkArea·프로젝트 공통/비활성/중복·오류, 공유 MCS+실제 controller/coordinator/Resource role 원장 보호, 다중 Target 사용·삭제 RESTRICT, 두 번째 inline member 실패 atomic rollback, Target 전용 HTTP Origin/session/If-Match/JSON/body size, 중복 submit·no-op revision, bounded 검색/페이지/usage, 기존 0025 DB → 0026 마이그레이션 후 실제 Target 저장·재시작·FK 체크를 검증한다.
+
+**명시된 경계:** `referencedByTaskCount`는 #617 WBS Target binding 미구현으로 비권위 임시 `0`이며, 실제 연결 Task=0의 인수 증거가 아니다. #616 AC1~7 증거 구분은 [#616 감사 원장](https://github.com/planner77/masterGantt/issues/616#issuecomment-6155300627)을 따른다. External/Production SQLite 복구 및 전체 외부 JSON Backup(#379), #617 whole/subset/영향 조회는 본 보완 범위 밖. 신규 PR CI가 성공하기 전 어떤 신규 테스트도 PASS로 표기하지 않는다.
 
 ## #616 Template v2 검증
 

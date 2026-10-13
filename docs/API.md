@@ -1530,11 +1530,11 @@ resourceDashboard: {
 
 401 관리자/편집 session 필요, 403 Origin, 400 허용하지 않은 입력·WorkArea 소유 불일치, 409 활성/사용 중/분류·중복 충돌, 412 stale catalog/Project revision을 구분한다. 기존 metadata는 사용 매핑의 triple 변경에 `409 PROJECT_PROCESS_MAPPING_IN_USE`, mapped Template 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`, mapped 공정 hard delete는 `409 PROCESS_IN_USE`다. 제약 원문을 공개하지 않는다. 후속 UI·Target/member/binding route는 이번 변경에 없다.
 
-## Issue #616 — Logistics Target API (candidate)
+## Issue #616 — Logistics Target API (implemented F2; acceptance follow-up #672)
 
 Project-local `/api/projects/{publicId}/logistics/targets` supports GET (limit 1–100, offset 0–10000, search ≤100) and POST; `.../targets/{targetId}` supports GET/PATCH/DELETE and `.../usage` GET. GET returns a bounded list with projectRevision/total and typed members (public member ID, instance ID, original equipment quantity / System 1); usage includes shared Target count and direct Task links, not a fabricated WBS Target binding. Mutations require exact Origin, Project edit session, strong If-Match and rollback-on-error; successful mutations advance Project revision once, no-op update advances zero. Error status: malformed400, missing/unowned reference404 or409, no session401, Origin403, conflict409, stale412. Existing instances and controls/coordinates are never auto-modified by member association. Inline creation creates Project-local Equipment/System in the same transaction, requires active existing type catalog, and duplicate label requires explicit confirmation. Global catalog creation is *not* part of the Project transaction. Target write body schema is `src/contracts/logistics-targets.ts`. Legacy logistics DTO and direct Task links unchanged.
 
-This is a PR candidate; its CI/runtime PASS is **NOT TESTED** pending remote gate.
+Source was merged in #616 PR #631, and the corrected v0.108.0 main/release Quality+E2E6+Docker succeeded (Main #2710.1, Release #167.1). The focused #672 Target HTTP/transaction tests are NOT TESTED until its exact PR Head CI. The usage field `referencedByTaskCount` is currently a compatibility placeholder fixed to `0` because WBS–Target bindings do not exist before #617: **do not treat zero as an authoritative zero Task count or as a KPI**; only per-member `directTaskCount` reports existing legacy direct instance links. Product API / DB contract remains unchanged in #672.
 
 ## #616 Project Template graph v2
 

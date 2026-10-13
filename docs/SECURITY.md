@@ -435,7 +435,7 @@ Project context는 현재 direct-link public readonly 정책을 적용한다. �
 
 ## Target write authority (#616)
 
-GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Operational security tests and CI are NOT TESTED until exact-head PR checks.
+GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Generic Project auth/Origin/revision policy and historical F2 service tests passed on v0.108.0 Main #2710.1/Release #167.1; dedicated Target HTTP 401/403/409/412, bad ETag, malformed/oversize, rollback tests are newly added in #672 and **NOT TESTED until its exact-Head PR CI**. Product API and authorization policy remain unchanged.
 
 ## #616 versioned Template graph security
 

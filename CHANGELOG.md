@@ -1,3 +1,9 @@
+## [Unreleased] — Issue #672 #616 Target F2 검증 보완 (2026-10-14)
+- 추가 Target 전용 HTTP Origin/session/strong-CAS·중복/요청 한도, 도메인 shared MCS/기존 Resource 담당·제어 원장 불변, inline member rollback, 기존 0025 DB → 0026 upgrade + Target persistence/restart 통합 회귀.
+- v0.108.0 Release #167.1/Finalizer #32.2의 기존 SUCCESS 증거를 보존하고, #616 F2 AC2~AC7의 부족한 실제 검증을 별도 #672 PR로 추적한다. 신규 테스트가 CI에서 PASS하기 전에는 인수 완료로 주장하지 않는다.
+- API/DB/LOGISTICS_TARGETS/REQUIREMENTS/SECURITY/TEST_PLAN 문서 중 오래된 'candidate/NOT TESTED/Template 미지원' 기술을 실제 구현+미검증 범위로 정리. #617 WBS Target binding 및 `referencedByTaskCount=0` placeholder의 비권위 해석을 명시.
+- Application SemVer `0.108.0` / lock/dependencies, CI workflow, 원본 migrations/DB schema, 정식 GHCR tag/digest 미변경. release_required=false, release_authorized=false.
+
 ## Issue #659 — PR E2E Shard4 30초 타임아웃 안정화 및 2계층 Fail-Fast 보완 (2026-10-13)
 
 - [CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 130개 테스트 중 W05 프로젝트 편집 권한 수명주기가 기본 30초를 초과한 뒤 context close 오류가 동반되어 Shard4 FAIL, shard2/3 CANCELLED, Required E2E/QA Final FAIL. #2690에서는 동일 테스트 22.6초 PASS.
