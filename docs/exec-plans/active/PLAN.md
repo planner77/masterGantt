@@ -1,3 +1,16 @@
+## Issue #674 — PR #675 #2720 실패 Trace 후 두 단계 E2E 준비 검증 (2026-10-14)
+
+- PR #675 첫 #2719 Preflight 문서 형식 실패는 #2720 보완. #2720에서 Vitest/TypeScript/ESLint/Build/Docker PASS였으나 **동일 #551 large fixture 5s E2E Shard4 FAIL**. 최초 locator.evaluate는 deadline 전에 반환되지 않았고 locator는 native ID `svar-api-1`을 이미 표시했으므로 ID 불일치로 확정하지 않는다.
+- #674 개발용 exact native ID 표시 수정은 유지하고, 테스트용 1000 Task+2000 Milestone fixture에서 `expect(frame).toBeVisible()`의 bounded mount check 뒤 기존 exact 5s identity predicate를 수행한다. 시간 증액/skip/retry/mock/fixture 축소·native geometry/저장 mutation0 검증 완화 없음. ADR-674의 U5 single-writer 예외 범위와 SC-14 원형을 유지한다.
+- 새 정확 Head/full PR CI에서 6 E2E shard/Quality/Docker/QA Final, Review0/최신 main 정렬을 확인한 후 Owner가 요청한 별도 병합과 새로운 Main CI를 시도한다. 원본 #2712와 #2720 실패는 불변, 실제 Main CI 시작·PASS는 새 SHA push 전 NOT TESTED.
+
+## Issue #674 — #659 Main CI #2712 대량 Milestone 진단 API 준비 경합 교정 (2026-10-14)
+
+- 원본 [#659 Main CI #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) exact merge `3b21fe6e...`에서 E2E shard4의 #551 1,000 Task + 2,000 Milestone fixture 5초 readiness FAIL. Quality/Docker/나머지 E2E5 성공, Required E2E 실패→Main temporary GHCR 건너뜀. #672 최신 Main #2718 성공은 해당 E2E shard SKIPPED라 결함 미해결 증거.
+- 새 [Issue #674](https://github.com/planner77/masterGantt/issues/674), 브랜치 `fix/issue-674-main-e2e-api-identity`, 기준 main `e195780227a504536d0d9f7f27924f24267f8caf`, package/lock `0.108.0` 불변, HIGH/OWNER_MANAGED, release_required=false/authorized=false.
+- 개발 전용 SVAR init->DOM frame identity는 실제 API 초기화에서 동기 게시하고, React state와 동일 ID로 후속 reconcile. 기존 5초 readiness/대형 fixture/geometry/fullscreen/Chart/Grid/zero mutation 불변. 유닛 3건 및 CI full E2E 여섯 shard를 반드시 별도 수행.
+- 작업: Issue → branch → dev-only code+unit+docs → exact PR CI/QA/review → Owner가 요청한 병합 → 새로운 Main CI 시작·실제 E2E 실행 확인. FAIL과 BLOCKED의 원형을 보존, GitHub action 성공 전 결과 NOT TESTED. Main 버전 0.108.0/공식 GHCR release 추가 게시/승계 감사 작업 수행하지 않음.
+
 ## Issue #672 — #616 F2 AC2~AC7 인수·회귀 보완 (2026-10-14)
 - 선행: #616 AC 검증 댓글 https://github.com/planner77/masterGantt/issues/616#issuecomment-6155300627; #670 v0.108.0 Release #167.1/Finalizer #32.2 완료. 원본 #616 v0.107.0 실패/철회는 불변.
 - 검증 Work Packet: `docs/exec-plans/active/ISSUE_672.md`. 신규 Target 전용 SQLite/HTTP/partial inline rollback/0025→0026 persisted restart, 공유 장비·System 및 Resource role 보호, bounded listing/usage. 부족한 실제 코드 결함만 수정하고 #617 WBS binding은 별도.

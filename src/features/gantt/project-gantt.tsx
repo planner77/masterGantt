@@ -1,5 +1,6 @@
 "use client";
 
+import { stampInitializedGanttApiIdentity } from "./gantt-api-identity";
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
@@ -1799,6 +1800,10 @@ export function ProjectGantt({
   // synchronously in SVAR init and reconcile StrictMode mount/cleanup here.
   const installMilestoneProbe = useCallback((api: IApi, instanceId: string, frame: HTMLDivElement) => {
     if (process.env.NODE_ENV === "production" || !frame.isConnected) return;
+    // #674: SVAR init may precede the expensive 3,000-row React commit.
+    // Publish the exact initialized API identity before the test-only probe,
+    // not after setApiInstanceId triggers a later React render.
+    stampInitializedGanttApiIdentity(frame, instanceId);
     const previous = milestoneProbeLifecycleReference.current;
     if (previous?.api === api && previous.frame === frame && previous.id === instanceId) return;
     previous?.cleanup();

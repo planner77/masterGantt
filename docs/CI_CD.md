@@ -1,3 +1,16 @@
+## Issue #674 — #2720 실제 Browser Trace와 #551 준비 두 단계 분리 (2026-10-14)
+
+- #674 [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648): 이전 ID stamping patch에 대한 TypeScript/Lint/Vitest/Build/Docker PASS였으나 Chromium shard4의 #551 3,000-row 5초 probe timeout 재발. Playwright `--max-failures=1`은 첫 실패 뒤 잔여 케이스를 중단했고 결과 FAIL은 보존된다.
+- 실패 trace: 첫 `frame.evaluate` 호출이 5초 budget 안에 완료되지 않았고 timeout 직전 locator는 API ID `svar-api-1`가 있는 연결된 Gantt frame을 보고했다. ID 부재로 단정하지 않고 `expect(frame).toBeVisible()`로 native frame mount를 별도 bounded stage로 확인한 후, **같은** 정확한 API ID / probe instance / read 함수 5초 검증을 실행한다. 화면 데이터·기하 단언/원본 3,000 Fixture·5초 각 단계/CI 검증 모두 유지한다.
+- 이 테스트용 관측 순서 수정은 E2E shard 경로/Required aggregate/QA trust/Owner/GHCR/Finalizer/Release 권한을 바꾸지 않는다. 새 exact Head CI의 실제 Full PASS 전 승격·병합 금지.
+
+## Issue #674 — Main E2E #551 초기화 식별자 진단·복구 경계 (2026-10-14)
+
+- Main #2712.1 (merge `3b21fe6e...`) failed one Chromium shard4 test: 3,000-row #551 development probe identity was not identical to `data-project-gantt-api-instance` within **5 seconds**. Quality/Docker passed, E2E failed and dependent temporary GHCR/Finalizer steps did not run. Retain the failure ledger.
+- Developer test-probe identity is now synchronously set on the connected Gantt frame during the native SVAR `initialize(api)` callback, before React re-renders a large projection. This change adds no CI job, test retry, timeout increase or new acceptance bypass. Node/Vitest regression and existing Chromium #551 5s oracle verify it.
+- A green Main aggregate alone does not prove 3,000-row E2E: E2E job can be skipped legitimately for docs-only/other non-E2E changes. Latest #2718 Main SUCCESS has E2E shard SKIPPED. For remediation require an exact-source corrective PR/full CI, then a **new main merge commit** that triggers real E2E 6 shards, and read actual shard statuses. A re-run of immutable #2712 is diagnosis of old source only, never a new source acceptance or release authorization.
+- PR six-shard matrix `fail-fast=true` + test-level `--max-failures=1`; Main/manual `fail-fast=false` without test-level stop-on-failure; `if:always()` Quality/E2E/Docker, Trusted QA and publishing governance remain unchanged.
+
 ## Issue #659 — PR #660 CI #2691 E2E 타임아웃 보완 및 Shard 내부 첫 실패 중단 (2026-10-13)
 
 - **원인 실증:** [PR CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 PR Fast Gate·TypeScript·ESLint·Vitest·Policy·Next Build·Docker는 PASS. Chromium E2E shard 4/6의 `project-edit-authorization.spec.ts` W05 편집 권한 세션 테스트는 **30,000ms 타임아웃** 후 `otherContext.close()` 시점에 브라우저 컨텍스트를 찾지 못해 1 FAIL/128 PASS/1 SKIP. [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)에서는 동일 검증이 22.6초 PASS였고 두 Head 사이 앱/해당 테스트 코드 차이는 없다. 컨텍스트 종료 오류만 예외 처리하거나 인증 단언/쓰기 제약을 완화하지 않는다.

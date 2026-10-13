@@ -1,3 +1,20 @@
+## Issue #674 — #2720 Playwright Trace 재현·프레임 mount/API identity 분리 회귀 (2026-10-14)
+
+- #659 Main [#2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) 후 첫 보완 [PR CI #2720.1](https://github.com/planner77/masterGantt/actions/runs/38479618648)에서 같은 #551 Shard4 E2E 5초 timeout 재발. PR fail-fast는 첫 실패 후 다른 Shard를 취소했고 기존 원본 결과는 모두 FAIL로 보존한다.
+- **저장된 Playwright Trace**: 첫 `frame.evaluate`가 ~319005ms 시작해서 expect.poll 제한 종료 ~324004ms까지 반환되지 않았고, timeout 직전 DOM에는 `data-project-gantt-api-instance="svar-api-1"`가 확인됐다. 따라서 ID 불일치로 확정할 수 없고 3,000-row 렌더링의 JS main-thread 평가 지연을 분리해야 한다.
+- **Browser 두 단계:** `tests/e2e/milestone-timeline-lane.spec.ts` fixture는 실제 frame visible를 먼저 `expect(frame).toBeVisible()` (기본 5초)로 검증하고 그다음 원본 `expect.poll(() => frame.evaluate(...)).toBe(true)`(기본 5초)를 수행한다. 두 단계 모두 bounded 실패, timeout 증액/재시도/sleep/3,000 Fixture 축소/실제 API identity 단언 삭제 없음.
+- **Unit 4건:** `tests/gantt-api-identity.test.ts`의 초기화 ID, 재init ID, 연결 해제 불변 3건 및 E2E source에서 visible-gate 선행·원본 ID/read 5s oracle 보존을 확인하는 정적 계약 1건.
+- **AC/SC:** AC1~6, GSC-08/09/11, SC-07/12/14. E2E6 전체에서 특히 #551 full native geometry, fullscreen/Grid/resize/scroll, canonical/저장 mutation0, 모든 기존 원형 단언을 검증할 때까지 NOT TESTED.
+- 기존 정책과 제품 version 0.108.0 변경 없음. [ADR-674](ADR_674_GANTT_DIAGNOSTIC_INIT_EXCEPTION.md)의 U5 한정 예외/인계 유지.
+
+## Issue #674 — Main CI #2712 Milestone 대량 진단 API 인스턴스 타임아웃 교정 (2026-10-14)
+
+- 원본 [Main CI #2712.1](https://github.com/planner77/masterGantt/actions/runs/38470067933) / merge `3b21fe6e17ccc8abcdc9dc634c0a73b82dfa78bb`: Chromium shard4 128 PASS, 1 FAIL, 1 SKIP. 단독 실패 `tests/e2e/milestone-timeline-lane.spec.ts:173` 대형 1,000 Task + 2,000 Milestone fixture의 정확한 dev probe/React frame identity **5,000ms timeout**. other 5 shard / Quality / Docker PASS. 이전 원본 FAIL 보존.
+- **Unit AC1/AC3:** `tests/gantt-api-identity.test.ts`의 3 케이스: 연결된 DOM frame의 init ID 동기 게시, 재초기화시 이전 ID 덮어쓰기, 분리된 frame 불변. React 후속 state commit을 기다리지 않는다. `src/features/gantt/project-gantt.tsx` `installMilestoneProbe`에서 호출되고 동일 `initialize(api)`에서 정확한 id와 `setApiInstanceId`가 연결된 것을 실제 source 확인한다.
+- **Browser AC2:** 원본 `tests/e2e/milestone-timeline-lane.spec.ts`의 동일 **5초** readiness oracle, 1,000 Task+2,000 Milestone, fullscreen Grid / Chart scroll / 64px lane / ±1px chart plot 정렬 / 원본 mutation0. timeout 상향·retry·skip·data fixture 축소/단언 제거 없음. 390~1920폭의 기존 경계와 같이 전체 Chromium 6 shard에서 확인.
+- **Main AC5/AC6:** PR 새로운 Head CI에서 Quality·E2E6·Docker·QA Final·review0을 먼저 검증하고 main에 병합한 새 commit의 Main CI가 **실제 E2E shard를 실행**해 모두 PASS해야 한다. #672 Main #2718의 E2E aggregate PASS는 shard skipped이므로 이 AC의 E2E 증거로 대체 불가. Owner 승인/릴리스 자동 승격·필수 검사 완화 없음.
+- **Negative:** `isConnected=false` 프레임에는 identity를 찍지 않고 새 init은 이전 id를 남기지 않는다. Test-only probe는 production에서 계속 absent, native SVAR API ID를 임의로 생성/위조하지 않는다. 새 CI 전 PASS 선언 금지.
+
 ## Issue #659 — CI #2691 실패 보완 및 조기 Fail-Fast 회귀 검증 (2026-10-13)
 
 | 범위 | 실제/예상 증거 | 완료 기준 |
