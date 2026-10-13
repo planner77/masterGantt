@@ -504,7 +504,7 @@ Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하�
 
 기존 `project_processes` 자유 트리·ID·Task/설비 연결을 유지한다. 명시 mapping endpoint만 공통 occurrence/선택 WorkArea를 연결·해제한다. 미매핑 legacy는 계속 조회·편집 가능하며 이름/부모 계층으로 변환하지 않는다. 표준 diff 조회 후 명시 apply로 occurrence만 반영하고 Project 공정·물류는 자동 변경하지 않는다.
 
-공통 쓰기는 기존 Project Master 관리자 세션으로만 허용한다. Project 편집자는 global master를 변경할 수 없다. Project 매핑은 edit session/Origin/If-Match 및 processCatalogRevision 검증 후 실제 매핑 변경 성공당 Project revision을 한 번 증가시키고 동일 값 no-op은 증가시키지 않는다. 사용 중 삭제·reparent·분류 변경은 409이며 명시 해제 후 다시 선택한다. copy는 동일 triple에서 local 공정 ID를 새로 만들고 공통 ID는 유지한다. 매핑 원본 Template 저장은 포맷 확장 전 409다. 신규 관리 UI·Target CRUD·Resource 축은 #616 이후다.
+공통 쓰기는 기존 Project Master 관리자 세션으로만 허용한다. Project 편집자는 global master를 변경할 수 없다. Project 매핑은 edit session/Origin/If-Match 및 processCatalogRevision 검증 후 실제 매핑 변경 성공당 Project revision을 한 번 증가시키고 동일 값 no-op은 증가시키지 않는다. 사용 중 삭제·reparent·분류 변경은 409이며 명시 해제 후 다시 선택한다. copy는 동일 triple에서 local 공정 ID를 새로 만들고 공통 ID는 유지한다. 매핑 원본 Template 저장은 포맷 확장 전 409다. 이 절은 F1 시점 기준이며 **현재 Target CRUD는 #616에서 구현**되었다. Target 연결 UI와 Resource 축은 후속 #617~#621 범위이고, #672는 F2 API/SQLite 인수 검증을 보완한다.
 
 ## Issue #616 — Target grouping
 
@@ -513,3 +513,8 @@ A Project Target groups one or more existing Project Equipment/System instances 
 ## #616 Target Template roundtrip
 
 Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를 빠짐없이 저장해 새 Project에서 원본 물류 인스턴스가 아닌 새 공정·설비·시스템·Target/member identity를 생성해야 한다. 동일 MCS가 여러 Target에 속해도 신규 Project에 System 한 건만 있어야 하고 공정/WorkArea global 참조는 유효 BU/Product/Site triple에 속해야 한다. 파손된 관계·존재하지 않는 member는 Project 전체 rollback, 이전 Template schema는 하위 호환한다. WBS Binding은 #617, full JSON은 #379 분리.
+
+
+## #672 — Target F2 추가 인수 검증 (2026-10-14)
+
+현재 v0.108.0의 F2 Target CRUD 및 Template v2를 기존 공유 인스턴스 무손상/원자성·권한·0025→0026 파일 DB 재시작·bounded HTTP 테스트로 검증한다. #617 WBS–Target binding 구현 전 `referencedByTaskCount=0`은 미지원 표시용 임시 필드일 뿐 실제 연결 Task 개수를 의미하지 않는다. 정식 릴리스 #167.1 PASS와 F2의 모든 인수 AC 증거는 별도로 판정한다.

@@ -1,3 +1,8 @@
+## Issue #672 — #616 F2 AC2~AC7 인수·회귀 보완 (2026-10-14)
+- 선행: #616 AC 검증 댓글 https://github.com/planner77/masterGantt/issues/616#issuecomment-6155300627; #670 v0.108.0 Release #167.1/Finalizer #32.2 완료. 원본 #616 v0.107.0 실패/철회는 불변.
+- 검증 Work Packet: `docs/exec-plans/active/ISSUE_672.md`. 신규 Target 전용 SQLite/HTTP/partial inline rollback/0025→0026 persisted restart, 공유 장비·System 및 Resource role 보호, bounded listing/usage. 부족한 실제 코드 결함만 수정하고 #617 WBS binding은 별도.
+- 문서의 오래된 candidate/미병합/Template 미지원 표기를 현재 v0.108.0 근거와 신규 테스트 NOT TESTED로 교정. version-neutral (`0.108.0` 유지), HIGH/OWNER_MANAGED, release_required=false/release_authorized=false; 완료 범위는 새 PR Full CI 시작과 review thread 처리까지. 병합/Main CI/정식 GHCR 및 #616 종결 금지.
+
 ## Issue #659 — PR CI #2691 W05 timeout 및 PR 내부 Fail-Fast 보완 (2026-10-13)
 
 - [#2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683) Fast Gate/Quality/Docker PASS, Chromium Shard4 W05 수명주기 테스트 30s timeout, E2E aggregate/QA Final FAIL. 리뷰 스레드 0건, 현재 PR Head `0f647de2`에서 새 보완 Head 검증 필요.
