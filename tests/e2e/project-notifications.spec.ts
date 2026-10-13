@@ -104,7 +104,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await bell.focus(); await page.keyboard.press("Enter");
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
   await expect(inbox).toBeVisible();
-  await expect(inbox.getByLabel("알림 1 내용")).toHaveValue(/마일스톤에는 하위 작업/);
+  await expect(inbox.getByLabel("알림 1 내용")).toHaveValue(/(?:마일스톤|Milestone)에는 하위 작업/);
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
   await inbox.getByRole("button", { name: "내용 복사", exact: true }).click();

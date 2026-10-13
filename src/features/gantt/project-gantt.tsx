@@ -1480,6 +1480,10 @@ export function ProjectGantt({
   }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
+  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "separate-milestones", columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode]);
+  const projectionReference = useRef<CanonicalProjection | null>(null);
+  useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
+  const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
       const task = typeof local.taskId === "string" ? tasksById.get(local.taskId) : undefined;
@@ -1964,10 +1968,6 @@ export function ProjectGantt({
     };
   }, [apiInstanceId, installMilestoneProbe]);
 
-  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "separate-milestones", columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode]);
-  const projectionReference = useRef<CanonicalProjection | null>(null);
-  useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
-  const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
   // Explicit peer/navigation restoration outranks an older metadata-only scroll.

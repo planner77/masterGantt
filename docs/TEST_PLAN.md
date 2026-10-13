@@ -1,3 +1,9 @@
+## Issue #552 PR CI #2643.1 — 최신 WBS 표시 계약의 E2E 정합성 및 미해결 회귀 (2026-10-13)
+
+- Previous [#2643.1](https://github.com/planner77/masterGantt/actions/runs/38348440262) QA/TypeScript/Vitest/Build/Docker PASS; ESLint React ref immutability 1 error; Chromium shards 1/2 PASS, 3–6 FAIL. Fix hooks layout ordering without changing semantics or disabling rule.
+- After Milestone-native-row removal, filter-result oracle must count **visible Summary/ordinary Task only**, not hidden canonical Milestones. #463 peer-restore fixture: 26 ordinary Task + 1 Summary = 27 WBS records while canonical holds 46 records. Assert the per-type split and WBS total, preserving separate full canonical milestones.
+- Notification tests account for bilingual backend rejection `Milestone에는 하위 작업을 추가할 수 없습니다.` without changing rejection codes, mutation count, or Gantt position. Relation dialog uses the supported close/dirty-confirmation path instead of removed `선택` action. Do not skip unrelated #464 Copy, #529/#530/#571 viewport, #552 OFF reveal/focus, or date-picker regressions. These remain remote E2E NOT TESTED until new PR CI completion.
+
 ## Issue #647 — #616 recovery CI #2621 E2E shard 3/5 root-cause and focus regression (2026-10-13)
 
 - 원본 [CI #2621.1](https://github.com/planner77/masterGantt/actions/runs/38313359094): Quality·TypeScript·Vitest·Docker SUCCESS, Chromium shard 1/2/4/6 SUCCESS, **3/6 FAIL** (`tests/e2e/milestone-management.spec.ts:197` after deletion `document.activeElement?.getAttribute("data-milestone-focus") === null`; 122 passed/1 fail/1 skip), **5/6 FAIL** (`tests/e2e/resource-dashboard-ui.spec.ts:35`, duplicate `2건` KPI buttons strict-mode; 97 pass/1 fail). E2E required aggregate FAILURE, `ci-<SHA>` image SKIPPED. No app Target CRUD failure was reported.

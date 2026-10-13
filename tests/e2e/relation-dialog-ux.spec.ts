@@ -49,11 +49,11 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await page.keyboard.press("Escape");
   await expect(modal).toBeVisible();
   await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
-  await modal.getByRole("button", { name: "선택", exact: true }).click();
+  await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await expect(modal.getByText("저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?")).toBeVisible();
   await modal.getByRole("button", { name: "계속 편집" }).click();
   await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
-  await modal.getByRole("button", { name: "선택", exact: true }).click();
+  await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await search.fill("후보");
   await candidate.focus();

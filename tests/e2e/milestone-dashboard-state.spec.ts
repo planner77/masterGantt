@@ -172,7 +172,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     // 진행 중 복원의 입력 취소는 별도 RAF barrier 회귀에서 검증한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     await observe("filter-cleared");
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
@@ -204,7 +204,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
     await observe("capacity-preserving-filter");
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
     await expect.poll(viewport).toEqual(userViewport);
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
@@ -327,7 +327,7 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, native: { left: 120, top: 0 } });
     expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     for (let index = 0; index < 3; index++) {
       await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
