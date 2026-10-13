@@ -24,3 +24,8 @@
 - N/A: DESIGN.md/UI_UX_GUIDELINES.md/API.md/DB_SCHEMA.md (UI/API/DB 무변경).
 - 기존 AGENTS.md/QA_REVIEW_POLICY.md/ISSUE_LIFECYCLE.md/GITHUB_OPERATIONS.md/GENERIC_RELEASE_FINALIZER.md/CI_CD.md/REMOTE_VALIDATION.md/TEST_PLAN.md는 **보안 및 검증 조건 변경 없이 상속**. 본 문서는 #649의 추가 read-only 제약과 NOT TESTED 범위만 규정.
 - 테스트: Python unittest 정상 후보(준비만), SHA 변조·v0.107.0 중복·UNKNOWN·digest 불일치·Owner flag·first-parent 중복·누락 inventory 부정. 실제 PR CI와 원격 자격 증명 감사는 별도 증거 전 NOT TESTED.
+
+## 2026-10-13 — CI #2634 QA Preflight 정정
+
+- CI #2634.1 실패 근본 원인은 Product 테스트가 아니라 Primary Issue #649 인수 기준의 `A`~`F` 표기에서 검증기가 `AC1`~`AC6`를 찾지 못한 문서 형식 불일치다. `ISSUE_AC` FAIL 후 세 필수 aggregate는 FAIL, 실제 E2E/Docker는 SKIPPED였다.
+- Issue #649 인수 기준을 `AC1 (A)`~`AC6 (F)`로 명시하여 원래 의미·Owner 승인 경계를 유지한다. 본 Work Packet의 AC 대응 및 테스트 증거는 해당 번호를 따른다. 신규 HEAD의 Required 3개/Trusted QA는 NOT TESTED; merge/release 미승인이다.
