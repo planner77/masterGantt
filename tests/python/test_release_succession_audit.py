@@ -81,6 +81,39 @@ class TestReadOnlyAudit(unittest.TestCase):
         with patch.object(audit,"api",side_effect=SuccessionBlocked("HTTP 404")):
             with self.assertRaises(SuccessionBlocked):audit.tag_inventory()
 
+    def test_exact_historical_pr_source_ledger(self):
+        chain = [row[0] for row in audit.B2_SOURCES] + [audit.policy.PUBLISHED_SHA]
+        def verified(path):
+            number = int(path.rsplit('/', 1)[1])
+            sha, issue, _ = next(row for row in audit.B2_SOURCES if row[2] == number)
+            return {'number':number, 'state':'closed', 'merged':True,
+                    'merge_commit_sha':sha, 'body':f'Refs #{issue}',
+                    'base':{'ref':'main','repo':{'full_name':audit.REPO}},
+                    'head':{'repo':{'full_name':audit.REPO}}}
+        with patch.object(audit, 'api', side_effect=verified) as calls:
+            self.assertTrue(audit.historical_prs_verified(chain))
+            self.assertEqual(calls.call_count, 5)
+        for field, value in [('merge_commit_sha','f'*40), ('state','open'),
+                             ('merged',False), ('body','Refs #999')]:
+            def tampered(path):
+                pr = verified(path)
+                if path.endswith('/628'): pr[field] = value
+                return pr
+            with self.subTest(field=field), patch.object(audit, 'api', side_effect=tampered):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.historical_prs_verified(chain)
+        with patch.object(audit, 'api', side_effect=SuccessionBlocked('HTTP 403')):
+            with self.assertRaises(SuccessionBlocked):
+                audit.historical_prs_verified(chain)
+        with self.assertRaises(SuccessionBlocked):
+            audit.historical_prs_verified(chain[1:])
+
+    def test_latest_owner_note_is_required(self):
+        rows=[(8,'mastergantt-release-authorization:v1',
+               {'expected_version':'0.107.0','authorized':False,'note':'  '})]
+        with self.assertRaises(SuccessionBlocked):
+            audit.latest_marker(rows,'mastergantt-release-authorization:v1','0.107.0',False)
+
     def test_b2_owner_scope_authentication(self):
         chain=[x[0] for x in audit.B2_SOURCES]+[audit.policy.PUBLISHED_SHA]
         d={"authorized":True,"mode":"B2_RETIRE_BOTH","source_550_sha":chain[0],
