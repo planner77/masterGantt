@@ -87,7 +87,10 @@ class TestReadOnlyAudit(unittest.TestCase):
             number = int(path.rsplit('/', 1)[1])
             sha, issue, _ = next(row for row in audit.B2_SOURCES if row[2] == number)
             return {'number':number, 'state':'closed', 'merged':True,
-                    'merge_commit_sha':sha, 'body':f'Refs #{issue}',
+                    'merge_commit_sha':sha,
+                    'body':(f'## Details\n\nRefs #{issue}\n\n## Evidence\n'
+                            if number != 559 else
+                            f'## Overview\r\n\r\n \tRefs #{issue} \t\r\n\n## Evidence\r\n'),
                     'base':{'ref':'main','repo':{'full_name':audit.REPO}},
                     'head':{'repo':{'full_name':audit.REPO}}}
         with patch.object(audit, 'api', side_effect=verified) as calls:
@@ -107,6 +110,45 @@ class TestReadOnlyAudit(unittest.TestCase):
                 audit.historical_prs_verified(chain)
         with self.assertRaises(SuccessionBlocked):
             audit.historical_prs_verified(chain[1:])
+
+    def test_historical_refs_fail_closed_on_ambiguous_and_inline_text(self):
+        chain = [row[0] for row in audit.B2_SOURCES] + [audit.policy.PUBLISHED_SHA]
+        def pr_with_body(body):
+            def fake_api(path):
+                number = int(path.rsplit('/', 1)[1])
+                sha, issue, _ = next(row for row in audit.B2_SOURCES if row[2] == number)
+                return {
+                    'number':number, 'state':'closed', 'merged':True,
+                    'merge_commit_sha':sha,
+                    'body':body if number == 559 else f'Refs #{issue}',
+                    'base':{'ref':'main','repo':{'full_name':audit.REPO}},
+                    'head':{'repo':{'full_name':audit.REPO}},
+                }
+            return fake_api
+        # These deliberately do not assert a git-history problem: the only
+        # changed evidence is the primary Issue line from a PR's live body.
+        invalid = (
+            '## Details\n\nRefs #550\nRefs #550\n',
+            '## Details\n\nRefs #550\nRefs #615\n',
+            '## Details\n\nRefs #615\n',
+            '## Details\n\nThis fixes Refs #550 in prose\n',
+            '- Refs #550\n',
+            'Refs #550 extra words\n',
+            'Refs #0\n',
+            '',
+        )
+        for body in invalid:
+            with self.subTest(body=body), patch.object(
+                audit, 'api', side_effect=pr_with_body(body)
+            ):
+                with self.assertRaises(SuccessionBlocked):
+                    audit.historical_prs_verified(chain)
+        with patch.object(
+            audit, 'api', side_effect=pr_with_body(
+                '## Title\r\n\r\n \tRefs #550 \t\r\nOther comments\r\n'
+            )
+        ):
+            self.assertTrue(audit.historical_prs_verified(chain))
 
     def test_latest_owner_note_is_required(self):
         rows=[(8,'mastergantt-release-authorization:v1',
