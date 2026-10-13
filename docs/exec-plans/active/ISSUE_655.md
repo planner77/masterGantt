@@ -7,7 +7,7 @@
 
 ## DOCUMENTATION_SYNC
 - `AGENTS.md`: UPDATED
-- `docs/QA_REVIEW_POLICY.md`: N/A (기존 HIGH / OWNER_MANAGED, Trusted QA 및 Owner 승인 Gate 불변; 검증기 계약 완화 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH / OWNER_MANAGED, Trusted QA 및 Owner 승인 Gate 불변; 검증기 계약 완화 없음)
 - `docs/CI_CD.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
@@ -15,9 +15,9 @@
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_655.md`: ADDED
 - `CHANGELOG.md`: UPDATED
-- `DESIGN.md`: N/A (UI/UX 계약 변경 없음)
-- `docs/API.md`: N/A (제품 API 변경 없음)
-- `docs/DB_SCHEMA.md`: N/A (DB 변경 없음)
+- `DESIGN.md`: N/A(UI/UX 계약 변경 없음)
+- `docs/API.md`: N/A(제품 API 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(DB 변경 없음)
 
 ## AC_TEST_COVERAGE
 - AC1: tests/python/test_release_succession_audit.py, 153개 단일 응답/중복·비정상 ref/peel. 운영 재실행은 미실시.
