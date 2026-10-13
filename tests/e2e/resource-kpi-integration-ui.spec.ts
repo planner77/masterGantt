@@ -509,8 +509,13 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await expect.poll(viewport).toEqual(expected);
   await page.clock.runFor(500);
   await expect.poll(viewport).toEqual(expected);
+  // #552 separates canonical Milestones from native WBS rows, while retaining
+  // ordinary Task presence and the exact scrollbar/instance checks above.
   const targetIds = Object.values(seed.tasks);
-  for (const task of targetIds) await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const task of targetIds.filter(task => task.type !== "milestone"))
+    await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const milestone of targetIds.filter(task => task.type === "milestone"))
+    await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
   await info.attach("explicit-return-native-input-cancel",{body:JSON.stringify({user,settled:await ganttIntegrationState(page)}),contentType:"application/json"});
   await page.clock.resume();
 });
@@ -545,8 +550,13 @@ test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위
   await expect.poll(viewport).toEqual(expected);
   await page.clock.runFor(500);
   await expect.poll(viewport).toEqual(expected);
+  // #552 separates canonical Milestones from native WBS rows, while retaining
+  // ordinary Task presence and the exact scrollbar/instance checks above.
   const targetIds = Object.values(seed.tasks);
-  for (const task of targetIds) await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const task of targetIds.filter(task => task.type !== "milestone"))
+    await expect(frame.locator(`.wx-row[data-id=":${task.taskId}"]`).first()).toBeVisible();
+  for (const milestone of targetIds.filter(task => task.type === "milestone"))
+    await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
   await info.attach("explicit-return-viewport-geometry-cancel",{body:JSON.stringify({user,settled:await ganttIntegrationState(page)}),contentType:"application/json"});
   await page.clock.resume();
 });

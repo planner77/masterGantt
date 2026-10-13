@@ -54,7 +54,11 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await expect(modal.getByText("저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?")).toBeVisible();
   await modal.getByRole("button", { name: "계속 편집" }).click();
   await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
-  // Keep the same dirty editor open until the final dismiss/discard.
+  // Selecting a candidate replaces the search input with a canonical identity
+  // summary. Reopen the picker explicitly before keyboard-reselecting it.
+  // Dirty changes and the Relation Editor must survive the close/cancel flow.
+  await modal.getByRole("button", { name: "변경", exact: true }).click();
+  await expect(search).toBeVisible();
   await search.fill("후보");
   await candidate.focus();
   await page.keyboard.press("Space");

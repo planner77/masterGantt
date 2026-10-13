@@ -1788,7 +1788,15 @@ export function ProjectGantt({
         // Measure its completed state; request again only if a newer queue won.
         if (canonicalSyncQueueReference.current !== queue) { requested = true; return; }
         const version = canonicalSyncVersionReference.current;
-        const correction = readMilestoneChartResizeCorrection(api, widget);
+        // The optional Milestone lane must not mutate the native Chart while a
+        // user/peer viewport is in motion. resize-chart can clamp scrollLeft even
+        // when the lane's geometry measurement was only meant to be read-only.
+        // An empty (ordinary Task-only) project has no dated lane tick to repair.
+        const position = api.getState();
+        const canRepairIdleLane = model.timeline.datedMilestones.length > 0 &&
+          Math.abs(position.scrollLeft) <= 1 && Math.abs(position.scrollTop) <= 1 &&
+          !viewportPortReference.current?.resizing();
+        const correction = canRepairIdleLane ? readMilestoneChartResizeCorrection(api, widget) : null;
         const layoutKey = correction ? JSON.stringify([version, correction, api.getState()._columnsWidth, widget.offsetWidth]) : null;
         if (correction && layoutKey !== repairedLayout) {
           repairedLayout = layoutKey; repairing = true;

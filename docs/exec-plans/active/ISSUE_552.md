@@ -258,3 +258,11 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - Since original Base, `main` advanced to `9b16ac5fdd48628062f151380c144a40125dc721` (#653); integrate exact main as second merge parent. Preserve new read-only release succession workflow/script/Python tests, `AGENTS.md`, status docs, and only main's two explicit server-test timeout adjustments. On overlapping docs, prepend #653's provenance text to #552-specific content without deleting either side. No release-success claim from the new audit.
 - `release_required=true`, `release_authorized=false`, `qa_method=OWNER_MANAGED`, `risk_level=HIGH`, `qa_required=true` remain unchanged. No code/CI/QA safety guard bypass; main alignment is prerequisite for valid exact-head CI. The new run's QA, build, Docker, Chromium six shards and Trusted QA must be checked on its own Head/Base; current corrections do **not** establish PASS for #464/#529/#530/#551/#552/#571 real regressions.
 - Documentation impact: this Packet UPDATED, `docs/TEST_PLAN.md` UPDATED, `docs/exec-plans/active/PLAN.md`, `AGENTS.md`, `CHANGELOG.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md` updated by preserving integrated #653 main. `DESIGN.md`, `docs/API.md`, `docs/SCHEDULING_ENGINE.md`, schema, version and runtime code: N/A(no corresponding contract changes). No merge to main, main CI, GHCR, Finalizer, tag, issue close or branch cleanup authorized.
+
+
+## CI #2661.1 (2026-10-13) 후속 회귀 보완 — PR #561
+
+- Chromium six shards 중 4/5/6번에서 각각 11/3/3건 실패. Quality/Unit/Build/Docker는 성공했으나 전체 PR CI는 실패로 유지한다. 완화 없이 최신 exact Head에서 재검증한다.
+- Milestone lane의 관찰 전용 geometry 보정이 **사용자 Core/native 스크롤 위치를 덮어쓰지 않도록**, 실질적으로 표시할 날짜 Milestone이 존재하고 Core 위치가 원점이며 native resize 조정 중이 아닐 때만 공개 `resize-chart` 보정을 허용한다. Native 프로젝트 캘린더/Resource 화면 이동 후 좌표 불변 테스트의 경계로 검증한다.
+- Relation Editor의 선택된 후보는 검색 필드를 대체하므로 테스트에서 명시적 **변경** 후 키보드 재선택; #530 실제 SQLite 검증은 일반 Task native행 존재+Milestone native행 부재를 동시 확인; #464 Summary 접힘 증명은 실제 native virtualization 구간 밖에서 동일 스크롤 소유자를 통해 확인 후 좌표 복귀한다.
+- #571 Editor locate/focus, #464 Copy 경고, #552 DATE_REVEAL, #529 wheel 보존 등 다른 실패 건은 별도 원인 미확정. 모든 AC는 새 PR CI에서만 판정하고 **NOT TESTED**를 임의 PASS로 바꾸지 않는다. PR 병합·Main CI·GHCR는 이 변경의 범위 밖이다.

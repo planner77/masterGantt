@@ -264,7 +264,16 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     await peer.setViewportSize({ width: 1456, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); await peer.setViewportSize({ width: 1440, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("subsequent-layout"));
     await expect(peerHeader.getByText("Milestone", { exact: true })).toBeVisible();
     await testInfo.attach("actual-464-viewport-checkpoints", { body: JSON.stringify(checkpoints), contentType: "application/json" });
-    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!); await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week"); await expect(toggle).toHaveClass(/wxi-menu-right/); await expect(selected).toHaveClass(/wx-selected/);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+    await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+    // The Core virtual row can be absent after scrolling 96px, although its
+    // Summary collapsed state is still retained. Verify it at the top of the
+    // same native scroll owner, then restore the exact measured viewport.
+    await vertical.evaluate(element => { element.scrollTop = 0; });
+    await expect(toggle).toHaveClass(/wxi-menu-right/);
+    await vertical.evaluate(element => { element.scrollTop = 96; });
+    await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 });
+    await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().selected)).toContain(free.taskId);
     await peer.screenshot({ path: "output/playwright/issue-464-actual/after-readonly-peer.png" });
     await testInfo.attach("actual-464-viewport", { body: JSON.stringify(await live()), contentType: "application/json" });
   } finally { await readonly.close(); }
