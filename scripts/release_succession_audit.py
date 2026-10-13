@@ -33,6 +33,10 @@ STAGE = "precondition"
 # Failure context is kept separate from caller-supplied evidence and contains
 # no credentials, private Owner comment text or external command stderr.
 EVIDENCE_CONTEXT: dict[str, str | None] = {}
+# Keep the latest independently authenticated OCI descriptor even if a later
+# Owner/retirement/main/policy stage has no version or digest of its own.
+# This is verified evidence, not a PASS for the later failing stage.
+LAST_AUTHENTICATED_OCI: dict[str, str | None] = {}
 OBSERVED_INVENTORY: dict[str, Any] = {}
 
 
@@ -49,6 +53,24 @@ def stage(
     global STAGE, EVIDENCE_CONTEXT
     STAGE = name
     EVIDENCE_CONTEXT = dict(
+        version=version, tag=tag, expected_digest=expected_digest,
+        actual_digest=actual_digest,
+    )
+
+
+def record_authenticated_oci(
+    *, version: str, tag: str, actual_digest: str,
+    expected_digest: str | None = None,
+) -> None:
+    """Remember a verified manifest independently of the current stage.
+
+    The manifest itself is authenticated. An expected-digest mismatch still
+    blocks policy; keeping the actual digest does not mark it as matching.
+    """
+    global LAST_AUTHENTICATED_OCI
+    require(bool(policy.DIGEST.fullmatch(actual_digest)),
+            "인증된 OCI digest 유효성 실패", code="OCI_MANIFEST_INVALID")
+    LAST_AUTHENTICATED_OCI = dict(
         version=version, tag=tag, expected_digest=expected_digest,
         actual_digest=actual_digest,
     )
@@ -236,6 +258,10 @@ def registry_inventory() -> tuple[set[str], dict[str, str]]:
               version=version, tag=tag, expected_digest=expected)
         digest = authenticated_manifest_digest(tag)
         EVIDENCE_CONTEXT["actual_digest"] = digest
+        record_authenticated_oci(
+            version=version, tag=tag, expected_digest=expected,
+            actual_digest=digest,
+        )
         require(expected is None or digest == expected,
                 f"{tag}: 인증 OCI exact digest가 보존된 게시 증거와 불일치",
                 code="OCI_DIGEST_MISMATCH")
@@ -571,6 +597,10 @@ def collect() -> tuple[dict[str, Any], dict[str, Any]]:
 
 
 def main() -> int:
+    # A standalone run must never inherit evidence from any preceding call.
+    global LAST_AUTHENTICATED_OCI, OBSERVED_INVENTORY
+    LAST_AUTHENTICATED_OCI = {}
+    OBSERVED_INVENTORY = {}
     stage("precondition")
     result: dict[str, Any] = {
         "decision": "BLOCKED", "publish": False, "retire": False,
@@ -595,7 +625,18 @@ def main() -> int:
     if OBSERVED_INVENTORY and "inventory" not in result:
         result["inventory"] = OBSERVED_INVENTORY
     result["stage"] = STAGE
-    result.update(EVIDENCE_CONTEXT)
+    context = dict(EVIDENCE_CONTEXT)
+    if LAST_AUTHENTICATED_OCI:
+        result["last_authenticated_oci"] = dict(LAST_AUTHENTICATED_OCI)
+    if not any(value is not None for value in context.values()) and LAST_AUTHENTICATED_OCI:
+        context = dict(LAST_AUTHENTICATED_OCI)
+        result["evidence_context_source"] = "last_authenticated_oci"
+    else:
+        result["evidence_context_source"] = (
+            "current_stage" if any(value is not None for value in context.values())
+            else "not_verified"
+        )
+    result.update(context)
     Path("release-succession-audit.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
@@ -610,6 +651,7 @@ def main() -> int:
         f"- Version/tag: {clean(result.get('version'))} / {clean(result.get('tag'))}\n"
         f"- Expected digest: {clean(result.get('expected_digest'))}\n"
         f"- Actual digest: {clean(result.get('actual_digest'))}\n"
+        f"- Digest context source: {clean(result['evidence_context_source'])}\n"
         f"- Run / attempt: {clean(result['run_id'])} / {clean(result['run_attempt'])}\n"
         f"- main SHA: `{clean(result['main_sha'])}`\n"
         "- Authority: read-only; publish/retire/close disabled.\n"
