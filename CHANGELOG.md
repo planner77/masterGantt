@@ -1,3 +1,9 @@
+## Issue #659 — PR CI Fail-Fast / 단계별 Fast Gate (2026-10-13)
+
+- Full PR CI는 policy/typecheck/lint/unit 빠른 검사 후 Fast Gate가 성공해야 Next.js build/E2E/Docker를 실행한다. 요구된 검사의 실패·취소·예기치 않은 skip은 차단하며 세 Required Check를 FAIL로 집계한다.
+- PR E2E 6-shard만 fail-fast=true; Main push, workflow_dispatch, 복구 CI는 기존 fail-fast=false/병렬 실행 유지. GitHub Actions YAML anchor로 동일 실행 단계를 공유한다.
+- 기존 Preflight/metadata-only/QA/Owner/Ruleset/GHCR/Finalizer 및 제품 version 0.107.0 불변. 판정기·정적 회귀·관련 문서를 보강한다. 원격 CI, 실패 주입, 정상/실패 Runner 시간 측정은 별도 검증이다.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.
