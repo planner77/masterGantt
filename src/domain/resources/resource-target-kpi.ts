@@ -145,7 +145,7 @@ export const RESOURCE_TARGET_KPI_DICTIONARY = [
 ] as const;
 
 /** R4 handoff: keep R and same-R full Project demand independent of all Target/task axes.
- * This is a Domain input adapter only; public period Plan/Excel surfaces remain deferred. */
+ * The service enriches public Plan/Excel evidence; this adapter does not duplicate that logic. */
 export function selectResourceTargetPlanScope(prepared: PreparedResourceKpiSnapshot, selection: ResourceKpiSelection = selectResourceKpiAssignments(prepared)) {
   const history = new Set(prepared.assignments.filter(row => row.kind === "resource" && prepared.byTask.get(row.taskId)!.type === "task").map(row => row.targetId));
   const capacityResourceIds = prepared.resources.filter(resource => history.has(resource.resourceId) && matchesResourceKpiResourceFilters(resource, selection.filters)).map(resource => resource.resourceId);

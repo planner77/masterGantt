@@ -173,12 +173,12 @@ describe("#620 canonical SQLite Target Resource report", () => {
       domain.mockRestore();
     }
   });
-  it("fingerprints membership and bindings and rejects stale legacy Excel without adding Target Excel support", () => {
+  it("fingerprints membership and bindings and normalizes Target Excel options before stale checks", () => {
     const f = fixture(), report = f.service.getDashboard(f.project.publicId)!;
     const options = { basis: "current" as const, expectedReport: { context: report.resourceScopeContext!, snapshotId: report.snapshotId, filters: {} }, granularities: ["month" as const] };
     expect(f.service.getExcelReport(f.project.publicId, options)).toBeDefined();
     for (const binding of [undefined, { sourceContext: report.resourceScopeContext!, scope: { kind: "exactAssignments", assignmentIds: [f.assignmentIds.get("A1")!] } }]) {
-      for (const filters of [{ targetIds: [f.targets[0].id] }, { projectionOrder: ["target"] }]) expect(() => parseResourceExcelOptions({ ...options, ...(binding ? { binding } : {}), expectedReport: { ...options.expectedReport, filters } })).toThrow("unsupported");
+      for (const filters of [{ targetIds: [f.targets[0].id] }, { projectionOrder: ["target"] }]) expect(() => parseResourceExcelOptions({ ...options, ...(binding ? { binding } : {}), expectedReport: { ...options.expectedReport, filters } })).not.toThrow();
     }
     const extra = f.logistics.insertSystem({ publicId: randomUUID(), projectId: f.project.id, code: "NEW", name: "NEW", systemType: "mcs", layer: "coordinator", scope: "project", now: RESOURCE_DASHBOARD_NOW });
     f.database.prepare("INSERT INTO logistics_target_members(public_id,project_id,target_id,kind,system_id,created_at) VALUES(?,?,?,?,?,?)").run(randomUUID(), f.project.id, f.targets[0].internalId, "system", extra.id, RESOURCE_DASHBOARD_NOW);

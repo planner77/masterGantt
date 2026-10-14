@@ -153,7 +153,13 @@ export interface ResourcePlanPersonMetadata {
   name: string; code: string | null; active: boolean; groupIds: string[];
   roles: ResourceWorkloadRole[]; developerGrade: DeveloperGrade | null;
 }
+export interface ResourcePlanTargetContext {
+  filters: ResourceDashboardTargetFilters;
+  measure: "related planned effort"; subtotalsAdditive: false;
+  projectReferenceScope: "same Capacity R and period; Target/Task/Milestone/source restrictions removed";
+}
 export interface ResourceDashboardPlanDto extends Omit<ResourcePlanResult, "resources" | "groups" | "metadata"> {
+  targetContext?: ResourcePlanTargetContext;
   resources: (Omit<ResourcePlanResourceSeries, "milestones"> & ResourcePlanPersonMetadata & { milestones: (ResourcePlanResourceSeries["milestones"][number] & { name: string; scheduledDate: string | null })[] })[];
   groups: (ResourcePlanGroupSeries & { name: string; code: string | null; active: boolean })[];
   metadata: ResourcePlanResult["metadata"] & { limits: typeof RESOURCE_PLAN_LIMITS; populationScope: "ordinary-task-personal-assignment-history-classification-only"; groupDisplayScope: "selected-group-and-activity" };
@@ -164,6 +170,8 @@ export interface ResourcePlanDetailInput {
   demandScope: ResourcePlanDemandScope; date?: string; offset: number; limit: number;
 }
 export interface ResourcePlanDetailContext extends ResourcePlanDetailInput {
+  resourceScopeContext?: ResourceDrillSourceContext;
+  targetContext?: ResourcePlanTargetContext;
   resourceDataContext?: ResourceDataContext;
   schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
@@ -171,5 +179,5 @@ export interface ResourcePlanDetailContext extends ResourcePlanDetailInput {
 }
 export interface ResourcePlanDailyDto extends ResourcePlanDetailContext { view: "daily"; rows: ResourcePlanDailyRow[] }
 export interface ResourcePlanDayResourcesDto extends ResourcePlanDetailContext { view: "day-resources"; rows: (ResourcePlanDayResourceRow & ResourcePlanPersonMetadata)[] }
-export interface ResourcePlanDayAssignmentsDto extends ResourcePlanDetailContext { view: "day-assignments"; rows: (ResourcePlanDayAssignmentRow & { taskName: string; externalId: string; taskStart: string | null; taskEnd: string | null; assignmentStart: string | null; assignmentEnd: string | null; milestoneName: string; wbsPath: { taskId: string; name: string }[] })[] }
+export interface ResourcePlanDayAssignmentsDto extends ResourcePlanDetailContext { view: "day-assignments"; rows: (ResourcePlanDayAssignmentRow & { targetSources?: import("./task-target-bindings").TaskTargetBindingsDto; resourceActive?: boolean; taskName: string; externalId: string; taskStart: string | null; taskEnd: string | null; assignmentStart: string | null; assignmentEnd: string | null; milestoneName: string; wbsPath: { taskId: string; name: string }[] })[] }
 export type ResourcePlanDetailsDto = ResourcePlanDailyDto | ResourcePlanDayResourcesDto | ResourcePlanDayAssignmentsDto;

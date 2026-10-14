@@ -1,5 +1,24 @@
 # Excel Export
 
+## Issue #622 — Target 조건의 동일 원시 Resource 보고서
+
+기존 Resource Excel bundle/writer와 `resourceDashboard` strict current/project union을 확장한다. current는 같은 snapshot·입력 조건·exact source를 보존하고 project는 실제 기간/asOf/Calendar/M/M 정책을 유지하면서 Target/공정/WorkArea/member/type/instance 및 개인/Task/Milestone/source 조건을 제거한다. 선택 기여와 same-R Project 참고를 구별하며 latter는 전사 부하가 아니다. 기존 Gantt/Tasks/Project/Stages/Resource Effort는 Project 전체 기준이다.
+
+기존7개 Resource sheet/header 순서는 유지한다. Project에 Target/legacy 근거가 있거나 실제 Target 조건을 요청하면 다음4개 sheet를 뒤에 추가한다. Target 없는 기존 workbook의 sheet/수치는 보존한다.
+
+| Sheet | 범위·내용 |
+| --- | --- |
+| Resource Targets | 서버 Target projection의 관련 계획공수·소계/고유총계·diagnostics, 선택/Project 참고·Capacity·M/M·partial/null·revision 설명 |
+| Resource Target Catalog | 전체 normalized Target/공정 occurrence/Process Type/WorkArea/Equipment/System 분류의 안정 ID·이름·code·active |
+| Resource Target Sources | 전체 Target/member 구성과 선택 T0 및 same-R Project 배정 Task 합집합의 binding/member provenance·legacy 직접 출처; `AssignmentScope` 관계의 별도 `assignmentId`·`demandScope=selected|same-R-project` 열 |
+| Resource Project Assignments | 같은 R·기간의 Project 전체 원시 Assignment ID당1행, 선택 밖 원인 포함, raw M/D·M/M·null·Target ID |
+
+`Resource Assignments`는 선택 A의 고유 Assignment당1행이다. 여러 Target/member/provenance 근거 행에 같은 Assignment가 나타나도 원시 공수를 다시 합산하지 않는다. 총계는 서버 Assignment union과 programmatic parity를 확인하며 표시 반올림 전에 raw 숫자를 기록한다. Resource Plan의 주/월 summary/cell selected/project는 동일 API raw 값이다. 관련 계획공수는 원가 배분이 아니며 수량/coverage/진척을 공수에 곱하지 않는다. Group/Target/Milestone Capacity 및 중첩 소계는 비가산, 고유 Capacity는 resource-day다. Target 미연결·WorkArea 미사용·project_common·legacy, M/M 기준 없음·부분합/미설정과 기준 revision을 숨기지 않는다.
+
+Target-bearing Project의 plain 일정 export는 계속409 `TASK_TARGET_EXPORT_UNSUPPORTED`다. 명시 Resource 보고서 opt-in은 위 구성/분석 근거를 append해 허용하며 전체 binding/Project 무손실 round-trip 형식이라고 안내하지 않는다. current에서는 Task 근거도 선택 T0/same-R 배정 관련 집합이며 모든 Project Task binding의 완전한 백업이 아니다. JSON Import/Export 손실 방지·Copy/Template 기존 계약은 유지한다.
+
+Target label 등 사용자 문자열은 검증된 inlineStr/XML escape로 기록하고 formula cell/매크로/추가 외부 관계를 만들지 않는다. 같은 read transaction의 Target/master fingerprint가 바뀌면 export412로 전체 실패한다. Origin/strong If-Match·readonly/no session·no-store/nosniff, 본문8KiB, 기간366일/JSON2MiB, Target source/projection 예산 및 기존 sheet50000행/전체150000행/1000000cell/XML32MiB/ZIP16MiB 상한을 유지한다. 절삭된 파일을 완전한 총계로 반환하지 않는다. 실제 raw workbook assertions/성능·미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다. Windows Excel/VBA/DRM에서 실제 파일 열기는 별도 NOT TESTED다.
+
 SVG/PNG Gantt 내보내기 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 이 문서의 Excel workbook, 관계 포함/제외 및 물류 구성 보고서 옵션은 유지한다.
 
 ## Issue #464 — Milestone 소속과 같은 스냅샷 보고
@@ -265,10 +284,10 @@ readonly Export, exact Origin·strong `If-Match`, stale 전체 실패, ID·scope
 
 ## Issue #617 — Task Target binding을 포함한 일정 Export
 
-현행 일정 Excel은 Task Target binding/선택 구성원/coverage의 왕복 형식이 아니다. binding이 있는 Project의 일정 Excel 내보내기는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`로 거부하며 일부 연결을 누락한 workbook을 성공으로 반환하지 않는다. 이 보호는 일정 workbook의 선택적 Resource 부록에도 적용된다. binding을 보존하려면 Project Copy 또는 Template logistics schemaVersion 3을 사용한다. 별도 Resource 보고서 및 이미지/SVG 출력은 전체 복원 포맷이 아니며 이 일정 Excel 보호 경로를 사용하지 않는다. 전체 JSON/Excel 포맷 확장은 #379 및 후속 보고서 범위에서 별도 검증한다.
+현행 일정 Excel은 Task Target binding/선택 구성원/coverage의 왕복 형식이 아니다. binding이 있는 Project의 Resource 보고서 opt-in 없는 일정 Excel은 `409 TASK_TARGET_EXPORT_UNSUPPORTED`로 거부한다. #622의 Resource 보고서 opt-in은 명시 current/project 분석·Target graph/provenance 근거를 별도 append해 허용하며, 전체 복원/왕복 형식이라고 안내하지 않는다. binding을 보존하려면 Project Copy 또는 Template logistics schemaVersion 3을 사용한다. 별도 Resource 보고서 및 이미지/SVG 출력은 전체 복원 포맷이 아니며 이 일정 Excel 보호 경로를 사용하지 않는다. 전체 JSON/Excel 포맷 확장은 #379 및 후속 보고서 범위에서 별도 검증한다.
 
 ## Issue #620 — R2 snapshot identity와 Target Excel 경계
 
 기존 Resource Excel의 source/report 재검증은 R2 공통 reader의 Target/member/binding·Project 공정 매핑·관련 master 이름/active fingerprint를 포함한다. 기존 Project revision이 같아도 참조 변경 후 과거 descriptor는 공통 서비스에서409로 거부하며 공개 Excel API에서는 기존 `412 REVISION_MISMATCH`로 매핑한다. 구 report와 새 상세를 혼합하지 않는다. 실제 workbook 생성·시트·원시 Assignment·Calendar·예산은 유지한다.
 
-R2의 Target 필터와 `projectionOrder`는 기존 Excel current descriptor에서 source binding 유무에 관계없이 명시 거부한다. bound 경로의 공통 drill parser가 새 필드를 우연히 받아 일부 조건만 반영한 파일을 생성하지 않도록 검증한다. 지원하지 않는 descriptor는 기존400 입력 오류이며 조건을 버린 전체 export 성공으로 바꾸지 않는다. Target Excel 필터·시트 및 전용 기간 projection 공개는 후속 #622다. [API](API.md), [R2 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+R2 당시 Target 필터/`projectionOrder` current descriptor는 bound 여부와 관계없이400으로 거부했다. 현재 #622는 strict parser·same-binding/member·snapshot·원시 총계 검증을 갖춰 해당 조건을 지원한다. unknown descriptor/잘못된 조건은 계속400이며 일부 조건을 버린 export 성공을 반환하지 않는다. [API](API.md), [R2 원장](exec-plans/active/ISSUE_620.md)을 참조한다.

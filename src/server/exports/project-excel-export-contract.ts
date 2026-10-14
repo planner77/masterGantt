@@ -76,8 +76,6 @@ export function parseResourceExcelOptions(value: unknown): ResourceExcelExportOp
   if (input.basis !== "current") throw new Error("Invalid report basis");
   const expected = strictObject(input.expectedReport, ["context", "snapshotId", "filters"]);
   if (typeof expected.snapshotId !== "string" || !/^[a-f0-9]{64}$/.test(expected.snapshotId)) throw new Error("Invalid snapshot");
-  // Target Excel projections are a separate #622 capability, including exact-source exports.
-  if (expected.filters && typeof expected.filters === "object" && [...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"].some(key => Object.hasOwn(expected.filters as object, key))) throw new Error("Target Resource export is unsupported");
   const context = parseResourceDrillSourceContext(expected.context);
   let binding: ResourceExcelSourceBinding | undefined;
   let filters;
@@ -86,7 +84,7 @@ export function parseResourceExcelOptions(value: unknown): ResourceExcelExportOp
     const checked = parseResourceDrillQuery({ sourceContext: original.sourceContext, scope: original.scope, filters: expected.filters, projection: { kind: "report" } });
     binding = { sourceContext: checked.sourceContext, scope: checked.scope }; filters = checked.filters;
   } else {
-    const filter = strictObject(expected.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm"]);
+    const filter = strictObject(expected.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", "mdPerMm", ...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"]);
     const params = new URLSearchParams();
     for (const [key, field] of Object.entries(filter)) {
       if (Array.isArray(field)) { if (field.some(item => typeof item !== "string")) throw new Error("Invalid filters"); if (field.length) params.set(key, field.join(",")); }

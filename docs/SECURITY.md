@@ -1,5 +1,11 @@
 # Security
 
+## Issue #622 — Target Plan·Resource Excel 안전 경계
+
+기존 public read Plan/detail의 Target/member 근거는 같은 Project read guard·snapshot·bounded page/source/JSON 검증 안에서 제공한다. 선택 밖 Project 참고도 같은 Capacity R의 해당 Project 배정이며 전사 Resource 정보를 조회하지 않는다. 정확 Assignment 수정은 기존 session/Origin/strong If-Match·canonical Task/개인 ID 검증을 그대로 사용한다.
+
+Resource Excel opt-in의 Target 조건은 공통 strict parser로 검증하고 source/current context와 Target/master fingerprint를 같은 read transaction에서 확인한다. stale는 공개 export412로 전체 실패한다. Plain Target-bearing 일정/JSON의 손실 방지는 유지하며 보고서 opt-in만 명시 current/project 근거를 append한다. Target label/분류 문자열은 inlineStr/XML escape·문자 한도·불허 문자 검사로 보호하고 formula/매크로/외부 workbook 관계를 생성하지 않는다. 기존 읽기/편집 권한·no-store/nosniff·본문8KiB 및 row/cell/XML/ZIP·원본/응답 예산을 높이지 않는다. 안전 회귀와 환경별 미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
 ## Issue #538 — Project master relation mutation
 
 `POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.

@@ -281,6 +281,8 @@ export function readPlanDetails(
     assignmentId: id,
     taskId: id,
     resourceId: id,
+    resourceActive: z.boolean().optional(),
+    targetSources: z.object({ taskId: id, bindings: z.array(z.unknown()), inheritedBindings: z.array(z.unknown()), effectiveMembers: z.array(z.unknown()), legacySources: z.array(z.unknown()), effectiveEquipmentIds: z.array(id), effectiveSystemIds: z.array(id), effectiveTargetIds: z.array(id) }).passthrough().optional(),
     milestoneTaskId: id.nullable(),
     date,
     allocationPercent: nullable,

@@ -1,3 +1,10 @@
+## [Unreleased] — 0.114.0 / Issue #622 Target Resource Plan·과투입·Excel (2026-10-14)
+
+- Target/공정/WorkArea/typed instance 조건의 선택 기여와 같은 Capacity 개인의 Project 전체 참고를 Plan·일별 정확 Assignment 상세에 연결한다. 기존 R/Resource Calendar·일별 Peak/초과·unknown 및 raw/nonadditive/null 의미를 유지한다.
+- 선택 밖 원인 Assignment는 기존 정확 Editor에서 편집·복귀하고 새 snapshot으로 재검증한다. 새 공수 원장·계산 엔진·Gantt 인스턴스는 없다.
+- 기존 Resource Excel current/project를 Target 조건·분류/근거와 같은 raw M/D·M/M·revision으로 확장한다. 고유 Assignment 총계·비가산 소계·수량 비승산·관련 계획공수/원가배분 구분과 formula/stale/권한/예산 보호를 유지한다. Plain Target-bearing 일정/JSON의 무손실 교환 지원은 별도다.
+- 후보 minor이며 exact-head Required CI/Trusted QA·Owner HIGH 위험 수용·명시 병합 허가 및 정식 릴리스는 별도다. release_required=true/release_authorized=false, 원격 검증 NOT TESTED. 실제 로컬 실행/미검증은 #622 Work Packet을 따른다.
+
 ## [Unreleased] — 0.113.0 / Issue #621 Resource–Target 보기·동일 원본 편집 (2026-10-14)
 
 - PR #683 CI #2764.1에서 반복된 #463 Week 초기 수평120→0 Core/native 경합을 계측·분리한다. 기존 단일 dev-only `DIAGNOSTIC_SCROLL`의 공개 SVAR scroll-chart/3연속 Core·DOM settle로 pending peer 입력 테스트의 준비 좌표를 구성하며, 기존 별도 native scroll 테스트·실제 trusted 검색 취소·120/96 strict/권한·scope·인스턴스 회귀를 완화하지 않는다. 정확한 최초 0 writer는 미확정으로 원장에 보존하고 새 전체 CI 성공은 NOT TESTED.

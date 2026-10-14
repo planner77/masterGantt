@@ -1,5 +1,11 @@
 # Logistics Target 계약 — F0 (#614)
 
+## Issue #622 — Resource Plan·Excel에서의 Target 근거
+
+R4는 기존 Target/member/binding·same-binding/member projector를 기간 Plan과 Resource Excel 보고서에 연결한다. 선택 Target는 개인 Assignment 기여만 제한하며 Capacity R·같은 개인의 Project 전체 부하는 줄이지 않는다. 일별 전체 참고 원인에는 선택 밖 Target/legacy 미연결 Task도 포함하고 출발 선택과 현재 참고 scope를 구별한다.
+
+Excel의 관련 계획공수는 원가 배분이 아니며 Equipment 수량·coverage·Task progress를 곱하지 않는다. 같은 Assignment가 여러 Target/member/provenance에 나타나도 원시 공수 총계는 고유 Assignment union이다. Target 미연결, WorkArea 미사용, project_common, legacy 직접 연결과 provenance를 안정 ID로 구분한다. 보고서와 plain 일정/JSON Import·무손실 backup 지원은 다르다. 기존 #617/#620/#621 후속 표기의 R4 범위는 본 절과 [EXCEL_EXPORT](EXCEL_EXPORT.md)로 갱신하며 #623/#624는 별도다. 실제 실행과 미검증은 [Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다.
+
 상위 [Epic #613](https://github.com/planner77/masterGantt/issues/613). 기준은 2026-10-11 main `cbc73740236f3b3e177e2ed3196a0d02a292c741`, application `0.104.4`, `@svar-ui/react-gantt 2.7.3`다. 이 문서는 **후속 구현의 확정 설계 계약**이며 F0에서 runtime/SQL/API/UI를 추가하지 않는다. 실행 순서·담당·Gate는 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md), 이번 증거는 [#614 Work Packet](exec-plans/active/ISSUE_614.md)에서 관리한다.
 
 ## R3 화면·편집 경계 — Issue #621

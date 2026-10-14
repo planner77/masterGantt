@@ -4,7 +4,7 @@ import {
   resourceProjectionFetch,
   planScopeProjection,
 } from "./resource-drill-transport";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type {
   ResourceDashboardDto,
   ResourcePlanDetailsDto,
@@ -39,17 +39,19 @@ export function ResourcePlanDetails({
   onClose: () => void;
   unit: "md" | "mm";
 }) {
-  const { binding, onSchedule, onOpenTask, locked } = useResourceDrill();
+  const { binding, onSchedule, onOpenTask, onOpenAssignment, locked } = useResourceDrill();
   const [steps, setSteps] = useState([initial]),
     [result, setResult] = useState<ResourcePlanDetailsDto | null>(null),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
     [loading, setLoading] = useState(true),
-    [loadedQuery, setLoadedQuery] = useState("");
+    [loadedQuery, setLoadedQuery] = useState(""),
+    [confirmationId, setConfirmationId] = useState("0");
   const operationTrigger = useRef<HTMLElement | null>(null);
   const heading = useRef<HTMLHeadingElement>(null),
     generation = useRef(0),
-    current = steps[steps.length - 1],
+    storedStep = steps[steps.length - 1];
+  const current = useMemo(() => ({ ...storedStep, input: { ...storedStep.input, snapshotId: data.snapshotId } }), [storedStep, data.snapshotId]),
     query = planDetailQuery(data, current.input).toString();
   useLayoutEffect(() => {
     heading.current?.focus();
@@ -90,12 +92,13 @@ export function ResourcePlanDetails({
         const value = readPlanDetails(body, data, current.input, current.kind);
         if (!value) throw Error("INVALID_RESPONSE");
         setResult(value);
+        setConfirmationId(`${data.snapshotId}:${id}:${performance.now()}`);
         setLoadedQuery(query);
         setLoading(false);
       } catch (e) {
         if (!disposed && !abort.signal.aborted && id === generation.current) {
           setError(
-            dashboardError(e instanceof Error ? e.message : "REQUEST_FAILED"),
+            e instanceof Error && e.message === "INVALID_SELECTION" ? "선택 근거가 최신 조건에서 제외되었습니다. 기간 상세를 닫고 현재 Plan에서 다시 선택해 주세요." : dashboardError(e instanceof Error ? e.message : "REQUEST_FAILED"),
           );
           setLoading(false);
         }
@@ -106,6 +109,7 @@ export function ResourcePlanDetails({
       abort.abort();
     };
   }, [data, current, query, stale, active, onStale, retry, binding]);
+  const targetLabel = (id: string) => `${data.targetProjection?.catalog.find(target => target.dimension === "target" && target.id === id)?.name ?? (id === "unassigned" ? "Target 미연결" : "Target")} · ${id}`;
   const back = () =>
     steps.length > 1 ? setSteps((s) => s.slice(0, -1)) : onClose();
   const next = (date: string, resourceId?: string, name?: string) => {
@@ -134,6 +138,9 @@ export function ResourcePlanDetails({
     <section
       className="resource-plan-detail"
       aria-label="기간 부하 상세"
+      data-detail-state={stale ? "stale" : error ? "error" : loading || loadedQuery !== query ? "loading" : "ready"}
+      data-detail-confirmation-id={!stale && !loading && !error && loadedQuery === query ? confirmationId : "0"}
+      data-projection-detail-key={JSON.stringify({ ...current.input, snapshotId: undefined })}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
@@ -148,9 +155,10 @@ export function ResourcePlanDetails({
       <p className="resource-dashboard-hint">
         {current.input.demandScope === "project"
           ? "동일 개인의 현재 Project 전체 참고"
-          : "선택 Milestone·Task 기여"}{" "}
+          : "선택 Target·Milestone·Task 기여"}{" "}
         · {current.input.periodId} · Capacity는 유효 근무일1 M/D
       </p>
+      <p className="resource-dashboard-hint">출발 선택 Target: {data.filters.targetIds?.map(targetLabel).join(" / ") || "전체"} · 현재 근거: {current.input.demandScope === "project" ? "같은 Capacity 개인·기간의 Project 전체 (선택 Target 밖 배정 포함)" : "출발 선택 조건"} · 기준 revision {data.projectRevision}</p>
       <div className="resource-dashboard-pagination">
         {steps.length > 1 ? (
           <button type="button" onClick={back}>
@@ -183,7 +191,7 @@ export function ResourcePlanDetails({
       ) : null}
       <button
         type="button"
-        disabled={stale || locked || !onSchedule || loading}
+        disabled={stale || locked || !onSchedule || loading || loadedQuery !== query || !!error}
         onClick={(event) =>
           onSchedule?.({
             data,
@@ -233,10 +241,11 @@ export function ResourcePlanDetails({
               <tbody>
                 {result.view === "day-assignments"
                   ? result.rows.map((row) => (
-                      <tr key={row.assignmentId}>
+                      <tr key={row.assignmentId} data-canonical-task-id={row.taskId} data-canonical-assignment-id={row.assignmentId}>
                         <th scope="row">
                           <button
                             type="button"
+                            data-resource-action="task"
                             disabled={stale || locked || !onOpenTask}
                             onClick={() => onOpenTask?.(row.taskId)}
                           >
@@ -244,6 +253,7 @@ export function ResourcePlanDetails({
                           </button>
                           <button
                             type="button"
+                            data-resource-action="task-schedule"
                             disabled={stale || locked || !onSchedule}
                             onClick={(event) =>
                               onSchedule?.({
@@ -262,6 +272,8 @@ export function ResourcePlanDetails({
                           >
                             이 Task 일정
                           </button>
+                          <button type="button" data-resource-assignment-edit disabled={stale || locked || !onOpenAssignment || row.resourceActive !== true} title={row.resourceActive !== true ? "비활성 또는 상태 미확인 개인 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignmentId, row.resourceId, event.currentTarget)}>배정 편집: {data.catalog.resources.find(resource => resource.id === row.resourceId)?.name ?? row.resourceId}</button>
+                          {row.targetSources ? <small>현재 배정 Target: {row.targetSources.effectiveTargetIds.map(targetLabel).join(" / ") || "Target 미연결"} · 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy {row.targetSources.legacySources.length}</small> : null}
                           <small>
                             {row.externalId} · Assignment {row.assignmentId}
                           </small>

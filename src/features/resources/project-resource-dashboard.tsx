@@ -14,7 +14,6 @@ import type {
   ResourceDashboardSelector,
   ResourceDashboardSummary,
 } from "@/contracts/resource-dashboard";
-import { RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
 import { dashboardQuery, plannedEffort } from "./resource-dashboard-model";
 import { useResourceDashboard } from "./use-resource-dashboard";
 import { ResourceDashboardDetails } from "./resource-dashboard-details";
@@ -93,7 +92,7 @@ export function ProjectResourceDashboard({
   const filterTrigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const normalized = useMemo(
-    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}), projectionOrder: view === "targets" ? (targetLayout === "matrix" ? [targetMatrixAxis, "target"] : targetOrder === "target" ? ["target", "group", "resource"] : ["group", "resource", "target"]) as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : filters.projectionOrder }),
+    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}), projectionOrder: view === "targets" ? (targetLayout === "matrix" ? [targetMatrixAxis, "target"] : targetOrder === "target" ? ["target", "group", "resource"] : ["group", "resource", "target"]) as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : view === "plan" ? ["resource", "target"] as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : filters.projectionOrder }),
     [filters, view, granularity, targetLayout, targetOrder, targetMatrixAxis],
   );
   const validDates = !(filters.from && filters.to && filters.from > filters.to);
@@ -101,7 +100,6 @@ export function ProjectResourceDashboard({
   const detailTrigger = useRef<HTMLElement | null>(null);
   const queryKey = dashboardQuery(normalized).toString();
   const stateKey = dashboardQuery(filters).toString();
-  const targetExportUnsupported = normalized.projectionOrder !== undefined || RESOURCE_TARGET_FILTER_KEYS.some(key => normalized[key]?.length);
   const report = useResourceDashboard(
     publicId,
     revision,
@@ -381,10 +379,8 @@ export function ProjectResourceDashboard({
       {selectionNotice ? <p role="status">{selectionNotice}</p> : null}
       <div className="resource-dashboard-toolbar">
         <h2 id="resource-dashboard-heading">리소스 공수</h2>
-        <button type="button" className="secondary-button" disabled={refreshDisabled || targetExportUnsupported}
-          title={targetExportUnsupported ? "Target 범위 Excel은 후속 #622에서 지원합니다." : undefined}
+        <button type="button" className="secondary-button" disabled={refreshDisabled}
           onClick={event => exportContext.onExport?.(event.currentTarget)}>Excel 보고서</button>
-        {targetExportUnsupported ? <small>Target 범위 Excel은 후속 #622에서 지원합니다.</small> : null}
         <div
           className="project-gantt-scale-controls"
           role="group"
@@ -908,7 +904,7 @@ export function ProjectResourceDashboard({
           {report.planData ? (
             <div hidden={view !== "plan"} inert={view !== "plan"}>
               <FocusRestoreBoundary
-                key={`${report.planData.snapshotId}:plan`}
+                key="plan"
                 onRestore={() => search.current?.focus({ preventScroll: true })}
               >
                 <ResourcePlanView

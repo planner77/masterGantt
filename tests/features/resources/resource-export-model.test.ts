@@ -88,6 +88,17 @@ describe("Resource Excel export evidence", () => {
     const captured = captureResourceExportLease(lease); lease.report.filters.search = "new";
     expect(captured.report.filters.search).toBe("");
   });
+  it("preserves Target taxonomy exactly for current and removes it for explicit Project export", () => {
+    const { lease } = evidence();
+    Object.assign(lease.report.filters, { targetIds: ["target-a"], projectProcessIds: ["process-a"], workAreaIds: ["work-area-a"], memberSystemIds: ["acs-a"], systemTypeCodes: ["acs"], projectionOrder: ["resource", "target"] });
+    const before = structuredClone(lease);
+    const current = resourceExportIntent(lease, "current", ["week", "month"]);
+    expect(current.expectedReport).toHaveProperty("filters.targetIds", ["target-a"]);
+    expect(current.expectedReport).toHaveProperty("filters.memberSystemIds", ["acs-a"]);
+    expect(current.expectedReport).toHaveProperty("filters.projectionOrder", ["resource", "target"]);
+    expect(resourceExportIntent(lease, "project", ["week"]).expectedReport).not.toHaveProperty("filters");
+    expect(lease).toEqual(before);
+  });
   it("rejects zero, duplicate or excessive period choices", () => {
     const { lease } = evidence();
     for (const choices of [[], ["week", "week"], ["week", "month", "week"]] as const)

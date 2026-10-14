@@ -123,7 +123,7 @@ export class ResourceDashboardService {
       if (!period || (detail.date !== undefined && (detail.date < period.from || detail.date > period.to))) invalidSelection();
       this.validatePlanRow(snapshot, plan, detail.selector);
       const page = { offset: detail.offset, limit: detail.limit };
-      const context = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1" as const, ...detail, projectPublicId: publicId, projectRevision: snapshot.project.revision,
+      const context = { resourceScopeContext: this.sourceContext(snapshot, { kind: "report" }), ...this.planTargetContext(snapshot), resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1" as const, ...detail, projectPublicId: publicId, projectRevision: snapshot.project.revision,
         catalogRevision: snapshot.catalogRevision, calendarRevision: snapshot.calendarRevision, filters: snapshot.filters, range: { from: snapshot.from, to: snapshot.to },
         asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource };
       let result: ResourcePlanDetailsDto;
@@ -135,9 +135,10 @@ export class ResourceDashboardService {
         result = { ...context, view: kind, ...data, rows: data.rows.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId) })) };
       } else {
         const data = planCall(() => getResourcePlanDayAssignments(plan, { row: detail.selector, date: detail.date!, demandScope: detail.demandScope }, page));
+        if (wantsTargets(snapshot.filters)) this.assertTargetSourceBudget(snapshot, data.rows.map(row => row.taskId));
         result = { ...context, view: kind, ...data, rows: data.rows.map((row) => {
           const task = snapshot.taskById.get(row.taskId)!, assignment = snapshot.assignmentById.get(row.assignmentId)!;
-          return { ...row, taskName: task.name, externalId: task.externalId, taskStart: task.startDate, taskEnd: task.endDate,
+          return { ...row, resourceActive: snapshot.resourceById.get(row.resourceId)!.active, ...(wantsTargets(snapshot.filters) ? { targetSources: snapshot.domain.logistics!.resolved.get(row.taskId)! } : {}), taskName: task.name, externalId: task.externalId, taskStart: task.startDate, taskEnd: task.endDate,
             assignmentStart: assignment.assignmentStart, assignmentEnd: assignment.assignmentEnd, milestoneName: row.milestoneTaskId === null ? "Milestone 미지정" : snapshot.taskById.get(row.milestoneTaskId)!.name, wbsPath: snapshot.paths.get(row.taskId)! };
         }) };
       }
@@ -315,8 +316,36 @@ export class ResourceDashboardService {
         return { assignmentId: row.assignmentId, taskId: row.taskId, taskName: task.name, resourceId: row.targetId, resourceName: resource.name, groupIds: snapshot.groupIdsByResource.get(row.targetId) ?? [], roles: resource.roles,
           assignmentStart: row.start ?? null, assignmentEnd: row.end ?? null, effectiveFrom, effectiveTo, allocationPercent: null, overlapsRange: effectiveFrom <= snapshot.to && effectiveTo >= snapshot.from };
       });
-      return { basis: options.basis, sourceContext: actual, ...(options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) ? { originalSourceContext: options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) } : {}), ...(scope ? { scope } : {}), report, plans, assignments, quality: { scope: "T0-before-personal-filters", tasks, unsetAssignments } } as ResourceExcelReportBundle;
+      let targetData: ResourceExcelReportBundle["targetData"];
+      if (snapshot.targetSnapshot.logistics.targets.length || snapshot.targetSnapshot.logistics.legacy.length || RESOURCE_TARGET_FILTER_KEYS.some(key => snapshot.filters[key]?.length)) {
+        const full = this.planInput(calculated).fullProjectAssignments;
+        const taskIds = [...new Set([...selection.t0.map(row => row.taskId), ...full.map(row => row.taskId)])].sort();
+        this.assertTargetSourceBudget(snapshot, taskIds, RESOURCE_TARGET_LIMITS.provenancePaths);
+        const enriched = (row: ResourceKpiAssignmentRow): ResourceExcelAssignmentRow => {
+          const detail = this.detailRow(snapshot, row.taskId, row), task = snapshot.taskById.get(row.taskId)!;
+          return { ...detail, assignment: detail.assignment!, targetSources: snapshot.domain.logistics!.resolved.get(row.taskId)!, delayed: task.progress! < 100 && task.endDate! < snapshot.asOfDate };
+        };
+        targetData = { projection: report.targetProjection ?? this.renderTargets(calculated), graph: snapshot.targetSnapshot.logistics,
+          taskSources: taskIds.map(id => snapshot.domain.logistics!.resolved.get(id)!), projectAssignments: full.map(enriched) };
+        for (const row of assignments) row.targetSources = snapshot.domain.logistics!.resolved.get(row.taskId)!;
+      }
+      return { basis: options.basis, sourceContext: actual, ...(options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) ? { originalSourceContext: options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) } : {}), ...(scope ? { scope } : {}), report, plans, assignments, ...(targetData ? { targetData } : {}), quality: { scope: "T0-before-personal-filters", tasks, unsetAssignments } } as ResourceExcelReportBundle;
     })();
+  }
+  private planTargetContext(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>) {
+    return wantsTargets(snapshot.filters) ? { targetContext: {
+      filters: Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder" as const].filter(key => snapshot.filters[key] !== undefined).map(key => [key, snapshot.filters[key]])),
+      measure: "related planned effort" as const, subtotalsAdditive: false as const,
+      projectReferenceScope: "same Capacity R and period; Target/Task/Milestone/source restrictions removed" as const,
+    } } : {};
+  }
+  private assertTargetSourceBudget(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, taskIds: readonly string[], limit: number = RESOURCE_TARGET_LIMITS.responseSourceRows) {
+    let count = 0;
+    for (const id of taskIds) {
+      const source = snapshot.domain.logistics!.resolved.get(id)!;
+      count += source.bindings.length + source.inheritedBindings.length + source.legacySources.length + source.effectiveMembers.reduce((sum, member) => sum + 1 + member.provenance.length, 0);
+      if (count > limit) resourceDashboardLimit("projection.detailTargetSources");
+    }
   }
   private planPerson(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, resourceId: string): ResourcePlanPersonMetadata {
     const resource = snapshot.resourceById.get(resourceId)!;
@@ -356,7 +385,7 @@ export class ResourceDashboardService {
   }
   private renderPlan(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>): ResourceDashboardPlanDto {
     const { snapshot } = calculated, raw = planCall(() => calculateResourcePlan(this.planInput(calculated)));
-    return { ...raw, resources: raw.resources.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId), milestones: row.milestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((milestone) => ({ ...milestone,
+    return { ...raw, ...this.planTargetContext(snapshot), resources: raw.resources.map((row) => ({ ...row, ...this.planPerson(snapshot, row.resourceId), milestones: row.milestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((milestone) => ({ ...milestone,
       name: milestone.milestoneTaskId === null ? "Milestone 미지정" : snapshot.taskById.get(milestone.milestoneTaskId)!.name, scheduledDate: milestone.milestoneTaskId === null ? null : snapshot.taskById.get(milestone.milestoneTaskId)!.startDate })) })),
       groups: raw.groups.filter((row) => this.visiblePlanGroup(snapshot, row.groupId)).map((row) => { const group = snapshot.groups.find((group) => group.publicId === row.groupId); return { ...row, name: group?.name ?? "미분류 리소스", code: group?.code ?? null, active: group?.active ?? true }; }),
       metadata: { ...raw.metadata, limits: RESOURCE_PLAN_LIMITS, populationScope: "ordinary-task-personal-assignment-history-classification-only", groupDisplayScope: "selected-group-and-activity" } };

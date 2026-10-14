@@ -1,5 +1,15 @@
 # Resource KPI 공통 집계 계약
 
+## Issue #622 — Target 조건 Plan·Project 과투입·Excel
+
+서비스의 기존 Plan 입력 구성과 Resource Plan 엔진을 사용하며 Domain `selectResourceTargetPlanScope` adapter도 같은 계약으로 회귀 검증한다. Target/공정/WorkArea/typed instance는 선택 Task/Assignment 기여만 제한하며 R는 Project 일반 Task 개인 배정 이력과 개인 분류 조건으로 정한다. 같은 개인·기간의 선택80%와 Project140%를 구별하고 선택 밖 원인도 전체 참고 상세에서 확인한다. Project 참고는 같은 R의 해당 Project 배정이며 전사 Capacity가 아니다.
+
+Capacity는 고유 resource-day다. Group 평균95%여도 개인140%와 일별150%→0%의 Peak/초과를 유지한다. Target/Group/Milestone의 반복 소계·Capacity·기간별 distinct 인원/Assignment는 합산하지 않고 전체 집합에서 재계산한다. Resource Calendar 우선순위·inclusive 기간·M/M 명시 환산·configured0/partial/unset/empty·분모0을 유지하며 수량이나 progress로 계획공수를 변경하지 않는다.
+
+Plan의 일별→개인→정확 Assignment 상세에 동일 snapshot의 Task/Target 출처와 출발 선택·현재 selected/project 범위를 전달한다. 선택 밖 Assignment 편집도 기존 #621의 정확 개인 Editor 및 공통 복귀 경로를 사용한다. Excel current는 동일 조건/source/snapshot, project는 명시 전체 조건으로 서버 raw 결과를 출력한다. 추가 근거 sheet와 안전/예산 계약은 [EXCEL_EXPORT](EXCEL_EXPORT.md)를 따른다. 기존 #621/#620의 #622 미지원 표기는 당시 단계의 경계이며 본 절의 실제 구현으로 대체된다.
+
+실행·미검증 및 AC별 증거는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다. 로컬 회귀·사전 검토는 exact-head 원격 Required CI·Trusted QA·Owner 최종 승인을 대체하지 않는다.
+
 ## Issue #621 — Resource–Target 보기와 동일 원본 편집
 
 기존 `리소스` 탭에서 Target 계층·역방향·교차표를 조회한다. Resource 우선은 Group→Resource→Target, Target 우선은 Target→Group→Resource이며 마지막 상세는 고유 Task 또는 원시 Assignment다. 비교 행은 Group/Resource, 열은 Target이다. 기존 기본 현황·Milestone 계층/비교·Resource Plan을 유지한다. #620의 같은 server filter와 `projectionOrder`/`targetPath` selector를 사용하며 화면에서 공수를 다시 계산하지 않는다.
@@ -20,7 +30,7 @@ Target 비교의 지표는 관련 계획 공수·Task·완료·지연·진척이
 
 재활성화 직후의 이전 report/detail ready는 새 조회 완료와 구별한다. 현재 report와 정확 상세의 확인 receipt가 준비된 뒤 focus를 복원하며, 새 report에 속하지 않은 이전 상세의 명령은 즉시 잠근다. 새로운 사용자 입력은 대기 중 복귀보다 우선한다. 이 준비 정보는 UI readiness일 뿐 서버 snapshot/selector 검증이나 authorization을 대체하지 않는다.
 
-Target별 주/월 Plan 및 Excel 확장은 #622다. Target 조건/projectionOrder를 사용하는 화면은 Excel 명령을 잠그고 후속 #622 지원 예정 사유를 표시한다. 기존 Excel은 #620의 해당 조건 미지원 거부 경계를 유지하며 이 화면 추가만으로 Target workbook 지원을 주장하지 않는다. UI 동작·실제 검증과 미검증 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md) 및 [TEST_PLAN](TEST_PLAN.md)을 따른다.
+R3 당시 Target별 주/월 Plan·Excel은 #622 후속으로 분리했다. 현재 R4의 동일 Target 조건 Plan 상세·Excel 지원은 위 #622 절과 EXCEL_EXPORT 계약을 따른다. R3 구현만의 과거 증거를 R4 workbook 검증으로 사용하지 않는다. UI 동작·실제 검증과 미검증 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md) 및 [TEST_PLAN](TEST_PLAN.md)을 따른다.
 
 ## Issue #620 — R2 Resource–Target 보고 API
 
