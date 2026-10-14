@@ -1,5 +1,16 @@
 # Resource KPI 공통 집계 계약
 
+## Issue #620 — R2 Resource–Target 보고 API
+
+R1의 pure Target 계산을 기존 report/detail/drill 서비스에 선택적으로 연결한다. HTTP query와 compact node/path selector의 authority는 [API](API.md)와 `src/contracts/resource-dashboard.ts`다. `resource-dashboard/1`은 optional `targetProjection` 및 details `targetSources`를 추가하며 새 Target 조건 없는 요청은 기존 구조·의미를 유지한다. 기존 Plan의 선택 demand는 공통 Target 조건 교집합을 지원하며 R 및 전체 Project 참고 부하는 보존한다. 새 UI·Target별 기간 행/전용 selector·Excel 시트 확장은 #621/#622다.
+
+Target·공정 occurrence/Process Type·WorkArea·typed member/type·legacy 직접 instance를 필터링하고 projection 순서만 바꾸어 Group/Resource/Target 보기를 만든다. 소계는 비가산이며 Grand Total은 선택된 A 원시 Assignment 합집합이다. T0 관련 member/미배정 진단과 A 개인 기여, full canonical Project 참고를 명시한다. 프로젝트 전체 참고는 source exact restriction을 적용한 선택 전체와 다르며 메타데이터와 `drill.targetProjectReferenceScope`로 범위를 밝힌다. 기존 Plan의 same-R 참고는 `drill.projectReferenceScope`로 별도 보존한다. full canonical 참고 상세는 `dimension=all/assignmentScope=projectReference`로 명시 요청하며 source·사용자 필터를 제거한 참고 범위다. 선택 A의 exact 교집합 상세와 혼용하지 않는다. 페이지/접힘·표시행은 전체 집계 집합을 바꾸지 않는다.
+
+동일 SQLite read transaction과 referential fingerprint로 Target 구성·binding·legacy link·Project 공정 매핑·관련 master 이름/active 변경을 감지한다. 원본 report의 `snapshotId` 또는 source data context가 낡으면 details/drill에서409다. exact source Assignment와 현재 Target 조건만 교차하며 공동담당자의 다른 Assignment를 가져오지 않는다. Task 상세는 distinct Task, Assignment 상세는 원시 할당으로 구별하고 provenance는 page 및 예산 안에서 제공한다.
+
+같은 binding/member·개인 Assignment 조건, legacy Target 무추론, Target 미연결/legacy-only/무구역/공통/미매핑·null/partial를 유지한다. 기존366일/2MiB·bounded page·ID token 한도와 추가 snapshot/fan-out/cell 예산을 적용하며 부분절삭 합계를 반환하지 않는다. 실제 SQL plan/시간/bytes·focused 테스트·원격 미검증 경계는 [R2 검증 원장](exec-plans/active/ISSUE_620.md)에 기록한다.
+
+
 ## Issue #619 — Target Resource KPI R1 Domain 계약
 
 R1은 기존 pure KPI 계산기에 Target 분석을 추가한다. HTTP `resource-dashboard/1`·details·plan·Excel DTO/selector/query parser는 바꾸지 않는다. 새 분석을 사용자 화면에서 사용할 수 있다는 뜻이 아니며 #618/#620~#622 및 #623 제품 수용은 별도다. 구체 typed 입력은 `src/domain/resources/resource-kpi-targets.ts`와 기존 `resource-kpi.ts`가 authority다. 원시 Assignment는 복제하지 않는다.

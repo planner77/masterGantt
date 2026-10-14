@@ -1,5 +1,12 @@
 # Requirements baseline
 
+## Issue #620 — Resource–Target 보고 API
+
+기존 Resource 보고 API는 Target·공정 occurrence/Process Type·WorkArea·typed instance 조건과 Group/Resource/Target projection을 선택적으로 지원한다. 같은 binding/member 및 같은 개인 Assignment 조건, T0 미배정 진단, null/partial·중첩 소계와 distinct 전체를 보존한다. Target 없는 기존 호출은 하위 호환이며 legacy 직접 shared MCS를 Target 연결로 추정하지 않는다.
+
+Task/Assignment와 Target·기준정보를 동일 read transaction에서 읽고 참조 fingerprint를 report/detail/drill 공통 identity에 포함한다. 이전 report와 변경된 Target/master를 섞어 성공하지 않고 stale409로 재조회한다. exact Assignment drill은 source 교집합을 유지하며 공동담당자를 추가하지 않는다. 예산 초과는 절삭 총계 없이422로 거부하고 기존 public read 및 보호 mutation 경계를 유지한다. 기존 Plan 선택 demand는 Target 교집합을 반영하되 R/전체 Project 부하를 보존한다. 새 UI·Target별 Plan 행·Excel 시트 및 종단 수용은 별도 #621~#623이며 [API](API.md), [R2 Work Packet](exec-plans/active/ISSUE_620.md)의 실행 상태를 따른다.
+
+
 ## Issue #619 — Target 관련 계획 공수 분석
 
 기존 Resource KPI 계산은 한 Project canonical Task/개인 Assignment/Resource 분류/Calendar 및 #617 Target binding 해석 결과에 Target·공정·WorkArea·typed instance 조회 축을 추가한다. 같은 Target binding 안에서 member 조건을 만족해야 하며 ACS-only subset을 같은 Target의 AMR로 확대하지 않는다. 같은 축은 OR, 다른 축은 AND이고 개인 Group/Role/grade는 같은 개인 Assignment 조건이다.

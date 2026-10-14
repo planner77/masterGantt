@@ -300,3 +300,11 @@ Task/Summary의 물류 Editor에서 복수 Target, whole/subset, self/Summary su
 변경 전 whole/subset 영향·관련 작업·공유 사용 현황을 확인하고 서버 impact/revision 검증으로 stale 및 삭제 충돌을 차단한다. 401/412·조회 실패와 늦은 응답에서 dirty 초안을 자동 교체하지 않는다. 공통 master는 다른 관리자 권한·별도 저장이며 Project 취소로 이미 저장된 master가 취소되었다고 표시하지 않는다. 구현/실행 증거는 [F4 Work Packet](exec-plans/active/ISSUE_618.md)에 기록하며 원격 전체 회귀/Owner 승인 전 F4 최종 완료를 주장하지 않는다.
 
 F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.
+
+## Issue #620 — R2 Target 보고 API 구현 경계
+
+R2는 기존 Resource report/details/group-children/drill에 #619 pure Target projection을 연결한다. 기존 optional HTTP 확장과 public ID·type code·`unassigned` null 인코딩, compact `targetProjection`/`targetPath`/details `targetSources`는 [API](API.md)를 따른다. 기존 Plan 선택 demand는 Target 교집합을 지원하되 R 및 전체 Project 부하는 유지한다. Target별 기간 행/전용 selector·Excel 시트 확장은 #622다. 새로운 데이터 서비스나 공수 원장·물류 Dashboard를 만들지 않으며 R1의 조회 grain·출처·같은 binding/member 조건을 유지한다.
+
+Target/member/binding과 Project 공정 매핑·관련 occurrence/Process Type/WorkArea/type master 이름 및 active 참조를 Task/Assignment/Calendar와 같은 SQLite read transaction에서 읽어 fingerprint에 포함한다. revision 없는 raw 참조 변경도 stale detail을 성공시키지 않는다. Target 미연결과 legacy 직접 shared MCS는 별개이고 T0 미배정 진단을 개인 조건으로 제거하지 않는다. inactive 기존 연결의 읽기와 새 mutation 선택 허용은 별개다.
+
+소계는 비가산, 선택 전체는 distinct Assignment, 전체 Project 참고는 명시된 별도 범위다. bounded selector로 상세를 재조회하고 source exact Assignment와 destination Target 조건의 교집합을 유지한다. 기존2MiB/366일·page 한도를 유지하며 snapshot/fan-out/provenance/cell 예산은 materialization 전에 거부한다. 실제 검증 상태와 남은 #621~#623 공개·수용은 [R2 Work Packet](exec-plans/active/ISSUE_620.md)을 따른다.

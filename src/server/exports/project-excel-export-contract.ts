@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseResourceDrillQuery, parseResourceDrillSourceContext } from "../resources/resource-drill-query-core";
+import { RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
 import { parseResourceDashboardQuery } from "../resources/resource-dashboard-query-core";
 import type { ResourceExcelExportOptions, ResourceExcelSourceBinding } from "../../contracts/resource-excel-export";
 import type { ApiErrorDetail } from "@/contracts/projects";
@@ -75,6 +76,8 @@ export function parseResourceExcelOptions(value: unknown): ResourceExcelExportOp
   if (input.basis !== "current") throw new Error("Invalid report basis");
   const expected = strictObject(input.expectedReport, ["context", "snapshotId", "filters"]);
   if (typeof expected.snapshotId !== "string" || !/^[a-f0-9]{64}$/.test(expected.snapshotId)) throw new Error("Invalid snapshot");
+  // Target Excel projections are a separate #622 capability, including exact-source exports.
+  if (expected.filters && typeof expected.filters === "object" && [...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"].some(key => Object.hasOwn(expected.filters as object, key))) throw new Error("Target Resource export is unsupported");
   const context = parseResourceDrillSourceContext(expected.context);
   let binding: ResourceExcelSourceBinding | undefined;
   let filters;

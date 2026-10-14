@@ -1,3 +1,4 @@
+import { RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
 import type { ResourceDashboardSelector, ResourcePlanDetailInput } from "../../contracts/resource-dashboard";
 import { RESOURCE_DRILL_LIMITS, type ResourceDataContext, type ResourceDrillProjection, type ResourceDrillQueryInput, type ResourceDrillScope, type ResourceDrillScopeRequest, type ResourceDrillSourceContext, type ResourceDrillSourceProjection } from "../../contracts/resource-drill";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
@@ -29,8 +30,9 @@ function paramsOf(value: Record<string, unknown>): URLSearchParams {
   return params;
 }
 function selectorParams(value: unknown): URLSearchParams {
-  const row = object(value, ["dimension", "id", "metric", "milestoneTaskId", "resourceId", "assignmentScope"]);
-  const params = paramsOf(row);
+  const row = object(value, ["dimension", "id", "metric", "milestoneTaskId", "resourceId", "assignmentScope", "targetPath"]);
+  const params = paramsOf(Object.fromEntries(Object.entries(row).filter(([key]) => key !== "targetPath")));
+  if (row.targetPath !== undefined) params.set("targetPath", JSON.stringify(row.targetPath));
   if (row.id === null) { if (row.dimension === "group") params.set("id", "ungrouped"); else if (row.dimension === "milestone") params.set("id", "unassigned"); else params.delete("id"); }
   if (row.milestoneTaskId === null) params.set("milestoneTaskId", "unassigned");
   return params;
@@ -111,7 +113,7 @@ export function parseResourceDrillQuery(value: unknown): ResourceDrillQueryInput
   else if (scope.kind === "summarySubtree") { object(scope, ["kind", "rootId"]); normalizedScope = { kind: scope.kind, rootId: uuid(scope.rootId) }; }
   else if (scope.kind === "exactAssignments") { object(scope, ["kind", "assignmentIds"]); normalizedScope = { kind: scope.kind, assignmentIds: ids(scope.assignmentIds, RESOURCE_DRILL_LIMITS.assignments) }; }
   else return invalidDashboardQuery();
-  const filters = object(input.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "mdPerMm", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses"]);
+  const filters = object(input.filters, ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "mdPerMm", "resourceActivity", "groupActivity", "resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", ...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"]);
   return { sourceContext: parseResourceDrillSourceContext(input.sourceContext), scope: normalizedScope, filters: parseResourceDashboardQuery(paramsOf(filters)), projection: parseResourceDrillProjection(input.projection) };
 }
 export function parseResourceDrillScopeRequest(params: URLSearchParams): ResourceDrillScopeRequest {

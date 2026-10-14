@@ -1,3 +1,7 @@
+## Issue #620 — Resource–Target R2 보고 API / PR CI 시작까지 (2026-10-14)
+
+[Work Packet](ISSUE_620.md). 최신 main `b19b913f` / `0.111.0`에 반영된 #617/#619를 기반으로 기존 Resource 보고/상세/exact drill을 Target·공정·WorkArea·typed instance projection으로 확장한다. Target/기준정보를 동일 transaction/fingerprint에 결속하고 source Assignment 교집합·T0/A·null/partial·비가산 소계·예산·public read 호환을 보존한다. MINOR 후보 `0.112.0`, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 실제 backend·HTTP 테스트 담당 및 read-only 사전 Reviewer를 분리한다. 구현·문서 동기화·Local Fast Feedback·사전 검토 후 PR Full CI 시작에서 멈추며 원격 결과 모니터링·병합·main/GHCR·정식 Release·Issue 종료는 수행하지 않는다. 원격 Quality/E2E/Docker·Trusted QA·최종 Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #619 — Target Resource KPI R1 (2026-10-14)
 
 - 기준 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`, app `0.109.0` → 후보 `0.110.0`, branch `feat/issue-619-target-resource-kpi`. #614 계약 및 main에 병합된 #617 단일 resolver를 재사용한다. 상세 [Work Packet](ISSUE_619.md).

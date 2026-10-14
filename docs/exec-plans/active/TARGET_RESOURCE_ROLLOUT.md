@@ -14,7 +14,7 @@
 | F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | `0.109.0` 구현 후보; #617 Work Packet, exact-Head PR CI 시작까지 / 원격 결과 NOT TESTED |
 | F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | NOT TESTED |
 | R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | R1 구현 중; #619 Work Packet / PR CI 시작까지, 결과 NOT TESTED |
-| R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | NOT TESTED |
+| R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | R2 구현 중; [#620 Work Packet](ISSUE_620.md), report/detail/exact drill·snapshot 및 문서 / PR CI 시작까지 |
 | R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | NOT TESTED |
 | R4 | [#622](https://github.com/planner77/masterGantt/issues/622) | scheduler/backend/frontend: 주·월 Plan·전체 과투입·Excel | #619/#620, UI #621 | NOT TESTED |
 | Q1 | [#623](https://github.com/planner77/masterGantt/issues/623) | qa_docs/Manager: Resource MVP 종단간·이관·운영 수용 | #614~#622 | NOT TESTED |

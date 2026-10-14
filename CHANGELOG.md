@@ -1,3 +1,10 @@
+## [Unreleased] — 0.112.0 / Issue #620 Resource–Target 보고 API (2026-10-14)
+
+- 기존 Resource report/detail/drill에 Target·공정 occurrence/Process Type·WorkArea·Equipment/System type 및 instance 필터와 compact projection/근거 selector를 추가한다.
+- Target/member/binding·공정 매핑·관련 master 이름/active를 Task/Assignment/Calendar와 같은 read snapshot/fingerprint에 결속하며 참조 변경 후 상세는 stale409로 거부한다.
+- exact source Assignment 교집합·공동담당 누출 차단·T0/A·legacy 직접 연결·중첩 소계와 distinct 전체·null/partial 및 기존366일/2MiB 예산을 보존한다. 기존 Plan 선택 demand는 Target 교집합을 반영하며 R/전체 Project 부하는 유지한다. 새 UI·Target별 기간 행·Excel 시트 확장은 후속 범위다.
+- 후보 minor version이며 PR required CI/Trusted QA·Owner 병합 승인 및 정식 릴리스는 별도다. release_required=true/release_authorized=false.
+
 ## [Unreleased] — Issue #680 Main CI #2745 테스트 전송 오류 한정 복구 (2026-10-14)
 
 - #618 병합 SHA `59fa8f9e8743e03699741a654038b3086c0e1778`의 Main CI #2745.1에서 Milestone Editor의 읽기 전용 canonical GET이 ECONNRESET으로 실패한 원본 증거를 보존한다.
