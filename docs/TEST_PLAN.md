@@ -3651,3 +3651,25 @@ R2는 기존 Resource 서비스와 #619 pure projector를 실제 SQLite/HTTP에 
 실제 Next/SQLite HTTP 신규 suite는 `tests/e2e/resource-target-dashboard-api.spec.ts`다. 기존 `resource-dashboard-api`/`resource-drill-api` 및 server Resource 회귀를 영향 범위에 맞게 재사용한다. 기존 Plan 선택 demand의 Target 교집합 및 R/전체 Project 보존을 검증한다. 새 분석 UI·Target별 기간 행/전용 selector·Excel 시트 확장·실제 운영 DB/부하 수용은 #621~#623의 별도 검증이다. 로컬 focused PASS와 원격 최신 Head의 Quality/E2E/Docker·Trusted QA/Owner 승인·main/GHCR을 구별하며 이번 요청은 PR CI 시작까지만이다.
 
 R2 Local Fast Feedback: 신규 SQLite17 tests(원시 A5/B5/전체5 포함), 영향 회귀19파일247 tests, Excel2파일23 tests, parser/drill2파일35 tests를 각각 실행하여 PASS했다. 서로 중복되는 실행이므로 단일 총계로 합산하지 않는다. 실제 Next/SQLite HTTP1개44.1초(시나리오33.1초) PASS와 별도 Reviewer focused74 tests·후속 guard/golden 선택실행을 구분한다. HTTP fixture의 선택3M/D/Project4.5M/D와 native 기존 Calendar fixture의 Target A/B 각각3.33333332M/D는 각 fixture의 원시 Calendar/배정률 oracle이며 공통 Domain의5M/D 및 추가 SQLite golden5와 동일 수치로 혼동하지 않는다. [성능 JSON](evidence/issue620/resource-target-performance.json)은131 Task/245 Assignment/2 Target/6 member/245 binding,48prepare/34.36ms/294445bytes 및3개 indexed SEARCH와 source hashes를 보존한다. 마지막 Target selector400 guard는 native 반례로 추가 검증했으며 정상 HTTP 경로 증거를 재사용한다. 원격 required CI·Trusted/Owner·main/GHCR은 NOT TESTED다.
+## Issue #621 — Resource–Target 다관점·원본 편집 검증
+
+대상은 기존 Resource Dashboard의 Target 계층/역방향·Group/Resource×Target 비교와 같은 canonical Task/Assignment 편집이다. 기준 main `78691a97bb8c0ba74a560965ca39479d7c80b72c`, GSC `1.0.0-candidate(REVIEW_PENDING)`다. 실행 명령·최초 실패·최종 source 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록하며 아래 매핑은 자동 PASS 원장이 아니다.
+
+| AC | 사례·검증 |
+| --- | --- |
+| AC1 | `tests/e2e/issue-621-resource-target.spec.ts`: 실제 HTTP/SQLite의 shared Task·Target A/B·중첩 Group, server union 총계·raw Assignment 및 상세 page·접힘 불변. 기존 `tests/server/resources/resource-target-dashboard.test.ts`의 A5/B5/전체5M/D golden·snapshot/selector 회귀 유지 |
+| AC2 | 같은 전용 E2E의 Resource→Task Editor 저장1회/DB Task 수 불변·Target A/B 같은 taskId 새 값, WBS/Target에서 반대 방향 저장 후 Resource 재조회 |
+| AC3 | 개인/assignmentId를 지정한 Resource 편집, 기간/allocation 해당 Assignment만 변경·공동담당 불변. `tests/server/resources/issue-621-assignment-edit.test.ts`의 exact opt-in row ID/원본 timestamps/no-op·null+dates/비활성 공동담당·권한/revision/범위/입력 atomic 거부와 existing exactAssignments transport 회귀 대조 |
+| AC4 | 계층/비교/필터/정렬/접힘/페이지는 mutation0·revision 불변. 가상 header/총계는 저장 명령 없음; 기존 server 권한/ID/If-Match validation 거부 보존 |
+| AC5 | readonly·401·409/412·늦은 응답·dirty/pending·취소·저장 후 필터탈락: 초안·원본 scope·유효 focus, stale 상세/편집 차단 및 명시 재조회. 각 실제 브라우저/HTTP·Unit 증거를 구분 |
+| AC6 | 390/768/1024/1440/1920px·긴 이름/UUID·많은 열의 document overflow0/표 내부scroll, Tab/Enter/Escape·상세 닫기/복귀 focus·Gantt remount0 |
+| AC7 | 기존 Resource 기본 KPI/Milestone tree/matrix/Plan·Task Editor·`resource-drill` #528 exact source·canonical/viewport 회귀. 새 Target Plan/Excel은 #622이므로 우연한 지원을 주장하지 않음 |
+| AC8 | 지정 문서8종/active plans/CHANGELOG·Design Delta B·GSC 적용/제외·AC mapping·Markdown links와 코드/문서 정합성 |
+
+합성 fixture `tests/e2e/fixtures/issue-621-target-project.ts`는 Target A/B에 연결된 통합 Task·공동담당 Alice/Bob·중첩 Group·partial/unset·긴 이름을 사용한다. 실제 Project edit session/Origin/strong If-Match를 거치며 runtime DB·비밀값·원시 로그는 Git에 넣지 않는다. 화면 증거는 합성 `output/playwright/issue-621/`로 제한한다. baseline screenshot이 없으면 source gap과 after 캡처를 구별하고 before/after 실증으로 표현하지 않는다.
+
+비교 지표/표시 정렬·4 Target열의 local pagination은 server summary를 사용하고 full total을 축소하지 않는다. UI4열 페이지와 bounded Assignment 상세 pagination을 구별해 검증한다. #528 원본 bound source의 Target 조건/path/order/echo를 전송한 실제 왕복에서 공동담당 확장0·원본 Assignment ID를 확인한다. 초기 oracle/fixture 실패와 제품 실패는 Work Packet에 분리 기록한다.
+
+SC-11의 Resource→detail→Editor/일정→복귀와 관련 저장/실패/취소·readonly·scope/focus를 누적 검증한다. pure model·mock·실제 SVAR Chromium·실제 Next/SQLite·원격 전수 CI는 서로 대체하지 않는다. SC-14 대량3000행 Core readiness와 U5/#574 최종 통합 수용은 전용 검증과 Required E2E가 실제 끝나기 전 NOT TESTED다. timeout/skip/허용오차 확대만으로 실패를 숨기지 않는다. Windows Excel/DRM·운영 TLS/backup·실기기/screen reader·최종 수동 UX는 별도 환경 검증이다.
+
+최종 로컬 실행은 신규5개 전체 PASS/2.0분(session17064), 개별12.6/14.0/18.7/16.0/13.4초다. 실제390 clipping 및 cached-ready 복귀 뒤10ms 행 교체/focus BODY 실패를 고친 뒤 같은 필수 단언을 유지해 재검증했다. 현재 report와 정확 상세의 새 성공 receipt 이전에 focus하지 않으며, report를 보류한 동안 실제 검색 focus/ArrowRight 입력 후 늦은 복원이 이를 덮지 않는 사례도 통과했다. 2mode×5폭10 geometry와 합성 after PNG2개는 해당 실제 검증 증거이며 원격 CI/Owner 승인·환경별 검증은 아니다. 상세 최초 실패/Source 범위·최종 inventory는 Work Packet을 따른다.

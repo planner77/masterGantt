@@ -57,6 +57,7 @@ import type { ProjectTaskDto } from "@/contracts/projects";
 
 export interface ProjectLogisticsManagementProps {
   tasks?: readonly ProjectTaskDto[];
+  targetOpenRequest?: {id:string;sequence:number;code?:string | null} | null;
   active?: boolean;
   busy?: boolean;
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
@@ -81,7 +82,7 @@ export interface ProjectLogisticsManagementProps {
 type SubTab = "targets" | "dashboard" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
-  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen,
+  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen,
   publicId,
   projectContext,
   revision,
@@ -93,6 +94,8 @@ export function ProjectLogisticsManagement({
   onUnauthorized,
 }: ProjectLogisticsManagementProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("dashboard");
+  const [targetRequestSequence, setTargetRequestSequence] = useState<number | null>(null);
+  if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) { setTargetRequestSequence(targetOpenRequest.sequence); setActiveSubTab("targets"); }
   const [searchQuery, setSearchQuery] = useState("");
   const [processFilter, setProcessFilter] = useState<string>("all");
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -515,7 +518,7 @@ export function ProjectLogisticsManagement({
       </div>
 
       <div id="panel-targets" role="tabpanel" aria-labelledby="subtab-targets" hidden={activeSubTab !== "targets"}>
-        <ProjectLogisticsTargets projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
+        <ProjectLogisticsTargets openRequest={targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
       </div>
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
       {activeSubTab !== "dashboard" && activeSubTab !== "targets" ? (

@@ -13,11 +13,14 @@ import styles from "./target-ui.module.css";
 type Impact = { impactToken:string; affectedTaskIds:string[]; wholeBindingIds:string[]; subsetBindingIds:string[]; blockedSubsetMemberIds:string[] };
 type Draft = CreateLogisticsTargetRequest & { active:boolean; description:string };
 const emptyDraft = ():Draft => ({code:"",name:"",scope:"process",projectProcessId:null,workAreaId:null,members:[],active:true,description:""});
-export function ProjectLogisticsTargets({publicId, projectContext, revision, active, editable, busy, logistics, types, tasks, onMutated, onUnauthorized, onOpenTask, onTypesChanged, onOpenInstance}: {
+export function ProjectLogisticsTargets({openRequest, publicId, projectContext, revision, active, editable, busy, logistics, types, tasks, onMutated, onUnauthorized, onOpenTask, onTypesChanged, onOpenInstance}: {
+  openRequest?: {id:string;sequence:number;code?:string | null} | null;
   projectContext?: Pick<ProjectDto,"businessUnit"|"product"|"siteEntity">; publicId:string; revision:number; active:boolean; editable:boolean; busy:boolean; logistics:ProjectLogisticsDto;
   types:LogisticsActiveTypeCatalogResponse["data"] | null; tasks:readonly ProjectTaskDto[];
   onOpenInstance?:(kind:"equipment"|"system",id:string)=>void; onTypesChanged?:()=>void; onMutated:()=>void; onUnauthorized:()=>void; onOpenTask?:(id:string)=>void;
 }) {
+  const requestedSequence = useRef<number | null>(null);
+  const [requestedTarget,setRequestedTarget] = useState<{sequence:number;revision:number;target:LogisticsTargetDto} | null>(null);
   const [targets,setTargets] = useState<LogisticsTargetDto[]>([]);
   const [context,setContext] = useState<ProcessContextResponse["data"] | null>(null);
   const [loaded,setLoaded] = useState<string|null>(null);
@@ -113,6 +116,32 @@ export function ProjectLogisticsTargets({publicId, projectContext, revision, act
     })();
     return () => controller.abort();
   }, [composerOpen,revision,url]);
+  useEffect(() => {
+    if (!active || !openRequest || requestedSequence.current === openRequest.sequence) return;
+    const controller = new AbortController();
+    // The item GET has no revision; use the authoritative revision-bearing list snapshot.
+    void (async () => {
+      for (let page = 0; page < 100; page++) {
+        const query = new URLSearchParams({limit:"100",offset:String(page * 100)});
+        if (openRequest.code) query.set("search",openRequest.code);
+        const response = await fetch(`${url}?${query}`, {credentials:"same-origin",cache:"no-store",signal:controller.signal});
+        const body = await response.json() as LogisticsTargetListResponse;
+        if (!response.ok || body.data?.projectRevision !== revision || !Array.isArray(body.data.targets)) throw new Error();
+        const target = body.data.targets.find(item => item.id === openRequest.id);
+        if (target) {
+          if (!controller.signal.aborted) setRequestedTarget({sequence:openRequest.sequence,revision:body.data.projectRevision,target});
+          return;
+        }
+        if (!body.data.targets.length || (page + 1) * 100 >= body.data.total) break;
+      }
+      throw new Error();
+    })().catch(() => { if(!controller.signal.aborted) setError("선택한 Target의 최신 기준을 확인하지 못했습니다. 프로젝트 새로고침 후 현재 목록에서 다시 선택해 주세요."); });
+    return () => controller.abort();
+  }, [active, openRequest, revision, url]);
+  if (requestedTarget && requestedTarget.revision === revision && requestedSequence.current !== requestedTarget.sequence && !draft && !modalBusy && !busy) {
+    requestedSequence.current = requestedTarget.sequence;
+    if (editable) start(requestedTarget.target); else setDetail(requestedTarget.target);
+  }
   const change = (patch:Partial<Draft>) => {setDraft(d=>d?{...d,...patch}:d);setImpact(null);setConfirmed(false);};
   function close() {if(modalBusy)return;if(dirty){setDiscard(true);return;}setDraft(null);setEditing(null);setDeleteConfirm(false);setDetail(null);}
   function start(target?:LogisticsTargetDto, trigger?:HTMLElement) {

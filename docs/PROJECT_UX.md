@@ -1318,3 +1318,14 @@ Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 
 공정/WorkArea, whole/subset 구성과 subtree 변경에는 관련 대상/영향 정보를 표시한다. 기존 instance 재사용과 신규 생성을 구분하고 공유 사용처를 표시한다. 조회용 Target grouping이 WBS parent를 바꾸지 않으며 Gantt instance/scroll/selection/scale/column/fullscreen은 기존 workspace/canonical/viewport 경로를 유지한다. 별도 Gantt·viewport writer·query-only mutation은 없다.
 
 F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.
+## Issue #621 — Resource–Target 분석에서 편집·복귀
+
+기존 상위 `리소스` 탭 안에서 Group/Resource→Target 계층, Target→Group/Resource 역방향 및 Group/Resource×Target 교차표를 제공한다. 별도 Workspace·Resource 원장·Gantt 인스턴스를 만들지 않는다. Target/기간/검색을 먼저 표시하고 추가 축은 고급 필터로 펼친다. 총계·헤더는 조회용이며 표시 grouping을 WBS 구조 변경으로 해석하지 않는다.
+
+실제 Task·Assignment 편집은 Workspace의 공통 Editor를 사용한다. Assignment는 개인과 배정 ID를 명시하고 기존 Resource 편집 경로로 들어가며 Target 구성은 물류 composer로 구별한다. Editor가 숨겨진 일정 panel 안으로 이동하지 않도록 기존 상위 렌더링과 origin/focus 계약을 재사용한다. 조회·전환·취소만으로 server mutation을 발생시키지 않는다.
+
+Resource→일정→Resource 복귀는 기존 drill/return frame과 단일 viewport coordinator를 사용한다. 같은 의미의 조건·보기·펼침·페이지·선택은 가능한 유지하며 새로운 사용자 입력보다 오래된 복원을 우선하지 않는다. 저장으로 report identity가 바뀌면 이전 결과의 상세/편집을 잠그거나 새 snapshot을 조회한다. 필터에 맞지 않게 된 출발 행에는 과거 focus를 강제하지 않고 사유와 유효한 컨트롤을 제공한다. dirty/pending/stale·401/409/412의 초안과 재조회는 기존 guard를 따른다.
+
+Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고서와 정확 상세의 새 조회 완료를 확인한 뒤 한 번 복원한다. 새 조회가 상세 행을 교체하는 동안 이전 행의 편집 명령을 잠근다. 그동안 사용자가 검색·keyboard·pointer/wheel 입력을 하면 오래된 복귀 요청을 취소한다. 준비 실패·범위 소멸 시 유효한 복귀 컨트롤을 사용하며 Gantt를 재생성하지 않는다.
+
+긴 이름과 다열 표는 table-owned scroll로 처리한다. 390/768/1024/1440/wide의 keyboard·Escape·복귀 focus·내부 overflow와 같은 Gantt instance를 별도 검증하며 실제 결과는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다. GSC 전체 수용·main/릴리스 검증과 구별한다.

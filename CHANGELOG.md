@@ -1,3 +1,10 @@
+## [Unreleased] — 0.113.0 / Issue #621 Resource–Target 보기·동일 원본 편집 (2026-10-14)
+
+- 기존 Resource 탭에 Group/Resource→Target 계층·역방향·Group/Resource×Target 비교와 같은 server filter를 연결한다. 서버 총계·선택/전체 Project 참고·중첩 비가산·partial/unset를 유지한다.
+- 표시 행 key와 canonical Task/Assignment/Target ID를 분리하고 실제 작업·정확 개인 배정·Target 구성은 기존 Editor/composer로 편집한다. 조회 grouping/정렬은 WBS 구조나 배정을 변경하지 않는다.
+- 저장 뒤 report stale/재조회·동일 scope 복귀와 focus/dirty/pending/권한 guard를 보존하며 기존 Milestone/Plan·exact drill을 유지한다. Target별 Plan/Excel 확장은 #622다.
+- 후보 minor version이며 exact-head PR Required CI/Trusted QA·Owner HIGH 위험 수용·명시 병합 허가 및 정식 release는 별도다. release_required=true/release_authorized=false.
+
 ## [Unreleased] — 0.112.0 / Issue #620 Resource–Target 보고 API (2026-10-14)
 
 - 기존 Resource report/detail/drill에 Target·공정 occurrence/Process Type·WorkArea·Equipment/System type 및 instance 필터와 compact projection/근거 selector를 추가한다.

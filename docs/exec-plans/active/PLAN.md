@@ -854,3 +854,8 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 ## Issue #618 — Target F4 구성·연결 편집
 
 최신 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b` / version0.109.0에서 `feat/issue-618-target-composer`로 진행한다. 기존 F1/F2/F3 API, 물류 Workspace, 공통 Task Editor와 canonical/viewport gateway를 재사용하여 composer·whole/subset·출처·양방향 동일 원본 편집을 제공한다. minor0.111.0, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. [Work Packet](ISSUE_618.md)의 AC·상태·문서·실행 원장을 따른다. 요청 종료점은 구현/리뷰 보완/충돌 해결 후 PR CI 시작 확인이며 CI 모니터링·병합·게시·Issue 종료는 후속이다. 공식 원격 회귀와 Manager ACCEPT는 아직 NOT TESTED다.
+## Issue #621 — Resource–Target 다관점·동일 원본 편집 (2026-10-14)
+
+기준 main `78691a97bb8c0ba74a560965ca39479d7c80b72c`에 선행 #618 composer/#620 보고 API가 반영되어 있다. [#621 Work Packet](ISSUE_621.md)에 따라 기존 Resource 화면의 Target 계층/역방향·Group/Resource×Target 비교, 같은 server filter·총계/분모, 실제 Task/정확 Assignment/Target별 기존 편집 gateway와 scope/focus 복귀를 구현한다. 별도 원장/집계 엔진/PRO/새 Gantt는 만들지 않는다. #622 Plan·Excel 및 #623/#624는 이번 요청 비범위다.
+
+실제 ui_ux/frontend/E2E/infra 역할을 분리하고 Manager가 관련 문서·Design Delta B 및 GSC-01/03/04/06~12·SC-11 적용 범위를 기록한다. application0.113.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 요청 종료점은 구현·Local Fast Feedback·DOCUMENTATION_SYNC·사전 검토 후 PR Full CI 시작 확인이다. CI 모니터링·병합·main/GHCR·Release/tag·cleanup·Issue 종료는 수행하지 않으며 원격 Required/Trusted·Manager ACCEPT는 NOT TESTED다.

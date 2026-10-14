@@ -12,6 +12,7 @@ import styles from "./project-task-editor.module.css";
 
 interface Props {
   readonly taskId: string;
+  readonly initialAssignment?: { assignmentId: string; resourceId: string };
   readonly revision: number;
   readonly editable: boolean;
   readonly disabled: boolean;
@@ -78,7 +79,7 @@ function assignmentDraftSnapshot(
   });
 }
 
-export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onApplied, onSelectionCountChange, onDirtyChange, onPendingChange, onUnauthorized, discardGeneration = 0 }: Props) {
+export function TaskAssignmentEditor({ initialAssignment, taskId, revision, editable, disabled, onApplied, onSelectionCountChange, onDirtyChange, onPendingChange, onUnauthorized, discardGeneration = 0 }: Props) {
   const initialDraft = useRef<string | null>(null);
   const dirtyReference = useRef(false);
   const loadedDiscardGeneration = useRef(discardGeneration);
@@ -119,6 +120,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         if (!assignedResponse.ok || !isAssignedResponse(assignedBody) || assignedBody.data.projectRevision !== revision) throw new Error("assigned");
         if (!alive) return;
         const taskAssignments = assignedBody.data.assignments.filter((assignment) => assignment.taskId === taskId);
+        if (initialAssignment && !taskAssignments.some(assignment => assignment.id === initialAssignment.assignmentId && assignment.target.kind === "resource" && assignment.target.id === initialAssignment.resourceId)) throw new Error("assignment_changed");
         setSelected(new Set(taskAssignments.map((assignment) => `${assignment.target.kind}:${assignment.target.id}`)));
         const nextAllocations: Record<string, AllocationDraft> = {};
         for (const assignment of taskAssignments) {
@@ -153,7 +155,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
       finally { if (alive) setLoading(false); }
     })();
     return () => { alive = false; controller.abort(); };
-  }, [editable, taskId, revision, retry, snapshotKey, onDirtyChange, discardGeneration]);
+  }, [editable, taskId, revision, retry, snapshotKey, onDirtyChange, discardGeneration, initialAssignment]);
 
   useEffect(() => {
     if (!editable || !ready || roleFilter === "all" || catalogRevision === null) return;
@@ -195,6 +197,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   const visibleTargets = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ko");
     return eligibleTargets
+      .filter(target => !initialAssignment || (target.kind === "resource" && target.id === initialAssignment.resourceId))
       .filter((target) => kindFilter === "all" || target.kind === kindFilter)
       .filter((target) => roleFilter === "all" || (target.kind === "resource" && (target.roles ?? []).includes(roleFilter)))
       .filter((target) => !assignedOnly || selected.has(targetKey(target)))
@@ -207,7 +210,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         const selectedDifference = Number(selected.has(targetKey(right))) - Number(selected.has(targetKey(left)));
         return selectedDifference || left.name.localeCompare(right.name, "ko");
       });
-  }, [assignedOnly, eligibleTargets, kindFilter, query, roleFilter, selected]);
+  }, [assignedOnly, eligibleTargets, kindFilter, query, roleFilter, selected, initialAssignment]);
   const visibleResources = useMemo(() => visibleTargets.filter((target) => target.kind === "resource"), [visibleTargets]);
   const visibleGroups = useMemo(() => visibleTargets.filter((target) => target.kind === "group"), [visibleTargets]);
   const showResources = kindFilter !== "group";
@@ -254,6 +257,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     const requested = [] as Array<{ kind: "resource" | "group"; id: string; allocation?: { start: string | null; end: string | null; percent: number } }>;
     const issues: AllocationIssue[] = [];
     for (const key of selected) {
+      if (initialAssignment && key !== `resource:${initialAssignment.resourceId}`) continue;
       const separator = key.indexOf(":"); const kind = key.slice(0, separator) as "resource" | "group"; const id = key.slice(separator + 1);
       if (kind === "group") { requested.push({ kind, id }); continue; }
       const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
@@ -275,7 +279,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}/assignments`, {
         method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": `"${revision}"` },
-        body: JSON.stringify({ catalogRevision, targets: requested }),
+        body: JSON.stringify({ catalogRevision, targets: requested, ...(initialAssignment ? { editAssignmentId: initialAssignment.assignmentId } : {}) }),
       });
       if (response.status === 401) { onUnauthorized?.(); setError("편집 권한이 만료되었습니다. 리소스 초안은 유지됩니다."); return; }
       if (response.status === 412) { setError("프로젝트 또는 리소스 목록이 변경되었습니다. 최신 정보를 다시 불러와 주세요."); return; }
@@ -298,6 +302,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
     {loading ? <p className={styles.caption} role="status">할당 정보를 불러오는 중…</p> : null}
     {error ? <p className={styles.relationError} role="alert">{error}</p> : null}
+    {initialAssignment ? <p role="status">선택한 개인의 배정만 편집합니다. Assignment ID {initialAssignment.assignmentId} · Resource ID {initialAssignment.resourceId}. 다른 개인의 배정은 유지됩니다.</p> : null}
     {!ready && error ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>할당 정보 다시 시도</button> : null}
     {allocationIssues.length > 0 ? <div className={styles.validationSummary} role="alert" tabIndex={-1} ref={issueSummary}>
       <strong>할당 입력 {allocationIssues.length}곳을 확인해 주세요.</strong>
@@ -350,6 +355,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         disabled={disabled}
         saving={saving}
         ready={ready}
+        exact={Boolean(initialAssignment)}
         filtered={Boolean(query.trim()) || assignedOnly || roleFilter !== "all"}
         onToggle={toggle}
         onChangeAllocation={changeAllocation}
@@ -366,6 +372,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         disabled={disabled}
         saving={saving}
         ready={ready}
+        exact={Boolean(initialAssignment)}
         filtered={Boolean(query.trim()) || assignedOnly}
         onToggle={toggle}
         onChangeAllocation={changeAllocation}
@@ -382,6 +389,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
 
 interface AssignmentSectionProps {
+  readonly exact?: boolean;
   readonly title: string;
   readonly kindLabel: "리소스" | "그룹";
   readonly targets: AssignmentTargetDto[];
@@ -400,7 +408,7 @@ interface AssignmentSectionProps {
 
 function AssignmentSection({
   title, kindLabel, targets, allTargets, selected, allocations, allocationIssues,
-  editable, disabled, saving, ready, filtered, onToggle, onChangeAllocation,
+  editable, disabled, saving, ready, exact, filtered, onToggle, onChangeAllocation,
 }: AssignmentSectionProps) {
   return <section className={styles.assignmentSection} aria-label={title}>
     <div className={styles.assignmentSectionHeading}>
@@ -424,7 +432,7 @@ function AssignmentSection({
             <input
               type="checkbox"
               checked={checked}
-              disabled={!editable || disabled || saving || !ready || (!target.active && !checked)}
+              disabled={exact || !editable || disabled || saving || !ready || (!target.active && !checked)}
               onChange={() => onToggle(target)}
             />
             <span className={styles.assignmentIdentity}>

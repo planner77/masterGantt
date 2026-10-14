@@ -1,5 +1,15 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #621 — Target Resource 표·계층·편집 handoff
+
+기존 Resource 화면을 확장하고 기간·Target·검색 뒤에 공정/WorkArea/typed instance 등 추가 조건을 펼쳐본다. 계층은 Resource 우선/Target 우선, 비교는 Resource/Group×Target이며 기존 Milestone·Plan 보기를 보존한다. native button/select·명시 label을 사용한다. 조회용 헤더/합계와 실제 Task/Assignment 편집, Target 구성 편집은 명령 이름과 canonical 대상을 구별한다.
+
+표의 identity는 flexible minimum, 수치·상태는 최소 폭, 편집 명령은 독립 폭을 확보한다. 계층의 설계 예산은 identity280px(좁은 화면168px)+공수144px+Task/완료/지연 각88px+명령112px, 비교표는 identity280px/168px+Target당176px다. 실제 구현은 전체 column budget과 긴 이름/UUID·최대 열 조합을 검증하고 표 소유 scroll을 제공한다. sticky header/identity가 Tab focus를 가리지 않도록 scroll-padding/scroll-margin 또는 해당 control의 visible focus를 확인한다. document 가로 overflow로 대체하지 않는다.
+
+상세 진입은 제목으로, 닫기/취소는 연결되고 visible한 실제 trigger로 focus를 인계한다. 저장으로 행이 필터에서 탈락하거나 삭제·비활성화돼 trigger가 없으면 사유와 유효 fallback을 제공한다. pending/dirty/권한만료·stale·응답역전은 기존 Editor와 report 세대/취소 guard를 사용한다. disabled 이유와 이전 결과임을 텍스트로 밝힌다. 조회/정렬/접힘/보기 전환은 canonical mutation0이며 Gantt 강제 remount를 사용하지 않는다.
+
+`ui-ux-pro-max`의 focused keyboard/focus 지침은 기존 DESIGN의 accessibility·precise feedback·progressive disclosure·table sizing을 구체화했다. **Design Delta B, DESIGN.md: N/A**이며 신규 공통 시각/탐색 원칙은 채택하지 않는다. 실제 390/768/1024/1440/1920px·keyboard·focus·geometry 결과와 미검증은 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. 공식 SVAR grouping 문서 확인은 PRO 제약 근거이며 실제 demo 조작 증거가 아니다.
+
 ## Issue #538 — 관계 관리자와 cascade 상태
 
 전역 Project Master의 연결 편집은 app-owned native control이다(SVAR Gantt Core API 적용 대상 아님). 라벨 있는 select/연결 버튼/해제 확인을 사용하며 disabled 이유와 server 409/412 메시지, 로딩/빈 관계/초안 하위 해제 상태를 텍스트로 구분한다. 하위 선택 변경은 저장과 분리하고 Project dirty draft를 무단 제출하지 않는다. 390/768/1024/1440/wide의 table-owned scroll, keyboard focus 및 document overflow를 회귀 검증한다.

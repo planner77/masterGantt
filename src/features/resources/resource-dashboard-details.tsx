@@ -25,14 +25,18 @@ export function ResourceDashboardDetails({
   onStale: () => void;
   view?: "tasks" | "assignments";
 }) {
-  const { binding, onSchedule, onOpenTask, locked } = useResourceDrill();
+  const { binding, onSchedule, onOpenTask, onOpenAssignment, locked } = useResourceDrill();
   const [offset, setOffset] = useState(0);
+  const [pageNotice, setPageNotice] = useState<string | null>(null);
   const [retry, setRetry] = useState(0);
   const [state, setState] = useState<{
     value: ResourceDashboardDetailsDto | null;
     phase: "loading" | "ready" | "error";
     error: string;
-  }>({ value: null, phase: "loading", error: "" });
+    confirmationId: string;
+    ownerData: ResourceDashboardDto | null;
+    confirmedQueryKey: string;
+  }>({ value: null, phase: "loading", error: "", confirmationId: "", ownerData: null, confirmedQueryKey: "" });
   const generation = useRef(0);
   const queryKey = detailsQuery(data, selector, view, offset).toString();
   const staleCallback = useRef(onStale);
@@ -46,7 +50,7 @@ export function ResourceDashboardDetails({
     const controller = new AbortController();
     queueMicrotask(async () => {
       if (disposed) return;
-      setState({ value: null, phase: "loading", error: "" });
+      setState({ value: null, phase: "loading", error: "", confirmationId: "", ownerData: null, confirmedQueryKey: "" });
       try {
         const response = await resourceProjectionFetch(
           binding,
@@ -75,7 +79,10 @@ export function ResourceDashboardDetails({
           !controller.signal.aborted &&
           generation.current === current
         )
-          setState({ value, phase: "ready", error: "" });
+          {
+            if (offset > 0 && offset >= value.totalCount) { setOffset(0); setPageNotice("저장 후 현재 페이지에 배정이 없어 첫 페이지로 돌아왔습니다."); }
+            else setState({ value, phase: "ready", error: "", confirmationId: `${data.snapshotId}:${current}:${performance.now()}`, ownerData: data, confirmedQueryKey: queryKey });
+          }
       } catch (error) {
         if (
           !disposed &&
@@ -85,6 +92,9 @@ export function ResourceDashboardDetails({
           setState({
             value: null,
             phase: "error",
+            confirmationId: "",
+            ownerData: null,
+            confirmedQueryKey: "",
             error: dashboardError(
               error instanceof Error ? error.message : "REQUEST_FAILED",
             ),
@@ -96,15 +106,21 @@ export function ResourceDashboardDetails({
       controller.abort();
     };
   }, [data, queryKey, selector, view, offset, stale, retry, binding]);
+  const currentResponse = state.ownerData === data && state.confirmedQueryKey === queryKey;
+  const actionLocked = stale || !currentResponse || state.phase !== "ready";
+  const renderedPhase = stale ? "stale" : !currentResponse && state.phase !== "error" ? "loading" : state.phase;
   const value = state.value;
   return (
     <div
       className="resource-dashboard-detail"
-      data-detail-state={stale ? "stale" : state.phase}
+      data-detail-state={renderedPhase}
+      data-detail-confirmation-id={currentResponse && state.phase === "ready" && !stale ? state.confirmationId : "0"}
+      data-projection-detail-key={JSON.stringify(selector)}
     >
       <button
         type="button"
-        disabled={stale || locked || !onSchedule}
+        data-resource-action="scope-schedule"
+        disabled={actionLocked || locked || !onSchedule}
         onClick={(event) =>
           onSchedule?.({
             data,
@@ -121,11 +137,12 @@ export function ResourceDashboardDetails({
       >
         전체 범위 일정 보기
       </button>
+      {pageNotice ? <p role="status">{pageNotice}</p> : null}
       {stale ? (
         <p role="status">
           이전 결과 · 최신 조건 확인 대기. 상세와 페이지 이동이 잠겨 있습니다.
         </p>
-      ) : state.phase === "loading" ? (
+      ) : renderedPhase === "loading" ? (
         <p role="status">Task 상세 조회 중…</p>
       ) : null}
       {state.error ? (
@@ -173,21 +190,22 @@ export function ResourceDashboardDetails({
               <tbody>
                 {value.rows.map((row, index) => (
                   <tr
-                    key={
-                      row.assignment?.assignmentId ?? `${row.taskId}:${index}`
-                    }
+                    key={`${JSON.stringify(selector.targetPath ?? selector)}:${row.taskId}:${row.assignment?.assignmentId ?? index}`}
+                    data-canonical-task-id={row.taskId} data-canonical-assignment-id={row.assignment?.assignmentId}
                   >
                     <td>
                       <button
                         type="button"
-                        disabled={stale || locked || !onOpenTask}
+                        data-resource-action="task"
+                        disabled={actionLocked || locked || !onOpenTask}
                         onClick={() => onOpenTask?.(row.taskId)}
                       >
                         {row.taskName}
                       </button>
                       <button
                         type="button"
-                        disabled={stale || locked || !onSchedule}
+                        data-resource-action="task-schedule"
+                        disabled={actionLocked || locked || !onSchedule}
                         onClick={(event) =>
                           onSchedule?.({
                             data,
@@ -206,6 +224,9 @@ export function ResourceDashboardDetails({
                       >
                         이 Task 일정
                       </button>
+                      {row.assignment ? <button type="button" data-resource-assignment-edit disabled={actionLocked || locked || !onOpenAssignment} onClick={event => onOpenAssignment?.(row.taskId, row.assignment!.assignmentId, row.assignment!.resourceId, event.currentTarget)}>배정 편집: {row.assignment.resourceName}</button> : null}
+                      {row.assignment ? <small>Assignment ID {row.assignment.assignmentId} · Resource ID {row.assignment.resourceId}</small> : null}
+                      {row.targetSources ? <small>Target 출처: 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy 직접 {row.targetSources.legacySources.length} · {row.targetSources.effectiveTargetIds.join(", ") || "Target 미연결"}</small> : null}
                       <small>
                         {row.externalId} · {row.taskId}
                       </small>
@@ -300,7 +321,7 @@ export function ResourceDashboardDetails({
             <button
               className="secondary-button"
               type="button"
-              disabled={stale || offset === 0}
+              disabled={actionLocked || offset === 0}
               onClick={() => setOffset(Math.max(0, offset - 50))}
             >
               이전
@@ -308,7 +329,7 @@ export function ResourceDashboardDetails({
             <button
               className="secondary-button"
               type="button"
-              disabled={stale || value.nextOffset === null}
+              disabled={actionLocked || value.nextOffset === null}
               onClick={() => setOffset(value.nextOffset!)}
             >
               다음

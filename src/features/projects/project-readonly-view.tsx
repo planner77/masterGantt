@@ -104,6 +104,10 @@ type ResourceNavigationState = {
   initialFilters?: ResourceDashboardFilterInput;
   selection: readonly string[];
   trigger: HTMLElement | null;
+  resourceFocusSelector?: string;
+  resourceDetailKey?: string;
+  resourceDetailConfirmationId?: string;
+  resourceReportConfirmationId?: string;
   positions: { element: HTMLElement; left: number; top: number }[];
   viewport?: ResourceNavigationViewport | null;
 };
@@ -287,10 +291,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }, [publicId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
-  const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations">("task");
+  const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations" | "resources">("task");
+  const [editorAssignment, setEditorAssignment] = useState<{assignmentId:string; resourceId:string} | undefined>();
+  const [resourceTargetRequest, setResourceTargetRequest] = useState<{id:string; sequence:number;code?:string | null} | null>(null);
+  const resourceTargetTrigger = useRef<HTMLElement | null>(null);
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const editorResourceDetailKey = useRef<string | null>(null);
   const editorLaneOriginReference = useRef(false);
   const editorOriginViewReference = useRef<WorkspaceView>("schedule");
   const editorOpeningReference = useRef(false);
@@ -998,16 +1006,18 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     finally { copyConfirmationReference.current = false; }
   }
 
-  function openTaskEditor(taskId: string, initialTab: "task" | "memberships" | "relations" = "task", actualTrigger?: HTMLElement) {
+  function openTaskEditor(taskId: string, initialTab: "task" | "memberships" | "relations" | "resources" = "task", actualTrigger?: HTMLElement, assignment?: {assignmentId:string;resourceId:string}) {
     if (state.status !== "ready" || busy || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
     const trigger = actualTrigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     setEditorInitialTab(initialTab);
+    setEditorAssignment(assignment);
     editorOriginViewReference.current = activeView;
     editorOpeningReference.current = true;
     taskFocusGeneration.current++;
     editorTriggerReference.current = trigger;
+    editorResourceDetailKey.current = trigger?.closest<HTMLElement>("[data-projection-detail-key]")?.dataset.projectionDetailKey ?? null;
     editorLaneOriginReference.current = Boolean(trigger?.closest(".project-milestone-lane"));
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
@@ -1157,6 +1167,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           if (document.activeElement === target) return;
         }
         if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+      };
+      requestAnimationFrame(() => restore(0));
+      return;
+    }
+    if (editorOriginViewReference.current === "resources") {
+      const generation = ++taskFocusGeneration.current;
+      const closingDialog = document.querySelector<HTMLDialogElement>('dialog[aria-labelledby="task-editor-title"]');
+      const restore = (frame: number) => {
+        if (generation !== taskFocusGeneration.current) return;
+        const panel = document.getElementById("project-panel-resources");
+        if (!panel || panel.hidden) return;
+        if (document.querySelector("dialog:modal")) { if(frame < 60) requestAnimationFrame(() => restore(frame + 1)); return; }
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused !== document.body && focused !== closingDialog && !closingDialog?.contains(focused) && !panel.contains(focused)) return;
+        if (panel.querySelector('[data-ready="false"]') && frame < 60) { requestAnimationFrame(() => restore(frame + 1)); return; }
+        const pending = Boolean(panel.querySelector('[data-ready="false"], [data-detail-state="loading"]'));
+        if (pending && frame < 60) { requestAnimationFrame(() => restore(frame + 1)); return; }
+        const detailKey = editorResourceDetailKey.current;
+        const detailRoot = detailKey ? panel.querySelector<HTMLElement>(`[data-projection-detail-key="${CSS.escape(detailKey)}"]`) : panel;
+        const logical = taskId ? detailRoot?.querySelector<HTMLElement>(`[data-canonical-task-id="${CSS.escape(taskId)}"]${editorAssignment ? `[data-canonical-assignment-id="${CSS.escape(editorAssignment.assignmentId)}"]` : ""} ${editorAssignment ? "button[data-resource-assignment-edit]" : "button"}`) : null;
+        const fallback = panel.querySelector<HTMLElement>('input[type="search"]');
+        const target = isVisibleFocusTarget(trigger) ? trigger : isVisibleFocusTarget(logical) ? logical : fallback;
+        target?.focus({preventScroll:true});
+        if (!isVisibleFocusTarget(trigger) && !isVisibleFocusTarget(logical)) notify("info", pending ? "최신 결과를 확인하고 있습니다. 필터와 상세 범위는 유지됩니다." : "원본 행이 현재 조건에서 제외되었거나 변경되었습니다. 필터를 확인하세요.", "Resource 보기");
       };
       requestAnimationFrame(() => restore(0));
       return;
@@ -1433,8 +1467,23 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       !navigationPending.current
     );
   }
-  function captureNavigation(): ResourceNavigationState {
+  function captureNavigation(explicitTrigger?: HTMLElement): ResourceNavigationState {
     if (activeView === "schedule") capturePeerViewport();
+    const trigger = explicitTrigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    const detail = trigger?.closest<HTMLElement>("[data-projection-detail-key]");
+    const detailKey = detail?.dataset.projectionDetailKey;
+    const row = trigger?.closest<HTMLElement>("[data-canonical-task-id]");
+    let resourceFocusSelector: string | undefined;
+    if (activeView === "resources" && detailKey && trigger) {
+      resourceFocusSelector = `[data-projection-detail-key="${CSS.escape(detailKey)}"]`;
+      if (row?.dataset.canonicalTaskId) {
+        resourceFocusSelector += ` [data-canonical-task-id="${CSS.escape(row.dataset.canonicalTaskId)}"]`;
+        if (row.dataset.canonicalAssignmentId) resourceFocusSelector += `[data-canonical-assignment-id="${CSS.escape(row.dataset.canonicalAssignmentId)}"]`;
+      }
+      if (trigger.hasAttribute("data-resource-assignment-edit")) resourceFocusSelector += " button[data-resource-assignment-edit]";
+      else if (trigger.dataset.resourceAction) resourceFocusSelector += ` button[data-resource-action="${CSS.escape(trigger.dataset.resourceAction)}"]`;
+      else resourceFocusSelector = undefined;
+    }
     return {
       viewport: navigationViewport.current,
       view: activeView,
@@ -1444,22 +1493,65 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       binding: resourceBinding,
       initialFilters: resourceInitialFilters,
       selection: [...ganttSelection.current],
-      trigger:
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null,
+      trigger,
+      resourceFocusSelector,
+      resourceDetailKey: detailKey,
+      resourceDetailConfirmationId: detail?.dataset.detailConfirmationId,
+      resourceReportConfirmationId: document.querySelector<HTMLElement>(`[data-resource-context-id="${resourceViewId}"] [data-resource-dashboard]`)?.dataset.reportConfirmationId,
       positions: Array.from(
         document.querySelectorAll<HTMLElement>(
-          ".project-workspace-panel:not([hidden]) .project-gantt-scroll,.project-workspace-panel:not([hidden]) .wx-gantt,.project-workspace-panel:not([hidden]) .wx-chart,.project-workspace-panel:not([hidden]) .resource-dashboard-table-scroll",
+          ".project-workspace-panel:not([hidden]) .project-gantt-scroll,.project-workspace-panel:not([hidden]) .wx-gantt,.project-workspace-panel:not([hidden]) .wx-chart,.project-workspace-panel:not([hidden]) .resource-dashboard-table-scroll,.project-workspace-panel:not([hidden]) [data-resource-scroll-owner]",
         ),
       )
         .filter((el) => !el.closest("[hidden],[inert]"))
         .map((el) => ({ element: el, left: el.scrollLeft, top: el.scrollTop })),
     };
   }
-  function focusNavigation(state: ResourceNavigationState, origin: boolean) {
+  function focusNavigation(state: ResourceNavigationState, origin: boolean, awaitActivation = false) {
+    const focusGeneration = ++taskFocusGeneration.current;
+    if (origin && state.view === "resources") {
+      const generation = focusGeneration;
+      const startingFocus = document.activeElement;
+      const controller = new AbortController();
+      let cancelled = false;
+      const cancel = () => { cancelled = true; controller.abort(); };
+      for (const event of ["pointerdown", "keydown", "wheel"] as const)
+        window.addEventListener(event, cancel, {capture:true,passive:true,signal:controller.signal});
+      const restore = (frame: number) => {
+        if (cancelled || generation !== taskFocusGeneration.current) { controller.abort(); return; }
+        const panel = document.getElementById("project-panel-resources");
+        const visit = panel?.querySelector<HTMLElement>(`[data-resource-context-id="${state.resourceViewId}"]`);
+        if (!panel || panel.hidden || !visit || visit.closest("[hidden],[inert]")) {
+          if (frame < 120) requestAnimationFrame(() => restore(frame + 1)); else controller.abort();
+          return;
+        }
+        if (visit.querySelector<HTMLElement>("[data-resource-dashboard]")?.dataset.projectPublicId !== publicId) { controller.abort(); return; }
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement && focused !== document.body && focused !== startingFocus && focused !== state.trigger && !focused.closest("[hidden],[inert]")) { controller.abort(); return; }
+        const dashboard = visit.querySelector<HTMLElement>("[data-resource-dashboard]");
+        const detail = state.resourceDetailKey ? visit.querySelector<HTMLElement>(`[data-projection-detail-key="${CSS.escape(state.resourceDetailKey)}"]`) : null;
+        // Activation revalidates cached report/detail DOM. Wait for successful new receipts,
+        // so focusing an old ready row cannot be undone by the pending response replacement.
+        const awaitingReport = awaitActivation && state.resourceReportConfirmationId !== undefined && dashboard?.dataset.reportConfirmationId === state.resourceReportConfirmationId;
+        const awaitingDetail = awaitActivation && state.resourceDetailConfirmationId !== undefined && detail && (detail.dataset.detailConfirmationId === state.resourceDetailConfirmationId || detail.dataset.detailConfirmationId === "0");
+        const pending = awaitingReport || awaitingDetail || Boolean(visit.querySelector('[data-ready="false"], [data-detail-state="loading"]'));
+        if (pending && frame < 120) { requestAnimationFrame(() => restore(frame + 1)); return; }
+        for (const position of state.positions) if (position.element.isConnected && visit.contains(position.element)) {
+          position.element.scrollLeft = position.left;
+          position.element.scrollTop = position.top;
+        }
+        const logical = state.resourceFocusSelector ? visit.querySelector<HTMLElement>(state.resourceFocusSelector) : null;
+        const target = isVisibleFocusTarget(state.trigger) && !state.trigger.matches(":disabled") ? state.trigger :
+          isVisibleFocusTarget(logical) && !logical.matches(":disabled") ? logical : resourceTabReference.current;
+        target?.focus({preventScroll:true});
+        controller.abort();
+      };
+      requestAnimationFrame(() => restore(0));
+      return;
+    }
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
+        if (focusGeneration !== taskFocusGeneration.current) return;
         for (const position of state.view === "schedule" ? [] : state.positions)
           if (
             position.element.isConnected &&
@@ -1520,7 +1612,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       generation: ++navigationSequence.current,
       ids: target.selection,
     });
-    focusNavigation(target, origin);
+    focusNavigation(target, origin, returning);
   }
   function commitNavigation(
     destination: ResourceNavigationState,
@@ -1598,6 +1690,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       destination: ResourceNavigationState;
       label: string;
     }>,
+    sourceTrigger?: HTMLElement,
   ) {
     if (!navigationAllowed()) return;
     if (navigationFrames.length >= 8) {
@@ -1608,7 +1701,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       );
       return;
     }
-    const source = captureNavigation(),
+    const source = captureNavigation(sourceTrigger),
       revision = confirmedSnapshotReference.current!.data.project.revision,
       current = ++navigationGeneration.current,
       controller = new AbortController();
@@ -1830,7 +1923,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         projection,
       );
       if (!scope) throw Error("INVALID_RESPONSE");
-      const source = captureNavigation();
+      const source = captureNavigation(request.trigger);
       source.trigger = request.trigger;
       return {
         scope,
@@ -1848,7 +1941,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           positions: [],
         },
       };
-    });
+    }, request.trigger);
   }
   function scheduleToResources(nodeIds: readonly string[], summaryId?: string) {
     void performResourceNavigation(async (signal) => {
@@ -2492,6 +2585,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       {editorSession ? (
         <ProjectTaskEditor
           initialTab={editorInitialTab}
+          initialAssignment={editorAssignment}
           ref={projectTaskEditorReference}
           key={editorSession.task.taskId}
           session={editorSession}
@@ -2829,7 +2923,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               resourceReportReference.current[resourceViewId] = data;
             }}
             onSchedule={scheduleResourceRequest}
-            onOpenTask={openTaskEditor} />
+            onOpenTask={openTaskEditor}
+            onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, {assignmentId, resourceId})}
+            onOpenTarget={(id, trigger, code) => { if(busy || editorSession || navigationLoading || relationEditorRequest || pendingTaskDelete) return; resourceTargetTrigger.current = trigger; setResourceTargetRequest({id, code, sequence: Date.now()}); setActiveView("logistics"); }} />
       </section>
       <section
         id="project-panel-logistics"
@@ -2838,7 +2934,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         hidden={activeView !== "logistics"}
         className="project-workspace-panel project-logistics-panel"
       >
+        {resourceTargetRequest ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {setActiveView("resources"); setResourceTargetRequest(null); requestAnimationFrame(() => { const trigger=resourceTargetTrigger.current; if(isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true}); else document.querySelector<HTMLElement>("#project-panel-resources input[type=search]")?.focus({preventScroll:true}); });}}>Resource 보기로 돌아가기</button> : null}
         <ProjectLogisticsManagement
+          targetOpenRequest={resourceTargetRequest}
           projectContext={project}
           busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           publicId={publicId}

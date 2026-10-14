@@ -356,3 +356,12 @@ F3의 Target binding API는 Task/Summary의 명시 연결과 모든 조상 Summa
 일반 Task/Summary 물류탭은 직접 Target 연결, 상속 출처, 기존 직접 설비·시스템 연결을 분리한다. 기본 self+whole, Summary만 subtree, subset은 같은 Target 구성원 1개 이상을 선택하며 Equipment 작업수량은 optional 원수량 이하 양의 정수다. whole로 전환하면 memberIds/coverage를 비워 현재 전체 구성을 참조한다. Target 미지정 관리 Summary는 유효하다. Milestone의 기존 legacy 직접 연결은 보존하고 새 Target authoring을 허용하지 않는다.
 
 Target child의 dirty/pending를 기존 부모 Editor의 닫기·재조회·탐색·기본정보 저장 잠금과 합성한다. 다른 저장 단위의 미저장 초안을 묵살하지 않는다. 401/412 또는 부모 revision 변경 시 초안을 유지하고 명시 재조회/폐기 전 자동 적용하지 않는다. 상속 출처의 부모로 공통 Editor를 열 수 있으며 Target 링크는 동일 Target 상세를 연다. 읽기 전용에서도 출처/상세 조회가 가능하다. Task 생성·복제와 새로운 SVAR mount는 이 흐름에 없다.
+## Issue #621 — Target Resource 상세에서 같은 원본 편집
+
+Resource–Target projection의 행 key는 조회 경로용이며 저장 대상은 canonical `taskId`와 정확한 `assignmentId/resourceId`다. 여러 Target에 표시된 같은 통합 Task도 하나의 기존 Task Editor에서 편집한다. 작업 이름·일정·진척·상태·Target binding은 기존 탭과 저장 단위를 사용하며 Target 제목/구성은 물류 composer의 별도 명령이다. 가상 Group/Target 헤더·총계에는 작업 저장을 제공하지 않는다.
+
+Assignment 편집 명령은 개인 이름·배정 ID를 표시하고 Resource 편집 경로의 해당 배정으로 이동한다. 공동담당자를 암묵적으로 선택하거나 같은 Task의 모든 개인 allocation을 변경하지 않는다. 기존 server session/Origin/strong If-Match 및 scheduling validation을 그대로 사용한다.
+
+exact 진입에서는 해당 개인만 표시하고 배정 대상 선택을 잠근다. 기간/allocation 저장은 기존 assignments PUT의 optional `editAssignmentId`와 단일 resource target으로 요청한다. generic 전체 교체를 호출해 다른 개인의 ID를 재생성하지 않는다. 선택 Assignment ID와 다른 개인/Group의 ID·날짜·allocation=null·비활성 원본은 보존된다. 같은 값이면 server no-op이며 최신 Project/catalog revision 및 오류 처리는 [API](API.md)를 따른다.
+
+Resource에서 열린 Editor는 실제 trigger와 origin을 전달해 닫기/취소 후 유효한 표시 컨트롤로 focus를 돌린다. 저장 후 report는 새 canonical revision으로 갱신하거나 stale로 잠근다. 편집 결과가 기존 필터에서 탈락하면 그 사유를 안내하고 연결되지 않거나 hidden/inert인 과거 행에 focus를 강제하지 않는다. dirty 확인·pending 중복 방지·권한만료·409/412·불명확 응답의 초안 보존과 명시 재조회는 기존 정책을 따른다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 UI/HTTP/Unit 검증 범위를 기록한다.

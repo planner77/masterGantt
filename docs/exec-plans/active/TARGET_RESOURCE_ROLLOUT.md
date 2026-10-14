@@ -15,7 +15,7 @@
 | F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | NOT TESTED |
 | R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | R1 구현 중; #619 Work Packet / PR CI 시작까지, 결과 NOT TESTED |
 | R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | R2 구현 중; [#620 Work Packet](ISSUE_620.md), report/detail/exact drill·snapshot 및 문서 / PR CI 시작까지 |
-| R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | NOT TESTED |
+| R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | main78691a97 선행 반영 확인, [#621 Work Packet](ISSUE_621.md)에 따라 구현·문서·로컬 검증 후 PR CI 시작까지; 원격 결과 NOT TESTED |
 | R4 | [#622](https://github.com/planner77/masterGantt/issues/622) | scheduler/backend/frontend: 주·월 Plan·전체 과투입·Excel | #619/#620, UI #621 | NOT TESTED |
 | Q1 | [#623](https://github.com/planner77/masterGantt/issues/623) | qa_docs/Manager: Resource MVP 종단간·이관·운영 수용 | #614~#622 | NOT TESTED |
 | V1 | [#624](https://github.com/planner77/masterGantt/issues/624) | ui_ux/frontend/backend: 공정/구역/인스턴스 확장·Milestone 교차 | #623 | 후순위 / NOT TESTED |
@@ -78,3 +78,7 @@ F3 #617 PR #676이 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`에 병합되�
 ## Issue #618 — F4 현재 구현 (2026-10-14)
 
 #615/#616 완료 및 #617 PR #676이 main `96c6c74b`에 반영된 현재 기반에서 F4 composer·Task binding UI·양방향 같은 원본 편집을 구현한다. 이전 candidate 상태표는 착수 이력이며 현재 완료 증거는 각 Issue/PR·Work Packet으로 확인한다. F4는 [ISSUE_618](ISSUE_618.md)을 따르며 minor0.111.0/HIGH/OWNER_MANAGED, release_required=true/release_authorized=false다. 실제 역할 분리 설계/구현과 별도 Agent 사전 검토를 사용하고 요청 종료점은 PR CI 시작이다. R1~V1을 자동 구현/완료하지 않는다.
+
+## Issue #621 — R3 착수·범위 (2026-10-14)
+
+착수 기준 main `78691a97bb8c0ba74a560965ca39479d7c80b72c`에는 #618 composer와 #620 보고 API가 포함된다. 위 candidate 표기는 과거 단계의 원장으로 보존하고 각 Issue의 main/Finalizer 완료를 이번 작업에서 추정하지 않는다. R3은 기존 Resource 탭의 Target 계층·역방향·비교/필터·같은 Task/정확 Assignment 편집과 상태/복귀를 연결한다. app0.113.0 MINOR, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 실행·문서·GSC/AC·실제 검증은 [ISSUE_621](ISSUE_621.md)이 현재 기준이다. 요청 종료점은 PR Full CI 시작이며 #622/#623/#624·병합·릴리스·Epic 완료는 별도다.
