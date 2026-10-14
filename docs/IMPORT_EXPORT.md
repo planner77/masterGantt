@@ -428,3 +428,9 @@ Excel Export는 미산정 Summary의 WBS/행을 유지하고 날짜·기간·진
 F1의 Project copy는 local 공정 ID만 치환하고 같은 BU/product/site의 공통 occurrence·WorkArea 참조를 보존한다. 매핑이 있는 원본에서 기존 Template snapshot 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`이며 silent loss를 허용하지 않는다. Template versioned 확장은 #616에서 수행한다.
 
 현행 WBS JSON·Excel은 full Project/DB backup 포맷이 아니며 신규 공통 공정 catalog/매핑을 round-trip하지 않는다. 이 변경은 기존 Import schema를 확장하지 않는다. 공통 참조를 포함하는 versioned 전체 참조 포맷은 #379 및 Target 후속 계약으로 관리한다. 전체 DB backup/restore와 부분 내보내기를 혼동하지 않는다.
+
+## Issue #617 — Target binding 포맷 이행과 loss guard
+
+서버 Project/Subtree Copy와 Project Template v3는 명시 Task–Target binding/subset/coverage를 보존한다. Template의 `logistics.taskTargetBindings`는 Task external ID, Target code, typed instance code로 포맷 내부 관계를 표현하고 복원 시 새 local UUID를 발급한다. 상속 유효집합을 명시 row로 저장하지 않는다. binding 없는 v2 및 legacy Template는 호환하되 unknown version/깨진 참조/누락 binding을 정상 성공으로 처리하지 않는다. 상세 계약은 [Project Copy](ISSUE_27_PROJECT_COPY.md#issue-617--명시-target-binding-복사)를 따른다.
+
+WBS JSON schema1.0/1.1과 기존 Excel 일정 내보내기는 Target binding의 전체 backup 포맷이 아니다. JSON의 기존 Target-bearing export 차단은 유지하고 신규 binding도 명시적으로 보호한다. binding이 있는 일정 Excel export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`로 거부한다. Import에서 신규 binding 필드는 `TARGET_BINDING_IMPORT_UNSUPPORTED` 등 명시 오류로 거부하며 field를 버린 성공을 반환하지 않는다. 새로운 외부 전체 참조 versioned JSON/복원은 #379 후속이며 DB backup/restore와도 구분한다. 이 변경은 기존 JSON schema 번호를 몰래 확장하지 않는다.

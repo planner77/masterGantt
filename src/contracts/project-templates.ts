@@ -167,7 +167,9 @@ export interface ProjectTemplateSnapshot {
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
     /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
-    schemaVersion?: 2;
+    schemaVersion?: 2 | 3;
+    /** Version 3 preserves explicit WBS bindings; inherited rows are never saved. */
+    taskTargetBindings?: Array<{ taskExternalId: string; targetCode: string; scope: "self" | "subtree"; selection: "whole" | "subset"; members: Array<{kind: "equipment" | "system"; instanceCode: string; coverage: number | null}> }>;
     processMappings?: TemplateProcessMappingSnapshotItem[];
     targets?: TemplateTargetSnapshotItem[];
   };

@@ -1,3 +1,9 @@
+## [Unreleased] — 0.109.0 / Issue #617 WBS–Target 연결 (2026-10-14)
+
+- Task/Summary–Target 다대다 whole/subset·self/subtree 연결과 typed member coverage, 직접+모든 조상 subtree 합집합·전체 출처를 제공하는 단일 resolver를 추가한다. legacy Equipment/System 직접 연결과 공유 MCS identity를 보존한다.
+- Target 구성·WBS 이동 영향 확인, subset/coverage/사용 중 삭제 보호, Copy·Template 명시 연결 remap과 미지원 포맷 silent-loss 차단을 동기화한다. 같은 Project subtree Copy도 기존 명시 legacy Equipment/System self/subtree 링크를 복사하도록 확장하며 상속을 평탄화하지 않는다. Target usage는 nullable 의미와 실제 고유 일반 Task/Summary 수량을 구분한다.
+- 신규 Target UI/Resource 축은 후속 #618/#619. exact-Head 원격 CI 전 전체 PASS를 주장하지 않으며 `release_required=true`, `release_authorized=false`; 정식 릴리스가 아니다.
+
 ## [Unreleased] — Issue #672 #616 Target F2 검증 보완 (2026-10-14)
 - 추가 Target 전용 HTTP Origin/session/strong-CAS·중복/요청 한도, 도메인 shared MCS/기존 Resource 담당·제어 원장 불변, inline member rollback, 기존 0025 DB → 0026 upgrade + Target persistence/restart 통합 회귀.
 - v0.108.0 Release #167.1/Finalizer #32.2의 기존 SUCCESS 증거를 보존하고, #616 F2 AC2~AC7의 부족한 실제 검증을 별도 #672 PR로 추적한다. 신규 테스트가 CI에서 PASS하기 전에는 인수 완료로 주장하지 않는다.

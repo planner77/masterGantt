@@ -1,3 +1,4 @@
+import { snapshotTaskTargetBindings, restoreTaskTargetBindings } from "../logistics/task-target-transfer-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type {
@@ -6,9 +7,6 @@ import type {
   TemplateTargetSnapshotItem,
 } from "../../contracts/project-templates";
 import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
-
-type Graph = Pick<NonNullable<ProjectTemplateSnapshot["logistics"]>,
-  "schemaVersion" | "processMappings" | "targets">;
 
 export class LogisticsTemplateGraphError extends Error {
   constructor(public readonly code: string, message: string) {
@@ -37,7 +35,7 @@ type RawMember = {
  * use typed, project-unique instance codes as snapshot-local keys. */
 export function snapshotLogisticsTemplateGraph(
   db: Database.Database, sourceProjectId: number,
-): { schemaVersion: 2; processMappings: TemplateProcessMappingSnapshotItem[];
+): { schemaVersion: 2 | 3; taskTargetBindings?: NonNullable<NonNullable<ProjectTemplateSnapshot["logistics"]>["taskTargetBindings"]>; processMappings: TemplateProcessMappingSnapshotItem[];
      targets: TemplateTargetSnapshotItem[] } {
   const mappings = db.prepare(
     "SELECT p.code process_code, o.public_id occurrence_public_id, " +
@@ -87,8 +85,10 @@ export function snapshotLogisticsTemplateGraph(
       })),
     };
   });
+  const bindings = snapshotTaskTargetBindings(db, sourceProjectId);
   return {
-    schemaVersion: 2,
+    schemaVersion: bindings.length ? 3 : 2,
+    ...(bindings.length ? {taskTargetBindings: bindings} : {}),
     processMappings: mappings.map((m) => ({
       processCode: m.process_code,
       occurrenceId: m.occurrence_public_id,
@@ -124,14 +124,15 @@ function nullableText(value: unknown): string | null {
 export function restoreLogisticsTemplateGraph(
   db: Database.Database, projectId: number,
   graph: NonNullable<ProjectTemplateSnapshot["logistics"]>,
-  local: LocalMaps, now: string,
+  local: LocalMaps, now: string, tasks: ReadonlyMap<string, {id:number}> = new Map(),
 ): { processMappings: number; targets: number; warnings: string[] } {
   if (graph.schemaVersion === undefined) {
-    if (graph.processMappings !== undefined || graph.targets !== undefined)
+    if (graph.processMappings !== undefined || graph.targets !== undefined || graph.taskTargetBindings !== undefined)
       reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "Unversioned template graph must not contain Target references.");
     return { processMappings: 0, targets: 0, warnings: [] };
   }
-  if (graph.schemaVersion !== 2 || !Array.isArray(graph.processMappings) || !Array.isArray(graph.targets))
+  if ((graph.schemaVersion !== 2 && graph.schemaVersion !== 3) || !Array.isArray(graph.processMappings) || !Array.isArray(graph.targets) ||
+      (graph.schemaVersion === 3 ? !Array.isArray(graph.taskTargetBindings) : graph.taskTargetBindings !== undefined))
     reject("TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED", "Unsupported or incomplete Template graph version.");
 
   const catalog = new ProcessCatalogRepository(db);
@@ -237,5 +238,6 @@ export function restoreLogisticsTemplateGraph(
     db.prepare("UPDATE logistics_targets SET anchor_member_id=? WHERE project_id=? AND id=?")
       .run(member.id,projectId,targetId);
   }
+  if (graph.schemaVersion === 3) restoreTaskTargetBindings(db, projectId, graph.taskTargetBindings!, tasks, now);
   return {processMappings:savedMappings.length,targets:savedTargets.length,warnings};
 }

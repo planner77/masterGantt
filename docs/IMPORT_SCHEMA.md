@@ -158,3 +158,7 @@ Preview 응답과 오류 envelope, HTTP status, auth, revision은 [API.md](API.m
 검증기 결과의 taskId는 순수 계산용 임시 externalId이며 저장용 public UUID가 아니다. 후속 commit 구현은 server-generated UUID를 발급하고 대상 DB 충돌·authorization/revision을 별도로 검증해야 한다.
 
 1.0 pure validator 자체는 HTTP/byte/DB 검증을 수행하지 않는다. Issue #464의 별도 parser/service/handler가 JSON preview/commit의 byte/encoding/duplicate key·target collision·원자 transaction을 구현한다. CSV parsing은 미구현이다. 테스트는 `tests/contracts/import.test.ts`의 새/기존 입력, 중첩/혼합 Summary, invalid Leaf/null/날짜/관계/version fixture다. Windows Excel/VBA/DRM 실제 실행 및 원격 Import commit은 NOT TESTED다.
+
+## Issue #617 — 외부 Target binding 입력 경계
+
+JSON schema1.0/1.1의 schedule-stage payload에는 Target/binding/member/coverage 원장이 없다. 신규 binding 필드를 지원으로 오인해 무시하지 않고 `TARGET_BINDING_IMPORT_UNSUPPORTED` 등 validation 오류로 거부한다. 현행 payload의 strict Task/Link/Milestone membership·Calendar·create-only transaction 계약은 유지한다. Template의 별도 `logistics.schemaVersion=3` 지원이 JSON schema1.1의 Target 왕복 지원을 뜻하지 않는다. full graph 외부 참조 포맷은 #379에서 별도 version/capability를 설계한다.

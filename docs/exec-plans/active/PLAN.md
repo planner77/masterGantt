@@ -1,3 +1,9 @@
+## Issue #617 — WBS–Target F3 구현 후보 (2026-10-14)
+
+- 기준 main `e1957802`, 후보 app `0.109.0`. Task–Target whole/subset·self/subtree·coverage·합집합 provenance, legacy 직접 연결 호환, 영향 확인, Copy/Template 및 loss guard·usage null/0/N 계약을 구현한다. Target authoring UI와 Resource 축은 #618/#619 이후다.
+- Work Packet: [ISSUE_617.md](ISSUE_617.md). 실제 분리 구현 Agent와 read-only qa_docs가 협업하며 `risk_level=HIGH`, `qa_method=AGENT`, `qa_required=true`; 독립 QA·Manager 최종 ACCEPT는 exact Head 증거 전 미판정이다.
+- `release_required=true`, `release_authorized=false`. 이번 사용자 범위는 문서 동기화·리뷰 스레드 처리·PR CI 시작까지다. CI 모니터링·병합·Main GHCR·tag/Release·Issue 종료는 수행하지 않는다. 로컬 검증/원격 CI/운영 적용은 구분한다.
+
 ## Issue #672 — #616 F2 AC2~AC7 인수·회귀 보완 (2026-10-14)
 - 선행: #616 AC 검증 댓글 https://github.com/planner77/masterGantt/issues/616#issuecomment-6155300627; #670 v0.108.0 Release #167.1/Finalizer #32.2 완료. 원본 #616 v0.107.0 실패/철회는 불변.
 - 검증 Work Packet: `docs/exec-plans/active/ISSUE_672.md`. 신규 Target 전용 SQLite/HTTP/partial inline rollback/0025→0026 persisted restart, 공유 장비·System 및 Resource role 보호, bounded listing/usage. 부족한 실제 코드 결함만 수정하고 #617 WBS binding은 별도.

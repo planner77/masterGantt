@@ -380,7 +380,7 @@ Core scale/config 갱신은 단발 filter를 초기화할 수 있으므로 표�
 
 ## F2 Project Target aggregate (#616)
 
-Target is Project-local grouping of existing logistics instances, not a new Equipment/System catalog or WBS node. `logistics-targets-service-core` holds transactional orchestration, `logistics-targets-handlers-core` owns HTTP authorization, and typed members are enforced by `0026_logistics_targets.sql`. F1 common process occurrence WorkArea identity remains global and stable, local process and equipment/system IDs are remapped on Project Copy. Canonical Task and Resource identity are unchanged. Template/JSON schedule-only export is explicitly unsupported when Target graph exists. #617 and #619 add downstream bindings/projections independently.
+Target is Project-local grouping of existing logistics instances, not a new Equipment/System catalog or WBS node. `logistics-targets-service-core` holds transactional orchestration, `logistics-targets-handlers-core` owns HTTP authorization, and typed members are enforced by `0026_logistics_targets.sql`. F1 common process occurrence WorkArea identity remains global and stable, local process and equipment/system IDs are remapped on Project Copy. Canonical Task and Resource identity are unchanged. Schedule-only JSON export rejects Target-bearing sources. The later F2 Template v2 supports the complete Target/member graph; F3 #617 below extends explicit bindings, while #619 Resource projection remains separate.
 
 ## #616 Template portable logistics graph
 
@@ -395,3 +395,9 @@ Workspace는 전체 canonical snapshot에서 Timeline 모델을 memoize하고 �
 Week는 Gantt에만 scoped Locale Monday 시작과 공개 weekly scales formatter를 사용한다. 상위 label은 실제 주가 포함하는 Gregorian 월·연도 span이며 native monthly rounding 구현 변경이 아니다. UI interval의 2200 metadata와 Calendar supported domain을 구별하고 전체 근무일 미산정 fallback만 제공한다. Editor·Calendar·API·server/auth/DB/일정 알고리즘 계약은 유지한다. [기술/UX 계약](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #617 — Task Target binding aggregate
+
+F3는 application-owned Task–Target 명시 관계와 typed subset member/coverage를 SQLite에 저장하고, SVAR와 독립된 pure resolver에서 직접+조상 Summary subtree 합집합 및 provenance를 계산한다. `Route Handler → Service → Repository → SQLite` 경계를 유지한다. 명시 관계는 SQLite와 전용 GET/PUT target-bindings aggregate에서 보존하며, 기존 전체 ProjectSnapshot DTO를 새 binding 원장으로 확장하지 않는다. 파생 상속 결과를 새로운 저장 row로 평탄화하지 않는다. 기존 직접 Equipment/System 출처와 신규 Target 출처는 instance ID로 dedup해도 구분해 제공한다.
+
+mutation은 기존 Project session/Origin/strong If-Match와 IMMEDIATE transaction을 재사용한다. Target 구성 영향 token은 revision·정규화 diff·snapshot에 묶인 확인 장치이며 권한 근거가 아니다. Copy/Template은 명시 binding/subset/member ID를 해당 local ID map으로 한 번씩 치환한다. UI(#618)와 Resource 축(#619 이후)은 이 resolver를 재사용하며 독자 상속 엔진·새 Resource 배정·일정 writer를 추가하지 않는다. 상세 API/DDL·검증 상태는 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다.

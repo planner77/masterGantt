@@ -76,6 +76,9 @@ export class ProjectJsonExportService {
       // persisted Target references as if this were a complete project backup.
       const projectId = this.database.prepare("SELECT id FROM projects WHERE public_id=?")
         .get(publicId) as {id:number}|undefined;
+      if (projectId && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? LIMIT 1").get(projectId.id)) {
+        throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "Task Target bindings cannot be represented by JSON schema 1.1. Use Project Copy or Template.");
+      }
       if (projectId && this.database.prepare("SELECT 1 FROM logistics_targets WHERE project_id=? LIMIT 1").get(projectId.id)) {
         throw new PublicApiError(409,"TARGET_JSON_EXPORT_UNSUPPORTED",
           "Target/member graph is not supported by the schedule-stage JSON schema. Use Project Copy.");
