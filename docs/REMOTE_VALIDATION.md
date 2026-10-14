@@ -1,3 +1,11 @@
+## Issue #623 — Q1 로컬/원격/운영 증거 분리
+
+PR #685 재개: [원본 #2772.1](https://github.com/planner77/masterGantt/actions/runs/38642308191), Head `729f2e4dd1254d73c07ea13eecc287e4b9dac243`의 세 Required와 E2E 6 shard는 PASS다. QA Final job `116129943648`은 `미해결 review thread`로 BLOCKED(exit 1)이며 gate의 정상 차단이다. P2 두 건의 테스트 보완·실제 Chromium 확인·스레드 해결 및 main `1449190a` 충돌 정렬 뒤 새 Full PR CI를 시작한다. 원본 FAIL을 소급 PASS하지 않고 새 Head의 CI/Trusted QA는 결과 미확인 NOT TESTED로 인계한다. 새 CI를 모니터링하지 않는다.
+
+같은 F0golden의 Domain/API/UI/OOXML·다관점 편집·합성 migration/backup/restart·Copy/Template·한도/5폭은 이번 집중 로컬 검증이다. exact-head Full PR CI quality/e2e/docker·default-main Trusted QA,Owner HIGH 위험 수용/명시 병합 허가와 Manager ACCEPT는 별도다. 요청 범위는 PR CI 시작 확인이며 결과를 monitoring하지 않는다.
+
+선행614~622 원격 원장은 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)의 단일 조회 snapshot으로 보존한다. 특히618 originalMainFAIL/FinalizerSKIPPED,615 corrective/succession,616 originalpushCI부재/후속승계,622 진행중MainCI를 서로 소급 PASS하지 않는다. 이번623 Head·base/testmerge·RunID/attempt·thread0/충돌은 PR/Issue 인계에 기록한다. 실제 production/off-host restore·TLS/proxy·WindowsExcel/VBA/DRM·실기기/screen reader·최종수동UX 및 #624/V1은 NOT TESTED다.
+
 ## Issue #622 / Main CI #2771.1 후속 원자적 probe 준비 검증
 
 - 원본 `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`/Main [#2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383)의 Chromium shard4 #551 3000-row 5초 probe/DOM identity FAIL과 5-shard PASS·Quality/Docker PASS·GHCR SKIPPED는 수정 전 원장으로 고정한다.

@@ -1,3 +1,9 @@
+## Issue #623 — 구성부터 Resource·같은 원본 편집의 수용
+
+제품 공정·두 사업장/선택 WorkArea·TargetA/B/sharedMCS→Task/Summary whole/subset→Resource 계층/교차표→같은 Task/정확 Assignment 편집→원래 WBS/Resource 복귀를 실제 HTTP/Chromium으로 연결한다. name/date/status/progress/allocation/membership은 각각 별도 저장이며 Task 표시 행 중복을 원본 복제로 처리하지 않는다. 기존 Editor·dirty/pending·readonly/권한/stale·focus·same Core/단일 viewport writer를 유지한다.
+
+390/768/1024/1440/1920px의 긴 이름·표 내부 scroll·열 경계·keyboard/Enter/Tab/Escape·복귀와 조회 mutation0을 확인한다. 기존 #621/#622/#528 회귀를 재사용하며 SC-11 집중 수용을 GSC 전체/#574 완료로 확대하지 않는다. Design Delta B,DESIGN.md N/A다. [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)에 실제 명령/증거/실패/미검증을 기록한다.
+
 ## Issue #621 PR #683 — Resource 상세 Snapshot 무효화·Target 유지 (2026-10-14)
 
 ## Issue #622 — Target Plan·선택 밖 과투입 원인·Excel

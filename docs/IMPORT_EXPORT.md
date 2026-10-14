@@ -1,5 +1,11 @@
 # Import / Export
 
+## Issue #623 — Copy·Template·보고서와 backup 분리
+
+Q1은 기존 Project/Task Copy·Template logistics schemaVersion3(binding 포함)/v2/legacy·cut/reparent의 local ID remap/sharedMCS/global catalog 재사용·coverage/상속과 잘못된 site 참조 원자 거부를 통합 검증한다. 새 포맷/무손실 Import/자동 cross-site 이름 매핑을 추가하지 않는다.
+
+#379 전체 참조 JSON은 미완료다. Target-bearing plain 일정 JSON/Excel 거부와 명시 Resource Excel 보고서 허용은 기존 loss guard이며 보고서는 전체 Target backup이 아니다. 이관/rollback은 대응 DB backup+image 또는 forward corrective 절차로 구별한다. 실제 지원과 합성/운영 증거는 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)를 따른다.
+
 ## Issue #464 — JSON 1.1과 보호된 Import/Export
 
 현재 웹 Import는 strict JSON `1.0`과 `1.1`을 지원한다. 기존 `validateImportPayload`와 [1.0 machine schema](schemas/project-import.schema.json)는 변경하지 않는다. 신규 dispatcher `validateProjectImportPayload`가 [1.1 machine schema](schemas/project-import-1.1.schema.json)의 authored schedule-stage 표현을 검증한다. [1.1 예제](examples/project-import-1.1.json)와 [빈 예제](examples/project-import-1.1-empty.json)를 제공한다. CSV/Windows VBA producer의 FS/0 subset은 별도 POC이며 실제 웹 JSON이 지원하는 FS/SS/FF/SF와 signed lag를 CSV producer가 모두 구현했다고 주장하지 않는다. HTTP CSV parser는 제공하지 않으며 `415 UNSUPPORTED_MEDIA_TYPE`다.

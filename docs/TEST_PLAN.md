@@ -1,3 +1,20 @@
+## Issue #623 — Resource MVP 통합 수용
+
+PR #685 P2 후속: 첫 통합 흐름은 기존 최대 30.6초 관측을 근거로 해당 테스트만 60초, geometry 흐름은 기본 30초로 제한한다. action timeout 15초와 기존 단언은 유지한다. 390px의 tree/matrix 모두 실제 ArrowRight 전후 `scrollLeft` 증가와 focus 유지가 필요하며 `geometry.json`에 전후 값을 기록한다. overflow·focus·스크린샷만으로 키보드 이동을 PASS로 판단하지 않는다. 원본 CI #2772.1은 세 Required PASS / QA Final 미해결 리뷰 BLOCKED이며 새 Head 원격 결과는 별도다.
+
+| AC | 검증 파일·범위 |
+| --- | --- |
+| AC1 | tests/fixtures/issue-623-target-resource.ts·tests/domain/issue-623-target-resource-acceptance.test.ts,신규SQLite/Chromium/OOXML:sharedA5/B5/union5·AMR15/ACS2/MCS1·samecanonicalrawIDs,기존53011.5별도보존 |
+| AC2 | tests/e2e/issue-623-resource-mvp.spec.ts·전용fixture,기존621/622/528집중회귀:name/date/status/progress/allocation/membership개별저장1·복제0·query0·권한/원자성/stale·복귀 |
+| AC3 | tests/server/db/issue-623-target-migration.test.ts와신규server수용:actual0024→27·checksum/order/latebatchrollback·합성backuprestore/restart·Copy/Template/newIDs/sharedMCS/globalreuse/coverage/site거부·format |
+| AC4 | 대표fixtureSQL/time/JSON/workbook/render·fanout/응답/한도거부,390/768/1024/1440/1920px tree/matrix geometry/keyboard·sameCore |
+| AC5 | TARGET_RESOURCE_USER_GUIDE의구성→연결→집계→편집→과투입→Excel·partial/비가산/미연결/WorkArea미사용과실제UI대조 |
+| AC6 | TARGET_RESOURCE_ACCEPTANCE/WorkPacket/activePLAN/rollout의요구사항↔AC↔test↔docs↔sourcehash↔exactHead원격인계와M2/V1별도상태 |
+
+신규 Domain8case는 조회순서/cache오염·Target구성/allocation/progress독립변화·sharedrawID/주월/일별합·T0/A/R·partial/null·예산거부후불변을 기존 엔진으로 확인한다. 신규 migration은 실제0024 schema·빈DB·pending0025/26/27·checksum/gap·전체rollback·구binary/newledger거부·임시backup/새파일restore를 검증한다. 실제 WindowsExcel/운영DB/off-host·TLS·실기기/스크린리더·최종수동UX는 별도환경 NOT TESTED다.
+
+실제 파일/명령/테스트수/최초FAIL·보완/관측값·사전검토·원격시작은 [#623 Work Packet](exec-plans/active/ISSUE_623.md)과 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에 기록한다. skip/timeout/단언완화로 실패를 숨기지 않는다. 기존530/528/Milestone/Calendar/TaskEditor·canonical/viewport 회귀 및Required3/Trusted/Owner승인을 이번 집중수용으로 대체하지 않는다.
+
 ## Issue #622 Main #2771.1 — #551 초기화 검사 재발 회귀 (2026-10-15)
 
 - [원본 Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383), merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`: E2E shard4(job 116106607229) `milestone-timeline-lane.spec.ts:62`, 1000 Task+2000 Milestone 5초 준비 gate FAIL. Shard4 135 PASS/1 FAIL/1 SKIP, 나머지 5 shard PASS, Quality/Docker PASS; GHCR image step SKIPPED. 실패한 것을 GHCR 권한 오류나 #622 Resource 수치 실패로 오인하지 않는다.

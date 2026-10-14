@@ -1,5 +1,11 @@
 # Deployment
 
+## Issue #623 — Target 이관·복구 인계
+
+Target 관련0025→0026→0027의 실제 형태 legacy 이관·checksum/order·pending batch rollback·합성 backup/restore/restart를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)에 정리했다. 기존 app single instance·Compose project/volume·UID:GID1001:1001·absolute /data·readiness/entrypoint 계약은 불변이다.
+
+운영 backup CLI는 추가하지 않는다. 기존§8의 clean stop 후 /data 전체 일관 snapshot·새 격리 volume·대응 exact image 복원을 따른다. 구 binary만의 rollback/ledger 편집/volume 삭제는 복구 절차가 아니다. 합성 SQLite backup API 테스트 성공은 off-host/운영 restore PASS가 아니며 실제 환경 수용과 정식 release 권한은 별도다. [수용표](TARGET_RESOURCE_ACCEPTANCE.md)의 NOT TESTED를 유지한다.
+
 ## Issue #283 standalone production runtime
 
 production container는 Next.js Output File Tracing의 `output: "standalone"` 산출물을 실행한다. build stage는 full dependency와 native build toolchain으로 application을 build한 뒤 `scripts/prepare-standalone-runtime.mjs`가 `.next/static`, optional `public/`, `db/migrations`를 `.next/standalone` tree에 stage한다. final runtime stage에는 이 prepared standalone tree와 build-time compiled startup JavaScript만 복사한다. 전체 production `node_modules`, 전체 `.next`, application `src`, `.next/cache`, TypeScript source/loader는 final image에 복사하지 않는다.

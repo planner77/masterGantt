@@ -1,5 +1,11 @@
 # Database Schema
 
+## Issue #623 — legacy 이관·복원 통합 수용
+
+신규 schema/migration을 추가하지 않는다. 실제0024 schema 형태의 합성 파일 DB에서0025_process_catalog→0026_logistics_targets→0027_task_target_bindings를 적용하여 ledger 순서/SQL checksum·FK·원본 ID/미매핑 자유공정·비활성 참조·재기동을 확인한다. 전체 pending batch의 늦은 실패는 schema/rows/ledger rollback,checksum/order drift·구 migration과 새 ledger 조합은 fail-closed여야 한다.
+
+합성 SQLite backup→새 파일 restore→integrity/FK→재기동과 구 backup+대응 구 migration 복구는 전용 테스트 범위다. 운영 DB/off-host volume 복원과 자동 down migration 지원을 뜻하지 않는다. binding 포함 Templatev3·local ID remap/sharedMCS/globalreuse·wrong site 참조 거부를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)와 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에 연결한다.
+
 ## Issue #538 — 사업부/제품/사업장 연결 (migration 0024)
 
 `db/migrations/0024_project_master_relations.sql`은 `business_unit_products(business_unit_id,product_id)` 및 `business_unit_product_sites(business_unit_id,product_id,site_entity_id)` STRICT 복합 PK/FK 연결 테이블을 생성한다. site 연결은 유효한 business_unit_products 연결에만 귀속된다. INSERT category trigger는 BUSINESS_UNIT/PRODUCT/SITE_ENTITY 타입을 강제하며 FK는 삭제와 고아 관계를 보호한다.

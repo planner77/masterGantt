@@ -1,0 +1,384 @@
+{
+  "projectId": "26f38c5e-bc80-4436-b137-464ab6369653",
+  "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+  "assignmentId": "e9788615-81ea-4d8a-b358-fd7d9613d459",
+  "targetIds": [
+    "26398a02-3741-4f88-9768-11e6617a3ee5",
+    "bc3d45e9-954c-4313-98b3-8d04ad6459a2"
+  ],
+  "standardId": "e4bdf80b-8c2e-446e-9484-39862ed08402",
+  "siteIds": [
+    "c2f817b4-8a6c-4c35-a7a7-a9d881e7f37d",
+    "fde0a2df-7b2e-494d-9806-3bb153b20793"
+  ],
+  "rawGolden": {
+    "taskCount": 1,
+    "resourceCount": 1,
+    "assignmentCount": 1,
+    "notStarted": 1,
+    "inProgress": 0,
+    "completed": 0,
+    "delayed": 1,
+    "completion": {
+      "numerator": 0,
+      "denominator": 1,
+      "percent": 0
+    },
+    "assignedTaskProgress": {
+      "numerator": 0,
+      "denominator": 5,
+      "percent": 0
+    },
+    "effort": {
+      "knownMd": 5,
+      "plannedMd": 5,
+      "plannedMm": 0.25,
+      "state": "configured",
+      "partial": false,
+      "unsetCount": 0
+    },
+    "selector": {
+      "assignmentScope": "selected",
+      "dimension": "all",
+      "id": null,
+      "metric": "all"
+    }
+  },
+  "workbook": {
+    "names": [
+      "Gantt",
+      "Tasks",
+      "Project",
+      "Milestone Stages",
+      "Resource Report",
+      "Resource Milestones",
+      "Group Milestones",
+      "Resource Plan",
+      "Resource Assignments",
+      "Resource Quality",
+      "Resource Relations",
+      "Resource Targets",
+      "Resource Target Catalog",
+      "Resource Target Sources",
+      "Resource Project Assignments"
+    ],
+    "snapshotId": "f1664c38f0f83fe2aa2cdfc34a47cff6be9b31f7788e80fb59e72a562fc3757a",
+    "filters": {
+      "from": "2026-10-05",
+      "to": "2026-10-11",
+      "asOfDate": null,
+      "resourceActivity": "all",
+      "groupActivity": "all",
+      "search": "",
+      "taskSearch": "SHARED",
+      "mode": "group",
+      "mdPerMm": null,
+      "mdPerMmProvided": false,
+      "projectionOrder": [
+        "resource",
+        "target"
+      ],
+      "resourceIds": [],
+      "groupIds": [],
+      "milestoneIds": [],
+      "taskIds": [],
+      "wbsRootIds": [],
+      "roles": [],
+      "developerGrades": [],
+      "statuses": []
+    },
+    "bytes": 30467
+  },
+  "members": {
+    "equipmentQuantity": 15,
+    "systemCount": 3,
+    "equipmentIds": [
+      "05c97f0b-e53d-45ce-81f2-798d7adeadff",
+      "32c22f20-30df-4e95-bb74-a354115ea42e"
+    ],
+    "systemIds": [
+      "19cb9876-01a5-4986-9834-a82cb0f178d2",
+      "2d843596-208f-4e0d-92fe-3daac6ddef03",
+      "591081bf-bccf-40d5-881f-86c0cbdfa947"
+    ],
+    "types": [
+      {
+        "kind": "equipment",
+        "typeCode": "amr",
+        "instanceIds": [
+          "05c97f0b-e53d-45ce-81f2-798d7adeadff",
+          "32c22f20-30df-4e95-bb74-a354115ea42e"
+        ],
+        "quantity": 15
+      },
+      {
+        "kind": "system",
+        "typeCode": "acs",
+        "instanceIds": [
+          "2d843596-208f-4e0d-92fe-3daac6ddef03",
+          "591081bf-bccf-40d5-881f-86c0cbdfa947"
+        ],
+        "quantity": 2
+      },
+      {
+        "kind": "system",
+        "typeCode": "mcs",
+        "instanceIds": [
+          "19cb9876-01a5-4986-9834-a82cb0f178d2"
+        ],
+        "quantity": 1
+      }
+    ],
+    "members": [
+      {
+        "kind": "equipment",
+        "entityId": "05c97f0b-e53d-45ce-81f2-798d7adeadff",
+        "name": "AMR A",
+        "code": "AMR-A",
+        "active": true,
+        "typeCode": "amr",
+        "quantity": 10,
+        "projectProcessId": "81a83290-e2e2-4dcf-a11c-43a10dd141a9",
+        "provenance": [
+          {
+            "bindingId": "add6a5d3-f4ed-42db-aa6c-302ef595e775",
+            "sourceTaskId": "0318aed3-67bd-4951-a04b-12a805f03faf",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "memberId": "5793441e-7ada-4c63-b850-bda8bd7194f4",
+            "selection": "whole",
+            "scope": "subtree",
+            "inherited": true,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          },
+          {
+            "bindingId": "d5b8deec-fd71-4217-8eed-95bffc88f8de",
+            "sourceTaskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "memberId": "5793441e-7ada-4c63-b850-bda8bd7194f4",
+            "selection": "whole",
+            "scope": "self",
+            "inherited": false,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          }
+        ],
+        "coverageState": "single"
+      },
+      {
+        "kind": "equipment",
+        "entityId": "32c22f20-30df-4e95-bb74-a354115ea42e",
+        "name": "AMR B",
+        "code": "AMR-B",
+        "active": true,
+        "typeCode": "amr",
+        "quantity": 5,
+        "projectProcessId": "57b9fda7-5abc-4295-b825-34ecfbeb2b98",
+        "provenance": [
+          {
+            "bindingId": "d946414d-7844-436a-9333-6314a312a55a",
+            "sourceTaskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+            "targetId": "bc3d45e9-954c-4313-98b3-8d04ad6459a2",
+            "memberId": "219f4e67-51b8-43d0-84ab-fe7ab8ea0a16",
+            "selection": "whole",
+            "scope": "self",
+            "inherited": false,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          }
+        ],
+        "coverageState": "single"
+      },
+      {
+        "kind": "system",
+        "entityId": "19cb9876-01a5-4986-9834-a82cb0f178d2",
+        "name": "공유 MCS",
+        "code": "MCS-1",
+        "active": true,
+        "typeCode": "mcs",
+        "quantity": 1,
+        "projectProcessId": null,
+        "provenance": [
+          {
+            "bindingId": "add6a5d3-f4ed-42db-aa6c-302ef595e775",
+            "sourceTaskId": "0318aed3-67bd-4951-a04b-12a805f03faf",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "memberId": "9975fac0-cfa3-4276-8cb9-8222ac4b248e",
+            "selection": "whole",
+            "scope": "subtree",
+            "inherited": true,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          },
+          {
+            "bindingId": "d5b8deec-fd71-4217-8eed-95bffc88f8de",
+            "sourceTaskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "memberId": "9975fac0-cfa3-4276-8cb9-8222ac4b248e",
+            "selection": "whole",
+            "scope": "self",
+            "inherited": false,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          },
+          {
+            "bindingId": "d946414d-7844-436a-9333-6314a312a55a",
+            "sourceTaskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+            "targetId": "bc3d45e9-954c-4313-98b3-8d04ad6459a2",
+            "memberId": "1bd3650b-d4b0-4078-bb61-4bd6974a0f26",
+            "selection": "whole",
+            "scope": "self",
+            "inherited": false,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          }
+        ],
+        "coverageState": "single"
+      },
+      {
+        "kind": "system",
+        "entityId": "2d843596-208f-4e0d-92fe-3daac6ddef03",
+        "name": "ACS A",
+        "code": "ACS-A",
+        "active": true,
+        "typeCode": "acs",
+        "quantity": 1,
+        "projectProcessId": null,
+        "provenance": [
+          {
+            "bindingId": "add6a5d3-f4ed-42db-aa6c-302ef595e775",
+            "sourceTaskId": "0318aed3-67bd-4951-a04b-12a805f03faf",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "memberId": "62ecf340-adf2-4c3e-bd87-f7998b723b4b",
+            "selection": "whole",
+            "scope": "subtree",
+            "inherited": true,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          },
+          {
+            "bindingId": "d5b8deec-fd71-4217-8eed-95bffc88f8de",
+            "sourceTaskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "memberId": "62ecf340-adf2-4c3e-bd87-f7998b723b4b",
+            "selection": "whole",
+            "scope": "self",
+            "inherited": false,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          }
+        ],
+        "coverageState": "single"
+      },
+      {
+        "kind": "system",
+        "entityId": "591081bf-bccf-40d5-881f-86c0cbdfa947",
+        "name": "ACS B",
+        "code": "ACS-B",
+        "active": true,
+        "typeCode": "acs",
+        "quantity": 1,
+        "projectProcessId": null,
+        "provenance": [
+          {
+            "bindingId": "d946414d-7844-436a-9333-6314a312a55a",
+            "sourceTaskId": "eb6a1d28-a75e-40c1-8311-b57e22729028",
+            "targetId": "bc3d45e9-954c-4313-98b3-8d04ad6459a2",
+            "memberId": "57983851-e549-433a-ba01-ec01a281062b",
+            "selection": "whole",
+            "scope": "self",
+            "inherited": false,
+            "coverage": null,
+            "coverageMode": "whole",
+            "taskId": "eb6a1d28-a75e-40c1-8311-b57e22729028"
+          }
+        ],
+        "coverageState": "single"
+      }
+    ]
+  },
+  "writes": [
+    {
+      "method": "PATCH",
+      "path": "/api/projects/26f38c5e-bc80-4436-b137-464ab6369653/tasks/eb6a1d28-a75e-40c1-8311-b57e22729028",
+      "body": {
+        "name": "SHARED · WBS 동일 원본"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/projects/26f38c5e-bc80-4436-b137-464ab6369653/tasks/eb6a1d28-a75e-40c1-8311-b57e22729028",
+      "body": {
+        "start": "2026-10-06"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/projects/26f38c5e-bc80-4436-b137-464ab6369653/tasks/eb6a1d28-a75e-40c1-8311-b57e22729028",
+      "body": {
+        "status": "in_progress"
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/projects/26f38c5e-bc80-4436-b137-464ab6369653/tasks/eb6a1d28-a75e-40c1-8311-b57e22729028",
+      "body": {
+        "progress": 35
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/26f38c5e-bc80-4436-b137-464ab6369653/tasks/eb6a1d28-a75e-40c1-8311-b57e22729028/assignments",
+      "body": {
+        "catalogRevision": 6,
+        "targets": [
+          {
+            "kind": "resource",
+            "id": "7a4073d3-8408-4dbc-9f66-8e2ba8c2eb23",
+            "allocation": {
+              "start": null,
+              "end": null,
+              "percent": 80
+            }
+          }
+        ],
+        "editAssignmentId": "e9788615-81ea-4d8a-b358-fd7d9613d459"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/projects/26f38c5e-bc80-4436-b137-464ab6369653/tasks/eb6a1d28-a75e-40c1-8311-b57e22729028/target-bindings",
+      "body": {
+        "bindings": [
+          {
+            "id": "d5b8deec-fd71-4217-8eed-95bffc88f8de",
+            "targetId": "26398a02-3741-4f88-9768-11e6617a3ee5",
+            "scope": "self",
+            "selection": "whole",
+            "memberIds": [],
+            "coverageByMember": []
+          },
+          {
+            "id": "d946414d-7844-436a-9333-6314a312a55a",
+            "targetId": "bc3d45e9-954c-4313-98b3-8d04ad6459a2",
+            "scope": "self",
+            "selection": "subset",
+            "memberIds": [
+              "57983851-e549-433a-ba01-ec01a281062b"
+            ],
+            "coverageByMember": []
+          }
+        ]
+      }
+    }
+  ],
+  "instance": "project-gantt-mwek9kh3ijn"
+}

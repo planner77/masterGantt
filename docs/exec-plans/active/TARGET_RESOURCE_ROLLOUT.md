@@ -8,17 +8,17 @@
 
 | 단계 | Issue | 작성 책임 / 산출물 | 직접 선행 | 현재 상태 |
 | --- | --- | --- | --- | --- |
-| F0 | [#614](https://github.com/planner77/masterGantt/issues/614) | Manager 문서·backend fixture, read-only ui_ux/qa_docs: ER/연결/집계/이관/공통 검산 | 없음 | 계약 main 병합 PR #625 / 9f17dbb2; Issue 전체·main artifact 완료 별도 |
-| F1 | [#615](https://github.com/planner77/masterGantt/issues/615) | backend: 공정 master·제품 표준·사업장 occurrence·WorkArea DB/API | #614 | 구현 중, migration0025·API/호환 보호·문서; #615 Work Packet, PR CI 시작까지 |
-| F2 | [#616](https://github.com/planner77/masterGantt/issues/616) | backend: Target/member CRUD·재사용·copy/Template guard | #615 | NOT TESTED |
-| F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | `0.109.0` 구현 후보; #617 Work Packet, exact-Head PR CI 시작까지 / 원격 결과 NOT TESTED |
-| F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | NOT TESTED |
-| R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | R1 구현 중; #619 Work Packet / PR CI 시작까지, 결과 NOT TESTED |
-| R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | R2 구현 중; [#620 Work Packet](ISSUE_620.md), report/detail/exact drill·snapshot 및 문서 / PR CI 시작까지 |
-| R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | main78691a97 선행 반영 확인, [#621 Work Packet](ISSUE_621.md)에 따라 구현·문서·로컬 검증 후 PR CI 시작까지; 원격 결과 NOT TESTED |
-| R4 | [#622](https://github.com/planner77/masterGantt/issues/622) | scheduler/backend/frontend: 주·월 Plan·전체 과투입·Excel | #619/#620, UI #621 | R4 구현·문서·로컬 검증 중; [#622 Work Packet](ISSUE_622.md), PR CI 시작까지/원격 결과 NOT TESTED |
-| Q1 | [#623](https://github.com/planner77/masterGantt/issues/623) | qa_docs/Manager: Resource MVP 종단간·이관·운영 수용 | #614~#622 | NOT TESTED |
-| V1 | [#624](https://github.com/planner77/masterGantt/issues/624) | ui_ux/frontend/backend: 공정/구역/인스턴스 확장·Milestone 교차 | #623 | 후순위 / NOT TESTED |
+| F0 | [#614](https://github.com/planner77/masterGantt/issues/614) | Manager 문서·backend fixture, read-only ui_ux/qa_docs: ER/연결/집계/이관/공통 검산 | 없음 | #614 CLOSED / PR #625 병합. 당시 계약·main/Finalizer 원장은 Q1 수용표 참조 |
+| F1 | [#615](https://github.com/planner77/masterGantt/issues/615) | backend: 공정 master·제품 표준·사업장 occurrence·WorkArea DB/API | #614 | #615 CLOSED / PR #627·#628 및 승계 원장. 원본 main FAIL을 소급 PASS하지 않음 |
+| F2 | [#616](https://github.com/planner77/masterGantt/issues/616) | backend: Target/member CRUD·재사용·copy/Template guard | #615 | #616 CLOSED / PR #631 및 0.108.0 후속 승계·#672 보완. 원본 push CI 부재와 구별 |
+| F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | #617 CLOSED / PR #676 병합, main/Finalizer·Release 원장은 Q1 수용표 참조 |
+| F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | #618 CLOSED / PR #678 병합. 원본 Main #2745.1 FAIL·Finalizer SKIPPED 유지 |
+| R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | #619 CLOSED / PR #677 병합, main/Finalizer 성공 원장은 Q1 수용표 참조 |
+| R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | #620 CLOSED / PR #682 병합, main/Release/Finalizer 원장은 Q1 수용표 참조 |
+| R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | #621 CLOSED / PR #683 병합, main/Finalizer 성공 원장은 Q1 수용표 참조 |
+| R4 | [#622](https://github.com/planner77/masterGantt/issues/622) | scheduler/backend/frontend: 주·월 Plan·전체 과투입·Excel | #619/#620, UI #621 | #622 OPEN / PR #684 병합, PR #2770.1 SUCCESS. 착수 조회 Main #2771.1 진행 중·artifact/Finalizer NOT TESTED |
+| Q1 | [#623](https://github.com/planner77/masterGantt/issues/623) | qa_docs/Manager: Resource MVP 종단간·이관·운영 수용 | #614~#622 | #623 구현·로컬 통합 수용 후보, [Work Packet](ISSUE_623.md) / PR CI 시작까지. M2 최종 gate BLOCKED |
+| V1 | [#624](https://github.com/planner77/masterGantt/issues/624) | ui_ux/frontend/backend: 공정/구역/인스턴스 확장·Milestone 교차 | #623 | #624 후순위 / NOT TESTED, Epic 전체 완료 아님 |
 
 M1=#614~#618, M2=M1+#619~#623, M3=M2+#624. M2 수용이 Epic 전체 완료를 뜻하지 않는다. #617 계약과 실제 구현이 완료되면 #618 UI와 #619 Domain을 분리 파일 소유권으로 병행할 수 있다. #620은 API 독립 검증까지 가능하나 #621 사용자 수용은 #618 완료가 필요하다.
 
@@ -86,3 +86,11 @@ F3 #617 PR #676이 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`에 병합되�
 ## Issue #622 — R4 착수·현재 범위 (2026-10-14)
 
 최신 main `53c57743`에 #621 PR #683이 반영되어 있다. 기존 Plan/Calendar·same-R 전체 부하·raw Assignment와 Excel bundle/writer를 재사용하여 Target 조건 분석·선택 밖 과투입 근거 편집/복귀·동일 snapshot current/project Excel을 확장한다. MINOR0.114.0, HIGH/OWNER_MANAGED, qa_required=true, release_required=true/release_authorized=false. 현재 실행·AC·문서·검증은 [ISSUE_622](ISSUE_622.md)을 따른다. 구현·문서·사전 검토·스레드/충돌 처리 후 Full PR CI 시작까지만 수행하고 원격 완료 모니터링/병합/게시/Issue 종료·Q1/#623 종단 수용은 별도다.
+
+## Issue #623 — Q1 Resource MVP 통합 수용 후보 (2026-10-15)
+
+기준 main `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`에 R4 #622 및 경량 Plan Target catalog 수정이 포함된다. 위 상태표는 이 착수 시점의 단일 조회이며 아래 과거 candidate 문단은 당시 이력이다. Issue CLOSED를 원본 모든 Run PASS로 읽지 않는다. 자세한 선행 SHA·Run/attempt·실패/승계·진행 중 상태는 [수용표](../../TARGET_RESOURCE_ACCEPTANCE.md)에 보존한다.
+
+Q1은 같은 F0 golden의 Domain/API/UI/OOXML, 다관점 개별 편집·복귀, actual legacy migration·Copy/Template·합성 backup/restore·5폭/한도 관측과 사용자/운영 가이드를 통합한다. 테스트/문서 전용이면 app0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false다. 실제 수행과 최초 실패·보완은 [ISSUE_623](ISSUE_623.md)을 따른다.
+
+요청은 사전 검토·리뷰/충돌 처리 후 exact-head Full PR CI 시작까지다. Q1 로컬 후보·PR 생성은 M2 최종 수용/Owner ACCEPT/main artifact·운영 환경 수용이 아니다. #624/V1은 NOT TESTED이며 Epic #613 전체 완료로 확대하지 않는다.

@@ -1,3 +1,12 @@
+## [Unreleased] — Issue #623 Resource MVP 통합 수용·이관 안내 (2026-10-15)
+
+- PR #685 QA Final의 미해결 리뷰 차단 원인을 기록하고, 신규 E2E의 180초 override를 첫 흐름 60초/둘째 기본30초로 복원한다. 390px tree/matrix의 실제 ArrowRight scrollLeft 증가·focus 근거를 보강하고 main의 #622 초기화 회귀 문서를 함께 보존한다. 새 Head 원격 검증 및 Owner 결정은 별도다.
+
+- 같은공통golden으로 Domain/API/UI/OOXML의rawID/공수/nullable·sharedTarget/수량/Capacity를대조하고기존530·622회귀를보존한다.
+- 다관점의name/date/status/progress/allocation/membership개별편집·identity/권한/원자성/stale/복귀와5폭keyboard/geometry를실제Chromium으로검증한다.
+- actual0024legacy→25/26/27migration·checksum/rollback·격리backuprestore/restart·Copy/Template·safeformat경계를보강하고사용자/운영가이드·추적수용표를추가한다.
+- 테스트/문서전용후보이면app0.114.0·의존성불변/release_required=false,실제제품변경은별도version판정한다. Exact-head원격CI/Trusted·OwnerACCEPT 및M2최종수용은별도이며 #624/V1·Epic전체완료를뜻하지않는다. release_authorized=false.
+
 ## [Unreleased] — 0.114.0 / Issue #622 Target Resource Plan·과투입·Excel (2026-10-14)
 
 - Target/공정/WorkArea/typed instance 조건의 선택 기여와 같은 Capacity 개인의 Project 전체 참고를 Plan·일별 정확 Assignment 상세에 연결한다. 기존 R/Resource Calendar·일별 Peak/초과·unknown 및 raw/nonadditive/null 의미를 유지한다.

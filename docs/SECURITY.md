@@ -1,5 +1,11 @@
 # Security
 
+## Issue #623 — 통합 수용의 권한·원자성·복구
+
+기존 public read와 보호 mutation의 session/Origin/strong If-Match,exact canonical Assignment·source/current scope를 실제 HTTP/Chromium·SQLite로 검증한다. 조회/그룹/페이지는 저장0,각 실제 편집은 저장1·원본 ID 보존,401/409/412·잘못된 참조·migration 실패는 부분 저장0을 확인한다. Target/master/Calendar/Resource 변경은 구 report/detail/Excel 성공과 혼합하지 않는다.
+
+합성 DB/화면·제한된 numeric/UUID/hash evidence만 게시하며 실제 backup/DB/WAL/SHM·password/token/.env·운영 로그는 포함하지 않는다. 기존 formula inlineStr/XML escape·한도·no-store/nosniff·포맷 loss guard를 검증하며 보안 정책을 완화하지 않는다. [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에서 운영 restore/환경별 미검증을 구별한다.
+
 ## Issue #622 — Target Plan·Resource Excel 안전 경계
 
 기존 public read Plan/detail의 Target/member 근거는 같은 Project read guard·snapshot·bounded page/source/JSON 검증 안에서 제공한다. 선택 밖 Project 참고도 같은 Capacity R의 해당 Project 배정이며 전사 Resource 정보를 조회하지 않는다. 정확 Assignment 수정은 기존 session/Origin/strong If-Match·canonical Task/개인 ID 검증을 그대로 사용한다.
