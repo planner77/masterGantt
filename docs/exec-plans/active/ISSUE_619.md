@@ -96,3 +96,12 @@ release_authorized: false
 - GitHub Quality/E2E/Docker 및 Trusted QA: NOT TESTED (이번 요청은 시작 확인까지만).
 - 운영 DB·실제 Target 편집/새 분석 UI·Excel·배포 환경: NOT TESTED / 후속 범위.
 - 남은 단계: 최종 source/tree 사전 검토 결속 → 최신 main 정렬·단일 PR·리뷰 스레드 확인/처리 → exact Head full CI 시작 확인.
+
+## 2026-10-14 — PR #677 / CI #2728.1 실패 후 REWORK
+
+- 원본 run: `38495077702`, attempt1, head `50c3af487da5254ed56bba58a2130c887ee91aca`, base `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`. Quality(정책·Typecheck·Vitest·Lint·Next build)와 Docker Smoke PASS. Chromium E2E required FAIL → QA Final Automated FAIL(독립적인 원인 아님).
+- E2E shard4/6: `tests/e2e/milestone-timeline-lane.spec.ts:173`의 #551 대량 Timeline readiness/exact SVAR API identity 확인 5s `expect.poll` timeout. 기존 UI/Gantt E2E이며 #619 변경 파일에 Timeline/UI 구현은 없다. 원인은 readiness 지연/회귀/runner 부하 중 미확정. 성공으로 간주하거나 시간 제한을 임의 상향하지 않는다.
+- E2E shard5/6: `tests/e2e/project-resource-calendar-persistence.spec.ts:60`에서 저장 이후 `GET /work-calendar` 중 `apiRequestContext.get: read ECONNRESET`. 직전 PUT 및 canonical GET은 200; 서버 연결 reset의 직접 원인은 로그만으로 미확정. 기존 Calendar E2E이며 #619은 Calendar/UI/API를 변경하지 않았다. 요청 단언 삭제/무조건 재시도 금지.
+- PR inline review P2: `resource-kpi-targets.ts`가 F3 resolver validation `TaskTargetResolutionError`를 외부로 그대로 반환하여 명시한 `ResourceKpiTargetInputError` 계약 불일치. F3 error `code`를 KPI 경계에서 typed input error로 변환하고, 예상하지 못한 예외 및 KPI 예산 오류는 그대로 전파한다. invalid scope/whole member/subset/member ownership/subtree/legacy scope 반례 중 resolver 통과 경로에 대한 회귀를 추가했다.
+- AC6/AC7 및 DOCUMENTATION_SYNC: 기존 KPI 계산·Target 필터/원시 grain/Calendar/Timeline 외 기능을 변경하지 않고 입력 오류 API의 의미만 구현 계약과 일치시킨다. `docs/RESOURCE_KPI_DASHBOARD.md`의 invalid snapshot typed error 계약은 유지. 새로운 원격 exact-head PR 전체 CI로 E2E 6/6와 required Quality/Docker를 다시 확인해야 한다.
+- 원격 재검증 전 `PASS`는 금지: 이 기록은 실패 원인 분류 및 원격 후속 필요성의 증거이고 실제 E2E 안정성/QA 승인 근거가 아니다. HIGH/OWNER_MANAGED, `manager_decision=NOT TESTED`, `release_authorized=false`; 병합·Main/GHCR·Issue 종료 범위 밖.

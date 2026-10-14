@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculateResourceKpi, prepareResourceKpiSnapshot, selectResourceKpiAssignments } from "../../src/domain/resources/resource-kpi";
 import { calculateResourceTargetKpi, projectResourceKpiTargets, selectResourceTargetPlanScope, type ResourceKpiTargetDimension, type ResourceKpiTargetProjectionNode } from "../../src/domain/resources/resource-target-kpi";
-import { ResourceKpiTargetLimitError } from "../../src/domain/resources/resource-kpi-targets";
+import { ResourceKpiTargetInputError, ResourceKpiTargetLimitError } from "../../src/domain/resources/resource-kpi-targets";
 import { calculateResourcePlan } from "../../src/domain/resources/resource-plan";
 import { resourceTargetKpiFixture } from "../fixtures/resource-target-kpi";
 import { resourceKpiFixture } from "../fixtures/resource-kpi";
@@ -245,6 +245,27 @@ describe("#619 Target Resource KPI contract", () => {
       input.logistics.bindings = rows[reverse ? "reverse" : "slice"]();
       expect(() => calculateResourceTargetKpi(input)).toThrow("CONFLICTING_LOGISTICS_ID");
     }
+  });
+
+
+  it("AC6 resolver-rejected scope, whole/member, subset and subtree bindings use the documented KPI error type", () => {
+    const baseline = fixture();
+    const malformedBindings = [
+      { code: "INVALID_BINDING_SCOPE", binding: { ...baseline.logistics.bindings[1], scope: "invalid" as "self" } },
+      { code: "WHOLE_MEMBERS_MUST_BE_EMPTY", binding: { ...baseline.logistics.bindings[1], memberIds: ["MEM-A-ACS"] } },
+      { code: "SUBSET_MEMBER_UNAVAILABLE", binding: { ...baseline.logistics.bindings[3], memberIds: ["NOT-A-TARGET-MEMBER"] } },
+      { code: "SUBTREE_REQUIRES_SUMMARY", binding: { ...baseline.logistics.bindings[1], scope: "subtree" as const } },
+    ];
+    for (const { code, binding } of malformedBindings) {
+      const input = fixture();
+      input.logistics.bindings = input.logistics.bindings.map(row => row.id === binding.id ? binding : row);
+      expect(() => calculateResourceTargetKpi(input)).toThrow(ResourceKpiTargetInputError);
+      expect(() => calculateResourceTargetKpi(input)).toThrow(code);
+    }
+    const input = fixture();
+    input.logistics.legacy = input.logistics.legacy.map((row, index) => index === 0 ? { ...row, scope: "invalid" as "self" } : row);
+    expect(() => calculateResourceTargetKpi(input)).toThrow(ResourceKpiTargetInputError);
+    expect(() => calculateResourceTargetKpi(input)).toThrow("INVALID_LEGACY_SCOPE");
   });
 
   it("AC6 explicit input/lineage/provenance/projection budget errors never return clipped totals", () => {

@@ -1,6 +1,6 @@
 import type { LogisticsTargetScope, LogisticsTargetMemberKind } from "../../contracts/logistics-targets";
 import type { TaskTargetBindingDto, TaskTargetBindingsDto, TaskTargetBindingProvenance } from "../../contracts/task-target-bindings";
-import { resolveAllTaskTargetBindings, type TaskTargetLegacyLink, type TaskTargetTask } from "../logistics/task-target-bindings";
+import { resolveAllTaskTargetBindings, TaskTargetResolutionError, type TaskTargetLegacyLink, type TaskTargetTask } from "../logistics/task-target-bindings";
 
 /** Snapshot-local identities only. The caller supplies the same canonical Project snapshot as KPI. */
 export interface ResourceKpiLogisticsInstance {
@@ -167,9 +167,17 @@ export function prepareResourceKpiTargets(tasks: readonly TaskTargetTask[], inpu
     provenancePaths += row.scope === "subtree" ? descendants.get(row.taskId)! : 1;
     assertBudget("provenancePaths", provenancePaths);
   }
-  const resolved = resolveAllTaskTargetBindings({ tasks, targets: targets.map(target => ({ id: target.id,
-    members: target.members.map(member => ({ ...member, quantity: byInstance.get(instanceKey(member.kind, member.entityId))!.quantity })),
-  })), bindings, legacy });
+  // The F3 resolver owns binding validation; expose a single typed KPI input-error contract.
+  const resolved = (() => {
+    try {
+      return resolveAllTaskTargetBindings({ tasks, targets: targets.map(target => ({ id: target.id,
+        members: target.members.map(member => ({ ...member, quantity: byInstance.get(instanceKey(member.kind, member.entityId))!.quantity })),
+      })), bindings, legacy });
+    } catch (error) {
+      if (error instanceof TaskTargetResolutionError) fail(error.code);
+      throw error;
+    }
+  })();
   return { targets, byTarget, instances, byInstance, processes, byProcess, workAreas, byWorkArea, resolved, assertBudget };
 }
 export type PreparedResourceKpiTargets = ReturnType<typeof prepareResourceKpiTargets>;
