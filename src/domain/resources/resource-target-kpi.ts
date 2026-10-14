@@ -3,7 +3,7 @@ import { prepareResourceKpiSnapshot, selectResourceKpiAssignments, renderResourc
 import { selectResourceKpiTargetPaths, summarizeResourceKpiTargetMembers, hasResourceKpiTargetPathFilters, ResourceKpiTargetInputError,
   type ResourceKpiTargetPath, type ResourceKpiTargetMemberSummary } from "./resource-kpi-targets";
 
-export type ResourceKpiTargetDimension = "target" | "process" | "workArea" | "scope" | "equipmentType" | "systemType" | "equipment" | "system" | "group" | "resource";
+export type ResourceKpiTargetDimension = "target" | "process" | "processType" | "workArea" | "scope" | "equipmentType" | "systemType" | "equipment" | "system" | "group" | "resource";
 export interface ResourceKpiTargetProjectionNode {
   dimension: ResourceKpiTargetDimension;
   id: string | null;
@@ -24,7 +24,7 @@ interface RecordPath {
 export function projectResourceKpiTargets(prepared: PreparedResourceKpiSnapshot, selection: ResourceKpiSelection, order: readonly ResourceKpiTargetDimension[]) {
   const logistics = prepared.logistics;
   if (!logistics) throw new ResourceKpiTargetInputError("TARGET_SNAPSHOT_REQUIRED");
-  const dimensions: ResourceKpiTargetDimension[] = ["target", "process", "workArea", "scope", "equipmentType", "systemType", "equipment", "system", "group", "resource"];
+  const dimensions: ResourceKpiTargetDimension[] = ["target", "process", "processType", "workArea", "scope", "equipmentType", "systemType", "equipment", "system", "group", "resource"];
   if (new Set(order).size !== order.length || order.some(key => !dimensions.includes(key))) throw new ResourceKpiTargetInputError("INVALID_TARGET_PROJECTION_ORDER");
   const pathsByTask = new Map(selection.t0.map(task => [task.taskId, selectResourceKpiTargetPaths(logistics, logistics.resolved.get(task.taskId)!, selection.filters)]));
   const rows: RecordPath[] = [];
@@ -46,6 +46,7 @@ export function projectResourceKpiTargets(prepared: PreparedResourceKpiSnapshot,
     const target = row.path ? logistics.byTarget.get(row.path.targetId)! : null;
     if (dimension === "target") return [target?.id ?? null];
     if (dimension === "process") return [target?.occurrenceId ?? null];
+    if (dimension === "processType") return [target?.projectProcessId ? logistics.byProcess.get(target.projectProcessId)?.processTypeId ?? null : null];
     if (dimension === "workArea") return [target?.workAreaId ?? null];
     if (dimension === "scope") return [target?.scope ?? null];
     const kind = dimension === "equipment" || dimension === "equipmentType" ? "equipment" : "system";

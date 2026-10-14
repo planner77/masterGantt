@@ -10,8 +10,12 @@ export function loadTaskTargetBindingSnapshot(db: Database.Database, projectId: 
   const bindings = db.prepare("SELECT b.id internalId,b.public_id id,t.public_id taskId,g.public_id targetId,b.scope,b.selection FROM task_target_bindings b JOIN tasks t ON t.project_id=b.project_id AND t.id=b.task_id JOIN logistics_targets g ON g.project_id=b.project_id AND g.id=b.target_id WHERE b.project_id=? ORDER BY b.id").all(projectId) as Array<Omit<TaskTargetBindingDto,"memberIds"> & {internalId:number}>;
   const selected = db.prepare("SELECT bm.binding_id bindingId,m.public_id memberId,bm.coverage FROM task_target_binding_members bm JOIN logistics_target_members m ON m.project_id=bm.project_id AND m.target_id=bm.target_id AND m.id=bm.member_id WHERE bm.project_id=? ORDER BY m.public_id").all(projectId) as Array<{bindingId:number;memberId:string;coverage:number|null}>;
   const legacy = db.prepare("SELECT t.public_id taskId,'equipment' kind,e.public_id entityId,l.scope FROM task_equipment_links l JOIN tasks t ON t.project_id=l.project_id AND t.id=l.task_id JOIN project_equipment e ON e.project_id=l.project_id AND e.id=l.equipment_id WHERE l.project_id=? UNION ALL SELECT t.public_id taskId,'system' kind,s.public_id entityId,l.scope FROM task_system_links l JOIN tasks t ON t.project_id=l.project_id AND t.id=l.task_id JOIN project_logistics_systems s ON s.project_id=l.project_id AND s.id=l.system_id WHERE l.project_id=?").all(projectId,projectId) as TaskTargetResolutionInput["legacy"];
-  return {tasks, targets: targets.map(t => ({...t,members:members.filter(m => m.targetId === t.id).map(m => ({id:m.id,kind:m.kind,entityId:m.entityId,quantity:m.quantity,active:m.active===1}))})),
-    bindings:bindings.map(({internalId,...b}) => ({...b,memberIds:selected.filter(m => m.bindingId===internalId).map(m => m.memberId),coverageByMember:selected.filter(m => m.bindingId===internalId).map(m => ({memberId:m.memberId,coverage:m.coverage}))})),legacy};
+  const membersByTarget = new Map<string, typeof members>();
+  for (const member of members) { const rows = membersByTarget.get(member.targetId) ?? []; rows.push(member); membersByTarget.set(member.targetId, rows); }
+  const selectedByBinding = new Map<number, typeof selected>();
+  for (const member of selected) { const rows = selectedByBinding.get(member.bindingId) ?? []; rows.push(member); selectedByBinding.set(member.bindingId, rows); }
+  return {tasks, targets: targets.map(t => ({...t,members:(membersByTarget.get(t.id) ?? []).map(m => ({id:m.id,kind:m.kind,entityId:m.entityId,quantity:m.quantity,active:m.active===1}))})),
+    bindings:bindings.map(({internalId,...b}) => ({...b,memberIds:(selectedByBinding.get(internalId) ?? []).map(m => m.memberId),coverageByMember:(selectedByBinding.get(internalId) ?? []).map(m => ({memberId:m.memberId,coverage:m.coverage}))})),legacy};
 }
 
 /** Caller owns authorization, validation and the encompassing IMMEDIATE transaction. */

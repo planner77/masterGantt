@@ -3633,3 +3633,21 @@ F0 oracle은 `tests/fixtures/logistics-targets.ts` 및 `tests/domain/logistics-t
 `tests/e2e/logistics-target-authoring.spec.ts`는 실제 SQLite-backed HTTP 및 Chromium으로 프로젝트 공정 context·Target 신규/공유·WBS 연결·같은 Task 편집을 검증한다. 준비 fixture는 별도 Project Master admin 옵션의 격리 서버에서 실제 API를 사용하며 Project 편집 권한만으로 master를 생성하지 않는다. `tests/server/logistics/task-target-bindings.test.ts`는 usage 관련 Task canonical ID·상속 union·legacy 제외·revision 불변을 추가 검증한다. 기존 F1/F2/F3 HTTP/transaction 테스트는 공정 WorkArea·권한·stale·삭제·coverage rollback을 유지한다.
 
 AC1 신규/재사용과 reload, AC2 optional WorkArea와 권한, AC3 ACS-only/multi/관리 Summary 및 mutation1/Task 증가0, AC4 영향/출처/rollback, AC5 상태/응답역전, AC6 반응형/키보드/focus, AC7 query-only0/remount0 및 기존 일정·Milestone·Resource, AC8 문서·Design Delta를 구분한다. 아직 실행하지 않은 항목은 PASS가 아니다. 선별 Local Fast Feedback/실제 browser와 PR quality/e2e/docker·Trusted QA/Owner 결정은 [Work Packet](exec-plans/active/ISSUE_618.md)에 별도 기록한다. 운영 환경·실기기·screen reader·최종 수동 UX는 NOT TESTED다.
+
+## Issue #620 — Resource–Target R2 API·snapshot·exact drill
+
+R2는 기존 Resource 서비스와 #619 pure projector를 실제 SQLite/HTTP에 연결한다. AC와 실행 원장은 [ISSUE_620](exec-plans/active/ISSUE_620.md)을 따른다. 기대값은 실행 증거 없이 PASS로 간주하지 않는다.
+
+| AC | 직접 검증 범위 | 주요 oracle |
+| --- | --- | --- |
+| AC1 | Target 없는 기존 report/details 회귀 및 Resource/Group/Target projection | 같은 snapshot/filter의 원시 Assignment 합집합·Grand Total 일치 |
+| AC2 | Target 구성/member/binding·Project 공정 매핑·occurrence/Process Type/WorkArea/type master 이름/active 변경 | revision 없는 raw 변경도 stale409, 새 report identity, 별도 WAL 변경의 일관된 read snapshot·재시작 |
+| AC3 | shared5M/D·two Target·MCS 공유·ACS-only subset·상속/중복/미연결 | R1 Domain의 A5/B5/전체5 golden과 각 환경의 Calendar/배정률에 따른 별도 원시합, 공동담당·같은 binding/member 반례, legacy Target 무추론 |
+| AC4 | source exactAssignments ∩ destination Target, Task/Assignment details | 공동담당 누출0, T0 개인미배정 보존, 원본/current context 각각 반환 |
+| AC5 | malformed·unknown/cross-project·same-assignment join·권한·헤더 |400/409/422 실패에 부분결과 없음; 공개 read와 기존 protected mutation401/403·no-store/nosniff |
+| AC6 | bounded page/path selector·provenance·null/partial·overlap·예산·대표 부하 | page100/offset8000·기간366/응답2MiB, fan-out/cell 사전 거부, 실제 SQL plan/시간/bytes 기록 |
+| AC7 | API/ARCHITECTURE/SECURITY/Resource/Target/TEST_PLAN/active PLAN/CHANGELOG | 구현 필드·범위·오류·한도 일치, 문서별 UPDATED/N/A 및 Markdown 링크 |
+
+실제 Next/SQLite HTTP 신규 suite는 `tests/e2e/resource-target-dashboard-api.spec.ts`다. 기존 `resource-dashboard-api`/`resource-drill-api` 및 server Resource 회귀를 영향 범위에 맞게 재사용한다. 기존 Plan 선택 demand의 Target 교집합 및 R/전체 Project 보존을 검증한다. 새 분석 UI·Target별 기간 행/전용 selector·Excel 시트 확장·실제 운영 DB/부하 수용은 #621~#623의 별도 검증이다. 로컬 focused PASS와 원격 최신 Head의 Quality/E2E/Docker·Trusted QA/Owner 승인·main/GHCR을 구별하며 이번 요청은 PR CI 시작까지만이다.
+
+R2 Local Fast Feedback: 신규 SQLite17 tests(원시 A5/B5/전체5 포함), 영향 회귀19파일247 tests, Excel2파일23 tests, parser/drill2파일35 tests를 각각 실행하여 PASS했다. 서로 중복되는 실행이므로 단일 총계로 합산하지 않는다. 실제 Next/SQLite HTTP1개44.1초(시나리오33.1초) PASS와 별도 Reviewer focused74 tests·후속 guard/golden 선택실행을 구분한다. HTTP fixture의 선택3M/D/Project4.5M/D와 native 기존 Calendar fixture의 Target A/B 각각3.33333332M/D는 각 fixture의 원시 Calendar/배정률 oracle이며 공통 Domain의5M/D 및 추가 SQLite golden5와 동일 수치로 혼동하지 않는다. [성능 JSON](evidence/issue620/resource-target-performance.json)은131 Task/245 Assignment/2 Target/6 member/245 binding,48prepare/34.36ms/294445bytes 및3개 indexed SEARCH와 source hashes를 보존한다. 마지막 Target selector400 guard는 native 반례로 추가 검증했으며 정상 HTTP 경로 증거를 재사용한다. 원격 required CI·Trusted/Owner·main/GHCR은 NOT TESTED다.

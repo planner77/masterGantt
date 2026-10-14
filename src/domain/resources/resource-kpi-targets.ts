@@ -24,7 +24,7 @@ export interface ResourceKpiTarget {
 export interface ResourceKpiLogisticsInput {
   targets: readonly ResourceKpiTarget[];
   instances: readonly ResourceKpiLogisticsInstance[];
-  processes: readonly { id: string; occurrenceId: string | null }[];
+  processes: readonly { id: string; occurrenceId: string | null; processTypeId?: string | null }[];
   workAreas: readonly { id: string; occurrenceId: string }[];
   bindings: readonly TaskTargetBindingDto[];
   legacy: readonly TaskTargetLegacyLink[];
@@ -34,6 +34,7 @@ export interface ResourceKpiTargetFilters {
   targetIds?: readonly (string | null)[];
   projectProcessIds?: readonly string[];
   processOccurrenceIds?: readonly string[];
+  processTypeIds?: readonly string[];
   workAreaIds?: readonly (string | null)[];
   targetScopes?: readonly LogisticsTargetScope[];
   memberEquipmentIds?: readonly string[];
@@ -183,7 +184,7 @@ export function prepareResourceKpiTargets(tasks: readonly TaskTargetTask[], inpu
 export type PreparedResourceKpiTargets = ReturnType<typeof prepareResourceKpiTargets>;
 
 const memberFilterKeys = ["memberEquipmentIds", "memberSystemIds", "equipmentTypeCodes", "systemTypeCodes"] as const;
-const targetFilterKeys = ["targetIds", "projectProcessIds", "processOccurrenceIds", "workAreaIds", "targetScopes", ...memberFilterKeys] as const;
+const targetFilterKeys = ["targetIds", "projectProcessIds", "processOccurrenceIds", "processTypeIds", "workAreaIds", "targetScopes", ...memberFilterKeys] as const;
 export function hasResourceKpiTargetPathFilters(filters: ResourceKpiTargetFilters): boolean {
   return targetFilterKeys.some(key => Boolean(filters[key]?.length));
 }
@@ -198,6 +199,7 @@ export function validateResourceKpiTargetFilters(prepared: PreparedResourceKpiTa
   check(filters.targetIds, id => id === null || prepared.byTarget.has(id));
   check(filters.projectProcessIds, id => prepared.byProcess.has(id));
   check(filters.processOccurrenceIds, id => prepared.processes.some(row => row.occurrenceId === id));
+  check(filters.processTypeIds, id => prepared.processes.some(row => row.processTypeId === id));
   check(filters.workAreaIds, id => id === null || prepared.byWorkArea.has(id));
   check(filters.targetScopes, scope => scope === "process" || scope === "project_common");
   for (const kind of ["equipment", "system"] as const) {
@@ -222,7 +224,7 @@ export function selectResourceKpiTargetPaths(prepared: PreparedResourceKpiTarget
   for (const path of paths.values()) {
     const target = prepared.byTarget.get(path.targetId)!;
     if (!contains(filters.targetIds, target.id) || !contains(filters.projectProcessIds, target.projectProcessId!) || !contains(filters.processOccurrenceIds, target.occurrenceId!) ||
-      !contains(filters.workAreaIds, target.workAreaId) || !contains(filters.targetScopes, target.scope)) continue;
+      !contains(filters.processTypeIds, target.projectProcessId === null ? null : prepared.byProcess.get(target.projectProcessId)?.processTypeId ?? null) || !contains(filters.workAreaIds, target.workAreaId) || !contains(filters.targetScopes, target.scope)) continue;
     const memberMatches = (member: ResourceKpiTargetPath["members"][number]) => {
       const instance = prepared.byInstance.get(instanceKey(member.kind, member.entityId))!;
       return member.kind === "equipment"

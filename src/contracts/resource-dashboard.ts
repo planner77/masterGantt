@@ -9,7 +9,32 @@ export type { ResourcePlanRowSelector, ResourcePlanDemandScope, ResourcePlanGran
 export const RESOURCE_DASHBOARD_LIMITS = Object.freeze({ tasks: 5000, assignments: 8000, links: 20000, calendarRules: 20000, calendarDates: 20000, catalogMemberships: 16000,
   rangeDays: 366, idsPerField: 200, totalIds: 400, groupsPerResource: 32, groupAssignmentRows: 16000,
   cells: 5000, wbsPathEntries: 50000, wbsPathChars: 20000, reportBytes: 2 * 1024 * 1024, detailPage: 100, detailOffset: 8000 });
-export interface ResourceDashboardFilterInput {
+export const RESOURCE_TARGET_LIMITS = Object.freeze({ snapshotRows: 50000, provenancePaths: 50000, lineageEdges: 50000, projectionCells: 5000, responseSourceRows: 5000 });
+export const RESOURCE_TARGET_FILTER_KEYS = ["targetIds", "projectProcessIds", "processOccurrenceIds", "processTypeIds", "workAreaIds", "targetScopes", "memberEquipmentIds", "memberSystemIds", "equipmentTypeCodes", "systemTypeCodes", "directEquipmentIds", "directSystemIds"] as const;
+export const RESOURCE_TARGET_DIMENSIONS = ["target", "process", "processType", "workArea", "scope", "equipmentType", "systemType", "equipment", "system", "group", "resource"] as const;
+export type ResourceTargetDimension = typeof RESOURCE_TARGET_DIMENSIONS[number];
+export interface ResourceDashboardTargetFilters {
+  targetIds?: string[]; projectProcessIds?: string[]; processOccurrenceIds?: string[]; processTypeIds?: string[]; workAreaIds?: string[];
+  targetScopes?: ("process" | "project_common")[];
+  memberEquipmentIds?: string[]; memberSystemIds?: string[]; equipmentTypeCodes?: string[]; systemTypeCodes?: string[];
+  directEquipmentIds?: string[]; directSystemIds?: string[];
+  projectionOrder?: ResourceTargetDimension[];
+}
+export interface ResourceTargetPathEntry { dimension: ResourceTargetDimension; id: string | null }
+export interface ResourceDashboardTargetNode {
+  dimension: ResourceTargetDimension; id: string | null; name: string | null; active: boolean | null;
+  summary: ResourceDashboardSummary; sourceKinds: ("target_binding" | "legacy_direct" | "target_unlinked")[];
+  equipmentQuantity: number; systemCount: number; children: ResourceDashboardTargetNode[];
+}
+export interface ResourceDashboardTargetProjection {
+  order: ResourceTargetDimension[]; children: ResourceDashboardTargetNode[];
+  projectReference: ResourceDashboardSummary;
+  relatedMembers: import("../domain/resources/resource-kpi-targets").ResourceKpiTargetMemberSummary;
+  diagnostics: { targetUnlinkedTaskCount: number; legacyOnlyTaskCount: number; unusedTargetIds: string[]; projectCommonTargetIds: string[]; noWorkAreaTargetIds: string[]; unmappedProjectProcessIds: string[] };
+  metadata: { limits: typeof RESOURCE_TARGET_LIMITS; measure: "related planned effort"; subtotalsAdditive: false; assignmentScope: "A"; memberScope: "T0"; projectReferenceScope: "full canonical Project; same period/calendar/asOf/mdPerMm; no source or user filters" };
+  catalog: { dimension: ResourceTargetDimension | "projectProcess"; id: string; name: string; active: boolean; code: string | null }[];
+}
+export interface ResourceDashboardFilterInput extends ResourceDashboardTargetFilters {
   from?: string; to?: string; asOfDate?: string;
   search?: string; taskSearch?: string;
   mode?: "resource" | "group";
@@ -19,7 +44,7 @@ export interface ResourceDashboardFilterInput {
   roles?: ResourceWorkloadRole[]; developerGrades?: (DeveloperGrade | "UNSPECIFIED")[]; statuses?: TaskStatus[];
   mdPerMm?: number | null;
 }
-export interface ResourceDashboardFilters {
+export interface ResourceDashboardFilters extends ResourceDashboardTargetFilters {
   from: string | null; to: string | null; asOfDate: string | null; search: string; taskSearch: string;
   mode: "resource" | "group";
   granularity?: ResourcePlanGranularity;
@@ -30,12 +55,13 @@ export interface ResourceDashboardFilters {
 }
 export type ResourceDashboardMetric = "all" | "notStarted" | "inProgress" | "completed" | "delayed" | "unset" | "completelyUnassigned" | "groupOnly" | "personallyUnassigned";
 export interface ResourceDashboardSelector {
-  dimension: "all" | "resource" | "group" | "role" | "milestone" | "diagnostic";
+  dimension: "all" | "resource" | "group" | "role" | "milestone" | "diagnostic" | "targetProjection";
+  targetPath?: ResourceTargetPathEntry[];
   id: string | null;
   milestoneTaskId?: string | null;
   metric: ResourceDashboardMetric;
   resourceId?: string;
-  assignmentScope?: "selected" | "milestoneReference" | "milestoneExcluded";
+  assignmentScope?: "selected" | "milestoneReference" | "milestoneExcluded" | "projectReference";
 }
 export interface ResourceDashboardEffort {
   knownMd: number; plannedMd: number | null; plannedMm: number | null;
@@ -65,6 +91,7 @@ export interface ResourceDashboardStage {
   selected: ResourceDashboardSummary;
 }
 export interface ResourceDashboardDto {
+  targetProjection?: ResourceDashboardTargetProjection;
   resourceScopeContext?: ResourceDrillSourceContext;
   plan?: ResourceDashboardPlanDto;
   schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number;
@@ -91,6 +118,7 @@ export interface ResourceDashboardDetailInput {
   snapshotId: string; selector: ResourceDashboardSelector; view: "tasks" | "assignments"; offset: number; limit: number;
 }
 export interface ResourceDashboardDetailRow {
+  targetSources?: import("./task-target-bindings").TaskTargetBindingsDto;
   taskId: string; taskName: string; externalId: string; status: TaskStatus; progress: number | null;
   taskStart: string | null; taskEnd: string | null; duration: number | null;
   wbsPath: { taskId: string; name: string }[];

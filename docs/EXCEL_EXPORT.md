@@ -266,3 +266,9 @@ readonly Export, exact Origin·strong `If-Match`, stale 전체 실패, ID·scope
 ## Issue #617 — Task Target binding을 포함한 일정 Export
 
 현행 일정 Excel은 Task Target binding/선택 구성원/coverage의 왕복 형식이 아니다. binding이 있는 Project의 일정 Excel 내보내기는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`로 거부하며 일부 연결을 누락한 workbook을 성공으로 반환하지 않는다. 이 보호는 일정 workbook의 선택적 Resource 부록에도 적용된다. binding을 보존하려면 Project Copy 또는 Template logistics schemaVersion 3을 사용한다. 별도 Resource 보고서 및 이미지/SVG 출력은 전체 복원 포맷이 아니며 이 일정 Excel 보호 경로를 사용하지 않는다. 전체 JSON/Excel 포맷 확장은 #379 및 후속 보고서 범위에서 별도 검증한다.
+
+## Issue #620 — R2 snapshot identity와 Target Excel 경계
+
+기존 Resource Excel의 source/report 재검증은 R2 공통 reader의 Target/member/binding·Project 공정 매핑·관련 master 이름/active fingerprint를 포함한다. 기존 Project revision이 같아도 참조 변경 후 과거 descriptor는 공통 서비스에서409로 거부하며 공개 Excel API에서는 기존 `412 REVISION_MISMATCH`로 매핑한다. 구 report와 새 상세를 혼합하지 않는다. 실제 workbook 생성·시트·원시 Assignment·Calendar·예산은 유지한다.
+
+R2의 Target 필터와 `projectionOrder`는 기존 Excel current descriptor에서 source binding 유무에 관계없이 명시 거부한다. bound 경로의 공통 drill parser가 새 필드를 우연히 받아 일부 조건만 반영한 파일을 생성하지 않도록 검증한다. 지원하지 않는 descriptor는 기존400 입력 오류이며 조건을 버린 전체 export 성공으로 바꾸지 않는다. Target Excel 필터·시트 및 전용 기간 projection 공개는 후속 #622다. [API](API.md), [R2 원장](exec-plans/active/ISSUE_620.md)을 참조한다.

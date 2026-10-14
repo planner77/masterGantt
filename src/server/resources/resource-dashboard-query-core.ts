@@ -1,13 +1,13 @@
 import type { ResourceDashboardDetailInput, ResourceDashboardFilterInput, ResourceDashboardFilters, ResourceDashboardMetric, ResourceDashboardSelector, ResourceDashboardGroupChildrenInput } from "../../contracts/resource-dashboard";
-import { RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
+import { RESOURCE_TARGET_FILTER_KEYS, RESOURCE_TARGET_DIMENSIONS, RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import { PublicApiError } from "../http/api-error-core";
 import { isCanonicalUuidV4 } from "../projects/project-contract";
 import type { ResourcePlanDetailInput, ResourcePlanDetailKind, ResourcePlanRowSelector } from "../../contracts/resource-dashboard";
 
-const ARRAYS = ["resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses"] as const;
+const ARRAYS = ["resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses", ...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"] as const;
 const SCALARS = ["from", "to", "asOfDate", "search", "taskSearch", "mode", "granularity", "mdPerMm", "resourceActivity", "groupActivity"] as const;
-const DETAILS = ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope"] as const;
+const DETAILS = ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope", "targetPath"] as const;
 const CHILDREN = ["snapshotId", "groupId", "milestoneTaskId", "offset", "limit"] as const;
 const ROLES = ["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"];
 const GRADES = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT", "UNSPECIFIED"];
@@ -26,10 +26,12 @@ export function parseResourceDashboardQuery(params: URLSearchParams, details = f
     const tokens = params.getAll(key).flatMap((value) => value.split(",")).map((value) => value.trim());
     total += tokens.length;
     if (tokens.length > LIMITS.idsPerField || total > LIMITS.totalIds) invalidDashboardQuery();
-    const allowed = key === "roles" ? ROLES : key === "developerGrades" ? GRADES : key === "statuses" ? STATUSES : null;
-    if (tokens.some((value) => allowed ? !allowed.includes(value) : !(isCanonicalUuidV4(value) || (key === "groupIds" && value === "ungrouped") || (key === "milestoneIds" && value === "unassigned")))) invalidDashboardQuery();
-    Object.assign(output, { [key]: [...new Set(tokens)].sort() });
+    const allowed = key === "roles" ? ROLES : key === "developerGrades" ? GRADES : key === "statuses" ? STATUSES : key === "projectionOrder" ? [...RESOURCE_TARGET_DIMENSIONS] : key === "targetScopes" ? ["process", "project_common"] : null;
+    if (tokens.some((value) => allowed ? !allowed.includes(value) : !(isCanonicalUuidV4(value) || ((key === "equipmentTypeCodes" || key === "systemTypeCodes") && value.length > 0 && value.length <= 64) || (key === "groupIds" && value === "ungrouped") || (["milestoneIds", "targetIds", "workAreaIds"].includes(key) && value === "unassigned")))) invalidDashboardQuery();
+    if (key === "projectionOrder" && (tokens.length > RESOURCE_TARGET_DIMENSIONS.length || new Set(tokens).size !== tokens.length)) invalidDashboardQuery();
+    Object.assign(output, { [key]: key === "projectionOrder" ? tokens : [...new Set(tokens)].sort() });
   }
+  if (output.targetIds?.includes("unassigned") && [output.memberEquipmentIds, output.memberSystemIds, output.equipmentTypeCodes, output.systemTypeCodes].some(values => values?.length)) invalidDashboardQuery();
   for (const key of ["from", "to", "asOfDate"] as const) if (params.has(key)) {
     const value = params.get(key)!; try { parseDateOnly(value, key); } catch { invalidDashboardQuery(); } output[key] = value;
   }
@@ -59,6 +61,7 @@ export function normalizeResourceDashboardFilters(input: ResourceDashboardFilter
   return { from: checked.from ?? null, to: checked.to ?? null, asOfDate: checked.asOfDate ?? null,
     resourceActivity: checked.resourceActivity ?? "all", groupActivity: checked.groupActivity ?? "all",
     search: checked.search ?? "", taskSearch: checked.taskSearch ?? "", mode: checked.mode ?? "resource", ...(checked.granularity === undefined ? {} : { granularity: checked.granularity }), mdPerMm: checked.mdPerMm ?? null, mdPerMmProvided: checked.mdPerMm !== undefined,
+    ...Object.fromEntries([...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"].filter(key => checked[key as keyof typeof checked] !== undefined).map(key => [key, checked[key as keyof typeof checked]])),
     resourceIds: checked.resourceIds ?? [], groupIds: checked.groupIds ?? [], milestoneIds: checked.milestoneIds ?? [], taskIds: checked.taskIds ?? [], wbsRootIds: checked.wbsRootIds ?? [], roles: checked.roles ?? [], developerGrades: checked.developerGrades ?? [], statuses: checked.statuses ?? [] };
 }
 export function parseResourceDashboardDetails(params: URLSearchParams): ResourceDashboardDetailInput {
@@ -66,11 +69,11 @@ export function parseResourceDashboardDetails(params: URLSearchParams): Resource
   const snapshotId = params.get("snapshotId") ?? "";
   if (!/^[a-f0-9]{64}$/.test(snapshotId)) invalidDashboardQuery();
   const dimension = params.get("dimension") ?? "all";
-  if (!["all", "resource", "group", "role", "milestone", "diagnostic"].includes(dimension)) invalidDashboardQuery();
+  if (!["all", "resource", "group", "role", "milestone", "diagnostic", "targetProjection"].includes(dimension)) invalidDashboardQuery();
   const id = params.get("id") ?? null;
   const metric = params.get("metric") ?? "all";
   if (!METRICS.includes(metric as ResourceDashboardMetric)) invalidDashboardQuery();
-  if (["all", "diagnostic"].includes(dimension) && id !== null) invalidDashboardQuery();
+  if (["all", "diagnostic", "targetProjection"].includes(dimension) && id !== null) invalidDashboardQuery();
   if (dimension === "role" && (id === null || !ROLES.includes(id))) invalidDashboardQuery();
   if (dimension === "resource" && (id === null || !isCanonicalUuidV4(id))) invalidDashboardQuery();
   if (dimension === "group" && (id === null || !(id === "ungrouped" || isCanonicalUuidV4(id)))) invalidDashboardQuery();
@@ -80,6 +83,17 @@ export function parseResourceDashboardDetails(params: URLSearchParams): Resource
   if (dimension === "diagnostic" && (!["completelyUnassigned", "groupOnly", "personallyUnassigned", "unset"].includes(metric) || (view === "assignments" && metric !== "unset"))) invalidDashboardQuery();
   if (dimension !== "diagnostic" && ["completelyUnassigned", "groupOnly", "personallyUnassigned"].includes(metric)) invalidDashboardQuery();
   const selector: ResourceDashboardSelector = { dimension: dimension as ResourceDashboardSelector["dimension"], id: id === "ungrouped" || id === "unassigned" ? null : id, assignmentScope: "selected", metric: metric as ResourceDashboardMetric };
+  if (dimension === "targetProjection") {
+    let path: unknown; try { path = JSON.parse(params.get("targetPath") ?? "null"); } catch { invalidDashboardQuery(); }
+    if (!Array.isArray(path) || !path.length || path.length > RESOURCE_TARGET_DIMENSIONS.length) invalidDashboardQuery();
+    const dimensions = new Set<string>();
+    for (const entry of path) {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry) || Object.keys(entry).some(key => !["dimension", "id"].includes(key)) || !RESOURCE_TARGET_DIMENSIONS.includes(entry.dimension) || dimensions.has(entry.dimension)) invalidDashboardQuery();
+      dimensions.add(entry.dimension);
+      if (entry.id !== null && (typeof entry.id !== "string" || (["equipmentType", "systemType"].includes(entry.dimension) ? !entry.id.length || entry.id.length > 64 : entry.dimension === "scope" ? !["process", "project_common"].includes(entry.id) : !isCanonicalUuidV4(entry.id)))) invalidDashboardQuery();
+    }
+    selector.targetPath = path;
+  } else if (params.has("targetPath")) invalidDashboardQuery();
   if (params.has("milestoneTaskId")) {
     const value = params.get("milestoneTaskId")!;
     if (dimension === "diagnostic" || !(value === "unassigned" || isCanonicalUuidV4(value))) invalidDashboardQuery();
@@ -92,7 +106,7 @@ export function parseResourceDashboardDetails(params: URLSearchParams): Resource
   }
   if (params.has("assignmentScope")) {
     const value = params.get("assignmentScope")!;
-    if (!["selected", "milestoneReference", "milestoneExcluded"].includes(value) || (dimension === "diagnostic" && value !== "selected")) invalidDashboardQuery();
+    if (!["selected", "milestoneReference", "milestoneExcluded", "projectReference"].includes(value) || (["diagnostic", "targetProjection"].includes(dimension) && value !== "selected") || (value === "projectReference" && dimension !== "all")) invalidDashboardQuery();
     selector.assignmentScope = value as NonNullable<ResourceDashboardSelector["assignmentScope"]>;
   }
   const number = (key: "offset" | "limit", fallback: number, max: number, min: number) => {

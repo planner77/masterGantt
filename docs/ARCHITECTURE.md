@@ -1,5 +1,12 @@
 # Architecture draft
 
+## Issue #620 — Target 보고 snapshot과 projection 경계
+
+Resource report/detail/drill의 공통 read snapshot에 Target/member/binding, legacy 직접 연결, Project-local 공정 매핑과 해당 공정 occurrence/Process Type/WorkArea·Equipment/System type의 이름 및 active 참조를 추가한다. Task/Assignment/Resource/Calendar와 동일 SQLite read transaction에서 읽고 fingerprint에 포함하므로 revision 증가 없는 참조 변경도 이전 report/detail identity를 무효화한다. 조회는 revision을 증가시키지 않고 별도 snapshot 저장소나 공수 원장을 만들지 않는다.
+
+서비스는 #619 pure Target projector와 #617 단일 상속 resolver를 재사용한다. Group/Resource/Target의 순서는 projection selector이며 원시 Assignment grain·Grand Total·T0/A를 변경하지 않는다. 공개 DTO는 compact node 및 bounded path selector로 원시 ID 배열의 셀별 반복을 피한다. Task detail과 Assignment detail을 구별하고 exact source Assignment 제한과 destination 조건을 교차한다. 기존 report schema/route는 optional Target 분석으로 확장하며 기존 Plan 선택 demand는 공통 Target 조건의 교집합을 반영하되 R 및 전체 Project 부하는 보존한다. 새 Target UI 및 Target별 기간 행/전용 selector·Excel 시트 확장은 #621/#622에 인계한다. [API](API.md), [집계 계약](RESOURCE_KPI_DASHBOARD.md), [R2 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+
+
 ## Issue #619 — Target Resource KPI projection 경계
 
 `src/domain/resources/`의 기존 KPI·Calendar·M/M 계산기를 확장하며 물류 상속의 authority는 `src/domain/logistics/task-target-bindings.ts` 단일 resolver로 유지한다. canonical Task·개인 Assignment·Target/member/legacy snapshot을 읽어 필터·원시 ID·출처·중첩 소계·distinct Grand Total을 계산하는 pure projection이며 별도 공수 원장/상속 엔진/Calendar나 DB 저장을 만들지 않는다.

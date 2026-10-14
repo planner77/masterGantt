@@ -440,3 +440,11 @@ GET Target and usage follow the Project logistics read policy. Create/PATCH/DELE
 ## #616 versioned Template graph security
 
 Template 저장은 유효한 소스 Project edit-session/strong revision을 확인한 transactional source snapshot에서 F1 occurrence/WorkArea와 F2 typed instance/Target 관계를 수집한다. Template 생성 시 common catalog를 수정하지 않는다. Instantiate는 기존 Origin/create rate limit과 새 Project atomic write를 재사용하며 BU/Product/Site triple·global occurrence/WorkArea·typed member ID를 서버에서 재검증한다. 부재, 중복, 외부 공정, unsupported graphVersion은 409로 전체 rollback한다. Legacy Template은 무그래프 호환, schedule-only JSON 1.1은 Target이 있으면 기존 409 차단 유지.
+
+## Issue #620 — Target 보고 조회 신뢰 경계
+
+Resource–Target 보고는 기존 Project public UUID read를 재사용한다. 별도 private Project 모델이나 조회용 edit password 요구를 추가하지 않으며 Project 편집 세션을 master 관리 권한으로 확대하지 않는다. 기존 protected mutation/admin의 session/Origin/strong If-Match 및401/403은 그대로다. 조회는 `private, no-store`·nosniff이며 Task/Target/기준정보나 revision을 변경하지 않는다.
+
+Target/member/binding·공정 매핑·관련 master 이름/active는 동일 read transaction의 fingerprint에 결속한다. report/detail/drill에서 stale source 또는 현재 Target 참조 변경은409로 거부한다. `exactAssignments`의 출처 제한을 공동담당자의 다른 Assignment로 확대하지 않는다. Target/member 필터의 서로 다른 binding 혼합, 같은 kind의 다른 member type/instance 혼합을 금지한다. canonical public ID를 사용하며 내부 PK·다른 Project Target/instance·글로벌 미할당 Resource/membership을 응답하지 않는다.
+
+새 조건 없는 기존 보고 호환을 유지하고 unknown/cross-project 선택은400, fan-out/cell/응답 예산 초과는422로 전체 거부한다. 오류에 SQL/stack/secret을 포함하지 않으며 부분총계를 완전한 결과로 반환하지 않는다. 전체 Project 참고는 현재 Project 안의 명시 범위이며 다른 Project 데이터 접근 권한이 아니다. [API](API.md), [R2 검증 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
