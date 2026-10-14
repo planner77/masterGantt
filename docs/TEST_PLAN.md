@@ -3599,6 +3599,14 @@ OFF 뒤 window resize의 측정 횟수가 증가하지 않는 cleanup 경계를 
 F0 oracle은 `tests/fixtures/logistics-targets.ts` 및 `tests/domain/logistics-targets-contract.test.ts`다. 신규 runtime/API/SQLite/Copy·Template 테스트와 실제 실행 결과는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에 기록한다. Local Fast Feedback PASS는 PR quality/e2e/docker PASS를 대체하지 않는다. 이번 범위는 PR CI 시작까지이며 CI 모니터링·main artifact·정식 릴리스·운영 DB backup/restore·새 UI 수동 UX는 NOT TESTED다.
 
 
+## Issue #618 — PR #678 CI #2729.1 회귀·상태 정합성 보완
+
+- 실패 원본: [Run #2729.1](https://github.com/planner77/masterGantt/actions/runs/38496918533), Chromium shard6의 `tests/e2e/task-link-load-safety.spec.ts`가 `getByRole('alert')` 두 개(strict violation)를 만남. 동일 Task Editor에 공존하는 기존 물류/신규 Target 오류를 구분해 검사하며 원래 저장 차단·mutation0·복원·If-Match 검증은 유지한다. 취소된 shard는 NOT TESTED.
+- `tests/server/logistics/logistics-targets.test.ts`: inactive50 + active2의 SQL 선필터·정확한 total/offset/search, 기본 목록 active+inactive 보존.
+- `tests/server/logistics/logistics-targets-acceptance.test.ts`: 실제 Handler GET `activeOnly=true`/생략, offset·search·invalid query400, read-only revision 불변.
+- UI: inactive checkbox 전환 시 offset0, query key 및 최신 조회 보존. Target list의 `total`과 페이지는 필터 적용 후 동일 결과집합으로 산출한다.
+- #661 GSC 1.0.0-candidate: GSC-01/03/04/06/07/08/09/11/12의 소유권 및 SC-05(부분), SC-07/10/11/13의 누적 검증 경계를 `docs/exec-plans/active/ISSUE_618.md`에 명시한다. 나머지 전체 SC-01~14와 실제 SVAR 계측/원격 E2E는 새 정확 Head의 CI 및 U5/#574에서 판단; 로컬 독립 전체 회귀는 NOT TESTED.
+
 ## Issue #618 — Target authoring·양방향 원본 편집
 
 `tests/e2e/logistics-target-authoring.spec.ts`는 실제 SQLite-backed HTTP 및 Chromium으로 프로젝트 공정 context·Target 신규/공유·WBS 연결·같은 Task 편집을 검증한다. 준비 fixture는 별도 Project Master admin 옵션의 격리 서버에서 실제 API를 사용하며 Project 편집 권한만으로 master를 생성하지 않는다. `tests/server/logistics/task-target-bindings.test.ts`는 usage 관련 Task canonical ID·상속 union·legacy 제외·revision 불변을 추가 검증한다. 기존 F1/F2/F3 HTTP/transaction 테스트는 공정 WorkArea·권한·stale·삭제·coverage rollback을 유지한다.
