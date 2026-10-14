@@ -349,3 +349,10 @@ Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의
 F3의 Target binding API는 Task/Summary의 명시 연결과 모든 조상 Summary subtree에서 온 상속 연결을 분리해 반환한다. self는 현재 행만, Summary의 subtree는 모든 실제 자손에 적용된다. 관리 Summary는 연결 없이 또는 self만으로 유지할 수 있다. 하위에서 선택한 Target은 상속 Target을 자동 override하지 않는다. whole은 현재 전체 구성, subset은 같은 Target의 실제 member 선택이며 빈 subset을 whole로 확대하지 않는다.
 
 이번 변경에 새 Target authoring 화면은 없다. #618은 일반 Task/Summary용 editor에서 직접·상속·legacy 출처와 coverage/영향 확인을 표시하고 기존 dirty/pending/readonly/401/412/초안·focus 계약을 따라야 한다. Milestone의 기존 직접 물류 편집은 보존하며 Target UI를 Milestone에 자동 추가하지 않는다. 저장은 Resource 배정·일정·status·Dependency·Milestone membership/Ready를 변경하지 않는다. 서버와 pure resolver의 계약은 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md#f3-구현-후보--issue-617-2026-10-14)를 따른다.
+
+
+## Issue #618 — Target 연결과 legacy 출처
+
+일반 Task/Summary 물류탭은 직접 Target 연결, 상속 출처, 기존 직접 설비·시스템 연결을 분리한다. 기본 self+whole, Summary만 subtree, subset은 같은 Target 구성원 1개 이상을 선택하며 Equipment 작업수량은 optional 원수량 이하 양의 정수다. whole로 전환하면 memberIds/coverage를 비워 현재 전체 구성을 참조한다. Target 미지정 관리 Summary는 유효하다. Milestone의 기존 legacy 직접 연결은 보존하고 새 Target authoring을 허용하지 않는다.
+
+Target child의 dirty/pending를 기존 부모 Editor의 닫기·재조회·탐색·기본정보 저장 잠금과 합성한다. 다른 저장 단위의 미저장 초안을 묵살하지 않는다. 401/412 또는 부모 revision 변경 시 초안을 유지하고 명시 재조회/폐기 전 자동 적용하지 않는다. 상속 출처의 부모로 공통 Editor를 열 수 있으며 Target 링크는 동일 Target 상세를 연다. 읽기 전용에서도 출처/상세 조회가 가능하다. Task 생성·복제와 새로운 SVAR mount는 이 흐름에 없다.

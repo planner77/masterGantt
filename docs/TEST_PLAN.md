@@ -3597,3 +3597,10 @@ OFF 뒤 window resize의 측정 횟수가 증가하지 않는 cleanup 경계를 
 | AC7~AC8 | 문서/DTO 소비자 정합성, usage null/실제0/고유N·Summary 별도·Milestone 제외·whole/subset/직접/상속 중복 제거, legacy 수량 분리 |
 
 F0 oracle은 `tests/fixtures/logistics-targets.ts` 및 `tests/domain/logistics-targets-contract.test.ts`다. 신규 runtime/API/SQLite/Copy·Template 테스트와 실제 실행 결과는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에 기록한다. Local Fast Feedback PASS는 PR quality/e2e/docker PASS를 대체하지 않는다. 이번 범위는 PR CI 시작까지이며 CI 모니터링·main artifact·정식 릴리스·운영 DB backup/restore·새 UI 수동 UX는 NOT TESTED다.
+
+
+## Issue #618 — Target authoring·양방향 원본 편집
+
+`tests/e2e/logistics-target-authoring.spec.ts`는 실제 SQLite-backed HTTP 및 Chromium으로 프로젝트 공정 context·Target 신규/공유·WBS 연결·같은 Task 편집을 검증한다. 준비 fixture는 별도 Project Master admin 옵션의 격리 서버에서 실제 API를 사용하며 Project 편집 권한만으로 master를 생성하지 않는다. `tests/server/logistics/task-target-bindings.test.ts`는 usage 관련 Task canonical ID·상속 union·legacy 제외·revision 불변을 추가 검증한다. 기존 F1/F2/F3 HTTP/transaction 테스트는 공정 WorkArea·권한·stale·삭제·coverage rollback을 유지한다.
+
+AC1 신규/재사용과 reload, AC2 optional WorkArea와 권한, AC3 ACS-only/multi/관리 Summary 및 mutation1/Task 증가0, AC4 영향/출처/rollback, AC5 상태/응답역전, AC6 반응형/키보드/focus, AC7 query-only0/remount0 및 기존 일정·Milestone·Resource, AC8 문서·Design Delta를 구분한다. 아직 실행하지 않은 항목은 PASS가 아니다. 선별 Local Fast Feedback/실제 browser와 PR quality/e2e/docker·Trusted QA/Owner 결정은 [Work Packet](exec-plans/active/ISSUE_618.md)에 별도 기록한다. 운영 환경·실기기·screen reader·최종 수동 UX는 NOT TESTED다.

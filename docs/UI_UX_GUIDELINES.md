@@ -332,3 +332,14 @@ native Chart plot 원점/폭과 lane을 직접 비교하고 Grid/Chart row y/hei
 공개 Week 대안은 scoped Monday 시작과 동일 주 셀의 Gregorian 월·연도 span이다. 짧은 셀 label은 ellipsis하되 [Monday,nextMonday), 포함 월, ISO week-year를 accessible name/keyboard detail에 제공한다. 월 1일은 주 셀 내부 x로 비교하며 native 월 셀 경계가 있는 것처럼 검증하지 않는다. Calendar 지원 범위 밖 exclusive-end metadata는 표시 전용이고 해당 주 전체 근무일을 미산정으로 안내한다. [상세 계약과 원본 실패](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+
+## Issue #618 — Target composer와 연결 상태
+
+Target composer/Task 연결 child는 기존 WorkspaceDialog와 semantic token을 사용한다. 직접/상속/legacy 출처를 색상 외 텍스트로 구분한다. 종류·label·수량·공정 입력에는 실제 label을 제공하고 System의 기본1식을 물리 Equipment 대수와 혼동하지 않는다. 고급 controls/roles는 기본 Target 구성에서 펼쳐보기/기존 관리 경로로 분리한다.
+
+loading/empty/no-results/error/retry, readonly/edit/dirty/pending/stale/inactive/미매핑을 별도 표현한다. dirty 상태는 늦은 조회로 교체하지 않으며 401/412는 입력을 보존한 재인증/재조회 안내다. pending에서는 중복 저장/닫기/탐색을 잠그고 Escape/취소는 명시 폐기 확인을 거친다. 관리자 master 저장은 별도 transaction이며 이미 저장된 항목을 Project 취소로 되돌렸다고 표시하지 않는다.
+
+390/768/1024/1440/1920px 및 긴 한글/동명이름에서 실제 overflow·Tab/Enter/Escape·focus trap/복귀를 확인한다. 목록과 상세는 좁은 화면에 적층하고 긴 canonical ID는 줄바꿈한다. 조작 영역44px·내부 scroll·기존 Gantt 보존 계약을 재사용한다. DESIGN Delta=B(기존 원칙 구체화), 새 전역 디자인 원칙 없음. 실제 실행 상태와 캡처는 [Work Packet](exec-plans/active/ISSUE_618.md)을 따른다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.

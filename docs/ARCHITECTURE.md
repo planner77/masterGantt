@@ -401,3 +401,8 @@ Week는 Gantt에만 scoped Locale Monday 시작과 공개 weekly scales formatte
 F3는 application-owned Task–Target 명시 관계와 typed subset member/coverage를 SQLite에 저장하고, SVAR와 독립된 pure resolver에서 직접+조상 Summary subtree 합집합 및 provenance를 계산한다. `Route Handler → Service → Repository → SQLite` 경계를 유지한다. 명시 관계는 SQLite와 전용 GET/PUT target-bindings aggregate에서 보존하며, 기존 전체 ProjectSnapshot DTO를 새 binding 원장으로 확장하지 않는다. 파생 상속 결과를 새로운 저장 row로 평탄화하지 않는다. 기존 직접 Equipment/System 출처와 신규 Target 출처는 instance ID로 dedup해도 구분해 제공한다.
 
 mutation은 기존 Project session/Origin/strong If-Match와 IMMEDIATE transaction을 재사용한다. Target 구성 영향 token은 revision·정규화 diff·snapshot에 묶인 확인 장치이며 권한 근거가 아니다. Copy/Template은 명시 binding/subset/member ID를 해당 local ID map으로 한 번씩 치환한다. UI(#618)와 Resource 축(#619 이후)은 이 resolver를 재사용하며 독자 상속 엔진·새 Resource 배정·일정 writer를 추가하지 않는다. 상세 API/DDL·검증 상태는 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다.
+
+
+## Issue #618 — Target UI와 canonical 편집 경계
+
+F4 authoring은 기존 Target/Task binding HTTP service/repository 원장을 재사용한다. usage DTO의 relatedTasks와 projectRevision은 기존 pure Target resolver의 직접/상속 결과를 같은 read transaction에서 제공하며 별도 UI graph를 만들지 않는다. Target 상세의 관련 작업 탐색은 Task별 GET 없이 usage 한 번으로 제공한다. 공유 원본 인스턴스 변경 영향은 Target usage 후보를 최대1,000개 Task별 binding aggregate로 확인해 subset의 다른 구성원을 잘못 포함하지 않는다. 한도/조회 오류는 원본 저장을 차단하며 기존 직접 연결 수를 산출하지 못한 경우 미산정으로 표시한다. UI는 canonical Task UUID로 공통 ProjectTaskEditor와 기존 mutation gateway를 열고 사용 중 Gantt를 유지한다. Target/instance 저장은 명시 composer 명령이며 저장 성공 뒤 공통 canonical 재조회한다. Legacy 직접 instance에서 Target을 역추론하지 않으며 Resource/일정/Dependency/DB schema는 변경하지 않는다.

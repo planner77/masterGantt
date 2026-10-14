@@ -839,3 +839,8 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 ## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+
+## Issue #618 — Target F4 구성·연결 편집
+
+최신 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b` / version0.109.0에서 `feat/issue-618-target-composer`로 진행한다. 기존 F1/F2/F3 API, 물류 Workspace, 공통 Task Editor와 canonical/viewport gateway를 재사용하여 composer·whole/subset·출처·양방향 동일 원본 편집을 제공한다. minor0.110.0, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. [Work Packet](ISSUE_618.md)의 AC·상태·문서·실행 원장을 따른다. 요청 종료점은 구현/리뷰 보완/충돌 해결 후 PR CI 시작 확인이며 CI 모니터링·병합·게시·Issue 종료는 후속이다. 공식 원격 회귀와 Manager ACCEPT는 아직 NOT TESTED다.

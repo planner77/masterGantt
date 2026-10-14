@@ -68,3 +68,8 @@ F1 #615 PR #627/#628 integrated before branch creation. F2 branch `feat/issue-61
 기준 main `e1957802`의 F2/Template v2를 재사용하여 migration0027, typed binding·subset/coverage·합집합 provenance, legacy 직접 연결 호환, whole/이동 영향 확인, Copy/Template v3·unsupported-format guard 및 usage nullable/실제 일반 Task·Summary 분리를 구현한다. 상단 F1/F2 candidate 문단은 착수 당시 이력이며 현재 F3 완료 근거로 사용하지 않는다. 후속 F4/R1을 이번 요청에 포함하지 않는다.
 
 실제 Agent 분리 구현 및 독립 read-only qa_docs 검토를 사용한다. `qa_method=AGENT`, `risk_level=HIGH`, `qa_required=true`, `release_required=true`, `release_authorized=false`. 실행/AC/문서 원장은 [ISSUE_617](ISSUE_617.md)이며 이번 마지막 단계는 미해결 리뷰 처리 및 PR CI 시작이다. CI 모니터링·병합·Main artifact·정식 릴리스·Issue 종료는 별도다.
+
+
+## Issue #618 — F4 현재 구현 (2026-10-14)
+
+#615/#616 완료 및 #617 PR #676이 main `96c6c74b`에 반영된 현재 기반에서 F4 composer·Task binding UI·양방향 같은 원본 편집을 구현한다. 이전 candidate 상태표는 착수 이력이며 현재 완료 증거는 각 Issue/PR·Work Packet으로 확인한다. F4는 [ISSUE_618](ISSUE_618.md)을 따르며 minor0.110.0/HIGH/OWNER_MANAGED, release_required=true/release_authorized=false다. 실제 역할 분리 설계/구현과 별도 Agent 사전 검토를 사용하고 요청 종료점은 PR CI 시작이다. R1~V1을 자동 구현/완료하지 않는다.

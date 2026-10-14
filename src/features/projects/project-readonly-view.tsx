@@ -1120,6 +1120,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (!restoreFocus) return;
     if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
     requestAnimationFrame(() => {
+      if (editorOriginViewReference.current === "logistics") {
+        const panel = document.querySelector<HTMLElement>(".project-logistics-panel");
+        const logicalTrigger = taskId ? panel?.querySelector<HTMLElement>(`[data-target-task-id="${taskId}"]`) : null;
+        const fallback = panel?.querySelector<HTMLElement>('dialog[open] button[aria-label$="닫기"]') ??
+          panel?.querySelector<HTMLElement>('input');
+        const target = isVisibleFocusTarget(trigger) ? trigger : isVisibleFocusTarget(logicalTrigger) ? logicalTrigger : fallback;
+        if (isVisibleFocusTarget(target)) target.focus({ preventScroll: true });
+        return;
+      }
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
       if (editorLaneOriginReference.current) {
         const list = root?.querySelector<HTMLElement>("[data-milestone-lane-focus=list]");
@@ -2797,6 +2806,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-logistics-panel"
       >
         <ProjectLogisticsManagement
+          projectContext={project}
           busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           publicId={publicId}
           revision={project.revision}
@@ -2805,6 +2815,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           active={activeView === "logistics"}
           onStageSchedule={drillDashboardSchedule}
           onStageOpen={(taskId, tab) => { setActiveView("schedule"); openTaskEditor(taskId, tab); }}
+          onTargetTaskOpen={(taskId) => openTaskEditor(taskId)}
           logistics={state.snapshot.data.logistics}
           onLogisticsMutated={(newLogistics, newProject) => {
             const current = confirmedSnapshotReference.current;

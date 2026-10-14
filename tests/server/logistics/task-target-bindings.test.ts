@@ -60,6 +60,16 @@ describe("Issue #617 binding persistence and membership guards",()=>{
       expect(direct.effective.effectiveSystemIds).toEqual([f.systems[0].publicId]);
       expect(direct.effective.effectiveMembers[0].provenance).toHaveLength(3);
       expect(f.targets.usage(f.project.publicId,a.id)).toMatchObject({referencedByTaskCount:1,referencedBySummaryCount:1});
+      // Target details open these exact canonical tasks, with no per-task GET fan-out.
+      const usageRevision=f.revision();
+      const usage=f.targets.usage(f.project.publicId,a.id);
+      expect(usage.projectRevision).toBe(usageRevision);
+      expect(usage.relatedTasks).toEqual([
+        {taskId:f.summary.publicId,type:"summary"},
+        {taskId:f.child.publicId,type:"task"},
+      ].sort((a,b)=>a.taskId.localeCompare(b.taskId)));
+      expect(usage.relatedTasks.some(t=>t.taskId===f.leaf.publicId)).toBe(false);
+      expect(f.revision()).toBe(usageRevision);
       const previous=direct.bindings.find(x=>x.targetId===a.id)!;
       const replaced=f.bindings.replace(f.auth,f.revision(),f.child.publicId,{bindings:[{...whole(a.id),id:previous.id}]}).data;
       expect(replaced.bindings[0].id).toBe(previous.id);

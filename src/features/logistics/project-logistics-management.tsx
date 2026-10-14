@@ -23,9 +23,13 @@ import type {
   UpdateLogisticsSystemRequest,
   UpdateProcessRequest,
 } from "@/contracts/logistics";
+import type { TaskTargetBindingsResponse } from "@/contracts/task-target-bindings";
+import type { LogisticsTargetListResponse, LogisticsTargetUsageDto } from "@/contracts/logistics-targets";
+import { taskContextLabels } from "./task-context-label";
 import type { ProjectDto } from "@/contracts/projects";
 import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
+import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import styles from "./project-logistics-management.module.css";
 
@@ -56,7 +60,9 @@ export interface ProjectLogisticsManagementProps {
   active?: boolean;
   busy?: boolean;
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
+  onTargetTaskOpen?: (taskId: string) => void;
   onStageSchedule?: (taskIds: string[]) => void;
+  projectContext?: Pick<ProjectDto, "businessUnit" | "product" | "siteEntity">;
   publicId: string;
   revision: number;
   editable: boolean;
@@ -72,11 +78,12 @@ export interface ProjectLogisticsManagementProps {
   onUnauthorized: () => void;
 }
 
-type SubTab = "dashboard" | "processes" | "equipment" | "systems" | "relations";
+type SubTab = "targets" | "dashboard" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
-  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule,
+  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen,
   publicId,
+  projectContext,
   revision,
   editable,
   logistics = { processes: [], equipment: [], systems: [], systemLinks: [] },
@@ -191,6 +198,9 @@ export function ProjectLogisticsManagement({
     name: string;
   }>({ open: false, entityKind: "process", id: "", name: "" });
 
+  const [sourceImpact, setSourceImpact] = useState<{ revision:number; name:string; targetNames:string[]; taskIds:string[]; legacyCount:number|null; apply:()=>Promise<void> }|null>(null);
+  const sourcePreviewRequest = useRef<AbortController|null>(null);
+  useEffect(() => () => { sourcePreviewRequest.current?.abort(); }, [publicId,revision]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -350,8 +360,45 @@ export function ProjectLogisticsManagement({
   };
 
   // Sub-tab button keyboard navigation
+  async function previewInstanceEdit(kind:"equipment"|"system", id:string, name:string, apply:()=>Promise<void>) {
+    if (!editable || isSubmitting || busy) return;
+    sourcePreviewRequest.current?.abort();
+    const controller = new AbortController(); sourcePreviewRequest.current=controller;
+    setIsSubmitting(true); setErrorMessage(null);
+    try {
+      const matching: Array<{id:string;name:string}> = [];
+      let offset=0;
+      while (true) {
+        const res=await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/targets?limit=100&offset=${offset}`,{credentials:"same-origin",cache:"no-store",signal:controller.signal});
+        if(!res.ok)throw new Error();
+        const data=(await res.json() as LogisticsTargetListResponse).data;
+        if(data.projectRevision!==revision)throw new Error();
+        matching.push(...data.targets.filter(t=>t.members.some(m=>m.kind===kind&&m.entityId===id)).map(t=>({id:t.id,name:`${t.code} · ${t.name} (ID: ${t.id})`})));
+        offset+=data.targets.length;if(offset>=data.total)break;if(!data.targets.length||offset>10000)throw new Error();
+      }
+      const candidateTaskIds=new Set<string>();const taskIds=new Set<string>();let legacyCount:number|null=null;
+      for(const target of matching){
+        const res=await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/targets/${encodeURIComponent(target.id)}/usage`,{credentials:"same-origin",cache:"no-store",signal:controller.signal});
+        if(!res.ok)throw new Error();const usage=(await res.json() as {data:LogisticsTargetUsageDto}).data;
+        if(usage.projectRevision!==revision||usage.targetId!==target.id)throw new Error();
+        for(const row of usage.relatedTasks)candidateTaskIds.add(row.taskId);
+        legacyCount=Math.max(legacyCount??0,usage.members.find(m=>m.kind===kind&&m.entityId===id)?.directTaskCount??0);
+      }
+      // Target usage is a candidate set: an ACS-only subset must not imply AMR impact.
+      if(candidateTaskIds.size>1000)throw new Error();
+      for(const taskId of candidateTaskIds){
+        const res=await fetch(`/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}/target-bindings`,{credentials:"same-origin",cache:"no-store",signal:controller.signal});
+        if(!res.ok)throw new Error();const data=(await res.json() as TaskTargetBindingsResponse).data;
+        if(data.projectRevision!==revision||data.taskId!==taskId)throw new Error();
+        if((kind==="equipment"?data.effective.effectiveEquipmentIds:data.effective.effectiveSystemIds).includes(id))taskIds.add(taskId);
+      }
+      if(!controller.signal.aborted)setSourceImpact({revision,name:`${name} (ID: ${id})`,targetNames:matching.map(t=>t.name),taskIds:[...taskIds],legacyCount,apply});
+    }catch{if(!controller.signal.aborted){setErrorMessage("공유 인스턴스의 Target/작업 사용처를 확인하지 못해 원본 저장을 차단했습니다. 초안은 유지됩니다. 최신 정보를 다시 조회해 주세요.");setSourceImpact({revision:-1,name:`${name} (ID: ${id})`,targetNames:[],taskIds:[],legacyCount:null,apply:async()=>{}});}}
+    finally{if(sourcePreviewRequest.current===controller)setIsSubmitting(false);}
+  }
+
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, tab: SubTab) => {
-    const tabs: SubTab[] = ["dashboard", "processes", "equipment", "systems", "relations"];
+    const tabs: SubTab[] = ["dashboard", "targets", "processes", "equipment", "systems", "relations"];
     const idx = tabs.indexOf(tab);
     let nextTab: SubTab | null = null;
     if (e.key === "ArrowRight") {
@@ -409,6 +456,7 @@ export function ProjectLogisticsManagement({
         >
           KPI 대시보드
         </button>
+        <button id="subtab-targets" className={styles.subTabButton} role="tab" type="button" aria-selected={activeSubTab === "targets"} aria-controls="panel-targets" tabIndex={activeSubTab === "targets" ? 0 : -1} onClick={() => setActiveSubTab("targets")} onKeyDown={e => handleTabKeyDown(e, "targets")}>물류 대상(Target)</button>
         <button
           id="subtab-processes"
           className={styles.subTabButton}
@@ -466,8 +514,11 @@ export function ProjectLogisticsManagement({
         </button>
       </div>
 
+      <div id="panel-targets" role="tabpanel" aria-labelledby="subtab-targets" hidden={activeSubTab !== "targets"}>
+        <ProjectLogisticsTargets projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
+      </div>
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
-      {activeSubTab !== "dashboard" ? (
+      {activeSubTab !== "dashboard" && activeSubTab !== "targets" ? (
         <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
           <div className={styles.filtersGroup}>
             <input
@@ -1160,17 +1211,12 @@ export function ProjectLogisticsManagement({
           busy={isSubmitting}
           onClose={() => setEquipmentModal({ open: false, mode: "create" })}
           onSubmit={async (data) => {
-            const ok =
-              equipmentModal.mode === "create"
-                ? await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/equipment`, "POST", data)
-                : await executeMutation(
-                    `/api/projects/${encodeURIComponent(publicId)}/logistics/equipment/${encodeURIComponent(
-                      equipmentModal.target!.id,
-                    )}`,
-                    "PATCH",
-                    data,
-                  );
-            if (ok) setEquipmentModal({ open: false, mode: "create" });
+            if(equipmentModal.mode === "edit" && equipmentModal.target){
+              const entity=equipmentModal.target;
+              await previewInstanceEdit("equipment",entity.id,entity.name,async()=>{if(await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/equipment/${encodeURIComponent(entity.id)}`,"PATCH",data)){setSourceImpact(null);setEquipmentModal({open:false,mode:"create"});}});
+              return;
+            }
+            if(await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/equipment`,"POST",data))setEquipmentModal({open:false,mode:"create"});
           }}
         />
       ) : null}
@@ -1229,17 +1275,12 @@ export function ProjectLogisticsManagement({
           busy={isSubmitting}
           onClose={() => setSystemModal({ open: false, mode: "create" })}
           onSubmit={async (data) => {
-            const ok =
-              systemModal.mode === "create"
-                ? await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/systems`, "POST", data)
-                : await executeMutation(
-                    `/api/projects/${encodeURIComponent(publicId)}/logistics/systems/${encodeURIComponent(
-                      systemModal.target!.id,
-                    )}`,
-                    "PATCH",
-                    data,
-                  );
-            if (ok) setSystemModal({ open: false, mode: "create" });
+            if(systemModal.mode === "edit" && systemModal.target){
+              const entity=systemModal.target;
+              await previewInstanceEdit("system",entity.id,entity.name,async()=>{if(await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/systems/${encodeURIComponent(entity.id)}`,"PATCH",data)){setSourceImpact(null);setSystemModal({open:false,mode:"create"});}});
+              return;
+            }
+            if(await executeMutation(`/api/projects/${encodeURIComponent(publicId)}/logistics/systems`,"POST",data))setSystemModal({open:false,mode:"create"});
           }}
         />
       ) : null}
@@ -1308,6 +1349,14 @@ export function ProjectLogisticsManagement({
         />
       ) : null}
 
+      {sourceImpact?<WorkspaceDialog title="공유 인스턴스 변경 확인" onClose={()=>{if(!isSubmitting)setSourceImpact(null);}} busy={isSubmitting}>
+        <div className={styles.dialogForm}><p>{sourceImpact.name} · 원본 인스턴스를 변경하면 아래 Target와 작업에서 같은 변경을 읽습니다. 구성원 연결 해제와 원본 수정은 별개입니다.</p>
+        {sourceImpact.revision>=0?<><p>공유 Target {sourceImpact.targetNames.length}개 · Target 경로의 관련 작업 {sourceImpact.taskIds.length}개 · 기존 직접 작업 연결 {sourceImpact.legacyCount??"미산정"}개</p>
+        <ul>{sourceImpact.targetNames.map((name,i)=><li key={i}>{name}</li>)}</ul><ul>{sourceImpact.taskIds.map(id=><li key={id}>{taskContextLabels(tasks)[id]??id} · 작업 ID {id}</li>)}</ul></>:null}
+        {sourceImpact.revision!==revision?<p role="alert">기준 정보가 변경되었습니다. 취소 후 사용처를 다시 확인하세요.</p>:null}
+        {errorMessage?<p role="alert">{errorMessage}</p>:null}
+        <div className={styles.dialogActions}><button type="button" className="secondary-button" disabled={isSubmitting} onClick={()=>setSourceImpact(null)}>원본 변경 취소</button><button type="button" className="primary-button" disabled={isSubmitting||!editable||busy||sourceImpact.revision!==revision} onClick={()=>void sourceImpact.apply()}>공유 사용처 확인 후 원본 저장</button></div></div>
+      </WorkspaceDialog>:null}
       {/* 9. Delete Confirmation Dialog */}
       {deleteConfirmModal.open ? (
         <WorkspaceDialog

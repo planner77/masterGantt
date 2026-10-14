@@ -77,11 +77,15 @@ export interface UpdateLogisticsTargetRequest {
   confirmImpact?: boolean;
 }
 export interface LogisticsTargetUsageDto {
+  /** All usage and identities are from this one read snapshot. */
+  projectRevision: number;
   targetId: string;
   memberCount: number;
   /** Unique effective regular Tasks; Summary/Milestone excluded. null means unsupported/not calculated. */
   referencedByTaskCount: number | null;
   referencedBySummaryCount: number | null;
+  /** Canonical identities, including effective subtree inheritance; never legacy inference. */
+  relatedTasks: Array<{ taskId: string; type: "task" | "summary" | "milestone" }>;
   members: Array<LogisticsTargetMemberDto & { targetCount: number; directTaskCount: number }>;
 }
 export interface LogisticsTargetListResponse {

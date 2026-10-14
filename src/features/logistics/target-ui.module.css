@@ -1,0 +1,17 @@
+.panel { display:grid; gap:16px; min-width:0; }
+.toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.form { display:grid; gap:16px; padding:8px; min-width:0; }
+.fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; }
+.field { display:grid; gap:6px; min-width:0; }
+.field input,.field select,.field textarea { min-width:0; max-width:100%; min-height:44px; border:1px solid var(--border-control); border-radius:4px; padding:8px; background:var(--surface-panel); color:var(--text-default); }
+.group { border:1px solid var(--border-default); border-radius:4px; padding:12px; min-width:0; display:grid; gap:12px; }
+.list { list-style:none; padding:6px; margin:0; display:grid; gap:10px; max-height:300px; overflow:auto; }
+.row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:8px; border-bottom:1px solid var(--border-default); overflow-wrap:anywhere; }
+.row label { min-height:44px; display:flex; align-items:center; gap:8px; }
+.note { color:var(--text-muted); font-size:.875rem; overflow-wrap:anywhere; }
+.error { color:var(--status-error); overflow-wrap:anywhere; }
+.table { width:100%; border-collapse:collapse; }
+.table td,.table th { padding:10px; text-align:left; border-bottom:1px solid var(--border-default); overflow-wrap:anywhere; }
+.scroll { overflow:auto; padding:6px; }
+.form button,.panel button { min-height:44px; }
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible { outline:var(--focus-outline); outline-offset:var(--focus-offset); }

@@ -256,9 +256,11 @@ export class LogisticsTargetService {
       const snapshot=loadTaskTargetBindingSnapshot(this.db,project.id);
       const resolutions=resolveAllTaskTargetBindings(snapshot);
       const connected=snapshot.tasks.filter(t=>resolutions.get(t.id)?.effectiveTargetIds.includes(targetId));
-      return { targetId:targetId, memberCount:members.length,
+      return { projectRevision:project.revision, targetId:targetId, memberCount:members.length,
         referencedByTaskCount:connected.filter(t=>t.type==="task").length,
-        referencedBySummaryCount:connected.filter(t=>t.type==="summary").length, members:usageMembers };
+        referencedBySummaryCount:connected.filter(t=>t.type==="summary").length,
+        relatedTasks:connected.map(t=>({taskId:t.id,type:t.type})).sort((a,b)=>a.taskId.localeCompare(b.taskId)),
+        members:usageMembers };
     }).deferred();
   }
   private location(projectId:number, targetScope:LogisticsTargetScope,

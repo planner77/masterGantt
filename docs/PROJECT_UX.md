@@ -1309,3 +1309,12 @@ Lane Left/Right/Home/End roving Tab 1개, Enter/Space; 묶음 Up/Down/Home/End/T
 Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 ISO 주차를 구별한다. Day의 기존 월/일 의미는 유지한다. 2199-12-31의 2200 exclusive-end metadata는 표시 전용이며 해당 주 전체 Calendar 근무일은 미산정 사유를 표시한다. 원래 native 월 셀 오류를 고쳤다고 표기하지 않는다. 상세 current/target/compatibility와 검증 경계는 [Milestone Timeline](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+
+## Issue #618 — 물류 Target 구성·원본 Task 왕복
+
+기존 물류 구성에 Target 하위탭을 추가한다. 검색→목록 선택→상세→구성 composer→검토/저장 흐름으로 Gantt 작업 면적을 유지한다. Target 상세의 관련 작업은 동일 canonical Task ID/WBS 경로로 공통 Task Editor를 열며 물류탭을 강제 일정탭으로 바꾸지 않는다. 닫으면 같은 Target 검색/선택·focus로 돌아온다. WBS 물류 연결에서도 Target 상세로 이동할 수 있다. 저장 후 공통 canonical 재조회와 revision으로 목록·상세·작업 정보 정합성을 유지한다.
+
+공정/WorkArea, whole/subset 구성과 subtree 변경에는 관련 대상/영향 정보를 표시한다. 기존 instance 재사용과 신규 생성을 구분하고 공유 사용처를 표시한다. 조회용 Target grouping이 WBS parent를 바꾸지 않으며 Gantt instance/scroll/selection/scale/column/fullscreen은 기존 workspace/canonical/viewport 경로를 유지한다. 별도 Gantt·viewport writer·query-only mutation은 없다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.

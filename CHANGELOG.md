@@ -1,5 +1,12 @@
 ## [Unreleased] — 0.109.0 / Issue #617 WBS–Target 연결 (2026-10-14)
 
+## [0.110.0] — 2026-10-14
+
+- Target composer에서 공정/optional WorkArea 및 기존 Equipment/System 신규·재사용 구성을 편집합니다 (#618).
+- WBS Target whole/subset·self/subtree·작업수량·출처와 Target↔동일 Task Editor 탐색을 추가합니다.
+- Target usage에 같은 revision의 canonical 관련 Task ID를 제공하고 기존 권한·stale·공유/삭제 보호를 유지합니다.
+- PR CI·Owner 승인 및 정식 릴리스는 별도이며 현재 정식 게시 승인 없음.
+
 - Task/Summary–Target 다대다 whole/subset·self/subtree 연결과 typed member coverage, 직접+모든 조상 subtree 합집합·전체 출처를 제공하는 단일 resolver를 추가한다. legacy Equipment/System 직접 연결과 공유 MCS identity를 보존한다.
 - Target 구성·WBS 이동 영향 확인, subset/coverage/사용 중 삭제 보호, Copy·Template 명시 연결 remap과 미지원 포맷 silent-loss 차단을 동기화한다. 같은 Project subtree Copy도 기존 명시 legacy Equipment/System self/subtree 링크를 복사하도록 확장하며 상속을 평탄화하지 않는다. Target usage는 nullable 의미와 실제 고유 일반 Task/Summary 수량을 구분한다.
 - 신규 Target UI/Resource 축은 후속 #618/#619. exact-Head 원격 CI 전 전체 PASS를 주장하지 않으며 `release_required=true`, `release_authorized=false`; 정식 릴리스가 아니다.

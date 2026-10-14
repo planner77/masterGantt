@@ -280,3 +280,14 @@ Target membership 변경은 실제 whole/subset 참조를 조회하고 snapshot�
 `referencedByTaskCount: number | null`은 실제 계산한 고유 일반 Task 수다. null은 미지원/미산출, 0은 실제 0건, N은 직접 또는 상속으로 연결된 N건이다. Summary는 별도 수량으로 제공하고 Milestone 문맥은 일반 Task 수에서 제외하며, legacy `directTaskCount`/공유 `targetCount`와 혼합하지 않는다. null·과거 placeholder 0은 삭제/영향 없음/KPI 판단 근거가 아니다. 실제 삭제 보호는 binding과 최신 transaction 검증을 따른다.
 
 Task authoring UI는 #618, Resource Target 축·공수/보고서/Excel은 #619~#622 후속이다. 신규 binding은 Resource 배정·Dependency·Task 일정/상태·Milestone membership/Ready를 변경하지 않는다. 기존 Milestone 직접 물류 연결은 유지하며 Target authoring은 일반 Task/Summary 경계다.
+
+
+## Issue #618 — F4 Target 구성과 같은 작업 편집
+
+물류 Workspace의 Target 하위탭에서 Target 목록을 검색하고 상세·구성원을 조회한다. Composer는 프로젝트 분류를 읽어 표시하고 process 또는 명시적 project_common을 선택한다. WorkArea는 해당 occurrence에 존재할 때만 선택하며 필수가 아니다. 기존 인스턴스 검색/연결과 새 Equipment/System 생성을 구분한다. Equipment는 종류·label·원수량, System은 종류·label·1식이며 stable ID를 사용한다. 같은 인스턴스의 공유 Target 사용처를 표시한다. Target 구성원 연결 해제는 실물 인스턴스 삭제가 아니다. 상세 controls/coordinates/업체/역할 원본은 기존 관리 경로를 유지하며 membership이 자동 관계를 생성하지 않는다.
+
+Task/Summary의 물류 Editor에서 복수 Target, whole/subset, self/Summary subtree, Equipment optional 작업수량을 편집한다. 직접·모든 조상 상속·legacy 직접 instance 연결의 출처를 구분하며 상속은 합집합이다. 미지정 관리 Summary는 정상이다. Target 상세의 relatedTasks는 canonical Task ID·WBS 경로를 표시하고 동일 Task Editor를 연다. WBS에서 Target 상세로 탐색하고 같은 원본 구성으로 돌아온다. 날짜/진척/상태는 Task Editor, 구성은 composer에서 저장하며 공통 canonical 재조회로 양쪽을 갱신한다.
+
+변경 전 whole/subset 영향·관련 작업·공유 사용 현황을 확인하고 서버 impact/revision 검증으로 stale 및 삭제 충돌을 차단한다. 401/412·조회 실패와 늦은 응답에서 dirty 초안을 자동 교체하지 않는다. 공통 master는 다른 관리자 권한·별도 저장이며 Project 취소로 이미 저장된 master가 취소되었다고 표시하지 않는다. 구현/실행 증거는 [F4 Work Packet](exec-plans/active/ISSUE_618.md)에 기록하며 원격 전체 회귀/Owner 승인 전 F4 최종 완료를 주장하지 않는다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.
