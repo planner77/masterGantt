@@ -1,3 +1,9 @@
+## [Unreleased] — 0.110.0 / Issue #619 Target Resource KPI (2026-10-14)
+
+- 기존 Resource KPI pure 엔진에 Target·공정·WorkArea·Equipment/System type 및 instance 조회 차원을 추가한다. #617 단일 binding resolver의 whole/subset·직접/상속 출처와 legacy 직접 연결을 재사용한다.
+- Target 소계는 관련 계획 공수로 중첩될 수 있으며 선택 전체는 원시 Assignment 합집합에서 한 번만 계산한다. T0/A·같은 개인 Assignment 조건·inclusive Resource Calendar·null/partial/설정0·M/M 미설정·full Milestone Ready/Blocked를 보존하고 Plan의 Capacity 모집단 및 전체 Project load를 Target 선택으로 축소하지 않는다.
+- Domain typed contract 및 golden/property/예산 회귀를 추가한다. 새 UI·HTTP API·DB·Excel 공개는 후속 #618/#620~#622 범위다. 후보 minor version이며 정식 릴리스가 아니다. 원격 CI/Trusted QA/Owner ACCEPT는 별도이며 release_authorized=false다.
+
 ## [Unreleased] — 0.109.0 / Issue #617 WBS–Target 연결 (2026-10-14)
 
 - Task/Summary–Target 다대다 whole/subset·self/subtree 연결과 typed member coverage, 직접+모든 조상 subtree 합집합·전체 출처를 제공하는 단일 resolver를 추가한다. legacy Equipment/System 직접 연결과 공유 MCS identity를 보존한다.

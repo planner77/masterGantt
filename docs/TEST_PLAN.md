@@ -1,3 +1,19 @@
+## Issue #619 — Target Resource KPI R1 검증 (2026-10-14)
+
+`tests/domain/resource-target-kpi.test.ts`와 `tests/fixtures/resource-target-kpi.ts`는 기존 #523/#530 KPI 및 #614 공통 Target fixture를 확장해 pure Domain 계산을 검증한다. 새 UI/HTTP/Excel 종단 수용은 별도 #618/#620~#623이며 로컬 단위 PASS로 그 상태를 승격하지 않는다. 실제 명령·건수·사전 QA·최신 Head/원격 CI는 [Work Packet](exec-plans/active/ISSUE_619.md)에 기록한다.
+
+| AC | 검증 범위 | 핵심 기대값 |
+| --- | --- | --- |
+| AC1 | 기존 Target 없는 KPI 및 #530 integration fixture | raw11.5 M/D,0.575 M/M,4 Task/5 Assignment/2 Resource,Group 소계17을 전체로 오용하지 않음 |
+| AC2 | Target→Group→Resource 및 Group→Resource→Target, 순열 property | 같은 선택 Task/Assignment ID와 raw 총계 일치, 원본 mutation 없음 |
+| AC3 | 통합5일100%, 공동담당·multiGroup·direct+inherited | A5/B5/선택전체5; 공동담당50% 추가 raw7.5; 출처만 늘어도 총계 불변 |
+| AC4 | ACS-only·same binding/member positive/negative·legacy MCS·공통/무구역/미매핑·inactive | 잘못된 교차 Target/같은 type 조인 불일치, legacy Target 미추론, T0/A·empty/unset/partial/configured0 구분 |
+| AC5 | Resource Calendar 예외·M/M 미설정·progress/status·full Milestone 및 Plan | 계획공수 불변, full Ready/Blocked 보존, 선택80%/전체140%와 전체 R 보존 |
+| AC6 | duplicate/permutation/conflicting ID·fan-out 한도 | 정확 중복 동일 결과, 상충·foreign 참조·예산 초과 명시 오류, 절삭 총계 없음 |
+| AC7 | typed contract/KPI 사전/문서 링크 및 DOC_SYNC | 각 AC와 구현·source/분모/원시 ID 계약 일치 |
+
+공식 PR Quality/E2E6/Docker·Trusted QA는 exact Head/base의 Actions 결과로만 판정한다. 이번 요청은 PR CI 시작까지이며 결과는 NOT TESTED, 운영 데이터·UI·Excel 및 최종 Owner 업무 수용은 별도다.
+
 ## Issue #659 — CI #2691 실패 보완 및 조기 Fail-Fast 회귀 검증 (2026-10-13)
 
 | 범위 | 실제/예상 증거 | 완료 기준 |

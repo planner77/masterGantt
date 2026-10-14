@@ -1,3 +1,10 @@
+## Issue #619 — Target Resource KPI R1 (2026-10-14)
+
+- 기준 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`, app `0.109.0` → 후보 `0.110.0`, branch `feat/issue-619-target-resource-kpi`. #614 계약 및 main에 병합된 #617 단일 resolver를 재사용한다. 상세 [Work Packet](ISSUE_619.md).
+- 기존 KPI에 Target·공정·WorkArea·typed instance 집계 축을 추가한다. 같은 binding/member 필터, T0/A, 관련 계획 공수의 중첩 소계와 원시 Assignment 합집합 전체, full Milestone·Calendar·Plan R/전체부하 보존을 검증한다.
+- HIGH / OWNER_MANAGED / qa_required=true. scheduler 구현·Manager 문서/version·별도 read-only qa_docs 사전 검토. release_required=true / release_authorized=false / manager_decision=NOT TESTED.
+- 요청 종료점은 구현·문서 동기화·리뷰 스레드/충돌 해결 후 PR Full CI 시작이다. 기존 회귀166·최종 신규38·version7·별도 반례20은 로컬 PASS, 최종 source/tree 사전 검토 결속 단계다. 공식 Quality/E2E/Docker·Trusted QA는 NOT TESTED이며 CI 완료 모니터링·병합·Main/Release·브랜치 정리·Issue 종료는 수행하지 않는다. #618 UI와 #620~#622 API/Plan/Excel 및 제품 종단 수용은 별도다.
+
 ## Issue #617 — WBS–Target F3 구현 후보 (2026-10-14)
 
 - 기준 main `e1957802`, 후보 app `0.109.0`. Task–Target whole/subset·self/subtree·coverage·합집합 provenance, legacy 직접 연결 호환, 영향 확인, Copy/Template 및 loss guard·usage null/0/N 계약을 구현한다. Target authoring UI와 Resource 축은 #618/#619 이후다.
