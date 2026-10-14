@@ -99,6 +99,21 @@ release_authorized: false
 - 공통 master 등록은 별도 관리자 transaction이다. 신규 local 공정 POST와 mapping PUT도 별도 저장이며 두 번째 실패시 첫 공정이 남음을 안내한다. 이 흐름에서 반환된 exact revision만 명시 적용하고 다른 외부 revision 변경은 계속 stale로 차단한다.
 - CI/Ruleset/required check/registry 권한 및 scheduling/Resource/Milestone 원장은 변경하지 않는다. 운영 DB backup/restore·실기기/native zoom/최종 수동 UX·성능 대규모 실증은 NOT TESTED다.
 
+## PR CI #2729.1 REWORK — 실패 원인·정합성 검증 원장
+
+- 원본 실패: [Run #2729.1](https://github.com/planner77/masterGantt/actions/runs/38496918533), 원본 Head `9868247d7a747ac3908d08ef787e3edd26aeb631`, base `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`. Quality(ESLint/TypeScript/Vitest/Build)와 Docker PASS; Chromium shard 6 FAIL, 일부 shard Fail-Fast 취소(NOT TESTED); QA Final FAIL.
+- E2E root cause: 기존 `task-link-load-safety.spec.ts`의 Task Editor 물류 연결 실패 assertion이 `getByRole("alert")` 1개라고 가정했으나 신규 Target 연결 오류 및 기존 물류 연결 오류 2개를 동시에 표시하여 strict mode violation. 기존 물류 연결 오류의 텍스트로 대상 한정; disabled/save 강제 시도 mutation0, retry, 기존 링크 복원·If-Match·PUT1 등 실패 원자의 핵심 단언 유지. 경고 표시를 없애거나 assertion을 느슨하게 만들지 않음.
+- P2 reviewer root cause: 비활성 Target을 SQL 페이지 결과에서 client-side 제거하여 활성 결과/total/범위가 잘못됨. 서버 GET 선택 인자 `activeOnly=true`를 SQL COUNT/SELECT의 동일 WHERE에 적용하여 LIMIT/OFFSET 이전 필터링. 생략하면 기존 API 사용자의 전체 목록·공유 사용처 집계는 그대로. UI 활성 전환 때 offset0/query key 변경. HTTP에서 활성/비활성 혼합, total, 검색, offset, invalid filter400; SQL service에서 50 비활성 + 2 활성 cross-page 회귀 추가.
+
+### Gantt State Consistency 표준 적용 및 제외 (#661 / P1 리뷰)
+
+- `gantt_standard_version=1.0.0-candidate` (`REVIEW_PENDING`). 참조한 현재 source 문서: `docs/GANTT_STATE_CONSISTENCY.md`, `docs/GANTT_STATE_CONFORMANCE.md`, `docs/GANTT_ADAPTER_ADR.md`, `docs/GANTT_SYNC_TRACE.md`, `docs/exec-plans/active/GANTT_STATE_REMEDIATION.md`; 해당 문서 기준 commit `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`. 정책 자동 검사 및 U1~U5 제품 구현은 별도이며 해당 기능 완료를 뜻하지 않음.
+- 적용 규칙: GSC-01(보기/검색·query-only mutation0), GSC-03(401/412/서버 결과 불명확 시 초안 보존·무단 재시도 금지), GSC-04(서버 mutation 및 기존 Core/Viewport writer 소유권), GSC-06/07(revision/query/focus 사용자 의도 및 응답역전), GSC-08(실제 상태 관측 후 완료), GSC-09(canonical ID·instance·focus 보존), GSC-11(기존 회귀 불변식 보존, 취소 Shard NOT TESTED), GSC-12(문서별 검증/미검증 원장). GSC-02/05/10의 SVAR Core 알고리즘·날짜축·설치 버전 API는 이 PR에서 직접 변경하지 않음.
+- State / write ownership: 서버 Project/Target/Task gateway가 persisted snapshot·revision의 유일한 권위. 이 UI는 Target list query, draft, 명시 저장/취소와 modal focus 인계만 담당. 동일 Task ID 수정은 기존 Task Editor mutation 경로, canonical refresh는 기존 Reconciler, Core viewport X/Y·axis는 기존 Viewport Coordinator/port 소유. 신규 Gantt remount, native Core 직접 변경, 중복 scroll writer나 Target 조회로 Task 생성 없음.
+- 누적 SC 매핑: SC-05(401/412/pending/응답역전의 부분 보존; commit-unknown 500/timeout 전 범위는 **NOT TESTED**), SC-07/10(revision/query/search·stale draft/늦은 응답), SC-11(일정→물류→일정 및 Resource 관련 회귀·기존 인스턴스 유지), SC-13(동일 canonical Task Editor, focus·무조회 mutation). 검증 후보: `logistics-target-authoring.spec.ts`, `task-link-load-safety.spec.ts`, `canonical-projection.spec.ts`, `project-workspace-tabs-518.spec.ts` 및 full Chromium suite. SC-01~04/06/08/09/12/14의 전체 시나리오·실제 SVAR Core 계측/geometry·대규모 stress는 이 변경의 local feature PASS로 증명하지 않음; U5/#574 및 공식 전체 CI 대상.
+- Exception ADR: **없음**. 기존 adapter/viewport 계약을 대체하지 않고 단일 Editor 진입점을 유지. 제품 행동과 문서의 실제 정합성은 Reviewer가 source·테스트·원격 증거로 확인해야 하며 단순한 문서 선언은 최종 QA PASS가 아님.
+- REWORK 소스 게시까지 완료; 별도 실행 환경에서의 보완 코드 Local Fast Feedback은 **NOT TESTED**. 새 exact-head Quality/Chromium/Docker/Trusted QA·Owner 승인 및 릴리스는 독립된 gate로 판정한다. 원본 #2729 실패는 신규 실행 결과로 소급 변경하지 않음.
+
 ## 최종 로컬 증거와 게시 handoff
 
 [실행 원장](../../../output/playwright/issue-618/validation.json)은 baseline과 제품·테스트 source SHA-256, 실제 실행 수/범위/FAIL 이력 및 원격 NOT TESTED를 분리한다. [390px composer](../../../output/playwright/issue-618/target-390.png), [1440px composer](../../../output/playwright/issue-618/target-1440.png)는 최종 semantic token 및 이름 우선 공정/WorkArea label 적용 후 재캡처다. 고정 UUID isolated 경로가 자동 추가된 next-env.d.ts/tsconfig.json은 복구하여 diff에서 제외했다. 로컬 전체 회귀나 운영 UX PASS를 주장하지 않는다.
