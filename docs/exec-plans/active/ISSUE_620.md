@@ -5,7 +5,7 @@
 - Issue: https://github.com/planner77/masterGantt/issues/620, 상위 #613, 선행 #614/#617/#619, 기존 Resource #524/#528.
 - baseline main: `b19b913f`; application `0.111.0` → `0.112.0` MINOR. 하위 호환 조회 API 확장에 따른 버전 준비이며 의존성 그래프는 변경하지 않는다.
 - worktree: `/home/planner/Dev/masterGantt-issue-620`; branch: `feat/issue-620-target-resource-api`. 기존 작업 폴더와 미추적 증거는 보존한다.
-- phase: QA_READY → PR_CI 준비 (구현·로컬·문서·별도 사전 검토 PASS). 사용자 요청 종료점은 구현·관련 문서 갱신·Local Fast Feedback·사전 검토 후 단일 PR 생성 및 exact-head Full CI 시작 확인이다. CI 완료 모니터링·병합·main CI/GHCR·tag/Release·Issue 종료·브랜치 정리는 범위 밖이다.
+- phase: PR_CI 실패 #2755.1 → GSC 리뷰 보완 및 새 exact-head PR_CI 요청 (구현·로컬·문서·별도 사전 검토 PASS). 사용자 요청 종료점은 구현·관련 문서 갱신·Local Fast Feedback·사전 검토 후 단일 PR 생성 및 exact-head Full CI 시작 확인이다. CI 완료 모니터링·병합·main CI/GHCR·tag/Release·Issue 종료·브랜치 정리는 범위 밖이다.
 - 실제 Agent: `/root/backend`가 `src/**` 계약/서비스 및 `tests/server/resources/**`, `/root/http_tests`가 신규 `tests/e2e/resource-target-dashboard-api.spec.ts`, Manager가 문서/package/version/GitHub 운영을 담당한다. `/root/qa`는 별도 read-only 사전 검토자다. 동일 파일 writer를 중복 배정하지 않는다.
 - issue_comment_writer: manager. Sub-Agent는 Issue/PR 댓글을 직접 게시하지 않는다.
 
@@ -21,6 +21,16 @@ Target/member 조건은 같은 binding 경로, 같은 kind의 type/instance는 �
 
 기존 Plan의 선택 demand는 공통 Target 필터 교집합을 지원하되 R 및 전체 Project 부하는 보존한다. Target별 기간 행/전용 selector·Excel 시트 확장은 #622, 사용자 분석 UI·공통 편집은 #621, 종단/운영 수용은 #623이다. R2는 report/detail/exact drill과 공통 identity를 확장한다. 기존 Excel은 공통 identity를 재검증하되 Target 필터/projectionOrder는 binding 유무 모두 명시 거부하여 우연한 부분 지원을 방지한다. DB migration·화면·Gantt·Scheduling algorithm·Import/Copy/Template 형식은 변경하지 않는다.
 
+## GSC 사전 검토·정합성 영향 (PR #682 / CI #2755.1 REWORK)
+
+- **표준 및 참조 source**: `gantt_standard_version=GSC 1.0.0-candidate` (`REVIEW_PENDING`), `reviewed_document_commit=b19b913f9e55870e48b9b955b3a321485021b781` (이번 PR 기준 main). 착수 후 REWORK 시 `docs/GANTT_STATE_CONSISTENCY.md`, `docs/GANTT_STATE_CONFORMANCE.md`, `docs/GANTT_ADAPTER_ADR.md`, `docs/GANTT_SYNC_TRACE.md`, `docs/exec-plans/active/GANTT_STATE_REMEDIATION.md`와 `AGENTS.md`의 필수 참조 경계를 재확인했다. 장기 규범은 원본 문서에 유지하며 이 Work Packet은 변경점의 적용 판정·증거만 기록한다.
+- **적용 GSC**: GSC-01(서버 canonical 및 읽기/표시 권한 분리), GSC-06(보고 snapshot identity/선택 scope와 Gantt Core의 별도 세대 구별), GSC-09(기존 drill/return 연결에 임의 Gantt remount·선택 변경 금지), GSC-11(기존 회귀·원격 실패 분리), GSC-12(범위별 원장/검증 보존). GSC-02/03/04/05/07/08/10의 native Core no-op·rollback·viewport·SVAR adapter 변경은 이번 PR이 하지 않아 해당 알고리즘의 적합성 **N/A, 전체 준수 PASS 아님**이다.
+- **상태/쓰기 소유권**: 변경 파일은 기존 Resource report/detail/query의 server-side **읽기 전용** snapshot·projection/selector와 계약·테스트다. canonical Task/Assignment/Target 생성·갱신, SVAR Core data/tree/order/link writer, Viewport X/Y·axis/focus writer, React Gantt 인스턴스·Editor 복구 흐름을 추가하거나 변경하지 않는다. Resource report identity와 exact-source Assignment 필터는 read transaction 내 서버 원장에 묶이며 projectionOrder는 표현 설정으로 canonical 변이를 일으키지 않는다. Public read는 기존 session/auth·no-store/nosniff 경계를 유지한다.
+- **SC-11 적용 범위** (Resource/Dashboard/drill·Export 왕복): `tests/server/resources/resource-target-dashboard.test.ts`, `tests/e2e/resource-target-dashboard-api.spec.ts`, 기존 Resource drill/UI/Excel 회귀를 사용해 같은 snapshot, exactAssignments source 제한, 선택/전체 참고 scope, stale, 조회 mutation 0 및 기존 Excel 미지원 경계를 검토한다. 신규 SQLite17, 실제 HTTP1, 기존 회귀는 이전 로컬 원장에 따라 **해당 데이터/API 범위만 PASS**; `resource-kpi-integration-ui` 등 전체 실제 Core/scroll/selection을 포함한 SC-11 제품 종단 왕복은 **NOT TESTED**. U5/#574 최종 통합 검증을 대체하지 않는다.
+- **SC-14 관련 PR 실패** (1000 Task + 2000 Milestone, 실제 Core readiness): #2755.1 / run `38523714154`, Chromium shard4 Job `115719610063`의 `tests/e2e/milestone-timeline-lane.spec.ts:173`에서 5초 동일 API instance/probe readiness gate 미충족. 42 PASS, 1 FAIL, 1 SKIP, 93 NOT RUN(해당 shard); 다른 shard 일부 CANCELLED. GSC-08/09/10 및 SC-14와 관련된 **미해결 원격 회귀**이며 단일 로그로 3000행 Core 지연/제품 회귀/CI 부하를 단정하지 않는다. 테스트 skip·timeout 확대·검증 약화는 적용하지 않는다. SC-14의 제품 구현·안정화 소유는 U1/U4/U5/#551 후속 경계에 두되, 이 PR의 Required E2E가 실패했다는 사실은 그대로 유지한다.
+- **제외 및 ADR**: 이번 #620은 새 Gantt UI/adapter/native mutation/viewport change, Calendar writer, Milestone 위치·선택 변경 없음. SC-01~10/12/13 native 시나리오에 대한 제품 수정·이행 완료 선언을 하지 않으며 기존 ADR의 SVAR 2.7.3 public API·DEFER를 변경하지 않는다. 새 규범 예외를 요청하지 않아 `exception_adr=NONE`; GSC/SC 준수 면제를 뜻하지 않는다.
+- **증거/판정 한계**: Reviewed target `PR #682`, 최초 실패 Head `90c3e8e2438276c8c9c44fc70fb6788894f964ac`, base `b19b913f9e55870e48b9b955b3a321485021b781`, full CI `#2755.1` (run `38523714154`), Chromium Job `115719610063`; Quality·Docker PASS, Required E2E FAIL, Automated QA FAIL(원격 리뷰 미해결도 포함). 초기 로컬 코드·HTTP PASS와 원격 실패/취소를 혼동하지 않는다. 본 기록은 리뷰 보완이며 인간/Trusted QA·새 Head 전체 CI 성공이나 최종 Manager ACCEPT의 증거가 아니다.
+
 ## DOCUMENTATION_SYNC
 
 - `docs/API.md`: UPDATED
@@ -32,7 +42,7 @@ Target/member 조건은 같은 binding 경로, 같은 kind의 type/instance는 �
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/TARGET_RESOURCE_ROLLOUT.md`: UPDATED
-- `docs/exec-plans/active/ISSUE_620.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_620.md`: UPDATED (GSC 1.0.0-candidate 리뷰·SC-11/SC-14 및 실패 원격 증거 보완)
 - `CHANGELOG.md`: UPDATED
 - `docs/evidence/issue620/resource-target-performance.json`: UPDATED
 - `AGENTS.md`: N/A(실행 지침과 역할 및 승인 정책 자체를 변경하지 않음)
