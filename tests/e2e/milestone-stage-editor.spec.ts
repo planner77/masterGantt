@@ -17,7 +17,22 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
-  const get = async () => (await (await apiRequest.get(api)).json()) as ProjectSnapshotResponse;
+  // #680: preserve the observer's transport diagnostic for the first
+  // ECONNRESET before retrying this read-only GET once. Never retry writes,
+  // HTTP error responses, or non-transport failures.
+  const get = async (): Promise<ProjectSnapshotResponse> => {
+    let response: Awaited<ReturnType<typeof page.request.get>>;
+    try {
+      response = await apiRequest.get(api);
+    } catch (error) {
+      if (!(error instanceof Error) || !/\bECONNRESET\b/.test(error.message)) throw error;
+      // observeIsolatedApi already recorded the failed read and captured its
+      // health/process/cgroup evidence before propagating the error.
+      response = await apiRequest.get(api);
+    }
+    expect(response.status()).toBe(200);
+    return (await response.json()) as ProjectSnapshotResponse;
+  };
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const add = async (name: string, type: ProjectTaskDto["type"], parentTaskId?: string) => {
