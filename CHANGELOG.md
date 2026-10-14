@@ -6,6 +6,7 @@
 - WBS Target whole/subset·self/subtree·작업수량·출처와 Target↔동일 Task Editor 탐색을 추가합니다.
 - Target usage에 같은 revision의 canonical 관련 Task ID를 제공하고 기존 권한·stale·공유/삭제 보호를 유지합니다.
 - PR CI·Owner 승인 및 정식 릴리스는 별도이며 현재 정식 게시 승인 없음.
+- #618 PR #678 원본 CI #2729.1에서 신규 Target alert와 기존 물류 연결 alert가 함께 표시되어 E2E strict locator가 실패한 원인을 수정한다. 기본 활성 Target 목록은 서버에서 COUNT/LIMIT/OFFSET 이전에 필터링하고 기존 전체 목록 API는 유지한다. 52개 혼합 서비스/HTTP 필터 회귀 및 #661 GSC Work Packet 근거를 추가했으며, 새 exact-head CI 결과·Owner 승인·릴리스는 별도 판정이다.
 
 - Task/Summary–Target 다대다 whole/subset·self/subtree 연결과 typed member coverage, 직접+모든 조상 subtree 합집합·전체 출처를 제공하는 단일 resolver를 추가한다. legacy Equipment/System 직접 연결과 공유 MCS identity를 보존한다.
 - Target 구성·WBS 이동 영향 확인, subset/coverage/사용 중 삭제 보호, Copy·Template 명시 연결 remap과 미지원 포맷 silent-loss 차단을 동기화한다. 같은 Project subtree Copy도 기존 명시 legacy Equipment/System self/subtree 링크를 복사하도록 확장하며 상속을 평탄화하지 않는다. Target usage는 nullable 의미와 실제 고유 일반 Task/Summary 수량을 구분한다.
