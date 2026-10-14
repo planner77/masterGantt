@@ -1,3 +1,11 @@
+## Issue #622 / Main CI #2771.1 — Milestone 개발 probe 초기화 원자성 (2026-10-15)
+
+[Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383) / immutable merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`는 Quality·Docker PASS 및 Chromium 5/6 shard PASS, shard4의 #551 대량 1000 Task + 2000 Milestone 초기화 준비 gate 5초 FAIL로 E2E aggregate가 실패해 GHCR candidate 게시가 SKIPPED되었다. PR #684 CI #2770.1의 동일 실제 시험 PASS(9.2초)와 구별한다. 직접 오류는 fixture의 `data-project-gantt-api-instance`/development probe instance/read 존재 일치 검사 timeout이며 근본적인 브라우저 렌더 중 어느 요소가 지연됐는지는 실패 로그만으로 확정되지 않았다.
+
+기존 `initialize(api)`의 개발 전용 probe는 실제 Core/API 생성 콜백 안에서 설치되지만 frame의 비교용 ID는 `setApiInstanceId`의 후속 React commit을 기다린다. 무거운 canonical projection 중 이 서로 다른 게시 시점이 합법적인 probe를 5초 내 `ready`로 판정하지 못하게 할 수 있다. 개발 전용 `installMilestoneProbe`가 현재 API/초기화 ID와 동일한지 fail-closed guard를 확인한 뒤 정확한 probe/attribute ID를 **동일 동기 초기화 콜백**에서 게시하도록 변경한다. React는 같은 ID를 나중에 commit하며, 기존 cleanup·SVAR 단일 instance·viewport writer·production OFF·원본 3000개 fixture와 타임아웃·scroll/±1px·no mutations는 유지한다.
+
+E2E 준비 predicate는 이름 없는 `false` 대신 최종 frame/probe ID 및 `read` 존재 여부를 표기해 후속 원격 실패가 등록/identity/React 지연 중 무엇인지 분별하도록 하되, 정확한 일치와 5초 timeout은 그대로 요구한다. 이는 CI 결과 조작이나 재실행으로 기존 실패를 PASS 처리하는 변경이 아니다. 새 correction PR의 실제 PR CI 3종·Trusted QA 및 이후 Main CI/임시 GHCR의 새 SHA 결과는 별도 검증한다. 정식 version tag/GHCR은 별도 Owner 승인이다.
+
 ## Issue #647 — 삭제 후 관리 진입점 focus 보존 (2026-10-13)
 
 - Milestone 독립 목록에서 native WorkspaceDialog가 닫히기 전 예약된 RAF는 `:modal` trap에 의해 거부될 수 있다. 삭제한 원 관리 버튼이 DOM에서 소멸하면 같은 활성 프로젝트 Dashboard의 검색·추가·heading 중 실제 연결/표시 상태인 후보에 focus를 인계하되, 현재 활성 프로젝트/패널에 한정하고 또 다른 modal이 열려 있으면 기다린다. 한정된 RAF만 허용, 다른 날짜 좌표·SVAR viewport·WBS membership·Task source는 변화시키지 않는다.

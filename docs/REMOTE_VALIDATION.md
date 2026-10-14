@@ -1,3 +1,9 @@
+## Issue #622 / Main CI #2771.1 후속 원자적 probe 준비 검증
+
+- 원본 `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`/Main [#2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383)의 Chromium shard4 #551 3000-row 5초 probe/DOM identity FAIL과 5-shard PASS·Quality/Docker PASS·GHCR SKIPPED는 수정 전 원장으로 고정한다.
+- correction PR에서 dev-only SVAR `init(api)` 단계의 `__masterganttMilestoneTimeline.instance`·frame `data-project-gantt-api-instance`가 동일 ID로 동기 게시되는 것을 확인한다. 예전 비동기 React commit 필요 조건을 제거해도 old/stale API/분리된 frame은 설치 거부하고 5초·3천개·동일 instance/read·scroll/resize/fullscreen/±1px/zero mutation 단언은 유지한다.
+- 새 exact-head PR 3 Required Quality/E2E6/Docker 및 기본 브랜치 Trusted QA·스레드0·strict main 확인 후에만 새 병합. Main push의 정확 제목/SHA/Quality/E2E6/Docker와 `ci-<new main merge SHA>` 후보 게시·정확 digest/SBOM/Finalizer는 추후 증거로 판정. 기존 원본 Main #2771을 재실행하여 새 코드가 적용된 것으로 취급하거나 인증되지 않은 GHCR 발행/태그 이동 금지.
+
 ## Issue #672 — #616 F2 인수 추가 검증 및 #617 경계 (2026-10-14)
 - Source baseline: completed v0.108.0 exact Main CI #2710.1 / Release #167.1 / #670 FINAL. v0.107.0 failure ledger is immutable; do not create a new SemVer release for this version-neutral acceptance patch.
 - QA1: new `tests/server/logistics/logistics-targets-acceptance.test.ts` must PASS actual Target HTTP Origin/session/strong If-Match/400·401·403·409·412·413·415 and rollback. A policy-only inventory or F0 oracle is not a substitute.

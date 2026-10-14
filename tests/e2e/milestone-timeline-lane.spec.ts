@@ -50,16 +50,19 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
-  // Diagnostic installation must belong to the *same* initialized SVAR API
-  // as the visible Gantt frame, even when the 3000-item projection is busy.
-  // Keep the original 5s readiness gate; no sleeps or retry/timeout increase.
+  // Native init publishes the dev-only frame identity and probe together;
+  // React's subsequent 3,000-item state commit must not be a prerequisite.
+  // Retain the original 5s gate and exact same-API identity; report which
+  // half of the handshake was absent/mismatched without querying 500 Core
+  // rows/scale cells or weakening the assertion.
   await expect.poll(() => frame.evaluate(node => {
-    const identity = node.dataset.projectGanttApiInstance;
+    const identity = node.dataset.projectGanttApiInstance ?? null;
     const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; read?: () => { instance: string } } | undefined;
-    // Avoid repeatedly enumerating 500 native rows and scale cells during
-    // the 3000-item readiness gate. Still require the exact SVAR API identity.
-    return Boolean(identity && probe?.instance === identity && typeof probe.read === "function");
-  })).toBe(true);
+    const hasRead = typeof probe?.read === "function";
+    return identity && probe?.instance === identity && hasRead
+      ? "ready"
+      : JSON.stringify({ frameApi: identity, probeApi: probe?.instance ?? null, hasRead });
+  })).toBe("ready");
   await settle(page);
   return { state, frame };
 }

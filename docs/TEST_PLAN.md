@@ -1,3 +1,10 @@
+## Issue #622 Main #2771.1 — #551 초기화 검사 재발 회귀 (2026-10-15)
+
+- [원본 Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383), merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`: E2E shard4(job 116106607229) `milestone-timeline-lane.spec.ts:62`, 1000 Task+2000 Milestone 5초 준비 gate FAIL. Shard4 135 PASS/1 FAIL/1 SKIP, 나머지 5 shard PASS, Quality/Docker PASS; GHCR image step SKIPPED. 실패한 것을 GHCR 권한 오류나 #622 Resource 수치 실패로 오인하지 않는다.
+- correction E2E: 같은 3000 canonical Task fixture·동일 테스트의 첫 준비 판정은 `frameApi===probeApi`+callable read를 요구하며 5초 한도 유지. 현재 API 아닌 stale probe/DOM 분리/부재는 FAIL하고 마지막 ID·read 존재를 오류 문자열에 표시한다. 실제 native 화면을 통한 Chart scroll·resize·fullscreen·return·5폭 기존 검증, no write, Project/Milestone/Resource 회귀 및 Shard6 전체는 유지한다.
+- 개발 probe 설치는 `initialize(api)`에서 동기적으로 native ID와 frame 진단 API를 함께 게시하며 React 렌더 지연을 readiness 동기화 전제로 삼지 않는다. production 초기화·데이터 변경·GHCR 정책·PR gating 변경 없음. PR CI 3종 + trusted QA + 새로운 push Main CI 3종 + candidate/digest/Finalizer는 정확 SHA 실행 전에 NOT TESTED.
+- `DESIGN.md`: N/A(시각/UI 변경 없음), DB_SCHEMA/API/Excel: N/A(도메인 변경 없음), `MILESTONE_TIMELINE.md`, `TEST_PLAN.md`, `REMOTE_VALIDATION.md`, 기존 #622 Work Packet: UPDATED.
+
 ## Issue #622 — Target Resource Plan·Excel 검증
 
 [PR #684 CI #2769.1](https://github.com/planner77/masterGantt/actions/runs/38632379339)에서는 E2E Shard2 `issue-622-resource-plan-target.spec.ts:57`의 선택 밖 Target B 이름 기대값이 `Target · UUID`로 표시되어 실패했다. 대량 Plan의 전체 projection 회피는 유지하고 `resource-plan-model.ts`의 canonical Target 이름 resolver에 `catalog.targetOptions` fallback을 추가하며 기존 E2E의 선택 Target A·선택 밖 B/편집 후 B 이름 단언을 강화한다. `tests/features/resources/resource-plan-model.test.ts`는 전체 projection이 없는 Plan에서 두 이름·dimension 격리·미연결/불명 fallback을 검증한다. 실패 시 timeout/기대값 완화·skip 없이 FAIL하고, 새로운 Head의 CI 실제 결과 전 NOT TESTED다.

@@ -1798,7 +1798,8 @@ export function ProjectGantt({
   // MT1 technical probe only; never attach it in production. Initialize it
   // synchronously in SVAR init and reconcile StrictMode mount/cleanup here.
   const installMilestoneProbe = useCallback((api: IApi, instanceId: string, frame: HTMLDivElement) => {
-    if (process.env.NODE_ENV === "production" || !frame.isConnected) return;
+    if (process.env.NODE_ENV === "production" || !frame.isConnected ||
+        apiReference.current !== api || latestInitializedApiIdReference.current !== instanceId) return;
     const previous = milestoneProbeLifecycleReference.current;
     if (previous?.api === api && previous.frame === frame && previous.id === instanceId) return;
     previous?.cleanup();
@@ -1873,6 +1874,12 @@ export function ProjectGantt({
         milestoneProbeLifecycleReference.current = null;
     };
     milestoneProbeLifecycleReference.current = { api, frame, id: instanceId, cleanup };
+    // This development-only identity and the probe belong to the *same*
+    // synchronous SVAR init callback. React's setApiInstanceId render may be
+    // delayed by the 3,000-row projection, leaving the DOM attribute stale
+    // after the actual native API/probe is ready. React later commits the same
+    // ID; no production attribute writer or separate Core is introduced.
+    frame.dataset.projectGanttApiInstance = instanceId;
   }, []);
   useLayoutEffect(() => {
     const api = apiReference.current, frame = fullscreenFrameReference.current;
