@@ -38,6 +38,39 @@ Excel은 기존 opt-in Resource bundle/writer를 확장한다. 현재 조건 또
 
 ## DOCUMENTATION_SYNC
 
+현재 교정 PR #686의 base `bd54205741da65a0211cf77f9cb086d3cdb1ab2a` 대비 변경을 기준으로 한다. 최초 기능 PR #684의 문서 변경은 아래 과거 기록에 보존하며 현재 PR의 변경 증거로 재사용하지 않는다. 문서 작성자는 Manager다.
+
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_622.md`: UPDATED
+- `DESIGN.md`: N/A(개발 진단의 초기화 준비 신호만 교정하며 시각 언어나 사용자 interaction 변경 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(개발 진단과 테스트 준비 조건만 교정하며 Calendar·Duration·Dependency·Resource Plan 계산과 일정 저장 계약 변경 없음)
+- `docs/RESOURCE_KPI_DASHBOARD.md`: N/A(선택 기여·Project 참고·Capacity·Resource Plan 제품 계약 변경 없음)
+- `docs/API.md`: N/A(제품 HTTP API·DTO·snapshot 계약 변경 없음)
+- `docs/EXCEL_EXPORT.md`: N/A(Resource workbook·raw 공수·출력 범위 변경 없음)
+- `docs/LOGISTICS_TARGETS.md`: N/A(Target 원장·Task binding·필터 계약 변경 없음)
+- `docs/PROJECT_UX.md`: N/A(제품 화면·편집·탭 이동·복귀 동작 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(기존 Gantt 상태 보존 및 증거 구분 지침 유지)
+- `docs/exec-plans/active/PLAN.md`: N/A(같은 Issue의 PR 실패 보완이며 신규 계획·의존성 변경 없음)
+- `docs/exec-plans/active/TARGET_RESOURCE_ROLLOUT.md`: N/A(Resource rollout 순서와 완료 gate 변경 없음)
+- `CHANGELOG.md`: N/A(동일 0.114.0의 개발 진단 교정이며 사용자 기능·정식 릴리스 변경 없음)
+- `docs/REQUIREMENTS.md`: N/A(기존 Issue #622 및 #551 요구사항 불변)
+- `docs/ARCHITECTURE.md`: N/A(기존 단일 Core·canonical gateway·viewport coordinator 소유권 불변)
+- `docs/SECURITY.md`: N/A(권한·Origin·revision·production 진단 비활성 경계 불변)
+- `docs/IMPORT_EXPORT.md`: N/A(Import·Export·loss guard 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(DB schema·migration 변경 없음)
+- `docs/IMPORT_SCHEMA.md`: N/A(Import payload 변경 없음)
+- `docs/TASK_EDITOR.md`: N/A(Editor 저장·초안 계약 변경 없음)
+- `docs/DEPLOYMENT.md`: N/A(Docker·Compose·운영 저장소 변경 없음)
+- `docs/CI_CD.md`: N/A(workflow·required checks·QA gate·GHCR 경로 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(GitHub 권한·Ruleset·운영 계약 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed 및 별도 승인 경계 변경 없음)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 실패 보완·PR CI 시작 절차 적용)
+- `AGENTS.md`: N/A(실행 지침·역할·신뢰 정책 변경 없음)
+
+## 최초 기능 PR #684의 문서 동기화 기록
+
 같은 PR에서 실제 source/계약 영향과 문서를 대조했다. 작성자는 Manager다.
 
 - `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
@@ -91,6 +124,17 @@ SCHEDULING_ENGINE은 기존 서비스 입력/Domain adapter/계산 재사용 경
 - AC6: 신규 SQLite/Excel 및 기존 Plan/Target/workbook 회귀·tests/features/resources/resource-export-model.test.ts의 current/project·legacy/stale/권한/예산/문자열/nullable 검증.
 - AC7: 전용 Chromium5폭 geometry/keyboard/scroll/편집·다운로드 및 신규server131Task/240신규Assignment/2Target benchmark의 시간/bytes 관측.
 - AC8: 위 DOCUMENTATION_SYNC bullet과 source/doc diff, version7tests·Markdown links·별도 read-only 사전 Reviewer 정합성 검토.
+
+현재 교정 PR #686은 최초 기능 PR의 AC1~AC7 계산/Excel 원장을 변경하지 않는다. 위 기능 테스트 매핑은 #684의 역사적 검증 범위이며 현재 교정의 원격 PASS가 아니다. 교정의 직접 매핑은 다음과 같다.
+
+- AC1: 기존 선택80/Project140 및 R/Capacity 계산 source 불변을 correction diff로 확인하고 새 Full PR CI의 기존 Domain/SQLite/UI 회귀 실행을 요구한다.
+- AC2: Calendar/Peak/unknown/known0 계산 불변을 diff로 확인하며 기존 Plan 회귀는 새 Full PR CI에서 재검증한다.
+- AC3: week/month 집계 계산 source 불변을 확인하고 기존 Domain/server period 테스트를 새 Full PR CI에서 재검증한다.
+- AC4: report/Plan/Excel snapshot source 불변, 기존 OOXML raw parity 테스트를 새 Full PR CI에서 재검증한다.
+- AC5: P2 관련 단일 viewport coordinator 소유권과 React/layout readiness를 `tests/e2e/milestone-timeline-lane.spec.ts`에서 실제 Chromium으로 검증하고 기존 Resource 편집/복귀 회귀는 새 Full PR CI에 포함한다.
+- AC6: production·API·권한·Excel source 불변을 diff로 확인하고 기존 stale/권한/budget 회귀를 새 Full PR CI에서 재검증한다.
+- AC7: `tests/e2e/milestone-timeline-lane.spec.ts`의 기존 1000 Task+2000 Milestone·peer scroll/fullscreen/resize/geometry·mutation0 및 독립 readiness 부정 사례를 실행하며 이전 Resource 성능 관측을 새 성능 실증으로 표시하지 않는다.
+- AC8: 현재 DOCUMENTATION_SYNC의 실제 diff/N/A 근거와 base `docs_gate` 구조·Markdown 링크 검사로 원본 Preflight 실패를 교정한다.
 
 실제 파일/명령/결과와 최초 실패·보완 이력은 아래 원장에 기록하며 미실행 항목은 PASS가 아니다.
 
@@ -162,10 +206,30 @@ Required quality/e2e/docker·Trusted QA는 exact-head 원격 증거 전 NOT TEST
 - 수정: Resource Plan model에 `planTargetLabel(data, targetId)`를 추가해 원래 Target projection catalog를 우선 사용하고 없으면 동일 보고서의 `catalog.targetOptions`에서 **dimension=target + exact ID**로 이름을 찾는다. 상세의 출발 선택 A/선택 밖 B 모두 사용, 나머지 공개 API/도메인/Excel/로그인/원본 수정 경로는 불변. 카탈로그에 ID가 없으면 기존 ID·Target 미연결 안내를 유지하고 다른 axis의 이름을 오인하지 않는다.
 - 회귀 보강: 기존 정확 실 Chromium E2E에서 Target A 출발 이름과 밖의 Target B 이름·40% 배정 편집 후 B 이름 유지 단언을 추가했다. 새 model Vitest는 projection 부재/선택 외 canonical Target/차원 충돌/미연결·없는 ID fallback/입력 불변을 검사한다. 기존 과투입80/140→80/120, 5폭 geometry, Excel downloads, snapshot·Stale·권한 테스트는 축소하지 않는다.
 - 정책: `AGENTS.md`, `DESIGN.md`, `docs/QA_REVIEW_POLICY.md`, `docs/ISSUE_LIFECYCLE.md`에 따라 별도 신규 Issue를 생성하지 않고 #622 기존 브랜치에서 교정한다. CI/SemVer/DB migration/Capacity 산식/DESIGN 시각 언어 변경은 없다. 이 수정 이후 집중 로컬 테스트는 checkout 의존성 확보 전 NOT TESTED; 신규 exact-head Full PR CI 결과와 Trusted QA/Owner 위험 수용·병합은 별도이며 `release_authorized=false` 유지.
-## Main CI #2771.1 FAILURE / 동일 Issue 교정 (2026-10-15)
+## Main CI #2771.1 FAILURE / 초기 Head의 교정 시도 기록 (2026-10-15)
+
+이 절은 PR #686 초기 Head `9a9a4907d9d19848aab5c02a359338f51da2678d`의 구현 시도 이력이다. 아래의 동시 probe/DOM 게시 방식은 후속 P2 검토로 교정되었으며 현재 readiness 계약이 아니다.
 
 - 최초 병합 PR #684는 Head `1bb71002bcce52a409bb3caeeb8fafb01043557b`, Main merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`. 정확한 PR CI [#2770.1](https://github.com/planner77/masterGantt/actions/runs/38634326054) 및 기본 main Trusted [#411.1](https://github.com/planner77/masterGantt/actions/runs/38637395858)는 SUCCESS였으나 **이는 Main push CI PASS 증거가 아니다**.
 - [Main #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383), event=push, source exact merge SHA, attempt1: Policy/TypeScript/ESLint/Vitest/Next build/Docker + Required Quality/Docker SUCCESS. Chromium 6 shards 중 1/2/3/5/6 SUCCESS, **4 FAIL** (job116106607229, `tests/e2e/milestone-timeline-lane.spec.ts:62`: #551 1000 ordinary Task+2000 Milestone, `expect.poll` dev probe vs DOM API ID equality at 5초 초과). Shard4 135 PASS / 1 FAIL / 1 SKIP; Chromium aggregate FAILURE. GHCR publish job SKIPPED, 신규 candidate/digest 없음. 이 실패는 #622 공수/Excel 회귀 결과가 아니며 이전 PR CI PASS로 대체하지 않는다.
 - #551의 기존 PR #2605.1/#2613.3에서도 동일 대량 probe readiness가 시간 순서에 민감하게 실패. 현재 Source는 진단 API를 `initialize(api)` 즉시 설치하지만 native Gantt frame ID는 이후 `setApiInstanceId` React commit에서 기록하므로 합법적 등록 후에도 5초 조건은 불일치할 수 있다. 정확히 무엇이 지연됐는지는 원본의 이진 Boolean predicate만으로 불명이다. dev-only `installMilestoneProbe`에서 최신 API·frame 소유를 확인한 뒤 진단 프로퍼티와 DOM dataset ID를 **동일 synchronous init**에서 게시한다. E2E는 5초/대량/identity 비교/전체 geometry/readonly를 축소하지 않고 상태 ID·read 진단을 실패 문자열에 보존한다.
 - 기존 #622 Source/Capacity/Resource Plan/Target/Excel/DB·SVAR production Gantt instance·viewport 변경 없음. AGENTS.md/DESIGN.md/ISSUE_LIFECYCLE/CI_CD/QA_REVIEW_POLICY를 확인하고 실제 내용 변경은 `src/features/gantt/project-gantt.tsx`의 dev-only 진단 및 E2E와 관련 docs. `MILESTONE_TIMELINE`, `TEST_PLAN`, `REMOTE_VALIDATION`, Work Packet UPDATED, `DESIGN.md`/API/DB_SCHEMA/EXCEL_EXPORT N/A. 이 PR은 **새 Issue를 만들지 않는 #622 Main CI 교정**, application 0.114.0 유지, `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`. 새 exact-head PR CI 3종 + Trusted QA/Owner 병합 수용 전 MERGE_READY=BLOCKED. 정식 GHCR tag/릴리스 승인은 별도.
 - 재현 기반 최소 보완의 원격 검증은 correction PR E2E6/Quality/Docker + Trusted QA부터 진행하며 원본 #2771 immutable 실패를 소급 수정·강제 Main rewrite하지 않는다. PR 성공 후 Owner 인수와 새 Main push에서 `ci-<new SHA>`를 검증한 뒤 #622 후속 종료를 별도로 판단. Main/GHCR 결과 확인 전 ISSUE 상태 Open 유지.
+
+## PR #686 CI #2773.1 Preflight 실패 및 P2 보완 (2026-10-15)
+
+- 원본 [PR CI #2773.1](https://github.com/planner77/masterGantt/actions/runs/38642502958), run_id `38642502958`, run_attempt `1`, Head `9a9a4907d9d19848aab5c02a359338f51da2678d`, base `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`, test merge `28fc90438cade34fc8c535307ea7827c07933cc3`: **FAIL**. [QA Preflight job](https://github.com/planner77/masterGantt/actions/runs/38642502958/job/116121359974)의 `원본 base SHA의 QA Preflight 실행 (read-only)`에서 `docs/SCHEDULING_ENGINE.md`의 UPDATED 선언을 현재 PR diff로 입증하지 못했다. 원본 기능 PR의 Work Packet을 재사용하며 최초 DOCUMENTATION_SYNC 절을 교정 범위로 갱신하지 않은 원인이다. Quality/E2E/Docker 구현 Job은 SKIPPED이며 실제 테스트 실패·성공으로 해석하지 않는다.
+- 현재 DOCUMENTATION_SYNC를 교정 PR diff에 맞게 갱신하고 Scheduling 계산 불변의 N/A 근거를 명시한다. 과거 #684의 UPDATED 이력은 별도 절에 보존한다. base validator·required gate·skip·timeout·허용오차를 변경하지 않는다.
+- [P2 리뷰](https://github.com/planner77/masterGantt/pull/686#discussion_r4276610008)는 probe 설치와 DOM API ID 동기 발행이 같은 함수여서 layout 준비를 독립 검증하지 못함을 지적했다. init의 진단 probe와 React/layout의 준비 완료를 분리하여 검증하고 stale API·coordinator cleanup은 준비 완료로 인정하지 않는다. 대량 1000 Task+2000 Milestone·기존 5초 readiness·native scroll/fullscreen/resize/geometry·mutation0 회귀를 유지한다.
+- 원본 Main #2771.1 FAIL 및 PR #2773.1 FAIL은 불변이다. 보완 후의 Local Fast Feedback과 새 exact-head 원격 CI를 구분하고 PR CI 시작만 확인한다. 결과 모니터링·병합·Main/GHCR·정식 Release/tag·Issue 종료는 이번 요청 범위에 포함하지 않는다. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=true`, `release_authorized=false`를 유지한다.
+
+### PR #686 보완 Local Fast Feedback 및 사전 검토
+
+- frontend `/root/probe_fix`: `tests/e2e/milestone-timeline-lane.spec.ts` 전체 Chromium **20/20 PASS, 45.5초, skipped/flaky 0**. 새 독립 readiness 부정 사례와 기존 대량 3000행·Day/Week·peer scroll/fullscreen/split/resize·5폭 geometry·readonly mutation0 포함. 대표3개 별도 3/3 PASS, 14.8초는 전체20개와 중복되므로 합산하지 않는다.
+- 최종 typecheck PASS, 변경 Source/E2E scoped ESLint 오류0·기존 hooks warning3, diff-check PASS. 최초 webserver 실행은 sibling node_modules symlink가 Turbopack filesystem 경계에서 거부되어 테스트 시작 전 BLOCKED였으며, 실제 frozen `npm ci` 447packages/9초 후 동일 assertion으로 실행했다. 전역 unique key warning1 및 합성404 로그는 성공으로 지우지 않는다. 생성 `next-env.d.ts`는 baseline으로 복원했다.
+- Manager: base 검증기의 `docs_gate`로 correction diff에 대한 DOC_SYNC/AC1~AC8 구조 검사 PASS, Markdown216files 링크 PASS. 구조 검사 결과는 문서 의미·독립 QA·원격 CI PASS가 아니다.
+- 별도 read-only 사전 Reviewer `/root/review`가 이전 동시 게시 시도와 현 readiness 계약의 문서 불일치를 지적하여 MILESTONE_TIMELINE/REMOTE_VALIDATION/TEST_PLAN 첫 절을 현재 계약으로 정합화하고 초기 시도는 역사적 기록으로 표시했다. 최종 사전 검토·새 Head 원격 결과·Owner 수용은 각 증거로 구분한다.
+- 초기 Main #2771의 bool-전용 로그만으로는 어떤 단계가 5초를 넘었는지 미확정이다. 독립 ready와 frame/probe/coordinator 진단 및 로컬20/20은 새 Head 검증 근거이며 원본 원인 확정·원격 완치 증거로 확대하지 않는다.
+
+- 사전 Reviewer `/root/review`의 실제 HTML report 내장 zip 독립 대조: total20/expected20/unexpected0/flaky0/skipped0/ok=true, 45498.948ms, Chromium/worker1. 신규 readiness 부정 사례1745ms/retry0, 기존 대량 peer/fullscreen/resize6708ms/retry0, 해당 readiness poll2815ms로 원래5초 이내. 390/768/1024/1440/1920px geometry 모두 expected. 최종 사전 검토 잔여 P1/P2 없음. 이 사전 검토는 Owner-managed 최종 승인이나 원격 CI PASS가 아니다.
+- 원본 실행 명령: `npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-lane.spec.ts --workers=1`, exec session78679, final chunk `d9ad8b`, exit0. report는 해당 전용 worktree `playwright-report/index.html` 및 `test-results/.last-run.json`이며 runtime 산출물은 Git에 추가하지 않는다. Source SHA256: project-gantt `1e6dafd9857638b6b01057e35fd87d0a37c23d67d2be980fb15351184b67297e`, spec `fc760ea8cd5e60bb6ec212f90feb9953819b3ebd05d85e84146302230b88e92a`.

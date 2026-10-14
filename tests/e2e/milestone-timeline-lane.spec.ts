@@ -50,22 +50,45 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
-  // Native init publishes the dev-only frame identity and probe together;
-  // React's subsequent 3,000-item state commit must not be a prerequisite.
-  // Retain the original 5s gate and exact same-API identity; report which
-  // half of the handshake was absent/mismatched without querying 500 Core
-  // rows/scale cells or weakening the assertion.
+  // Init identity alone is insufficient: require React's committed identity
+  // and the independently installed viewport coordinator before any command.
+  // Preserve the original 5s budget without serializing Core rows/scale cells.
   await expect.poll(() => frame.evaluate(node => {
     const identity = node.dataset.projectGanttApiInstance ?? null;
-    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; read?: () => { instance: string } } | undefined;
+    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; ready?: boolean; read?: () => { instance: string } } | undefined;
     const hasRead = typeof probe?.read === "function";
-    return identity && probe?.instance === identity && hasRead
+    const coordinatorReady = probe?.ready === true;
+    return identity && probe?.instance === identity && hasRead && coordinatorReady
       ? "ready"
-      : JSON.stringify({ frameApi: identity, probeApi: probe?.instance ?? null, hasRead });
+      : JSON.stringify({ frameApi: identity, probeApi: probe?.instance ?? null, hasRead, coordinatorReady });
   })).toBe("ready");
   await settle(page);
   return { state, frame };
 }
+
+test("#622 probe commands require independently committed API readiness", async ({ page }) => {
+  const { state, frame } = await fixture(page, "milestone-only");
+  const readiness = await frame.evaluate(node => {
+    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { ready: boolean; preview: (enabled: boolean) => void };
+    const identity = node.dataset.projectGanttApiInstance!;
+    const before = probe.ready;
+    try {
+      delete node.dataset.projectGanttApiInstance;
+      const withoutCommit = probe.ready;
+      probe.preview(true);
+      return { before, withoutCommit };
+    } finally {
+      node.dataset.projectGanttApiInstance = identity;
+    }
+  });
+  expect(readiness).toEqual({ before: true, withoutCommit: false });
+  await settle(page);
+  await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  expect(await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").ready)).toBe(true);
+  await probe(frame, "preview", true);
+  await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);
+  expect(state.posts.length + state.patchRequests.length).toBe(0);
+});
 
 test("#551 maximum canonical date Week metadata fails closed for Calendar working days", async ({ page }, info) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
