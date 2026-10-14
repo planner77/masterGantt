@@ -189,8 +189,9 @@ export class LogisticsTargetService {
     if (!r) throw new LogisticsTargetError(404,"TARGET_NOT_FOUND");
     return r;
   }
-  private rows(projectId:number, limit:number, offset:number, search?:string): TargetRow[] {
-    const where = search ? " AND (instr(lower(t.code),lower(?))>0 OR instr(lower(t.name),lower(?))>0)" : "";
+  private rows(projectId:number, limit:number, offset:number, search?:string, activeOnly=false): TargetRow[] {
+    const where = (activeOnly ? " AND t.active=1" : "") +
+      (search ? " AND (instr(lower(t.code),lower(?))>0 OR instr(lower(t.name),lower(?))>0)" : "");
     const values = search ? [projectId,search,search,limit,offset] : [projectId,limit,offset];
     return this.db.prepare(targetSql+" WHERE t.project_id=?"+where+
       " ORDER BY lower(t.name),t.code,t.public_id LIMIT ? OFFSET ?").all(...values) as TargetRow[];
@@ -218,16 +219,19 @@ export class LogisticsTargetService {
       members:members.map(asMember), warnings, createdAt:row.created_at,updatedAt:row.updated_at,
     };
   }
-  list(publicId:string, query:{limit?:number;offset?:number;search?:string}={}) {
+  list(publicId:string, query:{limit?:number;offset?:number;search?:string;activeOnly?:boolean}={}) {
     return this.db.transaction(()=>{
       const project = this.project(publicId);
       const limit = query.limit??50, offset = query.offset??0;
       if (!Number.isInteger(limit)||limit<1||limit>100||!Number.isInteger(offset)||offset<0||offset>10000) return invalid();
       const search = query.search===undefined?undefined:plain(query.search,100);
+      if (query.activeOnly !== undefined && typeof query.activeOnly !== "boolean") return invalid();
+      const activeOnly = query.activeOnly === true;
       const total = (this.db.prepare("SELECT COUNT(*) total FROM logistics_targets WHERE project_id=?"+
+        (activeOnly?" AND active=1":"")+
         (search?" AND (instr(lower(code),lower(?))>0 OR instr(lower(name),lower(?))>0)":""))
         .get(...(search?[project.id,search,search]:[project.id])) as {total:number}).total;
-      const rows = this.rows(project.id,limit,offset,search);
+      const rows = this.rows(project.id,limit,offset,search,activeOnly);
       const mapped = this.members(project.id,rows.map(r=>r.id));
       return {projectRevision:project.revision,targets:rows.map(r=>this.dto(r,mapped.get(r.id)??[])),limit,offset,total};
     }).deferred();
