@@ -1,3 +1,8 @@
+## [Unreleased] — Issue #680 Main CI #2745 테스트 전송 오류 한정 복구 (2026-10-14)
+
+- #618 병합 SHA `59fa8f9e8743e03699741a654038b3086c0e1778`의 Main CI #2745.1에서 Milestone Editor의 읽기 전용 canonical GET이 ECONNRESET으로 실패한 원본 증거를 보존한다.
+- Playwright 1.63의 GET-only `maxRetries:1`·명시적 HTTP200으로 보호하고 POST/PATCH 무재시도 및 원래 원자성·revision·상속·geometry 회귀 단언을 유지한다. 서버 연결 초기화의 구조적 원인 해명은 별도이며 PR/Main 전체 CI와 GHCR·Finalizer는 원격 성공 전 NOT TESTED. 제품 버전 `0.111.0` 불변, 정식 릴리스 승인은 별도다.
+
 ## [Unreleased] — 0.111.0 / Issue #618 Target 구성 UI (2026-10-14)
 
 - Target composer에서 공정/optional WorkArea 및 기존 Equipment/System 신규·재사용 구성을 편집합니다 (#618).

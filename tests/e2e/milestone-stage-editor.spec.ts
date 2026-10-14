@@ -17,7 +17,13 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
-  const get = async () => (await (await apiRequest.get(api)).json()) as ProjectSnapshotResponse;
+  // #680: retry only a transient loopback ECONNRESET while reading a canonical
+  // snapshot. Never repeat the preceding mutation or accept a non-200 response.
+  const get = async (): Promise<ProjectSnapshotResponse> => {
+    const response = await apiRequest.get(api, { maxRetries: 1 });
+    expect(response.status()).toBe(200);
+    return (await response.json()) as ProjectSnapshotResponse;
+  };
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const add = async (name: string, type: ProjectTaskDto["type"], parentTaskId?: string) => {
