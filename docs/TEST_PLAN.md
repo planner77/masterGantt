@@ -1,3 +1,9 @@
+## Issue #621 CI #2761.1 — Resource 대량 상세 canonical identity 표시 회귀
+
+기존 #525의 `tests/e2e/project-resource-workload-status.spec.ts` 40 Resource/50 Assignment × Group·개인 × 390/768/1024/1440/1920px는 상세 Task ID·긴 이름·WBS/셀 alignment·keyboard focus를 유지하는 필수 회귀다. #621 Target/정확 Assignment 증거 행을 추가해도 Task의 첫 보조행은 External ID·canonical Task UUID, 마지막 보조행은 WBS다. 해당 표시 ID와 `tr[data-canonical-task-id]` 및 Assignment ID와 `tr[data-canonical-assignment-id]`를 모두 대조해 50/50을 검증한다. 목록 행 수·권한·비활성 안내·정확 개인 편집 잠금·긴 이름·5폭 기하·스크롤/포커스의 원래 단언을 유지하며 skip/timeout/허용치 완화는 없다.
+
+원본 [Full PR CI #2761.1](https://github.com/planner77/masterGantt/actions/runs/38543178018)은 Shard2 기존 #525 Task identity first-small 검사 expected50/actual0이 FAIL, 50 PASS·21 NOT RUN, 다른 5 Shard 취소. 원본 결과를 소급 PASS로 갱신하지 않는다. 보완 영향 소유는 프론트 표시·E2E 테스트이며 GSC-01/08/09/11·SC-11, DESIGN.md의 정보 밀도/정확한 상태 설명을 따른다. 신규 Head의 전체 Quality/E2E/Docker·Trusted QA 전수는 NOT TESTED; [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다.
+
 ## Issue #621 PR #683 CI #2759.1 — Resource Snapshot 변경 회귀
 
 - 기존 `tests/e2e/project-resource-workload-status.spec.ts`의 #525 external catalog revision/snapshot 교체 시 일반 KPI 상세 소멸·출발 KPI focus 복원·후속 검색 focus 보존과 상세 미부활을 필수 회귀로 유지한다. 이전 ready와 교체된 성공 보고서를 혼동하지 않도록 report confirmation ID 변경을 먼저 관찰한다.

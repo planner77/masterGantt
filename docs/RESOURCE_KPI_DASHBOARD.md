@@ -412,3 +412,10 @@ R8 회귀는 Milestone의 정확한 Resource 범위에서 지연 KPI로 Task 일
 Resource/Group×Target 비교에서 `알려진 공수 내림차순`은 **각 Target 열의 표시 교차 셀 전체가 기여한 M/D**를 기준으로 열 순서를 정한다. 마지막 Resource/Group 행 하나만 사용하지 않으며, 이 표시용 합산은 중복/교차 소계가 비가산인 서버의 선택 전체·고유 Assignment 총계로 재활용하지 않는다. `서버 기본 순서`는 서버의 최초 열 순서를 유지하고 이름순은 동일 Target의 공통 이름을 기준으로 한다.
 
 비활성 Resource의 과거 Assignment는 보고서·상세에서 계속 조회되지만 정확한 Assignment allocation/기간 편집 버튼은 비활성화한다. 별도 활성화 또는 실제 유효 Resource 배정으로 변경하지 않는 한 저장 가능한 편집으로 가장하지 않는다. readonly Target deep link는 revision·요청 sequence가 일치하는 서버 대상 원본이 현재 50건 페이지/활성 필터 밖에 있어도 상세 조회할 수 있다. 권한 없는 저장과 낡은 원본 재사용은 허용하지 않는다.
+
+
+### Issue #621 CI #2761.1 보완 — 상세 행 canonical ID 시각적 우선순위
+
+Resource 상세의 '작업명 / 안정 ID / WBS' 셀은 실제 Task/일정/배정 편집 명령 아래에서 **External ID 및 canonical Task UUID를 첫 보조 행으로** 보여준다. 이후 비활성 Resource의 배정 조회 전용 사유, 정확한 Assignment ID와 Resource ID, Target 직접·상속·Legacy 근거를 구별해 표시하고 WBS 경로는 마지막에 남긴다. 하나의 공유 Task가 여러 Target 밑에 표시되어도 canonical Task·Assignment ID는 원본을 가리키며 projection row key는 표시 전용이다. 순서·정렬·필터 변경만으로 원본 데이터를 수정하지 않는다.
+
+[CI #2761.1](https://github.com/planner77/masterGantt/actions/runs/38543178018)의 기존 #525 50행×5폭 회귀는 Task ID가 사라진 것이 아니라 새 비활성/Assignment/Target 설명이 첫 UUID 표시보다 앞에 배치되어 검사가 실패했다. 보완 후에는 각 상세 행의 `data-canonical-task-id`/(`data-canonical-assignment-id`)와 표시 ID가 정확히 일치하며 Task ID가 첫 보조행인지 확인하고 기존 내부 표 scroll·실제 focus·50행/긴 WBS 계약을 유지한다. 새 전체 CI 검증 전 NOT TESTED. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 원본 FAIL과 범위를 보존한다.
