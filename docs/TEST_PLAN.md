@@ -1,5 +1,7 @@
 ## Issue #623 — Resource MVP 통합 수용
 
+PR #685 P2 후속: 첫 통합 흐름은 기존 최대 30.6초 관측을 근거로 해당 테스트만 60초, geometry 흐름은 기본 30초로 제한한다. action timeout 15초와 기존 단언은 유지한다. 390px의 tree/matrix 모두 실제 ArrowRight 전후 `scrollLeft` 증가와 focus 유지가 필요하며 `geometry.json`에 전후 값을 기록한다. overflow·focus·스크린샷만으로 키보드 이동을 PASS로 판단하지 않는다. 원본 CI #2772.1은 세 Required PASS / QA Final 미해결 리뷰 BLOCKED이며 새 Head 원격 결과는 별도다.
+
 | AC | 검증 파일·범위 |
 | --- | --- |
 | AC1 | tests/fixtures/issue-623-target-resource.ts·tests/domain/issue-623-target-resource-acceptance.test.ts,신규SQLite/Chromium/OOXML:sharedA5/B5/union5·AMR15/ACS2/MCS1·samecanonicalrawIDs,기존53011.5별도보존 |
@@ -12,6 +14,13 @@
 신규 Domain8case는 조회순서/cache오염·Target구성/allocation/progress독립변화·sharedrawID/주월/일별합·T0/A/R·partial/null·예산거부후불변을 기존 엔진으로 확인한다. 신규 migration은 실제0024 schema·빈DB·pending0025/26/27·checksum/gap·전체rollback·구binary/newledger거부·임시backup/새파일restore를 검증한다. 실제 WindowsExcel/운영DB/off-host·TLS·실기기/스크린리더·최종수동UX는 별도환경 NOT TESTED다.
 
 실제 파일/명령/테스트수/최초FAIL·보완/관측값·사전검토·원격시작은 [#623 Work Packet](exec-plans/active/ISSUE_623.md)과 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에 기록한다. skip/timeout/단언완화로 실패를 숨기지 않는다. 기존530/528/Milestone/Calendar/TaskEditor·canonical/viewport 회귀 및Required3/Trusted/Owner승인을 이번 집중수용으로 대체하지 않는다.
+
+## Issue #622 Main #2771.1 — #551 초기화 검사 재발 회귀 (2026-10-15)
+
+- [원본 Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383), merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`: E2E shard4(job 116106607229) `milestone-timeline-lane.spec.ts:62`, 1000 Task+2000 Milestone 5초 준비 gate FAIL. Shard4 135 PASS/1 FAIL/1 SKIP, 나머지 5 shard PASS, Quality/Docker PASS; GHCR image step SKIPPED. 실패한 것을 GHCR 권한 오류나 #622 Resource 수치 실패로 오인하지 않는다.
+- correction E2E: 같은 3000 canonical Task fixture·동일 테스트의 첫 준비 판정은 `frameApi===probeApi`+callable read+독립 coordinator `ready=true`를 요구하며 5초 한도 유지. 현재 API 아닌 stale probe/DOM 분리/부재는 FAIL하고 마지막 ID·read 존재·coordinator 준비를 오류 문자열에 표시한다. 실제 native 화면을 통한 Chart scroll·resize·fullscreen·return·5폭 기존 검증, no write, Project/Milestone/Resource 회귀 및 Shard6 전체는 유지한다.
+- 개발 probe는 `initialize(api)`에서 설치하지만 준비 완료는 React가 commit한 frame ID와 viewport coordinator 설치 effect의 독립 영수증으로 확인한다. installer가 frame ID를 덮어쓰지 않으며 초기/폐기 probe 명령은 거부한다. React ID 임시 제거 시 ready=false와 preview 거절, 복원 시 ready=true를 실제 Chromium에서 검증한다. production 초기화·데이터 변경·GHCR 정책·PR gating 변경 없음. PR CI 3종 + trusted QA + 새로운 push Main CI 3종 + candidate/digest/Finalizer는 정확 SHA 실행 전에 NOT TESTED.
+- `DESIGN.md`: N/A(시각/UI 변경 없음), DB_SCHEMA/API/Excel: N/A(도메인 변경 없음), `MILESTONE_TIMELINE.md`, `TEST_PLAN.md`, `REMOTE_VALIDATION.md`, 기존 #622 Work Packet: UPDATED.
 
 ## Issue #622 — Target Resource Plan·Excel 검증
 
@@ -3729,3 +3738,10 @@ R2 Local Fast Feedback: 신규 SQLite17 tests(원시 A5/B5/전체5 포함), 영�
 SC-11의 Resource→detail→Editor/일정→복귀와 관련 저장/실패/취소·readonly·scope/focus를 누적 검증한다. pure model·mock·실제 SVAR Chromium·실제 Next/SQLite·원격 전수 CI는 서로 대체하지 않는다. SC-14 대량3000행 Core readiness와 U5/#574 최종 통합 수용은 전용 검증과 Required E2E가 실제 끝나기 전 NOT TESTED다. timeout/skip/허용오차 확대만으로 실패를 숨기지 않는다. Windows Excel/DRM·운영 TLS/backup·실기기/screen reader·최종 수동 UX는 별도 환경 검증이다.
 
 최종 로컬 실행은 신규5개 전체 PASS/2.0분(session17064), 개별12.6/14.0/18.7/16.0/13.4초다. 실제390 clipping 및 cached-ready 복귀 뒤10ms 행 교체/focus BODY 실패를 고친 뒤 같은 필수 단언을 유지해 재검증했다. 현재 report와 정확 상세의 새 성공 receipt 이전에 focus하지 않으며, report를 보류한 동안 실제 검색 focus/ArrowRight 입력 후 늦은 복원이 이를 덮지 않는 사례도 통과했다. 2mode×5폭10 geometry와 합성 after PNG2개는 해당 실제 검증 증거이며 원격 CI/Owner 승인·환경별 검증은 아니다. 상세 최초 실패/Source 범위·최종 inventory는 Work Packet을 따른다.
+
+## Issue #622 PR #686 — Preflight 및 독립 readiness 회귀 (2026-10-15)
+
+- 원본 CI #2773.1 / run `38642502958` / attempt `1`은 QA Preflight job `116121359974`에서 `docs/SCHEDULING_ENGINE.md`의 UPDATED 선언과 correction diff 불일치로 FAIL했다. Quality/E2E/Docker 구현은 SKIPPED이므로 실행된 테스트의 PASS/FAIL로 표시하지 않는다.
+- 현재 correction의 DOCUMENTATION_SYNC는 실제 diff의 UPDATED와 구체적인 N/A 근거를 검증한다. 과거 feature PR #684의 문서 변경을 correction의 증거로 재사용하지 않으며 scheduling 계산 변경이 없는 이유를 명시한다. base validator와 gate는 그대로 사용한다.
+- `tests/e2e/milestone-timeline-lane.spec.ts`는 native probe identity와 React/layout 및 viewport coordinator 준비를 독립 확인한 뒤 진단 명령을 호출해야 한다. init 직후 또는 stale API/cleanup 상태를 ready로 수락하지 않는다. 기존 5초 readiness·1000 Task+2000 Milestone·peer Chart/Grid scroll/fullscreen/resize/geometry·mutation0 assertion을 유지한다.
+- Local Fast Feedback은 원격 full PR 3 required aggregates·Trusted QA·Owner 승인과 별도다. 원본 Main #2771.1 및 PR #2773.1 FAIL은 불변이며 새 Head의 결과로 소급 PASS하지 않는다.

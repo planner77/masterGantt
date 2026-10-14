@@ -1790,15 +1790,16 @@ export function ProjectGantt({
 
   const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
   const milestoneProbeGeneration = useRef(0);
-  // The development-only probe is installed by the SVAR init callback itself:
-  // a 3000-item projection can delay a subsequent React state commit, although
-  // the native Gantt DOM and API already exist. Keep one owner per API instance.
+  // Init can expose diagnostics before React commits the API identity. Readiness
+  // is independently owned by the post-layout viewport installation below.
+  const milestoneProbeReadyReference = useRef<{ api: IApi; id: string; coordinator: ViewportCoordinator } | null>(null);
   const milestoneProbeLifecycleReference = useRef<{ api: IApi; frame: HTMLDivElement; id: string; cleanup: () => void } | null>(null);
   const latestInitializedApiIdReference = useRef<string | null>(null);
   // MT1 technical probe only; never attach it in production. Initialize it
   // synchronously in SVAR init and reconcile StrictMode mount/cleanup here.
   const installMilestoneProbe = useCallback((api: IApi, instanceId: string, frame: HTMLDivElement) => {
-    if (process.env.NODE_ENV === "production" || !frame.isConnected) return;
+    if (process.env.NODE_ENV === "production" || !frame.isConnected ||
+        apiReference.current !== api || latestInitializedApiIdReference.current !== instanceId) return;
     const previous = milestoneProbeLifecycleReference.current;
     if (previous?.api === api && previous.frame === frame && previous.id === instanceId) return;
     previous?.cleanup();
@@ -1812,17 +1813,27 @@ export function ProjectGantt({
         if (events.length > 64) events.shift();
       }, { tag });
     }
+    let active = true;
+    const isReady = () => {
+      const ready = milestoneProbeReadyReference.current;
+      return active && frame.isConnected && apiReference.current === api &&
+        latestInitializedApiIdReference.current === instanceId &&
+        frame.dataset.projectGanttApiInstance === instanceId &&
+        ready?.api === api && ready.id === instanceId &&
+        ready.coordinator === viewportCoordinatorReference.current;
+    };
     Object.defineProperty(frame, "__masterganttMilestoneTimeline", { configurable: true, value: {
-      // Readiness must not enumerate Core's large derived task/scale arrays.
-      // The value belongs to the same initialized API as read().instance.
+      // O(1): no large Core task/scale serialization in the readiness poll.
       instance: instanceId,
-      preview: (enabled: boolean) => { if (typeof enabled === "boolean") setTimelinePreview(enabled); },
-      display: (mode: string) => { if (mode === "all" || mode === "grid" || mode === "chart") setTimelinePreviewDisplay(mode); },
+      get ready() { return isReady(); },
+      preview: (enabled: boolean) => { if (isReady() && typeof enabled === "boolean") setTimelinePreview(enabled); },
+      display: (mode: string) => { if (isReady() && (mode === "all" || mode === "grid" || mode === "chart")) setTimelinePreviewDisplay(mode); },
       laneMeasurement: () => laneMeasurement.current,
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
       reveal: async (date: string) => {
+        if (!isReady()) return false;
         await canonicalSyncQueueReference.current;
-        if (apiReference.current !== api || !peerViewportContext.current.visible) return false;
+        if (!isReady() || !peerViewportContext.current.visible) return false;
         const coordinate = milestoneDateCoordinate(api, date), widget = timelineWidget.current;
         if (!coordinate?.insideRange || !widget) return false;
         const geometry = readMilestonePlotGeometry(api, widget);
@@ -1840,15 +1851,15 @@ export function ProjectGantt({
         const left = Math.min(coordinate.contentX, Math.max(0, chart.scrollWidth - chart.clientWidth));
         return viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left });
       },
-      nativeDateReveal: (date: string) => viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }),
-      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),
+      nativeDateReveal: (date: string) => isReady() ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }) : Promise.resolve(),
+      scroll: (left: number) => isReady() && Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),
       filter: async (ids: string[] | null) => {
-        if (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string"))) return;
+        if (!isReady() || (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string")))) return;
         const generation = ++milestoneProbeGeneration.current;
         const source = tasksReference.current;
         milestoneProbeRequest.current = ids === null ? null : { api, ids: [...ids], source, filterKey: visibleTaskFilterKeyReference.current, request: generation };
         await canonicalSyncQueueReference.current;
-        if (apiReference.current !== api || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
+        if (!isReady() || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
         await filterMilestoneWbsRows(api, ids);
       },
       read: () => {
@@ -1864,6 +1875,7 @@ export function ProjectGantt({
     } });
     const published = Reflect.get(frame, "__masterganttMilestoneTimeline");
     const cleanup = () => {
+      active = false;
       api.detach(tag);
       if (Reflect.get(frame, "__masterganttMilestoneTimeline") === published)
         Reflect.deleteProperty(frame, "__masterganttMilestoneTimeline");
@@ -1942,7 +1954,13 @@ export function ProjectGantt({
     const events = ["pointerdown", "wheel", "keydown", "touchstart", "input", "change"];
     for (const event of events) document.addEventListener(event, input, { capture: true, passive: true });
     scheduleTimelineExtension(api);
+    // This effect runs after the React layout commit and only publishes after
+    // the matching viewport coordinator and its input listeners are installed.
+    if (process.env.NODE_ENV !== "production")
+      milestoneProbeReadyReference.current = { api, id: apiInstanceId, coordinator };
     return () => {
+      if (milestoneProbeReadyReference.current?.coordinator === coordinator)
+        milestoneProbeReadyReference.current = null;
       nativeAddContinuityReference.current = null;
       coordinator.dispose(); port.dispose();
       if (viewportCoordinatorReference.current === coordinator) viewportCoordinatorReference.current = null;
@@ -2892,8 +2910,8 @@ export function ProjectGantt({
     apiReference.current = api;
     const initializedId = `svar-api-${nextApiInstanceId++}`;
     latestInitializedApiIdReference.current = initializedId;
-    // Do not defer the test probe behind React's 3000-row projection render.
-    // SVAR init has the actual API; the surrounding frame ref is committed.
+    // Probe existence is diagnostic only. Its commands remain guarded until
+    // React commits this identity and the viewport coordinator is installed.
     const frame = fullscreenFrameReference.current;
     if (frame) installMilestoneProbe(api, initializedId, frame);
     setApiInstanceId(initializedId);

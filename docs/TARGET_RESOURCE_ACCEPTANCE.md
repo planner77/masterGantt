@@ -4,6 +4,8 @@ Issue [#623](https://github.com/planner77/masterGantt/issues/623)의 Q1 수용 �
 
 ## 완료 경계
 
+2026-10-15 PR #685 재개: 원본 [#2772.1](https://github.com/planner77/masterGantt/actions/runs/38642308191)의 세 Required 및 Chromium 6 shard는 PASS, QA Final은 미해결 리뷰로 BLOCKED다. 해당 Head `729f2e4dd1254d73c07ea13eecc287e4b9dac243`의 실행 이력을 보존한다. timeout/ArrowRight 실제 이동 P2 두 건과 main `1449190a` 문서 충돌을 보완한 새 Head의 CI·Trusted QA·Owner/Manager 승인은 별도 NOT TESTED다. 아래 source hash·로컬 수치·선행 snapshot은 최초 후보의 역사적 증거이며 최신 검증 원장은 [Work Packet](exec-plans/active/ISSUE_623.md)의 재개 절과 Issue/PR STATUS를 따른다.
+
 현재 Q1은 로컬 통합 수용 후보이며 이번 요청은 exact-head PR CI 시작까지다. 로컬 PASS·문서 존재·선행 Issue CLOSED가 원격 전체 회귀/Trusted QA·Owner ACCEPT·main artifact 완료를 대신하지 않는다. Resource MVP(M2) 최종 완료는 원격 gate·Owner 결정 전 BLOCKED이며 #624/V1 미완료 상태로 Epic #613 전체 완료를 표시하지 않는다.
 
 ## 요구사항↔Issue↔AC↔검증↔문서

@@ -1,5 +1,19 @@
 # Issue #623 — Resource MVP 통합 수용·이관 Work Packet
 
+## PR #685 재개 — QA 차단·P2 리뷰·main 충돌 보완 (2026-10-15)
+
+- 요청 범위: 기존 PR의 실패 원인 분석·보완, 리뷰 스레드 및 충돌 해결 후 새 exact-head Full PR CI 시작까지. 새 CI 결과 모니터링·병합·main/GHCR·릴리스·Issue 종료는 수행하지 않는다.
+- 원본 [CI #2772.1](https://github.com/planner77/masterGantt/actions/runs/38642308191): run_id=`38642308191`, run_attempt=`1`, Head=`729f2e4dd1254d73c07ea13eecc287e4b9dac243`, base=`bd54205741da65a0211cf77f9cb086d3cdb1ab2a`, test merge=`d38b152a99c43e9c67fd71119f30d721a626567e`. 세 Required Quality/E2E/Docker와 Chromium 6 shard는 완료 PASS다. `QA Final — Automated` [job 116129943648](https://github.com/planner77/masterGantt/actions/runs/38642308191/job/116129943648)의 최종 조회 step은 `자동 QA: BLOCKED`, `사유: 미해결 review thread`로 exit 1이다. CI 실행 결론 FAIL과 QA의 원인 BLOCKED를 구별한다. 권한·workflow 결함이나 제품 테스트 실패로 해석하지 않는다.
+- P2 두 건: `tests/e2e/issue-623-resource-mvp.spec.ts`의 두 테스트 180초 override 및 ArrowRight 이후 실제 이동 단언 누락. 기존 첫 흐름 최대 관측 30.6초를 근거로 해당 테스트만 유한 60초, 둘째는 기본 30초로 복원한다. 기존 action timeout 15초는 유지한다. 390px tree/matrix에서 scrollLeft를 시작점 0으로 준비하고 실제 키 입력 후 증가·focus 보존을 poll하며 JSON에 전후 값을 남긴다. 기존 열 경계·overflow·저장0·같은 Gantt 단언은 유지한다.
+- 후속 [Trusted QA #415.1](https://github.com/planner77/masterGantt/actions/runs/38645161760), run_id=`38645161760`, attempt=`1`, validator SHA=`bd54205741da65a0211cf77f9cb086d3cdb1ab2a`, job=`116130083238` step 4는 `자동 QA: FAIL`, `사유: 원본 PR CI run 자체가 성공하지 않았습니다`다. Automated의 리뷰 BLOCKED로 원본 CI가 실패한 뒤 Trusted가 이를 거부한 연결이며 검증기·권한 변경으로 우회하지 않는다.
+- 최신 main=`1449190a`를 기존 작업 branch에 병합한다. `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md` 두 content conflict는 #623 수용과 main의 #622 초기화 준비 검증 절을 모두 보존해 해결한다. main의 Gantt probe·기존 Milestone 회귀 보완은 그대로 승계하며 이번 PR이 새 제품 변경을 추가한 것으로 계산하지 않는다.
+- 소유권: frontend `/root/frontend`는 위 신규 E2E spec만, infra `/root/infra`는 원본 로그 read-only 분석, Manager는 충돌·문서·증거·GitHub 게시·리뷰 해결. issue_comment_writer=manager. 기존 타 worktree/미추적 자료는 보존한다.
+- app=`0.114.0` 유지, release_required=false, release_authorized=false. risk_level=HIGH, qa_required=true, qa_method=OWNER_MANAGED, independent_qa=N/A(Owner-managed, 독립 검토 없음), manager_decision=NOT TESTED, MERGE_READY=BLOCKED. 새 Head의 원격 CI/Trusted QA는 NOT TESTED이며 원본 Head의 PASS를 재사용하지 않는다.
+- DOCUMENTATION_SYNC: Work Packet·TEST_PLAN·REMOTE_VALIDATION·수용표·active PLAN·CHANGELOG 갱신. DESIGN/UI_UX/API/DB/SECURITY/SCHEDULING/CI_CD/GITHUB_OPERATIONS/QA_REVIEW_POLICY는 기존 UI·도메인·원격 gate·권한 계약 변경 없음으로 N/A다. 기존 AC1~AC6 mapping은 유지하고 AC4의 키보드 실제 이동 증거를 보강한다. 최종 로컬 결과 및 새 Head/run/attempt는 아래 원장과 Issue/PR STATUS에 기록한다. 아래 최초 구현 결과·hash·관측값은 원본 Head의 역사적 증거다.
+- 재개 Local Fast Feedback: 실제 Chromium 신규2/2 PASS(34,544ms / 22,193ms, 전체1.8분), scoped ESLint PASS. 첫 흐름60초/둘째기본30초 안에서 기존 전체 단언을 통과했다. 390px tree `scrollLeft 0→15`, matrix `0→11`, 양쪽 focus=true/document폭390이다. 이번 집중 실행 FAIL 없음. 새 동결8test/fixture SHA256=`e1449a7a5a60d5db6896915d5323b6610ae2128f627e5564846eb6c04292b55d`.
+- [재개 실행 원장](../../../output/playwright/issue-623/rework-execution.json), [키보드·geometry](../../../output/playwright/issue-623/rework-geometry.json), [원시 ID·여섯 mutation](../../../output/playwright/issue-623/rework-cumulative.json), [실행 시간](../../../output/playwright/issue-623/rework-timing.json)은 새 로컬 실행이다. 최초 cumulative/geometry/PNG10/source inventory는 보존하고 재개 화면 캡처를 새로 게시하지 않는다. Next 생성 next-env/tsconfig는 browser 종료 뒤 기준 HEAD로 복원했다. 원격 전체 회귀/Trusted·Owner ACCEPT 및 운영 환경 PASS를 주장하지 않는다.
+- Manager 최종 빠른 검사: typecheck·version0.114.0·Markdown220파일·DOC_SYNC 구조/AC1~6 mapping·diff-check PASS. 최신 main 대비 src/package/lock/CI/SQL/deploy diff0 확인. 별도 read-only qa_docs `/root/qa` 사전 검토에서 신규 P1/P2 없음, 실행 시간·390px 실제 이동·source8hash·문서 충돌 양쪽 보존·원본 CI/Trusted 로그를 직접 대조했다. 이 검토는 최종 독립 QA PASS나 Owner/Manager ACCEPT가 아니다. 게시된 새 Head의 Required3/Trusted와 Owner 결정은 NOT TESTED다.
+
 ## 기준·범위·담당
 
 - Issue: https://github.com/planner77/masterGantt/issues/623, 상위 #613, 선행 #614~#622. 기존 #530 Resource 통합 및 #528 exact drill 계약을 보존한다.

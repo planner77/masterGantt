@@ -42,7 +42,9 @@ async function sharedDetail(root: Locator, taskId: string) {
 }
 
 test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방향 동일원본 복귀", async ({ page, isolatedApplication: origin }, info) => {
-  test.setTimeout(180_000); page.setDefaultTimeout(15_000);
+  // The recorded integrated flow reaches 30.6s; keep its allowance finite and scoped.
+  test.setTimeout(60_000);
+  page.setDefaultTimeout(15_000);
   const f = await seedIssue623(page, origin);
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
@@ -182,7 +184,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
 });
 
 test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard·query0·렌더관측", async ({ page, isolatedApplication: origin }, info) => {
-  test.setTimeout(180_000); page.setDefaultTimeout(15_000);
+  page.setDefaultTimeout(15_000);
   const f = await seedIssue623(page, origin, true);
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame"); const instance = await frame.getAttribute("data-project-gantt-instance");
@@ -195,7 +197,17 @@ test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard�
     else await root.getByLabel("Target 비교 행", { exact: true }).selectOption("group");
     await expect(root).toHaveAttribute("data-ready", "true");
     const region = root.getByRole("region", { name: layout === "tree" ? "Resource Target 계층" : "Resource Target 비교표", exact: true });
-    await region.focus(); await page.keyboard.press("ArrowRight");
+    await region.evaluate(element => { element.scrollLeft = 0; });
+    await expect.poll(() => region.evaluate(element => element.scrollLeft)).toBe(0);
+    await region.focus();
+    await expect(region).toBeFocused();
+    const scrollLeftBefore = await region.evaluate(element => element.scrollLeft);
+    await page.keyboard.press("ArrowRight");
+    if (width === 390) {
+      await expect.poll(() => region.evaluate(element => element.scrollLeft)).toBeGreaterThan(scrollLeftBefore);
+    }
+    await expect(region).toBeFocused();
+    const keyboardMovement = { scrollLeftBefore, scrollLeftAfter: await region.evaluate(element => element.scrollLeft) };
     const geometry = await region.evaluate(element => {
       const rect = (node: Element) => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width }; };
       const headers = [...element.querySelectorAll("thead tr:first-child > *")].map(rect); const cells = [...element.querySelectorAll("tbody tr:first-child > *")].map(rect);
@@ -205,7 +217,7 @@ test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard�
     if (width === 390) expect(geometry.scroll).toBeGreaterThan(geometry.owner);
     for (let i = 0; i < geometry.headers.length; i++) { expect(Math.abs(geometry.headers[i].left - geometry.cells[i].left)).toBeLessThanOrEqual(1); expect(Math.abs(geometry.headers[i].right - geometry.cells[i].right)).toBeLessThanOrEqual(1); }
     for (const button of geometry.buttons) { expect(button.left).toBeGreaterThanOrEqual(button.parent.left - 1); expect(button.right).toBeLessThanOrEqual(button.parent.right + 1); }
-    measurements.push({ layout, ...geometry }); await page.screenshot({ path: `output/playwright/issue-623/${layout}-${width}.png`, fullPage: true });
+    measurements.push({ layout, ...geometry, keyboardMovement }); await page.screenshot({ path: `output/playwright/issue-623/${layout}-${width}.png`, fullPage: true });
   }
   expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before); await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   const evidence = { synthetic: true, projectPublicId: f.publicId, targetCount: f.targets.length, taskCount: before.data.tasks.length, renderMilliseconds, measurements, writes };

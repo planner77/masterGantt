@@ -1,8 +1,16 @@
 ## Issue #623 — Q1 로컬/원격/운영 증거 분리
 
+PR #685 재개: [원본 #2772.1](https://github.com/planner77/masterGantt/actions/runs/38642308191), Head `729f2e4dd1254d73c07ea13eecc287e4b9dac243`의 세 Required와 E2E 6 shard는 PASS다. QA Final job `116129943648`은 `미해결 review thread`로 BLOCKED(exit 1)이며 gate의 정상 차단이다. P2 두 건의 테스트 보완·실제 Chromium 확인·스레드 해결 및 main `1449190a` 충돌 정렬 뒤 새 Full PR CI를 시작한다. 원본 FAIL을 소급 PASS하지 않고 새 Head의 CI/Trusted QA는 결과 미확인 NOT TESTED로 인계한다. 새 CI를 모니터링하지 않는다.
+
 같은 F0golden의 Domain/API/UI/OOXML·다관점 편집·합성 migration/backup/restart·Copy/Template·한도/5폭은 이번 집중 로컬 검증이다. exact-head Full PR CI quality/e2e/docker·default-main Trusted QA,Owner HIGH 위험 수용/명시 병합 허가와 Manager ACCEPT는 별도다. 요청 범위는 PR CI 시작 확인이며 결과를 monitoring하지 않는다.
 
 선행614~622 원격 원장은 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)의 단일 조회 snapshot으로 보존한다. 특히618 originalMainFAIL/FinalizerSKIPPED,615 corrective/succession,616 originalpushCI부재/후속승계,622 진행중MainCI를 서로 소급 PASS하지 않는다. 이번623 Head·base/testmerge·RunID/attempt·thread0/충돌은 PR/Issue 인계에 기록한다. 실제 production/off-host restore·TLS/proxy·WindowsExcel/VBA/DRM·실기기/screen reader·최종수동UX 및 #624/V1은 NOT TESTED다.
+
+## Issue #622 / Main CI #2771.1 후속 원자적 probe 준비 검증
+
+- 원본 `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`/Main [#2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383)의 Chromium shard4 #551 3000-row 5초 probe/DOM identity FAIL과 5-shard PASS·Quality/Docker PASS·GHCR SKIPPED는 수정 전 원장으로 고정한다.
+- correction PR은 init의 probe 존재와 React/layout 준비를 구별한다. frame `data-project-gantt-api-instance`는 React가 commit하며 현재 API의 viewport coordinator 설치 effect가 독립 준비 영수증을 게시한다. E2E는 동일 instance/read에 `probe.ready=true`를 함께 요구한다. 초기 Head의 동시 attribute 게시 시도는 P2 지적으로 폐기되었으며 old/stale API·cleanup·분리된 frame은 ready가 아니다. 5초·3천개·scroll/resize/fullscreen/±1px/zero mutation 단언은 유지한다.
+- 새 exact-head PR 3 Required Quality/E2E6/Docker 및 기본 브랜치 Trusted QA·스레드0·strict main 확인 후에만 새 병합. Main push의 정확 제목/SHA/Quality/E2E6/Docker와 `ci-<new main merge SHA>` 후보 게시·정확 digest/SBOM/Finalizer는 추후 증거로 판정. 기존 원본 Main #2771을 재실행하여 새 코드가 적용된 것으로 취급하거나 인증되지 않은 GHCR 발행/태그 이동 금지.
 
 ## Issue #672 — #616 F2 인수 추가 검증 및 #617 경계 (2026-10-14)
 - Source baseline: completed v0.108.0 exact Main CI #2710.1 / Release #167.1 / #670 FINAL. v0.107.0 failure ledger is immutable; do not create a new SemVer release for this version-neutral acceptance patch.
@@ -742,3 +750,9 @@ Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate ch
 ## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+## Issue #622 PR #686 — DOC_SYNC 실패 보완 후 새 Full PR CI (2026-10-15)
+
+원본 [CI #2773.1](https://github.com/planner77/masterGantt/actions/runs/38642502958), run `38642502958`, attempt `1`, Head `9a9a4907d9d19848aab5c02a359338f51da2678d`, base `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`, test merge `28fc90438cade34fc8c535307ea7827c07933cc3`는 QA Preflight의 DOCUMENTATION_SYNC FAIL이다. Work Packet의 최초 기능 PR UPDATED 선언이 correction의 변경 파일에 포함되지 않아 차단됐다. Quality/E2E/Docker 구현은 SKIPPED, 필수 집계는 FAIL이며 애플리케이션 실행 결과로 바꾸어 기록하지 않는다.
+
+현재 correction의 문서 영향 기록 및 P2 독립 layout-readiness를 보완한 새 Head를 같은 PR에 게시하여 synchronize Full PR CI를 시작한다. 원본 base validator·3 Required aggregates·6-shard·timeout·geometry·권한·GHCR 정책은 유지한다. 리뷰 스레드 해결과 최신 main 충돌 검사를 수행하고 새 run ID/attempt/Head/base/test merge의 시작 상태를 기록한다. 사용자 요청에 따라 결과 모니터링을 수행하지 않으며 새 Quality/E2E/Docker·Trusted QA 최종 결과는 NOT TESTED다. 병합·Main GHCR·정식 릴리스 및 Issue 종료는 별도 승인·검증 단계다.
