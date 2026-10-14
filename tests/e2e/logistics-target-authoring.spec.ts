@@ -114,7 +114,10 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   await expect(page.getByRole("tab", { name: "물류 구성", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(detail).toContainText("같은 작업에서 수정한 시운전");
-  expect(await detail.evaluate(node => node.contains(document.activeElement))).toBe(true);
+  await expect.poll(() => detail.evaluate(node => ({
+    focusInside: node.contains(document.activeElement),
+    isTopModal: node.matches(":modal"),
+  }))).toEqual({ focusInside: true, isTopModal: true });
   await page.keyboard.press("Escape");
 
   await page.getByRole("button", { name: "Target 수정: Target A", exact: true }).click();

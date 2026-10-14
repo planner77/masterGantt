@@ -126,3 +126,11 @@ release_authorized: false
 - main `87dcbf9e60216f9b902806c08c99e390ddf6c568`의 #619 Resource KPI source·문서를 보존하고 #618 Target UI와 통합한다. 두 PR이 각각 선택한 0.110.0 버전은 main에 #619가 이미 사용하므로 본 F4 후보를 0.111.0으로 올린다. 정식 release_authorized=false이며 Main CI 후보 ci-<SHA> 게시와 정식 0.111.0 Release는 별도 권한이다.
 - 순서: exact-Head PR Quality/E2E6/Docker 및 Trusted QA/리뷰0 → Owner 명시 병합 범위 수용 → merge → Main CI 동일 3종 → 임시 GHCR ci-<merge SHA> exact digest smoke/SBOM/provenance → Generic Release Finalizer. 정식 version tag/Release/GHCR stable은 버전별 Owner release_authorized=true 이후에만 허용한다.
 - 충돌 통합 후 새 원격 CI 결과, 테스트, Main/GHCR/Finalizer는 실제 성공을 확인하기 전 NOT TESTED로 기록한다. 이전 로컬 0.110.0 검증을 0.111.0 원격 검증으로 전이하지 않는다.
+
+## 2026-10-14 PR CI #2742.1 E2E focus REWORK
+
+- 원본: [PR CI #2742.1](https://github.com/planner77/masterGantt/actions/runs/38506927306), Head `c3ada1d15973df6ec4025a438a75cd277a8e15d9`, base `87dcbf9e60216f9b902806c08c99e390ddf6c568`; Preflight·TypeScript·ESLint·Vitest·Build·Docker 및 Required Quality/Docker PASS. Chromium shard4 `logistics-target-authoring.spec.ts:117`의 modal focus assertion expected true/received false로 FAIL, 다른 shard는 fail-fast 취소(NOT TESTED). QA Final required e2e 실패.
+- 실제 Task PATCH1/작업수 불변/Target 상세에 새 작업명 표시/동일 Gantt instance assertion은 실패 지점 전에 PASS. 포커스는 단일 RAF 직후의 즉시 검사여서 native Editor dialog close/Target usage reload의 순서가 정착했는지 확인할 수 없었다. 서버 오류로 단정하지 않는다.
+- 구현: Task Editor가 물류 Target 상세에서 열린 경우, canonical reload로 끊어진 trigger를 동일 Task ID의 최신 Target dialog button 또는 dialog 닫기 fallback으로 복구한다. 상위 native modal이 다시 `:modal`이 된 뒤에만 focus하며 최대24 RAF/현재 generation 검사, 새로운 dialog/사용자 의도가 우선이다. Gantt remount·Core/viewport writer·Task mutation/재조회 의미는 변경하지 않는다.
+- 검증 변경: 기존 assert 삭제/초점 회귀 skip 대신 actual dialog의 `:modal` 및 내부 focus를 Playwright auto-retry assertion으로 확인한다. 오류/데이터/Task ID/원본 인스턴스 불변 검증은 보존한다. #661 GSC-07/08/09, SC-11/13의 focus settle 조건을 보강한다.
+- 해당 구현의 별도 로컬 실제 browser/전체 CI는 **NOT TESTED**. 새 Head exact PR Quality/E2E6/Docker, Trusted QA 및 Owner HIGH 잔여 위험 수용 후에만 병합한다. 정식 `0.111.0` tag/GHCR 버전 승인은 `release_authorized=false`로 별도이며 Main CI 임시 GHCR `ci-<SHA>` → exact digest/SBOM/provenance → Release Finalizer 순서를 유지한다.

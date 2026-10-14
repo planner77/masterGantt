@@ -1119,16 +1119,49 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     editorOpeningReference.current = false;
     if (!restoreFocus) return;
     if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
-    requestAnimationFrame(() => {
-      if (editorOriginViewReference.current === "logistics") {
+    if (editorOriginViewReference.current === "logistics") {
+      // A canonical reload can replace the original Target task button while
+      // the Task Editor's native modal is closing. Settle focus only after that
+      // dialog closes, without stealing focus from a newer user interaction.
+      const generation = ++taskFocusGeneration.current;
+      const closingDialog = document.querySelector<HTMLDialogElement>('dialog[aria-labelledby="task-editor-title"]');
+      const fromTargetDetail = trigger?.hasAttribute("data-target-task-id") === true;
+      const maxFrames = 24;
+      const restore = (frame: number) => {
+        if (generation !== taskFocusGeneration.current) return;
         const panel = document.querySelector<HTMLElement>(".project-logistics-panel");
-        const logicalTrigger = taskId ? panel?.querySelector<HTMLElement>(`[data-target-task-id="${taskId}"]`) : null;
-        const fallback = panel?.querySelector<HTMLElement>('dialog[open] button[aria-label$="닫기"]') ??
-          panel?.querySelector<HTMLElement>('input');
-        const target = isVisibleFocusTarget(trigger) ? trigger : isVisibleFocusTarget(logicalTrigger) ? logicalTrigger : fallback;
-        if (isVisibleFocusTarget(target)) target.focus({ preventScroll: true });
-        return;
-      }
+        if (!panel || panel.closest("[hidden], [inert]") || !panel.isConnected) return;
+        const detailDialog = [...panel.querySelectorAll<HTMLDialogElement>("dialog[open]")]
+          .find(dialog => dialog.querySelector("h2")?.textContent?.startsWith("Target 상세 ·"));
+        const foreignModal = [...document.querySelectorAll<HTMLDialogElement>("dialog:modal")]
+          .some(dialog => dialog !== closingDialog && dialog !== detailDialog);
+        if (foreignModal) return;
+        if (closingDialog?.open || (fromTargetDetail && (!detailDialog || !detailDialog.matches(":modal")))) {
+          if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+          return;
+        }
+        const focused = document.activeElement;
+        if (detailDialog?.contains(focused)) return;
+        if (focused instanceof HTMLElement && focused !== document.body &&
+            focused !== closingDialog && !closingDialog?.contains(focused) &&
+            !panel.contains(focused)) return;
+        const logicalTrigger = taskId ? detailDialog?.querySelector<HTMLElement>(
+          `[data-target-task-id="${CSS.escape(taskId)}"]`,
+        ) : null;
+        const fallback = detailDialog?.querySelector<HTMLElement>('button[aria-label$="닫기"]') ??
+          panel.querySelector<HTMLElement>("input");
+        const target = isVisibleFocusTarget(trigger) && detailDialog?.contains(trigger) ? trigger :
+          isVisibleFocusTarget(logicalTrigger) ? logicalTrigger : fallback;
+        if (isVisibleFocusTarget(target)) {
+          target.focus({ preventScroll: true });
+          if (document.activeElement === target) return;
+        }
+        if (frame < maxFrames) requestAnimationFrame(() => restore(frame + 1));
+      };
+      requestAnimationFrame(() => restore(0));
+      return;
+    }
+    requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
       if (editorLaneOriginReference.current) {
         const list = root?.querySelector<HTMLElement>("[data-milestone-lane-focus=list]");
