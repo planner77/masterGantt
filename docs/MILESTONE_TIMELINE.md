@@ -1,3 +1,11 @@
+## Issue #622 / Main CI #2771.1 — Milestone 개발 probe 초기화 원자성 (2026-10-15)
+
+[Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383) / immutable merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`는 Quality·Docker PASS 및 Chromium 5/6 shard PASS, shard4의 #551 대량 1000 Task + 2000 Milestone 초기화 준비 gate 5초 FAIL로 E2E aggregate가 실패해 GHCR candidate 게시가 SKIPPED되었다. PR #684 CI #2770.1의 동일 실제 시험 PASS(9.2초)와 구별한다. 직접 오류는 fixture의 `data-project-gantt-api-instance`/development probe instance/read 존재 일치 검사 timeout이며 근본적인 브라우저 렌더 중 어느 요소가 지연됐는지는 실패 로그만으로 확정되지 않았다.
+
+`initialize(api)`는 개발 전용 probe를 동기 설치하지만 이것만으로 layout 준비를 선언하지 않는다. 초기 Head `9a9a4907d9d19848aab5c02a359338f51da2678d`의 probe/attribute 동시 게시 시도는 P2 리뷰에서 독립 준비 신호를 없앤다고 지적되어 교정했다. 현재 frame 비교 ID는 React commit만 게시하며, 해당 API의 viewport coordinator와 input listener 설치 effect가 별도의 준비 영수증을 소유한다. probe `ready`는 현재 API·연결 frame·React ID·영수증·현재 coordinator가 모두 일치해야 true다. cleanup/교체/미완료 상태에서는 진단 변경 명령을 거부한다. 단일 Core·viewport writer·production OFF·기존 fixture·5초 및 geometry/mutation 단언은 유지한다.
+
+E2E 준비 predicate는 이름 없는 `false` 대신 최종 frame/probe ID·`read` 존재 및 독립 coordinator 준비 여부를 표기해 후속 원격 실패가 등록/identity/React 지연 중 무엇인지 분별하도록 하되, 정확한 일치와 5초 timeout은 그대로 요구한다. 이는 CI 결과 조작이나 재실행으로 기존 실패를 PASS 처리하는 변경이 아니다. 새 correction PR의 실제 PR CI 3종·Trusted QA 및 이후 Main CI/임시 GHCR의 새 SHA 결과는 별도 검증한다. 정식 version tag/GHCR은 별도 Owner 승인이다.
+
 ## Issue #647 — 삭제 후 관리 진입점 focus 보존 (2026-10-13)
 
 - Milestone 독립 목록에서 native WorkspaceDialog가 닫히기 전 예약된 RAF는 `:modal` trap에 의해 거부될 수 있다. 삭제한 원 관리 버튼이 DOM에서 소멸하면 같은 활성 프로젝트 Dashboard의 검색·추가·heading 중 실제 연결/표시 상태인 후보에 focus를 인계하되, 현재 활성 프로젝트/패널에 한정하고 또 다른 modal이 열려 있으면 기다린다. 한정된 RAF만 허용, 다른 날짜 좌표·SVAR viewport·WBS membership·Task source는 변화시키지 않는다.
@@ -256,3 +264,9 @@ Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하�
 로컬 증거와 최초 FAIL/제약은 [TEST_PLAN](TEST_PLAN.md#issue-551--opt-in-lane와-week-의미-local-fast-feedback)에 기록한다. production build/실제 운영·reverse proxy·실물 touch/screen reader·remote quality/e2e/docker는 이 개발 Chromium 증거로 대체하지 않는다.
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #622 PR #686 — 독립 layout 준비 검증 (2026-10-15)
+
+개발 전용 native init probe의 존재와 React/layout의 준비 완료를 구별한다. probe installer가 React 소유 `data-project-gantt-api-instance`를 덮어써 같은 함수의 두 출력을 서로 검증하는 방식은 사용하지 않는다. 진단 명령 준비는 현재 API의 identity, 실제 React commit, 해당 API의 viewport coordinator 설치를 독립적으로 확인해야 하며 이전 API나 cleanup된 coordinator는 준비 완료가 아니다. production 진단 비활성, 기존 canonical/viewport 소유권과 제품 lane 표시 계약은 유지한다.
+
+이 교정의 원본 PR CI #2773.1은 DOC_SYNC Preflight FAIL로 E2E를 실행하지 않았다. Work Packet의 최초 기능 PR 문서 기록과 현재 교정 PR 영향 분석을 분리하며, 기존 5초 readiness·1000 Task+2000 Milestone·native peer scroll/fullscreen/resize/geometry·mutation0를 새 exact Head에서 검증한다. Local Fast Feedback, 새 원격 CI 결과 및 Owner 수용은 별도 증거다.

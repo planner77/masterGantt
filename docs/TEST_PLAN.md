@@ -1,3 +1,10 @@
+## Issue #622 Main #2771.1 — #551 초기화 검사 재발 회귀 (2026-10-15)
+
+- [원본 Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383), merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`: E2E shard4(job 116106607229) `milestone-timeline-lane.spec.ts:62`, 1000 Task+2000 Milestone 5초 준비 gate FAIL. Shard4 135 PASS/1 FAIL/1 SKIP, 나머지 5 shard PASS, Quality/Docker PASS; GHCR image step SKIPPED. 실패한 것을 GHCR 권한 오류나 #622 Resource 수치 실패로 오인하지 않는다.
+- correction E2E: 같은 3000 canonical Task fixture·동일 테스트의 첫 준비 판정은 `frameApi===probeApi`+callable read+독립 coordinator `ready=true`를 요구하며 5초 한도 유지. 현재 API 아닌 stale probe/DOM 분리/부재는 FAIL하고 마지막 ID·read 존재·coordinator 준비를 오류 문자열에 표시한다. 실제 native 화면을 통한 Chart scroll·resize·fullscreen·return·5폭 기존 검증, no write, Project/Milestone/Resource 회귀 및 Shard6 전체는 유지한다.
+- 개발 probe는 `initialize(api)`에서 설치하지만 준비 완료는 React가 commit한 frame ID와 viewport coordinator 설치 effect의 독립 영수증으로 확인한다. installer가 frame ID를 덮어쓰지 않으며 초기/폐기 probe 명령은 거부한다. React ID 임시 제거 시 ready=false와 preview 거절, 복원 시 ready=true를 실제 Chromium에서 검증한다. production 초기화·데이터 변경·GHCR 정책·PR gating 변경 없음. PR CI 3종 + trusted QA + 새로운 push Main CI 3종 + candidate/digest/Finalizer는 정확 SHA 실행 전에 NOT TESTED.
+- `DESIGN.md`: N/A(시각/UI 변경 없음), DB_SCHEMA/API/Excel: N/A(도메인 변경 없음), `MILESTONE_TIMELINE.md`, `TEST_PLAN.md`, `REMOTE_VALIDATION.md`, 기존 #622 Work Packet: UPDATED.
+
 ## Issue #622 — Target Resource Plan·Excel 검증
 
 [PR #684 CI #2769.1](https://github.com/planner77/masterGantt/actions/runs/38632379339)에서는 E2E Shard2 `issue-622-resource-plan-target.spec.ts:57`의 선택 밖 Target B 이름 기대값이 `Target · UUID`로 표시되어 실패했다. 대량 Plan의 전체 projection 회피는 유지하고 `resource-plan-model.ts`의 canonical Target 이름 resolver에 `catalog.targetOptions` fallback을 추가하며 기존 E2E의 선택 Target A·선택 밖 B/편집 후 B 이름 단언을 강화한다. `tests/features/resources/resource-plan-model.test.ts`는 전체 projection이 없는 Plan에서 두 이름·dimension 격리·미연결/불명 fallback을 검증한다. 실패 시 timeout/기대값 완화·skip 없이 FAIL하고, 새로운 Head의 CI 실제 결과 전 NOT TESTED다.
@@ -3714,3 +3721,10 @@ R2 Local Fast Feedback: 신규 SQLite17 tests(원시 A5/B5/전체5 포함), 영�
 SC-11의 Resource→detail→Editor/일정→복귀와 관련 저장/실패/취소·readonly·scope/focus를 누적 검증한다. pure model·mock·실제 SVAR Chromium·실제 Next/SQLite·원격 전수 CI는 서로 대체하지 않는다. SC-14 대량3000행 Core readiness와 U5/#574 최종 통합 수용은 전용 검증과 Required E2E가 실제 끝나기 전 NOT TESTED다. timeout/skip/허용오차 확대만으로 실패를 숨기지 않는다. Windows Excel/DRM·운영 TLS/backup·실기기/screen reader·최종 수동 UX는 별도 환경 검증이다.
 
 최종 로컬 실행은 신규5개 전체 PASS/2.0분(session17064), 개별12.6/14.0/18.7/16.0/13.4초다. 실제390 clipping 및 cached-ready 복귀 뒤10ms 행 교체/focus BODY 실패를 고친 뒤 같은 필수 단언을 유지해 재검증했다. 현재 report와 정확 상세의 새 성공 receipt 이전에 focus하지 않으며, report를 보류한 동안 실제 검색 focus/ArrowRight 입력 후 늦은 복원이 이를 덮지 않는 사례도 통과했다. 2mode×5폭10 geometry와 합성 after PNG2개는 해당 실제 검증 증거이며 원격 CI/Owner 승인·환경별 검증은 아니다. 상세 최초 실패/Source 범위·최종 inventory는 Work Packet을 따른다.
+
+## Issue #622 PR #686 — Preflight 및 독립 readiness 회귀 (2026-10-15)
+
+- 원본 CI #2773.1 / run `38642502958` / attempt `1`은 QA Preflight job `116121359974`에서 `docs/SCHEDULING_ENGINE.md`의 UPDATED 선언과 correction diff 불일치로 FAIL했다. Quality/E2E/Docker 구현은 SKIPPED이므로 실행된 테스트의 PASS/FAIL로 표시하지 않는다.
+- 현재 correction의 DOCUMENTATION_SYNC는 실제 diff의 UPDATED와 구체적인 N/A 근거를 검증한다. 과거 feature PR #684의 문서 변경을 correction의 증거로 재사용하지 않으며 scheduling 계산 변경이 없는 이유를 명시한다. base validator와 gate는 그대로 사용한다.
+- `tests/e2e/milestone-timeline-lane.spec.ts`는 native probe identity와 React/layout 및 viewport coordinator 준비를 독립 확인한 뒤 진단 명령을 호출해야 한다. init 직후 또는 stale API/cleanup 상태를 ready로 수락하지 않는다. 기존 5초 readiness·1000 Task+2000 Milestone·peer Chart/Grid scroll/fullscreen/resize/geometry·mutation0 assertion을 유지한다.
+- Local Fast Feedback은 원격 full PR 3 required aggregates·Trusted QA·Owner 승인과 별도다. 원본 Main #2771.1 및 PR #2773.1 FAIL은 불변이며 새 Head의 결과로 소급 PASS하지 않는다.
