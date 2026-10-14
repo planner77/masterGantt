@@ -1,7 +1,7 @@
 ## Issue #680 — Main CI #2745 Milestone Editor GET ECONNRESET 후속 검증 (2026-10-14)
 
 - 원본 Main [#2745.1](https://github.com/planner77/masterGantt/actions/runs/38512238015) `59fa8f9e8743e03699741a654038b3086c0e1778`: Quality/Build/Docker, Chromium 5 Shards PASS; Shard2 `milestone-stage-editor.spec.ts:53` canonical GET ECONNRESET FAIL; GHCR 후보 SKIPPED.
-- `tests/e2e/milestone-stage-editor.spec.ts`에서는 읽기 전용 GET만 Playwright `maxRetries:1`로 일시적 연결 종료를 한 번 재조회한다. 응답 HTTP200을 명시하고 원래 revision+1, PATCH1, membership·rollback, geometry·focus·동일 Gantt 불변은 그대로 검사한다. POST/PATCH/DELETE 재시도 없음. 재조회 HTTP 실패·데이터 불일치·반복 연결 종료는 계속 FAIL.
+- `tests/e2e/milestone-stage-editor.spec.ts`에서는 읽기 전용 GET만 기존 `observeIsolatedApi`에서 최초 ECONNRESET/health/process/cgroup 진단을 남긴 뒤 외부 catch에서 최대 1회 재조회한다. Playwright 내부 자동 재시도는 진단 누락을 막기 위해 사용하지 않는다. 응답 HTTP200을 명시하고 원래 revision+1, PATCH1, membership·rollback, geometry·focus·동일 Gantt 불변은 그대로 검사한다. POST/PATCH/DELETE 재시도 없음. 재조회 HTTP 실패·데이터 불일치·반복 연결 종료는 계속 FAIL.
 - 원격 새 PR Head Quality/E2E6/Docker/Trusted QA, 리뷰0, 후속 Main CI·GHCR digest·Finalizer 각 성공 근거가 없으면 NOT TESTED. 상세 이행/누적 GSC 매핑: [Work Packet](exec-plans/active/ISSUE_680.md).
 
 ## Issue #619 — Target Resource KPI R1 검증 (2026-10-14)
