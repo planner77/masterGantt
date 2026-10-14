@@ -23,7 +23,7 @@
 - `docs/TEST_PLAN.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `AGENTS.md`, `docs/GITHUB_OPERATIONS.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`: N/A — 기존 CI/QA/검증 정책 및 Run 순서 불변
-- `DESIGN.md`, `docs/PROJECT_UX.md`, `docs/TASK_EDITOR.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`: N/A — UI/서버 API/DB/UX 변경 없음
+- `DESIGN.md`, `docs/PROJECT_UX.md`, `docs/TASK_EDITOR.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`, `docs/SCHEDULING_ENGINE.md`: N/A — UI/서버 API/DB/UX 및 Scheduling Engine 규칙·계산 변경 없음
 
 ## AC_TEST_COVERAGE
 - AC1: 원본 CI #2745.1 Shard2/Job 출처와 71PASS·1FAIL/5shard PASS 및 GHCR SKIPPED 증거 보존.
@@ -39,3 +39,7 @@
 
 - 새 PR #681의 [CI #2746.1](https://github.com/planner77/masterGantt/actions/runs/38514834346)는 source 테스트 실행 전에 QA Preflight FAIL: `PATH_POLICY` 최소 HIGH vs MEDIUM, `ISSUE_AC` Issue #680 AC1.. 이름 누락. 기존 세 Required Aggregate는 따라서 진짜 E2E 실패가 아닌 사전 차단으로 FAILURE 집계됐다.
 - Issue #680 본문 AC1~AC7 명시와 `risk_level=HIGH`, PR #681의 HIGH 및 Work Packet HIGH를 동일하게 정렬한다. 정책 검사 코드는 변경하거나 완화하지 않는다. 수정 후 정확 Head 전체 PR CI/Trusted QA 결과를 재확인하며 원본 #2746.1은 실패 기록으로 보존한다.
+
+## QA Preflight #2748.1 보완 기록
+
+- [Run #2748.1](https://github.com/planner77/masterGantt/actions/runs/38514972556)에서는 PATH_POLICY 및 ISSUE_AC가 PASS. DOCUMENTATION_SYNC에서 `docs/SCHEDULING_ENGINE.md` 영향 기록이 없어 FAIL. Scheduling Engine 구현·일정 계산/Dependency/Calendar 수정이 없는 test-only GET transport 회복이므로 해당 문서는 N/A로 명시했다. QA policy/기준 docs 자체는 변경하지 않는다. 원본 Run의 실패는 보존하고 이후 새 Head Full CI를 재검증한다.
