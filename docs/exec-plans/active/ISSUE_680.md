@@ -40,6 +40,9 @@
 - AC3: 전체 PR Required Quality/E2E6/Docker + Trusted QA/리뷰 0/최신 main: 새 Head 원격 검증 전 NOT TESTED.
 - AC4: 별도 PR 병합 후 새 Main push CI 및 임시 GHCR `ci-<full SHA>` digest/SBOM/provenance + Release Finalizer: 원격 증거 전 NOT TESTED.
 - AC5: 재발 시 isolated-application diagnostics/process/cgroup/OOM/runner 동시성 조사; 네트워크 원인 단정 금지.
+- AC6: 이 PR의 `release_required=false` / `release_authorized=false`, 버전 `0.111.0` 불변 및 기존 #618 정식 release 의무 미삭제를 Issue·PR·package/lockfile·Workflow 권한과 대조한다. 정식 태그·Release·stable GHCR 무승인 게시0은 운영 판정이며 완료 전 NOT TESTED.
+- AC7: 첫 ECONNRESET에 대해 `observeIsolatedApi`가 초기 transport_failure 및 process/cgroup/health를 수집한 후 제한적 외부 GET 재조회만 허용. 재발 시 trace와 memory/OOM/loopback/runner 동시성을 조사하며 원인이 확정되지 않으면 추정하지 않는다. 실제 오류 주입·운영 서버 원인 확정은 NOT TESTED.
+
 
 ## 승인·후속
 기존 PR #678을 다시 병합하지 않는다. 이 수정 PR의 정확한 Head에서 세 Required, Trusted QA 및 미해결 리뷰0, Owner 명시 병합 지시·잔여 위험 수용 확인 후에만 병합한다. Main CI 성공 이후 GHCR 임시 이미지와 Finalizer를 순서대로 검증한다. 정식 `0.111.0` tag/GHCR stable/Release는 별도 버전 승인 gate를 따른다.
