@@ -1,3 +1,9 @@
+## Issue #621 PR #683 CI #2759.1 — Resource Snapshot 변경 회귀
+
+- 기존 `tests/e2e/project-resource-workload-status.spec.ts`의 #525 external catalog revision/snapshot 교체 시 일반 KPI 상세 소멸·출발 KPI focus 복원·후속 검색 focus 보존과 상세 미부활을 필수 회귀로 유지한다. 이전 ready와 교체된 성공 보고서를 혼동하지 않도록 report confirmation ID 변경을 먼저 관찰한다.
+- #621 Target 상세는 유효한 canonical `targetPath`만 새 projection의 실제 서버 selector로 재바인딩하고, 삭제·필터 탈락 시 닫기/안내와 focus fallback을 유지한다. 별도 `issue-621-resource-target.spec.ts`의 실제 Chromium shared Task/Assignment·stale·filter·복귀 검증과 원격 E2E 6 Shard 전체 검증을 축소·skip 하지 않는다.
+- 실패 원본 #2759.1: shard 2의 #525 1 FAIL/49 PASS/22 NOT RUN, 나머지 Shard 취소. 신규 Head CI 실행 전 보완 검증 **NOT TESTED**; PASS 소급 없음. `AGENTS.md`, `DESIGN.md`, GSC-06/07/08/09/11 및 SC-11 참조. [#621 Work Packet](exec-plans/active/ISSUE_621.md) 참조.
+
 ## Issue #680 — Main CI #2745 Milestone Editor GET ECONNRESET 후속 검증 (2026-10-14)
 
 - 원본 Main [#2745.1](https://github.com/planner77/masterGantt/actions/runs/38512238015) `59fa8f9e8743e03699741a654038b3086c0e1778`: Quality/Build/Docker, Chromium 5 Shards PASS; Shard2 `milestone-stage-editor.spec.ts:53` canonical GET ECONNRESET FAIL; GHCR 후보 SKIPPED.

@@ -1,3 +1,9 @@
+## Issue #621 PR #683 — Resource 상세 Snapshot 무효화·Target 유지 (2026-10-14)
+
+기존 리소스 KPI·Milestone·진단 상세는 **서버에서 확정된 새 Snapshot**이 도착하면 이전 selector를 계속 열어두지 않고 상세를 닫고 기존 FocusRestoreBoundary의 출발 명령으로 focus를 돌린다. 현재 탭·검색 조건과 일반 Resource 화면의 소유 상태는 보존하되 다른 시점의 상세를 새 보고서의 유효 원본으로 가장하지 않는다. Query 변경도 기존처럼 선택을 해제한다.
+
+Target 교차/계층 상세만 예외로 현재 보고서 projection에서 동일 canonical `targetPath`를 재확인한 경우 현재 서버 selector로 재결속할 수 있다. 이탈·삭제·미매핑으로 경로가 사라지면 상세를 닫고 사용자에게 Target 필터 확인을 안내한다. 가상 행을 Task/Assignment 저장 원본과 혼동하지 않으며 원본 수정·임의 WBS 이동·새 viewport writer·Gantt remount는 없다. UI/UX 상태·권한·stale·focus 계약 및 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. Design Delta B(기존 디자인 원칙 적용).
+
 ## Issue #647 — Milestone 삭제 확인 뒤 native modal 포커스 인계 (2026-10-13)
 
 - 삭제 확인 Dialog의 성공/충돌/취소 경로는 기존 원 Milestone 목록의 **연결된 가시 관리 버튼**으로 포커스를 되돌리고, 삭제로 버튼이 소멸하면 같은 Dashboard에서 검색→추가→heading의 순서로 대체한다. modal `:modal` 상태에서는 외부 focus가 거부될 수 있으므로 WorkspaceDialog의 비동기 unmount/cleanup을 확인한 뒤 제한된 RAF로 복원한다. 다른 열린 modal·숨은 탭·다른 프로젝트·disabled/inert 노드로 포커스를 옮기거나 오래된 복원 요청을 무한 지속하지 않는다.

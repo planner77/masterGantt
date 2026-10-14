@@ -173,7 +173,16 @@ test("#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 �
   const mutate = <T extends { catalogRevision: number; snapshotId: string }>(data: T) => ({ ...data, catalogRevision: catalog, snapshotId: (catalog === 1 ? "a" : "b").repeat(64) });
   await page.route(path, (route) => { const data = mutate(resourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams)); data.scope.identity = data.snapshotId; return route.fulfill({ json: { data } }); });
   await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: { data: mutate(resourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams)) } }));
-  await open(page); await ready(page); const root = panel(page), kpi = root.getByLabel("선택 범위 KPI").getByRole("button", { name: "1건", exact: true }); await kpi.click(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toBeFocused(); catalog = 2; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await ready(page); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0); await expect(kpi).toBeFocused();
+  await open(page); await ready(page); const root = panel(page), kpi = root.getByLabel("선택 범위 KPI").getByRole("button", { name: "1건", exact: true }); await kpi.click(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toBeFocused();
+  const priorReportReceipt = await root.getAttribute("data-report-confirmation-id");
+  expect(priorReportReceipt).not.toBe("0");
+  catalog = 2; await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  // Observe a newly confirmed report before asserting that its *previous*
+  // snapshot's KPI detail disappeared. A merely ready cached report is not enough.
+  await expect.poll(() => root.getAttribute("data-report-confirmation-id")).not.toBe(priorReportReceipt);
+  await ready(page);
+  await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0);
+  await expect(kpi).toBeFocused();
   const detailRequests: string[] = [];
   page.on("request", (request) => { if (new URL(request.url()).pathname === `${projectPath}/resource-dashboard/details`) detailRequests.push(request.url()); });
   await kpi.click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();

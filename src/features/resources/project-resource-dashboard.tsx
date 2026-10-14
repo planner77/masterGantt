@@ -115,17 +115,30 @@ export function ProjectResourceDashboard({
   if (selectionScopeKey !== scopeKey) {
     setSelectionScopeKey(scopeKey);
     setSelection(null);
-  }
-  if (selection?.selector.dimension === "targetProjection" && data && !report.stale && selection.snapshotId !== data.snapshotId) {
-    let nodes = data.targetProjection?.children ?? [];
-    let found = true;
-    for (const part of selection.selector.targetPath ?? []) {
-      const node = nodes.find(item => item.dimension === part.dimension && item.id === part.id);
-      if (!node) { found = false; break; }
-      nodes = node.children;
+  } else if (selection && data && !report.stale && selection.snapshotId !== data.snapshotId) {
+    // #525: a fresh server snapshot invalidates ordinary KPI/Milestone/diagnostic
+    // details. Their exact source and focused trigger must not silently survive
+    // a catalog/project change. Only a canonical Target path can be rebound.
+    if (selection.selector.dimension !== "targetProjection") {
+      setSelection(null);
+    } else {
+      let nodes = data.targetProjection?.children ?? [];
+      let currentSummary: ResourceDashboardSummary | null = null;
+      for (const part of selection.selector.targetPath ?? []) {
+        const node = nodes.find(item => item.dimension === part.dimension && item.id === part.id);
+        if (!node) { currentSummary = null; break; }
+        currentSummary = node.summary;
+        nodes = node.children;
+      }
+      if (!currentSummary) {
+        setSelection(null);
+        setSelectionNotice("저장되어 현재 조건에서 제외되었습니다. Target 필터 또는 집계 범위를 확인하세요.");
+      } else {
+        // #621: rebind to the *current* server selector, never retain the prior
+        // snapshot's virtual row identity after a report refresh.
+        setSelection({ ...selection, selector: currentSummary.selector, snapshotId: data.snapshotId });
+      }
     }
-    if (!found) { setSelection(null); setSelectionNotice("저장되어 현재 조건에서 제외되었습니다. Target 필터 또는 집계 범위를 확인하세요."); }
-    else setSelection({...selection, snapshotId:data.snapshotId});
   }
   useLayoutEffect(() => { if (selectionNotice && active && !refreshDisabled) search.current?.focus({preventScroll:true}); }, [selectionNotice, active, refreshDisabled]);
   const refreshReport = report.refresh;
