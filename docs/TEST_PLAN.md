@@ -1,3 +1,18 @@
+## Issue #623 — Resource MVP 통합 수용
+
+| AC | 검증 파일·범위 |
+| --- | --- |
+| AC1 | tests/fixtures/issue-623-target-resource.ts·tests/domain/issue-623-target-resource-acceptance.test.ts,신규SQLite/Chromium/OOXML:sharedA5/B5/union5·AMR15/ACS2/MCS1·samecanonicalrawIDs,기존53011.5별도보존 |
+| AC2 | tests/e2e/issue-623-resource-mvp.spec.ts·전용fixture,기존621/622/528집중회귀:name/date/status/progress/allocation/membership개별저장1·복제0·query0·권한/원자성/stale·복귀 |
+| AC3 | tests/server/db/issue-623-target-migration.test.ts와신규server수용:actual0024→27·checksum/order/latebatchrollback·합성backuprestore/restart·Copy/Template/newIDs/sharedMCS/globalreuse/coverage/site거부·format |
+| AC4 | 대표fixtureSQL/time/JSON/workbook/render·fanout/응답/한도거부,390/768/1024/1440/1920px tree/matrix geometry/keyboard·sameCore |
+| AC5 | TARGET_RESOURCE_USER_GUIDE의구성→연결→집계→편집→과투입→Excel·partial/비가산/미연결/WorkArea미사용과실제UI대조 |
+| AC6 | TARGET_RESOURCE_ACCEPTANCE/WorkPacket/activePLAN/rollout의요구사항↔AC↔test↔docs↔sourcehash↔exactHead원격인계와M2/V1별도상태 |
+
+신규 Domain8case는 조회순서/cache오염·Target구성/allocation/progress독립변화·sharedrawID/주월/일별합·T0/A/R·partial/null·예산거부후불변을 기존 엔진으로 확인한다. 신규 migration은 실제0024 schema·빈DB·pending0025/26/27·checksum/gap·전체rollback·구binary/newledger거부·임시backup/새파일restore를 검증한다. 실제 WindowsExcel/운영DB/off-host·TLS·실기기/스크린리더·최종수동UX는 별도환경 NOT TESTED다.
+
+실제 파일/명령/테스트수/최초FAIL·보완/관측값·사전검토·원격시작은 [#623 Work Packet](exec-plans/active/ISSUE_623.md)과 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에 기록한다. skip/timeout/단언완화로 실패를 숨기지 않는다. 기존530/528/Milestone/Calendar/TaskEditor·canonical/viewport 회귀 및Required3/Trusted/Owner승인을 이번 집중수용으로 대체하지 않는다.
+
 ## Issue #622 — Target Resource Plan·Excel 검증
 
 [PR #684 CI #2769.1](https://github.com/planner77/masterGantt/actions/runs/38632379339)에서는 E2E Shard2 `issue-622-resource-plan-target.spec.ts:57`의 선택 밖 Target B 이름 기대값이 `Target · UUID`로 표시되어 실패했다. 대량 Plan의 전체 projection 회피는 유지하고 `resource-plan-model.ts`의 canonical Target 이름 resolver에 `catalog.targetOptions` fallback을 추가하며 기존 E2E의 선택 Target A·선택 밖 B/편집 후 B 이름 단언을 강화한다. `tests/features/resources/resource-plan-model.test.ts`는 전체 projection이 없는 Plan에서 두 이름·dimension 격리·미연결/불명 fallback을 검증한다. 실패 시 timeout/기대값 완화·skip 없이 FAIL하고, 새로운 Head의 CI 실제 결과 전 NOT TESTED다.

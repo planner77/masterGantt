@@ -1,5 +1,11 @@
 # Backend API
 
+## Issue #623 — 기존 API의 통합 수용 범위
+
+새 route/DTO·권한·오류/예산 계약을 추가하지 않는다. 공정 표준/사업장 occurrence/WorkArea→Target/member→Task binding→Resource report/detail/Plan→exact Assignment 편집→Resource Excel을 기존 API로 연결해 같은 raw identity/snapshot과 원자성을 검증한다. name/date/status/progress/allocation/membership mutation은 각각 정확 method/path/body·revision1회·복제0으로 관측한다.
+
+master/Target/binding/Calendar/Resource 변경 후 구 report/detail/source·current/project export는 mixed snapshot 성공을 반환하지 않는다. 기존 snapshot stale409/Excel412,session/Origin/strong If-Match,readonly 및 body/response/fan-out/workbook 한도를 유지한다. Copy/Template의 다른 사업장 자동 retarget을 새 API로 추정하지 않는다. [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)의 실제 테스트/미검증을 따른다.
+
 ## Issue #622 — Target Resource Plan 상세 및 Excel
 
 `granularity=week|month` Plan 조회 시 optional `catalog.targetOptions` (Target/공정/WorkArea/설비·시스템 유형/인스턴스의 기존 canonical 목록)를 반환해 필터 UI를 지원한다. Plan은 `projectionOrder`를 암묵적으로 전송하지 않으며 이를 명시하지 않은 Plan 요청에서는 Target 필터가 있어도 `targetProjection` 전체 계층을 생성하지 않는다. 기존 Target 보기의 명시적 계층 투영과 granularity 없는 Target-only 보고서는 기존 예산·응답을 유지한다. 대량 Plan은 새 projectionCells5000 실패를 피하되 일반 KPI/Plan/2MiB/snapshot 상한 및 명시 Target 계층 요청의 422는 완화하지 않는다.

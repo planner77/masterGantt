@@ -1,3 +1,7 @@
+## Issue #623 — Resource MVP Q1 통합 수용·운영 인계 (2026-10-15)
+
+기준 main `bd54205741da65a0211cf77f9cb086d3cdb1ab2a` / app0.114.0,전용test/issue-623-target-resource-acceptance. [Work Packet](ISSUE_623.md)의공통golden·실제API/Chromium/OOXML·legacymigration/CopyTemplate/복구/format·5폭/성능·사용자/운영가이드와[수용표](../../TARGET_RESOURCE_ACCEPTANCE.md)를 구현한다. 테스트/문서만이면version유지/release_required=false;제품결함은Manager재판정. HIGH/OWNER_MANAGED/qa_required=true,release_authorized=false. 최종M2수용·OwnerACCEPT/원격3Required/Trusted·mainartifact는별도이며 #624/V1·Epic전체완료로확대하지않는다. 요청종료점은스레드/충돌처리후FullPRCI시작,결과monitoring/병합/게시/Issue종료는미수행이다.
+
 ## Issue #622 — Target Resource Plan·과투입·Excel / PR CI 시작까지 (2026-10-14)
 
 최신 main `53c57743`에 #621 PR #683이 반영되어 있다. [Work Packet](ISSUE_622.md)의 기존 Plan·Calendar·raw Assignment와 Excel bundle/writer를 확장하여 선택80%/같은 개인 Project140%, Target 밖 정확 원인 편집/복귀와 같은 snapshot의 current/project Excel을 구현한다. 후보 minor0.114.0, HIGH/OWNER_MANAGED, qa_required=true, release_required=true/release_authorized=false. 구현·문서·Local Fast Feedback·사전 검토·스레드/충돌 처리 후 Full PR CI 시작에서 멈춘다. 원격 Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 병합/main/GHCR/Release/Issue 종료·#623 종단 수용은 별도다.

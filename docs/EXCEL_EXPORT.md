@@ -1,5 +1,11 @@
 # Excel Export
 
+## Issue #623 — 같은 golden 원시 API↔OOXML 수용
+
+기존 writer/서식/current-project/Target 근거를 변경하는 형식 확장이 아니다. 같은 canonical report/filter/snapshot/asOf/Calendar/mdPerMm에서 Task/Assignment/Resource ID·raw M/D/M/M·null/0·주월 selected/project Plan 지표와 중첩 Target 근거를 programmatic OOXML cell/header로 대조한다. shared5의 A5/B5/union5·AMR15/ACS2/MCS1과 unknown/known0을 원시 grain으로 구별한다.
+
+Target/member/master/Calendar/Resource 변경 뒤 구 export descriptor는 실패해야 하며 plain 일정/JSON의 loss guard와 opt-in 보고서의 비왕복 허용을 유지한다. Excel은 backup/원가배분 형식이 아니다. 실제 workbook·UI download·문자열/크기 예산 및 WindowsExcel 별도 NOT TESTED를 [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), [Work Packet](exec-plans/active/ISSUE_623.md)에 연결한다.
+
 ## Issue #622 — Target 조건의 동일 원시 Resource 보고서
 
 기존 Resource Excel bundle/writer와 `resourceDashboard` strict current/project union을 확장한다. current는 같은 snapshot·입력 조건·exact source를 보존하고 project는 실제 기간/asOf/Calendar/M/M 정책을 유지하면서 Target/공정/WorkArea/member/type/instance 및 개인/Task/Milestone/source 조건을 제거한다. 선택 기여와 same-R Project 참고를 구별하며 latter는 전사 부하가 아니다. 기존 Gantt/Tasks/Project/Stages/Resource Effort는 Project 전체 기준이다.

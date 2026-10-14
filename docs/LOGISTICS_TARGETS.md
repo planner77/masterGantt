@@ -1,5 +1,11 @@
 # Logistics Target 계약 — F0 (#614)
 
+## Issue #623 — Resource MVP 통합 수용·운영 인계
+
+기초 구성부터 Task/Summary whole/subset·직접/상속, Resource/Plan/정확 편집·Excel까지 같은 canonical fixture로 통합 검증한다. shared5 M/D의 A5/B5/선택전체5,AMR15/ACS2/공유MCS1 및 T0/A/R·partial/미연결 의미는 기존 resolver/계산기를 재사용한다. 새로운 기능 원장·자동 site 재배치·전체 JSON 포맷을 만들지 않는다.
+
+사용 방법은 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), actual0024→27 이관·Copy/Template/backup/rollback 경계는 [운영 절차](TARGET_RESOURCE_OPERATIONS.md), 요구사항·원시 ID/수치·실제 실행·원격 상태는 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)와 [Work Packet](exec-plans/active/ISSUE_623.md)을 따른다. 로컬 수용 후보와 Owner/원격/Main gate를 구별하며 #624/V1·Epic 전체 완료를 주장하지 않는다.
+
 ## Issue #622 — Resource Plan·Excel에서의 Target 근거
 
 R4는 기존 Target/member/binding·same-binding/member projector를 기간 Plan과 Resource Excel 보고서에 연결한다. 선택 Target는 개인 Assignment 기여만 제한하며 Capacity R·같은 개인의 Project 전체 부하는 줄이지 않는다. 일별 전체 참고 원인에는 선택 밖 Target/legacy 미연결 Task도 포함하고 출발 선택과 현재 참고 scope를 구별한다.
@@ -217,18 +223,18 @@ Resources > Group / Resource / Target (동일 보고 snapshot)
 
 | 경로 | 현행 사실 | 후속 계약·안전 Gate |
 | --- | --- | --- |
-| migration | ledger 최신0024, 적용SQL checksum 불변·순차 migration, pending batch transaction/FK check | F1부터 additive tables/nullable 명시 mapping; 기존 자유 공정·이름을 자동변환하지 않음. 적용 전 backup, 중간 실패 전부 rollback |
+| migration | 현행 ledger0027,0025공정→0026Target→0027binding;checksum/order/pendingbatch/FK검증 | 기존 자유공정/비활성참조를 이름으로 변환하지 않음. 적용 전 일관 backup,중간 실패 전체 rollback·복원 절차는 TARGET_RESOURCE_OPERATIONS |
 | 기존 Project | 기존 logistics/직접 link 운영 | Target0개로 유효; unmapped 목록+명시 매핑 preview, 영향/revision 확인 후 저장 |
-| process 재매핑 | 현재 공통 occurrence 없음 | 사용 Target/WorkArea를 함께 재검증, 불일치 남으면 전체거부. label 동명 매핑 금지 |
+| process 재매핑 | 명시 occurrence/optional WorkArea mapping 지원 | 사용 Target/WorkArea를 함께 재검증, 불일치 남으면 전체거부. label 동명 매핑 금지 |
 | Project copy | local IDs remap, global Resource IDs 유지, canonical revision 신규1 | Target/member/binding/subset/coverage 전부 local ID remap, 동일 copy transaction. cross-triple copy는 명시 재매핑 또는 거부, 일부 누락 성공 금지 |
-| Template | logistics code 참조+Resource publicID+Task externalID snapshot, 새 local ID 생성, schemaVersion 없음/옛 omission 허용 | versioned Target extension/capability 검사 선행. code는 포맷 내부 참조만, 런타임 identity 아님. 누락 member/occurrence는 오류; 현재 resolver의 일부 누락 필터를 새 Target에 재사용 금지 |
-| WBS JSON1.0/1.1·CSV | strict 입력, logistics/Resource 전체 backup 아님 | 기존 포맷에 몰래 Target 삽입/무시 금지. 지원 전 Target 포함 export/import/copy는 명시 경고·거부/선택 동의, 무손실 왕복 주장 금지 |
+| Template | binding 포함 logistics schemaVersion3, binding 없는v2/legacy호환;local ID재발급/global참조재사용 | code는 포맷 내부 참조이며런타임identity아님. 누락/잘못된member·occurrence·site는전체거부,자동cross-site retarget지원으로추정하지않음 |
+| WBS JSON1.0/1.1·CSV | strict 입력, Target/물류/Resource 전체 backup 아님 | Target-bearing 일정 JSON/plain Excel 및 신규 binding Import는 loss guard로 거부. Project Copy/Templatev3 지원과 별개이며 opt-in Resource Excel은 보고서로만 허용 |
 | #379 전체 참조 JSON | 별도 외부 참조 snapshot 범위 | occurrence/WorkArea/Target/member/binding/provenance의 versioned schema 인계; 복원 가능한 backup과 구분 |
 | Resource/Excel | 기존 원시 Assignment/Calendar/same snapshot 상세 | 새 축/필터/selector/fingerprint를 일치 확장, raw detail/exact 합계 교차검증; 보고를 import 포맷으로 표시하지 않음 |
 | Task type/move/delete | 기존 canonical 변경 경로 | subtree를 비Summary로 바꾸면 명시 정리/거부, move는 새 조상 합집합 재계산; Target/instance 복제0 |
 | rollback | 자동 down migration 미지원, 이전 app은 새 ledger 해석 불가 | schema-only라며 구 app만 되돌리지 않음. 일관된 업그레이드 전 DB backup+대응 app 복원 또는 forward corrective migration; 새 데이터 유실 경고·복구 실증 |
 
-F0은 migration을 실행하지 않으므로 운영 DB 적용/backup-restore는 NOT TESTED다. F1/F2는 빈 DB·기존0024 DB·실패 rollback·재시작·cross-project FK·inactive·copy/template를 각 PR에서 검증한다. 기능 노출은 저장·canonical·호환 guard가 준비된 단계에만 한다.
+F0 당시에는 migration을 실행하지 않았다. 현재0025~0027 및 Copy/Template구현과합성fresh/actuallegacy·rollback/backup/restart통합검증은 #623수용표에연결한다. 실제운영DB적용/off-hostbackuprestore는별도환경 NOT TESTED이며 로컬검증으로대체하지않는다.
 
 ## 9. 공통 fixture와 수용 경계
 

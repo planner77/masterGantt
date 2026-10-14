@@ -1,5 +1,11 @@
 # Resource KPI 공통 집계 계약
 
+## Issue #623 — 공통 원시 집계의 종단 수용
+
+Q1은 tests/fixtures/issue-623-target-resource.ts의 독립 oracle로 기존 Target/KPI/Plan과 API/UI/OOXML의 canonical Task/Assignment/Resource ID·raw M/D/M/M·nullable 상태를 대조한다. shared A5/B5/union5와 수량 AMR15/ACS2/MCS1, 별도 #53011.5,TargetA80%/same-RProject140%,Group 평균 뒤 개인 초과와 unknown을 검증한다. 수량/진척을 공수에 곱하거나 Target/Group 소계를 전체로 더하지 않는다.
+
+Plan은 최신 #622의 경량 catalog.targetOptions를 유지하며 full Target projection을 암묵 추가하지 않는다. 산식/원장 변경 없는 통합 검증이다. 사용자 흐름·운영·성능/한도·실제 실행·원격/환경별 미검증은 [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [가이드](TARGET_RESOURCE_USER_GUIDE.md), [Work Packet](exec-plans/active/ISSUE_623.md)을 따른다.
+
 ## Issue #622 — Target 조건 Plan·Project 과투입·Excel
 
 주/월 Plan은 `targetProjection`이 없는 정상 DTO에도 `catalog.targetOptions`를 보유한다. 기간·개인·정확 Assignment 상세와 출발 Target 표시는 선택 기여 범위 밖의 Project 전체 참고 Target도 이 원본 목록에서 **dimension=target + canonical ID**로 이름을 찾는다. 조회 ID·범위·원시 M/D/M/M·수량/Capacity를 이름 표시를 이유로 재계산하지 않는다. 명시적 Target 보기의 projection 목록도 유효하며, 이름 미존재는 다른 축 이름으로 추정하지 않는다.

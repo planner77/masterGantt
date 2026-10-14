@@ -1,5 +1,11 @@
 # Architecture draft
 
+## Issue #623 — 기존 경계의 통합 수용
+
+생산용 엔진·서비스·DB schema·API·Gantt/viewport writer를 새로 만들지 않는다. 공통 logical fixture를 동일 canonical snapshot에 매핑하여 기존 resolver→KPI/Plan→read transaction→DTO→UI/OOXML의 raw identity/수치·snapshot·nullable 계약을 검증한다. 상태/저장의 소유권과 읽기/편집/보고서/운영 backup의 경계를 유지한다.
+
+신규 통합 tests와 기존 회귀·사용자/이관 문서·원격/환경별 gate는 [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)에 연결한다. 테스트/문서 전용일 때 app0.114.0·dependency graph를 유지하며 제품 결함 수정은 별도 영향/version 판정이 필요하다.
+
 ## Issue #622 — 기존 Plan·Excel의 Target 분석 확장
 
 R4는 기존 ResourceDashboardService의 read transaction과 #619 projector/#617 resolver, pure Plan/Calendar/M/M 계산기를 재사용한다. Target 선택은 selected A만 제한하고 Capacity R 및 same-R fullProject A를 보존한다. 일별 상세의 Target 출처·source/current context와 Excel의 canonical graph/원시 Assignment 근거는 같은 read snapshot에서 enrich하며 별도 공수 원장·Calendar·Excel 계산기를 만들지 않는다.

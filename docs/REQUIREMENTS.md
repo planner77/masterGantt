@@ -1,5 +1,11 @@
 # Requirements baseline
 
+## Issue #623 — Resource 우선 MVP의 Q1 수용 Gate
+
+기초 공정/Target/Task 연결부터 Resource·Plan·정확 원본 편집·Excel까지 shared canonical fixture와 실제 API/Chromium/OOXML로 통합 재검증한다. 기존530·same-binding/member·T0/A/R·nullable·같은 snapshot·권한/원자성/복귀를 보존하고 fresh/legacy migration·Copy/Template·backup/restart·format 경계를 검증한다.
+
+[수용표](TARGET_RESOURCE_ACCEPTANCE.md)는 요구사항↔Issue↔AC↔test↔문서↔exact-head 원격 인계를 연결한다. [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)와 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)를 제공한다. 이번 로컬 후보/PR CI 시작은 최종 M2/Owner ACCEPT·main artifact 완료가 아니며 #624/V1이 미완료인 Epic 전체를 종료하지 않는다.
+
 ## Issue #622 — Target Resource Plan 및 Excel
 
 Target 조건은 선택 공수만 제한하고 기존 개인 모집단 R·Calendar·고유 resource-day Capacity를 유지한다. 같은 개인의 선택80%/해당 Project 전체140%와 Target 밖 정확 Assignment 원인을 구별한다. 일별 Peak/개인 초과/unknown을 Group 평균이나 기간 합계로 숨기지 않으며 nonadditive distinct 상태는 전체 집합에서 재계산한다.
