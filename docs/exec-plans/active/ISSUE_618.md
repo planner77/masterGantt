@@ -134,3 +134,9 @@ release_authorized: false
 - 구현: Task Editor가 물류 Target 상세에서 열린 경우, canonical reload로 끊어진 trigger를 동일 Task ID의 최신 Target dialog button 또는 dialog 닫기 fallback으로 복구한다. 상위 native modal이 다시 `:modal`이 된 뒤에만 focus하며 최대24 RAF/현재 generation 검사, 새로운 dialog/사용자 의도가 우선이다. Gantt remount·Core/viewport writer·Task mutation/재조회 의미는 변경하지 않는다.
 - 검증 변경: 기존 assert 삭제/초점 회귀 skip 대신 actual dialog의 `:modal` 및 내부 focus를 Playwright auto-retry assertion으로 확인한다. 오류/데이터/Task ID/원본 인스턴스 불변 검증은 보존한다. #661 GSC-07/08/09, SC-11/13의 focus settle 조건을 보강한다.
 - 해당 구현의 별도 로컬 실제 browser/전체 CI는 **NOT TESTED**. 새 Head exact PR Quality/E2E6/Docker, Trusted QA 및 Owner HIGH 잔여 위험 수용 후에만 병합한다. 정식 `0.111.0` tag/GHCR 버전 승인은 `release_authorized=false`로 별도이며 Main CI 임시 GHCR `ci-<SHA>` → exact digest/SBOM/provenance → Release Finalizer 순서를 유지한다.
+
+## 2026-10-14 CI #2743.1 Shard 5 transport failure / focused revalidation
+
+- Full PR CI [#2743.1](https://github.com/planner77/masterGantt/actions/runs/38508177774), Head `6cb27f91ba497c6ef3732f809743014275d762ad`: Preflight/Quality/Docker PASS, Shard4의 #618 Target 6 E2E 모두 PASS(원래 상세 focus 포함). Shard5는 기존 #261 `project-resource-calendar-persistence.spec.ts:60`에서 PUT200/내부 canonical GET200/toast 성공 뒤 별도 검증용 GET `/work-calendar`의 `ECONNRESET` 발생. 앞선 53건 PASS. 다른 shard는 Fail-Fast 취소로 전체 전수 검증 NOT TESTED. 서버 crash/transport 구체 원인은 diagnostics가 없어 확정하지 않는다.
+- 범위 한정 완화: Playwright `APIRequestContext.get`의 공식 `maxRetries:1`은 1.46+에서 `ECONNRESET`만 재요청하고 HTTP 실패 응답을 재시도하지 않는다(설치 `@playwright/test 1.63.0`). 저장 변경은 재시도하지 않으며 재조회 HTTP200 명시, customDates2/WORKING2, Task/Link 동일, Gantt identity/focus/scroll 등 실제 원래 단언은 유지한다. 1회 초과 연결 실패·서버 다운·HTTP 4xx/5xx·실제 데이터 차이는 계속 FAIL. 이 조치는 연결 안정성 가설을 시험하기 위한 test-only mitigation이며 서버 원인을 해결했다고 주장하지 않는다.
+- 재검증: 변경 후 선택/전체 Chromium, Quality, Docker, Trusted QA는 **NOT TESTED**. 이전 #2743 FAIL은 소급 PASS 하지 않으며 exact 새 Head PR CI와 기존 approval gate가 필요하다.
