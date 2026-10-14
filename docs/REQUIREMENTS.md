@@ -1,5 +1,13 @@
 # Requirements baseline
 
+## Issue #619 — Target 관련 계획 공수 분석
+
+기존 Resource KPI 계산은 한 Project canonical Task/개인 Assignment/Resource 분류/Calendar 및 #617 Target binding 해석 결과에 Target·공정·WorkArea·typed instance 조회 축을 추가한다. 같은 Target binding 안에서 member 조건을 만족해야 하며 ACS-only subset을 같은 Target의 AMR로 확대하지 않는다. 같은 축은 OR, 다른 축은 AND이고 개인 Group/Role/grade는 같은 개인 Assignment 조건이다.
+
+관련 계획 M/D·M/M, 할당 Task/Resource, 완료/진행/지연·duration 가중 진척, 미배정/공수 미설정을 제공한다. Target 소계는 중첩될 수 있고 선택 전체는 고유 `(projectPublicId,assignmentId)` 원시합으로 계산한다. 실적/원가 기여/잔여공수를 추정하거나 설비 수량을 공수에 곱하지 않는다. Target 미연결·legacy 직접 연결·공통 범위·무구역·공정 미매핑을 구분하고 T0 진단 및 full Milestone Gate를 유지한다.
+
+R1은 pure domain 계약이며 사용자 UI/API/Excel 지원을 뜻하지 않는다. #618 최소 UI와 #620~#622 공개 및 #623 종단 수용은 별도다. 세부 계약과 검증 상태는 [Resource KPI](RESOURCE_KPI_DASHBOARD.md), [Work Packet](exec-plans/active/ISSUE_619.md)을 따른다.
+
 ## Issue #538 — 프로젝트 기준정보 관계 (후속 계약)
 
 #289의 독립 선택/cascading 비범위 기록은 당시 범위에 한정된다. #538부터 사업부→제품→사업장/법인 관계를 Project Master의 추가 Source of Truth로 관리한다.
