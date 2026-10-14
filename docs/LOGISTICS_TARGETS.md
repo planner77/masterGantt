@@ -2,6 +2,16 @@
 
 상위 [Epic #613](https://github.com/planner77/masterGantt/issues/613). 기준은 2026-10-11 main `cbc73740236f3b3e177e2ed3196a0d02a292c741`, application `0.104.4`, `@svar-ui/react-gantt 2.7.3`다. 이 문서는 **후속 구현의 확정 설계 계약**이며 F0에서 runtime/SQL/API/UI를 추가하지 않는다. 실행 순서·담당·Gate는 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md), 이번 증거는 [#614 Work Packet](exec-plans/active/ISSUE_614.md)에서 관리한다.
 
+## R3 화면·편집 경계 — Issue #621
+
+#618 composer와 #620 보고 API를 재사용해 기존 Resource 탭에 Target 계층·역방향·Group/Resource×Target 비교를 연결한다. 같은 Task/Assignment가 여러 Target 경로에 표시돼도 canonical ID는 하나이며 표시 key만 경로별로 구별한다. Task 편집·개인 Assignment 편집·Target 구성 편집은 각각 기존 저장 명령으로 구분한다. 조회용 Group/Target/합계는 직접 저장하지 않는다.
+
+Target/공정/occurrence/Process Type/WorkArea/typed member/type 필터는 같은 server query를 사용한다. Target 소계는 관련 계획 공수이며 배분 원가·실적·설비 대수별 완료가 아니다. 선택 전체는 raw Assignment 합집합이고 full canonical Project 참고는 별도 범위다. 전체값은 페이지·접힌 행의 합이 아니다. 작업 미연결·legacy-only/미매핑·무구역·프로젝트 공통과 partial/all-unset를 구별한다.
+
+저장 뒤 모든 관련 projection은 같은 canonical revision으로 재조회하거나 stale로 표시한다. 원래 조건에서 탈락한 행은 복제하거나 자동 Target 재할당으로 복원하지 않으며 사유와 유효 focus를 안내한다. grouping/정렬/보기 전환은 WBS parent·Task 날짜·Dependency·allocation을 바꾸지 않는다. #622 주/월 Plan·Excel, #623 종단간 수용, #624 확장 물류 화면은 별도다. 실제 결과는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.
+
+Resource의 대상 구성 편집 진입은 실제 `projectRevision`을 포함하는 기존 Target 목록 응답에서 정확 Target ID를 찾는다. 이전 report 기준과 다르면 편집을 시작하지 않는다. revision을 반환하지 않는 단건 GET을 과거 closure revision으로 임의 포장하지 않는다. 목록은 bounded 조회·응답 취소/세대 확인을 거치며 최종 mutation의 strong If-Match가 다시 검증한다.
+
 ## F1 구현 경계 — Issue #615
 
 F0 계약 이후 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 F1을 구현한다. 후보 app `0.106.0`, migration `0025_process_catalog.sql`; 실제 운영 적용·원격 CI·release 성공은 별도다. [#615 Work Packet](exec-plans/active/ISSUE_615.md), [현행 API](API.md), [실제 DDL](DB_SCHEMA.md)을 함께 따른다.

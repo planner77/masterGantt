@@ -1,0 +1,60 @@
+{
+  "capturedAt": "2026-10-14T08:39:29.849995+00:00",
+  "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-621-resource-target.spec.ts",
+  "status": "PASS",
+  "testsPassed": 5,
+  "totalReportedDuration": "2.0m",
+  "caseSeconds": {
+    "HTTP union/exact source/readonly": 12.6,
+    "Task Resource/WBS same identity": 14.0,
+    "Target matrix/tree/5width/paging/bound scope/return/composer": 18.7,
+    "precise Assignment/null coassignee/412/401": 16.0,
+    "inverted response/409/recovery/dirty cancel/filter drop": 13.4
+  },
+  "sourceInventorySha256": "d6d5da25c3f555c99e7068fe41036e511b8c68c57a5e3ddf4a781a01410499e3",
+  "observedEnvironment": {
+    "capturedAt": "2026-10-14T08:36:50.083Z",
+    "browser": "153.0.8010.12",
+    "widths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "zoom": "default100%; native125% NOT TESTED",
+    "locale": "en-US",
+    "timezone": "Asia/Seoul"
+  },
+  "evidence": [
+    "target-matrix-390.png",
+    "target-matrix-1440.png",
+    "matrix-geometry.json",
+    "source-scope-evidence.json",
+    "source-inventory.json",
+    "environment.json"
+  ],
+  "preservedEarlierFailures": [
+    "readonly test disabled vs native readOnly oracle corrected",
+    "matrix native child hit-test oracle corrected; sticky focus overlap found and fixed",
+    "explicit all-person source2 distinguished from exactAssignments source1",
+    "401 transient text replaced by stable permission/draft-preservation oracle",
+    "Task Editor discard label corrected; original180s timeout retained",
+    "nested return focused cached row then revalidation detached it; actual focus/network timeline retained; current report/detail receipt fix passed"
+  ],
+  "limitations": [
+    "PR quality/e2e/docker NOT TESTED: CI not monitored",
+    "Existing full Milestone/Plan/#528/#530 suites NOT TESTED locally; selected compatibility views and source-bound flow were exercised",
+    "Actual Chromium widths390/768/1024/1440/1920 with5Target columns; matrix column paging actual, detail paging HTTP limit1 only",
+    "No real native125% zoom, physical touch device, screen reader, or production proxy validation",
+    "Before screenshot NOT TESTED; after screenshots use only synthetic fixtures",
+    "Fresh explicit scheduleSelection(all personal) source+Alice filter UI differs from HTTP exactAssignments1 A/B/path preservation"
+  ],
+  "localOnlyEvidence": [
+    "return-focus-diagnostic.json",
+    "return-focus-timeline.json",
+    "first-failure/",
+    "run*-failures/"
+  ],
+  "sourceInventoryScope": "package/lock, production source, E2E spec/fixture (20 files); Unit test files and documentation are reviewed separately"
+}

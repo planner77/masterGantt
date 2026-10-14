@@ -1,5 +1,27 @@
 # Resource KPI 공통 집계 계약
 
+## Issue #621 — Resource–Target 보기와 동일 원본 편집
+
+기존 `리소스` 탭에서 Target 계층·역방향·교차표를 조회한다. Resource 우선은 Group→Resource→Target, Target 우선은 Target→Group→Resource이며 마지막 상세는 고유 Task 또는 원시 Assignment다. 비교 행은 Group/Resource, 열은 Target이다. 기존 기본 현황·Milestone 계층/비교·Resource Plan을 유지한다. #620의 같은 server filter와 `projectionOrder`/`targetPath` selector를 사용하며 화면에서 공수를 다시 계산하지 않는다.
+
+Target 비교의 지표는 관련 계획 공수·Task·완료·지연·진척이며 수치는 node의 서버 summary에서 읽는다. 완료율 분모는 선택 고유 Task 수, 기간가중 진척은 같은 고유 Task의 `sum(duration×progress) / sum(duration)`이며 Assignment 수와 구별한다. 진척의 기간 분모0은 미산정이다. 표시 정렬은 원본을 변경하지 않는다. 비교 Target 열은 한 번에4개를 표시하며 열 페이지를 이동해도 서버 총계·선택 전체·다른 Target scope는 그대로다. 상세 Assignment 페이지는 기존 bounded API pagination을 재사용한다.
+
+기간·Target·검색을 먼저 선택하고 공정/occurrence/Process Type/WorkArea/설비·시스템 종류·인스턴스는 고급 필터에서 좁힌다. 작업 미연결, legacy 직접 연결만 존재, 공정 미매핑, WorkArea 미사용, 프로젝트 공통은 별도 상태다. legacy 공유 인스턴스로 Target 연결을 추정하지 않는다. 전체 Project 참고는 필터·exact source를 제거한 full canonical 참고이며 선택 전체와 분리한다. Task/Assignment·완료/진척의 분모, 알려진 부분합·all-unset·M/M 기준 미설정 및 소계 비가산을 표시한다. 접힘·페이지·비교 행을 더해 전체값을 만들지 않는다.
+
+대상 catalog가 아직 없는 기본 현황에서는 Target 보기에서 목록을 확인하도록 안내한다. Target 미연결 선택은 동시에 사용할 수 없는 Target member/type 조건을 해제하고 이유를 표시한다. 서버가 허용하지 않는 occurrence 미매핑 sentinel을 선택지로 노출하지 않으며 미매핑 건수는 별도 진단이다.
+
+미연결 Task/legacy-only Task는 선택 작업범위 T0의 진단이다. 공정 미매핑·미사용/프로젝트 공통/WorkArea 미사용 Target 건수는 전체 Project 구성의 참고값이므로 선택 개인/Task의 분모와 혼동하지 않는다.
+
+실제 Task의 작업 정보는 기존 Task Editor로, Assignment 편집은 표시된 개인·배정 ID의 기존 Resource 편집 경로로 연결한다. Target 구성 편집은 물류의 #618 composer이며 Task 이름 변경과 다른 명령이다. 표시 행 key와 canonical Task/Assignment/Target ID를 구별하고 하나의 shared Task를 여러 Target에 보여도 복제하지 않는다. Group/Target 헤더와 합계 셀은 조회·상세 이동만 제공한다. 정렬·보기·필터·펼침은 WBS parent/일정/Dependency/allocation을 변경하지 않는다.
+
+정확 배정 저장은 기존 PUT의 `editAssignmentId` opt-in으로 한 개인 row만 갱신한다. 기존 generic 전체 교체와 달리 선택 Assignment public ID 및 공동담당자의 미설정/기간·비활성 원본을 보존한다. [API](API.md)에 범위·오류·revision 계약을 명시한다.
+
+저장 후 canonical revision과 report identity를 재검증한다. 이전 셀은 stale로 잠그거나 재조회하며 최신 성공으로 오인시키지 않는다. Resource 상세→Editor/일정→원래 Resource 복귀는 기존 drill provider를 사용하고 유효한 같은 범위의 조건·보기·펼침·페이지·선택·focus를 보존한다. 저장으로 원본 행이 조건에서 탈락하면 사유와 유효한 복귀 위치를 안내한다. dirty/pending·readonly·권한만료·409/412에서 기존 편집 guard를 유지한다.
+
+재활성화 직후의 이전 report/detail ready는 새 조회 완료와 구별한다. 현재 report와 정확 상세의 확인 receipt가 준비된 뒤 focus를 복원하며, 새 report에 속하지 않은 이전 상세의 명령은 즉시 잠근다. 새로운 사용자 입력은 대기 중 복귀보다 우선한다. 이 준비 정보는 UI readiness일 뿐 서버 snapshot/selector 검증이나 authorization을 대체하지 않는다.
+
+Target별 주/월 Plan 및 Excel 확장은 #622다. Target 조건/projectionOrder를 사용하는 화면은 Excel 명령을 잠그고 후속 #622 지원 예정 사유를 표시한다. 기존 Excel은 #620의 해당 조건 미지원 거부 경계를 유지하며 이 화면 추가만으로 Target workbook 지원을 주장하지 않는다. UI 동작·실제 검증과 미검증 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md) 및 [TEST_PLAN](TEST_PLAN.md)을 따른다.
+
 ## Issue #620 — R2 Resource–Target 보고 API
 
 R1의 pure Target 계산을 기존 report/detail/drill 서비스에 선택적으로 연결한다. HTTP query와 compact node/path selector의 authority는 [API](API.md)와 `src/contracts/resource-dashboard.ts`다. `resource-dashboard/1`은 optional `targetProjection` 및 details `targetSources`를 추가하며 새 Target 조건 없는 요청은 기존 구조·의미를 유지한다. 기존 Plan의 선택 demand는 공통 Target 조건 교집합을 지원하며 R 및 전체 Project 참고 부하는 보존한다. 새 UI·Target별 기간 행/전용 selector·Excel 시트 확장은 #621/#622다.
@@ -383,3 +405,17 @@ Workbook은 [Excel 보고서 계약](EXCEL_EXPORT.md#issue-529-resource-dashboar
 최신 실행 범위·최초 실패·AC와 테스트 대응은 [Issue #530 실행 계획](exec-plans/active/ISSUE_530.md)과 [TEST_PLAN](TEST_PLAN.md)을 따른다. Local Fast Feedback과 독립 사전 검토는 새 PR의 quality/e2e/docker 최종 PASS를 대신하지 않는다. 실제 Windows Excel/DRM·OS 125%·screen reader·운영 배포 검증은 자동 parser/Chromium 결과와 구별한다.
 
 R8 회귀는 Milestone의 정확한 Resource 범위에서 지연 KPI로 Task 일정을 열고 원래 Resource와 Milestone으로 되돌아오는 흐름도 확인한다. 이 조회는 원래 기준일·기간·검색·단위·원인을 복구하고 canonical Task/Assignment나 revision을 변경하지 않는다. [파생 원장의 직접 경로 증거](../output/playwright/issue530/cross-flow-evidence.json)는 기본11.5 M/D 원장과 별도 조회 조건이며 selected7.5 M/D·Task1·Assignment2·지연1을 검증한다.
+
+
+### Issue #621 PR #683 후속 — 교차표 정렬과 비활성 배정
+
+Resource/Group×Target 비교에서 `알려진 공수 내림차순`은 **각 Target 열의 표시 교차 셀 전체가 기여한 M/D**를 기준으로 열 순서를 정한다. 마지막 Resource/Group 행 하나만 사용하지 않으며, 이 표시용 합산은 중복/교차 소계가 비가산인 서버의 선택 전체·고유 Assignment 총계로 재활용하지 않는다. `서버 기본 순서`는 서버의 최초 열 순서를 유지하고 이름순은 동일 Target의 공통 이름을 기준으로 한다.
+
+비활성 Resource의 과거 Assignment는 보고서·상세에서 계속 조회되지만 정확한 Assignment allocation/기간 편집 버튼은 비활성화한다. 별도 활성화 또는 실제 유효 Resource 배정으로 변경하지 않는 한 저장 가능한 편집으로 가장하지 않는다. readonly Target deep link는 revision·요청 sequence가 일치하는 서버 대상 원본이 현재 50건 페이지/활성 필터 밖에 있어도 상세 조회할 수 있다. 권한 없는 저장과 낡은 원본 재사용은 허용하지 않는다.
+
+
+### Issue #621 CI #2761.1 보완 — 상세 행 canonical ID 시각적 우선순위
+
+Resource 상세의 '작업명 / 안정 ID / WBS' 셀은 실제 Task/일정/배정 편집 명령 아래에서 **External ID 및 canonical Task UUID를 첫 보조 행으로** 보여준다. 이후 비활성 Resource의 배정 조회 전용 사유, 정확한 Assignment ID와 Resource ID, Target 직접·상속·Legacy 근거를 구별해 표시하고 WBS 경로는 마지막에 남긴다. 하나의 공유 Task가 여러 Target 밑에 표시되어도 canonical Task·Assignment ID는 원본을 가리키며 projection row key는 표시 전용이다. 순서·정렬·필터 변경만으로 원본 데이터를 수정하지 않는다.
+
+[CI #2761.1](https://github.com/planner77/masterGantt/actions/runs/38543178018)의 기존 #525 50행×5폭 회귀는 Task ID가 사라진 것이 아니라 새 비활성/Assignment/Target 설명이 첫 UUID 표시보다 앞에 배치되어 검사가 실패했다. 보완 후에는 각 상세 행의 `data-canonical-task-id`/(`data-canonical-assignment-id`)와 표시 ID가 정확히 일치하며 Task ID가 첫 보조행인지 확인하고 기존 내부 표 scroll·실제 focus·50행/긴 WBS 계약을 유지한다. 새 전체 CI 검증 전 NOT TESTED. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 원본 FAIL과 범위를 보존한다.

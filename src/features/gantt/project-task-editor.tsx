@@ -41,6 +41,7 @@ export interface ProjectTaskEditorHandle {
 
 interface Props {
   readonly initialTab?: TaskEditorTab;
+  readonly initialAssignment?: { assignmentId: string; resourceId: string };
   readonly session: TaskEditorSession;
   readonly latestTask: ProjectTaskDto | undefined;
   readonly tasks: readonly ProjectTaskDto[];
@@ -112,6 +113,7 @@ function RelationList({
 export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(function ProjectTaskEditor({
   session,
   initialTab = "task",
+  initialAssignment,
   latestTask,
   tasks,
   links,
@@ -625,6 +627,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           tabIndex={0}
         >
           <TaskAssignmentEditor
+            initialAssignment={initialAssignment}
             taskId={base.task.taskId}
             revision={base.revision}
             editable={editable}

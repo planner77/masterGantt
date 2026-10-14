@@ -297,6 +297,25 @@ export class ResourceCatalogRepository {
     }));
   }
 
+  updateAssignmentAllocation(input: {
+    projectId: number;
+    taskId: number;
+    resourceId: number;
+    assignmentPublicId: string;
+    assignmentStart: string | null;
+    assignmentEnd: string | null;
+    allocationPercent: number | null;
+    now: string;
+  }): boolean {
+    const result = this.database.prepare(`
+      UPDATE task_assignments
+      SET assignment_start = @assignmentStart, assignment_end = @assignmentEnd,
+          allocation_percent = @allocationPercent, updated_at = @now
+      WHERE public_id = @assignmentPublicId AND project_id = @projectId
+        AND task_id = @taskId AND resource_id = @resourceId AND group_id IS NULL`).run(input);
+    return result.changes === 1;
+  }
+
   replaceTaskAssignments(input: {
     projectId: number;
     taskId: number;

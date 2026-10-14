@@ -9,6 +9,8 @@ import type {
   ResourceDrillSourceContext,
 } from "@/contracts/resource-drill";
 
+import { RESOURCE_TARGET_FILTER_KEYS } from "../../contracts/resource-dashboard";
+
 export interface ResourceDrillBinding {
   sourceContext: ResourceDrillSourceContext;
   scope: ResourceDrillScope;
@@ -23,6 +25,7 @@ const listKeys = [
   "developerGrades",
   "statuses",
 ];
+const allListKeys = [...listKeys, ...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"];
 const scalarKeys = [
   "from",
   "to",
@@ -38,7 +41,7 @@ export function drillFilters(
   query: URLSearchParams,
 ): ResourceDashboardFilterInput {
   const values: Record<string, unknown> = {};
-  for (const key of listKeys)
+  for (const key of allListKeys)
     if (query.has(key))
       values[key] = query.get(key)!.split(",").filter(Boolean);
   for (const key of scalarKeys)
@@ -55,6 +58,7 @@ export function dashboardSelector(
   query: URLSearchParams,
 ): ResourceDashboardSelector {
   return {
+    ...(query.has("targetPath") ? {targetPath: JSON.parse(query.get("targetPath")!)} : {}),
     dimension: query.get("dimension") as ResourceDashboardSelector["dimension"],
     id: nullableId(query.get("id")),
     metric: query.get("metric") as ResourceDashboardSelector["metric"],
@@ -184,7 +188,8 @@ export async function queryResourceDrill(
     stable(echo.scope) !== stable(request.scope) ||
     stable(echo.projection) !== stable(request.projection) ||
     echo.assignmentScope !== "exact-source-intersection" ||
-    echo.projectReferenceScope !== "same-resource-population-and-period"
+    echo.projectReferenceScope !== "same-resource-population-and-period" ||
+    ((request.filters.projectionOrder !== undefined || RESOURCE_TARGET_FILTER_KEYS.some(key => request.filters[key]?.length)) && echo.targetProjectReferenceScope !== "full-canonical-project-same-period")
   )
     throw Error("INVALID_RESPONSE");
   if (
@@ -240,6 +245,8 @@ export function normalizedDrillFilters(input: ResourceDashboardFilterInput) {
         ].sort(),
       ]),
     ),
+    ...Object.fromEntries(RESOURCE_TARGET_FILTER_KEYS.filter(key => input[key]?.length).map(key => [key, [...new Set(input[key])].sort()])),
+    ...(input.projectionOrder?.length ? {projectionOrder:input.projectionOrder} : {}),
     mdPerMm: input.mdPerMm ?? null,
     mdPerMmProvided: Object.hasOwn(input, "mdPerMm"),
     ...(input.granularity ? { granularity: input.granularity } : {}),

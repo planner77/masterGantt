@@ -1,0 +1,21 @@
+.target { min-width: 0; font-size: 12px; font-variant-numeric: tabular-nums; --identity-width: 280px; }
+.target h3 { margin-block: 16px 8px; }
+.target p { overflow-wrap: anywhere; }
+.scroll { overflow: auto; max-width: 100%; max-height: min(520px, 60dvh); scroll-padding: 48px 8px 8px calc(var(--identity-width) + 8px); border: 1px solid var(--border-default); }
+.target table { border-collapse: collapse; width: 100%; min-width: 800px; table-layout: fixed; }
+.target th, .target td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-default); vertical-align: top; overflow-wrap: anywhere; }
+.target th:first-child { width: 280px; }
+.target th:nth-child(2) { width: 144px; }
+.target th:nth-child(n+3) { width: 88px; }
+.target th:last-child { width: 112px; }
+.target small { display: block; color: var(--text-muted); font-weight: normal; }
+.target button { white-space: normal; overflow-wrap: anywhere; text-align: left; }
+.target .nested { padding: 0; }
+.target .matrix { width: max-content; }
+.target .matrix th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface-panel); width: 280px; min-width: 280px; }
+.target .matrix th:not(:first-child), .target .matrix td { width: 176px; min-width: 176px; }
+@media (max-width: 600px) { .target { --identity-width: 168px; } .target table { min-width: 688px; } .target th:first-child { width: 168px; } .target .matrix th:first-child { width: 168px; min-width: 168px; } }
+
+.controls { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 16px; margin-block: 8px; }
+.controls label { display: grid; gap: 4px; min-width: 0; max-width: 100%; }
+.controls select { max-width: 100%; min-height: 36px; }

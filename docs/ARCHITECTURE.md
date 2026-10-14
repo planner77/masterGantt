@@ -419,3 +419,8 @@ mutation은 기존 Project session/Origin/strong If-Match와 IMMEDIATE transacti
 ## Issue #618 — Target UI와 canonical 편집 경계
 
 F4 authoring은 기존 Target/Task binding HTTP service/repository 원장을 재사용한다. usage DTO의 relatedTasks와 projectRevision은 기존 pure Target resolver의 직접/상속 결과를 같은 read transaction에서 제공하며 별도 UI graph를 만들지 않는다. Target 상세의 관련 작업 탐색은 Task별 GET 없이 usage 한 번으로 제공한다. 공유 원본 인스턴스 변경 영향은 Target usage 후보를 최대1,000개 Task별 binding aggregate로 확인해 subset의 다른 구성원을 잘못 포함하지 않는다. 한도/조회 오류는 원본 저장을 차단하며 기존 직접 연결 수를 산출하지 못한 경우 미산정으로 표시한다. UI는 canonical Task UUID로 공통 ProjectTaskEditor와 기존 mutation gateway를 열고 사용 중 Gantt를 유지한다. Target/instance 저장은 명시 composer 명령이며 저장 성공 뒤 공통 canonical 재조회한다. Legacy 직접 instance에서 Target을 역추론하지 않으며 Resource/일정/Dependency/DB schema는 변경하지 않는다.
+## Issue #621 — Target Resource projection과 exact Assignment 저장
+
+기존 Resource Dashboard의 app-owned Target 계층/교차표는 #620 서버 projection·filter·selector를 읽는다. 표시 key와 canonical Task/Assignment/Target ID를 분리하며 별도 보고 원장·집계 엔진·Gantt 인스턴스/viewport writer는 추가하지 않는다. Editor/composer·canonical reconciler·drill provider/viewport coordinator의 기존 경계를 재사용한다.
+
+정확 Assignment 편집은 기존 Route Handler→Resource Catalog Service→Repository→SQLite의 PUT 경로에서 optional `editAssignmentId`를 검증한다. generic 전체 교체는 유지하고 exact 요청만 현재 Task/resource/assignment tuple의 row를 원자적으로 갱신한다. 현재 Project/catalog revision 검증과 저장1회·public ID·공동담당 원본 보존을 같은 transaction에서 보장한다. 저장 뒤 report identity를 재검증하며 stale 응답을 최신 결과로 표시하지 않는다. 계약·실제 증거는 [API](API.md)와 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. DB schema/migration·Scheduling 알고리즘 변경은 없다.

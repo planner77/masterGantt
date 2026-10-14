@@ -448,3 +448,10 @@ Resource–Target 보고는 기존 Project public UUID read를 재사용한다. 
 Target/member/binding·공정 매핑·관련 master 이름/active는 동일 read transaction의 fingerprint에 결속한다. report/detail/drill에서 stale source 또는 현재 Target 참조 변경은409로 거부한다. `exactAssignments`의 출처 제한을 공동담당자의 다른 Assignment로 확대하지 않는다. Target/member 필터의 서로 다른 binding 혼합, 같은 kind의 다른 member type/instance 혼합을 금지한다. canonical public ID를 사용하며 내부 PK·다른 Project Target/instance·글로벌 미할당 Resource/membership을 응답하지 않는다.
 
 새 조건 없는 기존 보고 호환을 유지하고 unknown/cross-project 선택은400, fan-out/cell/응답 예산 초과는422로 전체 거부한다. 오류에 SQL/stack/secret을 포함하지 않으며 부분총계를 완전한 결과로 반환하지 않는다. 전체 Project 참고는 현재 Project 안의 명시 범위이며 다른 Project 데이터 접근 권한이 아니다. [API](API.md), [R2 검증 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+## Issue #621 — Resource Target 조회·정확 Assignment 수정 경계
+
+Target 계층·비교·필터·헤더 상세는 기존 공개 Project read/Resource 보고 scope를 사용하며 저장 권한이나 revision을 변경하지 않는다. #528 exactAssignments source 제한은 Target 조건과 교집합으로 전달하고 공동담당자 전체로 확대하지 않는다. 서버 총계·참고 scope·snapshot 검증과 bounded report 오류를 유지한다.
+
+Assignment 수정은 기존 Task assignments PUT의 optional `editAssignmentId`로 요청하며 기존 session·Origin·strong If-Match·catalog revision을 그대로 적용한다. Project/Task/resource에 속한 정확 Assignment를 검증한 뒤 선택 row만 갱신한다. 다른 Task/Project·Group·가상 Target 헤더·잘못된 ID/기간/allocation은 원자적으로 거부한다. 기존 generic 교체의 의미를 우회하거나 권한 없는 보존/수정 경로를 만들지 않는다. 공동담당자의 allocation=null·비활성/legacy 값은 조회상 원본이며 해당 exact 수정의 대상이 아니다.
+
+readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·취소/재조회 guard를 사용한다. Client 표시 상태는 서버 authorization 근거가 아니며 저장 후 report는 최신 canonical snapshot 또는 명시 stale다. 실제 실행 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.

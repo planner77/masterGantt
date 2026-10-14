@@ -17,6 +17,8 @@ export const ResourceDrillContext = createContext<{
   onSchedule?: (request: ResourceScheduleRequest) => void;
   onReport?: (data: ResourceDashboardDto) => void;
   onOpenTask?: (taskId: string) => void;
+  onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
+  onOpenTarget?: (targetId: string, trigger: HTMLElement, code?: string | null) => void;
   viewId?: number;
   onExport?: (trigger: HTMLButtonElement) => void;
   onExportEvidence?: (evidence: ResourceExportEvidence) => void;

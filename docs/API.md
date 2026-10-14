@@ -1595,3 +1595,12 @@ Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `task
 기존 GET `.../logistics/targets/{targetId}/usage`의 `data`에 `projectRevision`과 `relatedTasks:[{taskId,type}]`를 additive로 제공한다. ID와 일반 Task/Summary counts/member usage는 동일한 SQLite read snapshot에서 계산한다. `relatedTasks`는 직접 binding과 subtree 상속을 반영한 고유 canonical Task UUID이며 legacy 인스턴스만 연결한 Task를 Target으로 역추론하지 않는다. Task별 GET fan-out 없이 기존 canonical Project tasks의 이름·WBS 경로와 연결해 공통 Editor를 연다. 소비 UI는 revision이 다른 usage/tasks 조합을 최신으로 표시하지 않고 재조회 안내한다. 조회로 Task/binding/revision을 변경하지 않는다.
 
 F4는 기존 Target POST/PATCH/DELETE, read-only impact POST, Task target-bindings GET/PUT를 사용한다. Project session/Origin/strong If-Match 및 whole impact token/subset 삭제 차단은 그대로 유지한다. Target 구성 저장과 Task 기본 정보 저장은 각각 명시 명령이며 Task 생성/복제는 수행하지 않는다.
+## Issue #621 — 기존 Task Assignment PUT의 정확 배정 편집
+
+`PUT /api/projects/:publicId/tasks/:taskId/assignments`는 기존 generic 전체 교체와 별개로 optional `editAssignmentId`를 받는다. 지정 시 `targets`는 해당 Assignment의 resource 한 건이며 allocation의 기간·투입률을 명시한다(생략 시 해당 배정의 날짜/투입률을 null로 해제). 서버는 일반 Task의 현재 Assignment ID 및 resource ID 일치를 확인하고 해당 DB row만 갱신한다. 선택 Assignment public ID와 모든 공동담당자/Group 배정의 ID·값·기간·미설정 allocation·timestamps는 보존한다. 다른 ID를 Target/Group 헤더의 편집 대상으로 사용하거나 다른 Task/Project의 배정을 바꿀 수 없다.
+
+기존 Project edit session/Origin/strong `If-Match` 및 `catalogRevision`, Task 기간 안의 배정 날짜·투입률 범위 검증을 적용한다. 현재 revision에서 실제 변경이 없으면 `operation.changed=false`와 같은 Project revision을 반환한다. 오류·revision mismatch는 전체 원자적 실패이며 성공 시 Project revision을 한 번 증가시킨다. 기존 `taskAssignments` 응답·오류 envelope/no-store를 재사용하고 새 route·별도 인증을 만들지 않는다. `editAssignmentId`를 생략한 generic 요청의 전체 교체·allocation 생략=null 의미는 그대로다.
+
+exact 모드의 잘못된 Assignment/Task/resource 조합·Group·일반 Task가 아닌 대상·혼합/추가 payload 필드·날짜/투입률 입력 오류는400이다. 편집 대상이 비활성이면 기존409, Project revision 불일치는412 `REVISION_MISMATCH`, catalog revision 불일치는412 `CATALOG_REVISION_MISMATCH`다. 잘못된 Project read/mutation 권한·Origin·If-Match 오류는 기존 route 정책을 따른다.
+
+사용자 경로는 Resource–Target 상세의 정확한 개인 배정 편집이다. 조회 selector/path는 저장 대상 ID가 아니며 변경 후 report는 새 canonical revision으로 재조회하거나 stale로 잠근다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 server/HTTP/Chromium 검증과 미검증을 기록한다.

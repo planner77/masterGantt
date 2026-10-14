@@ -1,5 +1,11 @@
 # Requirements baseline
 
+## Issue #621 — Resource–Target 다관점·동일 원본 편집
+
+기존 Resource 탭은 Group/Resource→Target 계층·역방향·Group/Resource×Target 비교와 같은 server filter를 사용한다. 서버 선택 총계/전체 Project 참고·중첩 비가산·partial/unset·정확 분모는 접힘/페이지로 바꾸지 않는다. 표시 행 key와 canonical Task/Assignment/Target ID를 구별한다.
+
+실제 Task는 기존 Editor, 개인 Assignment는 기존 Resource 편집, Target 구성은 #618 composer에서 수정한다. 정확 Assignment는 기존 PUT의 `editAssignmentId`로 선택 row만 갱신해 ID·공동담당자 원본을 보존한다. 가상 헤더/총계·정렬/보기/필터는 canonical mutation0이다. 서버 권한/Origin/strong If-Match와 dirty/pending/stale guard, 같은 원본 저장 후 report 재검증·유효 scope/focus 복귀를 유지한다. 새 Gantt/PRO/별도 원장은 만들지 않는다. #622 Target Plan/Excel·#623 종단 수용은 별도이며 실제 결과는 [R3 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다.
+
 ## Issue #620 — Resource–Target 보고 API
 
 기존 Resource 보고 API는 Target·공정 occurrence/Process Type·WorkArea·typed instance 조건과 Group/Resource/Target projection을 선택적으로 지원한다. 같은 binding/member 및 같은 개인 Assignment 조건, T0 미배정 진단, null/partial·중첩 소계와 distinct 전체를 보존한다. Target 없는 기존 호출은 하위 호환이며 legacy 직접 shared MCS를 Target 연결로 추정하지 않는다.

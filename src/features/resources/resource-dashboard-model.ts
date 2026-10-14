@@ -3,6 +3,7 @@ import {
   resourceDataContextSchema,
 } from "./resource-drill-scope-model";
 import { z } from "zod";
+import { RESOURCE_TARGET_DIMENSIONS, RESOURCE_TARGET_FILTER_KEYS, type ResourceDashboardTargetNode } from "../../contracts/resource-dashboard";
 import { resourcePlanSchema } from "./resource-plan-model";
 import type {
   ResourceDashboardDetailsDto,
@@ -10,7 +11,7 @@ import type {
   ResourceDashboardFilterInput,
   ResourceDashboardSelector,
   ResourceDashboardGroupChildrenDto,
-} from "@/contracts/resource-dashboard";
+} from "../../contracts/resource-dashboard";
 
 const count = z.number().int().nonnegative();
 const finite = z.number().finite();
@@ -23,7 +24,9 @@ const selector = z.object({
     "role",
     "milestone",
     "diagnostic",
+    "targetProjection",
   ]),
+  targetPath: z.array(z.object({ dimension: z.enum(RESOURCE_TARGET_DIMENSIONS), id: z.string().nullable() })).optional(),
   id: z.string().nullable(),
   metric: z.enum([
     "all",
@@ -39,7 +42,7 @@ const selector = z.object({
   milestoneTaskId: z.string().nullable().optional(),
   resourceId: z.string().optional(),
   assignmentScope: z
-    .enum(["selected", "milestoneReference", "milestoneExcluded"])
+    .enum(["selected", "milestoneReference", "milestoneExcluded", "projectReference"])
     .optional(),
 });
 const summary = z.object({
@@ -86,7 +89,10 @@ const roles = z.array(
   z.enum(["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"]),
 );
 const grade = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]);
+const targetFilters = Object.fromEntries(RESOURCE_TARGET_FILTER_KEYS.map(key => [key, z.array(z.string()).optional()]));
 const filters = z.object({
+  ...targetFilters,
+  projectionOrder: z.array(z.enum(RESOURCE_TARGET_DIMENSIONS)).optional(),
   from: date.nullable(),
   to: date.nullable(),
   asOfDate: date.nullable(),
@@ -116,7 +122,20 @@ const revisions = {
   snapshotId: z.string().regex(/^[a-f0-9]{64}$/),
 };
 const diagnostic = z.object({ count, selector });
+const targetNode: z.ZodType<ResourceDashboardTargetNode> = z.lazy(() => z.object({
+  dimension: z.enum(RESOURCE_TARGET_DIMENSIONS), id: z.string().nullable(), name: z.string().nullable(), active: z.boolean().nullable(),
+  summary, sourceKinds: z.array(z.enum(["target_binding", "legacy_direct", "target_unlinked"])),
+  equipmentQuantity: finite, systemCount: count, children: z.array(targetNode),
+}));
+const targetProjection = z.object({
+  order: z.array(z.enum(RESOURCE_TARGET_DIMENSIONS)), children: z.array(targetNode), projectReference: summary,
+  relatedMembers: z.object({}).passthrough(),
+  diagnostics: z.object({ targetUnlinkedTaskCount: count, legacyOnlyTaskCount: count, unusedTargetIds: z.array(z.string()), projectCommonTargetIds: z.array(z.string()), noWorkAreaTargetIds: z.array(z.string()), unmappedProjectProcessIds: z.array(z.string()) }),
+  metadata: z.object({ subtotalsAdditive: z.literal(false), assignmentScope: z.literal("A"), memberScope: z.literal("T0") }).passthrough(),
+  catalog: z.array(z.object({ dimension: z.enum([...RESOURCE_TARGET_DIMENSIONS, "projectProcess"]), id: z.string(), name: z.string(), active: z.boolean(), code: z.string().nullable() })),
+});
 const report = z.object({
+  targetProjection: targetProjection.optional(),
   resourceScopeContext: resourceSourceContextSchema.optional(),
   ...revisions,
   calculatedAt: z.iso.datetime(),
@@ -225,6 +244,7 @@ const detail = z.object({
   nextOffset: count.nullable(),
   rows: z.array(
     z.object({
+      targetSources: z.object({ taskId: z.string(), bindings: z.array(z.unknown()), inheritedBindings: z.array(z.unknown()), effectiveMembers: z.array(z.unknown()), legacySources: z.array(z.unknown()), effectiveEquipmentIds: z.array(z.string()), effectiveSystemIds: z.array(z.string()), effectiveTargetIds: z.array(z.string()) }).passthrough().optional(),
       taskId: z.string(),
       taskName: z.string(),
       externalId: z.string(),
@@ -268,7 +288,7 @@ export function dashboardQuery(
   for (const [key, value] of Object.entries(input)) {
     if (value === undefined || value === "") continue;
     if (Array.isArray(value)) {
-      if (value.length) result.set(key, [...new Set(value)].sort().join(","));
+      if (value.length) result.set(key, (key === "projectionOrder" ? value : [...new Set(value)].sort()).join(","));
     } else result.set(key, value === null ? "null" : String(value).trim());
   }
   return result;
@@ -282,6 +302,10 @@ export function readDashboard(
   if (!parsed.success || parsed.data.data.projectPublicId !== publicId)
     return null;
   const data = parsed.data.data;
+  for (const key of [...RESOURCE_TARGET_FILTER_KEYS, "projectionOrder"]) {
+    if (query.has(key) && JSON.stringify(data.filters[key as keyof typeof data.filters]) !== JSON.stringify(query.get(key)!.split(","))) return null;
+  }
+  if (query.has("projectionOrder") && (!data.targetProjection || data.targetProjection.order.join(",") !== query.get("projectionOrder"))) return null;
   // Every requested condition must be echoed. Unrequested axes must stay at defaults.
   for (const [key, value] of Object.entries(data.filters)) {
     if (key === "mdPerMmProvided") {
@@ -289,6 +313,7 @@ export function readDashboard(
       continue;
     }
     const requested = query.get(key);
+    if (value === undefined) { if (requested !== null) return null; continue; }
     if (key === "granularity") {
       if (value !== (requested ?? undefined)) return null;
       continue;
@@ -427,6 +452,7 @@ export function detailsQuery(
   query.set("snapshotId", data.snapshotId);
   query.set("dimension", selected.dimension);
   query.set("metric", selected.metric);
+  if (selected.targetPath) query.set("targetPath", JSON.stringify(selected.targetPath));
   if (selected.id !== null) query.set("id", selected.id);
   else if (selected.dimension === "group") query.set("id", "ungrouped");
   else if (selected.dimension === "milestone") query.set("id", "unassigned");
@@ -486,6 +512,7 @@ export function sameSelector(
   b: ResourceDashboardSelector,
 ): boolean {
   return (
+    JSON.stringify(a.targetPath ?? null) === JSON.stringify(b.targetPath ?? null) &&
     a.dimension === b.dimension &&
     a.id === b.id &&
     a.metric === b.metric &&
@@ -594,4 +621,27 @@ export function orderedMilestones(
       date: s.scheduledDate,
     }));
   return [...stages, { id: null, name: "Milestone 미지정", date: null }];
+}
+
+/**
+ * Matrix column order is a presentation choice. A Target may appear once per
+ * Resource/Group row, so its last intersection is not its column effort.
+ * Never use these display-row sums as the server's non-additive union total.
+ */
+export function orderTargetMatrixColumns(
+  rows: readonly ResourceDashboardTargetNode[],
+  sort: "server" | "name" | "effort",
+  label: (node: ResourceDashboardTargetNode) => string,
+): ResourceDashboardTargetNode[] {
+  const columns = new Map<string, { node: ResourceDashboardTargetNode; knownMd: number }>();
+  for (const row of rows) for (const node of row.children) {
+    const key = JSON.stringify([node.dimension, node.id]);
+    const existing = columns.get(key);
+    if (existing) existing.knownMd += node.summary.effort.knownMd;
+    else columns.set(key, { node, knownMd: node.summary.effort.knownMd });
+  }
+  const ordered = [...columns.values()];
+  if (sort === "name") ordered.sort((a, b) => label(a.node).localeCompare(label(b.node), "ko"));
+  if (sort === "effort") ordered.sort((a, b) => b.knownMd - a.knownMd || label(a.node).localeCompare(label(b.node), "ko"));
+  return ordered.map(item => item.node);
 }
