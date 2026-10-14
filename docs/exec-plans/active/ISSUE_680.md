@@ -19,11 +19,20 @@
 - SC-05의 timeout/실패 분기 일부, SC-11/13의 Editor 왕복·저장·focus 불변을 기존 #461 E2E로 검증. 나머지 전체 SC-01~14, actual SVAR Core/DB production stress는 이번 test-only patch만으로 신규 PASS 주장 금지. 예외 ADR 없음.
 
 ## DOCUMENTATION_SYNC
-- `docs/exec-plans/active/ISSUE_680.md`: ADDED
+- `docs/exec-plans/active/ISSUE_680.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
-- `AGENTS.md`, `docs/GITHUB_OPERATIONS.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`: N/A — 기존 CI/QA/검증 정책 및 Run 순서 불변
-- `DESIGN.md`, `docs/PROJECT_UX.md`, `docs/TASK_EDITOR.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`, `docs/SCHEDULING_ENGINE.md`: N/A — UI/서버 API/DB/UX 및 Scheduling Engine 규칙·계산 변경 없음
+- `AGENTS.md`: N/A(에이전트 운영 규약 및 역할·승인·CI 의무를 변경하지 않음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(GitHub 병합·Main CI·GHCR 게시·Finalizer 운영 계약을 변경하지 않음)
+- `docs/CI_CD.md`: N/A(Workflow·Required Check 및 Main 이미지 파이프라인 설정을 변경하지 않음)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 검증 구성과 신뢰 경계·환경별 판정 기준을 변경하지 않음)
+- `DESIGN.md`: N/A(제품 시각 디자인·컴포넌트·레이아웃은 변경하지 않음)
+- `docs/PROJECT_UX.md`: N/A(프로젝트 화면 전환·사용자 경험·포커스 구현을 변경하지 않음)
+- `docs/TASK_EDITOR.md`: N/A(Task Editor 제품 동작·권한·저장 기능 변경 없이 테스트 읽기만 보완함)
+- `docs/API.md`: N/A(서버 라우트·HTTP 계약과 오류 응답 정책을 변경하지 않음)
+- `docs/DB_SCHEMA.md`: N/A(데이터베이스 스키마·마이그레이션·영속 구조를 변경하지 않음)
+- `docs/SECURITY.md`: N/A(인증·권한·Origin 및 보안 게이트 구현을 변경하지 않음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정 계산·Milestone 도메인 규칙과 스케줄링 엔진을 변경하지 않음)
 
 ## AC_TEST_COVERAGE
 - AC1: 원본 CI #2745.1 Shard2/Job 출처와 71PASS·1FAIL/5shard PASS 및 GHCR SKIPPED 증거 보존.
