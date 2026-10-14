@@ -224,7 +224,8 @@ export function ResourceDashboardDetails({
                       >
                         이 Task 일정
                       </button>
-                      {row.assignment ? <button type="button" data-resource-assignment-edit disabled={actionLocked || locked || !onOpenAssignment} onClick={event => onOpenAssignment?.(row.taskId, row.assignment!.assignmentId, row.assignment!.resourceId, event.currentTarget)}>배정 편집: {row.assignment.resourceName}</button> : null}
+                      {row.assignment ? <button type="button" data-resource-assignment-edit disabled={actionLocked || locked || !onOpenAssignment || !row.assignment.active} title={!row.assignment.active ? "비활성 리소스의 기존 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignment!.assignmentId, row.assignment!.resourceId, event.currentTarget)}>배정 편집: {row.assignment.resourceName}</button> : null}
+                      {row.assignment && !row.assignment.active ? <small>비활성 리소스 · 기존 배정 조회 전용</small> : null}
                       {row.assignment ? <small>Assignment ID {row.assignment.assignmentId} · Resource ID {row.assignment.resourceId}</small> : null}
                       {row.targetSources ? <small>Target 출처: 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy 직접 {row.targetSources.legacySources.length} · {row.targetSources.effectiveTargetIds.join(", ") || "Target 미연결"}</small> : null}
                       <small>

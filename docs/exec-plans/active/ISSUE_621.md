@@ -127,3 +127,15 @@ Design Delta 후보: **B — 기존 원칙 구체화**. 데이터 밀도·progre
 - 별도 미검증: 기존 #528/#530/Milestone 전체 E2E는 PR Required 회귀에서 검증하며 로컬 전수 PASS가 아니다. Target 상세 UI50행 pagination은 NOT TESTED(실제 UI4열 비교 page·HTTP Assignment limit1 page와 구별). native125%·실기기/screen reader·운영/TLS/backup도 NOT TESTED다.
 - 원격 quality/e2e/docker·Trusted QA: NOT TESTED; 요청 범위는 CI 시작까지.
 - main/GHCR·tag/Release·cleanup·Issue 종료·운영/실기기/screen reader: 미수행, 요청 범위 밖.
+
+
+## 2026-10-14 PR #683 CI #2758.1 실패·리뷰 P2 후속 (검증 전)
+
+- 원격 원본: [PR Full CI #2758.1](https://github.com/planner77/masterGantt/actions/runs/38537540367), head `148375e7bb4a071786e05f0dfe2f4881c2c113f9`, base `78691a97bb8c0ba74a560965ca39479d7c80b72c`. Quality/TypeScript/ESLint/Vitest/Next/Docker PASS, E2E shard 3/6 FAIL, 그 외 5개 shard는 PR fail-fast 정책으로 CANCELLED. Required E2E FAIL, QA Final — Automated FAIL. 5개 취소 shard는 PASS가 아니다.
+- 실패 관측: `tests/e2e/milestone-dashboard-state.spec.ts`의 `#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다`가 검색 전 최초 120/96 viewport 확인에서 public/native horizontal 0/0, vertical 96/96으로 5초 timeout. 추정 원인은 주 단위로 전환된 React 표시가 완료되기 전 Day/Week native geometry의 가용 폭만 확인하고 스크롤한 경합이다. 현재 로그만으로 Core 원인을 확증하지 않으며 전체 E2E 검증이 필요하다.
+- 보완: 검색/peer 본문의 assertion이나 timeout을 완화하지 않고 `data-gantt-scale-mode=week` 및 3개 실제 requestAnimationFrame 동안 Week native chart geometry(가용 폭 120px 이상) 안정 관측 후 기존 `120/96` public/native strict 좌표를 시험한다. 기능 코드의 추가 scroll writer나 Core 재마운트는 없다.
+- 리뷰 P2 #1 `project-logistics-targets.tsx`: readonly deep-link에서 revision/sequence/ID 검증된 서버 조회 Target은 현재 50개·activeOnly·검색 목록에 없어도 표시한다. 일반 목록 상세의 최신 listKey 검증은 유지한다.
+- 리뷰 P2 #2 `resource-dashboard-details.tsx`: `assignment.active=false`인 역사적 배정의 exact 편집을 disabled + 명시 조회 전용 표시한다. 서버의 inactive-resource 409 및 기존 보안 제약은 바꾸지 않는다.
+- 리뷰 P2 #3 `resource-target-views.tsx`: Target 비교 열 effort 정렬을 마지막 교차 셀이 아닌 표시된 모든 Resource/Group 행의 known M/D 합으로 결정한다. 이 합은 **정렬 전용**이며 서버 distinct/union 총계나 중첩 소계 가산 정책을 변경하지 않는다. Resource/Target model 단위 회귀 추가.
+- 문서 영향: `RESOURCE_KPI_DASHBOARD`, 이 Work Packet, `CHANGELOG` 갱신. 기존 `DESIGN.md` 및 GSC canonical/viewport 소유권은 불변. 타입/테스트/신규 전체 CI PASS 여부는 신규 Head의 실제 실행 전 **NOT TESTED**; 기존 성공 판정 소급 금지.
+- 요청 범위: 리뷰 스레드 보완·충돌 점검·새 exact-head Full PR CI 시작까지. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`; Main CI/GHCR/Release/tag/병합/Issue 종료 승인 없음.

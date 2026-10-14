@@ -245,6 +245,22 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
   await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), vertical = frame.locator(".wx-gantt");
   const viewport = () => frame.evaluate(element => ({ public: Reflect.get(element, "__masterganttPublicViewport"), native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop } }));
+  // CI #2758.1: capacity can be sufficient before the Week scale finishes
+  // updating native layout. Preserve strict 120/96, but observe stable Week
+  // geometry before the first deliberate scroll (not a retry of a failed scroll).
+  await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+  await expect.poll(() => frame.evaluate(async element => {
+    const chart = element.querySelector<HTMLElement>(".wx-chart");
+    if (!chart) return false;
+    const scrollWidth = chart.scrollWidth, clientWidth = chart.clientWidth;
+    if (scrollWidth - clientWidth < 120) return false;
+    for (let index = 0; index < 3; index++) {
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      if (element.dataset.ganttScaleMode !== "week" || chart.scrollWidth !== scrollWidth ||
+          chart.clientWidth !== clientWidth || chart.scrollWidth - chart.clientWidth < 120) return false;
+    }
+    return true;
+  }), { message: "Week timeline native layout must settle before the first scroll", timeout: 10_000 }).toBe(true);
   await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
   await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
   const identity = await frame.getAttribute("data-project-gantt-api-instance");

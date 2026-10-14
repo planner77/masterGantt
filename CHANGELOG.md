@@ -1,5 +1,7 @@
 ## [Unreleased] — 0.113.0 / Issue #621 Resource–Target 보기·동일 원본 편집 (2026-10-14)
 
+- PR #683 CI #2758.1 E2E Week native geometry 안정화와 readonly Target deep link의 페이지 밖 상세, inactive Assignment 편집 제한, Target matrix 전체 열 공수 정렬을 보완한다. 기존 서버 union 총계·canonical 편집 경계·3 Required CI/Owner QA 승인 정책 불변; 신규 CI 검증 전 NOT TESTED.
+
 - 기존 Resource 탭에 Group/Resource→Target 계층·역방향·Group/Resource×Target 비교와 같은 server filter를 연결한다. 서버 총계·선택/전체 Project 참고·중첩 비가산·partial/unset를 유지한다.
 - 표시 행 key와 canonical Task/Assignment/Target ID를 분리하고 실제 작업·정확 개인 배정·Target 구성은 기존 Editor/composer로 편집한다. 조회 grouping/정렬은 WBS 구조나 배정을 변경하지 않는다.
 - 저장 뒤 report stale/재조회·동일 scope 복귀와 focus/dirty/pending/권한 guard를 보존하며 기존 Milestone/Plan·exact drill을 유지한다. Target별 Plan/Excel 확장은 #622다.

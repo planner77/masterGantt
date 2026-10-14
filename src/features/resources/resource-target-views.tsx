@@ -1,7 +1,7 @@
 "use client";
 import { useState, type ReactNode } from "react";
 import type { ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSummary, ResourceDashboardTargetNode, ResourceTargetDimension } from "@/contracts/resource-dashboard";
-import { plannedEffort } from "./resource-dashboard-model";
+import { orderTargetMatrixColumns, plannedEffort } from "./resource-dashboard-model";
 import { ResourceDashboardDetails } from "./resource-dashboard-details";
 import { useResourceDrill } from "./resource-drill-context";
 import styles from "./resource-target-views.module.css";
@@ -47,8 +47,9 @@ export function ResourceTargetViews({ data, unit, stale, onStale, expanded, onTo
       {open && !node.children.length ? <tr id={contentId}><td colSpan={6}><ResourceDashboardDetails data={data} selector={node.summary.selector} unit={unit} stale={stale} onStale={onStale}/></td></tr> : null}
       {open && node.children.length ? <tr id={contentId}><td colSpan={6} className={styles.nested}><table><Headers/>{treeRows(node.children, depth + 1)}</table></td></tr> : null}</tbody>;
   });
-  // Column identities only; every amount/selector remains the server's exact intersection.
-  const allColumns = ordered([...new Map(projection.children.flatMap(row => row.children).map(node => [JSON.stringify([node.dimension, node.id]), node])).values()]);
+  // Sort by every displayed row's contribution to each column; authoritative
+  // union totals still come exclusively from the server, never these sums.
+  const allColumns = orderTargetMatrixColumns(projection.children, sort, targetNodeLabel);
   const pageOffset = Math.min(columnOffset, Math.max(0, Math.ceil(allColumns.length / 4) - 1) * 4);
   const columns = allColumns.slice(pageOffset, pageOffset + 4);
   return <section className={styles.target} aria-label="Target 관련 계획 공수" data-testid="resource-target-view">

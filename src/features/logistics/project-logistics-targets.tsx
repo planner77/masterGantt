@@ -184,6 +184,13 @@ export function ProjectLogisticsTargets({openRequest, publicId, projectContext, 
   const equipment = logistics.equipment.filter(e=>matchesInstance(e.name,e.code) && e.processId===draft?.projectProcessId && (e.active || draft?.members.some(m=>"entityId" in m && m.entityId===e.id)));
   const systems = logistics.systems.filter(s=>matchesInstance(s.name,s.code) && (draft?.scope!=="project_common" || s.scope==="project") && (s.active || draft?.members.some(m=>"entityId" in m && m.entityId===s.id)));
   const names = taskContextLabels(tasks);
+  // An authoritative deep-link lookup is revision-bound but need not be present in
+  // the active-only, searched, or paginated 50-row Target list.
+  const requestedDetail = requestedTarget?.revision === revision &&
+    requestedTarget?.sequence === openRequest?.sequence &&
+    requestedTarget?.target.id === detail?.id ? requestedTarget.target : null;
+  const listedDetail = loaded === listKey ? targets.find(target => target.id === detail?.id) : undefined;
+  const currentDetail = requestedDetail ?? listedDetail;
   return <div className={styles.panel}>
     <div className={styles.toolbar}><label className={styles.field}>Target 검색<input data-target-search value={search} maxLength={100} onChange={e=>{setSearch(e.target.value);setOffset(0);}} /></label><label><input type="checkbox" checked={inactive} onChange={e=>{setInactive(e.target.checked);setOffset(0);}} /> 비활성 포함</label><button type="button" className="primary-button" data-target-add disabled={!editable||busy||loaded!==listKey} onClick={event=>start(undefined,event.currentTarget)}>Target 추가</button><button type="button" className="secondary-button" disabled={modalBusy} onClick={()=>{onMutated();setRetry(x=>x+1);}}>Target 다시 조회</button></div>
     {!draft && error ? <p role="alert" className={styles.error}>{error}</p>:null}
@@ -192,7 +199,7 @@ export function ProjectLogisticsTargets({openRequest, publicId, projectContext, 
       {!targets.length?<p>조건에 맞는 Target이 없습니다.</p>:null}
       <div className={styles.toolbar}><button type="button" className="secondary-button" disabled={offset===0} onClick={()=>setOffset(o=>Math.max(0,o-50))}>이전 Target</button><span>{total}개 중 {total===0?0:offset+1}–{Math.min(offset+50,total)}</span><button type="button" className="secondary-button" disabled={offset+50>=total} onClick={()=>setOffset(o=>o+50)}>다음 Target</button></div>
     </>}
-    {detail?<WorkspaceDialog title={`Target 상세 · ${detail.name}`} onClose={()=>setDetail(null)}>{loaded===listKey && targets.some(t=>t.id===detail.id)?<TargetDetail key={detail.id} onOpenInstance={editable?onOpenInstance:undefined} disabled={busy||pending} revision={revision} publicId={publicId} target={targets.find(t=>t.id===detail.id)??detail} taskNames={names} onOpenTask={onOpenTask? id=>{onOpenTask(id);}:undefined}/>:<p role="status">Target 정보가 변경되었거나 목록을 다시 조회 중입니다. 닫은 뒤 최신 Target을 선택하세요.</p>}</WorkspaceDialog>:null}
+    {detail?<WorkspaceDialog title={`Target 상세 · ${detail.name}`} onClose={()=>setDetail(null)}>{currentDetail?<TargetDetail key={currentDetail.id} onOpenInstance={editable?onOpenInstance:undefined} disabled={busy||pending} revision={revision} publicId={publicId} target={currentDetail} taskNames={names} onOpenTask={onOpenTask? id=>{onOpenTask(id);}:undefined}/>:<p role="status">Target 정보가 변경되었거나 목록을 다시 조회 중입니다. 닫은 뒤 최신 Target을 선택하세요.</p>}</WorkspaceDialog>:null}
     {draft?<WorkspaceDialog title={editing?"Target 수정":"Target 추가"} onClose={close} busy={modalBusy} size="wide"><div className={styles.form}>
       {error?<p role="alert" className={styles.error}>{error}</p>:null}{stale?<p role="alert">프로젝트 기준이 변경되어 Target 저장을 잠갔습니다. 별도 관리 저장 결과를 확인해 적용하거나, 초안을 명시적으로 폐기하고 최신 정보를 조회해 주세요.</p>:null}{managedRevision!==null&&managedRevision===revision&&loaded===listKey&&baseRevision!==revision?<div className={styles.group}><p>이 흐름에서 별도로 저장한 공정/매핑의 최신 기준을 확인했습니다. Target 초안은 유지됩니다.</p><button type="button" className="secondary-button" disabled={modalBusy||busy||!editable} onClick={()=>{setBaseRevision(revision);setBlocked(false);setImpact(null);setConfirmed(false);setManagedRevision(null);}}>변경된 기준정보 적용</button></div>:null}
       <p className={styles.note}>공정 또는 대상 범위를 변경하면 초안의 구성원 선택을 초기화합니다. 저장하기 전에 다시 선택해 주세요.</p>

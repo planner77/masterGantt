@@ -622,3 +622,26 @@ export function orderedMilestones(
     }));
   return [...stages, { id: null, name: "Milestone 미지정", date: null }];
 }
+
+/**
+ * Matrix column order is a presentation choice. A Target may appear once per
+ * Resource/Group row, so its last intersection is not its column effort.
+ * Never use these display-row sums as the server's non-additive union total.
+ */
+export function orderTargetMatrixColumns(
+  rows: readonly ResourceDashboardTargetNode[],
+  sort: "server" | "name" | "effort",
+  label: (node: ResourceDashboardTargetNode) => string,
+): ResourceDashboardTargetNode[] {
+  const columns = new Map<string, { node: ResourceDashboardTargetNode; knownMd: number }>();
+  for (const row of rows) for (const node of row.children) {
+    const key = JSON.stringify([node.dimension, node.id]);
+    const existing = columns.get(key);
+    if (existing) existing.knownMd += node.summary.effort.knownMd;
+    else columns.set(key, { node, knownMd: node.summary.effort.knownMd });
+  }
+  const ordered = [...columns.values()];
+  if (sort === "name") ordered.sort((a, b) => label(a.node).localeCompare(label(b.node), "ko"));
+  if (sort === "effort") ordered.sort((a, b) => b.knownMd - a.knownMd || label(a.node).localeCompare(label(b.node), "ko"));
+  return ordered.map(item => item.node);
+}

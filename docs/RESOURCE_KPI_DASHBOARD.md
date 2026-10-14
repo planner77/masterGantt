@@ -405,3 +405,10 @@ Workbook은 [Excel 보고서 계약](EXCEL_EXPORT.md#issue-529-resource-dashboar
 최신 실행 범위·최초 실패·AC와 테스트 대응은 [Issue #530 실행 계획](exec-plans/active/ISSUE_530.md)과 [TEST_PLAN](TEST_PLAN.md)을 따른다. Local Fast Feedback과 독립 사전 검토는 새 PR의 quality/e2e/docker 최종 PASS를 대신하지 않는다. 실제 Windows Excel/DRM·OS 125%·screen reader·운영 배포 검증은 자동 parser/Chromium 결과와 구별한다.
 
 R8 회귀는 Milestone의 정확한 Resource 범위에서 지연 KPI로 Task 일정을 열고 원래 Resource와 Milestone으로 되돌아오는 흐름도 확인한다. 이 조회는 원래 기준일·기간·검색·단위·원인을 복구하고 canonical Task/Assignment나 revision을 변경하지 않는다. [파생 원장의 직접 경로 증거](../output/playwright/issue530/cross-flow-evidence.json)는 기본11.5 M/D 원장과 별도 조회 조건이며 selected7.5 M/D·Task1·Assignment2·지연1을 검증한다.
+
+
+### Issue #621 PR #683 후속 — 교차표 정렬과 비활성 배정
+
+Resource/Group×Target 비교에서 `알려진 공수 내림차순`은 **각 Target 열의 표시 교차 셀 전체가 기여한 M/D**를 기준으로 열 순서를 정한다. 마지막 Resource/Group 행 하나만 사용하지 않으며, 이 표시용 합산은 중복/교차 소계가 비가산인 서버의 선택 전체·고유 Assignment 총계로 재활용하지 않는다. `서버 기본 순서`는 서버의 최초 열 순서를 유지하고 이름순은 동일 Target의 공통 이름을 기준으로 한다.
+
+비활성 Resource의 과거 Assignment는 보고서·상세에서 계속 조회되지만 정확한 Assignment allocation/기간 편집 버튼은 비활성화한다. 별도 활성화 또는 실제 유효 Resource 배정으로 변경하지 않는 한 저장 가능한 편집으로 가장하지 않는다. readonly Target deep link는 revision·요청 sequence가 일치하는 서버 대상 원본이 현재 50건 페이지/활성 필터 밖에 있어도 상세 조회할 수 있다. 권한 없는 저장과 낡은 원본 재사용은 허용하지 않는다.
