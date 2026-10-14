@@ -265,8 +265,33 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
   await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
   const identity = await frame.getAttribute("data-project-gantt-api-instance");
   await vertical.evaluate(element => { element.scrollTop = 96; });
-  await chart.evaluate(element => { element.scrollLeft = 120; });
+  await expect.poll(() => frame.evaluate(element => ({
+    coreTop: (Reflect.get(element, "__masterganttPublicViewport") as { top: number }).top,
+    nativeTop: element.querySelector(".wx-gantt")!.scrollTop,
+  }))).toEqual({ coreTop: 96, nativeTop: 96 });
+  // CI #2758.1/#2764.1: a manually assigned native chart scrollLeft can be
+  // overwritten by a delayed Week scale/Core command even after 3 stable RAF
+  // geometry samples. This test owns the pending PEER_RETURN/trusted input
+  // cancellation, not the initial *native* scroll ingress (tested in the
+  // preceding #463 public/native viewport test). Seed the exact 120/96
+  // baseline through the existing dev-only #571 public scroll-chart gateway.
+  // Its SETTLED receipt requires three consecutive actual Core/native frames;
+  // a stale/unsupported/zero-capacity outcome remains a failure, never a retry.
+  const initialScroll = await frame.evaluate(async element => {
+    const probe = Reflect.get(element, "__masterganttMilestoneTimeline") as {
+      scroll: (left: number) => Promise<string | undefined>;
+    } | undefined;
+    if (!probe) throw new Error("Development Core viewport probe unavailable");
+    return await probe.scroll(120);
+  });
+  expect(initialScroll).toBe("SETTLED");
   await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, native: { left: 120, top: 96 } });
+  await testInfo.attach("pending-peer-initial-viewport", {
+    body: JSON.stringify({ initialScroll, viewport: await viewport(),
+      publicEvents: await frame.getAttribute("data-gantt-public-scroll-events"),
+      coordinator: await frame.getAttribute("data-gantt-viewport-coordinator") }),
+    contentType: "application/json",
+  });
   await tab(page).click();
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await expect.poll(() => frame.evaluate(element => !!Reflect.get(element, "__issue568Trace"))).toBe(true);

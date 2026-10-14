@@ -1,3 +1,11 @@
+## Issue #621 PR #683 CI #2764.1 — Week/Core viewport 초기화 회귀
+
+`tests/e2e/milestone-dashboard-state.spec.ts`의 기존 #463 입력 도중 peer 복원 취소 테스트는 선행 120/96 baseline setup과 실제 검색 입력 취소를 구분한다. 물리 수평 capacity ≥120px·Week DOM geometry 3RAF 안정만으로는 `scrollLeft=120`을 직접 쓴 뒤 public/native 모두 0으로 되돌아가는 #2764.1(이전 #2758.1 동일) 사례를 막지 못했다. 정확히 어떤 후속 writer가 0을 썼는지는 원본 로그만으로 미확정이다.
+
+**수정 기준:** 선행 기준 좌표는 기존 dev-only #571 `DIAGNOSTIC_SCROLL`에서 `scroll-chart(left=120)`을 공개 API로 명시 실행하고 실제 Core/native 정합3프레임 `SETTLED`·top96을 요구한다. 지원 안 됨·capacity 없음·취소·timeout은 FAIL하며 재시도나 기존 허용차 완화가 없다. 바로 앞 #463 native DOM scroll 입력/Week peer 복원 통과 테스트는 유지한다. 핵심 대상 테스트의 진짜 trusted 검색 input, RAF pending·취소 및 버그 회귀 strict 120/96, 1행 clamp, Gantt instance·mutation0은 그대로 유지한다. 이 차이는 기하 안정화와 상태 authority/viewport 명령 완료의 구분을 따르며 source evidence는 [Work Packet](exec-plans/active/ISSUE_621.md)과 [#2764.1](https://github.com/planner77/masterGantt/actions/runs/38546303566)에 연결한다.
+
+디자인·DB·API·CI 정책 변경 없음. GSC-04/06/07/08/10/11, SC-11/12, SVAR 2.7.3 공개 API 및 AGENTS/Adapter ADR/Sync Trace 기준에 부합하는지 신규 Full CI에서 검증한다. CI 전 결과 NOT TESTED.
+
 ## Issue #621 CI #2761.1 — Resource 대량 상세 canonical identity 표시 회귀
 
 기존 #525의 `tests/e2e/project-resource-workload-status.spec.ts` 40 Resource/50 Assignment × Group·개인 × 390/768/1024/1440/1920px는 상세 Task ID·긴 이름·WBS/셀 alignment·keyboard focus를 유지하는 필수 회귀다. #621 Target/정확 Assignment 증거 행을 추가해도 Task의 첫 보조행은 External ID·canonical Task UUID, 마지막 보조행은 WBS다. 해당 표시 ID와 `tr[data-canonical-task-id]` 및 Assignment ID와 `tr[data-canonical-assignment-id]`를 모두 대조해 50/50을 검증한다. 목록 행 수·권한·비활성 안내·정확 개인 편집 잠금·긴 이름·5폭 기하·스크롤/포커스의 원래 단언을 유지하며 skip/timeout/허용치 완화는 없다.

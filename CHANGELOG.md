@@ -1,5 +1,7 @@
 ## [Unreleased] — 0.113.0 / Issue #621 Resource–Target 보기·동일 원본 편집 (2026-10-14)
 
+- PR #683 CI #2764.1에서 반복된 #463 Week 초기 수평120→0 Core/native 경합을 계측·분리한다. 기존 단일 dev-only `DIAGNOSTIC_SCROLL`의 공개 SVAR scroll-chart/3연속 Core·DOM settle로 pending peer 입력 테스트의 준비 좌표를 구성하며, 기존 별도 native scroll 테스트·실제 trusted 검색 취소·120/96 strict/권한·scope·인스턴스 회귀를 완화하지 않는다. 정확한 최초 0 writer는 미확정으로 원장에 보존하고 새 전체 CI 성공은 NOT TESTED.
+
 - PR #683 CI #2761.1의 #525 Resource 대량 상세(40 Resource/50 Assignment) Task 안정 ID 순서 회귀를 보완한다. 첫 보조행을 External ID·canonical Task UUID로 고정하고 뒤에 비활성/정확 Assignment/Target 출처, 마지막에 WBS를 표시한다. Task·Assignment UUID를 행 canonical 속성과 대조하는 50개씩의 E2E 검사 및 기존 5폭·Keyboard/Focus/비활성 조회 계약을 보존한다. 새 원격 Full PR CI 전 테스트 결과 NOT TESTED.
 
 - PR #683 CI #2759.1에서 드러난 기존 #525 Resource KPI 상세의 외부 Snapshot 교체 무효화 누락을 보완한다. 일반 KPI/Milestone/진단 상세는 새 성공 Snapshot에서 종료·기존 focus 복귀, Target 상세만 현재 서버의 동일 경로 재검증 시 최신 selector로 갱신한다. 기존 focus/readonly/dirty/Target 필터·Group 상태·서버 mutation0 계약을 유지하며 #525 E2E receipt 경합 방지 및 전체 CI 재검증은 신규 Head에서 판정한다.
