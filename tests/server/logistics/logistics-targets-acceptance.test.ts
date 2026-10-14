@@ -335,6 +335,30 @@ describe("Issue #672 — #616 F2 acceptance: domain and SQL", () => {
 });
 
 describe("Issue #672 — #616 F2 acceptance: actual Target HTTP handlers", () => {
+  it("Issue #618 filters active rows, total and search before HTTP pagination without changing legacy list", async () => {
+    const f = setup();
+    try {
+      for (const [code, active] of [["A", false], ["B", true], ["C", true]] as const) {
+        f.targets.create(f.auth, revision(f), { ...common(f, code), active });
+      }
+      const full = await listing(f, "?limit=1").json();
+      expect(full.data.total).toBe(3);
+      const page1 = await listing(f, "?activeOnly=true&limit=1").json();
+      expect(page1.data.total).toBe(2);
+      expect(page1.data.targets.map((t: {code:string}) => t.code)).toEqual(["B"]);
+      const page2 = await listing(f, "?activeOnly=true&limit=1&offset=1").json();
+      expect(page2.data.total).toBe(2);
+      expect(page2.data.targets.map((t: {code:string}) => t.code)).toEqual(["C"]);
+      const hidden = await listing(f, "?activeOnly=true&search=A").json();
+      expect(hidden.data.total).toBe(0);
+      expect(hidden.data.targets).toHaveLength(0);
+      for (const query of ["?activeOnly=false","?activeOnly=1","?activeOnly=","?activeOnly=true&activeOnly=true"]) {
+        expect(listing(f, query).status).toBe(400);
+      }
+      expect(revision(f)).toBe(4);
+    } finally { f.db.close(); }
+  });
+
   it("AC3 enforces Origin/session/strong CAS, bound JSON and rollback with exact status codes", async () => {
     const f = setup();
     try {
