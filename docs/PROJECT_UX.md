@@ -2,6 +2,8 @@
 
 ## Issue #622 — Target Plan·선택 밖 과투입 원인·Excel
 
+Plan은 주/월 조회에서 전체 Target 집계 계층을 생성하지 않고 같은 canonical snapshot의 경량 `catalog.targetOptions`로 Target 선택 목록과 정확 Assignment 출처 이름을 표시한다. 전체 Project 참고에서 출발 선택 밖 Target B를 찾아도 임의 `Target · UUID`로 이름을 잃어버리지 않는다. 선택/참고의 범위와 ID는 유지하고 이름만 원본 Target catalog에서 lookup한다. 전체 Target projection을 명시한 Target 보기의 기존 계층·예산은 그대로다.
+
 기존 Resource 화면의 Target/고급 조건을 그대로 Plan에 전달한다. `선택 Target·Milestone·Task 기여`와 `동일 개인의 Project 전체 참고`를 구별하고 같은 R·기간의 전체 부하에 선택 밖 배정이 포함됨을 안내한다. 기간→일별→개인→Assignment 단계에서 출발 선택 조건과 현재 참고 범위·revision을 함께 표시한다. Capacity는 고유 resource-day이며 반복 Group/Milestone/Target 참고값을 합산하지 않는다.
 
 Task 열기와 정확 Assignment 편집은 기존 공통 Editor를 사용한다. 전체 참고에서 선택 밖 원인을 수정해도 출발 Target 조건을 Project 전체 조건으로 덮어쓰지 않는다. 저장 후 최신 report/detail snapshot이 확인되기 전 이전 명령을 잠그며 같은 단계와 유효한 정확 Assignment trigger로 복귀한다. 필터 탈락/삭제로 trigger가 없으면 사유와 유효 Plan control focus를 제공한다. 사용자 입력·dirty/pending·readonly/401·409/412·응답역전 guard를 보존한다.

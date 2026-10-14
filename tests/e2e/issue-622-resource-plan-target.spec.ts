@@ -50,6 +50,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   const detail = root.getByRole("region", { name: "기간 부하 상세", exact: true });
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   await expect(detail).toContainText(f.targets[0].id);
+  await expect(detail).toContainText(f.targets[0].name);
   await expect(detail).toContainText("선택 Target 밖 배정 포함");
   await detail.locator("tbody th button").first().click();
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
@@ -92,6 +93,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await expect(root).toHaveAttribute("data-ready", "true");
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   await expect(row).toContainText("40%");
+  await expect(row).toContainText(f.targets[1].name);
   const assignmentsAfter = (await (await page.request.get(`${f.api}/assigned-targets`)).json()).data.assignments;
   expect(assignmentsAfter.find((assignment: { id: string }) => assignment.id === outsideAssignment.id)).toMatchObject({ taskId: f.unset.taskId, allocation: { percent: 40 } });
   expect(assignmentsAfter.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id)).toEqual(assignmentsBefore.filter((assignment: { id: string }) => assignment.id !== outsideAssignment.id));

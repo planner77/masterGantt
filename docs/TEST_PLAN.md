@@ -1,5 +1,7 @@
 ## Issue #622 — Target Resource Plan·Excel 검증
 
+[PR #684 CI #2769.1](https://github.com/planner77/masterGantt/actions/runs/38632379339)에서는 E2E Shard2 `issue-622-resource-plan-target.spec.ts:57`의 선택 밖 Target B 이름 기대값이 `Target · UUID`로 표시되어 실패했다. 대량 Plan의 전체 projection 회피는 유지하고 `resource-plan-model.ts`의 canonical Target 이름 resolver에 `catalog.targetOptions` fallback을 추가하며 기존 E2E의 선택 Target A·선택 밖 B/편집 후 B 이름 단언을 강화한다. `tests/features/resources/resource-plan-model.test.ts`는 전체 projection이 없는 Plan에서 두 이름·dimension 격리·미연결/불명 fallback을 검증한다. 실패 시 timeout/기대값 완화·skip 없이 FAIL하고, 새로운 Head의 CI 실제 결과 전 NOT TESTED다.
+
 | AC | 실제 검증 파일·범위 |
 | --- | --- |
 | AC1 | `tests/domain/resource-target-plan.test.ts`, `tests/server/resources/issue-622-target-plan-excel.test.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`: 선택80/같은 개인Project140·R/Capacity·선택 밖 정확 원인 |

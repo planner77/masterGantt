@@ -14,6 +14,7 @@ import type {
 import {
   planDetailQuery,
   planMetric,
+  planTargetLabel,
   readPlanDetails,
 } from "./resource-plan-model";
 import { dashboardError } from "./use-resource-dashboard";
@@ -109,7 +110,7 @@ export function ResourcePlanDetails({
       abort.abort();
     };
   }, [data, current, query, stale, active, onStale, retry, binding]);
-  const targetLabel = (id: string) => `${data.targetProjection?.catalog.find(target => target.dimension === "target" && target.id === id)?.name ?? (id === "unassigned" ? "Target 미연결" : "Target")} · ${id}`;
+  const targetLabel = (id: string) => planTargetLabel(data, id);
   const back = () =>
     steps.length > 1 ? setSteps((s) => s.slice(0, -1)) : onClose();
   const next = (date: string, resourceId?: string, name?: string) => {

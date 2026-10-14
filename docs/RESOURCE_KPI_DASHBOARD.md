@@ -2,6 +2,8 @@
 
 ## Issue #622 — Target 조건 Plan·Project 과투입·Excel
 
+주/월 Plan은 `targetProjection`이 없는 정상 DTO에도 `catalog.targetOptions`를 보유한다. 기간·개인·정확 Assignment 상세와 출발 Target 표시는 선택 기여 범위 밖의 Project 전체 참고 Target도 이 원본 목록에서 **dimension=target + canonical ID**로 이름을 찾는다. 조회 ID·범위·원시 M/D/M/M·수량/Capacity를 이름 표시를 이유로 재계산하지 않는다. 명시적 Target 보기의 projection 목록도 유효하며, 이름 미존재는 다른 축 이름으로 추정하지 않는다.
+
 서비스의 기존 Plan 입력 구성과 Resource Plan 엔진을 사용하며 Domain `selectResourceTargetPlanScope` adapter도 같은 계약으로 회귀 검증한다. Target/공정/WorkArea/typed instance는 선택 Task/Assignment 기여만 제한하며 R는 Project 일반 Task 개인 배정 이력과 개인 분류 조건으로 정한다. 같은 개인·기간의 선택80%와 Project140%를 구별하고 선택 밖 원인도 전체 참고 상세에서 확인한다. Project 참고는 같은 R의 해당 Project 배정이며 전사 Capacity가 아니다.
 
 Capacity는 고유 resource-day다. Group 평균95%여도 개인140%와 일별150%→0%의 Peak/초과를 유지한다. Target/Group/Milestone의 반복 소계·Capacity·기간별 distinct 인원/Assignment는 합산하지 않고 전체 집합에서 재계산한다. Resource Calendar 우선순위·inclusive 기간·M/M 명시 환산·configured0/partial/unset/empty·분모0을 유지하며 수량이나 progress로 계획공수를 변경하지 않는다.
