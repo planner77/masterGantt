@@ -1,5 +1,11 @@
 # Architecture draft
 
+## Issue #619 — Target Resource KPI projection 경계
+
+`src/domain/resources/`의 기존 KPI·Calendar·M/M 계산기를 확장하며 물류 상속의 authority는 `src/domain/logistics/task-target-bindings.ts` 단일 resolver로 유지한다. canonical Task·개인 Assignment·Target/member/legacy snapshot을 읽어 필터·원시 ID·출처·중첩 소계·distinct Grand Total을 계산하는 pure projection이며 별도 공수 원장/상속 엔진/Calendar나 DB 저장을 만들지 않는다.
+
+Target 선택은 T0와 그 작업의 A를 제한한다. ResourcePlan R 모집단과 전체 Project 부하는 선택 Target 밖 Assignment도 보존한다. 기존 HTTP report/plan/detail DTO·snapshot identity·selector는 R1에서 변경하지 않으며 #620에서 같은 read snapshot에 Target provenance를 통합한다. 사용자 화면·Excel 공개는 #618/#621/#622 후속이다. [집계 계약](RESOURCE_KPI_DASHBOARD.md), [실행 원장](exec-plans/active/ISSUE_619.md)을 참조한다.
+
 ## Issue #551 — Milestone 진단 프로브의 SVAR API 초기화 소유권 (2026-10-13)
 
 Milestone Timeline의 개발 전용 `__masterganttMilestoneTimeline` 진단 hook은 React의 후속 state commit/effect 완료가 아니라 native SVAR `init(api)`가 실제 API를 제공하는 시점에 소유권을 등록한다. 최초 설치는 동기식이고, `apiInstanceId`/frame/lifecycle identity가 동일하면 중복 수신기를 두지 않는다. React layout cleanup·StrictMode 재실행과 API 교체 시 이전 tagged listener/DOM property만 정리하고 현재 인스턴스의 상태·selection·canonical data는 변경하지 않는다. `process.env.NODE_ENV === "production"`에서는 hook을 등록하지 않으며 Viewer/Editor/DB/ViewportCoordinator의 production 계약을 확장하지 않는다.

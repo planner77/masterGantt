@@ -1,3 +1,10 @@
+## Issue #619 — Target Resource KPI R1 (2026-10-14)
+
+- 기준 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`, app `0.109.0` → 후보 `0.110.0`, branch `feat/issue-619-target-resource-kpi`. #614 계약 및 main에 병합된 #617 단일 resolver를 재사용한다. 상세 [Work Packet](ISSUE_619.md).
+- 기존 KPI에 Target·공정·WorkArea·typed instance 집계 축을 추가한다. 같은 binding/member 필터, T0/A, 관련 계획 공수의 중첩 소계와 원시 Assignment 합집합 전체, full Milestone·Calendar·Plan R/전체부하 보존을 검증한다.
+- HIGH / OWNER_MANAGED / qa_required=true. scheduler 구현·Manager 문서/version·별도 read-only qa_docs 사전 검토. release_required=true / release_authorized=false / manager_decision=NOT TESTED.
+- 요청 종료점은 구현·문서 동기화·리뷰 스레드/충돌 해결 후 PR Full CI 시작이다. 기존 회귀166·최종 신규38·version7·별도 반례20은 로컬 PASS, 최종 source/tree 사전 검토 결속 단계다. 공식 Quality/E2E/Docker·Trusted QA는 NOT TESTED이며 CI 완료 모니터링·병합·Main/Release·브랜치 정리·Issue 종료는 수행하지 않는다. #618 UI와 #620~#622 API/Plan/Excel 및 제품 종단 수용은 별도다.
+
 ## Issue #617 — WBS–Target F3 구현 후보 (2026-10-14)
 
 - 기준 main `e1957802`, 후보 app `0.109.0`. Task–Target whole/subset·self/subtree·coverage·합집합 provenance, legacy 직접 연결 호환, 영향 확인, Copy/Template 및 loss guard·usage null/0/N 계약을 구현한다. Target authoring UI와 Resource 축은 #618/#619 이후다.
@@ -840,7 +847,6 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
 
-
 ## Issue #618 — Target F4 구성·연결 편집
 
-최신 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b` / version0.109.0에서 `feat/issue-618-target-composer`로 진행한다. 기존 F1/F2/F3 API, 물류 Workspace, 공통 Task Editor와 canonical/viewport gateway를 재사용하여 composer·whole/subset·출처·양방향 동일 원본 편집을 제공한다. minor0.110.0, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. [Work Packet](ISSUE_618.md)의 AC·상태·문서·실행 원장을 따른다. 요청 종료점은 구현/리뷰 보완/충돌 해결 후 PR CI 시작 확인이며 CI 모니터링·병합·게시·Issue 종료는 후속이다. 공식 원격 회귀와 Manager ACCEPT는 아직 NOT TESTED다.
+최신 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b` / version0.109.0에서 `feat/issue-618-target-composer`로 진행한다. 기존 F1/F2/F3 API, 물류 Workspace, 공통 Task Editor와 canonical/viewport gateway를 재사용하여 composer·whole/subset·출처·양방향 동일 원본 편집을 제공한다. minor0.111.0, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. [Work Packet](ISSUE_618.md)의 AC·상태·문서·실행 원장을 따른다. 요청 종료점은 구현/리뷰 보완/충돌 해결 후 PR CI 시작 확인이며 CI 모니터링·병합·게시·Issue 종료는 후속이다. 공식 원격 회귀와 Manager ACCEPT는 아직 NOT TESTED다.

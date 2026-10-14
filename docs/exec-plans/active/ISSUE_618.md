@@ -119,3 +119,10 @@ release_authorized: false
 [실행 원장](../../../output/playwright/issue-618/validation.json)은 baseline과 제품·테스트 source SHA-256, 실제 실행 수/범위/FAIL 이력 및 원격 NOT TESTED를 분리한다. [390px composer](../../../output/playwright/issue-618/target-390.png), [1440px composer](../../../output/playwright/issue-618/target-1440.png)는 최종 semantic token 및 이름 우선 공정/WorkArea label 적용 후 재캡처다. 고정 UUID isolated 경로가 자동 추가된 next-env.d.ts/tsconfig.json은 복구하여 diff에서 제외했다. 로컬 전체 회귀나 운영 UX PASS를 주장하지 않는다.
 
 최종 PR head/URL, 원본 CI run/attempt 및 리뷰 스레드/mergeability 확인은 Issue STATUS 기록으로 인계한다. CI 시작 확인 후 모니터링하지 않으므로 최종 Quality/E2E/Docker·Trusted QA·Owner/Manager 결정은 NOT TESTED이고 MERGE_READY=BLOCKED다. 작업 branch와 Issue는 유지한다.
+
+## 2026-10-14 최신 main 정렬 및 릴리스 게이트
+
+- PR #678의 CI #2740.1은 product test 실패가 아니라 main #619 병합 이후 QA Preflight MERGE_CONFLICT로 차단되었다. 취소/skip된 Quality·E2E·Docker는 NOT TESTED이다.
+- main `87dcbf9e60216f9b902806c08c99e390ddf6c568`의 #619 Resource KPI source·문서를 보존하고 #618 Target UI와 통합한다. 두 PR이 각각 선택한 0.110.0 버전은 main에 #619가 이미 사용하므로 본 F4 후보를 0.111.0으로 올린다. 정식 release_authorized=false이며 Main CI 후보 ci-<SHA> 게시와 정식 0.111.0 Release는 별도 권한이다.
+- 순서: exact-Head PR Quality/E2E6/Docker 및 Trusted QA/리뷰0 → Owner 명시 병합 범위 수용 → merge → Main CI 동일 3종 → 임시 GHCR ci-<merge SHA> exact digest smoke/SBOM/provenance → Generic Release Finalizer. 정식 version tag/Release/GHCR stable은 버전별 Owner release_authorized=true 이후에만 허용한다.
+- 충돌 통합 후 새 원격 CI 결과, 테스트, Main/GHCR/Finalizer는 실제 성공을 확인하기 전 NOT TESTED로 기록한다. 이전 로컬 0.110.0 검증을 0.111.0 원격 검증으로 전이하지 않는다.

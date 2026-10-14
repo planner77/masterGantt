@@ -1,12 +1,18 @@
-## [Unreleased] — 0.109.0 / Issue #617 WBS–Target 연결 (2026-10-14)
-
-## [0.110.0] — 2026-10-14
+## [Unreleased] — 0.111.0 / Issue #618 Target 구성 UI (2026-10-14)
 
 - Target composer에서 공정/optional WorkArea 및 기존 Equipment/System 신규·재사용 구성을 편집합니다 (#618).
 - WBS Target whole/subset·self/subtree·작업수량·출처와 Target↔동일 Task Editor 탐색을 추가합니다.
 - Target usage에 같은 revision의 canonical 관련 Task ID를 제공하고 기존 권한·stale·공유/삭제 보호를 유지합니다.
 - PR CI·Owner 승인 및 정식 릴리스는 별도이며 현재 정식 게시 승인 없음.
 - #618 PR #678 원본 CI #2729.1에서 신규 Target alert와 기존 물류 연결 alert가 함께 표시되어 E2E strict locator가 실패한 원인을 수정한다. 기본 활성 Target 목록은 서버에서 COUNT/LIMIT/OFFSET 이전에 필터링하고 기존 전체 목록 API는 유지한다. 52개 혼합 서비스/HTTP 필터 회귀 및 #661 GSC Work Packet 근거를 추가했으며, 새 exact-head CI 결과·Owner 승인·릴리스는 별도 판정이다.
+
+## [Unreleased] — 0.110.0 / Issue #619 Target Resource KPI (2026-10-14)
+
+- 기존 Resource KPI pure 엔진에 Target·공정·WorkArea·Equipment/System type 및 instance 조회 차원을 추가한다. #617 단일 binding resolver의 whole/subset·직접/상속 출처와 legacy 직접 연결을 재사용한다.
+- Target 소계는 관련 계획 공수로 중첩될 수 있으며 선택 전체는 원시 Assignment 합집합에서 한 번만 계산한다. T0/A·같은 개인 Assignment 조건·inclusive Resource Calendar·null/partial/설정0·M/M 미설정·full Milestone Ready/Blocked를 보존하고 Plan의 Capacity 모집단 및 전체 Project load를 Target 선택으로 축소하지 않는다.
+- Domain typed contract 및 golden/property/예산 회귀를 추가한다. 새 UI·HTTP API·DB·Excel 공개는 후속 #618/#620~#622 범위다. 후보 minor version이며 정식 릴리스가 아니다. 원격 CI/Trusted QA/Owner ACCEPT는 별도이며 release_authorized=false다.
+
+## [Unreleased] — 0.109.0 / Issue #617 WBS–Target 연결 (2026-10-14)
 
 - Task/Summary–Target 다대다 whole/subset·self/subtree 연결과 typed member coverage, 직접+모든 조상 subtree 합집합·전체 출처를 제공하는 단일 resolver를 추가한다. legacy Equipment/System 직접 연결과 공유 MCS identity를 보존한다.
 - Target 구성·WBS 이동 영향 확인, subset/coverage/사용 중 삭제 보호, Copy·Template 명시 연결 remap과 미지원 포맷 silent-loss 차단을 동기화한다. 같은 Project subtree Copy도 기존 명시 legacy Equipment/System self/subtree 링크를 복사하도록 확장하며 상속을 평탄화하지 않는다. Target usage는 nullable 의미와 실제 고유 일반 Task/Summary 수량을 구분한다.

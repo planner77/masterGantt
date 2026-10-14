@@ -1,5 +1,11 @@
 # Scheduling Engine 설계
 
+## Issue #619 — Target 필터와 Resource Calendar·Milestone 보존
+
+Target 분석은 기존 개인 Assignment의 inclusive 유효기간과 `resolveResourceCalendar`/`workingDaysBetween`을 사용한다. 선택한 Group/Target 때문에 Resource의 전체 Calendar 소속을 잘라내지 않는다. Summary/Milestone/직접 Group 참조나 설비 담당/PI 책임 참조만으로 개인 계획공수를 생성하지 않는다. 실제 개인 일반 Task Assignment만 공수 원장이다.
+
+Target별 관련 계획 공수는 중첩될 수 있지만 전체는 원시 Assignment 합집합이다. 완료/진척 변경은 계획공수를 줄이지 않고 allocation null·known0·partial·미설정 M/M 의미를 유지한다. Target 선택 전 full canonical `projectStageGates`의 Ready/Blocked·진척을 보존한다. ResourcePlan의 R/Capacity 및 전체 Project load는 Target 선택으로 축소하지 않는다. 일정·Dependency·Milestone membership mutation은 없으며 [KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
 ## Issue #460 — 일정과 Stage Gate의 분리
 
 단계 Membership/Ready는 `src/domain/milestones/stage-gates.ts`에서 전체 canonical hierarchy와 Task status/duration/progress, 직접 Milestone predecessor를 사용하여 계산한다. 일정 graph/WBS를 재작성하거나 Task graph를 단계 graph로 축약하지 않는다. Membership-only 저장은 요청/적용일·기간·mode·Link·Assignment 불변이다. Milestone→Milestone 날짜는 기존 FS/SS/FF/SF/signed Lag/Auto·Manual/근무일 계약을 그대로 사용하며 FS/0을 임의 같은 날로 바꾸지 않는다. 새 mixed Link 금지는 생성 service 경계에만 적용하고 기존 mixed를 pure scheduling에서 일괄 거부하지 않는다. 준비율은 duration 가중 진척, Ready/완료 조건은 canonical status로 판정하며 수동 이벤트는 null이다. [상세 계약](MILESTONE_STAGE_GATES.md), 별도 scheduler 회귀 `tests/domain/milestone-dependency-scheduling.test.ts`를 따른다.

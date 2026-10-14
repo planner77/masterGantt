@@ -13,7 +13,7 @@
 | F2 | [#616](https://github.com/planner77/masterGantt/issues/616) | backend: Target/member CRUD·재사용·copy/Template guard | #615 | NOT TESTED |
 | F3 | [#617](https://github.com/planner77/masterGantt/issues/617) | backend: binding whole/subset·self/subtree·coverage·provenance | #616 | `0.109.0` 구현 후보; #617 Work Packet, exact-Head PR CI 시작까지 / 원격 결과 NOT TESTED |
 | F4 | [#618](https://github.com/planner77/masterGantt/issues/618) | ui_ux 설계/frontend: composer·연결 editor·원본 편집 | #615/#616/#617 | NOT TESTED |
-| R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | NOT TESTED |
+| R1 | [#619](https://github.com/planner77/masterGantt/issues/619) | scheduler/backend: 기존 Resource pure projection에 Target 축 | #617 | R1 구현 중; #619 Work Packet / PR CI 시작까지, 결과 NOT TESTED |
 | R2 | [#620](https://github.com/planner77/masterGantt/issues/620) | backend: report/plan/filter/snapshot/exact drill API | #617/#619 | NOT TESTED |
 | R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | NOT TESTED |
 | R4 | [#622](https://github.com/planner77/masterGantt/issues/622) | scheduler/backend/frontend: 주·월 Plan·전체 과투입·Excel | #619/#620, UI #621 | NOT TESTED |
@@ -69,7 +69,12 @@ F1 #615 PR #627/#628 integrated before branch creation. F2 branch `feat/issue-61
 
 실제 Agent 분리 구현 및 독립 read-only qa_docs 검토를 사용한다. `qa_method=AGENT`, `risk_level=HIGH`, `qa_required=true`, `release_required=true`, `release_authorized=false`. 실행/AC/문서 원장은 [ISSUE_617](ISSUE_617.md)이며 이번 마지막 단계는 미해결 리뷰 처리 및 PR CI 시작이다. CI 모니터링·병합·Main artifact·정식 릴리스·Issue 종료는 별도다.
 
+## Issue #619 — R1 pure Domain 착수 (2026-10-14)
+
+F3 #617 PR #676이 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`에 병합되어 단일 Target resolver를 재사용한다. #617 Issue OPEN은 Main/Release/Finalizer 후속 상태와 구별하며 이를 본 R1에서 완료 처리하지 않는다. #618 기초 UI와 병행 가능한 pure KPI 분석만 확장한다. 기존 report/plan/detail·Excel 공개를 자동 확장하지 않는다.
+
+관련 계획 공수의 overlapping Target 소계와 raw Assignment union 전체, same-binding/member 조건, T0/A/R·전체 Milestone 및 전체 Project 부하를 보존한다. 후보 minor `0.110.0`, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 실제 역할·AC·문서·로컬/원격 검증 상태는 [ISSUE_619](ISSUE_619.md)에 기록한다. 요청은 리뷰·충돌 해결 후 PR Full CI 시작까지이며 원격 완료 모니터링·병합·게시·Epic 수용은 별도다.
 
 ## Issue #618 — F4 현재 구현 (2026-10-14)
 
-#615/#616 완료 및 #617 PR #676이 main `96c6c74b`에 반영된 현재 기반에서 F4 composer·Task binding UI·양방향 같은 원본 편집을 구현한다. 이전 candidate 상태표는 착수 이력이며 현재 완료 증거는 각 Issue/PR·Work Packet으로 확인한다. F4는 [ISSUE_618](ISSUE_618.md)을 따르며 minor0.110.0/HIGH/OWNER_MANAGED, release_required=true/release_authorized=false다. 실제 역할 분리 설계/구현과 별도 Agent 사전 검토를 사용하고 요청 종료점은 PR CI 시작이다. R1~V1을 자동 구현/완료하지 않는다.
+#615/#616 완료 및 #617 PR #676이 main `96c6c74b`에 반영된 현재 기반에서 F4 composer·Task binding UI·양방향 같은 원본 편집을 구현한다. 이전 candidate 상태표는 착수 이력이며 현재 완료 증거는 각 Issue/PR·Work Packet으로 확인한다. F4는 [ISSUE_618](ISSUE_618.md)을 따르며 minor0.111.0/HIGH/OWNER_MANAGED, release_required=true/release_authorized=false다. 실제 역할 분리 설계/구현과 별도 Agent 사전 검토를 사용하고 요청 종료점은 PR CI 시작이다. R1~V1을 자동 구현/완료하지 않는다.

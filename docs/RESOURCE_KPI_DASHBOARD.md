@@ -1,5 +1,48 @@
 # Resource KPI 공통 집계 계약
 
+## Issue #619 — Target Resource KPI R1 Domain 계약
+
+R1은 기존 pure KPI 계산기에 Target 분석을 추가한다. HTTP `resource-dashboard/1`·details·plan·Excel DTO/selector/query parser는 바꾸지 않는다. 새 분석을 사용자 화면에서 사용할 수 있다는 뜻이 아니며 #618/#620~#622 및 #623 제품 수용은 별도다. 구체 typed 입력은 `src/domain/resources/resource-kpi-targets.ts`와 기존 `resource-kpi.ts`가 authority다. 원시 Assignment는 복제하지 않는다.
+
+### Typed 입력·출력
+
+- `ResourceKpiInput.logistics?: ResourceKpiLogisticsInput`은 같은 Project canonical snapshot의 `targets/instances/processes/workAreas/bindings/legacy`와 optional `limits`를 받는다. binding은 기존 `TaskTargetBindingDto`, legacy는 기존 `TaskTargetLegacyLink`이며 조상/선택 member 해석은 #617 resolver가 수행한다. 생략 시 기존 `calculateResourceKpi` 출력 구조·값은 그대로다.
+- `ResourceKpiFilters`는 `ResourceKpiTargetFilters`의 `targetIds/projectProcessIds/processOccurrenceIds/workAreaIds/targetScopes/memberEquipmentIds/memberSystemIds/equipmentTypeCodes/systemTypeCodes/directEquipmentIds/directSystemIds`를 추가 지원한다. Target snapshot 없이 이 필터를 요청하면 `ResourceKpiTargetInputError`로 거부한다. HTTP query 지원과는 별개다.
+- `calculateResourceTargetKpi(input, order?)`는 기존 `kpi`와 `projectReference/projection/relatedMembers/taskSources/diagnostics/targetUsage/metadata`를 반환한다. `projectResourceKpiTargets(prepared, selection, order)`의 node는 `dimension/id/sourceKinds/totals/relatedMembers/children`이며 `totals`는 항상 해당 node 원시 Assignment를 dedup한 결과다.
+- grouping 축은 `target/process/workArea/scope/equipmentType/systemType/equipment/system/group/resource`, 기본 순서는 `target/group/resource`다. `process` node ID는 occurrence ID이며 Project-local 공정 ID는 별도 필터다. 같은 kind의 type·instance 축은 같은 member 경로를 유지해야 한다.
+- `RESOURCE_TARGET_KPI_DICTIONARY`는 기존 `RESOURCE_KPI_DICTIONARY`의17개 정의를 대체하지 않고 관련 계획 공수/Task·Resource/typed member/T0 진단의 grain·범위·분모·출처를 보충한다.
+
+### 같은 연결 경로의 범위
+
+Target·Project Process·Process occurrence·WorkArea·scope 조건은 하나의 유효 binding→Target 경로에서 AND로 판정한다. member Equipment/System ID 및 type 조건은 실제 whole/subset 선택 member만 검사한다. 같은 kind의 instance+type은 같은 member, Equipment와 System을 함께 지정하면 같은 binding에서 각각 만족해야 한다. 같은 축 다중값은 OR다. Target A의 ACS와 B의 AMR이 있는 Task를 A+AMR로 통과시키지 않는다.
+
+legacy 직접 Equipment/System 축은 #617의 legacy self/subtree 출처만 검사하고 Target을 역추론하지 않는다. projection의 Target `id=null`은 해당 경로에 Target provenance가 없다는 뜻이다. linked Task의 독립 legacy 직접 경로도 포함할 수 있으므로 이를 Task 미연결 건수로 표시하지 않는다. node의 `sourceKinds=target_binding|legacy_direct|target_unlinked`로 출처 종류를 구분하고 실제 Task 미연결은 `diagnostics.targetUnlinkedTaskIds`로만 판정한다. Target 미연결은 유효 Target binding이 없는 Task이며, WorkArea 미사용·project_common·legacy 공정 미매핑과 서로 다른 진단이다. `targetIds=[null]`과 member ID/type 조건을 함께 지정하는 모순은 명시 오류다. unknown/foreign 참조 및 같은 ID 상충 payload를 성공0건으로 숨기지 않는다. inactive 기존 참조는 ID/출처를 유지하며 자동 제외하지 않는다.
+
+### 지표·분모·출처
+
+기존 17개 지표의 식과 grain은 유지한다. Target 조건은 T0 작업과 A의 그 작업 Assignment만 제한하고 개인 Resource/Group/Role/grade는 같은 개인 Assignment 조건이다. 개인 필터로 T0의 개인미배정/Group only/공수미설정 진단을0으로 바꾸지 않는다. Task/Resource는 distinct ID, 계획 공수는 distinct `(projectPublicId,assignmentId)`다. Summary/Milestone/Group 및 별도 설비 책임 관계는 공수0의 가짜 개인행으로 변환하지 않는다.
+
+Target별 계획 공수의 명칭은 **관련 계획 M/D·M/M**다. A/B에 연결된5근무일100% Assignment는 A5, B5이며 선택전체 A∪B는5다. 공동담당50%가 추가되면 원시합7.5이고 복수 Group 소계 합을 Grand Total로 사용하지 않는다. 계획 공수에 대수를 곱하거나 Target 수로 나누지 않으며 실적/기여원가/잔여공수를 추정하지 않는다. progress/status 변경은 계획공수를 차감하지 않는다.
+
+| 항목 | 근거와 분모 | 중첩·누락 의미 |
+| --- | --- | --- |
+| Target 관련 지표 | 해당 Target 경로 Task의 A 원시 Assignment | 기존 Task/Resource/상태/진척/공수 지표 동일; 소계 간 중첩 |
+| 선택 전체 | 선택 T0에서 같은 개인조건을 만족하는 Assignment 합집합 | 소계 합이 아님; Target 미연결 포함 가능 |
+| 전체 Project 참고 | `projectReference.total`: 같은 기간의 전체 canonical Project, Task/개인/Target 필터 제거 | 선택 전체와 별도 범위이며 필터 결과로 바꾸지 않음 |
+| Target 미연결 | 선택 T0 고유 Task, 유효 Target binding 없음 | legacy 직접 MCS만 있어도 미연결 유지 |
+| 공통/무구역/공정 미매핑 | 각 provenance 및 원본 Process mapping | 서로 다른 진단이며 무구역 null로 공통/미연결을 통합하지 않음 |
+| Calendar·M/M | 기존 Resource 전체 Group 예외 및 inclusive working days | null/partial/configured0 유지, 환산 기준 생략은 숨은 fallback 없음 |
+
+`diagnostics.unusedTargetIds`는 일반 Task/Summary/Milestone의 유효 Target 참조가 모두0인 경우다. 일반 Task 공수0과 Target 미사용은 다르며 이 진단만으로 삭제를 승인하지 않는다.
+
+결과는 canonical Task/Assignment ID 및 #617 binding/sourceTask/Target/member/selection/scope/inherited·legacy 출처를 보존한다. 보기 순서와 grouping은 원시 ID·총계를 바꾸지 않는다. full Milestone Ready/Blocked는 선택 밖 canonical snapshot도 사용한다.
+
+### 예산 및 Plan 인계
+
+`ResourceKpiLogisticsInput.limits` 기본값은 inputRows100000 / lineageEdges250000 / provenancePaths250000 / projectionCells50000이며 caller가 각 값을 양의 안전 정수로 재정의할 수 있다. Target 입력·조상 경로·provenance·projection fan-out은 계산 전 유한 예산을 검사한다. 초과는 명시 오류이며 절삭 총계를 반환하지 않는다. caller의 기존 KPI cell 예산도 유지한다. HTTP 상한/오류 매핑·snapshot fingerprint는 #620에서 이 Domain 계약과 함께 공개해야 한다.
+
+`selectResourceTargetPlanScope(prepared, selection?)`는 `capacityResourceIds/selectedAssignments/fullProjectAssignments`를 기존 ResourcePlan에 인계한다. ResourcePlan은 선택 기여 A, Capacity 모집단 R, R의 전체 Project Assignment를 별도로 받는다. Target/Task 선택으로 R 또는 전체 Project 부하를 축소하지 않는다. 같은 개인의 선택80%와 전체140%를 함께 보존하며 구체 주/월 UI 및 Excel 공개는 #622다. [검증 원장](exec-plans/active/ISSUE_619.md)에 실제 LFF와 원격 NOT TESTED를 분리한다.
+
 ## Target 분석 축 후속 계약 (#614)
 
 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md) §5~6의 Target/member 같은 binding 경로 필터와 관련 계획 공수 사전을 F0 계약으로 고정한다. 구현 순서는 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)의 #619~#622이며 현재 report/plan API가 신규 축을 지원한다는 뜻은 아니다. 기존 T0/A/R·same-assignment·Calendar·null/partial/configured0·full Milestone Gate와 exact snapshot/detail/export 계약을 유지한다. Target별 소계는 겹칠 수 있고 전체는 distinct(Project,Assignment)에서 재계산한다. 선택 Target80%가 Project 전체140%를 숨기거나 Capacity R을 축소하지 않는다. 공통 fixture의 A5/B5/전체5M/D·공동담당7.5·15대/시스템3식은 기존 엔진 검산과 신규 Target test-only 검산을 구분한다. API/UI/Excel 통합 증거는 후속 이슈에서 기록한다.

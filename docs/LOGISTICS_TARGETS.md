@@ -281,6 +281,11 @@ Target membership 변경은 실제 whole/subset 참조를 조회하고 snapshot�
 
 Task authoring UI는 #618, Resource Target 축·공수/보고서/Excel은 #619~#622 후속이다. 신규 binding은 Resource 배정·Dependency·Task 일정/상태·Milestone membership/Ready를 변경하지 않는다. 기존 Milestone 직접 물류 연결은 유지하며 Target authoring은 일반 Task/Summary 경계다.
 
+## Issue #619 — R1 Resource pure projection 구현 경계 (2026-10-14)
+
+기존 Resource KPI 엔진은 F3 `resolveAllTaskTargetBindings`의 유효 binding/member/provenance를 재사용한다. Target·공정·WorkArea·typed instance/type 조건은 §5의 같은 연결 경로를 지키며 legacy 직접 인스턴스가 Target 전체로 확대되지 않는다. Target 소계는 관련 계획 공수로 중첩되며 선택 전체는 원시 Assignment 합집합이다. full Project 참고·T0 진단·Capacity R·전체 Project load·full Milestone Gate는 별도 범위로 유지한다.
+
+`resource-kpi-targets.ts`의 typed snapshot은 기존 canonical KPI Task와 같은 Project 자료만 받아야 한다. 정확 중복은 정규화하고 같은 ID 상충 payload·foreign 참조·budget 초과는 오류다. 원시 Assignment 저장·Calendar·일정·revision을 변경하지 않는다. KPI 사전·null/분모·출처 및 실행 상태는 [RESOURCE_KPI_DASHBOARD](RESOURCE_KPI_DASHBOARD.md), [ISSUE_619](exec-plans/active/ISSUE_619.md)를 따른다. HTTP report/plan/detail 및 snapshot/Excel 공개는 #620/#622, 최소 Target 편집 UI는 #618의 별도 검증 대상이다.
 
 ## Issue #618 — Target 목록 활성 필터와 paging 계약 보완
 
