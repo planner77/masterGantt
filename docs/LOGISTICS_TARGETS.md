@@ -282,6 +282,10 @@ Target membership 변경은 실제 whole/subset 참조를 조회하고 snapshot�
 Task authoring UI는 #618, Resource Target 축·공수/보고서/Excel은 #619~#622 후속이다. 신규 binding은 Resource 배정·Dependency·Task 일정/상태·Milestone membership/Ready를 변경하지 않는다. 기존 Milestone 직접 물류 연결은 유지하며 Target authoring은 일반 Task/Summary 경계다.
 
 
+## Issue #618 — Target 목록 활성 필터와 paging 계약 보완
+
+Target 구성 화면은 기본적으로 활성 Target만 표시한다. GET `/api/projects/{publicId}/logistics/targets?activeOnly=true`는 SQL COUNT와 정렬된 SELECT 양쪽에서 inactive를 제외한 뒤 LIMIT/OFFSET을 적용한다. `activeOnly`를 생략하면 기존 외부 소비자와 공유 인스턴스 사용처 검토가 필요한 화면의 활성·비활성 전체 목록을 그대로 반환한다. `activeOnly=false` 또는 중복·기타 잘못된 값은 HTTP 400으로 거부한다. UI의 비활성 포함 토글은 페이지 offset을 0으로 되돌리고 새로운 조회 key로 reload한다. 조회·검색·토글은 Project revision을 변경하거나 Gantt/Task Editor/Viewport writer를 생성하지 않는다. 50개 inactive/2개 active의 서비스 회귀와 실제 HTTP 필터·오류 회귀는 #618 PR #678에 추가하되 원격 CI 결과 전 PASS로 판정하지 않는다.
+
 ## Issue #618 — F4 Target 구성과 같은 작업 편집
 
 물류 Workspace의 Target 하위탭에서 Target 목록을 검색하고 상세·구성원을 조회한다. Composer는 프로젝트 분류를 읽어 표시하고 process 또는 명시적 project_common을 선택한다. WorkArea는 해당 occurrence에 존재할 때만 선택하며 필수가 아니다. 기존 인스턴스 검색/연결과 새 Equipment/System 생성을 구분한다. Equipment는 종류·label·원수량, System은 종류·label·1식이며 stable ID를 사용한다. 같은 인스턴스의 공유 Target 사용처를 표시한다. Target 구성원 연결 해제는 실물 인스턴스 삭제가 아니다. 상세 controls/coordinates/업체/역할 원본은 기존 관리 경로를 유지하며 membership이 자동 관계를 생성하지 않는다.
