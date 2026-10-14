@@ -4,7 +4,7 @@
 - 선행: [#618](https://github.com/planner77/masterGantt/issues/618) / 병합 [PR #678](https://github.com/planner77/masterGantt/pull/678) / SHA `59fa8f9e8743e03699741a654038b3086c0e1778`. 최초 Main [CI #2745.1](https://github.com/planner77/masterGantt/actions/runs/38512238015) FAIL: Chromium Shard2 `milestone-stage-editor.spec.ts:53` / `GET /api/projects/{publicId}` ECONNRESET. 다른 5 Shard 및 Quality/Build/Docker PASS, GHCR 후보 게시 SKIPPED.
 - #618은 이미 merged 및 issue closed이므로 해당 PR의 재병합·과거 실패의 소급 PASS 금지. 수정은 새 Issue #680의 단일 변경이다.
 - baseline main: `59fa8f9e8743e03699741a654038b3086c0e1778`; candidate version `0.111.0` 유지. `release_required=false`, `release_authorized=false` (테스트 복구 자체의 신규 SemVer 승인 없음; #618의 별도 release 의무는 삭제하지 않음).
-- risk_level=MEDIUM; qa_required=true; qa_method=OWNER_MANAGED; manager_decision=NOT TESTED; merge_ready=BLOCKED (새 CI/Trusted 전).
+- risk_level=HIGH; qa_required=true; qa_method=OWNER_MANAGED; manager_decision=NOT TESTED; merge_ready=BLOCKED (새 CI/Trusted 전).
 - 실행 방식: 연결 GitHub API에서 파일·커밋/PR 생성. 별도 로컬 Next/Playwright 실행 환경이 없어 로컬 전체 브라우저 및 운영 환경은 NOT TESTED. 원격 CI를 최종 판정한다.
 
 ## 원인·계약
@@ -34,3 +34,8 @@
 
 ## 승인·후속
 기존 PR #678을 다시 병합하지 않는다. 이 수정 PR의 정확한 Head에서 세 Required, Trusted QA 및 미해결 리뷰0, Owner 명시 병합 지시·잔여 위험 수용 확인 후에만 병합한다. Main CI 성공 이후 GHCR 임시 이미지와 Finalizer를 순서대로 검증한다. 정식 `0.111.0` tag/GHCR stable/Release는 별도 버전 승인 gate를 따른다.
+
+## Preflight #2746.1 정책 정렬
+
+- 새 PR #681의 [CI #2746.1](https://github.com/planner77/masterGantt/actions/runs/38514834346)는 source 테스트 실행 전에 QA Preflight FAIL: `PATH_POLICY` 최소 HIGH vs MEDIUM, `ISSUE_AC` Issue #680 AC1.. 이름 누락. 기존 세 Required Aggregate는 따라서 진짜 E2E 실패가 아닌 사전 차단으로 FAILURE 집계됐다.
+- Issue #680 본문 AC1~AC7 명시와 `risk_level=HIGH`, PR #681의 HIGH 및 Work Packet HIGH를 동일하게 정렬한다. 정책 검사 코드는 변경하거나 완화하지 않는다. 수정 후 정확 Head 전체 PR CI/Trusted QA 결과를 재확인하며 원본 #2746.1은 실패 기록으로 보존한다.
