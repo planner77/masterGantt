@@ -1,5 +1,17 @@
 # Backend API
 
+## Issue #622 — Target Resource Plan 상세 및 Excel
+
+`granularity=week|month` Plan 조회 시 optional `catalog.targetOptions` (Target/공정/WorkArea/설비·시스템 유형/인스턴스의 기존 canonical 목록)를 반환해 필터 UI를 지원한다. Plan은 `projectionOrder`를 암묵적으로 전송하지 않으며 이를 명시하지 않은 Plan 요청에서는 Target 필터가 있어도 `targetProjection` 전체 계층을 생성하지 않는다. 기존 Target 보기의 명시적 계층 투영과 granularity 없는 Target-only 보고서는 기존 예산·응답을 유지한다. 대량 Plan은 새 projectionCells5000 실패를 피하되 일반 KPI/Plan/2MiB/snapshot 상한 및 명시 Target 계층 요청의 422는 완화하지 않는다.
+
+기존 report/Plan·daily/day-resources/day-assignments와 exact drill 경로를 재사용한다. Target 조건은 selected A를 제한하고 R·같은 R/기간의 Project 배정을 보존한다. `ResourceDashboardPlanDto.targetContext`는 optional `{filters,measure:"related planned effort",subtotalsAdditive:false,projectReferenceScope:"same Capacity R and period; Target/Task/Milestone/source restrictions removed"}`다. Target 조건 없는 Plan은 기존 수치/구조를 유지한다.
+
+Plan 상세는 같은 snapshot의 optional `resourceScopeContext`, `resourceDataContext`와 Target 요청의 `targetContext`를 제공한다. day-assignments row는 `resourceActive` 및 Target 요청의 canonical `targetSources: TaskTargetBindingsDto`를 보강한다. selected와 project 상세 모두 원래 filters/snapshot을 echo하되 `demandScope`로 실제 기여 집합을 구별하며 project는 선택 Target 밖 Assignment도 포함한다. 원본 source context와 현재 참고 범위를 혼용하지 않는다. 새 필드는 기존 공통 Editor·drill transport의 현재 revision/정확 Assignment 결속에 사용하며 authorization token이 아니다.
+
+기존 `resourceDashboard` Excel strict union의 current `expectedReport.filters`에 공통 Target 필터·`projectionOrder`를 bound/unbound 모두 허용한다. malformed/unknown 조건은400이며 조건을 버리지 않는다. current는 정확 source 제한/Target 조건/snapshot을 보존하고 project는 실제 기간/asOf/M/M 정책을 유지하면서 개인/Task/Milestone/Target/공정/WorkArea/member/type/instance 및 exact 조건을 제거한다. Target-bearing Project의 Resource 보고서 opt-in만 Target 근거를 append해 허용하며 plain 일정/JSON의 `TASK_TARGET_EXPORT_UNSUPPORTED` 손실 방지는 유지한다.
+
+Task/Assignment/Calendar/Target/master fingerprint를 같은 SQLite transaction에서 검증한다. Plan/details `409 REPORT_STALE`, export의 `412 REVISION_MISMATCH`, 잘못된 선택400·계산/JSON/workbook 예산422·export 본문8KiB/413 등 기존 오류와 한도를 유지한다. 필수 sheet/raw/null/안전 계약은 [EXCEL_EXPORT](EXCEL_EXPORT.md), 실제 검증 상태는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
 ## Issue #620 — Resource–Target R2 조회 계약
 
 기존 `/api/projects/{publicId}/resource-dashboard`, `/details`, `/group-children` 및 POST `/api/projects/{publicId}/resource-dashboard/query`를 확장한다. 새 endpoint나 편집 권한을 만들지 않는다. 기존 `resource-dashboard/1`은 하위 호환 optional 필드를 추가하며 새 조건 없는 호출의 기존 결과·오류 의미를 유지한다.
@@ -18,7 +30,7 @@ projection node는 `dimension/id/name/active/summary/sourceKinds/equipmentQuanti
 
 source `ResourceDataContext.dataSnapshotId`, report `snapshotId`와 detail/export 공통 identity는 같은 read transaction의 Task/Assignment/Calendar/Resource와 Target/member/binding·legacy link·Project 공정 매핑·공정/WorkArea/type master 이름 및 active 참조를 결속한다. Project revision만 동일해도 참조 변경은 이전 details/drill에서 `409 REPORT_STALE`다. POST drill의 `exactAssignments`는 source 원시 Assignment와 destination Target 조건의 교집합이며 같은 Task의 공동담당 Assignment로 확대하지 않는다. 반환 `sourceContext`와 `drill.targetFilters`는 원본과 현재 선택을 구분한다. 기존 `drill.projectReferenceScope=same-resource-population-and-period`는 Plan 참고 범위를 보존하며 optional `drill.targetProjectReferenceScope=full-canonical-project-same-period`는 Target 참고 범위를 추가로 명시한다. `projectionOrder`는 표시 순서이므로 snapshot identity에서 제외하고 필터·source 집합은 유지한다.
 
-malformed/unknown key·중복 scalar·잘못된 UUID/selector는 `400 INVALID_REQUEST`, unknown/cross-project 선택은 `400 INVALID_SELECTION`, snapshot 불일치는 `409 REPORT_STALE`, 원본/fan-out/cell/응답 예산 초과는 `422 REPORT_LIMIT_EXCEEDED`다. 기간366일·응답2MiB·필드200/전체400 token 상한을 유지한다. Target 원본 관계 합50000, provenance paths50000, lineage edges50000, projection cells5000, 보고·상세 페이지 출처 각각5000을 사전 제한하며 부분총계를 절삭해 성공하지 않는다. public UUID read 및 기존 read guard, `private, no-store`·nosniff, 보호 mutation의 session/Origin/strong If-Match는 유지한다. 기존 Plan의 선택 demand에는 공통 Target 필터 교집합을 적용하되 R 모집단과 같은 R의 전체 Project 부하는 유지한다. Target별 기간 행/전용 selector 및 Excel Target 필터·시트 확장은 후속 #622다. 기존 Excel current descriptor의 Target 필터/projectionOrder는 source binding 유무 모두400으로 거부하며 공통 fingerprint에 따른 서비스 stale409 재검증을 적용하고 공개 Excel API에서는 기존 `412 REVISION_MISMATCH`로 매핑한다. 실제 실행 상태는 [R2 Work Packet](exec-plans/active/ISSUE_620.md)을 따른다.
+malformed/unknown key·중복 scalar·잘못된 UUID/selector는 `400 INVALID_REQUEST`, unknown/cross-project 선택은 `400 INVALID_SELECTION`, snapshot 불일치는 `409 REPORT_STALE`, 원본/fan-out/cell/응답 예산 초과는 `422 REPORT_LIMIT_EXCEEDED`다. 기간366일·응답2MiB·필드200/전체400 token 상한을 유지한다. Target 원본 관계 합50000, provenance paths50000, lineage edges50000, projection cells5000, 보고·상세 페이지 출처 각각5000을 사전 제한하며 부분총계를 절삭해 성공하지 않는다. public UUID read 및 기존 read guard, `private, no-store`·nosniff, 보호 mutation의 session/Origin/strong If-Match는 유지한다. 기존 Plan의 선택 demand에는 공통 Target 필터 교집합을 적용하되 R 모집단과 같은 R의 전체 Project 부하는 유지한다. R2 당시 분리했던 Target 조건 Plan 상세·Excel 필터/근거 시트는 현재 #622 절을 따른다. 공통 fingerprint에 따른 서비스 stale409는 공개 Excel API에서 기존 `412 REVISION_MISMATCH`로 매핑한다. 실제 실행 상태는 [R2 Work Packet](exec-plans/active/ISSUE_620.md)을 따른다.
 
 
 ## Issue #538 — Project Master 관계 계약
@@ -1587,7 +1599,7 @@ F3의 런타임·원격 검증 상태는 [#617 Work Packet](exec-plans/active/IS
 
 기존 hierarchy 명령의 `indent`/`outdent`/`reparent`는 새 조상에 의해 Target 출처가 바뀌면 `409 TASK_TARGET_IMPACT_REVIEW_REQUIRED`로 모든 변경 Task의 before/after와 `targetImpactDigest`를 반환하고 전체 시도와 revision을 rollback한다. 명령·Project revision·before/after 전체 snapshot에 묶인 64자리 digest와 같은 strong If-Match로 재요청해야 적용된다. 영향이 없어졌는데 이전 digest를 보내면 `409 TASK_TARGET_IMPACT_STALE`다. binding을 가진 Task→Milestone 전환은 `409 TARGET_BINDING_TYPE_CONFLICT`로 거부한다.
 
-Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON/Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다.
+Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON 및 Resource 보고서 opt-in 없는 일정 Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다. Resource opt-in 보고서는 #622의 별도 근거/비왕복 계약을 따른다.
 
 
 ## Issue #618 — Target 상세의 canonical 관련 작업

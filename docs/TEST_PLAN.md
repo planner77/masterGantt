@@ -1,3 +1,24 @@
+## Issue #622 — Target Resource Plan·Excel 검증
+
+[PR #684 CI #2769.1](https://github.com/planner77/masterGantt/actions/runs/38632379339)에서는 E2E Shard2 `issue-622-resource-plan-target.spec.ts:57`의 선택 밖 Target B 이름 기대값이 `Target · UUID`로 표시되어 실패했다. 대량 Plan의 전체 projection 회피는 유지하고 `resource-plan-model.ts`의 canonical Target 이름 resolver에 `catalog.targetOptions` fallback을 추가하며 기존 E2E의 선택 Target A·선택 밖 B/편집 후 B 이름 단언을 강화한다. `tests/features/resources/resource-plan-model.test.ts`는 전체 projection이 없는 Plan에서 두 이름·dimension 격리·미연결/불명 fallback을 검증한다. 실패 시 timeout/기대값 완화·skip 없이 FAIL하고, 새로운 Head의 CI 실제 결과 전 NOT TESTED다.
+
+| AC | 실제 검증 파일·범위 |
+| --- | --- |
+| AC1 | `tests/domain/resource-target-plan.test.ts`, `tests/server/resources/issue-622-target-plan-excel.test.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`: 선택80/같은 개인Project140·R/Capacity·선택 밖 정확 원인 |
+| AC2 | 신규 Domain7case + 기존 `resource-plan.test.ts`/periods/budget: Group 평균/개인초과,150→0 Peak, 다중Target/Group,Calendar/unknown/known0/capacity0·윤년/ISO |
+| AC3 | 신규 Domain week/month/daily raw parity 및 전체 distinct Assignment/인원·nullable 재계산, server/workbook raw parity |
+| AC4 | 신규 SQLite/OOXML programmatic assertions와 기존 `tests/server/projects/resource-excel-export.test.ts`: same snapshot/IDs/raw M/D·M/M·null·week/month·source-bound current/project |
+| AC5 | 전용 실제 Next/SQLite Chromium: 출발TargetA→Project 원인TargetB 정확 Assignment 편집60→40, 선택80/Project120 재조회·공동담당/다른 원본 불변·동일 상세/focus/조건 복귀 |
+| AC6 | 신규 server + 기존 Plan/Excel/Target server 회귀, `tests/features/resources/resource-export-model.test.ts`: legacy sheet/header·current/project·stale Target/master·권한/Origin·budget·formula 문자열·known0/unset |
+| AC7 | 전용 Chromium390/768/1024/1440/1920px Plan/Assignment table 내부scroll·열geometry·keyboard/focus·mutation0·current/project download; 신규 server 대량 Target fixture의 SQL/time/JSON/workbook 관측 |
+| AC8 | required 문서·Work Packet UPDATED/N/A·version/dependency graph·Markdown link·code/docs 정합, 별도 read-only 사전 Reviewer |
+
+추가 회귀: `tests/server/resources/issue-622-target-plan-excel.test.ts`는 850개의 일반 Task·1,700개의 Target 미연결 개인 Assignment에서 명시 `resource,target` 전체 projection은 5,000 cell 초과로 422이지만 Plan API는 200이고 Target 선택 catalog/기존 Plan 부하와 Target-filtered Plan을 유지해야 함을 검증한다. `tests/features/resources/resource-dashboard-model.test.ts`는 Plan `catalog.targetOptions` 보존/악의적 형식 거부를 검증한다. 신규 범위는 새 원격 CI 결과 전 NOT TESTED.
+
+Domain fixture는 `tests/fixtures/resource-target-plan.ts`, 실제 UI는 #621의 합성 seed를 재사용하며 production/runtime DB·secret/원시 로그를 Git에 넣지 않는다. 선별 geometry/screenshot은 `output/playwright/issue-622/`로 제한한다. Before 캡처가 없으면 source gap과 after 증거를 구별한다.
+
+실제 실행별 명령/테스트 수/최초 실패·보완/시간·bytes는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다. 계획/파일 존재와 실제 PASS는 다르며 skip을 필요한 검증의 PASS로 사용하지 않는다. 로컬 집중 회귀와 사전 Agent 검토는 exact-head 원격 Quality/E2E/Docker·Trusted QA·Owner HIGH 수용/병합 승인 및 #623 종단 수용을 대체하지 않는다. Windows Excel/VBA/DRM·운영 proxy/TLS·backup/restore·실기기/screen reader·최종 수동 UX는 별도다.
+
 ## Issue #621 PR #683 CI #2764.1 — Week/Core viewport 초기화 회귀
 
 `tests/e2e/milestone-dashboard-state.spec.ts`의 기존 #463 입력 도중 peer 복원 취소 테스트는 선행 120/96 baseline setup과 실제 검색 입력 취소를 구분한다. 물리 수평 capacity ≥120px·Week DOM geometry 3RAF 안정만으로는 `scrollLeft=120`을 직접 쓴 뒤 public/native 모두 0으로 되돌아가는 #2764.1(이전 #2758.1 동일) 사례를 막지 못했다. 정확히 어떤 후속 writer가 0을 썼는지는 원본 로그만으로 미확정이다.

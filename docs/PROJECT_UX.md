@@ -1,5 +1,17 @@
 ## Issue #621 PR #683 — Resource 상세 Snapshot 무효화·Target 유지 (2026-10-14)
 
+## Issue #622 — Target Plan·선택 밖 과투입 원인·Excel
+
+Plan은 주/월 조회에서 전체 Target 집계 계층을 생성하지 않고 같은 canonical snapshot의 경량 `catalog.targetOptions`로 Target 선택 목록과 정확 Assignment 출처 이름을 표시한다. 전체 Project 참고에서 출발 선택 밖 Target B를 찾아도 임의 `Target · UUID`로 이름을 잃어버리지 않는다. 선택/참고의 범위와 ID는 유지하고 이름만 원본 Target catalog에서 lookup한다. 전체 Target projection을 명시한 Target 보기의 기존 계층·예산은 그대로다.
+
+기존 Resource 화면의 Target/고급 조건을 그대로 Plan에 전달한다. `선택 Target·Milestone·Task 기여`와 `동일 개인의 Project 전체 참고`를 구별하고 같은 R·기간의 전체 부하에 선택 밖 배정이 포함됨을 안내한다. 기간→일별→개인→Assignment 단계에서 출발 선택 조건과 현재 참고 범위·revision을 함께 표시한다. Capacity는 고유 resource-day이며 반복 Group/Milestone/Target 참고값을 합산하지 않는다.
+
+Task 열기와 정확 Assignment 편집은 기존 공통 Editor를 사용한다. 전체 참고에서 선택 밖 원인을 수정해도 출발 Target 조건을 Project 전체 조건으로 덮어쓰지 않는다. 저장 후 최신 report/detail snapshot이 확인되기 전 이전 명령을 잠그며 같은 단계와 유효한 정확 Assignment trigger로 복귀한다. 필터 탈락/삭제로 trigger가 없으면 사유와 유효 Plan control focus를 제공한다. 사용자 입력·dirty/pending·readonly/401·409/412·응답역전 guard를 보존한다.
+
+Excel 대화상자의 current/project 범위는 추가 Resource 보고서에만 적용하며 legacy Gantt/Tasks는 Project 전체다. current는 Target 조건/source를 보존하고 project는 Target/공정/WorkArea/인스턴스·개인·Task/Milestone·exact 제한을 제거하되 실제 기간/asOf/M/M 정책을 유지한다. 관련 계획공수/비가산/미설정·M/M 기준·revision과 Target 출처는 workbook에 남긴다. 기존 #621의 Target Excel 잠금은 R4 지원으로 해제한다.
+
+표는 기존 compact 시각 언어와 표 소유 내부 scroll을 유지한다. 상세 identity340px+나머지3열 각220px의 최소1000px에서 Target 근거를 줄바꿈하고 390/768/1024/1440/1920px·Tab/Enter/Escape·focus를 확인한다. Design Delta B이며 DESIGN.md 수정 N/A다. 실제 browser/원격 증거·미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
 기존 리소스 KPI·Milestone·진단 상세는 **서버에서 확정된 새 Snapshot**이 도착하면 이전 selector를 계속 열어두지 않고 상세를 닫고 기존 FocusRestoreBoundary의 출발 명령으로 focus를 돌린다. 현재 탭·검색 조건과 일반 Resource 화면의 소유 상태는 보존하되 다른 시점의 상세를 새 보고서의 유효 원본으로 가장하지 않는다. Query 변경도 기존처럼 선택을 해제한다.
 
 Target 교차/계층 상세만 예외로 현재 보고서 projection에서 동일 canonical `targetPath`를 재확인한 경우 현재 서버 selector로 재결속할 수 있다. 이탈·삭제·미매핑으로 경로가 사라지면 상세를 닫고 사용자에게 Target 필터 확인을 안내한다. 가상 행을 Task/Assignment 저장 원본과 혼동하지 않으며 원본 수정·임의 WBS 이동·새 viewport writer·Gantt remount는 없다. UI/UX 상태·권한·stale·focus 계약 및 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. Design Delta B(기존 디자인 원칙 적용).

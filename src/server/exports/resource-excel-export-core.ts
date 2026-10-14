@@ -57,6 +57,30 @@ export function validateResourceExcelReport(snapshot: ProjectSnapshotResponse, o
   if (bundle.quality.scope !== "T0-before-personal-filters" || bundle.quality.unsetAssignments.length !== report.diagnostics.unsetAssignmentCount) unsupported("Resource diagnostic grain mismatch.");
   const qualityIds = new Set<string>();
   for (const row of bundle.quality.unsetAssignments) { if (!canonicalAssignments.has(row.assignmentId) || !taskIds.has(row.taskId) || qualityIds.has(row.assignmentId) || row.allocationPercent !== null) unsupported("Invalid raw quality Assignment."); qualityIds.add(row.assignmentId); }
+  if (bundle.targetData) {
+    const evidence = bundle.targetData, sourceIds = new Set<string>(), projectIds = new Set<string>();
+    const targets = new Map(evidence.graph.targets.map(target => [target.id, target]));
+    for (const source of evidence.taskSources) {
+      if (!taskIds.has(source.taskId) || sourceIds.has(source.taskId)) unsupported("Invalid Target Task evidence identity.");
+      sourceIds.add(source.taskId);
+      for (const binding of [...source.bindings, ...source.inheritedBindings]) if (!targets.has(binding.targetId)) unsupported("Missing canonical Target binding.");
+      for (const member of source.effectiveMembers) for (const path of member.provenance) {
+        const target = targets.get(path.targetId);
+        if (!target?.members.some(row => row.id === path.memberId && row.kind === member.kind && row.entityId === member.entityId)) unsupported("Target member provenance mismatch.");
+      }
+    }
+    for (const row of evidence.projectAssignments) {
+      const canonical = canonicalAssignments.get(row.assignment.assignmentId);
+      if (!canonical || canonical.taskId !== row.taskId || canonical.target.kind !== "resource" || canonical.target.id !== row.assignment.resourceId || projectIds.has(canonical.id) || !sourceIds.has(row.taskId)) unsupported("Invalid Project reference Assignment evidence.");
+      projectIds.add(row.assignment.assignmentId);
+      if (row.assignment.allocationPercent === null && (row.assignment.plannedMd !== null || row.assignment.plannedMm !== null)) unsupported("Project unset Assignment must preserve null effort.");
+    }
+    if (bundle.assignments.some(row => !projectIds.has(row.assignment.assignmentId) || !sourceIds.has(row.taskId))) unsupported("Selected Assignment is absent from Project reference evidence.");
+    for (const granularity of options.granularities) {
+      const plan = bundle.plans[granularity];
+      if (!plan || evidence.projectAssignments.length !== plan.totals.summary.project.assignmentCount || !equalNumber(evidence.projectAssignments.reduce((n, row) => n + (row.assignment.plannedMd ?? 0), 0), plan.totals.summary.project.knownMd)) unsupported("Project reference Assignment count/effort parity mismatch.");
+    }
+  }
   for (const granularity of options.granularities) {
     const plan = bundle.plans[granularity];
     if (!plan) return unsupported("Missing Resource Plan DTO.");
@@ -158,5 +182,64 @@ export function buildResourceExcelSheets(snapshot: ProjectSnapshotResponse, opti
     for (const [key, values] of Object.entries(report.filters)) if (Array.isArray(values)) for (const value of values) append([`Filter:${key}`, "report", value]);
     if (bundle.scope) append(["Original exact scope", "report", JSON.stringify(bundle.scope)]);
   });
+  if (bundle.targetData) {
+    const evidence = bundle.targetData, projection = evidence.projection;
+    const name = (dimension: string, id: string | null) => projection.catalog.find(row => row.dimension === dimension && row.id === id)?.name ?? id;
+    sheet("Resource Targets", append => {
+      append(["관련 계획 공수", "원가 배분 아님; 수량을 공수에 곱하지 않음"], true);
+      append(["총계", "고유 Assignment 합집합; Target/Group 소계 중첩 비가산"]);
+      append(["Capacity", "고유 resource-day; Target/Group/Milestone 반복 참고값 합산 금지"]);
+      append(["선택 기여", bundle.basis, "현재 Target/Task/Milestone/source 조건의 A"]);
+      append(["Target 근거", "Task canonical 전체 출처; 선택 조건은 Normalized filters를 참조하고 출처 행을 공수로 합산하지 않음"]);
+      append(["Plan Project 참고", "같은 Capacity R·기간; Target/Task/Milestone/source 제한 제거; 전사 부하 아님"]);
+      append(["Target Project 참고", projection.metadata.projectReferenceScope]);
+      append(["스냅샷", report.snapshotId, report.projectRevision, report.catalogRevision, report.calendarRevision]);
+      append(["M/M 기준", report.mdPerMm, report.mdPerMmSource]);
+      append(["미설정", "null 유지; partial은 알려진 부분합이며 확정 전체 아님"]);
+      append(["일정 원본", "Gantt/Tasks는 Project 전체 일정; Target 근거는 별도 보고서이며 JSON Import round-trip 형식 아님"]);
+      for (const [key, value] of Object.entries(projection.diagnostics)) append([key, Array.isArray(value) ? JSON.stringify(value) : value]);
+      append(["path", "dimension", "id", "name", "active", "sourceKinds", "equipmentQuantity (not effort multiplier)", "systemCount", ...summaryKeys], true);
+      const walk = (nodes: typeof projection.children, path: { dimension: string; id: string | null }[]) => {
+        for (const node of nodes) {
+          const current = [...path, { dimension: node.dimension, id: node.id }];
+          append([JSON.stringify(current), node.dimension, node.id, node.name, node.active, node.sourceKinds.join(","), node.equipmentQuantity, node.systemCount, ...summary(node.summary)]);
+          walk(node.children, current);
+        }
+      };
+      walk(projection.children, []);
+    });
+    sheet("Resource Target Catalog", append => {
+      append(["dimension", "id", "name", "code", "active"], true);
+      for (const row of projection.catalog) append([row.dimension, row.id, row.name, row.code, row.active]);
+    });
+    sheet("Resource Target Sources", append => {
+      append(["relation", "taskId", "sourceTaskId", "bindingId", "targetId", "Target", "scope", "selection", "inherited", "memberId", "kind", "entityId", "name", "typeCode", "quantity (not effort multiplier)", "projectProcessId", "processOccurrenceId", "processTypeId", "workAreaId", "coverage", "coverageMode", "assignmentId", "demandScope"], true);
+      for (const process of evidence.graph.processes) append(["ProjectProcess", null, null, null, null, null, null, null, null, null, null, null, name("projectProcess", process.id), null, null, process.id, process.occurrenceId, process.processTypeId]);
+      for (const area of evidence.graph.workAreas) append(["WorkArea", null, null, null, null, null, null, null, null, null, null, null, name("workArea", area.id), null, null, null, area.occurrenceId, null, area.id]);
+      for (const target of evidence.graph.targets) {
+        const process = evidence.graph.processes.find(row => row.id === target.projectProcessId);
+        append(["Target", null, null, null, target.id, name("target", target.id), target.scope, null, null, null, null, null, null, null, null, target.projectProcessId, target.occurrenceId, process?.processTypeId, target.workAreaId]);
+        for (const member of target.members) {
+          const instance = evidence.graph.instances.find(row => row.entityId === member.entityId && row.kind === member.kind)!;
+          append(["TargetMember", null, null, null, target.id, name("target", target.id), target.scope, null, null, member.id, member.kind, member.entityId, name(member.kind, member.entityId), instance.typeCode, instance.quantity, target.projectProcessId, target.occurrenceId, process?.processTypeId, target.workAreaId]);
+        }
+      }
+      for (const source of evidence.taskSources) {
+        if (!source.effectiveTargetIds.length) append(["TargetUnlinked", source.taskId]);
+        for (const binding of [...source.bindings, ...source.inheritedBindings]) append(["Binding", source.taskId, binding.taskId, binding.id, binding.targetId, name("target", binding.targetId), binding.scope, binding.selection, binding.taskId !== source.taskId]);
+        for (const member of source.effectiveMembers) for (const path of member.provenance) append(["MemberProvenance", source.taskId, path.sourceTaskId, path.bindingId, path.targetId, name("target", path.targetId), path.scope, path.selection, path.inherited, path.memberId, member.kind, member.entityId, name(member.kind, member.entityId), null, null, null, null, null, null, path.coverage, path.coverageMode]);
+        for (const legacy of source.legacySources) append(["LegacyDirect", source.taskId, legacy.sourceTaskId, null, null, null, legacy.scope, null, legacy.inherited, null, legacy.kind, legacy.entityId, name(legacy.kind, legacy.entityId)]);
+      }
+      for (const [scope, rows] of [["selected", bundle.assignments], ["same-R-project", evidence.projectAssignments]] as const) for (const row of rows) {
+        const values: ResourceExcelValue[] = Array(21).fill(null);
+        values[0] = "AssignmentScope"; values[1] = row.taskId;
+        append([...values, row.assignment.assignmentId, scope]);
+      }
+    });
+    sheet("Resource Project Assignments", append => {
+      append(["assignmentId", "taskId", "externalId", "task", "resourceId", "resource", "overlapFrom", "overlapTo", "allocationPercent (0-100)", "effectiveWorkingDays", "plannedMd", "plannedMm", "state", "effectiveTargetIds", "referenceScope"], true);
+      for (const row of evidence.projectAssignments) { const a = row.assignment; append([a.assignmentId, row.taskId, row.externalId, row.taskName, a.resourceId, a.resourceName, a.from, a.to, a.allocationPercent, a.effectiveWorkingDays, a.plannedMd, a.plannedMm, a.allocationPercent === null ? "unset" : "configured", JSON.stringify(row.targetSources?.effectiveTargetIds ?? []), "same Capacity R/period; Target/Task/Milestone/source restrictions removed"]); }
+    });
+  }
   return sheets;
 }

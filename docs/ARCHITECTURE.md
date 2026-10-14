@@ -1,5 +1,11 @@
 # Architecture draft
 
+## Issue #622 — 기존 Plan·Excel의 Target 분석 확장
+
+R4는 기존 ResourceDashboardService의 read transaction과 #619 projector/#617 resolver, pure Plan/Calendar/M/M 계산기를 재사용한다. Target 선택은 selected A만 제한하고 Capacity R 및 same-R fullProject A를 보존한다. 일별 상세의 Target 출처·source/current context와 Excel의 canonical graph/원시 Assignment 근거는 같은 read snapshot에서 enrich하며 별도 공수 원장·Calendar·Excel 계산기를 만들지 않는다.
+
+Excel writer는 기존 sheet/header 뒤에 Target 분석·분류/근거·Project 참고를 append하고 원시 Assignment union 총계를 검증한다. 보고서 opt-in 경로만 Target-bearing 일정과 함께 출력하며 plain schedule export/JSON Import의 손실 방지는 유지한다. stale report와 새 Target graph를 섞지 않고 기존 Origin/If-Match 및 byte/row/cell 예산을 적용한다. UI는 기존 Editor/gateway·viewport coordinator를 재사용하며 신규 Gantt/writer는 없다. 실제 지원·검증은 [API](API.md), [EXCEL_EXPORT](EXCEL_EXPORT.md), [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
 ## Issue #620 — Target 보고 snapshot과 projection 경계
 
 Resource report/detail/drill의 공통 read snapshot에 Target/member/binding, legacy 직접 연결, Project-local 공정 매핑과 해당 공정 occurrence/Process Type/WorkArea·Equipment/System type의 이름 및 active 참조를 추가한다. Task/Assignment/Resource/Calendar와 동일 SQLite read transaction에서 읽고 fingerprint에 포함하므로 revision 증가 없는 참조 변경도 이전 report/detail identity를 무효화한다. 조회는 revision을 증가시키지 않고 별도 snapshot 저장소나 공수 원장을 만들지 않는다.

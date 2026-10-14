@@ -1,5 +1,11 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #622 — Plan 출발/현재 범위와 정확 편집 복귀
+
+기존 Plan의 선택 기여와 같은 개인 Project 전체 참고를 native 범위 control과 텍스트로 구별한다. 일별 상세에 출발 Target 조건과 현재 참고 scope를 표시하고 선택 밖 원인이 포함됨을 명시한다. Target 근거 이름/ID는 기존 마지막 셀에 줄바꿈하며 identity340px+3열220px의 최소1000px은 표가 내부 scroll을 소유한다. document 가로 overflow로 대체하지 않는다.
+
+단계 진입은 제목 focus, Escape는 Editor 종료/상세 이전 단계/출발 control 순서를 따른다. 저장·snapshot 교체 동안 이전 명령은 잠그고 새 report/detail 성공 후 연결·visible한 정확 trigger에 focus를 복원한다. 필터 탈락/삭제 시 유효 Plan control로 이동하며 최신 사용자 입력을 오래된 복원으로 덮지 않는다. Excel current/project와 Target 조건 유지/해제·legacy 일정 범위를 구별한다. 기존 `ui-ux-pro-max` keyboard/focus 지침의 구체화인 Design Delta B이며 DESIGN.md N/A다. 5폭·keyboard·stale·readonly 실제 증거는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다.
+
 ## Issue #621 — Target Resource 표·계층·편집 handoff
 
 기존 Resource 화면을 확장하고 기간·Target·검색 뒤에 공정/WorkArea/typed instance 등 추가 조건을 펼쳐본다. 계층은 Resource 우선/Target 우선, 비교는 Resource/Group×Target이며 기존 Milestone·Plan 보기를 보존한다. native button/select·명시 label을 사용한다. 조회용 헤더/합계와 실제 Task/Assignment 편집, Target 구성 편집은 명령 이름과 canonical 대상을 구별한다.

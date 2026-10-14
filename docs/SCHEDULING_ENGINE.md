@@ -1,5 +1,11 @@
 # Scheduling Engine 설계
 
+## Issue #622 — Target Resource Plan 계산 재사용
+
+R4 runtime은 서비스의 기존 `planInput` → `calculateResourcePlan` 및 일별 상세 함수를 사용한다. Domain adapter `selectResourceTargetPlanScope`도 같은 R/선택/전체 계약으로 회귀 검증한다. Target 조건은 선택 원시 Assignment만 제한하고 R/전체 Project 배정·Resource Calendar 우선순위·inclusive 기간·M/M 산식은 유지한다. Target 근거는 서비스의 read-only enrichment이며 scheduling/공수 원장을 만들지 않는다. Group/Target/기간의 overlapping 소계·distinct 인원/Assignment와 nullable 상태는 전체 집합에서 재계산한다.
+
+신규 `tests/domain/resource-target-plan.test.ts`는 selected80/project140·Group95/개인140·일별150→0·다중Target/Group·Calendar/nullMM/partial·윤년/ISO·capacity0/legacy 호환을 기존 엔진으로 검증한다. 알고리즘 변경과 운영 검증을 주장하지 않으며 실제 실행은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
 ## Issue #619 — Target 필터와 Resource Calendar·Milestone 보존
 
 Target 분석은 기존 개인 Assignment의 inclusive 유효기간과 `resolveResourceCalendar`/`workingDaysBetween`을 사용한다. 선택한 Group/Target 때문에 Resource의 전체 Calendar 소속을 잘라내지 않는다. Summary/Milestone/직접 Group 참조나 설비 담당/PI 책임 참조만으로 개인 계획공수를 생성하지 않는다. 실제 개인 일반 Task Assignment만 공수 원장이다.

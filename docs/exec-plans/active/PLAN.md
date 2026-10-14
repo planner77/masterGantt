@@ -1,3 +1,7 @@
+## Issue #622 — Target Resource Plan·과투입·Excel / PR CI 시작까지 (2026-10-14)
+
+최신 main `53c57743`에 #621 PR #683이 반영되어 있다. [Work Packet](ISSUE_622.md)의 기존 Plan·Calendar·raw Assignment와 Excel bundle/writer를 확장하여 선택80%/같은 개인 Project140%, Target 밖 정확 원인 편집/복귀와 같은 snapshot의 current/project Excel을 구현한다. 후보 minor0.114.0, HIGH/OWNER_MANAGED, qa_required=true, release_required=true/release_authorized=false. 구현·문서·Local Fast Feedback·사전 검토·스레드/충돌 처리 후 Full PR CI 시작에서 멈춘다. 원격 Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 병합/main/GHCR/Release/Issue 종료·#623 종단 수용은 별도다.
+
 ## Issue #620 — Resource–Target R2 보고 API / PR CI 시작까지 (2026-10-14)
 
 [Work Packet](ISSUE_620.md). 최신 main `b19b913f` / `0.111.0`에 반영된 #617/#619를 기반으로 기존 Resource 보고/상세/exact drill을 Target·공정·WorkArea·typed instance projection으로 확장한다. Target/기준정보를 동일 transaction/fingerprint에 결속하고 source Assignment 교집합·T0/A·null/partial·비가산 소계·예산·public read 호환을 보존한다. MINOR 후보 `0.112.0`, HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 실제 backend·HTTP 테스트 담당 및 read-only 사전 Reviewer를 분리한다. 구현·문서 동기화·Local Fast Feedback·사전 검토 후 PR Full CI 시작에서 멈추며 원격 결과 모니터링·병합·main/GHCR·정식 Release·Issue 종료는 수행하지 않는다. 원격 Quality/E2E/Docker·Trusted QA·최종 Manager ACCEPT는 NOT TESTED다.

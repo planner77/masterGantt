@@ -19,6 +19,14 @@ function extract(bytes: Uint8Array) { const b = Buffer.from(bytes), entries = ne
 function cells(xml: string) { return [...xml.matchAll(/<c r="([A-Z]+\d+)"[^>]*?(?:\/>|>(.*?)<\/c>)/g)].map(match => ({ ref: match[1], raw: match[0], number: /<v>(.*?)<\/v>/.exec(match[2] ?? "")?.[1], text: /<t[^>]*>(.*?)<\/t>/.exec(match[2] ?? "")?.[1] })); }
 async function http(f: ReturnType<typeof fixture>, resourceDashboard?: ResourceExcelExportOptions, body?: string, headers: Record<string, string> = {}) { const service = new ProjectExportSnapshotService(f.database, { clock: () => new Date(RESOURCE_DASHBOARD_NOW), mdPerMmEnvironment: "21" }); return handleProjectExcelExport(new Request(`https://gantt.example/api/projects/${f.project.publicId}/exports/excel`, { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://gantt.example", "If-Match": '"1"', ...headers }, body: body ?? JSON.stringify({ ...legacy, ...(resourceDashboard ? { resourceDashboard } : {}) }) }), f.project.publicId, { service: { getReadonlySnapshot: () => undefined }, applicationBaseUrl: "https://gantt.example", environment: "production", getExportBundle: (...args) => service.get(...args) }); }
 describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
+  it("keeps seven append sheets when Plan requests an empty Target catalog for filters", async () => {
+    const f = fixture(), response = await http(f, options(f, { granularity: "week", projectionOrder: ["resource", "target"] }));
+    expect(response.status).toBe(200);
+    const entries = extract(new Uint8Array(await response.arrayBuffer()));
+    const names = [...entries.get("xl/workbook.xml")!.matchAll(/name="([^"]+)"/g)].map(match => match[1]);
+    expect(names.filter(name => name.startsWith("Resource ") || name === "Group Milestones")).toHaveLength(7);
+    expect(names).not.toContain("Resource Targets");
+  });
   it("checks actual UTF-8 XML and final ZIP bytes and all count boundaries without truncation", () => {
     for (const key of ["sheetRows", "reportRows", "reportCells"] as const) { const cap = RESOURCE_EXCEL_EXPORT_LIMITS[key]; expect(() => assertResourceExcelBudget(key, cap, cap)).not.toThrow(); expect(() => assertResourceExcelBudget(key, cap + 1, cap)).toThrow("limit exceeded"); }
     const xml = "가".repeat(Math.floor(RESOURCE_EXCEL_EXPORT_LIMITS.workbookXmlBytes / 3)), tail = "x".repeat(RESOURCE_EXCEL_EXPORT_LIMITS.workbookXmlBytes % 3);

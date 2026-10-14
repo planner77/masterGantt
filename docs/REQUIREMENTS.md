@@ -1,5 +1,11 @@
 # Requirements baseline
 
+## Issue #622 — Target Resource Plan 및 Excel
+
+Target 조건은 선택 공수만 제한하고 기존 개인 모집단 R·Calendar·고유 resource-day Capacity를 유지한다. 같은 개인의 선택80%/해당 Project 전체140%와 Target 밖 정확 Assignment 원인을 구별한다. 일별 Peak/개인 초과/unknown을 Group 평균이나 기간 합계로 숨기지 않으며 nonadditive distinct 상태는 전체 집합에서 재계산한다.
+
+Plan 상세에서 기존 정확 Assignment/Task Editor로 수정·복귀하고 동일 snapshot으로 갱신한다. opt-in Resource Excel은 current 또는 명시 Project 전체 조건과 동일 raw M/D·M/M·null/ID·Target/공정/WorkArea/member provenance를 출력한다. 수량을 공수에 곱하지 않고 Target 소계는 원가 배분이 아니다. 기존 읽기/편집 권한·stale·formula/크기 예산을 유지한다. #623 종단 수용·정식 release는 별도이며 [R4 Work Packet](exec-plans/active/ISSUE_622.md)의 실제 검증 상태를 따른다.
+
 ## Issue #621 — Resource–Target 다관점·동일 원본 편집
 
 기존 Resource 탭은 Group/Resource→Target 계층·역방향·Group/Resource×Target 비교와 같은 server filter를 사용한다. 서버 선택 총계/전체 Project 참고·중첩 비가산·partial/unset·정확 분모는 접힘/페이지로 바꾸지 않는다. 표시 행 key와 canonical Task/Assignment/Target ID를 구별한다.

@@ -104,6 +104,8 @@ const exportLayout: ProjectExcelExportRequest["layout"] = {
 function ResourceReportEvidence({ lease, basis }: { lease: ResourceExportLease; basis: ResourceExportBasis }) {
   const report = lease.report, filters = report.filters;
   const names = resourceExportFilterNames;
+  const targetCatalog = report.targetProjection?.catalog ?? [];
+  const targetNames = (ids: readonly string[] | undefined, dimension: string) => names(ids ?? [], targetCatalog.filter(item => item.dimension === dimension));
   const rows = [
     ["개인", names(filters.resourceIds, report.catalog.resources)], ["Group", names(filters.groupIds, report.catalog.groups)],
     ["Milestone", names(filters.milestoneIds, report.catalog.milestones)],
@@ -111,6 +113,15 @@ function ResourceReportEvidence({ lease, basis }: { lease: ResourceExportLease; 
     ["Role / Grade", `${filters.roles.join(", ") || "전체"} / ${filters.developerGrades.join(", ") || "전체"}`],
     ["검색 / Task 검색", `${filters.search || "없음"} / ${filters.taskSearch || "없음"}`],
     ["상태 / 개인·Group 활성", `${filters.statuses.join(", ") || "전체"} / ${filters.resourceActivity} · ${filters.groupActivity}`],
+    ["Target", targetNames(filters.targetIds, "target").replace(/(^| \/ )unassigned(?= \/ |$)/g, "$1Target 미연결 (unassigned)")],
+    ["공정 / occurrence", `${targetNames(filters.projectProcessIds, "projectProcess")} / ${targetNames(filters.processOccurrenceIds, "process")}`],
+    ["공정 종류", targetNames(filters.processTypeIds, "processType")],
+    ["WorkArea", targetNames(filters.workAreaIds, "workArea").replace(/(^| \/ )unassigned(?= \/ |$)/g, "$1WorkArea 미사용 (unassigned)")],
+    ["Target 집계 순서", filters.projectionOrder?.join(" → ") || "기본"],
+    ["Target 범위", filters.targetScopes?.map(scope => scope === "project_common" ? "프로젝트 공통 (project_common)" : "공정 대상 (process)").join(", ") || "전체"],
+    ["선택 설비 / 시스템", `${targetNames(filters.memberEquipmentIds, "equipment")} / ${targetNames(filters.memberSystemIds, "system")}`],
+    ["설비 / 시스템 종류", `${filters.equipmentTypeCodes?.join(", ") || "전체"} / ${filters.systemTypeCodes?.join(", ") || "전체"}`],
+    ["Legacy 직접 설비 / 시스템", `${targetNames(filters.directEquipmentIds, "equipment")} / ${targetNames(filters.directSystemIds, "system")}`],
     ["시간대", report.timezone], ["Project / Catalog / Calendar revision", `${report.projectRevision} / ${report.catalogRevision} / ${report.calendarRevision}`],
     ["대상 범위", `고유 Task ${report.summary.taskCount} · Assignment ${report.summary.assignmentCount}`],
     ["이동 범위", lease.binding ? JSON.stringify(lease.binding.scope) : "이동 제한 없음"],
@@ -333,14 +344,14 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
           <label><input type="checkbox" checked={includeLogistics} disabled={busy}
             onChange={(event) => setIncludeLogistics(event.target.checked)} /> 물류 구성 보고서 포함 (공정·설비·시스템·연결 시트)</label>
           <label><input type="checkbox" checked={includeResourceDashboard}
-            onChange={event => { setIncludeResourceDashboard(event.target.checked); setMessage(null); }} /> 리소스 현황 보고서 포함 (7개 시트)</label>
+            onChange={event => { setIncludeResourceDashboard(event.target.checked); setMessage(null); }} /> 리소스 현황 보고서 포함 (기본 7개 + Target 근거)</label>
           {includeResourceDashboard ? <div className={styles.resourceReport}>
-            <p>아래 범위는 추가 리소스 7개 시트에만 적용합니다. 기존 일정·Milestone·물류·견적 시트는 Project 전체 기준입니다.</p>
+            <p>구성 및 조회 조건에 따라 기본 7개 시트에 Target 관련 4개 시트를 추가합니다. 아래 범위는 추가 리소스 보고서 시트에만 적용합니다. 기존 일정·Milestone·물류·견적 시트는 Project 전체 기준입니다.</p>
             <label><input type="radio" name="resource-report-basis" checked={resourceBasis === "current"}
               onChange={() => setResourceBasis("current")} /> 현재 선택 조건</label>
             <label><input type="radio" name="resource-report-basis" checked={resourceBasis === "project"}
               onChange={() => setResourceBasis("project")} /> Project 전체 (확인된 기간·기준일·환산 정책 유지)</label>
-            <p>Project 전체는 분류·Task·WBS·Milestone·검색·상태·이동 배정 범위를 제외합니다. 화면 조건과 이동 기록은 유지합니다.</p>
+            <p>Project 전체는 분류·Target·공정·WorkArea·설비·시스템 종류/인스턴스·Task·WBS·Milestone·검색·상태·이동 배정 범위를 제외합니다. 화면 조건과 이동 기록은 유지합니다.</p>
             {resourceLease?.report.resourceScopeContext ? <>
               <p>대상 보고서: {resourceLease.report.range.from} ~ {resourceLease.report.range.to} · 기준일 {resourceLease.report.asOfDate}
                 {" · "}환산 {resourceLease.report.mdPerMm ?? "미설정"} ({resourceLease.report.mdPerMmSource})</p>

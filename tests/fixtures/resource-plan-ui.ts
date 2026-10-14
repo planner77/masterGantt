@@ -3,7 +3,7 @@ import type {
   ResourcePlanDetailsDto,
   ResourcePlanDetailKind,
 } from "../../src/contracts/resource-dashboard";
-import { RESOURCE_PLAN_LIMITS } from "../../src/contracts/resource-dashboard";
+import { RESOURCE_PLAN_LIMITS, RESOURCE_TARGET_LIMITS } from "../../src/contracts/resource-dashboard";
 import {
   calculateResourcePlan,
   getResourcePlanDailyPage,
@@ -180,6 +180,14 @@ export function planUiFixture(
     id: planId(4, i),
     name: i === 0 ? "선택 단계" : "다른 단계",
   }));
+  // Plan requests the Target catalog even when the synthetic project has no Targets.
+  if (data.filters.projectionOrder) data.targetProjection = {
+    order: data.filters.projectionOrder, children: [], projectReference: data.summary,
+    relatedMembers: { equipmentQuantity: 0, systemCount: 0, equipmentIds: [], systemIds: [], types: [], members: [] },
+    diagnostics: { targetUnlinkedTaskCount: data.summary.taskCount, legacyOnlyTaskCount: 0, unusedTargetIds: [], projectCommonTargetIds: [], noWorkAreaTargetIds: [], unmappedProjectProcessIds: [] },
+    metadata: { limits: RESOURCE_TARGET_LIMITS, measure: "related planned effort", subtotalsAdditive: false, assignmentScope: "A", memberScope: "T0", projectReferenceScope: "full canonical Project; same period/calendar/asOf/mdPerMm; no source or user filters" },
+    catalog: [],
+  };
   return { data, input };
 }
 export function planDetailsUiFixture(

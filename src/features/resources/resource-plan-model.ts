@@ -216,6 +216,17 @@ export function planMetric(
       : `${value.toFixed(2)} ${metric === "load" ? "%" : metric === "excess" || unit === "md" ? "M/D" : "M/M"}`;
   return `${text}${m.partial ? " · 미설정 포함" : ""}${m.capacityMd === 0 ? " · 비근무기간" : m.state === "empty" ? " · 기간 배정 없음(0부하)" : ""}`;
 }
+/** #622: a Plan without a Target projection still needs canonical names for
+ * selected and Project-reference Assignments, including Targets outside the filter. */
+export function planTargetLabel(
+  data: Pick<ResourceDashboardDto, "catalog" | "targetProjection">,
+  targetId: string,
+): string {
+  const target = data.targetProjection?.catalog.find((row) => row.dimension === "target" && row.id === targetId)
+    ?? data.catalog.targetOptions?.find((row) => row.dimension === "target" && row.id === targetId);
+  return `${target?.name ?? (targetId === "unassigned" ? "Target 미연결" : "Target")} · ${targetId}`;
+}
+
 export function planDetailQuery(
   data: ResourceDashboardDto,
   input: ResourcePlanDetailInput,
@@ -281,6 +292,8 @@ export function readPlanDetails(
     assignmentId: id,
     taskId: id,
     resourceId: id,
+    resourceActive: z.boolean().optional(),
+    targetSources: z.object({ taskId: id, bindings: z.array(z.unknown()), inheritedBindings: z.array(z.unknown()), effectiveMembers: z.array(z.unknown()), legacySources: z.array(z.unknown()), effectiveEquipmentIds: z.array(id), effectiveSystemIds: z.array(id), effectiveTargetIds: z.array(id) }).passthrough().optional(),
     milestoneTaskId: id.nullable(),
     date,
     allocationPercent: nullable,
