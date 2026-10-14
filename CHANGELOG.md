@@ -1,3 +1,11 @@
+## [Unreleased] — 0.111.0 / Issue #618 Target 구성 UI (2026-10-14)
+
+- Target composer에서 공정/optional WorkArea 및 기존 Equipment/System 신규·재사용 구성을 편집합니다 (#618).
+- WBS Target whole/subset·self/subtree·작업수량·출처와 Target↔동일 Task Editor 탐색을 추가합니다.
+- Target usage에 같은 revision의 canonical 관련 Task ID를 제공하고 기존 권한·stale·공유/삭제 보호를 유지합니다.
+- PR CI·Owner 승인 및 정식 릴리스는 별도이며 현재 정식 게시 승인 없음.
+- #618 PR #678 원본 CI #2729.1에서 신규 Target alert와 기존 물류 연결 alert가 함께 표시되어 E2E strict locator가 실패한 원인을 수정한다. 기본 활성 Target 목록은 서버에서 COUNT/LIMIT/OFFSET 이전에 필터링하고 기존 전체 목록 API는 유지한다. 52개 혼합 서비스/HTTP 필터 회귀 및 #661 GSC Work Packet 근거를 추가했으며, 새 exact-head CI 결과·Owner 승인·릴리스는 별도 판정이다.
+
 ## [Unreleased] — 0.110.0 / Issue #619 Target Resource KPI (2026-10-14)
 
 - 기존 Resource KPI pure 엔진에 Target·공정·WorkArea·Equipment/System type 및 instance 조회 차원을 추가한다. #617 단일 binding resolver의 whole/subset·직접/상속 출처와 legacy 직접 연결을 재사용한다.

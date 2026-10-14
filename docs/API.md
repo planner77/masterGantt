@@ -1534,6 +1534,8 @@ resourceDashboard: {
 
 Project-local `/api/projects/{publicId}/logistics/targets` supports GET (limit 1–100, offset 0–10000, search ≤100) and POST; `.../targets/{targetId}` supports GET/PATCH/DELETE and `.../usage` GET. GET returns a bounded list with projectRevision/total and typed members (public member ID, instance ID, original equipment quantity / System 1); usage includes shared Target count and direct Task links, not a fabricated WBS Target binding. Mutations require exact Origin, Project edit session, strong If-Match and rollback-on-error; successful mutations advance Project revision once, no-op update advances zero. Error status: malformed400, missing/unowned reference404 or409, no session401, Origin403, conflict409, stale412. Existing instances and controls/coordinates are never auto-modified by member association. Inline creation creates Project-local Equipment/System in the same transaction, requires active existing type catalog, and duplicate label requires explicit confirmation. Global catalog creation is *not* part of the Project transaction. Target write body schema is `src/contracts/logistics-targets.ts`. Legacy logistics DTO and direct Task links unchanged.
 
+Issue #618 Target 구성 목록은 선택 query `activeOnly=true`로 활성 Target만 조회한다. SQL의 `total` 집계와 `targets` 정렬/`LIMIT`/`OFFSET`에 같은 활성 조건을 적용하므로 50개 비활성 행이 뒤의 활성 행을 가리지 않는다. 생략 시 기존 API 계약대로 활성/비활성을 모두 포함해 shared-member 전체 집계가 가능하다. `activeOnly=false` 등 `true` 이외 값, 중복 key는 HTTP 400; 필터 전환 시 클라이언트 offset은 0으로 초기화한다. 조회 옵션은 Project revision/권한/영속 데이터에 영향을 주지 않는다.
+
 Source was merged in #616 PR #631, and the corrected v0.108.0 main/release Quality+E2E6+Docker succeeded (Main #2710.1, Release #167.1). The focused #672 Target HTTP/transaction tests are NOT TESTED until its exact PR Head CI. Before F3 #617, the F2 usage field `referencedByTaskCount` was a compatibility placeholder fixed to `0`: **do not treat zero as an authoritative zero Task count or as a KPI**; only per-member `directTaskCount` reports existing legacy direct instance links. Product API / DB contract remains unchanged in #672.
 
 ## #616 Project Template graph v2
@@ -1565,3 +1567,10 @@ F3의 런타임·원격 검증 상태는 [#617 Work Packet](exec-plans/active/IS
 기존 hierarchy 명령의 `indent`/`outdent`/`reparent`는 새 조상에 의해 Target 출처가 바뀌면 `409 TASK_TARGET_IMPACT_REVIEW_REQUIRED`로 모든 변경 Task의 before/after와 `targetImpactDigest`를 반환하고 전체 시도와 revision을 rollback한다. 명령·Project revision·before/after 전체 snapshot에 묶인 64자리 digest와 같은 strong If-Match로 재요청해야 적용된다. 영향이 없어졌는데 이전 digest를 보내면 `409 TASK_TARGET_IMPACT_STALE`다. binding을 가진 Task→Milestone 전환은 `409 TARGET_BINDING_TYPE_CONFLICT`로 거부한다.
 
 Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON/Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다.
+
+
+## Issue #618 — Target 상세의 canonical 관련 작업
+
+기존 GET `.../logistics/targets/{targetId}/usage`의 `data`에 `projectRevision`과 `relatedTasks:[{taskId,type}]`를 additive로 제공한다. ID와 일반 Task/Summary counts/member usage는 동일한 SQLite read snapshot에서 계산한다. `relatedTasks`는 직접 binding과 subtree 상속을 반영한 고유 canonical Task UUID이며 legacy 인스턴스만 연결한 Task를 Target으로 역추론하지 않는다. Task별 GET fan-out 없이 기존 canonical Project tasks의 이름·WBS 경로와 연결해 공통 Editor를 연다. 소비 UI는 revision이 다른 usage/tasks 조합을 최신으로 표시하지 않고 재조회 안내한다. 조회로 Task/binding/revision을 변경하지 않는다.
+
+F4는 기존 Target POST/PATCH/DELETE, read-only impact POST, Task target-bindings GET/PUT를 사용한다. Project session/Origin/strong If-Match 및 whole impact token/subset 삭제 차단은 그대로 유지한다. Target 구성 저장과 Task 기본 정보 저장은 각각 명시 명령이며 Task 생성/복제는 수행하지 않는다.

@@ -286,3 +286,17 @@ Task authoring UI는 #618, Resource Target 축·공수/보고서/Excel은 #619~#
 기존 Resource KPI 엔진은 F3 `resolveAllTaskTargetBindings`의 유효 binding/member/provenance를 재사용한다. Target·공정·WorkArea·typed instance/type 조건은 §5의 같은 연결 경로를 지키며 legacy 직접 인스턴스가 Target 전체로 확대되지 않는다. Target 소계는 관련 계획 공수로 중첩되며 선택 전체는 원시 Assignment 합집합이다. full Project 참고·T0 진단·Capacity R·전체 Project load·full Milestone Gate는 별도 범위로 유지한다.
 
 `resource-kpi-targets.ts`의 typed snapshot은 기존 canonical KPI Task와 같은 Project 자료만 받아야 한다. 정확 중복은 정규화하고 같은 ID 상충 payload·foreign 참조·budget 초과는 오류다. 원시 Assignment 저장·Calendar·일정·revision을 변경하지 않는다. KPI 사전·null/분모·출처 및 실행 상태는 [RESOURCE_KPI_DASHBOARD](RESOURCE_KPI_DASHBOARD.md), [ISSUE_619](exec-plans/active/ISSUE_619.md)를 따른다. HTTP report/plan/detail 및 snapshot/Excel 공개는 #620/#622, 최소 Target 편집 UI는 #618의 별도 검증 대상이다.
+
+## Issue #618 — Target 목록 활성 필터와 paging 계약 보완
+
+Target 구성 화면은 기본적으로 활성 Target만 표시한다. GET `/api/projects/{publicId}/logistics/targets?activeOnly=true`는 SQL COUNT와 정렬된 SELECT 양쪽에서 inactive를 제외한 뒤 LIMIT/OFFSET을 적용한다. `activeOnly`를 생략하면 기존 외부 소비자와 공유 인스턴스 사용처 검토가 필요한 화면의 활성·비활성 전체 목록을 그대로 반환한다. `activeOnly=false` 또는 중복·기타 잘못된 값은 HTTP 400으로 거부한다. UI의 비활성 포함 토글은 페이지 offset을 0으로 되돌리고 새로운 조회 key로 reload한다. 조회·검색·토글은 Project revision을 변경하거나 Gantt/Task Editor/Viewport writer를 생성하지 않는다. 50개 inactive/2개 active의 서비스 회귀와 실제 HTTP 필터·오류 회귀는 #618 PR #678에 추가하되 원격 CI 결과 전 PASS로 판정하지 않는다.
+
+## Issue #618 — F4 Target 구성과 같은 작업 편집
+
+물류 Workspace의 Target 하위탭에서 Target 목록을 검색하고 상세·구성원을 조회한다. Composer는 프로젝트 분류를 읽어 표시하고 process 또는 명시적 project_common을 선택한다. WorkArea는 해당 occurrence에 존재할 때만 선택하며 필수가 아니다. 기존 인스턴스 검색/연결과 새 Equipment/System 생성을 구분한다. Equipment는 종류·label·원수량, System은 종류·label·1식이며 stable ID를 사용한다. 같은 인스턴스의 공유 Target 사용처를 표시한다. Target 구성원 연결 해제는 실물 인스턴스 삭제가 아니다. 상세 controls/coordinates/업체/역할 원본은 기존 관리 경로를 유지하며 membership이 자동 관계를 생성하지 않는다.
+
+Task/Summary의 물류 Editor에서 복수 Target, whole/subset, self/Summary subtree, Equipment optional 작업수량을 편집한다. 직접·모든 조상 상속·legacy 직접 instance 연결의 출처를 구분하며 상속은 합집합이다. 미지정 관리 Summary는 정상이다. Target 상세의 relatedTasks는 canonical Task ID·WBS 경로를 표시하고 동일 Task Editor를 연다. WBS에서 Target 상세로 탐색하고 같은 원본 구성으로 돌아온다. 날짜/진척/상태는 Task Editor, 구성은 composer에서 저장하며 공통 canonical 재조회로 양쪽을 갱신한다.
+
+변경 전 whole/subset 영향·관련 작업·공유 사용 현황을 확인하고 서버 impact/revision 검증으로 stale 및 삭제 충돌을 차단한다. 401/412·조회 실패와 늦은 응답에서 dirty 초안을 자동 교체하지 않는다. 공통 master는 다른 관리자 권한·별도 저장이며 Project 취소로 이미 저장된 master가 취소되었다고 표시하지 않는다. 구현/실행 증거는 [F4 Work Packet](exec-plans/active/ISSUE_618.md)에 기록하며 원격 전체 회귀/Owner 승인 전 F4 최종 완료를 주장하지 않는다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.

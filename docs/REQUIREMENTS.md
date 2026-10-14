@@ -536,3 +536,8 @@ Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를
 - AC8: `referencedByTaskCount`의 null=미지원, 0=실제 0건, N=고유 일반 Task N건을 구분하며 Summary는 별도로 세고 Milestone은 일반 Task 수에서 제외한다. legacy directTaskCount와 targetCount는 다른 의미다. 미산출 값을 삭제·KPI 근거로 사용하지 않는다.
 
 `0.109.0` 구현 후보이며 전체 인수는 exact-Head 원격 검증 이후 별도 판정한다. Target authoring UI/Resource 계산은 #618/#619 이후, 정식 릴리스 승인과 병합은 이번 PR CI 시작 범위에 포함하지 않는다.
+
+
+## Issue #618 — Logistics Target F4 기본 구성·연결 UX
+
+기존 물류 Workspace에서 공정/선택 WorkArea 또는 명시 프로젝트 공통 Target을 구성하고 기존 Equipment/System 인스턴스를 생성/재사용한다. Task/Summary는 복수 Target·whole/subset·self/subtree·optional 작업수량을 편집하며 직접/상속/legacy 출처를 구분한다. Target 상세↔WBS는 canonical 동일 Task Editor와 동일 Target composer를 사용하고 조회 때문에 Task를 복제하거나 원본 WBS를 재구성하지 않는다. 공유/whole/subset 영향·삭제 보호·revision·권한·초안·접근성·반응형 계약은 [Target 계약](LOGISTICS_TARGETS.md)과 [F4 실행 원장](exec-plans/active/ISSUE_618.md)을 따른다. Resource 집계와 고급 Dashboard/전용 Timeline은 후속이다.

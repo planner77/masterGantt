@@ -38,7 +38,7 @@ for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revis
     await page.route(`**${path}/logistics`, (route) => route.fulfill({ json: { data: { project: { ...fixture.project, revision: fail && failure === "wrong-revision" ? 1 : fixture.project.revision }, logistics: fail && failure === "malformed-role" ? { ...fixture.logistics, equipment: [{ ...fixture.logistics!.equipment[0], resourceRoles: [null] }] } : fixture.logistics } } }));
     await page.goto(`/projects/${publicId}`);
     const dialog = await openTask(page);
-    await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
+    await expect(dialog.getByRole("alert").filter({ hasText: "물류 연결 정보를 불러오지 못했습니다." })).toBeVisible();
     const save = dialog.getByRole("button", { name: "물류 연결 저장", exact: true });
     await expect(save).toBeDisabled();
     await save.evaluate((button: HTMLButtonElement) => { button.disabled = false; button.click(); });
@@ -76,7 +76,7 @@ test("이전 작업의 지연 응답은 새 작업의 실패 상태와 저장 �
   await expect(dialog.getByText("물류 연결 정보를 불러오는 중…")).toBeVisible();
   await page.keyboard.press("Escape");
   dialog = await openTask(page, "Stable summary");
-  await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
+  await expect(dialog.getByRole("alert").filter({ hasText: "물류 연결 정보를 불러오지 못했습니다." })).toBeVisible();
   gate.resolve();
   await expect(dialog.getByRole("button", { name: "물류 연결 저장", exact: true })).toBeDisabled();
   expect(mutations).toBe(0);
