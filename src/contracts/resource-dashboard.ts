@@ -110,7 +110,8 @@ export interface ResourceDashboardDto {
     inapplicableFilters: string[]; personalFiltersAppliedToA: boolean };
   catalog: { resources: { id: string; name: string; code: string | null; active: boolean; roles: ResourceWorkloadRole[]; developerGrade: DeveloperGrade | null; groupIds: string[] }[];
     groups: { id: string; name: string; code: string | null; active: boolean }[];
-    milestones: { id: string; name: string }[]; wbsRoots: { id: string; name: string; type: "task" | "summary" | "milestone" }[] };
+    milestones: { id: string; name: string }[]; wbsRoots: { id: string; name: string; type: "task" | "summary" | "milestone" }[];
+    targetOptions?: ResourceDashboardTargetProjection["catalog"] };
   metadata: { groupRoleSubtotalsAdditive: false; precision: "raw"; diagnosticsScope: string; searchScope: string;
     historicalStateRestoration: false; totalFrom: "full selected assignment set"; limits: typeof RESOURCE_DASHBOARD_LIMITS };
 }

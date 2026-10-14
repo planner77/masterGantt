@@ -92,7 +92,7 @@ export function ProjectResourceDashboard({
   const filterTrigger = useRef<HTMLButtonElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const normalized = useMemo(
-    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}), projectionOrder: view === "targets" ? (targetLayout === "matrix" ? [targetMatrixAxis, "target"] : targetOrder === "target" ? ["target", "group", "resource"] : ["group", "resource", "target"]) as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : view === "plan" ? ["resource", "target"] as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : filters.projectionOrder }),
+    () => ({ ...filters, ...(view === "plan" ? { granularity } : {}), projectionOrder: view === "targets" ? (targetLayout === "matrix" ? [targetMatrixAxis, "target"] : targetOrder === "target" ? ["target", "group", "resource"] : ["group", "resource", "target"]) as import("@/contracts/resource-dashboard").ResourceTargetDimension[] : undefined }),
     [filters, view, granularity, targetLayout, targetOrder, targetMatrixAxis],
   );
   const validDates = !(filters.from && filters.to && filters.from > filters.to);

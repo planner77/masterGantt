@@ -6,6 +6,8 @@
 
 Capacity는 고유 resource-day다. Group 평균95%여도 개인140%와 일별150%→0%의 Peak/초과를 유지한다. Target/Group/Milestone의 반복 소계·Capacity·기간별 distinct 인원/Assignment는 합산하지 않고 전체 집합에서 재계산한다. Resource Calendar 우선순위·inclusive 기간·M/M 명시 환산·configured0/partial/unset/empty·분모0을 유지하며 수량이나 progress로 계획공수를 변경하지 않는다.
 
+Plan 화면은 `projectionOrder`를 암묵적으로 요청하지 않는다. `granularity=week|month` 보고서는 `catalog.targetOptions`로 기존 Target 목록을 제공하고, Target 필터/선택 부하·같은 R의 Project 참고는 유지하지만 전체 `targetProjection` 계층을 만들지 않는다. 명시적 `projectionOrder`는 기존 Target 계층 예산과 422를 그대로 적용한다. Plan에 적용한 Target 필터만으로 대량 Assignment의 projectionCells=5000 상한에 걸려 유효 Plan까지 실패하게 해서는 안 된다.
+
 Plan의 일별→개인→정확 Assignment 상세에 동일 snapshot의 Task/Target 출처와 출발 선택·현재 selected/project 범위를 전달한다. 선택 밖 Assignment 편집도 기존 #621의 정확 개인 Editor 및 공통 복귀 경로를 사용한다. Excel current는 동일 조건/source/snapshot, project는 명시 전체 조건으로 서버 raw 결과를 출력한다. 추가 근거 sheet와 안전/예산 계약은 [EXCEL_EXPORT](EXCEL_EXPORT.md)를 따른다. 기존 #621/#620의 #622 미지원 표기는 당시 단계의 경계이며 본 절의 실제 구현으로 대체된다.
 
 실행·미검증 및 AC별 증거는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다. 로컬 회귀·사전 검토는 exact-head 원격 Required CI·Trusted QA·Owner 최종 승인을 대체하지 않는다.

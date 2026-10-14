@@ -705,11 +705,15 @@ export class ResourceDashboardService {
         inapplicableFilters: [...raw.diagnostics.inapplicableFilters], personalFiltersAppliedToA: raw.diagnostics.personalFiltersAppliedToA },
       catalog: { resources: resources.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active, roles: row.roles, developerGrade: row.developerGrade, groupIds: groupIdsByResource.get(row.publicId) ?? [] })),
         groups: groups.map((row) => ({ id: row.publicId, name: row.name, code: row.code, active: row.active })), milestones: milestones.map((row) => ({ id: row.publicId, name: row.name })),
-        wbsRoots: storedTasks.map((row) => ({ id: row.publicId, name: row.name, type: row.type })) },
+        wbsRoots: storedTasks.map((row) => ({ id: row.publicId, name: row.name, type: row.type })),
+        ...(filters.granularity ? { targetOptions: snapshot.targetSnapshot.catalog } : {}) },
       metadata: { groupRoleSubtotalsAdditive: false, precision: "raw", diagnosticsScope: "T0: Task/WBS/Milestone/status/taskSearch/canonical task dates; no personal/activity filters or search",
         searchScope: "A: Resource name/code OR its connected Group name/code OR assigned Task name/externalId/WBS path; taskSearch applies to T0 and A", historicalStateRestoration: false, totalFrom: "full selected assignment set", limits: LIMITS },
     };
-    if (wantsTargets(filters)) report.targetProjection = this.renderTargets(calculated);
+    // Resource Plan needs Target filters and a compact catalog, not the bounded
+    // resource/Target projection tree. Keep the legacy filtered report and explicit
+    // Target view projection unchanged when granularity is omitted or order requested.
+    if (wantsTargets(filters) && (!filters.granularity || filters.projectionOrder !== undefined)) report.targetProjection = this.renderTargets(calculated);
     if (Buffer.byteLength(JSON.stringify({ data: report })) > LIMITS.reportBytes) resourceDashboardLimit("projection.reportBytes");
     return report;
   }

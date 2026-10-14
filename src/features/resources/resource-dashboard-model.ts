@@ -222,6 +222,7 @@ const report = z.object({
     ),
     milestones: z.array(z.object({ id: z.string(), name: z.string() })),
     wbsRoots: z.array(z.unknown()),
+    targetOptions: targetProjection.shape.catalog.optional(),
   }),
   metadata: z.object({
     groupRoleSubtotalsAdditive: z.literal(false),

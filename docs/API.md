@@ -2,6 +2,8 @@
 
 ## Issue #622 — Target Resource Plan 상세 및 Excel
 
+`granularity=week|month` Plan 조회 시 optional `catalog.targetOptions` (Target/공정/WorkArea/설비·시스템 유형/인스턴스의 기존 canonical 목록)를 반환해 필터 UI를 지원한다. Plan은 `projectionOrder`를 암묵적으로 전송하지 않으며 이를 명시하지 않은 Plan 요청에서는 Target 필터가 있어도 `targetProjection` 전체 계층을 생성하지 않는다. 기존 Target 보기의 명시적 계층 투영과 granularity 없는 Target-only 보고서는 기존 예산·응답을 유지한다. 대량 Plan은 새 projectionCells5000 실패를 피하되 일반 KPI/Plan/2MiB/snapshot 상한 및 명시 Target 계층 요청의 422는 완화하지 않는다.
+
 기존 report/Plan·daily/day-resources/day-assignments와 exact drill 경로를 재사용한다. Target 조건은 selected A를 제한하고 R·같은 R/기간의 Project 배정을 보존한다. `ResourceDashboardPlanDto.targetContext`는 optional `{filters,measure:"related planned effort",subtotalsAdditive:false,projectReferenceScope:"same Capacity R and period; Target/Task/Milestone/source restrictions removed"}`다. Target 조건 없는 Plan은 기존 수치/구조를 유지한다.
 
 Plan 상세는 같은 snapshot의 optional `resourceScopeContext`, `resourceDataContext`와 Target 요청의 `targetContext`를 제공한다. day-assignments row는 `resourceActive` 및 Target 요청의 canonical `targetSources: TaskTargetBindingsDto`를 보강한다. selected와 project 상세 모두 원래 filters/snapshot을 echo하되 `demandScope`로 실제 기여 집합을 구별하며 project는 선택 Target 밖 Assignment도 포함한다. 원본 source context와 현재 참고 범위를 혼용하지 않는다. 새 필드는 기존 공통 Editor·drill transport의 현재 revision/정확 Assignment 결속에 사용하며 authorization token이 아니다.

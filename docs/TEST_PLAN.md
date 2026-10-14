@@ -11,6 +11,8 @@
 | AC7 | 전용 Chromium390/768/1024/1440/1920px Plan/Assignment table 내부scroll·열geometry·keyboard/focus·mutation0·current/project download; 신규 server 대량 Target fixture의 SQL/time/JSON/workbook 관측 |
 | AC8 | required 문서·Work Packet UPDATED/N/A·version/dependency graph·Markdown link·code/docs 정합, 별도 read-only 사전 Reviewer |
 
+추가 회귀: `tests/server/resources/issue-622-target-plan-excel.test.ts`는 850개의 일반 Task·1,700개의 Target 미연결 개인 Assignment에서 명시 `resource,target` 전체 projection은 5,000 cell 초과로 422이지만 Plan API는 200이고 Target 선택 catalog/기존 Plan 부하와 Target-filtered Plan을 유지해야 함을 검증한다. `tests/features/resources/resource-dashboard-model.test.ts`는 Plan `catalog.targetOptions` 보존/악의적 형식 거부를 검증한다. 신규 범위는 새 원격 CI 결과 전 NOT TESTED.
+
 Domain fixture는 `tests/fixtures/resource-target-plan.ts`, 실제 UI는 #621의 합성 seed를 재사용하며 production/runtime DB·secret/원시 로그를 Git에 넣지 않는다. 선별 geometry/screenshot은 `output/playwright/issue-622/`로 제한한다. Before 캡처가 없으면 source gap과 after 증거를 구별한다.
 
 실제 실행별 명령/테스트 수/최초 실패·보완/시간·bytes는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다. 계획/파일 존재와 실제 PASS는 다르며 skip을 필요한 검증의 PASS로 사용하지 않는다. 로컬 집중 회귀와 사전 Agent 검토는 exact-head 원격 Quality/E2E/Docker·Trusted QA·Owner HIGH 수용/병합 승인 및 #623 종단 수용을 대체하지 않는다. Windows Excel/VBA/DRM·운영 proxy/TLS·backup/restore·실기기/screen reader·최종 수동 UX는 별도다.

@@ -145,3 +145,12 @@ Required quality/e2e/docker·Trusted QA는 exact-head 원격 증거 전 NOT TEST
 - 모든 browser 종료 후 Next 자동 생성 `next-env.d.ts`/`tsconfig.json`을 기준 HEAD로 복원하고 최종 typecheck·Markdown216files·dependency graph 불변·diffcheck를 확인했다. 다른 #527 실행 산출물은 게시 후보에서 제외했다.
 - 최종 git fetch에서 main은 baseline `53c57743380e5d72a38e753078fc87c9d1b01365`로 동일하다. main 대비 충돌 없음. 신규 #622 PR의 리뷰 스레드/mergeability 및 Full CI Run ID/attempt는 생성 후 한 번 확인해 PR/Issue에 기록하며 결과를 모니터링하지 않는다.
 - `execution-result.json`은 로컬 범위와 원격 NOT TESTED·Owner/릴리스 경계를 구별한다. 사전 Agent PASS로 `manager_decision=ACCEPT`나 `MERGE_READY=PASS`를 생성하지 않는다.
+
+## PR #684 CI #2768.1 실패 및 P1 보완 (2026-10-15)
+
+- 최초 원격 Full PR CI [#2768.1](https://github.com/planner77/masterGantt/actions/runs/38576041422), head `3248ce226e8a87cfeeff1fb9a4c191df549a9a33`: Required Quality, Chromium E2E 6 Shard, Docker aggregate는 SUCCESS. `QA Final — Automated`는 미해결 review thread 1건으로 BLOCKED/FAIL; 전체 CI SUCCESS가 아니다.
+- PR #684 미해결 P1 `PRRT_kwDOUUB7Bc6sWoYz`: Plan에서 무조건 `projectionOrder=resource,target`를 보내 전체 Target projection을 생성해 유효한 대량 Project가 `projectionCells=5000` 초과 422가 되는 회귀.
+- Plan의 암묵적 `projectionOrder` 제거; 필터와 원시 selected/project 부하·Calendar/Capacity·일별 정확 Assignment 근거는 유지. 서버의 `granularity` Plan이 명시적인 projectionOrder 없이 Target 필터를 갖는 경우도 full Target tree 생성하지 않게 분리. 기존 granularity 없는 Target-only report/Target view에서 명시적으로 필요한 projection 및 HTTP 422 한도는 유지.
+- 기존 snapshot Target catalog를 Plan의 optional `catalog.targetOptions`로 전달하고 Client Zod와 quick/advanced Target 필터에서 projection 없이 사용하도록 하여 Plan에서 Target 필터를 고를 수 있도록 보존. 새 API/schema revision/새 DB·공수 엔진 변경 없음.
+- 신규 SQLite 회귀는 Target 미연결 850 Task × 2 개인 Assignment(1,700건)를 추가해 명시 resource→Target projection의 초과 경로, 기본 Plan HTTP200/카탈로그/동일 인원과 Target-filtered Plan의 same-R Project 부하를 확인한다. 별도 client parser 회귀는 optional catalog의 유효·위조 형식을 구분한다. 기존 #622 TargetA80/Project140·원인 편집/복귀·Excel·보안·예산 검증을 유지한다.
+- 본 추가 수정의 신규 local/remote CI·QA/Trusted QA 결과는 실행 증거 전 NOT TESTED. 리뷰 스레드는 수정 코드와 대조 후 해결하고 strict 최신 main 충돌 확인 후 새로운 exact-Head Full PR CI를 시작한다. 실패 원본을 소급 PASS로 표시하지 않으며 Owner HIGH 위험 수용·별도 병합 허가/릴리스 승인은 없다.

@@ -191,4 +191,47 @@ describe("#622 SQLite Target Plan and Resource workbook", () => {
     expect(evidence.assignments).toBe(241); expect(evidence.projectAssignments).toBe(242); expect(queryCount).toBeLessThan(85);
     expect(evidence.reportBytes).toBeLessThan(2 * 1024 * 1024); expect(evidence.workbookBytes).toBeLessThan(16 * 1024 * 1024);
   });
+  it("keeps large unlinked/Target-filtered Plan available beyond the Target projection cell budget", async () => {
+    const f = fixture(), people = [...f.resources.values()];
+    f.database.transaction(() => {
+      for (let i = 0; i < 850; i++) {
+        const task = f.schedules.insertTask({
+          projectId: f.project.id, publicId: randomUUID(), externalId: `PLAN-LARGE-${i}`,
+          name: `Plan ${i}`, type: "task", parentId: null, sortOrder: 100 + i,
+          scheduleMode: "auto", requestedStart: "2026-10-05",
+          startDate: "2026-10-05", endDate: "2026-10-05", duration: 1, progress: 0,
+          createdAt: now, updatedAt: now,
+        });
+        // No Target binding: these valid Assignments still participate in Project
+        // Capacity/load. A full resource/Target tree exceeds 5,000 cells.
+        f.catalog.replaceTaskAssignments({
+          projectId: f.project.id, taskId: task.id, now,
+          targets: people.map(resource => ({
+            publicId: resource.publicId, internalId: resource.id, kind: "resource" as const,
+            assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null,
+            allocationPercent: 50,
+          })),
+        });
+      }
+    })();
+    const filters: ResourceDashboardFilterInput = { from: "2026-10-05", to: "2026-10-05", granularity: "week" };
+    const explicit: ResourceDashboardFilterInput = { ...filters, projectionOrder: ["resource", "target"] };
+    expect(() => f.service.getDashboard(f.project.publicId, explicit)).toThrowError(
+      expect.objectContaining({ status: 422, details: [expect.objectContaining({ path: "projection.target.projectionCells" })] }),
+    );
+    const request = f.request(new URLSearchParams({ from: filters.from!, to: filters.to!, granularity: "week" }).toString());
+    const response = await handleGetResourceDashboard(request, f.project.publicId, { service: f.service });
+    expect(response.status).toBe(200);
+    const report = ((await response.json()) as { data: ResourceDashboardDto }).data;
+    expect(report.targetProjection).toBeUndefined();
+    expect(report.catalog.targetOptions?.filter(row => row.dimension === "target").map(row => row.id).sort())
+      .toEqual(f.targets.map(row => row.id).sort());
+    expect(report.plan?.population.resourceCount).toBe(people.length);
+    const selected = f.service.getDashboard(f.project.publicId, { ...filters, targetIds: [f.targets[0].id] })!;
+    expect(selected.targetProjection).toBeUndefined();
+    expect(selected.plan?.population.resourceCount).toBe(people.length);
+    expect(selected.plan?.targetContext?.filters.targetIds).toEqual([f.targets[0].id]);
+    expect(selected.plan!.totals.summary.project.knownMd).toBeGreaterThan(selected.plan!.totals.summary.selected.knownMd);
+  });
+
 });
