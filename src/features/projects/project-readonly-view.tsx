@@ -242,6 +242,25 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSavingTask, setIsSavingTask] = useState(false);
+  const [canonicalRecoveryBlocked, setCanonicalRecoveryBlocked] = useState(false);
+  const [canonicalMutationRequest, setCanonicalMutationRequest] = useState<Readonly<{ requestId: string; baseRevision: number; affectedIds: readonly string[]; outcome?: import("../gantt/canonical-recovery").MutationOutcome }> | null>(null);
+  const canonicalReadGenerationReference = useRef(0);
+  const canonicalMutationSequenceReference = useRef(0);
+  function beginCanonicalMutation() {
+    canonicalReadGenerationReference.current++;
+    const request = { requestId: `workspace-request-${++canonicalMutationSequenceReference.current}`, baseRevision: state.status === "ready" ? state.snapshot.data.project.revision : 0,
+      affectedIds: state.status === "ready" ? state.snapshot.data.tasks.map(task => task.taskId) : [] };
+    setCanonicalMutationRequest(request);
+    return request;
+  }
+  function completeCanonicalMutation(request: { requestId: string }, outcome: import("../gantt/canonical-recovery").MutationOutcome) {
+    setCanonicalMutationRequest(current => current?.requestId === request.requestId ? { ...current, outcome } : current);
+  }
+  function canonicalMutationOutcome(response: Response): import("../gantt/canonical-recovery").MutationOutcome {
+    return response.ok ? "SUCCESS" : response.status === 401 ? 401 : response.status === 412 ? 412 : response.status < 500 ? 422 : 500;
+  }
+
+  const canonicalRecoveryBlockedReference = useRef(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
@@ -270,7 +289,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
   const [targetPickerQuery, setTargetPickerQuery] = useState("");
   const [targetPickerKind, setTargetPickerKind] = useState<"all" | "resource" | "group">("all");
-  const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
+  const [ganttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
   const [metadataStatus, setMetadataStatus] = useState<ProjectStatus>("planned");
@@ -542,13 +561,21 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setState({ status: "loading" }); setRetryKey((key) => key + 1);
   }
   async function fetchCanonicalSnapshot(signal?:AbortSignal, currentRequest?:()=>boolean): Promise<ProjectSnapshotResponse | null> {
+    const generation = ++canonicalReadGenerationReference.current;
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store", signal });
       const body: unknown = await response.json().catch(() => null);
-      return !signal?.aborted && (!currentRequest || currentRequest()) && response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
+      return generation === canonicalReadGenerationReference.current && !signal?.aborted && (!currentRequest || currentRequest()) && response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
     } catch { return null; }
   }
-  async function reloadCanonicalSnapshot(): Promise<boolean> { return (await fetchCanonicalSnapshot()) !== null; }
+  async function reloadCanonicalSnapshot(): Promise<boolean> {
+    const generation = canonicalReadGenerationReference.current + 1;
+    const recovered = (await fetchCanonicalSnapshot()) !== null;
+    if (generation !== canonicalReadGenerationReference.current) return false;
+    canonicalRecoveryBlockedReference.current = !recovered;
+    setCanonicalRecoveryBlocked(!recovered);
+    return recovered;
+  }
   async function refreshImportProject(signal:AbortSignal):Promise<boolean> {
     const context=importRefreshContext.current,target=publicId,id=++context.generation;
     if(context.publicId!==target||signal.aborted)return false;
@@ -872,17 +899,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string, operation: string): Promise<string> {
     if (status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
     const recovered = await reloadCanonicalSnapshot();
-    // Recovery belongs to this request. Never remount or replay an older render's
-    // snapshot: previous successful mutations remain confirmed even if GET fails.
-    if (!recovered && confirmedSnapshotReference.current) {
-      applySnapshot(replayConfirmedSnapshot(confirmedSnapshotReference.current));
-    }
+    // Failed GET leaves the result unresolved. Do not replay an older snapshot
+    // after a request that may already have committed on the server.
     const code = safeErrorCode(error);
     let message = fallback;
     if (status === 401) message = "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.";
     else if (status === 412) message = recovered
       ? "다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요."
-      : "다른 편집 내용이 먼저 저장되었지만 최신 정보를 불러오지 못했습니다. 마지막 확인 일정으로 복구했습니다. 다시 조회해 주세요.";
+      : "다른 편집 내용이 먼저 저장되었지만 최신 정보를 불러오지 못했습니다. 저장 결과를 확인할 수 없습니다. 최신 상태 다시 조회를 눌러 주세요.";
     else if (status === 400 || status === 409 || status === 422) message = code === "MANUAL_DEPENDENCY_CONFLICT"
       ? "수동 일정이 관계 조건을 만족하지 않습니다. 요청 시작일·기간 또는 관계 설정을 확인해 주세요. 입력 내용은 유지됩니다."
       : code === "RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT"
@@ -896,16 +920,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           : code === "PARENT_CONVERSION_REQUIRED" ? "부모 작업 전환을 처리하지 못했습니다. 최신 정보를 확인한 뒤 다시 추가해 주세요."
             : code === "INVALID_PARENT_TASK" ? "Milestone에는 하위 작업을 추가할 수 없습니다."
               : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
-    if (!recovered && status !== 412) message += " 최신 일정 조회에 실패하여 마지막으로 확인한 일정을 유지합니다. 다시 조회해 주세요.";
+    if (!recovered && status !== 412) message += " 최신 일정 조회에 실패하여 저장 결과를 확인할 수 없습니다. 최신 상태 다시 조회를 눌러 주세요.";
     notify("error", message, operation, error);
     return message;
   }
   async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false, deferredSuccess = false, onCanonicalSuccess?: (response: TaskMutationResponse, snapshot: ProjectSnapshotResponse) => void): Promise<TaskEditorSaveResult> {
-    if (state.status !== "ready" || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
+    if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
     if (expectedRevision !== undefined && expectedRevision !== state.snapshot.data.project.revision) {
       return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 최신 정보를 다시 불러온 뒤 검토해 주세요." };
     }
-    taskMutationReference.current = true; setIsSavingTask(true); clearToast();
+    taskMutationReference.current = true; setIsSavingTask(true);
+    const mutationRequest = beginCanonicalMutation(); clearToast();
     const operation = method === "POST" ? "작업 추가" : method === "DELETE" ? "작업 삭제" : "작업 저장";
     try {
       const baseEndpoint = taskId === null ? `/api/projects/${encodeURIComponent(publicId)}/tasks` : `/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}`;
@@ -915,6 +940,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         headers: { ...(method === "DELETE" ? {} : { "Content-Type": "application/json" }), "If-Match": revisionTag(expectedRevision ?? state.snapshot.data.project.revision) },
         ...(method === "DELETE" ? {} : { body: JSON.stringify(payload) }),
       });
+      completeCanonicalMutation(mutationRequest, canonicalMutationOutcome(response));
       const body: unknown = response.status === 204 ? null : await response.json().catch(() => null);
       const snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
@@ -939,27 +965,34 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         } } : {}) };
       }
       if (expectedRevision !== undefined) {
+        await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다.", operation);
         if (response.status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
         return { status: "failed", conflict: response.status === 412, message: response.status === 412 ? "기준 Revision이 변경되었습니다. 입력은 유지됩니다. 최신 정보를 명시적으로 불러온 뒤 검토해 주세요." : response.status === 401 ? "편집 권한이 만료되었습니다. 입력은 유지됩니다." : "작업 정보를 저장할 수 없습니다. 완료 조건·잠금과 입력을 확인해 주세요. 입력은 유지됩니다." };
       }
       const message = await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.", operation);
       return { status: "failed", message, conflict: response.status === 412 };
     } catch {
-      if (expectedRevision !== undefined) return { status: "failed", message: "네트워크 연결을 확인해 주세요. 입력은 유지되며 자동으로 다시 보내지 않습니다." };
+      completeCanonicalMutation(mutationRequest, "NETWORK");
+      if (expectedRevision !== undefined) {
+        await handleTaskFailure(undefined, null, "작업을 저장할 수 없습니다.", operation);
+        return { status: "failed", message: "네트워크 연결을 확인해 주세요. 입력은 유지되며 자동으로 다시 보내지 않습니다." };
+      }
       const message = await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", operation);
       return { status: "failed", message };
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
 
   async function performTaskHierarchyCommand(command: TaskHierarchyCommandRequest, expectedRevision: number): Promise<{ ok: boolean; error?: string }> {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || importPending || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { ok:false, error:"편집 권한 또는 다른 작업의 초안·저장 상태를 확인해 주세요." };
+    if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || importPending || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { ok:false, error:"편집 권한 또는 다른 작업의 초안·저장 상태를 확인해 주세요." };
     if (state.snapshot.data.project.revision !== expectedRevision) return { ok:false, error:"검토 이후 프로젝트가 변경되었습니다. 최신 일정에서 다시 복사해 주세요." };
-    taskMutationReference.current = true; setIsSavingTask(true); clearToast();
+    taskMutationReference.current = true; setIsSavingTask(true);
+    const mutationRequest = beginCanonicalMutation(); clearToast();
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/task-commands`, {
         method: "POST", credentials: "same-origin",
         headers: { "Content-Type":"application/json", "If-Match":revisionTag(expectedRevision) }, body:JSON.stringify(command),
       });
+      completeCanonicalMutation(mutationRequest, canonicalMutationOutcome(response));
       const body: unknown = await response.json().catch(() => null), snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         notify("success", "작업 구조를 변경했습니다.", "작업 메뉴"); return { ok:true };
@@ -967,6 +1000,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const error = await handleTaskFailure(response.status, body, "작업 구조를 변경할 수 없습니다.", "작업 메뉴");
       return { ok:false, error };
     } catch {
+      completeCanonicalMutation(mutationRequest, "NETWORK");
       const error = await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "작업 메뉴");
       return { ok:false, error };
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
@@ -1239,11 +1273,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return saveTask("PATCH", command.taskId, command.payload, revision);
   }
   async function saveEditorMemberships(command: import("@/contracts/milestones").MilestoneMembershipCommand, expectedRevision: number): Promise<TaskEditorSaveResult> {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return { status: "failed", message: "편집 권한 또는 저장 상태를 확인해 주세요." };
+    if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return { status: "failed", message: "편집 권한 또는 저장 상태를 확인해 주세요." };
     if (expectedRevision !== state.snapshot.data.project.revision) return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 초안을 검토한 뒤 최신 정보를 다시 불러와 주세요." };
     taskMutationReference.current = true; setIsSavingTask(true);
+    const mutationRequest = beginCanonicalMutation();
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/milestone-memberships`, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": revisionTag(expectedRevision) }, body: JSON.stringify(command) });
+      completeCanonicalMutation(mutationRequest, canonicalMutationOutcome(response));
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
@@ -1252,9 +1288,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         notify("success", "소속 변경을 적용했습니다.", "Milestone 소속");
         return { status: "saved" };
       }
+      await handleTaskFailure(response.status, body, "소속 변경을 적용할 수 없습니다.", "Milestone 소속");
       if (response.status === 401) { setPermission("readonly"); }
       return { status: "failed", conflict: response.status === 412, message: response.status === 412 ? "기준 Revision이 변경되었습니다. 초안은 유지됩니다. 최신 정보를 명시적으로 조회하여 검토해 주세요." : response.status === 401 ? "편집 권한이 만료되었습니다. 초안은 유지됩니다." : "소속 변경을 적용할 수 없습니다. Milestone 잠금과 입력을 확인해 주세요. 초안은 유지됩니다." };
-    } catch { return { status: "failed", message: "네트워크 연결을 확인해 주세요. 검색과 초안은 유지됩니다. 자동으로 다시 보내지 않습니다." }; }
+    } catch {
+      completeCanonicalMutation(mutationRequest, "NETWORK");
+      await handleTaskFailure(undefined, null, "소속 변경 결과를 확인할 수 없습니다.", "Milestone 소속");
+      return { status: "failed", message: "네트워크 연결을 확인해 주세요. 검색과 초안은 유지됩니다. 자동으로 다시 보내지 않습니다." }; }
     finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
   function navigateEditorTask(taskId: string) {
@@ -1302,12 +1342,18 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
+    const generation = canonicalReadGenerationReference.current + 1;
     const snapshot = await fetchCanonicalSnapshot();
+    if (generation !== canonicalReadGenerationReference.current) return null;
+    if (snapshot) {
+      canonicalRecoveryBlockedReference.current = false;
+      setCanonicalRecoveryBlocked(false);
+    }
     const task = snapshot?.data.tasks.find((entry) => entry.taskId === taskId);
     return task && snapshot ? { task: { ...task }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision } : null;
   }
   function createNativeTask(command: ProjectTaskCreateCommand) {
-    if (state.status !== "ready" || taskMutationReference.current || pendingTaskDelete) return;
+    if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || taskMutationReference.current || pendingTaskDelete) return;
     const parent = command.parentTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === command.parentTaskId) : undefined;
     if (command.parentTaskId && !parent) { notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.", "하위 작업 추가"); return; }
     if (parent?.type === "milestone") { notify("error", "Milestone에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가"); return; }
@@ -1317,7 +1363,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       ...(convert ? { convertParentToSummary: true } : {}) });
   }
   function requestTaskDelete(taskId: string, trigger: HTMLElement | null, confirmLeaf = false) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen) return;
+    if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen) return;
     const plan = createTaskDeletePlan(state.snapshot.data.tasks, taskId);
     if (!plan) { notify("error", "삭제할 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 삭제"); return; }
     const deleteTaskIds = [plan.taskId, ...plan.descendantTaskIds];
@@ -1350,8 +1396,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     notify("info", "이 화면에서는 하위 작업만 추가할 수 있습니다.", "작업 추가");
   }
   const recoverCanonicalGantt = useCallback(() => {
-    setGanttResetGeneration((generation) => generation + 1);
-    notify("error", "일정 화면을 최신 서버 정보로 복구했습니다.", "일정 화면 복구");
+    canonicalRecoveryBlockedReference.current = true;
+    setCanonicalRecoveryBlocked(true);
+    notify("error", "일정 화면의 최신 상태를 확인할 수 없습니다. 최신 상태 다시 조회를 눌러 주세요.", "일정 화면 복구");
   }, [notify]);
   function saveTaskCommand(command: ProjectTaskUpdateCommand, expectedRevision?: number, options?: { readonly successFeedback: "deferred" }): Promise<TaskEditorSaveResult> {
     if (Object.keys(command.payload).length > 0) return saveTask("PATCH", command.taskId, command.payload, expectedRevision, false, options?.successFeedback === "deferred");
@@ -1365,11 +1412,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     linkId?: string,
     linkPatch?: { type?: DependencyType; lag?: number },
   ): Promise<boolean> {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
+    if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
     const canonicalTasks = state.snapshot.data.tasks;
     if (method === "POST" && !canCreateSchedulingLink(canonicalTasks.find((task) => task.taskId === sourceTaskId), canonicalTasks.find((task) => task.taskId === targetTaskId))) { notify("error", MIXED_LINK_EXPLANATION, "일정 관계 연결 제한"); return false; }
     if (method !== "POST" && linkStructureLocked(state.snapshot.data.links.find((link) => link.id === linkId), canonicalTasks)) { notify("error", COMPLETED_LINK_EXPLANATION, "Milestone 잠금"); return false; }
-    taskMutationReference.current = true; setIsSavingTask(true); clearToast();
+    taskMutationReference.current = true; setIsSavingTask(true);
+    const mutationRequest = beginCanonicalMutation(); clearToast();
     try {
       const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
       const target = targetTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === targetTaskId) : undefined;
@@ -1390,6 +1438,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           lag: linkPatch?.lag ?? 0,
         }) } : method === "PATCH" ? { body: JSON.stringify(linkPatch ?? {}) } : {}),
       });
+      completeCanonicalMutation(mutationRequest, canonicalMutationOutcome(response));
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
@@ -1410,6 +1459,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       await handleTaskFailure(response.status, body, "작업 관계를 변경할 수 없습니다.", "작업 관계");
       return false;
     } catch {
+      completeCanonicalMutation(mutationRequest, "NETWORK");
       await handleTaskFailure(undefined, null, "작업 관계를 변경하지 못했습니다. 최신 서버 상태로 복구합니다.", "작업 관계");
       return false;
     } finally {
@@ -2361,7 +2411,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
+  const busy = canonicalRecoveryBlocked || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null || milestoneCreate !== null;
   const scopeTabLabel = (taskId: string): string => {
     const task = tasks.find((candidate) => candidate.taskId === taskId);
     if (!task) return "선택한 Summary";
@@ -2595,13 +2645,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           tasks={tasks}
           links={links}
           revision={project.revision}
-          editable={editing}
+          editable={editing && !canonicalRecoveryBlocked}
+          blockedReason={editing && canonicalRecoveryBlocked ? "저장 결과를 확인한 뒤 편집할 수 있습니다. 최신 정보를 다시 불러와 주세요." : undefined}
           hasLinks={taskHasDependencyLinks(
             tasks,
             editorSession.task.taskId,
             links,
           )}
-          busy={busy}
+          busy={canonicalRecoveryBlocked ? isSavingTask || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || importPending : busy}
           onSave={saveEditorTask}
           onAuthorizationExpired={() => {
             setPermission("readonly");
@@ -2874,8 +2925,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ? "선택한 작업이 더 이상 Summary가 아닙니다."
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
-        </div> ) : (
-                  <ProjectGantt onViewportController={registerViewportController} viewVisible={activeView === "schedule"} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+        </div> ) : (<>
+                  {canonicalRecoveryBlocked ? <div role="alert">
+                    저장 결과를 확인할 수 없습니다. 초안은 유지되며 저장을 자동으로 다시 보내지 않습니다.
+                    <button className="secondary-button" type="button" onClick={() => void reloadCanonicalSnapshot()}>최신 상태 다시 조회</button>
+                  </div> : null}
+                  <ProjectGantt mutationRequest={canonicalMutationRequest} mutationPending={isSavingTask} canonicalRecoveryBlocked={canonicalRecoveryBlocked} onViewportController={registerViewportController} viewVisible={activeView === "schedule"} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           milestoneTimeline={milestoneTimelineModel ? { enabled: false, timelineModel: milestoneTimelineModel, onOpenMilestone: (taskId, trigger) => openTaskEditor(taskId, "task", trigger), onOpenDashboard: () => activateWorkspaceView("milestones") } : undefined}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
@@ -2889,7 +2944,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                       setWorkspaceSelection(ids);
                     }}
                     selectionRestore={selectionRestore}
-                    tasks={tasks} filterActive={activeFilters > 0} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />)}
+                    tasks={tasks} filterActive={activeFilters > 0} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} /></>)}
         </div>
       </section>
       <section id="project-panel-milestones" role="tabpanel" aria-labelledby="project-tab-milestones"

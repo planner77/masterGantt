@@ -98,3 +98,13 @@ U1 interface merge `d445ec58bf9106414c99a150ee8f52599834baf9`를 소비하는 `c
 [Work Packet](exec-plans/active/ISSUE_666.md)의 신규 axis transaction·전용 Unit/설치 Core fixture는 SC-08/09/10/12/14 중 날짜축·실제 geometry·원래 lease·cleanup 범위를 검증한다. 실제 wheel/reveal/query·hidden/zero-size·capacity 부족은 성공 위치와 별도로 typed 결과 및 관측 source를 기록한다. SC 등록 manifest·fake Unit·실제 합성 Core·제품 E2E·원격 CI는 서로 다른 증거다.
 
 U4는 production consumer0인 준비 모듈이다. SC-10의 전체 bookmark/receipt 재사용은 U3/U5, SC-12 제품 marker/Grid 정렬과 작은 화면은 U5/#573, SC-14의 실제 대량 제품 lifecycle 및 전체 SC-01~14 통합은 U5/#574 후속이다. 규범1.0.0-candidate/REVIEW_PENDING, 기존 manifest와 테스트 허용오차·timeout·skip·Required gate는 변경하지 않는다.
+
+## Issue #667 — main-first 제품 적용 프로파일
+
+U5는 main 제품에서 U2/U3/U4를 소비한다. 본 프로파일은 native Milestone 행/bar 유지·marker 미활성을 검증하며 #552/#574의 후속 native 행0 프로파일과 구분한다. SC 등록 manifest는 실행 증거가 아니다. 실제 선택된 사례·source·명령·결과와 미검증은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)의 누적표를 따른다.
+
+SC-05는 `gantt-state-product-integration.spec.ts`에서 actual SQLite commit 후500/연결 단절, commit 없는500, commit 후GET실패의 네 결과를 분리한다. 명시 최신 조회·추가 mutation0·동일 Core instance·후속 저장을 검증한다. SC-02/03의 기존 DnD412/500·Bar422/412/500 오차<0.5px 보호는 유지한다. GET실패가 동반된 unknown 결과는 과거 snapshot 복구 성공으로 승인하지 않고 명시 조회 후 같은 엄격한 보호를 검증한다.
+
+390px 측정 불가·full-capacity clamp 원본 FAIL·대량 수명주기·전체 폭/scale 행렬·marker ON 검증은 해당 실제 증거가 없으면 NOT TESTED/DEFER로 남긴다. 본 문서 추가로 Required workflow/manifest 정책을 바꾸지 않는다.
+
+추가 SC-05 역전 조회 사례는 Resource에서 시작한 실제 이전 GET을 지연하고, Task commit/500·최신 조회 실패 뒤 전달해도 UNKNOWN을 해제하지 않음을 확인한다. 명시 최신 조회 전 추가 PATCH 0과 같은 Core 인스턴스를 요구한다.

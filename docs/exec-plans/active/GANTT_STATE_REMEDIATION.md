@@ -141,3 +141,9 @@ U1의 public entry는 `src/features/gantt/state-consistency/index.ts`다. 생산
 U1 #663/PR #687은 main `d445ec58bf9106414c99a150ee8f52599834baf9`에 병합되었다. [U3 Work Packet](ISSUE_665.md)은 이 exact interface를 기준으로 의미 관측/receipt facade를 독립 구현·검증한다. U2/U4 concrete 코드·제품 writer는 참조/변경하지 않는다. U3 source·public API/typed outcomes·attempt/semantic ID·actual proof/source invalidation 책임·원래 lease와 수평 복원 독립을 #667에 인계한다. 신규 제품 wiring은 U5만 소유하며 actual Calendar·Resource·filter bookmark의 제품 증거는 #574와 별도로 확보한다.
 
 요청 종료점은 문서·사전 검토·미해결 리뷰/충돌 처리 후 Full PR CI 시작이다. U3의 로컬/fixture PASS를 최종 MODULE_READY·제품 해결·원격 CI·Owner ACCEPT로 확대하지 않는다. 위 이슈 등록표의 PLANNED는 등록 당시 원장이며 현재 구현/검증 결과는 각 Work Packet과 실제 GitHub 상태를 따른다.
+
+## 2026-10-15 — #667 main-first 제품 연결 착수
+
+[U5 Work Packet](ISSUE_667.md)은 main `29c86ca918baa1811bc12a3eb60f86ffc5406b40`에 병합된 #663~#666 모듈을 소비하는 별도 `Refs #667` 제품 PR을 소유한다. 제품 연결은 frontend 단일 작성자이며 Workspace unknown-result 차단·actual-Core 복구·semantic receipt·axis transaction을 통합한다. #675는 미병합이므로 복사하지 않고 main #686의 독립 준비 진단을 보존한다.
+
+현재 native Milestone 행/bar·marker 미활성을 유지한다. #552/#553/#574의 OFF 표시·교환·최종 인수 및 선택 #573/#693 ON gate는 순차 후속이다. PATCH0.114.1 후보/release_required=true/release_authorized=false이며 이전 원본 실패·390px/clamp 한계를 보존한다. 실제 로컬 검증/리뷰·원격 게시 결과는 Work Packet에 기록하며 CI 모니터링·병합·Main/GHCR·release/tag·Issue 종료는 제외한다.

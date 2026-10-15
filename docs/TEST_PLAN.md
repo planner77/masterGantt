@@ -3835,3 +3835,21 @@ SC-11의 Resource→detail→Editor/일정→복귀와 관련 저장/실패/취�
 - 현재 correction의 DOCUMENTATION_SYNC는 실제 diff의 UPDATED와 구체적인 N/A 근거를 검증한다. 과거 feature PR #684의 문서 변경을 correction의 증거로 재사용하지 않으며 scheduling 계산 변경이 없는 이유를 명시한다. base validator와 gate는 그대로 사용한다.
 - `tests/e2e/milestone-timeline-lane.spec.ts`는 native probe identity와 React/layout 및 viewport coordinator 준비를 독립 확인한 뒤 진단 명령을 호출해야 한다. init 직후 또는 stale API/cleanup 상태를 ready로 수락하지 않는다. 기존 5초 readiness·1000 Task+2000 Milestone·peer Chart/Grid scroll/fullscreen/resize/geometry·mutation0 assertion을 유지한다.
 - Local Fast Feedback은 원격 full PR 3 required aggregates·Trusted QA·Owner 승인과 별도다. 원본 Main #2771.1 및 PR #2773.1 FAIL은 불변이며 새 Head의 결과로 소급 PASS하지 않는다.
+
+## Issue #667 — 제품 정합성 로컬 회귀와 원격 인계
+
+신규 `tests/e2e/gantt-state-product-integration.spec.ts`는 기존 isolated-application의 실제 Chromium·HTTP·SQLite를 사용한다. page.route는 응답 오류/단절을 주입하고 route.fetch 및 별도 APIRequestContext GET으로 실제 commit 성공·미성공을 구별한다. 네 unknown-result case는 mutation 자동 재시도0, 최신 조회 실패 시 추가 편집 차단, 명시 조회 성공·동일 API/컴포넌트 인스턴스 및 후속 이름 저장만 반영됨을 검증한다. native Milestone 행/bar·canonical 보존/marker 미활성의 별도 case를 둔다.
+
+기존 `project-task-persistence.spec.ts`의 GET실패 block은 명시적 재조회 뒤 원래 Bar<0.5px·Grid 날짜·동일 instance 검사를 수행한다. 422/412/500의 GET성공 rollback 검사를 완화하지 않는다. 기존 reorder/Calendar/viewport/search/scale/Resource·Target 관련 회귀와 전용 adapter Unit을 실행 범위에 맞춰 선택한다.
+
+실제 명령·case 수·실패/재검증·SC-01~14 추적 및 전체 미검증 행렬은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다. 로컬 선택 회귀는 공식 quality/e2e/docker·Trusted QA·Owner ACCEPT를 대체하지 않는다. 사용자 요청에 따라 CI 결과 모니터링은 하지 않는다.
+
+#667 추가: `gantt-state-recovery-editor.spec.ts`는 동일 Revision clean 재조회 두 번의 semantic 재사용/새 attempt/쓰기0, Editor 내부 unknown 초안·취소·명시 재조회·새 revision의 name-only 저장, 실제 edit/add 뒤 축 확장의 full canonical·접힘·선택·Link·같은 인스턴스를 검사한다. Editor가 열린 동안 native Gantt 잠금은 정상이며 conflict 복구와 modal 잠금을 혼동하지 않는다. 실제 native add의 비preorder canonical 배열과 취소 축 taint 실패는 Work Packet의 원본 실패·보완 원장을 따른다.
+
+U1/U2/U4 이전 캡처는 immutable source snapshot 매핑과 전체 dependency tree 비교로 역사적 provenance를 유지한다. 현재 source 캡처로 조용히 repin하지 않으며 신규 U5 제품 실행과 별도로 분류한다.
+
+SC-05 역전 GET 사례는 Resource 최신 일정 조회의 실제 SQLite snapshot을 hold한 뒤 Task commit/응답 500·최신 조회 실패를 주입한다. 옛 GET 전달 뒤에도 UNKNOWN 안내·추가 편집 차단·자동 재전송 0을 유지하고 명시 최신 조회만 회복하는지 검증한다. 명시 회복 전 모든 후속 GET을 실패시켜 background 조회의 순번에 의존하지 않는다.
+
+SC-14 marker OFF 사례는 실제 Core의 공개 serialize로 Task 1,000개·Milestone 2,000개·총 3,000개를 확인하고, 3회 SPA 홈/뒤로 가기의 독립 5초 readiness·이전 probe.ready=false·probe/public viewport 정리·document request 0·mutation 0을 검사한다. count만 읽고 기존 500개 진단 payload cap을 유지한다. 장기 heap/전체 listener 누수 검증은 별도 NOT TESTED다.
+
+추가 SC-09는 RANGE APPLYING·실제 native capacity 증가 후 관측 RAF를 hold하고 실제 wheel을 전달한다. release 뒤 old RANGE SUPERSEDED·후속 resize 0·옛 위치 replay 0·Core/native 일치를 검사한다. 주입한 것은 관측 타이밍이며 geometry/완료 결과를 mock하지 않고 모든 callback을 finally에서 해제한다. 모든 scroll 호출 전수 검증과 구분한다.

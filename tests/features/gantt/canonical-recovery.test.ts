@@ -1,5 +1,6 @@
 import type { IApi, ITask, ILink } from "@svar-ui/react-gantt";
 import { describe, expect, it, vi } from "vitest";
+import { buildProjection } from "../../../src/features/gantt/canonical-projection";
 import { createCanonicalRecovery, type RecoveryCanonical } from "../../../src/features/gantt/canonical-recovery";
 import { normalizeSerializedCore } from "../../../src/features/gantt/state-consistency";
 import { canonicalFixture, driftFixture, proofContextFixture } from "../../fixtures/gantt-state-consistency/synthetic";
@@ -37,6 +38,30 @@ function reject(value: ReturnType<typeof harness>, outcome: Parameters<ReturnTyp
   expect(value.recovery.canWrite()).toBe(false); expect(value.recovery.completeMutation(ticket, outcome)).toBe(true); return ticket;
 }
 describe("U2 latest-canonical recovery (SC-02~05/07)", () => {
+  it("applies a successful root add from an interleaved server collection through full canonical preorder", async () => {
+    const parent: ITask = { id: "parent", parent: 0, type: "summary", text: "Parent", progress: 0 };
+    const child: ITask = { id: "child", parent: "parent", type: "task", text: "Child", progress: 0 };
+    const added: ITask = { id: "new-root", parent: 0, type: "task", text: "Added", progress: 0 };
+    const value = harness({ tasks: [parent, child], links: [] });
+    const projection = buildProjection({ revision: proofContextFixture().desired.revision, tasks: [parent, added, child], links: [], displayTasks: [] },
+      { scope: null, filter: null, displayMode: "compatibility", columnPrefs: null, scale: "day" });
+    value.setServer(projection);
+    expect(await value.recovery.recover()).toMatchObject({ outcome: "SETTLED", changed: true });
+    expect(value.actual().tasks.map(task => task.id)).toEqual(["parent", "child", "new-root"]);
+    expect(value.exec.mock.calls.filter(([action]) => action === "add-task")).toHaveLength(1);
+  });
+  it("retains the actual HTTP base revision when newer canonical props arrived before the pending effect", () => {
+    const value = harness();
+    value.setIdentity({ ...proofContextFixture().desired, revision: 29 });
+    expect(value.recovery.beginMutation("http-request-1", ["B"], 28)).toMatchObject({ requestId: "http-request-1", baseRevision: 28 });
+    expect(value.recovery.state().recovery.baseRevision).toBe(28);
+  });
+  it.each([-1, 1.5, 99999])("rejects invalid or future HTTP base revision %s without dirtying Core", revision => {
+    const value = harness();
+    expect(value.recovery.beginMutation("http-request-1", ["B"], revision)).toBeNull();
+    expect(value.recovery.canWrite()).toBe(true);
+    expect(value.exec).not.toHaveBeenCalled();
+  });
   it.each([401, 412, 422, 500, "TIMEOUT", "NETWORK", "SUCCESS"] as const)("refetches %s and restores actual date/order without server mutation retry", async outcome => {
     const value = harness(driftFixture(outcome === 422 ? "date" : "order")); reject(value, outcome);
     expect(await value.recovery.recover()).toMatchObject({ outcome: "SETTLED", changed: true });

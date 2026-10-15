@@ -8229,5 +8229,9 @@
         "writes": 2
       }
     }
-  ]
+  ],
+  "captureSourceMappings": {
+    "package.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-original.snapshot.txt",
+    "package-lock.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-lock-original.snapshot.txt"
+  }
 }

@@ -113,3 +113,13 @@ U2 합성 fixture `tests/fixtures/gantt-canonical-recovery/`는 동일 desired/r
 U4 전용 합성 fixture는 날짜 start/end·actual physical width/height/scrollSize/capacity·Core/native X/Y·API/query/axis·원래 lease와 각 transaction 단계/typed 결과를 구분한다. 공개 명령 resolve나 resize 부수 X=100을 정착 완료로 채택하지 않는다. Core exact/native ±1px·3개 안정 frame, 유한 budget·취소 후 후속 쓰기0, same instance 및 데이터 불변은 별도 관측한다.
 
 [Work Packet](exec-plans/active/ISSUE_666.md)에서 실제 source/lockfile 지문·명령·원본 실패·전후 결과·cleanup을 연결한다. raw Task 원문/URL/secret/실제 DB를 저장하지 않는 합성 allowlist를 유지한다. 신규 상시 진단 서버·production observer/writer 추가 없이 fixture에서만 실행하며 U4 준비 결과를 기존 #552 제품 실패 해결로 전용하지 않는다.
+
+## Issue #667 — 제품 연결 관측의 증거 경계
+
+기존 bounded dev/test trace와 projection/Coordinator 진단을 재사용하여 canonical sync·semantic observation attempt/receipt·axis typed outcome을 구별한다. 진단 필드는 production 저장 authority나 사용자 QA 영수증이 아니다. Task 이름·설명·URL·session/password·실제 DB를 trace로 추가하지 않는다.
+
+[Work Packet](exec-plans/active/ISSUE_667.md)은 같은 source에서 실행한 Unit/mock Core/제품 Chromium/실제 HTTP·SQLite와 원격 Required checks를 별도 원장으로 기록한다. API Promise 반환·모듈 fixture PASS·SC 등록 성공으로 실제 제품 정착이나 전체 SC-01~14 PASS를 주장하지 않는다. 실패한 조회 뒤 추가 저장 차단과 명시 재조회·자동 재전송0을 실제 서버 상태와 교차 확인한다.
+
+개발 전용 기존 probe.read는 대량 검증을 위해 공개 serialize의 전체 Task/일반 Task/Milestone 숫자와 canonical 전체 개수를 반환한다. 기존 rows/IDs/links의 500개 cap과 O(1) readiness는 유지한다. 숫자는 read 요청 때만 계산하며 실패/null을 0개 성공으로 대체하지 않는다. 지연 GET의 generation은 UI 복구 출처 확인용이며 요청 ID/원시 payload를 진단 로그에 추가하지 않는다.
+
+Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source의 관측을 알린다. actual axis signature 변경에만 새 receipt floor를 요구하며 client box가 같아도 scrollWidth 증가를 놓치지 않는다. 알림은 읽기 전용이며 UNKNOWN/pending·폐기 API/source·원래 lease 검사를 우회하지 않는다.

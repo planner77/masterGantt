@@ -1,8 +1,10 @@
 import { taskRevealTarget } from "./task-reveal-target";
 import type { IApi } from "@svar-ui/react-gantt";
 import type { ProjectionReceipt } from "../projection-settled";
-import { minimumTimelineScaleWidthForEnd } from "../timeline-range";
-import type { ViewportCommand, ViewportContext, ViewportOutcome, ViewportPhase, ViewportPort, ViewportPosition, ViewportSample, ViewportTraceMetadata } from "./viewport-coordinator";
+import { createAxisTransaction } from "./axis-transaction";
+import { GANTT_CELL_WIDTH, minimumTimelineScaleWidthForEnd } from "../timeline-range";
+import type { GeometryReadResult, UserIntentLease } from "../state-consistency";
+import type { ViewportCommand, ViewportContext, ViewportOutcome, ViewportPhase, ViewportPort, ViewportPosition, ViewportSample, ViewportTraceMetadata, ViewportStamp } from "./viewport-coordinator";
 
 interface PortOptions {
   api: IApi; root: HTMLElement; frame: HTMLElement;
@@ -10,9 +12,13 @@ interface PortOptions {
   receipt(): ProjectionReceipt | null;
   requestedEnd(): Date;
   recordEnd(): void;
+  axisSettled?(): void;
+  lease(): UserIntentLease;
+  canChangeAxis?(): boolean;
+  nativeForwardInput?(left: number): void;
 }
-/** Product compatibility port. This does not adopt #569's experimental axis
- * strategies or date-to-pixel formulas. All production app viewport writes live here. */
+/** Single product viewport writer. Version-bound compatibility transactions retain
+ * the coordinator registration lease; physical capacity remains observed. */
 export function createSvarViewportPort(options: PortOptions): ViewportPort & { dispose(): void; resizing(): boolean } {
   const { api, root, frame } = options;
   let disposed = false, resizing = false;
@@ -60,22 +66,6 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       if (value === false) throw new Error("COMMAND_REJECTED");
     } finally { clearTimeout(timer); }
   };
-  const resizeCompatibility = async (minimumWidth: number, current: () => boolean) => {
-    const state = api.getState();
-    const scaleWidth = state._scales?.width, width = state._chartWidth, height = state._chartHeight;
-    if (!Number.isFinite(minimumWidth) || minimumWidth > 1_000_000 || !scaleWidth || !width || !height || minimumWidth <= scaleWidth) return;
-    // Preserve the existing #367 Core2.7.3 synthetic/physical pair. Its
-    // compatibility behavior is not a new physical-capacity guarantee.
-    resizing = true;
-    try {
-      if (!current()) return;
-      // Keep the pre-existing pair in one call stack; cancellation cannot leave
-      // synthetic container geometry between an awaited first/second command.
-      const expansion = exec("resize-chart", { width: minimumWidth, height, scrollSize: state._scrollSize ?? 0 });
-      const physical = exec("resize-chart", { width, height, scrollSize: state._scrollSize ?? 0 });
-      await Promise.all([expansion, physical]);
-    } finally { resizing = false; if (current()) options.recordEnd(); }
-  };
   const repair = (target: ViewportPosition, diagnostic = false) => {
     if (diagnostic && process.env.NODE_ENV === "production") return false;
     const sample = read(), horizontal = chart(), y = vertical();
@@ -87,6 +77,17 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
   };
   const tag = "project-viewport-coordinator-port";
   api.intercept("scroll-chart", event => {
+    const axis = axisAuthority;
+    if (axis && !axis.nativeHandled && axis.current() && event.eventSource === undefined && typeof event.left === "number") {
+      const native = chart()?.scrollLeft;
+      // Only native forward ingress beyond the registered baseline wins here.
+      // Own tagged writes, backward resize clamps and API commands whose DOM
+      // position has not moved cannot acquire fresh user authority.
+      if (native !== undefined && Math.abs(native - event.left) <= 1 && Math.abs(native - api.getState().scrollLeft) > 1 && native > axis.baselineLeft + 1) {
+        axis.nativeHandled = true;
+        options.nativeForwardInput?.(event.left);
+      }
+    }
     const guard = authority;
     // Only guard stale horizontal rewinds. SVAR/native vertical scrolling
     // (including programmatic scrollTop=0 for a virtualized Grid) must pass.
@@ -113,37 +114,133 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     const raf = requestAnimationFrame(() => finish(true)), timer = setTimeout(() => finish(false), 50);
     signal.addEventListener("abort", cancel, { once: true }); document.addEventListener("visibilitychange", visibility);
   });
-  const prepare = async (command: ViewportCommand, current: () => boolean): Promise<{ ready: boolean; projectionAfter?: number }> => {
+  const geometry = (): GeometryReadResult => {
+    const sample = read(), horizontal = chart(), y = vertical();
+    if (!sample.measurable || !horizontal || !y) return { ok: false, outcome: "NOT_MEASURABLE" };
+    const box = horizontal.getBoundingClientRect(), rootBox = root.getBoundingClientRect();
+    const scaleHeight = root.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect().height ?? 0;
+    return { ok: true, core: sample.core, value: { left: sample.native.left, top: sample.native.top,
+      chartX: box.x, chartY: box.y + scaleHeight, chartWidth: horizontal.clientWidth, chartHeight: horizontal.clientHeight - scaleHeight,
+      scrollWidth: horizontal.scrollWidth, scrollHeight: y.scrollHeight, verticalClientHeight: y.clientHeight, gridWidth: box.x - rootBox.x } };
+  };
+  let axisAuthority: { lease: UserIntentLease; current: () => boolean; minimumWidth: number; baselineLeft: number; nativeHandled: boolean } | null = null;
+  let axisTransaction: ReturnType<typeof createAxisTransaction> | null = null;
+  // Each registered command owns one extension attempt. Safety/taint remains
+  // shared by the actual API source across these command-scoped facades.
+  const createCommandTransaction = () => createAxisTransaction({ maxExtensions: 1, apiInstance: options.context().apiInstance, source: api,
+    strategy: "SYNTHETIC_COMPATIBILITY", compatibility: { enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: api },
+    geometry: { readGeometry: geometry }, clock: { now: () => performance.now(), frame: nextFrame },
+    readPhysicalSize: () => ({ width: api.getState()._chartWidth ?? NaN, height: api.getState()._chartHeight ?? NaN }),
+    isLeaseCurrent: candidate => axisAuthority?.lease === candidate && axisAuthority.current(),
+    readAxis: () => { const value = api.getState(); return { startMs: value._start?.getTime() ?? NaN, endMs: value._end?.getTime() ?? NaN, scaleWidth: value._scales?.width ?? 0 }; },
+    changeExtent: async (_extent, context) => {
+      if (!context.current() || !axisAuthority) return false;
+      const state = api.getState(), width = state._chartWidth, height = state._chartHeight;
+      if (!width || !height) return false;
+      // Preserve the pre-existing synchronous pair. No await or authority
+      // reacquisition can leave a cancelled half-pair in the physical container.
+      const expansion = exec("resize-chart", { width: axisAuthority.minimumWidth, height, scrollSize: state._scrollSize ?? 0 });
+      const physical = exec("resize-chart", { width, height, scrollSize: state._scrollSize ?? 0 });
+      await Promise.all([expansion, physical]);
+      return context.current();
+    },
+    applyPosition: async (target, context) => {
+      if (!context.current()) return false;
+      repairs = 0;
+      await exec("scroll-chart", { ...target, eventSource: tag });
+      if (!context.current()) return false;
+      const sample = read();
+      if (sample.core.left === target.left && sample.core.top === target.top &&
+        (Math.abs(sample.native.left - target.left) > 1 || Math.abs(sample.native.top - target.top) > 1)) repair(target);
+    },
+  });
+  const axisSignature = () => {
+    const state = api.getState(), horizontal = chart();
+    return JSON.stringify([state._start?.getTime(), state._end?.getTime(), state._scales?.width,
+      horizontal?.clientWidth, horizontal?.clientHeight, horizontal?.scrollWidth]);
+  };
+  const extentTransaction = async (current: () => boolean, source?: ViewportStamp, minimumWidth?: number) => {
+    const retirement = new AbortController();
+    try {
+      for (let count = 0; axisTransaction?.state().busy && count < 120 && current(); count++) await nextFrame(retirement.signal);
+    } finally { retirement.abort(); }
+    const beforeAxis = axisSignature();
+    const state = api.getState(), start = state._start, end = state._end;
+    if (!(start instanceof Date) || !(end instanceof Date) || !current() || axisTransaction?.state().busy || options.canChangeAxis?.() === false) return null;
+    const lease = source ? { stamp: source, priority: 1 } : options.lease(), controller = new AbortController();
+    const revision = options.context().revision;
+    const authorized = () => current() && options.context().revision === revision && options.canChangeAxis?.() !== false;
+    const scale = options.context().scale as "day" | "week";
+    const desiredWidth = minimumWidth ?? minimumTimelineScaleWidthForEnd({ start, end: options.requestedEnd(), scaleMode: scale });
+    if (!Number.isFinite(desiredWidth) || desiredWidth <= 0 || desiredWidth > 1_000_000) return null;
+    const requestedEnd = new Date(Math.max(end.getTime(), options.requestedEnd().getTime()));
+    const additionalCells = Math.ceil(Math.max(0, desiredWidth - (state._scales?.width ?? 0)) / GANTT_CELL_WIDTH[scale]);
+    if (additionalCells > 0 && desiredWidth > minimumTimelineScaleWidthForEnd({ start, end: requestedEnd, scaleMode: scale })) {
+      const capacityEnd = new Date(end);
+      capacityEnd.setDate(capacityEnd.getDate() + additionalCells * (scale === "week" ? 7 : 1));
+      if (capacityEnd > requestedEnd) requestedEnd.setTime(capacityEnd.getTime());
+    }
+    axisAuthority = { lease, current: authorized, minimumWidth: desiredWidth, baselineLeft: read().core.left, nativeHandled: false };
+    const transaction = createCommandTransaction();
+    axisTransaction = transaction;
+    resizing = true;
+    try {
+      if (transaction.state().tainted) {
+        const recovered = await transaction.recoverNaturalGeometry({ lease, abort: { signal: controller.signal, isCurrent: authorized } });
+        if (process.env.NODE_ENV !== "production") frame.dataset.ganttAxisRecovery = JSON.stringify(recovered);
+        if (recovered.outcome !== "SETTLED") return recovered;
+      }
+      const result = await transaction.run({ extent: { startMs: start.getTime(), endMs: requestedEnd.getTime() },
+        policy: { kind: "PRESERVE" }, lease, abort: { signal: controller.signal, isCurrent: authorized } });
+      if (process.env.NODE_ENV !== "production") frame.dataset.ganttAxisTransaction = JSON.stringify(result);
+      if (result.outcome === "SETTLED") {
+        options.recordEnd();
+        // Scroll extent can change without a ResizeObserver client-size event.
+        if (axisSignature() !== beforeAxis) options.axisSettled?.();
+      }
+      return result;
+    } finally {
+      controller.abort(); transaction.dispose();
+      if (axisTransaction === transaction) { resizing = false; axisTransaction = null; axisAuthority = null; }
+    }
+  };
+  const prepare = async (command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<{ ready: boolean; projectionAfter?: number }> => {
     if (!("position" in command)) return { ready: true };
     if (!current() || !read().measurable) return { ready: false };
+    const admission = new AbortController();
+    let frames = 0;
+    while ((options.canChangeAxis?.() === false || axisTransaction?.state().busy) && frames++ < 120 && current()) await nextFrame(admission.signal);
+    if (!current() || options.canChangeAxis?.() === false || axisTransaction?.state().busy) return { ready: false };
     const target = command.position, state = api.getState();
-    const beforeWrites = writes, projectionBefore = read().context.projectionEpoch;
+    const beforeAxis = axisSignature(), projectionBefore = read().context.projectionEpoch;
     if (![target.left, target.top].every(value => Number.isFinite(value) && value >= 0)) return { ready: false };
     // The coordinator independently requires three stable geometry frames
-    // before APPLY. Avoid a compatibility resize (and its extra projection
-    // epoch) if physical capacity already admits the saved position.
+    // before APPLY. Avoid a compatibility transaction if physical capacity already admits the saved position.
     const existing = read();
     if (existing.capacity.left >= target.left - 1 && existing.capacity.top >= target.top - 1) return { ready: true };
-    const end = state._end, start = state._start;
-    if (start instanceof Date && end instanceof Date && end < options.requestedEnd())
-      await resizeCompatibility(minimumTimelineScaleWidthForEnd({ start, end: options.requestedEnd(), scaleMode: options.context().scale as "day" | "week" }), current);
-    if (command.compatibility && typeof state._chartWidth === "number") await resizeCompatibility(state._chartWidth + target.left, current);
+    if (state._end instanceof Date && state._end < options.requestedEnd()) {
+      const retainedWidth = minimumTimelineScaleWidthForEnd({ start: state._start!, end: options.requestedEnd(), scaleMode: options.context().scale as "day" | "week" });
+      const result = await extentTransaction(current, source, command.compatibility ? Math.max(retainedWidth, (state._chartWidth ?? 0) + target.left) : retainedWidth);
+      if (result?.outcome !== "SETTLED") return { ready: false };
+    } else if (command.compatibility && existing.capacity.left < target.left - 1) {
+      const result = await extentTransaction(current, source, (state._chartWidth ?? 0) + target.left);
+      if (result?.outcome !== "SETTLED") return { ready: false };
+    }
     // Capacity changes may replace the projection observation. Complete them
     // before the coordinator accepts a receipt for the coordinate command.
     let enough = 0;
-    const admission = new AbortController();
-    for (let count = 0; count < 120 && current(); count++) {
+    for (; frames < 120 && current(); frames++) {
       const sample = read();
       enough = sample.measurable && sample.capacity.left >= target.left - 1 && sample.capacity.top >= target.top - 1 ? enough + 1 : 0;
-      if (enough >= 3) return { ready: true, ...(writes > beforeWrites ? { projectionAfter: projectionBefore } : {}) };
+      if (enough >= 3) return { ready: true, ...(axisSignature() !== beforeAxis ? { projectionAfter: projectionBefore } : {}) };
       if (!(await nextFrame(admission.signal))) enough = 0;
     }
     return { ready: false };
   };
-  const apply = async (command: ViewportCommand, current: () => boolean): Promise<ViewportPosition | null> => {
+  const apply = async (command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPosition | null> => {
     if (!current() || !read().measurable) return null;
     const state = api.getState();
-    if (command.kind === "RANGE_EXTENSION") { await resizeCompatibility(command.width, current); return read().core; }
+    if (command.kind === "RANGE_EXTENSION") { const result = await extentTransaction(current, source, command.width); return result?.outcome === "SETTLED" ? result.position ?? null : null; }
     if (command.kind === "DIAGNOSTIC_SCROLL") {
       if (process.env.NODE_ENV === "production" || !Number.isFinite(command.left) || command.left < 0 || read().capacity.left < command.left - 1) return null;
       // Diagnostic requests cannot replenish an existing peer repair budget.
@@ -201,5 +298,5 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     return target;
   };
   return { read, frame: nextFrame, prepare, apply, repair, protect(target, current) { authority = { target, current, geometry: read().geometry, repairs }; }, release() { authority = null; }, trace,
-    resizing: () => resizing, dispose() { disposed = true; authority = null; api.detach(tag); } };
+    resizing: () => resizing, dispose() { disposed = true; authority = null; axisTransaction?.dispose(); api.detach(tag); } };
 }

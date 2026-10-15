@@ -7,6 +7,10 @@ import { dashboardFixture } from "../fixtures/milestone-dashboard";
 test.use({ timezoneId: "America/New_York" });
 
 interface Observation { gridWidth: number; instance: string; left: number; top: number; start: Date; end: Date; width: number; chartWidth: number; rows: { id: string; x: number; y: number }[]; links: { id: string; source: string; target: string; type: string }[]; canonicalIds: string[]; events: { action: string; left: number; top: number }[]; }
+interface LargePopulationObservation extends Observation {
+  canonicalTaskCount: number; coreTaskCount: number;
+  coreOrdinaryTaskCount: number; coreMilestoneCount: number;
+}
 async function probe<T>(frame: Locator, method: string, argument?: unknown): Promise<T> {
   return frame.evaluate(async (node, input) => {
     const api = Reflect.get(node, "__masterganttMilestoneTimeline");
@@ -416,4 +420,52 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   await page.getByRole("button", { name: "Milestone Timeline 기술 미리보기", exact: true }).click(); await expect(lane).toHaveCount(0); expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   const stopped=await probe<{count:number}>(frame,"laneMeasurement");await page.setViewportSize({width:width+1,height:1000});await settle(page);
   expect((await probe<{count:number}>(frame,"laneMeasurement")).count).toBe(stopped.count);
+});
+
+test("SC-14 marker OFF 3000행의 독립 readiness와 3회 SPA 수명주기 정리", async ({ page }, info) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const { state, frame } = await fixture(page, "large");
+  const observations: LargePopulationObservation[] = [];
+  let documentRequests = 0;
+  page.on("request", (request) => { if (request.resourceType() === "document") documentRequests += 1; });
+  for (let cycle = 0; cycle < 3; cycle++) {
+    const observed = await probe<LargePopulationObservation>(frame, "read");
+    expect(observed).toMatchObject({ canonicalTaskCount: 3000, coreTaskCount: 3000,
+      coreOrdinaryTaskCount: 1000, coreMilestoneCount: 2000 });
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", observed.instance);
+    await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+    const oldFrame = await frame.elementHandle();
+    expect(oldFrame).not.toBeNull();
+    await oldFrame!.evaluate((node) => Reflect.set(node, "__issue667SavedProbe", Reflect.get(node, "__masterganttMilestoneTimeline")));
+    await page.getByRole("link", { name: "masterGantt 홈", exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(() => oldFrame!.evaluate((node) => ({ connected: node.isConnected,
+      ready: Reflect.get(node, "__issue667SavedProbe").ready,
+      published: Reflect.has(node, "__masterganttMilestoneTimeline"),
+      viewport: Reflect.has(node, "__masterganttPublicViewport"),
+    }))).toEqual({ connected: false, ready: false, published: false, viewport: false });
+    await oldFrame!.dispose();
+    await page.goBack();
+    // Preserve the existing independent 5-second readiness gate after return.
+    const ready = await page.waitForFunction(() => {
+      const node = document.querySelector<HTMLElement>(".project-gantt-frame");
+      const candidate = node && Reflect.get(node, "__masterganttMilestoneTimeline");
+      return Boolean(node?.dataset.projectGanttApiInstance && candidate?.instance === node.dataset.projectGanttApiInstance &&
+        typeof candidate.read === "function" && candidate.ready === true);
+    }, undefined, { timeout: 5_000, polling: 100 });
+    await ready.dispose();
+    await settle(page);
+    observations.push(observed);
+  }
+  const returned = await probe<LargePopulationObservation>(frame, "read");
+  expect(returned).toMatchObject({ canonicalTaskCount: 3000, coreTaskCount: 3000,
+    coreOrdinaryTaskCount: 1000, coreMilestoneCount: 2000 });
+  await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  expect(documentRequests).toBe(0);
+  expect(state.posts.length + state.patchRequests.length).toBe(0);
+  await info.attach("marker-off-large-lifecycle", { body: JSON.stringify({
+    observations: [...observations, returned].map(({ instance, canonicalTaskCount, coreTaskCount, coreOrdinaryTaskCount, coreMilestoneCount }) =>
+      ({ instance, canonicalTaskCount, coreTaskCount, coreOrdinaryTaskCount, coreMilestoneCount })),
+    documentRequests, mutationCount: 0, cycles: 3,
+  }), contentType: "application/json" });
 });

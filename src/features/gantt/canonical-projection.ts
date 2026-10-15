@@ -92,7 +92,7 @@ export function buildProjection(snapshot: ProjectionSnapshot, options: Projectio
     return true;
   });
   return {
-    revision: snapshot.revision, tasks: snapshot.tasks, links: snapshot.links, membershipIds, logicalVisibleIds,
+    revision: snapshot.revision, tasks: orderedIds.length !== snapshot.tasks.length || orderedIds.every((id, index) => String(snapshot.tasks[index]?.id) === id) ? snapshot.tasks : orderedIds.map(id => byId.get(id)!), links: snapshot.links, membershipIds, logicalVisibleIds,
     keys: {
       data: JSON.stringify([snapshot.tasks.map(task => [task.id, task.text, task.start, task.end, task.progress, task.type, task.externalId, task.projectDisplayKey]), snapshot.displayTasks, snapshot.links]),
       structure: JSON.stringify([options.scope, snapshot.tasks.map(task => [task.id, task.parent, task.type]), snapshot.links.map(link => [link.id, link.source, link.target, link.type])]),

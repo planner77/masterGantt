@@ -208,3 +208,21 @@ B를 미활성 facade의 검증된 넓은 profile 전략으로 선택하며 C는
 미완료 synthetic geometry의 위험은 전략이 아니라 동일 Core API **object identity**에 귀속된다. `AxisTransactionOptions.source`를 필수로 받아 EXPLICIT_EXTENT도 이전 facade의 taint를 확인한다. SYNTHETIC_COMPATIBILITY의 opt-in source는 동일 object여야 하며 불일치 시 명시적으로 거부한다. source는 각 mount에서 새로 생성된 실제 API object이고 동일 mount 전략 간 공유한다. 새 wrapper object를 임의 생성해 오염을 우회하지 않는다.
 
 기존 72개 Chromium capture는 리뷰 보완 **이전** source의 역사적 증거로 고정하며 원본 파일·SHA를 덮어쓰지 않는다. `*.snapshot.txt`에 기존 구현과 browser 소스를 보존해 fingerprint를 검증하고 현재 소스의 동작은 강화된 Unit으로 별도 검증한다. 리뷰 보완 버전의 재실행 Chromium/제품 E2E는 아직 NOT TESTED이며 기존 full-capacity clamp FAIL·390px DEFER를 유지한다.
+
+## Issue #667 — U2/U3/U4 제품 소비 결정
+
+기준 main `29c86ca918baa1811bc12a3eb60f86ffc5406b40`, 설치 React Gantt2.7.3/store2.7.2. 제품 mount 단위 adapter는 공개 serialize의 실제 Core 정합을 검사하고 서버 확인 결과를 소비한다. 의미 관측은 완료 재사용을 검증하며 같은 canonical key만으로 dirty Core를 승인하지 않는다. viewport/axis 쓰기는 기존 Coordinator/port 하나로 모은다.
+
+U4 제품 경로는 기존 #367 synthetic/physical resize pair를 SYNTHETIC_COMPATIBILITY transaction 안에서 소비하며 actual coverage·geometry·명시 X/Y 정책을 관측한다. 명시 end prop 전략은 React wrapper 재초기화와 선택/열·geometry 보호 위험 때문에 채택하지 않는다. pair 실행 자체나 #666 clamp 실패를 성공으로 승인하지 않고 불완전 geometry taint·측정 불가·취소를 별도 결과로 유지한다. 현재 공식 exec 반환형(void)과 설치 Promise 타입 차이를 정착 근거로 사용하지 않으며 actual Core/native 관측을 유지한다. 기존 A/B/C 실패·DEFER 원장은 불변이다.
+
+#675는 미병합 진단 patch이므로 복사하지 않고 main #686의 독립 준비 영수증을 보존한다. 제품 표시는 native Milestone 행/marker 미활성을 유지하며 #552에서 별도 변경한다. source·실제 결과·compatibility 한계·rollback은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다. 규범 GSC1.0.0-candidate/REVIEW_PENDING을 변경하거나 예외 승인을 추론하지 않는다.
+
+U5의 `recoverNaturalGeometry`는 taint를 새 facade/새 전략으로 우회하지 않는다. source-wide 미완료 writer0·active0과 독립 Core 물리 크기·native DOM/axis/capacity/X/Y의 유한 3프레임 일치를 읽기 전용으로 확인하며, 실패/취소/숨김이면 기존 taint를 유지한다. 원래 새 요청 lease만 소비하고 과거 위치 replay·복구 resize/scroll·확장 예산 재발급은 하지 않는다. 실제 add→취소 후 width936 실패 및 현재 source 재검증은 #667 Work Packet에서 추적한다.
+
+제품 축 예산은 mounted lifetime이 아닌 등록 command별 bounded attempt다. 기존 모듈의 facade당3회/4회째거부 검사를 유지하며 제품은 명령당1회로 제한한다. 새 facade도 같은 API/source의 전역 taint/active transaction/미종료 callback을 공유하므로 재생성으로 불명확 geometry를 우회할 수 없다. 실패/취소/BUSY인 같은 명령을 새 facade로 자동 재시도하지 않으며 전체10년/1,000,000px 상한은 그대로 적용한다. 이 범위 결정은 기존3회 반복 edge 제품 회귀의 예산 소진 실패를 근거로 한다.
+
+RANGE_EXTENSION도 U4 안에서 기존 X/Y를 보존하므로 capacity-only 예외로 다른 좌표 명령과 병렬 승인하지 않는다. 더 높은 우선순위의 filter/peer/reveal이 pending이면 거부하고 원래 epoch/revision이 바뀌면 위치 쓰기 권한을 폐기한다. 실제 Core scale unit과 React 표시 단위가 일치한 뒤에만 축을 준비한다. untagged native 앞 이동이 SVAR scroll 이벤트의 요청 좌표와 실제 native DOM 좌표에서 일치하면 오래된 passive 축 보존을 취소하고 그 ingress의 고정 stamp로 새 edge 요청을 등록한다. 이는 인간 wheel 입력의 실증이 아니라 실제 native 이동에 대한 supersession 정책이다. own tag/기준 target·뒤로 clamp·이벤트 좌표만 변경되고 DOM이 움직이지 않은 상태·폐기된 source/context의 늦은 callback은 새 의도로 승격하지 않는다.
+
+같은 live API/context에서 태그 없이 실제 native 앞 이동을 일으킨 지연 callback과 사용자/프로그램 이동은 공개 계약만으로 구별할 수 없다. 이 경우 현재 물리 이동이 오래된 passive 보존을 취소하는 정책을 적용하며 인간 입력으로 판별했다고 주장하지 않는다. 데이터 저장/권한을 승인하는 근거로 사용하지 않는다.
+
+지원 범위는 설치 Core 2.7.3/store 2.7.2 및 현재 동기 resize/scroll handler 프로파일이다. port의 1500ms Promise race와 U4 callback 종료는 임의의 미래 async-before-Store writer가 끝났다는 일반 보장이 아니다. library 또는 해당 handler를 비동기로 변경할 때 source taint·늦은 쓰기·natural recovery를 재검증해야 한다.

@@ -475,3 +475,13 @@ F4 authoring은 기존 Target/Task binding HTTP service/repository 원장을 재
 기존 Resource Dashboard의 app-owned Target 계층/교차표는 #620 서버 projection·filter·selector를 읽는다. 표시 key와 canonical Task/Assignment/Target ID를 분리하며 별도 보고 원장·집계 엔진·Gantt 인스턴스/viewport writer는 추가하지 않는다. Editor/composer·canonical reconciler·drill provider/viewport coordinator의 기존 경계를 재사용한다.
 
 정확 Assignment 편집은 기존 Route Handler→Resource Catalog Service→Repository→SQLite의 PUT 경로에서 optional `editAssignmentId`를 검증한다. generic 전체 교체는 유지하고 exact 요청만 현재 Task/resource/assignment tuple의 row를 원자적으로 갱신한다. 현재 Project/catalog revision 검증과 저장1회·public ID·공동담당 원본 보존을 같은 transaction에서 보장한다. 저장 뒤 report identity를 재검증하며 stale 응답을 최신 결과로 표시하지 않는다. 계약·실제 증거는 [API](API.md)와 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. DB schema/migration·Scheduling 알고리즘 변경은 없다.
+
+## Issue #667 — main 제품 정합성 연결
+
+Workspace가 HTTP 결과와 최신 canonical 조회를 소유하고, ProjectGantt의 mount 단위 `product-consistency.ts`가 U2 actual-Core 복구와 U3 의미 관측을 소비한다. 데이터 queue는 실제 Task/tree/Link 비교와 차이 적용만 완료하며 viewport 완료를 기다리지 않는다. Coordinator가 원래 사용자 의도를 중재하고 단일 `svar-viewport-port.ts`가 U4 날짜축 transaction·Core/native 위치 정착을 담당한다.
+
+서버 snapshot/권한/revision이 저장 authority다. 저장 응답이 불명확하고 최신 GET도 실패하면 UNCERTAIN 안내와 충돌 쓰기 차단을 유지한다. 초안은 보존하고 자동 mutation 재시도나 Gantt remount로 결과를 추측하지 않는다. 기존 API/DB 계층·full canonical·native Milestone 행과 marker 미활성 상태는 유지한다. 실제 적용 source·검증·한계는 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
+
+canonical GET은 요청 generation을 가지며 mutation 시작 시 이전 read를 동기 무효화한다. 최신 read만 snapshot 적용·UNKNOWN 해제를 허용하고 늦은 이전 GET은 revision이 같아도 복구 근거로 사용하지 않는다. Editor/import 공통 조회에도 같은 경계를 적용한다.
+
+U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기존 U3 관측기에 읽기 전용 재관측을 요청한다. scrollWidth/axis 변경은 client-size ResizeObserver 이벤트를 보장하지 않으므로 이 연결을 명시한다. prepare의 후속 receipt floor는 실제 axis signature 변경에만 요구하며 단순 resize/scroll write 수로 결정하지 않는다. canonical queue는 순서 barrier이며 관측/viewport 완료를 그 queue 안에서 기다리지 않는다.

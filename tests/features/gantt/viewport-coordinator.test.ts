@@ -109,7 +109,7 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     await f.advance(8);
     expect(await reveal).toBe("SETTLED");
     expect(f.port.apply).toHaveBeenCalledTimes(1);
-    expect(f.port.apply).toHaveBeenCalledWith({ kind: "TASK_REVEAL", taskId: "task" }, expect.any(Function));
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "TASK_REVEAL", taskId: "task" }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
   });
 
   it("does not let a lower priority peer replace a pending filter return", async () => {
@@ -396,7 +396,7 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
     await f.advance(8);
     if (moved) expect(f.port.apply).not.toHaveBeenCalled();
-    else expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } }, expect.any(Function));
+    else expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
   });
 
   it.each([0, 24])("restores horizontal bookmark while preserving a legal filtered vertical clamp to %s", async top => {
@@ -405,7 +405,7 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.update({ core: { left: 0, top }, native: { left: 0, top } });
     f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
     await f.advance(8);
-    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top } }, expect.any(Function));
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
     expect(f.sample.core).toEqual({ left: 120, top });
     expect(f.sample.native).toEqual({ left: 120, top });
   });
@@ -418,10 +418,10 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.update({ core: { left: 0, top: 32 }, native: { left: 0, top: 32 } });
     f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
     await f.flush();
-    expect(f.port.prepare).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 32 } }, expect.any(Function));
+    expect(f.port.prepare).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 32 } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
     f.update({ core: { left: 0, top: 8 }, native: { left: 0, top: 8 } }); finish({ ready: true });
     await f.advance(8);
-    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 8 } }, expect.any(Function));
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 8 } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
   });
 
   it("does not restore horizontal bookmark before a pending native vertical clamp becomes coherent", async () => {
@@ -432,7 +432,7 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     await f.advance(4); expect(f.port.apply).not.toHaveBeenCalled();
     f.update({ core: { left: 0, top: 0 } });
     await f.advance(8);
-    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } }, expect.any(Function));
+    expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
   });
 
   it.each(["reveal", "columns"] as const)("discards filter bookmark after %s", async change => {
@@ -499,8 +499,9 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.update({ receipt: null, core: { left: 17, top: 0 }, native: { left: 17, top: 0 } });
     vi.mocked(f.port.apply).mockResolvedValue({ left: 17, top: 0 });
     const range = { kind: "RANGE_EXTENSION", width: 2400 } as const;
-    const pending = f.coordinator.request(range);
-    expect(f.port.apply).toHaveBeenCalledWith(range, expect.any(Function));
+    const source = f.coordinator.stamp();
+    const pending = f.coordinator.request(range, source);
+    expect(f.port.apply).toHaveBeenCalledWith(range, expect.any(Function), source);
     f.context({});
     f.update({ core: { left: 120, top: 0 }, native: { left: 17, top: 0 } });
     await f.advance(5);
@@ -527,31 +528,47 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
   it.each([1, 1_000_000])("accepts supported range boundary %s", async width => {
     const f = fixture(), command = { kind: "RANGE_EXTENSION", width } as const;
     const pending = f.coordinator.request(command);
-    expect(f.port.apply).toHaveBeenCalledWith(command, expect.any(Function));
+    expect(f.port.apply).toHaveBeenCalledWith(command, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
     await f.advance(5); expect(await pending).toBe("SETTLED");
   });
 
-  it("does not cancel an already valid restore or reveal when extending capacity", async () => {
-    for (const command of [peer, { kind: "TASK_REVEAL", taskId: "task" } as const]) {
+  it("rejects a parallel axis position writer while an existing restore or reveal owns its lease", async () => {
+    for (const command of [peer, { kind: "TASK_REVEAL", taskId: "task" } as const, { kind: "FILTER_RETURN", position: { left: 120, top: 0 } } as const]) {
       const f = fixture(), pending = f.coordinator.request(command);
-      vi.mocked(f.port.apply).mockImplementation(async (incoming, current) => {
-        if (incoming.kind === "RANGE_EXTENSION") return { left: 17, top: 0 };
-        const position = "position" in incoming ? incoming.position : { left: 30, top: 48 };
-        expect(current()).toBe(true);
-        f.update({ core: position, native: position });
-        return position;
-      });
       const releasesBeforeRange = vi.mocked(f.port.release).mock.calls.length;
-      const range = f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 });
-      expect(f.port.apply).toHaveBeenCalledTimes(1);
+      expect(await f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 })).toBe("SUPERSEDED");
       expect(f.port.release).toHaveBeenCalledTimes(releasesBeforeRange);
       await f.advance(10);
       expect(await pending).toBe("SETTLED");
-      expect(await range).toBe("SETTLED");
-      expect(f.port.apply).toHaveBeenCalledTimes(2);
+      expect(f.port.apply).toHaveBeenCalledTimes(1);
+      expect(f.port.apply).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "RANGE_EXTENSION" }), expect.anything(), expect.anything());
     }
   });
 
+  it("revokes an old range position callback before a newer filter return can be overwritten", async () => {
+    const f = fixture();
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    vi.mocked(f.port.apply).mockImplementation(async (command, current) => {
+      if (command.kind === "RANGE_EXTENSION") {
+        await gate;
+        if (!current()) return null;
+        f.update({ core: { left: 0, top: 0 }, native: { left: 0, top: 0 } });
+        return { left: 0, top: 0 };
+      }
+      const position = "position" in command ? command.position : { left: 120, top: 0 };
+      f.update({ core: position, native: position });
+      return position;
+    });
+    const old = f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 });
+    const latest = f.coordinator.request({ kind: "FILTER_RETURN", position: { left: 120, top: 0 } });
+    await f.advance(10);
+    expect(await latest).toBe("SETTLED");
+    release(); await f.flush();
+    expect(await old).toBe("SUPERSEDED");
+    expect(f.sample.core.left).toBe(120);
+    expect(f.sample.native.left).toBe(120);
+  });
   it("aborts replaced range observers and releases their frames on input and dispose", async () => {
     const f = fixture();
     const first = f.coordinator.request({ kind: "RANGE_EXTENSION", width: 2400 });

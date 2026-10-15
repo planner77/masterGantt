@@ -153,6 +153,10 @@ test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤
     core: (Reflect.get(element, "__masterganttPublicViewport") as { left: number }).left,
     native: element.querySelector(".wx-chart")!.scrollLeft,
   }));
+  // Axis preparation is now observed asynchronously. Establish actual native
+  // capacity before setting the nonzero bookmark; the exact 120px assertion
+  // below and all return/user-cancel assertions remain unchanged.
+  await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
   await chart.evaluate(element => { element.scrollLeft = 120; });
   await expect.poll(async () => (await viewport()).core).toBe(120);
   const quick = page.getByRole("group", { name: "작업 유형 빠른 보기" });
@@ -236,4 +240,67 @@ for (const input of [false, true]) test(`#571 delayed native add ${input ? "actu
   const history = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]") as { kind: string; phase: string }[];
   if (input) expect(history.filter(event => event.kind === "NATIVE_ADD" && event.phase === "APPLYING")).toHaveLength(0);
   await info.attach("delayed-native-add", { body: JSON.stringify({ input, beforeWheel, expected, after: await viewport(), history }), contentType: "application/json" });
+});
+
+test("SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다", async ({ page }, info) => {
+  const fixture = await setup(page, { longList: true, editable: false });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart").first();
+  await frame.getByRole("button", { name: "일", exact: true }).click();
+  await expect.poll(() => chart.evaluate(node => node.scrollWidth - node.clientWidth)).toBeGreaterThan(200);
+  await expect(frame).toHaveAttribute("data-gantt-canonical-sync-depth", "0");
+  await frame.evaluate(async () => { for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+  await chart.hover();
+  const baselineWidth = await chart.evaluate(node => node.scrollWidth);
+  await page.evaluate(width => {
+    const original = window.requestAnimationFrame.bind(window);
+    const gate = { held: false, armed: true, callbacks: [] as Array<() => void>, intent: -1, writes: -1 };
+    window.requestAnimationFrame = callback => original(time => {
+      const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
+      const trace = JSON.parse(frame?.dataset.ganttViewportCoordinator ?? "null");
+      if (gate.armed && trace?.kind === "RANGE_EXTENSION" && trace.phase === "APPLYING" &&
+          (frame?.querySelector(".wx-chart")?.scrollWidth ?? 0) > width) {
+        gate.held = true; gate.armed = false; gate.intent = trace.intentEpoch; gate.writes = trace.writes;
+      }
+      if (gate.held) gate.callbacks.push(() => callback(time)); else callback(time);
+    });
+    Reflect.set(window, "__issue667AxisGate", gate);
+    Reflect.set(window, "__releaseIssue667AxisGate", () => {
+      gate.held = false; gate.armed = false; window.requestAnimationFrame = original;
+      gate.callbacks.splice(0).forEach(callback => callback());
+    });
+  }, baselineWidth);
+  try {
+    await chart.evaluate(node => { node.scrollLeft = node.scrollWidth; });
+    await page.waitForFunction(() => Reflect.get(window, "__issue667AxisGate").held, undefined, { polling: 50, timeout: 5_000 });
+    const held = await page.evaluate(() => {
+      const gate = Reflect.get(window, "__issue667AxisGate");
+      const frame = document.querySelector<HTMLElement>(".project-gantt-frame")!;
+      const events = Reflect.get(frame, "__masterganttMilestoneTimeline").read().events as Array<{ action: string }>;
+      return { intent: gate.intent, traceWrites: gate.writes, resizeCount: events.filter(entry => entry.action === "resize-chart").length,
+        nativeLeft: frame.querySelector(".wx-chart")!.scrollLeft };
+    });
+    await page.mouse.wheel(-200, 0);
+    await page.evaluate(() => Reflect.get(window, "__releaseIssue667AxisGate")());
+    await expect.poll(async () => {
+      const history = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]") as Array<{ kind: string; intentEpoch: number; outcome?: string; writes: number }>;
+      return history.findLast(entry => entry.kind === "RANGE_EXTENSION" && entry.intentEpoch === held.intent && entry.outcome)?.outcome;
+    }).toBe("SUPERSEDED");
+    await frame.evaluate(async () => { for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+    const history = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]") as Array<{ kind: string; intentEpoch: number; outcome?: string; writes: number }>;
+    const canceled = history.findLast(entry => entry.kind === "RANGE_EXTENSION" && entry.intentEpoch === held.intent && entry.outcome);
+    const resizedAfterInput = await frame.evaluate(node => {
+      const events = Reflect.get(node, "__masterganttMilestoneTimeline").read().events as Array<{ action: string }>;
+      return events.filter(entry => entry.action === "resize-chart").length;
+    });
+    expect(resizedAfterInput).toBe(held.resizeCount);
+    const position = await frame.evaluate(node => ({ core: Reflect.get(node, "__masterganttPublicViewport").left, native: node.querySelector(".wx-chart")!.scrollLeft }));
+    expect(Math.abs(position.core - position.native)).toBeLessThanOrEqual(1);
+    expect(position.native).toBeGreaterThan(0);
+    expect(position.native).toBeLessThan(held.nativeLeft);
+    expect(fixture.patches).toHaveLength(0);
+    await info.attach("in-flight-axis-wheel", { body: JSON.stringify({ held, canceled, position, history }), contentType: "application/json" });
+  } finally {
+    await page.evaluate(() => Reflect.get(window, "__releaseIssue667AxisGate")());
+  }
 });

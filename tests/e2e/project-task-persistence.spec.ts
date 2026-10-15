@@ -165,7 +165,11 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   expect(inboxText).toContain("작업을 저장할 수 없습니다");
   await page.unroute(canonicalPattern, failCanonicalRead);
   await page.keyboard.press("Escape");
-  // Failed canonical GET replays the last confirmed values in the same widget.
+  // An unknown write remains blocked until an explicit successful canonical GET.
+  // Keep the original exact Bar/Grid recovery and same-instance assertions.
+  await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
+  await page.getByRole("button", { name: "최신 상태 다시 조회", exact: true }).click();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", confirmedInstance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", confirmedApiInstance!);
   await expectTaskBarGeometry(page, task.taskId, canonicalBox);

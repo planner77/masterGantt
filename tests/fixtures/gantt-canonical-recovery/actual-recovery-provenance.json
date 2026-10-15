@@ -77,5 +77,10 @@
     "full PR CI/Trusted QA/Owner ACCEPT",
     "main/GHCR/release"
   ],
-  "sourceBaseSemantics": "Verified merged U1 ancestor of capture HEAD; SHA256 entries attest the exact U2 implementation and synthetic browser fixture (not the baseline tree)."
+  "sourceBaseSemantics": "Verified merged U1 ancestor of capture HEAD; SHA256 entries attest the exact U2 implementation and synthetic browser fixture (not the baseline tree).",
+  "captureSourceMappings": {
+    "package.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-original.snapshot.txt",
+    "package-lock.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-lock-original.snapshot.txt",
+    "src/features/gantt/canonical-recovery.ts": "tests/fixtures/gantt-state-consistency/capture-sources/canonical-recovery-original.snapshot.txt"
+  }
 }

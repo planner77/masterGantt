@@ -48,6 +48,7 @@ interface Props {
   readonly links: readonly ProjectLinkDto[];
   readonly revision: number;
   readonly editable: boolean;
+  readonly blockedReason?: string;
   readonly hasLinks: boolean;
   readonly busy: boolean;
   readonly onSave: (command: ProjectTaskUpdateCommand, revision: number) => Promise<TaskEditorSaveResult>;
@@ -119,6 +120,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   links,
   revision,
   editable,
+  blockedReason,
   hasLinks,
   busy,
   onSave,
@@ -380,7 +382,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
 
     <div className={styles.noticeStack}>
       {navigation ? <div className={styles.discard} role="alert"><p>저장하지 않은 변경사항을 버리고 다른 작업으로 이동할까요?</p><div className={styles.confirmationActions}><button type="button" ref={confirmationCancelReference} className="secondary-button" onClick={() => setNavigation(null)}>계속 편집</button><button type="button" className="secondary-button" onClick={() => { const next = navigation; setNavigation(null); setMembershipDraft({}); setDraft(createTaskEditorDraft(base.task, base.calendar)); setResourceDirty(false); setLogisticsDirty(false); setTargetDirty(false); setDiscardGeneration((value) => value + 1); if (next.locate) onTaskLocate?.(next.id); else onTaskOpen?.(next.id); }}>변경사항 버리고 이동</button></div></div> : null}
-      {restriction ? <p className={styles.note}>{restriction}</p> : null}
+      {restriction ? <p className={styles.note}>{blockedReason ?? restriction}</p> : null}
       {stale ? <p className={styles.error} role="alert">다른 편집 내용이 먼저 저장되었거나 기준 Revision이 변경되었습니다. 입력 내용은 보존됩니다. 최신 정보를 다시 불러온 뒤 검토해 주세요.</p> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
       {confirmation ? <div className={styles.discard} role="alert">

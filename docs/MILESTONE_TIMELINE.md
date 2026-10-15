@@ -285,3 +285,9 @@ Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하�
 개발 전용 native init probe의 존재와 React/layout의 준비 완료를 구별한다. probe installer가 React 소유 `data-project-gantt-api-instance`를 덮어써 같은 함수의 두 출력을 서로 검증하는 방식은 사용하지 않는다. 진단 명령 준비는 현재 API의 identity, 실제 React commit, 해당 API의 viewport coordinator 설치를 독립적으로 확인해야 하며 이전 API나 cleanup된 coordinator는 준비 완료가 아니다. production 진단 비활성, 기존 canonical/viewport 소유권과 제품 lane 표시 계약은 유지한다.
 
 이 교정의 원본 PR CI #2773.1은 DOC_SYNC Preflight FAIL로 E2E를 실행하지 않았다. Work Packet의 최초 기능 PR 문서 기록과 현재 교정 PR 영향 분석을 분리하며, 기존 5초 readiness·1000 Task+2000 Milestone·native peer scroll/fullscreen/resize/geometry·mutation0를 새 exact Head에서 검증한다. Local Fast Feedback, 새 원격 CI 결과 및 Owner 수용은 별도 증거다.
+
+## Issue #667 — 공통 정합성 baseline과 표시 기능 분리
+
+#548의 main-first 결정에 따라 #667은 Reconciler·Observation·Axis 공통 경로만 제품에 연결한다. 현재 main의 native Milestone Grid/Chart 행·bar와 전체 canonical Task/Link/Membership을 보존하고 opt-in timeline marker를 활성화하지 않는다. #552/PR #561은 이 통합 source를 수용한 뒤 별도로 WBS 행 분리·marker-OFF 기준선을 구현한다.
+
+#666 합성 fixture의390px NOT_MEASURABLE·full-capacity clamp FAIL은 제품 PASS로 전용하지 않는다. #573 marker-ON geometry, #553 교환 인수와 #574 최종 OFF 통합은 별도다. [#667 Work Packet](exec-plans/active/ISSUE_667.md)의 실제 실행표·원본 실패·Head를 후속 인계 기준으로 사용한다.

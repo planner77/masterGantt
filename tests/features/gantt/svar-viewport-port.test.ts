@@ -31,37 +31,117 @@ describe("SVAR observed Task reveal admission", () => {
 describe("SVAR visibility admission", () => {
   afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
   function portFor(mode: string) {
-    const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: mode === "commands" ? 125 : 200, scrollLeft: 0 };
+    const horizontal = { clientWidth: mode === "zero" ? 0 : 100, clientHeight: 100, scrollWidth: mode === "commands" ? 125 : 200, scrollLeft: 0, getBoundingClientRect: () => ({ x: 100, y: 0 }) };
     const vertical = { clientHeight: 100, scrollHeight: 200, scrollTop: 0 };
     const root = { isConnected: mode !== "detached", clientWidth: 100, clientHeight: 100,
       closest: () => ["hidden", "inert"].includes(mode) ? {} : null,
-      getClientRects: () => [{ width: 100, height: 100 }], matches: () => false,
+      getClientRects: () => [{ width: 100, height: 100 }], getBoundingClientRect: () => ({ x: 0, y: 0 }), matches: () => false,
       querySelector: (selector: string) => selector === ".wx-chart" ? horizontal : selector === ".wx-gantt" ? vertical : null };
     vi.stubGlobal("window", { innerWidth: 1440, innerHeight: 900 });
     vi.stubGlobal("document", { visibilityState: mode === "document-hidden" ? "hidden" : "visible", addEventListener: vi.fn(), removeEventListener: vi.fn() });
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { queueMicrotask(() => callback(0)); return 1; });
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     vi.stubGlobal("getComputedStyle", (element: unknown) => ({ display: mode === "display-none" ? "none" : "block", visibility: mode === "chart-hidden" && element === horizontal ? "hidden" : "visible" }));
+    let requestedEnd = new Date("2026-12-01");
+    let dataReady = true;
+    const nativeForwardInput = vi.fn();
+    const axisSettled = vi.fn();
     const commands: string[] = [];
     const interceptors: Array<(event: { left?: number; top?: number; eventSource?: string }) => boolean | void> = [];
-    const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: 100 }, _chartWidth: 100, _chartHeight: 100 };
+    const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: 100 }, _chartWidth: 100, _chartHeight: 100, _start: new Date("2026-10-01"), _end: new Date("2026-11-01") };
     const api = { getState: () => state, intercept: vi.fn((_action: string, listener: (event: { left?: number; top?: number; eventSource?: string }) => boolean | void) => { interceptors.push(listener); }), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
       commands.push(action);
-      if (action === "resize-chart") horizontal.scrollWidth = 200;
+      if (action === "resize-chart") { horizontal.scrollWidth = 200; state._end = new Date(requestedEnd); }
       if (action === "scroll-chart") { state.scrollLeft = position.left ?? 0; state.scrollTop = position.top ?? 0; }
     } } as unknown as IApi;
     const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: { dataset: {} } as unknown as HTMLElement,
-      context: () => ({ visible: true, projectionEpoch: 7 } as ViewportContext), receipt: () => null, requestedEnd: () => new Date(), recordEnd: vi.fn() });
+      context: () => ({ visible: true, projectionEpoch: 7, apiInstance: "api-test", scale: "day" } as ViewportContext), receipt: () => null, requestedEnd: () => requestedEnd, recordEnd: vi.fn(),
+      canChangeAxis: () => dataReady,
+      nativeForwardInput, axisSettled,
+      lease: () => ({ stamp: { context: "test", contextEpoch: 0, gesture: 0, intent: 0 }, priority: 1 }) });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { commands, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
+    return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
-  it("prepares resize geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {
+  it("prepares observed compatibility transaction geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {
     const port = portFor("commands");
     const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
     expect(await port.prepare!(command, () => true)).toEqual({ ready: true, projectionAfter: 7 });
-    expect(port.commands).toEqual(["resize-chart", "resize-chart"]);
-    expect(await port.apply(command, () => true)).toEqual({ left: 50, top: 0 });
     expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    expect(port.axisSettled).toHaveBeenCalledExactlyOnceWith();
+    expect(await port.apply(command, () => true)).toEqual({ left: 50, top: 0 });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart", "scroll-chart"]);
+  });
+  it("requests read-only reobservation only for a settled actual axis change, not position-only writes", async () => {
+    const port = portFor("ready");
+    expect(await port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true)).toEqual({ left: 0, top: 0 });
+    expect(port.axisSettled).toHaveBeenCalledExactlyOnceWith();
+    expect(await port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true)).toEqual({ left: 0, top: 0 });
+    expect(port.axisSettled).toHaveBeenCalledTimes(1);
+    expect(await port.prepare!({ kind: "PEER_RETURN", position: { left: 50, top: 0 }, compatibility: true }, () => true)).toEqual({ ready: true });
+    expect(port.axisSettled).toHaveBeenCalledTimes(1);
+    port.dispose();
+  });
+  it("waits under the original preparation lease for canonical data readiness before extending", async () => {
+    const port = portFor("commands");
+    port.setDataReady(false);
+    const pending = port.prepare!({ kind: "PEER_RETURN", position: { left: 50, top: 0 }, compatibility: true }, () => true,
+      { context: "original", contextEpoch: 1, gesture: 1, intent: 1 });
+    expect(port.commands).toEqual([]);
+    port.setDataReady(true);
+    expect(await pending).toMatchObject({ ready: true });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    port.dispose();
+  });
+  it("does not revive preparation after a new gesture while canonical data is pending", async () => {
+    const port = portFor("commands"); let current = true;
+    port.setDataReady(false);
+    const pending = port.prepare!({ kind: "PEER_RETURN", position: { left: 50, top: 0 }, compatibility: true }, () => current);
+    current = false; port.setDataReady(true);
+    expect(await pending).toEqual({ ready: false });
+    expect(port.commands).toEqual([]);
+    port.dispose();
+  });
+  it("registers live native forward supersession once while excluding tagged, API-only and backward events", async () => {
+    const port = portFor("ready");
+    const pending = port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true);
+    port.intercept({ left: 80 }); // API command without actual native movement.
+    port.repair({ left: 20, top: 0 });
+    port.intercept({ left: 20, eventSource: "project-viewport-coordinator-port" });
+    port.intercept({ left: 0 }); // A stale/backward event cannot claim the newer offset.
+    expect(port.nativeForwardInput).not.toHaveBeenCalled();
+    port.setCoreLeft(20);
+    port.intercept({ left: 20 }); // Late callback already aligned with Core/native.
+    expect(port.nativeForwardInput).not.toHaveBeenCalled();
+    port.setCoreLeft(0);
+    port.intercept({ left: 20 });
+    port.intercept({ left: 20 });
+    expect(port.nativeForwardInput).toHaveBeenCalledExactlyOnceWith(20);
+    port.repair({ left: 0, top: 0 });
+    await pending;
+    port.dispose();
+  });
+  it("rejects a late native callback from an already revoked axis lease", async () => {
+    const port = portFor("ready"); let current = true;
+    const pending = port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => current);
+    current = false;
+    port.repair({ left: 20, top: 0 });
+    port.intercept({ left: 20 });
+    expect(port.nativeForwardInput).not.toHaveBeenCalled();
+    expect(await pending).toBeNull();
+    expect(port.axisSettled).not.toHaveBeenCalled();
+    port.dispose();
+  });
+  it("bounds extension per registered command without exhausting later independent user commands", async () => {
+    const port = portFor("ready");
+    for (let index = 0; index < 4; index++) {
+      port.setRequestedEnd(new Date(2026, 11 + index, 1));
+      expect(await port.apply({ kind: "RANGE_EXTENSION", width: 600 + index * 600 }, () => true,
+        { context: "test", contextEpoch: 0, gesture: index + 1, intent: index + 1 })).toEqual({ left: 0, top: 0 });
+      expect(port.resizing()).toBe(false);
+    }
+    expect(port.commands.filter(action => action === "resize-chart")).toHaveLength(8);
+    expect(port.commands.filter(action => action === "scroll-chart")).toHaveLength(4);
+    port.dispose();
   });
   it("allows native scroll after filter return but blocks stale Core rewinds after peer return", async () => {
     const filter = portFor("ready"), position = { left: 20, top: 0 };
@@ -103,7 +183,7 @@ describe("SVAR visibility admission", () => {
     const command = { kind: "PEER_RETURN" as const, position: { left: 50, top: 0 }, compatibility: true };
     expect((await port.prepare!(command, () => true)).ready).toBe(true);
     expect(await port.apply(command, () => false)).toBeNull();
-    expect(port.commands).toEqual(["resize-chart", "resize-chart"]);
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
   });
   it("does not resize or require another observation when actual capacity already admits the saved position", async () => {
     const port = portFor("ready");

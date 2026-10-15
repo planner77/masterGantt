@@ -36,6 +36,8 @@ export interface AxisTransactionOptions {
   /** Compatibility is isolated, opt-in and tied to the installed wrapper/store. */
   readonly compatibility?: Readonly<{ enabled: boolean; wrapperVersion: string; storeVersion: string; source: object }>;
   readAxis(): AxisObservation;
+  /** Independent public Core container dimensions, never synthetic scale width. */
+  readPhysicalSize?(): Readonly<{ width: number; height: number }>;
   isLeaseCurrent(lease: UserIntentLease): boolean;
   changeExtent(extent: AxisExtent, context: AxisWriteContext): void | boolean | Promise<void | boolean>;
   applyPosition(position: ViewportPosition, context: AxisWriteContext): void | boolean | Promise<void | boolean>;
@@ -47,6 +49,8 @@ export interface AxisTransactionOptions {
 // A cancelled synthetic write may outlive the facade. Never reset its source
 // taint by constructing another facade for the same API/context.
 const taintedCompatibilitySources = new WeakSet<object>();
+const outstandingSourceWrites = new WeakMap<object, number>();
+const activeSourceTransactions = new WeakMap<object, number>();
 const finitePosition = (position: ViewportPosition) => [position.left, position.top].every(value => Number.isFinite(value) && value >= 0);
 const validAxis = (axis: AxisObservation, bound: number) => Number.isFinite(axis.startMs) && Number.isFinite(axis.endMs) &&
   axis.endMs > axis.startMs && Number.isFinite(new Date(axis.startMs).getTime()) && Number.isFinite(new Date(axis.endMs).getTime()) && Number.isFinite(axis.scaleWidth) && axis.scaleWidth > 0 && axis.scaleWidth <= bound;
@@ -70,12 +74,15 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
     throw new Error("Invalid axis transaction budget");
   let active: { key: string; lease: UserIntentLease; abort: ConsistencyAbortPort; controller: AbortController; promise: Promise<AxisTransactionResult> } | null = null;
   let disposed = false, tainted = false, extensions = 0;
+  let naturalRecovery: AbortController | null = null;
   const reject = (outcome: ViewportOutcome, reason: string): AxisTransactionResult => ({ outcome, reason, viewport: "UNAVAILABLE" });
   const run = (input: AxisTransactionRequest): Promise<AxisTransactionResult> => {
     const key = JSON.stringify([input.extent, input.policy]);
+    if (naturalRecovery) return Promise.resolve(reject("UNSUPPORTED", "BUSY"));
     if (active) return active.key === key && active.lease === input.lease && active.abort === input.abort
       ? active.promise : Promise.resolve(reject("UNSUPPORTED", "BUSY"));
     if (disposed) return Promise.resolve(reject("SUPERSEDED", "DISPOSED"));
+    if (activeSourceTransactions.get(options.source)) return Promise.resolve(reject("UNSUPPORTED", "BUSY"));
     // Taint is physical-source-wide, not strategy-wide: an explicit facade must
     // never consume geometry left incomplete by a cancelled synthetic writer.
     if (tainted || taintedCompatibilitySources.has(options.source)) return Promise.resolve(reject("UNSUPPORTED", "COMPATIBILITY_TAINTED"));
@@ -93,6 +100,7 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
     request.abort.signal.addEventListener("abort", onAbort, { once: true });
     const execute = async (): Promise<AxisTransactionResult> => {
       let changed = false, settled = false, frames = 0;
+      let requestedPosition: ViewportPosition | undefined;
       const deadline = options.clock.now() + maxDuration;
       const frame = async () => {
         if (!current()) throw new Error("SUPERSEDED");
@@ -106,10 +114,14 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
       // guard delayed writes with context.current()/signal (no rollback after cancel).
       const write = async (callback: () => void | boolean | Promise<void | boolean>) => {
         let done = false;
+        outstandingSourceWrites.set(options.source, (outstandingSourceWrites.get(options.source) ?? 0) + 1);
         const operation = Promise.resolve().then(() => {
           if (!current()) throw new Error("SUPERSEDED");
           return callback();
-        }).finally(() => { done = true; });
+        }).finally(() => {
+          done = true;
+          outstandingSourceWrites.set(options.source, Math.max(0, (outstandingSourceWrites.get(options.source) ?? 1) - 1));
+        });
         const monitor = async () => { while (!done) await frame(); return operation; };
         const value = await Promise.race([operation, monitor()]);
         if (!current()) throw new Error("SUPERSEDED");
@@ -138,6 +150,7 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
         const extent = { startMs: Math.min(before.startMs, request.extent.startMs), endMs: Math.max(before.endMs, request.extent.endMs) };
         if (exceedsDateSpan(extent)) return reject("UNSUPPORTED", "DATE_SPAN_EXCEEDED");
         const original = { ...initial.core };
+        requestedPosition = original;
         if (!covers(before, extent)) {
           if (extensions >= maxExtensions) return reject("UNSUPPORTED", "EXTENSION_BUDGET_EXCEEDED");
           changed = true; extensions++;
@@ -168,6 +181,7 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
         if (!geometry.ok) return reject(geometry.outcome, "GEOMETRY_UNAVAILABLE");
         if (!measurable(geometry)) return reject("NOT_MEASURABLE", "GEOMETRY_INVALID");
         const requested = request.policy.kind === "PRESERVE" ? original : request.policy.kind === "ORIGIN" ? { left: 0, top: 0 } : request.policy.position;
+        requestedPosition = requested;
         const capacity = capacityOf(geometry);
         const target = { left: Math.min(requested.left, capacity.left), top: Math.min(requested.top, capacity.top) };
         const clamped = target.left !== requested.left || target.top !== requested.top;
@@ -196,7 +210,7 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
         const stillCurrent = current();
         const message = error instanceof Error ? error.message : "";
         const reason = authorityReadFailed ? "PORT_FAILED" : ["SUPERSEDED", "TIMED_OUT", "COMMAND_REJECTED"].includes(message) ? message : "PORT_FAILED";
-        return reject(authorityReadFailed ? "FAILED" : !stillCurrent || reason === "SUPERSEDED" ? "SUPERSEDED" : reason === "TIMED_OUT" ? "TIMED_OUT" : "FAILED", reason);
+        return { ...reject(authorityReadFailed ? "FAILED" : !stillCurrent || reason === "SUPERSEDED" ? "SUPERSEDED" : reason === "TIMED_OUT" ? "TIMED_OUT" : "FAILED", reason), requestedPosition };
       } finally {
         if (changed && !settled && options.strategy === "SYNTHETIC_COMPATIBILITY") {
           tainted = true; taintedCompatibilitySources.add(options.source);
@@ -205,9 +219,70 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
         request.abort.signal.removeEventListener("abort", onAbort);
       }
     };
-    const promise = execute().finally(() => { if (active?.promise === promise) active = null; });
+    activeSourceTransactions.set(options.source, (activeSourceTransactions.get(options.source) ?? 0) + 1);
+    const promise = execute().finally(() => {
+      activeSourceTransactions.set(options.source, Math.max(0, (activeSourceTransactions.get(options.source) ?? 1) - 1));
+      if (active?.promise === promise) active = null;
+    });
     active = { key, lease: input.lease, abort: input.abort, controller, promise };
     return promise;
   };
-  return { run, dispose: () => { disposed = true; active?.controller.abort("DISPOSED"); }, state: () => ({ busy: active !== null, tainted, extensions }) };
+  /** A new request may observe a natural physical baseline after cancellation.
+   * This grants no position authority to the retired request and performs no write. */
+  const recoverNaturalGeometry = async (input: Pick<AxisTransactionRequest, "lease" | "abort">): Promise<AxisTransactionResult> => {
+    if (active || naturalRecovery) return reject("UNSUPPORTED", "BUSY");
+    if (!options.readPhysicalSize) return reject("UNSUPPORTED", "PHYSICAL_READER_REQUIRED");
+    if (activeSourceTransactions.get(options.source) || outstandingSourceWrites.get(options.source)) return reject("UNSUPPORTED", "WRITER_NOT_RETIRED");
+    const controller = new AbortController();
+    naturalRecovery = controller;
+    const current = () => !disposed && !controller.signal.aborted && !input.abort.signal.aborted && input.abort.isCurrent() && options.isLeaseCurrent(input.lease);
+    let wake!: () => void;
+    const stopped = new Promise<false>(resolve => { wake = () => resolve(false); });
+    const abort = () => { controller.abort(); wake(); };
+    input.abort.signal.addEventListener("abort", abort, { once: true });
+    controller.signal.addEventListener("abort", wake, { once: true });
+    let expired = false;
+    const timer = setTimeout(() => { expired = true; abort(); }, maxDuration);
+    const deadline = options.clock.now() + maxDuration;
+    let stable = 0, previous = "";
+    try {
+      for (let frame = 0; frame < maxFrames; frame++) {
+        if (!current()) return reject(expired ? "TIMED_OUT" : "SUPERSEDED", expired ? "NATURAL_GEOMETRY_TIMED_OUT" : "STALE_LEASE");
+        if (!await Promise.race([options.clock.frame(controller.signal), stopped])) return reject(expired ? "TIMED_OUT" : "SUPERSEDED", "NATURAL_GEOMETRY_INTERRUPTED");
+        if (!current()) return reject(expired ? "TIMED_OUT" : "SUPERSEDED", expired ? "NATURAL_GEOMETRY_TIMED_OUT" : "STALE_LEASE");
+        if (options.clock.now() >= deadline) return reject("TIMED_OUT", "NATURAL_GEOMETRY_TIMED_OUT");
+        if (activeSourceTransactions.get(options.source) || outstandingSourceWrites.get(options.source)) return reject("UNSUPPORTED", "WRITER_NOT_RETIRED");
+        const read = options.geometry.readGeometry(), axis = options.readAxis(), physical = options.readPhysicalSize();
+        if (!read.ok) return reject(read.outcome, "NATURAL_GEOMETRY_UNAVAILABLE");
+        if (!measurable(read) || !Number.isFinite(physical.width) || !Number.isFinite(physical.height) || physical.width <= 0 || physical.height <= 0)
+          return reject("NOT_MEASURABLE", "NATURAL_GEOMETRY_INVALID");
+        if (!validAxis(axis, maxScaleWidth) || exceedsDateSpan(axis)) return reject("UNSUPPORTED", "NATURAL_AXIS_INVALID");
+        // Physical dimensions must agree independently of scale extent/capacity.
+        // Core positions remain exact; native renderer agreement keeps its 1px bound.
+        const capacity = capacityOf(read);
+        const coherent = Math.abs(Math.max(axis.scaleWidth, read.value.chartWidth) - read.value.scrollWidth) <= 1 &&
+          capacity.left >= read.core.left && capacity.top >= read.core.top && Math.abs(physical.width - read.value.chartWidth) <= 1 && Math.abs(physical.height - read.value.chartHeight) <= 1 &&
+          Math.abs(read.core.left - read.value.left) <= 1 && Math.abs(read.core.top - read.value.top) <= 1;
+        const signature = JSON.stringify([axis, physical, read.value, read.core]);
+        stable = coherent ? signature === previous ? stable + 1 : 1 : 0;
+        previous = signature;
+        if (!current()) return reject("SUPERSEDED", "STALE_LEASE");
+        if (stable >= 3) {
+          if (activeSourceTransactions.get(options.source) || outstandingSourceWrites.get(options.source)) return reject("UNSUPPORTED", "WRITER_NOT_RETIRED");
+          tainted = false;
+          taintedCompatibilitySources.delete(options.source);
+          return { outcome: "SETTLED", reason: "NATURAL_GEOMETRY_CONFIRMED", viewport: "PRESERVED", position: read.core, axis, capacity: capacityOf(read) };
+        }
+        if (options.clock.now() >= deadline) return reject("TIMED_OUT", "NATURAL_GEOMETRY_TIMED_OUT");
+      }
+      return reject("TIMED_OUT", "NATURAL_GEOMETRY_TIMED_OUT");
+    } catch { return reject("FAILED", "NATURAL_GEOMETRY_READ_FAILED"); }
+    finally {
+      clearTimeout(timer); controller.abort();
+      input.abort.signal.removeEventListener("abort", abort);
+      controller.signal.removeEventListener("abort", wake);
+      if (naturalRecovery === controller) naturalRecovery = null;
+    }
+  };
+  return { run, recoverNaturalGeometry, dispose: () => { disposed = true; active?.controller.abort("DISPOSED"); naturalRecovery?.abort("DISPOSED"); }, state: () => ({ busy: active !== null || naturalRecovery !== null, tainted: tainted || taintedCompatibilitySources.has(options.source), extensions }) };
 }

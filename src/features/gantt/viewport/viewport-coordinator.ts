@@ -37,8 +37,8 @@ export type ViewportPreparation = Readonly<{ ready: boolean; projectionAfter?: n
 export interface ViewportPort {
   read(): ViewportSample;
   frame(signal: AbortSignal): Promise<boolean>;
-  prepare?(command: ViewportCommand, current: () => boolean): Promise<ViewportPreparation>;
-  apply(command: ViewportCommand, current: () => boolean): Promise<ViewportPosition | null>;
+  prepare?(command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPreparation>;
+  apply(command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPosition | null>;
   repair(position: ViewportPosition, diagnostic?: true): boolean;
   protect(position: ViewportPosition, current: () => boolean): void;
   release(): void;
@@ -96,11 +96,11 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     if (source.context !== identity(initial.context) || source.contextEpoch !== contextEpoch) return reject("SUPERSEDED", "STALE_CONTEXT");
     if (source.gesture !== gesture) return reject("SUPERSEDED", "STALE_GESTURE");
     if (source.intent < explicitEpoch) return reject("SUPERSEDED", "STALE_INTENT");
-    if (pending && level < pending.priority && command.kind !== "RANGE_EXTENSION") return reject("SUPERSEDED", "LOWER_PRIORITY");
+    if (pending && (level < pending.priority || command.kind === "RANGE_EXTENSION")) return reject("SUPERSEDED", "LOWER_PRIORITY");
     if (!initial.context.visible || (!initial.measurable && (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL"))) return reject("NOT_MEASURABLE", "HIDDEN_OR_UNMEASURABLE");
     if (initial.context.empty && command.kind !== "RANGE_EXTENSION") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
-    // #367 changes capacity, not viewport intent. Keep the validated resize
-    // pair synchronous with ingress and never repair a captured old position.
+    // Axis extension now also preserves X/Y under its registered lease.
+    // It cannot run beside an existing coordinate intent or outlive a newer one.
     if (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL") {
       if (command.kind === "RANGE_EXTENSION" && (!Number.isFinite(command.width) || command.width <= 0 || command.width > 1_000_000))
         return reject("UNSUPPORTED", "INVALID_RANGE_WIDTH");
@@ -111,14 +111,14 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       rangeController = controller;
       const current = () => {
         const sample = port.read();
-        return !disposed && !controller.signal.aborted && validSource(source) && sample.context.visible &&
+        return !disposed && !controller.signal.aborted && validSource(source) && source.intent === epoch && sample.context.revision === initial.context.revision && sample.context.visible &&
           (command.kind !== "DIAGNOSTIC_SCROLL" || (sample.context.revision === initial.context.revision &&
             sample.context.projectionEpoch === initial.context.projectionEpoch));
       };
       let result: ViewportOutcome = "TIMED_OUT";
       try {
         trace("APPLYING");
-        const applied = await port.apply(command, current);
+        const applied = await port.apply(command, current, source);
         if (!current()) return result = "SUPERSEDED";
         if (!applied) return result = "NO_SCROLL_CAPACITY";
         trace("SETTLING");
@@ -186,7 +186,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       // canonical data. Finish that preparation before pinning its receipt.
       if (port.prepare) {
         phase("PREPARING_GEOMETRY");
-        const prepared = await port.prepare(coordinateCommand(), current);
+        const prepared = await port.prepare(coordinateCommand(), current, source);
         if (!current()) return complete("SUPERSEDED");
         if (!prepared.ready) return complete("NO_SCROLL_CAPACITY");
         preparationFloor = prepared.projectionAfter ?? -1;
@@ -224,7 +224,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       if (stable < 3) return complete(port.read().measurable ? "TIMED_OUT" : "NOT_MEASURABLE");
       if (!validViewportReceipt(port.read())) return complete("SUPERSEDED");
       phase("APPLYING");
-      const target = await port.apply(coordinateCommand(), current);
+      const target = await port.apply(coordinateCommand(), current, source);
       if (!current()) return complete("SUPERSEDED");
       if (!target) return complete("NO_SCROLL_CAPACITY");
       phase("SETTLING");

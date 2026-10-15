@@ -1,0 +1,646 @@
+{
+  "schemaVersion": 1,
+  "issue": 667,
+  "validationScope": "Local Fast Feedback; selected regression",
+  "baseMainSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+  "sourceFingerprintSha256": "84800f574b4b919ca0ef09bacb2cddd44f4eb4b07fb69272f602f0ec86718679",
+  "sourceHashesSha256": {
+    "package-lock.json": "3706f18d68f54546999e8b023e03b5de6ee12fbdc289a068e4d828c7d092731e",
+    "package.json": "e081a2750b0dc0b66772b1a51ac92eade6805bf60042faf52068cfaebc3a65e5",
+    "src/features/gantt/canonical-projection.ts": "9f61fa4d6cd1e961406f6cff93d28e6f619d64689f57f97eac9fffe884223708",
+    "src/features/gantt/canonical-recovery.ts": "362a8d9c67f55791aa89e80ba7622cf83f1609d4efc114bad9c47a092ac66ce6",
+    "src/features/gantt/product-consistency.ts": "bac268e250401ff60c45b9e043c7ab3dc9c78760a924d9675864e343de27687a",
+    "src/features/gantt/project-gantt.tsx": "f90cd5f47df920b89d9a5611283126f01bee0039bbdb9e5b21fbe07588e84110",
+    "src/features/gantt/project-task-editor.tsx": "dfed6ad214eac711b6c349a72ffc7c049f0218f99837603a29896717f605b90d",
+    "src/features/gantt/viewport/axis-transaction.ts": "c1b205adddd50f8f743a4cdcbfca4e34c2b2b8af60c646f8efc04a2cf0d713d2",
+    "src/features/gantt/viewport/svar-viewport-port.ts": "60df7b820fb1873f9f159fd72f19f58785ba92e3ad413f3cc7e1ccdc79641555",
+    "src/features/gantt/viewport/viewport-coordinator.ts": "4601c283785c60bf0a7e52f9b8ab13c0cd9905297a8f389e6420bb02c5759ed9",
+    "src/features/projects/project-readonly-view.tsx": "422a7365f6885afb773040e2fe1e3b589c34d3621d06cde4a263911e7ebfb359",
+    "tests/e2e/gantt-state-product-integration.spec.ts": "854aced9850a915fab476ebe488277a3452b4ae146d31fda86edbe79bac97ac6",
+    "tests/e2e/gantt-state-recovery-editor.spec.ts": "dc97a4f45029359baed2094d1da775389e07b2ad359477e74b336ac9ae046fa4",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "11afeaf6e546785bff154b4b9e487ee6d21ed832b444d54a42507ea7fbce80ec",
+    "tests/e2e/project-task-persistence.spec.ts": "45fb5f302b6a88f583b3d7f74d6c8e55297e559c25207e1f94e917a9fdc10d48",
+    "tests/e2e/viewport-coordinator.spec.ts": "4e4a14b9e321f1da715bb5a45a9a5378f251265ca97d6d4965ec57119a476515",
+    "tests/features/gantt/axis-transaction-runtime-fixture.test.ts": "d6cae88a6d30c3615b59597eb77ccc1317561c254501ede9e6c9b7d8762ae46f",
+    "tests/features/gantt/axis-transaction.test.ts": "e9980c8c8135a191142e7cfc926373ef4439fd697bca0c1b8fd19c34e4fa06d6",
+    "tests/features/gantt/canonical-projection.test.ts": "cce581ae344a47aaf1e4f88e43c74349ab788e6f8d14dc3a2a48c607451c6b6b",
+    "tests/features/gantt/canonical-recovery-runtime.test.ts": "90f0bc66dcde7e58400a1d643b85c0ee57ba127507972402dd0b2e8c664d2b00",
+    "tests/features/gantt/canonical-recovery.test.ts": "7c84d9a87a72432790247c3c3b661e457b5f5879779d5402278225fcd19876e4",
+    "tests/features/gantt/product-consistency.test.ts": "114d2bbab24f943aa56617c81212a1e850a845425d79f7d64aaf9b944f7f646b",
+    "tests/features/gantt/state-consistency-runtime-fixture.test.ts": "fecf5385ee3e85a629df1fdbfca967cba1e64468dfa5caf080eef9c0af898a51",
+    "tests/features/gantt/svar-viewport-port.test.ts": "9a24dd9acc253cc993b50ccbfab06cdfdea31d46b3ffced1d6371cdbcb217ffc",
+    "tests/features/gantt/viewport-coordinator.test.ts": "3f174f70e1e429077860240d4417449340af3ac31b5fdb9073e1b1c5fd76406c",
+    "tests/fixtures/gantt-axis-transaction/actual-core-2.7.3.json": "6d29a60a17407d819ee81e55f1de9eb6cb17e049141850807c584defbeccdc80",
+    "tests/fixtures/gantt-canonical-recovery/actual-recovery-provenance.json": "48610bcc9d5b79ef6b7c7df4fe45ac60c23bfcba80081c28376e07cc9701cb7a",
+    "tests/fixtures/gantt-state-consistency/actual-core-provenance.json": "13a45b82587456959b32cd84494ecf12d402cce2331b415d46e681201a519d9b",
+    "tests/fixtures/gantt-state-consistency/capture-install.ts": "019b04429bb5644a42f10005053ba3fa52ea5ac54df61e8bdae2f02a2718ad93",
+    "tests/fixtures/gantt-state-consistency/capture-sources/canonical-recovery-original.snapshot.txt": "7d165868ba7f555317f7068ad0742423ab808b118d0c0b7676ff0cea8afbb024",
+    "tests/fixtures/gantt-state-consistency/capture-sources/package-lock-original.snapshot.txt": "543d430271a655815689f9bed1494c1d3d5ab245917c82251f9a9b03d09c860c",
+    "tests/fixtures/gantt-state-consistency/capture-sources/package-original.snapshot.txt": "bb96dec5fc300bbda12971314218c3549c89cb0c7a5d434d301d2f1c9af4b834"
+  },
+  "unit": {
+    "testFiles": 12,
+    "passed": 311,
+    "failed": 0,
+    "files": [
+      "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+      "tests/features/gantt/axis-transaction.test.ts",
+      "tests/features/gantt/canonical-projection.test.ts",
+      "tests/features/gantt/canonical-recovery-runtime.test.ts",
+      "tests/features/gantt/canonical-recovery.test.ts",
+      "tests/features/gantt/core-conformance.test.ts",
+      "tests/features/gantt/product-consistency.test.ts",
+      "tests/features/gantt/projection-observation.test.ts",
+      "tests/features/gantt/state-consistency-contract.test.ts",
+      "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+      "tests/features/gantt/svar-viewport-port.test.ts",
+      "tests/features/gantt/viewport-coordinator.test.ts"
+    ]
+  },
+  "chromium": {
+    "startedAtUtc": "2026-10-15T13:03:51.555000+00:00",
+    "durationMs": 559047.651,
+    "stats": {
+      "total": 67,
+      "expected": 67,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "actualHttpSqliteCases": 21,
+    "mockApiActualSvarCases": 46,
+    "tests": [
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 390px Day",
+        "durationMs": 2612,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 390px Week",
+        "durationMs": 1912,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 768px Day",
+        "durationMs": 1919,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 768px Week",
+        "durationMs": 1891,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1024px Day",
+        "durationMs": 1880,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1024px Week",
+        "durationMs": 2030,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1440px Day",
+        "durationMs": 2494,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1440px Week",
+        "durationMs": 1993,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1920px Day",
+        "durationMs": 2008,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1920px Week",
+        "durationMs": 2667,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure insert-before",
+        "durationMs": 2487,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure surviving-child-root",
+        "durationMs": 2391,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure surviving-child-new-parent",
+        "durationMs": 2502,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure new-parent-mixed-children",
+        "durationMs": 2493,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 readonly projection empty",
+        "durationMs": 1459,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 readonly projection milestone-only",
+        "durationMs": 1421,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 nested Summary filter, empty results and Day/Week retain native membership",
+        "durationMs": 2133,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 scale-only restores resized columns once without resetting definitions",
+        "durationMs": 1818,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 passive reparent keeps its existing target Summary collapsed",
+        "durationMs": 2522,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 query receipt is consumed before later tree and selection observations",
+        "durationMs": 1859,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 filters and scale retain empty Summary containers without opening leaves",
+        "durationMs": 2948,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "durationMs": 2982,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 없는 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "durationMs": 2863,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 연결 단절: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "durationMs": 3086,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500과 조회 실패: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "durationMs": 5002,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제하지 않는다",
+        "durationMs": 3305,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다",
+        "durationMs": 2947,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다",
+        "durationMs": 5177,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다",
+        "durationMs": 6059,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "durationMs": 5804,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 add 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "durationMs": 5234,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/issue-621-resource-target.spec.ts",
+        "title": "#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending",
+        "durationMs": 18467,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/issue-621-resource-target.spec.ts",
+        "title": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존",
+        "durationMs": 17523,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 Core filter geometry/no-loss 390px",
+        "durationMs": 3540,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 Core filter geometry/no-loss 768px",
+        "durationMs": 3304,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 Core filter geometry/no-loss 1024px",
+        "durationMs": 3632,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 Core filter geometry/no-loss 1440px",
+        "durationMs": 3440,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 Core filter geometry/no-loss 1920px",
+        "durationMs": 3356,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 DST reveal uses the same calendar-day geometry as native Task bars",
+        "durationMs": 2561,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 milestone-only date axis remains distinct from row emptiness",
+        "durationMs": 1233,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 empty date axis remains distinct from row emptiness",
+        "durationMs": 1101,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-core.spec.ts",
+        "title": "#549 public event order/resize/columns/fullscreen/peer return retain filtered instance",
+        "durationMs": 3296,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+        "title": "SC-14 marker OFF 3000행의 독립 readiness와 3회 SPA 수명주기 정리",
+        "durationMs": 14366,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-gantt-scale.spec.ts",
+        "title": "switches the Gantt timeline between day and ISO week headers without remounting",
+        "durationMs": 3693,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-gantt-stability.spec.ts",
+        "title": "keeps the instance and supported UI state through a delayed add and ten sequential adds",
+        "durationMs": 6179,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-gantt-stability.spec.ts",
+        "title": "확인 팝업 없이 첫 하위 작업을 추가하고 모든 보호 오류에서 유령 작업을 남기지 않는다",
+        "durationMs": 4506,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "title": "DnD 412 실패는 canonical 순서·revision으로 복구하고 후속 이름만 저장한다",
+        "durationMs": 3292,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "title": "DnD 500 실패는 canonical 순서·revision으로 복구하고 후속 이름만 저장한다",
+        "durationMs": 3395,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "title": "실제 SQLite에 그룹·리소스 WORKING 예외를 저장하고 재열기 후 일정·Gantt 상태를 보존한다",
+        "durationMs": 8198,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/project-search-filter.spec.ts",
+        "title": "Task 통합 검색과 초기화는 canonical Gantt 인스턴스를 유지한다",
+        "durationMs": 2058,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-search-filter.spec.ts",
+        "title": "readonly에서도 Task 고급 필터를 사용할 수 있고 ancestor context는 match count에서 제외한다",
+        "durationMs": 1960,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "confirms and atomically deletes the right-clicked task subtree without remounting Gantt",
+        "durationMs": 6726,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "title": "linked requested dates, metadata, baseline and successor schedules persist canonically",
+        "durationMs": 13940,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "preserves an expired-session draft while removing save access",
+        "durationMs": 2109,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-task-editor.spec.ts",
+        "title": "opens information without save access for readonly projects",
+        "durationMs": 2416,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/project-task-persistence.spec.ts",
+        "title": "persists pointer edits, restores rejected writes, and serializes a same-revision race",
+        "durationMs": 14011,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존",
+        "durationMs": 10882,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지",
+        "durationMs": 17447,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다",
+        "durationMs": 10310,
+        "status": "PASS",
+        "backend": "actual HTTP/SQLite"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+        "durationMs": 3841,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+        "durationMs": 3427,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+        "durationMs": 3172,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+        "durationMs": 3133,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+        "durationMs": 2767,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add preserves unmodified viewport",
+        "durationMs": 4571,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add actual wheel cancels captured restore",
+        "durationMs": 5979,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+        "durationMs": 3009,
+        "status": "PASS",
+        "backend": "mock API / actual SVAR"
+      }
+    ],
+    "boundedObservations": {
+      "marker-off-large-lifecycle": {
+        "observations": [
+          {
+            "instance": "svar-api-1",
+            "canonicalTaskCount": 3000,
+            "coreTaskCount": 3000,
+            "coreOrdinaryTaskCount": 1000,
+            "coreMilestoneCount": 2000
+          },
+          {
+            "instance": "svar-api-2",
+            "canonicalTaskCount": 3000,
+            "coreTaskCount": 3000,
+            "coreOrdinaryTaskCount": 1000,
+            "coreMilestoneCount": 2000
+          },
+          {
+            "instance": "svar-api-3",
+            "canonicalTaskCount": 3000,
+            "coreTaskCount": 3000,
+            "coreOrdinaryTaskCount": 1000,
+            "coreMilestoneCount": 2000
+          },
+          {
+            "instance": "svar-api-4",
+            "canonicalTaskCount": 3000,
+            "coreTaskCount": 3000,
+            "coreOrdinaryTaskCount": 1000,
+            "coreMilestoneCount": 2000
+          }
+        ],
+        "documentRequests": 0,
+        "mutationCount": 0,
+        "cycles": 3
+      },
+      "in-flight-axis-wheel": {
+        "held": {
+          "intent": 0,
+          "traceWrites": 2,
+          "resizeCount": 8,
+          "nativeLeft": 607
+        },
+        "canceled": {
+          "phase": "SUPERSEDED",
+          "kind": "RANGE_EXTENSION",
+          "outcome": "SUPERSEDED",
+          "writes": 4,
+          "intentEpoch": 0,
+          "contextEpoch": 0,
+          "gesture": 0,
+          "projectionEpoch": 1,
+          "apiInstance": "svar-api-1",
+          "decisionReason": "USER_GESTURE",
+          "core": {
+            "left": 606,
+            "top": 0
+          },
+          "native": {
+            "left": 607,
+            "top": 0
+          },
+          "geometry": "[1390,532,905,532,2448,1250]"
+        },
+        "position": {
+          "core": 407,
+          "native": 407
+        }
+      }
+    }
+  },
+  "preservedFailure": {
+    "total": 65,
+    "passed": 64,
+    "failed": 1,
+    "sourceFingerprintSha256": "28bcccb391dabe417c911ce98243f8999d7b97cacb12729aba7de78a7b6ef4d2",
+    "case": "#530 fixed geometry exact schedule drill return; expected 120px, actual 0px",
+    "reason": "axis settled without subsequent semantic receipt; WAIT_PROJECTION timeout"
+  },
+  "remoteValidation": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "ciMonitoring": false
+  },
+  "limits": [
+    "#666 390px NOT_MEASURABLE and full-capacity clamp FAIL remain unchanged",
+    "Long-term heap/listener lifecycle and full SC matrix NOT TESTED",
+    "Marker ON / #552 display change / exchange acceptance are separate",
+    "Untagged live native movement is supersession evidence, not human-input attribution",
+    "Axis callback retirement support is limited to installed synchronous Core handlers"
+  ],
+  "preQa": {
+    "status": "PASS",
+    "reviewer": "/root/integration_tests (qa_docs, separate read-only agent)",
+    "scope": "Code/docs/selected local evidence; not QA_FINAL or Owner/Manager ACCEPT",
+    "sourceHashMismatches": 0,
+    "browserReportMismatches": 0
+  }
+}
