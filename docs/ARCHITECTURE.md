@@ -1,3 +1,11 @@
+## Issue #665 — opt-in 의미 기반 Projection 관측
+
+`viewport/projection-observation.ts`의 `createProjectionObservation`은 U1 Core reader/verifier·geometry·recovery·clock/abort 포트를 소비하는 읽기 전용 facade다. observation attempt와 semantic completion을 분리하며, 같은 desired/API/dirty/recovery/query/scope/layout/axis 및 원래 사용자 lease에서 현재 Core와 논리 행·mounted subset을 다시 검증한 경우에만 완료 의미를 재사용한다. canonical key 또는 verifier의 성공 자기신고만으로는 승인하지 않는다.
+
+전체 Task/tree/Link 정합과 mounted 이름/순서/행 정렬은 data receipt의 범위다. 수평 viewport 완료와 Core/native X 일치를 선행 조건으로 두지 않아 그 receipt를 기다리는 Coordinator와 교착하지 않는다. 물리 layout·actual axis·source 변경, Core drift·proof 부재·숨김·unmount·cancel/dispose는 과거 완료 재사용/전달을 거부한다. 관측이 사용자 lease를 발급하거나 갱신하지 않는다.
+
+기존 `observeProjectionSettled`/`deliverProjectionReceipt` 및 production 호출은 유지한다. 신규 facade는 제품에 연결하지 않으며 U2/U4 concrete import·Core/DOM/viewport/서버 쓰기는 없다. #667이 semantic ID와 실제 source invalidation 책임을 기존 Coordinator에 연결한 뒤 #574에서 제품 Calendar·Resource·filter bookmark를 검증해야 한다. 독립 모듈/fixture 성공은 제품 해결이나 전체 CI PASS가 아니다. [U3 Work Packet](exec-plans/active/ISSUE_665.md).
+
 ## Issue #666 — 미연결 날짜축 transaction
 
 `viewport/axis-transaction.ts`는 U1 public geometry/clock/abort/원래 user lease를 소비하는 유한 transaction facade다. 날짜 extent와 실제 container 크기·capacity·승인 X/Y 정책을 분리하고 prepare → axis change → actual geometry → policy → Core/native settle 순서로 관측한다. resize 이후 좌표를 자동 승인하지 않으며 사용자 입력·API/query/axis/layout 교체·hidden/unmount는 오래된 후속 쓰기를 취소한다. synthetic 도중 중단한 geometry는 taint로 남겨 실제 physical 회복 확인 전에 재사용하지 않는다.

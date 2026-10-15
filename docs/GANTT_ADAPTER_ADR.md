@@ -1,3 +1,11 @@
+## Issue #665 — 의미 관측 facade와 완료 증거 경계
+
+U3는 U1의 공개 읽기/검증 포트를 사용하는 opt-in `createProjectionObservation`을 추가한다. Core tasks/tree/links의 실제 정합·dirty/recovery·API·desired query/scope와 layout/axis·원래 user intent lease를 관측 attempt와 구별한다. 재관측만으로 새 복원 권한을 주지 않으며 현재 proof/행/실측 문맥이 유효할 때만 semantic completion을 유지한다. missing/stale proof·Core drift·새 문맥은 fail-closed한다.
+
+논리 visible IDs와 가상 mounted 행 subset을 구별하고 실제 mounted 이름·순서·정렬 증거를 유지한다. data/row 완료는 수평 복원 완료를 기다리지 않는다. 기존 Coordinator/port·제품 호출과 #569 geometry adapter/resize 예외·기존 timeout/허용오차·실험 FAIL/DEFER는 변경하지 않는다. 실제 axis의 읽기 evidence 및 source 변경 통지는 U3 port 소비자의 책임이며 제품 연결은 #667에서 단독 수행한다.
+
+새 facade와 전용 Unit은 미연결 상태다. 설치2.7.3 captured Core fixture 재사용은 실제 browser 재수집이나 제품 Calendar·Resource E2E 성공이 아니다. 원격 gate/Owner 승인 전 MODULE_READY 최종 판정을 하지 않는다. [검증·인계·rollback](exec-plans/active/ISSUE_665.md).
+
 # ADR — SVAR 2.7.3 공개 API와 Chart 기하 Adapter (#569)
 
 ## Issue #571 — 기존 제품 명령의 단일 port 통합
@@ -186,3 +194,9 @@ short project의1440px Day/Week에서 normal/global empty/M-only/no-match의8cas
 B를 미활성 facade의 검증된 넓은 profile 전략으로 선택하며 C는 물리 width 예외·실제 Day 위치 실패·중단 taint 때문에 제품 채택하지 않는다. native fullscreen API/제품의 column-resize UI·marker/Grid 정렬·390px fallback·대량1000+2000·장기 lifecycle·Task Editor와 HTTP/SQLite 통합은 U5/#573/#574의 NOT TESTED다. 같은 synthetic profile의 성공만으로 전체 AC 또는 제품 해결을 승인하지 않는다.
 
 추가 actual capacity 경계: allowClamp=false는 requested.left5393/native capacity5293에서 NO_SCROLL_CAPACITY·쓰기0, allowClamp=true는 Core/native5292와 목표5293이 달라 TIMED_OUT이다. 실제 full-capacity clamp는 FAIL / 제품 지원 DEFER이며 fake Unit의 CLAMPED 결과로 대체하지 않는다. Core/native의 유효 capacity 교집합은 현재 U1 port의 별도 관측 계약이 없어 U5에서 먼저 결정해야 한다. 임의1px 보정·Core exact 완화는 하지 않는다. 완료 후 actual wheel의100→237 및 추가 facade 쓰기0은 별도 확인했다. 최종 capture72는 성공/불가/실패·취소를 포함한 scenario group 수다.
+
+### PR #690 source-wide taint 보완 (2026-10-15)
+
+미완료 synthetic geometry의 위험은 전략이 아니라 동일 Core API **object identity**에 귀속된다. `AxisTransactionOptions.source`를 필수로 받아 EXPLICIT_EXTENT도 이전 facade의 taint를 확인한다. SYNTHETIC_COMPATIBILITY의 opt-in source는 동일 object여야 하며 불일치 시 명시적으로 거부한다. source는 각 mount에서 새로 생성된 실제 API object이고 동일 mount 전략 간 공유한다. 새 wrapper object를 임의 생성해 오염을 우회하지 않는다.
+
+기존 72개 Chromium capture는 리뷰 보완 **이전** source의 역사적 증거로 고정하며 원본 파일·SHA를 덮어쓰지 않는다. `*.snapshot.txt`에 기존 구현과 browser 소스를 보존해 fingerprint를 검증하고 현재 소스의 동작은 강화된 Unit으로 별도 검증한다. 리뷰 보완 버전의 재실행 Chromium/제품 E2E는 아직 NOT TESTED이며 기존 full-capacity clamp FAIL·390px DEFER를 유지한다.

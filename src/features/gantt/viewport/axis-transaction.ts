@@ -28,6 +28,8 @@ export interface AxisTransactionResult {
 }
 export interface AxisTransactionOptions {
   readonly apiInstance: string;
+  /** Stable public Core API identity, shared by every facade and strategy for this mount. */
+  readonly source: object;
   readonly geometry: GeometryReaderPort;
   readonly clock: ConsistencyClockPort;
   readonly strategy: "EXPLICIT_EXTENT" | "SYNTHETIC_COMPATIBILITY";
@@ -63,7 +65,7 @@ const measurable = (read: Extract<GeometryReadResult, { ok: true }>) => Object.v
 export function createAxisTransaction(options: AxisTransactionOptions) {
   const maxFrames = options.maxFrames ?? 120, maxDuration = options.maxDurationMs ?? 1500;
   const maxScaleWidth = options.maxScaleWidth ?? 1_000_000, maxExtensions = options.maxExtensions ?? 3;
-  if (!options.apiInstance || !Number.isInteger(maxFrames) || maxFrames < 3 || maxFrames > 600 || !Number.isFinite(maxDuration) || maxDuration <= 0 || maxDuration > 5000 ||
+  if (!options.apiInstance || !options.source || typeof options.source !== "object" || !Number.isInteger(maxFrames) || maxFrames < 3 || maxFrames > 600 || !Number.isFinite(maxDuration) || maxDuration <= 0 || maxDuration > 5000 ||
     !Number.isFinite(maxScaleWidth) || maxScaleWidth <= 0 || maxScaleWidth > 1_000_000 || !Number.isInteger(maxExtensions) || maxExtensions < 1 || maxExtensions > 3)
     throw new Error("Invalid axis transaction budget");
   let active: { key: string; lease: UserIntentLease; abort: ConsistencyAbortPort; controller: AbortController; promise: Promise<AxisTransactionResult> } | null = null;
@@ -74,7 +76,9 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
     if (active) return active.key === key && active.lease === input.lease && active.abort === input.abort
       ? active.promise : Promise.resolve(reject("UNSUPPORTED", "BUSY"));
     if (disposed) return Promise.resolve(reject("SUPERSEDED", "DISPOSED"));
-    if (tainted || (options.strategy === "SYNTHETIC_COMPATIBILITY" && !!options.compatibility?.source && taintedCompatibilitySources.has(options.compatibility.source))) return Promise.resolve(reject("UNSUPPORTED", "COMPATIBILITY_TAINTED"));
+    // Taint is physical-source-wide, not strategy-wide: an explicit facade must
+    // never consume geometry left incomplete by a cancelled synthetic writer.
+    if (tainted || taintedCompatibilitySources.has(options.source)) return Promise.resolve(reject("UNSUPPORTED", "COMPATIBILITY_TAINTED"));
     const request = { ...input, extent: { ...input.extent }, policy: input.policy.kind === "POSITION" ? { ...input.policy, position: { ...input.policy.position } } : { ...input.policy } };
     const controller = new AbortController();
     let authorityReadFailed = false;
@@ -119,7 +123,7 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
         if (options.strategy !== "EXPLICIT_EXTENT" && options.strategy !== "SYNTHETIC_COMPATIBILITY") return reject("UNSUPPORTED", "INVALID_STRATEGY");
         if (!Number.isFinite(request.extent.startMs) || !Number.isFinite(request.extent.endMs) || request.extent.endMs <= request.extent.startMs ||
           (request.policy.kind === "POSITION" && !finitePosition(request.policy.position))) return reject("UNSUPPORTED", "INVALID_REQUEST");
-        if (options.strategy === "SYNTHETIC_COMPATIBILITY" && (!options.compatibility?.enabled || options.compatibility.wrapperVersion !== "2.7.3" || options.compatibility.storeVersion !== "2.7.2" || !options.compatibility.source || typeof options.compatibility.source !== "object"))
+        if (options.strategy === "SYNTHETIC_COMPATIBILITY" && (!options.compatibility?.enabled || options.compatibility.wrapperVersion !== "2.7.3" || options.compatibility.storeVersion !== "2.7.2" || !options.compatibility.source || options.compatibility.source !== options.source))
           return reject("UNSUPPORTED", "COMPATIBILITY_NOT_APPROVED");
         const initial = options.geometry.readGeometry();
         if (!initial.ok) return reject(initial.outcome, "PREPARE_GEOMETRY_UNAVAILABLE");
@@ -195,7 +199,7 @@ export function createAxisTransaction(options: AxisTransactionOptions) {
         return reject(authorityReadFailed ? "FAILED" : !stillCurrent || reason === "SUPERSEDED" ? "SUPERSEDED" : reason === "TIMED_OUT" ? "TIMED_OUT" : "FAILED", reason);
       } finally {
         if (changed && !settled && options.strategy === "SYNTHETIC_COMPATIBILITY") {
-          tainted = true; if (options.compatibility?.source) taintedCompatibilitySources.add(options.compatibility.source);
+          tainted = true; taintedCompatibilitySources.add(options.source);
         }
         controller.abort();
         request.abort.signal.removeEventListener("abort", onAbort);

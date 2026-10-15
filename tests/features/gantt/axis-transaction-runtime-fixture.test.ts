@@ -26,8 +26,17 @@ const evidence = capture as unknown as { installed: {wrapper: string; store: str
 describe("actual installed Core axis transaction capture", () => {
   it("binds the observation to unchanged source bytes and the actual wrapper/store versions", () => {
     expect(evidence.installed).toEqual({wrapper: "2.7.3",store: "2.7.2"});
+    // This captured browser run predates the #690 source-taint review fix.
+    // Verify its exact historical code, not a rewritten source fingerprint.
+    const historicalSources: Record<string,string> = {
+      "src/features/gantt/viewport/axis-transaction.ts": "tests/fixtures/gantt-axis-transaction/axis-transaction-original.snapshot.txt",
+      "tests/fixtures/gantt-axis-transaction/browser.tsx": "tests/fixtures/gantt-axis-transaction/browser-original.snapshot.txt",
+    };
     for (const [path, expected] of Object.entries(evidence.sha256)) {
-      expect(createHash("sha256").update(readFileSync(resolve(path))).digest("hex"), path).toBe(expected);
+      expect(createHash("sha256").update(readFileSync(resolve(historicalSources[path] ?? path))).digest("hex"), path).toBe(expected);
+    }
+    for (const path of Object.keys(historicalSources)) {
+      expect(createHash("sha256").update(readFileSync(resolve(path))).digest("hex"), path).not.toBe(evidence.sha256[path]);
     }
     expect(evidence.originalFailures.length).toBeGreaterThanOrEqual(3);
     expect(evidence.notTested.join(" ")).toContain("Production wiring");

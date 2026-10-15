@@ -45,6 +45,7 @@ function TransactionFixture() {
     element.addEventListener("wheel",invalidate,{capture:true,passive:true});
     const transactionOptions: AxisTransactionOptions = {
       apiInstance:"synthetic-axis-"+instances.current,
+      source: value,
       geometry:{readGeometry(){const read=adapter.readGeometry(); return read.ok ? {ok:true,value:read.value,core:{left:value.getState().scrollLeft,top:value.getState().scrollTop}} : {ok:false,outcome:"NOT_MEASURABLE"};}},
       clock:{now:()=>performance.now(),frame},
       readAxis(){const read=adapter.readCore();return {startMs:read.originMs!,endMs:read.endMs!,scaleWidth:read.scaleWidth!};},

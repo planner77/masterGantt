@@ -139,3 +139,10 @@ U1 GeometryReaderPort는 실제 native geometry와 Core 위치를 제공하지�
 - DOCUMENTATION_SYNC: 지정9문서 갱신 및 각 N/A 근거를 확인하고 의미 경계는 실제 실패·DEFER·미검증과 일치한다. 별도 사전 검토는 정식 QA_FINAL/Owner/Manager ACCEPT가 아니다.
 
 최신 main 정렬·PR Head/base/test merge·review thread 수·CI run_id/run_attempt/URL은 게시 직전 및 PR 생성 뒤 GitHub Issue/PR STATUS에 기록한다. 신규 단일 PR을 생성하고 CI 시작만 확인하며 결과 모니터링하지 않는다. 공식 quality/e2e/docker·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED를 유지한다. Issue는 OPEN이고 merge/main/GHCR/release/tag/cleanup은 실행하지 않는다.
+
+## PR #690 CI 실패 재작업 — source taint / main 정렬 (2026-10-15)
+
+- 원본 Actions Run `38671538314.1`의 Quality·E2E6/6·Docker는 성공했지만 QA Final Automated가 `mergeability 또는 test merge 불일치`로 BLOCKED/FAIL. 실행 시작 base `d445ec58bf9106414c99a150ee8f52599834baf9` 뒤 `main`에 #665 merge commit `417dd41e4838f72c3f7c547463591aa10809d25b`가 도입되어 PR behind2였다. 자동 QA 검사를 우회하거나 정책을 수정하지 않는다.
+- P2 미해결 리뷰: cancelled synthetic writer가 `compatibility.source`를 taint한 뒤 같은 API를 `EXPLICIT_EXTENT`로 재생성하면 기존 조건부 검사에서 제외되는 문제. 변경 후 `AxisTransactionOptions.source`는 필수 실제 Core API object이며 전략과 무관하게 taint를 공유한다. synthetic의 `compatibility.source`와 source identity 불일치도 거부한다. 기존 라이브러리와 production coordinator/port는 그대로다.
+- 추가 Unit은 cancelled synthetic → 동일 source explicit 재생성 차단, compatibility source 불일치 거부, 새로운 source의 정상 실행을 명시 검증한다. 원래 source/fixture의 72개 actual Chromium capture는 2026-10-15 02:26 UTC의 **historical pre-review** 증거다. 과거 소스와 browser를 별도 `*.snapshot.txt`에 변경 없이 보존하고 fingerprint를 검증한다. 수정 이후 actual Chromium 재캡처는 NOT TESTED이며 원래 capture의 SHA를 새 소스로 위조하지 않는다. 기존 390px fallback DEFER와 full-capacity clamp FAIL은 유지한다.
+- #665 최신 main의 문서·projection 기능을 보존하고 #666 전용 파일 및 리뷰 보완을 반영하는 명시적 merge tree를 구성한다. 충돌 공유7문서는 각각의 baseline 대비 추가 내용을 모두 포함한 exact merge로 보존한다. 새 CI의 exact Head/run은 GitHub STATUS에 기록한다. 원본 실패 CI를 소급 PASS로 변경하지 않는다.

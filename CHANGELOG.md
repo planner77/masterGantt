@@ -1,3 +1,9 @@
+## [Unreleased] — Issue #665 의미 기반 Projection 관측 (2026-10-15)
+
+- U1 공통 읽기/검증 포트 기반의 opt-in U3 facade로 관측 attempt와 semantic completion을 분리한다. 실제 Core/행·문맥·원래 사용자 lease가 유효한 반복 관측만 완료 의미를 재사용하고 drift·invalid proof·source 변경은 거부한다.
+- data receipt는 수평 viewport 완료를 기다리지 않으며 유한 관측·cleanup 및 기존 bounded trace의 숫자 ID를 사용한다. legacy 관측과 제품 wiring·writer는 유지하며 actual 제품 통합은 #667/#574에서 별도 검증한다.
+- application0.114.0·package/lockfile/workflow·권한·Required gates 불변, release_required=false/release_authorized=false. 정확한 로컬/원격/미검증 경계는 #665 Work Packet을 따른다.
+
 ## Unreleased — Issue #666
 
 - 제품 미연결 날짜축 transaction facade와 전용 Unit·설치 Core fixture를 추가한다. 날짜 extent·물리 geometry/capacity·승인 X/Y 정책을 분리하고 원래 user lease의 취소·유한 settle·명시 clamp/unavailable·synthetic 불완전 상태를 관리한다.

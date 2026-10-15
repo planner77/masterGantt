@@ -17,7 +17,7 @@ function fixture(overrides: Partial<AxisTransactionOptions> = {}) {
   const changeExtent = vi.fn<AxisTransactionOptions["changeExtent"]>((extent) => { axis = { ...extent, scaleWidth: 1000 }; left = nativeLeft = 0; });
   const applyPosition = vi.fn<AxisTransactionOptions["applyPosition"]>((position) => { left = nativeLeft = position.left; top = nativeTop = position.top; });
   const clock = { now: () => time, frame: vi.fn(async () => { time += 16; await Promise.resolve(); return true; }) };
-  const options: AxisTransactionOptions = { apiInstance: lease.stamp.context, geometry: { readGeometry }, clock, strategy: "EXPLICIT_EXTENT", readAxis: () => axis, isLeaseCurrent: current => current === lease && leaseCurrent,
+  const options: AxisTransactionOptions = { apiInstance: lease.stamp.context, source: {}, geometry: { readGeometry }, clock, strategy: "EXPLICIT_EXTENT", readAxis: () => axis, isLeaseCurrent: current => current === lease && leaseCurrent,
     changeExtent, applyPosition, ...overrides };
   return { options, lease, abort, controller, clock, changeExtent, applyPosition,
     request: { extent: { startMs: 0, endMs: 200 }, policy: { kind: "PRESERVE" as const }, lease, abort },
@@ -162,10 +162,24 @@ describe("isolated axis transaction", () => {
   it("requires versioned synthetic opt-in and persists cancelled-source taint across facade recreation", async () => {
     const f = fixture({ strategy: "SYNTHETIC_COMPATIBILITY" });
     expect((await createAxisTransaction(f.options).run(f.request)).reason).toBe("COMPATIBILITY_NOT_APPROVED");
-    const options: AxisTransactionOptions = { ...f.options, compatibility: { enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: {} }, changeExtent: () => { f.controller.abort(); } };
+    const options: AxisTransactionOptions = { ...f.options, compatibility: { enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: f.options.source }, changeExtent: () => { f.controller.abort(); } };
     expect((await createAxisTransaction(options).run(f.request)).outcome).toBe("SUPERSEDED");
     expect((await createAxisTransaction(options).run(f.request)).reason).toBe("COMPATIBILITY_TAINTED");
+    const freshAbort = { signal: new AbortController().signal, isCurrent: () => true };
+    const explicit = createAxisTransaction({ ...f.options, strategy: "EXPLICIT_EXTENT" });
+    expect(await explicit.run({ ...f.request, abort: freshAbort })).toMatchObject({ outcome: "UNSUPPORTED", reason: "COMPATIBILITY_TAINTED" });
+    // A new mounted Core has a different object identity; no global API-ID ban.
+    const clean = fixture();
+    expect((await createAxisTransaction(clean.options).run(clean.request)).outcome).toBe("SETTLED");
     expect(f.applyPosition).not.toHaveBeenCalled();
+  });
+  it("requires a shared physical source for synthetic writes instead of an unrelated identity", async () => {
+    const f = fixture({ strategy: "SYNTHETIC_COMPATIBILITY" });
+    const result = await createAxisTransaction({ ...f.options, compatibility: {
+      enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: {},
+    } }).run(f.request);
+    expect(result).toMatchObject({ outcome: "UNSUPPORTED", reason: "COMPATIBILITY_NOT_APPROVED" });
+    expect(f.changeExtent).not.toHaveBeenCalled();
   });
   it("rejects hidden/zero-sized geometry, invalid dates, oversize axis, and exhausted extension budget", async () => {
     const f = fixture();
