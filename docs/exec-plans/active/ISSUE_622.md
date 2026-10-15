@@ -1,3 +1,14 @@
+## 2026-10-15 — CLOSED/FINAL 누락·3개 브랜치 과거 승계 복구 Work Packet
+
+- 원인: #622 Owner CLOSE=2026-10-15T09:01:16Z가 #691 Main CI 이전에 발생. #622 자체 bot FINAL/cleanup=0, `#684/#686/#691` 3개 브랜치 PRESENT. Generic Resolver는 CLOSED/no FINAL을 non-actionable barrier로 보존했고 뒤의 #665/#666 bot FINAL은 성공. 후속 이슈의 역사적 완료 경계는 변경 불가.
+- 사용자 요청: 기존 #622에서 bounded audit→owner-authenticated historical repair→safe cleanup→bot FINAL까지 진행. 새 Issue 금지, 기존 `v0.114.0` / release #170.1 / candidate Digest 보존. 기존 승인 marker `#6187188712`의 정확 버전만 재사용.
+- 소스 범위: `scripts/closed_issue_622_recovery.py`, `scripts/safe_branch_cleanup.py`, `scripts/test-closed-622-recovery.py`, 기존 Generic `release-finalizer.yml` 및 정책 CI 검증 연결. 임의 Git ref 조작, 릴리스 재게시, 제품 기능·API·DB/Excel/UI 변경 없음.
+- 사전 검증: #684 최초 Main FAIL/PR #686 보완 Main SUCCESS/정식 Release SUCCESS, #691 Main SUCCESS, 복구 PR 자체 PR+Main CI Required3/이미지 success, SHA의 Main first-parent ancestry, Owner 마지막 승인 댓글 ID 정확 일치, #622 Closed 및 기존 FINAL 0, #665/#666의 인증 FINAL 유지. 4개 branch에 보호 해제·tip==PR Head·참조 열린 PR0·leased delete/404 확인 및 #691+신규 ci-SHA 후보의 단독 package tags 검사.
+- mutation: 인증된 trusted Generic Finalizer Job만 기존 `issue_lifecycle.finalize`에 통합하여 FINAL marker는 github-actions[bot]이 작성한다. 이전 완료/실패 원장은 불변, partial cleanup은 멱등 재개 가능, 불완전한 상태에서 Final 작성 금지.
+- DOCUMENTATION_SYNC UPDATED: `docs/GENERIC_RELEASE_FINALIZER.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/ISSUE_622.md`, `docs/exec-plans/active/PLAN.md`, `CHANGELOG.md`. DESIGN/API/DB/SCHEDULING_ENGINE/EXCEL_EXPORT: N/A (실제 제품·일정 엔진·UI/API/DB 변경 없음).
+- AC_TEST_COVERAGE: AC1 3개 과거 PR·태그·원장 identity→`verify_history`/Release gate. AC2 최신 owner marker와 revocation/비공개 GHCR fail closed→`authorized_comment`, code. AC3 safe branch lease·조회 지연/tip-change→`safe_branch_cleanup` regression. AC4 mutation 이전 일괄 preflight, no bot FINAL forgery→`execute`/existing finalize. AC5 실원격 PR CI/Main/Generic Job/FINAL·브랜치 삭제 확인 전 NOT TESTED.
+- Risk HIGH/OWNER_MANAGED/qa_required=true; 이번 복구 코드 자체 release_required=false, release_authorized=false(0.114.0 이미 승인·게시됨). User's "계속 진행"은 코딩·증거 복구 범위를 허용하지만 PR/CI bypass는 허용하지 않음. 실제 원격 테스트/권한/후속 운영 Job은 증거 생성 전 NOT TESTED.
+
 ## 2026-10-15 — 같은 Issue 교정: Release Completion Finalizer #35 / v0.114.0
 
 ### 원본 실패와 영향

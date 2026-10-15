@@ -446,6 +446,8 @@ jobs:
         run: python3 scripts/test-release-debt-audit.py
       - name: Issue #633 B2 Owner 원장·GHCR·cleanup 보호 회귀
         run: python3 scripts/test-release-debt-recovery.py
+      - name: "#622 과거 Lifecycle Owner 권한·SHA·브랜치 삭제 회귀 검사"
+        run: python3 scripts/test-closed-622-recovery.py
       - name: Issue #639 정확 SHA 회복 단위/보안 회귀
         if: github.event_name != 'workflow_dispatch' || inputs.target_sha == ''
         run: python3 scripts/test_main_ci_recovery.py

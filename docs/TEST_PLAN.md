@@ -28,6 +28,14 @@
 
 ---
 
+## Issue #622 — 과거 CLOSED/FINAL 누락 복구·Owner marker·SHA lease (2026-10-15)
+
+신규 `scripts/test-closed-622-recovery.py`는 기존 Policy Job에서 자동 실행한다. 긍정: #684→#686→#691→새 #622 복구 Merge의 first-parent 순서, Issue #622/릴리스 v0.114.0 SHA와 최신 인증된 Owner 댓글. 음성: 무효·다중 marker JSON, unauthorized/타 actor/stale ID/다른 Main, 임의 Issue/버전/PR/release SHA, 중복·누락된 first-parent, 타 Issue를 가리키는 PR body, tag나 브랜치 출처 변경, SHA-leased delete 직후 지속 HTTP 200 또는 다른 tip 등. Mutation 이전 감사 실패는 `issue_lifecycle.finalize` 호출 0이어야 한다. 사용자 테스트가 아닌 합성 mock Unit PASS는 실제 private GHCR/package/FINAL 인수 PASS가 아님.
+
+변경 경로 `.github/workflows/release-finalizer.yml`, `.github/workflows/ci.yml`, `scripts/closed_issue_622_recovery.py`, `scripts/safe_branch_cleanup.py` 등의 정책 실행 파일은 보호된 QA 정책·Required 3종 및 기본 브랜치 Trusted QA를 우회할 수 없음. 새 Job의 write 권한은 기존 Generic Finalizer의 scope만 재사용하고 `persist-credentials:false` 유지. 재발행/태그 이동/수동 FINAL/테스트 skip·timeout 완화 없음.
+**#548 main 정렬 (2026-10-15):** #622 복구 PR은 #691 Merge SHA `c1dbf61...` 이후 #548/PR #694 Merge `29c86ca918baa1811bc12a3eb60f86ffc5406b40`를 first-parent에 보존합니다. #548 표시 정책과 본 복구 테스트는 서로 독립이며 복구는 정확한 최신 Main SHA와 Owner 승인으로만 실행합니다.
+
+
 ## Issue #622 — Release Resume #35 불변 태그 교정 SHA 승계 회귀 (2026-10-15)
 
 `scripts/test-release-debt-recovery.py`의 새 독립 음성/양성 synthetic fixture: 원본 version 증가 `0.113.0→0.114.0` + exact Main FAIL, 동일 Issue의 `0.114.0→0.114.0` 교정 Main SUCCESS/비문서/인접 first-parent, 현재 annotated tag가 실제 교정 SHA를 가리키는 경우 원본은 `superseded-by-corrective`만 반환(원본 CI PASS 아님). 교정 target 자체는 본래 release-required 상태를 다시 계산하고 실제 release-image/Owner/digest를 별도로 검증. 잘못된 tag SHA, 다른 Issue/버전, docs-only, 중간 Issue, 교정 CI FAIL, 원본 Main SUCCESS는 예외 없이 거부한다.
