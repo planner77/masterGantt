@@ -237,3 +237,80 @@ finally:
     b2._candidate_cleanup=saved_candidate
     b2.lifecycle.gh=saved_issue_write
 print("Issue #633 B2 exact Owner/CI/GHCR/cleanup fixtures: PASS")
+
+
+# Issue #622 / Resume #35: release tag is bound to a validated same-Issue
+# correction, never to the previously failed immutable Main commit.
+from unittest.mock import patch
+
+def verify_corrective_tag_boundaries():
+    failed = auto.WorkItem("1" * 40, "0" * 40, 684, 622,
+                           "0.113.0", "0.114.0", False)
+    fixed = auto.WorkItem("2" * 40, failed.target_sha, 686, 622,
+                          "0.114.0", "0.114.0", False)
+    other = auto.WorkItem("3" * 40, failed.target_sha, 691, 777,
+                          "0.114.0", "0.114.0", False)
+    actual_tag_sha = fixed.target_sha
+
+    def git_remote(*args, **kwargs):
+        assert args[:2] in (("ls-remote", "--exit-code"),
+                            ("fetch", "--force"))
+        return SimpleNamespace(returncode=0, stdout="")
+
+    def git_local(*args, **kwargs):
+        if args[:3] == ("git", "cat-file", "-t"):
+            return SimpleNamespace(stdout="tag\n", returncode=0)
+        if args[:2] == ("git", "rev-parse"):
+            return SimpleNamespace(stdout=actual_tag_sha + "\n", returncode=0)
+        raise AssertionError(f"Unexpected git operation: {args}")
+
+    def read(items, statuses, lineage):
+        return auto.release_evidence_after_ci_supersession(
+            "planner77/masterGantt", items, statuses, lineage,
+        )
+
+    def must_fail(items, statuses, lineage, message):
+        try:
+            read(items, statuses, lineage)
+        except auto.AutoFinalizerError as exc:
+            ok("existing release tag points to" in str(exc), message)
+        else:
+            raise AssertionError(message)
+
+    with patch.object(auto, "run_git_remote", side_effect=git_remote), \
+         patch.object(auto, "run", side_effect=git_local):
+        verified = read([failed, fixed], {
+            failed.target_sha: False, fixed.target_sha: True,
+        }, [failed, fixed])
+        ok(verified[failed.target_sha] == ("superseded-by-corrective", None),
+           "failed Main target may yield its tag only to verified same-Issue correction")
+        ok(verified[fixed.target_sha] == ("not-required", None),
+           "correction's physical version delta remains zero; its inherited release is separate")
+
+        actual_tag_sha = other.target_sha
+        must_fail([failed, fixed], {failed.target_sha: False, fixed.target_sha: True},
+                  [failed, fixed], "foreign SHA must not be trusted")
+        actual_tag_sha = fixed.target_sha
+        must_fail([failed, fixed], {failed.target_sha: True, fixed.target_sha: True},
+                  [failed, fixed], "successful original CI cannot transfer tag authority")
+        must_fail([failed, fixed], {failed.target_sha: False, fixed.target_sha: False},
+                  [failed, fixed], "failed corrective Main CI is not release evidence")
+        must_fail([failed, replace(fixed, issue_number=777)], {
+                  failed.target_sha: False, fixed.target_sha: True,
+                  }, [failed, replace(fixed, issue_number=777)],
+                  "different Issue cannot inherit an older tag")
+        docs_only = replace(fixed, validation_docs_only=True)
+        must_fail([failed, docs_only], {failed.target_sha: False, fixed.target_sha: True},
+                  [failed, docs_only], "docs-only correction cannot inherit release")
+        other_version = replace(fixed, current_version="0.114.1")
+        must_fail([failed, other_version], {
+                  failed.target_sha: False, fixed.target_sha: True,
+                  }, [failed, other_version],
+                  "different application version cannot inherit a versioned release")
+        must_fail([failed, fixed], {
+                  failed.target_sha: False, fixed.target_sha: True,
+                  }, [failed, other, fixed],
+                  "intervening Issue is a first-parent release barrier")
+
+verify_corrective_tag_boundaries()
+print("Issue #622 immutable corrective release SHA and fail-closed cases: PASS")

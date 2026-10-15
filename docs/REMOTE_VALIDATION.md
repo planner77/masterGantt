@@ -1,3 +1,11 @@
+## Issue #622 — Finalizer Resume #35 최초 FAIL/교정 SHA 태그 역전 검증 (2026-10-15)
+
+원본 원장: 최초 PR #684 Main SHA `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`/Main CI #2771.1 FAIL → 같은 Issue 교정 PR #686 SHA `1449190af8d4f97d4737d17ae67e9dcb044549a7`/Main CI SUCCESS → [정식 Release #170.1](https://github.com/planner77/masterGantt/actions/runs/38701345395) SUCCESS/tag v0.114.0 corrective SHA → [Resume #35.1](https://github.com/planner77/masterGantt/actions/runs/38704333977) FAIL. 원인: supersession 처리 이전 `exact_release_state`가 original SHA의 tag mismatch를 오류로 종료.
+
+계획: `scripts/test-release-debt-recovery.py`를 CI Policy Job에서 실행하여 read-only 교정 후보 identity가 성립하는 경우만 원본을 `superseded-by-corrective`로 분류하는 양성 테스트와 foreign SHA/Issue·intervening Issue·different version·docs-only·Main FAIL·원본 CI SUCCESS 음성 테스트를 강제. exact tag/Release success/digest 및 Owner marker는 별도 교정 target 검증을 요구하며 fake fixture 성공은 remote Finalizer PASS가 아님.
+
+후속 새 PR은 세 Required aggregates 및 trusted default-main QA·Owner 위험 수용 후 병합한다. 이후 기존 #35 failed Job 재실행(실제 사용 main code SHA 확인), 원본 성공 Release #170.1·현재 annotated tag·정식 GHCR exact digest 재검증 및 #622/#666 FINAL·cleanup/close 증거를 비교한다. 기존 실패 #35.1 소급 PASS 금지, 동일 v0.114.0 태그 이동·덮어쓰기 금지. 실제 복구 전 FINAL/cleanup/Issue 종료 = NOT TESTED.
+
 ## Issue #623 — Q1 로컬/원격/운영 증거 분리
 
 PR #685 재개: [원본 #2772.1](https://github.com/planner77/masterGantt/actions/runs/38642308191), Head `729f2e4dd1254d73c07ea13eecc287e4b9dac243`의 세 Required와 E2E 6 shard는 PASS다. QA Final job `116129943648`은 `미해결 review thread`로 BLOCKED(exit 1)이며 gate의 정상 차단이다. P2 두 건의 테스트 보완·실제 Chromium 확인·스레드 해결 및 main `1449190a` 충돌 정렬 뒤 새 Full PR CI를 시작한다. 원본 FAIL을 소급 PASS하지 않고 새 Head의 CI/Trusted QA는 결과 미확인 NOT TESTED로 인계한다. 새 CI를 모니터링하지 않는다.

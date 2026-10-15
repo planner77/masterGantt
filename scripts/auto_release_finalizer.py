@@ -489,6 +489,44 @@ def supersede_failed_issue_retries(
     return planned, superseded
 
 
+def release_evidence_after_ci_supersession(
+    repo: str,
+    items: list[WorkItem],
+    ci_success: dict[str, bool],
+    first_parent_items: list[WorkItem],
+) -> dict[str, tuple[str, str | None]]:
+    """Read release tags after validating the strictly limited failed-CI lineage.
+
+    A previously failed Main CI may have been superseded by the next same-Issue,
+    same-version, non-docs successful merge. The official immutable tag then
+    belongs to the corrective commit, not to the failed ancestor. Only that
+    exact correction may be recognized while reading the failed ancestor's
+    release evidence. No permission to move tags or to skip the correction's
+    own release/CI validation is implied.
+    """
+    _, tentative = supersede_failed_issue_retries(
+        items, ci_success, first_parent_items=first_parent_items,
+    )
+    # Never accept a different tag source on a CI-successful ancestor or a
+    # merely same-version, non-adjacent, unrelated or docs-only correction.
+    permitted: dict[str, str] = {
+        failed.target_sha: correction.target_sha
+        for failed, correction in tentative
+        if not ci_success.get(failed.target_sha, False)
+        and failed.release_required
+        and correction.issue_number == failed.issue_number
+        and correction.current_version == failed.current_version
+        and not correction.validation_docs_only
+        and ci_success.get(correction.target_sha, False)
+    }
+    return {
+        item.target_sha: exact_release_state(
+            repo, item, corrective_sha=permitted.get(item.target_sha),
+        )
+        for item in items
+    }
+
+
 def current_main_sha(repo: str) -> str:
     data = gh(f"/repos/{repo}/git/ref/heads/main")
     sha = ((data or {}).get("object") or {}).get("sha", "")
@@ -538,7 +576,9 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
     return False, latest.get("html_url")
 
 
-def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
+def exact_release_state(
+    repo: str, item: WorkItem, *, corrective_sha: str | None = None,
+) -> tuple[str, str | None]:
     """Return formal release evidence without mutating tags or workflows.
 
     States:
@@ -571,6 +611,12 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
         )
     actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()
     if actual != item.target_sha:
+        if corrective_sha is not None and actual == corrective_sha:
+            # Reached only from a verified failed-CI same-Issue corrective chain.
+            # The failed SHA remains FAIL and does not own the release; the
+            # corrective WorkItem must still validate its own immutable tag,
+            # release-image success, Owner authority and digest before mutation.
+            return "superseded-by-corrective", None
         raise AutoFinalizerError(
             f"{tag}: existing release tag points to {actual}, expected {item.target_sha}"
         )
@@ -793,10 +839,12 @@ def execute(trigger_sha: str) -> int:
         item.target_sha: exact_main_ci_success(repo, item.target_sha)
         for item in pending_coalesced
     }
-    release_evidence = {
-        item.target_sha: exact_release_state(repo, item)
-        for item in pending_coalesced
-    }
+    release_evidence = release_evidence_after_ci_supersession(
+        repo,
+        pending_coalesced,
+        {sha: evidence[0] for sha, evidence in ci_evidence.items()},
+        pending_with_barriers,
+    )
     pending, superseded = supersede_failed_issue_retries(
         pending_coalesced,
         {sha: evidence[0] for sha, evidence in ci_evidence.items()},

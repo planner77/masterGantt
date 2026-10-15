@@ -1,3 +1,8 @@
+## Unreleased — Issue #622 Generic Release Completion Finalizer Resume #35 교정
+
+- v0.114.0 태그가 동일 Issue #622의 성공한 교정 PR #686 SHA를 가리키는데 원본 실패 PR #684의 SHA와 먼저 비교해 중단한 Finalizer 버그를 수정한다. 제한된 failed-Main/동일 Issue·버전·first-parent/non-docs 정합을 먼저 검증한 경우에만 원본 상태를 superseded로 취급하며, 교정 tag/release-image/digest·Owner 승인과 외부 SHA의 fail-closed는 유지한다.
+- 기존 v0.114.0 annotated tag/GHCR promotion·Main/Release 원본 실패 이력은 불변. CI/Required checks/package/lockfile/application 버전 및 제품 동작 변경 없음. 실제 #35 재실행/FINAL/cleanup/close는 원격 증거 후 별도 확인.
+
 ## Unreleased — Issue #664
 
 - U1 공개 포트를 소비하는 opt-in actual-Core conformance와 canonical recovery 모듈을 추가했다. same revision의 order/date/temporary/link drift, 확정 거부·불명확 결과와 stale/API/pending 무효화를 구별한다.

@@ -1,3 +1,26 @@
+## 2026-10-15 — 같은 Issue 교정: Release Completion Finalizer #35 / v0.114.0
+
+### 원본 실패와 영향
+- Original PR #684 main `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`는 `0.113.0→0.114.0`을 최초 도입했고 Main #2771.1 FAIL. 교정 PR #686 main `1449190af8d4f97d4737d17ae67e9dcb044549a7`는 `0.114.0→0.114.0`을 유지하며 기존 릴리스 의무를 적법하게 승계했다.
+- Owner 승인 [#6187188712](https://github.com/planner77/masterGantt/issues/622#issuecomment-6187188712)에 따라 annotated tag `v0.114.0`이 교정 SHA에 생성, Release #170.1 SUCCESS, GHCR 정식 digest promotion SUCCESS. 그러나 explicit [Completion Resume #35.1](https://github.com/planner77/masterGantt/actions/runs/38704333977)는 failed original의 `exact_release_state` 조회를 supersession 전에 수행해 `existing release tag points to corrective, expected original`로 FAIL. 코드의 순서 결함이며 원본 실패를 PASS로 소급하지 않는다.
+- #666 Main CI/임시 GHCR 검증 자체 성공이나 #622의 먼저 처리될 lifecycle 미완료로 뒤쪽 #666 Finalizer/Issue가 OPEN.
+
+### 변경·검증 설계 (HIGH / OWNER_MANAGED)
+- 새 `release_evidence_after_ci_supersession`는 CI 원본 성공/실패 및 first-parent graph의 동종 Issue·동일 version·non-docs 무중간 체인·성공한 교정 Main CI를 **읽기 전용으로만** 미리 검증한다. 이 조건을 갖춘 원본 실패에서만 기존 tag의 실제 peeled SHA가 정확히 교정 SHA와 일치하면 `superseded-by-corrective` 분류를 허용한다.
+- `exact_release_state` 기본 호출 및 임의 SHA/다른 Issue/버전/단절된 체인/원본 Main 성공/교정 FAIL 등의 불일치 조건은 기존 FAIL. 실제 교정 release evidence/Owner marker/immutable tag/digest/FINAL mutation을 절대로 사전 PASS로 하지 않는다.
+- 기존 CI policy 실행 `scripts/test-release-debt-recovery.py`에 actual failure topology·7개 이상 음성 조건을 추가하여 `scripts/auto_release_finalizer.py` 정책과 동일 runner에서 검증. 원격 PR CI 전 모듈·테스트 결과는 NOT TESTED이며 테스트를 실행하지 않고 PASS라고 기록하지 않는다.
+- 코드 수정은 `scripts/auto_release_finalizer.py`, `scripts/test-release-debt-recovery.py`; workflow/CI check/job·package/lockfile·제품 코드/DB/API/버전·이전 SHA/tag/GHCR 변경은 없음.
+
+### DOCUMENTATION_SYNC
+- UPDATED: `docs/GENERIC_RELEASE_FINALIZER.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `docs/exec-plans/active/ISSUE_622.md`, `docs/exec-plans/active/PLAN.md`, `CHANGELOG.md`.
+- N/A: `DESIGN.md` (제품 시각/interaction 변경0), `docs/API.md`/`docs/DB_SCHEMA.md` (API/DB 변경0), `docs/SCHEDULING_ENGINE.md` (일정 알고리즘 변경0), `docs/EXCEL_EXPORT.md` (writer 변경0).
+- AC1: 원본 FAIL+정확 교정/릴리스 SHA 분리 및 mutation 없이 진단 — code/fixture.
+- AC2: foreign SHA/Issue·version·docs-only·intervening issue·원본 CI-success/교정 CI-failed 거부 — negative fixture.
+- AC3: 교정 target 자체의 real tag/Release/digest/Owner/safe branch cleanup/Issue FINAL gate 보존 — 코드 계약 + 추후 원격 #35 재실행.
+- AC4: 기존 CI/릴리스 승인/immutable tag/원본 감사/다른 issue 계약 불변 — diff 및 workflow 검증.
+- 위험/비범위: GitHub Release 객체 생성/존재 확인은 별도 정책이며 현재 본 장애의 원인이 아님. 기존 formal `v0.114.0` tag 및 immutable digest는 덮어쓰지 않는다. 교정 PR 자체 release_required=false/release_authorized=false; 기존 승인 v0.114.0에 관한 재발행 승인 아님.
+- 롤백: 코드/테스트와 문서 복구 PR만 revert; immutable tag/이전 Release SHA·CI 결과 변경 금지. 이후 #35 기존 failed Job rerun/Generic resolver에서 원본 #622 lifecycle→후속 #666까지 완료 증거 확인.
+
 # Issue #622 — Target Resource Plan·과투입·Excel Work Packet
 
 ## 기준·범위·담당
