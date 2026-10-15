@@ -6,6 +6,15 @@ import { execFileSync } from "node:child_process";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const directory = "tests/fixtures/gantt-canonical-recovery";
+const verifiedSourceBase = () => {
+  // This is the merged U1 baseline, not the temporary worktree HEAD.
+  const sourceBase = "d445ec58bf9106414c99a150ee8f52599834baf9";
+  const runGit = args => execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+  if (runGit(["rev-parse", "--is-shallow-repository"]) !== "false") throw new Error("Complete Git history is required for capture provenance");
+  if (runGit(["cat-file", "-t", sourceBase]) !== "commit") throw new Error("Capture baseline is not a Git commit");
+  runGit(["merge-base", "--is-ancestor", sourceBase, "HEAD"]);
+  return sourceBase;
+};
 const read = async path => JSON.parse(await readFile(resolve(root, path), "utf8"));
 const runtime = await read("output/playwright/issue-664/runtime-observation.json");
 const names = ["fresh-dto-no-op", "dnd-412", "dnd-500-not-committed", "date-422", "add-422", "link-delete-422", "task-delete-422", "link-add-422", "metadata-422", "parent-add-422-surviving-child", "type-422", "collapsed-dnd-412"];
@@ -20,7 +29,7 @@ const files = ["package.json", "package-lock.json", `${directory}/browser.tsx`, 
 const sha256 = Object.fromEntries(await Promise.all(files.map(async path => [path, createHash("sha256").update(await readFile(resolve(root, path))).digest("hex")])));
 const receipt = {
   schemaVersion: 1, fixtureVersion: "1.0.0", collection: "SYNTHETIC_CORE_BROWSER",
-  sourceBase: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
+  sourceBase: verifiedSourceBase(),
   standardVersion: "1.0.0-candidate", installedGanttVersion: (await read("node_modules/@svar-ui/react-gantt/package.json")).version,
   installedStoreVersion: (await read("node_modules/@svar-ui/gantt-store/package.json")).version,
   capturedAt: new Date().toISOString(), environment: runtime.environment, sha256,

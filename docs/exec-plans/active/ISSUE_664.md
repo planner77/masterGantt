@@ -133,3 +133,9 @@ U1 normalization과 U2 conformance 및 Map Link 비교는 O(T+L) 목표다. 1000
 ## 게시 전 최종 REWORK 확인
 
 stalled-frame 추가 P2 보완 source에서 Manager 관련12파일161 Unit 및 typecheck/scoped lint를 재검증하고 actual Core12전환/source 영수증을 다시 생성했다. 최초155 Unit과 첫 사전 PASS는 추가 P2 발견 이전 source의 역사적 결과다. 별도 qa_docs는 원본 never-GET/frame·timeout10ms 재현을 새 source에서 재실행하여 약11ms의 TIMED_OUT/UNCERTAIN·GET signal aborted=true·canWrite=false를 확인했다. 단일 watchdog 및 취소 wake-up·GET/exec/post-read frame 경계·timer/listener cleanup 검증을 포함한다. 실제 source fingerprint와 최종 Reviewer 결과는 Issue/PR STATUS에 연결한다.
+
+## PR #689 · CI #2785 리뷰 보완 (2026-10-15)
+
+- Required Quality / Chromium E2E 6/6 / Docker는 원본 Run #2785.1에서 PASS. QA Final은 source provenance에 미해결 P2 review thread 1건으로 BLOCKED; 기능 테스트 실패로 오인하지 않는다.
+- 실제 브라우저 영수증의 임시 worktree HEAD `b277c836...`는 게시된 commit graph에 없었다. 원본 `capturedAt`, 12개 합성 시나리오·실행 결과와 source SHA256 원장은 보존하되 `sourceBase`를 GitHub가 확인한 U1 main merge 조상 `${base}`로 교정한다. 이 SHA는 *capture에 사용한 U2 파일 전체의 commit SHA가 아니며*, 구체 소스 일치는 영수증의 별도 SHA256 파일 지문이 담당한다.
+- recorder는 전체 Git history·commit object·capture HEAD까지의 조상성을 검증하지 못하면 영수증 생성 자체를 거부한다. Unit은 pinned merge SHA와 비-shallow 환경에서 Git object/ancestry를 검사하고, GitHub Actions의 depth-1 synthetic merge에서는 고정된 검증 조상 SHA와 전체 파일 fingerprint를 확인한다. 이 변경은 브라우저 재실행 증거가 아니며 PR 새 CI·Trusted QA·Owner ACCEPT는 별도 판정한다.

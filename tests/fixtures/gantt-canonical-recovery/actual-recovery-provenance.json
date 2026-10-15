@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "fixtureVersion": "1.0.0",
   "collection": "SYNTHETIC_CORE_BROWSER",
-  "sourceBase": "b277c836b42aefce167b722ff7802bd9f5d6738d",
+  "sourceBase": "d445ec58bf9106414c99a150ee8f52599834baf9",
   "standardVersion": "1.0.0-candidate",
   "installedGanttVersion": "2.7.3",
   "installedStoreVersion": "2.7.2",
@@ -20,7 +20,7 @@
     "package-lock.json": "543d430271a655815689f9bed1494c1d3d5ab245917c82251f9a9b03d09c860c",
     "tests/fixtures/gantt-canonical-recovery/browser.tsx": "102fccbddb05b8b9c50497e7220344de1011cae60c0bbb12d1976ea0ac5954ca",
     "tests/fixtures/gantt-canonical-recovery/prepare-browser.mjs": "1302adbb81cab6fc3b3707e66fc77739b779abb3e24654dc603ed3f91849d7d5",
-    "tests/fixtures/gantt-canonical-recovery/record-browser.mjs": "1e22df9c3144b75dd6b57d91402b936af5b1a676216494ffdd94eafa282c05d4",
+    "tests/fixtures/gantt-canonical-recovery/record-browser.mjs": "d1f5ea32292d46d9ccf493b8f29285032b099d13a055c133fdcb61d687b16c46",
     "tests/fixtures/gantt-canonical-recovery/actual-recovery-2.7.3.json": "c9e55bdc22fe10d484654f43997361133ebee075344243728fa03f1542a31eb4",
     "src/features/gantt/canonical-recovery.ts": "7d165868ba7f555317f7068ad0742423ab808b118d0c0b7676ff0cea8afbb024",
     "src/features/gantt/core-conformance.ts": "6b6e2d52e8fa6ba8ef73d5a96f2ee41bc61e118f457e78f7ad0efae7862dc138",
@@ -76,5 +76,6 @@
     "large actual Core recovery performance and mount/unmount",
     "full PR CI/Trusted QA/Owner ACCEPT",
     "main/GHCR/release"
-  ]
+  ],
+  "sourceBaseSemantics": "Verified merged U1 ancestor of capture HEAD; SHA256 entries attest the exact U2 implementation and synthetic browser fixture (not the baseline tree)."
 }
