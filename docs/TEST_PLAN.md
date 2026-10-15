@@ -1,3 +1,9 @@
+## Issue #664 PR #689 — CI #2790.1 대형 Milestone probe readiness 진단 보완 (2026-10-15)
+
+- 원본 [CI #2790.1](https://github.com/planner77/masterGantt/actions/runs/38679560028): Build/TypeScript/Vitest/ESLint/Docker PASS, Chromium shard4 `tests/e2e/milestone-timeline-lane.spec.ts:199` 3000개 synthetic fixture의 원래 5초 준비 gate TIMEOUT. 43 PASS/1 FAIL/1 SKIP/93 NOT RUN 및 나머지 4 shards fail-fast 취소를 정확히 보존한다.
+- 기존 #551/#622의 준비 조건 `committed frame API === probe API`, callable probe reader, 독립 Viewport Coordinator ready=true, 1000 Task+2000 Milestone, 5초 deadline은 모두 유지한다. Playwright polling의 반복 원격 frame.evaluate 왕복을 `page.waitForFunction`의 browser-side 100ms 유한 polling으로 변경하고 실패 때만 O(1) identity/ready 진단을 기록한다. 제품 Gantt 및 native 동작·서버 쓰기·test skip/retry/timeout 범위는 불변.
+- 기존 준비 timeout이 왜 발생했는지 정확한 늦은 상태는 과거 artifact로 확정할 수 없다. 렌더된 3000행은 Coordinator 설치의 증거가 아니다. 새 정확 Head의 E2E 6/6 및 Trusted QA는 공식 CI 결과 전 NOT TESTED; 본 범위는 #664 복구 알고리즘 완료/제품 #552 해결을 뜻하지 않는다.
+
 ## Issue #664 — 실제 Core 정합·저장 결과 복구 모듈 검증
 
 SC-01~05/07과 GSC-01/02/03/06/07/08/09/11/12를 U2 독립 모듈에서 검사한다. `core-conformance.test.ts`와 `canonical-recovery.test.ts`는 동일 revision의 order/date/임시 Task/Link drift와 정상 fresh DTO no-op, dirty/API/request 무효화, 412·422·401 및 불명확500/timeout/network의 GET 성공·실패, stale canonical/new pending·abort, 적용 후 재관측 실패를 다룬다. GET과 frame이 모두 미완료여도 독립 watchdog으로 timeout이 반환되고 외부 취소가 즉시 깨우며 timer/listener가 정리되는 반례를 포함한다. 모듈은 서버 mutation/retry·viewport write를 제공하지 않으며 GET 실패와 권한 잠금을 데이터 정합 성공만으로 해제하지 않는다.
