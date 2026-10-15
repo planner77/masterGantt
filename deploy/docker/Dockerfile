@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # 모든 build/runtime stage는 동일한 Debian glibc/Node 계열을 사용해
 # better-sqlite3 native addon의 Node ABI/libc 호환성을 유지한다.
-FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae AS build
+FROM node:26-bookworm-slim@sha256:662933cf47f013bc8e4beb31a6116448427a82057ba7c42c97e4c5ba766504c2 AS build
 WORKDIR /app
 
 # better-sqlite3 prebuild가 대상 Node patch에 없을 수 있으므로 source build 도구는
@@ -16,7 +16,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae AS runtime
+FROM node:26-bookworm-slim@sha256:662933cf47f013bc8e4beb31a6116448427a82057ba7c42c97e4c5ba766504c2 AS runtime
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="masterGantt" \
       org.opencontainers.image.description="Single-instance project Gantt management application" \
