@@ -74,6 +74,12 @@ U1의 기계 판독 manifest는 `tests/config/gantt-state-conformance.json`, 검
 
 Manifest 등록 상태와 실제 시나리오 실행 결과는 다르다. fake Core·합성 실제 SVAR reader·실제 HTTP/SQLite·제품 E2E·원격 CI를 별도 증거로 관리한다. 현재 U1은 제품에 연결되지 않으며 U2/U3/U4/U5/#573/#574의 제품 증거는 NOT TESTED다. 계약/fixture 버전, 정확한 source·명령·로컬 결과·미실행은 [#663 Work Packet](exec-plans/active/ISSUE_663.md)을 따른다. manifest 성공만으로 SC-01~14 제품 PASS 또는 Required check 신규 강제를 주장하지 않는다.
 
+## 8. Issue #664 — U2 독립 복구 모듈
+
+U1 interface merge `d445ec58bf9106414c99a150ee8f52599834baf9`를 소비하는 `core-conformance.ts`/`canonical-recovery.ts`를 opt-in으로 추가한다. SC-01~05/07의 actual data/no-op/proof invalidation·확정 거부/uncertain·stale/new pending 경계를 전용 Unit과 설치 실제 합성 Core fixture에서 검증한다. U1 manifest/원본 actual reader 자료와 기존 제품 호출자 동작은 유지한다.
+
+실제 Core 전후 data action은 합성 브라우저 증거, commit 성공·미성공/GET 실패는 주입 포트 Unit 증거다. 제품 HTTP/SQLite·native DnD·Bar geometry·viewport/receipt/axis·5폭·대량 수명주기는 U5/#573/#574의 별도 NOT TESTED다. SC-01~14 전체 제품 PASS를 뜻하지 않는다. 정확한 AC 매핑/직접검증/미검증·원격 인계는 [#664 Work Packet](exec-plans/active/ISSUE_664.md)을 따른다.
+
 ## Issue #666 — U4 독립 모듈 검증 경계
 
 [Work Packet](exec-plans/active/ISSUE_666.md)의 신규 axis transaction·전용 Unit/설치 Core fixture는 SC-08/09/10/12/14 중 날짜축·실제 geometry·원래 lease·cleanup 범위를 검증한다. 실제 wheel/reveal/query·hidden/zero-size·capacity 부족은 성공 위치와 별도로 typed 결과 및 관측 source를 기록한다. SC 등록 manifest·fake Unit·실제 합성 Core·제품 E2E·원격 CI는 서로 다른 증거다.

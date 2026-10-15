@@ -1,3 +1,9 @@
+## Issue #664 — U2 실제 Core 검증·저장 결과 복구 (2026-10-15)
+
+선행 #663/PR #687이 main `d445ec58bf9106414c99a150ee8f52599834baf9`에 통합되었다. [Work Packet](ISSUE_664.md)의 실제 Core conformance·opt-in recovery 모듈/Unit·설치 합성 Core fixture를 구현하며 U5 production wiring·U1 계약/manifest·U3/U4 concrete 모듈은 변경하지 않는다. 412 최신 조회/422 rollback/401 권한 잠금/500·timeout·network uncertain 및 GET 실패 추가 쓰기 차단·stale pending/API를 구별한다.
+
+구현·DOCUMENTATION_SYNC·별도 사전 검토·리뷰/충돌 정리 후 exact-head PR Full CI 시작에서 종료한다. 원격 quality/e2e/docker·Trusted QA·최종 Owner/Manager ACCEPT와 제품 #552 정합성은 NOT TESTED. HIGH/OWNER_MANAGED/qa_required=true, application0.114.0 유지, release_required=false/release_authorized=false. main/GHCR·Release·Issue 종료는 이번 범위 밖이다.
+
 ## Issue #665 — U3 의미 기반 Projection 관측 / PR CI 시작까지 (2026-10-15)
 
 최신 main/U1 merge `d445ec58bf9106414c99a150ee8f52599834baf9`에서 [Work Packet](ISSUE_665.md)의 opt-in 관측 facade·receipt 재사용/무효화·전용 Unit을 구현한다. attempt와 semantic completion·현재 actual Core proof·문맥/원래 lease를 구별하며 data receipt를 수평 복원 완료와 분리한다. production wiring·U2/U4 concrete import·새 Core/DOM/viewport writer0, application0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false.

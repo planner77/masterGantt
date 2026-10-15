@@ -50,18 +50,38 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
-  // Init identity alone is insufficient: require React's committed identity
-  // and the independently installed viewport coordinator before any command.
-  // Preserve the original 5s budget without serializing Core rows/scale cells.
-  await expect.poll(() => frame.evaluate(node => {
-    const identity = node.dataset.projectGanttApiInstance ?? null;
-    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; ready?: boolean; read?: () => { instance: string } } | undefined;
-    const hasRead = typeof probe?.read === "function";
-    const coordinatorReady = probe?.ready === true;
-    return identity && probe?.instance === identity && hasRead && coordinatorReady
-      ? "ready"
-      : JSON.stringify({ frameApi: identity, probeApi: probe?.instance ?? null, hasRead, coordinatorReady });
-  })).toBe("ready");
+  // #664/#551: keep the original 5-second gate and the independently
+  // installed coordinator requirement. Poll in the browser to avoid repeated
+  // Playwright evaluate round trips while rendering 3,000 canonical rows.
+  try {
+    const handle = await page.waitForFunction(() => {
+      const node = document.querySelector<HTMLElement>(".project-gantt-frame");
+      if (!node) return false;
+      const identity = node.dataset.projectGanttApiInstance ?? null;
+      const candidate = Reflect.get(node, "__masterganttMilestoneTimeline") as {
+        instance?: string; ready?: boolean; read?: () => { instance: string };
+      } | undefined;
+      return Boolean(identity && candidate?.instance === identity &&
+        typeof candidate.read === "function" && candidate.ready === true);
+    }, undefined, { timeout: 5_000, polling: 100 });
+    await handle.dispose();
+  } catch (error) {
+    // Diagnostic only on failure: do not deserialize Core rows or treat the
+    // presence of the Grid as proof that Coordinator installation completed.
+    const state = await frame.evaluate(node => {
+      const candidate = Reflect.get(node, "__masterganttMilestoneTimeline") as {
+        instance?: string; ready?: boolean; read?: () => unknown;
+      } | undefined;
+      return {
+        frameConnected: node.isConnected,
+        frameApi: node.dataset.projectGanttApiInstance ?? null,
+        probeApi: candidate?.instance ?? null,
+        hasRead: typeof candidate?.read === "function",
+        coordinatorReady: candidate?.ready === true,
+      };
+    }).catch(() => ({ reason: "frame unavailable after readiness timeout" }));
+    throw new Error(`Gantt probe/coordinator not ready within 5s: ${JSON.stringify(state)}`, { cause: error });
+  }
   await settle(page);
   return { state, frame };
 }

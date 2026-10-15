@@ -110,6 +110,12 @@ U1 완료: 타입/port 계약·SC manifest·negative cases와 독립 test runner
 
 U1의 public entry는 `src/features/gantt/state-consistency/index.ts`다. 생산 코드의 import·동작 변경0을 유지한다. U2/U3/U4 concrete 구현 없이 기존 authority의 type-only 계약과 public serialize reader만 제공하며 SC 등록과 실제 제품 실행을 구분한다. 원래 파일 단독 소유·후속 병합 순서·#552/#573/#574/#553 경계와 rollback 계약은 불변이다.
 
+## 2026-10-15 — #664 U2 구현 착수 / U1 main 선행 완료
+
+#663 / PR #687은 main `d445ec58bf9106414c99a150ee8f52599834baf9`에 통합되어 Issue CLOSED이며 이를 U2의 공통 interface 기준 SHA로 고정한다. 이는 위 U1 착수 당시 미통합 기록을 소급 변경하지 않는다. #664는 [Work Packet](ISSUE_664.md)에 따라 실제 Core 기반 no-op·확정 거부/결과 불명확 복구 모듈과 전용 Unit/합성 browser fixture를 준비한다.
+
+기존 sync 함수·U1 interface/manifest·U5 production 파일은 유지한다. U3/U4 concrete import와 제품 소비자0이며 U5에 public exports·dirty/request/API 무효화·GET/권한/쓰기 차단·후속 검증을 인계한다. 현재 종료점은 문서·사전 검토·리뷰/충돌 확인 뒤 PR CI 시작이다. 모듈 최종 수용/main 통합·#552 해결·#573/#574 종단 검증은 별도다. application0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false.
+
 ## 2026-10-15 — #666 U4 독립 구현
 
 #663 / PR #687이 병합된 main `d445ec58bf9106414c99a150ee8f52599834baf9`에서 [U4 Work Packet](ISSUE_666.md)의 axis transaction·Unit·실제 설치 Core fixture를 구현한다. U1 public 타입/geometry/clock/abort/원래 lease를 재사용하고 U2/U3 concrete 구현과 독립이다. 날짜 extent/physical capacity/승인 X/Y를 분리하며 A/B/C 선택·기각·DEFER는 실제 동일 source matrix로 판정한다.

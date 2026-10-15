@@ -1,3 +1,9 @@
+## Issue #664 — opt-in actual-Core 복구 모듈
+
+`core-conformance.ts`와 `canonical-recovery.ts`는 #663 U1의 public reader/type/clock/abort 포트를 소비하는 미연결 U2다. 기존 `canonical-snapshot-sync.ts`의 signature/제품 경로를 유지하고 실제 normalized Task·parent/preorder·Link와 desired를 비교한다. revision/key만으로 no-op을 승인하지 않으며 native dirty·request/API/query/scope 변경은 증거를 무효화한다. 복구는 public task 최소 diff와 필요한 Link 차이만 적용한 뒤 실제 Core를 다시 읽어 확인한다. viewport·filter·columns·서버 mutation은 이 모듈의 쓰기 권한에 없다.
+
+복구 전체 deadline/frame budget과 별도 wall-time watchdog·abort wake-up을 사용하여 RAF와 GET이 멈춰도 유한 결과를 반환하고 timer/listener를 정리한다. 서버 저장 gateway와 Core reconcile을 분리한다. U5는 request/base revision/affected IDs와 invalidation, 401 권한 잠금·초안 보존, 412 최신 조회, 500/timeout/network의 uncertain·GET 실패 쓰기 차단을 기존 UI에 연결한다. 기존 Workspace GET helper의 즉시 canonical 게시를 그대로 U2 fetch port로 넘기지 않는다. 읽기 전용 GET → identity/revision 확인 → 현재 요청의 Core 복구·검증 → 조건부 canonical 게시 순서가 필요하다. 실제 제품 wiring0이며 #552 HTTP/SQLite·Bar/viewport 해결은 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_664.md).
+
 ## Issue #665 — opt-in 의미 기반 Projection 관측
 
 `viewport/projection-observation.ts`의 `createProjectionObservation`은 U1 Core reader/verifier·geometry·recovery·clock/abort 포트를 소비하는 읽기 전용 facade다. observation attempt와 semantic completion을 분리하며, 같은 desired/API/dirty/recovery/query/scope/layout/axis 및 원래 사용자 lease에서 현재 Core와 논리 행·mounted subset을 다시 검증한 경우에만 완료 의미를 재사용한다. canonical key 또는 verifier의 성공 자기신고만으로는 승인하지 않는다.

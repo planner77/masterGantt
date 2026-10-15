@@ -1,3 +1,9 @@
+## Unreleased — Issue #664
+
+- U1 공개 포트를 소비하는 opt-in actual-Core conformance와 canonical recovery 모듈을 추가했다. same revision의 order/date/temporary/link drift, 확정 거부·불명확 결과와 stale/API/pending 무효화를 구별한다.
+- 전용 Unit 및 설치 React Gantt2.7.3/store2.7.2 합성 browser fixture·U5 handoff/검증 경계를 추가했다. 기존 제품 sync/wiring·package/version·DB/API·CI·viewport writer는 변경하지 않는다.
+- 모듈 로컬 검증과 #552 제품 HTTP/SQLite·Bar/viewport 통합·원격 CI·최종 Owner 수용은 구별한다. [Work Packet](docs/exec-plans/active/ISSUE_664.md).
+
 ## [Unreleased] — Issue #665 의미 기반 Projection 관측 (2026-10-15)
 
 - U1 공통 읽기/검증 포트 기반의 opt-in U3 facade로 관측 attempt와 semantic completion을 분리한다. 실제 Core/행·문맥·원래 사용자 lease가 유효한 반복 관측만 완료 의미를 재사용하고 drift·invalid proof·source 변경은 거부한다.

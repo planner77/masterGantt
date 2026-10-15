@@ -1,3 +1,17 @@
+## Issue #664 PR #689 — CI #2790.1 대형 Milestone probe readiness 진단 보완 (2026-10-15)
+
+- 원본 [CI #2790.1](https://github.com/planner77/masterGantt/actions/runs/38679560028): Build/TypeScript/Vitest/ESLint/Docker PASS, Chromium shard4 `tests/e2e/milestone-timeline-lane.spec.ts:199` 3000개 synthetic fixture의 원래 5초 준비 gate TIMEOUT. 43 PASS/1 FAIL/1 SKIP/93 NOT RUN 및 나머지 4 shards fail-fast 취소를 정확히 보존한다.
+- 기존 #551/#622의 준비 조건 `committed frame API === probe API`, callable probe reader, 독립 Viewport Coordinator ready=true, 1000 Task+2000 Milestone, 5초 deadline은 모두 유지한다. Playwright polling의 반복 원격 frame.evaluate 왕복을 `page.waitForFunction`의 browser-side 100ms 유한 polling으로 변경하고 실패 때만 O(1) identity/ready 진단을 기록한다. 제품 Gantt 및 native 동작·서버 쓰기·test skip/retry/timeout 범위는 불변.
+- 기존 준비 timeout이 왜 발생했는지 정확한 늦은 상태는 과거 artifact로 확정할 수 없다. 렌더된 3000행은 Coordinator 설치의 증거가 아니다. 새 정확 Head의 E2E 6/6 및 Trusted QA는 공식 CI 결과 전 NOT TESTED; 본 범위는 #664 복구 알고리즘 완료/제품 #552 해결을 뜻하지 않는다.
+
+## Issue #664 — 실제 Core 정합·저장 결과 복구 모듈 검증
+
+SC-01~05/07과 GSC-01/02/03/06/07/08/09/11/12를 U2 독립 모듈에서 검사한다. `core-conformance.test.ts`와 `canonical-recovery.test.ts`는 동일 revision의 order/date/임시 Task/Link drift와 정상 fresh DTO no-op, dirty/API/request 무효화, 412·422·401 및 불명확500/timeout/network의 GET 성공·실패, stale canonical/new pending·abort, 적용 후 재관측 실패를 다룬다. GET과 frame이 모두 미완료여도 독립 watchdog으로 timeout이 반환되고 외부 취소가 즉시 깨우며 timer/listener가 정리되는 반례를 포함한다. 모듈은 서버 mutation/retry·viewport write를 제공하지 않으며 GET 실패와 권한 잠금을 데이터 정합 성공만으로 해제하지 않는다.
+
+`tests/fixtures/gantt-canonical-recovery/`는 설치 React2.7.3/store2.7.2의 실제 public serialize와 move/update/add/delete/link 동작을 실행하는 별도 합성 browser fixture다. U1의 reader 캡처는 그대로 보존한다. actual Core 결과·source fingerprint·명령·설치 버전은 이 fixture의 영수증과 [Work Packet](exec-plans/active/ISSUE_664.md)에 남긴다. Unit·mock GET·합성 Core·제품 HTTP/SQLite·전체 PR CI는 서로 대체하지 않는다. 기존 canonical sync/projection/실행 회귀를 함께 유지하며 skip/timeout/허용오차를 완화하지 않는다.
+
+제품 `project-grid-reorder-persistence`, `project-task-persistence`, `project-gantt-stability` 등의 실제 요청·Bar geometry·후속 저장 검증은 U5/#573/#574가 연결한 source에서 수행한다. 원본 #2682 DnD412/500 A-C-B·422 Bar36px 실패 이력은 불변이며 U2 로컬 PASS로 제품 PASS를 선언하지 않는다. 원격 quality/e2e/docker·Trusted QA·Owner 수용과 main/GHCR는 별도다.
+
 ## PR #690 리뷰 보완 — 전략 간 source taint 경계
 
 synthetic 취소로 오염된 실제 API source를 EXPLICIT_EXTENT facade가 재생성해도 거부해야 한다. 같은 mount의 source object 필수 전달·mismatched compatibility source 거부·서로 다른 실제 source 허용을 Unit으로 검사한다. 원래 72개 Chromium capture는 수정 이전 소스가 대응되는 snapshot의 SHA로 검증한다. 수정 이후 Chromium 재실행은 NOT TESTED이며 기존 실제 clamp FAIL/390px DEFER를 PASS로 전환하지 않는다.
