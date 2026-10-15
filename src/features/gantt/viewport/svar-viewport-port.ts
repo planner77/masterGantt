@@ -204,6 +204,19 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       if (axisTransaction === transaction) { resizing = false; axisTransaction = null; axisAuthority = null; }
     }
   };
+  const coreHorizontalCapacity = (): number | null => {
+    const state = api.getState(), width = state._scales?.width, chartWidth = state._chartWidth;
+    if (typeof width !== "number" || !Number.isFinite(width) || width < 0 ||
+      typeof chartWidth !== "number" || !Number.isFinite(chartWidth) || chartWidth <= 0) return null;
+    return Math.max(0, width - chartWidth);
+  };
+  const admitsPosition = (sample: ViewportSample, target: ViewportPosition): boolean => {
+    const coreCapacity = coreHorizontalCapacity();
+    // Core clamps against its measured width, which can differ from the DOM
+    // client width by one pixel. Only native settlement permits that tolerance.
+    return sample.measurable && coreCapacity !== null && coreCapacity >= target.left &&
+      sample.capacity.left >= target.left - 1 && sample.capacity.top >= target.top - 1;
+  };
   const prepare = async (command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<{ ready: boolean; projectionAfter?: number }> => {
     if (!("position" in command)) return { ready: true };
     if (!current() || !read().measurable) return { ready: false };
@@ -214,24 +227,25 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     const target = command.position, state = api.getState();
     const beforeAxis = axisSignature(), projectionBefore = read().context.projectionEpoch;
     if (![target.left, target.top].every(value => Number.isFinite(value) && value >= 0)) return { ready: false };
-    // The coordinator independently requires three stable geometry frames
-    // before APPLY. Avoid a compatibility transaction if physical capacity already admits the saved position.
-    const existing = read();
-    if (existing.capacity.left >= target.left - 1 && existing.capacity.top >= target.top - 1) return { ready: true };
+    const existing = read(), coreCapacity = coreHorizontalCapacity();
+    if (coreCapacity === null) return { ready: false };
+    // Restore the retained date extent before admitting coordinates, even if
+    // the shrunken native chart can still hold the saved position.
     if (state._end instanceof Date && state._end < options.requestedEnd()) {
       const retainedWidth = minimumTimelineScaleWidthForEnd({ start: state._start!, end: options.requestedEnd(), scaleMode: options.context().scale as "day" | "week" });
       const result = await extentTransaction(current, source, command.compatibility ? Math.max(retainedWidth, (state._chartWidth ?? 0) + target.left) : retainedWidth);
       if (result?.outcome !== "SETTLED") return { ready: false };
-    } else if (command.compatibility && existing.capacity.left < target.left - 1) {
-      const result = await extentTransaction(current, source, (state._chartWidth ?? 0) + target.left);
+    } else if (admitsPosition(existing, target)) return { ready: true };
+    else if (command.compatibility && (coreCapacity < target.left || existing.capacity.left < target.left - 1)) {
+      const result = await extentTransaction(current, source, state._chartWidth! + target.left);
       if (result?.outcome !== "SETTLED") return { ready: false };
-    }
+    } else return { ready: false };
     // Capacity changes may replace the projection observation. Complete them
     // before the coordinator accepts a receipt for the coordinate command.
     let enough = 0;
     for (; frames < 120 && current(); frames++) {
       const sample = read();
-      enough = sample.measurable && sample.capacity.left >= target.left - 1 && sample.capacity.top >= target.top - 1 ? enough + 1 : 0;
+      enough = admitsPosition(sample, target) ? enough + 1 : 0;
       if (enough >= 3) return { ready: true, ...(axisSignature() !== beforeAxis ? { projectionAfter: projectionBefore } : {}) };
       if (!(await nextFrame(admission.signal))) enough = 0;
     }
@@ -281,7 +295,7 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     else target = command.position;
     if (![target.left, target.top].every(value => Number.isFinite(value) && value >= 0)) return null;
     const sample = read();
-    if (!current() || !sample.measurable || sample.capacity.left < target.left - 1 || sample.capacity.top < target.top - 1) return null;
+    if (!current() || !admitsPosition(sample, target)) return null;
     await exec("scroll-chart", { ...target, eventSource: tag });
     if (!current()) return null;
     // A filter bookmark is one-shot; it cannot intercept a later native

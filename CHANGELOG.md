@@ -1,5 +1,7 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- 종합 회귀에서 발견한 다중 Copy/Paste 뒤 가로 위치 초기화를 보완하고, 원래 사용자 의도와 검증된 저장 결과에 한정해 기존 Coordinator가 복원하도록 한다.
+- CI #2811~#2814 실패를 종합 기록하고 Dashboard UI 확인의 browser 전송·안전한 격리 진단·취소 응답 완료 검증·공휴일을 고려한 첫 Milestone 테스트 입력·새 검색 영수증 확인을 보완한다. 기존 제품 단언·CI gate는 유지한다.
 - CI #2813의 개발용 Grid reveal 관측이 생략된 설정 날짜 대신 실제 계산된 날짜축 원점을 읽도록 교정하고 기존 탐색 회귀를 유지한다.
 
 - CI #2812의 빈 프로젝트→과거 첫 Milestone 날짜축 역전을 Core 계산 left bound로 교정한다. 반복 삭제 stale/조회 실패 회귀는 UNKNOWN 보호를 유지하고 명시적 최신 조회 뒤 계속하도록 갱신한다.
@@ -9,6 +11,8 @@
 - main 제품의 actual-Core 정합/실패 복구·의미 관측·날짜축 transaction을 U2/U3/U4 공통 모듈에 연결한다. 서버 확인 없는 snapshot 재생·remount 복구 대신 unknown 저장 결과의 충돌 쓰기 차단과 명시적 최신 조회를 제공한다.
 - 실제 HTTP/SQLite의 commit 성공·미성공/응답500·연결단절·GET실패·추가 저장0/후속 저장 및 native Milestone 보존 회귀를 추가한다. 기존 Required CI·보안·API/DB·marker 미활성 정책은 유지한다.
 - PATCH version은 정식 release 승인이나 전체 QA PASS가 아니다. 실제 source·검증·한계는 [Work Packet](docs/exec-plans/active/ISSUE_667.md)을 따른다.
+
+- Resource 복귀에서 retained 날짜축과 Core/native 수용 범위를 함께 준비해 유효한 원래 좌표가1px 제한되는 경계를 보완한다.
 
 ## Unreleased — Issue #622 CLOSED 상태의 누락 FINAL·branch cleanup 복구
 

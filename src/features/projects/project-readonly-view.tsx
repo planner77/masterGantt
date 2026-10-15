@@ -1,4 +1,5 @@
 "use client";
+import { captureCopyViewport, type CanonicalMutationRequest, type CopyViewportContinuity } from "../gantt/viewport/copy-viewport-continuity";
 import type {
   ResourceDrillScopeDto,
   ResourceDrillSourceContext,
@@ -243,18 +244,21 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSavingTask, setIsSavingTask] = useState(false);
   const [canonicalRecoveryBlocked, setCanonicalRecoveryBlocked] = useState(false);
-  const [canonicalMutationRequest, setCanonicalMutationRequest] = useState<Readonly<{ requestId: string; baseRevision: number; affectedIds: readonly string[]; outcome?: import("../gantt/canonical-recovery").MutationOutcome }> | null>(null);
+  const [canonicalMutationRequest, setCanonicalMutationRequest] = useState<CanonicalMutationRequest | null>(null);
   const canonicalReadGenerationReference = useRef(0);
   const canonicalMutationSequenceReference = useRef(0);
-  function beginCanonicalMutation() {
+  function beginCanonicalMutation(copyViewport?: CopyViewportContinuity) {
     canonicalReadGenerationReference.current++;
     const request = { requestId: `workspace-request-${++canonicalMutationSequenceReference.current}`, baseRevision: state.status === "ready" ? state.snapshot.data.project.revision : 0,
-      affectedIds: state.status === "ready" ? state.snapshot.data.tasks.map(task => task.taskId) : [] };
+      affectedIds: state.status === "ready" ? state.snapshot.data.tasks.map(task => task.taskId) : [],
+      ...(copyViewport ? { copyViewport } : {}) };
     setCanonicalMutationRequest(request);
     return request;
   }
-  function completeCanonicalMutation(request: { requestId: string }, outcome: import("../gantt/canonical-recovery").MutationOutcome) {
-    setCanonicalMutationRequest(current => current?.requestId === request.requestId ? { ...current, outcome } : current);
+  function completeCanonicalMutation(request: { requestId: string }, outcome: import("../gantt/canonical-recovery").MutationOutcome, confirmedRevision?: number) {
+    setCanonicalMutationRequest(current => current?.requestId === request.requestId ? { ...current, outcome,
+      ...(current.copyViewport && confirmedRevision !== undefined ? { copyViewport: { ...current.copyViewport, confirmedRevision } } : {}),
+    } : current);
   }
   function canonicalMutationOutcome(response: Response): import("../gantt/canonical-recovery").MutationOutcome {
     return response.ok ? "SUCCESS" : response.status === 401 ? 401 : response.status === 412 ? 412 : response.status < 500 ? 422 : 500;
@@ -996,8 +1000,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function performTaskHierarchyCommand(command: TaskHierarchyCommandRequest, expectedRevision: number): Promise<{ ok: boolean; error?: string }> {
     if (state.status !== "ready" || canonicalRecoveryBlockedReference.current || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || importPending || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { ok:false, error:"편집 권한 또는 다른 작업의 초안·저장 상태를 확인해 주세요." };
     if (state.snapshot.data.project.revision !== expectedRevision) return { ok:false, error:"검토 이후 프로젝트가 변경되었습니다. 최신 일정에서 다시 복사해 주세요." };
+    const controller = viewportController.current;
+    const copyViewport = command.kind === "copy" && controller ? captureCopyViewport(controller.capture(), controller.stamp(), {
+      width: window.innerWidth, height: window.innerHeight, fullscreen: document.fullscreenElement !== null,
+    }) : undefined;
     taskMutationReference.current = true; setIsSavingTask(true);
-    const mutationRequest = beginCanonicalMutation(); clearToast();
+    const mutationRequest = beginCanonicalMutation(copyViewport); clearToast();
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/task-commands`, {
         method: "POST", credentials: "same-origin",
@@ -1006,6 +1014,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       completeCanonicalMutation(mutationRequest, canonicalMutationOutcome(response));
       const body: unknown = await response.json().catch(() => null), snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
+        completeCanonicalMutation(mutationRequest, "SUCCESS", snapshot.data.project.revision);
         notify("success", "작업 구조를 변경했습니다.", "작업 메뉴"); return { ok:true };
       }
       const error = await handleTaskFailure(response.status, body, "작업 구조를 변경할 수 없습니다.", "작업 메뉴");

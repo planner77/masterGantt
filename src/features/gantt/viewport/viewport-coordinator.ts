@@ -8,7 +8,7 @@ export type ViewportContext = Readonly<{
 }>;
 export type ViewportStamp = Readonly<{ context: string; contextEpoch: number; gesture: number; intent: number }>;
 export type ViewportCommand =
-  | { kind: "PEER_RETURN" | "PASSIVE_RESTORE" | "FILTER_RETURN"; position: ViewportPosition; positions?: readonly NativeViewportPosition[]; compatibility?: boolean; protect?: boolean }
+  | { kind: "PEER_RETURN" | "PASSIVE_RESTORE" | "FILTER_RETURN"; position: ViewportPosition; positions?: readonly NativeViewportPosition[]; compatibility?: boolean; protect?: boolean; sourceCurrent?: () => boolean }
   | { kind: "TASK_REVEAL"; taskId: string }
   | { kind: "DATE_REVEAL"; date: Date }
   | { kind: "DIAGNOSTIC_DATE_REVEAL"; date: Date }
@@ -74,16 +74,24 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
   };
   const request = async (command: ViewportCommand, source = stamp()): Promise<ViewportOutcome> => {
     const initial = port.read(), level = priority(command);
+    const sourceCurrent = () => {
+      if (!("sourceCurrent" in command) || command.sourceCurrent === undefined) return true;
+      try { return command.sourceCurrent() === true; } catch { return false; }
+    };
+    // Original-authority callbacks stay internal; diagnostics receive data only.
+    const traceCommand = { ...command };
+    if ("sourceCurrent" in traceCommand) delete traceCommand.sourceCurrent;
     let operationEpoch = epoch;
     let acceptedProjection: number | null = null;
     let preparationFloor = -1;
-    const trace = (phase: ViewportPhase, outcome?: ViewportOutcome, decisionReason: string = phase) => port.trace(phase, command, outcome, {
+    const trace = (phase: ViewportPhase, outcome?: ViewportOutcome, decisionReason: string = phase) => port.trace(phase, traceCommand, outcome, {
       intentEpoch: operationEpoch, contextEpoch: source.contextEpoch, gesture: source.gesture,
       projectionEpoch: acceptedProjection ?? port.read().context.projectionEpoch, apiInstance: initial.context.apiInstance, decisionReason,
     });
     const supersededReason = (controller: AbortController) => {
       if (controller.signal.aborted) return String(controller.signal.reason);
       if (disposed) return "DISPOSED";
+      if (!sourceCurrent()) return "ORIGINAL_SOURCE_REVOKED";
       const context = port.read().context;
       if (context.revision !== initial.context.revision || (acceptedProjection !== null && context.projectionEpoch !== acceptedProjection)) return "STALE_PROJECTION";
       if (acceptedProjection !== null && !validViewportReceipt(port.read())) return "INVALID_RECEIPT";
@@ -93,6 +101,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     };
     const reject = (outcome: ViewportOutcome, reason: string) => { trace(outcome, outcome, reason); return outcome; };
     if (disposed) return reject("SUPERSEDED", "DISPOSED");
+    if (!sourceCurrent()) return reject("SUPERSEDED", "ORIGINAL_SOURCE_REVOKED");
     if (source.context !== identity(initial.context) || source.contextEpoch !== contextEpoch) return reject("SUPERSEDED", "STALE_CONTEXT");
     if (source.gesture !== gesture) return reject("SUPERSEDED", "STALE_GESTURE");
     if (source.intent < explicitEpoch) return reject("SUPERSEDED", "STALE_INTENT");
@@ -111,7 +120,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       rangeController = controller;
       const current = () => {
         const sample = port.read();
-        return !disposed && !controller.signal.aborted && validSource(source) && source.intent === epoch && sample.context.revision === initial.context.revision && sample.context.visible &&
+        return !disposed && !controller.signal.aborted && sourceCurrent() && validSource(source) && source.intent === epoch && sample.context.revision === initial.context.revision && sample.context.visible &&
           (command.kind !== "DIAGNOSTIC_SCROLL" || (sample.context.revision === initial.context.revision &&
             sample.context.projectionEpoch === initial.context.projectionEpoch));
       };
@@ -159,7 +168,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     pending = operation;
     operationEpoch = operation.epoch;
     if (level === 4) { explicitEpoch = epoch; bookmark = null; }
-    const current = () => !disposed && !controller.signal.aborted && pending === operation &&
+    const current = () => !disposed && !controller.signal.aborted && sourceCurrent() && pending === operation &&
       source.contextEpoch === contextEpoch && source.gesture === gesture && identity(port.read().context) === source.context && port.read().context.visible &&
       port.read().context.revision === initial.context.revision &&
       (acceptedProjection === null || (port.read().context.projectionEpoch === acceptedProjection && validViewportReceipt(port.read())));
@@ -251,7 +260,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
             if (command.protect !== false) {
               const authorityCurrent = () => {
                 const sample = port.read();
-                return !disposed && source.contextEpoch === contextEpoch && source.gesture === gesture &&
+                return !disposed && sourceCurrent() && source.contextEpoch === contextEpoch && source.gesture === gesture &&
                   identity(sample.context) === source.context && sample.context.visible && sample.measurable &&
                   sample.context.revision === initial.context.revision && sample.context.projectionEpoch === acceptedProjection && validViewportReceipt(sample);
               };

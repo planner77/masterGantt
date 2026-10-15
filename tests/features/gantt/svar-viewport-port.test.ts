@@ -42,17 +42,17 @@ describe("SVAR visibility admission", () => {
     vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { queueMicrotask(() => callback(0)); return 1; });
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     vi.stubGlobal("getComputedStyle", (element: unknown) => ({ display: mode === "display-none" ? "none" : "block", visibility: mode === "chart-hidden" && element === horizontal ? "hidden" : "visible" }));
-    let requestedEnd = new Date("2026-12-01");
+    let requestedEnd = new Date(mode === "commands" ? "2026-12-01" : "2026-11-01");
     let dataReady = true;
     const nativeForwardInput = vi.fn();
     const axisSettled = vi.fn();
     const commands: string[] = [];
     const interceptors: Array<(event: { left?: number; top?: number; eventSource?: string }) => boolean | void> = [];
-    const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: 100 }, _chartWidth: 100, _chartHeight: 100, _start: new Date("2026-10-01"), _end: new Date("2026-11-01") };
+    const state = { scrollLeft: 0, scrollTop: 0, _scales: { width: horizontal.scrollWidth }, _chartWidth: 100, _chartHeight: 100, _start: new Date("2026-10-01"), _end: new Date("2026-11-01") };
     const api = { getState: () => state, intercept: vi.fn((_action: string, listener: (event: { left?: number; top?: number; eventSource?: string }) => boolean | void) => { interceptors.push(listener); }), detach: vi.fn(), exec: (action: string, position: { left?: number; top?: number }) => {
       commands.push(action);
-      if (action === "resize-chart") { horizontal.scrollWidth = 200; state._end = new Date(requestedEnd); }
-      if (action === "scroll-chart") { state.scrollLeft = position.left ?? 0; state.scrollTop = position.top ?? 0; }
+      if (action === "resize-chart") { horizontal.scrollWidth = 200; state._scales.width = 200; state._end = new Date(Math.max(requestedEnd.getTime(), new Date("2026-12-01").getTime())); }
+      if (action === "scroll-chart") { state.scrollLeft = Math.min(position.left ?? 0, Math.max(0, state._scales.width - state._chartWidth)); state.scrollTop = position.top ?? 0; }
     } } as unknown as IApi;
     const port = createSvarViewportPort({ api, root: root as unknown as HTMLElement, frame: { dataset: {} } as unknown as HTMLElement,
       context: () => ({ visible: true, projectionEpoch: 7, apiInstance: "api-test", scale: "day" } as ViewportContext), receipt: () => null, requestedEnd: () => requestedEnd, recordEnd: vi.fn(),
@@ -60,7 +60,7 @@ describe("SVAR visibility admission", () => {
       nativeForwardInput, axisSettled,
       lease: () => ({ stamp: { context: "test", contextEpoch: 0, gesture: 0, intent: 0 }, priority: 1 }) });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
+    return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
   it("prepares observed compatibility transaction geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {
     const port = portFor("commands");
@@ -73,6 +73,7 @@ describe("SVAR visibility admission", () => {
   });
   it("requests read-only reobservation only for a settled actual axis change, not position-only writes", async () => {
     const port = portFor("ready");
+    port.setRequestedEnd(new Date("2026-12-01"));
     expect(await port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true)).toEqual({ left: 0, top: 0 });
     expect(port.axisSettled).toHaveBeenCalledExactlyOnceWith();
     expect(await port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true)).toEqual({ left: 0, top: 0 });
@@ -189,6 +190,37 @@ describe("SVAR visibility admission", () => {
     const port = portFor("ready");
     expect(await port.prepare!({ kind: "PEER_RETURN", position: { left: 50, top: 0 }, compatibility: true }, () => true)).toEqual({ ready: true });
     expect(port.commands).toEqual([]);
+  });
+  it("restores retained extent even when the shortened native and Core capacities admit the position", async () => {
+    const port = portFor("ready");
+    port.setRequestedEnd(new Date("2026-12-01"));
+    expect(await port.prepare!({ kind: "PEER_RETURN", position: { left: 31, top: 0 }, compatibility: true }, () => true)).toEqual({ ready: true, projectionAfter: 7 });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    port.dispose();
+  });
+  it("extends divergent DOM capacity31/Core capacity30 before restoring exact Core31", async () => {
+    const port = portFor("ready");
+    port.setAxisEnd(new Date("2026-10-03")); port.setNativeClientWidth(77); port.setNativeWidth(108); port.setCoreGeometry(108, 78);
+    const command = { kind: "PEER_RETURN" as const, position: { left: 31, top: 0 }, compatibility: true };
+    expect(port.read().capacity.left).toBe(31);
+    expect(await port.apply(command, () => true)).toBeNull();
+    expect(port.commands).toEqual([]);
+    expect(await port.prepare!(command, () => true)).toEqual({ ready: true, projectionAfter: 7 });
+    expect(port.commands).toEqual(["resize-chart", "resize-chart", "scroll-chart"]);
+    expect(await port.apply(command, () => true)).toEqual(command.position);
+    port.dispose();
+  });
+  it("rejects insufficient Core capacity without compatibility instead of accepting the native tolerance", async () => {
+    const port = portFor("ready"); port.setAxisEnd(new Date("2026-10-03")); port.setNativeClientWidth(77); port.setNativeWidth(108); port.setCoreGeometry(108, 78);
+    expect(await port.prepare!({ kind: "PEER_RETURN", position: { left: 31, top: 0 } }, () => true)).toEqual({ ready: false });
+    expect(port.commands).toEqual([]); port.dispose();
+  });
+  it.each([[NaN, 100], [Infinity, 100], [-1, 100], [200, NaN], [200, 0], [200, Infinity]])("rejects invalid public Core geometry %s/%s before any write", async (width, chartWidth) => {
+    const port = portFor("ready"); port.setCoreGeometry(width, chartWidth);
+    const command = { kind: "PEER_RETURN" as const, position: { left: 0, top: 0 }, compatibility: true };
+    expect(await port.prepare!(command, () => true)).toEqual({ ready: false });
+    expect(await port.apply(command, () => true)).toBeNull();
+    expect(port.commands).toEqual([]); port.dispose();
   });
   it.each(["resize", "fullscreen"])("includes physical %s in the lease even before React renders", mode => {
     const port = portFor("ready"), before = port.read().context.geometry;

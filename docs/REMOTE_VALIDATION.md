@@ -203,6 +203,8 @@ PR #685 재개: [원본 #2772.1](https://github.com/planner77/masterGantt/action
 
 [CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391)의 #461 GET ECONNRESET은 연결 오류 증거다. 프로세스 종료·OOM·기능 회귀 원인을 확정하지 않는다. 후속 fixture는 cleanup 전 bounded 안전 JSON을 실패 report에 첨부한다. PID/generation·exit/signal·expected shutdown, 별도 stdout/stderr allowlist 기록, test-side 호출과 기존 서버 requestId 완료 기록,1회 readiness probe·이용 가능한 숫자형 자원 수치를 구분한다. 서버 request-start 계측·raw stderr/stack·headers/cookies/body/query/env/DB는 수집하지 않는다. 단일 exit137이나 완료 로그 부재는 OOM/요청 미도착의 확정 근거가 아니다. probe·진단 수집은 business 재시도가 아니며 원래 실패를 rethrow한다.
 
+Issue #667 CI #2814 후속은 설치 Next의 정확한 메시지3종만 `MEMORY_RESTART_WARNING` / `SERVER_START_FAILURE` / `TURBOPACK_INTERNAL_ERROR`로 분류한다. 원문·추가 문자열·위조 JSON·자격증명은 버리며 기존 bounded append와 lifecycle 기록을 유지한다. 경고는 실제 exit/restart 증거가 아니고 동일 PID의 두 snapshot도 연속 생존 증명이 아니다. 직접 관측 APIContext/browser fetch의 네트워크·HTTP·JSON 실패를 구분한다. 원본 ECONNRESET의 근인은 UNKNOWN이며 로컬 비재현·readiness200·RSS 수치만으로 OOM/재시작/keep-alive 원인을 확정하지 않는다. [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)의 안전한 원본 필드와 별도 원장을 참조한다.
+
 수집 JSON/trace의 로컬 증거와 GitHub Actions report artifact는 별개다. 실제 새 exact-head CI의 Quality/E2E6/Docker·Trusted 결과 전에는 공식 PASS가 아니다. 기존 원격 FAIL과 baseline 환경 FAIL을 숨기지 않으며 timeout·retry·skip/필수 gate를 변경하지 않는다.
 
 현재 main `6eaec3331fcbc720ab42106789a505c5ee5eefb4`의 Finalizer 두 스크립트와 운영 문서를 그대로 사용한다. 아래 #550 PR #626의 `inherited_release_previous_version`은 이전 구현 이력이고 현행 필드는 `inherited_release_base_version`/`release_base_version`이다. 다른 Issue/버전·closed barrier를 넘는 승계는 최신 main의 fail-closed 정책을 따른다. #550 v0.105.0 승인으로 현재0.106.0 게시 권위를 추론하지 않는다. 이번 작업은 PR CI 시작까지이며 병합·release·Issue 종료를 수행하지 않는다.

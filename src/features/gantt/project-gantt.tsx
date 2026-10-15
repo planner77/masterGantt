@@ -3,6 +3,7 @@
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
+import { copyViewportHandoffSource, createCopyViewportRevocation, type CanonicalMutationRequest } from "./viewport/copy-viewport-continuity";
 import { createSvarViewportPort } from "./viewport/svar-viewport-port";
 
 import { createCoreActionTrace, traceFingerprint, type TraceContext } from "./diagnostics/core-action-trace";
@@ -336,7 +337,7 @@ interface ProjectGanttProps {
   readonly editable: boolean;
   readonly mutationLocked: boolean;
   readonly mutationPending?: boolean;
-  readonly mutationRequest?: Readonly<{ requestId: string; baseRevision: number; affectedIds: readonly string[]; outcome?: import("./canonical-recovery").MutationOutcome }> | null;
+  readonly mutationRequest?: CanonicalMutationRequest | null;
   readonly canonicalRecoveryBlocked?: boolean;
   readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
@@ -455,6 +456,11 @@ export function ProjectGantt({
   const projectionObservationAttempt = useRef(0);
   const requestProjectionObservationReference = useRef<(() => void) | null>(null);
   const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
+  const currentMutationRequestReference = useRef(mutationRequest);
+  const consumedCopyViewportReference = useRef<string | null>(null);
+  const copyViewportRevocationReference = useRef<{ requestId: string; lease: ReturnType<typeof createCopyViewportRevocation> } | null>(null);
+  const readCopyEnvironment = useCallback(() => ({ width: window.innerWidth, height: window.innerHeight, fullscreen: document.fullscreenElement !== null }), []);
+  useLayoutEffect(() => { currentMutationRequestReference.current = mutationRequest; }, [mutationRequest]);
   useLayoutEffect(() => {
     // A visible-session receipt cannot prove rows/layout after a hidden peer
     // view. Revoke it before return commands can pin an older generation.
@@ -1957,6 +1963,50 @@ export function ProjectGantt({
     }
     viewportCoordinatorReference.current?.contextChanged();
   }, [apiInstanceId, projectRevision, viewportContinuityKey, viewRootTaskId, visibleTaskFilterKey, scaleMode, canonicalViewportGeometry, viewVisible, projection.logicalVisibleIds.length, visibleTaskIds, filterActive, calendar, tasks, svarLinks]);
+  useLayoutEffect(() => {
+    const request = mutationRequest;
+    if (!request?.copyViewport) { copyViewportRevocationReference.current = null; return; }
+    if (copyViewportRevocationReference.current?.requestId !== request.requestId)
+      copyViewportRevocationReference.current = { requestId: request.requestId, lease: createCopyViewportRevocation(request.copyViewport) };
+    const lease = copyViewportRevocationReference.current.lease;
+    try {
+      const sample = viewportPortReference.current?.read();
+      if (sample) lease.observe(sample, readCopyEnvironment());
+      else lease.invalidate();
+    } catch { lease.invalidate(); }
+  });
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-copy-viewport-context";
+    api.on("resize-grid", () => copyViewportRevocationReference.current?.lease.invalidate(), { tag });
+    api.on("set-columns", () => {
+      const lease = copyViewportRevocationReference.current?.lease;
+      if (!lease) return;
+      try {
+        const sample = viewportPortReference.current?.read();
+        if (sample) lease.observe(sample, readCopyEnvironment());
+        else lease.invalidate();
+      } catch { lease.invalidate(); }
+    }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId, readCopyEnvironment]);
+  useEffect(() => {
+    const environmentChanged = (event: Event) => {
+      const lease = copyViewportRevocationReference.current?.lease;
+      if (!lease) return;
+      if (event.type === "resize") lease.observeEnvironment(readCopyEnvironment());
+      else lease.invalidate();
+    };
+    window.addEventListener("resize", environmentChanged);
+    document.addEventListener("fullscreenchange", environmentChanged);
+    document.addEventListener("visibilitychange", environmentChanged);
+    return () => {
+      window.removeEventListener("resize", environmentChanged);
+      document.removeEventListener("fullscreenchange", environmentChanged);
+      document.removeEventListener("visibilitychange", environmentChanged);
+    };
+  }, [readCopyEnvironment]);
   useEffect(() => {
     const api = apiReference.current, root = ganttScrollReference.current, frame = fullscreenFrameReference.current;
     if (!api || !root || !frame || !apiInstanceId || !viewportContextReference.current) return;
@@ -2188,6 +2238,41 @@ export function ProjectGantt({
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, projection.keys.data, projection.keys.structure, projectRevision, apiInstanceId, restoreCanonicalMetadataViewport, projection, mutationPending, canonicalRecoveryBlocked]);
+
+  useEffect(() => {
+    const request = mutationRequest, coordinator = viewportCoordinatorReference.current;
+    if (!request?.copyViewport || mutationPending || consumedCopyViewportReference.current === request.requestId) return;
+    consumedCopyViewportReference.current = request.requestId;
+    if (!coordinator || request.outcome !== "SUCCESS" || request.copyViewport.confirmedRevision === undefined || canonicalRecoveryBlocked) return;
+    let cancelled = false;
+    // This fork waits on data ordering; viewport completion never joins the data queue.
+    void canonicalSyncQueueReference.current.then(async () => {
+      if (cancelled || currentMutationRequestReference.current !== request || viewportCoordinatorReference.current !== coordinator) return;
+      const port = viewportPortReference.current, consistency = consistencyReference.current, lifetime = copyViewportRevocationReference.current;
+      if (!port || !consistency || lifetime?.requestId !== request.requestId) return;
+      const sample = port.read(), applied = appliedProjectionReference.current, desired = projectionReference.current;
+      const source = copyViewportHandoffSource(request, {
+        requestId: currentMutationRequestReference.current.requestId, sample, stamp: coordinator.stamp(), environment: readCopyEnvironment(),
+        blocked: consistencyBlockedReference.current, revoked: lifetime.lease.isRevoked(),
+        canonicalReady: consistency.dataReady() && consistency.recovery.state().recovery.phase === "SETTLED" &&
+          applied?.revision === desired.revision && applied.keys.data === desired.keys.data && applied.keys.structure === desired.keys.structure,
+      });
+      if (!source) return;
+      const sourceCurrent = () => {
+        if (cancelled || currentMutationRequestReference.current !== request || copyViewportRevocationReference.current !== lifetime ||
+          viewportCoordinatorReference.current !== coordinator || consistencyBlockedReference.current || !consistency.dataReady()) return false;
+        return lifetime.lease.observe(port.read(), readCopyEnvironment());
+      };
+      await coordinator.request({ kind: "PASSIVE_RESTORE", position: { left: request.copyViewport!.left, top: sample.core.top }, compatibility: true, protect: false, sourceCurrent }, source);
+    }).catch(() => {
+      const lifetime = copyViewportRevocationReference.current;
+      if (lifetime?.requestId !== request.requestId) return;
+      lifetime.lease.invalidate();
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current)
+        fullscreenFrameReference.current.dataset.ganttCopyViewportFailure = "COPY_VIEWPORT_RESTORE_FAILED";
+    });
+    return () => { cancelled = true; };
+  }, [mutationRequest, mutationPending, canonicalRecoveryBlocked, apiInstanceId, readCopyEnvironment]);
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; structure: string } | null>(null);
   useEffect(() => {

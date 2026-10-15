@@ -1,24 +1,51 @@
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
+import { diagnosticRoute } from "./fixtures/isolated-application-diagnostics";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 const adminPassword = "Stage463SyntheticAdmin!";
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: adminPassword, viewport: { width: 1440, height: 900 } });
 
-test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource drill과 readonly peer 보존", async ({ page, baseURL, browser }, testInfo) => {
+test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource drill과 readonly peer 보존", async ({ page, baseURL, browser, observeIsolatedApi }, testInfo) => {
   test.setTimeout(240_000);
   page.setDefaultTimeout(20_000);
   const origin = baseURL!;
   const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Dashboard #463", ownerName: "E2E 자동화", description: "실제 SQLite 단계 범위", editPassword: "Stage463!" } });
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string, api = `/api/projects/${publicId}`;
-  const get = async () => (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  const get = async () => {
+    const response = await observeIsolatedApi(api, "GET", () => page.request.get(api));
+    expect(response.status()).toBe(200);
+    return await response.json() as ProjectSnapshotResponse;
+  };
+  // After navigation, confirm UI writes through the browser's same-origin
+  // transport. Do not depend on APIRequestContext's pooled socket lifetime.
+  const getBrowserSnapshot = async () => {
+    const response = await observeIsolatedApi(api, "GET", async () => {
+      const read = await page.evaluate(async path => {
+        const result = await fetch(path, { credentials: "same-origin", cache: "no-store" });
+        const text = await result.text();
+        let body: unknown = null, validJson = true;
+        try { body = JSON.parse(text); } catch { validJson = false; }
+        return { status: result.status, requestId: result.headers.get("x-request-id"), body, validJson };
+      }, api);
+      return { status: () => read.status, headers: () => ({ "x-request-id": read.requestId ?? "" }), body: read.body, validJson: read.validJson };
+    });
+    expect(response.status()).toBe(200);
+    expect(response.validJson, "브라우저 canonical 조회는 유효한 JSON을 반환해야 합니다.").toBe(true);
+    return response.body as ProjectSnapshotResponse;
+  };
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const mutate = async (path: string, data: unknown, method: "post" | "put" | "patch" = "post", status = 200) => {
     const response = await page.request[method](`${api}${path}`, { headers: headers(), data });
-    expect(response.status(), `${method} ${path}: ${await response.text()}`).toBe(status);
+    let code = "none";
+    if (response.status() !== status) {
+      const body: unknown = await response.json().catch(() => null);
+      if (typeof body === "object" && body !== null && "error" in body && typeof body.error === "object" && body.error !== null && "code" in body.error && typeof body.error.code === "string" && /^[A-Z0-9_]{1,80}$/.test(body.error.code)) code = body.error.code;
+    }
+    expect(response.status(), `${method.toUpperCase()} ${diagnosticRoute(api + path)}: HTTP ${response.status()}, code=${code}`).toBe(status);
     snapshot = await get();
     return response;
   };
@@ -67,7 +94,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   await picker.fill(join.taskId); await picker.press("Enter");
   const beforeRevision = snapshot.data.project.revision;
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0);
-  snapshot = await get(); expect(snapshot.data.project.revision).toBe(beforeRevision + 1);
+  snapshot = await getBrowserSnapshot(); expect(snapshot.data.project.revision).toBe(beforeRevision + 1);
   expect(snapshot.data.tasks.find((task) => task.taskId === child.taskId)?.membership).toMatchObject({ explicitMilestoneTaskId: join.taskId, effectiveMilestoneTaskId: join.taskId });
   await row(join.taskId).click({ button: "right" }); await chooseTaskInformation(page);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click(); await expect(dialog).toContainText("유효 일반 작업 1개"); await expect(dialog).toContainText("상속 일반 작업");
@@ -120,7 +147,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   await expect(logisticsPanel.getByRole("heading", { name: "관련 Milestone — Milestone 전체 상태 기준", exact: true })).toBeVisible();
   const relatedStage = logisticsPanel.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤", exact: true }).getByRole("row", { name: /M-B/ });
   await expect(relatedStage).toContainText("Ready"); await expect(relatedStage).toContainText("1 / 1");
-  expect((await get()).data.project.revision).toBe(snapshot.data.project.revision);
+  expect((await getBrowserSnapshot()).data.project.revision).toBe(snapshot.data.project.revision);
   await testInfo.attach("actual-canonical-stage-snapshot", { body: JSON.stringify({ projectPublicId: publicId, projectRevision: full.projectRevision, catalogRevision: full.catalogRevision, stageIds: full.rows.map((stage) => stage.milestoneTaskId), assignmentIds: partial.effort.assignmentIds, workloadRange: partial.workloadRange, fullJoin: fullJoin.stageGate, grandTotalMd: partial.effort.plannedMd, bucketTotals: partial.effort.buckets.map((bucket) => ({ milestoneTaskId: bucket.milestoneTaskId, plannedMd: bucket.plannedMd })) }, null, 2), contentType: "application/json" });
 
   const readonly = await browser.newContext({ baseURL: origin, viewport: { width: 1440, height: 900 } });
@@ -184,5 +211,5 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
     expect(scrollCheckpoints.find((checkpoint) => checkpoint.phase === "after-followup-layout")!.publicLeft).toBe(scroll);
     expect(JSON.parse(await frame.getAttribute("data-gantt-peer-restore") ?? "{}").count).toBe(1);
   } finally { await readonly.close(); }
-  expect((await get()).data.project.revision).toBe(snapshot.data.project.revision);
+  expect((await getBrowserSnapshot()).data.project.revision).toBe(snapshot.data.project.revision);
 });

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { APIResponse } from "@playwright/test";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../src/contracts/projects";
+import { createWorkingCalendar, nextWorkingDay } from "../../src/domain/scheduling/calendar";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
@@ -201,8 +202,14 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
   const empty = await get();
   expect(empty.data.tasks).toEqual([]);
   const future = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
-  while ([0, 6].includes(future.getUTCDay())) future.setUTCDate(future.getUTCDate() + 1);
-  const requestedDate = firstDate === "past" ? "2026-10-12" : future.toISOString().slice(0, 10);
+  // Keep the requested/canonical equality strict by choosing a working fixture
+  // date from this project's calendar, including holidays and date exceptions.
+  const candidateDate = firstDate === "past" ? "2026-10-12" : future.toISOString().slice(0, 10);
+  const calendar = empty.data.project.calendar;
+  // Canonical holidays mirror NON_WORKING exceptions; do not apply both projections.
+  const requestedDate = nextWorkingDay(candidateDate, createWorkingCalendar({
+    ...calendar, holidays: calendar.exceptions === undefined ? calendar.holidays : [],
+  }));
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();

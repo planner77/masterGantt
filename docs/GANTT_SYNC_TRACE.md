@@ -129,3 +129,7 @@ Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source�
 #2812.1 Milestone-only 진단은 U2 SETTLED 뒤 filter-tasks 큐에서 width 예외가 난 사실과 raw axis start2026-10-15T15:00Z/end2026-10-12T15:00Z/width-108/cells[1,0]을 분리 기록한다. 보완 프로파일은 고정 start를 생략한 Core 계산 left bound/open end다. 임시 exception/stack 계측은 제거하며 새 프로파일의 실제 coverage·정착은 #667 correction 증거로만 판단한다.
 
 #667 CI #2813 보완의 DEV `__masterganttGridReveal.start`는 생략 가능한 설정 `state.start`가 아니라 현재 렌더링된 `state._scales.start`를 우선하고 `_start`를 차선으로 읽는다. Week의 정렬된 날짜축 원점과 실제 reveal port의 기준을 일치시킨다. 설정 날짜가 없다는 사실과 실제 축이 없다는 사실을 구분하며 날짜를 만들어 채우거나 이동 명령/완료 판정을 추가하지 않는다. 원본 null/getFullYear FAIL과 보완 실제 browser 결과는 Work Packet의 source별 증거를 따른다.
+
+#667 종합 감사에서 추가된 Copy 원본은 `project-multi-task-copy-paste.spec.ts:89`의 Expected46/Received0이며 단독 재현도 FAIL이다. U2 SETTLED·canonical/Link 보존을 viewport 정착으로 합치지 않는다. 최종 보완은 copy dispatch의 고정 권한→검증/수용한 confirmed revision→현재 U2 proof→기존 Coordinator의 단일 PASSIVE_RESTORE 순서를 추적한다. 원본 광역/단독 FAIL과 새 source의 선택·광역 재검증을 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md) 및 [새 교정 원장](evidence/issue-667/ci2814-correction.json)에 별도로 남긴다. 진단은 원문 응답/headers/cookies/body를 저장하지 않으며 기존 bounded trace를 사용한다.
+
+#667 Resource 복귀의 원본 PEER_RETURN TIMED_OUT(X31→Core30)은 U2 성공이나 native capacity31로 완료 처리하지 않는다. public Core scale/physical width와 native range를 함께 검증하고 retained end를 보존한다. extent 변경은 기존 U4 결과와 U3 fresh receipt로 연결하며 Core exact/native±1·3프레임 완료와 원래 권한 조건은 유지한다.

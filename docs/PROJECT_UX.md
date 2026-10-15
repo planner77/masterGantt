@@ -337,7 +337,7 @@ Project 생성 API/DB, 기준정보 catalog, Owner 의미, password/session/Orig
 
 오류는 최신순 최대 50건이다. 한도를 넘은 이전 항목의 제외 건수를 표시한다. 패널을 열면 표시 중인 항목을 읽음 처리하고 열린 동안 도착한 오류도 읽음으로 처리한다. “읽은 알림 지우기”는 명시적 사용자 동작이다. 이 보관 상한·읽음 시점은 구현 정책이며 사용자가 숫자를 지정한 것으로 표현하지 않는다.
 
-비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. Task mutation 실패의 canonical 재조회가 실패해도 같은 Gantt 인스턴스에 마지막 확정 일정을 다시 동기화한다(#344). 기존 Gantt reset은 공개 SVAR 동기화 자체가 예외를 낸 최후 복구 경로에만 사용한다.
+비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. 과거 #344의 실패 GET 뒤 snapshot 재생/reset fallback은 #667에서 대체했다. 현재 Task mutation 복구 조회가 실패하거나 오래된 응답이면 UNKNOWN 안내·초안·충돌 쓰기 차단을 유지한다. 같은 Gantt 인스턴스를 보존하고 명시적 최신 조회의 검증된 snapshot 수용으로만 복구하며 자동 재생·reset/remount로 결과를 추측하지 않는다.
 
 `WorkspaceDialog`는 native dialog의 top layer를 사용한다. 설정 모달 안에서도 안내가 보이도록 해당 dialog 안에 live region을 둔다. 알림함에는 자체 복사 안내 live region을 사용한다. Escape/닫기 후 원래 버튼으로 `preventScroll` focus를 복귀한다. 전송 중인 파괴적 동작은 중복 제출과 닫기를 차단한다. 좁은 화면과 긴 내용은 최대 viewport 크기 및 내부 스크롤/줄바꿈으로 처리한다.
 
@@ -916,7 +916,7 @@ Header에는 어느 요일이 근무 가능한지, 공휴일명·비근무 사�
 
 Task C 삭제가 서버에서 성공한 뒤 Summary의 마지막 child 삭제가 `409 EMPTY_SUMMARY_NOT_ALLOWED`로 거부되면, 마지막 child는 유지되고 이미 삭제된 Task C는 Grid/Chart에 다시 나타나지 않아야 한다. 실패 복구의 범위는 현재 요청에서 발생한 미확정 변화다. 빈 Summary를 자동 삭제하거나 일반 Task로 전환하지 않는다.
 
-Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 재조회가 실패하거나 오래된 응답을 반환하면 마지막 확정 snapshot을 기존 SVAR API 동기화 경로로 다시 적용한다. 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않으며, Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
+Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 과거 #344의 마지막 확정 snapshot 재적용은 #667에서 대체했다. 현재 재조회 실패·오래된 응답은 UNKNOWN 안내와 충돌 쓰기 잠금을 유지하고, 최신 세대의 검증된 서버 snapshot 수용 전에는 과거 snapshot을 Core에 재생하지 않는다. 명시적 앱 최신 조회로 복구하며 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않는다. Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
 
 `401`은 읽기 전용으로 전환하고 편집 잠금 해제를 안내한다. `412`는 최신 일정을 확인하도록 안내하며, network 실패는 서버 저장 여부를 단정하지 않고 canonical GET 결과를 확인한다. GET이 현재 확정 revision 이상이면 해당 서버 상태를 적용하고, 조회할 수 없으면 마지막 확인 상태를 유지한다. 실패 요청을 자동 재전송하지 않는다. 서버 authorization·Origin·revision 계약과 Task Editor 초안 정책은 기존 계약을 따른다.
 
@@ -1379,3 +1379,7 @@ Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고
 화면을 숨겼다가 일정으로 복귀할 때는 이전 visible session의 완료 영수증을 현재 복귀의 근거로 재사용하지 않는다. 새 visible 관측 뒤 실제 정착을 확인한다. 다른 탭의 최신 확인이 진행 중이거나 실패하면 실패 mutation의 UNKNOWN 잠금을 유지하고, 최신 성공 조회만 해제한다.
 
 #667 반복 삭제 거부 후 canonical 조회가 stale/실패면 기존 확정 삭제를 보존하면서 UNKNOWN 잠금을 유지한다. 테스트 외부의 API 조회나 편집 session 재활성화만으로 성공 복구를 추론하지 않는다. UI의 명시적 최신 상태 재조회가 현재 snapshot을 수용한 뒤에만 다음 삭제를 허용하며 같은 Gantt 인스턴스·접힘·scale·viewport를 보존한다.
+
+#667 종합 회귀 보완: 다중 Copy/Paste 뒤 canonical 데이터·Link 보존과 viewport 보존을 별도로 확인한다. 원래 가로 위치는 실제 copy dispatch 시점에 캡처하고 검증된 성공 canonical revision·현재 U2 proof에 연결해 기존 Coordinator로 한 번 복원한다. 늦은 저장 응답이 새로운 사용자 입력 권한을 만들지 않으며 pending 중 실제 wheel·filter/reveal·API 교체·UNKNOWN이면 과거 위치를 복원하지 않는다. 기존 same-instance·열폭/scale/접힘·정확한 scroll 검증을 완화하지 않는다. 원본46→0 FAIL·보완·미검증은 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
+#667 Resource 복귀의 보존 대상 X는 실제 Core/native가 일치한 캡처다. 복귀 시 두 수용 범위가1px 다르더라도 Core exact 목표를 낮추지 않는다. retained 날짜축과 양쪽 범위를 기존 단일 Coordinator/U4에서 준비한 뒤 현재 projection과3실제 프레임 정착으로 완료한다. 미확인 geometry는 완료로 표시하지 않는다.

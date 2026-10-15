@@ -259,11 +259,17 @@ test("#570 query receipt is consumed before later tree and selection observation
   const frame = page.locator(".project-gantt-frame");
   const receipt = async () => JSON.parse((await frame.getAttribute("data-gantt-projection-receipt")) ?? "null");
   await expect.poll(async () => (await receipt())?.outcome).toBe("SETTLED");
+  const beforeQuery = await receipt();
+  const filteredIds = [fixture.tasks[0].taskId, fixture.tasks[1].taskId];
   await page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" }).fill("Existing summary child");
   await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
   await expect.poll(async () => {
     const value = await receipt();
-    return value?.outcome === "SETTLED" && value.queryConditionsChanged;
+    // An initial query receipt can also say queryConditionsChanged=true.
+    // Consume this search's evidence before starting the independent tree checks.
+    return value?.generation > beforeQuery.generation && value.filterKey !== beforeQuery.filterKey &&
+      value.revision === fixture.project.revision && value.outcome === "SETTLED" && value.queryConditionsChanged &&
+      JSON.stringify(value.logicalVisibleIds) === JSON.stringify(filteredIds) && JSON.stringify(value.coreVisibleIds) === JSON.stringify(filteredIds);
   }).toBe(true);
   const toggle = rowNamed(page, "Stable summary").locator('[data-action="open-task"]');
   for (const visible of [false, true]) {

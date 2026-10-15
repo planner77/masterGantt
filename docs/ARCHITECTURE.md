@@ -103,7 +103,7 @@ Gantt 연결부는 같은 API/session/request의 정확한 confirmation과 현�
 
 2026-10-11 Main CI의 실제 #463 Playwright Trace는 FILTER_RETURN(120,0)의 APPLYING/SETTLING 도중 새 Core/native 이동(180,128)이 허용되지 않고 기존 좌표120으로 되돌아가며 TIMED_OUT으로 끝난 것을 보여준다. 수평 DOM capacity는 2563px로 180px을 허용하므로 capacity 문제가 아니라 필터 bookmark의 과도한 scroll-chart intercept/reconciliation 문제다. FILTER_RETURN은 현재 쿼리에서만 1회 복원하고, 이후 다른 정합 Core/native 위치가 보이면 SUPERSEDED로 끝내며 native repair/장기 guard를 획득하지 않는다. PEER_RETURN/PASSIVE_RESTORE의 최신 권한 검증 및 늦은 0px rewind 보호는 유지한다. 원본 실패 [#2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)를 보존한다.
 
-2026-10-11 PR #610 보완: #570 canonical projection receipt는 데이터·행·수직 정합까지만 증명한다. 가로 Core/native 불일치는 #571 단일 프로그램 writer/실측 settle의 소유이며, 가로 불일치를 projection success 조건에 넣으면 peer 복구 스크롤 발행 자체가 차단되는 교착을 만든다. 브라우저 viewport/Fullscreen은 restore intent context lease에 포함된다. 확장 준비는 물리 capacity가 충분할 때 no-op, dev-only 날짜 probe/수평 probe는 production adapter의 별도 unsupported ingress다.
+2026-10-11 PR #610 보완: #570 canonical projection receipt는 데이터·행·수직 정합까지만 증명한다. 가로 Core/native 불일치는 #571 단일 프로그램 writer/실측 settle의 소유이며, 가로 불일치를 projection success 조건에 넣으면 peer 복구 스크롤 발행 자체가 차단되는 교착을 만든다. 브라우저 viewport/Fullscreen은 restore intent context lease에 포함된다. 현재 #667 준비는 retained 날짜 end가 보존되고 Core exact/native±1 수용 범위가 함께 충분할 때만 확장 no-op이며, dev-only 날짜 probe/수평 probe는 production adapter의 별도 unsupported ingress다.
 
 #570 projection receipt의 후속 소비자는 단일 Viewport Coordinator다. canonical 데이터·조회 projection의 authority는 그대로 유지하고, viewport 의도/실행/완료 관측만 분리한다. 부모 Workspace는 유효한 visible capture와 typed peer/Task reveal 요청을 전달하며 Gantt native DOM 복원을 별도 실행하지 않는다.
 
@@ -279,7 +279,7 @@ Project Direct GET snapshot은 Cookie가 있어도 항상 Readonly다. UI는 별
 
 UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W07은 설치된 Core 2.7.3에서 실제 이동·좌우 resize를 수행해 exclusive widget end↔inclusive domain end 변환과 서버 저장 왕복을 확인했다. 최종 콜백의 전체 Task 상태는 기존 endpoint와 비교해 move/start-resize/end-resize 명령으로 구분한다.
 
-편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 `no-store`로 서버를 재조회하며 Project identity와 revision을 검증한다. 재조회 실패나 오래된 응답은 마지막 서버 확정 snapshot을 동일 SVAR 인스턴스의 공개 serialize/exec 동기화 경로로 다시 적용한다(#344). 요청의 실패로 이전 성공 변경을 되돌리거나 widget을 재마운트하지 않는다. 공개 SVAR 동기화 자체가 예외를 낸 경우의 최후 reset fallback은 별도 경로로 유지한다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
+편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 `no-store`로 서버를 재조회하며 Project identity와 revision을 검증한다. 과거 #344의 마지막 snapshot 재적용/reset fallback은 #667 제품 통합에서 대체했다. 현재 재조회 실패·오래된 응답은 UNKNOWN 잠금과 초안을 유지하고, 확인된 최신 canonical snapshot 수용 전에는 이전 snapshot 재생·Core 복구 쓰기·remount/reset으로 결과를 추측하지 않는다. 동기화 예외도 blocked 상태와 명시적 최신 조회로 처리하며 요청 실패로 이전 성공 변경을 되돌리지 않는다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
 
 Issue #3에서는 React canonical snapshot 교체와 SVAR 재마운트를 분리한다. 정상 저장은 동일 인스턴스에서 공개 serialize/exec 기반 차이 반영을 사용하며 요청 중 잠금은 권한/readonly와 분리한다. 기존 scroll·선택·접힘을 우선 보존하고 임의 신규 행 이동을 하지 않는다. 내부 반영은 사용자 command로 재전송하지 않는다. 상세 정책과 실제 검증 상태는 [Issue #3 기록](ISSUE_3_REVIEW.md)을 따른다. 현재 Grid Header `+`와 행 `+`는 입력창 없이 `새 작업`, 브라우저 local 오늘, 기간 1일을 적용한다. 첫 child의 일반 Task→Summary 전환도 별도 확인창 없이 아래의 명시적 서버 옵션으로 원자 처리한다.
 
@@ -489,3 +489,7 @@ U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기�
 #667 CI 보완에서는 cross-tab canonical GET도 mutation/recovery와 동일한 read generation을 사용한다. 실패 mutation은 조회 시작 전에 UNKNOWN을 고정하고, 더 새 조회의 시작만으로 잠금을 해제하지 않는다. 실제 현재 세대의 성공 snapshot 수용만 해제 근거다. 숨김/표시 전환에서는 이전 visible bridge를 폐기해 새 layout 관측과 단일 Coordinator의 완료를 분리한다.
 
 #667 CI #2812 보완은 mount에 고정한 start prop을 생략한다. 설치 Core가 canonical Task 날짜에서 유효한 left bound를 계산하고 U4 resize는 그 현재 bound를 보존한다. 최초 right extent 보존·stable tasks/links/columns와 단일 Coordinator는 유지하며 React start/end 변경에 의한 store init이나 private Store 쓰기를 사용하지 않는다.
+
+#667 종합 회귀의 Copy 연속성 보완은 내부 client mutation capsule에 한정한다. Workspace의 실제 copy dispatch에서 원래 API/측정 X·사용자 gesture/intent·비데이터 context를 고정하고 해당 request ID/base revision에 연결한다. HTTP ok만으로 승인하지 않고 검증된 응답 body와 실제 수용한 canonical revision을 기록한다. Gantt는 정확한 현재 request/revision의 U2 proof 뒤 원래 권한·동일 비데이터 context가 살아있을 때만 기존 Coordinator에 한 번 전달한다. queue 안에서 viewport 완료를 기다리지 않고 새 scroll writer·server DTO/DB contract를 추가하지 않는다. 새 입력/조회/실패/UNKNOWN은 과거 복원을 폐기하며 최종 실제 범위는 Work Packet을 따른다.
+
+#667 Resource 복귀 준비는 retained 날짜 end와 Core/native 수용 범위를 함께 확인한다. DOM scrollWidth-clientWidth는 Core scaleWidth-physicalWidth의 정확 좌표 상한과 다를 수 있으므로 native 범위만으로 완료하지 않는다. 실제 Core geometry가 유효하고 Core exact target/native±1가 가능해야 하며 부족 범위는 기존 U4 PRESERVE transaction에서만 준비한다. 원래 lease/source·extent 합집합·실제 변경 뒤 U3 재관측/receipt floor를 유지한다.

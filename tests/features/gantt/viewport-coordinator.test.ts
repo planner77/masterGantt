@@ -102,6 +102,43 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.sample.core).toEqual({ left: 120, top: 96 });
   });
 
+  it.each([false, undefined, "throw"])("fails closed for an original source guard returning %s", result => {
+    const f = fixture();
+    const sourceCurrent = (() => { if (result === "throw") throw new Error("revoked"); return result; }) as () => boolean;
+    return expect(f.coordinator.request({ ...passive, sourceCurrent })).resolves.toBe("SUPERSEDED").then(() => {
+      expect(f.port.apply).not.toHaveBeenCalled();
+      expect(vi.mocked(f.port.trace).mock.calls.every(call => !("sourceCurrent" in (call[1] ?? {})))).toBe(true);
+    });
+  });
+  it("propagates original-source revocation to a port's pending preparation without fresh authority", async () => {
+    const f = fixture(); let valid = true, release!: () => void, preparationCurrent: (() => boolean) | undefined;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    f.port.prepare = async (_command, current) => { preparationCurrent = current; await gate; return { ready: current() }; };
+    const pending = f.coordinator.request({ ...passive, sourceCurrent: () => valid });
+    await f.flush(); expect(preparationCurrent?.()).toBe(true);
+    valid = false; expect(preparationCurrent?.()).toBe(false); release();
+    await f.flush(); expect(await pending).toBe("SUPERSEDED");
+    expect(f.port.apply).not.toHaveBeenCalled();
+    expect(f.coordinator.stamp().gesture).toBe(0);
+  });
+  it("cannot finish or retain settled authority after the original source guard is revoked", async () => {
+    const f = fixture(); let valid = true;
+    const pending = f.coordinator.request({ ...passive, sourceCurrent: () => { if (!valid) throw new Error("revoked"); return true; } });
+    await f.advance(4); expect(f.port.apply).toHaveBeenCalledTimes(1);
+    valid = false; await f.advance(); expect(await pending).toBe("SUPERSEDED");
+    expect(f.port.protect).not.toHaveBeenCalled();
+    valid = true; expect(f.port.apply).toHaveBeenCalledTimes(1);
+  });
+
+  it("revokes settled passive protection when the original source later expires", async () => {
+    const f = fixture(); let valid = true;
+    const pending = f.coordinator.request({ ...passive, sourceCurrent: () => valid });
+    await f.advance(8); expect(await pending).toBe("SETTLED");
+    const authority = vi.mocked(f.port.protect).mock.calls[0][1];
+    expect(authority()).toBe(true);
+    valid = false; expect(authority()).toBe(false);
+  });
+
   it("requires geometry frames and three actual post-command frames before reporting settled", async () => {
     const f = fixture(), pending = f.coordinator.request(peer);
     await f.advance(2);

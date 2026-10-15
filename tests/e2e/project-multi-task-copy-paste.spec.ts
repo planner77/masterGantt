@@ -70,6 +70,7 @@ test("다중 checkbox Copy의 canonical 순서·내부 Link·instance·reload �
   const scrollBefore = await chart.evaluate((element) => element.scrollLeft);
   await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
   await menu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
+  const beforeCopyIntent = await frame.evaluate(element => Math.max(0, ...(JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{ intentEpoch?: number }>).map(event => event.intentEpoch ?? 0)));
   const responsePromise = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
   await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "As child", exact: true }).click();
   const response = await responsePromise; expect(response.status()).toBe(200);
@@ -86,7 +87,19 @@ test("다중 checkbox Copy의 canonical 순서·내부 Link·instance·reload �
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
   await expect(row(page, a.taskId)).toHaveCount(0);
   expect(Math.abs((await taskHeader.boundingBox())!.width - customWidth)).toBeLessThanOrEqual(1);
+  // Rendered rows prove data, not the completion of this copy's viewport handoff.
+  await expect.poll(() => frame.evaluate((element, expected) => {
+    const receipt = JSON.parse(element.dataset.ganttProjectionReceipt ?? "null") as { revision: number; generation: number } | null;
+    const events = JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{ kind?: string; phase: string; intentEpoch: number; projectionEpoch: number; core: { left: number }; native: { left: number } }>;
+    const operation = events.filter(event => event.kind === "PASSIVE_RESTORE" && event.intentEpoch > expected.after).at(-1);
+    return operation?.phase === "SETTLED" && operation.projectionEpoch === receipt?.generation && receipt.revision === expected.revision &&
+      operation.core.left === expected.left && Math.abs(operation.native.left - expected.left) <= 1;
+  }, { after: beforeCopyIntent, revision: result.data.project.revision, left: scrollBefore })).toBe(true);
   expect(await chart.evaluate((element) => element.scrollLeft)).toBe(scrollBefore);
+  const preserved = await frame.evaluate(element => ({ core: (Reflect.get(element, "__masterganttPublicViewport") as { left: number }).left,
+    native: element.querySelector(".wx-chart")!.scrollLeft }));
+  expect(preserved.core).toBe(scrollBefore);
+  expect(Math.abs(preserved.native - preserved.core)).toBeLessThanOrEqual(1);
   await expect(page.locator(`[data-link-id=":${copiedLink.id}"], [data-link-id="${copiedLink.id}"]`).first()).toBeVisible();
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
   await row(page, copied[1].taskId).getByText(copied[1].name, { exact: true }).click({ button: "right" }); await chooseTaskInformation(page);
@@ -113,6 +126,66 @@ test("다중 checkbox Copy의 canonical 순서·내부 Link·instance·reload �
   expect(session.data.permission).toBe("edit");
   await page.reload(); await expect(row(page, copied[0].taskId)).toBeVisible(); await expect(row(page, copied[1].taskId)).toBeVisible();
   await expect(page.locator(`[data-link-id=":${copiedLink.id}"], [data-link-id="${copiedLink.id}"]`).first()).toBeVisible();
+});
+
+for (const interruption of ["wheel", "scale-roundtrip"] as const) test(`pending Copy 중 ${interruption === "wheel" ? "실제 wheel" : "Week→Day→Week 왕복"}은 원래 X 복원 권한을 취소한다`, async ({ page, baseURL }, testInfo) => {
+  const { api, tasks } = await seed(page, baseURL!);
+  const a = tasks["새 작업1"], b = tasks["새 작업2"], target = tasks["Summary B"];
+  const frame = page.locator(".project-gantt-frame"), chart = frame.locator('.wx-chart[tabindex="-1"]');
+  const instance = await frame.getAttribute("data-project-gantt-api-instance");
+  await page.getByRole("button", { name: "주", exact: true }).click();
+  await checkbox(page, b.taskId).check(); await checkbox(page, a.taskId).check();
+  await row(page, a.taskId).getByText(a.name, { exact: true }).click({ button: "right" });
+  await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
+  await row(page, tasks["Summary A"].taskId).locator('[data-action="open-task"]').click();
+  await expect(row(page, a.taskId)).toHaveCount(0);
+  await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(46);
+  await chart.evaluate(element => { element.scrollLeft = 46; });
+  const position = () => frame.evaluate(element => ({ core: (Reflect.get(element, "__masterganttPublicViewport") as { left: number }).left,
+    native: element.querySelector(".wx-chart")!.scrollLeft }));
+  await expect.poll(position).toEqual({ core: 46, native: 46 });
+  let release!: () => void, requests = 0;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  await page.route(`**${api}/task-commands`, async route => { requests++; await gate; await route.continue(); });
+  try {
+    const beforeCopyHistory = await frame.evaluate(element => (JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as unknown[]).length);
+    await row(page, target.taskId).getByText(target.name, { exact: true }).click({ button: "right" });
+    await menu(page).getByRole("menuitem", { name: "Paste", exact: true }).click();
+    const responsePromise = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
+    await page.getByRole("menu", { name: "Paste", exact: true }).getByRole("menuitem", { name: "As child", exact: true }).click();
+    await expect.poll(() => requests).toBe(1);
+    await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
+    await expect.poll(position).toEqual({ core: 46, native: 46 });
+    if (interruption === "wheel") {
+      await chart.hover(); await page.mouse.wheel(-200, 0);
+      await expect.poll(position).toEqual({ core: 0, native: 0 });
+    } else {
+      await page.getByRole("button", { name: "일", exact: true }).click();
+      await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");
+      await page.getByRole("button", { name: "주", exact: true }).click();
+      await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+    }
+    const eventCount = await frame.evaluate(element => (JSON.parse(element.dataset.ganttPublicScrollEvents ?? "[]") as unknown[]).length);
+    release();
+    const response = await responsePromise; expect(response.status()).toBe(200);
+    const result = await response.json() as TaskMutationResponse;
+    const copied = result.data.tasks.filter(task => task.parentExternalId === target.externalId);
+    for (const task of copied) await expect(row(page, task.taskId)).toBeVisible();
+    await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+    await expect.poll(() => frame.evaluate(element => {
+      const receipt = JSON.parse(element.dataset.ganttProjectionReceipt ?? "null") as { revision: number; outcome: string } | null;
+      const latest = (JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{ phase: string }>).at(-1);
+      return receipt?.outcome === "SETTLED" && ["SETTLED", "SUPERSEDED", "NOT_MEASURABLE", "NO_SCROLL_CAPACITY"].includes(latest?.phase ?? "") ? receipt.revision : null;
+    })).toBe(result.data.project.revision);
+    if (interruption === "wheel") await expect.poll(position).toEqual({ core: 0, native: 0 });
+    const history = await frame.evaluate((element, offset) => (JSON.parse(element.dataset.ganttViewportCoordinatorHistory ?? "[]") as Array<{ kind?: string }>).slice(offset), beforeCopyHistory);
+    expect(history.some(event => event.kind === "PASSIVE_RESTORE")).toBe(false);
+    const events = await frame.evaluate((element, offset) => (JSON.parse(element.dataset.ganttPublicScrollEvents ?? "[]") as Array<{ action: string; requestedLeft?: number }>).slice(offset), eventCount);
+    if (interruption === "wheel") expect(events.filter(event => event.action === "scroll-chart").some(event => event.requestedLeft === 46)).toBe(false);
+    expect(requests).toBe(1);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+    await testInfo.attach(`copy-original-lease-${interruption}-supersession`, { body: JSON.stringify({ interruption, capturedLeft: 46, events, requests, revision: result.data.project.revision }), contentType: "application/json" });
+  } finally { release(); await page.unroute(`**${api}/task-commands`); }
 });
 
 test("modifier·Shift checkbox·Space·Escape·checkbox Copy/Paste shortcut", async ({ page, baseURL }) => {

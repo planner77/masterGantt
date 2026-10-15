@@ -1534,7 +1534,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | UI03 | 빈 Project에서도 좌측 Grid와 우측 Chart가 보이고, 첫 Task/Milestone 생성 성공 직후 reload 없이 Grid row와 Chart bar/milestone이 모두 표시 |
 | UI04 | 단일 SVAR instance에서 Grid tree와 Chart row·세로 scroll이 동기화되고 parent/open/snapshot 순서가 유지 |
 | UI05 | 1440×900 이상 Desktop에서 Project route가 가용 폭을 사용하고 Gantt 높이가 viewport 규칙을 따르며 Grid/Chart Resizer가 유지 |
-| UI06 | Task mutation 실패·canonical 재조회 실패·401에서 optimistic ghost 없이 양쪽이 마지막 확정 snapshot으로 복원 |
+| UI06 | Task mutation 실패 뒤 최신 세대의 canonical GET 성공이면 확인된 서버 상태로 같은 instance를 동기화. 조회 실패·오래된 응답은 UNKNOWN 안내·초안·추가 mutation0을 유지하고 명시적 최신 조회로만 복구하며 과거 snapshot 재생/reset/remount 금지. 401은 readonly 전환·보호 쓰기 차단 |
 | UI07 | Direct access는 Readonly이고 unlock 전 create/delete/drag/resize가 보호되며 unlock 뒤만 기존 Task API를 사용 |
 | UI08 | create/move/좌우 resize/delete 뒤 reload 시 Grid 값과 Chart 위치가 동일 canonical server 상태와 일치 |
 | UI09 | 390×844 좁은 viewport에서 focus 가능한 Gantt 내부 horizontal scroll로 Grid와 Chart 모두 접근 가능하고 document body overflow가 없음 |
@@ -3859,3 +3859,19 @@ SC-14 marker OFF 사례는 실제 Core의 공개 serialize로 Task 1,000개·Mil
 #667 CI #2812.1의 반복 삭제 stale/unavailable 회귀는 확정 삭제 보존 후 UNKNOWN 안내·메뉴 Delete disabled·추가 DELETE0을 검사한다. route 해제 후 APIRequestContext GET만으로 복구하지 않고 UI 명시 최신 조회 성공→같은 Core/접힘/scale/좌표→두 번째 삭제와 기존 revision 검사를 유지한다. 원래90초와 Milestone 관리120초·skip/retry 정책은 변경하지 않는다. Milestone-only 회귀는 빈 프로젝트 생성→숨긴 Gantt에 첫 Milestone 추가→상세/소속/관계 조회→일정의 native행/bar→같은 API로 Dashboard 복귀·추가 mutation0·별도 readonly401을 함께 검증한다.
 
 #667 CI #2813 원본은 `grid-task-start-reveal.spec.ts` 첫 #514 readonly/day/normal에서 pointer 이동 전에 DEV 관측 start=null을 읽어 실패했다. probe는 현재 계산된 scale 원점(Week 정렬 우선)을 사용하며 기존 getFullYear/날짜pixel·startVisible·root/nested·readonly/edit·Day/Week·전체화면·5폭·peer/wheel/filter/context/keyboard 검증을 유지한다. 테스트 timeout·skip/retry·단언을 완화하지 않고 #514 전체16사례와 관련 viewport/scale/첫 Milestone을 선택 재실행한다.
+
+#667 CI #2814 및 누적 실패는 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)에 연결한다. 최신 연결 reset의 근인은 UNKNOWN이며 원본 로컬 비재현은 원격 PASS가 아니다. `milestone-stage-dashboard.spec.ts`의 UI 이후 canonical 확인3곳은 observer를 거친 같은 출처 browser fetch/no-store로 실행하며 HTTP200·유효 JSON·revision+1·Membership/KPI·readonly·viewport 계약을 유지한다. seed APIContext GET도 직접 관측하고 재시도는 추가하지 않는다. 실패 출력은 status·템플릿 route·allowlist error.code만 허용한다.
+
+`resource-milestone-views.spec.ts`의 취소 child409 음성 회귀는 임의100ms 대신 해당 request의 ERR_ABORTED·route 처리 완료·실제8RAF 뒤 ready/alert0을 검사하고 finally 정리·완료 첨부를 남긴다. 진단 Unit은 설치 Next 메시지3종의 고정 enum·ANSI/prefix 처리·변조/자격증명/위조 JSON 거부·byte/record 한도·lifecycle 분리·재시도0을 검증한다. 경고 문자열은 worker 재시작 증거가 아니다. 관련46파일260사례를 로컬 `max-failures=0/retries=0/workers=1`로 넓혀 뒤쪽 실패까지 조사한다. 공식 원격6-shard/fail-fast/required gate는 그대로이며 실행 수치·정적 적정성 감사·source hash는 새 교정 원장에 기록한다.
+
+종합 감사의 추가 P2: `milestone-management-persistence.spec.ts`의 past/future 날짜는 fresh Project calendar로 createWorkingCalendar→nextWorkingDay를 사용해 근무일 입력을 선택한다. 주말만 피하면 평일 공휴일의 정상 일정 이동 때문에 strict 날짜 단언이 false FAIL하므로 사전조건을 바로잡는다. 합성 휴일2026-12-25(금)→12-28(월)을 독립 실증했고 strict start=end=requestedDate·Day/Week 각각3회 확장·coverage·readonly 검증을 유지한다. 첫 광역4-source fingerprint와 Copy 제품 보완까지 포함한 최종source/49파일 재실행을 구분하며 달력 실제 SQLite3사례는 최종 광역에 포함한다.
+
+추가 제품 회귀 #384: 원본 다중 Copy/Paste의 exactX46→0 FAIL을 광역 및 단독으로 재현했다. 기존 canonical 순서·내부/외부 Link·revision·열폭·접힘·same instance·reload/restart·4폭 및 exactX 단언을 유지한다. copy-only capsule의 검증/수용한 confirmed revision·현재 U2 proof·원래 gesture/intent/API/비데이터 context를 Unit의 정상/음성 경계와 실제 pending copy 중 wheel로 검증한다. 최종 광역은 원래46파일에 shared Hierarchy/Editor의 project-task-persistence/project-task-editor/project-task-editor-persistence3파일을 추가한49파일이며 원본 FAIL을 별도 보존한다. 정확한 사례 수/실행 결과는 새 교정 원장을 따른다.
+
+Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 보완의 WAIT_PROJECTION 중 즉시X 검사 실패를 보존하고, copy dispatch 전 intentEpoch 상한 이후의 이번 PASSIVE_RESTORE·현재 revision/receipt generation SETTLED와 Core exactX/native±1을 명시적으로 기다린 뒤 원래 exact nativeX를 검사한다. 비데이터 context/환경 왕복은 요청별 폐기 이력을 유지해 현재값이 돌아와도 재승인하지 않는다. pending 실제 wheel 및 scale 왕복·등록 후 sourceCurrent 폐기/예외/기존 미설정 경계는 추가 음성 검증 대상으로 유지한다. route hold는 finally release/unroute하며 viewport 예외를 HTTP mutation 재시도로 바꾸지 않는다.
+
+확대 회귀의 canonical query receipt 보완: `canonical-projection.spec.ts:255`는 search 뒤 queryChanged=true만 승인해 초기 generation1을 새 검색으로 오인한 원본 FAIL을 보존한다. search 전 generation/filterKey 이후의 새 generation·새 filterKey·현재 revision/SETTLED/queryChanged=true·정확한 filtered logical/Core 행 ID를 확인한 뒤 기존 tree/selection/layout 단언을 수행한다. 제품 source·timeout/skip/retry 불변이며 수정 파일21사례 재검증을 다른48파일의 동일 제품 source 광역 결과와 구분한다.
+
+실제 Calendar DTO fixture는 exceptions가 존재하면 holidays 호환 projection을 비우고 createWorkingCalendar에 전달하며 exceptions undefined인 legacy holidays는 유지한다. 두 필드를 그대로 넘겨 DUPLICATE_CALENDAR_EXCEPTION이 발생한 보완 중 FAIL을 보존하고 validator/DTO/일정 알고리즘은 바꾸지 않는다. 검색 receipt21+Milestone actual3의 변경2파일24사례 보완을 검증하며 Resource 공유 port 제품 보완 이후에는 관련 광역 회귀를 새 source로 다시 실행한다.
+
+확대 Resource 원본 통합의 X=31→30 FAIL은 Coreexact 계약 위반으로 보존한다. 초기8실제 프레임은 Core/native31 일치를 입증했고 복귀 시 native capacity31/Core capacity30이었다. 준비 단계는 retained end 검사를 capacity 조기 반환보다 먼저 수행하고 Core exact target·native target±1 수용 범위를 함께 확인한다. extent 변경 뒤에는 양쪽 capacity3프레임, 모든 경로에는 apply 직전 공동 capacity 재검사와 최종3실제 프레임 Core exact/native±1 정착을 요구한다. 실제 물리 geometry 미확인·비유효 값·비호환 명령의 부족 범위는 fail-closed이며 원래 source/current/U4 PRESERVE·새 projection 조건을 유지한다. 공유 port 보완 뒤 최종299 실행의 완료 근거가 없어 NOT TESTED로 기록하고 핵심7파일56사례는56 PASS/0FAIL/0SKIP/0flaky로 별도 검증했다. 이전260/299 원본 FAIL 및 source와 구분하며 공식 전체 회귀는 새 PR CI에서 판정한다.

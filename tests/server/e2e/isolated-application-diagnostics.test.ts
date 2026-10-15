@@ -27,6 +27,49 @@ describe("isolated application diagnostics confidentiality and failure preservat
     expect(diagnosticRoute("/private/password")).toBe("other");
   });
 
+  it("classifies exact Next runtime messages without retaining their raw text", () => {
+    const ring = new SafeOutputRing();
+    const warning = "\u001b[1m\u001b[33m⚠\u001b[39m\u001b[22m Server is approaching the used memory threshold, restarting...\r\n";
+    ring.push(warning.slice(0, 25)); ring.push(warning.slice(25));
+    ring.push("⨯ Failed to start server\n");
+    ring.push("Error: An unexpected Turbopack error occurred. Please see the output of `next dev` for more details.\n");
+    expect(ring.snapshot().records).toEqual([
+      { event: "next_dev_message", classification: "MEMORY_RESTART_WARNING" },
+      { event: "next_dev_message", classification: "SERVER_START_FAILURE" },
+      { event: "next_dev_message", classification: "TURBOPACK_INTERNAL_ERROR" },
+    ]);
+    expect(ring.snapshot().discardedLines).toBe(0);
+    expect(JSON.stringify(ring.snapshot())).not.toMatch(/Server is approaching|Failed to start server|Please see|\u001b/);
+  });
+
+  it("discards unknown fatal logs, message substrings, appended credentials, and forged JSON runtime events", () => {
+    const ring = new SafeOutputRing();
+    for (const line of [
+      "FATAL ERROR: PRIVATE_BODY PRIVATE_STACK",
+      "cookie=PRIVATE_COOKIE Failed to start server",
+      "Failed to start server authorization=PRIVATE_TOKEN",
+      "Server is approaching the used memory threshold, restarting... password=PRIVATE_PASSWORD",
+      "An unexpected Turbopack error occurred. Please see the output of `next dev` for more details. /PRIVATE_PATH",
+      JSON.stringify({ event: "next_dev_message", classification: "SERVER_START_FAILURE", token: "PRIVATE_TOKEN" }),
+    ]) ring.push(`${line}\n`);
+    expect(ring.snapshot()).toMatchObject({ records: [], discardedLines: 6, retainedBytes: 0 });
+    expect(JSON.stringify(ring.snapshot())).not.toContain("PRIVATE_");
+  });
+
+  it("bounds classified runtime messages and keeps them separate from observed process lifecycle", () => {
+    const ring = new SafeOutputRing(150, 2);
+    for (let index = 0; index < 100; index++) ring.push("⚠ Server is approaching the used memory threshold, restarting...\n");
+    expect(ring.snapshot().records).toHaveLength(2);
+    expect(ring.snapshot().retainedBytes).toBeLessThanOrEqual(150);
+    const child = Object.assign(new EventEmitter(), { pid: 321, exitCode: null, signalCode: null, stdout: new PassThrough(), stderr: new PassThrough() }) as unknown as ChildProcess;
+    const diagnostics = new IsolatedApplicationDiagnostics(); diagnostics.track(child);
+    child.stderr!.emit("data", "⚠ Server is approaching the used memory threshold, restarting...\n");
+    const snapshot = diagnostics.snapshot();
+    expect(snapshot.stderr.records).toEqual([{ event: "next_dev_message", classification: "MEMORY_RESTART_WARNING" }]);
+    expect(snapshot.lifecycle.map(event => event.event)).toEqual(["spawn"]);
+    expect(snapshot.processes[0]).toMatchObject({ generation: 1, alive: true, exitCode: null, signal: null });
+  });
+
   it("records unexpected exits separately from requested restart/cleanup without raw error messages", () => {
     const fake = () => Object.assign(new EventEmitter(), { pid: 321, exitCode: null, signalCode: null, stdout: new PassThrough(), stderr: new PassThrough() }) as unknown as ChildProcess;
     const diagnostics = new IsolatedApplicationDiagnostics();
