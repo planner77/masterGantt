@@ -54,6 +54,24 @@ describe("public actual Core reader", () => {
       expect(actual.value.tasks[0]).not.toHaveProperty("$x");
     }
   });
+  it("fills omitted canonical summary roll-up dates recursively but still detects actual Core date drift", () => {
+    const child = leaf("child", "inner");
+    const root = { id: "root", text: "root", type: "summary", parent: 0 };
+    const inner = { id: "inner", text: "inner", type: "summary", parent: "root" };
+    const canonical = normalizeCanonicalCore({ tasks: [root, inner, child], links: [] });
+    const actual = normalizeSerializedCore(input([
+      { ...root, start: child.start, end: child.end },
+      { ...inner, start: child.start, end: child.end }, child,
+    ]));
+    expect(canonical.ok && actual.ok && sameCoreSnapshot(actual.value, canonical.value)).toBe(true);
+    const drifted = normalizeSerializedCore(input([
+      { ...root, start: new Date(2026, 0, 3), end: child.end },
+      { ...inner, start: child.start, end: child.end }, child,
+    ]));
+    expect(canonical.ok && drifted.ok && sameCoreSnapshot(drifted.value, canonical.value)).toBe(false);
+    expect(root).not.toHaveProperty("start");
+    expect(inner).not.toHaveProperty("end");
+  });
   it("accepts an actual empty collection but never turns unreadable links into empty", () => {
     expect(normalizeSerializedCore({ tasks: [], tree: [], links: [] })).toEqual({ ok: true, value: { tasks: [], tree: [], links: [] } });
     expect(normalizeSerializedCore({ tasks: [], tree: null, links: [] })).toMatchObject({ ok: false, reason: "INVALID_TREE" });

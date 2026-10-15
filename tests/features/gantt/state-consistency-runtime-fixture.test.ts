@@ -41,6 +41,24 @@ describe("U1 installed 2.7.3 synthetic browser reader evidence", () => {
     expect(result.value.tasks[0]).not.toHaveProperty("data");
     expect(result.value.tasks[0]).not.toHaveProperty("$x");
   });
+  it("matches the captured 2.7.3 public snapshot to the ORIGINAL browser.tsx canonical input with undated summary", () => {
+    // Mirror browser.tsx's pre-render input (dates here are fixed Asia/Seoul instants).
+    const canonical = normalizeCanonicalCore({
+      tasks: [
+        { id: "fixture-root", text: "Synthetic root", type: "summary", parent: 0, open: true },
+        { id: "fixture-c", text: "Synthetic C", type: "task", parent: "fixture-root", start: new Date("2026-01-08T00:00:00+09:00"), end: new Date("2026-01-10T00:00:00+09:00"), progress: 25 },
+        { id: "fixture-a", text: "Synthetic A", type: "task", parent: "fixture-root", start: new Date("2026-01-05T00:00:00+09:00"), end: new Date("2026-01-08T00:00:00+09:00"), progress: 50, externalId: "synthetic-A", projectDisplayKey: "SYN.A" },
+        { id: "fixture-m", text: "Synthetic milestone", type: "milestone", parent: 0, start: new Date("2026-01-12T00:00:00+09:00"), duration: 0 },
+      ],
+      links: [{ id: "fixture-link", source: "fixture-a", target: "fixture-c", type: "e2s" }],
+    });
+    const actual = read();
+    expect(canonical.ok && actual.ok && sameCoreSnapshot(actual.value, canonical.value)).toBe(true);
+    if (!canonical.ok || !actual.ok) throw new Error("synthetic fixture unreadable");
+    expect(canonical.value.tasks[0]).toMatchObject({ start: new Date("2026-01-05T00:00:00+09:00").getTime(), end: new Date("2026-01-10T00:00:00+09:00").getTime() });
+    const drift = { ...actual.value, tasks: actual.value.tasks.map(task => task.id === "fixture-root" ? { ...task, start: task.start! + 86_400_000 } : task) };
+    expect(sameCoreSnapshot(drift, canonical.value)).toBe(false);
+  });
   it("requires Date hydration and does not certify transport strings or a null collection", () => {
     expect(normalizeSerializedCore({ tasks: snapshot.serializeTasks, tree: snapshot.serializeTree, links: snapshot.serializeLinks })).toMatchObject({ ok: false, reason: "INVALID_TASKS" });
     expect(readCoreSnapshot({ serialize: () => null })).toMatchObject({ ok: false });

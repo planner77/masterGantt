@@ -120,3 +120,10 @@ Required PR CI·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED이고 M
 게시 직전 latest main은 baseline b09c3148과 동일하며 behind0, 충돌0이다. 기존 #663 PR이 없어 단일 신규 PR을 생성한다. exact commit Head/base/test-merge·review thread 수·CI run ID/attempt/URL은 생성 뒤 GitHub Issue/PR의 STATUS 인계에 기록한다. CI 시작 이후 결과 모니터링은 하지 않으며 quality/e2e/docker·Trusted QA·최종 ACCEPT는 NOT TESTED다. main merge SHA/GHCR·Release·Issue 종료는 아직 없고 요청 범위 밖이다.
 
 게시 예외: 로컬 Git HTTPS push는 Invalid username or token으로 BLOCKED였다. 인증된 GitHub connector의 Git tree/commit/branch API로 동일 검증 파일을 게시하고 local/remote tree SHA가 정확히 같은지 대조한다. 인증 토큰을 읽거나 변경하지 않으며 기본 브랜치와 기존 branch 이력을 덮어쓰지 않는다. 원격 commit SHA는 API가 생성한 author/time으로 달라질 수 있어 최종 exact Head를 별도 기록한다.
+
+## REWORK — 2026-10-15 / PR #687 CI #2779.1 / Codex P2
+
+- 원격 실제 결과: PR CI run `38660449088.1`, Head `974f9953db714a8c63eef90622f00f877c9fa545`, base `b09c3148df037acdecc9b0687e0dd4d3051c96a4`. TypeScript/ESLint/Unit/Build/Chromium 6 shards/Docker 및 세 Required 집계 PASS; **QA Final — Automated BLOCKED**: unresolved review thread 1건. 해당 리뷰는 Core reader의 실제 계약 오류(P2)이므로 단순 스레드 종결 대신 코드·테스트 수정.
+- root cause: installed SVAR 2.7.3 Core가 canonical에서 시작·종료일을 생략한 `summary`의 하위 Task 날짜를 roll-up해 serialize하는 반면 `normalizeCanonicalCore`는 누락 날짜를 null로 남겨 동등한 실제 Core도 불일치로 판단했다.
+- 조치: 누락된 canonical Summary 날짜에 한하여 DFS 역순으로 자식의 최소 시작·최대 종료를 재귀 반영한다. 명시적 canonical 날짜와 실제 Core의 관측값은 그대로 유지하고 구조·형제 순서·Link/leaf 날짜 차이를 숨기지 않는다. 원본 browser.tsx(undated summary)의 synthetic Core snapshot과 원본 canonical 입력을 직접 비교하는 새 Unit 및 nested-summary/실제 summary-date drift 음성 검사를 추가한다. 기존 수집 산출물과 provenance SHA는 변경하지 않는다.
+- 범위: 공통 U1 reader/Unit/Work Packet만. 제품 wiring, CI/버전/패키지, 기존 표준/Design/DB/API/권한/릴리스 정책 불변. DESIGN.md N/A(화면 변경 없음). 변경 후 새 exact Head PR CI를 시작하고 **모니터링하지 않음**. 로컬 독립 테스트 재실행은 연결된 GitHub API만 이용할 수 있어 NOT RUN이며 새로운 원격 CI 결과는 실행 후 확인하지 않음. HIGH/OWNER_MANAGED 최종 ACCEPT·병합 미승인 유지.

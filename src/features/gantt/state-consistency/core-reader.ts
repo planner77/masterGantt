@@ -108,10 +108,43 @@ export function readCoreSnapshot(api: Pick<IApi, "serialize">): CoreReadResult {
     return normalizeSerializedCore({ tasks: api.serialize({ data: "tasks" }), tree: api.serialize({ data: "tree" }), links: api.serialize({ data: "links" }) });
   } catch { return failed("READ_FAILED"); }
 }
+/** SVAR 2.7.3 materializes summary roll-up dates from dated descendants even
+ * when the adapter's canonical summary leaves those fields absent. Fill only
+ * omitted canonical dates, bottom-up, without erasing actual Core date drift. */
+function canonicalSummaryRollups(snapshot: ObservedCoreSnapshot): ObservedCoreSnapshot {
+  const tasks = [...snapshot.tasks];
+  const children = new Map<string, string[]>();
+  const byId = new Map(tasks.map(task => [task.id, task]));
+  for (const task of tasks) {
+    if (task.parent === "0") continue;
+    const siblings = children.get(task.parent) ?? [];
+    siblings.push(task.id);
+    children.set(task.parent, siblings);
+  }
+  for (let index = tasks.length - 1; index >= 0; index--) {
+    const current = tasks[index];
+    if (current.type !== "summary") continue;
+    let derivedStart: number | null = null;
+    let derivedEnd: number | null = null;
+    for (const childId of children.get(current.id) ?? []) {
+      const child = byId.get(childId)!;
+      if (child.start !== null) derivedStart = derivedStart === null ? child.start : Math.min(derivedStart, child.start);
+      if (child.end !== null) derivedEnd = derivedEnd === null ? child.end : Math.max(derivedEnd, child.end);
+    }
+    const start = current.start ?? derivedStart;
+    const end = current.end ?? derivedEnd;
+    if (start === current.start && end === current.end) continue;
+    const updated = Object.freeze({ ...current, start, end });
+    tasks[index] = updated;
+    byId.set(current.id, updated);
+  }
+  return Object.freeze({ ...snapshot, tasks: Object.freeze(tasks) });
+}
 /** Canonical snapshots use the same owned-field normalization, without adopting
  * renderer caches, duration, collapse or selection as server authority. */
 export function normalizeCanonicalCore(snapshot: CanonicalGanttSnapshot): CoreReadResult {
-  return normalizeSerializedCore({ tasks: snapshot.tasks, tree: snapshot.tasks, links: snapshot.links });
+  const result = normalizeSerializedCore({ tasks: snapshot.tasks, tree: snapshot.tasks, links: snapshot.links });
+  return result.ok ? { ok: true, value: canonicalSummaryRollups(result.value) } : result;
 }
 export function sameCoreSnapshot(actual: ObservedCoreSnapshot, desired: ObservedCoreSnapshot): boolean {
   return JSON.stringify(actual) === JSON.stringify(desired);
