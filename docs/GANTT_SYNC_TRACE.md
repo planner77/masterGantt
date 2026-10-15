@@ -1,3 +1,9 @@
+## Issue #665 — 관측 attempt와 semantic completion 진단
+
+미연결 U3 facade는 기존 `createCoreActionTrace`의 bounded read-only `record` 포트를 선택적으로 받는다. 새 서버·상시 observer·trace 저장 authority·Core/DOM 쓰기를 만들지 않는다. `projection-observation` 및 typed outcome 이벤트에서 기존 allowlist의 `params.id`는 semantic ID, `params.count`는 이번 attempt ID다. 재사용 receipt의 원래 observation ID와 현재 result attempt ID가 다른 것은 새 사용자 의도를 승인한 것이 아니다.
+
+query/Task payload·이름·설명·URL·secret을 params에 넣지 않으며 scope·API 등의 기존 trace context 안전 규칙은 그대로 적용한다. source 변경·invalid receipt·cleanup은 실제 outcome과 별도 Unit 증거로 확인한다. 테스트용 captured actual-Core 재사용·모듈 검증을 제품 또는 원격 전체 PASS로 표시하지 않는다. [U3 증거 원장](exec-plans/active/ISSUE_665.md).
+
 # Gantt Sync Trace — Issue #568
 
 ## 목적과 검증 층
