@@ -1,3 +1,9 @@
+## Issue #622 — 인증된 과거 CLOSED 완료 복구 (2026-10-15)
+
+Generic Finalizer #374.2는 #665/#666의 FINAL을 완료했지만, Owner가 먼저 CLOSED한 #622는 FINAL/branch cleanup이 빠졌다. 일반 자동 Finalizer는 CLOSED/FINAL 누락 이력을 `non-actionable` barrier로 처리하므로 반복 실행·Issue 수동 재개만으로 소급 수행하지 않는다. #622 운영자는 **해당 복구 PR이 원격 CI 및 Trusted QA, Main CI까지 성공한 다음**, 정확한 새 main merge SHA와 새 PR 번호, `release_sha=1449190af8d4f97d4737d17ae67e9dcb044549a7`, `version=0.114.0` 및 설명을 가진 `mastergantt-closed-622-recovery:v1` Owner 댓글을 #622에 작성해야 한다. 이 댓글은 일반 release authorization을 변경하지 않는다.
+
+기존 `release-finalizer.yml`의 `closed_622_recovery`는 Owner/Issue/최신 comment ID/main/head/PR/Release/Main CI/candidate/branch lease를 재검증하며 default main만 checkout하여 신뢰 경계를 유지한다. 실패하면 원격 로그 원인을 먼저 수리하고 정확한 원본 Job만 재시도한다. 수동 `git push --delete`, 단순 REST branch delete, 원본 tag 재배치, 일반 Job replay의 승인 대체는 금지한다. 기존 `v0.114.0` tag와 GHCR 이미지, #665/#666의 bot FINAL은 불변. GitHub Release 객체의 존재는 tag/OCI 이미지의 별도 증거이며 미생성 상태라면 별도 사용자 승인·설계 없이 신규 생성하지 않는다.
+
 ## Issue #659 — E2E 테스트 내부 조기 종료 및 실패 진단 (2026-10-13)
 
 - PR `pr_e2e_shard`는 `--max-failures=1`으로 **첫 테스트 실패 후 해당 Shard에서 나머지 테스트를 중단**한다. Job이 실패 결론에 도달하면 기존 matrix `fail-fast=true`가 다른 진행/대기 Shard 취소를 요청한다. Main/수동의 `e2e_shard`에는 이 CLI 옵션을 전달하지 않고 기존 전체 오류 수집·`fail-fast=false`를 유지한다.

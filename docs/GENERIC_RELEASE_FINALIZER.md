@@ -1,3 +1,16 @@
+## Issue #622 — CLOSED/FINAL 누락 이력의 제한된 Owner 복구 (2026-10-15)
+
+기존 #622는 Owner가 병합된 최종 PR의 Main CI 완료 전 `CLOSED`로 전환하여, Generic Resolver가 `non-actionable ordering barrier`로 건너뛰었다. 따라서 동일 #622의 PR #684/#686/#691 3개 작업 브랜치와 Release/임시 GHCR 후보 정리 및 bot-origin FINAL 기록은 누락된 반면 후속 #665/#666의 FINAL은 성공했다. 사용자 승인 범위 내 **#622에 한정**된 read-only 감사 후 적법한 재진입 경로를 허용한다.
+
+- 신규 이슈나 신규 독립 one-shot workflow 없이 **기존 `release-finalizer.yml`의 제한된 Owner issue_comment Job**에서만 `scripts/closed_issue_622_recovery.py`를 실행한다. 지정 issue #622, authenticated repository OWNER 실제 댓글과 `mastergantt-closed-622-recovery:v1`의 가장 최신 정확한 `pr`, `main_sha`, `release_sha=1449190af8d4f97d4737d17ae67e9dcb044549a7`, `version=0.114.0`, `note` 및 승인 Boolean이 필수다. 코멘트가 다른 곳에 복사되거나 HEAD/댓글 변경 시 BLOCKED한다.
+- 복구 PR 자체가 latest main two-parent merge여야 하며 first parent는 검증한 #691 merge `c1dbf61be427934569593796dd7892d0e4ddc2bf`, second parent는 정확한 승인 PR Head여야 한다. #684 original `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`(Main FAIL), #686 교정 `1449190af8d4f97d4737d17ae67e9dcb044549a7`(Main/Release SUCCESS), #691 교정 `c1dbf61be427934569593796dd7892d0e4ddc2bf`가 같은 main first-parent 역순이며 PR Refs #622/Head/Base/merge 일치해야 한다. 동시에 후속 #665/#666의 인증된 bot FINAL 및 #622 CLOSED 상태와 신규 FINAL 중복/충돌을 검증한다.
+- `v0.114.0`은 기존 immutable annotated tag가 **교정 #686 SHA**를 가리키고, 해당 exact `release-image` Run SUCCESS, 승인된 Owner version marker, #686의 Main CI+GHCR candidate gate가 PASS해야 한다. **태그 이동·재생성·정식 릴리스 재게시를 하지 않는다.** GitHub Release 객체가 없는 경우 자동 생성·발행 권한을 추론하지 않는다.
+- `issue_lifecycle.resolve_context`를 사용하여 가장 최신 복구 PR의 Required 3종, Main CI+verified ci-SHA, non-docs/version0.114.0을 확인한다. 전체 작업 브랜치에 대한 `safe_branch_cleanup.py` SHA lease·보호 여부·외부 열린 PR 참조·Main ancestry를 사전 검사하고, #691 및 복구 PR의 임시 GHCR 후보가 다른 tag를 공유하지 않는다는 `--check-only`도 완료한 뒤에만 mutation한다. #686의 정식 릴리스 후보는 참조 보존한다.
+- 실제 mutation은 먼저 #691의 과거 검증된 임시 후보만 안전 정리하고, **기존 `issue_lifecycle.finalize()`**에 `--resolver-ordered`/정확 Main SHA/`--cleanup-pr 684 686 691`을 전달한다. 이 함수의 기존 branch cleanup, latest ci candidate cleanup, trusted `github-actions[bot]` FINAL 기록, closed 상태 유지, 재진입 멱등성·snapshot gate를 변경하지 않는다. 비정상 200/404·SHA 변경·중복/누락 원장은 중단한다.
+- 작업 브랜치 삭제 이후 REST Git Ref가 잠시 HTTP 200을 반환하는 경우 `safe_branch_cleanup.confirm_deleted_ref`는 **최대10회·간격2초** 정확한 같은 tip만 관측하고 **404가 나와야** 완료로 간주한다. 다른 SHA·지속 200이면 BLOCKED. 브랜치 삭제는 항상 기존 `--force-with-lease` SHA를 유지한다.
+
+실행은 이 코드의 보호된 전체 PR CI/Trusted QA·Owner 위험 수용·Main CI 성공 **이후에** #622에 정확한 version/PR/Main SHA의 새로운 Owner 댓글을 기록하는 것으로만 시작한다. COMMENT/자동 QA 자체를 복구 승인으로 해석하지 않고 추적 전용 bot FINAL을 수동으로 위조하지 않는다. 후속 원격 완료/브랜치 정리/FINAL/Issue state는 실제 Job 결과로 판정한다.
+
 ## Issue #622 — 최초 Main FAIL 이후 정식 교정 태그 Resume #35 보호 (2026-10-15)
 
 [Release #170.1](https://github.com/planner77/masterGantt/actions/runs/38701345395)은 `v0.114.0`의 immutable tag를 교정 PR #686 merge `1449190af8d4f97d4737d17ae67e9dcb044549a7`에 생성·정식 GHCR 이미지로 promotion했다. 그러나 [Resume #35.1](https://github.com/planner77/masterGantt/actions/runs/38704333977)은 `auto_release_finalizer.execute`가 first-parent 실패 원본 PR #684 `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`의 tag state를 **supersession 판정 전에** 조회하여 교정 SHA를 잘못된 태그로 거부했다. 이는 기존 원본 Main 실패를 승격할 근거가 아니며 정상적인 fail-closed가 교정 복구를 막은 실행 순서 결함이다.

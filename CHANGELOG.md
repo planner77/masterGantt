@@ -1,3 +1,9 @@
+## Unreleased — Issue #622 CLOSED 상태의 누락 FINAL·branch cleanup 복구
+
+- 이미 성공한 v0.114.0/PR #686 릴리스와 후속 #665/#666 FINAL을 보존하면서, #622 Owner 선행 CLOSED 때문에 건너뛴 3개 merged PR 브랜치와 FINAL을 엄격한 Owner comment/main SHA/실제 Release·CI/GHCR 검증 후 복구할 수 있도록 Generic Finalizer 내 제한 Job 및 테스트를 추가한다.
+- SHA-leased GitHub branch 삭제 후 REST 일시 200은 제한된 동일 SHA 재조회에서 404로 수렴할 때만 성공 처리하며 지속200/새 tip은 차단한다.
+- 새 제품 기능·version/lockfile·정식 SemVer/GHCR 재게시 없이 보호된 CI 정책과 문서를 동기화한다.
+
 ## Unreleased — Issue #622 Generic Release Completion Finalizer Resume #35 교정
 
 - v0.114.0 태그가 동일 Issue #622의 성공한 교정 PR #686 SHA를 가리키는데 원본 실패 PR #684의 SHA와 먼저 비교해 중단한 Finalizer 버그를 수정한다. 제한된 failed-Main/동일 Issue·버전·first-parent/non-docs 정합을 먼저 검증한 경우에만 원본 상태를 superseded로 취급하며, 교정 tag/release-image/digest·Owner 승인과 외부 SHA의 fail-closed는 유지한다.

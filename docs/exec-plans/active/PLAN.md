@@ -11,6 +11,12 @@
 
 ---
 
+## Issue #622 — CLOSED/FINAL 누락 historical lifecycle repair (2026-10-15)
+
+#622는 v0.114.0 정식 Release 성공 이후 Owner 선행 CLOSED로 Generic Resolver에서 non-actionable로 건너뛰었다. #665/#666 FINAL은 이미 PASS이나 #622 3개 브랜치·FINAL이 미완료. 신규 이슈/one-shot workflow 대신 기존 Generic Finalizer에 exact #622 Owner comment scoped Job, 최신 Main과 immutable Source PR·tag/digest·Required Main 증거를 검증하는 코드와 기존 CI Policy 음성 회귀를 추가한다. 복구 PR의 Main CI 완료 후 정확한 Owner 결정 marker로만 삭제/FINAL을 실행한다. 새 정식 릴리스 불필요·미승인, 원본 #684 실패와 성공 #686/Release #170.1 및 #665/#666 bot FINAL 불변. 상세 Work Packet `ISSUE_622.md`.
+**#548 main 정렬 (2026-10-15):** #622 복구 PR은 #691 Merge SHA `c1dbf61...` 이후 #548/PR #694 Merge `29c86ca918baa1811bc12a3eb60f86ffc5406b40`를 first-parent에 보존합니다. #548 표시 정책과 본 복구 테스트는 서로 독립이며 복구는 정확한 최신 Main SHA와 Owner 승인으로만 실행합니다.
+
+
 ## Issue #622 — Resume #35 Finalizer 교정 (2026-10-15)
 
 #622 원본 Main CI FAIL→동일 버전 교정 PR #686 정식 Release #170.1 SUCCESS인 상황에서 Generic Resume #35가 교정 SHA의 v0.114.0 태그를 원본 실패 SHA와 먼저 비교하여 FAIL한 문제를 제한적으로 보완한다. `scripts/auto_release_finalizer.py`의 read-only CI/first-parent supersession 사전 검증과 검증된 corrective SHA에 한정된 기존 태그 해석, 기존 CI Policy 회귀 음성 검증을 적용한다. 본 PR은 별도 Issue/새 릴리스/태그 조작 없이 #622 소유 운영 결함만 수정하며 Release #170.1 원본 성공·Resume #35.1 실패 증거를 보존한다. 상세 `ISSUE_622.md`, `GENERIC_RELEASE_FINALIZER.md` / `REMOTE_VALIDATION.md`. 현재 exact-Head CI·Trusted QA/Manager ACCEPT·원격 Resume은 NOT TESTED.

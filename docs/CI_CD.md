@@ -1,3 +1,9 @@
+## Issue #622 — CLOSED 상태의 누락 Lifecycle FINAL 제한적 복구 (2026-10-15)
+
+정식 v0.114.0은 #686 immutable release로 발행되어 유지되고, #622는 이후 Owner가 PR #691 Main CI/Finalizer 전 CLOSED 처리하여 Generic Resolver의 non-actionable barrier가 됐다. 기존 #665/#666의 인증된 FINAL은 그대로 둔다. 복구를 위해 기존 `release-finalizer.yml` 내 #622 **Owner comment 한정 Job** 및 `closed_issue_622_recovery.py`로 latest main exact PR/Issue/SHA, first-parent 3개 구 PR, Owner marker, 최초 실패/성공 교정 Release, QA/Main/GHCR 후보를 재인증한다. CI Ruleset 3 required aggregate, GHCR 권한·버전·기존 릴리스 tag/digest는 변경하지 않는다. 필요시 `safe_branch_cleanup.py` 404 수렴 최대10회로 Delete의 이미 수행된 상태만 검증하며 SHA lease/타 PR 참조/보호 branch 거부를 유지한다.
+
+신규 `scripts/test-closed-622-recovery.py`는 기존 CI Policy Job에 포함하여 위조·옛 Owner 승인/잘못된 SHA·중간 Merge·PR Refs·삭제 후 브랜치 변화·영구200 거부를 검증한다. PR CI와 Main CI/Trusted 검증 전 관리자 marker 생성 및 mutation 금지. 복구 조치는 기존 Issue #622 원장으로만 진행하며 새로운 독립 issue release-finalizer workflow를 만들지 않는다. 코딩 구현은 추가 정식 SemVer/GHCR 릴리스 근거가 아니다.
+
 ## Issue #622 — Release Completion Resume #35 릴리스 SHA 승계 보완 (2026-10-15)
 
 정식 `v0.114.0` 릴리스가 실제 교정 병합 SHA에 성공적으로 게시된 뒤, Generic Resume이 실패한 원본 Merge SHA를 먼저 검사하여 불변 태그 출처 불일치로 FAIL한 회귀를 제한적으로 수정한다. 초기 Main CI 실패 → 같은 Issue/동일 version·non-docs·first-parent 인접 체인의 교정 Main CI 성공을 **선행 읽기 전용 검증**한 경우에만 원본의 tag가 그 교정 SHA를 가리키도록 인정한다. 교정 SHA의 태그/Release/GHCR digest 검증과 Owner marker/Required gate는 계속 강제한다. 다른 Issue/SHA/버전 태그는 기존 fail-closed, 태그 이동/삭제/재발행 금지.

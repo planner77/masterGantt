@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -142,6 +143,26 @@ def fetch_snapshot(api: GitHubApi, *, repo: str, pr_number: int, branch: str, ta
     )
 
 
+def confirm_deleted_ref(api: GitHubApi, branch: str, expected_sha: str) -> None:
+    """Bounded read-after-delete verification; never trust an unexpected tip.
+
+    GitHub's REST Git ref endpoint may briefly return HTTP 200 for a deleted
+    SHA-leased ref. Only 404 proves absence. A changed tip or persistent 200
+    is BLOCKED, never accepted as a successful deletion.
+    """
+    encoded = urllib.parse.quote(branch, safe="")
+    for attempt in range(10):
+        status, value = api.get(f"/git/ref/heads/{encoded}", allowed=(200, 404))
+        if status == 404:
+            return
+        require(isinstance(value, dict) and
+                (value.get("object") or {}).get("sha") == expected_sha,
+                "remote branch tip unexpectedly changed after leased delete")
+        if attempt < 9:
+            time.sleep(2)
+    raise CleanupError("deleted branch still visible after bounded verification")
+
+
 def delete_with_sha_lease(*, repo: str, branch: str, head_sha: str, token: str) -> None:
     ref = f"refs/heads/{branch}"
     environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
@@ -232,7 +253,7 @@ def main() -> int:
         head_sha=snapshot.branch_sha,
         token=token,
     )
-    api.get(f"/git/ref/heads/{encoded_branch}", allowed=(404,))
+    confirm_deleted_ref(api, args.branch, snapshot.branch_sha)
     print(f"Deleted branch and verified absence: {args.branch}")
     return 0
 

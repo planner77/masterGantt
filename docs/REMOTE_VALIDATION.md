@@ -1,3 +1,11 @@
+## Issue #622 — CLOSED 이력 완료 복구 원격 검증 시나리오 (2026-10-15)
+
+- Baseline: #622 Owner CLOSED 2026-10-15T09:01:16Z, bot FINAL 0, PR #684/#686/#691 branch3개 PRESENT. #665/#666 bot FINAL/branch cleanup/Issue CLOSED 유지. 릴리스 `v0.114.0` annotated tag = #686 SHA `1449190af8d4f97d4737d17ae67e9dcb044549a7`, GHCR Release #170.1 성공. GitHub Release 별도 객체는 미확인.
+- 신규 PR 전용 `closed_issue_622_recovery.py` 검증: trusted default main HEAD==GitHub main, 복구 PR이 #691 immediate successor, 정확 첫/둘째 parent 및 세 원본 PR, latest Owner comment body+ID/main SHA/PR/ver/release_SHA 동일, v0.114.0 원장, #665/#666 인증 FINAL, #622 CLOSED, 복구 PR 3 Required checks/Main image+digest, GHCR ci 후보 소유권, 4개 안전한 branch lease.
+- 반례: revoked/stale/foreign OWNER marker, 타 Issue/version/PR/branch/merge 순서, 타 SHA tag, Main CI incomplete, candidate tag 공유, branch 보호/Open PR/base 참조/tip 경합, 200 응답 지속 및 미확인 GHCR 권한 모두 **BLOCKED**. 임의 FINAL·태그 이동은 금지.
+- Run 순서: (1) PR full Quality/Chromium6/Docker/Trusted QA 승인, (2) exact Main merge/CI+ci-SHA smoke 성공, (3) #622 CLOSED Issue에 정확 SHA Owner marker 한 번, (4) 기존 Generic Finalizer의 `closed_622_recovery` Job에서 read-only gate→branch/GHCR cleanup→bot FINAL, (5) 3+1 branch/2 ci candidate 삭제·후속 FINAL/태그/Release digest 불변·#622 CLOSED를 재조회.
+- Commit-based comment/Owner marker 자체는 실제 실행 성공 증거가 아니다. 실제 Run #/Attempt/Job/로그 확인 전 FINAL/cleanup은 NOT TESTED다.
+
 ## Issue #622 — Finalizer Resume #35 최초 FAIL/교정 SHA 태그 역전 검증 (2026-10-15)
 
 원본 원장: 최초 PR #684 Main SHA `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`/Main CI #2771.1 FAIL → 같은 Issue 교정 PR #686 SHA `1449190af8d4f97d4737d17ae67e9dcb044549a7`/Main CI SUCCESS → [정식 Release #170.1](https://github.com/planner77/masterGantt/actions/runs/38701345395) SUCCESS/tag v0.114.0 corrective SHA → [Resume #35.1](https://github.com/planner77/masterGantt/actions/runs/38704333977) FAIL. 원인: supersession 처리 이전 `exact_release_state`가 original SHA의 tag mismatch를 오류로 종료.

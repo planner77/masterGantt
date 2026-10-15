@@ -1315,9 +1315,22 @@ class RepositoryPolicyTest(unittest.TestCase):
             "another open pull request uses the branch as base",
             "remote branch changed before deletion",
             "--force-with-lease=",
-            "allowed=(404,)",
         ):
             self.assertIn(marker, content)
+        # Issue #622: immediate 404 and bounded same-SHA 200→404 verification
+        # are equivalent only when BOTH reject a changed tip and persistent 200.
+        # This protects the original fail-closed contract, not an unconditional
+        # 200-as-success shortcut after Git ref deletion.
+        self.assertTrue(
+            "allowed=(404,)" in content or (
+                'confirm_deleted_ref(api, args.branch, snapshot.branch_sha)' in content
+                and 'allowed=(200, 404)' in content
+                and 'if status == 404:' in content
+                and 'remote branch tip unexpectedly changed after leased delete' in content
+                and 'raise CleanupError("deleted branch still visible after bounded verification")' in content
+            ),
+            "deleted ref must be verified absent (404), never accept 200",
+        )
 
 
 if __name__ == "__main__":
