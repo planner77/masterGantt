@@ -1,3 +1,11 @@
+## Issue #665 — opt-in 의미 기반 Projection 관측
+
+`viewport/projection-observation.ts`의 `createProjectionObservation`은 U1 Core reader/verifier·geometry·recovery·clock/abort 포트를 소비하는 읽기 전용 facade다. observation attempt와 semantic completion을 분리하며, 같은 desired/API/dirty/recovery/query/scope/layout/axis 및 원래 사용자 lease에서 현재 Core와 논리 행·mounted subset을 다시 검증한 경우에만 완료 의미를 재사용한다. canonical key 또는 verifier의 성공 자기신고만으로는 승인하지 않는다.
+
+전체 Task/tree/Link 정합과 mounted 이름/순서/행 정렬은 data receipt의 범위다. 수평 viewport 완료와 Core/native X 일치를 선행 조건으로 두지 않아 그 receipt를 기다리는 Coordinator와 교착하지 않는다. 물리 layout·actual axis·source 변경, Core drift·proof 부재·숨김·unmount·cancel/dispose는 과거 완료 재사용/전달을 거부한다. 관측이 사용자 lease를 발급하거나 갱신하지 않는다.
+
+기존 `observeProjectionSettled`/`deliverProjectionReceipt` 및 production 호출은 유지한다. 신규 facade는 제품에 연결하지 않으며 U2/U4 concrete import·Core/DOM/viewport/서버 쓰기는 없다. #667이 semantic ID와 실제 source invalidation 책임을 기존 Coordinator에 연결한 뒤 #574에서 제품 Calendar·Resource·filter bookmark를 검증해야 한다. 독립 모듈/fixture 성공은 제품 해결이나 전체 CI PASS가 아니다. [U3 Work Packet](exec-plans/active/ISSUE_665.md).
+
 ## Issue #663 — 미연결 Gantt 공통 상태 계약
 
 `src/features/gantt/state-consistency/index.ts`는 후속 U2/U3/U4가 공유할 type-only authority adapter와 읽기 전용 public Core reader를 제공한다. canonical revision/desired query·scope, api/dirty/recovery generation, observation attempt, layout/axis 및 user intent lease를 별도로 유지한다. 서버 snapshot·existing projection/receipt/viewport 타입을 재사용하며 두 번째 store·쓰기 소유자는 만들지 않는다.

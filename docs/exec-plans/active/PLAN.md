@@ -1,3 +1,9 @@
+## Issue #665 — U3 의미 기반 Projection 관측 / PR CI 시작까지 (2026-10-15)
+
+최신 main/U1 merge `d445ec58bf9106414c99a150ee8f52599834baf9`에서 [Work Packet](ISSUE_665.md)의 opt-in 관측 facade·receipt 재사용/무효화·전용 Unit을 구현한다. attempt와 semantic completion·현재 actual Core proof·문맥/원래 lease를 구별하며 data receipt를 수평 복원 완료와 분리한다. production wiring·U2/U4 concrete import·새 Core/DOM/viewport writer0, application0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false.
+
+실제 frontend 구현·Manager 문서·별도 qa_docs read-only 사전 검토 후 infra가 최신 main/리뷰/충돌을 확인하고 Full PR CI 시작만 확인한다. CI 결과 모니터링·병합/main/GHCR·Release/tag·Issue 종료는 수행하지 않는다. 모듈 LFF와 사전 검토는 제품 #552/#667/#574 해결·QA_FINAL·Owner/Manager ACCEPT를 대신하지 않는다.
+
 ## Issue #663 — U1 공통 상태 계약과 누적 회귀 하니스 (2026-10-15)
 
 재개: PR #687의 #2779 QA unresolved P2는 Summary roll-up 날짜 정합 보완과 thread 해결로 처리된 이력이며, 최신 #2780.1은 해당 보완 테스트의 public import 누락으로 Unit/typecheck FAIL했다. 기존 reader 계약·actual drift 단언을 유지해 import를 복구하고 문서·관련 LFF·별도 사전 검토 후 동일 PR 새 Full CI 시작에서 멈춘다. 원본 실패·후단 SKIPPED와 새 검증은 [Work Packet](ISSUE_663.md)에서 구별한다.

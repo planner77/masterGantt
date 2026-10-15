@@ -1,3 +1,11 @@
+## Issue #665 — 의미 관측·receipt 재사용/무효화
+
+신규 `tests/features/gantt/projection-observation.test.ts`는 opt-in facade와 U1 포트로 SC-01/06/07/10/11의 모듈 경계를 검증한다. 같은 actual Core/문맥의 반복 관측은 attempt만 증가시키고 semantic completion·원래 lease를 보존한다. 같은 canonical key의 순서·날짜·임시 Task·Link drift 및 proof 부재/불일치, API/revision/query/scope/layout/axis·dirty/recovery·hidden/unmount·새 입력은 과거 완료를 거부해야 한다.
+
+logical visible 행과 virtualized mounted subset을 구별하고 이름·순서·필수 행·행 정렬 오류를 검증한다. 수평 Core/native 불일치·복원 대기 중에도 data receipt가 생성되며 관측은 viewport 쓰기를 수행하지 않는다. source가 관측 전/중/후 또는 Promise callback 전에 바뀌면 typed 취소/실패로 처리하고 cancel/dispose/외부 abort·멈춘 frame에서도 timer/listener를 정리한다. 기존 legacy `projection-settled`, canonical projection/U1 reader/harness 및 Coordinator 관련 Unit을 함께 실행한다.
+
+U1 `actual-core-2.7.3.json`/provenance를 사용한 회귀는 이미 수집한 synthetic SVAR public serialize evidence의 재검증이다. 이번 actual browser·HTTP/SQLite·최종 Calendar/Resource/전체 SC E2E 실행이 아니며 #667/#574의 제품 gate를 대체하지 않는다. 공식 exact-head quality/e2e/docker·Trusted QA·Owner ACCEPT는 별도다. 실제 명령·수치·미검증은 [Work Packet](exec-plans/active/ISSUE_665.md)을 따른다. skip/timeout/허용오차 변경 없음.
+
 ## Issue #663 — U1 공통 계약·누적 하니스 검증
 
 `tests/config/gantt-state-conformance.json`의 SC-01~14를 기존 Vitest runner의 전용 manifest Unit에서 검사한다. GSC-01~12·owner·evidence level·현존 spec/case의 매핑과 누락/중복/비존재 음성 검증을 포함한다. 등록된 scenario/productStatus는 NOT TESTED이며 구조 검사 PASS를 전체 E2E 실행 PASS로 승격하지 않는다.

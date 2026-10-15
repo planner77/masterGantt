@@ -1,3 +1,11 @@
+## Issue #665 — 의미 관측 facade와 완료 증거 경계
+
+U3는 U1의 공개 읽기/검증 포트를 사용하는 opt-in `createProjectionObservation`을 추가한다. Core tasks/tree/links의 실제 정합·dirty/recovery·API·desired query/scope와 layout/axis·원래 user intent lease를 관측 attempt와 구별한다. 재관측만으로 새 복원 권한을 주지 않으며 현재 proof/행/실측 문맥이 유효할 때만 semantic completion을 유지한다. missing/stale proof·Core drift·새 문맥은 fail-closed한다.
+
+논리 visible IDs와 가상 mounted 행 subset을 구별하고 실제 mounted 이름·순서·정렬 증거를 유지한다. data/row 완료는 수평 복원 완료를 기다리지 않는다. 기존 Coordinator/port·제품 호출과 #569 geometry adapter/resize 예외·기존 timeout/허용오차·실험 FAIL/DEFER는 변경하지 않는다. 실제 axis의 읽기 evidence 및 source 변경 통지는 U3 port 소비자의 책임이며 제품 연결은 #667에서 단독 수행한다.
+
+새 facade와 전용 Unit은 미연결 상태다. 설치2.7.3 captured Core fixture 재사용은 실제 browser 재수집이나 제품 Calendar·Resource E2E 성공이 아니다. 원격 gate/Owner 승인 전 MODULE_READY 최종 판정을 하지 않는다. [검증·인계·rollback](exec-plans/active/ISSUE_665.md).
+
 # ADR — SVAR 2.7.3 공개 API와 Chart 기하 Adapter (#569)
 
 ## Issue #571 — 기존 제품 명령의 단일 port 통합
