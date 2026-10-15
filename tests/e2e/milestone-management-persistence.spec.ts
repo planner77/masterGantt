@@ -184,7 +184,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   await testInfo.attach("issue-550-sqlite-http-restart", { body: JSON.stringify({ environment: "Next development isolatedApplication + real SQLite", restarted: true, publicId, revision: durableSnapshot.data.project.revision, taskIds: durableSnapshot.data.tasks.map((row) => row.taskId), milestoneTaskId: milestone.taskId, parentExternalId: null, siblingOrder: lastRootOrder + 1, fullMemberTaskIds: task(milestone.taskId).stageGate?.memberTaskIds, directPredecessorTaskIds: task(milestone.taskId).stageGate?.predecessorMilestoneTaskIds, completedManualCopy: { sourceTaskId: manual.taskId, copiedTaskId: manualCopy.taskId, manualEvent: true, ready: null }, rejectedPartialCompletedCopy: "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED", rejectedHttpStatuses: [401, 403, 428, 412, 409, 400], legacyExistingMixed: "Separate real SQLite service regression; this browser fixture does not scan or write its database", sourceHashes }, null, 2), contentType: "application/json" });
 });
 
-test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly", async ({ page, baseURL }, testInfo) => {
+for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (${firstDate})`, async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120_000);
   const origin = baseURL!;
   const created = await page.request.post("/api/projects", { headers: { Origin: origin }, data: {
@@ -200,6 +200,9 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
   };
   const empty = await get();
   expect(empty.data.tasks).toEqual([]);
+  const future = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000);
+  while ([0, 6].includes(future.getUTCDay())) future.setUTCDate(future.getUTCDate() + 1);
+  const requestedDate = firstDate === "past" ? "2026-10-12" : future.toISOString().slice(0, 10);
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
@@ -209,7 +212,7 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
   await panel.getByRole("button", { name: "Milestone 추가", exact: true }).click();
   const createDialog = page.getByRole("dialog", { name: "Milestone 추가", exact: true });
   await createDialog.getByLabel("Milestone 이름", { exact: true }).fill("일반 작업 없는 첫 Milestone");
-  await createDialog.getByLabel("요청 시작일", { exact: true }).fill("2026-10-12");
+  await createDialog.getByLabel("요청 시작일", { exact: true }).fill(requestedDate);
   const [response] = await Promise.all([
     page.waitForResponse((result) => result.request().method() === "POST" && new URL(result.url()).pathname === `${api}/tasks`),
     createDialog.getByRole("button", { name: "Milestone 생성", exact: true }).click(),
@@ -219,13 +222,17 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
   expect(snapshot.data.project.revision).toBe(empty.data.project.revision + 1);
   expect(snapshot.data.tasks).toHaveLength(1);
   const milestone = snapshot.data.tasks[0];
-  expect(milestone).toMatchObject({ type: "milestone", parentExternalId: null, siblingOrder: 0, duration: 0, start: "2026-10-12", end: "2026-10-12", stageGate: { memberCount: 0, manualEvent: true, ready: null, memberProgressPercent: null } });
+  expect(milestone).toMatchObject({ type: "milestone", parentExternalId: null, siblingOrder: 0, duration: 0, start: requestedDate, end: requestedDate, stageGate: { memberCount: 0, manualEvent: true, ready: null, memberProgressPercent: null } });
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor).toBeVisible();
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue(milestone.name);
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   const row = panel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`);
   await expect(row).toContainText("수동 이벤트 · Ready N/A");
+  const frame = page.locator(".project-gantt-frame");
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /svar-api-/);
+  const coreInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  await expect(row.getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true })).toBeEnabled();
 
   let protectedMutations = 0;
   page.on("request", (request) => {
@@ -246,6 +253,45 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
   await expect(editor).toContainText("선행 작업 (0)");
   await expect(editor).toContainText("후행 작업 (0)");
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(page.getByRole("grid").getByText(milestone.name, { exact: true })).toBeVisible();
+  await expect(page.locator(`.wx-bar[data-task-id=":${milestone.taskId}"]`)).toHaveCount(1);
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", coreInstance!);
+  const readAxis = () => frame.evaluate((element, date) => {
+    const probe = Reflect.get(element, "__masterganttMilestoneTimeline") as {
+      read(): { start: string; end: string; width: number; scaleRows: { count: number }[] };
+      coordinate(date: string): { insideRange: boolean } | null;
+    };
+    const state = probe.read();
+    return { start: new Date(state.start).toISOString(), end: new Date(state.end).toISOString(), width: state.width,
+      cells: state.scaleRows.map(row => row.count), covered: probe.coordinate(date)?.insideRange === true };
+  }, milestone.start!);
+  const axes: unknown[] = [];
+  for (const mode of ["주", "일"]) {
+    await page.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: mode, exact: true }).click();
+    await expect.poll(async () => {
+      const axis = await readAxis();
+      return axis.covered && new Date(axis.end).getTime() > new Date(axis.start).getTime() && axis.width > 0 && axis.cells.every(count => count > 0);
+    }).toBe(true);
+    const chart = frame.locator(".wx-chart").first();
+    const before = await readAxis();
+    for (let extension = 0; extension < 3; extension++) {
+      const width = await chart.evaluate(element => element.scrollWidth);
+      await chart.evaluate(element => { element.scrollLeft = element.scrollWidth; });
+      await expect.poll(() => chart.evaluate(element => element.scrollWidth)).toBeGreaterThan(width);
+      await expect.poll(async () => JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator")) ?? "null"))
+        .toMatchObject({ kind: "RANGE_EXTENSION", phase: "SETTLED", outcome: "SETTLED" });
+      const axis = await readAxis();
+      expect(axis.covered).toBe(true);
+      expect(axis.start).toBe(before.start);
+      expect(axis.cells.every(count => count > 0)).toBe(true);
+      axes.push({ mode, extension, ...axis });
+    }
+  }
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", coreInstance!);
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await expect(row.getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true })).toBeEnabled();
   expect(protectedMutations).toBe(0);
   expect(await get()).toEqual(snapshot);
 
@@ -266,5 +312,5 @@ test("#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계
     expect((await refused.json()).error.code).toBe("EDIT_SESSION_REQUIRED");
   } finally { await readonly.close(); }
   expect(await get()).toEqual(snapshot);
-  await testInfo.attach("issue-550-empty-milestone-only", { body: JSON.stringify({ environment: "Next development isolatedApplication + real SQLite", emptyTaskCount: 0, milestoneOnlyTaskCount: 1, publicId, milestoneTaskId: milestone.taskId, projectRevision: snapshot.data.project.revision, manualEvent: true, ready: null, protectedNavigationMutations: protectedMutations, readonlyCreateStatus: 401 }, null, 2), contentType: "application/json" });
+  await testInfo.attach("issue-550-empty-milestone-only", { body: JSON.stringify({ environment: "Next development isolatedApplication + real SQLite", emptyTaskCount: 0, milestoneOnlyTaskCount: 1, publicId, milestoneTaskId: milestone.taskId, projectRevision: snapshot.data.project.revision, manualEvent: true, ready: null, protectedNavigationMutations: protectedMutations, firstDate, requestedDate, axes, coreInstance, sameCoreAfterVisibleReturn: true, readonlyCreateStatus: 401 }, null, 2), contentType: "application/json" });
 });

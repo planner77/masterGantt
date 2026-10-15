@@ -125,3 +125,5 @@ U4 전용 합성 fixture는 날짜 start/end·actual physical width/height/scrol
 Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source의 관측을 알린다. actual axis signature 변경에만 새 receipt floor를 요구하며 client box가 같아도 scrollWidth 증가를 놓치지 않는다. 알림은 읽기 전용이며 UNKNOWN/pending·폐기 API/source·원래 lease 검사를 우회하지 않는다.
 
 #2811.1의 peer trace는 receipt2 APPLY/SETTLING→fresh visible receipt3→STALE_PROJECTION SUPERSEDED를 기록했다. 좌표120/96과 완료 marker를 구분하고 visibility bridge invalidation 이후 실제 새 receipt와 3프레임 정착을 확인한다. 원본 run/job/step 및 보완 source 결과는 #667 Work Packet에 분리한다.
+
+#2812.1 Milestone-only 진단은 U2 SETTLED 뒤 filter-tasks 큐에서 width 예외가 난 사실과 raw axis start2026-10-15T15:00Z/end2026-10-12T15:00Z/width-108/cells[1,0]을 분리 기록한다. 보완 프로파일은 고정 start를 생략한 Core 계산 left bound/open end다. 임시 exception/stack 계측은 제거하며 새 프로파일의 실제 coverage·정착은 #667 correction 증거로만 판단한다.

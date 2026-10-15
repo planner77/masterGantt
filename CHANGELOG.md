@@ -1,5 +1,7 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- CI #2812의 빈 프로젝트→과거 첫 Milestone 날짜축 역전을 Core 계산 left bound로 교정한다. 반복 삭제 stale/조회 실패 회귀는 UNKNOWN 보호를 유지하고 명시적 최신 조회 뒤 계속하도록 갱신한다.
+
 - PR CI #2811의 화면 복귀 영수증 취소를 fresh visible 관측 대기로 교정하고, cross-tab/실패복구 GET 경합의 재잠금과 pending 조회 중 UNKNOWN 잠금 누락을 보완한다. 원본 실패·실제 두 탭 회귀는 Work Packet에 보존한다.
 
 - main 제품의 actual-Core 정합/실패 복구·의미 관측·날짜축 transaction을 U2/U3/U4 공통 모듈에 연결한다. 서버 확인 없는 snapshot 재생·remount 복구 대신 unknown 저장 결과의 충돌 쓰기 차단과 명시적 최신 조회를 제공한다.

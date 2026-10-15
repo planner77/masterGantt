@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 후속: CI #2812.1 quality/docker PASS·e2e FAIL을 재현하고 반복 삭제 UNKNOWN 복구 fixture와 빈 프로젝트 첫 Milestone 이후 잠금 원인을 보완한다. 원본 두 실패와 이전 증거를 보존하고 새 Full CI 시작까지만 진행한다.
+
 2026-10-16: PR #695 원본 CI #2811.1은 quality/docker PASS·e2e shard3 FAIL/다른5shard CANCELLED다. fresh visible receipt와 cross-tab 실패복구 generation/UNKNOWN 잠금을 보완하고 실제 재현·음성 경합·독립 사전 검토 후 같은 PR의 새 Full CI를 시작한다. 완료 모니터링·병합/릴리스는 제외한다.
 
 [Work Packet](ISSUE_667.md): #548 marker-last 결정에 따라 main `29c86ca918baa1811bc12a3eb60f86ffc5406b40`에서 U2 actual-Core 복구/U3 semantic observation/U4 axis transaction을 실제 제품에 연결한다. frontend가 Gantt/Workspace/Coordinator/port의 단일 작성자이며 Manager는 문서·버전·실제 HTTP/SQLite E2E, 별도 qa_docs는 read-only 사전 검토를 담당한다. 기존 native Milestone 행/bar와 marker 미활성을 유지하고 #552 표시 UI를 중복 구현하지 않는다.

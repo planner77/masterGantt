@@ -1,0 +1,501 @@
+{
+  "schemaVersion": 1,
+  "issue": 667,
+  "pullRequest": 695,
+  "scope": "로컬 빠른 검증 보완; 전체 PR CI 성공 증거 아님",
+  "parentHeadSha": "2f8f0573852a69fd85d733d0e57e61e282997372",
+  "sourceFingerprintSha256": "ee97b7b8f98b35b093b720b08457d8e8bd3317f68f509ff39e74c27b9392631f",
+  "changedSourceHashesSha256": {
+    "src/features/gantt/project-gantt.tsx": "bd7d6858780ab49e750f97d775a0226ab9f3ade8467d456a4e44e35a74e8a0b5",
+    "tests/e2e/milestone-management-persistence.spec.ts": "52e141647843ce5a2f0a6f7382db3cce3d59f32c704da83d7c991fdab829b7e6",
+    "tests/e2e/project-task-delete-context.spec.ts": "e547c909139fee2494db9c8c697c0154a626728f5280abcda9242036afb2ce3b"
+  },
+  "originalCi": {
+    "runId": 38793354820,
+    "runNumber": 2812,
+    "attempt": 1,
+    "headSha": "2f8f0573852a69fd85d733d0e57e61e282997372",
+    "baseSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+    "testMergeSha": "7a30c212bca2ec67400eb9dc872e90bc39f47531",
+    "quality": {
+      "jobId": 116624908386,
+      "conclusion": "success"
+    },
+    "docker": {
+      "jobId": 116625403534,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "jobId": 116628000013,
+      "conclusion": "failure"
+    },
+    "failures": [
+      {
+        "jobId": 116624327757,
+        "step": 7,
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "line": 155,
+        "error": "stale 복구 뒤 다음 Delete가 disabled인 채 원래90000ms 기한에 실패",
+        "shardPassed": 52,
+        "shardFailed": 1,
+        "shardNotRun": 37,
+        "jobConclusion": "failure"
+      },
+      {
+        "jobId": 116624327558,
+        "step": 7,
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "line": 236,
+        "error": "첫 편집 session의 Milestone 상세가 disabled인 채 원래120000ms 기한에 실패",
+        "shardPassed": 27,
+        "shardFailed": 1,
+        "shardNotRun": 75,
+        "jobConclusion": "cancelled",
+        "stepConclusion": "failure"
+      }
+    ],
+    "otherShards": "CANCELLED"
+  },
+  "beforeFix": {
+    "originalLocal": "원본 게시 source에서 원래120000ms/90000ms 제한으로 2 FAIL",
+    "diagnosticLocal": "enabled 단언·임시 진단 source에서8.1초/8.3초/8.2초 FAIL; 원본 source fingerprint의 결과와 구분",
+    "diagnosticAxis": {
+      "start": "2026-10-15T15:00:00.000Z",
+      "end": "2026-10-12T15:00:00.000Z",
+      "width": -108,
+      "cells": [
+        1,
+        0
+      ]
+    },
+    "interimTestError": "제품 보완 후 Date 객체 참조 비교로 2 FAIL; ISO 값 비교로 교정하고 실패 원본은 Git 밖 보존",
+    "diagnosticError": "TypeError: Cannot read properties of undefined (reading 'width')",
+    "diagnosticStage": "queue / filter-tasks"
+  },
+  "profile": {
+    "start": "React start/end prop 생략; Core가 Task 날짜에서 계산",
+    "autoScale": false,
+    "initialTodayLeftMargin": "강제하지 않음",
+    "initialRightExtent": "보존",
+    "dynamicPropInit": false,
+    "remount": false,
+    "privateStoreWrite": false,
+    "temporaryDiagnosticsRetained": false
+  },
+  "unit": {
+    "files": 9,
+    "passed": 268,
+    "failed": 0
+  },
+  "chromium": {
+    "stats": {
+      "total": 63,
+      "expected": 63,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "durationMs": 491027.451,
+    "actualHttpSqlite": 26,
+    "mockApiActualSvar": 37,
+    "tests": [
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 390px Day",
+        "status": "PASS",
+        "durationMs": 2472
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 390px Week",
+        "status": "PASS",
+        "durationMs": 1888
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 768px Day",
+        "status": "PASS",
+        "durationMs": 1938
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 768px Week",
+        "status": "PASS",
+        "durationMs": 2001
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1024px Day",
+        "status": "PASS",
+        "durationMs": 1931
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1024px Week",
+        "status": "PASS",
+        "durationMs": 1952
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1440px Day",
+        "status": "PASS",
+        "durationMs": 2101
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1440px Week",
+        "status": "PASS",
+        "durationMs": 1947
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1920px Day",
+        "status": "PASS",
+        "durationMs": 1918
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 metadata projection 1920px Week",
+        "status": "PASS",
+        "durationMs": 2033
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure insert-before",
+        "status": "PASS",
+        "durationMs": 2359
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure surviving-child-root",
+        "status": "PASS",
+        "durationMs": 2233
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure surviving-child-new-parent",
+        "status": "PASS",
+        "durationMs": 2217
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 actual Core structure new-parent-mixed-children",
+        "status": "PASS",
+        "durationMs": 2220
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 readonly projection empty",
+        "status": "PASS",
+        "durationMs": 1197
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 readonly projection milestone-only",
+        "status": "PASS",
+        "durationMs": 1199
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 nested Summary filter, empty results and Day/Week retain native membership",
+        "status": "PASS",
+        "durationMs": 1834
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 scale-only restores resized columns once without resetting definitions",
+        "status": "PASS",
+        "durationMs": 1742
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 passive reparent keeps its existing target Summary collapsed",
+        "status": "PASS",
+        "durationMs": 2502
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 query receipt is consumed before later tree and selection observations",
+        "status": "PASS",
+        "durationMs": 1887
+      },
+      {
+        "file": "tests/e2e/canonical-projection.spec.ts",
+        "title": "#570 filters and scale retain empty Summary containers without opening leaves",
+        "status": "PASS",
+        "durationMs": 3031
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 2767
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 없는 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 2339
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 연결 단절: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 2748
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500과 조회 실패: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 3332
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제하지 않는다",
+        "status": "PASS",
+        "durationMs": 2831
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 최신 확정 뒤 이전 recovery stale는 다시 잠그지 않는다",
+        "status": "PASS",
+        "durationMs": 4493
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 최신 확정 뒤 이전 recovery 500는 다시 잠그지 않는다",
+        "status": "PASS",
+        "durationMs": 4456
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다",
+        "status": "PASS",
+        "durationMs": 5217
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다",
+        "status": "PASS",
+        "durationMs": 2690
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다",
+        "status": "PASS",
+        "durationMs": 3907
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다",
+        "status": "PASS",
+        "durationMs": 4399
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "status": "PASS",
+        "durationMs": 4806
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 add 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "status": "PASS",
+        "durationMs": 4016
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+        "status": "PASS",
+        "durationMs": 4373
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 request reversal, stale error and explicit retry preserve filters",
+        "status": "PASS",
+        "durationMs": 1534
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+        "status": "PASS",
+        "durationMs": 1983
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+        "status": "PASS",
+        "durationMs": 2038
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 aborted request to cached query still permits focus catch-up",
+        "status": "PASS",
+        "durationMs": 1622
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+        "status": "PASS",
+        "durationMs": 3397
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+        "status": "PASS",
+        "durationMs": 2282
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "title": "#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 거절·프로세스 재시작",
+        "status": "PASS",
+        "durationMs": 18934
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+        "status": "PASS",
+        "durationMs": 8550
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (future)",
+        "status": "PASS",
+        "durationMs": 8507
+      },
+      {
+        "file": "tests/e2e/project-gantt-scale.spec.ts",
+        "title": "switches the Gantt timeline between day and ISO week headers without remounting",
+        "status": "PASS",
+        "durationMs": 3485
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "confirms and atomically deletes the right-clicked task subtree without remounting Gantt",
+        "status": "PASS",
+        "durationMs": 3797
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "keeps confirmed deletions after repeated mutation rejection (normal)",
+        "status": "PASS",
+        "durationMs": 5984
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "keeps confirmed deletions after repeated mutation rejection (stale)",
+        "status": "PASS",
+        "durationMs": 6086
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "keeps confirmed deletions after repeated mutation rejection (unavailable)",
+        "status": "PASS",
+        "durationMs": 6115
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "keeps confirmed deletions after repeated mutation rejection (401)",
+        "status": "PASS",
+        "durationMs": 6467
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "keeps confirmed deletions after repeated mutation rejection (412)",
+        "status": "PASS",
+        "durationMs": 5868
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "title": "keeps confirmed deletions after repeated mutation rejection (network)",
+        "status": "PASS",
+        "durationMs": 5400
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존",
+        "status": "PASS",
+        "durationMs": 10467
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지",
+        "status": "PASS",
+        "durationMs": 9289
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다",
+        "status": "PASS",
+        "durationMs": 9375
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+        "status": "PASS",
+        "durationMs": 3343
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 3588
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 3092
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 3388
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+        "status": "PASS",
+        "durationMs": 2702
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add preserves unmodified viewport",
+        "status": "PASS",
+        "durationMs": 4448
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add actual wheel cancels captured restore",
+        "status": "PASS",
+        "durationMs": 4498
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+        "status": "PASS",
+        "durationMs": 1737
+      }
+    ]
+  },
+  "nextFullPrCi": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "preQa": {
+    "status": "PASS",
+    "scope": "별도 read-only 코드·문서·로컬 증거 검토; QA_FINAL 아님",
+    "reviewer": "/root/integration_tests (qa_docs)",
+    "documentationSync": "PASS (독립 의미 검토)",
+    "sourceHashMismatches": 0,
+    "browserReportMismatches": 0,
+    "unresolvedCodeFindings": 0,
+    "unresolvedDocumentationFindings": 0
+  }
+}

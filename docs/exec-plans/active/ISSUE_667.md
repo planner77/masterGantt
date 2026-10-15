@@ -4,7 +4,7 @@ Refs #667
 
 ## 실행 계약
 
-phase: CI_CORRECTION_PR_READY
+phase: CI_2812_CORRECTION_PR_READY
 risk_level: HIGH
 risk_reason: 실제 Core 복구·비동기 저장 결과·viewport 의도 및 날짜축 연결의 교차 회귀
 qa_method: OWNER_MANAGED
@@ -75,7 +75,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - AC4: 검색0/해제·WBS exact120 bookmark·연속3회축확장·진행중실제wheel·Resource exact120/후속 native-reset·pending wheel/resize·Target 편집을 선택 검증했다. 로컬 PASS; 별도 marker reveal/전체 조합은 NOT TESTED.
 - AC5: full canonical Task/Link·권한/revision, unknown/역전GET·추가 mutation0·같은 instance/tree/selection/columns·3000행/3회 cleanup 선택 범위 PASS. 장기 heap/전 listener·전체 Membership 조합은 NOT TESTED.
 - AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. DOCUMENTATION_SYNC의 로컬 영향/정합 검토 PASS.
-- AC7: 원본 Head04b6의 CI #2811.1은 quality/docker PASS, e2e FAIL이다. 다른5shard 취소·미실행은 NOT TESTED로 유지한다. 보완 Head의 required3/Trusted QA·Owner gate는 새 실행 증거 전 NOT TESTED이며 MERGE_READY=BLOCKED다.
+- AC7: Head04b6의 CI #2811.1과 후속 Head2f8f의 CI #2812.1은 각각 quality/docker PASS, e2e FAIL이다. #2812 shard6과 취소된 shard5의 실제 test FAIL을 모두 보존한다. 취소·미실행은 PASS가 아니며 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
 
 ## DOCUMENTATION_SYNC
 
@@ -85,6 +85,10 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - `docs/TASK_EDITOR.md`: UPDATED
 - `docs/evidence/issue-667/local-validation.json`: UPDATED
 - `docs/evidence/issue-667/ci2811-correction.json`: UPDATED
+- `docs/evidence/issue-667/ci2812-correction.json`: UPDATED
+- `docs/ISSUE_35_GANTT_SCALE.md`: UPDATED
+- `docs/ISSUE_3_REVIEW.md`: UPDATED
+- `docs/W21_REVIEW.md`: UPDATED
 - `docs/images/issue-667/unknown-workspace-1440.png`: UPDATED
 - `docs/images/issue-667/unknown-editor-1440.png`: UPDATED
 - `docs/MILESTONE_TIMELINE.md`: UPDATED
@@ -327,3 +331,50 @@ DOCUMENTATION_SYNC: PASS (로컬 영향 분석·코드/문서/실행 증거 정�
 - pre_qa_reviewer: `/root/integration_tests` (qa_docs, 별도 read-only 실행). pre_qa: PASS. DOCUMENTATION_SYNC: PASS(코드·문서·원본 HTML/Unit·4파일 fingerprint의 독립 의미 검토; mismatch0·미해결 코드 지적0). QA_FINAL/Owner ACCEPT 및 원격 리뷰 해소 판정은 포함하지 않는다.
 - 게시: 기존 PR #695 branch에 parent `04b6d3d90d06b742223038c31c84823d525feb21`의 후속 commit을 게시한다. Git Data connector의 tree bytes 일치 및 expected_sha/force=false를 확인하며 기존 PR/실패 run 이력을 보존한다. 신규 PR 생성이나 실패한 구 Head 재실행 대신 수정 Head의 Full PR CI 시작을 확인한다.
 - 새 Head quality/e2e/docker·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. 새 run 완료 모니터링·병합·Main/GHCR·정식 release/tag·Issue 종료는 수행하지 않는다. 정확한 게시 Head/tree/run URL·리뷰 해소 결과는 Issue STATUS와 PR 댓글에 기록한다.
+
+
+## 2026-10-16 — PR #695 / CI #2812.1 재보완
+
+### 원본 실패 / 재개 범위
+
+Head `2f8f0573852a69fd85d733d0e57e61e282997372`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`, 실제 checkout test merge `7a30c212bca2ec67400eb9dc872e90bc39f47531`. [CI #2812.1 / run38793354820](https://github.com/planner77/masterGantt/actions/runs/38793354820)은 quality job116624908386·docker job116625403534 SUCCESS, e2e aggregate job116628000013 FAILURE다.
+
+- 최초 [shard6 job116624327757](https://github.com/planner77/masterGantt/actions/runs/38793354820/job/116624327757), step7: `project-task-delete-context.spec.ts:155`, 반복 거부 stale 변형의 다음 Delete가 disabled인 채90000ms timeout. 52PASS/1FAIL/37NOTRUN.
+- [shard5 job116624327558](https://github.com/planner77/masterGantt/actions/runs/38793354820/job/116624327558), step7: `milestone-management-persistence.spec.ts:236`, 빈 프로젝트→Milestone-only 생성 후 편집 session의 첫 상세가 disabled인 채120000ms timeout. 27PASS/1FAIL/75NOTRUN. job 결론은 CANCELLED지만 기록된 실제 test FAIL을 보존한다. 후반 readonly context의 실패와 혼동하지 않는다.
+- 다른4shard도 CANCELLED이며 미실행/취소를 PASS로 사용하지 않는다. QA Automated는 후단 실패이며 Owner ACCEPT가 아니다.
+
+사용자 요청은 두 실패 원인 분석·최소 보완·문서 동기화·독립 사전 검토·기존 PR 새 Full CI 시작이다. 원격 완료 모니터링·병합·Main/GHCR·release/tag·Issue 종료는 제외한다. Manager는 원본 browser 재현·테스트/문서, frontend는 production 단일 작성자, qa_docs는 독립 read-only 검토를 담당한다. 원본/이전 보완 증거는 그대로 보존하며 이번 source 결과를 별도로 기록한다.
+
+
+### 로컬 원본 재현 / 테스트 계약 보완
+
+원본 Head2f8f에서 두 사례를 같은 명령으로 실행하여 2FAIL을 재현했다. Milestone 상세는 원래120초, 반복 삭제 stale은 원래90초에 각각 같은 disabled 버튼에서 실패했다. 원본 trace/HTML을 `output/playwright/issue-667/ci2812-reproduction`에 보존한다.
+
+삭제 stale/unavailable은 canonical GET이 과거 revision/실패여서 UNKNOWN 잠금 유지가 정상이다. 기존 fixture가 route 해제·APIRequestContext GET만으로 앱이 복구됐다고 가정한 것이 원인이다. 수정은 UNKNOWN 안내·메뉴 Delete disabled·추가 DELETE0을 검증하고 UI 명시 최신 조회 성공 뒤 기존 두 번째 삭제를 계속한다. 인스턴스·접힘·scale·좌표·확정 삭제·revision·원래 timeout 단언을 보존하며 production 쓰기 차단을 완화하지 않는다.
+
+Milestone-only는 U2 SETTLED changed:true 이후 별도 큐에서 `Cannot read properties of undefined (reading 'width')`가 발생해 Workspace 복구 잠금이 남는 실제 제품 결함이다. 강화한 enabled 단언으로 별도8.1초/8.3초 FAIL을 재현하고 임시 DEV 진단으로 queue 예외·설치 SVAR stack을 확인했다. 진단 원본은 `ci2812-diagnostic`/`ci2812-diagnostic-stack`에 보존하며 제품 수정 후 최종 source의 실행 결과를 별도로 기록한다. 성공 영수증과 후속 예외를 구분하고 readonly/보고서 query 문제가 아닌 첫 편집 session의 실패로 기록한다.
+
+
+### 날짜축 결정 / 실제 경계
+
+임시 raw axis 진단은 `_start=2026-10-15T15:00:00.000Z`, `_end=2026-10-12T15:00:00.000Z`, width=-108, scale cells=[1,0]을 직접 확인했다. 설치 Core는 고정 start를 유지하면서 past Milestone의 end+1unit을 계산해 역전했다. filter-tasks는 재계산 trigger이며 단순 생략으로 해결하지 않는다. 진단8.2초 FAIL과 실제bounds는 `ci2812-diagnostic-axis`에 보존한다.
+
+Manager는 mount고정 start prop을 생략하는 방식을 선택했다. Core가 Task 날짜에서 left bound를 계산하고 기존 U4 resize가 그 현재 bound를 보존한다. stable initial tasks/links/columns·autoScale=false·retained initial right extent·단일 writer/lease·UNKNOWN/auth는 유지한다. 오늘 기준 초기 left 여백은 더 이상 강제하지 않는다. React start/end 동적 prop에 의한 wrapper init·private Store 쓰기·remount는 사용하지 않는다.
+
+고정 start+autoScale=true는 설치 resize가 supplied start를 다시 적용해 past date coverage를 잃으므로 채택하지 않는다. 독립 Reviewer가 실제 설치 Store의 init/add-task/filter-tasks/resize-chart로 A의 유효 범위 보존과 해당 위험을 별도 확인했다. Node Store 실행은 실제 DOM/viewport PASS가 아니며 최종 browser 결과와 구분한다. 최신 공개 [start](https://docs.svar.dev/react/gantt/api/properties/start/)/[end](https://docs.svar.dev/react/gantt/api/properties/end/)/[scales guide](https://docs.svar.dev/react/gantt/guides/timeline/scales/)/[resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/)와 설치2.7.3 wrapper/2.7.2 Store를 조사했다. 공개 날짜축 setter가 있다고 추정하지 않고 설치 호환 경로 이상으로 일반화하지 않는다.
+
+원본 Milestone 테스트에 과거/60일 이후 평일의 첫 Milestone 두 변형과 Day/Week의 native행/bar·각3회 실제 우측 확장·coverage·같은 API·Dashboard 재복귀를 추가했다. 기존 readonly401·조회 mutation0·canonical 불변 검증은 유지한다. 새 테스트의 첫 실행에서 날짜 Date 객체를 참조로 비교해 두 변형이 실패한 테스트 오류도 `ci2812-axis-test-comparison`에 보존하고 ISO 값 비교로 교정했다. 이는 production 원본 결함·새 제품 회귀 결과와 구분한다. 임시 예외/stack/rawbounds 계측은 최종 production source에서 제거했다.
+
+
+### 보완 source의 선택 검증 / 게시 인계
+
+- 증거: [CI #2812 보완 JSON](../../evidence/issue-667/ci2812-correction.json). parent Head `2f8f0573852a69fd85d733d0e57e61e282997372`와 변경 source/test3파일 SHA256를 함께 고정한다. fingerprint `ee97b7b8f98b35b093b720b08457d8e8bd3317f68f509ff39e74c27b9392631f`이며 최초/이전 보완 fingerprint를 대체하지 않는다.
+- Unit: `npx vitest run --config tests/config/vitest.config.ts`로 viewport-coordinator/svar-viewport-port/projection-observation/product-consistency/canonical-snapshot-recovery/project-revision-sync/canonical-recovery/core-conformance/canonical-snapshot-sync 9파일, 268PASS/0FAIL. 독립 Reviewer61PASS·frontend160PASS와 합산하지 않는다.
+- Chromium 명령: `npx playwright test --config tests/config/playwright.config.ts`에 milestone-dashboard-state/gantt-state-product-integration/gantt-state-recovery-editor/resource-kpi-integration-ui/viewport-coordinator/project-gantt-scale/project-task-delete-context/milestone-management-persistence/canonical-projection 9파일을 지정했다. `--grep '#463|SC-|#530 고정 geometry|#530 explicit frame|#571|switches the Gantt|#570|keeps confirmed deletions|confirms and atomically|#550' --project=chromium --workers=1`이다. 최종 누적 결과: 63PASS/0FAIL/0skipped/0flaky, 491027.451ms(8.2분). actual HTTP/SQLite26개, mock API·actual SVAR37개이며 canonical projection21개(5폭/Day·Week)·이전32개·삭제7개·Milestone3개를 포함한다.
+- 독립 Reviewer: `/root/integration_tests` qa_docs, read-only source/test/docs·실제 HTML/Unit·fingerprint 검토. pre_qa: PASS. DOCUMENTATION_SYNC: PASS(별도 코드·문서·선택 로컬 증거 의미 검토; HTML63사례/3파일 source SHA·fingerprint mismatch0, 미해결 코드·문서 지적0). QA_FINAL/Owner ACCEPT·전체 인수 판정과 구분한다.
+- 기존 PR #695에 parent2f8f의 후속 commit을 동일 tree bytes로 게시하며 expected_sha/force=false를 유지한다. 기존 실패 run을 재실행하거나 새 PR을 만들지 않고 수정 Head Full CI 생성까지만 확인한다. 정확한 게시 Head/base/tree/run·리뷰/mergeability는 Issue STATUS/PR 댓글로 인계한다.
+- 새 Head quality/e2e/docker·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. version0.114.1 후보·release_authorized=false, branch/Issue OPEN을 유지한다. 병합·Main/GHCR/digest/release/tag/cleanup·Windows Excel/DRM·production TLS·최종 수동 UX는 미수행/NOT TESTED다.
+
+이번 선택 회귀는 날짜축 프로파일 변경과 직접 관련된 9파일 범위다. 최초67개/이전32개 전체 결과를 새 source에 재사용하지 않는다. 새 source의 전체 E2E/전체 Vitest/로컬 Docker·장기/환경별 검증은 별도 미실행이며 새 원격 Full CI가 공식 전체 회귀를 수행한다. 기존 #666 합성 fixed-start evidence·390px/clamp 실패와 전체 AC2/장기 heap 미검증도 유지한다.
+
+복원 후 typecheck/Markdown227파일/version0.114.1/diff whitespace PASS와 변경 TypeScript lint오류0·기존hook warning3을 확인했다. raw 최종 HTML은 `output/playwright/issue-667/ci2812-correction-report/playwright-report`에 보존한다. 생성된 next-env/tsconfig·추적 #463 원본을 HEAD로 복원하고 새 #463 산출물은 `ci2812-generated-463`에 보존했다. 최초/이전 보완 JSON bytes는 변경하지 않았다.

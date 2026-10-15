@@ -1557,11 +1557,10 @@ export function ProjectGantt({
   const ganttColumnsReference = useRef<IColumnConfig[]>(initialConfig.columns);
   const initialRange = useState(() => {
     const fallback = emptyWorkspaceRange();
-    const starts = initialConfig.tasks.flatMap((task) => task.start instanceof Date ? [task.start] : []).concat(fallback.start);
     const ends = initialConfig.tasks.flatMap((task) => task.end instanceof Date ? [task.end] : []).concat(fallback.end);
-    // New work always starts today. Keep that small range in the initial
-    // scale so a canonical root add remains visible without reinitializing.
-    return { start: new Date(Math.min(...starts.map((date) => date.getTime()))), end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
+    // Retain the initial right extent for later compatibility expansion. Core
+    // derives the left bound so a newly added earlier date cannot invert it.
+    return { end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
   })[0];
 
   const [timelineEndMs, setTimelineEndMs] = useState(initialRange.end.getTime());
@@ -4314,7 +4313,6 @@ export function ProjectGantt({
               readonly={!editable}
               scales={scales}
               autoScale={false}
-              start={initialRange.start}
               tasks={initialConfig.tasks}
               taskTypes={projectTaskTypes}
             /></Locale></div>

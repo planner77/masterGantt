@@ -156,7 +156,7 @@ Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`�
 
 ## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
 
-Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
+Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `start/end` prop을 반복 변경하지 않고 Core가 Task 날짜에서 계산하는 start/open end의 SVAR public resize path를 사용한다. #667 CI #2812 보완부터 고정 left bound를 생략하여 과거의 첫 Task/Milestone도 유효한 날짜축에 포함한다. 초기 오늘 기준 왼쪽 여백은 강제하지 않으며 기존 초기 right extent의 보존 하한은 유지한다.
 
 동적 확장은 UI 전용 상태다. Task/Link/Calendar, Scheduling 결과, revision, DB/API, edit permission을 변경하거나 서버 요청을 만들지 않는다. 사용자가 확보한 미래 end는 단조 증가시키며 canonical sync나 Day/Week 전환 뒤에도 이전 end 이상을 public resize path로 복구한다. range extension 자체가 Core store를 re-init하지 않으므로 Gantt/API instance, horizontal/vertical scroll, tree, column, filter, selection 상태를 불필요하게 초기화하지 않는다.
 
@@ -1377,3 +1377,5 @@ Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고
 저장 전에 시작한 이전 조회가 늦게 도착해도 저장 결과 불명확 안내나 편집 잠금을 해제하지 않는다. 현재 요청의 최신 서버 확인만 복구를 확정한다. Editor의 재조회·취소는 사용할 수 있지만 UNKNOWN의 추가 저장과 하위 편집은 잠근다.
 
 화면을 숨겼다가 일정으로 복귀할 때는 이전 visible session의 완료 영수증을 현재 복귀의 근거로 재사용하지 않는다. 새 visible 관측 뒤 실제 정착을 확인한다. 다른 탭의 최신 확인이 진행 중이거나 실패하면 실패 mutation의 UNKNOWN 잠금을 유지하고, 최신 성공 조회만 해제한다.
+
+#667 반복 삭제 거부 후 canonical 조회가 stale/실패면 기존 확정 삭제를 보존하면서 UNKNOWN 잠금을 유지한다. 테스트 외부의 API 조회나 편집 session 재활성화만으로 성공 복구를 추론하지 않는다. UI의 명시적 최신 상태 재조회가 현재 snapshot을 수용한 뒤에만 다음 삭제를 허용하며 같은 Gantt 인스턴스·접힘·scale·viewport를 보존한다.

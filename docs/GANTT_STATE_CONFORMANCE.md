@@ -108,3 +108,5 @@ SC-05는 `gantt-state-product-integration.spec.ts`에서 actual SQLite commit �
 390px 측정 불가·full-capacity clamp 원본 FAIL·대량 수명주기·전체 폭/scale 행렬·marker ON 검증은 해당 실제 증거가 없으면 NOT TESTED/DEFER로 남긴다. 본 문서 추가로 Required workflow/manifest 정책을 바꾸지 않는다.
 
 추가 SC-05 역전 조회 사례는 Resource에서 시작한 실제 이전 GET을 지연하고, Task commit/500·최신 조회 실패 뒤 전달해도 UNKNOWN을 해제하지 않음을 확인한다. 명시 최신 조회 전 추가 PATCH 0과 같은 Core 인스턴스를 요구한다.
+
+#667 CI #2812 보완 프로파일은 Core 계산 left bound/open end/autoScale=false다. 빈 프로젝트의 첫 과거·미래 Milestone과 Day/Week·연속3회 우측 확장 후 날짜 coverage·같은 API·조회 mutation0을 별도 correction 증거에 기록한다. 이전 fixed-start 합성 fixture PASS·#666390px NOT_MEASURABLE/clamp FAIL은 그대로 보존하고 새 제품 프로파일의 전체 PASS로 전용하지 않는다. 반복 삭제 stale/unavailable은 UNKNOWN 차단 검증 뒤 UI 명시 최신 조회로만 회복한다.

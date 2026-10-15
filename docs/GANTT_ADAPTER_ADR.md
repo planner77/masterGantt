@@ -228,3 +228,6 @@ RANGE_EXTENSION도 U4 안에서 기존 X/Y를 보존하므로 capacity-only 예�
 지원 범위는 설치 Core 2.7.3/store 2.7.2 및 현재 동기 resize/scroll handler 프로파일이다. port의 1500ms Promise race와 U4 callback 종료는 임의의 미래 async-before-Store writer가 끝났다는 일반 보장이 아니다. library 또는 해당 handler를 비동기로 변경할 때 source taint·늦은 쓰기·natural recovery를 재검증해야 한다.
 
 #667 CI #2811 보완: view visibility 변경의 layout phase에서 legacy bridge receipt를 폐기한다. PEER_RETURN은 원래 lease로 fresh visible U3 receipt를 기다린 뒤 기존 acceptedProjection 고정·3-frame settle을 수행한다. 이전 session의 좌표 일치만으로 완료하지 않으며, 완료 대기 중 generation 변경을 무시하도록 완화하지 않는다.
+
+
+#667 CI #2812 보완의 현재 제품은 `start/end` prop을 생략하고 `autoScale=false`를 유지한다. 빈 프로젝트에 과거 첫 Milestone을 추가할 때 고정 start보다 자동 end가 앞서면 설치 Core의 filter 재계산이 빈 scale.cells를 읽어 예외를 낸다. 초기 props를 동적으로 바꾸어 wrapper init을 재실행하지 않고 Core가 Task 날짜에서 left bound를 계산하게 한다. 초기 today-left 여백은 강제하지 않으며 retained right extent는 유지한다. `autoScale=true`+고정 start는 설치 resize가 supplied start를 재적용해 과거 날짜 coverage를 잃으므로 채택하지 않는다. 이 판단과 새 actual HTTP/SQLite·Day/Week·3회 확장 증거는 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다. 기존 #666 fixed-start 합성 fixture 결과를 새 제품 프로파일의 PASS로 재사용하지 않는다. 공개 `resize-chart`는 여전히 물리 크기 API이며 설치 호환 경로 이상의 일반 날짜축 setter라고 주장하지 않는다.

@@ -487,3 +487,5 @@ canonical GET은 요청 generation을 가지며 mutation 시작 시 이전 read�
 U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기존 U3 관측기에 읽기 전용 재관측을 요청한다. scrollWidth/axis 변경은 client-size ResizeObserver 이벤트를 보장하지 않으므로 이 연결을 명시한다. prepare의 후속 receipt floor는 실제 axis signature 변경에만 요구하며 단순 resize/scroll write 수로 결정하지 않는다. canonical queue는 순서 barrier이며 관측/viewport 완료를 그 queue 안에서 기다리지 않는다.
 
 #667 CI 보완에서는 cross-tab canonical GET도 mutation/recovery와 동일한 read generation을 사용한다. 실패 mutation은 조회 시작 전에 UNKNOWN을 고정하고, 더 새 조회의 시작만으로 잠금을 해제하지 않는다. 실제 현재 세대의 성공 snapshot 수용만 해제 근거다. 숨김/표시 전환에서는 이전 visible bridge를 폐기해 새 layout 관측과 단일 Coordinator의 완료를 분리한다.
+
+#667 CI #2812 보완은 mount에 고정한 start prop을 생략한다. 설치 Core가 canonical Task 날짜에서 유효한 left bound를 계산하고 U4 resize는 그 현재 bound를 보존한다. 최초 right extent 보존·stable tasks/links/columns와 단일 Coordinator는 유지하며 React start/end 변경에 의한 store init이나 private Store 쓰기를 사용하지 않는다.

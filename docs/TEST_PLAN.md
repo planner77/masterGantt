@@ -1009,7 +1009,7 @@ DB 테스트는 schema21→0022에서 원래 Task/status/progress/Link/Assignmen
 - Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
 - Chromium E2E: `project-gantt-density.spec.ts`에서 Day `cellWidth=36`, Week 68, Grid 480px, 390/768/1024/1440px document overflow 부재를 확인한다.
 - `project-gantt-scale.spec.ts`는 Day 숫자-only Header와 #315/#316 Tooltip, Day↔Week identity 회귀를 확인한다. SVAR의 horizontal virtualization은 Week focus·viewport resize 뒤 어떤 구체 Day 날짜 또는 ISO week label이 DOM에 남을지 보장하지 않으므로 특정 날짜/W38 복귀를 강제하지 않고, 동일 instance에서 Day scale은 숫자-only, Week scale은 `Wxx` 형식으로 각각 복원되며 반대 scale cell이 제거되는지 검증한다. 이어 native `scrollTo()`로 Chart를 오른쪽 끝까지 3회 이동하여 매번 `data-gantt-timeline-end`가 증가하는지 확인한다. 각 확장 뒤 Gantt/API instance identity와 non-zero horizontal scroll을 유지하고 POST/PATCH/PUT/DELETE가 발생하지 않아야 한다.
-- 구현은 React `end` prop state 갱신을 사용하지 않는다. 고정 start/open end에서 public `resize-chart`의 scale expansion을 사용해 range 확장 자체가 Core store re-init, selection/column/filter reset을 일으키지 않도록 한다.
+- 구현은 React `end` prop state 갱신을 사용하지 않는다. Core가 계산하는 start/open end에서 public `resize-chart`의 scale expansion을 사용해 range 확장 자체가 Core store re-init, selection/column/filter reset을 일으키지 않도록 한다.
 - #373 scoped view의 `filter-tasks`와 최신 #384 다중 selection, #390 Copy ID Context Menu가 우측 range 확장/scale 전환 때문에 풀리거나 사라지지 않는지 전체 Chromium 회귀로 확인한다.
 - canonical Task end 또는 기존 사용자 future end가 Core 재계산 후 더 멀면 public resize path로 최소 end를 복구한다. Scheduling/Calendar/Dependency, Project revision, API/DB는 변경하지 않는다.
 - 공식 전체 회귀 판정은 최신 main 정렬 후 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
@@ -3855,3 +3855,5 @@ SC-14 marker OFF 사례는 실제 Core의 공개 serialize로 Task 1,000개·Mil
 추가 SC-09는 RANGE APPLYING·실제 native capacity 증가 후 관측 RAF를 hold하고 실제 wheel을 전달한다. release 뒤 old RANGE SUPERSEDED·후속 resize 0·옛 위치 replay 0·Core/native 일치를 검사한다. 주입한 것은 관측 타이밍이며 geometry/완료 결과를 mock하지 않고 모든 callback을 finally에서 해제한다. 모든 scroll 호출 전수 검증과 구분한다.
 
 #667 CI #2811.1 correction은 `milestone-dashboard-state.spec.ts`의 원본 peer120/96·완료count1·3frame·5초 단언을 유지한다. `gantt-state-product-integration.spec.ts`는 실제 두 탭 metadata 저장/storage event/canonical GET으로 최신 성공 뒤 stale/500 recovery가 다시 잠그지 않음과, cross-tab pending/500일 때 UNKNOWN 잠금·추가PATCH0·명시 최신 조회만 회복하는 음성 경계를 추가한다. 원본 E2E shard3 FAIL과 다른5shard 취소·미실행을 보존하고 새 Head Full CI를 별도로 시작한다.
+
+#667 CI #2812.1의 반복 삭제 stale/unavailable 회귀는 확정 삭제 보존 후 UNKNOWN 안내·메뉴 Delete disabled·추가 DELETE0을 검사한다. route 해제 후 APIRequestContext GET만으로 복구하지 않고 UI 명시 최신 조회 성공→같은 Core/접힘/scale/좌표→두 번째 삭제와 기존 revision 검사를 유지한다. 원래90초와 Milestone 관리120초·skip/retry 정책은 변경하지 않는다. Milestone-only 회귀는 빈 프로젝트 생성→숨긴 Gantt에 첫 Milestone 추가→상세/소속/관계 조회→일정의 native행/bar→같은 API로 Dashboard 복귀·추가 mutation0·별도 readonly401을 함께 검증한다.
