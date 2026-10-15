@@ -1,3 +1,16 @@
+## #548 / 2026-10-15 — Milestone native WBS 행 제거는 먼저, 상단 marker는 선택적 마지막 단계
+
+[Milestone Presentation Policy](../../MILESTONE_PRESENTATION_POLICY.md)와 [Gantt State Remediation](GANTT_STATE_REMEDIATION.md)의 최신 결정이 이 단계별 표시 활성화에 우선한다. 도메인 #459~#464·#550 Dashboard·#613 Resource/Target MVP는 유지한다.
+
+**실행/수용 순서:**
+`#661/AGENTS (완료) → #663 U1 (완료) → #664/#665/#666 (main 모듈) → #667 main-first Gantt Sync 소비·SC 누적 → #552/PR #561 marker-OFF Grid/Chart Milestone native 행 제거 → #553/PR #562 data/export 무손실 → #574 marker-OFF 전체 통합/QA/Owner → [선택] #573 marker-ON 5폭·date/focus 기술 gate → #693 marker-only 독립 활성화/flag OFF/revert rehearsal`.
+
+기존 #548 계획의 기본 marker ON과 #552/PR #561 결합 구현은 미검증 과거 목표이며 새 기준선 출시 요건이 아니다. #667의 공통 wiring은 **별도 main PR이 허용되는 독립 변경**이며 #552 표시 PR과 같은 내용을 이중 구현하지 않는다. #675 공유 소스 정렬 및 #622 Release/Finalizer backlog는 각 owner가 별도로 처리한다; marker-OFF baseline 배포를 #573 기술실험/PRO 지원에 종속시키지 않는다.
+
+#552와 #553의 기존 PR history·리뷰·원본 CI는 유지하고 실제 main 변경을 양쪽 보존해 정렬한다. marker enabled=false만으로 날짜 reveal/resize·event listener가 사라진다고 가정하지 말고 OFF 경로의 실제 side-effect0을 검증한다. Timeline ON의 운영 배포·Flag runtime semantics·GHCR/정식 Release는 별도 Owner 승인이다. 이번 단계는 **문서·이슈 계획 변경만**, 제품 적용/QA/병합은 NOT TESTED.
+
+---
+
 ## Issue #622 — Resume #35 Finalizer 교정 (2026-10-15)
 
 #622 원본 Main CI FAIL→동일 버전 교정 PR #686 정식 Release #170.1 SUCCESS인 상황에서 Generic Resume #35가 교정 SHA의 v0.114.0 태그를 원본 실패 SHA와 먼저 비교하여 FAIL한 문제를 제한적으로 보완한다. `scripts/auto_release_finalizer.py`의 read-only CI/first-parent supersession 사전 검증과 검증된 corrective SHA에 한정된 기존 태그 해석, 기존 CI Policy 회귀 음성 검증을 적용한다. 본 PR은 별도 Issue/새 릴리스/태그 조작 없이 #622 소유 운영 결함만 수정하며 Release #170.1 원본 성공·Resume #35.1 실패 증거를 보존한다. 상세 `ISSUE_622.md`, `GENERIC_RELEASE_FINALIZER.md` / `REMOTE_VALIDATION.md`. 현재 exact-Head CI·Trusted QA/Manager ACCEPT·원격 Resume은 NOT TESTED.

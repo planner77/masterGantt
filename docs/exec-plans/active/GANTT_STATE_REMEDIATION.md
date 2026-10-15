@@ -1,3 +1,17 @@
+## 2026-10-15 — #548 marker-last 결정에 따른 새 우선 작업 순서 (기존 계획 중 UI 귀속만 대체)
+
+[Milestone Presentation Policy](../../MILESTONE_PRESENTATION_POLICY.md)와 [#548](https://github.com/planner77/masterGantt/issues/548), [#693](https://github.com/planner77/masterGantt/issues/693)을 참조한다. 이전 아래의 '#667을 #552 PR #561에서 처음 통합'한다는 단계는 **과거 계획**이며 현재의 작업 범위는 다음과 같다.
+
+`#661 기준 문서(완료) → #663 U1(완료) → #664 U2 / #665 U3 / #666 U4 (main 모듈 병합) → #667 U5(main-first 공통 wiring) → #552/PR #561 (native Milestone Grid/Chart row/bar 제거, marker OFF) → #553/PR #562 (OFF 데이터 교환) → #574 (OFF 통합 수용) → [선택] #573 (ON geometry) → #693 (marker-only 별도 활성화/rollback)`
+
+- #667은 main에 **공통 데이터 정합성만** 적용하는 별도 제품 PR의 단일 작성자다. #552 표시 UI 기능과 중복하지 않으며 #675와 프로젝트 Gantt 파일 동시 쓰기 금지. 선행 #664~#666의 finalizer backlog(#622 release 승인)를 제품 구현 PASS로 오인하지 않고 관리.
+- #552는 기존 PR #561을 최신 main(#667 포함)에 정렬하고 원래의 결합된 marker 기본 ON/일시 날짜 reveal ON/저장 토글을 OFF baseline에서 제거·격리한다. 기존 미병합 #562/#563 stacked PR과 리뷰/테스트 변경을 함께 재정렬해야 한다. 병합 기록이나 원본 CI 실패를 지우지 않는다.
+- #553는 marker OFF에서도 원본 JSON·Excel·SVG·PNG/Copy/Template 전체 Milestone과 hidden Link/Membership을 보존하는 독립 수용; #574는 marker OFF 공통 E2E/HTTP·SQLite·같은 Head CI 수용이다. #573의 marker ON 테스트는 그 둘의 선행이 아니다.
+- #693은 꼭 필요한 경우에만 마지막 별도 PR/feature gate/default OFF/반복 ON-OFF/rollback rehearsal을 도입하며, #573가 측정 불가/클램프 실패이면 해당 profile ON은 DEFER/FAIL-closed 처리한다. 새로운 User/Owner 활성화 승인 없이 기본 ON으로 바꾸지 않는다.
+- 단일 소유권: #667 main Gantt/Workspace/Coordinator/port → #552 별도 WBS 표시 → #553 교환 → #574 QA → 선택 #573/#693 marker. 공통 모듈 존재=제품 적용 성공이 아니다. 신뢰된 Quality/E2E6/Docker/Trusted QA·Owner 승인/릴리스 지침은 모든 단계에 그대로 적용.
+
+---
+
 # Gantt 상태 정합성 구조적 보완 실행계획
 
 작성: 2026-10-13 / 문서·계획 이슈 #661 / 제품 통합 #552(PR #561) / 기존 Epic #567.

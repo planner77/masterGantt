@@ -1,3 +1,7 @@
+## #548 — 표시 정책과 단계 집계의 분리 (2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)의 #552 marker-OFF 기준선은 native Grid/Chart Milestone 행·Bar만 제외하며 Stage Gate 계산·Membership·Task 취합·명시 Completed·Resource/Target Roll-up을 변경하지 않는다. 서버 full canonical E(M)·P(M), 소속 Summary 상속·override, 완료 구조 잠금, 기존 mixed Link/Copy/Template/JSON·Excel 정보 보존이 계속 권위다. marker 없는 UI에서도 #550 Milestone Dashboard/Editor/정확한 소속 Task 조회가 필수다. #551 별도 lane marker는 필요성·실증을 확인한 뒤 #573/#693에서만 선택 활성화하며 도메인 엔진의 입력이나 권한 근거가 아니다.
+
 # Milestone — Membership 및 Stage Gate 내부 판정
 
 ## Issue #459 Epic 통합 계약

@@ -1,3 +1,9 @@
+## Milestone 표시 정책 변경 — marker-OFF WBS 우선 (#548, 2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 기존 #459~#464 Stage Gate·소속·진척·Ready/Completed·Resource/Target 집계 의미는 유지한다. **#552의 필수 제품 목표는 native Grid/Chart Milestone 행·Bar 0, 상단 Timeline marker OFF**이며, 기존 Dashboard·Task 소속 검색·Editor/관계·숨은 canonical 원본·Copy/Export를 보존한다. #551의 앱 소유 marker lane을 삭제하거나 기본 ON으로 전환하지 않는다. marker ON은 #552/#553/#574 baseline 수용 이후 #573 기술 검증·[#693](https://github.com/planner77/masterGantt/issues/693) 별도 구현/승인으로 최후에 판단한다. #667은 marker 기능을 포함하지 않는 최신 main의 Gantt 상태 정합성 통합을 먼저 담당한다. 기존 과거 #196/#462/MT1 설명은 현재 UI 및 결정 이력이고, 이 새 목표의 구현 완료 증거가 아니다.
+
+---
+
 # Requirements baseline
 
 ## Issue #623 — Resource 우선 MVP의 Q1 수용 Gate

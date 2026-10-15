@@ -1,3 +1,16 @@
+## #548 Milestone marker-OFF 기준선/선택 marker-ON 검증 프로파일 (2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)의 **두 단계**를 분리한다. marker-OFF baseline #552/#553/#574에서 SC-01~14의 데이터·Viewport·0행·Instance·Editor·Copy·Resource/Target 보호는 그대로 필수다. 단, SC-12/SC-13의 **상단 lane tick/roving marker focus/마커 날짜 reveal**은 marker OFF에서 '기능 미활성'을 확인하며 marker ON 기술 검증은 후속 #573/#693에서 별도 실행·서명한다. 기초선 테스트에서 마커 ON을 요구하는 오래된 테스트는 삭제/skip으로 감추지 않고, OFF의 DOM/observer/쓰기0·Dashboard 대체 진입·full canonical 보호를 가진 대응 테스트로 전환한다.
+
+- SC-08: 전체 empty project / 검색 결과0 / Milestone-only에서 hidden native M 행0이더라도 canonical M ID와 Dashboard count/Ready 유지; native 축/date range는 일반 Task 정책과 독립 보존.
+- SC-09/11: 일반 Task용 축 확장/스크롤/UserIntent/Resource 왕복은 marker OFF에도 전체 동작·좌표 보호. marker 전용 extra range/scroll/RAF0.
+- SC-12/13: marker OFF가 native row/bar0와 다른 기능의 집중 선택/키보드/Escape·visible focus/무mutation을 동시에 충족. marker ON x±1px/5폭은 #573/#693 선택 트랙.
+- 별도 marker-only rollback drill: feature gate OFF 후 lane/구독/ScrollWrite0·baseline 유지, Revert CI, 런타임 vs build-time 설정 의미를 실제 운영 증거로 분리.
+
+**참조만 변경:** GSC-01~12 규범의 내용과 기존 엄격한 허용오차·timeout/Required 3개 검사는 유지하며 manifest/test 코드 자동 갱신은 별도 구현·검증 전 NOT TESTED다. 기존 문서의 #663 구현 사실과 그 이전 미구현 상태 기록은 역사적으로 보존한다.
+
+---
+
 # Gantt State Conformance Matrix
 
 기준: [GSC 1.0.0-candidate](GANTT_STATE_CONSISTENCY.md) · 상태: REVIEW_PENDING · 2026-10-13 / #661.

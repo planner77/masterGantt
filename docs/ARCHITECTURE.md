@@ -1,3 +1,16 @@
+## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 서버 canonical Milestone/Stage Gate/Resource·Target Assignment·Summary roll-up은 WBS native visibility의 입력 여부와 독립이다. 기존 #570 projection의 `displayMode: compatibility | separate-milestones`, #551 `MilestoneTimelineCapability`(기본 OFF), #663~#666의 아직 미연결 정합성 모듈은 **세 가지 서로 다른 계약**이다. Main 제품 적용 순서를 혼합하지 않는다.
+
+1. #667: **main 기반** 실제 Core conformance/recall·semantic receipt·axis transaction을 ProjectGantt와 Coordinator에 순차 통합. 같은 API/user intent/actual Core/native 측정의 GSC SC 누적 결과 없이 no-op·복원 성공을 보고하지 않는다. Milestone 표시 모드·marker 활성화는 변경하지 않는다.
+2. #552: 별도 WBS projection에서 milestone native Grid/Chart row/bar/hidden endpoint를 제거하되 canonical ID/Link/Membership/Stage/Export와 Task/Summary hierarchy 유지. Marker capability 운영 enabled=false; 임시 날짜 reveal/Preference ON을 참조하지 않는다. Dashboard·소속 일반 Task의 별도 경로를 제공한다. 긴밀하게 결합된 #552/PR #561 source는 marker ON을 추출한 뒤에만 수용한다.
+3. #553/#574: marker OFF에서도 JSON/Excel/SVG/PNG/Copy/Template·Result/Error/Focus/Resource Roll-up과 5폭이 실제 source/HTTP·SQLite/6-shard CI를 통과해야 한다.
+4. #573/#693(선택): #551 앱 소유 marker lane의 독립 상태 gate 기본 OFF, marker-only observer·RAF·scroll/resize/reveal0, production WBS mode 불변. #573 marker ON geometry/focus/틱±1px 검증 없으면 ON은 DEFER. standalone PR의 flag-OFF / revert rollback을 실제 시험한다.
+
+이 순서는 과거 #567/#548의 기능 결합 구현·테스트 기록을 삭제하지 않고 **앞선 제품 활성화 의존을 대체**한다. #674/PR #675의 동일 `project-gantt.tsx` 진단 수정을 #667보다 먼저 정렬하거나 명시 충돌 인계한다. Production Gantt/Workspace/port는 단계마다 작성자 하나만 소유한다. UI flag/필터/레이아웃 전환을 Project DB mutation으로 저장하거나 private Core store를 직접 쓰지 않는다.
+
+---
+
 ## Issue #664 — opt-in actual-Core 복구 모듈
 
 `core-conformance.ts`와 `canonical-recovery.ts`는 #663 U1의 public reader/type/clock/abort 포트를 소비하는 미연결 U2다. 기존 `canonical-snapshot-sync.ts`의 signature/제품 경로를 유지하고 실제 normalized Task·parent/preorder·Link와 desired를 비교한다. revision/key만으로 no-op을 승인하지 않으며 native dirty·request/API/query/scope 변경은 증거를 무효화한다. 복구는 public task 최소 diff와 필요한 Link 차이만 적용한 뒤 실제 Core를 다시 읽어 확인한다. viewport·filter·columns·서버 mutation은 이 모듈의 쓰기 권한에 없다.

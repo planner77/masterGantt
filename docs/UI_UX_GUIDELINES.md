@@ -1,3 +1,13 @@
+## #548 — Milestone Grid/Chart 분리와 선택적 마커의 UI/UX 게이트 (2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에서 UX source를 정한다. Gantt native WBS 기본선은 Summary/일반 Task만 표시하고 Milestone은 별도 Dashboard/소속 Task·Ready/KPI로 관리한다. 상단 Timeline 마커는 **필수 공간/표시가 아니며 기본 OFF**로, 과거 #549의 '기본 ON' 제안과 #551 기술 preview를 제품 기본 활성화로 취급하지 않는다. 'Milestone 표시' UI가 WBS 행 토글·marker 토글·작업 소속 필터를 동시에 바꾸어서는 안 된다.
+
+marker-OFF에서는 lane 높이/guide/tooltip·marker-only observer/RAF/listener와 marker-only 날짜 이동·scroll writer를 모두 비활성화하며 Core의 일반 Task 날짜축/스크롤은 계속 유지한다. 좁은 화면(390/768/1024/1440/1920)에서도 Dashboard 검색/생성/Editor·소속 목록과 visible/hittable focus·modal Escape 복귀를 제공한다. Milestone-only 유형 조건으로 native0행인 경우 원본이 삭제됐다는 잘못된 안내를 하지 않고 정확한 Dashboard 열기/필터 해제 선택을 제시한다.
+
+기존 #551의 64px lane·44px control·날짜 tick ±1px/묶음/roving keyboard는 **선택적 marker-ON #573/#693 기술 게이트에서만** 적용하고 OFF 기본선 검증을 막지 않는다. 기존 실제 좌표·accessible label·focus·Day/Week·scroll/resize/fullscreen 재검증을 면제하지 않는다. SVAR 공식 Willow/samples URL 확인과 installed 2.7.3 실제 조작을 분리하고 PRO-only markers property를 Core 지원으로 간주하지 않는다.
+
+---
+
 # masterGantt 공통 UI/UX 기준
 
 ## Issue #622 — Plan 출발/현재 범위와 정확 편집 복귀
