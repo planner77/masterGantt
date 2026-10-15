@@ -137,5 +137,12 @@ stalled-frame 추가 P2 보완 source에서 Manager 관련12파일161 Unit 및 t
 ## PR #689 · CI #2785 리뷰 보완 (2026-10-15)
 
 - Required Quality / Chromium E2E 6/6 / Docker는 원본 Run #2785.1에서 PASS. QA Final은 source provenance에 미해결 P2 review thread 1건으로 BLOCKED; 기능 테스트 실패로 오인하지 않는다.
-- 실제 브라우저 영수증의 임시 worktree HEAD `b277c836...`는 게시된 commit graph에 없었다. 원본 `capturedAt`, 12개 합성 시나리오·실행 결과와 source SHA256 원장은 보존하되 `sourceBase`를 GitHub가 확인한 U1 main merge 조상 `${base}`로 교정한다. 이 SHA는 *capture에 사용한 U2 파일 전체의 commit SHA가 아니며*, 구체 소스 일치는 영수증의 별도 SHA256 파일 지문이 담당한다.
+- 실제 브라우저 영수증의 임시 worktree HEAD `b277c836...`는 게시된 commit graph에 없었다. 원본 `capturedAt`, 12개 합성 시나리오·실행 결과와 source SHA256 원장은 보존하되 `sourceBase`를 GitHub가 확인한 U1 main merge 조상 `d445ec58bf9106414c99a150ee8f52599834baf9`로 교정한다. 이 SHA는 *capture에 사용한 U2 파일 전체의 commit SHA가 아니며*, 구체 소스 일치는 영수증의 별도 SHA256 파일 지문이 담당한다.
 - recorder는 전체 Git history·commit object·capture HEAD까지의 조상성을 검증하지 못하면 영수증 생성 자체를 거부한다. Unit은 pinned merge SHA와 비-shallow 환경에서 Git object/ancestry를 검사하고, GitHub Actions의 depth-1 synthetic merge에서는 고정된 검증 조상 SHA와 전체 파일 fingerprint를 확인한다. 이 변경은 브라우저 재실행 증거가 아니며 PR 새 CI·Trusted QA·Owner ACCEPT는 별도 판정한다.
+
+## PR #689 · CI #2788 검증 및 재실행 요청 (2026-10-15)
+
+- 이전 CI #2785.1의 유일한 최종 실패는 병합 불가능한 코드가 아니라 미해결 P2 provenance review thread에 의한 신뢰된 자동 QA BLOCKED였다. 임시 worktree HEAD를 출처로 기록한 문제는 U1의 인증된 병합 SHA `d445ec58bf9106414c99a150ee8f52599834baf9`와 독립 파일 SHA256 영수증으로 분리해 보완했고, 해당 리뷰 스레드를 해결했다.
+- 후속 Full PR CI [#2788.1](https://github.com/planner77/masterGantt/actions/runs/38674423344)에서 정책·타입 검사·ESLint·전체 Vitest·Next.js build·PR Chromium E2E 6/6·Docker smoke 및 세 Required aggregate, QA Final — Automated 모두 **SUCCESS**를 확인했다. 과거 #2785.1 실패 결과는 그대로 보존한다. 이는 제품 U5 wiring 또는 #552 실제 DnD/Bar 문제의 완료 판정이 아니다.
+- 현재 `main` `417dd41e4838f72c3f7c547463591aa10809d25b` (#665)과 PR HEAD `9b521d8849a94814cd54740ded01b0077d99cabe`는 비교 시 behind=0, mergeable=true, 미해결 review thread=0이었다. 이번 기록에서 잘못 남아 있던 리터럴 `\${base}`를 정확한 검증 SHA로 교정한다.
+- 이번 새 CI 요청은 이 문서 정정 커밋의 새로운 exact HEAD에서 시작만 확인한다. 결과 모니터링·병합·Main CI·GHCR/Finalizer·Issue 종료는 범위 밖이며 해당 새 실행의 결과는 확인 전 NOT TESTED다. GSC/SC 불변, API/DB/UI·package/version·기존 로직 및 CI/QA 정책 변경 없음.
