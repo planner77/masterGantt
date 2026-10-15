@@ -1,3 +1,18 @@
+## 2026-10-15 표시 정책 변경: WBS 행 분리 먼저, 상단 마커 마지막 (#548)
+
+현재 도메인·검증 기준은 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)를 따른다. 기존 MT1~MT3(#549~#551) **기술 구현/미리보기 기록과 과거 target 기본 ON 표는 역사적 계약**으로 남긴다. 제품 목표는 아래 순서로 변경되었다.
+
+1. #667: main-first Gantt Core/Reconciler/semantic receipt/axis 생산 정합성 통합. Milestone UI 변경 없음.
+2. #552/PR #561: Summary/Task만 native Grid/Chart에 표시, Milestone native row/bar=0, **앱 소유 상단 lane/guide/marker는 OFF**, 기존 Stage Gate와 Dashboard/Task filter·대체 날짜 탐색·canonical subtree 보존. 기존 'Milestone 표시 기본 ON'·'일시 날짜 ON'·marker-ON/오른쪽 범위 확장 종속 코드는 baseline에서 활성화하지 않는다.
+3. #553/#574: marker-OFF에서도 Export·Copy·숨은 Link/서버 잠금·Resource/Target·정확 Task 탐색·5폭·Day/Week 전체 통합 수용.
+4. [선택] #573/#693: 별도 branch/PR·Owner 승인 아래 marker ON 실제 Core/390px/Focus/날짜 tick·rollback gate를 통과한 뒤에만 켠다. #573은 baseline 출시 선행이 아니다.
+
+**두 독립 축:** WBS mode=legacy 또는 separate-milestones, Timeline marker=OFF 또는 ON. 새 기준선은 separate-milestones+OFF이다. legacy+ON은 중복 표시를 막기 위해 불허한다. 운영 marker-OFF에서는 숨은 날짜 대상으로 native select를 호출하거나 임시 lane을 켜지 않으며 Dashboard/소속 Task 경로로 안내한다. Core의 일반 Task용 날짜축/Viewport는 그대로 사용한다. OFF인 marker-only listener/RAF/resize/scroll은 0이어야 하고 제품 Gantt 강제 remount·추가 server mutation이 없어야 한다.
+
+#552 프리뷰의 모든 테스트 결과와 #551 과거 날짜 위치·marker 기술 PoC는 이번 OFF 기준선의 성공 증거가 아니다. 설치 `@svar-ui/react-gantt@2.7.3`와 별개로 최신 SVAR PRO markers API를 사용 가능하다고 가정하지 않는다. #693의 flag ON→OFF 롤백은 구현 뒤 실제 빌드·설정/재시작 의미까지 검증해야 한다.
+
+---
+
 ## Issue #622 / Main CI #2771.1 — Milestone 개발 probe 초기화 원자성 (2026-10-15)
 
 [Main CI #2771.1](https://github.com/planner77/masterGantt/actions/runs/38638132383) / immutable merge `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`는 Quality·Docker PASS 및 Chromium 5/6 shard PASS, shard4의 #551 대량 1000 Task + 2000 Milestone 초기화 준비 gate 5초 FAIL로 E2E aggregate가 실패해 GHCR candidate 게시가 SKIPPED되었다. PR #684 CI #2770.1의 동일 실제 시험 PASS(9.2초)와 구별한다. 직접 오류는 fixture의 `data-project-gantt-api-instance`/development probe instance/read 존재 일치 검사 timeout이며 근본적인 브라우저 렌더 중 어느 요소가 지연됐는지는 실패 로그만으로 확정되지 않았다.

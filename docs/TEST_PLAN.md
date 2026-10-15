@@ -1,3 +1,33 @@
+## #548 — Milestone 행 제거·marker OFF 우선/독립 ON 후속 수용 계획 (2026-10-15)
+
+기준 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md), [Conformance Matrix](GANTT_STATE_CONFORMANCE.md), #667/#552/#553/#574 및 선택 #573/#693. **기존 테스트/불변식을 축소·skip/timeout 증가로 녹색화하지 않는다.** 문서 등록은 test 실행 PASS가 아니다.
+
+### Phase A — marker-OFF 공통 제품 안정화 #667
+- 이미 통합된 U1~U4의 public adapter/receipt/recovery/axis transaction을 현재 main 제품에서 실제 소비; GSC SC-01~14 중 일반 Task에 적용되는 공통 사례. 같은 revision Core drift·DnD412/500·날짜422·Native add 실패·500/timeout/GET 실패·정상 metadata no-op/Calendar 스크롤120·필터0/후속 wheel·Resource/Target 왕복·DayWeek·fullscreen/5폭/1k Task+2k Milestone. E2E actual HTTP/SQLite와 실제 Core/native DOM 결과를 함께 검증.
+- #675 개발 진단의 probe/API instance ownership가 실제 메인에 반영된 정확 Source인지 확인. 390px NOT_MEASURABLE/full-capacity clamp FAILED를 제품에서 무조건 성공으로 인정하지 않고 fail-closed 조건과 미지원 프로파일을 기록.
+
+### Phase B — WBS milestone native row/bar 제거 + marker OFF #552
+- MP-01: 실제 displayed Grid/Chart milestone native row/bar/hidden endpoint 0, Task/Summary 형제/계층/시작·끝/Bar·일반 Task link 정상. hidden M의 canonical ID/parent/siblingOrder/Link·Membership·Ready·Summary 기존 roll-up 원장 그대로.
+- MP-02: Milestone Dashboard CRUD/Editor/소속/관계·Milestone-only/Task0/M-only/검색0/현재 날짜0, 타 scope·readonly/dirty/pending/401/412/완료 잠금. hidden row native selection 없이 정확 Task ID 이동과 보이는 focus/Escape 경계.
+- MP-03: Stage Gate E(M)/P(M) full 수·기간가중진척·Ready/Blocked·수동 이벤트/완료불일치, Resource/Target distinct Task/Assignment·M/D/M/M·capacity/Plan/Excel·필터/상속 직·간접 출처 불변.
+- MP-04: ON-only marker 관련 DOM/guide/예약 높이/listener/RAF 및 marker-purpose scroll/resize/reveal 0; 일반 Task 날짜축·scroll/canonical projection은 유지. 날짜보기는 Dashboard/소속 Task의 명시 경로, 임시 marker ON 금지.
+- MP-05: 기존 M-only 빠른 보기/복합 types와 Summary scope 필터·Task 다중 선택/clipboard·Copy/Paste/Cut/Delete/완료 구조 잠금·Link mixed/내부서버 보호. query/view 전환 추가 mutation0; 기존 프로젝트 버전/ID/설비·Resource 연계 보존.
+- MP-06: legacy WBS 긴급 복구 프로파일의 safe rollback/동일 canonical·viewport·선택·Editor·Task 관계 확인; marker ON과 무관. rollback 실패면 표시 모드 출시를 FAIL/BLOCKED.
+
+### Phase C — data/export/최종 baseline #553 → #574
+- MP-07: JSON1.0/1.1 및 기존 Import/Export·Excel·SVG/PNG·Project Copy/Template/subtree, hidden Milestone/Link/explicit inheritance 정보 손실0, actual native 화면과 출력 계약/범위 차이 안내. 변경되는 현재 화면 이미지 렌더 계약은 암묵적으로 canonical 포함으로 바꾸지 않고 기존 명세/사용자 선택에 따라 검증한다.
+- MP-08: #574 full marker-OFF Chromium E2E6/Quality/Docker/Trusted QA+Owner, Day/Week·split/fullscreen·390/768/1024/1440/1920, 실제 HTTP/SQLite·schema/restart·비영 Core/native X/Y, stage/resource/target/edit/export·empty·readonly/stale. 기존 GSC SC-01~14의 marker-independent 보호 모두 PASS 필요.
+
+### Phase D — 선택적 marker ON만 별도 #573 → #693
+- MP-09: SVG/PRO marker가 아닌 #551 app lane의 same canonical ID/date anchor, marker tick vs native tick/Task bar 기존 ≤1px, 5폭·DayWeek·long names·묶음·roving Enter/Escape·visible hittable focus·Fullscreen/resize/wheel/Calendar.
+- MP-10: marker feature gate default OFF, OFF→ON→OFF→ON 전환, marker-only observer/RAF/DOM/명령·구독 중복0, stale intent/오류 상태의 추가 scroll0, 기존 Stage/Task/Resource/Target mutation0/인스턴스 불변.
+- MP-11: 390px·capacity clamp 실제 FAIL/NOT_MEASURABLE을 ON PASS로 포장하지 않음. 프로파일별 fail-closed 또는 DEFER, 지원 시 정확 source evidence.
+- MP-12: same build의 OFF gate 복원·재시작 필요 여부를 운영 환경에서 실측, marker 전용 PR revert 후 baseline 유지/새 Required CI 통과. 인증된 Owner ON 출시/정식 release 판단 별도.
+
+기존 #549~#552/#568~#574/#529·Resource/Target/교환의 테스트 명령은 현재 실제 spec 및 manifest에서 정확 경로/개수/버전/신규 원본·CI를 확인한다. 옛 native M row 기대 테스트는 삭제/skip하지 말고 Dashboard/canonical-ID/무mutation·focus를 보존하는 대체 spec으로 갱신한다. 이 문서의 계획표에서 표준 AC 체크는 NOT TESTED이며 관련 PR의 실제 수행 영수증만 PASS로 기록한다.
+
+---
+
 ## Issue #622 — Release Resume #35 불변 태그 교정 SHA 승계 회귀 (2026-10-15)
 
 `scripts/test-release-debt-recovery.py`의 새 독립 음성/양성 synthetic fixture: 원본 version 증가 `0.113.0→0.114.0` + exact Main FAIL, 동일 Issue의 `0.114.0→0.114.0` 교정 Main SUCCESS/비문서/인접 first-parent, 현재 annotated tag가 실제 교정 SHA를 가리키는 경우 원본은 `superseded-by-corrective`만 반환(원본 CI PASS 아님). 교정 target 자체는 본래 release-required 상태를 다시 계산하고 실제 release-image/Owner/digest를 별도로 검증. 잘못된 tag SHA, 다른 Issue/버전, docs-only, 중간 Issue, 교정 CI FAIL, 원본 Main SUCCESS는 예외 없이 거부한다.

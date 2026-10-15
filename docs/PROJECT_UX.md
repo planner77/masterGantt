@@ -1,3 +1,17 @@
+## Milestone marker-OFF 기본선과 단계 관리 UX 결정 (#548 / 2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)는 이전 #549~#552의 marker 기본 ON 계획 중 화면 활성화 부분보다 우선한다. #552에서 **native Grid/Chart에는 Summary/일반 Task만 표시**하고 Milestone native 행·Bar/대체 endpoint를 만들지 않는다. 상단 Timeline/guide/마커는 운영 OFF이며 화면 여백도 예약하지 않는다. 기존 Milestone Dashboard는 독립된 탭에서 전체 Milestone 목록·생성·상세·소속 관리·관계·Ready/Completed·Resource KPI를 제공한다.
+
+Task/Summary의 Milestone 명시 소속·상속·override는 기존 Editor와 `Milestone 소속: 전체/미지정/선택` 작업 필터로 접근한다. 조회0/일반 Task0/M-only/날짜 미정과 legacy 유형 Milestone-only를 구별하고, 현재 native Grid에서 찾을 수 없다고 Milestone 삭제로 취급하지 않는다. 기존 `전체 | Task | Milestone` 단축 보기의 변환·안내는 #552의 별도 명시 사용자 UX이며 설정 변경/조회만으로 서버 저장하지 않는다.
+
+Marker OFF인 상황에서 `해당 날짜에서 보기`는 날짜축에 숨은 마커를 만들거나 임시 ON/scroll 요청을 내지 않고 Dashboard의 Milestone 상세 또는 정확한 소속 Task 목록·일정으로 이동하도록 사용자에게 명시한다. 이동·대화상자/Editor 닫기 후의 보이는 유효 트리거로 focus를 복원하며 원래 WBS/Resource filter·selection/scroll·dirty/readonly/pending/stale 문맥을 보존한다. 없는 native Milestone 행을 선택한 척하지 않는다.
+
+Milestone 연관 Summary의 전체 subtree Copy/Cut/Move/Delete, legacy mixed Link, 완료 잠금, canonical JSON/Excel/SVG/PNG 보존, Resource/Target 전체 멤버·Assignment Roll-up은 행 표시와 무관하다. WBS 행 제거 중 Gantt remount·의도하지 않은 scrollbar 위치 초기화·server mutation이 발생하면 FAIL이다.
+
+#667 main-first 공통 상태 정합 → #552 OFF/행 분리 → #553 무손실 교환 → #574 OFF 통합 수용 뒤, 필요할 때만 #573 marker-ON geometry 검증과 #693 독립 marker activation/rollback을 수행한다. #551의 앱 소유 lane은 유지하지만 baseline 제품 UI에 자동 렌더하지 않는다.
+
+---
+
 ## Issue #623 — 구성부터 Resource·같은 원본 편집의 수용
 
 제품 공정·두 사업장/선택 WorkArea·TargetA/B/sharedMCS→Task/Summary whole/subset→Resource 계층/교차표→같은 Task/정확 Assignment 편집→원래 WBS/Resource 복귀를 실제 HTTP/Chromium으로 연결한다. name/date/status/progress/allocation/membership은 각각 별도 저장이며 Task 표시 행 중복을 원본 복제로 처리하지 않는다. 기존 Editor·dirty/pending·readonly/권한/stale·focus·same Core/단일 viewport writer를 유지한다.
