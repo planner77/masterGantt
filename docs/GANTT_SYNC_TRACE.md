@@ -89,3 +89,9 @@ PR #575의 `4ad246c3616fd8699585ecb06095f4bc931292e8`에서 Chromium shard6은 �
 viewport 분석에는 직접 scroll 명령뿐 아니라 resize-chart/filter-tasks/set-columns와 실제 native DOM 변화의 sequence를 포함한다. 날짜 coverage/physical capacity/승인된 X/Y를 함께 검증하며 최초 왜곡 경로가 계측되지 않았으면 원인을 가설로 남긴다. 사용자 의도를 대신 발행하거나 별도의 복원 loop를 observer에 넣지 않는다.
 
 추적 연결값은 GSC/SC ID, exact source/patch hash, Head/base/test-merge, run/attempt, 설치 버전, 실행 명령과 fixture 종류다. Task 원문/description/URL/password/cookie/session/실제 DB를 추가하지 않고 허용된 합성 식별자·지문·numeric/boolean 값만 사용한다. 실패/취소 뒤 미도달 분기와 만료된 artifact의 한계를 명시한다. 기존 historical PASS/FAIL은 새 구현 결과로 재표시하지 않는다.
+
+## Issue #663 — U1 합성 reader fixture 재사용
+
+`tests/fixtures/gantt-state-consistency/browser.tsx`는 기존 createCoreActionTrace/readCoreTraceSample을 그대로 재사용한다. trace ring은32개로 제한하고 record/settle/dispose를 호출하며 원시 serialize payload를 trace에 넣지 않는다. public snapshot은 합성 task/link만 포함한 별도 fixture로 보존하고 실제 DB·Task 원문·URL·secret은 수집하지 않는다.
+
+fake ports의 dirty/recovery generation·observation attempt·user lease는 분리한다. generation/attempt 증가 자체를 실제 Core 검증 성공으로 사용하지 않는 반례를 기존 Unit runner에서 검사한다. 설치 버전·source/lockfile·fixture hash·명령·원본 실패와 미검증은 [#663 Work Packet](exec-plans/active/ISSUE_663.md)에 연결한다. 제품 관측/복구·무mutation·HTTP/SQLite PASS와 같은 증거가 아니며 기존 #568/#552 원본 실패를 유지한다.

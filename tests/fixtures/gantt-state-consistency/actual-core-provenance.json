@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "1.0.0",
+  "sourceBase": "b09c3148df037acdecc9b0687e0dd4d3051c96a4",
+  "standardVersion": "1.0.0-candidate",
+  "collection": "SYNTHETIC_CORE_BROWSER",
+  "installedGanttVersion": "2.7.3",
+  "installedStoreVersion": "2.7.2",
+  "esbuildVersion": "0.28.2",
+  "capturedAt": "2026-10-15T00:27:14.955Z",
+  "environment": {
+    "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "timezone": "Asia/Seoul",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "sha256": {
+    "package.json": "bb96dec5fc300bbda12971314218c3549c89cb0c7a5d434d301d2f1c9af4b834",
+    "package-lock.json": "543d430271a655815689f9bed1494c1d3d5ab245917c82251f9a9b03d09c860c",
+    "tests/fixtures/gantt-state-consistency/browser.tsx": "5fdef4e8580971725251e1105c5134924bd6ba64e376e08bc02b01ac18de3b09",
+    "tests/fixtures/gantt-state-consistency/prepare-browser.mjs": "f06183f68998366dbb685e6d81fecdaf7a325260bd8463900126ccc13826dbfa",
+    "tests/fixtures/gantt-state-consistency/record-browser.mjs": "82d3c0a4259bc7c824e8e417b1ab234e7fdc45eb22e03544b23ca06f6f3e456d",
+    "tests/fixtures/gantt-state-consistency/actual-core-2.7.3.json": "94c6ba1a163538c4742c7095fc4b5dbfc7b45d26deec268d2d3590390746e495",
+    "src/features/gantt/diagnostics/core-action-trace.ts": "9cb1e377794fbd9725097825b404286d9e676d769b53baf7a0c8f0d4e6b9e3c8",
+    "src/features/gantt/diagnostics/core-trace-observer.ts": "d09118da6b4ae9f9dd5667857595fa572a3676c47520c564c01afa960cffa99c"
+  },
+  "commands": [
+    "npm ci",
+    "node tests/fixtures/gantt-state-consistency/prepare-browser.mjs",
+    "playwright-cli -s=issue663 open file:///<worktree>/output/playwright/issue-663/core-reader.html --config output/playwright/issue-663/cli-config.json",
+    "playwright-cli -s=issue663 eval 'async () => window.__gsc663.observe()' --raw > output/playwright/issue-663/runtime-observation.json",
+    "playwright-cli -s=issue663 eval '() => ({browser: navigator.userAgent, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, viewport: {width: innerWidth, height: innerHeight}})' --raw > output/playwright/issue-663/browser-environment.json",
+    "node tests/fixtures/gantt-state-consistency/record-browser.mjs"
+  ],
+  "publicSerialize": {
+    "tasks": "full DFS flat array; nested data references preserved",
+    "tree": "same full DFS flat array, not nested roots only",
+    "links": "array with id/source/target/type"
+  },
+  "counts": {
+    "tasks": 4,
+    "tree": 4,
+    "links": 1
+  },
+  "trace": {
+    "result": "NATIVE_LAYOUT_SETTLED",
+    "snapshot": {
+      "schemaVersion": 1,
+      "capacity": 32,
+      "dropped": 0,
+      "entries": [
+        {
+          "run": "local-663",
+          "head": "synthetic",
+          "scenario": "SC-14",
+          "layer": "CORE_PUBLIC_API",
+          "apiInstance": 1,
+          "projectRevision": 7,
+          "canonicalEpoch": 0,
+          "projectionEpoch": 0,
+          "scope": "synthetic",
+          "filterKey": "all",
+          "scale": "Day",
+          "intentId": 0,
+          "intentSource": "fixture",
+          "sequence": 1,
+          "elapsedMs": 42932.90000000596,
+          "rafTick": 0,
+          "event": "reader-before",
+          "action": "none",
+          "params": {},
+          "sample": {
+            "core": {
+              "left": 0,
+              "top": 0,
+              "chartWidth": 1156,
+              "scalesWidth": 3100
+            },
+            "native": {
+              "left": 0,
+              "top": 0,
+              "scrollWidth": 3100,
+              "clientWidth": 1155,
+              "scrollHeight": 188,
+              "clientHeight": 188
+            },
+            "geometry": {
+              "width": 1440,
+              "height": 600,
+              "chartWidth": 1155,
+              "chartHeight": 188
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "run": "local-663",
+          "head": "synthetic",
+          "scenario": "SC-14",
+          "layer": "CORE_PUBLIC_API",
+          "apiInstance": 1,
+          "projectRevision": 7,
+          "canonicalEpoch": 0,
+          "projectionEpoch": 0,
+          "scope": "synthetic",
+          "filterKey": "all",
+          "scale": "Day",
+          "intentId": 0,
+          "intentSource": "fixture",
+          "sequence": 2,
+          "elapsedMs": 42933.70000000298,
+          "rafTick": 1,
+          "event": "raf-observation",
+          "action": "none",
+          "params": {},
+          "sample": {
+            "core": {
+              "left": 0,
+              "top": 0,
+              "chartWidth": 1156,
+              "scalesWidth": 3100
+            },
+            "native": {
+              "left": 0,
+              "top": 0,
+              "scrollWidth": 3100,
+              "clientWidth": 1155,
+              "scrollHeight": 188,
+              "clientHeight": 188
+            },
+            "geometry": {
+              "width": 1440,
+              "height": 600,
+              "chartWidth": 1155,
+              "chartHeight": 188
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "run": "local-663",
+          "head": "synthetic",
+          "scenario": "SC-14",
+          "layer": "CORE_PUBLIC_API",
+          "apiInstance": 1,
+          "projectRevision": 7,
+          "canonicalEpoch": 0,
+          "projectionEpoch": 0,
+          "scope": "synthetic",
+          "filterKey": "all",
+          "scale": "Day",
+          "intentId": 0,
+          "intentSource": "fixture",
+          "sequence": 3,
+          "elapsedMs": 42948.70000000298,
+          "rafTick": 2,
+          "event": "raf-observation",
+          "action": "none",
+          "params": {},
+          "sample": {
+            "core": {
+              "left": 0,
+              "top": 0,
+              "chartWidth": 1156,
+              "scalesWidth": 3100
+            },
+            "native": {
+              "left": 0,
+              "top": 0,
+              "scrollWidth": 3100,
+              "clientWidth": 1155,
+              "scrollHeight": 188,
+              "clientHeight": 188
+            },
+            "geometry": {
+              "width": 1440,
+              "height": 600,
+              "chartWidth": 1155,
+              "chartHeight": 188
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "run": "local-663",
+          "head": "synthetic",
+          "scenario": "SC-14",
+          "layer": "CORE_PUBLIC_API",
+          "apiInstance": 1,
+          "projectRevision": 7,
+          "canonicalEpoch": 0,
+          "projectionEpoch": 0,
+          "scope": "synthetic",
+          "filterKey": "all",
+          "scale": "Day",
+          "intentId": 0,
+          "intentSource": "fixture",
+          "sequence": 4,
+          "elapsedMs": 42965.5,
+          "rafTick": 3,
+          "event": "raf-observation",
+          "action": "none",
+          "params": {},
+          "sample": {
+            "core": {
+              "left": 0,
+              "top": 0,
+              "chartWidth": 1156,
+              "scalesWidth": 3100
+            },
+            "native": {
+              "left": 0,
+              "top": 0,
+              "scrollWidth": 3100,
+              "clientWidth": 1155,
+              "scrollHeight": 188,
+              "clientHeight": 188
+            },
+            "geometry": {
+              "width": 1440,
+              "height": 600,
+              "chartWidth": 1155,
+              "chartHeight": 188
+            },
+            "focus": "body",
+            "lane": null
+          }
+        },
+        {
+          "run": "local-663",
+          "head": "synthetic",
+          "scenario": "SC-14",
+          "layer": "CORE_PUBLIC_API",
+          "apiInstance": 1,
+          "projectRevision": 7,
+          "canonicalEpoch": 0,
+          "projectionEpoch": 0,
+          "scope": "synthetic",
+          "filterKey": "all",
+          "scale": "Day",
+          "intentId": 0,
+          "intentSource": "fixture",
+          "sequence": 5,
+          "elapsedMs": 42965.60000000894,
+          "rafTick": 3,
+          "event": "settle-result",
+          "action": "none",
+          "params": {
+            "stableFrames": 3,
+            "timeoutMs": 1500
+          },
+          "sample": {
+            "core": {
+              "left": 0,
+              "top": 0,
+              "chartWidth": 1156,
+              "scalesWidth": 3100
+            },
+            "native": {
+              "left": 0,
+              "top": 0,
+              "scrollWidth": 3100,
+              "clientWidth": 1155,
+              "scrollHeight": 188,
+              "clientHeight": 188
+            },
+            "geometry": {
+              "width": 1440,
+              "height": 600,
+              "chartWidth": 1155,
+              "chartHeight": 188
+            },
+            "focus": "body",
+            "lane": null
+          },
+          "result": "NATIVE_LAYOUT_SETTLED"
+        },
+        {
+          "run": "local-663",
+          "head": "synthetic",
+          "scenario": "SC-14",
+          "layer": "CORE_PUBLIC_API",
+          "apiInstance": 1,
+          "projectRevision": 7,
+          "canonicalEpoch": 0,
+          "projectionEpoch": 0,
+          "scope": "synthetic",
+          "filterKey": "all",
+          "scale": "Day",
+          "intentId": 0,
+          "intentSource": "fixture",
+          "sequence": 6,
+          "elapsedMs": 42965.60000000894,
+          "rafTick": 3,
+          "event": "reader-after",
+          "action": "none",
+          "params": {},
+          "sample": {
+            "core": {
+              "left": 0,
+              "top": 0,
+              "chartWidth": 1156,
+              "scalesWidth": 3100
+            },
+            "native": {
+              "left": 0,
+              "top": 0,
+              "scrollWidth": 3100,
+              "clientWidth": 1155,
+              "scrollHeight": 188,
+              "clientHeight": 188
+            },
+            "geometry": {
+              "width": 1440,
+              "height": 600,
+              "chartWidth": 1155,
+              "chartHeight": 188
+            },
+            "focus": "body",
+            "lane": null
+          }
+        }
+      ]
+    }
+  },
+  "originalFailures": [
+    {
+      "phase": "CLI_SETUP",
+      "result": "BLOCKED",
+      "reason": "Default Chrome channel absent; existing Chromium1243 selected"
+    },
+    {
+      "phase": "CLI_SETUP",
+      "result": "BLOCKED",
+      "reason": "file protocol disabled by CLI default; local synthetic file access enabled in session config"
+    },
+    {
+      "phase": "UNIT",
+      "result": "FAIL",
+      "reason": "Initial store-version expectation 2.7.3 differed from authenticated installed version 2.7.2; corrected expectation, original capture already recorded 2.7.2"
+    }
+  ],
+  "notTested": [
+    "production wiring/recovery/receipt/axis behavior",
+    "actual HTTP/SQLite",
+    "SC-14 1000 Task plus 2000 Milestone and repeated mount/unmount",
+    "full PR CI and Trusted QA",
+    "main/GHCR/release"
+  ]
+}

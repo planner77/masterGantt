@@ -1,3 +1,9 @@
+## Issue #663 — 미연결 Gantt 공통 상태 계약
+
+`src/features/gantt/state-consistency/index.ts`는 후속 U2/U3/U4가 공유할 type-only authority adapter와 읽기 전용 public Core reader를 제공한다. canonical revision/desired query·scope, api/dirty/recovery generation, observation attempt, layout/axis 및 user intent lease를 별도로 유지한다. 서버 snapshot·existing projection/receipt/viewport 타입을 재사용하며 두 번째 store·쓰기 소유자는 만들지 않는다.
+
+Reader는 설치2.7.3의 `serialize(tasks/tree/links)`를 읽고 adapter-owned 필드·전체 DFS/parent/형제 순서/Link를 검증한다. null/예외/잘못된 계층은 FAILED이며 revision 또는 관측 횟수만으로 실제 일치를 승인하지 않는다. renderer duration/open/좌표 캐시는 canonical 필드가 아니다. canonical Summary가 날짜를 생략한 경우에만 자식에서 최소 시작·최대 종료의 기대값을 bottom-up으로 도출한다. 명시한 canonical 날짜와 실제 Core 날짜는 그대로 비교하여 Summary/leaf drift를 숨기지 않는다. 구체 Reconciler·복구·receipt 재사용·axis transaction은 #664~#666, 제품 연결은 #667의 단독 책임이다. 현재 production import0이며 실제 제품 상태 정합성 해결은 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_663.md), [Conformance](GANTT_STATE_CONFORMANCE.md).
+
 # Architecture draft
 
 ## Issue #623 — 기존 경계의 통합 수용

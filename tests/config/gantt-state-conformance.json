@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 1,
+  "standardVersion": "1.0.0-candidate",
+  "purpose": "REGISTRATION_ONLY",
+  "governance": {
+    "rules": [
+      "GSC-12"
+    ],
+    "file": "docs/exec-plans/active/ISSUE_663.md"
+  },
+  "reuse": {
+    "boundedTrace": "src/features/gantt/diagnostics/core-action-trace.ts",
+    "coreBrowserSpec": "tests/e2e/core-action-trace.spec.ts",
+    "isolatedHttpFixture": "tests/e2e/fixtures/isolated-application.ts"
+  },
+  "scenarios": [
+    {
+      "id": "SC-01",
+      "rules": [
+        "GSC-02",
+        "GSC-06",
+        "GSC-08"
+      ],
+      "owners": [
+        "U2",
+        "U3"
+      ],
+      "cases": [
+        {
+          "file": "tests/features/gantt/canonical-snapshot-sync.test.ts",
+          "title": "does not rewrite a task only because Core derived its duration",
+          "evidenceLevel": "UNIT_MODEL",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing planner test does not prove fresh DTO receipt reuse or actual-Core no-op."
+    },
+    {
+      "id": "SC-02",
+      "rules": [
+        "GSC-01",
+        "GSC-02",
+        "GSC-03"
+      ],
+      "owners": [
+        "U2"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+          "title": "DnD ${status} 실패는 canonical 순서·revision으로 복구하고 후속 이름만 저장한다",
+          "evidenceLevel": "HTTP_SQLITE",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE",
+          "parameters": {
+            "status": [
+              412,
+              500
+            ]
+          }
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing 412/500 cases must be rerun against U2/U5; registration is not recovery PASS."
+    },
+    {
+      "id": "SC-03",
+      "rules": [
+        "GSC-02",
+        "GSC-03",
+        "GSC-08"
+      ],
+      "owners": [
+        "U2"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/project-task-persistence.spec.ts",
+          "title": "persists pointer edits, restores rejected writes, and serializes a same-revision race",
+          "evidenceLevel": "HTTP_SQLITE",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing pointer case must prove Grid/Bar geometry after U2/U5 integration."
+    },
+    {
+      "id": "SC-04",
+      "rules": [
+        "GSC-01",
+        "GSC-02",
+        "GSC-03",
+        "GSC-09"
+      ],
+      "owners": [
+        "U2"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/project-gantt-stability.spec.ts",
+          "title": "확인 팝업 없이 첫 하위 작업을 추가하고 모든 보호 오류에서 유령 작업을 남기지 않는다",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing add case does not cover every rejected link/delete/type drift."
+    },
+    {
+      "id": "SC-05",
+      "rules": [
+        "GSC-01",
+        "GSC-03"
+      ],
+      "owners": [
+        "U2",
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/milestone-exchange-state.spec.ts",
+          "title": "#464 cancelled latest canonical query ignores its late response; network failure preserves File for explicit retry",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing reversed query/network case is a reference only; commit-success/failure and failed GET remain pending."
+    },
+    {
+      "id": "SC-06",
+      "rules": [
+        "GSC-04",
+        "GSC-06",
+        "GSC-08"
+      ],
+      "owners": [
+        "U3",
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+          "title": "실제 SQLite에 그룹·리소스 WORKING 예외를 저장하고 재열기 후 일정·Gantt 상태를 보존한다",
+          "evidenceLevel": "HTTP_SQLITE",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing Calendar persistence does not prove semantic observation ID handling."
+    },
+    {
+      "id": "SC-07",
+      "rules": [
+        "GSC-02",
+        "GSC-06",
+        "GSC-07"
+      ],
+      "owners": [
+        "U3"
+      ],
+      "cases": [
+        {
+          "file": "tests/features/gantt/projection-settled.test.ts",
+          "title": "supersedes stale revisions and cancels all observation work on disposal",
+          "evidenceLevel": "UNIT_MODEL",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing stale revision case does not cover every actual-Core/API/query/axis invalidation."
+    },
+    {
+      "id": "SC-08",
+      "rules": [
+        "GSC-01",
+        "GSC-05",
+        "GSC-09"
+      ],
+      "owners": [
+        "U4",
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/milestone-timeline-core.spec.ts",
+          "title": "#549 ${kind} date axis remains distinct from row emptiness",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE",
+          "parameters": {
+            "kind": [
+              "milestone-only",
+              "empty"
+            ]
+          }
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing empty/M-only cases do not prove all query/user-input sequences."
+    },
+    {
+      "id": "SC-09",
+      "rules": [
+        "GSC-04",
+        "GSC-05",
+        "GSC-07"
+      ],
+      "owners": [
+        "U4",
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+          "title": "#551 dynamic axis/latest native horizontal scroll and Task pointer selection survive the guide",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing axis/selection case does not prove every wheel interleaving or capacity change."
+    },
+    {
+      "id": "SC-10",
+      "rules": [
+        "GSC-02",
+        "GSC-05",
+        "GSC-07"
+      ],
+      "owners": [
+        "U3",
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/task-editor-form-density.spec.ts",
+          "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing name-filter case does not prove all one-shot bookmark supersession sequences."
+    },
+    {
+      "id": "SC-11",
+      "rules": [
+        "GSC-04",
+        "GSC-06",
+        "GSC-07",
+        "GSC-08"
+      ],
+      "owners": [
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+          "title": "#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존",
+          "evidenceLevel": "HTTP_SQLITE",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing peer case does not replace Calendar/Export/Dashboard pending restore matrix."
+    },
+    {
+      "id": "SC-12",
+      "rules": [
+        "GSC-05",
+        "GSC-08",
+        "GSC-09",
+        "GSC-10"
+      ],
+      "owners": [
+        "U4",
+        "U5",
+        "#573"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+          "title": "#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing large layout case does not replace five-width Day/Week hidden/zero-size matrix."
+    },
+    {
+      "id": "SC-13",
+      "rules": [
+        "GSC-01",
+        "GSC-07",
+        "GSC-09",
+        "GSC-11"
+      ],
+      "owners": [
+        "U5",
+        "#573"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+          "title": "#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합",
+          "evidenceLevel": "HTTP_SQLITE",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing exchange integration does not replace OFF reveal/focus/zero-write cumulative matrix."
+    },
+    {
+      "id": "SC-14",
+      "rules": [
+        "GSC-02",
+        "GSC-08",
+        "GSC-09",
+        "GSC-10"
+      ],
+      "owners": [
+        "U1",
+        "U4",
+        "U5"
+      ],
+      "cases": [
+        {
+          "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+          "title": "#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",
+          "evidenceLevel": "PRODUCT_BROWSER",
+          "status": "NOT TESTED",
+          "role": "REGRESSION_REFERENCE"
+        }
+      ],
+      "requiredEvidence": [
+        "PRODUCT_BROWSER",
+        "HTTP_SQLITE",
+        "PR_CI"
+      ],
+      "productStatus": "NOT TESTED",
+      "pending": "Existing large population case covers 1000/2000 geometry; repeated mount/unmount listener cleanup remains pending."
+    }
+  ]
+}
