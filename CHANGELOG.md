@@ -1,5 +1,7 @@
 ## Unreleased — Issue #663
 
+- 누락된 canonical Summary 날짜의 기대값은 하위 작업에서 도출하고 실제 Core/명시적 날짜 drift를 보존한다. 실제 snapshot 비교 테스트의 public import 누락으로 발생한 CI Unit/typecheck 실패를 보완한다.
+
 - 제품 미연결 Gantt state-consistency 공통 타입/읽기 전용 Core serialize 포트와 누적 SC-01~14 manifest·음성 검사·fake port/실제 합성 Core reader fixture를 추가한다.
 - application0.114.0과 패키지/제품 동작/CI·릴리스 정책은 유지한다. 이는 #552 제품 정합성 해결·정식 릴리스 완료가 아니며 원격 전체 검증과 Owner/Manager 최종 수용은 별도다.
 

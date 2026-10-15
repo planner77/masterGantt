@@ -1,5 +1,7 @@
 ## Issue #663 — U1 공통 상태 계약과 누적 회귀 하니스 (2026-10-15)
 
+재개: PR #687의 #2779 QA unresolved P2는 Summary roll-up 날짜 정합 보완과 thread 해결로 처리된 이력이며, 최신 #2780.1은 해당 보완 테스트의 public import 누락으로 Unit/typecheck FAIL했다. 기존 reader 계약·actual drift 단언을 유지해 import를 복구하고 문서·관련 LFF·별도 사전 검토 후 동일 PR 새 Full CI 시작에서 멈춘다. 원본 실패·후단 SKIPPED와 새 검증은 [Work Packet](ISSUE_663.md)에서 구별한다.
+
 선행 #661/PR #669가 main에 반영된 `b09c3148df037acdecc9b0687e0dd4d3051c96a4`에서 [Work Packet](ISSUE_663.md)에 따라 타입/읽기 포트/SC manifest·음성 검사·fake port 및 실제 synthetic Core serialize fixture를 준비한다. application0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false. 기존 제품 연결·복구/receipt/axis 알고리즘은 변경하지 않는다.
 
 요청 종료점은 구현·DOCUMENTATION_SYNC·별도 사전 검토·미해결 리뷰/충돌 처리 뒤 exact-head PR Full CI 시작 확인이다. 결과 모니터링·병합/main/GHCR/Release/Issue 종료는 별도다. U1의 로컬 계약 검증을 #552 제품 해결로 확대하지 않으며 U2/U3/U4의 main 선행 완료는 승인 병합 뒤에만 성립한다.

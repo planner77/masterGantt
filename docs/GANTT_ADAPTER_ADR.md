@@ -135,3 +135,9 @@ U4는 설치 2.7.3에서 실제 Core fixture로 A/B/C 또는 최소 개선안을
 React wrapper2.7.3의 실제 transitive gantt-store는2.7.2이며 두 package 버전을 별도 provenance에 기록한다. U1의 공통 public reader는 `src/features/gantt/state-consistency/index.ts`에서 제공하며 실제 설치2.7.3의 tasks/tree/links를 정규화한다. `tree`는 전체 DFS flat 배열이며 중첩 `data` 참조를 다시 flatten하지 않는다. renderer duration·open·좌표 캐시는 비교에서 제외하되 parent·형제 순서·adapter-owned payload·Links는 보존한다. null/읽기 실패를 빈 정상 상태로 바꾸지 않는다.
 
 [합성 browser fixture와 provenance](../tests/fixtures/gantt-state-consistency/actual-core-provenance.json)는 현재 공식 [serialize 문서](https://docs.svar.dev/react/gantt/api/methods/serialize/)·설치 타입·실제 runtime 출력의 근거를 분리한다. file:// fixture는 기존 #568 bounded trace를 재사용하고 production port/제품 연결은 추가하지 않는다. 기존 A/B/C 실험 DEFER와 실패 원장은 불변이며 U1 reader 검증을 범위 확장·geometry·날짜축 지원 승인으로 사용하지 않는다. 상세 [Work Packet](exec-plans/active/ISSUE_663.md).
+
+## Issue #663 — Summary 날짜 기대값 정규화와 CI 재작업
+
+설치2.7.3은 날짜 없는 canonical Summary도 하위 Task에서 시작/종료를 계산해 serialize한다. U1은 해당 canonical의 **누락된 날짜만** bottom-up으로 도출하고 명시적 canonical 날짜·실제 Core 날짜를 제거하지 않는다. 원본 synthetic canonical↔실제 capture와 nested Summary/날짜 drift를 Unit으로 비교한다. 실제 snapshot/provenance source와 기존 DEFER 원장은 유지하며 제품 복구 알고리즘으로 확대하지 않는다.
+
+#2779 P2 보완 뒤 #2780 Unit/TypeScript의 미정의 normalizeCanonicalCore는 테스트 import 누락으로 별도 발생했다. public export import를 복구하고 기존 일치/불일치 단언과 typecheck를 실행하며 허용오차·timeout·workflow를 변경하지 않는다. 로컬/원격·skipped/미검증은 [#663 원장](exec-plans/active/ISSUE_663.md)에서 구분한다.

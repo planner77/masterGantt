@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { readCoreSnapshot, sameCoreSnapshot, normalizeSerializedCore } from "../../../src/features/gantt/state-consistency";
+import { readCoreSnapshot, sameCoreSnapshot, normalizeCanonicalCore, normalizeSerializedCore } from "../../../src/features/gantt/state-consistency";
 import snapshot from "../../fixtures/gantt-state-consistency/actual-core-2.7.3.json";
 import provenance from "../../fixtures/gantt-state-consistency/actual-core-provenance.json";
 
