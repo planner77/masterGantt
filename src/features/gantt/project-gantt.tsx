@@ -455,6 +455,11 @@ export function ProjectGantt({
   const projectionObservationAttempt = useRef(0);
   const requestProjectionObservationReference = useRef<(() => void) | null>(null);
   const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
+  useLayoutEffect(() => {
+    // A visible-session receipt cannot prove rows/layout after a hidden peer
+    // view. Revoke it before return commands can pin an older generation.
+    projectionReceiptReference.current = null;
+  }, [viewVisible]);
   const mutationTicketReference = useRef<import("./canonical-recovery").MutationTicket | null>(null);
   const consistencyReference = useRef<ReturnType<typeof createProductConsistency> | null>(null);
   const consistencyBlockedReference = useRef(false);

@@ -3853,3 +3853,5 @@ SC-05 역전 GET 사례는 Resource 최신 일정 조회의 실제 SQLite snapsh
 SC-14 marker OFF 사례는 실제 Core의 공개 serialize로 Task 1,000개·Milestone 2,000개·총 3,000개를 확인하고, 3회 SPA 홈/뒤로 가기의 독립 5초 readiness·이전 probe.ready=false·probe/public viewport 정리·document request 0·mutation 0을 검사한다. count만 읽고 기존 500개 진단 payload cap을 유지한다. 장기 heap/전체 listener 누수 검증은 별도 NOT TESTED다.
 
 추가 SC-09는 RANGE APPLYING·실제 native capacity 증가 후 관측 RAF를 hold하고 실제 wheel을 전달한다. release 뒤 old RANGE SUPERSEDED·후속 resize 0·옛 위치 replay 0·Core/native 일치를 검사한다. 주입한 것은 관측 타이밍이며 geometry/완료 결과를 mock하지 않고 모든 callback을 finally에서 해제한다. 모든 scroll 호출 전수 검증과 구분한다.
+
+#667 CI #2811.1 correction은 `milestone-dashboard-state.spec.ts`의 원본 peer120/96·완료count1·3frame·5초 단언을 유지한다. `gantt-state-product-integration.spec.ts`는 실제 두 탭 metadata 저장/storage event/canonical GET으로 최신 성공 뒤 stale/500 recovery가 다시 잠그지 않음과, cross-tab pending/500일 때 UNKNOWN 잠금·추가PATCH0·명시 최신 조회만 회복하는 음성 경계를 추가한다. 원본 E2E shard3 FAIL과 다른5shard 취소·미실행을 보존하고 새 Head Full CI를 별도로 시작한다.

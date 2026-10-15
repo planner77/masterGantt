@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 1,
+  "issue": 667,
+  "pullRequest": 695,
+  "scope": "Local Fast Feedback correction; not full PR CI success",
+  "parentHeadSha": "04b6d3d90d06b742223038c31c84823d525feb21",
+  "sourceFingerprintSha256": "2fa496841617ecdd0fe2bc7985feb04728c2f65ef1fe4c8ce2871f5fe74d89f6",
+  "changedSourceHashesSha256": {
+    "src/features/gantt/project-gantt.tsx": "e888341acfe4165a82617e03d074eedee0fe99412e74eb5799d4f18213253135",
+    "src/features/projects/project-readonly-view.tsx": "b507eb9325462d9474359d7e34fa8f156e3452d2210c881a5316bdedf41a98b7",
+    "tests/e2e/gantt-state-product-integration.spec.ts": "e6afea4239e5f4e43ae611d5b288d1dcb6f51dd9e4db30b2f29040b5aa6b1bd6",
+    "tests/features/gantt/viewport-coordinator.test.ts": "4ee6e63a86903fe28873fadef8e1f9c17b775e903c26b91d6fa53eb78aa0c0ce"
+  },
+  "originalCi": {
+    "runId": 38742141930,
+    "runNumber": 2811,
+    "attempt": 1,
+    "headSha": "04b6d3d90d06b742223038c31c84823d525feb21",
+    "baseSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+    "testMergeSha": "0d6c8c909ce5836210f2149c1f53abcb5b5da45a",
+    "quality": {
+      "jobId": 116447980101,
+      "conclusion": "success"
+    },
+    "docker": {
+      "jobId": 116448436755,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "jobId": 116449937942,
+      "conclusion": "failure"
+    },
+    "firstFailure": {
+      "jobId": 116447303496,
+      "step": 7,
+      "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+      "line": 145,
+      "error": "peer restore receipt null at original 5000ms deadline",
+      "shardPassed": 21,
+      "shardFailed": 1,
+      "shardSkipped": 1,
+      "shardNotRun": 104,
+      "otherShards": "CANCELLED"
+    }
+  },
+  "beforeFix": {
+    "originalPeerLocal": "FAIL (7.0 seconds), original published source",
+    "negativeCrossTabLocal": "FAIL (8.9 seconds), partial generation fix before UNKNOWN entry lock; no commit fingerprint captured"
+  },
+  "unit": {
+    "files": 6,
+    "passed": 183,
+    "failed": 0
+  },
+  "chromium": {
+    "stats": {
+      "total": 32,
+      "expected": 32,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "durationMs": 268616.54,
+    "tests": [
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 2775
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 없는 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 2740
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 연결 단절: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 3070
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500과 조회 실패: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "PASS",
+        "durationMs": 3751
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제하지 않는다",
+        "status": "PASS",
+        "durationMs": 3160
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 최신 확정 뒤 이전 recovery stale는 다시 잠그지 않는다",
+        "status": "PASS",
+        "durationMs": 4380
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 최신 확정 뒤 이전 recovery 500는 다시 잠그지 않는다",
+        "status": "PASS",
+        "durationMs": 4273
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다",
+        "status": "PASS",
+        "durationMs": 4825
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "title": "SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다",
+        "status": "PASS",
+        "durationMs": 2009
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다",
+        "status": "PASS",
+        "durationMs": 3104
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다",
+        "status": "PASS",
+        "durationMs": 3783
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "status": "PASS",
+        "durationMs": 4765
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 add 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "status": "PASS",
+        "durationMs": 3808
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 readonly full-state/F separation, keyboard and five-width geometry",
+        "status": "PASS",
+        "durationMs": 4586
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 request reversal, stale error and explicit retry preserve filters",
+        "status": "PASS",
+        "durationMs": 1368
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 server date authority, bounded day refresh and same-day catalog catch-up",
+        "status": "PASS",
+        "durationMs": 1700
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 shared multi-selection, null conversion and canonical/catalog invalidation",
+        "status": "PASS",
+        "durationMs": 1791
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 aborted request to cached query still permits focus catch-up",
+        "status": "PASS",
+        "durationMs": 1484
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+        "status": "PASS",
+        "durationMs": 3281
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소한다",
+        "status": "PASS",
+        "durationMs": 2079
+      },
+      {
+        "file": "tests/e2e/project-gantt-scale.spec.ts",
+        "title": "switches the Gantt timeline between day and ISO week headers without remounting",
+        "status": "PASS",
+        "durationMs": 2938
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존",
+        "status": "PASS",
+        "durationMs": 9720
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지",
+        "status": "PASS",
+        "durationMs": 8652
+      },
+      {
+        "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+        "title": "#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다",
+        "status": "PASS",
+        "durationMs": 8893
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+        "status": "PASS",
+        "durationMs": 2972
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 2953
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 2825
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 3216
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+        "status": "PASS",
+        "durationMs": 2575
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add preserves unmodified viewport",
+        "status": "PASS",
+        "durationMs": 4503
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add actual wheel cancels captured restore",
+        "status": "PASS",
+        "durationMs": 4600
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+        "status": "PASS",
+        "durationMs": 1717
+      }
+    ]
+  },
+  "nextFullPrCi": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "preQa": {
+    "status": "PASS",
+    "scope": "separate read-only code/docs/local evidence review; not QA_FINAL",
+    "reviewer": "/root/integration_tests (qa_docs)",
+    "documentationSync": "PASS (independent semantic review)",
+    "sourceHashMismatches": 0,
+    "browserReportMismatches": 0,
+    "unresolvedCodeFindings": 0
+  }
+}

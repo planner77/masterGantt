@@ -86,6 +86,22 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.coordinator.isCurrent(finalStamp)).toBe(false);
   });
 
+  it("waits for fresh visible-session evidence before pinning a peer return even when coordinates already match", async () => {
+    const f = fixture();
+    f.context({ visible: false }); f.coordinator.contextChanged();
+    f.update({ receipt: null });
+    f.context({ visible: true }, false); f.coordinator.contextChanged();
+    const pending = f.coordinator.request(peer);
+    await f.advance(3);
+    expect(f.port.apply).not.toHaveBeenCalled();
+    f.context({ projectionEpoch: 6 });
+    await f.advance(8);
+    expect(await pending).toBe("SETTLED");
+    expect(f.port.apply).toHaveBeenCalledTimes(1);
+    expect(f.port.protect).toHaveBeenCalledTimes(1);
+    expect(f.sample.core).toEqual({ left: 120, top: 96 });
+  });
+
   it("requires geometry frames and three actual post-command frames before reporting settled", async () => {
     const f = fixture(), pending = f.coordinator.request(peer);
     await f.advance(2);

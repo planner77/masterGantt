@@ -173,6 +173,113 @@ test("SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제�
   expect(stored.data.links).toEqual(snapshot.data.links);
 });
 
+for (const oldRead of ["stale", "500", "both-500"] as const) {
+  test(oldRead === "both-500" ? "SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다" : `SC-05 cross-tab 최신 확정 뒤 이전 recovery ${oldRead}는 다시 잠그지 않는다`, async ({ page, baseURL }) => {
+    const { api, snapshot, project } = await seedReorderProject(page, baseURL!);
+    const task = snapshot.data.tasks.find(entry => entry.name === "Task B")!;
+    const frame = page.locator(".project-gantt-frame");
+    const instance = await frame.getAttribute("data-project-gantt-api-instance");
+    let mutationCount = 0;
+    let phase: "idle" | "recovery" | "held" = "idle";
+    let oldReadReady = false;
+    let holdCrossRead = false;
+    let crossReadReady = false;
+    let allowExplicitLatest = false;
+    let releaseCrossRead!: () => void;
+    const crossGate = new Promise<void>(resolve => { releaseCrossRead = resolve; });
+    let releaseOldRead!: () => void;
+    const gate = new Promise<void>(resolve => { releaseOldRead = resolve; });
+    await page.route(`**${api}`, async route => {
+      if (route.request().method() === "GET" && phase === "held" && holdCrossRead && !allowExplicitLatest) {
+        crossReadReady = true;
+        await crossGate;
+        await route.fulfill({ status: 500, json: { error: { code: "INTERNAL_ERROR" } } });
+        return;
+      }
+      if (route.request().method() !== "GET" || phase !== "recovery") { await route.continue(); return; }
+      phase = "held";
+      const response = await route.fetch();
+      expect(response.status()).toBe(200);
+      expect((await response.json()).data.project.revision).toBe(snapshot.data.project.revision + 1);
+      oldReadReady = true;
+      await gate;
+      if (oldRead !== "stale") await route.fulfill({ status: 500, json: { error: { code: "INTERNAL_ERROR" } } });
+      else await route.fulfill({ response });
+    });
+    await page.route(`**${api}/tasks/${task.taskId}`, async route => {
+      if (route.request().method() !== "PATCH") { await route.continue(); return; }
+      mutationCount++;
+      expect((await route.fetch()).status()).toBe(200);
+      phase = "recovery";
+      await route.fulfill({ status: 500, json: { error: { code: "INTERNAL_ERROR" } } });
+    });
+    const row = taskRow(page, "Task B");
+    const rowId = await row.getAttribute("data-id");
+    await row.locator('[data-col-id=":text"] .wx-content > .wx-text').click();
+    const input = page.locator(`.project-gantt-widget .wx-row[data-id="${rowId}"] .wx-cell.wx-editor input.wx-text`);
+    await input.fill("Cross-tab committed B");
+    await input.press("Enter");
+    await expect.poll(() => oldReadReady).toBe(true);
+    const other = await page.context().newPage();
+    try {
+      // A real second tab saves metadata and announces its confirmed revision
+      // through the normal storage-event path. No private refresh is invoked.
+      await other.goto(`${baseURL}/projects/${project.publicId}`);
+      await expect(taskRow(other, "Cross-tab committed B")).toBeVisible();
+      await expect(other.getByText("편집 중", { exact: true })).toBeVisible();
+      await other.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+      const settings = other.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+      const name = `Confirmed catch-up ${oldRead}`;
+      await settings.getByLabel("프로젝트 이름", { exact: true }).fill(name);
+      holdCrossRead = oldRead === "both-500";
+      await settings.getByRole("button", { name: "프로젝트 정보 저장", exact: true }).click();
+      await expect(settings).toHaveCount(0);
+      if (holdCrossRead) await expect.poll(() => crossReadReady).toBe(true);
+      else await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+      const delivered = page.waitForResponse(response => new URL(response.url()).pathname === api && response.status() === (oldRead === "stale" ? 200 : 500));
+      releaseOldRead();
+      await delivered;
+      if (holdCrossRead) {
+        const recovery = page.getByRole("alert").filter({ hasText: "저장 결과를 확인할 수 없습니다. 초안은 유지되며" });
+        await frame.evaluate(async () => { for (let tick = 0; tick < 10; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+        await expect(recovery).toBeVisible();
+        await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
+        await taskRow(page, "Task A").locator('[data-col-id=":text"] .wx-content > .wx-text').click();
+        await expect(page.locator('.wx-cell.wx-editor input.wx-text')).toHaveCount(0);
+        const crossFailed = page.waitForResponse(response => new URL(response.url()).pathname === api && response.status() === 500);
+        releaseCrossRead();
+        await crossFailed;
+        await frame.evaluate(async () => { for (let tick = 0; tick < 10; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+        await expect(recovery).toBeVisible();
+        await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
+        expect(mutationCount).toBe(1);
+        allowExplicitLatest = true;
+        await recovery.getByRole("button", { name: "최신 상태 다시 조회", exact: true }).click();
+        await expect(recovery).toHaveCount(0);
+        await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+      }
+      await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+      await frame.evaluate(async () => { for (let tick = 0; tick < 10; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+      await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+      await expect(page.getByRole("alert").filter({ hasText: "저장 결과를 확인할 수 없습니다. 초안은 유지되며" })).toHaveCount(0);
+      await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
+      expect(mutationCount).toBe(1);
+      await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Cross-tab committed B", "Task C"]);
+      await renameInline(page, "Task A", "Fresh after catch-up");
+      const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+      expect(stored.data.project.name).toBe(name);
+      expect(stored.data.project.revision).toBe(snapshot.data.project.revision + 3);
+      expect(stored.data.tasks.map(entry => entry.name)).toEqual(["Fresh after catch-up", "Cross-tab committed B", "Task C"]);
+      expect(stored.data.links).toEqual(snapshot.data.links);
+      expect(mutationCount).toBe(1);
+    } finally {
+      releaseOldRead();
+      releaseCrossRead();
+      await other.close();
+    }
+  });
+}
+
 test("SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다", async ({ page, baseURL }) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
   const created = await page.request.post(`${api}/tasks`, {

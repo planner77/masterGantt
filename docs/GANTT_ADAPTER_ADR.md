@@ -226,3 +226,5 @@ RANGE_EXTENSION도 U4 안에서 기존 X/Y를 보존하므로 capacity-only 예�
 같은 live API/context에서 태그 없이 실제 native 앞 이동을 일으킨 지연 callback과 사용자/프로그램 이동은 공개 계약만으로 구별할 수 없다. 이 경우 현재 물리 이동이 오래된 passive 보존을 취소하는 정책을 적용하며 인간 입력으로 판별했다고 주장하지 않는다. 데이터 저장/권한을 승인하는 근거로 사용하지 않는다.
 
 지원 범위는 설치 Core 2.7.3/store 2.7.2 및 현재 동기 resize/scroll handler 프로파일이다. port의 1500ms Promise race와 U4 callback 종료는 임의의 미래 async-before-Store writer가 끝났다는 일반 보장이 아니다. library 또는 해당 handler를 비동기로 변경할 때 source taint·늦은 쓰기·natural recovery를 재검증해야 한다.
+
+#667 CI #2811 보완: view visibility 변경의 layout phase에서 legacy bridge receipt를 폐기한다. PEER_RETURN은 원래 lease로 fresh visible U3 receipt를 기다린 뒤 기존 acceptedProjection 고정·3-frame settle을 수행한다. 이전 session의 좌표 일치만으로 완료하지 않으며, 완료 대기 중 generation 변경을 무시하도록 완화하지 않는다.

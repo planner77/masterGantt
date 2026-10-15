@@ -1,5 +1,7 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- PR CI #2811의 화면 복귀 영수증 취소를 fresh visible 관측 대기로 교정하고, cross-tab/실패복구 GET 경합의 재잠금과 pending 조회 중 UNKNOWN 잠금 누락을 보완한다. 원본 실패·실제 두 탭 회귀는 Work Packet에 보존한다.
+
 - main 제품의 actual-Core 정합/실패 복구·의미 관측·날짜축 transaction을 U2/U3/U4 공통 모듈에 연결한다. 서버 확인 없는 snapshot 재생·remount 복구 대신 unknown 저장 결과의 충돌 쓰기 차단과 명시적 최신 조회를 제공한다.
 - 실제 HTTP/SQLite의 commit 성공·미성공/응답500·연결단절·GET실패·추가 저장0/후속 저장 및 native Milestone 보존 회귀를 추가한다. 기존 Required CI·보안·API/DB·marker 미활성 정책은 유지한다.
 - PATCH version은 정식 release 승인이나 전체 QA PASS가 아니다. 실제 source·검증·한계는 [Work Packet](docs/exec-plans/active/ISSUE_667.md)을 따른다.

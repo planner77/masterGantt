@@ -594,8 +594,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           const targetRevision = crossTabPendingRevisionReference.current;
           if (targetRevision <= currentRevision) break;
 
+          // Cross-tab reads share the mutation/recovery generation. A newer
+          // read or mutation retires this response before it can apply or unlock.
+          const generation = ++canonicalReadGenerationReference.current;
           const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
           const body: unknown = await response.json().catch(() => null);
+          if (generation !== canonicalReadGenerationReference.current) break;
           if (!response.ok || !isSnapshot(body)) {
             notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
             break;
@@ -606,6 +610,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             notify("error", "다른 탭의 변경 사항을 현재 화면에 반영하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
             break;
           }
+          canonicalRecoveryBlockedReference.current = false;
+          setCanonicalRecoveryBlocked(false);
           if (fetchedRevision >= crossTabDurableCatchUpRevisionReference.current) {
             crossTabDurableCatchUpRevisionReference.current = 0;
           }
@@ -898,7 +904,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
 
   async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string, operation: string): Promise<string> {
     if (status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
-    const recovered = await reloadCanonicalSnapshot();
+    // Uncertainty starts with the failed mutation, not with its GET completing.
+    // A superseding cross-tab read may still be pending or fail itself.
+    canonicalRecoveryBlockedReference.current = true;
+    setCanonicalRecoveryBlocked(true);
+    await reloadCanonicalSnapshot();
+    const recovered = !canonicalRecoveryBlockedReference.current;
     // Failed GET leaves the result unresolved. Do not replay an older snapshot
     // after a request that may already have committed on the server.
     const code = safeErrorCode(error);

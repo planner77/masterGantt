@@ -4,7 +4,7 @@ Refs #667
 
 ## 실행 계약
 
-phase: PR_READY
+phase: CI_CORRECTION_PR_READY
 risk_level: HIGH
 risk_reason: 실제 Core 복구·비동기 저장 결과·viewport 의도 및 날짜축 연결의 교차 회귀
 qa_method: OWNER_MANAGED
@@ -17,7 +17,7 @@ issue_comment_writer: manager
 issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, FINAL
 documentation_owner: Manager
 
-사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외한다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
+최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 새 실행의 완료 모니터링·병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
 
 ## 기준선 / 의존성 / 버전
 
@@ -75,7 +75,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - AC4: 검색0/해제·WBS exact120 bookmark·연속3회축확장·진행중실제wheel·Resource exact120/후속 native-reset·pending wheel/resize·Target 편집을 선택 검증했다. 로컬 PASS; 별도 marker reveal/전체 조합은 NOT TESTED.
 - AC5: full canonical Task/Link·권한/revision, unknown/역전GET·추가 mutation0·같은 instance/tree/selection/columns·3000행/3회 cleanup 선택 범위 PASS. 장기 heap/전 listener·전체 Membership 조합은 NOT TESTED.
 - AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. DOCUMENTATION_SYNC의 로컬 영향/정합 검토 PASS.
-- AC7: exact PR Head/base/test merge의 required quality/e2e/docker·Trusted QA·Owner gate는 NOT TESTED. 사용자 지시에 따라 CI 모니터링 없음; MERGE_READY=BLOCKED.
+- AC7: 원본 Head04b6의 CI #2811.1은 quality/docker PASS, e2e FAIL이다. 다른5shard 취소·미실행은 NOT TESTED로 유지한다. 보완 Head의 required3/Trusted QA·Owner gate는 새 실행 증거 전 NOT TESTED이며 MERGE_READY=BLOCKED다.
 
 ## DOCUMENTATION_SYNC
 
@@ -84,6 +84,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - `docs/PROJECT_UX.md`: UPDATED
 - `docs/TASK_EDITOR.md`: UPDATED
 - `docs/evidence/issue-667/local-validation.json`: UPDATED
+- `docs/evidence/issue-667/ci2811-correction.json`: UPDATED
 - `docs/images/issue-667/unknown-workspace-1440.png`: UPDATED
 - `docs/images/issue-667/unknown-editor-1440.png`: UPDATED
 - `docs/MILESTONE_TIMELINE.md`: UPDATED
@@ -267,7 +268,7 @@ Manager의 범위 내 설계 결정: 위 native 앞 이동 정책을 오래된 p
 동 실행의 실제 HTTP/SQLite Editor 화면 검토에서 UNKNOWN을 editable=false로 막는 동작은 옳지만 사유가 '편집 권한이 없습니다'로 표시되는 혼동도 발견했다. optional 제한 사유를 전달해 UNKNOWN과 실제 401/readonly를 구분하며 저장/하위 mutation gate는 유지한다. 실제 UNKNOWN의 사유/초안·재조회·추가 저장 0과 일반 readonly/expired-session 회귀를 최종 source에서 검증한다.
 
 
-## 최종 로컬 검증 / 원격 인계
+## 최초 게시 source의 로컬 검증 / 원격 인계
 
 - 동결 source fingerprint: `84800f574b4b919ca0ef09bacb2cddd44f4eb4b07fb69272f602f0ec86718679`. main `ee6365bf57ab637b4c0aca61fdedaf5148253052` 대비 변경 source/test/package 32개 SHA256와 실제 결과를 [실행 증거 JSON](../../evidence/issue-667/local-validation.json)에 고정했다. 테스트 전후 bytes 일치를 확인한다.
 - Unit: 위 직접 명령의 12파일 / 311 PASS / 0 FAIL. describe를 포함하는 runner suite 수와 파일 수를 혼동하지 않는다. 과거 U1/U2/U4 캡처 provenance 검증은 신규 제품 재수집의 PASS가 아니다.
@@ -282,7 +283,7 @@ Manager의 범위 내 설계 결정: 위 native 앞 이동 정책을 오래된 p
 
 Git CLI 인증 실패 때문에 인증된 GitHub Git Data connector로 최종 local tree와 byte 동일한 tree를 게시한다. service가 author/date를 생성하므로 unpublished local commit SHA와 원격 commit SHA가 다를 수 있다. 원격 commit은 최신 main을 parent로 가지며 기존 main/다른 PR history를 강제 덮어쓰지 않는다. 정확한 PR/원격 Head/base/tree·게시 검증과 현재 thread/mergeability는 Issue STATUS에 기록한다. CI 결과를 조회하거나 기다리지 않는다.
 
-## 사전 검토 / 문서 판정
+## 최초 게시 source의 사전 검토 / 문서 판정
 
 pre_qa_reviewer: /root/integration_tests (qa_docs, 별도 read-only 실행)
 pre_qa: PASS (코드·문서·선택 로컬 증거의 독립 read-only 사전 검토)
@@ -291,3 +292,38 @@ DOCUMENTATION_SYNC: PASS (로컬 영향 분석·코드/문서/실행 증거 정�
 사전 검토는 구현 작성자와 분리된 코드/문서/실제 로컬 증거 검토이며 GitHub QA_FINAL·Owner의 최종 인수·병합 승인을 대신하지 않는다. 전체 AC 미검증과 관련 #561/#675의 남은 충돌 정렬을 숨기지 않는다.
 
 최종 사전 검토는 원본 HTML ZIP의 67개 사례/판정과 증거 JSON mismatch 0, source 32개 SHA256 mismatch 0, Resource exact120/후속 repair 2회 및 SC-14/진행 중 wheel attachment를 직접 확인했다. 미해결 코드 지적 0이며 AC2 전수/AC7·환경/장기 검증과 관련 PR 충돌 인계는 미완료로 유지한다. Manager는 문서 정합성만 로컬 PASS로 판정하며 Manager 병합 ACCEPT는 NOT TESTED다.
+
+
+## 2026-10-16 — PR #695 / CI #2811.1 보완
+
+### 원본 원격 실패
+
+- Head `04b6d3d90d06b742223038c31c84823d525feb21`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`, 실제 checkout test merge `0d6c8c909ce5836210f2149c1f53abcb5b5da45a`.
+- [CI #2811.1 / run38742141930](https://github.com/planner77/masterGantt/actions/runs/38742141930), attempt1: quality aggregate job116447980101 SUCCESS, docker aggregate job116448436755 SUCCESS, e2e aggregate job116449937942 FAILURE. 자동 QA failure는 이 실패 이후이며 독립 업무 QA/Owner ACCEPT가 아니다.
+- 최초 실패: [Chromium E2E shard3 job116447303496](https://github.com/planner77/masterGantt/actions/runs/38742141930/job/116447303496), step7, `milestone-dashboard-state.spec.ts:145`, 5000ms 동안 `data-gantt-peer-restore=null`. 좌표120/96은 도달했으나 완료 영수증이 없었다. 해당 shard21PASS/1FAIL/1SKIP/104NOTRUN, 다른5shard CANCELLED. 후단·미실행을 PASS로 재분류하지 않는다.
+- 같은 source의 로컬 단독 재현도 7.0초 FAIL이었다. 원본 trace/HTML은 `output/playwright/issue-667/ci2811-reproduction`에 보존한다.
+
+### 원인과 보완
+
+복귀 전 visible session의 bridge receipt2를 소비한 PEER_RETURN이 APPLY/SETTLING 도중 새 visible 관측 receipt3를 받아 STALE_PROJECTION으로 취소됐다. Core/native120/96은 보존됐지만 strict 완료 판정은 실패했다. visibility 변경의 layout phase에서 이전 bridge를 무효화하여 원래 lease의 복귀 명령이 fresh visible U3 관측을 기다리게 했다. accepted projection 고정·3프레임·exact좌표·원래 timeout·취소/우선순위는 유지하며 자동 재시도나 새 lease를 도입하지 않는다.
+
+미해결 P2 `PRRT_kwDOUUB7Bc6syoNu`는 cross-tab GET만 canonical read generation 밖에서 적용되므로 최신N+1 확정 뒤 늦은 실패복구N이 UNKNOWN을 다시 설정하는 문제였다. cross-tab도 같은 generation 시작/응답 검사를 공유하고 현재 세대의 성공한 canonical만 잠금을 해제한다. 실제 두 탭의 프로젝트 저장→storage event→최신 GET과 이전 recovery stale/500의 두 순서를 검증한다.
+
+독립 검토가 추가 발견한 음성 경계도 보완했다. 최신 cross-tab GET이 pending/500이면 이전 recovery의 supersession만으로 잠금을 생략해서는 안 된다. 실패 mutation handler 진입에서 UNKNOWN ref/state 잠금을 동기적으로 세우고, 현재 성공한 조회만 해제한다. 정상 sameDTO 수동 조회에는 불필요한 UNKNOWN을 만들지 않는다. 안내의 recovered 판단도 현재 잠금 상태를 읽는다. partial fix의 실제 negative 사례는 8.9초 FAIL(잠금 안내 없음)로 재현했으며 `ci2811-cross-tab-negative`에 원본을 보존했다.
+
+### 변경과 검증 범위
+
+제품 변경은 ProjectGantt visibility/bridge와 Workspace canonical read/실패 handler에 한정한다. 새 E2E는 실제 두 탭 HTTP/SQLite에서 최신 성공 뒤 재잠금0, 최신 pending/실패 중 잠금·추가PATCH0, 명시 조회 뒤 같은 instance·최신revision 후속 저장을 검증한다. Coordinator Unit은 null receipt 상태에서 새 visible receipt 이전 APPLY0을 보호한다. 원본 테스트의 단언/timeout/skip·workflow·6shard·Required checks는 변경하지 않는다. application0.114.1 후보·release승인false를 유지한다.
+
+최초67PASS/311Unit의 JSON·source fingerprint는 **이전 source의 역사적 결과**로 보존한다. 현재 수정 source의 선택 회귀·source SHA256·사전 검토는 별도 correction 증거로 기록하며 원본 remote FAIL을 덮어쓰지 않는다. 새 Head 전체회귀는 새 PR CI에서 별도 판정한다.
+
+
+### 보완 source의 로컬 검증 / 원격 재실행 인계
+
+- 증거: [CI #2811 보완 실행 JSON](../../evidence/issue-667/ci2811-correction.json). parent Head `04b6d3d90d06b742223038c31c84823d525feb21`와 변경 source/test 4개 SHA256를 함께 고정한다. fingerprint `2fa496841617ecdd0fe2bc7985feb04728c2f65ef1fe4c8ce2871f5fe74d89f6`이며 최초32파일 fingerprint를 대체하지 않는다.
+- Unit: `npx vitest run --config tests/config/vitest.config.ts`에 viewport-coordinator/svar-viewport-port/projection-observation/product-consistency/canonical-snapshot-recovery/project-revision-sync 6파일을 지정했다. 183 PASS / 0 FAIL. 독립 Reviewer의 별도150 PASS를 합산하지 않는다.
+- Chromium: `milestone-dashboard-state`, `gantt-state-product-integration`, `gantt-state-recovery-editor`, `resource-kpi-integration-ui`, `viewport-coordinator`, `project-gantt-scale` 6파일에서 `--grep '#463|SC-|#530 고정 geometry|#530 explicit frame|#571|switches the Gantt' --project=chromium --workers=1`로 선택 실행했다. 32 PASS / 0 FAIL / 0 skipped / 0 flaky, 268616.54ms. actual HTTP/SQLite16개와 mock API·actual SVAR16개이며 원본 실패 및 새 두 탭3사례를 포함한다. 전체67/전체Vitest/로컬Docker 재실행으로 보고하지 않는다.
+- typecheck PASS, 변경 TypeScript ESLint 오류0/기존 hook warning3, Markdown 링크227파일/version0.114.1/diff whitespace PASS. 생성된 next-env/tsconfig와 추적된 #463 원본을 복원했다. 원본 실패·partial fix 실패·최종 HTML/Unit 원장은 `output/playwright/issue-667/`에 Git 밖으로 보존한다.
+- pre_qa_reviewer: `/root/integration_tests` (qa_docs, 별도 read-only 실행). pre_qa: PASS. DOCUMENTATION_SYNC: PASS(코드·문서·원본 HTML/Unit·4파일 fingerprint의 독립 의미 검토; mismatch0·미해결 코드 지적0). QA_FINAL/Owner ACCEPT 및 원격 리뷰 해소 판정은 포함하지 않는다.
+- 게시: 기존 PR #695 branch에 parent `04b6d3d90d06b742223038c31c84823d525feb21`의 후속 commit을 게시한다. Git Data connector의 tree bytes 일치 및 expected_sha/force=false를 확인하며 기존 PR/실패 run 이력을 보존한다. 신규 PR 생성이나 실패한 구 Head 재실행 대신 수정 Head의 Full PR CI 시작을 확인한다.
+- 새 Head quality/e2e/docker·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다. 새 run 완료 모니터링·병합·Main/GHCR·정식 release/tag·Issue 종료는 수행하지 않는다. 정확한 게시 Head/tree/run URL·리뷰 해소 결과는 Issue STATUS와 PR 댓글에 기록한다.

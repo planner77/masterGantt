@@ -123,3 +123,5 @@ U4 전용 합성 fixture는 날짜 start/end·actual physical width/height/scrol
 개발 전용 기존 probe.read는 대량 검증을 위해 공개 serialize의 전체 Task/일반 Task/Milestone 숫자와 canonical 전체 개수를 반환한다. 기존 rows/IDs/links의 500개 cap과 O(1) readiness는 유지한다. 숫자는 read 요청 때만 계산하며 실패/null을 0개 성공으로 대체하지 않는다. 지연 GET의 generation은 UI 복구 출처 확인용이며 요청 ID/원시 payload를 진단 로그에 추가하지 않는다.
 
 Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source의 관측을 알린다. actual axis signature 변경에만 새 receipt floor를 요구하며 client box가 같아도 scrollWidth 증가를 놓치지 않는다. 알림은 읽기 전용이며 UNKNOWN/pending·폐기 API/source·원래 lease 검사를 우회하지 않는다.
+
+#2811.1의 peer trace는 receipt2 APPLY/SETTLING→fresh visible receipt3→STALE_PROJECTION SUPERSEDED를 기록했다. 좌표120/96과 완료 marker를 구분하고 visibility bridge invalidation 이후 실제 새 receipt와 3프레임 정착을 확인한다. 원본 run/job/step 및 보완 source 결과는 #667 Work Packet에 분리한다.

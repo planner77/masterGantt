@@ -1375,3 +1375,5 @@ Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고
 일정/Resource/Calendar 왕복·검색·동일 DTO 재조회는 불필요한 remount를 만들지 않는다. data receipt와 viewport 정착은 별개이며 실제 사용자 입력이 이전 복원보다 우선한다. 이 공통 연결은 #552의 native Milestone 행 제거·marker 활성화를 포함하지 않는다. 실제 검증과 미검증은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)에 기록한다.
 
 저장 전에 시작한 이전 조회가 늦게 도착해도 저장 결과 불명확 안내나 편집 잠금을 해제하지 않는다. 현재 요청의 최신 서버 확인만 복구를 확정한다. Editor의 재조회·취소는 사용할 수 있지만 UNKNOWN의 추가 저장과 하위 편집은 잠근다.
+
+화면을 숨겼다가 일정으로 복귀할 때는 이전 visible session의 완료 영수증을 현재 복귀의 근거로 재사용하지 않는다. 새 visible 관측 뒤 실제 정착을 확인한다. 다른 탭의 최신 확인이 진행 중이거나 실패하면 실패 mutation의 UNKNOWN 잠금을 유지하고, 최신 성공 조회만 해제한다.

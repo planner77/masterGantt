@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16: PR #695 원본 CI #2811.1은 quality/docker PASS·e2e shard3 FAIL/다른5shard CANCELLED다. fresh visible receipt와 cross-tab 실패복구 generation/UNKNOWN 잠금을 보완하고 실제 재현·음성 경합·독립 사전 검토 후 같은 PR의 새 Full CI를 시작한다. 완료 모니터링·병합/릴리스는 제외한다.
+
 [Work Packet](ISSUE_667.md): #548 marker-last 결정에 따라 main `29c86ca918baa1811bc12a3eb60f86ffc5406b40`에서 U2 actual-Core 복구/U3 semantic observation/U4 axis transaction을 실제 제품에 연결한다. frontend가 Gantt/Workspace/Coordinator/port의 단일 작성자이며 Manager는 문서·버전·실제 HTTP/SQLite E2E, 별도 qa_docs는 read-only 사전 검토를 담당한다. 기존 native Milestone 행/bar와 marker 미활성을 유지하고 #552 표시 UI를 중복 구현하지 않는다.
 
 PATCH0.114.1 후보, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 실제 로컬·사전 검토와 원격 required3/Trusted QA/Owner ACCEPT를 구별한다. 사용자 요청에 따라 구현·문서·미해결 리뷰/충돌 해결·원격 PR 게시까지 진행하며 CI 모니터링·병합·Main/GHCR·정식 release/tag·Issue 종료는 하지 않는다. #675 미병합 source를 복사하지 않고 main #686 진단 계약·원본 실패·#666390px/clamp 한계를 보존한다.
