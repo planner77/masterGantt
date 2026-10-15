@@ -1,3 +1,9 @@
+## Issue #663 — U1 공통 계약·누적 하니스 검증
+
+`tests/config/gantt-state-conformance.json`의 SC-01~14를 기존 Vitest runner의 전용 manifest Unit에서 검사한다. GSC-01~12·owner·evidence level·현존 spec/case의 매핑과 누락/중복/비존재 음성 검증을 포함한다. 등록된 scenario/productStatus는 NOT TESTED이며 구조 검사 PASS를 전체 E2E 실행 PASS로 승격하지 않는다.
+
+전용 contract/core-reader/harness/runtime-fixture Unit은 같은 canonical에서 순서·날짜·임시 task·Link drift, 확정 거부/불명확 저장, pending 편집·새 사용자 의도와 same-revision 재관측의 차이를 검증한다. fake port reference model은 실제 production recovery 구현이 아니다. 설치Core2.7.3의 synthetic browser `serialize` snapshot을 고정하고 #568 bounded trace를 재사용하며 새 진단 서버·제품 wiring·workflow 변경은 없다. 실제 HTTP/SQLite 복구와 SC-08~14의 제품 geometry/접근성/대량·수명주기는 후속 U4/U5/#573/#574에서 별도 실행한다. [실행·원본 실패·검증 한계](exec-plans/active/ISSUE_663.md).
+
 ## Issue #623 — Resource MVP 통합 수용
 
 PR #685 P2 후속: 첫 통합 흐름은 기존 최대 30.6초 관측을 근거로 해당 테스트만 60초, geometry 흐름은 기본 30초로 제한한다. action timeout 15초와 기존 단언은 유지한다. 390px의 tree/matrix 모두 실제 ArrowRight 전후 `scrollLeft` 증가와 focus 유지가 필요하며 `geometry.json`에 전후 값을 기록한다. overflow·focus·스크린샷만으로 키보드 이동을 PASS로 판단하지 않는다. 원본 CI #2772.1은 세 Required PASS / QA Final 미해결 리뷰 BLOCKED이며 새 Head 원격 결과는 별도다.

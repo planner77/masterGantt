@@ -129,3 +129,9 @@ Empty는 공개 serialize 결과를 정규화하고 Milestone은 종료일이 �
 U4는 설치 2.7.3에서 실제 Core fixture로 A/B/C 또는 최소 개선안을 비교하고, 지원 프로파일·취소 중 임시 geometry·원래 X/Y·실제 사용자 입력의 우선권·상한을 증명한 한 가지 전략을 U5에 전달한다. 최신 문서의 props를 설치 버전의 런타임 보장으로 확대하지 않으며 library upgrade, private Store 변경, 새 scroll controller는 이 결정의 범위가 아니다. 실제 source를 확인한 후에도 불충분하면 `DECISION_REQUIRED/DEFER`와 대안을 기록한다.
 
 표준 예외/전략 채택 기록에는 적용 GSC ID, 버전·프로파일, 원본 실패와 반례, 선택/기각 대안, 실제 검증 source와 결과·미검증, rollback·재평가 조건, 승인 주체를 포함한다. 규범 승인과 제품 연결 및 CI 성공은 별도 gate다. 이 문서 변경 자체로 보호된 CI/QA/Owner·릴리스 권한을 바꾸지 않는다.
+
+## Issue #663 — U1 읽기 포트와 설치 serialize 경계
+
+React wrapper2.7.3의 실제 transitive gantt-store는2.7.2이며 두 package 버전을 별도 provenance에 기록한다. U1의 공통 public reader는 `src/features/gantt/state-consistency/index.ts`에서 제공하며 실제 설치2.7.3의 tasks/tree/links를 정규화한다. `tree`는 전체 DFS flat 배열이며 중첩 `data` 참조를 다시 flatten하지 않는다. renderer duration·open·좌표 캐시는 비교에서 제외하되 parent·형제 순서·adapter-owned payload·Links는 보존한다. null/읽기 실패를 빈 정상 상태로 바꾸지 않는다.
+
+[합성 browser fixture와 provenance](../tests/fixtures/gantt-state-consistency/actual-core-provenance.json)는 현재 공식 [serialize 문서](https://docs.svar.dev/react/gantt/api/methods/serialize/)·설치 타입·실제 runtime 출력의 근거를 분리한다. file:// fixture는 기존 #568 bounded trace를 재사용하고 production port/제품 연결은 추가하지 않는다. 기존 A/B/C 실험 DEFER와 실패 원장은 불변이며 U1 reader 검증을 범위 확장·geometry·날짜축 지원 승인으로 사용하지 않는다. 상세 [Work Packet](exec-plans/active/ISSUE_663.md).

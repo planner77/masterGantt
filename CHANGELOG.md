@@ -1,3 +1,8 @@
+## Unreleased — Issue #663
+
+- 제품 미연결 Gantt state-consistency 공통 타입/읽기 전용 Core serialize 포트와 누적 SC-01~14 manifest·음성 검사·fake port/실제 합성 Core reader fixture를 추가한다.
+- application0.114.0과 패키지/제품 동작/CI·릴리스 정책은 유지한다. 이는 #552 제품 정합성 해결·정식 릴리스 완료가 아니며 원격 전체 검증과 Owner/Manager 최종 수용은 별도다.
+
 ## [Unreleased] — Issue #623 Resource MVP 통합 수용·이관 안내 (2026-10-15)
 
 - PR #685 QA Final의 미해결 리뷰 차단 원인을 기록하고, 신규 E2E의 180초 override를 첫 흐름 60초/둘째 기본30초로 복원한다. 390px tree/matrix의 실제 ArrowRight scrollLeft 증가·focus 근거를 보강하고 main의 #622 초기화 회귀 문서를 함께 보존한다. 새 Head 원격 검증 및 Owner 결정은 별도다.

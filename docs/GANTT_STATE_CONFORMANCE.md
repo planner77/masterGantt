@@ -67,3 +67,9 @@ Task 이름·설명·URL·비밀번호·cookie·session·실제 DB 원본은 tra
 - Reviewer는 문서 존재만 아니라 실제 Core 비교/복구·쓰기 경로·fixture를 확인한다.
 - U1은 machine-readable SC manifest와 marker/coverage 단위 검사를 구현하고, U5는 기존 테스트 실행 경로에서 이를 소비한다. #574는 실제 필수 실행과 traceability를 확인한다.
 - 이 문서 PR에는 자동 검사 코드/워크플로 변경이 없으므로, 현재 자동 enforcement는 NOT IMPLEMENTED다. Required check 변경이 필요하면 별도 infra·보호 경로 검토를 따른다.
+
+## 7. Issue #663 — U1 하니스 구현 현황
+
+U1의 기계 판독 manifest는 `tests/config/gantt-state-conformance.json`, 검사는 `tests/features/gantt/state-consistency-manifest.test.ts`에 있다. SC-01~14의 GSC/owner/evidence/spec·case 매핑과 음성 사례를 기존 Vitest runner로 검사한다. 본문 작성 당시의 NOT IMPLEMENTED는 #661 역사적 경계이며 이번 U1에서는 계약/reader/manifest·fake port 기반만 구현한다. 규범 버전·REVIEW_PENDING 상태는 불변이다.
+
+Manifest 등록 상태와 실제 시나리오 실행 결과는 다르다. fake Core·합성 실제 SVAR reader·실제 HTTP/SQLite·제품 E2E·원격 CI를 별도 증거로 관리한다. 현재 U1은 제품에 연결되지 않으며 U2/U3/U4/U5/#573/#574의 제품 증거는 NOT TESTED다. 계약/fixture 버전, 정확한 source·명령·로컬 결과·미실행은 [#663 Work Packet](exec-plans/active/ISSUE_663.md)을 따른다. manifest 성공만으로 SC-01~14 제품 PASS 또는 Required check 신규 강제를 주장하지 않는다.

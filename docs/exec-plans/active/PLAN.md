@@ -1,3 +1,9 @@
+## Issue #663 — U1 공통 상태 계약과 누적 회귀 하니스 (2026-10-15)
+
+선행 #661/PR #669가 main에 반영된 `b09c3148df037acdecc9b0687e0dd4d3051c96a4`에서 [Work Packet](ISSUE_663.md)에 따라 타입/읽기 포트/SC manifest·음성 검사·fake port 및 실제 synthetic Core serialize fixture를 준비한다. application0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false. 기존 제품 연결·복구/receipt/axis 알고리즘은 변경하지 않는다.
+
+요청 종료점은 구현·DOCUMENTATION_SYNC·별도 사전 검토·미해결 리뷰/충돌 처리 뒤 exact-head PR Full CI 시작 확인이다. 결과 모니터링·병합/main/GHCR/Release/Issue 종료는 별도다. U1의 로컬 계약 검증을 #552 제품 해결로 확대하지 않으며 U2/U3/U4의 main 선행 완료는 승인 병합 뒤에만 성립한다.
+
 ## Issue #623 — Resource MVP Q1 통합 수용·운영 인계 (2026-10-15)
 
 PR #685 재개: CI #2772.1의 세 Required/E2E6 PASS, QA Final 미해결 리뷰 BLOCKED를 확인했다. P2 timeout·실제 키보드 scrollLeft 단언을 보완하고 main `1449190a`의 #622 후속과 문서 충돌 두 곳을 정렬한다. [Work Packet](ISSUE_623.md)에 최초 실패와 새 증거를 구별한다. 새 exact-head PR CI 시작에서 종료하며 결과 모니터링·병합·릴리스·Issue 종료는 수행하지 않는다.
