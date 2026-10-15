@@ -1,0 +1,267 @@
+{
+  "schemaVersion": 1,
+  "issue": 667,
+  "pullRequest": 695,
+  "scope": "DEV 관측 교정의 로컬 빠른 검증; 전체 PR CI 성공 증거 아님",
+  "parentHeadSha": "a141ba3e4daf5ec6bbf8a99a3350edcb6c0c35be",
+  "sourceFingerprintSha256": "a5aa4a8237b72894cd2d1884f273eb1ac6fc58a8df03d9b0b6834d4dba72c063",
+  "changedSourceHashesSha256": {
+    "src/features/gantt/project-gantt.tsx": "a6b442351a49b97b18ece417a7dc7d23d623b5d0c9371a71c17be9f821bd1a4f"
+  },
+  "originalCi": {
+    "runId": 38798814906,
+    "runNumber": 2813,
+    "attempt": 1,
+    "headSha": "a141ba3e4daf5ec6bbf8a99a3350edcb6c0c35be",
+    "baseSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+    "testMergeSha": "4ef33373f7f5e2ff67098d2c5d8ea1cb51941a0d",
+    "quality": {
+      "jobId": 116643628280,
+      "conclusion": "success"
+    },
+    "docker": {
+      "jobId": 116644110558,
+      "conclusion": "success"
+    },
+    "e2e": {
+      "jobId": 116645534840,
+      "conclusion": "failure"
+    },
+    "firstFailure": {
+      "jobId": 116643060487,
+      "step": 7,
+      "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+      "observerLine": 30,
+      "callerLine": 85,
+      "error": "TypeError: Cannot read properties of null (reading 'getFullYear')",
+      "shardPassed": 16,
+      "shardFailed": 1,
+      "shardNotRun": 65,
+      "otherShards": "CANCELLED"
+    }
+  },
+  "beforeFix": {
+    "status": "FAIL",
+    "scope": "원본 게시 source의 첫 readonly/day/normal 행렬 사례",
+    "testDurationMs": 1612,
+    "reportDurationMs": 4056.5160000000005
+  },
+  "change": {
+    "scope": "DEV 읽기 전용 getter1줄·설명 comment1줄",
+    "originPriority": [
+      "state._scales.start",
+      "state._start"
+    ],
+    "configurationStartUsed": false,
+    "productionRevealChanged": false,
+    "testAssertionsChanged": false,
+    "timeoutSkipRetryChanged": false,
+    "ciPolicyChanged": false
+  },
+  "unit": {
+    "files": 2,
+    "passed": 115,
+    "failed": 0
+  },
+  "chromium": {
+    "stats": {
+      "total": 28,
+      "expected": 28,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "durationMs": 124319.918,
+    "actualHttpSqlite": 2,
+    "mockApiActualSvar": 26,
+    "tests": [
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix readonly/day/normal root+nested",
+        "status": "PASS",
+        "durationMs": 3076
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix readonly/day/fullscreen root+nested",
+        "status": "PASS",
+        "durationMs": 2825
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix readonly/week/normal root+nested",
+        "status": "PASS",
+        "durationMs": 2708
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix readonly/week/fullscreen root+nested",
+        "status": "PASS",
+        "durationMs": 2907
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix editable/day/normal root+nested",
+        "status": "PASS",
+        "durationMs": 2733
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix editable/day/fullscreen root+nested",
+        "status": "PASS",
+        "durationMs": 2976
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix editable/week/normal root+nested",
+        "status": "PASS",
+        "durationMs": 2826
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 matrix editable/week/fullscreen root+nested",
+        "status": "PASS",
+        "durationMs": 2996
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 pending peer wheel and rapid selections preserve latest actual user intent",
+        "status": "PASS",
+        "durationMs": 1922
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 pending peer restore expires when the Task filter source changes",
+        "status": "PASS",
+        "durationMs": 1729
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 reveal retains context-menu, modifier and keyboard selection semantics",
+        "status": "PASS",
+        "durationMs": 3022
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 narrow logical viewport smoke and three-wide page start reveal geometry",
+        "status": "PASS",
+        "durationMs": 5903
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 native Grid pointer reveals canonical Task start in both horizontal directions",
+        "status": "PASS",
+        "durationMs": 1973
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 before editable name pointer observes native selection and inline editor reveal",
+        "status": "PASS",
+        "durationMs": 1510
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 before Week fullscreen nested reveal and null Summary selection",
+        "status": "PASS",
+        "durationMs": 2139
+      },
+      {
+        "file": "tests/e2e/grid-task-start-reveal.spec.ts",
+        "title": "#514 before pending peer restore must not overwrite native Grid Task start reveal",
+        "status": "PASS",
+        "durationMs": 1760
+      },
+      {
+        "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "title": "#463 public viewport and native scroll survive peer/layout, stale restore is consumed",
+        "status": "PASS",
+        "durationMs": 3726
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+        "status": "PASS",
+        "durationMs": 9828
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (future)",
+        "status": "PASS",
+        "durationMs": 9730
+      },
+      {
+        "file": "tests/e2e/project-gantt-scale.spec.ts",
+        "title": "switches the Gantt timeline between day and ISO week headers without remounting",
+        "status": "PASS",
+        "durationMs": 4400
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+        "status": "PASS",
+        "durationMs": 4049
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 4261
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 3634
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+        "status": "PASS",
+        "durationMs": 3465
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+        "status": "PASS",
+        "durationMs": 3110
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add preserves unmodified viewport",
+        "status": "PASS",
+        "durationMs": 4632
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "#571 delayed native add actual wheel cancels captured restore",
+        "status": "PASS",
+        "durationMs": 4690
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+        "status": "PASS",
+        "durationMs": 1814
+      }
+    ]
+  },
+  "nextFullPrCi": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "preQa": {
+    "status": "PASS",
+    "scope": "별도 read-only 코드·문서·원본/최종 로컬 증거 검토; QA_FINAL 아님",
+    "reviewer": "/root/integration_tests (qa_docs)",
+    "documentationSync": "PASS (독립 의미 검토)",
+    "sourceHashMismatches": 0,
+    "browserReportMismatches": 0,
+    "unresolvedCodeFindings": 0,
+    "unresolvedDocumentationFindings": 0
+  }
+}

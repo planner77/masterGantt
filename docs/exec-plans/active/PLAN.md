@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 재개: CI #2813.1 quality/docker PASS·e2e FAIL의 DEV Grid reveal 관측 원점을 설정 start에서 계산된 날짜축으로 보완한다. #514 전체 및 관련 선택 회귀·독립 사전 검토·리뷰/충돌 확인 후 같은 PR의 새 Full CI를 시작한다. 원본 실패·이전 증거와 최종 승인 미검증을 유지한다.
+
 2026-10-16 후속: CI #2812.1 quality/docker PASS·e2e FAIL을 재현하고 반복 삭제 UNKNOWN 복구 fixture와 빈 프로젝트 첫 Milestone 이후 잠금 원인을 보완한다. 원본 두 실패와 이전 증거를 보존하고 새 Full CI 시작까지만 진행한다.
 
 2026-10-16: PR #695 원본 CI #2811.1은 quality/docker PASS·e2e shard3 FAIL/다른5shard CANCELLED다. fresh visible receipt와 cross-tab 실패복구 generation/UNKNOWN 잠금을 보완하고 실제 재현·음성 경합·독립 사전 검토 후 같은 PR의 새 Full CI를 시작한다. 완료 모니터링·병합/릴리스는 제외한다.

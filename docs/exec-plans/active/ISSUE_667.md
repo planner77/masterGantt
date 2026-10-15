@@ -4,7 +4,7 @@ Refs #667
 
 ## 실행 계약
 
-phase: CI_2812_CORRECTION_PR_READY
+phase: CI_2813_CORRECTION_PR_READY
 risk_level: HIGH
 risk_reason: 실제 Core 복구·비동기 저장 결과·viewport 의도 및 날짜축 연결의 교차 회귀
 qa_method: OWNER_MANAGED
@@ -75,7 +75,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - AC4: 검색0/해제·WBS exact120 bookmark·연속3회축확장·진행중실제wheel·Resource exact120/후속 native-reset·pending wheel/resize·Target 편집을 선택 검증했다. 로컬 PASS; 별도 marker reveal/전체 조합은 NOT TESTED.
 - AC5: full canonical Task/Link·권한/revision, unknown/역전GET·추가 mutation0·같은 instance/tree/selection/columns·3000행/3회 cleanup 선택 범위 PASS. 장기 heap/전 listener·전체 Membership 조합은 NOT TESTED.
 - AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. DOCUMENTATION_SYNC의 로컬 영향/정합 검토 PASS.
-- AC7: Head04b6의 CI #2811.1과 후속 Head2f8f의 CI #2812.1은 각각 quality/docker PASS, e2e FAIL이다. #2812 shard6과 취소된 shard5의 실제 test FAIL을 모두 보존한다. 취소·미실행은 PASS가 아니며 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
+- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
 
 ## DOCUMENTATION_SYNC
 
@@ -86,6 +86,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - `docs/evidence/issue-667/local-validation.json`: UPDATED
 - `docs/evidence/issue-667/ci2811-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2812-correction.json`: UPDATED
+- `docs/evidence/issue-667/ci2813-correction.json`: UPDATED
 - `docs/ISSUE_35_GANTT_SCALE.md`: UPDATED
 - `docs/ISSUE_3_REVIEW.md`: UPDATED
 - `docs/W21_REVIEW.md`: UPDATED
@@ -378,3 +379,33 @@ Manager는 mount고정 start prop을 생략하는 방식을 선택했다. Core�
 이번 선택 회귀는 날짜축 프로파일 변경과 직접 관련된 9파일 범위다. 최초67개/이전32개 전체 결과를 새 source에 재사용하지 않는다. 새 source의 전체 E2E/전체 Vitest/로컬 Docker·장기/환경별 검증은 별도 미실행이며 새 원격 Full CI가 공식 전체 회귀를 수행한다. 기존 #666 합성 fixed-start evidence·390px/clamp 실패와 전체 AC2/장기 heap 미검증도 유지한다.
 
 복원 후 typecheck/Markdown227파일/version0.114.1/diff whitespace PASS와 변경 TypeScript lint오류0·기존hook warning3을 확인했다. raw 최종 HTML은 `output/playwright/issue-667/ci2812-correction-report/playwright-report`에 보존한다. 생성된 next-env/tsconfig·추적 #463 원본을 HEAD로 복원하고 새 #463 산출물은 `ci2812-generated-463`에 보존했다. 최초/이전 보완 JSON bytes는 변경하지 않았다.
+
+
+## 2026-10-16 — PR #695 / CI #2813.1 DEV 관측 보완
+
+### 원본 실패 / 재현
+
+Head `a141ba3e4daf5ec6bbf8a99a3350edcb6c0c35be`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`, 실제 checkout test merge `4ef33373f7f5e2ff67098d2c5d8ea1cb51941a0d`. [CI #2813.1 / run38798814906](https://github.com/planner77/masterGantt/actions/runs/38798814906)은 quality job116643628280·docker job116644110558 SUCCESS, e2e aggregate job116645534840 FAILURE다.
+
+최초 [shard2 job116643060487](https://github.com/planner77/masterGantt/actions/runs/38798814906/job/116643060487), step7: `grid-task-start-reveal.spec.ts:30` 관측→line85의 첫 readonly/day/normal matrix에서 `TypeError: Cannot read properties of null (reading 'getFullYear')`. 16PASS/1FAIL/65NOTRUN이며 다른5shard CANCELLED다. pointer reveal 이전 관측에서 실패했으므로 해당 원본만으로 실제 reveal 결함을 주장하지 않는다. 후단 Automated QA failure·취소/미실행을 PASS로 바꾸지 않는다.
+
+원본 Head의 동일 사례는 로컬1.6초 FAIL로 재현했고 trace/HTML은 `output/playwright/issue-667/ci2813-reproduction`에 보존했다. 이전63/268 및 과거 보완 증거 JSON은 각 이전 source의 역사적 결과로 보존한다.
+
+### 원인 / 변경 범위
+
+#2812의 Core 계산 left-bound 프로파일에서는 설정 `state.start`가 null일 수 있지만 실제 렌더링된 날짜축은 유효하다. DEV `__masterganttGridReveal.start`만 설정 prop을 읽었으며 소비자는 #514 observe1곳이다. 현재 `state._scales.start`를 우선하고 `_start`를 차선으로 읽도록 교정했다. Week의 정렬된 origin을 우선하는 점이 실제 port의 TASK_REVEAL 기준과 같다. 존재하지 않는 날짜를 fallback으로 생성하거나 테스트 수식을 우회하지 않는다.
+
+변경은 DEV read-only getter의1줄과 설명 comment1줄이다. 실제 reveal/축 확장·U2/U3/U4·source guard/lease·권한/UNKNOWN·cleanup·stable props와 #2812 날짜축 결정은 불변이다. 기존 #514 테스트·pixel/startVisible/root+nested/selection/keyboard/5폭/Day·Week/peer/wheel/filter 단언·timeout·skip/retry·CI6shard는 변경하지 않는다. 설정값을 그대로 모방하는 Unit은 추가하지 않고 기존 browser 행렬로 관측과 실제 탐색을 함께 검증한다.
+
+관련 문서는 GANTT_SYNC_TRACE·TEST_PLAN·active PLAN/Work Packet·CHANGELOG·새 correction JSON을 갱신한다. 이번 DEV 관측 교정은 PROJECT_UX/ARCHITECTURE/ADR/API/DB/보안/CI/일정 알고리즘의 실제 제품 계약을 변경하지 않는다. 위 DOCUMENTATION_SYNC UPDATED 목록은 최초 main 대비 누적 PR 변경이며 이번 보완에서 모두 재작성했다는 뜻이 아니다.
+
+### 선택 검증 / 게시 인계
+
+- 증거: [CI #2813 보완 JSON](../../evidence/issue-667/ci2813-correction.json). parent Heada141과 변경 source1파일 hash/fingerprint `a5aa4a8237b72894cd2d1884f273eb1ac6fc58a8df03d9b0b6834d4dba72c063`를 함께 고정한다.
+- Unit: `npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/viewport-coordinator.test.ts tests/features/gantt/svar-viewport-port.test.ts`, 2파일115PASS/0FAIL. 원래 source 관련 Unit의 선택 실행이며 알고리즘 변경은 없다.
+- Chromium: `npx playwright test --config tests/config/playwright.config.ts`에 grid-task-start-reveal/viewport-coordinator/project-gantt-scale/milestone-management-persistence/milestone-dashboard-state 5파일을 지정했다. `--grep '#514|#571|SC-09 실제 축 확장 관측|switches the Gantt|실제 빈 프로젝트|#463 public viewport' --project=chromium --workers=1`. 최종 결과 28PASS/0FAIL/0skipped/0flaky,124319.918ms(2.1분). #514 전체16개·viewport8개·scale1개·Milestone-only2개·원본peer1개이며 actual HTTP/SQLite2개와 mock API·actual SVAR26개를 구분한다.
+- 독립 Reviewer `/root/integration_tests` qa_docs: pre_qa PASS, DOCUMENTATION_SYNC PASS(DEV 관측 코드·문서·선택 로컬 증거 의미 검토; 원본 HTML28사례와1파일 SHA/fingerprint mismatch0·미해결 지적0). 실제 원본/최종 보고서와 코드·문서를 별도 read-only 검토하며 QA_FINAL/Owner ACCEPT와 구분한다.
+- 현재 미해결 스레드0·mergeable=true를 확인했고 기존 P2 resolve를 유지한다. 게시 뒤 최신 스레드/충돌을 다시 확인한다. 동일 PR branch에 parenta141의 후속 commit을 expected_sha/force=false·동일 tree 검증으로 게시하고 수정 Head Full CI 생성까지만 확인한다. 정확한 Head/base/tree/test-merge/run은 Issue STATUS/PR 댓글에 기록한다.
+- 새 Head required3·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY BLOCKED. version0.114.1 후보/release_authorized=false·branch/Issue OPEN·환경별 미검증을 유지하며 CI 완료 모니터링·병합·Main/GHCR/digest/release/tag/cleanup은 수행하지 않는다.
+
+최종 raw HTML은 `output/playwright/issue-667/ci2813-correction-report/playwright-report`에 보존하고 생성된 next-env/tsconfig를 HEAD로 복원했다. 새로운 제품 화면 변경이 없어 screenshot 추가는 N/A이며 기존 DOM/geometry/viewport attachment를 사용한다. 이번 DEV getter 보완의 선택 검증을 전체 회귀·이전 source63/268 결과와 합산하지 않는다. 실제 source SHA·보고서 대조 및 복원 후 typecheck/Markdown227/version0.114.1/diff PASS, 변경 TypeScript lint오류0·기존hook warning3을 확인했다.

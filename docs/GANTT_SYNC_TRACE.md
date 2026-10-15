@@ -127,3 +127,5 @@ Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source�
 #2811.1의 peer trace는 receipt2 APPLY/SETTLING→fresh visible receipt3→STALE_PROJECTION SUPERSEDED를 기록했다. 좌표120/96과 완료 marker를 구분하고 visibility bridge invalidation 이후 실제 새 receipt와 3프레임 정착을 확인한다. 원본 run/job/step 및 보완 source 결과는 #667 Work Packet에 분리한다.
 
 #2812.1 Milestone-only 진단은 U2 SETTLED 뒤 filter-tasks 큐에서 width 예외가 난 사실과 raw axis start2026-10-15T15:00Z/end2026-10-12T15:00Z/width-108/cells[1,0]을 분리 기록한다. 보완 프로파일은 고정 start를 생략한 Core 계산 left bound/open end다. 임시 exception/stack 계측은 제거하며 새 프로파일의 실제 coverage·정착은 #667 correction 증거로만 판단한다.
+
+#667 CI #2813 보완의 DEV `__masterganttGridReveal.start`는 생략 가능한 설정 `state.start`가 아니라 현재 렌더링된 `state._scales.start`를 우선하고 `_start`를 차선으로 읽는다. Week의 정렬된 날짜축 원점과 실제 reveal port의 기준을 일치시킨다. 설정 날짜가 없다는 사실과 실제 축이 없다는 사실을 구분하며 날짜를 만들어 채우거나 이동 명령/완료 판정을 추가하지 않는다. 원본 null/getFullYear FAIL과 보완 실제 browser 결과는 Work Packet의 source별 증거를 따른다.

@@ -1,5 +1,7 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- CI #2813의 개발용 Grid reveal 관측이 생략된 설정 날짜 대신 실제 계산된 날짜축 원점을 읽도록 교정하고 기존 탐색 회귀를 유지한다.
+
 - CI #2812의 빈 프로젝트→과거 첫 Milestone 날짜축 역전을 Core 계산 left bound로 교정한다. 반복 삭제 stale/조회 실패 회귀는 UNKNOWN 보호를 유지하고 명시적 최신 조회 뒤 계속하도록 갱신한다.
 
 - PR CI #2811의 화면 복귀 영수증 취소를 fresh visible 관측 대기로 교정하고, cross-tab/실패복구 GET 경합의 재잠금과 pending 조회 중 UNKNOWN 잠금 누락을 보완한다. 원본 실패·실제 두 탭 회귀는 Work Packet에 보존한다.

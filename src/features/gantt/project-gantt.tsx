@@ -1755,7 +1755,8 @@ export function ProjectGantt({
     if (frame) Object.defineProperty(frame, "__masterganttPublicViewport", { configurable: true, get: () => { const state = api.getState(); return { left: state.scrollLeft, top: state.scrollTop }; } });
     if (frame) Object.defineProperty(frame, "__masterganttGridReveal", { configurable: true, get: () => {
       const state = api.getState();
-      return { start: state.start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
+      // Configuration start may be omitted; reveal evidence uses the rendered axis origin.
+      return { start: state._scales?.start ?? state._start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
     } });
     const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }[] = [];
     const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }) => {
