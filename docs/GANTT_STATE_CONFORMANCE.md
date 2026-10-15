@@ -73,3 +73,9 @@ Task 이름·설명·URL·비밀번호·cookie·session·실제 DB 원본은 tra
 U1의 기계 판독 manifest는 `tests/config/gantt-state-conformance.json`, 검사는 `tests/features/gantt/state-consistency-manifest.test.ts`에 있다. SC-01~14의 GSC/owner/evidence/spec·case 매핑과 음성 사례를 기존 Vitest runner로 검사한다. 본문 작성 당시의 NOT IMPLEMENTED는 #661 역사적 경계이며 이번 U1에서는 계약/reader/manifest·fake port 기반만 구현한다. 규범 버전·REVIEW_PENDING 상태는 불변이다.
 
 Manifest 등록 상태와 실제 시나리오 실행 결과는 다르다. fake Core·합성 실제 SVAR reader·실제 HTTP/SQLite·제품 E2E·원격 CI를 별도 증거로 관리한다. 현재 U1은 제품에 연결되지 않으며 U2/U3/U4/U5/#573/#574의 제품 증거는 NOT TESTED다. 계약/fixture 버전, 정확한 source·명령·로컬 결과·미실행은 [#663 Work Packet](exec-plans/active/ISSUE_663.md)을 따른다. manifest 성공만으로 SC-01~14 제품 PASS 또는 Required check 신규 강제를 주장하지 않는다.
+
+## Issue #666 — U4 독립 모듈 검증 경계
+
+[Work Packet](exec-plans/active/ISSUE_666.md)의 신규 axis transaction·전용 Unit/설치 Core fixture는 SC-08/09/10/12/14 중 날짜축·실제 geometry·원래 lease·cleanup 범위를 검증한다. 실제 wheel/reveal/query·hidden/zero-size·capacity 부족은 성공 위치와 별도로 typed 결과 및 관측 source를 기록한다. SC 등록 manifest·fake Unit·실제 합성 Core·제품 E2E·원격 CI는 서로 다른 증거다.
+
+U4는 production consumer0인 준비 모듈이다. SC-10의 전체 bookmark/receipt 재사용은 U3/U5, SC-12 제품 marker/Grid 정렬과 작은 화면은 U5/#573, SC-14의 실제 대량 제품 lifecycle 및 전체 SC-01~14 통합은 U5/#574 후속이다. 규범1.0.0-candidate/REVIEW_PENDING, 기존 manifest와 테스트 허용오차·timeout·skip·Required gate는 변경하지 않는다.

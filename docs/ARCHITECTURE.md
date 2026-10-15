@@ -1,3 +1,9 @@
+## Issue #666 — 미연결 날짜축 transaction
+
+`viewport/axis-transaction.ts`는 U1 public geometry/clock/abort/원래 user lease를 소비하는 유한 transaction facade다. 날짜 extent와 실제 container 크기·capacity·승인 X/Y 정책을 분리하고 prepare → axis change → actual geometry → policy → Core/native settle 순서로 관측한다. resize 이후 좌표를 자동 승인하지 않으며 사용자 입력·API/query/axis/layout 교체·hidden/unmount는 오래된 후속 쓰기를 취소한다. synthetic 도중 중단한 geometry는 taint로 남겨 실제 physical 회복 확인 전에 재사용하지 않는다.
+
+기존 production Coordinator/port/ProjectGantt/Workspace에는 연결하지 않는다. state-consistency의 type-only port 계약을 재사용하며 U2/U3 concrete 구현·두 번째 viewport writer·서버 mutation·새 store를 만들지 않는다. 설치 Core fixture의 관측과 제품 HTTP/SQLite 통합은 구별한다. 전략 지원·한계·typed 결과는 [ADR](GANTT_ADAPTER_ADR.md), 실제 source/실행 및 U5 인계는 [Work Packet](exec-plans/active/ISSUE_666.md)을 따른다.
+
 ## Issue #663 — 미연결 Gantt 공통 상태 계약
 
 `src/features/gantt/state-consistency/index.ts`는 후속 U2/U3/U4가 공유할 type-only authority adapter와 읽기 전용 public Core reader를 제공한다. canonical revision/desired query·scope, api/dirty/recovery generation, observation attempt, layout/axis 및 user intent lease를 별도로 유지한다. 서버 snapshot·existing projection/receipt/viewport 타입을 재사용하며 두 번째 store·쓰기 소유자는 만들지 않는다.

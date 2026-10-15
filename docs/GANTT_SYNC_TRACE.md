@@ -95,3 +95,9 @@ viewport 분석에는 직접 scroll 명령뿐 아니라 resize-chart/filter-task
 `tests/fixtures/gantt-state-consistency/browser.tsx`는 기존 createCoreActionTrace/readCoreTraceSample을 그대로 재사용한다. trace ring은32개로 제한하고 record/settle/dispose를 호출하며 원시 serialize payload를 trace에 넣지 않는다. public snapshot은 합성 task/link만 포함한 별도 fixture로 보존하고 실제 DB·Task 원문·URL·secret은 수집하지 않는다.
 
 fake ports의 dirty/recovery generation·observation attempt·user lease는 분리한다. generation/attempt 증가 자체를 실제 Core 검증 성공으로 사용하지 않는 반례를 기존 Unit runner에서 검사한다. 설치 버전·source/lockfile·fixture hash·명령·원본 실패와 미검증은 [#663 Work Packet](exec-plans/active/ISSUE_663.md)에 연결한다. 제품 관측/복구·무mutation·HTTP/SQLite PASS와 같은 증거가 아니며 기존 #568/#552 원본 실패를 유지한다.
+
+## Issue #666 — 날짜축 transaction의 독립 관측
+
+U4 전용 합성 fixture는 날짜 start/end·actual physical width/height/scrollSize/capacity·Core/native X/Y·API/query/axis·원래 lease와 각 transaction 단계/typed 결과를 구분한다. 공개 명령 resolve나 resize 부수 X=100을 정착 완료로 채택하지 않는다. Core exact/native ±1px·3개 안정 frame, 유한 budget·취소 후 후속 쓰기0, same instance 및 데이터 불변은 별도 관측한다.
+
+[Work Packet](exec-plans/active/ISSUE_666.md)에서 실제 source/lockfile 지문·명령·원본 실패·전후 결과·cleanup을 연결한다. raw Task 원문/URL/secret/실제 DB를 저장하지 않는 합성 allowlist를 유지한다. 신규 상시 진단 서버·production observer/writer 추가 없이 fixture에서만 실행하며 U4 준비 결과를 기존 #552 제품 실패 해결로 전용하지 않는다.

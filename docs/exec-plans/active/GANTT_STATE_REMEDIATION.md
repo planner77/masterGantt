@@ -109,3 +109,9 @@ U1 완료: 타입/port 계약·SC manifest·negative cases와 독립 test runner
 선행 #661 문서 PR #669는 main에 병합되었다. 최신 main `b09c3148df037acdecc9b0687e0dd4d3051c96a4`/application0.114.0에서 [#663 Work Packet](ISSUE_663.md)의 공통 타입·읽기 포트·SC manifest/음성 하니스·synthetic 실제 Core fixture를 구현한다. 현재 요청은 PR CI 시작까지이며 main 병합·U2/U3/U4 선행 완료·MODULE_READY 최종 판정은 아직 아니다.
 
 U1의 public entry는 `src/features/gantt/state-consistency/index.ts`다. 생산 코드의 import·동작 변경0을 유지한다. U2/U3/U4 concrete 구현 없이 기존 authority의 type-only 계약과 public serialize reader만 제공하며 SC 등록과 실제 제품 실행을 구분한다. 원래 파일 단독 소유·후속 병합 순서·#552/#573/#574/#553 경계와 rollback 계약은 불변이다.
+
+## 2026-10-15 — #666 U4 독립 구현
+
+#663 / PR #687이 병합된 main `d445ec58bf9106414c99a150ee8f52599834baf9`에서 [U4 Work Packet](ISSUE_666.md)의 axis transaction·Unit·실제 설치 Core fixture를 구현한다. U1 public 타입/geometry/clock/abort/원래 lease를 재사용하고 U2/U3 concrete 구현과 독립이다. 날짜 extent/physical capacity/승인 X/Y를 분리하며 A/B/C 선택·기각·DEFER는 실제 동일 source matrix로 판정한다.
+
+제품 Coordinator/port/ProjectGantt·Workspace/marker writer는 U5 전용으로 유지한다. 모듈 준비·합성 Core 검증과 #552/PR #561 제품 해결을 구분하며 #573/#574/#553 범위를 인수하지 않는다. 요청 종료점은 PR CI 시작이고 결과 모니터링·병합·Main/GHCR·release·Issue 종료는 제외한다. 현재 실제 결과·한계·다음 owner는 Work Packet에 기록한다.

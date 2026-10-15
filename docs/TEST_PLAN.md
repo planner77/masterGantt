@@ -1,3 +1,13 @@
+## Issue #666 — U4 날짜축·물리 geometry 검증
+
+전용 `axis-transaction.test.ts`는 원래 lease·abort·유한 frame/command budget, 날짜 coverage와 physical capacity, 명시 origin/preserve/position 및 clamp/unavailable, 사용자 supersession·busy/coalescing·overflow·cleanup을 검사한다. `tests/fixtures/gantt-axis-transaction/`은 설치 React Gantt2.7.3/store2.7.2에서 공개 명령과 actual Core/native X/Y를 관측한다. 신규 fixture는 U1 GeometryReaderPort/Clock/Abort/UserIntentLease를 소비하며 production wiring을 우회 활성화하지 않는다.
+
+A autoScale/B explicit extent/C synthetic compatibility 비교에서 날짜축 증가만으로 PASS하지 않는다. Day/Week·short/large·390px/넓은 화면·empty/M-only/no-match, 반복 edge와 중간 사용자 입력·query/reveal·layout/hidden/zero-size를 source/pro파일별로 판정한다. Core exact/native ±1px·3개 안정 frame·기존 budget을 유지하며 실패 뒤 미도달은 NOT TESTED, capacity 부족은 typed 결과다. 같은 instance·task/tree/link 불변·서버 mutation0과 source/lockfile fingerprint 및 정리 증거를 함께 기록한다.
+
+실제 full-capacity allowClamp=true는 native 계산5293과 Core/native5292 차이로 TIMED_OUT/FAIL이며 지원 DEFER다. 신규 fixture 검사는 이 알려진 실패를 명시적으로 유지하고 fake CLAMPED 성공과 구분한다. 요청 거부 NO_SCROLL_CAPACITY와 완료 후 actual wheel의 replay0도 별도 검증한다.
+
+실제 실행·선택기각·미검증은 [Work Packet](exec-plans/active/ISSUE_666.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 기록한다. 로컬 fixture·Unit은 공식 quality/E2E6/Docker·Trusted QA·최종 Owner/Manager ACCEPT를 대신하지 않는다. #667 제품 연결·#573 geometry/focus·#574 SC 누적 종단 증거는 별도이며 #552 제품 해결 PASS로 전용하지 않는다.
+
 ## Issue #663 — U1 공통 계약·누적 하니스 검증
 
 `tests/config/gantt-state-conformance.json`의 SC-01~14를 기존 Vitest runner의 전용 manifest Unit에서 검사한다. GSC-01~12·owner·evidence level·현존 spec/case의 매핑과 누락/중복/비존재 음성 검증을 포함한다. 등록된 scenario/productStatus는 NOT TESTED이며 구조 검사 PASS를 전체 E2E 실행 PASS로 승격하지 않는다.

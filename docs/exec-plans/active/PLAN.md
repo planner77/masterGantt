@@ -1,3 +1,9 @@
+## Issue #666 — U4 날짜축 transaction 모듈
+
+[Work Packet](ISSUE_666.md)에 따라 #663 병합 main `d445ec58bf9106414c99a150ee8f52599834baf9` / app0.114.0에서 `feat/issue-666-axis-transaction`을 생성했다. 신규 facade·전용 Unit·설치 Core fixture로 날짜 extent/물리 geometry/승인 X/Y와 원래 lease 취소를 분리한다. A/B/C의 과거 DEFER를 제품 지원으로 승격하지 않는다. 제품 Coordinator/port/ProjectGantt 연결은 U5 #667 소유로 유지한다.
+
+HIGH / OWNER_MANAGED / qa_required=true, version 유지, release_required=false/release_authorized=false. 구현·DOCUMENTATION_SYNC·별도 사전 검토·리뷰/충돌 정리 후 PR CI 시작까지 진행하며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 제외한다. 넓은 화면 반복 확장·실제 입력 취소는 로컬 검증했으나390px NOT_MEASURABLE과 실제 full-capacity clamp TIMED_OUT/FAIL은 지원 DEFER로 인계한다. 정확한 로컬 실행/미검증은 Work Packet에서 구분하며 공식 quality/e2e/docker·최종 Owner/Manager ACCEPT는 NOT TESTED다.
+
 ## Issue #663 — U1 공통 상태 계약과 누적 회귀 하니스 (2026-10-15)
 
 재개: PR #687의 #2779 QA unresolved P2는 Summary roll-up 날짜 정합 보완과 thread 해결로 처리된 이력이며, 최신 #2780.1은 해당 보완 테스트의 public import 누락으로 Unit/typecheck FAIL했다. 기존 reader 계약·actual drift 단언을 유지해 import를 복구하고 문서·관련 LFF·별도 사전 검토 후 동일 PR 새 Full CI 시작에서 멈춘다. 원본 실패·후단 SKIPPED와 새 검증은 [Work Packet](ISSUE_663.md)에서 구별한다.
