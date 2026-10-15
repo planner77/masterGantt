@@ -1,3 +1,9 @@
+## Issue #622 — Release Completion Resume #35 릴리스 SHA 승계 보완 (2026-10-15)
+
+정식 `v0.114.0` 릴리스가 실제 교정 병합 SHA에 성공적으로 게시된 뒤, Generic Resume이 실패한 원본 Merge SHA를 먼저 검사하여 불변 태그 출처 불일치로 FAIL한 회귀를 제한적으로 수정한다. 초기 Main CI 실패 → 같은 Issue/동일 version·non-docs·first-parent 인접 체인의 교정 Main CI 성공을 **선행 읽기 전용 검증**한 경우에만 원본의 tag가 그 교정 SHA를 가리키도록 인정한다. 교정 SHA의 태그/Release/GHCR digest 검증과 Owner marker/Required gate는 계속 강제한다. 다른 Issue/SHA/버전 태그는 기존 fail-closed, 태그 이동/삭제/재발행 금지.
+
+`scripts/test-release-debt-recovery.py`의 positive 및 negative 회귀를 기존 정책 CI에서 실행한다. 기존 workflow/required checks/권한/배포 버전은 불변. 관련 [Generic Finalizer](GENERIC_RELEASE_FINALIZER.md)와 [Work Packet](exec-plans/active/ISSUE_622.md) 참조. 보완 PR 자체 `release_required=false`, `release_authorized=false`; verified Main candidate와 정식 v0.114.0은 독립된 이전 증거다.
+
 ## Issue #659 — PR #660 CI #2691 E2E 타임아웃 보완 및 Shard 내부 첫 실패 중단 (2026-10-13)
 
 - **원인 실증:** [PR CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 PR Fast Gate·TypeScript·ESLint·Vitest·Policy·Next Build·Docker는 PASS. Chromium E2E shard 4/6의 `project-edit-authorization.spec.ts` W05 편집 권한 세션 테스트는 **30,000ms 타임아웃** 후 `otherContext.close()` 시점에 브라우저 컨텍스트를 찾지 못해 1 FAIL/128 PASS/1 SKIP. [CI #2690.1](https://github.com/planner77/masterGantt/actions/runs/38401534292)에서는 동일 검증이 22.6초 PASS였고 두 Head 사이 앱/해당 테스트 코드 차이는 없다. 컨텍스트 종료 오류만 예외 처리하거나 인증 단언/쓰기 제약을 완화하지 않는다.

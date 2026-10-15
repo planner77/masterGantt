@@ -1,3 +1,9 @@
+## Issue #622 — Release Resume #35 불변 태그 교정 SHA 승계 회귀 (2026-10-15)
+
+`scripts/test-release-debt-recovery.py`의 새 독립 음성/양성 synthetic fixture: 원본 version 증가 `0.113.0→0.114.0` + exact Main FAIL, 동일 Issue의 `0.114.0→0.114.0` 교정 Main SUCCESS/비문서/인접 first-parent, 현재 annotated tag가 실제 교정 SHA를 가리키는 경우 원본은 `superseded-by-corrective`만 반환(원본 CI PASS 아님). 교정 target 자체는 본래 release-required 상태를 다시 계산하고 실제 release-image/Owner/digest를 별도로 검증. 잘못된 tag SHA, 다른 Issue/버전, docs-only, 중간 Issue, 교정 CI FAIL, 원본 Main SUCCESS는 예외 없이 거부한다.
+
+CI: 기존 Policy Job `python3 scripts/test-release-debt-recovery.py`; 추가 Job/skip/timeout·Required check 변경 금지. 원본 Release #170.1 SUCCESS와 Resume #35.1 FAIL은 불변 기록. 보완 PR 원격 CI/Trusted 및 실제 #35 rerun 결과는 실행 전 NOT TESTED.
+
 ## Issue #664 PR #689 — CI #2790.1 대형 Milestone probe readiness 진단 보완 (2026-10-15)
 
 - 원본 [CI #2790.1](https://github.com/planner77/masterGantt/actions/runs/38679560028): Build/TypeScript/Vitest/ESLint/Docker PASS, Chromium shard4 `tests/e2e/milestone-timeline-lane.spec.ts:199` 3000개 synthetic fixture의 원래 5초 준비 gate TIMEOUT. 43 PASS/1 FAIL/1 SKIP/93 NOT RUN 및 나머지 4 shards fail-fast 취소를 정확히 보존한다.

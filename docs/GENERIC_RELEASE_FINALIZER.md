@@ -1,3 +1,11 @@
+## Issue #622 — 최초 Main FAIL 이후 정식 교정 태그 Resume #35 보호 (2026-10-15)
+
+[Release #170.1](https://github.com/planner77/masterGantt/actions/runs/38701345395)은 `v0.114.0`의 immutable tag를 교정 PR #686 merge `1449190af8d4f97d4737d17ae67e9dcb044549a7`에 생성·정식 GHCR 이미지로 promotion했다. 그러나 [Resume #35.1](https://github.com/planner77/masterGantt/actions/runs/38704333977)은 `auto_release_finalizer.execute`가 first-parent 실패 원본 PR #684 `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`의 tag state를 **supersession 판정 전에** 조회하여 교정 SHA를 잘못된 태그로 거부했다. 이는 기존 원본 Main 실패를 승격할 근거가 아니며 정상적인 fail-closed가 교정 복구를 막은 실행 순서 결함이다.
+
+복구 정책: main first-parent 원장의 **CI 실패** 원본과 **동일 Issue, 동일 application version, 중간에 이종 Issue·docs-only·버전 변경 없이 연결된**, 성공한 exact Main CI의 교정 PR을 먼저 읽기 전용으로 판정한다. 원본 태그 조회에서 실제 annotated Git tag가 **그 교정 SHA**를 가리키는 경우만 `superseded-by-corrective`로 분류한다. 세 번째 SHA, 임의의 새 Issue/버전, Main FAIL 교정, 범위 축소, 성공한 원본 Main, 태그 유형 불일치는 기존처럼 FAIL/BLOCKED로 차단한다. 실제 릴리스 완료 증거는 반드시 교정 SHA 자체의 tag/release-image 성공과 exact candidate digest·Owner 승인으로 재검증하고서만 `release_finalize`한다.
+
+원본 Main #2771.1 실패 및 #622 원본 PR #684은 불변이며 기존 immutable v0.114.0 tag의 이동·삭제·동일 버전 재게시 없이 기존 실패 Resume #35를 보완 코드 병합 후 재실행한다. Cleanup/FINAL/Issue close는 실제 Actions 결과 확인 전 NOT TESTED다. #622 기능 또는 #666 Gantt 제품 완료 증거로 사용하지 않는다.
+
 ## Issue #670 — v0.108.0 승계 준비와 Finalizer 차단 경계 (2026-10-14)
 
 - [감사 #19](https://github.com/planner77/masterGantt/actions/runs/38452926077)의 `PREPARE_ONLY`는 #616 Owner의 `v0.107.0` 철회 및 `v0.108.0` *준비* marker가 감사 SHA `bdfd1ea1b9d3453c3b8d97de80820b35ed22ee12`에 대해 유효하다는 독립 read-only 결과다. 신규 릴리스의 발행 권한·`v0.108.0` tag/source SHA로 해석하지 않는다.

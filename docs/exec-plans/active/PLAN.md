@@ -1,3 +1,7 @@
+## Issue #622 — Resume #35 Finalizer 교정 (2026-10-15)
+
+#622 원본 Main CI FAIL→동일 버전 교정 PR #686 정식 Release #170.1 SUCCESS인 상황에서 Generic Resume #35가 교정 SHA의 v0.114.0 태그를 원본 실패 SHA와 먼저 비교하여 FAIL한 문제를 제한적으로 보완한다. `scripts/auto_release_finalizer.py`의 read-only CI/first-parent supersession 사전 검증과 검증된 corrective SHA에 한정된 기존 태그 해석, 기존 CI Policy 회귀 음성 검증을 적용한다. 본 PR은 별도 Issue/새 릴리스/태그 조작 없이 #622 소유 운영 결함만 수정하며 Release #170.1 원본 성공·Resume #35.1 실패 증거를 보존한다. 상세 `ISSUE_622.md`, `GENERIC_RELEASE_FINALIZER.md` / `REMOTE_VALIDATION.md`. 현재 exact-Head CI·Trusted QA/Manager ACCEPT·원격 Resume은 NOT TESTED.
+
 ## Issue #664 — U2 실제 Core 검증·저장 결과 복구 (2026-10-15)
 
 선행 #663/PR #687이 main `d445ec58bf9106414c99a150ee8f52599834baf9`에 통합되었다. [Work Packet](ISSUE_664.md)의 실제 Core conformance·opt-in recovery 모듈/Unit·설치 합성 Core fixture를 구현하며 U5 production wiring·U1 계약/manifest·U3/U4 concrete 모듈은 변경하지 않는다. 412 최신 조회/422 rollback/401 권한 잠금/500·timeout·network uncertain 및 GET 실패 추가 쓰기 차단·stale pending/API를 구별한다.
