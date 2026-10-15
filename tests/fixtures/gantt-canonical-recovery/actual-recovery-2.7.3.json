@@ -1,0 +1,556 @@
+{
+  "collection": "SYNTHETIC_CORE_BROWSER",
+  "before": {
+    "left": 0,
+    "top": 0
+  },
+  "rows": [
+    {
+      "name": "fresh-dto-no-op",
+      "outcome": "SETTLED",
+      "finalMatch": true,
+      "actions": [],
+      "position": {
+        "left": 0,
+        "top": 0
+      }
+    },
+    {
+      "name": "dnd-412",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "move-task",
+        "move-task"
+      ],
+      "reads": 2,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "dnd-500-not-committed",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "move-task",
+        "move-task"
+      ],
+      "reads": 3,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "date-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "update-task"
+      ],
+      "reads": 4,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "add-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "delete-task"
+      ],
+      "reads": 5,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "link-delete-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "add-link"
+      ],
+      "reads": 6,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "task-delete-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "update-task",
+        "add-task",
+        "add-link"
+      ],
+      "reads": 7,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "link-add-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "delete-link"
+      ],
+      "reads": 8,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "metadata-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "update-task"
+      ],
+      "reads": 9,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "parent-add-422-surviving-child",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "move-task",
+        "delete-task",
+        "move-task",
+        "move-task",
+        "move-task",
+        "move-task",
+        "update-task",
+        "update-task"
+      ],
+      "reads": 10,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "type-422",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "update-task"
+      ],
+      "reads": 11,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": true
+    },
+    {
+      "name": "collapsed-dnd-412",
+      "outcome": "SETTLED",
+      "driftDetected": true,
+      "finalMatch": true,
+      "actions": [
+        "move-task",
+        "move-task"
+      ],
+      "reads": 12,
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "selected": [
+        "fixture-b"
+      ],
+      "treeOpen": false
+    }
+  ],
+  "snapshot": {
+    "tasks": [
+      {
+        "id": "fixture-root",
+        "text": "Synthetic root",
+        "type": "summary",
+        "parent": 0,
+        "open": false,
+        "start": "2026-01-04T15:00:00.000Z",
+        "end": "2026-01-12T15:00:00.000Z",
+        "duration": 8,
+        "progress": 0,
+        "details": "",
+        "data": [
+          {
+            "id": "fixture-a",
+            "text": "Synthetic a",
+            "type": "task",
+            "parent": "fixture-root",
+            "start": "2026-01-04T15:00:00.000Z",
+            "end": "2026-01-06T15:00:00.000Z",
+            "progress": 0,
+            "duration": 2,
+            "details": "",
+            "data": null,
+            "$level": 2,
+            "$x": 400,
+            "$w": 200,
+            "$y": 0,
+            "$h": 31,
+            "$skip": false
+          },
+          {
+            "id": "fixture-b",
+            "text": "Synthetic b",
+            "type": "task",
+            "parent": "fixture-root",
+            "start": "2026-01-07T15:00:00.000Z",
+            "end": "2026-01-09T15:00:00.000Z",
+            "progress": 0,
+            "duration": 2,
+            "details": "",
+            "data": null,
+            "$level": 2,
+            "$x": 700,
+            "$w": 200,
+            "$y": 0,
+            "$h": 31,
+            "$skip": false
+          },
+          {
+            "parent": "fixture-root",
+            "text": "Synthetic c",
+            "type": "task",
+            "start": "2026-01-10T15:00:00.000Z",
+            "end": "2026-01-12T15:00:00.000Z",
+            "progress": 0,
+            "id": "fixture-c",
+            "duration": 2,
+            "details": "",
+            "$level": 2,
+            "$y": 0,
+            "$x": 1000,
+            "$w": 200,
+            "$h": 31,
+            "$skip": false
+          }
+        ],
+        "$level": 1,
+        "$x": 400,
+        "$w": 800,
+        "$y": 3,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "id": "fixture-a",
+        "text": "Synthetic a",
+        "type": "task",
+        "parent": "fixture-root",
+        "start": "2026-01-04T15:00:00.000Z",
+        "end": "2026-01-06T15:00:00.000Z",
+        "progress": 0,
+        "duration": 2,
+        "details": "",
+        "data": null,
+        "$level": 2,
+        "$x": 400,
+        "$w": 200,
+        "$y": 0,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "id": "fixture-b",
+        "text": "Synthetic b",
+        "type": "task",
+        "parent": "fixture-root",
+        "start": "2026-01-07T15:00:00.000Z",
+        "end": "2026-01-09T15:00:00.000Z",
+        "progress": 0,
+        "duration": 2,
+        "details": "",
+        "data": null,
+        "$level": 2,
+        "$x": 700,
+        "$w": 200,
+        "$y": 0,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "parent": "fixture-root",
+        "text": "Synthetic c",
+        "type": "task",
+        "start": "2026-01-10T15:00:00.000Z",
+        "end": "2026-01-12T15:00:00.000Z",
+        "progress": 0,
+        "id": "fixture-c",
+        "duration": 2,
+        "details": "",
+        "$level": 2,
+        "$y": 0,
+        "$x": 1000,
+        "$w": 200,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "id": "fixture-m",
+        "text": "Synthetic milestone",
+        "type": "milestone",
+        "parent": 0,
+        "start": "2026-01-17T15:00:00.000Z",
+        "duration": 0,
+        "progress": 0,
+        "details": "",
+        "data": null,
+        "$level": 1,
+        "$x": 1684.5,
+        "$w": 31,
+        "$y": 41,
+        "$h": 31,
+        "$skip": false
+      }
+    ],
+    "tree": [
+      {
+        "id": "fixture-root",
+        "text": "Synthetic root",
+        "type": "summary",
+        "parent": 0,
+        "open": false,
+        "start": "2026-01-04T15:00:00.000Z",
+        "end": "2026-01-12T15:00:00.000Z",
+        "duration": 8,
+        "progress": 0,
+        "details": "",
+        "data": [
+          {
+            "id": "fixture-a",
+            "text": "Synthetic a",
+            "type": "task",
+            "parent": "fixture-root",
+            "start": "2026-01-04T15:00:00.000Z",
+            "end": "2026-01-06T15:00:00.000Z",
+            "progress": 0,
+            "duration": 2,
+            "details": "",
+            "data": null,
+            "$level": 2,
+            "$x": 400,
+            "$w": 200,
+            "$y": 0,
+            "$h": 31,
+            "$skip": false
+          },
+          {
+            "id": "fixture-b",
+            "text": "Synthetic b",
+            "type": "task",
+            "parent": "fixture-root",
+            "start": "2026-01-07T15:00:00.000Z",
+            "end": "2026-01-09T15:00:00.000Z",
+            "progress": 0,
+            "duration": 2,
+            "details": "",
+            "data": null,
+            "$level": 2,
+            "$x": 700,
+            "$w": 200,
+            "$y": 0,
+            "$h": 31,
+            "$skip": false
+          },
+          {
+            "parent": "fixture-root",
+            "text": "Synthetic c",
+            "type": "task",
+            "start": "2026-01-10T15:00:00.000Z",
+            "end": "2026-01-12T15:00:00.000Z",
+            "progress": 0,
+            "id": "fixture-c",
+            "duration": 2,
+            "details": "",
+            "$level": 2,
+            "$y": 0,
+            "$x": 1000,
+            "$w": 200,
+            "$h": 31,
+            "$skip": false
+          }
+        ],
+        "$level": 1,
+        "$x": 400,
+        "$w": 800,
+        "$y": 3,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "id": "fixture-a",
+        "text": "Synthetic a",
+        "type": "task",
+        "parent": "fixture-root",
+        "start": "2026-01-04T15:00:00.000Z",
+        "end": "2026-01-06T15:00:00.000Z",
+        "progress": 0,
+        "duration": 2,
+        "details": "",
+        "data": null,
+        "$level": 2,
+        "$x": 400,
+        "$w": 200,
+        "$y": 0,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "id": "fixture-b",
+        "text": "Synthetic b",
+        "type": "task",
+        "parent": "fixture-root",
+        "start": "2026-01-07T15:00:00.000Z",
+        "end": "2026-01-09T15:00:00.000Z",
+        "progress": 0,
+        "duration": 2,
+        "details": "",
+        "data": null,
+        "$level": 2,
+        "$x": 700,
+        "$w": 200,
+        "$y": 0,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "parent": "fixture-root",
+        "text": "Synthetic c",
+        "type": "task",
+        "start": "2026-01-10T15:00:00.000Z",
+        "end": "2026-01-12T15:00:00.000Z",
+        "progress": 0,
+        "id": "fixture-c",
+        "duration": 2,
+        "details": "",
+        "$level": 2,
+        "$y": 0,
+        "$x": 1000,
+        "$w": 200,
+        "$h": 31,
+        "$skip": false
+      },
+      {
+        "id": "fixture-m",
+        "text": "Synthetic milestone",
+        "type": "milestone",
+        "parent": 0,
+        "start": "2026-01-17T15:00:00.000Z",
+        "duration": 0,
+        "progress": 0,
+        "details": "",
+        "data": null,
+        "$level": 1,
+        "$x": 1684.5,
+        "$w": 31,
+        "$y": 41,
+        "$h": 31,
+        "$skip": false
+      }
+    ],
+    "links": [
+      {
+        "id": "fixture-ab",
+        "source": "fixture-a",
+        "target": "fixture-b",
+        "type": "e2s",
+        "$p": "",
+        "$pl": 0,
+        "$x1": 0,
+        "$x2": 0,
+        "$y1": 0,
+        "$y2": 0
+      },
+      {
+        "id": "fixture-bc",
+        "source": "fixture-b",
+        "target": "fixture-c",
+        "type": "e2s",
+        "$p": "",
+        "$pl": 0,
+        "$x1": 0,
+        "$x2": 0,
+        "$y1": 0,
+        "$y2": 0
+      }
+    ]
+  },
+  "environment": {
+    "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "timezone": "Asia/Seoul",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "serverMutationCalls": 0
+}

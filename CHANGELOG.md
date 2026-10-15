@@ -1,3 +1,9 @@
+## Unreleased — Issue #664
+
+- U1 공개 포트를 소비하는 opt-in actual-Core conformance와 canonical recovery 모듈을 추가했다. same revision의 order/date/temporary/link drift, 확정 거부·불명확 결과와 stale/API/pending 무효화를 구별한다.
+- 전용 Unit 및 설치 React Gantt2.7.3/store2.7.2 합성 browser fixture·U5 handoff/검증 경계를 추가했다. 기존 제품 sync/wiring·package/version·DB/API·CI·viewport writer는 변경하지 않는다.
+- 모듈 로컬 검증과 #552 제품 HTTP/SQLite·Bar/viewport 통합·원격 CI·최종 Owner 수용은 구별한다. [Work Packet](docs/exec-plans/active/ISSUE_664.md).
+
 ## Unreleased — Issue #663
 
 - 누락된 canonical Summary 날짜의 기대값은 하위 작업에서 도출하고 실제 Core/명시적 날짜 drift를 보존한다. 실제 snapshot 비교 테스트의 public import 누락으로 발생한 CI Unit/typecheck 실패를 보완한다.

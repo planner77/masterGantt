@@ -1,3 +1,9 @@
+## Issue #664 — U2 실제 Core 검증·저장 결과 복구 (2026-10-15)
+
+선행 #663/PR #687이 main `d445ec58bf9106414c99a150ee8f52599834baf9`에 통합되었다. [Work Packet](ISSUE_664.md)의 실제 Core conformance·opt-in recovery 모듈/Unit·설치 합성 Core fixture를 구현하며 U5 production wiring·U1 계약/manifest·U3/U4 concrete 모듈은 변경하지 않는다. 412 최신 조회/422 rollback/401 권한 잠금/500·timeout·network uncertain 및 GET 실패 추가 쓰기 차단·stale pending/API를 구별한다.
+
+구현·DOCUMENTATION_SYNC·별도 사전 검토·리뷰/충돌 정리 후 exact-head PR Full CI 시작에서 종료한다. 원격 quality/e2e/docker·Trusted QA·최종 Owner/Manager ACCEPT와 제품 #552 정합성은 NOT TESTED. HIGH/OWNER_MANAGED/qa_required=true, application0.114.0 유지, release_required=false/release_authorized=false. main/GHCR·Release·Issue 종료는 이번 범위 밖이다.
+
 ## Issue #663 — U1 공통 상태 계약과 누적 회귀 하니스 (2026-10-15)
 
 재개: PR #687의 #2779 QA unresolved P2는 Summary roll-up 날짜 정합 보완과 thread 해결로 처리된 이력이며, 최신 #2780.1은 해당 보완 테스트의 public import 누락으로 Unit/typecheck FAIL했다. 기존 reader 계약·actual drift 단언을 유지해 import를 복구하고 문서·관련 LFF·별도 사전 검토 후 동일 PR 새 Full CI 시작에서 멈춘다. 원본 실패·후단 SKIPPED와 새 검증은 [Work Packet](ISSUE_663.md)에서 구별한다.

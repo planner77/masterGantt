@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "fixtureVersion": "1.0.0",
+  "collection": "SYNTHETIC_CORE_BROWSER",
+  "sourceBase": "b277c836b42aefce167b722ff7802bd9f5d6738d",
+  "standardVersion": "1.0.0-candidate",
+  "installedGanttVersion": "2.7.3",
+  "installedStoreVersion": "2.7.2",
+  "capturedAt": "2026-10-15T02:26:58.570Z",
+  "environment": {
+    "browser": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "timezone": "Asia/Seoul",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "sha256": {
+    "package.json": "bb96dec5fc300bbda12971314218c3549c89cb0c7a5d434d301d2f1c9af4b834",
+    "package-lock.json": "543d430271a655815689f9bed1494c1d3d5ab245917c82251f9a9b03d09c860c",
+    "tests/fixtures/gantt-canonical-recovery/browser.tsx": "102fccbddb05b8b9c50497e7220344de1011cae60c0bbb12d1976ea0ac5954ca",
+    "tests/fixtures/gantt-canonical-recovery/prepare-browser.mjs": "1302adbb81cab6fc3b3707e66fc77739b779abb3e24654dc603ed3f91849d7d5",
+    "tests/fixtures/gantt-canonical-recovery/record-browser.mjs": "1e22df9c3144b75dd6b57d91402b936af5b1a676216494ffdd94eafa282c05d4",
+    "tests/fixtures/gantt-canonical-recovery/actual-recovery-2.7.3.json": "c9e55bdc22fe10d484654f43997361133ebee075344243728fa03f1542a31eb4",
+    "src/features/gantt/canonical-recovery.ts": "7d165868ba7f555317f7068ad0742423ab808b118d0c0b7676ff0cea8afbb024",
+    "src/features/gantt/core-conformance.ts": "6b6e2d52e8fa6ba8ef73d5a96f2ee41bc61e118f457e78f7ad0efae7862dc138",
+    "src/features/gantt/canonical-snapshot-sync.ts": "b2ed227f571dd36cd90d143a1954980887afd050f4dfd50b41d866dcea55ed15",
+    "src/features/gantt/state-consistency/contracts.ts": "53c9dea5479811fc6e459e130e9dff40b69468ceda97faaaf82b646aebd091e7",
+    "src/features/gantt/state-consistency/core-reader.ts": "86fb8cdc53f703d985a76febc0ebfbe9f70ba6147e42abe93ec3f2aaf736ab6b"
+  },
+  "commands": [
+    "npm ci --ignore-scripts",
+    "node tests/fixtures/gantt-canonical-recovery/prepare-browser.mjs",
+    "bash /home/planner/.codex/skills/playwright/scripts/playwright_cli.sh -s=issue664 open file:///<worktree>/output/playwright/issue-664/canonical-recovery.html --config output/playwright/issue-664/cli-config.json",
+    "playwright-cli -s=issue664 eval 'async () => window.__gsc664.run()' --raw > output/playwright/issue-664/runtime-observation.json",
+    "node tests/fixtures/gantt-canonical-recovery/record-browser.mjs"
+  ],
+  "scenarios": [
+    "fresh-dto-no-op",
+    "dnd-412",
+    "dnd-500-not-committed",
+    "date-422",
+    "add-422",
+    "link-delete-422",
+    "task-delete-422",
+    "link-add-422",
+    "metadata-422",
+    "parent-add-422-surviving-child",
+    "type-422",
+    "collapsed-dnd-412"
+  ],
+  "result": "PASS",
+  "counts": {
+    "tasks": 5,
+    "links": 2,
+    "scenarios": 12
+  },
+  "scope": "Actual installed Core public data reconciliation; synthetic GET outcome injection, no actual HTTP/SQLite; viewport coordinates at initial origin only",
+  "originalFailures": [
+    {
+      "phase": "CLI_SETUP",
+      "result": "BLOCKED",
+      "reason": "Wrapper script lacked executable permission; invoked existing script via bash without changing its permission"
+    },
+    {
+      "phase": "PRE_REVIEW",
+      "result": "FAIL",
+      "reason": "Independent QA reproduced in-place identity aliases, cumulative deadline overflow and stalled frame/GET timeout; fixed with immutable snapshots, shared budget, independent watchdog/abort wake-up and regression cases before final capture"
+    }
+  ],
+  "notTested": [
+    "actual HTTP/SQLite and server commit ambiguity",
+    "production U5 wiring and full native dirty event registration",
+    "product DnD/Bar geometry and later saves",
+    "nonzero viewport or five-width/DayWeek matrix",
+    "large actual Core recovery performance and mount/unmount",
+    "full PR CI/Trusted QA/Owner ACCEPT",
+    "main/GHCR/release"
+  ]
+}

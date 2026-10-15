@@ -95,3 +95,9 @@ viewport 분석에는 직접 scroll 명령뿐 아니라 resize-chart/filter-task
 `tests/fixtures/gantt-state-consistency/browser.tsx`는 기존 createCoreActionTrace/readCoreTraceSample을 그대로 재사용한다. trace ring은32개로 제한하고 record/settle/dispose를 호출하며 원시 serialize payload를 trace에 넣지 않는다. public snapshot은 합성 task/link만 포함한 별도 fixture로 보존하고 실제 DB·Task 원문·URL·secret은 수집하지 않는다.
 
 fake ports의 dirty/recovery generation·observation attempt·user lease는 분리한다. generation/attempt 증가 자체를 실제 Core 검증 성공으로 사용하지 않는 반례를 기존 Unit runner에서 검사한다. 설치 버전·source/lockfile·fixture hash·명령·원본 실패와 미검증은 [#663 Work Packet](exec-plans/active/ISSUE_663.md)에 연결한다. 제품 관측/복구·무mutation·HTTP/SQLite PASS와 같은 증거가 아니며 기존 #568/#552 원본 실패를 유지한다.
+
+## Issue #664 — actual-Core 복구 증거 경계
+
+U2 합성 fixture `tests/fixtures/gantt-canonical-recovery/`는 동일 desired/revision에서 실제 Core order/date/임시 객체/Link drift와 public 최소 diff 후 conformance를 검사한다. 설치2.7.3 wrapper/2.7.2 store, source fingerprint·실행 명령·합성 scenario/outcome·data action 수를 고정하며 실제 Task 이름/설명/URL/secret/DB를 기록하지 않는다. U1 원본 캡처와 기존 #568 ring/원본 실패는 보존한다.
+
+정상 no-op의 mutation0, 실제 차이 제거, 접힘/selection 유지와 recovered 전 actual read를 구분한다. mock 최신 GET·서버 commit 여부 분류는 Unit 증거이고 actual HTTP/SQLite가 아니다. 이 fixture는 data reconciliation만 검증하므로 native DOM/Bar·Core/native X/Y settle 또는 #552 제품 복구 PASS로 확대하지 않는다. viewport write0은 U2 직접 명령 범위이며 Core data action의 간접 geometry 영향은 U5 통합 gate다. [Work Packet](exec-plans/active/ISSUE_664.md), [Conformance](GANTT_STATE_CONFORMANCE.md).

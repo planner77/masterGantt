@@ -1,3 +1,11 @@
+## Issue #664 — 실제 Core 정합·저장 결과 복구 모듈 검증
+
+SC-01~05/07과 GSC-01/02/03/06/07/08/09/11/12를 U2 독립 모듈에서 검사한다. `core-conformance.test.ts`와 `canonical-recovery.test.ts`는 동일 revision의 order/date/임시 Task/Link drift와 정상 fresh DTO no-op, dirty/API/request 무효화, 412·422·401 및 불명확500/timeout/network의 GET 성공·실패, stale canonical/new pending·abort, 적용 후 재관측 실패를 다룬다. GET과 frame이 모두 미완료여도 독립 watchdog으로 timeout이 반환되고 외부 취소가 즉시 깨우며 timer/listener가 정리되는 반례를 포함한다. 모듈은 서버 mutation/retry·viewport write를 제공하지 않으며 GET 실패와 권한 잠금을 데이터 정합 성공만으로 해제하지 않는다.
+
+`tests/fixtures/gantt-canonical-recovery/`는 설치 React2.7.3/store2.7.2의 실제 public serialize와 move/update/add/delete/link 동작을 실행하는 별도 합성 browser fixture다. U1의 reader 캡처는 그대로 보존한다. actual Core 결과·source fingerprint·명령·설치 버전은 이 fixture의 영수증과 [Work Packet](exec-plans/active/ISSUE_664.md)에 남긴다. Unit·mock GET·합성 Core·제품 HTTP/SQLite·전체 PR CI는 서로 대체하지 않는다. 기존 canonical sync/projection/실행 회귀를 함께 유지하며 skip/timeout/허용오차를 완화하지 않는다.
+
+제품 `project-grid-reorder-persistence`, `project-task-persistence`, `project-gantt-stability` 등의 실제 요청·Bar geometry·후속 저장 검증은 U5/#573/#574가 연결한 source에서 수행한다. 원본 #2682 DnD412/500 A-C-B·422 Bar36px 실패 이력은 불변이며 U2 로컬 PASS로 제품 PASS를 선언하지 않는다. 원격 quality/e2e/docker·Trusted QA·Owner 수용과 main/GHCR는 별도다.
+
 ## Issue #663 — U1 공통 계약·누적 하니스 검증
 
 `tests/config/gantt-state-conformance.json`의 SC-01~14를 기존 Vitest runner의 전용 manifest Unit에서 검사한다. GSC-01~12·owner·evidence level·현존 spec/case의 매핑과 누락/중복/비존재 음성 검증을 포함한다. 등록된 scenario/productStatus는 NOT TESTED이며 구조 검사 PASS를 전체 E2E 실행 PASS로 승격하지 않는다.
