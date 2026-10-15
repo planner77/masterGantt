@@ -107,3 +107,9 @@ fake ports의 dirty/recovery generation·observation attempt·user lease는 분�
 U2 합성 fixture `tests/fixtures/gantt-canonical-recovery/`는 동일 desired/revision에서 실제 Core order/date/임시 객체/Link drift와 public 최소 diff 후 conformance를 검사한다. 설치2.7.3 wrapper/2.7.2 store, source fingerprint·실행 명령·합성 scenario/outcome·data action 수를 고정하며 실제 Task 이름/설명/URL/secret/DB를 기록하지 않는다. U1 원본 캡처와 기존 #568 ring/원본 실패는 보존한다.
 
 정상 no-op의 mutation0, 실제 차이 제거, 접힘/selection 유지와 recovered 전 actual read를 구분한다. mock 최신 GET·서버 commit 여부 분류는 Unit 증거이고 actual HTTP/SQLite가 아니다. 이 fixture는 data reconciliation만 검증하므로 native DOM/Bar·Core/native X/Y settle 또는 #552 제품 복구 PASS로 확대하지 않는다. viewport write0은 U2 직접 명령 범위이며 Core data action의 간접 geometry 영향은 U5 통합 gate다. [Work Packet](exec-plans/active/ISSUE_664.md), [Conformance](GANTT_STATE_CONFORMANCE.md).
+
+## Issue #666 — 날짜축 transaction의 독립 관측
+
+U4 전용 합성 fixture는 날짜 start/end·actual physical width/height/scrollSize/capacity·Core/native X/Y·API/query/axis·원래 lease와 각 transaction 단계/typed 결과를 구분한다. 공개 명령 resolve나 resize 부수 X=100을 정착 완료로 채택하지 않는다. Core exact/native ±1px·3개 안정 frame, 유한 budget·취소 후 후속 쓰기0, same instance 및 데이터 불변은 별도 관측한다.
+
+[Work Packet](exec-plans/active/ISSUE_666.md)에서 실제 source/lockfile 지문·명령·원본 실패·전후 결과·cleanup을 연결한다. raw Task 원문/URL/secret/실제 DB를 저장하지 않는 합성 allowlist를 유지한다. 신규 상시 진단 서버·production observer/writer 추가 없이 fixture에서만 실행하며 U4 준비 결과를 기존 #552 제품 실패 해결로 전용하지 않는다.

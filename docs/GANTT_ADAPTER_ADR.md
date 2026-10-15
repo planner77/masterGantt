@@ -157,3 +157,54 @@ React wrapper2.7.3의 실제 transitive gantt-store는2.7.2이며 두 package �
 공식 [serialize](https://docs.svar.dev/react/gantt/api/methods/serialize/), [move-task](https://docs.svar.dev/react/gantt/api/actions/move-task/), [update-task](https://docs.svar.dev/react/gantt/api/actions/update-task/) URL 확인과 설치 React2.7.3/store2.7.2 실제 fixture 결과를 구분한다. 공개 명령 반환만으로 recovered를 승인하지 않으며 후속 실제 Core read가 일치해야 한다. private Store/PRO/새 resize·viewport 우회는 없다. 기존 A/B/C 실험 DEFER/FAIL과 #2682 제품 실패는 유지한다.
 
 U5는 read-only canonical GET, stale revision·query/scope 거부, native invalidation과 serialized queue, 401 권한 잠금/초안, uncertain GET 실패의 추가 쓰기 차단을 연결한다. date-only/Task exclusive-end/Milestone renderer 기본값은 기존 adapter/U1 normalization을 재사용한다. 실제 제품 no-op/복구·Bar geometry·간접 viewport 영향은 아직 미검증이며 [#664 Work Packet](exec-plans/active/ISSUE_664.md)의 증거 범위를 따른다. 롤백은 facade와 연결 소비자를 함께 되돌리며 DB 변경은 없다.
+
+## Issue #666 — U4 날짜축 transaction facade (2026-10-15)
+
+상태: 미활성 모듈 구현 및 로컬 검증, 제품 도입 DEFER. 기존 #569의 제품 채택 DEFER와 실패 이력은 유지한다. U4가 준비하는 단일 facade는 `src/features/gantt/viewport/axis-transaction.ts`의 `createAxisTransaction`이며 U5가 production Coordinator의 원래 lease를 전달할 때에만 연결할 수 있다. 이번 PR은 production port/Coordinator/ProjectGantt/Workspace를 변경하지 않는다.
+
+### 전략과 근거
+
+2026-10-15 최신 공식 [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/)의 width/height는 실제 container 크기이고, [scales](https://docs.svar.dev/react/gantt/guides/timeline/scales/)의 start/end·autoScale은 날짜 범위 계약이다. 최신 문서의 설명을 설치 React2.7.3/store2.7.2의 same-instance 상태 보존 증거로 사용하지 않는다. 기존 source/lockfile fingerprint와 새 실제 browser 관측은 [Work Packet](exec-plans/active/ISSUE_666.md) 및 전용 fixture provenance에서 구분한다.
+
+| 전략 | U4 판단 / 조건 | 남은 위험 |
+| --- | --- | --- |
+| A autoScale | 기존 API 동작의 비교군이며 facade의 암묵적 자동 확장으로 채택하지 않음 | unchanged-data scroll의 무한 확장 계약 없음; 실제 unsupported 결과를 보존 |
+| B explicit extent | 미활성 facade의 우선 실험 전략. 공개 props 변경은 callback port가 소유하고 actual coverage/physical/position 검증 뒤에만 SETTLED | same-instance prop commit·filter·layout 경합은 새 실제 profile 증거 필요; 제품 채택은 U5/#573/#574에서 별도 판단 |
+| C synthetic compatibility | 설치 wrapper2.7.3/store2.7.2·명시 opt-in·actual API source identity가 모두 필요하며 제품 도입 DEFER | 물리 width 의미 밖의 예외; 중단·timeout·실패 뒤 해당 source를 taint해 facade 재생성으로 우회하지 않음 |
+
+### 유한 실행과 권한
+
+원래 request의 UserIntentLease·AbortPort를 유지한다. request extent와 변경 전 extent의 합집합만 전달하여 좌우 날짜 coverage를 축소하지 않는다. prepare의 Core X/Y를 preserve 목표로 고정하며 resize 이후 부수 X/Y를 새 목표로 삼지 않는다. 실제 geometry의 안정 관측 뒤에만 origin/preserve/explicit position 정책을 적용하고 Core exact/native ±1px의 연속3frame 확인으로 SETTLED를 반환한다. capacity 부족은 NO_SCROLL_CAPACITY/UNAVAILABLE이며 allowClamp를 명시한 경우에만 CLAMPED를 반환하고 requested/applied/capacity를 함께 기록한다.
+
+API/query/scope/layout/외부 axis·사용자 입력/명시 reveal·hidden/unmount 취소의 소유자는 기존 Coordinator/호출 port다. facade의 isLeaseCurrent/abort는 그 원래 권한을 확인하며 자체 승인 extent 변경은 예상 전후 transition으로 검증해야 한다. await 뒤 새 lease를 만들거나 취소 후 과거 위치를 replay하지 않는다. 서로 다른 요청은 BUSY, 같은 request와 동일 lease/abort는 coalesce한다.
+
+요청 union과 초기/coverage/physical/settle의 실제 관측축을 모두 검증한다. port 권한 읽기 실패는 typed FAILED/PORT_FAILED로 반환하고 원문 오류를 노출하지 않는다. 상한은 date extent 전체10calendar years, 실제 scale width1,000,000CSSpx, facade당 확장3회다. 기본 deadline1500ms/120frame와 실제 geometry3frame·Core/native3frame을 사용하며 기존 테스트 timeout/허용오차·skip을 변경하지 않는다. synthetic taint는 실제 source object의 weak lifetime으로 보관해 ID 재사용/메모리 증가와 재생성 우회를 방지한다. 동일 source의 자동 taint 해제는 지원하지 않으며 자연 physical 회복 관측·별도 검토 없이 재사용하지 않는다. dispose와 abort는 현재 관측의 frame/listener를 취소하고 후속 callback은 context.current()/signal로 delayed write를 차단해야 한다.
+
+### 인계와 검증 경계
+
+신규 모듈은 U1 public ports/type을 소비하며 U2/U3 concrete 구현에 의존하지 않는다. 실제 source별 지원/미지원 결과와 local tests·원본 실패·미검증은 Work Packet의 실행 원장에 기록한다. standalone 합성 Core는 실제 제품 membership/revision·HTTP/SQLite·marker/Grid/Task Editor 통합을 대신하지 않는다. #667 제품 연결·#573 작은 화면/focus·#574 최종 누적 검증 후 별도 Owner 수용 전 제품 해결 PASS를 주장하지 않는다. rollback은 facade와 연결 소비자를 함께 수행하며 기존 compatibility의 알려진 한계를 유지한다.
+
+### 동일 source의 실제 비교 결과
+
+최종 implementation fingerprint는 `e747196c95b95235fb8b3be0b25cf7fa88043742b95403eabcad14971995368a`다. fixture mode `U1`은 공통 U1 포트를 사용하는 U4 facade trial을 뜻하며 U1 reader 검증의 재사용 PASS가 아니다.
+
+| 프로파일 | A / B 비교군 | C 비교군 | U4 explicit facade |
+| --- | --- | --- | --- |
+| 390px Day/Week | NO_SCROLL_CAPACITY | NO_SCROLL_CAPACITY | NOT_MEASURABLE; 좁은 제품 fallback DEFER |
+| 768/1024/1440px Day | 각각 3회 정착 | 첫 회 TIMED_OUT, 이후 NOT TESTED | 오른쪽 끝 3회·X/Y 보존·실제 capacity 증가 SETTLED |
+| 768/1024/1440px Week | 각각 3회 정착 | 각각 3회 정착 | 오른쪽 끝 3회·X/Y 보존·실제 capacity 증가 SETTLED |
+| 1920px Day/Week | 각각 3회 정착 | 각각 3회 정착 | 오른쪽 끝 3회·X/Y 보존·실제 capacity 증가 SETTLED |
+
+A/B/C 비교군은 기존 fixture에서 명시 extent 변경을 포함한 trial이다. A의 unchanged-data right-edge scroll 자체 자동 확장 계약으로 확대하지 않는다. 새 Core fixture는 60개 합성 Task, 고정140px Grid/500px 높이·단일 scale의 자체 profile이다. 과거 #569의 다른 profile FAIL/DEFER를 소급 수정하지 않는다. U4의 넓은 화면8profile×3회24확장은 새 facade 결과이며 broad 제품 지원 PASS가 아니다.
+
+short project의1440px Day/Week에서 normal/global empty/M-only/no-match의8case는 ORIGIN Core/native0으로 정착했고,390px의8case는 UNAVAILABLE다. no-match는 실제 filter-tasks를 실행하여 canonical60/visible0 및 task/tree/link 불변을 확인했다. 확장 commit 직후 실제 wheel/Task reveal/Milestone reveal/filter/열/물리 폭 변경6case는 SUPERSEDED 및 후속 쓰기0이다. C 실제 synthetic 쓰기1후 취소·복원 쓰기0·동일 API 재시도의 COMPATIBILITY_TAINTED를 확인했다.
+
+B를 미활성 facade의 검증된 넓은 profile 전략으로 선택하며 C는 물리 width 예외·실제 Day 위치 실패·중단 taint 때문에 제품 채택하지 않는다. native fullscreen API/제품의 column-resize UI·marker/Grid 정렬·390px fallback·대량1000+2000·장기 lifecycle·Task Editor와 HTTP/SQLite 통합은 U5/#573/#574의 NOT TESTED다. 같은 synthetic profile의 성공만으로 전체 AC 또는 제품 해결을 승인하지 않는다.
+
+추가 actual capacity 경계: allowClamp=false는 requested.left5393/native capacity5293에서 NO_SCROLL_CAPACITY·쓰기0, allowClamp=true는 Core/native5292와 목표5293이 달라 TIMED_OUT이다. 실제 full-capacity clamp는 FAIL / 제품 지원 DEFER이며 fake Unit의 CLAMPED 결과로 대체하지 않는다. Core/native의 유효 capacity 교집합은 현재 U1 port의 별도 관측 계약이 없어 U5에서 먼저 결정해야 한다. 임의1px 보정·Core exact 완화는 하지 않는다. 완료 후 actual wheel의100→237 및 추가 facade 쓰기0은 별도 확인했다. 최종 capture72는 성공/불가/실패·취소를 포함한 scenario group 수다.
+
+### PR #690 source-wide taint 보완 (2026-10-15)
+
+미완료 synthetic geometry의 위험은 전략이 아니라 동일 Core API **object identity**에 귀속된다. `AxisTransactionOptions.source`를 필수로 받아 EXPLICIT_EXTENT도 이전 facade의 taint를 확인한다. SYNTHETIC_COMPATIBILITY의 opt-in source는 동일 object여야 하며 불일치 시 명시적으로 거부한다. source는 각 mount에서 새로 생성된 실제 API object이고 동일 mount 전략 간 공유한다. 새 wrapper object를 임의 생성해 오염을 우회하지 않는다.
+
+기존 72개 Chromium capture는 리뷰 보완 **이전** source의 역사적 증거로 고정하며 원본 파일·SHA를 덮어쓰지 않는다. `*.snapshot.txt`에 기존 구현과 browser 소스를 보존해 fingerprint를 검증하고 현재 소스의 동작은 강화된 Unit으로 별도 검증한다. 리뷰 보완 버전의 재실행 Chromium/제품 E2E는 아직 NOT TESTED이며 기존 full-capacity clamp FAIL·390px DEFER를 유지한다.

@@ -116,6 +116,12 @@ U1의 public entry는 `src/features/gantt/state-consistency/index.ts`다. 생산
 
 기존 sync 함수·U1 interface/manifest·U5 production 파일은 유지한다. U3/U4 concrete import와 제품 소비자0이며 U5에 public exports·dirty/request/API 무효화·GET/권한/쓰기 차단·후속 검증을 인계한다. 현재 종료점은 문서·사전 검토·리뷰/충돌 확인 뒤 PR CI 시작이다. 모듈 최종 수용/main 통합·#552 해결·#573/#574 종단 검증은 별도다. application0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false.
 
+## 2026-10-15 — #666 U4 독립 구현
+
+#663 / PR #687이 병합된 main `d445ec58bf9106414c99a150ee8f52599834baf9`에서 [U4 Work Packet](ISSUE_666.md)의 axis transaction·Unit·실제 설치 Core fixture를 구현한다. U1 public 타입/geometry/clock/abort/원래 lease를 재사용하고 U2/U3 concrete 구현과 독립이다. 날짜 extent/physical capacity/승인 X/Y를 분리하며 A/B/C 선택·기각·DEFER는 실제 동일 source matrix로 판정한다.
+
+제품 Coordinator/port/ProjectGantt·Workspace/marker writer는 U5 전용으로 유지한다. 모듈 준비·합성 Core 검증과 #552/PR #561 제품 해결을 구분하며 #573/#574/#553 범위를 인수하지 않는다. 요청 종료점은 PR CI 시작이고 결과 모니터링·병합·Main/GHCR·release·Issue 종료는 제외한다. 현재 실제 결과·한계·다음 owner는 Work Packet에 기록한다.
+
 ## 2026-10-15 — #665 U3 독립 구현
 
 U1 #663/PR #687은 main `d445ec58bf9106414c99a150ee8f52599834baf9`에 병합되었다. [U3 Work Packet](ISSUE_665.md)은 이 exact interface를 기준으로 의미 관측/receipt facade를 독립 구현·검증한다. U2/U4 concrete 코드·제품 writer는 참조/변경하지 않는다. U3 source·public API/typed outcomes·attempt/semantic ID·actual proof/source invalidation 책임·원래 lease와 수평 복원 독립을 #667에 인계한다. 신규 제품 wiring은 U5만 소유하며 actual Calendar·Resource·filter bookmark의 제품 증거는 #574와 별도로 확보한다.

@@ -12,6 +12,10 @@ SC-01~05/07과 GSC-01/02/03/06/07/08/09/11/12를 U2 독립 모듈에서 검사�
 
 제품 `project-grid-reorder-persistence`, `project-task-persistence`, `project-gantt-stability` 등의 실제 요청·Bar geometry·후속 저장 검증은 U5/#573/#574가 연결한 source에서 수행한다. 원본 #2682 DnD412/500 A-C-B·422 Bar36px 실패 이력은 불변이며 U2 로컬 PASS로 제품 PASS를 선언하지 않는다. 원격 quality/e2e/docker·Trusted QA·Owner 수용과 main/GHCR는 별도다.
 
+## PR #690 리뷰 보완 — 전략 간 source taint 경계
+
+synthetic 취소로 오염된 실제 API source를 EXPLICIT_EXTENT facade가 재생성해도 거부해야 한다. 같은 mount의 source object 필수 전달·mismatched compatibility source 거부·서로 다른 실제 source 허용을 Unit으로 검사한다. 원래 72개 Chromium capture는 수정 이전 소스가 대응되는 snapshot의 SHA로 검증한다. 수정 이후 Chromium 재실행은 NOT TESTED이며 기존 실제 clamp FAIL/390px DEFER를 PASS로 전환하지 않는다.
+
 ## Issue #665 — 의미 관측·receipt 재사용/무효화
 
 신규 `tests/features/gantt/projection-observation.test.ts`는 opt-in facade와 U1 포트로 SC-01/06/07/10/11의 모듈 경계를 검증한다. 같은 actual Core/문맥의 반복 관측은 attempt만 증가시키고 semantic completion·원래 lease를 보존한다. 같은 canonical key의 순서·날짜·임시 Task·Link drift 및 proof 부재/불일치, API/revision/query/scope/layout/axis·dirty/recovery·hidden/unmount·새 입력은 과거 완료를 거부해야 한다.
@@ -19,6 +23,16 @@ SC-01~05/07과 GSC-01/02/03/06/07/08/09/11/12를 U2 독립 모듈에서 검사�
 logical visible 행과 virtualized mounted subset을 구별하고 이름·순서·필수 행·행 정렬 오류를 검증한다. 수평 Core/native 불일치·복원 대기 중에도 data receipt가 생성되며 관측은 viewport 쓰기를 수행하지 않는다. source가 관측 전/중/후 또는 Promise callback 전에 바뀌면 typed 취소/실패로 처리하고 cancel/dispose/외부 abort·멈춘 frame에서도 timer/listener를 정리한다. 기존 legacy `projection-settled`, canonical projection/U1 reader/harness 및 Coordinator 관련 Unit을 함께 실행한다.
 
 U1 `actual-core-2.7.3.json`/provenance를 사용한 회귀는 이미 수집한 synthetic SVAR public serialize evidence의 재검증이다. 이번 actual browser·HTTP/SQLite·최종 Calendar/Resource/전체 SC E2E 실행이 아니며 #667/#574의 제품 gate를 대체하지 않는다. 공식 exact-head quality/e2e/docker·Trusted QA·Owner ACCEPT는 별도다. 실제 명령·수치·미검증은 [Work Packet](exec-plans/active/ISSUE_665.md)을 따른다. skip/timeout/허용오차 변경 없음.
+
+## Issue #666 — U4 날짜축·물리 geometry 검증
+
+전용 `axis-transaction.test.ts`는 원래 lease·abort·유한 frame/command budget, 날짜 coverage와 physical capacity, 명시 origin/preserve/position 및 clamp/unavailable, 사용자 supersession·busy/coalescing·overflow·cleanup을 검사한다. `tests/fixtures/gantt-axis-transaction/`은 설치 React Gantt2.7.3/store2.7.2에서 공개 명령과 actual Core/native X/Y를 관측한다. 신규 fixture는 U1 GeometryReaderPort/Clock/Abort/UserIntentLease를 소비하며 production wiring을 우회 활성화하지 않는다.
+
+A autoScale/B explicit extent/C synthetic compatibility 비교에서 날짜축 증가만으로 PASS하지 않는다. Day/Week·short/large·390px/넓은 화면·empty/M-only/no-match, 반복 edge와 중간 사용자 입력·query/reveal·layout/hidden/zero-size를 source/pro파일별로 판정한다. Core exact/native ±1px·3개 안정 frame·기존 budget을 유지하며 실패 뒤 미도달은 NOT TESTED, capacity 부족은 typed 결과다. 같은 instance·task/tree/link 불변·서버 mutation0과 source/lockfile fingerprint 및 정리 증거를 함께 기록한다.
+
+실제 full-capacity allowClamp=true는 native 계산5293과 Core/native5292 차이로 TIMED_OUT/FAIL이며 지원 DEFER다. 신규 fixture 검사는 이 알려진 실패를 명시적으로 유지하고 fake CLAMPED 성공과 구분한다. 요청 거부 NO_SCROLL_CAPACITY와 완료 후 actual wheel의 replay0도 별도 검증한다.
+
+실제 실행·선택기각·미검증은 [Work Packet](exec-plans/active/ISSUE_666.md)과 [ADR](GANTT_ADAPTER_ADR.md)에 기록한다. 로컬 fixture·Unit은 공식 quality/E2E6/Docker·Trusted QA·최종 Owner/Manager ACCEPT를 대신하지 않는다. #667 제품 연결·#573 geometry/focus·#574 SC 누적 종단 증거는 별도이며 #552 제품 해결 PASS로 전용하지 않는다.
 
 ## Issue #663 — U1 공통 계약·누적 하니스 검증
 
