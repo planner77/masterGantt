@@ -149,3 +149,11 @@ React wrapper2.7.3의 실제 transitive gantt-store는2.7.2이며 두 package �
 설치2.7.3은 날짜 없는 canonical Summary도 하위 Task에서 시작/종료를 계산해 serialize한다. U1은 해당 canonical의 **누락된 날짜만** bottom-up으로 도출하고 명시적 canonical 날짜·실제 Core 날짜를 제거하지 않는다. 원본 synthetic canonical↔실제 capture와 nested Summary/날짜 drift를 Unit으로 비교한다. 실제 snapshot/provenance source와 기존 DEFER 원장은 유지하며 제품 복구 알고리즘으로 확대하지 않는다.
 
 #2779 P2 보완 뒤 #2780 Unit/TypeScript의 미정의 normalizeCanonicalCore는 테스트 import 누락으로 별도 발생했다. public export import를 복구하고 기존 일치/불일치 단언과 typecheck를 실행하며 허용오차·timeout·workflow를 변경하지 않는다. 로컬/원격·skipped/미검증은 [#663 원장](exec-plans/active/ISSUE_663.md)에서 구분한다.
+
+## Issue #664 — U2 actual conformance / recovery facade
+
+결정 범위는 U1 공개 reader/clock/abort 계약을 소비하는 opt-in 모듈이다. 기존 canonical sync 호출자와 production Coordinator/port를 변경하지 않는다. 공개 serialize 전체 Task/tree/Link를 정규화하고 실제 순서·날짜·payload·관계 차이만 복구한다. Link 배열의 열거 순서는 관계 의미가 아니며 Task preorder/parent는 의미다. collapsed/virtualized DOM subset으로 full canonical을 대체하지 않는다.
+
+공식 [serialize](https://docs.svar.dev/react/gantt/api/methods/serialize/), [move-task](https://docs.svar.dev/react/gantt/api/actions/move-task/), [update-task](https://docs.svar.dev/react/gantt/api/actions/update-task/) URL 확인과 설치 React2.7.3/store2.7.2 실제 fixture 결과를 구분한다. 공개 명령 반환만으로 recovered를 승인하지 않으며 후속 실제 Core read가 일치해야 한다. private Store/PRO/새 resize·viewport 우회는 없다. 기존 A/B/C 실험 DEFER/FAIL과 #2682 제품 실패는 유지한다.
+
+U5는 read-only canonical GET, stale revision·query/scope 거부, native invalidation과 serialized queue, 401 권한 잠금/초안, uncertain GET 실패의 추가 쓰기 차단을 연결한다. date-only/Task exclusive-end/Milestone renderer 기본값은 기존 adapter/U1 normalization을 재사용한다. 실제 제품 no-op/복구·Bar geometry·간접 viewport 영향은 아직 미검증이며 [#664 Work Packet](exec-plans/active/ISSUE_664.md)의 증거 범위를 따른다. 롤백은 facade와 연결 소비자를 함께 되돌리며 DB 변경은 없다.
