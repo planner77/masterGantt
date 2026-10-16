@@ -265,7 +265,17 @@ test("#551 OFF while Editor open preserves the dialog and returns to visible sch
 test("#551 full population empty vs date viewport and Task-only filter stay independent",async({page},info)=>{
   await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster"); await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   const lane=page.getByLabel("Milestone Timeline",{exact:true});await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");
-  await page.getByRole("button",{name:"Task",exact:true}).click();await settle(page);await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");await expect(lane.locator(".project-milestone-lane-marker")).toHaveCount(2);
+  // #552 removed the old [Task] quick-view button. Exercise the actual
+  // advanced Task-type filter without changing the independent M population.
+  await page.getByRole("button", { name: "필터", exact: true }).click();
+  const ordinaryFilter = page.getByRole("group", { name: "Task type", exact: true })
+    .getByRole("checkbox", { name: "task", exact: true });
+  await ordinaryFilter.check();
+  await expect(ordinaryFilter).toBeChecked();
+  await page.keyboard.press("Escape");
+  await settle(page);
+  await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");
+  await expect(lane.locator(".project-milestone-lane-marker")).toHaveCount(2);
   const read=await probe<Observation>(frame,"read");await probe(frame,"scroll",read.width-read.chartWidth);await settle(page);await expect(lane.getByRole("status")).toContainText("현재 날짜 viewport");
   state.tasks.splice(0,state.tasks.length,...state.tasks.filter(task=>task.type!=="milestone"));await changedSnapshot(page,state);await expect(lane.getByRole("status")).toContainText("프로젝트 전체 Milestone 0개");
   await captureLane(page,info,"population-empty-viewport",{fullPopulationBefore:61,taskFilterDidNotReduce:true,fullPopulationAfter:0,mutationCount:state.posts.length+state.patchRequests.length});

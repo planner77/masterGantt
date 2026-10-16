@@ -1,3 +1,9 @@
+## Issue #552 — PR CI #2863 #637 Canonical/Visible 및 #551 제거된 진입점 회귀 (2026-10-17)
+
+[원본 #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886), Head `1abebed189642c278552a25aa270fed333bdc36f`: Shard1 78PASS/1FAIL/34NOTRUN(`projection-row-alignment.spec.ts:108` 84 vs83), Shard4 46PASS/1TIMEOUT/기존1SKIP/114NOTRUN(`milestone-timeline-lane.spec.ts:268` 제거된 Task 버튼), Shard6 SUCCESS, 나머지2/3/5 CANCELLED. Quality/Docker PASS·E2E required/QA Final FAIL.
+기존 #552 기본 표시 projection은 canonical 모든 Task84를 유지하면서 native Summary/Task83만 나타낸다. #637의 전제는 canonical원장·기본/legacy 표시 subset을 독립 비교하고 Y/virtual rows ±1px·실제 오차 음성/복구, 이동 중 viewport을 유지하도록 변경한다. #551은 현재 유형 고급 필터를 통해 Task만 요청한 상태에서도 dev preview Milestone 모집단61/viewport marker2가 보존되는지 검증한다. 전수 E2E 119개에서 구형 패턴 후보20개를 소스 정적 조사했으며 실제 Chromium 미실행/미도달 경로를 성공으로 주장하지 않는다.
+로컬 의존성·Chromium 부족으로 새 source의 실제 E2E PASS는 NOT TESTED; 새 Full PR CI 정확 head/attempt/Required3/Trusted/Owner는 원격 실행 증거별로 판정한다. QA/릴리스 승인 경계와 6 Shard는 불변.
+
 ## Issue #552 — CI #2862 좌표/날짜축 실패 후속 검증 (2026-10-17)
 
 [원본 Full #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934), Head `eb525442fa93532e9d4d06fb17ebf739c8e4c484`: shard3 66PASS/1FAIL/기존1skip/61미실행, shard5 42PASS/1FAIL/61미실행, 다른4 취소, Required E2E·QA Final FAIL; Quality/Preflight/Build/Docker PASS. shard3의 리사이즈 후 구좌표 hit 전제와 shard5의 UI Day↔마지막 Projection Week 불일치·Range NO_SCROLL_CAPACITY를 실제 실패로 분리한다.

@@ -1,3 +1,9 @@
+## Issue #552 — CI #2863 #637/#551 표시 계약 영향 전수 감사 (2026-10-17)
+
+원본 [PR CI #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886) Shard1 `projection-row-alignment.spec.ts:108`은 canonical84/visible83 불일치, Shard4 `milestone-timeline-lane.spec.ts:268`은 삭제된 `Task` 버튼 선택에서 30s timeout이다. Shard1 78 PASS/1FAIL/34미실행, Shard4 46PASS/1TIMEOUT/기존1SKIP/114미실행, Shard6 PASS, 나머지2/3/5 취소. 빌드·품질·Docker PASS와 별도로 유지한다.
+기본 `separate-milestones`에서 Canonical 전 ID 보존·WBS는 Milestone 제외한 Summary/Task만 표시, 명시 legacy에서는 M 포함한다. #637 wide Grid·virtual 80 rows 및 Y28px 의도적 오류 음성에서 visible ID순서·mounted grid/bar·strict ±1px/오차 복구/동일 Gantt root·mutation0을 유지하고 기대 모집단만 정확하게 분리한다. #551 기술 preview에서 제거된 quick-view 대신 `필터/Task type/task` 경로를 선택한 뒤 Marker 모집단61·viewport marker2·날짜범위0·원본 제거0/저장0을 그대로 확인한다.
+정적 영향 범위: Head `1abebed1`의 E2E 명세 119개 전체를 조회하여 구형 비교/빠른보기/native Milestone 기대 표현을 검사, 후보20개를 분류했다. 이번 두 파일 외 Canonical 보존 카운트와 default-M-hidden 음성은 정책상 유지된다. 정적 검사/이전 원격 부분 PASS는 새 전체 PR CI PASS가 아니다. 제품/CI·버전·timeout/skip/6-shard 계약은 유지. [Work Packet](exec-plans/active/ISSUE_552.md) 및 REMOTE_VALIDATION 동기화, 로컬 runtime 미실행은 NOT TESTED.
+
 ## Issue #552 — PR CI #2862 포인터/Scale 동기화 테스트 교정 (2026-10-17)
 
 [원본 #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934)에서 shard3 `project-gantt-inline-name.spec.ts:497`은 리사이즈 이전 물리 좌표에 원래 Task가 그대로 존재함을 요구하여 실패했다. shard5 `project-gantt-scale.spec.ts:299`는 마지막 scale Projection Receipt=week인 상태에서 UI day의 Range extension이 TIMED_OUT/NO_SCROLL_CAPACITY로 실패했다. 두 shard 각 1 FAIL·나머지4 취소와 기존 PASS를 구분한다.

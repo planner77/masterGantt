@@ -1,3 +1,8 @@
+## Issue #552 — CI #2863 표시 모델 구형 테스트 전수 정렬 (2026-10-17)
+
+[#552 Packet](ISSUE_552.md)의 원본 [PR CI #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886)에서 #637의 canonical84/visible83 혼동 및 #551의 삭제된 Task 빠른보기 버튼이 실제 Shard1/4를 실패시켰다. 이번 교정은 기존 PR #561에서 두 spec에만 적용한다. #637 정상80개 가상행/strict Y/28px 음성의 canonical 데이터 무손실과 visible Grid/Chart IDs 분리, #551 고급 Task type 진입/프로젝트 전체 M61 독립성·viewport·조회0쓰기0을 유지. Git Head의 E2E119개를 읽기 전용 검색하여 후보20개를 분류했으며 기타 관련 테스트는 정책에 부합해 유지한다.
+담당: 테스트 2파일·영향조사 frontend, Work Packet/TEST_PLAN/REMOTE_VALIDATION/PLAN/CHANGELOG Manager, 원격 Git/CI transport. 단일 쓰기이며 별도 QA Reviewer 없이 정적감사만 수행; 실제 로컬 Chromium/Unit·PrePR은 NOT TESTED. HIGH/OWNER_MANAGED, qa_required=true, app0.115.0/release_required=true/release_authorized=false, 원격 QA/Owner ACCEPT 및 MERGE_READY=BLOCKED. main 정렬·리뷰0 확인 후 새 Full PR CI 시작까지만, 모니터링·병합/Main/GHCR·Issue 종료는 별도다.
+
 ## Issue #552 — CI #2862 E2E 두 실패 경계 보완 및 재개 (2026-10-17)
 
 원본 [CI #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934)의 Quality/Build/Docker PASS와 E2E shard3 고정 좌표 재히트 FAIL, shard5 Day/Week Receipt 미정착·Range 실패를 분리 보존한다. 수정 범위=두 E2E spec, Canonical/제품/Viewport 공통 authority·권한/6 shard gate 불변. pointerdown→resize→원래 mouseup 최종 동작과 각 Day/Week scale 정착→물리 날짜축3회 증가 및 RANGE SETTLED를 검증한다. 원본 #550/#623의 PASS는 이번 후보 전체 PASS가 아니다.

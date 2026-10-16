@@ -1,5 +1,7 @@
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
+- PR CI #2863의 #637 canonical 전체84와 native 표시83 구분 및 Grid 가상행/고의 Y오차 복원 기대를 새 WBS 정책에 맞춘다. #551의 제거된 Task 빠른보기는 실제 고급 Task type 필터로 전환하고 전체 Milestone61/viewport marker2·무쓰기 검증을 보존한다. 관련 E2E119개 구형 표시 패턴을 정적 조사·분류했으며 제품·timeout/CI 정책/버전은 변경하지 않는다.
+
 - PR CI #2862 클릭 전후 리사이즈의 구 좌표 재히트 검증과 Day/Week 전환·날짜축 확장의 미정착 요청 경계를 E2E에서 분리 보완한다. 원래 pointerup 편집 결과, scale별 receipt, 3회 End 증가·RANGE SETTLED, 기존 무mutation/CI 계약을 유지하며 제품 동작·버전 변경 없음.
 
 - PR CI #2861의 #550 empty/Milestone-only 기존 E2E가 제거된 native M Grid 행을 기대한 실패를 교정한다. 기본 WBS는 M row/bar0·marker OFF, 명시 legacy는 native1을 검증하며 날짜축 자동 M reveal 전제만 분리한다. 기존 Dashboard·canonical/권한·관계/소속·Day/Week/scroll·mutation0 단언과 원본 #2859/2861 실패 이력은 유지한다.

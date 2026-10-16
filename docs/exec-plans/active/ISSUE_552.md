@@ -1,5 +1,14 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — PR CI #2863.1 #637/#551 표시 정책 회귀·E2E 전수 영향 조사
+
+- 원본 [Full PR CI #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886), Head `1abebed189642c278552a25aa270fed333bdc36f`: Preflight·Quality(ESLint/TypeScript/Vitest)·Next.js build·Docker PASS. Chromium shard1 job `117227822535`은 `projection-row-alignment.spec.ts:108`의 Canonical84 vs default Visible83 때문에 78 PASS/1 FAIL/34 NOT RUN. Shard4 job `117227822267`은 `milestone-timeline-lane.spec.ts:268`에서 제거된 "Task" quick-view 클릭으로 46 PASS/1 TIMEOUT(30s)/기존1 SKIP/114 NOT RUN 후 CANCELLED. Shard6 SUCCESS, 나머지2/3/5 취소, E2E required/QA Final 종속 FAIL. 원본 상태를 수정하거나 로컬 PASS로 대체하지 않는다.
+- #637 보완: `expectedWbsIds`를 기본 Milestone 제외 / 명시 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy` 포함으로 분리한다. 80개 대량행 case의 **전체 canonical ID 84**, 실제 WBS ID 83(기본)를 각각 엄격히 검사한다. 실제 Core row 순서·가상화된 Grid/Bar ID·수평120px/수직300/1200/2400/0·Y 정렬±1px·무쓰기·원래 Gantt API instance를 유지한다. 동일 spec의 인위적 28px Grid Y 오차 음성 case도 정확 **canonical 전체 vs displayed 일부**, 실제 visible bar/row 개수, TIMEOUT→복원 SETTLED·동일 ID/인스턴스를 유지하도록 계약을 갱신한다.
+- #551 보완: 삭제된 `Task` 단축 버튼 대신 현재 `필터 → Task type → task` 체크박스를 실제 UI로 사용한다. Task 조건 선택을 확인한 후 개발용 preview Lane의 전체 61개 Milestone·viewport 내 marker2개가 감소하지 않고 날짜 범위 밖 상태 및 canonical 제거 후0개·저장0회를 계속 검증한다. 운영 marker는 OFF이며 기술 preview 진입만 기존 dev fixture에서 사용한다.
+- **영향 전수 조사**: 현재 Head Git tree의 `tests/e2e/**/*.spec.ts` 119개를 읽기 전용으로 조회해 `fixture.tasks.length`, `canonicalIds/coreVisibleIds`, 제거된 빠른보기, Milestone native row/bar, 토글 관련 구형 기대를 정적 검색했다. 후보 20개 중 두 파일에서 미전환 단언을 확인. `canonical-projection`의 M-only 0, `milestone-stage-grid-mock`의 hidden M bar0, `project-task-quick-view`의 quick-button 0/Task type 필터, `project-gantt-stability`의 실패 POST 뒤 Canonical 수 보존, `gantt-state-product-integration`의 legacy 분기 등은 현재 정책과 부합해 유지한다. 정적 키워드 감사는 원격 전체 Chromium·실제 동적 경로 전수 PASS를 대체하지 않는다.
+- Test-only 2파일 및 Work Packet/TEST_PLAN/REMOTE_VALIDATION/active PLAN/CHANGELOG 문서 동기화. 앱 제품/도메인/API/DB/스케줄/권한/CI/6Shard·Required3·timeout/skip/retry·version0.115.0 불변. 실물 로컬 checkout의 node_modules·Playwright Chromium 의존성이 없어 실행 검증은 NOT TESTED, 변경된 소스의 출현 횟수/분기/단언을 정적으로 검증했다. 새 exact Head Full PR CI의 Quality/E2E6/Docker/Trusted QA/Owner ACCEPT는 등록 전 NOT TESTED, MERGE_READY=BLOCKED. HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false; 사용자 승인 범위는 새 CI 시작까지, 모니터링/병합/Main/GHCR/tag/release/Issue 종료는 비범위.
+
+
 ## 2026-10-17 — CI #2862.1 E2E 조기 중단 원인과 교정
 
 - 원본 [CI #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934) (Head `eb525442fa93532e9d4d06fb17ebf739c8e4c484`, test-merge `d9e090f62b37d27771baaca67b6407bd06824b9b`)의 Preflight/Quality/Build/Docker는 성공, Chromium shard3은 66 PASS/1 FAIL/기존 1 SKIP/61 미실행, shard5는 42 PASS/1 FAIL/61 미실행, 나머지 4 shard는 취소됐다. E2E 필수 집계·자동 QA Final은 종속 실패로 구분한다. #550 past/future와 #623 Resource E2E는 이 원본 run에서 각각 PASS; 새 Head의 전체 PASS는 아니다.
