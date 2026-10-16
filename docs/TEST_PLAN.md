@@ -1,3 +1,13 @@
+## Issue #552 / PR #561 — CI #2859 연결 종료와 #623 실행 수명주기 보완 (2026-10-17)
+
+원본 [#2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185)의 Head `a7ad34482aeb8def79bd01d641a65f305043d593`에서 Quality/Docker PASS, Chromium shard3 `issue-623-resource-mvp.spec.ts`의 두 번째 저장 확인 GET은 ECONNRESET으로 FAIL했다. 2 PASS/1 FAIL/126 미실행과 다른5 shard 취소를 보존한다. 앞선 PATCH200·서버 alive·health200·OOM0·RSS 증가를 함께 기록하며 OOM/제품 단언 실패로 단정하지 않는다. 원본 Head 단독3회 PASS는 오류 비재현 증거이며 원격 실패 취소나 전체 회귀 PASS가 아니다.
+
+해당 spec만 환경 설정용 hook을 runtime-before test fixture로 바꾸고 finally 복원하여 불필요한 격리 서버 기동을 제거한다. UI 후 여섯 저장+복귀 확인 GET(총7회)은 기존 browser canonical helper의 실제 동일원본 GET·쿠키·no-store·HTTP200/JSON·오류 재전달을 사용한다. 실제 API seed/auth/If-Match/OOXML, 여섯 저장별 mutation/revision/Task ID/필드/Gantt·Core 동일성 단언은 유지한다. 공통 snapshot fixture와 timeout/retry/skip/CI shard·Required gate는 변경하지 않는다.
+
+[Work Packet](exec-plans/active/ISSUE_552.md)과 [이번 원장](evidence/issue-552/ci2859-correction-20261017.json)에 원본/보완 source hash, 실제 집중 Chromium·helper 음성 Unit·LOCAL_PREPR 실행 및 선택/미실행/UNKNOWN을 분리한다. 전체 AC1~12·6-shard·Trusted QA/최종 Owner ACCEPT는 새 exact-head 원격 증거 전 NOT TESTED다.
+
+실제 최종 source는 Chromium7실행/3고유 case와 전체 Unit2786 PASS(기존3skip), build·typecheck·lint PASS다. Local Pre-PR 전체 PR은 UNKNOWN6, 교정 fast/targeted는 Next 설정·측정 산출물 변경에 따른 sourceStable=false로 각각 BLOCKED다. 개별 실행 PASS로 최상위 BLOCKED를 대체하지 않으며 원장에 base/start/end fingerprint·명령/exit·선정/제외를 보존한다. 생성물을 원복하고 최종 문서 의미 검토 후 새 full PR CI 등록까지만 인계한다.
+
 ## Issue #552 / PR #561 — 2026-10-17 main 정렬 및 SC-13 legacy/marker-OFF 분리 검증
 
 원본 [PR CI #2844.1](https://github.com/planner77/masterGantt/actions/runs/38905085250)의 정확한 head `2ce8a276802a8346772a5351a943b1f3d03a55e5`은 Preflight/TypeScript/ESLint/Vitest/PR build/Docker aggregate PASS, Chromium **shard 2**의 `tests/e2e/gantt-state-product-integration.spec.ts:284` SC-13 FAIL이다. `Native milestone #667` native Grid 행이 보일 것이라는 U5 compatibility-only oracle이 #552 별도 WBS marker-OFF의 실제 의도된 행 제거와 충돌했다. Shard 1/3/4/5/6은 fail-fast CANCELLED이며 PASS가 아니다. E2E aggregate와 QA Final 실패는 해당 Shard의 종속 결과다. 원본 실패·cancel/미실행 분류를 수정하지 않는다.

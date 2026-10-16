@@ -1,5 +1,7 @@
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
+- PR CI #2859의 저장 확인 GET 연결 종료를 분석하고 #623 테스트의 불필요한 hook 서버 기동을 제거한다. UI 후 확인은 기존 브라우저 전송 helper를 재사용하며 실제 저장·권한·revision·교환 단언과 무재시도 정책을 유지한다. 원본 실패·로컬 비재현·보완 검증은 별도 원장에 보존한다.
+
 - 일정 native Grid/Chart의 표시를 Summary/Task로 분리하며 Milestone row/bar와 숨은 Milestone endpoint 선을 제외한다. 전체 canonical ID/Link/Membership·Summary 파생·Ready/Completed·Resource/Target/Copy/Export 원장은 보존한다.
 - 기존 기본 ON 표시 토글·임시 marker 날짜 탐색을 운영 경로에서 제거한다. 상단 lane/marker/guide OFF와 marker-only 부작용0을 유지하고 날짜 확인은 기존 Dashboard 상세/정확 소속 Task 안내로 전환한다. #551 기술 capability는 보존하며 #693 marker ON은 별도 선택 후속이다.
 - 최신 main #667의 공통 동기화 authority를 재사용하고 과거 #552 중복 observer/resize/restore와 main 충돌을 정리한다. 명시 legacy WBS 비상 복구는 독립 빌드 설정이며 재빌드/재배포·별도 검증이 필요하다.

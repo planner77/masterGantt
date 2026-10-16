@@ -1,3 +1,11 @@
+## Issue #552 — CI #2859 연결 종료 후 새 전체 PR CI 시작 (2026-10-17)
+
+[Work Packet](ISSUE_552.md)의 원본 #2859.1 Head `a7ad34482aeb8def79bd01d641a65f305043d593`은 #623의 저장 확인 GET ECONNRESET으로 실패했다. PATCH200·health200·alive·OOM0·RSS 증가와 로컬 원본3회 비재현을 구분하고, spec-local 환경 fixture로 불필요한 hook 서버를 제거하며 UI 후 여섯 저장+복귀 확인 GET(총7회)에 기존 browser canonical helper를 재사용한다. 제품/#667 authority·독립 seed/auth/교환 API·mutation/revision·단언/timeout/skip·Required3/6 shard는 유지한다.
+
+frontend=해당 spec 및 집중 실행, infra=원본 아티팩트 분석/최종 transport, qa_docs=별도 read-only 사전 검토, Manager=문서/Issue·PR/통합이다. 현재 main `c063101ed7b1d08803c3dac15a41e67842071187`은 이미 ancestor다. LOCAL_PREPR 실제 보고와 전체 PR/교정 delta의 범위를 분리하고 미해결 리뷰·충돌 재확인 후 PR #561 새 full CI 등록까지만 진행한다. version0.115.0·HIGH/OWNER_MANAGED·qa_required=true, release_required=true/release_authorized=false·MERGE_READY BLOCKED를 유지하며 원격 결과 모니터링·QA_FINAL/Owner ACCEPT·병합·Main/GHCR·종료는 범위 밖이다.
+
+실제 최종 source는 Chromium7실행/3고유 case와 전체 Unit2786 PASS(기존3skip), build·typecheck·lint PASS다. Local Pre-PR 전체 PR은 UNKNOWN6, 교정 fast/targeted는 Next 설정·측정 산출물 변경에 따른 sourceStable=false로 각각 BLOCKED다. 개별 실행 PASS로 최상위 BLOCKED를 대체하지 않으며 원장에 base/start/end fingerprint·명령/exit·선정/제외를 보존한다. 생성물을 원복하고 최종 문서 의미 검토 후 새 full PR CI 등록까지만 인계한다.
+
 ## Issue #552 — marker-OFF WBS 기준선 구현 / PR CI 시작까지 (2026-10-16)
 
 최신 main `bdaed6bd86612fd168b8ca6b0a40a34966b699d2`의 #667 공통 정합성 통합 이후 기존 PR #561/branch `feat/issue-552-milestone-visibility`를 재사용한다. [Work Packet](ISSUE_552.md)의 최신 marker-OFF 계약에 따라 Summary/Task만 native Grid/Chart에 표시하고 M 행/bar/숨은 endpoint0, production lane/marker/guide 및 마커 전용 부작용0을 구현한다. 기존 #552 marker ON/임시 날짜 ON·중복 sync를 제거하고 Dashboard 상세/정확 소속 Task 안내로 전환한다. 전체 canonical·Summary 파생·완료 잠금·Resource/Target·Copy/Export는 보존하며 명시 legacy WBS 비상 복구는 marker gate와 분리한다.

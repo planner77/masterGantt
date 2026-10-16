@@ -1,3 +1,11 @@
+## Issue #552 — CI #2859 원본 FAIL와 후속 검증의 경계 (2026-10-17)
+
+[원본 #2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185), Head `a7ad34482aeb8def79bd01d641a65f305043d593`, shard3 job `117195065949`/artifact `12074827958`은 두 번째 Task PATCH200 뒤 GET ECONNRESET으로 FAIL했다. Quality/Docker PASS·다른5 shard 취소·126 미실행을 유지한다. 동일 worker/launcher alive·실패 후 health200·OOM0과 RSS 증가는 관측 사실이며 메모리 증가의 인과나 서버 재시작의 증거는 아니다. 원본 #2844 SC-13 실패와 별도 원장으로 다룬다.
+
+로컬 원본3회 비재현과 후속 spec-local 서버 수명주기/저장 확인 전송 보완의 실행 증거는 [#552 Packet](exec-plans/active/ISSUE_552.md)·[최소 원장](evidence/issue-552/ci2859-correction-20261017.json)에 기록한다. 원본 zip/Trace/런타임 원문·DB는 Git에 저장하지 않는다. LOCAL_PREPR의 corrective base와 전체 PR base, UNKNOWN/BLOCKED·실제 실행 PASS를 구별하며 로컬 검증으로 여섯 원격 runner·공식 Required3·Trusted QA·Owner ACCEPT를 대체하지 않는다. 요청 종료점은 새 pull_request full CI의 정확 Head/base/test-merge/run/attempt 등록 확인이며 결과 모니터링하지 않는다.
+
+실제 최종 source는 Chromium7실행/3고유 case와 전체 Unit2786 PASS(기존3skip), build·typecheck·lint PASS다. Local Pre-PR 전체 PR은 UNKNOWN6, 교정 fast/targeted는 Next 설정·측정 산출물 변경에 따른 sourceStable=false로 각각 BLOCKED다. 개별 실행 PASS로 최상위 BLOCKED를 대체하지 않으며 원장에 base/start/end fingerprint·명령/exit·선정/제외를 보존한다. 생성물을 원복하고 최종 문서 의미 검토 후 새 full PR CI 등록까지만 인계한다.
+
 ## Issue #699 — Local Pre-PR와 원격 PR CI 증거의 분리 (2026-10-16)
 
 [LOCAL_PREPR](LOCAL_PREPR.md)의 `report.json`/`SUMMARY.md`는 Git base/head/uncommitted fingerprint와 동일 로컬 source, 실제 선택 Unit/Chromium/Build/Docker(선택 시)와 환경·선정·제외·미실행의 증거다. local Node 22/Playwright Chromium worker1/`CI_E2E_FULLY_PARALLEL=true`도 여섯 독립 Ubuntu runner, Playwright headless-shell 설치와 GitHub Actions metadata/Trusted QA, Main 이미지와 동일 환경이라는 주장은 아니다.

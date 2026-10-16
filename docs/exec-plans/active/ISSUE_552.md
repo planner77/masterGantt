@@ -1,5 +1,32 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — PR CI #2859.1 연결 종료 분석 및 테스트 실행 보완
+
+- 원본 [CI #2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185), Head `a7ad34482aeb8def79bd01d641a65f305043d593`, Chromium shard3 job `117195065949`, artifact `12074827958`의 SHA256은 `da348c613a4f5691d142f0380937daac567ef887724c2ac83ea1f6ecaba5575e`다. Quality/Docker PASS, shard3 2 PASS/1 FAIL/126 미실행, 다른 5 shards 취소, E2E/QA Final 종속 FAIL을 보존한다. 이전 #2844 SC-13 oracle 실패와 구별한다.
+- 두 번째 Task PATCH 200 후 `assertSaved(2)`의 `target-project.ts:48` GET에서 `ECONNRESET`이 발생했다. 본문 Next worker PID3664는 동일하고 launcher alive, 실패 후 health 200/33ms, OOM/kill0이다. worker RSS `1834956→5583304 KiB`, cgroup `6279487488→10605490176 bytes` 증가는 실제 관측이지만 연결 종료와의 인과·Next 재시작·OOM은 입증되지 않았다.
+- 원본 Trace의 beforeAll/본문/afterAll은 setup·teardown 3쌍이다. 표시명 6개를 서버 6개로 세지 않는다. 원본 직접 PID는 본문3652/afterAll4356 두 launcher이고 beforeAll PID는 없다. 같은 Head에서 원본 실패 테스트를 로컬 worker1/fullyParallel=true/retries0으로 3회 실행해 3 PASS(43.9/40.1/40.6초), 연결 오류는 미재현했다. 별도 프로세스 표본에서는 반복 worker마다 hook/본문/hook launcher3개, 총9개를 관측했다. 전역 mock용 서버1개는 별도다.
+- 보완 범위는 `tests/e2e/issue-623-resource-mvp.spec.ts` 한 파일이다. 환경변수 설정용 beforeAll/afterAll 대신 기존 runtime password option 의존성에 test-scoped 환경 fixture를 연결한다. runtime 기동 전에 `RESOURCE_MD_PER_MM=20`을 설정하고 teardown의 finally에서 원래 값을 복원한다. UI 후 여섯 저장+복귀 확인 GET(총7회)만 기존 `readBrowserCanonicalSnapshot`으로 수행하며 같은 브라우저 쿠키·실제 서버·no-store·HTTP200·JSON 검사를 사용한다. 실패는 재시도 없이 전달한다.
+- 실제 seed/권한/If-Match·초기 snapshot·Resource/Target/OOXML API는 그대로다. 여섯 개별 mutation 수·revision·Task ID 순서·Gantt/Core 동일성·각 필드와 교환 결과 단언, timeout/skip/retries0, 공통 fixture/제품 코드/#667 authority·CI 정책/6-shard/Required3는 유지한다. 서버 기동 감소는 확인된 낭비를 제거하는 조치이며 ECONNRESET 근본 원인 해결의 증명은 아니다.
+- 현재 main `c063101ed7b1d08803c3dac15a41e67842071187`은 원본 Head의 ancestor이며 추가 merge 충돌은 없다. PR #561의 미해결 review thread는 착수 시0이며 게시 직전 재확인한다. version0.115.0·HIGH/OWNER_MANAGED/qa_required=true·release_required=true/release_authorized=false를 유지한다. 새 전체 PR CI 등록까지만 수행하며 결과 모니터링·최종 QA/Owner ACCEPT·병합·Main/GHCR·Issue 종료는 하지 않는다.
+- 변경 영향: Test Plan·원격 증거 경계·활성 계획·Changelog·본 Packet 및 최소 검증 원장을 갱신한다. DESIGN/API/DB/보안/Scheduling/Import/Export/CI_CD/GitHub 운영 정책은 변경이 없어 N/A다. AC1~12 전체 인수를 재선언하지 않으며 이번 테스트는 기존 AC7/AC10/AC11의 Resource/Target 왕복·원본 보존 소비자 회귀를 보강한다.
+
+
+### 교정 source의 실제 검증과 영향 매핑
+
+| 변경 producer / 경계 | 직접 소비자·음성 / 교차 검증 | 상태·범위 |
+| --- | --- | --- |
+| spec-local env fixture → 기존 password option → runtime 기동 | 부모 env37에서 앱 golden20·원시5M/D·OOXML, 원본 실패 case 단독 실행당 launcher3 → 최종 각 case당1 | 최종 #623 full spec2case×repeat2=4 PASS; finally 복원은 정적 검토이며 별도 env leak assertion NOT TESTED |
+| UI 저장 후 snapshot GET의 browser 전송 | 여섯 mutation/revision/ID/필드·동일 Core 및 복귀 확인 총7회; helper HTTP500/invalidJSON/transport/no-retry·경로 거부 | helper Unit7 PASS(개발자·독립 Reviewer의 같은7개), 제품/seed/auth/교환 API 변경0 |
+| #552 marker-OFF / 기존 #2844 oracle | 실제 Core SC-13 mode 경계·Milestone Dashboard exact ID·canonical 보존 | 교차1 PASS(6.5초); 전체 AC1~12와 원격6-shard는 NOT TESTED |
+
+- 최종 spec SHA256 `5fa6e87da9ad8d3c82ffbabfd571568781239302f9379403eb3218d54babb871`, 집중4 PASS(3.4분:41.5/25.7/43.2/25.8초), 실제 fixture launcher4개/본문4개다. 전역 mock 서버는 별도이며 RSS 절감량이나 ECONNRESET 인과 해결을 주장하지 않는다.
+- 중간 보완은 절대 URL을 상대 canonical 경로만 허용하는 기존 helper에 전달해 guard FAIL1/INTERRUPTED1/미실행2였다. 오류/외부 경로 거부를 완화하지 않고 caller만 정확한 상대 경로로 수정했다. 원본3 PASS·중간 FAIL·최종 PASS의 source/log SHA를 [최소 원장](../../evidence/issue-552/ci2859-correction-20261017.json)에 구별한다.
+- 실제 LOCAL_PREPR는 `.prepr-reports/552-ci2859-{fullpr,corrective-fast,corrective-targeted}/{report.json,SUMMARY.md}`다. 전체 PR base `origin/main`은 UNKNOWN6/sourceStable=true/steps0으로 BLOCKED다. package-lock·toolbar CSS·project-gantt·copy-membership-confirm·project-readonly-view·milestone-ui의 기존 매핑 누락이며 수동 include/exclude나 보호 매퍼 변경으로 우회하지 않았다. 이번 교정은 immutable base `a7ad34482aeb8def79bd01d641a65f305043d593`와 별도 실행한다. 각 명령 exit·환경·선정/제외·start/end fingerprint 및 상위 판정은 원장에 보존한다.
+- corrective fast는 version/discovery/Markdown/cache/QA fixture/dependencies/typecheck/lint/전체 Unit/production build의 10명령 모두 PASS다. Unit225파일/2786 PASS와 기존1파일/3skip을 구별한다(새 skip0). 그러나 Next가 `.next-prepr` 참조를 next-env/tsconfig에 생성해 sourceStable=false, 최상위 BLOCKED다. corrective targeted도 helper Unit7·Chromium2 PASS(45.6/25.8초,1.8분)지만 isolated types·tracked 측정 JSON/PNG 생성으로 sourceStable=false/BLOCKED다. 세 report의 BLOCKED를 개별 명령 PASS로 대체하지 않는다. 생성물은 run별 /tmp에 보존하고 source byte를 복원했으며 두 run 동시 실행은 없다.
+- 최종 source Browser는 집중4+SC-13 1+targeted2=총7실행/3고유 case다. Unit helper7은 전체2786에도 포함되어 합산하지 않는다. 실행 뒤 결과를 문서에만 반영했으며 spec/common source hash 불변과 생성 설정 원복 후 typecheck·Markdown/docs_gate/diff를 별도 확인한다. 전체 PR UNKNOWN6은 후속 매핑 필요 사항으로 BLOCKED 인계하고, 원격 검증을 위한 새 Full CI 시작만 진행한다. LOCAL_VALIDATED=BLOCKED·MERGE_READY=BLOCKED를 유지한다.
+- 독립 `/root/qa_review_552`는 최종 spec·공통5파일 불변·로그/원본 아티팩트·문서를 read-only 대조하고 helper Unit7을 직접 실행했다. bounded PRE_QA PASS는 해당 교정 범위의 사전 검토이며 전체 PR Local Pre-PR BLOCKED·최종 인간 QA/Owner ACCEPT를 대신하지 않는다.
+
+
 ## 2026-10-17 — PR CI #2844.1 원인 수정 및 최신 main 정렬 (이전 실행 이력 보존)
 
 - **원본 실패:** [#2844.1](https://github.com/planner77/masterGantt/actions/runs/38905085250), Head `2ce8a276802a8346772a5351a943b1f3d03a55e5`. Preflight/TypeScript/ESLint/Vitest/Build/Docker는 PASS, Chromium shard2 **SC-13 단일 실패**. 공통 #667 테스트가 native M row·Bar visible을 요구해 #552의 separate marker-OFF 계약과 충돌. 나머지 5 shards는 fail-fast CANCELLED/NOT TESTED, 전체 E2E/QA Final 종속 FAIL. 기존 실패 이력 불변.
@@ -83,10 +110,11 @@ production marker/lane/guide는 OFF다. 마커 전용 예약 높이·listener·o
 - `docs/IMPORT_SCHEMA.md`: N/A(JSON/CSV schema·정규화·Import 실행·ID remap 불변; 표시용 누락 원본을 저장하지 않음)
 - `docs/EXCEL_EXPORT.md`: N/A(기존 workbook·시트·수식 안전성·서버 공수 집계·Export API 유지, hidden M canonical 원장 보존)
 - `docs/CI_CD.md`: N/A(현행 SemVer·Required aggregate3·6-shard·Main/Finalizer·GHCR 권한과 릴리스 정책 그대로 적용)
-- `docs/REMOTE_VALIDATION.md`: N/A(현재 PR 전체 CI 시작까지 수행하며 원격 결과·환경별 증거 계약 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: UPDATED
 - `docs/GITHUB_OPERATIONS.md`: N/A(동일 PR/branch 재사용·strict main·리뷰 스레드0·원본 실패 보존 및 승인 경계 유지)
 - `docs/DEPLOYMENT.md`: UPDATED
 - `docs/evidence/issue-552/local-validation-20261016.json`: UPDATED
+- `docs/evidence/issue-552/ci2859-correction-20261017.json`: UPDATED
 - `docs/images/issue-552/manifest.json`: UPDATED
 
 위 UPDATED는 최신 main 대비 실제 diff로 확인한다. 최종 구현이 변경되면 의미 검토·source 동결·LFF 영향 분석 후 Gate를 다시 판정한다.
