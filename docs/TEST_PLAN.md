@@ -44,7 +44,7 @@ Work Packet에 baseline/main·working head·base·test merge·source fingerprint
 **트리거:** 하나의 PR에서 서로 다른 소비자 실패가 두 차례 이상 이어지거나, 공유 canonical·비동기 복구·Core/HTTP 경계에서 테스트 누락이 입증되거나, 선택 검사 통과 뒤 인접 기능 회귀가 새로 발견된 경우. Manager는 이전 실행의 FAIL·CANCELLED·NOT RUN과 영향된 파일 집합·예상 Runner 시간/비용을 구분해 범위를 선정한다. 모든 수정에 전체 로컬 E2E를 강제하지 않는다.
 
 **방법:** 동일한 동결 source에서 관련 E2E 파일만 1회 확대해 재시도를 끄고 모든 실패를 관찰한다. 예시(해당 파일이 작업 Head에 실제 존재할 때): 
-    npx playwright test tests/e2e/gantt-state-product-integration.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0
+    npx playwright test --config tests/config/playwright.config.ts tests/e2e/gantt-state-product-integration.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0
 이 명령은 *로컬 제한 진단용*이다. TEST_PLAN이 workflow의 기존 PR shard --max-failures=1/matrix fail-fast 정책을 변경하는 것은 아니다.
 
 **종료 조건:** 확대 범위의 최초/추가 실패를 실제 source별로 분류하고 원본 trace·발생 순서를 보존한다. 제품 또는 fixture를 보완했다면 **최종 동일 source**에서 직접·교차·음성 경로를 재검증한다. 미실행·미확정 항목은 NOT TESTED/BLOCKED와 잔여 위험/인계 담당자를 명시한 뒤 Manager가 PR CI 시작을 판단한다. 한 번의 확대 PASS를 원격 전체 PASS로 승격하지 않는다. 테스트 timeout/retry/skip/required gate·단언 완화는 검증 전략이 아니다.

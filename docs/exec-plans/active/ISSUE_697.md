@@ -2,10 +2,23 @@
 
 - 기준: 2026-10-16 / [Issue #697](https://github.com/planner77/masterGantt/issues/697), 착수 main ee6365bf57ab637b4c0aca61fdedaf5148253052.
 - 작업: docs/issue-697-impact-based-test-validation / 역할: Manager 문서 단일 작성자, 구현 Agent 적용, qa_docs·Reviewer read-only 검토 대상.
-- risk_level: MEDIUM (프로젝트 전체 로컬 검증·Work Packet 문서 계약 변경). qa_method: OWNER_MANAGED. qa_required: true. independent_qa: N/A(Owner-managed, 독립 검토 없음). manager_decision: NOT TESTED. release_required: false. release_authorized: false.
+- risk_level: HIGH (AGENTS.md 및 docs/ISSUE_LIFECYCLE.md는 기본 브랜치의 보호 CI/QA 정책 경로이며, qa_final_automated.py/risk_floor의 최소 위험도가 HIGH. 제품/CI Workflow는 불변). qa_method: OWNER_MANAGED. qa_required: true. independent_qa: N/A(Owner-managed, 독립 검토 없음). manager_decision: NOT TESTED. release_required: false. release_authorized: false.
 - Scope: [AGENTS](../../../AGENTS.md), [TEST_PLAN](../../TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16), [ISSUE_LIFECYCLE](../../ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)의 위험도·선정·증거 정합성 및 #667 시범 적용. 제품 코드·CI workflow·version/DB/API/릴리스 수정은 비범위.
 
-## DOCUMENTATION_SYNC 영향 원장
+## DOCUMENTATION_SYNC
+
+기준: PR #698의 실제 변경 파일과 원본 main QA 검증기 `docs_required(paths)`(HEAD `a5fd082648b2d9b77308e9d5bb021705ff6594f0`), 문서 영향 실체·N/A 근거를 함께 기록한다. 보호 정책 파일 포함으로 위험도는 **HIGH**이며 문서만 변경해도 보호 QA·Owner/Required gate를 임의 완화하지 않는다. 본 문서는 변경 파일 자체와 검증 대상으로 구분한다.
+
+- `AGENTS.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_697.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(현행 OWNER_MANAGED와 AGENT 구분은 그대로 두고 AGENTS/LIFECYCLE의 오래된 설명만 정합화함)
+- `docs/CI_CD.md`: N/A(Required Quality/E2E/Docker 집계 및 PR 6-shard fail-fast 실행 정책 자체 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(브랜치·PR/운영 명령·승인 또는 신뢰된 Reviewer 절차의 동작 정책 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(로컬 선택 검증과 원격 exact-head CI 분리는 이미 정립되어 추가 계약 변경 없음)
+
+### 변경 문서·비대상 영향 상세
 
 | 문서 | 판정과 이유 |
 | --- | --- |
@@ -47,6 +60,16 @@
 
 모든 이전 CI의 FAIL, 취소·미실행은 해당 run/attempt에 귀속한다. 서로 다른 Head를 합산해 PASS라고 판단하지 않는다. #667은 실제 CI #2811~#2814 이후에도 후속 수정/CI가 있으므로 이 시범표가 최신 완료·원인 판정이 아니다.
 
+## PR #698 — CI #2821.1 원인 분석·REWORK (2026-10-16)
+
+원본 [PR CI #2821 / run 38836682399, attempt 1](https://github.com/planner77/masterGantt/actions/runs/38836682399) / Head `a5fd082648b2d9b77308e9d5bb021705ff6594f0`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`는 **FAIL**이며 과거 결과를 지우거나 PASS로 갱신하지 않는다.
+
+- QA Final 신뢰 경계 [job 116767275432](https://github.com/planner77/masterGantt/actions/runs/38836682399/job/116767275432): `AGENTS.md` 변경은 보호 경로인데 PR `risk_level=MEDIUM`이므로 `보호된 CI/QA/정책 파일 변경은 HIGH 위험도 필수`로 차단. 문서상 일반 프로세스 변경 MEDIUM 제안보다 기본 브랜치 신뢰 정책의 HIGH floor 우선. 이번 Work Packet과 PR body를 HIGH로 정정하고 이력을 분리한다. `qa_method=OWNER_MANAGED`, `qa_required=true`, 원격 검증·Owner 승인 필수 유지.
+- QA Preflight [job 116767349326](https://github.com/planner77/masterGantt/actions/runs/38836682399/job/116767349326): `## DOCUMENTATION_SYNC 영향 원장`은 검증기가 요구하는 정확한 `## DOCUMENTATION_SYNC`가 아니고, Markdown 표는 `- \`path\`: UPDATED|N/A(reason)` 포맷으로 파싱되지 않으며 `## AC_TEST_COVERAGE`에서 AC1~AC7의 `- ACn:` 구조도 누락. 원본 FAIL 1개는 최초 heading에서 중단한 상태였으므로 **후속 실패 가능성까지 구조적으로 보완**.
+- PR Fast Gate [job 116767400923](https://github.com/planner77/masterGantt/actions/runs/38836682399/job/116767400923): Preflight failure·필수 policy skipped 후속 FAIL. 세 Required aggregate FAIL 및 E2E/Docker·TypeScript·Vitest 실제 실행은 skipped/NOT TESTED. 제품 Unit/E2E 실패로 분류하지 않음.
+- P2 리뷰: [PR #698](https://github.com/planner77/masterGantt/pull/698) TEST_PLAN의 Playwright 명령에 이전에 이동한 `tests/config/playwright.config.ts`의 `--config`가 없었다. 실행 전에 실패하는 재현 가능한 문서 명령 오류이며 해당 옵션을 추가해 리뷰 후 확인.
+- 조치 범위: `docs/TEST_PLAN.md` 명령, 이 Work Packet의 risk/구조/원본 CI 이력, PR risk metadata 정정. `AGENTS.md`·`docs/ISSUE_LIFECYCLE.md`에서 작성한 기준 자체는 유지, workflow·CI 검증기를 수정하지 않음.
+
 ## 위험도 3예시와 확대 종료
 
 - LOW 설명 문구/링크 변경: Markdown/link와 실제 변경 범위를 검사, UI/DB E2E는 N/A(동작 불변) — 매 수정 전체 로컬 E2E는 과잉.
@@ -54,6 +77,16 @@
 - HIGH async canonical/U2·U3·U4: state·recovery Unit, 실제 소비자·HTTP/SQLite 음성, Copy/Paste·Milestone·Resource·검색/Fullscreen·390px 범위의 수행·제외를 명시 — Unit PASS만으로는 과소.
 
 연쇄적인 서로 다른 실패 2회 이상, 공유 Core/서버 복구 변경 또는 선택 PASS 뒤 교차 회귀가 발견되면 Manager는 관련 파일 한정 **로컬, fail-fast 없는 1회 진단**을 결정한다. 실제 파일 수/케이스 수/예상 비용을 기록하고 최초 실패·새 실패를 원인별 수집한 뒤 동일 최종 source 재검증 또는 미해결 위험 인계로 종료한다. 공식 PR 6-shard fail-fast, timeout·retry·skip/Required gate는 불변이다.
+
+## AC_TEST_COVERAGE
+
+- AC1: 기존 Local Fast Feedback, exact-head Quality/E2E/Docker Required, 6-shard fail-fast, QA/Owner 및 RELEASE 경계 불변을 변경 파일 diff와 본문으로 확인. 이 문서만으로 원격 PASS 판정 불가.
+- AC2: TEST_PLAN의 LOW/MEDIUM/HIGH와 shared state·HTTP/SQLite·async/간접 소비자 기준, 로컬 선정·제외·N/A(reason), 전체 로컬 E2E 비의무 표의 완전성 점검.
+- AC3: AGENTS에서 PLAN/REWORK·공유 계약 변경 때 Manager·구현 Agent의 영향 표와 테스트 선정/제외 의무, qa_docs read-only 검토 및 현행 QA 경계 분리.
+- AC4: 시범 Work Packet에 producer/영향 소비자→실제 테스트 파일→실행 환경/원본 source SHA→FAIL/NOT TESTED·미검증을 구분; Unit/mock/actual browser/HTTP·SQLite/원격 증거를 혼동하지 않음.
+- AC5: #667 PR #695 CI #2811~#2814 peer/UNKNOWN/Delete/Milestone axis/DEV getter/ECONNRESET과 #384 다중 Copy/Paste 46→0의 근거·선정 파일·원인 확정 수준을 매핑.
+- AC6: 다른 사례 연쇄 실패 두 차례 및 shared Core/복구 변경 시 한정 로컬 fail-fast 없는 확대 진단/원인별 종료와 LOW 문구·MEDIUM Editor·HIGH async 3예시를 대조하고 검사 완화 없음.
+- AC7: 문서 4개 동기화, 실제 저장소 Markdown 링크·형식·CI Preflight 계약 확인, 미해결 리뷰·충돌 정리 후 정확 새 Head PR CI 시작. 원격 결과/QA_FINAL/Owner/merge는 별도 확인 전 NOT TESTED.
 
 ## 이번 문서 PR 검증/인계 계약
 
