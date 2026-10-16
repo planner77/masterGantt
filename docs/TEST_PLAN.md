@@ -3881,3 +3881,8 @@ Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 
 
 
 #667 CI #2818 재발은 새 진단의 rows 완료 이후 semantic TIMED_OUT이다. 원본 source에서 실제 RAF 전달만90ms 늦춘 SC-01의 첫 재조회 실패를 재현하고, U3-only clock 분리 후 같은 변형·기존무지연 SC-01을 검사한다. 같은 semanticId/새 observation·Core쓰기0·canonical/인스턴스 보존 및 원래 timeout/retry/skip을 유지한다. frame helper Unit은50ms 이후에도 합성 성공 없이 실제 RAF만 true, 기존1500ms caller abort·hidden·cleanup을 확인한다. U3 자체 deadline까지 RAF가 오지 않으면 계속 TIMED_OUT이어야 하며 이를 PASS로 바꾸지 않는다. 원본/보완source와 원격세부원인 미계측 경계를 [이번 원장](evidence/issue-667/ci2818-correction.json)에 기록한다. 최신 사용자 요청에 따라 새 PR CI를 완료까지 모니터링한다.
+
+
+#667 CI #2819은 cross-tab stale SC-05의 마지막 실제 저장 확인 APIContext GET에서 ECONNRESET이 발생했다. 앞선 UNKNOWN/잠금·same API·후속 저장 단언은 통과했다. U5 통합5곳·Editor6곳의 UI후 canonical 확인을 `readBrowserCanonicalSnapshot`의 same-origin fetch/no-store·직접 observer로 교정하고 기존 #2814 stage helper를 공유한다. HTTP200·JSONvalid 및 각 원래 canonical DTO/name/revision/tasks/links 단언을 유지한다.
+
+감사는 spec의 literal62+공통seed helper2=64 inventory를 분류한다. 변경11 외 spec51/helper2는 seed/auth/API독립·다른context·route우회·재시작 persistence 또는 이번 U5 범위 밖으로 구분하며 전수 의미 검토·연결 오류 해소를 주장하지 않는다. browser fetch는 page.route를 통과하므로 교정한 각 호출은 실제 server continue/unroute 이후인지 확인한다. helper Unit은 단일 GET/no-store·HTTP/JSON/transport 실패 재전파·재시도0·상대 canonical 경로만 허용함을 검사한다. 원본 stale/500의 로컬 비재현과 새 source의 실제 HTTP/SQLite18사례를 구분하고 전체 회귀는 새 exact-head CI 완료로 판정한다. [이번 원장](evidence/issue-667/ci2819-correction.json)을 참조한다.

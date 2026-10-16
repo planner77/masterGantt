@@ -1,6 +1,7 @@
 import type { Locator, Page, Route } from "@playwright/test";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
 import { gridOrder, seedReorderProject, taskRow } from "./helpers/grid-task-reorder";
 import { chooseTaskInformation, taskInformationDialog } from "./helpers/task-context-menu";
 
@@ -13,7 +14,7 @@ async function openEditor(page: Page, name: string) {
 }
 
 for (const frameDelay of [0, 90]) {
-  test(`SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다${frameDelay ? " — 실제 RAF 90ms 지연" : ""}`, async ({ page, baseURL }, info) => {
+  test(`SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다${frameDelay ? " — 실제 RAF 90ms 지연" : ""}`, async ({ page, baseURL, observeIsolatedApi }, info) => {
   const { api, project } = await seedReorderProject(page, baseURL!);
   await page.goto(`/projects/${project.publicId}?__coreTrace=1`);
   const frame = page.locator(".project-gantt-frame");
@@ -60,7 +61,7 @@ for (const frameDelay of [0, 90]) {
   await expect(editor.getByRole("button", { name: "최신 정보 다시 불러오기", exact: true })).toBeEnabled();
   await expect.poll(async () => (await receipt())?.observation).not.toBe(initialObservation);
   const before = (await receipt())!;
-  const canonical = await (await page.request.get(api)).json();
+  const canonical = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   await frame.evaluate((node) => Reflect.get(node, "__issue568Trace").configure("issue667", "local", "same-revision-editor-reload"));
   const freshRead = page.waitForResponse((response) => response.request().method() === "GET" && new URL(response.url()).pathname === api);
   await editor.getByRole("button", { name: "최신 정보 다시 불러오기", exact: true }).click();
@@ -71,7 +72,7 @@ for (const frameDelay of [0, 90]) {
   const trace = await frame.evaluate((node) => Reflect.get(node, "__issue568Trace").snapshot()) as { entries: { event: string; action: string }[] };
   const writes = ["update-task", "add-task", "delete-task", "move-task", "add-link", "update-link", "delete-link", "filter-tasks", "scroll-chart", "resize-chart", "set-columns"];
   expect(trace.entries.filter((entry) => entry.event === "core-after" && writes.includes(entry.action))).toEqual([]);
-  expect(await (await page.request.get(api)).json()).toEqual(canonical);
+  expect(await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi)).toEqual(canonical);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await info.attach("same-revision-editor-trace", { body: JSON.stringify({ before, after: await receipt(), trace }), contentType: "application/json" });
@@ -89,7 +90,7 @@ for (const frameDelay of [0, 90]) {
 });
 }
 
-test("SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다", async ({ page, baseURL }, info) => {
+test("SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다", async ({ page, baseURL, observeIsolatedApi }, info) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
   const task = snapshot.data.tasks.find((entry) => entry.name === "Task B")!;
   const frame = page.locator(".project-gantt-frame");
@@ -151,7 +152,7 @@ test("SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 �
   await expect(editor.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("Committed editor B");
   expect(patches).toHaveLength(1);
-  const recovered = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const recovered = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
   expect(recovered.data.project.revision).toBe(snapshot.data.project.revision + 1);
   expect(recovered.data.tasks).toEqual(snapshot.data.tasks.map((entry) => entry.taskId === task.taskId ? { ...entry, name: "Committed editor B" } : entry));
   expect(recovered.data.links).toEqual(snapshot.data.links);
@@ -167,7 +168,7 @@ test("SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 �
     { body: { name: "Committed editor B" }, revision: `"${snapshot.data.project.revision}"` },
     { body: { name: "Intended next editor B" }, revision: `"${recovered.data.project.revision}"` },
   ]);
-  const final = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const final = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
   expect(final.data.project.revision).toBe(recovered.data.project.revision + 1);
   expect(final.data.tasks).toEqual(recovered.data.tasks.map((entry) => entry.taskId === task.taskId ? { ...entry, name: "Intended next editor B" } : entry));
   expect(final.data.links).toEqual(recovered.data.links);
@@ -190,7 +191,7 @@ async function readAxis(frame: Locator): Promise<AxisObservation> {
 }
 
 for (const mutation of ["edit", "add"] as const) {
-  test(`SC-09 실제 ${mutation} 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다`, async ({ page, baseURL }, info) => {
+  test(`SC-09 실제 ${mutation} 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다`, async ({ page, baseURL, observeIsolatedApi }, info) => {
     const { api, snapshot: initial } = await seedReorderProject(page, baseURL!);
     let snapshot = initial;
     const add = async (name: string, parentTaskId?: string) => {
@@ -240,7 +241,7 @@ for (const mutation of ["edit", "add"] as const) {
     await page.keyboard.press("Escape");
     const selected = () => frame.locator('.wx-row[data-copy-selected="true"]').evaluateAll((rows) => rows.map((row) => row.getAttribute("data-id")));
     const tree = () => frame.locator('[data-action="open-task"]').evaluateAll((nodes) => nodes.map((node) => ({ id: node.closest("[data-id]")?.getAttribute("data-id"), closed: node.classList.contains("wxi-menu-right") })));
-    const canonical = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+    const canonical = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
     const before = await readAxis(frame);
     const beforeNames = await gridOrder(page);
     const beforeSelected = await selected();
@@ -270,7 +271,7 @@ for (const mutation of ["edit", "add"] as const) {
     expect(await selected()).toEqual(beforeSelected);
     expect(await tree()).toEqual(beforeTree);
     await expect(taskRow(page, "Axis child")).toHaveCount(0);
-    expect(await (await page.request.get(api)).json()).toEqual(canonical);
+    expect(await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi)).toEqual(canonical);
     expect(mutations).toHaveLength(1);
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
     await info.attach(`axis-after-${mutation}`, { body: JSON.stringify({ before, after, canonical, mutations, beforeTree, beforeSelected }), contentType: "application/json" });

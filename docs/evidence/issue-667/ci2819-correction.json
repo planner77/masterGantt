@@ -1,0 +1,1219 @@
+{
+  "schema": "mastergantt-issue667-ci2819-correction-v1",
+  "parentHead": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+  "source": {
+    "files": {
+      "tests/e2e/helpers/browser-canonical-snapshot.ts": "57c5c151745b48abcc3b15f2c93d2bd8e26ac87bee530b9218e0c54ce90c5b99",
+      "tests/e2e/gantt-state-product-integration.spec.ts": "f2da05ca61623ecf8558e07afa217392405ec4eb269475afb3ca173470254db8",
+      "tests/e2e/gantt-state-recovery-editor.spec.ts": "11b042182e6c50145c10038865fc641a2aa385bdc36d1ab64c1c632a12e0a262",
+      "tests/e2e/milestone-stage-dashboard.spec.ts": "9f7596935fc4ad38e38c715082e48aa2903e53839460c045a85844f64b922670",
+      "tests/server/e2e/browser-canonical-snapshot.test.ts": "d5e91f57777a7a44e7d7df8e9a28d3598a310d7ee0fbaec7f55f242a3f051bc5"
+    },
+    "fingerprint": "da4dbdacf3237392aa07532aa11314a6fff8229afc5c4b7d650b17331604c685"
+  },
+  "remoteOriginal": {
+    "runId": 38830613612,
+    "runNumber": 2819,
+    "runAttempt": 1,
+    "headSha": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+    "baseSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+    "testMergeSha": "ef0fc8f0d0c08cea63541093c32b1c19a71ca115",
+    "qualityJob": 116749238464,
+    "quality": "PASS",
+    "dockerJob": 116749517448,
+    "docker": "PASS",
+    "e2eJob": 116750083738,
+    "e2e": "FAIL",
+    "qaJob": 116750113482,
+    "qa": "FAIL",
+    "failedJob": 116748850362,
+    "step": 7,
+    "testFile": "tests/e2e/gantt-state-product-integration.spec.ts",
+    "testLine": 177,
+    "failedLine": 269,
+    "variant": "cross-tab stale",
+    "errorCode": "ECONNRESET",
+    "testReportedSeconds": 11.2,
+    "passed": 12,
+    "failed": 1,
+    "notRun": 69,
+    "otherShards": "CANCELLED",
+    "rootCause": "UNKNOWN",
+    "identity": {
+      "repository": "planner77/masterGantt",
+      "issue": 667,
+      "pr": 695,
+      "id": 38830613612,
+      "runNumber": 2819,
+      "runAttempt": 1,
+      "event": "pull_request",
+      "head": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+      "base": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "branch": "feat/issue-667-gantt-product-integration",
+      "path": ".github/workflows/ci.yml",
+      "displayTitle": "PR CI [전체 검증] · [Issue #667] Gantt 정합성 제품 통합 · PR #695 · Run #2819.1",
+      "url": "https://github.com/planner77/masterGantt/actions/runs/38830613612",
+      "createdAt": "2026-10-16T00:38:24Z",
+      "status": "completed",
+      "conclusion": "failure",
+      "completedUpdatedAt": "2026-10-16T00:44:39Z",
+      "testMerge": {
+        "sha": "ef0fc8f0d0c08cea63541093c32b1c19a71ca115",
+        "tree": "7772d0c4fa8d3cd006857128768415f7d6961e46",
+        "parents": [
+          "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+          "a376dc0914ea7ad525e9ec12bda8e0fe04207089"
+        ]
+      }
+    },
+    "provenance": {
+      "sourceArtifact": {
+        "id": 12016064393,
+        "digest": "sha256:10ce2bd6b44ad416916e95ca198d992a784a28766a39b7babd440f47b8cc6341",
+        "digestVerified": true,
+        "source": {
+          "schema": "mastergantt-ci-pr-source-v1",
+          "repository": "planner77/masterGantt",
+          "run_id": 38830613612,
+          "run_attempt": 1,
+          "pr_number": 695,
+          "head_sha": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+          "head_ref": "feat/issue-667-gantt-product-integration",
+          "base_sha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+          "base_ref": "main",
+          "test_merge_sha": "ef0fc8f0d0c08cea63541093c32b1c19a71ca115"
+        }
+      },
+      "reportArtifact": {
+        "id": 12016509332,
+        "name": "playwright-report-shard-2",
+        "digest": "sha256:a421f727f94bf9e72e0d823a006f5bb61205a6d711a6efeaabd2e21fda59871e",
+        "digestVerified": true,
+        "archiveBytes": 5950321,
+        "tracePath": "data/ca08847cd066bd90be6487cbbd14362f68389354.zip"
+      },
+      "archiveExecuted": false,
+      "archiveExtractedToFilesystem": false,
+      "rawHeadersCookiesBodiesLogsPersisted": false,
+      "authority": "PR artifact는 비신뢰 입력이며 run/PR metadata·test merge parents/tree와 교차 확인. Trusted QA·Manager 승인 대체 아님."
+    },
+    "specificRemotePasses": {
+      "job": 116748850237,
+      "jobConclusion": "cancelled",
+      "tests": [
+        {
+          "source": "tests/e2e/gantt-state-recovery-editor.spec.ts:16:7",
+          "scenario": "SC-01 정상 RAF",
+          "timestamp": "2026-10-16T00:41:57.6690630Z",
+          "durationSeconds": 8.7,
+          "status": "PASS"
+        },
+        {
+          "source": "tests/e2e/gantt-state-recovery-editor.spec.ts:16:7",
+          "scenario": "SC-01 실제 RAF90ms 지연",
+          "timestamp": "2026-10-16T00:42:20.9090277Z",
+          "durationSeconds": 9.5,
+          "status": "PASS"
+        }
+      ],
+      "boundary": "개별 완료 로그 PASS만 인정. 취소된 shard 전체나 전체 E2E PASS로 확대하지 않음."
+    },
+    "postChecks": {
+      "pr": {
+        "number": 695,
+        "head": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+        "base": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+        "state": "open",
+        "mergeable": true,
+        "mergeableState": "blocked",
+        "testMerge": "ef0fc8f0d0c08cea63541093c32b1c19a71ca115"
+      },
+      "review": {
+        "count": 1,
+        "unresolved": 0,
+        "threads": [
+          {
+            "id": "PRRT_kwDOUUB7Bc6syoNu",
+            "isResolved": true,
+            "isOutdated": false
+          }
+        ]
+      },
+      "mainReadSha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "mainUnchanged": true,
+      "conflictFree": true
+    },
+    "completeSafeAnalysis": {
+      "path": "output/playwright/issue-667/ci2819-remote-analysis.json",
+      "sha256": "41b47eec2677474e410f7beec0c221cf93083b9547534085f9e134e19e2b1cbc"
+    },
+    "diagnosticSummary": {
+      "reason": "test_failure",
+      "directApiObserverRequests": 0,
+      "cliPid": 4958,
+      "generation": 1,
+      "cliAliveAtBothSnapshots": true,
+      "recordedExitSignalOrExpectedShutdown": 0,
+      "httpWorkerCandidatePid": 4970,
+      "workerCandidateAtBothSnapshots": true,
+      "continuousWorkerSurvivalProven": false,
+      "readinessStatus": 200,
+      "readinessDurationMs": 56,
+      "cgroupOomBeforeAfter": [
+        0,
+        0
+      ],
+      "cgroupOomKillBeforeAfter": [
+        0,
+        0
+      ],
+      "workerRssKbBeforeAfter": [
+        1826784,
+        2465732
+      ],
+      "rssIsNotHeapUsed": true,
+      "nextWarningEnums": 0,
+      "rootCause": "UNKNOWN"
+    }
+  },
+  "audit": {
+    "sourceHead": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+    "query": "page.request.get(api) literal in tests/e2e",
+    "originalCount": 64,
+    "convertedLiteralCalls": 11,
+    "productionChanged": false,
+    "scope": "Issue667의 UI후 canonical 확인 11곳 및 #2814 기존 browser 구현 공유화. 나머지는 inventory/명시 제외 사유를 구분한다.",
+    "entries": [
+      {
+        "file": "tests/e2e/fixtures/target-project.ts",
+        "originalLine": 48,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "originalLine": 75,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "originalLine": 92,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "originalLine": 169,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "originalLine": 269,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "originalLine": 290,
+        "action": "RETAIN_API_SEED_CANONICAL",
+        "reason": "SC-13의 API POST로 만든 fixture를 navigation 전에 독립 확인; seed client 유지."
+      },
+      {
+        "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "originalLine": 296,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "originalLine": 63,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "originalLine": 74,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "originalLine": 154,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "originalLine": 170,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "originalLine": 243,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "originalLine": 273,
+        "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+        "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+      },
+      {
+        "file": "tests/e2e/helpers/grid-task-reorder.ts",
+        "originalLine": 12,
+        "action": "RETAIN_API_SEED_HELPER",
+        "reason": "기존 프로젝트/작업 fixture seed helper이며 API client 기반 준비와 canonical 확인을 유지."
+      },
+      {
+        "file": "tests/e2e/inline-name-persistence.spec.ts",
+        "originalLine": 26,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/inline-name-persistence.spec.ts",
+        "originalLine": 138,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "originalLine": 22,
+        "action": "RETAIN_MIXED_API_AUTH_RESTART_CHECK",
+        "reason": "공통 get에 seed/실제 API 거절/독립 readonly/재시작 지속성 확인이 함께 있음. 기계 치환 제외."
+      },
+      {
+        "file": "tests/e2e/milestone-management-persistence.spec.ts",
+        "originalLine": 198,
+        "action": "RETAIN_MIXED_API_AUTH_RESTART_CHECK",
+        "reason": "공통 get에 seed/실제 API 거절/독립 readonly/재시작 지속성 확인이 함께 있음. 기계 치환 제외."
+      },
+      {
+        "file": "tests/e2e/milestone-stage-dashboard.spec.ts",
+        "originalLine": 18,
+        "action": "RETAIN_API_SEED_AND_INDEPENDENT_MUTATION_CHECK",
+        "reason": "API seed/mutate helper와 UI 후 browser helper를 이미 분리; browser 구현만 공통 helper로 이관."
+      },
+      {
+        "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+        "originalLine": 22,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/milestone-stage-gates.spec.ts",
+        "originalLine": 14,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-chart-vertical-dnd.spec.ts",
+        "originalLine": 79,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-empty-summary-persistence.spec.ts",
+        "originalLine": 24,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "originalLine": 59,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "originalLine": 94,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "originalLine": 137,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "originalLine": 166,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+        "originalLine": 194,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "originalLine": 18,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "originalLine": 115,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "originalLine": 120,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "originalLine": 288,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "originalLine": 321,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "originalLine": 25,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "originalLine": 68,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-context-menu.spec.ts",
+        "originalLine": 7,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "originalLine": 18,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "originalLine": 95,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "originalLine": 118,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "originalLine": 167,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-task-delete-context.spec.ts",
+        "originalLine": 226,
+        "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+        "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 19,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 66,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 120,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 162,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 178,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 211,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 252,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 264,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "originalLine": 274,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-dashboard-ui.spec.ts",
+        "originalLine": 12,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-drill-api.spec.ts",
+        "originalLine": 13,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-drill-ui.spec.ts",
+        "originalLine": 37,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-excel-export-api.spec.ts",
+        "originalLine": 14,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-excel-export-ui.spec.ts",
+        "originalLine": 73,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-milestone-ui.spec.ts",
+        "originalLine": 11,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-plan-api.spec.ts",
+        "originalLine": 12,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/resource-plan-ui.spec.ts",
+        "originalLine": 37,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "originalLine": 115,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "originalLine": 157,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "originalLine": 200,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "originalLine": 420,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "originalLine": 584,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      },
+      {
+        "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+        "originalLine": 641,
+        "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+        "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+      }
+    ],
+    "originalSpecCount": 62,
+    "originalHelperCount": 2
+  },
+  "diagnosis": {
+    "boundary": "UNKNOWN 해제·same API·canonical 행·후속 name-only 저장 이후 별도 APIRequestContext의 최종 저장 확인 GET 전송 실패",
+    "previousRelated": "CI2814의 같은 전송 종류·다른callsite; CI2817/2818 semantic timeout 재발 아님",
+    "fix": "U5 UI후 canonical 확인11곳에 동일출처 browser fetch/no-store·직접 observer helper 적용, 기존stage browser 구현 공유",
+    "preserved": [
+      "HTTP200/JSONvalid·exact canonical DTO/revision/tasks/links 단언",
+      "seed/auth/API독립/route우회/다른context/재시작 persistence 분류",
+      "retry0/기존timeout/skip/권한/UNKNOWN/CI gate"
+    ],
+    "productionChanged": false
+  },
+  "localFinal": {
+    "scope": "FINAL_FROZEN_LOCAL_FAST_FEEDBACK",
+    "command": "TZ=UTC CI=true CI_E2E_FULLY_PARALLEL=true npx playwright test --config tests/config/playwright.config.ts tests/e2e/gantt-state-product-integration.spec.ts tests/e2e/gantt-state-recovery-editor.spec.ts tests/e2e/milestone-stage-dashboard.spec.ts tests/e2e/milestone-management-persistence.spec.ts --workers=1 --retries=0 --max-failures=0",
+    "exitCode": 0,
+    "durationMs": 289748.963,
+    "stats": {
+      "total": 18,
+      "expected": 18,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "globalErrors": 0,
+    "cases": [
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "expected",
+        "durationMs": 2648,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 없는 응답 500: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "expected",
+        "durationMs": 2300,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 연결 단절: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "expected",
+        "durationMs": 2650,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 서버 commit 뒤 응답 500과 조회 실패: 최신 서버 확인·재전송 0·같은 Core 인스턴스",
+        "status": "expected",
+        "durationMs": 3200,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제하지 않는다",
+        "status": "expected",
+        "durationMs": 2876,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 최신 확정 뒤 이전 recovery stale는 다시 잠그지 않는다",
+        "status": "expected",
+        "durationMs": 4521,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 최신 확정 뒤 이전 recovery 500는 다시 잠그지 않는다",
+        "status": "expected",
+        "durationMs": 4499,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다",
+        "status": "expected",
+        "durationMs": 5207,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-product-integration.spec.ts",
+        "title": "SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다",
+        "status": "expected",
+        "durationMs": 2566,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-recovery-editor.spec.ts",
+        "title": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다",
+        "status": "expected",
+        "durationMs": 3895,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-recovery-editor.spec.ts",
+        "title": "SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다 — 실제 RAF 90ms 지연",
+        "status": "expected",
+        "durationMs": 4669,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-recovery-editor.spec.ts",
+        "title": "SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다",
+        "status": "expected",
+        "durationMs": 3923,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 edit 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "status": "expected",
+        "durationMs": 4697,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "gantt-state-recovery-editor.spec.ts",
+        "title": "SC-09 실제 add 성공 뒤 날짜축 확장은 canonical·접힘·선택을 보존한다",
+        "status": "expected",
+        "durationMs": 4320,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "milestone-management-persistence.spec.ts",
+        "title": "#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 거절·프로세스 재시작",
+        "status": "expected",
+        "durationMs": 19156,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "milestone-management-persistence.spec.ts",
+        "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (past)",
+        "status": "expected",
+        "durationMs": 8446,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "milestone-management-persistence.spec.ts",
+        "title": "#550 실제 빈 프로젝트→Milestone-only 관리·상세/소속/관계 조회·readonly (future)",
+        "status": "expected",
+        "durationMs": 8353,
+        "retries": [
+          0
+        ]
+      },
+      {
+        "file": "milestone-stage-dashboard.spec.ts",
+        "title": "#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource drill과 readonly peer 보존",
+        "status": "expected",
+        "durationMs": 18568,
+        "retries": [
+          0
+        ]
+      }
+    ],
+    "sourceHashes": {
+      "tests/e2e/helpers/browser-canonical-snapshot.ts": "57c5c151745b48abcc3b15f2c93d2bd8e26ac87bee530b9218e0c54ce90c5b99",
+      "tests/e2e/gantt-state-product-integration.spec.ts": "f2da05ca61623ecf8558e07afa217392405ec4eb269475afb3ca173470254db8",
+      "tests/e2e/gantt-state-recovery-editor.spec.ts": "11b042182e6c50145c10038865fc641a2aa385bdc36d1ab64c1c632a12e0a262",
+      "tests/e2e/milestone-stage-dashboard.spec.ts": "9f7596935fc4ad38e38c715082e48aa2903e53839460c045a85844f64b922670",
+      "tests/server/e2e/browser-canonical-snapshot.test.ts": "d5e91f57777a7a44e7d7df8e9a28d3598a310d7ee0fbaec7f55f242a3f051bc5"
+    },
+    "sourceDrift": false,
+    "rawHtml": "output/playwright/issue-667/ci2819-final-selected-18/playwright-report/index.html",
+    "unit": {
+      "files": 2,
+      "passed": 17,
+      "failed": 0,
+      "pending": 0,
+      "exitCode": 0,
+      "report": "output/playwright/issue-667/ci2819-final-unit.json"
+    },
+    "originalLocal": "output/playwright/issue-667/ci2819-original-cross-tab/safe-results.json",
+    "audit": {
+      "sourceHead": "a376dc0914ea7ad525e9ec12bda8e0fe04207089",
+      "query": "page.request.get(api) literal in tests/e2e",
+      "originalCount": 64,
+      "convertedLiteralCalls": 11,
+      "productionChanged": false,
+      "scope": "Issue667의 UI후 canonical 확인 11곳 및 #2814 기존 browser 구현 공유화. 나머지는 inventory/명시 제외 사유를 구분한다.",
+      "entries": [
+        {
+          "file": "tests/e2e/fixtures/target-project.ts",
+          "originalLine": 48,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "originalLine": 75,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "originalLine": 92,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "originalLine": 169,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "originalLine": 269,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "originalLine": 290,
+          "action": "RETAIN_API_SEED_CANONICAL",
+          "reason": "SC-13의 API POST로 만든 fixture를 navigation 전에 독립 확인; seed client 유지."
+        },
+        {
+          "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+          "originalLine": 296,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+          "originalLine": 63,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+          "originalLine": 74,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+          "originalLine": 154,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+          "originalLine": 170,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+          "originalLine": 243,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+          "originalLine": 273,
+          "action": "BROWSER_UI_VERIFICATION_WITH_DIRECT_OBSERVER",
+          "reason": "UI 후 실제 서버 canonical 검증; 기존 name/revision/tasks/links/instance/UNKNOWN 단언 보존. fault route는 해제되었거나 continue 상태."
+        },
+        {
+          "file": "tests/e2e/helpers/grid-task-reorder.ts",
+          "originalLine": 12,
+          "action": "RETAIN_API_SEED_HELPER",
+          "reason": "기존 프로젝트/작업 fixture seed helper이며 API client 기반 준비와 canonical 확인을 유지."
+        },
+        {
+          "file": "tests/e2e/inline-name-persistence.spec.ts",
+          "originalLine": 26,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/inline-name-persistence.spec.ts",
+          "originalLine": 138,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/milestone-management-persistence.spec.ts",
+          "originalLine": 22,
+          "action": "RETAIN_MIXED_API_AUTH_RESTART_CHECK",
+          "reason": "공통 get에 seed/실제 API 거절/독립 readonly/재시작 지속성 확인이 함께 있음. 기계 치환 제외."
+        },
+        {
+          "file": "tests/e2e/milestone-management-persistence.spec.ts",
+          "originalLine": 198,
+          "action": "RETAIN_MIXED_API_AUTH_RESTART_CHECK",
+          "reason": "공통 get에 seed/실제 API 거절/독립 readonly/재시작 지속성 확인이 함께 있음. 기계 치환 제외."
+        },
+        {
+          "file": "tests/e2e/milestone-stage-dashboard.spec.ts",
+          "originalLine": 18,
+          "action": "RETAIN_API_SEED_AND_INDEPENDENT_MUTATION_CHECK",
+          "reason": "API seed/mutate helper와 UI 후 browser helper를 이미 분리; browser 구현만 공통 helper로 이관."
+        },
+        {
+          "file": "tests/e2e/milestone-stage-exchange.spec.ts",
+          "originalLine": 22,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/milestone-stage-gates.spec.ts",
+          "originalLine": 14,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-chart-vertical-dnd.spec.ts",
+          "originalLine": 79,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-empty-summary-persistence.spec.ts",
+          "originalLine": 24,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+          "originalLine": 59,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+          "originalLine": 94,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+          "originalLine": 137,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+          "originalLine": 166,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-grid-reorder-persistence.spec.ts",
+          "originalLine": 194,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+          "originalLine": 18,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+          "originalLine": 115,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+          "originalLine": 120,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+          "originalLine": 288,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+          "originalLine": 321,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+          "originalLine": 25,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+          "originalLine": 68,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-context-menu.spec.ts",
+          "originalLine": 7,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-delete-context.spec.ts",
+          "originalLine": 18,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-task-delete-context.spec.ts",
+          "originalLine": 95,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-task-delete-context.spec.ts",
+          "originalLine": 118,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-task-delete-context.spec.ts",
+          "originalLine": 167,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-task-delete-context.spec.ts",
+          "originalLine": 226,
+          "action": "RETAIN_SEPARATE_API_CLIENT_REQUIRES_CALLSITE_REVIEW",
+          "reason": "seed/재시작/독립 persistence/active fault route 우회가 혼합된 기존 테스트. 이번 제한 교정에서 변경하지 않음; 모든 UI후 호출의 무위험 치환을 주장하지 않음."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 19,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 66,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 120,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 162,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 178,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 211,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 252,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 264,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/project-task-editor-persistence.spec.ts",
+          "originalLine": 274,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-dashboard-ui.spec.ts",
+          "originalLine": 12,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-drill-api.spec.ts",
+          "originalLine": 13,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-drill-ui.spec.ts",
+          "originalLine": 37,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-excel-export-api.spec.ts",
+          "originalLine": 14,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-excel-export-ui.spec.ts",
+          "originalLine": 73,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-milestone-ui.spec.ts",
+          "originalLine": 11,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-plan-api.spec.ts",
+          "originalLine": 12,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/resource-plan-ui.spec.ts",
+          "originalLine": 37,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "originalLine": 115,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "originalLine": 157,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "originalLine": 200,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "originalLine": 420,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "originalLine": 584,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        },
+        {
+          "file": "tests/e2e/task-context-menu-hierarchy.spec.ts",
+          "originalLine": 641,
+          "action": "OUTSIDE_FOCUSED_UI_TRANSPORT_AUDIT",
+          "reason": "전체 literal 호출 inventory에는 포함. 다른 API/권한/UI persistence 테스트의 상세 의미 검토 및 transport 전환은 이번 범위 아님."
+        }
+      ],
+      "originalSpecCount": 62,
+      "originalHelperCount": 2
+    },
+    "productionChanged": false,
+    "remoteOriginalFailurePreserved": true,
+    "remoteTransportRootCause": "UNKNOWN",
+    "newRemoteCI": "NOT TESTED"
+  },
+  "independentReview": {
+    "reviewer": "/root/integration_tests",
+    "preQa": "PASS",
+    "documentationSync": "PASS",
+    "scope": "12게시파일/5테스트 파일·선택18/17 Local Fast Feedback",
+    "findingsOpen": 0,
+    "htmlCaseMatches": 18,
+    "sourceFingerprintMatch": true,
+    "auditBaselineMatches": 64,
+    "independentHelperPassed": 7,
+    "independentTestsAddedToImplementerCount": false,
+    "qaFinal": "NOT TESTED"
+  },
+  "newHeadRemote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED"
+  },
+  "scope": {
+    "monitorUntilCompletion": true,
+    "merge": false,
+    "releaseAuthorized": false
+  },
+  "localStatic": {
+    "typecheck": "PASS",
+    "scopedLintErrors": 0,
+    "scopedLintWarnings": 0,
+    "markdownFiles": 228,
+    "markdown": "PASS",
+    "version": "0.114.1",
+    "versionConsistency": "PASS",
+    "whitespace": "PASS",
+    "historicalEvidenceUnchanged": 7,
+    "productionDiffAgainstParent": false
+  }
+}

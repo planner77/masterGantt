@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+CI #2819 완료 모니터링은 quality/Docker PASS·E2E FAIL이었다. 원격 SC-01 정상/90ms는 개별 PASS이며 새 실패는 cross-tab stale SC-05 최종 APIContext GET의 ECONNRESET이다. U5 UI후 canonical 확인11곳을 실제 서버 검증이 보존되는 browser 전송 helper로 교정했고 관련18·Unit17 PASS를 확인했다. seed/auth/독립API·route우회·재시작은 구분한다. 새 source·문서·독립 검토 후 다시 Full CI를 완료까지 모니터링한다.
+
 2026-10-16 CI #2818 재개: 동일 SC-01 재발의 semantic TIMED_OUT을 단계 진단으로 확인했다. 원본의 실제 RAF90ms 지연으로 같은 실패를 재현했고 U3-only frame clock 분리 후 지연 변형을 포함한 선택41·Unit76 PASS를 확인했다. 원래1500ms/120frame/3안정frame·U2/U4 viewport50ms·기존 단언을 유지하며 새 Full PR CI 완료까지 모니터링한다. 병합·release는 별도다.
 
 2026-10-16 CI #2817 REWORK: Editor 같은 revision 재조회에서 HTTP200/U2 no-op 완료 뒤 새 U3 관측 완료/영수증 재전달 미확인을 확인했다. 관측 요청을 최신 데이터 큐 뒤에 모으는 순서 보완과 단계 진단을 추가했고, 동결 source의 Unit71·Chromium40 PASS를 확인했다. 기존 단언·timeout/retry/skip은 유지한다. 당시 U3 실패 outcome이 없어 원격 직접 근인은 UNKNOWN이며 이전 #2814 전송 오류와 구분한다. 새 Full PR CI 시작까지가 요청 범위다.

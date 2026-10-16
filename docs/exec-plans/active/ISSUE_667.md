@@ -74,8 +74,8 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - AC3: actual Calendar 저장과 동일 revision DTO의 clean no-op/semantic 재사용·새 observation·Core 쓰기 0을 선택 검증했다. 로컬 PASS; 전체 조합·원격 인수 NOT TESTED.
 - AC4: 검색0/해제·WBS exact120 bookmark·연속3회축확장·진행중실제wheel·Resource exact120/후속 native-reset·pending wheel/resize·Target 편집을 선택 검증했다. 로컬 PASS; 별도 marker reveal/전체 조합은 NOT TESTED.
 - AC5: full canonical Task/Link·권한/revision, unknown/역전GET·추가 mutation0·같은 instance/tree/selection/columns·3000행/3회 cleanup 선택 범위 PASS. 장기 heap/전 listener·전체 Membership 조합은 NOT TESTED.
-- AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. 이전 게시 source의 DOCUMENTATION_SYNC 로컬 영향/정합 검토 PASS를 이력으로 보존한다. 이전 Resource/fixture 보완의 DOCUMENTATION_SYNC 의미 검토·PRE_QA PASS(26게시파일·15source·선택 로컬 증거 범위)는 이력으로 보존한다. CI #2817 관측 순서 보완과 이번 #2818 U3 frame 분리의 최종 검토·원본/재검증은 아래 각 새 원장을 따른다.
-- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1, Headc6f18/#2814.1, Head06d34/#2817.1, Headf94f/#2818.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
+- AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. 이전 게시 source의 DOCUMENTATION_SYNC 로컬 영향/정합 검토 PASS를 이력으로 보존한다. 이전 Resource/fixture 보완의 DOCUMENTATION_SYNC 의미 검토·PRE_QA PASS(26게시파일·15source·선택 로컬 증거 범위)는 이력으로 보존한다. CI #2817 관측 순서·#2818 U3 frame 분리·#2819 UI후 canonical 확인 전송의 최종 검토·원본/재검증은 아래 각 원장을 따른다.
+- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1, Headc6f18/#2814.1, Head06d34/#2817.1, Headf94f/#2818.1, Heada376/#2819.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
 
 ## DOCUMENTATION_SYNC
 
@@ -90,6 +90,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - `docs/evidence/issue-667/ci2814-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2817-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2818-correction.json`: UPDATED
+- `docs/evidence/issue-667/ci2819-correction.json`: UPDATED
 - `docs/ISSUE_667_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/ISSUE_35_GANTT_SCALE.md`: UPDATED
 - `docs/ISSUE_3_REVIEW.md`: UPDATED
@@ -477,3 +478,20 @@ infra는 새 단계 진단과 원본 artifact/출처를 분석하고 frontend `/
 문서 영향은 ARCHITECTURE/ADR/TEST_PLAN/REMOTE_VALIDATION/누적 실패 분석/Work Packet/PLAN/CHANGELOG 및 새 원장이다. 서버 API/DB/일정 알고리즘/보안/제품 시각언어·사용자 흐름·SVAR dependency/CI workflow는 변경하지 않아 해당 상세 문서 변경은 N/A다. 실제 변경은 내부 U3 clock 연결과 회귀 타이밍 주입·정리에 한정한다. 독립 사전 검토 후 동일 PR에 게시하고 새 Required3 완료까지 모니터링하며 run/attempt/Head/base/test merge·원격 결과는 Issue/PR STATUS에 기록한다. 새 결과를 커밋해 Head를 바꾸면서 이전CI를 재사용하지 않는다. Owner ACCEPT·병합·main/GHCR·release는 별도다.
 
 최종 독립 `/root/integration_tests`의 PRE_QA/DOCUMENTATION_SYNC는 PASS(14게시파일·5source·선택41/76범위), 지적0이다. 원본red와green의 실제SC-01·HTML41개·UnitJSON·source5 fingerprint 및 과거6JSON불변을 대조했다. 리뷰0/mergeable=true를 재확인했으며 게시 후 재확인한다. 원격 Required3·Trusted QA·Owner ACCEPT는 새 Head에서 별도 판정하고 완료까지 모니터링한다. version0.114.1/release_authorized=false 및 Issue/PR OPEN을 유지한다.
+
+
+## CI #2819 — 완료 모니터링에서 드러난 별도 canonical GET 전송 실패
+
+새 Head `a376dc0914ea7ad525e9ec12bda8e0fe04207089`, test merge `ef0fc8f0d0c08cea63541093c32b1c19a71ca115`, [CI #2819.1 / run38830613612](https://github.com/planner77/masterGantt/actions/runs/38830613612)을 완료까지 모니터링했다. Quality116749238464/Docker116749517448 PASS, E2E116750083738/QA116750113482 FAIL이다. shard2 job116748850362 step7의 `gantt-state-product-integration.spec.ts:177→269`, SC-05 cross-tab stale 변형의 최종 `page.request.get(api)`가 read ECONNRESET으로11.2초 FAIL이었다. 12 PASS/1 FAIL/69 NOT RUN, 다른5 shard CANCELLED이며 취소 로그에 별도 실제 FAIL 표시는 없었다. 완료한 보고서가 없으므로 취소를 PASS로 올리지 않는다.
+
+UNKNOWN 해제·같은 API·canonical 행·후속 renameInline까지 앞선 단언은 통과했고 최종 실제 저장 DTO 확인 GET이 실패했다. #2817/#2818의 의미 관측 timeout 재발이 아닌 #2814와 같은 전송 종류의 다른 callsite다. 관련 post-UI 확인 GET을 seed/auth/API독립 검증·다른 context/route우회·재시작 persistence와 구분해 감사한다. 실제 persistence 단언을 삭제하거나 mock으로 대체하지 않고 동일 출처 browser transport/no-store·직접 안전 observer의 기존 #2814 계약을 공유한다. 원격 상세 원인은 별도 lifecycle/resource 증거로 판단하며 무재시도·기존 timeout·권한/UNKNOWN·required gates를 유지한다.
+
+이번 감사는 spec literal62/helper2=64 inventory에서 UI후 U5 확인11곳을 교정한다. 다른 spec51/helper2는 분류/제외 근거를 남기되 전수 의미 검토나 전체 전송 오류 해소로 보고하지 않는다. 기존stage browser 구현만 shared helper로 이관하며 production·API/DB·보안·U2/U3/U4·CI workflow 변경0, version0.114.1/release_authorized=false를 유지한다. 원본 stale/5002사례는 로컬 PASS하여 원격 오류의 직접 근인은 UNKNOWN으로 보존한다. 원격 취소shard1의 정상SC-01 8.7초/90msSC-01 9.5초 개별PASS는 부분 증거이며 전체shard는 CANCELLED다. 호출별 routecontinue/unroute·실제HTTP/SQLite·exactcanonical 검증, source/test5 fingerprint와 선택검증은 [CI #2819 원장](../../evidence/issue-667/ci2819-correction.json)을 따른다.
+
+### 최종 선택 검증과 재게시 준비
+
+최종test5 fingerprint `da4dbdacf3237392aa07532aa11314a6fff8229afc5c4b7d650b17331604c685`에서 실제 HTTP/SQLite4파일18 PASS/0FAIL/0SKIP/0flaky/globalErrors0,289748.963ms/exit0 및 Unit2파일17 PASS/0FAIL/0pending을 확인했다. 구성은 U5 product9·Editor5·stage1·Milestone관리3이다. Unit은 shared helper7+진단10이며 별도 독립7 PASS와 합산하지 않는다. typecheck·scoped lint오류/경고0·Markdown228/version0.114.1/whitespace PASS다. 원본cross-tab stale/5002 PASS의 별도 HTML/trace와 최종18·sourcehash·감사64 분류를 구분했다.
+
+생산코드 diff0, 과거7 evidence JSON 불변이며 생성 Next설정은 백업 후 원본bytes로 복원했다. 이번 문서 영향은 TEST_PLAN/REMOTE_VALIDATION/누적분석/Packet/PLAN/CHANGELOG/새 원장이다. 제품 architecture/ADR/UX/API/DB/일정·보안·CI workflow 계약은 변경하지 않아 상세 수정은 N/A다. 최종 독립 사전 검토 후 같은 PR에 게시하고 새 Full CI 완료까지 다시 모니터링한다. 이번 교정은 원격 ECONNRESET 근인 확정이나 범위 밖53개 GET의 연결 안정성을 보증하지 않는다.
+
+최종 독립 `/root/integration_tests`의 PRE_QA/DOCUMENTATION_SYNC는 PASS(12게시파일·5테스트·선택18/17범위), 지적0이다. HTML18개·UnitJSON·source/test fingerprint 및64 inventory를 전건 대조했고 과거7JSON불변을 확인했다. 리뷰/충돌 상태는 게시 전후 다시 확인하고 새exact-head FullCI 완료까지 모니터링한다. Owner ACCEPT·병합·main/GHCR·release는 별도다.

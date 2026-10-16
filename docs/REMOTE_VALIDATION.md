@@ -781,3 +781,10 @@ Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate ch
 ## Issue #667 / CI #2818 — 재발 분석과 원격 완료 모니터링
 
 최신 사용자 요청은 새 Full PR CI 완료까지의 모니터링을 포함한다. 이전 시작까지만의 작업 범위 문장은 해당 실행의 이력이다. 원본 #2818은 Quality/Docker SUCCESS·E2E FAILURE이며 stage 진단으로 semantic TIMED_OUT을 확인했다. 원본 코드의 실제90ms RAF 지연 재현과 U3-only clock 보완·새 Head 원격 결과는 [보완 원장](evidence/issue-667/ci2818-correction.json)/Issue·PR 진행 기록에 분리한다. 원격 CPU/실제 RAF false의 세부 원인은 직접 계측되지 않았다. 새 CI의 run/attempt/Head/base/test merge 및 세 Required aggregate 완료 판정을 확인하며 취소·미실행·이전 source 성공을 최신 PASS로 사용하지 않는다. CI 성공도 Owner 병합 승인·main artifact·release 승인을 대신하지 않는다.
+
+
+## Issue #667 / CI #2819 — 완료 모니터링의 새 전송 실패
+
+CI #2819 완료 결과는 Quality/Docker PASS·E2E FAIL이며 SC-05 최종 APIContext GET의 ECONNRESET을 기록한다. 취소 shard1의 원격 로그에서 SC-01 정상/실제RAF90ms가 각각 개별 PASS였으므로 U3 frame 보완의 부분 증거로 보존하되 shard 전체는 CANCELLED다. APIContext GET의 직접 observer 부재·process/resource 두 snapshot·건강 probe 성공만으로 OOM/재시작/keep-alive 근인을 확정하지 않는다.
+
+후속은 U5 UI후 확인11곳의 browser transport 공유·직접 observer이며 원본 HTTP/SQLite 저장 단언과 무재시도를 유지한다. seed/auth/독립 API/route우회/재시작 검증은 분류 후 보존한다. [보완 원장](evidence/issue-667/ci2819-correction.json)에 원본 진단·source·호출 감사·선택 검증을 기록하며 다시 게시한 exact-head Full CI를 완료까지 모니터링한다. 새 결과는 같은 SHA의 Issue/PR STATUS로 인계하고 CI 성공을 Owner ACCEPT나 main/release 결과로 확대하지 않는다.

@@ -2,6 +2,7 @@ import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-ap
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
 import { diagnosticRoute } from "./fixtures/isolated-application-diagnostics";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 const adminPassword = "Stage463SyntheticAdmin!";
@@ -21,21 +22,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   };
   // After navigation, confirm UI writes through the browser's same-origin
   // transport. Do not depend on APIRequestContext's pooled socket lifetime.
-  const getBrowserSnapshot = async () => {
-    const response = await observeIsolatedApi(api, "GET", async () => {
-      const read = await page.evaluate(async path => {
-        const result = await fetch(path, { credentials: "same-origin", cache: "no-store" });
-        const text = await result.text();
-        let body: unknown = null, validJson = true;
-        try { body = JSON.parse(text); } catch { validJson = false; }
-        return { status: result.status, requestId: result.headers.get("x-request-id"), body, validJson };
-      }, api);
-      return { status: () => read.status, headers: () => ({ "x-request-id": read.requestId ?? "" }), body: read.body, validJson: read.validJson };
-    });
-    expect(response.status()).toBe(200);
-    expect(response.validJson, "브라우저 canonical 조회는 유효한 JSON을 반환해야 합니다.").toBe(true);
-    return response.body as ProjectSnapshotResponse;
-  };
+  const getBrowserSnapshot = () => readBrowserCanonicalSnapshot(page, api, observeIsolatedApi);
   let snapshot = await get();
   const headers = () => ({ Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` });
   const mutate = async (path: string, data: unknown, method: "post" | "put" | "patch" = "post", status = 200) => {

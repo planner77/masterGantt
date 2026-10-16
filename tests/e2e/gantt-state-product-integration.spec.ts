@@ -1,6 +1,7 @@
 import type { Route } from "@playwright/test";
 import type { ProjectSnapshotResponse } from "../../src/contracts/projects";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
 import { gridOrder, renameInline, seedReorderProject, taskRow } from "./helpers/grid-task-reorder";
 
 test.use({ ...isolatedApplicationOptions, viewport: { width: 1440, height: 1000 } });
@@ -11,7 +12,7 @@ for (const scenario of [
   { name: "서버 commit 뒤 연결 단절", committed: true, network: true, unavailable: false },
   { name: "서버 commit 뒤 응답 500과 조회 실패", committed: true, network: false, unavailable: true },
 ] as const) {
-  test(`SC-05 ${scenario.name}: 최신 서버 확인·재전송 0·같은 Core 인스턴스`, async ({ page, baseURL }, testInfo) => {
+  test(`SC-05 ${scenario.name}: 최신 서버 확인·재전송 0·같은 Core 인스턴스`, async ({ page, baseURL, observeIsolatedApi }, testInfo) => {
     const { api, snapshot } = await seedReorderProject(page, baseURL!);
     const task = snapshot.data.tasks.find((entry) => entry.name === "Task B")!;
     const frame = page.locator(".project-gantt-frame");
@@ -72,7 +73,7 @@ for (const scenario of [
     await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
     await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
-    const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+    const stored = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
     expect(stored.data.project.revision).toBe(snapshot.data.project.revision + (scenario.committed ? 1 : 0));
     expect(stored.data.tasks).toEqual(snapshot.data.tasks.map((entry) => entry.taskId === task.taskId && scenario.committed
       ? { ...entry, name: "Uncertain B" } : entry));
@@ -89,13 +90,13 @@ for (const scenario of [
     const nextSave = page.waitForResponse((response) => response.request().method() === "PATCH" && new URL(response.url()).pathname === patchPath);
     await renameInline(page, expectedName, "Confirmed B");
     expect((await nextSave).status()).toBe(200);
-    const final = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+    const final = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
     expect(final.data.tasks.map((entry) => entry.name)).toEqual(["Task A", "Confirmed B", "Task C"]);
     expect(final.data.project.revision).toBe(stored.data.project.revision + 1);
   });
 }
 
-test("SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제하지 않는다", async ({ page, baseURL }) => {
+test("SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제하지 않는다", async ({ page, baseURL, observeIsolatedApi }) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
   const task = snapshot.data.tasks.find((entry) => entry.name === "Task B")!;
   const frame = page.locator(".project-gantt-frame");
@@ -166,7 +167,7 @@ test("SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제�
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
   expect(readCount).toBeGreaterThanOrEqual(3);
   expect(patchCount).toBe(1);
-  const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const stored = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
   expect(stored.data.project.revision).toBe(snapshot.data.project.revision + 1);
   expect(stored.data.tasks).toEqual(snapshot.data.tasks.map((entry) => entry.taskId === task.taskId
     ? { ...entry, name: "Committed after old GET" } : entry));
@@ -174,7 +175,7 @@ test("SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제�
 });
 
 for (const oldRead of ["stale", "500", "both-500"] as const) {
-  test(oldRead === "both-500" ? "SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다" : `SC-05 cross-tab 최신 확정 뒤 이전 recovery ${oldRead}는 다시 잠그지 않는다`, async ({ page, baseURL }) => {
+  test(oldRead === "both-500" ? "SC-05 cross-tab 조회 pending과 실패 중 UNKNOWN 잠금은 유지된다" : `SC-05 cross-tab 최신 확정 뒤 이전 recovery ${oldRead}는 다시 잠그지 않는다`, async ({ page, baseURL, observeIsolatedApi }) => {
     const { api, snapshot, project } = await seedReorderProject(page, baseURL!);
     const task = snapshot.data.tasks.find(entry => entry.name === "Task B")!;
     const frame = page.locator(".project-gantt-frame");
@@ -266,7 +267,7 @@ for (const oldRead of ["stale", "500", "both-500"] as const) {
       expect(mutationCount).toBe(1);
       await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Cross-tab committed B", "Task C"]);
       await renameInline(page, "Task A", "Fresh after catch-up");
-      const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+      const stored = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
       expect(stored.data.project.name).toBe(name);
       expect(stored.data.project.revision).toBe(snapshot.data.project.revision + 3);
       expect(stored.data.tasks.map(entry => entry.name)).toEqual(["Fresh after catch-up", "Cross-tab committed B", "Task C"]);
@@ -280,7 +281,7 @@ for (const oldRead of ["stale", "500", "both-500"] as const) {
   });
 }
 
-test("SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다", async ({ page, baseURL }) => {
+test("SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다", async ({ page, baseURL, observeIsolatedApi }) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
   const created = await page.request.post(`${api}/tasks`, {
     headers: { Origin: baseURL!, "If-Match": `"${snapshot.data.project.revision}"` },
@@ -293,6 +294,6 @@ test("SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보�
   await expect(taskRow(page, milestone.name)).toBeVisible();
   await expect(page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`)).toBeVisible();
   await expect(page.locator(".project-milestone-lane")).toHaveCount(0);
-  const after = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const after = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
   expect(after).toEqual(canonical);
 });

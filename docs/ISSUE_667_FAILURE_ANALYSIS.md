@@ -37,6 +37,14 @@ TEST_PLAN·SC-01의 새 observation/같은 semantic receipt/실제 Core 쓰기0 
 
 원본production의 실제RAF90ms 지연 SC-01은1 FAIL(7725ms/report20059.393ms), semantic TIMED_OUT을 재현했다. U3-only 분리 후 같은 변형은 semanticId3 유지/observation3→4/reused=true/delivery SETTLED로 통과했다. 최종5 source fingerprint `058eb1aaf9d6c20f493e5b698a4a0be00e9f547efd6d1786836aba1a56725b06`에서 선택 Chromium41 PASS/0FAIL/0SKIP/0flaky/globalErrors0(157070.556ms)·Unit76 PASS를 확인했다. 원본/green 검증은 [CI #2818 원장](evidence/issue-667/ci2818-correction.json)에 귀속하며 원격 runner의 실제 지연 발생 원인은 직접 측정하지 않았다.
 
+## CI #2819 — SC-05 최종 저장 확인의 ECONNRESET
+
+U3 frame 보완을 게시한 Head `a376dc0914ea7ad525e9ec12bda8e0fe04207089`의 [CI #2819.1/run38830613612](https://github.com/planner77/masterGantt/actions/runs/38830613612)을 완료까지 확인했다. Quality116749238464/Docker116749517448 PASS, E2E116750083738/QA116750113482 FAIL이다. shard2 job116748850362 step7의 cross-tab stale SC-05가 line269 최종 APIRequestContext GET에서 read ECONNRESET으로11.2초에 실패했다. 12 PASS/1 FAIL/69 NOT RUN이며 다른5 shard는 CANCELLED(별도 실제 FAIL 표시 없음/완료 판정 없음)다.
+
+UNKNOWN·잠금 해제·same API·canonical 행·후속 name-only 저장 단언 이후 마지막 실제 SQLite snapshot 확인 전송이 실패했다. 이전 의미 관측 timeout과 구분하며 #2814의 다른 callsite에서 같은 전송 종류가 드러났다. 최종 GET의 project.name/revision+3/tasks/links 검증은 필요하며 삭제하지 않는다. same-origin browser fetch는 page.route를 통과하므로 각 fault/hold route가 실제 서버로 continue되는지 확인한 호출만 교정한다. seed/auth·API독립·다른 context·재시작 persistence 또는 route 우회 검증은 기계 치환하지 않는다. 단일 최신 사례만 바꾸지 않고 관련 U5 UI 후 canonical 확인 호출의 감사·공유 helper·선택 회귀를 수행한다.
+
+최종test5 fingerprint `da4dbdacf3237392aa07532aa11314a6fff8229afc5c4b7d650b17331604c685`의 관련 실제HTTP/SQLite18 PASS(289748.963ms)·Unit17 PASS를 확인했다. 원본stale/500 로컬2 PASS는 오류 비재현 결과이며 원격 근인은 UNKNOWN으로 유지한다. inventory64(spec62+seedhelper2) 중11곳을 교정하고 spec51/helper2의 제외 근거를 명시했다. 실제 변경은 테스트 helper/3spec/Unit5파일이며 production diff0다. [CI #2819 원장](evidence/issue-667/ci2819-correction.json)에 source·감사·원본진단·최종 선택 검증을 기록한다.
+
 ## 최초 구현과 반복 보완에서 드러난 경계
 
 원격 네 실행 이전 로컬 실패도 [Work Packet](exec-plans/active/ISSUE_667.md)에 보존했다. native add의 비DFS canonical→DESIRED_INVALID_TASKS는 전체 ID/형제순서를 보존하는 DFS 정규화로 수정했고 중복 ID는 계속 거부한다. 취소 뒤 늦은 writer·source taint는 실제 source/API/원래 lease·미완료 writer0·3프레임 Core/native geometry가 일치하는 read-only 복구로 처리했다. facade 예산을 mounted lifetime으로 오해해 기존3회 확장과 120px bookmark가 실패한 사례는 명령당 bounded facade로 교정하되 source 전체 bounds·taint·자동 재시도 금지를 유지했다. extent 정착 뒤 U3 재관측, stale GET 세대, Membership unknown handler, Editor child/transport busy 잠금 누락도 각각 보완했다.
