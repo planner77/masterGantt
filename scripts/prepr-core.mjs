@@ -122,7 +122,7 @@ const RULES = [
   {
     id: "http-sqlite", risk: "HIGH",
     re: /^(?:src\/(?:app\/api|server|lib\/security)|db\/)/i,
-    unit: [],
+    unitPaths: ["tests/server/projects/task-handler-integration.test.ts", "tests/server/projects/edit-authorization-handlers.test.ts", "tests/server/db/database.test.ts"],
     browser: ["project-edit-authorization", "project-task-persistence", "project-create-isolation", "resource-drill-api", "project-json-import"],
     reason: "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
   },
