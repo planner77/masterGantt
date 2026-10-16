@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 CI #2831 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)의 재개6단계와 ci2827/ci2829를 먼저 비교했다. 원격768 Day geometry PASS 후 Week reveal은SUPERSEDED였고 당시delivery는day/rowsPENDING이었다. 원본768·자연5폭 비재현PASS와24actualRAF 통제경합FAIL을 분리하고 원격 직접 취소UNKNOWN을 유지한다. 임시진단원복 후 현재Week semantic/delivery·실제axis 준비를 첫 reveal 전에 확인하는 test-only 보완과 관련 교차/취소 음성을 검증한다. 새 증거는ci2831에 보존하며 리뷰/충돌·main 확인 뒤 새FullPRCI 시작까지만 수행한다.
+
 2026-10-16 CI #2829 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)의 증상 인덱스/재개6단계부터 이전 원인과 새 Task hover 실패를 비교했다. Milestone Tooltip 생성 뒤 후행 native scroll이 기존 정책에 따라 닫는 순서를 로컬에서 계측했다. 첫 hover 전 현재 API/receipt/Coordinator/Core-native·geometry/hit의 실제 정착을 확인하는 test-only 보완과 scroll/focus/leave 닫힘 음성을 검증한다. 원본 visible FAIL·로컬 name FAIL을 구별하고 새 source/증거를 ci2829에 보존하며 리뷰/충돌 확인 후 새 Full PR CI 시작까지 수행한다.
 
 2026-10-16 CI #2827 후속: 새로운ISO week header Tooltip 부재를 원본단독에서도재현했다. Escape뒤같은focused셀DOM을날짜가상화가재사용한상태에서focus()를다시호출해새focusin이없었던fixture전제를교정한다. 기존ISO/date/geometry·5000ms·제품정책은유지하고실제blur→focus와Escape닫힘/포커스유지를검증한다. 확대38/3에서발견한Week native clamp오분류도Core/native양baseline비교로교정했고최종source3의Unit250·Chromium56이PASS했다. [별도누적실패분석](../../ISSUE_667_FAILURE_ANALYSIS.md)에증상인덱스·재개절차·run별원장을보존하며최종선택검증/사전검토/리뷰0·main정렬후새FullPRCI시작까지만수행한다.

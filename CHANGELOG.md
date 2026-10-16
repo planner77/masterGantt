@@ -1,5 +1,7 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- CI #2831의 768px Week geometry 검증이 현재 scale의 semantic/delivery와 실제 날짜축 준비를 확인한 뒤 최초 reveal을 요청하도록 fixture를 보완한다. 이전 receipt에 등록된 명령 중 새 semantic이 도착하는 통제 경합·비재현·원격 미계측 경계를 실패 원장에 보존한다.
+
 - CI #2829의 Task hover 검증이 후행 날짜축/native scroll 정착을 확인한 뒤 첫 hover를 수행하도록 fixture를 보완하고 실제 scroll/focus/이탈 닫힘 계약을 검증한다. 원격/로컬 assertion 차이와 계측·검증 근거를 별도 실패 원장에 누적한다.
 
 - CI #2827 확대 진단에서 확인한 Day→Week native clamp의 사용자 이동 오분류를 Core/native 양쪽 등록 좌표 비교로 교정한다. 실제 입력 우선권·단일 writer·기존 좌표/CI gate는 유지한다.

@@ -17,7 +17,7 @@ issue_comment_writer: manager
 issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME, FINAL
 documentation_owner: Manager
 
-2026-10-16 CI #2829 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
+2026-10-16 CI #2831 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
 
 최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 이전 2026-10-16 요청에서는 새 PR CI 완료 모니터링을 포함해 당시의 CI 시작까지만 범위를 대체했다(과거 실행 이력). 병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
 
@@ -646,3 +646,48 @@ HIGH/OWNER_MANAGED/qa_required=true, version0.114.1·release_required=true/relea
 명령/환경/예산/HTML hash는 ci2829 JSON에 고정한다. Nodev22.14.0/Playwright1.63.0/Chromium153.0.8010.12, workers1/retries0, 기존 expect5000ms/test30000ms·Copy기존90000/180000ms를 유지했다. A는 browser timezoneId unset/process TZ UTC(실제 browser timezone 별도미측정), B는 원본 spec의 America/New_York로 구분한다. 이 로컬 선택 PASS는 새 Head 원격 전체 Required 또는 QA_FINAL/Owner ACCEPT가 아니다.
 
 별도 qa_docs `/root/pre_review`의 read-only PRE_QA=PASS / DOCUMENTATION_SYNC=PASS(이번7파일·선택26사례 한정), 추가지적0이다. 최종 HTML/hash·case중복0·source drift0·과거11개 evidence bytes·runtime3파일 불변을 직접 확인했다. HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를 유지한다.
+
+## CI #2831 후속 — 768px geometry의 reveal SUPERSEDED
+
+별도 실패 원장의 증상 인덱스·재개6단계와 ci2827/ci2829를 먼저 읽었다. 기준 Head `b300ae0411117a31ea3cfc59692f69f3d64f21be`, main `fd219130491c53d054754eac41a58e4a6a3da0c6`을 고정했다. 원본 run38852119218의 shard4 job116815978545 step7은 `milestone-timeline-lane.spec.ts:380→391`, 768px geometry reveal의 SETTLED 기대/SUPERSEDED 수신이다. Quality/Docker PASS·E2E/QA Automated FAIL, 해당 shard53 PASS/1 FAIL/기존1 SKIP/89 NOT RUN이다. 취소 shard와 미실행을 성공으로 보지 않는다.
+
+원본768 단독 로컬 PASS는 비재현으로 기록한다. 원격 마지막 snapshot은 reveal 직전 RANGE_EXTENSION SETTLING이며 새 DIAGNOSTIC_SCROLL의 직접 취소 사유는 미계측이다. #2827 native-forward clamp·#2829 hover 준비 전제와 동일 원인이라고 단정하지 않는다. 정확한 원인·통제 재현·최소 보완·선정/제외·최종 동결 source는 [ci2831](../../evidence/issue-667/ci2831-correction.json)에 단계별로 기록한다.
+
+frontend `/root/viewport_fix`는 관련 제품/테스트와 browser/server의 단일 작성자·운영자, infra `/root/ci_investigation`은 remote read-only 증거 조사, qa_docs `/root/pre_review`는 별도 read-only PRE_QA, Manager는 문서/통합/게시를 담당한다. 기존12개 evidence와 원본/생성 설정/capture를 보존한다. 제품·CI gate/단일writer/timeout/retry/skip·성공 단언은 유지하고 geometry fixture의 읽기 전용 등록 전제만 보완한다.
+
+현재 main 포함·미해결 리뷰0·충돌0을 확인했으며 게시 전에 재검증한다. 이번 범위는 보완·문서 동기화 후 같은 PR695의 새 Full PR CI 시작 확인까지다. HIGH/OWNER_MANAGED·qa_required=true/version0.114.1/release_required=true/release_authorized=false, QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를 유지한다. 병합·Main/GHCR·release/tag·Issue/branch 종료는 별도다.
+
+### 변경 영향·선정·제외 및 DOCUMENTATION_SYNC
+
+| 경계 | 이번 조치·검증 |
+| --- | --- |
+| 직접 생산/소비 | #551 geometry test의scale전환→현재U3 semantic/delivery·실제축준비→최초probe.reveal 호출1회(필요 시 DIAGNOSTIC_SCROLL). 제품range current()의initial.projectionEpoch fail-closed는유지 |
+| 원본/진단 분리 | 원본768단독PASS·자연5폭/10관측PASS는비재현. 정착관측24actualRAF보류통제1FAIL의day2→week3·SUPERSEDED와원격직접cancelUNKNOWN을구별 |
+| 직접·인접 선택 | lane전체/5폭Day·Week+Core9·viewport8·scale1·hover6·실제HTTP/SQLiteCopy10. 최종discovery고유case수로확정, retries0/maxFailures0에서모든추가FAIL관찰 |
+| 취소 음성 | SC-09의의도적pending/wheel에는새준비gate미적용. viewport-coordinator Unit의gesture/hidden/context/revision/projection취소·후속repair0를보존/검증 |
+| 제외 | 최종제품/공유helper변경0전제에서Resource/Calendar/서버/auth/DB/보안전체재실행N/A. 전체SC/공식전체회귀/환경별인수는새PRCI와후속소유자범위 |
+
+UPDATE: ISSUE_667_FAILURE_ANALYSIS와새ci2831JSON·TEST_PLAN·Work Packet/PLAN·CHANGELOG. 이전12개evidence bytes, 원본/통제/최종source·명령·환경·선정/제외·확정/UNKNOWN경계를보존한다.
+
+N/A: ARCHITECTURE/PROJECT_UX/GANTT_ADAPTER_ADR/GANTT_SYNC_TRACE/GANTT_STATE_CONFORMANCE/MILESTONE_TIMELINE/TASK_EDITOR/DESIGN/UI_UX_GUIDELINES — 기존제품scale/receipt/취소·단일writer·시각/interaction계약변경0, 검증명령등록전제를명시한다.
+
+N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA_REVIEW_POLICY 및workflows/scripts/package/lock — 서버/권한/도메인/CI/QA/release/버전변경0. 원격실패와새시작의실제출처는원장/IssueSTATUS로보존한다.
+
+### 최종 동결 source의 로컬 증거
+
+변경 source는 lane spec1개(+53/−0)이며 SHA256 `29f9380dc4e09fa62540f42061534777bf14c500295863e5fde35d097563482a`, 변경path→hash compact JSON fingerprint `122414ffa09f855b847f3af475f4a5ce1c2fc7b006b565097d8ed1f8436f6267`다. 임시제품2파일을 원복했고 runtime3파일·기존12개evidence는 HEAD bytes와 같다. 기존 Core/native 양baseline guard·Task hover 보완·geometry/취소 단언을 유지한다.
+
+| 실행 단계 | 결과·시간·경계 |
+| --- | --- |
+| 원본768 | 1 PASS(비재현), test2578ms/report5738.975ms |
+| 자연5폭 | 5 PASS/10 Day·Week관측, test합11424ms/report14851.171ms; pending단독항상실패가설기각 |
+| no-gate24RAF통제 | 1 FAIL, test2218ms/report5553.964ms; 원문FAIL보존 |
+| 동일24RAF+gate통제 | 1 PASS, test3164ms/report6585.704ms; 현재week/gen3→gen3·최초revealSETTLED |
+| 최종6spec | lane21+Core9+viewport8+scale1+hover6+Copy10=고유55 PASS/0 FAIL/0 SKIP/0 flaky/global errors0 |
+| 최종 시간·실행 경계 | report300934.710ms/test합190573ms, 실제HTTP/SQLite10·mock API/실제SVAR/DOM45. source drift0·retries0 |
+| Unit | Coordinator1파일91 PASS/194ms; gesture/hidden/context/revision/projection취소·후속repair0음성포함 |
+| 정적 검사 | typecheck PASS·변경spec lint 오류/경고0·Markdown229·version0.114.1·diff PASS |
+
+명령/환경/timeout예산·각HTML hash·source snapshot provenance는 ci2831 JSON에 고정했다. 일부진단snapshot은원본backup/실제편집스크립트로재구성해당시보존hash와대조한증거이며원격원본traceembedded 직접bytes확인과구분한다. timing reporter의FAIL제외 duration합0은실제실패시간0이아니므로HTML의2218ms와별도로구분했다. generated next-env/tsconfig는 HEAD bytes로원복하고생성bytes를Git밖에보존했다. 로컬선택/통제결과와공식새exact-Head전체Required·QA_FINAL/Owner ACCEPT는별도다.
+
+별도 qa_docs `/root/pre_review`의 PRE_QA=PASS / DOCUMENTATION_SYNC=PASS(이번7파일·선택55사례·Unit91의원문/소스대조한정), 미해결지적0이다. Reviewer별도재실행은없으며 HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를 유지한다.

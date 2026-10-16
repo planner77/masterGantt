@@ -1,3 +1,9 @@
+## Issue #667 — CI #2831 Week geometry reveal 등록 전제 (2026-10-16)
+
+geometry 검증은 scale control 클릭·lane visible·probe.ready만으로 현재 날짜 의미의 준비를 승인하지 않는다. 첫 reveal 전에 현재 API/revision/scale의 U3 semantic/delivery receipt와 실제 날짜축·geometry가 일치하는지 읽기 전용 확인한다. 최초 reveal1회·기존 STRICT SETTLED·좌표/clip/행±1px·동일 instance/mutation0을 유지한다. 의도적 pending/wheel 취소 음성은 이 준비 gate를 적용하지 않는다.
+
+원본768 단독 비재현PASS, 자연5폭 진단PASS와 Week DIAG 정착24actualRAF 보류의 통제1FAIL을 구분한다. 통제 반례는 이전 day/gen2 명령 중 새 week/gen3가 도착하는 취소를 확인하지만 원격 직접 취소 terminal은 미기록이다. 임시DEV 필드/관측 보류는 최종source에서 제거하고 제품/lease/timeout/retry/skip·성공 판정은 유지한다. 명령·환경/source·선정/제외·검증·원격 미검증은 [ci2831](evidence/issue-667/ci2831-correction.json)과 [별도 원장](ISSUE_667_FAILURE_ANALYSIS.md)에 보존한다.
+
 ## Issue #667 — CI #2829 Task hover의 현재 viewport 준비 (2026-10-16)
 
 #492의 Task hover Tooltip은 focus/scroll/영역 이탈 때 닫힌다. 테스트는 scrollIntoView 직후 후행 axis/native 보존 작업이 끝났다고 가정하지 않고, 첫 hover 전에 현재 API/revision/scale·URL rootTask scope의 semantic/delivery 및 현재 Coordinator·실제 Core/native/geometry/hit가3실제RAF 안정적인지 확인한다. 첫 hover는1회이며 기존 canonical name/date/null·Grid/Chart 동일 내용·5000ms·readonly/Week/fullscreen/scope·mutation0을 유지한다. 실제 wheel 좌표 변화·root focus·root 밖 pointer leave에 의한 닫힘도 검증한다.
