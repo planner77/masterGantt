@@ -111,6 +111,7 @@ import { createProductConsistency } from "./product-consistency";
 import { buildProjection, diffProjection, type CanonicalProjection } from "./canonical-projection";
 import { observeProjectionSettled, deliverProjectionReceipt, type ProjectionReceipt } from "./projection-settled";
 import { createProjectionObservationScheduler } from "./projection-observation-scheduler";
+import { observationAnimationFrame } from "./viewport/observation-animation-frame";
 import { registerTaskUrlSnapshot, findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
@@ -2043,6 +2044,7 @@ export function ProjectGantt({
       visible: () => peerViewportContext.current.visible,
       blocked: () => consistencyBlockedReference.current,
       intent: () => ({ stamp: coordinator.stamp(), priority: 1 }), frame: port.frame,
+      observationFrame: observationAnimationFrame,
     });
     consistencyReference.current = consistency;
     const dirtyTag = "project-consistency-dirty";

@@ -3878,3 +3878,6 @@ Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 
 
 
 #667 CI #2817의 SC-01 원본은 첫 Editor 재조회 GET200/U2 no-op SETTLED 이후 observation3이 유지된 실패다. 같은 revision의 새 observation·semantic reuse·Core 쓰기0·canonical/instance 보존 단언을 유지한다. 관측 scheduler의 held data queue·대기 중 queue 교체·복수 selection/layout trigger·cleanup/API 변경·queue 거부/callback 예외·자동 재시도0을 Unit으로 검사하고 기존 Editor 및 projection 관련 실제 Chromium을 선택 검증한다. Unit의 ordering 검증을 원격 원인의 직접 재현으로 확대하지 않으며 로컬 원본 비재현도 원격 FAIL을 대체하지 않는다.
+
+
+#667 CI #2818 재발은 새 진단의 rows 완료 이후 semantic TIMED_OUT이다. 원본 source에서 실제 RAF 전달만90ms 늦춘 SC-01의 첫 재조회 실패를 재현하고, U3-only clock 분리 후 같은 변형·기존무지연 SC-01을 검사한다. 같은 semanticId/새 observation·Core쓰기0·canonical/인스턴스 보존 및 원래 timeout/retry/skip을 유지한다. frame helper Unit은50ms 이후에도 합성 성공 없이 실제 RAF만 true, 기존1500ms caller abort·hidden·cleanup을 확인한다. U3 자체 deadline까지 RAF가 오지 않으면 계속 TIMED_OUT이어야 하며 이를 PASS로 바꾸지 않는다. 원본/보완source와 원격세부원인 미계측 경계를 [이번 원장](evidence/issue-667/ci2818-correction.json)에 기록한다. 최신 사용자 요청에 따라 새 PR CI를 완료까지 모니터링한다.

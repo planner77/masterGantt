@@ -15,6 +15,7 @@ export function createProductConsistency(options: {
   blocked(): boolean;
   intent(): UserIntentLease;
   frame(signal: AbortSignal): Promise<boolean>;
+  observationFrame?(signal: AbortSignal): Promise<boolean>;
 }) {
   const controller = new AbortController();
   const abort = { signal: controller.signal, isCurrent: () => !controller.signal.aborted };
@@ -42,7 +43,7 @@ export function createProductConsistency(options: {
     return { layout: JSON.stringify([state.gridWidth, (state.columns ?? []).map(column => [column.id, column.width, column.hidden])]),
       axis: JSON.stringify([state._start, state._end, state._scales?.width, state.scales]) };
   };
-  const observation = createProjectionObservation({ ...core, clock, abort, readGeometry, readLayoutAxis,
+  const observation = createProjectionObservation({ ...core, clock: { ...clock, frame: options.observationFrame ?? options.frame }, abort, readGeometry, readLayoutAxis,
     readRecovery: () => recovery.state().recovery,
     readContext: () => ({ source: recovery.state().source, desired: options.identity(), layoutAxis: readLayoutAxis(), intent: options.intent(), visible: options.visible(), mounted: options.root.isConnected }),
     verifyCore: input => verifyCoreConformance({ reader: core, desired: input.desired, context: recovery.state(), observation: input.observation, current: recovery.state }),

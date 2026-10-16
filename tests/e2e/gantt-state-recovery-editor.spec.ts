@@ -12,12 +12,37 @@ async function openEditor(page: Page, name: string) {
   return taskInformationDialog(page);
 }
 
-test("SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다", async ({ page, baseURL }, info) => {
+for (const frameDelay of [0, 90]) {
+  test(`SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic receipt만 만든다${frameDelay ? " — 실제 RAF 90ms 지연" : ""}`, async ({ page, baseURL }, info) => {
   const { api, project } = await seedReorderProject(page, baseURL!);
   await page.goto(`/projects/${project.publicId}?__coreTrace=1`);
   const frame = page.locator(".project-gantt-frame");
   await expect(taskRow(page, "Task B")).toBeVisible();
   const editor = await openEditor(page, "Task B");
+  if (frameDelay) await page.evaluate(delay => {
+    const request = window.requestAnimationFrame.bind(window), cancel = window.cancelAnimationFrame.bind(window);
+    let serial = 0;
+    const pending = new Map<number, { timer: number; raf?: number }>();
+    window.requestAnimationFrame = callback => {
+      const id = --serial, entry = { timer: 0, raf: undefined as number | undefined };
+      pending.set(id, entry);
+      entry.timer = window.setTimeout(() => {
+        entry.raf = request(timestamp => { pending.delete(id); callback(timestamp); });
+      }, delay);
+      return id;
+    };
+    window.cancelAnimationFrame = id => {
+      const entry = pending.get(id);
+      if (!entry) { cancel(id); return; }
+      clearTimeout(entry.timer); if (entry.raf !== undefined) cancel(entry.raf); pending.delete(id);
+    };
+    Reflect.set(window, "__issue667RestoreAnimationFrames", () => {
+      window.requestAnimationFrame = request; window.cancelAnimationFrame = cancel;
+      for (const entry of pending.values()) { clearTimeout(entry.timer); if (entry.raf !== undefined) cancel(entry.raf); }
+      pending.clear();
+    });
+  }, frameDelay);
+  try {
   const identity = await frame.getAttribute("data-project-gantt-api-instance");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const receipt = async () => {
@@ -52,7 +77,17 @@ test("SC-01 Editor 동일 Revision 재조회는 새 관측과 같은 semantic re
   await info.attach("same-revision-editor-trace", { body: JSON.stringify({ before, after: await receipt(), trace }), contentType: "application/json" });
   await editor.getByRole("button", { name: "취소", exact: true }).click();
   await expect(editor).toHaveCount(0);
+  } finally {
+    try {
+    await info.attach("projection-observation-outcome", { body: JSON.stringify({ frameDelay,
+      stage: await frame.getAttribute("data-gantt-projection-observation"),
+      receipt: await frame.getAttribute("data-gantt-semantic-projection-receipt") }), contentType: "application/json" });
+    } finally {
+      if (frameDelay) await page.evaluate(() => { Reflect.get(window, "__issue667RestoreAnimationFrames")(); Reflect.deleteProperty(window, "__issue667RestoreAnimationFrames"); });
+    }
+  }
 });
+}
 
 test("SC-05 Editor commit 뒤 500·GET 실패는 초안을 보존하고 명시 재조회로만 복구한다", async ({ page, baseURL }, info) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);

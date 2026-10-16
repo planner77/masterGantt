@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 CI #2818 재개: 동일 SC-01 재발의 semantic TIMED_OUT을 단계 진단으로 확인했다. 원본의 실제 RAF90ms 지연으로 같은 실패를 재현했고 U3-only frame clock 분리 후 지연 변형을 포함한 선택41·Unit76 PASS를 확인했다. 원래1500ms/120frame/3안정frame·U2/U4 viewport50ms·기존 단언을 유지하며 새 Full PR CI 완료까지 모니터링한다. 병합·release는 별도다.
+
 2026-10-16 CI #2817 REWORK: Editor 같은 revision 재조회에서 HTTP200/U2 no-op 완료 뒤 새 U3 관측 완료/영수증 재전달 미확인을 확인했다. 관측 요청을 최신 데이터 큐 뒤에 모으는 순서 보완과 단계 진단을 추가했고, 동결 source의 Unit71·Chromium40 PASS를 확인했다. 기존 단언·timeout/retry/skip은 유지한다. 당시 U3 실패 outcome이 없어 원격 직접 근인은 UNKNOWN이며 이전 #2814 전송 오류와 구분한다. 새 Full PR CI 시작까지가 요청 범위다.
 
 2026-10-16 종합 재개: [누적 실패 분석](../../ISSUE_667_FAILURE_ANALYSIS.md)에 최초 로컬 실패·CI #2811~#2814를 연결했다. 첫46파일260사례에서 Copy scroll46→0을 추가 재현·보완하고, Unit51파일714 PASS 및 Copy/wheel/scale왕복3 PASS를 확인했다. 확대49파일299사례는294 PASS/4 FAIL/기존1 SKIP으로 완료했다. 검색 영수증과 Calendar DTO fixture24 및 추가 Resource31→30 복원 strict1을 교정 후 PASS했다. 최종15파일 동결 source의 Unit723 PASS, 최종299 광역은61번 PASS 관측 뒤 완료 보고서 없이 종료되어 NOT TESTED이며 같은 source의 핵심7파일56사례는56 PASS/0FAIL/0SKIP/0flaky로 별도 검증했다. 최신 reset 근인은 UNKNOWN이며 원본/중간 FAIL과 source를 구분한다. 리뷰/충돌 확인·새 Full PR CI 시작까지만 수행한다.

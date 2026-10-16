@@ -4,7 +4,7 @@ Refs #667
 
 ## 판정과 범위
 
-CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이번 요청의 종료점은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작이다. 완료 모니터링·병합·릴리스는 제외한다.
+CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 2026-10-16 최신 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함한다. 병합·릴리스는 제외한다.
 
 모든 원본 attempt는 1이다. base는 `ee6365bf57ab637b4c0aca61fdedaf5148253052`이며 quality/docker는 각각 SUCCESS, e2e aggregate는 FAILURE다. 아래 job/step은 실제 실패 테스트의 출처다. 취소된 shard나 아직 실행되지 않은 사례를 PASS로 세지 않는다.
 
@@ -26,6 +26,16 @@ quality/docker/e2e aggregate job ID는 각 immutable 교정 원장에 기록한�
 TEST_PLAN·SC-01의 새 observation/같은 semantic receipt/실제 Core 쓰기0 요구를 유지한다. GET200이나 Editor 버튼 재활성만으로 projection 완료를 승인하지 않는다. 코드 검토에서 최초 관측만 data queue를 기다리고 open/select/layout의 관측은 직접 실행하는 순서 경계를 발견했다. 실제 canonical 처리와 관측의 순서 검증 및 안전한 단계별 진단을 보완하며 원본 출처·수정·검증을 [CI #2817 원장](evidence/issue-667/ci2817-correction.json)에 기록한다.
 
 최종 source3 fingerprint `677f27b6e682eb7214d463aba603c14c82ca35bf8c57334c5f25c128281c6a71`의 Unit71 및 Chromium40이 PASS했다. 원격 직접 근인은 UNKNOWN이며 queue ordering Unit과 실제 기존 Editor/검색/선택/viewport 회귀를 구분한다. 독립 검토에서 발견한 새 helper 오류 후 옛 waiter의 추가 관측 P2는 drain token 폐기로 교정했고 원래 원격 실패의 원인으로 돌리지 않는다. 중간 source 또는 중단된 실행은 최종40 PASS에 합산하지 않는다.
+
+## CI #2818 — 같은 SC-01 재발과 의미 관측 조기 timeout
+
+[CI #2818.1 / run38827799811](https://github.com/planner77/masterGantt/actions/runs/38827799811), Head `f94f2f633301a59a04a3fce2c6c7078a68f1c72d`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`, 출처 artifact로 확인한 test merge `41f9f007570aefce21c0174cf8d962b28be588c5`에서 같은 SC-01 line36이 observation3 유지로 실패했다. Quality116740291029/Docker116740499332 SUCCESS, E2E116740700316 FAILURE다. shard1 job116739804326 step7은1 PASS/1 FAIL/110 NOT RUN, 다른5 shard CANCELLED다. 이전 queue 순서 보완 및 선택40 PASS를 원격 문제 해소로 확대할 수 없었다.
+
+이번 단계 진단은 reload GET200(66.992ms)·U2 generation4/settled4/SETTLED changed=false 뒤 generation6이 rows PENDING→semantic PENDING→semantic TIMED_OUT에 도달했음을 보인다. 초기 receipt를 재전달하는 데 실패했으며 관측 시작 누락이나 전송 오류와 구분한다. 원격 자료에는 frame false 반환의 원인과 실제 CPU/RAF 지연이 직접 계측되지 않아 그 세부 실행 원인은 미확정이다.
+
+코드에서는 U3 의미 관측이 viewport port의 frame 함수를 공유한다. 이 함수는 한 실제 RAF가50ms 안에 오지 않으면 false를 반환하고, U3는 false를 자체1500ms deadline 소진으로 해석해 즉시 TIMED_OUT한다. 이 숨은 더 짧은 예산 경계를 원본 소스의 실제 지연 RAF로 재현한 뒤 U3 frame 대기만 분리한다. U2 recovery와 U4/viewport의 기존50ms 정책·U3의1500ms/120frame/3안정frame·actual Core/semantic/취소 조건을 유지한다. 최종 실행 증거는 원장에 별도 기록하며 원격 자체의 원인 확정은 새 CI 완료 결과와 구분한다.
+
+원본production의 실제RAF90ms 지연 SC-01은1 FAIL(7725ms/report20059.393ms), semantic TIMED_OUT을 재현했다. U3-only 분리 후 같은 변형은 semanticId3 유지/observation3→4/reused=true/delivery SETTLED로 통과했다. 최종5 source fingerprint `058eb1aaf9d6c20f493e5b698a4a0be00e9f547efd6d1786836aba1a56725b06`에서 선택 Chromium41 PASS/0FAIL/0SKIP/0flaky/globalErrors0(157070.556ms)·Unit76 PASS를 확인했다. 원본/green 검증은 [CI #2818 원장](evidence/issue-667/ci2818-correction.json)에 귀속하며 원격 runner의 실제 지연 발생 원인은 직접 측정하지 않았다.
 
 ## 최초 구현과 반복 보완에서 드러난 경계
 

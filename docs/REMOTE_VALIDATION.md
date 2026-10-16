@@ -776,3 +776,8 @@ Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate ch
 원본 [CI #2773.1](https://github.com/planner77/masterGantt/actions/runs/38642502958), run `38642502958`, attempt `1`, Head `9a9a4907d9d19848aab5c02a359338f51da2678d`, base `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`, test merge `28fc90438cade34fc8c535307ea7827c07933cc3`는 QA Preflight의 DOCUMENTATION_SYNC FAIL이다. Work Packet의 최초 기능 PR UPDATED 선언이 correction의 변경 파일에 포함되지 않아 차단됐다. Quality/E2E/Docker 구현은 SKIPPED, 필수 집계는 FAIL이며 애플리케이션 실행 결과로 바꾸어 기록하지 않는다.
 
 현재 correction의 문서 영향 기록 및 P2 독립 layout-readiness를 보완한 새 Head를 같은 PR에 게시하여 synchronize Full PR CI를 시작한다. 원본 base validator·3 Required aggregates·6-shard·timeout·geometry·권한·GHCR 정책은 유지한다. 리뷰 스레드 해결과 최신 main 충돌 검사를 수행하고 새 run ID/attempt/Head/base/test merge의 시작 상태를 기록한다. 사용자 요청에 따라 결과 모니터링을 수행하지 않으며 새 Quality/E2E/Docker·Trusted QA 최종 결과는 NOT TESTED다. 병합·Main GHCR·정식 릴리스 및 Issue 종료는 별도 승인·검증 단계다.
+
+
+## Issue #667 / CI #2818 — 재발 분석과 원격 완료 모니터링
+
+최신 사용자 요청은 새 Full PR CI 완료까지의 모니터링을 포함한다. 이전 시작까지만의 작업 범위 문장은 해당 실행의 이력이다. 원본 #2818은 Quality/Docker SUCCESS·E2E FAILURE이며 stage 진단으로 semantic TIMED_OUT을 확인했다. 원본 코드의 실제90ms RAF 지연 재현과 U3-only clock 보완·새 Head 원격 결과는 [보완 원장](evidence/issue-667/ci2818-correction.json)/Issue·PR 진행 기록에 분리한다. 원격 CPU/실제 RAF false의 세부 원인은 직접 계측되지 않았다. 새 CI의 run/attempt/Head/base/test merge 및 세 Required aggregate 완료 판정을 확인하며 취소·미실행·이전 source 성공을 최신 PASS로 사용하지 않는다. CI 성공도 Owner 병합 승인·main artifact·release 승인을 대신하지 않는다.

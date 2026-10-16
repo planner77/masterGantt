@@ -246,3 +246,12 @@ Editor의 같은 revision 재조회에서 HTTP200 및 U2 no-op SETTLED 이후 �
 관측 요청은 현재 effect/API의 단일 scheduler에서 모아 최신 canonical queue 뒤에 전달한다. 대기 중 queue가 교체되면 교체된 queue의 완료를 확인하며 selection/layout trigger를 함께 보존한다. 데이터 큐에는 관측 완료 Promise를 연결하지 않으므로 viewport와의 순환 대기를 만들지 않는다. effect cleanup/API 교체는 대기 요청을 폐기하고 실패 관측을 자동 재시도하지 않는다. 실패·cleanup에서 drain 토큰을 폐기해 옛 queue callback이 후속 명시 요청을 소비하거나 빈 추가 관측을 실행하지 못하게 한다. 원래 source/semantic receipt/actual Core 확인·유한 관측 예산·단일 viewport writer 계약은 유지한다.
 
 개발 진단은 최신 attempt의 단계(rows/semantic/delivery)·outcome·generation만 기록한다. payload/HTTP body·비밀값은 추가하지 않는다. 기존 semantic receipt와 새 attempt를 구분하고 SETTLED 이전 결과를 성공 영수증으로 게시하지 않는다. source별 검증·원격 근인 UNKNOWN 경계는 [누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
+
+
+## Issue #667 / CI #2818 — U3 관측과 viewport frame 예산 분리
+
+의미 관측 U3는1500ms deadline·120실제frame·3안정frame을 가진다. 이전 제품 연결은 viewport port의50ms frame tick을 공유해 단일 RAF 지연을 전체 TIMED_OUT으로 해석했다. 원본 상태의 실제 RAF90ms 지연 SC-01에서 같은 실패를 재현했다. 공개 Core API 반환이나 timer callback을 화면 정착으로 승인하는 문제와 구분한다.
+
+제품 연결의 내부 `observationFrame`은 U3 clock만 실제 RAF 대기로 분리한다. 별도 짧은 timer로 관측을 종료하지 않고 U3의 기존 wall-time watchdog이 abort를 소유한다. 실제 RAF만 frame 성공이며 abort/숨김은 RAF·listener를 정리하고 실패로 종료한다. U2 recovery와 U4/viewport port의50ms tick·lease·쓰기·축 계약은 유지한다. deadline을 늘리거나 실패 관측을 자동 재시도하지 않는다.
+
+같은 revision의 원본 SC-01 단언을 유지하고90ms 지연 변형을 추가한다. 지연은 전달 타이밍만 바꾸며 실제 Core/DOM/geometry·semantic 재사용·쓰기0을 검사한다. 진단 실패 시에도 finally에서 주입한 timer/RAF를 정리한다. 원격 환경의 실제 CPU/RAF 지연 세부 원인은 미계측이며 코드 재현·선택 로컬·새 원격 완료 증거는 [보완 원장](evidence/issue-667/ci2818-correction.json)에서 구분한다.

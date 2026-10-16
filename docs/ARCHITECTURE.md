@@ -496,3 +496,6 @@ U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기�
 
 
 #667 CI #2817 후속의 projection 관측 ingress는 최초 적용·tree/selection·layout 요청을 현재 effect/API의 scheduler로 모아 최신 canonical data queue 완료 뒤 실행한다. 기다리는 사이 교체된 queue와 selection/layout trigger를 보존하고 cleanup 또는 실패로 폐기한 drain의 옛 callback은 새 요청을 실행할 수 없다. 관측 완료를 data queue에 합류시키거나 실패 결과를 자동 재시도하지 않으며 actual Core/semantic receipt/viewport의 소유권과 성공 조건을 유지한다. 원격 근인의 확정 범위와 실제 선택 검증은 [누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
+
+#667 CI #2818 후속에서 U3 의미 관측 clock의 frame 대기는 viewport port와 분리한다. 의미 관측의 기존1500ms wall-time watchdog/120실제frame/3안정frame이 종료를 소유하며 실제 RAF만 성공한다. U2 recovery/U4 viewport의50ms frame tick은 유지한다. 같은 revision 재조회에서 한 프레임 지연을 전체 관측 예산 소진으로 잘못 처리하는 경계를 원본90ms 지연 browser 회귀로 재현했고, 실제 원격 runner의 지연 원인까지 확정한 증거는 아니다.
