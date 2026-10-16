@@ -71,10 +71,21 @@
 
 ## 사전 검증 결과 (2026-10-16)
 
-- 저장소 `main` 및 실제 GitHub 테스트 파일 목록 기반 정적 선정 시뮬레이션: LOW docs 0, MEDIUM editor 8, HIGH canonical 14, HIGH HTTP/SQLite 8 (직접 Unit/Integration 3 + Chromium 5), HIGH Pre-PR tooling 1개 Unit 경로 **계획 결과**; 테스트 자체 실행 성공을 뜻하지 않는다.
+- 저장소 `main` 및 실제 GitHub 테스트 파일 목록 기반 정적 선정 시뮬레이션: LOW docs 0, MEDIUM editor 8, HIGH canonical 14, HIGH server copy: generic Chromium/API regression + actual importing Unit; absent direct import remains BLOCKED, HIGH Pre-PR tooling 1개 Unit 경로 **계획 결과**; 테스트 자체 실행 성공을 뜻하지 않는다.
 - V8 소스 구문 파서로 `scripts/prepr-core.mjs` 및 `scripts/verify-prepr.mjs`의 구문 확인; 실제 Node/vitest/Playwright/npm Build를 재현하는 검증은 **NOT TESTED**.
 - 실제 WSL2 사용자 환경, Chromium, Docker, 사용자 프로세스/파일 안전성 및 네트워크 장애는 실행 근거가 없어 **NOT TESTED**, 신규 자동화 테스트는 원격 정확 PR head Quality CI 판정 필요.
 - 구현 파일과 기존 CI workflow 경로의 차이를 GitHub compare로 확인; 로컬 자체 성공을 exact-head PR CI PASS로 승격 금지.
+
+## PR #700 — CI #2845.1 REWORK (2026-10-16)
+
+- Original full PR CI: [run #2845.1](https://github.com/planner77/masterGantt/actions/runs/38910326999), exact HEAD `9f1c32a0feca14d8a1dc5f0829631a2d81e9a732` / base `bdaed6bd86612fd168b8ca6b0a40a34966b699d2`.
+- First genuine failure: Vitest **3 FAIL / 2763 PASS / 3 SKIP**. The historical U1/U2/U4 installed-Core capture fixture compares the full historical manifest after normalizing version, so the new additive `scripts.verify:prepr` package alias caused an exact manifest mismatch. These failures are fixture/version provenance mismatch, not evidence of Gantt product regression. Policy/TS/lint/QA Preflight passed; #659 fast gate blocked production Build/E2E6/Docker, then all three Required aggregates and QA Final failed as expected. Do not count skipped E2E/Docker as product FAIL or PASS.
+- Correction: `tests/fixtures/gantt-state-consistency/capture-install.ts` removes **only** the exact `"verify:prepr": "node scripts/verify-prepr.mjs"` additive alias from its *comparison copy*; captured source snapshots/locks remain immutable. Any other npm script, dependency, lockfile or different alias command remains a failing historical capture assertion. New `tests/scripts/prepr-verifier.test.ts` positive/negative fixture tests cover these distinctions. Unit failure reports of #2845 are not marked corrected until new full PR CI.
+- Review P2 #1: previously ignored deleted/renamed `tests/**/*.test.ts|spec.ts` and shared `tests/config`/helpers/fixtures; `git diff --no-renames` now retains old+new coverage paths. Removed tests become MISSING, unknown shared harnesses BLOCKED; mapped historical capture helper selects its actual three consumer tests plus new CLI test.
+- Review P2 #2: previous generic HTTP/SQLite map could report READY while omitting a server module's specific test. The local inventory now indexes actual source-module import references in real Unit/Integration test files; `src/server/**` missing a direct importing test becomes UNKNOWN/BLOCKED even if generic browser smoke exists. Example: `project-copy-service-core.ts` requires `tests/server/projects/project-copy-service.test.ts`.
+- Review P2 #3: `PLAYWRIGHT_CHROMIUM_EXECUTABLE` points to an arbitrary browser. Chromium E2E guard now rejects the override instead of labeling it pinned. `chromiumRevision` is explicitly the **expected package revision**, not the observed binary version; real launch evidence requires actual E2E. Negative Unit included.
+- Test impact: three historical installed-Core Unit tests + `tests/scripts/prepr-verifier.test.ts`, targeted static import mapping, and CI's full mandatory Unit/Build/E2E/Docker. Node 22, actual Chromium/SQLite/Docker on final source and GitHub same-head CI remain NOT TESTED until the new run. No timeout/retries/assertions were weakened and official six-shard workflow unchanged.
+- Rework owner: infra/tooling; QA: OWNER_MANAGED (independent human QA not claimed); risk_level HIGH; release_required=false; manager_decision NOT TESTED. No merge/GHCR/finalize authorized.
 
 ## 위험 및 인계
 
