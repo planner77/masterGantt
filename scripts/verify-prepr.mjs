@@ -6,7 +6,7 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, wri
 import { cpus, platform, release } from "node:os";
 import { join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { diagnosticSubset, inferRisk, inventory, isPathWithin, selectImpact, sourceEvidence } from "./prepr-core.mjs";
+import { diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, selectImpact, sourceEvidence } from "./prepr-core.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const validModes = new Set(["fast", "targeted", "ci-like", "diagnose", "docker"]);
@@ -129,16 +129,14 @@ async function isPortAvailable(port) {
 }
 
 function assertE2eSafe() {
-  for (const name of ["PLAYWRIGHT_BASE_URL", "APP_BASE_URL", "DATABASE_PATH"]) {
-    if (process.env[name]) throw new Error(`BLOCKED: ${name} is set. Clear it to prevent testing a live application/database.`);
-  }
   const reserved = [
     ".data/playwright.sqlite3", ".data/playwright.sqlite3-wal", ".data/playwright.sqlite3-shm",
     ".next-e2e", "test-results", "playwright-report",
   ];
-  for (const name of reserved) {
-    if (existsSync(resolve(root, name))) throw new Error(`BLOCKED: existing E2E resource ${name}; do not overwrite. Use a clean worktree.`);
-  }
+  const decision = e2eSafety({
+    env: process.env, existing: reserved.filter((name) => existsSync(resolve(root, name))),
+  });
+  if (decision.state === "BLOCKED") throw new Error(`BLOCKED: ${decision.reasons.join("; ")}. Use an isolated worktree.`);
   return reserved;
 }
 
@@ -313,7 +311,7 @@ async function main() {
         : result.selection.selected.filter((x) => x.kind === "chromium").map((x) => x.path);
       if (opt.mode !== "targeted" || e2e.length) {
         browserResources = assertE2eSafe();
-        if (!await isPortAvailable(3100)) throw new Error("BLOCKED: port 3100 in use/unknown; refusing to stop an existing server");
+        if (e2eSafety({ portFree: await isPortAvailable(3100) }).state === "BLOCKED") throw new Error("BLOCKED: port 3100 in use/unknown; refusing to stop an existing server");
         browserStarted = true;
         const args = ["run", "test:e2e", "--", "--project=chromium", "--workers=1", "--retries=0",
           ...(opt.mode === "diagnose" ? ["--max-failures=0"] : []), ...e2e];
