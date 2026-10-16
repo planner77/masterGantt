@@ -779,3 +779,15 @@ N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPE
 - 직접 검증 선정: #571 첫 native120 준비, Core/native120, filter120→0→120, wheel 후0, 검색 해제 후0, 동일 API·mutation0. 인접 검증: #456/#570 metadata 소비자, 기존 Viewport와 Gantt 축/peer 경합. 원본 상태 전이와 다르게 임의 sleep·retry·skip·timeout 증가를 허용하지 않음.
 - 문서 영향: `docs/ISSUE_667_FAILURE_ANALYSIS.md` 및 `docs/evidence/issue-667/ci2837-correction.json`, 현재 Work Packet **UPDATED**. `docs/TEST_PLAN.md`는 #697 영향 기반 테스트 선정과 기존 SC-07/08/09·#571 명세를 그대로 적용하므로 **N/A(정책 불변)**. `AGENTS.md`, DESIGN, API, DB_SCHEMA, SECURITY, SCHEDULING_ENGINE, REMOTE_VALIDATION, CI_CD, CHANGELOG는 정책·제품·사용자 노출 동작/버전 변경 없으므로 **N/A**.
 - 확인 사항: 변경 source의 TypeScript/Vitest/Playwright 로컬 실행은 GitHub 소스 조회 세션에서 실행 불가 → **NOT TESTED**, 통과 표시 금지. 자동화 CI는 새 Head 게시 후 별도 검증; 원본 아티팩트·기존 시도 증거 보존. qa_method OWNER_MANAGED/risk_level HIGH/qa_required true/release_required true/release_authorized false, MERGE_READY BLOCKED 유지.
+
+
+## CI #2838 후속 — FILTER_RETURN post-geometry capacity 재검사 및 유한 재준비
+
+원본 [Full PR CI #2838.1](https://github.com/planner77/masterGantt/actions/runs/38875147458) Head `131cdc285844b40ed9834e494d0c0a0140637767`: Quality/Docker PASS, Shard4 #571 quick Milestone→전체 bookmark (line192) 139PASS/1FAIL/기존1SKIP/3NOTRUN, 다른5 Shard SUCCESS. 최초 X120과 filtered X0은 PASS이고 '전체' 복원만 X0/NO_SCROLL_CAPACITY다.
+
+### 변경 영향 분석 / AC_TEST_COVERAGE
+- **Core/Viewport 제품:** `viewport-coordinator.ts`는 FILTER_RETURN의 기존 source·gesture·context 검사를 유지하면서 port.prepare에 compatibility=true를 전달하고 post-WAIT_GEOMETRY에 한 번의 Core/native admission 확인을 추가. `svar-viewport-port.ts`는 공용 writer에 쓰기 없는 `admitPosition` reader만 추가. 둘 외의 runtime, DB/API/permission, SVAR 도메인·축 알고리즘 구현은 유지.
+- **직접 회귀:** `viewport-coordinator.spec.ts` #571 첫120→Milestone0→전체120→실제wheel0·검색해제0와 모든 기존 단언 유지. 새로운 Coordinator Unit의 축 축소 중간삽입·bounded reprepare 실패·기존 filter/wheel/reveal/columns 경계, port Unit의 Core/native 별도 admission.
+- **교차 회귀:** #456/#570 metadata120 준비·late zero, #464 Resource peer, #384 Copy, #549 Week axis, #571 gesture·filter cancel, #666 U4 physical geometry 범위와 원래 Source lease.
+- **증거/한계:** 원본 Actions log 및 artifact trace 안전 필드를 재검토했다. 최종 제품·Unit·문서 source의 정적 계약 검사만 완료; Node/npm 프로젝트 실행·Chromium local은 **NOT TESTED**. 원본 성공 사례와 새 Source PASS를 합산하지 않는다.
+- **DOCUMENTATION_SYNC:** `docs/ISSUE_667_FAILURE_ANALYSIS.md`, `docs/exec-plans/active/ISSUE_667.md`, `docs/TEST_PLAN.md`, `docs/evidence/issue-667/ci2838-correction.json` UPDATE. `AGENTS.md`, PROJECT_UX, GANTT_STATE_CONSISTENCY/CONFORMANCE, DESIGN, API, DB_SCHEMA, SECURITY, CI_CD, REMOTE_VALIDATION은 기본 계약/사용자-facing 동작 불변으로 N/A. .github workflow, package/lock, main version, GHCR release policy 불변. HIGH/OWNER_MANAGED·QA_FINAL/Owner·Manager ACCEPT는 NOT TESTED, MERGE_READY BLOCKED.

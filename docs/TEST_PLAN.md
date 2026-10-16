@@ -3994,3 +3994,10 @@ Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 
 
 
 #667 CI #2820의 #637 음성 테스트는 실제 rows TIMED_OUT에도 과거 성공receipt의 generation 증가를 기다려 실패했다. 원본 단독 재현 후 최신 delivery/SETTLED+semantic 존재를 baseline으로 고정하고 fresh rows TIMED_OUT·기존 성공receipt/semantic 불변을 검증한다. canonical fixture/current public Core/DOM IDs 및4개 row/bar의27.5px 차이·sameinstance/mutation0을 유지한다. 복구는 더 새 diagnostic delivery SETTLED/freshsemantic observation(semanticId재사용허용)/실제정렬로 검사한다. 관련projection-row-alignment13+canonical21+viewport8을 선택 실행하며 originaltimeout/retry/skip·production은 변경하지 않는다. [보완 원장](evidence/issue-667/ci2820-correction.json)에 원본 FAIL/변경source/최종결과를 분리한다.
+
+
+## Issue #667 / CI #2838 — Quick Filter Bookmark 물리축 축소 이후 회귀 (2026-10-16)
+
+- 원본 #2838.1 E2E shard4 `viewport-coordinator.spec.ts` #571은 초기 bookmark X120·Milestone empty X0은 성공하고 '전체' 복귀 X120은 NO_SCROLL_CAPACITY/X0으로 실패했다. 필터 중 작은 실측 width(952/client905)와 이전 성공 axis receipt의 width(1972)는 별개다.
+- **제품 계약:** FILTER_RETURN의 원래 bookmark intent는 한 번만 적용하며, 현재 Core/native 양쪽 수용 용량과 최신 projection receipt·3-frame geometry가 반드시 맞아야 한다. filter-tasks/layout이 첫 준비 이후 축을 축소하면 같은 current lease·SOURCE에서 허용되는 단 1회의 보완 준비를 수행하고, 그 이후 다시 receipt+geometry를 확인한다. 아직 부족·새 사용자 wheel·scope/query/API 변경·불확정 Core 상태면 fail-closed하며 stale bookmark를 재적용하지 않는다. 기존 PEER_RETURN과 SC-07/08/09, U4 source taint/MaxExtensions 계약은 유지.
+- 회귀 선택: 기존 #571 bookmark120→0→120 및 휠취소/Scope/Columns unit과 Chrome, #456/#570 metadata, #549 Week, Resource peer/Copy 관련 실제 소비자; Core/native(각각 충분·한쪽 부족), latest attempt/receipt, 축 축소 뒤 새 확장 실패·취소 음성. timeout/skip/retry·required 6-shard 및 공식 Quality/E2E/Docker 정책 변경 없음.

@@ -313,6 +313,6 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
     }
     return target;
   };
-  return { read, frame: nextFrame, prepare, apply, repair, protect(target, current) { authority = { target, current, geometry: read().geometry, repairs }; }, release() { authority = null; }, trace,
+  return { read, frame: nextFrame, prepare, admitPosition: position => admitsPosition(read(), position), apply, repair, protect(target, current) { authority = { target, current, geometry: read().geometry, repairs }; }, release() { authority = null; }, trace,
     resizing: () => resizing, dispose() { disposed = true; authority = null; axisTransaction?.dispose(); api.detach(tag); } };
 }

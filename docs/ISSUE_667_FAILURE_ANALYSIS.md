@@ -23,6 +23,7 @@ Refs #667
 | #2833 | 검색이 Week 확장 취소·초기capacity47에서120이clamp; metadata저장전fixture준비 | [ci2833](evidence/issue-667/ci2833-correction.json) |
 | #2835 | 첫 검색 전 Week/U3 SETTLED·31IDs 일치에도 capacity47; 현재 작업 완료와 목표120 수용 조건 분리 | [ci2835](evidence/issue-667/ci2835-correction.json) |
 | #2837 | Scoped WBS 빠른 필터 전 raw native capacity만 보고 120 입력; 동시 RANGE APPLYING/rows PENDING에 X=0 | [ci2837](evidence/issue-667/ci2837-correction.json) |
+| #2838 | WBS quick Milestone→전체 복귀 중 축 재축소(1904→952) 후 FILTER_RETURN NO_SCROLL_CAPACITY; 준비 후 apply 시점 용량 불일치 | [ci2838](evidence/issue-667/ci2838-correction.json) |
 
 ### 재개 순서와 기록 규격
 
@@ -240,3 +241,13 @@ Tooltip 보완 source의 5spec41 실행은38 PASS/3 FAIL/0 SKIP/0 flaky/errors0(
 - **보완:** #2835에서 도입한 `waitForGanttReadiness`/read-only evaluator를 이 기존 WBS 소비자에도 적용한다. 현재 scoped rootTask, API/revision, Week Core scale, canonical IDs, 최신 semantic/delivery, RANGE terminal, 3RAF 안정 geometry, Core/native target120의 공동 수용을 확인한다. 정착 후 용량 부족이면 기존 #456/#570 방식처럼 **fixture 밖의 실제 wheel 입력을 단 한 번** 사용하고 새 RANGE 완료를 기다린다. 첫 `scrollLeft=120`은 여전히 1회이고 Core/native 정확120, quick-filter bookmark120→0→120, 실제 wheel→0 및 검색 해제0·same API·mutation0을 유지한다. 의도적 전환/취소 테스트에는 준비 대기를 넣지 않는다.
 - **계약 회귀 추가:** 목표120의 Core/native 용량이 충분해도 `RANGE_EXTENSION/APPLYING`이면 거부하고, terminal SETTLED 이후에도 최신 `rows/PENDING`은 거부해야 한다. 최신 delivery SETTLED가 도달한 경우에만 준비 PASS다. timeout/retry/skip·공식 CI/lease/writer/API/제품 코드는 변경하지 않는다.
 - **검증 경계:** 이번 연결 환경에서는 GitHub 원본 Job 로그·선행 source·추적 증거와 코드/문서 구조를 대조하지만, 로컬 Node/npm 전체 저장소 실행 환경을 확보하지 못했다. 새 Source의 Unit/Chromium/Typecheck/Lint, QA·Trusted·Owner 및 전체 Required CI 결과는 새 공식 실행 전까지 **NOT TESTED**로 기록한다. 기존 #2835의 로컬 117/43 PASS를 새 source 결과로 합산하지 않는다. 신규 source/Run 출처는 Issue STATUS에 별도 추가한다.
+
+
+## CI #2838 — 최초 bookmark 120 성공 후 필터 해제 시 실제 날짜축 재축소 회귀
+
+- **원본:** [Full PR CI #2838.1/run38875147458](https://github.com/planner77/masterGantt/actions/runs/38875147458), Head `131cdc285844b40ed9834e494d0c0a0140637767`, base/main `fd219130491c53d054754eac41a58e4a6a3da0c6`. Quality/Docker PASS, E2E shard4 job `116889017104`에서 139PASS/1FAIL/기존1SKIP/3NOTRUN, 다른5 shard 성공. QA Automated FAIL은 E2E Required 불충족 후속이다.
+- **실패 위치:** `tests/e2e/viewport-coordinator.spec.ts:143→192` #571 WBS 빠른 필터 bookmark. 초기 Core/native 120과 Milestone 빈집합 Core/native 0을 통과했으며, `전체` 복귀 뒤 예상120/실제0 5초 실패다. #2837의 첫 초기 X 입력 실패와 구분한다.
+- **원본 Playwright trace:** 처음 Week 준비는 Core46/native47·axis1904(capa999)에 SETTLED. Milestone 필터에서 Core/native0으로 클램프·물리축952(capa47)로 축소. `전체` 복귀 때 `FILTER_RETURN`이 실제로 `WAIT_PROJECTION→PREPARING_GEOMETRY→WAIT_GEOMETRY→APPLYING`에 진입했지만, 적용 시 native width952/client905, Core X0·native X0; 결과 `NO_SCROLL_CAPACITY`. 이전 성공 axis transaction(1972px)의 데이터셋은 그 시점 물리용량 증거가 아니다. 또 다른 자동 `RANGE_EXTENSION` 2회는 더 높은 우선순위의 FILTER_RETURN 동안 `LOWER_PRIORITY`로 취소됐다.
+- **근본 원인:** 첫 port.prepare 이후 비동기 Core `filter-tasks`/layout이 물리 스크롤 폭을 다시 축소해, 첫 준비의 수용 가능성이 명령 apply 때 유지되지 않았다. 좁아진 축에서 안전한 원래 좌표 복귀를 허용할 bounded compatibility 준비가 FILTER_RETURN에 적용되지 않았다. 마지막 layout writer의 정확 호출 출처는 원격에서 별도 계측하지 않아 UNKNOWN이며, 확인된 `FILTER_RETURN/NO_SCROLL_CAPACITY` 직접 실패와 구분한다.
+- **보완:** 기존 단일 Coordinator에서 `FILTER_RETURN`의 port.prepare에만 compatibility=true를 전달하고, WAIT_GEOMETRY에서 최신 receipt+3frame geometry를 확인한 뒤 **실제 Core/native 양쪽 capacity를 read-only 재검사**한다. shrink 시 같은 user lease/source를 가진 **최대 1회** post-geometry axis 준비를 수행하고, 새 projection/geometry receipt를 다시 기다린 후 하나의 scroll-chart 입력으로 완료한다. 추가 준비 불가·기존 intent 폐기 시 NO_SCROLL_CAPACITY/SUPERSEDED로 실패 폐쇄. user wheel/새 filter/새 context가 old bookmark를 부활시키지 않는다.
+- **검증:** 새로운 Coordinator Unit은 첫 prepare 성공→geometry 47 축소→두 번째 준비 후 single FILTER_RETURN apply, 재준비 실패시 재시도/쓰기0 반례를 검증한다. Port Unit은 Core 119/native140, Core140/native119를 각각 거절하도록 한다. 기존 #571 정상 bookmark120→0→120, wheel 취소, scope/columns/다른 reveal 무복원, U4 bounded extension·UNKNOWN/권한·same instance를 유지한다. 제품 변경 외 E2E 단언·timeout/retry/skip·Required CI 정책 불변. 이 세션의 새 source 로컬 Node/Playwright 전체 실행은 NOT TESTED(격리된 실행환경에서 저장소/의존성 미제공); 원격 새 exact Head CI에서 전체 결과를 판정한다.

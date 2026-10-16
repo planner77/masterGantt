@@ -1,0 +1,77 @@
+{
+  "issue": 667,
+  "pr": 695,
+  "ci": {
+    "run": 38875147458,
+    "number": 2838,
+    "attempt": 1,
+    "head": "131cdc285844b40ed9834e494d0c0a0140637767",
+    "base": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+    "quality": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qaAutomated": "FAIL",
+    "failedShard": 4,
+    "failedJob": 116889017104,
+    "passed": 139,
+    "failed": 1,
+    "skipped": 1,
+    "notRun": 3,
+    "otherShards": "5 SUCCESS",
+    "test": "tests/e2e/viewport-coordinator.spec.ts",
+    "line": 192
+  },
+  "trace": {
+    "initialBookmark": {
+      "core": 120,
+      "native": 120
+    },
+    "filteredEmpty": {
+      "core": 0,
+      "native": 0,
+      "scrollWidth": 952,
+      "clientWidth": 905
+    },
+    "restoration": {
+      "command": "FILTER_RETURN",
+      "stages": [
+        "WAIT_PROJECTION",
+        "PREPARING_GEOMETRY",
+        "WAIT_GEOMETRY",
+        "APPLYING",
+        "NO_SCROLL_CAPACITY"
+      ],
+      "actualCore": 0,
+      "actualNative": 0,
+      "measuredCapacity": 47,
+      "lastSettledAxisWidth": 1972,
+      "concurrentRangeExtension": "LOWER_PRIORITY"
+    },
+    "cause": "post-prepare physical axis shrink invalidates Core/native coordinate admission; old FILTER_RETURN lacks bounded compatibility reprepare",
+    "unknown": "exact native filter-tasks writer causing shrink not separately instrumented"
+  },
+  "fix": {
+    "files": [
+      "src/features/gantt/viewport/viewport-coordinator.ts",
+      "src/features/gantt/viewport/svar-viewport-port.ts",
+      "tests/features/gantt/viewport-coordinator.test.ts",
+      "tests/features/gantt/svar-viewport-port.test.ts"
+    ],
+    "operation": "same-lease bounded filter bookmark post-geometry re-preparation with exact Core/native capacity",
+    "nonChanges": [
+      "existing product scroll author",
+      "user gesture invalidation",
+      "timeout/retry/skip",
+      "CI/QA/release gates"
+    ]
+  },
+  "tests": {
+    "githubEvidence": "PASS",
+    "sourceStaticAssertions": "PASS",
+    "localVitest": "NOT TESTED",
+    "localPlaywright": "NOT TESTED",
+    "remoteNewHead": "NOT TESTED",
+    "reason": "Github connector sources available, repository dependencies unavailable in local environment"
+  },
+  "sourceHeadBefore": "131cdc285844b40ed9834e494d0c0a0140637767"
+}

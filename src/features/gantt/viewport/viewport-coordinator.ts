@@ -38,6 +38,8 @@ export interface ViewportPort {
   read(): ViewportSample;
   frame(signal: AbortSignal): Promise<boolean>;
   prepare?(command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPreparation>;
+  /** Read-only Core+native capacity admission at the moment the command is committed. */
+  admitPosition?(position: ViewportPosition): boolean;
   apply(command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPosition | null>;
   repair(position: ViewportPosition, diagnostic?: true): boolean;
   protect(position: ViewportPosition, current: () => boolean): void;
@@ -176,6 +178,13 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     // the filtered projection remain authoritative, including during prepare.
     const coordinateCommand = (): ViewportCommand => command.kind === "FILTER_RETURN"
       ? { ...command, position: { left: command.position.left, top: port.read().core.top } } : command;
+    // Filter return owns its original bookmark lease. Unlike a plain scroll,
+    // its original date extent may have collapsed while the filter was empty.
+    // Only its preparation phase may use the bounded compatibility axis path.
+    const preparationCommand = (): ViewportCommand => {
+      const candidate = coordinateCommand();
+      return candidate.kind === "FILTER_RETURN" ? { ...candidate, compatibility: true } : candidate;
+    };
     const phase = (value: ViewportPhase) => trace(value);
     let result: ViewportOutcome = "TIMED_OUT";
     const complete = (outcome: ViewportOutcome) => { result = outcome; return outcome; };
@@ -195,7 +204,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       // canonical data. Finish that preparation before pinning its receipt.
       if (port.prepare) {
         phase("PREPARING_GEOMETRY");
-        const prepared = await port.prepare(coordinateCommand(), current, source);
+        const prepared = await port.prepare(preparationCommand(), current, source);
         if (!current()) return complete("SUPERSEDED");
         if (!prepared.ready) return complete("NO_SCROLL_CAPACITY");
         preparationFloor = prepared.projectionAfter ?? -1;
@@ -212,6 +221,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       }
       phase("WAIT_GEOMETRY");
       let stable = 0, previous = "";
+      let filterCapacityReprepared = false;
       for (let count = 0; count < maxFrames && current(); count++) {
         const sample = port.read();
         if (!sample.measurable) {
@@ -226,7 +236,26 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
         const verticalCoherent = !preserveVertical || Math.abs(sample.core.top - sample.native.top) <= 1;
         const signature = JSON.stringify([sample.geometry, sample.context.projectionEpoch, preserveVertical ? sample.core.top : null]);
         stable = verticalCoherent && validViewportReceipt(sample) && sample.context.projectionEpoch > preparationFloor && signature === previous ? stable + 1 : 0; previous = signature;
-        if (stable >= 3) { acceptedProjection = sample.context.projectionEpoch; break; }
+        if (stable >= 3) {
+          // A later Core filter-tasks commit may contract the physical axis
+          // AFTER an earlier prepare admitted the bookmark. Do not pin the
+          // projection or execute scroll-chart against the now smaller axis.
+          // One bounded re-preparation belongs to this same lease; a new
+          // gesture/context invalidates it. No second viewport writer.
+          if (command.kind === "FILTER_RETURN" && port.admitPosition?.(coordinateCommand().position) === false) {
+            if (filterCapacityReprepared || !port.prepare) return complete("NO_SCROLL_CAPACITY");
+            filterCapacityReprepared = true;
+            phase("PREPARING_GEOMETRY");
+            const prepared = await port.prepare(preparationCommand(), current, source);
+            if (!current()) return complete("SUPERSEDED");
+            if (!prepared.ready) return complete("NO_SCROLL_CAPACITY");
+            preparationFloor = prepared.projectionAfter ?? -1;
+            stable = 0; previous = "";
+            phase("WAIT_GEOMETRY");
+            continue;
+          }
+          acceptedProjection = sample.context.projectionEpoch; break;
+        }
         if (!(await port.frame(controller.signal))) stable = 0;
       }
       if (!current()) return complete("SUPERSEDED");

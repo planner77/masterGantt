@@ -463,6 +463,52 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     expect(f.sample.native).toEqual({ left: 120, top });
   });
 
+  it("re-prepares a filter bookmark when late Core filter-tasks contracts axis capacity after first preparation", async () => {
+    const f = fixture();
+    let preparations = 0;
+    f.port.admitPosition = vi.fn(position => f.sample.capacity.left >= position.left && f.sample.capacity.top >= position.top);
+    f.port.prepare = vi.fn(async command => {
+      expect(command).toMatchObject({ kind: "FILTER_RETURN", compatibility: true });
+      preparations++;
+      if (preparations === 2) f.update({ capacity: { left: 1000, top: 1000 } });
+      return { ready: true };
+    });
+    f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top: 0 }, native: { left: 0, top: 0 } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.flush();
+    expect(f.port.prepare).toHaveBeenCalledTimes(1);
+    // Actual UI trace #2838: the old geometry admitted 120, but the
+    // filter-tasks layout shrank it to 47 before FILTER_RETURN applied.
+    f.update({ capacity: { left: 47, top: 1000 } });
+    await f.advance(15);
+    expect(f.port.prepare).toHaveBeenCalledTimes(2);
+    expect(f.port.apply).toHaveBeenCalledExactlyOnceWith(
+      { kind: "FILTER_RETURN", position: { left: 120, top: 0 } },
+      expect.any(Function), expect.any(Object),
+    );
+    expect(f.sample.core).toEqual({ left: 120, top: 0 });
+  });
+
+  it("fails closed when the same filter return cannot re-prepare capacity, without replaying a stale coordinate", async () => {
+    const f = fixture();
+    let preparations = 0;
+    f.port.admitPosition = vi.fn(position => f.sample.capacity.left >= position.left);
+    f.port.prepare = vi.fn(async () => ({ ready: ++preparations === 1 }));
+    f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top: 0 }, native: { left: 0, top: 0 } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.flush();
+    f.update({ capacity: { left: 47, top: 1000 } });
+    await f.advance(12);
+    expect(f.port.prepare).toHaveBeenCalledTimes(2);
+    expect(f.port.apply).not.toHaveBeenCalled();
+    expect(f.port.trace).toHaveBeenCalledWith("NO_SCROLL_CAPACITY", expect.objectContaining({ kind: "FILTER_RETURN" }),
+      "NO_SCROLL_CAPACITY", expect.objectContaining({ decisionReason: "NO_SCROLL_CAPACITY" }));
+  });
+
   it("uses the latest coherent vertical clamp at apply rather than the one before preparation", async () => {
     const f = fixture(); let finish!: (result: { ready: boolean }) => void;
     f.port.prepare = vi.fn<NonNullable<ViewportPort["prepare"]>>(() => new Promise(resolve => { finish = resolve; }));
@@ -471,7 +517,7 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
     f.update({ core: { left: 0, top: 32 }, native: { left: 0, top: 32 } });
     f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
     await f.flush();
-    expect(f.port.prepare).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 32 } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
+    expect(f.port.prepare).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 32 }, compatibility: true }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
     f.update({ core: { left: 0, top: 8 }, native: { left: 0, top: 8 } }); finish({ ready: true });
     await f.advance(8);
     expect(f.port.apply).toHaveBeenCalledWith({ kind: "FILTER_RETURN", position: { left: 120, top: 8 } }, expect.any(Function), expect.objectContaining({ context: expect.any(String), contextEpoch: expect.any(Number), gesture: expect.any(Number), intent: expect.any(Number) }));
