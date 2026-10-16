@@ -1,3 +1,9 @@
+## Issue #667 — CI #2829 Task hover의 현재 viewport 준비 (2026-10-16)
+
+#492의 Task hover Tooltip은 focus/scroll/영역 이탈 때 닫힌다. 테스트는 scrollIntoView 직후 후행 axis/native 보존 작업이 끝났다고 가정하지 않고, 첫 hover 전에 현재 API/revision/scale·URL rootTask scope의 semantic/delivery 및 현재 Coordinator·실제 Core/native/geometry/hit가3실제RAF 안정적인지 확인한다. 첫 hover는1회이며 기존 canonical name/date/null·Grid/Chart 동일 내용·5000ms·readonly/Week/fullscreen/scope·mutation0을 유지한다. 실제 wheel 좌표 변화·root focus·root 밖 pointer leave에 의한 닫힘도 검증한다.
+
+[별도 누적 원장](ISSUE_667_FAILURE_ANALYSIS.md) 및 [ci2829](evidence/issue-667/ci2829-correction.json)에 이전 원장 비교·원본 visible FAIL과 로컬 name FAIL·후행 scroll 계측·최종 source/명령/결과·미검증을 분리 저장한다. 제품 close 정책·CI/retry/skip을 바꾸지 않으며 새 exact-Head 원격 전체 Required·Owner 승인은 별도다.
+
 ## Issue #667 — CI #2827 Week header의 실제 focus 진입 (2026-10-16)
 
 ISO independent oracle은 Escape로 Tooltip을 닫은 뒤 가상화로 재사용된 같은 focused DOM에 `.focus()`를 호출한 것을 새 keyboard 진입으로 간주하지 않는다. 기존 `주` toolbar control로 focus 이동을 확인하고 현재 날짜 셀로 다시 진입한 뒤 원래 ISO year/week·포함월·반개구간/월1일·좌표±1px·5000ms·mutation0을 검증한다. Escape 뒤 Tooltip0과 해당 cell focus 유지도 확인한다. 제품정책/자동Tooltip재개·timeout/retry/skip은 변경하지 않는다.
@@ -3082,7 +3088,7 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 
 - Unit: `task-hover-tooltip.test.ts`에서 canonical `ProjectTaskDto.start/end`가 공통 locale formatter를 사용하고 날짜 미설정 Summary는 `—`로 표시되는지 검증한다.
 - Chromium: `project-task-hover-tooltip.spec.ts`에서 Grid/Chart 동일 Task의 작업명·시작일·종료일 parity, Task/Summary/Milestone, date-less Summary, Week, fullscreen, WBS scope, readonly를 검증한다.
-- viewport 밖 Task/Milestone은 먼저 `scrollIntoViewIfNeeded()`로 위치를 확정한 뒤 hover한다. 제품은 scroll 중 기존 Tooltip을 닫는 계약이므로 Playwright `hover()`의 내부 auto-scroll과 hover 이벤트를 하나의 gesture로 결합해 오탐하지 않는다.
+- viewport 밖 Task/Milestone은 먼저 `scrollIntoViewIfNeeded()`를 수행하고, 현재 API/revision/scale/URL scope의 projection/Coordinator·실제 Core/native·geometry/hit가3실제RAF 정착한 뒤 최초 hover를1회 입력한다. `scrollIntoViewIfNeeded()`만으로 후행 scroll 완료를 가정하지 않는다. 제품은 scroll 중 기존 Tooltip을 닫는 계약이며 scroll/focus/영역 이탈 닫힘을 별도 음성 회귀로 유지한다. 필터 편집0인 이 spec의 filterKey 검증은 fresh receipt의 안정성 범위다.
 - app-owned delegated hover는 `TASK_TARGET_SELECTOR`의 Grid row/Chart bar를 canonical taskId로 resolve하며 Core API/렌더 anchor에 의존하지 않는다. hover 중일 때만 Task Tooltip DOM이 존재하고 Header focus·scroll·영역 이탈 시 제거되어 #315/#316 Header Tooltip과 `role=tooltip`이 중복되지 않아야 한다.
 - 회귀: #315/#316 Header Tooltip, Context Menu, double-click Editor, Chart drag/dependency interaction을 PR 전체 E2E gate에서 함께 판정한다.
 - #490/#456 Gantt 상태 보존 회귀는 hover 표시/닫힘 전후에도 horizontal/public viewport·tree·column·scale·selection·fullscreen이 유지되는지 기존 `task-editor-form-density.spec.ts`를 함께 판정한다. Tooltip state는 child layer에 격리되어 부모 Gantt render를 발생시키지 않아야 한다.

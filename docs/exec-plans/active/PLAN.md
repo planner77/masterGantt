@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 CI #2829 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)의 증상 인덱스/재개6단계부터 이전 원인과 새 Task hover 실패를 비교했다. Milestone Tooltip 생성 뒤 후행 native scroll이 기존 정책에 따라 닫는 순서를 로컬에서 계측했다. 첫 hover 전 현재 API/receipt/Coordinator/Core-native·geometry/hit의 실제 정착을 확인하는 test-only 보완과 scroll/focus/leave 닫힘 음성을 검증한다. 원본 visible FAIL·로컬 name FAIL을 구별하고 새 source/증거를 ci2829에 보존하며 리뷰/충돌 확인 후 새 Full PR CI 시작까지 수행한다.
+
 2026-10-16 CI #2827 후속: 새로운ISO week header Tooltip 부재를 원본단독에서도재현했다. Escape뒤같은focused셀DOM을날짜가상화가재사용한상태에서focus()를다시호출해새focusin이없었던fixture전제를교정한다. 기존ISO/date/geometry·5000ms·제품정책은유지하고실제blur→focus와Escape닫힘/포커스유지를검증한다. 확대38/3에서발견한Week native clamp오분류도Core/native양baseline비교로교정했고최종source3의Unit250·Chromium56이PASS했다. [별도누적실패분석](../../ISSUE_667_FAILURE_ANALYSIS.md)에증상인덱스·재개절차·run별원장을보존하며최종선택검증/사전검토/리뷰0·main정렬후새FullPRCI시작까지만수행한다.
 
 2026-10-16 CI #2825 후속: 원본 shard3의 public/native180→120 FAIL을 보존한다. 원본 trace에서는 Coordinator 추가 쓰기 없이 세로128만 반영됐다. 설치 SVAR의 세로 commit이 native X를 Core X로 동기화하는 경계를 같은 tick 양축 주입으로 재현했고, 독립 입력 사이 Core/native 완료 barrier를 두는 fixture 교정을 검증한다. 제품/CI 변경0, 최신 main `fd219130491c53d054754eac41a58e4a6a3da0c6` 이력 보존·리뷰0 확인 후 새 Full PR CI 시작까지 수행한다. 최종6spec42 PASS·기존Unit206 PASS이며 원격 전체/Owner ACCEPT는 별도다. 아래 완료 모니터링은 과거 실행 이력이다.

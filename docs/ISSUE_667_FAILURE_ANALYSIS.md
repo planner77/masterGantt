@@ -18,6 +18,7 @@ Refs #667
 | #2820 | 실패 관측을 성공 receipt에서 기다린 음성 oracle | [ci2820](evidence/issue-667/ci2820-correction.json) |
 | #2825 | 독립 native Y 반영 전 X 주입; 세로 commit의 Chart X 동기화 | [ci2825](evidence/issue-667/ci2825-correction.json) |
 | #2827 | Escape 뒤 같은 focused 셀의 focus 전제 오류 + scale clamp의 native-forward 오분류 | [ci2827](evidence/issue-667/ci2827-correction.json) |
+| #2829 | Task hover 뒤 후행 native scroll로 정상 close; 첫 hover 전 viewport 정착 전제 | [ci2829](evidence/issue-667/ci2829-correction.json) |
 
 ### 재개 순서와 기록 규격
 
@@ -30,7 +31,7 @@ Refs #667
 
 ## 판정과 범위
 
-2026-10-16 CI #2827 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
+2026-10-16 CI #2829 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
 
 CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 이전 2026-10-16 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함했다(과거 실행 이력). 병합·릴리스는 제외한다.
 
@@ -114,6 +115,18 @@ Tooltip 보완 source의 5spec41 실행은38 PASS/3 FAIL/0 SKIP/0 flaky/errors0(
 최소 제품 교정은 axis 등록의 같은 `read()` snapshot에서 Core/native baseline의 최댓값을 고정한다. 실제 native/event 일치·Core/native 차이·현재 원래 lease·own tagged 제외·1회 nativeHandled 조건은 유지하고, 양쪽 등록 좌표보다1px 초과 앞선 이동만 기존 native-forward 취소 경로로 전달한다. 실제 document wheel/pointer/keyboard 입력의 취소, 단일 port writer와 좌표/3frame·첫 날짜이동 `SETTLED` 기대는 유지한다. geometry fixture에 임의 대기·재시도·`SUPERSEDED` 허용을 추가해 숨기지 않는다. 관련 Unit과 최종 동결 source의 Timeline/viewport/Copy/Resource 교차 검증은 원장에 별도로 기록한다.
 
 최종 source3 fingerprint `092ea07e53e767fee0d8a1163a4f2163d477fbaa6fd9cc46bdb8dab3ecb8b1fe`에서10파일250 Unit PASS(352ms)·6spec56 Chromium PASS/0 FAIL/0 SKIP/0 flaky/globalErrors0(462987.804ms)·hash drift0을 확인했다. 실제 HTTP/SQLite17과 mock API/actual SVAR·DOM39를 구분한다. 중간/원본/진단의 FAIL·PASS는 최종56에 합산하지 않으며 새 exact-Head 원격 Required/Trusted·Owner ACCEPT는 NOT TESTED다. 이 원장과 ci2827의 실제 명령/해시/분류/남은 범위를 후속 실패 때 먼저 참조한다.
+
+## CI #2829 — Milestone hover 뒤 후행 scroll과 Tooltip close의 순서
+
+[CI #2829.1/run38847881348](https://github.com/planner77/masterGantt/actions/runs/38847881348), Head `80ae8628cb5ac98345936bb5867de5ca8f2e8d39`, base `fd219130491c53d054754eac41a58e4a6a3da0c6`, test merge `a49e9d46057be9f9cd63950771ae2780087bc391`의 source artifact12024251684/Run API/QA 환경/Git 부모는 일치한다. Quality116803227873/Docker116803455191 PASS, E2E116806623308/QA Automated116806644918 FAIL이다. shard4 job116802892064 step7의 `project-task-hover-tooltip.spec.ts:44→71→38`은 `Stable milestone` Chart bar hover 뒤 Tooltip 가시성5000ms FAIL이었다. 해당 shard99 PASS/1 FAIL/기존1 SKIP/39 NOT RUN, shard6는89 PASS/기존1 SKIP 완료, 다른4 shard는 추가 단언 FAIL 없이 취소됐다. global error1은 fail-fast 중단 메시지다.
+
+원장을 먼저 읽고 이전 #2827과 분리했다. 이번 source에서 이전 #551 ISO4.0s·geometry5폭·#463 viewport·SC-01 정상/RAF90ms는 개별 PASS지만 취소 shard 전체 성공/과거 FAIL의 소급 PASS가 아니다. 실패한 hover 대상은 정확 Milestone31×31 box 중앙이었고, trace699246.151ms에 정확 canonical Tooltip이 존재했다가699251.145ms에 사라졌다. 이 시간은 trace 상대ms이며 UTC가 아니다. 당시 RANGE_EXTENSION은 APPLYING/Core11818/native11819/width12564, 종료 때 SETTLED/writes3/Core=native11818/width13320/axisPRESERVED였다. 생성 실패나 Week header의 반복 focus 전제와 구분한다.
+
+원본 spec SHA256 `a99cafd220a841514685793c3068ab2e176c152c005c0cbdd475e518ef2eb255`는 remote/local trace와 Git Head의 bytes가 같았다. 정확 source의 로컬1 FAIL은 같은 Milestone Tooltip 소멸을 재현했으나 가시성 순간 통과 뒤 name39에서 실패했다(개별6810ms/report9925.863ms). 원격의 visible38 FAIL과 같은 assertion이라고 쓰지 않는다.
+
+읽기전용 lifecycle-v2는 nativechart scroll11819 at1591.2ms→Milestone mousemove at1641.2ms→nativechart scroll11818 at1657.3ms, 이후 추가 mousemove0을 기록했다. 기존 #492는 focus/scroll/영역 이탈 때 Tooltip을 닫는다. fixture는 `scrollIntoViewIfNeeded()` 뒤 현재 axis/native 정착을 확인하지 않고 hover해 후행 보존 scroll과 경합했다. 로컬 진단이 정상 close 기원을 확인했으며 원격은 정확 close event 미기록이라는 인과추론 경계를 유지한다. 첫 진단은 visible 순간 PASS 뒤 name FAIL의 catch 누락이 있어 v2와 별도로 보존한다.
+
+최소 보완은 첫 hover1회 전에 현재 작업·실제 Core/native·geometry/hit가3실제프레임 안정적인지 읽기전용으로 확인하는 fixture 전제다. 과거 history의 SETTLED만 재사용하거나 임의sleep/rehover/retry·timeout 증가로 숨기지 않는다. canonical 이름/date/null·Grid/Chart 동일 내용·readonly/scope/Week/fullscreen·mutation0과 실제 scroll/focus/이탈 close 정책은 유지한다. 최종 동결 source의 A25/B1은 고유26 PASS(FAIL/SKIP/flaky/global errors0), 각각197420.692ms/7679.310ms이며 별도 HTML/시간으로 보존한다. formatter2 PASS/123ms와 초기69 Unit·초기보완6은 중복합산하지 않는다. typecheck/변경spec lint/Markdown229/version/diff PASS다. 제품/CI/의존성 변경0, 기존11개 evidence bytes 유지와 source drift0을 확인했다. source SHA·fingerprint·명령/환경/예산·선정/제외·남은 범위는 [ci2829](evidence/issue-667/ci2829-correction.json)에 분리 기록한다. 새 원격 전체 Required·QA_FINAL/Owner ACCEPT는 NOT TESTED다.
 
 ## 최초 구현과 반복 보완에서 드러난 경계
 

@@ -17,7 +17,7 @@ issue_comment_writer: manager
 issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME, FINAL
 documentation_owner: Manager
 
-2026-10-16 CI #2827 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
+2026-10-16 CI #2829 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
 
 최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 이전 2026-10-16 요청에서는 새 PR CI 완료 모니터링을 포함해 당시의 CI 시작까지만 범위를 대체했다(과거 실행 이력). 병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
 
@@ -599,3 +599,50 @@ source3 fingerprint `092ea07e53e767fee0d8a1163a4f2163d477fbaa6fd9cc46bdb8dab3ecb
 최종 정적 검사: typecheck·변경3파일 lint 오류/경고0·Markdown229·version0.114.1·diff-check PASS.
 
 별도 qa_docs `/root/pre_review`는 최종3source·56 HTML 전건·원본/진단/Unit red/교정·문서13파일을 대조해 PRE_QA/DOCUMENTATION_SYNC PASS·추가 지적0으로 판정했다. 이전 JSON10개 불변과 생성 설정/진단 코드 복원도 확인했다. 정적 검사 PASS는 Manager 실행 근거이며 독립 재실행으로 표시하지 않는다. 새 원격 전체 Required/Trusted QA·QA_FINAL/Owner ACCEPT는 NOT TESTED를 유지한다.
+
+
+## CI #2829 후속 — Task hover 전 현재 viewport 정착 전제
+
+사용자가 지정한 별도 실패 분석 원장의 증상 인덱스·재개6단계 및 ci2827부터 읽었다. 원본 Head `80ae8628cb5ac98345936bb5867de5ca8f2e8d39`, 포함된 main `fd219130491c53d054754eac41a58e4a6a3da0c6`, 원본 run38847881348/attempt1/test merge `a49e9d46057be9f9cd63950771ae2780087bc391`을 고정했다. 현재 미해결 리뷰0·충돌0이며 새 main/Head는 게시 전에 다시 확인한다. 범위는 보완·원장 누적·리뷰/충돌 처리 후 새 Full PR CI **시작 확인까지**다.
+
+frontend `/root/viewport_fix`는 hover spec/helper의 단일 작성자, infra `/root/ci_investigation`은 원본 remote evidence read-only 조사, qa_docs `/root/pre_review`는 별도 read-only 사전 검토, Manager는 문서/게시를 소유한다. 기존 #2827의 Core/native 양 baseline 제품 guard와 원본/성공 이력을 보존한다.
+
+### 변경 영향·선정·제외
+
+| 경계 | 조치·검증 |
+| --- | --- |
+| 원장 비교 | 이전 Week focus/scale clamp와 다르다. 이번 #551 ISO/geometry5폭·#463/SC-01은 개별 PASS지만 취소 shard 전체 성공으로 확대하지 않는다 |
+| 원격 원본 | Task Milestone hover 뒤 정확 canonical Tooltip 생성→약5ms 뒤 소멸. RANGE_EXTENSION 진행 중이었다. shard4 99 PASS/1 FAIL/기존1 SKIP/39 NOT RUN·다른4 취소·shard6 89 PASS/기존1 SKIP, Quality/Docker PASS를 원장에 분리 보존 |
+| 로컬 원본 | 정확 source의 같은 target 소멸 재현. 원격은 visible38, 로컬은 visible 순간 통과 뒤 name39 FAIL이며 같은 assertion으로 표시하지 않는다 |
+| 직접 원인 | 읽기전용 계측에서 native scroll11819→Milestone mousemove→native scroll11818→추가 mousemove0. 기존 #492의 scroll close 정책은 정상이며 fixture가 첫 hover 전에 후행 viewport 보존 작업 정착을 확인하지 않은 전제 오류 |
+| 최소 보완 | scrollIntoView 뒤 현재 API/revision/scale·URL rootTask scope·semantic/delivery·현재 Coordinator·Core/native/geometry/hit가3실제RAF 안정적인지 읽기전용 확인 후 첫 hover1회. 필터편집0인 이 spec에서 filterKey는 fresh receipt 안정성 범위로 한정한다. 과거 history SETTLED 재사용/새 writer/임의sleep/rehover/retry/기존5000ms 단언 완화 없음 |
+| 직접·음성 선택 | 기존 Grid/Chart canonical 이름/date/null·Week/fullscreen/WBS/readonly·mutation0과390px hover. 실제 wheel 좌표 변화 후 scroll close, root focus close, root 밖 pointer leave close를 별도 검증 |
+| 간접·제외 | A=hover6+scale1+viewport8+Copy10(25개), B=#551 ISO1개 별도 run으로 선택한다. 동일 source의 고유26개이며 A/B 시간·HTML은 합산하지 않는다. 제품/U2/U3/U4/서버/DB/보안/Calendar/Resource 알고리즘 변경0으로 해당 전체 전수 재실행 N/A. 전체 SC/원격 E2E·환경별 검증은 새 CI/후속 소유자 범위 |
+| Unit | canonical tooltip formatter 기존 Unit은 smoke로 구분하고 새 read-only helper 모사 Unit은 N/A. 제품 알고리즘 변경0 |
+
+### DOCUMENTATION_SYNC / 승인 경계
+
+UPDATE: 별도 ISSUE_667_FAILURE_ANALYSIS 인덱스/ci2829 분석, 새 ci2829 JSON, Work Packet/PLAN/TEST_PLAN/CHANGELOG. 원본/진단/보완·최종 source 명령/환경·선정/제외와 남은 검증을 구분한다.
+
+N/A: ARCHITECTURE/PROJECT_UX/GANTT_ADAPTER_ADR/GANTT_SYNC_TRACE/GANTT_STATE_CONFORMANCE/MILESTONE_TIMELINE/TASK_EDITOR/DESIGN/UI_UX_GUIDELINES — 기존 hover 표시·scroll/focus/leave close와 단일 writer/GSC·시각/interaction 정책은 유지한다. 보완은 테스트의 현재 준비 상태 확인이다.
+
+N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA_REVIEW_POLICY, workflows/scripts/package/lock — 서버/권한/도메인/CI/QA/release/버전 변경0. 원격 실패와 새 CI 시작의 실제 출처는 이번 원장/Issue STATUS에 기록한다.
+
+HIGH/OWNER_MANAGED/qa_required=true, version0.114.1·release_required=true/release_authorized=false를 유지한다. 새 Required quality/e2e/docker·Trusted QA 완료·QA_FINAL/Owner·Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED다. 최종 source의 실제 로컬/사전 검토 결과는 아래 및 JSON 원장에 별도로 기록하고 CI 완료 모니터링·병합·Main/GHCR·release/tag·Issue/branch 종료는 수행하지 않는다.
+
+### 최종 동결 source의 로컬 증거
+
+변경 source는 hover spec1개이며 SHA256 `2fa50d530f3bafd780814285577668e51a2170cc5414509a23be20fe84070261`, path→hash compact JSON fingerprint `9c6d6b8e5a398f9595bffd5d3e851401a6e850702468da16c0379ea776d70612`다. 제품runtime3파일은 원본 Head bytes와 동일하며 원본/진단 trace의 embedded source도 실제 추출·해시로 구분했다. generated next-env/tsconfig는 원래 bytes로 복원했다.
+
+| 검증 | 결과·경계 |
+| --- | --- |
+| 최종 A | hover6+scale1+viewport8+Copy10=25 PASS/0 FAIL/0 SKIP/0 flaky/global errors0, 197420.692ms |
+| 최종 B | #551 ISO 독립 oracle1 PASS/0 FAIL/0 SKIP/0 flaky/global errors0, 7679.310ms |
+| 고유·실행 경계 | A/B testId 교집합0·고유26, 실제HTTP/SQLite10·mock API/실제SVAR/DOM16. source drift0. 서로 다른 HTML/시간 유지 |
+| Unit | 최종 formatter1파일2 PASS/123ms. 초기5파일69 PASS/221ms와 formatter2 중복이므로 합산하지 않음 |
+| 정적 검사 | typecheck PASS·변경spec lint 오류/경고0·Markdown229·version0.114.1·diff PASS |
+| 원본 실패 보존 | 원본visible38 FAIL/로컬name39 FAIL·lifecycle v1/v2 FAIL·초기보완6 PASS를 최종26에 합산하지 않음 |
+
+명령/환경/예산/HTML hash는 ci2829 JSON에 고정한다. Nodev22.14.0/Playwright1.63.0/Chromium153.0.8010.12, workers1/retries0, 기존 expect5000ms/test30000ms·Copy기존90000/180000ms를 유지했다. A는 browser timezoneId unset/process TZ UTC(실제 browser timezone 별도미측정), B는 원본 spec의 America/New_York로 구분한다. 이 로컬 선택 PASS는 새 Head 원격 전체 Required 또는 QA_FINAL/Owner ACCEPT가 아니다.
+
+별도 qa_docs `/root/pre_review`의 read-only PRE_QA=PASS / DOCUMENTATION_SYNC=PASS(이번7파일·선택26사례 한정), 추가지적0이다. 최종 HTML/hash·case중복0·source drift0·과거11개 evidence bytes·runtime3파일 불변을 직접 확인했다. HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를 유지한다.
