@@ -1,3 +1,4 @@
+export declare function e2eSafety(args?: {env?: Record<string, string | undefined>; existing?: string[]; portFree?: boolean}): {state: "READY" | "BLOCKED"; reasons: string[]};
 export declare function git(root: string, ...args: string[]): string;
 export declare function resolveBase(root: string, requested?: string): { ref: string; sha: string };
 export declare function sourceEvidence(root: string, base?: string): {
