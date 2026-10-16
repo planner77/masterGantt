@@ -50,7 +50,7 @@ CI #2827 확대 geometry에서 발견한 제품 회귀는 별도 검증한다. a
 
 ## Issue #697 — 변경 영향 기반 로컬 검증과 교차 회귀 선정 (2026-10-16)
 
-이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.
+이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. #699 실행기 사용법·실제 모드/격리·JSON 원장은 [LOCAL_PREPR](LOCAL_PREPR.md)과 [Work Packet #699](exec-plans/active/ISSUE_699.md)에 연결한다. 실행기는 아래 위험 판정·경로별 직접/교차/음성 선정 기준을 다시 정의하지 않고 구현하며, UNKNOWN·missing test를 BLOCKED로 보고한다. `fast`(버전·정적·Vitest·Build), `targeted`(실제 선정 Chromium/Unit), `ci-like`(단일 호스트 전체), `diagnose`(한정 fail-fast-off), `docker`(로컬 빌드)별 미실행을 별도 표시한다. source fingerprint 변동 또는 기존 DB/port 점유는 검증 증거로 PASS하지 않는다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.
 
 ### 1. 검증 경계와 위험도 결정
 
