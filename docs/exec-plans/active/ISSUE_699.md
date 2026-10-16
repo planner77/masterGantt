@@ -87,6 +87,13 @@
 - Test impact: three historical installed-Core Unit tests + `tests/scripts/prepr-verifier.test.ts`, targeted static import mapping, and CI's full mandatory Unit/Build/E2E/Docker. Node 22, actual Chromium/SQLite/Docker on final source and GitHub same-head CI remain NOT TESTED until the new run. No timeout/retries/assertions were weakened and official six-shard workflow unchanged.
 - Rework owner: infra/tooling; QA: OWNER_MANAGED (independent human QA not claimed); risk_level HIGH; release_required=false; manager_decision NOT TESTED. No merge/GHCR/finalize authorized.
 
+## PR #700 — CI #2852.1 추가 실패·REWORK (2026-10-16)
+
+- 원본 [PR CI #2852.1](https://github.com/planner77/masterGantt/actions/runs/38912565280) HEAD `6f5deb1b2e1f1e107e0947e048a6698cd4713c24`, base `bdaed6bd86612fd168b8ca6b0a40a34966b699d2`. QA Preflight/Policy/Lint PASS. TypeScript **FAIL**: `tests/scripts/prepr-verifier.test.ts(3,10) TS2724` — `node:fs`에 `cpFileSync` export가 없음. Vitest **1 FAIL / 2771 PASS / 3 SKIP** — 동일 오타가 역사적 capture 테스트 `tests/scripts/prepr-verifier.test.ts:210`에서 runtime `TypeError` 유발. #659 PR Fast Gate의 Build/E2E/Docker 미실행은 실패 파급이며 실제 제품 실패 증거 아님.
+- 최초 단언 전에 두 번째 fixture 버그가 있음: `const snapshots = resolve("tests/...")`는 현재 작업공간 절대경로가 되므로 `resolve(dir, snapshots, file)`이 `dir`을 무시해 원본과 목적지가 같아진다. 오타만 고치면 실제 캡처 원본을 overwrite할 위험이 있으므로 **스냅샷 상대경로 + 임시 복사 경로 원본과 불일치 검증 + 원본/복사 바이트 동일 확인**을 함께 적용.
+- `copyFileSync` 정식 Node API로 교정하며 snapshot fixture 원본과 lockfile/기타 script의 불변 비교는 유지한다. TypeScript와 원본 실패 Vitest 단독·전체 원격 재실행은 새 Head CI의 실제 결과 전 NOT TESTED. 실패 `#2852.1`을 소급 PASS 처리하지 않는다.
+- 불필요한 연속 Push를 줄이기 위해 원인 교정과 실패 근거 문서화를 **한 커밋**으로 등록한다. QA 스레드 0, strict main, 정확 HEAD/base/Required 3종/Trusted/Owner 인수는 새로운 CI 시점에 재확인. 병합/GHCR/Release 범위 아님.
+
 ## 위험 및 인계
 
 - 로컬 환경에 `node_modules`, 설치 Chromium, Docker/git/네트워크 권한이 없으면 검증 BLOCKED/NOT TESTED이며 성공으로 보지 않는다.

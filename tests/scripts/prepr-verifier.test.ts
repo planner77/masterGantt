@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { cpFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -204,10 +204,15 @@ describe("Issue #699 — historical capture provenance remains strict", () => {
   it("allows only the exact local CLI alias while preserving all captured dependencies and scripts", () => {
     const dir = mkdtempSync(resolve(tmpdir(), "mastergantt-capture-test-"));
     created.push(dir);
-    const snapshots = resolve("tests/fixtures/gantt-state-consistency/capture-sources");
+    const snapshots = "tests/fixtures/gantt-state-consistency/capture-sources";
     mkdirSync(resolve(dir, snapshots), { recursive: true });
     for (const file of ["package-original.snapshot.txt", "package-lock-original.snapshot.txt"]) {
-      cpFileSync(resolve(root, snapshots, file), resolve(dir, snapshots, file));
+      const original = resolve(root, snapshots, file);
+      const isolated = resolve(dir, snapshots, file);
+      expect(isolated).not.toBe(original);
+      expect(isolated.startsWith(dir + "/")).toBe(true);
+      copyFileSync(original, isolated);
+      expect(readFileSync(isolated)).toEqual(readFileSync(original));
     }
     const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
     const lock = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8"));
