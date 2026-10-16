@@ -245,6 +245,18 @@ Issue / approved scope
 
 Local PASS는 공식 전체 회귀 PASS가 아니며 GitHub Actions PASS를 대체하지 않는다.
 
+### 변경 영향 분석과 교차 회귀 선정 (#697)
+
+Manager와 frontend/backend/scheduler 등 구현 Agent는 착수 PLAN, 공유 API·상태·계약 변경, REWORK 및 연속 원격 CI 실패 시 [TEST_PLAN의 변경 영향 기반 사전 검증 기준](docs/TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)을 적용한다. 파일 개수가 아니라 공유 canonical 상태, Core/native·HTTP/SQLite 경계, 권한·revision, async lease·receipt·복구와 간접 소비자/이전 CI 회귀를 입력으로 위험도를 분류하고 상향 근거를 기록한다.
+
+- **Manager (PLAN/REWORK/통합):** 기준 main/head·변경 계약을 고정하고 Work Packet의 직접·간접 영향 표, 위험도, 선택·교차·음성 테스트, 선정·제외 근거와 잔여 위험을 검토한다. 다른 소비자 회귀가 반복되면 직전 실패만 재실행하지 않고 관련 파일 집합의 확대 진단을 결정한다.
+- **구현 Agent (frontend/backend/scheduler 등):** 변경 전후 동작·직접/간접 소비자·실제 테스트 파일을 매핑하고 Unit/Integration, 직접 Chromium/UI·HTTP/SQLite(해당 시), 인접 Task CRUD/Copy/Paste/Link/Milestone/Calendar/Resource/검색/Fullscreen/Editor와 실패 복구를 선정한다. keyboard/focus, 390px·Day/Week, mock과 실제 Core·HTTP의 차이를 기록한다. 최종 변경 source에서 필요한 선택·교차 검증을 재실행한다.
+- **qa_docs / Reviewer (검토 시):** 증거의 source/환경/실행 유무, 부수효과 누락, 제품 결함과 fixture/DEV 관측/transport의 구분 및 제외 이유를 read-only로 검사한다. 참여 필요성과 승인 경계는 [QA 정책](docs/QA_REVIEW_POLICY.md)을 따르며 OWNER_MANAGED를 독립 인간 QA PASS로 간주하지 않는다.
+
+[Work Packet의 영향·증거 필드](docs/ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)와 [#697/#667 시범표](docs/exec-plans/active/ISSUE_697.md)에 수정 함수/계약, base/head/test-merge/source fingerprint, 명령·환경·고유 테스트 케이스 수, PASS/FAIL/SKIPPED/NOT TESTED, 최초 실패/재현/교정/재검증, 확대 조건·미검증, DOCUMENTATION_SYNC UPDATE/N/A(reason)를 남긴다. 서로 다른 Head 결과 또는 Unit/mock/actual browser·HTTP·SQLite/원격 CI를 합산하지 않는다.
+
+이 원칙은 **PR 게시 전 로컬 검증 선정**에 적용하며, 모든 코드 수정마다 전체 로컬 E2E를 의무화하지 않는다. 한정 fail-fast 없는 로컬 진단은 필요 시 일회성으로 수행하고 timeout/retry/skip/단언 완화로 실제 회귀를 숨기지 않는다. 공식 exact-head Quality/E2E/Docker Required, 6-shard fail-fast, QA·Owner, main/GHCR/Finalizer·릴리스 정책에는 영향이 없다.
+
 ### Pull Request Required Validation
 
 코드 변경은 원격 branch와 PR을 통해 검증하는 것을 기본으로 한다. `.github/workflows/ci.yml`의 version check, typecheck, lint, 전체 Vitest, dependency audit, markdown link, production build, Chromium Playwright E2E, Docker build/runtime/SQLite persistence smoke가 기본 공식 회귀 증거다.
@@ -296,7 +308,7 @@ qa_docs        → GPT-6.1 Sol / High
 
 ### Manager
 
-요구사항 분석, Architecture/Decision, Agent 분배, 충돌 조정, 결과 Review, Integration과 최종 ACCEPT/REWORK/REJECT/DEFER를 담당한다. 구현 Agent의 자체 PASS를 자동 승인하지 않는다.
+요구사항 분석, Architecture/Decision, Agent 분배, 충돌 조정, 결과 Review, Integration과 최종 ACCEPT/REWORK/REJECT/DEFER를 담당한다. 구현 Agent의 자체 PASS를 자동 승인하지 않는다. PLAN/REWORK에서 직접·간접 변경 영향과 테스트 선택·제외 근거를 Work Packet에 남기고 연쇄 실패 시 누적 교차 회귀를 재평가한다.
 
 코드 변경은 가능한 한 Issue → branch/worktree → PR 흐름으로 진행한다. 검토 대상 PR head SHA와 GitHub Actions `quality/e2e/docker` 결과를 확인하고 원격 gate가 미완료인 상태에서 코드 변경을 최종 완료/ACCEPT로 보고하지 않는다. main artifact 완료를 주장할 때는 필요한 GHCR exact digest validation까지 확인한다.
 
@@ -330,7 +342,7 @@ GitHub repository 운영, GitHub Actions CI/CD, GHCR, Docker/Compose, SQLite per
 
 ### qa_docs
 
-독립 Reviewer다. [위험도별 QA 정책](docs/QA_REVIEW_POLICY.md)에서 `qa_required=true`인 Issue의 Requirement/code/test/docs를 실제 분리된 주체로 검토하고 Local Fast Feedback과 Remote GitHub Actions를 구분한다. LOW·일부 MEDIUM의 독립 검토 미선택은 근거 있는 `N/A`로 표시한다. HIGH에는 실제 qa_docs 또는 별도 인간 Reviewer가 필수이고 없으면 BLOCKED다(자동 대체는 #580 후속). 코드 변경의 공식 회귀는 PR `quality/e2e/docker`, main artifact는 별도 GHCR exact digest로 확인하며 PASS/FAIL/BLOCKED/NOT TESTED를 혼동하지 않는다.
+read-only 검토 역할이다. [QA_REVIEW_POLICY](docs/QA_REVIEW_POLICY.md) 현행 OWNER_MANAGED는 독립 Reviewer를 자동으로 요구하거나 수행했다고 간주하지 않는다. 명시적으로 AGENT 경로가 선택되면 해당 신뢰·독립성 및 승인 조건을 따른다. Work Packet·선택/교차 회귀·예외/미검증·문서 동기화 증거를 검토한다. 독립 검토가 수행되지 않았다면 independent_qa=N/A(Owner-managed, 독립 검토 없음)이며 자동화 결과를 사람의 QA나 Owner ACCEPT로 표시하지 않는다. 공식 회귀는 PR quality/e2e/docker, main artifact는 별도 GHCR exact digest로 확인한다.
 
 ## 6. Collaboration Rules
 

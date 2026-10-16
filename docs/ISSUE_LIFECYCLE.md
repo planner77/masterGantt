@@ -272,6 +272,7 @@ Manager는 각 위임 전에 최소 다음을 고정한다.
 - release_required / release_authorized / 승인 근거
 - primary Agent / collaborators / writable files / read-only files / shared interface
 - Local Fast Feedback / required tests / docs / remote CI / 환경별 검증
+- 변경 영향 분석: base/head/test-merge/source fingerprint, 수정 함수·공개 계약, 직접/간접 소비자, 기존/신규 음성 테스트 파일과 실행·제외 근거, LOW/MEDIUM/HIGH 위험도·진단 확대, 고유 테스트 수·미실행·잔여 위험. 상세 위험도 결정표는 TEST_PLAN 단일 원본
 - predecessor result / expected output / next owner / stop conditions
 - Issue Progress Log 후보와 댓글 작성 권한: `issue_log_type`, `issue_comment_writer`, `issue_comment_allowed_types`
 
@@ -281,9 +282,13 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 
 ### 9.2.1 위험도 기반 QA_FINAL 분기 (#565)
 
-PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_reason`/`qa_required`/Reviewer/최신 Head를 기록한다. HIGH는 실제 `qa_docs` 또는 별도 인간 Reviewer 필수이고 없으면 BLOCKED, LOW/일부 MEDIUM만 `QA_FINAL=N/A(reason)` 가능하다. MEDIUM의 복수 ownership 경계/회귀 등 트리거는 독립 검토 의무이며 기존 코드/문서/CI 검사 생략 근거가 아니다. [판정 순서·예외 및 테스트 시나리오](QA_REVIEW_POLICY.md)를 따른다.
+PLAN/Work Packet·PR·REWORK·병합 전 risk_level(LOW/MEDIUM/HIGH), risk_reason, qa_method, qa_required, Reviewer와 정확 Head를 기록한다. #598의 기본 OWNER_MANAGED는 HIGH/보호 경로라는 이유만으로 별도 인간 Reviewer APPROVED를 자동 요구하지 않는다. 단, 세 Required aggregate·Trusted QA·리뷰 스레드 0·Owner의 명시적 병합 허가 및 HIGH 잔여 위험 수용은 유지한다. AGENT 방식을 명시 선택하면 독립성/보호 경로 신뢰 조건을 따른다. 독립 검토 부재는 independent_qa=N/A(Owner-managed, 독립 검토 없음)로 기록하며 자동 성공을 사람의 QA PASS로 전용하지 않는다. [현행 QA 단일 원본](QA_REVIEW_POLICY.md)을 따른다. #697 영향 분석은 로컬 범위 결정이며 QA/Required 정책의 변경이 아니다.
 
-이슈 #580의 GitHub Actions 자동 QA 대체 경로는 **#580 bootstrap PR 병합 및 신뢰된 main 실행 검증 전까지 미적용**이다. Ruleset의 승인 리뷰 수 0명을 독립 QA PASS로 간주하지 않으며, 모든 경우 Manager의 Head 연결 ACCEPT가 필요하다.
+### 9.2.2 변경 영향과 테스트 증거 기록 (#697)
+
+Manager는 PLAN/REWORK 및 공통 상태·계약 변경 시 [TEST_PLAN.md](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)를 근거로 수동 영향 매핑을 기록한다. 표의 필수 열은 **수정 지점/변경 전후 → 직접·간접 소비자/음성 사례 → 위험도 → 실제 기존·추가 테스트 파일·환경 → 실행 여부·선정/제외 이유 → 고유 케이스 수·결과·동일 source SHA/run/trace → 미검증·잔여 위험/담당**이다. 분류·교차 회귀·진단 확대의 세부 원칙은 TEST_PLAN 단일 원본을 따르고 이 문서에는 중복 정의하지 않는다.
+
+구현 Agent는 실제 명령/환경과 Unit/mock/actual Chromium/HTTP·SQLite/Remote Required 증거를 구분한다. CI FAIL 뒤 REWORK는 실패 원본·로컬 재현·제품 또는 fixture 보완·최종 동일 source 재검증을 분리하고, 확대 진단의 시작/종료와 비용을 기록한다. Manager는 source 변경으로 stale이 된 테스트·DOC_SYNC를 갱신하고, qa_docs/Reviewer는 선택된 경우 증거·미실행·문서 정합을 read-only로 검토한다. [#697/#667 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 **참고 예시**이지 자동 검증 구현이나 #667 PASS 증명이 아니다.
 
 ### 9.3 Phase Gate
 
@@ -298,7 +303,7 @@ PLAN/Work Packet·PR·REWORK·병합 전 `risk_level`(LOW/MEDIUM/HIGH)과 `risk_
 | DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 Work Packet 지정 구현 Agent |
 | QA_READY | DOCUMENTATION_SYNC PASS + 위험도별 qa_required 결정(독립 Reviewer 지정 또는 N/A 근거) + 구현 결과/증거 전달 | Manager/조건부 Reviewer |
 | PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
-| QA_FINAL/MERGE_READY | HEAD별 `qa_method=AGENT`은 실제 독립 Reviewer PASS, `AUTOMATED_MANAGER`는 main Trusted QA PASS·Manager HIGH 위험 수용, 보호된 정책/Workflow는 무조건 독립 Reviewer PASS; 비의무 검토는 N/A(reason). 모든 경로에 최신 세 CI·DOC_SYNC·리뷰 해결·Manager ACCEPT 필수 | qa_docs 또는 인간 Reviewer(필요 시) + Manager |
+| QA_FINAL/MERGE_READY | OWNER_MANAGED(구 AUTOMATED_MANAGER)는 Trusted 자동 QA·정확 Head/원본 CI와 Owner의 명시 승인·HIGH 위험 수용, AGENT 선택 시 독립 Reviewer의 신뢰 조건 적용. 독립 리뷰 N/A는 자동 인간 QA PASS가 아님. 모든 경로에 최신 세 Required CI·DOC_SYNC·리뷰 스레드 0·Owner 허가 필수 | Manager/Owner + qa_docs 또는 인간 Reviewer(AGENT 선택 시) |
 | MERGED | 승인 head의 실제 merge SHA | infra |
 | MAIN_VALIDATION | merge SHA의 main CI 완료 | infra |
 | MAIN_ARTIFACT_VALIDATED | 정책상 ci-<SHA> exact digest smoke/SBOM/provenance/cleanup | infra + 위험도별 Reviewer/Manager |
