@@ -1,3 +1,66 @@
+## Issue #697 — 변경 영향 기반 로컬 검증과 교차 회귀 선정 (2026-10-16)
+
+이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.
+
+### 1. 검증 경계와 위험도 결정
+
+- **로컬 선택 검증:** 구현 중 직접 Unit/Integration·관련 Chromium E2E·실제 API/SQLite(해당 시)·정적 확인. 수정 파일 수가 아니라 shared state/contract, 간접 소비자, 비동기 경합, Core/native/서버·SQLite 경계, 권한/revision, 복구 부수효과, 기존 CI 회귀를 보고 Manager가 기존 risk_level을 상향할 수 있다.
+- **원격 Required CI:** 로컬 분류와 상관없이 최종 Head/base/test-merge에서 Quality(Build, static checks, and unit tests), Chromium end-to-end tests, Docker build and runtime smoke test의 현재 경로 판정·required aggregate를 따른다. 기존 full PR 6-shard 및 shard --max-failures=1/matrix fail-fast=true를 유지하고 Main/manual/recovery는 별도 정책을 따른다. 정당한 docs-only skip과 FAIL·NOT TESTED를 혼동하지 않는다. [CI/CD](CI_CD.md), [원격 검증](REMOTE_VALIDATION.md) 참조.
+- **QA/Owner:** 기본 OWNER_MANAGED와 명시 선택 AGENT 경로를 [QA_REVIEW_POLICY](QA_REVIEW_POLICY.md)에 따라 구분한다. 자동 QA·로컬 PASS·PR CI 시작을 인간 독립 QA 또는 Owner ACCEPT로 전용하지 않는다. 모든 소스 검증은 SHA/run/attempt를 보존한다.
+
+| 구분 | 트리거와 사례 | PR 게시 전 최소 로컬 검증 | 제외·확대의 판단 |
+| --- | --- | --- | --- |
+| LOW | 비동작 문구·링크·격리 스타일/문서, 공유 계약 불변 | Markdown link/형식·관련 정적 검사와 직접 테스트(필요 시) | UI interaction·Core/API에 영향 없음이 확인되면 Unit/Browser 전체는 N/A(reason); 공통 token/동작 변경이면 MEDIUM 재분류 |
+| MEDIUM | 단일 Editor interaction·서비스/화면 변경, 제한된 소비자 | 변경 기능 Unit/Integration + 직접 관련 Chromium E2E 또는 실제 API + 인접 동작·취소/권한·음성 사례 | focus/keyboard/Escape, 관련 화면 390px·Day/Week, 저장·복구를 선정. 공통 canonical/viewport·권한·revision이면 HIGH |
+| HIGH/cross-cutting | Gantt canonical/Core/viewport, Calendar/Resource, 공통 계약/DB migration, 서버 경계, 비동기 상태/UNKNOWN 복구 | 관련 Unit/Integration + 실제 소비자 Chromium·HTTP/SQLite(해당 시) + 401/409/412/422/500/연결불명확/재조회 실패 음성 + 교차 기능 회귀 | Task CRUD·Copy/Paste·Link·Milestone·Calendar·Resource·검색·Fullscreen·Editor cross-tab 영향 매핑. 공통 영역 연쇄 실패 시 한정 확대 진단. 매 작은 수정에서 로컬 전체 E2E **의무 아님** |
+
+위 기준은 **로컬 사전 검증 선택**에 한정된다. risk LOW, 로컬 성능 제약, 실패한 test, 환경별 실측 불가 또는 mock PASS는 원격 필수 check·현재 QA·병합 규칙의 skip 허가가 아니다. 필요 시 Manager가 N/A/BLOCKED/NOT TESTED·잔여 위험을 명시한 채 원격 CI 시작 가능성을 별도 판단한다.
+
+### 2. 영향 그래프와 테스트 선정·제외
+
+PLAN·REWORK·공유 계약 변경마다 수정 전후 공개 함수/출력과 producer→직접 소비자→간접 소비자→오류 복구를 문서화한다. 실제 기존 test 파일·추가 negative/adjacent 회귀와 실행 환경을 붙이고, *선정한 이유*뿐 아니라 *제외한 이유*도 적는다. [GANTT_STATE_CONFORMANCE](GANTT_STATE_CONFORMANCE.md)의 SC-01~14와 기존 Gantt 표준을 수동 대조한다.
+
+| 수정 지점 | 교차 소비자/필수 확인 예시 |
+| --- | --- |
+| U2 Core canonical·저장 결과·UNKNOWN | Task add/edit/delete/move, Link, Copy/Paste, Editor dirty·cross-tab, DTO/actual Core 정합, 저장 확정/불명확·조회 실패 뒤 추가 저장 0 |
+| U3 semantic receipt·projection | Resource↔Gantt/대시보드 peer 복귀, Grid reveal, 이름/검색 결과 0·해제, selection/focus, 동일 revision의 새로운 영수증 경합 |
+| U4 axis·viewport | 첫 과거 Milestone 날짜축, Day/Week/휴일 Calendar, 390px·capacity clamp, Fullscreen, 새 wheel 우선권과 120→0/46→0·Grid/Chart 정렬 |
+| 서버/공통 권한·revision/SQLite | session·If-Match/Origin, 401/409/412/422/500/connection reset, 멱등 재조회와 최종 DB persisted result, retry 없음 |
+
+Unit/mocked API의 통과를 실제 browser/HTTP·SQLite 통과로 표시하지 않는다. JS DOM 관측은 native Core 실제 상태와 다를 수 있다. 변경 화면의 focus/keyboard/Escape 및 필요한 390/768/1024/1440px·Day/Week에 대해 실제 실행 또는 제외 이유를 남긴다.
+
+### 3. 근거·실패 분류·최종 Head 유효성
+
+Work Packet에 baseline/main·working head·base·test merge·source fingerprint(적용 가능한 경우), 수정 파일·계약, 테스트별 명령·환경·고유 케이스 수·PASS/FAIL/SKIPPED/NOT TESTED/BLOCKED, 재현·수정 전후·실패 run/attempt/job/trace를 기록한다. 서로 다른 source Head의 성공 테스트 수를 합산하지 않으며, 취소/미실행 shard를 PASS로 바꾸지 않는다. CI의 test-merge 결과는 특정 PR/source에 귀속되고 이전 Main/PR 통과를 현재 결과로 전용하지 않는다.
+
+| 분류 | 원인 판단에 필요한 관찰 | 금지 |
+| --- | --- | --- |
+| 제품 결함 | 실제 Core/native/UI·revision/서버 DTO, mutation 횟수·실패 복구 불변조건, 동일 source 반례 | assertion/timeout/skip 완화로 제품 문제 숨김 |
+| fixture 또는 DEV/test observation 결함 | 기존 계약과 실제 렌더/시간축 원점·최신 영수증·입력 조건의 상이함을 증명 | 제품 영향 미확인 상태에서 임의 기대값 변경 |
+| transport/환경/원인 불명 | 요청 phase·readiness·worker lifecycle·OOM·network trace·단독/동일 source 재현 차이 | ECONNRESET을 근거 없이 OOM, keep-alive, 서버 결함 또는 flake로 단정; 재시도 증대 |
+
+### 4. 반복 실패: 한정된 fail-fast 없는 진단
+
+**트리거:** 하나의 PR에서 서로 다른 소비자 실패가 두 차례 이상 이어지거나, 공유 canonical·비동기 복구·Core/HTTP 경계에서 테스트 누락이 입증되거나, 선택 검사 통과 뒤 인접 기능 회귀가 새로 발견된 경우. Manager는 이전 실행의 FAIL·CANCELLED·NOT RUN과 영향된 파일 집합·예상 Runner 시간/비용을 구분해 범위를 선정한다. 모든 수정에 전체 로컬 E2E를 강제하지 않는다.
+
+**방법:** 동일한 동결 source에서 관련 E2E 파일만 1회 확대해 재시도를 끄고 모든 실패를 관찰한다. 예시(해당 파일이 작업 Head에 실제 존재할 때): 
+    npx playwright test tests/e2e/gantt-state-product-integration.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0
+이 명령은 *로컬 제한 진단용*이다. TEST_PLAN이 workflow의 기존 PR shard --max-failures=1/matrix fail-fast 정책을 변경하는 것은 아니다.
+
+**종료 조건:** 확대 범위의 최초/추가 실패를 실제 source별로 분류하고 원본 trace·발생 순서를 보존한다. 제품 또는 fixture를 보완했다면 **최종 동일 source**에서 직접·교차·음성 경로를 재검증한다. 미실행·미확정 항목은 NOT TESTED/BLOCKED와 잔여 위험/인계 담당자를 명시한 뒤 Manager가 PR CI 시작을 판단한다. 한 번의 확대 PASS를 원격 전체 PASS로 승격하지 않는다. 테스트 timeout/retry/skip/required gate·단언 완화는 검증 전략이 아니다.
+
+### 5. LOW/MEDIUM/HIGH 경계 예시
+
+| 변경 | 적절한 테스트 | 과소·과잉 검증 |
+| --- | --- | --- |
+| LOW — 텍스트·링크 변경 | Markdown 링크·형식과 변경 범위. 실제 UI/DB 동작 테스트 N/A(reason) | 매 문서 수정에 로컬 전체 E2E 강제 = 과잉 |
+| MEDIUM — Editor 단일 버튼 | 직접 Unit·Editor E2E·focus/keyboard/Escape/readonly·저장 인접 사례 | snapshot만 통과하고 interaction 누락 = 과소; 모든 작은 UI 변경에 전체 E2E = 과잉 |
+| HIGH — U2/U3/U4 canonical async | U2/U3/U4 Unit + 실제 Gantt/Task/Copy·Paste/Resource/Calendar/검색/Fullscreen·Editor + HTTP/SQLite 음성 및 SC 매핑 | 하나의 Unit 또는 과거 다른 Head 선택 PASS만 사용 = 과소 |
+
+[#667 시범 매핑](exec-plans/active/ISSUE_697.md)은 PR #695/#2811~#2814 및 #384 Copy/Paste의 실패 원인을 제품/fixture/DEV getter/미확정 HTTP로 구분하고 실제 파일을 연결하지만 **새 테스트 실행과 PASS를 의미하지 않는다**. #659는 공식 PR CI Fail-Fast, #679는 Push 실행 전략이며 이 이슈는 로컬 검증 범위·Work Packet 문서만 변경한다.
+
+---
+
 ## #548 — Milestone 행 제거·marker OFF 우선/독립 ON 후속 수용 계획 (2026-10-15)
 
 기준 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md), [Conformance Matrix](GANTT_STATE_CONFORMANCE.md), #667/#552/#553/#574 및 선택 #573/#693. **기존 테스트/불변식을 축소·skip/timeout 증가로 녹색화하지 않는다.** 문서 등록은 test 실행 PASS가 아니다.
