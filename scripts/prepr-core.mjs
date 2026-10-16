@@ -57,6 +57,16 @@ export function sourceEvidence(root, base = "") {
   };
 }
 
+export function e2eSafety({ env = {}, existing = [], portFree = true } = {}) {
+  const reasons = [];
+  for (const name of ["PLAYWRIGHT_BASE_URL", "APP_BASE_URL", "DATABASE_PATH"]) {
+    if (env[name]) reasons.push(`External/operational variable set: ${name}`);
+  }
+  for (const path of existing) reasons.push(`Existing E2E resource: ${path}`);
+  if (!portFree) reasons.push("E2E server port 3100 is occupied or cannot be inspected");
+  return { state: reasons.length ? "BLOCKED" : "READY", reasons };
+}
+
 export function isPathWithin(root, target) {
   const remainder = relative(resolve(root), resolve(target));
   return remainder === "" || (remainder !== ".." && !remainder.startsWith(".." + sep) && !remainder.startsWith(sep));
