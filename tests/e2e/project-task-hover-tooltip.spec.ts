@@ -1,5 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
+
 import {
   ganttRoot,
   installStatefulProjectFixture,
@@ -34,54 +36,11 @@ async function expectTooltip(
   revision: number,
 ): Promise<string> {
   await target.scrollIntoViewIfNeeded();
-  // scrollIntoView는 날짜축 확장과 후행 native scroll의 완료 영수증이 아니다.
-  // 현재 데이터·축·실제 hit 영역이 정착한 뒤 최초 hover를 한 번만 입력한다.
-  await expect.poll(() => target.evaluate(async (node, expectedRevision) => {
-    const frame = node.closest<HTMLElement>(".project-gantt-frame");
-    if (!frame) return false;
-    const chart = frame.querySelector<HTMLElement>(".wx-chart");
-    const owner = frame.querySelector<HTMLElement>(".wx-gantt");
-    if (!chart || !owner) return false;
-    const read = () => {
-      const receipt = JSON.parse(frame.dataset.ganttProjectionReceipt ?? "null");
-      const delivery = JSON.parse(frame.dataset.ganttProjectionObservation ?? "null");
-      const semantic = JSON.parse(frame.dataset.ganttSemanticProjectionReceipt ?? "null");
-      const coordinator = JSON.parse(frame.dataset.ganttViewportCoordinator ?? "null");
-      const core = Reflect.get(frame, "__masterganttPublicViewport") as { left: number; top: number } | undefined;
-      const rect = node.getBoundingClientRect();
-      const x = (Math.max(0, rect.left) + Math.min(innerWidth, rect.right)) / 2;
-      const y = (Math.max(0, rect.top) + Math.min(innerHeight, rect.bottom)) / 2;
-      const hit = document.elementFromPoint(x, y);
-      const busy = coordinator && ["WAIT_PROJECTION", "PREPARING_GEOMETRY", "WAIT_GEOMETRY", "APPLYING", "SETTLING"].includes(coordinator.phase);
-      const scope = new URL(location.href).searchParams.get("rootTask")?.trim() || null;
-      const ready = node.isConnected && frame.isConnected && chart.isConnected && owner.isConnected &&
-        frame.querySelector(".wx-chart") === chart && frame.querySelector(".wx-gantt") === owner && document.visibilityState === "visible" &&
-        receipt?.revision === expectedRevision && receipt.apiInstance === frame.dataset.projectGanttApiInstance &&
-        receipt.scale === frame.dataset.ganttScaleMode && receipt.scope === scope && receipt.outcome === "SETTLED" &&
-        delivery?.stage === "delivery" && delivery.outcome === "SETTLED" && semantic?.semanticId === receipt.generation &&
-        !busy && (!coordinator || coordinator.apiInstance === frame.dataset.projectGanttApiInstance) && core?.left === chart.scrollLeft && Math.abs(core.top - owner.scrollTop) <= 1 &&
-        rect.width > 0 && rect.height > 0 && !!hit && node.contains(hit);
-      return { ready, signature: JSON.stringify({ api: frame.dataset.projectGanttApiInstance, scale: frame.dataset.ganttScaleMode,
-        receipt, delivery, semantic, coordinator, core, native: [chart.scrollLeft, owner.scrollTop],
-        viewport: [innerWidth, innerHeight, document.fullscreenElement === frame],
-        geometry: [chart.clientWidth, chart.clientHeight, chart.scrollWidth, owner.clientHeight, owner.scrollHeight,
-          frame.clientWidth, frame.clientHeight, frame.querySelector(".project-gantt-scroll")?.scrollLeft,
-          rect.x, rect.y, rect.width, rect.height, x, y] }) };
-    };
-    const initial = read();
-    if (!initial.ready) return false;
-    const deadline = performance.now() + 5_000;
-    for (let index = 0; index < 3; index++) {
-      const animated = await new Promise<boolean>(resolve => {
-        const finish = (value: boolean) => { cancelAnimationFrame(frameId); clearTimeout(timer); resolve(value); };
-        const frameId = requestAnimationFrame(() => finish(true));
-        const timer = setTimeout(() => finish(false), Math.max(1, deadline - performance.now()));
-      });
-      const current = read();
-      if (!animated || !current.ready || current.signature !== initial.signature) return false;
-    }
-    return true;
-  }, revision), { message: "현재 날짜축과 실제 hover 대상이 3개 frame 동안 정착해야 합니다" }).toBe(true);
+  const frame = ganttRoot(page);
+  // 이 시나리오는 검색을 편집하지 않는다. 현재 scope·U3·hit가 새 hover의 전제다.
+  await waitForGanttReadiness(target, { operation: "hover", allowCancelledPriorWork: true, api: await frame.getAttribute("data-project-gantt-api-instance"), revision,
+    scale: (await frame.getAttribute("data-gantt-scale-mode")) as "day" | "week",
+    scope: new URL(page.url()).searchParams.get("rootTask")?.trim() || null, query: "", queryWitness: { kind: "unchanged" } });
   await target.hover();
   const current = tooltip(page);
   await expect(current).toBeVisible();

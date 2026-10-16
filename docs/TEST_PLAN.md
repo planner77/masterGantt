@@ -1,3 +1,13 @@
+## Issue #667 — CI #2835 동작별 준비 계약 (2026-10-16)
+
+정상 setup에서 `visible` 또는 마지막 성공 receipt만으로 후속 입력을 승인하지 않는다. 현재 API/revision/scale/scope/query·canonical 동기화·logical/Core/DOM 행·최신 관측·semantic receipt·현재 Coordinator 작업을 함께 읽고, 동작별 조건을 별도로 검사한다. Scroll은 Core exact capacity와 native capacity 모두가 목표를 수용해야 하며, date reveal은 현재 축/날짜와 기존 canonical ID 배열 순서, hover는 현재 geometry/hit과 기존 Core X=native X 완전 일치를 확인한다. date/scroll의 기존 Core/native ±1 계약을 hover X로 확대하지 않는다. attempt 번호와 semanticId는 서로 다른 번호 공간이므로 같은 값일 것을 강제하지 않는다. 같은 IDs를 유지하는 query 변경도 이전 filterKey와 구분하며, 현재 실패/UNKNOWN 작업은 준비 완료로 승인하지 않는다. query witness는 다른 filter를 편집하지 않는 단일 명시 query 전환 범위의 증거다. geometry/hover의 명시적 이전 SUPERSEDED 허용은 현재 API/U3·실제 geometry로 새 동작을 준비한다는 뜻이며 과거 취소 명령의 완료 판정이 아니다. 안정성은 문맥·권한·실제 geometry를 기준으로 검사하고 attempt/observation의 단순 bookkeeping 증가만으로 정착을 거절하지 않는다.
+
+metadata 첫 검색 전에는 가상화 DOM 부분집합/순서와 행이 하나 이상 존재하는 기존 전제를 유지하고, 검색 후에는 정확2IDs를 검사한다.
+
+공통 helper는 관측만 하며 입력/resize/remount/range 재발행·저장·재hover를 숨기지 않는다. 현재 작업이 SETTLED여도 용량47px이면 목표120px은 거절해야 한다. 축 준비가 필요한 정상 fixture는 helper 밖에서 명시적 실제 입력을 한 번 수행하고 새 RANGE와 양쪽 수용 범위를 확인한다. 실제 scroll이 없는 cap0/edge 상태까지 확장을 보장하지 않는다. SC-09·pending Copy·전환 중 wheel/filter·지연응답 음성에는 정상 정착 gate를 적용하지 않는다.
+
+독립 감사로 정상 exact 좌표·비영점 baseline·의도적 전환 소비자를 분류한다. 기존 DEV probe의 canonicalIds/rows는500개 상한이므로 그 범위의 선택 fixture에만 전수 ID 검사를 사용하고 SC-14 대량 데이터의 독립 gate는 유지한다. 공통 판정에는 stale context/최신 실패/geometry 부족·Core/native 용량 불일치의 의미 있는 Unit 반례를 작성하고, 변경 소비자는 최종 동결 source의 실제 Chromium으로 검증한다. 임시 통제 source, 원본 비재현, 최종 source 결과를 합산하지 않는다. 최신 원격 #2835는 **첫 검색 전** 실패이며 #2833의 FILTER_INPUT 취소와 구분한다. 상세 선정·제외·명령·환경·해시는 [ci2835](evidence/issue-667/ci2835-correction.json)와 [별도 원장](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다. 새 PR CI 시작은 공식 전체 회귀 PASS가 아니다.
+
 ## Issue #667 — CI #2833 metadata 초기 viewport 준비 (2026-10-16)
 
 `task-editor-form-density.spec.ts`의 #456 active-name-filter/#570 metadata 두 사례는 기존Week전환이 시작한RANGE/currentWeek U3·실제Core/native좌표일치·nativecapacity≥120을첫검색전에읽기전용확인한다. 이후첫검색의현재query·예상2ID·U3semantic/delivery·geometry정착을확인하고native120을처음한번만주입한다. 검색전31IDset·receipt logical/Core DFS순서일치와virtualizedDOMsubset/order를검사하며전체DOM/fixture배열순서를강제하지않는다. 검색후2IDexact는유지한다. 첫검색만있는이fixture에서filterKey는freshreceipt안정성범위이며전수filter인수가아니다.

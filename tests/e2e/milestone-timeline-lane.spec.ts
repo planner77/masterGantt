@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { installStatefulProjectFixture, publicId, projectPath } from "../fixtures/stateful-project";
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 
 test.use({ timezoneId: "America/New_York" });
@@ -21,56 +22,9 @@ async function settle(page: Page) {
   await page.evaluate(() => new Promise<void>(resolve => { let n = 5; const tick = () => --n ? requestAnimationFrame(tick) : resolve(); requestAnimationFrame(tick); }));
 }
 async function prepareGeometryDateReveal(frame: Locator, scale: "day" | "week", revision: number, instance: string, canonicalIds: string[]) {
-  // 설치/표시 준비와 현재 날짜 단위의 의미·축 전달 완료는 별개의 전제다.
-  // 목표 날짜는 아직 화면 밖이어도 된다. 최초 reveal 전에는 쓰기를 하지 않는다.
-  await expect.poll(() => frame.evaluate(async (node, expected) => {
-    const api = Reflect.get(node, "__masterganttMilestoneTimeline");
-    const chart = node.querySelector<HTMLElement>(".wx-chart"), owner = node.querySelector<HTMLElement>(".wx-gantt");
-    if (!chart || !owner) return false;
-    const read = () => {
-      const core = api.read(), coordinate = api.coordinate("2026-03-10");
-      const receipt = JSON.parse(node.dataset.ganttProjectionReceipt ?? "null");
-      const delivery = JSON.parse(node.dataset.ganttProjectionObservation ?? "null");
-      const semantic = JSON.parse(node.dataset.ganttSemanticProjectionReceipt ?? "null");
-      const coordinator = JSON.parse(node.dataset.ganttViewportCoordinator ?? "null");
-      const lower = core.scaleRows?.at(-1);
-      const labels: unknown[] = [...(lower?.first ?? []), ...(lower?.last ?? [])].map((cell: { value: unknown }) => cell.value);
-      const unitLabels = expected.scale === "week" ? /^W\d{2}$/ : /^\d{1,2}$/;
-      const axis = chart.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
-      const header = chart.querySelector(expected.scale === "week" ? ".project-gantt-week-scale" : ".project-gantt-day-scale");
-      const busy = coordinator && ["WAIT_PROJECTION", "PREPARING_GEOMETRY", "WAIT_GEOMETRY", "APPLYING", "SETTLING"].includes(coordinator.phase);
-      const ready = node.isConnected && chart.isConnected && owner.isConnected && document.visibilityState === "visible" &&
-        node.querySelector(".wx-chart") === chart && node.querySelector(".wx-gantt") === owner && api.ready &&
-        core.instance === expected.instance && node.dataset.projectGanttApiInstance === expected.instance &&
-        node.dataset.ganttScaleMode === expected.scale && !!header && labels.length > 0 && labels.every(value => typeof value === "string" && unitLabels.test(value)) &&
-        core.scaleRows.every((row: { width: number }) => row.width === core.width) &&
-        JSON.stringify(core.canonicalIds) === JSON.stringify(expected.canonicalIds) && core.coreTaskCount === expected.canonicalIds.length &&
-        receipt?.apiInstance === expected.instance && receipt.revision === expected.revision && receipt.scale === expected.scale &&
-        receipt.scope === (new URL(location.href).searchParams.get("rootTask")?.trim() || null) && receipt.outcome === "SETTLED" &&
-        delivery?.stage === "delivery" && delivery.outcome === "SETTLED" && semantic?.semanticId === receipt.generation &&
-        !busy && (!coordinator || coordinator.apiInstance === expected.instance) && coordinate?.insideRange &&
-        Math.abs(core.left - chart.scrollLeft) <= 1 && Math.abs(core.top - owner.scrollTop) <= 1 &&
-        chart.clientWidth > 0 && chart.clientHeight > 0 && !!axis;
-      return { ready, signature: JSON.stringify({ receipt, delivery, semantic, coordinator,
-        core: [core.instance, core.left, core.top, core.start, core.end, core.width, core.chartWidth, labels],
-        native: [chart.scrollLeft, owner.scrollTop], coordinate: [coordinate?.contentX, coordinate?.insideRange],
-        geometry: [chart.clientWidth, chart.clientHeight, chart.scrollWidth, owner.clientHeight, owner.scrollHeight,
-          axis?.x, axis?.y, axis?.width, axis?.height, innerWidth, innerHeight] }) };
-    };
-    const initial = read();
-    if (!initial.ready) return false;
-    const deadline = performance.now() + 5_000;
-    for (let index = 0; index < 3; index++) {
-      const animated = await new Promise<boolean>(resolve => {
-        const finish = (value: boolean) => { cancelAnimationFrame(frameId); clearTimeout(timer); resolve(value); };
-        const frameId = requestAnimationFrame(() => finish(true));
-        const timer = setTimeout(() => finish(false), Math.max(1, deadline - performance.now()));
-      });
-      const current = read();
-      if (!animated || !current.ready || current.signature !== initial.signature) return false;
-    }
-    return true;
-  }, { scale, revision, instance, canonicalIds }), { message: "현재 날짜 단위의 U3 전달과 실제 축이 정착한 뒤 최초 reveal을 등록해야 합니다" }).toBe(true);
+  // 과거 취소 trace를 완료로 세지 않고 현재 U3·실제 축으로 새 reveal의 전제를 확인한다.
+  await waitForGanttReadiness(frame, { operation: "date-reveal", allowCancelledPriorWork: true, api: instance, revision, scale,
+    scope: new URL(frame.page().url()).searchParams.get("rootTask")?.trim() || null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, date: "2026-03-10" });
 }
 async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milestone-only" | "maximum" | "empty" = "mixed", editable = false) {
   const state = await installStatefulProjectFixture(page); state.sessionEditable = editable;

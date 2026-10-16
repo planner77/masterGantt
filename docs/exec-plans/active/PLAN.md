@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 CI #2835 후속 최종: 공통계약6개 test source에서 Unit117·Chromium43 PASS, predicate전수감사의기존exactX/순서/nonempty복원과실험/중단source분리완료. 최종source·문서/원본/남은adapter후보는ci2835원장에보존한다. 2026-10-16 CI #2835 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)과 사용자가 제공한 공유 분석을 참조했다. 최신 실패는 검색 전 Week/U3 SETTLED·31IDs 일치에도 용량47px로 목표120px을 수용하지 못한 준비 단계이며, 이전 검색 취소와 다르다. 현재 문맥/관측/작업 완료와 동작별 수용 조건을 공통 read-only 계약으로 나누고 정상 소비자 감사·통제 반례·동결 source 검증을 수행한다. main 정렬·리뷰/충돌 재확인 후 같은 PR의 새 Full CI 시작까지만 진행한다. HIGH/OWNER_MANAGED·QA_FINAL/Owner ACCEPT NOT TESTED·MERGE_READY BLOCKED는 유지한다.
+
 2026-10-16 CI #2833 후속: [별도원장](../../ISSUE_667_FAILURE_ANALYSIS.md)과ci2831/ci2829/ci2827부터비교했다. 원본metadata저장전120기대/46실제를재현했고setter직전capacity47→즉시native47 browserclamp를직접계측했다. 검색이진행중WeekRANGE를취소하는계약은유지하며기존Week정착→첫검색fresh2IDs→최초120입력1회로fixture순서를정리한다. 원본/진단과보완중fixture3FAIL·중간PASS를분리보존하고최종6spec50교차회귀/사전검토/리뷰·main충돌확인뒤새FullPRCI시작까지수행한다.
 
 2026-10-16 CI #2831 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)의 재개6단계와 ci2827/ci2829를 먼저 비교했다. 원격768 Day geometry PASS 후 Week reveal은SUPERSEDED였고 당시delivery는day/rowsPENDING이었다. 원본768·자연5폭 비재현PASS와24actualRAF 통제경합FAIL을 분리하고 원격 직접 취소UNKNOWN을 유지한다. 임시진단원복 후 현재Week semantic/delivery·실제axis 준비를 첫 reveal 전에 확인하는 test-only 보완과 관련 교차/취소 음성을 검증한다. 새 증거는ci2831에 보존하며 리뷰/충돌·main 확인 뒤 새FullPRCI 시작까지만 수행한다.

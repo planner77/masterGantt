@@ -737,3 +737,36 @@ Unit N/A: 제품/알고리즘/공유helper변경0이며새read-only fixture를�
 typecheck/변경spec lint(오류·경고0)/Markdown229/version0.114.1/diff PASS. 제품/공유fixture/config·기존13개evidence불변과source drift0을확인했다. Unit은제품/알고리즘변경0으로N/A이며이전Unit91을이번PASS에합산하지않는다. 원본/진단/보완중3FAIL·중간PASS·환경중단·확대49/1·최종7의실제명령/환경/source/HTMLhash/각시간은ci2833 JSON에분리보존한다.
 
 별도qa_docs `/root/pre_review`의 PRE_QA=PASS / DOCUMENTATION_SYNC=PASS(이번7파일/최종density7·이전불변43참고·원문증거대조한정), 미해결지적0이다. Reviewer별도재실행은없으며HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를유지한다.
+
+## CI #2835 후속 — 공유 분석과 정상 준비 계약의 공통화
+
+현재 범위는 사용자 제공 공유 분석·별도 실패 원장 참조, 최신 main 정렬·미해결 리뷰/충돌 처리, 원인 분석·보완 후 같은 PR695의 새 Full PR CI 시작 확인까지다. 원격 #2835.1/run38861176558/Head `e67528cdca5435fe7af6539476e536d303104762`와 source artifact/test merge 귀속을 재확인했다. Quality/Docker PASS·E2E FAIL이며 #456 첫 검색 전 준비가 용량47px에서 실패했다. 이전 #2833 검색 취소와 현재 Week/U3 SETTLED를 구분한다. 실제 출처·모든 shard·미도달 단계는 [누적 실패 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)과 [ci2835](../../evidence/issue-667/ci2835-correction.json)를 따른다.
+
+frontend `/root/viewport_fix`는 공통 테스트 helper/소비자/Unit 및 browser/server 단일 작성·운영, infra `/root/ci_investigation`은 원격 read-only 조사, qa_docs `/root/pre_review`는 별도 read-only PRE_QA, Manager는 문서/통합/게시를 담당한다. 임시 진단 source·generated 설정·기존 캡처는 검증 후 원래 bytes로 복구한다.
+
+### 반영 범위와 문서 동기화
+
+- 공유 제안 A: 현재 data/성공 receipt/최신 attempt/semantic/current operation/목표 수용 범위의 동작별 read-only 계약. 기존 U2/U3/U4·Coordinator 권한과 번호 공간 유지.
+- 공유 제안 B: 정상 setup과 전환·취소 음성을 구별. helper 안 입력/resize/remount/range 재발행/후행120 재주입 없음.
+- 공유 제안 C: metadata/geometry/hover와 유사 fixed-coordinate 소비자를 감사해 exact 목표·비영점 baseline·의도적 경합으로 분류. 이관 범위와 제외 근거는 ci2835에 기록.
+- 공유 제안 D: SETTLED+용량47은 목표120을 거절하는 통제 반례, 명시적 실제 입력 뒤 새 RANGE·양 capacity 수용, stale/current 문맥 Unit 및 최종 동결 source의 변경 소비자 회귀를 구분 검증.
+
+UPDATE: TEST_PLAN·별도 실패 원장/새 ci2835 JSON·Work Packet/PLAN·CHANGELOG. 기존 원격 FAIL·원본 비재현·통제 source·최종 source·새 CI 시작을 분리한다.
+
+N/A: ARCHITECTURE/PROJECT_UX/GANTT_ADAPTER_ADR/GANTT_SYNC_TRACE/GANTT_STATE_CONFORMANCE/MILESTONE_TIMELINE/TASK_EDITOR/DESIGN/UI_UX_GUIDELINES — 현재 제품 API/UX/단일 writer/취소·보존 계약 변경 없음. 정상 테스트 입력 등록 전제를 공통 관측한다. 기간 탐색/축 축소/재초기화/라이브러리 교체는 필요성 증거 없이 도입하지 않는다.
+
+N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA_REVIEW_POLICY 및 workflows/scripts/package/lock — 서버/도메인/권한/CI/QA/release/버전 정책 변경 없음. 새 Head 원격 전체 회귀는 별도 CI로 수행한다.
+
+현재 main 포함·미해결 리뷰0·충돌0이며 게시 직전/직후 다시 확인한다. HIGH/OWNER_MANAGED·qa_required=true/version0.114.1/release_required=true/release_authorized=false를 유지한다. PRE_QA는 인간 QA_FINAL/Owner ACCEPT가 아니며 QA_FINAL/Manager ACCEPT NOT TESTED·MERGE_READY BLOCKED다. 병합·main/GHCR·release/tag·Issue/branch 종료는 범위 밖이다.
+
+### CI #2835 최종 소스와 로컬 검증
+
+최종 변경은 공통 read-only reader/evaluator·의미 반례 Unit·기존 density/lane/hover의6개 테스트 파일이다. source fingerprint는 `30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8`이며 개별 SHA256과 정의는 ci2835 JSON을 따른다. 최종 Unit117(신규 evaluator26+기존 Coordinator91,184ms) 및 Chromium 고유43/5spec이 PASS했다. 직접 density7+lane21+hover6=34와 viewport8+실제HTTP pending Copy wheel1을 같은 고정 source에서 검증했다. 전체 PR CI나 전체 서버 회귀 PASS와 구분한다.
+
+원본 정확 단독1 PASS는 비재현이다. 지속 left0 통제의 원본1 FAIL·보완2 FAIL과 initial-only 통제2 PASS는 서로 다른 source로 보존한다. 후자의 Core46/native47→명시적wheel(120,0)1회→현재 RANGE SETTLED/양capacity998/999와 기존 metadata·빈집합·latezero/wheel 완료는 liveness 실증이며 원격 RANGE 기원 재현은 아니다. 중간 source의43 실행23 PASS/1 INTERRUPTED/19 NOT RUN(exit130, raw HTML expected23/skipped20/ok=true)은 NOT TESTED로 제외한다. Unit114/116도 최종117에 합산하지 않는다.
+
+독립 전제 감사에서 발견한 hover X exact/date canonical ID 배열 순서/metadata 첫 검색 전 nonempty DOM을 복원하고 의미 음성3개를 추가했다. receipt·attempt counter만 증가하는 안정성 경계는 현재 sample 유효성 검사와 의미/권한/실제 geometry key로 분리한다. geometry/hover의 이전 취소 명시 허용은 현재 context의 새 동작 준비이며 취소 명령 완료가 아니다. query witness는 다른 filter를 편집하지 않은 단일 query 전환만 증명한다.
+
+추가 settings/transfer exact 좌표 후보는 정적 감사만 수행했고, 복수 물리 UI 작업 완료가 용량 보장 실증은 아니므로 잔여 capacity 전제는 미검증으로 남긴다. 비영점 baseline·기존 buffer 준비·SC-14/3000행·의도적 경합에는 기계 이관하지 않는다. DEV reader500개 한계와 실제 이관 fixture31/10/5개 범위를 유지한다. 제품3파일·공유fixture/config13·package/lock·이전14개 증거 불변을 확인하고 기본after 캡처/생성 설정을 복구한다. 최종 명령/환경·각 source/report 해시·선정/제외·PRE_QA/DOCUMENTATION_SYNC·새 원격 미검증 경계는 ci2835를 따른다.
+
+별도 qa_docs `/root/pre_review`의 최종 PRE_QA=PASS / DOCUMENTATION_SYNC=PASS, 미해결 지적0이다. 변경6test/6docs와 실제117/43 원문·source·복구를 직접 대조했으며 Reviewer 재실행은 없다. 원래 capture88(after86+Editor2) bytes/exactset과 generated2파일을 복구했다. 최종 typecheck·6파일ESLint(오류/경고0)·Markdown229·version0.114.1·diff PASS다. E2E는TZUTC/context별시간대, Unit은TZunset/IntlAsiaSeoul로 구분한다. HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT NOT TESTED·MERGE_READY BLOCKED를 유지하며 새 Full PR CI 시작 출처는 게시 후 Issue STATUS에 연결한다.

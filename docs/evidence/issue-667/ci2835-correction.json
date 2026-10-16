@@ -1,0 +1,2091 @@
+{
+  "schema": "mastergantt-issue667-ci2835-correction-v1",
+  "parentHead": "e67528cdca5435fe7af6539476e536d303104762",
+  "integration": {
+    "main": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+    "alreadyIncluded": true,
+    "unresolvedReviewsBefore": 0,
+    "conflictsBefore": 0
+  },
+  "ledgerConsulted": [
+    "docs/ISSUE_667_FAILURE_ANALYSIS.md: 증상인덱스/재개6단계",
+    "docs/evidence/issue-667/ci2833-correction.json",
+    "docs/evidence/issue-667/ci2831-correction.json",
+    "docs/evidence/issue-667/ci2829-correction.json"
+  ],
+  "sharedAnalysis": {
+    "url": "https://chatgpt.com/s/t_6ad1c9bd47a48191bbd5fb036c1280df",
+    "baseline": "CI2833/Head56349bd1d8a23900f38988439c7125b1dfdee4bb",
+    "access": "web추출은로그인shell만반환; 공개HTTP200HTML의SSRJSON을실행없이decode해본문직접확보",
+    "bodyCharacters": 12496,
+    "bodySha256": "b66efbaf9b6ff72bd37c29f7074985f95d48a4a084e6738ec4cd0d66517f4cad",
+    "alternativesDeferred": "자동날짜축축소/명시기간이동UX·AC변경/재초기화/라이브러리교체는현재필요성증거없음. 기존정책/수용기준유지.",
+    "recommendationsApplied": {
+      "A": "기존U2/U3/U4·Coordinator유지, operation별read-only준비/완료/현재context/targetadmission공통화·조건별진단",
+      "B": "정상setup과전환중wheel/filter/지연응답음성분리; 음성에정착wait미적용",
+      "C": "metadata/geometry/hover 및유사normal fixedscroll 소비자패턴감사·한정migration",
+      "D": "SETTLED/nativecap47통제반례·명시적실제입력준비/취소권한·최종고정source교차검증"
+    }
+  },
+  "remoteOriginal": {
+    "identity": {
+      "runId": 38861176558,
+      "runNumber": 2835,
+      "attempt": 1,
+      "event": "pull_request",
+      "head": "e67528cdca5435fe7af6539476e536d303104762",
+      "base": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+      "testMerge": "072ec74b74df56affa0c4b2d25aa09f19ec969af",
+      "sourceArtifact": {
+        "id": 12029173063,
+        "name": "ci-pr-source-38861176558-1",
+        "sha256": "c5ae78053ea7eca57eb38f24a4a39b79db6cefcdc6f912655c4cd79060ad6f81",
+        "identityMatches": true,
+        "trusted": false,
+        "crossCheckedAgainst": [
+          "Run API",
+          "QA job환경",
+          "testmergeGit부모"
+        ]
+      },
+      "reportArtifact": {
+        "id": 12029836941,
+        "sha256": "646fadc860313292642d546ce7834f8573c0caedbaa56af7d1614a115e3f8216"
+      },
+      "workflowPath": ".github/workflows/ci.yml",
+      "workflowId": 356198495,
+      "testMergeParents": [
+        "fd219130491c53d054754eac41a58e4a6a3da0c6",
+        "e67528cdca5435fe7af6539476e536d303104762"
+      ]
+    },
+    "required": {
+      "quality": {
+        "job": 116844523193,
+        "status": "PASS"
+      },
+      "e2e": {
+        "job": 116849572709,
+        "status": "FAIL"
+      },
+      "docker": {
+        "job": 116844931716,
+        "status": "PASS"
+      },
+      "qaAutomated": {
+        "job": 116849599231,
+        "status": "FAIL",
+        "reason": "required e2e 미성공"
+      }
+    },
+    "shards": [
+      {
+        "shard": 1,
+        "job": 116844173659,
+        "status": "PASS",
+        "passed": 113,
+        "skipped": 0
+      },
+      {
+        "shard": 2,
+        "job": 116844173677,
+        "status": "CANCELLED",
+        "e2eStepStatus": "success",
+        "testSummary": {
+          "passed": 82,
+          "failed": 0,
+          "skipped": 0,
+          "reportedMinutes": 16.5
+        },
+        "limit": "step7성공·82개완료와JobCANCELLED를분리하며전체JobPASS로승격하지않음."
+      },
+      {
+        "shard": 3,
+        "job": 116844173684,
+        "status": "CANCELLED",
+        "observedPassed": 111
+      },
+      {
+        "shard": 4,
+        "job": 116844173706,
+        "status": "CANCELLED",
+        "observedPassed": 139
+      },
+      {
+        "shard": 5,
+        "job": 116844173760,
+        "status": "FAIL",
+        "passed": 102,
+        "failed": 1,
+        "skipped": 0,
+        "notRun": 1
+      },
+      {
+        "shard": 6,
+        "job": 116844173617,
+        "status": "PASS",
+        "passed": 89,
+        "skipped": 1
+      }
+    ],
+    "actualAdditionalFailures": 0,
+    "globalError": "Testing stopped early after 1 maximum allowed failures.",
+    "failure": {
+      "file": "tests/e2e/task-editor-form-density.spec.ts",
+      "testLine": 268,
+      "callLine": 275,
+      "assertionLine": 70,
+      "step": 7,
+      "expected": true,
+      "actual": false,
+      "timeoutMs": 5000,
+      "helper": "prepareInitialMetadataViewport",
+      "phase": "Week클릭후첫검색전준비gate",
+      "query": "",
+      "expectedIdCount": 31,
+      "notReached": [
+        "search.fill",
+        "native scrollLeft=120",
+        "metadata mutation",
+        "subsequent #570 test"
+      ]
+    },
+    "observation": {
+      "precedingDayRange": {
+        "outcome": "SUPERSEDED",
+        "reason": "STALE_CONTEXT_OR_INTENT",
+        "afterViewportResize": true
+      },
+      "weekRange": {
+        "lastCapturedPhase": "SETTLED",
+        "outcome": "SETTLED",
+        "writes": 3,
+        "coreLeft": 0,
+        "nativeLeft": 0,
+        "scaleWidth": 952,
+        "chartClientWidth": 905,
+        "capacityX": 47,
+        "axisOutcome": "SETTLED",
+        "axisViewport": "PRESERVED"
+      },
+      "projection": {
+        "scale": "week",
+        "revision": 20,
+        "generation": 2,
+        "logicalIdCount": 31,
+        "coreIdCount": 31,
+        "logicalCoreOrderMatches": true,
+        "delivery": {
+          "generation": 9,
+          "stage": "delivery",
+          "outcome": "SETTLED"
+        },
+        "semantic": {
+          "semanticId": 2,
+          "observation": 3,
+          "reused": true
+        }
+      },
+      "inference": "최종axis/native용량47은helper의120수용전제에미달. Week축952종료분기는추가source/trace분석과미캡처한계로구별.",
+      "distinction": "이사례에는FILTER_INPUT이없으며이전CI2833의검색취소기원을그대로적용하지않음"
+    },
+    "pastCases": {
+      "geometryFiveWidths": "individual PASS",
+      "taskHoverSix": "individual PASS",
+      "viewport463": "individual PASS",
+      "notRetroactive": true
+    }
+  },
+  "analysis": {
+    "classification": "SETTLED/current context와target capacity admission 혼동; 첫read-only gate의liveness전제미증명",
+    "observation": "검색전query空/31IDs·WeekRANGE/U3SETTLED·Core/native0, nativecapacity47으로안정종료. 현재작업완료는임의target120수용보장이아님.",
+    "distinction": "#2833검색FILTER_INPUT취소/#2831oldDaysemantic/#2829hover닫힘과다름. 이번검색/120setter/metadata미도달.",
+    "remoteCausalLimit": "WeekRANGE가952폭으로종료한직접근원은로컬source/통제확인필요. 용량47부족의현재gate실패는직접관측.",
+    "timeoutsRetriesSkipsAssertionsWeakened": false,
+    "additionalCausalNarrowing": {
+      "observedOrder": [
+        "Week APPLYING writes2: natural recovery SETTLED at980474.633ms,width952/start2026-09-07/end2026-12-09/nativecap47",
+        "sameaxis SETTLED/PRESERVED at980582.753ms",
+        "sameCoordinator SETTLING→SETTLED/writes3 stillwidth952"
+      ],
+      "execDelta": "Week区간scroll0한번뿐/전역writes2→3/새resizeexpansionpair0",
+      "excluded": "큰축SETTLED후늦은952축축소흐름아님",
+      "sourcePossibility": "requestedEnd/desiredWidth를naturalRecovery전에계산; 회복후datecoverage충족시changeExtent생략가능",
+      "notCaptured": [
+        "command.width",
+        "requestedEnd"
+      ],
+      "directBranchCause": "UNKNOWN",
+      "timeBasis": "Playwrighttrace monotonic milliseconds,UTC아님"
+    },
+    "contractAssessment": {
+      "u4": "GSC05/ADR177의요청날짜합집합+원래XY보존은target0/cap47에서도성립가능;SETTLED≠cap120보장",
+      "adapterResidualCandidate": "RANGE width를recovery전dateextent로환산후U4에날짜만전달하며회복후desiredWidth하한재검증없음. 원격commandwidth>952가확인되면누락후보이나미캡처로이번제품버그확정불가",
+      "schedulingResidualCandidate": "resizing중event/RAFdiscard·axisSettled는U3관측만요청·후속edgegrowth재예약없음.952/cap47의nextTimeline계산은1904대상이나실제요청기원미기록",
+      "decision": "현재fixture의임의target120전제를보완;잔여adapter/edge준비후보는미확정으로보존·제품timeout/권한/정책불변"
+    },
+    "remoteAxisSupplement": {
+      "schema": "mastergantt-issue667-ci2835-axis-causality-readonly-v1",
+      "sourceHead": "e67528cdca5435fe7af6539476e536d303104762",
+      "scope": "보존원격trace와원본HEAD source의read-only분석;browser/편집/댓글없음",
+      "remoteEvidence": {
+        "dayRange": {
+          "phaseSequence": [
+            "APPLYING",
+            "SUPERSEDED"
+          ],
+          "initialCumulativeWrites": 0,
+          "terminalCumulativeWrites": 2,
+          "reason": "STALE_CONTEXT_OR_INTENT",
+          "initialGeometryWidth": 756,
+          "afterOwnResizePairWidth": 1512,
+          "resizePair": [
+            1512,
+            746
+          ],
+          "viewportResizedFrom": {
+            "width": 1280,
+            "height": 720
+          },
+          "viewportResizedTo": {
+            "width": 1440,
+            "height": 900
+          }
+        },
+        "weekRange": {
+          "contextEpoch": 1,
+          "initialCumulativeWrites": 2,
+          "initialCapturedGeometryWidth": 1512,
+          "phaseSequence": [
+            "APPLYING",
+            "SETTLING",
+            "SETTLED"
+          ],
+          "terminalCumulativeWrites": 3,
+          "ownWriteDelta": 1,
+          "ownResizeExpansionPairObserved": 0,
+          "lastOwnEvent": {
+            "action": "scroll-chart",
+            "requestedLeft": 0
+          },
+          "naturalRecovery": {
+            "capturedAtTraceMs": 980474.633,
+            "outcome": "SETTLED",
+            "reason": "NATURAL_GEOMETRY_CONFIRMED",
+            "startMs": 1788739200000,
+            "endMs": 1796774400000,
+            "scaleWidth": 952,
+            "capacityX": 47
+          },
+          "axisTransaction": {
+            "capturedAtTraceMs": 980582.753,
+            "outcome": "SETTLED",
+            "reason": "AXIS_AND_VIEWPORT_CONFIRMED",
+            "viewport": "PRESERVED",
+            "position": {
+              "left": 0,
+              "top": 0
+            },
+            "startMs": 1788739200000,
+            "endMs": 1796774400000,
+            "scaleWidth": 952,
+            "capacityX": 47
+          },
+          "coordinatorSettled": {
+            "capturedAtTraceMs": 980844.197,
+            "coreLeft": 0,
+            "nativeLeft": 0,
+            "scaleWidth": 952
+          }
+        },
+        "publishedTimelineEndEvolution": [
+          {
+            "phase": "Day initial",
+            "ms": 1791244800000
+          },
+          {
+            "phase": "Week click action before mode commit",
+            "ms": 1793059200000
+          },
+          {
+            "phase": "Week committed while recovery pending",
+            "ms": 1790726400000
+          },
+          {
+            "phase": "Natural recovery and command settled",
+            "ms": 1796774400000
+          }
+        ],
+        "sequenceConclusion": "Week복구부터작은축952/cap47이며axis/Coordinator완료도동일하다. 큰축SETTLED뒤추가축소된흐름은캡처에없다."
+      },
+      "sourceAssessment": {
+        "u4Contract": {
+          "status": "DATE_COVERAGE_AND_POSITION",
+          "sources": [
+            "docs/GANTT_STATE_CONSISTENCY.md:GSC-05",
+            "docs/GANTT_ADAPTER_ADR.md:177"
+          ],
+          "meaning": "요청날짜extent합집합과원래X/Y보존;target0은cap47에서도정당하게정착할수있으며SETTLED만으로임의120수용을보장하지않음"
+        },
+        "adapter": {
+          "source": "src/features/gantt/viewport/svar-viewport-port.ts:167-203",
+          "observation": "desiredWidth/requestedEnd를recoverNaturalGeometry전에계산하고transaction.run에는날짜extent/PRESERVE만전달한다. 복구후축이날짜extent를덮으면changeExtent생략가능하며회복후minimumWidth재검증은없다.",
+          "conditionalRisk": "실제command.width가952보다크지만복구후축이변환된요청날짜를이미덮으면물리폭이요청보다작아도수용할조건부위험",
+          "remoteLimit": "실제command.width·복구전readAxis/start/end·requestedEnd/extent·extensionattempt미캡처로원격직접근인확정불가"
+        },
+        "scheduler": {
+          "source": "src/features/gantt/project-gantt.tsx:1643-1679,2020",
+          "observation": "RAF및scroll/resize listener는port.resizing중확장예약을버린다. axisSettled는U3관측만요청하고다음축확장은재예약하지않는다.",
+          "hypotheticalEvaluationOfFinalCapturedGeometry": {
+            "scaleWidth": 952,
+            "coreChartWidthFromPublicResizeEvent": 906,
+            "scrollLeft": 0,
+            "remaining": 46,
+            "threshold": 227,
+            "nextTimelineScaleWidth": 1904
+          },
+          "limit": "실제폐기RAF/명령기원순서가미기록이다. 가능한후속예약손실경로이며이번원격발생의인과증거는아님"
+        }
+      },
+      "classification": {
+        "confirmed": "첫검색전물리용량120전제가실패;U4는target0과날짜coverageSETTLED보고",
+        "notConfirmed": "제품결함과정상bounded축의구분·mixedscale/taint회복의직접분기",
+        "rejected": "큰Week축이SETTLED된뒤다른변경이축소했다는추론",
+        "nextEvidenceNeeded": [
+          "등록한RANGEcommand.width와그시점Core scale/width",
+          "복구전desiredWidth/requestedEnd/dateextent와복구후axis비교",
+          "datecoverage로changeExtent를생략했는지다른사유인지",
+          "resizing중edge성장이폐기됐는지·정착후재예약됐는지"
+        ],
+        "noPolicyChangeAuthorized": true
+      }
+    }
+  },
+  "source": {
+    "status": "FROZEN",
+    "owned": {
+      "tests/e2e/helpers/gantt-readiness.ts": "289ac835a41ea6296ecf2b3b9633d741ab036c2d52a22131080d152f8514286f",
+      "tests/e2e/helpers/gantt-readiness-state.ts": "6384e927b3545cd502a18c70163159686d424939171c616e79bb35569fdcf8ad",
+      "tests/features/gantt/gantt-readiness.test.ts": "fc4e6dc8e2a180268f48a90ab8204338d991db97669c23cdbb4696d6ec5c58bc",
+      "tests/e2e/task-editor-form-density.spec.ts": "d16ebc2cae2dd655aefa6252f7bdb671120df536c66a8ce93f354a701b6628a0",
+      "tests/e2e/milestone-timeline-lane.spec.ts": "0b5b831b0a4d78185ee5000a8c91faf77ba6b9c55baedf7c29503696e7151e04",
+      "tests/e2e/project-task-hover-tooltip.spec.ts": "f19a65c4e9fa88e820ea1802e90bfd3d00254af3d50fda83a29979c12f80f2da"
+    },
+    "fingerprint": "30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8",
+    "fingerprintAlgorithm": "sha256(sorted path + NUL + fileSHA256 + newline)",
+    "runtime": {
+      "src/features/gantt/project-gantt.tsx": {
+        "sha256": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+        "matchesHead": true
+      },
+      "src/features/gantt/viewport/viewport-coordinator.ts": {
+        "sha256": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+        "matchesHead": true
+      },
+      "src/features/gantt/viewport/svar-viewport-port.ts": {
+        "sha256": "53369580ca0f837e3d3192a9377f490c20d6e433f21cc9a4f521d39eb3f9662d",
+        "matchesHead": true
+      }
+    },
+    "sharedUnchanged": {
+      "count": 13,
+      "sha256ByPath": {
+        "tests/config/e2e-shard-plan.json": "3b06003d79ed357447b76472b17843796302a388df30104c188bc1febdb733bc",
+        "tests/config/e2e-timing-reporter.cjs": "a77000b42698ef9688e62b79ac09e0d32fff6bf9cd92bbfb21f480f48b671a34",
+        "tests/config/gantt-state-conformance.json": "200be6c4d1f494342870265ea4fdb1c86fd4ed435c4f4742fbc7e9ab603bd758",
+        "tests/config/playwright.config.ts": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+        "tests/config/transport.config.ts": "9ecaf0582f13e8ad6549d0cd3993f5aa6882dfe302fa9110ddb3b8a3d2b48c15",
+        "tests/config/vitest.config.ts": "74bbfc8cdc54a00ccee2e31ef9bb1496f8b1b67f2ce7bad58db5b3083ac5c4ca",
+        "tests/e2e/fixtures/isolated-application-diagnostics.ts": "05ee0f0deef46be9c724bce0a58751c459e39ea88bc4b4402449b9b6101004fb",
+        "tests/e2e/fixtures/isolated-application.ts": "2719b2924041185d225f96b23031bf1bfcc4a2d14694871efb80ff7f46f4d695",
+        "tests/e2e/fixtures/issue-621-target-project.ts": "177687b6fee686f717857e277d27006202d6b56f9b8ea51ffeb8f92b23b62ffd",
+        "tests/e2e/fixtures/issue-623-target-resource.ts": "d181a8e9c33e55504da885d8ca847110228af9d633bcf422988727e0cce44e38",
+        "tests/e2e/fixtures/resource-kpi-integration-ui.ts": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+        "tests/e2e/fixtures/target-project.ts": "ecc176069e31ad3354c461f4a5cda8510b8ac495d14a26f43db1d225ab61024a",
+        "tests/e2e/fixtures/task-editor-density.ts": "815c52fa48a91a59c6c1f10e2b53c4f24ca8c8aafe14e9505f39682743bb0199"
+      }
+    },
+    "packageUnchanged": {
+      "package.json": "e081a2750b0dc0b66772b1a51ac92eade6805bf60042faf52068cfaebc3a65e5",
+      "package-lock.json": "3706f18d68f54546999e8b023e03b5de6ee12fbdc289a068e4d828c7d092731e"
+    },
+    "uncommittedHandoffSha256": "362c0c054667ca8ffc0028d024e0a732e034a3587c2abbad63893aa866923890"
+  },
+  "local": {
+    "status": "PASS (최종동결117/43·정적검사·복구;전체원격회귀와구별)",
+    "originalExact": {
+      "status": "PASS",
+      "cases": 1,
+      "meaning": "원본정확단독비재현; 원본FAIL소급변경/원인확정아님",
+      "execution": {
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "errors": [],
+        "startTime": 1792134011850,
+        "reportDurationMs": 7149.058,
+        "testDurationSumMs": 3326,
+        "htmlPath": "output/playwright/issue-667/ci2835-original-html/index.html",
+        "htmlSha256": "ebdee63ca89b9aca5d9eb2b9b460d5a0a916dc141d3fe9e32dbb9b1638e39881",
+        "raw": "output/playwright/issue-667/ci2835-original.log",
+        "timing": "output/playwright/issue-667/ci2835-original-timing.json",
+        "classification": "원본source 단독1PASS 비재현; 원격FAIL을소급PASS하지않음",
+        "sourceManifest": "output/playwright/issue-667/ci2835-original-source/manifest.json",
+        "sourceHashes": {
+          "tests/e2e/task-editor-form-density.spec.ts": "1055c1261d6688ea4f6aa310044de5bde59a0ffa47e864c03cb35e8c90092da0",
+          "src/features/gantt/project-gantt.tsx": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1"
+        },
+        "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-original-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-original-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts --grep '#456 active name filter' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-original-results >output/playwright/issue-667/ci2835-original.log 2>&1"
+      }
+    },
+    "controlledSequencePreliminary": {
+      "originalControl": "초기및후검색left0의edge/retainedwidth계산을모두보류; 원본1FAIL, query空/currentU3SETTLED/cap47/currentWork없음; 원격RANGESETTLED기원동일재현아님",
+      "correctedUnderOverbroadControl": "2FAIL; 최초wheel1회후새RANGE/양capacity120은성공했으나검색후통제가retainedwidth도재차차단해46/47용량으로후속gate실패;초기gate실패와구분",
+      "initialOnlyControl": "freshpage/component별최초실제forward후보류영구해제;2PASS;각Core46/native47→mouse.wheel(120,0)1회→새RANGESETTLED/gesture1/writes3→Core998/native999→최초setter120/기존metadata/latezero/wheel/빈집합완료",
+      "runtimeRestoration": "임시제품sourceHEAD bytes원복/runtime diff0;최종정상source43PASS",
+      "causalBoundary": "관측상태의liveness반례/실제준비경로실증. 원격직접분기원인재현아님"
+    },
+    "intermediateFrozenRun": {
+      "sourceFingerprint": "32049fd0cfe65f4548280e5d6ee072377e49ed53f6eae9cbedc6b11b2cd8da53",
+      "selected": 43,
+      "passed": 23,
+      "interrupted": 1,
+      "notRun": 19,
+      "exitCode": 130,
+      "status": "NOT TESTED",
+      "rawHtml": {
+        "expected": 23,
+        "skipped": 20,
+        "ok": true
+      },
+      "reason": "독립predicate감사에서기존hoverexactX약화발견후수동중단. source변경전완전정지·archive; 이후dateexactorder/metadata초기nonempty도복원",
+      "excludedFromFinal": true,
+      "unitAtThisSource": {
+        "files": 2,
+        "passed": 114,
+        "helper": 23,
+        "coordinator": 91,
+        "durationMs": 234
+      },
+      "lintAtThisSource": "변경6testfilesESLint오류/경고0;최종source재검사별도"
+    },
+    "finalUnit": {
+      "status": "PASS",
+      "files": 2,
+      "passed": 117,
+      "helper": 26,
+      "coordinator": 91,
+      "durationMs": 184,
+      "sourceFingerprint": "30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8",
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/gantt-readiness.test.ts tests/features/gantt/viewport-coordinator.test.ts",
+      "log": "output/playwright/issue-667/ci2835-final-unit.log",
+      "logSha256": "96eef1c7a51e3b52f0d5061f1aa8db201b5abfecd2ac1131eabf13ab2a03bf46",
+      "limit": "이전sourceUnit114/116합산안함",
+      "environment": {
+        "TZ": "unset",
+        "IntlTimezone": "Asia/Seoul",
+        "scope": "Unit실제환경;Playwright의TZUTC와구별"
+      }
+    },
+    "finalSelection": {
+      "discovery": 43,
+      "files": 5,
+      "direct": {
+        "density": 7,
+        "lane": 21,
+        "hover": 6
+      },
+      "negativeCross": {
+        "viewport": 8,
+        "pendingCopyActualWheel": 1
+      },
+      "status": "PASS",
+      "sourceFingerprint": "30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8",
+      "passed": 43,
+      "failed": 0,
+      "skipped": 0,
+      "interrupted": 0,
+      "flaky": 0,
+      "globalErrors": 0,
+      "retries": 0,
+      "reportDurationMs": 191385.056,
+      "testDurationSumMs": 173682,
+      "htmlSha256": "30762374b82eb16c0b13b6b87c4dce0fcd6e5fe964a572eb47d609fdc454129a",
+      "originalGeometryAssertions": {
+        "documentOverflowExecutions": 15,
+        "footerHeightExecutions": 20,
+        "footerTraceAggregation": "5step×count4; node수5와실행수20을구분",
+        "capturePhase": "default after",
+        "verifiedBy": "/root/pre_review rawHTMLdecode"
+      }
+    },
+    "executions": {
+      "original": {
+        "stats": {
+          "total": 1,
+          "expected": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "startTime": 1792134011850,
+        "reportDurationMs": 7149.058,
+        "testDurationSumMs": 3326,
+        "htmlPath": "output/playwright/issue-667/ci2835-original-html/index.html",
+        "htmlSha256": "ebdee63ca89b9aca5d9eb2b9b460d5a0a916dc141d3fe9e32dbb9b1638e39881",
+        "raw": "output/playwright/issue-667/ci2835-original.log",
+        "timing": "output/playwright/issue-667/ci2835-original-timing.json",
+        "cases": [
+          {
+            "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 3326,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          }
+        ],
+        "classification": "원본source 단독1PASS 비재현; 원격FAIL을소급PASS하지않음",
+        "sourceManifest": "output/playwright/issue-667/ci2835-original-source/manifest.json",
+        "sourceHashes": {
+          "tests/e2e/task-editor-form-density.spec.ts": "1055c1261d6688ea4f6aa310044de5bde59a0ffa47e864c03cb35e8c90092da0",
+          "src/features/gantt/project-gantt.tsx": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1"
+        },
+        "command": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-original-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-original-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts --grep '#456 active name filter' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-original-results >output/playwright/issue-667/ci2835-original.log 2>&1",
+          "recordedAt": "2026-10-16T07:00:19.034Z",
+          "sessionId": "38927"
+        },
+        "globalErrors": 0
+      },
+      "capacity-control-original": {
+        "stats": {
+          "total": 1,
+          "expected": 0,
+          "unexpected": 1,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": false
+        },
+        "startTime": 1792134717727,
+        "reportDurationMs": 10466.215,
+        "testDurationSumMs": 6814,
+        "htmlPath": "output/playwright/issue-667/ci2835-capacity-control-original-html/index.html",
+        "htmlSha256": "c60e7f75a517e92b68f5604a2b727e4e38318c749b3498e355e5ac0348ada74a",
+        "raw": "output/playwright/issue-667/ci2835-capacity-control-original.log",
+        "timing": "output/playwright/issue-667/ci2835-capacity-control-original-timing.json",
+        "cases": [
+          {
+            "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 6814,
+            "outcome": "unexpected",
+            "statuses": [
+              "failed"
+            ]
+          }
+        ],
+        "classification": "초기left0 schedule callback(edge/retained계산)보류로작은축/정착상태통제; 원래helper1FAIL. 원격RANGESETTLED의직접기원재현아님",
+        "sourceManifest": "output/playwright/issue-667/ci2835-capacity-control-original-source/manifest.json",
+        "sourceHashes": {
+          "src/features/gantt/project-gantt.tsx": "5c11e981cee5c0a532a35572c7f3a9b18325ed7cfe2bbc0487e16ed2b2cd999a",
+          "tests/e2e/task-editor-form-density.spec.ts": "1055c1261d6688ea4f6aa310044de5bde59a0ffa47e864c03cb35e8c90092da0"
+        },
+        "command": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-capacity-control-original-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-capacity-control-original-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts --grep '#456 active name filter' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-capacity-control-original-results >output/playwright/issue-667/ci2835-capacity-control-original.log 2>&1",
+          "recordedAt": "2026-10-16T07:12:08.245Z",
+          "sessionId": "56052"
+        },
+        "globalErrors": 0
+      },
+      "capacity-control-corrected": {
+        "stats": {
+          "total": 2,
+          "expected": 0,
+          "unexpected": 2,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": false
+        },
+        "startTime": 1792135371505,
+        "reportDurationMs": 18967.503,
+        "testDurationSumMs": 14054,
+        "htmlPath": "output/playwright/issue-667/ci2835-capacity-control-corrected-html/index.html",
+        "htmlSha256": "d37d28aa4b572570226dc3e55324b3adb92a2f191387aff5ccbc1e6dedc55c7b",
+        "raw": "output/playwright/issue-667/ci2835-capacity-control-corrected.log",
+        "timing": "output/playwright/issue-667/ci2835-capacity-control-corrected-timing.json",
+        "cases": [
+          {
+            "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 7567,
+            "outcome": "unexpected",
+            "statuses": [
+              "failed"
+            ]
+          },
+          {
+            "title": "#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel과 동일 검색의 빈집합은 존중한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 6487,
+            "outcome": "unexpected",
+            "statuses": [
+              "failed"
+            ]
+          }
+        ],
+        "classification": "초기wheel성공후검색이left0으로복귀하자overbroadcontrol이또보류해후검색capacity준비2FAIL; 원격기원/제품FAIL과구분",
+        "sourceManifest": "output/playwright/issue-667/ci2835-capacity-control-corrected-source/manifest.json",
+        "sourceHashes": {
+          "src/features/gantt/project-gantt.tsx": "5c11e981cee5c0a532a35572c7f3a9b18325ed7cfe2bbc0487e16ed2b2cd999a",
+          "tests/e2e/task-editor-form-density.spec.ts": "a2ae16b9d533dd9fe0f368ab71d1fef0960a44a8b23f071d2fa8cb512dc9a35b",
+          "tests/e2e/helpers/gantt-readiness.ts": "289ac835a41ea6296ecf2b3b9633d741ab036c2d52a22131080d152f8514286f",
+          "tests/e2e/helpers/gantt-readiness-state.ts": "13f05476519313ca48d8d851882cc1b39cd85126942373e73058500d2f3efa41"
+        },
+        "command": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-capacity-control-corrected-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-capacity-control-corrected-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts --grep 'active name filter|#570 metadata' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-capacity-control-corrected-results >output/playwright/issue-667/ci2835-capacity-control-corrected.log 2>&1",
+          "recordedAt": "2026-10-16T07:23:10.544Z",
+          "sessionId": "64903"
+        },
+        "globalErrors": 0
+      },
+      "initial-capacity-control": {
+        "stats": {
+          "total": 2,
+          "expected": 2,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "startTime": 1792135552497,
+        "reportDurationMs": 13409.461,
+        "testDurationSumMs": 9008,
+        "htmlPath": "output/playwright/issue-667/ci2835-initial-capacity-control-html/index.html",
+        "htmlSha256": "0602f803fd58c0a9380edd7cf22af42ee86af942c62772a0e902912b859517ce",
+        "raw": "output/playwright/issue-667/ci2835-initial-capacity-control.log",
+        "timing": "output/playwright/issue-667/ci2835-initial-capacity-control-timing.json",
+        "cases": [
+          {
+            "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 4919,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel과 동일 검색의 빈집합은 존중한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 4089,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          }
+        ],
+        "classification": "component/freshPage별initial-only ref; firstforward가관측되면보류해제. coveredAPI는각case svar-api-1유지, API교체실험아님. wheelsetup1회후새RANGE/양capacity/최초setter/원래metadata단언2PASS",
+        "sourceManifest": "output/playwright/issue-667/ci2835-initial-capacity-control-source/manifest.json",
+        "sourceHashes": {
+          "src/features/gantt/project-gantt.tsx": "a5b06e43703b80ba44a50f4dc1b3ab8942c5ca182a23ef8118f46c4291f77a91",
+          "tests/e2e/task-editor-form-density.spec.ts": "a2ae16b9d533dd9fe0f368ab71d1fef0960a44a8b23f071d2fa8cb512dc9a35b",
+          "tests/e2e/milestone-timeline-lane.spec.ts": "1650f7251d51b132ea34a62c16412e59177685fe8cf54f320686451afb05c2f3",
+          "tests/e2e/project-task-hover-tooltip.spec.ts": "6f29531211b48c13ac89d23fc22e591da7eadb47e11d011be50a85fb4e271a92",
+          "tests/e2e/helpers/gantt-readiness.ts": "289ac835a41ea6296ecf2b3b9633d741ab036c2d52a22131080d152f8514286f",
+          "tests/e2e/helpers/gantt-readiness-state.ts": "13f05476519313ca48d8d851882cc1b39cd85126942373e73058500d2f3efa41",
+          "tests/features/gantt/gantt-readiness.test.ts": "82681aa499ec4495a32aa44a3d3adafeb7039ebe1171c48b21fc195eccb6376b"
+        },
+        "command": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-initial-capacity-control-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-initial-capacity-control-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts --grep 'active name filter|#570 metadata' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-initial-capacity-control-results >output/playwright/issue-667/ci2835-initial-capacity-control.log 2>&1",
+          "recordedAt": "2026-10-16T07:26:05.941Z",
+          "sessionId": "86310"
+        },
+        "globalErrors": 0
+      },
+      "intermediate": {
+        "stats": {
+          "total": 43,
+          "expected": 23,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 20,
+          "ok": true
+        },
+        "startTime": 1792135876346,
+        "reportDurationMs": 111930.329,
+        "testDurationSumMs": 95425,
+        "htmlPath": "output/playwright/issue-667/ci2835-intermediate-html/index.html",
+        "htmlSha256": "e7de5f2f0e6322d5ab1d7899b7de1a221cb19900adb488cc61dacd5fdc00e308",
+        "raw": "output/playwright/issue-667/ci2835-intermediate.log",
+        "timing": "output/playwright/issue-667/ci2835-intermediate-timing.json",
+        "cases": [
+          {
+            "title": "#622 probe commands require independently committed API readiness",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1676,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 maximum canonical date Week metadata fails closed for Calendar working days",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1293,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 singleton focus/hover guide and canonical Editor return preserve native selection",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1902,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 same-date/near-date cluster pagination keyboard and exact-ID Editor return",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2239,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 focus on mixed-date cluster item moves guide to that date after Editor",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1595,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 keyboard focus survives marker disappearing by horizontal clipping",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1364,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 17865,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 cluster canonical expiry cannot reopen when the same IDs return",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2317,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 OFF while Editor open preserves the dialog and returns to visible schedule without native M selection",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2441,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 full population empty vs date viewport and Task-only filter stay independent",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2792,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 dynamic axis/latest native horizontal scroll and Task pointer selection survive the guide",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2273,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 OFF preserves a dirty existing Editor draft until explicit discard",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2080,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "390px touch hit uses the marker's real 160×44 target",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1910,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 public displayMode grid/chart keeps one Core instance and chart-only full plot",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2341,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 public ISO interval date/header semantics independent oracle",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 5402,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 390px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 3318,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 768px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2693,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 1024px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2680,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 1440px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 3107,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 1920px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2725,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "SC-14 marker OFF 3000행의 독립 readiness와 3회 SPA 수명주기 정리",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 18192,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "pending Copy 중 실제 wheel은 원래 X 복원 권한을 취소한다",
+            "file": "project-multi-task-copy-paste.spec.ts",
+            "durationMs": 5555,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 shows the same canonical Task details from Grid and Chart",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 3890,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 keeps the hover tooltip across Week, fullscreen, WBS scope and readonly",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 3775,
+            "outcome": "skipped",
+            "statuses": [
+              "interrupted"
+            ]
+          },
+          {
+            "title": "Issue #492 좁은 화면에서도 Grid/Chart canonical Tooltip과 실제 hit 영역을 보존한다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "Issue #492 실제 scroll 입력은 Task Hover Tooltip을 닫는다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "Issue #492 실제 focus 입력은 Task Hover Tooltip을 닫는다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "Issue #492 실제 leave 입력은 Task Hover Tooltip을 닫는다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#456 동일 유효 자료로 다섯 폭의 Task Resource Relation과 nested Baseline footer를 측정한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#456 필터 ID 변경·빈집합·해제와 새 API는 필요한 행을 다시 표시한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel과 동일 검색의 빈집합은 존중한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 delayed native add preserves unmodified viewport",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "#571 delayed native add actual wheel cancels captured restore",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          },
+          {
+            "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 0,
+            "outcome": "skipped",
+            "statuses": []
+          }
+        ],
+        "classification": "QA가hoverX±1/datecanonicalset/metadataemptyDOM전제누락을발견하여수동중단(exit130). raw23PASS/1INTERRUPTED/19NOTRUN; HTML23expected/20skipped/oktrue를최종PASS로재사용하지않음",
+        "sourceManifest": "output/playwright/issue-667/ci2835-intermediate-source-manifest.json",
+        "sourceHashes": {
+          "head": "e67528cdca5435fe7af6539476e536d303104762",
+          "owned": {
+            "tests/e2e/helpers/gantt-readiness.ts": "289ac835a41ea6296ecf2b3b9633d741ab036c2d52a22131080d152f8514286f",
+            "tests/e2e/helpers/gantt-readiness-state.ts": "13f05476519313ca48d8d851882cc1b39cd85126942373e73058500d2f3efa41",
+            "tests/features/gantt/gantt-readiness.test.ts": "82681aa499ec4495a32aa44a3d3adafeb7039ebe1171c48b21fc195eccb6376b",
+            "tests/e2e/task-editor-form-density.spec.ts": "a2ae16b9d533dd9fe0f368ab71d1fef0960a44a8b23f071d2fa8cb512dc9a35b",
+            "tests/e2e/milestone-timeline-lane.spec.ts": "0b5b831b0a4d78185ee5000a8c91faf77ba6b9c55baedf7c29503696e7151e04",
+            "tests/e2e/project-task-hover-tooltip.spec.ts": "f19a65c4e9fa88e820ea1802e90bfd3d00254af3d50fda83a29979c12f80f2da"
+          },
+          "fingerprint": "32049fd0cfe65f4548280e5d6ee072377e49ed53f6eae9cbedc6b11b2cd8da53",
+          "fingerprintAlgorithm": "sha256(sorted path + NUL + fileSHA256 + newline)",
+          "runtime": {
+            "src/features/gantt/project-gantt.tsx": {
+              "sha256": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+              "matchesHead": true
+            },
+            "src/features/gantt/viewport/viewport-coordinator.ts": {
+              "sha256": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+              "matchesHead": true
+            },
+            "src/features/gantt/viewport/svar-viewport-port.ts": {
+              "sha256": "53369580ca0f837e3d3192a9377f490c20d6e433f21cc9a4f521d39eb3f9662d",
+              "matchesHead": true
+            }
+          },
+          "shared": {
+            "tests/config/e2e-shard-plan.json": "3b06003d79ed357447b76472b17843796302a388df30104c188bc1febdb733bc",
+            "tests/config/e2e-timing-reporter.cjs": "a77000b42698ef9688e62b79ac09e0d32fff6bf9cd92bbfb21f480f48b671a34",
+            "tests/config/gantt-state-conformance.json": "200be6c4d1f494342870265ea4fdb1c86fd4ed435c4f4742fbc7e9ab603bd758",
+            "tests/config/playwright.config.ts": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+            "tests/config/transport.config.ts": "9ecaf0582f13e8ad6549d0cd3993f5aa6882dfe302fa9110ddb3b8a3d2b48c15",
+            "tests/config/vitest.config.ts": "74bbfc8cdc54a00ccee2e31ef9bb1496f8b1b67f2ce7bad58db5b3083ac5c4ca",
+            "tests/e2e/fixtures/isolated-application-diagnostics.ts": "05ee0f0deef46be9c724bce0a58751c459e39ea88bc4b4402449b9b6101004fb",
+            "tests/e2e/fixtures/isolated-application.ts": "2719b2924041185d225f96b23031bf1bfcc4a2d14694871efb80ff7f46f4d695",
+            "tests/e2e/fixtures/issue-621-target-project.ts": "177687b6fee686f717857e277d27006202d6b56f9b8ea51ffeb8f92b23b62ffd",
+            "tests/e2e/fixtures/issue-623-target-resource.ts": "d181a8e9c33e55504da885d8ca847110228af9d633bcf422988727e0cce44e38",
+            "tests/e2e/fixtures/resource-kpi-integration-ui.ts": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+            "tests/e2e/fixtures/target-project.ts": "ecc176069e31ad3354c461f4a5cda8510b8ac495d14a26f43db1d225ab61024a",
+            "tests/e2e/fixtures/task-editor-density.ts": "815c52fa48a91a59c6c1f10e2b53c4f24ca8c8aafe14e9505f39682743bb0199"
+          },
+          "existingEvidence": {
+            "docs/evidence/issue-667/ci2811-correction.json": "5f9851d2db6fe4b8d81b20a7a1d82e6b34d665344163179e10440b3a1c08136b",
+            "docs/evidence/issue-667/ci2812-correction.json": "812f037a7452c3b5e947129f8e55b8b9aafb34b1afbdd0df559e4987872807fd",
+            "docs/evidence/issue-667/ci2813-correction.json": "be14a5c957ea344251c45403a44d1cc6360b2af6a6dea905d4cc86e828326809",
+            "docs/evidence/issue-667/ci2814-correction.json": "455b372ab1970c50e453ec1aa8f66282a7a6fdbfb4caac4a77e761390525bf43",
+            "docs/evidence/issue-667/ci2817-correction.json": "bb1ba28863575a6fdc3ec751fd0f53ac68ce37364d8b743fa4382862ba65c4ae",
+            "docs/evidence/issue-667/ci2818-correction.json": "8db2a9f438a1044a8e57ebca238748ee45f6e0e81904741f4d4f3db92def8acc",
+            "docs/evidence/issue-667/ci2819-correction.json": "7d84c97a218ebaaa1dbf9620ce551445406a2a4b0c03806f50a730b34c46a682",
+            "docs/evidence/issue-667/ci2820-correction.json": "d108d0a17a1684db45367decf8a5c9843295a47a6c7dba71e1b59e499de1d84f",
+            "docs/evidence/issue-667/ci2825-correction.json": "e8e3f48ff0f19b3e37956c813e4a5110d3ca72809a3c8d51fabacaa6ae18fdb2",
+            "docs/evidence/issue-667/ci2827-correction.json": "3c5ab518a431993837ca96b554bf0319dc8a13fd863e39118d6872d88d22fade",
+            "docs/evidence/issue-667/ci2829-correction.json": "ffa3a6bbd31350c335fc0f453ee80ceccdc84ce644aaa67cc180f76fe70cef34",
+            "docs/evidence/issue-667/ci2831-correction.json": "e787374cfdcddf96f87d5408834b0130316d99247e9556b0433f094566ae5e85",
+            "docs/evidence/issue-667/ci2833-correction.json": "6f14361af13b7b422fad9952162652fa25966bb1aa923d66b640bf6eec705e96",
+            "docs/evidence/issue-667/local-validation.json": "ba4b0d9d5695d86e44e920fa0a7b09ace2aeb64299e4894ddc4bd63e2e404681"
+          },
+          "package": {
+            "package.json": "e081a2750b0dc0b66772b1a51ac92eade6805bf60042faf52068cfaebc3a65e5",
+            "package-lock.json": "3706f18d68f54546999e8b023e03b5de6ee12fbdc289a068e4d828c7d092731e"
+          }
+        },
+        "command": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-final-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-final-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts tests/e2e/milestone-timeline-lane.spec.ts tests/e2e/project-task-hover-tooltip.spec.ts tests/e2e/viewport-coordinator.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --grep '^(?!.*project-multi-task-copy-paste\\.spec\\.ts).*|pending Copy 중 실제 wheel' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-final-results >output/playwright/issue-667/ci2835-final.log 2>&1",
+          "recordedAt": "2026-10-16T07:33:08.388Z",
+          "sessionId": "81034"
+        },
+        "globalErrors": 0
+      },
+      "final": {
+        "stats": {
+          "total": 43,
+          "expected": 43,
+          "unexpected": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "ok": true
+        },
+        "startTime": 1792136368290,
+        "reportDurationMs": 191385.056,
+        "testDurationSumMs": 173682,
+        "htmlPath": "output/playwright/issue-667/ci2835-final-html/index.html",
+        "htmlSha256": "30762374b82eb16c0b13b6b87c4dce0fcd6e5fe964a572eb47d609fdc454129a",
+        "raw": "output/playwright/issue-667/ci2835-final.log",
+        "timing": "output/playwright/issue-667/ci2835-final-timing.json",
+        "cases": [
+          {
+            "title": "#622 probe commands require independently committed API readiness",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1600,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 maximum canonical date Week metadata fails closed for Calendar working days",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1296,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 singleton focus/hover guide and canonical Editor return preserve native selection",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1898,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 same-date/near-date cluster pagination keyboard and exact-ID Editor return",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1884,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 focus on mixed-date cluster item moves guide to that date after Editor",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1853,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 keyboard focus survives marker disappearing by horizontal clipping",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1646,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 17361,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 cluster canonical expiry cannot reopen when the same IDs return",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 3150,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 OFF while Editor open preserves the dialog and returns to visible schedule without native M selection",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1753,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 full population empty vs date viewport and Task-only filter stay independent",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2519,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 dynamic axis/latest native horizontal scroll and Task pointer selection survive the guide",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 3193,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 OFF preserves a dirty existing Editor draft until explicit discard",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2216,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "390px touch hit uses the marker's real 160×44 target",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 1907,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 public displayMode grid/chart keeps one Core instance and chart-only full plot",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2275,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 public ISO interval date/header semantics independent oracle",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 5378,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 390px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 3614,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 768px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2657,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 1024px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2812,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 1440px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2675,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#551 opt-in sibling lane 1920px actual geometry",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 2694,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "SC-14 marker OFF 3000행의 독립 readiness와 3회 SPA 수명주기 정리",
+            "file": "milestone-timeline-lane.spec.ts",
+            "durationMs": 16330,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "pending Copy 중 실제 wheel은 원래 X 복원 권한을 취소한다",
+            "file": "project-multi-task-copy-paste.spec.ts",
+            "durationMs": 5535,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 shows the same canonical Task details from Grid and Chart",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 3685,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 keeps the hover tooltip across Week, fullscreen, WBS scope and readonly",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 4018,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 좁은 화면에서도 Grid/Chart canonical Tooltip과 실제 hit 영역을 보존한다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 1491,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 실제 scroll 입력은 Task Hover Tooltip을 닫는다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 1476,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 실제 focus 입력은 Task Hover Tooltip을 닫는다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 1302,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "Issue #492 실제 leave 입력은 Task Hover Tooltip을 닫는다",
+            "file": "project-task-hover-tooltip.spec.ts",
+            "durationMs": 1342,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#456 동일 유효 자료로 다섯 폭의 Task Resource Relation과 nested Baseline footer를 측정한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 11585,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 6471,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 2992,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 4823,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#456 필터 ID 변경·빈집합·해제와 새 API는 필요한 행을 다시 표시한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 4463,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 4482,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel과 동일 검색의 빈집합은 존중한다",
+            "file": "task-editor-form-density.spec.ts",
+            "durationMs": 4164,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 3910,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 4866,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 3518,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 5196,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 4173,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 delayed native add preserves unmodified viewport",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 4910,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "#571 delayed native add actual wheel cancels captured restore",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 5597,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          },
+          {
+            "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+            "file": "viewport-coordinator.spec.ts",
+            "durationMs": 2972,
+            "outcome": "expected",
+            "statuses": [
+              "passed"
+            ]
+          }
+        ],
+        "sourceManifest": "output/playwright/issue-667/ci2835-final-source-manifest.json",
+        "sourceHashes": {
+          "head": "e67528cdca5435fe7af6539476e536d303104762",
+          "owned": {
+            "tests/e2e/helpers/gantt-readiness.ts": "289ac835a41ea6296ecf2b3b9633d741ab036c2d52a22131080d152f8514286f",
+            "tests/e2e/helpers/gantt-readiness-state.ts": "6384e927b3545cd502a18c70163159686d424939171c616e79bb35569fdcf8ad",
+            "tests/features/gantt/gantt-readiness.test.ts": "fc4e6dc8e2a180268f48a90ab8204338d991db97669c23cdbb4696d6ec5c58bc",
+            "tests/e2e/task-editor-form-density.spec.ts": "d16ebc2cae2dd655aefa6252f7bdb671120df536c66a8ce93f354a701b6628a0",
+            "tests/e2e/milestone-timeline-lane.spec.ts": "0b5b831b0a4d78185ee5000a8c91faf77ba6b9c55baedf7c29503696e7151e04",
+            "tests/e2e/project-task-hover-tooltip.spec.ts": "f19a65c4e9fa88e820ea1802e90bfd3d00254af3d50fda83a29979c12f80f2da"
+          },
+          "fingerprint": "30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8",
+          "fingerprintAlgorithm": "sha256(sorted path + NUL + fileSHA256 + newline)",
+          "runtime": {
+            "src/features/gantt/project-gantt.tsx": {
+              "sha256": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+              "matchesHead": true
+            },
+            "src/features/gantt/viewport/viewport-coordinator.ts": {
+              "sha256": "90bfa5ed37649d1b9516546a19469e372c7fe2f37269f52db31b9edf33ad5762",
+              "matchesHead": true
+            },
+            "src/features/gantt/viewport/svar-viewport-port.ts": {
+              "sha256": "53369580ca0f837e3d3192a9377f490c20d6e433f21cc9a4f521d39eb3f9662d",
+              "matchesHead": true
+            }
+          },
+          "shared": {
+            "tests/config/e2e-shard-plan.json": "3b06003d79ed357447b76472b17843796302a388df30104c188bc1febdb733bc",
+            "tests/config/e2e-timing-reporter.cjs": "a77000b42698ef9688e62b79ac09e0d32fff6bf9cd92bbfb21f480f48b671a34",
+            "tests/config/gantt-state-conformance.json": "200be6c4d1f494342870265ea4fdb1c86fd4ed435c4f4742fbc7e9ab603bd758",
+            "tests/config/playwright.config.ts": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+            "tests/config/transport.config.ts": "9ecaf0582f13e8ad6549d0cd3993f5aa6882dfe302fa9110ddb3b8a3d2b48c15",
+            "tests/config/vitest.config.ts": "74bbfc8cdc54a00ccee2e31ef9bb1496f8b1b67f2ce7bad58db5b3083ac5c4ca",
+            "tests/e2e/fixtures/isolated-application-diagnostics.ts": "05ee0f0deef46be9c724bce0a58751c459e39ea88bc4b4402449b9b6101004fb",
+            "tests/e2e/fixtures/isolated-application.ts": "2719b2924041185d225f96b23031bf1bfcc4a2d14694871efb80ff7f46f4d695",
+            "tests/e2e/fixtures/issue-621-target-project.ts": "177687b6fee686f717857e277d27006202d6b56f9b8ea51ffeb8f92b23b62ffd",
+            "tests/e2e/fixtures/issue-623-target-resource.ts": "d181a8e9c33e55504da885d8ca847110228af9d633bcf422988727e0cce44e38",
+            "tests/e2e/fixtures/resource-kpi-integration-ui.ts": "4447521e18f6c522412cb2975a7d23914f58386a030a6b54e0ee33c12e89c5ac",
+            "tests/e2e/fixtures/target-project.ts": "ecc176069e31ad3354c461f4a5cda8510b8ac495d14a26f43db1d225ab61024a",
+            "tests/e2e/fixtures/task-editor-density.ts": "815c52fa48a91a59c6c1f10e2b53c4f24ca8c8aafe14e9505f39682743bb0199"
+          },
+          "existingEvidence": {
+            "docs/evidence/issue-667/ci2811-correction.json": "5f9851d2db6fe4b8d81b20a7a1d82e6b34d665344163179e10440b3a1c08136b",
+            "docs/evidence/issue-667/ci2812-correction.json": "812f037a7452c3b5e947129f8e55b8b9aafb34b1afbdd0df559e4987872807fd",
+            "docs/evidence/issue-667/ci2813-correction.json": "be14a5c957ea344251c45403a44d1cc6360b2af6a6dea905d4cc86e828326809",
+            "docs/evidence/issue-667/ci2814-correction.json": "455b372ab1970c50e453ec1aa8f66282a7a6fdbfb4caac4a77e761390525bf43",
+            "docs/evidence/issue-667/ci2817-correction.json": "bb1ba28863575a6fdc3ec751fd0f53ac68ce37364d8b743fa4382862ba65c4ae",
+            "docs/evidence/issue-667/ci2818-correction.json": "8db2a9f438a1044a8e57ebca238748ee45f6e0e81904741f4d4f3db92def8acc",
+            "docs/evidence/issue-667/ci2819-correction.json": "7d84c97a218ebaaa1dbf9620ce551445406a2a4b0c03806f50a730b34c46a682",
+            "docs/evidence/issue-667/ci2820-correction.json": "d108d0a17a1684db45367decf8a5c9843295a47a6c7dba71e1b59e499de1d84f",
+            "docs/evidence/issue-667/ci2825-correction.json": "e8e3f48ff0f19b3e37956c813e4a5110d3ca72809a3c8d51fabacaa6ae18fdb2",
+            "docs/evidence/issue-667/ci2827-correction.json": "3c5ab518a431993837ca96b554bf0319dc8a13fd863e39118d6872d88d22fade",
+            "docs/evidence/issue-667/ci2829-correction.json": "ffa3a6bbd31350c335fc0f453ee80ceccdc84ce644aaa67cc180f76fe70cef34",
+            "docs/evidence/issue-667/ci2831-correction.json": "e787374cfdcddf96f87d5408834b0130316d99247e9556b0433f094566ae5e85",
+            "docs/evidence/issue-667/ci2833-correction.json": "6f14361af13b7b422fad9952162652fa25966bb1aa923d66b640bf6eec705e96",
+            "docs/evidence/issue-667/local-validation.json": "ba4b0d9d5695d86e44e920fa0a7b09ace2aeb64299e4894ddc4bd63e2e404681"
+          },
+          "package": {
+            "package.json": "e081a2750b0dc0b66772b1a51ac92eade6805bf60042faf52068cfaebc3a65e5",
+            "package-lock.json": "3706f18d68f54546999e8b023e03b5de6ee12fbdc289a068e4d828c7d092731e"
+          }
+        },
+        "command": {
+          "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2835-final-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2835-final-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-editor-form-density.spec.ts tests/e2e/milestone-timeline-lane.spec.ts tests/e2e/project-task-hover-tooltip.spec.ts tests/e2e/viewport-coordinator.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --grep '^(?!.*project-multi-task-copy-paste\\.spec\\.ts).*|pending Copy 중 실제 wheel' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2835-final-results >output/playwright/issue-667/ci2835-final.log 2>&1",
+          "recordedAt": "2026-10-16T07:42:39.796Z",
+          "sessionId": "15117"
+        },
+        "globalErrors": 0
+      }
+    },
+    "environment": {
+      "node": "22.14.0",
+      "playwright": "1.63.0",
+      "chromium": "153.0.8010.12",
+      "browserBuild": 1243,
+      "CI": "true",
+      "TZ": "UTC",
+      "CI_E2E_FULLY_PARALLEL": "true",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 0,
+      "expectTimeoutMs": 5000,
+      "defaultTestTimeoutMs": 30000,
+      "unchangedDensityOverridesMs": [
+        120000,
+        90000
+      ],
+      "selectedCopyOverrideMs": 90000,
+      "PLAYWRIGHT_BASE_URL": null,
+      "ISSUE456_CAPTURE_PHASE": null,
+      "effectiveCapturePhase": "after",
+      "CAPTURE_ISSUE_551": null,
+      "laneBrowserTimezone": "America/New_York",
+      "defaultViewport": [
+        1280,
+        720
+      ],
+      "densityWidths": [
+        390,
+        768,
+        1024,
+        1440,
+        1920
+      ],
+      "laneWidths": [
+        390,
+        768,
+        1024,
+        1440,
+        1920
+      ],
+      "hoverNarrowViewport": [
+        390,
+        844
+      ],
+      "scope": "E2E실행환경;UnitTZ는finalUnit.environment참조"
+    },
+    "selection": {
+      "finalSingleFrozenRun": 43,
+      "density": 7,
+      "lane": 21,
+      "hover": 6,
+      "viewport": 8,
+      "actualHttpSqlitePendingCopyWheel": 1,
+      "mockApiActualCore": 42,
+      "excludedCopyCases": 9,
+      "consumerAudit": "output/playwright/issue-667/ci2835-consumer-audit.json",
+      "legacyPredicateAudit": "output/playwright/issue-667/ci2835-legacy-predicate-audit.json"
+    },
+    "unitExecution": {
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/gantt-readiness.test.ts tests/features/gantt/viewport-coordinator.test.ts >output/playwright/issue-667/ci2835-final-unit.log 2>&1",
+      "files": 2,
+      "passed": 117,
+      "newContractCases": 26,
+      "existingCoordinatorCases": 91,
+      "durationMs": 184,
+      "raw": "output/playwright/issue-667/ci2835-final-unit.log",
+      "environment": {
+        "node": "v22.14.0",
+        "TZ": null,
+        "timeZone": "Asia/Seoul"
+      }
+    },
+    "afterGeometryAssertions": {
+      "overflowLine": 41,
+      "overflowExecuted": 15,
+      "footerHeightLine": 77,
+      "footerHeightExecuted": 20,
+      "firstCaseLocations": {
+        "30": 1,
+        "32": 5,
+        "36": 15,
+        "37": 15,
+        "12": 40,
+        "41": 15,
+        "42": 15,
+        "43": 15,
+        "45": 5,
+        "46": 5,
+        "47": 5,
+        "51": 5,
+        "52": 5,
+        "54": 1,
+        "55": 5,
+        "56": 5,
+        "57": 5,
+        "59": 5,
+        "63": 15,
+        "38": 5,
+        "66": 5,
+        "67": 5,
+        "68": 5,
+        "70": 5,
+        "71": 5,
+        "72": 5,
+        "73": 5,
+        "76": 20,
+        "77": 20,
+        "78": 5,
+        "79": 5,
+        "82": 5,
+        "84": 5,
+        "85": 5,
+        "86": 5,
+        "53": 4,
+        "80": 8,
+        "60": 6,
+        "88": 1,
+        "89": 1,
+        "90": 1
+      }
+    },
+    "controlMutations": {
+      "capacity-control-original": "--- HEAD/project-gantt.tsx\n+++ capacity-control-original/project-gantt.tsx\n@@ -1646,6 +1646,8 @@\n       timelineExtensionFrameReference.current = null;\n       if (apiReference.current !== api || viewportPortReference.current?.resizing()) return;\n       const state = api.getState() as TimelineState;\n+      // CI2835 control only: hold initial edge growth; real forward ingress uses the original path.\n+      if (state.scrollLeft === 0) return;\n       const retainedWidth = state._start instanceof Date && state._end instanceof Date && state._end < timelineEndReference.current\n         ? minimumTimelineScaleWidthForEnd({ start: state._start, end: timelineEndReference.current, scaleMode: scaleModeReference.current }) : 0;\n       const edgeWidth = nextTimelineScaleWidth({\n",
+      "initial-capacity-control": "--- HEAD/project-gantt.tsx\n+++ initial-capacity-control/project-gantt.tsx\n@@ -1640,12 +1640,16 @@\n     }));\n   }, [expandTimelineScale, recordTimelineEnd]);\n \n+  const ci2835InitialHold = useRef(true);\n   const scheduleTimelineExtension = useCallback((api: IApi): void => {\n     if (timelineExtensionFrameReference.current !== null) return;\n     timelineExtensionFrameReference.current = requestAnimationFrame(() => {\n       timelineExtensionFrameReference.current = null;\n       if (apiReference.current !== api || viewportPortReference.current?.resizing()) return;\n       const state = api.getState() as TimelineState;\n+      // CI2835 control only: hold initial edge growth; real forward ingress uses the original path.\n+      if (state.scrollLeft > 0) ci2835InitialHold.current = false;\n+      if (ci2835InitialHold.current && state.scrollLeft === 0) return;\n       const retainedWidth = state._start instanceof Date && state._end instanceof Date && state._end < timelineEndReference.current\n         ? minimumTimelineScaleWidthForEnd({ start: state._start, end: timelineEndReference.current, scaleMode: scaleModeReference.current }) : 0;\n       const edgeWidth = nextTimelineScaleWidth({\n"
+    },
+    "controlObservationSummary": [
+      {
+        "test": "#456 active name filter의 metadata 저장으로 실제 ID 집합이 바뀌면 이전 viewport를 복원하지 않는다",
+        "input": "wheel-once",
+        "apiBefore": "svar-api-1",
+        "apiAfter": "svar-api-1",
+        "before": {
+          "coreCapacity": 46,
+          "nativeCapacity": 47,
+          "currentWork": null
+        },
+        "after": {
+          "coreCapacity": 998,
+          "nativeCapacity": 999,
+          "currentWork": {
+            "phase": "SETTLED",
+            "kind": "RANGE_EXTENSION",
+            "outcome": "SETTLED",
+            "writes": 3,
+            "intentEpoch": 1,
+            "contextEpoch": 1,
+            "gesture": 1,
+            "projectionEpoch": 2,
+            "apiInstance": "svar-api-1",
+            "decisionReason": "SETTLED",
+            "core": {
+              "left": 46,
+              "top": 0
+            },
+            "native": {
+              "left": 47,
+              "top": 0
+            },
+            "geometry": "[1390,532,905,532,1904,1250]"
+          }
+        },
+        "sourceStage": "initial-capacity-control (최종117/43source와다름)"
+      },
+      {
+        "test": "#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel과 동일 검색의 빈집합은 존중한다",
+        "input": "wheel-once",
+        "apiBefore": "svar-api-1",
+        "apiAfter": "svar-api-1",
+        "before": {
+          "coreCapacity": 46,
+          "nativeCapacity": 47,
+          "currentWork": null
+        },
+        "after": {
+          "coreCapacity": 998,
+          "nativeCapacity": 999,
+          "currentWork": {
+            "phase": "SETTLED",
+            "kind": "RANGE_EXTENSION",
+            "outcome": "SETTLED",
+            "writes": 3,
+            "intentEpoch": 1,
+            "contextEpoch": 1,
+            "gesture": 1,
+            "projectionEpoch": 1,
+            "apiInstance": "svar-api-1",
+            "decisionReason": "SETTLED",
+            "core": {
+              "left": 46,
+              "top": 0
+            },
+            "native": {
+              "left": 47,
+              "top": 0
+            },
+            "geometry": "[1390,532,905,532,1904,1250]"
+          }
+        },
+        "sourceStage": "initial-capacity-control (최종117/43source와다름)"
+      }
+    ],
+    "staticChecks": {
+      "typecheck": "PASS",
+      "eslintChangedSix": "PASS (오류0/경고0)",
+      "markdownLinks": "PASS (229files)",
+      "version": "PASS (0.114.1)",
+      "whitespace": "PASS",
+      "generatedRestoredBeforeTypecheck": true
+    }
+  },
+  "review": {
+    "method": "OWNER_MANAGED",
+    "riskLevel": "HIGH",
+    "qaRequired": true,
+    "reviewer": "/root/pre_review",
+    "preQa": "PASS",
+    "documentationSync": "PASS",
+    "qaFinal": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "intermediateFinding": {
+      "reviewer": "/root/pre_review",
+      "issue": "기존hover CoreX===nativeX가공통context±1로약화",
+      "decision": "중간43실행중단/증거보존;hover operationexactX복원+1px차이음성Unit추가후재동결·새최종회귀",
+      "notRemoteRootCause": true,
+      "statusAtDiscovery": "REWORK (최종검증대기)",
+      "resolvedByFinalSource": "30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8"
+    },
+    "additionalIntermediateFinding": {
+      "reviewer": "/root/viewport_fix source predicate재감사",
+      "issue": "기존date-revealcanonicalIds배열exact순서가공통set비교로약화",
+      "decision": "dateoperation만exactorder복원/metadata기존set계약유지·순서음성Unit추가",
+      "notRemoteRootCause": true,
+      "statusAtDiscovery": "REWORK (최종검증대기)",
+      "resolvedByFinalSource": "30768c91545090f4df9331037311938136508d113575bfc248a1652af85e31d8"
+    },
+    "predicateAudit": {
+      "method": "기존metadata/geometry/hover의준비predicate전수대조",
+      "findings": [
+        "hoverCoreXexact가±1로약화→hover만exact원복",
+        "datecanonicalIds배열exact순서가set비교로약화→date만exact원복",
+        "metadata검색전rows.length>0가emptyDOMsubset허용으로약화→명시옵션복원"
+      ],
+      "intentionalChanges": [
+        "receipt/attempt/canonical bookkeeping counter만변경되는안정성키는제외하되각sample현재유효성검사유지",
+        "geometry/hover명시취소prior허용은현재context로새동작준비이며과거취소완료판정아님"
+      ],
+      "otherPredicateMapping": "sameOwners/API/scale/receipt revision/scope/query/logical-Core순서/actualgeometry/axis/hit/coords/3RAF전수검토;세복원후최종검토대기",
+      "status": "PASS (세기존전제복원/최종117·43·복구직접대조·미해결지적0)"
+    },
+    "unresolvedFindings": 0,
+    "scope": "별도read-only qa_docs;변경test6/docs6·117Unit/43Chromiumraw·source/복구대조한정;Reviewer재실행없음·독립인간QA_FINAL과구별",
+    "reviewerReranTests": false
+  },
+  "newRemoteValidation": "NOT TESTED (게시후새FullPRCI시작확인;원격완료/QA_FINAL/Owner ACCEPT와구별)",
+  "release": {
+    "version": "0.114.1",
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  },
+  "archive": {
+    "entryPoint": "docs/ISSUE_667_FAILURE_ANALYSIS.md",
+    "rawOriginal": "/tmp/issue667-ci2835/",
+    "localArtifacts": "output/playwright/issue-667/",
+    "originalZipSha256": {
+      "report.zip": "646fadc860313292642d546ce7834f8573c0caedbaa56af7d1614a115e3f8216",
+      "source.zip": "c5ae78053ea7eca57eb38f24a4a39b79db6cefcdc6f912655c4cd79060ad6f81"
+    },
+    "handling": "zip읽기전용/안전추출/코드실행없음; 공유본문HTML도script실행없이JSONdecode",
+    "retentionBoundary": "원인/명령/환경/해시Git보존; rawHTML/trace·공유원문은Git밖, 링크/Actions만료경계구분",
+    "historicalEvidence": {
+      "count": 14,
+      "contents": "13개기존ci correction JSON + local-validation.json",
+      "headBytesUnchanged": true
+    }
+  },
+  "consumerAudit": {
+    "method": "qa_docs정적감사; 실제실행과구별",
+    "groups": [
+      {
+        "paths": [
+          "tests/e2e/task-editor-form-density.spec.ts — #456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+          "tests/e2e/project-settings-layout-490.spec.ts:143",
+          "tests/e2e/project-settings-layout-490.spec.ts:192",
+          "tests/e2e/project-transfer-layout-491.spec.ts:70"
+        ],
+        "contract": "normal exactX120/Y38",
+        "decision": "공통target-readiness후보; actualmigration/검증은최종source확정후기록",
+        "constraints": "scope/columns/revision/collapse/fullscreen기존검증유지; metadata후정착gate추가금지"
+      },
+      {
+        "paths": [
+          "tests/e2e/project-resource-calendar-persistence.spec.ts:35",
+          "tests/e2e/project-gantt-fullscreen.spec.ts:161",
+          "tests/e2e/milestone-stage-dashboard.spec.ts:154"
+        ],
+        "contract": "실제비영점baseline캡처후보존; exact120요구아님",
+        "decision": "exact120helper기계이관금지·별도baseline계약유지"
+      },
+      {
+        "paths": [
+          "tests/e2e/milestone-stage-exchange.spec.ts:243",
+          "viewportbookmark160",
+          "Copy46"
+        ],
+        "contract": "기존명시용량전제",
+        "decision": "추가writer불필요; peer/401/전환음성scope유지"
+      },
+      {
+        "paths": [
+          "SC-09",
+          "pending Copy",
+          "filter/late response races"
+        ],
+        "contract": "의도적전환/취소권한",
+        "decision": "normalsettledgate적용금지"
+      }
+    ],
+    "probeBoundary": "기존DEVprobe.read의canonicalIds/rows는500상한;현재선택fixture만전수수용. SC14대량/3000canonical전수readiness로확대금지·기존독립gate유지",
+    "actualScope": [
+      {
+        "consumer": "density metadata #456/#570",
+        "classification": "정상Core/native exactX120",
+        "action": "공통observe/querywitness/admission과metadata전필요시명시wheel1회;최초setter1회유지"
+      },
+      {
+        "consumer": "lane geometry5 widths",
+        "classification": "정상date-reveal",
+        "action": "공통currentaxis/U3/dateinsideRange;임의120용량강제없음·첫reveal/strictSETTLED유지"
+      },
+      {
+        "consumer": "Task hover6",
+        "classification": "정상첫hover준비와기존close음성",
+        "action": "공통현재context/hit/geometry;원래scrollIntoView/hover1회는helper밖에유지"
+      },
+      {
+        "consumer": "density WBS/fullscreen",
+        "classification": "기존독립scope/column/fullscreen준비와native120/Y38",
+        "action": "이관없음. externalID열108px추가뒤setter를수행하는별도전제와fullscreen/selection/tree·boundedXY유지. 변경density7전체를최종검증하되전수용량보장으로확대안함"
+      },
+      {
+        "consumer": "settings490 mock/actual;transfer491",
+        "classification": "scope/column+48/treecollapse뒤native120/Y38",
+        "action": "정적감사·이관없음. 별도fixture/물리UI전환이며같은Week→query준비나관측FAIL증거없음. 잔여capacity명시준비는미검증이며복수UI완료를용량보장증거로사용하지않음"
+      },
+      {
+        "consumer": "resource-calendar/fullscreen/stage-dashboard",
+        "classification": "실제비영점baseline보존·exact120계약아님",
+        "action": "exact120강제는기존의미를바꾸므로제외"
+      },
+      {
+        "consumer": "stage-exchange/viewportbookmark/Copy46",
+        "classification": "기존capacity/buffer별준비",
+        "action": "기존독립setup/단언유지"
+      },
+      {
+        "consumer": "dashboard nativeY후X",
+        "classification": "독립입력순서회귀",
+        "action": "기존Y반영barrier유지·의도적중첩입력앞에일괄정착gate추가없음"
+      },
+      {
+        "consumer": "SC09/pending Copy/filter/late response",
+        "classification": "의도적진행중경합",
+        "action": "주입시점에공통wait추가없음. viewport8/실제HTTP pendingCopywheel1선택"
+      },
+      {
+        "consumer": "SC14/3000행",
+        "classification": "독립대량fixture준비",
+        "action": "이관없음.DEVcanonicalreader500상한·이관canonicalfixture31/10/5범위유지"
+      }
+    ]
+  },
+  "documentationSync": {
+    "updated": [
+      "CHANGELOG.md",
+      "docs/TEST_PLAN.md",
+      "docs/ISSUE_667_FAILURE_ANALYSIS.md",
+      "docs/evidence/issue-667/ci2835-correction.json",
+      "docs/exec-plans/active/ISSUE_667.md",
+      "docs/exec-plans/active/PLAN.md"
+    ],
+    "notApplicable": {
+      "productArchitectureUx": "runtime/권한/단일writer/보존·취소/UX계약변경없음; test입력전제정리",
+      "serverDomain": "API/DB/보안/일정변경없음",
+      "ciQaRelease": "workflow/scripts/package/lock·requiredchecks/QA/release정책변경없음"
+    },
+    "status": "PASS (/root/pre_review 최종6docs·source/실제증거정합성검토)"
+  },
+  "preservation": {
+    "sourceDrift": {
+      "tests/e2e/helpers/gantt-readiness.ts": false,
+      "tests/e2e/helpers/gantt-readiness-state.ts": false,
+      "tests/features/gantt/gantt-readiness.test.ts": false,
+      "tests/e2e/task-editor-form-density.spec.ts": false,
+      "tests/e2e/milestone-timeline-lane.spec.ts": false,
+      "tests/e2e/project-task-hover-tooltip.spec.ts": false
+    },
+    "sharedDrift": {
+      "tests/config/e2e-shard-plan.json": false,
+      "tests/config/e2e-timing-reporter.cjs": false,
+      "tests/config/gantt-state-conformance.json": false,
+      "tests/config/playwright.config.ts": false,
+      "tests/config/transport.config.ts": false,
+      "tests/config/vitest.config.ts": false,
+      "tests/e2e/fixtures/isolated-application-diagnostics.ts": false,
+      "tests/e2e/fixtures/isolated-application.ts": false,
+      "tests/e2e/fixtures/issue-621-target-project.ts": false,
+      "tests/e2e/fixtures/issue-623-target-resource.ts": false,
+      "tests/e2e/fixtures/resource-kpi-integration-ui.ts": false,
+      "tests/e2e/fixtures/target-project.ts": false,
+      "tests/e2e/fixtures/task-editor-density.ts": false
+    },
+    "existingEvidenceChanged": [],
+    "existingEvidenceCount": 14,
+    "runtimeMatchesHead": {
+      "src/features/gantt/project-gantt.tsx": true,
+      "src/features/gantt/viewport/viewport-coordinator.ts": true,
+      "src/features/gantt/viewport/svar-viewport-port.ts": true
+    },
+    "packageDrift": {
+      "package.json": false,
+      "package-lock.json": false
+    },
+    "generatedRestored": [
+      "next-env.d.ts",
+      "tsconfig.json"
+    ],
+    "captures": {
+      "originalBaseline": "output/playwright/issue-667/ci2835-original-captures-manifest.json",
+      "finalArchive": "output/playwright/issue-667/ci2835-final-density-captures",
+      "environment": {
+        "browser": "153.0.8010.12",
+        "phase": "after",
+        "zoom": "browser default 100%; native 125% NOT TESTED",
+        "fixture": {
+          "nameCharacters": 168,
+          "descriptionCharacters": 2600,
+          "urlCharacters": 1640,
+          "baselineDuration": 9999
+        },
+        "browserEnvironment": {
+          "locale": "en-US",
+          "timezone": "UTC",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+          "devicePixelRatio": 1,
+          "visualViewportScale": 1
+        }
+      },
+      "environmentMtimeUTC": "2026-10-16T07:41:26.278229+00:00",
+      "restoredFileCount": 88,
+      "restoredExactBytes": true,
+      "restoredDensityExactSet": true,
+      "addedEditorFilesArchivedThenRemoved": [],
+      "addedDensityFilesArchivedThenRemoved": [
+        "output/playwright/issue-456/after/gantt-public-events.json",
+        "output/playwright/issue-456/after/gantt-state-phases.json"
+      ],
+      "restoredEditorExactSet": true
+    },
+    "newCaptureCount": 88,
+    "newCaptureHashMapSha256": "839ef270aa14c06236720ed906c9be530bf66ba45067cf3b56e8eb67c9593fdf"
+  }
+}

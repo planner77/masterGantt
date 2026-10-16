@@ -1,5 +1,6 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- CI #2835의 검색 전 Week 정착과 목표120px 용량 부족을 구분하고, 정상 입력 준비의 현재 문맥·최신 관측·현재 작업·Core/native 수용 범위를 읽기 전용 공통 계약으로 검증한다. 공유 분석의 제안과 소비자 감사·통제 반례·실제 검증 출처는 별도 실패 원장에 보존한다.
 - CI #2833의 metadata 검증이 기존 Week 축 확장·첫 검색 전달·수평 용량 준비를 확인한 뒤 최초120px 입력을 한 번만 수행하도록 fixture 순서를 보완한다. 초기47px browser clamp와 metadata저장후 복원을 구분하고 원본/진단/보완중 오류·최종 검증을 별도 실패 원장에 보존한다.
 
 - CI #2831의 768px Week geometry 검증이 현재 scale의 semantic/delivery와 실제 날짜축 준비를 확인한 뒤 최초 reveal을 요청하도록 fixture를 보완한다. 이전 receipt에 등록된 명령 중 새 semantic이 도착하는 통제 경합·비재현·원격 미계측 경계를 실패 원장에 보존한다.
