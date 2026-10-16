@@ -10,6 +10,14 @@ export function assertCapturedInstall(root: string): void {
   const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
   const lock = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8"));
   const oldManifest = captured("package"), oldLock = captured("package-lock");
+  // Issue #699 adds one development-only, exact command alias.
+  // Keep original capture-sources immutable and reject changes to ANY other
+  // command, production metadata or lockfile instead of refreshing the snapshot.
+  if (Object.hasOwn(manifest.scripts ?? {}, "verify:prepr")) {
+    assert.equal(manifest.scripts["verify:prepr"], "node scripts/verify-prepr.mjs",
+      "Only the exact local verification alias may differ from the historical manifest");
+    delete manifest.scripts["verify:prepr"];
+  }
   manifest.version = oldManifest.version;
   lock.version = oldLock.version;
   lock.packages[""].version = oldLock.packages[""].version;
