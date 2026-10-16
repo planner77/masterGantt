@@ -118,7 +118,7 @@ const RULES = [
   },
   {
     id: "prepr-tooling", risk: "HIGH",
-    re: /^(?:scripts\/prepr-core\.(?:mjs|d\.mts)|scripts\/verify-prepr\.mjs|tests\/scripts\/prepr-verifier\.test\.ts|docs\/LOCAL_PREPR\.md)$/,
+    re: /^(?:scripts\/prepr-core\.(?:mjs|d\.mts)|scripts\/verify-prepr\.mjs|tests\/scripts\/prepr-verifier\.test\.ts|docs\/LOCAL_PREPR\.md|package\\.json|\\.gitignore)$/,
     unitPaths: ["tests/scripts/prepr-verifier.test.ts"],
     browser: [],
     reason: "Pre-PR tool parser, source provenance, failure and safety regression",
