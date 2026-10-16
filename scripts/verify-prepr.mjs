@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { createConnection } from "node:net";
 import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { cpus, platform, release } from "node:os";
-import { basename, dirname, join, resolve, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { diagnosticSubset, inferRisk, inventory, isPathWithin, selectImpact, sourceEvidence } from "./prepr-core.mjs";
 
@@ -190,8 +190,8 @@ async function execute(label, cmd, args, env, records) {
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
   console.log(`\n[prepr] ${label}: ${cmd} ${args.join(" ")}`);
+  let tail = "";
   const outcome = await new Promise((resolvePromise) => {
-    let tail = "";
     const child = spawn(cmd, args, { cwd: root, env, shell: false, stdio: ["ignore", "pipe", "pipe"] });
     activeChild = child;
     for (const [stream, target] of [[child.stdout, process.stdout], [child.stderr, process.stderr]]) {
@@ -208,7 +208,7 @@ async function execute(label, cmd, args, env, records) {
     label, command: [cmd, ...args], startedAt, durationMs: Date.now() - startedMs,
     exitCode: outcome.exitCode, signal: outcome.signal ?? null,
     status: outcome.error ? "BLOCKED" : outcome.exitCode === 0 && !interrupted ? "PASS" : "FAIL",
-    caseCount: caseCount(label, typeof tail === "string" ? tail : ""),
+    caseCount: caseCount(label, tail),
     ...(outcome.error ? { reason: outcome.error } : {}),
   };
   records.push(record);
@@ -279,8 +279,8 @@ async function main() {
       return;
     }
     assertInstall(result.versions);
-    if (result.selection.state === "BLOCKED" && opt.mode === "targeted") {
-      throw new Error("BLOCKED: unknown/missing impacted tests; Manager must map scope before targeted run");
+    if (result.selection.state === "BLOCKED") {
+      throw new Error("BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS");
     }
     const env = safeChildEnvironment();
     const run = (label, cmd, args, additions = {}) => execute(label, cmd, args, { ...env, ...additions }, result.steps);
