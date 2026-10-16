@@ -466,8 +466,8 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
   it("re-prepares a filter bookmark when late Core filter-tasks contracts axis capacity after first preparation", async () => {
     const f = fixture();
     let preparations = 0;
-    f.port.admitPosition = vi.fn(position => f.sample.capacity.left >= position.left && f.sample.capacity.top >= position.top);
-    f.port.prepare = vi.fn(async command => {
+    f.port.admitPosition = vi.fn((position: { left: number; top: number }) => f.sample.capacity.left >= position.left && f.sample.capacity.top >= position.top);
+    f.port.prepare = vi.fn(async (command: ViewportCommand) => {
       expect(command).toMatchObject({ kind: "FILTER_RETURN", compatibility: true });
       preparations++;
       if (preparations === 2) f.update({ capacity: { left: 1000, top: 1000 } });
@@ -494,7 +494,7 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
   it("fails closed when the same filter return cannot re-prepare capacity, without replaying a stale coordinate", async () => {
     const f = fixture();
     let preparations = 0;
-    f.port.admitPosition = vi.fn(position => f.sample.capacity.left >= position.left);
+    f.port.admitPosition = vi.fn((position: { left: number; top: number }) => f.sample.capacity.left >= position.left);
     f.port.prepare = vi.fn(async () => ({ ready: ++preparations === 1 }));
     f.coordinator.filterInput();
     f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();

@@ -242,7 +242,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
           // projection or execute scroll-chart against the now smaller axis.
           // One bounded re-preparation belongs to this same lease; a new
           // gesture/context invalidates it. No second viewport writer.
-          if (command.kind === "FILTER_RETURN" && port.admitPosition?.(coordinateCommand().position) === false) {
+          if (command.kind === "FILTER_RETURN" && port.admitPosition?.({ left: command.position.left, top: port.read().core.top }) === false) {
             if (filterCapacityReprepared || !port.prepare) return complete("NO_SCROLL_CAPACITY");
             filterCapacityReprepared = true;
             phase("PREPARING_GEOMETRY");
