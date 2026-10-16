@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  diagnosticSubset, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
+  diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
 } from "../../scripts/prepr-core.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -128,5 +128,30 @@ describe("Issue #699 — bounded fail-fast-off diagnostic evidence", () => {
     const paths = tests.e2e.slice(0, 13);
     expect(paths).toHaveLength(13);
     expect(() => diagnosticSubset({ failures: paths.map((file, i) => failure(String(100 + i), file)) }, tests.e2e, 695)).toThrow(/>12/);
+  });
+});
+
+describe("Issue #699 — process and existing-data safety", () => {
+  it("blocks operational external base URLs and DB environment instead of targeting production", () => {
+    const decision = e2eSafety({ env: {
+      PLAYWRIGHT_BASE_URL: "https://example.invalid",
+      DATABASE_PATH: "/srv/production.sqlite3",
+    } });
+    expect(decision.state).toBe("BLOCKED");
+    expect(decision.reasons.join(" ")).toContain("PLAYWRIGHT_BASE_URL");
+    expect(decision.reasons.join(" ")).toContain("DATABASE_PATH");
+  });
+  it("blocks reserved output/SQLite and occupied port and allows a clean fixture", () => {
+    expect(e2eSafety({ existing: [".data/playwright.sqlite3", "playwright-report"] }).state).toBe("BLOCKED");
+    expect(e2eSafety({ portFree: false }).state).toBe("BLOCKED");
+    expect(e2eSafety({}).state).toBe("READY");
+  });
+  it("exposes a safe help entry and rejects unknown modes without launching tests", () => {
+    const help = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--help"], { cwd: root, encoding: "utf8" });
+    expect(help.status).toBe(0);
+    expect(help.stdout).toContain("never replaces GitHub PR CI");
+    const invalid = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--mode=none"], { cwd: root, encoding: "utf8" });
+    expect(invalid.status).toBe(2);
+    expect(invalid.stderr).toContain("Unknown mode");
   });
 });
