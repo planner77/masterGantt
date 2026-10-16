@@ -125,12 +125,10 @@ test("#552 실제 UI Summary Copy는 숨은 Milestone·내부 관계·소속 전
     if (path.startsWith(f.api) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method())) toggleMutations++;
   };
   page.on("request", observe);
-  const toggle = page.getByRole("button", { name: "◆ Milestone 표시", exact: true });
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "false");
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "◆ Milestone 표시", exact: true })).toHaveCount(0);
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   page.off("request", observe);
   expect(toggleMutations).toBe(0);

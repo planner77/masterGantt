@@ -4,6 +4,8 @@ import {
   queryResourceDrill,
   resourceProjectionFetch,
   planScopeProjection,
+  drillFilters,
+  dashboardSelector,
 } from "../../../src/features/resources/resource-drill-transport";
 import { readResourceDrillScope } from "../../../src/features/resources/resource-drill-scope-model";
 import type {
@@ -72,6 +74,7 @@ type Echo = {
   targetFilters: ReturnType<typeof normalizedDrillFilters>;
   assignmentScope: string;
   projectReferenceScope: string;
+  targetProjectReferenceScope?: string;
 };
 type Body = { data: typeof scopeData; drill: Echo };
 function install(transform: (body: Body) => Body = (body) => body) {
@@ -87,6 +90,7 @@ function install(transform: (body: Body) => Body = (body) => body) {
           targetFilters: normalizedDrillFilters(request.filters),
           assignmentScope: "exact-source-intersection",
           projectReferenceScope: "same-resource-population-and-period",
+          ...(request.filters.projectionOrder ? {targetProjectReferenceScope:"full-canonical-project-same-period"} : {}),
         },
       }),
     );
@@ -259,5 +263,31 @@ describe("Resource drill exact descriptor transport", () => {
         source,
       )?.taskCount,
     ).toBe(0);
+  });
+});
+
+describe("#621 bound Target transport", () => {
+  const targetId = "00000000-0000-4000-8000-000000000010";
+  const targetPath = [{dimension:"target" as const,id:targetId},{dimension:"resource" as const,id:null}];
+  it("keeps Target path filters, ordered projection and exact source assignment restriction", async () => {
+    const q = new URLSearchParams({projectionOrder:"resource,target,group",targetIds:targetId,memberSystemIds:"system",targetPath:JSON.stringify(targetPath),dimension:"targetProjection",metric:"all",id:"",assignmentScope:"selected"});
+    const filters = drillFilters(q);
+    expect(filters.projectionOrder).toEqual(["resource","target","group"]);
+    expect(normalizedDrillFilters(filters).projectionOrder).toEqual(["resource","target","group"]);
+    expect((normalizedDrillFilters(filters) as Record<string, unknown>).targetIds).toEqual([targetId]);
+    expect(dashboardSelector(q).targetPath).toEqual(targetPath);
+    const fetcher=install();
+    await resourceProjectionFetch(input, `/api/projects/project/resource-dashboard/details?${q}`);
+    const request=JSON.parse(String(fetcher.mock.calls[0][1].body));
+    expect(request.scope.assignmentIds).toEqual(["assignment-A","assignment-B"]);
+    expect(request.filters.targetIds).toEqual([targetId]);
+    expect(request.projection.selector.targetPath).toEqual(targetPath);
+  });
+  it("rejects dropped Target echo and wrong full Project reference semantics", async () => {
+    const targetInput={...input,filters:{...input.filters,targetIds:[targetId],projectionOrder:["resource","target"] as ("resource"|"target")[]}};
+    install(body=>{ const drill={...body.drill}; delete drill.targetProjectReferenceScope; return {...body,drill}; });
+    await expect(queryResourceDrill("project",targetInput)).rejects.toThrow("INVALID_RESPONSE");
+    install(body=>({...body,drill:{...body.drill,targetFilters:{...body.drill.targetFilters,targetIds:[]}}}));
+    await expect(queryResourceDrill("project",targetInput)).rejects.toThrow("INVALID_RESPONSE");
   });
 });

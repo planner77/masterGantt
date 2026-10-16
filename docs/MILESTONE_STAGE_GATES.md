@@ -1,3 +1,7 @@
+## #548 — 표시 정책과 단계 집계의 분리 (2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)의 #552 marker-OFF 기준선은 native Grid/Chart Milestone 행·Bar만 제외하며 Stage Gate 계산·Membership·Task 취합·명시 Completed·Resource/Target Roll-up을 변경하지 않는다. 서버 full canonical E(M)·P(M), 소속 Summary 상속·override, 완료 구조 잠금, 기존 mixed Link/Copy/Template/JSON·Excel 정보 보존이 계속 권위다. marker 없는 UI에서도 #550 Milestone Dashboard/Editor/정확한 소속 Task 조회가 필수다. #551 별도 lane marker는 필요성·실증을 확인한 뒤 #573/#693에서만 선택 활성화하며 도메인 엔진의 입력이나 권한 근거가 아니다.
+
 # Milestone — Membership 및 Stage Gate 내부 판정
 
 ## Issue #459 Epic 통합 계약
@@ -223,3 +227,5 @@ Resource 선택 진척과 전체 canonical Ready/Blocked는 별개다. R8 통합
 전체 canonical E(M)/P(M), explicit/상속/override, 수동 ready=null, 완료 불일치와 기존 Summary roll-up을 유지한다. WBS 조건의 입력은 ordinary Summary/Task지만 filterTasksWithAncestors의 마지막 context는 전체 tasks를 사용한다. native 행/M marker/viewport/표시 설정을 모집단이나 Ready 엔진 입력으로 사용하지 않는다. OFF도 소속 단계 필터와 전체 Dashboard 조회가 동작한다.
 
 Copy/Delete/Move 대상은 전체 canonical subtree이며 숨은 M을 제외하지 않는다. Copy의 외부 소속/incident/완료/Assignment 제한과 기존 삭제·구조 명령 guard를 구별한다. types 호환, 날짜 확인·복귀와 M root drift는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
+
+#552 marker-OFF의 `Milestone 날짜·소속 확인`은 같은 canonical M 상세를 열며 미정 날짜도 조회 가능하다. 소속 Task0은 일정 탐색 불가 사유로 구별하며 Ready=true로 바꾸지 않는다. production lane/예약 높이/marker-only side effect0과 native M row/bar0은 독립 검증한다. Summary full subtree Copy/Delete/Move와 completed/fullE/explicit/incident/external Membership·Assignment Copy 보호는 보존하며 legacy WBS 비상 복구가 Gate/Resource/Target 계산을 바꾸지 않는다.

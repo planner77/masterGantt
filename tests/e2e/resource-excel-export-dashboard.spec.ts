@@ -35,7 +35,7 @@ test("#529 보고서 범위·기간 옵션은 stale 재조회와 재진입에서
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "내보내기", exact: true });
   await expect(dialog.getByLabel("형식")).toBeFocused();
-  await expect(dialog.getByLabel("리소스 현황 보고서 포함 (7개 시트)")).toBeChecked();
+  await expect(dialog.getByLabel("리소스 현황 보고서 포함 (기본 7개 + Target 근거)")).toBeChecked();
   await expect(dialog.getByLabel("현재 선택 조건", { exact: true })).toBeChecked();
   await dialog.getByLabel("Project 전체 (확인된 기간·기준일·환산 정책 유지)").check();
   await dialog.getByLabel("월 계획", { exact: true }).uncheck();
@@ -140,7 +140,7 @@ test("#529 상세 stale는 일반 opt-in 생성을 차단하고 숨은 Resource 
   const f = await setup(page); let exports = 0;
   await page.getByRole("button", { name: "내보내기", exact: true }).first().click();
   const general = page.getByRole("dialog", { name: "내보내기", exact: true });
-  await expect(general.getByLabel("리소스 현황 보고서 포함 (7개 시트)")).not.toBeChecked();
+  await expect(general.getByLabel("리소스 현황 보고서 포함 (기본 7개 + Target 근거)")).not.toBeChecked();
   await page.keyboard.press("Escape");
   await page.route(`**${projectPath}/resource-dashboard/details?*`, route => route.fulfill({ status: 409, json: { error: { code: "REPORT_STALE" } } }));
   await page.route(`**${projectPath}/exports/excel`, route => { exports++; return route.fulfill({ status: 500 }); });
@@ -148,7 +148,7 @@ test("#529 상세 stale는 일반 opt-in 생성을 차단하고 숨은 Resource 
   await expect(f.root).toHaveAttribute("data-ready", "false");
   await page.getByRole("button", { name: "내보내기", exact: true }).first().click();
   const dialog = page.getByRole("dialog", { name: "내보내기", exact: true });
-  await dialog.getByLabel("리소스 현황 보고서 포함 (7개 시트)").check();
+  await dialog.getByLabel("리소스 현황 보고서 포함 (기본 7개 + Target 근거)").check();
   await dialog.getByRole("button", { name: "내보내기", exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("다시 조회하고 확인"); expect(exports).toBe(0);
   await page.keyboard.press("Escape");

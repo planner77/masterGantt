@@ -197,3 +197,7 @@ Milestone 관리 메뉴는 같은 canonical taskId로 기존 Task Editor의 rela
 WBS에서 M을 숨겨도 Core에 전달하는 canonical Link 입력과 기존 Editor 관계 목록은 전체를 유지한다. native Chart의 숨은 M→M/legacy mixed endpoint 선은 다른 Summary/Task 행에 재연결하지 않는다. ordinary Task→Task 선은 가시 endpoint를 따라 유지하고 접힘으로 endpoint가 사라지면 잘못된 대체 선을 그리지 않는다. 신규 mixed/ Summary endpoint 허용 정책은 만들지 않는다.
 
 Summary Copy는 숨은 M과 내부 Link/remap을 포함하는 전체 subtree이고 기존 completed/fullE/explicit/incident/external membership/Assignment Copy guard와 auth/revision의 서버 판정은 그대로다. 표시 UI는 새 관계 엔진/가짜 Membership Link를 만들지 않는다. actual Core 표시와 실제 HTTP/SQLite 명령 증거를 [테스트 계획](TEST_PLAN.md#issue-552--milestone-표시-분리-검증)에서 분리한다.
+
+#552 marker-OFF에서는 날짜 관리가 `Milestone 날짜·소속 확인`으로 같은 canonical M 상세를 열며, 관계는 해당 Editor의 기존 readonly 조회/허용 mutation 경로를 유지한다. marker/native M select·대체 endpoint·M 날짜축 확장 없이 M→M/legacy mixed 원본 관계를 조회한다. 완료 endpoint/full canonical 잠금·신규 type 제한·session/Origin/revision 서버 검증은 표시 여부와 독립이다. #667 단일 동기화/port를 사용하며 별도 관계/viewport writer는 추가하지 않는다.
+
+#552의 Dashboard `일반 Task로 전환`은 기존 leaf 변환 gateway를 재사용하며 Link endpoint의 Convert 잠금을 해제하지 않는다. 완료 M·Membership 참조·신규 타입 제한/기존 혼합 관계·session/Origin/revision 서버 guard는 그대로다. 변환 가능성을 만들기 위한 Link/Membership 자동 삭제는 금지한다. 정상 Task→M→Task 왕복은 같은 canonical ID·부모/sibling order·revision과 부모 소속 상속의 기존 결과를 확인하며, 관계/완료/참조 때문에 거부된 변환은 full canonical·Link/Membership·revision 불변을 검사한다.

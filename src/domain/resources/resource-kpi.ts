@@ -1,3 +1,5 @@
+import { prepareResourceKpiTargets, hasResourceKpiTargetFilters, validateResourceKpiTargetFilters, matchesResourceKpiTargetTask,
+  type ResourceKpiLogisticsInput, type ResourceKpiTargetFilters, ResourceKpiTargetInputError } from "./resource-kpi-targets";
 import { projectStageGates, type StageTask, type StageMembership, type StageLink } from "../milestones/stage-gates";
 import { workingDaysBetween, type WorkingCalendar } from "../scheduling/calendar";
 import { parseDateOnly } from "../scheduling/date-only";
@@ -23,7 +25,7 @@ export interface ResourceKpiAssignment {
   end?: string | null;
   allocationPercent: number | null;
 }
-export interface ResourceKpiFilters {
+export interface ResourceKpiFilters extends ResourceKpiTargetFilters {
   /** Defined empty means no eligible Resource, unlike optional user OR arrays. */
   eligibleResourceIds?: readonly string[];
   statuses?: readonly StageTask["status"][];
@@ -52,6 +54,8 @@ export interface ResourceKpiInput {
   projectCalendar: WorkingCalendar;
   calendarExceptions?: readonly ResourceCalendarException[];
   filters?: ResourceKpiFilters;
+  /** Optional #617 canonical Target graph; absent retains the historical KPI output exactly. */
+  logistics?: ResourceKpiLogisticsInput;
   mdPerMm?: number | null;
   /** Deployment value is injected by the caller; the domain never reads ENV. */
   mdPerMmEnvironment?: string;
@@ -211,13 +215,25 @@ export function prepareResourceKpiSnapshot(input: ResourceKpiInput) {
     parseDateOnly(start); parseDateOnly(end);
     if (start > end || start < task.start! || end > task.end!) throw new Error("Invalid KPI assignment range");
   }
-  return { input, mdPerMm, tasks, resources, assignments, byTask, byResource, projection, calendars: new Map<string, WorkingCalendar>(), assignmentRows: new Map<string, ResourceKpiAssignmentRow>() };
+  const logistics = input.logistics ? prepareResourceKpiTargets(tasks.map(task => ({ id: task.taskId, parentId: task.parentTaskId, type: task.type })), input.logistics) : undefined;
+  return { input, mdPerMm, tasks, resources, assignments, byTask, byResource, projection, logistics, calendars: new Map<string, WorkingCalendar>(), assignmentRows: new Map<string, ResourceKpiAssignmentRow>() };
 }
 export type PreparedResourceKpiSnapshot = ReturnType<typeof prepareResourceKpiSnapshot>;
+
+/** Personal classification is evaluated on one Resource of one actual Assignment. */
+export function matchesResourceKpiResourceFilters(resource: ResourceKpiResource, filters: ResourceKpiFilters): boolean {
+  const roles = resource.roles.length ? resource.roles : ["UNSPECIFIED"];
+  return !((filters.eligibleResourceIds !== undefined && !filters.eligibleResourceIds.includes(resource.resourceId)) || !matches(filters.resourceIds, resource.resourceId) ||
+        ((filters.groupIds?.length || filters.includeUngrouped) && !resource.groupIds.some((id) => filters.groupIds?.includes(id)) && !(filters.includeUngrouped && !resource.groupIds.length)) ||
+        (filters.roles?.length && !roles.some((role) => filters.roles!.includes(role))) ||
+        !matches(filters.developerGrades, resource.developerGrade ?? "UNSPECIFIED"));
+}
 
 /** Select a validated snapshot without materializing Resource/Group/Milestone cells. */
 export function selectResourceKpiAssignments(prepared: PreparedResourceKpiSnapshot, filters: ResourceKpiFilters = prepared.input.filters ?? {}) {
   const { input, mdPerMm, tasks, assignments, byTask, byResource, projection, calendars, assignmentRows } = prepared;
+  if (prepared.logistics) validateResourceKpiTargetFilters(prepared.logistics, filters);
+  else if (hasResourceKpiTargetFilters(filters)) throw new ResourceKpiTargetInputError("TARGET_SNAPSHOT_REQUIRED");
   const inWbs = (task: ResourceKpiTask): boolean => {
     if (!filters.wbsRootIds?.length) return true;
     let current: ResourceKpiTask | undefined = task;
@@ -230,7 +246,7 @@ export function selectResourceKpiAssignments(prepared: PreparedResourceKpiSnapsh
   const taskText = (task: ResourceKpiTask) => [task.taskId, task.name ?? "", task.externalId ?? "", task.wbsPath ?? ""].join(" ").toLocaleLowerCase();
   const taskSearch = (filters.taskSearch ?? "").trim().toLocaleLowerCase();
   const search = (filters.search ?? "").trim().toLocaleLowerCase();
-  const t0 = tasks.filter((task) => task.type === "task" && matches(filters.statuses, task.status) && (!taskSearch || taskText(task).includes(taskSearch)) && matches(filters.taskIds, task.taskId) && inWbs(task) &&
+  const t0 = tasks.filter((task) => task.type === "task" && (!prepared.logistics || matchesResourceKpiTargetTask(prepared.logistics, task.taskId, filters)) && matches(filters.statuses, task.status) && (!taskSearch || taskText(task).includes(taskSearch)) && matches(filters.taskIds, task.taskId) && inWbs(task) &&
     matches(filters.milestoneIds, projection.membership.get(task.taskId)!.effectiveMilestoneTaskId) && task.start! <= input.to && task.end! >= input.from);
   const t0Ids = new Set(t0.map((task) => task.taskId));
   const selected: ResourceKpiAssignmentRow[] = [];
@@ -238,10 +254,7 @@ export function selectResourceKpiAssignments(prepared: PreparedResourceKpiSnapsh
     if (assignment.kind !== "resource" || !t0Ids.has(assignment.taskId)) continue;
     const resource = byResource.get(assignment.targetId)!;
     const roles = resource.roles.length ? resource.roles : ["UNSPECIFIED"];
-    if ((filters.eligibleResourceIds !== undefined && !filters.eligibleResourceIds.includes(resource.resourceId)) || !matches(filters.resourceIds, resource.resourceId) ||
-        ((filters.groupIds?.length || filters.includeUngrouped) && !resource.groupIds.some((id) => filters.groupIds?.includes(id)) && !(filters.includeUngrouped && !resource.groupIds.length)) ||
-        (filters.roles?.length && !roles.some((role) => filters.roles!.includes(role))) ||
-        !matches(filters.developerGrades, resource.developerGrade ?? "UNSPECIFIED")) continue;
+    if (!matchesResourceKpiResourceFilters(resource, filters)) continue;
     const task = byTask.get(assignment.taskId)!;
     if (search && ![taskText(task), resource.name ?? "", resource.code ?? "", resource.groupSearchText ?? ""].join(" ").toLocaleLowerCase().includes(search)) continue;
     const from = (assignment.start ?? task.start!) < input.from ? input.from : assignment.start ?? task.start!;

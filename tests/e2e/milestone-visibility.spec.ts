@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { installStatefulProjectFixture, publicId, projectPath, rowNamed, rememberGanttRoot, expectSameGanttRoot } from "../fixtures/stateful-project";
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 
 test.use({ timezoneId: "America/New_York" });
@@ -16,7 +17,7 @@ async function fixture(page: Page, editable = false, rootTaskId?: string) {
   state.tasks[0].membership = { explicitMilestoneTaskId: state.tasks[3].taskId, effectiveMilestoneTaskId: state.tasks[3].taskId, inheritedFromTaskId: null };
   await page.route(`**${projectPath}/milestone-dashboard*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}${rootTaskId ? `?rootTask=${rootTaskId}` : ""}`);
-  await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle(page)).toHaveCount(0);
   await expect(rowNamed(page, rootTaskId ? "Existing summary child" : "Stable leaf")).toBeVisible();
   await capture(page, "initial-projection-diagnostic", await page.locator(".project-gantt-frame").evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline")?.read()));
   await expect(page.locator('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000004"]')).toHaveCount(0);
@@ -30,155 +31,70 @@ async function capture(page: Page, name: string, data: unknown) {
   await page.screenshot({ path: `${directory}/${name}.png` });
 }
 
-test("#552 readonly visibility independent from membership, filters, reset and peer; no loss/mutation/GET", async ({ page }) => {
-  const state = await fixture(page); const identity = await rememberGanttRoot(page); const canonical = JSON.stringify([state.tasks, state.links]);
+test("#552 marker OFF membership/reset/peer preserve canonical data and instance", async ({ page }) => {
+  const state = await fixture(page), identity = await rememberGanttRoot(page), canonical = JSON.stringify([state.tasks, state.links]);
   const writes: string[] = [], reads: string[] = [];
   page.on("request", request => { if (!["GET", "HEAD"].includes(request.method())) writes.push(request.method()); if (new URL(request.url()).pathname === projectPath && request.method() === "GET") reads.push(request.url()); });
-  const picker = page.locator("#project-panel-schedule .project-stage-filter-trigger");
-  await picker.click();
-  const stageSearch = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" });
-  await stageSearch.fill(state.tasks[3].taskId);
-  await stageSearch.press("End"); await stageSearch.press("Enter");
+  await page.locator("#project-panel-schedule .project-stage-filter-trigger").click();
+  const search = page.getByRole("combobox", { name: "Milestone 이름·외부 ID·작업 ID 검색" });
+  await search.fill(state.tasks[3].taskId); await search.press("End"); await search.press("Enter");
   await expect(rowNamed(page, "Existing summary child")).toBeVisible(); await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
-  for (const on of [false, true]) {
-    await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", String(on));
-    await expect(rowNamed(page, "Existing summary child")).toBeVisible(); await expect(page.locator('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000004"]')).toHaveCount(0);
-    await expectSameGanttRoot(page, identity);
-  }
-  await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
   await page.getByRole("button", { name: "초기화", exact: true }).click();
-  await expect(rowNamed(page, "Stable leaf")).toBeVisible(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
+  await expect(rowNamed(page, "Stable leaf")).toBeVisible();
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await page.getByRole("tab", { name: "일정", exact: true }).click();
-  await expect(toggle(page)).toHaveAttribute("aria-pressed", "false"); await expectSameGanttRoot(page, identity);
+  await expectSameGanttRoot(page, identity); await expect(page.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   expect(JSON.stringify([state.tasks, state.links])).toBe(canonical); expect(writes).toEqual([]); expect(reads).toEqual([]);
-  expect(await page.evaluate(id => JSON.parse(localStorage.getItem(`mastergantt:milestone-timeline:${id}`)!), publicId)).toEqual({ version: 1, showMilestones: false });
-  await capture(page, "visibility-membership-reset-peer", { canonicalUnchanged: true, writes, reads, instance: identity });
 });
 
-test("#552 storage denied keeps explicit memory choice and reports once", async ({ page }) => {
-  await page.addInitScript(() => { Storage.prototype.getItem = function(key) { if (key.startsWith("mastergantt:milestone-timeline:")) throw new DOMException("blocked", "SecurityError"); return null; }; Storage.prototype.setItem = function(key) { if (key.startsWith("mastergantt:milestone-timeline:")) throw new DOMException("quota", "QuotaExceededError"); }; });
-  await fixture(page); await expect(page.getByText("Milestone 표시 설정을 저장소에서 읽거나 저장하지 못했습니다. 현재 화면의 선택은 유지합니다.", { exact: true })).toBeVisible();
-  await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false"); await expect(page.getByLabel("Milestone Timeline", { exact: true })).toHaveCount(0);
-  await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("Milestone 표시 설정을 저장소에서 읽거나 저장하지 못했습니다. 현재 화면의 선택은 유지합니다.", { exact: true })).toHaveCount(1);
-  await capture(page, "storage-denied-memory", { defaultOn: true, explicitMemoryPreserved: true, notificationCount: 1 });
+test("#552 legacy marker preference and denied storage cannot enable production presentation", async ({ page }) => {
+  await page.addInitScript(id => { localStorage.setItem(`mastergantt:milestone-timeline:${id}`, JSON.stringify({ version: 1, showMilestones: true })); Storage.prototype.getItem = function(key) { if (key.startsWith("mastergantt:milestone-timeline:")) throw new DOMException("blocked", "SecurityError"); return null; }; }, publicId);
+  const state = await fixture(page);
+  await page.reload(); await expect(rowNamed(page, "Stable leaf")).toBeVisible();
+  await expect(toggle(page)).toHaveCount(0); await expect(page.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
+  expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });
 
-for (const width of [390, 768, 1024, 1440, 1920]) test(`#552 enabled Day/Week column hide/show geometry ${width}px`, async ({ page }) => {
+for (const width of [390, 768, 1024, 1440, 1920]) test(`#552 marker OFF Day/Week column geometry ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 }); const state = await fixture(page), identity = await rememberGanttRoot(page);
   const frame = page.locator(".project-gantt-frame"), header = frame.locator(".wx-table-container .wx-header").first();
   for (const scale of ["일", "주"]) {
     await page.getByRole("button", { name: scale, exact: true }).click();
-    for (const [phase, visible] of [true, false, true].entries()) {
-      if (width === 390) { await frame.locator(".project-milestone-lane-list").hover(); await page.mouse.wheel(-1200, 0); await expect.poll(() => frame.locator(".project-gantt-scroll").evaluate(node => node.scrollLeft)).toBe(0); }
-      await header.click({ button: "right" }); const option = page.locator(".project-column-menu").getByRole("checkbox", { name: "외부 ID", exact: true });
+    const ready = async () => waitForGanttReadiness(frame, { operation: "observe", api: await frame.getAttribute("data-project-gantt-api-instance"), revision: state.project.revision, scale: scale === "일" ? "day" : "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds: state.tasks.map(task => task.taskId), requireRenderedRows: true });
+    for (const visible of [true, false, true]) {
+      await ready(); await header.scrollIntoViewIfNeeded(); await header.focus(); await header.press("Shift+F10"); const option = page.locator(".project-column-menu").getByRole("checkbox", { name: "외부 ID", exact: true });
       if (visible) await option.check(); else await option.uncheck(); await page.keyboard.press("Escape");
-      if (width === 390) { await frame.locator(".project-milestone-lane-list").hover(); await page.mouse.wheel(1200, 0); await expect.poll(() => frame.locator(".project-gantt-scroll").evaluate(node => node.scrollLeft)).toBeGreaterThan(0); }
-      if (width <= 768) {
-        const splitter = frame.locator(".wx-resizer.wx-resizer-display-all").first(), bounds = (await splitter.boundingBox())!;
-        const grid = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().gridWidth);
-        await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + 100); await page.mouse.down();
-        await page.mouse.move(bounds.x + bounds.width / 2 - (grid - 440), bounds.y + 100, { steps: 5 }); await page.mouse.up();
-        await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().gridWidth)).toBe(440);
-      }
-      await expect(frame.locator(".project-milestone-lane-plot")).toBeVisible();
-      await expect.poll(() => frame.evaluate(node => { const chart = node.querySelector(".wx-chart")!.getBoundingClientRect(), lane = node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect(); return Math.abs(chart.x - lane.x) + Math.abs(chart.width - lane.width); })).toBeLessThanOrEqual(1);
+      await expect(page.locator(".project-column-menu")).toHaveCount(0); await ready();
       const geometry = await frame.evaluate(node => {
-        const rect = (element: Element) => { const r = element.getBoundingClientRect(); return { x:r.x, y:r.y, width:r.width, height:r.height }; };
-        const row = node.querySelector('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000002"]')!, bar = node.querySelector('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000002"]')!, tick = node.querySelector('[data-milestone-tick="00000000-0000-4000-8000-000000000004"]');
-        const r = rect(row), b = rect(bar); return { lane:rect(node.querySelector(".project-milestone-lane")!), chart:rect(node.querySelector(".wx-chart")!), rowCenter:r.y+r.height/2, chartCenter:b.y+b.height/2, anchor:tick ? { tick:rect(tick).x, task:b.x+1 } : null, documentWidth:document.documentElement.scrollWidth, windowWidth:innerWidth };
+        const row = node.querySelector('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000002"]')!.getBoundingClientRect(), bar = node.querySelector('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000002"]')!.getBoundingClientRect();
+        return { rowCenter:row.y+row.height/2, chartCenter:bar.y+bar.height/2, documentWidth:document.documentElement.scrollWidth, windowWidth:innerWidth };
       });
-      await capture(page, `diagnostic-${width}-${scale}-${visible}-${phase}`, { geometry, core: await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline")?.read()) });
-      expect(geometry.lane.height).toBe(64); expect(Math.abs(geometry.rowCenter-geometry.chartCenter)).toBeLessThanOrEqual(1);
-      expect(geometry.anchor).not.toBeNull(); expect(Math.abs(geometry.anchor!.tick-geometry.anchor!.task)).toBeLessThanOrEqual(1);
-      expect(geometry.documentWidth).toBeLessThanOrEqual(width); await expectSameGanttRoot(page, identity);
-      await capture(page, `geometry-${width}-${scale === "일" ? "day" : "week"}-${visible ? "show" : "hide"}-${phase}`, geometry);
+      expect(Math.abs(geometry.rowCenter-geometry.chartCenter)).toBeLessThanOrEqual(1); expect(geometry.documentWidth).toBeLessThanOrEqual(width);
+      await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
+      await expect(frame.locator('.wx-table-container .wx-row[data-id$="00000000-0000-4000-8000-000000000004"],.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000004"]')).toHaveCount(0);
+      await expectSameGanttRoot(page, identity);
     }
   }
+  if (width === 390 || width === 1440) await page.screenshot({ path: `/tmp/issue552-marker-off-${width}.png`, fullPage: true });
   expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });
 
-for (const width of [390, 1024, 1440]) test(`#552 OFF date request ${width}px exact marker/list fallback and original Dashboard conditions/viewport`, async ({ page }) => {
+for (const width of [390, 1024, 1440]) test(`#552 OFF date request ${width}px opens canonical detail without hidden selection or axis commands`, async ({ page }) => {
   await page.setViewportSize({ width, height: 1000 }); const state = await fixture(page), identity = await rememberGanttRoot(page);
   const frame = page.locator(".project-gantt-frame"), panel = page.locator("#project-panel-milestones");
-  await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
-  await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").scroll(200));
-  const original = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().left);
+  const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
   await panel.getByLabel("Milestone 검색", { exact: true }).fill("Stable milestone");
-  const id = state.tasks[3].taskId, row = panel.locator(`[data-milestone-task-id="${id}"]`);
-  const trigger = row.getByRole("button", { name: / 관리$/ });
-  if (width === 390) { await trigger.focus(); await page.keyboard.press("Enter"); }
-  else await trigger.click();
-  const dateCommand = page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "해당 날짜에서 보기", exact: true });
-  if (width === 390) { await dateCommand.focus(); await page.keyboard.press("Enter"); }
-  else await dateCommand.click();
-  if (width === 390) {
-    await expect(panel).toBeVisible(); await expect(row).toHaveAttribute("data-date-highlight", "true");
-    await expect.poll(() => page.evaluate(() => document.activeElement?.closest("[data-milestone-task-id]")?.getAttribute("data-milestone-task-id"))).toBe(id);
-    await expect(panel.getByLabel("Milestone 검색", { exact: true })).toHaveValue("Stable milestone");
-    const physicalFocus = await page.evaluate(() => {
-      const inactivePeer = document.querySelector<HTMLElement>('.project-schedule[data-dashboard-inactive="true"]')!;
-      const inactivePaint = [inactivePeer, ...Array.from(inactivePeer.querySelectorAll<HTMLElement>(".project-gantt-scope-owner, .project-gantt-frame, .project-gantt-scale-toolbar, .wx-gantt, .wx-table-container, .wx-chart"))].map(element => {
-        const bounds = element.getBoundingClientRect();
-        return { className: element.className, visibility: getComputedStyle(element).visibility, width: bounds.width, height: bounds.height };
-      });
-      const target = document.activeElement as HTMLElement, style = getComputedStyle(target), r = target.getBoundingClientRect();
-      const owner = target.closest("table")!.parentElement!, o = owner.getBoundingClientRect();
-      const ring = parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
-      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
-      const occluding = Array.from(document.querySelectorAll("body *")).filter(element => {
-        const css = getComputedStyle(element), b = element.getBoundingClientRect();
-        if (!["sticky", "fixed"].includes(css.position) || css.visibility === "hidden" || css.display === "none" || Number(css.opacity) === 0 || !b.width || !b.height || element.contains(target)) return false;
-        if (css.backgroundColor === "transparent" || /rgba\([^)]*,\s*0\s*\)/.test(css.backgroundColor)) return false;
-        return b.x < r.right + ring && b.right > r.x - ring && b.y < r.bottom + ring && b.bottom > r.y - ring;
-      }).map(element => ({ tag: element.tagName, className: element.className }));
-      return { taskId: target.closest("[data-milestone-task-id]")?.getAttribute("data-milestone-task-id"), label: target.getAttribute("aria-label"),
-        rect: { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height },
-        ownerClip: { x:o.x+owner.clientLeft, y:o.y+owner.clientTop, right:o.x+owner.clientLeft+owner.clientWidth, bottom:o.y+owner.clientTop+owner.clientHeight },
-        viewport: { width:innerWidth, height:innerHeight }, outline:style.outlineStyle, outlineWidth:parseFloat(style.outlineWidth), outlineOffset:parseFloat(style.outlineOffset), ring,
-        centerHit:Boolean(hit && (hit === target || target.contains(hit))), occluding, ownerScroll:{left:owner.scrollLeft,top:owner.scrollTop},
-        inactivePeer: { ariaHidden: inactivePeer.getAttribute("aria-hidden"), inert: inactivePeer.inert, position: getComputedStyle(inactivePeer).position, pointerEvents: getComputedStyle(inactivePeer).pointerEvents, paint: inactivePaint } };
-    });
-    await capture(page, "date-fallback-390-physical-focus", physicalFocus);
-    expect(physicalFocus.inactivePeer.ariaHidden).toBe("true"); expect(physicalFocus.inactivePeer.inert).toBe(true);
-    expect(physicalFocus.inactivePeer.position).toBe("absolute"); expect(physicalFocus.inactivePeer.pointerEvents).toBe("none");
-    for (const className of ["project-gantt-scope-owner", "project-gantt-frame", "project-gantt-scale-toolbar", "wx-gantt", "wx-table-container", "wx-chart"]) {
-      expect(physicalFocus.inactivePeer.paint.some(element => element.className.split(" ").includes(className))).toBe(true);
-    }
-    for (const element of physicalFocus.inactivePeer.paint) {
-      expect(element.visibility).toBe("hidden"); expect(element.width).toBeGreaterThan(0); expect(element.height).toBeGreaterThan(0);
-    }
-    expect(physicalFocus.taskId).toBe(id); expect(physicalFocus.label).toContain("Stable milestone");
-    expect(physicalFocus.outline).not.toBe("none"); expect(physicalFocus.ring).toBe(6);
-    expect(physicalFocus.centerHit).toBe(true); expect(physicalFocus.occluding).toEqual([]);
-    expect(physicalFocus.rect.x-6).toBeGreaterThanOrEqual(Math.max(0,physicalFocus.ownerClip.x));
-    expect(physicalFocus.rect.right+6).toBeLessThanOrEqual(Math.min(physicalFocus.viewport.width,physicalFocus.ownerClip.right));
-    expect(physicalFocus.rect.y-6).toBeGreaterThanOrEqual(Math.max(0,physicalFocus.ownerClip.y));
-    expect(physicalFocus.rect.bottom+6).toBeLessThanOrEqual(Math.min(physicalFocus.viewport.height,physicalFocus.ownerClip.bottom));
-    // A later user search owns focus even while the highlighted row refreshes.
-    const search = panel.getByLabel("Milestone 검색", { exact: true });
-    await search.fill("Stable");
-    await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
-    await expect(search).toBeFocused();
-    await search.fill("Stable milestone");
-    await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
-    await expect(search).toBeFocused();
-    await page.getByRole("tab", { name: "일정", exact: true }).click();
-    await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
-    await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().left)).toBe(original);
-  } else {
-    const marker = frame.locator(`[data-milestone-lane-trigger="${id}"]`);
-    await expect(marker).toBeFocused(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
-    expect(await page.evaluate(id => JSON.parse(localStorage.getItem(`mastergantt:milestone-timeline:${id}`)!).showMilestones, publicId)).toBe(false);
-    await page.getByRole("button", { name: "원래 보기로 돌아가기", exact: true }).click();
-    await expect(panel).toBeVisible(); await expect(trigger).toBeFocused(); await expect(panel.getByLabel("Milestone 검색", { exact: true })).toHaveValue("Stable milestone");
-    await page.getByRole("tab", { name: "일정", exact: true }).click();
-    await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
-    await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().left)).toBe(original);
-  }
-  await expectSameGanttRoot(page, identity); expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
-  await capture(page, `date-return-${width}`, { originalPublicLeft: original, exactTaskId: id, storedOffPreserved: true, instance: identity });
+  const id = state.tasks[3].taskId, row = panel.locator(`[data-milestone-task-id="${id}"]`), trigger = row.getByRole("button", { name: / 관리$/ });
+  await trigger.focus(); await page.keyboard.press("Enter");
+  await page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "Milestone 날짜·소속 확인", exact: true }).click();
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true }); await expect(editor).toBeVisible();
+  await expect(editor.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue("Stable milestone");
+  await page.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expect(panel).toBeVisible(); await expect(trigger).toBeFocused(); await expect(panel.getByLabel("Milestone 검색", { exact: true })).toHaveValue("Stable milestone");
+  await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
+  const after = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  expect(after.left).toBe(before.left); expect(after.top).toBe(before.top); expect(after.start).toEqual(before.start); expect(after.end).toEqual(before.end);
+  expect(after.selected).not.toContain(id); await expectSameGanttRoot(page, identity); expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });
 
 test("#552 legacy native M selection is removed by public toggle while the ordinary Task selection remains", async ({ page }) => {
@@ -231,47 +147,61 @@ test("#552 Grid-only and metadata canonical queue retain ordinary WBS rows and f
   await capture(page, "grid-metadata-controlled-projection", { after, instance: identity, method: "development-only public displayMode experiment and canonical metadata revision" });
 });
 
-test("#552 project-specific stored OFF survives readonly reload and another project defaults ON", async ({ page }) => {
-  const state = await fixture(page), secondId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
-  await toggle(page).click(); await page.reload(); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
-  const snapshot = await page.evaluate(async path => (await fetch(path)).json(), projectPath); snapshot.data.project.publicId = secondId;
-  await page.route(`**/api/projects/${secondId}**`, route => {
-    const path = new URL(route.request().url()).pathname;
-    if (path.endsWith("/edit-sessions/current")) return route.fulfill({ json: { data: { permission: "readonly" } } });
-    if (path === `/api/projects/${secondId}`) return route.fulfill({ json: snapshot });
-    return route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } });
-  });
-  await page.goto(`/projects/${secondId}`); await expect(toggle(page)).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
-  await page.goto(`/projects/${publicId}`); await expect(toggle(page)).toHaveAttribute("aria-pressed", "false");
-  expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
-  await capture(page, "project-storage-readonly-reload", { first: publicId, second: secondId, firstOff: true, secondDefaultOn: true });
+test("#552 legacy M-only filter has explicit dashboard and clear actions", async ({ page }) => {
+  const state = await fixture(page);
+  await page.locator("#project-panel-schedule").evaluate(node => Reflect.get(node, "__masterganttLegacyMilestoneFilter")());
+  await expect(page.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
+  await expect(page.getByText("Milestone은 일정 행에 표시하지 않습니다. Milestone 대시보드에서 확인하거나 유형 조건을 해제해 주세요.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "유형 조건 해제", exact: true }).click();
+  await expect(page.getByRole("button", { name: "필터", exact: true })).toBeFocused();
+  await expect(rowNamed(page, "Stable leaf")).toBeVisible(); expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });
 
-test("#552 hidden M dependency endpoints never attach to Summary/other rows across visibility and collapse", async ({ page }) => {
-  const state = await fixture(page), frame = page.locator(".project-gantt-frame"), identity = await rememberGanttRoot(page);
-  const second = { ...state.tasks[3], taskId: "00000000-0000-4000-8000-000000000005", externalId: "SECOND-M", name: "Secondary milestone", siblingOrder: 2 };
-  state.tasks.push(second);
-  state.links.push(
-    { id: "MM-552", predecessorExternalId: second.externalId, successorExternalId: state.tasks[3].externalId, type: "FS", lag: 0 },
-    { id: "legacy-MT-552", predecessorExternalId: state.tasks[3].externalId, successorExternalId: state.tasks[2].externalId, type: "SS", lag: 0, legacyMixed: true },
-    { id: "legacy-TM-552", predecessorExternalId: state.tasks[1].externalId, successorExternalId: second.externalId, type: "SS", lag: 0, legacyMixed: true });
-  const canonical = JSON.stringify([state.tasks, state.links]); state.project.revision++;
-  await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: state.project.revision });
-  await expect.poll(() => frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read().canonicalIds.length)).toBe(5);
-  const tt = frame.locator('.wx-links [data-link-id=":00000000-0000-4000-9000-000000000001"]');
-  const hidden = frame.locator('.wx-links [data-link-id=":MM-552"],.wx-links [data-link-id=":legacy-MT-552"],.wx-links [data-link-id=":legacy-TM-552"]');
-  const phases = [];
-  for (const on of [false, true]) {
-    await toggle(page).click(); await expect(toggle(page)).toHaveAttribute("aria-pressed", String(on));
-    await expect(tt).toHaveCount(1); await expect(hidden).toHaveCount(0);
-    await rowNamed(page, "Stable summary").locator('[data-action="open-task"]').click(); await expect(rowNamed(page, "Existing summary child")).toHaveCount(0);
-    await expect(tt).toHaveCount(0); await expect(hidden).toHaveCount(0);
-    await rowNamed(page, "Stable summary").locator('[data-action="open-task"]').click(); await expect(rowNamed(page, "Existing summary child")).toBeVisible();
-    await expect(tt).toHaveCount(1); await expect(hidden).toHaveCount(0);
-    const core = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
-    expect(core.links.map((link: { id: string }) => link.id)).toEqual(state.links.map(link => link.id)); phases.push({ on, core });
-  }
-  expect(JSON.stringify([state.tasks, state.links])).toBe(canonical); await expectSameGanttRoot(page, identity); expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
-  await capture(page, "hidden-link-endpoints-no-replacement", { phases, canonicalLinkIds: state.links.map(link => link.id), instance: identity, syntheticLegacyMixedOnly: true });
+test("#552 Milestone cause and multi-ID KPI stay in exact Dashboard identities with Task drills separate", async ({ page }) => {
+  const state = await fixture(page), original = state.tasks.find(task => task.type === "milestone")!;
+  const second = { ...original, taskId: "00000000-0000-4000-8000-000000000099", externalId: "M-second", name: "Second milestone", siblingOrder: 99 };
+  state.tasks.push(second); await page.reload();
+  const frame = page.locator(".project-gantt-frame"), before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  const panel = page.locator("#project-panel-milestones");
+  await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  await panel.getByRole("button", { name: "임박 Milestone 목록에서 확인", exact: true }).click();
+  await expect(panel.locator("tr[data-milestone-task-id]")).toHaveCount(2);
+  await expect(panel.getByRole("heading", { name: "Milestone 전체 상태 · 표시 2개 · 조회 전체 2개", exact: true })).toBeFocused();
+  expect(await panel.locator("tr[data-milestone-task-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-milestone-task-id")))).toEqual([second.taskId, original.taskId]);
+  await panel.getByRole("button", { name: "지표 선택 해제", exact: true }).click();
+  await expect(panel.getByRole("button", { name: "임박 Milestone 목록에서 확인", exact: true })).toBeFocused();
+  await panel.locator(`[data-milestone-task-id="${original.taskId}"]`).getByRole("button", { name: / 전체 원인 확인$/ }).click();
+  const cause = panel.getByRole("heading", { name: "미완료 직접 선행 Milestone · 1개", exact: true }).locator("..");
+  await cause.getByRole("button", { name: "Milestone 날짜·소속 확인", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true }).getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(second.name);
+  await page.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expect(panel).toBeVisible();
+  await panel.getByRole("button", { name: "임박 Milestone 목록에서 확인", exact: true }).click();
+  await panel.getByLabel("Milestone 검색", { exact: true }).fill(second.taskId);
+  await expect(panel.locator("tr[data-milestone-task-id]")).toHaveCount(1);
+  await expect(panel.getByRole("button", { name: "지표 선택 해제", exact: true })).toHaveCount(0);
+  const after = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  expect(after.left).toBe(before.left); expect(after.top).toBe(before.top); expect(after.start).toEqual(before.start); expect(after.end).toEqual(before.end);
+  expect(after.selected).not.toContain(second.taskId); expect(after.canonicalIds).toEqual(state.tasks.map(task => task.taskId));
+  await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
+  expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
+});
+
+test("#552 undated Milestone date/details action remains available in readonly without axis navigation", async ({ page }) => {
+  const state = await fixture(page), milestone = state.tasks.find(task => task.type === "milestone")!;
+  Object.assign(milestone, { start: null, end: null, requestedStart: null, duration: null });
+  await page.reload(); await expect(rowNamed(page, "Stable leaf")).toBeVisible();
+  const frame = page.locator(".project-gantt-frame"), before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  const panel = page.locator("#project-panel-milestones"), row = panel.locator(`[data-milestone-task-id="${milestone.taskId}"]`);
+  await expect(row).toContainText("미설정"); await row.getByRole("button", { name: / 관리$/ }).click();
+  const action = page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "Milestone 날짜·소속 확인", exact: true });
+  await expect(action).toBeEnabled(); await action.click();
+  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true }).getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(milestone.name);
+  await page.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expect(panel).toBeVisible();
+  const after = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
+  expect(after.left).toBe(before.left); expect(after.top).toBe(before.top); expect(after.start).toEqual(before.start); expect(after.end).toEqual(before.end);
+  expect(state.posts).toHaveLength(0); expect(state.patchRequests).toHaveLength(0);
 });

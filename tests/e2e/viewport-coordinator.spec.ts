@@ -1,23 +1,15 @@
-import { expect, test, type Page } from "@playwright/test";
-import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
+import { expect, test } from "@playwright/test";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { evaluateGanttReadiness, waitForGanttReadiness, type GanttReadinessExpectation } from "./helpers/gantt-readiness";
 import { editor, setup } from "./fixtures/task-editor-density";
-
-// #571 same-view TASK_REVEAL starts from the Schedule lane, while Dashboard-origin requests use the #528 drill path.
-async function scheduleMilestoneEditor(page: Page, taskId: string) {
-  const marker = page.locator(".project-gantt-frame").locator(`[data-milestone-lane-trigger="${taskId}"]`);
-  await expect(marker).toBeVisible();
-  await marker.click();
-  const dialog = editor(page);
-  await expect(dialog).toBeVisible();
-  return dialog;
-}
 
 test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다", async ({ page }, info) => {
   const fixture = await setup(page, { longList: true });
   const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
   milestone.siblingOrder = 0;
+  const sourceTask = fixture.tasks[1];
+  sourceTask.membership = { explicitMilestoneTaskId: milestone.taskId, effectiveMilestoneTaskId: milestone.taskId, inheritedFromTaskId: null };
   fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
-  await installMilestoneDashboardFixture(page, fixture);
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame");
@@ -26,7 +18,11 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
     core: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number },
     native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop },
   }));
-  const dialog = await scheduleMilestoneEditor(page, milestone.taskId);
+  await frame.locator(`.wx-table-container .wx-row[data-id=":${sourceTask.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
+  await chooseTaskInformation(page);
+  await editor(page).getByRole("button", { name: "Milestone 열기", exact: true }).click();
+  const dialog = editor(page);
+  await expect(dialog.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(milestone.name);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
@@ -75,12 +71,17 @@ for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#57
   const fixture = await setup(page, { longList: true });
   const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
   milestone.siblingOrder = 0;
+  const sourceTask = fixture.tasks[1];
+  sourceTask.membership = { explicitMilestoneTaskId: milestone.taskId, effectiveMilestoneTaskId: milestone.taskId, inheritedFromTaskId: null };
   fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
-  await installMilestoneDashboardFixture(page, fixture);
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame");
-  const dialog = await scheduleMilestoneEditor(page, milestone.taskId);
+  await frame.locator(`.wx-table-container .wx-row[data-id=":${sourceTask.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
+  await chooseTaskInformation(page);
+  await editor(page).getByRole("button", { name: "Milestone 열기", exact: true }).click();
+  const dialog = editor(page);
+  await expect(dialog.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(milestone.name);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
@@ -147,7 +148,7 @@ for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#57
   } finally { await page.evaluate(() => { Reflect.get(window, "__releaseFocusHandoffTestGate")(); Reflect.get(window, "__cleanupFocusHandoffTestGate")(); }); }
 });
 
-test("#571 WBS 범위의 검색 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다", async ({ page }, info) => {
+test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다", async ({ page }, info) => {
   const fixture = await setup(page, { longList: true, editable: false });
   const mutations: string[] = [];
   page.on("request", request => { if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method()); });
@@ -161,13 +162,38 @@ test("#571 WBS 범위의 검색 필터 bookmark는 복귀하고 실제 wheel 뒤
     core: (Reflect.get(element, "__masterganttPublicViewport") as { left: number }).left,
     native: element.querySelector(".wx-chart")!.scrollLeft,
   }));
+  // #667 CI #2837: raw native capacity can grow during RANGE_EXTENSION while
+  // U3 rows are still PENDING. Both must settle before the first 120px input.
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  expect(apiInstance).toBeTruthy();
+  const axisContext: GanttReadinessExpectation = {
+    operation: "observe", api: apiInstance, revision: fixture.project.revision, scale: "week",
+    scope: fixture.tasks[0].taskId, query: "", queryWitness: { kind: "unchanged" },
+    canonicalIds: fixture.tasks.map(task => task.taskId),
+  };
+  const beforeAxis = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  const admission = evaluateGanttReadiness(beforeAxis, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  // Stable current scale does not itself guarantee 120px. As in #456/#570,
+  // prepare insufficient capacity with exactly one explicit, actual wheel.
+  // The read-only waiter never writes, retries an input, or revives old intent.
+  if (!admission.accepted) {
+    expect(admission.coreCapacity, "WBS initial Core capacity must be measurable").toBeGreaterThan(0);
+    expect(admission.nativeCapacity, "WBS initial native capacity must be measurable").toBeGreaterThan(0);
+    await chart.hover();
+    await page.mouse.wheel(120, 0);
+    await expect.poll(() => chart.evaluate(element => element.scrollLeft)).toBeGreaterThan(beforeAxis.native.left);
+    const expanded = await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+    expect(expanded.currentWork?.kind).toBe("RANGE_EXTENSION");
+    expect(expanded.currentWork?.phase).toBe("SETTLED");
+    await info.attach("wbs-explicit-axis-setup", { body: JSON.stringify({ beforeAxis, admission, expanded, input: "wheel-once" }), contentType: "application/json" });
+  }
+  await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+  await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
   await chart.evaluate(element => { element.scrollLeft = 120; });
   await expect.poll(async () => (await viewport()).core).toBe(120);
-  // #552 replaces the old three-option quick-view buttons with an independent
-  // Milestone visibility toggle. Exercise the same empty-WBS bookmark through
-  // the supported Task search filter instead of a deleted control.
+  await expect.poll(async () => (await viewport()).native).toBe(120);
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
-  await search.fill("no matching WBS task");
+  await search.fill("no matching WBS task #552");
   await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
   await expect.poll(viewport).toEqual({ core: 0, native: 0 });
   await search.fill("");
@@ -246,4 +272,67 @@ for (const input of [false, true]) test(`#571 delayed native add ${input ? "actu
   const history = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]") as { kind: string; phase: string }[];
   if (input) expect(history.filter(event => event.kind === "NATIVE_ADD" && event.phase === "APPLYING")).toHaveLength(0);
   await info.attach("delayed-native-add", { body: JSON.stringify({ input, beforeWheel, expected, after: await viewport(), history }), contentType: "application/json" });
+});
+
+test("SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다", async ({ page }, info) => {
+  const fixture = await setup(page, { longList: true, editable: false });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart").first();
+  await frame.getByRole("button", { name: "일", exact: true }).click();
+  await expect.poll(() => chart.evaluate(node => node.scrollWidth - node.clientWidth)).toBeGreaterThan(200);
+  await expect(frame).toHaveAttribute("data-gantt-canonical-sync-depth", "0");
+  await frame.evaluate(async () => { for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+  await chart.hover();
+  const baselineWidth = await chart.evaluate(node => node.scrollWidth);
+  await page.evaluate(width => {
+    const original = window.requestAnimationFrame.bind(window);
+    const gate = { held: false, armed: true, callbacks: [] as Array<() => void>, intent: -1, writes: -1 };
+    window.requestAnimationFrame = callback => original(time => {
+      const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
+      const trace = JSON.parse(frame?.dataset.ganttViewportCoordinator ?? "null");
+      if (gate.armed && trace?.kind === "RANGE_EXTENSION" && trace.phase === "APPLYING" &&
+          (frame?.querySelector(".wx-chart")?.scrollWidth ?? 0) > width) {
+        gate.held = true; gate.armed = false; gate.intent = trace.intentEpoch; gate.writes = trace.writes;
+      }
+      if (gate.held) gate.callbacks.push(() => callback(time)); else callback(time);
+    });
+    Reflect.set(window, "__issue667AxisGate", gate);
+    Reflect.set(window, "__releaseIssue667AxisGate", () => {
+      gate.held = false; gate.armed = false; window.requestAnimationFrame = original;
+      gate.callbacks.splice(0).forEach(callback => callback());
+    });
+  }, baselineWidth);
+  try {
+    await chart.evaluate(node => { node.scrollLeft = node.scrollWidth; });
+    await page.waitForFunction(() => Reflect.get(window, "__issue667AxisGate").held, undefined, { polling: 50, timeout: 5_000 });
+    const held = await page.evaluate(() => {
+      const gate = Reflect.get(window, "__issue667AxisGate");
+      const frame = document.querySelector<HTMLElement>(".project-gantt-frame")!;
+      const events = Reflect.get(frame, "__masterganttMilestoneTimeline").read().events as Array<{ action: string }>;
+      return { intent: gate.intent, traceWrites: gate.writes, resizeCount: events.filter(entry => entry.action === "resize-chart").length,
+        nativeLeft: frame.querySelector(".wx-chart")!.scrollLeft };
+    });
+    await page.mouse.wheel(-200, 0);
+    await page.evaluate(() => Reflect.get(window, "__releaseIssue667AxisGate")());
+    await expect.poll(async () => {
+      const history = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]") as Array<{ kind: string; intentEpoch: number; outcome?: string; writes: number }>;
+      return history.findLast(entry => entry.kind === "RANGE_EXTENSION" && entry.intentEpoch === held.intent && entry.outcome)?.outcome;
+    }).toBe("SUPERSEDED");
+    await frame.evaluate(async () => { for (let tick = 0; tick < 12; tick++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+    const history = JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator-history")) ?? "[]") as Array<{ kind: string; intentEpoch: number; outcome?: string; writes: number }>;
+    const canceled = history.findLast(entry => entry.kind === "RANGE_EXTENSION" && entry.intentEpoch === held.intent && entry.outcome);
+    const resizedAfterInput = await frame.evaluate(node => {
+      const events = Reflect.get(node, "__masterganttMilestoneTimeline").read().events as Array<{ action: string }>;
+      return events.filter(entry => entry.action === "resize-chart").length;
+    });
+    expect(resizedAfterInput).toBe(held.resizeCount);
+    const position = await frame.evaluate(node => ({ core: Reflect.get(node, "__masterganttPublicViewport").left, native: node.querySelector(".wx-chart")!.scrollLeft }));
+    expect(Math.abs(position.core - position.native)).toBeLessThanOrEqual(1);
+    expect(position.native).toBeGreaterThan(0);
+    expect(position.native).toBeLessThan(held.nativeLeft);
+    expect(fixture.patches).toHaveLength(0);
+    await info.attach("in-flight-axis-wheel", { body: JSON.stringify({ held, canceled, position, history }), contentType: "application/json" });
+  } finally {
+    await page.evaluate(() => Reflect.get(window, "__releaseIssue667AxisGate")());
+  }
 });

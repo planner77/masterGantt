@@ -1,0 +1,64 @@
+{
+  "scope": "Issue #623 PR #685 P2 rework; local focused evidence, not remote CI or Owner approval",
+  "baselineHead": "729f2e4dd1254d73c07ea13eecc287e4b9dac243",
+  "mainSha": "1449190af8d4f97d4737d17ae67e9dcb044549a7",
+  "sourceHashMethod": "sorted path UTF-8 + NUL + file bytes + NUL SHA256",
+  "sourceSha256": "e1449a7a5a60d5db6896915d5323b6610ae2128f627e5564846eb6c04292b55d",
+  "files": [
+    {
+      "path": "tests/domain/issue-623-target-resource-acceptance.test.ts",
+      "sha256": "1add1322e36abaff3db15dadc7a414635eb6266b04a3ae4c98763ae30762b181"
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-623-target-resource.ts",
+      "sha256": "d181a8e9c33e55504da885d8ca847110228af9d633bcf422988727e0cce44e38"
+    },
+    {
+      "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "sha256": "dfb3538521c37ffd3269b84663a6a652bd0e4a52aba7811d1337753f84b0dd68"
+    },
+    {
+      "path": "tests/fixtures/issue-623-backend-fixture.ts",
+      "sha256": "da7e9111f545ca34453ee86c07809f6fc508e99dc1c612a527631cb23908f220"
+    },
+    {
+      "path": "tests/fixtures/issue-623-target-resource.ts",
+      "sha256": "2515d6e1b61c90d521d608c0fb8f0f1f875153d0743ade50513ed355507b812b"
+    },
+    {
+      "path": "tests/server/db/issue-623-target-migration.test.ts",
+      "sha256": "3467b08d54abefb741c66cd0ef216023235f5a2d9287118b90b531f459d8111f"
+    },
+    {
+      "path": "tests/server/projects/issue-623-target-transfer-acceptance.test.ts",
+      "sha256": "f8ba73fa2e27f72731896b83368f635df57ebd30d0e29323e0688dd2bdbc54fd"
+    },
+    {
+      "path": "tests/server/resources/issue-623-canonical-acceptance.test.ts",
+      "sha256": "22f5ddb1608744e831d19454987483d37ae4686f5017049305e258e1fb6654fa"
+    }
+  ],
+  "command": "E2E_TIMING_OUTPUT=output/playwright/issue-623/rework-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-623-resource-mvp.spec.ts --project chromium --workers=1",
+  "localChromium": "PASS 2/2",
+  "durationMs": [
+    34544,
+    22193
+  ],
+  "testBudgetMs": [
+    60000,
+    30000
+  ],
+  "actionTimeoutMs": 15000,
+  "scopedEslint": "PASS",
+  "newHeadRemote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "historicalEvidence": "Original cumulative/geometry/screenshots/source-inventory retained; rework JSON is a distinct execution. No new screenshots published.",
+  "typecheck": "PASS",
+  "versionCheck": "PASS 0.114.0"
+}

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
 import {
   expectSameGanttRoot,
   installStatefulProjectFixture,
@@ -10,7 +11,8 @@ import {
 test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
   test("Task 통합 검색과 초기화는 canonical Gantt 인스턴스를 유지한다", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await installStatefulProjectFixture(page);
+    const state = await installStatefulProjectFixture(page);
+    await installMilestoneDashboardFixture(page, state);
     const documents: string[] = [];
     const mutations: string[] = [];
     page.on("request", (request) => {
@@ -28,7 +30,11 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await search.fill("Existing summary child");
     await expect(page.getByRole("status").filter({ hasText: "1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 1개 / 전체 3개 WBS 작업" })).toBeVisible();
     await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /프로젝트 전체 Milestone 목록 1개/ })).toBeVisible();
+    await expect(page.getByLabel("Milestone Timeline", { exact: true })).toHaveCount(0);
+    await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    await expect(page.locator(`#project-panel-milestones tr[data-milestone-task-id="${state.tasks.find(task => task.type === "milestone")!.taskId}"]`)).toBeVisible();
+    await page.getByRole("tab", { name: "일정", exact: true }).click();
+    await expect(search).toHaveValue("Existing summary child");
     await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
     await expectSameGanttRoot(page, identity);
 

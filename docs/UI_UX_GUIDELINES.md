@@ -1,4 +1,30 @@
+## #548 — Milestone Grid/Chart 분리와 선택적 마커의 UI/UX 게이트 (2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에서 UX source를 정한다. Gantt native WBS 기본선은 Summary/일반 Task만 표시하고 Milestone은 별도 Dashboard/소속 Task·Ready/KPI로 관리한다. 상단 Timeline 마커는 **필수 공간/표시가 아니며 기본 OFF**로, 과거 #549의 '기본 ON' 제안과 #551 기술 preview를 제품 기본 활성화로 취급하지 않는다. 'Milestone 표시' UI가 WBS 행 토글·marker 토글·작업 소속 필터를 동시에 바꾸어서는 안 된다.
+
+marker-OFF에서는 lane 높이/guide/tooltip·marker-only observer/RAF/listener와 marker-only 날짜 이동·scroll writer를 모두 비활성화하며 Core의 일반 Task 날짜축/스크롤은 계속 유지한다. 좁은 화면(390/768/1024/1440/1920)에서도 Dashboard 검색/생성/Editor·소속 목록과 visible/hittable focus·modal Escape 복귀를 제공한다. Milestone-only 유형 조건으로 native0행인 경우 원본이 삭제됐다는 잘못된 안내를 하지 않고 정확한 Dashboard 열기/필터 해제 선택을 제시한다.
+
+기존 #551의 64px lane·44px control·날짜 tick ±1px/묶음/roving keyboard는 **선택적 marker-ON #573/#693 기술 게이트에서만** 적용하고 OFF 기본선 검증을 막지 않는다. 기존 실제 좌표·accessible label·focus·Day/Week·scroll/resize/fullscreen 재검증을 면제하지 않는다. SVAR 공식 Willow/samples URL 확인과 installed 2.7.3 실제 조작을 분리하고 PRO-only markers property를 Core 지원으로 간주하지 않는다.
+
+---
+
 # masterGantt 공통 UI/UX 기준
+
+## Issue #622 — Plan 출발/현재 범위와 정확 편집 복귀
+
+기존 Plan의 선택 기여와 같은 개인 Project 전체 참고를 native 범위 control과 텍스트로 구별한다. 일별 상세에 출발 Target 조건과 현재 참고 scope를 표시하고 선택 밖 원인이 포함됨을 명시한다. Target 근거 이름/ID는 기존 마지막 셀에 줄바꿈하며 identity340px+3열220px의 최소1000px은 표가 내부 scroll을 소유한다. document 가로 overflow로 대체하지 않는다.
+
+단계 진입은 제목 focus, Escape는 Editor 종료/상세 이전 단계/출발 control 순서를 따른다. 저장·snapshot 교체 동안 이전 명령은 잠그고 새 report/detail 성공 후 연결·visible한 정확 trigger에 focus를 복원한다. 필터 탈락/삭제 시 유효 Plan control로 이동하며 최신 사용자 입력을 오래된 복원으로 덮지 않는다. Excel current/project와 Target 조건 유지/해제·legacy 일정 범위를 구별한다. 기존 `ui-ux-pro-max` keyboard/focus 지침의 구체화인 Design Delta B이며 DESIGN.md N/A다. 5폭·keyboard·stale·readonly 실제 증거는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다.
+
+## Issue #621 — Target Resource 표·계층·편집 handoff
+
+기존 Resource 화면을 확장하고 기간·Target·검색 뒤에 공정/WorkArea/typed instance 등 추가 조건을 펼쳐본다. 계층은 Resource 우선/Target 우선, 비교는 Resource/Group×Target이며 기존 Milestone·Plan 보기를 보존한다. native button/select·명시 label을 사용한다. 조회용 헤더/합계와 실제 Task/Assignment 편집, Target 구성 편집은 명령 이름과 canonical 대상을 구별한다.
+
+표의 identity는 flexible minimum, 수치·상태는 최소 폭, 편집 명령은 독립 폭을 확보한다. 계층의 설계 예산은 identity280px(좁은 화면168px)+공수144px+Task/완료/지연 각88px+명령112px, 비교표는 identity280px/168px+Target당176px다. 실제 구현은 전체 column budget과 긴 이름/UUID·최대 열 조합을 검증하고 표 소유 scroll을 제공한다. sticky header/identity가 Tab focus를 가리지 않도록 scroll-padding/scroll-margin 또는 해당 control의 visible focus를 확인한다. document 가로 overflow로 대체하지 않는다.
+
+상세 진입은 제목으로, 닫기/취소는 연결되고 visible한 실제 trigger로 focus를 인계한다. 저장으로 행이 필터에서 탈락하거나 삭제·비활성화돼 trigger가 없으면 사유와 유효 fallback을 제공한다. pending/dirty/권한만료·stale·응답역전은 기존 Editor와 report 세대/취소 guard를 사용한다. disabled 이유와 이전 결과임을 텍스트로 밝힌다. 조회/정렬/접힘/보기 전환은 canonical mutation0이며 Gantt 강제 remount를 사용하지 않는다.
+
+`ui-ux-pro-max`의 focused keyboard/focus 지침은 기존 DESIGN의 accessibility·precise feedback·progressive disclosure·table sizing을 구체화했다. **Design Delta B, DESIGN.md: N/A**이며 신규 공통 시각/탐색 원칙은 채택하지 않는다. 실제 390/768/1024/1440/1920px·keyboard·focus·geometry 결과와 미검증은 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. 공식 SVAR grouping 문서 확인은 PRO 제약 근거이며 실제 demo 조작 증거가 아니다.
 
 ## Issue #538 — 관계 관리자와 cascade 상태
 
@@ -333,10 +359,21 @@ native Chart plot 원점/폭과 lane을 직접 비교하고 Grid/Chart row y/hei
 
 #551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
 
-## Issue #552 — 표시 전환과 호환 상태
 
-단일 표시 토글은 aria-pressed와 readonly 조작을 제공하고 활성 Task 필터 수로 집계하지 않는다. 프로젝트 M0, 날짜 viewport0, 날짜 미정/invalid, 물리 조작 폭 부족, WBS 일반 작업0, 조건 불일치를 구별한다. legacy M-only는 원 조건과 이유를 유지하며 Dashboard/유형만 해제의 명시 선택을 제공한다. 다른 Dashboard 조건은 날짜 fallback에서 자동 초기화하지 않는다.
+## Issue #618 — Target composer와 연결 상태
 
-390/768/1024/1440/1920px × Day/Week에서 열 show/hide/show 후 row y/height, 원래 날짜 tick x, plot 원점/폭과 document scrollWidth를 함께 확인한다. 좁은 화면은 native owner wheel/splitter 조작과 실제 hit/focus 외곽6px을 확인하고 논리 작업면과 물리 clip을 구별한다. 날짜 복귀/최신 intent, exactID 목록 focus, scope drift의 같은 instance, native M 선택 잔존 정리를 별도 interaction으로 검증한다. 개발 public display/selection probe는 사용자 생산 경로 또는 서버 권한 증거가 아니다.
+Target composer/Task 연결 child는 기존 WorkspaceDialog와 semantic token을 사용한다. 직접/상속/legacy 출처를 색상 외 텍스트로 구분한다. 종류·label·수량·공정 입력에는 실제 label을 제공하고 System의 기본1식을 물리 Equipment 대수와 혼동하지 않는다. 고급 controls/roles는 기본 Target 구성에서 펼쳐보기/기존 관리 경로로 분리한다.
 
-#552의 정상 scope owner는 비활성 schedule의 visibility를 상속한다. Dashboard peer를 `visibility:hidden`/inert/aria-hidden으로 보존할 때 내부 wrapper에 visible을 지정하면 숨김을 덮을 수 있다. 실제 검증은 ancestor·scope owner·Toolbar·native Gantt/Grid/Chart의 computed hidden과 양수 bbox를 함께 확인한다. `pointer-events:none` absolute content는 elementFromPoint와 sticky/fixed 가림 검사에서 빠질 수 있으므로 center hit만으로 실제 paint가 숨었다고 판정하지 않는다.
+loading/empty/no-results/error/retry, readonly/edit/dirty/pending/stale/inactive/미매핑을 별도 표현한다. dirty 상태는 늦은 조회로 교체하지 않으며 401/412는 입력을 보존한 재인증/재조회 안내다. pending에서는 중복 저장/닫기/탐색을 잠그고 Escape/취소는 명시 폐기 확인을 거친다. 관리자 master 저장은 별도 transaction이며 이미 저장된 항목을 Project 취소로 되돌렸다고 표시하지 않는다.
+
+390/768/1024/1440/1920px 및 긴 한글/동명이름에서 실제 overflow·Tab/Enter/Escape·focus trap/복귀를 확인한다. 목록과 상세는 좁은 화면에 적층하고 긴 canonical ID는 줄바꿈한다. 조작 영역44px·내부 scroll·기존 Gantt 보존 계약을 재사용한다. DESIGN Delta=B(기존 원칙 구체화), 새 전역 디자인 원칙 없음. 실제 실행 상태와 캡처는 [Work Packet](exec-plans/active/ISSUE_618.md)을 따른다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.
+
+## Issue #552 — marker-OFF 상태·focus·반응형 수용
+
+운영 Toolbar의 Milestone 표시 toggle/default ON/temp ON은 제거한다. Lane/marker/guide·예약 높이·marker-only listener/observer/RAF/date-axis/scroll은0이며 기존 #551 keyboard/날짜 tick gate는 개발 opt-in 및 후속 #573/#693 ON 검증에 한정한다. 일반 Task native 날짜축/선택·기존 #667 viewport authority는 유지한다.
+
+날짜 요청은 정확한 Dashboard 상세/소속 Task로 명시 안내하며 숨은 native M 선택·임시 lane·M용 range extension을 실행하지 않는다. Legacy M-only의 빈 WBS와 원본 없음/조건0/미정 날짜/소속0을 구별하고 Dashboard 열기·유형만 명시 해제 선택을 제공한다. 다른 조건은 보존한다. Editor/modal Escape와 닫기 후 실제 가시 trigger focus, 새 pointer/keyboard 입력 우선·dirty/pending/readonly/stale를 검증한다.
+
+390/768/1024/1440/1920px × Day/Week·all/Grid-only/Chart-only·fullscreen에서 native M row/bar/대체 endpoint0, Summary/Task row alignment·tick/clip·문서 overflow·실제 focus/hit 영역을 확인한다. inactive Schedule은 조상 hidden/inert를 상속하고 Toolbar/Grid/Chart가 Dashboard 위에 그려지지 않아야 한다. 같은 Core instance·scroll/열폭/접힘/선택·canonical 전체 보존을 screenshot만으로 대체하지 않는다. WBS legacy 복구의 재빌드/재배포 검증은 marker-only rollback과 별개다. 실행 전 상태는 NOT TESTED이며 [검증 계획](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.

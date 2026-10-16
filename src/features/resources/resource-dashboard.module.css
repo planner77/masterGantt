@@ -81,3 +81,4 @@
 .dashboard :global(.resource-plan-scroll) { --plan-identity-width:280px; scroll-padding-left:calc(var(--plan-identity-width) + 8px); scroll-padding-top:96px; }
 .dashboard :global(.resource-plan-matrix td button) { scroll-margin:6px; }
 @media(max-width:600px) { .dashboard :global(.resource-plan-scroll) { --plan-identity-width:144px; } }
+.dashboard :global(.resource-plan-detail-table button) { max-width:100%; white-space:normal; overflow-wrap:anywhere; scroll-margin:6px; }

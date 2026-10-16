@@ -1,3 +1,185 @@
+## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
+
+- 일정 native Grid/Chart의 표시를 Summary/Task로 분리하며 Milestone row/bar와 숨은 Milestone endpoint 선을 제외한다. 전체 canonical ID/Link/Membership·Summary 파생·Ready/Completed·Resource/Target/Copy/Export 원장은 보존한다.
+- 기존 기본 ON 표시 토글·임시 marker 날짜 탐색을 운영 경로에서 제거한다. 상단 lane/marker/guide OFF와 marker-only 부작용0을 유지하고 날짜 확인은 기존 Dashboard 상세/정확 소속 Task 안내로 전환한다. #551 기술 capability는 보존하며 #693 marker ON은 별도 선택 후속이다.
+- 최신 main #667의 공통 동기화 authority를 재사용하고 과거 #552 중복 observer/resize/restore와 main 충돌을 정리한다. 명시 legacy WBS 비상 복구는 독립 빌드 설정이며 재빌드/재배포·별도 검증이 필요하다.
+- 이번 요청은 구현·문서·리뷰/충돌 해결 및 PR CI 시작까지다. 후보 버전은 릴리스 승인이나 원격 회귀 PASS가 아니며 release_authorized=false, 최종 QA/Owner ACCEPT는 NOT TESTED다. 이전 실패 run과 구현 이력은 유지한다.
+
+## [0.114.1] — Unreleased / Issue #667
+
+- CI #2840의 신규 Unit을 기존 Core exact/native ±1px 수용 계약에 맞는 경계 검증으로 교정한다. FILTER_RETURN의 두 번째 준비 중 취소·추가 축소에서 1회 상한과 쓰기0을 검증하고 원본·로컬·환경중단·새 CI를 별도 원장에 기록한다.
+- CI #2835의 검색 전 Week 정착과 목표120px 용량 부족을 구분하고, 정상 입력 준비의 현재 문맥·최신 관측·현재 작업·Core/native 수용 범위를 읽기 전용 공통 계약으로 검증한다. 공유 분석의 제안과 소비자 감사·통제 반례·실제 검증 출처는 별도 실패 원장에 보존한다.
+- CI #2833의 metadata 검증이 기존 Week 축 확장·첫 검색 전달·수평 용량 준비를 확인한 뒤 최초120px 입력을 한 번만 수행하도록 fixture 순서를 보완한다. 초기47px browser clamp와 metadata저장후 복원을 구분하고 원본/진단/보완중 오류·최종 검증을 별도 실패 원장에 보존한다.
+
+- CI #2831의 768px Week geometry 검증이 현재 scale의 semantic/delivery와 실제 날짜축 준비를 확인한 뒤 최초 reveal을 요청하도록 fixture를 보완한다. 이전 receipt에 등록된 명령 중 새 semantic이 도착하는 통제 경합·비재현·원격 미계측 경계를 실패 원장에 보존한다.
+
+- CI #2829의 Task hover 검증이 후행 날짜축/native scroll 정착을 확인한 뒤 첫 hover를 수행하도록 fixture를 보완하고 실제 scroll/focus/이탈 닫힘 계약을 검증한다. 원격/로컬 assertion 차이와 계측·검증 근거를 별도 실패 원장에 누적한다.
+
+- CI #2827 확대 진단에서 확인한 Day→Week native clamp의 사용자 이동 오분류를 Core/native 양쪽 등록 좌표 비교로 교정한다. 실제 입력 우선권·단일 writer·기존 좌표/CI gate는 유지한다.
+- CI #2827의 ISO Header 검증이 가상화된 focused 셀의 새 focus 진입을 확인하도록 fixture를 보완하고 Escape 닫힘·포커스 유지를 검증한다. 실패 원인/재현/교정과 재개 인덱스를 별도 누적 원장에 보존한다.
+
+- CI #2825의 Milestone 화면 왕복 검증에서 독립 세로 입력의 Core/native 반영 뒤 가로 입력을 주입하도록 fixture 순서를 교정한다. 기존 정확 좌표·실제 wheel 우선권·필터/layout 보존과 CI gate는 유지한다.
+
+- CI #2820의 Grid/Chart 정렬 음성 테스트를 실패 관측·성공 영수증 분리 계약에 맞게 교정한다. 실제27.5px 불일치·현재Core/DOM IDs·복구 정렬과 mutation0 검증은 유지한다.
+
+- CI #2819의 U5 최종 저장 확인 GET 연결 종료를 분석하고 관련 UI후 확인11곳의 browser 전송·안전 진단 helper를 공유한다. 실제 저장 DTO·권한/복구·무재시도 검증은 유지한다.
+
+- CI #2818에서 재발한 동일 revision 관측 timeout을 실제 지연 RAF로 재현하고, U3 관측만 기존1500ms 예산 내 실제 RAF를 기다리도록 viewport50ms tick과 분리한다. 기존 Core/viewport·권한·검증 gate는 유지한다.
+
+- CI #2817 후속으로 선택·레이아웃 관측 요청을 최신 데이터 처리 뒤에 모아 전달하고, 새 관측이 전달되지 않을 때 단계별 개발 진단을 남긴다. 같은 revision 재조회 검증과 실패 원장을 유지한다.
+
+- 종합 회귀에서 발견한 다중 Copy/Paste 뒤 가로 위치 초기화를 보완하고, 원래 사용자 의도와 검증된 저장 결과에 한정해 기존 Coordinator가 복원하도록 한다.
+- CI #2811~#2814 실패를 종합 기록하고 Dashboard UI 확인의 browser 전송·안전한 격리 진단·취소 응답 완료 검증·공휴일을 고려한 첫 Milestone 테스트 입력·새 검색 영수증 확인을 보완한다. 기존 제품 단언·CI gate는 유지한다.
+- CI #2813의 개발용 Grid reveal 관측이 생략된 설정 날짜 대신 실제 계산된 날짜축 원점을 읽도록 교정하고 기존 탐색 회귀를 유지한다.
+
+- CI #2812의 빈 프로젝트→과거 첫 Milestone 날짜축 역전을 Core 계산 left bound로 교정한다. 반복 삭제 stale/조회 실패 회귀는 UNKNOWN 보호를 유지하고 명시적 최신 조회 뒤 계속하도록 갱신한다.
+
+- PR CI #2811의 화면 복귀 영수증 취소를 fresh visible 관측 대기로 교정하고, cross-tab/실패복구 GET 경합의 재잠금과 pending 조회 중 UNKNOWN 잠금 누락을 보완한다. 원본 실패·실제 두 탭 회귀는 Work Packet에 보존한다.
+
+- main 제품의 actual-Core 정합/실패 복구·의미 관측·날짜축 transaction을 U2/U3/U4 공통 모듈에 연결한다. 서버 확인 없는 snapshot 재생·remount 복구 대신 unknown 저장 결과의 충돌 쓰기 차단과 명시적 최신 조회를 제공한다.
+- 실제 HTTP/SQLite의 commit 성공·미성공/응답500·연결단절·GET실패·추가 저장0/후속 저장 및 native Milestone 보존 회귀를 추가한다. 기존 Required CI·보안·API/DB·marker 미활성 정책은 유지한다.
+- PATCH version은 정식 release 승인이나 전체 QA PASS가 아니다. 실제 source·검증·한계는 [Work Packet](docs/exec-plans/active/ISSUE_667.md)을 따른다.
+
+- Resource 복귀에서 retained 날짜축과 Core/native 수용 범위를 함께 준비해 유효한 원래 좌표가1px 제한되는 경계를 보완한다.
+
+## Unreleased — Issue #622 CLOSED 상태의 누락 FINAL·branch cleanup 복구
+
+- 이미 성공한 v0.114.0/PR #686 릴리스와 후속 #665/#666 FINAL을 보존하면서, #622 Owner 선행 CLOSED 때문에 건너뛴 3개 merged PR 브랜치와 FINAL을 엄격한 Owner comment/main SHA/실제 Release·CI/GHCR 검증 후 복구할 수 있도록 Generic Finalizer 내 제한 Job 및 테스트를 추가한다.
+- SHA-leased GitHub branch 삭제 후 REST 일시 200은 제한된 동일 SHA 재조회에서 404로 수렴할 때만 성공 처리하며 지속200/새 tip은 차단한다.
+- 새 제품 기능·version/lockfile·정식 SemVer/GHCR 재게시 없이 보호된 CI 정책과 문서를 동기화한다.
+
+## Unreleased — Issue #622 Generic Release Completion Finalizer Resume #35 교정
+
+- v0.114.0 태그가 동일 Issue #622의 성공한 교정 PR #686 SHA를 가리키는데 원본 실패 PR #684의 SHA와 먼저 비교해 중단한 Finalizer 버그를 수정한다. 제한된 failed-Main/동일 Issue·버전·first-parent/non-docs 정합을 먼저 검증한 경우에만 원본 상태를 superseded로 취급하며, 교정 tag/release-image/digest·Owner 승인과 외부 SHA의 fail-closed는 유지한다.
+- 기존 v0.114.0 annotated tag/GHCR promotion·Main/Release 원본 실패 이력은 불변. CI/Required checks/package/lockfile/application 버전 및 제품 동작 변경 없음. 실제 #35 재실행/FINAL/cleanup/close는 원격 증거 후 별도 확인.
+
+## Unreleased — Issue #664
+
+- U1 공개 포트를 소비하는 opt-in actual-Core conformance와 canonical recovery 모듈을 추가했다. same revision의 order/date/temporary/link drift, 확정 거부·불명확 결과와 stale/API/pending 무효화를 구별한다.
+- 전용 Unit 및 설치 React Gantt2.7.3/store2.7.2 합성 browser fixture·U5 handoff/검증 경계를 추가했다. 기존 제품 sync/wiring·package/version·DB/API·CI·viewport writer는 변경하지 않는다.
+- 모듈 로컬 검증과 #552 제품 HTTP/SQLite·Bar/viewport 통합·원격 CI·최종 Owner 수용은 구별한다. [Work Packet](docs/exec-plans/active/ISSUE_664.md).
+
+## [Unreleased] — Issue #665 의미 기반 Projection 관측 (2026-10-15)
+
+- U1 공통 읽기/검증 포트 기반의 opt-in U3 facade로 관측 attempt와 semantic completion을 분리한다. 실제 Core/행·문맥·원래 사용자 lease가 유효한 반복 관측만 완료 의미를 재사용하고 drift·invalid proof·source 변경은 거부한다.
+- data receipt는 수평 viewport 완료를 기다리지 않으며 유한 관측·cleanup 및 기존 bounded trace의 숫자 ID를 사용한다. legacy 관측과 제품 wiring·writer는 유지하며 actual 제품 통합은 #667/#574에서 별도 검증한다.
+- application0.114.0·package/lockfile/workflow·권한·Required gates 불변, release_required=false/release_authorized=false. 정확한 로컬/원격/미검증 경계는 #665 Work Packet을 따른다.
+
+## Unreleased — Issue #666
+
+- 제품 미연결 날짜축 transaction facade와 전용 Unit·설치 Core fixture를 추가한다. 날짜 extent·물리 geometry/capacity·승인 X/Y 정책을 분리하고 원래 user lease의 취소·유한 settle·명시 clamp/unavailable·synthetic 불완전 상태를 관리한다.
+- 실제390px NOT_MEASURABLE 및 Core/native capacity1px 차이의 full-capacity clamp TIMED_OUT/FAIL을 숨기지 않고 제품 지원 DEFER로 기록한다.
+- 기존 A/B/C 실험의 DEFER와 제품 wiring 경계를 보존한다. app0.114.0·package/CI/서버 계약은 불변이며 공식 원격 검증·최종 Owner/Manager ACCEPT 및 #552 제품 정합성 완료는 별도다.
+
+## Unreleased — Issue #663
+
+- 누락된 canonical Summary 날짜의 기대값은 하위 작업에서 도출하고 실제 Core/명시적 날짜 drift를 보존한다. 실제 snapshot 비교 테스트의 public import 누락으로 발생한 CI Unit/typecheck 실패를 보완한다.
+
+- 제품 미연결 Gantt state-consistency 공통 타입/읽기 전용 Core serialize 포트와 누적 SC-01~14 manifest·음성 검사·fake port/실제 합성 Core reader fixture를 추가한다.
+- application0.114.0과 패키지/제품 동작/CI·릴리스 정책은 유지한다. 이는 #552 제품 정합성 해결·정식 릴리스 완료가 아니며 원격 전체 검증과 Owner/Manager 최종 수용은 별도다.
+
+## [Unreleased] — Issue #623 Resource MVP 통합 수용·이관 안내 (2026-10-15)
+
+- PR #685 QA Final의 미해결 리뷰 차단 원인을 기록하고, 신규 E2E의 180초 override를 첫 흐름 60초/둘째 기본30초로 복원한다. 390px tree/matrix의 실제 ArrowRight scrollLeft 증가·focus 근거를 보강하고 main의 #622 초기화 회귀 문서를 함께 보존한다. 새 Head 원격 검증 및 Owner 결정은 별도다.
+
+- 같은공통golden으로 Domain/API/UI/OOXML의rawID/공수/nullable·sharedTarget/수량/Capacity를대조하고기존530·622회귀를보존한다.
+- 다관점의name/date/status/progress/allocation/membership개별편집·identity/권한/원자성/stale/복귀와5폭keyboard/geometry를실제Chromium으로검증한다.
+- actual0024legacy→25/26/27migration·checksum/rollback·격리backuprestore/restart·Copy/Template·safeformat경계를보강하고사용자/운영가이드·추적수용표를추가한다.
+- 테스트/문서전용후보이면app0.114.0·의존성불변/release_required=false,실제제품변경은별도version판정한다. Exact-head원격CI/Trusted·OwnerACCEPT 및M2최종수용은별도이며 #624/V1·Epic전체완료를뜻하지않는다. release_authorized=false.
+
+## [Unreleased] — 0.114.0 / Issue #622 Target Resource Plan·과투입·Excel (2026-10-14)
+
+- Target/공정/WorkArea/typed instance 조건의 선택 기여와 같은 Capacity 개인의 Project 전체 참고를 Plan·일별 정확 Assignment 상세에 연결한다. 기존 R/Resource Calendar·일별 Peak/초과·unknown 및 raw/nonadditive/null 의미를 유지한다.
+- 선택 밖 원인 Assignment는 기존 정확 Editor에서 편집·복귀하고 새 snapshot으로 재검증한다. 새 공수 원장·계산 엔진·Gantt 인스턴스는 없다.
+- 기존 Resource Excel current/project를 Target 조건·분류/근거와 같은 raw M/D·M/M·revision으로 확장한다. 고유 Assignment 총계·비가산 소계·수량 비승산·관련 계획공수/원가배분 구분과 formula/stale/권한/예산 보호를 유지한다. Plain Target-bearing 일정/JSON의 무손실 교환 지원은 별도다.
+- 후보 minor이며 exact-head Required CI/Trusted QA·Owner HIGH 위험 수용·명시 병합 허가 및 정식 릴리스는 별도다. release_required=true/release_authorized=false, 원격 검증 NOT TESTED. 실제 로컬 실행/미검증은 #622 Work Packet을 따른다.
+
+## [Unreleased] — 0.113.0 / Issue #621 Resource–Target 보기·동일 원본 편집 (2026-10-14)
+
+- PR #683 CI #2764.1에서 반복된 #463 Week 초기 수평120→0 Core/native 경합을 계측·분리한다. 기존 단일 dev-only `DIAGNOSTIC_SCROLL`의 공개 SVAR scroll-chart/3연속 Core·DOM settle로 pending peer 입력 테스트의 준비 좌표를 구성하며, 기존 별도 native scroll 테스트·실제 trusted 검색 취소·120/96 strict/권한·scope·인스턴스 회귀를 완화하지 않는다. 정확한 최초 0 writer는 미확정으로 원장에 보존하고 새 전체 CI 성공은 NOT TESTED.
+
+- PR #683 CI #2761.1의 #525 Resource 대량 상세(40 Resource/50 Assignment) Task 안정 ID 순서 회귀를 보완한다. 첫 보조행을 External ID·canonical Task UUID로 고정하고 뒤에 비활성/정확 Assignment/Target 출처, 마지막에 WBS를 표시한다. Task·Assignment UUID를 행 canonical 속성과 대조하는 50개씩의 E2E 검사 및 기존 5폭·Keyboard/Focus/비활성 조회 계약을 보존한다. 새 원격 Full PR CI 전 테스트 결과 NOT TESTED.
+
+- PR #683 CI #2759.1에서 드러난 기존 #525 Resource KPI 상세의 외부 Snapshot 교체 무효화 누락을 보완한다. 일반 KPI/Milestone/진단 상세는 새 성공 Snapshot에서 종료·기존 focus 복귀, Target 상세만 현재 서버의 동일 경로 재검증 시 최신 selector로 갱신한다. 기존 focus/readonly/dirty/Target 필터·Group 상태·서버 mutation0 계약을 유지하며 #525 E2E receipt 경합 방지 및 전체 CI 재검증은 신규 Head에서 판정한다.
+
+- PR #683 CI #2758.1 E2E Week native geometry 안정화와 readonly Target deep link의 페이지 밖 상세, inactive Assignment 편집 제한, Target matrix 전체 열 공수 정렬을 보완한다. 기존 서버 union 총계·canonical 편집 경계·3 Required CI/Owner QA 승인 정책 불변; 신규 CI 검증 전 NOT TESTED.
+
+- 기존 Resource 탭에 Group/Resource→Target 계층·역방향·Group/Resource×Target 비교와 같은 server filter를 연결한다. 서버 총계·선택/전체 Project 참고·중첩 비가산·partial/unset를 유지한다.
+- 표시 행 key와 canonical Task/Assignment/Target ID를 분리하고 실제 작업·정확 개인 배정·Target 구성은 기존 Editor/composer로 편집한다. 조회 grouping/정렬은 WBS 구조나 배정을 변경하지 않는다.
+- 저장 뒤 report stale/재조회·동일 scope 복귀와 focus/dirty/pending/권한 guard를 보존하며 기존 Milestone/Plan·exact drill을 유지한다. Target별 Plan/Excel 확장은 #622다.
+- 후보 minor version이며 exact-head PR Required CI/Trusted QA·Owner HIGH 위험 수용·명시 병합 허가 및 정식 release는 별도다. release_required=true/release_authorized=false.
+
+## [Unreleased] — 0.112.0 / Issue #620 Resource–Target 보고 API (2026-10-14)
+
+- 기존 Resource report/detail/drill에 Target·공정 occurrence/Process Type·WorkArea·Equipment/System type 및 instance 필터와 compact projection/근거 selector를 추가한다.
+- Target/member/binding·공정 매핑·관련 master 이름/active를 Task/Assignment/Calendar와 같은 read snapshot/fingerprint에 결속하며 참조 변경 후 상세는 stale409로 거부한다.
+- exact source Assignment 교집합·공동담당 누출 차단·T0/A·legacy 직접 연결·중첩 소계와 distinct 전체·null/partial 및 기존366일/2MiB 예산을 보존한다. 기존 Plan 선택 demand는 Target 교집합을 반영하며 R/전체 Project 부하는 유지한다. 새 UI·Target별 기간 행·Excel 시트 확장은 후속 범위다.
+- 후보 minor version이며 PR required CI/Trusted QA·Owner 병합 승인 및 정식 릴리스는 별도다. release_required=true/release_authorized=false.
+
+## [Unreleased] — Issue #680 Main CI #2745 테스트 전송 오류 한정 복구 (2026-10-14)
+
+- #618 병합 SHA `59fa8f9e8743e03699741a654038b3086c0e1778`의 Main CI #2745.1에서 Milestone Editor의 읽기 전용 canonical GET이 ECONNRESET으로 실패한 원본 증거를 보존한다.
+- Milestone 읽기 전용 GET을 observer가 최초 ECONNRESET 진단을 수집한 후 외부에서 한 번 재조회하고 HTTP200을 확인하도록 보호하고 POST/PATCH 무재시도 및 원래 원자성·revision·상속·geometry 회귀 단언을 유지한다. 서버 연결 초기화의 구조적 원인 해명은 별도이며 PR/Main 전체 CI와 GHCR·Finalizer는 원격 성공 전 NOT TESTED. 제품 버전 `0.111.0` 불변, 정식 릴리스 승인은 별도다.
+
+## [Unreleased] — 0.111.0 / Issue #618 Target 구성 UI (2026-10-14)
+
+- Target composer에서 공정/optional WorkArea 및 기존 Equipment/System 신규·재사용 구성을 편집합니다 (#618).
+- WBS Target whole/subset·self/subtree·작업수량·출처와 Target↔동일 Task Editor 탐색을 추가합니다.
+- Target usage에 같은 revision의 canonical 관련 Task ID를 제공하고 기존 권한·stale·공유/삭제 보호를 유지합니다.
+- PR CI·Owner 승인 및 정식 릴리스는 별도이며 현재 정식 게시 승인 없음.
+- #618 PR #678 원본 CI #2729.1에서 신규 Target alert와 기존 물류 연결 alert가 함께 표시되어 E2E strict locator가 실패한 원인을 수정한다. 기본 활성 Target 목록은 서버에서 COUNT/LIMIT/OFFSET 이전에 필터링하고 기존 전체 목록 API는 유지한다. 52개 혼합 서비스/HTTP 필터 회귀 및 #661 GSC Work Packet 근거를 추가했으며, 새 exact-head CI 결과·Owner 승인·릴리스는 별도 판정이다.
+
+## [Unreleased] — 0.110.0 / Issue #619 Target Resource KPI (2026-10-14)
+
+- 기존 Resource KPI pure 엔진에 Target·공정·WorkArea·Equipment/System type 및 instance 조회 차원을 추가한다. #617 단일 binding resolver의 whole/subset·직접/상속 출처와 legacy 직접 연결을 재사용한다.
+- Target 소계는 관련 계획 공수로 중첩될 수 있으며 선택 전체는 원시 Assignment 합집합에서 한 번만 계산한다. T0/A·같은 개인 Assignment 조건·inclusive Resource Calendar·null/partial/설정0·M/M 미설정·full Milestone Ready/Blocked를 보존하고 Plan의 Capacity 모집단 및 전체 Project load를 Target 선택으로 축소하지 않는다.
+- Domain typed contract 및 golden/property/예산 회귀를 추가한다. 새 UI·HTTP API·DB·Excel 공개는 후속 #618/#620~#622 범위다. 후보 minor version이며 정식 릴리스가 아니다. 원격 CI/Trusted QA/Owner ACCEPT는 별도이며 release_authorized=false다.
+
+## [Unreleased] — 0.109.0 / Issue #617 WBS–Target 연결 (2026-10-14)
+
+- Task/Summary–Target 다대다 whole/subset·self/subtree 연결과 typed member coverage, 직접+모든 조상 subtree 합집합·전체 출처를 제공하는 단일 resolver를 추가한다. legacy Equipment/System 직접 연결과 공유 MCS identity를 보존한다.
+- Target 구성·WBS 이동 영향 확인, subset/coverage/사용 중 삭제 보호, Copy·Template 명시 연결 remap과 미지원 포맷 silent-loss 차단을 동기화한다. 같은 Project subtree Copy도 기존 명시 legacy Equipment/System self/subtree 링크를 복사하도록 확장하며 상속을 평탄화하지 않는다. Target usage는 nullable 의미와 실제 고유 일반 Task/Summary 수량을 구분한다.
+- 신규 Target UI/Resource 축은 후속 #618/#619. exact-Head 원격 CI 전 전체 PASS를 주장하지 않으며 `release_required=true`, `release_authorized=false`; 정식 릴리스가 아니다.
+
+## [Unreleased] — Issue #672 #616 Target F2 검증 보완 (2026-10-14)
+- 추가 Target 전용 HTTP Origin/session/strong-CAS·중복/요청 한도, 도메인 shared MCS/기존 Resource 담당·제어 원장 불변, inline member rollback, 기존 0025 DB → 0026 upgrade + Target persistence/restart 통합 회귀.
+- v0.108.0 Release #167.1/Finalizer #32.2의 기존 SUCCESS 증거를 보존하고, #616 F2 AC2~AC7의 부족한 실제 검증을 별도 #672 PR로 추적한다. 신규 테스트가 CI에서 PASS하기 전에는 인수 완료로 주장하지 않는다.
+- API/DB/LOGISTICS_TARGETS/REQUIREMENTS/SECURITY/TEST_PLAN 문서 중 오래된 'candidate/NOT TESTED/Template 미지원' 기술을 실제 구현+미검증 범위로 정리. #617 WBS Target binding 및 `referencedByTaskCount=0` placeholder의 비권위 해석을 명시.
+- Application SemVer `0.108.0` / lock/dependencies, CI workflow, 원본 migrations/DB schema, 정식 GHCR tag/digest 미변경. release_required=false, release_authorized=false.
+
+## Issue #659 — PR E2E Shard4 30초 타임아웃 안정화 및 2계층 Fail-Fast 보완 (2026-10-13)
+
+- [CI #2691.1](https://github.com/planner77/masterGantt/actions/runs/38406166683)의 130개 테스트 중 W05 프로젝트 편집 권한 수명주기가 기본 30초를 초과한 뒤 context close 오류가 동반되어 Shard4 FAIL, shard2/3 CANCELLED, Required E2E/QA Final FAIL. #2690에서는 동일 테스트 22.6초 PASS.
+- W05 한 테스트에만 유한한 60초 상한을 적용하고 기존 세션/Revision/401/412 권한 검증과 실패 보고는 유지한다. PR Full의 E2E 실행에만 Playwright `--max-failures=1`을 historical/native 6-shard 양쪽에 전달해 첫 테스트 실패 후 해당 Shard의 잔여 테스트를 중단; 이미 구현된 matrix Fail-Fast가 다른 Shard를 취소한다. Main/manual E2E 전수 실행과 QA/Required/Release 보호 불변.
+- 기존 #2691 실패 원본은 보존하며 실제 신규 Head 전체 CI·실패 주입 및 Runner 비용 개선은 검증 전 NOT TESTED.
+
+## Issue #659 — PR CI Fail-Fast / 단계별 Fast Gate (2026-10-13)
+
+- Full PR CI는 policy/typecheck/lint/unit 빠른 검사 후 Fast Gate가 성공해야 Next.js build/E2E/Docker를 실행한다. 요구된 검사의 실패·취소·예기치 않은 skip은 차단하며 세 Required Check를 FAIL로 집계한다.
+- PR E2E 6-shard만 fail-fast=true; Main push, workflow_dispatch, 복구 CI는 기존 fail-fast=false/병렬 실행 유지. GitHub Actions YAML anchor로 동일 실행 단계를 공유한다.
+- 기존 Preflight/metadata-only/QA/Owner/Ruleset/GHCR/Finalizer 및 제품 version 0.107.0 불변. 판정기·정적 회귀·관련 문서를 보강한다. 원격 CI, 실패 주입, 정상/실패 Runner 시간 측정은 별도 검증이다.
+
+## Issue #670 — v0.108.0 승계 릴리스 준비 (2026-10-14)
+
+- #616의 미발행 `v0.107.0` 게시 승인 철회와 [감사 #19.1](https://github.com/planner77/masterGantt/actions/runs/38452926077) 성공/`PREPARE_ONLY`를 바탕으로 다음 후보 `0.108.0` 준비. `package.json` 및 `package-lock.json`의 세 버전 값을 동기화하고 종속성 그래프는 변경하지 않았다.
+- 실제 manifest/lockfile 기반 버전 불일치·old `v0.107.0` tag negative 및 발행된 선행 `v0.106.1` SemVer regression 추가. #616 Target/Template, #639 KPI, #647 Milestone 회귀 구현은 그대로 보존하며 새 CI 전 PASS 단정 금지.
+- **정식 릴리스 아님:** `release_required=true`, `release_authorized=false`. Git annotated `v0.108.0`, GHCR exact `0.108.0`, 신규 Owner 게시 승인, 별도 Main CI/Finalizer 및 #616 종료는 이번 준비 PR에서 미수행.
+
+## Issue #662 — 감사 #17 GHCR exact SemVer / OCI·CI 후보 증거 교정 (2026-10-13)
+- #662 PR #668 Codex P2: stage 교체로 지워지던 이미 인증된 OCI 버전/태그/expected·actual digest를 마지막 인증 증거 컨텍스트로 보존한다. 실패 단계는 별도 표기하고 후보 digest 부재를 앞선 release digest로 대체하지 않는다. 두 Python 회귀 테스트 및 Preflight PR/Work Packet 선언 형식 교정; 새 CI가 실행되기 전 실제 PASS는 주장하지 않는다.
+
+- Git annotated tag 및 GitHub Release는 `vX.Y.Z`; GHCR 공식 exact tag는 `X.Y.Z`; 과거 verified 후보는 `ci-<published full SHA>`이다. 검사기는 전체 다섯 버전의 Git/GHCR 이름·Digest를 독립 비교한다. `v0.106.1` GHCR alias는 정식 증거가 아니다.
+- 인증된 전체 GitHub Packages metadata/pagination에서 정확한 package ID/tag 중복·형식/권한을 검증하고, 실제 `docker buildx imagetools inspect` 최상위 OCI name/mediaType/digest를 확인한다. 조회 실패는 UNKNOWN/BLOCKED이지 ABSENT 아님. `0.106.1` Digest `sha256:0ab78272f2637ca73ae0a1e7bec4f41b24fcc35e35f13cfc94b7e13a9cad560f`는 역사적 게시 기준으로, 현재 증명은 별도 운영 감사가 필요.
+- `ci-09bee924032b4126ff794ec7a485542fd72dd7bf` 후보는 exact manifest/source SHA/digest를 별도 증명한다. 누락 시 cleanup 원장 조사 전 자동 재게시 금지. Git peeled SHA, 원본 Main/Release Run+attempt, #633 B2 Owner/퇴역, #616 별도 철회/준비 승인 및 first-parent fail-closed 유지.
+- Audit JSON/Job Summary는 stage/reason_code/run/attempt/main SHA/version/tag/expected·actual digest(확인된 경우)만 기록한다. 인증 stderr/Owner 원문 제외, BLOCKED는 exit 1 및 publish/retire/close=false. PR은 감사 실행·재게시·릴리스·승인/퇴역 수행 금지.
+- `tests/python/test_release_succession_*.py`는 CI policy 필수 실행 (기존 workflow 조건 유지). HIGH/OWNER_MANAGED, qa_required=true, manager_decision=NOT TESTED, release_required=false, release_authorized=false. PR 3 required checks/Trusted QA/리뷰 0/Owner 별도 수용 및 Main 검증 전 완료 아님. 운영 감사 #17 실패 원장은 불변.
+
+## Issue #657 — 릴리스 감사 #16 Refs 인식 회귀 및 CI 보호 보완 (2026-10-13)
+
+- `historical_prs_verified`에서 raw-regex 이중 escape로 정상 `Refs #550`가 거부되던 버그 수정. GitHub 원본 PR/Issue/SHA/first-parent 출처 검증과 fail-closed 정책은 보존.
+- 다섯 과거 PR의 실제 여러 줄/CRLF `Refs` 및 중복·변조·누락 테스트 추가; 감사/승계 preflight Python suite를 `.github/workflows/ci.yml` policy 필수 gate로 등록. 원본 Audit #16 실패 기록 변경 없음.
+- HIGH/OWNER_MANAGED, 앱 신규 버전 발행 불필요(`release_required=false`), 자동 GHCR 게시·태그 이동·Owner 승인 작성·퇴역·#616 종료 없음. 수정 후 별도 Owner 운영 감사가 필요.
+
 ## Issue #655 — matching-refs 전체 조회 및 인증 승계 증거 검증 (2026-10-13)
 
 - Git matching-refs/tags/v는 **비페이지네이션** 전체 JSON 배열이다. 153개 등 100개 초과 결과를 단일 호출로 처리하고, 중복/잘못된 ref/tag-object peel/인증 오류는 BLOCKED. Release/GHCR/Actions jobs/Owner comments에는 기존 상한 있는 pages()를 유지한다.

@@ -8,7 +8,7 @@ export type ViewportContext = Readonly<{
 }>;
 export type ViewportStamp = Readonly<{ context: string; contextEpoch: number; gesture: number; intent: number }>;
 export type ViewportCommand =
-  | { kind: "PEER_RETURN" | "PASSIVE_RESTORE" | "FILTER_RETURN"; position: ViewportPosition; positions?: readonly NativeViewportPosition[]; compatibility?: boolean; protect?: boolean }
+  | { kind: "PEER_RETURN" | "PASSIVE_RESTORE" | "FILTER_RETURN"; position: ViewportPosition; positions?: readonly NativeViewportPosition[]; compatibility?: boolean; protect?: boolean; sourceCurrent?: () => boolean }
   | { kind: "TASK_REVEAL"; taskId: string }
   | { kind: "DATE_REVEAL"; date: Date }
   | { kind: "DIAGNOSTIC_DATE_REVEAL"; date: Date }
@@ -37,8 +37,10 @@ export type ViewportPreparation = Readonly<{ ready: boolean; projectionAfter?: n
 export interface ViewportPort {
   read(): ViewportSample;
   frame(signal: AbortSignal): Promise<boolean>;
-  prepare?(command: ViewportCommand, current: () => boolean): Promise<ViewportPreparation>;
-  apply(command: ViewportCommand, current: () => boolean): Promise<ViewportPosition | null>;
+  prepare?(command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPreparation>;
+  /** Read-only Core+native capacity admission at the moment the command is committed. */
+  admitPosition?(position: ViewportPosition): boolean;
+  apply(command: ViewportCommand, current: () => boolean, source?: ViewportStamp): Promise<ViewportPosition | null>;
   repair(position: ViewportPosition, diagnostic?: true): boolean;
   protect(position: ViewportPosition, current: () => boolean): void;
   release(): void;
@@ -74,16 +76,24 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
   };
   const request = async (command: ViewportCommand, source = stamp()): Promise<ViewportOutcome> => {
     const initial = port.read(), level = priority(command);
+    const sourceCurrent = () => {
+      if (!("sourceCurrent" in command) || command.sourceCurrent === undefined) return true;
+      try { return command.sourceCurrent() === true; } catch { return false; }
+    };
+    // Original-authority callbacks stay internal; diagnostics receive data only.
+    const traceCommand = { ...command };
+    if ("sourceCurrent" in traceCommand) delete traceCommand.sourceCurrent;
     let operationEpoch = epoch;
     let acceptedProjection: number | null = null;
     let preparationFloor = -1;
-    const trace = (phase: ViewportPhase, outcome?: ViewportOutcome, decisionReason: string = phase) => port.trace(phase, command, outcome, {
+    const trace = (phase: ViewportPhase, outcome?: ViewportOutcome, decisionReason: string = phase) => port.trace(phase, traceCommand, outcome, {
       intentEpoch: operationEpoch, contextEpoch: source.contextEpoch, gesture: source.gesture,
       projectionEpoch: acceptedProjection ?? port.read().context.projectionEpoch, apiInstance: initial.context.apiInstance, decisionReason,
     });
     const supersededReason = (controller: AbortController) => {
       if (controller.signal.aborted) return String(controller.signal.reason);
       if (disposed) return "DISPOSED";
+      if (!sourceCurrent()) return "ORIGINAL_SOURCE_REVOKED";
       const context = port.read().context;
       if (context.revision !== initial.context.revision || (acceptedProjection !== null && context.projectionEpoch !== acceptedProjection)) return "STALE_PROJECTION";
       if (acceptedProjection !== null && !validViewportReceipt(port.read())) return "INVALID_RECEIPT";
@@ -93,15 +103,15 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     };
     const reject = (outcome: ViewportOutcome, reason: string) => { trace(outcome, outcome, reason); return outcome; };
     if (disposed) return reject("SUPERSEDED", "DISPOSED");
+    if (!sourceCurrent()) return reject("SUPERSEDED", "ORIGINAL_SOURCE_REVOKED");
     if (source.context !== identity(initial.context) || source.contextEpoch !== contextEpoch) return reject("SUPERSEDED", "STALE_CONTEXT");
     if (source.gesture !== gesture) return reject("SUPERSEDED", "STALE_GESTURE");
     if (source.intent < explicitEpoch) return reject("SUPERSEDED", "STALE_INTENT");
-    if (pending && level < pending.priority && command.kind !== "RANGE_EXTENSION") return reject("SUPERSEDED", "LOWER_PRIORITY");
+    if (pending && (level < pending.priority || command.kind === "RANGE_EXTENSION")) return reject("SUPERSEDED", "LOWER_PRIORITY");
     if (!initial.context.visible || (!initial.measurable && (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL"))) return reject("NOT_MEASURABLE", "HIDDEN_OR_UNMEASURABLE");
-    // Milestone-only projects have no ordinary WBS rows but retain a valid date axis.
-    if (initial.context.empty && command.kind !== "RANGE_EXTENSION" && command.kind !== "DATE_REVEAL") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
-    // #367 changes capacity, not viewport intent. Keep the validated resize
-    // pair synchronous with ingress and never repair a captured old position.
+    if (initial.context.empty && command.kind !== "RANGE_EXTENSION") return reject("NOT_MEASURABLE", "EMPTY_PROJECTION");
+    // Axis extension now also preserves X/Y under its registered lease.
+    // It cannot run beside an existing coordinate intent or outlive a newer one.
     if (command.kind === "RANGE_EXTENSION" || command.kind === "DIAGNOSTIC_SCROLL") {
       if (command.kind === "RANGE_EXTENSION" && (!Number.isFinite(command.width) || command.width <= 0 || command.width > 1_000_000))
         return reject("UNSUPPORTED", "INVALID_RANGE_WIDTH");
@@ -112,14 +122,14 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       rangeController = controller;
       const current = () => {
         const sample = port.read();
-        return !disposed && !controller.signal.aborted && validSource(source) && sample.context.visible &&
+        return !disposed && !controller.signal.aborted && sourceCurrent() && validSource(source) && source.intent === epoch && sample.context.revision === initial.context.revision && sample.context.visible &&
           (command.kind !== "DIAGNOSTIC_SCROLL" || (sample.context.revision === initial.context.revision &&
             sample.context.projectionEpoch === initial.context.projectionEpoch));
       };
       let result: ViewportOutcome = "TIMED_OUT";
       try {
         trace("APPLYING");
-        const applied = await port.apply(command, current);
+        const applied = await port.apply(command, current, source);
         if (!current()) return result = "SUPERSEDED";
         if (!applied) return result = "NO_SCROLL_CAPACITY";
         trace("SETTLING");
@@ -160,7 +170,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     pending = operation;
     operationEpoch = operation.epoch;
     if (level === 4) { explicitEpoch = epoch; bookmark = null; }
-    const current = () => !disposed && !controller.signal.aborted && pending === operation &&
+    const current = () => !disposed && !controller.signal.aborted && sourceCurrent() && pending === operation &&
       source.contextEpoch === contextEpoch && source.gesture === gesture && identity(port.read().context) === source.context && port.read().context.visible &&
       port.read().context.revision === initial.context.revision &&
       (acceptedProjection === null || (port.read().context.projectionEpoch === acceptedProjection && validViewportReceipt(port.read())));
@@ -168,11 +178,18 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
     // the filtered projection remain authoritative, including during prepare.
     const coordinateCommand = (): ViewportCommand => command.kind === "FILTER_RETURN"
       ? { ...command, position: { left: command.position.left, top: port.read().core.top } } : command;
+    // Filter return owns its original bookmark lease. Unlike a plain scroll,
+    // its original date extent may have collapsed while the filter was empty.
+    // Only its preparation phase may use the bounded compatibility axis path.
+    const preparationCommand = (): ViewportCommand => {
+      const candidate = coordinateCommand();
+      return candidate.kind === "FILTER_RETURN" ? { ...candidate, compatibility: true } : candidate;
+    };
     const phase = (value: ViewportPhase) => trace(value);
     let result: ViewportOutcome = "TIMED_OUT";
     const complete = (outcome: ViewportOutcome) => { result = outcome; return outcome; };
     try {
-      // DATE_REVEAL is handled through the public Core port, not a hidden native row.
+      if (command.kind === "DATE_REVEAL") return complete("UNSUPPORTED");
       phase("WAIT_PROJECTION");
       let ready = false;
       for (let count = 0; count < maxFrames && current(); count++) {
@@ -187,7 +204,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       // canonical data. Finish that preparation before pinning its receipt.
       if (port.prepare) {
         phase("PREPARING_GEOMETRY");
-        const prepared = await port.prepare(coordinateCommand(), current);
+        const prepared = await port.prepare(preparationCommand(), current, source);
         if (!current()) return complete("SUPERSEDED");
         if (!prepared.ready) return complete("NO_SCROLL_CAPACITY");
         preparationFloor = prepared.projectionAfter ?? -1;
@@ -204,6 +221,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
       }
       phase("WAIT_GEOMETRY");
       let stable = 0, previous = "";
+      let filterCapacityReprepared = false;
       for (let count = 0; count < maxFrames && current(); count++) {
         const sample = port.read();
         if (!sample.measurable) {
@@ -218,14 +236,33 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
         const verticalCoherent = !preserveVertical || Math.abs(sample.core.top - sample.native.top) <= 1;
         const signature = JSON.stringify([sample.geometry, sample.context.projectionEpoch, preserveVertical ? sample.core.top : null]);
         stable = verticalCoherent && validViewportReceipt(sample) && sample.context.projectionEpoch > preparationFloor && signature === previous ? stable + 1 : 0; previous = signature;
-        if (stable >= 3) { acceptedProjection = sample.context.projectionEpoch; break; }
+        if (stable >= 3) {
+          // A later Core filter-tasks commit may contract the physical axis
+          // AFTER an earlier prepare admitted the bookmark. Do not pin the
+          // projection or execute scroll-chart against the now smaller axis.
+          // One bounded re-preparation belongs to this same lease; a new
+          // gesture/context invalidates it. No second viewport writer.
+          if (command.kind === "FILTER_RETURN" && port.admitPosition?.({ left: command.position.left, top: port.read().core.top }) === false) {
+            if (filterCapacityReprepared || !port.prepare) return complete("NO_SCROLL_CAPACITY");
+            filterCapacityReprepared = true;
+            phase("PREPARING_GEOMETRY");
+            const prepared = await port.prepare(preparationCommand(), current, source);
+            if (!current()) return complete("SUPERSEDED");
+            if (!prepared.ready) return complete("NO_SCROLL_CAPACITY");
+            preparationFloor = prepared.projectionAfter ?? -1;
+            stable = 0; previous = "";
+            phase("WAIT_GEOMETRY");
+            continue;
+          }
+          acceptedProjection = sample.context.projectionEpoch; break;
+        }
         if (!(await port.frame(controller.signal))) stable = 0;
       }
       if (!current()) return complete("SUPERSEDED");
       if (stable < 3) return complete(port.read().measurable ? "TIMED_OUT" : "NOT_MEASURABLE");
       if (!validViewportReceipt(port.read())) return complete("SUPERSEDED");
       phase("APPLYING");
-      const target = await port.apply(coordinateCommand(), current);
+      const target = await port.apply(coordinateCommand(), current, source);
       if (!current()) return complete("SUPERSEDED");
       if (!target) return complete("NO_SCROLL_CAPACITY");
       phase("SETTLING");
@@ -252,7 +289,7 @@ export function createViewportCoordinator(port: ViewportPort, maxFrames = 120) {
             if (command.protect !== false) {
               const authorityCurrent = () => {
                 const sample = port.read();
-                return !disposed && source.contextEpoch === contextEpoch && source.gesture === gesture &&
+                return !disposed && sourceCurrent() && source.contextEpoch === contextEpoch && source.gesture === gesture &&
                   identity(sample.context) === source.context && sample.context.visible && sample.measurable &&
                   sample.context.revision === initial.context.revision && sample.context.projectionEpoch === acceptedProjection && validViewportReceipt(sample);
               };

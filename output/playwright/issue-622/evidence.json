@@ -1,0 +1,584 @@
+{
+  "measurements": [
+    {
+      "width": 390,
+      "document": 390,
+      "client": 364,
+      "scroll": 508,
+      "focused": true
+    },
+    {
+      "width": 768,
+      "document": 768,
+      "client": 718,
+      "scroll": 718,
+      "focused": true
+    },
+    {
+      "width": 1024,
+      "document": 1024,
+      "client": 974,
+      "scroll": 974,
+      "focused": true
+    },
+    {
+      "width": 1440,
+      "document": 1440,
+      "client": 1390,
+      "scroll": 1390,
+      "focused": true
+    },
+    {
+      "width": 1920,
+      "document": 1920,
+      "client": 1870,
+      "scroll": 1870,
+      "focused": true
+    },
+    {
+      "width": 390,
+      "document": 390,
+      "client": 348,
+      "scroll": 1012,
+      "focused": true,
+      "headers": [
+        {
+          "left": 27,
+          "right": 367,
+          "width": 340
+        },
+        {
+          "left": 367,
+          "right": 587,
+          "width": 220
+        },
+        {
+          "left": 587,
+          "right": 807,
+          "width": 220
+        },
+        {
+          "left": 807,
+          "right": 1027,
+          "width": 220
+        }
+      ],
+      "cells": [
+        {
+          "left": 27,
+          "right": 367,
+          "width": 340
+        },
+        {
+          "left": 367,
+          "right": 587,
+          "width": 220
+        },
+        {
+          "left": 587,
+          "right": 807,
+          "width": 220
+        },
+        {
+          "left": 807,
+          "right": 1027,
+          "width": 220
+        }
+      ],
+      "buttons": [
+        {
+          "left": 35,
+          "right": 98,
+          "width": 63,
+          "parent": {
+            "left": 27,
+            "right": 367,
+            "width": 340
+          }
+        },
+        {
+          "left": 98,
+          "right": 165,
+          "width": 67,
+          "parent": {
+            "left": 27,
+            "right": 367,
+            "width": 340
+          }
+        },
+        {
+          "left": 35,
+          "right": 266,
+          "width": 231,
+          "parent": {
+            "left": 27,
+            "right": 367,
+            "width": 340
+          }
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "document": 768,
+      "client": 702,
+      "scroll": 1012,
+      "focused": true,
+      "headers": [
+        {
+          "left": -1,
+          "right": 339,
+          "width": 340
+        },
+        {
+          "left": 339,
+          "right": 559,
+          "width": 220
+        },
+        {
+          "left": 559,
+          "right": 779,
+          "width": 220
+        },
+        {
+          "left": 779,
+          "right": 999,
+          "width": 220
+        }
+      ],
+      "cells": [
+        {
+          "left": -1,
+          "right": 339,
+          "width": 340
+        },
+        {
+          "left": 339,
+          "right": 559,
+          "width": 220
+        },
+        {
+          "left": 559,
+          "right": 779,
+          "width": 220
+        },
+        {
+          "left": 779,
+          "right": 999,
+          "width": 220
+        }
+      ],
+      "buttons": [
+        {
+          "left": 7,
+          "right": 70,
+          "width": 63,
+          "parent": {
+            "left": -1,
+            "right": 339,
+            "width": 340
+          }
+        },
+        {
+          "left": 70,
+          "right": 137,
+          "width": 67,
+          "parent": {
+            "left": -1,
+            "right": 339,
+            "width": 340
+          }
+        },
+        {
+          "left": 7,
+          "right": 238,
+          "width": 231,
+          "parent": {
+            "left": -1,
+            "right": 339,
+            "width": 340
+          }
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "document": 1024,
+      "client": 958,
+      "scroll": 1012,
+      "focused": true,
+      "headers": [
+        {
+          "left": -15,
+          "right": 325,
+          "width": 340
+        },
+        {
+          "left": 325,
+          "right": 545,
+          "width": 220
+        },
+        {
+          "left": 545,
+          "right": 765,
+          "width": 220
+        },
+        {
+          "left": 765,
+          "right": 985,
+          "width": 220
+        }
+      ],
+      "cells": [
+        {
+          "left": -15,
+          "right": 325,
+          "width": 340
+        },
+        {
+          "left": 325,
+          "right": 545,
+          "width": 220
+        },
+        {
+          "left": 545,
+          "right": 765,
+          "width": 220
+        },
+        {
+          "left": 765,
+          "right": 985,
+          "width": 220
+        }
+      ],
+      "buttons": [
+        {
+          "left": -7,
+          "right": 56,
+          "width": 63,
+          "parent": {
+            "left": -15,
+            "right": 325,
+            "width": 340
+          }
+        },
+        {
+          "left": 56,
+          "right": 123,
+          "width": 67,
+          "parent": {
+            "left": -15,
+            "right": 325,
+            "width": 340
+          }
+        },
+        {
+          "left": -7,
+          "right": 224,
+          "width": 231,
+          "parent": {
+            "left": -15,
+            "right": 325,
+            "width": 340
+          }
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "document": 1440,
+      "client": 1374,
+      "scroll": 1374,
+      "focused": true,
+      "headers": [
+        {
+          "left": 39,
+          "right": 502.078125,
+          "width": 463.078125
+        },
+        {
+          "left": 502.078125,
+          "right": 801.703125,
+          "width": 299.625
+        },
+        {
+          "left": 801.703125,
+          "right": 1101.328125,
+          "width": 299.625
+        },
+        {
+          "left": 1101.328125,
+          "right": 1401,
+          "width": 299.671875
+        }
+      ],
+      "cells": [
+        {
+          "left": 39,
+          "right": 502.078125,
+          "width": 463.078125
+        },
+        {
+          "left": 502.078125,
+          "right": 801.703125,
+          "width": 299.625
+        },
+        {
+          "left": 801.703125,
+          "right": 1101.328125,
+          "width": 299.625
+        },
+        {
+          "left": 1101.328125,
+          "right": 1401,
+          "width": 299.671875
+        }
+      ],
+      "buttons": [
+        {
+          "left": 47,
+          "right": 110,
+          "width": 63,
+          "parent": {
+            "left": 39,
+            "right": 502.078125,
+            "width": 463.078125
+          }
+        },
+        {
+          "left": 110,
+          "right": 177,
+          "width": 67,
+          "parent": {
+            "left": 39,
+            "right": 502.078125,
+            "width": 463.078125
+          }
+        },
+        {
+          "left": 177,
+          "right": 408,
+          "width": 231,
+          "parent": {
+            "left": 39,
+            "right": 502.078125,
+            "width": 463.078125
+          }
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "document": 1920,
+      "client": 1854,
+      "scroll": 1854,
+      "focused": true,
+      "headers": [
+        {
+          "left": 39,
+          "right": 665.265625,
+          "width": 626.265625
+        },
+        {
+          "left": 665.265625,
+          "right": 1070.5,
+          "width": 405.234375
+        },
+        {
+          "left": 1070.5,
+          "right": 1475.734375,
+          "width": 405.234375
+        },
+        {
+          "left": 1475.734375,
+          "right": 1881,
+          "width": 405.265625
+        }
+      ],
+      "cells": [
+        {
+          "left": 39,
+          "right": 665.265625,
+          "width": 626.265625
+        },
+        {
+          "left": 665.265625,
+          "right": 1070.5,
+          "width": 405.234375
+        },
+        {
+          "left": 1070.5,
+          "right": 1475.734375,
+          "width": 405.234375
+        },
+        {
+          "left": 1475.734375,
+          "right": 1881,
+          "width": 405.265625
+        }
+      ],
+      "buttons": [
+        {
+          "left": 47,
+          "right": 110,
+          "width": 63,
+          "parent": {
+            "left": 39,
+            "right": 665.265625,
+            "width": 626.265625
+          }
+        },
+        {
+          "left": 110,
+          "right": 177,
+          "width": 67,
+          "parent": {
+            "left": 39,
+            "right": 665.265625,
+            "width": 626.265625
+          }
+        },
+        {
+          "left": 177,
+          "right": 408,
+          "width": 231,
+          "parent": {
+            "left": 39,
+            "right": 665.265625,
+            "width": 626.265625
+          }
+        }
+      ]
+    }
+  ],
+  "exportRequests": [
+    {
+      "includeDependencies": true,
+      "includeLogistics": true,
+      "includeResourceEffort": false,
+      "scope": "project",
+      "scale": "day",
+      "hierarchyDisplay": "expanded",
+      "layout": {
+        "columns": [
+          {
+            "id": "text",
+            "widthPx": 224
+          },
+          {
+            "id": "projectStart",
+            "widthPx": 128
+          },
+          {
+            "id": "projectDuration",
+            "widthPx": 84
+          }
+        ]
+      },
+      "resourceDashboard": {
+        "granularities": [
+          "week",
+          "month"
+        ],
+        "basis": "current",
+        "expectedReport": {
+          "context": {
+            "projectPublicId": "69589e78-d6c5-4acf-b65b-f920b6fce941",
+            "projectRevision": 19,
+            "catalogRevision": 7,
+            "calendarRevision": "2219fa5c87428ec628addbe0d0712781d36aa3bcf014bcee4a6d80654da0ed84",
+            "dataSnapshotId": "58cb2b8f4c259fcce809e990aafdbb7ce84cf393dddbc6382a0f8e8b90e40d4d",
+            "range": {
+              "from": "2026-10-14",
+              "to": "2026-10-14"
+            },
+            "asOfDate": "2026-10-14",
+            "mdPerMm": null,
+            "mdPerMmSource": "unset",
+            "mdPerMmProvided": false,
+            "sourceProjection": {
+              "kind": "report"
+            }
+          },
+          "snapshotId": "5c4290126dcb4d362db609159e38a27878cfd23e94346a7bc1877b783163432f",
+          "filters": {
+            "targetIds": [
+              "a86c73ef-0970-42e0-a47e-bade167991bb"
+            ],
+            "projectionOrder": [
+              "resource",
+              "target"
+            ],
+            "search": "",
+            "taskSearch": "",
+            "mode": "group",
+            "resourceActivity": "all",
+            "groupActivity": "all",
+            "resourceIds": [],
+            "groupIds": [],
+            "milestoneIds": [],
+            "taskIds": [],
+            "wbsRootIds": [],
+            "roles": [],
+            "developerGrades": [],
+            "statuses": [],
+            "granularity": "week",
+            "from": "2026-10-14",
+            "to": "2026-10-14"
+          }
+        }
+      }
+    },
+    {
+      "includeDependencies": true,
+      "includeLogistics": true,
+      "includeResourceEffort": false,
+      "scope": "project",
+      "scale": "day",
+      "hierarchyDisplay": "expanded",
+      "layout": {
+        "columns": [
+          {
+            "id": "text",
+            "widthPx": 224
+          },
+          {
+            "id": "projectStart",
+            "widthPx": 128
+          },
+          {
+            "id": "projectDuration",
+            "widthPx": 84
+          }
+        ]
+      },
+      "resourceDashboard": {
+        "granularities": [
+          "week",
+          "month"
+        ],
+        "basis": "project",
+        "expectedReport": {
+          "context": {
+            "projectPublicId": "69589e78-d6c5-4acf-b65b-f920b6fce941",
+            "projectRevision": 19,
+            "catalogRevision": 7,
+            "calendarRevision": "2219fa5c87428ec628addbe0d0712781d36aa3bcf014bcee4a6d80654da0ed84",
+            "dataSnapshotId": "58cb2b8f4c259fcce809e990aafdbb7ce84cf393dddbc6382a0f8e8b90e40d4d",
+            "range": {
+              "from": "2026-10-14",
+              "to": "2026-10-14"
+            },
+            "asOfDate": "2026-10-14",
+            "mdPerMm": null,
+            "mdPerMmSource": "unset",
+            "mdPerMmProvided": false,
+            "sourceProjection": {
+              "kind": "report"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

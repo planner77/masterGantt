@@ -1,5 +1,44 @@
 # Backend API
 
+## Issue #623 — 기존 API의 통합 수용 범위
+
+새 route/DTO·권한·오류/예산 계약을 추가하지 않는다. 공정 표준/사업장 occurrence/WorkArea→Target/member→Task binding→Resource report/detail/Plan→exact Assignment 편집→Resource Excel을 기존 API로 연결해 같은 raw identity/snapshot과 원자성을 검증한다. name/date/status/progress/allocation/membership mutation은 각각 정확 method/path/body·revision1회·복제0으로 관측한다.
+
+master/Target/binding/Calendar/Resource 변경 후 구 report/detail/source·current/project export는 mixed snapshot 성공을 반환하지 않는다. 기존 snapshot stale409/Excel412,session/Origin/strong If-Match,readonly 및 body/response/fan-out/workbook 한도를 유지한다. Copy/Template의 다른 사업장 자동 retarget을 새 API로 추정하지 않는다. [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)의 실제 테스트/미검증을 따른다.
+
+## Issue #622 — Target Resource Plan 상세 및 Excel
+
+`granularity=week|month` Plan 조회 시 optional `catalog.targetOptions` (Target/공정/WorkArea/설비·시스템 유형/인스턴스의 기존 canonical 목록)를 반환해 필터 UI를 지원한다. Plan은 `projectionOrder`를 암묵적으로 전송하지 않으며 이를 명시하지 않은 Plan 요청에서는 Target 필터가 있어도 `targetProjection` 전체 계층을 생성하지 않는다. 기존 Target 보기의 명시적 계층 투영과 granularity 없는 Target-only 보고서는 기존 예산·응답을 유지한다. 대량 Plan은 새 projectionCells5000 실패를 피하되 일반 KPI/Plan/2MiB/snapshot 상한 및 명시 Target 계층 요청의 422는 완화하지 않는다.
+
+기존 report/Plan·daily/day-resources/day-assignments와 exact drill 경로를 재사용한다. Target 조건은 selected A를 제한하고 R·같은 R/기간의 Project 배정을 보존한다. `ResourceDashboardPlanDto.targetContext`는 optional `{filters,measure:"related planned effort",subtotalsAdditive:false,projectReferenceScope:"same Capacity R and period; Target/Task/Milestone/source restrictions removed"}`다. Target 조건 없는 Plan은 기존 수치/구조를 유지한다.
+
+Plan 상세는 같은 snapshot의 optional `resourceScopeContext`, `resourceDataContext`와 Target 요청의 `targetContext`를 제공한다. day-assignments row는 `resourceActive` 및 Target 요청의 canonical `targetSources: TaskTargetBindingsDto`를 보강한다. selected와 project 상세 모두 원래 filters/snapshot을 echo하되 `demandScope`로 실제 기여 집합을 구별하며 project는 선택 Target 밖 Assignment도 포함한다. 원본 source context와 현재 참고 범위를 혼용하지 않는다. 새 필드는 기존 공통 Editor·drill transport의 현재 revision/정확 Assignment 결속에 사용하며 authorization token이 아니다.
+
+기존 `resourceDashboard` Excel strict union의 current `expectedReport.filters`에 공통 Target 필터·`projectionOrder`를 bound/unbound 모두 허용한다. malformed/unknown 조건은400이며 조건을 버리지 않는다. current는 정확 source 제한/Target 조건/snapshot을 보존하고 project는 실제 기간/asOf/M/M 정책을 유지하면서 개인/Task/Milestone/Target/공정/WorkArea/member/type/instance 및 exact 조건을 제거한다. Target-bearing Project의 Resource 보고서 opt-in만 Target 근거를 append해 허용하며 plain 일정/JSON의 `TASK_TARGET_EXPORT_UNSUPPORTED` 손실 방지는 유지한다.
+
+Task/Assignment/Calendar/Target/master fingerprint를 같은 SQLite transaction에서 검증한다. Plan/details `409 REPORT_STALE`, export의 `412 REVISION_MISMATCH`, 잘못된 선택400·계산/JSON/workbook 예산422·export 본문8KiB/413 등 기존 오류와 한도를 유지한다. 필수 sheet/raw/null/안전 계약은 [EXCEL_EXPORT](EXCEL_EXPORT.md), 실제 검증 상태는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+## Issue #620 — Resource–Target R2 조회 계약
+
+기존 `/api/projects/{publicId}/resource-dashboard`, `/details`, `/group-children` 및 POST `/api/projects/{publicId}/resource-dashboard/query`를 확장한다. 새 endpoint나 편집 권한을 만들지 않는다. 기존 `resource-dashboard/1`은 하위 호환 optional 필드를 추가하며 새 조건 없는 호출의 기존 결과·오류 의미를 유지한다.
+
+### Query 및 selector
+
+기존 Resource 조건에 `targetIds`, `projectProcessIds`, `processOccurrenceIds`, `processTypeIds`, `workAreaIds`, `targetScopes`, `memberEquipmentIds`, `memberSystemIds`, `equipmentTypeCodes`, `systemTypeCodes`, `directEquipmentIds`, `directSystemIds`, `projectionOrder`를 추가한다. 배열은 기존 반복 key/쉼표 형식을 사용하며 같은 축 OR·다른 축 AND다. UUID는 canonical public ID이며 type은 master code다. `targetScopes=process,project_common`, `targetIds=unassigned`는 Target 미연결, `workAreaIds=unassigned`는 무구역이다. Target 미연결과 member 조건의 동시 요청은400이다. 생략/빈 배열은 제한 없음이며 빈 token은400이다.
+
+`projectionOrder`는 `target,process,processType,workArea,scope,equipmentType,systemType,equipment,system,group,resource` 중 중복 없는 순서다. Target 분석을 요청하면 optional `targetProjection`을 반환한다. `process` node ID는 occurrence ID이며 Project-local 공정은 `projectProcessIds`로 선택한다. Target/member 축은 같은 binding에서, 같은 kind type/instance는 같은 member에서 만족해야 한다. 기존 legacy 직접 link 조건은 별도 출처의 Task 조건이며 Target 역추론을 만들지 않는다. inactive 기존 참조는 조회 보존하고 다른 Project/알 수 없는 선택을 조용히 제거하지 않는다.
+
+projection node는 `dimension/id/name/active/summary/sourceKinds/equipmentQuantity/systemCount/children`를 제공한다. `summary.selector`의 `dimension=targetProjection`, `id=null`, `targetPath=[{dimension,id},...]`를 details에 그대로 전달한다. GET의 `targetPath`는 JSON URL 인코딩, POST는 typed selector 객체다. `targetProjection` selector는 선택 Assignment만 나타내므로 `assignmentScope`는 생략 또는 `selected`만 허용하며 다른 참고 범위 조합은400이다. 전체 raw Task/Assignment ID 목록을 각 node에 반복하지 않는다. details `view=tasks`는 고유 Task와 `assignment=null`, `view=assignments`는 원시 개인 Assignment이며 optional `targetSources`는 같은 Task의 canonical binding/legacy 출처다. page 최대100 및 offset8000을 유지한다.
+
+### 동일 기준·분모·오류
+
+`targetProjection.projectReference`는 같은 기간/Calendar/asOf/M/M 기준의 full canonical Project 참고이며 source·사용자 선택을 적용한 전체와 구분한다. `metadata.subtotalsAdditive=false`, `assignmentScope=A`, `memberScope=T0`를 명시한다. `targetProjection.projectReference`의 selector는 `dimension=all`, `assignmentScope=projectReference`로 source·사용자 필터를 제거한 full canonical Project 상세를 명시 요청한다. 다른 dimension과의 조합은400이다. 기존 `drill.assignmentScope=exact-source-intersection`는 선택 A 계약이고 이 명시적 참고 상세는 `data.selector.assignmentScope=projectReference` 및 Target 참고 scope로 구분한다. Target 소계는 중첩될 수 있고 선택 전체는 원시 Assignment 합집합이다. null/partial/빈 결과·Target 미연결·legacy-only·무구역·공통·공정 미매핑을 구분한다. 개인 필터는 T0 미배정 진단을 제거하지 않는다.
+
+source `ResourceDataContext.dataSnapshotId`, report `snapshotId`와 detail/export 공통 identity는 같은 read transaction의 Task/Assignment/Calendar/Resource와 Target/member/binding·legacy link·Project 공정 매핑·공정/WorkArea/type master 이름 및 active 참조를 결속한다. Project revision만 동일해도 참조 변경은 이전 details/drill에서 `409 REPORT_STALE`다. POST drill의 `exactAssignments`는 source 원시 Assignment와 destination Target 조건의 교집합이며 같은 Task의 공동담당 Assignment로 확대하지 않는다. 반환 `sourceContext`와 `drill.targetFilters`는 원본과 현재 선택을 구분한다. 기존 `drill.projectReferenceScope=same-resource-population-and-period`는 Plan 참고 범위를 보존하며 optional `drill.targetProjectReferenceScope=full-canonical-project-same-period`는 Target 참고 범위를 추가로 명시한다. `projectionOrder`는 표시 순서이므로 snapshot identity에서 제외하고 필터·source 집합은 유지한다.
+
+malformed/unknown key·중복 scalar·잘못된 UUID/selector는 `400 INVALID_REQUEST`, unknown/cross-project 선택은 `400 INVALID_SELECTION`, snapshot 불일치는 `409 REPORT_STALE`, 원본/fan-out/cell/응답 예산 초과는 `422 REPORT_LIMIT_EXCEEDED`다. 기간366일·응답2MiB·필드200/전체400 token 상한을 유지한다. Target 원본 관계 합50000, provenance paths50000, lineage edges50000, projection cells5000, 보고·상세 페이지 출처 각각5000을 사전 제한하며 부분총계를 절삭해 성공하지 않는다. public UUID read 및 기존 read guard, `private, no-store`·nosniff, 보호 mutation의 session/Origin/strong If-Match는 유지한다. 기존 Plan의 선택 demand에는 공통 Target 필터 교집합을 적용하되 R 모집단과 같은 R의 전체 Project 부하는 유지한다. R2 당시 분리했던 Target 조건 Plan 상세·Excel 필터/근거 시트는 현재 #622 절을 따른다. 공통 fingerprint에 따른 서비스 stale409는 공개 Excel API에서 기존 `412 REVISION_MISMATCH`로 매핑한다. 실제 실행 상태는 [R2 Work Packet](exec-plans/active/ISSUE_620.md)을 따른다.
+
+
 ## Issue #538 — Project Master 관계 계약
 
 `GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.
@@ -1466,9 +1505,9 @@ POST는 exact Origin을 요구하되 편집 session은 요구하지 않는다. �
 
 본문 계약은 `src/contracts/resource-drill.ts`다. `{sourceContext,scope,filters,projection}`을 받으며 scope는 `scheduleSelection/nodeIds≤5000`, `summarySubtree/rootId`, `exactAssignments/assignmentIds≤8000`이다. raw 배열 상한은 중복 제거 전에 검사하고 정규화된 exact set은 정렬·중복 제거한다. 명시 빈 배열은 빈 집합이다. scheduleSelection은 일반 Task와 Summary의 일반 Task 자손만 허용하며 Milestone 노드는 거부한다. exactAssignments는 해당 Project 일반 Task의 개인 Assignment만 허용한다.
 
-projection은 `report`, 기존 상세 입력을 포함한 `details`/`groupChildren`, 기존 Plan 입력을 포함한 `planDaily`/`planDayResources`/`planDayAssignments`, 또는 `scope`의 target=`dashboard|plan`이다. 모든 후속 상세에도 같은 source descriptor를 POST 재전송한다. `{data,drill}` 응답의 drill은 원래 sourceContext/normalized scope/targetFilters/projection과 `assignmentScope=exact-source-intersection`, `projectReferenceScope=same-resource-population-and-period`를 echo한다. data.sourceContext가 있는 scope 응답은 실제 target range/asOfDate/M-D 정책과 현재 selector의 새 출발 context다. 기존 출발 context를 새 target 조건으로 덮어쓰지 않는다.
+projection은 `report`, 기존 상세 입력을 포함한 `details`/`groupChildren`, 기존 Plan 입력을 포함한 `planDaily`/`planDayResources`/`planDayAssignments`, 또는 `scope`의 target=`dashboard|plan`이다. 모든 후속 상세에도 같은 source descriptor를 POST 재전송한다. `{data,drill}` 응답의 drill은 원래 sourceContext/normalized scope/targetFilters/projection과 `assignmentScope=exact-source-intersection`, `projectReferenceScope`를 echo한다. 기존 Plan 참고는 `same-resource-population-and-period`이며 Target 조건 요청은 추가 `targetProjectReferenceScope=full-canonical-project-same-period`로 full canonical Project 참고를 구분한다. 보고에 Plan과 Target projection을 함께 반환해도 두 참고 범위를 혼합하지 않는다. data.sourceContext가 있는 scope 응답은 실제 target range/asOfDate/M-D 정책과 현재 selector의 새 출발 context다. 기존 출발 context를 새 target 조건으로 덮어쓰지 않는다.
 
-ResourceDataContext는 projectPublicId/projectRevision/catalogRevision/calendarRevision/dataSnapshotId다. 공용 reader는 같은 read transaction에서 정렬된 원시 Task/Link/Membership/Assignment/Project 연결 Catalog/Calendar를 fingerprint한다. ResourceDrillSourceContext는 실제 source range/asOfDate/mdPerMm/mdPerMmSource/mdPerMmProvided/sourceProjection을 추가한다. sourceProjection은 schedule/milestoneReport/report/details/groupChildren/plan 중 하나이며 Plan은 granularity/periodId/selector/demandScope/optional date를 보존한다. stale 원본 fingerprint 및 미지정 환경 환산 정책 변경은 selector의 의미 검증보다 먼저409다. 실제 parent period 밖 source 또는 target date는400이다. report snapshot identity는 원본 data fingerprint+normalized exact scope+필터/기간/asOf/M-D 정책을 포함하며 mode/page/granularity를 제외한다.
+ResourceDataContext는 projectPublicId/projectRevision/catalogRevision/calendarRevision/dataSnapshotId다. 공용 reader는 같은 read transaction에서 정렬된 원시 Task/Link/Membership/Assignment/Project 연결 Catalog/Calendar와 R2 Target/binding/member·공정 매핑·관련 master 이름/active 참조를 fingerprint한다. ResourceDrillSourceContext는 실제 source range/asOfDate/mdPerMm/mdPerMmSource/mdPerMmProvided/sourceProjection을 추가한다. sourceProjection은 schedule/milestoneReport/report/details/groupChildren/plan 중 하나이며 Plan은 granularity/periodId/selector/demandScope/optional date를 보존한다. stale 원본 fingerprint 및 미지정 환경 환산 정책 변경은 selector의 의미 검증보다 먼저409다. 실제 parent period 밖 source 또는 target date는400이다. report snapshot identity는 원본 data fingerprint+normalized exact scope+필터/기간/asOf/M-D 정책을 포함하며 mode/page/granularity/projectionOrder를 제외한다.
 
 새 Resource report는 additive resourceScopeContext를 항상 제공한다. 기존 상세/Group/Plan은 additive resourceDataContext를 제공한다. Legacy Milestone report는 같은 read transaction의 additive resourceScopeContext와 resourceScopeUnavailableReason을 제공한다. 추가 원본 context 한도만 초과하면 기존 Milestone 조회를 보존하며 context=null/reason=`limit-exceeded`를 반환한다. 이때 정확한 cross drill은 비활성화하며 새 bootstrap으로 과거 report를 fresh로 대체할 수 없다. Schedule 출발에는 환산 계산이 없으므로 sourceProjection=schedule/mdPerMm=null/source=query/provided=true를 명시하고 실제 target 환산 정책은 별도로 유지한다.
 
@@ -1530,12 +1569,56 @@ resourceDashboard: {
 
 401 관리자/편집 session 필요, 403 Origin, 400 허용하지 않은 입력·WorkArea 소유 불일치, 409 활성/사용 중/분류·중복 충돌, 412 stale catalog/Project revision을 구분한다. 기존 metadata는 사용 매핑의 triple 변경에 `409 PROJECT_PROCESS_MAPPING_IN_USE`, mapped Template 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`, mapped 공정 hard delete는 `409 PROCESS_IN_USE`다. 제약 원문을 공개하지 않는다. 후속 UI·Target/member/binding route는 이번 변경에 없다.
 
-## Issue #616 — Logistics Target API (candidate)
+## Issue #616 — Logistics Target API (implemented F2; acceptance follow-up #672)
 
 Project-local `/api/projects/{publicId}/logistics/targets` supports GET (limit 1–100, offset 0–10000, search ≤100) and POST; `.../targets/{targetId}` supports GET/PATCH/DELETE and `.../usage` GET. GET returns a bounded list with projectRevision/total and typed members (public member ID, instance ID, original equipment quantity / System 1); usage includes shared Target count and direct Task links, not a fabricated WBS Target binding. Mutations require exact Origin, Project edit session, strong If-Match and rollback-on-error; successful mutations advance Project revision once, no-op update advances zero. Error status: malformed400, missing/unowned reference404 or409, no session401, Origin403, conflict409, stale412. Existing instances and controls/coordinates are never auto-modified by member association. Inline creation creates Project-local Equipment/System in the same transaction, requires active existing type catalog, and duplicate label requires explicit confirmation. Global catalog creation is *not* part of the Project transaction. Target write body schema is `src/contracts/logistics-targets.ts`. Legacy logistics DTO and direct Task links unchanged.
 
-This is a PR candidate; its CI/runtime PASS is **NOT TESTED** pending remote gate.
+Issue #618 Target 구성 목록은 선택 query `activeOnly=true`로 활성 Target만 조회한다. SQL의 `total` 집계와 `targets` 정렬/`LIMIT`/`OFFSET`에 같은 활성 조건을 적용하므로 50개 비활성 행이 뒤의 활성 행을 가리지 않는다. 생략 시 기존 API 계약대로 활성/비활성을 모두 포함해 shared-member 전체 집계가 가능하다. `activeOnly=false` 등 `true` 이외 값, 중복 key는 HTTP 400; 필터 전환 시 클라이언트 offset은 0으로 초기화한다. 조회 옵션은 Project revision/권한/영속 데이터에 영향을 주지 않는다.
+
+Source was merged in #616 PR #631, and the corrected v0.108.0 main/release Quality+E2E6+Docker succeeded (Main #2710.1, Release #167.1). The focused #672 Target HTTP/transaction tests are NOT TESTED until its exact PR Head CI. Before F3 #617, the F2 usage field `referencedByTaskCount` was a compatibility placeholder fixed to `0`: **do not treat zero as an authoritative zero Task count or as a KPI**; only per-member `directTaskCount` reports existing legacy direct instance links. Product API / DB contract remains unchanged in #672.
 
 ## #616 Project Template graph v2
 
 `POST /api/project-templates`는 유효 edit session/strong revision 확인 후 `ProjectTemplateSnapshot.logistics.schemaVersion=2`, `processMappings[]`(processCode, occurrenceId, workAreaId|null), `targets[]`(code/name/scope/processCode/occurrenceId/workAreaId/active/description 및 typed member kind+instanceCode)를 원본 transaction에 저장한다. `POST /api/project-templates/{templateId}/instantiate`는 모든 Project-local identity를 새로 생성하고 global occurrence/WorkArea 및 Project BU/Product/Site를 서버 재검증하며 공유 MCS 인스턴스를 단 한 번 복원한다. 성공 응답 counts.targets/processMappings와 목록의 targetCount/processMappingCount를 제공한다. 버전/참조가 틀리면 409 `TEMPLATE_LOGISTICS_REFERENCE_INVALID` 또는 `TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED`, 프로젝트 전체 rollback. Legacy snapshot은 유지. JSON schema1.1 Target 보호 409는 지속.
+
+## Issue #617 — Task Target binding API (F3 구현 후보)
+
+모든 ID는 public UUID다. 아래 경로는 query parameter를 받지 않으며 응답은 `Cache-Control: private, no-store`, `ETag: "<Project revision>"`를 제공한다. 기존 direct-link read/edit 정책과 legacy `/logistics-links` API는 유지한다.
+
+| 경로 | 계약 |
+| --- | --- |
+| `GET /api/projects/{publicId}/tasks/{taskId}/target-bindings` | public readonly 또는 유효 Project edit cookie. `{data:{projectRevision,taskId,bindings,effective,permission}}` |
+| `PUT /api/projects/{publicId}/tasks/{taskId}/target-bindings` | exact Origin + 유효 Project edit session + strong `If-Match`. Task의 명시 binding 전체 교체. `{data:{projectRevision,taskId,bindings,effective}}` |
+| `POST /api/projects/{publicId}/logistics/targets/{targetId}/impact` | PATCH와 같은 body를 검증하는 읽기 전용 영향 preview. exact Origin/edit session/strong If-Match 필수, revision 증가0 |
+
+PUT body는 `{bindings:[{id?,targetId,scope,selection,memberIds,coverageByMember?}]}`다. `scope` 생략은 self, subtree는 Summary만 허용한다. `(project,task,target)` 중복은 거부한다. whole의 memberIds는 필수 `[]`이며 coverageByMember는 생략 또는 `[]`만 허용한다. subset은 같은 Target의 member UUID 1개 이상이며 다른 Target/Project member·중복·빈 subset을 거부한다. `coverageByMember=[{memberId,coverage}]`는 선택된 Equipment에 null 또는 quantity 이하 양의 정수, System에 null만 허용한다. 기존 Target 연결의 binding UUID는 보존하며 새 연결만 새 UUID를 발급한다. Milestone에 비어 있지 않은 새 Target authoring은 거부하고 기존 직접 물류 API는 유지한다.
+
+`effective`는 직접 bindings, inheritedBindings, effectiveMembers의 전체 Target provenance, legacySources, effectiveEquipmentIds/effectiveSystemIds/effectiveTargetIds를 제공한다. 직접+모든 조상 Summary subtree의 합집합이며 하위 명시는 조상을 override하지 않는다. 동일 kind+instance는 1개로 표현하되 binding/sourceTask/Target/member/상속/coverage 출처는 모두 남긴다. shared legacy MCS만으로 Target을 추론하지 않는다. provenance의 `coverageMode=whole|partial|unspecified`는 전체 구성 또는 원본 quantity와 동일한 명시 coverage/부분 수량/미지정 상태를 구분하고, effective member의 `coverageState=single|multiple|unspecified`는 여러 출처 값의 충돌을 보존한다. 상충 수량을 합산/max로 바꾸지 않는다. 조회는 mutation을 만들지 않으며 PUT은 한 IMMEDIATE transaction에서 검증·저장·revision+1을 수행한다.
+
+Target 영향 preview의 `data`는 projectRevision/targetId/impactToken/wholeBindingIds/subsetBindingIds/affectedTaskIds/removedMemberIds/addedEntityIds/blockedSubsetMemberIds/membershipChanged다. whole을 참조하는 binding이 있는 Target의 실제 member 추가/제거 PATCH는 `impactToken`(64자리 소문자 SHA-256)과 `confirmImpact=true`를 요구한다. token은 정규화한 patch와 Project revision, 공정/물류 유형 catalog revision, 현재 Target/member/binding/Task snapshot에 결속된다. 다른 변경이나 snapshot에서 재사용할 수 없고 session/If-Match를 대체하지 않는다. subset 참조 member 제거는 `409 TARGET_SUBSET_MEMBER_IN_USE`, 사용 중 Target 삭제는 `409 TARGET_IN_USE`, 미확인 whole 변경은 `409 TARGET_IMPACT_CONFIRMATION_REQUIRED`, 잘못된 token은 `412 TARGET_IMPACT_STALE`다. coverage 초과 및 원본 quantity 축소 충돌은 `TARGET_COVERAGE_EXCEEDS_QUANTITY`로 원자적으로 차단한다.
+
+공통 오류는 잘못된 입력400, 유효 edit session 없음401, Origin403, Project/Task 없음404, 사용/활성 상태 충돌409, strong If-Match 누락428 또는 잘못된 형식400, stale revision412, 요청 byte 초과413이다. body는 UTF-8 application/json 32KiB 상한이며 비지원 media type/encoding은415다. binding/member/coverage 배열은 각각100건 이하이며 unknown-field/중복 검증을 적용한다. partial success/skip은 없다.
+
+F3 usage의 `referencedByTaskCount: number | null`은 **고유 일반 Task만** 센다. null=미지원/미산출, 0=실제 계산한0건, N=직접 또는 subtree 상속으로 연결된 N건이며 Summary는 `referencedBySummaryCount: number | null`로 별도 제공한다. Milestone은 일반 Task 수에 포함하지 않는다. member `directTaskCount`는 legacy 직접 instance 링크, `targetCount`는 instance의 공유 Target 수로 서로 다른 grain이다. F2의 과거 고정0 placeholder를 실제0으로 재해석하지 않는다. 응답의 nullable 전환은 소비자가 null을 미산출 상태로 표시해야 하는 API 이행이며 신규 binding UI는 #618에서 연결한다.
+
+F3의 런타임·원격 검증 상태는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다. 이전 #616/#672의 미구현 표기는 해당 단계의 이력이며 F3의 CI 성공 근거로 사용할 수 없다.
+
+기존 hierarchy 명령의 `indent`/`outdent`/`reparent`는 새 조상에 의해 Target 출처가 바뀌면 `409 TASK_TARGET_IMPACT_REVIEW_REQUIRED`로 모든 변경 Task의 before/after와 `targetImpactDigest`를 반환하고 전체 시도와 revision을 rollback한다. 명령·Project revision·before/after 전체 snapshot에 묶인 64자리 digest와 같은 strong If-Match로 재요청해야 적용된다. 영향이 없어졌는데 이전 digest를 보내면 `409 TASK_TARGET_IMPACT_STALE`다. binding을 가진 Task→Milestone 전환은 `409 TARGET_BINDING_TYPE_CONFLICT`로 거부한다.
+
+Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON 및 Resource 보고서 opt-in 없는 일정 Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다. Resource opt-in 보고서는 #622의 별도 근거/비왕복 계약을 따른다.
+
+
+## Issue #618 — Target 상세의 canonical 관련 작업
+
+기존 GET `.../logistics/targets/{targetId}/usage`의 `data`에 `projectRevision`과 `relatedTasks:[{taskId,type}]`를 additive로 제공한다. ID와 일반 Task/Summary counts/member usage는 동일한 SQLite read snapshot에서 계산한다. `relatedTasks`는 직접 binding과 subtree 상속을 반영한 고유 canonical Task UUID이며 legacy 인스턴스만 연결한 Task를 Target으로 역추론하지 않는다. Task별 GET fan-out 없이 기존 canonical Project tasks의 이름·WBS 경로와 연결해 공통 Editor를 연다. 소비 UI는 revision이 다른 usage/tasks 조합을 최신으로 표시하지 않고 재조회 안내한다. 조회로 Task/binding/revision을 변경하지 않는다.
+
+F4는 기존 Target POST/PATCH/DELETE, read-only impact POST, Task target-bindings GET/PUT를 사용한다. Project session/Origin/strong If-Match 및 whole impact token/subset 삭제 차단은 그대로 유지한다. Target 구성 저장과 Task 기본 정보 저장은 각각 명시 명령이며 Task 생성/복제는 수행하지 않는다.
+## Issue #621 — 기존 Task Assignment PUT의 정확 배정 편집
+
+`PUT /api/projects/:publicId/tasks/:taskId/assignments`는 기존 generic 전체 교체와 별개로 optional `editAssignmentId`를 받는다. 지정 시 `targets`는 해당 Assignment의 resource 한 건이며 allocation의 기간·투입률을 명시한다(생략 시 해당 배정의 날짜/투입률을 null로 해제). 서버는 일반 Task의 현재 Assignment ID 및 resource ID 일치를 확인하고 해당 DB row만 갱신한다. 선택 Assignment public ID와 모든 공동담당자/Group 배정의 ID·값·기간·미설정 allocation·timestamps는 보존한다. 다른 ID를 Target/Group 헤더의 편집 대상으로 사용하거나 다른 Task/Project의 배정을 바꿀 수 없다.
+
+기존 Project edit session/Origin/strong `If-Match` 및 `catalogRevision`, Task 기간 안의 배정 날짜·투입률 범위 검증을 적용한다. 현재 revision에서 실제 변경이 없으면 `operation.changed=false`와 같은 Project revision을 반환한다. 오류·revision mismatch는 전체 원자적 실패이며 성공 시 Project revision을 한 번 증가시킨다. 기존 `taskAssignments` 응답·오류 envelope/no-store를 재사용하고 새 route·별도 인증을 만들지 않는다. `editAssignmentId`를 생략한 generic 요청의 전체 교체·allocation 생략=null 의미는 그대로다.
+
+exact 모드의 잘못된 Assignment/Task/resource 조합·Group·일반 Task가 아닌 대상·혼합/추가 payload 필드·날짜/투입률 입력 오류는400이다. 편집 대상이 비활성이면 기존409, Project revision 불일치는412 `REVISION_MISMATCH`, catalog revision 불일치는412 `CATALOG_REVISION_MISMATCH`다. 잘못된 Project read/mutation 권한·Origin·If-Match 오류는 기존 route 정책을 따른다.
+
+사용자 경로는 Resource–Target 상세의 정확한 개인 배정 편집이다. 조회 selector/path는 저장 대상 ID가 아니며 변경 후 report는 새 canonical revision으로 재조회하거나 stale로 잠근다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 server/HTTP/Chromium 검증과 미검증을 기록한다.

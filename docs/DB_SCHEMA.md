@@ -1,5 +1,11 @@
 # Database Schema
 
+## Issue #623 — legacy 이관·복원 통합 수용
+
+신규 schema/migration을 추가하지 않는다. 실제0024 schema 형태의 합성 파일 DB에서0025_process_catalog→0026_logistics_targets→0027_task_target_bindings를 적용하여 ledger 순서/SQL checksum·FK·원본 ID/미매핑 자유공정·비활성 참조·재기동을 확인한다. 전체 pending batch의 늦은 실패는 schema/rows/ledger rollback,checksum/order drift·구 migration과 새 ledger 조합은 fail-closed여야 한다.
+
+합성 SQLite backup→새 파일 restore→integrity/FK→재기동과 구 backup+대응 구 migration 복구는 전용 테스트 범위다. 운영 DB/off-host volume 복원과 자동 down migration 지원을 뜻하지 않는다. binding 포함 Templatev3·local ID remap/sharedMCS/globalreuse·wrong site 참조 거부를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)와 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에 연결한다.
+
 ## Issue #538 — 사업부/제품/사업장 연결 (migration 0024)
 
 `db/migrations/0024_project_master_relations.sql`은 `business_unit_products(business_unit_id,product_id)` 및 `business_unit_product_sites(business_unit_id,product_id,site_entity_id)` STRICT 복합 PK/FK 연결 테이블을 생성한다. site 연결은 유효한 business_unit_products 연결에만 귀속된다. INSERT category trigger는 BUSINESS_UNIT/PRODUCT/SITE_ENTITY 타입을 강제하며 FK는 삭제와 고아 관계를 보호한다.
@@ -700,14 +706,29 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 
 Project mapping insert/update와 Project triple 변경 trigger가 정확한 Project 선택 일치를 방어한다. 프로젝트 삭제는 local 매핑을 CASCADE하되 공통 master는 유지한다. occurrence/standard/type/WorkArea 참조는 RESTRICT와 Service 사용량 검사로 보호한다. 조회용 occurrence type/standard, mapping occurrence/WorkArea index와 triple/owner unique index를 둔다.
 
-Service가 `IMMEDIATE` transaction에서 admin/edit session·expected revision·활성 상태·유효 triple·사용량을 다시 검사한다. 표준은 product ID만으로 공유하고 occurrence는 BU/product/site별로 독립이다. WorkArea는 0..N이며 NULL은 구역 미선택, 매핑 행 부재는 legacy/unmapped다. 표준 변경은 Project 공정 생성·삭제·자동 재매핑을 하지 않는다. F2 Target/member/binding 테이블은 아직 없다.
+Service가 `IMMEDIATE` transaction에서 admin/edit session·expected revision·활성 상태·유효 triple·사용량을 다시 검사한다. 표준은 product ID만으로 공유하고 occurrence는 BU/product/site별로 독립이다. WorkArea는 0..N이며 NULL은 구역 미선택, 매핑 행 부재는 legacy/unmapped다. 표준 변경은 Project 공정 생성·삭제·자동 재매핑을 하지 않는다. 해당 F1 구현 당시에는 F2 테이블이 없었다. **F2에서는 migration0026으로 Target/typed member를 도입했고, F3 후보 #617에서 아래 migration0027로 WBS–Target binding을 추가한다.**
 
 기존 migration checksum을 수정하지 않는다. fresh/0024 upgrade·foreign_key_check·restart는 관련 SQLite 테스트로 검증한다. 운영 적용/backup restore는 별도 NOT TESTED. 0025 적용 DB를 구버전 앱으로 단순 downgrade하지 않으며 사전 backup+대응 구버전 앱 복원 또는 forward migration을 사용한다.
 
 ## 0026 — Logistics Target typed membership (#616)
 
-`db/migrations/0026_logistics_targets.sql` adds `logistics_targets` and `logistics_target_members`. Targets carry stable public UUID, project-local unique code, process/project_common scope, optional mapped occurrence-bound WorkArea, active/description. Typed members reference original `project_equipment` or `project_logistics_systems` through composite project FKs, with exactly-one checks and kind-specific unique indexes; member public IDs are fresh on re-add. Many Targets can reference the same original System or Equipment (including one MCS shared across Targets). Trigger guards stop equipment process changes and common System scope changes that would break Target invariants. An individual Target cannot persist empty members; deleting a Target removes membership references, not original equipment/system instances. Current same-project process mapping is mandatory for process scope. Scope mismatch, wrong WorkArea, duplicate pair and cross-project references fail rather than silently remap. Schema runs through the existing checksum migration ledger; operational replay/restart remains NOT TESTED until CI/production smoke.
+`db/migrations/0026_logistics_targets.sql` adds `logistics_targets` and `logistics_target_members`. Targets carry stable public UUID, project-local unique code, process/project_common scope, optional mapped occurrence-bound WorkArea, active/description. Typed members reference original `project_equipment` or `project_logistics_systems` through composite project FKs, with exactly-one checks and kind-specific unique indexes; member public IDs are fresh on re-add. Many Targets can reference the same original System or Equipment (including one MCS shared across Targets). Trigger guards stop equipment process changes and common System scope changes that would break Target invariants. An individual Target cannot persist empty members; deleting a Target removes membership references, not original equipment/system instances. Current same-project process mapping is mandatory for process scope. Scope mismatch, wrong WorkArea, duplicate pair and cross-project references fail rather than silently remap. Schema runs through the existing checksum migration ledger. Migration CLI의 신규 생성·재실행/26건 ledger 테스트는 Main #2710.1/Release #167.1에서 PASS; 기존 0025→0026 파일 SQLite의 실제 Target 저장·종료·재시작·FK 검증은 #672 전용 회귀를 추가했으며 새 PR CI 이전 NOT TESTED. 운영환경 backup/restore는 여전히 NOT TESTED.
 
 ## #616 Target nonempty COMMIT FK
 
-Migration 0026은 `logistics_targets.anchor_member_id` required 필드와 `(project_id,id,anchor_member_id)` → `logistics_target_members(project_id,target_id,id)` `DEFERRABLE INITIALLY DEFERRED` composite FK로 빈 구성 commit을 막는다. 기존 last-member DELETE 트리거는 제거하고 서비스가 Target 생성·복사·Template 복원·멤버 교체 후 살아 있는 member를 anchor로 설정한다. 단일 transaction 내부의 old member 삭제→공정 전환→new member 생성은 허용하지만 마지막 member만 지운 COMMIT은 FK 실패한다. migration0026은 아직 병합 전 candidate이므로 정확 파일 checksum은 이 PR 확정본을 기준으로 한다.
+Migration 0026은 `logistics_targets.anchor_member_id` required 필드와 `(project_id,id,anchor_member_id)` → `logistics_target_members(project_id,target_id,id)` `DEFERRABLE INITIALLY DEFERRED` composite FK로 빈 구성 commit을 막는다. 기존 last-member DELETE 트리거는 제거하고 서비스가 Target 생성·복사·Template 복원·멤버 교체 후 살아 있는 member를 anchor로 설정한다. 단일 transaction 내부의 old member 삭제→공정 전환→new member 생성은 허용하지만 마지막 member만 지운 COMMIT은 FK 실패한다. migration0026은 #616 원본 PR #631로 병합됐으며 v0.108.0 릴리스 코드에서 checksum ledger로 관리한다. 과거 0026 파일을 다시 작성하거나 checksum을 변경하지 않는다.
+
+## Issue #617 — migration 0027 Task Target bindings
+
+`db/migrations/0027_task_target_bindings.sql`은 0026 다음 additive migration이며 기존 checksum/Target/member/legacy 직접 링크 row를 변경하거나 backfill하지 않는다.
+
+| 테이블 | 저장·제약 |
+| --- | --- |
+| `task_target_bindings` | public UUID UNIQUE, project/task/Target FK, `UNIQUE(project_id,task_id,target_id)`, scope self/subtree, selection whole/subset. Task 삭제 CASCADE, Target 참조는 deferred NO ACTION |
+| `task_target_binding_members` | subset만 저장. `UNIQUE(binding_id,member_id)`, `(project_id,binding_id,target_id)` 및 `(project_id,target_id,member_id)` 복합FK로 같은 Project/Target 소유를 결속. member 참조는 deferred NO ACTION, binding 삭제 CASCADE |
+
+subset binding의 required anchor는 자신의 subset row로 `DEFERRABLE INITIALLY DEFERRED` 복합FK를 가진다. 빈 subset commit은 실패하고 whole은 anchor NULL 및 subset row0이어야 한다. insert 및 selection 변경 trigger는 whole에 member가 남지 못하게 하고 binding의 public/project/task/Target identity와 member row update는 immutable이다. 교체는 transaction 내 삭제/재삽입으로 수행한다. deferred Target/member FK는 전체 Project cascade를 허용하되 단독 사용 중 삭제는 Service 및 commit FK로 거부한다.
+
+subtree insert/update 및 Task type-change trigger는 Summary-only를 강제한다. coverage는 NULL 또는 양의 INTEGER이며 trigger가 같은 Target의 Equipment에만 현재 quantity 이하 값을 허용한다. System의 nonnull coverage와 shared Equipment quantity를 live coverage보다 작게 축소하는 변경은 DB에서도 거부한다. Service는 전체 binding/subset/활성/영향 및 Project revision을 IMMEDIATE transaction에서 다시 검증한다. 조회는 row/revision을 바꾸지 않는다. Project 삭제는 local graph만 삭제하고 글로벌 공정/Resource를 보존한다.
+
+새 DB·0026 upgrade·FK 위반·실패 rollback·persisted restart는 #617 전용 SQLite 검증 대상이다. 로컬 실행 및 PR CI 증거는 [Work Packet](exec-plans/active/ISSUE_617.md)에서 구분하며 운영 DB migration/backup-restore 성공은 별도 NOT TESTED다.

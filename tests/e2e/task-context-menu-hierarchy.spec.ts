@@ -630,7 +630,25 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   expect(milestone.data.tasks.find((task) => task.name === "Beta")!.type).toBe("milestone");
   await expect(row(page, "Beta")).toHaveCount(1); // Only the separately copied Task remains visible.
 
-  const finalRevision = milestone.data.project.revision;
+  const convertedMilestone = milestone.data.tasks.find(task => task.name === "Beta")!;
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await page.locator("#project-panel-milestones").getByLabel("Milestone 검색", { exact: true }).fill(convertedMilestone.taskId);
+  await page.locator(`[data-milestone-task-id="${convertedMilestone.taskId}"]`).getByRole("button", { name: / 관리$/ }).click();
+  const [roundtripResponse] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith(`${api}/task-commands`) && response.request().method() === "POST"),
+    page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "일반 Task로 전환", exact: true }).click(),
+  ]);
+  expect(roundtripResponse.status()).toBe(200);
+  expect(roundtripResponse.request().postDataJSON()).toEqual({ kind: "convert", taskId: convertedMilestone.taskId, targetType: "task" });
+  const roundtrip = await roundtripResponse.json() as TaskMutationResponse;
+  const ordinary = roundtrip.data.tasks.find(task => task.taskId === convertedMilestone.taskId)!;
+  expect(ordinary).toMatchObject({ taskId: convertedMilestone.taskId, externalId: convertedMilestone.externalId, parentExternalId: convertedMilestone.parentExternalId, siblingOrder: convertedMilestone.siblingOrder, type: "task" });
+  expect(ordinary.membership).toEqual(convertedMilestone.membership);
+  expect(roundtrip.data.project.revision).toBe(milestone.data.project.revision + 1);
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(page.locator(".wx-table-container .wx-row[data-id]", { hasText: "Beta" })).toHaveCount(2);
+  await expect(rowByTaskId(page, ordinary.taskId)).toBeVisible();
+  const finalRevision = roundtrip.data.project.revision;
   await page.reload();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;

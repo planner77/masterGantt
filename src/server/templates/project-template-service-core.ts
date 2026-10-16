@@ -944,7 +944,7 @@ export class ProjectTemplateService {
           processes: processByCode,
           equipment: equipmentByCode,
           systems: systemByCode,
-        }, nowText);
+        }, nowText, newByExternalId);
         restoredTargetCount = restored.targets;
         restoredMappingCount = restored.processMappings;
         warnings.push(...restored.warnings);

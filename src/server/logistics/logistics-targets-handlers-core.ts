@@ -37,16 +37,17 @@ function fail(error:unknown,d:Dependencies):Response {
   response.headers.set("Cache-Control","private, no-store");
   return response;
 }
-function params(request:Request):{limit:number;offset:number;search?:string} {
+function params(request:Request):{limit:number;offset:number;search?:string;activeOnly?:boolean} {
   const q=new URL(request.url).searchParams;
-  if ([...q.keys()].some(k=>!["limit","offset","search"].includes(k)||q.getAll(k).length!==1))
+  if ([...q.keys()].some(k=>!["limit","offset","search","activeOnly"].includes(k)||q.getAll(k).length!==1))
     throw new PublicApiError(400,"INVALID_REQUEST","Invalid search parameters.");
-  const lim=q.get("limit")??"50",off=q.get("offset")??"0",search=q.get("search");
+  const lim=q.get("limit")??"50",off=q.get("offset")??"0",search=q.get("search"),activeOnly=q.get("activeOnly");
   if (!/^[1-9]\d{0,2}$/.test(lim)||Number(lim)>100||
       !/^(0|[1-9]\d{0,4})$/.test(off)||Number(off)>10000||
-      (search!==null&&(!search.trim()||search.length>100||/[\u0000-\u001f\u007f]/.test(search))))
+      (search!==null&&(!search.trim()||search.length>100||/[\u0000-\u001f\u007f]/.test(search)))||
+       (activeOnly!==null&&activeOnly!=="true"))
     throw new PublicApiError(400,"INVALID_REQUEST","Invalid search parameters.");
-  return {limit:Number(lim),offset:Number(off),...(search===null?{}:{search:search.trim()})};
+  return {limit:Number(lim),offset:Number(off),...(search===null?{}:{search:search.trim()}),...(activeOnly===null?{}:{activeOnly:true})};
 }
 export function handleListTargets(request:Request,projectId:string,d:Dependencies):Response {
   try {

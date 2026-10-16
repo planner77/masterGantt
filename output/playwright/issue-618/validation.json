@@ -1,0 +1,113 @@
+{
+  "issue": 618,
+  "environment": "Local Fast Feedback",
+  "baseline_sha": "96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b",
+  "recorded_at": "2026-10-14T01:35:27.827726+00:00",
+  "source_sha256": {
+    "src/contracts/logistics-targets.ts": "bb24645f9e46c177b0db1b4967d25ffb59ceaea4085582a918324a326ff71afc",
+    "src/features/gantt/project-task-editor.tsx": "b77f412b6c25b3914a17c8d46c6e327378474ba0202c4fa5eeebba44f5f777bd",
+    "src/features/gantt/task-context-target.ts": "ee8cb1f33f01b64d0698e5d9609aa6e753d6616836876fffa6a21bb3bb71f87f",
+    "src/features/gantt/task-target-binding-editor.tsx": "7251b2e71121e901302927505b3a695e53b29116d724854d0871ea244d43b54b",
+    "src/features/logistics/project-logistics-management.tsx": "cd73b7c69ed88574f890d77e1e9b4783a0fae4b6ced0db654465a0bc1e6dc65b",
+    "src/features/logistics/project-logistics-targets.tsx": "4aaf57711fa86aaa0b0bf7a81b634ce8b8b6e1f3e44861169cd8905f7172b70f",
+    "src/features/logistics/target-detail.tsx": "8305686c14ad0d7726065918c952ed01e52521558f400ee3675e3280bfefad9c",
+    "src/features/logistics/target-master-registration.tsx": "7172325863f6f4ecf740d3af962e714e1a2e0edc8017425f16551cf78085bcdb",
+    "src/features/logistics/target-ui.module.css": "423d9215bed0ccfb550ac0a899e8154a5881d42916b6685976e75f02718ed0de",
+    "src/features/logistics/task-context-label.ts": "aa94c1641857a8e8bf33a9fa43f291d178df1ac5ad6f1787bdf2dd4bd1a619f8",
+    "src/features/projects/project-readonly-view.tsx": "50de5c7f52eec20680c61b9332a0e320d6f2dbd8f39281bac95f479d2ac40409",
+    "src/server/logistics/logistics-targets-service-core.ts": "5437cdf3bfa2d7e3734d0543797eeb5aceb2b696a39e33d1a4b18c2b9cb83539",
+    "tests/e2e/fixtures/isolated-application.ts": "2719b2924041185d225f96b23031bf1bfcc4a2d14694871efb80ff7f46f4d695",
+    "tests/e2e/fixtures/target-project.ts": "ecc176069e31ad3354c461f4a5cda8510b8ac495d14a26f43db1d225ab61024a",
+    "tests/e2e/logistics-target-authoring.spec.ts": "f4a787e164a654cc47cc826d92b0f8f07d69c5093f6915164c7fab2076b32fb2",
+    "tests/server/logistics/task-target-bindings.test.ts": "749f3bbeb3cb08c66c89d314cbb044b18a1094293ea881b978f8b62bab9b93cf"
+  },
+  "unit": {
+    "status": "PASS",
+    "files": 16,
+    "tests": 250,
+    "suites": [
+      {
+        "scope": "Target/Process/Editor",
+        "files": 10,
+        "tests": 157
+      },
+      {
+        "scope": "Dependency/Milestone/Resource",
+        "files": 6,
+        "tests": 93
+      }
+    ]
+  },
+  "chromium": {
+    "status": "PASS",
+    "unique_selected_tests": 41,
+    "runs": [
+      {
+        "scope": "canonical-projection + logistics-management + workspace-tabs + initial F4 five scenarios",
+        "passed": 38,
+        "duration": "3.0m"
+      },
+      {
+        "scope": "latest F4 seven scenarios incl persisted-binding edits/subtree removal",
+        "passed": 7,
+        "duration": "2.8m"
+      },
+      {
+        "scope": "#572 actual Tab canonical rename",
+        "passed": 1,
+        "note": "Passed in preceding 8-test run; that run also had one confirmation-checkbox test action failure, corrected in latest F4 seven."
+      },
+      {
+        "scope": "final name-first labels/tokens + Enter/Tab/Escape five-width capture",
+        "passed": 1,
+        "duration": "17.4s"
+      }
+    ]
+  },
+  "checks": {
+    "typecheck": "PASS",
+    "changed_eslint": "PASS",
+    "version_check": "PASS",
+    "markdown_links": {
+      "status": "PASS",
+      "files": 211
+    },
+    "diff_check": "PASS"
+  },
+  "pre_review": {
+    "reviewer": "/root/preqa",
+    "mode": "separate read-only qa_docs agent",
+    "source_findings": "resolved",
+    "final_qa": "NOT TESTED"
+  },
+  "failure_history": [
+    "Turbopack node_modules symlink outside root (fixed by worktree-local hardlinks)",
+    "Invalid bootstrap fixture password length (fixed)",
+    "Implicit select label selector (fixed with combobox role)",
+    "Nested native cancel closed parent Task Editor (fixed with event target guard)",
+    "Persisted DTO taskId leaked to strict PUT parser:400 (fixed with explicit request whitelist)",
+    "Undefined CSS tokens hid control boundaries (fixed with repository semantic tokens)",
+    "uncheck expected immediate state change before required subtree confirmation (corrected to click, confirm and assert persisted result)",
+    "Keyboard fixture focused still-disabled loading button before Enter; corrected by asserting enabled and actual focus before keypress."
+  ],
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trusted_qa": "NOT TESTED",
+    "manager_decision": "NOT TESTED",
+    "merge_ready": "BLOCKED"
+  },
+  "release": {
+    "required": true,
+    "authorized": false
+  },
+  "unverified": [
+    "native browser zoom",
+    "real devices and screen reader",
+    "final manual UX",
+    "production database backup/restore",
+    "large-scale preview performance",
+    "main/GHCR/release"
+  ]
+}

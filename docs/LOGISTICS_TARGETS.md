@@ -1,6 +1,28 @@
 # Logistics Target 계약 — F0 (#614)
 
+## Issue #623 — Resource MVP 통합 수용·운영 인계
+
+기초 구성부터 Task/Summary whole/subset·직접/상속, Resource/Plan/정확 편집·Excel까지 같은 canonical fixture로 통합 검증한다. shared5 M/D의 A5/B5/선택전체5,AMR15/ACS2/공유MCS1 및 T0/A/R·partial/미연결 의미는 기존 resolver/계산기를 재사용한다. 새로운 기능 원장·자동 site 재배치·전체 JSON 포맷을 만들지 않는다.
+
+사용 방법은 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), actual0024→27 이관·Copy/Template/backup/rollback 경계는 [운영 절차](TARGET_RESOURCE_OPERATIONS.md), 요구사항·원시 ID/수치·실제 실행·원격 상태는 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)와 [Work Packet](exec-plans/active/ISSUE_623.md)을 따른다. 로컬 수용 후보와 Owner/원격/Main gate를 구별하며 #624/V1·Epic 전체 완료를 주장하지 않는다.
+
+## Issue #622 — Resource Plan·Excel에서의 Target 근거
+
+R4는 기존 Target/member/binding·same-binding/member projector를 기간 Plan과 Resource Excel 보고서에 연결한다. 선택 Target는 개인 Assignment 기여만 제한하며 Capacity R·같은 개인의 Project 전체 부하는 줄이지 않는다. 일별 전체 참고 원인에는 선택 밖 Target/legacy 미연결 Task도 포함하고 출발 선택과 현재 참고 scope를 구별한다.
+
+Excel의 관련 계획공수는 원가 배분이 아니며 Equipment 수량·coverage·Task progress를 곱하지 않는다. 같은 Assignment가 여러 Target/member/provenance에 나타나도 원시 공수 총계는 고유 Assignment union이다. Target 미연결, WorkArea 미사용, project_common, legacy 직접 연결과 provenance를 안정 ID로 구분한다. 보고서와 plain 일정/JSON Import·무손실 backup 지원은 다르다. 기존 #617/#620/#621 후속 표기의 R4 범위는 본 절과 [EXCEL_EXPORT](EXCEL_EXPORT.md)로 갱신하며 #623/#624는 별도다. 실제 실행과 미검증은 [Work Packet](exec-plans/active/ISSUE_622.md)에 기록한다.
+
 상위 [Epic #613](https://github.com/planner77/masterGantt/issues/613). 기준은 2026-10-11 main `cbc73740236f3b3e177e2ed3196a0d02a292c741`, application `0.104.4`, `@svar-ui/react-gantt 2.7.3`다. 이 문서는 **후속 구현의 확정 설계 계약**이며 F0에서 runtime/SQL/API/UI를 추가하지 않는다. 실행 순서·담당·Gate는 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md), 이번 증거는 [#614 Work Packet](exec-plans/active/ISSUE_614.md)에서 관리한다.
+
+## R3 화면·편집 경계 — Issue #621
+
+#618 composer와 #620 보고 API를 재사용해 기존 Resource 탭에 Target 계층·역방향·Group/Resource×Target 비교를 연결한다. 같은 Task/Assignment가 여러 Target 경로에 표시돼도 canonical ID는 하나이며 표시 key만 경로별로 구별한다. Task 편집·개인 Assignment 편집·Target 구성 편집은 각각 기존 저장 명령으로 구분한다. 조회용 Group/Target/합계는 직접 저장하지 않는다.
+
+Target/공정/occurrence/Process Type/WorkArea/typed member/type 필터는 같은 server query를 사용한다. Target 소계는 관련 계획 공수이며 배분 원가·실적·설비 대수별 완료가 아니다. 선택 전체는 raw Assignment 합집합이고 full canonical Project 참고는 별도 범위다. 전체값은 페이지·접힌 행의 합이 아니다. 작업 미연결·legacy-only/미매핑·무구역·프로젝트 공통과 partial/all-unset를 구별한다.
+
+저장 뒤 모든 관련 projection은 같은 canonical revision으로 재조회하거나 stale로 표시한다. 원래 조건에서 탈락한 행은 복제하거나 자동 Target 재할당으로 복원하지 않으며 사유와 유효 focus를 안내한다. grouping/정렬/보기 전환은 WBS parent·Task 날짜·Dependency·allocation을 바꾸지 않는다. #622 주/월 Plan·Excel, #623 종단간 수용, #624 확장 물류 화면은 별도다. 실제 결과는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.
+
+Resource의 대상 구성 편집 진입은 실제 `projectRevision`을 포함하는 기존 Target 목록 응답에서 정확 Target ID를 찾는다. 이전 report 기준과 다르면 편집을 시작하지 않는다. revision을 반환하지 않는 단건 GET을 과거 closure revision으로 임의 포장하지 않는다. 목록은 bounded 조회·응답 취소/세대 확인을 거치며 최종 mutation의 strong If-Match가 다시 검증한다.
 
 ## F1 구현 경계 — Issue #615
 
@@ -99,7 +121,7 @@ Project mutation은 edit session+정확 Origin+`If-Match`를 서버 transaction 
 
 binding 입력: `{id, taskId, targetId, scope, selection, memberIds, coverageByMember}`. whole의 memberIds는 비어 있어야 하고 현재 살아 있는 모든 member를 읽는다. subset은 정렬·중복 제거한 명시 member ID이며 Target 소유를 검증한다. 초기 whole coverage는 비지원이며 필요하면 subset을 선택한다. coverage는 연결별 작업 대상 수량으로 Equipment에만 null 또는 양의 정수≤원본 quantity, System은 null만 허용한다. 서로 다른 연결의 coverage를 실물 합계나 공수 배분율로 합산하지 않는다.
 
-Task t의 유효 대상은 직접 binding + 모든 Summary 조상의 subtree binding의 **합집합**이다. 조상 self는 자손으로 전파하지 않고 하위 binding은 조상을 대체하지 않는다. 동일 member는 계산 시 한 번, 출처는 모두 보존한다. 유효 member grain은 `(projectId,taskId,kind,instanceId)`이며 provenance는 `(bindingId,sourceTaskId,targetId,memberId,selection,scope,inherited)`의 정렬된 집합이다. 같은 instance가 TargetA/B에 있으면 Target별 provenance는2개이며 실물 instance는1개다. 상충 coverage를 임의 합산/max하지 않고 각 source 값을 반환해 `coverageState=multiple`로 표시한다.
+Task t의 유효 대상은 직접 binding + 모든 Summary 조상의 subtree binding의 **합집합**이다. 조상 self는 자손으로 전파하지 않고 하위 binding은 조상을 대체하지 않는다. 동일 member는 계산 시 한 번, 출처는 모두 보존한다. 유효 member grain은 `(projectId,taskId,kind,instanceId)`이며 provenance는 `(bindingId,sourceTaskId,targetId,memberId,selection,scope,inherited)`의 정렬된 집합이다. 같은 instance가 TargetA/B에 있으면 Target별 provenance는2개이며 실물 instance는1개다. 상충 coverage를 임의 합산/max하지 않고 각 source 값을 반환해 `coverageState=multiple`로 표시한다. F3 provenance는 `coverageMode=whole|partial|unspecified`도 제공하며 원본 quantity와 같은 명시 coverage는 whole, 그보다 작은 양수는 partial, 미지정 subset은 unspecified다.
 
 legacy 직접 연결은 같은 물류 합집합에 별도 `sourceKind=legacy_direct` 출처로 남기고 Target 관련 집계의 자동 member로 변환하지 않는다. 공유 MCS를 통해 Target을 역추론하지 않는다. `targetUnlinked`는 일반 Task의 유효 Target binding이0개인 진단이며 직접 설비 연결 유무와 별도다. Milestone의 가장 가까운 조상 override를 복사하지 않는다. Milestone 자체의 self Target 참조는 책임/문맥만 제공하며 일반 Task 공수를 생성하지 않는다.
 
@@ -148,7 +170,7 @@ report provenance에는 schemaVersion/project revision/process catalog revision/
 | --- | --- | --- |
 | #615 | `/api/process-catalog` 관리자 CRUD / Project용 active lookup | master admin session/Origin/catalog If-Match; 읽기는 기존 read guard, inactive 사용 출처 보존 |
 | #616 | Project `/logistics/targets`, `/{targetId}/impact` | existing Project session/Origin/revision; instance 재사용·생성+member 저장은 한 transaction |
-| #617 | Task `/logistics/targets` binding 전체 교체 | subset 소유·Summary scope·coverage 검사 후 canonical aggregate 반환 |
+| #617 | Task `/target-bindings` binding 전체 교체 | subset 소유·Summary scope·coverage 검사 후 canonical aggregate 반환 |
 | #619/#620 | 기존 resource-dashboard/plan/detail의 versioned Target 축 | same read guard/private no-store; 기존 parser/클라이언트 호환과 snapshot 확장 함께 검증 |
 
 모든 신규 mutation은 Route Handler → Service → Repository → SQLite를 따른다. 권한·Origin·revision·usage와 입력 검사를 dry-run에도 적용하고 secret/session을 URL·fixture·로그에 넣지 않는다. 저장 응답은 전체 canonical 계약을 보존해 다른 탭/기존 mutation에서 신규 필드가 사라지지 않게 한다.
@@ -201,18 +223,18 @@ Resources > Group / Resource / Target (동일 보고 snapshot)
 
 | 경로 | 현행 사실 | 후속 계약·안전 Gate |
 | --- | --- | --- |
-| migration | ledger 최신0024, 적용SQL checksum 불변·순차 migration, pending batch transaction/FK check | F1부터 additive tables/nullable 명시 mapping; 기존 자유 공정·이름을 자동변환하지 않음. 적용 전 backup, 중간 실패 전부 rollback |
+| migration | 현행 ledger0027,0025공정→0026Target→0027binding;checksum/order/pendingbatch/FK검증 | 기존 자유공정/비활성참조를 이름으로 변환하지 않음. 적용 전 일관 backup,중간 실패 전체 rollback·복원 절차는 TARGET_RESOURCE_OPERATIONS |
 | 기존 Project | 기존 logistics/직접 link 운영 | Target0개로 유효; unmapped 목록+명시 매핑 preview, 영향/revision 확인 후 저장 |
-| process 재매핑 | 현재 공통 occurrence 없음 | 사용 Target/WorkArea를 함께 재검증, 불일치 남으면 전체거부. label 동명 매핑 금지 |
+| process 재매핑 | 명시 occurrence/optional WorkArea mapping 지원 | 사용 Target/WorkArea를 함께 재검증, 불일치 남으면 전체거부. label 동명 매핑 금지 |
 | Project copy | local IDs remap, global Resource IDs 유지, canonical revision 신규1 | Target/member/binding/subset/coverage 전부 local ID remap, 동일 copy transaction. cross-triple copy는 명시 재매핑 또는 거부, 일부 누락 성공 금지 |
-| Template | logistics code 참조+Resource publicID+Task externalID snapshot, 새 local ID 생성, schemaVersion 없음/옛 omission 허용 | versioned Target extension/capability 검사 선행. code는 포맷 내부 참조만, 런타임 identity 아님. 누락 member/occurrence는 오류; 현재 resolver의 일부 누락 필터를 새 Target에 재사용 금지 |
-| WBS JSON1.0/1.1·CSV | strict 입력, logistics/Resource 전체 backup 아님 | 기존 포맷에 몰래 Target 삽입/무시 금지. 지원 전 Target 포함 export/import/copy는 명시 경고·거부/선택 동의, 무손실 왕복 주장 금지 |
+| Template | binding 포함 logistics schemaVersion3, binding 없는v2/legacy호환;local ID재발급/global참조재사용 | code는 포맷 내부 참조이며런타임identity아님. 누락/잘못된member·occurrence·site는전체거부,자동cross-site retarget지원으로추정하지않음 |
+| WBS JSON1.0/1.1·CSV | strict 입력, Target/물류/Resource 전체 backup 아님 | Target-bearing 일정 JSON/plain Excel 및 신규 binding Import는 loss guard로 거부. Project Copy/Templatev3 지원과 별개이며 opt-in Resource Excel은 보고서로만 허용 |
 | #379 전체 참조 JSON | 별도 외부 참조 snapshot 범위 | occurrence/WorkArea/Target/member/binding/provenance의 versioned schema 인계; 복원 가능한 backup과 구분 |
 | Resource/Excel | 기존 원시 Assignment/Calendar/same snapshot 상세 | 새 축/필터/selector/fingerprint를 일치 확장, raw detail/exact 합계 교차검증; 보고를 import 포맷으로 표시하지 않음 |
 | Task type/move/delete | 기존 canonical 변경 경로 | subtree를 비Summary로 바꾸면 명시 정리/거부, move는 새 조상 합집합 재계산; Target/instance 복제0 |
 | rollback | 자동 down migration 미지원, 이전 app은 새 ledger 해석 불가 | schema-only라며 구 app만 되돌리지 않음. 일관된 업그레이드 전 DB backup+대응 app 복원 또는 forward corrective migration; 새 데이터 유실 경고·복구 실증 |
 
-F0은 migration을 실행하지 않으므로 운영 DB 적용/backup-restore는 NOT TESTED다. F1/F2는 빈 DB·기존0024 DB·실패 rollback·재시작·cross-project FK·inactive·copy/template를 각 PR에서 검증한다. 기능 노출은 저장·canonical·호환 guard가 준비된 단계에만 한다.
+F0 당시에는 migration을 실행하지 않았다. 현재0025~0027 및 Copy/Template구현과합성fresh/actuallegacy·rollback/backup/restart통합검증은 #623수용표에연결한다. 실제운영DB적용/off-hostbackuprestore는별도환경 NOT TESTED이며 로컬검증으로대체하지않는다.
 
 ## 9. 공통 fixture와 수용 경계
 
@@ -253,8 +275,58 @@ F0-Q02의 서로 다른 연결 coverage2/3은 합산 수량5나 실물 수량15�
 
 `logistics_targets` / `logistics_target_members` and typed API are implemented on the F2 branch, referencing existing dynamic catalog and Project-local Equipment/System. Equipment quantity is unchanged; System=1 instance. Process target uses an explicit F1 project-process-to-occurrence mapping; optional WorkArea must belong to that occurrence. Explicit `project_common` is for project-scoped Systems only. Same System reused in N Targets retains one identity and does *not* establish controls/coordinates. The Target use case exposes mismatch warnings for process-scoped systems when no system-process association exists.
 
-Create supports preexisting typed instances and inline project-local instance creation inside one IMMEDIATE transaction; catalog/master creation is outside that authority. Duplicate type+name warns through `TARGET_DUPLICATE_LABEL_CONFIRMATION_REQUIRED` unless confirmed; stable code/ID remains identity. PATCH membership is an atomic nonempty replacement; removing a link never deletes original instances. Cross-project/wrong process and stale revisions fail closed. Project Copy remaps each member through the *single* original instance copy; missing mapping aborts entire copy transaction. Current Template and schedule-stage JSON 1.1 cannot preserve this graph and explicitly reject Target-bearing sources; full versioned Template and JSON import/export remain follow-up (#379) rather than silently truncating. WBS Target binding/coverage and Resource roll-up remain #617/#619; current usage `referencedByTaskCount=0` means **no Target binding table yet**, not a statement about direct equipment/system links. This F2 candidate requires exact-head remote CI, environment validation and Owner merge approval; until then NOT TESTED.
+Create supports preexisting typed instances and inline project-local instance creation inside one IMMEDIATE transaction; catalog/master creation is outside that authority. Duplicate type+name warns through `TARGET_DUPLICATE_LABEL_CONFIRMATION_REQUIRED` unless confirmed; stable code/ID remains identity. PATCH membership is an atomic nonempty replacement; removing a link never deletes original instances. Cross-project/wrong process and stale revisions fail closed. Project Copy remaps each member through the *single* original instance copy; missing mapping aborts entire copy transaction. Project Template `logistics.schemaVersion=2` now roundtrips occurrence/WorkArea and Target/member graph (see the implemented v2 paragraph below), including one copied MCS shared across multiple Targets; malformed/unknown graphs roll back. **Schedule-only JSON 1.1 still rejects Target-bearing sources**, and full JSON backup/import remains #379. At the F2 baseline, WBS Target binding/coverage and Resource roll-up were deferred to #617/#619; the historical usage `referencedByTaskCount=0` placeholder did not measure direct equipment/system links. The F3 candidate below replaces that placeholder contract. F2 code was merged in #616 PR #631; the new successor v0.108.0 Main #2710.1 and Release #167.1 passed unit/integration and Chromium E2E gates. This does NOT imply all #616 AC2–AC7 were individually covered. #672 adds focused HTTP/SQLite acceptance tests and docs, to be judged only after its own exact-Head PR CI and Owner review.
 
 ## F2 versioned Template graph v2 — #616 보완
 
 기존 F1/초기 F2의 Template 409 가드는 **이 절의 v2 구현으로 대체**한다. Template `logistics.schemaVersion=2`는 Project process code↔global occurrenceId/WorkAreaId와 Target code/scope/processCode/occurrenceId/workAreaId/active/description 및 typed `{kind,instanceCode}` 멤버 목록을 저장한다. 복원은 원본 Project-local 인스턴스가 아닌 **신규** Process/Equipment/System/Target/Member ID를 발급하고, 동일 MCS는 신규 System 1건을 N개 Target에서 공유한다. 전역 공정/WorkArea ID는 정확 BU/Product/Site triple로 재검증하며 이름 기반 재매핑을 금지한다. legacy snapshot은 구 동작 유지, broken/unknown version/foreign WorkArea는 신규 Project 전체 transaction을 409로 취소한다. 비활성 기존 공정 참조는 원 ID를 보존하고 경고한다. schedule-stage JSON 1.1은 여전히 전체 백업이 아니며 Target 프로젝트의 해당 내보내기는 409로 차단 (#379 별도).
+
+
+## #672 — #616 F2 acceptance follow-up / #617 contract boundary (2026-10-14)
+
+- `logistics_targets`/typed member graph, process/optional WorkArea, shared source instance, atomic create/update/delete, migration 0026 and Project Copy/Template v2 are **current v0.108.0 code**, not a design-only proposal. [#616 AC1~7 evidence ledger](https://github.com/planner77/masterGantt/issues/616#issuecomment-6155300627) distinguishes passed fixture tests from missing permutations.
+- At the F2/#672 baseline, `GET /logistics/targets/{targetId}/usage` returned per-member shared `targetCount` and **legacy direct instance Task** `directTaskCount`. Its historical `referencedByTaskCount=0` was an **unsupported interim field** before [#617](https://github.com/planner77/masterGantt/issues/617) introduces WBS–Target binding: it must not be interpreted as an authoritative measured zero, displayed as a KPI or used to authorize deletion of a future bound Task.
+- #672 adds service HTTP Origin/session/strong-CAS/malformed/oversize and SQLite mutation+0025→0026 persisted-reopen tests. Final assertions are **NOT TESTED until new PR CI**; production SQLite backup/restart and new external JSON full-backup support remain outside this change.
+- WBS whole/subset/self/subtree binding, Impact Task count, reference provenance and effective Task selection belong to **#617**, not #616/#672. Do not backfill `referencedByTaskCount` from unrelated legacy direct links or silently broaden a subset to whole.
+
+## F3 구현 후보 — Issue #617 (2026-10-14)
+
+이 절은 F0의 연결 계약을 runtime으로 구현하는 `0.109.0` 후보의 현재 경계다. 앞의 F1/F2 및 #672 절의 “binding 미구현/usage 0 placeholder”는 해당 단계의 이력이며, 신규 F3 판정은 [#617 Work Packet](exec-plans/active/ISSUE_617.md)의 exact Head 증거를 따른다. 로컬 검증은 원격 quality/e2e/docker PASS가 아니며 병합·운영 DB 적용·정식 릴리스는 이번 범위에 포함하지 않는다.
+
+Task마다 Target을 다대다 연결하고 `(project,task,target)` 중복을 거부한다. `scope=self`가 기본이며 Summary만 `subtree`를 선택할 수 있다. `selection=whole`은 현재 Target의 모든 member를 읽으며 선택 member/coverage를 저장하지 않는다. `subset`은 같은 Target의 실제 typed member 1개 이상을 명시한다. Equipment coverage는 null 또는 현재 quantity 이하 양의 정수, System coverage는 null만 허용한다. coverage는 작업 범위이며 실물 재고·Resource allocation 또는 여러 Task의 합산 수량이 아니다.
+
+단일 pure resolver가 직접 binding과 모든 Summary 조상의 subtree binding을 합집합으로 해석한다. 하위 binding은 조상 binding을 override하지 않는다. 결과는 원래 binding/sourceTask/Target/member/selection/scope/inherited와 개별 coverage를 보존하며 effective instance는 kind+instance ID로 한 번만 센다. legacy 직접 Equipment/System 연결은 별도 출처로 남으며 공유 MCS를 통해 Target을 역추론하지 않는다. 명시 연결 없음과 상속만 존재함은 DTO의 직접/상속 목록으로 구분한다.
+
+Target membership 변경은 실제 whole/subset 참조를 조회하고 snapshot·Project revision·정규화 변경 내용에 묶인 영향 확인을 요구한다. 사용 중 subset member 삭제 및 quantity보다 큰 coverage는 원자적으로 거부한다. 확인 token만으로 권한 또는 최신 revision을 대체하지 않는다. Task reparent는 새 조상 합집합의 변경을 확인하고 기존 Task/binding ID를 유지한다. Task 삭제는 binding만 제거하며 원본 Target/instance를 삭제하지 않는다. subtree scope를 가진 Summary를 비Summary로 바꾸는 경로는 명시 정리 없이 통과하지 않는다.
+
+`referencedByTaskCount: number | null`은 실제 계산한 고유 일반 Task 수다. null은 미지원/미산출, 0은 실제 0건, N은 직접 또는 상속으로 연결된 N건이다. Summary는 별도 수량으로 제공하고 Milestone 문맥은 일반 Task 수에서 제외하며, legacy `directTaskCount`/공유 `targetCount`와 혼합하지 않는다. null·과거 placeholder 0은 삭제/영향 없음/KPI 판단 근거가 아니다. 실제 삭제 보호는 binding과 최신 transaction 검증을 따른다.
+
+Task authoring UI는 #618, Resource Target 축·공수/보고서/Excel은 #619~#622 후속이다. 신규 binding은 Resource 배정·Dependency·Task 일정/상태·Milestone membership/Ready를 변경하지 않는다. 기존 Milestone 직접 물류 연결은 유지하며 Target authoring은 일반 Task/Summary 경계다.
+
+## Issue #619 — R1 Resource pure projection 구현 경계 (2026-10-14)
+
+기존 Resource KPI 엔진은 F3 `resolveAllTaskTargetBindings`의 유효 binding/member/provenance를 재사용한다. Target·공정·WorkArea·typed instance/type 조건은 §5의 같은 연결 경로를 지키며 legacy 직접 인스턴스가 Target 전체로 확대되지 않는다. Target 소계는 관련 계획 공수로 중첩되며 선택 전체는 원시 Assignment 합집합이다. full Project 참고·T0 진단·Capacity R·전체 Project load·full Milestone Gate는 별도 범위로 유지한다.
+
+`resource-kpi-targets.ts`의 typed snapshot은 기존 canonical KPI Task와 같은 Project 자료만 받아야 한다. 정확 중복은 정규화하고 같은 ID 상충 payload·foreign 참조·budget 초과는 오류다. 원시 Assignment 저장·Calendar·일정·revision을 변경하지 않는다. KPI 사전·null/분모·출처 및 실행 상태는 [RESOURCE_KPI_DASHBOARD](RESOURCE_KPI_DASHBOARD.md), [ISSUE_619](exec-plans/active/ISSUE_619.md)를 따른다. HTTP report/plan/detail 및 snapshot/Excel 공개는 #620/#622, 최소 Target 편집 UI는 #618의 별도 검증 대상이다.
+
+## Issue #618 — Target 목록 활성 필터와 paging 계약 보완
+
+Target 구성 화면은 기본적으로 활성 Target만 표시한다. GET `/api/projects/{publicId}/logistics/targets?activeOnly=true`는 SQL COUNT와 정렬된 SELECT 양쪽에서 inactive를 제외한 뒤 LIMIT/OFFSET을 적용한다. `activeOnly`를 생략하면 기존 외부 소비자와 공유 인스턴스 사용처 검토가 필요한 화면의 활성·비활성 전체 목록을 그대로 반환한다. `activeOnly=false` 또는 중복·기타 잘못된 값은 HTTP 400으로 거부한다. UI의 비활성 포함 토글은 페이지 offset을 0으로 되돌리고 새로운 조회 key로 reload한다. 조회·검색·토글은 Project revision을 변경하거나 Gantt/Task Editor/Viewport writer를 생성하지 않는다. 50개 inactive/2개 active의 서비스 회귀와 실제 HTTP 필터·오류 회귀는 #618 PR #678에 추가하되 원격 CI 결과 전 PASS로 판정하지 않는다.
+
+## Issue #618 — F4 Target 구성과 같은 작업 편집
+
+물류 Workspace의 Target 하위탭에서 Target 목록을 검색하고 상세·구성원을 조회한다. Composer는 프로젝트 분류를 읽어 표시하고 process 또는 명시적 project_common을 선택한다. WorkArea는 해당 occurrence에 존재할 때만 선택하며 필수가 아니다. 기존 인스턴스 검색/연결과 새 Equipment/System 생성을 구분한다. Equipment는 종류·label·원수량, System은 종류·label·1식이며 stable ID를 사용한다. 같은 인스턴스의 공유 Target 사용처를 표시한다. Target 구성원 연결 해제는 실물 인스턴스 삭제가 아니다. 상세 controls/coordinates/업체/역할 원본은 기존 관리 경로를 유지하며 membership이 자동 관계를 생성하지 않는다.
+
+Task/Summary의 물류 Editor에서 복수 Target, whole/subset, self/Summary subtree, Equipment optional 작업수량을 편집한다. 직접·모든 조상 상속·legacy 직접 instance 연결의 출처를 구분하며 상속은 합집합이다. 미지정 관리 Summary는 정상이다. Target 상세의 relatedTasks는 canonical Task ID·WBS 경로를 표시하고 동일 Task Editor를 연다. WBS에서 Target 상세로 탐색하고 같은 원본 구성으로 돌아온다. 날짜/진척/상태는 Task Editor, 구성은 composer에서 저장하며 공통 canonical 재조회로 양쪽을 갱신한다.
+
+변경 전 whole/subset 영향·관련 작업·공유 사용 현황을 확인하고 서버 impact/revision 검증으로 stale 및 삭제 충돌을 차단한다. 401/412·조회 실패와 늦은 응답에서 dirty 초안을 자동 교체하지 않는다. 공통 master는 다른 관리자 권한·별도 저장이며 Project 취소로 이미 저장된 master가 취소되었다고 표시하지 않는다. 구현/실행 증거는 [F4 Work Packet](exec-plans/active/ISSUE_618.md)에 기록하며 원격 전체 회귀/Owner 승인 전 F4 최종 완료를 주장하지 않는다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.
+
+## Issue #620 — R2 Target 보고 API 구현 경계
+
+R2는 기존 Resource report/details/group-children/drill에 #619 pure Target projection을 연결한다. 기존 optional HTTP 확장과 public ID·type code·`unassigned` null 인코딩, compact `targetProjection`/`targetPath`/details `targetSources`는 [API](API.md)를 따른다. 기존 Plan 선택 demand는 Target 교집합을 지원하되 R 및 전체 Project 부하는 유지한다. Target별 기간 행/전용 selector·Excel 시트 확장은 #622다. 새로운 데이터 서비스나 공수 원장·물류 Dashboard를 만들지 않으며 R1의 조회 grain·출처·같은 binding/member 조건을 유지한다.
+
+Target/member/binding과 Project 공정 매핑·관련 occurrence/Process Type/WorkArea/type master 이름 및 active 참조를 Task/Assignment/Calendar와 같은 SQLite read transaction에서 읽어 fingerprint에 포함한다. revision 없는 raw 참조 변경도 stale detail을 성공시키지 않는다. Target 미연결과 legacy 직접 shared MCS는 별개이고 T0 미배정 진단을 개인 조건으로 제거하지 않는다. inactive 기존 연결의 읽기와 새 mutation 선택 허용은 별개다.
+
+소계는 비가산, 선택 전체는 distinct Assignment, 전체 Project 참고는 명시된 별도 범위다. bounded selector로 상세를 재조회하고 source exact Assignment와 destination Target 조건의 교집합을 유지한다. 기존2MiB/366일·page 한도를 유지하며 snapshot/fan-out/provenance/cell 예산은 materialization 전에 거부한다. 실제 검증 상태와 남은 #621~#623 공개·수용은 [R2 Work Packet](exec-plans/active/ISSUE_620.md)을 따른다.

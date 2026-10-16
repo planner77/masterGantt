@@ -173,7 +173,16 @@ test("#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 �
   const mutate = <T extends { catalogRevision: number; snapshotId: string }>(data: T) => ({ ...data, catalogRevision: catalog, snapshotId: (catalog === 1 ? "a" : "b").repeat(64) });
   await page.route(path, (route) => { const data = mutate(resourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams)); data.scope.identity = data.snapshotId; return route.fulfill({ json: { data } }); });
   await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: { data: mutate(resourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams)) } }));
-  await open(page); await ready(page); const root = panel(page), kpi = root.getByLabel("선택 범위 KPI").getByRole("button", { name: "1건", exact: true }); await kpi.click(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toBeFocused(); catalog = 2; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await ready(page); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0); await expect(kpi).toBeFocused();
+  await open(page); await ready(page); const root = panel(page), kpi = root.getByLabel("선택 범위 KPI").getByRole("button", { name: "1건", exact: true }); await kpi.click(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toBeFocused();
+  const priorReportReceipt = await root.getAttribute("data-report-confirmation-id");
+  expect(priorReportReceipt).not.toBe("0");
+  catalog = 2; await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  // Observe a newly confirmed report before asserting that its *previous*
+  // snapshot's KPI detail disappeared. A merely ready cached report is not enough.
+  await expect.poll(() => root.getAttribute("data-report-confirmation-id")).not.toBe(priorReportReceipt);
+  await ready(page);
+  await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0);
+  await expect(kpi).toBeFocused();
   const detailRequests: string[] = [];
   page.on("request", (request) => { if (new URL(request.url()).pathname === `${projectPath}/resource-dashboard/details`) detailRequests.push(request.url()); });
   await kpi.click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();
@@ -216,7 +225,16 @@ test("#525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의
         });
         const controls = Array.from(element.querySelectorAll(".resource-dashboard-toolbar button,.resource-dashboard-filters button,.resource-dashboard-filters input,.resource-dashboard-filters select")).filter((node) => node.getBoundingClientRect().width > 0).map(box);
         const texts = Array.from(element.querySelectorAll('[data-resource-row] th button,.resource-dashboard-detail-table tbody strong')).map((node) => node.textContent?.length ?? 0);
-        return { documentWidth: document.documentElement.scrollWidth, viewport: innerWidth, tables, controlsInViewport: controls.every((b) => b.left >= 0 && b.right <= innerWidth + 1), controlsNonoverlapping: controls.every((a, i) => controls.slice(i + 1).every((b) => a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1)), maxRenderedIdentityCharacters: Math.max(...texts), inactiveRows: Array.from(element.querySelectorAll('[data-resource-row] small')).filter((node) => node.textContent?.includes("비활성")).length, multipleRoleRows: Array.from(element.querySelectorAll('[data-resource-row="resource"] small')).filter((node) => node.textContent?.includes("PI") && node.textContent?.includes("개발자")).length, maxRoleRows: Array.from(element.querySelectorAll('[data-resource-row="resource"] small')).filter((node) => node.textContent?.includes("PI") && node.textContent?.includes("개발자") && node.textContent?.includes("설비 담당")).length, unspecifiedRoleRows: Array.from(element.querySelectorAll('[data-resource-row="resource"] small')).filter((node) => node.textContent?.includes("Global Role 미지정")).length, maxDetailWbsCharacters: Math.max(...Array.from(element.querySelectorAll(".resource-dashboard-detail-table tbody td:first-child small:last-child")).map((node) => node.textContent?.length ?? 0)), stableTaskIds: Array.from(element.querySelectorAll(".resource-dashboard-detail-table tbody td:first-child small:first-of-type")).filter((node) => /[0-9a-f]{8}-[0-9a-f]{4}-4000-8000-[0-9a-f]{12}/.test(node.textContent ?? "")).length };
+        return { documentWidth: document.documentElement.scrollWidth, viewport: innerWidth, tables, controlsInViewport: controls.every((b) => b.left >= 0 && b.right <= innerWidth + 1), controlsNonoverlapping: controls.every((a, i) => controls.slice(i + 1).every((b) => a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1)), maxRenderedIdentityCharacters: Math.max(...texts), inactiveRows: Array.from(element.querySelectorAll('[data-resource-row] small')).filter((node) => node.textContent?.includes("비활성")).length, multipleRoleRows: Array.from(element.querySelectorAll('[data-resource-row="resource"] small')).filter((node) => node.textContent?.includes("PI") && node.textContent?.includes("개발자")).length, maxRoleRows: Array.from(element.querySelectorAll('[data-resource-row="resource"] small')).filter((node) => node.textContent?.includes("PI") && node.textContent?.includes("개발자") && node.textContent?.includes("설비 담당")).length, unspecifiedRoleRows: Array.from(element.querySelectorAll('[data-resource-row="resource"] small')).filter((node) => node.textContent?.includes("Global Role 미지정")).length, maxDetailWbsCharacters: Math.max(...Array.from(element.querySelectorAll(".resource-dashboard-detail-table tbody td:first-child small:last-child")).map((node) => node.textContent?.length ?? 0)), stableTaskIds: Array.from(element.querySelectorAll(".resource-dashboard-detail-table tbody tr[data-canonical-task-id]")).filter((row) => {
+          const canonicalId = row.getAttribute("data-canonical-task-id"), firstSmall = row.querySelector("td:first-child small:first-of-type");
+          const identity = row.querySelector("td:first-child small[data-resource-task-identity]");
+          return !!canonicalId && /[0-9a-f]{8}-[0-9a-f]{4}-4000-8000-[0-9a-f]{12}/.test(canonicalId) &&
+            firstSmall === identity && !!identity?.textContent?.includes(canonicalId);
+        }).length, stableAssignmentIds: Array.from(element.querySelectorAll(".resource-dashboard-detail-table tbody tr[data-canonical-assignment-id]")).filter((row) => {
+          const canonicalId = row.getAttribute("data-canonical-assignment-id"), identity = row.querySelector("td:first-child small[data-resource-assignment-identity]");
+          return !!canonicalId && /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/.test(canonicalId) &&
+            !!identity?.textContent?.includes(canonicalId);
+        }).length };
       });
       expect(result.documentWidth).toBeLessThanOrEqual(width + 1);
       expect(result.tables.find((table) => table.kind === "resources")?.populatedRows).toBe(40);
@@ -224,7 +242,7 @@ test("#525 긴 한국어·영문·ID와 많은 Dashboard 그룹·개인·Task의
       if (mode === "group") expect(result.tables.find((table) => table.kind === "groups")?.populatedRows).toBe(12);
       expect(result.tables.every((table) => table.allRowsAligned && table.allCellsNonoverlapping && table.controlsContained && table.dateTokensUnbroken)).toBe(true);
       expect(result.controlsInViewport && result.controlsNonoverlapping).toBe(true);
-      expect(result.maxRenderedIdentityCharacters).toBeGreaterThan(150); expect(result.maxDetailWbsCharacters).toBeGreaterThan(300); expect(result.stableTaskIds).toBe(50); expect(result.inactiveRows).toBeGreaterThan(0); expect(result.multipleRoleRows).toBe(39); expect(result.maxRoleRows).toBe(1); expect(result.unspecifiedRoleRows).toBe(1);
+      expect(result.maxRenderedIdentityCharacters).toBeGreaterThan(150); expect(result.maxDetailWbsCharacters).toBeGreaterThan(300); expect(result.stableTaskIds).toBe(50); expect(result.stableAssignmentIds).toBe(50); expect(result.inactiveRows).toBeGreaterThan(0); expect(result.multipleRoleRows).toBe(39); expect(result.maxRoleRows).toBe(1); expect(result.unspecifiedRoleRows).toBe(1);
       const detailTable = result.tables.find((table) => table.kind === "assignment-details")!;
       expect(detailTable.widths[3]).toBeGreaterThanOrEqual(207); expect(detailTable.widths[4]).toBeGreaterThanOrEqual(207);
       expect(detailTable.ownerScrollHeight).toBeGreaterThan(detailTable.ownerClientHeight);

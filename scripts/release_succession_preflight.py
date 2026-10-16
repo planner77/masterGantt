@@ -40,7 +40,7 @@ def evaluate(record: dict[str, Any]) -> dict[str, Any]:
         "source_sha", "correction_sha", "main_sha", "candidate_sha",
         "candidate_version", "first_parent", "contains_f2", "contains_correction",
         "original_ci", "original_owner_marker_preserved", "release_inventory",
-        "evidence", "owner_new_version_authorized",
+        "evidence", "published_candidate", "owner_new_version_authorized",
     }
     require(type(record) is dict and set(record) == fields, "감사 레코드 필드 누락/추가")
     require(all(_sha(record[name]) for name in (
@@ -122,6 +122,17 @@ def evaluate(record: dict[str, Any]) -> dict[str, Any]:
                     row["ghcr_tag"] == "ABSENT"
                     and row["git_sha"] is None and digest is None,
                     f"{version}: 퇴역 전 게시 흔적 또는 신규 게시 충돌")
+
+    candidate = record["published_candidate"]
+    require(type(candidate) is dict and set(candidate) == {
+        "tag", "source_sha", "status", "digest",
+    }, "역사적 Main 후보 증거 schema 누락")
+    require(candidate["tag"] == f"ci-{PUBLISHED_SHA}"
+            and candidate["source_sha"] == PUBLISHED_SHA,
+            "ci-SHA 후보 source provenance 불일치")
+    require(candidate["status"] == "PRESENT"
+            and candidate["digest"] == PUBLISHED_DIGEST,
+            "Main 검증 후보 현존/정확한 OCI digest 확인 실패; 대체 증거 승인 없음")
 
     require(evidence["revoked_616"] is True
             and evidence["successor_prepare_owner"] is True,

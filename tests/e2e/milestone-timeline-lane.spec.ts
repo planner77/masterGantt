@@ -2,11 +2,16 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { installStatefulProjectFixture, publicId, projectPath } from "../fixtures/stateful-project";
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 
 test.use({ timezoneId: "America/New_York" });
 
 interface Observation { gridWidth: number; instance: string; left: number; top: number; start: Date; end: Date; width: number; chartWidth: number; rows: { id: string; x: number; y: number }[]; links: { id: string; source: string; target: string; type: string }[]; canonicalIds: string[]; events: { action: string; left: number; top: number }[]; }
+interface LargePopulationObservation extends Observation {
+  canonicalTaskCount: number; coreTaskCount: number;
+  coreOrdinaryTaskCount: number; coreMilestoneCount: number;
+}
 async function probe<T>(frame: Locator, method: string, argument?: unknown): Promise<T> {
   return frame.evaluate(async (node, input) => {
     const api = Reflect.get(node, "__masterganttMilestoneTimeline");
@@ -15,6 +20,11 @@ async function probe<T>(frame: Locator, method: string, argument?: unknown): Pro
 }
 async function settle(page: Page) {
   await page.evaluate(() => new Promise<void>(resolve => { let n = 5; const tick = () => --n ? requestAnimationFrame(tick) : resolve(); requestAnimationFrame(tick); }));
+}
+async function prepareGeometryDateReveal(frame: Locator, scale: "day" | "week", revision: number, instance: string, canonicalIds: string[]) {
+  // 과거 취소 trace를 완료로 세지 않고 현재 U3·실제 축으로 새 reveal의 전제를 확인한다.
+  await waitForGanttReadiness(frame, { operation: "date-reveal", allowCancelledPriorWork: true, api: instance, revision, scale,
+    scope: new URL(frame.page().url()).searchParams.get("rootTask")?.trim() || null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, date: "2026-03-10" });
 }
 async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milestone-only" | "maximum" | "empty" = "mixed", editable = false) {
   const state = await installStatefulProjectFixture(page); state.sessionEditable = editable;
@@ -50,19 +60,65 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
-  // Diagnostic installation must belong to the *same* initialized SVAR API
-  // as the visible Gantt frame, even when the 3000-item projection is busy.
-  // Keep the original 5s readiness gate; no sleeps or retry/timeout increase.
-  await expect.poll(() => frame.evaluate(node => {
-    const identity = node.dataset.projectGanttApiInstance;
-    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { instance?: string; read?: () => { instance: string } } | undefined;
-    // Avoid repeatedly enumerating 500 native rows and scale cells during
-    // the 3000-item readiness gate. Still require the exact SVAR API identity.
-    return Boolean(identity && probe?.instance === identity && typeof probe.read === "function");
-  })).toBe(true);
+  // #664/#551: keep the original 5-second gate and the independently
+  // installed coordinator requirement. Poll in the browser to avoid repeated
+  // Playwright evaluate round trips while rendering 3,000 canonical rows.
+  try {
+    const handle = await page.waitForFunction(() => {
+      const node = document.querySelector<HTMLElement>(".project-gantt-frame");
+      if (!node) return false;
+      const identity = node.dataset.projectGanttApiInstance ?? null;
+      const candidate = Reflect.get(node, "__masterganttMilestoneTimeline") as {
+        instance?: string; ready?: boolean; read?: () => { instance: string };
+      } | undefined;
+      return Boolean(identity && candidate?.instance === identity &&
+        typeof candidate.read === "function" && candidate.ready === true);
+    }, undefined, { timeout: 5_000, polling: 100 });
+    await handle.dispose();
+  } catch (error) {
+    // Diagnostic only on failure: do not deserialize Core rows or treat the
+    // presence of the Grid as proof that Coordinator installation completed.
+    const state = await frame.evaluate(node => {
+      const candidate = Reflect.get(node, "__masterganttMilestoneTimeline") as {
+        instance?: string; ready?: boolean; read?: () => unknown;
+      } | undefined;
+      return {
+        frameConnected: node.isConnected,
+        frameApi: node.dataset.projectGanttApiInstance ?? null,
+        probeApi: candidate?.instance ?? null,
+        hasRead: typeof candidate?.read === "function",
+        coordinatorReady: candidate?.ready === true,
+      };
+    }).catch(() => ({ reason: "frame unavailable after readiness timeout" }));
+    throw new Error(`Gantt probe/coordinator not ready within 5s: ${JSON.stringify(state)}`, { cause: error });
+  }
   await settle(page);
   return { state, frame };
 }
+
+test("#622 probe commands require independently committed API readiness", async ({ page }) => {
+  const { state, frame } = await fixture(page, "milestone-only");
+  const readiness = await frame.evaluate(node => {
+    const probe = Reflect.get(node, "__masterganttMilestoneTimeline") as { ready: boolean; preview: (enabled: boolean) => void };
+    const identity = node.dataset.projectGanttApiInstance!;
+    const before = probe.ready;
+    try {
+      delete node.dataset.projectGanttApiInstance;
+      const withoutCommit = probe.ready;
+      probe.preview(true);
+      return { before, withoutCommit };
+    } finally {
+      node.dataset.projectGanttApiInstance = identity;
+    }
+  });
+  expect(readiness).toEqual({ before: true, withoutCommit: false });
+  await settle(page);
+  await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  expect(await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").ready)).toBe(true);
+  await probe(frame, "preview", true);
+  await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);
+  expect(state.posts.length + state.patchRequests.length).toBe(0);
+});
 
 test("#551 maximum canonical date Week metadata fails closed for Calendar working days", async ({ page }, info) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -106,7 +162,7 @@ async function captureLane(page:Page, info:import("@playwright/test").TestInfo, 
 
 test("#551 singleton focus/hover guide and canonical Editor return preserve native selection",async({page},info)=>{
   await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"milestone-only"),before=await probe<Observation>(frame,"read");
-   const marker=frame.locator(".project-milestone-lane-marker"); await expect(marker).toHaveCount(1);
+  await probe(frame,"preview",true); const marker=frame.locator(".project-milestone-lane-marker"); await expect(marker).toHaveCount(1);
   await marker.focus(); await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   await marker.hover(); await page.mouse.move(20,20); await expect(marker).toBeFocused(); await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   const focus=await focusObservation(marker); expect(focus.active).toBe(true); expect(focus.outset).toBe(6); expect(focus.centerHit).toBe(true);
@@ -118,7 +174,7 @@ test("#551 singleton focus/hover guide and canonical Editor return preserve nati
 });
 
 test("#551 same-date/near-date cluster pagination keyboard and exact-ID Editor return",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster");await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   const markers=frame.locator(".project-milestone-lane-marker");await expect(markers).toHaveCount(2);
   expect(await markers.evaluateAll(nodes=>nodes.filter(node=>(node as HTMLElement).tabIndex===0).length)).toBe(1);
   await markers.first().focus();await page.keyboard.press("End");await expect(markers.last()).toBeFocused();await page.keyboard.press("Home");await expect(markers.first()).toBeFocused();
@@ -171,7 +227,7 @@ test("#551 keyboard focus survives marker disappearing by horizontal clipping",a
 });
 
 test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   await frame.locator(".wx-chart").hover();await page.mouse.wheel(0,570);await settle(page);
   const before=await probe<Observation>(frame,"read"),height=await frame.locator(".wx-chart").evaluate(node=>node.getBoundingClientRect().height);
   expect(before.top).toBeGreaterThan(0);
@@ -181,7 +237,7 @@ test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/r
   await page.getByRole("tab",{name:"일정",exact:true}).click();await settle(page);const returned=await probe<Observation>(frame,"read");expect(returned.instance).toBe(before.instance);expect(returned.top).toBe(before.top);expect(returned.left).toBe(before.left);
   const splitter=frame.locator(".wx-resizer.wx-resizer-display-all").first(),box=(await splitter.boundingBox())!;await page.mouse.move(box.x+box.width/2,box.y+60);await page.mouse.down();await page.mouse.move(box.x+box.width/2+80,box.y+60,{steps:5});await page.mouse.up();await settle(page);
   expect((await probe<Observation>(frame,"read")).gridWidth).not.toBe(before.gridWidth);
-  await captureLane(page,info,"peer-resize-diagnostic",{core:await probe(frame,"read"),measurement:await probe(frame,"laneMeasurement"),dom:await frame.evaluate(node=>{const chart=node.querySelector<HTMLElement>(".wx-chart")!,widget=node.querySelector<HTMLElement>(".project-gantt-widget")!;return{boxes: Array.from(node.querySelectorAll<HTMLElement>(".project-gantt-scroll,.project-gantt-native-owner,.wx-gantt,.project-gantt-widget,.wx-chart,.wx-table-container")).map(element=>({className:element.className,width:element.getBoundingClientRect().width,height:element.getBoundingClientRect().height,clientWidth:element.clientWidth,scrollWidth:element.scrollWidth,clientHeight:element.clientHeight,scrollHeight:element.scrollHeight})),chartWidth:chart.getBoundingClientRect().width,chartClientWidth:chart.clientWidth,widgetWidth:widget.getBoundingClientRect().width,hidden:Boolean(widget.closest("[hidden],[inert]")),laneReason:node.querySelector(".project-milestone-lane-state")?.textContent};})});
+  await captureLane(page,info,"peer-resize-diagnostic",{core:await probe(frame,"read"),measurement:await probe(frame,"laneMeasurement"),dom:await frame.evaluate(node=>{const chart=node.querySelector<HTMLElement>(".wx-chart")!,widget=node.querySelector<HTMLElement>(".project-gantt-widget")!;return{chartWidth:chart.getBoundingClientRect().width,chartClientWidth:chart.clientWidth,widgetWidth:widget.getBoundingClientRect().width,hidden:Boolean(widget.closest("[hidden],[inert]")),laneReason:node.querySelector(".project-milestone-lane-state")?.textContent};})});
   await expect(frame.locator(".project-milestone-lane-plot")).toBeVisible();
   const bounds=await frame.evaluate(node=>{const plot=node.querySelector(".wx-chart")!.getBoundingClientRect(),lane=node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect();return{plotX:plot.x,laneX:lane.x,plotWidth:plot.width,laneWidth:lane.width};});expect(Math.abs(bounds.plotX-bounds.laneX)).toBeLessThanOrEqual(1);expect(Math.abs(bounds.plotWidth-bounds.laneWidth)).toBeLessThanOrEqual(1);
   await frame.getByRole("button",{name:"Gantt 전체 화면",exact:true}).click();await expect.poll(()=>page.evaluate(()=>Boolean(document.fullscreenElement))).toBe(true);await settle(page);
@@ -191,7 +247,7 @@ test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/r
 });
 
 test("#551 cluster canonical expiry cannot reopen when the same IDs return",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   await frame.locator(".project-milestone-lane-marker").first().click();const list=page.getByRole("dialog",{name:"Milestone 날짜 목록",exact:true});await expect(list).toBeVisible();
   const removed=state.tasks.filter(task=>task.type==="milestone");state.tasks.splice(0,state.tasks.length,...state.tasks.filter(task=>task.type!=="milestone"));await changedSnapshot(page,state);await expect(list).toBeHidden();
   const fallback=frame.locator("[data-milestone-lane-focus=list]");await expect(fallback).toBeFocused();const focus=await focusObservation(fallback);expect(focus.centerHit).toBe(true);
@@ -200,23 +256,23 @@ test("#551 cluster canonical expiry cannot reopen when the same IDs return",asyn
 });
 
 test("#551 OFF while Editor open preserves the dialog and returns to visible schedule without native M selection",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
-  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await page.getByRole("button",{name:"◆ Milestone 표시",exact:true}).evaluate(button => (button as HTMLButtonElement).click());await expect(editor).toBeVisible();await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await probe(frame,"preview",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
+  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await probe(frame,"preview",false);await expect(editor).toBeVisible();await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
   await page.keyboard.press("Escape");await expect(editor).toBeHidden();await expect(frame.locator(".project-gantt-scroll")).toBeFocused();await expect(frame.getByRole("group",{name:"복사 대상 선택"})).toContainText("선택 0개");
   await captureLane(page,info,"off-editor",{editorPreserved:true,selectionCount:0,mutationCount:state.posts.length+state.patchRequests.length});
 });
 
 test("#551 full population empty vs date viewport and Task-only filter stay independent",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster"); await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000}); const {state,frame}=await fixture(page,"cluster"); await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   const lane=page.getByLabel("Milestone Timeline",{exact:true});await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");
-  await page.getByRole("button",{name:/^필터/}).click();await page.getByRole("group",{name:"Task type",exact:true}).getByRole("checkbox",{name:"task",exact:true}).check();await page.keyboard.press("Escape");await settle(page);await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");await expect(lane.locator(".project-milestone-lane-marker")).toHaveCount(2);
+  await page.getByRole("button",{name:"Task",exact:true}).click();await settle(page);await expect(lane.locator("[data-milestone-lane-focus=list]")).toContainText("61");await expect(lane.locator(".project-milestone-lane-marker")).toHaveCount(2);
   const read=await probe<Observation>(frame,"read");await probe(frame,"scroll",read.width-read.chartWidth);await settle(page);await expect(lane.getByRole("status")).toContainText("현재 날짜 viewport");
   state.tasks.splice(0,state.tasks.length,...state.tasks.filter(task=>task.type!=="milestone"));await changedSnapshot(page,state);await expect(lane.getByRole("status")).toContainText("프로젝트 전체 Milestone 0개");
   await captureLane(page,info,"population-empty-viewport",{fullPopulationBefore:61,taskFilterDidNotReduce:true,fullPopulationAfter:0,mutationCount:state.posts.length+state.patchRequests.length});
 });
 
 test("#551 dynamic axis/latest native horizontal scroll and Task pointer selection survive the guide",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"reveal","2026-10-05");await settle(page);
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"cluster");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   const marker=frame.locator(".project-milestone-lane-marker").first();await marker.focus();await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   const ordinary=frame.locator('.wx-bar[data-task-id=":00000000-0000-4000-8000-000000000001"]');await expect(ordinary).toBeVisible();const bar=(await ordinary.boundingBox())!;
   const hit=await page.evaluate(({x,y})=>document.elementFromPoint(x,y)?.closest(".wx-bar")?.getAttribute("data-task-id"),{x:bar.x+2,y:bar.y+bar.height/2});expect(hit).toBe(":00000000-0000-4000-8000-000000000001");
@@ -229,8 +285,8 @@ test("#551 dynamic axis/latest native horizontal scroll and Task pointer selecti
 });
 
 test("#551 OFF preserves a dirty existing Editor draft until explicit discard",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
-  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await editor.getByLabel("작업명",{exact:true}).fill("유지할 lane 초안");await page.getByRole("button",{name:"◆ Milestone 표시",exact:true}).evaluate(button => (button as HTMLButtonElement).click());await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("유지할 lane 초안");
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only",true);await probe(frame,"preview",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);await frame.locator(".project-milestone-lane-marker").click();
+  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await editor.getByLabel("작업명",{exact:true}).fill("유지할 lane 초안");await probe(frame,"preview",false);await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("유지할 lane 초안");
   await page.keyboard.press("Escape");await expect(editor).toBeVisible();await expect(editor.getByLabel("작업명",{exact:true})).toHaveValue("유지할 lane 초안");
   await editor.getByRole("button",{name:"변경사항 버리고 닫기",exact:true}).click();await expect(editor).toBeHidden();expect(state.posts.length+state.patchRequests.length).toBe(0);await captureLane(page,info,"dirty-editor-off",{draftPreserved:true,explicitDiscard:true,mutationCount:0});
 });
@@ -238,14 +294,14 @@ test("#551 OFF preserves a dirty existing Editor draft until explicit discard",a
 test.describe("#551 actual touch capability",()=>{
   test.use({hasTouch:true,isMobile:true,viewport:{width:390,height:1000}});
   test("390px touch hit uses the marker's real 160×44 target",async({page},info)=>{
-    const {state,frame}=await fixture(page,"milestone-only");await frame.locator(".project-gantt-scroll").evaluate(node=>node.scrollTo({left:node.scrollWidth-node.clientWidth}));await settle(page);
+    const {state,frame}=await fixture(page,"milestone-only");await probe(frame,"preview",true);await frame.locator(".project-gantt-scroll").evaluate(node=>node.scrollTo({left:node.scrollWidth-node.clientWidth}));await settle(page);
     const marker=frame.locator(".project-milestone-lane-marker");await expect(marker).toHaveCount(1);const bounds=(await marker.boundingBox())!;expect(bounds.width).toBe(160);expect(bounds.height).toBe(44);
     await marker.tap();await expect(page.getByRole("dialog",{name:"작업 정보",exact:true})).toBeVisible();await captureLane(page,info,"touch-390",{bounds,hasTouch:true,mutationCount:state.posts.length+state.patchRequests.length});
   });
 });
 
 test("#551 public displayMode grid/chart keeps one Core instance and chart-only full plot",async({page},info)=>{
-  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);const before=await probe<Observation>(frame,"read");
+  await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"milestone-only");await probe(frame,"preview",true);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);const before=await probe<Observation>(frame,"read");
   await probe(frame,"display","grid");await settle(page);await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);await expect(frame.locator(".wx-chart")).toBeHidden();expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   await probe(frame,"display","chart");await settle(page);await expect(frame.locator(".project-milestone-lane-marker")).toHaveCount(1);
   const bounds=await frame.evaluate(node=>{const plot=node.querySelector(".wx-chart")!.getBoundingClientRect(),lane=node.querySelector(".project-milestone-lane-plot")!.getBoundingClientRect(),owner=node.querySelector(".project-gantt-native-owner")!.getBoundingClientRect();return{plotX:plot.x,laneX:lane.x,ownerX:owner.x,plotWidth:plot.width,laneWidth:lane.width,ownerWidth:owner.width,chrome:Array.from(node.querySelectorAll<HTMLElement>(".wx-table-container, .wx-resizer")).slice(0,12).map(element=>({classes:element.className,x:element.getBoundingClientRect().x,width:element.getBoundingClientRect().width,text:element.textContent?.slice(0,60)}))};});
@@ -293,8 +349,14 @@ test("#551 public ISO interval date/header semantics independent oracle", async 
         expect(lower?.className).toContain(`project-gantt-week-date-${expected.start.replaceAll("-", "")}`);
         expect(lower?.text).toMatch(new RegExp(`^${expected.week}`));
         const accessibleWeek = frame.locator(`.project-gantt-week-date-${expected.start.replaceAll("-", "")}`);
-        await accessibleWeek.focus(); await expect(page.getByRole("tooltip")).toContainText(`ISO ${expected.isoYear}-${expected.week}`);
+        // Core는 가상화된 날짜 셀 DOM을 재사용하며 Escape 뒤에도 focus는 남는다.
+        // 현재 날짜의 독립 focus 진입을 검증하도록 먼저 보이는 toolbar로 이동한다.
+        const weekButton = page.getByRole("button", { name: "주", exact: true });
+        await weekButton.focus(); await expect(weekButton).toBeFocused();
+        await accessibleWeek.focus(); await expect(accessibleWeek).toBeFocused();
+        await expect(page.getByRole("tooltip")).toContainText(`ISO ${expected.isoYear}-${expected.week}`);
         await expect(page.getByRole("tooltip")).toContainText(`포함 월 ${expected.label}`); await page.keyboard.press("Escape");
+        await expect(page.getByRole("tooltip")).toHaveCount(0); await expect(accessibleWeek).toBeFocused();
         expect(task.start! >= expected.start && task.start! < expected.end).toBe(true);
         expect(Math.abs(upper!.x - lower!.x)).toBeLessThanOrEqual(1); expect(Math.abs(upper!.right - lower!.right)).toBeLessThanOrEqual(1);
       }
@@ -325,11 +387,13 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   await page.setViewportSize({ width, height: 1000 });
   const { state, frame } = await fixture(page), before = await probe<Observation>(frame, "read");
   const beforeRows = await frame.locator('.wx-table-container .wx-row[data-id]').evaluateAll(nodes => nodes.map(node => ({ id: node.getAttribute("data-id"), height: node.getBoundingClientRect().height })));
+  await page.getByRole("button", { name: "Milestone Timeline 기술 미리보기", exact: true }).click();
   const lane = page.getByLabel("Milestone Timeline", { exact: true }); await expect(lane).toBeVisible();
   expect((await lane.boundingBox())!.height).toBe(64);
   for(const scale of ["day","week"] as const) {
   await page.getByRole("button",{name:scale==="day"?"일":"주",exact:true}).click();
   await expect(lane.locator(".project-milestone-lane-plot")).toBeVisible();
+  await prepareGeometryDateReveal(frame, scale, state.project.revision, before.instance, before.canonicalIds);
   const revealOutcome = await probe<string>(frame, "reveal", "2026-03-10");
   expect(revealOutcome).toBe("SETTLED"); await settle(page);
   const owner = frame.locator(".project-gantt-scroll");
@@ -366,7 +430,55 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   const data={capturedAt:new Date().toISOString(),width,scale,observed,metrics,mutationCount:0,instance:before.instance};
   await captureLane(page,info,`lane-${scale}-${width}`,data);
   }
-  await page.getByRole("button", { name: "◆ Milestone 표시", exact: true }).click(); await expect(lane).toHaveCount(0); expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
+  await page.getByRole("button", { name: "Milestone Timeline 기술 미리보기", exact: true }).click(); await expect(lane).toHaveCount(0); expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   const stopped=await probe<{count:number}>(frame,"laneMeasurement");await page.setViewportSize({width:width+1,height:1000});await settle(page);
   expect((await probe<{count:number}>(frame,"laneMeasurement")).count).toBe(stopped.count);
+});
+
+test("SC-14 marker OFF 3000행의 독립 readiness와 3회 SPA 수명주기 정리", async ({ page }, info) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const { state, frame } = await fixture(page, "large");
+  const observations: LargePopulationObservation[] = [];
+  let documentRequests = 0;
+  page.on("request", (request) => { if (request.resourceType() === "document") documentRequests += 1; });
+  for (let cycle = 0; cycle < 3; cycle++) {
+    const observed = await probe<LargePopulationObservation>(frame, "read");
+    expect(observed).toMatchObject({ canonicalTaskCount: 3000, coreTaskCount: 3000,
+      coreOrdinaryTaskCount: 1000, coreMilestoneCount: 2000 });
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", observed.instance);
+    await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+    const oldFrame = await frame.elementHandle();
+    expect(oldFrame).not.toBeNull();
+    await oldFrame!.evaluate((node) => Reflect.set(node, "__issue667SavedProbe", Reflect.get(node, "__masterganttMilestoneTimeline")));
+    await page.getByRole("link", { name: "masterGantt 홈", exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(() => oldFrame!.evaluate((node) => ({ connected: node.isConnected,
+      ready: Reflect.get(node, "__issue667SavedProbe").ready,
+      published: Reflect.has(node, "__masterganttMilestoneTimeline"),
+      viewport: Reflect.has(node, "__masterganttPublicViewport"),
+    }))).toEqual({ connected: false, ready: false, published: false, viewport: false });
+    await oldFrame!.dispose();
+    await page.goBack();
+    // Preserve the existing independent 5-second readiness gate after return.
+    const ready = await page.waitForFunction(() => {
+      const node = document.querySelector<HTMLElement>(".project-gantt-frame");
+      const candidate = node && Reflect.get(node, "__masterganttMilestoneTimeline");
+      return Boolean(node?.dataset.projectGanttApiInstance && candidate?.instance === node.dataset.projectGanttApiInstance &&
+        typeof candidate.read === "function" && candidate.ready === true);
+    }, undefined, { timeout: 5_000, polling: 100 });
+    await ready.dispose();
+    await settle(page);
+    observations.push(observed);
+  }
+  const returned = await probe<LargePopulationObservation>(frame, "read");
+  expect(returned).toMatchObject({ canonicalTaskCount: 3000, coreTaskCount: 3000,
+    coreOrdinaryTaskCount: 1000, coreMilestoneCount: 2000 });
+  await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  expect(documentRequests).toBe(0);
+  expect(state.posts.length + state.patchRequests.length).toBe(0);
+  await info.attach("marker-off-large-lifecycle", { body: JSON.stringify({
+    observations: [...observations, returned].map(({ instance, canonicalTaskCount, coreTaskCount, coreOrdinaryTaskCount, coreMilestoneCount }) =>
+      ({ instance, canonicalTaskCount, coreTaskCount, coreOrdinaryTaskCount, coreMilestoneCount })),
+    documentRequests, mutationCount: 0, cycles: 3,
+  }), contentType: "application/json" });
 });

@@ -425,7 +425,7 @@
 }
 
 /* Keep the native flex chain when invalid scope recovery temporarily hides it. */
-.project-scope-panel > div.project-gantt-scope-owner {
+.project-scope-panel > div.project-gantt-scope-owner:not([hidden]) {
   display: flex;
   flex: 1 1 0;
   flex-direction: column;

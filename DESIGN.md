@@ -287,3 +287,12 @@ UI/UX 관련 Skill을 **실제로 사용**해 화면을 설계·구현·검토�
 ## Milestone Timeline 표시 분리 (#549)
 
 [Milestone Timeline](docs/MILESTONE_TIMELINE.md)의 MT1은 WBS 작업 행과 프로젝트 전체 날짜 모집단, 작업 필터와 별도 표시 환경설정을 분리한다. 기본 ON 설정과 가시 member 강조는 canonical 일정·전체 Gate 계산·권한·Export를 바꾸지 않는다. 현재 Milestone 행/빠른 보기는 유지하며 후속 lane/표시 전환은 기술 gate 이후다. 기존 파란 Light UI, system font와 semantic token, flat/compact 배치로 Grid/Chart 작업 면적을 유지한다.
+
+
+## Milestone WBS 표시 우선·선택적 상단 마커 (#548 / 2026-10-15)
+
+[Milestone Presentation Policy](docs/MILESTONE_PRESENTATION_POLICY.md)의 현행 수용 목표는 **Gantt native Grid/Chart에서 Milestone 행·Bar를 제외하고 Stage Gate/Task 취합·Roll-up을 기존 Milestone Dashboard에서 관리하는 marker-OFF 기준선**이다. 앞 절 #549의 '기본 ON'은 당시 계획/순수 모델 값이며 이번 별도 제품 활성화의 기본값이 아니다. 기본 화면은 Summary/일반 Task에 공간을 우선 배정하며 'Milestone 표시'와 Milestone 소속 Task 필터를 같은 조작으로 혼합하지 않는다.
+
+Milestone 관리·날짜·소속 Task 탐색은 Gantt marker 없이도 항상 접근 가능해야 한다. 사용자가 marker OFF 상태에서 '해당 날짜에서 보기'를 요청하면 숨은 native 행이나 일시 marker 활성화에 의존하지 않고 기존 Dashboard·Task로 명시적으로 안내한다. 표시 전환은 원본 Stage Gate, 일정, Link, Resource/Target 집계, 권한·Export를 바꾸지 않는다.
+
+추후 상단 Timeline marker는 [#693](https://github.com/planner77/masterGantt/issues/693)의 **선택적인 별도 단계**로만 활성화하며 처음에는 OFF여야 한다. #573의 접근성/390px/날짜축 gate 및 실제 rollback 검증 전 기본 ON으로 출시하지 않는다. 같은 화면에 native Milestone 행과 marker를 중복 노출하지 않는다. 기존 token/flat density/keyboard/focus 원칙은 유지하고 새 시각 테마를 만들지 않는다.

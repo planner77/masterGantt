@@ -12,9 +12,7 @@ export interface MilestoneTimelineCapability {
   readonly timelineModel: MilestoneTimelineModel;
   readonly activeMilestoneTaskId?: string | null;
   readonly onOpenMilestone: (taskId: string, actualTrigger: HTMLElement) => void;
-  readonly onOpenDashboard: (exactTaskId?: string) => void;
-  readonly dateRequest?: Readonly<{ taskId: string; generation: number }> | null;
-  readonly onDateRevealComplete?: (generation: number, result: "marker" | "dashboard") => void;
+  readonly onOpenDashboard: () => void;
 }
 
 export function MilestoneTimelineLane({ capability, points, geometry, contextKey, busy, readOnly, onGuide }: Readonly<{
@@ -32,7 +30,6 @@ export function MilestoneTimelineLane({ capability, points, geometry, contextKey
   const buttons = useRef(new Map<string, HTMLButtonElement>());
   const laneRoot = useRef<HTMLDivElement>(null);
   const focusedMarker = useRef<{ key: string; controlLeft: number } | null>(null);
-  const focusedDateGeneration = useRef<number | null>(null);
   const current = opened ? clusters.find(cluster => cluster.key === opened.key) : null;
   if (opened && (!current || opened.context !== contextKey)) { setOpened(null); setRestore(true); }
   if (selected && (selected.context !== contextKey || !points.some(point => point.row.task.taskId === selected.taskId))) setSelected(null);
@@ -61,20 +58,6 @@ export function MilestoneTimelineLane({ capability, points, geometry, contextKey
     ?? points.find(point => point.row.task.taskId === capability.activeMilestoneTaskId);
   const guideX = guidePoint?.viewportX ?? null;
   useEffect(() => { onGuide(guideX); }, [guideX, onGuide]);
-  useEffect(() => {
-    const request = capability.dateRequest;
-    if (!request || !geometry || focusedDateGeneration.current === request.generation) return;
-    const cluster = clusters.find(item => item.points.some(point => point.row.task.taskId === request.taskId));
-    const button = cluster ? buttons.current.get(cluster.key) : null;
-    focusedDateGeneration.current = request.generation;
-    if (button) {
-      setRoving(cluster!.key); setSelected({ taskId: request.taskId, context: contextKey });
-      button.focus(); capability.onDateRevealComplete?.(request.generation, "marker");
-    } else {
-      capability.onDateRevealComplete?.(request.generation, "dashboard");
-      capability.onOpenDashboard(request.taskId);
-    }
-  }, [capability, clusters, geometry, contextKey]);
   function status(point: MilestoneLanePoint) {
     return `${readOnly ? "읽기 전용 · " : ""}${point.row.task.status === "completed" ? "완료" : "미완료"} · ${point.row.gate.manualEvent ? "수동 단계" : point.row.gate.blocked ? "Blocked" : point.row.gate.ready ? "Ready" : "진행 중"}${point.row.gate.completionInconsistent ? " · 완료 불일치" : ""}`;
   }
@@ -87,7 +70,7 @@ export function MilestoneTimelineLane({ capability, points, geometry, contextKey
   const clusterRows = current?.points.slice((opened?.page ?? 0) * 50, ((opened?.page ?? 0) + 1) * 50) ?? [];
   const reason = milestoneLaneDisplayReason(capability.timelineModel, points, geometry, clusters.length);
   return <div ref={laneRoot} className="project-milestone-lane" aria-label="Milestone Timeline" data-context-key={contextKey}>
-    <button ref={list} className="project-milestone-lane-list" data-milestone-lane-focus="list" type="button" disabled={busy} aria-label={`프로젝트 전체 Milestone 목록 ${capability.timelineModel.timeline.milestones.length}개 · Task 필터와 범위에 관계없이 전체 프로젝트`} onClick={() => capability.onOpenDashboard()}>프로젝트 전체<br />Milestone ({capability.timelineModel.timeline.milestones.length})</button>
+    <button ref={list} className="project-milestone-lane-list" data-milestone-lane-focus="list" type="button" disabled={busy} aria-label={`프로젝트 전체 Milestone 목록 ${capability.timelineModel.timeline.milestones.length}개 · Task 필터와 범위에 관계없이 전체 프로젝트`} onClick={capability.onOpenDashboard}>프로젝트 전체<br />Milestone ({capability.timelineModel.timeline.milestones.length})</button>
     {reason ? <span className="project-milestone-lane-state" role="status">{reason}</span> : null}
     {geometry ? <div className="project-milestone-lane-plot" style={{ left: geometry.left, width: geometry.width }}>
       {clusters.flatMap(cluster => cluster.points.map(point => <span key={point.row.task.taskId} className="project-milestone-lane-tick" aria-hidden="true" style={{ left: point.viewportX }} data-milestone-tick={point.row.task.taskId} />))}

@@ -81,13 +81,30 @@ test("#526 retained expansions remain bounded after ancestor reopen and mode ret
   await tree.getByRole("button", { name: "계층 모두 접기", exact: true }).click(); await expect(tree.locator('[aria-expanded="true"]')).toHaveCount(0);
 });
 
-test("#526 canceled child409 does not stale the current report and hidden detail trigger falls back", async ({ page }) => {
+test("#526 canceled child409 does not stale the current report and hidden detail trigger falls back", async ({ page }, testInfo) => {
   await setup(page); const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("tree");
   let release!: () => void; const held = new Promise<void>(resolve => { release = resolve; }); let entered!: () => void; const requested = new Promise<void>(resolve => { entered = resolve; });
-  await page.route(`**${projectPath}/resource-dashboard/group-children?*`, async route => { entered(); await held; await route.fulfill({ status: 409, json: { error: { code: "RESOURCE_DASHBOARD_SNAPSHOT_STALE" } } }).catch(() => undefined); });
+  let canceledRequest: import("@playwright/test").Request | undefined;
+  let routeFinished = false;
+  const routePattern = `**${projectPath}/resource-dashboard/group-children?*`;
+  await page.route(routePattern, async route => {
+    const request = route.request();
+    canceledRequest = request; entered(); await held;
+    try { await route.fulfill({ status: 409, json: { error: { code: "RESOURCE_DASHBOARD_SNAPSHOT_STALE" } } }); }
+    catch (error) { if (!request.failure()?.errorText.includes("ERR_ABORTED")) throw error; }
+    finally { routeFinished = true; }
+  });
+  try {
   const tree = r.getByRole("region", { name: "Milestone 계층 현황", exact: true }); await tree.getByRole("button", { name: /^그룹 0/ }).click(); await tree.getByRole("button", { name: /^단계 0/ }).click(); await requested;
-  await r.getByRole("button", { name: "개인", exact: true }).click(); release(); await page.waitForTimeout(100); await expect(r).toHaveAttribute("data-ready", "true");
-  await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); const table = r.getByRole("region", { name: "개인 Milestone 비교표", exact: true }); await table.locator("tbody button").first().click(); await expect(r.locator(".resource-dashboard-selected h3")).toBeFocused(); await r.getByLabel("리소스 보기", { exact: true }).selectOption("summary"); await r.getByRole("button", { name: "상세 닫기" }).click(); await expect(r.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" })).toBeFocused();
+  await r.getByRole("button", { name: "개인", exact: true }).click();
+  await expect.poll(() => canceledRequest?.failure()?.errorText).toContain("ERR_ABORTED");
+  release();
+  await expect.poll(() => routeFinished).toBe(true);
+  await page.evaluate(async () => { for (let frame = 0; frame < 8; frame++) await new Promise<void>(resolve => requestAnimationFrame(() => resolve())); });
+  await expect(r).toHaveAttribute("data-ready", "true");
+  await expect(r.getByRole("alert")).toHaveCount(0);
+  await testInfo.attach("canceled-child-completion", { body: JSON.stringify({ abortedBeforeLate409: true, routeFinished, ready: await r.getAttribute("data-ready"), staleAlerts: await r.getByRole("alert").count() }), contentType: "application/json" });
+  await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); const table = r.getByRole("region", { name: "개인 Milestone 비교표", exact: true }); await table.locator("tbody button").first().click(); await expect(r.locator(".resource-dashboard-selected h3")).toBeFocused(); await r.getByLabel("리소스 보기", { exact: true }).selectOption("summary"); await r.getByRole("button", { name: "상세 닫기" }).click(); await expect(r.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" })).toBeFocused();  } finally { release(); await page.unroute(routePattern); }
 });
 
 test("#526 matrix metric grain, missing versus configured zero and unknown completion remain explicit", async ({ page }) => {

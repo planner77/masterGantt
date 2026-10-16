@@ -1,5 +1,17 @@
 # Security
 
+## Issue #623 — 통합 수용의 권한·원자성·복구
+
+기존 public read와 보호 mutation의 session/Origin/strong If-Match,exact canonical Assignment·source/current scope를 실제 HTTP/Chromium·SQLite로 검증한다. 조회/그룹/페이지는 저장0,각 실제 편집은 저장1·원본 ID 보존,401/409/412·잘못된 참조·migration 실패는 부분 저장0을 확인한다. Target/master/Calendar/Resource 변경은 구 report/detail/Excel 성공과 혼합하지 않는다.
+
+합성 DB/화면·제한된 numeric/UUID/hash evidence만 게시하며 실제 backup/DB/WAL/SHM·password/token/.env·운영 로그는 포함하지 않는다. 기존 formula inlineStr/XML escape·한도·no-store/nosniff·포맷 loss guard를 검증하며 보안 정책을 완화하지 않는다. [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에서 운영 restore/환경별 미검증을 구별한다.
+
+## Issue #622 — Target Plan·Resource Excel 안전 경계
+
+기존 public read Plan/detail의 Target/member 근거는 같은 Project read guard·snapshot·bounded page/source/JSON 검증 안에서 제공한다. 선택 밖 Project 참고도 같은 Capacity R의 해당 Project 배정이며 전사 Resource 정보를 조회하지 않는다. 정확 Assignment 수정은 기존 session/Origin/strong If-Match·canonical Task/개인 ID 검증을 그대로 사용한다.
+
+Resource Excel opt-in의 Target 조건은 공통 strict parser로 검증하고 source/current context와 Target/master fingerprint를 같은 read transaction에서 확인한다. stale는 공개 export412로 전체 실패한다. Plain Target-bearing 일정/JSON의 손실 방지는 유지하며 보고서 opt-in만 명시 current/project 근거를 append한다. Target label/분류 문자열은 inlineStr/XML escape·문자 한도·불허 문자 검사로 보호하고 formula/매크로/외부 workbook 관계를 생성하지 않는다. 기존 읽기/편집 권한·no-store/nosniff·본문8KiB 및 row/cell/XML/ZIP·원본/응답 예산을 높이지 않는다. 안전 회귀와 환경별 미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
 ## Issue #538 — Project master relation mutation
 
 `POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.
@@ -435,8 +447,23 @@ Project context는 현재 direct-link public readonly 정책을 적용한다. �
 
 ## Target write authority (#616)
 
-GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Operational security tests and CI are NOT TESTED until exact-head PR checks.
+GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Generic Project auth/Origin/revision policy and historical F2 service tests passed on v0.108.0 Main #2710.1/Release #167.1; dedicated Target HTTP 401/403/409/412, bad ETag, malformed/oversize, rollback tests are newly added in #672 and **NOT TESTED until its exact-Head PR CI**. Product API and authorization policy remain unchanged.
 
 ## #616 versioned Template graph security
 
 Template 저장은 유효한 소스 Project edit-session/strong revision을 확인한 transactional source snapshot에서 F1 occurrence/WorkArea와 F2 typed instance/Target 관계를 수집한다. Template 생성 시 common catalog를 수정하지 않는다. Instantiate는 기존 Origin/create rate limit과 새 Project atomic write를 재사용하며 BU/Product/Site triple·global occurrence/WorkArea·typed member ID를 서버에서 재검증한다. 부재, 중복, 외부 공정, unsupported graphVersion은 409로 전체 rollback한다. Legacy Template은 무그래프 호환, schedule-only JSON 1.1은 Target이 있으면 기존 409 차단 유지.
+
+## Issue #620 — Target 보고 조회 신뢰 경계
+
+Resource–Target 보고는 기존 Project public UUID read를 재사용한다. 별도 private Project 모델이나 조회용 edit password 요구를 추가하지 않으며 Project 편집 세션을 master 관리 권한으로 확대하지 않는다. 기존 protected mutation/admin의 session/Origin/strong If-Match 및401/403은 그대로다. 조회는 `private, no-store`·nosniff이며 Task/Target/기준정보나 revision을 변경하지 않는다.
+
+Target/member/binding·공정 매핑·관련 master 이름/active는 동일 read transaction의 fingerprint에 결속한다. report/detail/drill에서 stale source 또는 현재 Target 참조 변경은409로 거부한다. `exactAssignments`의 출처 제한을 공동담당자의 다른 Assignment로 확대하지 않는다. Target/member 필터의 서로 다른 binding 혼합, 같은 kind의 다른 member type/instance 혼합을 금지한다. canonical public ID를 사용하며 내부 PK·다른 Project Target/instance·글로벌 미할당 Resource/membership을 응답하지 않는다.
+
+새 조건 없는 기존 보고 호환을 유지하고 unknown/cross-project 선택은400, fan-out/cell/응답 예산 초과는422로 전체 거부한다. 오류에 SQL/stack/secret을 포함하지 않으며 부분총계를 완전한 결과로 반환하지 않는다. 전체 Project 참고는 현재 Project 안의 명시 범위이며 다른 Project 데이터 접근 권한이 아니다. [API](API.md), [R2 검증 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+## Issue #621 — Resource Target 조회·정확 Assignment 수정 경계
+
+Target 계층·비교·필터·헤더 상세는 기존 공개 Project read/Resource 보고 scope를 사용하며 저장 권한이나 revision을 변경하지 않는다. #528 exactAssignments source 제한은 Target 조건과 교집합으로 전달하고 공동담당자 전체로 확대하지 않는다. 서버 총계·참고 scope·snapshot 검증과 bounded report 오류를 유지한다.
+
+Assignment 수정은 기존 Task assignments PUT의 optional `editAssignmentId`로 요청하며 기존 session·Origin·strong If-Match·catalog revision을 그대로 적용한다. Project/Task/resource에 속한 정확 Assignment를 검증한 뒤 선택 row만 갱신한다. 다른 Task/Project·Group·가상 Target 헤더·잘못된 ID/기간/allocation은 원자적으로 거부한다. 기존 generic 교체의 의미를 우회하거나 권한 없는 보존/수정 경로를 만들지 않는다. 공동담당자의 allocation=null·비활성/legacy 값은 조회상 원본이며 해당 exact 수정의 대상이 아니다.
+
+readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·취소/재조회 guard를 사용한다. Client 표시 상태는 서버 authorization 근거가 아니며 저장 후 report는 최신 canonical snapshot 또는 명시 stale다. 실제 실행 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.

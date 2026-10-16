@@ -1,0 +1,48 @@
+{
+  "issue": 622,
+  "applicationVersion": "0.114.0",
+  "localFastFeedback": {
+    "domain": {
+      "files": 4,
+      "tests": 67,
+      "status": "PASS"
+    },
+    "backend": {
+      "tests": 80,
+      "status": "PASS"
+    },
+    "frontend": {
+      "unitTests": 19,
+      "uniqueRelatedChromiumTests": 12,
+      "status": "PASS"
+    },
+    "readOnlyReviewer": {
+      "focusedUnitFiles": 6,
+      "focusedUnitTests": 70,
+      "chromiumTests": 1,
+      "chromiumTestSeconds": 22.7,
+      "chromiumTotalSeconds": 35.7,
+      "status": "PASS"
+    },
+    "manager": {
+      "versionTests": 7,
+      "markdownFiles": 216,
+      "typecheck": "PASS",
+      "docsStructuralGate": "PASS",
+      "dependencyGraph": "UNCHANGED"
+    }
+  },
+  "reviewedSourceTestsSha256": "0ca20de819e3609df51a244c60c0dddfde14333cac424408201fba395c44569d",
+  "riskLevel": "HIGH",
+  "qaMethod": "OWNER_MANAGED",
+  "independentQa": "N/A(Owner-managed, 독립 검토 없음)",
+  "managerDecision": "NOT TESTED",
+  "quality": "NOT TESTED",
+  "e2e": "NOT TESTED",
+  "docker": "NOT TESTED",
+  "trustedQa": "NOT TESTED",
+  "mergeReady": "BLOCKED",
+  "releaseRequired": true,
+  "releaseAuthorized": false,
+  "scopeNote": "Overlapping local executions are not summed. Remote Full PR CI start only; no monitoring/merge/release."
+}

@@ -1,3 +1,120 @@
+# Issue #552 — marker-OFF 기준선 / 최신 main 정렬
+
+Refs #552
+
+## 현재 실행 계약 — 2026-10-16
+
+lifecycle_phase: QA_READY
+risk_level: HIGH
+risk_reason: native WBS 표시 전환, 전체 canonical subtree·선택·Dependency·Resource/Target 조회의 교차 회귀
+qa_method: OWNER_MANAGED
+qa_required: true
+manager_decision: NOT TESTED
+MERGE_READY: BLOCKED
+release_required: true
+release_authorized: false
+issue_comment_writer: manager
+documentation_owner: Manager 및 docs_552 지정 작성자
+
+현재 계약은 Issue 본문 2026-10-15 개정 및 [표시 정책](../../MILESTONE_PRESENTATION_POLICY.md)을 따른다. 아래 2026-10-13까지의 기록은 과거 source/실패/실행 이력이며 기본 marker ON·표시 토글·임시 날짜 ON·중복 resize/observer를 현재 제품 요구나 최신 PASS로 재사용하지 않는다.
+
+- repository: planner77/masterGantt; 기존 PR #561 / branch `feat/issue-552-milestone-visibility` 재사용.
+- 착수 원격 Head: `d9334c30c6c262d9089ac8ad99008587435092ed`.
+- 통합 main: `bdaed6bd86612fd168b8ca6b0a40a34966b699d2`, #667 공통 정합성 제품 통합 포함. 양쪽 commit 이력을 보존하며 충돌을 해결한다.
+- application version: main `0.114.1` → 후보 MINOR `0.115.0`. WBS 조회 workflow 전환에 따른 CI_CD SemVer 결정이며 manifest/lockfile의 버전 세 값만 변경한다. dependency graph·릴리스 승인은 변경하지 않는다.
+- 종료점: 구현·관련 LFF·DOCUMENTATION_SYNC·독립 사전 검토·미해결 리뷰/충돌 확인 후 exact-head 전체 PR CI 시작. 결과 모니터링·병합·Main/GHCR·tag/release·Issue 종료·branch cleanup은 범위 밖이다.
+- 현재 review threads: 착수 조회 0건. 게시 직전 다시 확인한다. 로컬 gh/Git push 인증 만료는 GitHub connector로 대체하며 비밀값을 기록하지 않는다.
+
+## 범위와 소유권
+
+Summary/Task만 native Grid/Chart에 표시하고 M row/bar 및 숨은 M endpoint의 native 선을 완전히 제외한다. 전체 canonical Task/Link/Membership·parent/siblingOrder·Summary 기존 파생 날짜·Ready/Completed·Resource/Target·Copy/Export는 보존한다. CSS-only hide, 원본 삭제/재부모화, 임시 endpoint 대체를 사용하지 않는다.
+
+production marker/lane/guide는 OFF다. 마커 전용 예약 높이·listener·observer·RAF·날짜축/scroll 명령을 실행하지 않는다. #551 lane 모듈과 명시 nonproduction preview는 보존하며 운영 활성화는 선택 후속 #693이다. 기본 ON 토글·저장 preference·임시 marker ON·숨은 native M select/date reveal은 운영 경로에서 제거한다. Milestone 날짜 요청은 현재 canonical ID의 Dashboard 상세/소속 Task 안내이며 임의 range extension이 아니다. legacy M-only 조건은 보존하고 Dashboard/유형만 해제의 명시 경로를 제공한다.
+
+공통 projection/reconciler/semantic observation/viewport/axis는 최신 main #667 단일 authority를 사용한다. 기존 #552 중복 정착·resize·복원 경로를 다시 구현하지 않는다. 별도 WBS mode 비상 복구는 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`의 명시 빌드 설정으로만 사용하며 marker OFF와 독립이다. 변경에는 재빌드/재배포가 필요하고 사용자 토글이나 무중단 복구로 주장하지 않는다. rollback 자체도 새 source·CI·Owner gate를 거쳐야 한다.
+
+- frontend_552: `src/**`, `tests/**` 충돌/구현/관련 LFF의 단일 writer. 전체 canonical·권한/원자성 보호 단언을 새 UI 진입점으로 대응한다.
+- docs_552: ARCHITECTURE/MILESTONE_TIMELINE/PROJECT_UX/TASK_EDITOR/TEST_PLAN/UI_UX_GUIDELINES/REQUIREMENTS/TASK_RELATIONS/MILESTONE_STAGE_GATES/PRO_FEATURE_MATRIX/MILESTONE_PRESENTATION_POLICY의 단일 writer.
+- Manager: Work Packet/PLAN/CHANGELOG/package 버전·통합 리뷰·Issue/PR 기록·게시 조정.
+- ux_552: 별도 read-only UX 설계/비교. qa_review_552: 동결 후보의 별도 read-only 사전 검토 예정. 사전 검토는 인간 승인·최종 QA/Owner ACCEPT 대체가 아니다.
+- publish_552: 최종 GO 이후 Git Data transport만 수행. 모든 Agent는 다른 작성자의 파일을 되돌리지 않고 동일 파일 동시 writer를 두지 않는다.
+
+## DOCUMENTATION_SYNC
+
+- `DESIGN.md`: N/A(기존 semantic token·파란 Light UI·system font 재사용, 신규 공통 시각 원칙 없음; Design Delta B)
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/SCHEDULING_ENGINE.md`: N/A(전체 canonical 일정·Summary roll-up·달력·Dependency 계산은 그대로이며 표시 projection만 전환)
+- `docs/REQUIREMENTS.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/MILESTONE_TIMELINE.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/TASK_EDITOR.md`: UPDATED
+- `docs/TASK_RELATIONS.md`: UPDATED
+- `docs/MILESTONE_STAGE_GATES.md`: UPDATED
+- `docs/ARCHITECTURE.md`: UPDATED
+- `docs/PRO_FEATURE_MATRIX.md`: UPDATED
+- `docs/MILESTONE_PRESENTATION_POLICY.md`: UPDATED
+- `docs/exec-plans/active/PLAN.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_552.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
+- `package.json`: UPDATED
+- `package-lock.json`: UPDATED
+- `AGENTS.md`: N/A(현재 main 실행 지침·권한·역할/승인 계약 적용, 새로운 정책이나 역할 추가 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(HIGH/OWNER_MANAGED·Trusted QA·Owner 별도 승인 및 독립 사전 검토 경계 유지)
+- `docs/API.md`: N/A(기존 Dashboard/Editor Gateway 재사용, REST/DTO/session/Origin/revision 및 오류 계약 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite schema/migration·Milestone identity·membership 저장 변경 없음)
+- `docs/SECURITY.md`: N/A(기존 서버 권한·Origin/If-Match·Cookie/session·완료 잠금 검증 유지)
+- `docs/IMPORT_EXPORT.md`: N/A(전체 canonical 교환·Summary subtree Copy와 Template 원본 계약은 불변)
+- `docs/IMPORT_SCHEMA.md`: N/A(JSON/CSV schema·정규화·Import 실행·ID remap 불변; 표시용 누락 원본을 저장하지 않음)
+- `docs/EXCEL_EXPORT.md`: N/A(기존 workbook·시트·수식 안전성·서버 공수 집계·Export API 유지, hidden M canonical 원장 보존)
+- `docs/CI_CD.md`: N/A(현행 SemVer·Required aggregate3·6-shard·Main/Finalizer·GHCR 권한과 릴리스 정책 그대로 적용)
+- `docs/REMOTE_VALIDATION.md`: N/A(현재 PR 전체 CI 시작까지 수행하며 원격 결과·환경별 증거 계약 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(동일 PR/branch 재사용·strict main·리뷰 스레드0·원본 실패 보존 및 승인 경계 유지)
+- `docs/DEPLOYMENT.md`: UPDATED
+- `docs/evidence/issue-552/local-validation-20261016.json`: UPDATED
+- `docs/images/issue-552/manifest.json`: UPDATED
+
+위 UPDATED는 최신 main 대비 실제 diff로 확인한다. 최종 구현이 변경되면 의미 검토·source 동결·LFF 영향 분석 후 Gate를 다시 판정한다.
+
+## AC_TEST_COVERAGE
+
+- AC1: milestone-visibility 및 milestone-visibility-persistence E2E와 milestone-visibility Unit으로 native M row/bar0·기존 빠른 유형/marker 토글 제거·Dashboard 진입을 검증한다.
+- AC2: milestone-stage-grid/timeline-core 및 canonical projection/실제 행 정렬 검증으로 Summary 날짜·계층·일반 Task Link 보존을 확인한다.
+- AC3: 개정 marker OFF 계약에 따라 과거 ON/OFF 네 조합을 OFF 독립성·소속 필터·legacy 저장 preference 무시 및 marker 부작용0 검증으로 대체한다.
+- AC4: milestone-visibility/persistence에서 필터 초기화·scope·상위 탭·복귀·조회 조건과 동일 Gantt instance를 확인한다.
+- AC5: legacy types/M-only·M root drift·stale/deleted exact ID의 명시 Dashboard/조건해제 경로를 확인하고 암묵 전체 확대를 금지한다.
+- AC6: visibility Unit/E2E에서 숨은 M native 선택·explicit clipboard root 제거와 Summary 전체 subtree Copy를 확인한다.
+- AC7: 개정 marker OFF 날짜 안내·Dashboard exact ID 상세/정확 소속 Task 이동 및 기존 Task 날짜 reveal·Resource 복귀를 검증한다.
+- AC8: milestone-stage-grid/timeline-core/projection에서 hidden M/mixed endpoint native 선0과 전체 canonical 관계 보존을 확인한다.
+- AC9: milestone-visibility-persistence와 기존 실제 서버 membership Copy에서 full subtree·Link/Membership remap·completed/401/412/실패 원자성을 보호한다.
+- AC10: visibility/persistence에서 표시/조회만으로 mutation/revision 증가0·marker-only listener/RAF/날짜축/scroll0 및 공통 instance 보존을 확인한다.
+- AC11: empty/manual/M-only·readonly/dirty/stale·완료 guard는 기존 실제 HTTP/SQLite/Editor 진입을 유지하며 관련 선택 로컬/원격 상태를 구분한다.
+- AC12: visibility E2E의 390/768/1024/1440/1920·Day/Week·fullscreen/keyboard/focus/overflow 및 별도 legacy WBS rollback probe를 검증한다.
+
+매핑은 최신 source의 전 AC PASS 선언이 아니다. 이번 로컬 실행·독립 사전 검토와 새 exact-head quality/e2e/docker·Trusted QA·QA_FINAL/Owner ACCEPT를 각각 기록한다. #553 교환 전수·#574 종단 수용·#573/#693 marker ON은 이번 실행으로 완료 처리하지 않는다.
+
+## 이번 실행 증거 / 미검증
+
+최종 Native Add caller 보완 source에서 선택 Chromium59개 고유 명세와 별도 legacy 프로파일의 동일 명세1회, 총60회 PASS를 확인했다. 직접 Search3+Viewport8=11/11(50.6s), visibility/quick-view/mode/Core=29/29(1.8m), 실제HTTP5+Dashboard7+Tooltip6+SC-14대량1=19/19(3.3m), 별도legacy1/1(7.0s)이다. 이 숫자는 전체 Playwright suite 또는 remote required E2E PASS가 아니다.
+
+SC-14는1000Task+2000Milestone canonical·독립5초readiness·SPA3회cleanup의 선택 실행이다. 실제HTTP5는 Summary full-subtree Copy/remap·숨은M 삭제/완료 경계·Assignment/401/412·Resource 왕복·Task↔M sameID/parent/sibling/Membership/revision 왕복이다. mock actual Core와 실제HTTP/SQLite 환경을 구분한다. marker-only observer/listener/RAF0와 dev ON positive control, baseline/legacy OFF와 server mutation0을 검증했다. production browser·정식 이미지 rollback과 모든 환경/조합을 PASS로 올리지 않는다.
+
+최종source Unit246 PASS와 별도Reviewer 직접217 PASS를 구별한다. Unit217은 같은 pure dependency의 별도 재실행이며 두 숫자를 고유463개로 합산하지 않는다. 최종 typecheck(생성설정 원복 후)/변경TS lint0error·기존3warnings/version·Markdown230파일·diff/docs_gate는 PASS다. 최종55파일 지문은 `9a0e3476883426d41ab30c9bb022ebd50136f3ac5b9f35b1fdc7d96d6389f282`이며 정의/파일별SHA를 검증 원장에 기록했다. 별도 `/root/qa_review_552`의 bounded PRE_QA 및 DOCUMENTATION_SYNC 의미 ACK는 PASS다. UI/UX 정적/focus 보완·선택 화면 비교도 별도 PASS이며 게시 동등성은 transport에서 확인한다. 원본/중간 실패와 source 변경에 따른 재검증은 아래에 보존한다. 정확 파일 지문·실행 범위는 [선택 로컬 검증 원장](../../evidence/issue-552/local-validation-20261016.json), 최신 [390px](../../images/issue-552/marker-off-390.png)/[1440px](../../images/issue-552/marker-off-1440.png) 및 [화면 provenance](../../images/issue-552/manifest.json)를 따른다. 화면은 Next dev이며 기술 미리보기 control을 운영 UI로 주장하지 않는다.
+
+독립 사전 검토의 보완 결정: quick-view3을 제거하고 고급 유형은 Summary/Task만 선택 가능하게 한다. legacy M-only 원래 상태는 안내·명시 해제를 유지한다. native Milestone 제거로 기존 Milestone→Task 변환 기능까지 삭제하지 않으며 Dashboard 관리의 기존 Gateway 명령과 canonical ID/revision/parent/membership roundtrip 검증으로 대응한다. Summary root→M drift에서도 Gantt를 unmount하지 않고 같은 instance를 hidden/inert로 보류하여 명시 복귀 전에 scope를 넓히지 않는다. legacy WBS에서는 dev preview를 눌러도 marker ON을 허용하지 않는다. Dashboard의 미완료 선행 Milestone 원인과 완료/임박/지연 등 M-ID KPI가 숨은 native 행으로 이동하지 않도록 정확 ID 상세/현재 관리목록 안내로 전환한다. 일반 Task coverage/bucket·정확 소속 Task의 기존 일정 drill과 source/복귀 정보는 유지한다. 이 항목들은 구현·최종 실행 확인 전 PASS로 올리지 않는다.
+
+제품의 marker-OFF 전환·main #667 authority 정렬 및 문서11개의 충돌/계약 갱신을 마쳤다. 로컬 구조 docs_gate는 required6문서·AC12 매핑 PASS, Markdown230파일과 version check PASS다. Unit239와 typecheck 첫 실행 PASS는 이후 source 변경 전 국소 증거이며 최종 후보 재검증과 구별한다.
+
+추가 재동결 이력: 독립 QA가 직접 Unit7파일214/214 PASS와 src/tests48경로의 지문을 기록했다. KPI exact-ID 기대 순서 오류의 직전19개 실행은18PASS/1FAIL로 보존하고 제품 정렬이 정상임을 구별한다. 이후 focus 복귀2건·지표 표시수·ordinary-only 검색/일반 Task·직접 Summary·context Summary 분리를 보완했다. 다음20개 실행은19PASS/1제품FAIL이다. 날짜 미정 M 상세의 hidden Membership tab이 WBS 라벨용 `recalculateHierarchy`에서 INVALID_DATE render crash를 발생시켰다. date를 임의 생성/저장하지 않고 라벨 lookup의 INVALID_DATE만 미산정 fallback으로 한정하며 호출에서 실제 발생한 INVALID_DATE 외 오류는 다시 전달한다. 날짜 검증이 먼저 중단된 malformed 입력의 후행 중복 ID/cycle까지 검증 완료한 것은 아니며, 서버 canonical/구조 guard는 그대로다. 날짜 미정+복합 malformed 구조의 client 전수 검증은 이번 라벨 fallback의 보장 범위 밖이다. 이 source 변경 후 영향범위 재검증과 독립 재검토 전 이전19PASS를 최신 source 전체 결과로 승격하지 않는다.
+
+교차33개 원본은27PASS/6FAIL이었다. Search1의 제거된 Timeline 목록 버튼과 #571의 숨은 native M 우클릭4건은 새 UI 진입점에 미도달한 테스트 오류로 구분한다. #571은 Dashboard origin으로 대체하지 않고 일정의 일반 Task Editor→Milestone 열기로 같은 schedule-origin을 보존하며 기존 reveal/focus/wheel 취소 단언을 이관한다. 나머지 Native Add 무입력1건은 실제 제품 회귀다. 전체 무필터에도 파생 WBS ID 배열을 filter로 전달해 새 Task 추가 후 context.filter가 바뀌었고 원본 history에서 NATIVE_ADD 등록0·RANGE_EXTENSION만 SETTLED였다. 최소 caller에서 원래 null 의미를 복원하고 M 제외는 separate projection, 선택 범위는 별도 ordinary ID 집합으로 분리한다. Coordinator/filter writer·서버 계약은 변경하지 않는다. 이 보완 후 영향20/실제HTTP5/교차(Core9·Search3·Viewport8)/SC14를 새 source에서 다시 검증한다. 앞 source의 PASS를 새 제품의 전체 인수로 재사용하지 않는다.
+
+초기 browser 실패는 보존한다. 첫 focused 실행은768px Header context locator timeout 이후 중단했다. focused2는6 PASS/2 FAIL/1 INTERRUPTED/5 NOT RUN이었다. 390px geometry의 Header pointer 경로에서 column menu가 생성되지 않은 반복 경계는 같은 locator를 재시도하지 않고 keyboard Shift+F10 경로로 재설계했다. 390px 날짜 상세는 실제 Editor가 열린 뒤 테스트가 존재하지 않는 `작업 이름` label을 사용해 실패했으며 실제 `작업명`으로 정합화한다. 1024px은 작성자의 다음 source 정돈을 위한 Ctrl+C 중단이며 제품 FAIL로 합산하지 않는다. timeout/skip/허용오차 증가는 없다. 당시 최종5폭/DayWeek·실제 HTTP Copy/Delete·legacy rollback·교차 viewport 검증은 진행 중이었다. 이후 최종 source 결과는 이 절 첫머리에 별도로 기록했다.
+
+구현·선택 LFF의 최종 source를 동결했고 독립 사전 검토/문서 의미 ACK를 거쳐 게시한다. 게시 후 exact-head Full PR CI 등록은 Issue STATUS의 run URL/attempt에서 확인하며 결과 모니터링은 하지 않는다. 전체 PR CI 및 최종 QA/Owner ACCEPT: NOT TESTED. 실제 production proxy/TLS·실물 touch/device·screen reader·Windows Excel/DRM·최종 수동 UX는 별도 NOT TESTED다.
+
+## 과거 실행 원장 — 변경 전 요구 및 실패 보존
+
 # Issue #552 — WBS 표시 분리와 Milestone 표시 전환
 
 ## 2026-10-13 — PR CI #2679.1 날짜축·Calendar 회귀 보완
@@ -199,7 +316,7 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - 별도 보완 PR #563 (과거 head `1879d9aa...`, E2E 실패 run #2247.1)은 PR #561/현재 main의 newer #570–#572 source/tests와 가지가 달라 그대로 병합/덮어쓰지 않는다. old E2E 563의 변경을 최신 PASS로 표기하지 않고 전체 CI 실패 시 정확한 테스트/성격별로 다시 검토한다.
 - 제품 신규 기능/DB/API/schema/version 변경 없음. 구조적 QA Preflight는 신뢰된 base SHA 코드로 검사한다. AGENTS.md, QA workflow, policy script, test suite assertion/CI 보호 gate를 수정하지 않는다.
 
-## DOCUMENTATION_SYNC
+## 과거 DOCUMENTATION_SYNC — 2026-10-13
 
 - `DESIGN.md`: N/A(Existing visual tokens and layout direction unchanged by Milestone WBS projection)
 - `docs/TEST_PLAN.md`: UPDATED
@@ -230,7 +347,7 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 - `package.json`: N/A(Version and dependencies preserved; no new release authority)
 - `package-lock.json`: N/A(No dependency change and package version unchanged)
 
-## AC_TEST_COVERAGE
+## 과거 AC_TEST_COVERAGE — 2026-10-13
 
 - AC1: `tests/e2e/milestone-visibility.spec.ts` verifies native WBS Milestone row absent and sole independent display toggle, with `tests/features/gantt/milestone-visibility.test.ts` for projection.
 - AC2: `tests/e2e/milestone-stage-grid.spec.ts` and `tests/e2e/milestone-timeline-core.spec.ts` cover Summary/Task hierarchy, roll-up/row geometry and ordinary dependency preservation.

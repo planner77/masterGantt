@@ -134,3 +134,7 @@ export function deliverProjectionReceipt(receipt: ProjectionReceipt, isCurrent: 
   deliver(receipt);
   return true;
 }
+
+// U3 is opt-in; existing production observers retain their receipt contract.
+export { createProjectionObservation } from "./viewport/projection-observation";
+export type { ProjectionObservationPort, ProjectionObservationContext, ProjectionRowEvidence, SemanticProjectionReceipt, ProjectionObservationResult } from "./viewport/projection-observation";

@@ -1,3 +1,4 @@
+import { copyTaskTargetBindings } from "../logistics/task-target-transfer-core";
 import { copyLogisticsTargets } from "../logistics/logistics-targets-service-core";
 import { readStageSnapshot, withStageProjection } from "./milestone-stage-core";
 import { projectStageGates } from "../../domain/milestones/stage-gates";
@@ -598,6 +599,9 @@ export class ProjectCopyService {
           new Map([...newBySourceSystemId].map(([oldId, row]) => [oldId, row.id])),
           nowText,
         );
+
+        copyTaskTargetBindings(this.database, source.id, project.id,
+          new Map([...newBySourceId].map(([id, task]) => [id, task.id])), nowText);
 
         // 6. 태스크 물류 연결(Task Logistics Links) 복사
         const sourceEqLinks = this.logistics.listAllTaskEquipmentLinks(source.id);

@@ -344,8 +344,48 @@ Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의
 
 #550 관리 메뉴의 삭제 확인 취소/Escape는 저장 중 차단되며 삭제 요청을 보내지 않는다. 확인 중 외부 canonical 갱신으로 호출 trigger가 사라지면 현재 Dashboard의 보이는 검색/추가/heading으로 focus를 복귀한다. 공통 Dialog나 서버 삭제 계약은 변경하지 않는다.
 
-## Issue #552 — 숨긴 M의 같은 Editor와 날짜 조회
+## Issue #617 — Target 연결의 저장 경계 (UI 후속 #618)
 
-Timeline/전체 Dashboard는 같은 canonical M ID와 실제 trigger로 기존 단일 Editor를 연다. 표시 OFF/범위/clip은 Editor dirty/pending 초안을 저장하거나 폐기하지 않는다. 닫기에서 소멸한 marker를 숨은 native M 행 선택으로 복원하지 않고 현재 전체 목록/visible Dashboard 안전 대상으로 복귀한다.
+F3의 Target binding API는 Task/Summary의 명시 연결과 모든 조상 Summary subtree에서 온 상속 연결을 분리해 반환한다. self는 현재 행만, Summary의 subtree는 모든 실제 자손에 적용된다. 관리 Summary는 연결 없이 또는 self만으로 유지할 수 있다. 하위에서 선택한 Target은 상속 Target을 자동 override하지 않는다. whole은 현재 전체 구성, subset은 같은 Target의 실제 member 선택이며 빈 subset을 whole로 확대하지 않는다.
 
-날짜 관리 명령은 유효 canonical date/current snapshot 및 ready/busy guard를 사용하고 소속 drill의 resourceScopeContext와 분리한다. 기존 #550 date context 조건은 이 후보의 canonical 날짜 조회에서 대체되며 소속 작업/리소스 drill guard는 유지한다. 삭제 확인과 기존 Copy 소속 확인은 전체 canonical 숨은 M 수를 설명한다. Assignment Copy 제한을 삭제/Move 포괄 제한으로 확대하지 않으며 기존 session/Origin/revision/완료/관계 보호를 유지한다.
+이번 변경에 새 Target authoring 화면은 없다. #618은 일반 Task/Summary용 editor에서 직접·상속·legacy 출처와 coverage/영향 확인을 표시하고 기존 dirty/pending/readonly/401/412/초안·focus 계약을 따라야 한다. Milestone의 기존 직접 물류 편집은 보존하며 Target UI를 Milestone에 자동 추가하지 않는다. 저장은 Resource 배정·일정·status·Dependency·Milestone membership/Ready를 변경하지 않는다. 서버와 pure resolver의 계약은 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md#f3-구현-후보--issue-617-2026-10-14)를 따른다.
+
+
+## Issue #618 — Target 연결과 legacy 출처
+
+일반 Task/Summary 물류탭은 직접 Target 연결, 상속 출처, 기존 직접 설비·시스템 연결을 분리한다. 기본 self+whole, Summary만 subtree, subset은 같은 Target 구성원 1개 이상을 선택하며 Equipment 작업수량은 optional 원수량 이하 양의 정수다. whole로 전환하면 memberIds/coverage를 비워 현재 전체 구성을 참조한다. Target 미지정 관리 Summary는 유효하다. Milestone의 기존 legacy 직접 연결은 보존하고 새 Target authoring을 허용하지 않는다.
+
+Target child의 dirty/pending를 기존 부모 Editor의 닫기·재조회·탐색·기본정보 저장 잠금과 합성한다. 다른 저장 단위의 미저장 초안을 묵살하지 않는다. 401/412 또는 부모 revision 변경 시 초안을 유지하고 명시 재조회/폐기 전 자동 적용하지 않는다. 상속 출처의 부모로 공통 Editor를 열 수 있으며 Target 링크는 동일 Target 상세를 연다. 읽기 전용에서도 출처/상세 조회가 가능하다. Task 생성·복제와 새로운 SVAR mount는 이 흐름에 없다.
+## Issue #621 — Target Resource 상세에서 같은 원본 편집
+
+Resource–Target projection의 행 key는 조회 경로용이며 저장 대상은 canonical `taskId`와 정확한 `assignmentId/resourceId`다. 여러 Target에 표시된 같은 통합 Task도 하나의 기존 Task Editor에서 편집한다. 작업 이름·일정·진척·상태·Target binding은 기존 탭과 저장 단위를 사용하며 Target 제목/구성은 물류 composer의 별도 명령이다. 가상 Group/Target 헤더·총계에는 작업 저장을 제공하지 않는다.
+
+Assignment 편집 명령은 개인 이름·배정 ID를 표시하고 Resource 편집 경로의 해당 배정으로 이동한다. 공동담당자를 암묵적으로 선택하거나 같은 Task의 모든 개인 allocation을 변경하지 않는다. 기존 server session/Origin/strong If-Match 및 scheduling validation을 그대로 사용한다.
+
+exact 진입에서는 해당 개인만 표시하고 배정 대상 선택을 잠근다. 기간/allocation 저장은 기존 assignments PUT의 optional `editAssignmentId`와 단일 resource target으로 요청한다. generic 전체 교체를 호출해 다른 개인의 ID를 재생성하지 않는다. 선택 Assignment ID와 다른 개인/Group의 ID·날짜·allocation=null·비활성 원본은 보존된다. 같은 값이면 server no-op이며 최신 Project/catalog revision 및 오류 처리는 [API](API.md)를 따른다.
+
+Resource에서 열린 Editor는 실제 trigger와 origin을 전달해 닫기/취소 후 유효한 표시 컨트롤로 focus를 돌린다. 저장 후 report는 새 canonical revision으로 갱신하거나 stale로 잠근다. 편집 결과가 기존 필터에서 탈락하면 그 사유를 안내하고 연결되지 않거나 hidden/inert인 과거 행에 focus를 강제하지 않는다. dirty 확인·pending 중복 방지·권한만료·409/412·불명확 응답의 초안 보존과 명시 재조회는 기존 정책을 따른다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 UI/HTTP/Unit 검증 범위를 기록한다.
+
+
+## Issue #667 — 저장 결과 확인 전 Editor 제한 안내
+
+서버 저장 결과와 최신 조회를 확인할 수 없는 UNKNOWN에서는 Editor 초안을 유지하고 추가 저장 및 하위 Resource/관계/물류 mutation을 잠근다. 명시 최신 조회와 취소는 실제 전송 pending과 구분해 사용할 수 있다. 이 상태의 제한 안내는 저장 결과 확인이 필요한 사유를 표시하며 프로젝트 편집 권한이 없다는 안내로 대체하지 않는다. 실제 401/readonly의 기존 권한 안내는 유지한다.
+
+최신 조회가 성공하면 Editor base revision과 canonical을 갱신하고 conflict 잠금을 해제한다. 열린 modal 자체의 native Gantt 잠금은 유지하며 modal을 닫은 뒤 native 편집을 재개한다. 조회 전에 보존한 초안을 자동 저장하거나 이전 요청을 재전송하지 않는다. 실행 범위와 source별 증거는 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
+
+## Issue #552 — 숨긴 Milestone의 단일 Editor와 날짜 안내
+
+운영 marker-OFF에서 Milestone은 Dashboard의 정확한 canonical ID 관리/관계 명령으로 기존 단일 ProjectTaskEditor를 연다. Native WBS 행·marker가 없어도 full canonical 소속/Link·Ready/Completed·Summary 파생·Resource/Target 원본을 읽으며 dirty/pending/readonly/401/412/응답역전 guard를 유지한다. 닫기·Escape는 현재 연결된 가시 Dashboard trigger로 복귀하고 소멸 시 기존 검색/추가/heading fallback을 사용한다. 숨은 native M select로 focus를 대체하지 않는다.
+
+Milestone 날짜 요청은 상세 날짜 확인과 정확한 소속 일반 Task 탐색으로 명시 안내한다. marker·임시 ON·M 날짜축 확장/scroll은 실행하지 않으며, 실제 일반 Task의 `일정에서 보기`는 기존 #667 Coordinator/port와 정확 ID/focus 계약을 사용한다. 미정 날짜/소속0/조건0을 구별하고 조회 필터를 자동 해제하지 않는다. 기존 삭제 확인·Copy 영향 확인은 full canonical 숨은 M을 설명하며 session/Origin/revision·완료/관계·Assignment Copy 서버 잠금을 해제하지 않는다.
+
+### #552 숨긴 Milestone의 기존 일반 Task 전환
+
+Dashboard 관리의 `일반 Task로 전환`은 같은 canonical ID에 기존 `saveTaskHierarchyCommand({kind:"convert",taskId,targetType:"task"})`/`performTaskHierarchyCommand` gateway를 사용하는 별도 명시 mutation이다. 날짜/소속 확인이나 Editor 열기만으로 변환하지 않는다. readonly/pending/UNKNOWN, completed M, Link endpoint, Membership 참조와 leaf/날짜·session/Origin/revision 서버 guard를 유지한다. 변환을 허용하기 위해 소속/관계 원본을 제거하지 않으며 실패/412/불명확 응답은 기존 최신 조회·초안 및 충돌 보호를 따른다.
+
+허용 leaf의 Task↔Milestone 왕복에서 canonical Task ID/externalId·부모와 sibling order·revision 및 부모 Milestone 소속의 기존 상속 재계산을 유지한다. 성공 시 같은 Gantt의 canonical 갱신을 사용하고 M 목록에서 소멸한 관리 trigger에는 기존 가시 Dashboard heading fallback focus를 적용한다. 일반 Task→Milestone 진입은 기존 native Task 메뉴를 사용하며 hidden native M 행 선택은 하지 않는다.
+
+
+### #552 날짜 미정 Milestone 상세의 라벨 오류 경계
+
+marker-OFF의 날짜·소속 확인은 날짜 미정 Milestone도 같은 canonical ID로 연다. 소속 목록의 WBS 표시 라벨을 계산할 때 날짜 미정으로 계산할 수 없는 값은 명시적으로 미산정으로 표시하고, 임의 날짜를 보충하거나 저장하지 않는다. 호출에서 실제로 발생한 INVALID_DATE 외의 오류는 다시 전달한다. 라벨의 미산정 fallback은 canonical 유효성 판정이나 서버 hierarchy guard를 대체하지 않는다. 날짜 오류 뒤 아직 평가되지 않은 복합 구조 오류까지 검증했다고 주장하지 않는다. 실제 renderer 실패와 보완 후 Editor/소속 조회 결과는 [#552 Work Packet](exec-plans/active/ISSUE_552.md)에서 source별로 구분한다.

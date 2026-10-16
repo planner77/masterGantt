@@ -1,4 +1,43 @@
+## Milestone 표시 정책 변경 — marker-OFF WBS 우선 (#548, 2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 기존 #459~#464 Stage Gate·소속·진척·Ready/Completed·Resource/Target 집계 의미는 유지한다. **#552의 필수 제품 목표는 native Grid/Chart Milestone 행·Bar 0, 상단 Timeline marker OFF**이며, 기존 Dashboard·Task 소속 검색·Editor/관계·숨은 canonical 원본·Copy/Export를 보존한다. #551의 앱 소유 marker lane을 삭제하거나 기본 ON으로 전환하지 않는다. marker ON은 #552/#553/#574 baseline 수용 이후 #573 기술 검증·[#693](https://github.com/planner77/masterGantt/issues/693) 별도 구현/승인으로 최후에 판단한다. #667은 marker 기능을 포함하지 않는 최신 main의 Gantt 상태 정합성 통합을 먼저 담당한다. 기존 과거 #196/#462/MT1 설명은 현재 UI 및 결정 이력이고, 이 새 목표의 구현 완료 증거가 아니다.
+
+---
+
 # Requirements baseline
+
+## Issue #623 — Resource 우선 MVP의 Q1 수용 Gate
+
+기초 공정/Target/Task 연결부터 Resource·Plan·정확 원본 편집·Excel까지 shared canonical fixture와 실제 API/Chromium/OOXML로 통합 재검증한다. 기존530·same-binding/member·T0/A/R·nullable·같은 snapshot·권한/원자성/복귀를 보존하고 fresh/legacy migration·Copy/Template·backup/restart·format 경계를 검증한다.
+
+[수용표](TARGET_RESOURCE_ACCEPTANCE.md)는 요구사항↔Issue↔AC↔test↔문서↔exact-head 원격 인계를 연결한다. [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md)와 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)를 제공한다. 이번 로컬 후보/PR CI 시작은 최종 M2/Owner ACCEPT·main artifact 완료가 아니며 #624/V1이 미완료인 Epic 전체를 종료하지 않는다.
+
+## Issue #622 — Target Resource Plan 및 Excel
+
+Target 조건은 선택 공수만 제한하고 기존 개인 모집단 R·Calendar·고유 resource-day Capacity를 유지한다. 같은 개인의 선택80%/해당 Project 전체140%와 Target 밖 정확 Assignment 원인을 구별한다. 일별 Peak/개인 초과/unknown을 Group 평균이나 기간 합계로 숨기지 않으며 nonadditive distinct 상태는 전체 집합에서 재계산한다.
+
+Plan 상세에서 기존 정확 Assignment/Task Editor로 수정·복귀하고 동일 snapshot으로 갱신한다. opt-in Resource Excel은 current 또는 명시 Project 전체 조건과 동일 raw M/D·M/M·null/ID·Target/공정/WorkArea/member provenance를 출력한다. 수량을 공수에 곱하지 않고 Target 소계는 원가 배분이 아니다. 기존 읽기/편집 권한·stale·formula/크기 예산을 유지한다. #623 종단 수용·정식 release는 별도이며 [R4 Work Packet](exec-plans/active/ISSUE_622.md)의 실제 검증 상태를 따른다.
+
+## Issue #621 — Resource–Target 다관점·동일 원본 편집
+
+기존 Resource 탭은 Group/Resource→Target 계층·역방향·Group/Resource×Target 비교와 같은 server filter를 사용한다. 서버 선택 총계/전체 Project 참고·중첩 비가산·partial/unset·정확 분모는 접힘/페이지로 바꾸지 않는다. 표시 행 key와 canonical Task/Assignment/Target ID를 구별한다.
+
+실제 Task는 기존 Editor, 개인 Assignment는 기존 Resource 편집, Target 구성은 #618 composer에서 수정한다. 정확 Assignment는 기존 PUT의 `editAssignmentId`로 선택 row만 갱신해 ID·공동담당자 원본을 보존한다. 가상 헤더/총계·정렬/보기/필터는 canonical mutation0이다. 서버 권한/Origin/strong If-Match와 dirty/pending/stale guard, 같은 원본 저장 후 report 재검증·유효 scope/focus 복귀를 유지한다. 새 Gantt/PRO/별도 원장은 만들지 않는다. #622 Target Plan/Excel·#623 종단 수용은 별도이며 실제 결과는 [R3 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다.
+
+## Issue #620 — Resource–Target 보고 API
+
+기존 Resource 보고 API는 Target·공정 occurrence/Process Type·WorkArea·typed instance 조건과 Group/Resource/Target projection을 선택적으로 지원한다. 같은 binding/member 및 같은 개인 Assignment 조건, T0 미배정 진단, null/partial·중첩 소계와 distinct 전체를 보존한다. Target 없는 기존 호출은 하위 호환이며 legacy 직접 shared MCS를 Target 연결로 추정하지 않는다.
+
+Task/Assignment와 Target·기준정보를 동일 read transaction에서 읽고 참조 fingerprint를 report/detail/drill 공통 identity에 포함한다. 이전 report와 변경된 Target/master를 섞어 성공하지 않고 stale409로 재조회한다. exact Assignment drill은 source 교집합을 유지하며 공동담당자를 추가하지 않는다. 예산 초과는 절삭 총계 없이422로 거부하고 기존 public read 및 보호 mutation 경계를 유지한다. 기존 Plan 선택 demand는 Target 교집합을 반영하되 R/전체 Project 부하를 보존한다. 새 UI·Target별 Plan 행·Excel 시트 및 종단 수용은 별도 #621~#623이며 [API](API.md), [R2 Work Packet](exec-plans/active/ISSUE_620.md)의 실행 상태를 따른다.
+
+
+## Issue #619 — Target 관련 계획 공수 분석
+
+기존 Resource KPI 계산은 한 Project canonical Task/개인 Assignment/Resource 분류/Calendar 및 #617 Target binding 해석 결과에 Target·공정·WorkArea·typed instance 조회 축을 추가한다. 같은 Target binding 안에서 member 조건을 만족해야 하며 ACS-only subset을 같은 Target의 AMR로 확대하지 않는다. 같은 축은 OR, 다른 축은 AND이고 개인 Group/Role/grade는 같은 개인 Assignment 조건이다.
+
+관련 계획 M/D·M/M, 할당 Task/Resource, 완료/진행/지연·duration 가중 진척, 미배정/공수 미설정을 제공한다. Target 소계는 중첩될 수 있고 선택 전체는 고유 `(projectPublicId,assignmentId)` 원시합으로 계산한다. 실적/원가 기여/잔여공수를 추정하거나 설비 수량을 공수에 곱하지 않는다. Target 미연결·legacy 직접 연결·공통 범위·무구역·공정 미매핑을 구분하고 T0 진단 및 full Milestone Gate를 유지한다.
+
+R1은 pure domain 계약이며 사용자 UI/API/Excel 지원을 뜻하지 않는다. #618 최소 UI와 #620~#622 공개 및 #623 종단 수용은 별도다. 세부 계약과 검증 상태는 [Resource KPI](RESOURCE_KPI_DASHBOARD.md), [Work Packet](exec-plans/active/ISSUE_619.md)을 따른다.
 
 ## Issue #538 — 프로젝트 기준정보 관계 (후속 계약)
 
@@ -483,6 +522,8 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 #523~#529의 기존 Domain/API/Dashboard/Plan/정확한 일정 이동/Excel을 같은 합성 원장으로 대조한다. 일반 Task·개인 Assignment 고유 집합, raw 계획 M/D/M/M, 미설정/null/0, 다중 Group 비가산, 선택 기여와 Project 전체 부하, full Milestone Ready를 유지한다. 통합 테스트는 기존 기능별 검증을 대체하거나 제품 계산·권한을 변경하지 않는다. 사용 흐름과 네 진단의 보완 경로는 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#issue-530-통합-사용자-가이드), 실행 증거는 [Issue #530 계획](exec-plans/active/ISSUE_530.md)을 따른다.
 ## Issue #549 — Milestone Timeline 공통 기반
 
+아래 기본 ON/현재 native행 설명은 MT1 당시 기술 모델·미연결 후보의 이력이다. 현재 #552 marker-OFF 구현 계약은 아래 별도 절을 따른다.
+
 MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Milestone 날짜 모집단, 기본 ON의 독립 표시 설정과 별도 Milestone 조회 선택을 구분한다. 기존 전체 Membership/Gate projector와 전체 subtree/export 의미를 유지하며 검색/scope/viewport로 E(M)/P(M)를 줄이지 않는다. null/invalid 날짜, 수동 이벤트, 완료 기록 불일치를 구별한다. 현재 native Milestone 행·빠른 보기·types를 유지하고 관리/lane/호환 표시 전환 UI는 #550~#553의 선행 gate 후 범위다. 상세 current/target/compatibility와 설치 Core 기술 제한은 [Milestone Timeline](MILESTONE_TIMELINE.md)을 따른다.
 
 
@@ -495,11 +536,13 @@ MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Mile
 
 #550 관리 대상의 소멸이 commit된 뒤 RAF 전에 같은 대상이 복귀해도 메뉴를 자동 재개하지 않아야 한다. 명시적 같은/다른 ID 열기를 오래된 focus 복원이 방해하지 않아야 하며, 삭제 확인 취소/Escape는 disconnected trigger에서도 visible Dashboard fallback과 삭제 요청0을 유지해야 한다.
 
-## Issue #552 — WBS 행과 Timeline 표시 계약
+## Issue #552 — WBS 행과 marker-OFF 표시 계약
 
-기존 #196의 전체/Task/Milestone 빠른 보기와 고급 M 유형은 #552 후보에서 단일 표시 토글로 대체한다. WBS Summary/Task의 matching/context count와 전체 프로젝트 Timeline 모집단을 분리한다. Membership 필터는 전체 canonical context로 계산하며 M 표시 OFF도 유효하다. 기본 ON 설정은 프로젝트별 브라우저 v1 schema이고 명시 토글만 저장한다. 오류에서는 현재 메모리와 한번 알림을 제공한다.
+Native Summary/일반 Task WBS의 matching/context count와 full canonical Milestone 모집단을 분리한다. M native row/bar/대체 endpoint는0이고 production lane/marker/guide·예약 높이·marker-only observer/listener/RAF/date-axis/scroll도0이다. Toolbar 표시 toggle/default ON/temporary ON 및 기존 preference의 제품 활성화 연결은 제거한다. #551 개발 opt-in capability는 보존하고 운영 ON은 #573/#693 후속 범위다.
 
-기존 mixed/M-only 메모리 조건은 다른 조건을 보존해 호환하며 자동 types migration은 없다. canonical M date 조회/일시 표시/출발 조건·viewport 복귀와 exactID Dashboard fallback은 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다. 숨김은 canonical 구조/Link/일정/roll-up/전체 Gate/Copy/Delete/Move/export 입력을 축소하지 않는다. Assignment는 기존 Copy 제한이며 Delete/Move 전체를 새로 잠그지 않는다. API/domain/auth/revision 계약은 불변이다.
+Legacy mixed/M-only 유형은 다른 조건을 보존하고 M-only의 빈 WBS에 Dashboard 열기/명시 유형만 해제 경로를 제공한다. `Milestone 날짜·소속 확인`은 날짜 미정도 같은 canonical M Editor 상세를 열며 정확한 소속 Task 일정 탐색을 별도 제공한다. 숨은 M select·M 날짜용 범위 확장은 실행하지 않는다. 숨김은 canonical 구조/Link/Membership·Summary 파생·전체 Gate/Ready/Completed·Resource/Target·Copy/Delete/Move/Export를 축소하지 않는다. 기존 Assignment Copy·완료/관계 및 API/auth/revision 서버 잠금은 불변이다.
+
+main #667 공통 sync/observation/Coordinator/axis authority를 재사용한다. 기본 WBS `separate-milestones`와 명시 build-time `NEXT_PUBLIC_GANTT_WBS_MODE=legacy` 비상 복구는 marker gate와 독립이며 복구에는 재빌드/재배포가 필요하다. [최신 Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리) 및 [검증 계획](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.
 
 
 Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하고 최신 revision 확인을 요구한다.
@@ -510,7 +553,7 @@ Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하�
 
 기존 `project_processes` 자유 트리·ID·Task/설비 연결을 유지한다. 명시 mapping endpoint만 공통 occurrence/선택 WorkArea를 연결·해제한다. 미매핑 legacy는 계속 조회·편집 가능하며 이름/부모 계층으로 변환하지 않는다. 표준 diff 조회 후 명시 apply로 occurrence만 반영하고 Project 공정·물류는 자동 변경하지 않는다.
 
-공통 쓰기는 기존 Project Master 관리자 세션으로만 허용한다. Project 편집자는 global master를 변경할 수 없다. Project 매핑은 edit session/Origin/If-Match 및 processCatalogRevision 검증 후 실제 매핑 변경 성공당 Project revision을 한 번 증가시키고 동일 값 no-op은 증가시키지 않는다. 사용 중 삭제·reparent·분류 변경은 409이며 명시 해제 후 다시 선택한다. copy는 동일 triple에서 local 공정 ID를 새로 만들고 공통 ID는 유지한다. 매핑 원본 Template 저장은 포맷 확장 전 409다. 신규 관리 UI·Target CRUD·Resource 축은 #616 이후다.
+공통 쓰기는 기존 Project Master 관리자 세션으로만 허용한다. Project 편집자는 global master를 변경할 수 없다. Project 매핑은 edit session/Origin/If-Match 및 processCatalogRevision 검증 후 실제 매핑 변경 성공당 Project revision을 한 번 증가시키고 동일 값 no-op은 증가시키지 않는다. 사용 중 삭제·reparent·분류 변경은 409이며 명시 해제 후 다시 선택한다. copy는 동일 triple에서 local 공정 ID를 새로 만들고 공통 ID는 유지한다. 매핑 원본 Template 저장은 포맷 확장 전 409다. 이 절은 F1 시점 기준이며 **현재 Target CRUD는 #616에서 구현**되었다. Target 연결 UI와 Resource 축은 후속 #617~#621 범위이고, #672는 F2 API/SQLite 인수 검증을 보완한다.
 
 ## Issue #616 — Target grouping
 
@@ -519,3 +562,23 @@ A Project Target groups one or more existing Project Equipment/System instances 
 ## #616 Target Template roundtrip
 
 Project Template은 공정 occurrence/선택 WorkArea와 Target/typed members를 빠짐없이 저장해 새 Project에서 원본 물류 인스턴스가 아닌 새 공정·설비·시스템·Target/member identity를 생성해야 한다. 동일 MCS가 여러 Target에 속해도 신규 Project에 System 한 건만 있어야 하고 공정/WorkArea global 참조는 유효 BU/Product/Site triple에 속해야 한다. 파손된 관계·존재하지 않는 member는 Project 전체 rollback, 이전 Template schema는 하위 호환한다. WBS Binding은 #617, full JSON은 #379 분리.
+
+
+## #672 — Target F2 추가 인수 검증 (2026-10-14)
+
+#672의 v0.108.0 기준 F2 Target CRUD 및 Template v2를 기존 공유 인스턴스 무손상/원자성·권한·0025→0026 파일 DB 재시작·bounded HTTP 테스트로 검증한다. #617 WBS–Target binding 구현 전 `referencedByTaskCount=0`은 미지원 표시용 임시 필드일 뿐 실제 연결 Task 개수를 의미하지 않는다. 정식 릴리스 #167.1 PASS와 F2의 모든 인수 AC 증거는 별도로 판정한다.
+
+## Issue #617 — WBS–Target 연결 수용 범위
+
+- AC1~AC3: Task의 여러 Target, ACS-only subset, 설비단독 legacy Task, 연결 없는 관리 Summary를 지원한다. self/subtree의 직접+모든 조상 합집합은 입력 순서와 무관하며 모든 출처를 보존한다. legacy shared MCS를 Target 배정으로 확대하지 않는다.
+- AC4: whole 구성 변경/새 조상의 영향은 최신 revision으로 확인한다. subset member 삭제·coverage 초과·사용 중 Target 삭제는 전체 rollback하며 빈 subset을 whole로 확대하지 않는다.
+- AC5: reparent/cut은 identity를 유지하고 copy/Project Copy/Template은 명시 연결만 보존·재매핑한다. 상속 평탄화·원본 WBS/Milestone 수정·미지원 형식의 silent loss를 허용하지 않는다.
+- AC6~AC7: 기존 read/edit session·Origin·strong If-Match를 재사용하며 읽기는 revision을 변경하지 않는다. Domain/API/DB/Target/Editor/테스트/Copy·Template·포맷/계획/변경 이력을 동기화한다.
+- AC8: `referencedByTaskCount`의 null=미지원, 0=실제 0건, N=고유 일반 Task N건을 구분하며 Summary는 별도로 세고 Milestone은 일반 Task 수에서 제외한다. legacy directTaskCount와 targetCount는 다른 의미다. 미산출 값을 삭제·KPI 근거로 사용하지 않는다.
+
+`0.109.0` 구현 후보이며 전체 인수는 exact-Head 원격 검증 이후 별도 판정한다. Target authoring UI/Resource 계산은 #618/#619 이후, 정식 릴리스 승인과 병합은 이번 PR CI 시작 범위에 포함하지 않는다.
+
+
+## Issue #618 — Logistics Target F4 기본 구성·연결 UX
+
+기존 물류 Workspace에서 공정/선택 WorkArea 또는 명시 프로젝트 공통 Target을 구성하고 기존 Equipment/System 인스턴스를 생성/재사용한다. Task/Summary는 복수 Target·whole/subset·self/subtree·optional 작업수량을 편집하며 직접/상속/legacy 출처를 구분한다. Target 상세↔WBS는 canonical 동일 Task Editor와 동일 Target composer를 사용하고 조회 때문에 Task를 복제하거나 원본 WBS를 재구성하지 않는다. 공유/whole/subset 영향·삭제 보호·revision·권한·초안·접근성·반응형 계약은 [Target 계약](LOGISTICS_TARGETS.md)과 [F4 실행 원장](exec-plans/active/ISSUE_618.md)을 따른다. Resource 집계와 고급 Dashboard/전용 Timeline은 후속이다.

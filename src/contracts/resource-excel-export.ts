@@ -24,6 +24,14 @@ export interface ResourceExcelReportBundle {
   canonicalProjectUrl?: string;
   basis: "current" | "project"; sourceContext: ResourceDrillSourceContext; originalSourceContext?: ResourceDrillSourceContext;
   scope?: ResourceDrillScope; report: ResourceDashboardDto; plans: Partial<Record<ResourcePlanGranularity, ResourceDashboardPlanDto>>;
+  /** Canonical normalized evidence; projection subtotals and member quantities never multiply effort. */
+  targetData?: {
+    projection: NonNullable<ResourceDashboardDto["targetProjection"]>;
+    graph: import("../domain/resources/resource-kpi-targets").ResourceKpiLogisticsInput;
+    taskSources: import("./task-target-bindings").TaskTargetBindingsDto[];
+    /** Same Capacity R/period, independent of selected Target/Task/Milestone/source restrictions. */
+    projectAssignments: ResourceExcelAssignmentRow[];
+  };
   assignments: ResourceExcelAssignmentRow[];
   quality: { scope: "T0-before-personal-filters"; tasks: ResourceExcelQualityTask[]; unsetAssignments: ResourceExcelUnsetAssignment[] };
 }

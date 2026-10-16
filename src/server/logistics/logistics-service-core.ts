@@ -664,6 +664,10 @@ export class LogisticsService {
         throw new LogisticsValidationError(["Quantity must be 1 for unit management type."]);
       }
 
+      const exceedingCoverage=this.database.prepare(
+        "SELECT 1 FROM task_target_binding_members bm JOIN logistics_target_members m ON m.project_id=bm.project_id AND m.target_id=bm.target_id AND m.id=bm.member_id WHERE m.project_id=? AND m.equipment_id=? AND bm.coverage>? LIMIT 1",
+      ).get(projectId,current.id,qty);
+      if (exceedingCoverage) throw new LogisticsConflictError("TARGET_COVERAGE_EXCEEDS_QUANTITY", "Equipment quantity is below an existing Task coverage.");
       this.logisticsRepo.updateEquipment(projectId, current.id, {
         processId,
         code: input.code,
@@ -734,7 +738,7 @@ export class LogisticsService {
         }
         this.logisticsRepo.deleteEquipment(projectId, current.id);
       } else {
-        this.logisticsRepo.updateEquipment(projectId, current.id, {
+      this.logisticsRepo.updateEquipment(projectId, current.id, {
           active: 0,
           now: nowText,
         });

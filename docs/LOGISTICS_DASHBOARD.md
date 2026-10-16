@@ -204,3 +204,7 @@ Unit은 집합/중복/진척/날짜경계/분모0/미설정/Scope를 검증한�
 기존 `includedTaskIds`, progressPercent, plannedMd, 기간 범위 및 Milestone 경보의 계산 범위는 유지한다. `milestoneStages={milestoneTaskIds,rows}`는 M 직접 물류 일치 또는 effective member의 물류 일치를 통해 관련 고유 M을 추가 표시한다. 해당 row는 전체 E/P의 Ready/Blocked/memberProgress와 전체 위험 원인을 제공하므로 필터 밖 미완료 Task/predecessor도 숨기지 않는다. 관련 M의 전체 E를 기존 물류 수치의 포함 Task 집합에 추가하지 않는다. 상세 [Stage Dashboard 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
 
 기존 구현의 `filter.mdPerMm ?? 20`은 제거했다. 명시 유한 양수 query, 생략 시 유효 RESOURCE_MD_PER_MM, 그 외 null을 사용한다. `mdPerMm=null`은 ENV를 무시하며 empty/invalid/반복 mdPerMm은400이다. 이는 기존 기본20일 환산 및 invalid 무시의 의미 변경이다. M/D는 유지하고 M/M 미설정과 `mdPerMmSource=query|environment|unset`/실제 기준을 UI에 표시한다. 기존 Resource workload의 ENV 기준은 그대로다. horizon 날짜 상한은 ordinal 비교로 처리하여 지원 날짜 말일에서도 기존 inclusive 경계 의미를 유지한다.
+
+## Issue #617 — Target resolver 재사용 경계
+
+F3의 직접+모든 Summary 조상 subtree Target 합집합·typed subset·legacy 출처는 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 단일 pure resolver가 담당한다. 후속 Target/Resource 보기에서 독자 상속 해석기를 만들거나 legacy MCS로 Target을 추론하지 않는다. 이번 변경은 기존 Dashboard의 직접설비/시스템 필터·Task/KPI 분모·Milestone full Gate를 새 Target 축으로 자동 확대하지 않으며 UI와 Resource 축 연결은 #618/#619 이후다. usage의 실제 일반 Task 수와 별도 Summary 수는 legacy directTaskCount 또는 물리 quantity가 아니다.

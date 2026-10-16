@@ -3,6 +3,7 @@
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
+import { copyViewportHandoffSource, createCopyViewportRevocation, type CanonicalMutationRequest } from "./viewport/copy-viewport-continuity";
 import { createSvarViewportPort } from "./viewport/svar-viewport-port";
 
 import { createCoreActionTrace, traceFingerprint, type TraceContext } from "./diagnostics/core-action-trace";
@@ -14,7 +15,6 @@ import {
   defaultTaskTypes,
   type IApi,
   type IColumnConfig,
-  type ILink,
   type ITask,
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
@@ -37,9 +37,9 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
-import { filterMilestoneWbsRows, milestoneDateCoordinate, readMilestoneChartResizeCorrection, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
-import { MilestoneTimelineLane, type MilestoneTimelineCapability } from "./milestone-timeline-lane";
+import { filterMilestoneWbsRows, milestoneDateCoordinate, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
 import { canonicalSubtreeImpact } from "../milestones/milestone-timeline-model";
+import { MilestoneTimelineLane, type MilestoneTimelineCapability } from "./milestone-timeline-lane";
 import type { MilestoneLanePoint } from "./milestone-timeline-lane-model";
 import { localDateFromDateOnly, type DateOnly } from "./date-adapter";
 import type { PeerViewportRestore, PublicGanttViewportReader } from "./peer-viewport-capture";
@@ -108,10 +108,11 @@ import {
   type ProjectTaskCreateCommand,
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
-import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
+import { createProductConsistency } from "./product-consistency";
 import { buildProjection, diffProjection, type CanonicalProjection } from "./canonical-projection";
-import { projectionObservationKey, sameAppliedProjection } from "./viewport/projection-observation";
 import { observeProjectionSettled, deliverProjectionReceipt, type ProjectionReceipt } from "./projection-settled";
+import { createProjectionObservationScheduler } from "./projection-observation-scheduler";
+import { observationAnimationFrame } from "./viewport/observation-animation-frame";
 import { registerTaskUrlSnapshot, findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
@@ -338,6 +339,9 @@ interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
   readonly mutationLocked: boolean;
+  readonly mutationPending?: boolean;
+  readonly mutationRequest?: CanonicalMutationRequest | null;
+  readonly canonicalRecoveryBlocked?: boolean;
   readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
   readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
@@ -393,11 +397,7 @@ function emptyWorkspaceRange(): { start: Date; end: Date } {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);
-  // A first paint must have native horizontal wheel capacity even if every
-  // canonical Task has a one-day range. Dynamic expansion still owns later growth.
-  const visibleWidth = typeof window === "undefined" ? 720 : Math.max(720, window.innerWidth);
-  const days = Math.max(14, Math.ceil(visibleWidth / GANTT_CELL_WIDTH.day) + 6);
-  end.setDate(end.getDate() + days);
+  end.setDate(end.getDate() + 14);
   return { start, end };
 }
 
@@ -427,7 +427,7 @@ export function ProjectGantt({
   editable,
   onSelectionChange,
   selectionRestore,
-  mutationLocked,
+  mutationLocked, mutationPending = false, mutationRequest = null, canonicalRecoveryBlocked = false,
   onCanonicalSyncFailure,
   links,
   onTaskAddRejected,
@@ -455,19 +455,36 @@ export function ProjectGantt({
 }: ProjectGanttProps) {
   const { notify } = useWorkspaceNotifications();
   const apiReference = useRef<IApi | null>(null);
+  const projectionReceiptGeneration = useRef(0);
+  const projectionObservationAttempt = useRef(0);
+  const requestProjectionObservationReference = useRef<(() => void) | null>(null);
+  const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
+  const currentMutationRequestReference = useRef(mutationRequest);
+  const consumedCopyViewportReference = useRef<string | null>(null);
+  const copyViewportRevocationReference = useRef<{ requestId: string; lease: ReturnType<typeof createCopyViewportRevocation> } | null>(null);
+  const readCopyEnvironment = useCallback(() => ({ width: window.innerWidth, height: window.innerHeight, fullscreen: document.fullscreenElement !== null }), []);
+  useLayoutEffect(() => { currentMutationRequestReference.current = mutationRequest; }, [mutationRequest]);
+  useLayoutEffect(() => {
+    // A visible-session receipt cannot prove rows/layout after a hidden peer
+    // view. Revoke it before return commands can pin an older generation.
+    projectionReceiptReference.current = null;
+  }, [viewVisible]);
+  const mutationTicketReference = useRef<import("./canonical-recovery").MutationTicket | null>(null);
+  const consistencyReference = useRef<ReturnType<typeof createProductConsistency> | null>(null);
+  const consistencyBlockedReference = useRef(false);
+  useLayoutEffect(() => { consistencyBlockedReference.current = mutationPending || canonicalRecoveryBlocked; }, [mutationPending, canonicalRecoveryBlocked]);
   const viewportCoordinatorReference = useRef<ViewportCoordinator | null>(null);
   const viewportPortReference = useRef<ReturnType<typeof createSvarViewportPort> | null>(null);
   const [timelinePreview, setTimelinePreview] = useState(false);
   const [timelinePreviewDisplay, setTimelinePreviewDisplay] = useState<"all" | "grid" | "chart">("all");
-  const timelineEnabled = Boolean(milestoneTimeline?.enabled || (process.env.NODE_ENV !== "production" && timelinePreview));
+  const timelineEnabled = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_GANTT_WBS_MODE !== "legacy" && Boolean(milestoneTimeline?.enabled || timelinePreview);
+  // Emergency WBS rollback is independent from the optional marker capability.
+  const wbsDisplayMode = process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy" ? "compatibility" : "separate-milestones";
   const timelineWidget = useRef<HTMLDivElement>(null);
   const [laneGeometry, setLaneGeometry] = useState<MilestonePlotGeometry | null>(null);
   const [lanePoints, setLanePoints] = useState<readonly MilestoneLanePoint[]>([]);
-  const [laneSource, setLaneSource] = useState<{ model: MilestoneTimelineCapability["timelineModel"]; context: string; scale: string; api: string | null; display: string; left: number } | null>(null);
+  const [laneSource, setLaneSource] = useState<{ model: MilestoneTimelineCapability["timelineModel"]; context: string; scale: string; api: string | null; display: string } | null>(null);
   const [laneGuide, setLaneGuide] = useState<number | null>(null);
-  const [revealedDate, setRevealedDate] = useState<{ generation: number; left: number } | null>(null);
-  const milestoneDateCallbacks = useRef(milestoneTimeline);
-  useLayoutEffect(() => { milestoneDateCallbacks.current = milestoneTimeline; }, [milestoneTimeline]);
   const laneMeasurement = useRef<{ count: number; coordinateCount: number; durationMs: number; sourceTasks: number; sourceMilestones: number; queueVersion: number } | null>(null);
 
   const onTaskCreateReference = useRef(onTaskCreate);
@@ -595,8 +612,9 @@ export function ProjectGantt({
   const [selectionHiddenCount, setSelectionHiddenCount] = useState(0);
   const selectionProjectReference = useRef(projectPublicId);
   // Content equality prevents ordinary React renders from clearing clipboard.
-  // Derived result hydration must not erase a copied root when the explicit query is unchanged.
-  const selectionBoundary = JSON.stringify([viewRootTaskId, selectionBoundaryKey]);
+  const selectionBoundary = JSON.stringify([viewRootTaskId, selectionBoundaryKey,
+    visibleTaskIds === null ? null : [...visibleTaskIds].sort(),
+    matchingTaskIds === null ? null : [...matchingTaskIds].sort()]);
   const selectionBoundaryReference = useRef(selectionBoundary);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
@@ -630,9 +648,9 @@ export function ProjectGantt({
     inlineCanonicalReference.current = { revision: projectRevision, tasksById };
   }, [projectRevision, tasksById]);
   useLayoutEffect(() => {
-    visibleTaskIdsReference.current = visibleTaskIds;
+    visibleTaskIdsReference.current = wbsDisplayMode === "compatibility" ? visibleTaskIds : wbsClipboardRootIds(tasks, visibleTaskIds ?? tasks.map(task => task.taskId));
     matchingTaskIdsReference.current = matchingTaskIds;
-  }, [visibleTaskIds, matchingTaskIds]);
+  }, [visibleTaskIds, matchingTaskIds, tasks, wbsDisplayMode]);
 
   const selectionCallback = useRef(onSelectionChange);
   useLayoutEffect(() => {
@@ -640,17 +658,16 @@ export function ProjectGantt({
   }, [onSelectionChange]);
   const updateSelection = useCallback((next: readonly string[]) => {
     const current = selectedTaskIdsReference.current;
-    const api = apiReference.current;
-    const state: unknown = api?.getState().selected;
-    const primary = Array.isArray(state) ? state : typeof state === "string" || typeof state === "number" ? [state] : [];
-    if (api) {
-      for (const id of primary) if ((typeof id === "string" || typeof id === "number") && !next.includes(String(id)))
-        void api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
-    }
     if (current.length === next.length && current.every((id, index) => id === next[index])) return;
     selectedTaskIdsReference.current = next;
     setSelectedTaskIds(next);
     selectionCallback.current?.(next);
+    const api = apiReference.current;
+    const state: unknown = api?.getState().selected;
+    const primary = Array.isArray(state) ? state : typeof state === "string" || typeof state === "number" ? [state] : [];
+    if (api && !next.length) {
+      for (const id of primary) if (typeof id === "string" || typeof id === "number") void api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
+    }
   }, []);
 
   const applySelectionGesture = useCallback((id: string, gesture: "single" | "toggle" | "range", mirrorCore = true, reveal = true, preserveFeedback = false) => {
@@ -682,7 +699,15 @@ export function ProjectGantt({
     }
     const changed = selectionBoundaryReference.current !== selectionBoundary;
     selectionBoundaryReference.current = selectionBoundary;
-    const known = new Set(tasks.filter(task => task.type !== "milestone").map((task) => task.taskId));
+    const known = new Set(tasks.filter(task => wbsDisplayMode === "compatibility" || task.type !== "milestone").map((task) => task.taskId));
+    const api = apiReference.current;
+    for (const id of api?.getState().selected ?? []) if (!known.has(String(id))) void api?.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
+    setTaskClipboard(current => {
+      if (!current) return current;
+      if (current.mode === "cut") return known.has(current.taskId) ? current : null;
+      const roots = current.taskIds.filter(id => known.has(id));
+      return roots.length === current.taskIds.length ? current : roots.length ? { ...current, taskIds: roots } : null;
+    });
     const matching = matchingTaskIds ?? visibleTaskIds;
     const allowed = changed && matching ? new Set(matching) : null;
     const current = selectedTaskIdsReference.current;
@@ -694,18 +719,7 @@ export function ProjectGantt({
         ? `표시 범위 밖의 선택 ${current.length - next.length}개를 해제했습니다.`
         : "표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
     }
-  }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds]);
-
-  const [clipboardSource, setClipboardSource] = useState(tasks);
-  if (clipboardSource !== tasks) {
-    setClipboardSource(tasks);
-    setTaskClipboard(current => {
-      if (!current) return null;
-      if (current.mode === "cut") return wbsClipboardRootIds(tasks, [current.taskId]).length ? current : null;
-      const roots = wbsClipboardRootIds(tasks, current.taskIds);
-      return roots.length === current.taskIds.length ? current : roots.length ? { ...current, taskIds: roots } : null;
-    });
-  }
+  }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds, wbsDisplayMode]);
 
   const restoredSelectionGeneration = useRef<number | null>(null);
   useEffect(() => {
@@ -717,7 +731,7 @@ export function ProjectGantt({
     )
       return;
     restoredSelectionGeneration.current = selectionRestore.generation;
-    const known = new Set(tasks.map((task) => task.taskId)),
+    const known = new Set(tasks.filter(task => wbsDisplayMode === "compatibility" || task.type !== "milestone").map((task) => task.taskId)),
       allowed = matchingTaskIds ?? visibleTaskIds;
     const restored = selectionRestore.ids.filter(
       (id) => known.has(id) && (!allowed || allowed.includes(id)),
@@ -751,6 +765,7 @@ export function ProjectGantt({
     tasks,
     matchingTaskIds,
     visibleTaskIds,
+    wbsDisplayMode,
   ]);
 
   useEffect(() => {
@@ -790,9 +805,7 @@ export function ProjectGantt({
 
   const currentNativeAddContext = useCallback((): string => {
     const sample = viewportPortReference.current?.read(), context = sample?.context;
-    // Adding a Task changes derived visible IDs, while the user query stays
-    // unchanged. Continuity compares query intent, not the previous ID set.
-    return JSON.stringify([context?.apiInstance, context?.key, context?.scope, context?.receiptFilter, context?.scale,
+    return JSON.stringify([context?.apiInstance, context?.key, context?.scope, context?.filter, context?.scale,
       context?.columns, context?.visible, sample?.measurable, window.innerWidth, window.innerHeight,
       document.fullscreenElement === fullscreenFrameReference.current]);
   }, []);
@@ -1486,11 +1499,6 @@ export function ProjectGantt({
   }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
-  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "separate-milestones", columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode]);
-  const projectionReference = useRef<CanonicalProjection | null>(null);
-  useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
-  const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
-  const appliedProjectionApiReference = useRef<IApi | null>(null);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
       const task = typeof local.taskId === "string" ? tasksById.get(local.taskId) : undefined;
@@ -1569,11 +1577,10 @@ export function ProjectGantt({
   const ganttColumnsReference = useRef<IColumnConfig[]>(initialConfig.columns);
   const initialRange = useState(() => {
     const fallback = emptyWorkspaceRange();
-    const starts = initialConfig.tasks.flatMap((task) => task.start instanceof Date ? [task.start] : []).concat(fallback.start);
     const ends = initialConfig.tasks.flatMap((task) => task.end instanceof Date ? [task.end] : []).concat(fallback.end);
-    // New work always starts today. Keep that small range in the initial
-    // scale so a canonical root add remains visible without reinitializing.
-    return { start: new Date(Math.min(...starts.map((date) => date.getTime()))), end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
+    // Retain the initial right extent for later compatibility expansion. Core
+    // derives the left bound so a newly added earlier date cannot invert it.
+    return { end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
   })[0];
 
   const [timelineEndMs, setTimelineEndMs] = useState(initialRange.end.getTime());
@@ -1596,10 +1603,10 @@ export function ProjectGantt({
     if (end.getTime() > timelineEndReference.current.getTime()) {
       timelineEndReference.current = new Date(end);
     }
-    setTimelineEndMs((current) => Math.max(current, timelineEndReference.current.getTime()));
+    setTimelineEndMs(end.getTime());
   }, []);
 
-  const expandTimelineScale = useCallback((api: IApi, minimumScaleWidth: number): boolean => {
+  const expandTimelineScale = useCallback((api: IApi, minimumScaleWidth: number, source?: ViewportStamp): boolean => {
     const state = api.getState() as TimelineState;
     const scaleWidth = state._scales?.width;
     const chartWidth = state._chartWidth;
@@ -1616,7 +1623,13 @@ export function ProjectGantt({
       return false;
     }
 
-    void viewportCoordinatorReference.current?.request({ kind: "RANGE_EXTENSION", width: minimumScaleWidth });
+    if (state._end instanceof Date) {
+      const extraCells = Math.ceil((minimumScaleWidth - scaleWidth) / GANTT_CELL_WIDTH[scaleModeReference.current]);
+      const requested = new Date(state._end);
+      requested.setDate(requested.getDate() + extraCells * (scaleModeReference.current === "week" ? 7 : 1));
+      if (requested > timelineEndReference.current) timelineEndReference.current = requested;
+    }
+    void viewportCoordinatorReference.current?.request({ kind: "RANGE_EXTENSION", width: minimumScaleWidth }, source);
     recordTimelineEnd(api);
     return true;
   }, [recordTimelineEnd]);
@@ -1643,19 +1656,24 @@ export function ProjectGantt({
     if (timelineExtensionFrameReference.current !== null) return;
     timelineExtensionFrameReference.current = requestAnimationFrame(() => {
       timelineExtensionFrameReference.current = null;
-      if (apiReference.current !== api) return;
-      ensureTimelineEnd(api);
+      if (apiReference.current !== api || viewportPortReference.current?.resizing()) return;
       const state = api.getState() as TimelineState;
-      const nextScaleWidth = nextTimelineScaleWidth({
+      const retainedWidth = state._start instanceof Date && state._end instanceof Date && state._end < timelineEndReference.current
+        ? minimumTimelineScaleWidthForEnd({ start: state._start, end: timelineEndReference.current, scaleMode: scaleModeReference.current }) : 0;
+      const edgeWidth = nextTimelineScaleWidth({
         scaleWidth: state._scales?.width,
         scrollLeft: state.scrollLeft,
         viewportWidth: state._chartWidth,
         scaleMode: scaleModeReference.current,
-      });
-      if (nextScaleWidth) expandTimelineScale(api, nextScaleWidth);
+      }) ?? 0;
+      // One registered intent owns both retained coverage and edge growth.
+      // A second request in this frame would cancel asynchronous recovery of
+      // the first request before its geometry observation could complete.
+      const minimumWidth = Math.max(retainedWidth, edgeWidth);
+      if (minimumWidth) expandTimelineScale(api, minimumWidth);
       else recordTimelineEnd(api);
     });
-  }, [ensureTimelineEnd, expandTimelineScale, recordTimelineEnd]);
+  }, [expandTimelineScale, recordTimelineEnd]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1672,9 +1690,6 @@ export function ProjectGantt({
       if (viewportPortReference.current?.resizing()) return;
       scheduleTimelineExtension(api);
     }, { tag });
-    // Core can recompute the date axis when row membership changes without a
-    // physical resize. Preserve the observed horizon for zero-row filters too.
-    api.on("filter-tasks", () => scheduleTimelineExtension(api), { tag });
 
     ensureTimelineEnd(api);
     scheduleTimelineExtension(api);
@@ -1760,7 +1775,8 @@ export function ProjectGantt({
     if (frame) Object.defineProperty(frame, "__masterganttPublicViewport", { configurable: true, get: () => { const state = api.getState(); return { left: state.scrollLeft, top: state.scrollTop }; } });
     if (frame) Object.defineProperty(frame, "__masterganttGridReveal", { configurable: true, get: () => {
       const state = api.getState();
-      return { start: state.start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
+      // Configuration start may be omitted; reveal evidence uses the rendered axis origin.
+      return { start: state._scales?.start ?? state._start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
     } });
     const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }[] = [];
     const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }) => {
@@ -1780,42 +1796,16 @@ export function ProjectGantt({
     if (!timelineEnabled || !viewVisible || !api || !widget || !model) return;
     let cancelled = false, frame: number | null = null, awaiting = false, requested = false;
     const tag = "project-milestone-lane-geometry";
-    let repairedLayout: string | null = null, repairing = false;
-    const yields = new Map<number, () => void>();
-    const yieldFrame = () => cancelled ? Promise.resolve() : new Promise<void>(resolve => {
-      const id = requestAnimationFrame(() => { yields.delete(id); resolve(); }); yields.set(id, resolve);
-    });
-    const measure = () => {
+    const milestoneLaneMeasure = () => {
       frame = null;
       awaiting = true; requested = false;
       const queue = canonicalSyncQueueReference.current;
-      void queue.then(async () => {
-        // Core's asynchronous derived rows and passive Layout ref are not settled
-        // by exec's promise alone. Yield once per requested measurement, not idle.
-        await yieldFrame();
+      void queue.then(() => {
         if (cancelled || apiReference.current !== api || !peerViewportContext.current.visible) return;
         // A queued canonical write can advance the version while we wait.
         // Measure its completed state; request again only if a newer queue won.
         if (canonicalSyncQueueReference.current !== queue) { requested = true; return; }
         const version = canonicalSyncVersionReference.current;
-        // The optional Milestone lane must not mutate the native Chart while a
-        // user/peer viewport is in motion. resize-chart can clamp scrollLeft even
-        // when the lane's geometry measurement was only meant to be read-only.
-        // An empty (ordinary Task-only) project has no dated lane tick to repair.
-        const position = api.getState();
-        const canRepairIdleLane = model.timeline.datedMilestones.length > 0 &&
-          Math.abs(position.scrollLeft) <= 1 && Math.abs(position.scrollTop) <= 1 &&
-          !viewportPortReference.current?.resizing();
-        const correction = canRepairIdleLane ? readMilestoneChartResizeCorrection(api, widget) : null;
-        const layoutKey = correction ? JSON.stringify([version, correction, api.getState()._columnsWidth, widget.offsetWidth]) : null;
-        if (correction && layoutKey !== repairedLayout) {
-          repairedLayout = layoutKey; repairing = true;
-          try { await api.exec("resize-chart", correction); }
-          finally { repairing = false; }
-          await yieldFrame();
-          if (cancelled || apiReference.current !== api || !peerViewportContext.current.visible) return;
-          if (canonicalSyncQueueReference.current !== queue) { requested = true; return; }
-        }
         const geometry = readMilestonePlotGeometry(api, widget), started = performance.now();
         const snapshot = api.getState(), reader = { getState: () => snapshot };
         const points: MilestoneLanePoint[] = [];
@@ -1827,72 +1817,35 @@ export function ProjectGantt({
           if (coordinate?.insideRange && Number.isFinite(viewportX) && viewportX >= geometry.visibleLeft && viewportX < geometry.visibleRight) points.push({ row, viewportX });
         }
         setLaneGeometry(geometry); setLanePoints(points);
-        setLaneSource({ model, context: viewportContinuityKey, scale: scaleMode, api: apiInstanceId, display: timelinePreviewDisplay, left: snapshot.scrollLeft });
+        setLaneSource({ model, context: viewportContinuityKey, scale: scaleMode, api: apiInstanceId, display: timelinePreviewDisplay });
         laneMeasurement.current = { count: (laneMeasurement.current?.count ?? 0) + 1, coordinateCount: model.timeline.datedMilestones.length,
           durationMs: performance.now() - started, sourceTasks: model.canonical.tasks.length, sourceMilestones: model.timeline.milestones.length, queueVersion: version };
       }).finally(() => {
         awaiting = false;
-        if (!cancelled && requested) { requested = false; schedule(); }
+        if (!cancelled && requested) { requested = false; milestoneLaneSchedule(); }
       });
     };
-    const schedule = () => { if (repairing) return; if (awaiting) requested = true; else if (frame === null) frame = requestAnimationFrame(measure); };
+    const milestoneLaneSchedule = () => { if (awaiting) requested = true; else if (frame === null) frame = requestAnimationFrame(milestoneLaneMeasure); };
     const owner = ganttScrollReference.current, chart = widget.querySelector<HTMLElement>(".wx-chart");
-    for (const action of ["scroll-chart", "resize-chart", "resize-grid", "filter-tasks", "update-task"] as const) api.on(action, schedule, { tag });
-    const resize = new ResizeObserver(schedule); resize.observe(widget); if (chart) resize.observe(chart); if (owner) resize.observe(owner);
+    for (const action of ["scroll-chart", "resize-chart", "resize-grid", "filter-tasks", "update-task"] as const) api.on(action, milestoneLaneSchedule, { tag });
+    const resize = new ResizeObserver(milestoneLaneSchedule); resize.observe(widget); if (chart) resize.observe(chart); if (owner) resize.observe(owner);
     // Native Chart scrolling does not necessarily bubble to the outer wrapper.
-    owner?.addEventListener("scroll", schedule, { passive: true }); chart?.addEventListener("scroll", schedule, { passive: true }); window.addEventListener("resize", schedule); schedule();
-    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", schedule); chart?.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
+    owner?.addEventListener("scroll", milestoneLaneSchedule, { passive: true }); chart?.addEventListener("scroll", milestoneLaneSchedule, { passive: true }); window.addEventListener("resize", milestoneLaneSchedule); milestoneLaneSchedule();
+    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", milestoneLaneSchedule); chart?.removeEventListener("scroll", milestoneLaneSchedule); window.removeEventListener("resize", milestoneLaneSchedule); };
   }, [apiInstanceId, timelineEnabled, viewVisible, milestoneTimeline?.timelineModel, scaleMode, viewportContinuityKey, timelinePreviewDisplay]);
-
-  useEffect(() => {
-    const request = milestoneTimeline?.dateRequest, api = apiReference.current, source = tasks;
-    if (!request || !timelineEnabled || !viewVisible || !api) return;
-    const task = source.find(task => task.taskId === request.taskId && task.type === "milestone");
-    if (!task?.start) return;
-    let cancelled = false, userInput = false;
-    const yields = new Map<number, () => void>();
-    const yieldFrame = () => cancelled ? Promise.resolve() : new Promise<void>(resolve => {
-      const id = requestAnimationFrame(() => { yields.delete(id); resolve(); }); yields.set(id, resolve);
-    });
-    const root = ganttScrollReference.current;
-    const input = () => { userInput = true; };
-    for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, input, true);
-    const current = () => !cancelled && !userInput && apiReference.current === api && tasksReference.current === source && peerViewportContext.current.visible;
-    const settle = async () => {
-      let queue = canonicalSyncQueueReference.current;
-      await queue;
-      while (current() && queue !== canonicalSyncQueueReference.current) { queue = canonicalSyncQueueReference.current; await queue; }
-    };
-    void (async () => {
-      await settle(); if (!current()) return;
-      ensureTimelineEnd(api);
-      const outcome = await viewportCoordinatorReference.current?.request({ kind: "DATE_REVEAL", date: localDateFromDateOnly(task.start! as DateOnly) });
-      if (outcome !== "SETTLED") {
-        if (current()) milestoneDateCallbacks.current?.onOpenDashboard(request.taskId);
-        return;
-      }
-      await settle();
-      await yieldFrame();
-      await yieldFrame();
-      if (!current()) return;
-      const geometry = timelineWidget.current ? readMilestonePlotGeometry(api, timelineWidget.current) : null;
-      if (!geometry) { milestoneDateCallbacks.current?.onDateRevealComplete?.(request.generation, "dashboard"); milestoneDateCallbacks.current?.onOpenDashboard(request.taskId); }
-      else setRevealedDate({ generation: request.generation, left: api.getState().scrollLeft });
-    })();
-    return () => { cancelled = true; for (const [id, resolve] of yields) { cancelAnimationFrame(id); resolve(); } yields.clear(); for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, input, true); };
-  }, [apiInstanceId, milestoneTimeline?.dateRequest, timelineEnabled, viewVisible, tasks, ensureTimelineEnd]);
 
   const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
   const milestoneProbeGeneration = useRef(0);
-  // The development-only probe is installed by the SVAR init callback itself:
-  // a 3000-item projection can delay a subsequent React state commit, although
-  // the native Gantt DOM and API already exist. Keep one owner per API instance.
+  // Init can expose diagnostics before React commits the API identity. Readiness
+  // is independently owned by the post-layout viewport installation below.
+  const milestoneProbeReadyReference = useRef<{ api: IApi; id: string; coordinator: ViewportCoordinator } | null>(null);
   const milestoneProbeLifecycleReference = useRef<{ api: IApi; frame: HTMLDivElement; id: string; cleanup: () => void } | null>(null);
   const latestInitializedApiIdReference = useRef<string | null>(null);
   // MT1 technical probe only; never attach it in production. Initialize it
   // synchronously in SVAR init and reconcile StrictMode mount/cleanup here.
   const installMilestoneProbe = useCallback((api: IApi, instanceId: string, frame: HTMLDivElement) => {
-    if (process.env.NODE_ENV === "production" || !frame.isConnected) return;
+    if (process.env.NODE_ENV === "production" || !frame.isConnected ||
+        apiReference.current !== api || latestInitializedApiIdReference.current !== instanceId) return;
     const previous = milestoneProbeLifecycleReference.current;
     if (previous?.api === api && previous.frame === frame && previous.id === instanceId) return;
     previous?.cleanup();
@@ -1906,22 +1859,27 @@ export function ProjectGantt({
         if (events.length > 64) events.shift();
       }, { tag });
     }
+    let active = true;
+    const isReady = () => {
+      const ready = milestoneProbeReadyReference.current;
+      return active && frame.isConnected && apiReference.current === api &&
+        latestInitializedApiIdReference.current === instanceId &&
+        frame.dataset.projectGanttApiInstance === instanceId &&
+        ready?.api === api && ready.id === instanceId &&
+        ready.coordinator === viewportCoordinatorReference.current;
+    };
     Object.defineProperty(frame, "__masterganttMilestoneTimeline", { configurable: true, value: {
-      // Readiness must not enumerate Core's large derived task/scale arrays.
-      // The value belongs to the same initialized API as read().instance.
+      // O(1): no large Core task/scale serialization in the readiness poll.
       instance: instanceId,
-      preview: (enabled: boolean) => { if (typeof enabled === "boolean") setTimelinePreview(enabled); },
-      display: (mode: string) => { if (mode === "all" || mode === "grid" || mode === "chart") setTimelinePreviewDisplay(mode); },
+      get ready() { return isReady(); },
+      preview: (enabled: boolean) => { if (isReady() && typeof enabled === "boolean") setTimelinePreview(enabled); },
+      display: (mode: string) => { if (isReady() && (mode === "all" || mode === "grid" || mode === "chart")) setTimelinePreviewDisplay(mode); },
       laneMeasurement: () => laneMeasurement.current,
-      select: async (ids: string[]) => {
-        const known = new Set(tasksReference.current.map(task => task.taskId));
-        if (!Array.isArray(ids) || ids.length > 500 || !ids.every(id => typeof id === "string" && known.has(id))) return;
-        for (const id of ids) await api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
-      },
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
       reveal: async (date: string) => {
+        if (!isReady()) return false;
         await canonicalSyncQueueReference.current;
-        if (apiReference.current !== api || !peerViewportContext.current.visible) return false;
+        if (!isReady() || !peerViewportContext.current.visible) return false;
         const coordinate = milestoneDateCoordinate(api, date), widget = timelineWidget.current;
         if (!coordinate?.insideRange || !widget) return false;
         const geometry = readMilestonePlotGeometry(api, widget);
@@ -1939,23 +1897,25 @@ export function ProjectGantt({
         const left = Math.min(coordinate.contentX, Math.max(0, chart.scrollWidth - chart.clientWidth));
         return viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left });
       },
-      nativeDateReveal: (date: string) => viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }),
-      scroll: (left: number) => Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),
+      nativeDateReveal: (date: string) => isReady() ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_DATE_REVEAL", date: localDateFromDateOnly(date as DateOnly) }) : Promise.resolve(),
+      scroll: (left: number) => isReady() && Number.isFinite(left) && left >= 0 ? viewportCoordinatorReference.current?.request({ kind: "DIAGNOSTIC_SCROLL", left }) : Promise.resolve(),
       filter: async (ids: string[] | null) => {
-        if (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string"))) return;
+        if (!isReady() || (ids !== null && (ids.length > 500 || !ids.every(id => typeof id === "string")))) return;
         const generation = ++milestoneProbeGeneration.current;
         const source = tasksReference.current;
         milestoneProbeRequest.current = ids === null ? null : { api, ids: [...ids], source, filterKey: visibleTaskFilterKeyReference.current, request: generation };
         await canonicalSyncQueueReference.current;
-        if (apiReference.current !== api || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
-        // Resetting the development probe must restore the production-owned
-        // Summary/Task projection, not reintroduce hidden Milestone WBS rows.
-        // Preserve caller-specified IDs for explicit diagnostic filtering.
-        await filterMilestoneWbsRows(api, ids ?? projectionReference.current?.membershipIds ?? []);
+        if (!isReady() || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
+        await filterMilestoneWbsRows(api, process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy" ? ids : source.filter(task => task.type !== "milestone" && (ids === null || ids.includes(task.taskId))).map(task => task.taskId));
       },
+      select: async (ids: string[]) => { if (!isReady()) return; for (const id of ids) await api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" }); },
       read: () => {
         const state = api.getState();
-        return { instance: instanceId, selected: state.selected, appSelection: [...selectedTaskIdsReference.current], left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
+        const serialized = api.serialize({ data: "tasks" });
+        const coreTasks = Array.isArray(serialized) ? serialized as ITask[] : null;
+        return { selected: (state.selected ?? []).map(String), appSelection: [...selectedTaskIdsReference.current], canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,
+          coreOrdinaryTaskCount: coreTasks?.filter(task => task.type === "task").length ?? null,
+          coreMilestoneCount: coreTasks?.filter(task => task.type === "milestone").length ?? null, instance: instanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
           start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
           weekStart: state._weekStart,
           scaleRows: state._scales?.rows.map(row => ({ count: row.cells.length, width: row.cells.reduce((sum, cell) => sum + cell.width, 0), first: row.cells.slice(0, 3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })), last: row.cells.slice(-3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })) })),
@@ -1966,6 +1926,7 @@ export function ProjectGantt({
     } });
     const published = Reflect.get(frame, "__masterganttMilestoneTimeline");
     const cleanup = () => {
+      active = false;
       api.detach(tag);
       if (Reflect.get(frame, "__masterganttMilestoneTimeline") === published)
         Reflect.deleteProperty(frame, "__masterganttMilestoneTimeline");
@@ -1986,8 +1947,11 @@ export function ProjectGantt({
     };
   }, [apiInstanceId, installMilestoneProbe]);
 
-  // Working-calendar metadata does not change displayed geometry unless canonical Task dates change.
-  const canonicalViewportGeometry = JSON.stringify([visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
+  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode, wbsDisplayMode]);
+  const projectionReference = useRef(projection);
+  useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
+  const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
+  const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
   // Explicit peer/navigation restoration outranks an older metadata-only scroll.
   const peerRestoreAuthorityEpoch = useRef(0);
@@ -2014,17 +1978,91 @@ export function ProjectGantt({
     }
     viewportCoordinatorReference.current?.contextChanged();
   }, [apiInstanceId, projectRevision, viewportContinuityKey, viewRootTaskId, visibleTaskFilterKey, scaleMode, canonicalViewportGeometry, viewVisible, projection.logicalVisibleIds.length, visibleTaskIds, filterActive, calendar, tasks, svarLinks]);
+  useLayoutEffect(() => {
+    const request = mutationRequest;
+    if (!request?.copyViewport) { copyViewportRevocationReference.current = null; return; }
+    if (copyViewportRevocationReference.current?.requestId !== request.requestId)
+      copyViewportRevocationReference.current = { requestId: request.requestId, lease: createCopyViewportRevocation(request.copyViewport) };
+    const lease = copyViewportRevocationReference.current.lease;
+    try {
+      const sample = viewportPortReference.current?.read();
+      if (sample) lease.observe(sample, readCopyEnvironment());
+      else lease.invalidate();
+    } catch { lease.invalidate(); }
+  });
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-copy-viewport-context";
+    api.on("resize-grid", () => copyViewportRevocationReference.current?.lease.invalidate(), { tag });
+    api.on("set-columns", () => {
+      const lease = copyViewportRevocationReference.current?.lease;
+      if (!lease) return;
+      try {
+        const sample = viewportPortReference.current?.read();
+        if (sample) lease.observe(sample, readCopyEnvironment());
+        else lease.invalidate();
+      } catch { lease.invalidate(); }
+    }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId, readCopyEnvironment]);
+  useEffect(() => {
+    const environmentChanged = (event: Event) => {
+      const lease = copyViewportRevocationReference.current?.lease;
+      if (!lease) return;
+      if (event.type === "resize") lease.observeEnvironment(readCopyEnvironment());
+      else lease.invalidate();
+    };
+    window.addEventListener("resize", environmentChanged);
+    document.addEventListener("fullscreenchange", environmentChanged);
+    document.addEventListener("visibilitychange", environmentChanged);
+    return () => {
+      window.removeEventListener("resize", environmentChanged);
+      document.removeEventListener("fullscreenchange", environmentChanged);
+      document.removeEventListener("visibilitychange", environmentChanged);
+    };
+  }, [readCopyEnvironment]);
   useEffect(() => {
     const api = apiReference.current, root = ganttScrollReference.current, frame = fullscreenFrameReference.current;
     if (!api || !root || !frame || !apiInstanceId || !viewportContextReference.current) return;
     const port = createSvarViewportPort({ api, root, frame,
       context: () => ({ ...viewportContextReference.current!, projectionEpoch: projectionReceiptGeneration.current,
         columns: JSON.stringify((api.getState().columns ?? []).map(column => [column.id, column.width, column.hidden])) }),
-      receipt: () => projectionReceiptReference.current,
+      receipt: () => consistencyReference.current?.dataReady() ? projectionReceiptReference.current : null,
       requestedEnd: () => timelineEndReference.current, recordEnd: () => recordTimelineEnd(api),
+      axisSettled: () => {
+        // Ordering only: never await projection/viewport completion inside the data queue.
+        void canonicalSyncQueueReference.current.then(() => {
+          if (apiReference.current === api && !consistencyBlockedReference.current)
+            requestProjectionObservationReference.current?.();
+        });
+      },
+      lease: () => ({ stamp: viewportCoordinatorReference.current!.stamp(), priority: 1 }),
+      canChangeAxis: () => consistencyReference.current?.dataReady() === true && api.getState().scales?.at(-1)?.unit === scaleModeReference.current,
+      nativeForwardInput: left => {
+        const coordinator = viewportCoordinatorReference.current;
+        if (!coordinator) return;
+        coordinator.userInput();
+        const source = coordinator.stamp(), state = api.getState();
+        const width = nextTimelineScaleWidth({ scaleWidth: state._scales?.width, scrollLeft: left, viewportWidth: state._chartWidth, scaleMode: scaleModeReference.current });
+        if (width) expandTimelineScale(api, width, source);
+      },
     });
     const coordinator = createViewportCoordinator(port);
     viewportPortReference.current = port; viewportCoordinatorReference.current = coordinator;
+    const consistency = createProductConsistency({ api, root, apiInstance: apiInstanceId,
+      projection: () => projectionReference.current,
+      identity: () => ({ revision: projectionReference.current.revision, keys: projectionReference.current.keys,
+        query: viewportContextReference.current?.key ?? "", scope: viewportContextReference.current?.scope ?? null }),
+      visible: () => peerViewportContext.current.visible,
+      blocked: () => consistencyBlockedReference.current,
+      intent: () => ({ stamp: coordinator.stamp(), priority: 1 }), frame: port.frame,
+      observationFrame: observationAnimationFrame,
+    });
+    consistencyReference.current = consistency;
+    const dirtyTag = "project-consistency-dirty";
+    for (const action of ["add-task", "update-task", "move-task", "delete-task", "add-link", "update-link", "delete-link"] as const)
+      api.on(action, () => { if (canonicalSyncDepthReference.current === 0) { consistency.invalidate(); projectionReceiptReference.current = null; } }, { tag: dirtyTag });
     onViewportController?.({ stamp: coordinator.stamp, isCurrent: coordinator.isCurrent, filterInput: () => { nativeAddContinuityReference.current = null; coordinator.filterInput(); metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }, capture: () => { const sample = port.read(); return sample.measurable ? sample : null; }, request: command => {
       if (command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL") { nativeAddContinuityReference.current = null; metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }
       return coordinator.request(command);
@@ -2041,8 +2079,16 @@ export function ProjectGantt({
     const events = ["pointerdown", "wheel", "keydown", "touchstart", "input", "change"];
     for (const event of events) document.addEventListener(event, input, { capture: true, passive: true });
     scheduleTimelineExtension(api);
+    // This effect runs after the React layout commit and only publishes after
+    // the matching viewport coordinator and its input listeners are installed.
+    if (process.env.NODE_ENV !== "production")
+      milestoneProbeReadyReference.current = { api, id: apiInstanceId, coordinator };
     return () => {
+      if (milestoneProbeReadyReference.current?.coordinator === coordinator)
+        milestoneProbeReadyReference.current = null;
       nativeAddContinuityReference.current = null;
+      consistency.dispose(); api.detach(dirtyTag);
+      if (consistencyReference.current === consistency) consistencyReference.current = null;
       coordinator.dispose(); port.dispose();
       if (viewportCoordinatorReference.current === coordinator) viewportCoordinatorReference.current = null;
       if (viewportPortReference.current === port) viewportPortReference.current = null;
@@ -2050,7 +2096,7 @@ export function ProjectGantt({
       onViewportController?.(null);
       metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
     };
-  }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension]);
+  }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension, expandTimelineScale]);
   useLayoutEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore ||
       peerViewportRestore.key !== viewportContinuityKey ||
@@ -2070,29 +2116,46 @@ export function ProjectGantt({
   }, []);
   const restoreCanonicalMetadataViewport = useCallback(async (api: IApi) => {
     const request = metadataViewportReference.current;
-    // Native add owns its pre-mutation continuity until the new projection settles.
-    // A metadata-only render must not supersede that stronger intent.
-    if (!request || request.consumed || nativeAddContinuityReference.current) return;
+    if (!request || request.consumed) return;
     request.consumed = true;
     // A no-op render has no authority to replay coordinates after receipt wait.
     if (!request.protect && request.left === 0 && request.top === 0) return;
     // The data queue must finish before #570 can observe a projection receipt.
     // Enqueue viewport intent without awaiting that receipt inside the data queue.
     void canonicalSyncQueueReference.current.then(() => {
-      if (metadataViewportReference.current !== request || request.hasInput() || pendingPeerRestoreReference.current || nativeAddContinuityReference.current ||
+      if (metadataViewportReference.current !== request || request.hasInput() || pendingPeerRestoreReference.current ||
         request.peerEpoch !== peerRestoreAuthorityEpoch.current || api !== apiReference.current ||
         request.root !== ganttScrollReference.current || !request.stamp) return;
       void viewportCoordinatorReference.current?.request({ kind: "PASSIVE_RESTORE", position: { left: request.left, top: request.top }, protect: request.protect }, request.stamp);
     });
   }, []);
+  useEffect(() => {
+    const consistency = consistencyReference.current;
+    if (!consistency) return;
+    if (mutationPending && consistency.recovery.state().recovery.phase !== "PENDING") {
+      if (!mutationRequest) return;
+      mutationTicketReference.current = consistency.recovery.beginMutation(mutationRequest.requestId, mutationRequest.affectedIds, mutationRequest.baseRevision);
+      projectionReceiptReference.current = null;
+      consistency.observation.invalidate();
+    } else if (!mutationPending && consistency.recovery.state().recovery.phase === "PENDING") {
+      // The Workspace owns the exact HTTP response and latest canonical GET.
+      // A completed request becomes reconcilable only once its result is known.
+      consistency.invalidate();
+      const ticket = mutationTicketReference.current;
+      if (ticket) consistency.recovery.completeMutation(ticket, mutationRequest?.outcome === 401 ? 401 : canonicalRecoveryBlocked ? "NETWORK" : mutationRequest?.outcome ?? "SUCCESS");
+      mutationTicketReference.current = null;
+    }
+  }, [mutationPending, mutationRequest, canonicalRecoveryBlocked, apiInstanceId]);
+
+  useEffect(() => {
+    // editable follows the Workspace's server-confirmed session check/unlock.
+    if (editable) consistencyReference.current?.recovery.confirmAuthorization();
+  }, [editable, apiInstanceId]);
+
   const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
   const appliedCanonicalViewportMetadataReference = useRef<string | null>(null);
   const appliedCanonicalViewportRevisionReference = useRef<number | null>(null);
   useEffect(() => {
-    const applied = appliedProjectionReference.current;
-    // Fresh DTO arrays from metadata reads are not a new canonical commit.
-    // Replaying an identical commit can invalidate an in-flight restore.
-    if (sameAppliedProjection(applied, projection, appliedProjectionApiReference.current, apiReference.current)) return;
     const requestedApi = apiReference.current;
     const viewportSource = viewportCoordinatorReference.current?.stamp() ?? null;
     const registeredViewport = viewportPortReference.current?.read();
@@ -2104,7 +2167,7 @@ export function ProjectGantt({
       fullscreenFrameReference.current.dataset.ganttCanonicalSyncGeneration = String(syncVersion);
     }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
-      if (syncVersion !== canonicalSyncVersionReference.current || projectionReference.current?.revision !== projection.revision || projectionReference.current?.keys.data !== projection.keys.data || projectionReference.current?.keys.structure !== projection.keys.structure) return;
+      if (syncVersion !== canonicalSyncVersionReference.current || projectionReference.current.revision !== projection.revision || projectionReference.current.keys.data !== projection.keys.data || projectionReference.current.keys.structure !== projection.keys.structure) return;
       // Compare with the geometry that actually completed the previous canonical sync.
       // A render that was superseded before its queued sync ran must not become the
       // viewport-restoration baseline for the surviving update.
@@ -2113,7 +2176,7 @@ export function ProjectGantt({
         appliedCanonicalViewportGeometryReference.current === canonicalViewportGeometry;
       const api = apiReference.current;
       if (!api || api !== requestedApi) return;
-      const isCurrent = () => syncVersion === canonicalSyncVersionReference.current && apiReference.current === api && projectionReference.current?.revision === projection.revision && projectionReference.current?.keys.data === projection.keys.data && projectionReference.current?.keys.structure === projection.keys.structure && projectRevisionReference.current === projection.revision;
+      const isCurrent = () => syncVersion === canonicalSyncVersionReference.current && apiReference.current === api && projectionReference.current.revision === projection.revision && projectionReference.current.keys.data === projection.keys.data && projectionReference.current.keys.structure === projection.keys.structure && projectRevisionReference.current === projection.revision;
 
       canonicalSyncDepthReference.current += 1;
       if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
@@ -2151,21 +2214,25 @@ export function ProjectGantt({
         void canonicalSyncQueueReference.current.then(cleanup, cleanup);
       }
       try {
-        const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
-        const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
+        if (consistencyBlockedReference.current) return;
+        const consistency = consistencyReference.current;
+        if (!consistency) return;
         diagnosticTraceReference.current?.record("effect-apply", "canonical-sync");
-        await applyCanonicalGanttSync(
-          api,
-          { tasks: currentTasks, links: currentLinks },
-          { tasks: svarTasks, links: svarLinks },
-          isCurrent,
-        );
+        const recovery = await consistency.recovery.recover();
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current)
+          fullscreenFrameReference.current.dataset.ganttCanonicalRecovery = JSON.stringify({ outcome: recovery.outcome, reason: "reason" in recovery ? recovery.reason : undefined, changed: "changed" in recovery ? recovery.changed : undefined });
+        if (recovery.outcome === "SUPERSEDED" || recovery.outcome === "BLOCKED") return;
+        if (recovery.outcome !== "SETTLED") throw new Error("CANONICAL_RECOVERY_FAILED");
         if (!isCurrent()) return;
         appliedProjectionReference.current = projection;
-        appliedProjectionApiReference.current = api;
         appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
-        ensureTimelineEnd(api);
-        await restoreCanonicalMetadataViewport(api);
+        if (recovery.changed) {
+          ensureTimelineEnd(api);
+          await restoreCanonicalMetadataViewport(api);
+        } else {
+          metadataViewportReference.current?.cleanup();
+          metadataViewportReference.current = null;
+        }
         if (isCurrent()) {
           appliedCanonicalViewportMetadataReference.current = canonicalViewportMetadata;
           appliedCanonicalViewportRevisionReference.current = projectRevision;
@@ -2186,7 +2253,42 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, projection.keys.data, projection.keys.structure, projectRevision, apiInstanceId, restoreCanonicalMetadataViewport, projection]);
+  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, projection.keys.data, projection.keys.structure, projectRevision, apiInstanceId, restoreCanonicalMetadataViewport, projection, mutationPending, canonicalRecoveryBlocked]);
+
+  useEffect(() => {
+    const request = mutationRequest, coordinator = viewportCoordinatorReference.current;
+    if (!request?.copyViewport || mutationPending || consumedCopyViewportReference.current === request.requestId) return;
+    consumedCopyViewportReference.current = request.requestId;
+    if (!coordinator || request.outcome !== "SUCCESS" || request.copyViewport.confirmedRevision === undefined || canonicalRecoveryBlocked) return;
+    let cancelled = false;
+    // This fork waits on data ordering; viewport completion never joins the data queue.
+    void canonicalSyncQueueReference.current.then(async () => {
+      if (cancelled || currentMutationRequestReference.current !== request || viewportCoordinatorReference.current !== coordinator) return;
+      const port = viewportPortReference.current, consistency = consistencyReference.current, lifetime = copyViewportRevocationReference.current;
+      if (!port || !consistency || lifetime?.requestId !== request.requestId) return;
+      const sample = port.read(), applied = appliedProjectionReference.current, desired = projectionReference.current;
+      const source = copyViewportHandoffSource(request, {
+        requestId: currentMutationRequestReference.current.requestId, sample, stamp: coordinator.stamp(), environment: readCopyEnvironment(),
+        blocked: consistencyBlockedReference.current, revoked: lifetime.lease.isRevoked(),
+        canonicalReady: consistency.dataReady() && consistency.recovery.state().recovery.phase === "SETTLED" &&
+          applied?.revision === desired.revision && applied.keys.data === desired.keys.data && applied.keys.structure === desired.keys.structure,
+      });
+      if (!source) return;
+      const sourceCurrent = () => {
+        if (cancelled || currentMutationRequestReference.current !== request || copyViewportRevocationReference.current !== lifetime ||
+          viewportCoordinatorReference.current !== coordinator || consistencyBlockedReference.current || !consistency.dataReady()) return false;
+        return lifetime.lease.observe(port.read(), readCopyEnvironment());
+      };
+      await coordinator.request({ kind: "PASSIVE_RESTORE", position: { left: request.copyViewport!.left, top: sample.core.top }, compatibility: true, protect: false, sourceCurrent }, source);
+    }).catch(() => {
+      const lifetime = copyViewportRevocationReference.current;
+      if (lifetime?.requestId !== request.requestId) return;
+      lifetime.lease.invalidate();
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current)
+        fullscreenFrameReference.current.dataset.ganttCopyViewportFailure = "COPY_VIEWPORT_RESTORE_FAILED";
+    });
+    return () => { cancelled = true; };
+  }, [mutationRequest, mutationPending, canonicalRecoveryBlocked, apiInstanceId, readCopyEnvironment]);
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; structure: string } | null>(null);
   useEffect(() => {
@@ -2195,17 +2297,17 @@ export function ProjectGantt({
     diagnosticTraceReference.current?.record("effect-request", "filter-tasks");
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
-      if (!api || api !== requestedApi || !apiInstanceId || projectionReference.current?.revision !== requestedProjection.revision || projectionReference.current?.keys.membership !== requestedProjection.keys.membership || projectionReference.current?.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
+      if (!api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
       const applied = appliedTaskFilterReference.current;
       // Parent renders produce fresh arrays; avoid reapplying the same
       // filter while the project editor owns focus.
       const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
       const expandedTree = new Set(currentTasks.filter(task => task.open !== false).map(task => String(task.id)));
-      const expected = buildProjection({ revision: requestedProjection.revision, tasks: currentTasks, links: [], displayTasks: [] }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "separate-milestones", expandedTree, columnPrefs: null, scale: scaleMode });
+      const expected = buildProjection({ revision: requestedProjection.revision, tasks: currentTasks, links: [], displayTasks: [] }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, expandedTree, columnPrefs: null, scale: scaleMode });
       const actualVisibleIds = api.getState()._tasks.map(task => String(task.id));
       const membershipCorrect = JSON.stringify(actualVisibleIds) === JSON.stringify(expected.logicalVisibleIds);
       if (applied?.api === api && applied.key === requestedProjection.keys.membership && applied.structure === requestedProjection.keys.structure && membershipCorrect) return;
-      const visible = new Set(requestedProjection.membershipIds);
+      const visible = wbsDisplayMode === "compatibility" && visibleTaskIds === null ? null : new Set(requestedProjection.membershipIds);
       // Matching IDs alone do not prove that Core's rendered tree has the new
       // hierarchy/type payload. Structural commits still need a public refresh.
       if (!visible && !taskFilterAppliedReference.current && membershipCorrect && applied?.api === api && applied.structure === requestedProjection.keys.structure) {
@@ -2223,14 +2325,14 @@ export function ProjectGantt({
       const summaryIntent = new Map(summaryToggleStateReference.current);
       const parentIds = new Set(currentTasks.filter(task => task.parent).map(task => String(task.parent)));
       for (const [id, collapsed] of summaryIntent) {
-        if (apiReference.current !== api || projectRevisionReference.current !== requestedProjection.revision || projectionReference.current?.keys.membership !== requestedProjection.keys.membership) return;
+        if (apiReference.current !== api || projectRevisionReference.current !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership) return;
         const task = api.getTask(id);
         if (task && parentIds.has(id) && Boolean(task.open) === collapsed) await api.exec("open-task", { id, mode: !collapsed });
       }
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, timelinePreviewDisplay]);
+  }, [apiInstanceId, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode]);
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const request = milestoneProbeRequest.current;
@@ -2302,10 +2404,8 @@ export function ProjectGantt({
   // Scale changes have their own saved-width restoration path below.
   }, [columns, ensureTimelineEnd, apiInstanceId]);
 
-  const projectionReceiptGeneration = useRef(0);
-  const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
+
   const observedProjectionReference = useRef<CanonicalProjection | null>(null);
-  const settledProjectionObservationReference = useRef<string | null>(null);
   const observedQueryReference = useRef<string | null>(null);
   const observedSelectionReference = useRef<{ api: IApi; ids: readonly string[] } | null>(null);
   useEffect(() => {
@@ -2314,45 +2414,77 @@ export function ProjectGantt({
     let disposed = false;
     let observation: ReturnType<typeof observeProjectionSettled> | null = null;
     const requested = projection;
-    const previous = observedProjectionReference.current;
-    const reasons = diffProjection(previous, requested).reasons;
-    const reuseReceipt = () => {
-      const key = projectionObservationKey(requested, viewportPortReference.current?.read() ?? null);
-      return key !== null && key === settledProjectionObservationReference.current;
-    };
+    const reasons = diffProjection(observedProjectionReference.current, requested).reasons;
     observedProjectionReference.current = requested;
-    const observe = (trigger: "projection" | "open-task" | "select-task" | "layout" = "projection") => {
+    const observe = (triggers: readonly ("projection" | "open-task" | "select-task" | "layout")[]) => {
       observation?.cancel();
       const queryConditionsChanged = observedQueryReference.current !== viewportContinuityKey;
       const selectedIds = (api.getState().selected ?? []).map(String);
       const previousSelection = observedSelectionReference.current?.api === api ? observedSelectionReference.current.ids : [];
-      const taskSelectionChanged = trigger === "select-task" || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
-      const generation = ++projectionReceiptGeneration.current;
+      const taskSelectionChanged = triggers.includes("select-task") || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
+      const generation = ++projectionObservationAttempt.current;
+      const reportObservation = (stage: "rows" | "semantic" | "delivery", outcome: string) => {
+        if (process.env.NODE_ENV !== "production" && !disposed && generation === projectionObservationAttempt.current)
+          root.dataset.ganttProjectionObservation = JSON.stringify({ generation, stage, outcome });
+      };
+      reportObservation("rows", "PENDING");
       const isCurrent = () => !disposed && apiReference.current === api &&
-        generation === projectionReceiptGeneration.current && projectRevisionReference.current === requested.revision &&
-        projectionReference.current?.keys.data === requested.keys.data && projectionReference.current?.keys.structure === requested.keys.structure && projectionReference.current?.keys.membership === requested.keys.membership &&
-        projectionReference.current?.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
+        generation === projectionObservationAttempt.current && projectRevisionReference.current === requested.revision &&
+        projectionReference.current.keys.data === requested.keys.data && projectionReference.current.keys.structure === requested.keys.structure && projectionReference.current.keys.membership === requested.keys.membership &&
+        projectionReference.current.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
       observation = observeProjectionSettled(api, root, requested, { apiInstance: apiInstanceId, generation,
-        reasons: trigger === "layout" ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
+        reasons: triggers.includes("layout") ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
       void observation.promise.then(receipt => {
-        if (disposed || generation !== projectionReceiptGeneration.current) return;
-        deliverProjectionReceipt(receipt, isCurrent, receipt => {
+        if (disposed || generation !== projectionObservationAttempt.current) return;
+        reportObservation("rows", receipt.outcome);
+        const consistency = consistencyReference.current;
+        if (receipt.outcome !== "SETTLED") return;
+        if (!consistency) { reportObservation("semantic", "UNAVAILABLE"); return; }
+        if (consistencyBlockedReference.current) { reportObservation("semantic", "BLOCKED"); return; }
+        reportObservation("semantic", "PENDING");
+        void consistency.observation.observe(requested).promise.then(result => {
+        reportObservation("semantic", result.outcome);
+        if (!result.receipt || result.outcome !== "SETTLED") return;
+        if (!isCurrent()) { reportObservation("delivery", "SUPERSEDED"); return; }
+        const accepted = consistency.observation.deliver(result.receipt, semantic => {
+        const semanticGeneration = semantic.semanticId;
+        projectionReceiptGeneration.current = semanticGeneration;
+        const bridged = { ...receipt, generation: semanticGeneration };
+        const delivered = deliverProjectionReceipt(bridged, () => !disposed && consistency.observation.isCurrent(semantic), receipt => {
         // Later tree/selection/layout observations must compare with the last
         // delivered query, rather than reuse the effect's initial change flag.
         observedQueryReference.current = viewportContinuityKey;
         observedSelectionReference.current = { api, ids: receipt.selectedIds };
         projectionReceiptReference.current = receipt;
-        settledProjectionObservationReference.current = projectionObservationKey(requested, viewportPortReference.current?.read() ?? null);
         root.dispatchEvent(new CustomEvent("mastergantt:projection-settled", { bubbles: true, detail: receipt }));
-        if (process.env.NODE_ENV !== "production") root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);
+        if (process.env.NODE_ENV !== "production") {
+          root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);
+          root.dataset.ganttSemanticProjectionReceipt = JSON.stringify({ semanticId: semantic.semanticId, observation: result.observation.id, reused: result.reused });
+          reportObservation("delivery", "SETTLED");
+        }
+        });
+        if (!delivered) reportObservation("delivery", "SUPERSEDED");
+        });
+        if (!accepted) reportObservation("delivery", "REJECTED");
         });
       });
     };
+    const scheduler = createProjectionObservationScheduler({
+      queue: () => canonicalSyncQueueReference.current,
+      current: () => !disposed && apiReference.current === api,
+      observe,
+      failed: () => {
+        if (process.env.NODE_ENV !== "production" && !disposed && apiReference.current === api)
+          root.dataset.ganttProjectionObservation = JSON.stringify({ stage: "ordering", outcome: "FAILED" });
+      },
+    });
+    const observeAxisLayout = () => scheduler.request("layout");
+    requestProjectionObservationReference.current = observeAxisLayout;
     // The queue is only an ordering barrier; success is determined by observation.
-    void canonicalSyncQueueReference.current.then(() => { if (!disposed && !reuseReceipt()) observe(); });
+    scheduler.request("projection");
     const tag = "project-projection-settled";
     for (const action of ["open-task", "select-task"] as const) api.on(action, () => {
-      queueMicrotask(() => { if (!disposed) observe(action); });
+      queueMicrotask(() => scheduler.request(action));
     }, { tag });
     const chart = root.querySelector(".wx-chart");
     const readLayout = () => JSON.stringify([root.clientWidth, root.clientHeight,
@@ -2362,13 +2494,18 @@ export function ProjectGantt({
       const next = readLayout();
       if (next === layoutSignature) return;
       layoutSignature = next;
-      if (!disposed && canonicalSyncDepthReference.current === 0) observe("layout");
+      scheduler.request("layout");
     });
     layoutObserver.observe(root);
     if (chart) layoutObserver.observe(chart);
-    return () => { disposed = true; observation?.cancel(); layoutObserver.disconnect(); api.detach(tag); };
+    return () => {
+      disposed = true;
+      scheduler.dispose();
+      if (requestProjectionObservationReference.current === observeAxisLayout) requestProjectionObservationReference.current = null;
+      observation?.cancel(); layoutObserver.disconnect(); api.detach(tag);
+    };
   }, [apiInstanceId, projectRevision, projection.keys.data, projection.keys.structure, projection.keys.membership,
-    projection.keys.layout, scaleMode, columns, viewVisible, projection, viewportContinuityKey, viewRootTaskId]);
+    projection.keys.layout, scaleMode, columns, viewVisible, projection, viewportContinuityKey, viewRootTaskId, mutationPending, canonicalRecoveryBlocked]);
 
   useEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore || peerViewportRestore.key !== viewportContinuityKey || peerViewportConsumed.current === peerViewportRestore) return;
@@ -3005,8 +3142,8 @@ export function ProjectGantt({
     apiReference.current = api;
     const initializedId = `svar-api-${nextApiInstanceId++}`;
     latestInitializedApiIdReference.current = initializedId;
-    // Do not defer the test probe behind React's 3000-row projection render.
-    // SVAR init has the actual API; the surrounding frame ref is committed.
+    // Probe existence is diagnostic only. Its commands remain guarded until
+    // React commits this identity and the viewport coordinator is installed.
     const frame = fullscreenFrameReference.current;
     if (frame) installMilestoneProbe(api, initializedId, frame);
     setApiInstanceId(initializedId);
@@ -3330,17 +3467,15 @@ export function ProjectGantt({
   function copyCurrentSelection(fallbackTaskId?: string) {
     if (!editable || mutationLocked) return;
     const selected = selectedTaskIdsReference.current;
-    // Never borrow a stale selection from another row when Copy was invoked on a context-menu target.
-    const ids = fallbackTaskId && !selected.includes(fallbackTaskId)
-      ? [fallbackTaskId] : selected.length ? selected : fallbackTaskId ? [fallbackTaskId] : [];
-    const taskIds = normalizeCopySelection(tasks, wbsClipboardRootIds(tasks, ids));
+    const ids = fallbackTaskId && !selected.includes(fallbackTaskId) ? [fallbackTaskId] : selected.length ? selected : fallbackTaskId ? [fallbackTaskId] : [];
+    const taskIds = normalizeCopySelection(tasks, wbsDisplayMode === "compatibility" ? ids : wbsClipboardRootIds(tasks, ids));
     if (!taskIds.length || taskIds.length > 500) {
       setSelectionMessage(taskIds.length > 500 ? "한 번에 최대 500개 root를 복사할 수 있습니다." : "복사할 작업을 선택해 주세요.");
       return;
     }
     setTaskClipboard({ mode: "copy", taskIds, revision: projectRevision });
     const impact = canonicalSubtreeImpact(tasks, taskIds);
-    setSelectionMessage(`선택한 ${taskIds.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.${impact.milestoneTaskIds.length ? ` 숨겨진 Milestone ${impact.milestoneTaskIds.length}개가 포함됩니다.` : ""}`);
+    setSelectionMessage(`선택한 ${taskIds.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.${wbsDisplayMode !== "compatibility" && impact.milestoneTaskIds.length ? ` 숨겨진 Milestone ${impact.milestoneTaskIds.length}개가 포함됩니다.` : ""}`);
   }
 
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
@@ -4208,6 +4343,7 @@ export function ProjectGantt({
     <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
+        {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>Milestone Timeline 기술 미리보기</button> : null}
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
           <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
@@ -4289,7 +4425,7 @@ export function ProjectGantt({
           tabIndex={0}
         >
           <div ref={timelineWidget} className="wx-theme gantt-widget project-gantt-widget project-gantt-lane-layout" style={{ minWidth: Math.max(720, columns.reduce((width, column) => width + (column.hidden ? 0 : (column.width ?? 0)), 0) + 100) }}>
-            {timelineEnabled && timelinePreviewDisplay !== "grid" && milestoneTimeline ? <MilestoneTimelineLane capability={{ ...milestoneTimeline, dateRequest: revealedDate?.generation === milestoneTimeline.dateRequest?.generation && laneSource?.left === revealedDate?.left ? milestoneTimeline.dateRequest : null }}
+            {timelineEnabled && timelinePreviewDisplay !== "grid" && milestoneTimeline ? <MilestoneTimelineLane capability={milestoneTimeline}
               geometry={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? laneGeometry : null}
               points={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? lanePoints : []}
               contextKey={`${viewportContinuityKey}:${viewVisible}`} busy={mutationLocked} readOnly={!editable} onGuide={setLaneGuide} /> : null}
@@ -4305,7 +4441,6 @@ export function ProjectGantt({
               readonly={!editable}
               scales={scales}
               autoScale={false}
-              start={initialRange.start}
               tasks={initialConfig.tasks}
               taskTypes={projectTaskTypes}
             /></Locale></div>

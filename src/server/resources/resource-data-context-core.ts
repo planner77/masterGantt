@@ -1,3 +1,4 @@
+import { readResourceTargetSnapshot } from "../repositories/resource-target-snapshot-repository-core";
 import { createHash } from "node:crypto";
 import type Database from "better-sqlite3";
 import { RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
@@ -29,7 +30,8 @@ export function readResourceDataSnapshot(database: Database.Database, publicId: 
   const calendarDates = calendars.listDates(project.id).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
   const projectCalendar = resolveProjectWorkingCalendar(database, project.id);
   const catalogRevision = catalog.getRevision(), calendarRevision = resourceFingerprint({ projectCalendar, rules: calendarRules, dates: calendarDates });
-  const dataSnapshotId = resourceFingerprint({ projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, storedTasks, assignments, resources, groups, memberships, links });
+  const targetSnapshot = readResourceTargetSnapshot(database, project.id);
+  const dataSnapshotId = resourceFingerprint({ targetSnapshot: targetSnapshot.identity, projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, storedTasks, assignments, resources, groups, memberships, links });
   const context = { projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, dataSnapshotId };
-  return { project, storedTasks, assignments, resources, groups, memberships, links, calendarRules, calendarDates, projectCalendar, context };
+  return { targetSnapshot, project, storedTasks, assignments, resources, groups, memberships, links, calendarRules, calendarDates, projectCalendar, context };
 }

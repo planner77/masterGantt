@@ -45,6 +45,27 @@ describe("Issue #616 Target persistence",()=>{
       expect(f.service.list(f.project.publicId).total).toBe(1);
     } finally {f.db.close();}
   });
+  it("filters active Targets before pagination and retains complete unfiltered list",()=>{
+    const f=setup();
+    try {
+      for (let i=0;i<52;i++) {
+        f.service.create(f.auth,i+1,{
+          code:`T${String(i).padStart(3,"0")}`,name:`Target ${String(i).padStart(3,"0")}`,
+          active:i>=50,scope:"project_common",members:[{kind:"system",entityId:f.system.publicId}],
+        });
+      }
+      const unfiltered=f.service.list(f.project.publicId,{limit:50});
+      expect(unfiltered.total).toBe(52);
+      expect(unfiltered.targets).toHaveLength(50);
+      expect(unfiltered.targets.every(t=>t.active===false)).toBe(true);
+      const firstPage=f.service.list(f.project.publicId,{limit:50,activeOnly:true});
+      expect(firstPage.total).toBe(2);
+      expect(firstPage.targets.map(t=>t.code)).toEqual(["T050","T051"]);
+      expect(f.service.list(f.project.publicId,{limit:1,offset:1,activeOnly:true}).targets[0].code).toBe("T051");
+      expect(f.service.list(f.project.publicId,{search:"T050",activeOnly:true}).total).toBe(1);
+      expect(f.service.list(f.project.publicId,{search:"T000",activeOnly:true}).total).toBe(0);
+    } finally { f.db.close(); }
+  });
   it("shares a System instance across Targets and keeps it alive when membership is removed",()=>{
     const f=setup();
     try {

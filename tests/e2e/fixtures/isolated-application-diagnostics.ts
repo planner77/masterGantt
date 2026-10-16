@@ -27,6 +27,21 @@ export function transportFailureKind(error: unknown): string {
 
 type SafeRecord = Record<string, string | number | boolean | null>;
 
+const nextRuntimeMessages = new Map([
+  // Exact messages from the installed Next start-server and node-stack-frames.
+  ["Server is approaching the used memory threshold, restarting...", "MEMORY_RESTART_WARNING"],
+  ["Failed to start server", "SERVER_START_FAILURE"],
+  ["An unexpected Turbopack error occurred. Please see the output of `next dev` for more details.", "TURBOPACK_INTERNAL_ERROR"],
+]);
+const ansiSgr = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, "g");
+
+function nextRuntimeMessage(raw: string): SafeRecord | undefined {
+  const message = raw.replace(ansiSgr, "").trim().replace(/^(?:⚠|⨯)\s+/, "").replace(/^Error:\s+/, "");
+  const classification = nextRuntimeMessages.get(message);
+  // A printed warning is not proof that the HTTP worker exited or restarted.
+  return classification ? { event: "next_dev_message", classification } : undefined;
+}
+
 /** Bounded records are reconstructed from an allowlist, not redacted raw log lines. */
 export class SafeOutputRing {
   private pending = "";
@@ -48,6 +63,8 @@ export class SafeOutputRing {
     }
   }
   private line(raw: string): void {
+    const runtimeMessage = nextRuntimeMessage(raw);
+    if (runtimeMessage) { this.append(runtimeMessage); return; }
     let value: unknown;
     try { value = JSON.parse(raw); } catch { this.discardedLines++; return; }
     if (!value || typeof value !== "object" || !("event" in value) || typeof value.event !== "string" || !events.has(value.event)) { this.discardedLines++; return; }
@@ -58,6 +75,9 @@ export class SafeOutputRing {
     if (input.route !== undefined) record.route = diagnosticRoute(input.route);
     if (typeof input.status === "number" && Number.isInteger(input.status) && input.status >= 100 && input.status <= 599) record.status = input.status;
     if (typeof input.durationMs === "number" && Number.isFinite(input.durationMs) && input.durationMs >= 0) record.durationMs = Math.min(input.durationMs, 3_600_000);
+    this.append(record);
+  }
+  private append(record: SafeRecord): void {
     const size = Buffer.byteLength(JSON.stringify(record));
     this.records.push(record); this.bytes += size;
     while (this.bytes > this.maximumBytes || this.records.length > this.maximumRecords) this.bytes -= Buffer.byteLength(JSON.stringify(this.records.shift()));

@@ -68,11 +68,13 @@ interface IsolatedApplicationRuntime {
 export const test = base.extend<{
   isolatedApplication: string;
   isolatedResourceAdminPassword: string | undefined;
+  isolatedProjectMasterAdminPassword: string | undefined;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: () => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
+  isolatedProjectMasterAdminPassword: [undefined, { option: true }],
   isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.origin);
   },
@@ -82,7 +84,7 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
-  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword }, provide, testInfo) => {
+  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -126,6 +128,7 @@ export const test = base.extend<{
         DATABASE_PATH: resolve(temporary, "database.sqlite3"),
         NEXT_DIST_DIR: distName,
         ...(isolatedResourceAdminPassword===undefined?{}:{RESOURCE_CATALOG_ADMIN_PASSWORD:isolatedResourceAdminPassword}),
+        ...(isolatedProjectMasterAdminPassword===undefined?{}:{PROJECT_MASTER_ADMIN_PASSWORD:isolatedProjectMasterAdminPassword}),
       };
       // Readiness is deliberately read-only/fileMustExist and cannot bootstrap
       // an empty fixture. Use the existing CLI; never touch another database.

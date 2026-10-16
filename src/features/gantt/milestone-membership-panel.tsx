@@ -2,9 +2,7 @@
 import { useMemo, useState } from "react";
 import type { ProjectTaskDto, ProjectLinkDto, ProjectCalendarDto } from "../../contracts/projects";
 import type { MilestoneMembershipCommand } from "../../contracts/milestones";
-import { matchesMembershipSearch, membershipDescription, membershipImpact, membershipProjection } from "./milestone-membership-model";
-import { recalculateHierarchy } from "../../domain/scheduling/hierarchy";
-import { workingCalendarFromProjectCalendar } from "./project-task-adapter";
+import { matchesMembershipSearch, membershipDescription, membershipImpact, membershipProjection, membershipWbsLabels } from "./milestone-membership-model";
 import styles from "./project-task-editor.module.css";
 
 export function MilestoneMembershipPanel({ task, tasks, links, calendar, changes, disabled, pending, onChange, onOpen, onLocate }: Readonly<{
@@ -13,7 +11,7 @@ export function MilestoneMembershipPanel({ task, tasks, links, calendar, changes
   onChange: (taskId: string, target: string | null) => void; onOpen: (taskId: string) => void; onLocate: (taskId: string) => void;
 }>) {
   const [query, setQuery] = useState(""), [type, setType] = useState("all"), [scope, setScope] = useState("current");
-  const wbs = useMemo(() => new Map(recalculateHierarchy(tasks, workingCalendarFromProjectCalendar(calendar)).map((row) => [row.taskId, row.wbs])), [tasks, calendar]);
+  const wbs = useMemo(() => membershipWbsLabels(tasks, calendar), [tasks, calendar]);
   const canonical = membershipProjection(tasks, links);
   let preview = canonical, issue: string | null = null, impact = 0;
   try { preview = membershipProjection(tasks, links, changes); impact = membershipImpact(tasks, links, changes); }

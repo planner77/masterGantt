@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -76,4 +77,47 @@ describe("verifyReleaseVersion", () => {
       previousTags: ["v1.2.9", "v1.3.0"],
     })).toThrow("must be greater than previous tag v1.3.0");
   });
+  it("#670 validates checked-in successor manifest and lock without release authority", () => {
+    const checkedInManifest = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    );
+    const checkedInLock = JSON.parse(
+      readFileSync(new URL("../../package-lock.json", import.meta.url), "utf8"),
+    );
+    const current = checkedInManifest.version as string;
+    // Previous unpublished 0.107.0 is not a legitimate release tag, while
+    // immutable v0.106.1 is still the last published version.
+    expect(compareSemVer(current, "0.107.0")).toBe(1);
+    expect(verifyReleaseVersion({
+      manifest: checkedInManifest,
+      lockfile: checkedInLock,
+      tag: `v${current}`,
+      previousTags: ["v0.106.1"],
+    })).toEqual({ version: current, stable: true });
+
+    // A partial version bump must not pass the existing release verifier.
+    for (const invalidLock of [
+      { ...checkedInLock, version: "0.107.0" },
+      {
+        ...checkedInLock,
+        packages: {
+          ...checkedInLock.packages,
+          "": { ...checkedInLock.packages[""], version: "0.107.0" },
+        },
+      },
+    ]) {
+      expect(() => verifyReleaseVersion({
+        manifest: checkedInManifest,
+        lockfile: invalidLock,
+      })).toThrow("package-lock.json top-level and root package versions");
+    }
+    expect(() => verifyReleaseVersion({
+      manifest: checkedInManifest,
+      lockfile: checkedInLock,
+      tag: "v0.107.0",
+    })).toThrow("does not exactly match");
+    // Release/OCI tag absence and Owner authorization require a *separate*
+    // authenticated gate; this pure version check does not grant publication.
+  });
+
 });

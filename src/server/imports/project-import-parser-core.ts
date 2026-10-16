@@ -68,8 +68,20 @@ export function parseProjectImportBytes(bytes: Uint8Array): unknown {
   catch { throw new PublicApiError(400, "INVALID_UTF8", "The import file must use valid UTF-8."); }
   if (text.startsWith("\uFEFF")) text = text.slice(1);
   checkJsonSyntax(text);
-  try { return JSON.parse(text) as unknown; }
-  catch { throw new PublicApiError(400, "INVALID_JSON", "The import file is not valid JSON."); }
+  const payload: unknown = JSON.parse(text);
+  assertNoUnsupportedTargetBindings(payload);
+  return payload;
+}
+
+/** Schema 1.0/1.1 has no binding field. Never accept lossy forward data. */
+function assertNoUnsupportedTargetBindings(value: unknown): void {
+  if (value === null || typeof value !== "object") return;
+  for (const [key, child] of Object.entries(value)) {
+    if (key === "taskTargetBindings" || key === "targetBindings" || key === "task_target_bindings") {
+      throw new PublicApiError(400, "TARGET_BINDING_IMPORT_UNSUPPORTED", "Task Target bindings require a supported versioned format. Use Project Copy or Template.");
+    }
+    assertNoUnsupportedTargetBindings(child);
+  }
 }
 
 export function projectImportPreviewDigest(bytes: Uint8Array, publicId: string, revision: number): string {
