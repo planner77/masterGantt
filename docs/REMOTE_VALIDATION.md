@@ -1,3 +1,9 @@
+## Issue #667 — CI #2825 실패와 새 PR 검증의 분리 (2026-10-16)
+
+[원본 #2825.1](https://github.com/planner77/masterGantt/actions/runs/38841181071)의 Head `6bec3a1098e603b9db9968d2206af95df12ac126`에서 Quality/Docker PASS, E2E/QA Automated FAIL을 보존한다. shard3의 `milestone-dashboard-state.spec.ts:191`은 `(180,128)` 대신 `(120,128)`로 실패했고 다른5 shard는 취소됐다. 원본 source artifact/Run API의 event base `ee6365bf57ab637b4c0aca61fdedaf5148253052`와 test merge `464aba6c364bf52eb87ec848537304f910696fd9`의 실제 first parent `fd219130491c53d054754eac41a58e4a6a3da0c6`을 구별한다. artifact의 문자열만으로 출처를 승인하거나 값을 수정하지 않는다.
+
+최신 main을 포함하는 후속 Head를 게시한 뒤 새 `pull_request` Full CI의 Run/Attempt·Head/base/test merge를 다시 확인한다. 로컬 fixture 순서 교정·선택 회귀/사전 검토는 원격 전체 PASS가 아니다. 사용자가 요청한 이번 종료점은 **새 CI 시작 확인**이며 required Quality/E2E/Docker·Trusted QA 완료, Owner ACCEPT·병합·Main/GHCR/Release는 NOT TESTED/별도다. 원본 실패 재실행으로 새 source를 검증했다고 하지 않는다. 상세 원장은 [교정 증거](evidence/issue-667/ci2825-correction.json)를 따른다.
+
 ## Issue #622 — CLOSED 이력 완료 복구 원격 검증 시나리오 (2026-10-15)
 
 - Baseline: #622 Owner CLOSED 2026-10-15T09:01:16Z, bot FINAL 0, PR #684/#686/#691 branch3개 PRESENT. #665/#666 bot FINAL/branch cleanup/Issue CLOSED 유지. 릴리스 `v0.114.0` annotated tag = #686 SHA `1449190af8d4f97d4737d17ae67e9dcb044549a7`, GHCR Release #170.1 성공. GitHub Release 별도 객체는 미확인.

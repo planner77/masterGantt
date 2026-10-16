@@ -1,5 +1,7 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- CI #2825의 Milestone 화면 왕복 검증에서 독립 세로 입력의 Core/native 반영 뒤 가로 입력을 주입하도록 fixture 순서를 교정한다. 기존 정확 좌표·실제 wheel 우선권·필터/layout 보존과 CI gate는 유지한다.
+
 - CI #2820의 Grid/Chart 정렬 음성 테스트를 실패 관측·성공 영수증 분리 계약에 맞게 교정한다. 실제27.5px 불일치·현재Core/DOM IDs·복구 정렬과 mutation0 검증은 유지한다.
 
 - CI #2819의 U5 최종 저장 확인 GET 연결 종료를 분석하고 관련 UI후 확인11곳의 browser 전송·안전 진단 helper를 공유한다. 실제 저장 DTO·권한/복구·무재시도 검증은 유지한다.

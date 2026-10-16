@@ -4,7 +4,9 @@ Refs #667
 
 ## 판정과 범위
 
-CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 2026-10-16 최신 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함한다. 병합·릴리스는 제외한다.
+2026-10-16 CI #2825 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
+
+CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 이전 2026-10-16 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함했다(과거 실행 이력). 병합·릴리스는 제외한다.
 
 모든 원본 attempt는 1이다. base는 `ee6365bf57ab637b4c0aca61fdedaf5148253052`이며 quality/docker는 각각 SUCCESS, e2e aggregate는 FAILURE다. 아래 job/step은 실제 실패 테스트의 출처다. 취소된 shard나 아직 실행되지 않은 사례를 PASS로 세지 않는다.
 
@@ -52,6 +54,20 @@ UNKNOWN·잠금 해제·same API·canonical 행·후속 name-only 저장 단언 
 실제rows 관측은gen3 TIMED_OUT을 기록하고 성공receipt는oldgen1 SETTLED를 유지했다. 원본 단독도 같은 실패(report9768.609ms)와 진단을 재현했다. 성공영수증에 실패결과 게시를 요구하는 구 테스트의 관측 대상이 #667 계약과 달랐다. 음성 검증 자체는 정당하므로 최신rows 실패진단으로 확인하고, canonical/Core/DOM IDs는 stale receipt 대신 실제 public Core/DOM에서 읽는다. 실제27.5px Y불일치·mutation0·sameinstance·복원 후fresh attempt/정렬을 유지하며 semanticId 증가를 임의로 강제하지 않는다.
 
 최종 test1 fingerprint `b3b24d46639e866f0e128fc4fcf8318033081012307bf9ccca6049016e495d49`에서 관련42 PASS/0FAIL/0SKIP/0flaky(95593.296ms)를 확인했다. negative의 baseline gen2 delivery SETTLED→gen3 rows TIMED_OUT(oldsuccess 불변)→gen4 fresh delivery SETTLED·actual alignment를 실제 Core/DOM으로 검증했다. production/timeout/retry/skip 변경0이며 Unit은 N/A다. 원본 FAIL·최종mock API/실제Core·신규원격미검증을 [CI #2820 원장](evidence/issue-667/ci2820-correction.json)에 분리했다.
+
+## CI #2825 — 세로 입력 반영 전 가로 입력을 주입한 fixture 경합
+
+[CI #2825.1/run38841181071](https://github.com/planner77/masterGantt/actions/runs/38841181071)의 Head는 `6bec3a1098e603b9db9968d2206af95df12ac126`이다. Quality job116782205772/Docker job116782574511 PASS, E2E aggregate116783004794/QA Automated116783036050 FAIL이다. shard3 job116781889683 step7의 `milestone-dashboard-state.spec.ts:117→191`에서 public/native `(180,128)`을 기대했으나 `(120,128)`로 5000ms에 실패했다. 해당 shard21 PASS/1 FAIL/기존1 SKIP/106 NOT RUN, 다른5 shard는 별도 단언 FAIL 없이 CANCELLED다. 보고서의 non-test error1은 fail-fast 종료 메시지이며 별도 제품 오류가 아니다.
+
+원본 Run API/source artifact12020974214/QA 환경의 event base는 `ee6365bf57ab637b4c0aca61fdedaf5148253052`지만, test merge `464aba6c364bf52eb87ec848537304f910696fd9`의 실제 부모는 최신 main `fd219130491c53d054754eac41a58e4a6a3da0c6`과 해당 Head다. 두 값을 같은 base로 다시 쓰지 않는다. 로컬 merge `8a88b1fbd62a91d6884b9a949ebce89a4ad59e4e`에서 최신 main/#697 검증 지침과 기존 PR 이력을 보존했다. 새 게시 후의 source provenance·required checks는 별도 검증이다.
+
+원본 trace의 FILTER_RETURN은 이미 SETTLED였으며 새 입력 전후 Coordinator writes6/intent6/context8/projection5가 불변이었다. RANGE_EXTENSION이나 새 Coordinator 복원 쓰기는 관측되지 않았고 가로 capacity2631px도180px을 수용했다. 실제 public180 scroll 이벤트는 없었다. 따라서 새 Coordinator가180을120으로 재복원했다는 최초 가설은 지지되지 않는다.
+
+설치 SVAR Chart는 Core scrollTop 변경의 layout에서 native Chart X를 현재 Core X로 동기화한다. fixture는 native top128 설정 직후 Core 반영을 확인하지 않고 native left180을 설정했다. 로컬 원본 단독은 PASS여서 원격 재현으로 주장하지 않는다. 같은 tick의 양축 DOM 설정·세로 scroll 이벤트 우선 전달 진단에서는 실제 Core/native `(120,128)`과 동일5000ms FAIL을 재현했다. 이는 입력 overlap의 코드 경계 증거이며 원격 runner의 정확한 이벤트 스케줄을 직접 계측한 결과는 아니다.
+
+보완은 fixture의 독립 세로 입력이 Core/native에서 완료됐는지 확인한 뒤 가로 입력을 넣는 순서에 한정한다. 최종 `(180,128)`·필터와 layout 뒤 위치·same instance·기존5000ms·실제 wheel 우선권 단언은 유지한다. 제품/의존성/CI 변경0이며 vendor의 동시에 주입한 양축 DOM 입력 자체를 지원 보강했다고 주장하지 않는다. 최종 source·선택 회귀·사전 검토는 [이번 원장](evidence/issue-667/ci2825-correction.json)과 Work Packet에 별도로 기록한다.
+
+최종 두 곳 barrier source1 SHA256 `1b853b2dd9be5d181bdd5ff7528d579a022524137798dde7293e23631e776cd0`에서6spec42 PASS/0 FAIL/0 SKIP/0 flaky/globalErrors0(414509.547ms), 기존Unit4파일206 PASS를 확인했다. 실제HTTP/SQLite17과 mock API/actual SVAR·DOM25를 구분하며 중간35 PASS와 합산하지 않는다. Y의 Core/native owner 반영 확인은 React Chart layout commit 전체 보증이 아니며 실제 동시양축wheel 전수와 원격의 정확 스케줄은 미검증이다. 최종 원격CI/QA/Owner는 별도다.
 
 ## 최초 구현과 반복 보완에서 드러난 경계
 

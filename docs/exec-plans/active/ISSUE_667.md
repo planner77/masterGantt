@@ -17,12 +17,15 @@ issue_comment_writer: manager
 issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME, FINAL
 documentation_owner: Manager
 
-최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 2026-10-16 최신 요청은 새 PR CI 완료 모니터링을 포함하며 이전 CI 시작까지만의 범위를 대체한다. 병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
+2026-10-16 CI #2825 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
+
+최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 이전 2026-10-16 요청에서는 새 PR CI 완료 모니터링을 포함해 당시의 CI 시작까지만 범위를 대체했다(과거 실행 이력). 병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
 
 ## 기준선 / 의존성 / 버전
 
 - repository: planner77/masterGantt; [Issue #667](https://github.com/planner77/masterGantt/issues/667).
 - 착수 main/document commit: `29c86ca918baa1811bc12a3eb60f86ffc5406b40`.
+- 2026-10-16 최신 통합 main: `fd219130491c53d054754eac41a58e4a6a3da0c6`(#697/PR #698). 로컬 merge `8a88b1fbd62a91d6884b9a949ebce89a4ad59e4e`에서 원격 PR Head `6bec3a1098e603b9db9968d2206af95df12ac126`과 양쪽 이력을 보존했다. 새 통합은 AGENTS/TEST_PLAN/ISSUE_LIFECYCLE/#697 문서 변경이며 제품 소스 변경·충돌은 없다. 게시 전 최신 main을 다시 확인한다.
 - 통합 main: `ee6365bf57ab637b4c0aca61fdedaf5148253052`(#622/PR #692 종료 이력 복구). merge `1fce774825c826b6359181dc6d58d2a12ed85e0a`에서 CHANGELOG 양쪽 항목을 보존해 충돌을 해결했다. `.github/**`/`scripts/**`는 통합 main 대비 diff 0이며 #667에서 정책을 변경하지 않는다.
 - branch: `feat/issue-667-gantt-product-integration`; worktree `/home/planner/Dev/masterGantt-worktrees/issue-667`. 기존 checkout의 비추적 검증 자료는 보존한다.
 - 선행 #663/PR #687 `d445ec58bf9106414c99a150ee8f52599834baf9`, #665/PR #688 `417dd41e4838f72c3f7c547463591aa10809d25b`, #664/PR #689 `0493ef64d0f2fa5961a241886d48e3dbfdc4f253` 및 #666/PR #690 `40f5f92ee296b2d9f6995bdca96712552537698f`가 main에 포함된다. 모듈 병합은 제품 동작 PASS가 아니다.
@@ -47,7 +50,7 @@ AGENTS, REQUIREMENTS, ARCHITECTURE, API, DB_SCHEMA, SCHEDULING_ENGINE, SECURITY,
 - Manager `/root`: Work Packet·관련 문서·버전·제품 E2E·Issue 기록·원격 PR 및 충돌 조정.
 - frontend `/root/product_wiring`: `project-gantt.tsx`, `project-readonly-view.tsx`, Coordinator/port 및 최소 연결 모듈·관련 Unit의 단일 작성자. 다른 작성자의 변경을 되돌리지 않는다.
 - frontend `/root/editor_axis_tests`: Editor/axis E2E의 초기 전용 작성. 최종 통합/후속 보완은 Manager에게 인계했다.
-- infra `/root/publish_transport`: 인증된 GitHub Git Data의 blob/tree/commit/branch 게시와 byte 동일성 검증. Issue 댓글·PR 작성은 Manager이며 최신 사용자 요청에 따라 새 CI를 완료까지 모니터링한다.
+- infra `/root/publish_transport`: 인증된 GitHub Git Data의 blob/tree/commit/branch 게시와 byte 동일성 검증. Issue 댓글·PR 작성은 Manager다. 이전 실행에서는 새 CI 완료까지 모니터링했으며 #2825 후속의 현재 범위는 시작 확인까지다.
 - researcher `/root/api_research`: 설치 공개 타입·공식 SVAR API read-only 검증.
 - qa_docs `/root/integration_tests`: 실제 테스트/문서/코드의 별도 read-only 사전 검토. 최종 QA_FINAL·Owner ACCEPT와 구분한다.
 
@@ -465,7 +468,7 @@ Resource 최소 보완 후 원본 strict1 PASS, 검색21+Milestone관리3의 fix
 
 ## CI #2818 — 같은 SC-01 실패 재발 / 원격 완료 모니터링 재개
 
-사용자의 최신 요청에 따라 새 PR CI 완료까지 모니터링하며 이전 CI 시작까지만의 범위를 대체한다. 원본 [CI #2818.1 / run38827799811](https://github.com/planner77/masterGantt/actions/runs/38827799811), Head `f94f2f633301a59a04a3fce2c6c7078a68f1c72d`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`에서 Quality job116740291029·Docker job116740499332은 SUCCESS, E2E aggregate116740700316은 FAILURE다. shard1 job116739804326 step7의 `gantt-state-recovery-editor.spec.ts:15→36` observation3 유지가 재발했다. 표시11.7초,1 PASS/1 FAIL/110 NOT RUN, 다른5 shard CANCELLED다. 이전 선택40/Unit71 PASS·사전 검토를 원격 해소 증거로 사용하지 않는다.
+당시 사용자 요청에 따라 새 PR CI 완료까지 모니터링하며 이전 CI 시작까지만의 범위를 대체했다(과거 실행 이력). 원본 [CI #2818.1 / run38827799811](https://github.com/planner77/masterGantt/actions/runs/38827799811), Head `f94f2f633301a59a04a3fce2c6c7078a68f1c72d`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`에서 Quality job116740291029·Docker job116740499332은 SUCCESS, E2E aggregate116740700316은 FAILURE다. shard1 job116739804326 step7의 `gantt-state-recovery-editor.spec.ts:15→36` observation3 유지가 재발했다. 표시11.7초,1 PASS/1 FAIL/110 NOT RUN, 다른5 shard CANCELLED다. 이전 선택40/Unit71 PASS·사전 검토를 원격 해소 증거로 사용하지 않는다.
 
 infra는 새 단계 진단과 원본 artifact/출처를 분석하고 frontend `/root/editor_reload_fix`가 production·관련 테스트 단일 작성자/단일 browser 실행자, qa_docs `/root/integration_tests`가 독립 read-only 검토, Manager가 통합·문서를 맡는다. 원본 상태에서 TZ=UTC/CI_E2E_FULLY_PARALLEL=true 등 실제 환경 차이를 재현하고 직접 원인 증거를 우선 확보한다. 추측만으로 관측 예산·단언·보안·원격 gate를 변경하지 않는다. 병합·Main/GHCR·release는 별도 범위다.
 
@@ -514,3 +517,41 @@ Head `852056e71526968baf70c599eb09e1c37331e1e1`의 [CI #2820.1/run38832668354](h
 이번 문서는 TEST_PLAN/GANTT_SYNC_TRACE/REMOTE_VALIDATION/누적분석/CHANGELOG/PLAN/WorkPacket667 및637 후속호환 기록/새 원장만 갱신한다. #637 과거판정·캡처·Issue 상태는 변경하지 않는다. 제품코드/architecture/ADR/UX/API/DB/일정/보안/CI정책 계약 변경은 N/A다. 독립 검토 후 게시하고 새FullCI 완료까지 모니터링한다.
 
 최종 독립 Reviewer `/root/qa_final`은 PRE_QA/DOCUMENTATION_SYNC PASS(게시10파일·test1·선택42범위), 지적0으로 판정했다. HTML42개·음성첨부·sourcefingerprint 및 과거8JSON불변을 전건 대조했다. 조회 시 미해결review0/mergeable=true이며 게시 후 재확인한다. 동일source를 게시하고 새Head의Required3·QA/Trusted 완료까지 모니터링한다. Owner ACCEPT·병합·main/GHCR/release는 별도이며 현재MERGE_READY=BLOCKED다.
+
+
+## CI #2825 후속 — 최신 main 정렬과 독립 native 입력 fixture 교정
+
+[원본 #2825.1](https://github.com/planner77/masterGantt/actions/runs/38841181071) Head `6bec3a1098e603b9db9968d2206af95df12ac126`: Quality/Docker PASS·E2E FAIL. shard3의 #463 native viewport는 기대 `(180,128)` 대신 `(120,128)`에서5000ms FAIL,21 PASS/기존1 SKIP/106 NOT RUN이었다. 다른5 shard 취소에는 별도 단언 FAIL이 없다. 원본 event base와 실제 test-merge first parent의 차이도 [교정 원장](../../evidence/issue-667/ci2825-correction.json)에 보존했다.
+
+현재 실행의 frontend `/root/viewport_fix`는 테스트 단일 작성자, infra `/root/ci_investigation`은 원본 GitHub 로그/artifact read-only 조사, qa_docs `/root/pre_review`는 독립 read-only PRE_QA다. Manager는 문서/증거·원격 게시를 소유한다. 기존 작성자의 source와 원본 이력을 되돌리지 않는다.
+
+### 변경 영향·선정·제외 (#697)
+
+| 경계 | 조치 / 검증 |
+| --- | --- |
+| 직접 변경 | `milestone-dashboard-state.spec.ts`의 초기 Y96→X120 및 후속 Y128→X180 독립 native 입력 사이에 public Core/native 세로 반영 완료 확인. 기존 최종 exactX/Y·필터/layout·peer 영수증·same instance·5000ms 유지 |
+| 원인 분류 | 원본 trace의 Coordinator 쓰기6 불변·capacity2631·public180 이벤트0. 로컬 원본 단독 PASS는 비재현, 같은 tick 양축 주입/세로 이벤트 우선 진단은 동일120/128 FAIL. 설치 SVAR의 top→Chart X 동기화 경계와 일치하나 원격 스케줄의 직접 계측은 없음 |
+| 직접·교차 선택 | 수정 #463 전체·viewport 실제 wheel/필터/axis·scale·Copy/Paste 실제 HTTP/SQLite·Milestone Core·Resource 복귀. 최종 명령·source·고유 사례 수는 JSON 원장에 별도 기록 |
+| 의도적 overlap | SC-09의 pending axis 중 native X 입력은 순서 fixture 교정 대상 아님. 기존 취소/후속 쓰기0 회귀 유지 |
+| Unit | 제품 변경0. 새로운 알고리즘 Unit 추가 N/A. 실행한 기존 관련 Unit은 로컬 경계 확인으로만 기록 |
+| 제외 | API/DB/권한/Calendar/UNKNOWN 제품 코드 불변으로 해당 전수 재실행 N/A. 전체 E2E/SC 매트릭스·동시 양축 실제 wheel의 모든 조합은 NOT TESTED; 이번 fixture 교정으로 제품 지원 범위를 확정하지 않음 |
+| 최신 source | main `fd219130491c53d054754eac41a58e4a6a3da0c6`을 양쪽 이력 보존 merge로 포함. 사용자 기존 비추적 자료·원본 FAIL/캡처/과거 JSON 유지 |
+
+### DOCUMENTATION_SYNC
+
+- UPDATE: Work Packet/PLAN, ISSUE_667_FAILURE_ANALYSIS, TEST_PLAN, REMOTE_VALIDATION, CHANGELOG 및 새 교정 JSON. 원본 FAIL·재현/대조·최종 선택 실행·원격 시작 경계를 분리한다.
+- N/A: ARCHITECTURE/PROJECT_UX/GANTT_ADAPTER_ADR/GANTT_STATE_CONFORMANCE/GANTT_SYNC_TRACE/MILESTONE_TIMELINE/TASK_EDITOR/DESIGN/UI_UX_GUIDELINES — 제품 동작·GSC 규범·표시/interaction·API 계약 변경0, 기존 사용자 우선권/정확 viewport 계약 유지.
+- N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/GITHUB_OPERATIONS/QA_REVIEW_POLICY, workflows/scripts/package/lock — 서버/알고리즘·권한·CI/릴리스 정책·버전 변경0. main에서 통합한 #697 검증 지침은 그대로 사용한다.
+
+HIGH/OWNER_MANAGED/qa_required=true, manager_decision=NOT TESTED·MERGE_READY=BLOCKED, version0.114.1·release_required=true/release_authorized=false를 유지한다. read-only PRE_QA는 최종 인간 QA_FINAL/Owner ACCEPT가 아니다. 현재 사용자 범위는 새 Full PR CI 시작 확인이며 원격 Required/Trusted QA 완료·병합·Main/GHCR·release/tag·Issue 종료는 별도다.
+
+
+### 최종 로컬 검증 (CI #2825 후속)
+
+최종 test1 SHA256 `1b853b2dd9be5d181bdd5ff7528d579a022524137798dde7293e23631e776cd0`, source fingerprint `7293bd3bb337afe91cee22d94ebece3a91afa950f62e66cf91c6e0cf9b47bc90`에서6spec42 PASS/0 FAIL/0 SKIP/0 flaky/globalErrors0,414509.547ms를 확인했다. 실제 HTTP/SQLite Copy10+Resource7=17과 mock API/actual SVAR·DOM25를 구분한다. 390/768/1024/1440/1920px·native M·Day/Week·필터/peer/실제wheel·pending axis·Resource exact31·Copy 및 readonly/stale 선택 회귀가 포함된다. 제품 알고리즘 변경0이며 기존 관련 Unit4파일206 PASS는 불변식 확인이다. 중간 source35 PASS를 최종42에 합산하지 않는다.
+
+Core/native owner의 Y 반영 확인은 React Chart layout commit 전체의 완료 영수증이 아니다. 실제 동시양축 wheel 전수·모든 scheduling 조합은 NOT TESTED이며 새 exact-Head 원격CI를 해소 증거로 확인해야 한다. 로컬 선택 PASS만으로 원격 전체·QA_FINAL/Owner ACCEPT를 선언하지 않는다. 생성된 next-env/tsconfig·기존캡처/geometry는 새 결과를 Git 밖에 보존한 뒤 원본bytes로 복원했다. 명령·원본/통제실험·실행 환경·source·최종결과는 이번 JSON 원장에 기록했다.
+
+정적 확인은 typecheck·변경 spec ESLint 오류0/경고0·Markdown229·version0.114.1·git diff --check PASS다. 새 Required Quality/E2E/Docker·Trusted QA 완료는 NOT TESTED이며, 이번 게시 후에는 CI 시작 출처만 기록한다.
+
+별도 qa_docs `/root/pre_review`는 최종 source/HTML42전건·원본/진단/대조·문서를 직접 대조해 PRE_QA/DOCUMENTATION_SYNC PASS·차단 지적0으로 판정했다. Unit206은 구현 Agent의 실제 도구 transcript `f523c7`에 근거하며 독립 재실행으로 표시하지 않는다. 이번 사전 검토는 선택 범위에 한정하고 QA_FINAL/Owner ACCEPT·새 원격 전체 CI는 NOT TESTED를 유지한다.

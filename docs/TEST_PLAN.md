@@ -1,3 +1,9 @@
+## Issue #667 — CI #2825의 native 입력 순서 검증 (2026-10-16)
+
+`milestone-dashboard-state.spec.ts`의 독립 native Y→X 입력은 먼저 세로값이 public Core/native 모두에 반영됐는지 확인한 뒤 가로값을 주입한다. 설치 SVAR의 세로 commit은 Chart X를 현재 Core X로 동기화하므로 DOM 설정 완료를 Core 처리 완료로 취급하지 않는다. 초기 `(120,96)`과 필터 복귀 뒤 `(180,128)`, 이후 필터/layout/same-instance·기존5000ms 단언은 유지한다.
+
+원본 CI FAIL·원본 단독 비재현 PASS·같은 tick 양축 주입의 재현 FAIL과 교정 결과는 [#667 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md), [교정 원장](evidence/issue-667/ci2825-correction.json), [Work Packet](exec-plans/active/ISSUE_667.md)에 source별로 분리한다. 변경 fixture 전체와 viewport의 실제 wheel/축 확장·필터 복귀, Copy·Resource/scale 소비자를 선택하고 제품 알고리즘 Unit 추가는 N/A다. 의도적 pending-axis native 입력 회귀는 유지하며 임의의 동시 양축 wheel 전체 지원을 이 fixture 교정의 PASS로 확대하지 않는다. 새 exact Head의 원격 Required CI는 별도이며 이번 종료점은 CI 시작 확인이다.
+
 ## Issue #697 — 변경 영향 기반 로컬 검증과 교차 회귀 선정 (2026-10-16)
 
 이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.

@@ -139,7 +139,10 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
       timeout: 10_000,
     }).toBeGreaterThanOrEqual(120);
     const vertical = frame.locator(".wx-gantt"); expect(await vertical.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
-    await vertical.evaluate((element) => { element.scrollTop = 96; }); await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
+    await vertical.evaluate((element) => { element.scrollTop = 96; });
+    // 이전 축의 Core/native 반영이 끝난 뒤 다음 독립 native 입력을 시작한다.
+    await expect.poll(viewport).toEqual({ public: { left: 0, top: 96 }, dom: { left: 0, top: 96 } });
+    await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     // 좌표 도달과 3-frame 완료 영수증은 별개다. 정상 복귀가 완료된 뒤 검색 기준을 캡처한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).not.toBeNull();
@@ -187,6 +190,9 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     const userViewport = { public: { left: 180, top: 128 }, dom: { left: 180, top: 128 } };
     await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(180);
     await vertical.evaluate(element => { element.scrollTop = 128; });
+    // SVAR는 native Y 반영 시 Chart X를 Core 값과 동기화한다.
+    // 앞선 Y 입력을 완료한 뒤 별도의 native X 입력을 시작한다.
+    await expect.poll(viewport).toEqual({ public: { left: 120, top: 128 }, dom: { left: 120, top: 128 } });
     await chart.evaluate(element => { element.scrollLeft = 180; });
     await expect.poll(viewport).toEqual(userViewport);
     await observe("new-user-viewport");
