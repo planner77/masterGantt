@@ -140,3 +140,10 @@ Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source�
 `data-gantt-projection-observation`은 개발용 최신 attempt 진단이다. `generation`·`stage`(rows/semantic/delivery/ordering)·`outcome`으로 현재 시도의 진행·실패를 구분한다. `data-gantt-projection-receipt`와 semantic receipt는 실제 SETTLED 증거를 전달한 성공 기록이며 실패 시 이전 성공 값을 새 실패 영수증으로 덮어쓰지 않는다. 이 DOM 진단 자체를 쓰기 권한이나 저장 성공 근거로 삼지 않는다.
 
 정렬 음성 검증은 최신 delivery/SETTLED와 semantic 존재를 baseline으로 잡고, baseline 이후 rows/TIMED_OUT을 확인한다. canonical/Core/DOM IDs·실제 Y차이는 현재 public Core/DOM에서 읽으며 과거 성공 receipt를 현재 실패의 데이터 증거로 재사용하지 않는다. 복구는 더 새 attempt의 delivery/SETTLED·fresh semantic observation과 실제 정렬로 확인하고 동일 semanticId 재사용은 허용한다. [CI #2820 보완 원장](evidence/issue-667/ci2820-correction.json)을 참조한다.
+
+
+## Issue #667 / CI #2827 — 입력 기원·scale clamp 분리 진단
+
+원본 CI의 ISO Tooltip 부재는 로컬의 정확 source FAIL·읽기전용 focused-node 관측으로 분석했다. 확대 geometry FAIL은 별도로, viewport 밖 pointerdown3개·wheel/keydown/touch0, axis 등록 Core9362/native25683→callback event/native10315·Core9362를 관측했다. 이 backward native clamp를 Core-only baseline이 새 입력으로 승격한 것이 추가 제품 결함이다.
+
+안전한 숫자·판정·source hash와 원본 run/job/step만 [ci2827 JSON](evidence/issue-667/ci2827-correction.json)에 보존한다. 해당 진단의 임시 console/입력 recorder는 최종 source에서 제거한다. 제품은 같은 read의 두 baseline 최댓값만 고정하며 기존 추적·공개 API·single writer·source/lease·관측 완료 계약을 바꾸지 않는다. 원본 FAIL/추가 FAIL/보완 PASS/원격 NOT TESTED는 서로 대체하지 않는다.

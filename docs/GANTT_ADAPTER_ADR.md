@@ -255,3 +255,10 @@ Editor의 같은 revision 재조회에서 HTTP200 및 U2 no-op SETTLED 이후 �
 제품 연결의 내부 `observationFrame`은 U3 clock만 실제 RAF 대기로 분리한다. 별도 짧은 timer로 관측을 종료하지 않고 U3의 기존 wall-time watchdog이 abort를 소유한다. 실제 RAF만 frame 성공이며 abort/숨김은 RAF·listener를 정리하고 실패로 종료한다. U2 recovery와 U4/viewport port의50ms tick·lease·쓰기·축 계약은 유지한다. deadline을 늘리거나 실패 관측을 자동 재시도하지 않는다.
 
 같은 revision의 원본 SC-01 단언을 유지하고90ms 지연 변형을 추가한다. 지연은 전달 타이밍만 바꾸며 실제 Core/DOM/geometry·semantic 재사용·쓰기0을 검사한다. 진단 실패 시에도 finally에서 주입한 timer/RAF를 정리한다. 원격 환경의 실제 CPU/RAF 지연 세부 원인은 미계측이며 코드 재현·선택 로컬·새 원격 완료 증거는 [보완 원장](evidence/issue-667/ci2818-correction.json)에서 구분한다.
+
+
+## Issue #667 / CI #2827 — Core/native 양쪽 baseline의 native-forward 판정
+
+이 변경은 기존의 '뒤로 clamp를 새 입력으로 승격하지 않는다' 계약을 교정한다. Day→Week 중 Core9362/native25683에서 native10315로 clamp되면 Core baseline만 비교한 기존 guard는 이를 새 forward로 오분류할 수 있었다. 같은 snapshot의 두 좌표 중 최댓값을 axis 등록 baseline으로 사용해 이 false positive를 차단한다. 실제 event/native 일치·Core/native 차이·원래 현재 lease·own tagged 제외·1회 처리·1px 조건은 그대로다. typed wheel/pointer/keyboard 입력은 기존 document listener에서 즉시 오래된 의도를 취소하며, 새 scroll writer·자동 재시도·geometry 결과 허용은 추가하지 않는다.
+
+Tooltip의 Escape 후 같은 focused 가상화 셀 재사용은 별도 fixture 전제 오류다. 해당 oracle은 실제 blur/focus를 만들고 Escape 닫힘/포커스 유지·기존 ISO/날짜/좌표 단언을 검증한다. 두 원인을 하나로 합치지 않으며, 원본/진단·추가 확대 FAIL·최종 source는 [ci2827 원장](evidence/issue-667/ci2827-correction.json)을 따른다. 기존 #666 미지원390px/clamp 증거와 원격 인수 경계는 그대로 유지한다.

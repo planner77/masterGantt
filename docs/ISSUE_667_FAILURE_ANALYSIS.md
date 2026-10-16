@@ -2,13 +2,39 @@
 
 Refs #667
 
+## 후속 실패 시 먼저 읽을 원장
+
+이 파일은 Issue #667/PR #695의 **별도 누적 실패 분석 원장**이다. 다음 실패 때 이 문서와 해당 `docs/evidence/issue-667/ci<N>-correction.json`을 먼저 읽는다. 개별 원장은 원본 FAIL의 immutable 출처·수정 source·실제 실행/미검증을 보존하며, 서로 다른 Head/시도의 PASS를 합산하지 않는다. Issue 댓글은 게시 Head와 새 CI 시작 출처를 연결하고 이 문서는 재현·판단 근거를 보관한다.
+
+| 실패 실행 | 구분할 증상 | 기존 분석·교정 증거 |
+| --- | --- | --- |
+| #2811 | visible 전환 receipt/낡은 bridge, cross-tab recovery 재잠금 | [ci2811](evidence/issue-667/ci2811-correction.json) |
+| #2812 | UNKNOWN 후 다음 Delete fixture, 빈 Project 첫 과거 Milestone 음수 axis | [ci2812](evidence/issue-667/ci2812-correction.json) |
+| #2813 | DEV reveal getter의 null 설정 start | [ci2813](evidence/issue-667/ci2813-correction.json) |
+| #2814 | UI 후 canonical APIContext GET의 ECONNRESET; 근인 UNKNOWN | [ci2814](evidence/issue-667/ci2814-correction.json) |
+| #2817 | 같은 revision 재조회 후 U3 관측 미전달/queue 정렬 | [ci2817](evidence/issue-667/ci2817-correction.json) |
+| #2818 | viewport50ms frame false를 U3 deadline으로 해석 | [ci2818](evidence/issue-667/ci2818-correction.json) |
+| #2819 | cross-tab SC-05 최종 canonical 확인 GET ECONNRESET; 근인 UNKNOWN | [ci2819](evidence/issue-667/ci2819-correction.json) |
+| #2820 | 실패 관측을 성공 receipt에서 기다린 음성 oracle | [ci2820](evidence/issue-667/ci2820-correction.json) |
+| #2825 | 독립 native Y 반영 전 X 주입; 세로 commit의 Chart X 동기화 | [ci2825](evidence/issue-667/ci2825-correction.json) |
+| #2827 | Escape 뒤 같은 focused 셀의 focus 전제 오류 + scale clamp의 native-forward 오분류 | [ci2827](evidence/issue-667/ci2827-correction.json) |
+
+### 재개 순서와 기록 규격
+
+1. 최신 PR Head/main/base/test merge·Run ID/Attempt·workflow/event를 새로 조회하고 이 원장의 이전 출처와 비교한다. 새 실패가 이전 증상과 같아도 같은 원인으로 단정하지 않는다.
+2. 모든 shard의 최초 실제 단언 FAIL과 fail-fast 취소/미실행을 분리한다. aggregate/QA 파생 FAIL·global error·별도 환경 오류를 구별하고 원본 report/trace의 안전한 필드만 추출한다.
+3. 원본 source에서 정확한 사례를 실행한다. 비재현 PASS도 기록하고 필요하면 통제 변형과 대조를 별도로 만든다. 제품/fixture/DEV 관측/transport/UNKNOWN을 증거로 분류한다.
+4. 최소 보완과 직접·간접 영향, 선택·제외 이유를 기록한다. 단언/timeout/retry/skip·required gate를 완화하지 않는다. 최종 동결 source에서 관련 교차 회귀를 재검증하고 이전 source와 합산하지 않는다.
+5. 새 `ci<N>-correction.json`과 이 문서의 새 절에 원본 run/job/step/Head/base/test merge, 관찰·가설/기각, 재현·보완, source SHA256/fingerprint, 명령/환경/고유 사례 수·PASS/FAIL/SKIP/NOT TESTED, PRE_QA·DOCUMENTATION_SYNC, 남은 위험을 기록한다. raw 로그·HTML/trace는 Git 밖에 보존하고 Secret/실제 DB/민감 데이터는 커밋하지 않는다.
+6. 리뷰0·최신 main/충돌·게시 Tree 동일성을 확인해 같은 PR에 게시하고, 새 CI의 Head/base/test merge/Run/Attempt·시작 URL을 Issue STATUS에 연결한다. 시작을 전체 PASS·최종 QA/Owner ACCEPT로 표시하지 않는다.
+
 ## 판정과 범위
 
-2026-10-16 CI #2825 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
+2026-10-16 CI #2827 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
 
 CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 이전 2026-10-16 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함했다(과거 실행 이력). 병합·릴리스는 제외한다.
 
-모든 원본 attempt는 1이다. base는 `ee6365bf57ab637b4c0aca61fdedaf5148253052`이며 quality/docker는 각각 SUCCESS, e2e aggregate는 FAILURE다. 아래 job/step은 실제 실패 테스트의 출처다. 취소된 shard나 아직 실행되지 않은 사례를 PASS로 세지 않는다.
+아래 #2811~#2814 표의 원본 attempt는 모두1이다. 해당 base는 `ee6365bf57ab637b4c0aca61fdedaf5148253052`이며 quality/docker는 각각 SUCCESS, e2e aggregate는 FAILURE다. 아래 job/step은 실제 실패 테스트의 출처다. 취소된 shard나 아직 실행되지 않은 사례를 PASS로 세지 않는다.
 
 | 원본 CI / Head / test merge | 실제 실패와 원인 | 보완과 보존할 검증 |
 | --- | --- | --- |
@@ -68,6 +94,26 @@ UNKNOWN·잠금 해제·same API·canonical 행·후속 name-only 저장 단언 
 보완은 fixture의 독립 세로 입력이 Core/native에서 완료됐는지 확인한 뒤 가로 입력을 넣는 순서에 한정한다. 최종 `(180,128)`·필터와 layout 뒤 위치·same instance·기존5000ms·실제 wheel 우선권 단언은 유지한다. 제품/의존성/CI 변경0이며 vendor의 동시에 주입한 양축 DOM 입력 자체를 지원 보강했다고 주장하지 않는다. 최종 source·선택 회귀·사전 검토는 [이번 원장](evidence/issue-667/ci2825-correction.json)과 Work Packet에 별도로 기록한다.
 
 최종 두 곳 barrier source1 SHA256 `1b853b2dd9be5d181bdd5ff7528d579a022524137798dde7293e23631e776cd0`에서6spec42 PASS/0 FAIL/0 SKIP/0 flaky/globalErrors0(414509.547ms), 기존Unit4파일206 PASS를 확인했다. 실제HTTP/SQLite17과 mock API/actual SVAR·DOM25를 구분하며 중간35 PASS와 합산하지 않는다. Y의 Core/native owner 반영 확인은 React Chart layout commit 전체 보증이 아니며 실제 동시양축wheel 전수와 원격의 정확 스케줄은 미검증이다. 최종 원격CI/QA/Owner는 별도다.
+
+## CI #2827 — Escape 뒤 재사용된 focused 주차 셀의 새 focus 전제 오류
+
+[CI #2827.1/run38844184124](https://github.com/planner77/masterGantt/actions/runs/38844184124), Head `6ba4ee3da3e36b2724880be62fd97c607cbbeb12`, base `fd219130491c53d054754eac41a58e4a6a3da0c6`, test merge `f892e95723034f82c26a07a5eeb387290233587f`의 source artifact12021948759/Run API/QA 환경/Git 부모는 일치한다. Quality116791581372/Docker116791792050 PASS, E2E116794361792/QA Automated116794380310 FAIL이다. shard4 job116791304138 step7의 `milestone-timeline-lane.spec.ts:321→346`은 주차 셀 focus 뒤 `ISO 2026-W05` Tooltip 부재로5000ms FAIL이었다. 해당 shard51 PASS/1 FAIL/기존1 SKIP/87 NOT RUN, shard6는89 PASS/기존1 SKIP으로 완료했고 다른4 shard는 추가 단언 FAIL 없이 CANCELLED다. report의 별도 error1은 fail-fast 중단 메시지다.
+
+원본 trace는 첫 `2024-W09` focus/Tooltip PASS→Escape→두 번째 `2026-W05` focus 정상 반환과 정확 class/tabindex/ISO aria-label을 보이나 두 번째 aria-describedby/Tooltip은 없다. activeElement/노드 동일성이 원격에 기록되지 않아 직접 원격 원인은 원본 trace만으로 확정할 수 없다. 이전 #463 viewport·SC-01 정상/실제RAF90ms는 이번 실행에서 개별 PASS했으며 취소shard전체나 과거 FAIL의 소급 PASS가 아니다.
+
+원본 source의 정확 단독 사례도 W05 Tooltip 부재/5000ms로1 FAIL(개별8086ms/report11881.094ms)이었다. 읽기전용 진단 변형은 첫W09 focus전 active=false/이전node동일=false, 둘째W05 active=true/이전node동일=true/이전node연결=true/describedby=null을 직접 확인하고 같은1 FAIL(report11343.132ms)을 기록했다. 설치 Core가 index key로 날짜 셀 DOM을 재사용하고 Escape는 Tooltip을 닫되 실제 focus를 유지하므로, 이미 focused인 같은 노드에 `.focus()`를 다시 호출해도 새 focusin을 만들지 않는다. 같은 원본 FAIL·통제 관측은 fixture의 독립 focus 진입 전제 오류를 지지한다. 원격 노드 정체성은 직접 계측되지 않았다는 경계는 유지한다.
+
+보완은 현재 보이는 `주` toolbar control로 focus를 옮겨 실제 이탈을 확인한 뒤 해당 week cell로 새 focus 진입을 확인한다. 기존 ISO year/week·포함월·반개구간·날짜/월1일 경계·좌표±1px·5000ms·mutation0은 유지하고, Escape 뒤 Tooltip0·그 cell focus 유지도 추가 검증한다. 날짜 이동만으로 Escape-dismissed Tooltip을 자동재개하는 제품정책 변경은 하지 않는다. 보완 단독은1 PASS(개별4275ms/report7502.032ms)이며 제품/의존성/CI 변경0이다. 최종 교차검증·source·문서·사전검토는 [ci2827 원장](evidence/issue-667/ci2827-correction.json)에 따로 기록한다. 원본/진단/보완 실행을 합산하지 않는다.
+
+### CI #2827 확대 진단의 별도 제품 결함 — scale clamp를 새 입력으로 오분류
+
+Tooltip 보완 source의 5spec41 실행은38 PASS/3 FAIL/0 SKIP/0 flaky/errors0(150918.7ms)이었다. 새 실패는1024/1440/1920px의 lane geometry에서 Day 이동 SETTLED 후 Week 전환 뒤 날짜 이동의 `SETTLED` 기대에 `SUPERSEDED`가 반환된 것이다. geometry 테스트 자체는 Tooltip 변경과 무관하며 원본 source의 같은3사례도2 PASS/1 FAIL(1440px)을 보였다. 이 결과를 Tooltip 교정의 실패나 전체 PASS로 합치지 않는다.
+
+1440px 읽기전용 입력 기원 진단에서 pointerdown3개는 모두 viewport 밖이고 wheel/keydown/touch는0이었다. axis 등록 당시 Core9362/native25683, callback은 event/native10315·Core9362·baseline9362를 직접 관측했다. native는 Day 잔여25683에서 Week capacity clamp10315로 **뒤로** 이동했는데 기존 guard가 Core baseline만 비교해10315>9362를 새 forward로 승격했다. 이어 userInput으로 원래 명시 이동을 취소하고 새 axis를 Core10314/native10315로 등록했다. 이 로컬 제품 경계는 프로그램 clamp를 사용자 입력으로 오분류한 결함이며 원격의 primary Tooltip 실패 원인과 별개다.
+
+최소 제품 교정은 axis 등록의 같은 `read()` snapshot에서 Core/native baseline의 최댓값을 고정한다. 실제 native/event 일치·Core/native 차이·현재 원래 lease·own tagged 제외·1회 nativeHandled 조건은 유지하고, 양쪽 등록 좌표보다1px 초과 앞선 이동만 기존 native-forward 취소 경로로 전달한다. 실제 document wheel/pointer/keyboard 입력의 취소, 단일 port writer와 좌표/3frame·첫 날짜이동 `SETTLED` 기대는 유지한다. geometry fixture에 임의 대기·재시도·`SUPERSEDED` 허용을 추가해 숨기지 않는다. 관련 Unit과 최종 동결 source의 Timeline/viewport/Copy/Resource 교차 검증은 원장에 별도로 기록한다.
+
+최종 source3 fingerprint `092ea07e53e767fee0d8a1163a4f2163d477fbaa6fd9cc46bdb8dab3ecb8b1fe`에서10파일250 Unit PASS(352ms)·6spec56 Chromium PASS/0 FAIL/0 SKIP/0 flaky/globalErrors0(462987.804ms)·hash drift0을 확인했다. 실제 HTTP/SQLite17과 mock API/actual SVAR·DOM39를 구분한다. 중간/원본/진단의 FAIL·PASS는 최종56에 합산하지 않으며 새 exact-Head 원격 Required/Trusted·Owner ACCEPT는 NOT TESTED다. 이 원장과 ci2827의 실제 명령/해시/분류/남은 범위를 후속 실패 때 먼저 참조한다.
 
 ## 최초 구현과 반복 보완에서 드러난 경계
 

@@ -17,7 +17,7 @@ issue_comment_writer: manager
 issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME, FINAL
 documentation_owner: Manager
 
-2026-10-16 CI #2825 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
+2026-10-16 CI #2827 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
 
 최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 이전 2026-10-16 요청에서는 새 PR CI 완료 모니터링을 포함해 당시의 CI 시작까지만 범위를 대체했다(과거 실행 이력). 병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
 
@@ -555,3 +555,47 @@ Core/native owner의 Y 반영 확인은 React Chart layout commit 전체의 완�
 정적 확인은 typecheck·변경 spec ESLint 오류0/경고0·Markdown229·version0.114.1·git diff --check PASS다. 새 Required Quality/E2E/Docker·Trusted QA 완료는 NOT TESTED이며, 이번 게시 후에는 CI 시작 출처만 기록한다.
 
 별도 qa_docs `/root/pre_review`는 최종 source/HTML42전건·원본/진단/대조·문서를 직접 대조해 PRE_QA/DOCUMENTATION_SYNC PASS·차단 지적0으로 판정했다. Unit206은 구현 Agent의 실제 도구 transcript `f523c7`에 근거하며 독립 재실행으로 표시하지 않는다. 이번 사전 검토는 선택 범위에 한정하고 QA_FINAL/Owner ACCEPT·새 원격 전체 CI는 NOT TESTED를 유지한다.
+
+
+## CI #2827 후속 — focus fixture와 native clamp 제품 교정
+
+현재 사용자 범위는 보완·원인 분석 별도 누적 저장·미해결 리뷰/충돌 처리 후 새 Full PR CI **시작 확인까지**다. main `fd219130491c53d054754eac41a58e4a6a3da0c6`은 원본 Head `6ba4ee3da3e36b2724880be62fd97c607cbbeb12`에 이미 통합돼 있다. 원본 run38844184124/attempt1의 Quality/Docker PASS·E2E/QA FAIL·Tooltip 실패와 취소 shard는 [별도 누적 분석](../../ISSUE_667_FAILURE_ANALYSIS.md)과 [ci2827](../../evidence/issue-667/ci2827-correction.json)에 보존한다.
+
+frontend `/root/viewport_fix`는 fixture·port·Unit의 단일 작성자, infra `/root/ci_investigation`은 원본 remote evidence read-only 조사, qa_docs `/root/pre_review`는 별도 read-only PRE_QA, Manager는 docs/게시를 소유한다. 사용자 기존 산출물·이전 FAIL/성공 원장·release 승인을 바꾸지 않는다.
+
+### 변경 영향·선정·제외
+
+| 경계 | 조치·검증 |
+| --- | --- |
+| 원격 primary 실패 | ISO independent oracle의 Escape 후 같은 focused 가상화 셀 재사용. 실제 Week toolbar로 blur 확인→week cell focus 진입 확인·기존 ISO/포함월/geometry·Escape 닫힘/포커스 유지 검증. 원본 단독1 FAIL·진단1 FAIL·보완single1 PASS를 분리 |
+| 확대 진단 | 첫 5spec41은38 PASS/3 FAIL. geometry1024/1440/1920의 Day→Week 전환 뒤 reveal SUPERSEDED를 발견했고 원본 source3사례도2 PASS/1 FAIL. 이 실패를 Tooltip 교정과 별도로 보존 |
+| 추가 제품 교정 | `svar-viewport-port.ts`에서 같은 read의 Core/native baseline 최댓값을 등록. Day 잔여 native의 뒤로 clamp를 새 forward로 오분류하는 경계 차단. current lease·tag·1px·1회 처리·single writer·실제 입력 취소는 유지 |
+| 제품 원인 실증 | 실제 입력은 viewport 밖 pointerdown3·wheel/keydown/touch0. Core9362/native25683→native10315 clamp를 기존 Core-only guard가 forward로 승격. 보완 뒤 원래 geometry3사례는 readiness/timeout/결과 변경 없이3 PASS |
+| Unit | 새 mismatch clamp/equal/1px 음성과 두 baseline 초과 실제 forward 양성, 기존 API-only/tagged/stale/반대 방향·axis/coordinator/copy/header/ISO. 최종10파일250 PASS·352ms. 원본 guard에 새 음성 테스트를 적용한1 FAIL/40 PASS도 보존 |
+| 최종 선택 | Timeline lane21·Core9·viewport8·Copy 전체10·Resource7·scale1의6spec56사례를 실제 실행해56 PASS. 실제 HTTP/SQLite17과 mock API/actual SVAR·DOM39를 구분. 최종 동결 source의 실제 결과·명령·환경은 JSON에 기록 |
+| 제외 | geometry fixture에는 임의 대기/재시도/단언 완화 없음. API/DB/보안/일정 알고리즘·U2/U3 코드 불변으로 해당 전수 재실행 N/A. 전체 E2E/SC 인수·Windows/운영 환경·실제 동시 양축 wheel 전수는 NOT TESTED/후속 검증 |
+
+### DOCUMENTATION_SYNC
+
+UPDATE: ISSUE_667_FAILURE_ANALYSIS의 증상 인덱스/재개6단계/새 분석, ci2827 JSON, Work Packet/PLAN/TEST_PLAN/CHANGELOG, ARCHITECTURE/PROJECT_UX/GANTT_ADAPTER_ADR/GANTT_SYNC_TRACE. 추가 제품 결함 발견으로 초기 Tooltip-only 문서 N/A 중 포트 설명은 UPDATE로 전환했다.
+
+N/A: GANTT_STATE_CONFORMANCE/MILESTONE_TIMELINE/TASK_EDITOR/DESIGN/UI_UX_GUIDELINES — GSC·Milestone 표시·Editor·시각언어/Tooltip focus 정책 자체는 변경하지 않는다. 기존 최신 입력/프로그램 clamp·focus/Escape·날짜/좌표 계약을 구현/검증한다.
+
+N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA_REVIEW_POLICY, workflows/scripts/package/lock — 서버/도메인·CI/권한·release 정책/버전 변경0. 원격 source·실패와 새 CI 시작 출처는 이번 원장/Issue STATUS에서 보존한다.
+
+### 누적 저장과 남은 승인
+
+후속 실패는 별도 원장의 증상 인덱스·재개6단계부터 읽는다. 최신 Head/main·source/Run/Attempt/Git 부모→전체 shard FAIL/취소 분리→원본 재현/통제 진단→최소 보완/선정·제외→최종 source 검증→새 CI 시작 출처를 연결한다. raw HTML/trace의 만료/격리 경계를 명시하고 안전한 분석/해시/결과는 Git에 보존한다.
+
+HIGH/OWNER_MANAGED/qa_required=true·version0.114.1·release_required=true/release_authorized=false·Manager ACCEPT/QA_FINAL=NOT TESTED·MERGE_READY=BLOCKED를 유지한다. 원격 Required/Trusted QA 완료·병합·Main/GHCR·release/tag·Issue/branch 종료는 이번 범위 밖이다.
+
+
+### 최종 동결 검증 (CI #2827 후속)
+
+source3 fingerprint `092ea07e53e767fee0d8a1163a4f2163d477fbaa6fd9cc46bdb8dab3ecb8b1fe`에서 최종10파일250 Unit PASS(352ms), 6spec56 Chromium PASS/0 FAIL/0 SKIP/0 flaky/globalErrors0(462987.804ms), source hash drift0을 확인했다. 실제 HTTP/SQLite17과 mock API/actual SVAR·DOM39를 구분한다. 원본 Tooltip FAIL·노드 진단 FAIL·single PASS·확대38/3·원본 geometry2/1·입력 기원 FAIL·Unit red40/1·보완 geometry3 PASS는 각 source/실행으로 분리하며 최종56에 합산하지 않는다.
+
+명령·환경·원본 source provenance·안전한 진단 숫자·최종 source SHA256와 결과를 별도 누적 문서/JSON에 보존했다. red Unit의 raw stdout은 직접 실행 원본이며 red source snapshot은 사후 patch로 재구성했음을 명시한다. 실제 code snapshot과 pre-run hash로 과대 표시하지 않는다. 생성 next-env/tsconfig와 기존530산출물은 새 결과를 보존한 뒤 원본 bytes로 복원했고 사용자 기존 비추적 자료는 유지했다. 원격 Required/Trusted QA 완료·Owner/Manager ACCEPT는 NOT TESTED다.
+
+최종 정적 검사: typecheck·변경3파일 lint 오류/경고0·Markdown229·version0.114.1·diff-check PASS.
+
+별도 qa_docs `/root/pre_review`는 최종3source·56 HTML 전건·원본/진단/Unit red/교정·문서13파일을 대조해 PRE_QA/DOCUMENTATION_SYNC PASS·추가 지적0으로 판정했다. 이전 JSON10개 불변과 생성 설정/진단 코드 복원도 확인했다. 정적 검사 PASS는 Manager 실행 근거이며 독립 재실행으로 표시하지 않는다. 새 원격 전체 Required/Trusted QA·QA_FINAL/Owner ACCEPT는 NOT TESTED를 유지한다.

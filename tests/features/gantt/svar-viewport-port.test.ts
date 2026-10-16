@@ -60,7 +60,7 @@ describe("SVAR visibility admission", () => {
       nativeForwardInput, axisSettled,
       lease: () => ({ stamp: { context: "test", contextEpoch: 0, gesture: 0, intent: 0 }, priority: 1 }) });
     if (mode === "disposed") port.dispose();
-    return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
+    return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setNativeLeft: (left: number) => { horizontal.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
   it("prepares observed compatibility transaction geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {
     const port = portFor("commands");
@@ -121,6 +121,27 @@ describe("SVAR visibility admission", () => {
     await pending;
     port.dispose();
   });
+  it.each([50, 80, 81])("rejects resize clamp/equal/tolerance native offset %s as forward input", async nativeLeft => {
+    const port = portFor("ready");
+    port.setCoreLeft(20); port.setNativeLeft(80);
+    const pending = port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true);
+    port.setNativeLeft(nativeLeft); port.intercept({ left: nativeLeft });
+    expect(port.nativeForwardInput).not.toHaveBeenCalled();
+    port.setNativeLeft(20); await pending;
+    port.dispose();
+  });
+  it("accepts fresh native forward input beyond both divergent registered offsets", async () => {
+    const port = portFor("ready");
+    port.setCoreLeft(20); port.setNativeLeft(80);
+    const pending = port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => true);
+    port.intercept({ left: 100 });
+    expect(port.nativeForwardInput).not.toHaveBeenCalled();
+    port.setNativeLeft(100); port.intercept({ left: 100 }); port.intercept({ left: 100 });
+    expect(port.nativeForwardInput).toHaveBeenCalledExactlyOnceWith(100);
+    port.setNativeLeft(20); await pending;
+    port.dispose();
+  });
+
   it("rejects a late native callback from an already revoked axis lease", async () => {
     const port = portFor("ready"); let current = true;
     const pending = port.apply({ kind: "RANGE_EXTENSION", width: 600 }, () => current);

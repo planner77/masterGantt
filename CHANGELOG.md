@@ -1,5 +1,8 @@
 ## [0.114.1] — Unreleased / Issue #667
 
+- CI #2827 확대 진단에서 확인한 Day→Week native clamp의 사용자 이동 오분류를 Core/native 양쪽 등록 좌표 비교로 교정한다. 실제 입력 우선권·단일 writer·기존 좌표/CI gate는 유지한다.
+- CI #2827의 ISO Header 검증이 가상화된 focused 셀의 새 focus 진입을 확인하도록 fixture를 보완하고 Escape 닫힘·포커스 유지를 검증한다. 실패 원인/재현/교정과 재개 인덱스를 별도 누적 원장에 보존한다.
+
 - CI #2825의 Milestone 화면 왕복 검증에서 독립 세로 입력의 Core/native 반영 뒤 가로 입력을 주입하도록 fixture 순서를 교정한다. 기존 정확 좌표·실제 wheel 우선권·필터/layout 보존과 CI gate는 유지한다.
 
 - CI #2820의 Grid/Chart 정렬 음성 테스트를 실패 관측·성공 영수증 분리 계약에 맞게 교정한다. 실제27.5px 불일치·현재Core/DOM IDs·복구 정렬과 mutation0 검증은 유지한다.

@@ -343,8 +343,14 @@ test("#551 public ISO interval date/header semantics independent oracle", async 
         expect(lower?.className).toContain(`project-gantt-week-date-${expected.start.replaceAll("-", "")}`);
         expect(lower?.text).toMatch(new RegExp(`^${expected.week}`));
         const accessibleWeek = frame.locator(`.project-gantt-week-date-${expected.start.replaceAll("-", "")}`);
-        await accessibleWeek.focus(); await expect(page.getByRole("tooltip")).toContainText(`ISO ${expected.isoYear}-${expected.week}`);
+        // Core는 가상화된 날짜 셀 DOM을 재사용하며 Escape 뒤에도 focus는 남는다.
+        // 현재 날짜의 독립 focus 진입을 검증하도록 먼저 보이는 toolbar로 이동한다.
+        const weekButton = page.getByRole("button", { name: "주", exact: true });
+        await weekButton.focus(); await expect(weekButton).toBeFocused();
+        await accessibleWeek.focus(); await expect(accessibleWeek).toBeFocused();
+        await expect(page.getByRole("tooltip")).toContainText(`ISO ${expected.isoYear}-${expected.week}`);
         await expect(page.getByRole("tooltip")).toContainText(`포함 월 ${expected.label}`); await page.keyboard.press("Escape");
+        await expect(page.getByRole("tooltip")).toHaveCount(0); await expect(accessibleWeek).toBeFocused();
         expect(task.start! >= expected.start && task.start! < expected.end).toBe(true);
         expect(Math.abs(upper!.x - lower!.x)).toBeLessThanOrEqual(1); expect(Math.abs(upper!.right - lower!.right)).toBeLessThanOrEqual(1);
       }

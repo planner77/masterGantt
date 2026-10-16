@@ -1,3 +1,11 @@
+## Issue #667 — CI #2827 Week header의 실제 focus 진입 (2026-10-16)
+
+ISO independent oracle은 Escape로 Tooltip을 닫은 뒤 가상화로 재사용된 같은 focused DOM에 `.focus()`를 호출한 것을 새 keyboard 진입으로 간주하지 않는다. 기존 `주` toolbar control로 focus 이동을 확인하고 현재 날짜 셀로 다시 진입한 뒤 원래 ISO year/week·포함월·반개구간/월1일·좌표±1px·5000ms·mutation0을 검증한다. Escape 뒤 Tooltip0과 해당 cell focus 유지도 확인한다. 제품정책/자동Tooltip재개·timeout/retry/skip은 변경하지 않는다.
+
+원본·진단1FAIL과보완single1PASS·최종선택회귀는 [별도누적분석](ISSUE_667_FAILURE_ANALYSIS.md) 및 [ci2827](evidence/issue-667/ci2827-correction.json)에 source별로 저장한다. 같은문서의증상인덱스/재개6단계부터읽어이전원인과새실패를구분한다. 선택은Timeline lane전체·Core/viewport/scale·Copykeyboard/Escape와Header/ISO관련Unit이며원격Required전체와Owner승인은별도다.
+
+CI #2827 확대 geometry에서 발견한 제품 회귀는 별도 검증한다. axis 등록의 Core/native 불일치 뒤 native가 뒤로 clamp된 경우를 새 forward로 승격하지 않으며, 두 등록 baseline을 함께 넘는 진짜 native forward는1회 수락해야 한다. API-only/tagged/stale/1px 경계 및 실제 wheel/pointer/keyboard 취소를 유지한다. 원본 guard의 새 음성 Unit FAIL→교정 PASS와 readiness/timeout/단언을 바꾸지 않은 원래 geometry3사례 PASS, 최종 Timeline/viewport/Copy/Resource 교차 검증을 source별로 기록한다.
+
 ## Issue #667 — CI #2825의 native 입력 순서 검증 (2026-10-16)
 
 `milestone-dashboard-state.spec.ts`의 독립 native Y→X 입력은 먼저 세로값이 public Core/native 모두에 반영됐는지 확인한 뒤 가로값을 주입한다. 설치 SVAR의 세로 commit은 Chart X를 현재 Core X로 동기화하므로 DOM 설정 완료를 Core 처리 완료로 취급하지 않는다. 초기 `(120,96)`과 필터 복귀 뒤 `(180,128)`, 이후 필터/layout/same-instance·기존5000ms 단언은 유지한다.

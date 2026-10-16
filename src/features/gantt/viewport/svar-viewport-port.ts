@@ -180,7 +180,9 @@ export function createSvarViewportPort(options: PortOptions): ViewportPort & { d
       capacityEnd.setDate(capacityEnd.getDate() + additionalCells * (scale === "week" ? 7 : 1));
       if (capacityEnd > requestedEnd) requestedEnd.setTime(capacityEnd.getTime());
     }
-    axisAuthority = { lease, current: authorized, minimumWidth: desiredWidth, baselineLeft: read().core.left, nativeHandled: false };
+    // 축 전환 중 남은 native 좌표의 뒤쪽 clamp는 새 forward 입력이 아니다.
+    const baseline = read();
+    axisAuthority = { lease, current: authorized, minimumWidth: desiredWidth, baselineLeft: Math.max(baseline.core.left, baseline.native.left), nativeHandled: false };
     const transaction = createCommandTransaction();
     axisTransaction = transaction;
     resizing = true;

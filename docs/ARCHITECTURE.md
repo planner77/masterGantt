@@ -499,3 +499,8 @@ U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기�
 
 
 #667 CI #2818 후속에서 U3 의미 관측 clock의 frame 대기는 viewport port와 분리한다. 의미 관측의 기존1500ms wall-time watchdog/120실제frame/3안정frame이 종료를 소유하며 실제 RAF만 성공한다. U2 recovery/U4 viewport의50ms frame tick은 유지한다. 같은 revision 재조회에서 한 프레임 지연을 전체 관측 예산 소진으로 잘못 처리하는 경계를 원본90ms 지연 browser 회귀로 재현했고, 실제 원격 runner의 지연 원인까지 확정한 증거는 아니다.
+
+
+## Issue #667 / CI #2827 — native clamp의 입력 분류 경계
+
+날짜축 전환에서는 Core 좌표가 먼저 Week로 바뀌고 native DOM에 이전 Day 좌표가 남을 수 있다. 단일 viewport port는 axis 등록 시 같은 `read()`에서 Core/native 가로 좌표를 함께 읽고 최댓값을 baseline으로 고정한다. 두 등록 좌표보다1px 초과 앞선 실제 native/event 일치 이동만 기존 forward 취소 경로에 전달한다. native가 뒤로 clamp됐으나 더 작은 Core 좌표보다 크다는 이유로 새 사용자 의도를 만들지 않는다. 원래 lease·own tagged 제외·한 번의 nativeHandled·실제 wheel/pointer/keyboard 취소·단일 writer는 유지한다. 서버 canonical/authorization·API/DB·U2/U3 계약 변경은 없다. 원본/Unit/교차 검증은 [누적 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md)과 [ci2827](evidence/issue-667/ci2827-correction.json)에 source별로 기록한다.
