@@ -1,3 +1,9 @@
+## Issue #552 — Full PR CI #2861 기존 #550 native-oracle 실패 (2026-10-17)
+
+[원본 CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752), head `2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf`: shard5 job `117210305175`의 `milestone-management-persistence.spec.ts:264`는 native M 행이 표시되어야 한다는 과거 기대 때문에 FAIL(27 PASS/1 FAIL/76 NOT RUN), 나머지 5 Shard CANCELLED, E2E aggregate와 QA Final FAIL이다. QA Preflight/TypeScript/ESLint/Vitest/Next.js Build/Docker는 PASS. 코드 제품 결함, API transport, OOM으로 단정하지 않는다.
+
+#552 marker-OFF 기본 표시에서는 M Grid/Bar0, 명시 legacy 복구에서는 M Grid/Bar1이며 동일 canonical ID·Dashboard 접근·서버 revision/401/소속/관계/무mutation·Gantt instance를 보존한다. 현재 오류 교정은 해당 #550 test-only이고 날짜축 자동 M reveal 전제를 기본 모드에서 제거하되 Day/Week 축·직접 scroll3회·원점·셀/폭 보호는 유지한다. 원격 새 Head Required3/6-shard/최종 QA·Owner는 실행 결과 전 NOT TESTED. 이전 실패 기록을 소급 승격하지 않는다.
+
 ## Issue #552 — CI #2859 원본 FAIL와 후속 검증의 경계 (2026-10-17)
 
 [원본 #2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185), Head `a7ad34482aeb8def79bd01d641a65f305043d593`, shard3 job `117195065949`/artifact `12074827958`은 두 번째 Task PATCH200 뒤 GET ECONNRESET으로 FAIL했다. Quality/Docker PASS·다른5 shard 취소·126 미실행을 유지한다. 동일 worker/launcher alive·실패 후 health200·OOM0과 RSS 증가는 관측 사실이며 메모리 증가의 인과나 서버 재시작의 증거는 아니다. 원본 #2844 SC-13 실패와 별도 원장으로 다룬다.

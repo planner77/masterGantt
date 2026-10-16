@@ -1,3 +1,9 @@
+## Issue #552 — CI #2861 #550 Milestone-only 테스트 계약 재정렬 (2026-10-17)
+
+기존 PR #561에서 [Full PR CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752)의 shard5 `milestone-management-persistence.spec.ts:264`가 오래된 native Grid M 표시를 기대하며 실패했다(27 PASS/1 FAIL/76 NOT RUN, 타5 shard 취소; Quality/Build/Docker PASS). 기본 WBS marker-OFF는 M row/bar0, 명시 legacy는 원래 native1이므로 #550 past/future/readonly/실제 SQLite 케이스의 표시·날짜 커버리지 기대만 분리한다. Dashboard/관계/권한/무mutation·revision·축·Day/Week/scroll·Gantt instance 원본 단언을 보존하고 제품/CI/권한/6 Shard 정책은 변경하지 않는다.
+
+frontend=test spec 1개, Manager=Packet/TEST_PLAN/REMOTE_VALIDATION/PLAN/CHANGELOG 및 원본 실패 기록, Reviewer=독립 검토 미실행(OWNER_MANAGED), infra=동일 PR 단일 Git commit 게시·review/main 정렬 확인·새 full CI 시작이다. 의존성/Chromium 로컬 실행 부재로 해당 신규 Head 선택 실증은 NOT TESTED. HIGH/qa_required=true/qa_method=OWNER_MANAGED, 0.115.0/release_required=true/release_authorized=false, MERGE_READY=BLOCKED 유지. 새 CI 결과 모니터링·병합/Main/GHCR/tag/release/Issue 종료는 비범위.
+
 ## Issue #552 — CI #2859 연결 종료 후 새 전체 PR CI 시작 (2026-10-17)
 
 [Work Packet](ISSUE_552.md)의 원본 #2859.1 Head `a7ad34482aeb8def79bd01d641a65f305043d593`은 #623의 저장 확인 GET ECONNRESET으로 실패했다. PATCH200·health200·alive·OOM0·RSS 증가와 로컬 원본3회 비재현을 구분하고, spec-local 환경 fixture로 불필요한 hook 서버를 제거하며 UI 후 여섯 저장+복귀 확인 GET(총7회)에 기존 browser canonical helper를 재사용한다. 제품/#667 authority·독립 seed/auth/교환 API·mutation/revision·단언/timeout/skip·Required3/6 shard는 유지한다.

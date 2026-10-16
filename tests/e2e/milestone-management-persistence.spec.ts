@@ -261,8 +261,19 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
   await expect(editor).toContainText("후행 작업 (0)");
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await page.getByRole("tab", { name: "일정", exact: true }).click();
-  await expect(page.getByRole("grid").getByText(milestone.name, { exact: true })).toBeVisible();
-  await expect(page.locator(`.wx-bar[data-task-id=":${milestone.taskId}"]`)).toHaveCount(1);
+  const legacyWbs = process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy";
+  const nativeMilestoneRow = page.getByRole("grid").getByText(milestone.name, { exact: true });
+  const nativeMilestoneBar = frame.locator(`.wx-bar[data-task-id=":${milestone.taskId}"]`);
+  if (legacyWbs) {
+    // Explicit emergency WBS rollback retains native Milestone rows, never the marker lane.
+    await expect(nativeMilestoneRow).toBeVisible();
+    await expect(nativeMilestoneBar).toHaveCount(1);
+  } else {
+    // #552: the same canonical milestone stays in the Dashboard, not the native Grid/Chart.
+    await expect(nativeMilestoneRow).toHaveCount(0);
+    await expect(nativeMilestoneBar).toHaveCount(0);
+  }
+  await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", coreInstance!);
   const readAxis = () => frame.evaluate((element, date) => {
@@ -279,7 +290,8 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
     await page.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: mode, exact: true }).click();
     await expect.poll(async () => {
       const axis = await readAxis();
-      return axis.covered && new Date(axis.end).getTime() > new Date(axis.start).getTime() && axis.width > 0 && axis.cells.every(count => count > 0);
+      // Hidden Milestones are not an implicit date reveal when the marker lane is OFF.
+      return (!legacyWbs || axis.covered) && new Date(axis.end).getTime() > new Date(axis.start).getTime() && axis.width > 0 && axis.cells.every(count => count > 0);
     }).toBe(true);
     const chart = frame.locator(".wx-chart").first();
     const before = await readAxis();
@@ -290,7 +302,11 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
       await expect.poll(async () => JSON.parse((await frame.getAttribute("data-gantt-viewport-coordinator")) ?? "null"))
         .toMatchObject({ kind: "RANGE_EXTENSION", phase: "SETTLED", outcome: "SETTLED" });
       const axis = await readAxis();
-      expect(axis.covered).toBe(true);
+      if (legacyWbs) expect(axis.covered).toBe(true);
+      else {
+        await expect(nativeMilestoneRow).toHaveCount(0);
+        await expect(nativeMilestoneBar).toHaveCount(0);
+      }
       expect(axis.start).toBe(before.start);
       expect(axis.cells.every(count => count > 0)).toBe(true);
       axes.push({ mode, extension, ...axis });

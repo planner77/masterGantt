@@ -1,5 +1,14 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — PR CI #2861.1 #550 Milestone-only 기존 UI oracle 보완
+
+- 원본 [Full PR CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752), Head `2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf`, Chromium shard5 job `117210305175`은 `milestone-management-persistence.spec.ts:264`의 native Grid Milestone `toBeVisible` 단언에서 27 PASS/1 FAIL/76 미실행으로 중단했다. 나머지 5 shard CANCELLED, E2E 집계·QA Final은 required E2E 실패에 따른 후속 FAIL이다. Preflight/Quality/Build/Docker는 PASS다. 앞선 #2859의 GET ECONNRESET과 다른 독립 오류이며 역사적 결과를 변경하지 않는다.
+- 원인: #550의 empty/M-only 실제 HTTP·SQLite 영속성 케이스가 #552의 **기본 별도 WBS/marker OFF** 전환 이후에도 native M Grid 행·Chart Bar 1건 및 M 날짜 자동축 포괄을 요구했다. #552 정식 정책은 기본 M row/bar0, canonical Task ID·revision·Dashboard/Editor/소속/관계·readonly는 유지하고 날짜 확인은 Dashboard에서 제공한다.
+- 보완: 동일 `past/future` 케이스에서 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy` 명시 비상모드만 기존 M row/bar 1을 요구하고, 기본 모드는 row/bar0을 요구한다. 양 모드 상단 lane/guide0, 기존 Dashboard exact-ID 상세/소속/관계, 저장·401 readonly·snapshot/revision/교환·Gantt API 동일 instance를 계속 검증한다. Day/Week 축은 유효한 start/end/폭/셀과 사용자가 직접 한 우측 스크롤 확장·축 start 불변을 확인하되, **숨은 Milestone의 날짜가 자동으로 viewport에 들어와야 한다**는 이전 가정은 legacy에만 둔다. 기존 timeout, skip, 재시도, mutation/권한/원본 단언, 6-shard/Required3/QA 정책은 변경하지 않는다.
+- 영향 경계: test-only 교정(1 spec), producer=기본 WBS projection/marker OFF 정책; 소비자=#550 empty/M-only 날짜 past/future·#552 native row/bar·Dashboard·#667 날짜축. 제품/DB/API/보안/스케줄/교환/CI/버전 변경 N/A. `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, 활성 PLAN, CHANGELOG와 이 Packet을 동기화한다.
+- 이 커밋 작성 환경에는 프로젝트 의존성/Node 테스트·실제 Playwright 실행 런타임이 없어 새 변경의 **로컬 Unit/Browser PASS는 주장하지 않는다**. 정적 변경 범위·동일 원본 보호 단언 확인만 완료하며 exact-head 전체 원격 Quality/E2E6/Docker/Trusted QA 및 Owner ACCEPT는 CI 실제 결과 확인 전 NOT TESTED, MERGE_READY=BLOCKED다. PR CI 시작까지가 사용자 승인 범위이며 모니터링/병합/Main/GHCR/종료는 제외한다.
+
+
 ## 2026-10-17 — PR CI #2859.1 연결 종료 분석 및 테스트 실행 보완
 
 - 원본 [CI #2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185), Head `a7ad34482aeb8def79bd01d641a65f305043d593`, Chromium shard3 job `117195065949`, artifact `12074827958`의 SHA256은 `da348c613a4f5691d142f0380937daac567ef887724c2ac83ea1f6ecaba5575e`다. Quality/Docker PASS, shard3 2 PASS/1 FAIL/126 미실행, 다른 5 shards 취소, E2E/QA Final 종속 FAIL을 보존한다. 이전 #2844 SC-13 oracle 실패와 구별한다.

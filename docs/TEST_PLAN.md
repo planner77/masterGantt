@@ -1,3 +1,9 @@
+## Issue #552 / PR #561 — CI #2861 #550 Milestone-only 잔존 native oracle 교정 (2026-10-17)
+
+[CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752) shard5의 `milestone-management-persistence.spec.ts:264`가 제거된 Milestone Grid 행의 가시성을 요구하여 27PASS/1FAIL/76미실행, 다른5 shard 취소로 종료했다. 앞선 #2859의 API GET ECONNRESET과 다른 display-contract 테스트 오류다. 현재 기본 `separate-milestones`에서 Grid/Bar0, 긴급 `legacy`에서 native Grid/Bar1, 공통 marker OFF를 검증한다. Day/Week 축 유효성·사용자 직접 스크롤·원점 불변은 계속 확인하지만 숨은 M의 날짜 자동 reveal/coverage 의무는 기본 모드에서 제거한다.
+
+#550 원본의 실제 HTTP·SQLite empty→M-only·past/future·Dashboard ID·상세/소속/관계·readonly401·snapshot/revision/무mutation·동일 Gantt API instance는 유지한다. 선택 테스트·전체 CI에 대해 원본 FAIL/취소/미실행과 새로운 source 결과를 구분하며 timeout/skip/6-shard/Required3/QA 정책은 변경하지 않는다. 프로젝트 런타임 부재로 이 교정의 로컬 Chromium/Unit 실행은 NOT TESTED이며 새 exact-head full PR CI의 실제 결과는 등록 후 별도 확인한다. [Work Packet](exec-plans/active/ISSUE_552.md) 참조.
+
 ## Issue #552 / PR #561 — CI #2859 연결 종료와 #623 실행 수명주기 보완 (2026-10-17)
 
 원본 [#2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185)의 Head `a7ad34482aeb8def79bd01d641a65f305043d593`에서 Quality/Docker PASS, Chromium shard3 `issue-623-resource-mvp.spec.ts`의 두 번째 저장 확인 GET은 ECONNRESET으로 FAIL했다. 2 PASS/1 FAIL/126 미실행과 다른5 shard 취소를 보존한다. 앞선 PATCH200·서버 alive·health200·OOM0·RSS 증가를 함께 기록하며 OOM/제품 단언 실패로 단정하지 않는다. 원본 Head 단독3회 PASS는 오류 비재현 증거이며 원격 실패 취소나 전체 회귀 PASS가 아니다.
