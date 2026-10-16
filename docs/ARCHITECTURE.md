@@ -493,3 +493,6 @@ U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기�
 #667 종합 회귀의 Copy 연속성 보완은 내부 client mutation capsule에 한정한다. Workspace의 실제 copy dispatch에서 원래 API/측정 X·사용자 gesture/intent·비데이터 context를 고정하고 해당 request ID/base revision에 연결한다. HTTP ok만으로 승인하지 않고 검증된 응답 body와 실제 수용한 canonical revision을 기록한다. Gantt는 정확한 현재 request/revision의 U2 proof 뒤 원래 권한·동일 비데이터 context가 살아있을 때만 기존 Coordinator에 한 번 전달한다. queue 안에서 viewport 완료를 기다리지 않고 새 scroll writer·server DTO/DB contract를 추가하지 않는다. 새 입력/조회/실패/UNKNOWN은 과거 복원을 폐기하며 최종 실제 범위는 Work Packet을 따른다.
 
 #667 Resource 복귀 준비는 retained 날짜 end와 Core/native 수용 범위를 함께 확인한다. DOM scrollWidth-clientWidth는 Core scaleWidth-physicalWidth의 정확 좌표 상한과 다를 수 있으므로 native 범위만으로 완료하지 않는다. 실제 Core geometry가 유효하고 Core exact target/native±1가 가능해야 하며 부족 범위는 기존 U4 PRESERVE transaction에서만 준비한다. 원래 lease/source·extent 합집합·실제 변경 뒤 U3 재관측/receipt floor를 유지한다.
+
+
+#667 CI #2817 후속의 projection 관측 ingress는 최초 적용·tree/selection·layout 요청을 현재 effect/API의 scheduler로 모아 최신 canonical data queue 완료 뒤 실행한다. 기다리는 사이 교체된 queue와 selection/layout trigger를 보존하고 cleanup 또는 실패로 폐기한 drain의 옛 callback은 새 요청을 실행할 수 없다. 관측 완료를 data queue에 합류시키거나 실패 결과를 자동 재시도하지 않으며 actual Core/semantic receipt/viewport의 소유권과 성공 조건을 유지한다. 원격 근인의 확정 범위와 실제 선택 검증은 [누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.

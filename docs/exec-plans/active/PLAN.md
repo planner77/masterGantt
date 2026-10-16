@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+2026-10-16 CI #2817 REWORK: Editor 같은 revision 재조회에서 HTTP200/U2 no-op 완료 뒤 새 U3 관측 완료/영수증 재전달 미확인을 확인했다. 관측 요청을 최신 데이터 큐 뒤에 모으는 순서 보완과 단계 진단을 추가했고, 동결 source의 Unit71·Chromium40 PASS를 확인했다. 기존 단언·timeout/retry/skip은 유지한다. 당시 U3 실패 outcome이 없어 원격 직접 근인은 UNKNOWN이며 이전 #2814 전송 오류와 구분한다. 새 Full PR CI 시작까지가 요청 범위다.
+
 2026-10-16 종합 재개: [누적 실패 분석](../../ISSUE_667_FAILURE_ANALYSIS.md)에 최초 로컬 실패·CI #2811~#2814를 연결했다. 첫46파일260사례에서 Copy scroll46→0을 추가 재현·보완하고, Unit51파일714 PASS 및 Copy/wheel/scale왕복3 PASS를 확인했다. 확대49파일299사례는294 PASS/4 FAIL/기존1 SKIP으로 완료했다. 검색 영수증과 Calendar DTO fixture24 및 추가 Resource31→30 복원 strict1을 교정 후 PASS했다. 최종15파일 동결 source의 Unit723 PASS, 최종299 광역은61번 PASS 관측 뒤 완료 보고서 없이 종료되어 NOT TESTED이며 같은 source의 핵심7파일56사례는56 PASS/0FAIL/0SKIP/0flaky로 별도 검증했다. 최신 reset 근인은 UNKNOWN이며 원본/중간 FAIL과 source를 구분한다. 리뷰/충돌 확인·새 Full PR CI 시작까지만 수행한다.
 
 이전 재개: CI #2813.1 quality/docker PASS·e2e FAIL의 DEV Grid reveal 관측 원점을 설정 start에서 계산된 날짜축으로 보완한다. #514 전체 및 관련 선택 회귀·독립 사전 검토·리뷰/충돌 확인 후 같은 PR의 새 Full CI를 시작한다. 원본 실패·이전 증거와 최종 승인 미검증을 유지한다.

@@ -237,3 +237,12 @@ RANGE_EXTENSION도 U4 안에서 기존 X/Y를 보존하므로 capacity-only 예�
 Copy의 비데이터 context/환경 왕복은 현재값 비교와 별개인 요청별 영구 폐기로 처리한다. 기존 typed coordinate command의 optional sourceCurrent는 원래 source 조건을 AND로 더 제한하며 미설정 기존 동작은 유지한다. 등록·prepare/apply·최종 authority에서 폐기/예외를 fail-closed로 확인하고 callback을 API/trace payload로 직렬화하지 않는다. 실제 환경 변경과 소유된 동일 환경 synthetic resize를 구분해 자기 compatibility 작업을 새 사용자 입력으로 취급하지 않는다. 원본 입력 권한을 재발급하거나 context 왕복을 자동 재승인하는 예외가 아니다.
 
 #667 종합 회귀에서 native capacity31/Core capacity30 차이가 기존 Resource X31 복귀를 제한했다. prepare는 retained end를 조기 반환 전에 확인하고 public read-only scale/physical width로 Core의 정확 수용 능력을 검사한다. native±1은 DOM 정착 허용치이며 Core 목표 완화 근거가 아니다. 부족 범위 준비는 기존 version-bound U4·원래 source/lease·PRESERVE·bounded transaction으로 제한하고 실제 extent 변경만 fresh U3 receipt를 요구한다.
+
+
+## Issue #667 / CI #2817 — 관측 요청의 데이터 큐 정렬
+
+Editor의 같은 revision 재조회에서 HTTP200 및 U2 no-op SETTLED 이후 새 U3 관측 완료/영수증 재전달 미확인이 원격에서 확인됐다. 기존 최초 관측만 canonical queue를 기다리고 open/select/layout 관측은 직접 시작하거나 sync depth가 양수일 때 버려질 수 있었다. 원격 자료에 당시 실패 outcome이 없어 이 순서 경계를 해당 실행의 확정 근인으로 단정하지 않는다.
+
+관측 요청은 현재 effect/API의 단일 scheduler에서 모아 최신 canonical queue 뒤에 전달한다. 대기 중 queue가 교체되면 교체된 queue의 완료를 확인하며 selection/layout trigger를 함께 보존한다. 데이터 큐에는 관측 완료 Promise를 연결하지 않으므로 viewport와의 순환 대기를 만들지 않는다. effect cleanup/API 교체는 대기 요청을 폐기하고 실패 관측을 자동 재시도하지 않는다. 실패·cleanup에서 drain 토큰을 폐기해 옛 queue callback이 후속 명시 요청을 소비하거나 빈 추가 관측을 실행하지 못하게 한다. 원래 source/semantic receipt/actual Core 확인·유한 관측 예산·단일 viewport writer 계약은 유지한다.
+
+개발 진단은 최신 attempt의 단계(rows/semantic/delivery)·outcome·generation만 기록한다. payload/HTTP body·비밀값은 추가하지 않는다. 기존 semantic receipt와 새 attempt를 구분하고 SETTLED 이전 결과를 성공 영수증으로 게시하지 않는다. source별 검증·원격 근인 UNKNOWN 경계는 [누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.

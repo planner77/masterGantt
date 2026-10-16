@@ -17,6 +17,16 @@ CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 �
 
 quality/docker/e2e aggregate job ID는 각 immutable 교정 원장에 기록한다. #2814는 각각 `116652069177` / `116652701146` / `116654611375`이며 QA Automated `116654648367`도 FAILURE, Main image는 SKIPPED다.
 
+## CI #2817 — Editor 동일 revision 재조회 뒤 관측 미전달
+
+[run38824812168 / #2817.1](https://github.com/planner77/masterGantt/actions/runs/38824812168)의 Head는 `06d34e77006ef6edcef53a6341bfbf5b4e916e69`, base는 위와 같고 원본 출처 artifact로 확인한 test merge는 `8b4bb4c75988559cc5f938e8f023e4d18b8d41bc`다. Quality job116730713030·Docker job116730953213 SUCCESS, E2E aggregate116731165862 FAILURE다. shard1 job116730267339 step7의 `gantt-state-recovery-editor.spec.ts:15→36`에서 첫 최신 조회 이후 observation3이 유지돼 새 관측 단언이 실패했다. 해당 shard1 PASS/1 FAIL/110 NOT RUN, 다른5 shard CANCELLED다.
+
+실패 trace는 Editor GET200(96.375ms), canonical sync generation3→4·settled generation3→4·depth0, U2 `SETTLED/changed=false`를 보여 준다. U3 receipt는 revision4/semanticId2/observation3에서 바뀌지 않았다. 서버 전송 실패 #2814와 구분하며, 현재 자료에는 당시 새 U3 시도의 취소/실패 사유가 없어 직접 원인을 확정하지 않는다. 원본 SC-01 로컬 단독1회 및 별도3회는 모두 PASS였다. 원격 FAIL을 로컬 비재현으로 대체하지 않는다.
+
+TEST_PLAN·SC-01의 새 observation/같은 semantic receipt/실제 Core 쓰기0 요구를 유지한다. GET200이나 Editor 버튼 재활성만으로 projection 완료를 승인하지 않는다. 코드 검토에서 최초 관측만 data queue를 기다리고 open/select/layout의 관측은 직접 실행하는 순서 경계를 발견했다. 실제 canonical 처리와 관측의 순서 검증 및 안전한 단계별 진단을 보완하며 원본 출처·수정·검증을 [CI #2817 원장](evidence/issue-667/ci2817-correction.json)에 기록한다.
+
+최종 source3 fingerprint `677f27b6e682eb7214d463aba603c14c82ca35bf8c57334c5f25c128281c6a71`의 Unit71 및 Chromium40이 PASS했다. 원격 직접 근인은 UNKNOWN이며 queue ordering Unit과 실제 기존 Editor/검색/선택/viewport 회귀를 구분한다. 독립 검토에서 발견한 새 helper 오류 후 옛 waiter의 추가 관측 P2는 drain token 폐기로 교정했고 원래 원격 실패의 원인으로 돌리지 않는다. 중간 source 또는 중단된 실행은 최종40 PASS에 합산하지 않는다.
+
 ## 최초 구현과 반복 보완에서 드러난 경계
 
 원격 네 실행 이전 로컬 실패도 [Work Packet](exec-plans/active/ISSUE_667.md)에 보존했다. native add의 비DFS canonical→DESIRED_INVALID_TASKS는 전체 ID/형제순서를 보존하는 DFS 정규화로 수정했고 중복 ID는 계속 거부한다. 취소 뒤 늦은 writer·source taint는 실제 source/API/원래 lease·미완료 writer0·3프레임 Core/native geometry가 일치하는 read-only 복구로 처리했다. facade 예산을 mounted lifetime으로 오해해 기존3회 확장과 120px bookmark가 실패한 사례는 명령당 bounded facade로 교정하되 source 전체 bounds·taint·자동 재시도 금지를 유지했다. extent 정착 뒤 U3 재관측, stale GET 세대, Membership unknown handler, Editor child/transport busy 잠금 누락도 각각 보완했다.

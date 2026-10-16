@@ -110,6 +110,7 @@ import {
 import { createProductConsistency } from "./product-consistency";
 import { buildProjection, diffProjection, type CanonicalProjection } from "./canonical-projection";
 import { observeProjectionSettled, deliverProjectionReceipt, type ProjectionReceipt } from "./projection-settled";
+import { createProjectionObservationScheduler } from "./projection-observation-scheduler";
 import { registerTaskUrlSnapshot, findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
@@ -2400,30 +2401,41 @@ export function ProjectGantt({
     const requested = projection;
     const reasons = diffProjection(observedProjectionReference.current, requested).reasons;
     observedProjectionReference.current = requested;
-    const observe = (trigger: "projection" | "open-task" | "select-task" | "layout" = "projection") => {
+    const observe = (triggers: readonly ("projection" | "open-task" | "select-task" | "layout")[]) => {
       observation?.cancel();
       const queryConditionsChanged = observedQueryReference.current !== viewportContinuityKey;
       const selectedIds = (api.getState().selected ?? []).map(String);
       const previousSelection = observedSelectionReference.current?.api === api ? observedSelectionReference.current.ids : [];
-      const taskSelectionChanged = trigger === "select-task" || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
+      const taskSelectionChanged = triggers.includes("select-task") || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
       const generation = ++projectionObservationAttempt.current;
+      const reportObservation = (stage: "rows" | "semantic" | "delivery", outcome: string) => {
+        if (process.env.NODE_ENV !== "production" && !disposed && generation === projectionObservationAttempt.current)
+          root.dataset.ganttProjectionObservation = JSON.stringify({ generation, stage, outcome });
+      };
+      reportObservation("rows", "PENDING");
       const isCurrent = () => !disposed && apiReference.current === api &&
         generation === projectionObservationAttempt.current && projectRevisionReference.current === requested.revision &&
         projectionReference.current.keys.data === requested.keys.data && projectionReference.current.keys.structure === requested.keys.structure && projectionReference.current.keys.membership === requested.keys.membership &&
         projectionReference.current.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
       observation = observeProjectionSettled(api, root, requested, { apiInstance: apiInstanceId, generation,
-        reasons: trigger === "layout" ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
+        reasons: triggers.includes("layout") ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
       void observation.promise.then(receipt => {
         if (disposed || generation !== projectionObservationAttempt.current) return;
+        reportObservation("rows", receipt.outcome);
         const consistency = consistencyReference.current;
-        if (!consistency || consistencyBlockedReference.current || receipt.outcome !== "SETTLED") return;
+        if (receipt.outcome !== "SETTLED") return;
+        if (!consistency) { reportObservation("semantic", "UNAVAILABLE"); return; }
+        if (consistencyBlockedReference.current) { reportObservation("semantic", "BLOCKED"); return; }
+        reportObservation("semantic", "PENDING");
         void consistency.observation.observe(requested).promise.then(result => {
-        if (!result.receipt || result.outcome !== "SETTLED" || !isCurrent()) return;
-        consistency.observation.deliver(result.receipt, semantic => {
+        reportObservation("semantic", result.outcome);
+        if (!result.receipt || result.outcome !== "SETTLED") return;
+        if (!isCurrent()) { reportObservation("delivery", "SUPERSEDED"); return; }
+        const accepted = consistency.observation.deliver(result.receipt, semantic => {
         const semanticGeneration = semantic.semanticId;
         projectionReceiptGeneration.current = semanticGeneration;
         const bridged = { ...receipt, generation: semanticGeneration };
-        deliverProjectionReceipt(bridged, () => !disposed && consistency.observation.isCurrent(semantic), receipt => {
+        const delivered = deliverProjectionReceipt(bridged, () => !disposed && consistency.observation.isCurrent(semantic), receipt => {
         // Later tree/selection/layout observations must compare with the last
         // delivered query, rather than reuse the effect's initial change flag.
         observedQueryReference.current = viewportContinuityKey;
@@ -2433,19 +2445,31 @@ export function ProjectGantt({
         if (process.env.NODE_ENV !== "production") {
           root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);
           root.dataset.ganttSemanticProjectionReceipt = JSON.stringify({ semanticId: semantic.semanticId, observation: result.observation.id, reused: result.reused });
+          reportObservation("delivery", "SETTLED");
         }
         });
+        if (!delivered) reportObservation("delivery", "SUPERSEDED");
         });
+        if (!accepted) reportObservation("delivery", "REJECTED");
         });
       });
     };
-    const observeAxisLayout = () => { if (!disposed) observe("layout"); };
+    const scheduler = createProjectionObservationScheduler({
+      queue: () => canonicalSyncQueueReference.current,
+      current: () => !disposed && apiReference.current === api,
+      observe,
+      failed: () => {
+        if (process.env.NODE_ENV !== "production" && !disposed && apiReference.current === api)
+          root.dataset.ganttProjectionObservation = JSON.stringify({ stage: "ordering", outcome: "FAILED" });
+      },
+    });
+    const observeAxisLayout = () => scheduler.request("layout");
     requestProjectionObservationReference.current = observeAxisLayout;
     // The queue is only an ordering barrier; success is determined by observation.
-    void canonicalSyncQueueReference.current.then(() => { if (!disposed) observe(); });
+    scheduler.request("projection");
     const tag = "project-projection-settled";
     for (const action of ["open-task", "select-task"] as const) api.on(action, () => {
-      queueMicrotask(() => { if (!disposed) observe(action); });
+      queueMicrotask(() => scheduler.request(action));
     }, { tag });
     const chart = root.querySelector(".wx-chart");
     const readLayout = () => JSON.stringify([root.clientWidth, root.clientHeight,
@@ -2455,12 +2479,13 @@ export function ProjectGantt({
       const next = readLayout();
       if (next === layoutSignature) return;
       layoutSignature = next;
-      if (!disposed && canonicalSyncDepthReference.current === 0) observe("layout");
+      scheduler.request("layout");
     });
     layoutObserver.observe(root);
     if (chart) layoutObserver.observe(chart);
     return () => {
       disposed = true;
+      scheduler.dispose();
       if (requestProjectionObservationReference.current === observeAxisLayout) requestProjectionObservationReference.current = null;
       observation?.cancel(); layoutObserver.disconnect(); api.detach(tag);
     };

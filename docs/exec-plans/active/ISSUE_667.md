@@ -14,7 +14,7 @@ MERGE_READY: BLOCKED
 release_required: true
 release_authorized: false
 issue_comment_writer: manager
-issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, FINAL
+issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME, FINAL
 documentation_owner: Manager
 
 최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 새 실행의 완료 모니터링·병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
@@ -74,8 +74,8 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - AC3: actual Calendar 저장과 동일 revision DTO의 clean no-op/semantic 재사용·새 observation·Core 쓰기 0을 선택 검증했다. 로컬 PASS; 전체 조합·원격 인수 NOT TESTED.
 - AC4: 검색0/해제·WBS exact120 bookmark·연속3회축확장·진행중실제wheel·Resource exact120/후속 native-reset·pending wheel/resize·Target 편집을 선택 검증했다. 로컬 PASS; 별도 marker reveal/전체 조합은 NOT TESTED.
 - AC5: full canonical Task/Link·권한/revision, unknown/역전GET·추가 mutation0·같은 instance/tree/selection/columns·3000행/3회 cleanup 선택 범위 PASS. 장기 heap/전 listener·전체 Membership 조합은 NOT TESTED.
-- AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. 이전 게시 source의 DOCUMENTATION_SYNC 로컬 영향/정합 검토 PASS를 이력으로 보존한다. 이번 Resource/fixture 보완의 최종 DOCUMENTATION_SYNC 의미 검토·PRE_QA는 PASS(26게시파일·15source·선택 로컬 증거 범위).
-- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1, Headc6f18/#2814.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
+- AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. 이전 게시 source의 DOCUMENTATION_SYNC 로컬 영향/정합 검토 PASS를 이력으로 보존한다. 이전 Resource/fixture 보완의 DOCUMENTATION_SYNC 의미 검토·PRE_QA PASS(26게시파일·15source·선택 로컬 증거 범위)는 이력으로 보존한다. 이번 CI #2817 관측 순서 보완의 최종 검토는 아래 새 원장을 따른다.
+- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1, Headc6f18/#2814.1, Head06d34/#2817.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
 
 ## DOCUMENTATION_SYNC
 
@@ -88,6 +88,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - `docs/evidence/issue-667/ci2812-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2813-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2814-correction.json`: UPDATED
+- `docs/evidence/issue-667/ci2817-correction.json`: UPDATED
 - `docs/ISSUE_667_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/ISSUE_35_GANTT_SCALE.md`: UPDATED
 - `docs/ISSUE_3_REVIEW.md`: UPDATED
@@ -437,3 +438,22 @@ Resource 첫 통합 사례의 기존5초 poll은 X=31→30 및 PEER_RETURN TIMED
 Resource 최소 보완 후 원본 strict1 PASS, 검색21+Milestone관리3의 fixture24 PASS를 확인했다. 최종15 source/test fingerprint `0c8fbccde4deadb266f2bffa5332023a28c4654a448fc6f3295b39a64178e924`를 동결했고 새 Unit51파일723 PASS/0FAIL/0pending이다. 과거666/714·별도 reviewer/구현자 Unit과 합산하지 않는다. 같은49파일299사례의 최종 재실행은 마지막61번 PASS 관측 뒤 세션이 종료되어 완료 보고서가 없다. 전체 결과는 NOT TESTED이며 같은 source의 핵심7파일56사례를 max-failures=0/retries=0/workers=1로 별도 검증해56 PASS/0FAIL/0SKIP/0flaky,525610.539ms를 확인했다. 최종 DOCUMENTATION_SYNC 의미 검토·PRE_QA는 PASS(별도 qa_docs의26게시파일·15source·선택 로컬 증거 검토)다.
 
 최종 게시 인계: 독립 Reviewer `/root/integration_tests` qa_docs의 PRE_QA PASS/DOCUMENTATION_SYNC 의미 검토 PASS·미해결 지적0, typecheck/Markdown228/version0.114.1/whitespace PASS와 변경 source lint오류0·기존hook warning3을 확인했다. source15 fingerprint0c8f와 원본 HTML56/fixture24/Unit723 및 과거4JSON 불변을 대조했다. 부모 c6f18의 후속 commit을 기존 PR #695에 exact tree bytes·expected_sha/force=false로 게시하고 새 Full PR CI 등록까지만 확인한다. 정확한 게시 Head/tree/base/PR test merge·run URL·리뷰/충돌 상태는 Issue STATUS/PR 댓글에 기록한다. 원격 required3·Trusted QA·QA_FINAL·Owner/Manager ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED다.
+
+
+## CI #2817 — 동일 revision Editor 재조회 후 관측 누락 조사
+
+2026-10-16 사용자 요청으로 같은 PR #695의 실패 보완을 재개했다. 원본 Head `06d34e77006ef6edcef53a6341bfbf5b4e916e69`, base `ee6365bf57ab637b4c0aca61fdedaf5148253052`, [run38824812168 / #2817.1](https://github.com/planner77/masterGantt/actions/runs/38824812168)의 Quality job116730713030·Docker job116730953213은 SUCCESS, E2E job116731165862는 FAILURE다. shard1 job116730267339 step7의 `gantt-state-recovery-editor.spec.ts:15` SC-01에서 첫 Editor 최신 조회 GET200 이후 line36의 새 observation 검증이 실패했다. observation3이 유지됐으며 shard1은1 PASS/1 FAIL/110 NOT RUN, 다른5 shard는 CANCELLED다. 이전 #2814 ECONNRESET과 다른 실패로 분류한다.
+
+실제 Manager·frontend `/root/editor_reload_fix`·infra `/root/publish_transport`·독립 read-only qa_docs `/root/integration_tests`가 원인/수정/문서/원격 인계를 분담한다. frontend가 production·관련 테스트와 단일 browser 실행을 소유하고 Manager가 문서를 작성한다. 원본/보완 source와 검증 결과를 분리하며 새 Full PR CI 시작까지만 진행한다. 이전 사전검토·로컬 PASS를 이번 원격 FAIL이나 새 Head의 PASS로 재사용하지 않는다.
+
+이번 source와 원본 원격 분석·로컬 원본 비재현·선택 회귀·독립 검토는 [CI #2817 보완 원장](../../evidence/issue-667/ci2817-correction.json)에 기록한다. 원격 source artifact와 실제 test-merge 부모/Tree 교차확인은 완료했으며 기존5개 증거 JSON은 불변으로 보존한다.
+
+### 이번 보완 및 최종 선택 검증
+
+최초·open/select/layout·axis 관측 요청을 동일 최신 canonical data queue 뒤로 정렬하고 trigger 집합을 보존한다. 관측 완료는 data queue 밖에서 기다린다. 독립 검토가 찾은 새 helper의 P2(예외 뒤 옛 waiter가 fresh 요청을 소비하고 빈 추가 관측 생성)는 실패/cleanup drain 토큰 폐기와 실제 held-queue Unit으로 교정했다. 이 P2는 보완 중 발견한 오류이며 원격 #2817의 근인으로 소급하지 않는다. 개발 진단은 rows/semantic/delivery/ordering 단계와 고정 outcome만 남기고 실패·차단·전달 거부를 성공과 구분한다.
+
+최종 source3 fingerprint `677f27b6e682eb7214d463aba603c14c82ca35bf8c57334c5f25c128281c6a71`에서 Unit3파일71 PASS/0FAIL/0pending, Chromium4파일40 PASS/0FAIL/0SKIP/0flaky/globalErrors0,141619.053ms,exit0을 확인했다. browser 대상은 canonical-projection21·gantt-state-recovery-editor4·viewport-coordinator8·milestone-dashboard-state7이며 workers1/retries0/max-failures0이다. 원본 SC-01 1+3 PASS·중간 source 실행·중단된40 실행은 별도 보존하고 최종40에 합산하지 않는다. typecheck PASS, scoped lint오류0·기존hook warning3, Markdown228/version0.114.1/whitespace PASS다.
+
+원격 당시 미전달의 직접 근인은 UNKNOWN이다. 신규 Unit은 queue 순서·trigger 보존·오류/cleanup 경계를 검증하며 원격 경합의 actual browser 재현 증거는 아니다. 최종40은 기존 SC-01의 새 observation/semantic reuse/Core쓰기0·canonical·인스턴스 단언을 그대로 검사한다. API/DB/일정/보안/CI 정책·timeout/retry/skip 변경은 없고 version0.114.1/release_authorized=false를 유지한다. 독립 사전 검토·게시 Head/Tree/새 Full CI 출처·리뷰/충돌은 원장과 Issue/PR 댓글에 인계한다.
+
+최종 독립 `/root/integration_tests` 검토는 PRE_QA PASS / DOCUMENTATION_SYNC PASS,12게시파일·3source·선택40/71근거 범위이며 미해결 지적0이다. HTML과 안전 JSON의40개 결과/시간 및 source hash를 전부 대조했고 기존5개 evidence JSON 불변을 확인했다. 현재 리뷰 스레드0·mergeable=true를 재확인했다. 새 Head 전체 Required3/Trusted QA/QA_FINAL/Owner ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED로 인계하며 완료 모니터링·병합·릴리스를 수행하지 않는다.
