@@ -3,13 +3,13 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   diagnosticSubset, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
 } from "../../scripts/prepr-core.mjs";
 
-const root = resolve(__dirname, "../..");
+const root = fileURLToPath(new URL("../../", import.meta.url));
 const tests = inventory(root);
-const original = { unit: [...tests.unit], e2e: [...tests.e2e] };
 const created: string[] = [];
 afterEach(() => {
   for (const dir of created.splice(0)) rmSync(dir, { recursive: true, force: true });
