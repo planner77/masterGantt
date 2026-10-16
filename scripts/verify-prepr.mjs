@@ -98,7 +98,7 @@ function localVersions() {
     packageVersion: pkg.version, lockVersion: lock.version,
     playwright: installed, chromiumRevision: browserRevision,
     ciNode: "22", ciPlaywright: pkg.devDependencies["@playwright/test"],
-    chromiumExecutable: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? "user-specified (must match pinned version)" : "Playwright-managed",
+    chromiumExecutable: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? "UNVERIFIED_OVERRIDE_BLOCKED_FOR_E2E" : "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
     e2e: { fullyParallel: true, workers: 1, shardsLocal: 1, shardsGitHub: 6, config: "tests/config/playwright.config.ts" },
   };
 }
@@ -223,7 +223,7 @@ function markdown(report) {
 - Head: ${report.sourceStart?.headSha}; working fingerprint: ${report.sourceStart?.fingerprint}
 - End source: ${report.sourceEnd?.fingerprint || "NOT TESTED"}; source stable: ${report.sourceStable}
 - Platform: ${report.versions?.os}/${report.versions?.release}, Node ${report.versions?.node}, npm ${report.versions?.npm}
-- Playwright: ${report.versions?.playwright || "NOT TESTED"}, Chromium revision: ${report.versions?.chromiumRevision || "NOT TESTED"}
+- Playwright: ${report.versions?.playwright || "NOT TESTED"}, Chromium *expected metadata revision*: ${report.versions?.chromiumRevision || "NOT TESTED"}, executable: ${report.versions?.chromiumExecutable || "NOT TESTED"}
 - Changed paths: ${report.sourceStart?.changed.length ?? "NOT TESTED"}
 - Selection: ${report.selection?.state ?? "NOT TESTED"}, selected ${report.selection?.selected.length ?? "NOT TESTED"} tests, UNKNOWN ${report.selection?.unknown.length ?? 0}, missing ${report.selection?.missing.length ?? 0}
 - Residual risks: ${report.errors.length ? report.errors.join("; ") : "Exact-head remote checks remain deferred"}
