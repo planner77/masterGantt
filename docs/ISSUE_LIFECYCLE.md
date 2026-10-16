@@ -284,6 +284,12 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 
 PLAN/Work Packet·PR·REWORK·병합 전 risk_level(LOW/MEDIUM/HIGH), risk_reason, qa_method, qa_required, Reviewer와 정확 Head를 기록한다. #598의 기본 OWNER_MANAGED는 HIGH/보호 경로라는 이유만으로 별도 인간 Reviewer APPROVED를 자동 요구하지 않는다. 단, 세 Required aggregate·Trusted QA·리뷰 스레드 0·Owner의 명시적 병합 허가 및 HIGH 잔여 위험 수용은 유지한다. AGENT 방식을 명시 선택하면 독립성/보호 경로 신뢰 조건을 따른다. 독립 검토 부재는 independent_qa=N/A(Owner-managed, 독립 검토 없음)로 기록하며 자동 성공을 사람의 QA PASS로 전용하지 않는다. [현행 QA 단일 원본](QA_REVIEW_POLICY.md)을 따른다. #697 영향 분석은 로컬 범위 결정이며 QA/Required 정책의 변경이 아니다.
 
+### 9.2.3 Pre-PR 검증 실행 및 증거 인계 (#699)
+
+`PLAN/REWORK → LOCAL_VALIDATED → DOCUMENTATION_SYNC → PR_READY` 구간에서 Manager가 [#697 위험/영향 판정](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)을 기록하면 구현 Agent는 [Local Pre-PR](LOCAL_PREPR.md) CLI `npm run verify:prepr -- --mode=fast` 및 변경 규모에 맞는 `--mode=targeted` (필요 시 `ci-like/diagnose/docker`)를 실행한다. `--dry-run`은 계획만이며 테스트 완료가 아니다. WSL2와 동일하지 않은 Ubuntu hosted runner·6분산 Shard·GitHub metadata/QA·Docker smoke는 원격에서 별도로 판정한다.
+
+Agent는 `report.json`/`SUMMARY.md` 경로, base/head/working fingerprint와 시작/끝 불변 여부, 명령/exit·고유 케이스/환경, 대상과 제외 사유, 실제 Chromium/HTTP·SQLite 여부, 실패·BLOCKED·NOT TESTED/DEFERRED, 잔여 위험을 Work Packet 및 PR 결과 계약에 기록한다. 테스트 발견/선정 누락/공유 계약 UNKNOWN은 임의 PASS 불가. 로컬 자동 검증은 QA 신뢰 검증기를 재구현하거나 원격 full PR CI/Owner 승인 기준을 바꾸지 않는다.
+
 ### 9.2.2 변경 영향과 테스트 증거 기록 (#697)
 
 Manager는 PLAN/REWORK 및 공통 상태·계약 변경 시 [TEST_PLAN.md](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)를 근거로 수동 영향 매핑을 기록한다. 표의 필수 열은 **수정 지점/변경 전후 → 직접·간접 소비자/음성 사례 → 위험도 → 실제 기존·추가 테스트 파일·환경 → 실행 여부·선정/제외 이유 → 고유 케이스 수·결과·동일 source SHA/run/trace → 미검증·잔여 위험/담당**이다. 분류·교차 회귀·진단 확대의 세부 원칙은 TEST_PLAN 단일 원본을 따르고 이 문서에는 중복 정의하지 않는다.
