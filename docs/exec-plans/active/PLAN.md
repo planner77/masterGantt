@@ -1,3 +1,11 @@
+## Issue #552 — CI #2864 초기화 단계 분석·교정 후 Full PR CI 시작 (2026-10-17)
+
+[Packet](ISSUE_552.md)의 원본 #2864.1 Head `f48689df9141e2f90fa729a644db52d6bbfb8016`은 Copy GET500 주입 전 goto/load29.235초로30초 예산을 소진했다. Mock 응답26.444초와 fulfill2.479ms를 분리하고 원본 단독2/선행3case 비재현·임시계측·통제반례·최종검증을 구별한다. DCL navigation과 최초 정상 GET200/fixture completion·실제 Gantt DOM identity/일정tab/actionmenu 준비를 spec-local helper로 분리한다. copy=1의 기존 dialog 실제ready 단언과 GET500 주입순서는 유지한다.
+
+frontend=recovery spec/직접·교차실행, infra=원본아티팩트/최종transport, qa_review=별도read-only검토, Manager=문서·Issue/PR통합이다. 기존 #637/#551/#550 수정과 제품/#667 authority/CI/30초·재시도0·무skip/보호단언은 유지한다. main `c063101ed7b1d08803c3dac15a41e67842071187` 포함·리뷰/충돌 재확인 후 새 PR #561 전체CI 등록까지이며 결과모니터링·병합/Main/GHCR·종료는 제외한다. app0.115.0/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false, 원격Required/QA·Owner NOT TESTED·MERGE_READY BLOCKED를 유지한다.
+
+최종 spec SHA256 `10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4`의 recovery31·교차6·실제HTTP 인접2 및 Pre-PR recovery31 재실행이 PASS(총70실행/39고유)다. Copy 실제HTTP 인접은 취소와Template성공/401/412·상태보존 범위다. fast10명령/전체Unit2786·build/typecheck/lint PASS와 기존3skip을 구별한다. 전체PR UNKNOWN6·교정fast/targeted 생성물 sourceStable=false의 최상위 BLOCKED를 유지하며 각report hash/지문/선정·제외·미실행과 독립 사전검토는 원장에 기록한다. 최종QA/Owner·새 원격검사는NOT TESTED다.
+
 ## Issue #552 — CI #2863 표시 모델 구형 테스트 전수 정렬 (2026-10-17)
 
 [#552 Packet](ISSUE_552.md)의 원본 [PR CI #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886)에서 #637의 canonical84/visible83 혼동 및 #551의 삭제된 Task 빠른보기 버튼이 실제 Shard1/4를 실패시켰다. 이번 교정은 기존 PR #561에서 두 spec에만 적용한다. #637 정상80개 가상행/strict Y/28px 음성의 canonical 데이터 무손실과 visible Grid/Chart IDs 분리, #551 고급 Task type 진입/프로젝트 전체 M61 독립성·viewport·조회0쓰기0을 유지. Git Head의 E2E119개를 읽기 전용 검색하여 후보20개를 분류했으며 기타 관련 테스트는 정책에 부합해 유지한다.

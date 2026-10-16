@@ -1,3 +1,11 @@
+## Issue #552 — CI #2864 원본 navigation timeout과 후속 검증 (2026-10-17)
+
+[원본 run38978855656.1](https://github.com/planner77/masterGantt/actions/runs/38978855656)의 Head `f48689df9141e2f90fa729a644db52d6bbfb8016`/base `c063101ed7b1d08803c3dac15a41e67842071187`/test merge `087feb6d612b9e2a3fd1d138f38f98a3a7e9de42`, shard6 job `117235287068`·artifact `12080427286`를 별도 원본으로 유지한다. Quality/Docker PASS·shard6 2 PASS/1 FAIL/87미실행·다른5취소·E2E/QA Final FAIL이다. source artifact는 PR 측 비신뢰 자료이며 API/run/parents/단일귀속 교차를 Trusted QA 전체 PASS로 확대하지 않는다.
+
+복구 테스트는 goto(load)29.235초 뒤 일정tab 대기에서30초 timeout으로 실패했고 오류 주입 전이었다. HAR Mock26.444초와 route.fulfill2.479ms·HTML0.14초를 구별하며 원본 DCL/정확 내부 지연 원인은 미확정이다. 단독2/선행순서3case 로컬PASS는 원격 실패 미재현 증거다. 임시 계측·통제 지연·최종 source의 실제 실행과 전체PR/교정base Local Pre-PR 상태는 [Packet](exec-plans/active/ISSUE_552.md)·[안전 원장](evidence/issue-552/ci2864-correction-20261017.json)에 분리한다. raw zip/Trace/운영DB·비밀 로그는 Git에 저장하지 않는다. 새 전체 PR CI의 exact head/base/test merge/run/attempt 등록까지만 확인하며 결과를 모니터링하지 않는다.
+
+최종 spec SHA256 `10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4`의 recovery31·교차6·실제HTTP 인접2 및 Pre-PR recovery31 재실행이 PASS(총70실행/39고유)다. Copy 실제HTTP 인접은 취소와Template성공/401/412·상태보존 범위다. fast10명령/전체Unit2786·build/typecheck/lint PASS와 기존3skip을 구별한다. 전체PR UNKNOWN6·교정fast/targeted 생성물 sourceStable=false의 최상위 BLOCKED를 유지하며 각report hash/지문/선정·제외·미실행과 독립 사전검토는 원장에 기록한다. 최종QA/Owner·새 원격검사는NOT TESTED다.
+
 ## Issue #552 — PR CI #2863 #637 Canonical/Visible 및 #551 제거된 진입점 회귀 (2026-10-17)
 
 [원본 #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886), Head `1abebed189642c278552a25aa270fed333bdc36f`: Shard1 78PASS/1FAIL/34NOTRUN(`projection-row-alignment.spec.ts:108` 84 vs83), Shard4 46PASS/1TIMEOUT/기존1SKIP/114NOTRUN(`milestone-timeline-lane.spec.ts:268` 제거된 Task 버튼), Shard6 SUCCESS, 나머지2/3/5 CANCELLED. Quality/Docker PASS·E2E required/QA Final FAIL.

@@ -1,5 +1,34 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — CI #2864 초기화 지연 분석 및 새 Full PR CI 준비
+
+- 원본 [#2864.1](https://github.com/planner77/masterGantt/actions/runs/38978855656), Head `f48689df9141e2f90fa729a644db52d6bbfb8016`, base `c063101ed7b1d08803c3dac15a41e67842071187`, test merge `087feb6d612b9e2a3fd1d138f38f98a3a7e9de42`다. shard6 job `117235287068`/artifact `12080427286` SHA256 `797bf5b772a96606050464813d321bc647ecf2267ccbe45386672e3b75d4f04a`를 별도 보존한다. source artifact `12079499516`의 비신뢰 metadata는 run/attempt·현재 PR·test merge parents·commit→PR 단일 귀속으로 교차했다. Trusted QA 전체 PASS 선언이 아니다.
+- Quality/Docker PASS, shard6 2 PASS/1 FAIL/87 미실행, 타5 shards CANCELLED, E2E/QA Final FAIL을 유지한다. 실제 선행순서는 copy401(7.843초)→copy412(3.443초)→copy최초GET500(31.541초 FAIL)이다. 원격은 historical timing planner의 파일15개/worker1/90case 배분이며 native `--shard=6/6` 발견 순서와 혼동하지 않는다.
+- 실패는 `derived-dialog-recovery.spec.ts`의 기본 load 대기 `goto`가 29235.108ms를 사용한 뒤 일정 tab wait에서 30초 test timeout이 발생한 것이다. HTML은 약0.14초, Mock HAR request→response는26444.084ms지만 `route.fulfill` 자체는2.479ms다. request wall-time와 Playwright 수신 monotonic의 지연을 구별한다. Mock handler/SQLite 실행26초·Next compile/driver/browser eventloop·리소스 경합의 인과는 미확정이다. 원본 DCL 시각은 없다. GET500 주입과 복구 단언에 도달하지 않았으므로 Copy 복구 결함으로 단정하지 않는다.
+- 원본 exact source SHA256 `54bc5c31bd0b432916bc9b9b7012085b70350f73d7d3bcc5df4877e6e492f133`에서 단독2회 PASS(5.4/2.0초), cold dev dist의 정확 선행3case 순서도3 PASS(15.9초)로 지연 미재현이다. 잘못된 grep anchor 최초 no-tests 호출은 실행 PASS로 세지 않는다. 후속 임시 계측 source·자연 재현·통제 반례·최종 source 결과를 구별하며 기존 30초/재시도0/무skip·보호 단언을 유지한다.
+- 범위/소유권: frontend는 recovery spec의 초기화·검증 단일 writer, infra는 원본 Trace/metadata·최종 GitData transport, 별도 qa_review는 read-only 사전 검토, Manager는 문서·Issue/PR/통합이다. 최초 정상 원본 GET200/fixture completion과 실제 Gantt DOM identity·일정 tab/actionmenu trial 준비를 확인하는 spec-local openProject로 DCL navigation을 분리한다. copy=1은 기존 dialog 실제ready 단언을 유지한다. DOM 속성을 private Core API proof로 확대하지 않는다. 제품/#667 authority·공유 fixture/CI 정책은 변경하지 않는다. 이전 #2862/#2863의 #637/#551/#550 변경은 보존하고 관련 소비자 교차를 분리한다.
+- main은 원본 Head의 ancestor이며 착수 충돌/미해결 review thread0이다. HIGH/OWNER_MANAGED/qa_required=true, version0.115.0, release_required=true/release_authorized=false 유지. DOCUMENTATION_SYNC·실제 Local Pre-PR·독립 사전 검토 후 새 exact-head full PR CI 등록까지만 수행한다. 원격 Required3·Trusted QA·최종 QA/Owner ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED이며 모니터링·병합·Main/GHCR/릴리스·Issue 종료는 범위 밖이다.
+- 문서 영향: TEST_PLAN/REMOTE_VALIDATION/PLAN/CHANGELOG/본 Packet/이번 최소 원장을 갱신한다. API/DB/보안/Scheduling/Import/Export/CI_CD/GITHUB_OPERATIONS/DESIGN은 계약 변경이 없어 N/A다. 초기화의 Copy/Template 실패 복구 소비자는 기존 AC9/AC11 경계이며 이번 교정으로 전체 AC1~12 인수를 재선언하지 않는다.
+
+
+
+### 교정 영향과 실제 검증
+
+| 변경 경계 | 직접·음성 소비자 및 교차 선정 | 증거 범위 |
+| --- | --- | --- |
+| DCL navigation + 정상 원본/실제 UI 준비 | 기존 recovery28, held 비필수asset2 + 최초 GETgate1 | 401/412/5종 GET음성·초안/If-Match/POST0/stale·4폭/같은DOM 보호; DCL-only ready 금지 |
+| 원격 load와 Mock 지연 분리 | 임시 계측 copy401→412→500 3case | 계측 source/hash 분리, 원격26초 미재현·내부 인과 UNKNOWN |
+| 최근 표시·필터 소비자 | #550 actual past/future2, #551 population/Taskfilter1, #637 wide Day/Week2+Y음성1 | 교차6 PASS, 전체6-shard/AC PASS로 확대하지 않음 |
+| Copy/Template 인접 경계 | 실제HTTP Copy취소·Template성공/401/4122case, 별도 Unit12 | mock/실제HTTP/Unit 환경을 구별; Unit으로 browser 준비를 증명하지 않음 |
+
+- 최종 spec SHA256 `10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4`에서 recovery31 PASS(기존28+통제3), 교차6 PASS, 실제HTTP 인접2 PASS(11.4/17.9초), Pre-PR recovery31 재실행 PASS다. 총70실행/39고유 case이며 원본 단독2/선행순서3/임시계측3은 합산하지 않는다. Copy 성공 actualHTTP 전수 검증으로 확대하지 않는다.
+- 로컬 진단 copy500은 page.DCL132.389→load712.805→goto725.738→초기GET request848.764/response858.086→일정tab1118.708ms다. 주입500 callback3.426ms/response1625.984ms, browser longtask 최대129ms, worker의 >50ms 추가지연 표본0이다. Next server eventloop는 NOT MEASURED다. DCL보다 앱 bootstrap이 늦음을 확인했으며 원격26초 인과 증명은 아니다.
+- 실제 보고서는 `.prepr-reports/552-ci2864-{fullpr,corrective-fast,corrective-targeted}/{report.json,SUMMARY.md}`다. 전체 PR(origin/main)은 기존 UNKNOWN6/steps0/sourceStable=true로 BLOCKED다. package-lock·toolbar CSS·project-gantt·copy-membership-confirm·project-readonly-view·milestone-ui 매핑 누락을 수동 선택/제외로 우회하지 않는다.
+- corrective base `f48689df9141e2f90fa729a644db52d6bbfb8016`의 fast10명령은 모두 PASS(전체 Unit225파일/2786 PASS·기존1파일/3skip, build/typecheck/lint 포함)지만 Next의 next-env/tsconfig `.next-prepr` 생성으로 sourceStable=false/BLOCKED다. targeted31 PASS도 next-env `.next-e2e/dev/types`와 기존#269 screenshot8개 변경(총9경로, tsconfig변경0)으로 sourceStable=false/BLOCKED다. 최상위 판정을 개별 명령 PASS로 대체하지 않는다.
+- run별 생성 파일은 /tmp에 보존하고 원본 byte를 복원했으며 fast/targeted 동시실행0이다. 결과는 문서/원장에만 반영했고 실행 spec·공유 source hash는 동일하다. 원복 typecheck·Markdown232/diff/docs_gate 구조 PASS를 별도로 확인했다. LOCAL_VALIDATED=BLOCKED·MERGE_READY=BLOCKED를 유지하며 새 원격 full CI 등록까지만 인계한다.
+- 별도 `/root/qa_review_552`는 source·원본Trace·진단/최종 로그·문서를 read-only 대조하고 `project-copy-confirm-model`9 + `canonical-snapshot-recovery`3의 Unit12를 직접 실행했다. 이12개는 전체2786에 포함되는 재실행이다. bounded PRE_QA/문서 의미 ACK는 교정 범위의 사전 검토이며 최종 인간 QA/Owner 승인과 다르다. source/log/report SHA·base/head/start/end fingerprint·선정/제외·미실행은 [이번 원장](../../evidence/issue-552/ci2864-correction-20261017.json)에 보존한다.
+
+
 ## 2026-10-17 — PR CI #2863.1 #637/#551 표시 정책 회귀·E2E 전수 영향 조사
 
 - 원본 [Full PR CI #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886), Head `1abebed189642c278552a25aa270fed333bdc36f`: Preflight·Quality(ESLint/TypeScript/Vitest)·Next.js build·Docker PASS. Chromium shard1 job `117227822535`은 `projection-row-alignment.spec.ts:108`의 Canonical84 vs default Visible83 때문에 78 PASS/1 FAIL/34 NOT RUN. Shard4 job `117227822267`은 `milestone-timeline-lane.spec.ts:268`에서 제거된 "Task" quick-view 클릭으로 46 PASS/1 TIMEOUT(30s)/기존1 SKIP/114 NOT RUN 후 CANCELLED. Shard6 SUCCESS, 나머지2/3/5 취소, E2E required/QA Final 종속 FAIL. 원본 상태를 수정하거나 로컬 PASS로 대체하지 않는다.
@@ -142,6 +171,7 @@ production marker/lane/guide는 OFF다. 마커 전용 예약 높이·listener·o
 - `docs/DEPLOYMENT.md`: UPDATED
 - `docs/evidence/issue-552/local-validation-20261016.json`: UPDATED
 - `docs/evidence/issue-552/ci2859-correction-20261017.json`: UPDATED
+- `docs/evidence/issue-552/ci2864-correction-20261017.json`: UPDATED
 - `docs/images/issue-552/manifest.json`: UPDATED
 
 위 UPDATED는 최신 main 대비 실제 diff로 확인한다. 최종 구현이 변경되면 의미 검토·source 동결·LFF 영향 분석 후 Gate를 다시 판정한다.

@@ -1,3 +1,13 @@
+## Issue #552 — CI #2864 navigation과 원본 준비 검증 (2026-10-17)
+
+[원본 #2864.1](https://github.com/planner77/masterGantt/actions/runs/38978855656), Head `f48689df9141e2f90fa729a644db52d6bbfb8016`의 recovery copy최초GET500는 goto(load)29.235초 후 일정 tab wait에서30초 예산을 소진했고500 주입에 미도달했다. shard6 2 PASS/1 FAIL/87미실행, 타5취소, Quality/Docker PASS·E2E/QA Final FAIL을 보존한다. Mock request→response26.444초와 fulfill2.479ms는 다른 관측이며 handler/실제API/서버 성능 원인으로 확대하지 않는다. 원본 DCL은 미관측이다.
+
+원본 단독2회 및 cold dev의 copy401→412→500 순서3case는 PASS로 비재현했다. 임시 계측으로 navigation DCL/load·Mock 수신/응답·현재 프로젝트 UI 준비를 구별했다. spec-local helper는 DCL 이후 최초 정상 GET200/fixture completion·Gantt DOM identity/일정 tab/actionmenu 준비를 확인한 뒤 실패를 주입한다. copy=1은 기존 dialog 실제ready 단언을 유지한다. 기존 recovery의401/412/500/network/잘못된snapshot·초안·If-Match·mutation차단·복귀/같은Gantt 및30초/retry0/skip 정책을 보존한다. 임시 계측/통제 반례와 자연 재현/최종 source PASS는 구별한다.
+
+실제 source/hash·명령·직접/교차/음성·Local Pre-PR의 전체PR/교정base 결과는 [Packet](exec-plans/active/ISSUE_552.md)과 [이번 원장](evidence/issue-552/ci2864-correction-20261017.json)에 기록한다. #637/#551의 선행 수정은 이번 초기화 보완으로 전체 원격 PASS가 되는 것이 아니며 새 Required3/6-shard·최종 QA/Owner는 NOT TESTED다.
+
+최종 spec SHA256 `10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4`의 recovery31·교차6·실제HTTP 인접2 및 Pre-PR recovery31 재실행이 PASS(총70실행/39고유)다. Copy 실제HTTP 인접은 취소와Template성공/401/412·상태보존 범위다. fast10명령/전체Unit2786·build/typecheck/lint PASS와 기존3skip을 구별한다. 전체PR UNKNOWN6·교정fast/targeted 생성물 sourceStable=false의 최상위 BLOCKED를 유지하며 각report hash/지문/선정·제외·미실행과 독립 사전검토는 원장에 기록한다. 최종QA/Owner·새 원격검사는NOT TESTED다.
+
 ## Issue #552 — CI #2863 #637/#551 표시 계약 영향 전수 감사 (2026-10-17)
 
 원본 [PR CI #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886) Shard1 `projection-row-alignment.spec.ts:108`은 canonical84/visible83 불일치, Shard4 `milestone-timeline-lane.spec.ts:268`은 삭제된 `Task` 버튼 선택에서 30s timeout이다. Shard1 78 PASS/1FAIL/34미실행, Shard4 46PASS/1TIMEOUT/기존1SKIP/114미실행, Shard6 PASS, 나머지2/3/5 취소. 빌드·품질·Docker PASS와 별도로 유지한다.
