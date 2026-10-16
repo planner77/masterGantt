@@ -1,3 +1,9 @@
+## Issue #699 — Local Pre-PR와 원격 PR CI 증거의 분리 (2026-10-16)
+
+[LOCAL_PREPR](LOCAL_PREPR.md)의 `report.json`/`SUMMARY.md`는 Git base/head/uncommitted fingerprint와 동일 로컬 source, 실제 선택 Unit/Chromium/Build/Docker(선택 시)와 환경·선정·제외·미실행의 증거다. local Node 22/Playwright Chromium worker1/`CI_E2E_FULLY_PARALLEL=true`도 여섯 독립 Ubuntu runner, Playwright headless-shell 설치와 GitHub Actions metadata/Trusted QA, Main 이미지와 동일 환경이라는 주장은 아니다.
+
+#697 위험 선택·진단 정책은 [TEST_PLAN](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)을 유일 원본으로 유지한다. PR 게시 후에는 최신 정확 HEAD/base/test-merge, PR event Run/Attempt, Quality/E2E/Docker Required aggregates 및 6-shard, unresolved thread 0, strict main·default-main Trusted QA·Owner ACCEPT를 원격에서 각각 확인한다. 선행 local PASS와 dry-run NOT TESTED, 실패 원장의 서로 다른 Head/Run, GitHub-only DEFERRED를 혼합하지 않는다. 신규 CLI 추가가 `.github/workflows/ci.yml`·Required/Preflight/Release/Finalizer 계약을 변경하지 않는다.
+
 ## Issue #667 — CI #2825 실패와 새 PR 검증의 분리 (2026-10-16)
 
 [원본 #2825.1](https://github.com/planner77/masterGantt/actions/runs/38841181071)의 Head `6bec3a1098e603b9db9968d2206af95df12ac126`에서 Quality/Docker PASS, E2E/QA Automated FAIL을 보존한다. shard3의 `milestone-dashboard-state.spec.ts:191`은 `(180,128)` 대신 `(120,128)`로 실패했고 다른5 shard는 취소됐다. 원본 source artifact/Run API의 event base `ee6365bf57ab637b4c0aca61fdedaf5148253052`와 test merge `464aba6c364bf52eb87ec848537304f910696fd9`의 실제 first parent `fd219130491c53d054754eac41a58e4a6a3da0c6`을 구별한다. artifact의 문자열만으로 출처를 승인하거나 값을 수정하지 않는다.
