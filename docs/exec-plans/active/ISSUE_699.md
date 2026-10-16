@@ -71,7 +71,7 @@
 
 ## 사전 검증 결과 (2026-10-16)
 
-- 저장소 `main` 및 실제 GitHub 테스트 파일 목록 기반 정적 선정 시뮬레이션: LOW docs 0, MEDIUM editor 8, HIGH canonical 14, HIGH HTTP 5(변경 후 추가), HIGH Pre-PR tooling 1개 Unit 경로 **계획 결과**; 테스트 자체 실행 성공을 뜻하지 않는다.
+- 저장소 `main` 및 실제 GitHub 테스트 파일 목록 기반 정적 선정 시뮬레이션: LOW docs 0, MEDIUM editor 8, HIGH canonical 14, HIGH HTTP/SQLite 8 (직접 Unit/Integration 3 + Chromium 5), HIGH Pre-PR tooling 1개 Unit 경로 **계획 결과**; 테스트 자체 실행 성공을 뜻하지 않는다.
 - V8 소스 구문 파서로 `scripts/prepr-core.mjs` 및 `scripts/verify-prepr.mjs`의 구문 확인; 실제 Node/vitest/Playwright/npm Build를 재현하는 검증은 **NOT TESTED**.
 - 실제 WSL2 사용자 환경, Chromium, Docker, 사용자 프로세스/파일 안전성 및 네트워크 장애는 실행 근거가 없어 **NOT TESTED**, 신규 자동화 테스트는 원격 정확 PR head Quality CI 판정 필요.
 - 구현 파일과 기존 CI workflow 경로의 차이를 GitHub compare로 확인; 로컬 자체 성공을 exact-head PR CI PASS로 승격 금지.
