@@ -1,0 +1,387 @@
+{
+  "schema": "mastergantt-issue667-ci2840-correction-v1",
+  "parentHead": "728c4ad4da48d0267fc34dd6ae738c7faec1b716",
+  "main": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+  "integration": {
+    "externalCommitsPreserved": [
+      "131cdc285844b40ed9834e494d0c0a0140637767",
+      "b83c9f2b1196ba3d3aef7467740e31f50c3c517a",
+      "728c4ad4da48d0267fc34dd6ae738c7faec1b716"
+    ],
+    "mainAlreadyIncluded": true,
+    "unresolvedReviewsBefore": 0,
+    "conflictsBefore": 0
+  },
+  "ledgerConsulted": [
+    "docs/ISSUE_667_FAILURE_ANALYSIS.md",
+    "docs/evidence/issue-667/ci2835-correction.json",
+    "docs/evidence/issue-667/ci2837-correction.json",
+    "docs/evidence/issue-667/ci2838-correction.json"
+  ],
+  "remoteOriginal": {
+    "identity": {
+      "runId": 38880368154,
+      "runNumber": 2840,
+      "attempt": 1,
+      "event": "pull_request",
+      "head": "728c4ad4da48d0267fc34dd6ae738c7faec1b716",
+      "base": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+      "testMerge": "d5cb1142798d8286ceae38d3796509faae18a9b7",
+      "sourceArtifactId": 12036908650,
+      "sourceArtifactSha256": "5681ce3cacda22a1caef608c3259028febb3ac36c9a49f291e51e3800284cf77",
+      "identityMatches": true
+    },
+    "actualFailure": {
+      "job": 116905821162,
+      "step": 6,
+      "name": "Run npm test",
+      "file": "tests/features/gantt/svar-viewport-port.test.ts",
+      "line": 72,
+      "column": 42,
+      "title": "SVAR visibility admission > checks actual Core and native capacity independently before executing a position",
+      "expected": false,
+      "actual": true,
+      "method": "port.admitPosition(target)",
+      "target": {
+        "left": 120,
+        "top": 0
+      },
+      "coreScaleWidth": 240,
+      "coreChartWidth": 100,
+      "nativeScrollWidth": 219,
+      "nativeClientWidth": 100,
+      "nativeCapacity": 119
+    },
+    "unitSummary": {
+      "filesPassed": 221,
+      "filesFailed": 1,
+      "filesSkipped": 1,
+      "testsPassed": 2741,
+      "testsFailed": 1,
+      "testsSkipped": 3,
+      "testsTotal": 2745,
+      "durationSeconds": 32.48
+    },
+    "passedJobs": [
+      "Typecheck",
+      "ESLint",
+      "Policy/Repository",
+      "Preflight"
+    ],
+    "derivedFailures": {
+      "fastGate": 116906276398,
+      "quality": 116906341890,
+      "e2e": 116906342144,
+      "docker": 116906341927,
+      "qaAutomated": 116906375725
+    },
+    "heavyValidation": {
+      "productionBuild": "SKIPPED (Fast Gate 실패)",
+      "e2e": "NOT TESTED (6shard구현미실행)",
+      "docker": "NOT TESTED (구현미실행)",
+      "requiredAggregates": "quality/e2e/docker FAIL은필수gate의정상fail-closed;독립browser/container실패아님"
+    },
+    "artifactTrust": "원본sourceartifact는비신뢰자료;Run topHead/QAenv/testmerge부모와교차확인·ZIPdigest검증",
+    "browserTrace": "N/A (E2E미실행)",
+    "implementationSkippedJobs": {
+      "chromium": 116906343179,
+      "docker": 116906342963,
+      "productionBuild": 116906343480
+    }
+  },
+  "analysis": {
+    "classification": "신규음성Unit의native119경계기대가Core exact/native±1기존제품계약과불일치",
+    "coreRule": "coreCapacity >= target.left",
+    "nativeRule": "sample.capacity.left >= target.left - 1",
+    "numericExample": {
+      "target": 120,
+      "coreCapacity": 140,
+      "nativeCapacity": 119,
+      "expectedUnderExistingContract": true,
+      "newIncorrectUnitExpected": false
+    },
+    "observed": "728c공개admitPosition은기존admitsPosition을노출한것이며native±1식은불변이다. prepare.ready단언과구별한다.",
+    "decision": "제품policy를강화/완화하지않고Unit을Core119거부/native118거부/native119허용/native120허용의독립경계로교정",
+    "priorFailureDistinction": "#2837초기120과진행RANGE0경합/#2838FILTER_RETURN의축재축소와최신UnitFAIL은별개. 외부보완은보존·기존실증미완료를별도교차검증.",
+    "readinessDistinction": "정상E2Efixture의양쪽capacity120전제는테스트setup이며제품port의Core exact/native±1허용정책으로일괄치환하거나반대방향혼동하지않음",
+    "historicalCorrection": "ci2838의양exact/native119거부설명은그시점원장으로보존하되후속2840에서기존ADR에따른native±1경계를명시적으로정정한다. 기존JSONbytes수정안함",
+    "assertionsTimeoutsRetriesSkipsGatesWeakened": false
+  },
+  "source": {
+    "status": "FROZEN",
+    "productionChanges": 0,
+    "testFiles": [
+      "tests/features/gantt/svar-viewport-port.test.ts",
+      "tests/features/gantt/viewport-coordinator.test.ts"
+    ],
+    "owned": {
+      "tests/features/gantt/svar-viewport-port.test.ts": "f06edc642201d45b658e822f4b43c0bbb0b6d2214a41ae80247cf61bfe577b56",
+      "tests/features/gantt/viewport-coordinator.test.ts": "43c16131aca172c0841cbda4523b5638cabc5376fb97afb293eabcb6fbd654b5"
+    },
+    "fingerprint": "1b78cf85839945bdd54869646016b308bf82211e0019350a163132e8180c797c",
+    "fingerprintAlgorithm": "sha256(sorted path + NUL + fileSHA256 + newline)",
+    "runtime": {
+      "src/features/gantt/project-gantt.tsx": {
+        "sha256": "b97245159d9422086f3bbc4427da21a702d0bb00218ab8df651c9d376cb293a1",
+        "matchesParentHead": true
+      },
+      "src/features/gantt/viewport/viewport-coordinator.ts": {
+        "sha256": "90487f8d04fd12b02f21c6159ce7b236cf1da5926a2406b050b6e06d815b75fe",
+        "matchesParentHead": true
+      },
+      "src/features/gantt/viewport/svar-viewport-port.ts": {
+        "sha256": "65311eedcb881d5c76225f89c2c4dcc1cbd6bcc56e11e8221f41c36bc32c833d",
+        "matchesParentHead": true
+      }
+    },
+    "dependencyManifest": "output/playwright/issue-667/ci2840-final-source-manifest.json",
+    "dependencyManifestSha256": "c0c27b2e6ac54729c07ea29d2a291f87277f998e728ee7d88f3128c58de23b1a",
+    "handoffSha256": "bde4f48f5a1ee28501c83b0bc7c5e73a538d106427ce4ce2d50595dc784dcda8",
+    "sourceDrift": []
+  },
+  "local": {
+    "originalExact": {
+      "status": "FAIL",
+      "casesFailed": 1,
+      "filteredOut": 43,
+      "durationMs": 286,
+      "raw": "output/playwright/issue-667/ci2840-original-unit.log",
+      "meaning": "원격과동일native119경계정확재현;선택제외43은실행baselineSKIP과구별"
+    },
+    "finalUnit": {
+      "status": "PASS",
+      "files": 3,
+      "passed": 173,
+      "port": 48,
+      "coordinator": 98,
+      "readiness": 27,
+      "durationMs": 352,
+      "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/svar-viewport-port.test.ts tests/features/gantt/viewport-coordinator.test.ts tests/features/gantt/gantt-readiness.test.ts",
+      "scope": "최종source/raw173PASS·각파일parameter확장48/98/27대조완료"
+    },
+    "negativeCoverage": [
+      "같은lease2번째prepare중user/filter/context/API폐기4반례→늦은완료apply0",
+      "2번째prepare.readytrue뒤다시축소→3번째prepare0/apply0/NO_SCROLL_CAPACITY1반례"
+    ],
+    "e2e": {
+      "viewport": {
+        "passed": 8,
+        "status": "PASS",
+        "reportSecondsRounded": 41.0,
+        "scope": "Unit추가전8run;바뀐것은CoordinatorUnit파일뿐이며제품/E2E/helper/fixture/config같은의존성에한정해최종교차증거유지",
+        "reportDurationMs": 41046.995,
+        "testDurationSumMs": 35353,
+        "htmlSha256": "20d55a0c7ebbe39656ff7ba4ab258a3e339b6a2708684ed7dfbbb9471367def2"
+      },
+      "pendingCopyWheel": {
+        "status": "PASS",
+        "passed": 1,
+        "reportDurationMs": 19358.243,
+        "testDurationSumMs": 4513,
+        "htmlSha256": "45275bb109074a7134e7fa8edebd887471a87d99260baf2bcbd5ae18d5be5222",
+        "scope": "별도fresh환경1case·첫중단과구별·단일9run주장안함"
+      },
+      "singleNineCaseRunClaimed": false
+    },
+    "intermediateUnit168": "별도중간source참고;최종173과합산안함",
+    "copyInterrupted": {
+      "status": "NOT TESTED",
+      "runnerExitCode": 143,
+      "observedError": "Channel closed; page.waitForResponse: Test ended;browserContext닫힘",
+      "durationSecondsApprox": 54,
+      "completeHtmlOrTiming": false,
+      "productAssertionFailureObserved": false,
+      "cause": "UNKNOWN",
+      "retrySettingChanged": false,
+      "retention": "ci2840-copy-interrupted-*;동일source별도환경실행PASS로소급하지않음",
+      "stdoutRetention": "첫stdout미보존/log=null. 실제trace/errorcontext경로·SHA를executions.copyInterrupted에기록;tool관측Channelclosed/exit143을trace원문과구별."
+    },
+    "staticChecks": {
+      "typecheck": "PASS (generated복구후)",
+      "eslintChangedTwo": "PASS (오류/경고0)",
+      "markdown": "PASS (229files)",
+      "version": "PASS (0.114.1)",
+      "whitespace": "PASS"
+    },
+    "executions": {
+      "originalUnit": {
+        "status": "FAIL",
+        "failed": 1,
+        "selectedOut": 43,
+        "durationMs": 286,
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/svar-viewport-port.test.ts -t 'checks actual Core and native capacity independently' > output/playwright/issue-667/ci2840-original-unit.log 2>&1",
+        "log": "output/playwright/issue-667/ci2840-original-unit.log",
+        "sourcePath": "output/playwright/issue-667/ci2840-baseline/original-svar-viewport-port.test.ts",
+        "sourceSHA256": "70491045f6ae3744ce5902cdf5f64b62b51563349de33db45e10f487b3caa844"
+      },
+      "intermediateUnit": {
+        "passed": 168,
+        "durationMs": 278,
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/svar-viewport-port.test.ts tests/features/gantt/viewport-coordinator.test.ts tests/features/gantt/gantt-readiness.test.ts",
+        "log": "output/playwright/issue-667/ci2840-intermediate-unit.log",
+        "scope": "Coordinator 추가5음성 이전 source 참고결과",
+        "note": "Port48/Coordinator93/readiness27; 총168"
+      },
+      "finalUnit": {
+        "status": "PASS",
+        "passed": 173,
+        "files": 3,
+        "port": 48,
+        "coordinator": 98,
+        "readiness": 27,
+        "durationMs": 352,
+        "command": "npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/svar-viewport-port.test.ts tests/features/gantt/viewport-coordinator.test.ts tests/features/gantt/gantt-readiness.test.ts > output/playwright/issue-667/ci2840-final-unit.log 2>&1",
+        "log": "output/playwright/issue-667/ci2840-final-unit.log",
+        "discovery": "output/playwright/issue-667/ci2840-unit-discovery.json",
+        "discoveryNote": "vitest list 기본수집은 it.each 확장 전 template 수다. 파일별48/98/27은 source parameter 확장 기준; 총173 실행raw와 일치."
+      },
+      "viewportE2E": {
+        "status": "PASS",
+        "commandActuallyExecuted": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2840-final-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2840-final-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/viewport-coordinator.spec.ts --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2840-final-results > output/playwright/issue-667/ci2840-final.log 2>&1",
+        "artifactRenamedAfterCompletion": "ci2840-final-* → ci2840-intermediate-*",
+        "report": {
+          "path": "output/playwright/issue-667/ci2840-intermediate-html/index.html",
+          "sha256": "20d55a0c7ebbe39656ff7ba4ab258a3e339b6a2708684ed7dfbbb9471367def2",
+          "stats": {
+            "total": 8,
+            "expected": 8,
+            "unexpected": 0,
+            "flaky": 0,
+            "skipped": 0,
+            "ok": true
+          },
+          "startTime": 1792143996036,
+          "reportDurationMs": 41046.995,
+          "testDurationSumMs": 35353
+        },
+        "log": "output/playwright/issue-667/ci2840-final.log",
+        "scope": "WBS/filter bookmark 정상, wheel 취소, SC09, focus handoff, delayed native add 전체8",
+        "dependencyReuseProof": {
+          "intermediateManifest": "output/playwright/issue-667/ci2840-intermediate-source-manifest.json",
+          "changedFields": [
+            "tests/features/gantt/viewport-coordinator.test.ts"
+          ],
+          "note": "실행 완료 후 변경은 Coordinator Unit만. 제품/E2E/helper/config 불변."
+        }
+      },
+      "copyInterrupted": {
+        "status": "NOT TESTED",
+        "reason": "환경중단 Channel closed; runner exit143; assertion 계약FAIL 미관측; 정확 종료기원UNKNOWN",
+        "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2840-copy-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2840-copy-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-multi-task-copy-paste.spec.ts --grep 'pending Copy 중 실제 wheel' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2840-copy-results > output/playwright/issue-667/ci2840-copy.log 2>&1",
+        "log": null,
+        "results": "output/playwright/issue-667/ci2840-copy-interrupted-results",
+        "html": null,
+        "timing": null,
+        "retroactivePass": false,
+        "logPreservationLimitation": "최초 중단 stdout 원문 파일은 현재 보존 경로에서 확인되지 않음. 재구성하지 않음; 실제 trace/error-context를 근거로 사용.",
+        "artifacts": [
+          {
+            "path": "output/playwright/issue-667/ci2840-copy-interrupted-results/project-multi-task-copy-pa-c608e--실제-wheel은-원래-X-복원-권한을-취소한다-chromium/trace.zip",
+            "sha256": "ef2544a0e4df797f1490fbd58de907bf6c917d3c91d9f90d740d25c7077a2ac8"
+          },
+          {
+            "path": "output/playwright/issue-667/ci2840-copy-interrupted-results/project-multi-task-copy-pa-c608e--실제-wheel은-원래-X-복원-권한을-취소한다-chromium/error-context.md",
+            "sha256": "c6cd39004f598e09c801d9e263efce7ea3ceb8313046a63df0e73df15fa4ec6e"
+          }
+        ],
+        "artifactManifest": "output/playwright/issue-667/ci2840-copy-interrupted-artifact-manifest.json",
+        "artifactManifestSHA256": "3c0771d9b8bbb09b36d3160fe742aba8178d16107658c5df9f1cc406f9bd80ce"
+      },
+      "copyFreshE2E": {
+        "status": "PASS",
+        "command": "CI=true TZ=UTC CI_E2E_FULLY_PARALLEL=true PLAYWRIGHT_HTML_OUTPUT_DIR=output/playwright/issue-667/ci2840-copy-html E2E_TIMING_OUTPUT=output/playwright/issue-667/ci2840-copy-timing.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-multi-task-copy-paste.spec.ts --grep 'pending Copy 중 실제 wheel' --project=chromium --workers=1 --retries=0 --max-failures=0 --output=output/playwright/issue-667/ci2840-copy-results > output/playwright/issue-667/ci2840-copy.log 2>&1",
+        "report": {
+          "path": "output/playwright/issue-667/ci2840-copy-html/index.html",
+          "sha256": "45275bb109074a7134e7fa8edebd887471a87d99260baf2bcbd5ae18d5be5222",
+          "stats": {
+            "total": 1,
+            "expected": 1,
+            "unexpected": 0,
+            "flaky": 0,
+            "skipped": 0,
+            "ok": true
+          },
+          "startTime": 1792144225940,
+          "reportDurationMs": 19358.243,
+          "testDurationSumMs": 4513
+        },
+        "log": "output/playwright/issue-667/ci2840-copy.log",
+        "note": "별도fresh Playwright/server 실행1회; retries0. viewport8과 단일9run 아님."
+      }
+    },
+    "environment": {
+      "node": "22.14.0",
+      "playwright": "1.63.0",
+      "chromium": "153.0.8010.12 headless shell build1243",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 0,
+      "expectTimeoutMs": 5000,
+      "defaultTestTimeoutMs": 30000,
+      "copyTestTimeoutMs": 90000,
+      "viewportDefault": "1280x720",
+      "WBSViewport": "1440x900",
+      "CopyViewport": "1440x1000",
+      "browserTZ": "UTC",
+      "inheritedPLAYWRIGHT_BASE_URL": null,
+      "capturePhaseEnv": null,
+      "capturePhaseDefault": "after",
+      "unitProcessTZ": "NOT CAPTURED",
+      "unitCommandTZOverride": false,
+      "unitTimezoneNote": "Unit 실행 당시 TZ/Intl 시간대 직접 영수증 없음. 명령에 TZ override는 없으며 후속 shell 관측을 과거 증거로 사용하지 않음."
+    },
+    "selectionExclusions": "제품/helper/E2E변경0. 경계Unit·FILTER_RETURN재준비취소/1회상한·viewport8·실제Copywheel1검증. lane/hover/density/Copy나머지9/Calendar/serverauth전수반복제외. 공식전체새PRCI는NOT TESTED.",
+    "status": "PASS (Unit173·viewport8·별도Copy1·정적검사·복구;공식전체원격과구별)"
+  },
+  "review": {
+    "reviewer": "/root/pre_review",
+    "preQa": "PASS",
+    "documentationSync": "PASS",
+    "riskLevel": "HIGH",
+    "qaMethod": "OWNER_MANAGED",
+    "qaRequired": true,
+    "qaFinal": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "unresolvedFindings": 0,
+    "scope": "문서7/Unit2와원본raw/source/복구독립대조한정;Reviewer재실행없음·인간QA_FINAL과구별",
+    "reviewerReranTests": false
+  },
+  "release": {
+    "version": "0.114.1",
+    "releaseRequired": true,
+    "releaseAuthorized": false
+  },
+  "archive": {
+    "rawOriginal": "/tmp/issue667-ci2840/",
+    "localArtifacts": "output/playwright/issue-667/",
+    "previousEvidenceFiles": 17,
+    "retention": "원인/실제명령/source/report해시/한계Git보존;raw로그/HTML/trace는Git밖·Actions만료경계구분"
+  },
+  "newRemoteValidation": "NOT TESTED (게시후새FullPRCI시작확인까지)",
+  "preservation": {
+    "baselineManifest": "output/playwright/issue-667/ci2840-baseline/manifest.json",
+    "baselineManifestSHA256": "b517d18b181902841672fb135b5736a0d9c9ebabf6b2015f77b2f55ced38488a",
+    "baselineDrift": [],
+    "capture88BytesUnchanged": true,
+    "existingEvidence17BytesUnchanged": true,
+    "generated2Restored": true,
+    "runtime3Unchanged": true,
+    "newProductionDiff": false,
+    "parentDocsUntouched": true
+  },
+  "documentationSync": {
+    "updated": [
+      "CHANGELOG.md",
+      "docs/GANTT_ADAPTER_ADR.md",
+      "docs/ISSUE_667_FAILURE_ANALYSIS.md",
+      "docs/TEST_PLAN.md",
+      "docs/evidence/issue-667/ci2840-correction.json",
+      "docs/exec-plans/active/ISSUE_667.md",
+      "docs/exec-plans/active/PLAN.md"
+    ],
+    "notApplicable": "이번제품/시각/서버/권한/도메인/CI/QA/release정책변경없음. 기존수용계약예시·검증/실패출처만정리.",
+    "status": "PASS (/root/pre_review 독립최종대조)"
+  }
+}

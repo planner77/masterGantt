@@ -262,3 +262,7 @@ Editor의 같은 revision 재조회에서 HTTP200 및 U2 no-op SETTLED 이후 �
 이 변경은 기존의 '뒤로 clamp를 새 입력으로 승격하지 않는다' 계약을 교정한다. Day→Week 중 Core9362/native25683에서 native10315로 clamp되면 Core baseline만 비교한 기존 guard는 이를 새 forward로 오분류할 수 있었다. 같은 snapshot의 두 좌표 중 최댓값을 axis 등록 baseline으로 사용해 이 false positive를 차단한다. 실제 event/native 일치·Core/native 차이·원래 현재 lease·own tagged 제외·1회 처리·1px 조건은 그대로다. typed wheel/pointer/keyboard 입력은 기존 document listener에서 즉시 오래된 의도를 취소하며, 새 scroll writer·자동 재시도·geometry 결과 허용은 추가하지 않는다.
 
 Tooltip의 Escape 후 같은 focused 가상화 셀 재사용은 별도 fixture 전제 오류다. 해당 oracle은 실제 blur/focus를 만들고 Escape 닫힘/포커스 유지·기존 ISO/날짜/좌표 단언을 검증한다. 두 원인을 하나로 합치지 않으며, 원본/진단·추가 확대 FAIL·최종 source는 [ci2827 원장](evidence/issue-667/ci2827-correction.json)을 따른다. 기존 #666 미지원390px/clamp 증거와 원격 인수 경계는 그대로 유지한다.
+
+## Issue #667 / CI #2840 — port 수용 경계와 정상 fixture 준비의 구분
+
+기존 수용 규칙은 Core exact/native±1이다. target.left120에서 Core capacity119는 거부하고, Core capacity가120 이상이면 native capacity119는 최종 native119가 목표와1px 이내이므로 허용한다. native118은 거부한다. 정상 테스트 setup이 Core/native 양capacity120을 요구하는 것은 정확120 입력을 확보하는 더 강한 fixture 전제이며 제품 port의 허용식을 바꾸는 근거가 아니다. 공개 admitPosition은 기존 read-only 검사식을 노출하며 resize/scroll을 발행하지 않는다. ci2838의 native119 거부 기대는 신규 Unit의 경계 오류였고 ci2840에서 기존 정책에 맞는 거부·허용·명령0 반례로 정정한다. 원래 lease·유한 준비·3frame·취소·보존·writer 권한은 유지한다.

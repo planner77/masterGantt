@@ -22,6 +22,7 @@ Refs #667
 | #2831 | Week 새 receipt 전 reveal 등록; 명령 중 semantic epoch 변경 경합 | [ci2831](evidence/issue-667/ci2831-correction.json) |
 | #2833 | 검색이 Week 확장 취소·초기capacity47에서120이clamp; metadata저장전fixture준비 | [ci2833](evidence/issue-667/ci2833-correction.json) |
 | #2835 | 첫 검색 전 Week/U3 SETTLED·31IDs 일치에도 capacity47; 현재 작업 완료와 목표120 수용 조건 분리 | [ci2835](evidence/issue-667/ci2835-correction.json) |
+| #2840 | 신규 native119 거부 Unit이 기존 Core exact/native±1 계약과 불일치; Fast Gate 차단으로 E2E/Docker 미실행 | [ci2840](evidence/issue-667/ci2840-correction.json) |
 | #2837 | Scoped WBS 빠른 필터 전 raw native capacity만 보고 120 입력; 동시 RANGE APPLYING/rows PENDING에 X=0 | [ci2837](evidence/issue-667/ci2837-correction.json) |
 | #2838 | WBS quick Milestone→전체 복귀 중 축 재축소(1904→952) 후 FILTER_RETURN NO_SCROLL_CAPACITY; 준비 후 apply 시점 용량 불일치 | [ci2838](evidence/issue-667/ci2838-correction.json) |
 
@@ -36,7 +37,7 @@ Refs #667
 
 ## 판정과 범위
 
-2026-10-16 CI #2837 후속의 현재 요청 종료점은 공유 분석 참조·main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
+2026-10-16 CI #2840 후속의 현재 요청 종료점은 공유 분석 참조·main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
 
 CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 이전 2026-10-16 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함했다(과거 실행 이력). 병합·릴리스는 제외한다.
 
@@ -251,3 +252,19 @@ Tooltip 보완 source의 5spec41 실행은38 PASS/3 FAIL/0 SKIP/0 flaky/errors0(
 - **근본 원인:** 첫 port.prepare 이후 비동기 Core `filter-tasks`/layout이 물리 스크롤 폭을 다시 축소해, 첫 준비의 수용 가능성이 명령 apply 때 유지되지 않았다. 좁아진 축에서 안전한 원래 좌표 복귀를 허용할 bounded compatibility 준비가 FILTER_RETURN에 적용되지 않았다. 마지막 layout writer의 정확 호출 출처는 원격에서 별도 계측하지 않아 UNKNOWN이며, 확인된 `FILTER_RETURN/NO_SCROLL_CAPACITY` 직접 실패와 구분한다.
 - **보완:** 기존 단일 Coordinator에서 `FILTER_RETURN`의 port.prepare에만 compatibility=true를 전달하고, WAIT_GEOMETRY에서 최신 receipt+3frame geometry를 확인한 뒤 **실제 Core/native 양쪽 capacity를 read-only 재검사**한다. shrink 시 같은 user lease/source를 가진 **최대 1회** post-geometry axis 준비를 수행하고, 새 projection/geometry receipt를 다시 기다린 후 하나의 scroll-chart 입력으로 완료한다. 추가 준비 불가·기존 intent 폐기 시 NO_SCROLL_CAPACITY/SUPERSEDED로 실패 폐쇄. user wheel/새 filter/새 context가 old bookmark를 부활시키지 않는다.
 - **검증:** 새로운 Coordinator Unit은 첫 prepare 성공→geometry 47 축소→두 번째 준비 후 single FILTER_RETURN apply, 재준비 실패시 재시도/쓰기0 반례를 검증한다. Port Unit은 Core 119/native140, Core140/native119를 각각 거절하도록 한다. 기존 #571 정상 bookmark120→0→120, wheel 취소, scope/columns/다른 reveal 무복원, U4 bounded extension·UNKNOWN/권한·same instance를 유지한다. 제품 변경 외 E2E 단언·timeout/retry/skip·Required CI 정책 불변. 이 세션의 새 source 로컬 Node/Playwright 전체 실행은 NOT TESTED(격리된 실행환경에서 저장소/의존성 미제공); 원격 새 exact Head CI에서 전체 결과를 판정한다.
+
+## CI #2840 — 신규 native119 음성 기대와 기존 native ±1 수용 계약의 불일치
+
+[원본 #2840.1/run38880368154](https://github.com/planner77/masterGantt/actions/runs/38880368154)는 Head `728c4ad4da48d0267fc34dd6ae738c7faec1b716`, base `fd219130491c53d054754eac41a58e4a6a3da0c6`, test merge `d5cb1142798d8286ceae38d3796509faae18a9b7`다. 원본 source artifact·QA 환경·merge 부모를 교차 확인했고 실제 최초 FAIL은 Unit job116905821162 step6의 `svar-viewport-port.test.ts:72:42`다. 전체2741 PASS/1 FAIL/3 SKIP(2745)·221파일PASS/1FAIL/1SKIP·32.48s다. Typecheck/ESLint/Policy/Preflight는 PASS지만 Fast Gate와 Required quality116906341890/e2e116906342144/docker116906341927는 FAIL이다. Chromium6/Docker/productionbuild 구현은 SKIPPED·NOT TESTED이며 독립 브라우저/컨테이너 오류로 세지 않는다.
+
+실패는 target120에 Core capacity140/native119인 `port.admitPosition`의 false 기대/true 실제다. `prepare.ready` 단언이 아니다. 728c 공개 메서드는 기존 `admitsPosition`을 그대로 노출하며 Core capacity≥target, native capacity≥target−1 수식은 바뀌지 않았다. 기존 ADR177/239와 원래 Core exact/native±1 계약상 true가 맞다. 신규 Unit의 native119 거부 기대가 직접 원인이며 제품 수식/정책을 변경하지 않는다. 정확 원본 선택 로컬도1 FAIL/43 선택제외·286ms로 재현했다. 선택제외43은 원격의 기존3SKIP과 구별한다.
+
+Core119거부/native118거부/native119허용/native120허용·명령0을 독립5경계로 검증한다. 정상 E2E fixture의 양capacity120 준비는 제품의 native±1 허용과 다른 더 강한 입력 전제다. ci2838의 양exact/native119거부 문구는 당시 증거 bytes로 보존하고 이번 후속에서 기존 계약에 따라 정정한다. 초기#2837 RANGE0 경합·#2838 FILTER_RETURN 재축소는 이번Unit오류와 다르며 해당 외부3커밋은 fast-forward로 보존했다.
+
+앞선 FILTER_RETURN 보완의 새 준비 경로는 별도 교차 검증한다. 두 번째 prepare pending 중 user/filter/context/API 폐기4반례는 늦은 readytrue에도 apply/repair0·SUPERSEDED, 두 번째 readytrue 뒤 재축소는 세 번째 prepare0/apply0/repair0·NO_SCROLL_CAPACITY여야 한다. 최종 Unit173(Port48/Coordinator98/readiness27)352ms PASS를 확인했다. viewport8은 이 Unit파일 추가 전의41.0s PASS이며 제품/E2E/helper/fixture/config 의존성 불변에 한정해 유지한다. 실제HTTP pending Copy wheel1은 별도 실행하고 단일9case run이나 중간168Unit을 합산하지 않는다.
+
+Copy 첫 실행은 Channel closed 뒤 page.waitForResponse/Test ended와 context닫힘·약54s/exit143이며 완성 HTML/timing과 PASS/계약FAIL 판정이 없다. 원인 UNKNOWN/NOT TESTED로 보존하고 동일source·retry0의 새 실행과 구분한다. 제품 단언 오류나 성공으로 임의 분류하지 않는다. 실제 명령/환경/source·report 해시·취소/준비 상한·최종 검사/복구/PRE_QA는 [ci2840 원장](evidence/issue-667/ci2840-correction.json)에 기록한다. 이전17개 JSON은 불변이며 새 Head 원격 전체·QA_FINAL/Owner/Manager ACCEPT는 NOT TESTED·MERGE_READY BLOCKED다.
+
+CI #2840 보완의 마지막 증거 정정: 첫 Copy stdout은 보존된 실제 파일이 없어 log=null로 명시했다. 보존된 trace/error-context의 경로·SHA와54.031s Test ended/context닫힘을 확인하며, Channel closed/exit143은 당시 tool 관측과 구분한다. 원문 stdout을 재구성하거나 보존했다고 주장하지 않는다. 최종 별도 Copy1 PASS는 report19358.243ms/test4513ms, viewport8은 report41046.995ms/test합35353ms다. 총Unit173의 실제 분해는 Port48/Coordinator98/readiness27이며 이전 집계 오기를 정정했다. owned2 fingerprint는 명시된 path+NUL+SHA256+newline 정의의 `1b78cf85839945bdd54869646016b308bf82211e0019350a163132e8180c797c`다.
+
+CI #2840 최종 독립 검토 `/root/pre_review`: PRE_QA PASS / DOCUMENTATION_SYNC PASS·미해결지적0, 문서7/Unit2와 실제173·viewport8/별도Copy1·15source/107baseline 대조한정이며 Reviewer 재실행은 없다. typecheck·변경2파일lint(오류/경고0)·Markdown229·version0.114.1·diff PASS다. 첫 Copy stdout 미보존과 Unit 실행시간대 NOT CAPTURED(명령TZoverride없음)를 유지한다. QA_FINAL/Owner/Manager ACCEPT는 NOT TESTED·MERGE_READY BLOCKED이며 새FullCI시작출처는게시후IssueSTATUS로연결한다.

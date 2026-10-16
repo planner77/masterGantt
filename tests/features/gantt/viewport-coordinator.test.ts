@@ -509,6 +509,60 @@ describe("Viewport Coordinator arbitration and bounded observation", () => {
       "NO_SCROLL_CAPACITY", expect.objectContaining({ decisionReason: "NO_SCROLL_CAPACITY" }));
   });
 
+  it.each(["user", "filter", "context", "api"] as const)("revokes post-geometry filter re-preparation on %s before its late completion", async change => {
+    const f = fixture(); let finish!: (value: { ready: boolean }) => void;
+    let preparations = 0;
+    f.port.admitPosition = vi.fn(position => f.sample.capacity.left >= position.left);
+    f.port.prepare = vi.fn<NonNullable<ViewportPort["prepare"]>>(() => ++preparations === 1
+      ? Promise.resolve({ ready: true }) : new Promise(resolve => { finish = resolve; }));
+    f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top: 0 }, native: { left: 0, top: 0 } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.flush(); f.update({ capacity: { left: 47, top: 1000 } });
+    await f.advance(5);
+    expect(f.port.prepare).toHaveBeenCalledTimes(2);
+    const current = vi.mocked(f.port.prepare).mock.calls[1][1];
+    expect(current()).toBe(true);
+    if (change === "user") f.coordinator.userInput();
+    else if (change === "filter") f.coordinator.filterInput();
+    else { f.context(change === "api" ? { apiInstance: "api-2" } : { scope: "other" }); f.coordinator.contextChanged(); }
+    expect(current()).toBe(false);
+    f.update({ capacity: { left: 1000, top: 1000 } }); finish({ ready: true });
+    await f.advance(15);
+    expect(f.port.prepare).toHaveBeenCalledTimes(2);
+    expect(f.port.apply).not.toHaveBeenCalled();
+    expect(f.port.repair).not.toHaveBeenCalled();
+    expect(f.port.trace).toHaveBeenCalledWith("SUPERSEDED", expect.objectContaining({ kind: "FILTER_RETURN" }),
+      "SUPERSEDED", expect.any(Object));
+  });
+
+  it("does not issue a third preparation if capacity contracts again after the second preparation succeeds", async () => {
+    const f = fixture(); let preparations = 0;
+    f.port.admitPosition = vi.fn(position => f.sample.capacity.left >= position.left);
+    f.port.prepare = vi.fn(async () => {
+      preparations++;
+      if (preparations === 2) f.update({ capacity: { left: 1000, top: 1000 } });
+      return { ready: true };
+    });
+    f.coordinator.filterInput();
+    f.context({ filtered: true, filter: "search", receiptFilter: "search" }); f.coordinator.contextChanged();
+    f.update({ core: { left: 0, top: 0 }, native: { left: 0, top: 0 } });
+    f.context({ filtered: false, filter: "all", receiptFilter: "all" }); f.coordinator.contextChanged();
+    await f.flush(); f.update({ capacity: { left: 47, top: 1000 } });
+    await f.advance(5);
+    expect(f.port.prepare).toHaveBeenCalledTimes(2);
+    expect(f.sample.capacity.left).toBe(1000);
+    expect(f.port.apply).not.toHaveBeenCalled();
+    f.update({ capacity: { left: 47, top: 1000 } });
+    await f.advance(15);
+    expect(f.port.prepare).toHaveBeenCalledTimes(2);
+    expect(f.port.apply).not.toHaveBeenCalled();
+    expect(f.port.repair).not.toHaveBeenCalled();
+    expect(f.port.trace).toHaveBeenCalledWith("NO_SCROLL_CAPACITY", expect.objectContaining({ kind: "FILTER_RETURN" }),
+      "NO_SCROLL_CAPACITY", expect.objectContaining({ decisionReason: "NO_SCROLL_CAPACITY" }));
+  });
+
   it("uses the latest coherent vertical clamp at apply rather than the one before preparation", async () => {
     const f = fixture(); let finish!: (result: { ready: boolean }) => void;
     f.port.prepare = vi.fn<NonNullable<ViewportPort["prepare"]>>(() => new Promise(resolve => { finish = resolve; }));

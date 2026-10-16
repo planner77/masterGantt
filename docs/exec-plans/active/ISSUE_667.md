@@ -791,3 +791,21 @@ N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPE
 - **교차 회귀:** #456/#570 metadata120 준비·late zero, #464 Resource peer, #384 Copy, #549 Week axis, #571 gesture·filter cancel, #666 U4 physical geometry 범위와 원래 Source lease.
 - **증거/한계:** 원본 Actions log 및 artifact trace 안전 필드를 재검토했다. 최종 제품·Unit·문서 source의 정적 계약 검사만 완료; Node/npm 프로젝트 실행·Chromium local은 **NOT TESTED**. 원본 성공 사례와 새 Source PASS를 합산하지 않는다.
 - **DOCUMENTATION_SYNC:** `docs/ISSUE_667_FAILURE_ANALYSIS.md`, `docs/exec-plans/active/ISSUE_667.md`, `docs/TEST_PLAN.md`, `docs/evidence/issue-667/ci2838-correction.json` UPDATE. `AGENTS.md`, PROJECT_UX, GANTT_STATE_CONSISTENCY/CONFORMANCE, DESIGN, API, DB_SCHEMA, SECURITY, CI_CD, REMOTE_VALIDATION은 기본 계약/사용자-facing 동작 불변으로 N/A. .github workflow, package/lock, main version, GHCR release policy 불변. HIGH/OWNER_MANAGED·QA_FINAL/Owner·Manager ACCEPT는 NOT TESTED, MERGE_READY BLOCKED.
+
+## CI #2840 후속 — 기존 Core exact/native ±1 경계 보존
+
+최신 원격 Head `728c4ad4da48d0267fc34dd6ae738c7faec1b716`의 외부3커밋을 fast-forward로 보존했다. [별도 실패 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)·ci2835/ci2837/ci2838을 먼저 읽었으며 최신 [#2840.1/run38880368154](https://github.com/planner77/masterGantt/actions/runs/38880368154)는 Unit1FAIL/2741PASS/3SKIP이다. Fast Gate로 productionbuild/E2E6/Docker구현은 SKIPPED·NOT TESTED이고 세 Required aggregate는 FAIL이다. 이전2837/2838의 E2E 오류와 구분한다.
+
+직접 원인은 신규 port.admitPosition의 native119 거부 기대와 기존 native±1 정책의 불일치다. Core119 거부는 유지하고 native118 거부/119 허용/120 허용·명령0을 분리한다. source port의 수식은 변경하지 않는다. ci2838의 양exact/native119거부 문구는 당시 원장으로 보존하되 기존 ADR177/239에 따라 이번 후속에서 정정한다.
+
+외부 FILTER_RETURN 보완을 보존하면서 두 번째 준비 중 user/filter/context/API 폐기→늦은 readytrue apply/repair0·SUPERSEDED4반례와, 두 번째 readytrue 후 재축소→세 번째 준비0/apply0/repair0·NO_SCROLL_CAPACITY1반례를 추가한다. Unit173(48+98+27)과 실제 viewport8·별도HTTP pending Copywheel1을 구분 검증한다. E2E8 실행 후 바뀐 Unit파일은 E2E 의존성이 아니므로 제품/E2E/helper/fixture/config 해시 불변에 한정해 8결과를 유지하고 단일9run이나 이전168Unit 합산으로 표시하지 않는다. Copy 중단 Channel closed/exit143·계약단언FAIL 미관측은 NOT TESTED로 별도 보존하며 근인은 UNKNOWN이다.
+
+frontend `/root/viewport_fix`는 Unit2파일·browser/server 단일 작성/운영, infra `/root/ci_investigation`은 출처 read-only 분석, qa_docs `/root/pre_review`는 독립 read-only PRE_QA, Manager는 문서/통합/게시를 담당한다. 새 [ci2840 교정 원장](../../evidence/issue-667/ci2840-correction.json)에 실제 source·명령·환경·원본/보완/중단/최종 결과·별도검토를 기록한다. 기존17증거JSON·88capture·generated2를 복구하며 제품·CI·서버·의존성·버전 변경0을 유지한다.
+
+DOCUMENTATION_SYNC UPDATE: 별도원장/ci2840JSON·TEST_PLAN·CHANGELOG·WorkPacket/PLAN·GANTT_ADAPTER_ADR의 native1px 경계 예시. N/A: ARCHITECTURE/GANTT_SYNC_TRACE/PROJECT_UX/DESIGN/UI_UX_GUIDELINES/API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA_REVIEW_POLICY — 이번 제품/시각/서버/권한/CI/QA/release 계약변경없음. 외부 FILTER_RETURN 보완의 미검증을 실제 Unit·브라우저 교차로 확인한다.
+
+범위는 최신main/리뷰/충돌 재확인·보완 게시 후 새FullPRCI 시작 확인까지다. HIGH/OWNER_MANAGED·qa_required=true·version0.114.1·release_required=true·release_authorized=false, QA_FINAL/Owner/Manager ACCEPT NOT TESTED·MERGE_READY BLOCKED를 유지한다.
+
+CI #2840 보완의 마지막 증거 정정: 첫 Copy stdout은 보존된 실제 파일이 없어 log=null로 명시했다. 보존된 trace/error-context의 경로·SHA와54.031s Test ended/context닫힘을 확인하며, Channel closed/exit143은 당시 tool 관측과 구분한다. 원문 stdout을 재구성하거나 보존했다고 주장하지 않는다. 최종 별도 Copy1 PASS는 report19358.243ms/test4513ms, viewport8은 report41046.995ms/test합35353ms다. 총Unit173의 실제 분해는 Port48/Coordinator98/readiness27이며 이전 집계 오기를 정정했다. owned2 fingerprint는 명시된 path+NUL+SHA256+newline 정의의 `1b78cf85839945bdd54869646016b308bf82211e0019350a163132e8180c797c`다.
+
+CI #2840 최종 독립 검토 `/root/pre_review`: PRE_QA PASS / DOCUMENTATION_SYNC PASS·미해결지적0, 문서7/Unit2와 실제173·viewport8/별도Copy1·15source/107baseline 대조한정이며 Reviewer 재실행은 없다. typecheck·변경2파일lint(오류/경고0)·Markdown229·version0.114.1·diff PASS다. 첫 Copy stdout 미보존과 Unit 실행시간대 NOT CAPTURED(명령TZoverride없음)를 유지한다. QA_FINAL/Owner/Manager ACCEPT는 NOT TESTED·MERGE_READY BLOCKED이며 새FullCI시작출처는게시후IssueSTATUS로연결한다.

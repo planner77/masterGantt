@@ -62,14 +62,18 @@ describe("SVAR visibility admission", () => {
     if (mode === "disposed") port.dispose();
     return Object.assign(port, { commands, nativeForwardInput, axisSettled, setCoreGeometry: (width: number, chartWidth: number) => { state._scales.width = width; state._chartWidth = chartWidth; }, setAxisEnd: (end: Date) => { state._end = end; requestedEnd = end; }, setNativeClientWidth: (width: number) => { horizontal.clientWidth = width; }, setNativeWidth: (width: number) => { horizontal.scrollWidth = width; }, setCoreLeft: (left: number) => { state.scrollLeft = left; }, setNativeLeft: (left: number) => { horizontal.scrollLeft = left; }, setDataReady: (value: boolean) => { dataReady = value; }, setRequestedEnd: (value: Date) => { requestedEnd = value; }, intercept: (event: { left?: number; top?: number; eventSource?: string }) => interceptors[0]?.(event) });
   }
-  it("checks actual Core and native capacity independently before executing a position", () => {
+  it.each([
+    { coreCapacity: 140, nativeCapacity: 140, admitted: true },
+    { coreCapacity: 119, nativeCapacity: 140, admitted: false },
+    { coreCapacity: 140, nativeCapacity: 118, admitted: false },
+    { coreCapacity: 140, nativeCapacity: 119, admitted: true },
+    { coreCapacity: 120, nativeCapacity: 120, admitted: true },
+  ])("checks Core $coreCapacity and native $nativeCapacity capacity independently: $admitted", ({ coreCapacity, nativeCapacity, admitted }) => {
     const port = portFor("ready"), target = { left: 120, top: 0 };
-    port.setCoreGeometry(240, 100); port.setNativeWidth(240);
-    expect(port.admitPosition?.(target)).toBe(true);
-    port.setCoreGeometry(219, 100);
-    expect(port.admitPosition?.(target)).toBe(false);
-    port.setCoreGeometry(240, 100); port.setNativeWidth(219);
-    expect(port.admitPosition?.(target)).toBe(false);
+    port.setCoreGeometry(100 + coreCapacity, 100);
+    port.setNativeWidth(100 + nativeCapacity);
+    expect(port.admitPosition?.(target)).toBe(admitted);
+    expect(port.commands).toEqual([]);
     port.dispose();
   });
   it("prepares observed compatibility transaction geometry with a fresh receipt floor before issuing only coordinates at apply", async () => {

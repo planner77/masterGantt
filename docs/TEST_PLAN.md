@@ -1,3 +1,11 @@
+## Issue #667 — CI #2840 수용 경계 Unit 정정과 재준비 음성 (2026-10-16)
+
+최신 원격 실패는 `admitPosition(target120)`에 native capacity119를 거부하라고 요구한 신규 Unit이다. 제품 port는 기존 Core exact/native±1 계약을 유지하므로 Core119는 거부하고, Core가120 이상이면 native119는 허용한다. native118은 거부하며 exact120 경계와 명령0을 별도로 검증한다. 정상 E2E 입력 fixture의 양capacity120 요구와 제품 port의 완료 허용 범위를 혼동하지 않는다. ci2838의 양exact/native119거부 설명은 그 시점 원장으로 보존하고 이번 후속에서 기존 계약에 맞게 정정한다.
+
+앞선 FILTER_RETURN 보완의 같은 lease 두 번째 prepare 대기 중 user/filter/context/API 폐기4반례는 늦은 readytrue에도 apply/repair0·SUPERSEDED여야 한다. 두 번째 준비 성공 뒤 다시 용량47로 축소되면 세 번째 준비 없이 apply/repair0·NO_SCROLL_CAPACITY여야 한다. 제품·기존 단언·timeout/retry/skip·Required gate는 변경하지 않는다.
+
+최종 Unit은 port48+Coordinator98+readiness27=173 PASS다. viewport8은 Unit 반례 추가 전 실행이나 실제 제품/E2E/helper/fixture/config 의존성이 불변이므로 별도 교차 증거로 사용한다. 실제HTTP pending Copy wheel1은 별도 실행하며 단일9case run으로 표현하지 않는다. 중단 실행의 Channel closed/exit143은 NOT TESTED로 보존하고 재실행 PASS로 소급하지 않는다. 원격 #2840의 Unit1FAIL→Fast Gate/required aggregates FAIL과 E2E/Docker/build 미실행을 구별한다. source/명령/환경/report 해시·선정/제외는 [ci2840](evidence/issue-667/ci2840-correction.json)과 [별도 실패 원장](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
 ## Issue #667 — CI #2835 동작별 준비 계약 (2026-10-16)
 
 정상 setup에서 `visible` 또는 마지막 성공 receipt만으로 후속 입력을 승인하지 않는다. 현재 API/revision/scale/scope/query·canonical 동기화·logical/Core/DOM 행·최신 관측·semantic receipt·현재 Coordinator 작업을 함께 읽고, 동작별 조건을 별도로 검사한다. Scroll은 Core exact capacity와 native capacity 모두가 목표를 수용해야 하며, date reveal은 현재 축/날짜와 기존 canonical ID 배열 순서, hover는 현재 geometry/hit과 기존 Core X=native X 완전 일치를 확인한다. date/scroll의 기존 Core/native ±1 계약을 hover X로 확대하지 않는다. attempt 번호와 semanticId는 서로 다른 번호 공간이므로 같은 값일 것을 강제하지 않는다. 같은 IDs를 유지하는 query 변경도 이전 filterKey와 구분하며, 현재 실패/UNKNOWN 작업은 준비 완료로 승인하지 않는다. query witness는 다른 filter를 편집하지 않는 단일 명시 query 전환 범위의 증거다. geometry/hover의 명시적 이전 SUPERSEDED 허용은 현재 API/U3·실제 geometry로 새 동작을 준비한다는 뜻이며 과거 취소 명령의 완료 판정이 아니다. 안정성은 문맥·권한·실제 geometry를 기준으로 검사하고 attempt/observation의 단순 bookkeeping 증가만으로 정착을 거절하지 않는다.
