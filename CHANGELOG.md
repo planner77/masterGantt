@@ -1,5 +1,7 @@
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
+- PR CI #2862 클릭 전후 리사이즈의 구 좌표 재히트 검증과 Day/Week 전환·날짜축 확장의 미정착 요청 경계를 E2E에서 분리 보완한다. 원래 pointerup 편집 결과, scale별 receipt, 3회 End 증가·RANGE SETTLED, 기존 무mutation/CI 계약을 유지하며 제품 동작·버전 변경 없음.
+
 - PR CI #2861의 #550 empty/Milestone-only 기존 E2E가 제거된 native M Grid 행을 기대한 실패를 교정한다. 기본 WBS는 M row/bar0·marker OFF, 명시 legacy는 native1을 검증하며 날짜축 자동 M reveal 전제만 분리한다. 기존 Dashboard·canonical/권한·관계/소속·Day/Week/scroll·mutation0 단언과 원본 #2859/2861 실패 이력은 유지한다.
 
 - PR CI #2859의 저장 확인 GET 연결 종료를 분석하고 #623 테스트의 불필요한 hook 서버 기동을 제거한다. UI 후 확인은 기존 브라우저 전송 helper를 재사용하며 실제 저장·권한·revision·교환 단언과 무재시도 정책을 유지한다. 원본 실패·로컬 비재현·보완 검증은 별도 원장에 보존한다.

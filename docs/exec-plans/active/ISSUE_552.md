@@ -1,5 +1,14 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — CI #2862.1 E2E 조기 중단 원인과 교정
+
+- 원본 [CI #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934) (Head `eb525442fa93532e9d4d06fb17ebf739c8e4c484`, test-merge `d9e090f62b37d27771baaca67b6407bd06824b9b`)의 Preflight/Quality/Build/Docker는 성공, Chromium shard3은 66 PASS/1 FAIL/기존 1 SKIP/61 미실행, shard5는 42 PASS/1 FAIL/61 미실행, 나머지 4 shard는 취소됐다. E2E 필수 집계·자동 QA Final은 종속 실패로 구분한다. #550 past/future와 #623 Resource E2E는 이 원본 run에서 각각 PASS; 새 Head의 전체 PASS는 아니다.
+- shard3 `project-gantt-inline-name.spec.ts:497`: 390px에서 기록한 원래 포인터 위치를 768px 리사이즈 후 다시 hit-test한 것은 재배치 가능한 native 행의 좌표 불변을 잘못 전제했다. 최초 pointerdown은 원래 Task ID를 확인하고, resize 이후 **실제 새 텍스트 위치**가 동일 Task인지를 검증한다. 마우스 포인터는 이동하지 않은 채 원래 위치에서 mouseup하며 inline editor focus/Escape로 사용자 클릭 의도가 보존되는지 여전히 검증한다. 제품의 작동을 확인하지 않은 채 PASS로 올리지 않는다.
+- shard5 `project-gantt-scale.spec.ts:299`: 빠른 Day/Week 왕복 후 UI는 Day인데 마지막 Projection Receipt는 이전 Week였다. Range transaction TIMED_OUT/Viewport Coordinator NO_SCROLL_CAPACITY, 날짜축 종료 시점 증가 없음. 각 scale 전환 때 해당 apiInstance·mode의 `SETTLED` projection을 기다리고, 세 번의 right-edge 확장마다 날짜축 실제 증가와 `RANGE_EXTENSION SETTLED`를 확인한 다음 후속 입력으로 진행한다. 원인 구분을 위한 동기화 장벽이며 정상 축 확장 검증을 삭제·완화하지 않는다.
+- 범위는 테스트 파일 2개이며 `project-gantt.tsx`, `viewport-coordinator.ts`, `svar-viewport-port.ts` 공통 authority, marker OFF, Canonical/DB/API/보안/CI·timeout/skip/retry·6 Shard·Required3은 변경하지 않는다. `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, PLAN/CHANGELOG 동기화.
+- 이 도구 환경에서 GitHub hostname DNS와 node_modules/Chromium checkout이 없어 변경 후보의 로컬 Playwright/Vitest PASS는 **NOT TESTED**. GitHub 원본 Trace·코드 정적 경계만 검토했다. 새 exact Head의 원격 required Quality/E2E6/Docker·Trusted QA·Owner ACCEPT는 실행 결과 전 NOT TESTED, MERGE_READY=BLOCKED. HIGH/OWNER_MANAGED/qa_required=true, version0.115.0, release_required=true/release_authorized=false. 사용자 요청 종료점은 같은 PR에서 새 Full CI 등록까지이며 모니터링/병합/Main/GHCR/Issue 종료는 제외한다.
+
+
 ## 2026-10-17 — PR CI #2861.1 #550 Milestone-only 기존 UI oracle 보완
 
 - 원본 [Full PR CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752), Head `2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf`, Chromium shard5 job `117210305175`은 `milestone-management-persistence.spec.ts:264`의 native Grid Milestone `toBeVisible` 단언에서 27 PASS/1 FAIL/76 미실행으로 중단했다. 나머지 5 shard CANCELLED, E2E 집계·QA Final은 required E2E 실패에 따른 후속 FAIL이다. Preflight/Quality/Build/Docker는 PASS다. 앞선 #2859의 GET ECONNRESET과 다른 독립 오류이며 역사적 결과를 변경하지 않는다.

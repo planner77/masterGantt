@@ -1,3 +1,9 @@
+## Issue #552 — PR CI #2862 포인터/Scale 동기화 테스트 교정 (2026-10-17)
+
+[원본 #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934)에서 shard3 `project-gantt-inline-name.spec.ts:497`은 리사이즈 이전 물리 좌표에 원래 Task가 그대로 존재함을 요구하여 실패했다. shard5 `project-gantt-scale.spec.ts:299`는 마지막 scale Projection Receipt=week인 상태에서 UI day의 Range extension이 TIMED_OUT/NO_SCROLL_CAPACITY로 실패했다. 두 shard 각 1 FAIL·나머지4 취소와 기존 PASS를 구분한다.
+교정은 원래 pointerdown 좌표 및 새 좌표의 같은 canonical Task 검증과 **원래 위치 mouseup→정확 inline editor focus**를 함께 보존한다. Day/Week 각각 동일 API의 scale SETTLED를 기다리고, 기존 세 번의 right-edge scroll마다 날짜축 End 증가+Coordinator RANGE_EXTENSION SETTLED를 모두 요구한다. ISO Week·근무일/공휴일/viewport·동일 인스턴스·mutation0·timeout/retry/skip/Required3·6 shard는 불변이다.
+원격 전체 회귀와 로컬 Playwright/Vitest 미실행을 PASS로 주장하지 않는다. 근거/다음 순서는 [Work Packet](exec-plans/active/ISSUE_552.md)에 기록한다.
+
 ## Issue #552 / PR #561 — CI #2861 #550 Milestone-only 잔존 native oracle 교정 (2026-10-17)
 
 [CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752) shard5의 `milestone-management-persistence.spec.ts:264`가 제거된 Milestone Grid 행의 가시성을 요구하여 27PASS/1FAIL/76미실행, 다른5 shard 취소로 종료했다. 앞선 #2859의 API GET ECONNRESET과 다른 display-contract 테스트 오류다. 현재 기본 `separate-milestones`에서 Grid/Bar0, 긴급 `legacy`에서 native Grid/Bar1, 공통 marker OFF를 검증한다. Day/Week 축 유효성·사용자 직접 스크롤·원점 불변은 계속 확인하지만 숨은 M의 날짜 자동 reveal/coverage 의무는 기본 모드에서 제거한다.

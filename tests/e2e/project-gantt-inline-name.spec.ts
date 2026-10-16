@@ -494,7 +494,19 @@ test("이름 클릭 의도는 pointerup 전 native layout 변경에도 유지된
     const receipt = JSON.parse((await frame.getAttribute("data-gantt-projection-receipt"))!);
     return receipt.generation > beforeGeneration && receipt.outcome === "SETTLED";
   }).toBe(true);
-  await expect.poll(taskAtPoint).toBe(`:${id(3)}`);
+  // Layout can move the original row after pointerdown; its old physical
+  // coordinates are not a post-resize hit-test contract.
+  await expect.poll(async () => {
+    const current = await text.boundingBox();
+    if (!current) return null;
+    return page.evaluate(({ x, y }) => document.elementFromPoint(x, y)
+      ?.closest(".wx-content > .wx-text")?.closest(".wx-row")?.getAttribute("data-id"), {
+      x: current.x + current.width / 2,
+      y: current.y + current.height / 2,
+    });
+  }).toBe(`:${id(3)}`);
+  // Do not move the pointer: releasing it at its original position must still
+  // open the intended canonical task, even if its rendered cell relocated.
   await page.mouse.up();
   await expect(inlineInput(page)).toBeFocused();
   await inlineInput(page).press("Escape");

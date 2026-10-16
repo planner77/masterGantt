@@ -1,3 +1,8 @@
+## Issue #552 — CI #2862 좌표/날짜축 실패 후속 검증 (2026-10-17)
+
+[원본 Full #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934), Head `eb525442fa93532e9d4d06fb17ebf739c8e4c484`: shard3 66PASS/1FAIL/기존1skip/61미실행, shard5 42PASS/1FAIL/61미실행, 다른4 취소, Required E2E·QA Final FAIL; Quality/Preflight/Build/Docker PASS. shard3의 리사이즈 후 구좌표 hit 전제와 shard5의 UI Day↔마지막 Projection Week 불일치·Range NO_SCROLL_CAPACITY를 실제 실패로 분리한다.
+보완된 테스트는 현재 렌더된 동일 ID 및 원본 포인터 mouseup의 편집 의도를 검증하고, 각 scale/extent 확장 사이 실제 등록된 Projection/Viewport 정착 확인을 강제한다. 정착하지 않으면 실패하며 timeout/skip/CI 우회 없음. 새 Head LFF/Required3/Trusted QA/Owner 수용은 원격 결과 전 NOT TESTED; [Work Packet](exec-plans/active/ISSUE_552.md)에 출처 보존.
+
 ## Issue #552 — Full PR CI #2861 기존 #550 native-oracle 실패 (2026-10-17)
 
 [원본 CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752), head `2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf`: shard5 job `117210305175`의 `milestone-management-persistence.spec.ts:264`는 native M 행이 표시되어야 한다는 과거 기대 때문에 FAIL(27 PASS/1 FAIL/76 NOT RUN), 나머지 5 Shard CANCELLED, E2E aggregate와 QA Final FAIL이다. QA Preflight/TypeScript/ESLint/Vitest/Next.js Build/Docker는 PASS. 코드 제품 결함, API transport, OOM으로 단정하지 않는다.

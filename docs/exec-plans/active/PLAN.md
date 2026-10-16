@@ -1,3 +1,8 @@
+## Issue #552 — CI #2862 E2E 두 실패 경계 보완 및 재개 (2026-10-17)
+
+원본 [CI #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934)의 Quality/Build/Docker PASS와 E2E shard3 고정 좌표 재히트 FAIL, shard5 Day/Week Receipt 미정착·Range 실패를 분리 보존한다. 수정 범위=두 E2E spec, Canonical/제품/Viewport 공통 authority·권한/6 shard gate 불변. pointerdown→resize→원래 mouseup 최종 동작과 각 Day/Week scale 정착→물리 날짜축3회 증가 및 RANGE SETTLED를 검증한다. 원본 #550/#623의 PASS는 이번 후보 전체 PASS가 아니다.
+Manager=문서/원장, frontend=테스트 의도 보존, infra=단일 PR 커밋과 CI 시작; 로컬 E2E 의존성·Chromium 부재로 NOT TESTED. HIGH/OWNER_MANAGED/qa_required=true, app0.115.0, release_required=true/release_authorized=false, MERGE_READY BLOCKED. 리뷰0/strict main 확인 후 새 Full PR CI 시작까지이며 모니터링·병합/Main/GHCR/종료 비범위.
+
 ## Issue #552 — CI #2861 #550 Milestone-only 테스트 계약 재정렬 (2026-10-17)
 
 기존 PR #561에서 [Full PR CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752)의 shard5 `milestone-management-persistence.spec.ts:264`가 오래된 native Grid M 표시를 기대하며 실패했다(27 PASS/1 FAIL/76 NOT RUN, 타5 shard 취소; Quality/Build/Docker PASS). 기본 WBS marker-OFF는 M row/bar0, 명시 legacy는 원래 native1이므로 #550 past/future/readonly/실제 SQLite 케이스의 표시·날짜 커버리지 기대만 분리한다. Dashboard/관계/권한/무mutation·revision·축·Day/Week/scroll·Gantt instance 원본 단언을 보존하고 제품/CI/권한/6 Shard 정책은 변경하지 않는다.
