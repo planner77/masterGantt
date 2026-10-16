@@ -261,6 +261,7 @@ async function main() {
   };
   let reportDir = null;
   let buildResources = [], browserResources = [];
+  let browserStarted = false;
   try {
     reportDir = safeReportDir(opt.reportDir);
     result.sourceStart = sourceEvidence(root, opt.base);
@@ -313,6 +314,7 @@ async function main() {
       if (opt.mode !== "targeted" || e2e.length) {
         browserResources = assertE2eSafe();
         if (!await isPortAvailable(3100)) throw new Error("BLOCKED: port 3100 in use/unknown; refusing to stop an existing server");
+        browserStarted = true;
         const args = ["run", "test:e2e", "--", "--project=chromium", "--workers=1", "--retries=0",
           ...(opt.mode === "diagnose" ? ["--max-failures=0"] : []), ...e2e];
         if (!await run("Chromium E2E", "npm", args)) throw new Error("FAILED: Chromium E2E");
@@ -338,7 +340,7 @@ async function main() {
     result.status = error.message.startsWith("FAILED:") ? "FAIL" : "BLOCKED";
   } finally {
     if (reportDir) {
-      try { keepE2eArtifacts(reportDir); } catch (error) { result.errors.push(`Artifact move failed: ${error.message}`); result.status = "BLOCKED"; }
+      try { if (browserStarted) keepE2eArtifacts(reportDir); } catch (error) { result.errors.push(`Artifact move failed: ${error.message}`); result.status = "BLOCKED"; }
       for (const name of ["playwright-report", "test-results"]) if (existsSync(join(reportDir, name))) result.artifacts.push(join(reportDir, name));
     }
     safeCleanup(browserResources.filter((x) => !["test-results", "playwright-report"].includes(x)));
