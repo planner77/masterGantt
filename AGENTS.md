@@ -245,6 +245,14 @@ Issue / approved scope
 
 Local PASS는 공식 전체 회귀 PASS가 아니며 GitHub Actions PASS를 대체하지 않는다.
 
+### Issue #699 — PR 전 로컬 검증 자동화 (적용: PLAN/REWORK/PR_READY)
+
+- 신규 CLI: `npm run verify:prepr -- --mode=fast --issue=<N> --risk=<LOW|MEDIUM|HIGH>` (Node 22). 사용·설치·안전 조치: [LOCAL_PREPR](docs/LOCAL_PREPR.md), 매핑·위험 선택의 단일 원본: [TEST_PLAN #697](docs/TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16).
+- Manager는 Work Packet에 실제 producer→소비자/negative 영향과 위험도를 결정하고, 구현 Agent는 `--mode=targeted`의 실존 Unit·Chromium E2E 후보를 검토한다. UNKNOWN/누락·수동 제외(reason)·미실행 사례는 BLOCKED/NOT TESTED로 인계한다. 작은 LOW 수정의 전체 E2E는 의무가 아니다.
+- 실제 `fast`/필요한 `targeted` 또는 `ci-like` 실행 결과의 `.prepr-reports/*/report.json` 및 `SUMMARY.md`에서 base/head/working fingerprint·시작/끝 source 안정성, 도구 버전/명령/exit·고유 케이스(관측 시만), 선택·제외와 실제 HTTP·SQLite/Chromium 증거를 Work Packet에 연결한다. `--dry-run`은 NOT TESTED이며 `LOCAL_VALIDATED` PASS 증거가 아니다.
+- 자체 보호: 기존 DB/port 3100·E2E/Build 디렉터리 선점은 BLOCKED, 자동 npm ci/기존 서버 종료/git clean/reset/운영 URL 테스트 금지, 테스트가 생성한 자료만 정리. 중간 source 변경은 stale이다.
+- CLI의 로컬 PASS는 **GitHub exact-Head PR 세 Required Quality/E2E/Docker, QA Preflight·Trusted QA, 리뷰·충돌, Owner ACCEPT를 대체하지 않는다.** 원격 전용 항목은 DEFERRED와 이유를 별도 보고한다. 기존 CI workflow/6-shard/fail-fast/GHCR/Finalizer 정책은 변경하지 않는다.
+
 ### 변경 영향 분석과 교차 회귀 선정 (#697)
 
 Manager와 frontend/backend/scheduler 등 구현 Agent는 착수 PLAN, 공유 API·상태·계약 변경, REWORK 및 연속 원격 CI 실패 시 [TEST_PLAN의 변경 영향 기반 사전 검증 기준](docs/TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)을 적용한다. 파일 개수가 아니라 공유 canonical 상태, Core/native·HTTP/SQLite 경계, 권한·revision, async lease·receipt·복구와 간접 소비자/이전 CI 회귀를 입력으로 위험도를 분류하고 상향 근거를 기록한다.
