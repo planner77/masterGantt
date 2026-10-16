@@ -1,3 +1,16 @@
+## Issue #552 / PR #561 — 2026-10-17 main 정렬 및 SC-13 legacy/marker-OFF 분리 검증
+
+원본 [PR CI #2844.1](https://github.com/planner77/masterGantt/actions/runs/38905085250)의 정확한 head `2ce8a276802a8346772a5351a943b1f3d03a55e5`은 Preflight/TypeScript/ESLint/Vitest/PR build/Docker aggregate PASS, Chromium **shard 2**의 `tests/e2e/gantt-state-product-integration.spec.ts:284` SC-13 FAIL이다. `Native milestone #667` native Grid 행이 보일 것이라는 U5 compatibility-only oracle이 #552 별도 WBS marker-OFF의 실제 의도된 행 제거와 충돌했다. Shard 1/3/4/5/6은 fail-fast CANCELLED이며 PASS가 아니다. E2E aggregate와 QA Final 실패는 해당 Shard의 종속 결과다. 원본 실패·cancel/미실행 분류를 수정하지 않는다.
+
+보완은 동일 SC-13 actual isolated HTTP/SQLite fixture의 **두 WBS profile**을 명시한다. `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`에서는 milestone native row/bar 가시성을 유지하고, 별도 기본 모드에서는 row/bar 0을 검증하며 Dashboard의 **동일 canonical `taskId` row 및 상세 버튼**으로 관리 진입 가능함을 확인한다. 두 모드 모두 marker lane/guide 0, 일정 복귀 뒤 동일 Gantt Core API 인스턴스, 전체 서버 canonical snapshot/Link 불변을 유지한다. 기존 #667 U5 recovery/viewport/unknown-result 시나리오를 제거/skip/단언 완화하지 않는다. 새 screenshot으로 keyboard/실제 source 테스트를 대신하지 않는다.
+
+**변경 영향 분석:** Test oracle/문서와 최신 main의 `verify:prepr` 스크립트/`LOCAL_PREPR` 검증 문맥만 정렬한다. #667 모듈 `canonical-recovery.ts`, `core-conformance.ts`, `projection-observation.ts`, `axis-transaction.ts`, `viewport-coordinator.ts`, `svar-viewport-port.ts`, `canonical-snapshot-sync.ts`는 main/PR blob SHA가 모두 정확히 같음을 재확인했다. #552 제품 `project-gantt.tsx`의 marker OFF, `separate-milestones`, legacy 빌드 복구는 그대로 유지한다. #562는 이전 marker-ON 구현과 교환·이미지 출력/가이드 변경의 91파일(현재 #552와 겹친40)을 가지므로 #553 인수 때 재정렬한다. #563은 오래된 #552 테스트 보완27파일 모두 겹치고 미해결 리뷰가 별도로 있어 이번 PR에 직접 병합하지 않는다. #675는 12파일 중 현재 PR 5파일 중첩, 특히 `project-gantt.tsx` 개발 진단 코드가 오래된 main 기반이므로 무단 복제하지 않고 별도 #674 소유·정렬 대상으로 둔다.
+
+**검증 수준:** 직전 head의 선택 Unit246 PASS, Browser 59개 고유·별도 legacy1회 PASS는 [#552 local source 원장](evidence/issue-552/local-validation-20261016.json)에 기록된 **이전 source** 증거다. 이번 변경 source의 Targeted Unit/실제 Chromium 재실행 및 정확 Test-merge 전체 6-shard PR CI는 실행 후 실제 원격 run/attempt별로 판정한다. Checkout/npm 의존성·Playwright 실제 설치 실행환경을 이 세션에서 확보하지 못해 새 head의 독립 로컬 Unit/Browser PASS는 주장하지 않는다. 등록한 새 full PR CI는 해당 Chromium 테스트를 실제 실행하지만 결과 모니터링은 요청 범위 밖이다. 기존 timeout/허용오차/skip/Required checks 변경 없음.
+
+**인수 책임:** marker OFF Baseline #552의 전체 AC1~12는 이번 공통 SC-13 수정만으로 충족된 것이 아니다. #553 exchange/export, #574 통합 종단, #573/#693 선택적 ON gate는 별도 유지한다. Owner/QA 승인·병합/Main/GHCR는 이번 요청에서 하지 않는다.
+
+---
 ## Issue #667 — CI #2840 수용 경계 Unit 정정과 재준비 음성 (2026-10-16)
 
 최신 원격 실패는 `admitPosition(target120)`에 native capacity119를 거부하라고 요구한 신규 Unit이다. 제품 port는 기존 Core exact/native±1 계약을 유지하므로 Core119는 거부하고, Core가120 이상이면 native119는 허용한다. native118은 거부하며 exact120 경계와 명령0을 별도로 검증한다. 정상 E2E 입력 fixture의 양capacity120 요구와 제품 port의 완료 허용 범위를 혼동하지 않는다. ci2838의 양exact/native119거부 설명은 그 시점 원장으로 보존하고 이번 후속에서 기존 계약에 맞게 정정한다.
@@ -50,7 +63,7 @@ CI #2827 확대 geometry에서 발견한 제품 회귀는 별도 검증한다. a
 
 ## Issue #697 — 변경 영향 기반 로컬 검증과 교차 회귀 선정 (2026-10-16)
 
-이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.
+이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. #699 실행기 사용법·실제 모드/격리·JSON 원장은 [LOCAL_PREPR](LOCAL_PREPR.md)과 [Work Packet #699](exec-plans/active/ISSUE_699.md)에 연결한다. 실행기는 아래 위험 판정·경로별 직접/교차/음성 선정 기준을 다시 정의하지 않고 구현하며, UNKNOWN·missing test를 BLOCKED로 보고한다. `fast`(버전·정적·Vitest·Build), `targeted`(실제 선정 Chromium/Unit), `ci-like`(단일 호스트 전체), `diagnose`(한정 fail-fast-off), `docker`(로컬 빌드)별 미실행을 별도 표시한다. source fingerprint 변동 또는 기존 DB/port 점유는 검증 증거로 PASS하지 않는다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.
 
 ### 1. 검증 경계와 위험도 결정
 

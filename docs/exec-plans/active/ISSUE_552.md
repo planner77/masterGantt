@@ -1,5 +1,20 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — PR CI #2844.1 원인 수정 및 최신 main 정렬 (이전 실행 이력 보존)
+
+- **원본 실패:** [#2844.1](https://github.com/planner77/masterGantt/actions/runs/38905085250), Head `2ce8a276802a8346772a5351a943b1f3d03a55e5`. Preflight/TypeScript/ESLint/Vitest/Build/Docker는 PASS, Chromium shard2 **SC-13 단일 실패**. 공통 #667 테스트가 native M row·Bar visible을 요구해 #552의 separate marker-OFF 계약과 충돌. 나머지 5 shards는 fail-fast CANCELLED/NOT TESTED, 전체 E2E/QA Final 종속 FAIL. 기존 실패 이력 불변.
+- **변경 영향:** 기존 #667 actual-Core recovery/semantic observation/axis/Coordinator·port·canonical snapshot sync 7파일은 최신 main과 동일 blob SHA(변경0). 기존 WBS 모드 `legacy`와 별도 `separate-milestones`를 분리해 **SC-13 테스트만 계약에 맞춰 고친다**. legacy에서는 native M row/bar 존재, separate에서는 native row/bar0 + Milestone 대시보드 동일 ID 조회. 모두 marker lane0, 인스턴스·서버 Task/Link snapshot 동일. 추가 제품 동작 변경·세션/권한/DB/API/마커 ON 없음.
+- **main 동기화:** #667 이후 base `bdaed6bd86612fd168b8ca6b0a40a34966b699d2` → 작업 시작 최신 main `c063101ed7b1d08803c3dac15a41e67842071187`의 후속 35개 commit(변경13경로)을 merge 부모/트리로 보존. 이 중 공통 파일은 `package.json`·`docs/TEST_PLAN.md` 2건이며 package 후보 버전 `0.115.0`과 latest-main `verify:prepr` 스크립트를 모두 보존; Test Plan의 #699 LOCAL_PREPR 시행 기록을 병합하고 SC-13 회귀 판정 추가. AGENTS/ISSUE_LIFECYCLE/LOCAL_PREPR/scripts/prepr/테스트 fixture 관련 최신 main 변경 유지. 실제 merge SHA/Head 및 behind=0/원격 CI 시작은 수행 후 기록한다.
+- **관련 PR 영향:** #562는 과거 marker ON과 image/export·guide 등 별도 #553의 교환 업무(91파일 중 현재 #552 40겹침), #563은 기존 #552 테스트27파일 모두 겹치며 미해결 리뷰1개, #675는 오래된 main의 dev API identity 진단 patch와 `project-gantt.tsx` 중첩(12파일 중5겹침). 모두 미병합·직접 source 복제/자동 병합 금지; #562/#563은 최신 #552 baseline 검증 후 별도 재정렬, #675는 #674 개발 진단 오너에게 후속 정렬. #561 자체 review thread=0.
+- **Local Fast Feedback/실제 Browser:** 원본 #552 source의 Unit246/고유 Chromium59+legacy1 PASS는 변경 전 exact source 증거이며 이번 새 수정·main 병합 source 전체 PASS가 아님. 이 세션의 checkout/npm/Playwright 실행 환경이 없어 신규 실제 Chromium·Unit은 NOT TESTED(이전 PASS 재사용 금지). 새 전체 PR CI는 실제 remote browser 및 해당 SC-13를 수행하되 이 요청은 **시작 확인까지만**이고 결과 모니터링하지 않는다. 실패 단언 완화/timeout 증가/skip/marker ON·기존 진단 제거 금지.
+- **DOC_SYNC:** UPDATED `docs/TEST_PLAN.md`(SC-13 결과·선행 main #699 단락 병합), `docs/exec-plans/active/ISSUE_552.md`(본 증거·원본 실패·영향/해당 AC), `tests/e2e/gantt-state-product-integration.spec.ts`(SC-13 oracle), `package.json`(main scripts + 기존 0.115.0). N/A `DESIGN.md`, `docs/MILESTONE_PRESENTATION_POLICY.md`, `docs/REQUIREMENTS.md`, `docs/PROJECT_UX.md`, `docs/MILESTONE_TIMELINE.md`, `docs/GANTT_STATE_CONFORMANCE.md`, `docs/ARCHITECTURE.md`(기존 정책 및 #667 제품 코드는 변경 없음), `docs/DB_SCHEMA.md`, `docs/API.md`, `docs/SECURITY.md`, `docs/SCHEDULING_ENGINE.md`, `docs/CI_CD.md`, `package-lock.json`(기존 0.115.0 lock 그대로). `AGENTS.md`는 새 main 원문을 그대로 보존.
+- **AC_TEST_COVERAGE:** AC1/AC2/AC3/AC4/AC7/AC10/AC11/AC12의 milestone 표시/탐색/instance 불변은 이전 선택 E2E에 있고 새로운 SC-13는 AC1/AC2/AC7/AC10의 **특정 U5 교차 경계**를 보완한다. AC5/AC6/AC8/AC9는 기존 Milestone/Copy/legacy Link/Full canonical 관련 보호 테스트를 유지하며 재실행 전 PASS로 판정하지 않는다. 전체 AC1~12 원격 CI는 새 Head run 종료 후 별도 확인이 필요하다.
+- **승인:** risk HIGH, OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 미해결 리뷰·충돌/후단 CI를 임의 PASS 처리하지 않으며 병합·Main CI·GHCR는 요청 범위 밖.
+
+---
+
+
+
 Refs #552
 
 ## 현재 실행 계약 — 2026-10-16
