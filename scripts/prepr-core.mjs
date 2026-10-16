@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { existsSync, lstatSync, readFileSync, readdirSync, readlinkSync } from "node:fs";
-import { relative, resolve, sep } from "node:path";
+import { dirname, relative, resolve, sep } from "node:path";
 
 const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 const normalize = (value) => value.replaceAll("\\", "/");
@@ -33,7 +33,7 @@ export function sourceEvidence(root, base = "") {
   const { ref, sha: baseSha } = resolveBase(root, base);
   const head = git(root, "rev-parse", "HEAD");
   const untracked = zFiles(gitRaw(root, "ls-files", "--others", "--exclude-standard", "-z")).sort();
-  const changed = new Set(zFiles(gitRaw(root, "diff", "--name-only", "-z", baseSha)));
+  const changed = new Set(zFiles(gitRaw(root, "diff", "--no-renames", "--name-only", "-z", baseSha)));
   for (const path of untracked) changed.add(path);
   const workDiff = gitRaw(root, "diff", "--no-ext-diff", "--binary", "HEAD");
   const hash = createHash("sha256");
@@ -89,10 +89,31 @@ function inventoryFiles(root, subdir, suffix) {
 }
 
 export function inventory(root) {
-  return {
-    unit: inventoryFiles(root, "tests", ".test.ts"),
-    e2e: inventoryFiles(root, "tests/e2e", ".spec.ts"),
-  };
+  const unit = inventoryFiles(root, "tests", ".test.ts");
+  const e2e = inventoryFiles(root, "tests/e2e", ".spec.ts");
+  const directBySource = Object.create(null);
+  // Index only statically referenced source modules, without running any test
+  // file or traversing outside the repository. Do not infer coverage from
+  // similarly named tests or from unrelated generic HTTP smoke tests.
+  for (const file of unit) {
+    const body = readFileSync(resolve(root, file), "utf8");
+    for (const match of body.matchAll(/\bfrom\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']/g)) {
+      const specifier = match[1] ?? match[2];
+      if (!specifier.startsWith(".") && !specifier.startsWith("@/")) continue;
+      const absolute = specifier.startsWith("@/")
+        ? resolve(root, "src", specifier.slice(2))
+        : resolve(root, dirname(file), specifier);
+      if (!isPathWithin(root, absolute)) continue;
+      const path = normalize(relative(root, absolute)).replace(/\.js$/, "");
+      for (const candidate of [path, path + ".ts", path + ".tsx", path + "/index.ts"]) {
+        if (candidate.startsWith("src/")) {
+          (directBySource[candidate] ??= []).push(file);
+        }
+      }
+    }
+  }
+  for (const [path, files] of Object.entries(directBySource)) directBySource[path] = [...new Set(files)].sort();
+  return { unit, e2e, directBySource };
 }
 
 // These are representative direct + adjacent + negative consumer mappings for #697.
@@ -127,6 +148,18 @@ const RULES = [
     reason: "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
   },
   {
+    id: "historical-capture", risk: "HIGH",
+    re: /^tests\/fixtures\/gantt-state-consistency\/capture-install\.ts$/,
+    unitPaths: [
+      "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+      "tests/features/gantt/canonical-recovery-runtime.test.ts",
+      "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+      "tests/scripts/prepr-verifier.test.ts",
+    ],
+    browser: [],
+    reason: "Historical Core capture comparison: exact package metadata/lock provenance plus narrow development-tool alias",
+  },
+  {
     id: "prepr-tooling", risk: "HIGH",
     re: /^(?:scripts\/prepr-core\.(?:mjs|d\.mts)|scripts\/verify-prepr\.mjs|tests\/scripts\/prepr-verifier\.test\.ts|docs\/LOCAL_PREPR\.md|package\.json|\.gitignore)$/,
     unitPaths: ["tests/scripts/prepr-verifier.test.ts"],
@@ -141,7 +174,7 @@ export function inferRisk(paths) {
   let level = "LOW";
   for (const path of paths) {
     if (RULES.some((rule) => rule.risk === "HIGH" && rule.re.test(path)) ||
-        /^(?:AGENTS\.md|docs\/ISSUE_LIFECYCLE\.md|docs\/TEST_PLAN\.md|\.github\/|db\/)/.test(path)) return "HIGH";
+        /^(?:AGENTS\.md|docs\/ISSUE_LIFECYCLE\.md|docs\/TEST_PLAN\.md|\.github\/|db\/|tests\/(?:config\/|fixtures\/|e2e\/(?:helpers\/|fixtures\/)))/.test(path)) return "HIGH";
     if (path.startsWith("src/") || INFRA_PATH.test(path)) level = "MEDIUM";
   }
   return level;
@@ -165,6 +198,12 @@ export function selectImpact({ changed, tests, risk, includes = [], excludes = [
   };
   for (const path of changed) {
     if (existing.has(path)) { add(path, "Changed test itself"); continue; }
+    // Renamed/deleted test files appear as absent via --no-renames diff.
+    // A harness/fixture/config change is not a harmless unselected asset.
+    if (/^tests\/.*\.(?:test|spec)\.[cm]?[jt]sx?$/.test(path)) {
+      missing.push({ path, reason: "Deleted, renamed or undiscoverable test coverage (old path retained)" });
+      continue;
+    }
     let found = false;
     for (const rule of RULES) {
       if (!rule.re.test(path)) continue;
@@ -174,9 +213,20 @@ export function selectImpact({ changed, tests, risk, includes = [], excludes = [
       for (const name of rule.browser ?? []) add(`tests/e2e/${name}.spec.ts`, rule.reason);
       for (const name of rule.unitPaths ?? []) add(name, rule.reason);
     }
+    // Direct server consumers must be selected from their actual static
+    // imports. Generic integration checks alone never prove a service change.
+    if (path.startsWith("src/server/")) {
+      const direct = tests.directBySource?.[path] ?? [];
+      if (direct.length) {
+        matched.push({ path, rule: "actual-server-imports", reason: "Actual unit/integration test imports changed server module" });
+        for (const testPath of direct) add(testPath, "Direct import of changed server module");
+      } else {
+        unknown.push({ path, reason: "No actual direct server-module test import found; generic smoke tests are insufficient" });
+      }
+    }
     if (found || DOCUMENT_PATH.test(path)) continue;
-    // Only inspect production or executable files. Assets/config without a safe rule need a Manager mapping.
-    if (path.startsWith("src/") || path.startsWith("db/") || INFRA_PATH.test(path)) {
+    // Test harness and removed/renamed coverage must never quietly disappear.
+    if (path.startsWith("src/") || path.startsWith("db/") || path.startsWith("tests/") || INFRA_PATH.test(path)) {
       unknown.push({ path, reason: "No verified producer→consumer test map. Manager must map/verify." });
     }
   }
