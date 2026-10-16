@@ -59,7 +59,7 @@ export function sourceEvidence(root, base = "") {
 
 export function e2eSafety({ env = {}, existing = [], portFree = true } = {}) {
   const reasons = [];
-  for (const name of ["PLAYWRIGHT_BASE_URL", "APP_BASE_URL", "DATABASE_PATH"]) {
+  for (const name of ["PLAYWRIGHT_BASE_URL", "APP_BASE_URL", "DATABASE_PATH", "PLAYWRIGHT_CHROMIUM_EXECUTABLE"]) {
     if (env[name]) reasons.push(`External/operational variable set: ${name}`);
   }
   for (const path of existing) reasons.push(`Existing E2E resource: ${path}`);
