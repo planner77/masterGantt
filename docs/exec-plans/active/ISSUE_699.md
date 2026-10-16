@@ -3,7 +3,7 @@
 - Issue: https://github.com/planner77/masterGantt/issues/699
 - Baseline main: `bdaed6bd86612fd168b8ca6b0a40a34966b699d2` (2026-10-16)
 - Branch: `ci/issue-699-local-prepr`; version: `0.114.1` 유지 (개발 도구와 문서만 변경)
-- Phase: ANALYSIS → PLAN → IMPLEMENTING → LOCAL_VALIDATED(실행 증거 필요) → DOCUMENTATION_SYNC → PR CI
+- Phase: ANALYSIS → PLAN → IMPLEMENTING → DOCUMENTATION_SYNC → PR CI. Local VALIDATED는 Node/Vitest/Chromium 실기반 실행 전 **NOT TESTED**로 유지
 - Owner/roles: Manager 범위·위험·승인 판정, infra 실행기 구현; domain 테스트 영향 매핑; qa_docs read-only는 실제 실행되지 않음
 - risk_level: HIGH — 검증/Agent 지침 자체, shared 계약, 데이터/CI source provenance 관리
 - qa_method: OWNER_MANAGED, qa_required: true, independent_qa: N/A(Owner-managed; 독립 검토 수행 주장하지 않음), manager_decision: NOT TESTED
@@ -38,18 +38,24 @@
 
 ## DOCUMENTATION_SYNC
 
-- `AGENTS.md`: UPDATE
-- `docs/TEST_PLAN.md`: UPDATE (#697 단일 원본 연결)
-- `docs/ISSUE_LIFECYCLE.md`: UPDATE
-- `docs/REMOTE_VALIDATION.md`: UPDATE (로컬↔원격 차이와 증거 범위)
-- `docs/exec-plans/active/ISSUE_699.md`: ADDED
-- `docs/LOCAL_PREPR.md`: ADDED (설치·옵션·안전/롤백)
-- `docs/CI_CD.md`: N/A (workflow/Required/Release 계약 불변)
-- `docs/QA_REVIEW_POLICY.md`: N/A (OWNER_MANAGED/Trusted/Owner 승인 불변)
-- `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/DEPLOYMENT.md`: N/A (제품 UI/API/DB/운영 배포 불변)
-- `CHANGELOG.md`: N/A (제품 기능/버전 변경 없는 dev tooling)
-- `package.json`: UPDATE (CLI alias), `package-lock.json`: N/A (의존성·버전 변경 없음)
-- `.github/workflows/ci.yml`: N/A (현재 PR/MAIN 경로 보존)
+- `AGENTS.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_699.md`: UPDATED
+- `docs/LOCAL_PREPR.md`: UPDATED
+- `docs/CI_CD.md`: N/A(existing Required check, workflow, container and Release contract unchanged)
+- `docs/QA_REVIEW_POLICY.md`: N/A(OWNER_MANAGED, Trusted QA, approvals and risk floor remain unchanged)
+- `docs/GITHUB_OPERATIONS.md`: N/A(branch, PR, source protection and remote run procedures unchanged)
+- `DESIGN.md`: N/A(product visual behavior and UI layout unchanged)
+- `docs/API.md`: N/A(product HTTP endpoints and request contracts unchanged)
+- `docs/DB_SCHEMA.md`: N/A(data persistence schema and migrations unchanged)
+- `docs/DEPLOYMENT.md`: N/A(production Docker and Compose application unchanged)
+- `CHANGELOG.md`: N/A(application features, image semantics and version unchanged)
+- `package.json`: UPDATED
+- `package-lock.json`: N/A(no dependencies or package version changed; script alias only)
+- `.gitignore`: UPDATED
+- `.github/workflows/ci.yml`: N/A(no workflow or required check changes)
 
 ## AC_TEST_COVERAGE
 
@@ -62,6 +68,13 @@
 - AC7: JSON/Markdown 보고·caseCount 불확실성·status 분리·AGENTS/Lifecycle 연결.
 - AC8: `.github/workflows/ci.yml`·3 Required/Trusted/Owner·Main/GHCR 변경 없음, 새 PR Head remote CI 결과 전 NOT TESTED.
 - AC9: WSL2 Ubuntu 로컬 설치·사용·실패 처리·롤백, 비교 가능한 실측 없으면 NOT TESTED.
+
+## 사전 검증 결과 (2026-10-16)
+
+- 저장소 `main` 및 실제 GitHub 테스트 파일 목록 기반 정적 선정 시뮬레이션: LOW docs 0, MEDIUM editor 8, HIGH canonical 14, HIGH HTTP 5(변경 후 추가), HIGH Pre-PR tooling 1개 Unit 경로 **계획 결과**; 테스트 자체 실행 성공을 뜻하지 않는다.
+- V8 소스 구문 파서로 `scripts/prepr-core.mjs` 및 `scripts/verify-prepr.mjs`의 구문 확인; 실제 Node/vitest/Playwright/npm Build를 재현하는 검증은 **NOT TESTED**.
+- 실제 WSL2 사용자 환경, Chromium, Docker, 사용자 프로세스/파일 안전성 및 네트워크 장애는 실행 근거가 없어 **NOT TESTED**, 신규 자동화 테스트는 원격 정확 PR head Quality CI 판정 필요.
+- 구현 파일과 기존 CI workflow 경로의 차이를 GitHub compare로 확인; 로컬 자체 성공을 exact-head PR CI PASS로 승격 금지.
 
 ## 위험 및 인계
 
