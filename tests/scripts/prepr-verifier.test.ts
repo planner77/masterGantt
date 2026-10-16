@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertCapturedInstall } from "../fixtures/gantt-state-consistency/capture-install";
 import {
   diagnosticSubset, e2eSafety, inferRisk, inventory, isPathWithin, resolveBase, selectImpact, sourceEvidence,
 } from "../../scripts/prepr-core.mjs";
@@ -54,11 +55,18 @@ describe("Issue #699 — risk/path/real test selection", () => {
     ]));
     expect(s.selected.some((x) => x.kind === "chromium")).toBe(true);
   });
-  it("maps HIGH HTTP/SQLite to actual browser API/authorization smoke", () => {
-    const s = selectImpact({ changed: ["src/server/projects/persistence.ts"], tests, risk: "HIGH" });
+  it("maps HIGH HTTP/SQLite to the importing module's own direct test plus negative browser smoke", () => {
+    const s = selectImpact({ changed: ["src/server/projects/project-copy-service-core.ts"], tests, risk: "HIGH" });
     expect(s.state).toBe("READY");
+    expect(s.selected.map((x) => x.path)).toContain("tests/server/projects/project-copy-service.test.ts");
+    expect(s.selected.find((x) => x.path === "tests/server/projects/project-copy-service.test.ts")?.reasons).toContain("Direct import of changed server module");
     expect(s.selected.map((x) => x.path)).toContain("tests/e2e/project-edit-authorization.spec.ts");
     expect(s.selected.map((x) => x.path)).toContain("tests/e2e/project-task-persistence.spec.ts");
+  });
+  it("does not mistake generic HTTP smoke for direct service coverage", () => {
+    const s = selectImpact({ changed: ["src/server/projects/unknown-new-service-core.ts"], tests, risk: "HIGH" });
+    expect(s.state).toBe("BLOCKED");
+    expect(s.unknown[0].reason).toContain("No actual direct server-module test import");
   });
   it("blocks unmapped implementation and missing/renamed consumer tests", () => {
     const unmapped = selectImpact({ changed: ["src/features/new-contract.ts"], tests, risk: "MEDIUM" });
@@ -67,6 +75,25 @@ describe("Issue #699 — risk/path/real test selection", () => {
     const missing = selectImpact({ changed: ["src/features/gantt/core-canonical-state.ts"], tests: { unit: [], e2e: [] }, risk: "HIGH" });
     expect(missing.state).toBe("BLOCKED");
     expect(missing.missing.length).toBeGreaterThan(0);
+  });
+  it("fails closed on removed test files and shared Playwright fixtures/config", () => {
+    const deleted = selectImpact({ changed: ["tests/e2e/removed-project.spec.ts"], tests, risk: "MEDIUM" });
+    expect(deleted.state).toBe("BLOCKED");
+    expect(deleted.missing.map((x) => x.path)).toContain("tests/e2e/removed-project.spec.ts");
+    for (const path of ["tests/config/playwright.config.ts", "tests/e2e/fixtures/isolated-application.ts"]) {
+      const changed = selectImpact({ changed: [path], tests, risk: "HIGH" });
+      expect(changed.state).toBe("BLOCKED");
+      expect(changed.unknown.some((x) => x.path === path)).toBe(true);
+    }
+  });
+  it("maps the historical capture assertion to all three real Core capture regression tests", () => {
+    const s = selectImpact({ changed: ["tests/fixtures/gantt-state-consistency/capture-install.ts"], tests, risk: "HIGH" });
+    expect(s.state).toBe("READY");
+    expect(s.selected.map((x) => x.path)).toEqual(expect.arrayContaining([
+      "tests/features/gantt/canonical-recovery-runtime.test.ts",
+      "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+      "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+    ]));
   });
   it("rejects risk downgrade, missing include and unjustified/manual exclusion", () => {
     expect(inferRisk(["docs/TEST_PLAN.md"])).toBe("HIGH");
@@ -102,6 +129,18 @@ describe("Issue #699 — source identity/dirty protection", () => {
     expect(sourceEvidence(dir).fingerprint).not.toBe(second.fingerprint);
     git("add", "tracked.txt");
     expect(sourceEvidence(dir).fingerprint).not.toBe(first.fingerprint);
+  });
+  it("retains both old and new changed paths when a test is renamed", () => {
+    const { dir, git } = repository();
+    const old = resolve(dir, "tests/e2e/legacy.spec.ts");
+    mkdirSync(resolve(dir, "tests/e2e"), { recursive: true });
+    writeFileSync(old, "it('legacy', () => {});");
+    git("add", ".");
+    git("commit", "-m", "add original test");
+    git("mv", "tests/e2e/legacy.spec.ts", "tests/e2e/replacement.spec.ts");
+    const changed = sourceEvidence(dir).changed;
+    expect(changed).toContain("tests/e2e/legacy.spec.ts");
+    expect(changed).toContain("tests/e2e/replacement.spec.ts");
   });
   it("rejects path traversal and never follows files outside repository", () => {
     expect(isPathWithin(root, resolve(root, "tests/e2e"))).toBe(true);
@@ -141,6 +180,11 @@ describe("Issue #699 — process and existing-data safety", () => {
     expect(decision.reasons.join(" ")).toContain("PLAYWRIGHT_BASE_URL");
     expect(decision.reasons.join(" ")).toContain("DATABASE_PATH");
   });
+  it("refuses unverified custom Chromium binaries before a claimed pinned browser run", () => {
+    const verdict = e2eSafety({ env: { PLAYWRIGHT_CHROMIUM_EXECUTABLE: "/usr/bin/old-chromium" } });
+    expect(verdict.state).toBe("BLOCKED");
+    expect(verdict.reasons.join(" ")).toContain("PLAYWRIGHT_CHROMIUM_EXECUTABLE");
+  });
   it("blocks reserved output/SQLite and occupied port and allows a clean fixture", () => {
     expect(e2eSafety({ existing: [".data/playwright.sqlite3", "playwright-report"] }).state).toBe("BLOCKED");
     expect(e2eSafety({ portFree: false }).state).toBe("BLOCKED");
@@ -153,5 +197,40 @@ describe("Issue #699 — process and existing-data safety", () => {
     const invalid = spawnSync(process.execPath, ["scripts/verify-prepr.mjs", "--mode=none"], { cwd: root, encoding: "utf8" });
     expect(invalid.status).toBe(2);
     expect(invalid.stderr).toContain("Unknown mode");
+  });
+});
+
+describe("Issue #699 — historical capture provenance remains strict", () => {
+  it("allows only the exact local CLI alias while preserving all captured dependencies and scripts", () => {
+    const dir = mkdtempSync(resolve(tmpdir(), "mastergantt-capture-test-"));
+    created.push(dir);
+    const snapshots = resolve("tests/fixtures/gantt-state-consistency/capture-sources");
+    mkdirSync(resolve(dir, snapshots), { recursive: true });
+    for (const file of ["package-original.snapshot.txt", "package-lock-original.snapshot.txt"]) {
+      cpFileSync(resolve(root, snapshots, file), resolve(dir, snapshots, file));
+    }
+    const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+    const lock = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8"));
+    const write = () => {
+      writeFileSync(resolve(dir, "package.json"), JSON.stringify(manifest));
+      writeFileSync(resolve(dir, "package-lock.json"), JSON.stringify(lock));
+    };
+    write();
+    expect(() => assertCapturedInstall(dir)).not.toThrow();
+    manifest.scripts["verify:prepr"] = "node scripts/unrelated-tool.mjs";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Only the exact local verification alias/);
+    manifest.scripts["verify:prepr"] = "node scripts/verify-prepr.mjs";
+    manifest.scripts["ignore-product-tests"] = "true";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
+    delete manifest.scripts["ignore-product-tests"];
+    manifest.dependencies.next = "0.0.0";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/Historical capture requires unchanged package metadata/);
+    manifest.dependencies.next = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8")).dependencies.next;
+    lock.packages[""].dependencies.next = "0.0.0";
+    write();
+    expect(() => assertCapturedInstall(dir)).toThrow(/same complete locked dependency tree/);
   });
 });
