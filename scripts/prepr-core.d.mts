@@ -6,10 +6,10 @@ export declare function sourceEvidence(root: string, base?: string): {
   fingerprint: string; dirty: boolean; changed: string[];
 };
 export declare function isPathWithin(root: string, target: string): boolean;
-export declare function inventory(root: string): { unit: string[]; e2e: string[] };
+export declare function inventory(root: string): { unit: string[]; e2e: string[]; directBySource: Record<string, string[]> };
 export declare function inferRisk(paths: string[]): "LOW" | "MEDIUM" | "HIGH";
 export declare function selectImpact(args: {
-  changed: string[]; tests: { unit: string[]; e2e: string[] }; risk: string;
+  changed: string[]; tests: { unit: string[]; e2e: string[]; directBySource?: Record<string, string[]> }; risk: string;
   includes?: string[]; excludes?: string[];
 }): {
   risk: string; inferredRisk: string;
