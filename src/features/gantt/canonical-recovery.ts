@@ -49,10 +49,11 @@ export function createCanonicalRecovery(ports: CanonicalRecoveryPorts, budget: {
     /** U5 calls only after server-confirmed authorization success. */
     confirmAuthorization() { authorizationRequired = false; },
     canWrite: () => !authorizationRequired && !disposed && !ports.abort.signal.aborted && ports.abort.isCurrent() && ["IDLE", "SETTLED"].includes(phase) && !dirty,
-    beginMutation(requestId: string, affectedIds: readonly string[]): MutationTicket | null {
+    beginMutation(requestId: string, affectedIds: readonly string[], baseRevision = ports.currentIdentity().revision): MutationTicket | null {
       if (authorizationRequired || disposed || ports.abort.signal.aborted || !ports.abort.isCurrent() || !["IDLE", "SETTLED", "RECONCILING"].includes(phase) || !requestId) return null;
+      if (!Number.isSafeInteger(baseRevision) || baseRevision < 0 || baseRevision > ports.currentIdentity().revision) return null;
       cancel(); generation++; dirtyGeneration++; dirty = true; phase = "PENDING";
-      ticket = Object.freeze({ requestId, generation, apiInstance: ports.apiInstance(), baseRevision: ports.currentIdentity().revision, affectedIds: Object.freeze([...affectedIds]) });
+      ticket = Object.freeze({ requestId, generation, apiInstance: ports.apiInstance(), baseRevision, affectedIds: Object.freeze([...affectedIds]) });
       return ticket;
     },
     /** Native/app Core changes invalidate an existing proof even without a request. */

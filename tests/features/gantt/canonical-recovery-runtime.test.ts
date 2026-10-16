@@ -1,3 +1,4 @@
+import { assertCapturedInstall } from "../../fixtures/gantt-state-consistency/capture-install";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -24,8 +25,9 @@ describe("U2 installed public Core recovery evidence", () => {
     expect(provenance.installedGanttVersion).toBe("2.7.3");
     expect(provenance.installedStoreVersion).toBe("2.7.2");
     expect(provenance.counts).toEqual({ tasks: 5, links: 2, scenarios: 12 });
+    assertCapturedInstall(root);
     for (const [path, fingerprint] of Object.entries(provenance.sha256)) {
-      expect(createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex"), path).toBe(fingerprint);
+      expect(createHash("sha256").update(readFileSync(resolve(root, (provenance.captureSourceMappings as Record<string, string>)[path] ?? path))).digest("hex"), path).toBe(fingerprint);
     }
     expect(provenance.notTested).toContain("actual HTTP/SQLite and server commit ambiguity");
     expect(provenance.notTested).toContain("production U5 wiring and full native dirty event registration");

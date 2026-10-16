@@ -1,3 +1,40 @@
+## [0.114.1] — Unreleased / Issue #667
+
+- CI #2840의 신규 Unit을 기존 Core exact/native ±1px 수용 계약에 맞는 경계 검증으로 교정한다. FILTER_RETURN의 두 번째 준비 중 취소·추가 축소에서 1회 상한과 쓰기0을 검증하고 원본·로컬·환경중단·새 CI를 별도 원장에 기록한다.
+- CI #2835의 검색 전 Week 정착과 목표120px 용량 부족을 구분하고, 정상 입력 준비의 현재 문맥·최신 관측·현재 작업·Core/native 수용 범위를 읽기 전용 공통 계약으로 검증한다. 공유 분석의 제안과 소비자 감사·통제 반례·실제 검증 출처는 별도 실패 원장에 보존한다.
+- CI #2833의 metadata 검증이 기존 Week 축 확장·첫 검색 전달·수평 용량 준비를 확인한 뒤 최초120px 입력을 한 번만 수행하도록 fixture 순서를 보완한다. 초기47px browser clamp와 metadata저장후 복원을 구분하고 원본/진단/보완중 오류·최종 검증을 별도 실패 원장에 보존한다.
+
+- CI #2831의 768px Week geometry 검증이 현재 scale의 semantic/delivery와 실제 날짜축 준비를 확인한 뒤 최초 reveal을 요청하도록 fixture를 보완한다. 이전 receipt에 등록된 명령 중 새 semantic이 도착하는 통제 경합·비재현·원격 미계측 경계를 실패 원장에 보존한다.
+
+- CI #2829의 Task hover 검증이 후행 날짜축/native scroll 정착을 확인한 뒤 첫 hover를 수행하도록 fixture를 보완하고 실제 scroll/focus/이탈 닫힘 계약을 검증한다. 원격/로컬 assertion 차이와 계측·검증 근거를 별도 실패 원장에 누적한다.
+
+- CI #2827 확대 진단에서 확인한 Day→Week native clamp의 사용자 이동 오분류를 Core/native 양쪽 등록 좌표 비교로 교정한다. 실제 입력 우선권·단일 writer·기존 좌표/CI gate는 유지한다.
+- CI #2827의 ISO Header 검증이 가상화된 focused 셀의 새 focus 진입을 확인하도록 fixture를 보완하고 Escape 닫힘·포커스 유지를 검증한다. 실패 원인/재현/교정과 재개 인덱스를 별도 누적 원장에 보존한다.
+
+- CI #2825의 Milestone 화면 왕복 검증에서 독립 세로 입력의 Core/native 반영 뒤 가로 입력을 주입하도록 fixture 순서를 교정한다. 기존 정확 좌표·실제 wheel 우선권·필터/layout 보존과 CI gate는 유지한다.
+
+- CI #2820의 Grid/Chart 정렬 음성 테스트를 실패 관측·성공 영수증 분리 계약에 맞게 교정한다. 실제27.5px 불일치·현재Core/DOM IDs·복구 정렬과 mutation0 검증은 유지한다.
+
+- CI #2819의 U5 최종 저장 확인 GET 연결 종료를 분석하고 관련 UI후 확인11곳의 browser 전송·안전 진단 helper를 공유한다. 실제 저장 DTO·권한/복구·무재시도 검증은 유지한다.
+
+- CI #2818에서 재발한 동일 revision 관측 timeout을 실제 지연 RAF로 재현하고, U3 관측만 기존1500ms 예산 내 실제 RAF를 기다리도록 viewport50ms tick과 분리한다. 기존 Core/viewport·권한·검증 gate는 유지한다.
+
+- CI #2817 후속으로 선택·레이아웃 관측 요청을 최신 데이터 처리 뒤에 모아 전달하고, 새 관측이 전달되지 않을 때 단계별 개발 진단을 남긴다. 같은 revision 재조회 검증과 실패 원장을 유지한다.
+
+- 종합 회귀에서 발견한 다중 Copy/Paste 뒤 가로 위치 초기화를 보완하고, 원래 사용자 의도와 검증된 저장 결과에 한정해 기존 Coordinator가 복원하도록 한다.
+- CI #2811~#2814 실패를 종합 기록하고 Dashboard UI 확인의 browser 전송·안전한 격리 진단·취소 응답 완료 검증·공휴일을 고려한 첫 Milestone 테스트 입력·새 검색 영수증 확인을 보완한다. 기존 제품 단언·CI gate는 유지한다.
+- CI #2813의 개발용 Grid reveal 관측이 생략된 설정 날짜 대신 실제 계산된 날짜축 원점을 읽도록 교정하고 기존 탐색 회귀를 유지한다.
+
+- CI #2812의 빈 프로젝트→과거 첫 Milestone 날짜축 역전을 Core 계산 left bound로 교정한다. 반복 삭제 stale/조회 실패 회귀는 UNKNOWN 보호를 유지하고 명시적 최신 조회 뒤 계속하도록 갱신한다.
+
+- PR CI #2811의 화면 복귀 영수증 취소를 fresh visible 관측 대기로 교정하고, cross-tab/실패복구 GET 경합의 재잠금과 pending 조회 중 UNKNOWN 잠금 누락을 보완한다. 원본 실패·실제 두 탭 회귀는 Work Packet에 보존한다.
+
+- main 제품의 actual-Core 정합/실패 복구·의미 관측·날짜축 transaction을 U2/U3/U4 공통 모듈에 연결한다. 서버 확인 없는 snapshot 재생·remount 복구 대신 unknown 저장 결과의 충돌 쓰기 차단과 명시적 최신 조회를 제공한다.
+- 실제 HTTP/SQLite의 commit 성공·미성공/응답500·연결단절·GET실패·추가 저장0/후속 저장 및 native Milestone 보존 회귀를 추가한다. 기존 Required CI·보안·API/DB·marker 미활성 정책은 유지한다.
+- PATCH version은 정식 release 승인이나 전체 QA PASS가 아니다. 실제 source·검증·한계는 [Work Packet](docs/exec-plans/active/ISSUE_667.md)을 따른다.
+
+- Resource 복귀에서 retained 날짜축과 Core/native 수용 범위를 함께 준비해 유효한 원래 좌표가1px 제한되는 경계를 보완한다.
+
 ## Unreleased — Issue #622 CLOSED 상태의 누락 FINAL·branch cleanup 복구
 
 - 이미 성공한 v0.114.0/PR #686 릴리스와 후속 #665/#666 FINAL을 보존하면서, #622 Owner 선행 CLOSED 때문에 건너뛴 3개 merged PR 브랜치와 FINAL을 엄격한 Owner comment/main SHA/실제 Release·CI/GHCR 검증 후 복구할 수 있도록 Generic Finalizer 내 제한 Job 및 테스트를 추가한다.

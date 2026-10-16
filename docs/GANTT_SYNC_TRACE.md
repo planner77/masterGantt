@@ -113,3 +113,37 @@ U2 합성 fixture `tests/fixtures/gantt-canonical-recovery/`는 동일 desired/r
 U4 전용 합성 fixture는 날짜 start/end·actual physical width/height/scrollSize/capacity·Core/native X/Y·API/query/axis·원래 lease와 각 transaction 단계/typed 결과를 구분한다. 공개 명령 resolve나 resize 부수 X=100을 정착 완료로 채택하지 않는다. Core exact/native ±1px·3개 안정 frame, 유한 budget·취소 후 후속 쓰기0, same instance 및 데이터 불변은 별도 관측한다.
 
 [Work Packet](exec-plans/active/ISSUE_666.md)에서 실제 source/lockfile 지문·명령·원본 실패·전후 결과·cleanup을 연결한다. raw Task 원문/URL/secret/실제 DB를 저장하지 않는 합성 allowlist를 유지한다. 신규 상시 진단 서버·production observer/writer 추가 없이 fixture에서만 실행하며 U4 준비 결과를 기존 #552 제품 실패 해결로 전용하지 않는다.
+
+## Issue #667 — 제품 연결 관측의 증거 경계
+
+기존 bounded dev/test trace와 projection/Coordinator 진단을 재사용하여 canonical sync·semantic observation attempt/receipt·axis typed outcome을 구별한다. 진단 필드는 production 저장 authority나 사용자 QA 영수증이 아니다. Task 이름·설명·URL·session/password·실제 DB를 trace로 추가하지 않는다.
+
+[Work Packet](exec-plans/active/ISSUE_667.md)은 같은 source에서 실행한 Unit/mock Core/제품 Chromium/실제 HTTP·SQLite와 원격 Required checks를 별도 원장으로 기록한다. API Promise 반환·모듈 fixture PASS·SC 등록 성공으로 실제 제품 정착이나 전체 SC-01~14 PASS를 주장하지 않는다. 실패한 조회 뒤 추가 저장 차단과 명시 재조회·자동 재전송0을 실제 서버 상태와 교차 확인한다.
+
+개발 전용 기존 probe.read는 대량 검증을 위해 공개 serialize의 전체 Task/일반 Task/Milestone 숫자와 canonical 전체 개수를 반환한다. 기존 rows/IDs/links의 500개 cap과 O(1) readiness는 유지한다. 숫자는 read 요청 때만 계산하며 실패/null을 0개 성공으로 대체하지 않는다. 지연 GET의 generation은 UI 복구 출처 확인용이며 요청 ID/원시 payload를 진단 로그에 추가하지 않는다.
+
+Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source의 관측을 알린다. actual axis signature 변경에만 새 receipt floor를 요구하며 client box가 같아도 scrollWidth 증가를 놓치지 않는다. 알림은 읽기 전용이며 UNKNOWN/pending·폐기 API/source·원래 lease 검사를 우회하지 않는다.
+
+#2811.1의 peer trace는 receipt2 APPLY/SETTLING→fresh visible receipt3→STALE_PROJECTION SUPERSEDED를 기록했다. 좌표120/96과 완료 marker를 구분하고 visibility bridge invalidation 이후 실제 새 receipt와 3프레임 정착을 확인한다. 원본 run/job/step 및 보완 source 결과는 #667 Work Packet에 분리한다.
+
+#2812.1 Milestone-only 진단은 U2 SETTLED 뒤 filter-tasks 큐에서 width 예외가 난 사실과 raw axis start2026-10-15T15:00Z/end2026-10-12T15:00Z/width-108/cells[1,0]을 분리 기록한다. 보완 프로파일은 고정 start를 생략한 Core 계산 left bound/open end다. 임시 exception/stack 계측은 제거하며 새 프로파일의 실제 coverage·정착은 #667 correction 증거로만 판단한다.
+
+#667 CI #2813 보완의 DEV `__masterganttGridReveal.start`는 생략 가능한 설정 `state.start`가 아니라 현재 렌더링된 `state._scales.start`를 우선하고 `_start`를 차선으로 읽는다. Week의 정렬된 날짜축 원점과 실제 reveal port의 기준을 일치시킨다. 설정 날짜가 없다는 사실과 실제 축이 없다는 사실을 구분하며 날짜를 만들어 채우거나 이동 명령/완료 판정을 추가하지 않는다. 원본 null/getFullYear FAIL과 보완 실제 browser 결과는 Work Packet의 source별 증거를 따른다.
+
+#667 종합 감사에서 추가된 Copy 원본은 `project-multi-task-copy-paste.spec.ts:89`의 Expected46/Received0이며 단독 재현도 FAIL이다. U2 SETTLED·canonical/Link 보존을 viewport 정착으로 합치지 않는다. 최종 보완은 copy dispatch의 고정 권한→검증/수용한 confirmed revision→현재 U2 proof→기존 Coordinator의 단일 PASSIVE_RESTORE 순서를 추적한다. 원본 광역/단독 FAIL과 새 source의 선택·광역 재검증을 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md) 및 [새 교정 원장](evidence/issue-667/ci2814-correction.json)에 별도로 남긴다. 진단은 원문 응답/headers/cookies/body를 저장하지 않으며 기존 bounded trace를 사용한다.
+
+#667 Resource 복귀의 원본 PEER_RETURN TIMED_OUT(X31→Core30)은 U2 성공이나 native capacity31로 완료 처리하지 않는다. public Core scale/physical width와 native range를 함께 검증하고 retained end를 보존한다. extent 변경은 기존 U4 결과와 U3 fresh receipt로 연결하며 Core exact/native±1·3프레임 완료와 원래 권한 조건은 유지한다.
+
+
+## Issue #667 / CI #2820 — 실패 관측과 성공 영수증의 분리
+
+`data-gantt-projection-observation`은 개발용 최신 attempt 진단이다. `generation`·`stage`(rows/semantic/delivery/ordering)·`outcome`으로 현재 시도의 진행·실패를 구분한다. `data-gantt-projection-receipt`와 semantic receipt는 실제 SETTLED 증거를 전달한 성공 기록이며 실패 시 이전 성공 값을 새 실패 영수증으로 덮어쓰지 않는다. 이 DOM 진단 자체를 쓰기 권한이나 저장 성공 근거로 삼지 않는다.
+
+정렬 음성 검증은 최신 delivery/SETTLED와 semantic 존재를 baseline으로 잡고, baseline 이후 rows/TIMED_OUT을 확인한다. canonical/Core/DOM IDs·실제 Y차이는 현재 public Core/DOM에서 읽으며 과거 성공 receipt를 현재 실패의 데이터 증거로 재사용하지 않는다. 복구는 더 새 attempt의 delivery/SETTLED·fresh semantic observation과 실제 정렬로 확인하고 동일 semanticId 재사용은 허용한다. [CI #2820 보완 원장](evidence/issue-667/ci2820-correction.json)을 참조한다.
+
+
+## Issue #667 / CI #2827 — 입력 기원·scale clamp 분리 진단
+
+원본 CI의 ISO Tooltip 부재는 로컬의 정확 source FAIL·읽기전용 focused-node 관측으로 분석했다. 확대 geometry FAIL은 별도로, viewport 밖 pointerdown3개·wheel/keydown/touch0, axis 등록 Core9362/native25683→callback event/native10315·Core9362를 관측했다. 이 backward native clamp를 Core-only baseline이 새 입력으로 승격한 것이 추가 제품 결함이다.
+
+안전한 숫자·판정·source hash와 원본 run/job/step만 [ci2827 JSON](evidence/issue-667/ci2827-correction.json)에 보존한다. 해당 진단의 임시 console/입력 recorder는 최종 source에서 제거한다. 제품은 같은 read의 두 baseline 최댓값만 고정하며 기존 추적·공개 API·single writer·source/lease·관측 완료 계약을 바꾸지 않는다. 원본 FAIL/추가 FAIL/보완 PASS/원격 NOT TESTED는 서로 대체하지 않는다.

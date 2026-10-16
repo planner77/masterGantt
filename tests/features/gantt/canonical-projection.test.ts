@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildProjection, diffProjection, type ProjectionSnapshot, type ProjectionOptions } from "../../../src/features/gantt/canonical-projection";
+import { normalizeCanonicalCore } from "../../../src/features/gantt/state-consistency";
 const snapshot: ProjectionSnapshot = { revision: 7, tasks: [
   { id: "summary", type: "summary", parent: 0, open: true, text: "Summary" },
   { id: "nested", type: "summary", parent: "summary", open: false },
@@ -8,6 +9,28 @@ const snapshot: ProjectionSnapshot = { revision: 7, tasks: [
 ], links: [], displayTasks: [] };
 const options: ProjectionOptions = { scope: null, filter: null, displayMode: "compatibility", columnPrefs: { text: true }, scale: "Day" };
 describe("canonical projection", () => {
+  it("preserves duplicate invalid inputs for fail-closed Core validation instead of silently dropping tasks", () => {
+    const tasks = [{ id: "A", parent: "B" }, { id: "B", parent: 0 }, { id: "A", parent: 0 }];
+    const projection = buildProjection({ revision: 8, tasks, links: [], displayTasks: [] }, options);
+    expect(projection.tasks).toBe(tasks);
+    expect(projection.tasks).toHaveLength(3);
+    expect(normalizeCanonicalCore(projection)).toMatchObject({ ok: false, reason: "INVALID_TASKS" });
+  });
+  it("materializes full Core preorder after a server root add interleaves an existing child", () => {
+    const tasks = [
+      { id: "parent", parent: 0, text: "Parent", type: "summary", open: false },
+      { id: "new-root", parent: 0, text: "New root", type: "task" },
+      { id: "child", parent: "parent", text: "Child", type: "task" },
+    ];
+    const links = [{ id: "L", source: "child", target: "new-root", type: "e2s" as const }];
+    const projection = buildProjection({ revision: 8, tasks, links, displayTasks: [] }, { ...options, filter: ["new-root"] });
+    expect(projection.tasks.map(task => task.id)).toEqual(["parent", "child", "new-root"]);
+    expect(projection.tasks).toHaveLength(tasks.length);
+    expect(projection.links).toBe(links);
+    expect(projection.membershipIds).toEqual(["new-root"]);
+    expect(normalizeCanonicalCore(projection).ok).toBe(true);
+    expect(tasks.map(task => task.id)).toEqual(["parent", "new-root", "child"]);
+  });
   it("is idempotent across repeated snapshots and revision-only changes", () => {
     const first = buildProjection(snapshot, options);
     expect(diffProjection(first, buildProjection({ ...snapshot, revision: 8 }, options)).reasons).toEqual([]);

@@ -173,6 +173,66 @@ describe("isolated axis transaction", () => {
     expect((await createAxisTransaction(clean.options).run(clean.request)).outcome).toBe("SETTLED");
     expect(f.applyPosition).not.toHaveBeenCalled();
   });
+  it("clears taint only after three independent natural geometry frames without writes or resetting its budget", async () => {
+    const f = fixture({ strategy: "SYNTHETIC_COMPATIBILITY" });
+    const facade = createAxisTransaction({ ...f.options, compatibility: { enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: f.options.source },
+      readPhysicalSize: () => ({ width: 500, height: 200 }), changeExtent: extent => { f.setAxis({ ...extent, scaleWidth: 1000 }); f.controller.abort(); } });
+    expect((await facade.run(f.request)).outcome).toBe("SUPERSEDED");
+    expect(facade.state().tainted).toBe(true);
+    const extensions = facade.state().extensions, frames = f.clock.frame.mock.calls.length;
+    expect(await facade.recoverNaturalGeometry({ lease: f.lease, abort: { signal: new AbortController().signal, isCurrent: () => true } }))
+      .toMatchObject({ outcome: "SETTLED", reason: "NATURAL_GEOMETRY_CONFIRMED", position: { left: 100, top: 20 } });
+    expect(f.clock.frame.mock.calls.length - frames).toBe(3);
+    expect(facade.state()).toMatchObject({ tainted: false, extensions });
+    expect(f.applyPosition).not.toHaveBeenCalled();
+  });
+  it.each(["dimensions", "axis-capacity", "hidden", "gesture", "stalled-frame"])("cannot clear source taint with %s", async mode => {
+    const f = fixture({ strategy: "SYNTHETIC_COMPATIBILITY", maxFrames: 5, maxDurationMs: 20 });
+    const facade = createAxisTransaction({ ...f.options, compatibility: { enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: f.options.source },
+      readPhysicalSize: () => ({ width: mode === "dimensions" ? 800 : 500, height: 200 }),
+      changeExtent: extent => { f.setAxis({ ...extent, scaleWidth: 1000 }); f.controller.abort(); } });
+    await facade.run(f.request);
+    if (mode === "axis-capacity") f.setCapacity(300);
+    if (mode === "hidden") f.options.geometry.readGeometry = () => ({ ok: false, outcome: "NOT_MEASURABLE" });
+    if (mode === "gesture") f.stale();
+    if (mode === "stalled-frame") f.clock.frame.mockImplementation(() => new Promise<boolean>(() => {}));
+    const result = await facade.recoverNaturalGeometry({ lease: f.lease, abort: { signal: new AbortController().signal, isCurrent: () => true } });
+    expect(result.outcome).not.toBe("SETTLED");
+    expect(facade.state().tainted).toBe(true);
+    expect(f.applyPosition).not.toHaveBeenCalled();
+  });
+  it("blocks natural recovery across a new facade until the original delayed writer actually retires", async () => {
+    const f = fixture({ strategy: "SYNTHETIC_COMPATIBILITY", maxFrames: 5 });
+    let finishWrite!: () => void;
+    const options: AxisTransactionOptions = { ...f.options, compatibility: { enabled: true, wrapperVersion: "2.7.3", storeVersion: "2.7.2", source: f.options.source },
+      readPhysicalSize: () => ({ width: 500, height: 200 }), changeExtent: () => new Promise<void>(resolve => { finishWrite = resolve; }) };
+    expect((await createAxisTransaction(options).run(f.request)).outcome).toBe("TIMED_OUT");
+    const recreated = createAxisTransaction(options);
+    const request = { lease: f.lease, abort: { signal: new AbortController().signal, isCurrent: () => true } };
+    expect((await recreated.recoverNaturalGeometry(request)).reason).toBe("WRITER_NOT_RETIRED");
+    finishWrite(); await Promise.resolve(); await Promise.resolve();
+    f.setAxis({ startMs: 0, endMs: 200, scaleWidth: 1000 });
+    expect((await recreated.recoverNaturalGeometry(request)).outcome).toBe("SETTLED");
+    expect(f.applyPosition).not.toHaveBeenCalled();
+  });
+  it("keeps source authority between callbacks so another facade cannot clear taint or start a writer", async () => {
+    const f = fixture();
+    const waiting: Array<(value: boolean) => void> = [];
+    const options: AxisTransactionOptions = { ...f.options, readPhysicalSize: () => ({ width: 500, height: 200 }),
+      clock: { ...f.clock, frame: () => new Promise<boolean>(resolve => { waiting.push(resolve); }) } };
+    const first = createAxisTransaction(options), second = createAxisTransaction(options);
+    const pending = first.run(f.request);
+    for (let count = 0; count < 12; count++) await Promise.resolve();
+    expect(f.changeExtent).toHaveBeenCalledTimes(1);
+    expect(waiting.length).toBeGreaterThan(0);
+    // changeExtent has returned, but the first transaction can still issue its
+    // later applyPosition callback after geometry readiness.
+    expect((await second.recoverNaturalGeometry({ lease: f.lease, abort: f.abort })).reason).toBe("WRITER_NOT_RETIRED");
+    expect((await second.run(f.request)).reason).toBe("BUSY");
+    expect(f.applyPosition).not.toHaveBeenCalled();
+    f.stale(); waiting.forEach(resolve => resolve(true));
+    expect((await pending).outcome).toBe("SUPERSEDED");
+  });
   it("requires a shared physical source for synthetic writes instead of an unrelated identity", async () => {
     const f = fixture({ strategy: "SYNTHETIC_COMPATIBILITY" });
     const result = await createAxisTransaction({ ...f.options, compatibility: {

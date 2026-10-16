@@ -140,6 +140,10 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
   await chart.evaluate((element) => { element.scrollLeft = 68; });
   const scrollLeft = await chart.evaluate((element) => element.scrollLeft);
   const trace: unknown[] = [];
+  let deleteRequests = 0;
+  page.on("request", (request) => {
+    if (request.method() === "DELETE" && new URL(request.url()).pathname.startsWith(`${api}/tasks/`)) deleteRequests++;
+  });
   page.on("response", async (response) => {
     if (new URL(response.url()).pathname.startsWith(api) && !response.url().includes("edit-session")) {
       const body = await response.json().catch(() => null);
@@ -188,8 +192,30 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
       }
       const childId = snapshot.data.tasks.find((task) => task.name === "Keep last child")!.taskId;
       await expect(page.locator(`.wx-bar[data-task-id=":${childId}"]`)).toHaveCount(1);
+      if (recovery === "stale" || recovery === "unavailable") {
+        const unresolved = page.getByRole("alert").filter({ hasText: "저장 결과를 확인할 수 없습니다. 초안은 유지되며" });
+        await expect(unresolved).toBeVisible();
+        await expect(frame).toHaveAttribute("data-task-mutation-locked", "true");
+        const beforeBlockedAttempt = deleteRequests;
+        await page.getByRole("grid").getByText("Keep last child", { exact: true }).click({ button: "right" });
+        const blockedDelete = page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true });
+        await expect(blockedDelete).toBeDisabled();
+        await page.keyboard.press("Escape");
+        expect(deleteRequests).toBe(beforeBlockedAttempt);
+      }
       await page.unroute(`**${api}`);
       await page.unroute(`**${api}/tasks/${snapshot.data.tasks.find((task) => task.name === "Keep last child")!.taskId}`);
+      if (recovery === "stale" || recovery === "unavailable") {
+        // APIRequestContext reads do not recover Workspace UNKNOWN. Only a
+        // successful explicit app read authorizes the next deletion attempt.
+        const unresolved = page.getByRole("alert").filter({ hasText: "저장 결과를 확인할 수 없습니다. 초안은 유지되며" });
+        await unresolved.getByRole("button", { name: "최신 상태 다시 조회", exact: true }).click();
+        await expect(unresolved).toHaveCount(0);
+        await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+        await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+        await expect(toggle).toHaveClass(/wxi-menu-right/);
+        expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(preservedScrollLeft, 0);
+      }
       if (recovery === "401") {
         await page.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
         const unlock = page.getByRole("dialog", { name: "편집 활성화", exact: true });

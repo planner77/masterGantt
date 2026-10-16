@@ -3,6 +3,7 @@
 import { createInlineNameSession, type InlineNameSubmitCause } from "./inline-name-session";
 
 import { createViewportCoordinator, type ViewportCoordinator, type ViewportController, type ViewportStamp, type ViewportContext } from "./viewport/viewport-coordinator";
+import { copyViewportHandoffSource, createCopyViewportRevocation, type CanonicalMutationRequest } from "./viewport/copy-viewport-continuity";
 import { createSvarViewportPort } from "./viewport/svar-viewport-port";
 
 import { createCoreActionTrace, traceFingerprint, type TraceContext } from "./diagnostics/core-action-trace";
@@ -14,7 +15,6 @@ import {
   defaultTaskTypes,
   type IApi,
   type IColumnConfig,
-  type ILink,
   type ITask,
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
@@ -107,9 +107,11 @@ import {
   type ProjectTaskCreateCommand,
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
-import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
+import { createProductConsistency } from "./product-consistency";
 import { buildProjection, diffProjection, type CanonicalProjection } from "./canonical-projection";
 import { observeProjectionSettled, deliverProjectionReceipt, type ProjectionReceipt } from "./projection-settled";
+import { createProjectionObservationScheduler } from "./projection-observation-scheduler";
+import { observationAnimationFrame } from "./viewport/observation-animation-frame";
 import { registerTaskUrlSnapshot, findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
@@ -336,6 +338,9 @@ interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
   readonly mutationLocked: boolean;
+  readonly mutationPending?: boolean;
+  readonly mutationRequest?: CanonicalMutationRequest | null;
+  readonly canonicalRecoveryBlocked?: boolean;
   readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
   readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
@@ -421,7 +426,7 @@ export function ProjectGantt({
   editable,
   onSelectionChange,
   selectionRestore,
-  mutationLocked,
+  mutationLocked, mutationPending = false, mutationRequest = null, canonicalRecoveryBlocked = false,
   onCanonicalSyncFailure,
   links,
   onTaskAddRejected,
@@ -449,6 +454,24 @@ export function ProjectGantt({
 }: ProjectGanttProps) {
   const { notify } = useWorkspaceNotifications();
   const apiReference = useRef<IApi | null>(null);
+  const projectionReceiptGeneration = useRef(0);
+  const projectionObservationAttempt = useRef(0);
+  const requestProjectionObservationReference = useRef<(() => void) | null>(null);
+  const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
+  const currentMutationRequestReference = useRef(mutationRequest);
+  const consumedCopyViewportReference = useRef<string | null>(null);
+  const copyViewportRevocationReference = useRef<{ requestId: string; lease: ReturnType<typeof createCopyViewportRevocation> } | null>(null);
+  const readCopyEnvironment = useCallback(() => ({ width: window.innerWidth, height: window.innerHeight, fullscreen: document.fullscreenElement !== null }), []);
+  useLayoutEffect(() => { currentMutationRequestReference.current = mutationRequest; }, [mutationRequest]);
+  useLayoutEffect(() => {
+    // A visible-session receipt cannot prove rows/layout after a hidden peer
+    // view. Revoke it before return commands can pin an older generation.
+    projectionReceiptReference.current = null;
+  }, [viewVisible]);
+  const mutationTicketReference = useRef<import("./canonical-recovery").MutationTicket | null>(null);
+  const consistencyReference = useRef<ReturnType<typeof createProductConsistency> | null>(null);
+  const consistencyBlockedReference = useRef(false);
+  useLayoutEffect(() => { consistencyBlockedReference.current = mutationPending || canonicalRecoveryBlocked; }, [mutationPending, canonicalRecoveryBlocked]);
   const viewportCoordinatorReference = useRef<ViewportCoordinator | null>(null);
   const viewportPortReference = useRef<ReturnType<typeof createSvarViewportPort> | null>(null);
   const [timelinePreview, setTimelinePreview] = useState(false);
@@ -1542,11 +1565,10 @@ export function ProjectGantt({
   const ganttColumnsReference = useRef<IColumnConfig[]>(initialConfig.columns);
   const initialRange = useState(() => {
     const fallback = emptyWorkspaceRange();
-    const starts = initialConfig.tasks.flatMap((task) => task.start instanceof Date ? [task.start] : []).concat(fallback.start);
     const ends = initialConfig.tasks.flatMap((task) => task.end instanceof Date ? [task.end] : []).concat(fallback.end);
-    // New work always starts today. Keep that small range in the initial
-    // scale so a canonical root add remains visible without reinitializing.
-    return { start: new Date(Math.min(...starts.map((date) => date.getTime()))), end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
+    // Retain the initial right extent for later compatibility expansion. Core
+    // derives the left bound so a newly added earlier date cannot invert it.
+    return { end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
   })[0];
 
   const [timelineEndMs, setTimelineEndMs] = useState(initialRange.end.getTime());
@@ -1569,10 +1591,10 @@ export function ProjectGantt({
     if (end.getTime() > timelineEndReference.current.getTime()) {
       timelineEndReference.current = new Date(end);
     }
-    setTimelineEndMs((current) => Math.max(current, timelineEndReference.current.getTime()));
+    setTimelineEndMs(end.getTime());
   }, []);
 
-  const expandTimelineScale = useCallback((api: IApi, minimumScaleWidth: number): boolean => {
+  const expandTimelineScale = useCallback((api: IApi, minimumScaleWidth: number, source?: ViewportStamp): boolean => {
     const state = api.getState() as TimelineState;
     const scaleWidth = state._scales?.width;
     const chartWidth = state._chartWidth;
@@ -1589,7 +1611,13 @@ export function ProjectGantt({
       return false;
     }
 
-    void viewportCoordinatorReference.current?.request({ kind: "RANGE_EXTENSION", width: minimumScaleWidth });
+    if (state._end instanceof Date) {
+      const extraCells = Math.ceil((minimumScaleWidth - scaleWidth) / GANTT_CELL_WIDTH[scaleModeReference.current]);
+      const requested = new Date(state._end);
+      requested.setDate(requested.getDate() + extraCells * (scaleModeReference.current === "week" ? 7 : 1));
+      if (requested > timelineEndReference.current) timelineEndReference.current = requested;
+    }
+    void viewportCoordinatorReference.current?.request({ kind: "RANGE_EXTENSION", width: minimumScaleWidth }, source);
     recordTimelineEnd(api);
     return true;
   }, [recordTimelineEnd]);
@@ -1616,19 +1644,24 @@ export function ProjectGantt({
     if (timelineExtensionFrameReference.current !== null) return;
     timelineExtensionFrameReference.current = requestAnimationFrame(() => {
       timelineExtensionFrameReference.current = null;
-      if (apiReference.current !== api) return;
-      ensureTimelineEnd(api);
+      if (apiReference.current !== api || viewportPortReference.current?.resizing()) return;
       const state = api.getState() as TimelineState;
-      const nextScaleWidth = nextTimelineScaleWidth({
+      const retainedWidth = state._start instanceof Date && state._end instanceof Date && state._end < timelineEndReference.current
+        ? minimumTimelineScaleWidthForEnd({ start: state._start, end: timelineEndReference.current, scaleMode: scaleModeReference.current }) : 0;
+      const edgeWidth = nextTimelineScaleWidth({
         scaleWidth: state._scales?.width,
         scrollLeft: state.scrollLeft,
         viewportWidth: state._chartWidth,
         scaleMode: scaleModeReference.current,
-      });
-      if (nextScaleWidth) expandTimelineScale(api, nextScaleWidth);
+      }) ?? 0;
+      // One registered intent owns both retained coverage and edge growth.
+      // A second request in this frame would cancel asynchronous recovery of
+      // the first request before its geometry observation could complete.
+      const minimumWidth = Math.max(retainedWidth, edgeWidth);
+      if (minimumWidth) expandTimelineScale(api, minimumWidth);
       else recordTimelineEnd(api);
     });
-  }, [ensureTimelineEnd, expandTimelineScale, recordTimelineEnd]);
+  }, [expandTimelineScale, recordTimelineEnd]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1730,7 +1763,8 @@ export function ProjectGantt({
     if (frame) Object.defineProperty(frame, "__masterganttPublicViewport", { configurable: true, get: () => { const state = api.getState(); return { left: state.scrollLeft, top: state.scrollTop }; } });
     if (frame) Object.defineProperty(frame, "__masterganttGridReveal", { configurable: true, get: () => {
       const state = api.getState();
-      return { start: state.start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
+      // Configuration start may be omitted; reveal evidence uses the rendered axis origin.
+      return { start: state._scales?.start ?? state._start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
     } });
     const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }[] = [];
     const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }) => {
@@ -1864,7 +1898,11 @@ export function ProjectGantt({
       },
       read: () => {
         const state = api.getState();
-        return { instance: instanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
+        const serialized = api.serialize({ data: "tasks" });
+        const coreTasks = Array.isArray(serialized) ? serialized as ITask[] : null;
+        return { canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,
+          coreOrdinaryTaskCount: coreTasks?.filter(task => task.type === "task").length ?? null,
+          coreMilestoneCount: coreTasks?.filter(task => task.type === "milestone").length ?? null, instance: instanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
           start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
           weekStart: state._weekStart,
           scaleRows: state._scales?.rows.map(row => ({ count: row.cells.length, width: row.cells.reduce((sum, cell) => sum + cell.width, 0), first: row.cells.slice(0, 3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })), last: row.cells.slice(-3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })) })),
@@ -1927,17 +1965,91 @@ export function ProjectGantt({
     }
     viewportCoordinatorReference.current?.contextChanged();
   }, [apiInstanceId, projectRevision, viewportContinuityKey, viewRootTaskId, visibleTaskFilterKey, scaleMode, canonicalViewportGeometry, viewVisible, projection.logicalVisibleIds.length, visibleTaskIds, filterActive, calendar, tasks, svarLinks]);
+  useLayoutEffect(() => {
+    const request = mutationRequest;
+    if (!request?.copyViewport) { copyViewportRevocationReference.current = null; return; }
+    if (copyViewportRevocationReference.current?.requestId !== request.requestId)
+      copyViewportRevocationReference.current = { requestId: request.requestId, lease: createCopyViewportRevocation(request.copyViewport) };
+    const lease = copyViewportRevocationReference.current.lease;
+    try {
+      const sample = viewportPortReference.current?.read();
+      if (sample) lease.observe(sample, readCopyEnvironment());
+      else lease.invalidate();
+    } catch { lease.invalidate(); }
+  });
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-copy-viewport-context";
+    api.on("resize-grid", () => copyViewportRevocationReference.current?.lease.invalidate(), { tag });
+    api.on("set-columns", () => {
+      const lease = copyViewportRevocationReference.current?.lease;
+      if (!lease) return;
+      try {
+        const sample = viewportPortReference.current?.read();
+        if (sample) lease.observe(sample, readCopyEnvironment());
+        else lease.invalidate();
+      } catch { lease.invalidate(); }
+    }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId, readCopyEnvironment]);
+  useEffect(() => {
+    const environmentChanged = (event: Event) => {
+      const lease = copyViewportRevocationReference.current?.lease;
+      if (!lease) return;
+      if (event.type === "resize") lease.observeEnvironment(readCopyEnvironment());
+      else lease.invalidate();
+    };
+    window.addEventListener("resize", environmentChanged);
+    document.addEventListener("fullscreenchange", environmentChanged);
+    document.addEventListener("visibilitychange", environmentChanged);
+    return () => {
+      window.removeEventListener("resize", environmentChanged);
+      document.removeEventListener("fullscreenchange", environmentChanged);
+      document.removeEventListener("visibilitychange", environmentChanged);
+    };
+  }, [readCopyEnvironment]);
   useEffect(() => {
     const api = apiReference.current, root = ganttScrollReference.current, frame = fullscreenFrameReference.current;
     if (!api || !root || !frame || !apiInstanceId || !viewportContextReference.current) return;
     const port = createSvarViewportPort({ api, root, frame,
       context: () => ({ ...viewportContextReference.current!, projectionEpoch: projectionReceiptGeneration.current,
         columns: JSON.stringify((api.getState().columns ?? []).map(column => [column.id, column.width, column.hidden])) }),
-      receipt: () => projectionReceiptReference.current,
+      receipt: () => consistencyReference.current?.dataReady() ? projectionReceiptReference.current : null,
       requestedEnd: () => timelineEndReference.current, recordEnd: () => recordTimelineEnd(api),
+      axisSettled: () => {
+        // Ordering only: never await projection/viewport completion inside the data queue.
+        void canonicalSyncQueueReference.current.then(() => {
+          if (apiReference.current === api && !consistencyBlockedReference.current)
+            requestProjectionObservationReference.current?.();
+        });
+      },
+      lease: () => ({ stamp: viewportCoordinatorReference.current!.stamp(), priority: 1 }),
+      canChangeAxis: () => consistencyReference.current?.dataReady() === true && api.getState().scales?.at(-1)?.unit === scaleModeReference.current,
+      nativeForwardInput: left => {
+        const coordinator = viewportCoordinatorReference.current;
+        if (!coordinator) return;
+        coordinator.userInput();
+        const source = coordinator.stamp(), state = api.getState();
+        const width = nextTimelineScaleWidth({ scaleWidth: state._scales?.width, scrollLeft: left, viewportWidth: state._chartWidth, scaleMode: scaleModeReference.current });
+        if (width) expandTimelineScale(api, width, source);
+      },
     });
     const coordinator = createViewportCoordinator(port);
     viewportPortReference.current = port; viewportCoordinatorReference.current = coordinator;
+    const consistency = createProductConsistency({ api, root, apiInstance: apiInstanceId,
+      projection: () => projectionReference.current,
+      identity: () => ({ revision: projectionReference.current.revision, keys: projectionReference.current.keys,
+        query: viewportContextReference.current?.key ?? "", scope: viewportContextReference.current?.scope ?? null }),
+      visible: () => peerViewportContext.current.visible,
+      blocked: () => consistencyBlockedReference.current,
+      intent: () => ({ stamp: coordinator.stamp(), priority: 1 }), frame: port.frame,
+      observationFrame: observationAnimationFrame,
+    });
+    consistencyReference.current = consistency;
+    const dirtyTag = "project-consistency-dirty";
+    for (const action of ["add-task", "update-task", "move-task", "delete-task", "add-link", "update-link", "delete-link"] as const)
+      api.on(action, () => { if (canonicalSyncDepthReference.current === 0) { consistency.invalidate(); projectionReceiptReference.current = null; } }, { tag: dirtyTag });
     onViewportController?.({ stamp: coordinator.stamp, isCurrent: coordinator.isCurrent, filterInput: () => { nativeAddContinuityReference.current = null; coordinator.filterInput(); metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }, capture: () => { const sample = port.read(); return sample.measurable ? sample : null; }, request: command => {
       if (command.kind === "TASK_REVEAL" || command.kind === "DATE_REVEAL") { nativeAddContinuityReference.current = null; metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null; }
       return coordinator.request(command);
@@ -1962,6 +2074,8 @@ export function ProjectGantt({
       if (milestoneProbeReadyReference.current?.coordinator === coordinator)
         milestoneProbeReadyReference.current = null;
       nativeAddContinuityReference.current = null;
+      consistency.dispose(); api.detach(dirtyTag);
+      if (consistencyReference.current === consistency) consistencyReference.current = null;
       coordinator.dispose(); port.dispose();
       if (viewportCoordinatorReference.current === coordinator) viewportCoordinatorReference.current = null;
       if (viewportPortReference.current === port) viewportPortReference.current = null;
@@ -1969,7 +2083,7 @@ export function ProjectGantt({
       onViewportController?.(null);
       metadataViewportReference.current?.cleanup(); metadataViewportReference.current = null;
     };
-  }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension]);
+  }, [apiInstanceId, onViewportController, recordTimelineEnd, scheduleTimelineExtension, expandTimelineScale]);
   useLayoutEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore ||
       peerViewportRestore.key !== viewportContinuityKey ||
@@ -2002,6 +2116,29 @@ export function ProjectGantt({
       void viewportCoordinatorReference.current?.request({ kind: "PASSIVE_RESTORE", position: { left: request.left, top: request.top }, protect: request.protect }, request.stamp);
     });
   }, []);
+  useEffect(() => {
+    const consistency = consistencyReference.current;
+    if (!consistency) return;
+    if (mutationPending && consistency.recovery.state().recovery.phase !== "PENDING") {
+      if (!mutationRequest) return;
+      mutationTicketReference.current = consistency.recovery.beginMutation(mutationRequest.requestId, mutationRequest.affectedIds, mutationRequest.baseRevision);
+      projectionReceiptReference.current = null;
+      consistency.observation.invalidate();
+    } else if (!mutationPending && consistency.recovery.state().recovery.phase === "PENDING") {
+      // The Workspace owns the exact HTTP response and latest canonical GET.
+      // A completed request becomes reconcilable only once its result is known.
+      consistency.invalidate();
+      const ticket = mutationTicketReference.current;
+      if (ticket) consistency.recovery.completeMutation(ticket, mutationRequest?.outcome === 401 ? 401 : canonicalRecoveryBlocked ? "NETWORK" : mutationRequest?.outcome ?? "SUCCESS");
+      mutationTicketReference.current = null;
+    }
+  }, [mutationPending, mutationRequest, canonicalRecoveryBlocked, apiInstanceId]);
+
+  useEffect(() => {
+    // editable follows the Workspace's server-confirmed session check/unlock.
+    if (editable) consistencyReference.current?.recovery.confirmAuthorization();
+  }, [editable, apiInstanceId]);
+
   const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
   const appliedCanonicalViewportMetadataReference = useRef<string | null>(null);
   const appliedCanonicalViewportRevisionReference = useRef<number | null>(null);
@@ -2064,20 +2201,25 @@ export function ProjectGantt({
         void canonicalSyncQueueReference.current.then(cleanup, cleanup);
       }
       try {
-        const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
-        const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
+        if (consistencyBlockedReference.current) return;
+        const consistency = consistencyReference.current;
+        if (!consistency) return;
         diagnosticTraceReference.current?.record("effect-apply", "canonical-sync");
-        await applyCanonicalGanttSync(
-          api,
-          { tasks: currentTasks, links: currentLinks },
-          { tasks: svarTasks, links: svarLinks },
-          isCurrent,
-        );
+        const recovery = await consistency.recovery.recover();
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current)
+          fullscreenFrameReference.current.dataset.ganttCanonicalRecovery = JSON.stringify({ outcome: recovery.outcome, reason: "reason" in recovery ? recovery.reason : undefined, changed: "changed" in recovery ? recovery.changed : undefined });
+        if (recovery.outcome === "SUPERSEDED" || recovery.outcome === "BLOCKED") return;
+        if (recovery.outcome !== "SETTLED") throw new Error("CANONICAL_RECOVERY_FAILED");
         if (!isCurrent()) return;
         appliedProjectionReference.current = projection;
         appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
-        ensureTimelineEnd(api);
-        await restoreCanonicalMetadataViewport(api);
+        if (recovery.changed) {
+          ensureTimelineEnd(api);
+          await restoreCanonicalMetadataViewport(api);
+        } else {
+          metadataViewportReference.current?.cleanup();
+          metadataViewportReference.current = null;
+        }
         if (isCurrent()) {
           appliedCanonicalViewportMetadataReference.current = canonicalViewportMetadata;
           appliedCanonicalViewportRevisionReference.current = projectRevision;
@@ -2098,7 +2240,42 @@ export function ProjectGantt({
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, projection.keys.data, projection.keys.structure, projectRevision, apiInstanceId, restoreCanonicalMetadataViewport, projection]);
+  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey, projection.keys.data, projection.keys.structure, projectRevision, apiInstanceId, restoreCanonicalMetadataViewport, projection, mutationPending, canonicalRecoveryBlocked]);
+
+  useEffect(() => {
+    const request = mutationRequest, coordinator = viewportCoordinatorReference.current;
+    if (!request?.copyViewport || mutationPending || consumedCopyViewportReference.current === request.requestId) return;
+    consumedCopyViewportReference.current = request.requestId;
+    if (!coordinator || request.outcome !== "SUCCESS" || request.copyViewport.confirmedRevision === undefined || canonicalRecoveryBlocked) return;
+    let cancelled = false;
+    // This fork waits on data ordering; viewport completion never joins the data queue.
+    void canonicalSyncQueueReference.current.then(async () => {
+      if (cancelled || currentMutationRequestReference.current !== request || viewportCoordinatorReference.current !== coordinator) return;
+      const port = viewportPortReference.current, consistency = consistencyReference.current, lifetime = copyViewportRevocationReference.current;
+      if (!port || !consistency || lifetime?.requestId !== request.requestId) return;
+      const sample = port.read(), applied = appliedProjectionReference.current, desired = projectionReference.current;
+      const source = copyViewportHandoffSource(request, {
+        requestId: currentMutationRequestReference.current.requestId, sample, stamp: coordinator.stamp(), environment: readCopyEnvironment(),
+        blocked: consistencyBlockedReference.current, revoked: lifetime.lease.isRevoked(),
+        canonicalReady: consistency.dataReady() && consistency.recovery.state().recovery.phase === "SETTLED" &&
+          applied?.revision === desired.revision && applied.keys.data === desired.keys.data && applied.keys.structure === desired.keys.structure,
+      });
+      if (!source) return;
+      const sourceCurrent = () => {
+        if (cancelled || currentMutationRequestReference.current !== request || copyViewportRevocationReference.current !== lifetime ||
+          viewportCoordinatorReference.current !== coordinator || consistencyBlockedReference.current || !consistency.dataReady()) return false;
+        return lifetime.lease.observe(port.read(), readCopyEnvironment());
+      };
+      await coordinator.request({ kind: "PASSIVE_RESTORE", position: { left: request.copyViewport!.left, top: sample.core.top }, compatibility: true, protect: false, sourceCurrent }, source);
+    }).catch(() => {
+      const lifetime = copyViewportRevocationReference.current;
+      if (lifetime?.requestId !== request.requestId) return;
+      lifetime.lease.invalidate();
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current)
+        fullscreenFrameReference.current.dataset.ganttCopyViewportFailure = "COPY_VIEWPORT_RESTORE_FAILED";
+    });
+    return () => { cancelled = true; };
+  }, [mutationRequest, mutationPending, canonicalRecoveryBlocked, apiInstanceId, readCopyEnvironment]);
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; structure: string } | null>(null);
   useEffect(() => {
@@ -2214,8 +2391,7 @@ export function ProjectGantt({
   // Scale changes have their own saved-width restoration path below.
   }, [columns, ensureTimelineEnd, apiInstanceId]);
 
-  const projectionReceiptGeneration = useRef(0);
-  const projectionReceiptReference = useRef<ProjectionReceipt | null>(null);
+
   const observedProjectionReference = useRef<CanonicalProjection | null>(null);
   const observedQueryReference = useRef<string | null>(null);
   const observedSelectionReference = useRef<{ api: IApi; ids: readonly string[] } | null>(null);
@@ -2227,37 +2403,75 @@ export function ProjectGantt({
     const requested = projection;
     const reasons = diffProjection(observedProjectionReference.current, requested).reasons;
     observedProjectionReference.current = requested;
-    const observe = (trigger: "projection" | "open-task" | "select-task" | "layout" = "projection") => {
+    const observe = (triggers: readonly ("projection" | "open-task" | "select-task" | "layout")[]) => {
       observation?.cancel();
       const queryConditionsChanged = observedQueryReference.current !== viewportContinuityKey;
       const selectedIds = (api.getState().selected ?? []).map(String);
       const previousSelection = observedSelectionReference.current?.api === api ? observedSelectionReference.current.ids : [];
-      const taskSelectionChanged = trigger === "select-task" || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
-      const generation = ++projectionReceiptGeneration.current;
+      const taskSelectionChanged = triggers.includes("select-task") || selectedIds.length !== previousSelection.length || selectedIds.some((id, index) => id !== previousSelection[index]);
+      const generation = ++projectionObservationAttempt.current;
+      const reportObservation = (stage: "rows" | "semantic" | "delivery", outcome: string) => {
+        if (process.env.NODE_ENV !== "production" && !disposed && generation === projectionObservationAttempt.current)
+          root.dataset.ganttProjectionObservation = JSON.stringify({ generation, stage, outcome });
+      };
+      reportObservation("rows", "PENDING");
       const isCurrent = () => !disposed && apiReference.current === api &&
-        generation === projectionReceiptGeneration.current && projectRevisionReference.current === requested.revision &&
+        generation === projectionObservationAttempt.current && projectRevisionReference.current === requested.revision &&
         projectionReference.current.keys.data === requested.keys.data && projectionReference.current.keys.structure === requested.keys.structure && projectionReference.current.keys.membership === requested.keys.membership &&
         projectionReference.current.keys.layout === requested.keys.layout && peerViewportContext.current.visible;
       observation = observeProjectionSettled(api, root, requested, { apiInstance: apiInstanceId, generation,
-        reasons: trigger === "layout" ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
+        reasons: triggers.includes("layout") ? [...new Set([...reasons, "layout"])] : reasons, scale: scaleMode, scope: viewRootTaskId, filterKey: traceFingerprint(viewportContinuityKey), taskSelectionChanged, queryConditionsChanged, expectedColumns: columns.map(column => ({ id: column.id, hidden: column.hidden ?? false })) }, isCurrent);
       void observation.promise.then(receipt => {
-        if (disposed || generation !== projectionReceiptGeneration.current) return;
-        deliverProjectionReceipt(receipt, isCurrent, receipt => {
+        if (disposed || generation !== projectionObservationAttempt.current) return;
+        reportObservation("rows", receipt.outcome);
+        const consistency = consistencyReference.current;
+        if (receipt.outcome !== "SETTLED") return;
+        if (!consistency) { reportObservation("semantic", "UNAVAILABLE"); return; }
+        if (consistencyBlockedReference.current) { reportObservation("semantic", "BLOCKED"); return; }
+        reportObservation("semantic", "PENDING");
+        void consistency.observation.observe(requested).promise.then(result => {
+        reportObservation("semantic", result.outcome);
+        if (!result.receipt || result.outcome !== "SETTLED") return;
+        if (!isCurrent()) { reportObservation("delivery", "SUPERSEDED"); return; }
+        const accepted = consistency.observation.deliver(result.receipt, semantic => {
+        const semanticGeneration = semantic.semanticId;
+        projectionReceiptGeneration.current = semanticGeneration;
+        const bridged = { ...receipt, generation: semanticGeneration };
+        const delivered = deliverProjectionReceipt(bridged, () => !disposed && consistency.observation.isCurrent(semantic), receipt => {
         // Later tree/selection/layout observations must compare with the last
         // delivered query, rather than reuse the effect's initial change flag.
         observedQueryReference.current = viewportContinuityKey;
         observedSelectionReference.current = { api, ids: receipt.selectedIds };
         projectionReceiptReference.current = receipt;
         root.dispatchEvent(new CustomEvent("mastergantt:projection-settled", { bubbles: true, detail: receipt }));
-        if (process.env.NODE_ENV !== "production") root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);
+        if (process.env.NODE_ENV !== "production") {
+          root.dataset.ganttProjectionReceipt = JSON.stringify(receipt);
+          root.dataset.ganttSemanticProjectionReceipt = JSON.stringify({ semanticId: semantic.semanticId, observation: result.observation.id, reused: result.reused });
+          reportObservation("delivery", "SETTLED");
+        }
+        });
+        if (!delivered) reportObservation("delivery", "SUPERSEDED");
+        });
+        if (!accepted) reportObservation("delivery", "REJECTED");
         });
       });
     };
+    const scheduler = createProjectionObservationScheduler({
+      queue: () => canonicalSyncQueueReference.current,
+      current: () => !disposed && apiReference.current === api,
+      observe,
+      failed: () => {
+        if (process.env.NODE_ENV !== "production" && !disposed && apiReference.current === api)
+          root.dataset.ganttProjectionObservation = JSON.stringify({ stage: "ordering", outcome: "FAILED" });
+      },
+    });
+    const observeAxisLayout = () => scheduler.request("layout");
+    requestProjectionObservationReference.current = observeAxisLayout;
     // The queue is only an ordering barrier; success is determined by observation.
-    void canonicalSyncQueueReference.current.then(() => { if (!disposed) observe(); });
+    scheduler.request("projection");
     const tag = "project-projection-settled";
     for (const action of ["open-task", "select-task"] as const) api.on(action, () => {
-      queueMicrotask(() => { if (!disposed) observe(action); });
+      queueMicrotask(() => scheduler.request(action));
     }, { tag });
     const chart = root.querySelector(".wx-chart");
     const readLayout = () => JSON.stringify([root.clientWidth, root.clientHeight,
@@ -2267,13 +2481,18 @@ export function ProjectGantt({
       const next = readLayout();
       if (next === layoutSignature) return;
       layoutSignature = next;
-      if (!disposed && canonicalSyncDepthReference.current === 0) observe("layout");
+      scheduler.request("layout");
     });
     layoutObserver.observe(root);
     if (chart) layoutObserver.observe(chart);
-    return () => { disposed = true; observation?.cancel(); layoutObserver.disconnect(); api.detach(tag); };
+    return () => {
+      disposed = true;
+      scheduler.dispose();
+      if (requestProjectionObservationReference.current === observeAxisLayout) requestProjectionObservationReference.current = null;
+      observation?.cancel(); layoutObserver.disconnect(); api.detach(tag);
+    };
   }, [apiInstanceId, projectRevision, projection.keys.data, projection.keys.structure, projection.keys.membership,
-    projection.keys.layout, scaleMode, columns, viewVisible, projection, viewportContinuityKey, viewRootTaskId]);
+    projection.keys.layout, scaleMode, columns, viewVisible, projection, viewportContinuityKey, viewRootTaskId, mutationPending, canonicalRecoveryBlocked]);
 
   useEffect(() => {
     if (!viewVisible || !apiInstanceId || !peerViewportRestore || peerViewportRestore.key !== viewportContinuityKey || peerViewportConsumed.current === peerViewportRestore) return;
@@ -4207,7 +4426,6 @@ export function ProjectGantt({
               readonly={!editable}
               scales={scales}
               autoScale={false}
-              start={initialRange.start}
               tasks={initialConfig.tasks}
               taskTypes={projectTaskTypes}
             /></Locale></div>

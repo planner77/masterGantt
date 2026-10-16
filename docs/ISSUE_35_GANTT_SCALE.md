@@ -63,7 +63,7 @@ secondary label은 화면상 요약만 담당하므로 `aria-hidden`으로 두�
 
 Issue #233의 Day `cellWidth=44` 계약을 #314의 숫자-only Header에 맞춰 **36px**로 추가 축소한다. Week는 ISO Week 및 #316 Tooltip 가독성을 위해 68px를 유지한다.
 
-SVAR React 2.7.3은 React `start/end` prop 변경 시 `dataStore.init(storeConfig)`를 다시 실행한다. 따라서 scroll 때마다 `end` prop을 바꾸는 방식은 selection/column/filter 등 mounted view state에 영향을 줄 수 있어 사용하지 않는다. 대신 **고정 `start` + 미지정 `end` + `autoScale=false`**로 두고, 공개 `resize-chart` action의 내부 `expandScale()` 경로를 사용한다. 이 경로는 start가 고정되고 end가 열려 있을 때 `_end`만 확장하며 `_scaleDate`를 기준으로 현재 horizontal scroll을 보존한다.
+SVAR React 2.7.3은 React `start/end` prop 변경 시 `dataStore.init(storeConfig)`를 다시 실행한다. 따라서 scroll 때마다 `end` prop을 바꾸는 방식은 selection/column/filter 등 mounted view state에 영향을 줄 수 있어 사용하지 않는다. 당시에는 **고정 `start` + 미지정 `end` + `autoScale=false`**와 공개 `resize-chart` action의 내부 `expandScale()` 경로를 사용했다. #667 CI #2812 보완은 고정 `start`도 생략한다. 설치 Core가 Task 날짜에서 유효한 `_start`를 계산하고 resize가 현재 `_start`를 보존하면서 `_end`를 확장하는 프로파일로 변경했다. React 범위 prop 재초기화는 사용하지 않으며 과거 첫 Milestone/Day·Week/연속 확장의 새 검증은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)에서 구분한다.
 
 우측 접근 판정은 공개 `scroll-chart.left`, `resize-chart.width`와 `api.getState()`의 현재 scale width를 사용한다. 남은 폭이 viewport의 1/4 또는 최소 threshold 이하가 되면 최소 한 viewport 분량(또는 Day 14 cell / Week 4 cell)의 scale 폭을 public `resize-chart`로 확장한 뒤 실제 viewport 폭을 즉시 복원한다. 합성 resize 동안 재진입을 막고 같은 frame의 이벤트는 `requestAnimationFrame`으로 합친다.
 

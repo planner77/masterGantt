@@ -2,6 +2,8 @@
 
 검증일: 2026-09-12. 대상 version: `0.3.0`.
 
+이 문서는 당시 구현의 역사적 검증이다. 현재 초기 날짜축은 #667 CI #2812 보완의 Core 계산 start/open end 프로파일이며 고정된 오늘 기준14일 left 여백을 보장하지 않는다. [현재 Work Packet](exec-plans/active/ISSUE_667.md)의 source별 증거와 구분한다.
+
 ## Summary
 
 Project 화면을 별도의 Demo 목록 없이 단일 SVAR Core의 좌측 계층 Task Grid와 우측 동기 Gantt Chart로 구성했다. 빈 일정에서도 작업공간을 렌더하고, 보호 Task API가 반환한 canonical snapshot으로 첫 Task가 reload 없이 Grid row와 Chart bar 양쪽에 나타난다. Project route는 viewport 폭과 높이를 사용하고 Project 설정·작업 관리는 접이식으로 축소했다.

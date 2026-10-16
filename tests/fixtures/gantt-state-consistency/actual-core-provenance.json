@@ -351,5 +351,9 @@
     "SC-14 1000 Task plus 2000 Milestone and repeated mount/unmount",
     "full PR CI and Trusted QA",
     "main/GHCR/release"
-  ]
+  ],
+  "captureSourceMappings": {
+    "package.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-original.snapshot.txt",
+    "package-lock.json": "tests/fixtures/gantt-state-consistency/capture-sources/package-lock-original.snapshot.txt"
+  }
 }

@@ -208,3 +208,61 @@ B를 미활성 facade의 검증된 넓은 profile 전략으로 선택하며 C는
 미완료 synthetic geometry의 위험은 전략이 아니라 동일 Core API **object identity**에 귀속된다. `AxisTransactionOptions.source`를 필수로 받아 EXPLICIT_EXTENT도 이전 facade의 taint를 확인한다. SYNTHETIC_COMPATIBILITY의 opt-in source는 동일 object여야 하며 불일치 시 명시적으로 거부한다. source는 각 mount에서 새로 생성된 실제 API object이고 동일 mount 전략 간 공유한다. 새 wrapper object를 임의 생성해 오염을 우회하지 않는다.
 
 기존 72개 Chromium capture는 리뷰 보완 **이전** source의 역사적 증거로 고정하며 원본 파일·SHA를 덮어쓰지 않는다. `*.snapshot.txt`에 기존 구현과 browser 소스를 보존해 fingerprint를 검증하고 현재 소스의 동작은 강화된 Unit으로 별도 검증한다. 리뷰 보완 버전의 재실행 Chromium/제품 E2E는 아직 NOT TESTED이며 기존 full-capacity clamp FAIL·390px DEFER를 유지한다.
+
+## Issue #667 — U2/U3/U4 제품 소비 결정
+
+기준 main `29c86ca918baa1811bc12a3eb60f86ffc5406b40`, 설치 React Gantt2.7.3/store2.7.2. 제품 mount 단위 adapter는 공개 serialize의 실제 Core 정합을 검사하고 서버 확인 결과를 소비한다. 의미 관측은 완료 재사용을 검증하며 같은 canonical key만으로 dirty Core를 승인하지 않는다. viewport/axis 쓰기는 기존 Coordinator/port 하나로 모은다.
+
+U4 제품 경로는 기존 #367 synthetic/physical resize pair를 SYNTHETIC_COMPATIBILITY transaction 안에서 소비하며 actual coverage·geometry·명시 X/Y 정책을 관측한다. 명시 end prop 전략은 React wrapper 재초기화와 선택/열·geometry 보호 위험 때문에 채택하지 않는다. pair 실행 자체나 #666 clamp 실패를 성공으로 승인하지 않고 불완전 geometry taint·측정 불가·취소를 별도 결과로 유지한다. 현재 공식 exec 반환형(void)과 설치 Promise 타입 차이를 정착 근거로 사용하지 않으며 actual Core/native 관측을 유지한다. 기존 A/B/C 실패·DEFER 원장은 불변이다.
+
+#675는 미병합 진단 patch이므로 복사하지 않고 main #686의 독립 준비 영수증을 보존한다. 제품 표시는 native Milestone 행/marker 미활성을 유지하며 #552에서 별도 변경한다. source·실제 결과·compatibility 한계·rollback은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다. 규범 GSC1.0.0-candidate/REVIEW_PENDING을 변경하거나 예외 승인을 추론하지 않는다.
+
+U5의 `recoverNaturalGeometry`는 taint를 새 facade/새 전략으로 우회하지 않는다. source-wide 미완료 writer0·active0과 독립 Core 물리 크기·native DOM/axis/capacity/X/Y의 유한 3프레임 일치를 읽기 전용으로 확인하며, 실패/취소/숨김이면 기존 taint를 유지한다. 원래 새 요청 lease만 소비하고 과거 위치 replay·복구 resize/scroll·확장 예산 재발급은 하지 않는다. 실제 add→취소 후 width936 실패 및 현재 source 재검증은 #667 Work Packet에서 추적한다.
+
+제품 축 예산은 mounted lifetime이 아닌 등록 command별 bounded attempt다. 기존 모듈의 facade당3회/4회째거부 검사를 유지하며 제품은 명령당1회로 제한한다. 새 facade도 같은 API/source의 전역 taint/active transaction/미종료 callback을 공유하므로 재생성으로 불명확 geometry를 우회할 수 없다. 실패/취소/BUSY인 같은 명령을 새 facade로 자동 재시도하지 않으며 전체10년/1,000,000px 상한은 그대로 적용한다. 이 범위 결정은 기존3회 반복 edge 제품 회귀의 예산 소진 실패를 근거로 한다.
+
+RANGE_EXTENSION도 U4 안에서 기존 X/Y를 보존하므로 capacity-only 예외로 다른 좌표 명령과 병렬 승인하지 않는다. 더 높은 우선순위의 filter/peer/reveal이 pending이면 거부하고 원래 epoch/revision이 바뀌면 위치 쓰기 권한을 폐기한다. 실제 Core scale unit과 React 표시 단위가 일치한 뒤에만 축을 준비한다. untagged native 앞 이동이 SVAR scroll 이벤트의 요청 좌표와 실제 native DOM 좌표에서 일치하면 오래된 passive 축 보존을 취소하고 그 ingress의 고정 stamp로 새 edge 요청을 등록한다. 이는 인간 wheel 입력의 실증이 아니라 실제 native 이동에 대한 supersession 정책이다. own tag/기준 target·뒤로 clamp·이벤트 좌표만 변경되고 DOM이 움직이지 않은 상태·폐기된 source/context의 늦은 callback은 새 의도로 승격하지 않는다.
+
+같은 live API/context에서 태그 없이 실제 native 앞 이동을 일으킨 지연 callback과 사용자/프로그램 이동은 공개 계약만으로 구별할 수 없다. 이 경우 현재 물리 이동이 오래된 passive 보존을 취소하는 정책을 적용하며 인간 입력으로 판별했다고 주장하지 않는다. 데이터 저장/권한을 승인하는 근거로 사용하지 않는다.
+
+지원 범위는 설치 Core 2.7.3/store 2.7.2 및 현재 동기 resize/scroll handler 프로파일이다. port의 1500ms Promise race와 U4 callback 종료는 임의의 미래 async-before-Store writer가 끝났다는 일반 보장이 아니다. library 또는 해당 handler를 비동기로 변경할 때 source taint·늦은 쓰기·natural recovery를 재검증해야 한다.
+
+#667 CI #2811 보완: view visibility 변경의 layout phase에서 legacy bridge receipt를 폐기한다. PEER_RETURN은 원래 lease로 fresh visible U3 receipt를 기다린 뒤 기존 acceptedProjection 고정·3-frame settle을 수행한다. 이전 session의 좌표 일치만으로 완료하지 않으며, 완료 대기 중 generation 변경을 무시하도록 완화하지 않는다.
+
+
+#667 CI #2812 보완의 현재 제품은 `start/end` prop을 생략하고 `autoScale=false`를 유지한다. 빈 프로젝트에 과거 첫 Milestone을 추가할 때 고정 start보다 자동 end가 앞서면 설치 Core의 filter 재계산이 빈 scale.cells를 읽어 예외를 낸다. 초기 props를 동적으로 바꾸어 wrapper init을 재실행하지 않고 Core가 Task 날짜에서 left bound를 계산하게 한다. 초기 today-left 여백은 강제하지 않으며 retained right extent는 유지한다. `autoScale=true`+고정 start는 설치 resize가 supplied start를 재적용해 과거 날짜 coverage를 잃으므로 채택하지 않는다. 이 판단과 새 actual HTTP/SQLite·Day/Week·3회 확장 증거는 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다. 기존 #666 fixed-start 합성 fixture 결과를 새 제품 프로파일의 PASS로 재사용하지 않는다. 공개 `resize-chart`는 여전히 물리 크기 API이며 설치 호환 경로 이상의 일반 날짜축 setter라고 주장하지 않는다.
+
+#667 종합 회귀의 Copy는 structural canonical 변경이므로 geometryUnchanged 메타데이터 경로만으로 가로 위치를 보존할 수 없었다. copy 전 Core/native46→저장 성공 뒤0의 원본 FAIL을 보존한다. 승인된 내부 capsule은 실제 dispatch에서 얻은 원래 API/입력 stamp·비데이터 context·X를 request/base에 고정한다. body 검증·canonical 실제 수용의 confirmed revision과 U2 proof가 정확히 일치할 때에만 소유한 data revision 변화의 handoff를 허용한다. HTTP SUCCESS나 뒤늦게 읽은 현재 stamp만으로 새 권한을 만들지 않는다. 더 늦은 revision·request·wheel/intent/filter/reveal·API/layout 변화·UNKNOWN이면 폐기하고, 기존 Coordinator/port의 capacity·3-frame·단일 writer를 사용한다. 이는 Copy 한정이며 임의 data geometry 변경의 포괄적 복원 승인으로 확대하지 않는다.
+
+Copy의 비데이터 context/환경 왕복은 현재값 비교와 별개인 요청별 영구 폐기로 처리한다. 기존 typed coordinate command의 optional sourceCurrent는 원래 source 조건을 AND로 더 제한하며 미설정 기존 동작은 유지한다. 등록·prepare/apply·최종 authority에서 폐기/예외를 fail-closed로 확인하고 callback을 API/trace payload로 직렬화하지 않는다. 실제 환경 변경과 소유된 동일 환경 synthetic resize를 구분해 자기 compatibility 작업을 새 사용자 입력으로 취급하지 않는다. 원본 입력 권한을 재발급하거나 context 왕복을 자동 재승인하는 예외가 아니다.
+
+#667 종합 회귀에서 native capacity31/Core capacity30 차이가 기존 Resource X31 복귀를 제한했다. prepare는 retained end를 조기 반환 전에 확인하고 public read-only scale/physical width로 Core의 정확 수용 능력을 검사한다. native±1은 DOM 정착 허용치이며 Core 목표 완화 근거가 아니다. 부족 범위 준비는 기존 version-bound U4·원래 source/lease·PRESERVE·bounded transaction으로 제한하고 실제 extent 변경만 fresh U3 receipt를 요구한다.
+
+
+## Issue #667 / CI #2817 — 관측 요청의 데이터 큐 정렬
+
+Editor의 같은 revision 재조회에서 HTTP200 및 U2 no-op SETTLED 이후 새 U3 관측 완료/영수증 재전달 미확인이 원격에서 확인됐다. 기존 최초 관측만 canonical queue를 기다리고 open/select/layout 관측은 직접 시작하거나 sync depth가 양수일 때 버려질 수 있었다. 원격 자료에 당시 실패 outcome이 없어 이 순서 경계를 해당 실행의 확정 근인으로 단정하지 않는다.
+
+관측 요청은 현재 effect/API의 단일 scheduler에서 모아 최신 canonical queue 뒤에 전달한다. 대기 중 queue가 교체되면 교체된 queue의 완료를 확인하며 selection/layout trigger를 함께 보존한다. 데이터 큐에는 관측 완료 Promise를 연결하지 않으므로 viewport와의 순환 대기를 만들지 않는다. effect cleanup/API 교체는 대기 요청을 폐기하고 실패 관측을 자동 재시도하지 않는다. 실패·cleanup에서 drain 토큰을 폐기해 옛 queue callback이 후속 명시 요청을 소비하거나 빈 추가 관측을 실행하지 못하게 한다. 원래 source/semantic receipt/actual Core 확인·유한 관측 예산·단일 viewport writer 계약은 유지한다.
+
+개발 진단은 최신 attempt의 단계(rows/semantic/delivery)·outcome·generation만 기록한다. payload/HTTP body·비밀값은 추가하지 않는다. 기존 semantic receipt와 새 attempt를 구분하고 SETTLED 이전 결과를 성공 영수증으로 게시하지 않는다. source별 검증·원격 근인 UNKNOWN 경계는 [누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
+
+
+## Issue #667 / CI #2818 — U3 관측과 viewport frame 예산 분리
+
+의미 관측 U3는1500ms deadline·120실제frame·3안정frame을 가진다. 이전 제품 연결은 viewport port의50ms frame tick을 공유해 단일 RAF 지연을 전체 TIMED_OUT으로 해석했다. 원본 상태의 실제 RAF90ms 지연 SC-01에서 같은 실패를 재현했다. 공개 Core API 반환이나 timer callback을 화면 정착으로 승인하는 문제와 구분한다.
+
+제품 연결의 내부 `observationFrame`은 U3 clock만 실제 RAF 대기로 분리한다. 별도 짧은 timer로 관측을 종료하지 않고 U3의 기존 wall-time watchdog이 abort를 소유한다. 실제 RAF만 frame 성공이며 abort/숨김은 RAF·listener를 정리하고 실패로 종료한다. U2 recovery와 U4/viewport port의50ms tick·lease·쓰기·축 계약은 유지한다. deadline을 늘리거나 실패 관측을 자동 재시도하지 않는다.
+
+같은 revision의 원본 SC-01 단언을 유지하고90ms 지연 변형을 추가한다. 지연은 전달 타이밍만 바꾸며 실제 Core/DOM/geometry·semantic 재사용·쓰기0을 검사한다. 진단 실패 시에도 finally에서 주입한 timer/RAF를 정리한다. 원격 환경의 실제 CPU/RAF 지연 세부 원인은 미계측이며 코드 재현·선택 로컬·새 원격 완료 증거는 [보완 원장](evidence/issue-667/ci2818-correction.json)에서 구분한다.
+
+
+## Issue #667 / CI #2827 — Core/native 양쪽 baseline의 native-forward 판정
+
+이 변경은 기존의 '뒤로 clamp를 새 입력으로 승격하지 않는다' 계약을 교정한다. Day→Week 중 Core9362/native25683에서 native10315로 clamp되면 Core baseline만 비교한 기존 guard는 이를 새 forward로 오분류할 수 있었다. 같은 snapshot의 두 좌표 중 최댓값을 axis 등록 baseline으로 사용해 이 false positive를 차단한다. 실제 event/native 일치·Core/native 차이·원래 현재 lease·own tagged 제외·1회 처리·1px 조건은 그대로다. typed wheel/pointer/keyboard 입력은 기존 document listener에서 즉시 오래된 의도를 취소하며, 새 scroll writer·자동 재시도·geometry 결과 허용은 추가하지 않는다.
+
+Tooltip의 Escape 후 같은 focused 가상화 셀 재사용은 별도 fixture 전제 오류다. 해당 oracle은 실제 blur/focus를 만들고 Escape 닫힘/포커스 유지·기존 ISO/날짜/좌표 단언을 검증한다. 두 원인을 하나로 합치지 않으며, 원본/진단·추가 확대 FAIL·최종 source는 [ci2827 원장](evidence/issue-667/ci2827-correction.json)을 따른다. 기존 #666 미지원390px/clamp 증거와 원격 인수 경계는 그대로 유지한다.
+
+## Issue #667 / CI #2840 — port 수용 경계와 정상 fixture 준비의 구분
+
+기존 수용 규칙은 Core exact/native±1이다. target.left120에서 Core capacity119는 거부하고, Core capacity가120 이상이면 native capacity119는 최종 native119가 목표와1px 이내이므로 허용한다. native118은 거부한다. 정상 테스트 setup이 Core/native 양capacity120을 요구하는 것은 정확120 입력을 확보하는 더 강한 fixture 전제이며 제품 port의 허용식을 바꾸는 근거가 아니다. 공개 admitPosition은 기존 read-only 검사식을 노출하며 resize/scroll을 발행하지 않는다. ci2838의 native119 거부 기대는 신규 Unit의 경계 오류였고 ci2840에서 기존 정책에 맞는 거부·허용·명령0 반례로 정정한다. 원래 lease·유한 준비·3frame·취소·보존·writer 권한은 유지한다.

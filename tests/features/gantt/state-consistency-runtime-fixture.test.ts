@@ -1,3 +1,4 @@
+import { assertCapturedInstall } from "../../fixtures/gantt-state-consistency/capture-install";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -18,8 +19,9 @@ describe("U1 installed 2.7.3 synthetic browser reader evidence", () => {
     expect(provenance.installedGanttVersion).toBe("2.7.3");
     expect(provenance.installedStoreVersion).toBe("2.7.2");
     expect(provenance.collection).toBe("SYNTHETIC_CORE_BROWSER");
+    assertCapturedInstall(root);
     for (const [file, fingerprint] of Object.entries(provenance.sha256)) {
-      expect(createHash("sha256").update(readFileSync(resolve(root, file))).digest("hex"), file).toBe(fingerprint);
+      expect(createHash("sha256").update(readFileSync(resolve(root, (provenance.captureSourceMappings as Record<string, string>)[file] ?? file))).digest("hex"), file).toBe(fingerprint);
     }
     expect(provenance.counts).toEqual({ tasks: 4, tree: 4, links: 1 });
     expect(provenance.notTested).toContain("actual HTTP/SQLite");

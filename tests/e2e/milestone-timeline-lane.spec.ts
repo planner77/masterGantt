@@ -2,11 +2,16 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { installStatefulProjectFixture, publicId, projectPath } from "../fixtures/stateful-project";
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 
 test.use({ timezoneId: "America/New_York" });
 
 interface Observation { gridWidth: number; instance: string; left: number; top: number; start: Date; end: Date; width: number; chartWidth: number; rows: { id: string; x: number; y: number }[]; links: { id: string; source: string; target: string; type: string }[]; canonicalIds: string[]; events: { action: string; left: number; top: number }[]; }
+interface LargePopulationObservation extends Observation {
+  canonicalTaskCount: number; coreTaskCount: number;
+  coreOrdinaryTaskCount: number; coreMilestoneCount: number;
+}
 async function probe<T>(frame: Locator, method: string, argument?: unknown): Promise<T> {
   return frame.evaluate(async (node, input) => {
     const api = Reflect.get(node, "__masterganttMilestoneTimeline");
@@ -15,6 +20,11 @@ async function probe<T>(frame: Locator, method: string, argument?: unknown): Pro
 }
 async function settle(page: Page) {
   await page.evaluate(() => new Promise<void>(resolve => { let n = 5; const tick = () => --n ? requestAnimationFrame(tick) : resolve(); requestAnimationFrame(tick); }));
+}
+async function prepareGeometryDateReveal(frame: Locator, scale: "day" | "week", revision: number, instance: string, canonicalIds: string[]) {
+  // 과거 취소 trace를 완료로 세지 않고 현재 U3·실제 축으로 새 reveal의 전제를 확인한다.
+  await waitForGanttReadiness(frame, { operation: "date-reveal", allowCancelledPriorWork: true, api: instance, revision, scale,
+    scope: new URL(frame.page().url()).searchParams.get("rootTask")?.trim() || null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, date: "2026-03-10" });
 }
 async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milestone-only" | "maximum" | "empty" = "mixed", editable = false) {
   const state = await installStatefulProjectFixture(page); state.sessionEditable = editable;
@@ -339,8 +349,14 @@ test("#551 public ISO interval date/header semantics independent oracle", async 
         expect(lower?.className).toContain(`project-gantt-week-date-${expected.start.replaceAll("-", "")}`);
         expect(lower?.text).toMatch(new RegExp(`^${expected.week}`));
         const accessibleWeek = frame.locator(`.project-gantt-week-date-${expected.start.replaceAll("-", "")}`);
-        await accessibleWeek.focus(); await expect(page.getByRole("tooltip")).toContainText(`ISO ${expected.isoYear}-${expected.week}`);
+        // Core는 가상화된 날짜 셀 DOM을 재사용하며 Escape 뒤에도 focus는 남는다.
+        // 현재 날짜의 독립 focus 진입을 검증하도록 먼저 보이는 toolbar로 이동한다.
+        const weekButton = page.getByRole("button", { name: "주", exact: true });
+        await weekButton.focus(); await expect(weekButton).toBeFocused();
+        await accessibleWeek.focus(); await expect(accessibleWeek).toBeFocused();
+        await expect(page.getByRole("tooltip")).toContainText(`ISO ${expected.isoYear}-${expected.week}`);
         await expect(page.getByRole("tooltip")).toContainText(`포함 월 ${expected.label}`); await page.keyboard.press("Escape");
+        await expect(page.getByRole("tooltip")).toHaveCount(0); await expect(accessibleWeek).toBeFocused();
         expect(task.start! >= expected.start && task.start! < expected.end).toBe(true);
         expect(Math.abs(upper!.x - lower!.x)).toBeLessThanOrEqual(1); expect(Math.abs(upper!.right - lower!.right)).toBeLessThanOrEqual(1);
       }
@@ -377,6 +393,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   for(const scale of ["day","week"] as const) {
   await page.getByRole("button",{name:scale==="day"?"일":"주",exact:true}).click();
   await expect(lane.locator(".project-milestone-lane-plot")).toBeVisible();
+  await prepareGeometryDateReveal(frame, scale, state.project.revision, before.instance, before.canonicalIds);
   const revealOutcome = await probe<string>(frame, "reveal", "2026-03-10");
   expect(revealOutcome).toBe("SETTLED"); await settle(page);
   const owner = frame.locator(".project-gantt-scroll");
@@ -416,4 +433,52 @@ for (const width of [390, 768, 1024, 1440, 1920]) test(`#551 opt-in sibling lane
   await page.getByRole("button", { name: "Milestone Timeline 기술 미리보기", exact: true }).click(); await expect(lane).toHaveCount(0); expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);
   const stopped=await probe<{count:number}>(frame,"laneMeasurement");await page.setViewportSize({width:width+1,height:1000});await settle(page);
   expect((await probe<{count:number}>(frame,"laneMeasurement")).count).toBe(stopped.count);
+});
+
+test("SC-14 marker OFF 3000행의 독립 readiness와 3회 SPA 수명주기 정리", async ({ page }, info) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const { state, frame } = await fixture(page, "large");
+  const observations: LargePopulationObservation[] = [];
+  let documentRequests = 0;
+  page.on("request", (request) => { if (request.resourceType() === "document") documentRequests += 1; });
+  for (let cycle = 0; cycle < 3; cycle++) {
+    const observed = await probe<LargePopulationObservation>(frame, "read");
+    expect(observed).toMatchObject({ canonicalTaskCount: 3000, coreTaskCount: 3000,
+      coreOrdinaryTaskCount: 1000, coreMilestoneCount: 2000 });
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", observed.instance);
+    await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+    const oldFrame = await frame.elementHandle();
+    expect(oldFrame).not.toBeNull();
+    await oldFrame!.evaluate((node) => Reflect.set(node, "__issue667SavedProbe", Reflect.get(node, "__masterganttMilestoneTimeline")));
+    await page.getByRole("link", { name: "masterGantt 홈", exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(() => oldFrame!.evaluate((node) => ({ connected: node.isConnected,
+      ready: Reflect.get(node, "__issue667SavedProbe").ready,
+      published: Reflect.has(node, "__masterganttMilestoneTimeline"),
+      viewport: Reflect.has(node, "__masterganttPublicViewport"),
+    }))).toEqual({ connected: false, ready: false, published: false, viewport: false });
+    await oldFrame!.dispose();
+    await page.goBack();
+    // Preserve the existing independent 5-second readiness gate after return.
+    const ready = await page.waitForFunction(() => {
+      const node = document.querySelector<HTMLElement>(".project-gantt-frame");
+      const candidate = node && Reflect.get(node, "__masterganttMilestoneTimeline");
+      return Boolean(node?.dataset.projectGanttApiInstance && candidate?.instance === node.dataset.projectGanttApiInstance &&
+        typeof candidate.read === "function" && candidate.ready === true);
+    }, undefined, { timeout: 5_000, polling: 100 });
+    await ready.dispose();
+    await settle(page);
+    observations.push(observed);
+  }
+  const returned = await probe<LargePopulationObservation>(frame, "read");
+  expect(returned).toMatchObject({ canonicalTaskCount: 3000, coreTaskCount: 3000,
+    coreOrdinaryTaskCount: 1000, coreMilestoneCount: 2000 });
+  await expect(frame.locator(".project-milestone-lane")).toHaveCount(0);
+  expect(documentRequests).toBe(0);
+  expect(state.posts.length + state.patchRequests.length).toBe(0);
+  await info.attach("marker-off-large-lifecycle", { body: JSON.stringify({
+    observations: [...observations, returned].map(({ instance, canonicalTaskCount, coreTaskCount, coreOrdinaryTaskCount, coreMilestoneCount }) =>
+      ({ instance, canonicalTaskCount, coreTaskCount, coreOrdinaryTaskCount, coreMilestoneCount })),
+    documentRequests, mutationCount: 0, cycles: 3,
+  }), contentType: "application/json" });
 });

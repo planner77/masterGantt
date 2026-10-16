@@ -156,7 +156,7 @@ Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`�
 
 ## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
 
-Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
+Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `start/end` prop을 반복 변경하지 않고 Core가 Task 날짜에서 계산하는 start/open end의 SVAR public resize path를 사용한다. #667 CI #2812 보완부터 고정 left bound를 생략하여 과거의 첫 Task/Milestone도 유효한 날짜축에 포함한다. 초기 오늘 기준 왼쪽 여백은 강제하지 않으며 기존 초기 right extent의 보존 하한은 유지한다.
 
 동적 확장은 UI 전용 상태다. Task/Link/Calendar, Scheduling 결과, revision, DB/API, edit permission을 변경하거나 서버 요청을 만들지 않는다. 사용자가 확보한 미래 end는 단조 증가시키며 canonical sync나 Day/Week 전환 뒤에도 이전 end 이상을 public resize path로 복구한다. range extension 자체가 Core store를 re-init하지 않으므로 Gantt/API instance, horizontal/vertical scroll, tree, column, filter, selection 상태를 불필요하게 초기화하지 않는다.
 
@@ -337,7 +337,7 @@ Project 생성 API/DB, 기준정보 catalog, Owner 의미, password/session/Orig
 
 오류는 최신순 최대 50건이다. 한도를 넘은 이전 항목의 제외 건수를 표시한다. 패널을 열면 표시 중인 항목을 읽음 처리하고 열린 동안 도착한 오류도 읽음으로 처리한다. “읽은 알림 지우기”는 명시적 사용자 동작이다. 이 보관 상한·읽음 시점은 구현 정책이며 사용자가 숫자를 지정한 것으로 표현하지 않는다.
 
-비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. Task mutation 실패의 canonical 재조회가 실패해도 같은 Gantt 인스턴스에 마지막 확정 일정을 다시 동기화한다(#344). 기존 Gantt reset은 공개 SVAR 동기화 자체가 예외를 낸 최후 복구 경로에만 사용한다.
+비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. 과거 #344의 실패 GET 뒤 snapshot 재생/reset fallback은 #667에서 대체했다. 현재 Task mutation 복구 조회가 실패하거나 오래된 응답이면 UNKNOWN 안내·초안·충돌 쓰기 차단을 유지한다. 같은 Gantt 인스턴스를 보존하고 명시적 최신 조회의 검증된 snapshot 수용으로만 복구하며 자동 재생·reset/remount로 결과를 추측하지 않는다.
 
 `WorkspaceDialog`는 native dialog의 top layer를 사용한다. 설정 모달 안에서도 안내가 보이도록 해당 dialog 안에 live region을 둔다. 알림함에는 자체 복사 안내 live region을 사용한다. Escape/닫기 후 원래 버튼으로 `preventScroll` focus를 복귀한다. 전송 중인 파괴적 동작은 중복 제출과 닫기를 차단한다. 좁은 화면과 긴 내용은 최대 viewport 크기 및 내부 스크롤/줄바꿈으로 처리한다.
 
@@ -916,7 +916,7 @@ Header에는 어느 요일이 근무 가능한지, 공휴일명·비근무 사�
 
 Task C 삭제가 서버에서 성공한 뒤 Summary의 마지막 child 삭제가 `409 EMPTY_SUMMARY_NOT_ALLOWED`로 거부되면, 마지막 child는 유지되고 이미 삭제된 Task C는 Grid/Chart에 다시 나타나지 않아야 한다. 실패 복구의 범위는 현재 요청에서 발생한 미확정 변화다. 빈 Summary를 자동 삭제하거나 일반 Task로 전환하지 않는다.
 
-Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 재조회가 실패하거나 오래된 응답을 반환하면 마지막 확정 snapshot을 기존 SVAR API 동기화 경로로 다시 적용한다. 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않으며, Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
+Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 과거 #344의 마지막 확정 snapshot 재적용은 #667에서 대체했다. 현재 재조회 실패·오래된 응답은 UNKNOWN 안내와 충돌 쓰기 잠금을 유지하고, 최신 세대의 검증된 서버 snapshot 수용 전에는 과거 snapshot을 Core에 재생하지 않는다. 명시적 앱 최신 조회로 복구하며 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않는다. Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
 
 `401`은 읽기 전용으로 전환하고 편집 잠금 해제를 안내한다. `412`는 최신 일정을 확인하도록 안내하며, network 실패는 서버 저장 여부를 단정하지 않고 canonical GET 결과를 확인한다. GET이 현재 확정 revision 이상이면 해당 서버 상태를 적용하고, 조회할 수 없으면 마지막 확인 상태를 유지한다. 실패 요청을 자동 재전송하지 않는다. 서버 authorization·Origin·revision 계약과 Task Editor 초안 정책은 기존 계약을 따른다.
 
@@ -1367,3 +1367,26 @@ Resource→일정→Resource 복귀는 기존 drill/return frame과 단일 viewp
 Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고서와 정확 상세의 새 조회 완료를 확인한 뒤 한 번 복원한다. 새 조회가 상세 행을 교체하는 동안 이전 행의 편집 명령을 잠근다. 그동안 사용자가 검색·keyboard·pointer/wheel 입력을 하면 오래된 복귀 요청을 취소한다. 준비 실패·범위 소멸 시 유효한 복귀 컨트롤을 사용하며 Gantt를 재생성하지 않는다.
 
 긴 이름과 다열 표는 table-owned scroll로 처리한다. 390/768/1024/1440/wide의 keyboard·Escape·복귀 focus·내부 overflow와 같은 Gantt instance를 별도 검증하며 실제 결과는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다. GSC 전체 수용·main/릴리스 검증과 구별한다.
+
+## Issue #667 — 저장 결과 불명확 시 명시적 복구
+
+작업 저장 오류 뒤 최신 서버 snapshot을 확인하면 같은 Gantt 인스턴스에서 실제 Core의 순서·계층·날짜·관계를 정합하게 복구한다. 서버가 저장했는지 확인할 수 없고 최신 조회도 실패하면 저장 결과를 확인할 수 없다는 안내와 `최신 상태 다시 조회` 버튼을 표시한다. 확인 전 충돌하는 추가 편집·저장은 잠그며 초안은 유지하고 저장 요청을 자동으로 다시 보내지 않는다. 명시적 조회 성공 뒤 최신 canonical을 적용하고 편집을 재개한다. 권한 만료는 기존 읽기 전용/잠금 해제 정책을 따른다.
+
+일정/Resource/Calendar 왕복·검색·동일 DTO 재조회는 불필요한 remount를 만들지 않는다. data receipt와 viewport 정착은 별개이며 실제 사용자 입력이 이전 복원보다 우선한다. 이 공통 연결은 #552의 native Milestone 행 제거·marker 활성화를 포함하지 않는다. 실제 검증과 미검증은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)에 기록한다.
+
+저장 전에 시작한 이전 조회가 늦게 도착해도 저장 결과 불명확 안내나 편집 잠금을 해제하지 않는다. 현재 요청의 최신 서버 확인만 복구를 확정한다. Editor의 재조회·취소는 사용할 수 있지만 UNKNOWN의 추가 저장과 하위 편집은 잠근다.
+
+화면을 숨겼다가 일정으로 복귀할 때는 이전 visible session의 완료 영수증을 현재 복귀의 근거로 재사용하지 않는다. 새 visible 관측 뒤 실제 정착을 확인한다. 다른 탭의 최신 확인이 진행 중이거나 실패하면 실패 mutation의 UNKNOWN 잠금을 유지하고, 최신 성공 조회만 해제한다.
+
+#667 반복 삭제 거부 후 canonical 조회가 stale/실패면 기존 확정 삭제를 보존하면서 UNKNOWN 잠금을 유지한다. 테스트 외부의 API 조회나 편집 session 재활성화만으로 성공 복구를 추론하지 않는다. UI의 명시적 최신 상태 재조회가 현재 snapshot을 수용한 뒤에만 다음 삭제를 허용하며 같은 Gantt 인스턴스·접힘·scale·viewport를 보존한다.
+
+#667 종합 회귀 보완: 다중 Copy/Paste 뒤 canonical 데이터·Link 보존과 viewport 보존을 별도로 확인한다. 원래 가로 위치는 실제 copy dispatch 시점에 캡처하고 검증된 성공 canonical revision·현재 U2 proof에 연결해 기존 Coordinator로 한 번 복원한다. 늦은 저장 응답이 새로운 사용자 입력 권한을 만들지 않으며 pending 중 실제 wheel·filter/reveal·API 교체·UNKNOWN이면 과거 위치를 복원하지 않는다. 기존 same-instance·열폭/scale/접힘·정확한 scroll 검증을 완화하지 않는다. 원본46→0 FAIL·보완·미검증은 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
+#667 Resource 복귀의 보존 대상 X는 실제 Core/native가 일치한 캡처다. 복귀 시 두 수용 범위가1px 다르더라도 Core exact 목표를 낮추지 않는다. retained 날짜축과 양쪽 범위를 기존 단일 Coordinator/U4에서 준비한 뒤 현재 projection과3실제 프레임 정착으로 완료한다. 미확인 geometry는 완료로 표시하지 않는다.
+
+
+## Issue #667 / CI #2827 — 날짜축 전환의 프로그램 clamp와 최신 입력
+
+Day→Week 전환 중 native scroll이 새 범위로 뒤로 제한되는 것은 새 사용자 스크롤이 아니다. 기존 단일 Coordinator/port는 등록 당시 Core와 native 좌표를 함께 기준으로 삼아 프로그램 clamp가 명시 날짜 이동을 잘못 취소하지 않게 한다. 실제 wheel/pointer/keyboard 최신 입력은 이전 자동 복원보다 우선한다. Task/Link/Calendar·revision/서버 요청·scale 표시/인스턴스·좌표 허용 오차는 변경하지 않는다.
+
+Week Header의 Escape는 Tooltip을 닫고 해당 셀 focus를 유지한다. 날짜 가상화가 같은 DOM 셀을 재사용하더라도 단순 `.focus()` 재호출은 새 focus 진입이 아니다. CI oracle은 보이는 기존 Week control로 이탈한 뒤 날짜 셀에 재진입해 기존 ISO/포함월 내용을 확인하고, Escape 닫힘과 focus 유지도 검증한다. 새 Tooltip 자동 재개 정책을 만들지 않는다. 증거는 [별도 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md)에 보존한다.

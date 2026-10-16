@@ -1,3 +1,53 @@
+## Issue #667 — CI #2840 수용 경계 Unit 정정과 재준비 음성 (2026-10-16)
+
+최신 원격 실패는 `admitPosition(target120)`에 native capacity119를 거부하라고 요구한 신규 Unit이다. 제품 port는 기존 Core exact/native±1 계약을 유지하므로 Core119는 거부하고, Core가120 이상이면 native119는 허용한다. native118은 거부하며 exact120 경계와 명령0을 별도로 검증한다. 정상 E2E 입력 fixture의 양capacity120 요구와 제품 port의 완료 허용 범위를 혼동하지 않는다. ci2838의 양exact/native119거부 설명은 그 시점 원장으로 보존하고 이번 후속에서 기존 계약에 맞게 정정한다.
+
+앞선 FILTER_RETURN 보완의 같은 lease 두 번째 prepare 대기 중 user/filter/context/API 폐기4반례는 늦은 readytrue에도 apply/repair0·SUPERSEDED여야 한다. 두 번째 준비 성공 뒤 다시 용량47로 축소되면 세 번째 준비 없이 apply/repair0·NO_SCROLL_CAPACITY여야 한다. 제품·기존 단언·timeout/retry/skip·Required gate는 변경하지 않는다.
+
+최종 Unit은 port48+Coordinator98+readiness27=173 PASS다. viewport8은 Unit 반례 추가 전 실행이나 실제 제품/E2E/helper/fixture/config 의존성이 불변이므로 별도 교차 증거로 사용한다. 실제HTTP pending Copy wheel1은 별도 실행하며 단일9case run으로 표현하지 않는다. 중단 실행의 Channel closed/exit143은 NOT TESTED로 보존하고 재실행 PASS로 소급하지 않는다. 원격 #2840의 Unit1FAIL→Fast Gate/required aggregates FAIL과 E2E/Docker/build 미실행을 구별한다. source/명령/환경/report 해시·선정/제외는 [ci2840](evidence/issue-667/ci2840-correction.json)과 [별도 실패 원장](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
+## Issue #667 — CI #2835 동작별 준비 계약 (2026-10-16)
+
+정상 setup에서 `visible` 또는 마지막 성공 receipt만으로 후속 입력을 승인하지 않는다. 현재 API/revision/scale/scope/query·canonical 동기화·logical/Core/DOM 행·최신 관측·semantic receipt·현재 Coordinator 작업을 함께 읽고, 동작별 조건을 별도로 검사한다. Scroll은 Core exact capacity와 native capacity 모두가 목표를 수용해야 하며, date reveal은 현재 축/날짜와 기존 canonical ID 배열 순서, hover는 현재 geometry/hit과 기존 Core X=native X 완전 일치를 확인한다. date/scroll의 기존 Core/native ±1 계약을 hover X로 확대하지 않는다. attempt 번호와 semanticId는 서로 다른 번호 공간이므로 같은 값일 것을 강제하지 않는다. 같은 IDs를 유지하는 query 변경도 이전 filterKey와 구분하며, 현재 실패/UNKNOWN 작업은 준비 완료로 승인하지 않는다. query witness는 다른 filter를 편집하지 않는 단일 명시 query 전환 범위의 증거다. geometry/hover의 명시적 이전 SUPERSEDED 허용은 현재 API/U3·실제 geometry로 새 동작을 준비한다는 뜻이며 과거 취소 명령의 완료 판정이 아니다. 안정성은 문맥·권한·실제 geometry를 기준으로 검사하고 attempt/observation의 단순 bookkeeping 증가만으로 정착을 거절하지 않는다.
+
+metadata 첫 검색 전에는 가상화 DOM 부분집합/순서와 행이 하나 이상 존재하는 기존 전제를 유지하고, 검색 후에는 정확2IDs를 검사한다.
+
+공통 helper는 관측만 하며 입력/resize/remount/range 재발행·저장·재hover를 숨기지 않는다. 현재 작업이 SETTLED여도 용량47px이면 목표120px은 거절해야 한다. 축 준비가 필요한 정상 fixture는 helper 밖에서 명시적 실제 입력을 한 번 수행하고 새 RANGE와 양쪽 수용 범위를 확인한다. 실제 scroll이 없는 cap0/edge 상태까지 확장을 보장하지 않는다. SC-09·pending Copy·전환 중 wheel/filter·지연응답 음성에는 정상 정착 gate를 적용하지 않는다.
+
+독립 감사로 정상 exact 좌표·비영점 baseline·의도적 전환 소비자를 분류한다. 기존 DEV probe의 canonicalIds/rows는500개 상한이므로 그 범위의 선택 fixture에만 전수 ID 검사를 사용하고 SC-14 대량 데이터의 독립 gate는 유지한다. 공통 판정에는 stale context/최신 실패/geometry 부족·Core/native 용량 불일치의 의미 있는 Unit 반례를 작성하고, 변경 소비자는 최종 동결 source의 실제 Chromium으로 검증한다. 임시 통제 source, 원본 비재현, 최종 source 결과를 합산하지 않는다. 최신 원격 #2835는 **첫 검색 전** 실패이며 #2833의 FILTER_INPUT 취소와 구분한다. 상세 선정·제외·명령·환경·해시는 [ci2835](evidence/issue-667/ci2835-correction.json)와 [별도 원장](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다. 새 PR CI 시작은 공식 전체 회귀 PASS가 아니다.
+
+## Issue #667 — CI #2833 metadata 초기 viewport 준비 (2026-10-16)
+
+`task-editor-form-density.spec.ts`의 #456 active-name-filter/#570 metadata 두 사례는 기존Week전환이 시작한RANGE/currentWeek U3·실제Core/native좌표일치·nativecapacity≥120을첫검색전에읽기전용확인한다. 이후첫검색의현재query·예상2ID·U3semantic/delivery·geometry정착을확인하고native120을처음한번만주입한다. 검색전31IDset·receipt logical/Core DFS순서일치와virtualizedDOMsubset/order를검사하며전체DOM/fixture배열순서를강제하지않는다. 검색후2IDexact는유지한다. 첫검색만있는이fixture에서filterKey는freshreceipt안정성범위이며전수filter인수가아니다.
+
+metadata복원120·늦은non-user nativezero차단·실제wheel0↔120·동일query빈집합0·동일API·#456 PATCH1/#570 PATCH2와기존5000ms를유지한다. 초기용량47에서120을할당한원본clamp를후행제품restore문제로분류하거나기대46완화/후행120재주입하지않는다. 원본/진단에서관측한전환중검색취소계약은유지하고최종별도취소음성PASS로확대하지않는다. 실제wheel취소음성에는준비gate를적용하지않는다. 원본/진단2FAIL과보완중fixture3FAIL·정리후단독PASS·정상after확대49PASS/1FAIL·최종density7을분리하고선정/제외·source/명령/환경·원격미검증은[ci2833](evidence/issue-667/ci2833-correction.json) 및[별도원장](ISSUE_667_FAILURE_ANALYSIS.md)에보존한다. 변경없는다른5spec43의앞선교차증거는별도참조하며최종7과합산한새50PASS로표시하지않는다.
+
+## Issue #667 — CI #2831 Week geometry reveal 등록 전제 (2026-10-16)
+
+geometry 검증은 scale control 클릭·lane visible·probe.ready만으로 현재 날짜 의미의 준비를 승인하지 않는다. 첫 reveal 전에 현재 API/revision/scale의 U3 semantic/delivery receipt와 실제 날짜축·geometry가 일치하는지 읽기 전용 확인한다. 최초 reveal1회·기존 STRICT SETTLED·좌표/clip/행±1px·동일 instance/mutation0을 유지한다. 의도적 pending/wheel 취소 음성은 이 준비 gate를 적용하지 않는다.
+
+원본768 단독 비재현PASS, 자연5폭 진단PASS와 Week DIAG 정착24actualRAF 보류의 통제1FAIL을 구분한다. 통제 반례는 이전 day/gen2 명령 중 새 week/gen3가 도착하는 취소를 확인하지만 원격 직접 취소 terminal은 미기록이다. 임시DEV 필드/관측 보류는 최종source에서 제거하고 제품/lease/timeout/retry/skip·성공 판정은 유지한다. 명령·환경/source·선정/제외·검증·원격 미검증은 [ci2831](evidence/issue-667/ci2831-correction.json)과 [별도 원장](ISSUE_667_FAILURE_ANALYSIS.md)에 보존한다.
+
+## Issue #667 — CI #2829 Task hover의 현재 viewport 준비 (2026-10-16)
+
+#492의 Task hover Tooltip은 focus/scroll/영역 이탈 때 닫힌다. 테스트는 scrollIntoView 직후 후행 axis/native 보존 작업이 끝났다고 가정하지 않고, 첫 hover 전에 현재 API/revision/scale·URL rootTask scope의 semantic/delivery 및 현재 Coordinator·실제 Core/native/geometry/hit가3실제RAF 안정적인지 확인한다. 첫 hover는1회이며 기존 canonical name/date/null·Grid/Chart 동일 내용·5000ms·readonly/Week/fullscreen/scope·mutation0을 유지한다. 실제 wheel 좌표 변화·root focus·root 밖 pointer leave에 의한 닫힘도 검증한다.
+
+[별도 누적 원장](ISSUE_667_FAILURE_ANALYSIS.md) 및 [ci2829](evidence/issue-667/ci2829-correction.json)에 이전 원장 비교·원본 visible FAIL과 로컬 name FAIL·후행 scroll 계측·최종 source/명령/결과·미검증을 분리 저장한다. 제품 close 정책·CI/retry/skip을 바꾸지 않으며 새 exact-Head 원격 전체 Required·Owner 승인은 별도다.
+
+## Issue #667 — CI #2827 Week header의 실제 focus 진입 (2026-10-16)
+
+ISO independent oracle은 Escape로 Tooltip을 닫은 뒤 가상화로 재사용된 같은 focused DOM에 `.focus()`를 호출한 것을 새 keyboard 진입으로 간주하지 않는다. 기존 `주` toolbar control로 focus 이동을 확인하고 현재 날짜 셀로 다시 진입한 뒤 원래 ISO year/week·포함월·반개구간/월1일·좌표±1px·5000ms·mutation0을 검증한다. Escape 뒤 Tooltip0과 해당 cell focus 유지도 확인한다. 제품정책/자동Tooltip재개·timeout/retry/skip은 변경하지 않는다.
+
+원본·진단1FAIL과보완single1PASS·최종선택회귀는 [별도누적분석](ISSUE_667_FAILURE_ANALYSIS.md) 및 [ci2827](evidence/issue-667/ci2827-correction.json)에 source별로 저장한다. 같은문서의증상인덱스/재개6단계부터읽어이전원인과새실패를구분한다. 선택은Timeline lane전체·Core/viewport/scale·Copykeyboard/Escape와Header/ISO관련Unit이며원격Required전체와Owner승인은별도다.
+
+CI #2827 확대 geometry에서 발견한 제품 회귀는 별도 검증한다. axis 등록의 Core/native 불일치 뒤 native가 뒤로 clamp된 경우를 새 forward로 승격하지 않으며, 두 등록 baseline을 함께 넘는 진짜 native forward는1회 수락해야 한다. API-only/tagged/stale/1px 경계 및 실제 wheel/pointer/keyboard 취소를 유지한다. 원본 guard의 새 음성 Unit FAIL→교정 PASS와 readiness/timeout/단언을 바꾸지 않은 원래 geometry3사례 PASS, 최종 Timeline/viewport/Copy/Resource 교차 검증을 source별로 기록한다.
+
+## Issue #667 — CI #2825의 native 입력 순서 검증 (2026-10-16)
+
+`milestone-dashboard-state.spec.ts`의 독립 native Y→X 입력은 먼저 세로값이 public Core/native 모두에 반영됐는지 확인한 뒤 가로값을 주입한다. 설치 SVAR의 세로 commit은 Chart X를 현재 Core X로 동기화하므로 DOM 설정 완료를 Core 처리 완료로 취급하지 않는다. 초기 `(120,96)`과 필터 복귀 뒤 `(180,128)`, 이후 필터/layout/same-instance·기존5000ms 단언은 유지한다.
+
+원본 CI FAIL·원본 단독 비재현 PASS·같은 tick 양축 주입의 재현 FAIL과 교정 결과는 [#667 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md), [교정 원장](evidence/issue-667/ci2825-correction.json), [Work Packet](exec-plans/active/ISSUE_667.md)에 source별로 분리한다. 변경 fixture 전체와 viewport의 실제 wheel/축 확장·필터 복귀, Copy·Resource/scale 소비자를 선택하고 제품 알고리즘 Unit 추가는 N/A다. 의도적 pending-axis native 입력 회귀는 유지하며 임의의 동시 양축 wheel 전체 지원을 이 fixture 교정의 PASS로 확대하지 않는다. 새 exact Head의 원격 Required CI는 별도이며 이번 종료점은 CI 시작 확인이다.
+
 ## Issue #697 — 변경 영향 기반 로컬 검증과 교차 회귀 선정 (2026-10-16)
 
 이 절은 **PR 게시 전 로컬 선택·교차 검증의 단일 원본**이다. [AGENTS](../AGENTS.md)는 역할·적용 시점, [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md#922-변경-영향과-테스트-증거-기록-697)는 Work Packet 필드, [#697 시범 Work Packet](exec-plans/active/ISSUE_697.md)은 #667 사례를 제공한다. 기존 도메인 테스트, GSC SC-01~14 및 #661/#667/#574의 수용 기준을 대체하지 않는다. 영향을 받지 않은 경로도 제외 이유를 기록한다.
@@ -437,7 +487,7 @@ CI policy에 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py`와
 ## Issue #637 — 독립 Grid 스크롤·projection 회귀 (2026-10-12)
 
 - 원형 fixture1440×1000/revision40→41/NEW-570/422 fallback/insert-before를 수정 없이 먼저 실행하고, 원본 실패 artifact·trace와 비교한다. 우연히 PASS한 단일 실행으로 Release #165.1의 실제 FAIL을 무효화하지 않는다.
-- Grid/Chart header/body/row/bar rect와 각 native pane·Core/Gantt scrollTop을 별도로 관찰하여 실제 viewport 중심 차이≤1px를 유지한다. 독립 Grid overflow/focus·scrollIntoView 유발 경로를 deterministic fixture로 검사하고 실제 불일치 음성 oracle가 TIMED_OUT으로 끝나는지 확인한다.
+- Grid/Chart header/body/row/bar rect와 각 native pane·Core/Gantt scrollTop을 별도로 관찰하여 실제 viewport 중심 차이≤1px를 유지한다. 독립 Grid overflow/focus·scrollIntoView 유발 경로를 deterministic fixture로 검사하고 실제 불일치 음성 oracle가 최신 rows 관측의 TIMED_OUT으로 끝나는지 확인한다. #667 이후 실패 관측과 성공 영수증은 별도이므로 성공 receipt의 실패게시를 기대하지 않는다.
 - 기존 canonical-projection의 삽입·삭제/재부모화·Summary 접힘/빈 Summary·필터/metadata, Day/Week와390/768/1024/1440/1920px, 동일 instance/columns/selection·snapshot 의도 외 mutation0을 관련 fast-feedback으로 확인한다. 범위별 실행 수와 미검증은 Work Packet에 기록한다.
 - Core private write·강제 remount·wait/retry 추가·1500ms/5s 확대·±1px 완화·skip/CI shard·required gate 변경은 허용하지 않는다. Local PASS와 원격 exact Head required3종·Trusted·Owner ACCEPT는 구분한다.
 
@@ -1072,7 +1122,7 @@ DB 테스트는 schema21→0022에서 원래 Task/status/progress/Link/Assignmen
 - Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
 - Chromium E2E: `project-gantt-density.spec.ts`에서 Day `cellWidth=36`, Week 68, Grid 480px, 390/768/1024/1440px document overflow 부재를 확인한다.
 - `project-gantt-scale.spec.ts`는 Day 숫자-only Header와 #315/#316 Tooltip, Day↔Week identity 회귀를 확인한다. SVAR의 horizontal virtualization은 Week focus·viewport resize 뒤 어떤 구체 Day 날짜 또는 ISO week label이 DOM에 남을지 보장하지 않으므로 특정 날짜/W38 복귀를 강제하지 않고, 동일 instance에서 Day scale은 숫자-only, Week scale은 `Wxx` 형식으로 각각 복원되며 반대 scale cell이 제거되는지 검증한다. 이어 native `scrollTo()`로 Chart를 오른쪽 끝까지 3회 이동하여 매번 `data-gantt-timeline-end`가 증가하는지 확인한다. 각 확장 뒤 Gantt/API instance identity와 non-zero horizontal scroll을 유지하고 POST/PATCH/PUT/DELETE가 발생하지 않아야 한다.
-- 구현은 React `end` prop state 갱신을 사용하지 않는다. 고정 start/open end에서 public `resize-chart`의 scale expansion을 사용해 range 확장 자체가 Core store re-init, selection/column/filter reset을 일으키지 않도록 한다.
+- 구현은 React `end` prop state 갱신을 사용하지 않는다. Core가 계산하는 start/open end에서 public `resize-chart`의 scale expansion을 사용해 range 확장 자체가 Core store re-init, selection/column/filter reset을 일으키지 않도록 한다.
 - #373 scoped view의 `filter-tasks`와 최신 #384 다중 selection, #390 Copy ID Context Menu가 우측 range 확장/scale 전환 때문에 풀리거나 사라지지 않는지 전체 Chromium 회귀로 확인한다.
 - canonical Task end 또는 기존 사용자 future end가 Core 재계산 후 더 멀면 public resize path로 최소 end를 복구한다. Scheduling/Calendar/Dependency, Project revision, API/DB는 변경하지 않는다.
 - 공식 전체 회귀 판정은 최신 main 정렬 후 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
@@ -1597,7 +1647,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | UI03 | 빈 Project에서도 좌측 Grid와 우측 Chart가 보이고, 첫 Task/Milestone 생성 성공 직후 reload 없이 Grid row와 Chart bar/milestone이 모두 표시 |
 | UI04 | 단일 SVAR instance에서 Grid tree와 Chart row·세로 scroll이 동기화되고 parent/open/snapshot 순서가 유지 |
 | UI05 | 1440×900 이상 Desktop에서 Project route가 가용 폭을 사용하고 Gantt 높이가 viewport 규칙을 따르며 Grid/Chart Resizer가 유지 |
-| UI06 | Task mutation 실패·canonical 재조회 실패·401에서 optimistic ghost 없이 양쪽이 마지막 확정 snapshot으로 복원 |
+| UI06 | Task mutation 실패 뒤 최신 세대의 canonical GET 성공이면 확인된 서버 상태로 같은 instance를 동기화. 조회 실패·오래된 응답은 UNKNOWN 안내·초안·추가 mutation0을 유지하고 명시적 최신 조회로만 복구하며 과거 snapshot 재생/reset/remount 금지. 401은 readonly 전환·보호 쓰기 차단 |
 | UI07 | Direct access는 Readonly이고 unlock 전 create/delete/drag/resize가 보호되며 unlock 뒤만 기존 Task API를 사용 |
 | UI08 | create/move/좌우 resize/delete 뒤 reload 시 Grid 값과 Chart 위치가 동일 canonical server 상태와 일치 |
 | UI09 | 390×844 좁은 viewport에서 focus 가능한 Gantt 내부 horizontal scroll로 Grid와 Chart 모두 접근 가능하고 document body overflow가 없음 |
@@ -3068,7 +3118,7 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 
 - Unit: `task-hover-tooltip.test.ts`에서 canonical `ProjectTaskDto.start/end`가 공통 locale formatter를 사용하고 날짜 미설정 Summary는 `—`로 표시되는지 검증한다.
 - Chromium: `project-task-hover-tooltip.spec.ts`에서 Grid/Chart 동일 Task의 작업명·시작일·종료일 parity, Task/Summary/Milestone, date-less Summary, Week, fullscreen, WBS scope, readonly를 검증한다.
-- viewport 밖 Task/Milestone은 먼저 `scrollIntoViewIfNeeded()`로 위치를 확정한 뒤 hover한다. 제품은 scroll 중 기존 Tooltip을 닫는 계약이므로 Playwright `hover()`의 내부 auto-scroll과 hover 이벤트를 하나의 gesture로 결합해 오탐하지 않는다.
+- viewport 밖 Task/Milestone은 먼저 `scrollIntoViewIfNeeded()`를 수행하고, 현재 API/revision/scale/URL scope의 projection/Coordinator·실제 Core/native·geometry/hit가3실제RAF 정착한 뒤 최초 hover를1회 입력한다. `scrollIntoViewIfNeeded()`만으로 후행 scroll 완료를 가정하지 않는다. 제품은 scroll 중 기존 Tooltip을 닫는 계약이며 scroll/focus/영역 이탈 닫힘을 별도 음성 회귀로 유지한다. 필터 편집0인 이 spec의 filterKey 검증은 fresh receipt의 안정성 범위다.
 - app-owned delegated hover는 `TASK_TARGET_SELECTOR`의 Grid row/Chart bar를 canonical taskId로 resolve하며 Core API/렌더 anchor에 의존하지 않는다. hover 중일 때만 Task Tooltip DOM이 존재하고 Header focus·scroll·영역 이탈 시 제거되어 #315/#316 Header Tooltip과 `role=tooltip`이 중복되지 않아야 한다.
 - 회귀: #315/#316 Header Tooltip, Context Menu, double-click Editor, Chart drag/dependency interaction을 PR 전체 E2E gate에서 함께 판정한다.
 - #490/#456 Gantt 상태 보존 회귀는 hover 표시/닫힘 전후에도 horizontal/public viewport·tree·column·scale·selection·fullscreen이 유지되는지 기존 `task-editor-form-density.spec.ts`를 함께 판정한다. Tooltip state는 child layer에 격리되어 부모 Gantt render를 발생시키지 않아야 한다.
@@ -3898,3 +3948,64 @@ SC-11의 Resource→detail→Editor/일정→복귀와 관련 저장/실패/취�
 - 현재 correction의 DOCUMENTATION_SYNC는 실제 diff의 UPDATED와 구체적인 N/A 근거를 검증한다. 과거 feature PR #684의 문서 변경을 correction의 증거로 재사용하지 않으며 scheduling 계산 변경이 없는 이유를 명시한다. base validator와 gate는 그대로 사용한다.
 - `tests/e2e/milestone-timeline-lane.spec.ts`는 native probe identity와 React/layout 및 viewport coordinator 준비를 독립 확인한 뒤 진단 명령을 호출해야 한다. init 직후 또는 stale API/cleanup 상태를 ready로 수락하지 않는다. 기존 5초 readiness·1000 Task+2000 Milestone·peer Chart/Grid scroll/fullscreen/resize/geometry·mutation0 assertion을 유지한다.
 - Local Fast Feedback은 원격 full PR 3 required aggregates·Trusted QA·Owner 승인과 별도다. 원본 Main #2771.1 및 PR #2773.1 FAIL은 불변이며 새 Head의 결과로 소급 PASS하지 않는다.
+
+## Issue #667 — 제품 정합성 로컬 회귀와 원격 인계
+
+신규 `tests/e2e/gantt-state-product-integration.spec.ts`는 기존 isolated-application의 실제 Chromium·HTTP·SQLite를 사용한다. page.route는 응답 오류/단절을 주입하고 route.fetch 및 별도 APIRequestContext GET으로 실제 commit 성공·미성공을 구별한다. 네 unknown-result case는 mutation 자동 재시도0, 최신 조회 실패 시 추가 편집 차단, 명시 조회 성공·동일 API/컴포넌트 인스턴스 및 후속 이름 저장만 반영됨을 검증한다. native Milestone 행/bar·canonical 보존/marker 미활성의 별도 case를 둔다.
+
+기존 `project-task-persistence.spec.ts`의 GET실패 block은 명시적 재조회 뒤 원래 Bar<0.5px·Grid 날짜·동일 instance 검사를 수행한다. 422/412/500의 GET성공 rollback 검사를 완화하지 않는다. 기존 reorder/Calendar/viewport/search/scale/Resource·Target 관련 회귀와 전용 adapter Unit을 실행 범위에 맞춰 선택한다.
+
+실제 명령·case 수·실패/재검증·SC-01~14 추적 및 전체 미검증 행렬은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다. 로컬 선택 회귀는 공식 quality/e2e/docker·Trusted QA·Owner ACCEPT를 대체하지 않는다. 사용자 요청에 따라 CI 결과 모니터링은 하지 않는다.
+
+#667 추가: `gantt-state-recovery-editor.spec.ts`는 동일 Revision clean 재조회 두 번의 semantic 재사용/새 attempt/쓰기0, Editor 내부 unknown 초안·취소·명시 재조회·새 revision의 name-only 저장, 실제 edit/add 뒤 축 확장의 full canonical·접힘·선택·Link·같은 인스턴스를 검사한다. Editor가 열린 동안 native Gantt 잠금은 정상이며 conflict 복구와 modal 잠금을 혼동하지 않는다. 실제 native add의 비preorder canonical 배열과 취소 축 taint 실패는 Work Packet의 원본 실패·보완 원장을 따른다.
+
+U1/U2/U4 이전 캡처는 immutable source snapshot 매핑과 전체 dependency tree 비교로 역사적 provenance를 유지한다. 현재 source 캡처로 조용히 repin하지 않으며 신규 U5 제품 실행과 별도로 분류한다.
+
+SC-05 역전 GET 사례는 Resource 최신 일정 조회의 실제 SQLite snapshot을 hold한 뒤 Task commit/응답 500·최신 조회 실패를 주입한다. 옛 GET 전달 뒤에도 UNKNOWN 안내·추가 편집 차단·자동 재전송 0을 유지하고 명시 최신 조회만 회복하는지 검증한다. 명시 회복 전 모든 후속 GET을 실패시켜 background 조회의 순번에 의존하지 않는다.
+
+SC-14 marker OFF 사례는 실제 Core의 공개 serialize로 Task 1,000개·Milestone 2,000개·총 3,000개를 확인하고, 3회 SPA 홈/뒤로 가기의 독립 5초 readiness·이전 probe.ready=false·probe/public viewport 정리·document request 0·mutation 0을 검사한다. count만 읽고 기존 500개 진단 payload cap을 유지한다. 장기 heap/전체 listener 누수 검증은 별도 NOT TESTED다.
+
+추가 SC-09는 RANGE APPLYING·실제 native capacity 증가 후 관측 RAF를 hold하고 실제 wheel을 전달한다. release 뒤 old RANGE SUPERSEDED·후속 resize 0·옛 위치 replay 0·Core/native 일치를 검사한다. 주입한 것은 관측 타이밍이며 geometry/완료 결과를 mock하지 않고 모든 callback을 finally에서 해제한다. 모든 scroll 호출 전수 검증과 구분한다.
+
+#667 CI #2811.1 correction은 `milestone-dashboard-state.spec.ts`의 원본 peer120/96·완료count1·3frame·5초 단언을 유지한다. `gantt-state-product-integration.spec.ts`는 실제 두 탭 metadata 저장/storage event/canonical GET으로 최신 성공 뒤 stale/500 recovery가 다시 잠그지 않음과, cross-tab pending/500일 때 UNKNOWN 잠금·추가PATCH0·명시 최신 조회만 회복하는 음성 경계를 추가한다. 원본 E2E shard3 FAIL과 다른5shard 취소·미실행을 보존하고 새 Head Full CI를 별도로 시작한다.
+
+#667 CI #2812.1의 반복 삭제 stale/unavailable 회귀는 확정 삭제 보존 후 UNKNOWN 안내·메뉴 Delete disabled·추가 DELETE0을 검사한다. route 해제 후 APIRequestContext GET만으로 복구하지 않고 UI 명시 최신 조회 성공→같은 Core/접힘/scale/좌표→두 번째 삭제와 기존 revision 검사를 유지한다. 원래90초와 Milestone 관리120초·skip/retry 정책은 변경하지 않는다. Milestone-only 회귀는 빈 프로젝트 생성→숨긴 Gantt에 첫 Milestone 추가→상세/소속/관계 조회→일정의 native행/bar→같은 API로 Dashboard 복귀·추가 mutation0·별도 readonly401을 함께 검증한다.
+
+#667 CI #2813 원본은 `grid-task-start-reveal.spec.ts` 첫 #514 readonly/day/normal에서 pointer 이동 전에 DEV 관측 start=null을 읽어 실패했다. probe는 현재 계산된 scale 원점(Week 정렬 우선)을 사용하며 기존 getFullYear/날짜pixel·startVisible·root/nested·readonly/edit·Day/Week·전체화면·5폭·peer/wheel/filter/context/keyboard 검증을 유지한다. 테스트 timeout·skip/retry·단언을 완화하지 않고 #514 전체16사례와 관련 viewport/scale/첫 Milestone을 선택 재실행한다.
+
+#667 CI #2814 및 누적 실패는 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)에 연결한다. 최신 연결 reset의 근인은 UNKNOWN이며 원본 로컬 비재현은 원격 PASS가 아니다. `milestone-stage-dashboard.spec.ts`의 UI 이후 canonical 확인3곳은 observer를 거친 같은 출처 browser fetch/no-store로 실행하며 HTTP200·유효 JSON·revision+1·Membership/KPI·readonly·viewport 계약을 유지한다. seed APIContext GET도 직접 관측하고 재시도는 추가하지 않는다. 실패 출력은 status·템플릿 route·allowlist error.code만 허용한다.
+
+`resource-milestone-views.spec.ts`의 취소 child409 음성 회귀는 임의100ms 대신 해당 request의 ERR_ABORTED·route 처리 완료·실제8RAF 뒤 ready/alert0을 검사하고 finally 정리·완료 첨부를 남긴다. 진단 Unit은 설치 Next 메시지3종의 고정 enum·ANSI/prefix 처리·변조/자격증명/위조 JSON 거부·byte/record 한도·lifecycle 분리·재시도0을 검증한다. 경고 문자열은 worker 재시작 증거가 아니다. 관련46파일260사례를 로컬 `max-failures=0/retries=0/workers=1`로 넓혀 뒤쪽 실패까지 조사한다. 공식 원격6-shard/fail-fast/required gate는 그대로이며 실행 수치·정적 적정성 감사·source hash는 새 교정 원장에 기록한다.
+
+종합 감사의 추가 P2: `milestone-management-persistence.spec.ts`의 past/future 날짜는 fresh Project calendar로 createWorkingCalendar→nextWorkingDay를 사용해 근무일 입력을 선택한다. 주말만 피하면 평일 공휴일의 정상 일정 이동 때문에 strict 날짜 단언이 false FAIL하므로 사전조건을 바로잡는다. 합성 휴일2026-12-25(금)→12-28(월)을 독립 실증했고 strict start=end=requestedDate·Day/Week 각각3회 확장·coverage·readonly 검증을 유지한다. 첫 광역4-source fingerprint와 Copy 제품 보완까지 포함한 최종source/49파일 재실행을 구분하며 달력 실제 SQLite3사례는 최종 광역에 포함한다.
+
+추가 제품 회귀 #384: 원본 다중 Copy/Paste의 exactX46→0 FAIL을 광역 및 단독으로 재현했다. 기존 canonical 순서·내부/외부 Link·revision·열폭·접힘·same instance·reload/restart·4폭 및 exactX 단언을 유지한다. copy-only capsule의 검증/수용한 confirmed revision·현재 U2 proof·원래 gesture/intent/API/비데이터 context를 Unit의 정상/음성 경계와 실제 pending copy 중 wheel로 검증한다. 최종 광역은 원래46파일에 shared Hierarchy/Editor의 project-task-persistence/project-task-editor/project-task-editor-persistence3파일을 추가한49파일이며 원본 FAIL을 별도 보존한다. 정확한 사례 수/실행 결과는 새 교정 원장을 따른다.
+
+Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 보완의 WAIT_PROJECTION 중 즉시X 검사 실패를 보존하고, copy dispatch 전 intentEpoch 상한 이후의 이번 PASSIVE_RESTORE·현재 revision/receipt generation SETTLED와 Core exactX/native±1을 명시적으로 기다린 뒤 원래 exact nativeX를 검사한다. 비데이터 context/환경 왕복은 요청별 폐기 이력을 유지해 현재값이 돌아와도 재승인하지 않는다. pending 실제 wheel 및 scale 왕복·등록 후 sourceCurrent 폐기/예외/기존 미설정 경계는 추가 음성 검증 대상으로 유지한다. route hold는 finally release/unroute하며 viewport 예외를 HTTP mutation 재시도로 바꾸지 않는다.
+
+확대 회귀의 canonical query receipt 보완: `canonical-projection.spec.ts:255`는 search 뒤 queryChanged=true만 승인해 초기 generation1을 새 검색으로 오인한 원본 FAIL을 보존한다. search 전 generation/filterKey 이후의 새 generation·새 filterKey·현재 revision/SETTLED/queryChanged=true·정확한 filtered logical/Core 행 ID를 확인한 뒤 기존 tree/selection/layout 단언을 수행한다. 제품 source·timeout/skip/retry 불변이며 수정 파일21사례 재검증을 다른48파일의 동일 제품 source 광역 결과와 구분한다.
+
+실제 Calendar DTO fixture는 exceptions가 존재하면 holidays 호환 projection을 비우고 createWorkingCalendar에 전달하며 exceptions undefined인 legacy holidays는 유지한다. 두 필드를 그대로 넘겨 DUPLICATE_CALENDAR_EXCEPTION이 발생한 보완 중 FAIL을 보존하고 validator/DTO/일정 알고리즘은 바꾸지 않는다. 검색 receipt21+Milestone actual3의 변경2파일24사례 보완을 검증하며 Resource 공유 port 제품 보완 이후에는 관련 광역 회귀를 새 source로 다시 실행한다.
+
+확대 Resource 원본 통합의 X=31→30 FAIL은 Coreexact 계약 위반으로 보존한다. 초기8실제 프레임은 Core/native31 일치를 입증했고 복귀 시 native capacity31/Core capacity30이었다. 준비 단계는 retained end 검사를 capacity 조기 반환보다 먼저 수행하고 Core exact target·native target±1 수용 범위를 함께 확인한다. extent 변경 뒤에는 양쪽 capacity3프레임, 모든 경로에는 apply 직전 공동 capacity 재검사와 최종3실제 프레임 Core exact/native±1 정착을 요구한다. 실제 물리 geometry 미확인·비유효 값·비호환 명령의 부족 범위는 fail-closed이며 원래 source/current/U4 PRESERVE·새 projection 조건을 유지한다. 공유 port 보완 뒤 최종299 실행의 완료 근거가 없어 NOT TESTED로 기록하고 핵심7파일56사례는56 PASS/0FAIL/0SKIP/0flaky로 별도 검증했다. 이전260/299 원본 FAIL 및 source와 구분하며 공식 전체 회귀는 새 PR CI에서 판정한다.
+
+
+#667 CI #2817의 SC-01 원본은 첫 Editor 재조회 GET200/U2 no-op SETTLED 이후 observation3이 유지된 실패다. 같은 revision의 새 observation·semantic reuse·Core 쓰기0·canonical/instance 보존 단언을 유지한다. 관측 scheduler의 held data queue·대기 중 queue 교체·복수 selection/layout trigger·cleanup/API 변경·queue 거부/callback 예외·자동 재시도0을 Unit으로 검사하고 기존 Editor 및 projection 관련 실제 Chromium을 선택 검증한다. Unit의 ordering 검증을 원격 원인의 직접 재현으로 확대하지 않으며 로컬 원본 비재현도 원격 FAIL을 대체하지 않는다.
+
+
+#667 CI #2818 재발은 새 진단의 rows 완료 이후 semantic TIMED_OUT이다. 원본 source에서 실제 RAF 전달만90ms 늦춘 SC-01의 첫 재조회 실패를 재현하고, U3-only clock 분리 후 같은 변형·기존무지연 SC-01을 검사한다. 같은 semanticId/새 observation·Core쓰기0·canonical/인스턴스 보존 및 원래 timeout/retry/skip을 유지한다. frame helper Unit은50ms 이후에도 합성 성공 없이 실제 RAF만 true, 기존1500ms caller abort·hidden·cleanup을 확인한다. U3 자체 deadline까지 RAF가 오지 않으면 계속 TIMED_OUT이어야 하며 이를 PASS로 바꾸지 않는다. 원본/보완source와 원격세부원인 미계측 경계를 [이번 원장](evidence/issue-667/ci2818-correction.json)에 기록한다. 최신 사용자 요청에 따라 새 PR CI를 완료까지 모니터링한다.
+
+
+#667 CI #2819은 cross-tab stale SC-05의 마지막 실제 저장 확인 APIContext GET에서 ECONNRESET이 발생했다. 앞선 UNKNOWN/잠금·same API·후속 저장 단언은 통과했다. U5 통합5곳·Editor6곳의 UI후 canonical 확인을 `readBrowserCanonicalSnapshot`의 same-origin fetch/no-store·직접 observer로 교정하고 기존 #2814 stage helper를 공유한다. HTTP200·JSONvalid 및 각 원래 canonical DTO/name/revision/tasks/links 단언을 유지한다.
+
+감사는 spec의 literal62+공통seed helper2=64 inventory를 분류한다. 변경11 외 spec51/helper2는 seed/auth/API독립·다른context·route우회·재시작 persistence 또는 이번 U5 범위 밖으로 구분하며 전수 의미 검토·연결 오류 해소를 주장하지 않는다. browser fetch는 page.route를 통과하므로 교정한 각 호출은 실제 server continue/unroute 이후인지 확인한다. helper Unit은 단일 GET/no-store·HTTP/JSON/transport 실패 재전파·재시도0·상대 canonical 경로만 허용함을 검사한다. 원본 stale/500의 로컬 비재현과 새 source의 실제 HTTP/SQLite18사례를 구분하고 전체 회귀는 새 exact-head CI 완료로 판정한다. [이번 원장](evidence/issue-667/ci2819-correction.json)을 참조한다.
+
+
+#667 CI #2820의 #637 음성 테스트는 실제 rows TIMED_OUT에도 과거 성공receipt의 generation 증가를 기다려 실패했다. 원본 단독 재현 후 최신 delivery/SETTLED+semantic 존재를 baseline으로 고정하고 fresh rows TIMED_OUT·기존 성공receipt/semantic 불변을 검증한다. canonical fixture/current public Core/DOM IDs 및4개 row/bar의27.5px 차이·sameinstance/mutation0을 유지한다. 복구는 더 새 diagnostic delivery SETTLED/freshsemantic observation(semanticId재사용허용)/실제정렬로 검사한다. 관련projection-row-alignment13+canonical21+viewport8을 선택 실행하며 originaltimeout/retry/skip·production은 변경하지 않는다. [보완 원장](evidence/issue-667/ci2820-correction.json)에 원본 FAIL/변경source/최종결과를 분리한다.
+
+
+## Issue #667 / CI #2838 — Quick Filter Bookmark 물리축 축소 이후 회귀 (2026-10-16)
+
+- 원본 #2838.1 E2E shard4 `viewport-coordinator.spec.ts` #571은 초기 bookmark X120·Milestone empty X0은 성공하고 '전체' 복귀 X120은 NO_SCROLL_CAPACITY/X0으로 실패했다. 필터 중 작은 실측 width(952/client905)와 이전 성공 axis receipt의 width(1972)는 별개다.
+- **제품 계약:** FILTER_RETURN의 원래 bookmark intent는 한 번만 적용하며, 현재 Core/native 양쪽 수용 용량과 최신 projection receipt·3-frame geometry가 반드시 맞아야 한다. filter-tasks/layout이 첫 준비 이후 축을 축소하면 같은 current lease·SOURCE에서 허용되는 단 1회의 보완 준비를 수행하고, 그 이후 다시 receipt+geometry를 확인한다. 아직 부족·새 사용자 wheel·scope/query/API 변경·불확정 Core 상태면 fail-closed하며 stale bookmark를 재적용하지 않는다. 기존 PEER_RETURN과 SC-07/08/09, U4 source taint/MaxExtensions 계약은 유지.
+- 회귀 선택: 기존 #571 bookmark120→0→120 및 휠취소/Scope/Columns unit과 Chrome, #456/#570 metadata, #549 Week, Resource peer/Copy 관련 실제 소비자; Core/native(각각 충분·한쪽 부족), latest attempt/receipt, 축 축소 뒤 새 확장 실패·취소 음성. timeout/skip/retry·required 6-shard 및 공식 Quality/E2E/Docker 정책 변경 없음.

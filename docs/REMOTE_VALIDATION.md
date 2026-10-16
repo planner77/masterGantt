@@ -1,3 +1,9 @@
+## Issue #667 — CI #2825 실패와 새 PR 검증의 분리 (2026-10-16)
+
+[원본 #2825.1](https://github.com/planner77/masterGantt/actions/runs/38841181071)의 Head `6bec3a1098e603b9db9968d2206af95df12ac126`에서 Quality/Docker PASS, E2E/QA Automated FAIL을 보존한다. shard3의 `milestone-dashboard-state.spec.ts:191`은 `(180,128)` 대신 `(120,128)`로 실패했고 다른5 shard는 취소됐다. 원본 source artifact/Run API의 event base `ee6365bf57ab637b4c0aca61fdedaf5148253052`와 test merge `464aba6c364bf52eb87ec848537304f910696fd9`의 실제 first parent `fd219130491c53d054754eac41a58e4a6a3da0c6`을 구별한다. artifact의 문자열만으로 출처를 승인하거나 값을 수정하지 않는다.
+
+최신 main을 포함하는 후속 Head를 게시한 뒤 새 `pull_request` Full CI의 Run/Attempt·Head/base/test merge를 다시 확인한다. 로컬 fixture 순서 교정·선택 회귀/사전 검토는 원격 전체 PASS가 아니다. 사용자가 요청한 이번 종료점은 **새 CI 시작 확인**이며 required Quality/E2E/Docker·Trusted QA 완료, Owner ACCEPT·병합·Main/GHCR/Release는 NOT TESTED/별도다. 원본 실패 재실행으로 새 source를 검증했다고 하지 않는다. 상세 원장은 [교정 증거](evidence/issue-667/ci2825-correction.json)를 따른다.
+
 ## Issue #622 — CLOSED 이력 완료 복구 원격 검증 시나리오 (2026-10-15)
 
 - Baseline: #622 Owner CLOSED 2026-10-15T09:01:16Z, bot FINAL 0, PR #684/#686/#691 branch3개 PRESENT. #665/#666 bot FINAL/branch cleanup/Issue CLOSED 유지. 릴리스 `v0.114.0` annotated tag = #686 SHA `1449190af8d4f97d4737d17ae67e9dcb044549a7`, GHCR Release #170.1 성공. GitHub Release 별도 객체는 미확인.
@@ -202,6 +208,10 @@ PR #685 재개: [원본 #2772.1](https://github.com/planner77/masterGantt/action
 ## Issue #550 후속 — 격리 E2E 실패 진단의 증거 경계 (2026-10-12)
 
 [CI #2524.1](https://github.com/planner77/masterGantt/actions/runs/38181808391)의 #461 GET ECONNRESET은 연결 오류 증거다. 프로세스 종료·OOM·기능 회귀 원인을 확정하지 않는다. 후속 fixture는 cleanup 전 bounded 안전 JSON을 실패 report에 첨부한다. PID/generation·exit/signal·expected shutdown, 별도 stdout/stderr allowlist 기록, test-side 호출과 기존 서버 requestId 완료 기록,1회 readiness probe·이용 가능한 숫자형 자원 수치를 구분한다. 서버 request-start 계측·raw stderr/stack·headers/cookies/body/query/env/DB는 수집하지 않는다. 단일 exit137이나 완료 로그 부재는 OOM/요청 미도착의 확정 근거가 아니다. probe·진단 수집은 business 재시도가 아니며 원래 실패를 rethrow한다.
+
+Issue #667 CI #2814 후속은 설치 Next의 정확한 메시지3종만 `MEMORY_RESTART_WARNING` / `SERVER_START_FAILURE` / `TURBOPACK_INTERNAL_ERROR`로 분류한다. 원문·추가 문자열·위조 JSON·자격증명은 버리며 기존 bounded append와 lifecycle 기록을 유지한다. 경고는 실제 exit/restart 증거가 아니고 동일 PID의 두 snapshot도 연속 생존 증명이 아니다. 직접 관측 APIContext/browser fetch의 네트워크·HTTP·JSON 실패를 구분한다. 원본 ECONNRESET의 근인은 UNKNOWN이며 로컬 비재현·readiness200·RSS 수치만으로 OOM/재시작/keep-alive 원인을 확정하지 않는다. [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)의 안전한 원본 필드와 별도 원장을 참조한다.
+
+Issue #667 CI #2817은 같은 revision Editor GET200/U2 no-op 완료 뒤 새 U3 관측 완료/영수증 재전달 미확인으로 실패했다. 원본 출처 artifact·run/PR/test-merge 부모/Tree를 교차 확인한 [보완 원장](evidence/issue-667/ci2817-correction.json)에 quality/Docker SUCCESS·E2E FAIL·취소/미실행 및 직접 근인 UNKNOWN을 보존한다. 로컬 원본 비재현과 큐 순서 보완을 원격 직접 원인의 재현 또는 새 CI PASS로 확대하지 않는다.
 
 수집 JSON/trace의 로컬 증거와 GitHub Actions report artifact는 별개다. 실제 새 exact-head CI의 Quality/E2E6/Docker·Trusted 결과 전에는 공식 PASS가 아니다. 기존 원격 FAIL과 baseline 환경 FAIL을 숨기지 않으며 timeout·retry·skip/필수 gate를 변경하지 않는다.
 
@@ -772,3 +782,20 @@ Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate ch
 원본 [CI #2773.1](https://github.com/planner77/masterGantt/actions/runs/38642502958), run `38642502958`, attempt `1`, Head `9a9a4907d9d19848aab5c02a359338f51da2678d`, base `bd54205741da65a0211cf77f9cb086d3cdb1ab2a`, test merge `28fc90438cade34fc8c535307ea7827c07933cc3`는 QA Preflight의 DOCUMENTATION_SYNC FAIL이다. Work Packet의 최초 기능 PR UPDATED 선언이 correction의 변경 파일에 포함되지 않아 차단됐다. Quality/E2E/Docker 구현은 SKIPPED, 필수 집계는 FAIL이며 애플리케이션 실행 결과로 바꾸어 기록하지 않는다.
 
 현재 correction의 문서 영향 기록 및 P2 독립 layout-readiness를 보완한 새 Head를 같은 PR에 게시하여 synchronize Full PR CI를 시작한다. 원본 base validator·3 Required aggregates·6-shard·timeout·geometry·권한·GHCR 정책은 유지한다. 리뷰 스레드 해결과 최신 main 충돌 검사를 수행하고 새 run ID/attempt/Head/base/test merge의 시작 상태를 기록한다. 사용자 요청에 따라 결과 모니터링을 수행하지 않으며 새 Quality/E2E/Docker·Trusted QA 최종 결과는 NOT TESTED다. 병합·Main GHCR·정식 릴리스 및 Issue 종료는 별도 승인·검증 단계다.
+
+
+## Issue #667 / CI #2818 — 재발 분석과 원격 완료 모니터링
+
+최신 사용자 요청은 새 Full PR CI 완료까지의 모니터링을 포함한다. 이전 시작까지만의 작업 범위 문장은 해당 실행의 이력이다. 원본 #2818은 Quality/Docker SUCCESS·E2E FAILURE이며 stage 진단으로 semantic TIMED_OUT을 확인했다. 원본 코드의 실제90ms RAF 지연 재현과 U3-only clock 보완·새 Head 원격 결과는 [보완 원장](evidence/issue-667/ci2818-correction.json)/Issue·PR 진행 기록에 분리한다. 원격 CPU/실제 RAF false의 세부 원인은 직접 계측되지 않았다. 새 CI의 run/attempt/Head/base/test merge 및 세 Required aggregate 완료 판정을 확인하며 취소·미실행·이전 source 성공을 최신 PASS로 사용하지 않는다. CI 성공도 Owner 병합 승인·main artifact·release 승인을 대신하지 않는다.
+
+
+## Issue #667 / CI #2819 — 완료 모니터링의 새 전송 실패
+
+CI #2819 완료 결과는 Quality/Docker PASS·E2E FAIL이며 SC-05 최종 APIContext GET의 ECONNRESET을 기록한다. 취소 shard1의 원격 로그에서 SC-01 정상/실제RAF90ms가 각각 개별 PASS였으므로 U3 frame 보완의 부분 증거로 보존하되 shard 전체는 CANCELLED다. APIContext GET의 직접 observer 부재·process/resource 두 snapshot·건강 probe 성공만으로 OOM/재시작/keep-alive 근인을 확정하지 않는다.
+
+후속은 U5 UI후 확인11곳의 browser transport 공유·직접 observer이며 원본 HTTP/SQLite 저장 단언과 무재시도를 유지한다. seed/auth/독립 API/route우회/재시작 검증은 분류 후 보존한다. [보완 원장](evidence/issue-667/ci2819-correction.json)에 원본 진단·source·호출 감사·선택 검증을 기록하며 다시 게시한 exact-head Full CI를 완료까지 모니터링한다. 새 결과는 같은 SHA의 Issue/PR STATUS로 인계하고 CI 성공을 Owner ACCEPT나 main/release 결과로 확대하지 않는다.
+
+
+## Issue #667 / CI #2820 — Grid Y 음성 테스트 관측 계약
+
+CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음성 관측 rows/TIMED_OUT과 성공receipt old SETTLED가 동시에 존재했으며 구 테스트는 성공receipt에서 실패게시를 기다렸다. 원본 trace/단독 FAIL과 테스트 교정·선택42 검증을 [원장](evidence/issue-667/ci2820-correction.json)에 기록한다. Trusted 실패도 원본CI FAIL 때문이며 Owner gate와 혼동하지 않는다. 새 Head Full CI를 완료까지 확인하고 같은 SHA의 Issue/PR STATUS로 원격 결과를 인계한다.

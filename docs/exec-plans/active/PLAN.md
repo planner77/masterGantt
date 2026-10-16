@@ -1,3 +1,39 @@
+## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
+
+2026-10-16 CI #2840 후속: 최신원격728c의외부3커밋과ci2837/ci2838원장을보존해동기화했다. 실제실패는Core exact/native±1기존계약과신규native119거부Unit의불일치이며제품정책은유지한다. 경계5개와FILTER_RETURN재준비취소/1회상한5개를검증하고Unit173·viewport8·별도Copywheel1의출처를분리한다. 환경중단과실제FAIL·미실행을원장에보존한뒤리뷰/충돌·main재확인후새FullPRCI시작까지수행한다.
+
+2026-10-16 CI #2835 후속 최종: 공통계약6개 test source에서 Unit117·Chromium43 PASS, predicate전수감사의기존exactX/순서/nonempty복원과실험/중단source분리완료. 최종source·문서/원본/남은adapter후보는ci2835원장에보존한다. 2026-10-16 CI #2835 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)과 사용자가 제공한 공유 분석을 참조했다. 최신 실패는 검색 전 Week/U3 SETTLED·31IDs 일치에도 용량47px로 목표120px을 수용하지 못한 준비 단계이며, 이전 검색 취소와 다르다. 현재 문맥/관측/작업 완료와 동작별 수용 조건을 공통 read-only 계약으로 나누고 정상 소비자 감사·통제 반례·동결 source 검증을 수행한다. main 정렬·리뷰/충돌 재확인 후 같은 PR의 새 Full CI 시작까지만 진행한다. HIGH/OWNER_MANAGED·QA_FINAL/Owner ACCEPT NOT TESTED·MERGE_READY BLOCKED는 유지한다.
+
+2026-10-16 CI #2833 후속: [별도원장](../../ISSUE_667_FAILURE_ANALYSIS.md)과ci2831/ci2829/ci2827부터비교했다. 원본metadata저장전120기대/46실제를재현했고setter직전capacity47→즉시native47 browserclamp를직접계측했다. 검색이진행중WeekRANGE를취소하는계약은유지하며기존Week정착→첫검색fresh2IDs→최초120입력1회로fixture순서를정리한다. 원본/진단과보완중fixture3FAIL·중간PASS를분리보존하고최종6spec50교차회귀/사전검토/리뷰·main충돌확인뒤새FullPRCI시작까지수행한다.
+
+2026-10-16 CI #2831 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)의 재개6단계와 ci2827/ci2829를 먼저 비교했다. 원격768 Day geometry PASS 후 Week reveal은SUPERSEDED였고 당시delivery는day/rowsPENDING이었다. 원본768·자연5폭 비재현PASS와24actualRAF 통제경합FAIL을 분리하고 원격 직접 취소UNKNOWN을 유지한다. 임시진단원복 후 현재Week semantic/delivery·실제axis 준비를 첫 reveal 전에 확인하는 test-only 보완과 관련 교차/취소 음성을 검증한다. 새 증거는ci2831에 보존하며 리뷰/충돌·main 확인 뒤 새FullPRCI 시작까지만 수행한다.
+
+2026-10-16 CI #2829 후속: [별도 원장](../../ISSUE_667_FAILURE_ANALYSIS.md)의 증상 인덱스/재개6단계부터 이전 원인과 새 Task hover 실패를 비교했다. Milestone Tooltip 생성 뒤 후행 native scroll이 기존 정책에 따라 닫는 순서를 로컬에서 계측했다. 첫 hover 전 현재 API/receipt/Coordinator/Core-native·geometry/hit의 실제 정착을 확인하는 test-only 보완과 scroll/focus/leave 닫힘 음성을 검증한다. 원본 visible FAIL·로컬 name FAIL을 구별하고 새 source/증거를 ci2829에 보존하며 리뷰/충돌 확인 후 새 Full PR CI 시작까지 수행한다.
+
+2026-10-16 CI #2827 후속: 새로운ISO week header Tooltip 부재를 원본단독에서도재현했다. Escape뒤같은focused셀DOM을날짜가상화가재사용한상태에서focus()를다시호출해새focusin이없었던fixture전제를교정한다. 기존ISO/date/geometry·5000ms·제품정책은유지하고실제blur→focus와Escape닫힘/포커스유지를검증한다. 확대38/3에서발견한Week native clamp오분류도Core/native양baseline비교로교정했고최종source3의Unit250·Chromium56이PASS했다. [별도누적실패분석](../../ISSUE_667_FAILURE_ANALYSIS.md)에증상인덱스·재개절차·run별원장을보존하며최종선택검증/사전검토/리뷰0·main정렬후새FullPRCI시작까지만수행한다.
+
+2026-10-16 CI #2825 후속: 원본 shard3의 public/native180→120 FAIL을 보존한다. 원본 trace에서는 Coordinator 추가 쓰기 없이 세로128만 반영됐다. 설치 SVAR의 세로 commit이 native X를 Core X로 동기화하는 경계를 같은 tick 양축 주입으로 재현했고, 독립 입력 사이 Core/native 완료 barrier를 두는 fixture 교정을 검증한다. 제품/CI 변경0, 최신 main `fd219130491c53d054754eac41a58e4a6a3da0c6` 이력 보존·리뷰0 확인 후 새 Full PR CI 시작까지 수행한다. 최종6spec42 PASS·기존Unit206 PASS이며 원격 전체/Owner ACCEPT는 별도다. 아래 완료 모니터링은 과거 실행 이력이다.
+
+CI #2820은 quality/Docker PASS·E2E FAIL이며 #637 음성 테스트의 실패 관측/성공 영수증 관측 대상 불일치가 원인이었다. 원본을 재현하고 최신 실패진단·current Core/DOM·strict Y불일치/복구 oracle를 유지해 테스트만 교정한다. 최종관련42 PASS·typecheck/lint PASS를 확인했고 독립 검토 후 같은 PR에 게시하여 새CI 완료까지 모니터링한다.
+
+CI #2819 완료 모니터링은 quality/Docker PASS·E2E FAIL이었다. 원격 SC-01 정상/90ms는 개별 PASS이며 새 실패는 cross-tab stale SC-05 최종 APIContext GET의 ECONNRESET이다. U5 UI후 canonical 확인11곳을 실제 서버 검증이 보존되는 browser 전송 helper로 교정했고 관련18·Unit17 PASS를 확인했다. seed/auth/독립API·route우회·재시작은 구분한다. 새 source·문서·독립 검토 후 다시 Full CI를 완료까지 모니터링한다.
+
+2026-10-16 CI #2818 재개: 동일 SC-01 재발의 semantic TIMED_OUT을 단계 진단으로 확인했다. 원본의 실제 RAF90ms 지연으로 같은 실패를 재현했고 U3-only frame clock 분리 후 지연 변형을 포함한 선택41·Unit76 PASS를 확인했다. 원래1500ms/120frame/3안정frame·U2/U4 viewport50ms·기존 단언을 유지하며 새 Full PR CI 완료까지 모니터링한다. 병합·release는 별도다.
+
+2026-10-16 CI #2817 REWORK: Editor 같은 revision 재조회에서 HTTP200/U2 no-op 완료 뒤 새 U3 관측 완료/영수증 재전달 미확인을 확인했다. 관측 요청을 최신 데이터 큐 뒤에 모으는 순서 보완과 단계 진단을 추가했고, 동결 source의 Unit71·Chromium40 PASS를 확인했다. 기존 단언·timeout/retry/skip은 유지한다. 당시 U3 실패 outcome이 없어 원격 직접 근인은 UNKNOWN이며 이전 #2814 전송 오류와 구분한다. 새 Full PR CI 시작까지가 요청 범위다.
+
+2026-10-16 종합 재개: [누적 실패 분석](../../ISSUE_667_FAILURE_ANALYSIS.md)에 최초 로컬 실패·CI #2811~#2814를 연결했다. 첫46파일260사례에서 Copy scroll46→0을 추가 재현·보완하고, Unit51파일714 PASS 및 Copy/wheel/scale왕복3 PASS를 확인했다. 확대49파일299사례는294 PASS/4 FAIL/기존1 SKIP으로 완료했다. 검색 영수증과 Calendar DTO fixture24 및 추가 Resource31→30 복원 strict1을 교정 후 PASS했다. 최종15파일 동결 source의 Unit723 PASS, 최종299 광역은61번 PASS 관측 뒤 완료 보고서 없이 종료되어 NOT TESTED이며 같은 source의 핵심7파일56사례는56 PASS/0FAIL/0SKIP/0flaky로 별도 검증했다. 최신 reset 근인은 UNKNOWN이며 원본/중간 FAIL과 source를 구분한다. 리뷰/충돌 확인·새 Full PR CI 시작까지만 수행한다.
+
+이전 재개: CI #2813.1 quality/docker PASS·e2e FAIL의 DEV Grid reveal 관측 원점을 설정 start에서 계산된 날짜축으로 보완한다. #514 전체 및 관련 선택 회귀·독립 사전 검토·리뷰/충돌 확인 후 같은 PR의 새 Full CI를 시작한다. 원본 실패·이전 증거와 최종 승인 미검증을 유지한다.
+
+2026-10-16 후속: CI #2812.1 quality/docker PASS·e2e FAIL을 재현하고 반복 삭제 UNKNOWN 복구 fixture와 빈 프로젝트 첫 Milestone 이후 잠금 원인을 보완한다. 원본 두 실패와 이전 증거를 보존하고 새 Full CI 시작까지만 진행한다.
+
+2026-10-16: PR #695 원본 CI #2811.1은 quality/docker PASS·e2e shard3 FAIL/다른5shard CANCELLED다. fresh visible receipt와 cross-tab 실패복구 generation/UNKNOWN 잠금을 보완하고 실제 재현·음성 경합·독립 사전 검토 후 같은 PR의 새 Full CI를 시작한다. 완료 모니터링·병합/릴리스는 제외한다.
+
+[Work Packet](ISSUE_667.md): #548 marker-last 결정에 따라 main `29c86ca918baa1811bc12a3eb60f86ffc5406b40`에서 U2 actual-Core 복구/U3 semantic observation/U4 axis transaction을 실제 제품에 연결한다. frontend가 Gantt/Workspace/Coordinator/port의 단일 작성자이며 Manager는 문서·버전·실제 HTTP/SQLite E2E, 별도 qa_docs는 read-only 사전 검토를 담당한다. 기존 native Milestone 행/bar와 marker 미활성을 유지하고 #552 표시 UI를 중복 구현하지 않는다.
+
+PATCH0.114.1 후보, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 실제 로컬·사전 검토와 원격 required3/Trusted QA/Owner ACCEPT를 구별한다. 사용자 요청에 따라 구현·문서·미해결 리뷰/충돌 해결·원격 PR 게시까지 진행하며 CI 모니터링·병합·Main/GHCR·정식 release/tag·Issue 종료는 하지 않는다. #675 미병합 source를 복사하지 않고 main #686 진단 계약·원본 실패·#666390px/clamp 한계를 보존한다.
+
 ## #548 / 2026-10-15 — Milestone native WBS 행 제거는 먼저, 상단 marker는 선택적 마지막 단계
 
 [Milestone Presentation Policy](../../MILESTONE_PRESENTATION_POLICY.md)와 [Gantt State Remediation](GANTT_STATE_REMEDIATION.md)의 최신 결정이 이 단계별 표시 활성화에 우선한다. 도메인 #459~#464·#550 Dashboard·#613 Resource/Target MVP는 유지한다.

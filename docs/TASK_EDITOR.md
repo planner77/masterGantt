@@ -365,3 +365,10 @@ Assignment 편집 명령은 개인 이름·배정 ID를 표시하고 Resource �
 exact 진입에서는 해당 개인만 표시하고 배정 대상 선택을 잠근다. 기간/allocation 저장은 기존 assignments PUT의 optional `editAssignmentId`와 단일 resource target으로 요청한다. generic 전체 교체를 호출해 다른 개인의 ID를 재생성하지 않는다. 선택 Assignment ID와 다른 개인/Group의 ID·날짜·allocation=null·비활성 원본은 보존된다. 같은 값이면 server no-op이며 최신 Project/catalog revision 및 오류 처리는 [API](API.md)를 따른다.
 
 Resource에서 열린 Editor는 실제 trigger와 origin을 전달해 닫기/취소 후 유효한 표시 컨트롤로 focus를 돌린다. 저장 후 report는 새 canonical revision으로 갱신하거나 stale로 잠근다. 편집 결과가 기존 필터에서 탈락하면 그 사유를 안내하고 연결되지 않거나 hidden/inert인 과거 행에 focus를 강제하지 않는다. dirty 확인·pending 중복 방지·권한만료·409/412·불명확 응답의 초안 보존과 명시 재조회는 기존 정책을 따른다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 UI/HTTP/Unit 검증 범위를 기록한다.
+
+
+## Issue #667 — 저장 결과 확인 전 Editor 제한 안내
+
+서버 저장 결과와 최신 조회를 확인할 수 없는 UNKNOWN에서는 Editor 초안을 유지하고 추가 저장 및 하위 Resource/관계/물류 mutation을 잠근다. 명시 최신 조회와 취소는 실제 전송 pending과 구분해 사용할 수 있다. 이 상태의 제한 안내는 저장 결과 확인이 필요한 사유를 표시하며 프로젝트 편집 권한이 없다는 안내로 대체하지 않는다. 실제 401/readonly의 기존 권한 안내는 유지한다.
+
+최신 조회가 성공하면 Editor base revision과 canonical을 갱신하고 conflict 잠금을 해제한다. 열린 modal 자체의 native Gantt 잠금은 유지하며 modal을 닫은 뒤 native 편집을 재개한다. 조회 전에 보존한 초안을 자동 저장하거나 이전 요청을 재전송하지 않는다. 실행 범위와 source별 증거는 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
