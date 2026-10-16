@@ -37,6 +37,12 @@ npm run verify:prepr -- --mode=diagnose --base=origin/main --issue=699 --pr=695 
   --failure-log=.prepr-failures/issue-695.json
 ```
 
+변경된 `src/server/**`는 실제 해당 모듈을 직접 import하는 Unit/Integration 테스트를 선정한다. 일반적인 HTTP smoke만 존재하고 직접 검사 파일을 입증하지 못하면 **BLOCKED/UNKNOWN**이다. 삭제·rename된 test는 `git diff --no-renames`에서 옛 경로를 보존해 **MISSING** 처리하고, `tests/config` 및 공통 E2E fixtures/helpers 등 미등록 테스트 하네스 변경 역시 **BLOCKED**한다. 영향 계약이 불명확한 변경을 자동 성공 처리하지 않는다.
+
+브라우저 모드(`targeted`, `ci-like`, `diagnose`)에서는 `PLAYWRIGHT_CHROMIUM_EXECUTABLE` 사용자 지정 실행 파일을 **검증되지 않은 바이너리**로 간주해 거부한다. 환경변수를 해제하고 Playwright에 고정된 headless-shell을 설치한다. JSON의 `chromiumRevision`은 패키지가 요구하는 **예상 revision**이며 실제 브라우저 버전이나 실행 성공의 증거가 아니다. Chromium PASS는 테스트 실행 로그/Trace에서 별도로 확인한다.
+
+변경 대상에 과거 Core 캡처 비교 `tests/fixtures/gantt-state-consistency/capture-install.ts`가 포함되면 세 가지 역사적 Unit과 Pre-PR guard 테스트를 선정한다. 새 개발 전용 npm alias `verify:prepr`의 **정확한 명령만** 비교 시 제외하고 모든 과거 capture snapshot·의존성·기타 npm script·lockfile의 엄격한 검사는 유지한다.
+
 `--include`는 실존하는 `tests/` 테스트 파일만 허용한다. `--exclude=파일:사유`는 선택 목록에서의 제외와 근거를 기록한다. 영향을 받은 producer의 자동 매핑이 없거나 rename/missing test가 있으면 **UNKNOWN/BLOCKED**이며, 제외·선택만으로 위험이나 원격 Required 범위를 자동 완화하지 않는다. Manager가 실제 계약/소비자 수를 다시 확인해 매핑·테스트를 보강해야 한다.
 
 ## 3. 진단 이력 입력 (실제 GitHub 근거를 **사용자가 수집**)
