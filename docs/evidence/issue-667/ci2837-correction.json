@@ -1,0 +1,64 @@
+{
+  "issue": 667,
+  "pr": 695,
+  "classification": "normal-input-test-prerequisite-race",
+  "sourceType": "GitHub Actions original logs plus saved Playwright trace",
+  "original": {
+    "run": 38870387493,
+    "runNumber": 2837,
+    "runAttempt": 1,
+    "head": "5b1b0f4187064a2d4797771c851103969a685362",
+    "base": "fd219130491c53d054754eac41a58e4a6a3da0c6",
+    "testMerge": "7eefffbc8e038e163458aed6a955dcfd1949ffa6",
+    "quality": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qaAutomated": "FAIL",
+    "failedJob": 116873483182,
+    "shard": 4,
+    "test": "tests/e2e/viewport-coordinator.spec.ts:142",
+    "assertionLine": 161,
+    "expectedCoreLeft": 120,
+    "actualCoreLeft": 0,
+    "passed": 139,
+    "failed": 1,
+    "existingSkipped": 1,
+    "notRun": 3,
+    "otherShards": "5 SUCCESS"
+  },
+  "observations": [
+    "Native capacity>=120 predicate does not establish current axis transaction/semantic delivery",
+    "original trace at first input indicates RANGE_EXTENSION/APPLYING and U3 rows/PENDING",
+    "later Core/native left=0 after scroll-chart left=0; final writer provenance unresolved",
+    "fast Milestone filter and bookmark return not reached in failed case"
+  ],
+  "changes": [
+    "One WBS scoped test consumer uses existing read-only readiness evaluator with API/revision/scope/scale/canonical identity",
+    "Wait current RANGE/semantic/geometry + dual Core/native capacity before first left=120",
+    "If terminal-ready and capacity insufficient, explicit real wheel once as in #456/#570",
+    "Preserve original exact120, filter/return/wheel/no mutation assertions",
+    "Add Unit negative for sufficient capacity during APPLYING and pending rows"
+  ],
+  "tests": {
+    "staticSourceReview": "PASS",
+    "localTypecheck": "NOT TESTED",
+    "localVitest": "NOT TESTED",
+    "localChromium": "NOT TESTED",
+    "officialNewHead": "NOT TESTED",
+    "reason": "This environment has read/write GitHub access but no runnable cloned repository; full validation delegated to required PR CI"
+  },
+  "nonChanges": [
+    "production",
+    "shared readiness helper",
+    "time budgets",
+    "retry/skip/assertion thresholds",
+    "workflow/required checks",
+    "release authority"
+  ],
+  "remainingRisks": [
+    "Actual origin of scroll-chart left=0 remote event is not independently instrumented",
+    "Normal scoped WBS E2E after readiness not yet executed on new Head",
+    "Intentional in-flight user wheel must remain covered by unchanged tests"
+  ],
+  "sourceHeadBefore": "5b1b0f4187064a2d4797771c851103969a685362"
+}

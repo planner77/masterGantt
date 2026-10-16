@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { evaluateGanttReadiness, waitForGanttReadiness, type GanttReadinessExpectation } from "./helpers/gantt-readiness";
 import { editor, setup } from "./fixtures/task-editor-density";
 
 test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다", async ({ page }, info) => {
@@ -153,12 +154,36 @@ test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤
     core: (Reflect.get(element, "__masterganttPublicViewport") as { left: number }).left,
     native: element.querySelector(".wx-chart")!.scrollLeft,
   }));
-  // Axis preparation is now observed asynchronously. Establish actual native
-  // capacity before setting the nonzero bookmark; the exact 120px assertion
-  // below and all return/user-cancel assertions remain unchanged.
+  // #667 CI #2837: raw native capacity can grow during RANGE_EXTENSION while
+  // U3 rows are still PENDING. Both must settle before the first 120px input.
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  expect(apiInstance).toBeTruthy();
+  const axisContext: GanttReadinessExpectation = {
+    operation: "observe", api: apiInstance, revision: fixture.project.revision, scale: "week",
+    scope: fixture.tasks[0].taskId, query: "", queryWitness: { kind: "unchanged" },
+    canonicalIds: fixture.tasks.map(task => task.taskId),
+  };
+  const beforeAxis = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  const admission = evaluateGanttReadiness(beforeAxis, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  // Stable current scale does not itself guarantee 120px. As in #456/#570,
+  // prepare insufficient capacity with exactly one explicit, actual wheel.
+  // The read-only waiter never writes, retries an input, or revives old intent.
+  if (!admission.accepted) {
+    expect(admission.coreCapacity, "WBS initial Core capacity must be measurable").toBeGreaterThan(0);
+    expect(admission.nativeCapacity, "WBS initial native capacity must be measurable").toBeGreaterThan(0);
+    await chart.hover();
+    await page.mouse.wheel(120, 0);
+    await expect.poll(() => chart.evaluate(element => element.scrollLeft)).toBeGreaterThan(beforeAxis.native.left);
+    const expanded = await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+    expect(expanded.currentWork?.kind).toBe("RANGE_EXTENSION");
+    expect(expanded.currentWork?.phase).toBe("SETTLED");
+    await info.attach("wbs-explicit-axis-setup", { body: JSON.stringify({ beforeAxis, admission, expanded, input: "wheel-once" }), contentType: "application/json" });
+  }
+  await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
   await expect.poll(() => chart.evaluate(element => element.scrollWidth - element.clientWidth)).toBeGreaterThanOrEqual(120);
   await chart.evaluate(element => { element.scrollLeft = 120; });
   await expect.poll(async () => (await viewport()).core).toBe(120);
+  await expect.poll(async () => (await viewport()).native).toBe(120);
   const quick = page.getByRole("group", { name: "작업 유형 빠른 보기" });
   await quick.getByRole("button", { name: "Milestone", exact: true }).click();
   await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);

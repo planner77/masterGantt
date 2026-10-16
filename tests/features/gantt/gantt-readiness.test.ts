@@ -56,6 +56,23 @@ describe("operation별 Gantt 준비 계약", () => {
     expect(evaluateGanttReadiness(snapshot, { ...expected, operation: "date-reveal" }).blockers).toContain("DATE_AXIS_NOT_MEASURABLE");
   });
 
+  it("WBS 초기 입력은 native 용량이 충분해도 RANGE 진행·최신 rows 대기를 허용하지 않는다", () => {
+    const { snapshot, expected } = fixture();
+    snapshot.core!.width = 1800;
+    snapshot.native.capacity = 894;
+    snapshot.currentWork = { apiInstance: "a", kind: "RANGE_EXTENSION", phase: "APPLYING" };
+    const requested = { ...expected, operation: "scroll" as const, targetLeft: 120 };
+    const duringRange = evaluateGanttReadiness(snapshot, requested);
+    expect(duringRange.admission.accepted).toBe(true);
+    expect(duringRange.ready).toBe(false);
+    expect(duringRange.blockers).toContain("CURRENT_OPERATION_BUSY");
+    snapshot.currentWork = { apiInstance: "a", kind: "RANGE_EXTENSION", phase: "SETTLED", outcome: "SETTLED" };
+    snapshot.latestAttempt = { generation: 10, stage: "rows", outcome: "PENDING" };
+    expect(evaluateGanttReadiness(snapshot, requested).blockers).toContain("LATEST_ATTEMPT_rows_PENDING");
+    snapshot.latestAttempt = { generation: 10, stage: "delivery", outcome: "SETTLED" };
+    expect(evaluateGanttReadiness(snapshot, requested).ready).toBe(true);
+  });
+
   it("현재 Week SETTLED와 목표120의 수용 가능성을 구분하며 attempt와 semantic 번호를 혼동하지 않는다", () => {
     const { snapshot, expected } = fixture();
     expect(evaluateGanttReadiness(snapshot, expected).ready).toBe(true);

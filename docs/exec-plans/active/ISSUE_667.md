@@ -770,3 +770,12 @@ N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPE
 추가 settings/transfer exact 좌표 후보는 정적 감사만 수행했고, 복수 물리 UI 작업 완료가 용량 보장 실증은 아니므로 잔여 capacity 전제는 미검증으로 남긴다. 비영점 baseline·기존 buffer 준비·SC-14/3000행·의도적 경합에는 기계 이관하지 않는다. DEV reader500개 한계와 실제 이관 fixture31/10/5개 범위를 유지한다. 제품3파일·공유fixture/config13·package/lock·이전14개 증거 불변을 확인하고 기본after 캡처/생성 설정을 복구한다. 최종 명령/환경·각 source/report 해시·선정/제외·PRE_QA/DOCUMENTATION_SYNC·새 원격 미검증 경계는 ci2835를 따른다.
 
 별도 qa_docs `/root/pre_review`의 최종 PRE_QA=PASS / DOCUMENTATION_SYNC=PASS, 미해결 지적0이다. 변경6test/6docs와 실제117/43 원문·source·복구를 직접 대조했으며 Reviewer 재실행은 없다. 원래 capture88(after86+Editor2) bytes/exactset과 generated2파일을 복구했다. 최종 typecheck·6파일ESLint(오류/경고0)·Markdown229·version0.114.1·diff PASS다. E2E는TZUTC/context별시간대, Unit은TZunset/IntlAsiaSeoul로 구분한다. HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT NOT TESTED·MERGE_READY BLOCKED를 유지하며 새 Full PR CI 시작 출처는 게시 후 Issue STATUS에 연결한다.
+
+
+## CI #2837 후속 — #571 WBS bookmark 최초 X 입력 준비 조건 보완
+
+- 원본 PR #695 / [Full CI #2837.1](https://github.com/planner77/masterGantt/actions/runs/38870387493): Head `5b1b0f4187064a2d4797771c851103969a685362`; Quality/Docker PASS, E2E Shard4 `116873483182`에서 #571 `viewport-coordinator.spec.ts:161` Expected120/Actual0, 139PASS/1FAIL/기존1SKIP/3NOTRUN. 다른 Shard5 성공; QA Automated 파생 실패. 원본을 소급 PASS로 변경하지 않음.
+- 변경 영향 표: `viewport-coordinator.spec.ts`의 WBS scope+Week → 기존 native X 입력 → 빠른 Milestone 필터 bookmark, 검색 및 실제 wheel 취소. 기존 `gantt-readiness`의 제품 소비자는 유지; `gantt-readiness.test.ts`에 APPLYING/high capacity·rows PENDING 음성 계약 추가. 제품 공유 writer/Coordinator/서버·API/DB 계약 수정0.
+- 직접 검증 선정: #571 첫 native120 준비, Core/native120, filter120→0→120, wheel 후0, 검색 해제 후0, 동일 API·mutation0. 인접 검증: #456/#570 metadata 소비자, 기존 Viewport와 Gantt 축/peer 경합. 원본 상태 전이와 다르게 임의 sleep·retry·skip·timeout 증가를 허용하지 않음.
+- 문서 영향: `docs/ISSUE_667_FAILURE_ANALYSIS.md` 및 `docs/evidence/issue-667/ci2837-correction.json`, 현재 Work Packet **UPDATED**. `docs/TEST_PLAN.md`는 #697 영향 기반 테스트 선정과 기존 SC-07/08/09·#571 명세를 그대로 적용하므로 **N/A(정책 불변)**. `AGENTS.md`, DESIGN, API, DB_SCHEMA, SECURITY, SCHEDULING_ENGINE, REMOTE_VALIDATION, CI_CD, CHANGELOG는 정책·제품·사용자 노출 동작/버전 변경 없으므로 **N/A**.
+- 확인 사항: 변경 source의 TypeScript/Vitest/Playwright 로컬 실행은 GitHub 소스 조회 세션에서 실행 불가 → **NOT TESTED**, 통과 표시 금지. 자동화 CI는 새 Head 게시 후 별도 검증; 원본 아티팩트·기존 시도 증거 보존. qa_method OWNER_MANAGED/risk_level HIGH/qa_required true/release_required true/release_authorized false, MERGE_READY BLOCKED 유지.

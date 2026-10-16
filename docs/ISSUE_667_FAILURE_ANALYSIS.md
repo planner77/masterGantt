@@ -22,6 +22,7 @@ Refs #667
 | #2831 | Week 새 receipt 전 reveal 등록; 명령 중 semantic epoch 변경 경합 | [ci2831](evidence/issue-667/ci2831-correction.json) |
 | #2833 | 검색이 Week 확장 취소·초기capacity47에서120이clamp; metadata저장전fixture준비 | [ci2833](evidence/issue-667/ci2833-correction.json) |
 | #2835 | 첫 검색 전 Week/U3 SETTLED·31IDs 일치에도 capacity47; 현재 작업 완료와 목표120 수용 조건 분리 | [ci2835](evidence/issue-667/ci2835-correction.json) |
+| #2837 | Scoped WBS 빠른 필터 전 raw native capacity만 보고 120 입력; 동시 RANGE APPLYING/rows PENDING에 X=0 | [ci2837](evidence/issue-667/ci2837-correction.json) |
 
 ### 재개 순서와 기록 규격
 
@@ -34,7 +35,7 @@ Refs #667
 
 ## 판정과 범위
 
-2026-10-16 CI #2835 후속의 현재 요청 종료점은 공유 분석 참조·main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
+2026-10-16 CI #2837 후속의 현재 요청 종료점은 공유 분석 참조·main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
 
 CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 이전 2026-10-16 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함했다(과거 실행 이력). 병합·릴리스는 제외한다.
 
@@ -229,3 +230,13 @@ Tooltip 보완 source의 5spec41 실행은38 PASS/3 FAIL/0 SKIP/0 flaky/errors0(
 추가 Copy/Resource 보완은 Gantt/Workspace/내부 guard와 기존 Coordinator의 권한 제한·단일 port 준비 경로를 수정한다. API/DB/SVAR dependency/CI workflow 변경0이며, Copy 제품 결함 교정과 별개인 ECONNRESET의 근인 UNKNOWN을 해결 완료했다고 주장하지 않는다. 위험도 HIGH/OWNER_MANAGED, qa_required=true를 유지하며 실제 별도 qa_docs PRE_QA와 최종 QA_FINAL·Owner ACCEPT는 다르다. 새 exact-head Quality/E2E/Docker·Trusted QA·Owner 승인은 NOT TESTED, MERGE_READY=BLOCKED다. version0.114.1·release_required=true·release_authorized=false를 유지한다.
 
 최종 독립 사전 검토는 `/root/integration_tests` qa_docs가26게시파일·최종15source·원본 HTML56 전건/fixture24/Unit723·문서와 역사 증거를 대조해 PRE_QA PASS/DOCUMENTATION_SYNC 의미 검토 PASS·추가 지적0으로 판정했다. 복원 후 typecheck·Markdown228·version0.114.1·whitespace PASS, 변경 lint오류0·기존hook warning3이다. 이는 인간 QA_FINAL이나 새 Head 원격 전체 회귀 PASS·Owner ACCEPT가 아니다.
+
+
+## CI #2837 — WBS 범위 빠른 필터의 최초 120px 입력 전 관측·축 준비 경합
+
+- **원본:** [PR CI #2837.1/run38870387493](https://github.com/planner77/masterGantt/actions/runs/38870387493), PR #695 Head `5b1b0f4187064a2d4797771c851103969a685362`, base/main `fd219130491c53d054754eac41a58e4a6a3da0c6`, test merge `7eefffbc8e038e163458aed6a955dcfd1949ffa6`. Quality/Docker PASS, E2E/QA Automated FAIL. Shard4 job `116873483182` step7은 139 PASS / 1 FAIL / 기존1 SKIP / 3 NOT RUN이며 다른5 Shard는 Job SUCCESS. QA는 E2E 실패 이후의 파생 차단이다.
+- **최초 오류:** `tests/e2e/viewport-coordinator.spec.ts:142→161`, #571 WBS 빠른 필터 bookmark. 최초 `scrollLeft=120` 뒤 Core 120 기대에 실제 0, 기존5000ms 초과. 빠른 Milestone 필터·복귀·wheel 취소 단계는 **미도달**이므로 필터 복귀 버그로 단정하지 않는다.
+- **원인 분류:** 기존 fixture는 native `scrollWidth-clientWidth>=120`만 확인해 최초 120px 입력을 허용했다. 원본 report/trace에서는 그 시점 `RANGE_EXTENSION/APPLYING`, 최신 U3 `rows/PENDING`이고, 후속 `scroll-chart left=0`과 RANGE 정착에서 Core/native 0을 관측했다. 스크롤 용량은 증가해도 해당 단계가 끝났다는 보증이 아니다. 최초 X=0의 최종 writer/event 출처는 별도 전체 계측이 없어 **UNKNOWN**을 유지한다.
+- **보완:** #2835에서 도입한 `waitForGanttReadiness`/read-only evaluator를 이 기존 WBS 소비자에도 적용한다. 현재 scoped rootTask, API/revision, Week Core scale, canonical IDs, 최신 semantic/delivery, RANGE terminal, 3RAF 안정 geometry, Core/native target120의 공동 수용을 확인한다. 정착 후 용량 부족이면 기존 #456/#570 방식처럼 **fixture 밖의 실제 wheel 입력을 단 한 번** 사용하고 새 RANGE 완료를 기다린다. 첫 `scrollLeft=120`은 여전히 1회이고 Core/native 정확120, quick-filter bookmark120→0→120, 실제 wheel→0 및 검색 해제0·same API·mutation0을 유지한다. 의도적 전환/취소 테스트에는 준비 대기를 넣지 않는다.
+- **계약 회귀 추가:** 목표120의 Core/native 용량이 충분해도 `RANGE_EXTENSION/APPLYING`이면 거부하고, terminal SETTLED 이후에도 최신 `rows/PENDING`은 거부해야 한다. 최신 delivery SETTLED가 도달한 경우에만 준비 PASS다. timeout/retry/skip·공식 CI/lease/writer/API/제품 코드는 변경하지 않는다.
+- **검증 경계:** 이번 연결 환경에서는 GitHub 원본 Job 로그·선행 source·추적 증거와 코드/문서 구조를 대조하지만, 로컬 Node/npm 전체 저장소 실행 환경을 확보하지 못했다. 새 Source의 Unit/Chromium/Typecheck/Lint, QA·Trusted·Owner 및 전체 Required CI 결과는 새 공식 실행 전까지 **NOT TESTED**로 기록한다. 기존 #2835의 로컬 117/43 PASS를 새 source 결과로 합산하지 않는다. 신규 source/Run 출처는 Issue STATUS에 별도 추가한다.
