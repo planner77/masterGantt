@@ -17,7 +17,7 @@ issue_comment_writer: manager
 issue_comment_allowed_types: PLAN, STATUS, EXCEPTION, RESUME, FINAL
 documentation_owner: Manager
 
-2026-10-16 CI #2831 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
+2026-10-16 CI #2833 후속의 현재 요청 범위는 최신 main 정렬·미해결 리뷰/충돌 확인·원인 분석과 보완·새 Full PR CI **시작 확인까지**다. 아래 이전 요청의 완료 모니터링은 과거 실행 범위이며 이번 실행에는 적용하지 않는다. Owner ACCEPT·병합·Main/GHCR·정식 release/tag·Issue 종료는 별도다.
 
 최초 사용자 요청은 구현·관련 문서 동기화·미해결 리뷰와 충돌 해결이며 CI 결과 모니터링은 제외했다. 2026-10-16 후속 요청으로 실패한 PR CI의 원인 분석·보완 및 새 Full PR CI 시작까지 재개했다. 이전 2026-10-16 요청에서는 새 PR CI 완료 모니터링을 포함해 당시의 CI 시작까지만 범위를 대체했다(과거 실행 이력). 병합은 포함하지 않는다. 원격 branch/PR 게시 뒤 Required Quality/E2E/Docker, Trusted QA, Owner ACCEPT는 별도 판정한다. 병합·Main/GHCR·정식 release/tag·브랜치 정리·Issue 종료를 수행하지 않는다.
 
@@ -691,3 +691,49 @@ N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPE
 명령/환경/timeout예산·각HTML hash·source snapshot provenance는 ci2831 JSON에 고정했다. 일부진단snapshot은원본backup/실제편집스크립트로재구성해당시보존hash와대조한증거이며원격원본traceembedded 직접bytes확인과구분한다. timing reporter의FAIL제외 duration합0은실제실패시간0이아니므로HTML의2218ms와별도로구분했다. generated next-env/tsconfig는 HEAD bytes로원복하고생성bytes를Git밖에보존했다. 로컬선택/통제결과와공식새exact-Head전체Required·QA_FINAL/Owner ACCEPT는별도다.
 
 별도 qa_docs `/root/pre_review`의 PRE_QA=PASS / DOCUMENTATION_SYNC=PASS(이번7파일·선택55사례·Unit91의원문/소스대조한정), 미해결지적0이다. Reviewer별도재실행은없으며 HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를 유지한다.
+
+## CI #2833 후속 — metadata 저장 전 현재검색/Week capacity 준비
+
+별도원장의증상인덱스·재개6단계와ci2831/ci2829/ci2827을먼저읽었다. 기준Head `56349bd1d8a23900f38988439c7125b1dfdee4bb`, 포함main `fd219130491c53d054754eac41a58e4a6a3da0c6`, 원본run38855912664/attempt1/testmerge `d2fbf60e5724c8dcaa7e12b9b8733885b4e1d97b`를고정했다. shard5 초기120기대/46실제와원본/진단의nativecapacity47 browserclamp를분리기록하며metadata저장후결함으로분류하지않는다. shard2 E2EstepSUCCESS/82개완료와JobCANCELLED도구별한다.
+
+frontend `/root/viewport_fix`는관련fixture/test·browser/server단일작성/운영, infra `/root/ci_investigation`은원격read-only조사, qa_docs `/root/pre_review`는별도read-only PRE_QA, Manager는문서/통합/게시를소유한다. 기존13개evidence/output/capture를보존하고임시진단/generated설정은원복한다.
+
+### 변경 영향·선정·제외 및 DOCUMENTATION_SYNC
+
+| 경계 | 이번 조치·검증 |
+| --- | --- |
+| 직접전제 | 기존Week전환RANGE·현재U3/axis capacity≥120정착→첫검색현재query/정확2IDs/U3전달→최초native120setter1회. 새writer/range발행/후행재주입없음 |
+| 원본·후보 | 원본/읽기전용진단FAIL의clamp와첫후보bareUUID/DOMprefix혼동·정규화후capacity준비FAIL을별도source로보존 |
+| 직접·교차 | density전체7+canonical-projection21+viewport8+scale1+실제Editor persistence3+Copy10=discovery고유50/6spec. actualHTTP/SQLite13·mockAPI/실제SVAR37, 최종동일source결과는별도기록 |
+| 음성 | 최종직접선택은latezero차단/실제wheel우선·동일query빈집합0·SC-09wheel취소·Copy pending/filter/API/stale/실제412·추가mutation차단. scale중FILTER_INPUT취소는원본/진단관측계약이며제품취소source불변을확인하되별도최종취소음성PASS로확대하지않음 |
+| 제외 | 제품/공유helper/Calendar/Resource/서버auth변경0전제로해당전수재실행N/A. 이번원격geometry5폭/hover6/viewport463PASS와제품불변으로기존55전체반복N/A. 전체SC/공식새PRCI/환경별인수는별도 |
+
+UPDATE: 별도실패원장·새ci2833JSON·TEST_PLAN·Work Packet/PLAN·CHANGELOG. 원본/진단/후보/최종source·명령/환경·선정/제외·확정/인과추론경계를보존한다.
+
+N/A: ARCHITECTURE/PROJECT_UX/GANTT_ADAPTER_ADR/GANTT_SYNC_TRACE/GANTT_STATE_CONFORMANCE/MILESTONE_TIMELINE/TASK_EDITOR/DESIGN/UI_UX_GUIDELINES — 기존제품membership/geometry clamp·metadata보존/취소·단일writer·시각/interaction계약변경0. 테스트입력등록전제만정리한다.
+
+N/A: API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA_REVIEW_POLICY 및workflows/scripts/package/lock — 서버/권한/도메인/CI/QA/release/버전변경0. 실제remote실패/새시작출처는원장/IssueSTATUS로기록한다.
+
+현재main포함·미해결리뷰0·충돌0, 게시직전/직후재검증한다. 이번범위는보완·문서동기화후같은PR695의새FullPRCI시작확인까지다. HIGH/OWNER_MANAGED·qa_required=true/version0.114.1/release_required=true/release_authorized=false, QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를유지한다. 병합·Main/GHCR·release/tag·Issue/branch종료는별도다.
+
+Unit N/A: 제품/알고리즘/공유helper변경0이며새read-only fixture를모사한Unit은추가하지않는다. 원본exact-Head quality/Vitest PASS와최종density7·이전불변43참고교차증거·정적검사를구분한다. 이전선택Unit91을이번새Local PASS수에합산하지않는다.
+
+검증환경정정: 캡처분리용`ISSUE456_CAPTURE_PHASE=ci2833-final`이첫densitycase의기존`phase===after`geometry단언을우회함을발견했다. 해당동결run31PASS/1INTERRUPTED/18NOTRUN(exit130)은제품FAIL이아니며전체검증NOT TESTED로보존하고최종50에합산하지않는다. 기존after86파일/SHA를백업후기본after전체단언으로50을다시실행하며, 새after산출물을분리보존하고기존bytes를복구한다. 원본/진단#570단독은env미지정·해당case내phase분기0으로영향없다.
+
+환경중단범위정정: customphase 실행은density도달전에우회가능조건을발견해중단했다. 실제31PASS는canonical21+scale1+Copy앞9개, Copy마지막1INTERRUPTED·density7/실제Editor3/viewport8=18NOTRUN이다. rawHTML은ok=true/skipped19(중단포함)이지만전체검증PASS가아니며NOT TESTED로제외한다(report203262.704ms).
+
+### 확대 추가실패와 최종선정 조정
+
+기본after환경확대50은49 PASS/1 FAIL(FAIL외SKIP/flaky/global errors0, report413974.643ms)이며인접#456 active-name-filter metadata사례의저장전초기120기대/46실제가추가로실패했다. 같은capacity47·FILTER_INPUT취소/후행46보존을확인했고#570전체단언은PASS였다. 초기에동일setup의직접소비자하나를놓친것을교정하며원래49/1FAIL을보존한다.
+
+최종은동일file전용준비helper를#456/#570두사례에만재사용(+56줄), density7을기본after/원래모든단언으로재검증한다. 다른5spec43은해당source/runtime/공유fixture/config HEADbytes불변을확인해앞선참고교차증거로유지한다. 최종7과43을합산한새50PASS 또는단일최종source50runPASS로표시하지않는다. 전체새PRCI는이최종Head의별도원격검증이다.
+
+### 최종 source의 실제 증거
+
+최종source는densityspec1개(+56줄), SHA256 `1055c1261d6688ea4f6aa310044de5bde59a0ffa47e864c03cb35e8c90092da0`, fingerprint `6d37bc283e22881233c1b8d65d699b0c422a59e3de178c3dae29650ff154c404`이다. 최종density7 PASS/0 FAIL/0 SKIP/0 flaky/global errors0·retry0, report35049.085ms/test합31143ms다. 앞선정상after확대49/1FAIL·다른불변5spec43참고교차증거와분리하며합산한새50PASS를주장하지않는다. 해당43은실제HTTP/SQLite Editor3+Copy10과mock canonical21+viewport8+scale1이다.
+
+기본after·PLAYWRIGHT_BASE_URL unset, Node22.14.0/Playwright1.63.0/Chromium153.0.8010.12, workers1/retries0/maxFailures0, 기존expect5000ms/test30000ms·density120000/90000ms·Copy90000/180000ms를유지했다. 최종첫case의원래overflow기하단언15회/footer버튼높이20회를HTML에서대조했다. 새capture environment는after/UTC·이번mtime로확인했고density기존86파일·Editor기존2PNG bytes/set을정확복구, 이번새768/1024PNG는archive후원위치에서제거했다. generated next-env/tsconfig도HEAD bytes로원복했다.
+
+typecheck/변경spec lint(오류·경고0)/Markdown229/version0.114.1/diff PASS. 제품/공유fixture/config·기존13개evidence불변과source drift0을확인했다. Unit은제품/알고리즘변경0으로N/A이며이전Unit91을이번PASS에합산하지않는다. 원본/진단/보완중3FAIL·중간PASS·환경중단·확대49/1·최종7의실제명령/환경/source/HTMLhash/각시간은ci2833 JSON에분리보존한다.
+
+별도qa_docs `/root/pre_review`의 PRE_QA=PASS / DOCUMENTATION_SYNC=PASS(이번7파일/최종density7·이전불변43참고·원문증거대조한정), 미해결지적0이다. Reviewer별도재실행은없으며HIGH/OWNER_MANAGED·QA_FINAL/Owner/Manager ACCEPT=NOT TESTED·MERGE_READY=BLOCKED를유지한다.

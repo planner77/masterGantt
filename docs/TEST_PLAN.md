@@ -1,3 +1,9 @@
+## Issue #667 — CI #2833 metadata 초기 viewport 준비 (2026-10-16)
+
+`task-editor-form-density.spec.ts`의 #456 active-name-filter/#570 metadata 두 사례는 기존Week전환이 시작한RANGE/currentWeek U3·실제Core/native좌표일치·nativecapacity≥120을첫검색전에읽기전용확인한다. 이후첫검색의현재query·예상2ID·U3semantic/delivery·geometry정착을확인하고native120을처음한번만주입한다. 검색전31IDset·receipt logical/Core DFS순서일치와virtualizedDOMsubset/order를검사하며전체DOM/fixture배열순서를강제하지않는다. 검색후2IDexact는유지한다. 첫검색만있는이fixture에서filterKey는freshreceipt안정성범위이며전수filter인수가아니다.
+
+metadata복원120·늦은non-user nativezero차단·실제wheel0↔120·동일query빈집합0·동일API·#456 PATCH1/#570 PATCH2와기존5000ms를유지한다. 초기용량47에서120을할당한원본clamp를후행제품restore문제로분류하거나기대46완화/후행120재주입하지않는다. 원본/진단에서관측한전환중검색취소계약은유지하고최종별도취소음성PASS로확대하지않는다. 실제wheel취소음성에는준비gate를적용하지않는다. 원본/진단2FAIL과보완중fixture3FAIL·정리후단독PASS·정상after확대49PASS/1FAIL·최종density7을분리하고선정/제외·source/명령/환경·원격미검증은[ci2833](evidence/issue-667/ci2833-correction.json) 및[별도원장](ISSUE_667_FAILURE_ANALYSIS.md)에보존한다. 변경없는다른5spec43의앞선교차증거는별도참조하며최종7과합산한새50PASS로표시하지않는다.
+
 ## Issue #667 — CI #2831 Week geometry reveal 등록 전제 (2026-10-16)
 
 geometry 검증은 scale control 클릭·lane visible·probe.ready만으로 현재 날짜 의미의 준비를 승인하지 않는다. 첫 reveal 전에 현재 API/revision/scale의 U3 semantic/delivery receipt와 실제 날짜축·geometry가 일치하는지 읽기 전용 확인한다. 최초 reveal1회·기존 STRICT SETTLED·좌표/clip/행±1px·동일 instance/mutation0을 유지한다. 의도적 pending/wheel 취소 음성은 이 준비 gate를 적용하지 않는다.

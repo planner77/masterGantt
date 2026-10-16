@@ -20,6 +20,7 @@ Refs #667
 | #2827 | Escape 뒤 같은 focused 셀의 focus 전제 오류 + scale clamp의 native-forward 오분류 | [ci2827](evidence/issue-667/ci2827-correction.json) |
 | #2829 | Task hover 뒤 후행 native scroll로 정상 close; 첫 hover 전 viewport 정착 전제 | [ci2829](evidence/issue-667/ci2829-correction.json) |
 | #2831 | Week 새 receipt 전 reveal 등록; 명령 중 semantic epoch 변경 경합 | [ci2831](evidence/issue-667/ci2831-correction.json) |
+| #2833 | 검색이 Week 확장 취소·초기capacity47에서120이clamp; metadata저장전fixture준비 | [ci2833](evidence/issue-667/ci2833-correction.json) |
 
 ### 재개 순서와 기록 규격
 
@@ -32,7 +33,7 @@ Refs #667
 
 ## 판정과 범위
 
-2026-10-16 CI #2831 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
+2026-10-16 CI #2833 후속의 현재 요청 종료점은 main 정렬·리뷰/충돌 처리·원인 분석과 보완 후 새 Full PR CI 시작 확인이다. 아래 완료 모니터링은 이전 실행의 요청 이력이다. 새 Head의 원격 검증 완료·Owner ACCEPT·병합·릴리스로 확대하지 않는다.
 
 CI #2811~#2814의 원본 E2E FAIL은 보존한다. 네 실행은 서로 다른 경계에서 실패했으며 하나의 SVAR 결함이나 CI 불안정으로 합치지 않는다. 이전 선택 로컬 PASS는 해당 범위의 증거이고, 그 밖의 전이·기존 소비자·HTTP 경로를 포함한 공식 전체 회귀 PASS가 아니다. 이전 요청은 보완·문서 동기화·미해결 리뷰/충돌 확인 후 새 Full PR CI 시작까지였다. 이전 2026-10-16 요청은 새 CI 완료 모니터링과 실패 시 후속 보완을 포함했다(과거 실행 이력). 병합·릴리스는 제외한다.
 
@@ -136,6 +137,16 @@ Tooltip 보완 source의 5spec41 실행은38 PASS/3 FAIL/0 SKIP/0 flaky/errors0(
 이번 원장 비교에서 #2827의 같은 SUPERSEDED 문자열과 #2829 hover 준비 전제를 구분했다. 원격768 Day geometry 첨부는 PASS지만 Week 클릭 후 최신 observation6→7은 rows/PENDING, delivery receipt는 아직day/gen2/semantic2obs2였다. reveal 직전 RANGE_EXTENSION SETTLING/writes5, Core=native10032/axisSETTLED·PRESERVED, context1/intent0/gesture0이다. 새 DIAGNOSTIC_SCROLL 등록·취소 terminal은 원본 trace에 없어 정확한 직접 취소 기원은 UNKNOWN이며 새 USER_GESTURE 취소로 단정하지 않는다. 원본768 단독 로컬1 PASS는 비재현 증거로 보존한다.
 
 이번 ISO oracle5.3s·390 geometry3.5s·#463 viewport·SC-01 정상/RAF90ms는 개별 PASS이고, 1024/1440/1920 geometry·이전 #2829 Task hover는 미도달이다. 취소 shard 전체 성공이나 이전 FAIL의 소급 PASS로 바꾸지 않는다. 자연5폭 진단은 모두PASS였으므로 pending 단독 충분원인 가설은 기각했다. 통제 진단에서 Week DIAG 정착 관측만24actualRAF 보류하자 day/gen2로 등록된 명령 중 week/gen3가 도착해 SUPERSEDED를 재현했다. API/revision40/context1/gesture0/intent0·새USER_GESTURE0은 불변이고, 기존RANGE의NEW_RANGE 취소와 DIAG의STALE_CONTEXT_OR_INTENT를 구분했다. range current()의 initial.projectionEpoch 고정과 일치하는 로컬 인과 증거이며 원격 직접 취소 미계측은 유지한다. 임시DEV 필드/24RAF 변형은 원복하고 첫 reveal 전 현재 scale의 semantic/delivery·실제 axis/geometry 준비를 확인하는 최소 fixture 보완을 적용한다. 최초명령1회/STRICTSETTLED·의도적pending/wheel 취소 검증은 유지한다. 같은24RAF 통제에 현재Week 준비gate를 적용하면 week/gen3→gen3·최초revealSETTLED와geometryPASS였다. 최종제품0/spec1개동결후6spec 고유55 PASS(FAIL/SKIP/flaky/global errors0, report300934.710ms/test합190573ms), Coordinator91 PASS/194ms와typecheck/변경spec lint/Markdown229/version/diff PASS를 확인했다. 이전12개evidence/runtime3파일불변·source drift0, 임시DEV/24RAF·generated설정원복을 확인했다. 원본/자연/통제/최종결과는 합산하지 않으며 일부재구성snapshot provenance와 timing reporter의FAIL제외0/HTML실패2218ms를 구분한다. 최종 source/명령/환경·선정/제외는 [ci2831](evidence/issue-667/ci2831-correction.json)에 분리 누적한다. 새원격Required/QA_FINAL/Owner ACCEPT는NOT TESTED다.
+
+## CI #2833 — metadata 저장 전 초기120 입력의 capacity clamp
+
+[CI #2833.1/run38855912664](https://github.com/planner77/masterGantt/actions/runs/38855912664), Head `56349bd1d8a23900f38988439c7125b1dfdee4bb`, base `fd219130491c53d054754eac41a58e4a6a3da0c6`, test merge `d2fbf60e5724c8dcaa7e12b9b8733885b4e1d97b`의 source artifact12027238070/Run API/QA 환경/Git 부모는 일치한다. Quality116828037466/Docker116828338218 PASS, E2E116832715538/QA Automated116832743784 FAIL이다. shard5 job116827688670 step7 `task-editor-form-density.spec.ts:244→262`는metadata저장전초기publicLeft120기대/46실제·5000msFAIL이다. 103 PASS/1 FAIL/0 SKIP/0 NOT RUN이다. shard1/3/4/6은각113/128/143/89PASS(3/4/6기존SKIP각1), shard2는E2Estep7SUCCESS·82개완료지만JobCANCELLED이므로전체JobPASS로승격하지않는다. 추가실제FAIL0·global error는fail-fast메시지다.
+
+이전 #2831의semantic취소/#2829hover닫힘과구분했다. 원격target visible 때U3 rows/PENDING·직전RANGE FILTER_INPUT/SUPERSEDED, 실제chart scrollWidth952/clientWidth905로용량47px였다. 초기nativeevent requested47/Core46, 이후새RANGE는46을보존하며용량1067까지확장했다. 원격setter즉시return은미첨부여서직접browser clamp는동일source로컬계측에근거한다. 원본로컬1FAIL과읽기전용진단1FAIL에서120setter직전native0/max47·직후native47/public0을직접확인했다. metadata저장/PASSIVE_RESTORE/늦은zero·실제wheel단계는미도달이므로그복원guard결함으로분류하지않는다.
+
+검색후readiness-only첫후보는receipt bareUUID/DOM ':'prefix혼동으로실패해보완중fixture오류로분리했다. DOM만정규화한후보도freshreceipt/IDs가맞아도취소된WeekRANGE뒤capacity47로준비FAIL이었고최초120setter는미실행이다. 기대120을46으로완화하거나후행120재주입하지않는다. 기존Weekcontrol이시작한RANGE/currentWeek U3·capacity≥120정착을첫검색전관찰하고, 첫검색의현재query·예상2ID전달뒤최초120setter1회를수행하는입력순서후보를검증한다. 전환중검색의취소·후속metadata/latezero/실제wheel/empty0계약은유지한다.
+
+입력순서정리중간PASS뒤정상after확대50에서인접#456동일초기setup이추가FAIL(49PASS/1FAIL, report413974.643ms)이었다. 같은capacity47/저장전46을확인해두직접소비자만file전용준비helper를재사용하도록정리했다. 최종density7PASS(FAIL/SKIP/flaky/global errors0, report35049.085ms/test합31143ms)이며다른불변5spec43은이전참고교차증거로보존하고새50PASS로합산하지않는다. customcapture환경run은density미도달전중단31PASS/1INTERRUPTED/18NOTRUN(exit130)으로NOT TESTED이며rawHTMLok=true/skipped19도성공증거로전용하지않았다. 최종기본after의원래geometry단언실행·86+2기존capture bytes/set·generated설정복구·제품/공유fixture/config·이전13개evidence불변과source drift0을확인했다. Unit N/A·typecheck/변경spec lint/Markdown229/version/diff PASS를구분한다. 이번원격geometry5폭·hover6·#463viewport는실제PASS다. 이전FAIL을소급PASS하지않고새fixture source의명령/환경·최종선택/제외·사전검토·원격미검증은[ci2833](evidence/issue-667/ci2833-correction.json)에분리누적한다.
 
 ## 최초 구현과 반복 보완에서 드러난 경계
 
