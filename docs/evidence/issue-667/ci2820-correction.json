@@ -1,0 +1,1413 @@
+{
+  "schema": "mastergantt-issue667-ci2820-correction-v1",
+  "parentHead": "852056e71526968baf70c599eb09e1c37331e1e1",
+  "source": {
+    "parentHead": "852056e71526968baf70c599eb09e1c37331e1e1",
+    "files": {
+      "tests/e2e/projection-row-alignment.spec.ts": "709bbe786f2e27e5204ca88eb9da2d6d981213e97c5a62c332e5b546a32bc97b"
+    },
+    "fingerprint": "b3b24d46639e866f0e128fc4fcf8318033081012307bf9ccca6049016e495d49"
+  },
+  "remoteOriginal": {
+    "identity": {
+      "runId": 38832668354,
+      "runNumber": 2820,
+      "attempt": 1,
+      "url": "https://github.com/planner77/masterGantt/actions/runs/38832668354",
+      "event": "pull_request",
+      "workflowPath": ".github/workflows/ci.yml",
+      "displayTitle": "PR CI [전체 검증] · [Issue #667] Gantt 정합성 제품 통합 · PR #695 · Run #2820.1",
+      "head": "852056e71526968baf70c599eb09e1c37331e1e1",
+      "base": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "testMerge": "8a9f7708bcac618ea8400d465bbb373d54182482"
+    },
+    "run": {
+      "status": "completed",
+      "conclusion": "failure",
+      "completedAt": "2026-10-16T01:11:17Z"
+    },
+    "required": {
+      "quality": {
+        "status": "PASS",
+        "job": 116755740613
+      },
+      "e2e": {
+        "status": "FAIL",
+        "job": 116758017146
+      },
+      "docker": {
+        "status": "PASS",
+        "job": 116755979757
+      }
+    },
+    "failure": {
+      "job": 116755309771,
+      "shard": 1,
+      "step": 7,
+      "stepName": "E2E shard 실행",
+      "file": "tests/e2e/projection-row-alignment.spec.ts",
+      "testLine": 119,
+      "assertionLine": 130,
+      "assertionColumn": 167,
+      "title": "#637 genuine visible Grid Y mismatch still times out with matching canonical IDs",
+      "error": "expect(received).toBe(expected) // Object.is equality",
+      "expected": "TIMED_OUT",
+      "received": null,
+      "counts": {
+        "passed": 80,
+        "failed": 1,
+        "notRun": 32
+      },
+      "reportedDurationSeconds": 6.8
+    },
+    "sc01IndividualPass": [
+      {
+        "variant": "normal",
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "line": 17,
+        "durationSeconds": 6.2,
+        "logTimestamp": "2026-10-16T01:03:12.5310009Z"
+      },
+      {
+        "variant": "actual RAF 90ms",
+        "file": "tests/e2e/gantt-state-recovery-editor.spec.ts",
+        "line": 17,
+        "durationSeconds": 6.8,
+        "logTimestamp": "2026-10-16T01:03:28.7077595Z"
+      }
+    ],
+    "qa": {
+      "automated": {
+        "job": 116758040610,
+        "status": "FAIL"
+      },
+      "trusted": {
+        "candidate": {
+          "id": 38833752118,
+          "event": "workflow_run",
+          "title": "QA Trusted · PR CI [전체 검증] · [Issue #667] Gantt 정합성 제품 통합 · PR #695 · Run #2820.1 · Run #461.1",
+          "status": "completed",
+          "conclusion": "failure",
+          "head": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+          "attempt": 1,
+          "path": ".github/workflows/qa-final-trusted.yml",
+          "url": "https://github.com/planner77/masterGantt/actions/runs/38833752118"
+        },
+        "jobs": [
+          {
+            "id": 116758111603,
+            "name": "QA Final — Trusted",
+            "status": "completed",
+            "conclusion": "failure"
+          }
+        ],
+        "artifact": {
+          "id": 12018362769,
+          "digest": "sha256:f36e53238d557cf0f3feb7937f246cfda3e0485f66bd0523852a9218c8f19f15",
+          "digestVerified": true
+        },
+        "report": {
+          "automated_qa": "FAIL",
+          "independent_qa": "NOT TESTED",
+          "manager_decision": "NOT TESTED",
+          "rule_version": "598-593-v1",
+          "pr_head_sha": null,
+          "base_or_test_merge_sha": null,
+          "workflow_run_id": "38833752118",
+          "run_attempt": "1",
+          "validator_sha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+          "decision_reason": "원본 PR CI run 자체가 성공하지 않았습니다"
+        },
+        "limits": "검증기는 원본 CI FAIL로 조기 종료하여 PR head/base 필드가 null이다. Trusted PASS/독립 QA/Manager ACCEPT를 주장하지 않는다."
+      }
+    },
+    "finalPrCheck": {
+      "head": "852056e71526968baf70c599eb09e1c37331e1e1",
+      "base": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "main": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+      "testMerge": "8a9f7708bcac618ea8400d465bbb373d54182482",
+      "mergeable": true,
+      "mergeableState": "blocked",
+      "unresolved": 0,
+      "threads": [
+        {
+          "id": "PRRT_kwDOUUB7Bc6syoNu",
+          "isResolved": true,
+          "isOutdated": false
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "sourceArtifact": {
+      "id": 12018096794,
+      "digest": "sha256:2ac9eba0c158cc79c4525ea43a163e04ff38d213a786f0483afd6879a97fe9d2",
+      "digestVerified": true,
+      "source": [
+        {
+          "schema": "mastergantt-ci-pr-source-v1",
+          "repository": "planner77/masterGantt",
+          "run_id": 38832668354,
+          "run_attempt": 1,
+          "pr_number": 695,
+          "head_sha": "852056e71526968baf70c599eb09e1c37331e1e1",
+          "head_ref": "feat/issue-667-gantt-product-integration",
+          "head_repository": "planner77/masterGantt",
+          "base_sha": "ee6365bf57ab637b4c0aca61fdedaf5148253052",
+          "base_ref": "main",
+          "base_repository": "planner77/masterGantt",
+          "test_merge_sha": "8a9f7708bcac618ea8400d465bbb373d54182482"
+        }
+      ]
+    },
+    "reportArtifact": {
+      "id": 12017902577,
+      "digest": "sha256:d74f1318bd87fe6fe5f6591eacd1408812ea5c4ac939b075d8b65fd6c6f6f62d",
+      "digestVerified": true
+    },
+    "completeSafeAnalysis": {
+      "path": "output/playwright/issue-667/ci2820-remote-analysis.json",
+      "sha256": "c984ceb4e4d59ce36701786fadf09803c06d643ecb956b95e4044a31d974a362"
+    }
+  },
+  "originalLocal": {
+    "scope": "ORIGINAL_LOCAL_NEGATIVE_REPRODUCTION",
+    "exitCode": 1,
+    "stats": {
+      "total": 1,
+      "expected": 0,
+      "unexpected": 1,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": false
+    },
+    "durationMs": 9768.609,
+    "cases": [
+      {
+        "file": "projection-row-alignment.spec.ts",
+        "title": "#637 genuine visible Grid Y mismatch still times out with matching canonical IDs",
+        "status": "unexpected",
+        "durationMs": 6525,
+        "retries": [
+          0
+        ]
+      }
+    ],
+    "sourceHash": "1258c3295974e02833bec663408c090c1a5e81d231d10ad80156d4f98580d84b"
+  },
+  "originalObservedStates": [
+    {
+      "observation": {
+        "generation": 2,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "successReceipt": {
+        "generation": 1,
+        "outcome": "SETTLED"
+      }
+    },
+    {
+      "observation": {
+        "generation": 3,
+        "stage": "rows",
+        "outcome": "PENDING"
+      },
+      "successReceipt": {
+        "generation": 1,
+        "outcome": "SETTLED"
+      }
+    },
+    {
+      "observation": {
+        "generation": 3,
+        "stage": "rows",
+        "outcome": "TIMED_OUT"
+      },
+      "successReceipt": {
+        "generation": 1,
+        "outcome": "SETTLED"
+      }
+    }
+  ],
+  "diagnosis": {
+    "confirmed": "새rows 관측은 TIMED_OUT으로 올바르게 실패했고 성공receipt는 이전SETTLED를 유지했다. 구 테스트가 성공receipt에서 실패게시를 기다린 계약 불일치.",
+    "fix": "최신delivery/SETTLED baseline 후 fresh rows TIMED_OUT을 확인하고 실제 public Core/canonical/DOM ID·27.5px Y차이·oldsuccess 불변을 검사한다. 복구는fresh delivery/semantic attempt·actual alignment로 증명한다.",
+    "productionChanged": false,
+    "preserved": [
+      "timeout/retry/skip",
+      "Grid/Chart 실제 Y불일치·Core/DOM IDs",
+      "동일인스턴스/mutation0",
+      "semanticId 재사용허용·fresh 관측 증명",
+      "보안/API/DB/CI gate"
+    ]
+  },
+  "localFinal": {
+    "scope": "final42",
+    "runtimeSourceIdentity": {
+      "head": "852056e71526968baf70c599eb09e1c37331e1e1",
+      "changedSourceHashesSha256": {
+        "tests/e2e/projection-row-alignment.spec.ts": "709bbe786f2e27e5204ca88eb9da2d6d981213e97c5a62c332e5b546a32bc97b"
+      },
+      "sourceFingerprint": "b3b24d46639e866f0e128fc4fcf8318033081012307bf9ccca6049016e495d49"
+    },
+    "sourceDrift": [],
+    "stats": {
+      "total": 42,
+      "expected": 42,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "files": 3,
+    "durationMs": 95593.296,
+    "globalErrorCount": 0,
+    "tests": [
+      {
+        "title": "#570 metadata projection 390px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2844,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 390px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1894,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 768px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2011,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 768px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1997,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 1024px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1915,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 1024px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1979,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 1440px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2073,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 1440px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1987,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 1920px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2353,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 metadata projection 1920px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2014,
+        "file": "canonical-projection.spec.ts",
+        "line": 6,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 actual Core structure insert-before",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2279,
+        "file": "canonical-projection.spec.ts",
+        "line": 61,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 actual Core structure surviving-child-root",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2178,
+        "file": "canonical-projection.spec.ts",
+        "line": 61,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 actual Core structure surviving-child-new-parent",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2272,
+        "file": "canonical-projection.spec.ts",
+        "line": 61,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 actual Core structure new-parent-mixed-children",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2213,
+        "file": "canonical-projection.spec.ts",
+        "line": 61,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 readonly projection empty",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1211,
+        "file": "canonical-projection.spec.ts",
+        "line": 139,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 readonly projection milestone-only",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1263,
+        "file": "canonical-projection.spec.ts",
+        "line": 139,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 nested Summary filter, empty results and Day/Week retain native membership",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1824,
+        "file": "canonical-projection.spec.ts",
+        "line": 161,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 scale-only restores resized columns once without resetting definitions",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1688,
+        "file": "canonical-projection.spec.ts",
+        "line": 199,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 passive reparent keeps its existing target Summary collapsed",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2480,
+        "file": "canonical-projection.spec.ts",
+        "line": 229,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 query receipt is consumed before later tree and selection observations",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2057,
+        "file": "canonical-projection.spec.ts",
+        "line": 255,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#570 filters and scale retain empty Summary containers without opening leaves",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2866,
+        "file": "canonical-projection.spec.ts",
+        "line": 298,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 390px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1189,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 390px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1296,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 768px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1228,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 768px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1321,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 1024px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1241,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 1024px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1297,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 1440px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1980,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 1440px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1341,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 1920px Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1255,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 Grid hidden Y cannot move independently 1920px Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1337,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 36,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 native owner Y and wide Grid X retain virtual rows Day",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1892,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 72,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 native owner Y and wide Grid X retain virtual rows Week",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2000,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 72,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#637 genuine visible Grid Y mismatch still times out with matching canonical IDs",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 3220,
+        "file": "projection-row-alignment.spec.ts",
+        "line": 124,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 3082,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 5,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 wheel 의도 뒤 재개하지 않는다",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2862,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 65,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 keyboard 의도 뒤 재개하지 않는다",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2866,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 65,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 settled viewport의 DOM focus handoff는 좌표 불변 transient-modal 의도 뒤 재개하지 않는다",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 3231,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 65,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤에는 부활하지 않는다",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 2586,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 142,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 delayed native add preserves unmodified viewport",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 4413,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 182,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "#571 delayed native add actual wheel cancels captured restore",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 4721,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 182,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      },
+      {
+        "title": "SC-09 실제 축 확장 관측 중 wheel은 이전 위치 복원과 후속 쓰기를 취소한다",
+        "path": [],
+        "projectName": "chromium",
+        "outcome": "expected",
+        "duration": 1763,
+        "file": "viewport-coordinator.spec.ts",
+        "line": 245,
+        "resultStatuses": [
+          "passed"
+        ],
+        "retries": [
+          0
+        ]
+      }
+    ]
+  },
+  "independentReview": {
+    "reviewer": "/root/qa_final",
+    "preQa": "PASS",
+    "documentationSync": "PASS",
+    "scope": "게시10파일/테스트1·선택42 실제Core/DOM 증거",
+    "findingsOpen": 0,
+    "htmlCaseMatches": 42,
+    "negativeAttachmentMatch": true,
+    "sourceFingerprintMatch": true,
+    "qaFinal": "NOT TESTED"
+  },
+  "newHeadRemote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED"
+  },
+  "scope": {
+    "monitorUntilCompletion": true,
+    "merge": false,
+    "releaseAuthorized": false
+  },
+  "negativeGeometry": {
+    "before": {
+      "gridTop": 0,
+      "gridLeft": 0,
+      "gridHeight": 632,
+      "gridScrollHeight": 632,
+      "gridWidth": 480,
+      "gridScrollWidth": 480,
+      "headerHeight": 73,
+      "rowHeight": 38,
+      "mountedGridIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "mountedBarIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "ownerTop": 0,
+      "chartTop": 0,
+      "coreTop": 0,
+      "receipt": {
+        "apiInstance": "svar-api-1",
+        "generation": 1,
+        "reasons": [
+          "data",
+          "structure",
+          "membership",
+          "layout"
+        ],
+        "scale": "day",
+        "scope": null,
+        "filterKey": "f503993a4",
+        "taskSelectionChanged": false,
+        "queryConditionsChanged": true,
+        "expectedColumns": [
+          {
+            "id": "copySelection",
+            "hidden": false
+          },
+          {
+            "id": "text",
+            "hidden": false
+          },
+          {
+            "id": "externalId",
+            "hidden": true
+          },
+          {
+            "id": "projectStart",
+            "hidden": false
+          },
+          {
+            "id": "projectDuration",
+            "hidden": false
+          },
+          {
+            "id": "baselineStart",
+            "hidden": true
+          },
+          {
+            "id": "milestoneStage",
+            "hidden": true
+          },
+          {
+            "id": "baselineEnd",
+            "hidden": true
+          },
+          {
+            "id": "add-task",
+            "hidden": false
+          }
+        ],
+        "revision": 40,
+        "outcome": "SETTLED",
+        "logicalVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "coreVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "domIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+        "selectedIds": []
+      },
+      "observation": {
+        "generation": 2,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "semantic": {
+        "semanticId": 1,
+        "observation": 1,
+        "reused": false
+      },
+      "actual": {
+        "instance": "svar-api-1",
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "coreVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ]
+      },
+      "pairs": [
+        {
+          "id": ":00000000-0000-4000-8000-000000000001",
+          "rowY": 429,
+          "rowHeight": 38,
+          "barY": 432,
+          "barHeight": 31,
+          "delta": -0.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000002",
+          "rowY": 467,
+          "rowHeight": 38,
+          "barY": 470,
+          "barHeight": 31,
+          "delta": -0.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000003",
+          "rowY": 505,
+          "rowHeight": 38,
+          "barY": 508,
+          "barHeight": 31,
+          "delta": -0.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000004",
+          "rowY": 543,
+          "rowHeight": 38,
+          "barY": 546,
+          "barHeight": 31,
+          "delta": -0.5
+        }
+      ]
+    },
+    "failed": {
+      "gridTop": 0,
+      "gridLeft": 0,
+      "gridHeight": 632,
+      "gridScrollHeight": 632,
+      "gridWidth": 480,
+      "gridScrollWidth": 480,
+      "headerHeight": 73,
+      "rowHeight": 38,
+      "mountedGridIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "mountedBarIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "ownerTop": 0,
+      "chartTop": 0,
+      "coreTop": 0,
+      "receipt": {
+        "apiInstance": "svar-api-1",
+        "generation": 1,
+        "reasons": [
+          "data",
+          "structure",
+          "membership",
+          "layout"
+        ],
+        "scale": "day",
+        "scope": null,
+        "filterKey": "f503993a4",
+        "taskSelectionChanged": false,
+        "queryConditionsChanged": true,
+        "expectedColumns": [
+          {
+            "id": "copySelection",
+            "hidden": false
+          },
+          {
+            "id": "text",
+            "hidden": false
+          },
+          {
+            "id": "externalId",
+            "hidden": true
+          },
+          {
+            "id": "projectStart",
+            "hidden": false
+          },
+          {
+            "id": "projectDuration",
+            "hidden": false
+          },
+          {
+            "id": "baselineStart",
+            "hidden": true
+          },
+          {
+            "id": "milestoneStage",
+            "hidden": true
+          },
+          {
+            "id": "baselineEnd",
+            "hidden": true
+          },
+          {
+            "id": "add-task",
+            "hidden": false
+          }
+        ],
+        "revision": 40,
+        "outcome": "SETTLED",
+        "logicalVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "coreVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "domIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+        "selectedIds": []
+      },
+      "observation": {
+        "generation": 3,
+        "stage": "rows",
+        "outcome": "TIMED_OUT"
+      },
+      "semantic": {
+        "semanticId": 1,
+        "observation": 1,
+        "reused": false
+      },
+      "actual": {
+        "instance": "svar-api-1",
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "coreVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ]
+      },
+      "pairs": [
+        {
+          "id": ":00000000-0000-4000-8000-000000000001",
+          "rowY": 401,
+          "rowHeight": 38,
+          "barY": 432,
+          "barHeight": 31,
+          "delta": 27.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000002",
+          "rowY": 439,
+          "rowHeight": 38,
+          "barY": 470,
+          "barHeight": 31,
+          "delta": 27.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000003",
+          "rowY": 477,
+          "rowHeight": 38,
+          "barY": 508,
+          "barHeight": 31,
+          "delta": 27.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000004",
+          "rowY": 515,
+          "rowHeight": 38,
+          "barY": 546,
+          "barHeight": 31,
+          "delta": 27.5
+        }
+      ]
+    },
+    "recovered": {
+      "gridTop": 0,
+      "gridLeft": 0,
+      "gridHeight": 632,
+      "gridScrollHeight": 632,
+      "gridWidth": 480,
+      "gridScrollWidth": 480,
+      "headerHeight": 73,
+      "rowHeight": 38,
+      "mountedGridIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "mountedBarIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "ownerTop": 0,
+      "chartTop": 0,
+      "coreTop": 0,
+      "receipt": {
+        "apiInstance": "svar-api-1",
+        "generation": 1,
+        "reasons": [
+          "data",
+          "structure",
+          "membership",
+          "layout"
+        ],
+        "scale": "day",
+        "scope": null,
+        "filterKey": "f503993a4",
+        "taskSelectionChanged": false,
+        "queryConditionsChanged": false,
+        "expectedColumns": [
+          {
+            "id": "copySelection",
+            "hidden": false
+          },
+          {
+            "id": "text",
+            "hidden": false
+          },
+          {
+            "id": "externalId",
+            "hidden": true
+          },
+          {
+            "id": "projectStart",
+            "hidden": false
+          },
+          {
+            "id": "projectDuration",
+            "hidden": false
+          },
+          {
+            "id": "baselineStart",
+            "hidden": true
+          },
+          {
+            "id": "milestoneStage",
+            "hidden": true
+          },
+          {
+            "id": "baselineEnd",
+            "hidden": true
+          },
+          {
+            "id": "add-task",
+            "hidden": false
+          }
+        ],
+        "revision": 40,
+        "outcome": "SETTLED",
+        "logicalVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "coreVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "domIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "columns": "[[\"copySelection\",56,false],[\"text\",1,false],[\"externalId\",108,true],[\"projectStart\",104,false],[\"projectDuration\",56,false],[\"baselineStart\",104,true],[\"milestoneStage\",180,true],[\"baselineEnd\",104,true],[\"add-task\",37,null]]",
+        "selectedIds": []
+      },
+      "observation": {
+        "generation": 4,
+        "stage": "delivery",
+        "outcome": "SETTLED"
+      },
+      "semantic": {
+        "semanticId": 1,
+        "observation": 2,
+        "reused": true
+      },
+      "actual": {
+        "instance": "svar-api-1",
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ],
+        "coreVisibleIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004"
+        ]
+      },
+      "pairs": [
+        {
+          "id": ":00000000-0000-4000-8000-000000000001",
+          "rowY": 429,
+          "rowHeight": 38,
+          "barY": 432,
+          "barHeight": 31,
+          "delta": -0.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000002",
+          "rowY": 467,
+          "rowHeight": 38,
+          "barY": 470,
+          "barHeight": 31,
+          "delta": -0.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000003",
+          "rowY": 505,
+          "rowHeight": 38,
+          "barY": 508,
+          "barHeight": 31,
+          "delta": -0.5
+        },
+        {
+          "id": ":00000000-0000-4000-8000-000000000004",
+          "rowY": 543,
+          "rowHeight": 38,
+          "barY": 546,
+          "barHeight": 31,
+          "delta": -0.5
+        }
+      ]
+    }
+  },
+  "localStatic": {
+    "typecheck": "PASS",
+    "scopedLintErrors": 0,
+    "scopedLintWarnings": 0,
+    "markdownFiles": 228,
+    "markdown": "PASS",
+    "version": "0.114.1",
+    "versionConsistency": "PASS",
+    "whitespace": "PASS",
+    "historicalEvidenceUnchanged": 8,
+    "productionDiffAgainstParent": false,
+    "unit": "N/A: production 변경 없는 기존 E2E 음성 oracle 교정"
+  }
+}

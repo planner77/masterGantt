@@ -45,6 +45,14 @@ UNKNOWN·잠금 해제·same API·canonical 행·후속 name-only 저장 단언 
 
 최종test5 fingerprint `da4dbdacf3237392aa07532aa11314a6fff8229afc5c4b7d650b17331604c685`의 관련 실제HTTP/SQLite18 PASS(289748.963ms)·Unit17 PASS를 확인했다. 원본stale/500 로컬2 PASS는 오류 비재현 결과이며 원격 근인은 UNKNOWN으로 유지한다. inventory64(spec62+seedhelper2) 중11곳을 교정하고 spec51/helper2의 제외 근거를 명시했다. 실제 변경은 테스트 helper/3spec/Unit5파일이며 production diff0다. [CI #2819 원장](evidence/issue-667/ci2819-correction.json)에 source·감사·원본진단·최종 선택 검증을 기록한다.
 
+## CI #2820 — Grid Y 음성 테스트의 오래된 실패 영수증 가정
+
+[CI #2820.1/run38832668354](https://github.com/planner77/masterGantt/actions/runs/38832668354), Head `852056e71526968baf70c599eb09e1c37331e1e1`은 Quality/Docker PASS·E2E FAIL이다. shard1 job116755309771 step7의 `projection-row-alignment.spec.ts:119→130`에서 새 성공receipt generation의 TIMED_OUT을 기대했으나 null이었다.80 PASS/1 FAIL/32 NOT RUN이며 취소5shard는 추가FAIL표시 없이 미완료다. 기존SC-01 정상/90ms는 각 개별PASS로 확인했고 Trusted 실패 사유도 원본CI FAIL이다.
+
+실제rows 관측은gen3 TIMED_OUT을 기록하고 성공receipt는oldgen1 SETTLED를 유지했다. 원본 단독도 같은 실패(report9768.609ms)와 진단을 재현했다. 성공영수증에 실패결과 게시를 요구하는 구 테스트의 관측 대상이 #667 계약과 달랐다. 음성 검증 자체는 정당하므로 최신rows 실패진단으로 확인하고, canonical/Core/DOM IDs는 stale receipt 대신 실제 public Core/DOM에서 읽는다. 실제27.5px Y불일치·mutation0·sameinstance·복원 후fresh attempt/정렬을 유지하며 semanticId 증가를 임의로 강제하지 않는다.
+
+최종 test1 fingerprint `b3b24d46639e866f0e128fc4fcf8318033081012307bf9ccca6049016e495d49`에서 관련42 PASS/0FAIL/0SKIP/0flaky(95593.296ms)를 확인했다. negative의 baseline gen2 delivery SETTLED→gen3 rows TIMED_OUT(oldsuccess 불변)→gen4 fresh delivery SETTLED·actual alignment를 실제 Core/DOM으로 검증했다. production/timeout/retry/skip 변경0이며 Unit은 N/A다. 원본 FAIL·최종mock API/실제Core·신규원격미검증을 [CI #2820 원장](evidence/issue-667/ci2820-correction.json)에 분리했다.
+
 ## 최초 구현과 반복 보완에서 드러난 경계
 
 원격 네 실행 이전 로컬 실패도 [Work Packet](exec-plans/active/ISSUE_667.md)에 보존했다. native add의 비DFS canonical→DESIRED_INVALID_TASKS는 전체 ID/형제순서를 보존하는 DFS 정규화로 수정했고 중복 ID는 계속 거부한다. 취소 뒤 늦은 writer·source taint는 실제 source/API/원래 lease·미완료 writer0·3프레임 Core/native geometry가 일치하는 read-only 복구로 처리했다. facade 예산을 mounted lifetime으로 오해해 기존3회 확장과 120px bookmark가 실패한 사례는 명령당 bounded facade로 교정하되 source 전체 bounds·taint·자동 재시도 금지를 유지했다. extent 정착 뒤 U3 재관측, stale GET 세대, Membership unknown handler, Editor child/transport busy 잠금 누락도 각각 보완했다.

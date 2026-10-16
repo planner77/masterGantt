@@ -6,6 +6,8 @@ async function geometry(page: Page) {
     const grid = root.querySelector<HTMLElement>(".wx-table-container")!;
     const owner = root.querySelector<HTMLElement>(".wx-gantt")!;
     const chart = root.querySelector<HTMLElement>(".wx-chart")!;
+    const probe = Reflect.get(root, "__masterganttMilestoneTimeline") as { read(): { instance: string; canonicalIds: string[]; rows: { id: string | number }[] } } | undefined;
+    const actual = probe?.read();
     const rows = Array.from(grid.querySelectorAll<HTMLElement>(".wx-row[data-id]"));
     const pairs = Array.from(chart.querySelectorAll<HTMLElement>(".wx-bar[data-task-id]")).flatMap(bar => {
       const row = rows.find(row => row.dataset.id === bar.dataset.taskId);
@@ -17,7 +19,10 @@ async function geometry(page: Page) {
     return { gridTop: grid.scrollTop, gridLeft: grid.scrollLeft, gridHeight: grid.clientHeight, gridScrollHeight: grid.scrollHeight, gridWidth: grid.clientWidth, gridScrollWidth: grid.scrollWidth, headerHeight: grid.querySelector<HTMLElement>(".wx-header")!.getBoundingClientRect().height,
       rowHeight: rows[0]?.getBoundingClientRect().height ?? 0, mountedGridIds: rows.map(row => row.dataset.id!.replace(/^:/, "")), mountedBarIds: Array.from(chart.querySelectorAll<HTMLElement>(".wx-bar[data-task-id]")).map(bar => bar.dataset.taskId!.replace(/^:/, "")),
       ownerTop: owner.scrollTop, chartTop: chart.scrollTop, coreTop: (Reflect.get(root, "__masterganttPublicViewport") as { top: number }).top,
-      receipt: JSON.parse(root.getAttribute("data-gantt-projection-receipt") ?? "null"), pairs };
+      receipt: JSON.parse(root.getAttribute("data-gantt-projection-receipt") ?? "null"),
+      observation: JSON.parse(root.getAttribute("data-gantt-projection-observation") ?? "null"),
+      semantic: JSON.parse(root.getAttribute("data-gantt-semantic-projection-receipt") ?? "null"),
+      actual: actual ? { instance: actual.instance, canonicalIds: actual.canonicalIds, coreVisibleIds: actual.rows.map(row => String(row.id)) } : null, pairs };
   });
 }
 async function aligned(page: Page) {
@@ -121,21 +126,50 @@ test("#637 genuine visible Grid Y mismatch still times out with matching canonic
   const fixture = await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}?__coreTrace=1`);
   await expect(rowNamed(page, "Stable leaf")).toBeVisible();
-  await expect.poll(async () => (await geometry(page)).receipt?.outcome).toBe("SETTLED");
+  await expect.poll(async () => {
+    const value = await geometry(page);
+    return value.observation?.stage === "delivery" && value.semantic !== null
+      ? value.observation.outcome : null;
+  }).toBe("SETTLED");
   const identity = await rememberGanttRoot(page), before = await geometry(page);
   // A separate test-only visual corruption: the product must never normalize
   // this genuine mismatch into SETTLED merely because membership agrees.
   const corruption = await page.addStyleTag({ content: '.project-gantt-widget .wx-table-container .wx-row[data-id] { transform: translateY(-28px); }' });
-  await page.setViewportSize({ width: 1439, height: 1000 });
-  await expect.poll(async () => { const value = await geometry(page); return value.receipt?.generation > before.receipt.generation ? value.receipt.outcome : null; }).toBe("TIMED_OUT");
-  const failed = await geometry(page);
-  expect(failed.receipt.logicalVisibleIds).toEqual(failed.receipt.coreVisibleIds);
-  expect(failed.receipt.domIds).toEqual(failed.receipt.coreVisibleIds);
-  expect(failed.pairs.length).toBe(fixture.tasks.length);
-  expect(failed.pairs.every(pair => Math.abs(pair.delta - 27.5) <= 1)).toBe(true);
-  await corruption.evaluate(element => element.parentNode?.removeChild(element));
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await expect.poll(async () => { const value = await geometry(page); return value.receipt?.generation > failed.receipt.generation ? value.receipt.outcome : null; }).toBe("SETTLED");
+  let failed: Awaited<ReturnType<typeof geometry>>;
+  try {
+    await page.setViewportSize({ width: 1439, height: 1000 });
+    // Failed observations do not replace successful semantic receipts.
+    await expect.poll(async () => {
+      const value = await geometry(page);
+      return value.observation?.generation > before.observation.generation && value.observation.stage === "rows"
+        ? value.observation.outcome : null;
+    }).toBe("TIMED_OUT");
+    failed = await geometry(page);
+    expect(failed.receipt).toEqual(before.receipt);
+    expect(failed.semantic).toEqual(before.semantic);
+    expect(failed.actual).not.toBeNull();
+    expect(failed.actual!.canonicalIds).toEqual(fixture.tasks.map(task => task.taskId));
+    expect(failed.actual!.coreVisibleIds).toEqual(failed.actual!.canonicalIds);
+    expect(failed.mountedGridIds).toEqual(failed.actual!.coreVisibleIds);
+    expect(failed.pairs.length).toBe(fixture.tasks.length);
+    expect(failed.pairs.every(pair => Math.abs(pair.delta - 27.5) <= 1)).toBe(true);
+    await expectSameGanttRoot(page, identity);
+  } finally {
+    await corruption.evaluate(element => element.parentNode?.removeChild(element));
+    await page.setViewportSize({ width: 1440, height: 1000 });
+  }
+  // Recovery needs a fresh delivered observation; its semantic ID may be reused.
+  await expect.poll(async () => {
+    const value = await geometry(page);
+    return value.observation?.generation > failed.observation.generation && value.observation.stage === "delivery"
+      ? value.observation.outcome : null;
+  }).toBe("SETTLED");
+  const recovered = await geometry(page);
+  expect(recovered.semantic.observation).toBeGreaterThan(failed.semantic.observation);
+  expect(recovered.receipt.outcome).toBe("SETTLED");
+  expect(recovered.actual!.canonicalIds).toEqual(failed.actual!.canonicalIds);
+  expect(recovered.actual!.coreVisibleIds).toEqual(failed.actual!.coreVisibleIds);
+  expect(recovered.mountedGridIds).toEqual(recovered.actual!.coreVisibleIds);
   await aligned(page); await expectSameGanttRoot(page, identity);
   expect(fixture.posts).toHaveLength(0); expect(fixture.patchRequests).toHaveLength(0);
   await info.attach("strict-visible-offset-negative", { body: JSON.stringify({ before, failed, recovered: await geometry(page) }), contentType: "application/json" });

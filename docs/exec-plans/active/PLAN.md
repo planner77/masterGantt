@@ -1,5 +1,7 @@
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
+CI #2820은 quality/Docker PASS·E2E FAIL이며 #637 음성 테스트의 실패 관측/성공 영수증 관측 대상 불일치가 원인이었다. 원본을 재현하고 최신 실패진단·current Core/DOM·strict Y불일치/복구 oracle를 유지해 테스트만 교정한다. 최종관련42 PASS·typecheck/lint PASS를 확인했고 독립 검토 후 같은 PR에 게시하여 새CI 완료까지 모니터링한다.
+
 CI #2819 완료 모니터링은 quality/Docker PASS·E2E FAIL이었다. 원격 SC-01 정상/90ms는 개별 PASS이며 새 실패는 cross-tab stale SC-05 최종 APIContext GET의 ECONNRESET이다. U5 UI후 canonical 확인11곳을 실제 서버 검증이 보존되는 browser 전송 helper로 교정했고 관련18·Unit17 PASS를 확인했다. seed/auth/독립API·route우회·재시작은 구분한다. 새 source·문서·독립 검토 후 다시 Full CI를 완료까지 모니터링한다.
 
 2026-10-16 CI #2818 재개: 동일 SC-01 재발의 semantic TIMED_OUT을 단계 진단으로 확인했다. 원본의 실제 RAF90ms 지연으로 같은 실패를 재현했고 U3-only frame clock 분리 후 지연 변형을 포함한 선택41·Unit76 PASS를 확인했다. 원래1500ms/120frame/3안정frame·U2/U4 viewport50ms·기존 단언을 유지하며 새 Full PR CI 완료까지 모니터링한다. 병합·release는 별도다.

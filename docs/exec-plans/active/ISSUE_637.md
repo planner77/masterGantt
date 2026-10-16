@@ -80,3 +80,8 @@ Next16.3.8 dev server127.0.0.1:3117, 격리 SQLite·NEXT_DIST_DIR `.next-issue63
 - `npm run typecheck`, `npx eslint src tests/e2e/projection-row-alignment.spec.ts --ignore-pattern '.next-issue637/**' --ignore-pattern '**/.issue637-*'`, `node scripts/verify-release-version.mjs`, `node scripts/check-markdown-links.mjs` 및 기존 `qa_final_automated.docs_gate`의 actual diff/AC1~AC5 검산.
 
 보존 report는 Git 외부 `/tmp/issue637-evidence/`의 frontend-baseline, frontend-differential-before, frontend-after, frontend-after-corrected, frontend-final, frontend-final-positive, frontend-final-negative, frontend-original-after-repeat 및 frontend 최종 결과 계약에 구분한다. instrumentation3회 stdout PASS는 report경로가 재사용되어3회 report를 보존하지 못했으며, 보존된 geometry1case만 artifact 근거로 사용한다. 원본 zip·민감 trace는 Git/Issue에 복사하지 않는다.
+
+
+## Issue #667 / CI #2820 후속의 현재 관측 계약
+
+위 #637 실행/원본 receipt 이력은 유지한다. #667 제품 연결 이후 실패rows 관측은 별도 `data-gantt-projection-observation`에 기록하고 성공projection/semantic receipt는 실패로 덮어쓰지 않는다. 이에 음성 테스트의 최신rows TIMED_OUT 확인과 실제current Core/DOM IDs·27.5px 불일치·sameinstance/mutation0 및 복원 후freshdelivery/정렬 증명을 교정한다. 성공 semanticId의 무조건 증가를 요구하지 않는다. 실제source/재현·선택 회귀·원격 인계는 [#667 Work Packet](ISSUE_667.md)과 [보완 원장](../../evidence/issue-667/ci2820-correction.json)을 따른다. #637의 과거 판정·Issue 상태를 소급 변경하는 기록은 아니다.

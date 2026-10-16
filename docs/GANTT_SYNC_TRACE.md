@@ -133,3 +133,10 @@ Resource 복귀 prepare의 실제 축 확장은 U4 SETTLED 이후 원래 source�
 #667 종합 감사에서 추가된 Copy 원본은 `project-multi-task-copy-paste.spec.ts:89`의 Expected46/Received0이며 단독 재현도 FAIL이다. U2 SETTLED·canonical/Link 보존을 viewport 정착으로 합치지 않는다. 최종 보완은 copy dispatch의 고정 권한→검증/수용한 confirmed revision→현재 U2 proof→기존 Coordinator의 단일 PASSIVE_RESTORE 순서를 추적한다. 원본 광역/단독 FAIL과 새 source의 선택·광역 재검증을 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md) 및 [새 교정 원장](evidence/issue-667/ci2814-correction.json)에 별도로 남긴다. 진단은 원문 응답/headers/cookies/body를 저장하지 않으며 기존 bounded trace를 사용한다.
 
 #667 Resource 복귀의 원본 PEER_RETURN TIMED_OUT(X31→Core30)은 U2 성공이나 native capacity31로 완료 처리하지 않는다. public Core scale/physical width와 native range를 함께 검증하고 retained end를 보존한다. extent 변경은 기존 U4 결과와 U3 fresh receipt로 연결하며 Core exact/native±1·3프레임 완료와 원래 권한 조건은 유지한다.
+
+
+## Issue #667 / CI #2820 — 실패 관측과 성공 영수증의 분리
+
+`data-gantt-projection-observation`은 개발용 최신 attempt 진단이다. `generation`·`stage`(rows/semantic/delivery/ordering)·`outcome`으로 현재 시도의 진행·실패를 구분한다. `data-gantt-projection-receipt`와 semantic receipt는 실제 SETTLED 증거를 전달한 성공 기록이며 실패 시 이전 성공 값을 새 실패 영수증으로 덮어쓰지 않는다. 이 DOM 진단 자체를 쓰기 권한이나 저장 성공 근거로 삼지 않는다.
+
+정렬 음성 검증은 최신 delivery/SETTLED와 semantic 존재를 baseline으로 잡고, baseline 이후 rows/TIMED_OUT을 확인한다. canonical/Core/DOM IDs·실제 Y차이는 현재 public Core/DOM에서 읽으며 과거 성공 receipt를 현재 실패의 데이터 증거로 재사용하지 않는다. 복구는 더 새 attempt의 delivery/SETTLED·fresh semantic observation과 실제 정렬로 확인하고 동일 semanticId 재사용은 허용한다. [CI #2820 보완 원장](evidence/issue-667/ci2820-correction.json)을 참조한다.

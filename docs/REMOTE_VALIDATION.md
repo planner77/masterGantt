@@ -788,3 +788,8 @@ Remote PR CI must confirm required Quality, Chromium E2E and Docker aggregate ch
 CI #2819 완료 결과는 Quality/Docker PASS·E2E FAIL이며 SC-05 최종 APIContext GET의 ECONNRESET을 기록한다. 취소 shard1의 원격 로그에서 SC-01 정상/실제RAF90ms가 각각 개별 PASS였으므로 U3 frame 보완의 부분 증거로 보존하되 shard 전체는 CANCELLED다. APIContext GET의 직접 observer 부재·process/resource 두 snapshot·건강 probe 성공만으로 OOM/재시작/keep-alive 근인을 확정하지 않는다.
 
 후속은 U5 UI후 확인11곳의 browser transport 공유·직접 observer이며 원본 HTTP/SQLite 저장 단언과 무재시도를 유지한다. seed/auth/독립 API/route우회/재시작 검증은 분류 후 보존한다. [보완 원장](evidence/issue-667/ci2819-correction.json)에 원본 진단·source·호출 감사·선택 검증을 기록하며 다시 게시한 exact-head Full CI를 완료까지 모니터링한다. 새 결과는 같은 SHA의 Issue/PR STATUS로 인계하고 CI 성공을 Owner ACCEPT나 main/release 결과로 확대하지 않는다.
+
+
+## Issue #667 / CI #2820 — Grid Y 음성 테스트 관측 계약
+
+CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음성 관측 rows/TIMED_OUT과 성공receipt old SETTLED가 동시에 존재했으며 구 테스트는 성공receipt에서 실패게시를 기다렸다. 원본 trace/단독 FAIL과 테스트 교정·선택42 검증을 [원장](evidence/issue-667/ci2820-correction.json)에 기록한다. Trusted 실패도 원본CI FAIL 때문이며 Owner gate와 혼동하지 않는다. 새 Head Full CI를 완료까지 확인하고 같은 SHA의 Issue/PR STATUS로 원격 결과를 인계한다.

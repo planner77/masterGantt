@@ -74,12 +74,13 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - AC3: actual Calendar 저장과 동일 revision DTO의 clean no-op/semantic 재사용·새 observation·Core 쓰기 0을 선택 검증했다. 로컬 PASS; 전체 조합·원격 인수 NOT TESTED.
 - AC4: 검색0/해제·WBS exact120 bookmark·연속3회축확장·진행중실제wheel·Resource exact120/후속 native-reset·pending wheel/resize·Target 편집을 선택 검증했다. 로컬 PASS; 별도 marker reveal/전체 조합은 NOT TESTED.
 - AC5: full canonical Task/Link·권한/revision, unknown/역전GET·추가 mutation0·같은 instance/tree/selection/columns·3000행/3회 cleanup 선택 범위 PASS. 장기 heap/전 listener·전체 Membership 조합은 NOT TESTED.
-- AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. 이전 게시 source의 DOCUMENTATION_SYNC 로컬 영향/정합 검토 PASS를 이력으로 보존한다. 이전 Resource/fixture 보완의 DOCUMENTATION_SYNC 의미 검토·PRE_QA PASS(26게시파일·15source·선택 로컬 증거 범위)는 이력으로 보존한다. CI #2817 관측 순서·#2818 U3 frame 분리·#2819 UI후 canonical 확인 전송의 최종 검토·원본/재검증은 아래 각 원장을 따른다.
-- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1, Headc6f18/#2814.1, Head06d34/#2817.1, Headf94f/#2818.1, Heada376/#2819.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
+- AC6: 아래 SC-01~14·원본 실패/재검증·source fingerprint·선택 Unit/actual Core/actual HTTP·SQLite/원격 구분과 #552/#573/#574/#675 인계를 기록했다. 이전 게시 source의 DOCUMENTATION_SYNC 로컬 영향/정합 검토 PASS를 이력으로 보존한다. 이전 Resource/fixture 보완의 DOCUMENTATION_SYNC 의미 검토·PRE_QA PASS(26게시파일·15source·선택 로컬 증거 범위)는 이력으로 보존한다. CI #2817 관측 순서·#2818 U3 frame 분리·#2819 UI후 canonical 확인 전송·#2820 음성 oracle 교정의 최종 검토·원본/재검증은 아래 각 원장을 따른다.
+- AC7: Head04b6/#2811.1, Head2f8f/#2812.1, Heada141/#2813.1, Headc6f18/#2814.1, Head06d34/#2817.1, Headf94f/#2818.1, Heada376/#2819.1, Head852056/#2820.1은 각각 quality/docker PASS, e2e FAIL이다. 각 원본 test FAIL·취소·미실행을 보존한다. 다음 수정 Head required3/Trusted QA·Owner gate는 NOT TESTED, MERGE_READY=BLOCKED다.
 
 ## DOCUMENTATION_SYNC
 
 - `docs/exec-plans/active/ISSUE_667.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_637.md`: UPDATED
 - `docs/ARCHITECTURE.md`: UPDATED
 - `docs/PROJECT_UX.md`: UPDATED
 - `docs/TASK_EDITOR.md`: UPDATED
@@ -91,6 +92,7 @@ API/SQLite/보안/일정 알고리즘·CI workflow·Ruleset은 변경하지 않�
 - `docs/evidence/issue-667/ci2817-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2818-correction.json`: UPDATED
 - `docs/evidence/issue-667/ci2819-correction.json`: UPDATED
+- `docs/evidence/issue-667/ci2820-correction.json`: UPDATED
 - `docs/ISSUE_667_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/ISSUE_35_GANTT_SCALE.md`: UPDATED
 - `docs/ISSUE_3_REVIEW.md`: UPDATED
@@ -495,3 +497,20 @@ UNKNOWN 해제·같은 API·canonical 행·후속 renameInline까지 앞선 단�
 생산코드 diff0, 과거7 evidence JSON 불변이며 생성 Next설정은 백업 후 원본bytes로 복원했다. 이번 문서 영향은 TEST_PLAN/REMOTE_VALIDATION/누적분석/Packet/PLAN/CHANGELOG/새 원장이다. 제품 architecture/ADR/UX/API/DB/일정·보안·CI workflow 계약은 변경하지 않아 상세 수정은 N/A다. 최종 독립 사전 검토 후 같은 PR에 게시하고 새 Full CI 완료까지 다시 모니터링한다. 이번 교정은 원격 ECONNRESET 근인 확정이나 범위 밖53개 GET의 연결 안정성을 보증하지 않는다.
 
 최종 독립 `/root/integration_tests`의 PRE_QA/DOCUMENTATION_SYNC는 PASS(12게시파일·5테스트·선택18/17범위), 지적0이다. HTML18개·UnitJSON·source/test fingerprint 및64 inventory를 전건 대조했고 과거7JSON불변을 확인했다. 리뷰/충돌 상태는 게시 전후 다시 확인하고 새exact-head FullCI 완료까지 모니터링한다. Owner ACCEPT·병합·main/GHCR·release는 별도다.
+
+
+## CI #2820 — Grid Y 음성 oracle와 성공 영수증 계약 분리
+
+Head `852056e71526968baf70c599eb09e1c37331e1e1`의 [CI #2820.1/run38832668354](https://github.com/planner77/masterGantt/actions/runs/38832668354)을 완료까지 확인했다. Quality116755740613/Docker116755979757 PASS, E2E116758017146/QA116758040610 FAIL이다. shard1 job116755309771 step7의 `projection-row-alignment.spec.ts:119→130` 음성 사례가 Expected TIMED_OUT/Received null로 실패했다.80 PASS/1 FAIL/32 NOT RUN, 다른5 shard CANCELLED(추가 실제FAIL표시0)다. 정상SC-01 6.2초/90ms SC-01 6.8초는 개별PASS로 보존한다. 기본브랜치 trusted run38833752118/job116758111603도 원본CI FAIL 때문에 실패했으며 Owner gate와 혼동하지 않는다.
+
+원격 trace와 원본 단독 재현은 CSS GridY28px corruption/viewport1440→1439 뒤 새 관측gen3 rows PENDING→TIMED_OUT, 성공receiptgen1 SETTLED 유지였다. 원본단독 report9768.609ms/exit1로 같은 null 단언 실패를 재현했다. #667의 실패관측/성공영수증 분리 이후 구 #637 테스트가 실패를 성공receipt에 게시하길 요구한 계약 불일치다. 실제음성oracle를 최신 관측generation+rows TIMED_OUT으로 검사하고 current Core/DOM IDs·27.5px 차이·같은instance/mutation0를 직접 확인한다. 복구는 새 attempt의delivery SETTLED/fresh semantic observation(semanticId재사용허용) 및 실제정렬로 확인한다. production·timeout/retry/skip 변경 없이 테스트만 교정하고 관련42개를 재검증한다.
+
+### 최종 음성 oracle 선택 검증
+
+최종test1 fingerprint `b3b24d46639e866f0e128fc4fcf8318033081012307bf9ccca6049016e495d49`의 Chromium3파일42 PASS/0FAIL/0SKIP/0flaky/globalErrors0,95593.296ms/exit0이다. TZ=UTC/CI=true/CI_E2E_FULLY_PARALLEL=true/workers1/retries0/max-failures0으로 projection-row-alignment13·canonical-projection21·viewport8을 실행했다. mock API/실제 설치Core·DOM geometry 선택 검증이며 HTTP/SQLite 전체 저장 인수나 원격 전체 회귀가 아니다.
+
+음성 첨부는 baseline gen2 delivery/SETTLED→실패 gen3 rows/TIMED_OUT(oldsuccess/semantic 불변)→복구 gen4 delivery/SETTLED와 freshsemantic observation을 확인한다. 실제4개 row/bar의27.5px 오정렬·currentcanonical/Core/DOM 동일·sameinstance/mutation0 검증을 유지했다. typecheck/복원후typecheck/scoped lint오류·경고0/Markdown228/version0.114.1/whitespace PASS, Unit은N/A(생산변경 없는 기존E2Eoracle수정)다. 생성설정은 백업 후 원본bytes로 복원했고 source drift0·과거8JSON불변이다.
+
+이번 문서는 TEST_PLAN/GANTT_SYNC_TRACE/REMOTE_VALIDATION/누적분석/CHANGELOG/PLAN/WorkPacket667 및637 후속호환 기록/새 원장만 갱신한다. #637 과거판정·캡처·Issue 상태는 변경하지 않는다. 제품코드/architecture/ADR/UX/API/DB/일정/보안/CI정책 계약 변경은 N/A다. 독립 검토 후 게시하고 새FullCI 완료까지 모니터링한다.
+
+최종 독립 Reviewer `/root/qa_final`은 PRE_QA/DOCUMENTATION_SYNC PASS(게시10파일·test1·선택42범위), 지적0으로 판정했다. HTML42개·음성첨부·sourcefingerprint 및 과거8JSON불변을 전건 대조했다. 조회 시 미해결review0/mergeable=true이며 게시 후 재확인한다. 동일source를 게시하고 새Head의Required3·QA/Trusted 완료까지 모니터링한다. Owner ACCEPT·병합·main/GHCR/release는 별도이며 현재MERGE_READY=BLOCKED다.

@@ -374,7 +374,7 @@ CI policy에 `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_pr_fast_gate.py`와
 ## Issue #637 — 독립 Grid 스크롤·projection 회귀 (2026-10-12)
 
 - 원형 fixture1440×1000/revision40→41/NEW-570/422 fallback/insert-before를 수정 없이 먼저 실행하고, 원본 실패 artifact·trace와 비교한다. 우연히 PASS한 단일 실행으로 Release #165.1의 실제 FAIL을 무효화하지 않는다.
-- Grid/Chart header/body/row/bar rect와 각 native pane·Core/Gantt scrollTop을 별도로 관찰하여 실제 viewport 중심 차이≤1px를 유지한다. 독립 Grid overflow/focus·scrollIntoView 유발 경로를 deterministic fixture로 검사하고 실제 불일치 음성 oracle가 TIMED_OUT으로 끝나는지 확인한다.
+- Grid/Chart header/body/row/bar rect와 각 native pane·Core/Gantt scrollTop을 별도로 관찰하여 실제 viewport 중심 차이≤1px를 유지한다. 독립 Grid overflow/focus·scrollIntoView 유발 경로를 deterministic fixture로 검사하고 실제 불일치 음성 oracle가 최신 rows 관측의 TIMED_OUT으로 끝나는지 확인한다. #667 이후 실패 관측과 성공 영수증은 별도이므로 성공 receipt의 실패게시를 기대하지 않는다.
 - 기존 canonical-projection의 삽입·삭제/재부모화·Summary 접힘/빈 Summary·필터/metadata, Day/Week와390/768/1024/1440/1920px, 동일 instance/columns/selection·snapshot 의도 외 mutation0을 관련 fast-feedback으로 확인한다. 범위별 실행 수와 미검증은 Work Packet에 기록한다.
 - Core private write·강제 remount·wait/retry 추가·1500ms/5s 확대·±1px 완화·skip/CI shard·required gate 변경은 허용하지 않는다. Local PASS와 원격 exact Head required3종·Trusted·Owner ACCEPT는 구분한다.
 
@@ -3886,3 +3886,6 @@ Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 
 #667 CI #2819은 cross-tab stale SC-05의 마지막 실제 저장 확인 APIContext GET에서 ECONNRESET이 발생했다. 앞선 UNKNOWN/잠금·same API·후속 저장 단언은 통과했다. U5 통합5곳·Editor6곳의 UI후 canonical 확인을 `readBrowserCanonicalSnapshot`의 same-origin fetch/no-store·직접 observer로 교정하고 기존 #2814 stage helper를 공유한다. HTTP200·JSONvalid 및 각 원래 canonical DTO/name/revision/tasks/links 단언을 유지한다.
 
 감사는 spec의 literal62+공통seed helper2=64 inventory를 분류한다. 변경11 외 spec51/helper2는 seed/auth/API독립·다른context·route우회·재시작 persistence 또는 이번 U5 범위 밖으로 구분하며 전수 의미 검토·연결 오류 해소를 주장하지 않는다. browser fetch는 page.route를 통과하므로 교정한 각 호출은 실제 server continue/unroute 이후인지 확인한다. helper Unit은 단일 GET/no-store·HTTP/JSON/transport 실패 재전파·재시도0·상대 canonical 경로만 허용함을 검사한다. 원본 stale/500의 로컬 비재현과 새 source의 실제 HTTP/SQLite18사례를 구분하고 전체 회귀는 새 exact-head CI 완료로 판정한다. [이번 원장](evidence/issue-667/ci2819-correction.json)을 참조한다.
+
+
+#667 CI #2820의 #637 음성 테스트는 실제 rows TIMED_OUT에도 과거 성공receipt의 generation 증가를 기다려 실패했다. 원본 단독 재현 후 최신 delivery/SETTLED+semantic 존재를 baseline으로 고정하고 fresh rows TIMED_OUT·기존 성공receipt/semantic 불변을 검증한다. canonical fixture/current public Core/DOM IDs 및4개 row/bar의27.5px 차이·sameinstance/mutation0을 유지한다. 복구는 더 새 diagnostic delivery SETTLED/freshsemantic observation(semanticId재사용허용)/실제정렬로 검사한다. 관련projection-row-alignment13+canonical21+viewport8을 선택 실행하며 originaltimeout/retry/skip·production은 변경하지 않는다. [보완 원장](evidence/issue-667/ci2820-correction.json)에 원본 FAIL/변경source/최종결과를 분리한다.
