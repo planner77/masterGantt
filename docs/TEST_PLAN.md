@@ -1,3 +1,11 @@
+## Issue #712 — post-merge provenance / Lifecycle Full CI 판정 회귀 (2026-10-18)
+
+- **검증 대상:** `scripts/verify-pr-metadata-evidence.py`, `scripts/qa_final_automated.py`, `scripts/issue_lifecycle.py`, `.github/workflows/ci.yml`. 고위험 protected 실행·릴리스 Gate이며 UI/DB/API/제품 기능에 영향 없음.
+- **양성:** #552 PR #561 원본 Full Run `39021332528.1`(Head/Base/Test-Merge)과 실제 merge `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7`의 양부모·Git Tree 동일을 재현하고 최신 Full aggregate 성공(개별 QA rerun 포함) 시 PASS. 후속 edited metadata-only failure는 Full 권위를 가지지 않음.
+- **음성:** 실제 최신 Full failed/in_progress, required aggregate 재실행 failure, run/attempt·PR number·repo·source artifact 누락/위조, Head/Base/Test-Merge/actual merge SHA·부모·Tree 불일치, squash/rebase, 잘못된 branch/Primary Issue trace, Main CI 또는 exact-version Owner 승인 누락은 BLOCKED.
+- **로컬 정책 회귀:** `python3 scripts/test-pr-metadata-evidence.py`; `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test-issue-712.py`; `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py`; `python3 scripts/verify-issue-lifecycle.py`. 기존 test/timeout/retry/skip 보호 불변.
+- **원격 수용:** exact new PR Head의 Quality / Chromium E2E 6/6 / Docker / Trusted QA 및 리뷰 0·충돌 없음 후 Owner HIGH 위험 승인; 이어 병합/Main CI/Finalizer는 별도 승인·상태 게이트. CI 시작 후 관측 전 단계는 **NOT TESTED**. 상세 AC1–AC6 매핑은 [Work Packet](exec-plans/active/ISSUE_712.md).
+
 
 ## Issue #703 Main CI #2901.1 / #490 Gantt viewport E2E regression (2026-10-17)
 
