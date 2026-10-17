@@ -1,3 +1,7 @@
+## Issue #703 — 로컬 PASS와 Preview 게시의 경계 (2026-10-17)
+
+로컬 verify:prepr --mode=fast/targeted/docker의 실행 결과가 같은 Issue branch SHA에서 확인되고 Owner가 별도 지시하면 [Preview 수동 GHCR 가이드](PREVIEW_PUBLISH.md)에 따라 시험용 이미지 게시를 요청할 수 있다. 로컬 PASS와 Preview smoke는 원격 PR Required 3종·Trusted QA·Owner 정식 승인에 해당하지 않는다. --dry-run/UNKNOWN/누락/출처 불일치 역시 PASS가 아니다. 이미 열린 PR의 Push는 Full CI를 자동 시작할 수 있으므로 CI 비용 비교는 PR 없는 개발 단계와 분리한다. #703 Work Packet은 [여기](exec-plans/active/ISSUE_703.md)를 따른다.
+
 # Local Pre-PR Verification — Issue #699
 
 > 개발 Agent용 **로컬 사전 검증 보조 도구**다. 유일한 위험·영향 테스트 선택 정책은 [TEST_PLAN.md의 #697](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)에 있다. `PASS`는 원격 PR exact-Head 세 Required Check/QA/Owner 승인과 동등하지 않다.
