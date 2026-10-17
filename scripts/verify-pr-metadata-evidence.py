@@ -149,7 +149,8 @@ def _collection(path: str, token: str, name: str) -> list[dict[str, Any]]:
 
 
 def validate_full_source(repo: str, token: str, run_id: int, number: int,
-                         head: str, base: str, merge: str) -> int:
+                         head: str, base: str, merge: str,
+                         expected_attempt: int) -> int:
     """Cross-check PR event provenance against source full CI and live PR."""
     spec = importlib.util.spec_from_file_location("qa_source", QA_PATH)
     if spec is None or spec.loader is None:
@@ -158,7 +159,16 @@ def validate_full_source(repo: str, token: str, run_id: int, number: int,
     spec.loader.exec_module(qa)
     gh = qa.GitHub(repo, token)
     run = gh.get(f"{gh.prefix}/actions/runs/{run_id}")
-    artifact = qa.source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
+    if (run.get("id") != run_id or
+            run.get("run_attempt") != expected_attempt or
+            run.get("event") != "pull_request" or
+            str(run.get("path") or "").split("@")[0] != ".github/workflows/ci.yml" or
+            run.get("status") != "completed" or
+            run.get("conclusion") != "success" or
+            (run.get("repository") or {}).get("full_name") != repo or
+            (run.get("head_repository") or {}).get("full_name") != repo):
+        raise RuntimeError("Full CI source Run/Attempt/Event/Repo 변경 또는 미성공")
+    artifact = qa.source_artifact(gh, run_id, expected_attempt)
     observed_n, observed_h, observed_b, observed_m, live = qa.verified_source(gh, run, artifact)
     if (observed_n, observed_h) != (number, head):
         raise RuntimeError("이전 full CI 원본 PR/head 증거 불일치")
@@ -202,7 +212,7 @@ def evaluate(
     current_run_id: int,
     api_get: Callable[[str], dict[str, Any]],
     mode: str,
-    source_check: Callable[[int, int, str, str, str], int] | None = None,
+    source_check: Callable[[int, int, str, str, str, int], int] | None = None,
 ) -> tuple[str, int | None, str, str, str]:
     """Injectable API for deterministic scenarios; second live read closes head race."""
     number, event_sha = _event_head(payload)
@@ -264,7 +274,15 @@ def evaluate(
         if not post_merge and (len(base) != 40 or len(merge) != 40):
             return "SOURCE_UNVERIFIED", full_run_id, "현재 PR base/merge 정보 없음", event_sha, latest_sha
         try:
-            attempt = source_check(full_run_id, number, event_sha, base, merge)
+            identified = [r for r in runs if r.get("id") == full_run_id]
+            if len(identified) != 1:
+                raise RuntimeError("Full CI Run ID 후보 누락/중복")
+            source_attempt = int(identified[0].get("run_attempt") or 0)
+            if source_attempt < 1 or source_attempt > 10:
+                raise RuntimeError("Full CI Run Attempt 유효 범위 외")
+            attempt = source_check(full_run_id, number, event_sha, base, merge, source_attempt)
+            if attempt != source_attempt:
+                raise RuntimeError("Full CI 증거 Run Attempt 변경")
         except Exception as exc:
             return "SOURCE_UNVERIFIED", full_run_id, "FULL_CI_SOURCE_UNVERIFIED: " + str(exc), event_sha, latest_sha
         if post_merge:
@@ -313,8 +331,8 @@ def main() -> int:
         state, run_id, reason, event_sha, current_sha = evaluate(
             payload, repo=repo, current_run_id=current_run_id,
             api_get=lambda path: _api(path, token), mode=args.mode,
-            source_check=lambda run, number, head, base, merge:
-                validate_full_source(repo, token, run, number, head, base, merge),
+            source_check=lambda run, number, head, base, merge, attempt:
+                validate_full_source(repo, token, run, number, head, base, merge, attempt),
         )
         _report(state, run_id, reason, event_sha, current_sha)
         # SUPERSEDED affects only an old SHA and cannot approve the latest head.
