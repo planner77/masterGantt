@@ -169,6 +169,8 @@ Work Packet에 baseline/main·working head·base·test merge·source fingerprint
 
 **종료 조건:** 확대 범위의 최초/추가 실패를 실제 source별로 분류하고 원본 trace·발생 순서를 보존한다. 제품 또는 fixture를 보완했다면 **최종 동일 source**에서 직접·교차·음성 경로를 재검증한다. 미실행·미확정 항목은 NOT TESTED/BLOCKED와 잔여 위험/인계 담당자를 명시한 뒤 Manager가 PR CI 시작을 판단한다. 한 번의 확대 PASS를 원격 전체 PASS로 승격하지 않는다. 테스트 timeout/retry/skip/required gate·단언 완화는 검증 전략이 아니다.
 
+> **반복 PR CI 실패에 대한 전체 이력 기반 REWORK (#704):** 이 절의 파일 합집합/비교 진단은 **직전 실패뿐 아니라 해당 Issue의 모든 관련 PR·Run·Attempt**로부터 수집한 누적 원장을 출발점으로 한다. 최초 실패부터 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md`를 유지하고, 매 실패 후 원장의 모든 과거 실패·교정·미실행 사례를 읽어 재발/신규·공통 원인과 영향 소비자를 재평가한다. 파일 형식, Run/Attempt 출처, fail-fast 취소 Job의 실제 실패 보존, 원인별 일괄 보완과 동일 최종 source 증거는 [PR CI Failure Triage](PR_CI_FAILURE_TRIAGE.md)를 따른다. Local `verify:prepr --mode=diagnose`는 수동 확인된 원격 실패 입력과 제한된 파일 수가 필요한 보조 도구이며 자동으로 과거 Run을 수집·인증하지 않는다.
+
 ### 5. LOW/MEDIUM/HIGH 경계 예시
 
 | 변경 | 적절한 테스트 | 과소·과잉 검증 |
