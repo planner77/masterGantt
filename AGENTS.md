@@ -1,3 +1,9 @@
+## Issue #598 — 실제 QA 지침 정합화 후속 (2026-10-17)
+
+- `.codex/agents/{infra,frontend,ui-ux,qa-docs}.toml`의 실제 `developer_instructions`를 기본 `OWNER_MANAGED`·호환 `AUTOMATED_MANAGER`·선택 `AGENT`로 일치시킨다. TOML 말미의 주석만으로 구 규정이 수정된 것으로 판단하지 않는다.
+- `qa_required=true`와 HIGH·보호 파일은 독립 인간 Reviewer 강제가 아니다. OWNER_MANAGED는 Required Quality/E2E/Docker, 신뢰된 default-branch QA, strict 최신 main, HEAD/base/run·문서/AC·리뷰 thread 0 및 Owner의 HIGH 위험 수용·명시 최종 승인 모두 유지한다. `AGENT`는 실제 독립 QA를 요구한다.
+- [Issue #598 후속 Work Packet](docs/exec-plans/active/ISSUE_598.md) 및 [Agent 회귀 테스트](tests/scripts/agent-qa-contract.test.ts) 참조. 기존 validator/Ruleset 변경·정식 Release 승인 없음.
+
 ## Issue #659 — PR E2E 2계층 조기 중단·W05 테스트 범위 보완 (2026-10-13)
 
 - PR Full Chromium E2E는 빠른 검사 Gate 통과 후 6 Shard로 실행한다. `--max-failures=1`으로 각 **PR Shard 내부 첫 테스트 실패 시 미실행 케이스 중단**하고 `strategy.fail-fast=true`가 다른 Shard 중단을 요청한다. Main push/수동/정확 SHA 복구는 `maxFailures` CLI를 설정하지 않고 `fail-fast=false`로 전체 케이스를 실행한다. 모범 운영 계약은 `docs/CI_CD.md` 및 `docs/REMOTE_VALIDATION.md`를 따른다.

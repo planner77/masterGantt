@@ -1,3 +1,8 @@
+## Issue #598 후속 — Agent 활성 지침 계약 회귀 (2026-10-17)
+
+- `tests/scripts/agent-qa-contract.test.ts`가 네 Agent의 실제 `developer_instructions` 내부에서 OWNER_MANAGED 기본/AGENT 선택/qa_required=true 위험도와 기존 강제 리뷰 문구 부재를 검사한다. 바깥 주석만으로 PASS하지 않는다.
+- CI 스크립트/Ruleset/Required 3종/default-branch Trusted QA/Owner 승인과 정식 Release 계약은 변경하지 않는다. 실제 새 HEAD의 Vitest·PR CI·QA·main 결과는 원격 실행 전 NOT TESTED다.
+
 ## Issue #667 — CI #2840 수용 경계 Unit 정정과 재준비 음성 (2026-10-16)
 
 최신 원격 실패는 `admitPosition(target120)`에 native capacity119를 거부하라고 요구한 신규 Unit이다. 제품 port는 기존 Core exact/native±1 계약을 유지하므로 Core119는 거부하고, Core가120 이상이면 native119는 허용한다. native118은 거부하며 exact120 경계와 명령0을 별도로 검증한다. 정상 E2E 입력 fixture의 양capacity120 요구와 제품 port의 완료 허용 범위를 혼동하지 않는다. ci2838의 양exact/native119거부 설명은 그 시점 원장으로 보존하고 이번 후속에서 기존 계약에 맞게 정정한다.
