@@ -3,7 +3,7 @@ import type { ProjectTaskDto, TaskMutationResponse } from "../../contracts/proje
 import { stageFilterCandidates } from "../projects/project-search-filter";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 
-export type MilestoneManagementCommand = "detail" | "memberships" | "relations" | "copy-id" | "copy" | "delete" | "date" | "members";
+export type MilestoneManagementCommand = "detail" | "memberships" | "relations" | "copy-id" | "copy" | "delete" | "date" | "members" | "convert-task";
 export type MilestoneManagementHandler = (taskId: string, command: MilestoneManagementCommand, trigger: HTMLElement) => void;
 
 export function milestoneManagementDate(task: ProjectTaskDto | undefined): string | null {

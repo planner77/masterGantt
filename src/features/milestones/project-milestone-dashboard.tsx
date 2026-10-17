@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type {
   MilestoneDashboardFilterInput,
   MilestoneDashboardFiltersDto,
@@ -15,7 +15,7 @@ import {
   displayEffort,
   displayPercent,
 } from "./milestone-dashboard-model";
-import { sortMilestoneManagementRows, type MilestoneManagementHandler } from "./milestone-management-model";
+import { isVisibleFocusTarget, sortMilestoneManagementRows, type MilestoneManagementHandler } from "./milestone-management-model";
 import { useMilestoneDashboard } from "./use-milestone-dashboard";
 import styles from "./project-milestone-dashboard.module.css";
 
@@ -36,6 +36,7 @@ export interface ProjectMilestoneDashboardProps {
   editable?: boolean;
   onAddMilestone?: (trigger: HTMLElement) => void;
   onManageMilestone?: MilestoneManagementHandler;
+  canConvertToTask?: (taskId: string) => boolean;
   onManagementFocusUnavailable?: () => void;
 }
 
@@ -53,6 +54,7 @@ export function ProjectMilestoneDashboard({
   editable = false,
   onAddMilestone,
   onManageMilestone,
+  canConvertToTask,
   onManagementFocusUnavailable,
 }: ProjectMilestoneDashboardProps) {
   const id = useId();
@@ -101,6 +103,26 @@ export function ProjectMilestoneDashboard({
     if (enabled && ids.length && data?.resourceScopeContext)
       onSchedule([...new Set(ids)], data.resourceScopeContext);
   };
+  const [metricMilestoneIds, setMetricMilestoneIds] = useState<readonly string[] | null>(null);
+  const managementHeading = useRef<HTMLHeadingElement>(null);
+  const metricTrigger = useRef<HTMLElement | null>(null);
+  function clearMetricMilestones() {
+    const clearingTrigger = document.activeElement;
+    setMetricMilestoneIds(null);
+    queueMicrotask(() => {
+      if (document.querySelector("dialog:modal") || (document.activeElement !== clearingTrigger && document.activeElement !== document.body)) return;
+      const target = isVisibleFocusTarget(metricTrigger.current) ? metricTrigger.current : managementHeading.current;
+      target?.focus({ preventScroll: true });
+    });
+  }
+  function showMetricMilestones(ids: readonly string[], trigger: HTMLElement) {
+    if (!enabled || !ids.length) return;
+    metricTrigger.current = trigger;
+    setMetricMilestoneIds([...new Set(ids)]);
+    // The current query remains intact; this is a local identity selection in
+    // the existing management list, never a hidden native-row navigation.
+    managementHeading.current?.focus();
+  }
   const managementRows = useMemo(() => sortMilestoneManagementRows(data?.rows ?? [], tasks), [data?.rows, tasks]);
   const resourceAvailable = enabled && Boolean(data?.resourceScopeContext);
   const resourceScope = (
@@ -285,7 +307,7 @@ export function ProjectMilestoneDashboard({
             type="search"
             value={search}
             placeholder="이름·외부 ID·작업 ID" data-milestone-focus="search"
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => { setMetricMilestoneIds(null); setSearch(event.target.value); }}
           />
         </label>
         <label>
@@ -533,14 +555,14 @@ export function ProjectMilestoneDashboard({
               <button
                 type="button"
                 disabled={
-                  !resourceAvailable ||
+                  !enabled ||
                   !data.kpi.completion.completedMilestoneTaskIds.length
                 }
-                onClick={() =>
-                  schedule(data.kpi.completion.completedMilestoneTaskIds)
+                onClick={(event) =>
+                  showMetricMilestones(data.kpi.completion.completedMilestoneTaskIds, event.currentTarget)
                 }
               >
-                전체 일정에서 Milestone 보기
+                완료 Milestone 목록에서 확인
               </button>
             </article>
             {countCards.map((card) => (
@@ -551,11 +573,11 @@ export function ProjectMilestoneDashboard({
                 <button
                   type="button"
                   disabled={
-                    !resourceAvailable || !card.metric.milestoneTaskIds.length
+                    !enabled || !card.metric.milestoneTaskIds.length
                   }
-                  onClick={() => schedule(card.metric.milestoneTaskIds)}
+                  onClick={(event) => showMetricMilestones(card.metric.milestoneTaskIds, event.currentTarget)}
                 >
-                  전체 일정에서 {card.title} 보기
+                  {card.title} Milestone 목록에서 확인
                 </button>
               </article>
             ))}
@@ -582,19 +604,21 @@ export function ProjectMilestoneDashboard({
             전체 Milestone 수로 해석하지 않습니다.
           </p>
           <section className={styles.stageSection}>
-            <h3>Milestone 전체 상태 · 표시 {data.rows.length}개</h3>
+            <h3 ref={managementHeading} tabIndex={-1}>Milestone 전체 상태 · 표시 {metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length : data.rows.length}개{metricMilestoneIds ? ` · 조회 전체 ${data.rows.length}개` : ""}</h3>
+            {metricMilestoneIds ? <div role="status"><p>선택 지표의 Milestone {metricMilestoneIds.length}개 중 현재 목록 조건에 {managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length}개가 있습니다. 조건 밖이거나 삭제된 ID는 일정으로 확대하지 않습니다. 일정 행으로 이동하지 않습니다.</p><button type="button" onClick={clearMetricMilestones}>지표 선택 해제</button></div> : null}
             <p className={styles.note}>
               프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와
               분모가 다릅니다.
             </p>
             {data.rows.length ? (
               <ProjectMilestoneStageTable
-                rows={managementRows}
+                rows={metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)) : managementRows}
                 tasks={tasks}
                 enabled={enabled}
                 scheduleEnabled={resourceAvailable}
                 editable={editable}
                 onManage={onManageMilestone}
+                canConvertToTask={canConvertToTask}
                 onFocusUnavailable={onManagementFocusUnavailable}
                 onOpenTask={onOpenTask}
                 onSchedule={schedule}

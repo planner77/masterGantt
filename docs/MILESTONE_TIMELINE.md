@@ -64,11 +64,15 @@ metadata-only 변경은 같은 membership의 native filter/columns 재실행 사
 
 ## 적용 범위와 현재 상태
 
+#549~#551의 아래 current/target 표와 초기 실행 기록은 각 Issue 당시 baseline이다. #552 후보에서 적용되는 marker-OFF 행/호환 전환은 [새 표시 분리 계약](#issue-552--wbs와-milestone-표시-분리)을 따른다. 원격 등록과 main 적용 여부는 별도 lifecycle 증거로 판정한다.
+
 Issue #549는 Epic #548의 MT1 공통 모델과 설치 SVAR Core 연동 기술 기반이다. 현재 운영의 Milestone Grid/Chart 행, 전체/Task/Milestone 빠른 보기와 고급 유형 필터를 유지한다. #550의 관리 진입은 기존 Dashboard에서 구현한다. #551은 기본 OFF인 opt-in lane capability와 개발 전용 기술 미리보기다. 운영 기본 표시 전환과 호환 UI는 #552, 통합 검증은 #553의 선행 gate 이후 범위다. 이 문서의 target은 현재 화면 기능 완료를 뜻하지 않는다.
 
 baseline은 `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0`, 설치 `@svar-ui/react-gantt` 2.7.3, 그 종속 `@svar-ui/gantt-store` 2.7.2, Next.js 16.3.8이다. 공식 문서 확인일은 2026-10-08이다. 원격 quality/e2e/docker와 독립 최종 QA는 실제 exact-head 증거를 확보하기 전 NOT TESTED다.
 
 ## current → target → compatibility
+
+다음 표는 MT1 당시의 역사적 비교다. 기본 ON/일시 표시 target은 2026-10-15 marker-OFF 개정으로 대체되었으며 현재 #552 구현 후보의 기능을 뜻하지 않는다.
 
 | 항목 | current | target | compatibility / MT1 경계 |
 | --- | --- | --- | --- |
@@ -96,6 +100,8 @@ Membership/Gate는 기존 전체 `projectStageGates(stageSnapshotFromProject(tas
 `canonicalSubtreeImpact`는 전체 canonical Summary subtree(또는 Task/Milestone root)의 합집합, 숨은 Milestone ID와 없는 요청 ID를 설명한다. 기존 서버 Copy의 Membership 제외 정책, incident/external Link guard, 완료 단계 잠금, Assignment 제약과 revision/auth 검증을 대체하지 않는다. Summary의 min/max 일정에는 숨은 Milestone도 기여하며 일반 Task가 없는 경우의 기존 Milestone progress 평균과 같은 날짜 span 1도 유지한다. 표시 집합만으로 Copy/Delete/Move 대상을 줄이지 않는다. 파괴적 명령의 확인 UI는 기존 대상/완료 잠금과 숨은 대상 설명을 유지해야 한다.
 
 ## 표시 환경설정과 상태별 결과
+
+이 절은 #549 당시 순수 모델의 기본 ON schema/일시 표시 제안 기록이다. #552 운영에서는 이 schema를 읽어 marker를 켜거나 저장하지 않는다. 모델·개발 opt-in capability는 보존하지만 현재 marker-OFF 계약의 활성화 authority가 아니다.
 
 순수 schema는 `{version:1,showMilestones:boolean}`다. `normalizeMilestoneTimelinePreference`는 잘못된 값·unknown version·누락이면 기본 ON이다. JSON 문자열 parse, 프로젝트 publicId별 key 및 browser storage read/write는 후속 UI adapter 소유이며 MT1에는 storage 연결이 없다. 후속 권고 key는 `mastergantt:milestone-timeline:<publicId>`이며 저장 값은 이 schema만 사용한다. storage 접근/parse 실패는 ON fallback, 기존 types를 읽어 OFF를 추론하지 않는다. 필터 초기화/scope 변경은 별도 설정을 바꾸지 않는다. 사용자 explicit toggle 때만 저장한다.
 
@@ -291,3 +297,74 @@ Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하�
 #548의 main-first 결정에 따라 #667은 Reconciler·Observation·Axis 공통 경로만 제품에 연결한다. 현재 main의 native Milestone Grid/Chart 행·bar와 전체 canonical Task/Link/Membership을 보존하고 opt-in timeline marker를 활성화하지 않는다. #552/PR #561은 이 통합 source를 수용한 뒤 별도로 WBS 행 분리·marker-OFF 기준선을 구현한다.
 
 #666 합성 fixture의390px NOT_MEASURABLE·full-capacity clamp FAIL은 제품 PASS로 전용하지 않는다. #573 marker-ON geometry, #553 교환 인수와 #574 최종 OFF 통합은 별도다. [#667 Work Packet](exec-plans/active/ISSUE_667.md)의 실제 실행표·원본 실패·Head를 후속 인계 기준으로 사용한다.
+
+## #552 이전 표시 후보·실행 기록 — 현재 계약에 미적용
+
+아래는 2026-10-15 개정 이전 marker ON/일시 날짜 표시 후보와 그 source별 실행 기록이다. 기본 ON 설정, production DATE_REVEAL 및 독자 resize 보완은 현재 제품 authority가 아니다. 원본 실패·수치·검증 지문을 보존하기 위해 남기며 현재 계약은 아래 최신 WBS 분리 절을 따른다. #667 통합의 단일 Coordinator/port를 우회하거나 과거 보완을 중복 활성화하지 않는다.
+
+### 과거 Issue #552 — WBS와 Milestone 표시 분리
+
+#552 후보 구현은 #196의 세 유형 빠른 보기와 고급 Milestone 유형 선택을 단일 `◆ Milestone 표시` 명령으로 대체한다. WBS 행은 Summary/Task이며 소속 단계 필터와 조회 조건은 그대로 유지한다. 전체 canonical tasks/links를 Core와 도메인 명령에 전달하고 공개 `filter-tasks`로 표시 ID만 제어한다. 숨긴 Milestone은 Summary roll-up, 전체 E(M)/P(M), 기존 완료/관계 보호와 canonical export에 계속 참여한다. 표시 전환은 서버 권한이나 revision 변경 명령이 아니다.
+
+프로젝트별 브라우저 설정은 `mastergantt:milestone-timeline:<publicId>`의 `{version:1,showMilestones:boolean}`이며 기본 ON이다. 누락/잘못된 schema는 기본 ON, 읽기/쓰기 오류는 현재 메모리 선택을 유지하며 프로젝트당 한 번 알린다. 명시 토글만 저장하며 필터 초기화, 범위/상위 탭 변경, 날짜 확인은 저장하지 않는다. 저장 설정과 임시 날짜 표시의 OR만 유효 표시를 결정한다. 기존 개발 preview는 추가 authority가 아니다.
+
+기존 `types`는 React 메모리와 scope Map에만 존재한다. mixed 조건은 M만 제외하고 다른 조건을 보존한다. M-only는 원 조건을 그대로 유지하고 빈 WBS와 Dashboard 열기/유형만 해제의 명시 선택을 안내한다. URL 또는 저장소 types migration은 만들지 않으며 reload 후 메모리 조건은 사라진다. Summary root가 외부 canonical 갱신에서 M이 된 경우 삭제와 구별하고 같은 Gantt instance를 숨김/inert 상태로 보류한다. 명시 전체 프로젝트 복귀 전 범위를 넓히지 않는다. 서버 Summary 변환 정책은 변경하지 않는다.
+
+날짜 조회는 현재 canonical M taskId/date/snapshot과 기존 queue를 확인하여 공개 scroll-chart/단일 date adapter를 사용한다. 저장 OFF는 일시 ON이며 원래 보기 명령은 출발 Dashboard 조건/관리 trigger와 이전 peer/public viewport 정보를 복귀시킨다. 새 사용자 intent나 snapshot/root/filter 변경이 이전 복원보다 우선한다. 좁은 물리 폭에서 marker 조작이 불가능하면 현재 조건을 보존한 Dashboard의 exact ID를 강조하고 현재 목록 trigger로 focus를 옮긴다. 조건 때문에 행이 없으면 그 이유와 별도 조건 해제 선택을 제공한다. 날짜 조회는 소속 작업 drill의 resourceScopeContext와 분리하며 소속 drill의 기존 guard는 유지한다.
+
+선택 정리는 공개 select-task toggle:true/show:false로 native M 잔존만 제거하고 일반 Task를 유지한다. 명시 M clipboard root는 제외하지만 Summary root는 숨은 M을 포함한 전체 canonical subtree다. 기존 Copy 소속 확인은 copiedTaskIds와 canonical M의 교집합 수를 설명하고 closure Copy status와 삭제 확인도 숨은 영향을 알린다. Copy의 Assignment 제한을 Delete/Move의 포괄 잠금으로 확대하지 않는다. 신규 확인 modal이나 도메인 guard를 만들지 않는다.
+
+이 절은 stacked #552 후보의 계약이다. 로컬, 실제 HTTP/SQLite, 독립 QA와 원격 exact-head quality/e2e/docker는 [테스트 계획](TEST_PLAN.md#issue-552--milestone-표시-분리-검증)에서 별도 판정한다. main/production 및 원격 결과를 로컬 실행으로 대신하지 않는다.
+
+#### 과거 #552 공개 Chart resize 보완 경계
+
+설치 Core Layout은 ResizeObserver가 읽은 `latestLayout`의 Grid 폭으로 공개 `resize-chart`를 호출한다. 실제 80px/5단계 splitter에서 마지막 Grid 560px/Chart 825px인데 Core 폭 842px가 남은 실패를 보존한다. 842는 이전 Grid 544px로 계산한 값이며 최신 정상 이벤트의 826px와 실제 bbox 825px는 테두리 1px 차이다. 단순히 17px scrollbar 문제라고 단정하지 않는다.
+
+앱의 기존 resize/observer/canonical queue가 요청한 측정에서만 한 번 frame을 넘긴 뒤 현재 commit을 읽는다. 단일 adapter는 installed typed `_columnsWidth`, `_scrollSize`, `_chartHeight`와 read-only native owner/content/Grid/resizer/Chart bbox를 대조한다. owner offsetWidth − 현재 effective Grid 폭 − native scrollSize − 4px가 실제 plot과 ±1px 이내이고 기존 높이도 일치할 때, stale Core 폭에만 공개 `resize-chart`를 한정 재발행한다. Chart-only의 effective 38px rail과 resizer4px를 사용하며 nominal Grid 폭을 대신 넣지 않는다. Grid-only/hidden/zero/지원하지 않는 rail·height는 보완하지 않는다. 직전 layoutKey=[version,correction,_columnsWidth,widget.offsetWidth]와 같은 요청을 중복 차단하며 새 layoutKey는 다시 한 번 보완할 수 있다. 자체 resize 이벤트는 재진입시키지 않는다. 공개 scrollLeft/top 명령, private state write, library patch, remount, idle polling은 없다. 이는 설치 버전에 결합된 앱 보완이며 안정 geometry API라는 보장이 아니다.
+
+#552 Local Fast Feedback의 이전 실행과 visibility 수정 후 실행은 별도 source 지문으로 구분한다. 순수 의존성이 불변인 Unit56만 영향 재사용하며 UI44/실제HTTP3은 제품 visibility 수정 후 재실행한다. 명령/시간/소스 지문과 검증되지 않은 환경은 [TEST_PLAN](TEST_PLAN.md#552-local-fast-feedback-이력과-미검증-경계) 및 [실행 계약](../output/playwright/issue-552/review-selected/execution-contract.json)을 따른다. 설정 읽기는 SSR defaultON과 cached browser snapshot을 분리하며 저장 실패 시 현재 memory 선택을 유지한다. Clipboard는 canonical tasks가 바뀐 commit에서 explicit M root만 제거하고 Summary full subtree를 보존한다. 최신 source 실제 HTTP는 whole canonical 복사/권한/atomicity의 지정3cases 범위이며 production·원격회귀 완료를 뜻하지 않는다.
+
+#552 정상 scope의 visibility는 schedule 조상을 상속한다. Dashboard 활성 중 Core의 실제 bbox와 instance를 유지하되 scope owner/Toolbar/native Grid/Chart의 paint는 hidden이어야 한다. invalid Summary scope의 별도 hidden/inert와 명시 복귀는 그대로다. 최초390px PNG의 peer 노출을 결함 근거로 보존하고 수정 후 fallback PNG를 exact-ID focus/외곽6px·조건 보존과 함께 비교한다.
+
+
+#### 과거 #552 Date reveal correction (2026-10-13)
+
+A production `DATE_REVEAL` request now uses the canonical date coordinate via the public SVAR scroll-chart command, preserving vertical position and retaining Milestone rows outside WBS. Invalid or out-of-axis dates must fail closed and retain explicit Dashboard fallback. This does not enable private SVAR APIs or change stored visibility authority.
+
+
+### 과거 Issue #552 — 날짜 목록 fallback focus 재검증
+
+OFF 날짜 탐색에서 좁은 물리 Chart를 대신하는 전체 목록 fallback은 canonical ID가 같은 실제 관리 버튼의 focus 성공을 확인한다. 같은 ID라도 Dashboard query 재평가가 DOM 행을 교체하거나 일시 disable하여 BODY focus를 만들 수 있으므로 이전 ID만으로 인계 완료를 판정하지 않는다. 현재 query/render 변화에서 잃은 focus만 복구하며 새 pointerdown/keydown·다른 살아 있는 focus·modal·hidden/inert를 우선한다. RAF cleanup을 유지하고 상시 polling을 추가하지 않는다. 조건을 명시 해제하는 기존 경로만 새 focus 의도로 재개한다.
+
+390/1024/1440px OFF 날짜 탐색·원래 보기 복귀와 390px의 물리 focus ring·center hit·inactive peer paint, fallback 이후 검색 focus 보존을 직접 관련 Chromium에서 검증한다. 해당 국소 실행은 원격 전체 PR CI나 실제 screen reader·device 검증의 대체가 아니다.
+
+### 과거 Issue #552 — 0행 필터의 날짜축 범위
+
+빈 canonical 또는 Milestone-only 프로젝트의 날짜축과 native WBS 행의 유무는 별개다. 동일 context에서 filter-tasks로 0행이 되어도 기존 start와 관측한 end 범위를 보존하며, Core가 축을 재계산하면 기존 bounded 날짜축 확장 경로로 재확인한다. 공개 action·단일 viewport Coordinator·새 사용자 입력 우선권을 유지하고 canonical Task/Link/Membership/revision을 변경하지 않는다. 실제 날짜/scale/context 변경의 기존 축 계산과 혼동하지 않는다.
+
+
+#### 과거 #552 initial viewport and large Stage gate correction
+
+Initial Gantt timeline range accommodates the current viewport plus a short horizontal scroll buffer before any user wheel event, while the existing dynamic extension continues beyond the initial horizon. Full-project Stage gates group effective member Tasks and Milestone predecessor links in their existing canonical order rather than scanning every Task for each Milestone. Milestone Editor test navigation resolves exact IDs through the independent Dashboard.
+
+## Issue #552 — WBS와 Milestone 표시 분리
+
+전체 프로젝트·사용자 필터 없음은 기존 `visibleTaskIds=null` 의미를 유지한다. Milestone 제외는 separate projection의 표시 authority가 수행하며, 파생 WBS ID 집합을 사용자 query/filter identity로 전달하지 않는다. 그래야 일반 Task 추가가 조회 변경으로 오인되어 Native Add 복원을 취소하지 않는다. 선택 gesture의 ordinary WBS ID 집합은 별도로 유지하여 숨은 M을 선택/Task clipboard에 넣지 않는다.
+
+Dashboard의 Milestone KPI(완료·임박·지연 등)와 미완료 직접 선행 Milestone 원인은 숨은 native 행으로 이동하지 않는다. 단일 원인은 동일 canonical ID의 상세에서 확인하고, 여러 Milestone의 KPI는 현재 관리 목록의 정확 ID 선택·명시 해제로 확인한다. 원래 조회 조건·조건 밖/삭제된 ID와 실제 표시 수를 구분한다. 일반 Task coverage/bucket과 정확한 소속 Task의 일정 이동·source 조건·복귀 정보는 유지한다. Milestone 집합을 일부 대상이나 전체 Task로 암묵 대체하지 않는다.
+
+2026-10-15 marker-OFF 개정을 main #667 통합(`bdaed6bd`) 위에서 구현하는 PR 후보 계약이다. main에 정책 문서와 공통 정합성 경로가 병합된 사실을 #552 제품 수용/PASS로 확대하지 않는다. 최신 실행 결과는 [Work Packet](exec-plans/active/ISSUE_552.md)에서 exact Head별로 판정한다.
+
+Native WBS는 Summary/일반 Task만 표시하며 Milestone row/bar/숨은 대체 endpoint는 0이다. 공개 `filter-tasks`와 기존 projection 경계를 사용하고 Core/서버에는 full canonical Task/Link/Membership을 유지한다. Summary 파생 일정·진척, 전체 E(M)/P(M), Ready/명시 Completed, Resource/Target 및 Export 원본은 표시 집합으로 축소하지 않는다. M→M/legacy mixed 선을 visible Task/Summary에 재연결하지 않는다.
+
+운영 `milestoneTimeline.enabled=false`이며 lane/marker/guide/tooltip·예약 높이와 marker-only listener/observer/RAF/date-axis/scroll 요청은 0이다. Toolbar의 `Milestone 표시` 토글, 프로젝트 preference 기본 ON 및 일시 날짜 ON은 제거한다. 기존 preference 값이 있어도 활성화 근거로 읽거나 새로 저장하지 않는다. #551 모듈과 개발 명시 opt-in 기술 실험은 보존하며 운영 marker ON은 #573/#693의 별도 후속 gate다.
+
+`Milestone 날짜·소속 확인`은 날짜 미정도 같은 canonical M Editor를 열며 Dashboard의 정확한 canonical ID 상세/관리와 정확한 소속 일반 Task 탐색으로 명시 안내한다. 날짜 미정·소속0·조건 밖0·Milestone-only WBS0을 구별하며 Dashboard 조건을 자동 초기화하지 않는다. 숨은 native M select, 임시 lane 표시, M 날짜용 범위 확장/scroll을 실행하지 않는다. 일반 Task의 명시 일정 탐색과 기존 날짜축 확장은 #667 단일 Coordinator/port가 소유한다. 실제 가시 trigger로 focus를 복귀하고 readonly/dirty/pending/stale 및 새로운 사용자 입력을 보존한다.
+
+Legacy mixed 유형은 M 조건만 제외하고 다른 조건을 유지한다. M-only는 원 조건을 보존한 빈 WBS와 Dashboard 열기/명시 유형 조건 해제를 제공한다. types URL/storage migration은 추가하지 않는다. Summary scope의 삭제/M drift는 구별하며 명시 전체 프로젝트 복귀 전 범위를 넓히지 않는다. 같은 Gantt instance의 숨김/inert와 비활성 peer paint 경계를 유지한다.
+
+명시 M clipboard root를 native WBS 선택으로 대신하지 않는다. Summary Copy/Delete/Move는 숨은 M을 포함한 full canonical subtree이며 기존 completed/fullE/explicit/incident/external Membership·Assignment Copy 제한과 session/Origin/revision 서버 잠금을 유지한다. 기존 Copy 영향 확인·삭제 확인은 숨은 대상을 설명하고 새 우회 권한을 만들지 않는다.
+
+WBS 비상 복구는 build-time `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`를 명시한 재빌드/재배포로 native M 행을 복귀시키는 별도 gate다. 기본은 `separate-milestones`이며 legacy에서도 production marker는 OFF다. 런타임 즉시 토글/무중단 복구를 주장하지 않는다. #693의 향후 marker-only rollback과 독립이며 실제 rollback 결과는 별도 실행 증거 전 NOT TESTED다.
+
+#667의 canonical/U2/U3/axis/U4 단일 authority를 유지한다. 과거 #552 독자 resize 보완·production DATE_REVEAL·no-op 동기화 설명은 역사적 후보 기록이며 이번 제품에 중복 연결하지 않는다. 검증 행렬과 기존 보호 단언의 새 경로 매핑은 [TEST_PLAN](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.

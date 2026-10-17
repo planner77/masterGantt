@@ -5,7 +5,7 @@
 - 상위 [#613](https://github.com/planner77/masterGantt/issues/613), 선행 [#623](https://github.com/planner77/masterGantt/issues/623)(CLOSED). Baseline main `de863713142a92f1cac56dbae044923822bca932`; 작업 branch `feat/issue-624-logistics-unified-views`.
 - 기준: [PR CI 전체 이력 REWORK](../../PR_CI_FAILURE_TRIAGE.md), `AGENTS.md`, `DESIGN.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/UI_UX_GUIDELINES.md`, [물류 Target](../../LOGISTICS_TARGETS.md), [Resource KPI](../../RESOURCE_KPI_DASHBOARD.md), [Q1 수용](ISSUE_623.md).
 - 기존 Resource Target projection #619/#620, Target↔WBS #617/#618, #621 canonical Task/Assignment/Target 편집·복귀, Milestone full Stage Gate를 재사용한다. 새로운 Task 원본·저장용 hierarchy/DB·계산 엔진·Gantt viewport writer·SVAR PRO는 만들지 않는다.
-- app `0.115.0` MINOR 후보 (설치 SVAR Core `2.7.3`), `release_required=true`, `release_authorized=false`. 정식 GHCR/tag/Release는 이번 단계 밖이다.
+- app `0.116.0` MINOR 후보 (최신 main 0.115.0 후속) (설치 SVAR Core `2.7.3`), `release_required=true`, `release_authorized=false`. 정식 GHCR/tag/Release는 이번 단계 밖이다.
 
 ## 구현 범위·상태 계약
 
@@ -107,3 +107,11 @@
 - [누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)의 F-624-001/007/013/019(선행4 Root) 전체를 대조했다. Preflight/ESLint·Unit·Typecheck는 재발하지 않았고 #624 390px Chromium 보완은 Shard2 취소로 **미검증**. 이번 F-624-022는 제품 assertion이 아니라 격리 HTTP 전송 reset, idle socket race 가설만 존재. 최초 실패만 보고 이전 문서/제품 계약을 삭제하지 않았다.
 - `tests/e2e/fixtures/target-project.ts`의 read-only `snapshot()`만 `Connection: close`로 매 GET 소켓 재사용을 피하고, 실제 전송 오류 시 2초 제한의 read-only health probe + 원인 cause로 실패를 설명한다. 무조건 재시도/skip/timeout 증가·제품 API·DB/Resource 산식 변경 없음. 실제 remote 확인 전 가설 검증 및 새 Head 결과는 NOT TESTED.
 - #679 main 두 커밋의 batch publication guide·AGENTS/CI_CD/TEST_PLAN/REMOTE_VALIDATION/active PLAN·scripts/tests 새 변경을 변경 누락 없이 수용한다. 새 HEAD에서 base/main ancestry·review thread0/mergeability/Full CI 시작을 검증해야 하며 병합·Main/GHCR/Release는 승인하지 않는다.
+
+## CI #2893.1 신규 실패 / #624 누적 REWORK과 최신 main 합류 (2026-10-17)
+
+- [누적 실패 분석](../../ISSUE_624_CI_FAILURE_ANALYSIS.md) F-624-001(문서 영향), -007(AC 문법), -013(React Hook), -019(390px overflow), -022(#621 snapshot ECONNRESET), **신규 -025(#456 scoped Week X62 clamp)**를 전부 재조회했다. 첫 세 Root는 #2893.1의 QA/Lint/Typecheck/Unit PASS로 재발하지 않았다. #624 신규 E2E·#621 다섯 사례는 개별 PASS였으나 #624가 속한 Shard2는 CANCELLED.
+- [#2893.1 Run 39021459600](https://github.com/planner77/masterGantt/actions/runs/39021459600): Head `417cc3ce1de3b00e7f90386e2dd73bf943e1ce86`, Base `4307c8cdf1cc00a87fd7bff9f5e1a0c924bb3620`, test-merge `efb02ff6beaa379cf0e54798e8e59fd939e3f8ee`. 기존 `task-editor-form-density.spec.ts:150`의 scoped Summary/Week/fullscreen 120px setup가 실제 native X62 상태를 그대로 강제한 뒤 5초 120px을 기다려 실패. Shard3 85PASS/1FAIL/1SKIP/3NOT RUN, Shard6 113PASS, 다른4 CANCELLED. Quality/Docker aggregate PASS, Required E2E/QA Final FAIL.
+- 본 보완은 #456 테스트 시작 전에 `waitForGanttReadiness`로 현재 api/revision/scope/Week/query와 Core/native 120px 수용량을 함께 확인하고, 부족할 때 양 capacity>0 음성 검증 후 **한 번의 실제 수평 wheel**로 기존 timeline RANGE_EXTENSION을 준비하며 현재 안정 projection/target120 admission을 재검증한다. 원본 `scrollLeft=120`, vertical38, Editor 열기/닫기 및 메타데이터 저장 후 동일 identity·selection·column geometry 단언은 유지한다. Timeout/Skip/Retry/QA 정책 또는 제품 Gantt writer 완화 없음.
+- 최신 main `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7`은 #552 marker-OFF/Gantt 및 `task-editor-form-density.spec.ts`의 Canonical/Visible 교정을 보유하며 app0.115.0이다. branch의 #624 편집/코드와 main의 #552 변경을 모두 보존하도록 merge parent2를 만들고 **app0.116.0 후보**로 package/lock/CHANGELOG를 동기화한다. 이번 #624 PR의 정식 릴리스 게시 승인은 `release_authorized=false`이다.
+- 검증: 과거 원본 Head의 특정 PASS는 그 Head에만 유효하다. 새 merge source의 로컬 Chromium, 모든 Shard·Trusted QA/Owner ACCEPT는 새 PR CI 완료 전 NOT TESTED. 리뷰0·최신 main·test-merge 및 문서 Gate는 PR 게시 직후 재확인. 병합/Main/GHCR/Release·Issue 종료 미수행.

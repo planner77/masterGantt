@@ -1,3 +1,7 @@
+## Issue #624 — #456 scoped Week/Fullscreen 정확 120px 시작 전 수용량 확인 (CI #2893.1)
+
+기존 #456 Editor 열기/닫기·metadata 저장 후 120px/38px 좌표 보존은 유지한다. scoped Summary의 Week/Fullscreen에서 native scroll 여유가 62px인 상태를 120px으로 강제하면 browser clamp로 실패한다. 테스트는 현재 U2/U3 projection·Core/native axis가 모두120을 수용하는지 확인한 다음 원래 입력을 수행하고, 부족할 때만 실제 wheel 1회로 준비한다. 제품 동작/시각 설계·SVAR native marker-OFF 정책/스크롤 좌표 단언은 바꾸지 않는다. [실패 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
+
 ## Issue #624 PR #702 — 390px 통합 조회 내부 표 가로 넘침 대응 (2026-10-17)
 
 [CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)의 실제 Playwright에서 viewport390px에 document scrollWidth704가 측정됐다(`tests/e2e/issue-624-logistics-unified.spec.ts:107`, 예상≤391). 넓은 Target 688px/Milestone 710px의 **내부 표**는 의도된 해당 표 scroll owner 안에 있어야 하며 document/상위 물류 Grid를 확장해서는 안 된다. Unified 앱 소유 `.root` grid의 암묵적 auto track을 `grid-template-columns:minmax(0,1fr)`·`width:100%`로 바꿔 Grid의 최소 콘텐츠 폭 전파를 차단한다. 별도 synthetic Chromium에서는 390px document712→390 / Resource region client388·scroll710, 768/1024/1440/1920에서도 문서 폭은 viewport 이하를 확인했지만 이는 실제 제품 전체 구조의 PASS가 아니다.
@@ -81,6 +85,14 @@ DESIGN Delta B: 기존 precise feedback·SVAR-native·keyboard/focus·상태 보
 
 
 리소스 탭의 `hidden` 또는 Milestone 탭의 `inert` 상태에서 저장된 인라인 이름은 일정 복귀 시 canonical/Core/Grid 표시 확인을 재실행한다. 이미 저장한 PATCH를 중복 발행하지 않고 현재 Gantt instance와 viewport를 유지한다.
+## Issue #552 — 과거 날짜 탐색 포커스와 작업 추가 기록
+
+아래 두 문단은 2026-10-13 후보의 기록이다. 현재 marker-OFF의 날짜 요청은 동일 canonical ID의 Editor 상세로 연결하고 기존 modal 닫기/가시 trigger 복귀를 사용한다. exact-ID highlight 자동 focus repair와 이 후보의 별도 native-add 복원 구현은 현재 authority가 아니며, 최신 main #667 공통 정합성 경로 및 이 문서의 최신 #552 절이 우선한다.
+
+OFF 날짜 탐색이 전체 Milestone 목록으로 안내한 뒤 조회 갱신이 해당 행의 관리 버튼을 일시 비활성화하거나 교체하면, 활성 panel의 동일 canonical ID로 잃은 focus만 복구한다. 이후 사용자가 pointer/keyboard로 검색 등 다른 control을 조작하면 그 입력을 우선하고, 갱신된 목록이 focus를 다시 빼앗지 않는다. 숨은 panel이나 modal 뒤의 대상에는 focus를 적용하지 않는다.
+
+Native 작업 추가의 복원 문맥은 작업 추가로 달라지는 표시 ID 집합과 별개로 현재 조회 조건·scope·instance·scale·열·가시성을 확인한다. 같은 조건의 canonical 추가 때문에 저장한 위치를 폐기하지 않으며, 추가 전 위치의 복원이 끝나기 전에 metadata-only 복원이 새 의도로 끼어들지 않는다. 실제 조건 변경이나 새 사용자 입력의 취소 경계는 유지한다. canonical 추가만으로 기존 Task clipboard를 조회 조건 변경으로 판정하지 않는다.
+
 ## Issue #571 — 사용자 이동 우선의 화면 복귀
 
 같은 일정으로 돌아올 때 유효한 직전 위치를 보존하되, 돌아오는 동안 사용자가 wheel/pan·Task 선택·명시 날짜 이동을 하면 그 새 위치를 우선한다. 지연된 peer/metadata 복원이 새 위치를 덮지 않는다. Grid/Chart의 pointer/wheel/touch/keyboard 입력은 오래된 복원을 취소한다. toolbar·Editor 입력 자체는 일정 이동으로 취급하지 않으며 Editor의 '일정에서 보기'는 명시 Task reveal이다. 명시 locate는 이전 Editor trigger 대신 완료한 대상 Grid 행을 focus 소유자로 삼고, 일반 취소·닫기는 기존 trigger 복원을 유지한다.
@@ -1199,7 +1211,7 @@ SVAR 공식 Tooltip API는 설계 참고로 확인했지만 설치 2.7.3의 실�
 
 기본 정보 초안은 탭 전환과 Escape/reopen 사이에 기존 부모 state로 남는다. 작업 캘린더 내부 초안과 비밀번호 입력의 기존 수명·민감 입력 초기화는 변경하지 않는다. 401은 readonly 전환, 412는 설정 닫기와 canonical 재조회/metadata 재작성이라는 기존 정책을 따른다. 모든 초안을 412 뒤 보존한다는 계약을 추가하지 않는다.
 
-Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 반환할 때도 canonical geometry가 같으면 기존 Gantt viewport 복원 후보가 된다. 같은 instance/context/filter/scale/grid/columns, 사용자 입력 없음과 scroll이 0으로 붕괴한 조건을 계속 확인하며 geometry/date/calendar/filter 변경에는 복원을 적용하지 않는다. 실제 API의 복합 조건 PASS와 정식 DTO를 사용한 mock canonical 경로의 가로 scroll 120→0 FAIL은 별도 근거다. 전체 실제 API 결함으로 확대하지 않는다. 검증 범위와 원본 이력은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 반환할 때도 canonical geometry가 같으면 기존 Gantt viewport 복원 후보가 된다. 같은 instance/context/filter/scale/grid/columns, 사용자 입력 없음과 scroll이 0으로 붕괴한 조건을 계속 확인하며 실제 geometry/date/filter 변경에는 복원을 적용하지 않는다. Calendar 저장 뒤에도 canonical 날짜와 Link geometry가 같으면 보존 후보를 유지한다. 실제 API의 복합 조건 PASS와 정식 DTO를 사용한 mock canonical 경로의 가로 scroll 120→0 FAIL은 별도 근거다. 전체 실제 API 결함으로 확대하지 않는다. 검증 범위와 원본 이력은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
 ### Issue #490 비밀번호 변경 검증 보완
 
@@ -1322,6 +1334,8 @@ Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개�
 새 프로젝트 생성 화면에서 `본문으로 바로가기`를 누르면 native anchor의 `main#main-content` focus를 유지하면서 두 생성 방식 탭의 순차 `tabindex`를 즉시 -1로 변경한다. 다음 Tab은 현재 활성 폼의 첫 컨트롤로 진입해야 한다. 해당 폼에 focus가 들어오면 선택된 탭의 roving `tabindex=0`를 복원하고 이후 ArrowLeft/Right/Home/End 탐색은 이전과 동일해야 한다. Client handler 등록 준비는 E2E에서 `data-skip-link-ready`로 구분해 SSR 탭 DOM 표시만으로 hydration을 추론하지 않는다. `#121` App Shell Skip Link와 `#264` 초안 보존 및 inactive panel 금지는 유지한다. 권한·저장 API 변화는 없다.
 ## Issue #549 — Timeline 공통 모델과 현재 UX 보존
 
+이 절과 아래 #550/#551의 당시 current/target 및 기본 ON·일시 표시 설명은 기존 기술 실험의 이력이다. 현재 #552 후보는 이 문서의 최신 marker-OFF 절을 따르며 기본 ON/임시 날짜 ON을 활성화하지 않는다.
+
 현재 `TaskFilterState.types`는 React 메모리와 scope별 Map에 보존하며 URL/localStorage에 저장하지 않는다. MT1은 표시 preference v1의 기본 ON 정규화와 types 변환 함수를 제공하지만 현재 화면에 적용하지 않는다. Task-only를 새 OFF로 자동 이식하지 않고 mixed 조합은 Milestone 유형만 제외하며 나머지 조건을 보존한다. Milestone-only는 원래 조건을 보존하고 Dashboard/명시 유형 해제 호환 UI를 후속 MT4에서 제공한다. OFF 날짜 조회의 일시 표시와 복귀 OFF, 사용자 toggle만 저장하는 계약도 후속 연결 대상이다.
 
 #399의 단일 Summary `rootTask` scope와 현재 작업 선택/Editor/clipboard/viewport를 유지한다. #497 복합 scope/Milestone root를 구현된 기능으로 간주하지 않는다. 숨은 Milestone은 Summary roll-up/전체 subtree 명령과 canonical JSON/Excel/이미지 export에 계속 포함한다. 새 Timeline 조회 선택은 native 작업 다중 선택과 분리하며 가시 일반 작업 교집합만 강조한다. [상세 계약과 기술 gate](MILESTONE_TIMELINE.md)를 따른다.
@@ -1402,3 +1416,25 @@ Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고
 Day→Week 전환 중 native scroll이 새 범위로 뒤로 제한되는 것은 새 사용자 스크롤이 아니다. 기존 단일 Coordinator/port는 등록 당시 Core와 native 좌표를 함께 기준으로 삼아 프로그램 clamp가 명시 날짜 이동을 잘못 취소하지 않게 한다. 실제 wheel/pointer/keyboard 최신 입력은 이전 자동 복원보다 우선한다. Task/Link/Calendar·revision/서버 요청·scale 표시/인스턴스·좌표 허용 오차는 변경하지 않는다.
 
 Week Header의 Escape는 Tooltip을 닫고 해당 셀 focus를 유지한다. 날짜 가상화가 같은 DOM 셀을 재사용하더라도 단순 `.focus()` 재호출은 새 focus 진입이 아니다. CI oracle은 보이는 기존 Week control로 이탈한 뒤 날짜 셀에 재진입해 기존 ISO/포함월 내용을 확인하고, Escape 닫힘과 focus 유지도 검증한다. 새 Tooltip 자동 재개 정책을 만들지 않는다. 증거는 [별도 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md)에 보존한다.
+
+## Issue #552 — marker-OFF WBS와 명시 관리 경로
+
+전체 프로젝트·사용자 필터 없음은 기존 `visibleTaskIds=null` 의미를 유지한다. Milestone 제외는 separate projection의 표시 authority가 수행하며, 파생 WBS ID 집합을 사용자 query/filter identity로 전달하지 않는다. 그래야 일반 Task 추가가 조회 변경으로 오인되어 Native Add 복원을 취소하지 않는다. 선택 gesture의 ordinary WBS ID 집합은 별도로 유지하여 숨은 M을 선택/Task clipboard에 넣지 않는다.
+
+Dashboard의 Milestone KPI(완료·임박·지연 등)와 미완료 직접 선행 Milestone 원인은 숨은 native 행으로 이동하지 않는다. 단일 원인은 동일 canonical ID의 상세에서 확인하고, 여러 Milestone의 KPI는 현재 Dashboard 관리 목록의 정확 ID 선택으로 확인하고 지표 선택 해제 경로를 제공한다. 원래 조회 조건은 보존하며 조건 밖/삭제된 ID와 실제 표시 수를 구분한다. 일반 Task coverage/bucket과 정확한 소속 Task의 일정 이동·source 조건·복귀 정보는 유지한다. Milestone 집합을 일부 대상이나 전체 Task로 암묵 대체하지 않는다.
+
+일정의 native 행/Bar는 Summary/일반 Task이며 M 행·대체 endpoint는0이다. Milestone 표시 Toolbar toggle·프로젝트 기본 ON preference·임시 날짜 ON을 제공하지 않고 상단 lane/marker/guide·예약 높이도0이다. #551 개발 opt-in은 제품 활성화와 구별한다. 이전 #549~#551의 ON 공간/표시 설정 설명은 당시 실험 계약이며 이번 UI authority가 아니다.
+
+Milestone 날짜 요청은 현재 Dashboard의 정확한 ID 상세와 소속 일반 Task 탐색을 명시 안내한다. 숨은 M 행 선택·M 날짜용 scroll/range extension은 실행하지 않는다. 소속0/미정 날짜/조건0/legacy M-only는 서로 다른 상태다. M-only는 원 조건과 이유를 보존하고 Dashboard 열기 또는 사용자가 유형만 해제하는 선택을 제공한다. Dashboard 조건·dirty/pending/readonly/401/412·실제 visible trigger focus와 원래 peer 문맥을 유지한다.
+
+Summary full subtree/숨은 M·Link·Membership·Summary 파생·Ready/Completed·Resource/Target·Export는 표시와 독립이다. Copy/Delete 확인과 서버 완료/관계/Assignment Copy 잠금은 그대로다. invalid Summary scope의 삭제/M drift·같은 instance hidden/inert·명시 전체 프로젝트 복귀 및 Dashboard peer의 hidden paint를 보존한다.
+
+canonical 재조회·작업 추가·peer 복귀·filter0/Day/Week·resize는 #667의 단일 공통 정합성 경로가 담당한다. 과거 #552의 별도 resize/date reveal/동기화 보완을 신규 authority로 추가하지 않는다. WBS legacy 복구는 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy` 재빌드/재배포이며 marker OFF는 유지한다. [최신 Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)과 [현재 검증 계획](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.
+
+### #552 기존 유형 전환과 작업 필터 보존
+
+Milestone native 행을 숨겨도 기존 Task↔Milestone leaf 유형 전환은 제거하지 않는다. Dashboard의 정확한 Milestone ID 관리 메뉴에 `일반 Task로 전환`을 제공하고 기존 `saveTaskHierarchyCommand({kind:"convert",taskId,targetType:"task"})`와 `performTaskHierarchyCommand` HTTP gateway를 재사용한다. readonly/pending/UNKNOWN·완료 Milestone·Link endpoint·소속 참조 및 기존 자식/날짜 guard를 유지하며 별도 domain/API 정책이나 우회 mutation을 추가하지 않는다. 성공은 서버 canonical 응답으로 같은 ID의 일반 Task WBS를 갱신하고, Dashboard에서 대상이 사라지면 기존 가시 heading focus fallback으로 돌아간다. 다른 조건 때문에 일반 Task가 안 보이면 그 조건을 자동 초기화하지 않는다.
+
+허용되는 leaf의 Task→Milestone→Task 왕복은 같은 canonical Task ID/externalId·parent/sibling order와 서버 revision 진행, 부모 소속의 기존 상속 재계산 결과를 검증한다. 변환을 위해 기존 Membership/Link를 임의 삭제하지 않으며 보호된 대상의 거부는 원본·revision 불변이어야 한다.
+
+일정 Toolbar의 `전체 | Task | Milestone` 빠른 보기 3종은 모두 제거한다. 고급 유형 선택에는 Summary/Task만 제공하고 새로운 M 조건을 만들지 않는다. 이미 메모리에 남은 legacy M-only는 빈 WBS와 Dashboard 열기/유형 조건만 명시 해제를 제공하며 검색·다른 필터·scope를 유지한다. Milestone 표시 toggle로 대체하거나 자동 전체 작업으로 복구하지 않는다.

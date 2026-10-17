@@ -38,6 +38,7 @@ import {
 
 import { createTaskMoveGateway } from "./task-move-gateway";
 import { filterMilestoneWbsRows, milestoneDateCoordinate, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
+import { canonicalSubtreeImpact } from "../milestones/milestone-timeline-model";
 import { MilestoneTimelineLane, type MilestoneTimelineCapability } from "./milestone-timeline-lane";
 import type { MilestoneLanePoint } from "./milestone-timeline-lane-model";
 import { localDateFromDateOnly, type DateOnly } from "./date-adapter";
@@ -131,7 +132,7 @@ import {
   taskSubtreeHasDependencyLinks,
   taskSubtreeHasExternalDependencyLinks,
 } from "./task-link-scope";
-import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
+import { wbsClipboardRootIds, normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
 import { canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { resolveNativeTaskAddIntent, type NativeTaskAddRejectReason, type NativeTaskAddSource } from "./native-task-add-intent";
 import { taskStatusFromProgress } from "../../domain/task-status";
@@ -476,7 +477,9 @@ export function ProjectGantt({
   const viewportPortReference = useRef<ReturnType<typeof createSvarViewportPort> | null>(null);
   const [timelinePreview, setTimelinePreview] = useState(false);
   const [timelinePreviewDisplay, setTimelinePreviewDisplay] = useState<"all" | "grid" | "chart">("all");
-  const timelineEnabled = Boolean(milestoneTimeline?.enabled || (process.env.NODE_ENV !== "production" && timelinePreview));
+  const timelineEnabled = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_GANTT_WBS_MODE !== "legacy" && Boolean(milestoneTimeline?.enabled || timelinePreview);
+  // Emergency WBS rollback is independent from the optional marker capability.
+  const wbsDisplayMode = process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy" ? "compatibility" : "separate-milestones";
   const timelineWidget = useRef<HTMLDivElement>(null);
   const [laneGeometry, setLaneGeometry] = useState<MilestonePlotGeometry | null>(null);
   const [lanePoints, setLanePoints] = useState<readonly MilestoneLanePoint[]>([]);
@@ -645,9 +648,9 @@ export function ProjectGantt({
     inlineCanonicalReference.current = { revision: projectRevision, tasksById };
   }, [projectRevision, tasksById]);
   useLayoutEffect(() => {
-    visibleTaskIdsReference.current = visibleTaskIds;
+    visibleTaskIdsReference.current = wbsDisplayMode === "compatibility" ? visibleTaskIds : wbsClipboardRootIds(tasks, visibleTaskIds ?? tasks.map(task => task.taskId));
     matchingTaskIdsReference.current = matchingTaskIds;
-  }, [visibleTaskIds, matchingTaskIds]);
+  }, [visibleTaskIds, matchingTaskIds, tasks, wbsDisplayMode]);
 
   const selectionCallback = useRef(onSelectionChange);
   useLayoutEffect(() => {
@@ -696,7 +699,15 @@ export function ProjectGantt({
     }
     const changed = selectionBoundaryReference.current !== selectionBoundary;
     selectionBoundaryReference.current = selectionBoundary;
-    const known = new Set(tasks.map((task) => task.taskId));
+    const known = new Set(tasks.filter(task => wbsDisplayMode === "compatibility" || task.type !== "milestone").map((task) => task.taskId));
+    const api = apiReference.current;
+    for (const id of api?.getState().selected ?? []) if (!known.has(String(id))) void api?.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" });
+    setTaskClipboard(current => {
+      if (!current) return current;
+      if (current.mode === "cut") return known.has(current.taskId) ? current : null;
+      const roots = current.taskIds.filter(id => known.has(id));
+      return roots.length === current.taskIds.length ? current : roots.length ? { ...current, taskIds: roots } : null;
+    });
     const matching = matchingTaskIds ?? visibleTaskIds;
     const allowed = changed && matching ? new Set(matching) : null;
     const current = selectedTaskIdsReference.current;
@@ -708,7 +719,7 @@ export function ProjectGantt({
         ? `표시 범위 밖의 선택 ${current.length - next.length}개를 해제했습니다.`
         : "표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
     }
-  }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds]);
+  }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds, wbsDisplayMode]);
 
   const restoredSelectionGeneration = useRef<number | null>(null);
   useEffect(() => {
@@ -720,7 +731,7 @@ export function ProjectGantt({
     )
       return;
     restoredSelectionGeneration.current = selectionRestore.generation;
-    const known = new Set(tasks.map((task) => task.taskId)),
+    const known = new Set(tasks.filter(task => wbsDisplayMode === "compatibility" || task.type !== "milestone").map((task) => task.taskId)),
       allowed = matchingTaskIds ?? visibleTaskIds;
     const restored = selectionRestore.ids.filter(
       (id) => known.has(id) && (!allowed || allowed.includes(id)),
@@ -754,6 +765,7 @@ export function ProjectGantt({
     tasks,
     matchingTaskIds,
     visibleTaskIds,
+    wbsDisplayMode,
   ]);
 
   useEffect(() => {
@@ -1784,7 +1796,7 @@ export function ProjectGantt({
     if (!timelineEnabled || !viewVisible || !api || !widget || !model) return;
     let cancelled = false, frame: number | null = null, awaiting = false, requested = false;
     const tag = "project-milestone-lane-geometry";
-    const measure = () => {
+    const milestoneLaneMeasure = () => {
       frame = null;
       awaiting = true; requested = false;
       const queue = canonicalSyncQueueReference.current;
@@ -1810,16 +1822,16 @@ export function ProjectGantt({
           durationMs: performance.now() - started, sourceTasks: model.canonical.tasks.length, sourceMilestones: model.timeline.milestones.length, queueVersion: version };
       }).finally(() => {
         awaiting = false;
-        if (!cancelled && requested) { requested = false; schedule(); }
+        if (!cancelled && requested) { requested = false; milestoneLaneSchedule(); }
       });
     };
-    const schedule = () => { if (awaiting) requested = true; else if (frame === null) frame = requestAnimationFrame(measure); };
+    const milestoneLaneSchedule = () => { if (awaiting) requested = true; else if (frame === null) frame = requestAnimationFrame(milestoneLaneMeasure); };
     const owner = ganttScrollReference.current, chart = widget.querySelector<HTMLElement>(".wx-chart");
-    for (const action of ["scroll-chart", "resize-chart", "resize-grid", "filter-tasks", "update-task"] as const) api.on(action, schedule, { tag });
-    const resize = new ResizeObserver(schedule); resize.observe(widget); if (chart) resize.observe(chart); if (owner) resize.observe(owner);
+    for (const action of ["scroll-chart", "resize-chart", "resize-grid", "filter-tasks", "update-task"] as const) api.on(action, milestoneLaneSchedule, { tag });
+    const resize = new ResizeObserver(milestoneLaneSchedule); resize.observe(widget); if (chart) resize.observe(chart); if (owner) resize.observe(owner);
     // Native Chart scrolling does not necessarily bubble to the outer wrapper.
-    owner?.addEventListener("scroll", schedule, { passive: true }); chart?.addEventListener("scroll", schedule, { passive: true }); window.addEventListener("resize", schedule); schedule();
-    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", schedule); chart?.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
+    owner?.addEventListener("scroll", milestoneLaneSchedule, { passive: true }); chart?.addEventListener("scroll", milestoneLaneSchedule, { passive: true }); window.addEventListener("resize", milestoneLaneSchedule); milestoneLaneSchedule();
+    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", milestoneLaneSchedule); chart?.removeEventListener("scroll", milestoneLaneSchedule); window.removeEventListener("resize", milestoneLaneSchedule); };
   }, [apiInstanceId, timelineEnabled, viewVisible, milestoneTimeline?.timelineModel, scaleMode, viewportContinuityKey, timelinePreviewDisplay]);
 
   const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
@@ -1894,13 +1906,14 @@ export function ProjectGantt({
         milestoneProbeRequest.current = ids === null ? null : { api, ids: [...ids], source, filterKey: visibleTaskFilterKeyReference.current, request: generation };
         await canonicalSyncQueueReference.current;
         if (!isReady() || milestoneProbeGeneration.current !== generation || source !== tasksReference.current || !peerViewportContext.current.visible) return;
-        await filterMilestoneWbsRows(api, ids);
+        await filterMilestoneWbsRows(api, process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy" ? ids : source.filter(task => task.type !== "milestone" && (ids === null || ids.includes(task.taskId))).map(task => task.taskId));
       },
+      select: async (ids: string[]) => { if (!isReady()) return; for (const id of ids) await api.exec("select-task", { id, toggle: true, show: false, eventSource: "project-owned-selection" }); },
       read: () => {
         const state = api.getState();
         const serialized = api.serialize({ data: "tasks" });
         const coreTasks = Array.isArray(serialized) ? serialized as ITask[] : null;
-        return { canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,
+        return { selected: (state.selected ?? []).map(String), appSelection: [...selectedTaskIdsReference.current], canonicalTaskCount: tasksReference.current.length, coreTaskCount: coreTasks?.length ?? null,
           coreOrdinaryTaskCount: coreTasks?.filter(task => task.type === "task").length ?? null,
           coreMilestoneCount: coreTasks?.filter(task => task.type === "milestone").length ?? null, instance: instanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
           start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
@@ -1934,7 +1947,7 @@ export function ProjectGantt({
     };
   }, [apiInstanceId, installMilestoneProbe]);
 
-  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "compatibility", columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode]);
+  const projection = useMemo(() => buildProjection({ revision: projectRevision, tasks: svarTasks, links: svarLinks, displayTasks: tasks }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, columnPrefs: [columnVisibility, locales], scale: scaleMode }), [projectRevision, svarTasks, svarLinks, tasks, viewRootTaskId, visibleTaskIds, columnVisibility, locales, scaleMode, wbsDisplayMode]);
   const projectionReference = useRef(projection);
   useLayoutEffect(() => { projectionReference.current = projection; }, [projection]);
   const appliedProjectionReference = useRef<CanonicalProjection | null>(null);
@@ -2279,22 +2292,27 @@ export function ProjectGantt({
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; structure: string } | null>(null);
   useEffect(() => {
+    // A hidden SVAR chart can discard its filter when native layout/axis is
+    // reconstituted. Visibility is an application of WBS presentation, not a
+    // canonical data revision: recheck the actual Core rows whenever the
+    // schedule becomes visible again, without resetting the API instance.
+    if (!viewVisible) return;
     const requestedProjection = projection;
     const requestedApi = apiReference.current;
     diagnosticTraceReference.current?.record("effect-request", "filter-tasks");
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
-      if (!api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
+      if (!viewVisible || !peerViewportContext.current.visible || !api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
       const applied = appliedTaskFilterReference.current;
       // Parent renders produce fresh arrays; avoid reapplying the same
       // filter while the project editor owns focus.
       const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
       const expandedTree = new Set(currentTasks.filter(task => task.open !== false).map(task => String(task.id)));
-      const expected = buildProjection({ revision: requestedProjection.revision, tasks: currentTasks, links: [], displayTasks: [] }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: "compatibility", expandedTree, columnPrefs: null, scale: scaleMode });
+      const expected = buildProjection({ revision: requestedProjection.revision, tasks: currentTasks, links: [], displayTasks: [] }, { scope: viewRootTaskId, filter: visibleTaskIds, displayMode: wbsDisplayMode, expandedTree, columnPrefs: null, scale: scaleMode });
       const actualVisibleIds = api.getState()._tasks.map(task => String(task.id));
       const membershipCorrect = JSON.stringify(actualVisibleIds) === JSON.stringify(expected.logicalVisibleIds);
       if (applied?.api === api && applied.key === requestedProjection.keys.membership && applied.structure === requestedProjection.keys.structure && membershipCorrect) return;
-      const visible = visibleTaskIds === null ? null : new Set(requestedProjection.membershipIds);
+      const visible = wbsDisplayMode === "compatibility" && visibleTaskIds === null ? null : new Set(requestedProjection.membershipIds);
       // Matching IDs alone do not prove that Core's rendered tree has the new
       // hierarchy/type payload. Structural commits still need a public refresh.
       if (!visible && !taskFilterAppliedReference.current && membershipCorrect && applied?.api === api && applied.structure === requestedProjection.keys.structure) {
@@ -2319,7 +2337,7 @@ export function ProjectGantt({
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds]);
+  }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode]);
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const request = milestoneProbeRequest.current;
@@ -3453,14 +3471,16 @@ export function ProjectGantt({
 
   function copyCurrentSelection(fallbackTaskId?: string) {
     if (!editable || mutationLocked) return;
-    const ids = selectedTaskIdsReference.current.length ? selectedTaskIdsReference.current : fallbackTaskId ? [fallbackTaskId] : [];
-    const taskIds = normalizeCopySelection(tasks, ids);
+    const selected = selectedTaskIdsReference.current;
+    const ids = fallbackTaskId && !selected.includes(fallbackTaskId) ? [fallbackTaskId] : selected.length ? selected : fallbackTaskId ? [fallbackTaskId] : [];
+    const taskIds = normalizeCopySelection(tasks, wbsDisplayMode === "compatibility" ? ids : wbsClipboardRootIds(tasks, ids));
     if (!taskIds.length || taskIds.length > 500) {
       setSelectionMessage(taskIds.length > 500 ? "한 번에 최대 500개 root를 복사할 수 있습니다." : "복사할 작업을 선택해 주세요.");
       return;
     }
     setTaskClipboard({ mode: "copy", taskIds, revision: projectRevision });
-    setSelectionMessage(`선택한 ${ids.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.`);
+    const impact = canonicalSubtreeImpact(tasks, taskIds);
+    setSelectionMessage(`선택한 ${taskIds.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.${wbsDisplayMode !== "compatibility" && impact.milestoneTaskIds.length ? ` 숨겨진 Milestone ${impact.milestoneTaskIds.length}개가 포함됩니다.` : ""}`);
   }
 
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {

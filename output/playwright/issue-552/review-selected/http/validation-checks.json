@@ -1,0 +1,42 @@
+[
+  {
+    "check": "lint",
+    "command": [
+      "npx",
+      "--no-install",
+      "eslint",
+      "tests/e2e/milestone-visibility-persistence.spec.ts"
+    ],
+    "cwd": "/home/planner/Dev/masterGantt-worktrees/issue-552",
+    "started_utc": "2026-10-08T20:10:18.907449+00:00",
+    "finished_utc": "2026-10-08T20:10:19.904048+00:00",
+    "exit_code": 0,
+    "source_count": 405,
+    "source_before_fingerprint": "2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a",
+    "source_after_fingerprint": "2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a",
+    "source_drift_paths": [],
+    "log": "/tmp/issue552-backend-http-lint-run6.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "check": "typecheck",
+    "command": [
+      "npx",
+      "--no-install",
+      "tsc",
+      "--noEmit",
+      "--incremental",
+      "false"
+    ],
+    "cwd": "/home/planner/Dev/masterGantt-worktrees/issue-552",
+    "started_utc": "2026-10-08T20:10:19.919935+00:00",
+    "finished_utc": "2026-10-08T20:10:29.960651+00:00",
+    "exit_code": 0,
+    "source_count": 405,
+    "source_before_fingerprint": "2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a",
+    "source_after_fingerprint": "2996bddec9a3e598183e8b8d962be2c78ed54d3700dd263bbc24440b89f2d02a",
+    "source_drift_paths": [],
+    "log": "/tmp/issue552-backend-http-typecheck-run6.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

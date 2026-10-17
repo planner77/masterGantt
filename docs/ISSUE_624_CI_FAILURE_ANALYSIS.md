@@ -193,3 +193,30 @@
 **동일 source 검증/재실패 조건:** 세 Gate(Preflight/doc/Typecheck/Lint/Unit → bounded #621/#623/#624 Chromium 위 파일·fixture 원본 변경 없음·fail-fast OFF 진단 → 정확 HEAD Full PR CI Quality/E2E6/Docker/Trusted)를 구분한다. 환경에서 로컬 Browser 실행이 불가해 (A) 정적 source/parser 검토까지 수행, (B) 로컬 실제 Chromium `NOT TESTED`; (C) 새 GitHub PR CI를 시작하여 결과는 별도 후속 확인. 단일 source/test 변경 중 과거 Head의 PASS를 이월하지 않는다. fail-fast/CANCELLED의 기존 증거를 지우지 않으며 초기에 막혔던 `#624` E2E 제품 overflow도 별도 검증 대상이다.
 
 **원격 상태·권한:** 진단 당시 main이 두 새 커밋(#679)으로 전진. AGENTS/CI_CD/GITHUB_OPERATIONS/PR_BATCH_PUBLICATION 및 docs/TEST_PLAN/REMOTE_VALIDATION/PLAN #679 변경을 **양쪽 모두 보존해 브랜치 통합**한다. Live PR review thread 0이며 실제 mergeable/latest main은 새 commit 직전에 재평가한다. risk=HIGH / qa_method=OWNER_MANAGED / release_required=true / release_authorized=false / manager_decision=NOT TESTED. 병합/Main GHCR/Finalizer·Issue 종료는 별도 승인 대상이다.
+
+## 8. PR CI #2893.1 — #456 scoped Week axis capacity (2026-10-17)
+
+**고정 출처**: [Run #2893.1, ID 39021459600](https://github.com/planner77/masterGantt/actions/runs/39021459600), pull_request/synchronize, attempt1, HEAD `417cc3ce1de3b00e7f90386e2dd73bf943e1ce86`, 당시 Base `4307c8cdf1cc00a87fd7bff9f5e1a0c924bb3620`, 실제 test merge `efb02ff6beaa379cf0e54798e8e59fd939e3f8ee` (runner checkout). 원본 결론 FAILURE.
+
+| 누적 사건 / Job | 실제 결과 | 최초 오류 또는 파생 관계 |
+| --- | --- | --- |
+| **F-624-025** / [Shard3 117364313016](https://github.com/planner77/masterGantt/actions/runs/39021459600/job/117364313016) | FAIL | `tests/e2e/task-editor-form-density.spec.ts:150`, #456 scoped WBS/Week/fullscreen setup. 166행에서 `chart.scrollLeft=120` 강제 설정 후 168행의 5초 `expect.poll(chartScroll).toBe(120)`이 actual **62**로 실패. 85PASS/1FAIL/1SKIP/3NOT RUN. [trace](https://github.com/planner77/masterGantt/actions/runs/39021459600/artifacts/12096967012) |
+| **F-624-026** / [E2E aggregate 117366383734](https://github.com/planner77/masterGantt/actions/runs/39021459600/job/117366383734) | FAIL, 파생 | Shard3 FAIL, 나머지 집계 규칙에 따라 Required E2E 실패 |
+| **F-624-027** / [QA Final 117366396783](https://github.com/planner77/masterGantt/actions/runs/39021459600/job/117366396783) | FAIL, 파생 | required E2E 미성공; 별도 QA 정책 결함 아님 |
+| C-624-003 / Shard1/2/4/5 | CANCELLED | 중간 개별 PASS는 있을 수 있지만 shard 전체 완료 검증 아님. 취소 로그에 추가 실제 FAIL 표시는 확인되지 않음 |
+| P-624-001 / [Shard6 117364312992](https://github.com/planner77/masterGantt/actions/runs/39021459600/job/117364312992) | SUCCESS | 113 Chromium 사례 완료 |
+| P-624-002 / [Shard2 117364312929](https://github.com/planner77/masterGantt/actions/runs/39021459600/job/117364312929) | CANCELLED, 개별 PASS | 신규 `issue-624-logistics-unified.spec.ts` 테스트 자체는 17.6초 PASS. Shard2 전체는 PASS 아님 |
+| P-624-003 / [Shard3 117364313016](https://github.com/planner77/masterGantt/actions/runs/39021459600/job/117364313016) | 실패 전 개별 PASS | 앞선 `ECONNRESET` 사례인 `issue-621-resource-target.spec.ts:92` 등 #621 다섯 사례 PASS |
+| P-624-004 / Preflight/Policy/ESLint/Typecheck/Vitest/Next Build/Docker, Required Quality/Docker | SUCCESS | 이 Head에서 앞선 첫 세 Root의 미재발 확인. 성공을 이후 Head로 이월하지 않음 |
+
+**원인 분류**: `TEST_CONTRACT/FIXTURE_OBSERVABILITY` 가능성이 높다. #456 테스트는 scoped Summary/Week/fullscreen/외부ID 열 설정 직후 120px을 강제하지만 해당 axis가 양쪽 Core/native에서 120을 수용하는지 확인하지 않았다. 실제 62는 native scroll clamp와 일치한다. [#667 누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)의 처음 120px 입력 전 Core/native capacity47 사례와 유사하나, 이번 원본 Core capacity와 RANGE_EXTENSION 진행이 계측되지 않았으므로 제품 viewport writer 결함 여부는 UNKNOWN으로 보존한다. Timeout만 늘려서는 유효한 축을 만들 수 없다.
+
+**계약 유지 보완**: 최신 main #552의 Marker-OFF Canonical/Visible 분리 및 해당 #456 후속 소비자를 유지한 상태에서 `tests/e2e/task-editor-form-density.spec.ts`의 이 사례 초기화만 보완한다. `waitForGanttReadiness`로 current API/revision/Week/rootTask scope/query/3 frame·Core/native capacity를 검사하고, 120 수용 불가이며 양 capacity가 양수일 때 기존 사용자 입력인 실제 horizontal wheel 한 번을 수행한다. 이후 같은 문맥에서 `evaluateGanttReadiness(...targetLeft:120)` admission을 확인한 뒤 원래 `scrollLeft=120`, vertical38 및 Editor/metadata/선택/동일 Gantt identity를 그대로 단언한다. 이전/이후 admission·Coordinator를 attachment로 남긴다. Assertion/Skip/Timeout/Retry/QA 정책/프로덕션 writer 변경 없음.
+
+**전체 이력 Cross-run 비교**: F-624-001 #2875.1 DOC_SYNC 누락 → F-624-007 #2876.1 AC Markdown parser → F-624-013 #2877.1 React Hook Lint는 이번 Preflight/Lint/Vitest 성공으로 미재발. F-624-019 #2879.1 신규 #624 390px document704 overflow는 이번 #624 개별 E2E PASS로 동일 테스트의 증상 미재발(Shard2 CANCELLED로 전수 PASS 아님). F-624-022 #2887.1 #621 GET ECONNRESET은 이번 #621 다섯 개별 테스트 PASS로 직접 재발 미관측. 이번 F-624-025는 별도의 기존 #456 스크롤 준비 전제 실패이며 #552 WBS/Milestone와 #667 viewport와의 연결을 검토한다. 과거 실패 및 CANCELLED 증거를 삭제하지 않는다.
+
+**누적 실패 파일 합집합**: `docs/exec-plans/active/ISSUE_624.md`(DOC_SYNC/AC), `src/features/logistics/project-logistics-unified.tsx`(Hooks), `src/features/logistics/project-logistics-unified.module.css` + `tests/e2e/issue-624-logistics-unified.spec.ts`(390px), `tests/e2e/issue-621-resource-target.spec.ts` + `tests/e2e/fixtures/target-project.ts`(HTTP transport), **`tests/e2e/task-editor-form-density.spec.ts`**(#456 120px/62px). 교차·음성: #552 marker-OFF/#570 canonical-visible, #667 Gantt readiness, #623 Resource MVP, #621 same Task Editor, selected/wheel/new input precedence 및 dirty/readonly/401/412, 실제 user input으로 axis capacity가 확보되지 않으면 fail closed.
+
+**동결 source 검증 경계**: (A) 서식/QA 정책/정적 타입·Unit (B) 관련 누적 실패 파일+인접 #456/#570/#552/#667의 no-fail-fast 한정 재현 (C) 같은 Head Full PR Quality/E2E6/Docker/Trusted. 이 환경에서는 로컬 Chromium 직접 실행 불가하여 (B) `NOT TESTED`. 새 원격 CI의 시작을 원본 수정 성공이라 주장하지 않는다. PR base 뒤에 main 37커밋(#552 marker OFF와 Core/fixture, app0.115.0)이 추가되어 branch/main을 양쪽 보존한 merge 후 후보 minor `0.116.0`으로 정렬할 계획. 완료 시 실제 SHA/Run/Attempt를 추가 기록. 사용자 지시대로 CI 완료 모니터링 없이 시작에서 종료하고 Owner 병합 승인/Main CI/GHCR/Release는 수행하지 않는다.
+
+**다음 실패 원장**: 새 root가 발생하면 F-624-028부터 추가하고 처음 다섯 실패 및 이번 6번째 사례의 exact HEAD/base/test-merge, 취소된 Shard에 남은 실제 실패를 다시 읽는다.

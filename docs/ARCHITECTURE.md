@@ -1,5 +1,7 @@
 ## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
 
+아래 순서는 2026-10-15 결정 당시 계획이다. #667 공통 제품 연결은 이후 main merge `bdaed6bd`로 통합되었으며, U2~U4 개별 절의 미연결 설명은 각 모듈 도입 당시 범위로 읽는다. #552 새 후보는 통합된 단일 authority를 재사용하고 자체 수용/CI 결과를 별도로 검증한다.
+
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 서버 canonical Milestone/Stage Gate/Resource·Target Assignment·Summary roll-up은 WBS native visibility의 입력 여부와 독립이다. 기존 #570 projection의 `displayMode: compatibility | separate-milestones`, #551 `MilestoneTimelineCapability`(기본 OFF), #663~#666의 아직 미연결 정합성 모듈은 **세 가지 서로 다른 계약**이다. Main 제품 적용 순서를 혼합하지 않는다.
 
 1. #667: **main 기반** 실제 Core conformance/recall·semantic receipt·axis transaction을 ProjectGantt와 Coordinator에 순차 통합. 같은 API/user intent/actual Core/native 측정의 GSC SC 누적 결과 없이 no-op·복원 성공을 보고하지 않는다. Milestone 표시 모드·marker 활성화는 변경하지 않는다.
@@ -504,3 +506,13 @@ U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기�
 ## Issue #667 / CI #2827 — native clamp의 입력 분류 경계
 
 날짜축 전환에서는 Core 좌표가 먼저 Week로 바뀌고 native DOM에 이전 Day 좌표가 남을 수 있다. 단일 viewport port는 axis 등록 시 같은 `read()`에서 Core/native 가로 좌표를 함께 읽고 최댓값을 baseline으로 고정한다. 두 등록 좌표보다1px 초과 앞선 실제 native/event 일치 이동만 기존 forward 취소 경로에 전달한다. native가 뒤로 clamp됐으나 더 작은 Core 좌표보다 크다는 이유로 새 사용자 의도를 만들지 않는다. 원래 lease·own tagged 제외·한 번의 nativeHandled·실제 wheel/pointer/keyboard 취소·단일 writer는 유지한다. 서버 canonical/authorization·API/DB·U2/U3 계약 변경은 없다. 원본/Unit/교차 검증은 [누적 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md)과 [ci2827](evidence/issue-667/ci2827-correction.json)에 source별로 기록한다.
+
+## Issue #552 — marker-OFF WBS 표시 경계
+
+전체 프로젝트·사용자 필터 없음은 기존 `visibleTaskIds=null` 의미를 유지한다. Milestone 제외는 separate projection의 표시 authority가 수행하며, 파생 WBS ID 집합을 사용자 query/filter identity로 전달하지 않는다. 그래야 일반 Task 추가가 조회 변경으로 오인되어 Native Add 복원을 취소하지 않는다. 선택 gesture의 ordinary WBS ID 집합은 별도로 유지하여 숨은 M을 선택/Task clipboard에 넣지 않는다.
+
+main #667(`bdaed6bd`)의 Workspace canonical read generation/U2 actual-Core recovery/U3 semantic observation/단일 Coordinator·U4 port를 그대로 소비한다. 데이터 queue와 viewport 정착을 별도로 판정하고 기존 UNKNOWN/권한/revision/새 사용자 입력 경계를 유지한다. #552가 과거에 추가했던 독자 resize correction·production DATE_REVEAL·no-op 재동기화 authority를 다시 연결하지 않는다.
+
+공개 controlled projection은 native Summary/Task만 표시하지만 full canonical Task/Link/Membership과 Summary 파생·Ready/Completed·Resource/Target·Export를 보존한다. native M row/bar/대체 endpoint는0이며 관계 선을 다른 행에 재연결하지 않는다. 운영 lane/marker/guide/예약 높이·marker-only observer/listener/RAF/date-axis/scroll은0이다. #551 개발 opt-in capability는 운영 preference와 분리해 유지하며 Toolbar toggle/default ON/temporary ON authority는 제거한다.
+
+Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하고 숨은 M select·날짜축 확장 요청은 내지 않는다. 일반 Task 날짜축·viewport는 기존 #667 port가 처리한다. 별도 WBS build-time gate `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`는 재빌드/재배포가 필요한 명시 비상 복구이고 marker gate와 독립이다. API/DB/auth/Scheduling engine 계약 변경은 N/A다. 최신 검증 및 미검증은 [#552 Work Packet](exec-plans/active/ISSUE_552.md)을 따른다.

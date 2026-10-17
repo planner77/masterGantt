@@ -29,6 +29,10 @@ export async function readGanttReadiness(target: Locator, expected: GanttReadine
         lastSuccess: parse("ganttProjectionReceipt"), latestAttempt: parse("ganttProjectionObservation"), semantic: parse("ganttSemanticProjectionReceipt"), currentWork: parse("ganttViewportCoordinator"),
         core: core ? { ready: probe.ready === true, instance: core.instance, left: core.left, top: core.top, width: core.width, chartWidth: core.chartWidth, axisStart: core.start instanceof Date ? core.start.toISOString() : null, axisEnd: core.end instanceof Date ? core.end.toISOString() : null,
           canonicalIds: core.canonicalIds, coreTaskCount: core.coreTaskCount,
+          // Debug-only read of real visible Core rows (not canonical source).
+          // Historical #2886 showed 8 visible native rows against 6 in the
+          // previous receipt; capture both to distinguish filter drift.
+          coreVisibleIds: (core.rows ?? []).map((task: { id: string | number }) => String(task.id)),
           scaleRows: (core.scaleRows ?? []).map((row: { width: number; first: { value: unknown }[]; last: { value: unknown }[] }) => ({ width: row.width, labels: [...row.first, ...row.last].map(cell => cell.value) })) } : null,
         native: { left: chart.scrollLeft, top: owner.scrollTop, capacity: chart.scrollWidth - chart.clientWidth, clientWidth: chart.clientWidth, clientHeight: chart.clientHeight },
         domIds: [...frame.querySelectorAll(".wx-table-container .wx-row[data-id]")].map(row => row.getAttribute("data-id")!.replace(/^:/, "")),

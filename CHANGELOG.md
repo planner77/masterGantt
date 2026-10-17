@@ -1,10 +1,38 @@
-## [0.115.0] — Unreleased / Issue #624
+## [0.116.0] — Unreleased / Issue #624
+- CI #2893.1의 기존 #456 scoped Week X62/expected120 실패는 새 Gantt writer 수정 대신 현재 Core/native 축 용량·3-frame readiness를 확인하고 필요할 때 실제 wheel로 확장하는 fixture 준비 절차를 추가한다. 이전 #2875~#2887 실패 전체 비교 및 #552 marker-OFF main 변경 보존. 새 전체 PR CI 전 기능/회귀 PASS 미판정.
 
 - CI #2879.1에서 발견한 390px 통합 조회 Grid min-content document overflow(704px)를 앱 소유 Grid의 `minmax(0,1fr)`로 제한하고, 의도된 표 내부 scroll 및 기존 엄격한 E2E 단언을 유지한다. 후속 원격 성공은 새 Head CI 전 NOT TESTED이며 #704 전체 이력 실패 원장을 함께 보존한다.
 - 공정·선택적 WorkArea·Target, 설비 종류→인스턴스, 시스템 종류→인스턴스, Target→Resource를 동일 Resource Target 보고서와 정확 Task/Assignment 상세로 교차 조회하는 물류 「통합 조회」 탭을 추가한다.
 - 등록된 고유 설비 수량과 선택된 T0 Task 대상 coverage, 기간가중 Task 진척, M/D·M/M·Milestone 전체 Stage Gate를 구분한다. 공유 AMR fleet/MCS·중복 Target의 표시 소계를 원본 합계로 더하지 않으며 조회로 DB/WBS를 수정하지 않는다.
 - 읽기전용·stale·dirty/권한, 390~1920px 표 내부 overflow/keyboard/focus·조회 후 복귀 경로를 기존 Resource/Target 모델로 재사용한다. 신규 전용 Unit/Chromium과 [#624 Work Packet](docs/exec-plans/active/ISSUE_624.md) 동기화. 정확 Head CI 전 NOT TESTED.
 - 위험 HIGH/OWNER_MANAGED, release_required=true, release_authorized=false; PR CI만으로 정식 릴리스/병합 허가가 되지 않는다.
+
+## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
+
+- #2888 PR CI의 #456 metadata/active search E2E는 U3/Core/Viewport 정상 SETTLED에도 구형 테스트가 canonical Task31개(M1 포함)를 `visibleIds`에 기대해 실패했다. #2863 Canonical84/Visible83과 같은 TEST_CONTRACT 패턴. `task-editor-form-density.spec.ts`의 #456/#570 두 소비자에 canonical31·Marker OFF WBS30 분리 및 native Core/DOM/receipt M 부재 음성 검증을 추가하고 기존 120px/변경 필터/메타데이터·권한/동일 instance는 유지. [누적 실패 분석 §9](docs/ISSUE_552_FAILURE_ANALYSIS.md)·[보조 JSON](docs/evidence/issue-552/ci-cumulative-20261017.json) 원본33Run 및 선택11Run/13실패·12파일/과거 INCOMPLETE 보존. 제품/CI/timeout/retries/skip/버전 변경 없고, 새 후보 로컬/원격 최종 PASS는 실행 전 NOT TESTED.
+
+- PR CI #2886에서 #2878의 Resource→Schedule 복귀와 동일하게 U3 이전 성공 receipt Task6와 실제 DOM Task6+Milestone2가 어긋나 최신 rows·Peer return이 TIMED_OUT하는 상태를 실제 Trace로 확인했다. 숨김→표시 시 Marker OFF 필터가 재적용되지 않는 제품 `project-gantt.tsx` Effect의 visibility dependency 누락을 보완하고, mock/실제 HTTP·SQLite Resource 복귀에서 native Milestone0·canonical 보존/strict Core·DOM을 다시 검증한다. 기존 상태 영수증/실제 관측을 혼동하지 않도록 공통 readiness 진단에 Core visible IDs만 추가했다. [Issue별 누적 실패 §8](docs/ISSUE_552_FAILURE_ANALYSIS.md) 및 JSON 보존(32Run metadata, 선택 최근10Run/11파일, 과거 이력 INCOMPLETE), local 실행 NOT TESTED. 제품/서버 API/DB/CI Gate/버전/timeout/retry/skip/릴리스 승인 불변.
+
+- #2885 PR CI의 #464 실제 HTTP·SQLite E2E는 초기 일반 Task native 행 DOM 부재를 Milestone 유형으로 오분류해 Dashboard UUID 검색0건으로 FAIL했다. 실제 Playwright trace가 후속 정상 Task 행과 Milestone 목록을 증명한다. Spec-local Editor 테스트 라우팅을 canonical `task.type` 기준으로 변경, 일반 Task는 native row를 기다리고 Milestone은 기존 Dashboard 경로를 유지한다. [단일 누적 실패 문서](docs/ISSUE_552_FAILURE_ANALYSIS.md)·JSON에 31Run 메타데이터/최근9Run/11선정파일/이전 이력 INCOMPLETE를 기록. 제품·API·CI Gate·timeout/retry/skip·릴리스 후보 버전 유지, 새 source 로컬/원격 테스트 실행 전 NOT TESTED.
+
+- CI #2878의 #530 Resource KPI·Excel 이후 Gantt 복귀 시 최신 semantic/viewport 정착 전 wheel을 입력한 위험을 분석했다. 공통 read-only 준비 검사를 입력 전에 추가하고 실패하면 실제 Core/native/영수증을 보존한다. 90RAF/8연속 strict equality·원장·Instance/Selection·timeout/retry/skip/CI·릴리스 정책은 유지. [연속 실패 분석 문서](docs/ISSUE_552_FAILURE_ANALYSIS.md)와 8Run/10파일 누적 원장 갱신, 새 코드 실행은 NOT TESTED.
+
+- CI #2866.1의 삭제된 Milestone Lane64px 기대를 marker OFF의 실제 native Gantt bounds·marker0·무예약 공간 검사로 교체하고, 알림 E2E의 합성 Root 오류를 Milestone parent 오류와 분리한다. #2844~#2866 누적 실패 7Run/9파일을 취소 Job 내 실제 실패까지 원장화하며 Pre-PR UNKNOWN6의 직접·인접·음성 매핑/실제 regression test를 추가한다. 기존 sourceStable 차단은 완화하지 않는다. 새로운 local diagnose/전체 Chromium/Trusted QA·Owner 확인은 실행 전 NOT TESTED; 릴리스/버전/CI 실패 중단 정책은 유지한다.
+
+- PR CI #2864의 GET500 주입 전 초기화 지연을 분석하고 DCL navigation과 최초 정상 GET/실제 Gantt DOM·메뉴 준비를 분리한다. held asset·초기GET gate의 통제반례를 추가한다. 원본 실패·자연 비재현·임시 계측/통제 지연·최종 source를 구별하며 복구 단언·30초·무재시도·CI 정책은 유지한다.
+
+- PR CI #2863의 #637 canonical 전체84와 native 표시83 구분 및 Grid 가상행/고의 Y오차 복원 기대를 새 WBS 정책에 맞춘다. #551의 제거된 Task 빠른보기는 실제 고급 Task type 필터로 전환하고 전체 Milestone61/viewport marker2·무쓰기 검증을 보존한다. 관련 E2E119개 구형 표시 패턴을 정적 조사·분류했으며 제품·timeout/CI 정책/버전은 변경하지 않는다.
+
+- PR CI #2862 클릭 전후 리사이즈의 구 좌표 재히트 검증과 Day/Week 전환·날짜축 확장의 미정착 요청 경계를 E2E에서 분리 보완한다. 원래 pointerup 편집 결과, scale별 receipt, 3회 End 증가·RANGE SETTLED, 기존 무mutation/CI 계약을 유지하며 제품 동작·버전 변경 없음.
+
+- PR CI #2861의 #550 empty/Milestone-only 기존 E2E가 제거된 native M Grid 행을 기대한 실패를 교정한다. 기본 WBS는 M row/bar0·marker OFF, 명시 legacy는 native1을 검증하며 날짜축 자동 M reveal 전제만 분리한다. 기존 Dashboard·canonical/권한·관계/소속·Day/Week/scroll·mutation0 단언과 원본 #2859/2861 실패 이력은 유지한다.
+
+- PR CI #2859의 저장 확인 GET 연결 종료를 분석하고 #623 테스트의 불필요한 hook 서버 기동을 제거한다. UI 후 확인은 기존 브라우저 전송 helper를 재사용하며 실제 저장·권한·revision·교환 단언과 무재시도 정책을 유지한다. 원본 실패·로컬 비재현·보완 검증은 별도 원장에 보존한다.
+
+- 일정 native Grid/Chart의 표시를 Summary/Task로 분리하며 Milestone row/bar와 숨은 Milestone endpoint 선을 제외한다. 전체 canonical ID/Link/Membership·Summary 파생·Ready/Completed·Resource/Target/Copy/Export 원장은 보존한다.
+- 기존 기본 ON 표시 토글·임시 marker 날짜 탐색을 운영 경로에서 제거한다. 상단 lane/marker/guide OFF와 marker-only 부작용0을 유지하고 날짜 확인은 기존 Dashboard 상세/정확 소속 Task 안내로 전환한다. #551 기술 capability는 보존하며 #693 marker ON은 별도 선택 후속이다.
+- 최신 main #667의 공통 동기화 authority를 재사용하고 과거 #552 중복 observer/resize/restore와 main 충돌을 정리한다. 명시 legacy WBS 비상 복구는 독립 빌드 설정이며 재빌드/재배포·별도 검증이 필요하다.
+- 이번 요청은 구현·문서·리뷰/충돌 해결 및 PR CI 시작까지다. 후보 버전은 릴리스 승인이나 원격 회귀 PASS가 아니며 release_authorized=false, 최종 QA/Owner ACCEPT는 NOT TESTED다. 이전 실패 run과 구현 이력은 유지한다.
 
 ## [0.114.1] — Unreleased / Issue #667
 
@@ -189,6 +217,16 @@
 - 감사 실패 artifact JSON과 Actions Job Summary에는 stage/reason/run/attempt/main SHA를 기록한다. 발행·퇴역·#616 종료·태그 이동/삭제 모두 금지, BLOCKED exit 1 유지. PR CI와 default-main workflow_dispatch audit는 별도이며 신규 운영 감사는 병합/Main CI 이후 Owner 실행만 가능하다.
 - HIGH / OWNER_MANAGED / qa_required=true / release_required=false / release_authorized=false. Required Quality + Chromium E2E 6/6 + Docker, Trusted QA·리뷰 스레드 0 및 Owner 위험 수용은 원격 검증 전 NOT TESTED. DESIGN.md/API/DB: UI·API·schema 변경 없음으로 N/A.
 
+## [Unreleased] — Issue #552 날짜축·Calendar 복원 경계 보완 (2026-10-13)
+
+- 0행 filter-tasks 뒤 관측한 날짜축 end를 기존 bounded 확장 경로에서 보존한다. 같은 API/revision/projection의 중복 commit을 생략하고 실제 축·물리 geometry·context가 동일한 유효 projection observation만 재사용하여 Calendar metadata 복원을 보호한다.
+- API 교체·내용/layout/가시성·날짜축 변경 부정 Unit을 추가하고 원본 E2E assertion·timeout·skip을 유지한다. 기존 CI #2679 FAIL과 Calendar 원본 로컬 미재현 한계를 보존하며 version0.107.0·QA/CI/릴리스 권한은 변경하지 않는다.
+
+## [Unreleased] — Issue #552 반복 PR CI 회귀 보완 (2026-10-13)
+
+- Native Task 추가를 파생 표시 ID 변경으로 취소하지 않도록 조회 의도 기준을 사용하고 낮은 우선순위 metadata 복원의 선점을 차단한다. OFF 날짜 탐색의 Dashboard 행 교체/일시 비활성화 뒤 잃은 focus를 복구하며 새 사용자 입력과 modal 경계를 유지한다.
+- Copy 확인창 용어·알림 clipboard 경계·지원된 날짜 탐색·가시 native layout 이후 pending 복원·Calendar Core/native 정착 검증을 정합화한다. 원본 CI #2667.1 FAIL은 보존하고 QA gate·6 shard·assertion 허용오차·application0.107.0·release 권한은 유지한다.
+
 ## Issue #653 — 인증된 릴리스 승계 감사 수집기 (2026-10-13)
 
 - `scripts/release_succession_audit.py` 및 `.github/workflows/release-succession-audit.yml`은 default main `workflow_dispatch`에서 GitHub REST·authenticated GHCR·first-parent 자료를 조회하는 **읽기 전용** 감사 경로다. PR CI가 감사를 실행하거나 패키지 게시를 하지 않는다.
@@ -210,6 +248,10 @@
 
 - Fix bounded Milestone Dashboard focus restoration after a native WorkspaceDialog closes during delete, including a deleted management trigger, hidden/foreign panel and another modal. Strengthen Playwright E2E to verify the actual active element belongs to the visible Milestone panel and is the search fallback. Current main already has #639's Resource Dashboard `할당 Task` KPI count-selector fix; the immutable #616 v0.107.0 original SHA lacks it and is not rewritten. Version, schema, API, CI workflow and formal release authority unchanged.
 - #647 follow-up for PR CI #2626.1: fix four Milestone focus-visibility regressions caused by `focus({ preventScroll: true })` after native-dialog unmount. Preserve bounded modal-aware retries but restore default browser focus scrolling so the keyboard focus ring is onscreen; strengthen deletion E2E viewport and hit-test assertions. Also retain #551 main changes and immutable #616 recovery evidence.
+
+## [Unreleased] — Issue #552 WBS/Milestone display integration (2026-10-13)
+
+- Keep the #552 Milestone timeline visibility/WBS split, keyboard/date fallback and canonical Copy/Selection changes while aligning with main #551 and #570–#572 projection/viewport code. Release version stays at main 0.107.0 until an independently approved version change; historical branch 0.106.0 is not a current publication. Full exact-head PR CI/Trusted QA required after integration; no formal release claimed.
 
 ## [Unreleased] — Issue #645 immutable merge-PR identity recovery #2617 (2026-10-13)
 
@@ -3987,4 +4029,4 @@
 - Project edit password/session lifecycle
 - Working Calendar와 Leaf/Milestone Scheduling Engine 기반
 
-
+- #552 CI #2670: address large Stage-gate projection cost, short-project initial native horizontal wheel capacity, and exact-ID Dashboard Milestone Editor tests; full CI results pending.

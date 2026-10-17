@@ -1,6 +1,6 @@
 {
   "name": "mastergantt",
-  "version": "0.115.0",
+  "version": "0.116.0",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -14,9 +14,9 @@
     "lint": "eslint .",
     "test": "vitest run --config tests/config/vitest.config.ts",
     "test:e2e": "playwright test --config tests/config/playwright.config.ts",
-    "verify:prepr": "node scripts/verify-prepr.mjs",
     "db:migrate": "node --import tsx scripts/migrate.ts",
-    "build:runtime-tools": "tsc -p tsconfig.runtime-tools.json"
+    "build:runtime-tools": "tsc -p tsconfig.runtime-tools.json",
+    "verify:prepr": "node scripts/verify-prepr.mjs"
   },
   "dependencies": {
     "@next/env": "16.3.8",

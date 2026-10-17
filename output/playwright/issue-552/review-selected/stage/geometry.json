@@ -1,0 +1,2037 @@
+[
+  {
+    "width": 390,
+    "popup": {
+      "top": 473,
+      "bottom": 836,
+      "left": 12,
+      "right": 354,
+      "viewport": 390,
+      "activeVisible": true,
+      "inputFocused": true,
+      "inputVisible": true,
+      "listScroll": 2179
+    },
+    "documentWidth": 390,
+    "viewport": 390,
+    "toolbarControlsContained": true,
+    "toolbarControlsNonOverlapping": true,
+    "columnsAligned": true,
+    "columnBounds": {
+      "header": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 13,
+            "right": 69,
+            "top": 753,
+            "bottom": 825,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 69,
+            "right": 296,
+            "top": 753,
+            "bottom": 825,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 296,
+            "right": 400,
+            "top": 753,
+            "bottom": 825,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 400,
+            "right": 456,
+            "top": 753,
+            "bottom": 825,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 456,
+            "right": 636,
+            "top": 753,
+            "bottom": 825,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 636,
+            "right": 673,
+            "top": 753,
+            "bottom": 825,
+            "width": 37
+          }
+        }
+      ],
+      "body": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 13,
+            "right": 69,
+            "top": 826,
+            "bottom": 863,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 69,
+            "right": 296,
+            "top": 826,
+            "bottom": 863,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 296,
+            "right": 400,
+            "top": 826,
+            "bottom": 863,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 400,
+            "right": 456,
+            "top": 826,
+            "bottom": 863,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 456,
+            "right": 636,
+            "top": 826,
+            "bottom": 863,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 636,
+            "right": 673,
+            "top": 826,
+            "bottom": 863,
+            "width": 37
+          }
+        }
+      ]
+    },
+    "allButtonsContained": true,
+    "buttonBounds": [
+      {
+        "control": {
+          "left": 644.5,
+          "right": 664.5,
+          "top": 781,
+          "bottom": 797,
+          "width": 20
+        },
+        "cell": {
+          "left": 636,
+          "right": 673,
+          "top": 753,
+          "bottom": 825,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 32.5,
+          "right": 48.5,
+          "top": 836.5,
+          "bottom": 852.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 13,
+          "right": 69,
+          "top": 826,
+          "bottom": 863,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 468,
+          "right": 623,
+          "top": 830.5,
+          "bottom": 858.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 456,
+          "right": 636,
+          "top": 826,
+          "bottom": 863,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 644,
+          "right": 664,
+          "top": 836.5,
+          "bottom": 852.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 636,
+          "right": 673,
+          "top": 826,
+          "bottom": 863,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 32.5,
+          "right": 48.5,
+          "top": 874.5,
+          "bottom": 890.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 13,
+          "right": 69,
+          "top": 864,
+          "bottom": 901,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 468,
+          "right": 623,
+          "top": 868.5,
+          "bottom": 896.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 456,
+          "right": 636,
+          "top": 864,
+          "bottom": 901,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 644,
+          "right": 664,
+          "top": 874.5,
+          "bottom": 890.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 636,
+          "right": 673,
+          "top": 864,
+          "bottom": 901,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 32.5,
+          "right": 48.5,
+          "top": 912.5,
+          "bottom": 928.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 13,
+          "right": 69,
+          "top": 902,
+          "bottom": 939,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 468,
+          "right": 623,
+          "top": 906.5,
+          "bottom": 934.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 456,
+          "right": 636,
+          "top": 902,
+          "bottom": 939,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 644,
+          "right": 664,
+          "top": 912.5,
+          "bottom": 928.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 636,
+          "right": 673,
+          "top": 902,
+          "bottom": 939,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 32.5,
+          "right": 48.5,
+          "top": 950.5,
+          "bottom": 966.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 13,
+          "right": 69,
+          "top": 940,
+          "bottom": 977,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 468,
+          "right": 623,
+          "top": 944.5,
+          "bottom": 972.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 456,
+          "right": 636,
+          "top": 940,
+          "bottom": 977,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 644,
+          "right": 664,
+          "top": 950.5,
+          "bottom": 966.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 636,
+          "right": 673,
+          "top": 940,
+          "bottom": 977,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 32.5,
+          "right": 48.5,
+          "top": 989,
+          "bottom": 1005,
+          "width": 16
+        },
+        "cell": {
+          "left": 13,
+          "right": 69,
+          "top": 978,
+          "bottom": 1016,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 468,
+          "right": 623,
+          "top": 983,
+          "bottom": 1011,
+          "width": 155
+        },
+        "cell": {
+          "left": 456,
+          "right": 636,
+          "top": 978,
+          "bottom": 1016,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 644,
+          "right": 664,
+          "top": 989,
+          "bottom": 1005,
+          "width": 20
+        },
+        "cell": {
+          "left": 636,
+          "right": 673,
+          "top": 978,
+          "bottom": 1016,
+          "width": 37
+        }
+      }
+    ],
+    "gridScrollWidth": 720,
+    "gridClientWidth": 364,
+    "focusVisible": true
+  },
+  {
+    "width": 768,
+    "popup": {
+      "top": 445,
+      "bottom": 836,
+      "left": 24,
+      "right": 472,
+      "viewport": 768,
+      "activeVisible": true,
+      "inputFocused": true,
+      "inputVisible": true,
+      "listScroll": 1359
+    },
+    "documentWidth": 768,
+    "viewport": 768,
+    "toolbarControlsContained": true,
+    "toolbarControlsNonOverlapping": true,
+    "columnsAligned": true,
+    "columnBounds": {
+      "header": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 608,
+            "bottom": 680,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 608,
+            "bottom": 680,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 608,
+            "bottom": 680,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 608,
+            "bottom": 680,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 608,
+            "bottom": 680,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 608,
+            "bottom": 680,
+            "width": 37
+          }
+        }
+      ],
+      "body": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 681,
+            "bottom": 718,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 681,
+            "bottom": 718,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 681,
+            "bottom": 718,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 681,
+            "bottom": 718,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 681,
+            "bottom": 718,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 681,
+            "bottom": 718,
+            "width": 37
+          }
+        }
+      ]
+    },
+    "allButtonsContained": true,
+    "buttonBounds": [
+      {
+        "control": {
+          "left": 656.5,
+          "right": 676.5,
+          "top": 636,
+          "bottom": 652,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 608,
+          "bottom": 680,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 691.5,
+          "bottom": 707.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 681,
+          "bottom": 718,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 685.5,
+          "bottom": 713.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 681,
+          "bottom": 718,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 691.5,
+          "bottom": 707.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 681,
+          "bottom": 718,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 729.5,
+          "bottom": 745.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 719,
+          "bottom": 756,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 723.5,
+          "bottom": 751.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 719,
+          "bottom": 756,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 729.5,
+          "bottom": 745.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 719,
+          "bottom": 756,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 767.5,
+          "bottom": 783.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 757,
+          "bottom": 794,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 761.5,
+          "bottom": 789.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 757,
+          "bottom": 794,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 767.5,
+          "bottom": 783.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 757,
+          "bottom": 794,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 805.5,
+          "bottom": 821.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 795,
+          "bottom": 832,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 799.5,
+          "bottom": 827.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 795,
+          "bottom": 832,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 805.5,
+          "bottom": 821.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 795,
+          "bottom": 832,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 844,
+          "bottom": 860,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 833,
+          "bottom": 871,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 838,
+          "bottom": 866,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 833,
+          "bottom": 871,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 844,
+          "bottom": 860,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 833,
+          "bottom": 871,
+          "width": 37
+        }
+      }
+    ],
+    "gridScrollWidth": 720,
+    "gridClientWidth": 718,
+    "focusVisible": true
+  },
+  {
+    "width": 1024,
+    "popup": {
+      "top": 397,
+      "bottom": 797,
+      "left": 24,
+      "right": 472,
+      "viewport": 1024,
+      "activeVisible": true,
+      "inputFocused": true,
+      "inputVisible": true,
+      "listScroll": 1350
+    },
+    "documentWidth": 1024,
+    "viewport": 1024,
+    "toolbarControlsContained": true,
+    "toolbarControlsNonOverlapping": true,
+    "columnsAligned": true,
+    "columnBounds": {
+      "header": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 512,
+            "bottom": 584,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 512,
+            "bottom": 584,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 512,
+            "bottom": 584,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 512,
+            "bottom": 584,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 512,
+            "bottom": 584,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 512,
+            "bottom": 584,
+            "width": 37
+          }
+        }
+      ],
+      "body": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 585,
+            "bottom": 622,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 585,
+            "bottom": 622,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 585,
+            "bottom": 622,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 585,
+            "bottom": 622,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 585,
+            "bottom": 622,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 585,
+            "bottom": 622,
+            "width": 37
+          }
+        }
+      ]
+    },
+    "allButtonsContained": true,
+    "buttonBounds": [
+      {
+        "control": {
+          "left": 656.5,
+          "right": 676.5,
+          "top": 540,
+          "bottom": 556,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 512,
+          "bottom": 584,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 595.5,
+          "bottom": 611.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 585,
+          "bottom": 622,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 589.5,
+          "bottom": 617.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 585,
+          "bottom": 622,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 595.5,
+          "bottom": 611.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 585,
+          "bottom": 622,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 633.5,
+          "bottom": 649.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 623,
+          "bottom": 660,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 627.5,
+          "bottom": 655.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 623,
+          "bottom": 660,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 633.5,
+          "bottom": 649.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 623,
+          "bottom": 660,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 671.5,
+          "bottom": 687.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 661,
+          "bottom": 698,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 665.5,
+          "bottom": 693.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 661,
+          "bottom": 698,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 671.5,
+          "bottom": 687.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 661,
+          "bottom": 698,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 709.5,
+          "bottom": 725.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 699,
+          "bottom": 736,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 703.5,
+          "bottom": 731.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 699,
+          "bottom": 736,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 709.5,
+          "bottom": 725.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 699,
+          "bottom": 736,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 748,
+          "bottom": 764,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 737,
+          "bottom": 775,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 742,
+          "bottom": 770,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 737,
+          "bottom": 775,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 748,
+          "bottom": 764,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 737,
+          "bottom": 775,
+          "width": 37
+        }
+      }
+    ],
+    "gridScrollWidth": 974,
+    "gridClientWidth": 974,
+    "focusVisible": true
+  },
+  {
+    "width": 1440,
+    "popup": {
+      "top": 305,
+      "bottom": 705,
+      "left": 661,
+      "right": 1109,
+      "viewport": 1440,
+      "activeVisible": true,
+      "inputFocused": true,
+      "inputVisible": true,
+      "listScroll": 1350
+    },
+    "documentWidth": 1440,
+    "viewport": 1440,
+    "toolbarControlsContained": true,
+    "toolbarControlsNonOverlapping": true,
+    "columnsAligned": true,
+    "columnBounds": {
+      "header": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 420,
+            "bottom": 492,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 420,
+            "bottom": 492,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 420,
+            "bottom": 492,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 420,
+            "bottom": 492,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 420,
+            "bottom": 492,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 420,
+            "bottom": 492,
+            "width": 37
+          }
+        }
+      ],
+      "body": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 493,
+            "bottom": 530,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 493,
+            "bottom": 530,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 493,
+            "bottom": 530,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 493,
+            "bottom": 530,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 493,
+            "bottom": 530,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 493,
+            "bottom": 530,
+            "width": 37
+          }
+        }
+      ]
+    },
+    "allButtonsContained": true,
+    "buttonBounds": [
+      {
+        "control": {
+          "left": 656.5,
+          "right": 676.5,
+          "top": 448,
+          "bottom": 464,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 420,
+          "bottom": 492,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 503.5,
+          "bottom": 519.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 493,
+          "bottom": 530,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 497.5,
+          "bottom": 525.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 493,
+          "bottom": 530,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 503.5,
+          "bottom": 519.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 493,
+          "bottom": 530,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 541.5,
+          "bottom": 557.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 531,
+          "bottom": 568,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 535.5,
+          "bottom": 563.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 531,
+          "bottom": 568,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 541.5,
+          "bottom": 557.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 531,
+          "bottom": 568,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 579.5,
+          "bottom": 595.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 569,
+          "bottom": 606,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 573.5,
+          "bottom": 601.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 569,
+          "bottom": 606,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 579.5,
+          "bottom": 595.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 569,
+          "bottom": 606,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 617.5,
+          "bottom": 633.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 607,
+          "bottom": 644,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 611.5,
+          "bottom": 639.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 607,
+          "bottom": 644,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 617.5,
+          "bottom": 633.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 607,
+          "bottom": 644,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 656,
+          "bottom": 672,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 645,
+          "bottom": 683,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 650,
+          "bottom": 678,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 645,
+          "bottom": 683,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 656,
+          "bottom": 672,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 645,
+          "bottom": 683,
+          "width": 37
+        }
+      }
+    ],
+    "gridScrollWidth": 1390,
+    "gridClientWidth": 1390,
+    "focusVisible": true
+  },
+  {
+    "width": 1920,
+    "popup": {
+      "top": 305,
+      "bottom": 705,
+      "left": 1141,
+      "right": 1589,
+      "viewport": 1920,
+      "activeVisible": true,
+      "inputFocused": true,
+      "inputVisible": true,
+      "listScroll": 1350
+    },
+    "documentWidth": 1920,
+    "viewport": 1920,
+    "toolbarControlsContained": true,
+    "toolbarControlsNonOverlapping": true,
+    "columnsAligned": true,
+    "columnBounds": {
+      "header": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 420,
+            "bottom": 492,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 420,
+            "bottom": 492,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 420,
+            "bottom": 492,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 420,
+            "bottom": 492,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 420,
+            "bottom": 492,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 420,
+            "bottom": 492,
+            "width": 37
+          }
+        }
+      ],
+      "body": [
+        {
+          "id": ":copySelection",
+          "box": {
+            "left": 25,
+            "right": 81,
+            "top": 493,
+            "bottom": 530,
+            "width": 56
+          }
+        },
+        {
+          "id": ":text",
+          "box": {
+            "left": 81,
+            "right": 308,
+            "top": 493,
+            "bottom": 530,
+            "width": 227
+          }
+        },
+        {
+          "id": ":projectStart",
+          "box": {
+            "left": 308,
+            "right": 412,
+            "top": 493,
+            "bottom": 530,
+            "width": 104
+          }
+        },
+        {
+          "id": ":projectDuration",
+          "box": {
+            "left": 412,
+            "right": 468,
+            "top": 493,
+            "bottom": 530,
+            "width": 56
+          }
+        },
+        {
+          "id": ":milestoneStage",
+          "box": {
+            "left": 468,
+            "right": 648,
+            "top": 493,
+            "bottom": 530,
+            "width": 180
+          }
+        },
+        {
+          "id": ":add-task",
+          "box": {
+            "left": 648,
+            "right": 685,
+            "top": 493,
+            "bottom": 530,
+            "width": 37
+          }
+        }
+      ]
+    },
+    "allButtonsContained": true,
+    "buttonBounds": [
+      {
+        "control": {
+          "left": 656.5,
+          "right": 676.5,
+          "top": 448,
+          "bottom": 464,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 420,
+          "bottom": 492,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 503.5,
+          "bottom": 519.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 493,
+          "bottom": 530,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 497.5,
+          "bottom": 525.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 493,
+          "bottom": 530,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 503.5,
+          "bottom": 519.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 493,
+          "bottom": 530,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 541.5,
+          "bottom": 557.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 531,
+          "bottom": 568,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 535.5,
+          "bottom": 563.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 531,
+          "bottom": 568,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 541.5,
+          "bottom": 557.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 531,
+          "bottom": 568,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 579.5,
+          "bottom": 595.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 569,
+          "bottom": 606,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 573.5,
+          "bottom": 601.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 569,
+          "bottom": 606,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 579.5,
+          "bottom": 595.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 569,
+          "bottom": 606,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 617.5,
+          "bottom": 633.5,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 607,
+          "bottom": 644,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 611.5,
+          "bottom": 639.5,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 607,
+          "bottom": 644,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 617.5,
+          "bottom": 633.5,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 607,
+          "bottom": 644,
+          "width": 37
+        }
+      },
+      {
+        "control": {
+          "left": 44.5,
+          "right": 60.5,
+          "top": 656,
+          "bottom": 672,
+          "width": 16
+        },
+        "cell": {
+          "left": 25,
+          "right": 81,
+          "top": 645,
+          "bottom": 683,
+          "width": 56
+        }
+      },
+      {
+        "control": {
+          "left": 480,
+          "right": 635,
+          "top": 650,
+          "bottom": 678,
+          "width": 155
+        },
+        "cell": {
+          "left": 468,
+          "right": 648,
+          "top": 645,
+          "bottom": 683,
+          "width": 180
+        }
+      },
+      {
+        "control": {
+          "left": 656,
+          "right": 676,
+          "top": 656,
+          "bottom": 672,
+          "width": 20
+        },
+        "cell": {
+          "left": 648,
+          "right": 685,
+          "top": 645,
+          "bottom": 683,
+          "width": 37
+        }
+      }
+    ],
+    "gridScrollWidth": 1870,
+    "gridClientWidth": 1870,
+    "focusVisible": true
+  }
+]

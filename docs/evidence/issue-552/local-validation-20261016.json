@@ -1,0 +1,247 @@
+{
+  "status": "구현·선택 Local Fast Feedback PASS; 원격 전체 회귀·최종 QA/Owner ACCEPT NOT TESTED",
+  "source": {
+    "definition": "sorted path + NUL + SHA256(file bytes) + newline; SHA256(concatenation)",
+    "fingerprint": "9a0e3476883426d41ab30c9bb022ebd50136f3ac5b9f35b1fdc7d96d6389f282",
+    "files": {
+      "package-lock.json": "5c37bb9d270298b87a03f988435ae8c62293945e7c0bacf603212fb2fcab267e",
+      "package.json": "f9f7367d5487c88fcba29aab9a80cd932ef19e1e6033f9fd06f9586b60e00b2b",
+      "src/features/gantt/gantt-scale-toolbar.css": "ea29efdc000224f2603a6db0f158135adff2de1d89627bcdb98ce1f79a608da8",
+      "src/features/gantt/milestone-membership-model.ts": "20898b48919fbe0589d6ead4e959a0b08ca7ada339501b67d28b6d0684fd3e68",
+      "src/features/gantt/milestone-membership-panel.tsx": "07a19f0d4018665c3b1645d5a9ac45584004025e246cb9511d17c2c3cbc60487",
+      "src/features/gantt/project-gantt.tsx": "2ecd5745aa05a84c6057bc1a08f482049fb52435430621900fcb2784c0f38571",
+      "src/features/gantt/project-task-editor.tsx": "ac53fc60aff7c5dc72acbee781c1eeef3c13131252d9dffb42cc50e3204afcb8",
+      "src/features/gantt/task-selection-model.ts": "a1f710ab3901c14276da95acce778fa0ccb8360c2257a7383e9c74ed3dace0b8",
+      "src/features/milestones/milestone-management-model.ts": "ae38f793517b33d509527809696278bbd84ab87f5903bab6983ea044c78c3a2a",
+      "src/features/milestones/milestone-timeline-preference.ts": "e6437005a980ac18a8e66bb01deacaef4343de34b52a5f0193e8f239e6dc119a",
+      "src/features/milestones/project-milestone-dashboard.module.css": "e421bac1087f0c7c0e627ab2fa54cf532a5ff9f5b7e35eb01fe10a3356ce1c96",
+      "src/features/milestones/project-milestone-dashboard.tsx": "731b717486746dc76102c538fefd20aab9abfc0ec44ddfc12566066cc77b3308",
+      "src/features/milestones/project-milestone-stage-table.tsx": "9dfeb7d9df79fe5561bfaece64b072b11ecbe94b35e4a502ec4accb4aaf8bd33",
+      "src/features/milestones/use-milestone-timeline-preference.ts": "222ebb5d91074b3bfee1d8783e9c45bc93cbf57603d6fa9d2e0db4bde88936ca",
+      "src/features/projects/project-copy-membership-confirm.tsx": "cdbe786a5d94ab10ebb88bcfd72e2a446e92d1f27b285810f0040dd729b9fbf8",
+      "src/features/projects/project-readonly-view.tsx": "e79c7b0808af1124c4936b9a739c793634a0ee5a88a77003b2fdfa5d7e2528f7",
+      "tests/config/playwright.config.ts": "79be0d6d6daad5babfebd5b707ee138d8968c35f0b9bee9f8461f830099655ef",
+      "tests/config/vitest.config.ts": "74bbfc8cdc54a00ccee2e31ef9bb1496f8b1b67f2ce7bad58db5b3083ac5c4ca",
+      "tests/e2e/canonical-projection.spec.ts": "19fb8a56475361cd2db02c3bd4bd4b9addd280f42062ed15dbf5ba1ea346ab0a",
+      "tests/e2e/helpers/milestone-ui.ts": "9297851343c56989c3e2d2ec94554e0f460ff6e4bd5ba616ea231640c1fe527a",
+      "tests/e2e/milestone-dashboard-state.spec.ts": "535c0ac94ba45ceba12e6e32cbcf5087a4f499cf8a270e86f563e2aba2b6745d",
+      "tests/e2e/milestone-exchange-state.spec.ts": "1e6b2102f3b370b83c0f1e31440512210f11c06708c0810680c892ffbd17bc6a",
+      "tests/e2e/milestone-stage-dashboard.spec.ts": "1065e71ec5865248d20f43435d0c2618786793832ba9262b4822bbe7f3872215",
+      "tests/e2e/milestone-stage-editor.spec.ts": "7122a1d0b6943f4cca45f01ad157d9c5af81a7fd55af8012938d3456c0ab14ea",
+      "tests/e2e/milestone-stage-exchange.spec.ts": "72da5bf6d75a0ef766a0f1b14f7639436204b9ab15aa75b9093b92f71f5ccef9",
+      "tests/e2e/milestone-stage-grid-mock.spec.ts": "5433e2e4cbfba8ea0968346cd868f2761a7ce661bd549e1f4f0aaf4261c79bbd",
+      "tests/e2e/milestone-stage-grid.spec.ts": "dfe5c94feb9ca4e7e24b0c5ea06a0ae9e8942fcfbb8c00dd63b04aa06e19d154",
+      "tests/e2e/milestone-timeline-core.spec.ts": "9ae56195929cc610995150aa969b1057df28355d20a80541282ed5b455f3ccef",
+      "tests/e2e/milestone-visibility-persistence.spec.ts": "879ed5b89e1321b5e4d43ff6bc5b8caf7103d2137311e00696b38da10a174bed",
+      "tests/e2e/milestone-visibility.spec.ts": "5aa3a44466205bd692c283450915c2d00f691e1c08e377cea2cbfa947ac28119",
+      "tests/e2e/milestone-wbs-mode.spec.ts": "11949dddf64b2ffaaadf3c290d841eb7b53cece99a6286090b7547f9975a7220",
+      "tests/e2e/project-context-toolbar-responsive.spec.ts": "f51857961b161ce7f1751803c2b611d696b85e3c2a311dc0dac58c84b0b13dcf",
+      "tests/e2e/project-filter-toolbar-consistency.spec.ts": "8a94909a78210a0b8331da49ab597c02db9dbde27df67ee7976449a4f66a70b6",
+      "tests/e2e/project-gantt-fullscreen.spec.ts": "7d6bb42ee6f5ed6846af333b9b340f352084911ce2a44506bf451d1b0291bbe9",
+      "tests/e2e/project-gantt-inline-name.spec.ts": "ee8054fea8dcd16531b0b4fe7d5d4951fd8b7cd8adb0fe29688391165739a31d",
+      "tests/e2e/project-gantt-inline-start-date.spec.ts": "72fd27254df3b8e854dec773f266cb3ded61f00624b0ce86c6eb64f6d5373894",
+      "tests/e2e/project-gantt-stability.spec.ts": "967f9d7d6e2814d8ad6ded5c0840f19b4838c0559354e3934c46d02fcad8fc91",
+      "tests/e2e/project-notifications.spec.ts": "aec79d54407f379aa829977648f1d52f2f7d295e086bed8eb7bce1067f49d5ab",
+      "tests/e2e/project-resource-calendar-persistence.spec.ts": "9fd139030fc36af4fc5c91bb4996c53e60784453704660f74cae835732d022d9",
+      "tests/e2e/project-search-filter.spec.ts": "f4c0c73d5be3542157a6a28e688023b87f2b32cd95578f57ee981b75cce18e1b",
+      "tests/e2e/project-summary-bar-visual.spec.ts": "21d371a94246882819014a35b97cca09e77f47eb2392ce3324b0706424aef140",
+      "tests/e2e/project-task-context-menu.spec.ts": "a1105ce366018a679b408b5b2fc214f249a651bc7525975fc31c5b211237981e",
+      "tests/e2e/project-task-editor.spec.ts": "39f76ab60a2c060d36c0f2b78f84dbb94db96dc5505e01d17ce68a54006680df",
+      "tests/e2e/project-task-hover-tooltip.spec.ts": "6693a224bf7681ee28ea8a8249cbd3acbf933b0c88a66a9d25028a49b0238f59",
+      "tests/e2e/project-task-quick-view.spec.ts": "c5976c9565aae0d8b513600dc279c3ee5a6d9da41322797afc4248d4cb63c15c",
+      "tests/e2e/relation-dialog-ux.spec.ts": "af4ac243caaea83292d6009adcff8615cb17e460250ad35c2b2584915561fb1c",
+      "tests/e2e/resource-drill-ui.spec.ts": "19c74fda2c50f98715a8c6930276b36aa5eb702e620400f831dd49030e313e37",
+      "tests/e2e/resource-excel-export-ui.spec.ts": "6c97d2ebf7e6728df1d53cb066635e6f6c4bd1f3db707db08ed8d2a46c3f1467",
+      "tests/e2e/resource-kpi-integration-ui.spec.ts": "e67b8622949d99cf0427d02e35675021c28304a099042487bf1f8a3b04dca884",
+      "tests/e2e/task-context-menu-hierarchy.spec.ts": "b5e45c85a75565d5fedfcb870d9bc2ae399a6627a9d0680fbb24b18cedb78ca9",
+      "tests/e2e/task-context-menu-scroll.spec.ts": "85bf03716abaf7f5745cc178d98c056f7404221c97e4b7d254117455fe55d7f6",
+      "tests/e2e/task-editor-form-density.spec.ts": "74fd7b62fddd8290ac91b05023c99563d3aafc0062f37814b94e546a59759739",
+      "tests/e2e/viewport-coordinator.spec.ts": "b665bb14ae2afe5a4e42bb281a027b593adf5b71eb8250791046b47ccf5680f9",
+      "tests/features/gantt/milestone-membership-wbs.test.ts": "d95b3e71663d42e0f0e38b87682f9ba068043007e83b332acd8e0434292b555d",
+      "tests/features/gantt/milestone-visibility.test.ts": "938d2d7e1fee4f540274bd8e7e7bb84674f88856774ebe4533a815c526e1e801"
+    },
+    "base": "bdaed6bd86612fd168b8ca6b0a40a34966b699d2",
+    "headBeforeManagerCommit": "d9334c30c6c262d9089ac8ad99008587435092ed"
+  },
+  "runs": {
+    "/tmp/552-native-add-fixed.log": {
+      "kind": "mocked API Chromium",
+      "tests": 11,
+      "elapsed": "50.6s",
+      "status": "PASS",
+      "sha256": "8eb80e31fa011a67eb0b90ce544c4eaa2578e26780dcec3de2583161320439b3"
+    },
+    "/tmp/552-final29.log": {
+      "kind": "mocked API Chromium",
+      "tests": 29,
+      "elapsed": "1.8m",
+      "status": "PASS",
+      "sha256": "d4eccb89789f8ba680b5f2abf3863fe2b81bac92e6181469b4226a8a8d2136cf"
+    },
+    "/tmp/552-final19-http-cross.log": {
+      "kind": "5 actual HTTP/native SQLite + 14 mocked API Chromium",
+      "tests": 19,
+      "elapsed": "3.3m",
+      "status": "PASS",
+      "sha256": "77eb647eab39f4188fae3e90ee9d82c098cea1f457f28f86414bc033d2d71641"
+    },
+    "/tmp/552-final-legacy.log": {
+      "kind": "separate Next dev server; NEXT_PUBLIC_GANTT_WBS_MODE=legacy",
+      "tests": 1,
+      "elapsed": "7.0s",
+      "status": "PASS",
+      "sha256": "0036a9beb95e238f8761d79fadc9d8b70bfc5029ab382215f7957f940022cac8"
+    }
+  },
+  "final_browser_unique_cases": 59,
+  "final_browser_executions": 60,
+  "whole_ci_regression": "NOT TESTED",
+  "unit": {
+    "tests": 246,
+    "files": 9,
+    "elapsed": "642ms",
+    "log": "/tmp/552-unit-final-closed.log",
+    "status": "PASS"
+  },
+  "typecheck": {
+    "status": "PASS after generated config restoration",
+    "log": "/tmp/552-typecheck-restored.log"
+  },
+  "lint": {
+    "status": "PASS",
+    "errors": 0,
+    "existing_warnings": 3,
+    "log": "/tmp/552-lint-final.log"
+  },
+  "version": {
+    "status": "PASS",
+    "version": "0.115.0",
+    "log": "/tmp/552-version-final.log"
+  },
+  "configuration_restored": [
+    "next-env.d.ts",
+    "tsconfig.json"
+  ],
+  "screen_captures": [
+    "/tmp/issue552-marker-off-390.png",
+    "/tmp/issue552-marker-off-1440.png"
+  ],
+  "failures_before_final_source": {
+    "/tmp/552-focused.log": {
+      "summary": [
+        "2 failed",
+        "1 interrupted",
+        "5 did not run",
+        "6 passed (1.2m)"
+      ],
+      "sha256": "812bf136e8803c72db2e8ce592026c376d5f075fafe7ca1830f6bb87bf95c446"
+    },
+    "/tmp/552-focused2.log": {
+      "summary": [
+        "2 failed",
+        "1 interrupted",
+        "5 did not run",
+        "6 passed (1.1m)"
+      ],
+      "sha256": "23f91630d4a5ce62eb7fa3b80ff0b392cd2562310fc4c65a81ac2dcc983b01f0"
+    },
+    "/tmp/552-focused3.log": {
+      "summary": [
+        "2 failed",
+        "1 interrupted",
+        "4 did not run",
+        "7 passed (1.7m)"
+      ],
+      "sha256": "c6968921d305d527eee4cd62e94b3bb8b87e73d5125d1bbca0dcfdc714899a33"
+    },
+    "/tmp/552-final-browser.log": {
+      "summary": [
+        "1 failed",
+        "1 interrupted",
+        "6 did not run",
+        "10 passed (1.1m)"
+      ],
+      "sha256": "cf1e3ebe7ea1052539cdd896526f29198c8b55807a11acd143ca9f9fd92dbde6"
+    },
+    "/tmp/552-freeze-browser.log": {
+      "summary": [
+        "1 failed",
+        "18 passed (1.1m)"
+      ],
+      "sha256": "6159ab57263a5f3fbff9008123c4e26615495b9666cc2e866f85a4d71f468a19"
+    },
+    "/tmp/552-final20.log": {
+      "summary": [
+        "1 failed",
+        "19 passed (1.3m)"
+      ],
+      "sha256": "5a10ca56b778e814809ffe551bf5e3969a2cbd55c24c9aa42f2429a55aeae2df"
+    },
+    "/tmp/552-http5.log": {
+      "summary": [
+        "1 failed",
+        "4 passed (2.3m)"
+      ],
+      "sha256": "20caa5c2b0884541d5e92c5e2d4f6c21101469ad623606aa0f41dd1d37fddee4"
+    },
+    "/tmp/552-cross-regression.log": {
+      "summary": [
+        "6 failed",
+        "27 passed (3.9m)"
+      ],
+      "sha256": "5b988ce24793c650c2f451501ebf8e2eb24a7f5141a0f593bff9c766a5c32fe5"
+    }
+  },
+  "retained_failure_artifacts": [
+    "/tmp/issue552-http5-convert-failure",
+    "/tmp/issue552-cross33-failures"
+  ],
+  "retained_native_add_success_report": "/tmp/issue552-nativeadd-fixed-report",
+  "boundaries": [
+    "production build/deploy and PR quality/e2e/docker NOT TESTED; actual modes verified on separate Next dev servers",
+    "INVALID_DATE fallback is WBS-label-only; it is not a full compound-malformed hierarchy validation; server/domain/scheduling/auth guards unchanged",
+    "earlier local failures and interrupted runs are not added to final PASS totals",
+    "unused historical preference helpers are disconnected from production; no marker preference/dateRequest/toggle production wiring"
+  ],
+  "schemaVersion": 1,
+  "issue": 552,
+  "pr": 561,
+  "recordedAt": "2026-10-16T12:57:34.896094+00:00",
+  "risk_level": "HIGH",
+  "qa_method": "OWNER_MANAGED",
+  "qa_required": true,
+  "release_required": true,
+  "release_authorized": false,
+  "independentPreReview": {
+    "reviewer": "/root/qa_review_552",
+    "scope": "별도 읽기 전용 source/test/docs/실행 로그 대조; 최종 QA/Owner 승인 대체 아님",
+    "directUnit": {
+      "files": 8,
+      "tests": 217,
+      "status": "PASS",
+      "log": "/tmp/issue552-qa-repaired-unit.log",
+      "pureDependencyReuse": "Native Add caller 보완은 UI2파일과 E2E진입점만 변경; 별도Unit의pure dependency불변"
+    },
+    "status": "PASS",
+    "decisionReason": "별도read-onlyReviewer가최종source55/실행4로그SHA와코드·문서·실제59고유/60실행을대조함; 새PR CI시작범위의사전검토"
+  },
+  "uiReview": {
+    "reviewer": "/root/ux_552",
+    "static": "PASS; focus2지적 보완 확인",
+    "screenshots": "390/1440px Next dev 선택 화면; marker-only effects·keyboard·geometry는 실제E2E에 별도 귀속"
+  },
+  "documentationChecks": {
+    "markdownFiles": 230,
+    "markdownLinks": "PASS",
+    "docsGate": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING",
+    "dependencyGraph": "manifest/lock의version3값외main과동일",
+    "generatedConfiguration": "next-env.d.ts/tsconfig.json 최신main과동일",
+    "unrelatedGeneratedArtifacts": "#463추가자동캡처11개는/tmp로보존하고tracked main원본으로복원; 원래비추적자료유지",
+    "semanticReview": "PASS",
+    "managerDocumentationSync": "PASS"
+  },
+  "scopeBoundary": "이번요청의종료점은동일PR의FullCI등록; CI결과모니터링·병합·Main/GHCR/tag/release·Issue종료미수행",
+  "qa_final": "NOT TESTED",
+  "manager_decision": "NOT TESTED",
+  "MERGE_READY": "BLOCKED"
+}
