@@ -1,3 +1,7 @@
+## Issue #624 — 물류 통합 조회 V1 PR 준비 (2026-10-17)
+
+선행 #623 CLOSED 이후 Resource Target snapshot/정확 edit·drill을 재사용해 공정/WorkArea·설비 종류/인스턴스·시스템 종류/인스턴스·Target→Resource 네 관점을 연결한다. [Work Packet](ISSUE_624.md)에서 canonical Task/Assignment 고유 합계, 공유 AMR/MCS·Milestone 전체 Stage Gate, readonly/stale/복귀, 신규 Chromium5폭·Unit 및 DOCUMENTATION_SYNC/AC를 관리한다. app0.115.0(MINOR), HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 신규 DB/API/PRO/viewport writer 없음, DESIGN Delta B(`DESIGN.md: N/A`). 로컬/새 HEAD Full PR CI·Trusted QA/Owner 승인 전 원격 상태 NOT TESTED; 요청 종료점은 리뷰·충돌 후 **PR CI 시작**이며 결과 모니터링·병합/Main/GHCR/Issue 종료는 별도다.
+
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
 2026-10-16 CI #2840 후속: 최신원격728c의외부3커밋과ci2837/ci2838원장을보존해동기화했다. 실제실패는Core exact/native±1기존계약과신규native119거부Unit의불일치이며제품정책은유지한다. 경계5개와FILTER_RETURN재준비취소/1회상한5개를검증하고Unit173·viewport8·별도Copywheel1의출처를분리한다. 환경중단과실제FAIL·미실행을원장에보존한뒤리뷰/충돌·main재확인후새FullPRCI시작까지수행한다.
