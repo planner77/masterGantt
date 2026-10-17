@@ -1,0 +1,261 @@
+{
+  "capturedAt": "2026-09-28T11:36:01.026Z",
+  "baselineSha": "e12a52a9ca5c1f06281e1cc07ffb5db540b25e66",
+  "browser": "153.0.8010.12",
+  "timezone": "Asia/Seoul",
+  "fixture": "SVAR React Gantt Core 2.7.3; 절대 시작일 2026-09-14·종료일 2026-10-12; gridWidth 620; 프로젝트 day/week unit+step 설정 재현 (시계 mock 미사용)",
+  "tolerancePx": 1,
+  "foundationalVerdict": "FAIL",
+  "featurePoc": "FAIL",
+  "remainingMatrix": "NOT TESTED: 기본 좌표 후보의 정렬 검증 실패; 스크롤·Grid 크기 변경·접힘/필터·전체 화면·반응형 너비·월/연 장기 범위·상호작용/권한 검증 미실행",
+  "measurements": [
+    {
+      "unit": "day",
+      "autoScale": true,
+      "publicState": {
+        "start": "2026-09-13T15:00:00.000Z",
+        "end": "2026-10-11T15:00:00.000Z",
+        "autoScale": true,
+        "scales": [
+          {
+            "unit": "month",
+            "step": 1
+          },
+          {
+            "unit": "day",
+            "step": 1
+          }
+        ],
+        "gridWidth": 620,
+        "cellWidth": 100,
+        "cellHeight": 38,
+        "scaleHeight": 36,
+        "scrollLeft": 0,
+        "scrollTop": 0,
+        "area": {
+          "start": 0,
+          "end": 15,
+          "from": 0
+        },
+        "resize": {
+          "width": 816,
+          "height": 408,
+          "scrollSize": 0
+        },
+        "initCount": 1
+      },
+      "ownedHost": {
+        "left": 0,
+        "top": 21,
+        "width": 1440,
+        "height": 480
+      },
+      "nativeOracle": {
+        "left": 725,
+        "top": 135,
+        "width": 400,
+        "height": 31,
+        "rowCenter": 150.5
+      },
+      "candidate": {
+        "configuredGridLeft": 620,
+        "resizeEventLeft": 624,
+        "width": 400,
+        "rowCenter": 150
+      },
+      "errorsPx": {
+        "configuredGridLeft": 105,
+        "resizeEventLeft": 101,
+        "width": 0,
+        "rowCenter": 0.5
+      },
+      "withinOnePixel": false
+    },
+    {
+      "unit": "week",
+      "autoScale": true,
+      "publicState": {
+        "start": "2026-09-13T15:00:00.000Z",
+        "end": "2026-10-11T15:00:00.000Z",
+        "autoScale": true,
+        "scales": [
+          {
+            "unit": "month",
+            "step": 1
+          },
+          {
+            "unit": "week",
+            "step": 1
+          }
+        ],
+        "gridWidth": 620,
+        "cellWidth": 136,
+        "cellHeight": 38,
+        "scaleHeight": 36,
+        "scrollLeft": 0,
+        "scrollTop": 0,
+        "area": {
+          "start": 0,
+          "end": 15,
+          "from": 0
+        },
+        "resize": {
+          "width": 816,
+          "height": 408,
+          "scrollSize": 0
+        },
+        "initCount": 1
+      },
+      "ownedHost": {
+        "left": 0,
+        "top": 21,
+        "width": 1440,
+        "height": 480
+      },
+      "nativeOracle": {
+        "left": 780,
+        "top": 135,
+        "width": 78,
+        "height": 31,
+        "rowCenter": 150.5
+      },
+      "candidate": {
+        "configuredGridLeft": 620,
+        "resizeEventLeft": 624,
+        "width": 77.71428571428571,
+        "rowCenter": 150
+      },
+      "errorsPx": {
+        "configuredGridLeft": 160,
+        "resizeEventLeft": 156,
+        "width": 0.2857142857142918,
+        "rowCenter": 0.5
+      },
+      "withinOnePixel": false
+    },
+    {
+      "unit": "week",
+      "autoScale": false,
+      "publicState": {
+        "start": "2026-09-13T15:00:00.000Z",
+        "end": "2026-10-11T15:00:00.000Z",
+        "autoScale": false,
+        "scales": [
+          {
+            "unit": "month",
+            "step": 1
+          },
+          {
+            "unit": "week",
+            "step": 1
+          }
+        ],
+        "gridWidth": 620,
+        "cellWidth": 164,
+        "cellHeight": 38,
+        "scaleHeight": 36,
+        "scrollLeft": 0,
+        "scrollTop": 0,
+        "area": {
+          "start": 0,
+          "end": 15,
+          "from": 0
+        },
+        "resize": {
+          "width": 816,
+          "height": 408,
+          "scrollSize": 0
+        },
+        "initCount": 1
+      },
+      "ownedHost": {
+        "left": 0,
+        "top": 21,
+        "width": 1440,
+        "height": 480
+      },
+      "nativeOracle": {
+        "left": 648,
+        "top": 135,
+        "width": 94,
+        "height": 31,
+        "rowCenter": 150.5
+      },
+      "candidate": {
+        "configuredGridLeft": 620,
+        "resizeEventLeft": 624,
+        "width": 93.71428571428571,
+        "rowCenter": 150
+      },
+      "errorsPx": {
+        "configuredGridLeft": 28,
+        "resizeEventLeft": 24,
+        "width": 0.2857142857142918,
+        "rowCenter": 0.5
+      },
+      "withinOnePixel": false
+    },
+    {
+      "unit": "day",
+      "autoScale": false,
+      "publicState": {
+        "start": "2026-09-13T15:00:00.000Z",
+        "end": "2026-10-11T15:00:00.000Z",
+        "autoScale": false,
+        "scales": [
+          {
+            "unit": "month",
+            "step": 1
+          },
+          {
+            "unit": "day",
+            "step": 1
+          }
+        ],
+        "gridWidth": 620,
+        "cellWidth": 164,
+        "cellHeight": 38,
+        "scaleHeight": 36,
+        "scrollLeft": 0,
+        "scrollTop": 0,
+        "area": {
+          "start": 0,
+          "end": 15,
+          "from": 0
+        },
+        "resize": {
+          "width": 816,
+          "height": 408,
+          "scrollSize": 0
+        },
+        "initCount": 1
+      },
+      "ownedHost": {
+        "left": 0,
+        "top": 21,
+        "width": 1440,
+        "height": 480
+      },
+      "nativeOracle": {
+        "left": 625,
+        "top": 135,
+        "width": 656,
+        "height": 31,
+        "rowCenter": 150.5
+      },
+      "candidate": {
+        "configuredGridLeft": 620,
+        "resizeEventLeft": 624,
+        "width": 656,
+        "rowCenter": 150
+      },
+      "errorsPx": {
+        "configuredGridLeft": 5,
+        "resizeEventLeft": 1,
+        "width": 0,
+        "rowCenter": 0.5
+      },
+      "withinOnePixel": true
+    }
+  ]
+}
