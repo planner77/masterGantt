@@ -4016,3 +4016,11 @@ Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 
 - 원본 #2838.1 E2E shard4 `viewport-coordinator.spec.ts` #571은 초기 bookmark X120·Milestone empty X0은 성공하고 '전체' 복귀 X120은 NO_SCROLL_CAPACITY/X0으로 실패했다. 필터 중 작은 실측 width(952/client905)와 이전 성공 axis receipt의 width(1972)는 별개다.
 - **제품 계약:** FILTER_RETURN의 원래 bookmark intent는 한 번만 적용하며, 현재 Core/native 양쪽 수용 용량과 최신 projection receipt·3-frame geometry가 반드시 맞아야 한다. filter-tasks/layout이 첫 준비 이후 축을 축소하면 같은 current lease·SOURCE에서 허용되는 단 1회의 보완 준비를 수행하고, 그 이후 다시 receipt+geometry를 확인한다. 아직 부족·새 사용자 wheel·scope/query/API 변경·불확정 Core 상태면 fail-closed하며 stale bookmark를 재적용하지 않는다. 기존 PEER_RETURN과 SC-07/08/09, U4 source taint/MaxExtensions 계약은 유지.
 - 회귀 선택: 기존 #571 bookmark120→0→120 및 휠취소/Scope/Columns unit과 Chrome, #456/#570 metadata, #549 Week, Resource peer/Copy 관련 실제 소비자; Core/native(각각 충분·한쪽 부족), latest attempt/receipt, 축 축소 뒤 새 확장 실패·취소 음성. timeout/skip/retry·required 6-shard 및 공식 Quality/E2E/Docker 정책 변경 없음.
+
+## Issue #679 — 변경 묶음 게시 준비·관측 비교 검증
+
+대상은 [PR 변경 묶음 게시](PR_BATCH_PUBLICATION.md)의 읽기 전용 CLI 및 새 경로의 기존 Pre-PR 영향 매핑이다. `tests/scripts/pr-batch-verifier.test.ts`는 실제 임시 Git에서 복수 code/test/docs 추가·수정·삭제, committed clean Head, staged/unstaged/untracked, main/remote ancestry, API 부모·tree·Head 비교, expected mismatch·UNKNOWN·응답 유실/제3 Head, manifest 변조와 read-only 범위를 검증한다. 지원하지 않는 symlink/submodule·특수 경로/모드는 BLOCKED다. `tests/scripts/prepr-verifier.test.ts`의 좁은 신규 매핑 회귀와 기존 정책 테스트를 함께 실행한다.
+
+실제 로컬 테스트는 Node 22에서 수행하고 `verify:prepr --mode=fast` 및 영향 선택의 source/환경/exit를 Work Packet에 기록한다. 자동 선택 dry-run은 실행 결과가 아니며 필요 직접 테스트는 별도 실행한다. 기존 Pre-PR fingerprint 알고리즘과 CI 정책은 재설계하지 않는다. 변경된 제품 UI/HTTP/SQLite 계약은 없으므로 배치 도구 로컬 검증에 전체 Chromium/Docker를 반복 추가하지 않는다. 원격 Full Required 세 검사는 기존 CI가 수행한다.
+
+AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.
