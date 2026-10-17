@@ -1,5 +1,5 @@
 name: Preview 시험용 GHCR 이미지 게시
-run-name: Preview · Issue #${{ inputs.issue_number }} · ${{ inputs.source_sha }} · Run #${{ github.run_number }}.${{ github.run_attempt }}
+run-name: 'Preview · Issue #${{ inputs.issue_number }} · ${{ inputs.source_sha }} · Run #${{ github.run_number }}.${{ github.run_attempt }}'
 
 # Preview는 PR/Main CI, Release, Finalizer, SemVer 및 ci-<SHA>와 독립이다.
 on:
