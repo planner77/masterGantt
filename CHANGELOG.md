@@ -1,5 +1,7 @@
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
+- PR CI #2886에서 #2878의 Resource→Schedule 복귀와 동일하게 U3 이전 성공 receipt Task6와 실제 DOM Task6+Milestone2가 어긋나 최신 rows·Peer return이 TIMED_OUT하는 상태를 실제 Trace로 확인했다. 숨김→표시 시 Marker OFF 필터가 재적용되지 않는 제품 `project-gantt.tsx` Effect의 visibility dependency 누락을 보완하고, mock/실제 HTTP·SQLite Resource 복귀에서 native Milestone0·canonical 보존/strict Core·DOM을 다시 검증한다. 기존 상태 영수증/실제 관측을 혼동하지 않도록 공통 readiness 진단에 Core visible IDs만 추가했다. [Issue별 누적 실패 §8](docs/ISSUE_552_FAILURE_ANALYSIS.md) 및 JSON 보존(32Run metadata, 선택 최근10Run/11파일, 과거 이력 INCOMPLETE), local 실행 NOT TESTED. 제품/서버 API/DB/CI Gate/버전/timeout/retry/skip/릴리스 승인 불변.
+
 - #2885 PR CI의 #464 실제 HTTP·SQLite E2E는 초기 일반 Task native 행 DOM 부재를 Milestone 유형으로 오분류해 Dashboard UUID 검색0건으로 FAIL했다. 실제 Playwright trace가 후속 정상 Task 행과 Milestone 목록을 증명한다. Spec-local Editor 테스트 라우팅을 canonical `task.type` 기준으로 변경, 일반 Task는 native row를 기다리고 Milestone은 기존 Dashboard 경로를 유지한다. [단일 누적 실패 문서](docs/ISSUE_552_FAILURE_ANALYSIS.md)·JSON에 31Run 메타데이터/최근9Run/11선정파일/이전 이력 INCOMPLETE를 기록. 제품·API·CI Gate·timeout/retry/skip·릴리스 후보 버전 유지, 새 source 로컬/원격 테스트 실행 전 NOT TESTED.
 
 - CI #2878의 #530 Resource KPI·Excel 이후 Gantt 복귀 시 최신 semantic/viewport 정착 전 wheel을 입력한 위험을 분석했다. 공통 read-only 준비 검사를 입력 전에 추가하고 실패하면 실제 Core/native/영수증을 보존한다. 90RAF/8연속 strict equality·원장·Instance/Selection·timeout/retry/skip/CI·릴리스 정책은 유지. [연속 실패 분석 문서](docs/ISSUE_552_FAILURE_ANALYSIS.md)와 8Run/10파일 누적 원장 갱신, 새 코드 실행은 NOT TESTED.

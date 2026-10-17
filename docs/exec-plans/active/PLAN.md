@@ -1,3 +1,11 @@
+## Issue #552 — CI #2886 누적 #2878 Resource 재진입 드리프트 제품·테스트 일괄 보완 (2026-10-17)
+
+[단일 실패 원장 §8](../../ISSUE_552_FAILURE_ANALYSIS.md) · [누적 CI metadata32Run·최근10Run/12선택실패·11file](../../evidence/issue-552/ci-cumulative-20261017.json) · [Work Packet](ISSUE_552.md). #2886/Run39013855282의 shard5 `resource-kpi-integration-ui.spec.ts:216`은 U3 rows TIMED_OUT, Coordinator TIMED_OUT, DOM membership mismatch이며 다른5 shard는 CANCELLED. #2878과 함께 원본 Playwright Trace를 대조하니 Resource 탭→Schedule 복귀에서 기존 U3 six Task 성공영수증 이후 실제 DOM은 두 Milestone을 더한 eight rows, Peer left120 요청 시 축 capacity31/코어0; 기존 U2 완료 증거만으로 U3 표시 완료를 보장할 수 없음.
+
+제품 WBS `filter-tasks` 기존 Effect의 `viewVisible` 의존성을 보완하고 숨김 상태 write0 및 실제 행 mismatch 때만 필터를 다시 적용한다. Mock Resource 탭 hidden→schedule에 정상 Task3/M0 및 실제 Resource KPI/Excel 복귀에 Task6/M0·90RAF/8strict Core/native를 검사하며 readiness Helper는 live Core IDs 진단만 보강한다. 기존 5폭/Revision/DB/Resource·Gantt identity·marker OFF, CI/timeout/skip/retries0/버전/roll-back 계약 보존.
+
+원래 이전 실패들/취소 Job 실제 FAIL2건을 별도 원장에서 보존하며 32Run 중 과거 test-level 전체 FAIL 파일 수집은 INCOMPLETE. Source Freeze→`verify:prepr diagnose` 현재 선택11파일(조기중단0)→같은 후보 `ci-like` 전체·sourceStable fingerprint→리뷰 thread0/최신 main 충돌0→새 PR CI 시작까지만. 현재 Local Node/Chromium runtime이 없어 해당 실행은 NOT TESTED, CI 시작≠PASS·QA/Owner 승인 아님. Merge/Main CI/GHCR·이슈 종료는 Owner 추가 승인 전 수행 금지.
+
 ## Issue #552 — #2885 신규 native DOM 초기화 판정 오류, 누적 이력 유지 (2026-10-17)
 
 [#552 단일 재발 분석 문서](../../ISSUE_552_FAILURE_ANALYSIS.md) §7 / [31Run 목록 + 최근9Run 실제11파일](../../evidence/issue-552/ci-cumulative-20261017.json) / [Work Packet](ISSUE_552.md). 원본 #2885 Head `84009ba5ab3e`, Base `78ec8d2ced62`, merge `cf9ac1615930`의 E2E shard5 `milestone-stage-exchange.spec.ts:147`는 일반 Task `CHILD`를 native row 순간 부재만으로 Milestone 검색해 0건으로 실패했다. Playwright Trace로 후속 native row 존재/서버 Dashboard200·검색0개(정상 Milestone6개) 확인. 테스트 직접/음성 경계를 canonical `task.type` 진입으로 분리하되 Task 행 미렌더링은 FAIL, 모든 기존 데이터/권한/복귀·CI Gate 유지.

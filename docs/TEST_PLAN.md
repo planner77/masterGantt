@@ -1,3 +1,10 @@
+## Issue #552 — #2886 Resource→Schedule 숨김 복귀와 canonical WBS 필터 재적용 (2026-10-17)
+
+- [원본 PR CI #2886.1](https://github.com/planner77/masterGantt/actions/runs/39013855282) HEAD `51b4f919f16ac9765d20b9256e6521f91150c066`, E2E shard5 64PASS/1FAIL/17NOTRUN, 다른5 shards CANCELLED/기록된 실제 추가 FAIL0, Quality/Build/Docker PASS. `resource-kpi-integration-ui.spec.ts:216` 최신 U3 `rows TIMED_OUT`, Coordinator `TIMED_OUT`, DOM membership mismatch를 보고. Readiness 검사에서 FAIL인 것은 제품 불일치를 숨기지 않고 발견한 보호 동작이다.
+- 원본 #2886 Playwright artifact 12093952484와 #2878 artifact 12092311845의 동일 복귀 흐름에서 `canonical8 / U3 이전 SETTLED logicalVisible6 / 실제 DOM8(Milestone2 포함)`, 원래 Core/native120 복귀 요청·가시성 전환/axis1872→936/capacity31을 대조했다. 이전 #2863/#2866의 Canonical/Visible/DOM 표시 계약과의 연속 영향이므로 개별 한 assertion만 풀지 않는다.
+- 제품 `project-gantt.tsx`: Marker OFF 공개 WBS `filter-tasks` Effect가 실제 `viewVisible` 재진입마다 검사되도록 설정, 숨김 상태 Core write0 및 동일 source/structure/revision 확인 후 실 Core Rows 오염 때만 기존 공개 재적용. 임의 private vendor patch·다중 writer/timeout·retries/skip 추가 금지. `milestone-visibility.spec.ts` mock-API Resource tab hidden→복귀의 **canonical4·visible3·M row/bar0·동일 Gantt·mutation0**와 `resource-kpi-integration-ui.spec.ts` 실제 HTTP/SQLite5폭/Excel/KPI의 **canonical8·visible Task6·90RAF/8연속 strict native/Core·원장 보존**을 동시에 확인하도록 추가한다. `gantt-readiness` Helper의 live Core ID는 진단·관측만 강화한다.
+- 실패·교정 판단과 #2878·#2885 등 이전 사례/반례는 [정규 실패 원장 §8](ISSUE_552_FAILURE_ANALYSIS.md) 및 [32Run metadata/선별 최근10Run·11파일 JSON](evidence/issue-552/ci-cumulative-20261017.json)에 누적. 과거 모두의 테스트 파일 전수 실패 목록은 INCOMPLETE. Node22 실제 독립 worktree `verify:prepr diagnose` 선택11파일(no fail-fast)→**같은 후보** `ci-like` 전체·`sourceStable`을 완료하기 전에는 실제 로컬 PASS 아님; 이 GitHub 연결 실행 환경에서는 모두 **NOT TESTED**.
+
 ## Issue #552 — Full PR CI #2885 native DOM 부재를 Milestone 유형으로 오판 (2026-10-17)
 
 - [원본 #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393), exact HEAD `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, E2E shard5 `milestone-stage-exchange.spec.ts:147`에서 `helpers/milestone-ui.ts:44` Milestone 행 수1 예상/실제0. 22 PASS/1 FAIL/59NOT RUN, 다른5 Shard CANCELLED·개별 새 FAIL 로그0, Quality/Build/Docker PASS·E2E/QA Final FAIL.

@@ -1,5 +1,14 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — #2886.1 누적 재실패: 실제 WBS 표시 필터의 hidden→visible 복귀 누락
+
+- 원본 [Full PR CI #2886.1](https://github.com/planner77/masterGantt/actions/runs/39013855282): Head `51b4f919f16ac9765d20b9256e6521f91150c066`, Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde`, attempt1. Preflight/TS/ESLint/Vitest/Build/Docker PASS. E2E shard5 job `117342193179` 64 PASS/1 FAIL/17 NOT RUN; Shard1/2/3/4/6 CANCELLED(각 68/102/79/55/73 부분 PASS, 실제 ✘ 없음), Required E2E/자동 QA Final FAIL.
+- 실패 `resource-kpi-integration-ui.spec.ts:216`: `LATEST_ATTEMPT_rows_TIMED_OUT`, `CURRENT_OPERATION_FAILED_TIMED_OUT`, `DOM_MEMBERSHIP_OR_ORDER_MISMATCH`. 원본 Playwright Artifact `12093952484`와 이전 #2878 Artifact `12092311845`를 대조해 U3 마지막 성공 receipt는 일반 Task6인데 실제 native DOM8(Task6 + 숨은 Milestone2), 축1872→936/physical capacity31, 원래120px Peer return WAIT_PROJECTION→TIMED_OUT을 확인했다. #2878은 같은 좌표·receipt 경쟁 중 wheel USER_GESTURE가 Peer를 SUPERSEDED시켰다. 단순 테스트 timeout 문제로 처리하지 않는다.
+- 제품 소스 분석: `src/features/gantt/project-gantt.tsx`의 WBS `filter-tasks` Effect는 `viewVisible`을 dependency에 넣지 않아 Resource 화면의 schedule hidden→visible 시 필터 정합을 재확인할 진입점이 없었다. 이를 가시성 재진입에 연결하되 hidden 동안 Core 명령을 보내지 않는다. 최신 API/canonical 구조를 확인하고 실제 Core 표시 행이 다른 경우에만 공개 `filter-tasks` 재적용. 원본 Core/DOM 첫 writer의 구체적인 내부 원인은 미확정, 수정 효과 역시 실행 전 NOT TESTED.
+- 직접/교차/음성: `milestone-visibility.spec.ts`의 Resource 탭 실물 hidden→복귀에서 동일 Gantt API·canonical4/visible3/M row·bar0·mutation0, `resource-kpi-integration-ui.spec.ts`의 실제 SQLite·5폭 KPI/Excel 복귀에서 canonical8/visible Task6 및 90RAF/8 exact Core/native를 강제한다. 공통 readiness는 **관측 자료의 live Core visible IDs만** 추가한다. 통합 서버/DB/보안/의존성/버전·CI Gate/timeout/retries0/skip과 U2/U3/Viewport 단일 writer를 완화하지 않는다.
+- [별도 재발 원장 §8](../../ISSUE_552_FAILURE_ANALYSIS.md)과 [실패 JSON](../../evidence/issue-552/ci-cumulative-20261017.json)에 PR 이력32Run, 최근 선택10Run/12개 원본 실패(11개 별개 E2E)를 누적했다. 이전 역사적 다중 shard의 전체 test-level 목록은 INCOMPLETE; 선택11파일은 전체 과거 실패 합집합이 아니다. 기존 Local UNKNOWN 및 sourceStable=false를 성공으로 바꾸지 않는다.
+- 최종 후보의 Node22/Playwright 로컬 체크아웃·설치 런타임 부재로 실제 `verify:prepr diagnose`·`ci-like`, TypeScript/Vitest/Chromium, sourceStable 및 cross-regression 모두 **NOT TESTED**. Read-only 원본 Trace 분석과 정적 코드 수정은 PASS 증거가 아니다. QA/Owner/신규 Full PR CI는 시작 시점 NOT TESTED. 리뷰/충돌·main 재확인 후 새 CI 시작까지만 진행하며 병합/Main/GHCR/Issue 종료는 사용자 추가 승인 전 금지.
+
 ## 2026-10-17 — #2885.1 신규 실패의 trace 증명과 Canonical Task 유형별 Editor 진입 보완
 
 - 원본 [Full PR CI #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393): HEAD `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `cf9ac161593088bc6351464074df4811f1685b25`, attempt1. Preflight/Quality/Build/Docker PASS, E2E shard5 22 PASS/1 FAIL/59미실행, 다른5 Shard CANCELLED, E2E/QA Final FAIL.

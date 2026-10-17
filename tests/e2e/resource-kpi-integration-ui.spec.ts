@@ -226,6 +226,15 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
     allowCancelledPriorWork: true,
   });
   expect(resumeReady.api).toBe(before.apiInstance);
+  // #2886: even after a Resource panel physically hid/resized the Gantt,
+  // Milestones remain canonical but must not reappear in native WBS Core/DOM.
+  const expectedWbsIds = canonical.data.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const displayed = await frame.evaluate(node => ({
+    core: Reflect.get(node, "__masterganttMilestoneTimeline").read().rows.map((task: { id: string }) => String(task.id)),
+    dom: [...node.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]")].map(row => row.dataset.id!.replace(/^:/, "")),
+  }));
+  expect(displayed.core).toEqual(expectedWbsIds);
+  expect(displayed.dom).toEqual(expectedWbsIds);
   // This is a new user wheel intent after U2/U3 and the native geometry
   // settle; never treat an in-flight restore as proof of the next action.
   await chart.hover(); await page.mouse.wheel(120, 0);

@@ -153,3 +153,62 @@ npm run verify:prepr -- --mode=ci-like \
 ```
 
 `UNKNOWN` 영향 경로 또는 `sourceStable=false`(Next 생성 타입·스크린샷 변경)가 다시 나오면 최상위 상태 **BLOCKED**를 유지한다. GitHub HEAD/Base/Test-merge, review unresolved0/mergeable, PR CI Run/Attempt가 등록됐다는 사실과 공식 Quality/E2E/Docker/QA PASS는 구분한다. **병합/Main CI/GHCR/태그/Issue 종료는 별도 Owner 승인 전 수행하지 않는다.**
+
+## 8. CI #2886.1 — #2878과 동일한 숨김→복귀 경계의 제품 WBS 필터 재적용 누락 (2026-10-17)
+
+**원본 불변 출처:** [Full PR CI #2886.1 / Run 39013855282](https://github.com/planner77/masterGantt/actions/runs/39013855282) · event `pull_request` · attempt1 · HEAD `51b4f919f16ac9765d20b9256e6521f91150c066` · main Base `78ec8d2ced62f543f73a8477c3e62fca8274274b` · test-merge `959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde` (부모 Base→HEAD). Preflight/TS/ESLint/Vitest/Build/Docker **PASS**; E2E Required **FAIL**, 자동 QA Final 파생 **FAIL**.
+
+### 8.1 Job/Shard 실패와 보존 증거
+
+| 항목 | 원본 관측 |
+| --- | --- |
+| 직접 실패 Job | shard5 `117342193179` · `tests/e2e/resource-kpi-integration-ui.spec.ts:15 → waitForGanttReadiness:216` |
+| 실제 실행 | 64 PASS / 1 FAIL / 17 NOT RUN. 테스트 본문에서는 SQLite/KPI/Excel 원본 검사를 통과한 뒤 일정 탭 복귀 readiness에서 실패 |
+| readiness blockers | `LATEST_ATTEMPT_rows_TIMED_OUT`, `CURRENT_OPERATION_FAILED_TIMED_OUT`, `DOM_MEMBERSHIP_OR_ORDER_MISMATCH` |
+| 취소 Shard | 1/2/3/4/6 모두 `CANCELLED`. 각각 로그 68/102/79/55/73개 PASS · 관측된 개별 `✘` 0개. 남은 범위는 **NOT TESTED** |
+| 원본 Artifact | [playwright-report-shard-5 #12093952484](https://github.com/planner77/masterGantt/actions/runs/39013855282/artifacts/12093952484), ZIP SHA256 `73e4716a35a2123acc9d228026ab78c006a41a8dc7130d49bb21feac28ba610e`, 내부 trace ZIP SHA256 `c19f4fb52187384e5161e4bfc7aba19045f4e3b4afffb0d0a114e23fbd00fb8d` |
+| 서버/리소스 | 테스트 소유 isolated Next 프로세스 alive, health GET200/18ms, 계측 OOM/OOMKill 0. 이 범위에서 세션 죽음·DB/네트워크가 원인이라는 증거는 없다 |
+| 후속 기준 | 최신 HEAD의 전체 CI/QA/Owner 수용은 별도 Run에서 판정; 이 Run의 원본 실패는 교정 전 결과로 보존 |
+
+### 8.2 실제 Trace에서 이전 #2878과 교차 검증한 공통 원인
+
+[이전 #2878.1 / 39008751687](https://github.com/planner77/masterGantt/actions/runs/39008751687)의 [Playwright Artifact #12092311845](https://github.com/planner77/masterGantt/actions/runs/39008751687/artifacts/12092311845)도 새로 내려받아 비교했다(outer ZIP SHA256 `a9911cc6b91c15998f8d9d0b3f89d29fcec3702dd18c1cf90fdb18878e7fb40c`; Trace SHA256 `8953e4d1ff6f77e15c4f448b2319a02c9dda9d807c0f481c2cf45c7c1401109c`).
+
+| 단계/증거 | #2878 기존 실패 | #2886 최신 실패 |
+| --- | --- | --- |
+| 선행 일정 view | Gantt instance `svar-api-1`, Peer capture 공개/DOM left120 | 동일 유형의 capture left120 |
+| 원래 최신 성공 U3 receipt | 일반 Task **6개**의 logical/core/DOM SETTLED (semantic ID2) | 일반 Task **6개**의 logical/core/DOM SETTLED (semantic ID2) |
+| 숨김→복귀 이후 | 성공 receipt가 최신 변화의 완료를 뜻하지 않았음, 새로운 U3 rows PENDING | U3 `generation10` `rows TIMED_OUT`, 새 성공 영수증 없이 기존 6개 receipt 잔존 |
+| 실제 marker-OFF DOM | 정상 6개 표시 계약과 불일치하는 UI 상태가 뒤늦게 확인됨 | 최종 `.wx-row` **8개**: 일반 Task6 + canonical Milestone2. 즉 이전 6개 영수증을 최신 DOM 증거로 사용할 수 없음 |
+| 축/viewport | 과거 `RANGE_EXTENSION SETTLED`의 폭1872에서 숨김/복귀 후936으로 축소, `PEER_RETURN`이 U3 대기. 테스트의 wheel이 `USER_GESTURE`로 이를 SUPERSEDED시키고 이후 Range extension은 Core30/native31에서 진행. 이전 #2878 실패가 단순 스크롤 오차가 아니었음을 뒷받침 | 이전 확장 폭1872에서936으로 축소·Core width936/chartWidth906/native capacity31. PEER_RETURN(원래120)을 `WAIT_PROJECTION`으로 유지하다 최종 `TIMED_OUT`; Core/native left는 둘 다0. 다른 RANGE_EXTENSION 시도는 `LOWER_PRIORITY`로 SUPERSEDED |
+| 테스트 실패 표현 | 원래 `Fixed-geometry Gantt did not settle`, 실패 시점의 U3 미검증으로 원인 UNKNOWN이었음 | 이전 보완의 readiness가 U3 실패·구형 display membership·peer 실패를 실제로 **차단** |
+
+`#2886` 마지막 상태: canonical UUID8(그 중 M2), 최근 성공 receipt의 logical/coreVisibleIds6, 실제 DOM8, `canonical generation3/settled3/depth0/recovery SETTLED`, U3 latest `gen10/rows TIMED_OUT`, SVAR scale day, physical capacity31, peer restore `TIMED_OUT`. **U2 depth0 / U3 이전 성공 receipt / 공개 Core와 native left0 일치만으로 최신 native rows가 올바르게 필터링됐다고 선언하면 안 된다.**
+
+**정정/인과 경계:** 이전 §2~3의 "시험 전에 readiness를 기다리면 된다"는 판단은 불충분했다. 새 readiness는 실제 제품 표시 계약 실패를 정확히 잡아냈으며 PASS로 우회할 대상이 아니다. 제품의 첫 DOM writer나 vendor 내부 원인은 remote Trace에서 직접 특정되지 않았다. 다만 `src/features/gantt/project-gantt.tsx`의 WBS `filter-tasks` 효과는 `viewVisible` 변화가 dependency에 없어, Resource panel이 실제로 Gantt를 `hidden`한 후 보여 줄 때 **다시 filter 상태를 검사할 재진입 트리거가 없었다**. 반면 U3/layout observer 및 Peer-return은 viewVisible 변화에 반응했다. 이 소유권/순서 차이가 실제 Milestone2 노출·U3 대기 교착을 설명하는 직접 확인된 코드 결손이다. **제품 수정 효과는 실행 전 아직 NOT TESTED**.
+
+### 8.3 원인별 일괄 교정 / 보호 경계
+
+1. **제품 표시 필터 소유자 보완:** `project-gantt.tsx`의 기존 `filter-tasks` Effect가 `viewVisible=false→true`에도 실행되도록 dependency에 가시성을 추가한다. hidden 상태에서는 Core 명령을 발행하지 않는다. 재진입 시 canonical source·revision·structure·membership이 같은지 확인하고 **실제 현재 Core rows가 논리적 WBS projection과 다를 때에만** 기존 공개 `filter-tasks` 경로를 재적용한다. 동일 API 및 사용자의 selection/tree intent, 기존 canonical queue→U3/Peer 순서를 유지한다. 브라우저 직접 DOM 숨김/CSS 대체, private Core patch, 무제한 재시도·시간 예산 증가는 하지 않는다.
+2. **별도 변경 영향 교차:** 기존 `milestone-visibility.spec.ts`의 marker-OFF 수용 테스트에 물리적으로 일정 panel을 숨기는 **리소스 탭**→일정 복귀 경로를 추가한다. 같은 instance/canonical4/일반 WBS3/실제 DOM3/M row·bar0, U2/U3 readiness, mutation0을 보존한다.
+3. **실제 SQLite 복귀 소비자:** `resource-kpi-integration-ui.spec.ts`의 이전 #2878 대비 추가한 readiness/90RAF·8연속 Core/native strict equality는 그대로 유지하고, 다시 열린 Core/native Grid 행이 **Milestone 제외 Task6 ID 목록과 정확히 같음**을 검사한다. 실제 5폭 Matrix·Excel·KPI/Plan·Task/assignment 기준, 여전히 전체 Strict 복귀와 UserIntent/wheel/권한을 확인한다.
+4. **향후 진단력:** 공통 읽기 전용 `gantt-readiness.ts`에 public diagnostic probe의 **live Core visible ID** 목록을 추가한다(선택 필드로 Type 선언). 기존 readiness 실패 blocker·timeout·동작 결정에는 개입하지 않으며 다른 테스트 판정을 완화하지 않는다.
+5. **보존/롤백:** 제품 `@svar-ui/react-gantt` 버전/서버 DB/API/스케줄/자격·CI Required3·6Shard·QA/릴리스·marker OFF/legacy 기능 분리, `RANGE_EXTENSION`/Peer priority 및 viewport coordinator 단일 writer는 수정하지 않는다. 새 진단에서 여전히 PEER_RETURN 축 용량 실패가 있으면 그 관측에 근거해 **별도의 원인**으로 정리하고 새 후보에서 수정한다.
+
+### 8.4 전체 이력/실행 및 인계 상태
+
+32개 PR-branch CI **Run metadata**, 확인된 최근 10개 Run의 테스트별 실패 **12개**, distinct E2E 파일 **11개**를 [JSON 보조 원장](evidence/issue-552/ci-cumulative-20261017.json)에 보존한다. 과거 22개 Run의 전체 다중 Shard별 실패 파일 합집합은 여전히 **INCOMPLETE**이며 지금의 11개가 전체 역사적 합집합은 아니다. 과거 #2863 Canonical/Visible/DOM 구형 기대, #2866 제거된 Lane, #2885 "DOM row 없음=Milestone 타입" 오판과 이번은 **같은 presentation layer/시간축 관련 소비자**가 있지만 서로 다른 첫 실패 및 원인을 기록한다. 과거 #2670/#2661/#2654의 Resource/Viewport 사례도 완전한 test-level 목록과 일치 여부를 재조사해야 한다.
+
+**실제 환경 부재:** 이 대화의 GitHub 연결로 원본 Job/Playwright Trace/첨부 JSON을 다운로드하여 읽었지만, checkout+Node22+node_modules+Playwright Chromium 전체 애플리케이션 로컬 실행이 없어 신규 제품/테스트 수정의 `verify:prepr --mode=diagnose`, `ci-like`, TS/Unit/Chromium, `sourceStable` 확인은 모두 **NOT TESTED**다. 정적 소스 검토·원본 원격 FAIL을 새 후보 PASS라고 쓰지 않는다. 원장 Input의 11 selected spec은 12개 상한 이내이나 전체 과거 합집합과 혼동 금지.
+
+**권장 동일 frozen 후보 재검증:**
+```bash
+npm run verify:prepr -- --mode=diagnose \
+  --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH \
+  --issue=552 --pr=561 \
+  --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json
+npm run verify:prepr -- --mode=ci-like \
+  --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561
+```
+
+동일 소스 변경 금지, `sourceStart.fingerprint === sourceEnd.fingerprint` 필수, `UNKNOWN` 영향 매핑·Next/스냅샷 생성으로 `sourceStable=false`일 때는 그대로 BLOCKED. 테스트 통과를 위한 Timeout/Skip/Expectation/retry 변경 금지. Work Packet·TEST_PLAN·REMOTE_VALIDATION·Milestone presentation 문서를 동기화하고 최신 main 정렬/리뷰 unresolved0/충돌0, 새 Full PR CI 등록까지만 승인한다. **병합/Main CI/GHCR·tag/release·Issue 종료는 별도 승인 전 금지.**

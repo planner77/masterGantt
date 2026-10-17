@@ -1,5 +1,7 @@
 # Milestone Presentation & Rollout Policy
 
+> Issue #552 PR #561 CI #2886 후속 제품 후보 (2026-10-17): Marker OFF의 WBS Grid/Chart에서 `type=milestone` native row/bar0 조건은 **Resource 탭으로 인해 일정 panel이 실제 숨겨졌다가 복귀하는 경계**에서도 유지해야 한다. 과거 CI #2878/#2886의 U3 이전 성공 receipt(Task6)와 재진입 이후 실제 DOM(Task6+M2) 불일치는 [#552 누적 실패 원장 §8](ISSUE_552_FAILURE_ANALYSIS.md)을 참조한다. 후보는 기존 public `filter-tasks` Effect가 `viewVisible` 복귀를 관측하도록 하되 숨김 상태에서는 Core write0을 유지한다. 제품 수정과 실제 원격/로컬 수용은 구분하며 새 후보 Chromium/QA/Owner 결과는 **NOT TESTED**다. 기존 rollback 및 후속 marker #693, server canonical/roll-up, CI Gate를 변경하지 않는다.
+
 Decision: #548 / 2026-10-15. Policy status: PROPOSED (제품 수용·Owner 결정 전). 문서의 main 통합은 구현 수용이나 정책 승인 완료와 구별한다. Related: #459–#464, #549–#553, #567/#573/#574, #661/#663–#667, optional marker #693.
 
 ## 1. 결정과 적용 범위 (Current → Target)

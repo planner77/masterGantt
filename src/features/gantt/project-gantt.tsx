@@ -2292,12 +2292,17 @@ export function ProjectGantt({
 
   const appliedTaskFilterReference = useRef<{ api: IApi; key: string; structure: string } | null>(null);
   useEffect(() => {
+    // A hidden SVAR chart can discard its filter when native layout/axis is
+    // reconstituted. Visibility is an application of WBS presentation, not a
+    // canonical data revision: recheck the actual Core rows whenever the
+    // schedule becomes visible again, without resetting the API instance.
+    if (!viewVisible) return;
     const requestedProjection = projection;
     const requestedApi = apiReference.current;
     diagnosticTraceReference.current?.record("effect-request", "filter-tasks");
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
-      if (!api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
+      if (!viewVisible || !peerViewportContext.current.visible || !api || api !== requestedApi || !apiInstanceId || projectionReference.current.revision !== requestedProjection.revision || projectionReference.current.keys.membership !== requestedProjection.keys.membership || projectionReference.current.keys.structure !== requestedProjection.keys.structure || projectRevisionReference.current !== requestedProjection.revision) return;
       const applied = appliedTaskFilterReference.current;
       // Parent renders produce fresh arrays; avoid reapplying the same
       // filter while the project editor owns focus.
@@ -2332,7 +2337,7 @@ export function ProjectGantt({
       taskFilterAppliedReference.current = visible !== null;
       appliedTaskFilterReference.current = { api, key: requestedProjection.keys.membership, structure: requestedProjection.keys.structure };
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode]);
+  }, [apiInstanceId, viewVisible, visibleTaskFilterKey, projection.keys.structure, projection.keys.membership, projectRevision, scaleMode, columns, projection, viewRootTaskId, visibleTaskIds, wbsDisplayMode]);
   useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const request = milestoneProbeRequest.current;

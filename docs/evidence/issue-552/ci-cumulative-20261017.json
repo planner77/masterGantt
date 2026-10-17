@@ -3,7 +3,7 @@
   "issue": 552,
   "pr": 561,
   "createdDate": "2026-10-17",
-  "purpose": "31 branch runs metadata and 11 selected proven distinct failure files from 9 recent runs; full historical test-level inventory INCOMPLETE; no previous PASS promotion",
+  "purpose": "PR #561 32 run metadata + selected 10 recent runs / 12 test-level failures, 11 unique E2E files. Not a complete historical failure-file union.",
   "analysisSource": {
     "headSha": "00fd170a5611f8312bb7abdda4b263254ade7b69",
     "baseSha": "c063101ed7b1d08803c3dac15a41e67842071187",
@@ -181,6 +181,51 @@
         "error": "Expected dashboard row1, actual row0",
         "traces": 12092074632
       }
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "39013855282",
+      "attempt": 1,
+      "headSha": "51b4f919f16ac9765d20b9256e6521f91150c066",
+      "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "jobId": "117342193179",
+      "shard": 5,
+      "jobConclusion": "failure",
+      "classification": "PRODUCT_PRESENTATION_DRIFT",
+      "subclass": "VISIBILITY_REENTRY_FILTER_NOT_REASSERTED",
+      "diagnosis": "On return from physically hidden Resource panel, previous U3 receipt for 6 ordinary WBS tasks remained; actual native DOM held 8 rows (2 Milestones leaked). U3 latest gen10 rows TIMED_OUT; PEER_RETURN requested 120 after axis shrank 1872->936 (native capacity31), ended TIMED_OUT with Core/native=0. Product filter-tasks useEffect omitted viewVisible dependency and did not reconcile Core rows on visibility return. This is a product-path hypothesis substantiated by source and remote trace, with exact first native writer not identified and fix effectiveness NOT TESTED.",
+      "priorCaseRef": "39008751687",
+      "similarity": "#2878 same Resource/Excel return: PEER_RETURN WAIT_PROJECTION/120, extension lower priority, chart width936; user wheel superseded peer and new RANGE_EXTENSION led to Core30/native31. Both runs reused six-Task old projection receipt; #2886 readiness exposed stale marker rows. Current remedy targets shared product re-entry filter owner instead of timeout.",
+      "originalFailure": {
+        "testLine": 15,
+        "readinessLine": 216,
+        "passed": 64,
+        "failed": 1,
+        "notRun": 17,
+        "blockers": [
+          "LATEST_ATTEMPT_rows_TIMED_OUT",
+          "CURRENT_OPERATION_FAILED_TIMED_OUT",
+          "DOM_MEMBERSHIP_OR_ORDER_MISMATCH"
+        ],
+        "canonicalTasks": 8,
+        "expectedWbsRows": 6,
+        "actualDomRows": 8,
+        "extraMilestoneDomRows": 2,
+        "peerBeforeLeft": 120,
+        "lastPublicLeft": 0,
+        "lastNativeLeft": 0,
+        "coreWidth": 936,
+        "chartWidth": 906,
+        "nativeCapacity": 31,
+        "previousExpandedWidth": 1872
+      },
+      "artifact": {
+        "id": 12093952484,
+        "outerZipSha256": "73e4716a35a2123acc9d228026ab78c006a41a8dc7130d49bb21feac28ba610e",
+        "traceZipSha256": "c19f4fb52187384e5161e4bfc7aba19045f4e3b4afffb0d0a114e23fbd00fb8d",
+        "readinessAttachmentPresent": true
+      }
     }
   ],
   "diagnosticUnion": [
@@ -213,6 +258,99 @@
     }
   ],
   "latestRun": {
+    "runId": "39013855282",
+    "attempt": 1,
+    "pr": 561,
+    "headSha": "51b4f919f16ac9765d20b9256e6521f91150c066",
+    "baseSha": "78ec8d2ced62f543f73a8477c3e62fca8274274b",
+    "testMergeSha": "959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde",
+    "testMergeParents": [
+      "78ec8d2ced62f543f73a8477c3e62fca8274274b",
+      "51b4f919f16ac9765d20b9256e6521f91150c066"
+    ],
+    "event": "pull_request",
+    "quality": "PASS",
+    "build": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qaFinal": "FAIL",
+    "shard5": {
+      "jobId": "117342193179",
+      "passed": 64,
+      "failed": 1,
+      "notRun": 17,
+      "file": "tests/e2e/resource-kpi-integration-ui.spec.ts"
+    },
+    "cancelledShards": [
+      {
+        "shard": 1,
+        "jobId": "117342193220",
+        "loggedPass": 68,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 2,
+        "jobId": "117342193159",
+        "loggedPass": 102,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 3,
+        "jobId": "117342193162",
+        "loggedPass": 79,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 4,
+        "jobId": "117342193238",
+        "loggedPass": 55,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 6,
+        "jobId": "117342193169",
+        "loggedPass": 73,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      }
+    ],
+    "artifactId": 12093952484,
+    "sourceArtifactId": 12093996311,
+    "releaseAuthorized": false
+  },
+  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
+  "execution": {
+    "diagnose": {
+      "status": "NOT TESTED",
+      "reason": "No project checkout/node_modules/Chromium; selected 11 spec files allow diagnose max12, not complete historical union"
+    },
+    "ciLike": {
+      "status": "NOT TESTED",
+      "reason": "Local full CI-equivalent not executed on the candidate"
+    },
+    "sourceStable": "NOT TESTED",
+    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
+    "crossRegression": "NOT TESTED",
+    "releaseAuthorized": false
+  },
+  "commandExample": [
+    "npm run verify:prepr -- --mode=diagnose --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
+    "npm run verify:prepr -- --mode=ci-like --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561"
+  ],
+  "criteria": [
+    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
+    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
+    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
+    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
+    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
+    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval",
+    "Common PR_CI_FAILURE_TRIAGE requires docs/ISSUE_552_FAILURE_ANALYSIS.md and one growing primary issue ledger; older 22 branch-run details remain INCOMPLETE until logged."
+  ],
+  "previousLatestRun": {
     "runId": "39010974393",
     "attempt": 1,
     "headSha": "84009ba5ab3eb35fd434cc98a1dbf29bad7a9156",
@@ -276,110 +414,27 @@
     "sourceValidation": "NOT TESTED",
     "releaseAuthorized": false
   },
-  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
-  "execution": {
-    "diagnose": {
-      "status": "NOT TESTED",
-      "reason": "Node22/Playwright project checkout not accessible from current GitHub connector workspace; selected 11 files < limit12; input work planned only"
-    },
-    "ciLike": {
-      "status": "NOT TESTED",
-      "reason": "Full local E2E/CI-like not executable in current connector workspace"
-    },
-    "sourceStable": "NOT TESTED",
-    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
-    "crossRegression": "NOT TESTED",
-    "releaseAuthorized": false
-  },
-  "commandExample": [
-    "npm run verify:prepr -- --mode=diagnose --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
-    "npm run verify:prepr -- --mode=ci-like --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561"
-  ],
-  "criteria": [
-    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
-    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
-    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
-    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
-    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
-    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval",
-    "Common PR_CI_FAILURE_TRIAGE requires docs/ISSUE_552_FAILURE_ANALYSIS.md and one growing primary issue ledger; older 22 branch-run details remain INCOMPLETE until logged."
-  ],
-  "previousLatestRun": {
-    "runId": "39008751687",
-    "attempt": 1,
-    "pr": 561,
-    "headSha": "37c2c4687d6df61a56e5bc8fa9696863b287cd6d",
-    "baseSha": "de863713142a92f1cac56dbae044923822bca932",
-    "testMergeSha": "ef26400db5a5fc6aae77783b7330da38cf3dbf5e",
-    "testMergeParents": [
-      "de863713142a92f1cac56dbae044923822bca932",
-      "37c2c4687d6df61a56e5bc8fa9696863b287cd6d"
-    ],
-    "sourceArtifactId": 12091509685,
-    "playwrightReportArtifactId": 12092311845,
-    "quality": "PASS",
-    "build": "PASS",
-    "docker": "PASS",
-    "e2e": "FAIL",
-    "qaFinal": "FAIL",
-    "shard5": {
-      "jobId": "117326889006",
-      "passed": 64,
-      "failed": 1,
-      "notRun": 17,
-      "testFile": "tests/e2e/resource-kpi-integration-ui.spec.ts"
-    },
-    "cancelledShards": [
-      {
-        "shard": 1,
-        "jobId": "117326889044",
-        "loggedPass": 74,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 2,
-        "jobId": "117326888998",
-        "loggedPass": 85,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 3,
-        "jobId": "117326889009",
-        "loggedPass": 59,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 4,
-        "jobId": "117326889149",
-        "loggedPass": 36,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 6,
-        "jobId": "117326889072",
-        "loggedPass": 63,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      }
-    ],
-    "result": "FAIL",
-    "releaseAuthorized": false
-  },
   "latestAnalysisSource": {
-    "headSha": "84009ba5ab3eb35fd434cc98a1dbf29bad7a9156",
+    "headSha": "51b4f919f16ac9765d20b9256e6521f91150c066",
     "baseSha": "78ec8d2ced62f543f73a8477c3e62fca8274274b",
-    "testMergeSha": "cf9ac161593088bc6351464074df4811f1685b25",
+    "testMergeSha": "959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde",
     "testMergeParents": [
       "78ec8d2ced62f543f73a8477c3e62fca8274274b",
-      "84009ba5ab3eb35fd434cc98a1dbf29bad7a9156"
+      "51b4f919f16ac9765d20b9256e6521f91150c066"
     ],
-    "runId": "39010974393"
+    "runId": "39013855282"
   },
   "historicalRunInventory": [
+    {
+      "number": 2886,
+      "runId": "39013855282",
+      "attempt": 1,
+      "headSha": "51b4f919f16ac9765d20b9256e6521f91150c066",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-17T07:30:03Z",
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+    },
     {
       "number": 2885,
       "runId": "39010974393",
@@ -388,7 +443,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-17T06:43:37Z",
-      "detailScope": "first actual failure + cancelled-shard partial pass logs + Trace resource response cross-check verified"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2878,
@@ -398,7 +453,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-17T06:07:35Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2866,
@@ -408,7 +463,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T23:36:31Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2865,
@@ -418,7 +473,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T23:36:17Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2864,
@@ -428,7 +483,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T22:58:34Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2863,
@@ -438,7 +493,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T22:34:18Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2862,
@@ -448,7 +503,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T22:05:11Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2861,
@@ -458,7 +513,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T21:42:22Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2860,
@@ -468,7 +523,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T21:42:02Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2859,
@@ -478,7 +533,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T21:02:07Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2844,
@@ -488,7 +543,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T13:04:31Z",
-      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
     },
     {
       "number": 2682,
@@ -498,7 +553,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T11:58:14Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2679,
@@ -508,7 +563,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T11:13:01Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2670,
@@ -518,7 +573,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T10:27:52Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2669,
@@ -528,7 +583,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T09:52:01Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2668,
@@ -538,7 +593,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T09:51:51Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2667,
@@ -548,7 +603,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T08:46:18Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2666,
@@ -558,7 +613,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T07:37:34Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2665,
@@ -568,7 +623,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T07:21:46Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2661,
@@ -578,7 +633,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T06:40:53Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2654,
@@ -588,7 +643,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T06:05:52Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2651,
@@ -598,7 +653,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T05:42:24Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2648,
@@ -608,7 +663,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T05:31:21Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2645,
@@ -618,7 +673,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T05:21:53Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2643,
@@ -628,7 +683,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T04:50:57Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2642,
@@ -638,7 +693,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T04:18:11Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2641,
@@ -648,7 +703,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T03:42:43Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2639,
@@ -658,7 +713,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T02:49:06Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2633,
@@ -668,7 +723,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T02:25:19Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2628,
@@ -678,7 +733,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T00:12:34Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     },
     {
       "number": 2219,
@@ -688,15 +743,15 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-08T20:24:11Z",
-      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
     }
   ],
   "historyCompleteness": {
-    "branchRunCount": 31,
-    "selectedEvidenceRuns": 9,
+    "branchRunCount": 32,
+    "selectedEvidenceRuns": 10,
     "selectedFailureFiles": 11,
     "state": "INCOMPLETE",
-    "reason": "GitHub branch contains 31 PR CI runs. Selected actual test-level failures across recent 9 runs / 11 files are verified, but earlier failed shard traces and all cancelled-job partial failures have not been exhaustively inventoried. Historical union must not be described as complete."
+    "reason": "All 32 current PR branch run metadata available; selected 10 recent runs / 12 actual test-level failures (11 unique files) recorded. Earlier runs have multiple shard failures; complete historical test-level union and cancelled-job review remain INCOMPLETE."
   },
-  "diagnosticUnionScope": "BOUNDED_POST_2844_SELECTED_ONLY; latest #2885 new case added; historical union INCOMPLETE"
+  "diagnosticUnionScope": "BOUNDED_VERIFIED_POST_2844_RECENT_CASES_ONLY; previous runs historical union INCOMPLETE"
 }

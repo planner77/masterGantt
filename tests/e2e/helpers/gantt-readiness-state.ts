@@ -9,7 +9,7 @@ export interface GanttReadinessSnapshot {
   semantic: { semanticId: number; observation: number } | null;
   currentWork: { phase: string; apiInstance: string; kind?: string; outcome?: string; writes?: number; intentEpoch?: number; contextEpoch?: number; gesture?: number; projectionEpoch?: number } | null;
   core: { ready: boolean; instance: string; left: number; top: number; width?: number; chartWidth?: number; axisStart?: string | null; axisEnd?: string | null;
-    canonicalIds: string[]; coreTaskCount: number; scaleRows: { width: number; labels: unknown[] }[] } | null;
+    canonicalIds: string[]; coreTaskCount: number; coreVisibleIds?: string[]; scaleRows: { width: number; labels: unknown[] }[] } | null;
   native: { left: number; top: number; capacity: number; clientWidth: number; clientHeight: number };
   domIds: string[]; header: boolean; axisExists: boolean; geometry: number[];
   coordinate: { insideRange: boolean; contentX: number } | null;

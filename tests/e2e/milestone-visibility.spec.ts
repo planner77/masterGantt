@@ -42,6 +42,25 @@ test("#552 marker OFF membership/reset/peer preserve canonical data and instance
   await page.getByRole("button", { name: "초기화", exact: true }).click();
   await expect(rowNamed(page, "Stable leaf")).toBeVisible();
   await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await page.getByRole("tab", { name: "일정", exact: true }).click();
+  // #2886: unlike the Milestone panel, the Resource panel physically hides
+  // the schedule. A later native chart resize/peer return must not resurrect
+  // canonical Milestone rows in the ordinary WBS on the same Gantt instance.
+  const frame = page.locator(".project-gantt-frame"), marker = state.tasks.find(task => task.type === "milestone")!;
+  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await expect(page.locator("#project-panel-schedule")).toBeHidden();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await waitForGanttReadiness(frame, { operation: "observe",
+    api: identity.apiId, revision: state.project.revision, scale: "day", scope: null, query: "",
+    queryWitness: { kind: "unchanged" }, canonicalIds: state.tasks.map(task => task.taskId),
+    requireRenderedRows: true, allowCancelledPriorWork: true });
+  const normalIds = state.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const display = await frame.evaluate(element => ({
+    coreIds: Reflect.get(element, "__masterganttMilestoneTimeline").read().rows.map((task: { id: string }) => String(task.id)),
+    gridIds: [...element.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]")].map(row => row.dataset.id!.replace(/^:/, "")),
+  }));
+  expect(display.coreIds).toEqual(normalIds);
+  expect(display.gridIds).toEqual(normalIds);
+  await expect(frame.locator(`.wx-row[data-id=":${marker.taskId}"],.wx-bar[data-task-id=":${marker.taskId}"]`)).toHaveCount(0);
   await expectSameGanttRoot(page, identity); await expect(page.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   expect(JSON.stringify([state.tasks, state.links])).toBe(canonical); expect(writes).toEqual([]); expect(reads).toEqual([]);
 });
