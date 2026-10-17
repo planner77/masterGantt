@@ -1,3 +1,11 @@
+## Issue #712 — #552 정식 릴리스 BLOCKED 원인과 복구 경계 (2026-10-18)
+
+#552 PR #561의 Full PR CI [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528) PASS와 Main CI [#2895.1](https://github.com/planner77/masterGantt/actions/runs/39025239061) PASS는 병합 후 `edited` metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063) 실패로 소급 취소되지 않는다. 해당 metadata-only의 같은 이름 세 Check Run이 Full PASS를 가리는 문제가 있었다. 원본 test-merge `23a81e0cbb7ebf5cf28388147e09463c86e40717`와 실제 two-parent merge `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7`는 Base/Head 부모 및 Git Tree `4e96ac1f52160364e35a48abfb76f89ed6b8844c`가 정확히 같았다.
+
+Lifecycle은 **원본 artifact, run/attempt 및 두 merge commit의 동일 부모/Tree**로 Full CI를 재인증한 뒤 정확한 Main SHA 필수 aggregate, 실제 Main 임시 GHCR 검증, #552의 **기존 exact-version Owner 승인 marker**, 정식 GHCR/tag/release/digest를 모두 별개로 검증한다. 새로운 Full 실패·진행 중, 위조/누락 artifact, 다른 부모/Tree, Owner 승인 불일치면 여전히 BLOCKED. `POST_MERGE_METADATA_NON_AUTHORITATIVE` 감사 결과는 Full·Main·릴리스 PASS 영수증이 아니다.
+
+[#712 구현 Work Packet](exec-plans/active/ISSUE_712.md) 자체는 `release_required=false`, `release_authorized=false`. 새 보호 코드 교정 PR의 전체 CI/Trusted/Owner 승인 및 Main CI **이후에만** 기존 범용 Finalizer로 #552 복구를 재검증하며 역사적 Run·tag/릴리스 메타데이터 변조, 게이트 강제 PASS, 임의 재게시·조기 이슈 종료는 금지한다.
+
 ## Issue #622 — CLOSED/FINAL 누락 이력의 제한된 Owner 복구 (2026-10-15)
 
 기존 #622는 Owner가 병합된 최종 PR의 Main CI 완료 전 `CLOSED`로 전환하여, Generic Resolver가 `non-actionable ordering barrier`로 건너뛰었다. 따라서 동일 #622의 PR #684/#686/#691 3개 작업 브랜치와 Release/임시 GHCR 후보 정리 및 bot-origin FINAL 기록은 누락된 반면 후속 #665/#666의 FINAL은 성공했다. 사용자 승인 범위 내 **#622에 한정**된 read-only 감사 후 적법한 재진입 경로를 허용한다.
