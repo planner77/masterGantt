@@ -576,3 +576,11 @@ PR은 default/base branch의 GHA BuildKit cache를 `cache-from`으로 재사용�
 ## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+## Issue #679 — PR 보완 변경을 묶어서 게시
+
+운영 절차의 단일 원본은 [PR 변경 묶음 게시](PR_BATCH_PUBLICATION.md)다. 원인·누적 실패·리뷰·코드·테스트·문서를 먼저 준비하고 로컬 검증 후 게시한다. 일반 환경은 A(local Git push 1회), 허용된 API 환경은 B(blob/tree/commit 준비와 Ref 1회 게시)를 선택한다. Contents staging은 전체 workflow 영향과 최종 Ref 이동 수단을 확인한 fallback이며, live PR 파일별 쓰기로 생기는 중간 CI 감소를 주장하지 않는다.
+
+게시 담당 infra/Manager는 최신 main·expected remote Head·전체 tree·후보 commit 부모를 전후 조회한다. API candidate Head와 local Head는 달라도 tree 동등성을 검증하고 새 Head의 원격 CI를 별도로 확인한다. 읽기 전용 `verify-pr-batch.mjs`의 PASS는 입력 비교 결과이며 인증된 GitHub 관측이나 Required/Trusted/Owner 승인 자체가 아니다. 응답 유실·거부·제3 Head는 read-back으로 분리하고 추가 write 전에 재통합·검증한다.
+
+최초 PR metadata를 완성하고 상태 보고에는 댓글을 사용한다. 정당한 내용 수정 외 제목/본문 반복 편집을 줄이며, metadata 정책·Full/metadata concurrency·필수 검사·보호 규칙을 변경하지 않는다. 계획된 중간 CI가 필요하면 목적/Head를 기록한다. Run/Attempt 및 Job 시간은 청구 비용과 분리하며 미측정 절감률을 제시하지 않는다.

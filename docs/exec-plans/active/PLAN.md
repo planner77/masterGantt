@@ -1,3 +1,7 @@
+## Issue #679 — PR 변경 묶음 게시 (2026-10-17)
+
+[Work Packet](ISSUE_679.md)에 최신 main/실제 Run 비용·Ruleset·연결 API를 재검토한 A~D 선택을 기록했다. A는 일반 운영 우선, 현재 Git push 인증 부재로 B를 조건부 사용한다. 읽기 전용 manifest prepare/verify·임시 Git 회귀·prepr 매핑과 운영 문서를 함께 준비한 뒤 한 번 게시하고 최종 PR CI 시작을 확인한다. HIGH/OWNER_MANAGED, version 0.114.1 유지, release_required=false/release_authorized=false. 제품 source·CI YAML/Ruleset/Trusted 정책은 변경하지 않는다. 원격 비용/최종 CI 성공·Owner 승인은 실제 증거 전 NOT TESTED이며 CI 완료 모니터링은 요청 범위 밖이다.
+
 ## Issue #552 — CI #2888 Canonical31/Visible30 구형 Test Oracle 일괄 보완 (2026-10-17)
 
 [#552 단일 실패 분석 §9](../../ISSUE_552_FAILURE_ANALYSIS.md) · [33Run metadata / 선택11Run·13 FAIL / 12 distinct-file JSON](../../evidence/issue-552/ci-cumulative-20261017.json) · [Work Packet](ISSUE_552.md). 원본 #2888 shard3의 #456 readiness `EXPECTED_MEMBERSHIP_MISMATCH`는 실제 U2/U3/Coordinator가 모두 SETTLED인데 테스트 기대값에 native Milestone `...0005`가 들어 있어 발생. 앞선 #2863 Canonical84/Visible83 계약 오류가 #456/#570에 남은 것이므로 두 테스트를 모두 canonical31/visible30으로 분리, strict Core IDs/M0/DOM 및 메타데이터·필터·스크롤/권한 단언 유지. 제품 Marker OFF `filter-tasks`·Gantt Writer 및 CI/QA/Release 정책은 변경하지 않는다. 다른 shard5 취소로 #2886 제품 복귀 교정의 전체 PASS가 입증되진 않았다.

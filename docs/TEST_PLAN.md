@@ -4269,3 +4269,11 @@ Dashboard KPI의 Milestone ID 집합/직접 선행 M 원인은 native0행 일정
 #551의 개발 opt-in lane·native 날짜 tick±1px·묶음/roving keyboard·대량1000 Task+2000 M readiness5초는 별도 기술 회귀로 보존한다. 운영 marker ON acceptance와 flag ON→OFF rollback·390px Core geometry는 #573/#693의 후속 실행 범위이며 이번 baseline에서 임시 활성화하지 않는다. timeout/skip/retry·허용오차·6-shard/Required gate는 완화하지 않는다. 실제 screen reader/touch·운영 reverse proxy·Windows Excel/DRM 및 production 재배포/롤백은 실행 증거 전 NOT TESTED다.
 
 #552 기존 변환 보호 보완: native M 행 삭제를 이유로 Task→Milestone→Task 왕복 테스트나 roundtrip의 ID/parent/sibling/revision/부모 소속 단언을 삭제하지 않는다. Task→M은 기존 일반 Task 메뉴, M→Task는 Dashboard exact ID 관리의 `일반 Task로 전환`으로 경로만 옮긴다. readonly/pending/completed/Link/Membership 참조·서버 auth/Origin/If-Match를 유지하고 허용 가능한 fixture의 성공과 잠긴 fixture의 원본 불변을 별도 검증한다. Quick-view3종 전체 부재, 고급 Summary/Task만 선택, legacy M-only에서 명시 유형 해제 뒤 다른 검색/필터/scope 불변을 함께 검사한다. 해당 새 경로의 실제 실행 보고 전 결과는 NOT TESTED다.
+
+## Issue #679 — 변경 묶음 게시 준비·관측 비교 검증
+
+대상은 [PR 변경 묶음 게시](PR_BATCH_PUBLICATION.md)의 읽기 전용 CLI 및 새 경로의 기존 Pre-PR 영향 매핑이다. `tests/scripts/pr-batch-verifier.test.ts`는 실제 임시 Git에서 복수 code/test/docs 추가·수정·삭제, committed clean Head, staged/unstaged/untracked, main/remote ancestry, API 부모·tree·Head 비교, expected mismatch·UNKNOWN·응답 유실/제3 Head, manifest 변조와 read-only 범위를 검증한다. 지원하지 않는 symlink/submodule·특수 경로/모드는 BLOCKED다. `tests/scripts/prepr-verifier.test.ts`의 좁은 신규 매핑 회귀와 기존 정책 테스트를 함께 실행한다.
+
+실제 로컬 테스트는 Node 22에서 수행하고 `verify:prepr --mode=fast` 및 영향 선택의 source/환경/exit를 Work Packet에 기록한다. 자동 선택 dry-run은 실행 결과가 아니며 필요 직접 테스트는 별도 실행한다. 기존 Pre-PR fingerprint 알고리즘과 CI 정책은 재설계하지 않는다. 변경된 제품 UI/HTTP/SQLite 계약은 없으므로 배치 도구 로컬 검증에 전체 Chromium/Docker를 반복 추가하지 않는다. 원격 Full Required 세 검사는 기존 CI가 수행한다.
+
+AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.

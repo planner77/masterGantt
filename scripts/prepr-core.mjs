@@ -203,6 +203,13 @@ const RULES = [
     reason: "shared Milestone browser helper → persistence, native-row absence, date/timeline and Dashboard negative contracts",
   },
   {
+    id: "pr-batch-tooling", risk: "HIGH",
+    re: /^(?:scripts\/pr-batch-core\.(?:mjs|d\.mts)|scripts\/verify-pr-batch\.mjs|tests\/scripts\/pr-batch-verifier\.test\.ts)$/,
+    unitPaths: ["tests/scripts/pr-batch-verifier.test.ts"],
+    browser: [],
+    reason: "PR 변경 묶음의 manifest·로컬 tree·expected ref와 읽기 전용 게시 증거 검증",
+  },
+  {
     id: "prepr-tooling", risk: "HIGH",
     re: /^(?:scripts\/prepr-core\.(?:mjs|d\.mts)|scripts\/verify-prepr\.mjs|tests\/scripts\/prepr-verifier\.test\.ts|docs\/LOCAL_PREPR\.md|package\.json|\.gitignore)$/,
     unitPaths: ["tests/scripts/prepr-verifier.test.ts"],
