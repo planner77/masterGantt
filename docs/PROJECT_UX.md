@@ -1,3 +1,9 @@
+## Issue #624 — 물류 통합 조회 UX·Design Delta B (2026-10-17)
+
+프로젝트 작업공간의 **물류 구성 → 통합 조회**에서 네 관점(공정/WorkArea, 설비 종류·인스턴스, 시스템 종류·인스턴스, Target·Resource)을 단일 compact selector로 전환한다. 기간/Target 빠른 필터와 접힘 상세 조건을 제공하고, 기존 Gantt native WBS/Chart에 조회용 가상 행이나 두 번째 날짜축을 주입하지 않는다. Project 구성 인스턴스 수·고유 설비 수량과 현재 T0 Task coverage/Assignment 계획공수·기간가중 일반 Task 진척을 명확히 나눈다. 공유 MCS/fleet·중첩 Target의 표 행은 중복 표시 가능하지만 전체 집계는 서버 distinct ID다.
+
+Task·Assignment·Target 변경은 기존 정확 editor 경로, 일정 복귀는 기존 source/current scope·snapshot·focus 계약을 사용한다. readonly·stale·dirty/pending/오류/조회 전/결과 없음과 최신 응답 역전을 구별하며, 필터·정렬·접힘·페이지·단위 전환은 저장0이다. 전체 Milestone Ready/Blocked·선행·member와 선택 Assignment Task 수는 별도 열이다. 390/768/1024/1440/1920px, 긴 이름/한국어, 표 내부 scroll·keyboard·focus/Escape·document overflow를 Chromium으로 확인해야 UX PASS다. **Design Delta B**: 기존 Light/compact/progressive disclosure·scroll/focus 원칙 구체화로 전역 신규 원칙 A가 없어 `DESIGN.md: N/A`. [Work Packet](exec-plans/active/ISSUE_624.md).
+
 ## Milestone marker-OFF 기본선과 단계 관리 UX 결정 (#548 / 2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)는 이전 #549~#552의 marker 기본 ON 계획 중 화면 활성화 부분보다 우선한다. #552에서 **native Grid/Chart에는 Summary/일반 Task만 표시**하고 Milestone native 행·Bar/대체 endpoint를 만들지 않는다. 상단 Timeline/guide/마커는 운영 OFF이며 화면 여백도 예약하지 않는다. 기존 Milestone Dashboard는 독립된 탭에서 전체 Milestone 목록·생성·상세·소속 관리·관계·Ready/Completed·Resource KPI를 제공한다.
