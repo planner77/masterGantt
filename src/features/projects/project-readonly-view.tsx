@@ -1901,7 +1901,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       let projection = request.projection;
       let expected = request.data.resourceScopeContext;
       if (!expected) throw Error("INVALID_RESPONSE");
-      let commandBinding = resourceBinding;
+      let commandBinding = request.binding !== undefined ? request.binding : resourceBinding;
       if (request.taskId) {
         if (request.assignmentId)
           commandBinding = {
@@ -3020,6 +3020,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           tasks={tasks}
           active={activeView === "logistics"}
           onStageSchedule={drillDashboardSchedule}
+          onResourceSchedule={scheduleResourceRequest}
+          onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
           onStageOpen={(taskId, tab) => { setActiveView("schedule"); openTaskEditor(taskId, tab); }}
           onTargetTaskOpen={(taskId) => openTaskEditor(taskId)}
           logistics={state.snapshot.data.logistics}
