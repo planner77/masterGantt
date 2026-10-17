@@ -1,4 +1,5 @@
-import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
+import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../src/contracts/resource-dashboard";
+import { detailsQuery } from "../../src/features/resources/resource-dashboard-model";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { issue621ResourcePassword } from "./fixtures/issue-621-target-project";
 import { seedIssue623 } from "./fixtures/issue-623-target-resource";
@@ -42,6 +43,7 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
   });
 
   const reports: Partial<Record<keyof typeof orders, ResourceDashboardDto>> = {};
+  let firstCanonicalIds: string[] | null = null;
   const nextReport = async (order: string) => {
     const response = await page.waitForResponse(candidate => {
       const url = new URL(candidate.url());
@@ -79,6 +81,18 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
     expect(result.summary.assignmentCount).toBe(baseline.summary.assignmentCount);
     expect(result.summary.effort.knownMd).toBe(baseline.summary.effort.knownMd);
     expect(result.stages.find(stage => stage.milestoneTaskId === milestone.taskId)?.full).toEqual(baselineGate);
+    // Compare raw immutable IDs, not only numerically equal summary values.
+    const detailsResponse = await page.request.get(
+      `${f.api}/resource-dashboard/details?${detailsQuery(result, result.summary.selector, "assignments", 0)}`,
+    );
+    expect(detailsResponse.status(), await detailsResponse.text()).toBe(200);
+    const detailDto = ((await detailsResponse.json()) as { data: ResourceDashboardDetailsDto }).data;
+    expect(detailDto.totalCount).toBe(result.summary.assignmentCount);
+    const canonicalIds = detailDto.rows.map(row =>
+      `${row.taskId}:${row.assignment?.assignmentId ?? "unassigned"}:${row.assignment?.resourceId ?? "unassigned"}`).sort();
+    if (firstCanonicalIds === null) firstCanonicalIds = canonicalIds;
+    else expect(canonicalIds).toEqual(firstCanonicalIds);
+    expect(canonicalIds.some(value => value.startsWith(`${f.task.taskId}:`))).toBe(true);
     await expect(root.getByRole("region", { name: "Resource Target 계층", exact: true })).toBeVisible();
   }
 
