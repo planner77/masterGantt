@@ -1,3 +1,11 @@
+## Issue #703 — 누적 PR CI #2883/#2891 HTTP GET 전송 실패 한정 회귀 (2026-10-17)
+
+- Source of Truth: [Issue #703 전체 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) F-001~F-003, [#704 공통 REWORK](PR_CI_FAILURE_TRIAGE.md), [#680 기존 Read-only GET 선례](exec-plans/active/ISSUE_680.md). 신규 원격 원장은 #2880 Preflight 정책 FAIL, #2883 Shard5 milestone-stage-exchange GET ECONNRESET, #2884 E2E 6/6 PASS, #2891 Shard3 issue-623-resource-mvp GET ECONNRESET을 정확 Head/Run별로 독립 보존한다.
+- 코드 영향: `tests/e2e/fixtures/isolated-application-diagnostics.ts`의 `observedReadOnlyGet`, `fixtures/target-project.ts` Snapshot 옵션, `fixtures/issue-623-target-resource.ts` 관측기 인계, 기존 `issue-623-resource-mvp.spec.ts`, `milestone-stage-exchange.spec.ts`. POST/PUT/PATCH/DELETE 원본 전송 재시도0, Server/Task/Resource/Target 계약·Date/Gantt Core 변경0.
+- 선택 단위 회귀: `tests/scripts/isolated-readonly-get.test.ts`의 정상200 1회, ECONNRESET 첫 시도 관측 뒤 1회 회복, 두 번째도 실패하면 세 번째 호출0, HTTP404/409/503 재시도0, ETIMEDOUT/ECONNREFUSED/JSON/비Error 이탈0. 첫 RESET은 `observeIsolatedApi`에 기록되어야 한다.
+- 직접/간접 E2E: #623 첫 real SQLite API/6개 별도 mutation, #623 5폭/Keyboard, #464 Stage·Milestone/Copy·Import·Excel, #621 동일 `target-project.ts` 기본 모드 회귀. 기존 업무 정합성·revision·canonical task ID·same instance/0 unwanted mutation/assertion/timeouts 불변.
+- 실제 원격 확인: 정확한 최신 Head/base/test-merge에서 Preflight+Quality/Vitest, E2E 6개 shard/Docker + Trusted QA 별도로 판정. 새 코드/fixture를 작성한 것만으로 로컬/원격 PASS 아님. 진단 아티팩트의 process alive/Health200/cgroup oomKill0은 서버 종료가 직접 원인이라는 증거가 없음을 뜻할 뿐 소켓 재사용/메모리 근인 확정 자료가 아니다. 재발 시 복구 1회로 숨기지 말고 전체 원장과 후속 Trace를 조사한다.
+
 ## Issue #703 — Preview GHCR Owner·SHA·권한 분리 회귀 (2026-10-17)
 
 변경 producer: .github/workflows/preview-publish.yml, scripts/preview_publish.py. 직접 소비자: authorize→Build/read→trusted image-policy·API/SQLite smoke→artifact→publish/packages:write. 음성 집합: 비Owner, 타 event/repo/ref, Open Issue 아님, branch/Issue 번호·SHA stale, 현재 main SHA stale, GHCR tag 존재/401/403/429/5xx, 출력 injection, Preview가 CI/Release를 오인하게 하는 권한 확장. tests/python/test_preview_publish.py는 GitHub 네트워크 없는 stub·워크플로 정적 검증이며 PR/Main CI 정책 Job에서 실행한다. 실제 Docker Build/Runtime 및 GHCR Registry 인증·digest·롤백/시간 절감은 별도 원격 검증 전 NOT TESTED. 기존 #697 테스트 영향 선정/QA/Required3 범위를 줄이지 않는다. [Preview 가이드](PREVIEW_PUBLISH.md), [실행 계획](exec-plans/active/ISSUE_703.md).

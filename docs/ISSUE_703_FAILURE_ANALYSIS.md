@@ -95,3 +95,50 @@ PR #705 자동 Code Review Summary는 원본 Head에서 `status=failed, has_unre
 - 이전에 실행되지 않은 Policy 단계의 `test_preview_publish.py` (새 정책 회귀), Vitest/TS/ESLint, Chromium E2E6 및 Docker의 **최초 실제 오류**를 기록.
 - 새로운 Codex 리뷰 스레드가 있다면 코드·문서에 필요한 변경을 반영하고 스레드 해결, 이후 새 HEAD에서 재검증.
 - GHCR Preview 실제 게시/정식 Release는 이번 PR CI 요청 범위를 벗어나며 별도 Owner 지시와 검증이 필요.
+
+## 6. 2026-10-17 전 이력 재확인 — #2883, #2884, #2891 추가 기록
+
+**확정 근거 범위:** #2880.1·#2883.1·#2884.1·#2891.1의 GitHub Actions Run, Job/Step, 실패 Shard의 Playwright HTML·trace/격리 서버 진단 첨부를 교차 조회했다. 원본 Run의 성공·실패·취소를 변경하거나, 다른 Source SHA의 PASS를 새 후보의 성공 증거로 승격시키지 않는다. 이 절은 기존 F-001 원장을 삭제하지 않고 후속 증거로 확장한다.
+
+### 6.1 Run/Attempt·Source·필수 Gate 누적 비교
+
+| Run/Attempt / 원본 Head·Base | 직접 실패·성공 결과 | 연쇄·원본 자료 |
+| --- | --- | --- |
+| [#2880.1 / 39009485784](https://github.com/planner77/masterGantt/actions/runs/39009485784), Head `9dd6f5c407dcb8417bf8b82b57a941d0ca8dcb26` / Base `de863713142a92f1cac56dbae044923822bca932` | **POLICY_CI F-001:** QA Preflight DOCUMENTATION_SYNC 불일치 | Fast Gate/Required3/QA Final 실패, 제품 Unit/E2E/Docker 실제 미실행. 기존 수정을 F-001에 보존 |
+| [#2883.1 / 39010283771](https://github.com/planner77/masterGantt/actions/runs/39010283771), Head `9b2d90148263504b6e330570416b6677642c6d97` / Base `de863713142a92f1cac56dbae044923822bca932` | **INIT_TRANSPORT F-002:** Chromium Shard5/6 Job `117331520973`의 `milestone-stage-exchange.spec.ts:132`에서 canonical GET `ECONNRESET`. Shard5 22 PASS/1 FAIL/60 NOT RUN | Run 전체 결론 `cancelled` (후속 synchronize). 그러나 Shard5의 **실제 FAIL**은 보존. 다른 Shard들의 취소는 테스트 실패로 간주하지 않음. [원본 HTML/Trace](https://github.com/planner77/masterGantt/actions/runs/39010283771/artifacts/12092861934) |
+| [#2884.1 / 39010698270](https://github.com/planner77/masterGantt/actions/runs/39010698270), Head `cb8a9751791bbf61d21ee73b719513dff6514abe` / Base `78ec8d2ced62f543f73a8477c3e62fca8274274b` | **SUCCESS:** Preflight/Policy/Typecheck/ESLint/Vitest/Build, Chromium E2E6/6, Docker, QA Final/Trusted 검증 성공 | 성공은 이 정확 Head/Base의 반례 증거만 해당. F-002 원본 실패를 삭제하지 않고, #2891의 후속 상태와 합산 금지 |
+| [#2891.1 / 39019744531](https://github.com/planner77/masterGantt/actions/runs/39019744531), Head `e2281c7e2aa7ba7e4081d10f1e6fa33ce5ce60c9` / Base `4307c8cdf1cc00a87fd7bff9f5e1a0c924bb3620` / Test-Merge `7396858cb331d6e5da0aba226958b8db9c280a60` | **INIT_TRANSPORT F-003:** Chromium Shard3/6 Job `117359396203`, `issue-623-resource-mvp.spec.ts:44` → `tests/e2e/fixtures/target-project.ts:48`의 canonical GET에서 `ECONNRESET`. Shard3 40 PASS/1 FAIL/49 NOT RUN | Policy/Quality/Docker/Build PASS, Shard1/2/4/5/6 `CANCELLED` by PR fail-fast, E2E aggregate 및 QA Final 실패. [원본 HTML/Trace/진단](https://github.com/planner77/masterGantt/actions/runs/39019744531/artifacts/12095994618) |
+
+### 6.2 두 전송 오류의 실제 생존·메모리 증거
+
+- **F-002 #2883 Shard5:** 기존 `observeIsolatedApi`가 첫 실패를 관측한 뒤 남긴 첨부 `isolated-application-diagnostics`에 `api_transport_failure`, `GET /api/projects/[publicId]`, `failure=ECONNRESET` 기록. 수집 당시 별도 Health 조회 **HTTP 200**, 격리 Next 실행 프로세스 **alive=true, exitCode=null, signal=null**. 관측된 `memory.events oom=0, oomKill=0`, cgroup currentBytes 약 **11.17GB** (maxBytes 미확인). **서버 종료/OOM이 직접 원인이라고 확인되지 않았음**.
+- **F-003 #2891 Shard3:** 당시 실패한 `target-project.ts`의 `snapshot()`은 `page.request.get(api)`를 직접 호출하므로 최초 GET의 Observer 출처를 남기지 못했다. 그러나 실패 직후 Test failure 첨부의 격리 서버 실행 프로세스는 **alive=true, exitCode=null, signal=null**, 별도 Health **HTTP 200**, 관측 cgroup `oom=0, oomKill=0`·현재 사용량 약 **11.58GB** (한계값 미확인). 따라서 read ECONNRESET은 실제 전송 실패이며 **OOM/죽은 서버/DB 커밋 오류로 단정하지 않는다**. 기존 모든 작업 저장 단언은 그대로 유지한다.
+- **Cancelled Shards:** #2891 Shard1/2/4/5/6 로그의 종료 시점까지 추가적인 실제 `✘`/Playwright FAIL은 식별되지 않았다. Shard1의 `Controlled E2E error boundary probe` 메시지는 해당 테스트의 의도된 오류 경계 시험 로그로서 별도 실패로 분류하지 않는다. 취소 이후 미실행 케이스는 `NOT RUN`이며 성공으로 계산하지 않는다.
+- **공통 유형:** 실제 두 오류 모두 개발용 격리 Next 서버의 loopback **read-only canonical GET**에서 발생했다. 소켓 재사용·일시적 전송 단절은 가능한 가설이지만 trace만으로 네트워크/Next 메모리·GC 원인은 확정되지 않는다. 제품 코드의 데이터 정합성 실패(HTTP 비200 또는 Snapshot 불일치) 증거는 없다.
+
+### 6.3 Cross-run 실패 합집합 및 교정 기준
+
+| ID | 직접 실패 파일/계약 | 확정 원인 / 미확정 근인 | 이번 후보의 직접·교차·음성 재검증 |
+| --- | --- | --- | --- |
+| F-001 | `docs/exec-plans/active/ISSUE_703.md` 구조 `docs_gate` | `POLICY_CI` 형식 누락 확정, 보완 후 #2884/#2891 Preflight 성공 | 기존 `test_preview_publish.py::test_issue_703_work_packet_preflight_contract` 유지. 파일별 DOCUMENTATION_SYNC/AC1~8 검증 삭제 금지 |
+| F-002 | `tests/e2e/milestone-stage-exchange.spec.ts` canonical read `GET /api/projects/{id}` | `INIT_TRANSPORT` 리셋 확인, 프로세스/소켓 근인 UNKNOWN | 첫 GET은 기존 observer가 진단 확보 → `ECONNRESET`일 때만 두 번째 read-only GET 최대 한 번. 같은 응답 HTTP200/revision/Task/멤버십·Import/Export/Copy/Template 단언 유지 |
+| F-003 | `tests/e2e/issue-623-resource-mvp.spec.ts` → `tests/e2e/fixtures/target-project.ts` Snapshot GET | `INIT_TRANSPORT` 리셋 확인, 관측 누락이 별도 위험 | `seedIssue623`에서 실제 `observeIsolatedApi` 전달 → Snapshot GET 첫 실패의 process/health/cgroup 진단 보존 → 동일 오류에만 두 번째 GET 최대 한 번; Resource/Target/Assignment·WBS 6개 write exact/revision·Core instance 단언 유지 |
+| Positive | #2884 E2E 6/6 | 동일 기능 정상 실행의 반례, 이번 Source의 PASS는 아님 | 변경과 무관한 테스트 일부 정상 PASS를 다중 Head의 신규 전체 성공으로 재해석하지 않음 |
+
+**실제 실패 파일 논리적 합집합:** `docs/exec-plans/active/ISSUE_703.md`, `tests/e2e/milestone-stage-exchange.spec.ts`, `tests/e2e/issue-623-resource-mvp.spec.ts` 및 직접 소비자 `tests/e2e/fixtures/target-project.ts`. 교차 영향 `tests/e2e/fixtures/issue-623-target-resource.ts`, `tests/e2e/fixtures/isolated-application-diagnostics.ts`, `tests/e2e/issue-621-resource-target.spec.ts`(기존 fixture 기본 동작), 단위 `tests/scripts/isolated-readonly-get.test.ts`. 취소된 Shard의 다른 제품 테스트는 수집되지 않은 미실행 후보이며 실제 실패 파일로 확대하지 않는다.
+
+### 6.4 한정적인 교정·기본 계약 불변
+
+- 기존 검증기를 수정하거나 정책 Gate·Playwright Shard/fail-fast/retries/timeout을 변경하지 않는다.
+- 신규 `observedReadOnlyGet`는 **같은 관측기**를 통한 첫 GET 오류 기록 후, 정확히 `Error.message`의 `ECONNRESET`에 한해서 **두 번째 GET 1회**만 실행한다. 첫 오류의 진단 정보는 이미 별도 첨부에 남는다. 두 번째도 실패하면 기존 오류를 숨기지 않고 FAIL.
+- `tests/e2e/fixtures/target-project.ts`는 **Observer 옵션이 전달된 #623 사례**에만 이 교정을 적용한다. 인수 없이 사용하는 기존 #621 및 타 소비자의 원래 Snapshot 동작은 그대로 유지한다. POST/PUT/PATCH/DELETE 재전송 금지, HTTP4xx/5xx/비정상 JSON/assertion/ETIMEDOUT/ECONNREFUSED는 재시도하지 않는다.
+- `tests/e2e/milestone-stage-exchange.spec.ts`는 기존 observer를 새 공통 bounded-read helper로 교체하며 의도된 기능 Assertion·Milestone/Stage UI·실제 server transaction 상태는 변경하지 않는다.
+- `tests/scripts/isolated-readonly-get.test.ts`의 정상 GET 1회, 첫 Reset 후 관측/2회, 두 번째 Reset FAIL, HTTP 404/409/503 및 timeout·타 오류·non-Error 실패의 **positive/negative** 계약을 PR Quality Vitest에서 실행한다.
+- 기존 #680 [ECONNRESET 한정 복구 선례](exec-plans/active/ISSUE_680.md)와 일치한다. **재시도 성공은 원시 전송 오류의 근본 원인 해결을 입증하지 않는다**. OOM/메모리 상승·Next dev 워커 교체·keep-alive·runner 동시성의 인과는 향후 증거가 있을 때만 별도 진단한다.
+
+### 6.5 완료 기준과 남은 증거
+
+- 이번 후보 변경의 실제 로컬 E2E/Node 환경은 가용 환경의 부재로 **NOT TESTED**. 문서/소스 정적 검사는 실행 여부와 구분한다.
+- 새 전체 PR CI에서 F-001 Preflight/Quality·F-002·F-003 직접 사례와 6개 Shard/Docker가 정확 Head/base/test-merge에서 성공해야 PASS. 다음 CI Run이 새로 시작되었다는 것만으로 수용하지 않는다.
+- 재발 시 **이 문서 F-001~F-003 전체**를 읽고 모든 후속 Run/Attempt·취소된 Shard의 실제 오류를 추가한 뒤, 두 E2E 파일/공통 fixture/간접 소비자의 전체 실패 합집합으로 진단한다. Timeout 일괄 증가·Skip·Assertion 완화·무관 이슈 자동 생성 금지.
+- 리뷰 thread 0·main 정렬·병합 충돌 해결 확인은 CI 실행 전 재확인한다. 사용자가 요청한 마지막 작업은 새 PR CI **시작**이며 그 후 자동 모니터링/병합/GHCR 게시/Issue 종료는 수행하지 않는다.

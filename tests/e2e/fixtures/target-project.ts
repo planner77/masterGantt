@@ -3,6 +3,7 @@ import type { ProjectMasterAdminResponse } from "../../../src/contracts/project-
 import type { ProcessCatalogResponse } from "../../../src/contracts/process-catalog";
 import type { CreateProjectResponse, ProjectSnapshotResponse, TaskMutationResponse } from "../../../src/contracts/projects";
 import type { LogisticsMutationResponse } from "../../../src/contracts/logistics";
+import { observedReadOnlyGet, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 export const targetMasterPassword = "TargetAdm1!";
 
@@ -12,7 +13,7 @@ async function successful(response: APIResponse) {
 }
 
 /** Real HTTP setup: no mocked Target, binding, Task, or persistence responses. */
-export async function createTargetProject(page: Page, origin: string) {
+export async function createTargetProject(page: Page, origin: string, observeApi?: ObserveIsolatedApi) {
   const headers = { Origin: origin };
   await successful(await page.request.post(`${origin}/api/project-master/admin-sessions`, { headers, data: { password: targetMasterPassword } }));
   let masters = await (await successful(await page.request.get(`${origin}/api/project-master/admin/items`))).json() as ProjectMasterAdminResponse;
@@ -45,7 +46,15 @@ export async function createTargetProject(page: Page, origin: string) {
   } }))).json() as CreateProjectResponse;
   const publicId = created.data.project.publicId;
   const api = `${origin}/api/projects/${publicId}`;
-  const snapshot = async () => await (await successful(await page.request.get(api))).json() as ProjectSnapshotResponse;
+  // A transport-only GET reset may occur despite a live isolated server.
+  // Observe the first failure before one bounded retry; never retry writes.
+  const snapshot = async () => {
+    const response = await (observeApi
+      ? observedReadOnlyGet(observeApi, api, () => page.request.get(api))
+      : page.request.get(api));
+    expect(response.status()).toBe(200);
+    return await (await successful(response)).json() as ProjectSnapshotResponse;
+  };
   const mutate = async (path: string, data: object, method = "post") => {
     const current = await snapshot();
     return successful(await page.request.fetch(`${api}${path}`, { method, headers: { ...headers, "If-Match": `"${current.data.project.revision}"` }, data }));

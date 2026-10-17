@@ -1,3 +1,11 @@
+## Issue #703 — PR E2E 격리 Canonical GET 복구와 원격 검증 범위 (2026-10-17)
+
+Issue #703 PR #705 누적 Run #2880.1(Preflight 문서 FAIL), #2883.1(Shard5 실 GET ECONNRESET 후 Run 취소), #2884.1(정확 Head에서 6 Shard PASS), #2891.1(Shard3 GET ECONNRESET, 5개 다른 Shard 취소)의 정확한 출처·증거·누적 원인은 [단일 원장](ISSUE_703_FAILURE_ANALYSIS.md)과 [공통 지침](PR_CI_FAILURE_TRIAGE.md)에 보존한다.
+
+- 관측된 전송 오류 자체는 확정이나 서버 종료·OOM·비즈니스 데이터 손상 근인은 UNKNOWN. #2883/#2891 원본 격리 서버 진단에서는 실패 후 독립 Health=200, 프로세스 alive, 관측된 cgroup oomKill=0. 비관측 원인을 성공으로 오인하지 않는다.
+- 한정 변경은 `observeIsolatedApi` 첫 실패 진단(원본 error/health/process/cgroup 부수 증거) 이후 **동일 canonical read-only GET의 ECONNRESET 1회 재조회만** 허용한다. 기존 Project/Task/Resource/Milestone API의 모든 writes, HTTP4xx/5xx·bad JSON·invalid revision, 다른 transport 오류는 재전송하지 않는다. 기존 #680 선례와 단위 음성 테스트를 대조한다.
+- 검증은 정확 새 Head의 정책/Preflight/Quality/Chromium E2E 6개 Shard/Docker 및 기본 브랜치 Trusted QA를 별도로 확인할 때만 PASS. 같은 프로젝트 사용 중 버그 발견을 위한 Preview GHCR의 독립 게시와 정식 Release/Main CI/Finalizer 권한은 영향을 받지 않는다. 사용자 요청은 새 PR CI **시작**까지만이고 전체 완료 모니터링·GHCR/병합은 별도 지시 전 미수행한다.
+
 ## Issue #703 — GHCR Preview 시험 전용 원격 검증 (2026-10-17)
 
 Preview workflow_dispatch는 default main trusted SHA에서 Owner만 시작하고 등록 Open Issue/작업 branch HEAD의 full SHA를 GitHub API로 두 번 검증한다. 배포 package-write 권한이 없는 별도 Job에서 동일 원본 Docker image를 빌드하며 trusted image policy·readiness·Project/Task 인증/API·SQLite 재시작 Smoke에 통과해야 한다. Publish Job은 검증 artifact SHA256와 OCI revision label 및 GHCR tag 미존재를 인증한 뒤 별도 preview 패키지만 갱신한다. 승인/조회 모호성·stale는 BLOCKED. 전체 테스트와 Finalizer·정식 release 권한은 영향 받지 않는다. 자세한 원격 후속 AC와 비용 실증은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md), [ISSUE_703.md](exec-plans/active/ISSUE_703.md) 참조. 실제 Preview 실발행과 3개 Run 비용 절감은 NOT TESTED.

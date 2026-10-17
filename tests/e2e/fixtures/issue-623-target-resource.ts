@@ -1,6 +1,7 @@
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../../fixtures/issue-623-target-resource";
 import type { Page } from "@playwright/test";
 import { expect } from "./isolated-application";
+import type { ObserveIsolatedApi } from "./isolated-application-diagnostics";
 import { createTargetProject } from "./target-project";
 import { issue621ResourcePassword } from "./issue-621-target-project";
 import type { LogisticsTargetDto, LogisticsTargetMutationResponse } from "../../../src/contracts/logistics-targets";
@@ -9,8 +10,8 @@ import type { ProcessCatalogResponse } from "../../../src/contracts/process-cata
 import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../../src/contracts/resource-dashboard";
 
 /** Cumulative real HTTP fixture; logical F0 codes map to canonical server UUIDs. */
-export async function seedIssue623(page: Page, origin: string, wide = false) {
-  const f = await createTargetProject(page, origin);
+export async function seedIssue623(page: Page, origin: string, wide = false, observeApi?: ObserveIsolatedApi) {
+  const f = await createTargetProject(page, origin, observeApi);
   // F0 explicitly uses five weekdays; do not inherit the default KR holiday rule.
   await f.mutate("/work-calendar", { countryRules: [], customDates: [] }, "put");
   let masters = (await (await page.request.get(`${origin}/api/project-master/admin/items`)).json()) as ProjectMasterAdminResponse;

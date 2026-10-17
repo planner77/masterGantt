@@ -65,6 +65,7 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 - `docs/exec-plans/active/ISSUE_703.md`: UPDATED
 - `docs/ISSUE_703_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/PR_CI_FAILURE_TRIAGE.md`: N/A(main #704의 PR CI 누적 분석 지침을 변경하지 않고 그대로 준수함)
+- `docs/SCHEDULING_ENGINE.md`: N/A(Milestone 테스트의 GET 전송만 제한 복구하며 일정·Dependency 도메인 알고리즘 불변)
 - `DESIGN.md`: N/A(사용자 인터페이스나 SVAR Gantt 화면을 수정하지 않는 CI 경로 작업)
 - `docs/API.md`: N/A(앱 HTTP API 및 보안·인가 엔드포인트는 변경하지 않음)
 - `docs/DB_SCHEMA.md`: N/A(SQLite 테이블과 migration 파일 변경이 없고 시험 DB는 격리함)
@@ -72,7 +73,7 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 ## AC_TEST_COVERAGE
 
 - AC1: 정확 Issue·Owner·SHA 검증과 Build/Smoke/Preview digest Workflow 구현; 실제 GHCR 수동 게시·digest 확인은 main 반영 전 NOT TESTED.
-- AC2: `tests/python/test_preview_publish.py`의 Actor·Issue·branch·main SHA·tag 200/401/403/429/500 등의 음성 테스트; PR CI 원격 실행 전 NOT TESTED.
+- AC2: `tests/python/test_preview_publish.py`의 Actor·Issue·branch·main SHA·tag 200/401/403/429/500 음성 및 `tests/scripts/isolated-readonly-get.test.ts`의 관측된 ECONNRESET 1회 read-only 복구·비Reset/HTTP 오류 전파 5시나리오; PR CI 새 Head 전 NOT TESTED.
 - AC3: `tests/python/test_preview_publish.py`의 Build(read)·Publish(packages:write) 권한 분리와 이미지 SHA·archive SHA256 검사 계약; 실제 Run은 NOT TESTED.
 - AC4: `docs/PREVIEW_PUBLISH.md`의 별도 Compose·volume/DB·digest pinning·백업·restore 절차; 실제 환경 검증 NOT TESTED.
 - AC5: `.github/workflows/ci.yml`에서 기존 Required 3종·6-shard·Trusted QA·Main·Finalizer 불변 확인, Preview Python 회귀만 Policy에 추가; 원격 필수 검사 NOT TESTED.
@@ -88,3 +89,16 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 - 최초 실패는 `QA Preflight → DOCUMENTATION_SYNC: DOC_SYNC 기록 누락`이며 나머지 Required aggregate와 QA Final 실패는 연쇄, E2E/Docker/Unit 실제 실행은 SKIPPED. 기존 실패 결과는 불변이다.
 - 구조 `## DOCUMENTATION_SYNC` / `## AC_TEST_COVERAGE`를 보완하고 `tests/python/test_preview_publish.py`에 실제 신뢰 QA `docs_gate` 회귀를 추가한다. 로컬 실행은 NOT TESTED, 새 exact HEAD PR CI 재검증 필요.
 - 후속 실패 시 누적 원장인 [Issue #703 PR CI 실패 분석](../../ISSUE_703_FAILURE_ANALYSIS.md)에 Run별 새 근거를 추가한다.
+
+## 2026-10-17 CI #2883.1·#2884.1·#2891.1 전체 이력 교차 보완
+
+- 실패 누적 단일 원장은 [docs/ISSUE_703_FAILURE_ANALYSIS.md](../../ISSUE_703_FAILURE_ANALYSIS.md)의 F-001~F-003 및 [#704 공통 지침](../../PR_CI_FAILURE_TRIAGE.md) 참조.
+- 원본 #2880: 문서 DOC_SYNC 직접 실패(Preflight) → #2884·#2891에서 Preflight SUCCESS로 보완 검증. 원본 실패 이력 불변.
+- #2883: `milestone-stage-exchange.spec.ts`의 관측 GET `ECONNRESET`, Run 자체는 취소되었으나 Shard5에 실제 FAIL가 기록됨. [Run](https://github.com/planner77/masterGantt/actions/runs/39010283771), [Trace/진단](https://github.com/planner77/masterGantt/actions/runs/39010283771/artifacts/12092861934) 확인.
+- #2884: Chromium6/6, Quality/Docker, Trusted QA 성공 (이전 SHA 한정). 동일 source에 대한 새 검증으로 승격 불가.
+- #2891: `issue-623-resource-mvp.spec.ts` → `target-project.ts` GET `ECONNRESET`. Health=200, isolated process alive, cgroup oomKill0(모두 실패 직후 자료), 서버 종료·OOM 확정 증거 없음. [Run](https://github.com/planner77/masterGantt/actions/runs/39019744531), [Trace/진단](https://github.com/planner77/masterGantt/actions/runs/39019744531/artifacts/12095994618). Cancelled 5 shards는 실제 실패로 기록하지 않는다.
+- 유형: `INIT_TRANSPORT` 직접, 근인은 `UNKNOWN`. 5개 이슈를 포괄하는 제품 변경이나 전체 Skip·Timeout 확대 금지. 변경 영향은 `tests/e2e/fixtures/isolated-application-diagnostics.ts`, `target-project.ts`, `issue-623-target-resource.ts`, `issue-623-resource-mvp.spec.ts`, `milestone-stage-exchange.spec.ts` 및 새 `tests/scripts/isolated-readonly-get.test.ts`.
+- 보완: 관측기 선진단(프로세스/메모리/Health/HTTP), 정확 `ECONNRESET` **읽기 전용 GET 1회** 복구, 두 번째 실패 또는 비Reset·HTTP 오류는 원래 FAIL. 모든 POST/PUT/PATCH/DELETE 재전송0, canonical revision·Target/Task6 mutation·M/D/M/M·Excel/JSON·Gantt instance 단언과 기존 6-shard/fail-fast 불변. [Issue #680](../../exec-plans/active/ISSUE_680.md) 선례를 제한적으로 재사용.
+- 검증 예정: 신규 Vitest deterministic negative/positive 5 사례, 기존 #623 E2E 2건·#464 E2E(관련 1건)·#621 fixture 경계, policy/Preflight 및 최종 Full Required3·Trusted QA. 실제 신규 Head 결과는 **NOT TESTED**.
+- DOCUMENTATION_SYNC: `docs/TEST_PLAN.md` UPDATED, `docs/REMOTE_VALIDATION.md` UPDATED, `docs/exec-plans/active/ISSUE_703.md` UPDATED, `docs/ISSUE_703_FAILURE_ANALYSIS.md` UPDATED. `docs/SCHEDULING_ENGINE.md` N/A(Milestone 표시/일정 엔진 계약 변경 없음, 테스트 한정 GET 전송 실패 복구).
+- 추가 AC 매핑: AC2의 실패 시 안전한 BLOCKED·출처 관측; AC3의 권한 분리는 불변, AC5는 기존 PR Required3 유지. Preview 자체의 GHCR 게시 AC1/AC6/AC7/AC8은 main 병합 후 별도 실행 전 NOT TESTED.

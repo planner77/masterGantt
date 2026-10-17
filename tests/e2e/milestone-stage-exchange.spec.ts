@@ -1,7 +1,7 @@
 import { inflateRawSync } from "node:zlib";
 import type { Page, Download } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
-import type { ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
+import { observedReadOnlyGet, type ObserveIsolatedApi } from "./fixtures/isolated-application-diagnostics";
 import type { ImportPayload11 } from "../../src/contracts/import";
 import type { ProjectImportPreviewResponse } from "../../src/contracts/project-import";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse, CopyProjectResponse } from "../../src/contracts/projects";
@@ -18,8 +18,10 @@ async function createProject(page: Page, origin: string, name: string, observeAp
   expect(created.status()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string, api = `/api/projects/${publicId}`;
   const get = async () => {
-    // Capture transport/lifecycle evidence before cleanup; preserve the original error without retry.
-    const response = await observeApi(api, "GET", () => page.request.get(api)); expect(response.status()).toBe(200);
+    // Capture the first ECONNRESET before a bounded read-only GET retry.
+    // HTTP failures, JSON errors and all writes remain non-retryable.
+    const response = await observedReadOnlyGet(observeApi, api, () => page.request.get(api));
+    expect(response.status()).toBe(200);
     return await response.json() as ProjectSnapshotResponse;
   };
   let snapshot = await get();
