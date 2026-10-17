@@ -453,6 +453,7 @@ PR과 동일한 `quality`/`e2e`/`docker` gate를 다시 수행한다. 별도 `cl
 
 - `frontend`, `backend`, `scheduler`, `excel_vba`: 구현 중 관련 로컬 fast feedback을 수행하고 원격 branch/PR 검증 대상으로 변경을 전달한다.
 - `infra`: GitHub Actions run, workflow, runner, permission, cache, Docker/GHCR 문제를 담당한다. CI 실패 시 run/job/step 근거를 확보한다.
+- **PR CI 누적 실패 원격 이력:** infra와 Manager는 첫 실패부터 [Issue별 누적 원장](PR_CI_FAILURE_TRIAGE.md)을 유지하며 모든 관련 PR/Run/Attempt·Job/Shard의 실제 FAIL과 `CANCELLED/SKIPPED/NOT RUN`을 구분한다. 이전 source의 PASS는 해당 source에만 귀속하고, 재실패 시 전체 원장 및 원격 이력과 교차 대조한 후 제한적 확대 진단·재검증으로 인계한다. 원격 로그가 일부 누락되면 `UNKNOWN/BLOCKED`를 명시한다.
 - `qa_docs`: 위험도 정책에서 독립 검토가 필수인 경우 구현자와 분리해 로컬/원격 증거를 검토한다. 도구가 없으면 승인된 별도 인간 Reviewer를 배정한다. 독립 QA 미선택은 조건부 N/A, 필수 Reviewer 부재는 BLOCKED, 원격 CI 미실행은 NOT TESTED로 구분한다.
 - `Manager`: PR 원격 gate, 위험도별 QA_FINAL(필수 PASS 또는 N/A 근거), DOCUMENTATION_SYNC 및 필요한 환경 검증을 Head와 함께 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
 

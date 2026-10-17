@@ -154,7 +154,7 @@ class WorkflowContractTests(unittest.TestCase):
             "docs/REMOTE_VALIDATION.md", "docs/ISSUE_LIFECYCLE.md",
             "docs/LOCAL_PREPR.md", "docs/PREVIEW_PUBLISH.md",
             "docs/exec-plans/active/ISSUE_703.md",
-            "docs/ISSUE_703_PR_CI_FAILURE_ANALYSIS.md",
+            "docs/ISSUE_703_FAILURE_ANALYSIS.md",
         }
         ac = {f"AC{i}" for i in range(1, 9)}
         result = qa.docs_gate(packet, files, ac)

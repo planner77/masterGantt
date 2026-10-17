@@ -63,6 +63,8 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 - `docs/ISSUE_LIFECYCLE.md`: UPDATED
 - `docs/PREVIEW_PUBLISH.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_703.md`: UPDATED
+- `docs/ISSUE_703_FAILURE_ANALYSIS.md`: UPDATED
+- `docs/PR_CI_FAILURE_TRIAGE.md`: N/A(main #704의 PR CI 누적 분석 지침을 변경하지 않고 그대로 준수함)
 - `DESIGN.md`: N/A(사용자 인터페이스나 SVAR Gantt 화면을 수정하지 않는 CI 경로 작업)
 - `docs/API.md`: N/A(앱 HTTP API 및 보안·인가 엔드포인트는 변경하지 않음)
 - `docs/DB_SCHEMA.md`: N/A(SQLite 테이블과 migration 파일 변경이 없고 시험 DB는 격리함)
@@ -80,7 +82,9 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 
 ## CI 실패 원장 연결 (2026-10-17)
 
+- 최신 main Issue #704의 공통 지침 [PR CI 실패 누적 REWORK](../../PR_CI_FAILURE_TRIAGE.md)을 적용한다. Issue별 정규 경로는 `docs/ISSUE_703_FAILURE_ANALYSIS.md` 하나이며 과거 Run 원장을 덮어쓰지 않는다.
+
 - 원본 Run [39009485784.1](https://github.com/planner77/masterGantt/actions/runs/39009485784), PR #705, Head `9dd6f5c407dcb8417bf8b82b57a941d0ca8dcb26`, Base `de863713142a92f1cac56dbae044923822bca932`, test-merge `75e9ef89ecdd06111a3bdd16ad14e33ec50db73f`.
 - 최초 실패는 `QA Preflight → DOCUMENTATION_SYNC: DOC_SYNC 기록 누락`이며 나머지 Required aggregate와 QA Final 실패는 연쇄, E2E/Docker/Unit 실제 실행은 SKIPPED. 기존 실패 결과는 불변이다.
 - 구조 `## DOCUMENTATION_SYNC` / `## AC_TEST_COVERAGE`를 보완하고 `tests/python/test_preview_publish.py`에 실제 신뢰 QA `docs_gate` 회귀를 추가한다. 로컬 실행은 NOT TESTED, 새 exact HEAD PR CI 재검증 필요.
-- 후속 실패 시 누적 원장인 [Issue #703 PR CI 실패 분석](../../ISSUE_703_PR_CI_FAILURE_ANALYSIS.md)에 Run별 새 근거를 추가한다.
+- 후속 실패 시 누적 원장인 [Issue #703 PR CI 실패 분석](../../ISSUE_703_FAILURE_ANALYSIS.md)에 Run별 새 근거를 추가한다.

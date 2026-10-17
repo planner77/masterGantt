@@ -1,5 +1,7 @@
 # Issue #703 / PR #705 — PR CI 연속 실패 분석 원장
 
+공통 Source of Truth: [PR CI 실패 전체 이력 기반 REWORK](PR_CI_FAILURE_TRIAGE.md) (Issue #704). 이 문서는 정규 파일 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md`의 #703 단일 원장이다.
+
 이 문서는 CI 재발 시 **직전 실패만 고치지 않고 누적 실패/연쇄 취소/테스트 미실행을 구별**하기 위한 재사용 가능한 기록입니다. 원본 실패는 수정 후에도 실패 이력으로 남깁니다. 첫 기록: 2026-10-17 KST.
 
 ## 1. 원본 증거와 대상
@@ -58,6 +60,15 @@ DOCUMENTATION_SYNC / AC_TEST_COVERAGE — DOC_SYNC 기록 누락
 
 PR #705 자동 Code Review Summary는 원본 Head에서 `status=failed, has_unresolved_findings=true`를 표시했으나 GitHub inline review thread 조회는 **0건**입니다. 별도 봇 댓글은 Codex code-review 사용 한도 도달을 알립니다. 이를 “보안 검토 완료”로 간주하지 않습니다. 실제 스레드가 생기면 다시 분류합니다.
 
+## 2.1 Cross-run 실제 실패 집합 및 재검증
+
+| 실패 ID · Job | 실제 첫 실패 / 조건 | 확정 원인 분류 | 새 최종 Source 확인 범위 |
+| --- | --- | --- | --- |
+| F-001 · PR #705 / 39009485784.1 / QA Preflight 117328744098 | `ISSUE_703.md` 비정형 `DOCUMENTATION_SYNC` → `DOC_SYNC 기록 누락` | `POLICY_CI` / 정형 문서 계약 위반 | trusted `qa.docs_gate`에 대한 문서/AC 매핑 positive·negative와 새 원격 QA Preflight. 결과 확인 전 NOT TESTED |
+
+- **실제 실패 테스트 파일의 누적 합집합:** 없음. 최초 Run은 Preflight에서 E2E/Unit/Docker를 시작하지 않아 **테스트 성공 0건이 아니라 미실행 상태**다. 이후 Run의 직접 실패 파일·Case·Shard가 확인되면 표에 누적한다.
+- **비최종 CI 시도:** 수정 Head `9b2d90148263504b6e330570416b6677642c6d97`의 Run `39010283771.1`은 과거 base를 기준으로 생성됐으나 이 사이 main이 #704 포함 10커밋 전진하였다. 해당 Run은 사용자의 CI 모니터링 생략 지시에 따라 최종 상태를 확인하지 않았으므로 실패·성공 어느 쪽으로도 재분류하지 않는다.
+
 ## 3. 원인 보완·증거 상태
 
 - `docs/exec-plans/active/ISSUE_703.md`에 `## DOCUMENTATION_SYNC` 표준 파일별 `UPDATED/N/A(reason)`와 `## AC_TEST_COVERAGE`의 AC1~AC8 검증 맵을 보완.
@@ -77,6 +88,8 @@ PR #705 자동 Code Review Summary는 원본 Head에서 `status=failed, has_unre
 7. **원장 업데이트**: 새 Run 별 Head/Base/Test-Merge, 실패+취소 shard 전체, 제품/계약/환경/정책 유형, 변경 SHA, 결과 및 여전히 NOT TESTED인 검증을 한 행씩 누적. 기존 실패 Run을 PASS로 덮어쓰거나 정식 GHCR/Finalizer를 호출하지 않음.
 
 ## 5. 다음 Run에서 먼저 볼 항목
+
+- main #704의 공통 누적 원장을 먼저 읽고 이 문서의 모든 F-ID를 비교한 뒤 새 실패를 추가한다.
 
 - QA Preflight `DOCUMENTATION_SYNC` 성공 여부 → 이번 수정의 직접 회귀 판정.
 - 이전에 실행되지 않은 Policy 단계의 `test_preview_publish.py` (새 정책 회귀), Vitest/TS/ESLint, Chromium E2E6 및 Docker의 **최초 실제 오류**를 기록.
