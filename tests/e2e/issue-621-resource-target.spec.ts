@@ -30,10 +30,10 @@ async function openShared(root: Locator) {
   await root.locator(".resource-dashboard-detail").getByRole("button", { name: "통합 시운전", exact: true }).first().click();
 }
 
-test("#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0", async ({ page, browser, isolatedApplication: origin }, info) => {
+test("#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권한/412·조회 mutation0", async ({ page, browser, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue621(page, origin);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
   const before = await f.snapshot();
   const report = await f.report();
   expect(report.summary).toMatchObject({ taskCount: 2, assignmentCount: 3, effort: { knownMd: 3, unsetCount: 1, state: "partial", plannedMm: null } });
@@ -89,10 +89,10 @@ test("#621 실제 HTTP union 총계·두 Target 공유 identity·페이지·권�
   await info.attach("issue621-http-union", { contentType: "application/json", body: JSON.stringify({ summary: report.summary, a: a.summary, b: b.summary, taskId: f.task.taskId, assignmentIds: [first, second].map(detail => detail.rows[0].assignment!.assignmentId) }) });
 });
 
-test("#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending", async ({ page, isolatedApplication: origin }, info) => {
+test("#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱신·dirty/pending", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue621(page, origin);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
@@ -141,10 +141,10 @@ test("#621 Resource 동일 Task 저장1·복제0·WBS/Target A/B 역방향 갱�
   await info.attach("issue621-canonical-identity", { contentType: "application/json", body: JSON.stringify({ taskId: f.task.taskId, resourceUiWrites: writes, taskCount: changed.data.tasks.length, instance }) });
 });
 
-test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0", async ({ page, isolatedApplication: origin }, info) => {
+test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native keyboard·조회 mutation0·remount0", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue621(page, origin, true);
+  const f = await seedIssue621(page, origin, observeIsolatedApi, true);
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
@@ -332,10 +332,10 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   await info.attach("issue621-source-bound-query-scopes", { contentType: "application/json", body: JSON.stringify(boundQueries) });
 });
 
-test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존", async ({ page, isolatedApplication: origin }, info) => {
+test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue621(page, origin);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
   // A hidden co-assignee with unset allocation must not block this exact personal edit.
   const catalog = (await (await page.request.get(`${origin}/api/resources`)).json()).data;
   await f.mutate(`/tasks/${f.task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [
@@ -401,10 +401,10 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   await info.attach("issue621-exact-assignment", { contentType: "application/json", body: JSON.stringify({ assignmentId: alice.id, resourceId: f.resources[0].id, unchangedAssignmentId: bob.id, requests, successfulWrites: 1, taskId: f.task.taskId }) });
 });
 
-test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus", async ({ page, isolatedApplication: origin }) => {
+test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 scope/focus", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue621(page, origin);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
   const root = await openResource(page);
   await root.getByLabel("리소스 보기", { exact: true }).selectOption("targets");
   await root.getByLabel("Target 표시", { exact: true }).selectOption("matrix");

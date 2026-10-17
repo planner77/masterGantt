@@ -14,9 +14,9 @@ async function success(response: APIResponse, status = 200) {
   return response;
 }
 
-test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변경 stale·재시작", async ({ page, browser, isolatedApplication: origin, restartIsolatedApplication }, info) => {
+test("#620 실제 HTTP Target 교집합·공동담당 exact drill·readonly·변경 stale·재시작", async ({ page, browser, isolatedApplication: origin, restartIsolatedApplication, observeIsolatedApi }, info) => {
   test.setTimeout(240_000);
-  const f = await createTargetProject(page, origin);
+  const f = await createTargetProject(page, origin, observeIsolatedApi);
   const target = async (code: string, index: number, shared?: string) => {
     const response = await f.mutate("/logistics/targets", {
       code, name: `Target ${code}`, scope: "process", projectProcessId: f.processIds[index],

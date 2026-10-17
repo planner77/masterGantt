@@ -5,10 +5,10 @@ import { issue621ResourcePassword, seedIssue621 } from "./fixtures/issue-621-tar
 
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: issue621ResourcePassword, viewport: { width: 1440, height: 900 } });
 
-test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭", async ({ page, isolatedApplication: origin }, info) => {
+test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(240_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue621(page, origin);
+  const f = await seedIssue621(page, origin, observeIsolatedApi);
   const catalog = (await (await page.request.get(`${origin}/api/resources`)).json()).data;
   for (const [task, target, percent] of [[f.task, f.targets[0], 80], [f.unset, f.targets[1], 60]] as const) {
     await f.mutate(`/tasks/${task.taskId}/target-bindings`, { bindings: [{ targetId: target.id, scope: "self", selection: "whole", memberIds: [] }] }, "put");

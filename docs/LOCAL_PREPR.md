@@ -1,5 +1,9 @@
 # Local Pre-PR Verification — Issue #699
 
+## Issue #703 — 로컬 PASS와 Preview 게시의 경계 (2026-10-17)
+
+로컬 verify:prepr --mode=fast/targeted/docker의 실행 결과가 같은 Issue branch SHA에서 확인되고 Owner가 별도 지시하면 [Preview 수동 GHCR 가이드](PREVIEW_PUBLISH.md)에 따라 시험용 이미지 게시를 요청할 수 있다. 로컬 PASS와 Preview smoke는 원격 PR Required 3종·Trusted QA·Owner 정식 승인에 해당하지 않는다. --dry-run/UNKNOWN/누락/출처 불일치 역시 PASS가 아니다. 이미 열린 PR의 Push는 Full CI를 자동 시작할 수 있으므로 CI 비용 비교는 PR 없는 개발 단계와 분리한다. #703 Work Packet은 [여기](exec-plans/active/ISSUE_703.md)를 따른다.
+
 ## Issue #552 — 누적 진단과 SourceStable 차단 복구 (2026-10-17)
 
 `docs/evidence/issue-552/ci-cumulative-20261017.json`은 PR #561의 실제 GitHub CI 7개 Run에서 `FAIL`이 기록된 E2E **9파일 합집합**을 담는다. Job 자체가 `CANCELLED`인 #2862 shard5·#2863 shard4도 Playwright 실패 로그가 있으므로 test-level FAIL로 별도 보존한다. Run/Attempt/Head provenance는 GitHub 로그와 수동 대조한 기록이며 `diagnosticSubset`는 GitHub를 직접 검증하지 않는다.

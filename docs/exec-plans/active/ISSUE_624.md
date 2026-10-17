@@ -123,3 +123,11 @@
 - 기존 `waitForGanttReadiness` helper의 제한적 opt-in `allowCancelledPriorWork:true`를 scoped Week #456 consumer에만 사용한다. 기존 helper는 이미 취소 확정된 prior work만 허용하고 진행/실패/신규 U3 PENDING·stale는 차단한다. 신규 scoped capacity/음성 Unit과 실제 120px·vertical38·Editor/metadata·same instance 원본 단언을 보존한다.
 - [Issue별 누적 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 일곱 번의 실패 #2875/#2876/#2877/#2879/#2887/#2893/#2897 및 Cross-run F-624-001~030을 보존. 변경 대상은 #456 test와 Gantt readiness pure unit, 본 Work Packet·TEST_PLAN·REMOTE_VALIDATION·원장뿐이며 제품/DB/API/CI gate/버전 변경은 없다. 새 Head의 직접/교차/음성 로컬 Chromium·Vitest는 **NOT TESTED**. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
 
+
+## 최신 main #703 정렬 및 PR CI #2900.1 인계 (2026-10-17)
+
+- [PR #702 CI #2900.1](https://github.com/planner77/masterGantt/actions/runs/39028178930)에서 Head `3b0818e011000eee86271ff06a27eba03daa503b`의 Quality/E2E6/Docker와 QA Final SUCCESS. 그러나 본 후보의 old main Base `c0eca9ad...` 뒤 main이 `72bf35c1...`까지21커밋 앞서 병합 충돌이 발생했다. 원본 검증 결과를 새로운 main 통합 HEAD로 이월하지 않는다.
+- 공통 조상 기반 3자 비교 결과 docs/REMOTE_VALIDATION.md·docs/TEST_PLAN.md의 #703/#624 추가 기록을 모두 연결하고, `target-project.ts`의 GET `Connection: close`와 `observedReadOnlyGet` 정규 route/안전 관측/첫 ECONNRESET 1회 GET 전용 재조회 규칙을 합쳤다.
+- main #703에서 `seedIssue623` 함수의 3번째 인자가 observer로 변경되므로 신규 `issue-624-logistics-unified.spec.ts`를 `seedIssue623(page, origin, observeIsolatedApi, true)`로 수정해 기존 wide=true를 보존한다. Mutation retry0, HTTP/권한 에러 Fail-closed, Milestone full Stage Gate, 390~1920px/원시 ID/readonly/dirty/스냅샷 테스트 계약은 불변.
+- 근거와 앞선 실패 전체 출처는 [Issue #624 누적 분석 §10](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 보존. 앱 0.116.0 / HIGH OWNER_MANAGED / release_required=true / release_authorized=false. 새 Head의 로컬 TypeScript/Unit/E2E/merge 성공은 새 PR CI 종료 전 NOT TESTED이며 이번 Owner 지시는 PR CI 시작까지만, Main·GHCR·Release·Issue 종료하지 않는다.
+

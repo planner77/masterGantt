@@ -1,3 +1,7 @@
+## Issue #624 / PR #702 — main #703 합류·E2E fixture 소비자 교정 (2026-10-17)
+
+기존 [PR CI #2900.1](https://github.com/planner77/masterGantt/actions/runs/39028178930)의 Quality/E2E6/Docker 성공은 HEAD `3b0818e011000eee86271ff06a27eba03daa503b`와 이전 main `c0eca9ad...`에 한한다. latest main `72bf35c1...`의 #703 안전 GET observer·Preview/CI/docs와 #624 통합 물류 UI를 함께 보존하도록 실제 2-parent commit으로 정렬한다. Docs Remote/TEST_PLAN 및 Target Fixture 세 동시 변경과 `seedIssue623` 필수 observer를 해소한다. [Work Packet](ISSUE_624.md) 및 [누적 실패 원장 §10](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 전체 원인/교정/미검증 보존. 새 Full PR CI 시작 후 모니터링·병합/Main/GHCR/Issue 종료하지 않는다. HIGH/OWNER_MANAGED/release_authorized=false.
+
 ## Issue #624 — CI #2893.1 scoped Week 축 준비·최신 main 합류 (2026-10-17)
 
 [누적 실패 분석](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 F-624-001/007/013/019/022와 신규 025를 모두 연결한다. 이전 #2875~#2887의 DOC_SYNC/AC/Lint/390px/GET ECONNRESET은 #2893의 static Quality/Docker·#624 전용 E2E 개별 PASS·#621 5case 개별 PASS로 직접 재발하지 않았다. 신규 실패는 기존 #456 scoped Week Scroll X120 기대/실제62다. 기존 #552 marker-OFF/Canonical/Visible main을 보존하면서 `waitForGanttReadiness`의 최신 projection/3-frame + Core/native capacity를 확인하고 실제 wheel 한 번의 확장 뒤 원래 exact120/38과 Editor/metadata 보존을 검증한다. assert/retry/skip/CI 정책 완화 없음. Latest main app0.115.0에 새 기능 MINOR0.116.0/HIGH/OWNER_MANAGED/release_authorized=false로 통합하고 PR CI 시작에서 중단한다. 새로운 Required3/Trusted/Owner ACCEPT 및 Main/GHCR는 NOT TESTED.

@@ -1,3 +1,27 @@
+## Issue #624 / PR #702 — #703 Fixture와 공통 Target E2E 소비자 교차 검증 (2026-10-17)
+
+main `72bf35c1accb11d7521a9cc2b5799c82cb879229`의 `createTargetProject(page,origin,observeApi)` / `seedIssue623(page,origin,observeApi,wide)` 계약으로 #624 E2E의 기존 boolean wide 인자를 4번째 위치로 이동한다. 공통 snapshot은 이전 #624 `Connection: close`를 보존하면서 #703 `observedReadOnlyGet` GET 1회 제한 복구/안전 진단을 사용. Mutation 재전송0, API/Task/Assignment/Milestone Stage Gate, 5폭, readonly/dirty/401/412·스크롤 readiness 보호. #2900.1의 성공은 구 main 기준 HEAD만 인정하고, 새 병합 HEAD에서는 TypeScript·Unit·E2E #621/#622/#623/#624 및 #456/#552/#667·Quality/E2E6/Docker를 다시 검증해야 한다. 실제 새 HEAD는 NOT TESTED.
+
+## Issue #703 — CI #2896 F-004와 전체 E2E GET 전송 실패 합집합 (2026-10-17)
+
+- [누적 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) 7절과 [공통 REWORK](PR_CI_FAILURE_TRIAGE.md)를 적용한다. #2880 F-001은 QA 문서 구조, #2883 F-002는 #464 canonical GET, #2891 F-003은 #623 GET, #2896 F-004는 #621 GET ECONNRESET 직접 실패다. #2884/#2894 이전 SHA에서 실제 6 Shard·Quality·Docker SUCCESS는 별도 반례이며 최신 Head 증거가 아니다.
+- #2896 Shard3 tests/e2e/issue-621-resource-target.spec.ts:92 → fixtures/target-project.ts:54의 비관측 GET ECONNRESET. 39 PASS/1 FAIL/53 NOT RUN, 다른 5개 Shard CANCELLED. Policy·Quality·Docker PASS, E2E/QA Final 파생 FAIL.
+- 생산자/소비자: createTargetProject, seedIssue621, seedIssue623의 mandatory ObserveIsolatedApi와 전체 16 E2E 시나리오 (#621 5, #622 1, #623 2, Target authoring 7, Resource Dashboard API 1). 기존 #464 Milestone exchange E2E도 누적 실패 파일 합집합에 포함한다. TypeScript 필수 호출 인수로 누락을 방지한다.
+- Unit tests/scripts/isolated-readonly-get.test.ts는 정상 GET, 첫 ECONNRESET 진단+1회 재조회, 두 번째 실패, HTTP 404/409/503, 다른 오류와 비Error 및 canonical route 정규화 6사례를 포함한다. 기존 정확 6개 Shard/Fail-Fast·timeout, 서버 API·Task/Resource/Target Revision/Calendar/SQLite와 Assertion은 변경하지 않는다.
+- 현재 로컬 Node/Playwright 전체 직접 실행, 신규 remote Head의 Quality/E2E/Docker/Trusted QA 결과는 실행 성공 근거 확보 전 NOT TESTED. 재발 시 F-001~F-004 전체와 새 실제 Job·Trace를 비교한다.
+
+## Issue #703 — 누적 PR CI #2883/#2891 HTTP GET 전송 실패 한정 회귀 (2026-10-17)
+
+- Source of Truth: [Issue #703 전체 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) F-001~F-003, [#704 공통 REWORK](PR_CI_FAILURE_TRIAGE.md), [#680 기존 Read-only GET 선례](exec-plans/active/ISSUE_680.md). 신규 원격 원장은 #2880 Preflight 정책 FAIL, #2883 Shard5 milestone-stage-exchange GET ECONNRESET, #2884 E2E 6/6 PASS, #2891 Shard3 issue-623-resource-mvp GET ECONNRESET을 정확 Head/Run별로 독립 보존한다.
+- 코드 영향: `tests/e2e/fixtures/isolated-application-diagnostics.ts`의 `observedReadOnlyGet`, `fixtures/target-project.ts` Snapshot 옵션, `fixtures/issue-623-target-resource.ts` 관측기 인계, 기존 `issue-623-resource-mvp.spec.ts`, `milestone-stage-exchange.spec.ts`. POST/PUT/PATCH/DELETE 원본 전송 재시도0, Server/Task/Resource/Target 계약·Date/Gantt Core 변경0.
+- 선택 단위 회귀: `tests/scripts/isolated-readonly-get.test.ts`의 정상200 1회, ECONNRESET 첫 시도 관측 뒤 1회 회복, 두 번째도 실패하면 세 번째 호출0, HTTP404/409/503 재시도0, ETIMEDOUT/ECONNREFUSED/JSON/비Error 이탈0. 첫 RESET은 `observeIsolatedApi`에 기록되어야 한다.
+- 직접/간접 E2E: #623 첫 real SQLite API/6개 별도 mutation, #623 5폭/Keyboard, #464 Stage·Milestone/Copy·Import·Excel, #621 동일 `target-project.ts` 기본 모드 회귀. 기존 업무 정합성·revision·canonical task ID·same instance/0 unwanted mutation/assertion/timeouts 불변.
+- 실제 원격 확인: 정확한 최신 Head/base/test-merge에서 Preflight+Quality/Vitest, E2E 6개 shard/Docker + Trusted QA 별도로 판정. 새 코드/fixture를 작성한 것만으로 로컬/원격 PASS 아님. 진단 아티팩트의 process alive/Health200/cgroup oomKill0은 서버 종료가 직접 원인이라는 증거가 없음을 뜻할 뿐 소켓 재사용/메모리 근인 확정 자료가 아니다. 재발 시 복구 1회로 숨기지 말고 전체 원장과 후속 Trace를 조사한다.
+
+## Issue #703 — Preview GHCR Owner·SHA·권한 분리 회귀 (2026-10-17)
+
+변경 producer: .github/workflows/preview-publish.yml, scripts/preview_publish.py. 직접 소비자: authorize→Build/read→trusted image-policy·API/SQLite smoke→artifact→publish/packages:write. 음성 집합: 비Owner, 타 event/repo/ref, Open Issue 아님, branch/Issue 번호·SHA stale, 현재 main SHA stale, GHCR tag 존재/401/403/429/5xx, 출력 injection, Preview가 CI/Release를 오인하게 하는 권한 확장. tests/python/test_preview_publish.py는 GitHub 네트워크 없는 stub·워크플로 정적 검증이며 PR/Main CI 정책 Job에서 실행한다. 실제 Docker Build/Runtime 및 GHCR Registry 인증·digest·롤백/시간 절감은 별도 원격 검증 전 NOT TESTED. 기존 #697 테스트 영향 선정/QA/Required3 범위를 줄이지 않는다. [Preview 가이드](PREVIEW_PUBLISH.md), [실행 계획](exec-plans/active/ISSUE_703.md).
+
 ## Issue #624 / PR #702 — PR CI #2897.1 terminal SUPERSEDED readiness 회귀 (2026-10-17)
 
 - 실패 [39026415903.1](https://github.com/planner77/masterGantt/actions/runs/39026415903): #456 scoped WBS Week/fullscreen `task-editor-form-density.spec.ts:152→181`에서 5초 timeout. [Shard3 trace artifact 12099027736](https://github.com/planner77/masterGantt/actions/runs/39026415903/artifacts/12099027736) 단일 blocker `PRIOR_CANCELLED_OPERATION_NOT_ACCEPTED`; prior RANGE_EXTENSION `SUPERSEDED`의 종료 기록과 최신 canonical7/7·U3 delivery SETTLED·Core/native18/18·수용량810/811을 구분한다. Full Quality/Docker 성공, Shard3 FAIL, Shard1/2/4 CANCELLED, 5/6 SUCCESS; E2E/QA 파생 실패.

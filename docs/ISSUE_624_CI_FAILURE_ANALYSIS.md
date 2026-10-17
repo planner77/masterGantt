@@ -264,3 +264,22 @@
 - **동결 소스 실검증 경계:** 현재 실행 환경에 GitHub clone/npm deps/Playwright가 없어 새 후보의 local targeted Vitest/typecheck/ESLint, `--max-failures=0` 누적 Chromium과 전체 CI는 **NOT TESTED**. 위 실측은 *실패 원본 Head의 trace*이므로 새 수정 버전 PASS로 소급하지 않는다. 새 PR synchronize의 Quality/E2E6/Docker/Trusted 및 Owner 수용·Main CI/GHCR/Finalizer/Release는 별도다.
 - **새 실패 시:** 최초 #2875부터 일곱 번째 #2897까지 원본 실패 원인을 재조회, 새 Root는 F-624-031부터 추가. 현재 helper `allowCancelledPriorWork`를 전역 기본값으로 바꾸거나 실시간 `APPLYING/TIMED_OUT/FAILED`를 숨기지 않는다. `main` behind=0/mergeable=true/Review thread0 확인 후 새 HEAD CI 시작까지만 수행하며 CI 종료 모니터링 없음.
 
+
+## 10. PR #702의 최신 main #703 정렬·충돌 해소 (2026-10-17)
+
+### 원본 CI 성공·후속 main 분기
+- [PR CI #2900.1 / Run 39028178930](https://github.com/planner77/masterGantt/actions/runs/39028178930)에서 HEAD `3b0818e011000eee86271ff06a27eba03daa503b`, Base `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7`, Required Quality/E2E6/Docker와 QA Final이 **SUCCESS**. 이는 **당시 Source만** 검증했으며 후속 main 21커밋을 검증한 것은 아니다.
+- 최신 main `72bf35c1accb11d7521a9cc2b5799c82cb879229` 전진으로 PR은 `mergeable=false/dirty`, behind=21. 동일 원본 #624 UI 변경과 #703 Preview/CI/GET-observer 병렬 변경을 진짜 두 부모 merge commit으로 통합한다. 승인 없는 Main 병합/GHCR/Release/Issue 종료는 금지한다.
+
+### 변경 합집합·충돌 판정
+- Git tree 3자 비교: common base `c0eca9ad...` → main 변경24파일, PR 변경27파일. 양쪽 동시 변경 **3파일** = `docs/REMOTE_VALIDATION.md`, `docs/TEST_PLAN.md`, `tests/e2e/fixtures/target-project.ts`. 나머지 변경은 서로 파일이 독립적이며 main의 Preview workflow, 안전한 read-only GET 원장/관측·15개 이상 소비자·테스트 전체를 보존한다.
+- 문서 두 개는 변경 전 공통 본문을 보존하면서 main #703 prepend 전체와 #624 prepend 전체를 모두 연결한다. 별도 현재 통합 단락에서 새로운 GET 보호 경계 및 exact-Head 미검증을 명시한다.
+- 공통 Target fixture의 **main #703 계약**: `createTargetProject(page, origin, observeApi)`, `observedReadOnlyGet(observeApi, normalizedRoute, callback)`. 독립 진단 후 **실제 ECONNRESET일 때만 canonical read-only GET을 한 번 재조회**한다. POST/PUT/PATCH/DELETE, HTTP 4xx/5xx·2차 오류·잘못된 결과는 회복 대상이 아니다.
+- **#624 기존 보호 유지**: `page.request.get(api, {headers:{Connection:"close"}})`를 위 callback으로 전달하여 keepalive socket 재사용을 줄인다. 기존 #2887 기록의 '재시도하지 않음'은 그 당시 수정 계약이고, 이번 통합에서는 #703의 신규 한정 read-only 복구가 우선한다. mutation/권한/If-Match/identity/Stage Gate 검증 완화 없음.
+- **숨은 TypeScript 소비자 수정:** main의 `seedIssue623(page, origin, observeApi, wide=false)`에 기존 신규 #624 E2E의 `seedIssue623(page,origin,true)`를 그대로 두면 boolean이 함수 인자로 잘못 전달된다. spec에서 `observeIsolatedApi` fixture를 주입하고 `seedIssue623(page,origin,observeIsolatedApi,true)`로 호출. 원래 wide=true synthetic 구성 유지.
+
+### 과거 7번 실패와 교차 검증 경계
+- 처음부터 #2875 문서 F001, #2876 AC F007, #2877 Hook F013, #2879 390px F019, #2887 GET ECONNRESET F022, #2893 scoped Week clamp F025, #2897 terminal SUPERSEDED F028(파생·CANCELLED 포함)을 전부 유지하고, #2900.1은 구 Head 전체 성공 기록으로 별도 기록한다.
+- 새 후보 동일 source의 필요 검증: Preflight(DOCUMENTATION_SYNC·AC)/ESLint/TypeScript/Unit, #624 네 관점/5폭·full Milestone Gate·canonical ID/읽기 mutation0, #621/#622/#623 공유 fixture/GET 관측+권한/ETag/저장1, #456/#552/#667 Gantt readiness, 기존 main #703 read-only GET 단위 음성/Playwright, Full PR E2E6 및 Docker. 실로컬 checkout/Node·Chromium을 실행할 수 없는 연결 환경이라 수정 통합 HEAD의 로컬 검증은 **NOT TESTED**. 불변 원본 #2900 성공과 새 Head 결과를 합산하지 않는다.
+- 리뷰 스레드 0·GitHub mergeable=true·main behind=0 검증 후 새 exact-Head Full PR CI만 시작하며 이후 CI 결과는 모니터링하지 않는다. HIGH/OWNER_MANAGED, `release_required=true`, `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
+

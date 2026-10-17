@@ -1,0 +1,258 @@
+name: Preview 시험용 GHCR 이미지 게시
+run-name: 'Preview · Issue #${{ inputs.issue_number }} · ${{ inputs.source_sha }} · Run #${{ github.run_number }}.${{ github.run_attempt }}'
+
+# Preview는 PR/Main CI, Release, Finalizer, SemVer 및 ci-<SHA>와 독립이다.
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "현재 열려 있는 Issue 번호"
+        required: true
+        type: string
+      branch:
+        description: "Issue 번호를 포함한 작업 branch (main 및 외부 fork 불가)"
+        required: true
+        type: string
+      source_sha:
+        description: "작업 branch HEAD의 정확한 40자리 소문자 SHA"
+        required: true
+        type: string
+      reason:
+        description: "시험 목적·로컬 검증 결과 (승인 증거 아님)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-issue-${{ inputs.issue_number }}-${{ inputs.source_sha }}
+  cancel-in-progress: false
+
+jobs:
+  authorize:
+    name: Owner·Issue·Main·원본 SHA 승인
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+    outputs:
+      source_sha: ${{ steps.guard.outputs.source_sha }}
+      image_name: ${{ steps.guard.outputs.image_name }}
+      image_ref: ${{ steps.guard.outputs.image_ref }}
+      image_tag: ${{ steps.guard.outputs.image_tag }}
+      issue_number: ${{ steps.guard.outputs.issue_number }}
+    steps:
+      - name: 신뢰된 default main 코드 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: 명시적 Owner 호출·Issue/branch/SHA/API 인증
+        id: guard
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          SOURCE_BRANCH: ${{ inputs.branch }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: python3 scripts/preview_publish.py authorize
+
+  build:
+    name: 격리된 Preview Build·Docker/API/SQLite Smoke
+    needs: authorize
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    steps:
+      - name: 검증 스크립트는 신뢰된 main에서만 로드
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: 게시 대상은 읽기 전용 정확 SHA로 checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.authorize.outputs.source_sha }}
+          path: source
+          persist-credentials: false
+      - name: 원본 SHA 고정 확인
+        env:
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: test "$(git -C source rev-parse HEAD)" = "$SOURCE_SHA"
+      - name: Docker Buildx 준비
+        uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
+      - name: 정확 SHA 이미지 단일 Build (registry 쓰기 권한 없음)
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: ./source
+          file: ./source/deploy/docker/Dockerfile
+          load: true
+          push: false
+          tags: mastergantt:preview-${{ needs.authorize.outputs.source_sha }}
+          platforms: linux/amd64
+          build-args: |
+            VERSION=preview-${{ needs.authorize.outputs.source_sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.authorize.outputs.source_sha }}
+            io.mastergantt.preview=true
+            io.mastergantt.preview.issue=${{ needs.authorize.outputs.issue_number }}
+          cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
+      - name: 신뢰된 이미지 정책·정확 revision 검사
+        env:
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          image="mastergantt:preview-$SOURCE_SHA"
+          test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image")" = "$SOURCE_SHA"
+          test "$(docker image inspect --format '{{ index .Config.Labels "io.mastergantt.preview" }}' "$image")" = "true"
+          sh trusted/scripts/verify-image-policy.sh "$image"
+      - name: SQLite Migration·readiness 확인
+        env:
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          docker run --detach --name mastergantt-commit-smoke \
+            --env APP_BASE_URL=https://gantt.example.invalid \
+            --publish 127.0.0.1:3000:3000 \
+            "mastergantt:preview-$SOURCE_SHA"
+          ready=false
+          for i in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:3000/api/health/ready; then ready=true; break; fi
+            sleep 1
+          done
+          if [[ "$ready" != "true" ]]; then docker logs mastergantt-commit-smoke; exit 1; fi
+      - name: Node 22 준비 (신뢰된 API smoke 실행)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: "22"
+      - name: Project/Task 인증·SQLite 재시작 영속성 검증
+        run: node trusted/scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-commit-smoke
+      - name: 검증한 이미지만 Docker archive로 보존
+        env:
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/preview-image"
+          docker save "mastergantt:preview-$SOURCE_SHA" | gzip -1 > "$RUNNER_TEMP/preview-image/image.tar.gz"
+          (cd "$RUNNER_TEMP/preview-image" && sha256sum image.tar.gz > image.sha256)
+      - name: 검증된 이미지 archive 인계 (같은 Run 전용)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: preview-image-${{ github.run_id }}
+          path: ${{ runner.temp }}/preview-image/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 2
+      - name: 실패 시 Preview Smoke 로그
+        if: failure()
+        run: docker logs mastergantt-commit-smoke || true
+      - name: 격리 테스트 컨테이너 정리
+        if: always()
+        run: docker rm -f -v mastergantt-commit-smoke 2>/dev/null || true
+
+  publish:
+    name: 신뢰된 단일 Digest의 Preview 패키지만 게시
+    needs: [authorize, build]
+    if: needs.authorize.result == 'success' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      issues: read
+      packages: write
+    steps:
+      - name: 신뢰된 main 검증기만 checkout (시험 코드 실행 금지)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: 같은 Run의 Build archive 다운로드
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: preview-image-${{ github.run_id }}
+          path: preview-image
+      - name: Artifact SHA256 및 정확한 구성 검증
+        run: |
+          set -euo pipefail
+          test "$(find preview-image -maxdepth 1 -type f | wc -l)" -eq 2
+          test -f preview-image/image.tar.gz
+          test -f preview-image/image.sha256
+          (cd preview-image && sha256sum --check --status image.sha256)
+      - name: 게시 직전 Owner·Issue·branch SHA 재검증
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          SOURCE_BRANCH: ${{ inputs.branch }}
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: python3 trusted/scripts/preview_publish.py authorize
+      - name: Preview 패키지 전용 GHCR 인증
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 게시 태그 부재 인증 (오류·권한 불명확 시 차단)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          SOURCE_BRANCH: ${{ inputs.branch }}
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: python3 trusted/scripts/preview_publish.py check-absent
+      - name: Smoke를 통과한 이미지 파일만 로드·확인
+        env:
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+          IMAGE_REF: ${{ needs.authorize.outputs.image_ref }}
+        run: |
+          set -euo pipefail
+          docker load --input preview-image/image.tar.gz
+          local_ref="mastergantt:preview-$SOURCE_SHA"
+          test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$local_ref")" = "$SOURCE_SHA"
+          test "$(docker image inspect --format '{{ index .Config.Labels "io.mastergantt.preview" }}' "$local_ref")" = "true"
+          sh trusted/scripts/verify-image-policy.sh "$local_ref"
+          docker tag "$local_ref" "$IMAGE_REF"
+          test "$(docker image inspect --format '{{.Id}}' "$IMAGE_REF")" = "$(docker image inspect --format '{{.Id}}' "$local_ref")"
+      - name: 게시 직전 원본/태그 재확인 및 Preview GHCR 전송
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          SOURCE_BRANCH: ${{ inputs.branch }}
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+          IMAGE_REF: ${{ needs.authorize.outputs.image_ref }}
+        run: |
+          set -euo pipefail
+          python3 trusted/scripts/preview_publish.py check-absent
+          docker push "$IMAGE_REF"
+      - name: GHCR digest pull·정확한 revision 검증
+        id: digest
+        env:
+          IMAGE_REF: ${{ needs.authorize.outputs.image_ref }}
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          docker pull "$IMAGE_REF"
+          digest_ref="$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE_REF")"
+          case "$digest_ref" in
+            ghcr.io/planner77/mastergantt-preview@sha256:*) ;;
+            *) echo "BLOCKED: 잘못된 GHCR digest 출처" >&2; exit 1 ;;
+          esac
+          test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$digest_ref")" = "$SOURCE_SHA"
+          echo "reference=$digest_ref" >> "$GITHUB_OUTPUT"
+      - name: Preview 전용 게시 증거 기록
+        env:
+          DIGEST_REF: ${{ steps.digest.outputs.reference }}
+          SOURCE_SHA: ${{ needs.authorize.outputs.source_sha }}
+          ISSUE_NUMBER: ${{ needs.authorize.outputs.issue_number }}
+        run: |
+          {
+            echo "## UNVERIFIED_PREVIEW: 정식 릴리스 아님"
+            echo "- Issue: #$ISSUE_NUMBER"
+            echo "- Source SHA: $SOURCE_SHA"
+            echo "- Authenticated digest: $DIGEST_REF"
+            echo "- Build/Smoke: 동일 Run 성공, Quality/E2E6/Docker Required 대체 불가"
+            echo "- Main/Finalizer/정식 GHCR 자동 실행 없음"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -3,6 +3,7 @@ import type { ProjectMasterAdminResponse } from "../../../src/contracts/project-
 import type { ProcessCatalogResponse } from "../../../src/contracts/process-catalog";
 import type { CreateProjectResponse, ProjectSnapshotResponse, TaskMutationResponse } from "../../../src/contracts/projects";
 import type { LogisticsMutationResponse } from "../../../src/contracts/logistics";
+import { observedReadOnlyGet, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 export const targetMasterPassword = "TargetAdm1!";
 
@@ -12,7 +13,7 @@ async function successful(response: APIResponse) {
 }
 
 /** Real HTTP setup: no mocked Target, binding, Task, or persistence responses. */
-export async function createTargetProject(page: Page, origin: string) {
+export async function createTargetProject(page: Page, origin: string, observeApi: ObserveIsolatedApi) {
   const headers = { Origin: origin };
   await successful(await page.request.post(`${origin}/api/project-master/admin-sessions`, { headers, data: { password: targetMasterPassword } }));
   let masters = await (await successful(await page.request.get(`${origin}/api/project-master/admin/items`))).json() as ProjectMasterAdminResponse;
@@ -45,30 +46,16 @@ export async function createTargetProject(page: Page, origin: string) {
   } }))).json() as CreateProjectResponse;
   const publicId = created.data.project.publicId;
   const api = `${origin}/api/projects/${publicId}`;
-  // Isolated Next dev HTTP/1.1 advertises Keep-Alive: timeout=5. Do not reuse an
-  // idle pooled socket for canonical readbacks after editor/transport phases.
-  // No automatic retry: a real process outage must remain an observable failure.
-  const snapshot = async (): Promise<ProjectSnapshotResponse> => {
-    let response: APIResponse;
-    try {
-      response = await page.request.get(api, { headers: { Connection: "close" } });
-    } catch (error) {
-      // Read-only, bounded diagnostic after a transport failure: distinguish an
-      // unhealthy isolated server from a closed idle connection. Never restart
-      // the server or accept stale data to make this assertion pass.
-      const health = await fetch(`${origin}/api/health/ready`, {
-        headers: { Connection: "close" },
-        signal: AbortSignal.timeout(2_000),
-      }).then(res => ({ status: res.status, ok: res.ok }))
-        .catch((probeError: unknown) => ({
-          transportError: probeError instanceof Error ? probeError.message : String(probeError),
-        }));
-      throw new Error(
-        `Target fixture canonical snapshot GET transport failure; isolated server health=${JSON.stringify(health)}; no retry`,
-        { cause: error },
-      );
-    }
-    return (await (await successful(response)).json()) as ProjectSnapshotResponse;
+  // #624: close the canonical GET connection to avoid reusing idle pooled sockets.
+  // #703: retain safe process/health diagnostics and one GET-only ECONNRESET
+  // retry; other transport/HTTP failures and all writes remain fail-closed.
+  const snapshot = async () => {
+    // The observer receives the normalized API route, never an absolute URL or
+    // credential-bearing request. All consumers must supply real E2E diagnostics.
+    const response = await observedReadOnlyGet(observeApi, `/api/projects/${publicId}`, () =>
+      page.request.get(api, { headers: { Connection: "close" } }));
+    expect(response.status()).toBe(200);
+    return await (await successful(response)).json() as ProjectSnapshotResponse;
   };
   const mutate = async (path: string, data: object, method = "post") => {
     const current = await snapshot();

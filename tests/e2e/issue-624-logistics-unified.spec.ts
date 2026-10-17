@@ -19,12 +19,13 @@ const orders = {
   target: "target,resource",
 } as const;
 
-test("#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths", async ({ page, isolatedApplication: origin }, info) => {
+test("#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   // The isolated #623 fixture already performs numerous real HTTP mutations; keep this
   // larger integration probe finite and do not change the global E2E timeout.
   test.setTimeout(120_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue623(page, origin, true);
+  // #703 observer is required; preserve the original #624 wide fixture flag.
+  const f = await seedIssue623(page, origin, observeIsolatedApi, true);
   const milestoneMutation = await f.mutate("/tasks", {
     name: "V1 교차 조회 Gate", type: "milestone", start: "2026-10-09", duration: 0, progress: 0,
   });
