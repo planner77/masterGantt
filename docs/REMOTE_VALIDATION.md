@@ -810,3 +810,11 @@ CI #2819 완료 결과는 Quality/Docker PASS·E2E FAIL이며 SC-05 최종 APICo
 ## Issue #667 / CI #2820 — Grid Y 음성 테스트 관측 계약
 
 CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음성 관측 rows/TIMED_OUT과 성공receipt old SETTLED가 동시에 존재했으며 구 테스트는 성공receipt에서 실패게시를 기다렸다. 원본 trace/단독 FAIL과 테스트 교정·선택42 검증을 [원장](evidence/issue-667/ci2820-correction.json)에 기록한다. Trusted 실패도 원본CI FAIL 때문이며 Owner gate와 혼동하지 않는다. 새 Head Full CI를 완료까지 확인하고 같은 SHA의 Issue/PR STATUS로 원격 결과를 인계한다.
+
+## Issue #679 — 배치 게시 전후 원격 증거
+
+[배치 게시 운영](PR_BATCH_PUBLICATION.md)의 prepare/verify는 로컬 구조 비교다. 원격 인증·GitHub event·CI 성공을 대신하지 않는다. 게시 담당자는 local Head/tree/fingerprint와 실제 candidate Head/부모를 구분하고, 직전 main/expected Head를 재조회한 뒤 non-force 게시 1회와 실제 remote Head/tree read-back을 연결한다. 입력 JSON을 인증 근거로 취급하지 않는다.
+
+같은 최종 PR에서 Head/base/test-merge, Full CI Run ID/Attempt/event 및 Quality/E2E/Docker 실행 경로를 확인한다. default-main Trusted QA, metadata/docs-only/fork의 원격 동작과 최종 Owner 판단은 해당 실제 증거가 있어야 판정한다. 이전 Head의 PASS·새 도구의 로컬 PASS·Run 생성만으로 MERGE_READY를 인정하지 않는다.
+
+사용자 범위가 PR CI 시작까지이면 queue/in_progress 생성 snapshot을 확인하고 모니터링을 종료한다. 완료 결과·실제 Runner 분/큐·최종 wall-clock·전후 비용 비교는 NOT TESTED로 인계한다. 권한 만료/도구 차단/partial write/경합 fixture와 실제 원격 실패를 분리하고 응답 불명확 시 재시도보다 read-back을 우선한다.

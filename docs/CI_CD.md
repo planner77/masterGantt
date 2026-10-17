@@ -933,3 +933,9 @@ Required PR aggregate quality/e2e/docker must now cover Template v2 graph persis
 ## Issue #649 — 신규 SHA 릴리스 승계 준비 (2026-10-13)
 
 원본 #616 v0.107.0 SHA 및 실패 CI는 불변이며, #647 교정의 성공 기록은 #616 정식 게시 증거가 아니다. HIGH/OWNER_MANAGED, 신규 버전 게시 승인 없음. 읽기 전용 준비 검증은 [Issue #649 실행 원장](exec-plans/active/ISSUE_649.md)을 따르며 Git/GitHub Release/GHCR 인증 감사 UNKNOWN·중복 태그·불분명한 Owner 승인은 BLOCKED로 유지한다. 신규 v0.108.0은 제안일 뿐이며 정확한 SHA·버전 범위 신규 Owner 승인이 없는 자동 승계·발행·부채 폐기·#616 종료를 금지한다. 기존 workflow, CI required 3종, Trusted QA, first-parent, release Finalizer 정책은 변경하지 않는다.
+
+## Issue #679 — CI 이전 게시 단위 개선
+
+[PR 변경 묶음 게시](PR_BATCH_PUBLICATION.md)는 코드·테스트·문서 준비 후 target Ref를 한 번 게시하는 개발 운영 절차다. `ci.yml`의 PR opened/reopened/synchronize/edited, Full/metadata concurrency, path 판정, Preflight/Fast Gate, Required Quality/E2E/Docker 및 main/GHCR/Finalizer·Release를 변경하지 않는다. 불필요한 중간 게시를 줄이는 것이며 최종 Head 검증 또는 계획된 진단 checkpoint를 생략하지 않는다.
+
+[기준 측정](evidence/issue-679/ci-publication-baseline.json)의 Run/Attempt별 취소·실제 assigned Job 시간·시작 지연을 구분한다. Job 시간 합은 청구 분이나 wall-clock이 아니고, commit/Ref 요청/이벤트/Run 수가 항상 일치하지 않는다. 이번 PR의 시작 확인만으로 비용 절감·성공률 개선을 PASS로 보고하지 않는다. 복구·도구 제한과 전후 tree/부모/Head 검증은 공통 운영 문서를 따른다.

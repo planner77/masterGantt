@@ -1,3 +1,7 @@
+## Issue #679 — PR 변경 묶음 게시 (2026-10-17)
+
+[Work Packet](ISSUE_679.md)에 최신 main/실제 Run 비용·Ruleset·연결 API를 재검토한 A~D 선택을 기록했다. A는 일반 운영 우선, 현재 Git push 인증 부재로 B를 조건부 사용한다. 읽기 전용 manifest prepare/verify·임시 Git 회귀·prepr 매핑과 운영 문서를 함께 준비한 뒤 한 번 게시하고 최종 PR CI 시작을 확인한다. HIGH/OWNER_MANAGED, version 0.114.1 유지, release_required=false/release_authorized=false. 제품 source·CI YAML/Ruleset/Trusted 정책은 변경하지 않는다. 원격 비용/최종 CI 성공·Owner 승인은 실제 증거 전 NOT TESTED이며 CI 완료 모니터링은 요청 범위 밖이다.
+
 ## Issue #667 — 최신 main Gantt 공통 정합성 제품 연결 (2026-10-15)
 
 2026-10-16 CI #2840 후속: 최신원격728c의외부3커밋과ci2837/ci2838원장을보존해동기화했다. 실제실패는Core exact/native±1기존계약과신규native119거부Unit의불일치이며제품정책은유지한다. 경계5개와FILTER_RETURN재준비취소/1회상한5개를검증하고Unit173·viewport8·별도Copywheel1의출처를분리한다. 환경중단과실제FAIL·미실행을원장에보존한뒤리뷰/충돌·main재확인후새FullPRCI시작까지수행한다.
