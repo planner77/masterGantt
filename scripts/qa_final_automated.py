@@ -715,12 +715,31 @@ def trusted_source(env, event, gh):
     require(run.get("id") == run_id and run.get("event") == "pull_request" and
             str(run.get("path") or "").split("@")[0] == ".github/workflows/ci.yml",
             "trusted QA 입력이 CI pull_request run이 아닙니다")
-    require(run.get("status") == "completed" and run.get("conclusion") == "success",
-            "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
     require((run.get("repository") or {}).get("full_name") == gh.repo,
             "CI 검증 원본 repository 불일치")
     payload = source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
     number, head, base, merge, live = verified_source(gh, run, payload)
+    if live.get("merged") is True:
+        # A completed merge is immutable history, not a new merge approval.
+        # PR edited CI may fail and still must not supersede the older Full QA.
+        issue = primary_issue(live.get("title") or "", live.get("body") or "")
+        require(re.search(r"(?:^|/)issue-" + str(issue) + r"(?:[-/]|$)",
+                          (live.get("head") or {}).get("ref") or "") is not None,
+                "병합된 PR의 Primary Issue/branch trace 불일치")
+        metadata = "[메타데이터 검증]" in str(run.get("display_title") or "")
+        return {
+            "automated_qa": "N/A",
+            "independent_qa": "N/A(병합 후 비권위 감사)",
+            "manager_decision": "NOT TESTED",
+            "decision_reason": ("POST_MERGE_METADATA_NON_AUTHORITATIVE" if metadata
+                                else "POST_MERGE_FULL_AUDIT_ONLY"),
+            "pr": number, "issue": issue, "pr_head_sha": head,
+            "base_sha": base, "source_ci_test_merge_sha": merge,
+            "source_ci_run_id": run_id, "source_ci_run_attempt": run["run_attempt"],
+            "trusted_source": "PROTECTED_DEFAULT_BRANCH_WORKFLOW_RUN",
+        }
+    require(run.get("status") == "completed" and run.get("conclusion") == "success",
+            "원본 PR CI run 자체가 성공하지 않았습니다", "FAIL")
     source_jobs = effective_run_jobs(gh, run_id, int(run["run_attempt"]))
     results = {name: job.get("conclusion") for name, job in source_jobs.items()}
     metadata_only = "[메타데이터 검증]" in str(run.get("display_title") or "")
