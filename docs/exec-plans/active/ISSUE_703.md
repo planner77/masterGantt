@@ -116,3 +116,11 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 - DOCUMENTATION_SYNC: `docs/ISSUE_703_FAILURE_ANALYSIS.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, 본 Work Packet UPDATED. `docs/SCHEDULING_ENGINE.md`는 일정·Dependency 도메인 알고리즘과 Milestone 바/표시 변경 없음으로 N/A. `docs/API.md`·`docs/DB_SCHEMA.md`·`DESIGN.md` 제품 인터페이스/DB/UI 변경 없음 N/A. 원래 서식 `## DOCUMENTATION_SYNC`/`## AC_TEST_COVERAGE`은 QA Preflight와 일치하도록 그대로 유지한다.
 - AC 매핑 영향: AC2 fail-closed 관측, AC3 Preview 게시 권한 분리 불변, AC5 PR Required3·원격 검증 요구 불변. AC1/4/6/7/8 실제 Preview GHCR 게시·rollback·성능 측정은 후속 실증 전 NOT TESTED. release_required=false/release_authorized=false.
 - Owner 요청 범위: 동일 #705 Branch 수정·main 정렬, 미해결 리뷰 Thread와 충돌 해결, 새 PR CI **시작**. 성공 모니터링·병합/Main CI/GHCR/Finalizer/Issue 종료는 미진행.
+
+## 2026-10-17 #703 PR #710 실패 후 교정 — Run 39031667684
+
+- 누적 실패: 원본 Main #2901.1 (#490 고정 스크롤 120px ↔ 관측 18px), 교정 PR #709 (브랜치 issue-NNN 규칙/QA 메타데이터), PR #710 (QA Preflight 문서 동기화). 이전 실패는 소급 성공으로 변경하지 않는다.
+- F03 직접 실패: QA Preflight `DOCUMENTATION_SYNC / AC_TEST_COVERAGE`: `docs/TEST_PLAN.md` 변경 또는 N/A(reason) 미입증. #710 변경은 #490 E2E 스크롤 회귀 테스트를 직접 수정했으므로 TEST_PLAN은 N/A가 아니라 UPDATED로 기록하고 실제 파일에 테스트 정책을 보완한다.
+- 이 단계 실패로 PR Fast Gate 및 Required Quality/E2E/Docker aggregate가 연쇄 실패/차단되었다. E2E 기능 재실패의 증거가 아니다.
+- DOCUMENTATION_SYNC: `docs/TEST_PLAN.md` UPDATED (테스트 위치·scrollWidth/clientWidth 기반 bounded 이동, 수평 스크롤 양수 보장), `docs/exec-plans/active/ISSUE_703.md` UPDATED (이 절), `docs/ci-failures/ISSUE_703_MAIN_CI_39029791058.md` UPDATED (누적 F01-F03).
+- AC_TEST_COVERAGE: AC5 — E2E 정상 수평 스크롤 보존 회귀 `tests/e2e/project-settings-layout-490.spec.ts`; 실제 PR Required 3종과 trusted QA 성공은 새 Head CI 이전 NOT TESTED. AC1/6 GHCR/Finalizer는 미실행.

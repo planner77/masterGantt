@@ -1,3 +1,10 @@
+## Issue #703 Main CI #2901.1 / #490 Gantt viewport E2E regression (2026-10-17)
+
+- `tests/e2e/project-settings-layout-490.spec.ts` verifies horizontal scroll preservation through settings tabs, metadata save and native fullscreen round-trip. A hardcoded `scrollLeft=120` is not always achievable if chart `scrollWidth-clientWidth` is smaller; the original Main Run 39029791058 observed 18 instead of 120.
+- Assert `max(0,scrollWidth-clientWidth)>0` first so an actual lost scrollable timeline remains a regression, set/expect `min(120,maxScroll)`, and retain vertical scroll, WBS selection, tree, column width, scope and fullscreen invariants. Do not silently skip the test or loosen the 5s poll timeout.
+- PR #709 Run 39031438869 was blocked by issue branch naming and QA metadata. PR #710 Run 39031667684 was blocked in QA Preflight because this TEST_PLAN sync was absent; Quality/E2E/Docker aggregates were consequential failures, not new Playwright findings. See `docs/ci-failures/ISSUE_703_MAIN_CI_39029791058.md` for the entire F01-F03 evidence chain.
+- Verify with targeted #490 spec and the existing required 6-shard Chromium E2E, Quality and Docker checks; no local/PR PASS is claimed until actual results.
+
 ## Issue #624 / PR #702 — #703 Fixture와 공통 Target E2E 소비자 교차 검증 (2026-10-17)
 
 main `72bf35c1accb11d7521a9cc2b5799c82cb879229`의 `createTargetProject(page,origin,observeApi)` / `seedIssue623(page,origin,observeApi,wide)` 계약으로 #624 E2E의 기존 boolean wide 인자를 4번째 위치로 이동한다. 공통 snapshot은 이전 #624 `Connection: close`를 보존하면서 #703 `observedReadOnlyGet` GET 1회 제한 복구/안전 진단을 사용. Mutation 재전송0, API/Task/Assignment/Milestone Stage Gate, 5폭, readonly/dirty/401/412·스크롤 readiness 보호. #2900.1의 성공은 구 main 기준 HEAD만 인정하고, 새 병합 HEAD에서는 TypeScript·Unit·E2E #621/#622/#623/#624 및 #456/#552/#667·Quality/E2E6/Docker를 다시 검증해야 한다. 실제 새 HEAD는 NOT TESTED.
