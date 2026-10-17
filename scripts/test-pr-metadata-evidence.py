@@ -79,3 +79,40 @@ decision = m.evaluate(event,repo=REPO,current_run_id=21,api_get=fake_api,
 eq("712-post-merge-audit",decision[0],"POST_MERGE_METADATA_NON_AUTHORITATIVE")
 decision = m.evaluate(event,repo=REPO,current_run_id=21,api_get=fake_api,mode="evidence")
 eq("712-unverified-source-block",decision[0],"SOURCE_UNVERIFIED")
+
+# #712: fully paginated workflow run AND attempt job lists. The Full candidate
+# lives on page 2 behind 100 newer edited audit runs on page 1.
+def paged_api(path):
+    if "/pulls/" in path:
+        return merged_pr
+    page = int(path.split("page=")[-1]) if "page=" in path else 1
+    if "/workflows/ci.yml/runs" in path:
+        if page == 1:
+            return {"workflow_runs":[run(101+i,label=m.METADATA_MARKER,
+                                        conclusion="failure") for i in range(100)]}
+        return {"workflow_runs":[run(20)] if page == 2 else []}
+    if "/attempts/1/jobs" in path:
+        if page == 1:
+            return {"jobs":[{"name":f"synthetic-policy-{i}",
+                              "status":"completed","conclusion":"success"} for i in range(100)]}
+        return {"jobs":jobs() if page == 2 else []}
+    return {}
+paged = m.evaluate(event,repo=REPO,current_run_id=999,api_get=paged_api,
+                   mode="evidence",source_check=lambda *args:1)
+eq("712-paginated-run-and-jobs",paged[0],"POST_MERGE_METADATA_NON_AUTHORITATIVE")
+
+# Missing later page or malformed pagination must NEVER make a Full CI appear green.
+def missing_page(path):
+    if "/pulls/" in path: return merged_pr
+    if "/workflows/ci.yml/runs" in path:
+        page = int(path.split("page=")[-1]) if "page=" in path else 1
+        return {"workflow_runs":[run(101+i,label=m.METADATA_MARKER)
+                                 for i in range(100)] if page == 1 else None}
+    return {}
+try:
+    m.evaluate(event,repo=REPO,current_run_id=999,api_get=missing_page,
+               mode="evidence",source_check=lambda *args:1)
+except RuntimeError:
+    print("712-malformed-pagination: PASS")
+else:
+    raise AssertionError("712-malformed-pagination must BLOCK")
