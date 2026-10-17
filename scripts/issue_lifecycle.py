@@ -303,32 +303,95 @@ def exact_main_ci(
     return latest_ok, latest_url, artifact_ok, artifact_evidence
 
 
-def required_checks_ok(repo: str, sha: str) -> tuple[bool, list[str]]:
-    data = gh(f"/repos/{repo}/commits/{sha}/check-runs?per_page=100")
-    latest: dict[str, dict[str, Any]] = {}
-    for item in data.get("check_runs", []):
-        name = item.get("name")
-        if name not in REQUIRED_CHECKS:
-            continue
-        app = item.get("app") or {}
-        if app.get("slug") != "github-actions":
-            continue
+def required_checks_ok(
+    repo: str, sha: str, *, pr_number: int | None = None,
+    issue_number: int | None = None, merge_sha: str | None = None,
+    gh_client: Any = None,
+) -> tuple[bool, list[str], str]:
+    """Select the newest *full PR workflow run*, never mixed same-name check-runs.
 
-        previous = latest.get(name)
-        current_id = int(item.get("id") or 0)
-        previous_id = int(previous.get("id") or 0) if previous else -1
-        if previous is None or current_id > previous_id:
-            latest[name] = item
+    Metadata-only and Full runs can both write three identically named Check
+    Runs on the same Head SHA. A check-run ID is not a source of authority.
+    The immutable Full Run ID/Attempt, event artifact, PR attribution, original
+    base/test merge and actual two-parent merge tree must be verified together.
+    """
+    import qa_final_automated as qa
 
-    found = {
-        name: (
-            item.get("status") == "completed"
-            and item.get("conclusion") == "success"
+    if not isinstance(pr_number, int) or pr_number <= 0 or not re.fullmatch(r"[0-9a-f]{40}", sha):
+        return False, ["FULL_CI_SOURCE_UNVERIFIED"], "PR number 또는 Head SHA 누락"
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
+    try:
+        client = gh_client if gh_client is not None else qa.GitHub(repo, token)
+        route = f"{client.prefix}/actions/workflows/ci.yml/runs?event=pull_request&head_sha={sha}"
+        runs = client.collection(route, "workflow_runs")
+        candidates = sorted(
+            (item for item in runs if item.get("event") == "pull_request"
+             and item.get("head_sha") == sha and
+             str(item.get("path") or "").split("@")[0] == ".github/workflows/ci.yml"),
+            key=lambda item: (int(item.get("run_number") or 0),
+                              int(item.get("id") or 0)), reverse=True,
         )
-        for name, item in latest.items()
-    }
-    missing = [name for name in REQUIRED_CHECKS if not found.get(name, False)]
-    return not missing, missing
+        for item in candidates:
+            name = str(item.get("display_title") or "")
+            # A post-merge edited run is audit-only even if its three *names*
+            # collide with the three required aggregates.
+            if "[메타데이터 검증]" in name:
+                continue
+            if "[전체 검증]" not in name:
+                return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+                    f"Full/metadata 실행 유형 불명: run={item.get('id')}")
+            run_id, attempt = item.get("id"), item.get("run_attempt")
+            if (type(run_id) is not int or run_id <= 0 or
+                    type(attempt) is not int or not 1 <= attempt <= 10):
+                return False, ["FULL_CI_SOURCE_UNVERIFIED"], "Full Run ID/Attempt 누락"
+            url = item.get("html_url") or (
+                f"https://github.com/{repo}/actions/runs/{run_id}")
+            if ((item.get("repository") or {}).get("full_name") != repo or
+                    (item.get("head_repository") or {}).get("full_name") != repo):
+                return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+                    f"원본 CI repository 불일치: {url} attempt={attempt}")
+            source = qa.source_artifact(client, run_id, attempt)
+            number, head, base, test_merge, live = qa.verified_source(client, item, source)
+            # The live PR title/body/branch must still carry ONE canonical
+            # Primary Issue after merge; edited metadata cannot reassign it.
+            primary = qa.primary_issue(live.get("title") or "", live.get("body") or "")
+            branch = (live.get("head") or {}).get("ref") or ""
+            branch_issues = set(re.findall(
+                r"(?i)(?:^|[/_-])issue-([1-9][0-9]*)(?:$|[/_-])", branch))
+            if (branch_issues != {str(primary)} or
+                    (issue_number is not None and issue_number != primary)):
+                return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+                    f"PR Primary Issue/branch trace 변경: PR={number} run={run_id}.{attempt}")
+            if (number != pr_number or head != sha or
+                    ((live.get("merged") is True) != bool(merge_sha)) or
+                    (merge_sha and live.get("merge_commit_sha") != merge_sha)):
+                return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+                    f"PR/head/실제 merge SHA 출처 불일치: {url} attempt={attempt}")
+            # effective_run_jobs reads ALL attempts and ALL job pages. A failed
+            # rerun of one aggregate replaces that aggregate, not its siblings.
+            jobs = qa.effective_run_jobs(client, run_id, attempt)
+            bad = [name for name in REQUIRED_CHECKS
+                   if name not in jobs or
+                   jobs[name].get("status") != "completed" or
+                   jobs[name].get("conclusion") != "success"]
+            metadata = jobs.get("PR metadata가 기존 전체 CI 증거를 보존하는지 검증") or {}
+            if metadata.get("conclusion") != "skipped":
+                bad.append("FULL_CI_SOURCE_UNVERIFIED")
+            if item.get("status") != "completed" or item.get("conclusion") != "success":
+                bad.append("FULL_REQUIRED_FAILURE")
+            if bad:
+                return False, bad, (
+                    f"FULL_REQUIRED_FAILURE: run={run_id}.{attempt} url={url} "
+                    f"base={base} test_merge={test_merge} failed={bad}")
+            return True, [], (
+                f"FULL_VERIFIED: run={run_id}.{attempt} url={url} "
+                f"PR={number} head={head} base={base} test_merge={test_merge} "
+                f"merge={merge_sha or 'OPEN'} (3 required PASS; metadata-only 제외)")
+        return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+            f"FULL_CI_SOURCE_UNVERIFIED: PR #{pr_number}, Head {sha}의 Full CI 없음")
+    except (qa.Blocked, KeyError, ValueError, TypeError, RuntimeError) as exc:
+        return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+            f"FULL_CI_SOURCE_UNVERIFIED: {type(exc).__name__}: {exc}")
 
 
 def resolve_context(args: argparse.Namespace) -> Context:
@@ -393,7 +456,9 @@ def resolve_context(args: argparse.Namespace) -> Context:
     if release_required:
         version_ok = args.expected_version.strip() == version
 
-    checks_ok, missing_checks = required_checks_ok(repo, head_sha)
+    checks_ok, missing_checks, full_ci_evidence = required_checks_ok(
+        repo, head_sha, pr_number=pr_number,
+        issue_number=issue_number, merge_sha=merge_sha)
     main_ci_ok = False
     main_ci_url: str | None = None
     main_docs_only = False
@@ -430,7 +495,8 @@ def resolve_context(args: argparse.Namespace) -> Context:
         f"- merge target: {merge_sha or 'N/A — PR not merged'}",
         f"- current main: {current_main_sha}",
         f"- application version: {version}",
-        f"- PR required checks: {'PASS' if checks_ok else 'NOT TESTED'}",
+        f"- PR required checks: {'PASS' if checks_ok else 'BLOCKED'}",
+        f"- Full CI identity/provenance: {full_ci_evidence}",
         f"- missing/failed checks: {', '.join(missing_checks) if missing_checks else 'none'}",
         f"- exact target main CI: {main_ci_url or 'N/A'}",
         f"- main change docs-only: {str(main_docs_only).lower()}",
@@ -445,8 +511,23 @@ def resolve_context(args: argparse.Namespace) -> Context:
         with open(step_summary, "a", encoding="utf-8") as fp:
             fp.write("\n".join(summary) + "\n")
 
+    diagnosis = list(missing_checks)
+    if not merged:
+        diagnosis.append("PR_NOT_MERGED")
+    if merged and not main_ci_ok:
+        diagnosis.append("MAIN_REQUIRED_FAILURE")
+    if merged and not main_artifact_ok:
+        diagnosis.append("ARTIFACT_FAILURE")
+    if release_required and not release_authorized:
+        diagnosis.append("RELEASE_AUTH_MISSING")
+    if not version_ok:
+        diagnosis.append("VERSION_MISMATCH")
+    if diagnosis:
+        print("Lifecycle reason codes: " + ", ".join(dict.fromkeys(diagnosis)))
     if args.operation in {"release", "release_start", "finalize", "release_finalize", "close_resume"} and gate != "PASS":
-        raise LifecycleError(f"mutation blocked by lifecycle gate: {gate}")
+        raise LifecycleError(
+            f"mutation blocked by lifecycle gate: {gate}; "
+            f"reason_codes={','.join(dict.fromkeys(diagnosis))}; full_ci={full_ci_evidence}")
 
     return Context(
         issue_number=issue_number,

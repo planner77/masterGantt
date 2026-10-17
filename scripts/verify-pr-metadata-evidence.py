@@ -53,6 +53,7 @@ def _matches_pr(run: dict[str, Any], number: int, head_sha: str, current_run_id:
         or run.get("event") != "pull_request"
         or run.get("head_sha") != head_sha
         or str(run.get("path") or "").split("@")[0] != ".github/workflows/ci.yml"
+        or int(run.get("run_attempt") or 0) not in range(1, 11)
     ):
         return False
     prs = run.get("pull_requests") or []
@@ -65,7 +66,7 @@ def _job_results(jobs: list[dict[str, Any]]) -> dict[str, str]:
 
 def classify_full_evidence(
     runs: list[dict[str, Any]],
-    fetch_jobs: Callable[[int], list[dict[str, Any]]],
+    fetch_jobs: Callable[[int, int], list[dict[str, Any]]],
     *,
     pr_number: int,
     head_sha: str,
@@ -86,7 +87,9 @@ def classify_full_evidence(
         display = str(run.get("display_title") or "")
         if METADATA_MARKER in display:
             continue
-        jobs = _job_results(fetch_jobs(run_id))
+        attempt = int(run["run_attempt"])
+        job_items = fetch_jobs(run_id, attempt)
+        jobs = _job_results(job_items)
         metadata_conclusion = jobs.get(METADATA_JOB)
         if metadata_conclusion is not None and metadata_conclusion != "skipped":
             continue
@@ -98,12 +101,16 @@ def classify_full_evidence(
         run_status = str(run.get("status") or "")
         conclusion = str(run.get("conclusion") or "")
         if conclusion in BAD_CONCLUSIONS:
-            return "FULL_FAILED", run_id, f"전체 CI 결론: {conclusion}"
+            return "FULL_FAILED", run_id, f"Full CI {run_id}.{attempt} 결론: {conclusion}"
         gate_states = {name: jobs.get(name, "") for name in FULL_GATES}
+        complete = all(
+            j.get("status") == "completed" for j in job_items
+            if j.get("name") in FULL_GATES
+        ) and all(name in jobs for name in FULL_GATES)
         if run_status != "completed":
             return "DEFERRED", run_id, f"전체 CI 진행 중: {run_status or 'unknown'}"
-        if conclusion == "success" and all(state == "success" for state in gate_states.values()) and metadata_conclusion == "skipped":
-            return "VERIFIED", run_id, "동일 SHA 전체 CI의 3개 필수 Gate SUCCESS"
+        if conclusion == "success" and complete and all(state == "success" for state in gate_states.values()) and metadata_conclusion == "skipped":
+            return "VERIFIED", run_id, f"Full CI {run_id}.{attempt}의 3개 필수 Gate SUCCESS"
         # Completed but missing/failed/neutral/skipped required checks is not evidence.
         return "FULL_FAILED", run_id, f"전체 CI 또는 필수 Gate 증거 불일치: {gate_states!r}"
     return "MISSING", None, "동일 SHA의 판별 가능한 전체 PR CI 실행이 없습니다"
@@ -126,8 +133,24 @@ def _api(path: str, token: str) -> dict[str, Any]:
     return data
 
 
+def _collection(path: str, token: str, name: str) -> list[dict[str, Any]]:
+    """GitHub API pagination must be complete, never just the first 100 results."""
+    found = []
+    for page in range(1, 11):
+        sep = "&" if "?" in path else "?"
+        data = _api(f"{path}{sep}per_page=100&page={page}", token)
+        rows = data.get(name)
+        if not isinstance(rows, list):
+            raise RuntimeError(f"{name} API 반환 형식 오류")
+        found.extend(rows)
+        if len(rows) < 100:
+            return found
+    raise RuntimeError(f"{name} 조회 1,000개 초과: fail closed")
+
+
 def validate_full_source(repo: str, token: str, run_id: int, number: int,
-                         head: str, base: str, merge: str) -> None:
+                         head: str, base: str, merge: str,
+                         expected_attempt: int) -> int:
     """Cross-check PR event provenance against source full CI and live PR."""
     spec = importlib.util.spec_from_file_location("qa_source", QA_PATH)
     if spec is None or spec.loader is None:
@@ -136,10 +159,24 @@ def validate_full_source(repo: str, token: str, run_id: int, number: int,
     spec.loader.exec_module(qa)
     gh = qa.GitHub(repo, token)
     run = gh.get(f"{gh.prefix}/actions/runs/{run_id}")
-    artifact = qa.source_artifact(gh, run_id, int(run.get("run_attempt") or 0))
-    observed_n, observed_h, observed_b, observed_m, _ = qa.verified_source(gh, run, artifact)
-    if (observed_n, observed_h, observed_b, observed_m) != (number, head, base, merge):
-        raise RuntimeError("이전 full CI 원본 PR/head/base/merge 증거 불일치")
+    if (run.get("id") != run_id or
+            run.get("run_attempt") != expected_attempt or
+            run.get("event") != "pull_request" or
+            str(run.get("path") or "").split("@")[0] != ".github/workflows/ci.yml" or
+            run.get("status") != "completed" or
+            run.get("conclusion") != "success" or
+            (run.get("repository") or {}).get("full_name") != repo or
+            (run.get("head_repository") or {}).get("full_name") != repo):
+        raise RuntimeError("Full CI source Run/Attempt/Event/Repo 변경 또는 미성공")
+    artifact = qa.source_artifact(gh, run_id, expected_attempt)
+    observed_n, observed_h, observed_b, observed_m, live = qa.verified_source(gh, run, artifact)
+    if (observed_n, observed_h) != (number, head):
+        raise RuntimeError("이전 full CI 원본 PR/head 증거 불일치")
+    if live.get("state") == "open" and (observed_b, observed_m) != (base, merge):
+        raise RuntimeError("병합 전 full CI source base/test merge 불일치")
+    if live.get("merged") and (base or merge):
+        raise RuntimeError("병합 후 mutable base/test merge를 원본으로 오인")
+    return int(run["run_attempt"])
 
 
 def _current_pr(repo: str, number: int, token: str) -> dict[str, Any]:
@@ -175,7 +212,7 @@ def evaluate(
     current_run_id: int,
     api_get: Callable[[str], dict[str, Any]],
     mode: str,
-    source_check: Callable[[int, int, str, str, str], None] | None = None,
+    source_check: Callable[[int, int, str, str, str, int], int] | None = None,
 ) -> tuple[str, int | None, str, str, str]:
     """Injectable API for deterministic scenarios; second live read closes head race."""
     number, event_sha = _event_head(payload)
@@ -188,17 +225,35 @@ def evaluate(
     params = urllib.parse.urlencode(
         {"event": "pull_request", "head_sha": event_sha, "per_page": 100}
     )
-    data = api_get(f"repos/{repo}/actions/workflows/ci.yml/runs?{params}")
-    runs = data.get("workflow_runs")
-    if not isinstance(runs, list):
-        raise RuntimeError("workflow_runs 결과를 읽을 수 없습니다")
+    def collection(path: str, name: str) -> list[dict[str, Any]]:
+        found = []
+        for page in range(1, 11):
+            sep = "&" if "?" in path else "?"
+            response = api_get(f"{path}{sep}per_page=100&page={page}")
+            rows = response.get(name)
+            if not isinstance(rows, list):
+                raise RuntimeError(f"{name} API 결과 형식 오류")
+            found.extend(rows)
+            if len(rows) < 100:
+                return found
+        raise RuntimeError(f"{name} 10페이지 상한 초과")
 
-    def fetch_jobs(run_id: int) -> list[dict[str, Any]]:
-        response = api_get(f"repos/{repo}/actions/runs/{run_id}/jobs?filter=latest&per_page=100")
-        jobs = response.get("jobs")
-        if not isinstance(jobs, list):
-            raise RuntimeError("전체 CI job 결과를 읽을 수 없습니다")
-        return jobs
+    runs = collection(f"repos/{repo}/actions/workflows/ci.yml/runs?{params}", "workflow_runs")
+
+    def fetch_jobs(run_id: int, attempt: int) -> list[dict[str, Any]]:
+        selected = {}
+        for index in range(1, attempt + 1):
+            jobs = collection(f"repos/{repo}/actions/runs/{run_id}/attempts/{index}/jobs", "jobs")
+            if not jobs:
+                raise RuntimeError(f"원본 full CI {run_id}.{index} Job 없음")
+            names = set()
+            for job in jobs:
+                name = str(job.get("name") or "")
+                if not name or name in names:
+                    raise RuntimeError(f"원본 full CI {run_id}.{index} Job 식별 불가/중복")
+                names.add(name)
+                selected[name] = job
+        return list(selected.values())
 
     state, full_run_id, reason = classify_full_evidence(
         runs, fetch_jobs, pr_number=number, head_sha=event_sha, current_run_id=current_run_id
@@ -213,14 +268,27 @@ def evaluate(
             # Classifier-only callers may inspect status, never publish evidence
             # without a source validator in the actual Actions entrypoint.
             return "SOURCE_UNVERIFIED", full_run_id, "원본 event 출처 검증 미설정", event_sha, latest_sha
-        base = str((latest.get("base") or {}).get("sha") or "")
-        merge = str(latest.get("merge_commit_sha") or "")
-        if len(base) != 40 or len(merge) != 40:
+        post_merge = latest.get("state") == "closed" and latest.get("merged") is True
+        base = "" if post_merge else str((latest.get("base") or {}).get("sha") or "")
+        merge = "" if post_merge else str(latest.get("merge_commit_sha") or "")
+        if not post_merge and (len(base) != 40 or len(merge) != 40):
             return "SOURCE_UNVERIFIED", full_run_id, "현재 PR base/merge 정보 없음", event_sha, latest_sha
         try:
-            source_check(full_run_id, number, event_sha, base, merge)
+            identified = [r for r in runs if r.get("id") == full_run_id]
+            if len(identified) != 1:
+                raise RuntimeError("Full CI Run ID 후보 누락/중복")
+            source_attempt = int(identified[0].get("run_attempt") or 0)
+            if source_attempt < 1 or source_attempt > 10:
+                raise RuntimeError("Full CI Run Attempt 유효 범위 외")
+            attempt = source_check(full_run_id, number, event_sha, base, merge, source_attempt)
+            if attempt != source_attempt:
+                raise RuntimeError("Full CI 증거 Run Attempt 변경")
         except Exception as exc:
-            return "SOURCE_UNVERIFIED", full_run_id, "원본 full CI provenance 차단: " + str(exc), event_sha, latest_sha
+            return "SOURCE_UNVERIFIED", full_run_id, "FULL_CI_SOURCE_UNVERIFIED: " + str(exc), event_sha, latest_sha
+        if post_merge:
+            return ("POST_MERGE_METADATA_NON_AUTHORITATIVE", full_run_id,
+                    f"인증된 원본 Full {full_run_id}.{attempt}의 parents/Tree PASS; edited CI는 audit 전용",
+                    event_sha, latest_sha)
     return state, full_run_id, reason, event_sha, latest_sha
 
 
@@ -263,13 +331,14 @@ def main() -> int:
         state, run_id, reason, event_sha, current_sha = evaluate(
             payload, repo=repo, current_run_id=current_run_id,
             api_get=lambda path: _api(path, token), mode=args.mode,
-            source_check=lambda run, number, head, base, merge:
-                validate_full_source(repo, token, run, number, head, base, merge),
+            source_check=lambda run, number, head, base, merge, attempt:
+                validate_full_source(repo, token, run, number, head, base, merge, attempt),
         )
         _report(state, run_id, reason, event_sha, current_sha)
         # SUPERSEDED affects only an old SHA and cannot approve the latest head.
         # DEFERRED/MISSING/FAILED/INVALID stay red until a valid re-evaluation.
-        return 0 if state in ("TRACE_OK", "VERIFIED", "SUPERSEDED") else 1
+        return 0 if state in ("TRACE_OK", "VERIFIED", "SUPERSEDED",
+                              "POST_MERGE_METADATA_NON_AUTHORITATIVE") else 1
     except (KeyError, ValueError, RuntimeError, OSError, urllib.error.URLError) as exc:
         print(f"PR metadata evidence FAIL (API/환경 불확실성): {exc}", file=sys.stderr)
         return 1

@@ -1,3 +1,11 @@
+## Issue #712 — 병합 후 Full PR CI / metadata Check Run 별도 판정 (2026-10-18)
+
+Issue #552의 [Full #2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)와 후속 [post-merge metadata #2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)는 같은 Head와 Required Check 이름을 공유하지만 서로 **다른 검증 권한/범위**다. Lifecycle의 `required_checks_ok`는 가장 큰 Check Run ID로 세 Required PASS를 고르지 않는다. 최신 신뢰 가능한 **Full** Workflow Run/Attempt 및 `ci-pr-source-<run>-<attempt>` artifact와 PR·Head·Base·Test-Merge·repository 증거, rerun attempts의 실제 aggregate 결과를 일치시킨다. metadata-only edited 결과는 별도 audit로 보존하며 실제 최신 Full 실패/진행 중을 과거 PASS로 치환할 수 없다.
+
+병합 전 open PR provenance는 strict Head/Base/Test-Merge; 병합 후에는 실제 merge SHA와 원본 test-merge Git commit의 정확한 두 부모(base/head)와 동일 Tree, PR 귀속, 원본 artifact를 요구한다. squash/rebase·다른 Tree·출처 불명은 BLOCKED. `POST_MERGE_METADATA_NON_AUTHORITATIVE`는 Full test PASS를 대신하는 판정이 아니며 병합 후 QA Final의 중복 FAIL은 보안 게이트 증거로 승격하지 않는다. Lifecycle verify/release/finalize의 Main exact SHA·GHCR·Owner 승인 보호는 불변이고 위반 시 `FULL_CI_SOURCE_UNVERIFIED`, `FULL_REQUIRED_FAILURE`, `MAIN_REQUIRED_FAILURE`, `ARTIFACT_FAILURE`, `RELEASE_AUTH_MISSING` 등 원인을 기록한다.
+
+이 Issue의 작업 계획·AC 테스트: [ISSUE_712.md](exec-plans/active/ISSUE_712.md). PR 전체 Quality/E2E6/Docker/Trusted QA 및 Owner HIGH 수용 전에 merge/finalize/릴리스/이슈 종료 금지. #552 과거 원본 CI·태그·승인 원장은 변경하지 않는다.
+
 ## Issue #703 — Preview 시험 이미지와 Issue 완료 구분 (2026-10-17)
 
 Issue branch에서 Preview 수동 이미지가 게시되더라도 Phase는 PREVIEW_TRIAL(시험 전용)이고 MERGE_READY/RELEASE_AUTHORIZED/ISSUE_CLOSED를 자동 부여하지 않는다. Preview tag/digest는 기존 PR CI Required Quality/E2E/Docker 및 Trusted QA·Owner 수용을 대체하지 않는다. Preview Run은 main CI의 정식 ci-SHA/Release tag/Finalizer 전파·Issue close를 시작해서는 안 된다. 최초 사용은 PR 생성 전 branch에 권장하며 PR Push로 발생하는 자동 CI는 그대로 유지한다. 절차/증거/롤백은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md)와 [ISSUE_703 Work Packet](exec-plans/active/ISSUE_703.md)을 따른다.
