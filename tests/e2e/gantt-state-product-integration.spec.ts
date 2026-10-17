@@ -281,7 +281,7 @@ for (const oldRead of ["stale", "500", "both-500"] as const) {
   });
 }
 
-test("SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보존하고 marker를 활성화하지 않는다", async ({ page, baseURL, observeIsolatedApi }) => {
+test("SC-13 #667/#552 WBS mode keeps the same canonical Milestone and marker OFF", async ({ page, baseURL, observeIsolatedApi }) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
   const created = await page.request.post(`${api}/tasks`, {
     headers: { Origin: baseURL!, "If-Match": `"${snapshot.data.project.revision}"` },
@@ -291,9 +291,31 @@ test("SC-13 U5 공통 연결은 native Milestone 행과 전체 canonical을 보�
   const canonical = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   const milestone = canonical.data.tasks.find((entry) => entry.name === "Native milestone #667")!;
   await page.reload();
-  await expect(taskRow(page, milestone.name)).toBeVisible();
-  await expect(page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`)).toBeVisible();
-  await expect(page.locator(".project-milestone-lane")).toHaveCount(0);
+  const frame = page.locator(".project-gantt-frame");
+  await expect(taskRow(page, "Task A")).toBeVisible();
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  expect(apiInstance).not.toBeNull();
+  const milestoneRow = taskRow(page, milestone.name);
+  const milestoneBar = page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`);
+  const legacy = process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy";
+  if (legacy) {
+    // #667 compatibility baseline: neither the original native row nor its bar disappears.
+    await expect(milestoneRow).toBeVisible();
+    await expect(milestoneBar).toBeVisible();
+  } else {
+    // #552 default: only the presentation is removed; the canonical Milestone
+    // is still reachable from the already existing Dashboard (not a synthetic row).
+    await expect(milestoneRow).toHaveCount(0);
+    await expect(milestoneBar).toHaveCount(0);
+    await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    const dashboard = page.getByTestId("milestone-dashboard");
+    await expect(dashboard.locator(`[data-milestone-task-id="${milestone.taskId}"]`)).toBeVisible();
+    await expect(dashboard.getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: "일정", exact: true }).click();
+    await expect(taskRow(page, "Task A")).toBeVisible();
+  }
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+  await expect(page.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   const after = await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi) as ProjectSnapshotResponse;
   expect(after).toEqual(canonical);
 });

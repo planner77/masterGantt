@@ -4,16 +4,31 @@ import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboar
 import { resourceExportFilterInput } from "../../src/features/resources/resource-export-model";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Page, Locator } from "@playwright/test";
-import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
+import { expect, isolatedApplicationOptions, test as isolatedTest } from "./fixtures/isolated-application";
 import { targetMasterPassword } from "./fixtures/target-project";
 import { issue621ResourcePassword } from "./fixtures/issue-621-target-project";
 import { seedIssue623 } from "./fixtures/issue-623-target-resource";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
 
-test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: issue621ResourcePassword, viewport: { width: 1440, height: 1000 } });
-const previousMdPerMm = process.env.RESOURCE_MD_PER_MM;
-test.beforeAll(() => { process.env.RESOURCE_MD_PER_MM = String(oracle.mdPerMm); });
-test.afterAll(() => { if (previousMdPerMm === undefined) delete process.env.RESOURCE_MD_PER_MM; else process.env.RESOURCE_MD_PER_MM = previousMdPerMm; });
+// The runtime already depends on this password option. Its dependency keeps the
+// conversion environment scoped to the server lifetime without hook-only servers.
+const test = isolatedTest.extend<{ resourceMdPerMmEnvironment: void }>({
+  resourceMdPerMmEnvironment: async ({}, provide) => {
+    const previous = process.env.RESOURCE_MD_PER_MM;
+    process.env.RESOURCE_MD_PER_MM = String(oracle.mdPerMm);
+    try { await provide(); }
+    finally {
+      if (previous === undefined) delete process.env.RESOURCE_MD_PER_MM;
+      else process.env.RESOURCE_MD_PER_MM = previous;
+    }
+  },
+  isolatedResourceAdminPassword: async ({ resourceMdPerMmEnvironment }, provide) => {
+    void resourceMdPerMmEnvironment;
+    await provide(issue621ResourcePassword);
+  },
+});
+test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, viewport: { width: 1440, height: 1000 } });
 function archive(bytes: Buffer) {
   const result = new Map<string, string>(); let offset = 0;
   while (offset + 30 <= bytes.length && bytes.readUInt32LE(offset) === 0x04034b50) {
@@ -105,7 +120,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   page.on("request", request => { const path = new URL(request.url()).pathname; if (path.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !path.endsWith("/resource-dashboard/query")) writes.push({ method: request.method(), path, body: request.postDataJSON() }); });
   const assertSaved = async (count: number) => {
     expect(writes).toHaveLength(count);
-    const fresh = await f.snapshot();
+    const fresh = await readBrowserCanonicalSnapshot(page, `/api/projects/${f.publicId}`, observeIsolatedApi);
     expect(fresh.data.tasks.map(task => task.taskId)).toEqual(initial.data.tasks.map(task => task.taskId));
     expect(fresh.data.project.revision).toBe(initial.data.project.revision + count);
     await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);

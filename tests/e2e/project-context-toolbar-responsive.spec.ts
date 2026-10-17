@@ -88,7 +88,7 @@ for (const width of [390, 768, 1024, 1440]) {
       await expect(filter).toHaveText("필터 1");
       const reset = toolbar.getByRole("button", { name: "초기화", exact: true });
       await expect(reset).toBeVisible();
-      await expect(result).toContainText("1개 일치");
+      await expect(result).toContainText("1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 / 전체 3개 WBS 작업");
       if (width <= 768) {
         const resetBox = await reset.boundingBox();
         const filteredResultBox = await result.boundingBox();
@@ -108,7 +108,7 @@ for (const width of [390, 768, 1024, 1440]) {
       await reset.click();
       await expect(search).toBeFocused();
       await expect(reset).toHaveCount(0);
-      await expect(result).toContainText("4개 일치");
+      await expect(result).toContainText("2개 일반 Task 일치 · 직접 Summary 1개 · context Summary 0개 / 전체 3개 WBS 작업");
       await expectSameGanttRoot(page, identity);
       await expect(gantt).toHaveAttribute("data-gantt-scale-mode", "week");
       expect(await chart.evaluate((element) => element.scrollLeft)).toBe(chartScrollLeft);

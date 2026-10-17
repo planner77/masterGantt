@@ -1,0 +1,13 @@
+{
+  "environment": "Next development isolatedApplication + real HTTP + native SQLite",
+  "origin": "http://127.0.0.1:38103",
+  "publicId": "b1822c70-3b2e-4393-ba88-60c40c6b3034",
+  "cancelMutations": 0,
+  "hiddenMilestoneCount": 1,
+  "externalMemberRejected": true,
+  "externalIncidentLinkRejected": true,
+  "status": 409,
+  "code": "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED",
+  "revision": 16,
+  "fullSnapshotUnchangedAfterEachRejection": true
+}

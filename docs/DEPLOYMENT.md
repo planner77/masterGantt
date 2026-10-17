@@ -344,3 +344,9 @@ Docker Compose 배포는 `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 app container에 
 0.59.0의 `0018_empty_summary_schedule.sql`은 기존 tasks ID/parent/order/일정·Baseline·속성 및 참조를 보존하며 Summary에 한정한 일정 all-null 저장을 추가한다. 기존 migration 파일은 수정하지 않는다. 최초 연결의 migration runner가 참조 table 재생성에 필요한 FK OFF를 transaction 밖에서 한정 적용하고 commit 전 FK 무결성을 검사한다. 실패 시 schema·rows·ledger 모두 rollback하고 FK 설정을 복원하므로 준비 상태를 성공으로 보고하지 않는다.
 
 운영 upgrade 전 기존 backup 절차를 수행하고 새 버전의 migrations 전체를 함께 배포한다. 변경된 schema의 null Summary를 이전 application binary가 처리할 수 있다고 가정하지 않는다. rollback은 이전 이미지로의 단순 교체가 아닌 검증된 backup/schema 복구 절차를 따른다. 실제 production upgrade/backup 복구는 NOT TESTED이며 파일 SQLite upgrade/reopen/참조·실패 rollback은 로컬 자동 테스트로 구분한다. Docker/Compose/volume/security 정책 변경은 없다.
+
+## Issue #552 — Milestone WBS 표시의 비상 복구
+
+기본 빌드는 Summary/Task만 native WBS에 표시하고 Milestone 상단 marker는 OFF다. #552 자체 회귀를 조사할 때의 명시적 legacy 프로파일은 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`를 **Next.js 빌드 전에** 지정한다. `NEXT_PUBLIC_*`는 클라이언트 번들에 고정되므로 실행 중 환경변수 변경이나 컨테이너 재시작만으로 기존 번들을 바꾸지 않는다. 별도 환경에서 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy npm run build`로 생성한 후보와 canonical/selection/filter/viewport·marker OFF를 검증한 뒤 새 CI와 Owner 승인 절차를 따른다. 사용자 화면의 표시 토글이나 marker 기능의 rollback과 혼용하지 않는다.
+
+이번 변경은 Dockerfile의 새 build arg나 Compose runtime 설정을 추가하지 않는다. 기존 정식 Docker 이미지에 위 환경변수를 주입해서 legacy로 바뀐다고 가정하지 않는다. 컨테이너 운영의 코드 rollback은 검토된 revert PR·새 Required CI·정식 이미지/digest 승인·배포 절차를 사용한다. tag/digest/DB를 강제 변경하지 않으며 서버 canonical ID·Milestone/Link/Membership/Resource 데이터 migration은 없다. 이번 legacy probe와 실제 운영 이미지 재빌드/배포·복구 검증은 [Work Packet](exec-plans/active/ISSUE_552.md)에서 환경별로 구분한다.

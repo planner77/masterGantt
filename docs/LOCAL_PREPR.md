@@ -1,8 +1,27 @@
+# Local Pre-PR Verification — Issue #699
+
 ## Issue #703 — 로컬 PASS와 Preview 게시의 경계 (2026-10-17)
 
 로컬 verify:prepr --mode=fast/targeted/docker의 실행 결과가 같은 Issue branch SHA에서 확인되고 Owner가 별도 지시하면 [Preview 수동 GHCR 가이드](PREVIEW_PUBLISH.md)에 따라 시험용 이미지 게시를 요청할 수 있다. 로컬 PASS와 Preview smoke는 원격 PR Required 3종·Trusted QA·Owner 정식 승인에 해당하지 않는다. --dry-run/UNKNOWN/누락/출처 불일치 역시 PASS가 아니다. 이미 열린 PR의 Push는 Full CI를 자동 시작할 수 있으므로 CI 비용 비교는 PR 없는 개발 단계와 분리한다. #703 Work Packet은 [여기](exec-plans/active/ISSUE_703.md)를 따른다.
 
-# Local Pre-PR Verification — Issue #699
+## Issue #552 — 누적 진단과 SourceStable 차단 복구 (2026-10-17)
+
+`docs/evidence/issue-552/ci-cumulative-20261017.json`은 PR #561의 실제 GitHub CI 7개 Run에서 `FAIL`이 기록된 E2E **9파일 합집합**을 담는다. Job 자체가 `CANCELLED`인 #2862 shard5·#2863 shard4도 Playwright 실패 로그가 있으므로 test-level FAIL로 별도 보존한다. Run/Attempt/Head provenance는 GitHub 로그와 수동 대조한 기록이며 `diagnosticSubset`는 GitHub를 직접 검증하지 않는다.
+
+```bash
+# 별도 worktree: Node 22, npm ci(수동), Chromium headless-shell 준비
+npm run verify:prepr -- --mode=diagnose \
+  --base=c063101ed7b1d08803c3dac15a41e67842071187 --risk=HIGH --issue=552 --pr=561 \
+  --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json
+
+# 같은 HEAD/동일 checkout에서 소스 변경 없이 전체 실행
+npm run verify:prepr -- --mode=ci-like \
+  --base=c063101ed7b1d08803c3dac15a41e67842071187 --risk=HIGH --issue=552 --pr=561
+```
+
+예전 full-PR `UNKNOWN` 6경로는 Gantt 화면·CSS, Project workspace/Copy, Lockfile, Milestone E2E helper의 실제 소비자 매핑 부족이었다. 매핑은 코드와 unit 회귀 테스트를 보강했지만 **실제 실행 전 READY/PASS를 단정하지 않는다**. 이전 fast/targeted 개별 명령 PASS에도 `sourceStable=false`로 BLOCKED였던 문제는 Next가 tracked `next-env.d.ts`·`tsconfig.json`을 수정하고 일부 브라우저 테스트가 tracked screenshot을 갱신했기 때문이다. 테스트 시작 전 소유하지 않은 생성물을 제거하거나 시험 격리 환경을 준비할 때는 반드시 안전한 **새 worktree**만 사용한다. 실제 도구의 source fingerprint를 완화·ignore하지 않고, 변화가 발생하면 동일 소스 검증 무효(BLOCKED)로 처리하고 원인 파일을 바로잡은 **새 시작 지문**으로 전체 재실행한다. 제품 소스 변경과 테스트 실행을 동시에 진행하지 않는다.
+
+이 대화의 연결 환경은 GitHub DNS와 프로젝트 checkout/node_modules/Chromium을 제공하지 않으므로 diagnose/ci-like와 sourceStable 재판정은 **NOT TESTED**다. 유효하지 않은 기존 PASS·정적 검사만으로 Required3/QA·Owner를 승인하지 않는다.
 
 > 개발 Agent용 **로컬 사전 검증 보조 도구**다. 유일한 위험·영향 테스트 선택 정책은 [TEST_PLAN.md의 #697](TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)에 있다. `PASS`는 원격 PR exact-Head 세 Required Check/QA/Owner 승인과 동등하지 않다.
 

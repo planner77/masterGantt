@@ -151,8 +151,26 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   expect(instanceId).toBeTruthy();
   expect(apiInstanceId).toBeTruthy();
 
+  // The toolbar can show the new scale before Core and the registered
+  // projection have completed their geometry handoff.
+  const expectScaleSettled = async (mode: "day" | "week") => {
+    await expect.poll(async () => {
+      const raw = await frame.getAttribute("data-gantt-projection-receipt");
+      if (!raw) return null;
+      const receipt = JSON.parse(raw) as {
+        apiInstance?: string;
+        scale?: "day" | "week";
+        outcome?: string;
+      };
+      return receipt.apiInstance === apiInstanceId && receipt.scale === mode
+        ? receipt.outcome
+        : null;
+    }).toBe("SETTLED");
+  };
+
   await week.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+  await expectScaleSettled("week");
   await expect(frame).toHaveAttribute("data-gantt-cell-width", "68");
   await expect(day).toHaveAttribute("aria-pressed", "false");
   await expect(week).toHaveAttribute("aria-pressed", "true");
@@ -252,6 +270,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
 
   await day.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");
+  await expectScaleSettled("day");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
   await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
@@ -270,6 +289,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
 
   await week.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+  await expectScaleSettled("week");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
   // The concrete visible ISO week number depends on the current virtualized
@@ -285,6 +305,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
 
   await day.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");
+  await expectScaleSettled("day");
   await expect(frame).toHaveAttribute("data-gantt-cell-width", "36");
 
   for (let extension = 0; extension < 3; extension += 1) {
@@ -297,6 +318,15 @@ test("switches the Gantt timeline between day and ISO week headers without remou
     await expect.poll(async () => chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 
     await expect.poll(async () => Number(await frame.getAttribute("data-gantt-timeline-end"))).toBeGreaterThan(previousEnd);
+    // The React end date can change before the registered Core/native range
+    // transaction settles; do not start another edge gesture until it does.
+    await expect.poll(async () => {
+      const raw = await frame.getAttribute("data-gantt-viewport-coordinator");
+      if (!raw) return null;
+      const receipt = JSON.parse(raw) as { kind?: string; outcome?: string };
+      return receipt.kind === "RANGE_EXTENSION" ? receipt.outcome ?? null : null;
+    }).toBe("SETTLED");
+    await expectScaleSettled("day");
     await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);

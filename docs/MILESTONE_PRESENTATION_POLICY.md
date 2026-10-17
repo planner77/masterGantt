@@ -1,6 +1,8 @@
 # Milestone Presentation & Rollout Policy
 
-Decision: #548 / 2026-10-15. Status: PROPOSED until reviewed/merged. Related: #459–#464, #549–#553, #567/#573/#574, #661/#663–#667, optional marker #693.
+> Issue #552 PR #561 CI #2886 후속 제품 후보 (2026-10-17): Marker OFF의 WBS Grid/Chart에서 `type=milestone` native row/bar0 조건은 **Resource 탭으로 인해 일정 panel이 실제 숨겨졌다가 복귀하는 경계**에서도 유지해야 한다. 과거 CI #2878/#2886의 U3 이전 성공 receipt(Task6)와 재진입 이후 실제 DOM(Task6+M2) 불일치는 [#552 누적 실패 원장 §8](ISSUE_552_FAILURE_ANALYSIS.md)을 참조한다. 후보는 기존 public `filter-tasks` Effect가 `viewVisible` 복귀를 관측하도록 하되 숨김 상태에서는 Core write0을 유지한다. 제품 수정과 실제 원격/로컬 수용은 구분하며 새 후보 Chromium/QA/Owner 결과는 **NOT TESTED**다. 기존 rollback 및 후속 marker #693, server canonical/roll-up, CI Gate를 변경하지 않는다.
+
+Decision: #548 / 2026-10-15. Policy status: PROPOSED (제품 수용·Owner 결정 전). 문서의 main 통합은 구현 수용이나 정책 승인 완료와 구별한다. Related: #459–#464, #549–#553, #567/#573/#574, #661/#663–#667, optional marker #693.
 
 ## 1. 결정과 적용 범위 (Current → Target)
 
@@ -29,13 +31,13 @@ Milestone은 프로젝트 시점형 Stage Gate이자 Task 취합·진척·Ready/
 | `separate-milestones` | ON | #693 후속 *선택적* 사용, 같은 canonical M ID의 앱 소유 lane |
 | `legacy` | ON | 중복 표시 위험으로 지원하지 않음. 명시 reject/강제 OFF |
 
-현재 코드 `buildProjection(... displayMode: "compatibility" | "separate-milestones")`가 준비되어 있어도 실제 호출자 전환·필터·링크/계층/선택 안정성은 #552의 구현/검증 대상이다. #551 `MilestoneTimelineCapability` 기본 OFF는 기술 기반이고, **UI 토글이 행 표시 모드를 제어하도록 혼용하면 안 된다.** 두 축을 하나의 `Milestone 표시`로 저장·변경하지 않는다.
+현재 #552 구현 후보 코드 `buildProjection(... displayMode: "compatibility" | "separate-milestones")`가 준비되어 있어도 실제 호출자 전환·필터·링크/계층/선택 안정성은 #552의 구현/검증 대상이다. #551 `MilestoneTimelineCapability` 기본 OFF는 기술 기반이고, **UI 토글이 행 표시 모드를 제어하도록 혼용하면 안 된다.** 두 축을 하나의 `Milestone 표시`로 저장·변경하지 않는다.
 
 ### Marker OFF 불변식
 
 OFF는 CSS-only 숨김이 아니라 **그 기능의 실제 부작용 중단**이다. production 마커 전용 lane DOM/예약 높이/guide·listener·ResizeObserver·RAF·숨은 Milestone date reveal·마커 목적의 자동 resize/scroll은 실행하지 않는다. 원래 Task의 날짜축/scroll/filter/Resource 복귀/정합성 명령은 정상 유지한다. #551의 dev-only technical preview는 명시적 nonproduction opt-in이며 운영 gate 우회 수단이 아니다.
 
-Milestone 날짜는 Dashboard 상세에서 확인한다. '해당 날짜에서 보기'는 운영 marker OFF에서는 숨은 native 행 선택, 임시 marker ON, 무단 날짜축/scroll 조작을 하지 않고 **Dashboard 상세/소속 Task 보기**의 명시 안내·탐색으로 전환한다. 날짜 밖/날짜 미정/소속 Task 0/검색0 결과는 다른 상태로 설명한다. Admin/readonly/dirty/401/412/응답역전에서도 기존 Editor·Gateway 권한과 포커스 복귀를 보존한다.
+Milestone 날짜는 Dashboard의 `Milestone 날짜·소속 확인`으로 같은 canonical M Editor 상세에서 확인한다. 날짜 미정도 상세는 열고 소속 Task0은 일정 탐색 불가 사유로 별도 안내한다. '해당 날짜에서 보기'는 운영 marker OFF에서는 숨은 native 행 선택, 임시 marker ON, 무단 날짜축/scroll 조작을 하지 않고 **Dashboard 상세/소속 Task 보기**의 명시 안내·탐색으로 전환한다. 날짜 밖/날짜 미정/소속 Task 0/검색0 결과는 다른 상태로 설명한다. Admin/readonly/dirty/401/412/응답역전에서도 기존 Editor·Gateway 권한과 포커스 복귀를 보존한다.
 
 WBS에는 일반 Task/Summary만 유지한다. Milestone 자체의 Grid/Chart 행·Bar·native milestone Link 선을 제외하되, 일반 Task↔Task dependency는 보존한다. 숨은 Milestone이 속한 Summary의 날짜·기존 roll-up/canonical subtree, 외부 legacy mixed Link, Copy/Cut/Move/Delete의 서버 보호와 영향 설명은 **전체 canonical** 기준이다. Scope/필터의 Milestone-only legacy 선택은 0행을 정상 전체 Task로 속이지 않고 Dashboard 안내·명시 해제 경로를 제공한다.
 
@@ -43,7 +45,7 @@ WBS에는 일반 Task/Summary만 유지한다. Milestone 자체의 Grid/Chart �
 
 `#667(U5, main-first) → #552(행 제거·marker OFF) → #553(Export/Copy/Template no-loss) → #574(marker-OFF 통합 E2E/수용) → [선택] #573(marker-ON 기술 gate) → #693(marker 독립 opt-in/롤백/운영 수용)`
 
-1. **#667 main-first:** 이미 main에 들어온 U1~U4 (#663~#666)를 실제 ProjectGantt/Workspace/Coordinator에 연결해 GSC SC-01~14 공통 회귀를 검사한다. #552의 marker-ON·native M 행 제거는 포함하지 않는다. **새 main 기반 PR은 기존 #552 PR의 중복 구현이 아니라 공통 안정화 전용**이다. #674/PR #675의 동일 `project-gantt.tsx` 충돌을 정렬하거나 명시 handoff한다.
+1. **#667 main-first:** U1~U4 (#663~#666)의 실제 ProjectGantt/Workspace/Coordinator 통합은 main merge `bdaed6bd`에 반영되었다. 원본 GSC SC-01~14 실행/실패·미검증은 #667 원장에 보존하며 이 사실만으로 #552 새 Head를 PASS로 판정하지 않는다. #552의 marker-ON·native M 행 제거는 포함하지 않는다. **새 main 기반 PR은 기존 #552 PR의 중복 구현이 아니라 공통 안정화 전용**이다. #674/PR #675의 동일 `project-gantt.tsx` 충돌을 정렬하거나 명시 handoff한다.
 2. **#552 marker-OFF:** 기존 PR #561의 이력을 보존하며 최신 main(#667 포함)으로 정렬. `"separate-milestones"`를 활성화하지만 `milestoneTimeline.enabled=false`를 운영에서 보장한다. 기존 marker 기본 ON/일시 표시와 날짜 reveal 및 coupled preference/scroll 경로는 제외 또는 dead-code 제거. WBS mode emergency rollback은 별도 gate로 시험. 기존 #563 test PR은 최신 #552 계약으로 정렬·조정; 무단 자동 병합하지 않는다.
 3. **#553 marker-OFF 인수:** 기존 stacked PR #562는 #552의 새 Head/base 이후 정렬. WBS 밖 Milestone/Link/Membership이 JSON·Excel·SVG·PNG·Copy·Template에서 유실되지 않는지 검증. Image export에 실제 화면/Canonical 차이를 명시. 제품 코드 변경 및 테스트는 각 PR에서 검증하고 후속 이슈로 모두 미루지 않는다.
 4. **#574 기준선 QA:** 390~1920px, Day/Week, full/split, 일반 Task/empty/M-only, Resource·Target/Calendar/peer, filter0, 401/412/422/500/unknown, 다중선택·관계·스케줄·API/DB/Export, SC-01~14의 marker-OFF 관련 사례를 같은 Head/source에서 실행. #573 marker-ON Geometry gate가 아니라도 marker-OFF baseline은 완료 가능하다. 원본 E2E의 시각 기대를 바꾼 경우 보호하던 ID/원본·무mutation·권한·focus 단언을 새 경로에 대응시킨다.
@@ -53,7 +55,7 @@ WBS에는 일반 Task/Summary만 유지한다. Milestone 자체의 Grid/Chart �
 
 ## 5. 롤백 가능한 기능 분리 (필수 Gate)
 
-- **Baseline rollback:** #552의 별도 WBS mode를 `legacy`로 복귀하는 보호된 계획을 준비·시험. 기존 native row 재등장은 #552 자체 실패 시에만 허용하며 marker ON과 무관하다. 구 모드에서도 DB canonical·selection·filter·Task/Link/Resource state/viewport 보존을 검증한다. 프로필별 fallback이 허용되지 않으면 진입을 fail-closed한다.
+- **Baseline rollback:** #552 후보는 build-time `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`로 WBS를 `compatibility`에 복귀시키며 production marker OFF는 유지한다. Next 공개 환경변수는 빌드 시 반영하므로 재빌드/재배포가 필요하며 런타임 즉시/무중단 토글이 아니다. 기본 `separate-milestones`와 별개인 이 비상 복구는 실제 실행 증거 전 NOT TESTED다. 기존 native row 재등장은 #552 자체 실패 시에만 허용하며 marker ON과 무관하다. 구 모드에서도 DB canonical·selection·filter·Task/Link/Resource state/viewport 보존을 검증한다. 프로필별 fallback이 허용되지 않으면 진입을 fail-closed한다.
 - **Marker-only rollback (향후):** #693은 별도 독립 feature gate 기본 OFF를 제공한다. OFF로 전환 후 marker-only DOM/observer/RAF/명령=0, baseline WBS mode와 Dashboard/Resource 변동0을 실제 시험한다. 설정이 **런타임 즉시** 변경 가능한지는 구현·운영 검증 후 기록하며 env/build-time이면 재시작·재배포가 필요할 수 있다. '설정만 바꾸면 항상 무중단 롤백'이라고 미리 주장하지 않는다.
 - **Code rollback:** marker 전용 코드/Commit을 `git revert`하는 별도 PR + 새 Quality/E2E6/Docker·Trusted QA·Owner Gate. 단일 제품 PR에 WBS 제거와 marker ON을 섞지 않고 단일 이미지에만 종속시키지 않는다. tag/DB/digest를 과거로 강제 이동하지 않는다.
 - Marker OFF에서도 필요 없는 marker probe가 production에 남거나 date/layout side effect가 살아 있다면 'marker rollback PASS'가 아니다. 사고 전/후 실제 DOM·Core/native X/Y·API·Task/Link/Assignment·revision을 대조한다.
@@ -85,3 +87,7 @@ WBS에는 일반 Task/Summary만 유지한다. Milestone 자체의 Grid/Chart �
 
 ## Decision log
 - 2026-10-15 — #548/#552/#667 방향 조정: marker-OFF WBS 분리 먼저, marker ON을 마지막 독립 issue #693으로 이관. 회귀로 인한 rollback/운영 영향 최소화. 기존 #551 구현·역사적 원장 보존.
+
+## #552 구현 후보 인계 — 2026-10-16
+
+본 문서의 baseline 제품 목표는 최신 #552 PR 후보 계약에 반영한다. 후보는 marker Toolbar toggle·default ON preference·temporary ON/production DATE_REVEAL을 제거하고 #551 개발 opt-in capability를 보존한다. #667 main 공통 경로가 canonical/U2/U3/Coordinator/U4 authority를 단독 소유하며 과거 #552 resize/동기화 보완을 중복 활성화하지 않는다. 구현·로컬/원격 실행·Owner 수용은 각각 별도 증거이며 이 문서 갱신만으로 PASS/ACCEPT/main 제품 완료를 주장하지 않는다.

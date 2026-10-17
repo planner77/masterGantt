@@ -7,6 +7,8 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
   const fixture = await setup(page, { longList: true });
   const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
   milestone.siblingOrder = 0;
+  const sourceTask = fixture.tasks[1];
+  sourceTask.membership = { explicitMilestoneTaskId: milestone.taskId, effectiveMilestoneTaskId: milestone.taskId, inheritedFromTaskId: null };
   fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -16,9 +18,11 @@ test("#571 Editor locate는 실제 행을 이동하고 후속 Project metadata�
     core: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number },
     native: { left: element.querySelector(".wx-chart")!.scrollLeft, top: element.querySelector(".wx-gantt")!.scrollTop },
   }));
-  await frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
+  await frame.locator(`.wx-table-container .wx-row[data-id=":${sourceTask.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
   await chooseTaskInformation(page);
+  await editor(page).getByRole("button", { name: "Milestone 열기", exact: true }).click();
   const dialog = editor(page);
+  await expect(dialog.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(milestone.name);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
@@ -67,13 +71,17 @@ for (const input of ["wheel", "keyboard", "transient-modal"] as const) test(`#57
   const fixture = await setup(page, { longList: true });
   const locatedTask = fixture.tasks[3], milestone = fixture.tasks[4];
   milestone.siblingOrder = 0;
+  const sourceTask = fixture.tasks[1];
+  sourceTask.membership = { explicitMilestoneTaskId: milestone.taskId, effectiveMilestoneTaskId: milestone.taskId, inheritedFromTaskId: null };
   fixture.tasks = [milestone, ...fixture.tasks.filter(task => task !== milestone)];
   await page.reload();
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame");
-  await frame.locator(`.wx-table-container .wx-row[data-id=":${milestone.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
+  await frame.locator(`.wx-table-container .wx-row[data-id=":${sourceTask.taskId}"]`).click({ button: "right", position: { x: 12, y: 19 } });
   await chooseTaskInformation(page);
+  await editor(page).getByRole("button", { name: "Milestone 열기", exact: true }).click();
   const dialog = editor(page);
+  await expect(dialog.getByRole("textbox", { name: "작업명", exact: true })).toHaveValue(milestone.name);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click();
   await dialog.getByRole("combobox", { name: /^소속 상태/ }).selectOption("all");
   await frame.locator(".wx-gantt").evaluate(element => { element.scrollTop = 300; });
@@ -184,13 +192,12 @@ test("#571 WBS 범위의 빠른 필터 bookmark는 복귀하고 실제 wheel 뒤
   await chart.evaluate(element => { element.scrollLeft = 120; });
   await expect.poll(async () => (await viewport()).core).toBe(120);
   await expect.poll(async () => (await viewport()).native).toBe(120);
-  const quick = page.getByRole("group", { name: "작업 유형 빠른 보기" });
-  await quick.getByRole("button", { name: "Milestone", exact: true }).click();
+  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
+  await search.fill("no matching WBS task #552");
   await expect(frame.locator(".wx-table-container .wx-row[data-id]")).toHaveCount(0);
   await expect.poll(viewport).toEqual({ core: 0, native: 0 });
-  await quick.getByRole("button", { name: "전체", exact: true }).click();
+  await search.fill("");
   await expect.poll(viewport).toEqual({ core: 120, native: 120 });
-  const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
   await search.fill("긴 작업명");
   await expect(frame.locator(`.wx-table-container .wx-row[data-id=":${fixture.tasks[3].taskId}"]`)).toBeVisible();
   await chart.hover();

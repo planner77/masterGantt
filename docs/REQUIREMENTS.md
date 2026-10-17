@@ -522,6 +522,8 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 #523~#529의 기존 Domain/API/Dashboard/Plan/정확한 일정 이동/Excel을 같은 합성 원장으로 대조한다. 일반 Task·개인 Assignment 고유 집합, raw 계획 M/D/M/M, 미설정/null/0, 다중 Group 비가산, 선택 기여와 Project 전체 부하, full Milestone Ready를 유지한다. 통합 테스트는 기존 기능별 검증을 대체하거나 제품 계산·권한을 변경하지 않는다. 사용 흐름과 네 진단의 보완 경로는 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#issue-530-통합-사용자-가이드), 실행 증거는 [Issue #530 계획](exec-plans/active/ISSUE_530.md)을 따른다.
 ## Issue #549 — Milestone Timeline 공통 기반
 
+아래 기본 ON/현재 native행 설명은 MT1 당시 기술 모델·미연결 후보의 이력이다. 현재 #552 marker-OFF 구현 계약은 아래 별도 절을 따른다.
+
 MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Milestone 날짜 모집단, 기본 ON의 독립 표시 설정과 별도 Milestone 조회 선택을 구분한다. 기존 전체 Membership/Gate projector와 전체 subtree/export 의미를 유지하며 검색/scope/viewport로 E(M)/P(M)를 줄이지 않는다. null/invalid 날짜, 수동 이벤트, 완료 기록 불일치를 구별한다. 현재 native Milestone 행·빠른 보기·types를 유지하고 관리/lane/호환 표시 전환 UI는 #550~#553의 선행 gate 후 범위다. 상세 current/target/compatibility와 설치 Core 기술 제한은 [Milestone Timeline](MILESTONE_TIMELINE.md)을 따른다.
 
 
@@ -533,6 +535,14 @@ MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Mile
 보고 필터/KPI/freshness와 Gantt 인스턴스를 보존하며 같은 이름/날짜·전체0/조건0·scope 밖 endpoint를 구분한다. dirty 생성 초안의 폐기 확인, pending 닫기/중복 제출 차단, 401/412/network/stale 입력 보존과 실제 목록 focus/삭제 fallback을 요구한다. 현재 M행·quickview를 제거하지 않고 새 lane을 활성화하지 않는다. #549 Week header 의미 FAIL는 #551 활성화 전 독립 gate로 남는다. 명령 inventory/비지원 범위는 [MILESTONE_TIMELINE](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다.
 
 #550 관리 대상의 소멸이 commit된 뒤 RAF 전에 같은 대상이 복귀해도 메뉴를 자동 재개하지 않아야 한다. 명시적 같은/다른 ID 열기를 오래된 focus 복원이 방해하지 않아야 하며, 삭제 확인 취소/Escape는 disconnected trigger에서도 visible Dashboard fallback과 삭제 요청0을 유지해야 한다.
+
+## Issue #552 — WBS 행과 marker-OFF 표시 계약
+
+Native Summary/일반 Task WBS의 matching/context count와 full canonical Milestone 모집단을 분리한다. M native row/bar/대체 endpoint는0이고 production lane/marker/guide·예약 높이·marker-only observer/listener/RAF/date-axis/scroll도0이다. Toolbar 표시 toggle/default ON/temporary ON 및 기존 preference의 제품 활성화 연결은 제거한다. #551 개발 opt-in capability는 보존하고 운영 ON은 #573/#693 후속 범위다.
+
+Legacy mixed/M-only 유형은 다른 조건을 보존하고 M-only의 빈 WBS에 Dashboard 열기/명시 유형만 해제 경로를 제공한다. `Milestone 날짜·소속 확인`은 날짜 미정도 같은 canonical M Editor 상세를 열며 정확한 소속 Task 일정 탐색을 별도 제공한다. 숨은 M select·M 날짜용 범위 확장은 실행하지 않는다. 숨김은 canonical 구조/Link/Membership·Summary 파생·전체 Gate/Ready/Completed·Resource/Target·Copy/Delete/Move/Export를 축소하지 않는다. 기존 Assignment Copy·완료/관계 및 API/auth/revision 서버 잠금은 불변이다.
+
+main #667 공통 sync/observation/Coordinator/axis authority를 재사용한다. 기본 WBS `separate-milestones`와 명시 build-time `NEXT_PUBLIC_GANTT_WBS_MODE=legacy` 비상 복구는 marker gate와 독립이며 복구에는 재빌드/재배포가 필요하다. [최신 Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리) 및 [검증 계획](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.
 
 
 Issue #550 412 충돌 이후에는 로컬 생성 초안 재제출을 차단하고 최신 revision 확인을 요구한다.
