@@ -1,3 +1,10 @@
+## Issue #712 — 병합 후 PR QA 신뢰 경계 / 동일 이름 Required Check (2026-10-18)
+
+- 기본 브랜치 Trusted Validator는 `ci-pr-source-<run>-<attempt>` 원본 출처를 읽기 전용으로 조회하고 PR 번호·Head/Base/Test-Merge·workflow·repository와 commit→PR 단일 귀속을 인증한다. 병합 후 원본 test-merge SHA는 실제 merge SHA와 **달라도** 부모(base/head)와 Git Tree가 같아야 한다. open PR은 기존 strict exact SHA 비교 유지. 다른 Tree, squash/rebase, 여러 귀속·출처 미확인은 자동 PASS 불가.
+- 병합 후 `edited` metadata-only CI의 세 Required Check와 뒤따르는 신뢰된 QA 재실행은 이미 입증된 Full PR CI를 소급 실패로 바꿀 권위가 없다. `POST_MERGE_METADATA_NON_AUTHORITATIVE`/자동 QA `N/A(비권위 감사)`로 기록하며 새 Full 실패·미완료를 가리거나 신규 QA/Owner/릴리스 승인으로 격상하지 않는다.
+- Lifecycle은 Full Run ID+Attempt의 원본 세 Required aggregate와 최신 Full 실패·재실행을 재조회한다. self-approval 위험이 큰 이 변경은 `HIGH`, `qa_required=true`, `OWNER_MANAGED`; 기본 브랜치 Trusted 검사, 독립적 고위험 source/provenance 검토, 정확 PR Head/Base/run·문서·AC·리뷰 0·Owner 위험 수용·명시 병합 승인 필수. Full CI 통과만으로 Manager ACCEPT 또는 릴리스 승인이 아니다.
+- [Work Packet](exec-plans/active/ISSUE_712.md), [CI/CD](CI_CD.md), [Lifecycle](ISSUE_LIFECYCLE.md)와 [Finalizer](GENERIC_RELEASE_FINALIZER.md) 참조. #712의 정식 릴리스 권한 없음(`release_required=false`, `release_authorized=false`), #552 기존 exact-version 승인 원장만 후속 정상 Finalizer에서 참조.
+
 ## Issue #598 후속 — 현재 Agent 실행 정책 (2026-10-17)
 
 기본 `qa_method=OWNER_MANAGED`(기존 `AUTOMATED_MANAGER` 호환)에서는 `qa_required=true`/HIGH/보호 경로가 독립 인간 Reviewer 의무로 전환되지 않는다. 신뢰된 default-branch QA, Quality/E2E/Docker, strict 최신 main, HEAD/base/run, 문서·AC, 리뷰 thread 0 및 HIGH 잔여 위험을 포함한 Owner의 별도 최종 병합 승인은 모두 필요하다. `qa_method=AGENT` 선택 시에만 실제 독립 인간 QA를 요구한다. 과거 #565·#580의 초기 규정은 역사적 기록이고 현재 활성 TOML 지침을 덮어쓰지 않는다.
