@@ -14,16 +14,16 @@ NUMBER = 577
 
 def run(run_id=20, sha=SHA1, state="completed", conclusion="success", label=m.FULL_MARKER, pr=NUMBER):
     return dict(id=run_id, event="pull_request", head_sha=sha, path=".github/workflows/ci.yml",
-                pull_requests=[{"number": pr}], run_number=run_id, status=state,
+                pull_requests=[{"number": pr}], run_number=run_id, run_attempt=1, status=state,
                 conclusion=conclusion, display_title=label)
 
 def jobs(gate="success", metadata="skipped"):
-    return [dict(name=name, conclusion=gate) for name in m.FULL_GATES] + [
-        dict(name=m.METADATA_JOB, conclusion=metadata)
+    return [dict(name=name, status="completed", conclusion=gate) for name in m.FULL_GATES] + [
+        dict(name=m.METADATA_JOB, status="completed", conclusion=metadata)
     ]
 
 def inspect(runs, j=jobs(), current=999):
-    return m.classify_full_evidence(runs, lambda run_id: j, pr_number=NUMBER,
+    return m.classify_full_evidence(runs, lambda run_id, attempt: j, pr_number=NUMBER,
                                     head_sha=SHA1, current_run_id=current)
 
 def eq(label, actual, expect):
@@ -61,3 +61,21 @@ eq("M8-metadata-only", inspect([run(label=m.METADATA_MARKER)], jobs(metadata="su
 eq("M8-current-run-excluded", inspect([run()], current=20)[0], "MISSING")
 eq("T6-multiple-associated-PRs", inspect([{**run(),"pull_requests":[{"number":NUMBER},{"number":999}]}])[0], "MISSING")
 print("Issue #577 metadata evidence scenarios: PASS")
+
+# #712: a later failed metadata-only run cannot erase a verified earlier Full.
+merged_pr = {**pr, "state":"closed", "merged":True, "merged_at":"2026-10-17T10:31:43Z",
+             "base":{"sha":SHA2,"ref":"main"}, "merge_commit_sha":"3"*40}
+def fake_api(path):
+    if "/pulls/" in path:
+        return merged_pr
+    if "/workflows/ci.yml/runs" in path:
+        return {"workflow_runs":[run(20), run(21,label=m.METADATA_MARKER,conclusion="failure")]}
+    if "/attempts/1/jobs" in path:
+        return {"jobs":jobs()}
+    return {}
+event = {"number":NUMBER,"pull_request":{"number":NUMBER,"head":{"sha":SHA1}}}
+decision = m.evaluate(event,repo=REPO,current_run_id=21,api_get=fake_api,
+                      mode="evidence",source_check=lambda *args:1)
+eq("712-post-merge-audit",decision[0],"POST_MERGE_METADATA_NON_AUTHORITATIVE")
+decision = m.evaluate(event,repo=REPO,current_run_id=21,api_get=fake_api,mode="evidence")
+eq("712-unverified-source-block",decision[0],"SOURCE_UNVERIFIED")
