@@ -1,3 +1,12 @@
+## [0.116.0] — Unreleased / Issue #624
+- CI #2893.1의 기존 #456 scoped Week X62/expected120 실패는 새 Gantt writer 수정 대신 현재 Core/native 축 용량·3-frame readiness를 확인하고 필요할 때 실제 wheel로 확장하는 fixture 준비 절차를 추가한다. 이전 #2875~#2887 실패 전체 비교 및 #552 marker-OFF main 변경 보존. 새 전체 PR CI 전 기능/회귀 PASS 미판정.
+
+- CI #2879.1에서 발견한 390px 통합 조회 Grid min-content document overflow(704px)를 앱 소유 Grid의 `minmax(0,1fr)`로 제한하고, 의도된 표 내부 scroll 및 기존 엄격한 E2E 단언을 유지한다. 후속 원격 성공은 새 Head CI 전 NOT TESTED이며 #704 전체 이력 실패 원장을 함께 보존한다.
+- 공정·선택적 WorkArea·Target, 설비 종류→인스턴스, 시스템 종류→인스턴스, Target→Resource를 동일 Resource Target 보고서와 정확 Task/Assignment 상세로 교차 조회하는 물류 「통합 조회」 탭을 추가한다.
+- 등록된 고유 설비 수량과 선택된 T0 Task 대상 coverage, 기간가중 Task 진척, M/D·M/M·Milestone 전체 Stage Gate를 구분한다. 공유 AMR fleet/MCS·중복 Target의 표시 소계를 원본 합계로 더하지 않으며 조회로 DB/WBS를 수정하지 않는다.
+- 읽기전용·stale·dirty/권한, 390~1920px 표 내부 overflow/keyboard/focus·조회 후 복귀 경로를 기존 Resource/Target 모델로 재사용한다. 신규 전용 Unit/Chromium과 [#624 Work Packet](docs/exec-plans/active/ISSUE_624.md) 동기화. 정확 Head CI 전 NOT TESTED.
+- 위험 HIGH/OWNER_MANAGED, release_required=true, release_authorized=false; PR CI만으로 정식 릴리스/병합 허가가 되지 않는다.
+
 ## [0.115.0] — Issue #712 병합 후 PR 증거·Lifecycle 검증 교정 (변경안, 2026-10-18)
 
 - #552 PR #561의 Full CI #2892.1 PASS와 병합 후 metadata-only #2898.1 FAIL을 구분한다. test-merge와 실제 merge의 두 부모·동일 Git Tree로 원본 artifact를 검증하며 불명 출처·다른 부모/Tree·재실행 실패를 차단한다. Lifecycle의 Check Run ID 최신값 오류를 수정해 신뢰된 Full Run ID/Attempt/세 Required Job 및 정확 PR 귀속으로 판정한다.
