@@ -19,19 +19,35 @@
 
 ## DOCUMENTATION_SYNC
 
-| 파일/영역 | 결정 및 근거 |
-| --- | --- |
-| `AGENTS.md` | UPDATED — Manager/infra/domain의 Issue 전 이력 기반 대응 의무 |
-| `docs/PR_CI_FAILURE_TRIAGE.md` | CREATED — canonical 누적 원장·서식·필드·분류·재검증/승인 기준 |
-| `docs/ISSUE_LIFECYCLE.md` | UPDATED — REWORK·Work Packet·인계 계약 |
-| `docs/TEST_PLAN.md` | UPDATED — #697의 bounded 확대 진단과 누적 원장 연결 |
-| `docs/CI_CD.md` | UPDATED — Run/Attempt 출처와 workflow 불변 안내 |
-| `docs/REMOTE_VALIDATION.md` | UPDATED — remote evidence와 취소/미실행/Head 분리 |
-| `docs/exec-plans/active/ISSUE_704.md` | CREATED — 현재 Work Packet/문서 영향·잔여 Gate |
-| `docs/LOCAL_PREPR.md`, `docs/ISSUE_667_FAILURE_ANALYSIS.md` | N/A — 기존 #699 CLI/원장 증거는 수정하지 않고 연결 |
-| `docs/QA_REVIEW_POLICY.md`, `docs/GITHUB_OPERATIONS.md` | N/A — Owner-managed·Trusted QA/승인/보호 권한 정책은 불변 |
-| `DESIGN.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/ARCHITECTURE.md`, `docs/DEPLOYMENT.md`, `CHANGELOG.md`, `README.md` | N/A — 앱 UI·기능·DB·배포·사용자 사용법·버전 변경 없음 |
-| `.github/**`, `src/**`, `tests/**`, `scripts/**`, package/lock | N/A — CI/제품/테스트 코드 및 의존성 변경 없음 |
+GitHub QA Preflight/Trusted QA의 `docs_gate()` 구조 검사와 사람의 의미 검토를 **분리**한다. 다음은 `qa.docs_required(paths)` 합집합을 포함한 변경/비변경 판정이다.
+
+- `AGENTS.md`: UPDATED
+- `docs/PR_CI_FAILURE_TRIAGE.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_704.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 OWNER_MANAGED와 Trusted QA 승인 정책 불변)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 권한 및 브랜치 PR 운영 계약 불변)
+- `docs/LOCAL_PREPR.md`: N/A(기존 prepr CLI 구현과 입력 규격 불변)
+- `docs/ISSUE_667_FAILURE_ANALYSIS.md`: N/A(기존 #667 불변 실패 기록을 교체하지 않고 참조)
+- `DESIGN.md`: N/A(제품 사용자 화면과 디자인 동작 변경 없음)
+- `docs/API.md`: N/A(제품 HTTP API와 DTO 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(데이터베이스 스키마와 마이그레이션 불변)
+- `docs/ARCHITECTURE.md`: N/A(애플리케이션 아키텍처 변경 없음)
+- `docs/DEPLOYMENT.md`: N/A(컨테이너 및 배포 절차 변경 없음)
+- `CHANGELOG.md`: N/A(앱 기능 출시와 SemVer 변경 없음)
+- `README.md`: N/A(앱 최종 사용자 사용법과 설치 계약 불변)
+
+**기타 비범위:** `.github/**`, `src/**`, `tests/**`, `scripts/**`, package/lock은 변경하지 않는다. CI Workflow/6-shard/Required/Trusted 정책을 수정하지 않으므로 제품 회귀 실행 증거를 위장하지 않는다.
+
+## AC_TEST_COVERAGE
+
+- AC1: Issue 전체 PR·Run·Attempt 수집 → 누적 문서 생성/갱신 → 과거 전체 원인 비교 → bounded 진단 → 동결 source 교차 재검증 → 다음 CI 진입을 [공통 지침](../../PR_CI_FAILURE_TRIAGE.md)의 단계 A~G, [AGENTS](../../../AGENTS.md), [Lifecycle](../../ISSUE_LIFECYCLE.md) 문구 및 상대 링크 확인으로 검증. 원격 실제 CI 판정은 NOT TESTED.
+- AC2: Issue별 파일 경로, 최초/후속 append 서식, immutable 출처/취소 Job과 실패 케이스 보존, 결손 표기, 복수 PR/rerun·Run/Attempt 템플릿은 [공통 지침](../../PR_CI_FAILURE_TRIAGE.md)의 1/2/4/5절 정적 감사로 검증. 운영 실패 이력 자동 수집은 비범위.
+- AC3: #667 기존 원장 불변과 #697 [TEST_PLAN](../../TEST_PLAN.md)/#699 [LOCAL_PREPR](../../LOCAL_PREPR.md) 안내 및 [AGENTS](../../../AGENTS.md)·Lifecycle·CI_CD·Remote Validation의 상대 링크 정합을 확인. 제품 테스트 또는 기존 #667 결과를 소급 성공 처리하지 않는다.
+- AC4: compare에서 `AGENTS.md`와 `docs/**` 외 변경 0, Markdown 경로·형식 확인, Work Packet DOCUMENTATION_SYNC 및 risk HIGH, OWNER_MANAGED·release=false, Required/Trusted/Owner remote 상태를 실제 실행 전 NOT TESTED로 검증.
 
 ## 검증 증거 및 다음 Gate
 
