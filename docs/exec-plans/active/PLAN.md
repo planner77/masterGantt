@@ -1,3 +1,9 @@
+## Issue #552 — CI #2878 누적 실패·리소스 KPI 왕복 정착 보완 (2026-10-17)
+
+[독립 연속 실패 분석](../../ISSUE_552_FAILURE_ANALYSIS.md) · [실제 실패 8Run/10파일 원장](../../evidence/issue-552/ci-cumulative-20261017.json) · [Work Packet](ISSUE_552.md). 원본 #2878.1 HEAD `37c2c4687d6d`/Base `de863713142a`/test-merge `ef26400db5a5`: Quality/Docker PASS, E2E shard5 #530 Gantt/Resource/Excel 복귀 실패, 기타5 취소. 원본의 canonical depth0은 최신 U2/U3/viewport settled의 보증이 아니므로 현행 read-only readiness 3프레임을 wheel 직전 검증하고 실패하면 마지막12 Core/native/phase 증거를 남긴다. 기존 90RAF/8exact frame·Resource 원장/5폭/동일 instance·버전0.115.0·CI Required3는 변경하지 않는다.
+
+독립 clean worktree에서 Source 시작/끝 고정 → `verify:prepr diagnose` 10파일 조기 중단 없이 → 수정 없이 같은 후보 `ci-like` 전체 → 미해결 리뷰·최신 main/충돌 해결 → 새 full PR CI 시작. 현재 직접 로컬 테스트·sourceStable은 **NOT TESTED**. 기존 UNKNOWN/sourceStable=false BLOCKED를 제거한 척하지 않고 Owner 수용 전 MERGE_READY=BLOCKED. CI 모니터링·Merge/Main/GHCR/Issue 종료는 하지 않는다.
+
 ## Issue #552 — CI #2866 누적 안정화 후보 (2026-10-17)
 
 - 원본 [실패 원장](../../evidence/issue-552/ci-cumulative-20261017.json)에 CI 7Run의 실패9파일 및 CANCELLED job 속 진짜 실패2건을 구분 보존한다. 최신 #2866 shard4 알림 Lane64px 의존은 Marker OFF 테스트 계약 오류이며 수정 후보는 marker0/빈 공간0·Gantt layout·root 알림/복사/포커스/revision·무쓰기 보존을 확인한다. 누적 기존 #2844/#2859/#2861/#2862/#2863/#2864 보완은 유지한다.

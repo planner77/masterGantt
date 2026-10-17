@@ -1,3 +1,9 @@
+## Issue #552 — CI #2878 실패 원본과 재발 분석 경로 (2026-10-17)
+
+[Full PR CI #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687) Run `39008751687`/attempt1, HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, 당시 main `de863713142a92f1cac56dbae044923822bca932`, test merge `ef26400db5a5fc6aae77783b7330da38cf3dbf5e`. Quality/Docker PASS, E2E/QA Final FAIL. shard5 job `117326889006`의 #530 `resource-kpi-integration-ui.spec.ts:216`가 90RAF/8연속 exact Core/native 정착 실패(64 PASS/1 FAIL/17미실행), 나머지5 Job CANCELLED. 원본 보고서 artifact `playwright-report-shard-5` ID12092311845는 목록으로 확인했으나 ZIP/Trace 내부 검토 **NOT TESTED**이며 직접 원인 UNKNOWN.
+
+보완은 최신 U2/U3/canonical·viewport/실제 차트 geometry를 현행 read-only helper로 확인한 뒤 wheel을 입력하고 기존 strict 복귀 조건을 검사하며 마지막12 frame 좌표·영수증을 첨부한다. [별도 지속 실패 가이드](ISSUE_552_FAILURE_ANALYSIS.md)와 [8Run/10파일 누적원장](evidence/issue-552/ci-cumulative-20261017.json)을 먼저 확인한다. 이전 Local Pre-PR `sourceStable=false`/UNKNOWN과 현재 새로운 원격/로컬 증거를 합치지 않으며 진단·전체 로컬 CI 유사 검사는 환경 부재로 **NOT TESTED**. 새 PR CI 등록 시 HEAD/base/test-merge/run/attempt를 재확인하고 병합·Main/GHCR/Issue 종료는 Owner 승인 전 금지.
+
 ## Issue #552 — CI #2866 원본/취소 테스트 실패 보존 및 새 후보 검증 (2026-10-17)
 
 - 원본 [PR Full CI #2866.1](https://github.com/planner77/masterGantt/actions/runs/38982330298): head `00fd170a5611f8312bb7abdda4b263254ade7b69`, base `c063101ed7b1d08803c3dac15a41e67842071187`, test-merge `a3d8a8c4704a7f655e6103f491f78598d33bfd49`(부모 두 SHA Git commit 확인). Quality·Build·Docker PASS, E2E/QA Final FAIL. shard4 알림 원인 `project-notifications.spec.ts:72` marker OFF Lane null(97PASS/1FAIL/1SKIP/63NOTRUN). shard2/3/5 CANCELLED 로그에는 별도 `✘`가 없지만 완주 아님; #2862 shard5와 #2863 shard4는 CANCELLED 중에도 `✘` 기록되므로 [누적 원장](evidence/issue-552/ci-cumulative-20261017.json)에 실패로 보존한다.

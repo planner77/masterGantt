@@ -5,6 +5,7 @@ import { RESOURCE_KPI_INTEGRATION, resourceKpiIntegrationFixture } from "../fixt
 import { calculateResourcePlan } from "../../src/domain/resources/resource-plan";
 import { prepareResourceKpiSnapshot, selectResourceKpiAssignments, calculateResourceKpi } from "../../src/domain/resources/resource-kpi";
 import { detailsQuery } from "../../src/features/resources/resource-dashboard-model";
+import { waitForGanttReadiness } from "./helpers/gantt-readiness";
 import { inflateRawSync } from "node:zlib";
 import type { ProjectExcelExportRequest } from "../../src/contracts/project-excel-export";
 import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../src/contracts/resource-dashboard";
@@ -207,24 +208,60 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
     else expect(Number(raw![1])).toBe(detail.assignment!.plannedMd);
   }
   expect([...assignmentsXml.matchAll(/<c r="Y\d+"[^>]*><v>([^<]+)<\/v><\/c>/g)].reduce((sum, match) => sum + Number(match[1]), 0)).toBe(currentReport.summary.effort.knownMd);
-  // Responsive layout changes invalidate historical viewport restoration.
-  // Compare navigation independently after returning to fixed geometry.
+  // Responsive matrix widths invalidate the previous viewport lease. The
+  // tab being visible and canonical depth=0 alone do not prove that its latest
+  // semantic projection, scale or viewport transaction has settled.
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
+  const resumeReady = await waitForGanttReadiness(frame, {
+    operation: "observe",
+    api: await frame.getAttribute("data-project-gantt-api-instance"),
+    revision: canonical.data.project.revision,
+    scale: "day",
+    scope: null,
+    query: "",
+    queryWitness: { kind: "unchanged" },
+    canonicalIds: canonical.data.tasks.map(task => task.taskId),
+    requireRenderedRows: true,
+    allowCancelledPriorWork: true,
+  });
+  expect(resumeReady.api).toBe(before.apiInstance);
+  // This is a new user wheel intent after U2/U3 and the native geometry
+  // settle; never treat an in-flight restore as proof of the next action.
   await chart.hover(); await page.mouse.wheel(120, 0);
   await expect.poll(async () => (await ganttIntegrationState(page)).left).toBeGreaterThan(0);
-  await frame.evaluate(async element => {
-    let previous = "", stable = 0;
+  const settlement = await frame.evaluate(async element => {
+    let previous = "", stable = 0, frames = 0;
+    const samples: Array<{ frame: number; nativeLeft: number; publicLeft: number | null;
+      nativeTop: number; publicTop: number | null; depth: string | null; phase: string | null }> = [];
     for (let tick = 0; tick < 90 && stable < 8; tick++) {
       await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
       const native = element.querySelector(".wx-chart")!.scrollLeft;
-      const publicValue = Reflect.get(element, "__masterganttPublicViewport")?.left;
-      const current = `${native}:${publicValue}:${element.getAttribute("data-gantt-canonical-sync-depth")}`;
-      stable = current === previous && native === publicValue && element.getAttribute("data-gantt-canonical-sync-depth") === "0" ? stable + 1 : 0;
+      const vertical = element.querySelector(".wx-gantt")!.scrollTop;
+      const publicState = Reflect.get(element, "__masterganttPublicViewport") as { left?: number; top?: number } | undefined;
+      const publicValue = publicState?.left ?? null;
+      const depth = element.getAttribute("data-gantt-canonical-sync-depth");
+      const current = `${native}:${publicValue}:${depth}`;
+      stable = current === previous && native === publicValue && depth === "0" ? stable + 1 : 0;
       previous = current;
+      frames = tick + 1;
+      const work = JSON.parse(element.getAttribute("data-gantt-viewport-coordinator") ?? "null") as { phase?: string } | null;
+      samples.push({ frame: frames, nativeLeft: native, publicLeft: publicValue,
+        nativeTop: vertical, publicTop: publicState?.top ?? null, depth, phase: work?.phase ?? null });
+      if (samples.length > 12) samples.shift();
     }
-    if (stable < 8) throw new Error("Fixed-geometry Gantt did not settle before navigation comparison");
+    return { stable, frames, samples,
+      projection: element.getAttribute("data-gantt-projection-receipt"),
+      observation: element.getAttribute("data-gantt-projection-observation"),
+      viewport: element.getAttribute("data-gantt-viewport-coordinator"),
+      restore: element.getAttribute("data-gantt-peer-restore") };
   });
+  await info.attach("resource-kpi-fixed-geometry-settlement", {
+    body: JSON.stringify({ resumeReady, settlement }, null, 2), contentType: "application/json",
+  });
+  // Keep the original 90 RAF / 8 consecutive RAF / exact native-Core
+  // coordinates, rather than increasing timeouts or tolerating a stale value.
+  expect(settlement.stable, `Fixed-geometry Gantt did not settle before navigation comparison: ${JSON.stringify(settlement.samples)}`).toBeGreaterThanOrEqual(8);
   const fixedBefore = await ganttIntegrationState(page);
   expect(fixedBefore.instance).toBe(before.instance);
   expect(fixedBefore.left).toBeGreaterThan(0);

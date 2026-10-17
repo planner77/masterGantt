@@ -1,3 +1,9 @@
+## Issue #552 — PR CI #2878 / #530 Resource KPI 복귀 Gantt 준비 계약 (2026-10-17)
+
+- [원본 #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687): HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, Quality/Build/Docker 성공, E2E shard5 `resource-kpi-integration-ui.spec.ts:216` 64 PASS/1 FAIL/17미실행, 나머지5 취소·개별실패 로그0, E2E/QA Final FAIL. 90RAF·8연속 exact Core/native 정착 실패 직전의 `canonical depth=0`은 최신 semantic projection·axis/viewport 완료의 충분조건이 아니다. 수치/첫 writer 미계측으로 제품 결함 원인은 UNKNOWN.
+- 실제 wheel 전에 공통 read-only `waitForGanttReadiness`로 동일 API/revision/Day/scope/검색/전체 canonical ID·실제 Grid·U2/U3/viewport 완료·geometry 3연속 프레임 확인. **기존 90RAF/8연속 native===Core, 5폭·Excel/SQLite 원장·Gantt instance/tree/selection·복귀 검증 단언은 유지**한다. 실패시 마지막12 X/Y·depth·phase/영수증 attachment 기록.
+- [독립 재발 분석](ISSUE_552_FAILURE_ANALYSIS.md) 및 [누적8Run/10파일](evidence/issue-552/ci-cumulative-20261017.json)을 기준으로 `verify:prepr diagnose` (누적 실패 합집합, max-failures0)→동일 HEAD `ci-like` 전체→sourceStable 확인 후 CI. 현재 로컬 실행 **NOT TESTED**; 정적 감사·이전 HEAD Quality 성공을 새로운 브라우저 PASS로 주장하지 않는다.
+
 ## Issue #598 후속 — Agent 활성 지침 계약 회귀 (2026-10-17)
 
 - `tests/scripts/agent-qa-contract.test.ts`가 네 Agent의 실제 `developer_instructions` 내부에서 OWNER_MANAGED 기본/AGENT 선택/qa_required=true 위험도와 기존 강제 리뷰 문구 부재를 검사한다. 바깥 주석만으로 PASS하지 않는다.

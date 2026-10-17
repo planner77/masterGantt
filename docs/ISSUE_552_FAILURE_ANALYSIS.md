@@ -1,0 +1,125 @@
+# Issue #552 / PR #561 — 연속 PR CI 실패 분석 및 재발 대응 원장
+
+기준: 2026-10-17 · 저장소 `planner77/masterGantt` · HIGH / OWNER_MANAGED · `release_required=true` / `release_authorized=false`.
+
+> 이 문서는 **최신 한 건만 고치는 재시도**를 막기 위한 독립 참고 자료다. 원본 GitHub Run/Attempt/HEAD, job 상태, test-level 실패와 미실행을 구분한다. [누적 JSON 실패 원장](evidence/issue-552/ci-cumulative-20261017.json), [#552 Work Packet](exec-plans/active/ISSUE_552.md), [#667 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md), [#530 과거 viewport 회귀](exec-plans/active/ISSUE_530.md)와 함께 사용한다.
+**공통 표준:** [PR_CI_FAILURE_TRIAGE](PR_CI_FAILURE_TRIAGE.md)와 동일한 Issue별 정규 경로 `docs/ISSUE_552_FAILURE_ANALYSIS.md`를 따른다. 다음 세션에서는 **새 파일을 만들지 않고 이 파일에 추가**한다. GitHub PR 브랜치의 PR CI 전체 Run 30개를 확인했지만, 아래 test-level 10건은 최근 실패 중 선택 검증된 합집합이며 **옛 22개 Run의 모든 실패 파일 전수 추출은 INCOMPLETE**다. `diagnose`는 당장 확인된 10파일 검증용이고 과거 전체 파일 합집합이라는 주장은 금지한다. 추가 고유 파일이 12개를 넘으면 공통 지침에 따라 합집합을 빠짐없이 분할 검증한다.
+
+
+## 1. 최신 원본 — PR CI #2878.1 (증거는 수정 불가)
+
+| 항목 | 원본 관측 |
+| --- | --- |
+| GitHub Run | [#2878.1 / 39008751687](https://github.com/planner77/masterGantt/actions/runs/39008751687) · event `pull_request` · attempt 1 · FAILURE |
+| PR HEAD | `37c2c4687d6df61a56e5bc8fa9696863b287cd6d` |
+| 당시 `main` Base | `de863713142a92f1cac56dbae044923822bca932` |
+| test-merge | `ef26400db5a5fc6aae77783b7330da38cf3dbf5e` (부모: 당시 Base → HEAD) |
+| Preflight / policy / typecheck / ESLint / Vitest / build / Docker | **SUCCESS** |
+| E2E / QA Final | **FAIL** (QA Final은 E2E Required FAIL 이후 차단; 별도 제품 결함 증거로 세지 않음) |
+| 직접 실패 | Chromium shard 5 / job `117326889006`: 64 PASS, 1 FAIL, 17 NOT RUN |
+| 실패 파일 / 위치 | `tests/e2e/resource-kpi-integration-ui.spec.ts:14→216` |
+| Playwright 오류 | `locator.evaluate: Fixed-geometry Gantt did not settle before navigation comparison` |
+| 원본 테스트 범위 | 실제 HTTP+SQLite 프로젝트 및 Resource KPI 3계층·2 Matrix·5개 viewport 폭·Excel·Gantt 왕복 |
+| Artifact | `playwright-report-shard-5` ID `12092311845`; artifact ZIP/trace 심층 해석 **NOT TESTED** |
+
+**취소 Job 별도 보존.** Shard 1(job `117326889044`) 74개 PASS 기록, 2(`117326888998`) 85, 3(`117326889009`) 59, 4(`117326889149`) 36, 6(`117326889072`) 63; 다섯 Job 모두 `CANCELLED`, 다운로드한 Job 로그의 개별 `✘`는 0개였다. 기록된 일부 PASS를 Shard 전체 PASS로 승격하지 않는다. 해당 취소 Job의 미실행 범위는 **NOT TESTED**다.
+
+## 2. #2878 인과·증거 분리
+
+- **도달한 지점:** 일정 → 리소스 KPI 그룹/개인 Tree·Matrix, 5폭 반응형, Plan, Excel 다운로드/원장 대조를 수행한 뒤 일정 탭으로 돌아옴. canonical sync depth `0` 확인과 차트 hover/가로 wheel, native left `>0` 확인 뒤 별도 90 RAF 대기에서 실패했다.
+- **기존 테스트 준비 조건 누락:** `data-gantt-canonical-sync-depth=0`은 canonical 처리 중이 아님을 뜻할 뿐이다. 최신 Gantt Scale, U2 canonical recovery, U3 semantic projection/visible Grid receipt, viewport coordinator의 완료/취소, 실제 물리 capacity가 모두 동일 시점에 정착했다는 증거가 아니다. Responsive 390/768/1024/1440/1920 전환 이후 과거 위치 복원은 의도적으로 무효화된다.
+- **현재 확인 가능한 원인 유형:** `INITIALIZATION_OR_SETTLEMENT_CONTRACT` / `VIEWPORT_SETTLEMENT_UNKNOWN`. 90 RAF/연속 8프레임 내 native `scrollLeft`와 공개 SVAR Core left의 **정확한 일치**에 실패했다는 사실은 확정. 왜 일치하지 않았는지(일시적 projection/axis 경합·차트 width/rounding·Core 이벤트 수신 누락·지연된 이전 restore·실제 제품 버그)는 해당 CI Job 텍스트에 각 좌표/첫 writer가 없어서 **UNKNOWN**이다. 실제 제품 결함이라고 단정하거나, 반대로 테스트 불안정으로만 단정하지 않는다.
+- **이전 결과와 구별:** PR #561 CI #2866 shard 4의 삭제된 Lane64px 기대 오류는 이번 #2878의 직접 실패가 아니었다. #2864 Copy 첫 GET500은 주입 전 초기 navigate 지연, #2859는 저장 뒤 GET ECONNRESET, #2862는 pointer/DayWeek 정착, #2863은 canonical84/visible83·제거된 Task 버튼 문제였다. 문자열/Shard가 달라도 모두 [누적 원장](evidence/issue-552/ci-cumulative-20261017.json)에서 유지한다.
+- **보호해야 하는 제품 계약:** marker OFF에서 native Milestone row/bar/guide0, 전체 canonical ID·Link·Membership 보존; Resource KPI·Excel 데이터/권한/수정 원자성; 동일 Gantt instance 및 원래 Tree/Selection, 실제 사용자의 scroll; Core/native 원복. `sourceStable`과 최종 Required3/Trusted QA는 별도 판정이다.
+
+## 3. 이번 최소 보완 (새 HEAD의 실행 전 효과는 미확정)
+
+수정 대상은 `tests/e2e/resource-kpi-integration-ui.spec.ts`의 **실제 사용자 wheel 직전 준비 구간**이다.
+
+1. 현행 공통 read-only `waitForGanttReadiness(frame, {operation:"observe", ...})`를 사용해 **정확한 API instance / project revision / day scale / scope null / 검색 조건 / canonical 전체 ID / 실제 Grid DOM / 최신 U2·U3 완료 및 viewport 작업**을 연속 3개 프레임 관측한 후 wheel을 입력한다.
+2. 공통 read-only helper는 제품 명령을 호출하거나 내부 상태를 정상으로 위조하지 않는다. `allowCancelledPriorWork`는 현행 helper의 **이미 취소 확정된 작업**만 유효한 최신 입력 후보로 인정하고, 진행 중/실패 중인 작업의 성공으로 간주하지 않는다.
+3. 이전의 `90 RAF`, `8연속 안정`, `nativeLeft === publicLeft`, canonical depth0 및 최종 동일 Gantt/tree/selection/viewport/원본 DB를 **그대로 유지**한다. Playwright timeout/retry/skip, CI fail-fast, QA gate 변경 없음.
+4. 90프레임 판단 전후 마지막 12개 Core/native X/Y, canonical depth, coordinator phase, U3 영수증 및 이전 peer restore를 `resource-kpi-fixed-geometry-settlement` 테스트 첨부로 남겨, 재실패할 경우 해당 단계의 실제 state와 최초 writer를 조사할 수 있도록 한다. 이 추가 관측의 결과를 제품 수정 검증으로 주장하지 않는다.
+5. 제품 코드 `project-gantt.tsx`, `viewport-coordinator`, `svar-viewport-port`의 공통 동기화 authority는 이 Job 로그만으로 결함을 특정할 수 없어 변경하지 않는다. 새 진단에서 실제 제품 버그가 증명되면 제품 및 직접/교차/음성 회귀를 같은 후보에 함께 수정한다.
+
+## 4. 반복 실패 통합 분류 원장
+
+| CI Run | 실제 실패 파일 / 분류 | 확인된 보완 및 미확인 경계 |
+| --- | --- | --- |
+| [#2844.1](https://github.com/planner77/masterGantt/actions/runs/38905085250) | `gantt-state-product-integration`: 과거 native M 기대·표시 계약 | default Marker OFF M row/bar0, 명시 legacy1로 분리 |
+| [#2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185) | `issue-623-resource-mvp`: 저장 확인 GET ECONNRESET·전송 **UNKNOWN** | spec-local runtime 수명/브라우저 GET 교정, OOM/재시작 근인 미확정 |
+| [#2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752) | `milestone-management-persistence`: M-only native 표시 계약 | 기본 WBS와 legacy 분리, Dashboard exact ID 보존 |
+| [#2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934) | `project-gantt-inline-name`: 리사이즈 전후 pointer 좌표 기대, `project-gantt-scale`: 새 Axis 정착 경계 | 두 테스트 수정; **shard5 Job CANCELLED였으나 실제 FAIL 기록** |
+| [#2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886) | `projection-row-alignment`: Canonical84 vs Visible83; `milestone-timeline-lane`: 제거된 Task 버튼 | 명시적으로 Canonical/Visible/DOM 구별·실제 Task type 필터로 전환; **shard4 CANCELLED 안 실제 FAIL** |
+| [#2864.1](https://github.com/planner77/masterGantt/actions/runs/38978855656) | `derived-dialog-recovery`: GET500 주입 전 navigate/load 29.235s·초기화 UNKNOWN | DCL/정상 GET·DOM UI 준비 분리, 실제 delayed request 원인 미확정 |
+| [#2866.1](https://github.com/planner77/masterGantt/actions/runs/38982330298) | `project-notifications`: 제거된 marker lane64px null·테스트 계약 | native Gantt geometry/marker0 및 synthetic Root422 검증 수정 |
+| [#2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687) | `resource-kpi-integration-ui`: 최신 U2/U3/viewport 정착 확인 전 사용자 입력·근인 UNKNOWN | readiness gate/실패 좌표·영수증 첨부 추가; 새 HEAD 결과 NOT TESTED |
+
+최근 개별 로그로 검증한 **8개 Run, 테스트-level FAIL 10건, 서로 다른 E2E 파일 10개** (옛 Run test-level 완전성은 INCOMPLETE). `CANCELLED` 안의 실제 FAIL **2건**은 별도 보존. 각 Run의 PASS는 서로 다른 HEAD이므로 최신 전체 PASS가 아니다.
+
+## 5. 다음 반복 실패 시 실행 순서와 판정
+
+**A. 정확한 원본 고정:** PR HEAD, 현재 `main` Base, `refs/pull/561/merge`와 두 부모, Run ID/Attempt, Job ID, 실제 Playwright 실패 지점·다운로드한 Artifact를 기록한다. Job 결론이 CANCELLED이어도 `✘`, 에러 요약·테스트 미완료를 따로 세고 오염된 PASS를 주장하지 않는다. Quality/Docker 실패와 E2E·QA 후속 실패를 구분한다.
+
+**B. 같은 후보의 실패 합집합 전체 진단:** [JSON 원장](evidence/issue-552/ci-cumulative-20261017.json)의 `failures[]`은 현행 `diagnosticSubset`의 `pr/runId/attempt/headSha/status=FAIL/file` 형식이며 최대 12개 서로 다른 브라우저 파일이라는 정책 안에 있다. Node22·의존성·Playwright Chromium·새로운 **독립 worktree**에서 실행한다. 현재 원본 Base는 `de863713142a92f1cac56dbae044923822bca932`였으며 이후 main이 바뀌면 명시 SHA를 다시 고정한다.
+
+```bash
+npm run verify:prepr -- --mode=diagnose \
+  --base=de863713142a92f1cac56dbae044923822bca932 \
+  --risk=HIGH --issue=552 --pr=561 \
+  --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json
+
+# 위 결과 보존 후 코드 변경 없이 동일 source 전체 실행
+npm run verify:prepr -- --mode=ci-like \
+  --base=de863713142a92f1cac56dbae044923822bca932 \
+  --risk=HIGH --issue=552 --pr=561
+```
+
+현재 두 모드 실행 여부: **NOT TESTED**. 명령을 문서화한 것이 실행은 아니다. `diagnose`는 worker1/retry0/max-failures0으로 누적 파일 합집합을 완주하고, `ci-like`는 전체 E2E/Unit/typecheck/lint/build를 같은 코드에서 검증한다. 가능한 경우 QA 독립 read-only 재검토도 추가한다. 완료 전에는 사용자나 다른 Agent가 같은 source를 변경하지 않는다.
+
+**C. 실패 세부 분류:** 원본 U2 canonical 깊이/세대, U3 성공 receipt와 최신 시도(성공·취소·타임아웃 구별), Core/native 실제 X/Y, 물리 capacity, axis Day/Week, viewport coordinator phase·writes·gesture·lease, 최초 DOM/Core writer, 브라우저 resize·focus·wheel 시점을 나란히 정렬한다. 정상 경로는 모든 준비 조건 이후 조작하고, *의도적 race 테스트는 별도 테스트*에서 준비를 의도적으로 막았다가 해제한다. 1px rounding 등 허용 계약도 기존 설계 근거와 실제 수치를 먼저 입증한다. 단순 sleep/timeout 일괄 증가·Skip·느슨한 단언·재시도로 숨기는 방법은 금지한다.
+
+**D. SourceStable 차단:** 기존 `UNKNOWN` 영향경로 매핑과 별개로 `next-env.d.ts`, `tsconfig.json`, screenshot 변경 등으로 `sourceStable=false`이면 Local Pre-PR 상위 상태는 **BLOCKED**다. report의 start/end fingerprint·생성물 변경 원인을 기록하고 **격리 worktree에서 원인 제거 후 새 시작 fingerprint**로 반복한다. fingerprint 검증 자체를 삭제하거나 무시하지 않는다.
+
+**E. 완료 기준:** 누적 진단10파일과 같은 HEAD 전체 직접·교차·음성 회귀/로컬 소스 fingerprint 보존 확인, Reviewer 변경검토·unresolved thread0, 최신 main 정렬/충돌0, 새로운 exact Head PR **전체** CI Required Quality/E2E6/Docker·QA Final 결과 각각 기록. GitHub Runner를 실제로 실행하지 못한 모든 검증은 **NOT TESTED**다. Owner 수용 전 `MERGE_READY=BLOCKED`; 명시 승인 없으면 Merge/Main CI/GHCR/Issue 종료 모두 수행하지 않는다.
+
+## 6. 전체 브랜치 PR CI Run 인벤토리 및 미조사 경계 (2026-10-17 보강)
+
+GitHub Actions `branch=feat/issue-552-milestone-visibility`에서 반환된 **30개 Run의 metadata**를 아래와 같이 보존한다. 이력의 상당수가 CI #659 fail-fast 도입 이전으로 한 Run에 여러 파일·Shard FAIL이 있었다. 이 표의 FAIL/CANCELLED는 workflow 결론이지 각 테스트의 실패 개수나 미실행 개수가 아니다. 이전 8Run/10파일과 혼동하지 않는다.
+
+| Run | Run ID / Attempt | Workflow 결론 | Head | 테스트 로그 분석 상태 |
+| --- | --- | --- | --- | --- |
+| [#2878](https://github.com/planner77/masterGantt/actions/runs/39008751687) | 39008751687 / 1 | FAILURE | `37c2c4687d6d` | 선정 로그 기록 |
+| [#2866](https://github.com/planner77/masterGantt/actions/runs/38982330298) | 38982330298 / 1 | FAILURE | `00fd170a5611` | 선정 로그 기록 |
+| [#2865](https://github.com/planner77/masterGantt/actions/runs/38982310052) | 38982310052 / 1 | FAILURE | `f48689df9141` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2864](https://github.com/planner77/masterGantt/actions/runs/38978855656) | 38978855656 / 1 | FAILURE | `f48689df9141` | 선정 로그 기록 |
+| [#2863](https://github.com/planner77/masterGantt/actions/runs/38976543886) | 38976543886 / 1 | FAILURE | `1abebed18964` | 선정 로그 기록 |
+| [#2862](https://github.com/planner77/masterGantt/actions/runs/38973584934) | 38973584934 / 1 | FAILURE | `eb525442fa93` | 선정 로그 기록 |
+| [#2861](https://github.com/planner77/masterGantt/actions/runs/38971156752) | 38971156752 / 1 | FAILURE | `2cc5635b9f0e` | 선정 로그 기록 |
+| [#2860](https://github.com/planner77/masterGantt/actions/runs/38971119607) | 38971119607 / 1 | FAILURE | `a7ad34482aeb` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2859](https://github.com/planner77/masterGantt/actions/runs/38966513185) | 38966513185 / 1 | FAILURE | `a7ad34482aeb` | 선정 로그 기록 |
+| [#2844](https://github.com/planner77/masterGantt/actions/runs/38905085250) | 38905085250 / 1 | FAILURE | `2ce8a276802a` | 선정 로그 기록 |
+| [#2682](https://github.com/planner77/masterGantt/actions/runs/38393906015) | 38393906015 / 1 | FAILURE | `d9334c30c6c2` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2679](https://github.com/planner77/masterGantt/actions/runs/38388682185) | 38388682185 / 1 | FAILURE | `ea25c48115ca` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2670](https://github.com/planner77/masterGantt/actions/runs/38383522417) | 38383522417 / 1 | FAILURE | `eb1ff4d7ffbd` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2669](https://github.com/planner77/masterGantt/actions/runs/38379375572) | 38379375572 / 1 | FAILURE | `eb898c54d2cf` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2668](https://github.com/planner77/masterGantt/actions/runs/38379357093) | 38379357093 / 1 | FAILURE | `290119bcfe85` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2667](https://github.com/planner77/masterGantt/actions/runs/38371554385) | 38371554385 / 1 | FAILURE | `290119bcfe85` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2666](https://github.com/planner77/masterGantt/actions/runs/38363844306) | 38363844306 / 1 | CANCELLED | `f42afe102190` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2665](https://github.com/planner77/masterGantt/actions/runs/38362171056) | 38362171056 / 1 | CANCELLED | `5d9f8124ac34` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2661](https://github.com/planner77/masterGantt/actions/runs/38358079542) | 38358079542 / 1 | FAILURE | `a9abf4813aad` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2654](https://github.com/planner77/masterGantt/actions/runs/38354836221) | 38354836221 / 1 | FAILURE | `0e3d39b6e012` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2651](https://github.com/planner77/masterGantt/actions/runs/38352770887) | 38352770887 / 1 | FAILURE | `edeed05ddb43` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2648](https://github.com/planner77/masterGantt/actions/runs/38351816899) | 38351816899 / 1 | CANCELLED | `f03051ed1e2a` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2645](https://github.com/planner77/masterGantt/actions/runs/38351001998) | 38351001998 / 1 | CANCELLED | `2e1eb0324196` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2643](https://github.com/planner77/masterGantt/actions/runs/38348440262) | 38348440262 / 1 | FAILURE | `837c1d50fc86` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2642](https://github.com/planner77/masterGantt/actions/runs/38345784863) | 38345784863 / 1 | FAILURE | `41c2b093ba5d` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2641](https://github.com/planner77/masterGantt/actions/runs/38342994530) | 38342994530 / 1 | FAILURE | `67535b647c2a` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2639](https://github.com/planner77/masterGantt/actions/runs/38338703107) | 38338703107 / 1 | CANCELLED | `8942d3ad875a` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2633](https://github.com/planner77/masterGantt/actions/runs/38336799481) | 38336799481 / 1 | CANCELLED | `4a3aabaa3fdf` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2628](https://github.com/planner77/masterGantt/actions/runs/38326098951) | 38326098951 / 1 | FAILURE | `81a90b51e92b` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+| [#2219](https://github.com/planner77/masterGantt/actions/runs/37839172928) | 37839172928 / 1 | FAILURE | `fed88f5e00e1` | 원격 Run 확인·실패 테스트 전수 확인 전 |
+
+**검증한 이전 교차 사례:** #2654/#2661/#2667의 `resource-kpi-integration-ui.spec.ts`는 #530 pending viewport/wheel/resize와 관련된 다른 사례에서 실패했고, #2670에서는 #530 고정 geometry 복귀와 pending queue 케이스가 실패했다. 이들은 현재 #2878 `line216`과 정확히 같은 단언 실패라고 확정하지 않지만, 해당 제품·Fixture 계약에 *반복적 영향*이 있음을 보여 준다. 해당 이전 Run들의 다른 실패는 전체 추출이 되지 않았으므로 아래 검증 상태를 갱신 전까지 **INCOMPLETE**로 유지한다.
+
+향후 담당자는 먼저 `#2219/#2628/#2633~#2682/#2844~#2878`의 모든 *실제 실패* Job 및 `CANCELLED` Job 내 Playwright `✘`를 추출하여 기존 표에 **기록 추가**하고, 전체 distinct failed file 목록과 기여한 소비자를 재계산한다. `verify:prepr diagnose` 제한 12파일을 넘으면 사유를 문서화해 서로 겹치는 bounded partition으로 실행하되 전체 실패 논리적 합집합을 버리지 않는다. 미실행 파일은 NOT TESTED, 로그 권한·보존 만료는 UNKNOWN으로 기록한다. 현재 기존 최근 10파일 진단 및 전체 `ci-like` 실행은 모두 NOT TESTED.

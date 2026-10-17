@@ -3,7 +3,7 @@
   "issue": 552,
   "pr": 561,
   "createdDate": "2026-10-17",
-  "purpose": "Validated per-test historical CI failure provenance for prepr diagnose union; NO PASS promotion",
+  "purpose": "Selected eight post-#2844 runs and 10 verified test-level failures, plus all 30 branch-run metadata. Historical test-level inventory not yet exhaustive; never treat as full diagnostic union",
   "analysisSource": {
     "headSha": "00fd170a5611f8312bb7abdda4b263254ade7b69",
     "baseSha": "c063101ed7b1d08803c3dac15a41e67842071187",
@@ -132,6 +132,30 @@
       "jobConclusion": "failure",
       "classification": "TEST_CONTRACT",
       "diagnosis": "Line72 dereferences removed marker lane; test also uses invalid-parent code for root creation"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "39008751687",
+      "attempt": 1,
+      "headSha": "37c2c4687d6df61a56e5bc8fa9696863b287cd6d",
+      "file": "tests/e2e/resource-kpi-integration-ui.spec.ts",
+      "jobId": "117326889006",
+      "shard": 5,
+      "jobConclusion": "failure",
+      "classification": "UNKNOWN",
+      "diagnosis": "After responsive 5-width Resource KPI/Excel checks, returning to schedule and wheel produces a fixed-geometry 90 RAF/8 exact native-Core equality barrier failure. Depth=0 before wheel did not prove latest projection/axis/work settled; final coordinates/first writer are not present in job log. Product defect vs premature test input not yet proved.",
+      "originalFailure": {
+        "testLine": 14,
+        "barrierLine": 216,
+        "error": "locator.evaluate: Error: Fixed-geometry Gantt did not settle before navigation comparison",
+        "passed": 64,
+        "failed": 1,
+        "notRun": 17,
+        "testTimeoutMs": 240000,
+        "testDurationSeconds": 16.7
+      },
+      "subclass": "FIXTURE_OBSERVABILITY / VIEWPORT_SETTLEMENT_PRECONDITION"
     }
   ],
   "diagnosticUnion": [
@@ -143,7 +167,8 @@
     "tests/e2e/project-gantt-inline-name.spec.ts",
     "tests/e2e/project-gantt-scale.spec.ts",
     "tests/e2e/project-notifications.spec.ts",
-    "tests/e2e/projection-row-alignment.spec.ts"
+    "tests/e2e/projection-row-alignment.spec.ts",
+    "tests/e2e/resource-kpi-integration-ui.spec.ts"
   ],
   "cancelledWithRecordedRealTestFailures": [
     {
@@ -162,6 +187,99 @@
     }
   ],
   "latestRun": {
+    "runId": "39008751687",
+    "attempt": 1,
+    "pr": 561,
+    "headSha": "37c2c4687d6df61a56e5bc8fa9696863b287cd6d",
+    "baseSha": "de863713142a92f1cac56dbae044923822bca932",
+    "testMergeSha": "ef26400db5a5fc6aae77783b7330da38cf3dbf5e",
+    "testMergeParents": [
+      "de863713142a92f1cac56dbae044923822bca932",
+      "37c2c4687d6df61a56e5bc8fa9696863b287cd6d"
+    ],
+    "sourceArtifactId": 12091509685,
+    "playwrightReportArtifactId": 12092311845,
+    "quality": "PASS",
+    "build": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qaFinal": "FAIL",
+    "shard5": {
+      "jobId": "117326889006",
+      "passed": 64,
+      "failed": 1,
+      "notRun": 17,
+      "testFile": "tests/e2e/resource-kpi-integration-ui.spec.ts"
+    },
+    "cancelledShards": [
+      {
+        "shard": 1,
+        "jobId": "117326889044",
+        "loggedPass": 74,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 2,
+        "jobId": "117326888998",
+        "loggedPass": 85,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 3,
+        "jobId": "117326889009",
+        "loggedPass": 59,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 4,
+        "jobId": "117326889149",
+        "loggedPass": 36,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 6,
+        "jobId": "117326889072",
+        "loggedPass": 63,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      }
+    ],
+    "result": "FAIL",
+    "releaseAuthorized": false
+  },
+  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
+  "execution": {
+    "diagnose": {
+      "status": "NOT TESTED",
+      "reason": "No local repository checkout or Playwright runner in connector workspace; ten actual failed spec files, max-failures=0 planned only"
+    },
+    "ciLike": {
+      "status": "NOT TESTED",
+      "reason": "CI-like whole-suite not executed on current candidate"
+    },
+    "sourceStable": "NOT TESTED",
+    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
+    "crossRegression": "NOT TESTED",
+    "releaseAuthorized": false
+  },
+  "commandExample": [
+    "npm run verify:prepr -- --mode=diagnose --base=de863713142a92f1cac56dbae044923822bca932 --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
+    "npm run verify:prepr -- --mode=ci-like --base=de863713142a92f1cac56dbae044923822bca932 --risk=HIGH --issue=552 --pr=561"
+  ],
+  "criteria": [
+    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
+    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
+    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
+    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
+    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
+    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval",
+    "Common PR_CI_FAILURE_TRIAGE requires docs/ISSUE_552_FAILURE_ANALYSIS.md and one growing primary issue ledger; older 22 branch-run details remain INCOMPLETE until logged."
+  ],
+  "previousLatestRun": {
     "runId": "38982330298",
     "attempt": 1,
     "quality": "PASS",
@@ -202,31 +320,324 @@
       }
     ]
   },
-  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
-  "execution": {
-    "diagnose": {
-      "status": "NOT TESTED",
-      "reason": "Current tool workspace cannot resolve GitHub hostname or access project checkout, node_modules, and Playwright Chromium; DO NOT claim execution"
-    },
-    "ciLike": {
-      "status": "NOT TESTED",
-      "reason": "Same runner limitation; requires subsequent identical candidate with no intervening code edit"
-    },
-    "sourceStable": "NOT TESTED",
-    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
-    "crossRegression": "NOT TESTED",
-    "releaseAuthorized": false
+  "latestAnalysisSource": {
+    "headSha": "37c2c4687d6df61a56e5bc8fa9696863b287cd6d",
+    "baseSha": "de863713142a92f1cac56dbae044923822bca932",
+    "testMergeSha": "ef26400db5a5fc6aae77783b7330da38cf3dbf5e",
+    "testMergeParents": [
+      "de863713142a92f1cac56dbae044923822bca932",
+      "37c2c4687d6df61a56e5bc8fa9696863b287cd6d"
+    ],
+    "runId": "39008751687"
   },
-  "commandExample": [
-    "npm run verify:prepr -- --mode=diagnose --base=c063101ed7b1d08803c3dac15a41e67842071187 --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
-    "npm run verify:prepr -- --mode=ci-like --base=c063101ed7b1d08803c3dac15a41e67842071187 --risk=HIGH --issue=552 --pr=561"
+  "historicalRunInventory": [
+    {
+      "number": 2878,
+      "runId": "39008751687",
+      "attempt": 1,
+      "headSha": "37c2c4687d6df61a56e5bc8fa9696863b287cd6d",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-17T06:07:35Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2866,
+      "runId": "38982330298",
+      "attempt": 1,
+      "headSha": "00fd170a5611f8312bb7abdda4b263254ade7b69",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T23:36:31Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2865,
+      "runId": "38982310052",
+      "attempt": 1,
+      "headSha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T23:36:17Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2864,
+      "runId": "38978855656",
+      "attempt": 1,
+      "headSha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T22:58:34Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2863,
+      "runId": "38976543886",
+      "attempt": 1,
+      "headSha": "1abebed189642c278552a25aa270fed333bdc36f",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T22:34:18Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2862,
+      "runId": "38973584934",
+      "attempt": 1,
+      "headSha": "eb525442fa93532e9d4d06fb17ebf739c8e4c484",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T22:05:11Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2861,
+      "runId": "38971156752",
+      "attempt": 1,
+      "headSha": "2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T21:42:22Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2860,
+      "runId": "38971119607",
+      "attempt": 1,
+      "headSha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T21:42:02Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2859,
+      "runId": "38966513185",
+      "attempt": 1,
+      "headSha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T21:02:07Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2844,
+      "runId": "38905085250",
+      "attempt": 1,
+      "headSha": "2ce8a276802a8346772a5351a943b1f3d03a55e5",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-16T13:04:31Z",
+      "detailScope": "selected CI original test failure(s) captured; other failures may exist"
+    },
+    {
+      "number": 2682,
+      "runId": "38393906015",
+      "attempt": 1,
+      "headSha": "d9334c30c6c262d9089ac8ad99008587435092ed",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T11:58:14Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2679,
+      "runId": "38388682185",
+      "attempt": 1,
+      "headSha": "ea25c48115cad88bfbbf182c1f33700c21c4c2f3",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T11:13:01Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2670,
+      "runId": "38383522417",
+      "attempt": 1,
+      "headSha": "eb1ff4d7ffbd8605c397f089156f4e2e5fc95397",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T10:27:52Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2669,
+      "runId": "38379375572",
+      "attempt": 1,
+      "headSha": "eb898c54d2cf9f4994e0b99cc0a76ed1493b2220",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T09:52:01Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2668,
+      "runId": "38379357093",
+      "attempt": 1,
+      "headSha": "290119bcfe859a26c1e095dcd4611e751e2a72af",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T09:51:51Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2667,
+      "runId": "38371554385",
+      "attempt": 1,
+      "headSha": "290119bcfe859a26c1e095dcd4611e751e2a72af",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T08:46:18Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2666,
+      "runId": "38363844306",
+      "attempt": 1,
+      "headSha": "f42afe10219068e2505adf956f4075f0e0bcc692",
+      "workflowEvent": "pull_request",
+      "conclusion": "cancelled",
+      "createdAt": "2026-10-13T07:37:34Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2665,
+      "runId": "38362171056",
+      "attempt": 1,
+      "headSha": "5d9f8124ac34d9efce8bf0e00df32e82aa642ac1",
+      "workflowEvent": "pull_request",
+      "conclusion": "cancelled",
+      "createdAt": "2026-10-13T07:21:46Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2661,
+      "runId": "38358079542",
+      "attempt": 1,
+      "headSha": "a9abf4813aad1fe899477193788f5259fae3df9b",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T06:40:53Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2654,
+      "runId": "38354836221",
+      "attempt": 1,
+      "headSha": "0e3d39b6e012b757ec66ebfbfb3055ca4021f180",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T06:05:52Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2651,
+      "runId": "38352770887",
+      "attempt": 1,
+      "headSha": "edeed05ddb436c35bd35f4c9e18edf14f6fd4193",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T05:42:24Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2648,
+      "runId": "38351816899",
+      "attempt": 1,
+      "headSha": "f03051ed1e2a4e78d952e2a6f784be4222ffc009",
+      "workflowEvent": "pull_request",
+      "conclusion": "cancelled",
+      "createdAt": "2026-10-13T05:31:21Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2645,
+      "runId": "38351001998",
+      "attempt": 1,
+      "headSha": "2e1eb0324196d2fab6ecf49a0c63242fd0157156",
+      "workflowEvent": "pull_request",
+      "conclusion": "cancelled",
+      "createdAt": "2026-10-13T05:21:53Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2643,
+      "runId": "38348440262",
+      "attempt": 1,
+      "headSha": "837c1d50fc8653c6c880078e0dec1e2d48fd3844",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T04:50:57Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2642,
+      "runId": "38345784863",
+      "attempt": 1,
+      "headSha": "41c2b093ba5db826b72e400250b9ea561ae23c88",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T04:18:11Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2641,
+      "runId": "38342994530",
+      "attempt": 1,
+      "headSha": "67535b647c2a896fb9e374e4d5c26ee97d4b01e4",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T03:42:43Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2639,
+      "runId": "38338703107",
+      "attempt": 1,
+      "headSha": "8942d3ad875a6a9661b63308e0840be75cb848e7",
+      "workflowEvent": "pull_request",
+      "conclusion": "cancelled",
+      "createdAt": "2026-10-13T02:49:06Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2633,
+      "runId": "38336799481",
+      "attempt": 1,
+      "headSha": "4a3aabaa3fdf6d0db241ad7f2a14f1cc396941ac",
+      "workflowEvent": "pull_request",
+      "conclusion": "cancelled",
+      "createdAt": "2026-10-13T02:25:19Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2628,
+      "runId": "38326098951",
+      "attempt": 1,
+      "headSha": "81a90b51e92b36765902d89deb9d89c9541a7579",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-13T00:12:34Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    },
+    {
+      "number": 2219,
+      "runId": "37839172928",
+      "attempt": 1,
+      "headSha": "fed88f5e00e104a35cca44c342005bfe8fd04f4e",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-08T20:24:11Z",
+      "detailScope": "run metadata captured; test-level failure enumeration not exhaustive"
+    }
   ],
-  "criteria": [
-    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
-    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
-    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
-    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
-    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
-    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval"
-  ]
+  "historyCompleteness": {
+    "branchRunCount": 30,
+    "selectedEvidenceRuns": 8,
+    "selectedFailureFiles": 10,
+    "state": "INCOMPLETE",
+    "reason": "30 runs were found on PR #561 branch. The selected JSON failures[] covers 8 later runs (post #2844) and is not the whole historical E2E/test failure union. Earlier runs include many real failures and need separate bounded diagnose groups (tool limit: 12 files) after full per-shard log inventory. All 30 run metadata preserved."
+  },
+  "diagnosticUnionScope": "BOUNDED_POST_2844_SELECTED_ONLY; full historical union INCOMPLETE"
 }

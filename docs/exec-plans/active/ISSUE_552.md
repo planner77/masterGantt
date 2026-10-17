@@ -1,5 +1,13 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — PR CI #2878 Resource KPI Gantt 왕복 실패 및 연속 실패 원장
+
+- 원본 [CI #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687): HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, Base `de863713142a92f1cac56dbae044923822bca932`, test-merge `ef26400db5a5fc6aae77783b7330da38cf3dbf5e`. Preflight/Quality/Build/Docker 성공, E2E/QA Final 실패. Shard5 job `117326889006`, `resource-kpi-integration-ui.spec.ts:216`(64 PASS/1 FAIL/17 미실행); 나머지5 Shard 취소, 로그상 별도 실패 0이나 전체 PASS 아님.
+- 원본 실패 조건: KPI 5폭·Excel 왕복 후 일정탭에서 canonical depth0만 확인하고 wheel을 수행한 다음 90개 RAF 안에 Core/native 정확 일치 8연속 프레임을 확보하지 못했다. 최신 U2/U3·축·viewport 완료의 준비 증거가 빠졌고 마지막 좌표가 로그에 없어 제품 근본 원인은 UNKNOWN이다.
+- 변경: 기존 read-only `waitForGanttReadiness`로 실제 API/revision/Day/scope/canonical·U2/U3/physical geometry/viewport를 연속3frame 확인한 뒤 wheel. 실패 시 마지막12 frame의 Core/native X/Y, depth, coordinator·영수증 첨부. 90RAF/8연속/정확 좌표 일치, Gantt 동일 instance·Tree/Selection·원본 Resource KPI/Excel·원래 보기 복귀, timeout/skip/retries0 보호는 그대로.
+- 별도 분석·후속 실패 대응: [ISSUE_552_FAILURE_ANALYSIS.md](../../ISSUE_552_FAILURE_ANALYSIS.md) 및 [실제 CI 8Run/10파일 누적 원장](../../evidence/issue-552/ci-cumulative-20261017.json). 취소된 과거 Job의 실제 테스트 FAIL2건도 별도 보존.
+- 로컬 `verify:prepr diagnose`(누적10파일)·`ci-like` 전체·`sourceStable` 및 최종 브라우저/QA는 연결된 checkout/node_modules/Chromium이 없어 **NOT TESTED**. 과거 UNKNOWN/sourceStable=false BLOCKED를 성공으로 바꾸지 않음. 새 CI 시작까지만 승인, Merge/Main/GHCR/Issue 종료 제외, HIGH/OWNER_MANAGED/release_authorized=false 유지.
+
 ## 2026-10-17 — CI #2866 누적 실패 안정화 후보 / 실행 증거 경계
 
 - **원본 고정**: PR #561 Head `00fd170a5611f8312bb7abdda4b263254ade7b69`, main Base `c063101ed7b1d08803c3dac15a41e67842071187`, CI #2866.1 test-merge `a3d8a8c4704a7f655e6103f491f78598d33bfd49`(부모 Base→Head), Run `38982330298`. 실제 원본 Quality·Build·Docker PASS, E2E·QA Final FAIL을 수정 전 결과로 보존한다. Head가 바뀌면 새 test-merge/CI 증거를 따로 확인한다.
