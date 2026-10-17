@@ -177,6 +177,8 @@ Agent 역할 / 실행 ID(실제 생성 시) / 요청 모델·effort:
 
 CI 실패 시 infra는 run/job/step/attempt/최초 오류를 확보한다. application 원인은 frontend/backend/scheduler/excel_vba, UX 설계 원인은 ui_ux+frontend, workflow/runner/registry 원인은 infra에 재배정한다. gate 삭제, continue-on-error, 무조건 retry로 통과시키지 않는다. transient retry도 원인과 이전 실패를 기록한다. 동일 원인의 수정이 두 차례 실패하면 Manager가 가설/계획을 재검토한다.
 
+**PR CI 실패 공통 REWORK 계약 (#704):** infra의 직전 Run 조사만으로는 REWORK 분석이 완료되지 않는다. **최초 실패부터 Primary Issue별 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md` 1개**를 생성하여 관련 모든 PR/Run/Attempt, 최초 실제 Job/Shard 실패·취소·미실행, 각 보완/재현·미검증을 누적한다. 재실패 시 해당 원장 **전체**를 먼저 읽고 GitHub 전체 이력과 대조한 후 이전 실패 파일 **합집합**·직접/간접·음성 소비자에 대한 제한적 확대 진단·원인별 일괄 보완·동결 source 재검증을 거쳐야 다음 CI를 시작한다. 상세 필드, 역할과 완료 기준은 [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)를 따른다. 과거 실패를 덮어쓰거나 다른 Head의 PASS를 합산하지 않으며, 원장 누락은 `INCOMPLETE/BLOCKED`로 남긴다.
+
 세션 중단/사용자 추가 요청 시 Manager는 Issue/PR에 현재 단계, 요청 범위 변경, branch/head, 버전/tag, 완료·미완료 gate, Agent 결과와 잠금 파일, 다음 조치를 기록한다. 재개할 때 실제 원격 상태를 다시 읽고 기존 branch/PR/run을 재사용한다. 과거 PASS는 해당 SHA/환경에서만 유효하다. 이미 게시된 version을 다시 게시하지 않는다. 실행 중인 척하거나 승인되지 않은 백그라운드 작업을 약속하지 않는다.
 
 ## 7. 완료 판정과 보고
@@ -280,6 +282,8 @@ Manager는 각 위임 전에 최소 다음을 고정한다.
 - primary Agent / collaborators / writable files / read-only files / shared interface
 - Local Fast Feedback / required tests / docs / remote CI / 환경별 검증
 - 변경 영향 분석: base/head/test-merge/source fingerprint, 수정 함수·공개 계약, 직접/간접 소비자, 기존/신규 음성 테스트 파일과 실행·제외 근거, LOW/MEDIUM/HIGH 위험도·진단 확대, 고유 테스트 수·미실행·잔여 위험. 상세 위험도 결정표는 TEST_PLAN 단일 원본
+- PR CI 실패/REWORK일 경우 이슈별 **누적 원장 경로**(`docs/ISSUE_<N>_FAILURE_ANALYSIS.md`), 이전 **모든** Run/Attempt/실제 실패 집합의 대조 여부, 최신 실패 추가·원인 매트릭스, source 동결 진단/남은 미검증. [공통 원장 지침](PR_CI_FAILURE_TRIAGE.md)
+
 - predecessor result / expected output / next owner / stop conditions
 - Issue Progress Log 후보와 댓글 작성 권한: `issue_log_type`, `issue_comment_writer`, `issue_comment_allowed_types`
 
@@ -383,6 +387,7 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 - 기존 Issue/branch/PR이 있으면 재사용한다.
 - PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 QA_FINAL(독립 PASS 또는 N/A) 판정은 변경 영향도와 무관하게 stale이다. 새 head에서 전체 required PR gate 및 위험도/QA 필요성을 재평가하고 해당 QA 절차를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용을 허용한다.
 - 구현·계약 변경이 문서에 영향을 주면 이전 DOCUMENTATION_SYNC PASS도 stale이며 QA 전 문서 Gate를 다시 통과한다.
+- **PR CI가 한 번이라도 실패한 Issue**는 모든 후속 REWORK에서 [이슈별 누적 분석 원장](PR_CI_FAILURE_TRIAGE.md)을 확인·갱신하고 전체 관련 실패의 원인·재발·새 소비자 영향을 종합해 같은 후보 source로 재검증한다. 직전 실패만 수정하거나 재실행하면서 과거 원장을 건너뛰지 않는다.
 - 같은 원인 실패를 두 차례 반복하면 Manager가 가설/계획을 재검토한다.
 - 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
 - 이미 게시된 immutable version/tag는 재사용/덮어쓰기하지 않는다.
