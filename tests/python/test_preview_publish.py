@@ -6,6 +6,8 @@ import re
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+from urllib.error import URLError
 
 from scripts import preview_publish as p
 
@@ -116,8 +118,9 @@ class RequestTests(unittest.TestCase):
             p.authorize(env, fetch)
 
     def test_github_errors_do_not_become_absence(self):
-        with self.assertRaises(p.Blocked):
-            p.github_json("/repos/not-present", "")
+        with patch.object(p, "urlopen", side_effect=URLError("offline")):
+            with self.assertRaises(p.Blocked):
+                p.github_json("/repos/not-present", "placeholder")
 
     def test_manifest_status_only_404_is_absent(self):
         output = p.validate_snapshot(*fixtures()[:5], **fixtures()[5])
@@ -153,7 +156,7 @@ class WorkflowContractTests(unittest.TestCase):
         build_segment = text.split("\n  build:", 1)[1].split("\n  publish:", 1)[0]
         self.assertNotIn("packages: write", build_segment)
         self.assertIn("push: false", build_segment)
-        self.assertIn("verified", text.lower() + " verified")  # local smoke/verification documented
+        self.assertIn("Project/Task 인증·SQLite 재시작 영속성 검증", text)
         self.assertIn("org.opencontainers.image.revision=", text)
         self.assertIn("io.mastergantt.preview=true", text)
         self.assertIn("trusted/scripts/verify-image-policy.sh", text)
