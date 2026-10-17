@@ -111,6 +111,17 @@ describe("Issue #699 — risk/path/real test selection", () => {
     expect(s.state).toBe("READY");
     expect(s.selected.map((x) => x.path)).toContain("tests/scripts/prepr-verifier.test.ts");
   });
+  it("maps batch preparation scripts to their actual safety tests without adding browser requirements", () => {
+    const s = selectImpact({
+      changed: ["scripts/pr-batch-core.mjs", "scripts/pr-batch-core.d.mts", "scripts/verify-pr-batch.mjs"],
+      tests, risk: "HIGH",
+    });
+    expect(s.state).toBe("READY");
+    expect(s.selected.map((x) => x.path)).toEqual(["tests/scripts/pr-batch-verifier.test.ts"]);
+    expect(s.selected.every((x) => x.kind === "unit")).toBe(true);
+    expect(s.notSelectedReason).toMatch(/remote Required/);
+    expect(() => selectImpact({ changed: ["scripts/verify-pr-batch.mjs"], tests, risk: "LOW" })).toThrow(/below path floor/);
+  });
 });
 describe("Issue #699 — source identity/dirty protection", () => {
   it("tracks committed head, changed files and untracked content changes", () => {

@@ -99,3 +99,11 @@
 `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `independent_qa=N/A(Owner-managed, 독립 최종 리뷰 없음)`, `manager_decision=NOT TESTED`, `MERGE_READY=BLOCKED`, `release_required=true`, `release_authorized=false`.
 
 브랜치의 최신 main 대비 ahead/behind 및 충돌·review threads는 PR 게시 시 다시 확인한다. exact Head CI의 Quality/E2E6/Docker/Trusted, Owner의 HIGH 위험 수용·명시적 병합 승인 및 Main/GHCR/Finalizer·정식 Release/Issue 종료는 별도 증거/지시가 필요하다. 이번 사용자 요청은 **미해결 리뷰·충돌 해결 및 Full PR CI 시작**까지이며 CI 결과 모니터링은 하지 않는다.
+
+
+## CI #2887.1 재실패 — #621 snapshot INIT_TRANSPORT 보호 및 #679 main 통합 (2026-10-17)
+
+- 원본 [PR CI #2887.1 / Run 39014302310](https://github.com/planner77/masterGantt/actions/runs/39014302310): HEAD `105bd05786089fec2e9b76898ad01921332ba117`, base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `30c4fce5904d0fa39b30d7c928bd1828adcbb03c`; Required Quality/Docker PASS, E2E Shard3 #621 snapshot GET `ECONNRESET`, 다른5 Shard CANCELLED, QA Final required E2E FAILURE.
+- [누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)의 F-624-001/007/013/019(선행4 Root) 전체를 대조했다. Preflight/ESLint·Unit·Typecheck는 재발하지 않았고 #624 390px Chromium 보완은 Shard2 취소로 **미검증**. 이번 F-624-022는 제품 assertion이 아니라 격리 HTTP 전송 reset, idle socket race 가설만 존재. 최초 실패만 보고 이전 문서/제품 계약을 삭제하지 않았다.
+- `tests/e2e/fixtures/target-project.ts`의 read-only `snapshot()`만 `Connection: close`로 매 GET 소켓 재사용을 피하고, 실제 전송 오류 시 2초 제한의 read-only health probe + 원인 cause로 실패를 설명한다. 무조건 재시도/skip/timeout 증가·제품 API·DB/Resource 산식 변경 없음. 실제 remote 확인 전 가설 검증 및 새 Head 결과는 NOT TESTED.
+- #679 main 두 커밋의 batch publication guide·AGENTS/CI_CD/TEST_PLAN/REMOTE_VALIDATION/active PLAN·scripts/tests 새 변경을 변경 누락 없이 수용한다. 새 HEAD에서 base/main ancestry·review thread0/mergeability/Full CI 시작을 검증해야 하며 병합·Main/GHCR/Release는 승인하지 않는다.

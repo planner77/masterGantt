@@ -1,3 +1,11 @@
+## Issue #624 — CI #2887.1 전송 오류 재발·전체 실패 원장 검토 (2026-10-17)
+
+[원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)의 #2875.1(문서 경로), #2876.1(AC parser), #2877.1(React Hooks), #2879.1(390px 폭), #2887.1(#621 canonical snapshot ECONNRESET) 전체를 대조했다. #2887.1에서 QA/TypeScript/Lint/Unit/Build/Docker 성공, Shard3 전송 실패·나머지5 취소. 저장/공수·일정 원본 결함은 확인되지 않았고 idle keep-alive socket 재사용은 **검증 대기 가설**이다. 격리 fixture GET의 `Connection: close`와 실패 시 2초 read-only health 진단으로 fail-closed 보완하며 자동 재시도·QA Gate 완화 없음. #624 five-width E2E는 취소로 미검증. #679 main의 PR 배치 게시/원격 증거 운영 내용을 함께 보존한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 실제 새 Head CI·Owner 결정·병합/GHCR는 별도다.
+
+## Issue #679 — PR 변경 묶음 게시 (2026-10-17)
+
+[Work Packet](ISSUE_679.md)에 최신 main/실제 Run 비용·Ruleset·연결 API를 재검토한 A~D 선택을 기록했다. A는 일반 운영 우선, 현재 Git push 인증 부재로 B를 조건부 사용한다. 읽기 전용 manifest prepare/verify·임시 Git 회귀·prepr 매핑과 운영 문서를 함께 준비한 뒤 한 번 게시하고 최종 PR CI 시작을 확인한다. HIGH/OWNER_MANAGED, version 0.114.1 유지, release_required=false/release_authorized=false. 제품 source·CI YAML/Ruleset/Trusted 정책은 변경하지 않는다. 원격 비용/최종 CI 성공·Owner 승인은 실제 증거 전 NOT TESTED이며 CI 완료 모니터링은 요청 범위 밖이다.
+
 ## Issue #624 — 4차 PR CI #2879.1 실제 UI overflow 및 최신 main 합류 (2026-10-17)
 
 [누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에서 2875.1 문서 영향 경로·2876.1 AC parser·2877.1 React Hooks 오류 및 2879.1 Chromium 390px document704를 전부 대조한다. 2879.1은 Quality/Next Build/Docker PASS, E2E Shard2 신규 #624 spec FAIL 및 다른5 CANCELLED로 Required E2E/QA Final FAIL. 제품 Unified CSS Grid 암묵 auto track을 `minmax(0,1fr)`로 제한하고 기존 화면 너비<=viewport+1/내부 region scroll·canonical/full Gate 단언을 보존하면서 overflow 후보 DOM 진단을 E2E에 추가한다. standalone Chromium에서 390 doc712→390/내부 owner388/710 확인은 **전체 실제 앱 PASS 아님**. 최신 main `78ec8d2...`(원본 base 대비10커밋)에 포함된 #704 [누적 실패 지침](../../PR_CI_FAILURE_TRIAGE.md)을 보존하여 결합. 새 Head의 원격 QA/Required3·Owner ACCEPT/정식 GHCR는 NOT TESTED이며 리뷰·충돌 확인 후 Full PR CI 시작에서 멈춘다.

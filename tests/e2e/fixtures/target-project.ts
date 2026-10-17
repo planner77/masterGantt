@@ -45,7 +45,31 @@ export async function createTargetProject(page: Page, origin: string) {
   } }))).json() as CreateProjectResponse;
   const publicId = created.data.project.publicId;
   const api = `${origin}/api/projects/${publicId}`;
-  const snapshot = async () => await (await successful(await page.request.get(api))).json() as ProjectSnapshotResponse;
+  // Isolated Next dev HTTP/1.1 advertises Keep-Alive: timeout=5. Do not reuse an
+  // idle pooled socket for canonical readbacks after editor/transport phases.
+  // No automatic retry: a real process outage must remain an observable failure.
+  const snapshot = async (): Promise<ProjectSnapshotResponse> => {
+    let response: APIResponse;
+    try {
+      response = await page.request.get(api, { headers: { Connection: "close" } });
+    } catch (error) {
+      // Read-only, bounded diagnostic after a transport failure: distinguish an
+      // unhealthy isolated server from a closed idle connection. Never restart
+      // the server or accept stale data to make this assertion pass.
+      const health = await fetch(`${origin}/api/health/ready`, {
+        headers: { Connection: "close" },
+        signal: AbortSignal.timeout(2_000),
+      }).then(res => ({ status: res.status, ok: res.ok }))
+        .catch((probeError: unknown) => ({
+          transportError: probeError instanceof Error ? probeError.message : String(probeError),
+        }));
+      throw new Error(
+        `Target fixture canonical snapshot GET transport failure; isolated server health=${JSON.stringify(health)}; no retry`,
+        { cause: error },
+      );
+    }
+    return (await (await successful(response)).json()) as ProjectSnapshotResponse;
+  };
   const mutate = async (path: string, data: object, method = "post") => {
     const current = await snapshot();
     return successful(await page.request.fetch(`${api}${path}`, { method, headers: { ...headers, "If-Match": `"${current.data.project.revision}"` }, data }));

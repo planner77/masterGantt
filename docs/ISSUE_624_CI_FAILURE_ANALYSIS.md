@@ -154,3 +154,42 @@
 - PR HEAD와 최신 main 정렬: 현재 Run #2879.1 Source는 `b3eef1c21...` (base `de863...`), 진단 시 main `78ec8d2...`로 ahead10. 새 후보의 merge parent/base/mergeability 및 정확 신규 Run ID를 새 CI 시작 직전에 기록하고, 갱신 시 이전 이력을 삭제하지 않는다.
 - 수정 예정 파일: `src/features/logistics/project-logistics-unified.module.css`, `tests/e2e/issue-624-logistics-unified.spec.ts`, Work Packet·본 원장·PROJECT_UX/TEST_PLAN/REMOTE_VALIDATION/active PLAN·Target Resource rollout/CHANGELOG. 최신 main #704 소스 지침 보존.
 - scope: HIGH/OWNER_MANAGED, release_required=true, release_authorized=false. Owner HIGH 위험 수용/명시 병합 승인·Trusted QA·Main/GHCR/Release/Issue 종료는 별도이며, 원격 새 Head CI 종료/성공은 **NOT TESTED**.
+
+
+## 7. PR CI #2887.1 — #621 원본 GET transport reset / 누적 5차 실패 (2026-10-17)
+
+**원본 고정값:** Primary Issue [#624](https://github.com/planner77/masterGantt/issues/624), PR [#702](https://github.com/planner77/masterGantt/pull/702); [Full CI #2887.1 / Run 39014302310](https://github.com/planner77/masterGantt/actions/runs/39014302310), pull_request synchronize, 2026-10-17T07:37:08Z ~ 07:44:39Z, conclusion=FAILURE. Head `105bd05786089fec2e9b76898ad01921332ba117` / Base `78ec8d2ced62f543f73a8477c3e62fca8274274b` / actual test-merge `30c4fce5904d0fa39b30d7c928bd1828adcbb03c` (각 Shard checkout 로그). 이후 main `4307c8cdf1cc00a87fd7bff9f5e1a0c924bb3620`로 전진, 진단 시 Feature behind=2. 신규 HEAD/merge는 별도 기록 필요.
+
+### 실제 실패와 취소된 Job 조사
+
+| 누적 ID / 원본 Job | Outcome | 유형 / 증거 |
+| --- | --- | --- |
+| **F-624-022** · [Chromium Shard 3/6 Job 117343433036](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117343433036) | **FAILURE** | `tests/e2e/issue-621-resource-target.spec.ts:92`의 저장1·복제0·역방향 편집 테스트에서 `tests/e2e/fixtures/target-project.ts:48`의 `f.snapshot()` GET이 `apiRequestContext.get: read ECONNRESET`로 실패. 원본 Task/Assignment 결과 ASSERT 실패/HTTP 4xx·5xx 응답 없음. 36개의 테스트 PASS 이후 1FAIL·53 NOT RUN이며 local fixture URL은 127.0.0.1 ephemeral port. [Playwright report/trace artifact 12094630518](https://github.com/planner77/masterGantt/actions/runs/39014302310/artifacts/12094630518) |
+| **F-624-023** · [Chromium aggregate 117344399521](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117344399521) | FAILURE | Shard3 실제 실패 + 나머지 5개 CANCELLED을 fail-closed 전파한 집계, 독립 제품 오류로 세지 않음 |
+| **F-624-024** · [QA Final 117344420857](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117344420857) | FAILURE | `required e2e 미성공` 파생; 별도 Reviewer 승인/CI 정책 문제 아님 |
+| **C-624-002** · Shard [1 117343433050](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117343433050), [2 117343433044](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117343433044), [4 117343433062](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117343433062), [5 117343433047](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117343433047), [6 117343433046](https://github.com/planner77/masterGantt/actions/runs/39014302310/job/117343433046) | **CANCELLED** | 취소 전 Chromium 각각 56/31/11/24/49개 PASS 표시, 로그에서 별도의 ✘ assertion은 확인되지 않았으나 전수 종료하지 않았으므로 최종 PASS가 아님. Shard3에서 실제 PASS 36 및 실패 1; 이 숫자는 전체 계획 사례 수 또는 완료 PASS와 다름 |
+| **Gate successes** | **SUCCESS** | Preflight, Policy, ESLint, TypeScript, Vitest, PR Fast Gate, Next Build, Docker smoke, 필수 Quality / Docker aggregate. `#2879.1`의 문서·Hooks·제품 레이아웃 보완은 이번 source의 static/build/QA gate에서 성공했으나 **#624 전용 Chromium5폭 spec은 Shard2 취소로 미검증** |
+
+### Trace 타임라인과 사실/가설 분리
+
+- 추적: [Shard3 Playwright trace](https://github.com/planner77/masterGantt/actions/runs/39014302310/artifacts/12094630518)의 request chain. 해당 프로젝트 원본 GET 및 Target binding/Assignment PUT은 200/201 응답과 ETag 증가를 반복했고 마지막 프로젝트 GET **07:42:38 UTC, HTTP 200**, 응답 헤더 `connection: keep-alive`, `keep-alive: timeout=5`. 그 뒤 UI는 Resource 보고서 ready 상태를 렌더하고, 약 **6.1초 후** 같은 origin/URL의 새 snapshot GET이 HTTP 상태 코드 없이 TCP `ECONNRESET`가 됨. 기존 `f.snapshot()`는 `page.request.get(api)`로 동일 APIRequestContext를 반복 사용했다.
+- **확정 증상 분류 = INIT_TRANSPORT**: 서버/API 500나 canonical 데이터 불일치 증거가 아니라 브라우저 외부 테스트 HTTP의 전송 종료. 마지막 화면 렌더만으로 Next 프로세스가 계속 정상 실행 중이었는지, 다른 Runner 부하/idle socket race인지 증명되지는 않는다. 따라서 PRODUCT/ENVIRONMENT 또는 'Next dev 크래시'로 단정하지 않는다.
+- **우선 가설 = 5초 유휴 keep-alive 소켓 재사용 경합**: 마지막 정상 GET의 `timeout=5`와 다음 GET의 약 6초 간격이 일치한다. 제품/API 권한·저장 경로 수정은 원인과 근거 불일치. 환경/프로세스 기원 가능성은 열어두고, 실패 시 health probe의 실제 결과로 분리한다.
+- **fail-closed 보완:** `tests/e2e/fixtures/target-project.ts`의 **canonical snapshot GET만** `Connection: close` 요청으로 수행하여 오래된 socket 재사용을 피하도록 제어한다. GET 실패 시 read-only `/api/health/ready`를 2초 제한/새 close connection으로 **한 번만 진단**하고 원래 오류를 `cause`에 보존한 채 테스트는 **실패**시킨다. 자동 재시도, 서버 재시작, 데이터 캐시로 성공 위장, 4xx/5xx 완화/timeout·skip 추가는 없다. fixture의 `f.mutate`는 기존 ETag/If-Match/Authorization 처리와 원본 스냅샷을 유지한다.
+- **검증 상태:** 현재 대화 실행 컨테이너는 GitHub 저장소 clone/Node deps·실제 isolated Next/Chromium 전체를 실행할 수 없어 새 HEAD의 Product/Transport PASS는 **NOT TESTED**. Playwright trace와 정적 소스 검토는 원격 통과 증거가 아니다. 연결 재발 시 health=ok 여부 및 원래 ECONNRESET cause, 서버 PID/자원·Runner CPU/memory/Next dev exit를 추가 조사하고 같은 source에서 운송/제품으로 재분류한다.
+
+### 이전 모든 실패와의 Cross-run 대조 (#704 A→G)
+
+| 실패 Root / 정확 Run | 원래 계약·당시 보완 | #2887.1에서 실제 재발 여부 | 이번 변경과 동일 후보에 요구되는 소비자 검증 |
+| --- | --- | --- | --- |
+| F-624-001 / #2875.1, `39007521324.1` | Work Packet `docs/GITHUB_OPERATIONS.md` N/A 누락 → docs 수정 | **재발 아님:** #2887.1 Preflight PASS | 같은 HEAD 문서 영향 합집합·AC1~7/정확 base QA |
+| F-624-007 / #2876.1, `39008123509.1` | AC1~7 `**` Markdown parser 불일치 → plain `- AC#:` | **재발 아님:** #2887.1 Preflight PASS | Work Packet과 새 source/changed-path의 동일 문법 |
+| F-624-013 / #2877.1, `39008625870.1` | effect 동기 setState lint → derived query/snapshot + 사용자 이벤트 무효화 | **재발 아님:** ESLint/Typecheck/Vitest PASS | `logistics-unified-model.test.ts`와 Resource exact drill/stale/readonly/focus |
+| F-624-019 / #2879.1, `39009419792.1` | 신규 #624 Chromium 390px doc704, CSS grid explicit minmax0; 원본 assertion 유지 | **UNVERIFIED:** Shard2가 #2887.1에서 CANCELLED, #624 five-width 실측 완료 없음 | `tests/e2e/issue-624-logistics-unified.spec.ts` 390/768/1024/1440/1920, documentWidth<=width+1/내부 scroll, exact IDs·Milestone Gate·조회0 |
+| **F-624-022 / #2887.1, `39014302310.1`** | 기존 #621 `f.snapshot` read ECONNRESET, idle keepalive **가설**; fail-closed connection close/health 진단 | 신규 Root, 원격 교정 미검증 | `tests/e2e/issue-621-resource-target.spec.ts`, 공유 `target-project.ts` 소비자 #623/#624, 실제 HTTP/원시 ID/저장1·복제0/권한 음성 |
+
+**누적 실제 실패 파일·계약 합집합:** `docs/exec-plans/active/ISSUE_624.md`(2회 QA 문서 계약), `src/features/logistics/project-logistics-unified.tsx`(Hooks ESLint), `tests/e2e/issue-624-logistics-unified.spec.ts` 및 `src/features/logistics/project-logistics-unified.module.css`(390px 제품 overflow), **`tests/e2e/issue-621-resource-target.spec.ts` / `tests/e2e/fixtures/target-project.ts`(전송/fixture)**. 인접/음성: `tests/e2e/issue-623-resource-mvp.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`, #528 Resource drill, Milestone full Gate, readonly/dirty/pending/401/412/invalid scope, Gantt one-instance. 업무 DB/글로벌 Resource KPI API는 이번 계약 수정의 대상이 아니며, 신규 서버 side 로직 없음.
+
+**동일 source 검증/재실패 조건:** 세 Gate(Preflight/doc/Typecheck/Lint/Unit → bounded #621/#623/#624 Chromium 위 파일·fixture 원본 변경 없음·fail-fast OFF 진단 → 정확 HEAD Full PR CI Quality/E2E6/Docker/Trusted)를 구분한다. 환경에서 로컬 Browser 실행이 불가해 (A) 정적 source/parser 검토까지 수행, (B) 로컬 실제 Chromium `NOT TESTED`; (C) 새 GitHub PR CI를 시작하여 결과는 별도 후속 확인. 단일 source/test 변경 중 과거 Head의 PASS를 이월하지 않는다. fail-fast/CANCELLED의 기존 증거를 지우지 않으며 초기에 막혔던 `#624` E2E 제품 overflow도 별도 검증 대상이다.
+
+**원격 상태·권한:** 진단 당시 main이 두 새 커밋(#679)으로 전진. AGENTS/CI_CD/GITHUB_OPERATIONS/PR_BATCH_PUBLICATION 및 docs/TEST_PLAN/REMOTE_VALIDATION/PLAN #679 변경을 **양쪽 모두 보존해 브랜치 통합**한다. Live PR review thread 0이며 실제 mergeable/latest main은 새 commit 직전에 재평가한다. risk=HIGH / qa_method=OWNER_MANAGED / release_required=true / release_authorized=false / manager_decision=NOT TESTED. 병합/Main GHCR/Finalizer·Issue 종료는 별도 승인 대상이다.

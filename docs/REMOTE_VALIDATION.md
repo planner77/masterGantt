@@ -1,3 +1,11 @@
+## Issue #624 / PR #702 — CI #2887.1 실제 HTTP transport reset (2026-10-17)
+
+Full PR CI [#2887.1](https://github.com/planner77/masterGantt/actions/runs/39014302310)에서 Quality·Docker aggregate와 Preflight·Typecheck·Vitest·ESLint·Build SUCCESS, Chromium Shard3 #621 Resource 동일 Task E2E의 GET `ECONNRESET`, 5개 Shard CANCELLED 및 QA Final required E2E failure. 이전 #2875/#2876/#2877 오류는 해당 Gate에서 재발하지 않았고 #2879 #624 viewport 390px E2E는 취소로 정확한 재검증 **NOT TESTED**다.
+
+원본 Trace [Shard3 artifact 12094630518](https://github.com/planner77/masterGantt/actions/runs/39014302310/artifacts/12094630518): 직전 GET200은 keepalive5초, 다음 GET은 6초 이상 뒤 TCP reset. Connection 재사용 가능성 외 Next process/Runner 원인은 미확정. 격리 fixture `target-project.ts`의 canonical read에 `Connection: close`, 실패 시 bounded read-only health observation과 원본 error cause 추가; **자동 retry 없이 실패 유지**. CI에서 재발 시 health/PID/자원·server log/trace를 원본 run과 비교한다.
+
+[누적 실패 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)의 첫 네 Root와 이번 F-624-022 및 취소 Shard는 모두 보존한다. 로컬에서 실제 full Chromium을 실행하지 못한 경우 NOT TESTED로 남기고, 최신 base/main·정확 HEAD/Run·attempt, README/Work Packet 문서, reviewer0, 세 Required Aggregates/Trusted/Owner 승인 경계를 유지한다. 새 Full PR CI 시작과 완료/병합/Main/GHCR는 별도 상태다.
+
 ## Issue #624 / PR #702 — #2879.1 full CI E2E failure 인계 (2026-10-17)
 
 #2875.1 문서 영향 경로·#2876.1 AC parser·#2877.1 React Hook lint은 [#2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)에서 해당 fast checks PASS로 교정이 확인됐다. 새 원본 실패는 E2E shard2의 `tests/e2e/issue-624-logistics-unified.spec.ts:107`: 390px viewport에서 document scrollWidth704px(expected≤391). Shard 2 33 PASS/1 FAIL/85 NOT RUN, Shard 1/3/4/5/6 CANCELLED이며 기존 부분 PASS를 6/6 성공으로 과대 표시하지 않는다. Next build/Docker와 Required Quality/Docker PASS, Required Chromium/QA Final FAIL(파생).
@@ -820,3 +828,11 @@ CI #2819 완료 결과는 Quality/Docker PASS·E2E FAIL이며 SC-05 최종 APICo
 ## Issue #667 / CI #2820 — Grid Y 음성 테스트 관측 계약
 
 CI #2820.1의 Required quality/Docker는 PASS, E2E는 FAIL이었다. 실제 음성 관측 rows/TIMED_OUT과 성공receipt old SETTLED가 동시에 존재했으며 구 테스트는 성공receipt에서 실패게시를 기다렸다. 원본 trace/단독 FAIL과 테스트 교정·선택42 검증을 [원장](evidence/issue-667/ci2820-correction.json)에 기록한다. Trusted 실패도 원본CI FAIL 때문이며 Owner gate와 혼동하지 않는다. 새 Head Full CI를 완료까지 확인하고 같은 SHA의 Issue/PR STATUS로 원격 결과를 인계한다.
+
+## Issue #679 — 배치 게시 전후 원격 증거
+
+[배치 게시 운영](PR_BATCH_PUBLICATION.md)의 prepare/verify는 로컬 구조 비교다. 원격 인증·GitHub event·CI 성공을 대신하지 않는다. 게시 담당자는 local Head/tree/fingerprint와 실제 candidate Head/부모를 구분하고, 직전 main/expected Head를 재조회한 뒤 non-force 게시 1회와 실제 remote Head/tree read-back을 연결한다. 입력 JSON을 인증 근거로 취급하지 않는다.
+
+같은 최종 PR에서 Head/base/test-merge, Full CI Run ID/Attempt/event 및 Quality/E2E/Docker 실행 경로를 확인한다. default-main Trusted QA, metadata/docs-only/fork의 원격 동작과 최종 Owner 판단은 해당 실제 증거가 있어야 판정한다. 이전 Head의 PASS·새 도구의 로컬 PASS·Run 생성만으로 MERGE_READY를 인정하지 않는다.
+
+사용자 범위가 PR CI 시작까지이면 queue/in_progress 생성 snapshot을 확인하고 모니터링을 종료한다. 완료 결과·실제 Runner 분/큐·최종 wall-clock·전후 비용 비교는 NOT TESTED로 인계한다. 권한 만료/도구 차단/partial write/경합 fixture와 실제 원격 실패를 분리하고 응답 불명확 시 재시도보다 read-back을 우선한다.

@@ -1,3 +1,9 @@
+## Issue #624 / PR #702 — CI #2887.1 누적 실패·전송 진단 (2026-10-17)
+
+[Run #2887.1](https://github.com/planner77/masterGantt/actions/runs/39014302310): 이전 원장 #2875.1 문서 영향, #2876.1 AC parser, #2877.1 Hooks lint는 이번 Preflight/Typecheck/Lint/Unit PASS로 재발하지 않았다. #2879.1 신규 통합 조회 390px overflow 보완은 Shard2 취소로 현재 **미검증**이다. 현재 실 실패는 Shard3의 기존 `tests/e2e/issue-621-resource-target.spec.ts:120` → `tests/e2e/fixtures/target-project.ts:48` GET `ECONNRESET`이며 HTTP 4xx/500/Resource identity assertion 실패와 구별한다. 07:42:38 마지막 GET200 `keep-alive timeout=5` 뒤 6초 이상 유휴 구간에서 TCP reset이 발생해 **INIT_TRANSPORT(유휴 풀 소켓 재사용 가설; 서버 PID/health 당시 UNKNOWN)**로 분류한다. 임의 재시도로 통과시키지 않는다.
+
+공유 fixture의 canonical GET에 `Connection: close`를 사용하고 실패 시 read-only `/api/health/ready`(2초) 진단 및 cause를 보존한다. 동일 응답/If-Match·캐시·권한/Resource·Target 원본 단언 그대로. 누적 실제 실패 직접 파일 `tests/e2e/issue-624-logistics-unified.spec.ts`, `tests/e2e/issue-621-resource-target.spec.ts`와 간접 `tests/e2e/issue-623-resource-mvp.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`, `tests/features/logistics/logistics-unified-model.test.ts`를 영향 순서로 확인한다. 로컬 diagnostic에서는 실패 합집합을 `--workers=1 --retries=0 --max-failures=0`으로 수행(가능한 환경에서만), CI Fast Gate/6 shard/Required3/fail-fast 정책을 바꾸지 않는다. 현재 도구 환경에서는 실제 Chromium/fixture test **NOT TESTED**, 새 Head 원격 결과는 시작 후 별도 판정. [누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
+
 ## Issue #624 PR #702 — CI #2879.1 실제 E2E overflow·진단 및 재검증 (2026-10-17)
 
 원본 [CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)에서 Quality/typecheck/lint/unit/Next build/Docker PASS 후 신규 `tests/e2e/issue-624-logistics-unified.spec.ts:107`의 **390px document 704px(허용≤391)**로 Chromium shard2가 실패하고 다른 5 Shard는 fail-fast CANCELLED됐다. 기존 4개 관점/원시 Task·Assignment·전체 Milestone Gate 비교는 선행했지만 반응형/상세/복귀 이후 흐름은 완료되지 않았다.
@@ -4038,3 +4044,11 @@ Copy 후 행 가시화는 viewport 완료 영수증이 아니다. 최초 제품 
 - 원본 #2838.1 E2E shard4 `viewport-coordinator.spec.ts` #571은 초기 bookmark X120·Milestone empty X0은 성공하고 '전체' 복귀 X120은 NO_SCROLL_CAPACITY/X0으로 실패했다. 필터 중 작은 실측 width(952/client905)와 이전 성공 axis receipt의 width(1972)는 별개다.
 - **제품 계약:** FILTER_RETURN의 원래 bookmark intent는 한 번만 적용하며, 현재 Core/native 양쪽 수용 용량과 최신 projection receipt·3-frame geometry가 반드시 맞아야 한다. filter-tasks/layout이 첫 준비 이후 축을 축소하면 같은 current lease·SOURCE에서 허용되는 단 1회의 보완 준비를 수행하고, 그 이후 다시 receipt+geometry를 확인한다. 아직 부족·새 사용자 wheel·scope/query/API 변경·불확정 Core 상태면 fail-closed하며 stale bookmark를 재적용하지 않는다. 기존 PEER_RETURN과 SC-07/08/09, U4 source taint/MaxExtensions 계약은 유지.
 - 회귀 선택: 기존 #571 bookmark120→0→120 및 휠취소/Scope/Columns unit과 Chrome, #456/#570 metadata, #549 Week, Resource peer/Copy 관련 실제 소비자; Core/native(각각 충분·한쪽 부족), latest attempt/receipt, 축 축소 뒤 새 확장 실패·취소 음성. timeout/skip/retry·required 6-shard 및 공식 Quality/E2E/Docker 정책 변경 없음.
+
+## Issue #679 — 변경 묶음 게시 준비·관측 비교 검증
+
+대상은 [PR 변경 묶음 게시](PR_BATCH_PUBLICATION.md)의 읽기 전용 CLI 및 새 경로의 기존 Pre-PR 영향 매핑이다. `tests/scripts/pr-batch-verifier.test.ts`는 실제 임시 Git에서 복수 code/test/docs 추가·수정·삭제, committed clean Head, staged/unstaged/untracked, main/remote ancestry, API 부모·tree·Head 비교, expected mismatch·UNKNOWN·응답 유실/제3 Head, manifest 변조와 read-only 범위를 검증한다. 지원하지 않는 symlink/submodule·특수 경로/모드는 BLOCKED다. `tests/scripts/prepr-verifier.test.ts`의 좁은 신규 매핑 회귀와 기존 정책 테스트를 함께 실행한다.
+
+실제 로컬 테스트는 Node 22에서 수행하고 `verify:prepr --mode=fast` 및 영향 선택의 source/환경/exit를 Work Packet에 기록한다. 자동 선택 dry-run은 실행 결과가 아니며 필요 직접 테스트는 별도 실행한다. 기존 Pre-PR fingerprint 알고리즘과 CI 정책은 재설계하지 않는다. 변경된 제품 UI/HTTP/SQLite 계약은 없으므로 배치 도구 로컬 검증에 전체 Chromium/Docker를 반복 추가하지 않는다. 원격 Full Required 세 검사는 기존 CI가 수행한다.
+
+AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.
