@@ -65,3 +65,5 @@
 - 사전 정적 검증: 116/116 파일 경로 분배 PASS, 중복·누락 0 PASS. 새로운 HEAD 원격 PR CI/Trusted QA/Owner의 정량 수용·Main CI는 별도 검증 전 NOT TESTED.
 
 - 2026-10-17 병합 순서 보정: #598 후속 PR #701의 exact main merge SHA `0f3f1dc17d0e231e0aa9069568a60ca60c889227`를 새 기준 main으로 정렬; 선택·테스트·보안 계약은 그대로 유지한다. 이전 실패 #2870.1은 원래 PR base stale(기준 `ee6365bf...`) 상태에서 Work Packet의 `AGENTS.md` 누락 판정; 수정 소급 PASS 금지. 새 main 기준 HEAD/PR CI·Trusted QA를 별도 검증한다.
+
+- PR #696 기준 브랜치 재지정 후 최초 새 HEAD `99aee03...`의 CI #2872.1 이벤트가 직전 base(`c063101...`)를 포착하여 Preflight는 기존 예상대로 BLOCKED(Head/base 변경·source race)로 종료하였다. 정상 검증을 우회하거나 이전 실패를 PASS로 표시하지 않으며, GitHub PR base/live main이 모두 `0f3f1dc17d0e231e0aa9069568a60ca60c889227`으로 일치한 다음 새 HEAD와 새로운 full PR CI를 생성한다.
