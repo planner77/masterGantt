@@ -173,6 +173,27 @@ class Issue712Tests(unittest.TestCase):
                 self.assertFalse(good)
                 self.assertIn("FULL_CI_SOURCE_UNVERIFIED",missing)
 
+    def test_trusted_post_merge_metadata_failure_is_nonauthoritative_audit(self):
+        class TrustedFake(FakeGitHub):
+            def get(self, path):
+                if path == self.prefix+"/actions/runs/2":
+                    return self.runs[0]
+                return super().get(path)
+        fake=TrustedFake()
+        with patch.object(qa, "source_artifact",
+                          side_effect=lambda gh,r,a:source(r,a)):
+            result=qa.trusted_source(
+                {"GITHUB_RUN_ID":"5000"},
+                {"workflow_run":{"id":2}},fake)
+            self.assertEqual(result["automated_qa"],"N/A")
+            self.assertEqual(result["manager_decision"],"NOT TESTED")
+            self.assertEqual(result["decision_reason"],
+                             "POST_MERGE_METADATA_NON_AUTHORITATIVE")
+            fake.live["body"]="Refs #999"
+            with self.assertRaises(qa.Blocked):
+                qa.trusted_source({"GITHUB_RUN_ID":"5000"},
+                                  {"workflow_run":{"id":2}},fake)
+
     def test_merged_full_equivalence_historical_552_commit_pair(self):
         # Immutable real-world forensic values from #2892.1 and PR #561.
         old_base="4307c8cdf1cc00a87fd7bff9f5e1a0c924bb3620"
