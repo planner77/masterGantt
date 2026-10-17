@@ -66,7 +66,7 @@ class FakeGitHub:
         for sha, commit in self.commits.items():
             if path == self.prefix+"/git/commits/"+sha:
                 return commit
-        raise AssertionError("Unexpected GET: "+path)
+        raise qa.Blocked("BLOCKED", "Git source not found: "+path)
     def pages(self, path):
         assert path == self.prefix+"/commits/"+HEAD+"/pulls",path
         return [{"number":712}]
@@ -133,8 +133,8 @@ class Issue712Tests(unittest.TestCase):
             if case=="workflow": fake.runs[1]["path"]=".github/workflows/other.yml"
             with self.subTest(case=case),patch.object(
                 qa,"source_artifact",
-                side_effect=qa.Blocked("BLOCKED","artifact missing")
-                    if case=="missing_artifact" else lambda gh,r,a:source(r,a)
+                side_effect=(qa.Blocked("BLOCKED","artifact missing")
+                    if case=="missing_artifact" else (lambda gh,r,a:source(r,a)))
             ):
                 good,missing,why=lifecycle.required_checks_ok(
                     REPO,HEAD,pr_number=712,merge_sha=MERGE,gh_client=fake)
