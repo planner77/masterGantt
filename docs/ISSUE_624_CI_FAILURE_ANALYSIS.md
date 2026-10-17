@@ -220,3 +220,47 @@
 **동결 source 검증 경계**: (A) 서식/QA 정책/정적 타입·Unit (B) 관련 누적 실패 파일+인접 #456/#570/#552/#667의 no-fail-fast 한정 재현 (C) 같은 Head Full PR Quality/E2E6/Docker/Trusted. 이 환경에서는 로컬 Chromium 직접 실행 불가하여 (B) `NOT TESTED`. 새 원격 CI의 시작을 원본 수정 성공이라 주장하지 않는다. PR base 뒤에 main 37커밋(#552 marker OFF와 Core/fixture, app0.115.0)이 추가되어 branch/main을 양쪽 보존한 merge 후 후보 minor `0.116.0`으로 정렬할 계획. 완료 시 실제 SHA/Run/Attempt를 추가 기록. 사용자 지시대로 CI 완료 모니터링 없이 시작에서 종료하고 Owner 병합 승인/Main CI/GHCR/Release는 수행하지 않는다.
 
 **다음 실패 원장**: 새 root가 발생하면 F-624-028부터 추가하고 처음 다섯 실패 및 이번 6번째 사례의 exact HEAD/base/test-merge, 취소된 Shard에 남은 실제 실패를 다시 읽는다.
+
+## 9. PR CI #2897.1 — scoped Week 이전 취소 작업의 관측 계약 누락 (2026-10-17)
+
+**원본 변경 불가 증거:** [Full PR CI #2897.1 / Run 39026415903](https://github.com/planner77/masterGantt/actions/runs/39026415903) · `pull_request/synchronize` · attempt 1 · `failure`.
+
+| 축 | 원본 값 |
+| --- | --- |
+| PR / HEAD | [#702](https://github.com/planner77/masterGantt/pull/702) / `2dac584abb9ee54cfd54353e6497ecf4ff72ae6d` |
+| 당시 main/base | `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7` |
+| 실제 test-merge | `0e2bed36b590c37884d31bd4ec3336a9bed41218` (Shard runner checkout + QA Final 환경값) |
+| 최초 직접 실패 | [Shard3 Job 117378516200](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117378516200), `tests/e2e/task-editor-form-density.spec.ts:152`의 #456 scoped WBS Week/fullscreen 테스트, 실제 오류 `:181` |
+| 오류 / 출처 | `Gantt observe` 5000ms timeout, 유일한 blocker **`PRIOR_CANCELLED_OPERATION_NOT_ACCEPTED`**. [Playwright report / trace Artifact 12099027736](https://github.com/planner77/masterGantt/actions/runs/39026415903/artifacts/12099027736)의 `gantt-readiness-failure` JSON과 4 samples 직접 대조 |
+| Shard3 개별 | 88 PASS / 1 FAIL / 1 기존 SKIP / 3 NOT RUN, fail-fast=1. 실패는 #456 에디터·메타데이터 저장 단언 **이전** |
+| Shard 1/2/4 | [1 117378516224](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117378516224), [2 117378516242](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117378516242), [4 117378516211](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117378516211): **CANCELLED**. 로그에서 각각 108/114/67의 중간 PASS 줄, 별도 실패 단언 0 관측. 취소 Job은 전수 PASS가 아님 |
+| Shard5 / Shard6 | [5 117378516261](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117378516261) **SUCCESS 82 PASS** / [6 117378516190](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117378516190) **SUCCESS 113 PASS** |
+| 원격 Gate | Preflight/Policy/TypeScript/ESLint/Vitest/PR Fast Gate/Next Build/Docker, Required Quality·Docker **SUCCESS**. [Chromium aggregate 117381716155](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117381716155) 및 [QA Final 117381729452](https://github.com/planner77/masterGantt/actions/runs/39026415903/job/117381729452) **FAILURE**, `required e2e 미성공`은 후속 파생 |
+
+### 증거와 결함 구분 (F-624-028~030, C-624-004)
+
+- **F-624-028 / TEST_CONTRACT — 실제 첫 실패:** #2893.1의 native scrollLeft=62 clamp를 막으려고 #456 테스트에 `waitForGanttReadiness`를 도입했지만 신규 `axisContext`에서 기존 evaluator의 opt-in `allowCancelledPriorWork`를 누락. 이번 Trace에서 `currentWork.kind=RANGE_EXTENSION`, `phase=SUPERSEDED`, `outcome=SUPERSEDED`, `api=svar-api-1`; 이 값은 **과거 작업의 이미 확정된 취소**이지 현재 작업의 `FAILED`·`APPLYING`이 아니다. 반면 현재 canonical sync generation=settled=7, depth0, recovery SETTLED, latest U3 attempt delivery SETTLED, last successful receipt revision20/Week/동일 scoped rootTask, Core/native X18/18, capacity810/811, 4 samples 안정. 모든 readiness blockers의 합집합이 `PRIOR_CANCELLED_OPERATION_NOT_ACCEPTED` 한 건뿐이다. **5초가 짧다는 근거가 없어 timeout 증가는 기각**.
+- **F-624-029 / 파생 Required Chromium 집계:** Shard3 1회 직접 FAIL과 Shard1/2/4 취소에 따른 fail-closed; 다른 세 독립 E2E 결함이 아니다.
+- **F-624-030 / 파생 QA Final:** Required E2E 실패로 `required e2e 미성공`, 정책/Reviewer 독립 Root 아님.
+- **C-624-004 / 취소:** Shard1/2/4의 중간 PASS와 미실행 파일/후속 케이스를 전수 PASS로 환산 금지. Shard2의 **신규 `issue-624-logistics-unified.spec.ts` 개별 PASS**(21.5초, 테스트 번호34), Shard3의 **#621 `issue-621-resource-target.spec.ts` 다섯 개별 PASS**는 현재 원본 Head의 제한적 실증이고 Shard2 최종 성공이나 #456 최종 통과는 아니다.
+
+### 이전 6회와 전체 합집합 (후속 REWORK의 강제 입력)
+
+| 원본 실패 Run/Root | #2897.1에서 관측한 상태 | 다음 후보 동일 source의 필수 확인 |
+| --- | --- | --- |
+| #2875.1 F-624-001 문서 누락 | Preflight 성공, 미재발 | Work Packet DOCUMENTATION_SYNC 정확 파일·N/A reason |
+| #2876.1 F-624-007 AC parser | Preflight 성공, 미재발 | AC1~7 plain 매핑 |
+| #2877.1 F-624-013 React Hook lint | ESLint/Typecheck/Vitest 성공, 미재발 | current detail/snapshot stale·readonly 회귀 |
+| #2879.1 F-624-019 모바일390px overflow | #624 신규 다섯 폭 E2E 개별 PASS (Shard2 CANCELLED) | 390/768/1024/1440/1920px, Task/Assignment ID·full Gate·mutation0 |
+| #2887.1 F-624-022 snapshot ECONNRESET | Shard3의 #621 원본 5테스트 개별 PASS | snapshot GET, auth/dirty/pending/ETag, #623/#624 공유 fixture |
+| #2893.1 F-624-025 native Week 120→62 clamp | #2897.1 시점 Core/native capacity810/811 확인; **실제 120 입력·메타데이터 단계 미도달** | 같은 #456 전체 test + #552/#570/#667 의존 viewport |
+| **#2897.1 F-624-028 prior SUPERSEDED** | Trace·현재 evaluator에서 누락 opt-in 확정 | #456 실 Chromium 및 evaluator pure unit의 SUPERSEDED/FAILED/APPLYING/PENDING 음성 |
+
+### 최소 수정·음성 보호와 상태
+
+- **E2E 소비자만:** `tests/e2e/task-editor-form-density.spec.ts`의 scoped Week `axisContext`에 `allowCancelledPriorWork:true` 추가. `observe`→`scroll` 두 evaluator에 상속되지만 현재 api/revision/rootTask/Week/query·U2/U3 settled·Core/native geometry 3frame/target120 admission은 **계속 검증**한다. `SUPERSEDED`라도 `outcome!=SUPERSEDED`는 거부하고 busy/failed/unknown/old U3 또한 거부한다. 무조건 재시도·fake settled·global helper·제품 viewport writer/timeout/skip/assertion 완화 없음.
+- **Unit 음성:** `tests/features/gantt/gantt-readiness.test.ts`에 재현형 scoped Week test 추가. prior `SUPERSEDED+outcome SUPERSEDED`와 target120/capacity810·811은 ready; `APPLYING`, `SUPERSEDED+outcome FAILED`, 최신 `rows/PENDING`은 계속 거부. 기존 Core/native exact120, #456 `chartLeft120 / vertical38 / Editor/metadata / same Gantt instance / selection/tree` 불변.
+- **누적 실패 파일 합집합:** `tests/e2e/issue-624-logistics-unified.spec.ts`, `tests/e2e/issue-621-resource-target.spec.ts`, `tests/e2e/task-editor-form-density.spec.ts`, `tests/e2e/fixtures/target-project.ts`, `src/features/logistics/project-logistics-unified.tsx`, `project-logistics-unified.module.css`, `docs/exec-plans/active/ISSUE_624.md`; 관련 #623 MVP, #552/#570/#667 viewport, Resource KPI/Stage Gate, 390px overflow·stale/readonly/401/412/조회0. 최초~현재의 F-624-001~030 및 C-624-001~004를 삭제하지 않는다.
+- **동결 소스 실검증 경계:** 현재 실행 환경에 GitHub clone/npm deps/Playwright가 없어 새 후보의 local targeted Vitest/typecheck/ESLint, `--max-failures=0` 누적 Chromium과 전체 CI는 **NOT TESTED**. 위 실측은 *실패 원본 Head의 trace*이므로 새 수정 버전 PASS로 소급하지 않는다. 새 PR synchronize의 Quality/E2E6/Docker/Trusted 및 Owner 수용·Main CI/GHCR/Finalizer/Release는 별도다.
+- **새 실패 시:** 최초 #2875부터 일곱 번째 #2897까지 원본 실패 원인을 재조회, 새 Root는 F-624-031부터 추가. 현재 helper `allowCancelledPriorWork`를 전역 기본값으로 바꾸거나 실시간 `APPLYING/TIMED_OUT/FAILED`를 숨기지 않는다. `main` behind=0/mergeable=true/Review thread0 확인 후 새 HEAD CI 시작까지만 수행하며 CI 종료 모니터링 없음.
+

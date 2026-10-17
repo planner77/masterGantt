@@ -171,6 +171,10 @@ test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor
   // actually accept that coordinate in both Core and native DOM.
   const axisContext: GanttReadinessExpectation = {
     operation: "observe",
+    // #2897.1: admit only a terminal SUPERSEDED prior RANGE operation.
+    // Current U2/U3, exact source scope, Core/native geometry and 120px admission
+    // remain mandatory; running/failed/unknown viewport work is still blocked.
+    allowCancelledPriorWork: true,
     api: await frame.getAttribute("data-project-gantt-api-instance"),
     revision: fixture.project.revision,
     scale: "week",

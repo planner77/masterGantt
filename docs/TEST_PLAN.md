@@ -1,3 +1,9 @@
+## Issue #624 / PR #702 — PR CI #2897.1 terminal SUPERSEDED readiness 회귀 (2026-10-17)
+
+- 실패 [39026415903.1](https://github.com/planner77/masterGantt/actions/runs/39026415903): #456 scoped WBS Week/fullscreen `task-editor-form-density.spec.ts:152→181`에서 5초 timeout. [Shard3 trace artifact 12099027736](https://github.com/planner77/masterGantt/actions/runs/39026415903/artifacts/12099027736) 단일 blocker `PRIOR_CANCELLED_OPERATION_NOT_ACCEPTED`; prior RANGE_EXTENSION `SUPERSEDED`의 종료 기록과 최신 canonical7/7·U3 delivery SETTLED·Core/native18/18·수용량810/811을 구분한다. Full Quality/Docker 성공, Shard3 FAIL, Shard1/2/4 CANCELLED, 5/6 SUCCESS; E2E/QA 파생 실패.
+- 신규 테스트: `tests/features/gantt/gantt-readiness.test.ts` scoped Week/terminal cancellation·120px positive + APPLYING/wrong outcome/U3 PENDING negatives. 소비자 `tests/e2e/task-editor-form-density.spec.ts`에서만 기존 opt-in 사용; helper/제품/시간/skip/retry/전역 Gate 변경0. 원본 스크롤120/vertical38/Editor·metadata·selection·같은 Gantt instance/조회0 유지.
+- 단일 source 재검증: docs QA preflight·typecheck·lint·Unit → 누적 `issue-624-logistics-unified`, `issue-621-resource-target`, `task-editor-form-density`, `issue-623-resource-mvp` + #552/#570/#667 viewport 음성 Chromium(no fail-fast scoped) → Full PR CI Quality/E2E6/Docker. 연결 환경에서 로컬 실행은 NOT TESTED, [이슈별 실패 전원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)의 과거 PASS를 새 Head로 이월하지 않는다.
+
 ## Issue #624 — PR CI #2893.1 Gantt scoped Week X120 조기 입력 교정 (2026-10-17)
 
 - [원본 CI](https://github.com/planner77/masterGantt/actions/runs/39021459600)의 #456 `task-editor-form-density.spec.ts:150`은 scoped Summary/Week/Fullscreen에서 축 용량이 부족한 상황에 `scrollLeft=120`을 먼저 주입해 실제 62px으로 clamp됐다. 해당 Case는 5초 동안 120px 미도달로 실패했으며, Shard3 85PASS/1FAIL/1SKIP/3 NOT RUN, Shard6 113PASS, 다른 4개 취소였다.
