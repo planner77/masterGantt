@@ -3,7 +3,7 @@
   "issue": 552,
   "pr": 561,
   "createdDate": "2026-10-17",
-  "purpose": "PR #561 32 run metadata + selected 10 recent runs / 12 test-level failures, 11 unique E2E files. Not a complete historical failure-file union.",
+  "purpose": "PR #561 branch 33 Run metadata; selected 11 runs, 13 actual failure records, 12 distinct E2E files; full early-run union INCOMPLETE.",
   "analysisSource": {
     "headSha": "00fd170a5611f8312bb7abdda4b263254ade7b69",
     "baseSha": "c063101ed7b1d08803c3dac15a41e67842071187",
@@ -226,6 +226,68 @@
         "traceZipSha256": "c19f4fb52187384e5161e4bfc7aba19045f4e3b4afffb0d0a114e23fbd00fb8d",
         "readinessAttachmentPresent": true
       }
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "39016580724",
+      "attempt": 1,
+      "headSha": "a81ae25ece41f727a963bd9963dcb82575b50286",
+      "file": "tests/e2e/task-editor-form-density.spec.ts",
+      "jobId": "117350187419",
+      "shard": 3,
+      "jobConclusion": "failure",
+      "classification": "TEST_CONTRACT",
+      "subclass": "CANONICAL_VS_VISIBLE_WBS_MILESTONE_OFF",
+      "diagnosis": "CI #2888 #456 active-name-filter metadata-restore spec line232 passed canonicalIds31 (includes Milestone id ...0005) as visibleIds31. Production Marker OFF correctly yielded lastSuccess.logicalVisibleIds30/Core visible30/DOM16 virtual rows, excluding M. waitForGanttReadiness latest U3 delivery SETTLED, Core/Viewport SETTLED, only EXPECTED_MEMBERSHIP_MISMATCH. The test's outdated oracle, not product U3/viewport failure. #570 same file repeats erroneous axisContext. Preserve canonical31, expect visible30 in both tests, assert M absent from logical/native DOM while existing real scroll/metadata/zero protections remain.",
+      "historicalCrossRun": [
+        "38976543886",
+        "#2863 Canonical84 vs Visible83 test oracle corrected",
+        "39013855282",
+        "#2886 product Resource-return filter applied; not proven fully fixed because #2888 shard5 canceled before full case"
+      ],
+      "firstFailedAt": "tests/e2e/task-editor-form-density.spec.ts:232",
+      "readinessBlockers": [
+        "EXPECTED_MEMBERSHIP_MISMATCH"
+      ],
+      "observed": {
+        "canonicalTotal": 31,
+        "actualVisible": 30,
+        "expectedVisible": 31,
+        "excludedCanonicalMilestoneId": "00000000-0000-4000-8000-000000000005",
+        "actualDomMountedCount": 16,
+        "api": "svar-api-1",
+        "revision": 20,
+        "scale": "week",
+        "lastSuccessOutcome": "SETTLED",
+        "latestAttempt": {
+          "generation": 9,
+          "stage": "delivery",
+          "outcome": "SETTLED"
+        },
+        "coreLeft": 46,
+        "nativeLeft": 47,
+        "nativeCapacity": 999,
+        "viewportWork": {
+          "kind": "RANGE_EXTENSION",
+          "phase": "SETTLED",
+          "outcome": "SETTLED"
+        }
+      },
+      "testResults": {
+        "passed": 90,
+        "failed": 1,
+        "skipped": 1,
+        "notRun": 1
+      },
+      "artifact": {
+        "id": 12095402221,
+        "name": "playwright-report-shard-3",
+        "outerSha256": "a6fca428bae85c543d113904f908645d9368457e92005e0879668f4b75d75bd3",
+        "traceZipSha256": "43806b6c6015a372d70d98d1786374e3111315d5a788768ad9adae4e305a6da6",
+        "readinessEvidence": true
+      },
+      "firstRunInNewIssueSection": 9
     }
   ],
   "diagnosticUnion": [
@@ -239,7 +301,8 @@
     "tests/e2e/project-gantt-scale.spec.ts",
     "tests/e2e/project-notifications.spec.ts",
     "tests/e2e/projection-row-alignment.spec.ts",
-    "tests/e2e/resource-kpi-integration-ui.spec.ts"
+    "tests/e2e/resource-kpi-integration-ui.spec.ts",
+    "tests/e2e/task-editor-form-density.spec.ts"
   ],
   "cancelledWithRecordedRealTestFailures": [
     {
@@ -258,6 +321,100 @@
     }
   ],
   "latestRun": {
+    "runId": "39016580724",
+    "attempt": 1,
+    "pr": 561,
+    "headSha": "a81ae25ece41f727a963bd9963dcb82575b50286",
+    "baseSha": "78ec8d2ced62f543f73a8477c3e62fca8274274b",
+    "testMergeSha": "8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c",
+    "testMergeParents": [
+      "78ec8d2ced62f543f73a8477c3e62fca8274274b",
+      "a81ae25ece41f727a963bd9963dcb82575b50286"
+    ],
+    "event": "pull_request",
+    "quality": "PASS",
+    "build": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qaFinal": "FAIL",
+    "shard3": {
+      "jobId": "117350187419",
+      "passed": 90,
+      "failed": 1,
+      "skipped": 1,
+      "notRun": 1,
+      "file": "tests/e2e/task-editor-form-density.spec.ts"
+    },
+    "cancelledShards": [
+      {
+        "shard": 1,
+        "jobId": "117350187379",
+        "loggedPass": 81,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 2,
+        "jobId": "117350187359",
+        "loggedPass": 100,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 4,
+        "jobId": "117350187387",
+        "loggedPass": 64,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 5,
+        "jobId": "117350187404",
+        "loggedPass": 61,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 6,
+        "jobId": "117350187474",
+        "loggedPass": 69,
+        "loggedFail": 0,
+        "remaining": "NOT TESTED"
+      }
+    ],
+    "sourceArtifactId": 12094354120,
+    "playwrightReportArtifactId": 12095402221,
+    "releaseAuthorized": false
+  },
+  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
+  "execution": {
+    "diagnose": {
+      "status": "NOT TESTED",
+      "reason": "No local full checkout/node_modules/Playwright; selected 12 files exactly reach helper max; historical full union INCOMPLETE"
+    },
+    "ciLike": {
+      "status": "NOT TESTED",
+      "reason": "Full local CI-like not run"
+    },
+    "sourceStable": "NOT TESTED",
+    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
+    "crossRegression": "NOT TESTED",
+    "releaseAuthorized": false
+  },
+  "commandExample": [
+    "npm run verify:prepr -- --mode=diagnose --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
+    "npm run verify:prepr -- --mode=ci-like --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561"
+  ],
+  "criteria": [
+    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
+    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
+    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
+    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
+    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
+    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval",
+    "Common PR_CI_FAILURE_TRIAGE requires docs/ISSUE_552_FAILURE_ANALYSIS.md and one growing primary issue ledger; older 22 branch-run details remain INCOMPLETE until logged."
+  ],
+  "previousLatestRun": {
     "runId": "39013855282",
     "attempt": 1,
     "pr": 561,
@@ -322,109 +479,27 @@
     "sourceArtifactId": 12093996311,
     "releaseAuthorized": false
   },
-  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
-  "execution": {
-    "diagnose": {
-      "status": "NOT TESTED",
-      "reason": "No project checkout/node_modules/Chromium; selected 11 spec files allow diagnose max12, not complete historical union"
-    },
-    "ciLike": {
-      "status": "NOT TESTED",
-      "reason": "Local full CI-equivalent not executed on the candidate"
-    },
-    "sourceStable": "NOT TESTED",
-    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
-    "crossRegression": "NOT TESTED",
-    "releaseAuthorized": false
-  },
-  "commandExample": [
-    "npm run verify:prepr -- --mode=diagnose --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
-    "npm run verify:prepr -- --mode=ci-like --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --risk=HIGH --issue=552 --pr=561"
-  ],
-  "criteria": [
-    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
-    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
-    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
-    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
-    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
-    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval",
-    "Common PR_CI_FAILURE_TRIAGE requires docs/ISSUE_552_FAILURE_ANALYSIS.md and one growing primary issue ledger; older 22 branch-run details remain INCOMPLETE until logged."
-  ],
-  "previousLatestRun": {
-    "runId": "39010974393",
-    "attempt": 1,
-    "headSha": "84009ba5ab3eb35fd434cc98a1dbf29bad7a9156",
-    "baseSha": "78ec8d2ced62f543f73a8477c3e62fca8274274b",
-    "testMergeSha": "cf9ac161593088bc6351464074df4811f1685b25",
-    "testMergeParents": [
-      "78ec8d2ced62f543f73a8477c3e62fca8274274b",
-      "84009ba5ab3eb35fd434cc98a1dbf29bad7a9156"
-    ],
-    "event": "pull_request",
-    "quality": "PASS",
-    "docker": "PASS",
-    "build": "PASS",
-    "e2e": "FAIL",
-    "qaFinal": "FAIL",
-    "shard5": {
-      "jobId": "117333619456",
-      "passed": 22,
-      "failed": 1,
-      "notRun": 59
-    },
-    "cancelledShards": [
-      {
-        "shard": 1,
-        "jobId": "117333619463",
-        "loggedPass": 22,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 2,
-        "jobId": "117333619628",
-        "loggedPass": 30,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 3,
-        "jobId": "117333619487",
-        "loggedPass": 38,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 4,
-        "jobId": "117333619461",
-        "loggedPass": 10,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      },
-      {
-        "shard": 6,
-        "jobId": "117333619514",
-        "loggedPass": 25,
-        "loggedFail": 0,
-        "remaining": "NOT TESTED"
-      }
-    ],
-    "sourceArtifactId": 12092389476,
-    "playwrightReportArtifactId": 12092074632,
-    "sourceValidation": "NOT TESTED",
-    "releaseAuthorized": false
-  },
   "latestAnalysisSource": {
-    "headSha": "51b4f919f16ac9765d20b9256e6521f91150c066",
+    "headSha": "a81ae25ece41f727a963bd9963dcb82575b50286",
     "baseSha": "78ec8d2ced62f543f73a8477c3e62fca8274274b",
-    "testMergeSha": "959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde",
+    "testMergeSha": "8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c",
     "testMergeParents": [
       "78ec8d2ced62f543f73a8477c3e62fca8274274b",
-      "51b4f919f16ac9765d20b9256e6521f91150c066"
+      "a81ae25ece41f727a963bd9963dcb82575b50286"
     ],
-    "runId": "39013855282"
+    "runId": "39016580724"
   },
   "historicalRunInventory": [
+    {
+      "number": 2888,
+      "runId": "39016580724",
+      "attempt": 1,
+      "headSha": "a81ae25ece41f727a963bd9963dcb82575b50286",
+      "workflowEvent": "pull_request",
+      "conclusion": "failure",
+      "createdAt": "2026-10-17T08:13:54Z",
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
+    },
     {
       "number": 2886,
       "runId": "39013855282",
@@ -433,7 +508,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-17T07:30:03Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2885,
@@ -443,7 +518,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-17T06:43:37Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2878,
@@ -453,7 +528,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-17T06:07:35Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2866,
@@ -463,7 +538,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T23:36:31Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2865,
@@ -473,7 +548,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T23:36:17Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2864,
@@ -483,7 +558,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T22:58:34Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2863,
@@ -493,7 +568,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T22:34:18Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2862,
@@ -503,7 +578,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T22:05:11Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2861,
@@ -513,7 +588,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T21:42:22Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2860,
@@ -523,7 +598,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T21:42:02Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2859,
@@ -533,7 +608,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T21:02:07Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2844,
@@ -543,7 +618,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-16T13:04:31Z",
-      "detailScope": "selected original test failure(s) documented; not necessarily all failures"
+      "detailScope": "selected verified original test failure(s); may not cover all failed shards"
     },
     {
       "number": 2682,
@@ -553,7 +628,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T11:58:14Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2679,
@@ -563,7 +638,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T11:13:01Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2670,
@@ -573,7 +648,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T10:27:52Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2669,
@@ -583,7 +658,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T09:52:01Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2668,
@@ -593,7 +668,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T09:51:51Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2667,
@@ -603,7 +678,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T08:46:18Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2666,
@@ -613,7 +688,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T07:37:34Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2665,
@@ -623,7 +698,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T07:21:46Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2661,
@@ -633,7 +708,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T06:40:53Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2654,
@@ -643,7 +718,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T06:05:52Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2651,
@@ -653,7 +728,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T05:42:24Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2648,
@@ -663,7 +738,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T05:31:21Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2645,
@@ -673,7 +748,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T05:21:53Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2643,
@@ -683,7 +758,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T04:50:57Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2642,
@@ -693,7 +768,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T04:18:11Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2641,
@@ -703,7 +778,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T03:42:43Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2639,
@@ -713,7 +788,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T02:49:06Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2633,
@@ -723,7 +798,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "cancelled",
       "createdAt": "2026-10-13T02:25:19Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2628,
@@ -733,7 +808,7 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-13T00:12:34Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     },
     {
       "number": 2219,
@@ -743,15 +818,15 @@
       "workflowEvent": "pull_request",
       "conclusion": "failure",
       "createdAt": "2026-10-08T20:24:11Z",
-      "detailScope": "run metadata captured; complete per-test historical verification INCOMPLETE"
+      "detailScope": "run metadata only; all individual tests not exhaustively verified"
     }
   ],
   "historyCompleteness": {
-    "branchRunCount": 32,
-    "selectedEvidenceRuns": 10,
-    "selectedFailureFiles": 11,
+    "branchRunCount": 33,
+    "selectedEvidenceRuns": 11,
+    "selectedFailureFiles": 12,
     "state": "INCOMPLETE",
-    "reason": "All 32 current PR branch run metadata available; selected 10 recent runs / 12 actual test-level failures (11 unique files) recorded. Earlier runs have multiple shard failures; complete historical test-level union and cancelled-job review remain INCOMPLETE."
+    "reason": "All 33 branch runs enumerated, selected 11 recent runs / 13 actual test-level failures / 12 unique E2E files. Historical earlier multi-shard test-level failures and canceled-job hidden fails not completely inventoried. Do not claim full historical union."
   },
-  "diagnosticUnionScope": "BOUNDED_VERIFIED_POST_2844_RECENT_CASES_ONLY; previous runs historical union INCOMPLETE"
+  "diagnosticUnionScope": "BOUNDED_POST_2844_SELECTED_ONLY; 12 files at limit; pre-2844 union INCOMPLETE"
 }

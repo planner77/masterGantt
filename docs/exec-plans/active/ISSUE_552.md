@@ -1,5 +1,14 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — PR CI #2888.1: Canonical31/Visible30 예전 Test Oracle 재발 및 두 소비자 보완
+
+- 원본 [PR Full CI #2888.1/run39016580724](https://github.com/planner77/masterGantt/actions/runs/39016580724), HEAD `a81ae25ece41f727a963bd9963dcb82575b50286`, 당시 Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c`. Quality/TypeScript/ESLint/Vitest/Build/Docker PASS, E2E shard3 job `117350187419` 90PASS/1FAIL/1SKIP/1 NOT RUN, 다른5 Shard CANCELLED(추가 실제 FAIL 로그 없음); E2E Required/QA Final FAIL.
+- 최초 실패 `task-editor-form-density.spec.ts:232`의 #456 active name filter metadata 저장 준비 단계, `EXPECTED_MEMBERSHIP_MISMATCH`. [실제 Trace/report](https://github.com/planner77/masterGantt/actions/runs/39016580724/artifacts/12095402221) readiness 첨부 분석: `canonicalIds31` 중 Milestone `...0005` 한 개는 native WBS에서 빠지는 것이 정상이다. U2·U3 latest `delivery SETTLED`/Core·Viewport `SETTLED`, Core visible30/DOM virtual16, 유일 장애는 Test가 `visibleIds31`을 요구하는 **TEST_CONTRACT**. 제품 defect/async 원인 증거 없음.
+- 누적 비교: 이전 #2863 `projection-row-alignment` Canonical84/Visible83 구형 Oracle 오류와 동형, #2861 M-only native 오판 및 #2885 native row 존재를 canonical 유형으로 오판한 오류와 같은 표시계층 계약 부류지만 서로 다른 직접 증상이다. 직전 #2886은 진짜 Resource→Schedule 제품 표시 drift이며 이번 #2888 shard5 취소로 제품 교정 성공은 입증되지 않았다.
+- `task-editor-form-density.spec.ts` **두 소비자 #456/#570를 일괄 보완**: `canonicalIds` 전체31 유지·`visibleWbsIds` 명시 `type !== "milestone"` 30, M ID는 Core visible/DOM/성공 receipt 모두 부재 엄격 단언, 가상 DOM16을 전체30으로 억지 강제하지 않음. 기존 120px wheel/AXIS, metadata-save 이후 filter 결과/복원·실제 사용자 스크롤, mutation·same instance, 3-frame readiness, 5000ms/timeout/retry0/skip0 보호 모두 유지.
+- [단일 Issue 실패 분석 §9](../../ISSUE_552_FAILURE_ANALYSIS.md), [실패 JSON](../../evidence/issue-552/ci-cumulative-20261017.json)을 갱신하여 branch33Run metadata / 선별11Run·13개 실제 FAIL·12 distinct file 보존. 역사적 초기 다중 Shard 실패 전수는 INCOMPLETE이고 현재12파일은 bounded `diagnose` subset이다.
+- 현재 도구 세션에서 Node22 프로젝트 checkout·의존성·Chromium이 없어 선택 browser/Unit/typecheck/`verify:prepr diagnose` 12파일/동일 HEAD `ci-like`·`sourceStable` 모두 **NOT TESTED**. 직전 PASS는 새 후보 PASS 아님. 기존 제품 Core Writer·CI/QA/릴리스 Gate/버전0.115.0 불변. 최신 main 정렬, 미해결 리뷰0, 충돌0 검토 후 새 Full PR CI 시작까지만 진행; Merge/Main/GHCR/Issue 종료는 Owner 추가 승인 전 금지.
+
 ## 2026-10-17 — #2886.1 누적 재실패: 실제 WBS 표시 필터의 hidden→visible 복귀 누락
 
 - 원본 [Full PR CI #2886.1](https://github.com/planner77/masterGantt/actions/runs/39013855282): Head `51b4f919f16ac9765d20b9256e6521f91150c066`, Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde`, attempt1. Preflight/TS/ESLint/Vitest/Build/Docker PASS. E2E shard5 job `117342193179` 64 PASS/1 FAIL/17 NOT RUN; Shard1/2/3/4/6 CANCELLED(각 68/102/79/55/73 부분 PASS, 실제 ✘ 없음), Required E2E/자동 QA Final FAIL.

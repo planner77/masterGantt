@@ -1,3 +1,9 @@
+## Issue #552 — CI #2888 Canonical31/Visible30 구형 Test Oracle 일괄 보완 (2026-10-17)
+
+[#552 단일 실패 분석 §9](../../ISSUE_552_FAILURE_ANALYSIS.md) · [33Run metadata / 선택11Run·13 FAIL / 12 distinct-file JSON](../../evidence/issue-552/ci-cumulative-20261017.json) · [Work Packet](ISSUE_552.md). 원본 #2888 shard3의 #456 readiness `EXPECTED_MEMBERSHIP_MISMATCH`는 실제 U2/U3/Coordinator가 모두 SETTLED인데 테스트 기대값에 native Milestone `...0005`가 들어 있어 발생. 앞선 #2863 Canonical84/Visible83 계약 오류가 #456/#570에 남은 것이므로 두 테스트를 모두 canonical31/visible30으로 분리, strict Core IDs/M0/DOM 및 메타데이터·필터·스크롤/권한 단언 유지. 제품 Marker OFF `filter-tasks`·Gantt Writer 및 CI/QA/Release 정책은 변경하지 않는다. 다른 shard5 취소로 #2886 제품 복귀 교정의 전체 PASS가 입증되진 않았다.
+
+현재 과거 33Run 중 실제 실패파일 전수 조사는 INCOMPLETE, 선택12파일은 diagnose 최대 개수에 딱 맞음. Node22/Chromium 환경에서 Freeze→`verify:prepr diagnose` 12file(중단0)→소스 수정 없이 같은 후보 `ci-like` 전체/sourceStable→최신 main/미해결 thread0/충돌0→새 full PR CI 실행. 이 연결 도구에는 앱 로컬 런타임이 없어 Local/교차 실제 실행은 **NOT TESTED**, Run 등록≠PASS/QA Owner ACCEPT. 병합/Main CI/GHCR/Issue 종료 별도 승인 필요.
+
 ## Issue #552 — CI #2886 누적 #2878 Resource 재진입 드리프트 제품·테스트 일괄 보완 (2026-10-17)
 
 [단일 실패 원장 §8](../../ISSUE_552_FAILURE_ANALYSIS.md) · [누적 CI metadata32Run·최근10Run/12선택실패·11file](../../evidence/issue-552/ci-cumulative-20261017.json) · [Work Packet](ISSUE_552.md). #2886/Run39013855282의 shard5 `resource-kpi-integration-ui.spec.ts:216`은 U3 rows TIMED_OUT, Coordinator TIMED_OUT, DOM membership mismatch이며 다른5 shard는 CANCELLED. #2878과 함께 원본 Playwright Trace를 대조하니 Resource 탭→Schedule 복귀에서 기존 U3 six Task 성공영수증 이후 실제 DOM은 두 Milestone을 더한 eight rows, Peer left120 요청 시 축 capacity31/코어0; 기존 U2 완료 증거만으로 U3 표시 완료를 보장할 수 없음.

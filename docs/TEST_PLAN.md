@@ -1,3 +1,10 @@
+## Issue #552 — PR CI #2888 Canonical/Visible WBS 분리의 #456·#570 실제 테스트 계약 (2026-10-17)
+
+- [원본 #2888.1](https://github.com/planner77/masterGantt/actions/runs/39016580724) HEAD `a81ae25ece41f727a963bd9963dcb82575b50286`, shard3 `task-editor-form-density.spec.ts:232`: 90PASS/1FAIL/1SKIP/1미실행, 다른5 Shard 취소·기록된 다른 FAIL0, Quality/Docker PASS·Required E2E/QA Final FAIL. 정확 blocker `EXPECTED_MEMBERSHIP_MISMATCH`, 초기 READY를 의미하지 않는 transient PENDING 샘플 뒤 최신 U2·U3·Coordinator는 SETTLED였다.
+- Playwright artifact [#12095402221](https://github.com/planner77/masterGantt/actions/runs/39016580724/artifacts/12095402221)의 실측 `canonical31 / visible30 / DOM가상16` 차이는 ID `...0005` Milestone1. #2863 Canonical84/Visible83의 구 Test Oracle과 같은 부류이므로 제품 필터를 되돌리거나 readiness blocker를 무시하지 않는다.
+- 직접 소비자 `#456`과 인접 복제 구간 `#570`의 `axisContext`는 `canonicalIds=전체31`, `visibleIds=Task+Summary30`으로 분리하고 `beforeAxis.coreVisibleIds` exact set·Milestone ID not in DOM/receipt를 강제. 이미 존재하는 query 변경 뒤 `visibleIds=[Summary,matched Task]`, 120px 실제 입력/용량, metadata-save·필터 빈집합·복귀, same Gantt API/Revision/한 번 저장·owner focus 단언 유지. marker OFF test에서 M native row/bar0; Legacy 특수 환경은 별도 명시 검증 대상. 시간 예산/skip/retry/원격 CI Gate/제품 코드 변경 없음.
+- [Issue별 누적 실패 분석 §9](ISSUE_552_FAILURE_ANALYSIS.md)과 [branch33Run/선별11Run·13 FAIL/12 distinct-file JSON](evidence/issue-552/ci-cumulative-20261017.json) 사용. 과거 모든 FAIL file 원장은 INCOMPLETE이므로 최근12파일을 전체라고 주장하지 않는다. 동일 후보 Local `verify:prepr diagnose`(현재 선택12개, worker1/retry0/max-failures0) → `ci-like` → sourceStable/reviewer 증거를 요구하되 연결된 환경의 직접 실행은 **NOT TESTED**.
+
 ## Issue #552 — #2886 Resource→Schedule 숨김 복귀와 canonical WBS 필터 재적용 (2026-10-17)
 
 - [원본 PR CI #2886.1](https://github.com/planner77/masterGantt/actions/runs/39013855282) HEAD `51b4f919f16ac9765d20b9256e6521f91150c066`, E2E shard5 64PASS/1FAIL/17NOTRUN, 다른5 shards CANCELLED/기록된 실제 추가 FAIL0, Quality/Build/Docker PASS. `resource-kpi-integration-ui.spec.ts:216` 최신 U3 `rows TIMED_OUT`, Coordinator `TIMED_OUT`, DOM membership mismatch를 보고. Readiness 검사에서 FAIL인 것은 제품 불일치를 숨기지 않고 발견한 보호 동작이다.

@@ -212,3 +212,59 @@ npm run verify:prepr -- --mode=ci-like \
 ```
 
 동일 소스 변경 금지, `sourceStart.fingerprint === sourceEnd.fingerprint` 필수, `UNKNOWN` 영향 매핑·Next/스냅샷 생성으로 `sourceStable=false`일 때는 그대로 BLOCKED. 테스트 통과를 위한 Timeout/Skip/Expectation/retry 변경 금지. Work Packet·TEST_PLAN·REMOTE_VALIDATION·Milestone presentation 문서를 동기화하고 최신 main 정렬/리뷰 unresolved0/충돌0, 새 Full PR CI 등록까지만 승인한다. **병합/Main CI/GHCR·tag/release·Issue 종료는 별도 승인 전 금지.**
+
+## 9. CI #2888.1 — #2863의 Canonical/Visible 혼동이 다른 E2E로 재발 (2026-10-17)
+
+### 9.1 원본 실행 및 취소된 Job의 테스트별 사실
+
+| 항목 | GitHub 불변 원본 |
+| --- | --- |
+| Full PR CI | [#2888.1 / Run 39016580724](https://github.com/planner77/masterGantt/actions/runs/39016580724), `pull_request` / attempt1 / FAILURE |
+| Head / Base | `a81ae25ece41f727a963bd9963dcb82575b50286` / `78ec8d2ced62f543f73a8477c3e62fca8274274b` |
+| Test-merge | `8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c`; 부모 Base→Head |
+| Gate | QA Preflight·정책·TypeScript·ESLint·Vitest·Next build·Docker smoke **PASS**, E2E Required **FAIL**, QA Final은 E2E 실패 후 종속 **FAIL** |
+| 직접 실패 | shard3 job `117350187419`, `tests/e2e/task-editor-form-density.spec.ts:222→232`, `#456 active name filter의 metadata 저장…`: **90 PASS / 1 FAIL / 1 기존 SKIP / 1 NOT RUN** |
+| Playwright 오류 | `waitForGanttReadiness` 5s: **`EXPECTED_MEMBERSHIP_MISMATCH`**. 최신 receipt/Coordinator/Canonical/DOM의 나머지 준비조건은 통과 |
+| 취소 Shard | 1 job `117350187379`: 81개 통과 로그, 2 `117350187359`: 100, 4 `117350187387`: 64, 5 `117350187404`: 61, 6 `117350187474`: 69. 모두 `CANCELLED`, 로그에 `✘` 없음; 나머지 테스트는 **NOT TESTED** |
+| 원본 증거 | [Playwright report-shard-3 #12095402221](https://github.com/planner77/masterGantt/actions/runs/39016580724/artifacts/12095402221). 실제 ZIP SHA256 `a6fca428bae85c543d113904f908645d9368457e92005e0879668f4b75d75bd3`, 내부 Trace ZIP SHA256 `43806b6c6015a372d70d98d1786374e3111315d5a788768ad9adae4e305a6da6` |
+
+**원본 Trace 첨부 `gantt-readiness-failure` 직접 분석:**
+- Test expectation: `canonicalIds` **31개**, `visibleIds`도 **31개**. Canonical ID `00000000-0000-4000-8000-000000000005`는 Milestone이다.
+- 실제 `__masterganttMilestoneTimeline.read()`: `canonicalTaskCount=31`, `coreTaskCount=31`, `coreVisibleIds=30`. U3 최신 `generation9 / delivery SETTLED`, 성공 receipt는 `logicalVisibleIds=30 / coreVisibleIds=30`, 실제 DOM은 가상화된 **16개 행**, 모두 이 30개 안에 있다. 기대31과 실제30의 **정확한 차집합은 Milestone ID ...0005 단 1개**다.
+- `U2 generation4/settled4/depth0/recovery SETTLED`, `scale=week`, `Core left46 / native left47`(기존 허용 ±1px), 수평 Core capacity998/native999, Coordinator `RANGE_EXTENSION SETTLED`; 단순 정착 지연·Viewport 결함이 아니다. 초반 샘플의 PENDING/BUSY는 다음 안정된 샘플에서 해소됐다.
+- Source `tests/e2e/fixtures/task-editor-density.ts:44`가 합성 `Milestone`을 `type:"milestone"`로 만들고, `longList:true`는 일반 Task 26개를 추가한다. `tests/e2e/task-editor-form-density.spec.ts:229~232`는 fixture의 모든 ID를 `visibleIds`로 넘겨 이전 native M 행 시절의 오라클을 남겼다. 동일한 복사 코드가 **#570 다음 사례(276~279행)**에도 있으며, 첫 실패 후 fail-fast로 완주하지 않아 #570은 **NOT TESTED**였지만 같은 원인을 공유한다.
+
+### 9.2 이전 실패와의 연관성 및 책임 경계
+
+| 이전 CI / 계약 | 이번 #2888과의 관계 | 지금 필요한 보완 |
+| --- | --- | --- |
+| [#2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886), `projection-row-alignment` | Canonical84 vs Visible83(숨긴 Milestone1)로 TEST_CONTRACT 실패한 **같은 유형의 독립 소비자**. 당시 기본 모드에서 canonical 및 WBS를 분리함 | `#456`·`#570`도 Canonical31과 Visible30을 엄격히 분리. 기존 helper·제품 API 전체를 수정할 근거 없음 |
+| [#2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752), M-only `milestone-management-persistence` | native M row/bar를 무조건 기대한 과거의 별도 구형 Oracle | WBS에 M0 유지·Milestone 대시보드/Editor 원본 경로는 별도 검증 |
+| [#2886.1](https://github.com/planner77/masterGantt/actions/runs/39013855282), Resource 복귀 필터 | **제품 표시 drift**(옛 receipt Task6 vs 실제 native Task6+M2, U3 rows TIMED_OUT)였음. #2888의 실패는 반대로 정확히 M1이 제외된 상태에서 구형 31 WBS 기대만 실패 | 이전 visibility 재진입 제품 수정은 보존, 오늘의 new E2E에는 제품 변경/skip/timeout 완화 불필요. #2888의 **shard5는 61개 통과 뒤 CANCELLED**, 원래 Resource KPI 복귀 사례를 새 Head에서 통과했다고 단언 불가 |
+| [#2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393), `milestone-stage-exchange` | native row 부재로 일반 Task를 M으로 오분류한 Test Contract. 이번에는 실제 M 행을 WBS에 요구한 반대 유형의 DOM/Canonical 혼동 | 테스트 데이터의 `type`을 authority로 유지, native DOM presence와 canonical identity 구분 |
+
+**원인 분류:** `TEST_CONTRACT / CANONICAL_VS_VISIBLE_WBS_MILESTONE_OFF`. 새 제품 regression / CI 환경 문제 / flaky 또는 무작위 동기화 실패라는 증거는 **없다**. 반대로 #2886 제품 이슈가 이 Run에서 최종 해결됐다는 근거도 **없다**.
+
+### 9.3 수정 사항과 직접·간접·음성 검증
+
+- `tests/e2e/task-editor-form-density.spec.ts`의 두 소비자 `#456`·`#570`에서 `canonicalIds = fixture.tasks.map(taskId)`는 **전체31개**로 유지, `visibleWbsIds = fixture.tasks.filter(type !== "milestone")`은 **30개**로 분리한다. 별도 `milestoneIds` 차집합을 명시해 제거된 유형/수량을 검증한다.
+- 기존 `waitForGanttReadiness`에 **전체 Canonical IDs와 Milestone 제외 Visible IDs를 각각 그대로 전달**하며 latest U3·Core/native·완료 영수증·3 frame/실제 용량 검사를 유지한다. 성공 후 `coreVisibleIds`의 **전체30개 set**을 기대값과 대조하고, Milestone ID가 `domIds`와 `lastSuccess.logicalVisibleIds`에 모두 없음을 검증한다. 가상화된 DOM16을 전체30으로 강제하지 않는다.
+- #456의 필터 검색 이후 정확 Summary+일반 Task2행, 120px 입력, 메타데이터 저장 후 빈집합/좌측0, revision·mutation1·동일 API 검증 불변. #570의 유지되는 필터에서 metadata-only restore 보호, stale native0 복구·사용자 wheel 우선권·최종 빈집합과 동일 API 단언 불변.
+- `tests/e2e/milestone-visibility.spec.ts`, `gantt-state-product-integration.spec.ts`, `projection-row-alignment.spec.ts`의 기존 default M row0/legacy 명시 분기와 cross-consumers를 검토한다. 공통 `gantt-readiness-state.ts`의 EXPECTED_MEMBERSHIP 오라클과 제품 `project-gantt.tsx`·Coordinator/U2/U3·CI Required3·fail-fast, 테스트 `--retries=0`·timeout·Skip·허용오차/릴리스 정책은 **변경하지 않는다**.
+
+### 9.4 후속 누적 진단/Source Freeze
+
+[원장 JSON](evidence/issue-552/ci-cumulative-20261017.json)에 **33개 PR CI Run metadata**와 선택 근거가 명확한 최근 **11개 Run / 테스트-level 실제 FAIL 13개 / 서로 다른 E2E 파일 12개**를 보존했다. 초기 다른 CI Run의 다중 Shard 실패와 CANCELLED 내부 진짜 오류 전체는 아직 `INCOMPLETE`로 표시한다. 최근 12개 파일은 Pre-PR `diagnose` 도구의 **최대12개 경계에 딱 맞지만**, 과거 전체 논리적 실패 합집합은 아니다. 증분 원장과 과거 원장을 다른 범위로 구분하고 필요하면 실제 실패 12파일씩 교차 분할 검사한다.
+
+```bash
+# 저장소에 Node22/Playwright/깨끗한 독립 worktree가 있는 환경에서:
+npm run verify:prepr -- --mode=diagnose   --base=78ec8d2ced62f543f73a8477c3e62fca8274274b   --risk=HIGH --issue=552 --pr=561   --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json
+
+# 같은 수정 후보 HEAD, 코드 수정/생성 파일 오염 없이 전체 회귀
+npm run verify:prepr -- --mode=ci-like   --base=78ec8d2ced62f543f73a8477c3e62fca8274274b   --risk=HIGH --issue=552 --pr=561
+```
+
+이 도구 연결 세션에서는 로컬 **checkout/Node22 의존성/Playwright Chromium이 없어** 두 모드, 선택 browser 테스트, TypeScript·Vitest, sourceStable 검증은 **NOT TESTED**다. 원격 #2888 기존 Unit·Build PASS는 구 HEAD 증거이며 새 후보 PASS가 아니다. 새 HEAD의 필수 Quality/E2E6/Docker, QA/Owner ACCEPT는 새로운 Run 등록 시점 **NOT TESTED**다. 로컬 `UNKNOWN`/source fingerprint drift는 BLOCKED를 유지한다.
+
+최신 main 정렬 후 PR 리뷰 thread0/충돌0 확인 및 **새 전체 PR CI 실행까지만** 승인. 병합·Main CI·GHCR/tag/release·Issue 종료 금지, `release_authorized=false`·MERGE_READY=BLOCKED 유지.
+

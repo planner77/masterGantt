@@ -1,3 +1,10 @@
+## Issue #552 — CI #2888.1 구형 WBS Visible 기대와 후속 원격 증거 (2026-10-17)
+
+- [Full PR CI #2888.1](https://github.com/planner77/masterGantt/actions/runs/39016580724), Run39016580724 attempt1, HEAD `a81ae25ece41f727a963bd9963dcb82575b50286`, 당시 Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test merge `8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c`. Quality/Build/Docker PASS, shard3 `task-editor-form-density.spec.ts:232` 90 PASS/1 FAIL/1 SKIP/1 NOT RUN, 다른5 취소(부분 PASS/실제 새 FAIL0), Required E2E/QA Automated FAIL.
+- [실제 Playwright 원본 #12095402221](https://github.com/planner77/masterGantt/actions/runs/39016580724/artifacts/12095402221) Trace + `gantt-readiness-failure` attachment: U2 gen4/depth0, U3 gen9/delivery SETTLED, Core visible30·canonical31·DOM16(가상화), Core/native46/47, RANGE_EXTENSION SETTLED. 누락한 표시 ID는 Milestone `...0005` 하나뿐. 테스트의 `visibleIds31`이 obsolete라 `EXPECTED_MEMBERSHIP_MISMATCH`(TEST_CONTRACT)였다. #2863 동일 canonical/visible 구형 Oracle과 연결하여 §9에 기록.
+- 제품 Renderer/필터를 수정하지 않고 `#456` 및 `#570` 테스트의 `visibleIds`만 일반 Task/Summary로 정의·숨긴 M ID를 Core/DOM/receipt에서 부재 단언. Canonical 전체31·120px user input/검색/metadata restore/빈집합 및 권한/DB 계약 보호. `#2886` 제품 재진입 복귀는 이번 Run shard5 취소로 full PASS 미검증이다.
+- [정규 실패 문서 §9](ISSUE_552_FAILURE_ANALYSIS.md)·[원장](evidence/issue-552/ci-cumulative-20261017.json)에 Run33 메타데이터와 선별11Run/13실제 실패·12개 파일(과거 전체 INCOMPLETE)을 유지. Local `verify:prepr diagnose`·`ci-like`, sourceStable, exact-head 신규 Required3/Trusted QA/Owner ACCEPT는 이 실행 환경에서 **NOT TESTED**. 새 Head·Base·test merge·Run·Attempt, 미해결 Review Thread0·충돌0을 PR CI 시작 시 기록한다. 병합/Main/GHCR/Issue 종료 금지.
+
 ## Issue #552 — PR CI #2886.1 U3 표시집합 drift의 원본 Trace·수정 검증 경계 (2026-10-17)
 
 - 원본 [Run39013855282/attempt1](https://github.com/planner77/masterGantt/actions/runs/39013855282), Head `51b4f919f16ac9765d20b9256e6521f91150c066`, main Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde`. shard5 job117342193179의 `resource-kpi-integration-ui.spec.ts` 64PASS/1FAIL/17 NOT RUN 및 다른5 shards CANCELLED(개별 FAIL0), E2E/QA Final FAIL, Quality/Build/Docker PASS.
