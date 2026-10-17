@@ -1,0 +1,18 @@
+.root { display: grid; gap: 12px; min-width: 0; max-width: 100%; font-size: 14px; color: var(--text-default); }
+.toolbar { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: end; min-width: 0; }
+.toolbar label { display: grid; gap: 4px; min-width: 0; }
+.toolbar select, .toolbar input { min-height: 36px; max-width: 100%; }
+.toolbar button { min-height: 36px; }
+.details { min-width: 0; padding: 12px; border: 1px solid var(--border-default); border-radius: 8px; }
+.details h3 { margin: 0 0 8px; font-size: 16px; }
+.inventory { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 8px; min-width: 0; }
+.inventory div { min-width: 0; padding: 10px 12px; border: 1px solid var(--border-default); border-radius: 8px; }
+.inventory dt { font-size: 12px; color: var(--text-muted); }
+.inventory dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.scroll { min-width: 0; max-width: 100%; overflow: auto; max-height: min(360px, 45dvh); border: 1px solid var(--border-default); }
+.scroll table { border-collapse: collapse; width: 100%; min-width: 710px; font-variant-numeric: tabular-nums; }
+.scroll th, .scroll td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--border-default); }
+.scroll th { font-weight: 600; }
+.subtle { color: var(--text-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.error { color: var(--status-danger, #b91c1c); }
+@media (max-width: 600px) { .root { font-size: 13px; } .scroll table { min-width: 690px; } }
