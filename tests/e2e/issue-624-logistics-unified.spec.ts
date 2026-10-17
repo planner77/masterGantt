@@ -1,0 +1,131 @@
+import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
+import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
+import { issue621ResourcePassword } from "./fixtures/issue-621-target-project";
+import { seedIssue623 } from "./fixtures/issue-623-target-resource";
+import { targetMasterPassword } from "./fixtures/target-project";
+
+test.use({
+  ...isolatedApplicationOptions,
+  isolatedProjectMasterAdminPassword: targetMasterPassword,
+  isolatedResourceAdminPassword: issue621ResourcePassword,
+  viewport: { width: 1440, height: 1000 },
+});
+
+const orders = {
+  process: "processType,process,workArea,target",
+  equipment: "equipmentType,equipment,target",
+  system: "systemType,system,target",
+  target: "target,resource",
+} as const;
+
+test("#624 same canonical Project across four logistics perspectives, full Milestone gate, exact drill and five widths", async ({ page, isolatedApplication: origin }, info) => {
+  // The isolated #623 fixture already performs numerous real HTTP mutations; keep this
+  // larger integration probe finite and do not change the global E2E timeout.
+  test.setTimeout(120_000);
+  page.setDefaultTimeout(15_000);
+  const f = await seedIssue623(page, origin, true);
+  const milestoneMutation = await f.mutate("/tasks", {
+    name: "V1 교차 조회 Gate", type: "milestone", start: "2026-10-09", duration: 0, progress: 0,
+  });
+  const milestone = (await milestoneMutation.json()).data.tasks.find((task: { name: string }) => task.name === "V1 교차 조회 Gate");
+  expect(milestone?.taskId).toBeTruthy();
+  await page.reload();
+  const before = await f.snapshot();
+  const frame = page.locator(".project-gantt-frame");
+  const ganttInstance = await frame.getAttribute("data-project-gantt-instance");
+  const writes: string[] = [];
+  page.on("request", request => {
+    const path = new URL(request.url()).pathname;
+    if (path.startsWith(`/api/projects/${f.publicId}`) &&
+      ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) &&
+      !path.endsWith("/resource-dashboard/query")) writes.push(`${request.method()} ${path}`);
+  });
+
+  const reports: Partial<Record<keyof typeof orders, ResourceDashboardDto>> = {};
+  const nextReport = async (order: string) => {
+    const response = await page.waitForResponse(candidate => {
+      const url = new URL(candidate.url());
+      return candidate.request().method() === "GET" &&
+        url.pathname === `/api/projects/${f.publicId}/resource-dashboard` &&
+        url.searchParams.get("projectionOrder") === order;
+    });
+    expect(response.status(), await response.text()).toBe(200);
+    return (await response.json()).data as ResourceDashboardDto;
+  };
+  const first = nextReport(orders.process);
+  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+  await page.getByRole("tab", { name: "통합 조회", exact: true }).click();
+  const root = page.getByTestId("logistics-unified-view");
+  await expect(root).toBeVisible();
+  reports.process = await first;
+  await expect(root.getByRole("region", { name: "Resource Target 계층", exact: true })).toBeVisible();
+  await expect(root).toContainText("Project 구성 설비 수량 (고유 ID)");
+  await expect(root).toContainText("현재 Task 범위의 설비 대상");
+  await expect(root).toContainText("Milestone 전체 Stage Gate");
+
+  const baseline = reports.process!;
+  const baselineGate = baseline.stages.find(stage => stage.milestoneTaskId === milestone.taskId)?.full;
+  expect(baselineGate).toBeDefined();
+  expect(baseline.summary.assignmentCount).toBeGreaterThanOrEqual(1);
+  expect(baseline.targetProjection?.metadata.subtotalsAdditive).toBe(false);
+  expect(baseline.targetProjection?.metadata.assignmentScope).toBe("A");
+  for (const perspective of ["equipment", "system", "target", "process"] as const) {
+    const pending = nextReport(orders[perspective]);
+    await root.getByLabel("물류 통합 조회 관점").selectOption(perspective);
+    reports[perspective] = await pending;
+    const result = reports[perspective]!;
+    expect(result.targetProjection?.order.join(",")).toBe(orders[perspective]);
+    expect(result.summary.taskCount).toBe(baseline.summary.taskCount);
+    expect(result.summary.assignmentCount).toBe(baseline.summary.assignmentCount);
+    expect(result.summary.effort.knownMd).toBe(baseline.summary.effort.knownMd);
+    expect(result.stages.find(stage => stage.milestoneTaskId === milestone.taskId)?.full).toEqual(baselineGate);
+    await expect(root.getByRole("region", { name: "Resource Target 계층", exact: true })).toBeVisible();
+  }
+
+  const geometry: { width: number; documentWidth: number; ownScroll: boolean; focus: boolean }[] = [];
+  const region = root.getByRole("region", { name: "Resource Target 계층", exact: true });
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const observation = await region.evaluate(element => ({
+      documentWidth: document.documentElement.scrollWidth,
+      ownScroll: element.scrollWidth > element.clientWidth,
+    }));
+    expect(observation.documentWidth).toBeLessThanOrEqual(width + 1);
+    if (width === 390) expect(observation.ownScroll).toBe(true);
+    await region.focus();
+    await expect(region).toBeFocused();
+    geometry.push({ width, ...observation, focus: await region.evaluate(element => document.activeElement === element) });
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const trigger = region.getByRole("button", { name: "작업·배정 상세", exact: true }).first();
+  await trigger.click();
+  const detail = root.getByRole("region", { name: "정확 Task 및 Assignment 상세", exact: true });
+  await expect(detail).toBeVisible();
+  await expect(detail.locator(`[data-canonical-task-id="${f.task.taskId}"]`).first()).toBeVisible();
+  await detail.getByRole("button", { name: "상세 닫기", exact: true }).click();
+  await expect(trigger).toBeFocused();
+
+  expect(writes).toEqual([]);
+  expect(await f.snapshot()).toEqual(before);
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", ganttInstance!);
+  await info.attach("issue624-cross-view-evidence", {
+    contentType: "application/json",
+    body: JSON.stringify({
+      synthetic: true,
+      projectPublicId: f.publicId,
+      milestoneTaskId: milestone.taskId,
+      canonicalTaskId: f.task.taskId,
+      projectRevision: before.data.project.revision,
+      reports: Object.fromEntries(Object.entries(reports).map(([name, dto]) => [name, {
+        snapshotId: dto!.snapshotId,
+        order: dto!.targetProjection?.order,
+        taskCount: dto!.summary.taskCount,
+        assignmentCount: dto!.summary.assignmentCount,
+        knownMd: dto!.summary.effort.knownMd,
+        stageGate: dto!.stages.find(stage => stage.milestoneTaskId === milestone.taskId)?.full,
+      }])),
+      geometry, writes,
+    }, null, 2),
+  });
+});
