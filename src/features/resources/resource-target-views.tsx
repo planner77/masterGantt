@@ -7,7 +7,7 @@ import { useResourceDrill } from "./resource-drill-context";
 import styles from "./resource-target-views.module.css";
 
 export function projectionRowKey(path: NonNullable<ResourceDashboardSummary["selector"]["targetPath"]>) { return JSON.stringify(path); }
-const EMPTY_LABELS: Partial<Record<ResourceTargetDimension, string>> = { target: "Target 미연결", group: "Group 미지정", resource: "개인 미배정", workArea: "WorkArea 미사용", process: "공정 미매핑" };
+const EMPTY_LABELS: Partial<Record<ResourceTargetDimension, string>> = { target: "Target 미연결 · Legacy/미연결 (조회용)", group: "Group 미지정", resource: "개인 미배정", workArea: "WorkArea 없음 · 프로젝트 공통/미사용 (조회용)", process: "현장 공정 없음 · 프로젝트 공통/Legacy (조회용)", processType: "공정 유형 없음 · 프로젝트 공통/Legacy (조회용)", equipment: "설비 멤버 없음 (조회용)", system: "시스템 멤버 없음 (조회용)", equipmentType: "설비 유형 없음 (조회용)", systemType: "시스템 유형 없음 (조회용)" };
 export function targetNodeLabel(node: ResourceDashboardTargetNode) { return node.name ?? (node.dimension === "target" && node.sourceKinds.includes("legacy_direct") ? "Target 없음 · Legacy 직접 출처" : (node.id === null ? EMPTY_LABELS[node.dimension] ?? "미지정" : node.id)); }
 const FILTERS = [
   ["projectProcessIds", "프로젝트 공정", "projectProcess"], ["processOccurrenceIds", "현장 공정", "process"], ["processTypeIds", "공정 유형", "processType"],
