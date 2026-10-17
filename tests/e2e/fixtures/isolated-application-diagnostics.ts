@@ -177,6 +177,26 @@ export async function healthObservation(origin: string) {
 export interface DiagnosticResponse { status(): number; headers(): Record<string, string> }
 export type ObserveIsolatedApi = <T extends DiagnosticResponse>(route: string, method: string, operation: () => Promise<T>) => Promise<T>;
 
+/**
+ * #703: one bounded recovery of an ECONNRESET on a read-only canonical GET.
+ * The trusted observer records the first error and captures health/process/cgroup
+ * before this helper calls the original GET once more. No retries on POST/PUT/
+ * PATCH/DELETE, HTTP errors, timeouts or malformed responses. Callers must still
+ * assert exact status, revision and persisted identity.
+ */
+export async function observedReadOnlyGet<T extends DiagnosticResponse>(
+  observer: ObserveIsolatedApi,
+  route: string,
+  get: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await observer(route, "GET", get);
+  } catch (error) {
+    if (!(error instanceof Error) || !/\bECONNRESET\b/.test(error.message)) throw error;
+    return observer(route, "GET", get);
+  }
+}
+
 export function observeIsolatedApi(diagnostics: IsolatedApplicationDiagnostics, capture: () => Promise<void>): ObserveIsolatedApi {
   return async (route, method, operation) => {
     const started = Date.now();

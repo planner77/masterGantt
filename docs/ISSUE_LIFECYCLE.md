@@ -1,3 +1,7 @@
+## Issue #703 — Preview 시험 이미지와 Issue 완료 구분 (2026-10-17)
+
+Issue branch에서 Preview 수동 이미지가 게시되더라도 Phase는 PREVIEW_TRIAL(시험 전용)이고 MERGE_READY/RELEASE_AUTHORIZED/ISSUE_CLOSED를 자동 부여하지 않는다. Preview tag/digest는 기존 PR CI Required Quality/E2E/Docker 및 Trusted QA·Owner 수용을 대체하지 않는다. Preview Run은 main CI의 정식 ci-SHA/Release tag/Finalizer 전파·Issue close를 시작해서는 안 된다. 최초 사용은 PR 생성 전 branch에 권장하며 PR Push로 발생하는 자동 CI는 그대로 유지한다. 절차/증거/롤백은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md)와 [ISSUE_703 Work Packet](exec-plans/active/ISSUE_703.md)을 따른다.
+
 ## Issue #629 — 사전 검증은 최종 승인과 별개 (2026-10-12)
 Full PR CI에서 변경 경로 판정 후 신뢰된 기본 브랜치 QA Preflight를 실행한다. 결정적 구조·정책 실패는 무거운 회귀 이전 차단하되 세 required aggregate는 FAILURE로 마감한다. `DEFERRED` 리뷰/mergeability/Trusted QA/Owner ACCEPT를 사전 PASS로 오해하지 않는다. Preflight 도입 PR의 Bootstrap `NOT TESTED`는 기존 Full CI와 Owner 최종 승인 절차를 유지한다.
 

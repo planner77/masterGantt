@@ -19,11 +19,11 @@ async function addInstance(dialog: Locator, kind: "equipment" | "system", code: 
   await dialog.getByRole("button", { name: "새 인스턴스를 초안에 추가", exact: true }).click();
 }
 
-test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집·영향 및 reload 보존", async ({ page, isolatedApplication }) => {
+test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집·영향 및 reload 보존", async ({ page, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const before = await f.snapshot();
@@ -134,10 +134,10 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   expect((await f.snapshot()).data.tasks).toHaveLength(before.data.tasks.length);
 });
 
-test("Target 초안·412·readonly·응답역전과 관리자 경계", async ({ page, browser, isolatedApplication }) => {
+test("Target 초안·412·readonly·응답역전과 관리자 경계", async ({ page, browser, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   await f.mutate("/logistics/targets", { code: "COMMON", name: "공통 대상", scope: "project_common", members: [{ kind: "system", create: { code: "MCS", name: "MCS", systemType: "mcs", layer: "coordinator", scope: "project" } }] });
   await page.reload();
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
@@ -198,10 +198,10 @@ test("Target 초안·412·readonly·응답역전과 관리자 경계", async ({ 
   } finally { await readonlyContext.close(); }
 });
 
-test("Target 390/768/1024/1440/1920px 긴 한글·키보드·focus·내부 overflow", async ({ page, isolatedApplication }, testInfo) => {
+test("Target 390/768/1024/1440/1920px 긴 한글·키보드·focus·내부 overflow", async ({ page, isolatedApplication, observeIsolatedApi }, testInfo) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   const revision = (await f.snapshot()).data.project.revision;
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
   await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
@@ -238,10 +238,10 @@ test("Target 390/768/1024/1440/1920px 긴 한글·키보드·focus·내부 overf
   expect((await f.snapshot()).data.project.revision).toBe(revision);
 });
 
-test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호", async ({ page, isolatedApplication }) => {
+test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호", async ({ page, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   const response = await f.mutate("/logistics/targets", { code: "INHERITED", name: "상속 대상", scope: "project_common", members: [{ kind: "system", create: { code: "MCS", name: "MCS", systemType: "mcs", layer: "coordinator", scope: "project" } }] });
   const target = (await response.json()).data.target;
   await f.mutate(`/tasks/${f.task.taskId}/logistics-links`, { equipmentLinks: [], systemLinks: [{ systemId: target.members[0].entityId, scope: "self" }] }, "put");
@@ -306,10 +306,10 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await expect(editor).toContainText("저장하지 않은 변경사항");
 });
 
-test("인증된 관리자 inline WorkArea·새 공정 매핑의 별도 저장과 Target 초안 보존", async ({ page, isolatedApplication }) => {
+test("인증된 관리자 inline WorkArea·새 공정 매핑의 별도 저장과 Target 초안 보존", async ({ page, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
   await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
   await page.getByRole("button", { name: "Target 추가", exact: true }).click();
@@ -347,10 +347,10 @@ test("인증된 관리자 inline WorkArea·새 공정 매핑의 별도 저장과
   expect(targets.data.targets).toEqual([]);
 });
 
-test("공유 원본 인스턴스 이름 수정은 사용처 확인 후 한 번 저장하고 모든 Target에 반영", async ({ page, isolatedApplication }) => {
+test("공유 원본 인스턴스 이름 수정은 사용처 확인 후 한 번 저장하고 모든 Target에 반영", async ({ page, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   const a = (await (await f.mutate("/logistics/targets", { code: "A", name: "공유 대상 A", scope: "project_common", members: [{ kind: "system", create: { code: "MCS", name: "공유 원본", systemType: "mcs", layer: "coordinator", scope: "project" } }] })).json()).data.target;
   await f.mutate("/logistics/targets", { code: "B", name: "공유 대상 B", scope: "project_common", members: [{ kind: "system", entityId: a.members[0].entityId }] });
   await f.mutate(`/tasks/${f.task.taskId}/target-bindings`, { bindings: [{ targetId: a.id, selection: "whole", scope: "self", memberIds: [] }] }, "put");
@@ -378,10 +378,10 @@ test("공유 원본 인스턴스 이름 수정은 사용처 확인 후 한 번 �
   expect((await f.snapshot()).data.project.revision).toBe(revision + 1);
 });
 
-test("Target 목록·상세·WBS 연결·관리자 입력의 5폭 왕복은 조회만 수행", async ({ page, isolatedApplication }, testInfo) => {
+test("Target 목록·상세·WBS 연결·관리자 입력의 5폭 왕복은 조회만 수행", async ({ page, isolatedApplication, observeIsolatedApi }, testInfo) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
-  const f = await createTargetProject(page, isolatedApplication);
+  const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   const longName = "동명이름과 긴 한글을 갖는 물류 대상 및 통합 시스템 검증";
   const target = (await (await f.mutate("/logistics/targets", { code: "LONG-TARGET", name: longName, scope: "project_common", members: [{ kind: "system", create: { code: "MCS", name: "길고 긴 한글 시스템 이름과 동일 원본 MCS", systemType: "mcs", layer: "coordinator", scope: "project" } }] })).json()).data.target;
   await f.mutate(`/tasks/${f.task.taskId}/target-bindings`, { bindings: [{ targetId: target.id, selection: "whole", scope: "self", memberIds: [] }] }, "put");

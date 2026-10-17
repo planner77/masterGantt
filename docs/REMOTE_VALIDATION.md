@@ -1,3 +1,23 @@
+## Issue #703 — CI #2896 Shard3 read-only GET 전송 실패·전체 Fixture 관측 인수 (2026-10-17)
+
+[Issue #703 누적 원장](ISSUE_703_FAILURE_ANALYSIS.md) 7절은 #2880 DOC_SYNC F-001, #2883 #464 GET F-002, #2891 #623 GET F-003, #2896 #621 GET F-004와 #2884/#2894 정상 반례를 분리한다. [#2896.1](https://github.com/planner77/masterGantt/actions/runs/39026038481)의 Shard3 39 PASS/1 FAIL/53 NOT RUN 및 다른 5 Shard 취소는 별도 실측이다. 당시 단절 이후 프로세스 alive, 별도 Health 200, cgroup oomKill0은 근인 OOM/서버 종료가 입증되지 않았음을 뜻하며 Socket/Next의 물리적 원인은 UNKNOWN이다.
+
+기존 observedReadOnlyGet의 최초 ECONNRESET 관측→정확 동일 읽기 전용 GET 1회 재조회만 적용한다. #623 optional observer만으로는 #621/#622 및 Target Authoring/Resource Dashboard API 경로가 보호되지 않아 createTargetProject·seedIssue621·seedIssue623에서 ObserveIsolatedApi를 필수화한다. 16개 E2E 호출자 전체에 observer를 전달하고 진단 route는 /api/projects/{publicId} 상대 경로만 넘겨 로그에 URL/인증정보가 남지 않도록 한다. 모든 Mutation(POST/PUT/PATCH/DELETE) 재전송0, 다른 network/HTTP 오류·malformed JSON·2차 reset은 FAIL이며 실제 data/Revision/Target·Task/Gantt 단언은 불변이다.
+
+현재 변경은 Preview GHCR 수동 게시, PR/Main CI Required3/Trusted QA/Owner·Finalizer 정책과 무관하다. 로컬 단위·Chromium 및 새 Head 전체 remote E2E6/Docker·Trusted QA는 실제 Run 증거 확보 전 NOT TESTED. 사용자가 요청한 종료점은 새 PR CI 시작까지이며 완료 모니터링·병합·Main CI·정식 이미지 게시 및 Issue 종료 미수행이다.
+
+## Issue #703 — PR E2E 격리 Canonical GET 복구와 원격 검증 범위 (2026-10-17)
+
+Issue #703 PR #705 누적 Run #2880.1(Preflight 문서 FAIL), #2883.1(Shard5 실 GET ECONNRESET 후 Run 취소), #2884.1(정확 Head에서 6 Shard PASS), #2891.1(Shard3 GET ECONNRESET, 5개 다른 Shard 취소)의 정확한 출처·증거·누적 원인은 [단일 원장](ISSUE_703_FAILURE_ANALYSIS.md)과 [공통 지침](PR_CI_FAILURE_TRIAGE.md)에 보존한다.
+
+- 관측된 전송 오류 자체는 확정이나 서버 종료·OOM·비즈니스 데이터 손상 근인은 UNKNOWN. #2883/#2891 원본 격리 서버 진단에서는 실패 후 독립 Health=200, 프로세스 alive, 관측된 cgroup oomKill=0. 비관측 원인을 성공으로 오인하지 않는다.
+- 한정 변경은 `observeIsolatedApi` 첫 실패 진단(원본 error/health/process/cgroup 부수 증거) 이후 **동일 canonical read-only GET의 ECONNRESET 1회 재조회만** 허용한다. 기존 Project/Task/Resource/Milestone API의 모든 writes, HTTP4xx/5xx·bad JSON·invalid revision, 다른 transport 오류는 재전송하지 않는다. 기존 #680 선례와 단위 음성 테스트를 대조한다.
+- 검증은 정확 새 Head의 정책/Preflight/Quality/Chromium E2E 6개 Shard/Docker 및 기본 브랜치 Trusted QA를 별도로 확인할 때만 PASS. 같은 프로젝트 사용 중 버그 발견을 위한 Preview GHCR의 독립 게시와 정식 Release/Main CI/Finalizer 권한은 영향을 받지 않는다. 사용자 요청은 새 PR CI **시작**까지만이고 전체 완료 모니터링·GHCR/병합은 별도 지시 전 미수행한다.
+
+## Issue #703 — GHCR Preview 시험 전용 원격 검증 (2026-10-17)
+
+Preview workflow_dispatch는 default main trusted SHA에서 Owner만 시작하고 등록 Open Issue/작업 branch HEAD의 full SHA를 GitHub API로 두 번 검증한다. 배포 package-write 권한이 없는 별도 Job에서 동일 원본 Docker image를 빌드하며 trusted image policy·readiness·Project/Task 인증/API·SQLite 재시작 Smoke에 통과해야 한다. Publish Job은 검증 artifact SHA256와 OCI revision label 및 GHCR tag 미존재를 인증한 뒤 별도 preview 패키지만 갱신한다. 승인/조회 모호성·stale는 BLOCKED. 전체 테스트와 Finalizer·정식 release 권한은 영향 받지 않는다. 자세한 원격 후속 AC와 비용 실증은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md), [ISSUE_703.md](exec-plans/active/ISSUE_703.md) 참조. 실제 Preview 실발행과 3개 Run 비용 절감은 NOT TESTED.
+
 ## Issue #552 — CI #2888.1 구형 WBS Visible 기대와 후속 원격 증거 (2026-10-17)
 
 - [Full PR CI #2888.1](https://github.com/planner77/masterGantt/actions/runs/39016580724), Run39016580724 attempt1, HEAD `a81ae25ece41f727a963bd9963dcb82575b50286`, 당시 Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test merge `8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c`. Quality/Build/Docker PASS, shard3 `task-editor-form-density.spec.ts:232` 90 PASS/1 FAIL/1 SKIP/1 NOT RUN, 다른5 취소(부분 PASS/실제 새 FAIL0), Required E2E/QA Automated FAIL.
