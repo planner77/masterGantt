@@ -143,6 +143,29 @@ class RequestTests(unittest.TestCase):
 
 
 class WorkflowContractTests(unittest.TestCase):
+    def test_issue_703_work_packet_preflight_contract(self):
+        # Use the same trusted QA docs_gate as remote Preflight; no policy relaxation.
+        from scripts import qa_final_automated as qa
+        packet = Path("docs/exec-plans/active/ISSUE_703.md").read_text(encoding="utf-8")
+        files = {
+            ".github/workflows/ci.yml", ".github/workflows/preview-publish.yml",
+            "scripts/preview_publish.py", "tests/python/test_preview_publish.py",
+            "AGENTS.md", "docs/CI_CD.md", "docs/TEST_PLAN.md",
+            "docs/REMOTE_VALIDATION.md", "docs/ISSUE_LIFECYCLE.md",
+            "docs/LOCAL_PREPR.md", "docs/PREVIEW_PUBLISH.md",
+            "docs/exec-plans/active/ISSUE_703.md",
+            "docs/ISSUE_703_PR_CI_FAILURE_ANALYSIS.md",
+        }
+        ac = {f"AC{i}" for i in range(1, 9)}
+        result = qa.docs_gate(packet, files, ac)
+        self.assertEqual(result["documentation_sync"], "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING")
+        self.assertEqual(result["ac_test_coverage"], "MAPPING_PASS_SEMANTIC_REVIEW_PENDING")
+        original = "- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 병합·릴리스 명명 및 CI 한글 규칙에는 변경 사항 없음)"
+        self.assertIn(original, packet)
+        with self.assertRaises(qa.Blocked):
+            qa.docs_gate(packet.replace(original, ""), files, ac)
+
+
     def test_preview_dispatch_and_permissions_are_isolated(self):
         text = Path(".github/workflows/preview-publish.yml").read_text(encoding="utf-8")
         self.assertIn("  workflow_dispatch:", text)

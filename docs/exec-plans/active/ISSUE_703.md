@@ -51,5 +51,36 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 
 ## DOCUMENTATION_SYNC
 
-UPDATED: AGENTS.md, docs/CI_CD.md, docs/LOCAL_PREPR.md, docs/REMOTE_VALIDATION.md, docs/ISSUE_LIFECYCLE.md, docs/TEST_PLAN.md, 신규 docs/PREVIEW_PUBLISH.md.
-N/A(reason): DESIGN.md, docs/UI_UX_GUIDELINES.md (UI 변경 없음); docs/API.md·docs/DB_SCHEMA.md (제품 REST/DB 변경 없음); docs/QA_REVIEW_POLICY.md (기존 QA·승인 정책 불변); docs/IMPORT_SCHEMA.md (Import 변경 없음).
+신뢰된 base의 `qa_final_automated.docs_gate`는 아래의 개별 파일별 표준 형식과 별도 AC 매핑을 요구합니다. 기존 `UPDATED: ...`/`N/A(reason): ...` 나열은 유효한 구조화 증거가 아닙니다.
+
+- `AGENTS.md`: UPDATED
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/QA_REVIEW_POLICY.md`: N/A(기존 QA 위험도·Owner 병합 승인과 필수 CI 검증 기준을 그대로 보존)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 GitHub 병합·릴리스 명명 및 CI 한글 규칙에는 변경 사항 없음)
+- `docs/LOCAL_PREPR.md`: UPDATED
+- `docs/ISSUE_LIFECYCLE.md`: UPDATED
+- `docs/PREVIEW_PUBLISH.md`: UPDATED
+- `docs/exec-plans/active/ISSUE_703.md`: UPDATED
+- `DESIGN.md`: N/A(사용자 인터페이스나 SVAR Gantt 화면을 수정하지 않는 CI 경로 작업)
+- `docs/API.md`: N/A(앱 HTTP API 및 보안·인가 엔드포인트는 변경하지 않음)
+- `docs/DB_SCHEMA.md`: N/A(SQLite 테이블과 migration 파일 변경이 없고 시험 DB는 격리함)
+
+## AC_TEST_COVERAGE
+
+- AC1: 정확 Issue·Owner·SHA 검증과 Build/Smoke/Preview digest Workflow 구현; 실제 GHCR 수동 게시·digest 확인은 main 반영 전 NOT TESTED.
+- AC2: `tests/python/test_preview_publish.py`의 Actor·Issue·branch·main SHA·tag 200/401/403/429/500 등의 음성 테스트; PR CI 원격 실행 전 NOT TESTED.
+- AC3: `tests/python/test_preview_publish.py`의 Build(read)·Publish(packages:write) 권한 분리와 이미지 SHA·archive SHA256 검사 계약; 실제 Run은 NOT TESTED.
+- AC4: `docs/PREVIEW_PUBLISH.md`의 별도 Compose·volume/DB·digest pinning·백업·restore 절차; 실제 환경 검증 NOT TESTED.
+- AC5: `.github/workflows/ci.yml`에서 기존 Required 3종·6-shard·Trusted QA·Main·Finalizer 불변 확인, Preview Python 회귀만 Policy에 추가; 원격 필수 검사 NOT TESTED.
+- AC6: 반복 Preview→최종 PR/Main CI 전환과 정식 Finalizer 비연동 계약은 `docs/PREVIEW_PUBLISH.md`에 명시, 실제 원격 end-to-end NOT TESTED.
+- AC7: `docs/PREVIEW_PUBLISH.md`에 최소 3건의 time-to-first-preview/Runner-minutes/CI-run 실측 계획, 실제 값 NOT TESTED.
+- AC8: Preview 워크플로 비활성화 후 기존 PR/Main/Release 경로 영향 없는 독립 트리거·패키지 설계; 실제 롤백 실증 NOT TESTED.
+
+## CI 실패 원장 연결 (2026-10-17)
+
+- 원본 Run [39009485784.1](https://github.com/planner77/masterGantt/actions/runs/39009485784), PR #705, Head `9dd6f5c407dcb8417bf8b82b57a941d0ca8dcb26`, Base `de863713142a92f1cac56dbae044923822bca932`, test-merge `75e9ef89ecdd06111a3bdd16ad14e33ec50db73f`.
+- 최초 실패는 `QA Preflight → DOCUMENTATION_SYNC: DOC_SYNC 기록 누락`이며 나머지 Required aggregate와 QA Final 실패는 연쇄, E2E/Docker/Unit 실제 실행은 SKIPPED. 기존 실패 결과는 불변이다.
+- 구조 `## DOCUMENTATION_SYNC` / `## AC_TEST_COVERAGE`를 보완하고 `tests/python/test_preview_publish.py`에 실제 신뢰 QA `docs_gate` 회귀를 추가한다. 로컬 실행은 NOT TESTED, 새 exact HEAD PR CI 재검증 필요.
+- 후속 실패 시 누적 원장인 [Issue #703 PR CI 실패 분석](../../ISSUE_703_PR_CI_FAILURE_ANALYSIS.md)에 Run별 새 근거를 추가한다.
