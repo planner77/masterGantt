@@ -31,6 +31,60 @@
 
 **진단 종합:** Run #2875.1의 확정 원인은 **문서 영향 누락 하나**다. 세 Required aggregate의 FAILURE는 독립 결함 3개가 아니며, 대부분의 개별 테스트는 미실행이다. TypeScript/E2E/제품/API·시간·환경 결함은 발생하지 않았다고 *증명된 것이 아니라 아직 검증할 기회가 없었던 것*. 취소한 Job의 실제 테스트 실패 보고는 이번 원장에 확인되지 않았으며, 이후 발생 시 별도 원인으로 보존한다.
 
+## 2.1. CI #2876.1 — AC_TEST_COVERAGE 형식 불일치 (새 Root)
+
+- 원본: [Run 39008123509 / Attempt 1](https://github.com/planner77/masterGantt/actions/runs/39008123509), full PR synchronize, conclusion=failure. HEAD `cc7604331780bda8dfdb12d2327c290409eb8596` / Base `de863713142a92f1cac56dbae044923822bca932` / Test-Merge `7f45152608a5489a29da2dcd0725ef98c1425109` (checkout log에서 확인).
+- 이전 Root F-624-001의 `docs/GITHUB_OPERATIONS.md` 누락은 2차 Preflight에서 재발하지 않았다. 이번 Root는 `docs/exec-plans/active/ISSUE_624.md`의 `AC1~AC7` 항목을 **Markdown bold** 형식으로 작성한 것이다. 정책 `qa_final_automated.docs_gate`의 regex `(?im)^\\s*-\\s*(AC\\d+)\\s*:\\s*\\S.{8,}# Issue #624 — PR CI 누적 실패 원장 (PR #702)
+
+> **유지 규칙:** 이 문서는 CI 실패 때마다 새 Run/Attempt/HEAD/Base/Test-Merge 증거를 독립 행으로 **추가**한다. 새 실패만 고치고 과거 원인을 지우지 않으며, 취소/Skip/미실행 Job을 제품 PASS로 승격하지 않는다. 원인 정리·대응은 `AGENTS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/REMOTE_VALIDATION.md` 및 [Work Packet](exec-plans/active/ISSUE_624.md)의 원본 계약을 따른다.
+
+## 1. 고정 기준선과 원본 증거
+
+| 구분 | 값 |
+| --- | --- |
+| Primary Issue | [#624](https://github.com/planner77/masterGantt/issues/624) — 공정·WorkArea·설비·시스템 통합 조회 및 Milestone 교차 |
+| PR | [#702](https://github.com/planner77/masterGantt/pull/702), `feat/issue-624-logistics-unified-views` → `main` |
+| 첫 실패 Run/Attempt | [#2875.1, Run ID 39007521324](https://github.com/planner77/masterGantt/actions/runs/39007521324), `pull_request` / opened |
+| 이벤트 발생 | 2026-10-17 05:47 UTC (14:47 KST), 완료 conclusion=`failure` |
+| 실패 HEAD | `5b57374e24d9842db47a83a5f8ede99cb0dd2bbc` |
+| 실패 Base | `de863713142a92f1cac56dbae044923822bca932` |
+| PR 검증 Test-Merge | `9f7cd652eb83da1e35753ba139a280050f65fde5` (CI checkout 로그로 관측) |
+| Repo policy | 기본 브랜치 `scripts/qa_preflight.py` → `qa_final_automated.docs_gate`, `.github/workflows/ci.yml` |
+| PR 버전 | app `0.115.0`; `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false` |
+| 검증 경계 | QA Preflight 1확정 FAIL/5 DEFERRED. TypeScript/Unit/E2E/Docker/Next build 제품 검증은 **SKIPPED**, 실제 제품 실패 아직 미확인 |
+
+## 2. 누적 실패 원장
+
+| 사건 / 단계 | Job ID | 실제 상태 | 결함/전파 유형 | 1차 원인 및 근거 | 조치·재검증 상태 |
+| --- | ---: | --- | --- | --- | --- |
+| F-624-001 / QA Preflight | [117322955991](https://github.com/planner77/masterGantt/actions/runs/39007521324/job/117322955991) | FAILURE | **문서/정책 ROOT** | `DOCUMENTATION_SYNC`: `docs/exec-plans/active/ISSUE_624.md`에 `docs/GITHUB_OPERATIONS.md` 영향 기록 없음. PRIMARY_ISSUE/RISK/QA/RELEASE/PATH_POLICY/ISSUE_AC는 PASS | Work Packet의 정확한 파일명에 `N/A(reason)` 추가. 차기 exact-HEAD CI 결과 **NOT TESTED** |
+| F-624-002 / PR Fast Gate | [117322990328](https://github.com/planner77/masterGantt/actions/runs/39007521324/job/117322990328) | FAILURE | **다운스트림 파생** | Preflight=`failure`를 fail-closed로 전달 | 원본 수정 후 자동 재검증 |
+| F-624-003 / 품질 집계 | [117323023452](https://github.com/planner77/masterGantt/actions/runs/39007521324/job/117323023452) | FAILURE | **다운스트림 파생** | QA Preflight 미성공. 개별 Typecheck/ESLint/Vitest/Build는 SKIPPED | CI 재실행 필요, 개별 테스트 PASS 아님 |
+| F-624-004 / Chromium 집계 | [117323023407](https://github.com/planner77/masterGantt/actions/runs/39007521324/job/117323023407) | FAILURE | **다운스트림 파생** | PR Fast Gate/Preflight가 실패하여 Chromium PR 6-shard가 모두 SKIPPED | CI 재실행 필요; 제품 E2E 실패 **0건 관측**(실행 자체 없음) |
+| F-624-005 / Docker 집계 | [117323023396](https://github.com/planner77/masterGantt/actions/runs/39007521324/job/117323023396) | FAILURE | **다운스트림 파생** | Docker smoke 구현 SKIPPED. 필수 집계는 fail-closed FAILURE | CI 재실행 필요, Docker PASS 아님 |
+| F-624-006 / QA Final Automated | [117323038782](https://github.com/planner77/masterGantt/actions/runs/39007521324/job/117323038782) | FAILURE | **다운스트림 파생** | 로그 `자동 QA: FAIL / 사유: required quality 미성공` | 원본 CI 재검증 후 trusted/Owner 단계 별도 |
+| O-624-001 / Codex Review | [PR #702 댓글](https://github.com/planner77/masterGantt/pull/702) | Usage limit / Review Failed | **별도 리뷰 가용성 이슈** | Codex reviewer 사용량 초과 안내, 실제 inline 미해결 thread **0**. QA Preflight 직접 원인 아님 | 자동 리뷰 미수행을 코드 리뷰 PASS/승인으로 표시 금지; 정책의 OWNER_MANAGED/Trusted/Owner 승인 유지 |
+
+**진단 종합:** Run #2875.1의 확정 원인은 **문서 영향 누락 하나**다. 세 Required aggregate의 FAILURE는 독립 결함 3개가 아니며, 대부분의 개별 테스트는 미실행이다. TypeScript/E2E/제품/API·시간·환경 결함은 발생하지 않았다고 *증명된 것이 아니라 아직 검증할 기회가 없었던 것*. 취소한 Job의 실제 테스트 실패 보고는 이번 원장에 확인되지 않았으며, 이후 발생 시 별도 원인으로 보존한다.
+
+는 `- AC1:`을 인식하고 `- **AC1**:`은 인식하지 못해 7개를 모두 누락으로 처리한다.
+
+| 누적 ID / Job | 결과 | 유형 | 실제 근거와 조치 |
+| --- | --- | --- | --- |
+| F-624-007 / [QA Preflight 117324706081](https://github.com/planner77/masterGantt/actions/runs/39008123509/job/117324706081) | FAIL | **신규 Root: 문서 계약** | `Issue AC / test evidence mapping 부족: AC1,AC2,AC3,AC4,AC5,AC6,AC7`. 모든 실제 AC 근거는 유지하고 `- **AC#**:` 7개를 plain `- AC#:`로 정규화 |
+| F-624-008 / [PR Fast Gate 117324742958](https://github.com/planner77/masterGantt/actions/runs/39008123509/job/117324742958) | FAIL | 파생 | Preflight failure가 fast gate를 차단 |
+| F-624-009 / [Quality 117324769744](https://github.com/planner77/masterGantt/actions/runs/39008123509/job/117324769744) | FAIL | 파생 | TypeScript, ESLint, Vitest, Next.js build 모두 **SKIPPED** — 제품 실패 아님 |
+| F-624-010 / [Chromium 117324769815](https://github.com/planner77/masterGantt/actions/runs/39008123509/job/117324769815) | FAIL | 파생 | 실제 PR E2E shard 6개 모두 미실행, 테스트 실패 유무 미확정 |
+| F-624-011 / [Docker 117324769701](https://github.com/planner77/masterGantt/actions/runs/39008123509/job/117324769701) | FAIL | 파생 | Docker smoke 구현 SKIPPED, 제품 Docker 테스트 미검증 |
+| F-624-012 / [Automated QA 117324789022](https://github.com/planner77/masterGantt/actions/runs/39008123509/job/117324789022) | FAIL | 파생 | `자동 QA: FAIL / 사유: required quality 미성공`, 독립 원인 아님 |
+
+### 문서 계약 재발 방지 점검
+
+1. 이전 F-624-001은 삭제하지 않고 독립적으로 보존한다. 새 Root F-624-007과 세 필수 집계 실패를 구분한다.
+2. `DOCUMENTATION_SYNC`: 영향을 받는 파일의 정확한 `- \`path\`: UPDATED` 또는 `- \`path\`: N/A(reason)`만 통과. 실제 변경 문서는 보존하고 불필요한 `UPDATED(설명)` 표기를 `UPDATED`로 정규화한다. 처음 교정한 `docs/GITHUB_OPERATIONS.md: N/A(reason)`도 유지한다.
+3. `AC_TEST_COVERAGE`: `- AC1: evidence...`부터 `- AC7: evidence...`까지 **실제 base policy의 동일 regex**로 7개 수집되는지 확인한다. Markdown 강조 표기와 구별한다.
+4. Preflight를 우회하거나 CI workflow/검증기/테스트 skip·timeout·assertion을 완화하지 않는다. 두 실행 모두 Typecheck/Vitest/Chromium/Docker 제품 테스트가 미실행이므로 정상 결과라고 주장하지 않는다. 이후 제품 실패가 실제 발생하면 F-624-013부터 원인 합집합에 추가한다.
+
 ## 3. 왜 발생했고 무엇을 고쳤는가
 
 1. `package.json`·`package-lock.json`의 app `0.115.0` 변경은 QA 정책상 protected/runtime execution path를 포함한다. 기본 브랜치의 `docs_required`는 QA 문서 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, **`docs/GITHUB_OPERATIONS.md`**, `docs/REMOTE_VALIDATION.md` 영향 기록의 합집합을 요구한다.
@@ -55,6 +109,6 @@
 
 ## 5. 현재 완료/미완료 구분
 
-- 확정: #2875.1의 QA Preflight DOCUMENTATION_SYNC 누락 및 전파 관계; 기존 PR 리뷰 thread0 / 당시 mergeable=true. 문서 수정은 PR의 새 커밋으로 반영한다.
+- 확정: #2875.1은 필수 문서 경로 누락(F-624-001), #2876.1은 AC1~AC7 parser 형식 불일치(F-624-007). 각각은 별도 Root이고 Required aggregates/QA Final은 upstream 실패의 파생 결과다. 각 Run/HEAD/Base/Test-Merge 기록은 유지한다.
 - 조건부: 새 HEAD Work Packet에 영향 경로를 기록하고 기본 validator의 구조 계약과 대조한다. 동일 GH Actions 정책 실행 **미검증**인 동안 구조 PASS나 PR 성공을 선언하지 않는다.
 - 미완료: 새 Full PR CI3종/Trusted QA 결과, 운영 성능·실기기·스크린리더, Owner HIGH 위험 수용 및 명시 병합 승인, Main GHCR/Finalizer/Issue 종료.

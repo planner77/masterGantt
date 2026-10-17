@@ -37,6 +37,10 @@
 
 ## PR CI 실패 누적 원장 / 차기 재검증
 
+- **2차 CI #2876.1**: [Run `39008123509.1`](https://github.com/planner77/masterGantt/actions/runs/39008123509), HEAD `cc7604331780bda8dfdb12d2327c290409eb8596`, base `de863713142a92f1cac56dbae044923822bca932`, test-merge `7f45152608a5489a29da2dcd0725ef98c1425109`. 최초 필수 문서 영향 누락은 해소됐으나 `AC_TEST_COVERAGE`의 `- **AC1**:`…`- **AC7**:` 표기가 정책 regex와 불일치하여 모든 AC mapping을 인식하지 못했다. 실제 제품 검증 전 Preflight → Fast Gate → Required3/QA Final로 오류 전파. AC 근거는 유지하고 헤더만 `- AC1:`…`- AC7:`로 정규화했다.
+- **동일 문서의 잠재 재발 방지**: 머신 parser가 `UPDATED(설명)`을 읽지 못하므로 `DOCUMENTATION_SYNC`의 UPDATED 상태는 정확히 `UPDATED`로 통일한다. `N/A(reason)` 항목, 권한·산식/회귀·CI Gate는 보존한다. 상세 원인은 [누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 기록한다.
+
+
 - 별도 **증거·원인·보완·반복 실패 기록**: [Issue #624 CI Failure Analysis](../../ISSUE_624_CI_FAILURE_ANALYSIS.md). 2026-10-17 PR #702 / Run `39007521324.1` (HEAD `5b57374e24d9842db47a83a5f8ede99cb0dd2bbc`)의 QA Preflight에서 `DOCUMENTATION_SYNC`의 `docs/GITHUB_OPERATIONS.md` 영향 기록 누락 하나가 확정되었다.
 - Full PR CI 빠른 Gate가 실패하여 TypeScript/Unit/Chromium6/Docker/Build는 **실행되지 않았다**. 이후 Quality/E2E/Docker 집계 FAIL, QA Final(required quality 미성공)은 전파 결과이며 제품 테스트 실패 증거가 아니다.
 - 보완: 아래 `docs/GITHUB_OPERATIONS.md`를 명시적 `N/A(reason)`로 등록한다. `package.json`/`package-lock.json`의 `0.115.0` 버전 변경은 QA 문서 영향 합집합을 요구하나 GitHub PR/권한/CI trigger/merge/GHCR 운영 정책은 불변이다. 검증기·Required Gate나 timeout/skip/assertion을 완화하지 않는다.
@@ -44,8 +48,8 @@
 
 ## DOCUMENTATION_SYNC
 
-- `docs/exec-plans/active/ISSUE_624.md`: UPDATED(이 Work Packet)
-- `docs/ISSUE_624_CI_FAILURE_ANALYSIS.md`: UPDATED(누적 실패 원장·신규 run별 분리)
+- `docs/exec-plans/active/ISSUE_624.md`: UPDATED
+- `docs/ISSUE_624_CI_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/TARGET_RESOURCE_ROLLOUT.md`: UPDATED
 - `docs/LOGISTICS_DASHBOARD.md`: UPDATED
@@ -55,8 +59,8 @@
 - `docs/TEST_PLAN.md`: UPDATED
 - `docs/REMOTE_VALIDATION.md`: UPDATED
 - `docs/TARGET_RESOURCE_USER_GUIDE.md`: UPDATED
-- `docs/API.md`: UPDATED(신규 API/DTO 없음·재사용 관점 설명)
-- `CHANGELOG.md`: UPDATED(0.115.0)
+- `docs/API.md`: UPDATED
+- `CHANGELOG.md`: UPDATED
 - `DESIGN.md`: N/A(Design Delta B; 새로운 전역 UI 원칙 없음)
 - `AGENTS.md`: N/A(기존 실행 지침을 준수하며 지침 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(조회 UI만 확장, migration 없음)
@@ -71,13 +75,13 @@
 
 ## AC_TEST_COVERAGE
 
-- **AC1**: #623 raw golden + #620 Resource Target projection vs 신규 네 관점 `summary` Task/Assignment/knownMD 비교; 신규 Unit/Chromium, 현재 NOT TESTED.
-- **AC2**: 기존 #621/#623 editor의 이름/기간/진척/allocation/membership 개별 mutation·canonical ID 유지와 신규 exact drill/조회 저장0/포커스. 전체 교차 수정은 새 Head CI 및 수동 검증 전 NOT TESTED.
-- **AC3**: 기존 #617/#620 resolver/typed member·#623 공유 MCS/AMR/WorkArea 없음/Legacy/다중 site fixture, 신규 Project 구성 ID distinct와 current Task coverage 분리. NOT TESTED.
-- **AC4**: 기존 Resource `summary`, `targetProjection.relatedMembers`, `stages[].full`·`selected`; 신규 Unit Gate 및 Chromium 네 관점 full Gate 비교. 설치실적 등 비범위.
-- **AC5**: 기존 bounded `ResourceDashboardDetails` / #528·#621 exact source/return·dirty/stale/readonly, 신규 동일 instance/복귀 focus/조회 저장0. CI 및 수동 경계 NOT TESTED.
-- **AC6**: 신규 Chromium 390/768/1024/1440/1920 긴 fixture·keyboard/overflow, 기존 #620/#623 query/response 예산. 실행/실측 전 NOT TESTED.
-- **AC7**: 동 PR의 본 DOCUMENTATION_SYNC 및 DESIGN Delta, version/CHANGELOG, active PLAN/계약/테스트 업데이트. 최종 docs gate 결과 NOT TESTED.
+- AC1: #623 raw golden + #620 Resource Target projection vs 신규 네 관점 `summary` Task/Assignment/knownMD 비교; 신규 Unit/Chromium, 현재 NOT TESTED.
+- AC2: 기존 #621/#623 editor의 이름/기간/진척/allocation/membership 개별 mutation·canonical ID 유지와 신규 exact drill/조회 저장0/포커스. 전체 교차 수정은 새 Head CI 및 수동 검증 전 NOT TESTED.
+- AC3: 기존 #617/#620 resolver/typed member·#623 공유 MCS/AMR/WorkArea 없음/Legacy/다중 site fixture, 신규 Project 구성 ID distinct와 current Task coverage 분리. NOT TESTED.
+- AC4: 기존 Resource `summary`, `targetProjection.relatedMembers`, `stages[].full`·`selected`; 신규 Unit Gate 및 Chromium 네 관점 full Gate 비교. 설치실적 등 비범위.
+- AC5: 기존 bounded `ResourceDashboardDetails` / #528·#621 exact source/return·dirty/stale/readonly, 신규 동일 instance/복귀 focus/조회 저장0. CI 및 수동 경계 NOT TESTED.
+- AC6: 신규 Chromium 390/768/1024/1440/1920 긴 fixture·keyboard/overflow, 기존 #620/#623 query/response 예산. 실행/실측 전 NOT TESTED.
+- AC7: 동 PR의 본 DOCUMENTATION_SYNC 및 DESIGN Delta, version/CHANGELOG, active PLAN/계약/테스트 업데이트. 최종 docs gate 결과 NOT TESTED.
 
 ## QA·원격·릴리스 인계
 
