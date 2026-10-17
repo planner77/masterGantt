@@ -1,3 +1,10 @@
+
+## Issue #703 Main CI #2901.1 / #490 Gantt viewport E2E regression (2026-10-17)
+
+- `tests/e2e/project-settings-layout-490.spec.ts` verifies horizontal scroll preservation through settings tabs, metadata save and native fullscreen round-trip. A hardcoded `scrollLeft=120` is not always achievable if chart `scrollWidth-clientWidth` is smaller; the original Main Run 39029791058 observed 18 instead of 120.
+- Assert `max(0,scrollWidth-clientWidth)>0` first so an actual lost scrollable timeline remains a regression, set/expect `min(120,maxScroll)`, and retain vertical scroll, WBS selection, tree, column width, scope and fullscreen invariants. Do not silently skip the test or loosen the 5s poll timeout.
+- PR #709 Run 39031438869 was blocked by issue branch naming and QA metadata. PR #710 Run 39031667684 was blocked in QA Preflight because this TEST_PLAN sync was absent; Quality/E2E/Docker aggregates were consequential failures, not new Playwright findings. See `docs/ci-failures/ISSUE_703_MAIN_CI_39029791058.md` for the entire F01-F03 evidence chain.
+- Verify with targeted #490 spec and the existing required 6-shard Chromium E2E, Quality and Docker checks; no local/PR PASS is claimed until actual results.
 ## Issue #703 — CI #2896 F-004와 전체 E2E GET 전송 실패 합집합 (2026-10-17)
 
 - [누적 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) 7절과 [공통 REWORK](PR_CI_FAILURE_TRIAGE.md)를 적용한다. #2880 F-001은 QA 문서 구조, #2883 F-002는 #464 canonical GET, #2891 F-003은 #623 GET, #2896 F-004는 #621 GET ECONNRESET 직접 실패다. #2884/#2894 이전 SHA에서 실제 6 Shard·Quality·Docker SUCCESS는 별도 반례이며 최신 Head 증거가 아니다.
