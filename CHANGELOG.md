@@ -1,3 +1,10 @@
+## [0.115.0] — Unreleased / Issue #624
+
+- 공정·선택적 WorkArea·Target, 설비 종류→인스턴스, 시스템 종류→인스턴스, Target→Resource를 동일 Resource Target 보고서와 정확 Task/Assignment 상세로 교차 조회하는 물류 「통합 조회」 탭을 추가한다.
+- 등록된 고유 설비 수량과 선택된 T0 Task 대상 coverage, 기간가중 Task 진척, M/D·M/M·Milestone 전체 Stage Gate를 구분한다. 공유 AMR fleet/MCS·중복 Target의 표시 소계를 원본 합계로 더하지 않으며 조회로 DB/WBS를 수정하지 않는다.
+- 읽기전용·stale·dirty/권한, 390~1920px 표 내부 overflow/keyboard/focus·조회 후 복귀 경로를 기존 Resource/Target 모델로 재사용한다. 신규 전용 Unit/Chromium과 [#624 Work Packet](docs/exec-plans/active/ISSUE_624.md) 동기화. 정확 Head CI 전 NOT TESTED.
+- 위험 HIGH/OWNER_MANAGED, release_required=true, release_authorized=false; PR CI만으로 정식 릴리스/병합 허가가 되지 않는다.
+
 ## [0.114.1] — Unreleased / Issue #667
 
 - CI #2840의 신규 Unit을 기존 Core exact/native ±1px 수용 계약에 맞는 경계 검증으로 교정한다. FILTER_RETURN의 두 번째 준비 중 취소·추가 축소에서 1회 상한과 쓰기0을 검증하고 원본·로컬·환경중단·새 CI를 별도 원장에 기록한다.
