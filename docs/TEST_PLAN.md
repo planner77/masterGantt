@@ -1,3 +1,11 @@
+## Issue #624 — 통합 다관점 조회 위험기반 회귀 (2026-10-17)
+
+- Unit `tests/features/logistics/logistics-unified-model.test.ts`: 공정/WorkArea·설비·시스템·Target/Resource 관점 순서, 구성 equipmentId/systemId 중복 제거, 동일 ID 수량 불일치 경고, Milestone full Gate 독립성.
+- 실제 HTTP·Chromium `tests/e2e/issue-624-logistics-unified.spec.ts`: #623 두 사업장/제품 표준·선택 WorkArea/AMR fleet·공유 MCS·복수 Target fixture 재사용. 네 관점의 Task/Assignment/knownMd 및 같은 전체 Gate, 정확 Task/Assignment detail·복귀 focus, 읽기만 할 때 mutation0, 동일 Gantt instance, 390/768/1024/1440/1920px document width·표 내부 scroll/키보드 포커스.
+- 기존 #617 resolver, #620 API projection/limits·snapshot/response 예산, #621 exact editor/read-only/stale/dirty, #622 Plan·Excel, #623 golden/HTTP/E2E, #528 drill, Milestone Stage Gate 회귀를 선택 영향 범위로 보존한다. **음성 조건**: shared fleet/MCS/중복 Target 가산·가짜 WorkArea 저장·selected 범위를 full Ready로 승격·null allocation을 100%로 추정·stale/401/412 저장·표 조작 mutation 허용 불가.
+- 신규 E2E의 유한 120s만 scoped fixture 예외이고 Global E2E timeout/skip/retry 및 PR Chromium 6-shard·Quality/Docker Gate는 그대로다. 실제 query count/response 크기·SLA와 브라우저/모든 5폭 결과는 CI 측정 전 NOT TESTED.
+- GitHub API만 사용 가능한 현재 환경은 로컬 `npm ci`·typecheck·Chromium을 실제 수행하지 못했다. 정확 Head 원격 CI/Trusted QA·Owner 허가와 별개로 증거가 있을 때만 PASS 판정한다. [#624 Work Packet](exec-plans/active/ISSUE_624.md).
+
 ## Issue #598 후속 — Agent 활성 지침 계약 회귀 (2026-10-17)
 
 - `tests/scripts/agent-qa-contract.test.ts`가 네 Agent의 실제 `developer_instructions` 내부에서 OWNER_MANAGED 기본/AGENT 선택/qa_required=true 위험도와 기존 강제 리뷰 문구 부재를 검사한다. 바깥 주석만으로 PASS하지 않는다.
