@@ -11,10 +11,10 @@
 ## DOCUMENTATION_SYNC
 - `AGENTS.md`: UPDATED
 - `docs/QA_REVIEW_POLICY.md`: UPDATED
-- `docs/CI_CD.md`: UPDATED
+- `docs/CI_CD.md`: N/A(현행 QA 실행 경로만 명확화하고 CI Workflow 및 Required 체크 계약 변경 없음)
 - `docs/TEST_PLAN.md`: UPDATED
-- `docs/GITHUB_OPERATIONS.md`: UPDATED
-- `docs/REMOTE_VALIDATION.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 인증 Owner 승인 및 병합 게이트·운영 절차는 그대로 유지)
+- `docs/REMOTE_VALIDATION.md`: N/A(원격 검증·증거 수집 경로와 Required CI/Trusted QA 절차는 그대로 유지)
 - `docs/ISSUE_LIFECYCLE.md`: UPDATED
 - `docs/ISSUE_LIFECYCLE_AUTOMATION.md`: UPDATED
 - `docs/AGENT_PROMPTS.md`: UPDATED
