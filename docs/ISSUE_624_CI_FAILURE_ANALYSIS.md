@@ -283,3 +283,10 @@
 - 새 후보 동일 source의 필요 검증: Preflight(DOCUMENTATION_SYNC·AC)/ESLint/TypeScript/Unit, #624 네 관점/5폭·full Milestone Gate·canonical ID/읽기 mutation0, #621/#622/#623 공유 fixture/GET 관측+권한/ETag/저장1, #456/#552/#667 Gantt readiness, 기존 main #703 read-only GET 단위 음성/Playwright, Full PR E2E6 및 Docker. 실로컬 checkout/Node·Chromium을 실행할 수 없는 연결 환경이라 수정 통합 HEAD의 로컬 검증은 **NOT TESTED**. 불변 원본 #2900 성공과 새 Head 결과를 합산하지 않는다.
 - 리뷰 스레드 0·GitHub mergeable=true·main behind=0 검증 후 새 exact-Head Full PR CI만 시작하며 이후 CI 결과는 모니터링하지 않는다. HIGH/OWNER_MANAGED, `release_required=true`, `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
 
+## 11. #712 main 정렬과 PR #702 재검증 이관 (2026-10-18)
+
+- 원본 성공은 [#624 Full PR CI #2913.1 / Run 39038122450](https://github.com/planner77/masterGantt/actions/runs/39038122450)의 Head `cd76005b49df0034f2a85ee0451115101ee012c1` / Base `c1489ff38b29e83bfee5411e82953d61a668acf4`; 세 Required Quality/E2E6/Docker와 QA Final Automated 성공 및 [Trusted QA Run 39039613639](https://github.com/planner77/masterGantt/actions/runs/39039613639) 성공. 이 결과는 **옛 Head/Base만 검증**했으며 새로운 main을 소급 성공으로 보지 않는다.
+- 최신 main `6fea0397bc07d0c3adf2d769f9ba6829473503a2` (Issue #712 / PR #714)은 old base보다 23커밋 앞섰다. 공통 조상 `c1489ff38b29e83bfee5411e82953d61a668acf4` 기준 main 변경 15경로, #624 변경 27경로이며 양쪽 변경 충돌은 `CHANGELOG.md`와 `docs/TEST_PLAN.md` **2개 파일**. 다른 파일은 main의 #712 검증기·Workflow·Lifecycle·QA 테스트를 그대로 유지하고 PR의 물류 통합 조회·Gantt readiness·Target Fixture 회귀를 보존한다.
+- CHANGELOG에서 0.116.0 #624 Unreleased 기록을 먼저 유지하고 0.115.0 #712 운영 교정 기록을 함께 추가한다. TEST_PLAN은 #712의 Full PR CI/metadata 출처·merge 부모/Tree 판정 긍정/음성 회귀 절을 #624 기존 E2E 계획과 결합한다. 세 Required Gate/QA·Owner/Finalizer 완화0.
+- 변경 통합은 **두 부모 Git Merge Commit** (기존 #624 HEAD + 최신 main)을 사용하고 트리 전체 SHA/mode 누락을 대조한다. 최신 HEAD에서 리뷰 스레드0/behind0/mergeable을 확인한 뒤 새 PR CI 시작. 실행 환경상 로컬 `npm ci`, TypeScript/Vitest/Chromium 실제 수행은 NOT TESTED이며 기존 #2913.1/Trusted QA를 새 후보 결과로 이전하지 않는다.
+- `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=true`(#624 Issue에 이전 Owner 인증 버전 0.116.0 게시 승인 기록 있음). 신규 HEAD의 QA/Manager 병합 ACCEPT와 정식 GHCR 게시/FINAL/Issue 종료는 별개, 이번 단계에서는 PR CI 시작 후 멈춘다.

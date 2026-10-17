@@ -1,3 +1,13 @@
+## Issue #712 — Full PR CI Run/Attempt 선택과 병합 후 edited 감사 분리 (2026-10-18)
+
+**사례:** PR #561 Head `3420e54453b43681c9634565b57f13ae8f0443a9`에서 원본 Full [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)은 세 Required aggregate PASS. 병합 후 metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)은 새 품질/E2E/Docker 테스트 없이 동일 이름 세 aggregate FAIL을 기록했으며, 기존 Lifecycle의 Check Run ID 최대값 방식이 이를 최신 Full 결과로 오인했다.
+
+**선택 규칙:** `pull_request` 이벤트·정확 Head·Full marker·Workflow path·GitHub repo·가장 최신 Full `Run ID + Attempt`·원본 `ci-pr-source-<run>-<attempt>` artifact를 교차 인증한다. 모든 페이지와 attempts에서 실행된 3 Required Job의 실제 최종 상태를 선택하되 최신 Full FAIL/PENDING은 BLOCKED. Metadata-only는 Full 후보에서 제외한다. 오래된 Full PASS를 무조건 재사용하거나 Check Run ID만 비교하지 않는다.
+
+**병합 증명:** open PR이면 원본 Head/Base/Test merge 일치, merged PR이면 원본 test merge와 실제 merge의 두 부모(base/head) 및 Git Tree 동일성·정확 실제 merge SHA와 PR 귀속을 검증한다. squash/rebase·불명 출처/누락 artifact·변조 메타데이터는 fail-closed. 병합 후 edited는 근거 확인된 `POST_MERGE_METADATA_NON_AUTHORITATIVE`로 표시되며 Full test를 재실행하지 않고 자동 QA Final 중복 실격을 방지한다. 새로운 `scripts/test-issue-712.py`는 실패/누락/재실행/동일 Tree·이질 Tree negative fixture를 필수 policy Job에서 검증한다.
+
+**절대 변경하지 않는 Gate:** Full PR Quality + Chromium E2E 6 shards + Docker, 기본 브랜치 Trusted QA와 Owner HIGH 수용, exact merge Main Required 및 GHCR digest, release marker/Finalizer·cleanup. 변경은 CI 정책/QA 보호 경로라 HIGH, 정확 최신 Head 전체 PR CI 새로 실행 필요. 이슈 Work Packet은 [ISSUE_712](exec-plans/active/ISSUE_712.md); 앱 버전 변경·정식 GHCR 게시는 이 PR 범위가 아니다.
+
 ## Issue #703 — Preview-first / Release-after-CI 별도 GHCR 시험용 Publish (2026-10-17)
 
 - 전체 CI 전에 실사용 기능을 시험하기 위한 **별도 수동** workflow: .github/workflows/preview-publish.yml. Owner + trusted default main + Open Issue + 같은 저장소 Issue branch + 정확 full source SHA를 검증한다. 절차·DB 격리/롤백은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md)를 따른다.

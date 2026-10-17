@@ -131,3 +131,9 @@
 - main #703에서 `seedIssue623` 함수의 3번째 인자가 observer로 변경되므로 신규 `issue-624-logistics-unified.spec.ts`를 `seedIssue623(page, origin, observeIsolatedApi, true)`로 수정해 기존 wide=true를 보존한다. Mutation retry0, HTTP/권한 에러 Fail-closed, Milestone full Stage Gate, 390~1920px/원시 ID/readonly/dirty/스냅샷 테스트 계약은 불변.
 - 근거와 앞선 실패 전체 출처는 [Issue #624 누적 분석 §10](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 보존. 앱 0.116.0 / HIGH OWNER_MANAGED / release_required=true / release_authorized=false. 새 Head의 로컬 TypeScript/Unit/E2E/merge 성공은 새 PR CI 종료 전 NOT TESTED이며 이번 Owner 지시는 PR CI 시작까지만, Main·GHCR·Release·Issue 종료하지 않는다.
 
+## Issue #712 main 정렬·#624 최신 PR CI 재검증 (2026-10-18)
+
+- [Full PR CI #2913.1](https://github.com/planner77/masterGantt/actions/runs/39038122450) 및 [Trusted QA #555.1](https://github.com/planner77/masterGantt/actions/runs/39039613639) PASS는 이전 HEAD `cd76005b49df0034f2a85ee0451115101ee012c1`/main `c1489ff38b29e83bfee5411e82953d61a668acf4`에 한정된다.
+- main `6fea0397bc07d0c3adf2d769f9ba6829473503a2`로 정렬하면서 #712의 원본 PR Full CI/metadata 증거 검증, Main Git Tree/두 부모 확인 및 Lifecycle 판정 수정과 #624 물류 조회를 보존한다. 충돌은 `CHANGELOG.md`와 `docs/TEST_PLAN.md`; main의 0.115.0 #712 이력·검증 및 PR 0.116.0 #624 Unreleased 이력을 각각 보존한다.
+- [#624 누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md) §11에 재정렬 출처와 검증 범위를 기록. 기존 테스트 완화0·요구 UI/Resource/Target/Task·Milestone full gate 범위 불변. 새 merge HEAD의 로컬 및 CI·Trusted QA 결과는 실행 증거 확인 전 NOT TESTED.
+- Owner의 기존 [Issue #624 v0.116.0 release authorization](https://github.com/planner77/masterGantt/issues/624#issuecomment-6234004410)은 삭제하지 않는다. 그러나 HEAD/base 변경 이후 CI/QA/병합 가능 조건을 새로 충족해야 한다. 요청 범위는 새 PR CI 시작까지로, 병합/Main/GHCR/Finalizer/Issue 종료는 수행하지 않는다.

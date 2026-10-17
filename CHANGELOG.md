@@ -7,6 +7,12 @@
 - 읽기전용·stale·dirty/권한, 390~1920px 표 내부 overflow/keyboard/focus·조회 후 복귀 경로를 기존 Resource/Target 모델로 재사용한다. 신규 전용 Unit/Chromium과 [#624 Work Packet](docs/exec-plans/active/ISSUE_624.md) 동기화. 정확 Head CI 전 NOT TESTED.
 - 위험 HIGH/OWNER_MANAGED, release_required=true, release_authorized=false; PR CI만으로 정식 릴리스/병합 허가가 되지 않는다.
 
+## [0.115.0] — Issue #712 병합 후 PR 증거·Lifecycle 검증 교정 (변경안, 2026-10-18)
+
+- #552 PR #561의 Full CI #2892.1 PASS와 병합 후 metadata-only #2898.1 FAIL을 구분한다. test-merge와 실제 merge의 두 부모·동일 Git Tree로 원본 artifact를 검증하며 불명 출처·다른 부모/Tree·재실행 실패를 차단한다. Lifecycle의 Check Run ID 최신값 오류를 수정해 신뢰된 Full Run ID/Attempt/세 Required Job 및 정확 PR 귀속으로 판정한다.
+- 병합 후 edited는 비권위 감사로, 이미 검증된 Full CI를 중복 실패로 덮지 않으며 최신 진짜 Full FAIL/PENDING은 계속 BLOCKED. 작업 원장 `docs/exec-plans/active/ISSUE_712.md`, 신규 Python 원본/공격 fixture를 CI policy에 추가. Main CI/GHCR/Owner 승인/Finalizer 보호 계약 불변.
+- 제품 화면/API/DB/배포 아티팩트와 application `0.115.0` 버전 불변. #712 자체는 `release_required=false`, `release_authorized=false`; 새로운 정확 Head의 PR CI/Trusted QA/Owner 검토, 후속 Main CI 및 #552 정식 릴리스 복구는 각각 별도 절차. 새 PR CI 실제 결과는 실행 전 **NOT TESTED**.
+
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
 - #2888 PR CI의 #456 metadata/active search E2E는 U3/Core/Viewport 정상 SETTLED에도 구형 테스트가 canonical Task31개(M1 포함)를 `visibleIds`에 기대해 실패했다. #2863 Canonical84/Visible83과 같은 TEST_CONTRACT 패턴. `task-editor-form-density.spec.ts`의 #456/#570 두 소비자에 canonical31·Marker OFF WBS30 분리 및 native Core/DOM/receipt M 부재 음성 검증을 추가하고 기존 120px/변경 필터/메타데이터·권한/동일 instance는 유지. [누적 실패 분석 §9](docs/ISSUE_552_FAILURE_ANALYSIS.md)·[보조 JSON](docs/evidence/issue-552/ci-cumulative-20261017.json) 원본33Run 및 선택11Run/13실패·12파일/과거 INCOMPLETE 보존. 제품/CI/timeout/retries/skip/버전 변경 없고, 새 후보 로컬/원격 최종 PASS는 실행 전 NOT TESTED.
