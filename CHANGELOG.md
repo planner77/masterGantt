@@ -1,5 +1,7 @@
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
+- CI #2866.1의 삭제된 Milestone Lane64px 기대를 marker OFF의 실제 native Gantt bounds·marker0·무예약 공간 검사로 교체하고, 알림 E2E의 합성 Root 오류를 Milestone parent 오류와 분리한다. #2844~#2866 누적 실패 7Run/9파일을 취소 Job 내 실제 실패까지 원장화하며 Pre-PR UNKNOWN6의 직접·인접·음성 매핑/실제 regression test를 추가한다. 기존 sourceStable 차단은 완화하지 않는다. 새로운 local diagnose/전체 Chromium/Trusted QA·Owner 확인은 실행 전 NOT TESTED; 릴리스/버전/CI 실패 중단 정책은 유지한다.
+
 - PR CI #2864의 GET500 주입 전 초기화 지연을 분석하고 DCL navigation과 최초 정상 GET/실제 Gantt DOM·메뉴 준비를 분리한다. held asset·초기GET gate의 통제반례를 추가한다. 원본 실패·자연 비재현·임시 계측/통제 지연·최종 source를 구별하며 복구 단언·30초·무재시도·CI 정책은 유지한다.
 
 - PR CI #2863의 #637 canonical 전체84와 native 표시83 구분 및 Grid 가상행/고의 Y오차 복원 기대를 새 WBS 정책에 맞춘다. #551의 제거된 Task 빠른보기는 실제 고급 Task type 필터로 전환하고 전체 Milestone61/viewport marker2·무쓰기 검증을 보존한다. 관련 E2E119개 구형 표시 패턴을 정적 조사·분류했으며 제품·timeout/CI 정책/버전은 변경하지 않는다.

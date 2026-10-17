@@ -111,6 +111,32 @@ describe("Issue #699 — risk/path/real test selection", () => {
     expect(s.state).toBe("READY");
     expect(s.selected.map((x) => x.path)).toContain("tests/scripts/prepr-verifier.test.ts");
   });
+  it("maps Issue #552 shared UI, lockfile and browser helper to real direct/adjacent/negative consumers", () => {
+    const paths = [
+      "package-lock.json", "src/features/gantt/gantt-scale-toolbar.css",
+      "src/features/gantt/project-gantt.tsx",
+      "src/features/projects/project-copy-membership-confirm.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "tests/e2e/helpers/milestone-ui.ts",
+    ];
+    const selection = selectImpact({ changed: paths, tests, risk: "HIGH" });
+    expect(selection.state).toBe("READY");
+    expect(selection.unknown).toEqual([]);
+    expect(selection.missing).toEqual([]);
+    expect(selection.matched.map(item => item.path)).toEqual(expect.arrayContaining(paths));
+    expect(selection.selected.map(item => item.path)).toEqual(expect.arrayContaining([
+      "tests/scripts/prepr-verifier.test.ts",
+      "tests/features/gantt/canonical-recovery-runtime.test.ts",
+      "tests/features/gantt/milestone-visibility.test.ts",
+      "tests/e2e/project-notifications.spec.ts",
+      "tests/e2e/projection-row-alignment.spec.ts",
+      "tests/e2e/milestone-timeline-lane.spec.ts",
+      "tests/e2e/project-multi-task-copy-paste.spec.ts",
+    ]));
+    const unknown = selectImpact({ changed: ["tests/e2e/helpers/unknown-bridge.ts"], tests, risk: "HIGH" });
+    expect(unknown.state).toBe("BLOCKED");
+    expect(unknown.unknown.map(item => item.path)).toContain("tests/e2e/helpers/unknown-bridge.ts");
+  });
 });
 describe("Issue #699 — source identity/dirty protection", () => {
   it("tracks committed head, changed files and untracked content changes", () => {

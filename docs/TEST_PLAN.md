@@ -1,3 +1,11 @@
+## Issue #552 — 누적 CI 실패9건과 Marker OFF/Pre-PR 교차 회귀 (2026-10-17)
+
+- [최소 재현 원장](evidence/issue-552/ci-cumulative-20261017.json)의 CI 7회/9개 실실패 파일을 서로 다른 HEAD로 보존한다. `CANCELLED`라고 해도 #2862 shard5 날짜축·#2863 shard4 Task 버튼의 테스트-level FAIL은 소실하지 않는다. 최신 #2866 shard4 알림 테스트는 제거된 marker lane의 null `getBoundingClientRect`에서 FAIL(97PASS/1FAIL/1SKIP/63NOTRUN); 다른 취소 shard의 일부 PASS를 전체 PASS로 치환하지 않는다.
+- 알림/clipboard 통합 E2E는 운영 marker OFF에서 `.project-milestone-lane,.project-milestone-lane-guide` **0**, native Gantt owner가 widget 상단과 연속(예약 64px 없음), Frame/Grid/Chart 전후 동일 bounds 및 Gantt API instance 동일성, 실제 422 알림 보관·복사·읽음/포커스/정상 Root 생성 revision/무쓰기 부정 경계를 동시에 확인하도록 수정한다. 유효한 Root 요청 거절은 `VALIDATION_ERROR` 합성 오류로 분리하고 Milestone child 금지는 Milestone 전용 테스트가 검증한다.
+- `prepr-core`의 누락된 Lockfile/Gantt CSS·메인/Project workspace·Milestone 브라우저 Helper 6경로를 실존 Unit·Chromium 직접/인접/음성으로 엄격하게 매핑한다. 새 매핑 회귀 테스트와 미등록 헬퍼의 fail-closed 단언을 추가한다. 과거 UNKNOWN과 `sourceStable=false`의 발생 기록은 보존하며 둘을 같은 원인으로 취급하지 않는다.
+- 정상 초기화는 canonical GET200·일정 tab/DOM identity·generation settled/barrier를 확인한 뒤 동작을 검증하고, 의도적 경합은 별도 부정 테스트로 분리한다. Canonical 전체 ID, visible WBS ID, 실제 DOM row/bar 수를 서로 바꾸어 주장하지 않는다. 제거된 Task 버튼/Lane·숨은 Milestone 날짜축 자동 reveal·잘못된 pointer 좌표 기대는 되살리지 않는다.
+- 동일 새 HEAD에서 `verify:prepr --mode=diagnose`(합집합9, max-failures0, retries0) → 수정 없이 `--mode=ci-like` 전체 진단 → 필요 시 그 결과로 코드 보완 후 새 후보에서 다시 전 과정 검증한다. Local 기존 `sourceStable=false` 원인은 Next 생성 타입/tsconfig 및 screenshot 변경이므로 정확한 원인 제어가 필요하며 **fingerprint 검사 완화 금지**. 이번 연결 환경에서는 실제 실행 불가로 diagnose/ci-like/소스 안정성/Chromium·Unit은 **NOT TESTED**. 정적 감사는 실행 증거가 아니다.
+
 ## Issue #552 — CI #2864 navigation과 원본 준비 검증 (2026-10-17)
 
 [원본 #2864.1](https://github.com/planner77/masterGantt/actions/runs/38978855656), Head `f48689df9141e2f90fa729a644db52d6bbfb8016`의 recovery copy최초GET500는 goto(load)29.235초 후 일정 tab wait에서30초 예산을 소진했고500 주입에 미도달했다. shard6 2 PASS/1 FAIL/87미실행, 타5취소, Quality/Docker PASS·E2E/QA Final FAIL을 보존한다. Mock request→response26.444초와 fulfill2.479ms는 다른 관측이며 handler/실제API/서버 성능 원인으로 확대하지 않는다. 원본 DCL은 미관측이다.

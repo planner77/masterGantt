@@ -1,3 +1,10 @@
+## Issue #552 — CI #2866 원본/취소 테스트 실패 보존 및 새 후보 검증 (2026-10-17)
+
+- 원본 [PR Full CI #2866.1](https://github.com/planner77/masterGantt/actions/runs/38982330298): head `00fd170a5611f8312bb7abdda4b263254ade7b69`, base `c063101ed7b1d08803c3dac15a41e67842071187`, test-merge `a3d8a8c4704a7f655e6103f491f78598d33bfd49`(부모 두 SHA Git commit 확인). Quality·Build·Docker PASS, E2E/QA Final FAIL. shard4 알림 원인 `project-notifications.spec.ts:72` marker OFF Lane null(97PASS/1FAIL/1SKIP/63NOTRUN). shard2/3/5 CANCELLED 로그에는 별도 `✘`가 없지만 완주 아님; #2862 shard5와 #2863 shard4는 CANCELLED 중에도 `✘` 기록되므로 [누적 원장](evidence/issue-552/ci-cumulative-20261017.json)에 실패로 보존한다.
+- 이번 수정은 삭제된 Lane64px 대신 실제 marker0·native owner/widget 무예약·전후 layout/인스턴스 불변, 지원되는 Root 추가의 합성 validation422(옛 INVALID_PARENT_TASK 오용 수정)를 검증한다. 알림/토스트/수동·성공 복사/포커스/정상 성공 revision/실제 canonical API 확인을 없애지 않는다. 미발견 제품 결함을 테스트가 감추도록 API 코드를 건드리지 않는다.
+- 누적 E2E9파일 `diagnose`(workers1/retries0/max-failures0), 동일 HEAD 전체 `ci-like`, fast/직접/인접/음성, Next 생성물·스크린샷 mutation 없는 fingerprint 검사는 이전 각 Head 로컬 결과와 독립인 **새 후보 증거**가 필요하다. 현재 환경은 GitHub DNS/checkout/Node 프로젝트 의존성·Chromium이 없어 실행 결과 **NOT TESTED**. 원래 Local Pre-PR UNKNOWN6 매핑 보강은 정적으로만 확인됐고, 과거 `sourceStable=false`는 검사 완화 없이 새 독립 worktree에서 재검증해야 한다.
+- 새 GitHub CI가 시작되면 HEAD/base/test-merge/Run·Attempt, Required3, 6 shards, QA Final과 리뷰/충돌을 독립 확인한다. 실행 등록만으로 PASS나 merge 승인 아님. `mergeable_state=dirty`는 완료 전 확인사항이며 release_authorized=false; Main/GHCR/병합/Issue 종료 금지.
+
 ## Issue #552 — CI #2864 원본 navigation timeout과 후속 검증 (2026-10-17)
 
 [원본 run38978855656.1](https://github.com/planner77/masterGantt/actions/runs/38978855656)의 Head `f48689df9141e2f90fa729a644db52d6bbfb8016`/base `c063101ed7b1d08803c3dac15a41e67842071187`/test merge `087feb6d612b9e2a3fd1d138f38f98a3a7e9de42`, shard6 job `117235287068`·artifact `12080427286`를 별도 원본으로 유지한다. Quality/Docker PASS·shard6 2 PASS/1 FAIL/87미실행·다른5취소·E2E/QA Final FAIL이다. source artifact는 PR 측 비신뢰 자료이며 API/run/parents/단일귀속 교차를 Trusted QA 전체 PASS로 확대하지 않는다.

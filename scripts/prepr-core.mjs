@@ -160,6 +160,49 @@ const RULES = [
     reason: "Historical Core capture comparison: exact package metadata/lock provenance plus narrow development-tool alias",
   },
   {
+    id: "issue-552-locked-dependencies", risk: "HIGH",
+    re: /^package-lock\.json$/,
+    unitPaths: [
+      "tests/scripts/prepr-verifier.test.ts",
+      "tests/features/gantt/canonical-recovery-runtime.test.ts",
+      "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+      "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+    ],
+    browser: ["gantt-state-product-integration"],
+    reason: "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+  },
+  {
+    id: "issue-552-gantt-presentation", risk: "HIGH",
+    re: /^src\/features\/gantt\/(?:project-gantt\.tsx|gantt-scale-toolbar\.css)$/,
+    unitPaths: ["tests/features/gantt/axis-transaction.test.ts", "tests/features/gantt/milestone-visibility.test.ts"],
+    browser: [
+      "milestone-visibility", "project-notifications", "project-gantt-scale",
+      "project-gantt-fullscreen", "project-gantt-stability", "projection-row-alignment",
+      "project-context-toolbar-responsive", "viewport-coordinator",
+    ],
+    reason: "Gantt entry and layout → marker-OFF geometry, visible projection, axis, fullscreen, notification and viewport consumers",
+  },
+  {
+    id: "issue-552-project-workspace", risk: "HIGH",
+    re: /^src\/features\/projects\/(?:project-readonly-view|project-copy-membership-confirm)\.tsx$/,
+    browser: [
+      "project-notifications", "project-task-quick-view", "project-task-delete-context",
+      "project-edit-authorization", "milestone-visibility", "milestone-dashboard-state",
+      "project-multi-task-copy-paste",
+    ],
+    reason: "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths",
+  },
+  {
+    id: "issue-552-milestone-test-helper", risk: "HIGH",
+    re: /^tests\/e2e\/helpers\/milestone-ui\.ts$/,
+    browser: [
+      "milestone-management-persistence", "milestone-stage-grid", "milestone-timeline-lane",
+      "milestone-visibility", "milestone-stage-dashboard", "milestone-stage-editor",
+      "milestone-visibility-persistence",
+    ],
+    reason: "shared Milestone browser helper → persistence, native-row absence, date/timeline and Dashboard negative contracts",
+  },
+  {
     id: "prepr-tooling", risk: "HIGH",
     re: /^(?:scripts\/prepr-core\.(?:mjs|d\.mts)|scripts\/verify-prepr\.mjs|tests\/scripts\/prepr-verifier\.test\.ts|docs\/LOCAL_PREPR\.md|package\.json|\.gitignore)$/,
     unitPaths: ["tests/scripts/prepr-verifier.test.ts"],

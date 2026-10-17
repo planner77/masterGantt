@@ -1,3 +1,9 @@
+## Issue #552 — CI #2866 누적 안정화 후보 (2026-10-17)
+
+- 원본 [실패 원장](../../evidence/issue-552/ci-cumulative-20261017.json)에 CI 7Run의 실패9파일 및 CANCELLED job 속 진짜 실패2건을 구분 보존한다. 최신 #2866 shard4 알림 Lane64px 의존은 Marker OFF 테스트 계약 오류이며 수정 후보는 marker0/빈 공간0·Gantt layout·root 알림/복사/포커스/revision·무쓰기 보존을 확인한다. 누적 기존 #2844/#2859/#2861/#2862/#2863/#2864 보완은 유지한다.
+- Local Pre-PR UNKNOWN6를 실존 소비자에 매핑하고 미지정 경로 BLOCKED 음성 단언을 추가한다. 원래 `sourceStable=false`(Next 생성 타입·tsconfig·screenshot)는 임의 허용하지 않고 clean worktree에서 원인 제거 후 시작·끝 fingerprint를 재검증한다. 누적 diagnose → **동일 source** 전체 ci-like 검증, 결함 확인 시 재후보 전과정 재실행이다. 현재 로컬 환경은 checkout/node_modules/Chromium 부재로 실제 실행 **NOT TESTED**.
+- 최신 HEAD/base/test-merge는 기존 `00fd170a5611`/`c063101ed7b1`/`a3d8a8c4704a`를 기준 분석했고, 새 Head/원격 CI는 신규 Run·Attempt로 따로 확인한다. 리뷰/충돌 확인 후 새 Full PR CI 시작까지만 허가. `mergeable_state=dirty` 재판정 필요, Required/TrustedQA/Owner=NOT TESTED·MERGE_READY=BLOCKED; 병합/Main/GHCR/Issue 종료 금지.
+
 ## Issue #552 — CI #2864 초기화 단계 분석·교정 후 Full PR CI 시작 (2026-10-17)
 
 [Packet](ISSUE_552.md)의 원본 #2864.1 Head `f48689df9141e2f90fa729a644db52d6bbfb8016`은 Copy GET500 주입 전 goto/load29.235초로30초 예산을 소진했다. Mock 응답26.444초와 fulfill2.479ms를 분리하고 원본 단독2/선행3case 비재현·임시계측·통제반례·최종검증을 구별한다. DCL navigation과 최초 정상 GET200/fixture completion·실제 Gantt DOM identity/일정tab/actionmenu 준비를 spec-local helper로 분리한다. copy=1의 기존 dialog 실제ready 단언과 GET500 주입순서는 유지한다.

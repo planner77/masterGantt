@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "issue": 552,
+  "pr": 561,
+  "createdDate": "2026-10-17",
+  "purpose": "Validated per-test historical CI failure provenance for prepr diagnose union; NO PASS promotion",
+  "analysisSource": {
+    "headSha": "00fd170a5611f8312bb7abdda4b263254ade7b69",
+    "baseSha": "c063101ed7b1d08803c3dac15a41e67842071187",
+    "testMergeSha": "a3d8a8c4704a7f655e6103f491f78598d33bfd49",
+    "testMergeParents": [
+      "c063101ed7b1d08803c3dac15a41e67842071187",
+      "00fd170a5611f8312bb7abdda4b263254ade7b69"
+    ]
+  },
+  "failures": [
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38905085250",
+      "attempt": 1,
+      "headSha": "2ce8a276802a8346772a5351a943b1f3d03a55e5",
+      "file": "tests/e2e/gantt-state-product-integration.spec.ts",
+      "jobId": "116987364025",
+      "shard": 2,
+      "jobConclusion": "failure",
+      "classification": "TEST_CONTRACT",
+      "diagnosis": "SC-13 expects native Milestone WBS row in Marker OFF mode"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38966513185",
+      "attempt": 1,
+      "headSha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+      "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "jobId": "117195065949",
+      "shard": 3,
+      "jobConclusion": "failure",
+      "classification": "TRANSPORT_UNKNOWN",
+      "diagnosis": "GET ECONNRESET after confirmed PATCH200; OOM/restart not established"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38971156752",
+      "attempt": 1,
+      "headSha": "2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf",
+      "file": "tests/e2e/milestone-management-persistence.spec.ts",
+      "jobId": "117210305175",
+      "shard": 5,
+      "jobConclusion": "failure",
+      "classification": "TEST_CONTRACT",
+      "diagnosis": "M-only default WBS native grid/bar expectation obsolete"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38973584934",
+      "attempt": 1,
+      "headSha": "eb525442fa93532e9d4d06fb17ebf739c8e4c484",
+      "file": "tests/e2e/project-gantt-inline-name.spec.ts",
+      "jobId": "117218187658",
+      "shard": 3,
+      "jobConclusion": "failure",
+      "classification": "TEST_CONTRACT",
+      "diagnosis": "Pointer hit location kept across responsive resize"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38973584934",
+      "attempt": 1,
+      "headSha": "eb525442fa93532e9d4d06fb17ebf739c8e4c484",
+      "file": "tests/e2e/project-gantt-scale.spec.ts",
+      "jobId": "117218187640",
+      "shard": 5,
+      "jobConclusion": "cancelled",
+      "actualTestFailureInCancelledJob": true,
+      "classification": "STATE_SETTLEMENT_UNKNOWN",
+      "diagnosis": "Day/Week switch leaves previous receipt or axis extension unsettled; observed end unchanged"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38976543886",
+      "attempt": 1,
+      "headSha": "1abebed189642c278552a25aa270fed333bdc36f",
+      "file": "tests/e2e/projection-row-alignment.spec.ts",
+      "jobId": "117227822535",
+      "shard": 1,
+      "jobConclusion": "failure",
+      "classification": "TEST_CONTRACT",
+      "diagnosis": "Canonical 84 vs Visible 83 mismatched in default mode"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38976543886",
+      "attempt": 1,
+      "headSha": "1abebed189642c278552a25aa270fed333bdc36f",
+      "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+      "jobId": "117227822267",
+      "shard": 4,
+      "jobConclusion": "cancelled",
+      "actualTestFailureInCancelledJob": true,
+      "classification": "TEST_CONTRACT",
+      "diagnosis": "Removed Task quick-view button waited 30s; explicit Task type filter is live UI"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38978855656",
+      "attempt": 1,
+      "headSha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+      "file": "tests/e2e/derived-dialog-recovery.spec.ts",
+      "jobId": "117235287068",
+      "shard": 6,
+      "jobConclusion": "failure",
+      "classification": "INITIALIZATION_UNKNOWN",
+      "diagnosis": "Navigation consumed ~29s before initial tab; injected first GET500 not reached"
+    },
+    {
+      "pr": 561,
+      "status": "FAIL",
+      "runId": "38982330298",
+      "attempt": 1,
+      "headSha": "00fd170a5611f8312bb7abdda4b263254ade7b69",
+      "file": "tests/e2e/project-notifications.spec.ts",
+      "jobId": "117246335846",
+      "shard": 4,
+      "jobConclusion": "failure",
+      "classification": "TEST_CONTRACT",
+      "diagnosis": "Line72 dereferences removed marker lane; test also uses invalid-parent code for root creation"
+    }
+  ],
+  "diagnosticUnion": [
+    "tests/e2e/derived-dialog-recovery.spec.ts",
+    "tests/e2e/gantt-state-product-integration.spec.ts",
+    "tests/e2e/issue-623-resource-mvp.spec.ts",
+    "tests/e2e/milestone-management-persistence.spec.ts",
+    "tests/e2e/milestone-timeline-lane.spec.ts",
+    "tests/e2e/project-gantt-inline-name.spec.ts",
+    "tests/e2e/project-gantt-scale.spec.ts",
+    "tests/e2e/project-notifications.spec.ts",
+    "tests/e2e/projection-row-alignment.spec.ts"
+  ],
+  "cancelledWithRecordedRealTestFailures": [
+    {
+      "runId": "38973584934",
+      "jobId": "117218187640",
+      "file": "tests/e2e/project-gantt-scale.spec.ts",
+      "jobConclusion": "cancelled",
+      "testStatus": "FAIL"
+    },
+    {
+      "runId": "38976543886",
+      "jobId": "117227822267",
+      "file": "tests/e2e/milestone-timeline-lane.spec.ts",
+      "jobConclusion": "cancelled",
+      "testStatus": "FAIL"
+    }
+  ],
+  "latestRun": {
+    "runId": "38982330298",
+    "attempt": 1,
+    "quality": "PASS",
+    "build": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qaFinal": "FAIL",
+    "shard4": {
+      "jobId": "117246335846",
+      "passed": 97,
+      "failed": 1,
+      "skipped": 1,
+      "notRun": 63
+    },
+    "shard1": "PASS",
+    "shard6": "PASS",
+    "cancelledShards": [
+      {
+        "shard": 2,
+        "jobId": "117246335858",
+        "recordedPassedTests": 67,
+        "recordedFailedTests": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 3,
+        "jobId": "117246335937",
+        "recordedPassedTests": 89,
+        "recordedFailedTests": 0,
+        "remaining": "NOT TESTED"
+      },
+      {
+        "shard": 5,
+        "jobId": "117246335889",
+        "recordedPassedTests": 64,
+        "recordedFailedTests": 0,
+        "remaining": "NOT TESTED"
+      }
+    ]
+  },
+  "sourceOfTruth": "GitHub Actions run/job logs, work packet and preserved original evidences. Local diagnose utility validates the input schema and file presence, NOT GitHub provenance.",
+  "execution": {
+    "diagnose": {
+      "status": "NOT TESTED",
+      "reason": "Current tool workspace cannot resolve GitHub hostname or access project checkout, node_modules, and Playwright Chromium; DO NOT claim execution"
+    },
+    "ciLike": {
+      "status": "NOT TESTED",
+      "reason": "Same runner limitation; requires subsequent identical candidate with no intervening code edit"
+    },
+    "sourceStable": "NOT TESTED",
+    "unknownImpactMapping": "IMPLEMENTED_STATIC_ONLY; actual tool verification NOT TESTED",
+    "crossRegression": "NOT TESTED",
+    "releaseAuthorized": false
+  },
+  "commandExample": [
+    "npm run verify:prepr -- --mode=diagnose --base=c063101ed7b1d08803c3dac15a41e67842071187 --risk=HIGH --issue=552 --pr=561 --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json",
+    "npm run verify:prepr -- --mode=ci-like --base=c063101ed7b1d08803c3dac15a41e67842071187 --risk=HIGH --issue=552 --pr=561"
+  ],
+  "criteria": [
+    "No source edits during E2E; record sourceStart/sourceEnd fingerprint and exact HEAD/base",
+    "Diagnose is union of nine distinct files with --workers=1 --retries=0 --max-failures=0",
+    "Unmapped/missing affected tests remain BLOCKED; generated tracked files or screenshots changing source keep sourceStable=false BLOCKED",
+    "Preserve actual test failure even if Github job is cancelled; do not count cancelled/not-run as success",
+    "Local PASS if obtained is not GitHub Required3/Trusted QA/Owner acceptance",
+    "No timeout extension, skip, assertion weakening or retry to hide defects; no merge/main/GHCR/issue close until approval"
+  ]
+}
