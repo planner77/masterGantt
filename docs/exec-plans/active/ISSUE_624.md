@@ -35,9 +35,17 @@
 - 현재 GitHub 연결 작업 컨테이너에서는 `github.com`에 대한 git DNS 접속이 불가하여 저장소 clone·`npm ci`·typecheck·Chromium 로컬 실행 **NOT TESTED**. 새 PR의 정확 Head/Run·attempt Required CI 및 Trusted QA 실행 결과로 판단해야 하며 CI 시작 자체를 PASS라 주장하지 않는다.
 - 운영/오프호스트 실증, 실제 장비 설치진척·원가·현장 데이터, 실기기/스크린리더, 서버 5000 Task 실부하 SLA는 **NOT TESTED**.
 
+## PR CI 실패 누적 원장 / 차기 재검증
+
+- 별도 **증거·원인·보완·반복 실패 기록**: [Issue #624 CI Failure Analysis](../../ISSUE_624_CI_FAILURE_ANALYSIS.md). 2026-10-17 PR #702 / Run `39007521324.1` (HEAD `5b57374e24d9842db47a83a5f8ede99cb0dd2bbc`)의 QA Preflight에서 `DOCUMENTATION_SYNC`의 `docs/GITHUB_OPERATIONS.md` 영향 기록 누락 하나가 확정되었다.
+- Full PR CI 빠른 Gate가 실패하여 TypeScript/Unit/Chromium6/Docker/Build는 **실행되지 않았다**. 이후 Quality/E2E/Docker 집계 FAIL, QA Final(required quality 미성공)은 전파 결과이며 제품 테스트 실패 증거가 아니다.
+- 보완: 아래 `docs/GITHUB_OPERATIONS.md`를 명시적 `N/A(reason)`로 등록한다. `package.json`/`package-lock.json`의 `0.115.0` 버전 변경은 QA 문서 영향 합집합을 요구하나 GitHub PR/권한/CI trigger/merge/GHCR 운영 정책은 불변이다. 검증기·Required Gate나 timeout/skip/assertion을 완화하지 않는다.
+- PR 코멘트의 Codex 리뷰 usage limit는 별도의 리뷰 가용성 경고이며 CI 원인으로 취급하지 않는다. 2875.1에서는 실제 review thread 0. 새로운 exact-head CI 결과·Trusted/Owner ACCEPT는 재실행 전 NOT TESTED이며 이전 실패를 PASS로 변경하지 않는다.
+
 ## DOCUMENTATION_SYNC
 
 - `docs/exec-plans/active/ISSUE_624.md`: UPDATED(이 Work Packet)
+- `docs/ISSUE_624_CI_FAILURE_ANALYSIS.md`: UPDATED(누적 실패 원장·신규 run별 분리)
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/TARGET_RESOURCE_ROLLOUT.md`: UPDATED
 - `docs/LOGISTICS_DASHBOARD.md`: UPDATED
@@ -54,6 +62,7 @@
 - `docs/DB_SCHEMA.md`: N/A(조회 UI만 확장, migration 없음)
 - `docs/SECURITY.md`: N/A(기존 Public Read·편집 session/Origin/If-Match 불변)
 - `docs/CI_CD.md`: N/A(Required Quality/E2E6/Docker 및 Trusted/Owner gate 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(package/lock 버전 메타데이터만 변경; GitHub 운영, CI 트리거, 리뷰·병합·GHCR 승인 절차 변경 없음)
 - `docs/ISSUE_LIFECYCLE.md`: N/A(기존 Issue→PR→CI→Owner 승인 절차 그대로)
 - `docs/QA_REVIEW_POLICY.md`: N/A(Owner-managed 현재 정책을 적용, 변경 없음)
 - `docs/MILESTONE_STAGE_GATES.md`: N/A(full canonical Gate 계산과 원본 계약 불변)
