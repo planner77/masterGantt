@@ -789,24 +789,14 @@ def fake_required_checks(path: str, *, method: str = "GET", fields=None):
     return {}
 module.gh = fake_required_checks
 try:
-    checks_ok, missing = module.required_checks_ok("owner/repo", "a" * 40)
-    require(checks_ok and not missing, "latest successful duplicate required checks must pass")
-    required_check_payloads.append(
-        {
-            "id": 301,
-            "name": "Chromium end-to-end tests",
-            "status": "completed",
-            "conclusion": "failure",
-            "app": {"slug": "github-actions"},
-        }
-    )
-    checks_ok, missing = module.required_checks_ok("owner/repo", "a" * 40)
-    require(
-        not checks_ok and missing == ["Chromium end-to-end tests"],
-        "newer failed required check must override older success",
-    )
+    checks_ok, missing, explanation = module.required_checks_ok("owner/repo", "a" * 40)
+    require(not checks_ok and "FULL_CI_SOURCE_UNVERIFIED" in missing,
+            "same-name GitHub Check Runs must never pass without authentic Full Run/Attempt")
 finally:
     module.gh = saved_lifecycle_gh
+
+# #712 positive/negative GitHub API fixture and pagination live in
+# scripts/test-issue-712.py; no legacy Check Run ID selection remains.
 
 artifact_missing = dict(
     merged=True,
