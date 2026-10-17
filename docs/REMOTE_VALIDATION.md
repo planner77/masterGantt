@@ -1,3 +1,9 @@
+## Issue #624 — 통합 물류 조회 PR exact-head 검증 경계
+
+신규 Unit `tests/features/logistics/logistics-unified-model.test.ts` 및 실제 HTTP Chromium `tests/e2e/issue-624-logistics-unified.spec.ts`와 기존 #617/#620/#621/#622/#623/Stage Gate/#528의 관련 회귀를 같은 Head에서 검증한다. 390/768/1024/1440/1920, 긴 이름·scroll owner/keyboard/focus, AMR fleet·shared MCS distinct, Project 수량 vs current Task coverage, 원시 Task/Assignment ID 및 Milestone **full** Gate 불변, stale/readonly/dirty/복귀를 구분한다.
+
+Full PR CI의 Quality/E2E(6 shard)/Docker 필수 3종, default-branch Trusted QA, 정확 Head·base·Run/attempt·미해결 thread0 및 Owner 별도 HIGH 위험 수용·병합 승인은 각각 독립 Gate다. 운영 DB·실기기/스크린리더/대규모 SLA·실제 제조설비 설치완료는 이 테스트의 PASS가 아니다. 현재 원격 전체 결과는 NOT TESTED이며 이번 요청은 **CI 시작 후 모니터링 중단**한다. release_required=true, release_authorized=false. [#624 Work Packet](exec-plans/active/ISSUE_624.md).
+
 ## Issue #699 — Local Pre-PR와 원격 PR CI 증거의 분리 (2026-10-16)
 
 [LOCAL_PREPR](LOCAL_PREPR.md)의 `report.json`/`SUMMARY.md`는 Git base/head/uncommitted fingerprint와 동일 로컬 source, 실제 선택 Unit/Chromium/Build/Docker(선택 시)와 환경·선정·제외·미실행의 증거다. local Node 22/Playwright Chromium worker1/`CI_E2E_FULLY_PARALLEL=true`도 여섯 독립 Ubuntu runner, Playwright headless-shell 설치와 GitHub Actions metadata/Trusted QA, Main 이미지와 동일 환경이라는 주장은 아니다.
