@@ -305,7 +305,8 @@ def exact_main_ci(
 
 def required_checks_ok(
     repo: str, sha: str, *, pr_number: int | None = None,
-    merge_sha: str | None = None, gh_client: Any = None,
+    issue_number: int | None = None, merge_sha: str | None = None,
+    gh_client: Any = None,
 ) -> tuple[bool, list[str], str]:
     """Select the newest *full PR workflow run*, never mixed same-name check-runs.
 
@@ -351,6 +352,16 @@ def required_checks_ok(
                     f"원본 CI repository 불일치: {url} attempt={attempt}")
             source = qa.source_artifact(client, run_id, attempt)
             number, head, base, test_merge, live = qa.verified_source(client, item, source)
+            # The live PR title/body/branch must still carry ONE canonical
+            # Primary Issue after merge; edited metadata cannot reassign it.
+            primary = qa.primary_issue(live.get("title") or "", live.get("body") or "")
+            branch = (live.get("head") or {}).get("ref") or ""
+            branch_issues = set(re.findall(
+                r"(?i)(?:^|[/_-])issue-([1-9][0-9]*)(?:$|[/_-])", branch))
+            if (branch_issues != {str(primary)} or
+                    (issue_number is not None and issue_number != primary)):
+                return False, ["FULL_CI_SOURCE_UNVERIFIED"], (
+                    f"PR Primary Issue/branch trace 변경: PR={number} run={run_id}.{attempt}")
             if (number != pr_number or head != sha or
                     ((live.get("merged") is True) != bool(merge_sha)) or
                     (merge_sha and live.get("merge_commit_sha") != merge_sha)):
@@ -446,7 +457,8 @@ def resolve_context(args: argparse.Namespace) -> Context:
         version_ok = args.expected_version.strip() == version
 
     checks_ok, missing_checks, full_ci_evidence = required_checks_ok(
-        repo, head_sha, pr_number=pr_number, merge_sha=merge_sha)
+        repo, head_sha, pr_number=pr_number,
+        issue_number=issue_number, merge_sha=merge_sha)
     main_ci_ok = False
     main_ci_url: str | None = None
     main_docs_only = False
