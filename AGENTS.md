@@ -1,3 +1,10 @@
+## Issue #712 — post-merge Full CI 출처와 Lifecycle Check Run 보호 (2026-10-18)
+
+- 동일 PR Head에 Full PR CI와 병합 후 `edited` metadata-only CI가 세 Required Check Run의 **동일 이름**으로 기록될 수 있다. 마지막 Check Run ID가 아니라 인증된 Full `Run ID + Attempt + event=pull_request + source artifact + PR/head/base/test-merge/repository`를 선택한다. 실제 최신 Full 실패·진행 중은 이전 PASS로 덮지 않는다.
+- 병합 전에는 open PR의 exact Head/Base/Test-Merge, 병합 후에는 두 부모(base/head)·동일 Git Tree를 갖는 immutable test merge와 실제 two-parent merge 및 PR 귀속을 교차 검증한다. squash/rebase·위조/누락·서로 다른 Tree는 fail-closed. metadata-only 결과는 Full 통과를 소급 개정하지 않는 비권위 audit이며, 새로운 Full CI를 실행한 것으로 인정하지 않는다.
+- Lifecycle은 `FULL_CI_SOURCE_UNVERIFIED`/`FULL_REQUIRED_FAILURE`/`MAIN_REQUIRED_FAILURE`/`ARTIFACT_FAILURE`/`RELEASE_AUTH_MISSING` 등 구체적인 실패 이유를 보여 주되 Main CI, GHCR artifact, Owner exact-version 승인, Trusted QA, 독립 고위험 검토, 정식 Finalizer 게이트를 우회하지 않는다.
+- [Issue #712 Work Packet](docs/exec-plans/active/ISSUE_712.md) 및 [Issue Lifecycle](docs/ISSUE_LIFECYCLE.md)와 [CI/CD](docs/CI_CD.md) 참조. 보호 CI/QA 변경은 HIGH/OWNER_MANAGED, exact-head 전체 PR CI 필수; 이 이슈의 정식 릴리스는 `release_required=false`, `release_authorized=false`이다.
+
 ## Issue #703 — 로컬 검증 후 GHCR Preview 수동 조기 게시 (2026-10-17)
 
 - 정식 PR/QA/Main/Release를 기다리기 전 **운영과 격리된 시험용** 이미지만 별도 GHCR 패키지에 게시할 수 있도록 Owner 전용 수동 워크플로를 둔다. [Preview 운영 가이드](docs/PREVIEW_PUBLISH.md)와 [작업 원장](docs/exec-plans/active/ISSUE_703.md)을 따른다.
