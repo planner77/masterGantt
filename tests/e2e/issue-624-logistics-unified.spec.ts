@@ -100,11 +100,39 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
   const region = root.getByRole("region", { name: "Resource Target 계층", exact: true });
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
-    const observation = await region.evaluate(element => ({
-      documentWidth: document.documentElement.scrollWidth,
-      ownScroll: element.scrollWidth > element.clientWidth,
-    }));
-    expect(observation.documentWidth).toBeLessThanOrEqual(width + 1);
+    const observation = await region.evaluate(element => {
+      const root = element.closest('[data-testid="logistics-unified-view"]');
+      const documentWidth = document.documentElement.scrollWidth;
+      const overflowingNodes: { tag: string; className: string; right: number; width: number }[] = [];
+      if (documentWidth > window.innerWidth + 1) {
+        for (const node of document.querySelectorAll("body *")) {
+          const bounds = node.getBoundingClientRect();
+          if (bounds.width <= 0 || bounds.right <= window.innerWidth + 1) continue;
+          overflowingNodes.push({
+            tag: node.tagName,
+            className: String(node.className).slice(0, 110),
+            right: Math.round(bounds.right),
+            width: Math.round(bounds.width),
+          });
+          if (overflowingNodes.length >= 16) break;
+        }
+      }
+      return {
+        documentWidth,
+        ownScroll: element.scrollWidth > element.clientWidth,
+        rootWidth: root ? Math.round(root.getBoundingClientRect().width) : null,
+        regionClientWidth: element.clientWidth,
+        regionScrollWidth: element.scrollWidth,
+        overflowingNodes,
+      };
+    });
+    if (observation.documentWidth > width + 1) {
+      await info.attach(`issue624-overflow-${width}`, {
+        contentType: "application/json",
+        body: JSON.stringify({ viewport: width, ...observation }, null, 2),
+      });
+    }
+    expect(observation.documentWidth, `Viewport ${width}px document overflow: ${JSON.stringify(observation)}`).toBeLessThanOrEqual(width + 1);
     if (width === 390) expect(observation.ownScroll).toBe(true);
     await region.focus();
     await expect(region).toBeFocused();

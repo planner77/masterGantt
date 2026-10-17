@@ -1,6 +1,6 @@
 # Issue #624 — PR CI 누적 실패 원장 (PR #702)
 
-> **유지 규칙:** 이 문서는 CI 실패 때마다 새 Run/Attempt/HEAD/Base/Test-Merge 증거를 독립 행으로 **추가**한다. 새 실패만 고치고 과거 원인을 지우지 않으며, 취소/Skip/미실행 Job을 제품 PASS로 승격하지 않는다. 원인 정리·대응은 `AGENTS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/REMOTE_VALIDATION.md` 및 [Work Packet](exec-plans/active/ISSUE_624.md)의 원본 계약을 따른다.
+> **유지 규칙:** 이 문서는 CI 실패 때마다 새 Run/Attempt/HEAD/Base/Test-Merge 증거를 독립 행으로 **추가**한다. 새 실패만 고치고 과거 원인을 지우지 않으며, 취소/Skip/미실행 Job을 제품 PASS로 승격하지 않는다. 원인 정리·대응은 `AGENTS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/REMOTE_VALIDATION.md`, [전체 이력 기반 REWORK](PR_CI_FAILURE_TRIAGE.md) 및 [Work Packet](exec-plans/active/ISSUE_624.md)의 원본 계약을 따른다.
 
 ## 1. 고정 기준선과 원본 증거
 
@@ -79,6 +79,48 @@
 
 **차기 CI 전 평가:** 앞선 두 Root 문서 오류가 #2877.1에서 실제 PASS함을 보존한다. 새 HEAD lint 결과·새 helper Unit/E2E/Build/Docker는 원격 CI 실행 전 NOT TESTED다. 불필요한 14개 경고 일괄 수정, test skip·timeout 증가·assertion 완화·CI 정책 수정은 하지 않는다. 이후 제품 실패가 나타나면 F-624-019부터 원인 합집합에 추가한다.
 
+## 2.3. PR CI #2879.1 — 실제 390px document overflow / Chromium 2·6 (2026-10-17)
+
+| 원본 출처 | 확인 값 |
+| --- | --- |
+| Issue/PR/Workflow | Primary #624 / [PR #702](https://github.com/planner77/masterGantt/pull/702) / CI Full pull_request synchronize |
+| Run/Attempt | [#2879.1 / 39009419792](https://github.com/planner77/masterGantt/actions/runs/39009419792), 2026-10-17T06:18:28Z~06:27:12Z, conclusion=failure |
+| Head / Base / Test-merge | `b3eef1c21f0832f6af92571a8ed7c79080d8e6ae` / `de863713142a92f1cac56dbae044923822bca932` / `8b5d0b91276cdb0579f5df48a92c39d08558d3dc` (Shard 2 checkout 로그) |
+| 최초 실제 실패 | [PR E2E Shard 2/6, Job 117328864733](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864733), `tests/e2e/issue-624-logistics-unified.spec.ts:107:39`, `#624 same canonical Project across four logistics perspectives ... five widths` |
+| 메시지 / 환경 | Viewport **390px**, `document.documentElement.scrollWidth` **704px**, 기대 `<=391px`; 신규 fixture는 네 perspective/원시 Task·Assignment·Milestone full Gate 비교를 선행하고 화면폭 검사 진입 후 오류 |
+| 로그/Trace | [Shard 2 Playwright report artifact #12092701155](https://github.com/planner77/masterGantt/actions/runs/39009419792/artifacts/12092701155)의 `error-context.md`, `trace.zip`. 실제 Trace/실패 화면에서 통합 조회의 가로 넘침을 확인; raw trace·원본 이미지는 Git 미등록 |
+| Shard 2 실행 범위 | `33 passed`, `1 failed`, `85 did not run`; `--max-failures=1`로 조기 종료. 해당 Run 전체 E2E/6 Shard PASS와 혼동 금지 |
+| 다른 Shard | Shard **1,3,4,5,6 = CANCELLED**. 각각의 로그에서 취소 이전에 여러 테스트 PASS가 관측되었으나 중단 시 실제 추가 FAIL은 확인되지 않음. 취소를 PASS·정상 종료로 처리하지 않음 |
+| 통과한 필수 검사 | QA Preflight [117328558497](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328558497), Policy [117328591075](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328591075), TS [117328591130](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328591130), ESLint [117328591062](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328591062), Vitest [117328591152](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328591152), Fast Gate [117328830255](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328830255), Next Build [117328864605](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864605), Docker Smoke [117328864557](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864557), Required Quality [117329218440](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117329218440) / Docker [117329268096](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117329268096) **SUCCESS** |
+| Required/Final | [Chromium aggregate Job 117330159540](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117330159540) **FAILURE** (Shard 실패/취소 전파); [QA Final 117330178007](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117330178007) **FAILURE** (`required e2e 미성공`) |
+| Main 정렬 | 실패 Run 당시 Base `de8637...`였으나 진단 시 최신 main `78ec8d2ced62f543f73a8477c3e62fca8274274b`까지 **10 commits behind**. 최신 main의 #704 공통 누적 실패 운영지침을 병합해 실제 새 Head에서 검증해야 함 |
+
+### F-624-019~021 / 취소 Job 별도 보존
+
+| ID | 분류 / 직접·파생 | 원본 및 보완 |
+| --- | --- | --- |
+| **F-624-019** | **PRODUCT UI responsive — 실제 신규 E2E 실패** | 390px viewport에서 document scrollWidth704 (expected<=391), `issue-624-logistics-unified.spec.ts:107`. 기존 `project-logistics-unified.module.css`의 `.root { display:grid; ... }`가 암묵적 auto 열을 사용하여 폭 넓은 내부 Target/Milestone table의 min-content 영향을 부모 Grid track으로 전파할 수 있음. headless Chromium 별도 정적 재현에서 같은 구조의 390px documentWidth712→`grid-template-columns:minmax(0,1fr);width:100%` 변경 시390, 내부 scroll client388/scroll710 유지. **실제 제품의 정확한 704px 기여 요소는 추가 DOM 측정 없으므로 원인 연결은 검증 대기**; strict 기존 assertion 그대로 유지 |
+| **F-624-020** | CI 전파 | Required Chromium aggregate 실패. 한 Shard FAIL/다른 5개 CANCELLED 때문에 자동 fail-closed; 다른 소비자 테스트는 본 Run에서 전수 검증 불가 |
+| **F-624-021** | CI 전파 | QA Final `required e2e 미성공`. QA 자체 결함·승인/권한 문제로 재분류하지 않음 |
+| **C-624-001** | **CANCELLED (독립 증거)** | PR shard 1 [117328864653](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864653), 3 [117328864629](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864629), 4 [117328864778](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864778), 5 [117328864673](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864673), 6 [117328864644](https://github.com/planner77/masterGantt/actions/runs/39009419792/job/117328864644). 원본 취소 로그는 중간 PASS와 cancellation을 구별; 해당 Shard를 PASS로 승격하지 않음 |
+
+**실제 수정 후보:** `src/features/logistics/project-logistics-unified.module.css`의 Grid에 **명시적 0 최소 너비 단일 열**을 부여하여 내부 688/710px table이 문서 자체가 아닌 기존 `ResourceTargetViews` / Milestone `.scroll` 안에서만 스크롤되게 한다. 신규 E2E는 원래 `<=viewport+1` 단언 및 390px **내부 scroll 소유**·five widths·canonical ID/full Gate·조회 mutation0·same Gantt/복귀를 **그대로 보존**한다. 재발 시 빠르게 진단할 수 있도록 실패한 width에만 실제 `documentWidth`, root/region width, overflow element top16을 JSON attachment로 기록한다. 테스트 기대값·timeout·skip·CI fail-fast는 변경하지 않는다.
+
+**합성 독립 재현(실제 masterGantt browser PASS 아님):** Python Playwright + /usr/bin/chromium에서 동일 원칙의 grid/긴 Target selector/688px Target 표/710px Milestone 표 CSS를 만들어 테스트. 암묵적 auto track: 390→document712, 내부 region710/710(overflow 소유 상실). 위 grid track 수정: 390→document390, 내부 region388/710(내부 scroll 확인), 768→768, 1024→1024, 1440→1440, 1920→1920. 제품의 실제 API/React/기본 테마를 실행한 것이 아니므로 원격 새 Head 결과는 **NOT TESTED**다.
+
+## 2.4. 전체 이력 Cross-run 매트릭스 (#704 공통 지침 수용)
+
+| 원본 실제 실패·Run/Attempt | 당시 소스/증상 | 기존 보완 및 그 이후 원격 증거 | 직접·간접/음성 영향 및 신규 후보 | 같은 최신 Head 남은 검증 |
+| --- | --- | --- | --- | --- |
+| F-624-001 / #2875.1 | `ISSUE_624.md` docs/GITHUB_OPERATIONS 영향 누락 | `cc760433...`로 N/A 추가, **#2877.1·#2879.1 QA Preflight PASS** | 기존 docs parser/AC/원격 승인/버전 정책 | 최신 main의 #704 docs + 동일 HEAD Preflight / QA |
+| F-624-007 / #2876.1 | Work Packet `- **AC#**:`를 parser가 인식 못함 | `9e7cde92...`로 `- AC#:` + UPDATED 문법 보완, **#2877.1·#2879.1 QA Preflight PASS** | 문서 영향 목록·AC1~7·read-only Trusted | 새 HEAD QA/doc gate |
+| F-624-013 / #2877.1 | `project-logistics-unified.tsx:76` React Hook synchronous effect setState | `b3eef1c2...`로 exact query/snapshot derived detail+이벤트 무효화, **#2879.1 ESLint·Vitest·Typecheck PASS** | selection·stale·focus·exact Task/Assignment, `logistics-unified-model.test.ts` | 새로운 HEAD lint/unit/E2E 상태·복귀 |
+| **F-624-019 / #2879.1** | **신규 E2E 390px viewport document704 > 391** | 제품에 CSS grid minmax0 보완 후보+strict overflow diagnostics. 별도 synthetic browser에서 390 doc712→390, 내부 scroll 보존 | `issue-624-logistics-unified.spec.ts`, `ResourceTargetViews`, Milestone table, 기존 #623/621 five widths 및 #528 drill, 긴 Target/0 mutation | 실제 동일 candidate의 390/768/1024/1440/1920 Chromium / 재실패 시 DOM offender trace 필수 |
+
+**누적 실제 실패 파일 합집합:** `docs/exec-plans/active/ISSUE_624.md`(문서 계약 2개), `src/features/logistics/project-logistics-unified.tsx`(ESLint), `tests/e2e/issue-624-logistics-unified.spec.ts`(브라우저). 직접 회귀 `tests/features/logistics/logistics-unified-model.test.ts`, 인접/음성 #623 Resource MVP, #621/620 Target projection/HTTP, #528 exact editor/return, Milestone full Gate, #697 Gantt 영향 소비자. 일부 과거 테스트는 다른 source의 결과이므로 새 candidate의 PASS 증거로 재사용하지 않는다.
+
+**동일 소스 검증 원칙:** doc Parser/정적 분석·CSS synthetic Chromium은 사전 근거이고 실제 새 Head TypeScript·Vitest·ESLint·Playwright·Build·Docker/Trusted는 **GitHub 새 Run에서만 판정**. 새로운 후보에서 반복 실패 시 마지막 실패 하나만 수정하지 않고 F-624-001/007/013/019 전체 원인·관련 소비자 및 C-624-001 취소 Shard의 누적 이력을 다시 확인한다. `docs/PR_CI_FAILURE_TRIAGE.md`의 A→G 순서를 따른다.
+
 ## 3. 왜 발생했고 무엇을 고쳤는가
 
 1. `package.json`·`package-lock.json`의 app `0.115.0` 변경은 QA 정책상 protected/runtime execution path를 포함한다. 기본 브랜치의 `docs_required`는 QA 문서 `AGENTS.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`, **`docs/GITHUB_OPERATIONS.md`**, `docs/REMOTE_VALIDATION.md` 영향 기록의 합집합을 요구한다.
@@ -99,10 +141,16 @@
 
 | Run/attempt | HEAD/Base/Test-Merge | 실패한 실제 Job/Shard·테스트 | 새 유형/원인 | 제품/fixture/문서 수정 커밋 | 로컬 누적 합집합/전수 검증 | 원격 Gate | 남은 위험 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| (새 run마다 추가) | SHA40/40/40 | 정확한 링크·로그·Assertion | F-624-019… / 전파 vs root | Git commit | PASS/FAIL/BLOCKED/NOT TESTED | NOT TESTED→실제 상태 | 승인 전 BLOCKED |
+| (새 run마다 추가) | SHA40/40/40 | 정확한 링크·로그·Assertion | F-624-022… / 전파 vs root | Git commit | PASS/FAIL/BLOCKED/NOT TESTED | NOT TESTED→실제 상태 | 승인 전 BLOCKED |
 
 ## 5. 현재 완료/미완료 구분
 
 - 확정: #2875.1의 문서 영향 경로 누락(F-624-001) → #2876.1의 AC1~7 Markdown 계약 불일치(F-624-007) → #2877.1의 실제 React Hook ESLint 오류(F-624-013)는 서로 다른 근인이다. 세 Run의 정확 Head/Base/Test-Merge와 실패/미실행/실제 통과 Job은 위 표대로 보존하며, 각 파생 Required aggregate·QA Final을 독립 제품 결함으로 중복 계산하지 않는다.
 - 조건부: 새 Head의 React Hook 코드·helper Unit 및 Work Packet 문서 영향/AC 구조를 검토한다. #2877.1의 QA/Unit/Typecheck PASS를 새 HEAD로 승격하지 않으며 신규 CI3/Trusted 성공 전 QA/제품 검증은 NOT TESTED다.
 - 미완료: 새 Full PR CI3종/Trusted QA 결과, 운영 성능·실기기·스크린리더, Owner HIGH 위험 수용 및 명시 병합 승인, Main GHCR/Finalizer/Issue 종료.
+
+## 6. CI #2879.1 이후 인계 현황 (정정/추가 원장; 과거 판정 불변)
+
+- PR HEAD와 최신 main 정렬: 현재 Run #2879.1 Source는 `b3eef1c21...` (base `de863...`), 진단 시 main `78ec8d2...`로 ahead10. 새 후보의 merge parent/base/mergeability 및 정확 신규 Run ID를 새 CI 시작 직전에 기록하고, 갱신 시 이전 이력을 삭제하지 않는다.
+- 수정 예정 파일: `src/features/logistics/project-logistics-unified.module.css`, `tests/e2e/issue-624-logistics-unified.spec.ts`, Work Packet·본 원장·PROJECT_UX/TEST_PLAN/REMOTE_VALIDATION/active PLAN·Target Resource rollout/CHANGELOG. 최신 main #704 소스 지침 보존.
+- scope: HIGH/OWNER_MANAGED, release_required=true, release_authorized=false. Owner HIGH 위험 수용/명시 병합 승인·Trusted QA·Main/GHCR/Release/Issue 종료는 별도이며, 원격 새 Head CI 종료/성공은 **NOT TESTED**.

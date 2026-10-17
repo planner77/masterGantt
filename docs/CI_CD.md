@@ -511,6 +511,10 @@ Workflow 파일만으로 다음 GitHub 설정을 강제할 수 없으므로 Repo
 
 원격 확인에서 아직 `mastergantt` container package는 존재하지 않았다. Private repository의 ruleset API는 현재 plan에서 403을 반환했다. GitHub 공식 정책상 private branch/tag ruleset은 Pro/Team/Enterprise에서, private Artifact Attestation은 Enterprise Cloud에서 지원된다. D05에서 사용자는 현재 private 요금제를 유지하고 ruleset 미강제 위험을 명시적으로 수용했다. 이는 보호가 적용됐다는 뜻이 아니며 지정 maintainer와 문서화된 절차를 운영 통제로 유지한다. GitHub Attestation은 비활성으로 두고 `ENABLE_GITHUB_ATTESTATIONS`를 설정하지 않으며 BuildKit SBOM/provenance는 항상 유지한다.
 
+## PR CI 실패 이력 누적·재실패 보완 지침 (#704)
+
+PR CI 실패 후에는 `AGENTS.md`와 [Issue별 누적 실패 분석 원장](PR_CI_FAILURE_TRIAGE.md)에 따라 **Issue당 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md` 한 파일**에 이전 모든 관련 PR/Run/Attempt/Job·Shard 실패, 취소·미실행과 원인/보완·최종 동일 source 검증을 누적한다. infra는 전체 원격 Run/Job/Artifact 이력을 확보하고 Manager·구현 Agent는 직전 실패만이 아닌 **누적 파일 합집합·변경 영향 교차 회귀**를 분석한 뒤 다음 CI를 요청한다. CI 자체의 Full PR 6-shard fail-fast/Required aggregates 및 Main·GHCR·Release 정책은 변경하지 않는다.
+
 ## 7. 검증 증거와 상태
 
 로컬에서는 workflow script, version validator, Dockerfile/Compose, image build/runtime/persistence를 검증할 수 있다. Admin 인증 성공은 workflow/artifact PASS가 아니다. Commit image와 SemVer release의 최종 PASS에는 각각 다음 원격 증거가 필요하다.

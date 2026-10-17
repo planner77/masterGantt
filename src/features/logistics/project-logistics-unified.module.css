@@ -1,4 +1,5 @@
-.root { display: grid; gap: 12px; min-width: 0; max-width: 100%; font-size: 14px; color: var(--text-default); }
+/* Keep auto-sized Resource/Milestone tables inside their scroll owner; do not let an implicit auto grid track expand the whole document at 390px. */
+.root { display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; gap: 12px; min-width: 0; max-width: 100%; font-size: 14px; color: var(--text-default); }
 .toolbar { display: flex; gap: 8px 16px; flex-wrap: wrap; align-items: end; min-width: 0; }
 .toolbar label { display: grid; gap: 4px; min-width: 0; }
 .toolbar select, .toolbar input { min-height: 36px; max-width: 100%; }

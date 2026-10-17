@@ -1,3 +1,11 @@
+## Issue #624 / PR #702 — #2879.1 full CI E2E failure 인계 (2026-10-17)
+
+#2875.1 문서 영향 경로·#2876.1 AC parser·#2877.1 React Hook lint은 [#2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)에서 해당 fast checks PASS로 교정이 확인됐다. 새 원본 실패는 E2E shard2의 `tests/e2e/issue-624-logistics-unified.spec.ts:107`: 390px viewport에서 document scrollWidth704px(expected≤391). Shard 2 33 PASS/1 FAIL/85 NOT RUN, Shard 1/3/4/5/6 CANCELLED이며 기존 부분 PASS를 6/6 성공으로 과대 표시하지 않는다. Next build/Docker와 Required Quality/Docker PASS, Required Chromium/QA Final FAIL(파생).
+
+제품 Unified `.root` Grid의 implicit auto track 최소 내용 너비 전파를 `minmax(0,1fr)`·width100%로 제한하며 표 최소 폭과 기존 내부 scroll 및 strict 5폭 체크는 보존한다. 실패 시 root/scroll/overflow candidates를 별도 JSON artifact에 남기고 동일 candidate에서 #624 실제 브라우저·#623/#621 Resource/Target/Stage 및 #528 drill 복귀를 교차 검증한다. synthetic CSS-only Chromium 재현은 실제 앱 PASS가 아니다. 원본 전체 이력·대응·Run/Attempt은 [Issue #624 단일 실패 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)과 [#704 REWORK 지침](PR_CI_FAILURE_TRIAGE.md) 참조.
+
+이후 PR Head·최신 main을 정렬하고 review thread0/mergeable을 확인한 뒤 Full PR CI를 시작한다. 새 Head의 Required3/Trusted QA/Owner HIGH 위험 수용·병합/Main GHCR는 **NOT TESTED**이며 별도 승인 전 수행하지 않는다. CI 시작 이후 결과 모니터링은 사용자의 지시에 따라 하지 않는다.
+
 ## Issue #624 — 통합 물류 조회 PR exact-head 검증 경계
 
 신규 Unit `tests/features/logistics/logistics-unified-model.test.ts` 및 실제 HTTP Chromium `tests/e2e/issue-624-logistics-unified.spec.ts`와 기존 #617/#620/#621/#622/#623/Stage Gate/#528의 관련 회귀를 같은 Head에서 검증한다. 390/768/1024/1440/1920, 긴 이름·scroll owner/keyboard/focus, AMR fleet·shared MCS distinct, Project 수량 vs current Task coverage, 원시 Task/Assignment ID 및 Milestone **full** Gate 불변, stale/readonly/dirty/복귀를 구분한다.
@@ -455,6 +463,7 @@ PR과 동일한 `quality`/`e2e`/`docker` gate를 다시 수행한다. 별도 `cl
 
 - `frontend`, `backend`, `scheduler`, `excel_vba`: 구현 중 관련 로컬 fast feedback을 수행하고 원격 branch/PR 검증 대상으로 변경을 전달한다.
 - `infra`: GitHub Actions run, workflow, runner, permission, cache, Docker/GHCR 문제를 담당한다. CI 실패 시 run/job/step 근거를 확보한다.
+- **PR CI 누적 실패 원격 이력:** infra와 Manager는 첫 실패부터 [Issue별 누적 원장](PR_CI_FAILURE_TRIAGE.md)을 유지하며 모든 관련 PR/Run/Attempt·Job/Shard의 실제 FAIL과 `CANCELLED/SKIPPED/NOT RUN`을 구분한다. 이전 source의 PASS는 해당 source에만 귀속하고, 재실패 시 전체 원장 및 원격 이력과 교차 대조한 후 제한적 확대 진단·재검증으로 인계한다. 원격 로그가 일부 누락되면 `UNKNOWN/BLOCKED`를 명시한다.
 - `qa_docs`: 위험도 정책에서 독립 검토가 필수인 경우 구현자와 분리해 로컬/원격 증거를 검토한다. 도구가 없으면 승인된 별도 인간 Reviewer를 배정한다. 독립 QA 미선택은 조건부 N/A, 필수 Reviewer 부재는 BLOCKED, 원격 CI 미실행은 NOT TESTED로 구분한다.
 - `Manager`: PR 원격 gate, 위험도별 QA_FINAL(필수 PASS 또는 N/A 근거), DOCUMENTATION_SYNC 및 필요한 환경 검증을 Head와 함께 확인한 뒤 ACCEPT/REWORK/REJECT/DEFER를 결정한다.
 

@@ -1,5 +1,6 @@
 ## [0.115.0] — Unreleased / Issue #624
 
+- CI #2879.1에서 발견한 390px 통합 조회 Grid min-content document overflow(704px)를 앱 소유 Grid의 `minmax(0,1fr)`로 제한하고, 의도된 표 내부 scroll 및 기존 엄격한 E2E 단언을 유지한다. 후속 원격 성공은 새 Head CI 전 NOT TESTED이며 #704 전체 이력 실패 원장을 함께 보존한다.
 - 공정·선택적 WorkArea·Target, 설비 종류→인스턴스, 시스템 종류→인스턴스, Target→Resource를 동일 Resource Target 보고서와 정확 Task/Assignment 상세로 교차 조회하는 물류 「통합 조회」 탭을 추가한다.
 - 등록된 고유 설비 수량과 선택된 T0 Task 대상 coverage, 기간가중 Task 진척, M/D·M/M·Milestone 전체 Stage Gate를 구분한다. 공유 AMR fleet/MCS·중복 Target의 표시 소계를 원본 합계로 더하지 않으며 조회로 DB/WBS를 수정하지 않는다.
 - 읽기전용·stale·dirty/권한, 390~1920px 표 내부 overflow/keyboard/focus·조회 후 복귀 경로를 기존 Resource/Target 모델로 재사용한다. 신규 전용 Unit/Chromium과 [#624 Work Packet](docs/exec-plans/active/ISSUE_624.md) 동기화. 정확 Head CI 전 NOT TESTED.

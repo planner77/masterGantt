@@ -3,7 +3,7 @@
 ## 기준·구현 목표
 
 - 상위 [#613](https://github.com/planner77/masterGantt/issues/613), 선행 [#623](https://github.com/planner77/masterGantt/issues/623)(CLOSED). Baseline main `de863713142a92f1cac56dbae044923822bca932`; 작업 branch `feat/issue-624-logistics-unified-views`.
-- 기준: `AGENTS.md`, `DESIGN.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/UI_UX_GUIDELINES.md`, [물류 Target](../../LOGISTICS_TARGETS.md), [Resource KPI](../../RESOURCE_KPI_DASHBOARD.md), [Q1 수용](ISSUE_623.md).
+- 기준: [PR CI 전체 이력 REWORK](../../PR_CI_FAILURE_TRIAGE.md), `AGENTS.md`, `DESIGN.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/UI_UX_GUIDELINES.md`, [물류 Target](../../LOGISTICS_TARGETS.md), [Resource KPI](../../RESOURCE_KPI_DASHBOARD.md), [Q1 수용](ISSUE_623.md).
 - 기존 Resource Target projection #619/#620, Target↔WBS #617/#618, #621 canonical Task/Assignment/Target 편집·복귀, Milestone full Stage Gate를 재사용한다. 새로운 Task 원본·저장용 hierarchy/DB·계산 엔진·Gantt viewport writer·SVAR PRO는 만들지 않는다.
 - app `0.115.0` MINOR 후보 (설치 SVAR Core `2.7.3`), `release_required=true`, `release_authorized=false`. 정식 GHCR/tag/Release는 이번 단계 밖이다.
 
@@ -37,6 +37,12 @@
 
 ## PR CI 실패 누적 원장 / 차기 재검증
 
+- **4차 PR CI #2879.1 실제 실패:** [Run 39009419792.1](https://github.com/planner77/masterGantt/actions/runs/39009419792), HEAD `b3eef1c21f0832f6af92571a8ed7c79080d8e6ae`, base `de863713142a92f1cac56dbae044923822bca932`, test-merge `8b5d0b91276cdb0579f5df48a92c39d08558d3dc`. QA Preflight/Policy/Typecheck/Lint/Vitest/Next build/Docker 및 Required Quality/Docker는 성공. Chromium shard 2/6에서 새 `issue-624-logistics-unified.spec.ts:107`의 390px document 폭704px(expected≤391) 실제 실패, Shard 2는 33PASS/1FAIL/85 미실행, Shard 1/3/4/5/6은 fail-fast CANCELLED(취소 로그의 중간 PASS는 보존). Required E2E/QA Final은 파생 실패.
+- **원인별 보완/진단:** 신규 물류 Unified root Grid의 implicit auto track이 내부 넓은 Target/Milestone 테이블의 최소 너비를 문서로 전파할 가능성이 높다. `project-logistics-unified.module.css`의 `.root`를 `grid-template-columns:minmax(0,1fr);width:100%`로 명시. 정적 합성 Chromium에서는 390px document712→390, scroll owner388/710 유지; **실제 앱 전체 CSS geometry와 DOM 기여도는 후속 exact Head CI에서 검증**. 기존 `<=width+1`, 390px 내부 scroll·기타 다섯 폭/identity/full Gate/조회0 검증을 완화하지 않는다. 실패 재발 시 overflow 후보 DOM JSON/root·scroll width를 첨부하도록 E2E 관측 강화.
+- **최신 main 정렬:** 진단 시 `main=78ec8d2ced62f543f73a8477c3e62fca8274274b` (원본 base 대비10커밋), 새 [#704 PR 실패 triage 지침](../../PR_CI_FAILURE_TRIAGE.md) 포함. 기존 PR의 제품/문서 변경을 보존하고 main의 AGENTS·CI_CD·LIFECYCLE·REMOTE_VALIDATION·TEST_PLAN·새 triage 문서를 결합한 **실제 Merge Commit**을 만든 뒤 충돌·리뷰0 확인하고 exact new Head CI를 시작한다.
+- **전체 이력 재검토:** #2875.1 DOC_SYNC 경로, #2876.1 AC parser, #2877.1 React Hook ESLint은 #2879.1에서 각각 Preflight/Typecheck/Lint/Vitest PASS로 후속 교정이 확인됐고, 이번 신규 E2E overflow는 독립 Root(F-624-019)이다. 최초~현재 F-624-001~021/C-624-001 및 Cross-run matrix는 [단일 누적 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 보존한다.
+
+
 - **3차 PR CI #2877.1 실패 원인 및 보완:** [Run 39008625870.1](https://github.com/planner77/masterGantt/actions/runs/39008625870) (HEAD `9e7cde9223733e2863ce015ad6e37e3d64388e6b`, base `de863713142a92f1cac56dbae044923822bca932`, test-merge `fd21a5d5e32e27da307b543f4b72171edf358ffd`). QA Preflight/Policy/TypeScript/Unit PASS(Vitest 2783/2786, skip3)이나 `project-logistics-unified.tsx:76`의 `react-hooks/set-state-in-effect` ESLint **1 error**로 PR Fast Gate가 중단. E2E6/Build/Docker는 SKIPPED, Required3/QA Final은 파생 FAIL이다. 제품 보완은 effect 내 동기 상태 설정을 제거하고 현재 query/snapshot과 일치하는 상세를 렌더에서 계산, 관점·필터 이벤트에서 명시 무효화, focus effect는 DOM만 동기화한다. 기존 정확 상세/권한·stale/복귀 계약 보존, `tests/features/logistics/logistics-unified-model.test.ts`에 snapshot/query/missing data 음성 회귀를 추가했다. 수정 뒤 로컬 ESLint/Unit/Chromium **NOT TESTED**, 새 exact-head CI에서 검증한다.
 - **원장 정합화:** 기존 실패 원장 본문에서 이전 문서 갱신 중 발생한 중복 제1절/깨진 줄을 바로잡는다. F-624-001~018과 #2875.1/#2876.1/#2877.1의 각 원본 증거를 모두 남기고 같은 근인/파생과 미실행 Job을 구별한다. [누적 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md).
 
@@ -69,6 +75,7 @@
 - `AGENTS.md`: N/A(기존 실행 지침을 준수하며 지침 변경 없음)
 - `docs/DB_SCHEMA.md`: N/A(조회 UI만 확장, migration 없음)
 - `docs/SECURITY.md`: N/A(기존 Public Read·편집 session/Origin/If-Match 불변)
+- `docs/PR_CI_FAILURE_TRIAGE.md`: N/A(최신 main #704 공통 분석 지침을 적용하며 지침 내용·검증기/CI 정책은 변경하지 않음)
 - `docs/CI_CD.md`: N/A(Required Quality/E2E6/Docker 및 Trusted/Owner gate 변경 없음)
 - `docs/GITHUB_OPERATIONS.md`: N/A(package/lock 버전 메타데이터만 변경; GitHub 운영, CI 트리거, 리뷰·병합·GHCR 승인 절차 변경 없음)
 - `docs/ISSUE_LIFECYCLE.md`: N/A(기존 Issue→PR→CI→Owner 승인 절차 그대로)

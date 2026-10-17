@@ -1,3 +1,7 @@
+## Issue #624 — 4차 PR CI #2879.1 실제 UI overflow 및 최신 main 합류 (2026-10-17)
+
+[누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에서 2875.1 문서 영향 경로·2876.1 AC parser·2877.1 React Hooks 오류 및 2879.1 Chromium 390px document704를 전부 대조한다. 2879.1은 Quality/Next Build/Docker PASS, E2E Shard2 신규 #624 spec FAIL 및 다른5 CANCELLED로 Required E2E/QA Final FAIL. 제품 Unified CSS Grid 암묵 auto track을 `minmax(0,1fr)`로 제한하고 기존 화면 너비<=viewport+1/내부 region scroll·canonical/full Gate 단언을 보존하면서 overflow 후보 DOM 진단을 E2E에 추가한다. standalone Chromium에서 390 doc712→390/내부 owner388/710 확인은 **전체 실제 앱 PASS 아님**. 최신 main `78ec8d2...`(원본 base 대비10커밋)에 포함된 #704 [누적 실패 지침](../../PR_CI_FAILURE_TRIAGE.md)을 보존하여 결합. 새 Head의 원격 QA/Required3·Owner ACCEPT/정식 GHCR는 NOT TESTED이며 리뷰·충돌 확인 후 Full PR CI 시작에서 멈춘다.
+
 ## Issue #624 — 물류 통합 조회 V1 PR 준비 (2026-10-17)
 
 선행 #623 CLOSED 이후 Resource Target snapshot/정확 edit·drill을 재사용해 공정/WorkArea·설비 종류/인스턴스·시스템 종류/인스턴스·Target→Resource 네 관점을 연결한다. [Work Packet](ISSUE_624.md)에서 canonical Task/Assignment 고유 합계, 공유 AMR/MCS·Milestone 전체 Stage Gate, readonly/stale/복귀, 신규 Chromium5폭·Unit 및 DOCUMENTATION_SYNC/AC를 관리한다. app0.115.0(MINOR), HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 신규 DB/API/PRO/viewport writer 없음, DESIGN Delta B(`DESIGN.md: N/A`). 로컬/새 HEAD Full PR CI·Trusted QA/Owner 승인 전 원격 상태 NOT TESTED; 요청 종료점은 리뷰·충돌 후 **PR CI 시작**이며 결과 모니터링·병합/Main/GHCR/Issue 종료는 별도다.

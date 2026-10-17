@@ -1,3 +1,9 @@
+## Issue #624 PR #702 — 390px 통합 조회 내부 표 가로 넘침 대응 (2026-10-17)
+
+[CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)의 실제 Playwright에서 viewport390px에 document scrollWidth704가 측정됐다(`tests/e2e/issue-624-logistics-unified.spec.ts:107`, 예상≤391). 넓은 Target 688px/Milestone 710px의 **내부 표**는 의도된 해당 표 scroll owner 안에 있어야 하며 document/상위 물류 Grid를 확장해서는 안 된다. Unified 앱 소유 `.root` grid의 암묵적 auto track을 `grid-template-columns:minmax(0,1fr)`·`width:100%`로 바꿔 Grid의 최소 콘텐츠 폭 전파를 차단한다. 별도 synthetic Chromium에서는 390px document712→390 / Resource region client388·scroll710, 768/1024/1440/1920에서도 문서 폭은 viewport 이하를 확인했지만 이는 실제 제품 전체 구조의 PASS가 아니다.
+
+기존 E2E 5폭의 `documentWidth<=width+1` 및390 내부 scroll/정확 Task·Assignment/전체 Milestone Gate·조회mutation0/같은 Gantt 검증은 유지한다. 실패한 viewport에서 root width·scroll owner width·실제 overflow 후보 상위16개를 첨부해 차기 회귀 원인 확인에 사용한다. 테스트값·timeout/skip/QA·SVAR/테이블 최소 너비는 완화하지 않는다. 기존 Light/compact·scroll/focus Design Delta B만 구체화하므로 `DESIGN.md: N/A`. [누적 실패 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_624.md).
+
 ## Issue #624 — 물류 통합 조회 UX·Design Delta B (2026-10-17)
 
 프로젝트 작업공간의 **물류 구성 → 통합 조회**에서 네 관점(공정/WorkArea, 설비 종류·인스턴스, 시스템 종류·인스턴스, Target·Resource)을 단일 compact selector로 전환한다. 기간/Target 빠른 필터와 접힘 상세 조건을 제공하고, 기존 Gantt native WBS/Chart에 조회용 가상 행이나 두 번째 날짜축을 주입하지 않는다. Project 구성 인스턴스 수·고유 설비 수량과 현재 T0 Task coverage/Assignment 계획공수·기간가중 일반 Task 진척을 명확히 나눈다. 공유 MCS/fleet·중첩 Target의 표 행은 중복 표시 가능하지만 전체 집계는 서버 distinct ID다.

@@ -1,3 +1,11 @@
+## Issue #624 PR #702 — CI #2879.1 실제 E2E overflow·진단 및 재검증 (2026-10-17)
+
+원본 [CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)에서 Quality/typecheck/lint/unit/Next build/Docker PASS 후 신규 `tests/e2e/issue-624-logistics-unified.spec.ts:107`의 **390px document 704px(허용≤391)**로 Chromium shard2가 실패하고 다른 5 Shard는 fail-fast CANCELLED됐다. 기존 4개 관점/원시 Task·Assignment·전체 Milestone Gate 비교는 선행했지만 반응형/상세/복귀 이후 흐름은 완료되지 않았다.
+
+UI 변경 범위: `src/features/logistics/project-logistics-unified.module.css`의 Grid implicit auto min-content 열을 `grid-template-columns:minmax(0,1fr)` / width100%로 명시해 Target 최소688px/Milestone710px 표를 각 기존 `.scroll`에 가둔다. **원본 `documentWidth<=width+1`·390 내부 scroll·5폭·raw ID/full Gate·query mutation0·same Gantt/반환 focus 단언을 유지**하며 폭 검사 실패 때만 root/scroll 폭·DOM overflow 상위 요소를 artifact로 추가한다. 별도 synthetic Chromium의 390 doc712→390, 내부 client388/scroll710은 UI 메커니즘 근거일 뿐 실제 제품 결과를 대체하지 않는다. 동일 새 Head actual browser와 기존 #623/#621 Resource/Target·#528 drill·Milestone Gate 직접·간접·음성 회귀를 실행해야 한다.
+
+앞선 CI #2875.1 docs 영향, #2876.1 AC parser, #2877.1 Hook ESLint은 #2879.1에서 Preflight·ESLint·Unit 실제 PASS였고 첫 실패부터 [단일 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)을 보존한다. 신규 [#704 공통 triage](PR_CI_FAILURE_TRIAGE.md) A→G, 동일 candidate freeze/취소 Shard 로그 보존, Head/Base/Test-merge/Run·Attempt을 유지한다. 새 PR CI 결론·Trusted/Owner 승인 전 NOT TESTED.
+
 ## Issue #624 PR #702 — CI #2877.1 React Hook lint regression (2026-10-17)
 
 - 최초 두 CI의 문서 계약 실패는 세 번째 [CI #2877.1](https://github.com/planner77/masterGantt/actions/runs/39008625870)에서 QA Preflight PASS로 검증됐다. 정책/Typecheck/Vitest(225 파일 PASS·1 SKIP, 2783 case PASS·3 SKIP)도 PASS. 신규 `src/features/logistics/project-logistics-unified.tsx:76`가 `react-hooks/set-state-in-effect` 규칙 위반으로 ESLint 1error/14warnings가 발생했고 그 결과 Fast Gate에서 E2E6/Build/Docker 실행이 차단됐다.
@@ -117,6 +125,8 @@ Work Packet에 baseline/main·working head·base·test merge·source fingerprint
 이 명령은 *로컬 제한 진단용*이다. TEST_PLAN이 workflow의 기존 PR shard --max-failures=1/matrix fail-fast 정책을 변경하는 것은 아니다.
 
 **종료 조건:** 확대 범위의 최초/추가 실패를 실제 source별로 분류하고 원본 trace·발생 순서를 보존한다. 제품 또는 fixture를 보완했다면 **최종 동일 source**에서 직접·교차·음성 경로를 재검증한다. 미실행·미확정 항목은 NOT TESTED/BLOCKED와 잔여 위험/인계 담당자를 명시한 뒤 Manager가 PR CI 시작을 판단한다. 한 번의 확대 PASS를 원격 전체 PASS로 승격하지 않는다. 테스트 timeout/retry/skip/required gate·단언 완화는 검증 전략이 아니다.
+
+> **반복 PR CI 실패에 대한 전체 이력 기반 REWORK (#704):** 이 절의 파일 합집합/비교 진단은 **직전 실패뿐 아니라 해당 Issue의 모든 관련 PR·Run·Attempt**로부터 수집한 누적 원장을 출발점으로 한다. 최초 실패부터 `docs/ISSUE_<N>_FAILURE_ANALYSIS.md`를 유지하고, 매 실패 후 원장의 모든 과거 실패·교정·미실행 사례를 읽어 재발/신규·공통 원인과 영향 소비자를 재평가한다. 파일 형식, Run/Attempt 출처, fail-fast 취소 Job의 실제 실패 보존, 원인별 일괄 보완과 동일 최종 source 증거는 [PR CI Failure Triage](PR_CI_FAILURE_TRIAGE.md)를 따른다. Local `verify:prepr --mode=diagnose`는 수동 확인된 원격 실패 입력과 제한된 파일 수가 필요한 보조 도구이며 자동으로 과거 Run을 수집·인증하지 않는다.
 
 ### 5. LOW/MEDIUM/HIGH 경계 예시
 
