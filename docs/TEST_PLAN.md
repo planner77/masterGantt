@@ -1,3 +1,10 @@
+## Issue #624 — CI #2920.1/#703 #490 Gantt scroll end-boundary 음성 회귀 (2026-10-18)
+
+- [PR CI #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264) 정확 HEAD `829953e8a108d18cb816880606926f2220d954eb` / Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2` / test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. Shard4의 기존 `project-settings-layout-490.spec.ts:149`에서 DOM `scrollWidth-clientWidth`가 19라 `min(120,19)=19` 기대, 실제 native `scrollLeft=18`을 5초 간격으로 반복 관측해 직접 FAILURE. [Trace artifact](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021) 확인. #703 원본 Main [#2901.1](https://github.com/planner77/masterGantt/actions/runs/39029791058) 120/18과 동일한 '경계 기대가 실제 이동 가능성보다 큰' TEST_CONTRACT 계열이나 서로 다른 커밋/기대값. 물리적 브라우저 clamp 근인은 이 Trace만으로 확정하지 않는다.
+- 새 `interiorGanttScrollLeft`는 원본 max capacity를 확인한 뒤 `Math.min(120, Math.floor(capacity/2))`로 양수 내부 scroll 위치만 선택한다. 검증은 여전히 **정확한 좌표 동등성**(처음 및 설정 탭/닫기/metadata 저장/Fullscreen)으로 유지하며, 0 이동·Axis 소실·세로38px/기존 WBS/컬럼/선택/권한/동일 Gantt instance 변화를 통과시키지 않는다. 준비 단계의 measured/actual/capacity를 JSON artifact로 남긴다.
+- `tests/features/gantt/gantt-scroll-capacity.test.ts` 음성/양성: 19→9, 18→9, 62→31, 120→60, 240/810→120, 0·-1·1·NaN·Infinity→0, invalid preferred→0. 작은 1px capacity는 E2E의 positive expected guard에서 FAIL한다. #490 real Chromium 재현과 #456 scoped Week 120 admission, #552/#570/#667 viewport 및 #621/#623/#624 다관점 E2E 교차 회귀를 신규 Full CI에서 확인한다.
+- 원본 CI #2920.1 Quality/Docker 성공, E2E Shard4 54PASS/1FAIL/88NOT RUN, Shard3 SUCCESS, Shard1/2/5/6 CANCELLED, QA Automated·Trusted 파생 FAIL. [이슈별 F001~034 전체 원장 §12](ISSUE_624_CI_FAILURE_ANALYSIS.md) 참조. 기존 #2900/#2905/#2913 성공은 이전 HEAD/Base에 한정; 새 Head 로컬/원격 Quality/E2E6/Docker/Trusted **NOT TESTED**. Fast Gate/max-failures/timeout/전체 검사 범위 불변.
+
 ## Issue #712 — post-merge provenance / Lifecycle Full CI 판정 회귀 (2026-10-18)
 
 - **검증 대상:** `scripts/verify-pr-metadata-evidence.py`, `scripts/qa_final_automated.py`, `scripts/issue_lifecycle.py`, `.github/workflows/ci.yml`. 고위험 protected 실행·릴리스 Gate이며 UI/DB/API/제품 기능에 영향 없음.

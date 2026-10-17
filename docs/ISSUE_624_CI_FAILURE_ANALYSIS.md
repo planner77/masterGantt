@@ -290,3 +290,53 @@
 - CHANGELOG에서 0.116.0 #624 Unreleased 기록을 먼저 유지하고 0.115.0 #712 운영 교정 기록을 함께 추가한다. TEST_PLAN은 #712의 Full PR CI/metadata 출처·merge 부모/Tree 판정 긍정/음성 회귀 절을 #624 기존 E2E 계획과 결합한다. 세 Required Gate/QA·Owner/Finalizer 완화0.
 - 변경 통합은 **두 부모 Git Merge Commit** (기존 #624 HEAD + 최신 main)을 사용하고 트리 전체 SHA/mode 누락을 대조한다. 최신 HEAD에서 리뷰 스레드0/behind0/mergeable을 확인한 뒤 새 PR CI 시작. 실행 환경상 로컬 `npm ci`, TypeScript/Vitest/Chromium 실제 수행은 NOT TESTED이며 기존 #2913.1/Trusted QA를 새 후보 결과로 이전하지 않는다.
 - `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=true`(#624 Issue에 이전 Owner 인증 버전 0.116.0 게시 승인 기록 있음). 신규 HEAD의 QA/Manager 병합 ACCEPT와 정식 GHCR 게시/FINAL/Issue 종료는 별개, 이번 단계에서는 PR CI 시작 후 멈춘다.
+
+## 12. PR CI #2920.1 — #490 Gantt native 마지막 px 경계 테스트 계약 (2026-10-18)
+
+### 고정 원본 증거: 실패 Run/Head/Base/Test-Merge
+
+| 구분 | GitHub에서 실제 확인한 값 |
+| --- | --- |
+| Issue / PR | [#624](https://github.com/planner77/masterGantt/issues/624) / [PR #702](https://github.com/planner77/masterGantt/pull/702), `pull_request/synchronize`, attempt 1 |
+| CI | [Run #2920.1 / 39076400264](https://github.com/planner77/masterGantt/actions/runs/39076400264) `completed/failure`, 2026-10-17T22:46:14Z~23:01:19Z |
+| 정확 Head | `829953e8a108d18cb816880606926f2220d954eb` |
+| 당시 base/main | `6fea0397bc07d0c3adf2d769f9ba6829473503a2` (#712 CI/Lifecycle 교정 포함) |
+| 실제 PR test-merge | `38c0de7c30b267626bdb99e1bb6d53806d61465c` (Shard 4 runner checkout, `Merge 829953e8 into 6fea0397`) |
+| 단일 실제 E2E Root | [Shard 4/6 Job 117524716888](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524716888) `tests/e2e/project-settings-layout-490.spec.ts:130` 테스트, **line 149** `expect.poll((await state()).chartScroll).toBe(expectedChartScroll)`, **Expected 19 / Received 18** 5초 동안 반복 |
+| 원본 Artifact | [Playwright shard4 Artifact #12117856021](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021)의 HTML, `error-context`, trace ZIP (`test.trace`에 실제 scroll input과 일곱 poll), `isolated-application-diagnostics` 직접 다운로드/열람 |
+| Shard4 실행량 | 54 PASS, 1 FAIL, 88 NOT RUN; `--max-failures=1` 유지. Failure가 설정 탭/metadata 저장/fullscreen 실제 보존 검증 **진입 전** 발생 |
+| 다른 Shard | [Shard3 Job 117524716838](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524716838) **SUCCESS** (#621 5개·#623 2개 E2E 개별 성공). Shard1 [117524716871](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524716871), 2 [117524716858](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524716858), 5 [117524716901](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524716901), 6 [117524716877](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524716877)는 **CANCELLED**, 일부 개별 PASS는 전수 성공 아님 |
+| Required / QA | Quality [117524864099](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117524864099) **SUCCESS**, Docker [117525157493](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117525157493) **SUCCESS**. Chromium 집계 [117527184107](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117527184107) **FAILURE**, Automated QA [117527203913](https://github.com/planner77/masterGantt/actions/runs/39076400264/job/117527203913) **FAILURE**, [default-main Trusted QA Run #562.1/39077383844](https://github.com/planner77/masterGantt/actions/runs/39077383844) **FAILURE**(동일 Full 원본의 E2E 미성공에 연쇄) |
+
+### F-624-031~034 / C-624-005 — 독립 Root와 전파 구분
+
+- **F-624-031 — TEST_CONTRACT / 직접 Root**: #703 Main CI [#2901.1](https://github.com/planner77/masterGantt/actions/runs/39029791058)의 `#490 scrollLeft120 / 실제18` 문제를 보완하면서, **`min(120, scrollWidth-clientWidth)`를 새로운 exact 기대값**으로 둔 것이 재발 요인. 이번 원본은 현재 DOM `scrollWidth-clientWidth` 정수 측정상 max19라 마지막 **경계 19px**을 요청했으나 `scrollLeft`는 일곱 번의 poll 동안 **18px**을 유지했다. 정수 CSSOM 치수와 실제 native scroll 경계의 반올림 또는 동적 레이아웃 차이는 가능한 메커니즘이지, 이 Trace만으로 한 메커니즘을 확정하지 않는다. 테스트가 **축의 마지막 px을 쓸 수 있다는 보장 없이 그 px을 사용한 것이 확정된 계약 결함**. 제품 Gantt Core/DB/Task·Resource 실제 상태 오류 증거는 없다.
+- **F-624-032 — Required Chromium 파생**: Shard4 직접 1건 실패와 Shard1/2/5/6 취소로 인해 집계는 fail-closed FAILURE. 해당 나머지 Shard 4개에 별도 업무 결함이 생겼다는 뜻은 아니다.
+- **F-624-033 — QA Final Automated 파생**: Required E2E failure에 따른 검증 실패. 자동 QA 자체 신규 원인 미확정.
+- **F-624-034 — Trusted QA 파생**: 현재 CI source E2E 미성공의 default-main 신뢰 검증 거부. 별도의 독립 사용자 기능 Root로 보지 않는다.
+- **C-624-005 — 취소된 Shard 분리**: Shard1/2/5/6의 중간 PASS, 미실행·취소는 Required Chromium 성공으로 계상하지 않는다. Shard3의 #621/#623 개별 성공, Shard4 앞 54개 PASS도 정확한 범위의 **부분 실측**일 뿐이다.
+- **서버/환경 진단 경계**: 동일 Playwright Trace의 isolatedApp 진단에서는 process alive, cgroup oomKill 0. 일부 초기 `GET /api/projects/[publicId]`의 404는 따로 기록된 진단 이벤트이며 실패의 `19 vs 18` 스크롤 비교 원인 증거가 없다. 네트워크 reset/OOM/서비스 다운을 단정하거나 완화한 스크롤 허용 오차로 테스트를 통과시키지 않는다.
+
+### 이전 모든 실패 7건 및 다른 Issue의 동일 영역 선례와 Cross-run 대조
+
+| 실패 Root / 정확 Run | #2920.1 실측 및 재발 분류 |
+| --- | --- |
+| #2875.1 / [39007521324](https://github.com/planner77/masterGantt/actions/runs/39007521324), F001 `DOCUMENTATION_SYNC` | 새 Preflight 성공. 동일 문서 누락 재발 아님 |
+| #2876.1 / [39008123509](https://github.com/planner77/masterGantt/actions/runs/39008123509), F007 AC 문법 | 새 Preflight·정책 Job 성공. 동일 AC parser 재발 아님 |
+| #2877.1 / [39008625870](https://github.com/planner77/masterGantt/actions/runs/39008625870), F013 React Hooks ESLint | 새 ESLint/TypeScript/Vitest 성공. 같은 Hook 오류 없음 |
+| #2879.1 / [39009419792](https://github.com/planner77/masterGantt/actions/runs/39009419792), F019 #624 390px document704 overflow | 이번 신규 #624 E2E는 Shard2 취소로 전수 확인 불가; 마지막 Full CI #2913.1 E2E6 성공은 **옛 HEAD 증거** |
+| #2887.1 / [39014302310](https://github.com/planner77/masterGantt/actions/runs/39014302310), F022 #621 GET ECONNRESET | 이번 #621 5테스트 실제 Shard3 성공. #703 read-only GET observer와 #624 Connection:close를 유지하며 다른 mutation retry0 |
+| #2893.1 / [39021459600](https://github.com/planner77/masterGantt/actions/runs/39021459600), F025 #456 Week 120→62 clamp | **동종 범위 끝 경계 가정**과 연결되지만 다른 테스트. #456은 120px admission/실제 wheel 검증을 유지함. 현재 #490에서는 같은 실제 capacity admission을 요구하는 요구사항을 단순 최대 경계로 대체한 점이 문제 |
+| #2897.1 / [39026415903](https://github.com/planner77/masterGantt/actions/runs/39026415903), F028 prior SUPERSEDED opt-in | Readiness/unit 및 상위 Quality PASS. 이번은 취소 영수증 결함이 아니라 native 19px 끝 지점의 값 |
+| **#2920.1 / 39076400264**, F031 | **새 Root는 기존 #490 테스트의 setup 경계**, #624 신설 통합 산식 결함 아님 |
+| 교차 선례 #703 Main [#2901.1](https://github.com/planner77/masterGantt/actions/runs/39029791058) | `scrollLeft120` 기대 vs 실18 → PR #710에서 `min(120,max)`로 고친 뒤 **이번 max19 vs actual18** 발견. [#703 F01–F03 원장](ci-failures/ISSUE_703_MAIN_CI_39029791058.md)의 연속 교정 한계를 정확히 참고 |
+| 정상 반례 #2900.1 / #2905.1 / #2913.1 | [39028178930](https://github.com/planner77/masterGantt/actions/runs/39028178930), [39031073000](https://github.com/planner77/masterGantt/actions/runs/39031073000), [39038122450](https://github.com/planner77/masterGantt/actions/runs/39038122450): 각 해당 HEAD/Base에서 Required3·Chromium6 정상 성공. 후속 main 병합 및 #712 정렬의 새 Head에 자동 이월 금지 |
+
+### 원인별 일괄 보완과 음성 회귀 계획
+
+1. 테스트 `tests/e2e/project-settings-layout-490.spec.ts`의 설정 단계에서만 `scrollWidth/clientWidth` 측정 후 `min(120,floor(capacity/2))`의 **양수 내부 좌표**를 사용한다. 19→9px, 18→9px으로 마지막 DOM 경계를 피한다. 선택한 정확 좌표와 실제 수용 좌표·재측정 capacity를 Playwright JSON attachment로 기록하고 `expect.poll(...chartScroll).toBe(expectedChartScroll)`의 **엄격한 정확 일치**를 그대로 유지한다. 0/NaN/유효한 미이동 경계는 차단, 스크롤을 건너뛰지 않는다.
+2. 순수 테스트 helper `tests/e2e/helpers/gantt-scroll-capacity.ts` 및 자동 Vitest 회귀 `tests/features/gantt/gantt-scroll-capacity.test.ts`: capacity19→9, 실제18→9, #456 capacity62→31, 120→60, 240/810→120, 0/-1/1/NaN/Infinity→0(소비자 nonzero assert에서 차단), 잘못된 preferred→0/상한 검사. 이 로직은 **테스트용 시작 좌표만** 제어하며 제품 시각화, viewport writer, 스크롤 계약/좌표 evaluator를 변경하지 않는다.
+3. 기존 #490 E2E에서 캘린더·보안 탭 왕복, 닫기·metadata PATCH, native fullscreen 왕복의 **전체 state 깊은 동등성**과 세로 정확38px, nested Summary 접기/선택/외부 ID 열 폭·api/instance/rootTask/Week/scroll 정확값은 전혀 수정하지 않는다. 5초 poll·`--max-failures=1`·6 Shard·QA/Trusted/권한/E2E 단언을 완화하지 않는다. 마지막 경계를 긍정 검증하는 대신 실제 사용자가 가능한 interior horizontal 이동을 반드시 확인한다.
+4. [기존 실패 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md) F001~030·C001~004와 이번 F031~034/C005를 보존하며, [Work Packet](exec-plans/active/ISSUE_624.md)·TEST_PLAN·REMOTE_VALIDATION 및 필요시 active PLAN의 새로운 source 검증 경계를 일치시킨다. 변경 범위는 테스트·테스트 Helper·문서뿐이며 앱 `0.116.0` 후보, QA method HIGH/OWNER_MANAGED와 Owner의 기존 `0.116.0` 명시 release authorization을 유지한다.
+5. **검증 3단계**: 동일 후보 정적/Unit(`npm run typecheck`, `npm run lint`, `npm test -- tests/features/gantt/gantt-scroll-capacity.test.ts`); 관련 #490·#456·#552/#570/#667 및 #621/#623/#624 E2E를 먼저 교차 실행; 그 다음 새 exact Head/Base PR Full CI Required3/Chromium6/Docker·Trusted QA. 현재 GitHub 커넥터 실행 환경은 로컬 Node22/Vitest/Chromium 앱 실행·실제 수동 화면을 수행하지 못했으므로 새 후보의 로컬/원격 성공은 **NOT TESTED**.
+6. HEAD·main strict behind0, conflict0, 미해결 review thread0 확인 후 새 PR CI 시작까지만 수행. 이후 CI 모니터링·병합/Main CI/GHCR 게시·Finalizer/Issue 종료는 실행하지 않는다. 다음 실패 원장은 F-624-035부터 같은 문서에 연속 추가한다.

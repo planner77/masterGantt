@@ -1,3 +1,7 @@
+## Issue #624 — CI #2920.1 Gantt Scroll 최대 경계 테스트 보완 (2026-10-18)
+
+PR #702 [#2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264)의 Chromium Shard4 #490 scroll 19/18 직접 실패와 Quality/Docker 성공/나머지 shard 취소·QA 파생 실패를 [실패 원장 §12](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 합집합 기록한다. #703 원본 Main #2901.1 120/18 보완이 부족했던 `min(120,max)` 경계 가정과 #624 과거 일곱 실패를 비교해, #490 테스트의 setup에만 양수 내부 scroll `min(120,floor(capacity/2))`·실제 accepted 진단을 추가한다. Unit 19→9/18→9·capacity0/1·NaN 음성, 기존 WBS/scroll/metadata/fullscreen 엄격 보존 assertion 및 #456/#552/#667/#621/#623/#624 cross-run E2E·Required3/Trusted QA는 불변. 수정 후보 local/remote 성공은 **NOT TESTED**; Owner release 0.116.0 승인 보존, PR CI 시작 후 결과 모니터링·병합·Main/GHCR/Finalizer·Issue 종료 미수행.
+
 ## Issue #624 / PR #702 — main #703 합류·E2E fixture 소비자 교정 (2026-10-17)
 
 기존 [PR CI #2900.1](https://github.com/planner77/masterGantt/actions/runs/39028178930)의 Quality/E2E6/Docker 성공은 HEAD `3b0818e011000eee86271ff06a27eba03daa503b`와 이전 main `c0eca9ad...`에 한한다. latest main `72bf35c1...`의 #703 안전 GET observer·Preview/CI/docs와 #624 통합 물류 UI를 함께 보존하도록 실제 2-parent commit으로 정렬한다. Docs Remote/TEST_PLAN 및 Target Fixture 세 동시 변경과 `seedIssue623` 필수 observer를 해소한다. [Work Packet](ISSUE_624.md) 및 [누적 실패 원장 §10](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 전체 원인/교정/미검증 보존. 새 Full PR CI 시작 후 모니터링·병합/Main/GHCR/Issue 종료하지 않는다. HIGH/OWNER_MANAGED/release_authorized=false.
