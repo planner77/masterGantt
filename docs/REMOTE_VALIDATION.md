@@ -1,3 +1,10 @@
+## Issue #552 — #2885.1 E2E Canonical Type/Native DOM 오분류와 원격 인계 (2026-10-17)
+
+- [PR Full CI #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393), Head `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test merge `cf9ac161593088bc6351464074df4811f1685b25`. shard5 job `117333619456`의 `milestone-stage-exchange.spec.ts` 22PASS/1FAIL/59 NOTRUN은 일반 Task(현재 초기 Grid DOM에 없음)를 Milestone으로 오판한 E2E test helper 결함이다. 다른5 Shard CANCELLED/개별 FAIL0; Quality/Docker PASS·E2E/QA Final FAIL.
+- [실제 원본 Playwright artifact](https://github.com/planner77/masterGantt/actions/runs/39010974393/artifacts/12092074632) Trace+Network와 error-context를 직접 열어, 일반 Task 검색 HTTP200/rows0·초기 Gantt mount 이후 ordinary native Task row 존재를 비교했다. 새 테스트는 명시 canonical Task 유형별 일정 Grid(visible까지 대기)/Milestone Dashboard exact-ID Editor로 분리한다. 사용자 동작 검증/Timeout·assertion·Skip·Retry/CI 요구조건은 유지.
+- [#552 독립 누적 실패 문서](ISSUE_552_FAILURE_ANALYSIS.md) §7, [누적 JSON](evidence/issue-552/ci-cumulative-20261017.json)에는 31개 PR Run metadata와 최근 9Run/11실제 실패 파일을 보존했으나 이전 Run의 모든 개별 FAIL 전수 추출은 **INCOMPLETE**. Local `diagnose`·`ci-like`·`sourceStable` 실행은 **NOT TESTED**, 향후 새 HEAD의 세 Required·Trusted/Owner는 해당 원격 Run/Attempt로만 판정.
+- 사용자 승인 경계는 최신 main 정렬·미해결 리뷰/충돌0 후 **새 Full PR CI 시작**까지. 모니터링·병합/Main/GHCR/Issue 종료 없음.
+
 ## Issue #552 — CI #2878 실패 원본과 재발 분석 경로 (2026-10-17)
 
 [Full PR CI #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687) Run `39008751687`/attempt1, HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, 당시 main `de863713142a92f1cac56dbae044923822bca932`, test merge `ef26400db5a5fc6aae77783b7330da38cf3dbf5e`. Quality/Docker PASS, E2E/QA Final FAIL. shard5 job `117326889006`의 #530 `resource-kpi-integration-ui.spec.ts:216`가 90RAF/8연속 exact Core/native 정착 실패(64 PASS/1 FAIL/17미실행), 나머지5 Job CANCELLED. 원본 보고서 artifact `playwright-report-shard-5` ID12092311845는 목록으로 확인했으나 ZIP/Trace 내부 검토 **NOT TESTED**이며 직접 원인 UNKNOWN.

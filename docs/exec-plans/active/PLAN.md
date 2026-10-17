@@ -1,3 +1,9 @@
+## Issue #552 — #2885 신규 native DOM 초기화 판정 오류, 누적 이력 유지 (2026-10-17)
+
+[#552 단일 재발 분석 문서](../../ISSUE_552_FAILURE_ANALYSIS.md) §7 / [31Run 목록 + 최근9Run 실제11파일](../../evidence/issue-552/ci-cumulative-20261017.json) / [Work Packet](ISSUE_552.md). 원본 #2885 Head `84009ba5ab3e`, Base `78ec8d2ced62`, merge `cf9ac1615930`의 E2E shard5 `milestone-stage-exchange.spec.ts:147`는 일반 Task `CHILD`를 native row 순간 부재만으로 Milestone 검색해 0건으로 실패했다. Playwright Trace로 후속 native row 존재/서버 Dashboard200·검색0개(정상 Milestone6개) 확인. 테스트 직접/음성 경계를 canonical `task.type` 진입으로 분리하되 Task 행 미렌더링은 FAIL, 모든 기존 데이터/권한/복귀·CI Gate 유지.
+
+이력 전체31 Run 중 과거 검사 누락은 **INCOMPLETE**로 유지하고 기존 #2670 동일 Milestone row0 증상과 #2654 후반 Editor 실패는 구별한다. 대상 Source Freeze→`verify:prepr diagnose` 11선택파일(조기종료0)→수정 없이 전체 `ci-like` 및 sourceStable→동일 HEAD 리뷰/충돌 확인 후 새 full PR CI 시작. 현재 프로젝트 runtime 미제공으로 로컬 실행 **NOT TESTED**, 원격 새 결과도 등록 전 PASS 아님. Release/Issue 종료·병합/Main CI/GHCR는 Owner 추가 승인 필요.
+
 ## Issue #552 — CI #2878 누적 실패·리소스 KPI 왕복 정착 보완 (2026-10-17)
 
 [독립 연속 실패 분석](../../ISSUE_552_FAILURE_ANALYSIS.md) · [실제 실패 8Run/10파일 원장](../../evidence/issue-552/ci-cumulative-20261017.json) · [Work Packet](ISSUE_552.md). 원본 #2878.1 HEAD `37c2c4687d6d`/Base `de863713142a`/test-merge `ef26400db5a5`: Quality/Docker PASS, E2E shard5 #530 Gantt/Resource/Excel 복귀 실패, 기타5 취소. 원본의 canonical depth0은 최신 U2/U3/viewport settled의 보증이 아니므로 현행 read-only readiness 3프레임을 wheel 직전 검증하고 실패하면 마지막12 Core/native/phase 증거를 남긴다. 기존 90RAF/8exact frame·Resource 원장/5폭/동일 instance·버전0.115.0·CI Required3는 변경하지 않는다.

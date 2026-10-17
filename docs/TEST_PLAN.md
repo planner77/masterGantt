@@ -1,3 +1,10 @@
+## Issue #552 — Full PR CI #2885 native DOM 부재를 Milestone 유형으로 오판 (2026-10-17)
+
+- [원본 #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393), exact HEAD `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, E2E shard5 `milestone-stage-exchange.spec.ts:147`에서 `helpers/milestone-ui.ts:44` Milestone 행 수1 예상/실제0. 22 PASS/1 FAIL/59NOT RUN, 다른5 Shard CANCELLED·개별 새 FAIL 로그0, Quality/Build/Docker PASS·E2E/QA Final FAIL.
+- **원본 Playwright Trace 직접 대조:** 실패 검색 UUID는 canonical 일반 Task `CHILD`이며 Gantt는 첫 렌더 전 Grid row0→후속 Task row 존재, Milestone-dashboard HTTP200/검색 rows0·검색 전 정상 Milestone6건. E2E 공통 함수가 `nativeRow.count()===0`을 Milestone 타입으로 판단한 것이 TEST_CONTRACT 오류. #2670 같은 spec의 동일 row0 증상은 참고하지만 원인 동일성은 추가 원본 증거 전 UNKNOWN.
+- **직접+음성 보완:** Spec-local `openTask(page, task)`는 canonical `task.type` 명시; Task/Summary는 일정 tab와 실제 native row visible 이후 원래 Context Menu/Editor, Milestone만 정확 Dashboard ID/Editor 진입. `CHILD.type=task`와 `M-JOIN.type=milestone` 둘 다 엄격 단언하고, 일반 Task row 영구 미렌더링은 계속 FAIL. 기존 actual HTTP/SQLite·mutation/revision/Copy/Excel/JSON/Target/Resource·same Gantt/readonly/Marker OFF·30s/5s/360s 검사·retry0/skip0 유지.
+- [정규 실패 분석 §7](ISSUE_552_FAILURE_ANALYSIS.md)과 [선별 누적 실패11파일·31Run metadata](evidence/issue-552/ci-cumulative-20261017.json)를 활용한다. #704 전체 과거 test-level 이력은 아직 **INCOMPLETE**. `verify:prepr --mode=diagnose` 11파일 합집합과 같은 후보 `ci-like` 전체·sourceStable은 checkout 부재로 **NOT TESTED**이며 과거 Source PASS로 대체 금지.
+
 ## Issue #552 — PR CI #2878 / #530 Resource KPI 복귀 Gantt 준비 계약 (2026-10-17)
 
 - [원본 #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687): HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, Quality/Build/Docker 성공, E2E shard5 `resource-kpi-integration-ui.spec.ts:216` 64 PASS/1 FAIL/17미실행, 나머지5 취소·개별실패 로그0, E2E/QA Final FAIL. 90RAF·8연속 exact Core/native 정착 실패 직전의 `canonical depth=0`은 최신 semantic projection·axis/viewport 완료의 충분조건이 아니다. 수치/첫 writer 미계측으로 제품 결함 원인은 UNKNOWN.

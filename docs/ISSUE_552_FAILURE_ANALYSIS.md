@@ -123,3 +123,33 @@ GitHub Actions `branch=feat/issue-552-milestone-visibility`에서 반환된 **30
 **검증한 이전 교차 사례:** #2654/#2661/#2667의 `resource-kpi-integration-ui.spec.ts`는 #530 pending viewport/wheel/resize와 관련된 다른 사례에서 실패했고, #2670에서는 #530 고정 geometry 복귀와 pending queue 케이스가 실패했다. 이들은 현재 #2878 `line216`과 정확히 같은 단언 실패라고 확정하지 않지만, 해당 제품·Fixture 계약에 *반복적 영향*이 있음을 보여 준다. 해당 이전 Run들의 다른 실패는 전체 추출이 되지 않았으므로 아래 검증 상태를 갱신 전까지 **INCOMPLETE**로 유지한다.
 
 향후 담당자는 먼저 `#2219/#2628/#2633~#2682/#2844~#2878`의 모든 *실제 실패* Job 및 `CANCELLED` Job 내 Playwright `✘`를 추출하여 기존 표에 **기록 추가**하고, 전체 distinct failed file 목록과 기여한 소비자를 재계산한다. `verify:prepr diagnose` 제한 12파일을 넘으면 사유를 문서화해 서로 겹치는 bounded partition으로 실행하되 전체 실패 논리적 합집합을 버리지 않는다. 미실행 파일은 NOT TESTED, 로그 권한·보존 만료는 UNKNOWN으로 기록한다. 현재 기존 최근 10파일 진단 및 전체 `ci-like` 실행은 모두 NOT TESTED.
+
+## 7. CI #2885.1 / Run 39010974393 — 일반 Task를 숨은 Milestone으로 오분류한 E2E 진입점 (2026-10-17)
+
+**원본 불변 출처:** [Full PR CI #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393) · event `pull_request` · attempt1, HEAD `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, 당시 main/Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test merge `cf9ac161593088bc6351464074df4811f1685b25` (부모 Base/HEAD). QA Preflight·정책·ESLint·TS·Vitest·Build·Docker **PASS**, E2E Required **FAIL**, QA Final 후속 **FAIL**.
+
+- 최초 실제 실패: shard5 job `117333619456` · `tests/e2e/milestone-stage-exchange.spec.ts:142→147`, 내부 `helpers/milestone-ui.ts:44`. 22 PASS / 1 FAIL / 59 NOT RUN. `[data-milestone-task-id="<ordinary CHILD taskId>"]`에 대해 `toHaveCount(1)` 기대, 실제 `0`, 5000ms 동안 실패.
+- Shard 1 job `117333619463`은 22개, 2/`117333619628`은 30개, 3/`117333619487`은 38개, 4/`117333619461`은 10개, 6/`117333619514`는 25개의 통과 기록 후 모두 **CANCELLED**. 이 다섯 Job의 단위 테스트 실패 `✘`는 기록되지 않았으나 남은 케이스는 **NOT TESTED**다.
+- [원본 Playwright report artifact 12092074632](https://github.com/planner77/masterGantt/actions/runs/39010974393/artifacts/12092074632)의 `error-context.md`와 실제 Chromium Trace/Network JSON을 **직접 추출·대조**했다. 초기 일정 탭은 “편집 중”이지만 첫 SVAR Grid DOM이 비어 있는 순간이 있으며, 더 늦은 Trace snapshot에는 `CHILD`의 일반 `wx-row[data-id]`가 존재한다. 실패의 UUID는 작업 `CHILD` (`type: "task"`)이며 요청 `GET /milestone-dashboard?search=<CHILD UUID>&horizonDays=14...`은 HTTP **200**, 검색 결과 `rows=[]`; 같은 세션의 검색 전 응답에는 정상 Milestone **6개**와 각각의 정확한 ID가 있다. DB/서버가 Milestone을 누락했다는 증거는 아니다.
+- **확정 테스트 결함:** spec-local `openTask(page, taskId)`가 `await nativeRow.count() === 0`을 **Milestone 유형 판정**으로 사용하여, 아직 렌더링되지 않은 일반 Task를 Milestone으로 잘못 판단하고 `openMilestoneEditor(page, CHILD UUID)`를 호출했다. 이는 canonical Task 타입과 visible/native DOM의 의미를 섞은 구형 계약이다. 단지 API가 느려서 생긴 제품 결함 또는 Milestone Server Search의 버그로 단정할 근거는 없다.
+- **반복성 대조:** 과거 [#2670.1 / 38383522417](https://github.com/planner77/masterGantt/actions/runs/38383522417)의 같은 `milestone-stage-exchange.spec.ts:142`는 Dashboard `data-milestone-task-id`의 0개/1개 불일치로 실패했으므로 **동일 증상 후보**다. 정확한 내부 원인이 같았는지는 당시 전체 Trace/ID 원장을 추가 비교하기 전까지 **UNKNOWN**으로 유지한다. #2654의 동일 테스트는 후반 일정 Context Menu `data-action=open-task` 기대에서 실패했으므로 동명 spec라도 서로 다른 계약이다. 과거 다른 Shard 실패까지 모두 수정했다고 주장하지 않는다.
+- **보완 파일:** `tests/e2e/milestone-stage-exchange.spec.ts`의 `openTask(page, task)`는 **고정된 canonical `task.type`**을 전달받는다. `milestone`일 때만 Dashboard 정확 ID Editor를 사용하고, `task/summary`는 일정 탭에서 해당 native 행이 **실제로 보일 때까지 기다려** 기존 Context Menu와 Task Editor를 이용한다. 일반 Task가 끝내 보이지 않으면 그대로 실제 회귀 **FAIL**, 오판·숨은 row 제조/암묵 검색 완화 금지. `CHILD`는 `type:"task"`, `M-JOIN`은 `type:"milestone"`의 실제 원본을 별도로 확인하고 두 UI 경로를 계속 검증한다.
+- **변경하지 않은 계약:** 테스트의 실제 HTTP/SQLite·mutation/revision/Task Link/Copy·Import/Export·Dashboard/Resource/Target, Marker OFF(visible native M row0, canonical M 보존), UI focus/viewport/readonly, Test timeout·retries0·Skip 없음, CI 6Shard/fail-fast/Required3, 제품 코드/API/DB/schema/권한/버전. 증거 없는 서버 수정 금지.
+- **실제 검증 경계:** 이 연결 환경에 원본 체크아웃의 node_modules/Chromium/Next runtime이 없어 새 소스 Playwright/Vitest/Typecheck 및 `verify:prepr --mode=diagnose/ci-like` 실행은 **NOT TESTED**. 원본 Trace의 증거 확인과 신규 코드 정적 비교는 실제 E2E PASS가 아니다. 새 HEAD의 Full PR CI·Trusted QA/Owner ACCEPT는 등록 전 **NOT TESTED**.
+
+**합집합/인계:** [JSON 원장](evidence/issue-552/ci-cumulative-20261017.json)에 #2885의 신규 실패 파일을 추가했다. GitHub PR 브랜치 Run metadata **31개**, 그중 최근 **9Run/11개 서로 다른 실패 파일/11개 테스트-level FAIL**의 선택된 원본을 보존한다. 이전 22개 Run의 전체 test-level 파일·취소된 Job에 실제 실패가 모두 수집된 것은 아니므로 `historyCompleteness=INCOMPLETE`. 이 11파일은 전체 과거 실패 합집합이 아니라 **선정된 bounded 진단 subset**이다. 처음부터 수집한 전체 실패 합집합이 12파일을 초과하면 [공통 #704 지침](PR_CI_FAILURE_TRIAGE.md)에 따라 겹치는 그룹으로 분할 진단하되 누락하지 않는다.
+
+**동일 후보에서 실행할 검증(현재 NOT TESTED):**
+
+```bash
+npm run verify:prepr -- --mode=diagnose \
+  --base=78ec8d2ced62f543f73a8477c3e62fca8274274b \
+  --issue=552 --pr=561 --risk=HIGH \
+  --failure-log=docs/evidence/issue-552/ci-cumulative-20261017.json
+
+# 정확한 같은 HEAD / 기존 소스 변경 없이 전체 교차 회귀
+npm run verify:prepr -- --mode=ci-like \
+  --base=78ec8d2ced62f543f73a8477c3e62fca8274274b --issue=552 --pr=561 --risk=HIGH
+```
+
+`UNKNOWN` 영향 경로 또는 `sourceStable=false`(Next 생성 타입·스크린샷 변경)가 다시 나오면 최상위 상태 **BLOCKED**를 유지한다. GitHub HEAD/Base/Test-merge, review unresolved0/mergeable, PR CI Run/Attempt가 등록됐다는 사실과 공식 Quality/E2E/Docker/QA PASS는 구분한다. **병합/Main CI/GHCR/태그/Issue 종료는 별도 Owner 승인 전 수행하지 않는다.**

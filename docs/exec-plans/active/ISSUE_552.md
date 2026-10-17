@@ -1,5 +1,14 @@
 # Issue #552 — marker-OFF 기준선 / 최신 main 정렬
 
+## 2026-10-17 — #2885.1 신규 실패의 trace 증명과 Canonical Task 유형별 Editor 진입 보완
+
+- 원본 [Full PR CI #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393): HEAD `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `cf9ac161593088bc6351464074df4811f1685b25`, attempt1. Preflight/Quality/Build/Docker PASS, E2E shard5 22 PASS/1 FAIL/59미실행, 다른5 Shard CANCELLED, E2E/QA Final FAIL.
+- shard5 job `117333619456`의 첫 실패 `milestone-stage-exchange.spec.ts:147 → helpers/milestone-ui.ts:44`는 일반 Task `CHILD`의 UUID를 Milestone Dashboard 검색에 전달해 행0개를 받고 `toHaveCount(1)`에서 실패. [Playwright report/trace](https://github.com/planner77/masterGantt/actions/runs/39010974393/artifacts/12092074632)를 실제 추출하여, Gantt native row는 초기 mount 중 잠시 부재하나 후속 DOM에 등장·서버 Dashboard HTTP200/검색0개·검색 전 정상 Milestone6개를 확인했다.
+- **근본 원인(테스트 계약)**: spec-local `openTask(page, taskId)`의 `nativeRow.count()===0`을 canonical Milestone 유형 판정으로 오용. 제품 Dashboard/API·데이터 결함 증거 없음. `openTask(page, task)`에 명시 canonical `task.type`을 전달하고, Milestone이면 정확 Dashboard Editor, 일반 Task/Summary면 Grid 행 visible을 실제 기다린 후 기존 Context Menu Editor로 진입한다. Task가 끝내 안 보이면 실제 FAIL을 유지하고 Milestone으로 대체하지 않는다.
+- 과거 #2670에서도 동일 spec의 `data-milestone-task-id` 1기대/0실제 증상이 있었다. 동일 첫 원인 여부는 구버전 trace 미확인으로 UNKNOWN; #2654 후반 Context Menu 실패는 독립. 이번에 제품 코드/공통 fixture/QA/CI·timeout/retry/skip·version0.115.0을 수정하지 않는다.
+- 재발 시 원본 Run/Attempt/Source·Cancel shard 내 실제 실패까지 재조사하도록 [단일 Issue 분석 원장](../../ISSUE_552_FAILURE_ANALYSIS.md) §7과 [31Run metadata/최근9Run 선택 실패11파일 JSON](../../evidence/issue-552/ci-cumulative-20261017.json)을 갱신. 과거 test-level 전수는 **INCOMPLETE**(지난 30 Run만 보았던 시점 이력은 역사 기록). 해당 11개는 bounded diagnose subset이며 전체 역사적 실패 합집합 아님.
+- 최종 변경 후보의 `verify:prepr diagnose`, `ci-like`, playwright/Vitest/TS·sourceStable은 현재 checkout/node_modules/Chromium 부재로 **NOT TESTED**. 정상 준비 vs 의도적 race를 분리, 가짜 delay/timeout 증가·Skip·assertion 완화·재시도로 green 불가. HIGH/OWNER_MANAGED/release_authorized=false, MERGE_READY=BLOCKED, PR CI 시작만 승인·병합/Main/GHCR/Issue종료 불가.
+
 ## 2026-10-17 — PR CI #2878 Resource KPI Gantt 왕복 실패 및 연속 실패 원장
 
 - 원본 [CI #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687): HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, Base `de863713142a92f1cac56dbae044923822bca932`, test-merge `ef26400db5a5fc6aae77783b7330da38cf3dbf5e`. Preflight/Quality/Build/Docker 성공, E2E/QA Final 실패. Shard5 job `117326889006`, `resource-kpi-integration-ui.spec.ts:216`(64 PASS/1 FAIL/17 미실행); 나머지5 Shard 취소, 로그상 별도 실패 0이나 전체 PASS 아님.

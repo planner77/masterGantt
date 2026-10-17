@@ -1,5 +1,7 @@
 ## [0.115.0] — Issue #552 marker-OFF WBS 기준선 (후보, 2026-10-16)
 
+- #2885 PR CI의 #464 실제 HTTP·SQLite E2E는 초기 일반 Task native 행 DOM 부재를 Milestone 유형으로 오분류해 Dashboard UUID 검색0건으로 FAIL했다. 실제 Playwright trace가 후속 정상 Task 행과 Milestone 목록을 증명한다. Spec-local Editor 테스트 라우팅을 canonical `task.type` 기준으로 변경, 일반 Task는 native row를 기다리고 Milestone은 기존 Dashboard 경로를 유지한다. [단일 누적 실패 문서](docs/ISSUE_552_FAILURE_ANALYSIS.md)·JSON에 31Run 메타데이터/최근9Run/11선정파일/이전 이력 INCOMPLETE를 기록. 제품·API·CI Gate·timeout/retry/skip·릴리스 후보 버전 유지, 새 source 로컬/원격 테스트 실행 전 NOT TESTED.
+
 - CI #2878의 #530 Resource KPI·Excel 이후 Gantt 복귀 시 최신 semantic/viewport 정착 전 wheel을 입력한 위험을 분석했다. 공통 read-only 준비 검사를 입력 전에 추가하고 실패하면 실제 Core/native/영수증을 보존한다. 90RAF/8연속 strict equality·원장·Instance/Selection·timeout/retry/skip/CI·릴리스 정책은 유지. [연속 실패 분석 문서](docs/ISSUE_552_FAILURE_ANALYSIS.md)와 8Run/10파일 누적 원장 갱신, 새 코드 실행은 NOT TESTED.
 
 - CI #2866.1의 삭제된 Milestone Lane64px 기대를 marker OFF의 실제 native Gantt bounds·marker0·무예약 공간 검사로 교체하고, 알림 E2E의 합성 Root 오류를 Milestone parent 오류와 분리한다. #2844~#2866 누적 실패 7Run/9파일을 취소 Job 내 실제 실패까지 원장화하며 Pre-PR UNKNOWN6의 직접·인접·음성 매핑/실제 regression test를 추가한다. 기존 sourceStable 차단은 완화하지 않는다. 새로운 local diagnose/전체 Chromium/Trusted QA·Owner 확인은 실행 전 NOT TESTED; 릴리스/버전/CI 실패 중단 정책은 유지한다.

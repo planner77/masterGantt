@@ -62,14 +62,18 @@ function taskMeaning(snapshot: ProjectSnapshotResponse) {
 }
 const linkMeaning = (snapshot: ProjectSnapshotResponse) => snapshot.data.links.map((link) => ({ predecessorExternalId: link.predecessorExternalId, successorExternalId: link.successorExternalId, type: link.type, lag: link.lag, legacyMixed: link.legacyMixed })).sort((a, b) => a.predecessorExternalId.localeCompare(b.predecessorExternalId) || a.successorExternalId.localeCompare(b.successorExternalId));
 const row = (page: Page, taskId: string) => page.locator(`#project-panel-schedule .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
-async function openTask(page: Page, taskId: string) {
-  const nativeRow = row(page, taskId);
-  if (await nativeRow.count() === 0) {
-    // #552: canonical Milestones stay editable through the independent dashboard,
-    // never by manufacturing a native Grid row.
-    return openMilestoneEditor(page, taskId);
+async function openTask(page: Page, task: Pick<ProjectTaskDto, "taskId" | "type">) {
+  // An absent native row is not proof of Milestone type: during the initial
+  // actual-HTTP/SVAR mount even an ordinary Task may briefly have zero DOM rows.
+  // The canonical task type, not virtualized/pending DOM, owns the navigation.
+  if (task.type === "milestone") {
+    return openMilestoneEditor(page, task.taskId);
   }
   await page.getByRole("tab", { name: "일정", exact: true }).click();
+  const nativeRow = row(page, task.taskId);
+  await expect(nativeRow).toBeVisible();
+  // An ordinary Task/Summary must not fall back to a Milestone-only search;
+  // preserve its real Grid context-menu path and Editor assertions.
   await nativeRow.click({ button: "right" }); await chooseTaskInformation(page);
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(dialog).toBeVisible();
@@ -144,12 +148,14 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   const origin = baseURL!, fixture = await seed(page, origin, observeIsolatedApi), { project, child, summary, join, b, free, warningSource, destination } = fixture;
   for (const path of ["/milestone-dashboard", "/assigned-targets", "/resource-workload", "/logistics/dashboard", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`, "/exports/json", "/exports/excel", "/imports/preview", "/imports"]) await (await page.request.get(`${project.api}${path}`)).body();
   await page.goto(`/projects/${project.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
-  const editor = await openTask(page, child.taskId); await expect(editor).toContainText("Summary 기본 단계에서 상속");
+  expect(child.type).toBe("task");
+  const editor = await openTask(page, child); await expect(editor).toContainText("Summary 기본 단계에서 상속");
   const picker = editor.getByRole("combobox", { name: "Milestone", exact: true }); await picker.fill(join.taskId); await picker.press("Enter");
   const beforeEdit = project.snapshot.data.project.revision;
   await editor.getByRole("button", { name: "저장", exact: true }).click(); await expect(editor).toHaveCount(0); await project.refresh();
   expect(project.snapshot.data.project.revision).toBe(beforeEdit + 1);
-  const milestoneEditor = await openTask(page, join.taskId); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  expect(join.type).toBe("milestone");
+  const milestoneEditor = await openTask(page, join); await milestoneEditor.getByRole("tab", { name: /소속 작업/ }).click(); await expect(milestoneEditor).toContainText("유효 일반 작업 3개"); await expect(milestoneEditor).toContainText(child.name); await milestoneEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   const header = page.locator("#project-panel-schedule .wx-table-container .wx-header").first(); await header.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "Milestone", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(page, child.taskId).getByRole("button", { name: /Milestone:/ })).toContainText(join.name);
