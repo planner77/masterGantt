@@ -10,6 +10,17 @@ export const LOGISTICS_PERSPECTIVES = {
 } as const satisfies Record<string, { label: string; order: readonly ResourceTargetDimension[] }>;
 export type LogisticsPerspective = keyof typeof LOGISTICS_PERSPECTIVES;
 
+/** Old details cannot be reused for a different query or canonical snapshot. */
+export function currentLogisticsDetail<T extends { snapshotId: string; queryKey: string }>(
+  selection: T | null,
+  snapshotId: string | undefined,
+  queryKey: string,
+): T | null {
+  return selection && snapshotId && selection.snapshotId === snapshotId && selection.queryKey === queryKey
+    ? selection
+    : null;
+}
+
 /** Configured physical quantity is not Task coverage, completed installation or effort. */
 export function configuredLogisticsInventory(logistics: Pick<ProjectLogisticsDto, "equipment" | "systems">) {
   const equipment = new Map<string, number>();

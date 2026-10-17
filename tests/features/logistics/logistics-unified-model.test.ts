@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { configuredLogisticsInventory, fullMilestoneGateLabel, LOGISTICS_PERSPECTIVES } from "../../../src/features/logistics/logistics-unified-model";
+import { configuredLogisticsInventory, currentLogisticsDetail, fullMilestoneGateLabel, LOGISTICS_PERSPECTIVES } from "../../../src/features/logistics/logistics-unified-model";
 import type { ProjectLogisticsDto } from "../../../src/contracts/logistics";
 import type { ResourceDashboardStage } from "../../../src/contracts/resource-dashboard";
 
@@ -32,6 +32,16 @@ describe("Issue #624 Logistics read-only perspectives", () => {
     const result = inventory([], ["mcs"]);
     expect(result.equipmentQuantity).toBe(0);
     expect(result.systemIds).toEqual(["mcs"]);
+  });
+  it("invalidates exact detail on query, snapshot or missing data without mutating canonical selection", () => {
+    const selection = { snapshotId: "snap-1", queryKey: "process", selector: { dimension: "targetProjection" } };
+    expect(currentLogisticsDetail(selection, "snap-1", "process")).toBe(selection);
+    expect(currentLogisticsDetail(selection, "snap-2", "process")).toBeNull();
+    expect(currentLogisticsDetail(selection, "snap-1", "equipment")).toBeNull();
+    expect(currentLogisticsDetail(selection, undefined, "process")).toBeNull();
+    expect(currentLogisticsDetail(selection, "", "process")).toBeNull();
+    expect(currentLogisticsDetail(null, "snap-1", "process")).toBeNull();
+    expect(selection).toEqual({ snapshotId: "snap-1", queryKey: "process", selector: { dimension: "targetProjection" } });
   });
   it("keeps the full Ready/Blocked gate independent from the selected Task summary", () => {
     const stage = { full: { ready: true, blocked: false }, selected: { taskCount: 0 } } as ResourceDashboardStage;

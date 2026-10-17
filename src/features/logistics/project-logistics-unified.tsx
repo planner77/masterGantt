@@ -8,7 +8,7 @@ import { dashboardQuery, plannedEffort } from "@/features/resources/resource-das
 import { ResourceDashboardDetails } from "@/features/resources/resource-dashboard-details";
 import { ResourceTargetFilters, ResourceTargetViews } from "@/features/resources/resource-target-views";
 import { useResourceDashboard } from "@/features/resources/use-resource-dashboard";
-import { configuredLogisticsInventory, fullMilestoneGateLabel, LOGISTICS_PERSPECTIVES, type LogisticsPerspective } from "./logistics-unified-model";
+import { configuredLogisticsInventory, currentLogisticsDetail, fullMilestoneGateLabel, LOGISTICS_PERSPECTIVES, type LogisticsPerspective } from "./logistics-unified-model";
 import styles from "./project-logistics-unified.module.css";
 
 interface Props {
@@ -24,6 +24,8 @@ interface Props {
   onOpenMilestone?: (taskId: string) => void;
   onResourceSchedule?: (request: ResourceScheduleRequest) => void;
 }
+
+const DETAIL_SCOPE_CHANGED = "조회 조건 또는 원본 snapshot이 바뀌어 이전 상세를 닫았습니다. 현재 결과에서 다시 선택하세요.";
 
 /** Share the existing exact Task/Assignment/Target editor and resource scope navigation. */
 export function ProjectLogisticsUnified(props: Props) {
@@ -70,16 +72,20 @@ function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMil
   const inventory = useMemo(() => configuredLogisticsInventory(logistics), [logistics]);
   const linked = data?.targetProjection?.relatedMembers;
   const unitShown = data?.mdPerMm && unit === "mm" ? "mm" : "md";
+  // A selection is valid only for the exact query and canonical snapshot.
+  // Derive validity during render rather than synchronously resetting state in an effect.
+  const currentSelection = currentLogisticsDetail(selection, data?.snapshotId, queryKey);
+  const visibleSelectionNotice = selection && !currentSelection ? DETAIL_SCOPE_CHANGED : selectionNotice;
 
   useEffect(() => {
-    if (selection && (selection.snapshotId !== data?.snapshotId || selection.queryKey !== queryKey)) {
-      setSelection(null);
-      setSelectionNotice("조회 조건 또는 원본 snapshot이 바뀌어 이전 상세를 닫았습니다. 현재 결과에서 다시 선택하세요.");
-    }
-  }, [data?.snapshotId, queryKey, selection]);
-  useEffect(() => {
-    if (selection && !stale) detailsHeading.current?.focus({ preventScroll: true });
-  }, [selection, stale]);
+    if (currentSelection && !stale) detailsHeading.current?.focus({ preventScroll: true });
+  }, [currentSelection, stale]);
+
+  // Explicit user interactions may invalidate the old detail without a render-effect cascade.
+  const invalidateSelection = () => {
+    setSelection(null);
+    setSelectionNotice(selection ? DETAIL_SCOPE_CHANGED : null);
+  };
 
   const toggle = (key: string) => setExpanded(previous => {
     const next = new Set(previous);
@@ -95,6 +101,7 @@ function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMil
   };
   const closeDetail = () => {
     setSelection(null);
+    setSelectionNotice(null);
     requestAnimationFrame(() => {
       const trigger = detailsTrigger.current;
       if (trigger?.isConnected && !trigger.closest("[hidden],[inert]") && !trigger.matches(":disabled")) {
@@ -103,17 +110,17 @@ function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMil
     });
   };
   const markStale = () => setStaleSnapshot(data?.snapshotId ?? null);
-  const refresh = () => { setStaleSnapshot(null); setSelection(null); report.refresh(); };
+  const refresh = () => { setStaleSnapshot(null); setSelection(null); setSelectionNotice(null); report.refresh(); };
   const changeFilters = (patch: Partial<ResourceDashboardFilterInput>) => {
     setFilters(previous => ({ ...previous, ...patch }));
-    setSelectionNotice(null);
+    invalidateSelection();
   };
 
   return <section className={styles.root} data-testid="logistics-unified-view" aria-label="물류 통합 교차 조회">
     <div className={styles.toolbar}>
       <label>조회 관점
         <select ref={viewSelect} aria-label="물류 통합 조회 관점" value={perspective}
-          onChange={event => { setPerspective(event.target.value as LogisticsPerspective); setExpanded(new Set()); }}>
+          onChange={event => { setPerspective(event.target.value as LogisticsPerspective); setExpanded(new Set()); invalidateSelection(); }}>
           {Object.entries(LOGISTICS_PERSPECTIVES).map(([key, view]) =>
             <option key={key} value={key}>{view.label}</option>)}
         </select>
@@ -187,17 +194,17 @@ function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMil
     {report.phase === "loading" || report.stale ? <p role="status">조회 중 또는 이전 snapshot입니다. 상세 수정·이동은 최신값 확인 후 가능합니다.</p> : null}
     {staleSnapshot === data?.snapshotId && data ? <p role="status">상세가 stale입니다. 새로고침하여 최신 snapshot을 확인하세요.</p> : null}
     {report.error ? <p role="alert" className={styles.error}>{report.error} <button type="button" onClick={refresh}>다시 시도</button></p> : null}
-    {selectionNotice ? <p role="status">{selectionNotice}</p> : null}
+    {visibleSelectionNotice ? <p role="status">{visibleSelectionNotice}</p> : null}
 
     {data && data.targetProjection && validRange ?
       <ResourceTargetViews data={data} unit={unitShown} stale={stale || busy} onStale={markStale}
         expanded={expanded} onToggle={toggle} matrix={false} onOpen={openDetail} /> : null}
 
-    {selection && data && selection.snapshotId === data.snapshotId && selection.queryKey === queryKey && !stale ?
+    {currentSelection && data && !stale ?
       <section className={styles.details} aria-label="정확 Task 및 Assignment 상세">
-        <h3 ref={detailsHeading} tabIndex={-1}>{selection.label}</h3>
+        <h3 ref={detailsHeading} tabIndex={-1}>{currentSelection.label}</h3>
         <button type="button" onClick={closeDetail}>상세 닫기</button>
-        <ResourceDashboardDetails data={data} selector={selection.selector} unit={unitShown}
+        <ResourceDashboardDetails data={data} selector={currentSelection.selector} unit={unitShown}
           stale={stale || busy} onStale={markStale} />
       </section> : null}
 

@@ -37,6 +37,10 @@
 
 ## PR CI 실패 누적 원장 / 차기 재검증
 
+- **3차 PR CI #2877.1 실패 원인 및 보완:** [Run 39008625870.1](https://github.com/planner77/masterGantt/actions/runs/39008625870) (HEAD `9e7cde9223733e2863ce015ad6e37e3d64388e6b`, base `de863713142a92f1cac56dbae044923822bca932`, test-merge `fd21a5d5e32e27da307b543f4b72171edf358ffd`). QA Preflight/Policy/TypeScript/Unit PASS(Vitest 2783/2786, skip3)이나 `project-logistics-unified.tsx:76`의 `react-hooks/set-state-in-effect` ESLint **1 error**로 PR Fast Gate가 중단. E2E6/Build/Docker는 SKIPPED, Required3/QA Final은 파생 FAIL이다. 제품 보완은 effect 내 동기 상태 설정을 제거하고 현재 query/snapshot과 일치하는 상세를 렌더에서 계산, 관점·필터 이벤트에서 명시 무효화, focus effect는 DOM만 동기화한다. 기존 정확 상세/권한·stale/복귀 계약 보존, `tests/features/logistics/logistics-unified-model.test.ts`에 snapshot/query/missing data 음성 회귀를 추가했다. 수정 뒤 로컬 ESLint/Unit/Chromium **NOT TESTED**, 새 exact-head CI에서 검증한다.
+- **원장 정합화:** 기존 실패 원장 본문에서 이전 문서 갱신 중 발생한 중복 제1절/깨진 줄을 바로잡는다. F-624-001~018과 #2875.1/#2876.1/#2877.1의 각 원본 증거를 모두 남기고 같은 근인/파생과 미실행 Job을 구별한다. [누적 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md).
+
+
 - **2차 CI #2876.1**: [Run `39008123509.1`](https://github.com/planner77/masterGantt/actions/runs/39008123509), HEAD `cc7604331780bda8dfdb12d2327c290409eb8596`, base `de863713142a92f1cac56dbae044923822bca932`, test-merge `7f45152608a5489a29da2dcd0725ef98c1425109`. 최초 필수 문서 영향 누락은 해소됐으나 `AC_TEST_COVERAGE`의 `- **AC1**:`…`- **AC7**:` 표기가 정책 regex와 불일치하여 모든 AC mapping을 인식하지 못했다. 실제 제품 검증 전 Preflight → Fast Gate → Required3/QA Final로 오류 전파. AC 근거는 유지하고 헤더만 `- AC1:`…`- AC7:`로 정규화했다.
 - **동일 문서의 잠재 재발 방지**: 머신 parser가 `UPDATED(설명)`을 읽지 못하므로 `DOCUMENTATION_SYNC`의 UPDATED 상태는 정확히 `UPDATED`로 통일한다. `N/A(reason)` 항목, 권한·산식/회귀·CI Gate는 보존한다. 상세 원인은 [누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 기록한다.
 
@@ -79,7 +83,7 @@
 - AC2: 기존 #621/#623 editor의 이름/기간/진척/allocation/membership 개별 mutation·canonical ID 유지와 신규 exact drill/조회 저장0/포커스. 전체 교차 수정은 새 Head CI 및 수동 검증 전 NOT TESTED.
 - AC3: 기존 #617/#620 resolver/typed member·#623 공유 MCS/AMR/WorkArea 없음/Legacy/다중 site fixture, 신규 Project 구성 ID distinct와 current Task coverage 분리. NOT TESTED.
 - AC4: 기존 Resource `summary`, `targetProjection.relatedMembers`, `stages[].full`·`selected`; 신규 Unit Gate 및 Chromium 네 관점 full Gate 비교. 설치실적 등 비범위.
-- AC5: 기존 bounded `ResourceDashboardDetails` / #528·#621 exact source/return·dirty/stale/readonly, 신규 동일 instance/복귀 focus/조회 저장0. CI 및 수동 경계 NOT TESTED.
+- AC5: 기존 bounded `ResourceDashboardDetails` / #528·#621 exact source/return·dirty/stale/readonly, 신규 동일 instance/복귀 focus/조회 저장0. CI 및 수동 경계 NOT TESTED. 추가 Unit: `currentLogisticsDetail`의 exact query/snapshot 일치·변경/없는 데이터일 때 상세 무효화.
 - AC6: 신규 Chromium 390/768/1024/1440/1920 긴 fixture·keyboard/overflow, 기존 #620/#623 query/response 예산. 실행/실측 전 NOT TESTED.
 - AC7: 동 PR의 본 DOCUMENTATION_SYNC 및 DESIGN Delta, version/CHANGELOG, active PLAN/계약/테스트 업데이트. 최종 docs gate 결과 NOT TESTED.
 

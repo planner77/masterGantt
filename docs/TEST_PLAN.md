@@ -1,3 +1,9 @@
+## Issue #624 PR #702 — CI #2877.1 React Hook lint regression (2026-10-17)
+
+- 최초 두 CI의 문서 계약 실패는 세 번째 [CI #2877.1](https://github.com/planner77/masterGantt/actions/runs/39008625870)에서 QA Preflight PASS로 검증됐다. 정책/Typecheck/Vitest(225 파일 PASS·1 SKIP, 2783 case PASS·3 SKIP)도 PASS. 신규 `src/features/logistics/project-logistics-unified.tsx:76`가 `react-hooks/set-state-in-effect` 규칙 위반으로 ESLint 1error/14warnings가 발생했고 그 결과 Fast Gate에서 E2E6/Build/Docker 실행이 차단됐다.
+- 제품 수정은 current query/snapshot이 다르면 기존 상세를 표시하지 않는 read-only derived gate `currentLogisticsDetail`과 사용자 관점/필터 이벤트의 명시적 selection 무효화로 옮긴다. Effect는 DOM focus만 관리한다. 신규 Unit은 정확한 같은 selection/스냅샷, 다른 query, 다른 snapshot, snapshot 없음/빈 값 및 null 선택을 검증한다.
+- 테스트 계약·표준 시간초과·Skip/Assertion 완화 없음. 새 Head의 scoped ESLint/Unit/Chromium/전체 CI는 **NOT TESTED**이며 #2877.1 PASS를 소급 이관하지 않는다. [누적 실패 분석](ISSUE_624_CI_FAILURE_ANALYSIS.md) 및 [Issue Work Packet](exec-plans/active/ISSUE_624.md) 참조.
+
 ## Issue #624 — 통합 다관점 조회 위험기반 회귀 (2026-10-17)
 
 - Unit `tests/features/logistics/logistics-unified-model.test.ts`: 공정/WorkArea·설비·시스템·Target/Resource 관점 순서, 구성 equipmentId/systemId 중복 제거, 동일 ID 수량 불일치 경고, Milestone full Gate 독립성.
