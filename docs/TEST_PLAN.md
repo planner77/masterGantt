@@ -1,3 +1,7 @@
+## Issue #703 — Preview GHCR Owner·SHA·권한 분리 회귀 (2026-10-17)
+
+변경 producer: .github/workflows/preview-publish.yml, scripts/preview_publish.py. 직접 소비자: authorize→Build/read→trusted image-policy·API/SQLite smoke→artifact→publish/packages:write. 음성 집합: 비Owner, 타 event/repo/ref, Open Issue 아님, branch/Issue 번호·SHA stale, 현재 main SHA stale, GHCR tag 존재/401/403/429/5xx, 출력 injection, Preview가 CI/Release를 오인하게 하는 권한 확장. tests/python/test_preview_publish.py는 GitHub 네트워크 없는 stub·워크플로 정적 검증이며 PR/Main CI 정책 Job에서 실행한다. 실제 Docker Build/Runtime 및 GHCR Registry 인증·digest·롤백/시간 절감은 별도 원격 검증 전 NOT TESTED. 기존 #697 테스트 영향 선정/QA/Required3 범위를 줄이지 않는다. [Preview 가이드](PREVIEW_PUBLISH.md), [실행 계획](exec-plans/active/ISSUE_703.md).
+
 ## Issue #598 후속 — Agent 활성 지침 계약 회귀 (2026-10-17)
 
 - `tests/scripts/agent-qa-contract.test.ts`가 네 Agent의 실제 `developer_instructions` 내부에서 OWNER_MANAGED 기본/AGENT 선택/qa_required=true 위험도와 기존 강제 리뷰 문구 부재를 검사한다. 바깥 주석만으로 PASS하지 않는다.
