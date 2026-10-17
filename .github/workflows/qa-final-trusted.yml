@@ -43,7 +43,7 @@ jobs:
         run: python3 scripts/qa_final_automated.py
       - name: default-branch 검증 결과 증거 업로드
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qa-final-trusted-${{ github.event.workflow_run.id }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: qa-final-automated-report.json
