@@ -1,3 +1,9 @@
+## Issue #717 — 전 화면 이름 우선·코드/ID 보조 표시 원칙 (2026-10-18)
+
+[Issue #717](https://github.com/planner77/masterGantt/issues/717) · [Work Packet](ISSUE_717.md). Milestone 대시보드의 외부/작업 ID 반복 노출과 물류 구성 공정 관리의 긴 코드 선행 표시를 우선 대상으로 등록한다. 기존 #519(단일 picker ID 비노출), #715(상시 설명 축소), `docs/PROJECT_UX.md` #409/#285의 코드 검색·수정 계약을 보존하며, 신규 전역 Name-first/Identifier-on-demand 정책을 `DESIGN.md` §1.3 및 §8에 반영한다.
+
+현재 범위는 **문서-only 제안**(`docs/issue-717-name-first-identifier-policy`)이다. 제품 구현·실제 UI/E2E·원격 CI·QA/Owner 수용은 **NOT TESTED/미착수**, app `0.115.0` 유지, docs-only `LOW/OWNER_MANAGED/qa_required=false`, `release_required=false/release_authorized=false`. 후속 구현에서 전 화면 식별자 인벤토리와 동명 엔터티·긴 코드/ID·390/768/1024/1440px 검증 및 화면 계약 갱신을 수행한다. 문서 PR 자체로 #717 완료/병합/Main/GHCR/이슈 종료를 승인하지 않는다.
+
 ## Issue #679 — PR 변경 묶음 게시 (2026-10-17)
 
 [Work Packet](ISSUE_679.md)에 최신 main/실제 Run 비용·Ruleset·연결 API를 재검토한 A~D 선택을 기록했다. A는 일반 운영 우선, 현재 Git push 인증 부재로 B를 조건부 사용한다. 읽기 전용 manifest prepare/verify·임시 Git 회귀·prepr 매핑과 운영 문서를 함께 준비한 뒤 한 번 게시하고 최종 PR CI 시작을 확인한다. HIGH/OWNER_MANAGED, version 0.114.1 유지, release_required=false/release_authorized=false. 제품 source·CI YAML/Ruleset/Trusted 정책은 변경하지 않는다. 원격 비용/최종 CI 성공·Owner 승인은 실제 증거 전 NOT TESTED이며 CI 완료 모니터링은 요청 범위 밖이다.
