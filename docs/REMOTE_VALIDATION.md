@@ -1,3 +1,7 @@
+## Issue #703 — GHCR Preview 시험 전용 원격 검증 (2026-10-17)
+
+Preview workflow_dispatch는 default main trusted SHA에서 Owner만 시작하고 등록 Open Issue/작업 branch HEAD의 full SHA를 GitHub API로 두 번 검증한다. 배포 package-write 권한이 없는 별도 Job에서 동일 원본 Docker image를 빌드하며 trusted image policy·readiness·Project/Task 인증/API·SQLite 재시작 Smoke에 통과해야 한다. Publish Job은 검증 artifact SHA256와 OCI revision label 및 GHCR tag 미존재를 인증한 뒤 별도 preview 패키지만 갱신한다. 승인/조회 모호성·stale는 BLOCKED. 전체 테스트와 Finalizer·정식 release 권한은 영향 받지 않는다. 자세한 원격 후속 AC와 비용 실증은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md), [ISSUE_703.md](exec-plans/active/ISSUE_703.md) 참조. 실제 Preview 실발행과 3개 Run 비용 절감은 NOT TESTED.
+
 ## Issue #699 — Local Pre-PR와 원격 PR CI 증거의 분리 (2026-10-16)
 
 [LOCAL_PREPR](LOCAL_PREPR.md)의 `report.json`/`SUMMARY.md`는 Git base/head/uncommitted fingerprint와 동일 로컬 source, 실제 선택 Unit/Chromium/Build/Docker(선택 시)와 환경·선정·제외·미실행의 증거다. local Node 22/Playwright Chromium worker1/`CI_E2E_FULLY_PARALLEL=true`도 여섯 독립 Ubuntu runner, Playwright headless-shell 설치와 GitHub Actions metadata/Trusted QA, Main 이미지와 동일 환경이라는 주장은 아니다.
