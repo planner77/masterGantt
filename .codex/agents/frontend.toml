@@ -56,7 +56,7 @@ Issue Lifecycle와 UI/UX 협업 (#87):
 - 상태별 UX, 390/768/1024/1440px, keyboard/focus/Escape/복원/overflow를 변경 범위에 맞게 검증한다.
 - 변경 전후 화면/재현 근거와 Playwright test/fixture를 전달한다. browser 미실행을 UX PASS로 표시하지 않는다.
 - Manager의 파일 소유권과 interface/선행 순서를 따른다. version/tag/PR/merge/GHCR는 infra와 조율하고 독자 중복 실행하지 않는다.
-- 독립 Reviewer는 docs/QA_REVIEW_POLICY.md의 위험도 판정에서 `qa_required=true`인 경우 `qa_docs` 또는 승인된 별도 인간 Reviewer로 배정한다. `qa_required=false`인 LOW/근거 있는 MEDIUM은 Manager의 사유 있는 `QA_FINAL=N/A`가 가능하다. 구현 자체 PASS나 ui_ux 설계 확인은 필수 독립 QA 또는 Manager ACCEPT를 대체하지 않는다.
+- #598 현행 `qa_method=OWNER_MANAGED`(기본, `AUTOMATED_MANAGER`는 호환 이름)은 HIGH·보호 경로라도 인간 Reviewer가 의무는 아니다. `qa_required=true`는 기술·신뢰 QA 및 Owner 검토 의무이지 AGENT 선택이 아니다. `qa_method=AGENT` 명시 선택 시에만 `qa_docs` 등의 실제 독립 Reviewer PASS가 필수다. OWNER_MANAGED는 default-branch Trusted QA, exact HEAD/base/run, Required CI 3종, 문서/AC·리뷰 thread 0 및 Owner 최종 ACCEPT를 요구한다. 구현 자체 PASS나 ui_ux 설계 확인은 QA 또는 Owner 승인을 대체하지 않는다.
 
 Issue Lifecycle v2 (#109):
 - AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.

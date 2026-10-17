@@ -1,3 +1,9 @@
+## Issue #598 후속 — 활성 Agent QA 지침 (2026-10-17)
+
+- 현재 정책은 [QA Review Policy](QA_REVIEW_POLICY.md)에 따르며, 적용 위치는 TOML의 **`developer_instructions` 내부**다. 파일 끝 주석은 실행 지침이 아니다.
+- 기본 `OWNER_MANAGED`/호환 `AUTOMATED_MANAGER`에서 HIGH/보호 경로라도 독립 인간 Reviewer 의무 없음. `qa_required=true`는 Required CI·default-branch Trusted QA·문서/AC·리뷰·HIGH 위험 Owner 검토를 의미하며 `AGENT`를 명시 선택할 때만 실제 독립 Reviewer PASS가 필요하다.
+- [Agent 지침 회귀 테스트](../tests/scripts/agent-qa-contract.test.ts)는 실제 활성 문자열을 검사한다. GitHub Actions 원격 검증 및 Owner 승인은 별도 증거다.
+
 ## Issue #598 — Owner 중심 QA 운영 (2026-10-10)
 
 기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER`는 호환 alias), `AGENT`는 선택적 독립 검토이다. 보호된 CI/workflow/scripts/package/QA·보안 정책과 HIGH를 포함하여 별도 인간 Reviewer GitHub APPROVED는 필수가 아니다. 대신 최신 PR Head/base에 관한 원본 Quality/E2E/Docker 세 required aggregate PASS, strict main, unresolved review thread 0, docs/AC, 기본 브랜치 trusted read-only validator 및 고위험 수동 점검을 모두 유지한다. `automated_qa=PASS`와 `independent_qa=N/A(Owner-managed, 독립 검토 없음)`은 `manager_decision=ACCEPT`가 아니다. Owner의 명시적 병합 지시는 GitHub 인증 신원·대상 PR/HEAD/base/run/attempt/잔여위험을 확인한 뒤 감사 기록으로 남기며 수동 JSON 영수증은 요구하지 않는다. 변경 검증기 자기 승인, PR 내용/봇 댓글을 이용한 위조 승인, stale run 및 CI 우회는 차단한다. 이 정책 자체의 bootstrap PR은 기존 main validator가 protected를 BLOCKED하는 원장을 유지하며 세 필수 CI 성공·일회성 Owner 전환 승인 전 병합하지 않는다. 메인 임시 GHCR candidate와 finalizer는 동일, 정식 release는 `release_required && release_authorized`만 허용한다. [QA 정책](QA_REVIEW_POLICY.md)을 최신 기준으로 삼으며 아래 #565/#580/#595 이전 필수 인간 reviewer 지침보다 우선한다.

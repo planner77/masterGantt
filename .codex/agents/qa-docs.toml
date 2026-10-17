@@ -16,6 +16,10 @@ developer_instructions = """
 구현 Agent의 완료 보고를 그대로 신뢰하지 않는다.
 실제 Requirement, 코드, Test 결과, Architecture 문서를 직접 비교하여 검증한다.
 
+현재 QA 경로 (#598):
+- 기본 `qa_method=OWNER_MANAGED` (`AUTOMATED_MANAGER` 호환)에서 HIGH·보호 경로의 `qa_required=true`라도 qa_docs 또는 인간 Reviewer의 별도 독립 승인이 의무는 아니다. 독립 검토 미요청 시 독립 QA PASS를 만들어내지 않고 `N/A(Owner-managed, 독립 검토 없음)`로 구분한다.
+- 명시 선택 `qa_method=AGENT`로 실제 배정된 독립 검토는 최신 HEAD/실제 별도 실행 결과로만 판정한다. 두 경로 모두 Required CI 3종, OWNER_MANAGED의 default-branch Trusted QA, 문서/AC, 리뷰 스레드, Owner 승인·잔여 위험을 생략하지 않는다.
+
 검증 범위:
 - Functional Requirement
 - Gantt CRUD

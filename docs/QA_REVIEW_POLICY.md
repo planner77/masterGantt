@@ -1,3 +1,7 @@
+## Issue #598 후속 — 현재 Agent 실행 정책 (2026-10-17)
+
+기본 `qa_method=OWNER_MANAGED`(기존 `AUTOMATED_MANAGER` 호환)에서는 `qa_required=true`/HIGH/보호 경로가 독립 인간 Reviewer 의무로 전환되지 않는다. 신뢰된 default-branch QA, Quality/E2E/Docker, strict 최신 main, HEAD/base/run, 문서·AC, 리뷰 thread 0 및 HIGH 잔여 위험을 포함한 Owner의 별도 최종 병합 승인은 모두 필요하다. `qa_method=AGENT` 선택 시에만 실제 독립 인간 QA를 요구한다. 과거 #565·#580의 초기 규정은 역사적 기록이고 현재 활성 TOML 지침을 덮어쓰지 않는다.
+
 ## Issue #639 — immutable Main CI recovery (2026-10-12)
 
 - #616 / PR #631 merge `b97709df8b5c0974f3c8252ac97819f45f73a5b9` has no original push CI; never rewrite or mark historical checks retroactively. GitHub Actions `GITHUB_TOKEN` event suppression is a plausible mechanism, not established cause without original token/event provenance.

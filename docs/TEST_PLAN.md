@@ -1,3 +1,8 @@
+## Issue #598 후속 — Agent 활성 지침 계약 회귀 (2026-10-17)
+
+- `tests/scripts/agent-qa-contract.test.ts`가 네 Agent의 실제 `developer_instructions` 내부에서 OWNER_MANAGED 기본/AGENT 선택/qa_required=true 위험도와 기존 강제 리뷰 문구 부재를 검사한다. 바깥 주석만으로 PASS하지 않는다.
+- CI 스크립트/Ruleset/Required 3종/default-branch Trusted QA/Owner 승인과 정식 Release 계약은 변경하지 않는다. 실제 새 HEAD의 Vitest·PR CI·QA·main 결과는 원격 실행 전 NOT TESTED다.
+
 ## Issue #552 — 누적 CI 실패9건과 Marker OFF/Pre-PR 교차 회귀 (2026-10-17)
 
 - [최소 재현 원장](evidence/issue-552/ci-cumulative-20261017.json)의 CI 7회/9개 실실패 파일을 서로 다른 HEAD로 보존한다. `CANCELLED`라고 해도 #2862 shard5 날짜축·#2863 shard4 Task 버튼의 테스트-level FAIL은 소실하지 않는다. 최신 #2866 shard4 알림 테스트는 제거된 marker lane의 null `getBoundingClientRect`에서 FAIL(97PASS/1FAIL/1SKIP/63NOTRUN); 다른 취소 shard의 일부 PASS를 전체 PASS로 치환하지 않는다.
