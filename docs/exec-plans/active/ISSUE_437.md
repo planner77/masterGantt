@@ -53,3 +53,15 @@
 - Plan 고정 목록에 없는 신규 파일이 다른 shard로 배정되는 fallback 로직과 E2E 모든 spec의 실제 실행 여부를 확인한다.
 - required aggregate SUCCESS와 개별 E2E 실행 여부·Docker skip 근거를 분리 보고한다.
 - 신뢰된 QA가 자동 PASS하더라도 `manager_decision=NOT TESTED`다. Owner의 별도 명시적 병합 허가와 HIGH 잔여 위험 수용 전 병합하지 않는다.
+
+## 2026-10-17 후속 적용 — PR #696 / 최신 main 정렬
+
+- Owner 지시로 종료된 #437의 후속 작업을 재개한다. 기준 main: `c063101ed7b1d08803c3dac15a41e67842071187` / 기존 PR Head: `c5fd9fdecb69532e3e940028029e361c8cf7b08a`. risk_level=HIGH; qa_method=OWNER_MANAGED; qa_required=true; release_required=false; release_authorized=false.
+- Historical timing 모델 원본(2026-10-15, 14개 성공 Run, median/LPT)은 불변이다. 제안 JSON은 기존 114개 spec을 shard마다 19개씩 명시하고, 해당 시점 개선 예상 baseline 750176ms → projected 563440ms를 포함한다. **이 수치는 현재 main의 실측 개선이 아니다.**
+- 현재 main의 E2E spec은 116개. 기존 `selectShardFiles` 결정적 FNV hash fallback으로 새 `tests/e2e/gantt-state-recovery-editor.spec.ts`는 shard 1, `tests/e2e/gantt-state-product-integration.spec.ts`는 shard 2에 추가되어 20/20/19/19/19/19개, 전체 116개, 고유 116개, 중복/누락 0을 보장한다. 신규 두 파일에 대한 historical median은 아직 없어 예측 소요시간 신뢰도 위험을 남긴다.
+- 이번 PR의 변경 범위: `tests/config/e2e-shard-plan.json`(Historical timing 기반 기존 PR 제안 그대로)과 본 Work Packet. E2E runner·worker/serial/timeout·fallback·workflow/Required 3종·Ruleset 불변.
+- DOCUMENTATION_SYNC: `docs/TEST_PLAN.md` N/A(기존 #437 optimizer/reporting/median/LPT/fallback 계약과 실측 재검증 기준이 문서화되어 있으며 런타임·테스트 계약은 미변경). `docs/CI_CD.md` N/A(workflow 불변). `DESIGN.md` N/A(UI 불변). 기존 첫 ## DOCUMENTATION_SYNC 및 AC1~AC11 매핑은 보존한다.
+- AC1~AC11 후속 확인: 실제 최신 HEAD의 CI 6 shard를 모두 실행해 spec 전체 커버리지와 max/min 편차, 실제 runner-minutes, Quality/Docker required aggregate, Trusted QA를 검증한다. bot-created PR `action_required` 및 이전 workflow_dispatch 성공만으로 MERGE_READY를 주장하지 않는다.
+- 사전 정적 검증: 116/116 파일 경로 분배 PASS, 중복·누락 0 PASS. 새로운 HEAD 원격 PR CI/Trusted QA/Owner의 정량 수용·Main CI는 별도 검증 전 NOT TESTED.
+
+- 2026-10-17 병합 순서 보정: #598 후속 PR #701의 exact main merge SHA `0f3f1dc17d0e231e0aa9069568a60ca60c889227`를 새 기준 main으로 정렬; 선택·테스트·보안 계약은 그대로 유지한다. 이전 실패 #2870.1은 원래 PR base stale(기준 `ee6365bf...`) 상태에서 Work Packet의 `AGENTS.md` 누락 판정; 수정 소급 PASS 금지. 새 main 기준 HEAD/PR CI·Trusted QA를 별도 검증한다.
