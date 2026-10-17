@@ -1,3 +1,10 @@
+## Issue #703 — Preview-first / Release-after-CI 별도 GHCR 시험용 Publish (2026-10-17)
+
+- 전체 CI 전에 실사용 기능을 시험하기 위한 **별도 수동** workflow: .github/workflows/preview-publish.yml. Owner + trusted default main + Open Issue + 같은 저장소 Issue branch + 정확 full source SHA를 검증한다. 절차·DB 격리/롤백은 [PREVIEW_PUBLISH.md](PREVIEW_PUBLISH.md)를 따른다.
+- authorize/read → build/read (trusted image-policy·Project/Task·SQLite smoke) → publish/packages:write (검증 동일 Run Docker archive, SHA256, tag 부재/branch 최신성 재확인·GHCR digest pull) 권한 분리. Preview 패키지: ghcr.io/planner77/mastergantt-preview:issue-N-fullSHA.
+- 기존 PR Full 3 Required Quality/E2E/Docker, 6 shard, default-main Trusted QA, Owner 위험 수용·병합 승인, Main ci-<SHA> digest/SBOM/provenance, 정식 version tag/Release/Finalizer는 불변. Preview 결과는 정식 릴리스 증거가 아니다.
+- CI 정책 Job에 tests/python/test_preview_publish.py 음성·격리 검증을 추가한다. CI Run 및 실발행 증거는 최초 PR/Main 검증 전 NOT TESTED; 이번 변경의 app version/Release 정책 변경 없음. #659/#679/#697/#699 CI 비용 최적화와 책임을 구분한다.
+
 ## Issue #622 — CLOSED 상태의 누락 Lifecycle FINAL 제한적 복구 (2026-10-15)
 
 정식 v0.114.0은 #686 immutable release로 발행되어 유지되고, #622는 이후 Owner가 PR #691 Main CI/Finalizer 전 CLOSED 처리하여 Generic Resolver의 non-actionable barrier가 됐다. 기존 #665/#666의 인증된 FINAL은 그대로 둔다. 복구를 위해 기존 `release-finalizer.yml` 내 #622 **Owner comment 한정 Job** 및 `closed_issue_622_recovery.py`로 latest main exact PR/Issue/SHA, first-parent 3개 구 PR, Owner marker, 최초 실패/성공 교정 Release, QA/Main/GHCR 후보를 재인증한다. CI Ruleset 3 required aggregate, GHCR 권한·버전·기존 릴리스 tag/digest는 변경하지 않는다. 필요시 `safe_branch_cleanup.py` 404 수렴 최대10회로 Delete의 이미 수행된 상태만 검증하며 SHA lease/타 PR 참조/보호 branch 거부를 유지한다.
