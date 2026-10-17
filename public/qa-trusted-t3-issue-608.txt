@@ -1,0 +1,2 @@
+T3 canonical trace negative/recovery test marker for Issue #608.
+This is an inert file; no application or CI configuration is modified.
