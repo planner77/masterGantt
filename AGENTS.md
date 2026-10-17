@@ -259,6 +259,12 @@ Local PASS는 공식 전체 회귀 PASS가 아니며 GitHub Actions PASS를 대�
 - 자체 보호: 기존 DB/port 3100·E2E/Build 디렉터리 선점은 BLOCKED, 자동 npm ci/기존 서버 종료/git clean/reset/운영 URL 테스트 금지, 테스트가 생성한 자료만 정리. 중간 source 변경은 stale이다.
 - CLI의 로컬 PASS는 **GitHub exact-Head PR 세 Required Quality/E2E/Docker, QA Preflight·Trusted QA, 리뷰·충돌, Owner ACCEPT를 대체하지 않는다.** 원격 전용 항목은 DEFERRED와 이유를 별도 보고한다. 기존 CI workflow/6-shard/fail-fast/GHCR/Finalizer 정책은 변경하지 않는다.
 
+### PR CI 실패 시 이슈별 누적 실패 원장 의무 (#704)
+
+- **첫 PR CI 실패 시점부터** canonical Primary Issue별 **`docs/ISSUE_<N>_FAILURE_ANALYSIS.md` 한 파일**을 생성·유지한다. **재실패/REWORK/세션 재개 시 원장 전체와 같은 Issue의 모든 관련 PR·Run·Attempt·Shard·취소/미실행 이력을 먼저 조회·대조**하고 새 실패를 누적한 뒤 원인별 통합 보완을 결정한다. **직전 Run 오류만 고치는 것은 불가**하다.
+- infra는 실제 GitHub Run/Job/Step/Head/Base/Test-merge·각 Attempt와 Fail-fast 취소 Job의 **기록된 실제 실패**를 확보하고, Manager는 과거 가설·수정·회귀·누락을 교차 검토한다. 구현 Agent는 **누적 실패 테스트 합집합 + 변경의 직접·간접·음성 소비자**를 범위/비용 상한이 있는 fail-fast 없는 로컬 진단으로 점검하며 최종 **동일한 동결 source**에서 재검증한다. 이전 Head/Attempt의 PASS를 새 Head의 PASS로 합산하거나 실패 이력을 소급 삭제하지 않는다.
+- 원장 서식·원격 증거·분류·단계별 책임·완료 기준은 **[PR CI 실패 누적 분석 지침](docs/PR_CI_FAILURE_TRIAGE.md)**이 단일 원본이다. 기존 [#667 원장](docs/ISSUE_667_FAILURE_ANALYSIS.md), [TEST_PLAN #697](docs/TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16), [#699 로컬 진단](docs/LOCAL_PREPR.md)을 재사용하되 해당 로컬 PASS가 필수 PR CI 3종/Trusted QA/Owner 승인을 대체하지 않는다. **원장 갱신·영향 회귀·리뷰/충돌 검토 전에 새 PR CI를 계속 재실행하지 않는다.**
+
 ### 변경 영향 분석과 교차 회귀 선정 (#697)
 
 Manager와 frontend/backend/scheduler 등 구현 Agent는 착수 PLAN, 공유 API·상태·계약 변경, REWORK 및 연속 원격 CI 실패 시 [TEST_PLAN의 변경 영향 기반 사전 검증 기준](docs/TEST_PLAN.md#issue-697--변경-영향-기반-로컬-검증과-교차-회귀-선정-2026-10-16)을 적용한다. 파일 개수가 아니라 공유 canonical 상태, Core/native·HTTP/SQLite 경계, 권한·revision, async lease·receipt·복구와 간접 소비자/이전 CI 회귀를 입력으로 위험도를 분류하고 상향 근거를 기록한다.
