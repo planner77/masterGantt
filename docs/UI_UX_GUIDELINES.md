@@ -108,6 +108,31 @@ selected는 `aria-selected` 등 의미와 색을 함께 사용한다. readonly/o
 | UX-11 | UI 변경으로 domain 계약을 바꾸지 않는다. | revision/If-Match/session/Origin/API/canonical snapshot 계약을 유지하는가? |
 | UX-12 | 사용자의 작업 상태를 보존한다. | tab/modal 전환으로 scroll/tree/column/scale/selection/fullscreen을 불필요하게 초기화하지 않는가? |
 
+## 설명·도움말·피드백 노출 기준 (Issue #715)
+
+전역 디자인 기준은 [DESIGN.md §5](../DESIGN.md#설명-밀도-및-상황형-도움말-정책-issue-715)이다. 프로젝트 Milestone 대시보드·리소스(Workspace + `/resources`)·물류 구성(Workspace + `/logistics-admin`)·기준정보(`/project-master-admin`)는 다음 **상태·노출 매트릭스**를 동일하게 적용한다. 기존 `UX-02/03`을 단순히 설명 삭제로 오용하지 않는다.
+
+| 내용·상태 | 기본 표현 | 보존 조건 |
+| --- | --- | --- |
+| 현재 화면·범위·기간·필터·핵심 단위/상태/KPI 및 목록건수 | 해당 제목·지표·label 인접에 간결하게 직접 표시 | 선택 조건과 서버 산출 범위가 일치해야 함 |
+| 정적인 사용 방법, 중복 제목, 단순 생성 절차, 추가 학습·정의 | 상시 설명 문단 대신 해당 heading/field/KPI의 `도움말` button이 여는 tooltip/popover/접힘 상세 | 내용을 버리지 말고 실제 필요 컨텍스트로 옮김; 기본 닫힘은 레이아웃 공간을 차지하지 않음 |
+| 필수 입력 제약 및 잘못된 입력/조건 | 필드 인접 짧은 helper 또는 validation error | 어떤 값이 잘못됐는지·고치는 법·오류 연결(예: `aria-describedby`/`aria-errormessage`) |
+| 단순 저장·복사·조회 성공 | 기존 notification 체계의 임시 status/Toast | 중복 띄우기·레이아웃 점프 방지; 읽기에 필요하면 결과 상태를 보존 |
+| 401/403, 최신 revision(412), 서버·네트워크 오류, 초안 위험 | 현재 영역 또는 지속 접근 가능한 알림에서 원인·수정/재인증·새로고침/재시도 제공 | 오류를 데이터 없음과 혼동 금지, 무조건 자동 재시도·초안 손실·stale 성공 오인 금지 |
+| 삭제, 비가역 변경, 공유 Target/인스턴스 영향, 명시적 선택이 필요한 실패 | 작업 직전 Dialog나 명시 확인 단계 | 영향 대상·취소·대안·pending guard·focus restore를 제공; 일반 오류마다 modal 남용 금지 |
+| 공수 합산 불가·계산 분모/범위·미지정·미산정·보안 필수 경고 | 해석 오류를 막는 짧은 인접 라벨/상태와 자세한 on-demand 설명 | tooltip만 보지 않아도 오해할 여지를 최소화하고 필요한 행동에는 사전 안내 |
+
+**Interaction/접근성 세칙**
+- Tooltip은 설명하는 **바로 그 요소에 연결**하고 hover/focus 모두에서 접근할 수 있도록 한다. 클릭형 `도움말`은 실제 button·명시 accessible name·`aria-expanded`/ `aria-controls`(적용 시)로 구현하고 keyboard Enter/Space, Escape 닫기, 닫은 뒤 trigger focus 복원, click/touch 및 viewport 밖 배치·clip 방지를 검증한다. 단순 `title` 속성/hover-only/disabled control 자체만 유일한 도움말 경로로 삼지 않는다.
+- 비차단 인라인/Toast는 적절한 `role=status`/live region, 중요한 오류는 `role=alert` 또는 동등한 접근 가능한 표시를 사용한다. 화면을 읽다가 매번 blocking Dialog에 진입시키지 않는다. Dialog를 연 경우 적절한 초기 focus, Tab 경계, Escape(진행중 guard 예외), 종료 후 trigger focus를 확인한다.
+- 기본 비어 있는 고정 설명 래퍼는 남기지 않는다. 화면별 간격은 기존 semantic token/spacing, 실제 data table/pane geometry budget을 따른다. 핵심 진입점이나 읽기 쉬운 이름을 좁은 화면에서 숨겨 밀도를 얻지 않는다.
+- 컴포넌트별 기존 테스트/상태 계약을 함께 유지한다: Milestone 범위·Ready/Completed·드릴다운/marker-OFF, Resource Capacity/M/D/M/M·선택 대비 전체·비가산, 물류 Target/설비/시스템 공유 원본과 역할, 기준정보 stable code·카탈로그 revision·관리자 session.
+
+**검증/증거**
+- 변경 전 각 반복 설명 문자열을 인벤토리화하고 유지/축약/도움말 이동/제거와 이유를 기록한다. 같은 프로젝트·데이터/확대율/viewport에서 고정 설명 점유 높이, 첫 주요 정보까지의 세로 거리, 목록의 가시 행 수를 before/after로 **실측**한다. 임의 절감률 목표를 PASS로 포장하지 않는다.
+- 390/768/1024/1440/1920px의 normal/readonly/edit/loading/empty/error/stale/권한 거부/파괴적 명령, 긴 KO/EN, mouse/keyboard/touch, 외부 스크롤, focus/ARIA/동일 탭 작업 상태 복원을 확인한다. E2E/browser/원격 PR CI 등 수행하지 못한 증거는 `NOT TESTED`로 분리한다.
+- 유사 도움말 primitive가 이미 있으면 재사용하고 SVAR native Gantt action이나 API/DB·scheduler 계약은 수정하지 않는다. 실제 제품 적용 범위·예외는 [Issue #715](https://github.com/planner77/masterGantt/issues/715)와 UI 검증 결과에서 관리한다.
+
 ## SVAR 데모와 API 확인
 
 UI 기능 설계 전에 유사한 공식 데모가 있는지 확인하고 참조 URL, 확인일, 적용할 interaction, 차이, 사용하는 Core API/설치 버전을 설계 기록에 남긴다.
