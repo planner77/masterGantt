@@ -76,8 +76,8 @@ test("Issue #492 shows the same canonical Task details from Grid and Chart", asy
 
   await expectTooltip(page, taskBar(page, 1), "Stable summary", taskStart, taskEnd, fixture.project.revision);
 
-  const milestoneDate = await displayDate(page, "2026-12-18");
-  await expectTooltip(page, taskBar(page, 4), "Stable milestone", milestoneDate, milestoneDate, fixture.project.revision);
+  await expect(taskBar(page, 4)).toHaveCount(0);
+  await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
 
   await expectTooltip(page, rowNamed(page, "Date-less summary 492"), "Date-less summary 492", "—", "—", fixture.project.revision);
   await expect(taskBar(page, 5)).toHaveCount(0);

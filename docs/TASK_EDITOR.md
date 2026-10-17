@@ -372,3 +372,20 @@ Resource에서 열린 Editor는 실제 trigger와 origin을 전달해 닫기/취
 서버 저장 결과와 최신 조회를 확인할 수 없는 UNKNOWN에서는 Editor 초안을 유지하고 추가 저장 및 하위 Resource/관계/물류 mutation을 잠근다. 명시 최신 조회와 취소는 실제 전송 pending과 구분해 사용할 수 있다. 이 상태의 제한 안내는 저장 결과 확인이 필요한 사유를 표시하며 프로젝트 편집 권한이 없다는 안내로 대체하지 않는다. 실제 401/readonly의 기존 권한 안내는 유지한다.
 
 최신 조회가 성공하면 Editor base revision과 canonical을 갱신하고 conflict 잠금을 해제한다. 열린 modal 자체의 native Gantt 잠금은 유지하며 modal을 닫은 뒤 native 편집을 재개한다. 조회 전에 보존한 초안을 자동 저장하거나 이전 요청을 재전송하지 않는다. 실행 범위와 source별 증거는 [#667 Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
+
+## Issue #552 — 숨긴 Milestone의 단일 Editor와 날짜 안내
+
+운영 marker-OFF에서 Milestone은 Dashboard의 정확한 canonical ID 관리/관계 명령으로 기존 단일 ProjectTaskEditor를 연다. Native WBS 행·marker가 없어도 full canonical 소속/Link·Ready/Completed·Summary 파생·Resource/Target 원본을 읽으며 dirty/pending/readonly/401/412/응답역전 guard를 유지한다. 닫기·Escape는 현재 연결된 가시 Dashboard trigger로 복귀하고 소멸 시 기존 검색/추가/heading fallback을 사용한다. 숨은 native M select로 focus를 대체하지 않는다.
+
+Milestone 날짜 요청은 상세 날짜 확인과 정확한 소속 일반 Task 탐색으로 명시 안내한다. marker·임시 ON·M 날짜축 확장/scroll은 실행하지 않으며, 실제 일반 Task의 `일정에서 보기`는 기존 #667 Coordinator/port와 정확 ID/focus 계약을 사용한다. 미정 날짜/소속0/조건0을 구별하고 조회 필터를 자동 해제하지 않는다. 기존 삭제 확인·Copy 영향 확인은 full canonical 숨은 M을 설명하며 session/Origin/revision·완료/관계·Assignment Copy 서버 잠금을 해제하지 않는다.
+
+### #552 숨긴 Milestone의 기존 일반 Task 전환
+
+Dashboard 관리의 `일반 Task로 전환`은 같은 canonical ID에 기존 `saveTaskHierarchyCommand({kind:"convert",taskId,targetType:"task"})`/`performTaskHierarchyCommand` gateway를 사용하는 별도 명시 mutation이다. 날짜/소속 확인이나 Editor 열기만으로 변환하지 않는다. readonly/pending/UNKNOWN, completed M, Link endpoint, Membership 참조와 leaf/날짜·session/Origin/revision 서버 guard를 유지한다. 변환을 허용하기 위해 소속/관계 원본을 제거하지 않으며 실패/412/불명확 응답은 기존 최신 조회·초안 및 충돌 보호를 따른다.
+
+허용 leaf의 Task↔Milestone 왕복에서 canonical Task ID/externalId·부모와 sibling order·revision 및 부모 Milestone 소속의 기존 상속 재계산을 유지한다. 성공 시 같은 Gantt의 canonical 갱신을 사용하고 M 목록에서 소멸한 관리 trigger에는 기존 가시 Dashboard heading fallback focus를 적용한다. 일반 Task→Milestone 진입은 기존 native Task 메뉴를 사용하며 hidden native M 행 선택은 하지 않는다.
+
+
+### #552 날짜 미정 Milestone 상세의 라벨 오류 경계
+
+marker-OFF의 날짜·소속 확인은 날짜 미정 Milestone도 같은 canonical ID로 연다. 소속 목록의 WBS 표시 라벨을 계산할 때 날짜 미정으로 계산할 수 없는 값은 명시적으로 미산정으로 표시하고, 임의 날짜를 보충하거나 저장하지 않는다. 호출에서 실제로 발생한 INVALID_DATE 외의 오류는 다시 전달한다. 라벨의 미산정 fallback은 canonical 유효성 판정이나 서버 hierarchy guard를 대체하지 않는다. 날짜 오류 뒤 아직 평가되지 않은 복합 구조 오류까지 검증했다고 주장하지 않는다. 실제 renderer 실패와 보완 후 Editor/소속 조회 결과는 [#552 Work Packet](exec-plans/active/ISSUE_552.md)에서 source별로 구분한다.

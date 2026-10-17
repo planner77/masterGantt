@@ -1,3 +1,70 @@
+## Issue #552 — CI #2888.1 구형 WBS Visible 기대와 후속 원격 증거 (2026-10-17)
+
+- [Full PR CI #2888.1](https://github.com/planner77/masterGantt/actions/runs/39016580724), Run39016580724 attempt1, HEAD `a81ae25ece41f727a963bd9963dcb82575b50286`, 당시 Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test merge `8bb5d8c9d154fac80f15bdbb7d9666bdd10ac36c`. Quality/Build/Docker PASS, shard3 `task-editor-form-density.spec.ts:232` 90 PASS/1 FAIL/1 SKIP/1 NOT RUN, 다른5 취소(부분 PASS/실제 새 FAIL0), Required E2E/QA Automated FAIL.
+- [실제 Playwright 원본 #12095402221](https://github.com/planner77/masterGantt/actions/runs/39016580724/artifacts/12095402221) Trace + `gantt-readiness-failure` attachment: U2 gen4/depth0, U3 gen9/delivery SETTLED, Core visible30·canonical31·DOM16(가상화), Core/native46/47, RANGE_EXTENSION SETTLED. 누락한 표시 ID는 Milestone `...0005` 하나뿐. 테스트의 `visibleIds31`이 obsolete라 `EXPECTED_MEMBERSHIP_MISMATCH`(TEST_CONTRACT)였다. #2863 동일 canonical/visible 구형 Oracle과 연결하여 §9에 기록.
+- 제품 Renderer/필터를 수정하지 않고 `#456` 및 `#570` 테스트의 `visibleIds`만 일반 Task/Summary로 정의·숨긴 M ID를 Core/DOM/receipt에서 부재 단언. Canonical 전체31·120px user input/검색/metadata restore/빈집합 및 권한/DB 계약 보호. `#2886` 제품 재진입 복귀는 이번 Run shard5 취소로 full PASS 미검증이다.
+- [정규 실패 문서 §9](ISSUE_552_FAILURE_ANALYSIS.md)·[원장](evidence/issue-552/ci-cumulative-20261017.json)에 Run33 메타데이터와 선별11Run/13실제 실패·12개 파일(과거 전체 INCOMPLETE)을 유지. Local `verify:prepr diagnose`·`ci-like`, sourceStable, exact-head 신규 Required3/Trusted QA/Owner ACCEPT는 이 실행 환경에서 **NOT TESTED**. 새 Head·Base·test merge·Run·Attempt, 미해결 Review Thread0·충돌0을 PR CI 시작 시 기록한다. 병합/Main/GHCR/Issue 종료 금지.
+
+## Issue #552 — PR CI #2886.1 U3 표시집합 drift의 원본 Trace·수정 검증 경계 (2026-10-17)
+
+- 원본 [Run39013855282/attempt1](https://github.com/planner77/masterGantt/actions/runs/39013855282), Head `51b4f919f16ac9765d20b9256e6521f91150c066`, main Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test-merge `959a3b9ce79acbc9c699eb3d86cc71fc69e7ffde`. shard5 job117342193179의 `resource-kpi-integration-ui.spec.ts` 64PASS/1FAIL/17 NOT RUN 및 다른5 shards CANCELLED(개별 FAIL0), E2E/QA Final FAIL, Quality/Build/Docker PASS.
+- [원본 report artifact12093952484](https://github.com/planner77/masterGantt/actions/runs/39013855282/artifacts/12093952484)의 readiness attachment/Trace를 실제 다운로드해 분석. 과거 [#2878 artifact12092311845](https://github.com/planner77/masterGantt/actions/runs/39008751687/artifacts/12092311845)에서도 Resource→Schedule 가시성 복귀 후 이전 receipt Task6와 native Grid Milestone 포함 불일치/120px Peer 복귀 경합을 대조했다. #2886의 최신 U3 rows TIMED_OUT, DOM8(Task6+M2), Core/native0·capacity31/scale width936, Peer TIMED_OUT은 원본 관측. 제품의 첫 vendor DOM writer와 새 수정 효과는 별도 검증 전 확정하지 않는다.
+- 제품 `filter-tasks` Effect의 `viewVisible` 의존성을 추가하여 schedule이 리소스 화면에서 돌아오는 시점에 **실제 표시 Core row**를 논리적 WBS projection과 다시 대조한다. 기존 PUBLIC filter-tasks 및 canonical queue, same Gantt API, hidden 동안 write0 정책 유지. 새 E2E는 mock API Resource 숨김 복귀3 Task/M0 및 실제 SQLite KPI/Excel 복귀 Task6/M0, 기존 90RAF/8연속 strict Core/native·Resource/Assignment 원장을 검증한다. 재발 시 공통 read-only readiness의 live Core visible ID/최신 receipt/viewport phase 첨부를 참조한다.
+- [정규 CI 실패 분석](ISSUE_552_FAILURE_ANALYSIS.md) §8 및 [누적 JSON](evidence/issue-552/ci-cumulative-20261017.json) 32개 Run metadata/최근10Run의 선택 실패11파일, 전체 옛 로그 INCOMPLETE와 명확히 구분. 로컬 Node22/Chromium 검증·동일 candidate `diagnose`/전체 `ci-like`·`sourceStable`는 실행 환경 부재로 NOT TESTED이며 원격 새 HEAD Required3/Trusted QA·Owner ACCEPT는 새 CI 결과 전 NOT TESTED. 병합/Main/GHCR/Issue 종료 금지.
+
+## Issue #552 — #2885.1 E2E Canonical Type/Native DOM 오분류와 원격 인계 (2026-10-17)
+
+- [PR Full CI #2885.1](https://github.com/planner77/masterGantt/actions/runs/39010974393), Head `84009ba5ab3eb35fd434cc98a1dbf29bad7a9156`, Base `78ec8d2ced62f543f73a8477c3e62fca8274274b`, test merge `cf9ac161593088bc6351464074df4811f1685b25`. shard5 job `117333619456`의 `milestone-stage-exchange.spec.ts` 22PASS/1FAIL/59 NOTRUN은 일반 Task(현재 초기 Grid DOM에 없음)를 Milestone으로 오판한 E2E test helper 결함이다. 다른5 Shard CANCELLED/개별 FAIL0; Quality/Docker PASS·E2E/QA Final FAIL.
+- [실제 원본 Playwright artifact](https://github.com/planner77/masterGantt/actions/runs/39010974393/artifacts/12092074632) Trace+Network와 error-context를 직접 열어, 일반 Task 검색 HTTP200/rows0·초기 Gantt mount 이후 ordinary native Task row 존재를 비교했다. 새 테스트는 명시 canonical Task 유형별 일정 Grid(visible까지 대기)/Milestone Dashboard exact-ID Editor로 분리한다. 사용자 동작 검증/Timeout·assertion·Skip·Retry/CI 요구조건은 유지.
+- [#552 독립 누적 실패 문서](ISSUE_552_FAILURE_ANALYSIS.md) §7, [누적 JSON](evidence/issue-552/ci-cumulative-20261017.json)에는 31개 PR Run metadata와 최근 9Run/11실제 실패 파일을 보존했으나 이전 Run의 모든 개별 FAIL 전수 추출은 **INCOMPLETE**. Local `diagnose`·`ci-like`·`sourceStable` 실행은 **NOT TESTED**, 향후 새 HEAD의 세 Required·Trusted/Owner는 해당 원격 Run/Attempt로만 판정.
+- 사용자 승인 경계는 최신 main 정렬·미해결 리뷰/충돌0 후 **새 Full PR CI 시작**까지. 모니터링·병합/Main/GHCR/Issue 종료 없음.
+
+## Issue #552 — CI #2878 실패 원본과 재발 분석 경로 (2026-10-17)
+
+[Full PR CI #2878.1](https://github.com/planner77/masterGantt/actions/runs/39008751687) Run `39008751687`/attempt1, HEAD `37c2c4687d6df61a56e5bc8fa9696863b287cd6d`, 당시 main `de863713142a92f1cac56dbae044923822bca932`, test merge `ef26400db5a5fc6aae77783b7330da38cf3dbf5e`. Quality/Docker PASS, E2E/QA Final FAIL. shard5 job `117326889006`의 #530 `resource-kpi-integration-ui.spec.ts:216`가 90RAF/8연속 exact Core/native 정착 실패(64 PASS/1 FAIL/17미실행), 나머지5 Job CANCELLED. 원본 보고서 artifact `playwright-report-shard-5` ID12092311845는 목록으로 확인했으나 ZIP/Trace 내부 검토 **NOT TESTED**이며 직접 원인 UNKNOWN.
+
+보완은 최신 U2/U3/canonical·viewport/실제 차트 geometry를 현행 read-only helper로 확인한 뒤 wheel을 입력하고 기존 strict 복귀 조건을 검사하며 마지막12 frame 좌표·영수증을 첨부한다. [별도 지속 실패 가이드](ISSUE_552_FAILURE_ANALYSIS.md)와 [8Run/10파일 누적원장](evidence/issue-552/ci-cumulative-20261017.json)을 먼저 확인한다. 이전 Local Pre-PR `sourceStable=false`/UNKNOWN과 현재 새로운 원격/로컬 증거를 합치지 않으며 진단·전체 로컬 CI 유사 검사는 환경 부재로 **NOT TESTED**. 새 PR CI 등록 시 HEAD/base/test-merge/run/attempt를 재확인하고 병합·Main/GHCR/Issue 종료는 Owner 승인 전 금지.
+
+## Issue #552 — CI #2866 원본/취소 테스트 실패 보존 및 새 후보 검증 (2026-10-17)
+
+- 원본 [PR Full CI #2866.1](https://github.com/planner77/masterGantt/actions/runs/38982330298): head `00fd170a5611f8312bb7abdda4b263254ade7b69`, base `c063101ed7b1d08803c3dac15a41e67842071187`, test-merge `a3d8a8c4704a7f655e6103f491f78598d33bfd49`(부모 두 SHA Git commit 확인). Quality·Build·Docker PASS, E2E/QA Final FAIL. shard4 알림 원인 `project-notifications.spec.ts:72` marker OFF Lane null(97PASS/1FAIL/1SKIP/63NOTRUN). shard2/3/5 CANCELLED 로그에는 별도 `✘`가 없지만 완주 아님; #2862 shard5와 #2863 shard4는 CANCELLED 중에도 `✘` 기록되므로 [누적 원장](evidence/issue-552/ci-cumulative-20261017.json)에 실패로 보존한다.
+- 이번 수정은 삭제된 Lane64px 대신 실제 marker0·native owner/widget 무예약·전후 layout/인스턴스 불변, 지원되는 Root 추가의 합성 validation422(옛 INVALID_PARENT_TASK 오용 수정)를 검증한다. 알림/토스트/수동·성공 복사/포커스/정상 성공 revision/실제 canonical API 확인을 없애지 않는다. 미발견 제품 결함을 테스트가 감추도록 API 코드를 건드리지 않는다.
+- 누적 E2E9파일 `diagnose`(workers1/retries0/max-failures0), 동일 HEAD 전체 `ci-like`, fast/직접/인접/음성, Next 생성물·스크린샷 mutation 없는 fingerprint 검사는 이전 각 Head 로컬 결과와 독립인 **새 후보 증거**가 필요하다. 현재 환경은 GitHub DNS/checkout/Node 프로젝트 의존성·Chromium이 없어 실행 결과 **NOT TESTED**. 원래 Local Pre-PR UNKNOWN6 매핑 보강은 정적으로만 확인됐고, 과거 `sourceStable=false`는 검사 완화 없이 새 독립 worktree에서 재검증해야 한다.
+- 새 GitHub CI가 시작되면 HEAD/base/test-merge/Run·Attempt, Required3, 6 shards, QA Final과 리뷰/충돌을 독립 확인한다. 실행 등록만으로 PASS나 merge 승인 아님. `mergeable_state=dirty`는 완료 전 확인사항이며 release_authorized=false; Main/GHCR/병합/Issue 종료 금지.
+
+## Issue #552 — CI #2864 원본 navigation timeout과 후속 검증 (2026-10-17)
+
+[원본 run38978855656.1](https://github.com/planner77/masterGantt/actions/runs/38978855656)의 Head `f48689df9141e2f90fa729a644db52d6bbfb8016`/base `c063101ed7b1d08803c3dac15a41e67842071187`/test merge `087feb6d612b9e2a3fd1d138f38f98a3a7e9de42`, shard6 job `117235287068`·artifact `12080427286`를 별도 원본으로 유지한다. Quality/Docker PASS·shard6 2 PASS/1 FAIL/87미실행·다른5취소·E2E/QA Final FAIL이다. source artifact는 PR 측 비신뢰 자료이며 API/run/parents/단일귀속 교차를 Trusted QA 전체 PASS로 확대하지 않는다.
+
+복구 테스트는 goto(load)29.235초 뒤 일정tab 대기에서30초 timeout으로 실패했고 오류 주입 전이었다. HAR Mock26.444초와 route.fulfill2.479ms·HTML0.14초를 구별하며 원본 DCL/정확 내부 지연 원인은 미확정이다. 단독2/선행순서3case 로컬PASS는 원격 실패 미재현 증거다. 임시 계측·통제 지연·최종 source의 실제 실행과 전체PR/교정base Local Pre-PR 상태는 [Packet](exec-plans/active/ISSUE_552.md)·[안전 원장](evidence/issue-552/ci2864-correction-20261017.json)에 분리한다. raw zip/Trace/운영DB·비밀 로그는 Git에 저장하지 않는다. 새 전체 PR CI의 exact head/base/test merge/run/attempt 등록까지만 확인하며 결과를 모니터링하지 않는다.
+
+최종 spec SHA256 `10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4`의 recovery31·교차6·실제HTTP 인접2 및 Pre-PR recovery31 재실행이 PASS(총70실행/39고유)다. Copy 실제HTTP 인접은 취소와Template성공/401/412·상태보존 범위다. fast10명령/전체Unit2786·build/typecheck/lint PASS와 기존3skip을 구별한다. 전체PR UNKNOWN6·교정fast/targeted 생성물 sourceStable=false의 최상위 BLOCKED를 유지하며 각report hash/지문/선정·제외·미실행과 독립 사전검토는 원장에 기록한다. 최종QA/Owner·새 원격검사는NOT TESTED다.
+
+## Issue #552 — PR CI #2863 #637 Canonical/Visible 및 #551 제거된 진입점 회귀 (2026-10-17)
+
+[원본 #2863.1](https://github.com/planner77/masterGantt/actions/runs/38976543886), Head `1abebed189642c278552a25aa270fed333bdc36f`: Shard1 78PASS/1FAIL/34NOTRUN(`projection-row-alignment.spec.ts:108` 84 vs83), Shard4 46PASS/1TIMEOUT/기존1SKIP/114NOTRUN(`milestone-timeline-lane.spec.ts:268` 제거된 Task 버튼), Shard6 SUCCESS, 나머지2/3/5 CANCELLED. Quality/Docker PASS·E2E required/QA Final FAIL.
+기존 #552 기본 표시 projection은 canonical 모든 Task84를 유지하면서 native Summary/Task83만 나타낸다. #637의 전제는 canonical원장·기본/legacy 표시 subset을 독립 비교하고 Y/virtual rows ±1px·실제 오차 음성/복구, 이동 중 viewport을 유지하도록 변경한다. #551은 현재 유형 고급 필터를 통해 Task만 요청한 상태에서도 dev preview Milestone 모집단61/viewport marker2가 보존되는지 검증한다. 전수 E2E 119개에서 구형 패턴 후보20개를 소스 정적 조사했으며 실제 Chromium 미실행/미도달 경로를 성공으로 주장하지 않는다.
+로컬 의존성·Chromium 부족으로 새 source의 실제 E2E PASS는 NOT TESTED; 새 Full PR CI 정확 head/attempt/Required3/Trusted/Owner는 원격 실행 증거별로 판정한다. QA/릴리스 승인 경계와 6 Shard는 불변.
+
+## Issue #552 — CI #2862 좌표/날짜축 실패 후속 검증 (2026-10-17)
+
+[원본 Full #2862.1](https://github.com/planner77/masterGantt/actions/runs/38973584934), Head `eb525442fa93532e9d4d06fb17ebf739c8e4c484`: shard3 66PASS/1FAIL/기존1skip/61미실행, shard5 42PASS/1FAIL/61미실행, 다른4 취소, Required E2E·QA Final FAIL; Quality/Preflight/Build/Docker PASS. shard3의 리사이즈 후 구좌표 hit 전제와 shard5의 UI Day↔마지막 Projection Week 불일치·Range NO_SCROLL_CAPACITY를 실제 실패로 분리한다.
+보완된 테스트는 현재 렌더된 동일 ID 및 원본 포인터 mouseup의 편집 의도를 검증하고, 각 scale/extent 확장 사이 실제 등록된 Projection/Viewport 정착 확인을 강제한다. 정착하지 않으면 실패하며 timeout/skip/CI 우회 없음. 새 Head LFF/Required3/Trusted QA/Owner 수용은 원격 결과 전 NOT TESTED; [Work Packet](exec-plans/active/ISSUE_552.md)에 출처 보존.
+
+## Issue #552 — Full PR CI #2861 기존 #550 native-oracle 실패 (2026-10-17)
+
+[원본 CI #2861.1](https://github.com/planner77/masterGantt/actions/runs/38971156752), head `2cc5635b9f0ea9bac8923d4fa213222cdb00cdbf`: shard5 job `117210305175`의 `milestone-management-persistence.spec.ts:264`는 native M 행이 표시되어야 한다는 과거 기대 때문에 FAIL(27 PASS/1 FAIL/76 NOT RUN), 나머지 5 Shard CANCELLED, E2E aggregate와 QA Final FAIL이다. QA Preflight/TypeScript/ESLint/Vitest/Next.js Build/Docker는 PASS. 코드 제품 결함, API transport, OOM으로 단정하지 않는다.
+
+#552 marker-OFF 기본 표시에서는 M Grid/Bar0, 명시 legacy 복구에서는 M Grid/Bar1이며 동일 canonical ID·Dashboard 접근·서버 revision/401/소속/관계/무mutation·Gantt instance를 보존한다. 현재 오류 교정은 해당 #550 test-only이고 날짜축 자동 M reveal 전제를 기본 모드에서 제거하되 Day/Week 축·직접 scroll3회·원점·셀/폭 보호는 유지한다. 원격 새 Head Required3/6-shard/최종 QA·Owner는 실행 결과 전 NOT TESTED. 이전 실패 기록을 소급 승격하지 않는다.
+
+## Issue #552 — CI #2859 원본 FAIL와 후속 검증의 경계 (2026-10-17)
+
+[원본 #2859.1](https://github.com/planner77/masterGantt/actions/runs/38966513185), Head `a7ad34482aeb8def79bd01d641a65f305043d593`, shard3 job `117195065949`/artifact `12074827958`은 두 번째 Task PATCH200 뒤 GET ECONNRESET으로 FAIL했다. Quality/Docker PASS·다른5 shard 취소·126 미실행을 유지한다. 동일 worker/launcher alive·실패 후 health200·OOM0과 RSS 증가는 관측 사실이며 메모리 증가의 인과나 서버 재시작의 증거는 아니다. 원본 #2844 SC-13 실패와 별도 원장으로 다룬다.
+
+로컬 원본3회 비재현과 후속 spec-local 서버 수명주기/저장 확인 전송 보완의 실행 증거는 [#552 Packet](exec-plans/active/ISSUE_552.md)·[최소 원장](evidence/issue-552/ci2859-correction-20261017.json)에 기록한다. 원본 zip/Trace/런타임 원문·DB는 Git에 저장하지 않는다. LOCAL_PREPR의 corrective base와 전체 PR base, UNKNOWN/BLOCKED·실제 실행 PASS를 구별하며 로컬 검증으로 여섯 원격 runner·공식 Required3·Trusted QA·Owner ACCEPT를 대체하지 않는다. 요청 종료점은 새 pull_request full CI의 정확 Head/base/test-merge/run/attempt 등록 확인이며 결과 모니터링하지 않는다.
+
+실제 최종 source는 Chromium7실행/3고유 case와 전체 Unit2786 PASS(기존3skip), build·typecheck·lint PASS다. Local Pre-PR 전체 PR은 UNKNOWN6, 교정 fast/targeted는 Next 설정·측정 산출물 변경에 따른 sourceStable=false로 각각 BLOCKED다. 개별 실행 PASS로 최상위 BLOCKED를 대체하지 않으며 원장에 base/start/end fingerprint·명령/exit·선정/제외를 보존한다. 생성물을 원복하고 최종 문서 의미 검토 후 새 full PR CI 등록까지만 인계한다.
+
 ## Issue #699 — Local Pre-PR와 원격 PR CI 증거의 분리 (2026-10-16)
 
 [LOCAL_PREPR](LOCAL_PREPR.md)의 `report.json`/`SUMMARY.md`는 Git base/head/uncommitted fingerprint와 동일 로컬 source, 실제 선택 Unit/Chromium/Build/Docker(선택 시)와 환경·선정·제외·미실행의 증거다. local Node 22/Playwright Chromium worker1/`CI_E2E_FULLY_PARALLEL=true`도 여섯 독립 Ubuntu runner, Playwright headless-shell 설치와 GitHub Actions metadata/Trusted QA, Main 이미지와 동일 환경이라는 주장은 아니다.

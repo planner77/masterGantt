@@ -32,6 +32,13 @@ async function aligned(page: Page) {
   }).toBe(true);
 }
 
+// #552 changes the rendering projection, not the server's canonical Task
+// population. Legacy is an explicit build-time emergency WBS mode.
+function expectedWbsIds(tasks: ReadonlyArray<{ taskId: string; type: string }>): string[] {
+  const legacy = process.env.NEXT_PUBLIC_GANTT_WBS_MODE === "legacy";
+  return tasks.filter(task => legacy || task.type !== "milestone").map(task => task.taskId);
+}
+
 for (const width of [390, 768, 1024, 1440, 1920]) for (const scale of ["Day", "Week"]) {
   test(`#637 Grid hidden Y cannot move independently ${width}px ${scale}`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 1000 });
@@ -92,6 +99,8 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
   await expect.poll(async () => { const value = await geometry(page); return value.gridScrollWidth - value.gridWidth; }).toBeGreaterThan(100);
   await frame.locator(".wx-table-container").evaluate(element => { element.scrollLeft = 120; });
   await expect.poll(async () => (await geometry(page)).gridLeft).toBe(120);
+  const expectedVisibleIds = expectedWbsIds(fixture.tasks);
+  const expectedCanonicalIds = fixture.tasks.map(task => task.taskId);
   const samples = [];
   for (const top of [300, 1200, 2400, 0]) {
     await frame.locator(".wx-gantt").evaluate((element, top) => { element.scrollTop = top; }, top);
@@ -105,13 +114,16 @@ for (const scale of ["Day", "Week"]) test(`#637 native owner Y and wide Grid X r
     // that happened to mount, to require every visible virtual row.
     expect(sample.rowHeight).toBeGreaterThan(0);
     const coreIds = sample.receipt.coreVisibleIds as string[];
-    expect(coreIds).toHaveLength(fixture.tasks.length);
+    // All canonical IDs persist, but native Grid/Chart rows exclude hidden
+    // Milestones in the default WBS mode (84 canonical vs 83 visible here).
+    expect(sample.actual?.canonicalIds).toEqual(expectedCanonicalIds);
+    expect(coreIds).toEqual(expectedVisibleIds);
     const requiredGridIds = coreIds.filter((_, index) => index * sample.rowHeight + sample.rowHeight > top && index * sample.rowHeight < top + sample.gridHeight - sample.headerHeight);
     expect(requiredGridIds.length).toBeGreaterThan(5);
     expect(requiredGridIds.every(id => sample.mountedGridIds.includes(id))).toBe(true);
-    // All January tasks intersect the initial Chart X viewport in both scales;
-    // the September leaf and December milestone are legitimately outside it.
-    const requiredBarIds = requiredGridIds.filter(id => ![leaf.taskId, fixture.tasks[3].taskId].includes(id));
+    // January ordinary Tasks intersect the initial Chart X viewport;
+    // the September leaf is outside it and Milestones are not native bars.
+    const requiredBarIds = requiredGridIds.filter(id => id !== leaf.taskId && fixture.tasks.find(task => task.taskId === id)?.type !== "milestone");
     expect(requiredBarIds.every(id => sample.mountedBarIds.includes(id))).toBe(true);
     expect(requiredBarIds.every(id => sample.pairs.some(pair => pair.id === `:${id}`))).toBe(true);
     samples.push(sample);
@@ -132,6 +144,7 @@ test("#637 genuine visible Grid Y mismatch still times out with matching canonic
       ? value.observation.outcome : null;
   }).toBe("SETTLED");
   const identity = await rememberGanttRoot(page), before = await geometry(page);
+  const expectedVisibleIds = expectedWbsIds(fixture.tasks);
   // A separate test-only visual corruption: the product must never normalize
   // this genuine mismatch into SETTLED merely because membership agrees.
   const corruption = await page.addStyleTag({ content: '.project-gantt-widget .wx-table-container .wx-row[data-id] { transform: translateY(-28px); }' });
@@ -149,9 +162,9 @@ test("#637 genuine visible Grid Y mismatch still times out with matching canonic
     expect(failed.semantic).toEqual(before.semantic);
     expect(failed.actual).not.toBeNull();
     expect(failed.actual!.canonicalIds).toEqual(fixture.tasks.map(task => task.taskId));
-    expect(failed.actual!.coreVisibleIds).toEqual(failed.actual!.canonicalIds);
-    expect(failed.mountedGridIds).toEqual(failed.actual!.coreVisibleIds);
-    expect(failed.pairs.length).toBe(fixture.tasks.length);
+    expect(failed.actual!.coreVisibleIds).toEqual(expectedVisibleIds);
+    expect(failed.mountedGridIds).toEqual(expectedVisibleIds);
+    expect(failed.pairs.length).toBe(expectedVisibleIds.length);
     expect(failed.pairs.every(pair => Math.abs(pair.delta - 27.5) <= 1)).toBe(true);
     await expectSameGanttRoot(page, identity);
   } finally {
@@ -168,8 +181,8 @@ test("#637 genuine visible Grid Y mismatch still times out with matching canonic
   expect(recovered.semantic.observation).toBeGreaterThan(failed.semantic.observation);
   expect(recovered.receipt.outcome).toBe("SETTLED");
   expect(recovered.actual!.canonicalIds).toEqual(failed.actual!.canonicalIds);
-  expect(recovered.actual!.coreVisibleIds).toEqual(failed.actual!.coreVisibleIds);
-  expect(recovered.mountedGridIds).toEqual(recovered.actual!.coreVisibleIds);
+  expect(recovered.actual!.coreVisibleIds).toEqual(expectedVisibleIds);
+  expect(recovered.mountedGridIds).toEqual(expectedVisibleIds);
   await aligned(page); await expectSameGanttRoot(page, identity);
   expect(fixture.posts).toHaveLength(0); expect(fixture.patchRequests).toHaveLength(0);
   await info.attach("strict-visible-offset-negative", { body: JSON.stringify({ before, failed, recovered: await geometry(page) }), contentType: "application/json" });

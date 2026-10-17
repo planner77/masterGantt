@@ -1,6 +1,9 @@
-import type { ProjectTaskDto, ProjectLinkDto } from "../../contracts/projects";
+import type { ProjectTaskDto, ProjectLinkDto, ProjectCalendarDto } from "../../contracts/projects";
 import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { previewMilestoneMemberships, stageSnapshotFromProject } from "../../domain/milestones/project-stage-model";
+import { recalculateHierarchy } from "../../domain/scheduling/hierarchy";
+import { SchedulingError } from "../../domain/scheduling/errors";
+import { workingCalendarFromProjectCalendar } from "./project-task-adapter";
 import { projectStageGates } from "../../domain/milestones/stage-gates";
 
 export function matchesMembershipSearch(task: ProjectTaskDto, query: string): boolean {
@@ -22,4 +25,15 @@ export function membershipDescription(task: ProjectTaskDto, tasks: readonly Proj
   const target = tasks.find((row) => row.taskId === membership.effectiveMilestoneTaskId);
   const source = tasks.find((row) => row.taskId === membership.inheritedFromTaskId);
   return `${target?.name ?? membership.effectiveMilestoneTaskId} · ${source ? `${source.name}에서 상속` : "직접 지정"}`;
+}
+
+/** WBS labels are presentation only. Legacy undated canonical records remain
+ * inspectable without inventing a date or changing the scheduling contract. */
+export function membershipWbsLabels(tasks: readonly ProjectTaskDto[], calendar: ProjectCalendarDto): ReadonlyMap<string, string> {
+  try {
+    return new Map(recalculateHierarchy(tasks, workingCalendarFromProjectCalendar(calendar)).map(row => [row.taskId, row.wbs]));
+  } catch (error) {
+    if (!(error instanceof SchedulingError) || error.code !== "INVALID_DATE") throw error;
+    return new Map(tasks.map(task => [task.taskId, "미산정"]));
+  }
 }

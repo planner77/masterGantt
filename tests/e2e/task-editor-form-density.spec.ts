@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Locator } from "@playwright/test";
 import { evaluateGanttReadiness, waitForGanttReadiness } from "./helpers/gantt-readiness";
 import type { GanttReadinessExpectation } from "./helpers/gantt-readiness";
@@ -94,9 +95,10 @@ test("#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 �
   test.setTimeout(90_000);
   await mkdir(output, { recursive: true });
   const fixture = await setup(page);
+  await installMilestoneDashboardFixture(page, fixture);
   for (const width of widths) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 900 });
-    await openRow(page, "Milestone");
+    await openMilestoneEditor(page, "00000000-0000-4000-8000-000000000005");
     const dialog = editor(page);
     await expect(dialog.getByRole("tab")).toHaveCount(5);
     for (const [label, key] of [["소속 작업", "membership"], ["물류 연결", "logistics"]]) {
@@ -224,10 +226,21 @@ test("#456 active name filter의 metadata 저장으로 실제 ID 집합이 바�
   const frame = page.locator(".project-gantt-frame"), target = page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
   const chart = frame.locator(".wx-chart").first();
   const initialApi = await frame.getAttribute("data-project-gantt-api-instance");
+  // #552/#2888: canonical contains the Milestone, but marker-OFF WBS
+  // must not render its native row. Never use all canonical IDs as visibleIds.
+  const canonicalIds = fixture.tasks.map(task => task.taskId);
+  const visibleWbsIds = fixture.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const milestoneIds = fixture.tasks.filter(task => task.type === "milestone").map(task => task.taskId);
+  expect(canonicalIds.length - visibleWbsIds.length).toBe(milestoneIds.length);
   const axisContext: GanttReadinessExpectation = { operation: "observe", api: initialApi, revision: fixture.project.revision,
-    scale: "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds: fixture.tasks.map(task => task.taskId), visibleIds: fixture.tasks.map(task => task.taskId) };
+    scale: "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, visibleIds: visibleWbsIds };
   await frame.getByRole("button", { name: "주", exact: true }).click();
   const beforeAxis = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  expect(beforeAxis.core?.coreVisibleIds?.slice().sort()).toEqual(visibleWbsIds.slice().sort());
+  for (const milestoneId of milestoneIds) {
+    expect(beforeAxis.domIds).not.toContain(milestoneId);
+    expect(beforeAxis.lastSuccess?.logicalVisibleIds).not.toContain(milestoneId);
+  }
   const admission = evaluateGanttReadiness(beforeAxis, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
   // 준비 완료와 용량 확보는 별개다. 필요한 경우 명시적 실제 wheel을 딱 한 번 입력한다.
   if (!admission.accepted) {
@@ -271,10 +284,21 @@ test("#570 metadata 복원 뒤 늦은 native zero는 차단하고 실제 wheel�
   const chart = frame.locator(".wx-chart").first();
   const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
   const initialApi = await frame.getAttribute("data-project-gantt-api-instance");
+  // #552/#2888: canonical contains the Milestone, but marker-OFF WBS
+  // must not render its native row. Never use all canonical IDs as visibleIds.
+  const canonicalIds = fixture.tasks.map(task => task.taskId);
+  const visibleWbsIds = fixture.tasks.filter(task => task.type !== "milestone").map(task => task.taskId);
+  const milestoneIds = fixture.tasks.filter(task => task.type === "milestone").map(task => task.taskId);
+  expect(canonicalIds.length - visibleWbsIds.length).toBe(milestoneIds.length);
   const axisContext: GanttReadinessExpectation = { operation: "observe", api: initialApi, revision: fixture.project.revision,
-    scale: "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds: fixture.tasks.map(task => task.taskId), visibleIds: fixture.tasks.map(task => task.taskId) };
+    scale: "week", scope: null, query: "", queryWitness: { kind: "unchanged" }, canonicalIds, visibleIds: visibleWbsIds };
   await frame.getByRole("button", { name: "주", exact: true }).click();
   const beforeAxis = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  expect(beforeAxis.core?.coreVisibleIds?.slice().sort()).toEqual(visibleWbsIds.slice().sort());
+  for (const milestoneId of milestoneIds) {
+    expect(beforeAxis.domIds).not.toContain(milestoneId);
+    expect(beforeAxis.lastSuccess?.logicalVisibleIds).not.toContain(milestoneId);
+  }
   const admission = evaluateGanttReadiness(beforeAxis, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
   // 준비 완료와 용량 확보는 별개다. 필요한 경우 명시적 실제 wheel을 딱 한 번 입력한다.
   if (!admission.accepted) {

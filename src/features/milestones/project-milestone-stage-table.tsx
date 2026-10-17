@@ -15,6 +15,7 @@ export interface MilestoneStageTableProps {
   scheduleEnabled?: boolean;
   editable?: boolean;
   onManage?: MilestoneManagementHandler;
+  canConvertToTask?: (taskId: string) => boolean;
   onFocusUnavailable?: () => void;
   onOpenTask?: (taskId: string, tab?: "task" | "memberships") => void;
   onSchedule?: (taskIds: string[]) => void;
@@ -22,7 +23,7 @@ export interface MilestoneStageTableProps {
 
 const statusLabel = (status: ProjectTaskDto["status"]) => status === "completed" ? "완료 기록" : status === "in_progress" ? "진행 중" : "시작 전";
 
-export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabled = enabled, onOpenTask, onSchedule, editable = false, onManage, onFocusUnavailable }: MilestoneStageTableProps) {
+export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabled = enabled, onOpenTask, onSchedule, editable = false, onManage, canConvertToTask, onFocusUnavailable }: MilestoneStageTableProps) {
   const id = useId(), [detailId, setDetailId] = useState<string | null>(null);
   const heading = useRef<HTMLHeadingElement>(null), trigger = useRef<HTMLButtonElement | null>(null);
   const [management, setManagement] = useState<{ taskId: string | null; restoreFocus: boolean }>({ taskId: null, restoreFocus: false });
@@ -54,7 +55,7 @@ export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabl
   const openDetails = (taskId: string, button: HTMLButtonElement) => { trigger.current = button; setDetailId(taskId); requestAnimationFrame(() => heading.current?.focus({ preventScroll: true })); };
   const closeDetails = () => { setDetailId(null); requestAnimationFrame(() => trigger.current?.focus({ preventScroll: true })); };
   function causeList(title: string, ids: string[]) {
-    return <section className={styles.causeGroup}><h4>{title} · {ids.length}개</h4>{ids.length ? <ul>{ids.map((taskId) => { const task = taskById.get(taskId); return <li key={taskId}><span>{task?.name ?? "현재 정보에 없는 작업"}<small>외부 ID: {task?.externalId ?? "—"} · 작업 ID: {taskId}</small></span><div className={styles.actions}><button type="button" disabled={!enabled || !task || !onOpenTask} onClick={() => { if (enabled && task) onOpenTask?.(taskId, "task"); }}>전체 프로젝트 정보</button><button type="button" disabled={!scheduleEnabled || !onSchedule} onClick={() => { if (scheduleEnabled) onSchedule?.([taskId]); }}>전체 일정에서 보기</button></div></li>; })}</ul> : <p>해당 원인 없음</p>}</section>;
+    return <section className={styles.causeGroup}><h4>{title} · {ids.length}개</h4>{ids.length ? <ul>{ids.map((taskId) => { const task = taskById.get(taskId); return <li key={taskId}><span>{task?.name ?? "현재 정보에 없는 작업"}<small>외부 ID: {task?.externalId ?? "—"} · 작업 ID: {taskId}</small></span><div className={styles.actions}><button type="button" disabled={!enabled || !task || !onOpenTask} onClick={() => { if (enabled && task) onOpenTask?.(taskId, "task"); }}>전체 프로젝트 정보</button>{task?.type === "milestone" ? <button type="button" disabled={!enabled || !onOpenTask} onClick={() => { if (enabled) onOpenTask?.(taskId, "task"); }}>Milestone 날짜·소속 확인</button> : <button type="button" disabled={!scheduleEnabled || !onSchedule} onClick={() => { if (scheduleEnabled) onSchedule?.([taskId]); }}>전체 일정에서 보기</button>}</div></li>; })}</ul> : <p>해당 원인 없음</p>}</section>;
   }
   return <>
     <div className={`${styles.tableOwner} ${styles.stageTableOwner}`} tabIndex={0} role="region" aria-label="Milestone 전체 상태 표 가로 스크롤">
@@ -71,16 +72,17 @@ export function ProjectMilestoneStageTable({ rows, tasks, enabled, scheduleEnabl
     </div>
     {managementRow && managementTask ? <WorkspaceDialog title={`${managementRow.name} 관리`} restoreFocusRef={managementTrigger} onClose={closeManagement}>
       <div className="project-form compact-form">
+        <p>일정에는 일반 Task와 Summary만 표시됩니다. Milestone 날짜와 소속은 상세에서 확인합니다.</p>
         <p>외부 ID: {managementTask.externalId} · 작업 ID: {managementTask.taskId}</p>
         <p>{editable ? "완료·재개는 상세 Editor에서 상태를 변경하고 저장합니다. Milestone의 구조 잠금과 서버 검증을 유지합니다." : "조회 모드입니다. 상세·소속·관계 조회와 작업 ID 복사를 사용할 수 있습니다."}</p>
         <div className={styles.managementActions}>{([
-          ["detail", "Milestone 상세"], ["memberships", "소속 작업 관리"], ["relations", "관계 조회·관리"], ["copy-id", "작업 ID 복사"], ["date", "해당 날짜에서 보기"], ["members", "소속 작업 일정에서 보기"], ["copy", "Milestone 복사"], ["delete", "Milestone 삭제"],
+          ["detail", "Milestone 상세"], ["memberships", "소속 작업 관리"], ["relations", "관계 조회·관리"], ["copy-id", "작업 ID 복사"], ["date", "Milestone 날짜·소속 확인"], ["members", "소속 작업 일정에서 보기"], ["convert-task", "일반 Task로 전환"], ["copy", "Milestone 복사"], ["delete", "Milestone 삭제"],
         ] as const).map(([command, label]) => {
-          const structural = command === "copy" || command === "delete";
-          const noDate = command === "date" && !milestoneManagementDate(managementTask);
+          const structural = command === "copy" || command === "delete" || command === "convert-task";
+          const conversionBlocked = command === "convert-task" && !canConvertToTask?.(managementTask.taskId);
           const noMembers = command === "members" && managementRow.stageGate.memberTaskIds.length === 0;
-          const locked = !enabled || (structural && !editable) || (command === "delete" && managementTask.status === "completed") || ((command === "date" || command === "members") && !scheduleEnabled) || noDate || noMembers;
-          const reason = noDate ? "적용 예정일이 없어 날짜로 이동할 수 없습니다." : noMembers ? "유효 소속 작업이 없습니다." : command === "delete" && managementTask.status === "completed" ? "Milestone을 먼저 상세 Editor에서 재개하고 저장해 주세요." : structural && !editable ? "편집 활성화가 필요합니다." : (command === "date" || command === "members") && !scheduleEnabled ? "원본 조회 문맥을 확인한 뒤 이동할 수 있습니다." : "";
+          const locked = !enabled || (structural && !editable) || (command === "delete" && managementTask.status === "completed") || (command === "members" && !scheduleEnabled) || noMembers || conversionBlocked;
+          const reason = conversionBlocked ? "편집 권한·완료 상태·연결 관계를 확인해 주세요." : noMembers ? "유효 소속 작업이 없습니다." : command === "delete" && managementTask.status === "completed" ? "Milestone을 먼저 상세 Editor에서 재개하고 저장해 주세요." : structural && !editable ? "편집 활성화가 필요합니다." : command === "members" && !scheduleEnabled ? "원본 조회 문맥을 확인한 뒤 이동할 수 있습니다." : "";
           return <div key={command}><button type="button" disabled={locked} title={reason} onClick={() => {
             const trigger = managementTrigger.current;
             if (!trigger || locked) return;

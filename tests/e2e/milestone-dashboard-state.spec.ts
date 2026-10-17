@@ -116,6 +116,11 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
 
 test("#463 public viewport and native scroll survive peer/layout, stale restore is consumed", async ({ page }, testInfo) => {
   const state = await fixture(page); await page.setViewportSize({ width: 1440, height: 900 });
+  const ordinary = state.tasks.find(task => task.type === "task")!;
+  for (let index = 100; index < 124; index++) state.tasks.push({
+    ...ordinary, taskId: `00000000-0000-4000-8000-${String(index).padStart(12,"0")}`,
+    externalId: `SCROLL-${index}`, name: `Viewport task ${index}`, siblingOrder:index, parentExternalId:null,
+  });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}`); await page.getByRole("button", { name: "주", exact: true }).click();
   const frame = page.locator(".project-gantt-frame"), chart = frame.locator(".wx-chart"), identity = await frame.getAttribute("data-project-gantt-api-instance");
@@ -160,7 +165,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     const search = page.getByRole("searchbox", { name: "작업명, 설명, External ID 검색", exact: true });
     await observe("before-filter");
     await search.fill("Stable leaf");
-    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, dom: { left: 120, top: 0 } });
     await expect(frame.getByRole("row")).toHaveCount(2);
@@ -170,7 +175,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     // 진행 중 복원의 입력 취소는 별도 RAF barrier 회귀에서 검증한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => frame.locator(".wx-gantt").evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     await observe("filter-cleared");
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
@@ -196,16 +201,19 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     await chart.evaluate(element => { element.scrollLeft = 180; });
     await expect.poll(viewport).toEqual(userViewport);
     await observe("new-user-viewport");
-    // 18행이 남아 128px capacity를 유지하는 필터로 오래된 120/96 재실행을 구분한다.
-    await search.fill("단계");
-    await expect(page.locator(".project-filter-result")).toHaveText(`18개 일치 / 전체 ${state.tasks.length}개 작업`);
+    // #552: hidden Milestone names cannot provide native WBS row capacity.
+    // Keep 24 ordinary fixture rows to distinguish a late 120/96 restore from
+    // the new user-owned 180/128 viewport without relaxing scroll assertions.
+    const visibleViewportTasks = state.tasks.filter(task => task.type === "task" && task.name.startsWith("Viewport task")).length;
+    await search.fill("Viewport task");
+    await expect(page.locator(".project-filter-result")).toHaveText(`${visibleViewportTasks}개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
     await expect.poll(viewport).toEqual(userViewport);
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
     await expect(frame).toHaveAttribute("data-project-gantt-api-instance", identity!);
     await observe("capacity-preserving-filter");
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(128);
     await expect.poll(viewport).toEqual(userViewport);
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).toBe(restored);
@@ -245,6 +253,13 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
     Reflect.set(window, "__issue530DisposeInput", () => document.removeEventListener("input", input, true));
   });
   const state = await fixture(page);
+  // Preserve a real scrollable ordinary WBS after #552 removes native Milestone rows.
+  const ordinary = state.tasks.find(task => task.type === "task")!;
+  for (let i = 125; i < 149; i++) state.tasks.push({
+    ...ordinary, taskId: `00000000-0000-4000-8000-${String(i).padStart(12,"0")}`,
+    externalId: `INPUT-SCROLL-${i}`, name: `Scroll input task ${i}`,
+    siblingOrder: i, parentExternalId: null,
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.goto(`/projects/${publicId}?__coreTrace=1`);
@@ -356,13 +371,13 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
     expect(atInput.heldFrames).toBeGreaterThan(0);
     expect(atInput.inputEvents[0].heldFrames).toBeGreaterThan(0);
     await frame.evaluate(element => Reflect.get(element, "__issue530PendingBarrier").release());
-    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect(frame.getByRole("row")).toHaveCount(2);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBe(0);
     await expect.poll(viewport).toEqual({ public: { left: 120, top: 0 }, native: { left: 120, top: 0 } });
     expect(await frame.getAttribute("data-gantt-peer-restore")).toBeNull();
     await search.fill("");
-    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.length}개 일치 / 전체 ${state.tasks.length}개 작업`);
+    await expect(page.locator(".project-filter-result")).toHaveText(`${state.tasks.filter(task => task.type === "task").length}개 일반 Task 일치 · 직접 Summary ${state.tasks.filter(task => task.type === "summary").length}개 · context Summary 0개 /  전체  ${state.tasks.filter(task => task.type !== "milestone").length}개 WBS 작업`);
     await expect.poll(() => vertical.evaluate(element => element.scrollHeight - element.clientHeight)).toBeGreaterThanOrEqual(96);
     for (let index = 0; index < 3; index++) {
       await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
