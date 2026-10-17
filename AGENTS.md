@@ -1,3 +1,10 @@
+## Issue #703 — 로컬 검증 후 GHCR Preview 수동 조기 게시 (2026-10-17)
+
+- 정식 PR/QA/Main/Release를 기다리기 전 **운영과 격리된 시험용** 이미지만 별도 GHCR 패키지에 게시할 수 있도록 Owner 전용 수동 워크플로를 둔다. [Preview 운영 가이드](docs/PREVIEW_PUBLISH.md)와 [작업 원장](docs/exec-plans/active/ISSUE_703.md)을 따른다.
+- 절차: Issue branch 고정 SHA → 로컬 fast/targeted/docker (실제 결과만 기록) → 기본 main의 수동 Preview authorize → 권한 없는 Build·신뢰된 Smoke → 같은 Run artifact → package-write 분리 GHCR Preview 게시·digest 확인. 원격 PR Full CI는 우회하지 않는다.
+- Preview 성공은 CI/QA/Trusted PASS나 Owner 병합·정식 Release 승인이 아니다. 기존 Required Quality/E2E6/Docker, 리뷰 thread 0, main strict, GHCR ci-<SHA>/SemVer/Finalizer 권한과 이력을 그대로 보존한다. 앱 version 불변이며 release_required=false/release_authorized=false. 이번 보호 경로 변경은 HIGH/OWNER_MANAGED; 실제 PR CI/Owner 승인은 별도다.
+- 이미 열린 PR에 수정 commit을 Push하면 기존 PR CI 자동 실행이 계속되므로 조기 Preview가 곧 Runner 비용 절감을 의미하지 않는다. 도입 효과는 정식 main 병합 뒤 별도 시험 Run으로 측정하고 그 전은 NOT TESTED다.
+
 ## Issue #598 — 실제 QA 지침 정합화 후속 (2026-10-17)
 
 - `.codex/agents/{infra,frontend,ui-ux,qa-docs}.toml`의 실제 `developer_instructions`를 기본 `OWNER_MANAGED`·호환 `AUTOMATED_MANAGER`·선택 `AGENT`로 일치시킨다. TOML 말미의 주석만으로 구 규정이 수정된 것으로 판단하지 않는다.
