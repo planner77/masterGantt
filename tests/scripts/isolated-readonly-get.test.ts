@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { observedReadOnlyGet, type ObserveIsolatedApi } from "../e2e/fixtures/isolated-application-diagnostics";
+import { diagnosticRoute, observedReadOnlyGet, type ObserveIsolatedApi } from "../e2e/fixtures/isolated-application-diagnostics";
 
 const route = "/api/projects/00000000-0000-4000-8000-000000000001";
 const response = (status: number) => ({ status: () => status, headers: () => ({}) });
@@ -25,6 +25,13 @@ function harness() {
 }
 
 describe("Issue #703: observe canonical GET before one bounded ECONNRESET recovery", () => {
+  it("keeps diagnostic routes relative and anonymizes the Project ID", () => {
+    expect(diagnosticRoute(route)).toBe("/api/projects/[publicId]");
+    expect(diagnosticRoute("http://127.0.0.1:3000" + route)).toBe("other");
+    expect(diagnosticRoute(route + "?token=hidden")).toBe("other");
+  });
+
+
   it("does not replay a successful canonical read", async () => {
     const { observe, events } = harness();
     let calls = 0;

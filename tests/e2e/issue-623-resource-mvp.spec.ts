@@ -60,7 +60,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   // The recorded integrated flow reaches 30.6s; keep its allowance finite and scoped.
   test.setTimeout(60_000);
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue623(page, origin, false, observeIsolatedApi);
+  const f = await seedIssue623(page, origin, observeIsolatedApi);
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const core = await frame.locator(".wx-gantt").elementHandle();
@@ -200,7 +200,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
 
 test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard·query0·렌더관측", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   page.setDefaultTimeout(15_000);
-  const f = await seedIssue623(page, origin, true, observeIsolatedApi);
+  const f = await seedIssue623(page, origin, observeIsolatedApi, true);
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame"); const instance = await frame.getAttribute("data-project-gantt-instance");
   const writes: string[] = []; page.on("request", request => { if (new URL(request.url()).pathname.startsWith(`/api/projects/${f.publicId}`) && ["POST", "PUT", "PATCH", "DELETE"].includes(request.method()) && !request.url().includes("/resource-dashboard/query")) writes.push(request.url()); });

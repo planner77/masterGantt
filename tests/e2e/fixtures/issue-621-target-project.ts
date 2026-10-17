@@ -4,10 +4,11 @@ import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../..
 import type { TaskMutationResponse } from "../../../src/contracts/projects";
 import { expect } from "./isolated-application";
 import { createTargetProject } from "./target-project";
+import type { ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 export const issue621ResourcePassword = "Resource621Synthetic!";
-export async function seedIssue621(page: Page, origin: string, wide = false) {
-  const f = await createTargetProject(page, origin);
+export async function seedIssue621(page: Page, origin: string, observeApi: ObserveIsolatedApi, wide = false) {
+  const f = await createTargetProject(page, origin, observeApi);
   const targets = [];
   for (const [index, code] of (wide ? ["A", "B", "C", "D", "E"] : ["A", "B"]).entries()) {
     const response = await f.mutate("/logistics/targets", {

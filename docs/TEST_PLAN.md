@@ -1,3 +1,11 @@
+## Issue #703 — CI #2896 F-004와 전체 E2E GET 전송 실패 합집합 (2026-10-17)
+
+- [누적 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) 7절과 [공통 REWORK](PR_CI_FAILURE_TRIAGE.md)를 적용한다. #2880 F-001은 QA 문서 구조, #2883 F-002는 #464 canonical GET, #2891 F-003은 #623 GET, #2896 F-004는 #621 GET ECONNRESET 직접 실패다. #2884/#2894 이전 SHA에서 실제 6 Shard·Quality·Docker SUCCESS는 별도 반례이며 최신 Head 증거가 아니다.
+- #2896 Shard3 tests/e2e/issue-621-resource-target.spec.ts:92 → fixtures/target-project.ts:54의 비관측 GET ECONNRESET. 39 PASS/1 FAIL/53 NOT RUN, 다른 5개 Shard CANCELLED. Policy·Quality·Docker PASS, E2E/QA Final 파생 FAIL.
+- 생산자/소비자: createTargetProject, seedIssue621, seedIssue623의 mandatory ObserveIsolatedApi와 전체 16 E2E 시나리오 (#621 5, #622 1, #623 2, Target authoring 7, Resource Dashboard API 1). 기존 #464 Milestone exchange E2E도 누적 실패 파일 합집합에 포함한다. TypeScript 필수 호출 인수로 누락을 방지한다.
+- Unit tests/scripts/isolated-readonly-get.test.ts는 정상 GET, 첫 ECONNRESET 진단+1회 재조회, 두 번째 실패, HTTP 404/409/503, 다른 오류와 비Error 및 canonical route 정규화 6사례를 포함한다. 기존 정확 6개 Shard/Fail-Fast·timeout, 서버 API·Task/Resource/Target Revision/Calendar/SQLite와 Assertion은 변경하지 않는다.
+- 현재 로컬 Node/Playwright 전체 직접 실행, 신규 remote Head의 Quality/E2E/Docker/Trusted QA 결과는 실행 성공 근거 확보 전 NOT TESTED. 재발 시 F-001~F-004 전체와 새 실제 Job·Trace를 비교한다.
+
 ## Issue #703 — 누적 PR CI #2883/#2891 HTTP GET 전송 실패 한정 회귀 (2026-10-17)
 
 - Source of Truth: [Issue #703 전체 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) F-001~F-003, [#704 공통 REWORK](PR_CI_FAILURE_TRIAGE.md), [#680 기존 Read-only GET 선례](exec-plans/active/ISSUE_680.md). 신규 원격 원장은 #2880 Preflight 정책 FAIL, #2883 Shard5 milestone-stage-exchange GET ECONNRESET, #2884 E2E 6/6 PASS, #2891 Shard3 issue-623-resource-mvp GET ECONNRESET을 정확 Head/Run별로 독립 보존한다.

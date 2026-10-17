@@ -142,3 +142,42 @@ PR #705 자동 Code Review Summary는 원본 Head에서 `status=failed, has_unre
 - 새 전체 PR CI에서 F-001 Preflight/Quality·F-002·F-003 직접 사례와 6개 Shard/Docker가 정확 Head/base/test-merge에서 성공해야 PASS. 다음 CI Run이 새로 시작되었다는 것만으로 수용하지 않는다.
 - 재발 시 **이 문서 F-001~F-003 전체**를 읽고 모든 후속 Run/Attempt·취소된 Shard의 실제 오류를 추가한 뒤, 두 E2E 파일/공통 fixture/간접 소비자의 전체 실패 합집합으로 진단한다. Timeout 일괄 증가·Skip·Assertion 완화·무관 이슈 자동 생성 금지.
 - 리뷰 thread 0·main 정렬·병합 충돌 해결 확인은 CI 실행 전 재확인한다. 사용자가 요청한 마지막 작업은 새 PR CI **시작**이며 그 후 자동 모니터링/병합/GHCR 게시/Issue 종료는 수행하지 않는다.
+
+
+## 7. #2894 성공 반례와 #2896 F-004 (2026-10-17)
+
+본 누적 분석은 #2896만 보는 방식이 아니라 기존 F-001(DOC_SYNC), F-002(#464 GET ECONNRESET), F-003(#623 GET ECONNRESET) 및 #2884 성공까지 모두 대조한다. 이전 실패 Run·가설과 원인은 변경하지 않고 이번 사건을 추가한다. Source of Truth는 [#704 전 이력 분석 지침](PR_CI_FAILURE_TRIAGE.md)이며, 이 파일 외 다른 #703 원장을 만들지 않는다.
+
+### 7.1 Run/Attempt 및 Cross-run 매트릭스
+
+| 원본 Run / Head·Base | 직접 FAIL 또는 성공 반례 | 연쇄 Job·실행 여부 |
+| --- | --- | --- |
+| [#2880.1 / 39009485784](https://github.com/planner77/masterGantt/actions/runs/39009485784), Head `9dd6f5c407dcb8417bf8b82b57a941d0ca8dcb26` | F-001: Preflight `DOCUMENTATION_SYNC` 형식 누락. 원인은 위 `2.`와 `6.` 참조 | Required aggregates/QA Final 파생 실패, 실제 Unit/E2E/Docker NOT RUN |
+| [#2883.1 / 39010283771](https://github.com/planner77/masterGantt/actions/runs/39010283771), Head `9b2d90148263504b6e330570416b6677642c6d97` | F-002: Shard5 `milestone-stage-exchange` canonical GET `ECONNRESET` | 전체 Run CANCELLED이나 Shard5에는 실제 22 PASS/1 FAIL |
+| [#2884.1 / 39010698270](https://github.com/planner77/masterGantt/actions/runs/39010698270), Head `cb8a9751791bbf61d21ee73b719513dff6514abe` | 동일 Issue 정상 반례: 6-shard E2E, Quality/Docker/Trusted QA SUCCESS | 정확 당시 SHA/Base에만 유효 |
+| [#2891.1 / 39019744531](https://github.com/planner77/masterGantt/actions/runs/39019744531), Head `e2281c7e2aa7ba7e4081d10f1e6fa33ce5ce60c9` | F-003: Shard3 `issue-623-resource-mvp` Snapshot GET `ECONNRESET` | 40 PASS/1 FAIL/49 NOT RUN, 5 Shard CANCELLED |
+| [#2894.1 / 39021666390](https://github.com/planner77/masterGantt/actions/runs/39021666390), Head `c7a40d37f1b20c0f50fdc009f70e518d95b6541f`, Base `4307c8cdf1cc00a87fd7bff9f5e1a0c924bb3620` | 정확 해당 Head에서 Quality/Docker/6-shard E2E/QA Final SUCCESS, [Trusted QA #536](https://github.com/planner77/masterGantt/actions/runs/39023096156) SUCCESS | 성공은 후속 #2896의 승인 증거가 아니며 실패 이력 소급 변경 금지 |
+| [#2896.1 / 39026038481](https://github.com/planner77/masterGantt/actions/runs/39026038481), Head `bdb550d96c688997443b4b4bbae37dc24235b245`, Base `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7`, Test-Merge `597a6b03d36d74378245b5fc5fdc8a1d1e21ed82` | **F-004 (INIT_TRANSPORT):** Shard3/6 Job `117377441664`, `issue-621-resource-target.spec.ts:92` → `fixtures/target-project.ts:54`에서 canonical GET `apiRequestContext.get: read ECONNRESET` | 39 PASS/1 FAIL/53 NOT RUN; 다른 5 Shard CANCELLED. Preflight/Policy/Typecheck/ESLint/Vitest/Build/Docker PASS, E2E aggregate 및 QA Final은 파생 FAIL |
+
+### 7.2 F-004 실제 오류와 근인 분리
+
+- [Shard3 Playwright 원본 Trace/diagnostics](https://github.com/planner77/masterGantt/actions/runs/39026038481/artifacts/12097868890)에서 첫 요청 `GET /api/projects/{publicId}`의 `ECONNRESET`을 확인했다. 당시 `target-project.ts`의 분기 `observeApi ? observedReadOnlyGet(...) : page.request.get(api)`는 #621의 `seedIssue621(page, origin)`에서 observer를 전달하지 않아 **직접 비관측 GET**을 수행했다. F-003 보완이 #623에만 연결되고 #621·#622 및 추가 직접 소비자를 빠뜨린 것은 코드에서 확인되는 보완 범위 누락이다.
+- 첨부된 격리 서버의 `reason=test_failure`와 `requests=[]`는 당시 첫 오류에 observer가 없었음을 뒷받침한다. 실패 직후 Child process `alive=true`, `exitCode=null`, `signal=null`, 별도 Health HTTP **200**, cgroup `oom=0`/`oomKill=0`/`currentBytes=10,330,116,096`/`maxBytes=null`. 서버가 죽거나 OOM이라고 **확정할 수 없고**, 실제 TCP/Socket/Next 전송 근인은 `UNKNOWN`이다.
+- #2896 E2E 이외 필수 Quality/Docker가 성공했고 후속 QA Final이 `required e2e 미성공`으로 실패했다. 다른 shard의 CANCELLED를 독립 PASS/FAIL로 처리하지 않는다. 위 F-002·F-003과 같은 read-only canonical GET류이나 물리적 근인이 같다고 확인되지는 않았다.
+
+### 7.3 누적 실패 합집합과 원인별 일괄 보완
+
+| 실패 ID | 원본 실제 실패 경로 | 새 동결 후보에 필요한 검증 |
+| --- | --- | --- |
+| F-001 | `docs/exec-plans/active/ISSUE_703.md` DOC_SYNC | Preflight 구조·AC 및 기존 `test_preview_publish.py` 유지. #2884·#2894·#2896 Preflight 성공 |
+| F-002 | `tests/e2e/milestone-stage-exchange.spec.ts` GET | 기존 observer→`observedReadOnlyGet`와 Milestone·Import/Export·Copy/Template 업무 단언 불변 |
+| F-003 | `tests/e2e/issue-623-resource-mvp.spec.ts` → `target-project.ts` GET | #623 두 E2E와 변경된 seed 인수, revision·Target·Assignment·WBS 6 mutation 단언 불변 |
+| **F-004** | `tests/e2e/issue-621-resource-target.spec.ts` → `issue-621-target-project.ts` → `target-project.ts` GET | **#621의 5개 테스트 + 동일 seed를 사용하는 #622 한 개**를 포함해 관측 인수 필수화 |
+
+**종합 수정:** `createTargetProject(page, origin, observeApi: ObserveIsolatedApi)`, `seedIssue621(page, origin, observeApi, wide?)`, `seedIssue623(page, origin, observeApi, wide?)`에 **mandatory observer**를 지정한다. 해당 fixture의 모든 직접·간접 E2E 소비자(#621 5, #622 1, #623 2, Target authoring 7, Resource Dashboard API 1)를 수정하며, 총 16개 테스트가 TypeScript 인수 검증의 보호를 받게 한다. 서버 요청은 기존 URL을 사용하고, 진단용 route는 `/api/projects/{publicId}`처럼 상대 경로를 전달하여 개인정보 없는 canonical route로 분류되게 한다. `tests/scripts/isolated-readonly-get.test.ts`에 해당 route 정규화의 Unit 검증을 추가한다.
+
+**불변 안전 경계:** 정확 `ECONNRESET` 후 read-only GET **최대 한 번** 재조회. 관측기는 첫 실패를 진단 후 재throw한다. HTTP4xx/5xx·malformed JSON·2차 RESET·다른 transport 오류는 원래 FAIL. POST/PUT/PATCH/DELETE 재전송 금지. 기간·E2E timeout/retry/fail-fast/6-shard·기존 모든 도메인 Assertion·QA/Owner/Main/GHCR/Finalizer·정식 Release Gate 변경 없음.
+
+**선정 교차 검증:** 직접 F-001~004 관련 Unit·Preflight, E2E #621 5/#622 1/#623 2·#464 1, 인접 Target Authoring 7·Resource API 1와 기존 비수정 Gantt/Target consumers. 새로운 remote 정확 SHA·base·test merge의 Required Quality/E2E6/Docker와 Trusted QA는 완료 전 `NOT TESTED`. 로컬 Node/npm/Chromium 실행 또한 실제 수행하지 않았다면 `NOT TESTED`이다.
+
+**재실패 시** 이 문서 F-001~F-004와 모든 정상/취소 Run을 다시 읽고 이전 전체 실제 실패 파일 합집합 + 신규 원인을 한 원장에 추가한다. HTTP 리셋이라는 이유로 근인 해결을 주장하거나 테스트를 Skip·timeout 일괄 연장하지 않는다. main 정렬/리뷰 thread/충돌을 확인하고 새 PR CI **시작**까지만 진행한다.

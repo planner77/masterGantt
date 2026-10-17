@@ -13,7 +13,7 @@ async function successful(response: APIResponse) {
 }
 
 /** Real HTTP setup: no mocked Target, binding, Task, or persistence responses. */
-export async function createTargetProject(page: Page, origin: string, observeApi?: ObserveIsolatedApi) {
+export async function createTargetProject(page: Page, origin: string, observeApi: ObserveIsolatedApi) {
   const headers = { Origin: origin };
   await successful(await page.request.post(`${origin}/api/project-master/admin-sessions`, { headers, data: { password: targetMasterPassword } }));
   let masters = await (await successful(await page.request.get(`${origin}/api/project-master/admin/items`))).json() as ProjectMasterAdminResponse;
@@ -49,9 +49,9 @@ export async function createTargetProject(page: Page, origin: string, observeApi
   // A transport-only GET reset may occur despite a live isolated server.
   // Observe the first failure before one bounded retry; never retry writes.
   const snapshot = async () => {
-    const response = await (observeApi
-      ? observedReadOnlyGet(observeApi, api, () => page.request.get(api))
-      : page.request.get(api));
+    // The observer receives the normalized API route, never an absolute URL or
+    // credential-bearing request. All consumers must supply real E2E diagnostics.
+    const response = await observedReadOnlyGet(observeApi, `/api/projects/${publicId}`, () => page.request.get(api));
     expect(response.status()).toBe(200);
     return await (await successful(response)).json() as ProjectSnapshotResponse;
   };

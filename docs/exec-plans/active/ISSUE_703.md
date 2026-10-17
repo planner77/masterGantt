@@ -102,3 +102,17 @@ HIGH 위험 잔여 항목: registry 인증 404 오판 가능성, Docker archive 
 - 검증 예정: 신규 Vitest deterministic negative/positive 5 사례, 기존 #623 E2E 2건·#464 E2E(관련 1건)·#621 fixture 경계, policy/Preflight 및 최종 Full Required3·Trusted QA. 실제 신규 Head 결과는 **NOT TESTED**.
 - DOCUMENTATION_SYNC: `docs/TEST_PLAN.md` UPDATED, `docs/REMOTE_VALIDATION.md` UPDATED, `docs/exec-plans/active/ISSUE_703.md` UPDATED, `docs/ISSUE_703_FAILURE_ANALYSIS.md` UPDATED. `docs/SCHEDULING_ENGINE.md` N/A(Milestone 표시/일정 엔진 계약 변경 없음, 테스트 한정 GET 전송 실패 복구).
 - 추가 AC 매핑: AC2의 실패 시 안전한 BLOCKED·출처 관측; AC3의 권한 분리는 불변, AC5는 기존 PR Required3 유지. Preview 자체의 GHCR 게시 AC1/AC6/AC7/AC8은 main 병합 후 별도 실행 전 NOT TESTED.
+
+
+## 2026-10-17 PR CI #2896 F-004 REWORK — 관측 인수 전체 적용
+
+- 최신 Main 기준: `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7` (#552 merge), application `0.115.0`. 기존 최초 baseline/developer history는 위 Work Packet에 불변으로 보존한다.
+- 새 F-004: [Run #2896.1](https://github.com/planner77/masterGantt/actions/runs/39026038481), Head `bdb550d96c688997443b4b4bbae37dc24235b245` / Base `c0eca9ad5bfdb6c14d98dec7c5cfd7256e4619d7` / Test-Merge `597a6b03d36d74378245b5fc5fdc8a1d1e21ed82`. Shard3 `issue-621-resource-target.spec.ts:92` → `target-project.ts:54` unobserved canonical GET `ECONNRESET`; 39 PASS/1 FAIL/53 NOT RUN, 5 shard CANCELLED. Preflight/Policy/Quality/Docker PASS, E2E aggregate/QA Final 파생 FAIL.
+- 과거 원장 합집합은 [단일 누적 실패 문서 F-001~F-004](../../ISSUE_703_FAILURE_ANALYSIS.md)를 따른다. #2880 DOC_SYNC, #2883 milestone-stage-exchange read reset, #2891 issue-623 read reset과 #2884/#2894 정확 과거 Head 전체 CI SUCCESS를 누적 대조했다. 원본 기록 삭제·타 SHA PASS 승계 금지.
+- 실제 [#2896 Trace](https://github.com/planner77/masterGantt/actions/runs/39026038481/artifacts/12097868890): observer가 없는 실패 경로로 API request event 누락, 격리 프로세스 생존·별도 Health200·cgroup oomKill0 관측. 원시 TCP/Next Socket/OOM의 인과 증거는 UNKNOWN. F-003의 observer 선택적 전달이 F-004에 닿지 못했던 **코드 적용 누락**은 확인됨.
+- 변경 producer: `tests/e2e/fixtures/target-project.ts`, `issue-621-target-project.ts`, `issue-623-target-resource.ts`의 필수 `ObserveIsolatedApi` 인수 및 상대 canonical route. 직접 소비자: #621 5case, #622 1case, #623 2case, Target authoring 7case, Resource Dashboard API 1case. 누락된 optional branch는 제거하며 TypeScript가 필수 인수 미전달을 차단한다.
+- 보호 정책: observer 먼저 오류·Health/child/cgroup 기록한 후 **정확 ECONNRESET인 GET만 1회** 추가 시도, HTTP 오류·다른 transport·두 번째 실패는 FAIL. POST/PUT/PATCH/DELETE 재시도0. #680 선례와 관련 #621/#622/#623/#464·Admin Target 인접 소비자, 기존 Revision/Task/Assignment/SQLite/UI 모든 단언·timeout/fail-fast 그대로.
+- 증거: 기존 `tests/scripts/isolated-readonly-get.test.ts` positive/negative5에 canonical route 값과 absolute URL 분류를 검증하는 신규 Unit 1개(합계6). 신규 정확 Head의 typecheck/Unit/직접 E2E 16 + #464/Full E2E 6Shard/Docker·Trusted QA는 PR CI 실행 전 `NOT TESTED`. 로컬 실제 npm/Chromium/Docker 미실행은 `NOT TESTED` (구현 diff·관측 자료 감사와 구분).
+- DOCUMENTATION_SYNC: `docs/ISSUE_703_FAILURE_ANALYSIS.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, 본 Work Packet UPDATED. `docs/SCHEDULING_ENGINE.md`는 일정·Dependency 도메인 알고리즘과 Milestone 바/표시 변경 없음으로 N/A. `docs/API.md`·`docs/DB_SCHEMA.md`·`DESIGN.md` 제품 인터페이스/DB/UI 변경 없음 N/A. 원래 서식 `## DOCUMENTATION_SYNC`/`## AC_TEST_COVERAGE`은 QA Preflight와 일치하도록 그대로 유지한다.
+- AC 매핑 영향: AC2 fail-closed 관측, AC3 Preview 게시 권한 분리 불변, AC5 PR Required3·원격 검증 요구 불변. AC1/4/6/7/8 실제 Preview GHCR 게시·rollback·성능 측정은 후속 실증 전 NOT TESTED. release_required=false/release_authorized=false.
+- Owner 요청 범위: 동일 #705 Branch 수정·main 정렬, 미해결 리뷰 Thread와 충돌 해결, 새 PR CI **시작**. 성공 모니터링·병합/Main CI/GHCR/Finalizer/Issue 종료는 미진행.

@@ -1,3 +1,11 @@
+## Issue #703 — CI #2896 Shard3 read-only GET 전송 실패·전체 Fixture 관측 인수 (2026-10-17)
+
+[Issue #703 누적 원장](ISSUE_703_FAILURE_ANALYSIS.md) 7절은 #2880 DOC_SYNC F-001, #2883 #464 GET F-002, #2891 #623 GET F-003, #2896 #621 GET F-004와 #2884/#2894 정상 반례를 분리한다. [#2896.1](https://github.com/planner77/masterGantt/actions/runs/39026038481)의 Shard3 39 PASS/1 FAIL/53 NOT RUN 및 다른 5 Shard 취소는 별도 실측이다. 당시 단절 이후 프로세스 alive, 별도 Health 200, cgroup oomKill0은 근인 OOM/서버 종료가 입증되지 않았음을 뜻하며 Socket/Next의 물리적 원인은 UNKNOWN이다.
+
+기존 observedReadOnlyGet의 최초 ECONNRESET 관측→정확 동일 읽기 전용 GET 1회 재조회만 적용한다. #623 optional observer만으로는 #621/#622 및 Target Authoring/Resource Dashboard API 경로가 보호되지 않아 createTargetProject·seedIssue621·seedIssue623에서 ObserveIsolatedApi를 필수화한다. 16개 E2E 호출자 전체에 observer를 전달하고 진단 route는 /api/projects/{publicId} 상대 경로만 넘겨 로그에 URL/인증정보가 남지 않도록 한다. 모든 Mutation(POST/PUT/PATCH/DELETE) 재전송0, 다른 network/HTTP 오류·malformed JSON·2차 reset은 FAIL이며 실제 data/Revision/Target·Task/Gantt 단언은 불변이다.
+
+현재 변경은 Preview GHCR 수동 게시, PR/Main CI Required3/Trusted QA/Owner·Finalizer 정책과 무관하다. 로컬 단위·Chromium 및 새 Head 전체 remote E2E6/Docker·Trusted QA는 실제 Run 증거 확보 전 NOT TESTED. 사용자가 요청한 종료점은 새 PR CI 시작까지이며 완료 모니터링·병합·Main CI·정식 이미지 게시 및 Issue 종료 미수행이다.
+
 ## Issue #703 — PR E2E 격리 Canonical GET 복구와 원격 검증 범위 (2026-10-17)
 
 Issue #703 PR #705 누적 Run #2880.1(Preflight 문서 FAIL), #2883.1(Shard5 실 GET ECONNRESET 후 Run 취소), #2884.1(정확 Head에서 6 Shard PASS), #2891.1(Shard3 GET ECONNRESET, 5개 다른 Shard 취소)의 정확한 출처·증거·누적 원인은 [단일 원장](ISSUE_703_FAILURE_ANALYSIS.md)과 [공통 지침](PR_CI_FAILURE_TRIAGE.md)에 보존한다.

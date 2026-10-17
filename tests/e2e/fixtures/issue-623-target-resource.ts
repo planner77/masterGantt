@@ -10,7 +10,7 @@ import type { ProcessCatalogResponse } from "../../../src/contracts/process-cata
 import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../../src/contracts/resource-dashboard";
 
 /** Cumulative real HTTP fixture; logical F0 codes map to canonical server UUIDs. */
-export async function seedIssue623(page: Page, origin: string, wide = false, observeApi?: ObserveIsolatedApi) {
+export async function seedIssue623(page: Page, origin: string, observeApi: ObserveIsolatedApi, wide = false) {
   const f = await createTargetProject(page, origin, observeApi);
   // F0 explicitly uses five weekdays; do not inherit the default KR holiday rule.
   await f.mutate("/work-calendar", { countryRules: [], customDates: [] }, "put");
