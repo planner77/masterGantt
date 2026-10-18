@@ -4444,3 +4444,15 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 - Original [Main Run #2957.1](https://github.com/planner77/masterGantt/actions/runs/39108991895) on merge `ea4194763568432ef98e823bb796b59a5beb317c` fails shard3 #456 `task-editor-form-density.spec.ts:193` BEFORE Editor/metadata: current Core and native Chart do not prove the exact 120px capacity within 5s (`TARGET_CORE_CAPACITY_INSUFFICIENT`/`TARGET_NATIVE_CAPACITY_INSUFFICIENT`). Shard3 91PASS/1FAIL/1SKIP, other5 shard success; required Quality/Docker pass, E2E fail, Main GHCR candidate skipped. Related precedent [#624 F-624-025](https://github.com/planner77/masterGantt/actions/runs/39021459600) requested120/native62 means a single wheel setup is not uniformly sufficient.
 - Add an isolated opt-in test fixture `scrollCapacityWitness` for the scoped Summary `longList` test only: normal dated Task `EDITOR-76`, 2027-04-05, initializes a genuine date horizon. Verify real Core has the witness and both actual Core/native capacities still admit **exact 120px**; keep native wheel fallback and fail closed if invalid. Preserve 120px X/38px Y, same instance, fullscreen, tree/columns/selection, editor cancel/metadata confirmed and PATCH1; unchanged CI/timeout/retry/skip, no product Gantt axis write.
 - Direct #456 and impacted #624/#667 readiness, #551/552/572/529/719/518/724 cross-regression; prior issue-specific [L1–L10/F01–F05/M01](ISSUE_724_FAILURE_ANALYSIS.md) append-only. Local no-fail-fast Chromium, lint, typecheck NOT TESTED in this runtime; new PR and subsequent Main required verification separate. Owner's issue/version authorization does not waive Main/GHCR/formal Release validation.
+
+
+## Issue #724 — F06 보완 PR 정책 선언과 누적 로컬 회귀 (2026-10-18)
+
+- [PR #740 Full CI #2960.1](https://github.com/planner77/masterGantt/actions/runs/39111327137)은 개별 줄이 아닌 위험도/QA 선언으로 Preflight 4 FAIL, QA route BLOCKED. 실제 Quality/E2E/Docker 구현은 SKIPPED/NOT TESTED이며 M01 capacity의 재발 증거가 아니다. [같은 #724 누적 원장 F06](ISSUE_724_FAILURE_ANALYSIS.md) 참조.
+- PR metadata의 단독 줄 선언·단일 Refs·문서 영향/AC1–AC6를 base parser로 확인하고 preflight 기존10회귀 PASS. 검증기/CI를 바꾸지 않는다. M01 보완의 직접 #456 실제 Chromium PASS, 변경2파일 lint/typecheck PASS. 누적 L1–L10/F01–F05/M01 소비자의 같은 source 제한적 회귀를 아래 결과로 구분한다.
+- 교정 PR release_required=false/release_authorized=false(제품 version 불변)와 원본 #724 제품 릴리스 의무/Owner 조건부 v0.117.0 승인은 별개다. 새로운 원격 exact-head Full Required3·Trusted QA 및 수정 Main 실행 결과를 로컬 PASS로 대신하지 않는다.
+
+
+### Main 복구 후보의 최종 로컬 결과
+
+같은 fixture/spec 지문(91774c62/f85f4010)에서 누적9파일91 PASS(7.0분)+인접5파일12 PASS(2.1분), **103개 고유 Chromium 케이스 PASS**, 실패/skip/retry0. 별도 직접 #4561 PASS는 중복 수로 구분한다. 원본 Core62/native63<120은 scoped Task 보완 후 실제1354/1355로 admission 통과했고 exact X120/Y38·같은 Gantt/선택/열/범위·Editor 취소/metadata PATCH1을 보존했다. source/test 변경0. 변경 lint/typecheck·base parser·preflight10·Markdown/version/diff PASS. Pre-PR 자동 선택은 미등록 fixture 매핑 UNKNOWN으로 BLOCKED이며 수동 실제 소비자 선정·검증을 별도 기록했다. 전체 원격 Required3/Trusted/Main/GHCR의 PASS가 아니다. 별도 infra 읽기 전용 소스·문서 검토 PASS, 사람 Owner/Trusted 승인 대체 없음. 전체 이력·정확 지문·명령/환경·미실행·승인 경계는 [누적 원장](ISSUE_724_FAILURE_ANALYSIS.md)에 기록한다.
