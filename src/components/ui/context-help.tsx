@@ -105,9 +105,28 @@ export function ContextHelp({ label, children, disabled = false }: { label: stri
         aria-expanded={open}
         aria-controls={id}
         aria-describedby={open ? id : undefined}
+        aria-keyshortcuts={open ? "ArrowDown ArrowUp PageDown PageUp Home End" : undefined}
         onPointerEnter={event => { if (event.pointerType === "mouse") show(); }}
         onPointerLeave={leave}
         onFocus={() => { if (!restoringFocus.current) show(); }}
+        onKeyDown={event => {
+          // A portaled tooltip is not in the trigger's Tab order. Keep focus on
+          // the trigger and provide keyboard scrolling when its text is clipped.
+          const viewport = panel.current;
+          if (!open || !viewport || viewport.scrollHeight <= viewport.clientHeight + 1) return;
+          const pageStep = Math.max(32, viewport.clientHeight - 24);
+          switch (event.key) {
+            case "ArrowDown": viewport.scrollTop += 40; break;
+            case "ArrowUp": viewport.scrollTop -= 40; break;
+            case "PageDown": viewport.scrollTop += pageStep; break;
+            case "PageUp": viewport.scrollTop -= pageStep; break;
+            case "Home": viewport.scrollTop = 0; break;
+            case "End": viewport.scrollTop = viewport.scrollHeight; break;
+            default: return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+        }}
         onBlur={event => { if (!panel.current?.contains(event.relatedTarget)) close(); }}
         onClick={() => {
           if (open && pinned.current) close();

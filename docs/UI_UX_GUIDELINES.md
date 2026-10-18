@@ -124,6 +124,7 @@ selected는 `aria-selected` 등 의미와 색을 함께 사용한다. readonly/o
 
 **Interaction/접근성 세칙**
 - Tooltip은 설명하는 **바로 그 요소에 연결**하고 hover/focus 모두에서 접근할 수 있도록 한다. 클릭형 `도움말`은 실제 button·명시 accessible name·`aria-expanded`/ `aria-controls`(적용 시)로 구현하고 keyboard Enter/Space, Escape 닫기, 닫은 뒤 trigger focus 복원, click/touch 및 viewport 밖 배치·clip 방지를 검증한다. 단순 `title` 속성/hover-only/disabled control 자체만 유일한 도움말 경로로 삼지 않는다.
+- 도움말 본문이 작은 화면 높이·확대율·긴 번역으로 세로 overflow가 발생하면 모든 본문을 키보드로 읽을 수 있어야 한다. 공통 `ContextHelp`의 열린 버튼은 focus를 유지한 채 `ArrowUp/Down`, `PageUp/Down`, `Home/End`로 해당 팝오버 내부만 스크롤하고 `Escape`로 닫아 버튼에 focus를 복원한다. 작은 높이에서 실제 overflow, 키보드 스크롤, 상위 Dialog·문서 스크롤/초안 상태 보존을 회귀 검증한다.
 - 비차단 인라인/Toast는 적절한 `role=status`/live region, 중요한 오류는 `role=alert` 또는 동등한 접근 가능한 표시를 사용한다. 화면을 읽다가 매번 blocking Dialog에 진입시키지 않는다. Dialog를 연 경우 적절한 초기 focus, Tab 경계, Escape(진행중 guard 예외), 종료 후 trigger focus를 확인한다.
 - 기본 비어 있는 고정 설명 래퍼는 남기지 않는다. 화면별 간격은 기존 semantic token/spacing, 실제 data table/pane geometry budget을 따른다. 핵심 진입점이나 읽기 쉬운 이름을 좁은 화면에서 숨겨 밀도를 얻지 않는다.
 - 컴포넌트별 기존 테스트/상태 계약을 함께 유지한다: Milestone 범위·Ready/Completed·드릴다운/marker-OFF, Resource Capacity/M/D/M/M·선택 대비 전체·비가산, 물류 Target/설비/시스템 공유 원본과 역할, 기준정보 stable code·카탈로그 revision·관리자 session.

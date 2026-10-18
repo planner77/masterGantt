@@ -133,3 +133,50 @@ test("#719 focus 유지 pointer leave와 profile modal 도움말 Escape는 초�
   await expect(page.getByRole("dialog", { name: "초안 폐기 확인", exact: true })).toHaveCount(0);
   expect(state.requests).toHaveLength(0);
 });
+
+test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 복원한다", async ({ page }) => {
+  const root = await openSurface(page, "master");
+  await page.setViewportSize({ width: 390, height: 280 });
+  const trigger = root.getByRole("button", { name: "기준정보 항목 관리 도움말", exact: true });
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.focus();
+  await trigger.press("Enter");
+  const tooltip = page.getByRole("tooltip");
+  await expect(tooltip).toBeVisible();
+
+  // Simulate a long localization at a short viewport without changing the
+  // production help copy. All help instances use this same scrollable primitive.
+  await tooltip.evaluate(element => {
+    const longCopy = document.createElement("p");
+    longCopy.textContent = "긴 한글 안내 Long English localized contextual explanation. ".repeat(80);
+    element.appendChild(longCopy);
+  });
+  const dimensions = await tooltip.evaluate(element => ({
+    client: element.clientHeight, content: element.scrollHeight,
+    viewport: window.innerHeight,
+  }));
+  expect(dimensions.content).toBeGreaterThan(dimensions.client);
+  expect(dimensions.client).toBeLessThan(dimensions.viewport);
+
+  await trigger.press("ArrowDown");
+  const arrowPosition = await tooltip.evaluate(element => element.scrollTop);
+  expect(arrowPosition).toBeGreaterThan(0);
+  await trigger.press("PageDown");
+  expect(await tooltip.evaluate(element => element.scrollTop)).toBeGreaterThan(arrowPosition);
+  await trigger.press("End");
+  const bottom = await tooltip.evaluate(element => element.scrollTop);
+  expect(bottom).toBeGreaterThan(0);
+  await trigger.press("PageUp");
+  const pageUpPosition = await tooltip.evaluate(element => element.scrollTop);
+  expect(pageUpPosition).toBeLessThan(bottom);
+  await trigger.press("ArrowUp");
+  expect(await tooltip.evaluate(element => element.scrollTop)).toBeLessThan(pageUpPosition);
+  await trigger.press("Home");
+  expect(await tooltip.evaluate(element => element.scrollTop)).toBe(0);
+
+  await expect(trigger).toBeFocused();
+  await expect(tooltip).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(tooltip).toBeHidden();
+  await expect(trigger).toBeFocused();
+});

@@ -142,3 +142,12 @@
 - `DOCUMENTATION_SYNC`: PASS(관련 문서 갱신·N/A 근거·AC mapping·로컬 link 검사·분리된 사전 의미 검토 완료). DESIGN Delta B, 서버/DB/Scheduling/CI 정책 변경 없음.
 - 실제 사전 Reviewer `/root/pre_qa`의 코드·문서 의미 검토는 PASS(추가 차단 지적0)이며, 원격 Head/tree 동등성은 Issue STATUS/PR 본문에 기록한다. 최종 production build는 exit0과 동일 제품 source를 확인했다. 이것은 Owner의 최종 병합 승인 또는 AGENT 인간 영수증이 아니다.
 - branch는 최신 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`에서 출발했다. PR 생성 시 살아 있는 base·mergeability·review thread를 재조회하고 Head·CI Run URL/attempt를 기록한다. 요청 종료점은 Full PR CI 시작이며 결과는 NOT TESTED다.
+
+## 2026-10-18 PR #722 / CI #2932.1 접근성 리뷰에 따른 보완
+
+- 원본: [Full PR CI Run 39086924294 attempt 1](https://github.com/planner77/masterGantt/actions/runs/39086924294), Head `d5344bdfa8239c192bccfbe1c84930d02d7763d8`, Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, test merge `a248bd383b3abdd51a4270e2e96f27622715c3f2`.
+- 원본 Quality/E2E(6/6)/Docker Required aggregates **SUCCESS**. [QA Final job 117559273483](https://github.com/planner77/masterGantt/actions/runs/39086924294/job/117559273483)만 **BLOCKED / failure**, 사유 `미해결 review thread`. 원본 결과를 성공으로 변경하지 않는다.
+- [Codex P2 리뷰 스레드](https://github.com/planner77/masterGantt/pull/722#discussion_r4305289690): 팝오버 `overflow:auto`가 작은 화면/확대율/긴 설명을 잘라도 키보드로 스크롤할 경로가 없다. `src/components/ui/context-help.tsx`는 포털 구조/현재 ARIA 설명·hover/click·Escape·focus 복원을 보존하고, 열린 도움말 버튼에서 Arrow/Page/Home/End로 팝오버 내부를 스크롤한다.
+- `tests/e2e/issue-719-contextual-help.spec.ts`: 짧은 viewport + 긴 KO/EN을 합성해 실제 overflow를 확인하고 Arrow/Page/Home/End, 열린 상태/trigger focus/Escape 복원을 단언한다. 기존 동일 fixture 다섯 폭/hover/focus/touch, 관리자 초안·비활성화, 대상 대시보드·Gantt/marker-OFF은 인접 회귀 대상이다.
+- 전체 이력 및 최신 오류·분류·보완·재검증 범위·미검증: [전용 누적 실패 원장](../../ISSUE_719_FAILURE_ANALYSIS.md). 이 제품 접근성 교정은 AC3·AC6의 증거 추가이며, 원본 before/after 측정과 원본 Run 원장을 덮어쓰지 않는다.
+- 수정 후보의 로컬 E2E/typecheck/lint: **NOT TESTED**(이번 GitHub connector 환경에는 소스 checkout·브라우저 실행이 없음). 새로운 exact-Head Full PR CI 결과는 실행 전 **NOT TESTED**이며, QA/Trusted·Owner 최종 ACCEPT와 정식 GHCR 릴리스도 승인받지 않았다.
