@@ -81,3 +81,13 @@ Manager는 shared `IdentifierDetails`, Project/Import 표시, 문서/version·E2
 
 - 관련 기존 Chromium 최초66: 55 PASS/10 FAIL/기존 baseline capture1 SKIPPED. 실패10은 숨긴 copy control geometry5·공정 global selector1·구 resource label/geometry4였다. 수정 후 실패 사례 전부 재검증: Milestone 관리5/5, Resource 상태9/9(해당 실패4 포함), 공정 자동 코드1/1 PASS. 신규 #717 geometry/touch6/6와 실제 격리 HTTP1/1 PASS. 서로 중복하는 실행을 단일66-run PASS로 포장하지 않는다.
 - 실제 Resource catalog 기존 E2E의 resource/group 5폭 캡처를 `output/playwright/issue-717/after/resource-catalog`에 보존한다. 그 밖의 과거 Issue screenshot은 덮어쓰지 않고 이 작업에서 생성한 변경만 복원했다.
+
+## PR CI #2935.1 실패 REWORK 및 새 Full 사전 인계 (2026-10-18)
+
+- 정확한 원본: [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) Head `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc` / Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577` / Full E2E FAIL / Quality·Docker PASS. [동일 Issue 전체 누적 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)은 F-001 #2923 문서, F-002 #2926 metadata, F-003a Shard4 Target 편집 textbox, F-003b Shard5 cancelled 내부 #622 Target ID 누락, #2927 docs-only 성공을 분리한다.
+- 분류: F-003a `TEST_CONTRACT` (read-only textarea와 editable input의 동명 strict mode); F-003b `PRODUCT/PRESENTATION`(일별 부하 상세 출발 선택 Target ID 원문 경로 누락); E2E aggregate·QA Final 후속 실패는 파생이며 root로 별도 계수하지 않음.
+- 교정 파일: `tests/e2e/logistics-target-authoring.spec.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`, `tests/e2e/issue-623-resource-mvp.spec.ts`, `src/features/resources/resource-plan-details.tsx`, `docs/ISSUE_717_IDENTITY_INVENTORY.md`, `docs/ISSUE_717_FAILURE_ANALYSIS.md`, `docs/TEST_PLAN.md`, 본 Packet 및 PLAN.
+- E2E4는 새 인스턴스 생성 fieldset의 **편집 textbox**를 대상으로 지정하고 Target/ACS/MCS/상속 후보에서 동명이 아닌 한 이름-first 선택을 확인. E2E5는 최초 daily 상세에 직접 선택 Target ID 원문을 닫힌 disclosure로 보여 원문 조회를 복구한다. #622/#623의 투입률 입력은 코드가 없는 이름-first 표시를 사용하되 allocation/Target canonical·부하80/140/120·동일 Excel assertions은 그대로.
+- 변경 영향·확대: Target 생성(whole/subset/공유·관리/412), Resource Plan 첫 daily→day resources→assignments→Task 편집, Target/Resource 표시·ID 코드 원문/동명, #621/#622/#623/#717, 관련 suite + Full E2E6. 기존 테스트 결과 중 취소/미실행을 PASS로 전용하지 않는다.
+- 보존: DB/API/문서 외부 형식·Release 권한/SVAR Core/CI required 3개·Shard6/Fail-Fast·제품 보안/일정 엔진. Version `0.116.1`, `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`.
+- 본 실행 환경 로컬 Node 프로젝트/Chromium runner 미제공: 직접 제품 테스트 **NOT TESTED**. 원격 원본 로그/정적 source-contract 검토를 별도 근거로 기록한다. 새 Full CI는 GitHub에 새로운 Head가 게시된 뒤 Run을 실제 조회하고 시작까지만 확인한다. 미해결 리뷰/최신 main/충돌과 DOC_SYNC는 게시 직전 재검증한다. 새 Head Required3/Trusted/Owner ACCEPT/병합·Main/GHCR·Issue 종료 아직 NOT TESTED/미승인.

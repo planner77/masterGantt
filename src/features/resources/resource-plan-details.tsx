@@ -162,6 +162,12 @@ export function ResourcePlanDetails({
         · {current.input.periodId} · Capacity는 유효 근무일1 M/D
       </p>
       <p className="resource-dashboard-hint">출발 선택 Target: {data.filters.targetIds?.map(targetLabel).join(" / ") || "전체"} · 현재 근거: {current.input.demandScope === "project" ? "같은 Capacity 개인·기간의 Project 전체 (선택 Target 밖 배정 포함)" : "출발 선택 조건"} · 기준 revision {data.projectRevision}</p>
+      {data.filters.targetIds?.some(id => id !== "unassigned") ? (
+        <IdentifierDetails
+          label="출발 선택 Target 식별 정보"
+          identifiers={data.filters.targetIds.filter(id => id !== "unassigned").map(value => ({ label: "Target ID", value }))}
+        />
+      ) : null}
       <div className="resource-dashboard-pagination">
         {steps.length > 1 ? (
           <button type="button" onClick={back}>

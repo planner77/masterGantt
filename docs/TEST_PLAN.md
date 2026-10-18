@@ -1,3 +1,13 @@
+## Issue #717 — PR #718 CI #2935.1 E2E 교차 회귀 수정 (2026-10-18)
+
+[이슈별 누적 실패 원장](ISSUE_717_FAILURE_ANALYSIS.md)의 F-001/#2923, F-002/#2926(metadata-only), #2927 docs-only 성공과 F-003(#2935)의 **실제 서로 다른 두 E2E 실패**를 보존한다.
+
+- **Target 작성/수정·관계·상속 공통 시나리오:** `tests/e2e/logistics-target-authoring.spec.ts`에서 `Target 추가 > 새 인스턴스 만들기`의 편집 textbox는 동일 이름의 숨긴 raw-ID textarea와 다른 컨트롤이다. 정확한 fieldset/role로 입력을 선택하고, 체크박스는 현재 이름-first 라벨(코드는 동명일 때만 표시)에 맞춘다. 인스턴스 코드 자동 생성·shared MCS·subset/whole·불변 assignmentId·412·readonly·revision/재진입 검증을 완화하지 않는다. `tests/e2e/issue-623-resource-mvp.spec.ts` Target B 구성원도 해당 원칙을 적용한다.
+- **Resource Plan 초기 상세 Target 출처:** `src/features/resources/resource-plan-details.tsx`에서 `data.filters.targetIds`가 명시되면 daily/day-resources/day-assignments 공통 헤더에 선택 Target의 **원본 ID**를 닫힌 `IdentifierDetails`로 보존한다. 화면의 이름/선택 범위·Project 참고 분모는 기본 노출하고 서버의 canonical ID/계산·Snapshot/Revision·Readonly·수정 권한은 변경하지 않는다. `tests/e2e/issue-622-resource-plan-target.spec.ts`는 첫 부하 상세에서 ID 원문 전체를 펼쳐 확인하는 기존 필수 assertion을 그대로 유지한다.
+- **리소스 배정 편집 표기:** `task-assignment-editor.tsx`의 동명 없는 개인은 `리소스 1 <이름> 투입률 (%)`이며 이름 뒤 코드 괄호가 없다. #622/#623 기존 E2E selector만 실제 accessible name으로 동기화한다. 배정 수정40%·원본 id/target code/조회 Excel·분자/분모·복귀 focus의 나머지 검증은 유지한다.
+- **직접/교차 실행:** `tests/e2e/logistics-target-authoring.spec.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`, `tests/e2e/issue-623-resource-mvp.spec.ts`, `tests/e2e/issue-717-{name-first,identity-persistence}.spec.ts`; 변경에 따른 Target/Resource/Task/관계/접근성 인접 테스트를 그대로 Full PR E2E6에서 확인. 원격 이전 #2935의 Shard4 FAILURE와 Shard5 내부 FAILURE(최종 CANCELLED)는 개별 원본으로 보존, 기타 샤드 취소는 NOT RUN/INCOMPLETE. Core/일정/DB/API/CI gate를 변경하지 않는다.
+- 원격 새 Head에서 3 required aggregate/Trusted QA가 실제 성공하기 전까지 `NOT TESTED`. 문서/코드 정적 검토를 실제 Playwright PASS로 승격하지 않는다.
+
 ## Issue #717 — 이름 우선·원문 식별자 회귀
 
 새 `issue-717-name-first.spec.ts`는 5폭 Milestone/공정 identity 폭·내부 scroll·modal bounds·keyboard/focus·ID 검색·전체 복사 및 Clipboard 실패 수동 복사 경로를 검증한다. `issue-717-identity-persistence.spec.ts`는 실제 HTTP/SQLite의 동명2개 중 정확한 canonical 대상만 수정/삭제하는지 검증한다. 기존 관계·Editor·Resource·Target E2E의 ID text selector는 명시 disclosure를 열어 visible textarea의 정확 원문을 검증하도록 변경하며 원래 payload/권한/정확 대상 검증을 유지한다. inventory·증거/실행 범위는 [Work Packet](exec-plans/active/ISSUE_717.md)을 따른다. 실제 screen reader·실기기와 모든 화면 5폭은 별도 NOT TESTED, 로컬 PASS는 원격 CI PASS가 아니다.

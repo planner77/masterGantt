@@ -160,7 +160,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   }
   let row = await sharedDetail(root, f.task.taskId);
   await row.getByRole("button", { name: `배정 편집: ${f.person.name}`, exact: true }).click();
-  const allocation = editor(page).getByLabel(`리소스 1 ${f.person.name} (${f.person.code}) 투입률 (%)`, { exact: true });
+  const allocation = editor(page).getByLabel(`리소스 1 ${f.person.name} 투입률 (%)`, { exact: true });
   await allocation.fill("80");
   await editor(page).getByRole("button", { name: /^할당 저장 \(/ }).click();
   await expect(allocation).toHaveValue("80");
@@ -174,7 +174,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   await editor(page).getByRole("tab", { name: /물류 연결/ }).click();
   const binding = editor(page).getByRole("region", { name: "작업 Target 연결", exact: true });
   await binding.getByRole("combobox", { name: `${f.targets[1].name} 구성원 선택`, exact: true }).selectOption("subset");
-  await binding.getByLabel(/ACS B \(ACS-B\)/).check();
+  await binding.getByRole("group", { name: "Target B 선택 구성원" }).getByRole("checkbox", { name: /^ACS B · 원본 / }).check();
   await binding.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
   await expect(binding.getByRole("button", { name: "Target 연결 저장", exact: true })).toBeDisabled();
   await editor(page).getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();

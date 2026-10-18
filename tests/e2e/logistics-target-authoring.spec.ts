@@ -11,7 +11,7 @@ test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: ta
 async function addInstance(dialog: Locator, kind: "equipment" | "system", code: string, name: string, type: string, quantity = 1) {
   await dialog.getByRole("combobox", { name: "종류", exact: true }).selectOption(kind);
   await dialog.getByRole("combobox", { name: "유형", exact: true }).selectOption(type);
-  await dialog.getByLabel("인스턴스 코드", { exact: true }).fill(code);
+  await dialog.getByRole("group", { name: "새 인스턴스 만들기" }).getByRole("textbox", { name: "인스턴스 코드", exact: true }).fill(code);
   await dialog.getByLabel("인스턴스 이름 (System은 생략 가능)", { exact: true }).fill(name);
   if (kind === "equipment") {
     await dialog.getByRole("combobox", { name: "관리 단위", exact: true }).selectOption("fleet");
@@ -42,7 +42,7 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
     await addInstance(dialog, "equipment", `AMR-${letter}`, `AMR ${letter}`, "amr", quantity);
     await addInstance(dialog, "system", `ACS-${letter}`, `ACS ${letter}`, "acs");
     if (letter === "A") await addInstance(dialog, "system", "MCS-1", "공유 MCS", "mcs");
-    else await dialog.getByLabel(/System · 공유 MCS \(MCS-1\)/).check();
+    else await dialog.getByRole("group", { name: "기존 인스턴스 연결" }).getByRole("checkbox", { name: /^System · 공유 MCS · 원본 / }).check();
     await dialog.getByRole("button", { name: "Target 저장", exact: true }).click();
     await expect(dialog).toHaveCount(0);
     await expect(page.getByRole("button", { name: `Target 상세: Target ${letter}`, exact: true })).toBeVisible();
@@ -65,10 +65,10 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await editor.getByRole("tab", { name: /물류 연결/ }).click();
   const bindings = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
-  await bindings.getByLabel("Target A (TARGET-A)", { exact: true }).check();
-  await bindings.getByLabel("Target B (TARGET-B)", { exact: true }).check();
+  await bindings.getByRole("checkbox", { name: "Target A", exact: true }).check();
+  await bindings.getByRole("checkbox", { name: "Target B", exact: true }).check();
   await bindings.getByRole("combobox", { name: "Target A 구성원 선택", exact: true }).selectOption("subset");
-  await bindings.getByLabel(/ACS A \(ACS-A\)/).check();
+  await bindings.getByRole("group", { name: "Target A 선택 구성원" }).getByRole("checkbox", { name: /^ACS A · 원본 / }).check();
   const bindingSave = bindings.getByRole("button", { name: "Target 연결 저장", exact: true });
   await bindingSave.click();
   await expect(bindingSave).toBeDisabled();
@@ -82,7 +82,7 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   await bindingSave.click();
   await expect.poll(async () => (await (await page.request.get(`${f.api}/tasks/${f.task.taskId}/target-bindings`)).json()).data.bindings.find((binding: { targetId: string }) => binding.targetId === a.id)?.selection).toBe("whole");
   await bindings.getByRole("combobox", { name: "Target A 구성원 선택", exact: true }).selectOption("subset");
-  await bindings.getByLabel(/ACS A \(ACS-A\)/).check();
+  await bindings.getByRole("group", { name: "Target A 선택 구성원" }).getByRole("checkbox", { name: /^ACS A · 원본 / }).check();
   await bindingSave.click();
   await expect.poll(async () => (await (await page.request.get(`${f.api}/tasks/${f.task.taskId}/target-bindings`)).json()).data.bindings.find((binding: { targetId: string }) => binding.targetId === a.id)?.selection).toBe("subset");
   const resaved = (await (await page.request.get(`${f.api}/tasks/${f.task.taskId}/target-bindings`)).json()).data.bindings.find((binding: { targetId: string }) => binding.targetId === a.id);
@@ -123,7 +123,7 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
 
   await page.getByRole("button", { name: "Target 수정: Target A", exact: true }).click();
   const modify = page.getByRole("dialog", { name: "Target 수정", exact: true });
-  await modify.getByLabel(/System · ACS A \(ACS-A\)/).uncheck();
+  await modify.getByRole("group", { name: "기존 인스턴스 연결" }).getByRole("checkbox", { name: /^System · ACS A · 원본 / }).uncheck();
   await modify.getByRole("button", { name: "변경 영향 확인", exact: true }).click();
   await expect(modify).toContainText("subset이 참조하는 구성원은 제거할 수 없습니다");
   await expect(modify.getByRole("button", { name: "Target 저장", exact: true })).toBeDisabled();
@@ -148,7 +148,7 @@ test("Target 초안·412·readonly·응답역전과 관리자 경계", async ({ 
   await dialog.getByLabel("Target 이름", { exact: true }).fill("보존할 초안");
   await dialog.getByLabel("Target 코드", { exact: true }).fill("DRAFT");
   await dialog.getByRole("combobox", { name: "대상 범위", exact: true }).selectOption("project_common");
-  await dialog.getByLabel(/System · MCS \(MCS\)/).check();
+  await dialog.getByRole("group", { name: "기존 인스턴스 연결" }).getByRole("checkbox", { name: /^System · MCS · 원본 / }).check();
   // Out-of-band canonical mutation causes a genuine server 412 on the draft.
   const oldRevision = (await f.snapshot()).data.project.revision;
   await f.mutate("", { description: "다른 편집기의 저장" }, "patch");
@@ -216,7 +216,7 @@ test("Target 390/768/1024/1440/1920px 긴 한글·키보드·focus·내부 overf
     const dialog = page.getByRole("dialog", { name: "Target 추가", exact: true });
     await dialog.getByLabel("Target 이름", { exact: true }).fill("동명이름 한글 물류 설비 시스템과 공정이 긴 이름으로 구성되는 대상 ".repeat(3));
     await dialog.getByRole("combobox", { name: "프로젝트 공정", exact: true }).selectOption(f.processIds[0]);
-    await dialog.getByLabel("인스턴스 코드", { exact: true }).fill("UNSAVED");
+    await dialog.getByRole("group", { name: "새 인스턴스 만들기" }).getByRole("textbox", { name: "인스턴스 코드", exact: true }).fill("UNSAVED");
     await page.keyboard.press("Tab");
     expect(await dialog.evaluate(node => node.contains(document.activeElement))).toBe(true);
     const box = await dialog.boundingBox();
@@ -254,7 +254,7 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   const bindings = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
   const saved = await (await page.request.get(`${f.api}/tasks/${f.parentTask.taskId}/target-bindings`)).json();
   expect(saved.data.bindings).toEqual([]); // An untargeted management Summary is valid.
-  await bindings.getByLabel("상속 대상 (INHERITED)", { exact: true }).check();
+  await bindings.getByRole("checkbox", { name: "상속 대상", exact: true }).check();
   await bindings.getByRole("combobox", { name: "상속 대상 적용 범위", exact: true }).selectOption("subtree");
   await expect(bindings).toContainText("검토할 하위 작업 1개");
   await expectRawIdentifier(bindings, "작업 ID", f.task.taskId);
@@ -263,12 +263,12 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await bindings.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
   await expect(bindings.getByRole("button", { name: "Target 연결 저장", exact: true })).toBeDisabled();
   // Removing an already saved subtree binding also requires the descendant review.
-  await bindings.getByLabel("상속 대상 (INHERITED)", { exact: true }).click();
+  await bindings.getByRole("checkbox", { name: "상속 대상", exact: true }).click();
   await expect(bindings).toContainText("검토할 하위 작업 1개");
   await bindings.getByRole("button", { name: "하위 작업 영향 확인 후 적용", exact: true }).click();
   await bindings.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
   await expect.poll(async () => (await (await page.request.get(`${f.api}/tasks/${f.parentTask.taskId}/target-bindings`)).json()).data.bindings.length).toBe(0);
-  await bindings.getByLabel("상속 대상 (INHERITED)", { exact: true }).check();
+  await bindings.getByRole("checkbox", { name: "상속 대상", exact: true }).check();
   await bindings.getByRole("combobox", { name: "상속 대상 적용 범위", exact: true }).selectOption("subtree");
   await bindings.getByRole("button", { name: "하위 작업 영향 확인 후 적용", exact: true }).click();
   await bindings.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
@@ -284,7 +284,7 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   expect(inherited.data.bindings).toEqual([]);
   expect(inherited.data.effective.effectiveSystemIds).toEqual([target.members[0].entityId]);
   expect(inherited.data.effective.legacySources).toHaveLength(1);
-  await bindings.getByLabel("상속 대상 (INHERITED)", { exact: true }).check();
+  await bindings.getByRole("checkbox", { name: "상속 대상", exact: true }).check();
   let releaseSave: (() => void) | undefined;
   const gate = new Promise<void>(resolve => { releaseSave = resolve; });
   let writes = 0;
@@ -299,7 +299,7 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await expect(editor).toBeVisible();
   releaseSave!();
   await expect(bindings).toContainText("편집 권한이 만료되었습니다. Target 초안은 유지됩니다");
-  await expect(bindings.getByLabel("상속 대상 (INHERITED)", { exact: true })).toBeChecked();
+  await expect(bindings.getByRole("checkbox", { name: "상속 대상", exact: true })).toBeChecked();
   expect(writes).toBe(1);
   const unchanged = await (await page.request.get(`${f.api}/tasks/${f.task.taskId}/target-bindings`)).json();
   expect(unchanged.data.bindings).toEqual([]);
@@ -405,7 +405,7 @@ test("Target 목록·상세·WBS 연결·관리자 입력의 5폭 왕복은 조�
     const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
     await editor.getByRole("tab", { name: /물류 연결/ }).click();
     const bindings = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
-    await expect(bindings.getByLabel(`${longName} (LONG-TARGET)`, { exact: true })).toBeChecked();
+    await expect(bindings.getByRole("checkbox", { name: longName, exact: true })).toBeChecked();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await testInfo.attach(`binding-${width}`, { body: await page.screenshot(), contentType: "image/png" });
     await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();

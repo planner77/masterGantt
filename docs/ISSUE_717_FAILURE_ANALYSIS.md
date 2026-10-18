@@ -50,3 +50,32 @@
 
 - 최종 전체 Unit 동일 제품 소스 재실행(`--maxWorkers=2`)은 234 files PASS/1 file SKIPPED, 2877 PASS/3 SKIPPED,62.60초다. 최초 전체2 FAIL은 보존하며 worker 상한으로 로컬 동시성만 제한했고 테스트 timeout·assertion·원격 CI 설정은 바꾸지 않았다.
 - 관련66 최초55PASS/10FAIL/기존1SKIPPED에서 실패10의 각 후속 검증은 관리5/5·Resource9/9·공정1/1 PASS. 신규5폭/touch6/6와 real SQLite1/1 PASS. 새 Full PR CI는 별도이며 성공을 미리 선언하지 않는다.
+## 2026-10-18 누적 검토 — 제품 구현 Full #2935.1 실패 (F-002 / F-003)
+
+### 원본 수집과 Cross-run 실패 매트릭스
+
+2026-10-18 11:37 KST 전후 GitHub 원본 조회. #717의 연결 PR은 #718 하나, 브랜치 `docs/issue-717-name-first-identifier-policy`. Run `39080414283.1` (#2923.1, Full FAIL), `39081286379.1` (#2926.1, metadata-only FAIL), `39081290832.1` (#2927.1, **docs-only Full SUCCESS**, 실제 제품 E2E 생략), `39090284911.1` (#2935.1, UI 구현 Full FAIL) 네 개가 조회되었다. 다른 회수 불가 Run/Attempt는 성공으로 추정하지 않는다.
+
+| 항목 | PR / Run·Attempt / Head | 직접 실패 또는 역사적 결과 | 다른 실패와 관계 | 보완/검증 |
+| --- | --- | --- | --- | --- |
+| F-001(역사적) | #718 / [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283) / `23e09aada982087047d90037704cdbb8b750bf97` | 위험도/QA PR 선언, DOC_SYNC exact heading 누락 → Preflight 실패 | 최초 docs-only 구조, 제품 테스트 미실행 | 동일 이슈의 Work Packet·PR 메타데이터 교정; #2927.1 docs-only 성공은 당시 Head 한정 |
+| F-002(별도 이벤트) | #718 / [#2926.1 metadata-only](https://github.com/planner77/masterGantt/actions/runs/39081286379) / 구 Head `23e09aada982087047d90037704cdbb8b750bf97` | 구 Head QA 경로 BLOCKED/이벤트 결론 FAIL | 새로운 Full/제품 검증이 아님 | 이전 Run 성공 대체 금지, 현재 새 Head 권한 증거 불가 |
+| F-003a (직접) | #718 / [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) · Shard4 Job [117565762633](https://github.com/planner77/masterGantt/actions/runs/39090284911/job/117565762633) / Head `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc` | `tests/e2e/logistics-target-authoring.spec.ts:14` `locator.fill` strict mode: 동일 이름 `인스턴스 코드`로 read-only textarea 2개 + editable input 1개(3개) | **TEST_CONTRACT**: ID disclosure 도입 후 제어 대상 locator 범위 모호. 실제 서버 mutation/assertion은 그 단계 도달 전 | 새 인스턴스 fieldset + role=textbox, 이름-first 후보 checkbox 범위·코드 필요 예외 조정. 단순 `.last()` 선택/숨김 강제 금지 |
+| F-003b (취소 Job 안 실제 FAIL) | #718 / [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) · Shard5 Job [117565762565](https://github.com/planner77/masterGantt/actions/runs/39090284911/job/117565762565) / 동일 Head | `tests/e2e/issue-622-resource-plan-target.spec.ts:53` → `helpers/identifier-details.ts:7`: 원문 `Target ID` 탐색 결과 `-1`, 5초 poll 실패 | **PRODUCT/PRESENTATION 계약 누락**: `ResourcePlanDetails` 첫 daily 상세에는 선택 Target ID 원문 disclosure가 없고 day-assignments 행에만 제공. Job 자체는 다른 shard fail-fast로 CANCELLED이지만 내부 1 FAIL은 보존 | 현재 필터의 Target ID를 상세 공통 헤더의 닫힌 원문 disclosure로 노출. #622 동일 원본 assertion 유지 |
+| F-003c (후속) | #718 / #2935.1 · [E2E aggregate](https://github.com/planner77/masterGantt/actions/runs/39090284911/job/117566293051) 및 [자동 QA](https://github.com/planner77/masterGantt/actions/runs/39090284911/job/117566313375) | Chromium Required=FAIL, `required e2e 미성공` → QA FAIL | F-003a/b에서 파생, 독립 제품 결함으로 중복 계수하지 않음 | 새로운 exact-Head Required3/Trusted/Owner 게이트 그대로 유지 |
+
+**Run #2935.1 고정 범위:** event=pull_request, Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, Head `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc`; 2026-10-18 02:29:47–02:34:59 UTC. Quality aggregate `SUCCESS`(TypeScript/ESLint/Unit/Policy/PR build 성공), Docker aggregate/implementation `SUCCESS`; E2E aggregate `FAILURE`. Shard4 `FAILURE`(4 PASS, 1 FAIL, 138 DID NOT RUN), Shard5 **CANCELLED**(1 PASS + 1 실제 FAIL + 80 DID NOT RUN), Shard1/2/3/6 **CANCELLED**(로그상 각각 조기 종료, 완료되지 않은 테스트는 PASS 아님). PR `--max-failures=1` 및 matrix fail-fast 동작은 CI 설정대로이며 별도 오류로 단정하지 않는다. Test traces는 Shard4/5 각각의 `playwright-report-shard-4/-5` artifact에 있으며 [원본 artifacts](https://github.com/planner77/masterGantt/actions/runs/39090284911)에서 조회한다. QA Preflight와 PR Fast Gate는 SUCCESS; 승인 근거 아님.
+
+### 누적 교차 원인과 수정 결정
+
+1. F-001/2는 **문서/PR QA metadata 구조**이고 F-003a는 숨긴 textarea가 추가되며 바뀐 **접근성 검색 범위**, F-003b는 Resource Plan 상세의 **원본 ID 접근 경로 누락**이다. F-003a/b를 환경/flaky로 뭉개지 않고 각각 직접 교정한다.
+2. 같은 새 표시 원칙의 간접 소비자: `logistics-target-authoring.spec.ts`의 Target/ACS/MCS 후보에서 코드를 항상 괄호로 기대하는 구형 selector, `issue-623-resource-mvp.spec.ts`의 ACS B subset 및 리소스 배정 코드, `issue-622-resource-plan-target.spec.ts`의 배정 코드. **동명이 아니라면 이름만 primary**, 코드/ID 검색·canonical 저장/관계·whole/subset/readonly/revision·원본 수정은 기존 단언 유지. 관련 Test Plan에 영향 매핑한다.
+3. Resource Plan selected/project 참고의 원본: 첫 daily/개인 상세에서도 **출발 필터가 선택한 Target ID**에 접근 가능한 disclosure를 제공한다. 단지 숨긴 값이 있는지 검사하기 위해 필터/서버/조회 흐름을 변형하지 않는다. `unassigned`에는 가상의 UUID를 만들지 않는다.
+4. 로컬 원본 repository/node_modules/Chromium이 이 실행 환경에 없으므로 전체 동일-source Playwright 재현·교차 실행은 **NOT TESTED**. GitHub 원격 소스+로그 대조 및 diff·exact selector 구조 정적 검토는 가능. CI 설정/timeout/retry/test skip·expect 완화는 하지 않는다.
+5. 보완 후보는 기존 Issue #717 브랜치·PR을 재사용하고 blob/tree/commit 준비 후 단일 non-force ref update로 게시한다. 최신 main/Head, 리뷰 thread0/mergeable 및 Work Packet 문서 정합성을 게시 직전 재검증한다. **새 Full PR CI Run ID/Attempt는 실제 Actions 조회 후 기록**하며 그 전 remote 결과는 NOT TESTED다.
+
+### 다음 CI에서의 판정 기준
+
+- 직접 두 파일(#717 Target authoring, #622 Plan)과 간접 #623 및 신규 #717 이름-first/동명/권한/원문, 전체 Chromium6 shard를 실행해 통과할 때만 E2E PASS. 원본 실패의 종료가 로그상 재현 불가인 경우 원인 단정하지 않는다.
+- CI Run 등록 자체는 PASS가 아니다. #2935의 shard5 내부 실패 및 F-001/F-002 실패 이력을 지우거나 과거 SUCCESS로 대체하지 않는다.
+- PR CI 성공 후에도 UI 주요 AC의 사용자 수용/Owner 승인·병합/Main/정식 GHCR/이슈 종료는 별도 확인한다.

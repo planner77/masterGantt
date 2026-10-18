@@ -19,7 +19,7 @@
 | `projects/stage-filter-picker.tsx` | 모든 후보에 외부/작업 ID | 이름·부모/일정/상태, 같은 표시만 외부 ID | 선택 후 popup 밖 식별 정보; option에 중첩 명령 없음 |
 | `projects/project-readonly-view.tsx` 고급 필터 | Target/공정/설비/System 코드 반복 | 이름 우선, 동명은 의미 문맥/필요 코드 | 각 도메인 관리/상세 / 기존 고급 externalId 필터 유지 |
 | `resources/resource-target-views.tsx` | 이름 뒤 코드 / 이름 없는 node UUID | 이름·구성 문맥, 읽을 수 있는 누락 상태 | 선택·행의 식별 정보 / canonical selector 불변 |
-| `resources/resource-dashboard-details.tsx`, `resource-plan-details.tsx` | Task/Assignment/Resource/Target UUID 상시 | 이름·공수·역할·상태 / ID 접힘 | 상세 식별 정보에서 전체 값 및 복사 |
+| `resources/resource-dashboard-details.tsx`, `resource-plan-details.tsx` | Task/Assignment/Resource/Target UUID 상시 | 이름·공수·역할·상태 / ID 접힘 | 선택 Target은 Plan 상세 최초 단계(일별·개인·배정)에서도 `출발 선택 Target 식별 정보`로 원본 ID 조회·복사. Task/Assignment 원본은 배정 상세에 별도 표시. Project 전체 참고와 선택 기여 구분 유지 |
 | `resources/resource-plan-view.tsx`, `resource-plan-model.ts` | Resource/Group 이름 뒤 코드 | 이름·직무·등급 | 행 disclosure에 원본 코드·ID; catalog 원본 불변 |
 | `resources/resource-milestone-views.tsx`, `project-resource-dashboard.tsx`, `legacy-project-resource-workload.tsx` | 반복 코드/UUID | 이름 우선·동명 보조 | 선택 상세 식별 정보, 정밀 원본 배정 확인 예외 |
 | `resources/resource-catalog-admin.tsx` | 관리 목록 코드 상시 | 이름 우선, ID·코드 접힘 | 코드 편집 input은 연동 업무상 보존, 목록 ID 검색 |
