@@ -143,7 +143,10 @@ test("#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow
         const disclosure = table
           .locator('tr[data-plan-row="group"]')
           .first()
-          .locator("th button");
+          // #717: the row header also contains collapsed ID/copy controls.
+          // Only the direct expander owns aria-expanded, not raw-ID copy actions.
+          .locator('th > button[aria-expanded]');
+        await expect(disclosure).toHaveCount(1);
         if ((await disclosure.getAttribute("aria-expanded")) === "false")
           await disclosure.click();
       }

@@ -45,6 +45,19 @@ test("#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·
     const hiddenRawCopyButtons = table.locator('tbody th details:not([open]) button');
     expect(await hiddenRawCopyButtons.count()).toBeGreaterThan(0);
     await expect(hiddenRawCopyButtons.first()).toBeHidden();
+    // Raw identity stays fully available via the native keyboard disclosure,
+    // without inflating the default 5-width table rows.
+    const rawIdentity = table.locator("tbody th details").first();
+    const rawTrigger = rawIdentity.locator("summary");
+    await expect(rawTrigger).toHaveText("식별 정보");
+    await rawTrigger.focus();
+    await rawTrigger.press("Enter");
+    await expect(rawIdentity).toHaveAttribute("open", "");
+    await expect(rawIdentity.getByLabel("ID", { exact: true })).not.toHaveValue("");
+    await expect(rawIdentity.getByLabel("코드", { exact: true })).not.toHaveValue("");
+    await rawTrigger.press("Enter");
+    await expect(rawIdentity).not.toHaveAttribute("open", "");
+    await expect(hiddenRawCopyButtons.first()).toBeHidden();
     const metricButtons = table.locator("tbody td button");
     expect(await metricButtons.count()).toBeGreaterThan(0);
     expect(await metricButtons.count()).toBeLessThanOrEqual(350);

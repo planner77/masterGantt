@@ -58,3 +58,8 @@
 `tests/e2e/helpers/identifier-details.ts`는 위 기존 Milestone/물류/Task/Resource E2E에서 정확 원문 textarea를 펼쳐 검증하는 소비 helper다. HIGH 재시도에서도 UNKNOWN 18로 BLOCKED이며, 동시에 진행되던 생성 파일 때문에 sourceStable=false였다. 이는 로컬 자동 선택기 전체 PASS 증거가 아니다.
 
 미등록 매핑을 자동 선택기에 영속 반영하는 작업은 별도 정책 변경 검토 대상이다. 위 표는 CLI의 BLOCKED 결과를 소급 PASS로 바꾸는 것이 아니다.
+## 2026-10-18 — F-009 Milestone matrix/Resource Plan 화면 밀도·식별 정보 정합성
+
+- `src/features/resources/resource-milestone-views.tsx`의 Group/개인 Milestone 비교표 첫 열은 이름이 주 표시(최대2줄 clamp/원문 title)이고, 동일한 셀의 인접 `식별 정보` native disclosure에서 원본 Group/Resource ID·코드와 전체 복사 경로를 제공한다. 전체 긴 이름을 default summary에 다시 표시하지 않는다. 이름과 summary를 첫 열에서 **가로 compact flex**로 배치하고 summary는 키보드/터치 44px 진입 대상이며 펼친 뒤 전체 원본을 보존한다. `resource-dashboard.module.css`의 영향은 Milestone matrix first-column으로 제한된다.
+- **원본 #2954.1:** 390px group matrix에서 최대 행201.5px/가시2행이었으며 기존 UI 계약은 `maxRowHeight<=104px`, `usableRows>=3`, 첫 열264/다음144, header<=88, documentWidth390/내부 horizontal scroll, 참조 KPI와 Gantt Core 불변이다. [Playwright raw measurement](https://github.com/planner77/masterGantt/actions/runs/39105484225/artifacts/12128891318)과 [Issue별 누적 원장 F-009](ISSUE_717_FAILURE_ANALYSIS.md) 참조. 수정은 테스트 기준 완화가 아니라 기본 화면의 실제 높이 조정이며 새 Head 통과는 원격 CI 완료 전 `NOT TESTED`.
+- `src/features/resources/resource-plan-view.tsx`는 기존 Group/개인 row `IdentifierDetails`를 유지한다. `tests/e2e/resource-plan-dashboard.spec.ts`의 펼침 동작은 direct `th > button[aria-expanded]`만 사용, 같은 `th` 내부 닫힌 ID/코드 복사 버튼을 조작/레이아웃 버튼으로 오인하지 않는다. 주/월·Group/개인·5폭·sticky/scroll/조회 원장과 리소스 계획/Capacity는 영향 불변.
