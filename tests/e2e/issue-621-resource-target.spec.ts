@@ -453,6 +453,10 @@ test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 s
   expect((await f.snapshot()).data.tasks.find(row => row.taskId === f.task.taskId)!.name).toBe("외부 변경으로 보고서 stale");
   await trigger.click();
   await editor.getByRole("tab", { name: /^물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   const binding = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
   await binding.getByLabel(`${f.targets[1].name} (${f.targets[1].code})`, { exact: true }).uncheck();
   await binding.getByRole("button", { name: "Target 연결 저장", exact: true }).click();

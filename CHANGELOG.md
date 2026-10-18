@@ -1,3 +1,9 @@
+## [0.121.0] — Unreleased / Issue #726
+
+- 기준정보 설비·물류 시스템의 기존 원본 CRUD를 재사용하며 유형 조회 상태·재시도·저장 비활성 이유와 System dirty/stale 보호를 보강했다.
+- Task 물류 연결에서 직접 공정·WorkArea0..N 편집과 직접 설비/System 연결을 우선 제공하고 기존 Target whole/subset/coverage는 보조 호환 영역에 보존했다.
+- 기존 canonical·권한·revision과 다중 WorkArea/공유 원본을 유지하고 사용자 가이드·문서·관련 수용 검증을 갱신했다. 원격 CI·Owner 최종 판정은 별도다.
+
 ## [0.120.0] — Unreleased / Issue #728
 
 - WBS Task 중심의 opt-in pure Domain 해석기·KPI 계약을 추가한다. 직접/조상/Target 출처와 고유 Task/Assignment를 보존하고 무배정 작업·등록-only 기준정보를 구분한다.

@@ -524,3 +524,15 @@
   .membershipFilters { grid-template-columns: 1fr; }
 }
 .tabs { padding-top: calc(var(--focus-offset) + 0.1875rem); padding-bottom: calc(var(--focus-offset) + 0.1875rem); scroll-padding-inline: calc(var(--focus-offset) + 0.1875rem); }
+
+.contextGroup { min-width: 0; margin: 0; padding: 12px; border: 1px solid var(--border-default); border-radius: 4px; }
+.contextGroup summary { cursor: pointer; font-weight: 600; }
+.contextRow { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 8px 16px; padding: 6px 0; min-width: 0; overflow-wrap: anywhere; }
+.contextRow > label { display: flex; align-items: start; gap: 8px; min-width: 0; }
+.contextRow > label:first-child { flex: 1 1 220px; }
+.contextRow input { flex-shrink: 0; margin-top: 3px; }
+.contextRow small { color: var(--text-muted); }
+.contextAreas { margin-left: 24px; min-width: 0; }
+@media (max-width: 768px) { .contextRow > label { flex-basis: 100%; } .contextAreas { margin-left: 12px; } }
+
+.contextEditor { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 0.75rem; min-width: 0; }

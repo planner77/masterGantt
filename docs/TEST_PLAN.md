@@ -1,3 +1,12 @@
+## Issue #726 — 관리 원본 재사용과 Task 직접 연결 검증
+
+관련 producer는 기존 Project LogisticsManagement·Task Editor 및 #725 process-context 소비 UI다. 새 server schema/API·Gantt writer는 없다. AC별 실제 실행·최초 실패·원격 미검증은 [Work Packet](exec-plans/active/ISSUE_726.md)에 기록한다.
+
+- 신규 Chromium: Target0 설비/System 등록·공유 원본·유형 조회 실패 복구·단품/Fleet·다중 WorkArea·dirty/Escape, Task 직접 공정/WorkArea·Equipment/System·명시0·self/subtree·재조회·원본 개수 불변·5폭/긴 이름·키보드/내부 scroll·stale/권한/중복·지연 응답.
+- 인접 Chromium: 기존 Target authoring whole/subset/coverage·Target-only/혼합·Resource Task Editor·Gantt 상태 보존. Target 편집 진입은 새 호환 summary를 펼친 후 기존 assertion을 유지한다.
+- Unit/실제 SQLite·HTTP: `process-context-service.test.ts`, `task-logistics-links.test.ts`, `logistics-resource-roles.test.ts`, `task-target-bindings-handlers.test.ts`, `project-copy-logistics.test.ts`, `logistics-template-graph.test.ts`, `task-target-bindings.test.ts`와 새 Task process draft Unit. owner/Project 격리·0..N/null·stale·불변/rollback·Copy/Template remap을 보존한다.
+- 정적 검사: typecheck·변경 파일 ESLint·version·Markdown 링크·diff와 Pre-PR 실제 실행 보고서. 로컬 선정 검증은 원격 Required Quality/E2E6/Docker·Trusted QA·Owner ACCEPT가 아니다.
+
 ## Issue #728 — WBS 공통 원장 검증
 
 [입력·지표 사전](WBS_TASK_LEDGER.md), [Work Packet 및 AC_TEST_COVERAGE](exec-plans/active/ISSUE_728.md)를 기준으로 Target0/직접/Target/혼합·명시 공정0/1/N·legacy null·다중 WorkArea·등록/배정/역할을 같은 Task/Assignment ID에서 검증한다. 최신 W1/W2 결정은 명시0을 구성/조상/Target으로 채우지 않는다. MCS 공통2+조립3+검사4+통합5의 전체14/A8/B9/미연결2와 E10 다중 구역 고유10을 고정 검산한다.

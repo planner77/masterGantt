@@ -10,10 +10,13 @@ import type {
   TaskLogisticsLinksDto,
   TaskLogisticsLinksResponse,
 } from "@/contracts/logistics";
+import type { ProjectTaskDto } from "../../contracts/projects";
+import { descendantTaskCount } from "./task-process-context-model";
 import styles from "./project-task-editor.module.css";
 
 interface Props {
   readonly taskId: string;
+  readonly tasks?: readonly ProjectTaskDto[];
   readonly taskType: "task" | "summary" | "milestone";
   readonly revision: number;
   readonly editable: boolean;
@@ -55,6 +58,7 @@ function isValidLogisticsSnapshot(links: TaskLogisticsLinksResponse, logistics: 
 
 export function TaskLogisticsLinkEditor({
   taskId,
+  tasks = [],
   taskType,
   revision,
   editable,
@@ -66,6 +70,10 @@ export function TaskLogisticsLinkEditor({
   discardGeneration = 0,
   onSelectionCountChange,
 }: Props) {
+  const requestReference = useRef(false);
+  const epochReference = useRef(0);
+  const [stale, setStale] = useState(false);
+  const [serverEditable, setServerEditable] = useState(false);
   const [equipmentList, setEquipmentList] = useState<EquipmentDto[]>([]);
   const [systemList, setSystemList] = useState<LogisticsSystemDto[]>([]);
   const [links, setLinks] = useState<TaskLogisticsLinksDto | null>(null);
@@ -73,6 +81,7 @@ export function TaskLogisticsLinkEditor({
   // Draft state
   const initialDraft = useRef<string | null>(null);
   const dirtyReference = useRef(false);
+  const [draftDirty, setDraftDirty] = useState(false);
   const loadedDiscardGeneration = useRef(discardGeneration);
   const [selectedEquipment, setSelectedEquipment] = useState<
     Map<string, TaskLogisticsLinkScope>
@@ -90,12 +99,13 @@ export function TaskLogisticsLinkEditor({
   const [retry, setRetry] = useState(0);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const snapshotKey = `${taskId}:${revision}:${retry}:${discardGeneration}`;
-  const ready = loadedKey === snapshotKey && !loading;
+  const ready = loadedKey === snapshotKey && !loading && !stale;
 
   const isSummary = taskType === "summary";
 
   useEffect(() => {
     let alive = true;
+    const generation = ++epochReference.current;
     const controller = new AbortController();
     void (async () => {
       await Promise.resolve();
@@ -111,6 +121,7 @@ export function TaskLogisticsLinkEditor({
       loadedDiscardGeneration.current = discardGeneration;
       try {
         setLoading(true);
+        setStale(false);
         setLoadedKey(null);
         setSuccessNotice(null);
         setError(null);
@@ -137,6 +148,7 @@ export function TaskLogisticsLinkEditor({
         if (!alive) return;
         setLoadedKey(snapshotKey);
 
+        setServerEditable(linksBody.data.permission === "edit" && logisticsBody.data.permission === "edit");
         setEquipmentList(logisticsBody.data.logistics.equipment);
         setSystemList(logisticsBody.data.logistics.systems);
         setLinks(linksBody.data.links);
@@ -173,6 +185,7 @@ export function TaskLogisticsLinkEditor({
 
     return () => {
       alive = false;
+      epochReference.current = generation + 1;
       controller.abort();
     };
   }, [taskId, revision, retry, snapshotKey, onSelectionCountChange, onDirtyChange, discardGeneration]);
@@ -180,12 +193,13 @@ export function TaskLogisticsLinkEditor({
   useEffect(() => {
     if (ready && initialDraft.current !== null) {
       dirtyReference.current = JSON.stringify({ equipment: [...selectedEquipment].sort(), systems: [...selectedSystems].sort() }) !== initialDraft.current;
+      setDraftDirty(dirtyReference.current);
       onDirtyChange?.(dirtyReference.current);
     }
   }, [ready, selectedEquipment, selectedSystems, onDirtyChange]);
 
   const toggleEquipment = (equipmentId: string) => {
-    if (!editable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || saving || !ready) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -199,7 +213,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleEquipmentScope = (equipmentId: string) => {
-    if (!editable || disabled || saving || !ready || !isSummary) return;
+    if (!editable || !serverEditable || disabled || saving || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -210,7 +224,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystem = (systemId: string) => {
-    if (!editable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || saving || !ready) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -224,7 +238,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystemScope = (systemId: string) => {
-    if (!editable || disabled || saving || !ready || !isSummary) return;
+    if (!editable || !serverEditable || disabled || saving || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -235,10 +249,12 @@ export function TaskLogisticsLinkEditor({
   };
 
   const handleSave = async () => {
-    if (!editable || disabled || saving || !ready) return;
+    if (!editable || !serverEditable || disabled || saving || !ready || requestReference.current) return;
     const publicId = projectIdFromPathname(window.location.pathname);
     if (!publicId) return;
 
+    requestReference.current = true;
+    const epoch = epochReference.current;
     setSaving(true);
     setError(null);
     setSuccessNotice(null);
@@ -270,27 +286,39 @@ export function TaskLogisticsLinkEditor({
         },
       );
 
+      if (epoch !== epochReference.current) return;
       if (res.status === 412) {
-        setError("프로젝트 개정(Revision)이 변경되었습니다. 화면을 새로고침해 주세요.");
+        setStale(true);
+        setError("프로젝트 개정(Revision)이 변경되었습니다. 초안은 유지됩니다. 최신 정보 다시 불러오기에서 명시적으로 폐기해 주세요.");
         return;
       }
       if (res.status === 401) {
+        setStale(true);
         onUnauthorized?.();
         setError("편집 권한이 만료되었습니다. 다시 로그인해 주세요.");
         return;
       }
+      if (res.status >= 500) { setStale(true); setError("저장 여부를 확인할 수 없습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 확인해 주세요."); return; }
+      if (res.status === 403) { setError("물류 연결 편집 권한이 없습니다. 초안은 유지됩니다."); return; }
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as { message?: string } | null;
         setError(body?.message ?? "물류 연결 저장에 실패했습니다.");
         return;
       }
 
-      setSuccessNotice("물류 연결이 성공적으로 저장되었습니다.");
+      setStale(true);
+      const body = await res.json();
+      if (epoch !== epochReference.current) return;
+      if (body?.data?.operation?.entity !== "taskLogisticsLinks" || body.data.operation.targetPublicId !== taskId || !Number.isSafeInteger(body.data.project?.revision) || body.data.project.revision < revision || body.data.project.revision > revision + 1 || body.data.permission !== "edit") {
+        setStale(true); setError("저장 응답을 확인할 수 없습니다. 최신 정보를 다시 조회해 주세요."); return;
+      }
+      setError("저장 응답을 수신했습니다. 최신 정보 조회에 실패하면 다시 불러와 저장 여부를 확인해 주세요.");
       await onApplied();
       onSelectionCountChange?.(selectedEquipment.size + selectedSystems.size);
     } catch {
-      setError("네트워크 오류로 물류 연결을 저장하지 못했습니다.");
+      if (epoch === epochReference.current) { setStale(true); setError("네트워크 오류로 물류 연결을 저장하지 못했습니다. 초안은 유지됩니다. 최신 정보를 다시 불러와 저장 여부를 확인해 주세요."); }
     } finally {
+      requestReference.current = false;
       setSaving(false);
     }
   };
@@ -300,45 +328,47 @@ export function TaskLogisticsLinkEditor({
   }
 
   return (
-    <div className={styles.taskFields}>
+    <div className={styles.contextEditor}>
       {error ? (
         <p className={styles.error} role="alert">
           {error}
         </p>
       ) : null}
-      {!ready && error ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>물류 연결 다시 시도</button> : null}
+      {!ready && error && !draftDirty ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>물류 연결 다시 시도</button> : null}
       {successNotice ? (
         <p className={styles.note} role="status">
           {successNotice}
         </p>
       ) : null}
 
+      {!editable ? <p className={styles.note}>읽기 전용입니다.</p> : disabled ? <p className={styles.note}>다른 영역의 변경을 저장하거나 폐기한 뒤 직접 설비·시스템을 편집해 주세요.</p> : !serverEditable ? <p className={styles.note}>서버의 편집 권한을 확인할 수 없습니다. 최신 정보를 다시 불러와 주세요.</p> : null}
       {/* 안내 문구 */}
-      <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+      <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
         설비 및 제어시스템 연결은 WBS 일정과 독립된 물류 메타데이터입니다.
         {isSummary
           ? " 요약 작업(Summary)은 '하위 작업 포함(subtree)'을 선택해 하위 작업에 일괄 파생할 수 있습니다."
           : ""}
       </div>
 
+      {isSummary ? <p className={styles.note}>하위 작업 포함 선택 시 현재 자손 {descendantTaskCount(taskId, tasks)}개에 파생됩니다. 직접 연결 해제로 상위 출처의 상속 연결을 제거하지 않습니다.</p> : null}
       {/* 설비 연결 섹션 */}
-      <fieldset className={styles.relationGroup} style={{ border: "1px solid var(--color-border-subtle)", borderRadius: 6, padding: "0.75rem" }}>
+      <fieldset className={styles.relationGroup} style={{ border: "1px solid var(--border-default)", borderRadius: 6, padding: "0.75rem" }}>
         <legend style={{ fontWeight: 600, padding: "0 0.25rem" }}>
           관련 설비 ({selectedEquipment.size})
         </legend>
 
         {/* 상속된 설비 표시 */}
         {links?.inheritedEquipmentLinks && links.inheritedEquipmentLinks.length > 0 ? (
-          <div style={{ marginBottom: "0.75rem", background: "var(--color-surface-subtle)", padding: "0.5rem", borderRadius: 4 }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--color-text-secondary)" }}>
+          <div style={{ marginBottom: "0.75rem", background: "var(--surface-subtle)", padding: "0.5rem", borderRadius: 4 }}>
+            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)" }}>
               상위 작업으로부터 상속된 설비 ({links.inheritedEquipmentLinks.length}):
             </span>
             <ul style={{ listStyle: "none", padding: 0, margin: "0.25rem 0 0" }}>
               {links.inheritedEquipmentLinks.map((item) => (
-                <li key={item.equipmentId} style={{ fontSize: "0.8rem", padding: "0.15rem 0" }}>
-                  🔹 <strong>{item.equipmentName ?? item.equipmentId}</strong>{" "}
+                <li key={`${item.sourceTaskId}:${item.equipmentId}`} style={{ fontSize: "0.8rem", padding: "0.15rem 0" }}>
+                  <strong>{item.equipmentName ?? item.equipmentId}</strong>{" "}
                   <code>({item.equipmentCode})</code>{" "}
-                  <span style={{ color: "var(--color-text-muted)" }}>
+                  <span style={{ color: "var(--text-muted)" }}>
                     — [상위: {item.sourceTaskName}]에서 하위 적용됨
                   </span>
                 </li>
@@ -349,7 +379,7 @@ export function TaskLogisticsLinkEditor({
 
         {/* 직접 설비 선택 리스트 */}
         {ready && equipmentList.length === 0 ? (
-          <p className={styles.emptyRelation}>등록된 설비가 없습니다.</p>
+          <p className={styles.emptyRelation}>등록된 설비가 없습니다. 기준정보 → 물류에서 설비를 등록해 주세요.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 180, overflowY: "auto" }}>
             {equipmentList.map((eq) => {
@@ -360,12 +390,13 @@ export function TaskLogisticsLinkEditor({
               return (
                 <li
                   key={eq.id}
+                  className={styles.contextRow}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "0.35rem 0.25rem",
-                    borderBottom: "1px solid var(--color-border-subtle)",
+                    borderBottom: "1px solid var(--border-default)",
                     fontSize: "0.85rem",
                   }}
                 >
@@ -373,13 +404,13 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || disabled || saving || !ready}
+                      disabled={!editable || !serverEditable || disabled || saving || !ready || (!isChecked && !eq.active)}
                       onChange={() => toggleEquipment(eq.id)}
                     />
                     <span>
-                      <strong>{eq.name}</strong> <code>{eq.code}</code> ({eq.equipmentType})
+                      <strong>{eq.name}</strong> <code>{eq.code}</code> ({eq.equipmentType}){!eq.active ? " · 비활성 (새 연결 불가)" : ""}
                       {primaryOwner ? (
-                        <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                        <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted)" }}>
                           [담당: {primaryOwner.resourceName}]
                         </span>
                       ) : null}
@@ -391,10 +422,11 @@ export function TaskLogisticsLinkEditor({
                       <input
                         type="checkbox"
                         checked={scope === "subtree"}
-                        disabled={!editable || disabled || saving || !ready}
+                        aria-label={`${eq.name} 설비 하위 작업 포함`}
+                        disabled={!editable || !serverEditable || disabled || saving || !ready}
                         onChange={() => toggleEquipmentScope(eq.id)}
                       />
-                      <span>하위 작업 포함</span>
+                      <span>하위 작업 포함 (파생)</span>
                     </label>
                   ) : null}
                 </li>
@@ -405,23 +437,23 @@ export function TaskLogisticsLinkEditor({
       </fieldset>
 
       {/* 물류 시스템 연결 섹션 */}
-      <fieldset className={styles.relationGroup} style={{ border: "1px solid var(--color-border-subtle)", borderRadius: 6, padding: "0.75rem" }}>
+      <fieldset className={styles.relationGroup} style={{ border: "1px solid var(--border-default)", borderRadius: 6, padding: "0.75rem" }}>
         <legend style={{ fontWeight: 600, padding: "0 0.25rem" }}>
           관련 물류 시스템 ({selectedSystems.size})
         </legend>
 
         {/* 상속된 시스템 표시 */}
         {links?.inheritedSystemLinks && links.inheritedSystemLinks.length > 0 ? (
-          <div style={{ marginBottom: "0.75rem", background: "var(--color-surface-subtle)", padding: "0.5rem", borderRadius: 4 }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--color-text-secondary)" }}>
+          <div style={{ marginBottom: "0.75rem", background: "var(--surface-subtle)", padding: "0.5rem", borderRadius: 4 }}>
+            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)" }}>
               상위 작업으로부터 상속된 시스템 ({links.inheritedSystemLinks.length}):
             </span>
             <ul style={{ listStyle: "none", padding: 0, margin: "0.25rem 0 0" }}>
               {links.inheritedSystemLinks.map((item) => (
-                <li key={item.systemId} style={{ fontSize: "0.8rem", padding: "0.15rem 0" }}>
-                  🔹 <strong>{item.systemName ?? item.systemId}</strong>{" "}
+                <li key={`${item.sourceTaskId}:${item.systemId}`} style={{ fontSize: "0.8rem", padding: "0.15rem 0" }}>
+                  <strong>{item.systemName ?? item.systemId}</strong>{" "}
                   <code>({item.systemCode})</code>{" "}
-                  <span style={{ color: "var(--color-text-muted)" }}>
+                  <span style={{ color: "var(--text-muted)" }}>
                     — [상위: {item.sourceTaskName}]에서 하위 적용됨
                   </span>
                 </li>
@@ -432,7 +464,7 @@ export function TaskLogisticsLinkEditor({
 
         {/* 직접 시스템 선택 리스트 */}
         {ready && systemList.length === 0 ? (
-          <p className={styles.emptyRelation}>등록된 물류 시스템이 없습니다.</p>
+          <p className={styles.emptyRelation}>등록된 물류 시스템이 없습니다. 기준정보 → 물류에서 시스템을 등록해 주세요.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 180, overflowY: "auto" }}>
             {systemList.map((sys) => {
@@ -443,12 +475,13 @@ export function TaskLogisticsLinkEditor({
               return (
                 <li
                   key={sys.id}
+                  className={styles.contextRow}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "0.35rem 0.25rem",
-                    borderBottom: "1px solid var(--color-border-subtle)",
+                    borderBottom: "1px solid var(--border-default)",
                     fontSize: "0.85rem",
                   }}
                 >
@@ -456,13 +489,13 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || disabled || saving || !ready}
+                      disabled={!editable || !serverEditable || disabled || saving || !ready || (!isChecked && !sys.active)}
                       onChange={() => toggleSystem(sys.id)}
                     />
                     <span>
-                      <strong>{sys.name}</strong> <code>{sys.code}</code> ({sys.systemType})
+                      <strong>{sys.name}</strong> <code>{sys.code}</code> ({sys.systemType}){!sys.active ? " · 비활성 (새 연결 불가)" : ""}
                       {primaryPi ? (
-                        <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                        <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted)" }}>
                           [PI: {primaryPi.resourceName}]
                         </span>
                       ) : null}
@@ -474,10 +507,11 @@ export function TaskLogisticsLinkEditor({
                       <input
                         type="checkbox"
                         checked={scope === "subtree"}
-                        disabled={!editable || disabled || saving || !ready}
+                        aria-label={`${sys.name} 시스템 하위 작업 포함`}
+                        disabled={!editable || !serverEditable || disabled || saving || !ready}
                         onChange={() => toggleSystemScope(sys.id)}
                       />
-                      <span>하위 작업 포함</span>
+                      <span>하위 작업 포함 (파생)</span>
                     </label>
                   ) : null}
                 </li>
@@ -493,7 +527,7 @@ export function TaskLogisticsLinkEditor({
           <button
             type="button"
             className="primary-button"
-            disabled={disabled || saving || !ready}
+            disabled={disabled || !serverEditable || saving || !ready}
             onClick={() => void handleSave()}
           >
             {saving ? "물류 연결 저장 중..." : "물류 연결 저장"}

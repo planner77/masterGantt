@@ -1,0 +1,199 @@
+{
+  "schema": "mastergantt-issue726-local-validation-v1",
+  "baselineMainSha": "6f6dadb1b3ac10bc837c09273a0922611b2e3f81",
+  "version": "0.121.0",
+  "risk_level": "HIGH",
+  "qa_method": "OWNER_MANAGED",
+  "sourceStart": {
+    "src/components/workspace-dialog.tsx": "550febe8bcfa0ab5fc2fca2a8a2d54ab2615e8dda9018a0d89f1d866507f7b21",
+    "src/features/gantt/project-task-editor.module.css": "acc0dd51d467993ff20d0ad5e3ee410bfbf47cc3ceef35ec7b1e22ec2042ee0d",
+    "src/features/gantt/project-task-editor.tsx": "5771ec15f5f3ef4fd370b7ae2633c5899ba9477f256ebb2652753b6e3addf5ef",
+    "src/features/gantt/task-logistics-link-editor.tsx": "6618fe0c65cf2ad0198b1a0788ddc05d1cb374a5ba5e3b89d25577fcfd078f46",
+    "src/features/logistics/project-logistics-management.module.css": "a115c9f9a1071132e538762b013a4be42b3d156059137201329bb2a5476a6427",
+    "src/features/logistics/project-logistics-management.tsx": "fbe49df27d95dab852dfb1b717e1b3ebb20acf576825133017f6ff69f08ce3da",
+    "tests/e2e/issue-621-resource-target.spec.ts": "90a641eac8f6cdb13d98208664a099bbfc32c6b62803006928dce6cb2b240f39",
+    "tests/e2e/issue-623-resource-mvp.spec.ts": "b315430d11fd2501d283bc94c341e0035a6761a6d3be7105aa73f9a11e0c2643",
+    "tests/e2e/logistics-target-authoring.spec.ts": "c14f14b5aab0f7952a6d7844db849677e03989188791d38b8ae1d4dbfa404ded",
+    "tests/e2e/project-task-editor.spec.ts": "b20a55a12c4d9c9a8a33d97ecd7d7eeca72f9689ae356c756bf67e7e4d4df905",
+    "src/features/gantt/task-process-context-editor.tsx": "78011301a37b8465c5fcd0be1a8dfbb5df7d41de154315f00ba574ee9d0663cd",
+    "src/features/gantt/task-process-context-model.ts": "1f1c9d832000e18c57233f8d17597be1d0e461106890377d9d2b3cc529bdc99d",
+    "src/features/logistics/logistics-type-field.tsx": "39e8537e6d6f717b624c1d958fee8b04d3dc1ac4be52263d21166a7506b7fb3b",
+    "tests/e2e/issue-726-logistics-master.spec.ts": "b1518707292a3008d323994389e83a4ab3777d694af7aed2d906171c4968c7ef",
+    "tests/e2e/issue-726-task-logistics.spec.ts": "a0e09f87df454fa056f5355be14a6b2f8d6a747c3ae90bb4958e3c3cdc4d0d19",
+    "tests/features/gantt/task-process-context-model.test.ts": "be1f986fcec6d1836aefa7c1809bf7c2f16af1242d7708f60ea1afe17d5a715f"
+  },
+  "sourceEnd": {
+    "src/components/workspace-dialog.tsx": "550febe8bcfa0ab5fc2fca2a8a2d54ab2615e8dda9018a0d89f1d866507f7b21",
+    "src/features/gantt/project-task-editor.module.css": "acc0dd51d467993ff20d0ad5e3ee410bfbf47cc3ceef35ec7b1e22ec2042ee0d",
+    "src/features/gantt/project-task-editor.tsx": "5771ec15f5f3ef4fd370b7ae2633c5899ba9477f256ebb2652753b6e3addf5ef",
+    "src/features/gantt/task-logistics-link-editor.tsx": "6618fe0c65cf2ad0198b1a0788ddc05d1cb374a5ba5e3b89d25577fcfd078f46",
+    "src/features/logistics/project-logistics-management.module.css": "a115c9f9a1071132e538762b013a4be42b3d156059137201329bb2a5476a6427",
+    "src/features/logistics/project-logistics-management.tsx": "fbe49df27d95dab852dfb1b717e1b3ebb20acf576825133017f6ff69f08ce3da",
+    "tests/e2e/issue-621-resource-target.spec.ts": "90a641eac8f6cdb13d98208664a099bbfc32c6b62803006928dce6cb2b240f39",
+    "tests/e2e/issue-623-resource-mvp.spec.ts": "b315430d11fd2501d283bc94c341e0035a6761a6d3be7105aa73f9a11e0c2643",
+    "tests/e2e/logistics-target-authoring.spec.ts": "c14f14b5aab0f7952a6d7844db849677e03989188791d38b8ae1d4dbfa404ded",
+    "tests/e2e/project-task-editor.spec.ts": "b20a55a12c4d9c9a8a33d97ecd7d7eeca72f9689ae356c756bf67e7e4d4df905",
+    "src/features/gantt/task-process-context-editor.tsx": "78011301a37b8465c5fcd0be1a8dfbb5df7d41de154315f00ba574ee9d0663cd",
+    "src/features/gantt/task-process-context-model.ts": "1f1c9d832000e18c57233f8d17597be1d0e461106890377d9d2b3cc529bdc99d",
+    "src/features/logistics/logistics-type-field.tsx": "39e8537e6d6f717b624c1d958fee8b04d3dc1ac4be52263d21166a7506b7fb3b",
+    "tests/e2e/issue-726-logistics-master.spec.ts": "b1518707292a3008d323994389e83a4ab3777d694af7aed2d906171c4968c7ef",
+    "tests/e2e/issue-726-task-logistics.spec.ts": "a0e09f87df454fa056f5355be14a6b2f8d6a747c3ae90bb4958e3c3cdc4d0d19",
+    "tests/features/gantt/task-process-context-model.test.ts": "be1f986fcec6d1836aefa7c1809bf7c2f16af1242d7708f60ea1afe17d5a715f"
+  },
+  "productTestSourceStable": true,
+  "unit": {
+    "status": "PASS",
+    "files": 10,
+    "uniqueCases": 152,
+    "durationMs": 3020,
+    "paths": [
+      "tests/server/process-catalog/process-context-service.test.ts",
+      "tests/server/logistics/task-logistics-links.test.ts",
+      "tests/server/logistics/logistics-resource-roles.test.ts",
+      "tests/server/logistics/task-target-bindings-handlers.test.ts",
+      "tests/server/projects/project-copy-logistics.test.ts",
+      "tests/server/templates/logistics-template-graph.test.ts",
+      "tests/domain/task-target-bindings.test.ts",
+      "tests/features/gantt/task-process-context-model.test.ts",
+      "tests/features/gantt/task-editor-model.test.ts",
+      "tests/features/gantt/task-editor-view-model.test.ts"
+    ]
+  },
+  "chromium": {
+    "status": "PASS",
+    "uniqueCases": 11,
+    "cases": [
+      {
+        "file": "issue-726-logistics-master.spec.ts",
+        "title": "#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet·WorkArea와 초안 보존",
+        "status": "passed",
+        "durationMs": 16286
+      },
+      {
+        "file": "issue-726-task-logistics.spec.ts",
+        "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+        "status": "passed",
+        "durationMs": 20885
+      },
+      {
+        "file": "issue-726-task-logistics.spec.ts",
+        "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+        "status": "passed",
+        "durationMs": 30381
+      },
+      {
+        "file": "logistics-target-authoring.spec.ts",
+        "title": "Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집·영향 및 reload 보존",
+        "status": "passed",
+        "durationMs": 22903
+      },
+      {
+        "file": "logistics-target-authoring.spec.ts",
+        "title": "Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
+        "status": "passed",
+        "durationMs": 17477
+      },
+      {
+        "file": "logistics-target-authoring.spec.ts",
+        "title": "공유 원본 인스턴스 이름 수정은 사용처 확인 후 한 번 저장하고 모든 Target에 반영",
+        "status": "passed",
+        "durationMs": 13063
+      },
+      {
+        "file": "project-logistics-management.spec.ts",
+        "title": "물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다",
+        "status": "passed",
+        "durationMs": 5876
+      },
+      {
+        "file": "project-task-editor.spec.ts",
+        "title": "#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장 잠금",
+        "status": "passed",
+        "durationMs": 3453
+      },
+      {
+        "file": "issue-725-process-workareas.spec.ts",
+        "title": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작",
+        "status": "passed",
+        "durationMs": 38108
+      },
+      {
+        "file": "issue-725-process-workareas.spec.ts",
+        "title": "#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장",
+        "status": "passed",
+        "durationMs": 12464
+      },
+      {
+        "file": "issue-726-task-logistics.spec.ts",
+        "title": "#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존",
+        "status": "passed",
+        "durationMs": 28507,
+        "reuseReason": "Same frozen Task product/test bytes; later change only optional WorkspaceDialog for Equipment/System."
+      }
+    ],
+    "execution": "Selected actual HTTP+disposable SQLite isolated fixture; two legacy UI regressions use mock API and actual installed Core. Widths390/768/1024/1440/1920; real process restart in725 case."
+  },
+  "actualHttpWriteBoundaries": [
+    {
+      "boundary": "wrong-origin",
+      "status": 403
+    },
+    {
+      "boundary": "stale-revision",
+      "status": 412
+    },
+    {
+      "boundary": "missing-edit-session",
+      "status": 401
+    },
+    {
+      "boundary": "linked-equipment-workarea-change",
+      "status": 409,
+      "code": "EQUIPMENT_WORK_AREA_IN_USE"
+    }
+  ],
+  "prepr": {
+    "fast": "BLOCKED",
+    "targeted": "BLOCKED",
+    "unknownPaths": 7,
+    "missingPaths": 0,
+    "executedSteps": 0,
+    "sourceStable": true,
+    "reason": "Automatic producer-consumer map lacks7 product paths. Manual mapping+152 Unit+11 Chromium retained; no verifier/policy bypass or PASS promotion."
+  },
+  "static": {
+    "typecheck": "PASS",
+    "scopedEslint": "PASS",
+    "eslintWarnings": 1,
+    "warning": "Existing gradeText unused warning in project-logistics-management.tsx",
+    "versionCheck": "PASS",
+    "markdownLinks": "PASS",
+    "diffCheck": "PASS"
+  },
+  "preReview": {
+    "reviewer": "qa_726 (actual separate read-only Agent)",
+    "modelTests": 4,
+    "status": "PASS for source/docs/local evidence pre-review only",
+    "independentHumanQA": "N/A (OWNER_MANAGED)",
+    "ownerAccept": "NOT TESTED"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQA": "NOT TESTED",
+    "managerDecision": "NOT TESTED",
+    "mergeReady": "BLOCKED"
+  },
+  "release": {
+    "release_required": true,
+    "release_authorized": false,
+    "mainGhcr": "NOT TESTED",
+    "formalRelease": "NOT TESTED"
+  },
+  "notes": [
+    "Full CLI fingerprint includes documentation at verification time; later documentation/evidence-only additions preserve product/test hashes.",
+    "Initial failures and fixes preserved in Work Packet F01-F05; retries are not counted as unique cases.",
+    "Local PASS never replaces exact-head GitHub Required3/TrustedQA/Owner approval."
+  ]
+}

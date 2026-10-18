@@ -1,3 +1,11 @@
+## Issue #726 — 설비·물류 시스템 관리 재사용과 Task 직접 연결 (2026-10-19)
+
+[Work Packet](ISSUE_726.md)에 따라 main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81` / `0.120.0`의 #724 host·#725 문맥 API·#728 공통 해석을 재사용한다. 기존 단일 관리 CRUD·다중 WorkArea0..N·공유 원본을 보존하고, Task 물류 연결의 직접 공정/WorkArea·설비/System 편집을 우선하며 Target 호환을 보조 영역에 유지한다. Task 명시 공정0..N과 legacy null을 구별하고 자동생성·복제·새 Gantt writer는 없다.
+
+후보 `0.121.0` MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. UI 설계·두 구현 영역·수용 spec·읽기 전용 사전 검토를 분담한다. 요청 종료점은 구현·문서·관련 Local Fast Feedback 뒤 PR Full CI 시작이며 CI 모니터링·병합·main/GHCR·Release·Issue 종료는 제외한다. 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED다.
+
+선정 Unit/SQLite·Route10파일152개 및 실제/기존 소비자 Chromium11개 PASS, 별도 read-only 사전 검토·관련 문서/가이드/실제 PNG와 지문16파일을 [증거 원장](ISSUE_726.md)에 보존한다. Pre-PR fast/targeted는 자동 매핑 UNKNOWN7로 BLOCKED이며 수동 영향 매핑과 실제 실행으로 구별한다. 생성된 Next 임시 설정은 제거했고 이제 단일 변경 묶음을 PR로 게시한다.
+
 ## Issue #728 — WBS 공통 해석·KPI 구현 (2026-10-18)
 
 [#728 Work Packet](ISSUE_728.md)의 pure Domain 해석기·공통 golden/metamorphic Unit·관련 문서를 main `0b8624651ad20ee5c450d29f4f5de2abdce5036b` 기준으로 구현한다. #725/#727 실제 DTO를 재사용하고 확정 W1/W2(타 공정 다중 WorkArea·Task 명시 공정0..N/명시0 보호)를 적용한다. 직접/조상/Target 출처·무배정 Task·고유 Assignment·full Gate·기존 Capacity R를 보존하고 공개 API/UI는 #729/#730 이후다.

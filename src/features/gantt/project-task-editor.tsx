@@ -6,6 +6,7 @@ import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
 import { TaskTargetBindingEditor } from "./task-target-binding-editor";
+import { TaskProcessContextEditor } from "./task-process-context-editor";
 import { TaskLogisticsLinkEditor } from "./task-logistics-link-editor";
 import { taskEditorTabs, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
 import { buildTaskRelations, formatTaskRelationType, getTaskRelationMutationBlockReason, type TaskRelationView } from "./task-relations";
@@ -139,11 +140,13 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   const [resourcePending, setResourcePending] = useState(false);
   const [legacyLogisticsPending, setLogisticsPending] = useState(false);
   const [targetPending, setTargetPending] = useState(false);
-  const logisticsPending = legacyLogisticsPending || targetPending;
+  const [processPending, setProcessPending] = useState(false);
+  const logisticsPending = legacyLogisticsPending || targetPending || processPending;
   const [resourceDirty, setResourceDirty] = useState(false);
   const [legacyLogisticsDirty, setLogisticsDirty] = useState(false);
   const [targetDirty, setTargetDirty] = useState(false);
-  const logisticsDirty = legacyLogisticsDirty || targetDirty;
+  const [processDirty, setProcessDirty] = useState(false);
+  const logisticsDirty = legacyLogisticsDirty || targetDirty || processDirty;
   const [discardGeneration, setDiscardGeneration] = useState(0);
   const [navigation, setNavigation] = useState<{ id: string; locate: boolean } | null>(null);
   const [base, setBase] = useState(session);
@@ -261,6 +264,12 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     if (locked || awaitingDecision || actionReference.current) return;
     if (dirty) setConfirmation("close"); else onClose();
   }
+  function dismissFromEscape() {
+    if (locked || actionReference.current) return;
+    if (confirmation || navigation) { setConfirmation(null); setNavigation(null); }
+    else if (relationDeleteTarget) cancelRelationDelete();
+    else close();
+  }
   async function reload(afterChildSave = false) {
     if ((!afterChildSave && locked) || actionReference.current) return;
     actionReference.current = true; setOperation("reload"); setConfirmation(null);
@@ -268,7 +277,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) { setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요."); return; }
-      setMembershipDraft({}); setResourceDirty(false); setLogisticsDirty(false); setTargetDirty(false); setDiscardGeneration((value) => value + 1); setBase(next); setActiveTab((current) => taskEditorTabs(next.task.type).includes(current) ? current : "task"); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
+      setMembershipDraft({}); setResourceDirty(false); setLogisticsDirty(false); setTargetDirty(false); setProcessDirty(false); setDiscardGeneration((value) => value + 1); setBase(next); setActiveTab((current) => taskEditorTabs(next.task.type).includes(current) ? current : "task"); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
@@ -369,7 +378,19 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "Milestone" : "일반 작업";
   const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
-  return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onKeyDown={(event) => { if (event.key === "Escape" && locked) { event.preventDefault(); event.stopPropagation(); } }} onCancel={(event) => { if (event.target !== event.currentTarget) return; event.preventDefault(); if (confirmation || navigation) { setConfirmation(null); setNavigation(null); } else if (relationDeleteTarget) cancelRelationDelete(); else close(); }}>
+  return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onKeyDown={(event) => {
+    if (event.key !== "Escape" || event.defaultPrevented) return;
+    const openDialogs = document.querySelectorAll("dialog[open]");
+    if (openDialogs.item(openDialogs.length - 1) !== event.currentTarget) return;
+    // Repeated native cancel events can become noncancelable; own Escape before close-watcher handling.
+    event.preventDefault();
+    event.stopPropagation();
+    dismissFromEscape();
+  }} onCancel={(event) => {
+    if (event.target !== event.currentTarget) return;
+    event.preventDefault();
+    dismissFromEscape();
+  }}>
     <header className={styles.header}>
       <div className={styles.headerText}>
         <h2 id="task-editor-title">작업 정보</h2>
@@ -383,7 +404,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     </header>
 
     <div className={styles.noticeStack}>
-      {navigation ? <div className={styles.discard} role="alert"><p>저장하지 않은 변경사항을 버리고 다른 작업으로 이동할까요?</p><div className={styles.confirmationActions}><button type="button" ref={confirmationCancelReference} className="secondary-button" onClick={() => setNavigation(null)}>계속 편집</button><button type="button" className="secondary-button" onClick={() => { const next = navigation; setNavigation(null); setMembershipDraft({}); setDraft(createTaskEditorDraft(base.task, base.calendar)); setResourceDirty(false); setLogisticsDirty(false); setTargetDirty(false); setDiscardGeneration((value) => value + 1); if (next.locate) onTaskLocate?.(next.id); else onTaskOpen?.(next.id); }}>변경사항 버리고 이동</button></div></div> : null}
+      {navigation ? <div className={styles.discard} role="alert"><p>저장하지 않은 변경사항을 버리고 다른 작업으로 이동할까요?</p><div className={styles.confirmationActions}><button type="button" ref={confirmationCancelReference} className="secondary-button" onClick={() => setNavigation(null)}>계속 편집</button><button type="button" className="secondary-button" onClick={() => { const next = navigation; setNavigation(null); setMembershipDraft({}); setDraft(createTaskEditorDraft(base.task, base.calendar)); setResourceDirty(false); setLogisticsDirty(false); setTargetDirty(false); setProcessDirty(false); setDiscardGeneration((value) => value + 1); if (next.locate) onTaskLocate?.(next.id); else onTaskOpen?.(next.id); }}>변경사항 버리고 이동</button></div></div> : null}
       {restriction ? <p className={styles.note}>{blockedReason ?? restriction}</p> : null}
       {stale ? <p className={styles.error} role="alert">다른 편집 내용이 먼저 저장되었거나 기준 Revision이 변경되었습니다. 입력 내용은 보존됩니다. 최신 정보를 다시 불러온 뒤 검토해 주세요.</p> : null}
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
@@ -709,18 +730,29 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
           hidden={activeTab !== "logistics"}
           tabIndex={0}
         >
-          {base.task.type !== "milestone" ? <TaskTargetBindingEditor tasks={tasks} taskId={base.task.taskId} taskType={base.task.type} revision={base.revision} editable={editable} disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || legacyLogisticsDirty} discardGeneration={discardGeneration} onDirtyChange={setTargetDirty} onPendingChange={setTargetPending} onUnauthorized={onAuthorizationExpired} onApplied={() => reload(true)} onOpenTask={navigateTask}/> : null}
-          <h3>기존 직접 설비·System 연결</h3>
+          {base.task.type !== "milestone" ? <TaskProcessContextEditor
+            taskId={base.task.taskId} taskType={base.task.type} tasks={tasks} revision={base.revision}
+            editable={editable} disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || targetDirty || legacyLogisticsDirty}
+            discardGeneration={discardGeneration} onDirtyChange={setProcessDirty} onPendingChange={setProcessPending}
+            onUnauthorized={onAuthorizationExpired} onApplied={() => reload(true)} /> : null}
+          <h3>직접 설비·물류 시스템 연결</h3>
           <TaskLogisticsLinkEditor
+            tasks={tasks}
             taskId={base.task.taskId}
             taskType={base.task.type}
             revision={base.revision}
             editable={editable}
-            disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || targetDirty}
+            disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || targetDirty || processDirty}
             discardGeneration={discardGeneration} onDirtyChange={setLogisticsDirty} onPendingChange={setLogisticsPending} onUnauthorized={onAuthorizationExpired}
             onApplied={() => reload(true)}
             onSelectionCountChange={setLogisticsCount}
           />
+          {base.task.type !== "milestone" ? <details className={styles.contextGroup}>
+            <summary>Target 연결 (기존 호환)</summary>
+            <p className={styles.note}>기존 Target 단독 연결·전체/일부 선택·coverage를 관리합니다. 직접 공정·설비·시스템 연결과 별도로 저장합니다.</p>
+            {legacyLogisticsDirty || processDirty ? <p className={styles.note}>직접 연결 영역의 변경을 저장하거나 폐기한 뒤 Target을 편집해 주세요.</p> : null}
+            <TaskTargetBindingEditor tasks={tasks} taskId={base.task.taskId} taskType={base.task.type} revision={base.revision} editable={editable} disabled={locked || readOnly || basicDirty || membershipDirty || resourceDirty || legacyLogisticsDirty || processDirty} discardGeneration={discardGeneration} onDirtyChange={setTargetDirty} onPendingChange={setTargetPending} onUnauthorized={onAuthorizationExpired} onApplied={() => reload(true)} onOpenTask={navigateTask}/>
+          </details> : null}
         </section>
       </div>
 

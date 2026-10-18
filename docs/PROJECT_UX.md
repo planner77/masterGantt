@@ -1,3 +1,13 @@
+## Issue #726 — 기준정보 관리와 Target 없는 Task 물류 연결
+
+기준정보의 `master.equipment` / `master.systems`는 기존 한 LogisticsManagement host의 목록·검색·활성 필터·추가/수정/삭제·담당 역할·제어/조율 dialog를 공유한다. Target 구성에서 원본 편집을 열 때도 동일 인스턴스 ID와 editor를 사용한다. 설비의 주 관리 공정·단품/Fleet·수량·Owner·업체/모델·다중 WorkArea, System의 유형·controller/coordinator·공통/복수 공정·PI/개발자·공급사·controls/coordinates를 보존한다.
+
+유형 입력은 두 editor가 같은 field를 사용한다. loading/error/활성 유형0개/미선택과 기존 비활성 유형 유지가 구분되며 입력 옆에 이유·재시도 경로를 표시한다. 유형 사용과 인스턴스 생성은 Project 편집권으로 가능하고 유형 master 등록/활성 변경만 별도 관리자 권한이다. System 공정 한정은 같은 창의 담당 공정1..N 선택을 기존 processIds API로 저장하며 공통은 명시 빈 목록을 저장한다. System도 Equipment처럼 dirty 닫기/Escape 폐기 확인과 revision·권한 변경 시 초안 보존/저장 차단을 제공한다. 원본 삭제 안내는 Target 구성원 해제와 다른 작업임을 명시한다.
+
+Task Editor 물류 연결은 직접 공정·WorkArea 및 설비/System을 기본으로 제공한다. Target0개는 정상이고 기존 Target-only/혼합 연결은 펼치는 호환 영역에서 계속 편집한다. 저장·취소·관리 보기 왕복은 공통 canonical/dirty/stale와 같은 Gantt 인스턴스를 유지한다. 관련 화면·키보드·5폭의 실제 증거는 [Work Packet](exec-plans/active/ISSUE_726.md)에서 구분한다.
+
+#720 매뉴얼 인계: `master.equipment` → [설비의 연결 WorkArea](TARGET_RESOURCE_USER_GUIDE.md#설비의-연결-workarea), `master.systems` → [설비와 물류 시스템 원본 관리](TARGET_RESOURCE_USER_GUIDE.md#설비와-물류-시스템-원본-관리), Task Editor 물류 연결 → [같은 Task에 직접 연결](TARGET_RESOURCE_USER_GUIDE.md#같은-task에-직접-연결). 앱 내 `/manual` route·매뉴얼 버튼 구현은 별도다. Design Delta B로 기존 Light/system font·semantic token·이름 우선·progressive disclosure·내부 scroll/focus를 구체화하며 신규 전역 시각 원칙은 없다.
+
 ## Issue #725 — 기준정보 공정·WorkArea 및 설비 다중 구역
 
 `master.processes`의 **기준정보 → 공정&WorkArea**는 Target composer를 거치지 않고 Project 자유 공정 CRUD와 occurrence 매핑을 제공한다. 기존 mapping.workAreaId는 `공정 매핑 기본 구역 (호환)`으로 표시하고 설비의 다중 구역 소속과 구별한다. 공통 관리 영역은 별도 Project Master admin 세션으로 Process Type/제품 표준/사업장 공정/WorkArea의 검색·정렬·활성/사용처·안전 삭제와 명시 선택 표준 apply를 제공한다. Project edit 권한과 공통 관리자 권한을 대신 사용하지 않는다.

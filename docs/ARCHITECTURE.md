@@ -1,3 +1,7 @@
+## Issue #726 — 관리와 Task 문맥 UI의 기존 writer 재사용
+
+두 기준정보 관리 탭은 기존 `ProjectLogisticsManagement` 한 인스턴스·CRUD/dialog를 사용하고 유형 입력만 공통 field로 재사용한다. Task 직접 문맥 UI는 #725 GET/PUT와 기존 Task Editor의 dirty/pending·`onApplied` canonical 재조회를 사용한다. 직접 Equipment/System·공정/WorkArea와 보조 Target는 별도 저장 경로이며 parent mutex가 동시 초안 mutation을 제한한다. 서버 Route→Service→Repository→SQLite·schema·일정/집계 authority와 Gantt/viewport writer는 추가하지 않는다. UI의 명시 상위 출처 안내는 #728 전체 해석 API가 아니다. [Task 계약](TASK_EDITOR.md), [실행 원장](exec-plans/active/ISSUE_726.md).
+
 ## Issue #728 — 단일 WBS 작업 해석 경계
 
 `src/domain/resources/wbs-task-ledger.ts`는 기존 #617 Target resolver·Resource KPI/Plan·Milestone Gate authority를 재사용하는 opt-in pure Domain이다. 동일 Project snapshot과 #725 Task 문맥/다중 WorkArea DTO, #727 프로젝트 Resource 참여 DTO를 입력으로 받으며 누락/조회실패를 관계0으로 처리하지 않는다. 새 Task 공정 선택과 legacy Target 공정 source/version을 분리한다.

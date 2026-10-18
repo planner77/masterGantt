@@ -503,3 +503,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.typeField {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.typeField p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
