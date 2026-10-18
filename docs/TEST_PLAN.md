@@ -1,3 +1,9 @@
+## Issue #728 — WBS 공통 원장 검증
+
+[입력·지표 사전](WBS_TASK_LEDGER.md), [Work Packet 및 AC_TEST_COVERAGE](exec-plans/active/ISSUE_728.md)를 기준으로 Target0/직접/Target/혼합·명시 공정0/1/N·legacy null·다중 WorkArea·등록/배정/역할을 같은 Task/Assignment ID에서 검증한다. 최신 W1/W2 결정은 명시0을 구성/조상/Target으로 채우지 않는다. MCS 공통2+조립3+검사4+통합5의 전체14/A8/B9/미연결2와 E10 다중 구역 고유10을 고정 검산한다.
+
+선택 단계마다 Task/Assignment 교집합을 유지하는 E1→Milestone→공정 음성, 같은 Task 유효 교차, ACS-only subset/coverage·기존 Summary 합집합·Task 이동, 미배정/Group-only/등록-only/역할-only·unset/partial/configured0/M/M없음/진척 분모0, 선택80%/Project140%와 full Gate 보존, 입력 순서/중복/축 변경 및 mutation0을 Unit/metamorphic로 다룬다. 기존 Resource/Target/Plan/Milestone authority 회귀를 선택하고 UI/API/DB/Gantt writer 비영향의 환경별 제외를 원장에 기록한다. 로컬 PASS는 원격 세 Required·Trusted/Owner 승인과 별개다.
+
 ## Issue #727 — 프로젝트 등록과 작업 배정의 분리
 
 새 Project–Resource 원장의 직접 테스트는 `tests/server/resources/project-resource-memberships.test.ts`다. 실제 SQLite 및 HTTP에서 global ID 재사용/두 Project 격리·미배정 영속·기존 Task/책임 역할 발견·역할/등급/Group·비활성·삭제 보호·401/403/409/412·동시 revision·실패 rollback을 검증한다. migration0028→0029와 재시작/Copy/지원 Template는 등록뿐 아니라 기존 Assignment/역할 보존·구 snapshot·unknown 참조 실패·사람 수 증가0을 비교한다. 미지원 JSON/일정 Excel/forward Import의 조용한 유실을 거부하며 opt-in Resource 보고서는 기존 계산과 경계를 유지한다.

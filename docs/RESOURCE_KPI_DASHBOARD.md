@@ -1,3 +1,9 @@
+## Issue #728 — 일반 Task와 개인배정 KPI의 공통 원장
+
+새 opt-in WBS Domain은 전체 일반 Task 현황과 기존 개인 Assignment A 기반 KPI를 함께 제공한다. 무배정 Task를 진척/완료·지연에서 소실시키지 않고 T0 개인 미배정·Group-only·공수 미설정 진단을 유지한다. 기존 Resource API와 `renderResourceKpi`의 A 의미는 변경하지 않는다. 등록 인원은 #727 명시 참여, 배정 인원은 원시 일반 Task 개인 Assignment에서 산출하며 책임 역할/Group/등록-only로 배정·공수를 만들지 않는다.
+
+KPI의 단위는 고유 Task, 고유 `(Project,Assignment)`, 기존 R 고유 resource-day, typed instance다. 다중 공정/WorkArea/Milestone/Group은 비가산이고 선택80%·같은 R의 Project140%·full Gate를 분리한다. raw 산식·null/partial/configured0·mdPerMm 및 직접/Target 호환 oracle은 기존 권위를 재사용한다. [WBS 입력·실행 가능한 사전](WBS_TASK_LEDGER.md), [AC별 검증](exec-plans/active/ISSUE_728.md)을 따른다. Plan/Excel·새 API 연결은 #729 이후이며 이번에는 공개 wire 계약을 변경하지 않는다.
+
 ## Issue #727 — 등록 인원과 Task 배정 인원
 
 프로젝트 리소스 등록은 `기준정보 → 리소스`에서 관리하며 Resource Dashboard·Plan의 개인 모집단을 확대하지 않는다. `등록 인원`은 명시 Project–Resource 관계의 고유 Resource 수이고, `작업 배정 인원`은 프로젝트의 일반 type=task 개인 Assignment로 참조된 고유 Resource 수다. 둘은 모집단이 달라 서로 같거나 합산 가능한 수치가 아니다. Summary/Milestone의 개인 참조와 설비 Owner·시스템 PI/개발자 역할은 별도 책임 사용이며 개인 Task Assignment가 없으면 계획공수를 만들지 않는다. Group Assignment를 소속 개인에게 자동 배분하지 않는다.

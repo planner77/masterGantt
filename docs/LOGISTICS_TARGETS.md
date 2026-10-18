@@ -1,3 +1,9 @@
+## Issue #728 — Target0과 통합 원장 호환
+
+직접 Task 문맥과 기존 Target whole/subset/coverage·Summary self/subtree는 같은 Task/typed instance에서 합치되 모든 출처를 보존한다. ACS-only를 AMR까지 확장하거나 공유 MCS에서 다른 Target을 역조회하지 않는다. 새 공정 축은 Task 자신의 명시 선택만 사용하며 Target/조상/설비/System으로 명시0을 채우지 않는다. 구형 Target 공정 해석은 별도 source/version의 opt-in 호환 범위다.
+
+구성 WorkArea 소속과 작업 공정 선택은 분리한다. 같은 E10의 두 구역 관련 quantity가 각각10이어도 고유 총량10이며 공수에는 곱하지 않는다. 등록-only·무배정 Task를 잃지 않도록 일반 Task KPI와 개인 Assignment 공수를 구분한다. [공통 원장](WBS_TASK_LEDGER.md)이 #729 이후의 입력 계약이며 기존 Target/API 의미를 이 변경으로 전환하지 않는다.
+
 ## Issue #725 — Target0과 직접 공정·WorkArea 계약
 
 공정·WorkArea 기준정보와 설비·Task 직접 문맥은 Target 존재에 의존하지 않는다. 별도 기준정보 화면에서 공정/선택 WorkArea를 관리하며 숨은 Target이나 구역별 WBS를 만들지 않는다. 기존 Target scope/process/WorkArea/member/binding 및 direct/subtree 합집합 계약은 그대로 보존한다.

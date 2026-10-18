@@ -1,3 +1,9 @@
+## Issue #728 — 구성 원장과 WBS 작업 연관
+
+WBS Task가 분석 출발점이다. 같은 Task의 명시 공정·설비·System은 실제 구성/제어관계가 없어도 교차 조회할 수 있지만, 이를 설비 공정 소속/controls/coordinates로 바꾸지 않는다. `E1→Milestone M→공정`은 E1에 관련된 Task/Assignment를 유지하며 M의 다른 작업으로 확장하지 않는다. full Gate는 전체 원본을 유지한다.
+
+W1의 타 공정 다중 WorkArea와 W2의 Task 명시 공정0..N을 적용한다. 기준정보의 담당 공정과 Task 작업 공정은 별도며 명시0은 정상이다. 신규 해석기는 구성·작업·Target 출처/version을 구분하고 구형 API 산식/필터는 보존한다. [단일 Domain 입력·KPI 계약](WBS_TASK_LEDGER.md), [검증 원장](exec-plans/active/ISSUE_728.md)을 따른다. 공개 조회 통합은 #729 이후다.
+
 ## Issue #725 — WBS 중심의 선택적 공정·WorkArea 문맥
 
 #723/#725의 최신 W1/W2 결정은 아래 최초 설계 기본안보다 우선한다. 공정 occurrence 하나의 WorkArea는0..N이고 각 WorkArea는 정확히 occurrence 하나에 소속한다. 설비 하나는 타 공정 구역을 포함한0..N WorkArea에 연결될 수 있다. `Equipment.processId`는 계속 주 관리 공정이며 실제 WorkArea 소유 공정과 별개다. 설비–구역은 typed 관계 컬렉션으로 저장하고 공정 매핑의 기존 `workAreaId`는 호환 기본 구역으로 유지한다.
