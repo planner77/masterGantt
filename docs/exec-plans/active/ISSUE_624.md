@@ -146,3 +146,11 @@
 - `DOCUMENTATION_SYNC`: `docs/ISSUE_624_CI_FAILURE_ANALYSIS.md`, 본 Work Packet, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/exec-plans/active/PLAN.md`은 UPDATED. `AGENTS.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/QA_REVIEW_POLICY.md`, `docs/CI_CD.md`, `docs/DB_SCHEMA.md`, `docs/SECURITY.md`, `docs/SCHEDULING_ENGINE.md`, `DESIGN.md`, `docs/API.md`, `CHANGELOG.md`는 N/A(제품·API·schema·version·workflow·runtime·보안·설계 계약 변경 없이 테스트 계약만 수정). 기존 DOCUMENTATION_SYNC AC1–7/정식 0.116.0 버전 불변.
 - Next exact HEAD의 원격 PR CI와 Trusted QA·실제 브라우저 전체 PASS는 시작 이후까지 **NOT TESTED**. 로컬 npm/Vitest/Playwright 연결 환경에서 실행 불가. HIGH/OWNER_MANAGED, 기존 Issue #624 Owner v0.116.0 release 승인 유지하되 Main/GHCR/Finalizer/Issue 종료는 이번 작업 비범위.
 
+
+## #715 main 문서 정렬 · 새 Full PR CI 이관 (2026-10-18)
+
+- 기존 [Full PR CI #2921.1](https://github.com/planner77/masterGantt/actions/runs/39078855192) 및 [Trusted QA #564.1](https://github.com/planner77/masterGantt/actions/runs/39080427310)는 Head \`3642a39a42bcff82ffa0a515a4c27072a70d8b57\`/옛 Base \`6fea0397...\`에 한정하여 SUCCESS. 합격 근거 보존, 새 main 통합 후보에 소급 적용 금지.
+- [Issue #624 실패 누적 원장 §13](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 최초 #2875부터 마지막 #2920까지 8개 Root 및 #2921 성공 반례·취소/파생·교차 영향을 대조했다. 정확한 스크롤 내부 이동, #621/623 Target fixture, canonical Task/Assignment, 390~1920px·Milestone Gate·read-only/권한/dirty/stale 기존 단언 불변.
+- 최신 main \`5e622fe3a03bfb31ee01fa3c9a5d4b7366e0a4e8\`의 #715 전역 설명 밀도/상황형 도움말 디자인 원칙 4개 문서(변경 2·추가 2)를 #624의 30 변경 경로와 교집합 0으로 판정. HEAD tree + main 네 blob의 Git 2-parent merge를 사용하며 양쪽 변경의 원본 손실이 없어야 한다. #715에 따른 신규 UI 제품 변경, 버전 변경, migration, GitHub CI/QA Gate 변경 없음.
+- DOCUMENTATION_SYNC: \`docs/ISSUE_624_CI_FAILURE_ANALYSIS.md\`와 본 Work Packet UPDATED. \`DESIGN.md\`/\`docs/UI_UX_GUIDELINES.md\`는 main 기존 내용을 **보존**(이번 PR에서 별도 수정하지 않음). 다른 기존 AC1–7·문서 영향 매핑/0.116.0 기능 후보 유지.
+- \`risk_level=HIGH\`, \`qa_method=OWNER_MANAGED\`, \`release_required=true\`, \`release_authorized=true\`(이슈의 기존 버전별 Owner 승인 한정). 새 exact HEAD/Base의 Required3, Trusted QA, Owner 최종 병합 ACCEPT는 별도이며 CI 시작 후까지 NOT TESTED. 요청 범위는 리뷰·충돌 해결 후 새 Full PR CI 시작까지만.
