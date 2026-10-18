@@ -1,6 +1,15 @@
 # Issue #717 — 이름 우선·코드/ID 요청 조회
 
-## 실행 범위와 승인
+## 현재 재작업 — 2026-10-19 F-015
+
+- 최신 실패 [Full #2976.1](https://github.com/planner77/masterGantt/actions/runs/39129737531), 원본 Head `1a6bdbeb6c07ce08c280d0344daadcf5789b8278`의 담당자 이름 E2E 기대를 보완한다. [동일 Issue 누적 원장 F-015](../../ISSUE_717_FAILURE_ANALYSIS.md#2026-10-19--f-015-29761-canonical-담당자-이름-조회와-전체18회-재진단)과 [18회 원본 증거](../../evidence/issue-717/ci-cumulative-20261019.json)를 기준으로 취소된 실행 내부의 실제 실패도 보존한다.
+- 현재 기준 main은 `0b8624651ad20ee5c450d29f4f5de2abdce5036b`(#727, 0.119.0), 후보 버전은 **0.119.1**이다. 현재 worktree/branch는 `issue-717` / `docs/issue-717-name-first-identifier-policy`다. 아래 과거 기준 SHA·버전·실행 결과는 당시 이력이며 현재 검증을 대신하지 않는다.
+- #727 프로젝트 리소스 등록/배정 분리와 #717 상위 탭 동기 focus/현재 하위 화면 보존을 함께 유지한다. main에서 유입된 API/DB/migration0029는 #727 원본이며 이번 F-015의 추가 서버/계약 변경은 없다.
+- 담당자 이름은 성공 catalog 또는 실패 시 canonical 원본을 사용한다. 동명만 코드/ID로 구분하며 읽기 전용 원문 조회는 비활성 mutation fieldset 밖에 제공한다. 오래된 cache의 이름/코드를 섞거나 저장 차단을 해제하지 않는다. 정확 Primary·삭제 payload/If-Match 검증을 추가한다.
+- 실제 역할: `ci_history_717` infra는 18 Run·68 실패/취소 Shard 로그 조회, `editor_resource_identity` frontend는 Workspace 충돌 2파일 통합, `milestone_identity` frontend는 담당자 UI/4개 E2E 소비자 보완, `identity_qa` qa_docs는 독립 read-only 사전 검토, Manager는 문서·검증·단일 배치 게시를 담당한다.
+- `risk_level: HIGH`, `qa_required: true`, `qa_method: OWNER_MANAGED`, `manager_decision: NOT TESTED`, `MERGE_READY: BLOCKED`, `release_required=true`, `release_authorized=false`. 새 Full CI 시작까지만 수행하며 CI 모니터링·병합·릴리스·Issue 종료는 제외한다.
+
+## 최초 실행 범위와 승인
 
 - Issue: [#717](https://github.com/planner77/masterGantt/issues/717), 기존 PR [#718](https://github.com/planner77/masterGantt/pull/718) 재사용. 2026-10-18 사용자 요청으로 과거 docs-only 제안을 제품 구현·미해결 리뷰/충돌 해결·Full PR CI 시작까지 확장했다. CI 완료 모니터링·병합·Main/GHCR·Issue 종료는 범위 밖이다.
 - 기준 main: `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, 기존 원격 Head `d97f1e60419575f4db3785c239b3ae341b3086d5`. 작업 worktree `issue-717`, local branch `fix/issue-717-name-first-ui`, 게시 대상은 기존 `docs/issue-717-name-first-identifier-policy`다. main과 기존 PR을 모두 조상으로 보존해 PLAN 충돌을 양쪽 기록 유지로 통합했다.
@@ -192,3 +201,13 @@ Manager는 shared `IdentifierDetails`, Project/Import 표시, 문서/version·E2
 - #725 신규 공정/WorkArea와 설비 다중 WorkArea, Task/Summary `process-context` API/DB migration0028, 공정 기준정보 UI·copy/template/검증 자료를 main tree에서 보존. #717의 이름-first/식별 정보·#518 상위 탭 focus/URL 계약도 동시에 보존한다. 공통 변경 경로9개(CHANGELOG/DESIGN/PROJECT_UX/TASK_EDITOR/TEST_PLAN/PLAN/Logistics CSS·TSX/ProjectReadonlyView) 확인; 새로운 Full에서는 #725 acceptance E2E와 #724 Navigation/#717 UI 교차 확인.
 - Repo API 환경의 최종 Node/Playwright/SQL migration 실행은 `NOT TESTED`. 실제 새 HEAD의 Required Quality/E2E/Docker/Trusted/Owner는 CI 완료 전 미확정이며 main 정렬·리뷰/충돌 해결·CI 시작은 release 승인으로 해석하지 않는다.
 
+
+## 현재 F-015 로컬 실행 결과 (2026-10-19)
+
+- [실행 증거 ](../../evidence/issue-717/f015/local-validation.json): Node22.14.0/npm11.10.0/Playwright1.63.0의 실제 bundled Chromium에서 누적 실패16파일 + #717 직접2파일 + #727 membership2파일, **20파일122 PASS / 0 FAIL / 0 SKIPPED, 18.7분**. `--max-failures=0 --retries=0`, worker1, 임시 config는 기존 설정을 상속하고 mock 서버만3717로 연결한다. `PLAYWRIGHT_BASE_URL`을 해제해 기존 격리 fixture의 실제 HTTP·별도 SQLite·프로세스 재시작을 유지했다. 이 결과는 원격6-runner/Required3 PASS가 아니다.
+- 제품·테스트·package923개 파일 SHA256은 실행 시작/끝 동일하다. 지문과 변경 경로별 해시는 실행 JSON에 보존한다. 문서/증거 추가와 Next 생성 next-env/tsconfig·과거 screenshot 갱신은 별도이며 생성물은 task 전용 `/tmp`에 보존하고 원본을 복원했다. 예전 `output/playwright/issue-717/source-manifest.json`은 과거 증거로 유지하고 이번 지문으로 재사용하지 않는다.
+- 직접 unit **4파일18 PASS**. Workspace 통합 frontend의 **2파일38 PASS**, 독립 QA **3파일11 PASS**는 겹치는 실행을 합산하지 않는다. 최종 Typecheck PASS, 기본 `npm run lint` **0 errors/기존13 warnings PASS**, version0.119.1 PASS, Markdown260파일 PASS, root/외부cwd discovery **240 unit files/719 browser cases PASS**, 설치 의존성 확인 PASS. F-015에서 production build/Docker 전체는 로컬 재실행하지 않고 새 PR CI에 맡긴다.
+- 로컬 첫 기본 lint는 이전 작업의 `.next-issue717`와 `.runtime-tools` 생성 JavaScript에서 **704 errors/7738 warnings FAIL**이었다(소스 error0). 두 task 소유 생성 디렉터리를 저장소 밖에 보존한 뒤 같은 기본 명령이 PASS했다. 원본 오류를 없던 것으로 만들거나 ESLint/CI ignore 정책을 변경하지 않았다.
+- `verify:prepr` fast·targeted는 각각 **BLOCKED / sourceStable=true / UNKNOWN18 / MISSING0**. 공통 fingerprint `eb066607c2b0bd455b8a6030e1d89e372f92466fd4b6204f0f9cd9649c33266c`. 보고서는 `.prepr-reports/issue-717-f015-{fast,targeted}-20261019/{report.json,SUMMARY.md}`이며 핵심 source/unknown 증거는 실행 JSON에도 보존했다. 자동 매핑은 보완하지 않았으며 [기존 수동 영향 매핑](../../ISSUE_717_IDENTITY_INVENTORY.md)과 개별 실제 검증을 별도로 보고한다. CLI를 PASS로 바꾸지 않는다.
+- 독립 read-only `identity_qa`의 F-015 사전 source/docs 검토에서 발견한 동명 구분 P2는 code/ID 보조 복구와 설비/시스템 각각의 정확 Primary·삭제·canonical 오류 회귀로 보완했다. 미해결 P1/P2=0; 최종 commit/tree 재확인과 QA_FINAL/Owner 승인은 별개다.
+- 현재 UI 캡처 [catalog 오류390px ](../../evidence/issue-717/f015/catalog-error-390.png), [공정 이름390px ](../../evidence/issue-717/f015/process-default-390.png), [geometry ](../../evidence/issue-717/f015/geometry-390.json)는 synthetic HTTP fixture의 실제 Chromium 증거다. 실기기·screen reader·모든 화면 전체 조합·운영 검증은 NOT TESTED.

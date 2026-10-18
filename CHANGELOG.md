@@ -1,10 +1,19 @@
-## [0.118.1] — Unreleased / Issue #717
+## [0.119.1] — Unreleased / Issue #717
 
 - Milestone·물류·Task/관계·리소스·기준정보·Import에서 이름을 주 식별자로 표시하고, 전체 코드/UUID는 요청 시 확인·복사한다. 코드/ID 검색·정확 동명 선택·공정 코드 자동생성/수정과 API/DB/Export·보안/revision·Gantt Core 계약을 보존한다.
 - 공정 코드 선행 열을 제거하고 이름 최소220px 및 내부 표 스크롤을 확보한다. 공통 키보드/터치 disclosure·Clipboard 실패 수동 복사 대체 경로, 단위·5폭·실제 HTTP 회귀와 화면별 예외 인벤토리를 추가한다.
 - PR CI 시작까지 진행하며 원격 Required 검사·Trusted QA·Owner 병합 승인·정식 릴리스는 별도다. release_required=true, release_authorized=false.
 - CI #2954.1에서 Resource Plan 그룹 펼침 버튼과 닫힌 ID 복사 버튼을 구분하고, Milestone 비교표의 긴 이름·식별 정보 기본 행을 가로 compact 배치해 390px 행 높이/가시 행 밀도 기준을 복구하도록 보완한다. 44px 식별 정보 열기/원본 ID·코드 조회·복사 및 기존 5폭/서버/Gantt/Resource 검증 상한은 유지하며 새 Full CI 성공 여부는 별도 판정한다.
 - PR CI #2968.1의 대시보드 상위 탭 selected-but-unfocused와 Milestone→공정 보기의 잘못된 자동 복원을 수정한다. active section 재선택은 현재 하위 화면을 유지하고 Tab 초점을 동기로 복원해 비활성 패널 숨김 중 focus 이탈을 방지한다. #725 WorkArea 공정·설비 문맥·migration0028과 기존 이름/ID 표시는 그대로 유지한다.
+
+- PR CI #2976.1의 담당자 이름 조회를 이름 우선 계약에 맞추고, 조회 실패에서도 canonical 이름·원본 코드/ID를 안전하게 확인하도록 보완한다. 동명 대상 구분과 정확한 주 담당/삭제·저장 차단을 유지한다. 과거 18회 실행을 동일 Issue 실패 원장에 보존하고 main #727의 프로젝트 리소스 등록 기능을 통합한다.
+
+## [0.119.0] — Unreleased / Issue #727
+
+- 기준정보 → 리소스에서 기존 전역 리소스를 프로젝트에 등록하고 미배정 참여자도 보존합니다.
+- 등록·Task 배정·설비/시스템 책임 역할·비활성을 구분하고 사용 중 등록 해제와 전역 삭제를 보호합니다.
+- Project Copy/Template는 기존 global ID를 재사용하며 등록만으로 Assignment·계획공수·Capacity를 생성하지 않습니다.
+- 선행 #724의 일정/대시보드/기준정보 탐색을 재사용합니다. 정식 릴리스 미승인 후보이며 PR CI 성공·배포 완료를 뜻하지 않습니다.
 
 ## [0.118.0] — Unreleased / Issue #725
 

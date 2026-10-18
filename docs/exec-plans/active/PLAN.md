@@ -1,3 +1,7 @@
+## Issue #717 — F-015 누적 실패 재진단 및 main #727 통합 (2026-10-19)
+
+[Work Packet](ISSUE_717.md)·[같은 Issue 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)·[18회 원본 증거](../../evidence/issue-717/ci-cumulative-20261019.json). 최신 #2976.1의 구형 담당자 이름(코드) 기대와 취소 Run #2975.1의 같은 실패를 보완한다. 실패/취소 Shard 로그68개와 실제 실패16파일 합집합을 점검하고 동결 소스에서 #717 이름/원문/HTTP·SQLite 및 #727 membership 교차 회귀를 수행한다. #727 main `0b8624651ad20ee5c450d29f4f5de2abdce5036b`의 등록/배정 분리와 #717 focus를 모두 보존, 후보0.119.1. HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 기존 PR #718에 단일 비강제 게시 후 Full CI 시작만 확인한다. 원격 Required3/Trusted/Owner NOT TESTED; Draft/Issue OPEN 유지. 로컬 누적20파일122PASS/0FAIL/0SKIPPED, 관련 unit·Typecheck·기본 lint13warnings·문서/version/discovery PASS. Pre-PR fast/targeted는 UNKNOWN18으로 BLOCKED(sourceStable=true)이며 CLI PASS가 아니다. [최신 실행 증거](../../evidence/issue-717/f015/local-validation.json). 아래 기록은 과거 시점의 증거다.
+
 ## Issue #717 — PR CI #2968.1 F-012 Workspace Navigation 상위 tab focus 재발 보완 (2026-10-18)
 
 [전용 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)·[Work Packet](ISSUE_717.md). #2923/2926 문서/metadata FAIL, #2927 docs-only 성공, #2935/#2940/#2942/#2944/#2945/#2952/#2954/#2956/#2959 E2E 실제 실패 F-003~F-011 및 새 [#2968.1](https://github.com/planner77/masterGantt/actions/runs/39122204893) #518 primary Dashboard focus/하위 보기 F-012를 **전체 동일 Issue 누적 이력**으로 비교한다. 최신 Full run exact HEAD `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3`/base `c2395b17d864692c2e5e5aa36f55ea36e7197541`: Quality/Docker PASS, Shard5 50PASS/1FAIL/33 미실행, 다른5 CANCELLED, QA 파생 FAIL. Trace에서 `dashboard.milestones`→`dashboard.process` 잘못된 재선택과 selected-but-inactive parent Tab을 확인. `project-readonly-view.tsx`의 현재 section keyboard 재선택은 현재 하위 screen 유지·primary focus 동기 적용/비침습 RAF fallback으로 보완하고 `project-workspace-tabs-518.spec.ts`는 5폭/3px focus·현 subtab+URL·기존 Gantt/Core/readonly/write0 단언 유지/실제 activeElement artifact 추가. 누적 직접 실패 E2E 13파일과 #724/#719 Navigation/Help·#717 식별정보·#525~#527 Resource 소비자 교차 검증. 테스트 timeout/retry/skip/CI shard·main/GHCR 정책 불변. 원격 GitHub 로그·Trace·소스 정적 대조 완료, 로컬 동일 source Node/Chromium/Vitest/Build NOT TESTED. 최신 main·미해결 리뷰/충돌 재확인 후 기존 PR #718에 단일 비강제 HEAD 갱신으로 Full CI 시작까지만 진행. PR Draft/Issue OPEN/HIGH/OWNER_MANAGED/qa_required=true/0.116.1/release_required=true/release_authorized=false, CI 결과 모니터링/merge/Main/GHCR/Finalizer/Issue close 제외.
@@ -58,6 +62,14 @@ main이 `7393483c4a15007868fceeaee70fb9e13c8b119a`에서 `ea4194763568432ef98e82
 원본 PR #738은 merge `ea4194763568432ef98e823bb796b59a5beb317c`로 병합됐으나 [Main #2957.1](https://github.com/planner77/masterGantt/actions/runs/39108991895)의 #456 실제 스크롤 capacity Core62/native63<120으로 E2E가 실패했다. 기존 보완 [PR #740](https://github.com/planner77/masterGantt/pull/740)을 재사용하며, 후속 #2960.1의 PR metadata 선언 형식 오류를 별도 교정한다. [단일 누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 L1–L10/F01–F06/M01 전 이력·취소21개 Job 원문·trace 실제 수치와 검증을 보존한다.
 
 이번 요청의 종료점은 보완·리뷰/충돌 정리 및 새 Main CI 시작이다. exact-head Full PR Required3/Trusted QA·최신 main·리뷰0·Owner 위험 수용을 확인한 merge commit 이후 Main CI를 시작하고 완료 모니터링은 생략한다. 기존 PR 시작까지만의 범위 기록은 당시 이력이다. test-only 교정의 version0.117.0 및 release_required=false/release_authorized=false와 원본 #724 제품의 release 의무/Owner 조건부 v0.117.0 승인은 구분하며, Main/GHCR/정식 Release/Issue 종료 성공을 미리 주장하지 않는다. 상세 상태·로컬 결과는 [Work Packet](ISSUE_724.md) 참조.
+
+## Issue #727 — 프로젝트 리소스 등록과 Task 배정 분리 (2026-10-18)
+
+[Work Packet](ISSUE_727.md): main `7393483c4a15007868fceeaee70fb9e13c8b119a` 및 선행 #724/PR #738 공개 host `23857b6f3b3481a8402c6c421de2f7ff82304fe2`에서 명시 Project–Resource 관계·사용 출처·등록/해제와 Copy/Template·미지원 교환 보호를 구현한다. 등록-only·일반 Task 개인 배정·Summary/Milestone 책임·설비/시스템 역할·비활성을 구분하고 Assignment/공수/Capacity R·ACL은 변경하지 않는다. backend/frontend와 읽기 전용 ui_ux·qa_docs, 최종 infra 게시를 분담한다.
+
+후보0.119.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 관련 문서·사용자 가이드/매뉴얼 영향·Local Fast Feedback·별도 사전 검토 후 main 대상 PR Full CI 시작까지만 진행한다. 게시 직전 선행 #724가 main `ea4194763568432ef98e823bb796b59a5beb317c`에 병합돼 전체 tree 불변 상태로 fast-forward했고 PR diff는 #727에 한정한다. CI 모니터링·병합·main/GHCR·Issue 종료는 수행하지 않는다. 원격 Required3/Trusted·Manager ACCEPT는 NOT TESTED다.
+
+main `4ce564a8d9ec646ba584a585a610537f14698476` (#725 / 0028_process_context 포함)에 2-parent로 정렬하며 #727 0029 migration과 누적 테스트·리뷰 P2 멱등 삭제 보완을 포함한다. 초기 0.118.0 로컬 증거는 이전 source snapshot의 기록이고, 통합 exact-head 품질 검증은 새로운 PR Full CI 대상으로 남긴다.
 
 ## Issue #724 — 일정·대시보드·기준정보 N1 (2026-10-18)
 

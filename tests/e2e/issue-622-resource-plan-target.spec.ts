@@ -57,6 +57,9 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await detail.locator("tbody th button").first().click();
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   const row = detail.locator(`[data-canonical-task-id="${f.unset.taskId}"]`);
+  const hiddenIdentityActions = row.locator("details:not([open]) button");
+  expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
+  for (const action of await hiddenIdentityActions.all()) await expect(action).toBeHidden();
   await expect(row).toContainText(f.targets[1].name);
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -66,7 +69,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
       const rect = (node: Element) => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width }; };
       const headers = [...element.querySelectorAll("thead th")].map(rect);
       const cells = [...element.querySelectorAll("tbody tr:first-child > *")].map(rect);
-      const buttons = [...element.querySelectorAll("tbody tr:first-child > th button")].map(button => ({ ...rect(button), parent: rect(button.closest("th")!) }));
+      const buttons = [...element.querySelectorAll("tbody tr:first-child > th button")].filter(button => button.checkVisibility()).map(button => ({ ...rect(button), parent: rect(button.closest("th")!) }));
       return { width: innerWidth, document: document.documentElement.scrollWidth, client: element.clientWidth, scroll: element.scrollWidth, focused: document.activeElement === element, headers, cells, buttons };
     });
     expect(geometry.document).toBeLessThanOrEqual(width + 1); expect(geometry.focused).toBe(true);

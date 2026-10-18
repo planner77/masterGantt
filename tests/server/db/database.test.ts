@@ -136,7 +136,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql", "0029_project_resource_memberships.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -180,7 +180,7 @@ describe("SQLite connection and schema", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
-        "0028_process_context.sql",
+        "0028_process_context.sql", "0029_project_resource_memberships.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -219,6 +219,7 @@ describe("SQLite connection and schema", () => {
         "project_master_items",
         "project_process_occurrence_mappings",
         "project_processes",
+        "project_resource_memberships",
         "project_system_links",
         "project_system_processes",
         "project_system_resource_roles",
@@ -284,6 +285,7 @@ describe("SQLite connection and schema", () => {
         "project_process_occurrence_mappings_work_area_idx",
         "project_processes_project_parent_idx",
         "project_processes_project_sort_order_idx",
+        "project_resource_memberships_resource_idx",
         "project_system_links_source_idx",
         "project_system_links_target_idx",
         "project_system_processes_process_idx",

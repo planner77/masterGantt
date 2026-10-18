@@ -193,7 +193,7 @@ test("#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow
                     1,
               ),
             ),
-            contained: Array.from(el.querySelectorAll("button")).every((b) => {
+            contained: Array.from(el.querySelectorAll("button")).filter(button => button.checkVisibility()).every((b) => {
               const c = b.closest("th,td")!.getBoundingClientRect(),
                 r = b.getBoundingClientRect();
               return r.left >= c.left - 1 && r.right <= c.right + 1;

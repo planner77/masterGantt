@@ -395,3 +395,93 @@ F-010 코드와 원장을 GitHub에 게시하기 직전 최신 `main`이 `739348
 - **교차 회귀:** 본 파일의 전체 7개 소비자 교정 후 #717 직접 Name-first/동명 identity, Resource 구성원·그룹·리소스 관리자, Resource Dashboard/Plan/Milestone와 앞선 직접 E2E 실패 14파일 합집합 및 6 shard Full run을 확인해야 한다. 이번 새 직접 실패 파일 `tests/e2e/resource-error-recovery.spec.ts`를 합하면 **15개 고유 E2E 실패 파일**. 다른 Head의 PASS는 최신 Head 전체 검증으로 사용하지 않는다.
 - **검증 한계:** GitHub 원본 CI Job 로그와 이름-first 조건부 `aria-label` 및 fixture·7 선택자 정적 대조. 이 도구 환경에 일치하는 Node/Chromium 로컬 checkout이 없어 수정한 후보의 실제 로컬 Playwright·unit/typecheck 실행은 **NOT TESTED**. 새 Full CI 시작 전 성공 주장 금지.
 - **진행 게이트:** 원본 Run/Attempt 기록 유지, 최신 main behind0·리뷰 thread0·GitHub mergeable 상태를 새 문서 게시 후 다시 점검. PR Draft/Issue OPEN, risk HIGH, qa_method OWNER_MANAGED, qa_required true, release_required true, release_authorized false. 새 Full CI는 시작까지만, 지속 모니터링·병합·Main CI·GHCR·Finalizer·Issue 종료 없음.
+
+
+## 2026-10-19 — F-015: #2976.1 canonical 담당자 이름 조회와 전체18회 재진단
+
+Primary Issue #717 / PR #718의 같은 정규 원장에 추가한다. F-001~F-014의 당시 관찰·보완·한계를 삭제하거나 소급 PASS하지 않는다. 원격 Actions API는 이 branch/event의 **18 Run/각 attempt1**을 반환했고, 실패·취소 Shard **68개 원본 로그**를 모두 확인했다. 실제 E2E 실패는 **20회 occurrence/16개 고유 파일**이다. 아래 재조회는 새 실행의 CI 모니터링이 아니라 이미 실패한 전체 이력의 조사다.
+
+### 전체 Run/Attempt와 immutable source 재대조
+
+과거 test-merge UNKNOWN을 원본 checkout 로그로 보강했다. PR API가 오늘 노출하는 base SHA를 과거 실행의 base로 사용하지 않는다. 부모 중 Head와 다른 SHA 및 checkout 원본을 사용한다. 정제 보조 증거는 [ci-cumulative-20261019.json](evidence/issue-717/ci-cumulative-20261019.json)이며 raw 로그/trace/운영 데이터는 Git에 넣지 않는다.
+
+| Full/metadata Run·Attempt | Head | 당시 base | test merge | 원본 Run / Required quality·e2e·docker |
+| --- | --- | --- | --- | --- |
+| [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283) · full | `23e09aada982087047d90037704cdbb8b750bf97` | `6fea0397bc07d0c3adf2d769f9ba6829473503a2` | `fc3aada1cc42043ede90e4af6c7d0c46320218ad` | FAILURE / FAILURE·FAILURE·FAILURE |
+| [#2926.1](https://github.com/planner77/masterGantt/actions/runs/39081286379) · metadata-only | `23e09aada982087047d90037704cdbb8b750bf97` | `6fea0397bc07d0c3adf2d769f9ba6829473503a2` | `fc3aada1cc42043ede90e4af6c7d0c46320218ad` | FAILURE / SUCCESS·SUCCESS·SUCCESS |
+| [#2927.1](https://github.com/planner77/masterGantt/actions/runs/39081290832) · full | `d97f1e60419575f4db3785c239b3ae341b3086d5` | `6fea0397bc07d0c3adf2d769f9ba6829473503a2` | `bd11286e5fc7c10143babb8ce4d6e4e43ca5d614` | SUCCESS / SUCCESS·SUCCESS·SUCCESS |
+| [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) · full | `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc` | `d2768676aa7a0edff67df9bdeb3e1b49979fd577` | `3f127510607a0ab05d52fb8d370fdada30603952` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164) · full | `6b226df1962791a4d647811b9ad8df854d56e3a1` | `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` | `c703f1963d40bd29313402f46d21efbaafb2f85f` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2942.1](https://github.com/planner77/masterGantt/actions/runs/39093363065) · full | `6d23240008b0022f5376c5f8c4dcb0d1a3fadffd` | `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` | `f88c84fbdf33b89ab4df452d31ac0e6e89713304` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2944.1](https://github.com/planner77/masterGantt/actions/runs/39095135631) · full | `bfd4173f0099d03f3357262cea01b567a51825cf` | `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` | `8b4ed9dacdf5761e2aa3546bf6d06548dbc1075d` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2945.1](https://github.com/planner77/masterGantt/actions/runs/39097301048) · full | `62b17d91e120d8879bf688f910b3e5d3889bf05d` | `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` | `4c26484fd55f4a8ec6ccbdaaa3131b489be068cb` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2952.1](https://github.com/planner77/masterGantt/actions/runs/39103690860) · full | `e876c351280b34633f7edabb3428116d16392d6a` | `7393483c4a15007868fceeaee70fb9e13c8b119a` | `579485da165eb375809f81afeac655b0fdb91df5` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2954.1](https://github.com/planner77/masterGantt/actions/runs/39105484225) · full | `d41b06d2fd24384a8a18b117432165663e8fcde0` | `7393483c4a15007868fceeaee70fb9e13c8b119a` | `5b33586371a7ee881f9555825e563bb975b88c04` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2956.1](https://github.com/planner77/masterGantt/actions/runs/39107357815) · full | `4a41ae41456e048568a4d0443769ad53fb38d45c` | `7393483c4a15007868fceeaee70fb9e13c8b119a` | `3b2c3e30c6432476e361e34faef740a77748f3b2` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2959.1](https://github.com/planner77/masterGantt/actions/runs/39110550430) · full | `1c073adfbdda9b9ab36799338293241e7a99d0ca` | `ea4194763568432ef98e823bb796b59a5beb317c` | `c30d3a41efdeab671a0e3ec572bdfb19115887b7` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2968.1](https://github.com/planner77/masterGantt/actions/runs/39122204893) · full | `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3` | `c2395b17d864692c2e5e5aa36f55ea36e7197541` | `c243b45124763919e1e3862ba174bf0c05b7125d` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2970.1](https://github.com/planner77/masterGantt/actions/runs/39124981794) · full | `d2e0878d28186e1916f98ff259bf74b0b1abf27c` | `4ce564a8d9ec646ba584a585a610537f14698476` | `2294e736c61636b3e21d91382d9b578b247d0206` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2971.1](https://github.com/planner77/masterGantt/actions/runs/39126212649) · full | `2c362645c281f932c0f0c9d67c81981d00bac5c4` | `4ce564a8d9ec646ba584a585a610537f14698476` | `db88639d88748d3452c3f447ced6f5637ce28c46` | CANCELLED / SUCCESS·FAILURE·SUCCESS |
+| [#2972.1](https://github.com/planner77/masterGantt/actions/runs/39126248569) · full | `72871264b62a16076c4f7fb68e8c958c14c02955` | `4ce564a8d9ec646ba584a585a610537f14698476` | `7b1727ba3297a326d47cbc848aaccfc7061ffae6` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+| [#2975.1](https://github.com/planner77/masterGantt/actions/runs/39129631351) · full | `8f455a5cfc41f4a0753381260662b5749cf54041` | `4ce564a8d9ec646ba584a585a610537f14698476` | `f8a34695fabe3c1e62047e016c612a1198fe2567` | CANCELLED / SUCCESS·FAILURE·SUCCESS |
+| [#2976.1](https://github.com/planner77/masterGantt/actions/runs/39129737531) · full | `1a6bdbeb6c07ce08c280d0344daadcf5789b8278` | `4ce564a8d9ec646ba584a585a610537f14698476` | `835563065a11b1f5c9e51fe847a0157c87326ac3` | FAILURE / SUCCESS·FAILURE·SUCCESS |
+
+### 누락·오분류 추가 정정(원본 절 보존)
+
+- **#2971.1** Run `39126212649`, Head `2c362645c281f932c0f0c9d67c81981d00bac5c4`, test merge `db88639d88748d3452c3f447ced6f5637ce28c46`: Run은 CANCELLED지만 Shard4 [117672160067](https://github.com/planner77/masterGantt/actions/runs/39126212649/job/117672160067)에 `resource-error-recovery.spec.ts:82`의 `담당자 B (R2)` 실제 FAIL이 있다. F-014와 같은 원인이다. Quality/Docker SUCCESS, E2E FAILURE; 나머지5 Shard SUCCESS. 취소를 미실행 전체 또는 PASS로 오인하지 않는다.
+- **#2975.1** Run `39129631351`, Head `8f455a5cfc41f4a0753381260662b5749cf54041`, test merge `f8a34695fabe3c1e62047e016c612a1198fe2567`: Run CANCELLED지만 Shard4 [117682432651](https://github.com/planner77/masterGantt/actions/runs/39129631351/job/117682432651)에 이번과 같은 `task-link-load-safety.spec.ts:185` 실제 FAIL이 있다. Quality/Docker SUCCESS, E2E FAILURE; 나머지5 Shard SUCCESS. 새 #2976만 조사하면 빠지는 선행 재발이다.
+- **#2926.1 정정:** 최초 직접 오류는 QA trust [117538557723](https://github.com/planner77/masterGantt/actions/runs/39081286379/job/117538557723)의 `2026-10-18T00:02:41Z` PR/head/base 귀속 stale 차단이다. Required aggregate3은 SUCCESS지만 metadata-only이고 실제 제품 gate 실행 성공이 아니다. F-001의 metadata 필드 누락과 구별한다.
+- **#2959.1 정정:** 이전 절의 다른5 Shard CANCELLED 설명과 달리 원본 jobs API는 Shard4를 제외한 5개를 SUCCESS로 확인했다. 이 사실은 원본 E2E/Run FAILURE를 소급 변경하지 않는다.
+- 과거 **CANCELLED Shard 안 actual FAIL 5건**: #2935 shard5, #2942 shard2, #2944 shard3, #2945 shard1, #2954 shard6. 위 누락된 CANCELLED Run #2971/#2975 안 실패도 별도로 보존한다.
+
+### 최신 #2976.1 직접 오류·파생 결과
+
+- 원본 [Full #2976.1](https://github.com/planner77/masterGantt/actions/runs/39129737531), Run39129737531/attempt1, Head `1a6bdbeb6c07ce08c280d0344daadcf5789b8278`, base `4ce564a8d9ec646ba584a585a610537f14698476`, test merge `835563065a11b1f5c9e51fe847a0157c87326ac3`. 생성2026-10-18T13:01:25Z. Quality [117687719818](https://github.com/planner77/masterGantt/actions/runs/39129737531/job/117687719818), Docker [117687902026](https://github.com/planner77/masterGantt/actions/runs/39129737531/job/117687902026) SUCCESS. E2E [117692055703](https://github.com/planner77/masterGantt/actions/runs/39129737531/job/117692055703) 및 QA [117692076439](https://github.com/planner77/masterGantt/actions/runs/39129737531/job/117692076439) FAILURE는 아래 actual E2E 오류와 그 파생이다.
+- Shard4 [117687447653](https://github.com/planner77/masterGantt/actions/runs/39129737531/job/117687447653): `tests/e2e/task-link-load-safety.spec.ts:169` “재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름을 우선한다”, line185 `strong`의 `이전 캐시 이름 (OLD-01)`을 찾지 못했다(예상 visible, 실제 element not found,5000ms). **132 PASS/1 FAIL/1 SKIPPED/9 NOT RUN**. 원본 [Playwright artifact12139145044](https://github.com/planner77/masterGantt/actions/runs/39129737531/artifacts/12139145044)와 정확 case/selector가 job 로그에 보존돼 있다.
+- Shard1 CANCELLED 로그는 134 PASS와 독립 assertion FAIL0으로 확인했다. 취소된 Job 전체 PASS를 주장하지 않는다. Shard2/3/5/6 SUCCESS. Skip/취소/미실행을 통과 테스트 수로 합치지 않는다.
+
+### 전 이력 종합 원인·일괄 보완 결정
+
+- **TEST_CONTRACT / INCOMPLETE_CONSUMER_MIGRATION**: 이름과 technical code의 상시 결합을 UI 표시 authority로 사용한 E2E가 이름-first/on-demand 계약으로 모두 이관되지 않았다. F-005/F-006/F-007/F-010/F-011/F-014와 같은 유형이며, 이번은 캐시 실패 복구와 canonical 역할 원본이라는 새 소비자다. 서버 캐시/DB/HTTP 복구 결함·환경 flaky로 단정하지 않는다.
+- 성공 catalog의 이름/코드는 현재 유효 catalog에서, GET 실패 상태의 이름/코드는 equipment/system의 canonical resourceRoles에서만 읽는다. 성공 때 남은 이전 catalog 이름·코드를 실패 상태에 섞지 않는다. 이름은 primary, 선택된 역할의 **원본 resourceId/code 확인·복사는 disabled mutation fieldset 밖의 명시 식별 정보**에서 제공한다. 기존 조회 재시도/저장 차단/role/primary/If-Match/canonical ID는 유지한다. 이름이 같은 서로 다른 역할 대상은 코드/ID 보조 문맥으로 구분한다.
+- `task-link-load-safety.spec.ts`의 동일 구 이름+코드 기대5개를 성공·캐시실패·malformed PI·4폭 오류 경로 모두에서 확인해 이름 visible/전체 code·ID disclosure/이전 code 부재/save disabled/mutation0을 구별한다. 동명 리소스의 정확 Primary·삭제 payload 검증도 추가한다. 제품에 상시 코드를 되돌리거나 timeout·retry·skip을 늘리지 않는다.
+- 과거 실패16파일 합집합의 geometry/target action 소비자를 전수 정적 점검했다. `issue-622-resource-plan-target`의 th bounds, `resource-plan-dashboard`의 버튼 containment는 닫힌 복사 버튼을 visible layout에 넣지 않도록 하며 hidden 부정 검증을 보존한다. `milestone-dashboard-state` 초기 focus는 실제 이름 identity action을 직접 지정한다. 기존 폭/정렬/높이/overlap/focus 기준은 완화하지 않는다.
+- 최신 main `0b8624651ad20ee5c450d29f4f5de2abdce5036b`의 #727 프로젝트 리소스 등록·배정 분리(migration0029/계약/서버/새 UI)는 그대로 통합한다. #717 F-012의 상위 탭 동기 focus/현재 Dashboard 하위 화면 보존과 #727 resource-master 경로/새 테스트를 함께 보존한다. package/lock/CHANGELOG 충돌은 main0.119.0보다 높은 후보 **0.119.1**로 맞춘다. 새 승인 없이 release_required=true/release_authorized=false를 유지한다.
+
+### 누적 실패 파일 합집합과 최종 검증 계획
+
+총16파일:
+- `tests/e2e/issue-621-resource-target.spec.ts`
+- `tests/e2e/issue-622-resource-plan-target.spec.ts`
+- `tests/e2e/issue-623-resource-mvp.spec.ts`
+- `tests/e2e/issue-725-process-workareas.spec.ts`
+- `tests/e2e/logistics-target-authoring.spec.ts`
+- `tests/e2e/milestone-dashboard-state.spec.ts`
+- `tests/e2e/milestone-stage-editor.spec.ts`
+- `tests/e2e/project-filter-toolbar-consistency.spec.ts`
+- `tests/e2e/project-workspace-tabs-518.spec.ts`
+- `tests/e2e/project-workspace-ux.spec.ts`
+- `tests/e2e/resource-dashboard-ui.spec.ts`
+- `tests/e2e/resource-developer-grade.spec.ts`
+- `tests/e2e/resource-error-recovery.spec.ts`
+- `tests/e2e/resource-milestone-views.spec.ts`
+- `tests/e2e/resource-plan-dashboard.spec.ts`
+- `tests/e2e/task-link-load-safety.spec.ts`
+
+동일 제품 source를 동결한 뒤 위 합집합 전체와 #717 직접5폭+touch6case·실제 identity persistence, #727 membership UI/persistence를 로컬 `--max-failures=0 --retries=0`로 교차 검증한다. 로컬만 수집을 끝까지 수행하며 원격6-shard/PR fail-fast 정책은 유지한다. 실제 HTTP·SQLite 격리는 외부 baseURL 환경변수를 제거한 로컬 전용 config에서 기존 fixture를 사용한다. 자동 Pre-PR UNKNOWN/BLOCKED는 그대로 보고하고 개별 실행을 PASS로 대체하지 않는다. 최종 명령/소스지문/결과는 아래 실행 결과 절과 Work Packet에 추가한다.
+
+새 CI Run/Attempt·Head/리뷰/충돌 결과는 게시 후 Issue STATUS로 기록한다. 새 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED, HIGH/OWNER_MANAGED/qa_required=true, PR Draft/Issue OPEN. 모니터링·병합·Main/GHCR/tag/release·종료는 이번 요청에서 수행하지 않는다.
+
+### 같은 Issue에서 다시 실패할 때의 이어쓰기 기준
+
+다음 실패는 이 원장의 F-015 뒤에 추가한다. 새 원본 Run/Attempt·Head/base/test merge와 Required 세 aggregate를 기록하고, Run이 취소돼도 실패/취소 Shard 로그 안의 실제 테스트 실패를 확인한다. 이번 16파일 집합에 새 실제 실패 파일을 합쳐 소비자 누락 여부를 비교한다. 이름(코드) 결합 기대·닫힌 disclosure의 숨긴 버튼·현재 화면/초점 복원·catalog와 canonical 혼합을 구분하고, 기존 정확 payload/권한/복구·폭/높이 임계값을 유지한다. 자동 진단 CLI의 파일 상한 때문에 합집합을 줄여 통과시키지 않고, 필요하면 이번처럼 같은 소스의 명시적 전체 합집합 실행과 CLI BLOCKED를 함께 기록한다. 최초 실패·취소·미실행·metadata-only 결과를 후속 성공으로 덮어쓰지 않는다.
+
+### F-015 실행 결과 — 동결 소스의 로컬 빠른 검증 (2026-10-19)
+
+- [실행 증거](evidence/issue-717/f015/local-validation.json): Node22.14.0/npm11.10.0/Playwright1.63.0의 실제 bundled Chromium에서 누적 실패16파일 + #717 직접2파일 + #727 membership2파일, **20파일122 PASS / 0 FAIL / 0 SKIPPED, 18.7분**. `--max-failures=0 --retries=0`, worker1, 임시 config는 기존 설정을 상속하고 mock 서버만3717로 연결한다. `PLAYWRIGHT_BASE_URL`을 해제해 기존 격리 fixture의 실제 HTTP·별도 SQLite·프로세스 재시작을 유지했다. 이 결과는 원격6-runner/Required3 PASS가 아니다.
+- 제품·테스트·package923개 파일 SHA256은 실행 시작/끝 동일하다. 지문과 변경 경로별 해시는 실행 JSON에 보존한다. 문서/증거 추가와 Next 생성 next-env/tsconfig·과거 screenshot 갱신은 별도이며 생성물은 task 전용 `/tmp`에 보존하고 원본을 복원했다. 예전 `output/playwright/issue-717/source-manifest.json`은 과거 증거로 유지하고 이번 지문으로 재사용하지 않는다.
+- 직접 unit **4파일18 PASS**. Workspace 통합 frontend의 **2파일38 PASS**, 독립 QA **3파일11 PASS**는 겹치는 실행을 합산하지 않는다. 최종 Typecheck PASS, 기본 `npm run lint` **0 errors/기존13 warnings PASS**, version0.119.1 PASS, Markdown260파일 PASS, root/외부cwd discovery **240 unit files/719 browser cases PASS**, 설치 의존성 확인 PASS. F-015에서 production build/Docker 전체는 로컬 재실행하지 않고 새 PR CI에 맡긴다.
+- 로컬 첫 기본 lint는 이전 작업의 `.next-issue717`와 `.runtime-tools` 생성 JavaScript에서 **704 errors/7738 warnings FAIL**이었다(소스 error0). 두 task 소유 생성 디렉터리를 저장소 밖에 보존한 뒤 같은 기본 명령이 PASS했다. 원본 오류를 없던 것으로 만들거나 ESLint/CI ignore 정책을 변경하지 않았다.
+- `verify:prepr` fast·targeted는 각각 **BLOCKED / sourceStable=true / UNKNOWN18 / MISSING0**. 공통 fingerprint `eb066607c2b0bd455b8a6030e1d89e372f92466fd4b6204f0f9cd9649c33266c`. 보고서는 `.prepr-reports/issue-717-f015-{fast,targeted}-20261019/{report.json,SUMMARY.md}`이며 핵심 source/unknown 증거는 실행 JSON에도 보존했다. 자동 매핑은 보완하지 않았으며 [기존 수동 영향 매핑](ISSUE_717_IDENTITY_INVENTORY.md)과 개별 실제 검증을 별도로 보고한다. CLI를 PASS로 바꾸지 않는다.
+- 독립 read-only `identity_qa`의 F-015 사전 source/docs 검토에서 발견한 동명 구분 P2는 code/ID 보조 복구와 설비/시스템 각각의 정확 Primary·삭제·canonical 오류 회귀로 보완했다. 미해결 P1/P2=0; 최종 commit/tree 재확인과 QA_FINAL/Owner 승인은 별개다.
+- 현재 UI 캡처 [catalog 오류390px](evidence/issue-717/f015/catalog-error-390.png), [공정 이름390px](evidence/issue-717/f015/process-default-390.png), [geometry](evidence/issue-717/f015/geometry-390.json)는 synthetic HTTP fixture의 실제 Chromium 증거다. 실기기·screen reader·모든 화면 전체 조합·운영 검증은 NOT TESTED.

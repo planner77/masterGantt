@@ -2057,6 +2057,17 @@ function EquipmentRolesDialog({
     return map;
   }, [catalogResources]);
 
+  function selectedIdentity(resourceId: string) {
+    const res = resourceById.get(resourceId);
+    const canonical = equipment.resourceRoles.find(role => role.resourceId === resourceId);
+    const name = catalogReady && res ? res.name : canonical?.resourceName ?? "등록 정보를 확인할 수 없는 인력";
+    const code = catalogReady && res ? res.code : canonical?.resourceCode;
+    const duplicateName = catalogReady && res
+      ? catalogResources.some(other => other.id !== resourceId && other.name === res.name)
+      : canonical && equipment.resourceRoles.some(other => other.resourceId !== resourceId && other.resourceName === canonical.resourceName && selectedRoles.some(selected => selected.resourceId === other.resourceId));
+    return { name: duplicateName ? `${name} (${code || resourceId})` : name, code };
+  }
+
   const handleAdd = () => {
     if (busy || !catalogReady) return;
     if (!addResourceId) return;
@@ -2139,14 +2150,13 @@ function EquipmentRolesDialog({
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
-              const canonical = equipment.resourceRoles.find((role) => role.resourceId === item.resourceId);
-              const displayName = catalogReady && res ? (catalogResources.filter(item => item.name === res.name).length > 1 ? `${res.name} (${res.code ?? res.id})` : res.name) : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
-              const gradeText = developerGradeLabel(res?.developerGrade);
+              const { name: displayName } = selectedIdentity(item.resourceId);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
                 <div
                   key={`${item.resourceId}-${item.role}`}
+                  data-role-resource-id={item.resourceId}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -2253,6 +2263,15 @@ function EquipmentRolesDialog({
         </div>
 
         </fieldset>
+        <section aria-label="배정된 인력 식별 정보" style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
+          {selectedRoles.map(item => {
+            const { name, code } = selectedIdentity(item.resourceId);
+            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={`${name} 식별 정보`} identifiers={[
+              { label: "리소스 ID", value: item.resourceId },
+              ...(code ? [{ label: "리소스 코드", value: code }] : []),
+            ]} />;
+          })}
+        </section>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
@@ -2633,6 +2652,17 @@ function SystemRolesDialog({
     return map;
   }, [catalogResources]);
 
+  function selectedIdentity(resourceId: string) {
+    const res = resourceById.get(resourceId);
+    const canonical = system.resourceRoles.find(role => role.resourceId === resourceId);
+    const name = catalogReady && res ? res.name : canonical?.resourceName ?? "등록 정보를 확인할 수 없는 인력";
+    const code = catalogReady && res ? res.code : canonical?.resourceCode;
+    const duplicateName = catalogReady && res
+      ? catalogResources.some(other => other.id !== resourceId && other.name === res.name)
+      : canonical && system.resourceRoles.some(other => other.resourceId !== resourceId && other.resourceName === canonical.resourceName && selectedRoles.some(selected => selected.resourceId === other.resourceId));
+    return { name: duplicateName ? `${name} (${code || resourceId})` : name, code };
+  }
+
   const handleAdd = () => {
     if (busy || !catalogReady) return;
     if (!addResourceId) return;
@@ -2718,14 +2748,14 @@ function SystemRolesDialog({
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
-              const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
-              const displayName = catalogReady && res ? (catalogResources.filter(item => item.name === res.name).length > 1 ? `${res.name} (${res.code ?? res.id})` : res.name) : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const { name: displayName } = selectedIdentity(item.resourceId);
               const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
                 <div
                   key={`${item.resourceId}-${item.role}`}
+                  data-role-resource-id={item.resourceId}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -2832,6 +2862,15 @@ function SystemRolesDialog({
         </div>
 
         </fieldset>
+        <section aria-label="배정된 인력 식별 정보" style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
+          {selectedRoles.map(item => {
+            const { name, code } = selectedIdentity(item.resourceId);
+            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={`${name} 식별 정보`} identifiers={[
+              { label: "리소스 ID", value: item.resourceId },
+              ...(code ? [{ label: "리소스 코드", value: code }] : []),
+            ]} />;
+          })}
+        </section>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소

@@ -10,6 +10,16 @@ Milestone 표·원인/관리·공정/설비/시스템·Target·Resource 기본 �
 
 Task 직접 공정/WorkArea 편집 API는 #726 Editor의 인계 계약이며 이번 화면에서 숨은 Task 선택이나 자동 공정 유도를 만들지 않는다. 공정0·구역0·Target0은 정상이고 집계 #728/#729는 별도다. #720의 `/manual` 제품 route는 아직 없으며 `master.processes`→[공정 관리 가이드](TARGET_RESOURCE_USER_GUIDE.md#공정workarea-관리), `master.equipment`→[설비 구역 가이드](TARGET_RESOURCE_USER_GUIDE.md#설비의-연결-workarea)의 anchor를 매뉴얼 registry로 인계한다. 실행 증거는 [Work Packet](exec-plans/active/ISSUE_725.md)을 따른다.
 
+## Issue #727 — 프로젝트 리소스 등록
+
+`기준정보 → 리소스`(`screenKey=master.resources`)는 프로젝트 참여 목록을 표시한다. 전역 Resource 원본 생성/수정은 `/resources`의 기존 관리자 화면으로 연결한다. Project 편집 권한과 global 관리자 권한은 별개다. 기존 `대시보드 → 리소스`의 조회·Plan·견적·Excel은 보존한다.
+
+이름을 우선 표시하고 역할·개발자 등급·Group·등록 여부·배정 여부·책임 역할·비활성 조건으로 찾는다. 미배정 명시 등록자는 목록에 남고 기존 사용자는 출처 및 등록 필요 여부를 표시한다. 등록 인원/작업 배정 인원은 별도다. 등록만으로 Task 배정·실제 수행·공수·Capacity를 만들지 않는다. 사용 중 해제는 서버가 최신 usage를 재검증하여 차단하며 기존 배정/역할부터 해당 편집기에서 명시 정리한다.
+
+등록은 대화상자의 선택과 실제 저장을 구분한다. readonly는 조회/분석 이동을 허용하고 쓰기를 잠근다. pending 중 중복 저장·해제를 차단하며 오류는 복구 동작과 함께 표시한다. 만료401·Origin403·충돌409·revision412는 자동 성공이나 무단 재시도 없이 최신 상태 재조회/권한 복구로 안내한다. 정확 배정 수정은 기존 Task/Assignment Editor를 재사용하고 저장·취소 후 유효한 출발 control로 focus를 돌린다. 390/768/1024/1440/1920px에서 표가 내부 가로 scroll을 소유한다.
+
+Design Delta B: 이름 우선·기존 semantic token·명시 label·focus/상태·표 내부 scroll 원칙을 구체화한다. 신규 공통 시각 원칙은 없으므로 DESIGN.md 추가 변경은 N/A다. #720 앱 내 매뉴얼은 아직 별도 미구현이며 `master.resources` → [등록·해제 절차](TARGET_RESOURCE_USER_GUIDE.md#프로젝트-리소스-등록과-해제)를 향후 매뉴얼 anchor로 인계한다. 이번 PR의 사용자 가이드 변경은 실제 등록 기능과 같은 변경 단위다.
+
 ## Issue #624 — #456 scoped Week/Fullscreen 정확 120px 시작 전 수용량 확인 (CI #2893.1)
 
 기존 #456 Editor 열기/닫기·metadata 저장 후 120px/38px 좌표 보존은 유지한다. scoped Summary의 Week/Fullscreen에서 native scroll 여유가 62px인 상태를 120px으로 강제하면 browser clamp로 실패한다. 테스트는 현재 U2/U3 projection·Core/native axis가 모두120을 수용하는지 확인한 다음 원래 입력을 수행하고, 부족할 때만 실제 wheel 1회로 준비한다. 제품 동작/시각 설계·SVAR native marker-OFF 정책/스크롤 좌표 단언은 바꾸지 않는다. [실패 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
@@ -182,7 +192,7 @@ Task/Assignment/Relation/Copy Dialog와 Milestone 추가는 비활성 일정 pan
 | 물류 구성 → 통합 조회 | 대시보드 → 공정&WorkArea / 설비 / 물류 시스템 | 기존 ProjectLogisticsUnified의 각 관점·상세·정확 Task/Assignment |
 | 상위 리소스 | 대시보드 → 리소스 | 기존 ProjectResourceWorkload의 KPI/Plan/Target·교차표/Excel·정확 편집 |
 | 물류 구성 → 공정 / 설비 / 시스템 | 기준정보 → 공정&WorkArea / 설비 / 물류 시스템 | 동일 원본을 사용하는 #725 공정/설비 구역 관리; 공통 편집 추출·Task UI는 #726 소유 |
-| 전역 리소스 관리 | 기준정보 → 리소스 및 기존 /resources | 기존 ResourceCatalogAdmin·독립 관리자 인증; Project 참여 등록은 #727 후속 |
+| 프로젝트 리소스 등록 / 전역 원본 관리 | 기준정보 → 리소스 / 기존 /resources | #727 ProjectResourceMemberships·Project 편집 권한; 전역 원본은 기존 ResourceCatalogAdmin·독립 관리자 인증 |
 | 물류 대상(Target) / 제어 관계 | 관련 기준정보의 보조 호환 진입 | 기존 composer/member/whole/subset/usage 유지; 주/하위 주메뉴 Target 금지 |
 
 N1이 shared host·routing을 소유한다. 후속 #725/M1, #726/M2, #727/M3, #730/U1 및 #731~#736은 공개 subview/관점 계약을 사용하고 같은 host를 각자 재작성하지 않는다. 물류 공통 CRUD 추출은 #726 소유이며 N1은 최소 adapter만 제공한다. 새 집계/Target0 완결·동적 계층 구현은 이 탭 재배치의 완료 조건이 아니다.
@@ -1504,3 +1514,7 @@ Workspace 상위 메뉴 `일정 / 대시보드 / 기준정보`의 Tab은 선택 
 사용자가 이미 Dashboard 화면을 보고 있는 상태에서 비활성 상위 `일정` tab에 keyboard-focus를 두고 `ArrowRight`로 다시 `대시보드`를 선택하면 **현재 활성 하위 보기**(예: Milestone)를 유지한다. 이전 다른 하위 보기(예: 공정&WorkArea) 저장 값으로 암묵적으로 바꾸지 않는다. 반대로 실제 다른 상위 section에서 Dashboard로 진입할 때는 최근 저장된 하위 보기를 복원한다. React 화면 전환 전 primary tab의 focus를 확보하고, 지연된 focus 복원이 그 뒤의 사용자 조작·Dialog에 끼어들지 않아야 한다. 동일 Gantt instance/Chart 높이·scroll·Task scope·canonical revision/권한/readonly·데이터/필터·URL 의미를 유지한다.
 
 [Issue #717 테스트 계획](TEST_PLAN.md)과 [누적 실패 원장 F-012](ISSUE_717_FAILURE_ANALYSIS.md)의 390/768/1024/1440/1920px, 3px focus-visible ring·모바일 clip·정확 URL/view 및 write0 검증을 따른다. 기존 Issue #724 키보드/공통 Navigation 계약과 #719 상황형 도움말의 Escape/focus 복귀 규칙을 완화하지 않는다.
+
+## Issue #717 — 담당자 식별 정보와 조회 실패 (2026-10-19)
+
+설비 담당자와 시스템 PI 편집의 선택된 인력은 이름을 우선하며, 동명일 때 코드/ID 보조 문맥으로 구분한다. 선택한 원본 ID·코드 전체는 별도의 식별 정보에서 확인·복사할 수 있다. 리소스 catalog 조회 실패 시 canonical 배정의 이름·코드만 사용하고 과거 catalog cache를 섞지 않는다. 식별 정보 조회는 가능하지만 기존 저장·추가·삭제·주 담당 변경은 catalog 재조회 성공 전까지 차단한다. 정확한 선택값과 If-Match는 표시 변경으로 바뀌지 않는다.
