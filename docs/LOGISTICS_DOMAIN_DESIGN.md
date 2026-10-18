@@ -227,3 +227,9 @@ Summary는 자손 0개여도 `self/subtree` 연결을 그대로 보존한다. �
 F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결한다. 모든 Summary 조상의 subtree와 직접 연결을 합집합으로 읽으며 하위 명시는 조상을 대체하지 않는다. Project-local UUID와 typed member 소유를 저장 경계에서 검증하고 effective instance dedup 뒤에도 모든 Target 경로와 legacy 직접 연결 출처를 보존한다. 공유 System 직접 연결만으로 Target을 추론하지 않는다. Equipment coverage는 연결의 작업 수량이고 instance quantity와 Resource 공수 원장을 변경하지 않는다.
 
 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 F3 절 및 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)가 신규 runtime 계약이다. 모든 후속 보기/Resource 계산은 같은 pure resolver를 재사용하며 별도 화면 해석기를 만들지 않는다. 현재 물류 Dashboard/Resource KPI의 기존 필터·분모를 조용히 Target 축으로 확대하지 않는다. Target UI/Resource 축은 #618/#619 이후, 이번 원격 CI·운영 적용 증거는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에서 별도로 판정한다.
+
+## Issue #719 — 물류 화면 설명과 선행 조건
+
+물류 구성 소개·빈 목록의 생성 학습문구와 관련 Milestone의 상세 정의는 인접 도움말로 이동한다. `Gantt WBS와 독립`, 조회의 평가일·환산·전체 소속/직접 선행 기준 및 물류 KPI 범위 불변은 직접 유지한다. 공정 없는 설비 추가는 mutation 없이 지속 오류로 선행 조건을 알린다.
+
+공유 Target/원본의 수정 영향, 연결 해제와 원본 삭제의 구별, 사용 중 삭제 제한, Primary 역할 제약·readonly·401/412/stale·초안/pending 계약은 기존 UI에 직접 남는다. Domain/API/DB·통합 조회 집계·원본 연결은 변경하지 않는다. [실행 원장](exec-plans/active/ISSUE_719.md)을 따른다.

@@ -445,3 +445,9 @@ Resource/Group×Target 비교에서 `알려진 공수 내림차순`은 **각 Tar
 Resource 상세의 '작업명 / 안정 ID / WBS' 셀은 실제 Task/일정/배정 편집 명령 아래에서 **External ID 및 canonical Task UUID를 첫 보조 행으로** 보여준다. 이후 비활성 Resource의 배정 조회 전용 사유, 정확한 Assignment ID와 Resource ID, Target 직접·상속·Legacy 근거를 구별해 표시하고 WBS 경로는 마지막에 남긴다. 하나의 공유 Task가 여러 Target 밑에 표시되어도 canonical Task·Assignment ID는 원본을 가리키며 projection row key는 표시 전용이다. 순서·정렬·필터 변경만으로 원본 데이터를 수정하지 않는다.
 
 [CI #2761.1](https://github.com/planner77/masterGantt/actions/runs/38543178018)의 기존 #525 50행×5폭 회귀는 Task ID가 사라진 것이 아니라 새 비활성/Assignment/Target 설명이 첫 UUID 표시보다 앞에 배치되어 검사가 실패했다. 보완 후에는 각 상세 행의 `data-canonical-task-id`/(`data-canonical-assignment-id`)와 표시 ID가 정확히 일치하며 Task ID가 첫 보조행인지 확인하고 기존 내부 표 scroll·실제 focus·50행/긴 WBS 계약을 유지한다. 새 전체 CI 검증 전 NOT TESTED. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 원본 FAIL과 범위를 보존한다.
+
+## Issue #719 — 집계 설명의 상황형 도움말
+
+투입 시작/종료의 Assignment 기간 자르기, 계획기간 가중 진척 공식, 그룹 구성/저장 절차, Capacity 모집단 필터 예외와 계층 펼침 지침을 인접 도움말로 제공한다. 선택 범위·전체 Project 참고·기간/환산·알려진 부분합/공수 미설정·비가산 소계와 실제 기여/소진 공수 아님은 직접 표시한다. Capacity의 현재 Project 개인 수·유효 근무일1 M/D·전사 인력 아님도 숨기지 않는다. 수량·원가·실제 기여를 추정하지 않으며 서버 보고서와 정확 Assignment·원본 편집·401/412·초안 복귀 경계는 그대로다.
+
+Resource Catalog의 그룹 구성원은 작업 개인 할당의 자동 복제가 아니다. 조회/저장/삭제·권한 실패는 도움말로 대체하지 않는다. 실측·상태/교차 회귀와 원격 검증은 [Work Packet](exec-plans/active/ISSUE_719.md)에서 구별한다.

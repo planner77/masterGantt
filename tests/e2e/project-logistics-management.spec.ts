@@ -243,9 +243,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expectSameGanttRoot(page, identity);
 
     // Verify Header notice & WBS distinction
+    await page.getByRole("button", { name: "물류 구성 도움말", exact: true }).click();
     await expect(
       page.getByText("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다."),
     ).toBeVisible();
+    await page.keyboard.press("Escape");
 
     // LG-05 dashboard is the default sub-tab. Move explicitly to process management.
     await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");

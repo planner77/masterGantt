@@ -1,5 +1,6 @@
 "use client";
 
+import { ContextHelp } from "@/components/ui/context-help";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type {
   MilestoneDashboardFilterInput,
@@ -270,6 +271,7 @@ export function ProjectMilestoneDashboard({
           <p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p>
         </div>
         <div className={styles.actions}>
+        <ContextHelp label="Milestone 집계·전체 상태"><p>Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐 전체 Milestone 수로 해석하지 않습니다.</p><p>프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와 분모가 다릅니다.</p></ContextHelp>
         <button type="button" disabled={!editable || !enabled || !onAddMilestone} onClick={event => onAddMilestone?.(event.currentTarget)} data-milestone-focus="add" title={editable ? "프로젝트 최상위에 추가" : "편집 활성화 후 추가할 수 있습니다"}>Milestone 추가</button>
         <button
           type="button"
@@ -371,7 +373,7 @@ export function ProjectMilestoneDashboard({
       <p id={`${id}-date-note`} className={styles.note}>
         {manualDate ? "수동 기준일" : "자동 기준일 · 서버 Project timezone"}
         {data ? ` ${data.timezone} · 평가일 ${data.asOfDate}` : ""}. 현재
-        snapshot을 평가하며 과거 실제 상태를 복원하지 않습니다.
+        snapshot 평가 · 과거 상태 복원 아님.
       </p>
       <details className={styles.advanced}>
         <summary>Milestone 표시·공수 범위 조건</summary>
@@ -574,9 +576,8 @@ export function ProjectMilestoneDashboard({
             </article>
             {countCards.map((card) => (
               <article key={card.key}>
-                <h3>{card.title}</h3>
+                <div className={styles.metricHeading}><h3>{card.title}</h3><ContextHelp label={`${card.title} 지표`}>{card.note}</ContextHelp></div>
                 <strong>{card.metric.count}개</strong>
-                <p>{card.note}</p>
                 <button
                   type="button"
                   disabled={
@@ -607,15 +608,13 @@ export function ProjectMilestoneDashboard({
             </article>
           </div>
           <p className={styles.note}>
-            Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐
-            전체 Milestone 수로 해석하지 않습니다.
+            지표 중복 집계 · 건수 합산 불가
           </p>
           <section className={styles.stageSection}>
             <h3 ref={managementHeading} tabIndex={-1}>Milestone 전체 상태 · 표시 {metricMilestoneIds ? managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length : data.rows.length}개{metricMilestoneIds ? ` · 조회 전체 ${data.rows.length}개` : ""}</h3>
             {metricMilestoneIds ? <div role="status"><p>선택 지표의 Milestone {metricMilestoneIds.length}개 중 현재 목록 조건에 {managementRows.filter(row => metricMilestoneIds.includes(row.milestoneTaskId)).length}개가 있습니다. 조건 밖이거나 삭제된 ID는 일정으로 확대하지 않습니다. 일정 행으로 이동하지 않습니다.</p><button type="button" onClick={clearMetricMilestones}>지표 선택 해제</button></div> : null}
             <p className={styles.note}>
-              프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와
-              분모가 다릅니다.
+              전체 소속·직접 선행 기준 · 계획 공수와 분모 다름
             </p>
             {data.rows.length ? (
               <ProjectMilestoneStageTable

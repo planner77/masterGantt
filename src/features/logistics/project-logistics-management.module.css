@@ -43,25 +43,6 @@
   min-width: 0;
 }
 
-.headerDescription {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.wbsNotice {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--radius);
-  background: var(--status-info-surface);
-  border: 1px solid var(--status-info);
-  color: var(--status-info);
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
 .readonlyNotice {
   display: inline-flex;
   align-items: center;
@@ -323,6 +304,11 @@
 }
 
 .emptyStateTitle {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-default);
@@ -420,7 +406,6 @@
     min-width: 0;
     max-width: 100%;
   }
-  .wbsNotice,
   .readonlyNotice {
     max-width: 100%;
     white-space: normal;
@@ -445,6 +430,14 @@
   .subTabList {
     overscroll-behavior-inline: contain;
   }
+}
+
+.headingRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
 }
 
 /* Preserve readable entity names while narrow viewports scroll within the table. */

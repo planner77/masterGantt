@@ -1,0 +1,86 @@
+[
+  {
+    "type": "event",
+    "time": 18039.161,
+    "class": "BrowserContext",
+    "method": "pageError",
+    "params": {
+      "error": {
+        "error": {
+          "message": "Internal Next.js error: Router action dispatched before initialization.",
+          "stack": "Error: Internal Next.js error: Router action dispatched before initialization.\n    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js:50:37)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:328:61)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:327:40)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:301:64)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at processMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:44)\n    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)",
+          "name": "Error"
+        }
+      },
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js",
+        "line": 49,
+        "column": 36
+      }
+    },
+    "pageId": "page@dd1ccc4a08cad823f8da62f02f9446b3"
+  },
+  {
+    "type": "event",
+    "time": 18039.912,
+    "class": "BrowserContext",
+    "method": "pageError",
+    "params": {
+      "error": {
+        "error": {
+          "message": "Internal Next.js error: Router action dispatched before initialization.",
+          "stack": "Error: Internal Next.js error: Router action dispatched before initialization.\n    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js:50:37)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:328:61)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:327:40)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:301:64)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at processMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:44)\n    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)",
+          "name": "Error"
+        }
+      },
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js",
+        "line": 49,
+        "column": 36
+      }
+    },
+    "pageId": "page@dd1ccc4a08cad823f8da62f02f9446b3"
+  },
+  {
+    "type": "event",
+    "time": 18040.447,
+    "class": "BrowserContext",
+    "method": "pageError",
+    "params": {
+      "error": {
+        "error": {
+          "message": "Internal Next.js error: Router action dispatched before initialization.",
+          "stack": "Error: Internal Next.js error: Router action dispatched before initialization.\n    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js:50:37)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:328:61)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:327:40)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:301:64)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at processMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:44)\n    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)",
+          "name": "Error"
+        }
+      },
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js",
+        "line": 49,
+        "column": 36
+      }
+    },
+    "pageId": "page@dd1ccc4a08cad823f8da62f02f9446b3"
+  },
+  {
+    "type": "event",
+    "time": 18041.124,
+    "class": "BrowserContext",
+    "method": "pageError",
+    "params": {
+      "error": {
+        "error": {
+          "message": "Internal Next.js error: Router action dispatched before initialization.",
+          "stack": "Error: Internal Next.js error: Router action dispatched before initialization.\n    at dispatchAppRouterAction (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js:50:37)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:328:61)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at Object.hmrRefresh (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/app-router-instance.js:327:40)\n    at eval (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:301:64)\n    at startTransition (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/compiled/react/cjs/react.development.js:556:27)\n    at processMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/hot-reloader-app.js:300:44)\n    at WebSocket.handleMessage (webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/dev/hot-reloader/app/web-socket.js:95:52)",
+          "name": "Error"
+        }
+      },
+      "location": {
+        "url": "webpack-internal:///(app-pages-browser)/../../../../../tmp/mastergantt-719-deps/node_modules/next/dist/client/components/use-action-queue.js",
+        "line": 49,
+        "column": 36
+      }
+    },
+    "pageId": "page@dd1ccc4a08cad823f8da62f02f9446b3"
+  }
+]
