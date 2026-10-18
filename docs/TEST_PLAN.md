@@ -4423,3 +4423,10 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 - [PR CI #2950.1](https://github.com/planner77/masterGantt/actions/runs/39102030888)의 shard2에서 `tests/e2e/issue-719-contextual-help.spec.ts` 공통 `openSurface`가 폐지된 상위 `Milestone 대시보드` 탭을 기다려 120s timeout. 같은 파일에 구 `물류 구성 세부 영역` 설비 탭 경로도 존재해 두 입력을 함께 보완한다. 직접 실패 34 PASS/1 FAIL/95 미실행, 다른5 shard 취소·QA 파생 FAIL을 구분한다. 기존 F01/F02의 변경은 해당 shard 취소로 최종 실증되지 않았다.
 - 기존 6종 `milestone/resource/resource-admin/logistics/logistics-admin/master`의 실제 390/768/1024/1440/1920px fixture, tooltip·overflow/원래 데이터 위치, 도움말 키보드·터치·Escape·focus와 미저장·공정 필수 경고 테스트는 전부 유지한다. 프로젝트 세 화면의 경로는 공통 `openWorkspaceView` 사용: Milestone·Resource는 대시보드 하위, 원래 물류 KPI는 대시보드 KPI, 설비 추가는 기준정보/설비이며 해당 하위 tab 선택 상태를 검증한다. 과거 구 메뉴를 찾는 테스트만 수정하고 기본 Timeout120초/skip/retry 또는 CI Gate를 변경하지 않는다.
 - 직접 E2E·전체 Chromium 6샤드·Trusted QA·Owner 수용은 정확 신규 HEAD의 원격 결과 전 **NOT TESTED**. 원인/수정/후속 누적 절차는 [#724 단일 원장 F03](ISSUE_724_FAILURE_ANALYSIS.md)과 L1–L10, F01/F02를 따른다.
+
+
+## Issue #724 — F04 CI #2951.1 #572 inactive schedule measured-Gantt regression (2026-10-18)
+
+- [Run 39103122269.1](https://github.com/planner77/masterGantt/actions/runs/39103122269)의 Chromium shard2 `project-gantt-inline-name.spec.ts:159`은 이전 `hidden=""` 속성을 기대했으나 현재 프로젝트 피어 탐색의 비활성 일정 패널은 `inert="" aria-hidden="true" data-dashboard-inactive="true"`와 CSS `visibility:hidden`으로 정확한 Chart 측정/동일 instance를 유지한다. **제품 실행 오류가 아니라 pre-return 테스트 계약 오류**로 분석하며, 다른 취소 shard/F01/F02 미검증을 PASS로 취급하지 않는다. #719 suite 10개는 이번 shard2에서 실제 PASS.
+- #572의 `resources`와 `milestones` 두 분기에서 최신 속성+가시성 및 복귀 시 속성 제거+가시성 회복을 각각 검증한다. 기존 지연된 PATCH 한 건, revision 증가, 이름/상태 확정, 같은 Gantt root, 노출/편집기/오류 처리 회귀를 유지한다. UI/저장 코드는 변경하지 않으며 `hidden` 단언만 새 계약으로 이관하고 timeout/retries/skip/CI Gate는 불변.
+- 추후 원격 E2E6/Quality/Docker·Trusted QA/Owner 검증은 새 정확 HEAD에 귀속되고, 기존 실패는 [누적 실패 원장 F04](ISSUE_724_FAILURE_ANALYSIS.md)의 L1–L10, F01–F04와 함께 다시 비교한다. 새 CI가 시작되기 전이나 취소된 경로는 NOT TESTED.

@@ -139,10 +139,9 @@ test("#572 pointer blur의 늦은 응답은 toolbar focus와 서버 확정 이�
   } finally { release(); }
 });
 
-for (const [tab, visibilityAttribute] of [
-  ["resources", "hidden"],
-  ["milestones", "inert"],
-] as const) {
+// #724 F04: every inactive peer uses the same measured, inert/aria-hidden
+// schedule overlay. "hidden" belonged to the retired four-peer layout.
+for (const tab of ["resources", "milestones"] as const) {
   test(`#572 ${tab} 탭에 숨겨진 동안 저장된 이름은 일정 복귀 때 확인된다`, async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     const route = await routeRenames(page, fixture);
@@ -156,7 +155,10 @@ for (const [tab, visibilityAttribute] of [
       await openWorkspaceView(page, tab);
       await expect.poll(() => route.patches.length).toBe(1);
       const schedulePanel = page.locator("#project-panel-schedule");
-      await expect(schedulePanel).toHaveAttribute(visibilityAttribute, "");
+      await expect(schedulePanel).toHaveAttribute("inert", "");
+      await expect(schedulePanel).toHaveAttribute("aria-hidden", "true");
+      await expect(schedulePanel).toHaveAttribute("data-dashboard-inactive", "true");
+      await expect(schedulePanel).toHaveCSS("visibility", "hidden");
       release();
       await expect.poll(() => fixture.project.revision).toBe(fixture.initialRevision + 1);
       // Allow the finite two-second verification to expire while the Gantt is
@@ -164,7 +166,10 @@ for (const [tab, visibilityAttribute] of [
       const status = page.locator(".project-gantt-inline-name-status");
       await expect(status).toContainText("해당 행이 표시되면", { timeout: 7000 });
       await page.locator("#project-tab-schedule").click();
-      await expect(schedulePanel).not.toHaveAttribute(visibilityAttribute, "");
+      await expect(schedulePanel).not.toHaveAttribute("inert", "");
+      await expect.poll(() => schedulePanel.getAttribute("aria-hidden")).toBeNull();
+      await expect.poll(() => schedulePanel.getAttribute("data-dashboard-inactive")).toBeNull();
+      await expect(schedulePanel).toHaveCSS("visibility", "visible");
       await expect(nameCell(page, name)).toBeVisible();
       await expect(status).toHaveText("작업명을 저장했습니다.");
       await expectSameGanttRoot(page, rootIdentity);
