@@ -24,6 +24,7 @@ import type {
   UpdateLogisticsSystemRequest,
   UpdateProcessRequest,
 } from "@/contracts/logistics";
+import type { ProcessContextResponse } from "@/contracts/process-catalog";
 import type { TaskTargetBindingsResponse } from "@/contracts/task-target-bindings";
 import type { LogisticsTargetListResponse, LogisticsTargetUsageDto } from "@/contracts/logistics-targets";
 import { taskContextLabels } from "./task-context-label";
@@ -361,7 +362,10 @@ export function ProjectLogisticsManagement({
         onUnauthorized();
         setErrorMessage("편집 권한이 만료되었습니다. 상단의 편집 활성화를 다시 진행해 주세요.");
       } else if (res.status === 412) {
-        setErrorMessage("다른 사용자에 의해 프로젝트가 갱신되었습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.");
+        const err = json as { error?: { code?: string } };
+        setErrorMessage(err?.error?.code === "PROCESS_CATALOG_REVISION_MISMATCH"
+          ? "공정 기준정보가 변경되었습니다. WorkArea 목록을 다시 조회하고 연결을 확인한 뒤 저장해 주세요."
+          : "다른 사용자에 의해 프로젝트가 갱신되었습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.");
         onRequireRefresh();
       } else if (res.status === 409) {
         const err = json as { error?: { code?: string; message?: string } };
@@ -372,6 +376,8 @@ export function ProjectLogisticsManagement({
           setErrorMessage("하위 공정, 소속 설비 또는 시스템이 매핑되어 있어 삭제할 수 없습니다. 대신 비활성화를 사용해 주세요.");
         } else if (code === "EQUIPMENT_CODE_ALREADY_EXISTS") {
           setErrorMessage("이미 동일한 설비 코드가 존재합니다. 다른 코드를 사용해 주세요.");
+        } else if (code === "EQUIPMENT_WORK_AREA_IN_USE") {
+          setErrorMessage("Task 또는 Target에서 참조 중인 설비의 WorkArea 연결은 변경할 수 없습니다. 기존 연결과 입력한 초안은 유지됩니다.");
         } else if (code === "EQUIPMENT_IN_USE") {
           setErrorMessage("제어 시스템에 연결된 설비이므로 삭제할 수 없습니다. 시스템 연결을 먼저 해제하거나 비활성화해 주세요.");
         } else if (code === "SYSTEM_CODE_ALREADY_EXISTS") {
@@ -786,7 +792,8 @@ export function ProjectLogisticsManagement({
           <table className={`${styles.dataTable} ${styles.equipmentTable}`}>
             <thead>
               <tr>
-                <th>소속 공정</th>
+                <th>주 관리 공정</th>
+                <th>연결 WorkArea</th>
                 <th>설비명</th>
                 <th>유형</th>
                 <th>단위/수량</th>
@@ -799,7 +806,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredEquipment.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 8 : 7} className={styles.emptyState}>
+                  <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 설비가 없습니다.<ContextHelp label="설비 등록 도움말">공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.</ContextHelp></div>
                   </td>
                 </tr>
@@ -815,6 +822,7 @@ export function ProjectLogisticsManagement({
                   return (
                     <tr key={eq.id} className={!eq.active ? styles.inactiveRow : undefined}>
                       <td>{proc ? logisticsName(proc, logistics.processes) : "공정 참조 확인 필요"}</td>
+                      <td>{eq.workAreaLinks?.length ? `${eq.workAreaLinks.length}개` : "미연결"}</td>
                       <td><strong>{eq.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
@@ -1249,6 +1257,11 @@ export function ProjectLogisticsManagement({
           mode={equipmentModal.mode}
           equipment={equipmentModal.target}
           allProcesses={logistics.processes}
+          publicId={publicId}
+          revision={revision}
+          editable={editable && !busy}
+          errorMessage={errorMessage}
+          onUnauthorized={onUnauthorized}
           typeOptions={typeCatalog?.equipmentTypes ?? []}
           catalogState={typeCatalogState}
           busy={isSubmitting}
@@ -1603,7 +1616,8 @@ function EquipmentDialog({
   allProcesses,
   typeOptions,
   catalogState,
-  busy,
+  busy: pending,
+  publicId, revision, editable, errorMessage, onUnauthorized,
   onClose,
   onSubmit,
 }: {
@@ -1613,6 +1627,11 @@ function EquipmentDialog({
   typeOptions: { code: string; name: string }[];
   catalogState: "loading" | "ready" | "error";
   busy: boolean;
+  publicId: string;
+  revision: number;
+  editable: boolean;
+  errorMessage: string | null;
+  onUnauthorized: () => void;
   onClose: () => void;
   onSubmit: (data: CreateEquipmentRequest | UpdateEquipmentRequest) => Promise<void>;
 }) {
@@ -1627,11 +1646,57 @@ function EquipmentDialog({
   const [description, setDescription] = useState(equipment?.description ?? "");
   const [active, setActive] = useState(equipment ? equipment.active : true);
 
+  const [draftRevision] = useState(revision);
+  const [workAreaLinks, setWorkAreaLinks] = useState<Array<{ processId: string; workAreaId: string }>>(equipment?.workAreaLinks ?? []);
+  const linkKey = (link: { processId: string; workAreaId: string }) => `${link.processId}:${link.workAreaId}`;
+  const selectedLinkKeys = workAreaLinks.map(linkKey);
+  const [context, setContext] = useState<ProcessContextResponse["data"] | null>(null);
+  const [contextState, setContextState] = useState<"loading" | "ready" | "error">("loading");
+  const [retry, setRetry] = useState(0);
+  const [discardPrompt, setDiscardPrompt] = useState(false);
+  const [initialDraft] = useState(() => JSON.stringify({ processId, code, name, equipmentType, managementUnit, quantity, manufacturer, model, description, active, workAreaLinks: [...selectedLinkKeys].sort() }));
+  const dirty = initialDraft !== JSON.stringify({ processId, code, name, equipmentType, managementUnit, quantity, manufacturer, model, description, active, workAreaLinks: [...selectedLinkKeys].sort() });
+  const stale = draftRevision !== revision;
+  const busy = pending || !editable || stale;
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/process-context`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+        if (response.status === 401 || response.status === 403) onUnauthorized();
+        if (!response.ok) throw new Error();
+        const result = await response.json() as ProcessContextResponse;
+        if (result.data.projectRevision !== draftRevision || !Array.isArray(result.data.workAreas) || !Array.isArray(result.data.occurrences) || !Array.isArray(result.data.mappings)) throw new Error();
+        if (!controller.signal.aborted) { setContext(result.data); setContextState("ready"); }
+      } catch { if (!controller.signal.aborted) setContextState("error"); }
+    })();
+    return () => controller.abort();
+  }, [publicId, draftRevision, retry, onUnauthorized]);
+  function requestClose() {
+    if (pending) return;
+    if (dirty) setDiscardPrompt(true);
+    else onClose();
+  }
+  const workAreaOptions = context?.mappings.flatMap(mapping => {
+    const process = allProcesses.find(item => item.id === mapping.processId);
+    if (!process) return [];
+    return context.workAreas.filter(area => area.occurrenceId === mapping.occurrenceId).map(area => ({
+      processId: mapping.processId,
+      workAreaId: area.id,
+      name: area.name,
+      owner: process.name,
+      code: area.code,
+      active: area.active && (mapping.workAreaSelectionActive ?? mapping.active) && process.active && !!context.occurrences.find(item => item.id === area.occurrenceId && item.active),
+    }));
+  }) ?? [];
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!code.trim() || !name.trim() || !processId) return;
+    if (busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !context || !code.trim() || !name.trim() || !processId) return;
     void onSubmit({
       processId,
+      workAreaLinks,
+      processCatalogRevision: context.processCatalogRevision,
       code: code.trim(),
       name: name.trim(),
       equipmentType,
@@ -1647,13 +1712,17 @@ function EquipmentDialog({
   return (
     <WorkspaceDialog
       title={mode === "create" ? "설비 추가" : "설비 수정"}
-      busy={busy}
-      onClose={onClose}
+      busy={pending}
+      onClose={requestClose}
+      onEscape={() => discardPrompt ? setDiscardPrompt(false) : requestClose()}
     >
-      <form className={styles.dialogForm} onSubmit={handleSubmit}>
+      <form className={`${styles.dialogForm} ${styles.equipmentForm}`} onSubmit={handleSubmit}>
+        {errorMessage ? <p role="alert">{errorMessage}</p> : null}
+        {stale ? <p role="alert">프로젝트 정보가 변경되었습니다. 초안을 보존하고 있습니다. 취소 후 다시 열어 최신 정보를 확인해 주세요.</p> : !editable ? <p role="alert">편집 권한을 확인해 주세요. 입력한 초안은 유지됩니다.</p> : null}
+        {discardPrompt ? <div role="alert" className={styles.errorBanner}><p>저장하지 않은 설비 변경을 폐기할까요?</p><button className="secondary-button" type="button" autoFocus disabled={pending} onClick={() => setDiscardPrompt(false)}>계속 편집</button><button className="secondary-button" type="button" disabled={pending} onClick={onClose}>변경 폐기</button></div> : null}
         <div className={styles.formGrid}>
           <label className={styles.fieldLabel}>
-            소속 공정 *
+            주 관리 공정 *
             <select
               className={styles.fieldSelect}
               required
@@ -1668,6 +1737,25 @@ function EquipmentDialog({
               ))}
             </select>
           </label>
+          <fieldset className={`${styles.workAreaPicker} ${styles.formFieldFull}`} disabled={busy || contextState !== "ready"}>
+            <legend>연결 WorkArea (선택)</legend>
+            <p className={styles.workAreaHint}>선택 {workAreaLinks.length}개 · 미연결도 정상입니다. 주 관리 공정과 다른 공정의 구역도 연결할 수 있습니다.</p>
+            <p className={styles.workAreaHint}>연결 해제는 설비 원본이나 수량을 삭제하지 않습니다.</p>
+            {contextState === "loading" ? <p role="status">WorkArea 목록을 불러오는 중…</p> : null}
+            {contextState === "error" ? <p role="alert">WorkArea 목록을 확인할 수 없어 저장할 수 없습니다. 초안은 유지됩니다.</p> : null}
+            {contextState === "ready" ? <>
+              <button type="button" className="secondary-button" disabled={busy || !workAreaLinks.length} onClick={() => setWorkAreaLinks([])}>전체 연결 해제</button>
+              <div className={styles.workAreaOptions}>
+                {workAreaOptions.filter(area => area.active || selectedLinkKeys.includes(linkKey(area))).map(area => <label key={linkKey(area)} className={styles.workAreaOption}>
+                  <input type="checkbox" checked={selectedLinkKeys.includes(linkKey(area))} disabled={busy || (!area.active && !selectedLinkKeys.includes(linkKey(area)))} onChange={event => setWorkAreaLinks(links => event.target.checked ? [...links.filter(link => link.workAreaId !== area.workAreaId), { processId: area.processId, workAreaId: area.workAreaId }] : links.filter(link => linkKey(link) !== linkKey(area)))} />
+                  <span>{area.name} — {area.owner} · {area.code}{area.active ? "" : " (비활성)"}</span>
+                </label>)}
+                {workAreaLinks.filter(link => !workAreaOptions.some(area => linkKey(area) === linkKey(link))).map(link => <label key={linkKey(link)} className={styles.workAreaOption}><input type="checkbox" checked disabled={busy} onChange={() => setWorkAreaLinks(links => links.filter(value => linkKey(value) !== linkKey(link)))} /><span>확인할 수 없는 WorkArea · {link.workAreaId} · {link.processId}</span></label>)}
+              </div>
+              {!workAreaOptions.length && !workAreaLinks.length ? <p>등록된 WorkArea가 없습니다. 미연결 상태로 저장할 수 있습니다.</p> : null}
+            </> : null}
+          </fieldset>
+          <button type="button" className="secondary-button" disabled={busy || contextState === "loading"} onClick={() => { setContextState("loading"); setRetry(value => value + 1); }}>WorkArea 목록 다시 조회</button>
           <label className={styles.fieldLabel}>
             설비 유형 *
             <select
@@ -1691,6 +1779,7 @@ function EquipmentDialog({
               className={styles.fieldInput}
               required
               autoFocus
+              ref={input => { input?.setAttribute("autofocus", ""); }}
               disabled={busy}
               placeholder="예: STK-01, AGV-F1"
               value={code}
@@ -1774,11 +1863,11 @@ function EquipmentDialog({
           </label>
         </div>
         <div className={styles.dialogActions}>
-          <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
+          <button className="secondary-button" type="button" disabled={pending} onClick={requestClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || contextState !== "ready" || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
+            {pending ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
           </button>
         </div>
       </form>

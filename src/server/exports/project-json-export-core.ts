@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { assertScheduleContextExportSupported } from "./project-context-export-guard-core";
 import type { ImportPayload11 } from "../../contracts/import";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import { taskStatusFromProgress, taskStatusProgressConsistent } from "../../domain/task-status";
@@ -76,6 +77,7 @@ export class ProjectJsonExportService {
       // persisted Target references as if this were a complete project backup.
       const projectId = this.database.prepare("SELECT id FROM projects WHERE public_id=?")
         .get(publicId) as {id:number}|undefined;
+      if (projectId) assertScheduleContextExportSupported(this.database,projectId.id);
       if (projectId && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? LIMIT 1").get(projectId.id)) {
         throw new PublicApiError(409, "TASK_TARGET_EXPORT_UNSUPPORTED", "Task Target bindings cannot be represented by JSON schema 1.1. Use Project Copy or Template.");
       }

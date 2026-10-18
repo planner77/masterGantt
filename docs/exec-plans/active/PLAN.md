@@ -1,3 +1,7 @@
+## Issue #717 — PR CI #2968.1 F-012 Workspace Navigation 상위 tab focus 재발 보완 (2026-10-18)
+
+[전용 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)·[Work Packet](ISSUE_717.md). #2923/2926 문서/metadata FAIL, #2927 docs-only 성공, #2935/#2940/#2942/#2944/#2945/#2952/#2954/#2956/#2959 E2E 실제 실패 F-003~F-011 및 새 [#2968.1](https://github.com/planner77/masterGantt/actions/runs/39122204893) #518 primary Dashboard focus/하위 보기 F-012를 **전체 동일 Issue 누적 이력**으로 비교한다. 최신 Full run exact HEAD `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3`/base `c2395b17d864692c2e5e5aa36f55ea36e7197541`: Quality/Docker PASS, Shard5 50PASS/1FAIL/33 미실행, 다른5 CANCELLED, QA 파생 FAIL. Trace에서 `dashboard.milestones`→`dashboard.process` 잘못된 재선택과 selected-but-inactive parent Tab을 확인. `project-readonly-view.tsx`의 현재 section keyboard 재선택은 현재 하위 screen 유지·primary focus 동기 적용/비침습 RAF fallback으로 보완하고 `project-workspace-tabs-518.spec.ts`는 5폭/3px focus·현 subtab+URL·기존 Gantt/Core/readonly/write0 단언 유지/실제 activeElement artifact 추가. 누적 직접 실패 E2E 13파일과 #724/#719 Navigation/Help·#717 식별정보·#525~#527 Resource 소비자 교차 검증. 테스트 timeout/retry/skip/CI shard·main/GHCR 정책 불변. 원격 GitHub 로그·Trace·소스 정적 대조 완료, 로컬 동일 source Node/Chromium/Vitest/Build NOT TESTED. 최신 main·미해결 리뷰/충돌 재확인 후 기존 PR #718에 단일 비강제 HEAD 갱신으로 Full CI 시작까지만 진행. PR Draft/Issue OPEN/HIGH/OWNER_MANAGED/qa_required=true/0.116.1/release_required=true/release_authorized=false, CI 결과 모니터링/merge/Main/GHCR/Finalizer/Issue close 제외.
+
 ## Issue #717 — PR #2959 F-011 보완과 최신 main #724 M01 정렬 (2026-10-18)
 
 [전용 누적 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_717.md). 구 PR HEAD `1c073adfbdda9b9ab36799338293241e7a99d0ca` / base `ea4194763568432ef98e823bb796b59a5beb317c`의 PR CI #2959.1 Quality·Docker PASS, Chromium Shard4 #525 74PASS/1FAIL/68미실행, 구형 버튼 `개발 담당 Alice (R-A)` 대기 후 180초 timeout/teardown 파생 실패. 이름 우선 버튼과 접힌 원문 코드 R-A 전체 검증으로 수정, 핵심 SQLite/HTTP·KPI·권한·revision·5폭/6-shard/timeout 불변. 최신 main `c2395b17d864692c2e5e5aa36f55ea36e7197541`의 #724 M01 scoped Week fixture·E2E와 문서 6파일(중첩 PLAN·TEST_PLAN)을 모두 유지한 양부모 merge 후 리뷰·충돌 확인하여 Full PR CI 시작까지만 진행. 로컬 같은 source Chromium/Node NOT TESTED, OWNER_MANAGED/HIGH/app0.116.1/release_authorized=false 유지, Merge/Main/GHCR/Issue Close 없음.
@@ -42,6 +46,12 @@ main이 `7393483c4a15007868fceeaee70fb9e13c8b119a`에서 `ea4194763568432ef98e82
 ## Issue #717 — 제품 이름 우선 표시 구현 (2026-10-18)
 
 [Work Packet](ISSUE_717.md)·[식별자 인벤토리](../../ISSUE_717_IDENTITY_INVENTORY.md). 기존 문서 PR #718을 최신 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`과 통합해 UI 구현으로 확장했다. Milestone/물류/Task·관계/Resource/기준정보/Import의 이름을 우선하고 원문 코드·UUID는 요청 시 확인·복사한다. 공정 identity 최소220px/표 내부 scroll, 실제 표시 동명 구분, ID검색·선택·저장 canonical 불변을 검증한다. API/DB/보안/Export·Gantt Core 변경 없음. HIGH/OWNER_MANAGED/qa_required=true, 후보 PATCH0.116.1, release_required=true/release_authorized=false. 독립 사전 검토와 실제 browser/SQLite 회귀 후 단일 변경 묶음으로 PR CI 시작까지만 진행한다. CI 결과/Trusted/Owner ACCEPT·병합/Main/GHCR/Issue 종료는 범위 밖 또는 NOT TESTED. 아래 이전 문서-only/실패 기록은 역사적 당시 범위로 보존하며 현재 범위는 본 절과 Work Packet이다.
+
+## Issue #725 — Target 없는 공정·WorkArea 관리 M1 (2026-10-18)
+
+[Work Packet](ISSUE_725.md)에 따라 main `7393483c4a15007868fceeaee70fb9e13c8b119a`와 선행 #724 PR #738의 최신 탐색 shell에서 독립 공정/WorkArea 관리·매핑, 설비의 타 공정 포함 WorkArea0..N 원자 연결, Task 직접 공정0..N/WorkArea API와 null/명시0 구분, Copy/Template v4·지원 교환 누락 차단을 구현한다. #723/#725/#728 최신 W1/W2 결정을 적용하며 Target 생성·Task 공정 자동유도·원본 설비/작업 복제는 하지 않는다. 공유 Task picker/#728 해석·#729 집계는 후속 소유다.
+
+후보0.118.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 실제 backend/frontend/Copy·문서·Chromium 담당을 나누어 구현·문서·사전 검토와 선정20파일215테스트 및 최종Chromium1case·기존인접2case를 통과했다. PR Full CI 시작에서 종료한다. 원격 Required/Trusted QA·Owner ACCEPT는 NOT TESTED이며 CI 완료 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다.
 
 ## Issue #724 — Main CI #2957 복구 재개 (2026-10-18)
 

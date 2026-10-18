@@ -1,3 +1,7 @@
+## Issue #725 — 공정·WorkArea 문맥 손실 차단
+
+일정 JSON1.0/1.1은 설비 다중 WorkArea 및 Task 직접 공정/WorkArea·명시0개를 지원하지 않는다. 신규 문맥 필드는 중첩 위치와 무관하게400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 전체 거부한다. 해당 관계/marker가 있는 Project의 JSON Export도409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`이며 빈 관계처럼 버리지 않는다. Copy/지원 Templatev4의 별도 참조 remap을 사용한다. [정확한 형식 경계](IMPORT_SCHEMA.md#issue-725--직접-문맥은-schedule-stage-입력에서-미지원)를 따른다. #379 full graph 교환은 별도다.
+
 # JSON 파일 가져오기와 내보내기
 
 JSON 파일은 기존 Project에 새 Tasks/Links/명시 Milestone 소속을 추가하는 create-only 교환 형식이다. 대상 Project metadata와 Calendar를 덮어쓰지 않는다. `schemaVersion: "1.0"`은 기존 일정 입력을 지원하고 `"1.1"`은 status·description·URL·leaf Baseline·명시 Milestone membership·source metadata를 지원한다. 정확한 필드는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)와 두 machine schema를 따른다.

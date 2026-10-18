@@ -1,9 +1,11 @@
+import { assertTaskProcessContextTypeChange } from "../repositories/process-context-repository-core";
 import { createHash } from "node:crypto";
 import { compareTaskTargetImpact, resolveAllTaskTargetBindings } from "../../domain/logistics/task-target-bindings";
 import { loadTaskTargetBindingSnapshot } from "../logistics/task-target-bindings-service-core";
 import { PublicApiError } from "../http/api-error-core";
 import { LogisticsRepository } from "../repositories/logistics-repository-core";
 import { copyTaskTargetBindings } from "../logistics/task-target-transfer-core";
+import { copyTaskProcessContexts } from "../logistics/project-context-transfer-core";
 import { planMembershipCopy, trustedCopyCompletionBaseline } from "../../domain/milestones/membership-copy-plan";
 import { assertStageStructureChange, assertMilestoneCompletionTransitions, StageGateError } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
@@ -488,6 +490,7 @@ export class TaskHierarchyService {
         if (command.targetType === "milestone" && this.database.prepare("SELECT 1 FROM task_target_bindings WHERE project_id=? AND task_id=? LIMIT 1").get(project.id, task.id)) {
           throw new PublicApiError(409, "TARGET_BINDING_TYPE_CONFLICT", "Remove explicit Target bindings before converting this Task to a Milestone.");
         }
+        assertTaskProcessContextTypeChange(this.database,project.id,task.publicId,command.targetType);
         assertMembershipTaskTypeChange(this.database, project.id, task.publicId, command.targetType);
         if (command.targetType === "summary" || task.type === "summary") {
           throw new TaskHierarchyNoopError();
@@ -653,6 +656,8 @@ export class TaskHierarchyService {
         }
         copyTaskTargetBindings(this.database, project.id, project.id,
           new Map([...newBySource].map(([id, task]) => [id, task.id])), nowText);
+        copyTaskProcessContexts(this.database,project.id,
+          new Map([...newBySource].map(([id,task])=>[id,task.id])));
         const logisticsRows = new LogisticsRepository(this.database);
         const equipmentLinks = logisticsRows.listAllTaskEquipmentLinks(project.id);
         const systemLinks = logisticsRows.listAllTaskSystemLinks(project.id);

@@ -1,8 +1,18 @@
+## Issue #725 — WBS 중심의 선택적 공정·WorkArea 문맥
+
+#723/#725의 최신 W1/W2 결정은 아래 최초 설계 기본안보다 우선한다. 공정 occurrence 하나의 WorkArea는0..N이고 각 WorkArea는 정확히 occurrence 하나에 소속한다. 설비 하나는 타 공정 구역을 포함한0..N WorkArea에 연결될 수 있다. `Equipment.processId`는 계속 주 관리 공정이며 실제 WorkArea 소유 공정과 별개다. 설비–구역은 typed 관계 컬렉션으로 저장하고 공정 매핑의 기존 `workAreaId`는 호환 기본 구역으로 유지한다.
+
+Task/Summary 직접 공정은 사용자가0..N개 선택한다. Equipment/System/WorkArea/Target로 Task 공정을 자동 채우지 않는다. 명시0개의 marker와 구형 미도입 null을 구분하며 명시0개를 legacy fallback 허가로 읽지 않는다. 직접 WorkArea는 실제 소유 공정을 명시 선택해야 하고 공정을 자동 추가하지 않는다. self/subtree 및 직접/legacy/기준정보 출처를 보존하며 공통 해석·집계는 #728/#729, Task Editor 화면은 #726의 범위다.
+
+같은 E10을 조립 WA-A와 검사 WA-B에 연결해도 Equipment 원본1개·quantity10이다. 두 구역의 관련 수량이 각각10이어도 Project 고유 총량은10이며 구역별 배치 대수를 뜻하지 않는다. 구성 관계가 제어 관계·Task Dependency·Task/Target 복제·공수 배분을 만들지 않는다. 별도 기준정보 화면은 Target0개에서 동작하고 숨은 Target을 생성하지 않는다.
+
+실제 신규 저장 계약은 migration0028, [DB](DB_SCHEMA.md#issue-725--선택적-다중-workareatask-직접-문맥-migration-0028)와 [API](API.md#issue-725--target-없는-공정workarea-직접-문맥)를 따른다. 아래 LG 초기 계획의 미구현 경로/복사 차단은 도입 당시 기록이며 현재 [Copy·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4) 지원이 우선한다. 실제 검증은 [실행 원장](exec-plans/active/ISSUE_725.md)에서 구별한다.
+
 # 물류 구축 프로젝트 도메인 설계
 
 ## Issue #615 — F1 기반 모델
 
-[#615 Work Packet](exec-plans/active/ISSUE_615.md)의 migration0025·공통 process catalog·명시 Project mapping API가 F1 구현 범위다. legacy 공정/Task/설비를 변환하지 않고 WorkArea는 선택 사항이며 BU/product/site의 정확한 occurrence만 연결한다. 표준 변경은 Project 공정을 자동 생성·삭제하지 않는다. 같은 triple copy는 공통 ID를 보존하고 mapped Template 저장은 포맷 확장 전409다. 실제 계약은 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)/[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)를 따른다. 새 화면·Target/member/binding·Resource 축 및 운영 적용/원격 CI 성공은 후속 증거가 필요하다.
+[#615 Work Packet](exec-plans/active/ISSUE_615.md)의 migration0025·공통 process catalog·명시 Project mapping API가 F1 구현 범위다. legacy 공정/Task/설비를 변환하지 않고 WorkArea는 선택 사항이며 BU/product/site의 정확한 occurrence만 연결한다. 표준 변경은 Project 공정을 자동 생성·삭제하지 않는다. 같은 triple copy는 공통 ID를 보존하고 F1 당시 mapped Template 저장은 포맷 확장 전409였으며 현재 versioned Template 지원을 따른다. 실제 계약은 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)/[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)를 따른다. 새 화면·Target/member/binding·Resource 축 및 운영 적용/원격 CI 성공은 후속 증거가 필요하다.
 
 ## Issue #614 — 현행 물류와 Target 확장 계약
 
@@ -148,7 +158,7 @@ CREATE UNIQUE INDEX equipment_one_primary_owner
 
 ## 7. API·canonical 계약 제안
 
-기존 Route Handler → Service → Repository → SQLite 경계를 유지한다. 아래 경로는 구현 예정이며 아직 동작하는 API가 아니다.
+기존 Route Handler → Service → Repository → SQLite 경계를 유지한다. 아래 경로는 최초 LG 설계 당시 제안이며 현재 동작 여부·정확한 경로는 [API](API.md)의 구현 계약을 따른다.
 
 | 경로 | 목적 |
 | --- | --- |
@@ -182,7 +192,7 @@ Readonly/edit, loading/empty/no-result/error, dirty draft/취소, 401/403/412, f
 
 ## 9. 복사·교환·단계적 배포
 
-LG-01부터 물류 데이터가 있는 Project의 기존 복사는 LG-06이 준비될 때까지 명시적인409 `LOGISTICS_COPY_NOT_SUPPORTED_YET`로 차단한다. 물류 없는 기존 Project 복사는 유지한다. 복사된 것처럼 보이지만 물류만 누락된 결과를 만들지 않는다.
+초기 LG-01부터 LG-06 도입 전까지 물류 Project 복사는 명시적인409 `LOGISTICS_COPY_NOT_SUPPORTED_YET`로 차단했다. 현재는 전체 물류 Copy·versioned Template 참조 remap을 지원한다. 물류 없는 기존 Project 복사는 유지한다. 복사된 것처럼 보이지만 물류만 누락된 결과를 만들지 않는다.
 
 완전 복사는 새 local ID 매핑으로 공정/WBS/설비/시스템/모든 관계를 원자 복사하고 global Resource ID는 유지한다. inactive와 self/subtree도 보존한다. resetProgress는 기존 계약을 따르고 Summary 재계산을 수행한다. Project 삭제는 global catalog를 보존한다.
 

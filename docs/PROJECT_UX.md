@@ -2,6 +2,14 @@
 
 Milestone 표·원인/관리·공정/설비/시스템·Target·Resource 기본 목록은 이름을 먼저 표시한다. 코드/외부 ID/UUID는 명시 식별 정보에서 전체 확인·복사한다. #409 관계 Editor의 ID 검색은 보존하고 후보는 부모 이름·날짜 문맥, 동명 문맥에만 외부 ID를 보조한다. #285 공정 추가의 서버 코드 생성과 수정의 전체 코드 편집은 유지한다. #519 Membership picker를 재구현하지 않는다. 선택값·React key·URL·저장·API/DB/Export·revision과 Gantt Core는 불변이다. [인벤토리](ISSUE_717_IDENTITY_INVENTORY.md)에 관리/매핑·삭제/공유 변경 확인 예외와 원문 접근 경로를 기록한다.
 
+## Issue #725 — 기준정보 공정·WorkArea 및 설비 다중 구역
+
+`master.processes`의 **기준정보 → 공정&WorkArea**는 Target composer를 거치지 않고 Project 자유 공정 CRUD와 occurrence 매핑을 제공한다. 기존 mapping.workAreaId는 `공정 매핑 기본 구역 (호환)`으로 표시하고 설비의 다중 구역 소속과 구별한다. 공통 관리 영역은 별도 Project Master admin 세션으로 Process Type/제품 표준/사업장 공정/WorkArea의 검색·정렬·활성/사용처·안전 삭제와 명시 선택 표준 apply를 제공한다. Project edit 권한과 공통 관리자 권한을 대신 사용하지 않는다.
+
+`master.equipment`의 기존 설비 추가/수정에서 주 관리 공정과 선택 WorkArea0..N을 분리한다. 각 후보는 실제 소유 공정명·구역 code/비활성 상태로 구별하며 타 공정 구역도 선택할 수 있다. 전체 연결 해제는 초안만0개로 바꾸고 저장 때 한 번 반영한다. 원수량·설비 identity와 Task는 보존한다. Task 직접 연결/Target 구성에서 사용 중이면 구역 관계 변경은409로 거부하므로 사용처를 확인한다. 로딩/조회 실패를 미연결로 보이지 않으며 readonly·pending·stale에는 저장을 차단하고 초안을 보존한다. dirty 닫기는 폐기 확인, 저장 후 canonical 재조회·focus 복귀와 기존 Gantt/탐색 상태를 유지한다.
+
+Task 직접 공정/WorkArea 편집 API는 #726 Editor의 인계 계약이며 이번 화면에서 숨은 Task 선택이나 자동 공정 유도를 만들지 않는다. 공정0·구역0·Target0은 정상이고 집계 #728/#729는 별도다. #720의 `/manual` 제품 route는 아직 없으며 `master.processes`→[공정 관리 가이드](TARGET_RESOURCE_USER_GUIDE.md#공정workarea-관리), `master.equipment`→[설비 구역 가이드](TARGET_RESOURCE_USER_GUIDE.md#설비의-연결-workarea)의 anchor를 매뉴얼 registry로 인계한다. 실행 증거는 [Work Packet](exec-plans/active/ISSUE_725.md)을 따른다.
+
 ## Issue #624 — #456 scoped Week/Fullscreen 정확 120px 시작 전 수용량 확인 (CI #2893.1)
 
 기존 #456 Editor 열기/닫기·metadata 저장 후 120px/38px 좌표 보존은 유지한다. scoped Summary의 Week/Fullscreen에서 native scroll 여유가 62px인 상태를 120px으로 강제하면 browser clamp로 실패한다. 테스트는 현재 U2/U3 projection·Core/native axis가 모두120을 수용하는지 확인한 다음 원래 입력을 수행하고, 부족할 때만 실제 wheel 1회로 준비한다. 제품 동작/시각 설계·SVAR native marker-OFF 정책/스크롤 좌표 단언은 바꾸지 않는다. [실패 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
@@ -173,7 +181,7 @@ Task/Assignment/Relation/Copy Dialog와 Milestone 추가는 비활성 일정 pan
 | 상위 Milestone 대시보드 | 대시보드 → Milestone | 기존 ProjectMilestoneDashboard의 추가/관리·전체 Gate·정확 소속 작업/Resource |
 | 물류 구성 → 통합 조회 | 대시보드 → 공정&WorkArea / 설비 / 물류 시스템 | 기존 ProjectLogisticsUnified의 각 관점·상세·정확 Task/Assignment |
 | 상위 리소스 | 대시보드 → 리소스 | 기존 ProjectResourceWorkload의 KPI/Plan/Target·교차표/Excel·정확 편집 |
-| 물류 구성 → 공정 / 설비 / 시스템 | 기준정보 → 공정&WorkArea / 설비 / 물류 시스템 | 기존 관리 component와 동일 원본; 새 CRUD는 #725/#726 소유 |
+| 물류 구성 → 공정 / 설비 / 시스템 | 기준정보 → 공정&WorkArea / 설비 / 물류 시스템 | 동일 원본을 사용하는 #725 공정/설비 구역 관리; 공통 편집 추출·Task UI는 #726 소유 |
 | 전역 리소스 관리 | 기준정보 → 리소스 및 기존 /resources | 기존 ResourceCatalogAdmin·독립 관리자 인증; Project 참여 등록은 #727 후속 |
 | 물류 대상(Target) / 제어 관계 | 관련 기준정보의 보조 호환 진입 | 기존 composer/member/whole/subset/usage 유지; 주/하위 주메뉴 Target 금지 |
 
@@ -1483,3 +1491,16 @@ Milestone native 행을 숨겨도 기존 Task↔Milestone leaf 유형 전환은 
 Milestone·리소스·물류 구성의 교육용 고정 문단은 인접 도움말로 옮기고 현재 선택/전체 범위·날짜·환산·합산 제한은 짧게 유지한다. 도움말은 readonly에서도 접근 가능하며 canonical mutation·필터/드릴다운·Editor/Gantt instance·viewport·선택·marker-OFF 정책을 변경하지 않는다. 로컬 UI 상태가 권한 근거가 되지 않는다. loading/stale/401/412/network 오류와 복구 action은 기존 지속 피드백을 사용한다.
 
 물류 구성에서 공정 없는 설비 추가는 기존처럼 생성하지 않고, 브라우저 alert 대신 현재 영역의 지속 오류로 공정 등록 선행 조건을 안내한다. 기준정보의 사용 중 code 잠금 이유와 저장/최신 조회에 따른 미저장 입력 교체 안내는 유지한다. [Work Packet](exec-plans/active/ISSUE_719.md)에서 실측·미검증 환경을 구별한다.
+
+
+### Issue #725 — 표 내부 스크롤과 접근성 이름
+
+공정/WorkArea 관리표의 넓은 내용과 접근성용 숨김 이름은 동일한 내부 scroll owner에 속해야 한다. absolute 숨김 label의 위치 기준도 표의 scroll owner 안으로 결속하여, 마지막 열이 화면 밖에 있어도 문서 전체를 넓히지 않는다. 기존 프로젝트 정보 disclosure의 열기·Escape·focus 동작은 유지한다. 실제390/768/1024/1440/1920px 검증과 최초 실패·진단 가설은 [Work Packet](exec-plans/active/ISSUE_725.md)에 구별한다.
+
+## Issue #717 / #724 — 상위 Navigation 탭의 키보드 포커스와 하위 화면 보존
+
+Workspace 상위 메뉴 `일정 / 대시보드 / 기준정보`의 Tab은 선택 상태(`aria-selected`), 실제 키보드 focus(`document.activeElement`), focus-visible ring·scroll 노출을 **각각** 유지해야 한다. 단지 선택된 탭이어도 keyboard focus가 body로 이탈한 경우 UX 충족으로 보지 않는다.
+
+사용자가 이미 Dashboard 화면을 보고 있는 상태에서 비활성 상위 `일정` tab에 keyboard-focus를 두고 `ArrowRight`로 다시 `대시보드`를 선택하면 **현재 활성 하위 보기**(예: Milestone)를 유지한다. 이전 다른 하위 보기(예: 공정&WorkArea) 저장 값으로 암묵적으로 바꾸지 않는다. 반대로 실제 다른 상위 section에서 Dashboard로 진입할 때는 최근 저장된 하위 보기를 복원한다. React 화면 전환 전 primary tab의 focus를 확보하고, 지연된 focus 복원이 그 뒤의 사용자 조작·Dialog에 끼어들지 않아야 한다. 동일 Gantt instance/Chart 높이·scroll·Task scope·canonical revision/권한/readonly·데이터/필터·URL 의미를 유지한다.
+
+[Issue #717 테스트 계획](TEST_PLAN.md)과 [누적 실패 원장 F-012](ISSUE_717_FAILURE_ANALYSIS.md)의 390/768/1024/1440/1920px, 3px focus-visible ring·모바일 clip·정확 URL/view 및 write0 검증을 따른다. 기존 Issue #724 키보드/공통 Navigation 계약과 #719 상황형 도움말의 Escape/focus 복귀 규칙을 완화하지 않는다.

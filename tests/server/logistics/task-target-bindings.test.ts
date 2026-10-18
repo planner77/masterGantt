@@ -186,7 +186,7 @@ describe("Issue #617 binding persistence and membership guards",()=>{
     for(const name of readdirSync(migrationsDirectory).filter(n=>/^\d{4}_.*\.sql$/.test(n)&&Number(n.slice(0,4))<=26)) copyFileSync(join(migrationsDirectory,name),join(prior,name));
     const f=setup(filename,prior),{equipment,target}=equipmentTarget(f),projectId=f.project.id,taskId=f.leaf.publicId,memberId=target.members[0].id,revision=f.revision();f.db.close();
     const upgraded=openDatabase({filename,migrationsDirectory});
-    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql"]);
+    expect(upgraded.migrations.applied).toEqual(["0027_task_target_bindings.sql","0028_process_context.sql"]);
     new TaskTargetBindingService(upgraded.database,{clock:()=>now}).replace(f.auth,revision,taskId,{bindings:[{targetId:target.id,selection:"subset",scope:"self",memberIds:[memberId],coverageByMember:[{memberId,coverage:4}]}]});
     upgraded.database.close();
     const reopened=openDatabase({filename,migrationsDirectory});

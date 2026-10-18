@@ -1,3 +1,4 @@
+import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -215,10 +216,12 @@ export class LogisticsService {
       sysRolesBySysId.set(row.systemId, list);
     }
 
+    const contextProcessUsage = new Map((this.database.prepare("SELECT process_id processId,COUNT(*) count FROM (SELECT process_id FROM task_process_links WHERE project_id=? UNION ALL SELECT process_id FROM equipment_work_areas WHERE project_id=?) GROUP BY process_id").all(projectId,projectId) as Array<{processId:number;count:number}>).map(row=>[row.processId,row.count]));
     const processDtos: ProcessDto[] = processes.map((p) => ({
       id: p.publicId,
       code: p.code,
       name: p.name,
+      usageCount: (contextProcessUsage.get(p.id) ?? 0) + equipment.filter(e=>e.processId===p.id).length + allSysProcesses.filter(link=>link.processId===p.id).length,
       parentProcessId: p.parentId !== null ? (processPublicIdById.get(p.parentId) ?? null) : null,
       sortOrder: p.sortOrder,
       active: p.active === 1,
@@ -226,6 +229,8 @@ export class LogisticsService {
       updatedAt: p.updatedAt,
     }));
 
+    const equipmentWorkAreas = new ProcessContextRepository(this.database).equipmentLinks(projectId);
+    const taskProcessContexts = new ProcessContextRepository(this.database).taskContexts(projectId);
     const equipmentDtos: EquipmentDto[] = equipment.map((e) => ({
       id: e.publicId,
       processId: processPublicIdById.get(e.processId) ?? "",
@@ -238,6 +243,8 @@ export class LogisticsService {
       model: e.model,
       description: e.description,
       active: e.active === 1,
+      workAreaIds: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(link => link.workAreaId),
+      workAreaLinks: equipmentWorkAreas.filter(link => link.equipmentId === e.publicId).map(({ processId, workAreaId }) => ({ processId, workAreaId })),
       controlSystems: eqSystemsByEqId.get(e.id) ?? [],
       resourceRoles: eqRolesByEqId.get(e.id) ?? [],
       createdAt: e.createdAt,
@@ -271,6 +278,8 @@ export class LogisticsService {
     const allTaskSystemLinks = this.logisticsRepo.listAllTaskSystemLinks(projectId);
 
     return {
+      equipmentWorkAreas,
+      taskProcessContexts,
       processes: processDtos,
       equipment: equipmentDtos,
       systems: systemDtos,
@@ -493,6 +502,7 @@ export class LogisticsService {
         if (new ProcessCatalogRepository(this.database).mapping(projectId, current.id)) {
           throw new LogisticsConflictError("PROCESS_IN_USE", "공정 occurrence 매핑을 먼저 해제해야 영구 삭제할 수 있습니다.");
         }
+        if (this.database.prepare("SELECT 1 FROM task_process_links WHERE project_id=? AND process_id=? LIMIT 1").get(projectId,current.id)) throw new LogisticsConflictError("PROCESS_IN_USE","공정의 Task 직접 연결을 먼저 해제해야 합니다.");
         const childCount = this.logisticsRepo.countChildProcesses(projectId, current.id);
         if (childCount > 0) {
           throw new LogisticsConflictError("PROCESS_IN_USE", `Cannot permanently delete process with ${childCount} child processes.`);
@@ -598,6 +608,12 @@ export class LogisticsService {
         now: nowText,
       });
 
+      if (input.workAreaLinks !== undefined || input.workAreaIds !== undefined) {
+        const contexts = new ProcessContextRepository(this.database);
+        if (input.workAreaLinks !== undefined && input.workAreaIds !== undefined) throw new ProcessContextError(400, "INVALID_PROCESS_CONTEXT");
+        contexts.requireRevision(input.processCatalogRevision);
+        contexts.replaceEquipment(projectId, inserted.id, contexts.validateEquipmentWorkAreas(projectId, input.workAreaLinks ?? input.workAreaIds));
+      }
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();
@@ -682,6 +698,17 @@ export class LogisticsService {
         now: nowText,
       });
 
+      if (input.workAreaLinks !== undefined || input.workAreaIds !== undefined) {
+        const contexts = new ProcessContextRepository(this.database);
+        if (input.workAreaLinks !== undefined && input.workAreaIds !== undefined) throw new ProcessContextError(400, "INVALID_PROCESS_CONTEXT");
+        contexts.requireRevision(input.processCatalogRevision);
+        const retained = contexts.equipmentLinks(projectId).filter(link => link.equipmentId === current.publicId);
+        const resolved = contexts.validateEquipmentWorkAreas(projectId, input.workAreaLinks ?? input.workAreaIds, retained);
+        const previous = this.database.prepare("SELECT process_id processId,occurrence_id occurrenceId,work_area_id workAreaId FROM equipment_work_areas WHERE project_id=? AND equipment_id=? ORDER BY work_area_id").all(projectId,current.id);
+        const changed = JSON.stringify(previous) !== JSON.stringify([...resolved].sort((a,b)=>a.workAreaId-b.workAreaId));
+        if (changed && (this.logisticsRepo.countTaskEquipmentLinks(projectId,current.id) > 0 || this.database.prepare("SELECT 1 FROM logistics_target_members WHERE project_id=? AND equipment_id=? LIMIT 1").get(projectId,current.id))) throw new ProcessContextError(409,"EQUIPMENT_WORK_AREA_IN_USE");
+        contexts.replaceEquipment(projectId, current.id, resolved);
+      }
       const updatedProject = this.projectRepo.advanceRevision(projectId, expectedRevision, nowText);
       if (!updatedProject) {
         throw new RevisionMismatchError();

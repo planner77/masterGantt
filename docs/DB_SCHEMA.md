@@ -1,3 +1,20 @@
+## Issue #725 — 선택적 다중 WorkArea·Task 직접 문맥 (migration 0028)
+
+`db/migrations/0028_process_context.sql`은 기존 공정/설비/Task/Target ID·quantity·revision을 추정 backfill하지 않고 다음 STRICT 관계를 추가한다. 공정의 기존 자유 계층과 occurrence mapping은 유지한다.
+
+| 테이블 | 키·의미 |
+| --- | --- |
+| `equipment_work_areas` | PK(project_id,equipment_id,work_area_id); process_id/occurrence_id/work_area_id로 실제 소유 문맥을 저장 |
+| `task_process_contexts` | PK(project_id,task_id); 명시 선택 도입 marker. row 없음은 legacy-null, row와 하위 연결0개는 명시0개 |
+| `task_process_links` | PK(project_id,task_id,process_id); scope=self/subtree |
+| `task_work_area_links` | PK(project_id,task_id,work_area_id); 직접 선택 공정/occurrence/WorkArea 및 scope |
+
+설비 연결의 `(project_id,equipment_id)` FK와 공정 매핑 `(project_id,process_id,occurrence_id)` FK, 구역 `(occurrence_id,work_area_id)` FK가 Project 격리·정확 소유권을 강제한다. 설비 주 관리 공정과 연결 구역의 공정은 같을 필요가 없다. 같은 Equipment/WorkArea 중복은 금지하며 마지막 관계 삭제는 Equipment/quantity/Task를 삭제하지 않는다.
+
+Task 구역은 `(project_id,task_id,process_id)`를 직접 Task 공정 연결에 FK로 묶으므로 공정을 암묵 생성하지 않는다. Task 삭제는 marker/관계를 cascade하고 공정/매핑/구역은 참조 중 RESTRICT로 보호한다. INSERT/UPDATE scope trigger와 Task type 변경 trigger는 subtree의 Summary-only 조건을 강제한다. Milestone의 nonempty 직접 문맥과 호환되지 않는 type 전환도 DB trigger/service guard로 거부한다. WorkArea subtree에 대응하는 공정 scope도 subtree여야 한다는 조건은 service와 INSERT/UPDATE trigger가 함께 검사한다. 활성/권한/catalog revision은 service에서 검사한다. 마이그레이션 checksum·순서·전체 pending batch rollback과 restart 계약을 유지한다.
+
+canonical 조회에서 모든 Task에 `processLinks/workAreaLinks`를 제공하되 legacy는 null/null, 명시 선택은 배열/배열로 구별한다. Equipment/System/Target의 관계로 Task 공정을 backfill하지 않는다. Copy와 Templatev4는 marker·직접 관계만 remap하고 inherited/effective row를 저장하지 않는다. [API](API.md#issue-725--target-없는-공정workarea-직접-문맥), [복사·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4), [실행 원장](exec-plans/active/ISSUE_725.md)을 함께 따른다.
+
 # Database Schema
 
 ## Issue #623 — legacy 이관·복원 통합 수용

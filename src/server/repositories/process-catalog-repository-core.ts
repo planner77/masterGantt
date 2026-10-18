@@ -48,7 +48,7 @@ const usage: Record<ProcessCatalogKind, string> = {
   types: "(SELECT COUNT(*) FROM product_standard_processes WHERE process_type_id=t.id)+(SELECT COUNT(*) FROM site_product_processes WHERE process_type_id=t.id)",
   standards: "(SELECT COUNT(*) FROM site_product_processes WHERE standard_process_id=t.id)",
   occurrences: "(SELECT COUNT(*) FROM work_areas WHERE occurrence_id=t.id)+(SELECT COUNT(*) FROM project_process_occurrence_mappings WHERE occurrence_id=t.id)",
-  workAreas: "(SELECT COUNT(*) FROM project_process_occurrence_mappings WHERE work_area_id=t.id)",
+  workAreas: "(SELECT COUNT(*) FROM project_process_occurrence_mappings WHERE work_area_id=t.id)+(SELECT COUNT(*) FROM equipment_work_areas WHERE work_area_id=t.id)+(SELECT COUNT(*) FROM task_work_area_links WHERE work_area_id=t.id)+(SELECT COUNT(*) FROM logistics_targets WHERE work_area_id=t.id)",
 };
 const extra: Record<ProcessCatalogKind, string> = {
   types: "",
@@ -146,12 +146,13 @@ export class ProcessCatalogRepository {
     return row ? this.find("occurrences", row.public_id) : undefined;
   }
   mappings(projectId: number, limit: number): ProjectProcessMappingDto[] {
-    return this.database.prepare(`SELECT pp.public_id processId,o.public_id occurrenceId,w.public_id workAreaId,(pp.active=1 AND o.active=1 AND pt.active=1 AND b.active=1 AND p.active=1 AND s.active=1 AND (st.id IS NULL OR st.active=1) AND (w.id IS NULL OR w.active=1)) active FROM project_process_occurrence_mappings m JOIN project_processes pp ON pp.project_id=m.project_id AND pp.id=m.project_process_id JOIN site_product_processes o ON o.id=m.occurrence_id JOIN process_types pt ON pt.id=o.process_type_id JOIN project_master_items b ON b.id=o.business_unit_id JOIN project_master_items p ON p.id=o.product_id JOIN project_master_items s ON s.id=o.site_entity_id LEFT JOIN product_standard_processes st ON st.id=o.standard_process_id LEFT JOIN work_areas w ON w.id=m.work_area_id WHERE m.project_id=? ORDER BY pp.sort_order,pp.code,pp.public_id LIMIT ?`).all(projectId, limit + 1).map((row) => {
-      const value = row as Omit<ProjectProcessMappingDto, "active"> & {
+    return this.database.prepare(`SELECT pp.public_id processId,o.public_id occurrenceId,w.public_id workAreaId,(pp.active=1 AND o.active=1 AND pt.active=1 AND b.active=1 AND p.active=1 AND s.active=1 AND (st.id IS NULL OR st.active=1) AND (w.id IS NULL OR w.active=1)) active,(pp.active=1 AND o.active=1 AND pt.active=1 AND b.active=1 AND p.active=1 AND s.active=1 AND (st.id IS NULL OR st.active=1)) workAreaSelectionActive FROM project_process_occurrence_mappings m JOIN project_processes pp ON pp.project_id=m.project_id AND pp.id=m.project_process_id JOIN site_product_processes o ON o.id=m.occurrence_id JOIN process_types pt ON pt.id=o.process_type_id JOIN project_master_items b ON b.id=o.business_unit_id JOIN project_master_items p ON p.id=o.product_id JOIN project_master_items s ON s.id=o.site_entity_id LEFT JOIN product_standard_processes st ON st.id=o.standard_process_id LEFT JOIN work_areas w ON w.id=m.work_area_id WHERE m.project_id=? ORDER BY pp.sort_order,pp.code,pp.public_id LIMIT ?`).all(projectId, limit + 1).map((row) => {
+      const value = row as Omit<ProjectProcessMappingDto, "active" | "workAreaSelectionActive"> & {
         active: number;
+        workAreaSelectionActive: number;
       };
       return {
-        ...value, active: value.active === 1
+        ...value, active: value.active === 1, workAreaSelectionActive: value.workAreaSelectionActive === 1
       };
     });
   }

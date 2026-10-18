@@ -1,0 +1,32 @@
+.section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; padding-bottom: 16px; border-bottom: 1px solid var(--border-default); }
+.heading, .toolbar, .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.heading { justify-content: space-between; }
+.heading h2 { margin: 0; font-size: 18px; }
+.note { margin: 0; color: var(--text-muted); font-size: 13px; }
+.error { color: var(--status-error); }
+.tableScroll { position: relative; min-width: 0; width: 100%; overflow: auto; max-width: 100%; scroll-padding: 12px; }
+.tableScroll table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 13px; }
+.tableScroll caption { text-align: left; color: var(--text-muted); padding: 8px 0; }
+.tableScroll th, .tableScroll td { padding: 8px; border-bottom: 1px solid var(--border-default); text-align: left; overflow-wrap: anywhere; }
+.tableScroll th { font-weight: 600; }
+.tableScroll button { white-space: nowrap; scroll-margin: 12px; }
+.admin { min-width: 0; max-width: 100%; padding-top: 8px; }
+.admin summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.admin[open] > * + * { margin-top: 12px; }
+.toolbar { align-items: flex-end; }
+.toolbar label, .form label { display: grid; gap: 4px; font-size: 13px; min-width: 0; }
+.toolbar input, .toolbar select, .form input:not([type=checkbox]), .form select { min-width: 0; box-sizing: border-box; min-height: 44px; padding: 8px; width: 100%; max-width: 100%; border: 1px solid var(--border-control); border-radius: 6px; color: var(--text-default); background: var(--surface-panel); }
+.form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+.fields { border: 0; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.form .check, .checks label { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.checks { max-height: 240px; overflow-y: auto; }
+.actions { justify-content: flex-end; }
+@media (max-width: 600px) { .fields { grid-template-columns: minmax(0, 1fr); } .toolbar > label { flex: 1 1 160px; } .heading { align-items: flex-start; } }
+
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.code { display: block; font-size: 12px; font-weight: 400; color: var(--text-muted); }
+
+.section[hidden] { display: none; }
+
+.section > * { min-width: 0; }

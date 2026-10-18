@@ -1,3 +1,4 @@
+import { ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 
 import type {
@@ -121,7 +122,9 @@ function requireAuthorizedSession(
 function mapError(error: unknown, requestId: string): Response {
   let mapped = error;
 
-  if (error instanceof EditSessionInvalidError) {
+  if (error instanceof ProcessContextError) {
+    mapped = new PublicApiError(error.status,error.code,error.message);
+  } else if (error instanceof EditSessionInvalidError) {
     mapped = new PublicApiError(401, "EDIT_SESSION_REQUIRED", "A valid edit session is required.");
   } else if (error instanceof RevisionMismatchError) {
     mapped = new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");

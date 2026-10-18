@@ -73,10 +73,27 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
     await expect(page.getByRole("tablist", { name: "기준정보 보기" }).getByRole("tab")).toHaveText(["공정&WorkArea", "설비", "물류 시스템", "리소스"]);
     if (width === 1440) await page.screenshot({ path: "docs/evidence/issue-724/navigation-1440.png" });
     await openWorkspaceView(page, "milestones");
-    // Keyboard focus must retain its entire 3px ring inside the clipped tab scroller.
+    await expect(milestone).toHaveAttribute("aria-selected", "true");
+    // Keyboard focus must retain its 3px ring; re-entering the active
+    // Dashboard section must not resurrect a previously visited subview.
     await schedule.focus();
+    await expect(schedule).toBeFocused();
     await page.keyboard.press("ArrowRight");
+    await expect(dashboardTab).toHaveAttribute("aria-selected", "true");
+    // Preserve a screenshot-independent focus diagnostic on any future failure.
+    const focusObservation = await tabs.evaluate(owner => ({
+      activeId: (document.activeElement as HTMLElement | null)?.id ?? null,
+      activeTag: document.activeElement?.tagName ?? null,
+      sectionTabId: owner.querySelector('[role="tab"][aria-selected="true"]')?.id ?? null,
+      screen: new URL(window.location.href).searchParams.get("screen"),
+    }));
+    await test.info().attach(`issue-518-primary-focus-${width}`, {
+      body: JSON.stringify({ width, ...focusObservation }, null, 2),
+      contentType: "application/json",
+    });
     await expect(dashboardTab).toBeFocused();
+    await expect(milestone).toHaveAttribute("aria-selected", "true");
+    await expect.poll(() => new URL(page.url()).searchParams.get("screen")).toBe("dashboard.milestones");
     const focusRing = await dashboardTab.evaluate((button) => {
       const style = getComputedStyle(button);
       return { visible: button.matches(":focus-visible"), kind: style.outlineStyle,

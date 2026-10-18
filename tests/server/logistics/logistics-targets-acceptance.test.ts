@@ -452,7 +452,7 @@ describe("Issue #672 — #616 F2 acceptance: SQLite migration persistence", () =
     f.db.close();
 
     const first = openDatabase({ filename, migrationsDirectory: migrationDir });
-    expect(first.migrations.applied).toEqual(["0026_logistics_targets.sql","0027_task_target_bindings.sql"]);
+    expect(first.migrations.applied).toEqual(["0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql"]);
     const target = new LogisticsTargetService(first.database, { clock: () => now }).create(auth, 1, {
       code: "PERSIST", name: "Persisted", scope: "project_common",
       members: [{ kind: "system", entityId: mcsId }],
@@ -470,7 +470,7 @@ describe("Issue #672 — #616 F2 acceptance: SQLite migration persistence", () =
       expect(saved.code).toBe("PERSIST");
       expect(second.database.pragma("foreign_key_check")).toEqual([]);
       expect((second.database.prepare("SELECT MAX(version) AS v FROM schema_migrations")
-        .get() as {v:number}).v).toBe(27);
+        .get() as {v:number}).v).toBe(28);
     } finally { second.database.close(); }
   });
 });

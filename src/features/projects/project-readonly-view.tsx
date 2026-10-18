@@ -1,4 +1,5 @@
 "use client";
+import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
 import { captureCopyViewport, type CanonicalMutationRequest, type CopyViewportContinuity } from "../gantt/viewport/copy-viewport-continuity";
 import type {
   ResourceDrillScopeDto,
@@ -312,10 +313,24 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return isVisibleFocusTarget(parentTab) ? parentTab : null;
   }
   function selectSection(section: WorkspaceSection) {
-    selectScreen(section === "schedule" ? "schedule" : lastSectionScreens.current[section], false);
+    // A keyboard user can focus a primary tab without activating it. If its
+    // section is already active, keep the current subview instead of restoring
+    // a possibly stale saved subview and remounting the focus owner.
+    const destination = section === "schedule" ? "schedule"
+      : activeSection === section ? activeScreen : lastSectionScreens.current[section];
+    const previousTab = screenTabReferences.current.get(section);
+    // Focus the persistent primary tab before React hides the old panel:
+    // waiting only for rAF can leave focus on body after that panel is inert.
+    previousTab?.focus({ preventScroll: true });
+    selectScreen(destination, false);
     requestAnimationFrame(() => {
       const tab = screenTabReferences.current.get(section);
-      tab?.focus({ preventScroll: true }); tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      if (!tab) return;
+      // Do not steal focus from a newer user action or dialog.
+      if (document.activeElement === previousTab || document.activeElement === document.body || !document.activeElement?.isConnected) {
+        tab.focus({ preventScroll: true });
+      }
+      if (document.activeElement === tab) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
   }
   function handleNavigationKey(event: ReactKeyboardEvent<HTMLButtonElement>, current: string, keys: readonly string[], activate: (key: string) => void) {
@@ -3128,6 +3143,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-logistics-panel"
       >
         {resourceTargetRequest ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {setActiveView("resources"); setResourceTargetRequest(null); requestAnimationFrame(() => { const trigger=resourceTargetTrigger.current; if(isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true}); else document.querySelector<HTMLElement>("#project-panel-resources input[type=search]")?.focus({preventScroll:true}); });}}>Resource 보기로 돌아가기</button> : null}
+        <ProjectProcessManagement active={activeScreen === "master.processes"}
+          onNotice={message => notify("success", message, "공정 기준정보")}
+          publicId={publicId} revision={project.revision} editable={editing}
+          busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
+          logistics={state.snapshot.data.logistics ?? { processes: [], equipment: [], systems: [], systemLinks: [] }}
+          onMutated={(newLogistics, newProject) => {
+            const current = confirmedSnapshotReference.current;
+            if (current) applySnapshot({ ...current, data: { ...current.data, project: newProject, logistics: newLogistics } });
+            notify("success", "공정 연결 변경 사항을 저장했습니다.", "공정 관리");
+          }}
+          onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
+          onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
+        />
         <ProjectLogisticsManagement
           subview={logisticsSubview(logisticsScreen)} hideSubviewNavigation
           onSubviewFocusUnavailable={() => workspaceFocusFallback(lastUnifiedScreen)?.focus({ preventScroll: true })}

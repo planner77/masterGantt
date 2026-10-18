@@ -324,3 +324,47 @@ F-010 코드와 원장을 GitHub에 게시하기 직전 최신 `main`이 `739348
 - **교정:** `tests/e2e/resource-dashboard-ui.spec.ts`에서 실제 rowheader `개발 담당 Alice`를 확인하고 그 안의 닫힌 native details를 명시적으로 펼쳐 raw code textarea 전값 **`R-A`** 확인 → 다시 접은 뒤 name-only 버튼을 exact accessible name으로 클릭. 이후 Assignment 투입 구간·Milestone·Role 필터/공수 미설정·진단·원장/revision/readonly·네트워크 mutation 보호 등 기존 assertion, `test.setTimeout(180_000)`, retries/skip/6 shard를 모두 유지. 제품 React/DB/API/canonical identifier를 되돌리거나 타임아웃을 늘리지 않는다.
 - **전체 실제 실패 E2E 집합 추가:** 종전 11파일 합집합에 `tests/e2e/resource-dashboard-ui.spec.ts`를 추가한 **12파일 누적 대상**과 #717 direct name-first/identity-persistence, #724 Workspace Navigation, #719 contextual help, Resource Plan/Milestone/Target의 인접/음성 검증을 보존한다. 수정 전 원격 #2959 성공한 다른 테스트는 새 후보 source의 PASS로 승격하지 않는다.
 - **미검증/운영:** 동일 source Node/npm/Chromium 실제 로컬 실행 **NOT TESTED**(이 GitHub API 도구 세션에 masterGantt 앱 checkout/Node runner 없음). GitHub 원본 로그/Trace/DOM/코드 정적 비교 완료. 최신 main `c2395b17d864692c2e5e5aa36f55ea36e7197541` (#724 main #456 scroll admission 수정)과 main-before `ea4194763568432ef98e823bb796b59a5beb317c`의 3커밋/6파일(문서2 중첩)을 양방향 보존하는 merge commit으로 정렬하며, 원본 Issue #724 실패 기록/fixture/Chrome E2E는 보존. 리뷰 스레드/충돌·exact Head 새 Full Run 등록 후 CI는 모니터링하지 않는다. HIGH/OWNER_MANAGED/qa_required=true/0.116.1/release_required=true/release_authorized=false, PR Draft, Issue OPEN. 병합/Main CI/GHCR/Finalizer/Issue Close 및 Owner 승인 미실행.
+
+## 2026-10-18 — F-012: Full PR CI #2968.1 상위 Dashboard 키보드 포커스·하위 화면 보존 실패
+
+### Issue #717 / PR #718 전체 이력 교차
+
+본 파일은 Issue #717의 **단일 정규 누적 실패 원장**이다. 기존 F-001~F-011의 당시 원본 근거·분류·수정·미검증을 삭제하거나 소급 PASS 처리하지 않는다. GitHub Actions에서 확인된 이슈 branch의 전체 13개 Run/Attempt는 다음과 같다.
+
+| Run/Attempt | 당시 HEAD | 원본 결론 / 주요 누적 원인 |
+| --- | --- | --- |
+| [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283) | 23e09aada982087047d90037704cdbb8b750bf97 | F-001 문서/QA Preflight FAIL, 제품 E2E 미실행 |
+| [#2926.1](https://github.com/planner77/masterGantt/actions/runs/39081286379) | 같은 HEAD | F-002 metadata-only FAIL; Full CI 아님 |
+| [#2927.1](https://github.com/planner77/masterGantt/actions/runs/39081290832) | d97f1e60419575f4db3785c239b3ae341b3086d5 | docs-only Full SUCCESS; 제품 E2E SKIPPED |
+| [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) | a0d6cafe9cbc7c73f4980fd36498c628d8f024dc | F-003a/b Target 작성 선택자 + 취소된 #622 Plan 내부 실제 실패 |
+| [#2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164) | 6b226df1962791a4d647811b9ad8df854d56e3a1 | F-004 #463 Milestone 닫힌 ID copy geometry |
+| [#2942.1](https://github.com/planner77/masterGantt/actions/runs/39093363065) | 6d23240008b0022f5376c5f8c4dcb0d1a3fadffd | F-005a/b #621 allocation 라벨 / 취소된 #461 Milestone 소속 copy geometry |
+| [#2944.1](https://github.com/planner77/masterGantt/actions/runs/39095135631) | bfd4173f0099d03f3357262cea01b567a51825cf | F-006a/b #130 그룹 이름 / 취소된 #623 Target subset fieldset |
+| [#2945.1](https://github.com/planner77/masterGantt/actions/runs/39097301048) | 62b17d91e120d8879bf688f910b3e5d3889bf05d | F-007a/b #76 Workspace / 취소된 #288 Resource Grade 코드 필드 |
+| [#2952.1](https://github.com/planner77/masterGantt/actions/runs/39103690860) | e876c351280b34633f7edabb3428116d16392d6a | F-008 #526 Resource Milestone ID 펼침 및 숨은 copy 소비자 |
+| [#2954.1](https://github.com/planner77/masterGantt/actions/runs/39105484225) | d41b06d2fd24384a8a18b117432165663e8fcde0 | F-009a/b #527 Plan expander selector / 취소된 #526 Milestone matrix 실제 행 높이 |
+| [#2956.1](https://github.com/planner77/masterGantt/actions/runs/39107357815) | 4a41ae41456e048568a4d0443769ad53fb38d45c | F-010 #527 별도 50행 View-return expander 선택자 재발 |
+| [#2959.1](https://github.com/planner77/masterGantt/actions/runs/39110550430) | 1c073adfbdda9b9ab36799338293241e7a99d0ca | F-011 #525 Resource Dashboard 이름-first 미전환 |
+| **[#2968.1](https://github.com/planner77/masterGantt/actions/runs/39122204893)** | **9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3** | **F-012 #518 상위 탭 포커스/하위 화면 보존** |
+
+### F-012 정확한 원본/실패·취소
+
+- **Original run:** `39122204893`, attempt=1, `pull_request`, Head `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3`, Base `c2395b17d864692c2e5e5aa36f55ea36e7197541`, 2026-10-18 11:11:00–11:22:35 UTC. test-merge SHA는 확인되지 않아 **UNKNOWN**. QA Preflight/PR Fast Gate/TypeScript/ESLint/Vitest/Policy/Next.js Production Build 및 Quality required aggregate **SUCCESS**; Docker Build/Smoke required aggregate **SUCCESS**; Chromium E2E aggregate [job 117662133647](https://github.com/planner77/masterGantt/actions/runs/39122204893/job/117662133647) **FAILURE**, QA Final [job 117662150183](https://github.com/planner77/masterGantt/actions/runs/39122204893/job/117662150183) **FAILURE(Required E2E 미성공 파생)**.
+- **실제 실패:** Shard5 [job 117660314438](https://github.com/planner77/masterGantt/actions/runs/39122204893/job/117660314438) `tests/e2e/project-workspace-tabs-518.spec.ts:6` test #518 일정/Milestone 상위 Tab·Dialog origin·Gantt/5폭 geometry, **50 PASS / 1 FAIL / 33 DID NOT RUN**. Line 79 `expect(dashboardTab).toBeFocused()`: Dashboard primary tab은 실제 `aria-selected=true`, `tabindex=0`인데 5초 후 `Received: inactive`(not focused). 원본 [Playwright report artifact #12135246261](https://github.com/planner77/masterGantt/actions/runs/39122204893/artifacts/12135246261)의 Trace에서 `ArrowRight` 이전 URL screen=`dashboard.milestones`→직후 `dashboard.process`로 교체되는 것이 관측된다. 첫 실패 폭은 Trace의 viewport 390px이다. 이 화면은 데이터 변경/네트워크 권한 오류를 증명하지 않는다.
+- **타 Shard1/2/3/4/6:** matrix fail-fast에 의해 최종 **CANCELLED**, 로그에 직접 새로운 assertion FAIL 기록은 없었으며 실행 중단·미실행 구간을 PASS로 쓰지 않는다. 다른 Head의 성공 테스트를 현재 후보 검증으로 합산하지 않는다.
+
+### Source/Trace 근거와 교정의 경계
+
+- **증명된 사실:** `src/features/projects/project-readonly-view.tsx`의 `selectSection(section)`은 언제나 저장된 `lastSectionScreens.current[section]`을 사용하여 subview를 선택한다. 실제 활성 화면이 `dashboard.milestones`여도 사용자가 비활성 1차 `일정` tab을 keyboard-focus 후 `ArrowRight`로 Dashboard section에 복귀하면, 오래된 Dashboard screen(`dashboard.process`)을 재선택할 수 있다. 상위 탭 focus는 `requestAnimationFrame`에서만 적용돼 기존 활성 panel 숨김/inert 전환과 경합할 수 있다. **PRODUCT/NAVIGATION_FOCUS + SAVED_SUBVIEW_RESTORE**로 판정하며 원본 Trace에서 포커스 최종 대상 element ID가 별도로 수집되지 않았으므로 정확한 포커스 이탈의 내부 microtask 원인은 **미확정**으로 남긴다.
+- **최소 제품 보완:** 해당 `selectSection`에서 대상 section이 **이미 activeSection이면 현재 activeScreen을 유지**, 그렇지 않을 때만 저장된 lastSectionScreen을 복원한다. 항상 그려지는 Primary tab에 `focus({preventScroll:true})`를 state 전환 전에 동기 부여하고 후속 RAF에서는 body/이전 target 상태만 보완하며 **새 사용자 행동/모달의 초점을 훔치지 않는다**. 기존 `aria-selected/tabindex`, secondary tab 선택·Gantt instance·viewport, URL/로컬 설정, readonly/권한·Canonical DB·API·Revision 및 focus ring 3px 수치를 바꾸지 않는다.
+- **직접 음성·진단:** `tests/e2e/project-workspace-tabs-518.spec.ts`의 5폭390/768/1024/1440/1920를 유지. 비활성 schedule tab에 먼저 포커스를 둔 상황에서 ArrowRight 후 Dashboard primary tab의 선택·실제 focus·`:focus-visible`/3px/scroll containment 및 **기존 Milestone secondary selection+URL screen=dashboard.milestones 보존**을 검증. 각 폭의 DOM activeElement id/tag, selected primary id, URL screen을 `test.info().attach`에 저장해 다음 실패시 신뢰 가능한 세부 증거가 남도록 한다. 테스트 timeout/retry/skip/width/keyboard assertions 완화0.
+- **누적 실제 실패 E2E 합집합 13파일:** `logistics-target-authoring.spec.ts`, `issue-622-resource-plan-target.spec.ts`, `milestone-dashboard-state.spec.ts`, `issue-621-resource-target.spec.ts`, `milestone-stage-editor.spec.ts`, `project-filter-toolbar-consistency.spec.ts`, `issue-623-resource-mvp.spec.ts`, `project-workspace-ux.spec.ts`, `resource-developer-grade.spec.ts`, `resource-milestone-views.spec.ts`, `resource-plan-dashboard.spec.ts`, `resource-dashboard-ui.spec.ts`, **`project-workspace-tabs-518.spec.ts`**. 직간접/음성 추가: #717 name-first/identity-persistence, #724 Workspace Navigation와 #456 scroll admission, #719 ContextHelp, #525/526/527 Resource 관련, Milestone/Task Editor focus/readonly/Gantt Core. 동일 source 실제 Full Chromium6+Quality/Docker 필수 검증이 완료되기 전 전체 PASS를 주장하지 않는다.
+- **신규 main/리뷰:** 분석 당시 최신 main `c2395b17d864692c2e5e5aa36f55ea36e7197541`과 PR Head `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3`은 behind0/mergeable true, 미해결 리뷰 스레드0, 승인 차단 리뷰0. 변경 전 새 main이 진전하면 동일 Source 패치/테스트 및 우회 없는 two-parent 통합으로 정렬한다.
+- **실행 환경 한계:** 원격 GitHub log/Playwright report·Trace/제품 소스 교차 대조 수행. 이 GitHub API 세션에는 masterGantt 전체 Node checkout+Playwright browser runtime이 없어 동일 source 로컬 Chromium/Vitest/Next build **NOT TESTED**. 새 Full PR CI 시작만으로 success/Trusted QA/Owner ACCEPT/merge/main/GHCR/Finalizer/Issue close는 성립하지 않는다. PR Draft/Issue OPEN 및 `risk_level=HIGH/qa_method=OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false`, app`0.116.1` 유지, 사용자 지시에 따라 새 Run 이후 CI 모니터링 금지.
+
+### 최신 main #725 수용 및 후보 버전 보정 (2026-10-18)
+
+- F-012 발생 당시 main `c2395b17d864692c2e5e5aa36f55ea36e7197541`에서 Issue #725 PR #741 merge `4ce564a8d9ec646ba584a585a610537f14698476`로 **5 commits 진행**, main package는 `0.118.0`이므로 기존 #717 branch package `0.117.0`을 그대로 재게시할 수 없음. **새 후보 `0.118.1` PATCH**로 `package.json`과 `package-lock.json` 두 곳의 top/root version, CHANGELOG Issue #717 제목을 동기화하고 release_required=true/release_authorized=false는 유지.
+- #725 신규 공정/WorkArea와 설비 다중 WorkArea, Task/Summary `process-context` API/DB migration0028, 공정 기준정보 UI·copy/template/검증 자료를 main tree에서 보존. #717의 이름-first/식별 정보·#518 상위 탭 focus/URL 계약도 동시에 보존한다. 공통 변경 경로9개(CHANGELOG/DESIGN/PROJECT_UX/TASK_EDITOR/TEST_PLAN/PLAN/Logistics CSS·TSX/ProjectReadonlyView) 확인; 새로운 Full에서는 #725 acceptance E2E와 #724 Navigation/#717 UI 교차 확인.
+- Repo API 환경의 최종 Node/Playwright/SQL migration 실행은 `NOT TESTED`. 실제 새 HEAD의 Required Quality/E2E/Docker/Trusted/Owner는 CI 완료 전 미확정이며 main 정렬·리뷰/충돌 해결·CI 시작은 release 승인으로 해석하지 않는다.
+
