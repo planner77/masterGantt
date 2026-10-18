@@ -229,4 +229,30 @@ describe("#728 WBS Task ledger — explicit W1/W2 source boundary", () => {
     expect(summarizeWbsTaskLedgerConfiguration(snapshot, [select("workArea", "WA")]).equipmentQuantity).toBe(10);
   });
 
+  it("rejects an incomplete #727 resource-membership snapshot instead of silently undercounting registration", () => {
+    const input = wbsTaskLedgerFixture();
+    const incomplete = { ...input, resourceMemberships: input.resourceMemberships.filter(row => row.id !== "R2") };
+    error(incomplete, "RESOURCE_MEMBERSHIP_SNAPSHOT_INCOMPLETE");
+    error({ ...input, resourceMemberships: [...input.resourceMemberships, ledgerMembership("FOREIGN")] }, "RESOURCE_REFERENCE_UNAVAILABLE");
+    expect(resolveWbsTaskLedger(input).configuration.resourceMemberships.map(row => row.id)).toEqual(["R1", "R2"]);
+  });
+
+  it("keeps unclassified personal assignments under role:null and explicit UNSPECIFIED without losing Task identity", () => {
+    const input = wbsTaskLedgerFixture();
+    input.kpi.assignments = [...input.kpi.assignments,
+      { assignmentId: "UNCLASSIFIED", taskId: "T3", kind: "resource", targetId: "R2", allocationPercent: 50 }];
+    const snapshot = resolveWbsTaskLedger(input);
+    const unlinked = selectWbsTaskLedger(snapshot, [select("role", null)]);
+    expect(unlinked.assignmentIds).toEqual(["UNCLASSIFIED"]);
+    expect(unlinked.taskIds).toContain("T3");
+    expect(unlinked.taskIds).toContain("UNASSIGNED");
+    expect(unlinked.taskIds).toContain("GROUP_ONLY");
+    expect(summarizeWbsTaskLedger(snapshot, unlinked).assignments.effort.knownMd).toBe(2.5);
+    expect(selectWbsTaskLedger(snapshot, [select("role", "UNSPECIFIED")]).assignmentIds).toEqual(["UNCLASSIFIED"]);
+    expect(selectWbsTaskLedger(snapshot, [select("role", "DEVELOPER")]).assignmentIds).not.toContain("UNCLASSIFIED");
+    const path = [select("wbs", "T3"), select("role", null)];
+    expect(selectWbsTaskLedger(snapshot, path).assignmentIds).toEqual(["UNCLASSIFIED"]);
+    expect(selectWbsTaskLedger(snapshot, [...path].reverse()).assignmentIds).toEqual(["UNCLASSIFIED"]);
+  });
+
 });

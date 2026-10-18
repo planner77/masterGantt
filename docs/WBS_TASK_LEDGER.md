@@ -20,6 +20,8 @@ WBS 일반 Task가 중심 원장이다. 공정·WorkArea·설비·물류 시스�
 
 입력 version은 `wbs-task-ledger:v1`, 문맥 기준은 `explicit-task-context:v1` 또는 opt-in `legacy-target-context:v0`다. `snapshotProjectPublicId`는 KPI의 Project ID와 일치해야 한다. 컬렉션은 #725/#727 DTO 그대로 전달하며 장비/System의 명시 제어·조율·책임 역할 metadata도 제공한다. 선택적 `processActivity`/`workAreaActivity`는 비활성 기존 참조 진단을 보강하며 미제공은 `metadata.activitySource=not-supplied`로 구분한다. 빈 성공과 미조회 상태를 같은 의미로 표시하지 않는다. `participation.registeredCount`는 프로젝트 전체 명시 등록 인원이고 `assignedCount`는 현재 선택 A의 배정 인원이다. 프로젝트 전체 일반 Task의 배정 인원은 별도 `projectAssignedCount`로 제공한다. 서로 다른 모집단을 합산하거나 선택 배정 수를 전사/프로젝트 전체라고 표시하지 않는다.
 
+조회 경계는 `kpi.resources`의 고유 Resource ID와 `resourceMemberships`의 ID가 정확히 일치해야 한다. 일부 페이지만 들어오면 `RESOURCE_MEMBERSHIP_SNAPSHOT_INCOMPLETE`로 실패하며 등록 인원·구성 출처를 과소 계산하지 않는다. 미지정 Global Role의 Assignment는 기존 Resource KPI가 `UNSPECIFIED`로 표시하지만 신규 WBS `role: null`(미분류)과 `role: "UNSPECIFIED"`(명시 코드) 선택 모두에서 확인할 수 있다. 개인배정이 없는 Task의 null 분기, 기할당 Task의 Assignment 단위 필터·원시 Task ID를 보존한다. [#728 누적 실패 및 보완 원장](ISSUE_728_FAILURE_ANALYSIS.md)을 따른다.
+
 신규 `process` selector ID는 Project-local 공정 ID이고 `processOccurrence`는 catalog occurrence ID다. 기존 Resource Target projection의 `process`가 occurrence ID였던 계약과 혼용하지 않는다. HTTP wire 이름/버전은 #729가 별도로 고정한다.
 
 `system`의 유효 Task 직접/Target 연관과 `systemCoordination`의 명시 조율 조회는 구분한다. 조율 구성을 선택해도 다른 Task/Assignment를 현재 하위 범위에 새로 합류시키지 않는다. 기존 `ResourceKpiInput.filters`는 기존 의미의 선행 필터이며 새 selector가 그 범위를 교차한다. 새 명시 공정 selector를 구 Target 공정 필드의 무승인 의미 변경으로 대신하지 않는다.

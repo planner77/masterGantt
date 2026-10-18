@@ -183,6 +183,12 @@ export function resolveWbsTaskLedger(source: WbsTaskLedgerInput) {
     if (!prepared.byResource.has(row.id)) fail("RESOURCE_REFERENCE_UNAVAILABLE");
     if (row.registered) addConfigSource({ relationKind: "membership", sourceKind: "project-registration", entityKind: "project", entityId: input.snapshotProjectPublicId, relatedEntityKind: "resource", relatedEntityId: row.id, dimension: "resource" });
   }
+  // #727 participation is a complete Project snapshot, not a paginated subset.
+  // The converse check is essential: unknown extra IDs are rejected above.
+  const membershipIds = new Set(memberships.map(row => row.id));
+  if (membershipIds.size !== prepared.resources.length || prepared.resources.some(row => !membershipIds.has(row.resourceId))) {
+    fail("RESOURCE_MEMBERSHIP_SNAPSHOT_INCOMPLETE");
+  }
   for (const [kind, entities] of [["equipment", equipment], ["system", systems]] as const) for (const row of entities) for (const role of row.resourceRoles) {
     if (!prepared.byResource.has(role.resourceId)) fail("RESPONSIBILITY_RESOURCE_UNAVAILABLE");
     addConfigSource({ relationKind: "membership", sourceKind: "responsibility", entityKind: kind, entityId: row.id, relatedEntityKind: "resource", relatedEntityId: role.resourceId, role: role.role, dimension: "resource" });
@@ -338,7 +344,11 @@ export function selectWbsTaskLedger(snapshot: WbsTaskLedgerSnapshot, selectors: 
   let assignments = base.assignments;
   for (const selector of selectors) {
     validateSelector(snapshot, selector);
-    const matches = (values: readonly string[]) => selector.id === null ? !values.length : values.includes(selector.id);
+    // Resource KPI normalizes an absent role to ["UNSPECIFIED"]. It is also
+    // selectable by the explicit sentinel, but remains unlinked for role:null.
+    const matches = (values: readonly string[]) => selector.id === null
+      ? !values.length || (selector.dimension === "role" && values.length === 1 && values[0] === "UNSPECIFIED")
+      : values.includes(selector.id);
     if (personal(selector.dimension)) {
       assignments = assignments.filter(row => matches(assignmentValues(row, selector.dimension)));
       const taskIds = new Set(assignments.map(row => row.taskId)); rows = rows.filter(row => taskIds.has(row.taskId) || selector.id === null && !rawPersonallyAssigned.has(row.taskId));

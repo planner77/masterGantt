@@ -120,3 +120,13 @@ UI·Gantt·DB writer·Route·교환 형식·CI/Docker 제품 변경이 없으므
 ## Gantt 상태 정합성 영향
 
 gantt_standard_version은 `GSC 1.0.0-candidate`이며 문서 상태 `REVIEW_PENDING`과 구현 준수를 구분한다. 읽은 기준은 baseline commit의 `GANTT_STATE_CONSISTENCY.md`·`GANTT_STATE_CONFORMANCE.md`·`GANTT_ADAPTER_ADR.md`·`GANTT_SYNC_TRACE.md`·active `GANTT_STATE_REMEDIATION.md`다. 이번 변경은 pure Domain 조회이며 Gantt canonical/Native Core·viewport·선택/scroll writer를 건드리지 않는다. GSC의 원본/조회 분리·단일 writer·관측/증거 구분을 유지한다. SC-01~SC-14의 Core/browser 시나리오는 직접 변경 비영향으로 신규 로컬 증거 N/A이며 기존 원격 회귀는 유지한다. 표준 버전·제품 전체 준수·실제 Core PASS를 이 Unit으로 증명하지 않는다. 예외 ADR 없음.
+
+## PR #742 / CI #2978.1 실패 재작업 — 2026-10-19
+
+- 누적 단일 원장: [Issue #728 실패 분석](../../ISSUE_728_FAILURE_ANALYSIS.md). 기존 CI #2978.1 (`39133442705`, attempt 1, 2026-10-18 UTC)의 Required Quality/E2E6/Docker는 모두 SUCCESS. `QA Final — Automated` job `117697481847`만 `미해결 review thread`로 BLOCKED/FAIL. 과거 성공은 이 재작업 source의 검증 증거가 아님.
+- PR inline P2 #1: Resource KPI 행 집합과 `resourceMemberships`의 양방향 완전성 검사가 빠져 일부 페이지만 수신해도 등록 수가 과소 계산됨. 기존 미지 Resource 참조 거부는 보존하고 역방향 결손은 `RESOURCE_MEMBERSHIP_SNAPSHOT_INCOMPLETE`로 거부.
+- PR inline P2 #2: 기존 Resource KPI의 `roles=["UNSPECIFIED"]` 정규화가 `role:null` 선택에서 미분류 Assignment를 잘못 배제. null 분기에 sentinel을 인정하면서 명시 `role:"UNSPECIFIED"` 및 다른 Role 필터를 보존.
+- 새 domain Unit 테스트 2개: 누락/초과 멤버십 음성, 역할 미지정 개인배정의 null/명시/기타 역할·WBS 교차/역순·원시 미배정 Task. 기존 AC/검산/기존 계산기·원격 Required는 제거하지 않음.
+- 변경 범위: `src/domain/resources/wbs-task-ledger.ts`, `tests/domain/wbs-task-ledger.test.ts`, `docs/WBS_TASK_LEDGER.md`, 본 Work Packet 및 위 전용 실패 원장. UI/DB/API/CI workflow/버전 변경 없음; DESIGN/API/DB_SCHEMA N/A 유지.
+- GitHub connector를 통한 코드·문서 정적 대조 이외 로컬 node_modules/checkout이 없어 새 코드 `npm test`/`tsc`/전체 E2E/Docker 재실행은 **NOT TESTED**. 신규 정확 HEAD의 GitHub Full PR CI로 검증하며 실행 시작은 PASS나 Trusted QA/Owner 승인이 아님. 기존 `174/174 PASS`는 과거 동결 source에만 적용.
+- Reviewer 스레드 2개는 수정이 단일 commit으로 게시된 이후 개별 근거 답변·resolve. Strict main/base/Head 및 실제 CI Run 확인 후 모니터링 중단; 병합/Release/GHCR/Issue 종료 승인 없음.
