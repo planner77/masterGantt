@@ -49,7 +49,15 @@ test("#525 실제 비빈 SQLite/HTTP 공동 Task·중첩 분류·미설정·진�
     });
     await expect(assignedTaskButton).toBeVisible();
     const detailResponse = publicPage.waitForResponse((response) => response.url().includes("/resource-dashboard/details?") && new URL(response.url()).searchParams.get("view") === "tasks"); await assignedTaskButton.click(); const details = await detailResponse; expect(details.status()).toBe(200); const taskDetails = (await details.json()).data; expect(taskDetails.totalCount).toBe(2); expect(taskDetails.rows.filter((row: { taskId: string }) => row.taskId === shared.taskId)).toHaveLength(1); const selected = root.getByRole("region", { name: "선택 범위 할당 Task", exact: true }); await expect(selected.locator("tbody button").filter({ hasText: /^공동 담당 작업$/ })).toHaveCount(1); await expect(selected.getByRole("columnheader", { name: "Assignment 투입 구간" })).toHaveCount(0); await root.getByRole("button", { name: "상세 닫기" }).click();
-    await root.getByRole("button", { name: "개발 담당 Alice (R-A)" }).click(); await expect(root.getByRole("columnheader", { name: "Assignment 투입 구간" })).toBeVisible(); await expect(root.locator(".resource-dashboard-detail-table tbody tr").filter({ hasText: shared.name }).getByRole("cell").last()).toContainText("인수 Milestone"); await expect(root.getByText("공수 미설정", { exact: true }).last()).toBeVisible();
+    // #717: the row button is name-first; its exact original code remains
+    // available via a collapsed, read-only identifier disclosure.
+    const aliceHeader = root.getByRole("rowheader", { name: /개발 담당 Alice/ });
+    const aliceIdentifiers = aliceHeader.locator("details");
+    await expect(aliceIdentifiers).not.toHaveAttribute("open", "");
+    await aliceIdentifiers.locator("summary").click();
+    await expect(aliceIdentifiers.getByLabel("코드", { exact: true })).toHaveValue("R-A");
+    await aliceIdentifiers.locator("summary").click();
+    await aliceHeader.getByRole("button", { name: "개발 담당 Alice", exact: true }).click(); await expect(root.getByRole("columnheader", { name: "Assignment 투입 구간" })).toBeVisible(); await expect(root.locator(".resource-dashboard-detail-table tbody tr").filter({ hasText: shared.name }).getByRole("cell").last()).toContainText("인수 Milestone"); await expect(root.getByText("공수 미설정", { exact: true }).last()).toBeVisible();
     await root.getByRole("button", { name: /^필터/ }).click(); await root.getByLabel("Global Role", { exact: true }).selectOption("DEVELOPER"); await expect(root).toHaveAttribute("data-ready", "true"); await expect(kpis).toContainText("1명");
     await root.getByLabel("작업 검색", { exact: true }).fill("공수 미설정 작업"); await expect(root).toHaveAttribute("data-ready", "true"); await expect(kpis).toContainText("산정 불가 · 공수 미설정"); await expect(root.getByRole("button", { name: "M/M", exact: true })).toBeDisabled();
     await root.getByRole("button", { name: "초기화" }).click(); await expect(root).toHaveAttribute("data-ready", "true"); await root.getByText(/보조 진단 · 개인 조건/).click(); await root.getByRole("button", { name: "개인 미배정 2건", exact: true }).click(); await expect(root.locator("tbody button").filter({ hasText: /^완전 미할당 작업$/ })).toBeVisible(); await expect(root.locator("tbody button").filter({ hasText: /^Group만 지정 작업$/ })).toBeVisible(); await root.getByRole("button", { name: "상세 닫기" }).click();

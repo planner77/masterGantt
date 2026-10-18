@@ -1,3 +1,7 @@
+## Issue #717 — PR #2959 F-011 보완과 최신 main #724 M01 정렬 (2026-10-18)
+
+[전용 누적 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md), [Work Packet](ISSUE_717.md). 구 PR HEAD `1c073adfbdda9b9ab36799338293241e7a99d0ca` / base `ea4194763568432ef98e823bb796b59a5beb317c`의 PR CI #2959.1 Quality·Docker PASS, Chromium Shard4 #525 74PASS/1FAIL/68미실행, 구형 버튼 `개발 담당 Alice (R-A)` 대기 후 180초 timeout/teardown 파생 실패. 이름 우선 버튼과 접힌 원문 코드 R-A 전체 검증으로 수정, 핵심 SQLite/HTTP·KPI·권한·revision·5폭/6-shard/timeout 불변. 최신 main `c2395b17d864692c2e5e5aa36f55ea36e7197541`의 #724 M01 scoped Week fixture·E2E와 문서 6파일(중첩 PLAN·TEST_PLAN)을 모두 유지한 양부모 merge 후 리뷰·충돌 확인하여 Full PR CI 시작까지만 진행. 로컬 같은 source Chromium/Node NOT TESTED, OWNER_MANAGED/HIGH/app0.116.1/release_authorized=false 유지, Merge/Main/GHCR/Issue Close 없음.
+
 ## Issue #717 — main #724 메뉴 재배치 정렬 + F-010 / PR #718 새로운 Full 검증 (2026-10-18)
 
 main이 `7393483c4a15007868fceeaee70fb9e13c8b119a`에서 `ea4194763568432ef98e823bb796b59a5beb317c`로 진전(#724 PR #738 7커밋)하자 #717 브랜치 `4a41ae41456e048568a4d0443769ad53fb38d45c`는 behind7/dirty. #724 수정 73파일/#717 132파일 중 25개 파일 중첩을 Git 원본 패치와 Blob로 병합, main-only/new navigation helper·문서/테스트와 PR-only #717 이름-first/원문 ID/동명 전용 기능을 함께 보존. 새 `일정/대시보드/기준정보` 내비게이션에 #717 전용 name-first 및 실제 HTTP 동명 E2E 2파일을 맞추고 touch는 상위·하위 실제 tap 유지. F-010 #2956 실패 Resource Plan 50행 expander/hidden raw copy selector와 원장·Work Packet·TEST_PLAN 갱신을 포함. 최신 main·Head/두 부모 commit tree/충돌과 미해결 리뷰 스레드를 확인한 뒤 기존 Draft PR #718에서 non-force ref 한 번 게시로 Full PR CI 시작만 수행한다. 로컬 동일 Source E2E/Unit/Build NOT TESTED, 원격 exact Head 완료 Required/Trusted QA·Owner 수용 미확정; 0.116.1/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false, Merge/Main/GHCR/Finalizer/Issue close 수행하지 않음.
@@ -38,6 +42,12 @@ main이 `7393483c4a15007868fceeaee70fb9e13c8b119a`에서 `ea4194763568432ef98e82
 ## Issue #717 — 제품 이름 우선 표시 구현 (2026-10-18)
 
 [Work Packet](ISSUE_717.md)·[식별자 인벤토리](../../ISSUE_717_IDENTITY_INVENTORY.md). 기존 문서 PR #718을 최신 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`과 통합해 UI 구현으로 확장했다. Milestone/물류/Task·관계/Resource/기준정보/Import의 이름을 우선하고 원문 코드·UUID는 요청 시 확인·복사한다. 공정 identity 최소220px/표 내부 scroll, 실제 표시 동명 구분, ID검색·선택·저장 canonical 불변을 검증한다. API/DB/보안/Export·Gantt Core 변경 없음. HIGH/OWNER_MANAGED/qa_required=true, 후보 PATCH0.116.1, release_required=true/release_authorized=false. 독립 사전 검토와 실제 browser/SQLite 회귀 후 단일 변경 묶음으로 PR CI 시작까지만 진행한다. CI 결과/Trusted/Owner ACCEPT·병합/Main/GHCR/Issue 종료는 범위 밖 또는 NOT TESTED. 아래 이전 문서-only/실패 기록은 역사적 당시 범위로 보존하며 현재 범위는 본 절과 Work Packet이다.
+
+## Issue #724 — Main CI #2957 복구 재개 (2026-10-18)
+
+원본 PR #738은 merge `ea4194763568432ef98e823bb796b59a5beb317c`로 병합됐으나 [Main #2957.1](https://github.com/planner77/masterGantt/actions/runs/39108991895)의 #456 실제 스크롤 capacity Core62/native63<120으로 E2E가 실패했다. 기존 보완 [PR #740](https://github.com/planner77/masterGantt/pull/740)을 재사용하며, 후속 #2960.1의 PR metadata 선언 형식 오류를 별도 교정한다. [단일 누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 L1–L10/F01–F06/M01 전 이력·취소21개 Job 원문·trace 실제 수치와 검증을 보존한다.
+
+이번 요청의 종료점은 보완·리뷰/충돌 정리 및 새 Main CI 시작이다. exact-head Full PR Required3/Trusted QA·최신 main·리뷰0·Owner 위험 수용을 확인한 merge commit 이후 Main CI를 시작하고 완료 모니터링은 생략한다. 기존 PR 시작까지만의 범위 기록은 당시 이력이다. test-only 교정의 version0.117.0 및 release_required=false/release_authorized=false와 원본 #724 제품의 release 의무/Owner 조건부 v0.117.0 승인은 구분하며, Main/GHCR/정식 Release/Issue 종료 성공을 미리 주장하지 않는다. 상세 상태·로컬 결과는 [Work Packet](ISSUE_724.md) 참조.
 
 ## Issue #724 — 일정·대시보드·기준정보 N1 (2026-10-18)
 
