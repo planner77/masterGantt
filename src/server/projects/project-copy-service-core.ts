@@ -1,3 +1,4 @@
+import { ProjectResourceMembershipRepository } from "../repositories/project-resource-membership-repository-core";
 import { copyTaskTargetBindings } from "../logistics/task-target-transfer-core";
 import { copyLogisticsTargets } from "../logistics/logistics-targets-service-core";
 import { readStageSnapshot, withStageProjection } from "./milestone-stage-core";
@@ -225,6 +226,7 @@ export class ProjectCopyService {
           throw new Error("Copied project owner metadata could not be persisted.");
         }
         const masterWarnings = this.projectMaster.copyProjectSelection(source.id, project.id);
+        new ProjectResourceMembershipRepository(this.database).copy(source.id, project.id, nowText);
 
         const datesByRule = new Map<number, typeof sourceCalendarDates>();
         for (const date of sourceCalendarDates) {

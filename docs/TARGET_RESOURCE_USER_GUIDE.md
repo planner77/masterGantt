@@ -14,7 +14,7 @@ Issue #623의 Resource 우선 MVP 안내다. 지원 계약은 [Logistics Targets
 
 `일정`은 기본 전체 WBS를 보여 준다. Summary의 `최상위로 열기`로 여러 범위 탭을 열 수 있고 한 번에 하나를 선택한다. `전체 일정 보기`로 전체 scope에 돌아가며 열린 Summary 탭은 남는다. 마지막 Summary 탭을 닫아도 전체 일정이 표시된다. 일반 `일정` 탭 왕복이나 분석의 원래 보기 복귀는 기존 scope·검색·필터를 유지한다. 중복 `전체 프로젝트` 하위 탭은 없다. `rootTask`가 있는 공유 링크는 해당 Summary로 바로 열린다.
 
-Milestone 추가·소속 관리·Ready/Completed는 `대시보드 → Milestone`, 기존 KPI는 `대시보드 → KPI`, Resource Plan·Excel은 `대시보드 → 리소스`에서 이용한다. 기준정보의 `리소스`는 기존 전역 카탈로그와 독립 관리자 로그인을 사용한다. Project 편집 권한만으로 전역 카탈로그를 수정할 수 없으며, 개인의 작업 배정은 기존 Task Editor의 리소스 탭에서 관리한다. 신규 프로젝트 참여 목록은 #727 후속이다.
+Milestone 추가·소속 관리·Ready/Completed는 `대시보드 → Milestone`, 기존 KPI는 `대시보드 → KPI`, Resource Plan·Excel은 `대시보드 → 리소스`에서 이용한다. 기준정보의 `리소스`에서는 기존 전역 리소스를 프로젝트에 등록·해제한다. 원본 생성·수정은 `/resources`의 독립 관리자 로그인을 사용한다. Project 편집 권한만으로 전역 카탈로그를 수정할 수 없으며, 개인의 작업 배정은 기존 Task Editor의 리소스 탭에서 관리한다.
 
 원본 관리/분석 이동으로 Task나 Assignment를 복제하지 않는다. Task·Assignment 편집기는 해당 화면에서 바로 열리고 저장·취소 뒤 출발 화면으로 복귀한다. 각 화면의 검색·기간·접힘과 Gantt의 Day/Week·스크롤·선택은 기존 계약을 유지한다. Tab/Arrow/Home/End로 메뉴를 이동하고 Escape는 열린 상세/대화상자를 닫는다. 숨은 panel로 focus가 이동하지 않는다.
 
@@ -73,3 +73,13 @@ Plan에서 선택 기여와 같은 개인의 Project 전체 참고를 구별한�
 기본7개 Resource 시트와 조건부4개 Target 근거 시트는 raw Assignment ID·M/D·M/M·null·기준 revision을 보존한다. 같은 Assignment가 여러 근거 행에 나와도 총계를 다시 더하지 않는다. stale export는 실패하므로 새 snapshot을 조회해 다시 요청한다. [Excel 형식](EXCEL_EXPORT.md)을 따른다.
 
 Excel은 보고서이며 운영 백업/Target 무손실 재가져오기 형식이 아니다. Target-bearing plain 일정 Excel/일정 JSON은 현행 loss guard로 거부한다. Project Copy는 새 local ID를 만들고 global 참조는 재사용한다. Task binding 포함 Template는 logistics schemaVersion3, binding 없는 v2 및 legacy는 호환한다. 개인 Assignment가 있는 Task 복사는 현재 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부하며, 전체 Project Copy/Template와 지원 범위가 다르다. 다른 사업장으로 자동 이름 매핑/재배치된다고 가정하지 않는다. #379 전체 참조 JSON 미완료 및 [이관·복구 절차](TARGET_RESOURCE_OPERATIONS.md)를 확인한다.
+
+## 프로젝트 리소스 등록과 해제
+
+1. `기준정보 → 리소스`에서 이름·역할·등급·Group·등록/배정/비활성 조건으로 현재 프로젝트의 사용자를 확인한다. 목록에 없는 전역 사람도 등록 선택에서 찾을 수 있지만, 전역 전원이 자동 등록되지는 않는다.
+2. 프로젝트 편집 잠금을 해제한 뒤 기존 사람을 선택해 등록한다. 같은 사람이 다른 프로젝트에 있어도 전역 원본을 새로 만들지 않는다. 등록한 사람이 작업을 맡지 않아도 목록에 남는다.
+3. 기존 배정/설비 Owner/시스템 PI·개발자에서 발견한 사람은 사용 출처와 등록 필요 여부를 따로 확인한다. 역할이 있다는 이유만으로 모든 관련 Task를 그 사람의 투입으로 취급하지 않는다. 비활성 기존 참조는 보존하고 신규 등록은 활성 원본을 사용한다.
+4. 작업을 맡기려면 기존 Task Editor의 리소스 배정을 편집한다. 배정된 사람과 진척0인 작업은 실제 수행/실적 공수의 증거가 아니다. 등록 인원2명·작업 배정1명은 정상이며 등록만으로 공수나 Capacity를 늘리지 않는다.
+5. 해제는 이 프로젝트의 등록 관계만 제거한다. 사용 중이면 안내된 배정/책임 역할을 먼저 해당 편집기에서 명시 정리해야 한다. 과거 배정 이력을 자동 삭제하지 않으며 `/resources`의 전역 삭제와는 다른 동작이다. 다른 프로젝트 등록에는 영향을 주지 않는다.
+
+읽기 전용에서는 조회/분석만 가능하다. 저장 중 중복 동작을 기다리고, 권한 만료는 잠금 해제 후, 충돌/다른 사람의 변경은 최신 내용을 조회한 후 다시 판단한다. Task·Assignment·책임 역할을 지우겠다는 명시 동작 없이 등록 해제를 위해 자동 정리하지 않는다. 지원 Copy/Template와 미지원 교환의 경계는 [교환 안내](IMPORT_EXPORT.md)의 #727 절을 따른다.

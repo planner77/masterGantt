@@ -77,6 +77,9 @@ export function parseProjectImportBytes(bytes: Uint8Array): unknown {
 function assertNoUnsupportedTargetBindings(value: unknown): void {
   if (value === null || typeof value !== "object") return;
   for (const [key, child] of Object.entries(value)) {
+    if (key === "resourceMemberships" || key === "resource_memberships" || key === "projectResourceMemberships" || key === "project_resource_memberships") {
+      throw new PublicApiError(400, "RESOURCE_MEMBERSHIP_IMPORT_UNSUPPORTED", "프로젝트 리소스 등록은 이 교환 형식에서 지원하지 않습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
+    }
     if (key === "taskTargetBindings" || key === "targetBindings" || key === "task_target_bindings") {
       throw new PublicApiError(400, "TARGET_BINDING_IMPORT_UNSUPPORTED", "Task Target bindings require a supported versioned format. Use Project Copy or Template.");
     }

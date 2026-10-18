@@ -1,3 +1,7 @@
+## Issue #727 — 프로젝트 리소스 등록과 보고서
+
+Project Resource 등록은 Task 배정/계획공수/Capacity R와 독립이다. 등록 인원을 기존 Resource Excel의 개인 모집단이나 Capacity 분모로 자동 사용하지 않는다. 명시 참여 등록을 표현하지 못하는 일반 일정 Excel은 관계를 잃는 성공 출력 대신 명시적으로 거부한다. 명시 `includeResourceEffort=true` 견적 또는 `resourceDashboard` opt-in Resource Excel은 조회 보고서의 기존 scope·snapshot·raw/null·공수 계약을 유지하며 참여 관계의 backup/roundtrip 형식이 아니다. 기존 Task Target가 있는 Project의 legacy 견적 차단은 그대로이며 이번 변경으로 우회하지 않는다. [교환 경계](IMPORT_EXPORT.md)와 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md#프로젝트-리소스-등록과-해제)를 따른다.
+
 # Excel Export
 
 ## Issue #623 — 같은 golden 원시 API↔OOXML 수용

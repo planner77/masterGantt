@@ -1,3 +1,9 @@
+## Issue #727 — Project Resource membership
+
+명시 프로젝트 참여 관계는 global Resource와 Project의 연결이며 기존 Task Assignment·설비/시스템 책임 역할 및 편집 ACL과 별도다. Route Handler → Service → Repository → SQLite 경계에서 session/Origin/If-Match와 최신 usage를 transaction 안에 검증한다. 목록은 명시 관계와 프로젝트 안의 기존 사용을 읽는 bounded projection이다. 등록-only 사용자를 Resource KPI 계산 입력으로 주입하지 않으며 기존 domain 계산/Capacity R·Calendar는 유지한다.
+
+Project Copy와 지원 Template는 global Resource ID를 재사용한다. 미지원 일정 교환은 새 관계를 조용히 제거한 성공을 반환하지 않는다. `master.resources` host는 #724의 공개 통합 지점이며 `dashboard.resources`의 기존 Plan·견적·Excel·정확 Assignment 편집은 계속 별도 소비자다. 후속 #728/#729/#736은 이 등록 원장과 출처를 읽되 새 수행 실적이나 ACL로 해석하지 않는다.
+
 ## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
 
 아래 순서는 2026-10-15 결정 당시 계획이다. #667 공통 제품 연결은 이후 main merge `bdaed6bd`로 통합되었으며, U2~U4 개별 절의 미연결 설명은 각 모듈 도입 당시 범위로 읽는다. #552 새 후보는 통합된 단일 authority를 재사용하고 자체 수용/CI 결과를 별도로 검증한다.
@@ -45,7 +51,7 @@ Reader는 설치2.7.3의 `serialize(tasks/tree/links)`를 읽고 adapter-owned �
 
 `ProjectReadonlyView`가 일정·대시보드·기준정보의 탐색과 canonical snapshot을 소유한다. `project-workspace-navigation.ts`는 screenKey/상위 section/기존 view/subview의 순수 매핑만 제공한다. 정확 drill frame에는 실제 출발 screenKey를 보존해 서로 다른 물류 관점과 기준정보를 같은 legacy `logistics` 화면으로 축소하지 않는다.
 
-기존 ProjectGantt·Milestone Dashboard·ResourceWorkload·LogisticsManagement를 각 한 번 유지하며 LogisticsManagement의 controlled subview 및 Unified 관점 adapter로 6개 분석/4개 관리 경로를 연결한다. 후속 모듈은 이 공개 계약을 사용하고 host·CRUD·집계 원장을 중복 생성하지 않는다. Resource 기준정보는 기존 ResourceCatalogAdmin/독립 관리자 인증을 재사용한다. 공통 Task/Assignment/Relation/Copy/Milestone Dialog는 숨는 일정 panel 밖에서 기존 revision·dirty/stale gateway를 사용한다.
+기존 ProjectGantt·Milestone Dashboard·ResourceWorkload·LogisticsManagement를 각 한 번 유지하며 LogisticsManagement의 controlled subview 및 Unified 관점 adapter로 6개 분석/4개 관리 경로를 연결한다. 후속 모듈은 이 공개 계약을 사용하고 host·CRUD·집계 원장을 중복 생성하지 않는다. Resource 기준정보는 #727의 ProjectResourceMemberships를 공개 host에 연결하며 전역 원본 편집은 `/resources`의 기존 ResourceCatalogAdmin/독립 관리자 인증으로 이동한다. 공통 Task/Assignment/Relation/Copy/Milestone Dialog는 숨는 일정 panel 밖에서 기존 revision·dirty/stale gateway를 사용한다.
 
 탐색은 서버 mutation이나 새 viewport writer가 아니다. 일정은 기존 measured lifecycle·`viewVisible`·Coordinator 및 단일 Gantt 인스턴스를 유지한다. 전체 WBS는 null scope와 별도 명시 명령이며 일반 탭 복귀와 구분한다. 기존 API/service/repository/SQLite·server authorization·스케줄링·marker OFF 경계는 변경하지 않는다. 현재 메뉴·보조 Target·screenKey 및 #720 인계는 [Project UX](PROJECT_UX.md#issue-724--일정대시보드기준정보-현재-workspace-계약)를 따른다.
 

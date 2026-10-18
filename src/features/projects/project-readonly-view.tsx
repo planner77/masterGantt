@@ -97,7 +97,7 @@ type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
 import { DASHBOARD_SCREENS, MASTER_SCREENS, normalizeWorkspaceScreen, legacyWorkspaceScreen, logisticsSubview, workspaceSection, workspaceView, type WorkspaceScreen, type WorkspaceSection, type WorkspaceView } from "./project-workspace-navigation";
-import { ResourceCatalogAdmin } from "@/features/resources/resource-catalog-admin";
+import { ProjectResourceMemberships } from "@/features/resources/project-resource-memberships";
 type ResourceNavigationState = {
   view: WorkspaceView;
   screenKey?: WorkspaceScreen;
@@ -3164,10 +3164,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         />
       </section>
       <section id="project-panel-resource-master" role="tabpanel" aria-labelledby="project-tab-master.resources" hidden={activeView !== "resource-master"} className="project-workspace-panel project-resource-panel">
-        <h2>리소스 기준정보</h2>
-        <p>공용 리소스와 그룹은 별도 관리자 권한으로 관리합니다. 프로젝트 작업의 배정은 작업 편집기의 리소스 탭에서 관리합니다.</p>
+        <ProjectResourceMemberships recoveryRequired={canonicalRecoveryBlocked} publicId={publicId} revision={project.revision} active={activeView === "resource-master"} editable={editing} disabled={busy || editorSession !== null} onChanged={reloadCanonicalSnapshot} onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} taskNames={new Map(tasks.map(task => [task.taskId, task.name]))} onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })} />
         <button type="button" className="secondary-button" onClick={() => selectScreen("schedule")}>작업 일정에서 배정 관리</button>
-        <ResourceCatalogAdmin />
       </section>
     </div>
 

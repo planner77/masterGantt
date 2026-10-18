@@ -115,16 +115,19 @@ test("#724 exact screen·legacy URL·저장된 보기와 Resource 관리자 경�
   let writes = 0;
   page.on("request", request => { if (!['GET', 'HEAD'].includes(request.method())) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
+  await page.route(`**${projectPath}/resource-memberships?*`, route => route.fulfill({ json: { data: { projectRevision: state.project.revision, catalogRevision: 1, total: 0, offset: 0, limit: 50, groups: [], counts: { registered: 0, assigned: 0, roleOnly: 0, inactive: 0 }, resources: [] } } }));
   await page.goto(`/projects/${publicId}?screen=master.resources&view=milestones`);
   const master = page.locator("#project-panel-resource-master");
-  await expect(master.getByRole("heading", { name: "리소스 기준정보", exact: true })).toBeVisible();
-  await expect(master.getByLabel("관리자 비밀번호", { exact: true })).toBeVisible();
-  await expect(master.getByRole("button", { name: "로그인", exact: true })).toBeDisabled();
+  await expect(master.getByRole("heading", { name: "프로젝트 리소스", exact: true })).toBeVisible();
+  const catalogLink = master.getByRole("link", { name: "공용 리소스 관리 (별도 관리자)", exact: true });
+  await expect(catalogLink).toHaveAttribute("href", "/resources");
+  await expect(master.getByLabel("관리자 비밀번호", { exact: true })).toHaveCount(0);
+  await expect(master.getByRole("button", { name: "로그인", exact: true })).toHaveCount(0);
   await expect(master.getByRole("button", { name: "리소스 추가", exact: true })).toHaveCount(0);
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
-    await master.getByLabel("관리자 비밀번호", { exact: true }).focus();
-    await expect(master.getByLabel("관리자 비밀번호", { exact: true })).toBeFocused();
+    await catalogLink.focus();
+    await expect(catalogLink).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
     await page.screenshot({ path: `output/playwright/issue-724/resource-master-${width}.png` });
   }

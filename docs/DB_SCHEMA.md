@@ -1,3 +1,11 @@
+## Issue #727 — migration 0028 프로젝트 리소스 등록
+
+`0028_project_resource_memberships.sql`은 `project_resource_memberships`를 추가한다. `project_id`는 Project FK(CASCADE), `resource_id`는 global Resource FK(RESTRICT), `created_at`은 비어 있지 않은 UTC 문자열이다. `(project_id,resource_id)` 복합 PK의 STRICT/WITHOUT ROWID table이며 Resource별 역참조 index를 둔다. 기존 Project/Task Assignment/설비·시스템 역할을 이 관계에 자동 삽입하지 않는다.
+
+등록·해제는 IMMEDIATE transaction에서 session binding/authVersion/token hash/expiry, expected Project revision과 최신 Resource·usage를 재검증한다. 신규 등록은 활성 Resource 및 catalogRevision 일치를 요구한다. 변경이 있을 때 Project revision을 정확히 1회 증가시키고 같은 등록/없는 등록 해제는 no-op이다. 사용 중 해제409·stale412·실패는 등록 관계와 Project revision 전체 rollback이며 Assignment 원장에는 쓰지 않는다. Project Copy는 global Resource FK를 그대로 재사용하여 새 Project에 독립 관계를 만든다. Template는 optional `resourceMemberships` global public ID 목록을 최대10000개 중복 없이 보존하며 구 snapshot의 생략은 빈 목록과 호환된다. 전역 삭제는 등록 참조도 사용으로 계산한다.
+
+Migration은 기존 checksum/순서/전체 pending batch 원자성 계약을 그대로 따른다. 이전 버전으로 돌아가야 하면 대응 DB backup+image를 함께 사용하며 새 테이블만 지우는 무손실 rollback을 주장하지 않는다. 실제 migration/restart/Copy/Template 및 rollback 증거는 [Work Packet](exec-plans/active/ISSUE_727.md)에 구분한다.
+
 # Database Schema
 
 ## Issue #623 — legacy 이관·복원 통합 수용

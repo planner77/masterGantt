@@ -1,3 +1,4 @@
+import { ProjectResourceMembershipRepository, MEMBERSHIP_LIMITS } from "../repositories/project-resource-membership-repository-core";
 import { projectStageGates } from "../../domain/milestones/stage-gates";
 import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
 import { readStageSnapshot, withStageProjection } from "../projects/milestone-stage-core";
@@ -351,6 +352,7 @@ export class ProjectTemplateService {
 
       const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
+        resourceMemberships: new ProjectResourceMembershipRepository(this.database).publicIds(source.id),
         memberships: sourceStage.memberships.map((row) => {
           const member = tasks.find((task) => task.publicId === row.taskId);
           const milestone = tasks.find((task) => task.publicId === row.milestoneTaskId);
@@ -525,6 +527,19 @@ export class ProjectTemplateService {
       });
 
       this.owners.setByPublicId(newPublicId, normalizedOwner);
+      if (snapshot.resourceMemberships !== undefined) {
+        if (!Array.isArray(snapshot.resourceMemberships) || snapshot.resourceMemberships.length > MEMBERSHIP_LIMITS.projectMembers || new Set(snapshot.resourceMemberships).size !== snapshot.resourceMemberships.length) {
+          throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "프로젝트 리소스 등록 참조가 올바르지 않습니다.");
+        }
+        const memberships = new ProjectResourceMembershipRepository(this.database);
+        for (const resourceId of snapshot.resourceMemberships) {
+          if (typeof resourceId !== "string") throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "프로젝트 리소스 등록 참조가 올바르지 않습니다.");
+          const resource = this.resources.findResourceByPublicId(resourceId);
+          if (!resource) throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "등록 리소스를 찾을 수 없습니다. 프로젝트를 생성하지 않았습니다.");
+          memberships.register(project.id, resource.id, nowText);
+          if (!resource.active) warnings.push(`등록 리소스(${resource.name})가 비활성 상태입니다.`);
+        }
+      }
       if (snapshot.projectMaster) {
         const resolvedMaster = this.projectMaster.resolveProjectSelection(snapshot.projectMaster, { allowInactive: true });
         this.projectMaster.setProjectSelection(project.id, resolvedMaster);

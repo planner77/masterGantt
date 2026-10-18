@@ -1,0 +1,81 @@
+{
+  "issue": 727,
+  "scope": "LOCAL_FAST_FEEDBACK_AND_PRE_REVIEW_ONLY",
+  "baselineMain": "7393483c4a15007868fceeaee70fb9e13c8b119a",
+  "prerequisiteHead": "23857b6f3b3481a8402c6c421de2f7ff82304fe2",
+  "version": "0.118.0",
+  "environment": {
+    "node": "22.14.0",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "sqlite": "13.0.3",
+    "playwright": "1.63.0"
+  },
+  "backend": {
+    "distinctFiles": 19,
+    "distinctCasesIndividuallyPassing": 223,
+    "latestRelatedExportCases": 45,
+    "independentQaCases": 38
+  },
+  "frontend": {
+    "unitCases": 2,
+    "distinctChromiumCases": 14,
+    "combined13": {
+      "expected": 13,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0
+    },
+    "enhancedTwo": 2,
+    "hostRegression": 1,
+    "finalFiveWidths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ]
+  },
+  "remoteRequired": "NOT TESTED",
+  "trustedQa": "NOT TESTED",
+  "managerDecision": "NOT TESTED",
+  "releaseAuthorized": false,
+  "sourceFilesSha256": {
+    "db/migrations/0028_project_resource_memberships.sql": "33dac561d72e0ce8632e0b0fa30f3aa1182377f5d4a8b0bf0e0f27a342153a7a",
+    "package-lock.json": "1118ddcb9232d879bb204825d2cd7a52ba64c4dc956f34856499ad589bf842e1",
+    "package.json": "89badf606c6c1d609aa7732ace6007b4f3dbc43695b34848d08656a9dfbda928",
+    "src/app/api/projects/[publicId]/resource-memberships/[resourceId]/route.ts": "8563f18ec459736ccbe1144fde28482e2add8f573abab22cd44a231282427526",
+    "src/app/api/projects/[publicId]/resource-memberships/route.ts": "363f17c0a3936c49f4002392393bce1ac21dd7674aeab89c5a62b0f6ad14d04e",
+    "src/contracts/project-resource-memberships.ts": "d232112970bd8b9224b532214b2e32d313dce9c2951a68696cc8406561da407a",
+    "src/contracts/project-templates.ts": "f8fc2e4f3b13f4ac1c2e1e480e5c864ac3e5f89e5172d0b5d1a260b9c209334c",
+    "src/features/projects/project-readonly-view.tsx": "2332be011ed93fbe2822b458ce523e8ec6fcce3a5e877fea39315e95da8b1c8c",
+    "src/features/resources/project-resource-memberships-model.ts": "c10af94ca8fac17eb38b7edb0e2f55872b00cfeeb05bcfd97ccdea9b8584e360",
+    "src/features/resources/project-resource-memberships.module.css": "bbf5777cc2bbc02daa73d1b8058945dadd56804829f0144b8abd6a90bd740fcf",
+    "src/features/resources/project-resource-memberships.tsx": "13eaab344c3173df0ed0b96c1ff07aa553f9b8943a80dbce9ed9a9afe4b5e78e",
+    "src/server/exports/project-export-snapshot-service-core.ts": "f56edaf9a43cee07ceedce722115b3228c2af416cce4db69b1481f1a79fb9021",
+    "src/server/exports/project-json-export-core.ts": "0c188486c354da7876e8a59d67d5e171713708a9c9f91538932061f125cbdcdd",
+    "src/server/imports/project-import-parser-core.ts": "5e0f73b28fd15ffc42854d2a5533aac8ad97ab41158ad5810ff33691fdf64562",
+    "src/server/projects/project-copy-service-core.ts": "79ab063054e9b8debaea24f55a0aa186a0b7dc2611a99dc3d3bcfc2ae190201a",
+    "src/server/repositories/project-resource-membership-repository-core.ts": "9145e05d76ec65d1f0499c26beccbb464682195931437cb95108d7bafba876ad",
+    "src/server/repositories/resource-catalog-repository-core.ts": "2768d53df0ef8863e7985b2d2543a6c6b1e901d8e819db61d9e431f532513f44",
+    "src/server/resources/project-resource-membership-handlers-core.ts": "f5b2b0600f5dfb3366210ab4471a8d7d14e263c5811cd800636d81a4fd69089e",
+    "src/server/resources/project-resource-membership-service-core.ts": "80f6fa73df032afe594590961725b15568e954e3a25621be670107fdd7874d55",
+    "src/server/resources/project-resource-membership-service.ts": "7a5e7c13b0879a5a532b06e9b306dd77671f04e807f22dabb1e1bddef9d4a883",
+    "src/server/security/route-security-inventory.ts": "b84a816508842ffaf93393f7f64d0db4bb8a6b30eeec547cead349389386f4dc",
+    "src/server/templates/project-template-service-core.ts": "c11c01750484903e4aa2456f01abbdc8b15ea1048cec6cfa3553e93ee6635796",
+    "tests/domain/project-resource-memberships-model.test.ts": "874017ba9eb2beefc2dd61e3a5f886faf35c83b43e08a731c7899c713e3548f1",
+    "tests/e2e/project-resource-memberships-persistence.spec.ts": "9927c23cf943033a1655a8c7c23f92783cbc997d983ca41f65ea07bef5146f6b",
+    "tests/e2e/project-resource-memberships-ui.spec.ts": "d60d281ab3c25de58f807afdb5036030e216cb2d8d4f1b11bc722cfc5a3794be",
+    "tests/e2e/project-workspace-tabs-518.spec.ts": "800f5390d5f7608e6df0ede35eb24f0bfb8e49e922ab84262ebab991396617b6",
+    "tests/server/db/database.test.ts": "ffcbb345ebadab49017448f2ce0642b805dbf9a722c54d78677c50aafb93e7e3",
+    "tests/server/db/issue-623-target-migration.test.ts": "4b6751b2fe4aea9d8594845a5a6d22adeb132e815f1795e4d4a2ddb043ab56ec",
+    "tests/server/logistics/logistics-targets-acceptance.test.ts": "3a038d271dd45de322bb75c527d313135feabd37dc8e8c2cb95c832f9bbcd17c",
+    "tests/server/logistics/task-target-bindings.test.ts": "b0f785019b3f4e1d5e4d6c267f33553e3dc34bb2e92ace4b7baeabbcc68fb5a2",
+    "tests/server/migration-cli.test.ts": "75620c0f230987686b200ff99759607a4304e0bc84e5c11cd827e9c3919f02d2",
+    "tests/server/process-catalog/process-catalog-service.test.ts": "8ed33802900a2cba22945627e647db920112e782c92cb1cae7e7338fced52714",
+    "tests/server/projects/edit-authorization-handlers.test.ts": "27d4007a556b035fb182a5993a5034be09b4656d2c19749784aa06cf92526497",
+    "tests/server/resources/project-resource-memberships.test.ts": "eee388a772a8b73b40aea07e76703aa83b336fb36b86537dccecab375fa0201e"
+  },
+  "publicationBaseMain": "ea4194763568432ef98e823bb796b59a5beb317c",
+  "prerequisiteBaseTreeUnchanged": true
+}

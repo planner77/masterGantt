@@ -1,3 +1,9 @@
+## Issue #727 — 프로젝트 참여 관계의 교환 경계
+
+Project Copy 및 지원 Project Template는 명시 Resource 등록 관계를 global ID로 보존한다. Template의 optional `resourceMemberships`는 구 형식 생략과 호환되며 참조 검증 실패는 전체 transaction을 rollback한다. 자세한 DB/API 계약은 [DB_SCHEMA](DB_SCHEMA.md), [API](API.md), [Project Copy](ISSUE_27_PROJECT_COPY.md)를 따른다.
+
+일정용 JSON과 일반 일정 Excel은 명시 Project–Resource 참여 관계를 표현하지 않는다. 등록이 있는 Project를 무손실 교환인 것처럼 성공 출력하지 않고 명시 오류로 거부한다. 이 형식을 임의 확장한 Import도 unknown membership 필드를 무시하지 않는다. 명시 `includeResourceEffort=true` 공수 견적과 `resourceDashboard` Resource Excel은 조회 보고서이며 전체 Project backup/참여 등록 roundtrip이 아니다. SVG/PNG 역시 보이는 일정의 그림으로 참여 원장을 보존하는 백업이 아니다. 지원 Copy/Template 또는 대응 DB backup을 사용하고 #379의 전체 참조 교환 구현 완료로 주장하지 않는다.
+
 # Import / Export
 
 ## Issue #623 — Copy·Template·보고서와 backup 분리

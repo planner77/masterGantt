@@ -1,3 +1,11 @@
+## Issue #727 — 프로젝트 리소스 등록과 작업 배정 분리
+
+`기준정보 → 리소스`는 기존 전역 Resource ID를 프로젝트에 명시 등록한다. 미배정 등록자도 저장·새로고침 후 유지하며, 등록 관계는 ACL·Task 배정·실제 수행/근무 실적이 아니다. 같은 사람을 두 Project에 등록하거나 Project Copy/지원 Template를 사용해도 전역 사람 수는 증가하지 않는다.
+
+등록 목록은 명시 등록과 기존 개인 Task 배정·설비 Owner·시스템 PI/개발자 역할로 발견한 사용자를 출처와 함께 제공한다. 전역 전원을 프로젝트에 자동 편입하거나 기존 사용을 자동 명시 등록하지 않는다. 등록-only/역할-only/개인 배정/배정했으나 진척0/비활성을 구분하며 등록 인원과 Task 배정 인원을 따로 표시한다. Group 소속만으로 Task 개인 배정을 창작하지 않는다.
+
+Project 편집 세션·Origin·strong If-Match 및 원자 revision으로 등록·해제한다. 최신 사용이 있는 해제와 참조 중 전역 삭제를 막고 기존 배정/역할 이력을 자동 삭제하지 않는다. 등록·해제만으로 Task/Assignment/투입률/계획공수/Calendar·기존 Capacity R 변경은 0이다. [API](API.md), [화면](PROJECT_UX.md#issue-727--프로젝트-리소스-등록), [Work Packet](exec-plans/active/ISSUE_727.md)을 따른다.
+
 ## Milestone 표시 정책 변경 — marker-OFF WBS 우선 (#548, 2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 기존 #459~#464 Stage Gate·소속·진척·Ready/Completed·Resource/Target 집계 의미는 유지한다. **#552의 필수 제품 목표는 native Grid/Chart Milestone 행·Bar 0, 상단 Timeline marker OFF**이며, 기존 Dashboard·Task 소속 검색·Editor/관계·숨은 canonical 원본·Copy/Export를 보존한다. #551의 앱 소유 marker lane을 삭제하거나 기본 ON으로 전환하지 않는다. marker ON은 #552/#553/#574 baseline 수용 이후 #573 기술 검증·[#693](https://github.com/planner77/masterGantt/issues/693) 별도 구현/승인으로 최후에 판단한다. #667은 marker 기능을 포함하지 않는 최신 main의 Gantt 상태 정합성 통합을 먼저 담당한다. 기존 과거 #196/#462/MT1 설명은 현재 UI 및 결정 이력이고, 이 새 목표의 구현 완료 증거가 아니다.
