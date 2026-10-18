@@ -1,3 +1,10 @@
+## [0.117.0] — Unreleased / Issue #724
+
+- 프로젝트 상위 메뉴를 일정·대시보드·기준정보로 재배치한다. 여섯 분석/네 기준정보 메뉴에서 기존 KPI·Milestone 추가/관리·물류 통합 조회·Resource/Plan/Excel·동일 원본 편집을 재사용한다. Target은 관련 기준정보의 보조 호환 경로로 유지한다.
+- 일정의 중복 전체 프로젝트 탭을 제거하고 전체 일정 보기·Summary 범위/닫기·deep link를 유지한다. 일반 탭/정확 drill 복귀는 scope/filter와 동일 Gantt·Day/Week·scroll·선택·marker OFF를 보존한다. 공통 편집기는 숨은 일정 panel 밖에서 제공하고 기존 권한·dirty/stale 복구를 유지한다.
+- 공개 screenKey/subview/관점 adapter와 기존 탭·범위 E2E를 동기화하고 DESIGN·현재 화면·사용자 가이드를 갱신한다. 새 CRUD·집계 엔진·프로젝트 리소스 참여 원장·앱 내 매뉴얼 제품은 후속 범위다.
+- HIGH/OWNER_MANAGED, release_required=true, release_authorized=false. PR CI 시작까지만 요청되었으며 원격 Required/Trusted·Owner ACCEPT·병합·릴리스는 실제 증거 전 NOT TESTED다.
+
 ## [0.116.1] — Unreleased / Issue #719
 
 - Milestone·리소스·물류 구성·기준정보의 반복 설명을 인접 도움말로 이동하고 핵심 범위·단위·비가산·미저장 입력 경고는 직접 유지한다.

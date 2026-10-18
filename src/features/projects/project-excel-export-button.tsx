@@ -172,10 +172,19 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
     return () => {
       requestAnimationFrame(() => {
         const visible = (node: HTMLElement | null): node is HTMLElement => !!node && node.isConnected &&
-          !node.closest("[hidden], [inert]") && node.getClientRects().length > 0 && !node.matches(":disabled");
+          !node.closest("[hidden], [inert]") && node.checkVisibility({ checkVisibilityCSS: true }) &&
+          node.getClientRects().length > 0 && !node.matches(":disabled");
+        // The current workspace has two selected tabs: the top-level section and
+        // its active child. Restore a hidden Resource trigger to the actual
+        // secondary destination, not the first selected ancestor (#724 F05).
         if (visible(origin)) return;
-        const activeTab = Array.from(document.querySelectorAll<HTMLElement>('[role="tab"][aria-selected="true"]')).find(visible);
-        const fallback = activeTab ?? general;
+        const project = general?.closest(".project-readonly");
+        const selectedTabs = project ? Array.from(project.querySelectorAll<HTMLElement>(
+          '[role="tab"][aria-selected="true"][tabindex="0"]',
+        )).filter(visible) : [];
+        const childTab = selectedTabs.find(tab => tab.closest(".project-secondary-tabs"));
+        const sectionTab = selectedTabs.find(tab => tab.closest('[role="tablist"][aria-label="프로젝트 작업공간"]'));
+        const fallback = childTab ?? sectionTab ?? general;
         if (visible(fallback)) fallback.focus({ preventScroll: true });
       });
     };

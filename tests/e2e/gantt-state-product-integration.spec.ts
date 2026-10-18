@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { Route } from "@playwright/test";
 import type { ProjectSnapshotResponse } from "../../src/contracts/projects";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -127,7 +128,7 @@ test("SC-05 이전 GET이 늦게 도착해도 commit 미확인 잠금을 해제�
       await route.fulfill({ status: 500, json: { error: { code: "INTERNAL_ERROR" } } });
     } else await route.continue();
   });
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await page.getByRole("button", { name: "최신 일정 조회", exact: true }).click();
   await expect.poll(() => oldResponseReady).toBe(true);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
@@ -307,7 +308,7 @@ test("SC-13 #667/#552 WBS mode keeps the same canonical Milestone and marker OFF
     // is still reachable from the already existing Dashboard (not a synthetic row).
     await expect(milestoneRow).toHaveCount(0);
     await expect(milestoneBar).toHaveCount(0);
-    await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    await openWorkspaceView(page, "milestones");
     const dashboard = page.getByTestId("milestone-dashboard");
     await expect(dashboard.locator(`[data-milestone-task-id="${milestone.taskId}"]`)).toBeVisible();
     await expect(dashboard.getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true })).toBeVisible();

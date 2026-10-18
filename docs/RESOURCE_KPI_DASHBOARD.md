@@ -1,3 +1,7 @@
+## Issue #724 — 현재 분석/관리 위치
+
+기존 Project 리소스 분석은 `대시보드 → 리소스`에서 기본 현황·Milestone/Target 계층·비교·Plan·Excel 및 정확 Task/Assignment 편집을 제공한다. `기준정보 → 리소스`는 기존 전역 Resource 카탈로그·독립 관리자 인증을 재사용하며, Project 참여 등록이나 Task 배정을 자동 생성하지 않는다. Project 편집 권한과 전역 관리자 권한은 분리한다. 분석 조건·기간·접힘·선택·정확 drill/Editor 복귀 및 아래 기존 산식·분모·snapshot 계약은 메뉴 재배치로 바뀌지 않는다. [현재 경로 및 기능 이관표](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권), [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md#탐색과-전체-일정-복귀)를 따른다.
+
 ## Issue #624 — 물류 다관점에서 공통 Resource 조회 재사용
 
 「통합 조회」는 기존 `GET /api/projects/{publicId}/resource-dashboard`의 `projectionOrder`, `targetProjection`, `summary`, `stages`와 bounded `/details` selector를 그대로 사용한다. 차원 순서만 `processType,process,workArea,target` / `equipmentType,equipment,target` / `systemType,system,target` / `target,resource`로 변경한다. 필터와 snapshot이 같으면 raw Task/Assignment identity 및 전체 knownMD/MM·기간가중 진척은 관점과 무관하게 동일하다.

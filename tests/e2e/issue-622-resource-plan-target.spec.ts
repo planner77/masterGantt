@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { targetMasterPassword } from "./fixtures/target-project";
@@ -15,7 +16,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
     await f.mutate(`/tasks/${task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "resource", id: f.resources[0].id, allocation: { start: "2026-10-14", end: "2026-10-14", percent } }] }, "put");
   }
   await page.reload();
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-14");

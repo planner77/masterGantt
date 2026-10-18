@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../src/contracts/projects";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
@@ -31,7 +32,7 @@ test("#525 실제 비빈 SQLite/HTTP 공동 Task·중첩 분류·미설정·진�
   expect(report.summary.taskCount).toBe(2); expect(report.summary.resourceCount).toBe(2); expect(report.summary.assignmentCount).toBe(3); expect(report.summary.effort.state).toBe("partial"); expect(report.diagnostics.personallyUnassigned.count).toBe(2); expect(report.groups.reduce((sum, group) => sum + group.summary.effort.knownMd, 0)).toBeGreaterThan(report.summary.effort.knownMd);
   const readonly = await browser.newContext({ baseURL: origin });
   try {
-    const publicPage = await readonly.newPage(); await publicPage.goto(`/projects/${publicId}`); await expect(publicPage.getByText("읽기 전용", { exact: true }).first()).toBeVisible(); await publicPage.getByRole("tab", { name: "리소스", exact: true }).click(); const root = publicPage.locator('[data-resource-dashboard="true"]'); await expect(root).toHaveAttribute("data-ready", "true");
+    const publicPage = await readonly.newPage(); await publicPage.goto(`/projects/${publicId}`); await expect(publicPage.getByText("읽기 전용", { exact: true }).first()).toBeVisible(); await openWorkspaceView(publicPage, "resources"); const root = publicPage.locator('[data-resource-dashboard="true"]'); await expect(root).toHaveAttribute("data-ready", "true");
     const kpis = root.getByLabel("선택 범위 KPI");
     await expect(kpis).toContainText("2명");
     await expect(kpis).toContainText("알려진 부분합");

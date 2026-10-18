@@ -1,3 +1,9 @@
+## Issue #724 — 일정·대시보드·기준정보 N1 (2026-10-18)
+
+최신 main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` / version `0.116.0`에서 [Work Packet](ISSUE_724.md)의 N1 탐색·기존 기능 이관을 구현한다. 상위3/분석6/기준정보4, 전체 일정·Summary/rootTask와 동일 Gantt·공통 Editor·정확 drill을 보존하고 공개 screenKey/subview로 #725~#736 후속을 연결한다. DESIGN의 관리/분석 분리 원칙과 현재 화면·사용자 경로·#720 매뉴얼 영향을 동기화한다. 새 CRUD·집계·참여 원장·Target 자동생성은 비범위다.
+
+후보 `0.117.0` MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 사용자의 종료점은 구현·문서·관련 Local Fast Feedback·사전 검토 후 PR CI 시작 확인이다. CI 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다. 구현·문서/코드·최종 test-contract 사전 검토·선정 Local Fast Feedback는 PASS이며 원격 PR 게시를 준비한다. 보완 대상6개는 동일 source의5 PASS+최종 #6241 PASS로 통과했다. 원격 Required/Trusted·Owner ACCEPT는 NOT TESTED, 최초 로컬 lint/Chromium 환경 차단과 후속 검증은 [누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 구별 기록한다.
+
 ## Issue #449 — 최신 구현 대조·영속 UI/UX 지침 통합 (2026-10-18)
 
 하위 #452~#457 및 후속 #490/#491/#502의 closed/completed·FINAL 기록과 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`의 실제 구현/테스트를 대조했다. 미병합 PR #458의 DESIGN 충돌은 최신 main의 기존 지침을 보존하면서 내부 KPI 참조·입력 식별성·peer 목록/행 밀도·증거 구분만 관련 절에 통합한다. [감사 기록](../../ISSUE_449_UI_UX_AUDIT.md)과 [Work Packet](ISSUE_449.md)에 당시 source/실험, 현재 완료표, 역사적 #457 AC2 GAP/FAIL, open #517 환경 NOT TESTED/BLOCKED를 분리한다. 제품 source·테스트·CI 정책 변경 없음, app0.116.0 유지, LOW/OWNER_MANAGED, release_required=false/release_authorized=false. 요청 종료점은 리뷰·최신 main 충돌 해소 후 PR CI 시작이며 결과 모니터링·병합·배포·Epic 종료는 제외한다.

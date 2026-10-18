@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { randomUUID } from "node:crypto";
 import type { Locator } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -133,7 +134,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
   };
   await page.goto(`/projects/${publicId}`);
   const ganttIdentity = await rememberGanttRoot(page);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(page.locator('[data-resource-dashboard="true"]')).toHaveAttribute("data-ready", "true");
   await expect(page.locator('[data-resource-dashboard="true"]')).toHaveAttribute("data-ready", "true");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
@@ -173,7 +174,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await expect(taskSearch).toBeFocused();
     await expect(taskReset).toHaveCount(0);
 
-    await page.getByRole("tab", { name: "리소스", exact: true }).click();
+    await openWorkspaceView(page, "resources");
     const dashboard = page.locator('[data-resource-dashboard="true"]');
     const resourceToolbar = dashboard.getByRole("search", { name: "리소스 검색과 필터" });
     const resourceSearch = resourceToolbar.getByRole("searchbox");

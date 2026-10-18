@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { APIResponse, Page } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -53,8 +54,8 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   await page.getByRole("button", { name: "Milestone 조건 해제", exact: true }).click(); await expect(row(free.taskId)).toBeVisible(); await page.getByRole("button", { name: /^필터/ }).click(); await expect(taskType).toBeChecked(); await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "초기화", exact: true }).click();
   await row(summary.taskId).click({ button: "right" }); await page.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click(); await select(m1.taskId); await expect(row(child.taskId)).toBeVisible(); await expect(row(m1.taskId)).toHaveCount(0);
-  await page.getByRole("tab", { name: "전체 프로젝트", exact: true }).click(); await expect(stage()).toContainText("전체");
-  await page.getByRole("tab", { name: "기본 Summary", exact: true }).click(); await expect(stage()).toContainText(name); await page.getByRole("tab", { name: "전체 프로젝트", exact: true }).click();
+  await page.getByRole("button", { name: "전체 일정 보기", exact: true }).first().click(); await expect(stage()).toContainText("전체");
+  await page.getByRole("tab", { name: "기본 Summary", exact: true }).click(); await expect(stage()).toContainText(name); await page.getByRole("button", { name: "전체 일정 보기", exact: true }).first().click();
   expect(reads).toBe(0); expect(writes).toBe(0); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", instance!);
   // Same #461 editor is the only mutation surface, and one PATCH updates Grid/filter.
   await row(child.taskId).click({ button: "right" }); await page.getByRole("menuitem", { name: "Milestone 연결…", exact: true }).click();
@@ -62,7 +63,7 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   expect(writes).toBe(0); const picker = dialog.getByRole("combobox", { name: "Milestone", exact: true }); await picker.fill(m2.taskId); await picker.press("Enter"); const before = snapshot.data.project.revision;
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0); snapshot = await get(); expect(snapshot.data.project.revision).toBe(before + 1); expect(snapshot.data.tasks.find((task) => task.taskId === child.taskId)?.membership?.explicitMilestoneTaskId).toBe(m2.taskId); expect(writes).toBe(1);
   await expect(row(child.taskId).getByRole("button", { name: /Milestone:/ })).toContainText("직접");
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await page.locator(`#project-panel-milestones [data-milestone-task-id="${m2.taskId}"]`).getByRole("button", { name: / 소속 작업 조회$/ }).click(); await expect(dialog.getByRole("tab", { name: /소속 작업/ })).toHaveAttribute("aria-selected", "true"); await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await select(m2.taskId); await expect(page.getByRole("status").filter({ hasText: "유효 소속 일반 작업 2개" })).toBeVisible(); await page.getByRole("button", { name: "초기화", exact: true }).click();
   await mkdir("output/playwright/issue-462", { recursive: true }); const metrics: unknown[] = [];

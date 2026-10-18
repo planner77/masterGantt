@@ -6,6 +6,14 @@
 
 # Requirements baseline
 
+## Issue #724 — 일정·대시보드·기준정보 탐색
+
+Project Workspace의 상위 탐색은 `일정 / 대시보드 / 기준정보`다. 대시보드 하위는 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 하위는 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`를 정확한 순서로 제공한다. 기존 KPI·Milestone 추가/관리·Resource/Plan/Excel·물류 통합 조회와 원본 편집은 같은 ID/API/editor를 재사용한다. Target은 관련 기준정보의 보조 호환 경로이며 새 주메뉴·생성 필수 단계·숨은 자동 생성이 아니다.
+
+일정의 `전체 프로젝트` 중복 하위 탭만 제거한다. 전체 WBS 기본·명시 복귀·여러 열린 Summary 범위·선택/닫기 fallback·`rootTask` 공유 링크·scope별 필터를 유지한다. 일반 일정/조회 복귀는 명시 전체 scope 선택과 구분한다. 한 번에 단일 root인 기존 계약을 복합 root union으로 확대하지 않는다.
+
+탭 왕복으로 canonical write/Task·Assignment 복제를 만들지 않고 Gantt 인스턴스·Day/Week·scroll·선택·fullscreen·marker OFF를 보존한다. 숨은 panel의 focus/접근성을 차단하고 Task/Assignment/Milestone 편집기는 비활성 일정 안에 가두지 않는다. 기준정보의 Resource는 기존 전역 관리자 인증과 Project 편집 권한을 구분한다. 새 CRUD/집계/참여 원장은 #725~#736 후속이며 N1은 기존 기능과 공개 통합 계약을 제공한다. [현재 화면/이관표](PROJECT_UX.md#issue-724--일정대시보드기준정보-현재-workspace-계약), [Work Packet](exec-plans/active/ISSUE_724.md)을 따른다.
+
 ## Issue #623 — Resource 우선 MVP의 Q1 수용 Gate
 
 기초 공정/Target/Task 연결부터 Resource·Plan·정확 원본 편집·Excel까지 shared canonical fixture와 실제 API/Chromium/OOXML로 통합 재검증한다. 기존530·same-binding/member·T0/A/R·nullable·같은 snapshot·권한/원자성/복귀를 보존하고 fresh/legacy migration·Copy/Template·backup/restart·format 경계를 검증한다.
