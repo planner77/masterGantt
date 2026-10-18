@@ -144,3 +144,10 @@ L9 실제 진단2: Task Editor 종료 후 `BUTTON#project-tab-dashboard.process`
 - [원본 Run 39101001199.1](https://github.com/planner77/masterGantt/actions/runs/39101001199) HEAD `7d61e956686aff0fa66a06c677c60a53d5dee6f8`, Base `7393483c4a15007868fceeaee70fb9e13c8b119a`, test merge `c4540dd3c7d6887660fffe9ce58fdde4d51d1c69`. Quality/Docker PASS, Chromium shard4의 `milestone-visibility.spec.ts:145` strict locator 2매칭 FAIL, 다른5 shard 취소 및 QA Final required E2E FAIL. 새 코드의 모든 E2E 결과는 아직 미확정.
 - [누적 실패 원장 F02](../../ISSUE_724_FAILURE_ANALYSIS.md)에 과거 L1–L10/F01 전체와의 공통 TEST_CONTRACT 유형·미검증 경계를 기록한다. 기존 Summary→Milestone 명시 복구에서 경고 내부 복구 버튼만 정확히 선택하고 상단 전역 버튼의 `aria-pressed=false`를 확인한다. 클릭 이후 동일 Gantt/native Milestone 제거/무쓰기 단언은 보존한다.
 - 재확인한 최신 main `7393483c4a15007868fceeaee70fb9e13c8b119a`는 현재 HEAD에 합류 완료(behind=0), PR mergeable=true, 미해결 리뷰0; 불필요한 second merge를 만들지 않는다. 새 수정 Commit Push 시 새 Full PR CI가 시작되어야 하며 모니터링/병합/Main/GHCR/Issue 종료는 하지 않는다. 원격 결과·Owner ACCEPT는 **NOT TESTED**, release_authorized=false.
+
+
+### PR CI #2950.1 F03 — #719 신규 E2E 탐색 계약 합류 (2026-10-18)
+
+- 원본 [Run 39102030888.1](https://github.com/planner77/masterGantt/actions/runs/39102030888), HEAD `dc5e4107bad8adc9a3b8eecdf264b2335fba1e11` / Base `7393483c4a15007868fceeaee70fb9e13c8b119a` / test merge `b056100a718f475c813ae009f4149147bf9004c3`. Quality/Docker PASS, Chromium shard2 #719 `openSurface`의 구 상위 Milestone 탭 lookup 120s timeout, 나머지5 shard CANCELLED, QA Final required E2E FAIL.
+- 누적 [#724 실패 원장 F03](../../ISSUE_724_FAILURE_ANALYSIS.md)에는 L1–L10/F01/F02와 비교·원인·다른 shard 미검증·수정 대상을 추가한다. 동일 #719 파일의 *두* 낡은 navigation 경로를 공유 2단계 Workspace helper로 변경한다. Milestone/리소스/KPI와 공정 없는 설비 경로의 visible selected-tab 단언을 보존·추가하고 기존 도움말·미저장·5폭·focus/모달·초안 테스트를 전부 유지한다.
+- #719은 최신 main의 이미 병합된 기능이며 원본 도움말 제품 코드/테스트 정책을 되돌리지 않는다. 현 시점 latest main 정렬 behind=0·충돌0·리뷰 스레드0. 새 HEAD의 실제 PR Quality/E2E6/Docker/Trusted QA 결과와 Owner ACCEPT는 실행 전 **NOT TESTED**. release_required=true / release_authorized=false, 병합·Main CI·GHCR·Issue 종료 또는 CI 모니터링은 요청 범위 밖이다.

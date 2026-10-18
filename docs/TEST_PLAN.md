@@ -4416,3 +4416,10 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 - PR CI [#2949.1](https://github.com/planner77/masterGantt/actions/runs/39101001199)의 Chromium shard4 #552 경로는 제품 상태 변경 이전에 `전체 일정 보기` 동명 버튼(상단 전역 명령 및 잘못된 Summary scope 복구)이 2개 존재하여 Playwright strict locator가 실패했다. F01 측정 높이 수정 결과는 해당 Run에서 shard1이 취소되어 아직 확인되지 않았다.
 - 기존 `tests/e2e/milestone-visibility.spec.ts`에서 `선택한 Summary 범위를 열 수 없습니다.` alert 내부 복구 버튼을 명확히 클릭한다. 별도 전역 전체 일정 명령 `aria-pressed=false`, 경고·범위 invalid/inert·Stable leaf 복구·native M 부재·동일 Gantt·mutations0 검증을 유지한다. 제품, 실제 권한, CI Gate, timeout/retry/skip은 바꾸지 않는다.
 - 원격 새 Head full Chromium E2E6/Quality/Docker 및 Trusted QA는 실행 결과 관측 전 **NOT TESTED**. 매번 [#724 전 실패 원장](ISSUE_724_FAILURE_ANALYSIS.md) L1–L10 + F01–F02 전체를 재참조하여 유사한 locator 대상 충돌을 비교한다.
+
+
+## Issue #724 — F03 Issue #719 contextual-help E2E navigation regression (2026-10-18)
+
+- [PR CI #2950.1](https://github.com/planner77/masterGantt/actions/runs/39102030888)의 shard2에서 `tests/e2e/issue-719-contextual-help.spec.ts` 공통 `openSurface`가 폐지된 상위 `Milestone 대시보드` 탭을 기다려 120s timeout. 같은 파일에 구 `물류 구성 세부 영역` 설비 탭 경로도 존재해 두 입력을 함께 보완한다. 직접 실패 34 PASS/1 FAIL/95 미실행, 다른5 shard 취소·QA 파생 FAIL을 구분한다. 기존 F01/F02의 변경은 해당 shard 취소로 최종 실증되지 않았다.
+- 기존 6종 `milestone/resource/resource-admin/logistics/logistics-admin/master`의 실제 390/768/1024/1440/1920px fixture, tooltip·overflow/원래 데이터 위치, 도움말 키보드·터치·Escape·focus와 미저장·공정 필수 경고 테스트는 전부 유지한다. 프로젝트 세 화면의 경로는 공통 `openWorkspaceView` 사용: Milestone·Resource는 대시보드 하위, 원래 물류 KPI는 대시보드 KPI, 설비 추가는 기준정보/설비이며 해당 하위 tab 선택 상태를 검증한다. 과거 구 메뉴를 찾는 테스트만 수정하고 기본 Timeout120초/skip/retry 또는 CI Gate를 변경하지 않는다.
+- 직접 E2E·전체 Chromium 6샤드·Trusted QA·Owner 수용은 정확 신규 HEAD의 원격 결과 전 **NOT TESTED**. 원인/수정/후속 누적 절차는 [#724 단일 원장 F03](ISSUE_724_FAILURE_ANALYSIS.md)과 L1–L10, F01/F02를 따른다.
