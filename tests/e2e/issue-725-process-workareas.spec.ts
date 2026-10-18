@@ -366,17 +366,28 @@ test("#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 �
   await page.locator("#panel-equipment").getByRole("row").filter({ hasText: "E-DUP" })
     .getByRole("button", { name: "수정", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "설비 수정", exact: true });
-  const candidates = dialog.getByRole("checkbox", { name: /활성 공유 구역/ });
-  await expect(candidates).toHaveCount(2);
-  await expect(candidates.nth(0)).toBeEnabled();
-  await expect(candidates.nth(1)).toBeEnabled();
-  // Selecting the second process replaces, rather than duplicates, the owner of the same WorkArea.
-  await candidates.nth(0).check();
-  await candidates.nth(1).check();
-  await expect(candidates.nth(0)).not.toBeChecked();
-  await expect(candidates.nth(1)).toBeChecked();
+  // Project-local process codes use PROC-<UUID> and the picker sorts mappings by code.
+  // DOM order is not the fixture's A/B creation order; select by the actual owner name.
+  const ownerA = dialog.getByRole("checkbox", { name: /활성 공유 구역.*A 공정/ });
+  const ownerB = dialog.getByRole("checkbox", { name: /활성 공유 구역.*B 공정/ });
+  await expect(ownerA).toHaveCount(1);
+  await expect(ownerB).toHaveCount(1);
+  await expect(ownerA).toBeEnabled();
+  await expect(ownerB).toBeEnabled();
+  // One physical WorkArea must have exactly one selected Project-process owner.
+  await ownerA.check();
+  await ownerB.check();
+  await expect(ownerA).not.toBeChecked();
+  await expect(ownerB).toBeChecked();
   await expect(dialog.getByRole("group", { name: "연결 WorkArea (선택)", exact: true })).toContainText("선택 1개");
+  // Prove that the owner selected in the UI reaches the real HTTP mutation unchanged.
+  const updateRequestPromise = page.waitForRequest(request =>
+    request.method() === "PATCH" &&
+    new URL(request.url()).pathname === `/api/projects/${f.publicId}/logistics/equipment/${equipmentId}`);
   await submitEquipmentEdit(page, dialog);
+  const updateRequest = await updateRequestPromise;
+  expect((updateRequest.postDataJSON() as { workAreaLinks: Array<{ processId: string; workAreaId: string }> }).workAreaLinks)
+    .toEqual([{ processId: f.processIds[1], workAreaId: sibling.id }]);
   await expect(dialog).toHaveCount(0);
   const savedResponse = await page.request.get(`${f.api}/logistics`);
   expect(savedResponse.status()).toBe(200);
