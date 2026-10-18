@@ -1,4 +1,5 @@
 import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
 import { inflateRawSync } from "node:zlib";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
@@ -41,7 +42,7 @@ function archive(bytes: Buffer) {
 }
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 async function resource(page: Page) {
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-05");
@@ -135,8 +136,8 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   await editor(page).getByRole("button", { name: "저장", exact: true }).click();
   await expect(editor(page)).toHaveCount(0);
   expect((await assertSaved(1)).name).toBe("SHARED · WBS 동일 원본");
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   await page.getByRole("button", { name: `Target 상세: ${f.targets[0].name}`, exact: true }).click();
   const targetDetail = page.getByRole("dialog", { name: `Target 상세 · ${f.targets[0].name}`, exact: true });
   await expectRawIdentifier(targetDetail, "작업 ID", f.task.taskId);

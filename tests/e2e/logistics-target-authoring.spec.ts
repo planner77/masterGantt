@@ -1,4 +1,5 @@
 import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir } from "node:fs/promises";
 import type { Locator } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -28,8 +29,8 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const before = await f.snapshot();
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   for (const [index, letter, quantity] of [[0, "A", 10], [1, "B", 5]] as const) {
     await page.getByRole("button", { name: "Target 추가", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Target 추가", exact: true });
@@ -96,7 +97,7 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   await expect(nested).toHaveCount(0);
   expect((await f.snapshot()).data.project.revision).toBe(queryRevision);
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+  await openWorkspaceView(page, "targets");
   await page.getByRole("button", { name: "Target 상세: Target A", exact: true }).click();
   const detail = page.getByRole("dialog", { name: "Target 상세 · Target A", exact: true });
   await expectRawIdentifier(detail, "작업 ID", f.task.taskId);
@@ -112,7 +113,7 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   const edited = await f.snapshot();
   expect(edited.data.tasks).toHaveLength(before.data.tasks.length);
   expect(edited.data.tasks.find(task => task.taskId === f.task.taskId)?.name).toBe("같은 작업에서 수정한 시운전");
-  await expect(page.getByRole("tab", { name: "물류 구성", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tablist", { name: "프로젝트 작업공간" }).getByRole("tab", { name: "기준정보", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(detail).toContainText("같은 작업에서 수정한 시운전");
   await expect.poll(() => detail.evaluate(node => ({
@@ -141,8 +142,8 @@ test("Target 초안·412·readonly·응답역전과 관리자 경계", async ({ 
   const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   await f.mutate("/logistics/targets", { code: "COMMON", name: "공통 대상", scope: "project_common", members: [{ kind: "system", create: { code: "MCS", name: "MCS", systemType: "mcs", layer: "coordinator", scope: "project" } }] });
   await page.reload();
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   await page.getByRole("button", { name: "Target 추가", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Target 추가", exact: true });
   await dialog.getByLabel("Target 이름", { exact: true }).fill("보존할 초안");
@@ -186,8 +187,8 @@ test("Target 초안·412·readonly·응답역전과 관리자 경계", async ({ 
   try {
     const readonly = await readonlyContext.newPage();
     await readonly.goto(`${isolatedApplication}/projects/${f.publicId}`);
-    await readonly.getByRole("tab", { name: "물류 구성", exact: true }).click();
-    await readonly.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+    await openWorkspaceView(readonly, "logistics");
+    await openWorkspaceView(readonly, "targets");
     await expect(readonly.getByRole("button", { name: "Target 추가", exact: true })).toBeDisabled();
     await expect(readonly.getByRole("button", { name: "Target 수정: 공통 대상", exact: true })).toHaveCount(0);
     await readonly.getByRole("button", { name: "Target 상세: 공통 대상", exact: true }).click();
@@ -204,8 +205,8 @@ test("Target 390/768/1024/1440/1920px 긴 한글·키보드·focus·내부 overf
   page.setDefaultTimeout(10_000);
   const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
   const revision = (await f.snapshot()).data.project.revision;
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   const add = page.getByRole("button", { name: "Target 추가", exact: true });
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -311,8 +312,8 @@ test("인증된 관리자 inline WorkArea·새 공정 매핑의 별도 저장과
   test.setTimeout(150_000);
   page.setDefaultTimeout(10_000);
   const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   await page.getByRole("button", { name: "Target 추가", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Target 추가", exact: true });
   await dialog.getByLabel("Target 이름", { exact: true }).fill("관리자 등록 중에도 보존되는 초안");
@@ -356,8 +357,8 @@ test("공유 원본 인스턴스 이름 수정은 사용처 확인 후 한 번 �
   await f.mutate("/logistics/targets", { code: "B", name: "공유 대상 B", scope: "project_common", members: [{ kind: "system", entityId: a.members[0].entityId }] });
   await f.mutate(`/tasks/${f.task.taskId}/target-bindings`, { bindings: [{ targetId: a.id, selection: "whole", scope: "self", memberIds: [] }] }, "put");
   await page.reload();
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   await page.getByRole("button", { name: "Target 상세: 공유 대상 A", exact: true }).click();
   const detail = page.getByRole("dialog", { name: "Target 상세 · 공유 대상 A", exact: true });
   await detail.getByRole("button", { name: "원본 인스턴스 수정: 공유 원본", exact: true }).click();
@@ -390,8 +391,8 @@ test("Target 목록·상세·WBS 연결·관리자 입력의 5폭 왕복은 조�
   const revision = (await f.snapshot()).data.project.revision;
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "targets");
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.getByLabel("Target 검색", { exact: true }).fill("긴 한글");

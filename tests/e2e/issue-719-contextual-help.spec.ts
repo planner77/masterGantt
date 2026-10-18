@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { expect, test, type Page, type Locator } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 import { installStatefulProjectFixture, projectPath, publicId } from "../fixtures/stateful-project";
@@ -26,7 +27,15 @@ async function openSurface(page: Page, surface: Surface): Promise<Locator> {
     return route.fulfill({ json: { data: { projectRevision: state.project.revision, catalogRevision: 1, asOfDate: params.get("asOfDate") || "2026-09-29", timezone: "Asia/Seoul", calculatedAt: "2026-09-29T00:00:00Z", horizonDays: Number(params.get("horizonDays") || 14), systemView: params.get("systemView") || "direct", activeOnly: params.get("activeOnly") === "true", includedTaskIds: row.taskIds, includedMilestoneIds: [], kpi: { progressPercent: 50, totalDuration: 2, taskCount: 1, overdueTaskCount: 0, overdueTaskIds: [], milestoneTotalCount: 0, milestoneOverdueCount: 0, milestoneOverdueIds: [], milestoneUpcomingCount: 0, milestoneUpcomingIds: [] }, effort: { plannedMd: 1, plannedMm: null, mdPerMm: null, unsetAllocationCount: 0, workloadRange: { from: null, to: null } }, quality: { unlinkedLeafTaskCount: 0, totalLeafTaskCount: 1, unlinkedLeafTaskPercent: 0, equipmentWithoutPrimaryControllerCount: 0, equipmentWithoutOwnerCount: 0, systemsWithoutPrimaryPICount: 0, totalEquipmentMasterCount: 0, totalEquipmentQuantity: 0 }, breakdowns: { processes: [row], equipment: [], systems: [] } } } });
   });
   await page.goto(`/projects/${publicId}`);
-  await page.getByRole("tab", { name: surface === "milestone" ? "Milestone 대시보드" : surface === "resource" ? "리소스" : "물류 구성", exact: true }).click();
+  // #724 F03: follow the real 3/6/4 navigation; old top-level labels no longer exist.
+  const destination = surface === "milestone" ? "milestones" : surface === "resource" ? "resources" : "kpi";
+  await openWorkspaceView(page, destination);
+  if (surface === "milestone" || surface === "resource") {
+    await expect(workspaceViewTab(page, surface === "milestone" ? "milestones" : "resources")).toHaveAttribute("aria-selected", "true");
+  } else {
+    await expect(page.getByRole("tablist", { name: "대시보드 보기" })
+      .getByRole("tab", { name: "KPI", exact: true })).toHaveAttribute("aria-selected", "true");
+  }
   const root = surface === "milestone" ? page.getByTestId("milestone-dashboard") : surface === "resource" ? page.locator('[data-resource-dashboard="true"]') : page.getByTestId("logistics-dashboard-view");
   if (surface !== "logistics") await expect(root).toHaveAttribute("data-ready", "true");
   else await expect(root.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
@@ -105,8 +114,9 @@ test("#719 공정 없는 설비 추가는 지속 경고를 표시하고 도움�
   test.skip(before, "after prerequisite regression");
   const state = await installStatefulProjectFixture(page); state.sessionEditable = true;
   await page.goto(`/projects/${publicId}`);
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tablist", { name: "물류 구성 세부 영역" }).getByRole("tab", { name: /^설비/ }).click();
+  await openWorkspaceView(page, "equipment");
+  await expect(page.getByRole("tablist", { name: "기준정보 보기" })
+    .getByRole("tab", { name: "설비", exact: true })).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "+ 설비 추가", exact: true }).click();
   const warning = page.getByRole("alert").filter({ hasText: "설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다." });
   await expect(warning).toBeVisible(); await expect(page.getByRole("dialog", { name: "설비 추가", exact: true })).toHaveCount(0);

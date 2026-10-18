@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./workspace-navigation";
 import { expect, type Page } from "@playwright/test";
 import type { MilestoneDashboardFilterInput } from "../../../src/contracts/milestone-dashboard";
 import { createWorkingCalendar } from "../../../src/domain/scheduling/calendar";
@@ -34,7 +35,7 @@ export async function installMilestoneDashboardFixture(page: Page, state: Milest
 
 /** Exact canonical identity works for equal names and milestones outside the date viewport. */
 export async function openMilestoneEditor(page: Page, taskId: string) {
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.locator("#project-panel-milestones");
   await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   // The Dashboard can show only filtered or paged rows. Resolve the exact

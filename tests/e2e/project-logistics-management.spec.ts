@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Locator } from "@playwright/test";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 import {
@@ -227,7 +228,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Verify workspace tabs
     const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
-    const logisticsTab = tabs.getByRole("tab", { name: "물류 구성", exact: true });
+    const logisticsTab = tabs.getByRole("tab", { name: "기준정보", exact: true });
     const scheduleTab = tabs.getByRole("tab", { name: "일정", exact: true });
 
     await expect(logisticsTab).toBeVisible();
@@ -250,8 +251,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await page.keyboard.press("Escape");
 
     // LG-05 dashboard is the default sub-tab. Move explicitly to process management.
-    await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await expect(page.getByRole("tablist", { name: "기준정보 보기" }).getByRole("tab", { name: "공정&WorkArea", exact: true })).toHaveAttribute("aria-selected", "true");
+    await openWorkspaceView(page, "processes");
     const processPanel = page.locator("#panel-processes");
     await expectIdentifier(processPanel, "입고 공정", "공정 코드", "PROC-01");
     await expect(processPanel.locator("strong").filter({ hasText: "입고 공정" })).toBeVisible();
@@ -261,7 +262,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 2: Equipment
-    await page.getByRole("tab", { name: "설비 관리" }).click();
+    await openWorkspaceView(page, "equipment");
     const equipmentPanel = page.locator("#panel-equipment");
     await expectIdentifier(equipmentPanel, "1번 자동창고 스토커", "설비 코드", "STK-01");
     await expect(equipmentPanel.getByText("1번 자동창고 스토커", { exact: true })).toBeVisible();
@@ -272,7 +273,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(equipmentPanel.getByText("★ 홍길동 (owner)", { exact: true }).first()).toBeVisible();
 
     // Switch to Sub-tab 3: Systems
-    await page.getByRole("tab", { name: "물류 시스템" }).click();
+    await openWorkspaceView(page, "systems");
     const systemsPanel = page.locator("#panel-systems");
     await expectIdentifier(systemsPanel, "통합 반송 조율 시스템", "시스템 코드", "MCS-01");
     await expect(systemsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
@@ -284,7 +285,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(systemsPanel.getByText("★ 이영희 (pi)", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 4: Relations
-    await page.getByRole("tab", { name: "제어·조율 관계" }).click();
+    await openWorkspaceView(page, "relations");
     const relationsPanel = page.locator("#panel-relations");
     const relationRows = relationsPanel.getByRole("row");
     await expect(relationRows.filter({ hasText: "통합 반송 조율 시스템" }).first()).toBeVisible();
@@ -308,11 +309,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       fixture.logistics = sampleLogisticsData();
 
       await page.goto(`/projects/${publicId}`);
-      await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+      await openWorkspaceView(page, "logistics");
 
-      const tablist = page.getByRole("tablist", { name: "물류 구성 세부 영역" });
-      const dashboardTab = tablist.getByRole("tab", { name: "KPI 대시보드", exact: true });
-      const relationsTab = tablist.getByRole("tab", { name: "제어·조율 관계", exact: true });
+      const tablist = page.getByRole("tablist", { name: "기준정보 보기" });
+      const dashboardTab = tablist.getByRole("tab", { name: "공정&WorkArea", exact: true });
+      const relationsTab = tablist.getByRole("tab", { name: "리소스", exact: true });
 
       const metrics = await tablist.evaluate((element) => {
         const style = getComputedStyle(element);
@@ -367,7 +368,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     fixture.logistics = sampleLogisticsData();
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
+    await openWorkspaceView(page, "logistics");
 
     // Verify readonly notice
     await expect(
@@ -423,8 +424,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "processes");
 
     await page.getByRole("button", { name: "+ 공정 추가" }).click();
     const dialog = page.getByRole("dialog", { name: "공정 추가" });
@@ -474,8 +475,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "processes");
 
     // Open add process dialog
     const addButton = page.getByRole("button", { name: "+ 공정 추가" });
@@ -514,8 +515,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "물류 시스템" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "systems");
 
     const mcsRow = page.locator("#panel-systems").getByRole("row").filter({ has: page.getByText("통합 반송 조율 시스템", { exact: true }) });
     await mcsRow.getByRole("button", { name: "하위연계" }).click();
@@ -543,8 +544,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
 
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성" }).click();
-    await page.getByRole("tab", { name: "공정 관리" }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "processes");
 
     const processPanel = page.locator("#panel-processes");
     const processRow = processPanel.getByRole("row").filter({ has: page.locator("strong").filter({ hasText: "입고 공정" }) });
@@ -565,8 +566,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     for (const width of [390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/projects/${publicId}`);
-      await page.getByRole("tab", { name: "물류 구성" }).click();
-      await page.getByRole("tab", { name: "공정 관리" }).click();
+      await openWorkspaceView(page, "logistics");
+      await openWorkspaceView(page, "processes");
       await expect(page.getByRole("heading", { level: 2, name: "물류 구성" })).toBeVisible();
 
       const addButton = page.getByRole("button", { name: "+ 공정 추가" });

@@ -2,6 +2,7 @@ import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 import type { ProjectSnapshotResponse } from "../../src/contracts/projects";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 
 test.use(isolatedApplicationOptions);
 
@@ -50,7 +51,7 @@ test("#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식�
 
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const dashboard = page.getByTestId("milestone-dashboard");
   await expect(dashboard).toHaveAttribute("data-ready", "true");
   await expect(dashboard.locator("tr[data-milestone-task-id]")).toHaveCount(2);
@@ -76,8 +77,7 @@ test("#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식�
   expect(snapshot.data.tasks.find(task => task.taskId === milestones[0].taskId)).toEqual(initial.data.tasks.find(task => task.taskId === milestones[0].taskId));
   expect(snapshot.data.tasks.find(task => task.taskId === milestones[1].taskId)).toMatchObject({ name: "두 번째 Milestone만 변경", externalId: externalIds[1] });
 
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: /^공정 관리(?: \d+)?$/ }).click();
+  await openWorkspaceView(page, "processes");
   await page.getByLabel("물류 항목 검색", { exact: true }).fill(codes[1]);
   const processPanel = page.locator("#panel-processes");
   await expect(processPanel.locator("tbody tr")).toHaveCount(1);
@@ -108,7 +108,7 @@ test("#717 실제 HTTP·SQLite에서 동명 Milestone·공정의 정확한 식�
     peer.on("request", request => { if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(api)) readonlyMutations++; });
     await peer.goto(`/projects/${publicId}`);
     await expect(peer.getByText("읽기 전용", { exact: true }).first()).toBeVisible();
-    await peer.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    await openWorkspaceView(peer, "milestones");
     const readonlyDashboard = peer.getByTestId("milestone-dashboard");
     await readonlyDashboard.getByLabel("Milestone 검색", { exact: true }).fill(milestones[1].taskId);
     const readonlyStage = readonlyDashboard.locator(`tr[data-milestone-task-id="${milestones[1].taskId}"]`);

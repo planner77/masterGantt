@@ -36,11 +36,11 @@ marker-OFF에서는 lane 높이/guide/tooltip·marker-only observer/RAF/listener
 
 ## Issue #518 — Project Workspace 단일 상위 탭과 세로 영역
 
-상위 tablist의 peer는 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 순서다. 일정의 중복 Gantt/Dashboard tablist를 제거하고 #399 WBS scope tablist만 유지한다. 각 tab의 aria-controls/aria-labelledby/aria-selected/roving tabIndex, ArrowLeft/Right/Home/End, focus 이동과 비활성 panel 접근성 차단을 실제 DOM에서 검증한다. 390px 등 좁은 화면은 선택 tab과 focus outline이 잘리지 않도록 tablist 자체만 수평 스크롤하며 height를 적층하지 않는다.
+현재 #724의 상위 peer는 `일정 / 대시보드 / 기준정보`이며 분석6개·관리4개의 정확한 순서와 기능 대응은 [Project UX](PROJECT_UX.md#issue-724--일정대시보드기준정보-현재-workspace-계약)를 따른다. #518의 `일정 / Milestone 대시보드 / 리소스 / 물류 구성`은 이전 배치다. 일정은 Summary 범위 tablist와 별도 `전체 일정 보기` 명령을 사용하고 중복 `전체 프로젝트` 탭은 두지 않는다. 상위/하위 각 tablist의 aria-controls/aria-labelledby/aria-selected/roving tabIndex, ArrowLeft/Right/Home/End, focus 이동과 비활성 panel 접근성 차단을 실제 DOM에서 검증한다. 390px 등 좁은 화면은 선택 tab과 focus outline이 잘리지 않도록 tablist 자체만 수평 스크롤하며 불필요한 높이를 적층하지 않는다.
 
 상위 탭 목록은 `overflow-y:hidden`이므로 `:focus-visible`의 3px outline을 음수 offset으로 버튼 안쪽에 그려 상·하단이 잘리지 않도록 한다. 별도 높이/패딩 증가 없이 390/768/1024/1440/1920px 실제 keyboard `ArrowRight` 전환에서 `:focus-visible`, `outlineWidth + outlineOffset <= 0`, 소유 탭의 가로 가시성을 검증한다. 이는 PR #544의 접근성 리뷰(미해결 상태) 개선 항목이다.
 
-Milestone 활성 시 Gantt panel은 Core가 측정 가능한 높이/폭을 가진 visibility:hidden/inert/aria-hidden overlay로 남기고 Milestone 상위 panel만 scroll을 소유한다. 다른 상위 탭은 기존 hidden 정책을 사용한다. 동일 instance와 scope/filter 기준 viewport를 보존한다. Dashboard의 Task Editor/Dialog는 일정 패널 밖에 있어야 한다. 390/768/1024/1440/1920px에서 네비게이션/작업영역 geometry, Dashboard detail→Editor→복귀, readonly/edit, Gantt state를 검증한다.
+비활성 Gantt panel은 #724부터 모든 분석/관리 peer에서 Core가 측정 가능한 높이/폭을 가진 visibility:hidden/inert/aria-hidden overlay로 남긴다. #518의 다른 상위 탭 native hidden 정책은 이 경로로 대체하며 기존 measured lifecycle·Coordinator를 사용한다. 활성 업무 panel만 보이게 하고 동일 instance와 scope/filter 기준 viewport를 보존한다. 모든 화면의 Task/Assignment/Milestone Editor/Dialog는 일정 패널 밖에 있어야 한다. 390/768/1024/1440/1920px에서 네비게이션/작업영역 geometry, Dashboard detail→Editor→복귀, readonly/edit, Gantt state를 검증한다.
 
 ## Issue #345 Summary 구조와 미산정 일정 구분
 

@@ -1,3 +1,4 @@
+import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Locator, Page } from "@playwright/test";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
@@ -9,7 +10,7 @@ import { issue621ResourcePassword, seedIssue621 } from "./fixtures/issue-621-tar
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: issue621ResourcePassword, viewport: { width: 1440, height: 900 } });
 
 async function openResource(page: Page) {
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-14");
@@ -267,7 +268,7 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   await source.getByRole("button", { name: /원래 보기/ }).click();
   await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
   await source.getByRole("button", { name: /원래 보기/ }).click();
-  await expect(page.getByRole("tab", { name: "리소스", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(workspaceViewTab(page, "resources")).toHaveAttribute("aria-selected", "true");
   await expect(root.getByLabel("Target", { exact: true })).toHaveValue(f.targets[1].id);
   await writeFile("output/playwright/issue-621/source-scope-evidence.json", JSON.stringify(boundQueries, null, 2));
   const returnFocus = {
@@ -323,7 +324,7 @@ test("#621 Target 계층/비교표 server 총계·5폭 내부 scroll·native key
   await page.keyboard.press("Escape");
   await expect(composer).toHaveCount(0);
   await page.getByRole("button", { name: "Resource 보기로 돌아가기", exact: true }).click();
-  await expect(page.getByRole("tab", { name: "리소스", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(workspaceViewTab(page, "resources")).toHaveAttribute("aria-selected", "true");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   expect(writes).toEqual([]); expect(await f.snapshot()).toEqual(before);
   expect(await coreNode!.evaluate(element => element.isConnected)).toBe(true);

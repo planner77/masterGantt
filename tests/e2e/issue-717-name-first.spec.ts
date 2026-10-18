@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
 import { installStatefulProjectFixture, publicId, projectPath, rememberGanttRoot, expectSameGanttRoot } from "../fixtures/stateful-project";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 
 for (const width of [390, 768, 1024, 1440, 1920]) {
   test(`#717 이름 우선과 전체 ID 접근 ${width}px`, async ({ page, context }, info) => {
@@ -16,7 +17,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(f, new URL(route.request().url()).searchParams) } }));
     await page.goto(`/projects/${publicId}`);
     const gantt = await rememberGanttRoot(page);
-    await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    await openWorkspaceView(page, "milestones");
     const panel = page.getByTestId("milestone-dashboard");
     await expect(panel).toHaveAttribute("data-ready", "true");
     const row = panel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`);
@@ -60,8 +61,7 @@ for (const width of [390, 768, 1024, 1440, 1920]) {
     await mkdir(directory, { recursive: true });
     await panel.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤", exact: true }).evaluate(el => { el.scrollLeft = 0; });
     await page.screenshot({ path: `${directory}/milestone-${width}.png`, fullPage: false });
-    await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-    await page.getByRole("tab", { name: /^공정 관리/ }).click();
+    await openWorkspaceView(page, "processes");
     const processes = page.locator("#panel-processes");
     await expect(processes.locator("thead th").first()).toHaveText("공정명");
     await expect(processes.locator("tbody tr")).toHaveCount(2);
@@ -96,7 +96,8 @@ test.describe("#717 터치", () => {
     const f = await installStatefulProjectFixture(page);
     await page.route(`**${projectPath}/milestone-dashboard?*`, route => route.fulfill({ json: { data: dashboardFixture(f, new URL(route.request().url()).searchParams) } }));
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).tap();
+    await page.getByRole("tablist", { name: "프로젝트 작업공간" }).getByRole("tab", { name: "대시보드", exact: true }).tap();
+    await page.getByRole("tablist", { name: "대시보드 보기" }).getByRole("tab", { name: "Milestone", exact: true }).tap();
     const row = page.locator(`tr[data-milestone-task-id="${f.tasks[3].taskId}"]`);
     const details = row.locator("details").first();
     await details.locator("summary").tap();

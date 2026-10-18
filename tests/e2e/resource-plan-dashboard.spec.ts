@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import {
@@ -105,7 +106,7 @@ async function setup(page: import("@playwright/test").Page) {
       current.public?.left === current.dom.left && current.public?.top === current.dom.top;
   }).toBe(true);
   const before = await viewport(page);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(root(page)).toHaveAttribute("data-ready", "true");
   await root(page)
     .getByLabel("리소스 보기", { exact: true })
@@ -378,17 +379,21 @@ test("#527 50visible hierarchy page context and daily pager focus survive view r
     table = plan
       .getByRole("region", { name: "그룹 기간 계획표", exact: true })
       .locator("table");
-  await table
-    .locator('tr[data-plan-row="group"]')
-    .first()
-    .locator("th button")
-    .click();
+  // #717: the header also contains hidden, readonly ID/code copy buttons.
+  // Keep those actions hidden by default and target the unique painted expander.
+  const groupRow = table.locator('tr[data-plan-row="group"]').first();
+  const hiddenIdentityCopies = groupRow.locator('th details:not([open]) button');
+  expect(await hiddenIdentityCopies.count()).toBeGreaterThan(0);
+  await expect(hiddenIdentityCopies.first()).toBeHidden();
+  const groupDisclosure = groupRow.locator('th > button[aria-expanded]');
+  await expect(groupDisclosure).toHaveCount(1);
+  await groupDisclosure.click();
+  await expect(groupDisclosure).toHaveAttribute("aria-expanded", "true");
   for (let i = 0; i < 24; i++) {
     const disclosure = table
       .locator('tr[data-plan-row="resource"]')
       .filter({ hasText: new RegExp(`^개인 ${i} `) })
-      .getByRole("button")
-      .first();
+      .locator('th > button[aria-expanded]');
     if (
       !(await disclosure.count()) &&
       (await plan

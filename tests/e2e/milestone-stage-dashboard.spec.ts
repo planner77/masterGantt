@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
@@ -115,7 +116,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   const logistics = (await (await page.request.get(`${api}/logistics/dashboard?equipmentIds=${equipmentId}&from=2026-10-05&to=2026-10-06&mdPerMm=null`)).json()).data;
   expect(logistics.milestoneStages.milestoneTaskIds).toEqual([b.taskId]);
   expect(logistics.milestoneStages.rows[0].stageGate).toEqual(full.rows.find((stage) => stage.milestoneTaskId === b.taskId)!.stageGate);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.getByTestId("milestone-dashboard"); await expect(panel).toHaveAttribute("data-ready", "true");
   await panel.getByText("Milestone 표시·공수 범위 조건", { exact: true }).click();
   await panel.getByLabel("공수 시작일", { exact: true }).fill("2026-10-05"); await panel.getByLabel("공수 종료일", { exact: true }).fill("2026-10-06");
@@ -130,9 +131,9 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   const resources = page.getByRole("tabpanel", { name: "리소스", exact: true });
   await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
   await expect(resources).toContainText("2.00");
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click();
-  const logisticsPanel = page.getByRole("tabpanel", { name: "물류 구성", exact: true });
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "kpi");
+  const logisticsPanel = page.locator("#project-panel-logistics");
   await expect(logisticsPanel.getByRole("heading", { name: "관련 Milestone — Milestone 전체 상태 기준", exact: true })).toBeVisible();
   const relatedStage = logisticsPanel.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤", exact: true }).locator(`tr[data-milestone-task-id="${b.taskId}"]`);
   await expect(relatedStage).toContainText("Ready"); await expect(relatedStage).toContainText("1 / 1");
@@ -170,7 +171,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
     await expect.poll(liveViewport).toMatchObject({ domLeft: scroll, publicLeft: scroll });
     scrollCheckpoints.push(await scrollCheckpoint("after-fullscreen-exit"));
     scrollCheckpoints.push(await scrollCheckpoint("before-peer-hide"));
-    await peer.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+    await openWorkspaceView(peer, "milestones"); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
     await testInfo.attach("actual-readonly-dashboard", { body: await peer.screenshot(), contentType: "image/png" });
     await peer.getByRole("tab", { name: "일정", exact: true }).click();
     await expect.poll(async () => JSON.parse(await frame.getAttribute("data-gantt-peer-restore") ?? "{}")).toMatchObject({ requestedLeft: scroll, count: 1 });

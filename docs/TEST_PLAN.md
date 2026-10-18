@@ -1,3 +1,15 @@
+## Issue #717 — main #724 메뉴 통합 후 이름/ID E2E 교차 계약 (2026-10-18)
+
+- Issue #724 PR #738의 최신 main `ea4194763568432ef98e823bb796b59a5beb317c`이 7커밋 진전하면서 #717과 25개 중첩 파일의 Workspace 상위 메뉴/공통 Editor 및 E2E 선택자가 바뀜. 새 public navigation `일정 / 대시보드 / 기준정보`, 분석 Milestone·리소스, 관리 공정&WorkArea·설비·물류 시스템의 정확 화면 전환은 `tests/e2e/helpers/workspace-navigation.ts`의 사용자 조작 helper를 사용하되 범위/필터/원본 Gantt·권한/readonly는 원래 검사한다.
+- **PR-only #717 영향**: `tests/e2e/issue-717-name-first.spec.ts`, `tests/e2e/issue-717-identity-persistence.spec.ts`는 기존 고정 상위 `Milestone 대시보드`/ `물류 구성` 탭이 새 main에 존재하지 않으므로 helper로 이동. Touch 시나리오는 상위 `대시보드` + 하위 `Milestone` 두 실제 탭을 각 `tap`하여 코드를 숨기고 원본 raw ID를 키보드/터치/Clipboard로 요청 조회하는 계약을 유지한다. 동명 원본 작업/공정 정확 ID PATCH/DELETE·readonly mutation0/5폭/프로젝트 revision·복구 검증은 완화하지 않는다.
+- 과거 F-001~F-010 누적 실패 원장과 E2E 11파일, `resource-plan-dashboard.spec.ts` 첫·후속 #527 케이스, #724 Workspace helper 변경으로 영향 받는 #463/#526/#527/#621~623 및 #719 ContextHelp·Resource/Logistics/Gantt·프로젝트 편집기의 직접/간접/음성 실행을 새 Head의 Full Chromium 6개 Shard로 확인. Test timeout/skip/retry/필수 Quality/E2E/Docker Gate 불변. 실제 로컬 Node/Chromium 테스트는 도구 환경 부재로 `NOT TESTED`, 새 원격 Head의 PASS는 Run 완료 전 주장하지 않는다.
+## Issue #717 — PR #718 CI #2956.1 F-010 #527 별도 시나리오 expander 선택 회귀 (2026-10-18)
+
+- **원본:** [Full #2956.1](https://github.com/planner77/masterGantt/actions/runs/39107357815), Head `4a41ae41456e048568a4d0443769ad53fb38d45c`, Base `7393483c4a15007868fceeaee70fb9e13c8b119a`. Quality/Docker 성공, Shard5 #527 `resource-plan-dashboard.spec.ts:370` 74 PASS/1 FAIL/7 DID NOT RUN, 나머지 Shards CANCELLED, E2E/QA Final 파생 FAIL. 기존 [F-001~F-009와 이번 F-010 원장](ISSUE_717_FAILURE_ANALYSIS.md)에서 정확한 이력·수정·취소를 보존.
+- **직접 수정:** 첫 #527 week/month20geometry 시나리오는 #2954 F-009a에서 `th > button[aria-expanded]`로 교정되어 #2956에서는 PASS. 후속 50visible/View-return 케이스의 구형 `tr[group] th button` locator는 **닫힌 raw group ID/code copy 2개까지 선택**하므로 동일 strict failure 재발. 이 시나리오에서도 직접자식 expander count1/expanded=true를 확인. 닫힌 복사 버튼의 DOM 존재·비표시를 별도 음성으로 유지하고 24개 Resource expander를 같은 범위로 지정.
+- **불변 기준:** 390/768/1024/1440/1920px, 주월/그룹개인, 50 visible row bounded page↔34 row, daily 50→51–100/366 next focus, hidden stale409/readonly, Gantt/Core instance·scroll, Target/Resource 원본 ID·copy, 5폭·sticky/폭/Capacity/부하·M/M·M/D 계산 및 6-Shard Full CI Gate/timeout/retry/skip. 동일 파일 이전 FAIL/PASS를 새 HEAD PASS로 소급하지 않는다.
+- **합집합/교차:** 역사적 직접 E2E 11파일(원장 F-003~010) + 동 파일 복수 케이스, `resource-plan-ui.spec.ts`·`resource-kpi-integration-ui.spec.ts`·`issue-717-name-first.spec.ts`·`issue-717-identity-persistence.spec.ts`, #719 도움말/Milestone/Resource/Target/Gantt 음성 소비자. 이 도구 환경 동일 source Node/Chromium 미제공으로 선택 로컬 E2E/build/unit `NOT TESTED`이며 새 Full GitHub CI 시작만 확인.
+
 ## Issue #717 — CI #2954.1 Resource Plan #527 / Milestone Resource #526 이름·ID 밀도 회귀 (2026-10-18)
 
 - 원본: [#2954.1](https://github.com/planner77/masterGantt/actions/runs/39105484225), Head `d41b06d2fd24384a8a18b117432165663e8fcde0`, base `7393483c4a15007868fceeaee70fb9e13c8b119a`, Quality/Docker SUCCESS·Chromium E2E/QA Final FAIL. [Shard5 #117610596896](https://github.com/planner77/masterGantt/actions/runs/39105484225/job/117610596896) #527 Resource Plan `th button` strict violation(실제 expander 1+hidden ID/코드 Copy 2), 72PASS/1FAIL/9미실행. [Shard6 #117610596740](https://github.com/planner77/masterGantt/actions/runs/39105484225/job/117610596740) CANCELLED 안 #526 Group Milestone matrix 390px rowHeight201.5/기준104, usableRows2/기준3, 97PASS/1FAIL/15미실행. 기타4 Shard 취소는 PASS 아님. [누적 F-001~F-009 분석](ISSUE_717_FAILURE_ANALYSIS.md)에 원본과 과거 교정 관계 보존.
@@ -4425,9 +4437,79 @@ Dashboard KPI의 Milestone ID 집합/직접 선행 M 원인은 native0행 일정
 실제 로컬 테스트는 Node 22에서 수행하고 `verify:prepr --mode=fast` 및 영향 선택의 source/환경/exit를 Work Packet에 기록한다. 자동 선택 dry-run은 실행 결과가 아니며 필요 직접 테스트는 별도 실행한다. 기존 Pre-PR fingerprint 알고리즘과 CI 정책은 재설계하지 않는다. 변경된 제품 UI/HTTP/SQLite 계약은 없으므로 배치 도구 로컬 검증에 전체 Chromium/Docker를 반복 추가하지 않는다. 원격 Full Required 세 검사는 기존 CI가 수행한다.
 
 AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.
+## Issue #724 — 탐색 N1 변경 영향과 검증
+
+기준 main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`, 후보 `0.117.0`, HIGH/OWNER_MANAGED. 구현·기존 테스트 갱신·Local Fast Feedback·사전 검토 후 PR CI 시작까지만 수행한다. 원격 Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 결과 확인 전 NOT TESTED이며 로컬 검증으로 대체하지 않는다. [Work Packet](exec-plans/active/ISSUE_724.md), [누적 실패·차단](ISSUE_724_FAILURE_ANALYSIS.md)을 따른다.
+
+| 수정 지점/전후 | 직접·간접 소비자/음성 사례 | 위험 | 선정 테스트·환경 | 상태/범위 |
+| --- | --- | --- | --- | --- |
+| 기존4상위 → 3상위/6분석/4관리·screenKey | Workspace·모든 기존 Milestone/Resource/Logistics 경로, 잘못된 저장값/URL | HIGH | routing unit, 기존 `project-workspace-tabs-518`, `project-workspace-ux`; 실제 Chromium5폭 | 선정 Local PASS, 실행 단계별 결과는 아래 기록 |
+| null 전체 scope tab → 명시 전체 일정 button | Summary 추가/중복/닫기·마지막 fallback·rootTask·Header Add·필터 복귀 | HIGH | 기존 `task-context-menu-hierarchy`, `project-search-filter`, scope/toolbar 회귀 | 기존 기능·음성 단언 보존 |
+| 단일 logistics host controlled subview/perspective | KPI·통합 조회·Target/제어관계 보조 진입·기간/검색/접힘·stale 응답 | HIGH | 기존 `project-logistics-management`, `logistics-target-authoring`, `issue-624-logistics-unified`, request-state | 새 집계/CRUD를 검사한 것으로 주장하지 않음 |
+| 정확 drill/editor origin에 screenKey | Task/Assignment/Milestone 추가·원본 Target 편집·readonly/dirty/pending/stale/401/412 | HIGH | 기존 `resource-drill-*`, `issue-621-resource-target`, Milestone 관리/교환 회귀 | Editor가 숨은 일정 panel에 갇히지 않는지 확인 |
+| Gantt 비활성 측정/복귀·메뉴 왕복 | 같은 API/instance·scroll/Day/Week·tree/선택·fullscreen·marker OFF·mutation0 | HIGH | 기존 Workspace/Resource KPI/Gantt 제품 통합 및 Milestone 표시 회귀 | 별도 writer/remount·수치 허용오차·skip/retry 완화 금지 |
+| Resource master에 기존 카탈로그 재사용 | 독립 관리자 인증·Project readonly·등록과 배정 구분 | MEDIUM/HIGH 교차 | 메뉴/관리 컴포넌트 기존 회귀·브라우저 | 새 Project 참여 CRUD #727은 NOT IMPLEMENTED |
+| DESIGN/현재 경로/사용자 가이드·#720 인계 | 이전 메뉴명·manual screenKey/anchor·API/DB 무영향 | HIGH 정합성 | markdown link·diff 정합성·독립 사전 검토 | 실제 매뉴얼 route/icon 구현 아님 |
+
+공통 navigation test helper는 실제 상위→하위 버튼을 클릭한다. 기존 테스트를 숨은 구형 버튼으로 우회하지 않는다. 탐색 selector/의도된 메뉴 기대값만 이관하고 canonical/권한/정확 ID/교환·무쓰기·엄격한 viewport/instance·marker OFF 단언은 유지한다. 신규 중복 spec 대신 기존 Workspace·scope 테스트를 확장한다. 전체 공식 회귀는 동일 Head의 원격6 shard CI에서 수행한다.
+
+### 실행 결과
+
+선정한 Local Fast Feedback는 최종 보완 source에서 PASS다. 원격 전체 회귀의 PASS가 아니다.
+
+| 단계 | 실행/환경 | 실제 결과와 범위 |
+| --- | --- | --- |
+| 초기 | routing21·typecheck/변경 source lint | 초기 결과이며 후속36개 및 최종 source 검사로 인계 |
+| 환경 차단/회복 | 외부 node_modules symlink를 Turbopack가 거부. 초기 Webpack dev3124 실행 후 격리 `npm ci`447개/14초 | 원본 BLOCKED 보존, 이후 기본 Turbopack·기존 Playwright config로 검증 |
+| 초기 Chromium | Workspace/관리3파일29케이스 | 27 PASS/2 FAIL: 내부 heading 및 screen query 기대 오류. 이후 해당2개 기본 compiler 재검증 PASS |
+| 기본 compiler 선택 | 8파일14케이스 | 12 PASS/2 FAIL: Target helper 목적지·전체 scope button의 aria 기대 오류. 이후 해당2개 교정 PASS |
+| source focus 보완 | 기존 테스트6케이스 | 5 PASS/1 FAIL: 추가 #624 음성 테스트의 hidden origin 준비 locator. 원본/두 번의 준비 실패·추가 진단·과도한 신규 focus/Target Dialog 기대 오류는 누적 원장에 모두 보존 |
+| 최종 #624 | 동일 동결 source·기존 통합 spec 단독, 기본 Turbopack/실제 HTTP·SQLite/Chromium | PASS: 테스트23.0초/전체39.4초. 기존4관점·full Gate·5폭·정확 ID·3개 origin 소실 복귀·무쓰기·full snapshot·동일 Gantt 유지 |
+| 최종 보완 집합 | 앞선 동일 source5 PASS + 마지막 #6241 PASS | 보완 대상6케이스 모두 PASS. 같은 실행 하나의6/6으로 표기하거나 반복/중복 케이스 수를 합산하지 않음 |
+| 코드/문서 독립 사전 검토 | 실제 별도 navigation_review | REWORK focus3곳 보완 뒤 source·문서 및 최종 음성 test-contract PASS. 원격 Trusted QA/Owner 승인과 구별 |
+
+최종 source의 typecheck PASS, 변경 source lint0error/기존warning1, 변경46테스트 lint0error0warning, routing36개 unit PASS, diff-check·version0.117.0 일치·Markdown 링크 PASS를 확인했다. [최종 검증 JSON](evidence/issue-724/local-validation.json)에 source6개 SHA256과 세 복귀 단계의 실제 focus 증거를 남겼다. source2개 SHA256은 Work Packet의 검토값과 같다. UI 캡처는 고정 fixture의 [390px 분석](evidence/issue-724/navigation-390.png) 및 [1440px 기준정보](evidence/issue-724/navigation-1440.png)이며 실제 운영 데이터가 아니다. 나머지5폭/Resource 관리자 로그인 geometry·Summary/rootTask·정확 drill·LIFO·Milestone 실제 추가/readonly는 단계별 기존 테스트에서 확인했다.
+
+최종 #624의 보완 검사는 특정 버튼 하나를 강제하지 않고 원래 설계대로 정확한 화면의 보이는 control/heading/활성 tab을 검사한다. Task control이면 canonical ID도 맞아야 한다. 숨은 요소·본문·다른 화면·disabled는 실패로 유지한다. 기존 실적/수치/권한/무쓰기·snapshot 단언을 삭제하지 않았다. 실제 수동 UX/스크린리더·운영 배포 및 원격 Required Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED다.
 
 ## Issue #719 — 설명 밀도·상황형 도움말과 기존 계약 회귀
 
 새 `tests/e2e/issue-719-contextual-help.spec.ts`는 동일 합성 fixture로 Milestone/Resource/물류 Workspace 및 Resource/물류 유형/기준정보 관리자6표시 화면을 390/768/1024/1440/1920px·높이900에서 before/after 비교한다. 설명 전용 높이·주요 데이터 top·가시 행 수와 문서 overflow, Enter/Space/Escape/focus·hover/click·본문 bounds·열림 전후 데이터 위치 불변을 확인하며 touch emulation은 별도44px hit area·tap/바깥 tap을 검사한다.
 
 기존 Resource error recovery/tabs, Master admin/density, Logistics management, Milestone dashboard/state, Resource Target/Plan의 직접·인접·음성 회귀를 선택한다. 변경한 고정 설명 단언은 도움말 열기 후 같은 원문을 검증하고 기존 canonical/권한/401/412/초안/pending/Gantt 보존 단언은 유지한다. 모든 상태×5폭 직적·실제 screen reader/기기/native125%/최종 수동 UX와 GitHub 전체 회귀는 별도 NOT TESTED 경계다. [Work Packet](exec-plans/active/ISSUE_719.md)의 실제 실행 결과·원본 실패를 따른다.
+
+
+## Issue #724 — PR CI #2947.1 장애 대응 추가 회귀 (2026-10-18)
+
+- 기존 #551 `milestone-timeline-lane.spec.ts`에서 3,000-row/preview 표시 후 peer 이동 시 native Chart 높이 1:1 보존, 복귀 instance/scroll, Grid resize/fullscreen/Milestone 표시·canonical write0를 계속 확인한다. 원본 E2E 실패는 563px 기대/510px 실제이며 엄격 단언을 완화하지 않는다.
+- `project-workspace-tabs-518.spec.ts`에서 두 단계 tablist의 추가 높이가 있어도 비활성 inert/aria-hidden 일정 Gantt Chart 측정 높이 보존과 보조 `dashboard.target/master.targets/master.relations`의 `aria-selected`/roving `tabIndex` 단일 선택(1개) 계약을 검사한다. 숨은 panel focus 차단/정확 drill/범위 선택도 보존한다.
+- 최신 main #719 도움말, `project-logistics-management.spec.ts` 도움말과 3/6/4 메뉴 이관, `resource-kpi-integration-ui.spec.ts`의 `observeIsolatedApi` 실제 fixture callback을 모두 보존한다. 새로운 정확 Head Required3·Trusted QA·Owner 수용은 원격 증거 전 NOT TESTED. [#724 L1–L10 및 F01 누적 분석](ISSUE_724_FAILURE_ANALYSIS.md)을 따른다.
+
+
+## Issue #724 — F02 #552 Summary scope recovery regression (2026-10-18)
+
+- PR CI [#2949.1](https://github.com/planner77/masterGantt/actions/runs/39101001199)의 Chromium shard4 #552 경로는 제품 상태 변경 이전에 `전체 일정 보기` 동명 버튼(상단 전역 명령 및 잘못된 Summary scope 복구)이 2개 존재하여 Playwright strict locator가 실패했다. F01 측정 높이 수정 결과는 해당 Run에서 shard1이 취소되어 아직 확인되지 않았다.
+- 기존 `tests/e2e/milestone-visibility.spec.ts`에서 `선택한 Summary 범위를 열 수 없습니다.` alert 내부 복구 버튼을 명확히 클릭한다. 별도 전역 전체 일정 명령 `aria-pressed=false`, 경고·범위 invalid/inert·Stable leaf 복구·native M 부재·동일 Gantt·mutations0 검증을 유지한다. 제품, 실제 권한, CI Gate, timeout/retry/skip은 바꾸지 않는다.
+- 원격 새 Head full Chromium E2E6/Quality/Docker 및 Trusted QA는 실행 결과 관측 전 **NOT TESTED**. 매번 [#724 전 실패 원장](ISSUE_724_FAILURE_ANALYSIS.md) L1–L10 + F01–F02 전체를 재참조하여 유사한 locator 대상 충돌을 비교한다.
+
+
+## Issue #724 — F03 Issue #719 contextual-help E2E navigation regression (2026-10-18)
+
+- [PR CI #2950.1](https://github.com/planner77/masterGantt/actions/runs/39102030888)의 shard2에서 `tests/e2e/issue-719-contextual-help.spec.ts` 공통 `openSurface`가 폐지된 상위 `Milestone 대시보드` 탭을 기다려 120s timeout. 같은 파일에 구 `물류 구성 세부 영역` 설비 탭 경로도 존재해 두 입력을 함께 보완한다. 직접 실패 34 PASS/1 FAIL/95 미실행, 다른5 shard 취소·QA 파생 FAIL을 구분한다. 기존 F01/F02의 변경은 해당 shard 취소로 최종 실증되지 않았다.
+- 기존 6종 `milestone/resource/resource-admin/logistics/logistics-admin/master`의 실제 390/768/1024/1440/1920px fixture, tooltip·overflow/원래 데이터 위치, 도움말 키보드·터치·Escape·focus와 미저장·공정 필수 경고 테스트는 전부 유지한다. 프로젝트 세 화면의 경로는 공통 `openWorkspaceView` 사용: Milestone·Resource는 대시보드 하위, 원래 물류 KPI는 대시보드 KPI, 설비 추가는 기준정보/설비이며 해당 하위 tab 선택 상태를 검증한다. 과거 구 메뉴를 찾는 테스트만 수정하고 기본 Timeout120초/skip/retry 또는 CI Gate를 변경하지 않는다.
+- 직접 E2E·전체 Chromium 6샤드·Trusted QA·Owner 수용은 정확 신규 HEAD의 원격 결과 전 **NOT TESTED**. 원인/수정/후속 누적 절차는 [#724 단일 원장 F03](ISSUE_724_FAILURE_ANALYSIS.md)과 L1–L10, F01/F02를 따른다.
+
+
+## Issue #724 — F04 CI #2951.1 #572 inactive schedule measured-Gantt regression (2026-10-18)
+
+- [Run 39103122269.1](https://github.com/planner77/masterGantt/actions/runs/39103122269)의 Chromium shard2 `project-gantt-inline-name.spec.ts:159`은 이전 `hidden=""` 속성을 기대했으나 현재 프로젝트 피어 탐색의 비활성 일정 패널은 `inert="" aria-hidden="true" data-dashboard-inactive="true"`와 CSS `visibility:hidden`으로 정확한 Chart 측정/동일 instance를 유지한다. **제품 실행 오류가 아니라 pre-return 테스트 계약 오류**로 분석하며, 다른 취소 shard/F01/F02 미검증을 PASS로 취급하지 않는다. #719 suite 10개는 이번 shard2에서 실제 PASS.
+- #572의 `resources`와 `milestones` 두 분기에서 최신 속성+가시성 및 복귀 시 속성 제거+가시성 회복을 각각 검증한다. 기존 지연된 PATCH 한 건, revision 증가, 이름/상태 확정, 같은 Gantt root, 노출/편집기/오류 처리 회귀를 유지한다. UI/저장 코드는 변경하지 않으며 `hidden` 단언만 새 계약으로 이관하고 timeout/retries/skip/CI Gate는 불변.
+- 추후 원격 E2E6/Quality/Docker·Trusted QA/Owner 검증은 새 정확 HEAD에 귀속되고, 기존 실패는 [누적 실패 원장 F04](ISSUE_724_FAILURE_ANALYSIS.md)의 L1–L10, F01–F04와 함께 다시 비교한다. 새 CI가 시작되기 전이나 취소된 경로는 NOT TESTED.
+
+
+## Issue #724 — F05 #529 hidden Resource export/dialog focus E2E (2026-10-18)
+
+- [CI #2953.1 / Run 39104119364](https://github.com/planner77/masterGantt/actions/runs/39104119364): Shard 4 `resource-excel-export-dashboard.spec.ts:166` selected Resource secondary tab was not DOM-focused after original Resource trigger becomes hidden/inert and Dialog Escape. 104 PASS / 1 FAIL / 38 NOT RUN; shard1 cancelled, shards2/3/5/6 success; Quality/Docker success, E2E aggregate/QA Final failure. Exact activeElement ID was not captured, so identify global first-selected **product algorithm** as proven design defect, but specific runtime focus landing as unverified inference. Original trace: [artifact 12128347030](https://github.com/planner77/masterGantt/actions/runs/39104119364/artifacts/12128347030).
+- Existing product `ProjectExportButton` focused the first visible `[aria-selected=true]` tab regardless of nesting, prioritizing parent `대시보드` before child `리소스`. Keep valid original trigger first; on lost trigger prefer connected/visible/enabled **secondary selected tab scoped to this Project**, then selected primary tab, then general export control. CSS-hidden/inert must be rejected. Leave `WorkspaceDialog` semantics unchanged, and never replace one Gantt/scroll focus writer with another.
+- Strengthen *existing* #529 stale/opt-in/409/500 test: confirm parent and secondary both selected, active child tabbable, hide/inert the origin, Escape, Dialog hidden, child focus with exact ID, parent not focused and child visible. Retain original exported-request count, report proof/reconfirmation, failure notice, 5-width geometry & existing focus-return tests. Direct/neighbor negative suite: #529, #572, #724/#518, #551, #552, #719 and #624; source-stable local targeted tests or full remote Shards remain NOT TESTED until run.
+- This is a PRODUCT focus correction, not a F02–F04 TEST_CONTRACT exception. [Single issue cumulative record F05](ISSUE_724_FAILURE_ANALYSIS.md), AGENTS.md #704, GSC-07/08/09/11 and strict source evidence policy apply. Timeouts, retries, skip, Required CI/QA, Owner/HIGH release gates remain unchanged; no merge/GHCR/issue closure in current scope.

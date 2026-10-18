@@ -48,6 +48,8 @@ Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선�
 
 ## 사용 방법과 범위
 
+#724의 상위 `일정 / 대시보드 / 기준정보` 재배치 후에도 Task/Assignment/Relation Editor는 Workspace 공통 host에서 열린다. `대시보드 → Milestone`의 추가/소속 관리, `대시보드 → 리소스` 및 물류 관점의 정확 Task/Assignment 진입이 비활성 일정 panel의 `hidden`/`inert` 아래에 갇혀서는 안 된다. 종료 시 실제 출발 screenKey와 보이는 trigger/fallback으로 복귀하며 메뉴 전환 자체는 canonical write나 배정 복제를 만들지 않는다. Target 편집은 관련 기준정보의 보조 `Target 관리`와 기존 composer를 재사용한다. readonly/dirty/pending/stale/401/412·정확 ID·revision 계약은 아래 기존 규칙을 유지한다. [현재 메뉴 이관표](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 함께 따른다.
+
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
 일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. Milestone 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 #493부터 이름·Description·URL·하위 작업 기본 Milestone을 편집하고 일정·진척·Baseline은 계속 읽기 전용이다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.

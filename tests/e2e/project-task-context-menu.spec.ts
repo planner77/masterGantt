@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 
@@ -438,7 +439,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
   await expectClipboardText(page, summary.taskId);
 
   await expect(page.locator(`.wx-row[data-id=":${milestone.taskId}"]`)).toHaveCount(0);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.locator("#project-panel-milestones");
   await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   const milestoneRow = panel.locator(`[data-milestone-task-id="${milestone.taskId}"]`);

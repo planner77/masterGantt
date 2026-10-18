@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -41,12 +42,12 @@ test("#552 marker OFF membership/reset/peer preserve canonical data and instance
   await expect(rowNamed(page, "Existing summary child")).toBeVisible(); await expect(rowNamed(page, "Stable leaf")).toHaveCount(0);
   await page.getByRole("button", { name: "초기화", exact: true }).click();
   await expect(rowNamed(page, "Stable leaf")).toBeVisible();
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await openWorkspaceView(page, "milestones"); await page.getByRole("tab", { name: "일정", exact: true }).click();
   // #2886: unlike the Milestone panel, the Resource panel physically hides
   // the schedule. A later native chart resize/peer return must not resurrect
   // canonical Milestone rows in the ordinary WBS on the same Gantt instance.
   const frame = page.locator(".project-gantt-frame"), marker = state.tasks.find(task => task.type === "milestone")!;
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(page.locator("#project-panel-schedule")).toBeHidden();
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await waitForGanttReadiness(frame, { operation: "observe",
@@ -101,7 +102,7 @@ for (const width of [390, 1024, 1440]) test(`#552 OFF date request ${width}px op
   await page.setViewportSize({ width, height: 1000 }); const state = await fixture(page), identity = await rememberGanttRoot(page);
   const frame = page.locator(".project-gantt-frame"), panel = page.locator("#project-panel-milestones");
   const before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await panel.getByLabel("Milestone 검색", { exact: true }).fill("Stable milestone");
   const id = state.tasks[3].taskId, row = panel.locator(`[data-milestone-task-id="${id}"]`), trigger = row.getByRole("button", { name: / 관리$/ });
   await trigger.focus(); await page.keyboard.press("Enter");
@@ -141,7 +142,13 @@ test("#552 scoped Summary becoming M keeps the native instance and requires expl
   await expect(page.getByRole("alert").filter({ hasText: "선택한 Summary 범위를 열 수 없습니다." })).toContainText("선택한 범위가 Milestone으로 변경되었습니다. 데이터는 프로젝트 전체 Milestone 목록에 있으며 WBS 범위는 자동으로 넓히지 않습니다.");
   await expect(page.locator(".project-gantt-scope-owner")).toHaveAttribute("inert", ""); await expectSameGanttRoot(page, identity);
   await expect(rowNamed(page, "Stable leaf")).not.toBeVisible();
-  await page.getByRole("button", { name: "전체 프로젝트로 돌아가기", exact: true }).click();
+  // #724 F02: there are two legitimate "전체 일정 보기" buttons. Use the
+  // invalid Summary scope's explicit recovery, not the global navigation.
+  const recovery = page.getByRole("alert").filter({ hasText: "선택한 Summary 범위를 열 수 없습니다." });
+  await expect(page.locator(".project-scope-navigation").getByRole("button", { name: "전체 일정 보기", exact: true })).toHaveAttribute("aria-pressed", "false");
+  const recoverFullSchedule = recovery.getByRole("button", { name: "전체 일정 보기", exact: true });
+  await expect(recoverFullSchedule).toBeVisible();
+  await recoverFullSchedule.click();
   await expect(rowNamed(page, "Stable leaf")).toBeVisible(); await expectSameGanttRoot(page, identity);
   await expect(page.locator(`.wx-table-container .wx-row[data-id$="${rootId}"]`)).toHaveCount(0);
   await capture(page, "scope-summary-m-drift-explicit-recovery", { instance: identity, rootId, canonicalIds: state.tasks.map(task => task.taskId), mutationCount: state.posts.length + state.patchRequests.length });
@@ -181,7 +188,7 @@ test("#552 Milestone cause and multi-ID KPI stay in exact Dashboard identities w
   const second = { ...original, taskId: "00000000-0000-4000-8000-000000000099", externalId: "M-second", name: "Second milestone", siblingOrder: 99 };
   state.tasks.push(second); await page.reload();
   const frame = page.locator(".project-gantt-frame"), before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.locator("#project-panel-milestones");
   await expect(panel.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   await panel.getByRole("button", { name: "임박 Milestone 목록에서 확인", exact: true }).click();
@@ -212,7 +219,7 @@ test("#552 undated Milestone date/details action remains available in readonly w
   Object.assign(milestone, { start: null, end: null, requestedStart: null, duration: null });
   await page.reload(); await expect(rowNamed(page, "Stable leaf")).toBeVisible();
   const frame = page.locator(".project-gantt-frame"), before = await frame.evaluate(node => Reflect.get(node, "__masterganttMilestoneTimeline").read());
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.locator("#project-panel-milestones"), row = panel.locator(`[data-milestone-task-id="${milestone.taskId}"]`);
   await expect(row).toContainText("미설정"); await row.getByRole("button", { name: / 관리$/ }).click();
   const action = page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "Milestone 날짜·소속 확인", exact: true });

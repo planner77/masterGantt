@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import {
   expect,
   test,
@@ -216,7 +217,7 @@ test("#527 실제 SQLite/HTTP 선택80·Project140·Group75·일별개인과 투
   try {
     const publicPage = await readonly.newPage();
     await publicPage.goto(`/projects/${publicId}`);
-    await publicPage.getByRole("tab", { name: "리소스", exact: true }).click();
+    await openWorkspaceView(publicPage, "resources");
     const root = publicPage.locator('[data-resource-dashboard="true"]');
     await expect(root).toHaveAttribute("data-ready", "true");
     await root.getByLabel("기간 시작", { exact: true }).fill("2026-10-06");

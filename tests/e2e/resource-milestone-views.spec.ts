@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { installStatefulProjectFixture, publicId, projectPath, rememberGanttRoot, expectSameGanttRoot } from "../fixtures/stateful-project";
@@ -31,7 +32,7 @@ async function setup(page: import("@playwright/test").Page, manyGroups = false) 
     const current = await ganttState(page);
     return current.dom.left > 0 && current.dom.top === 96 &&
       current.public?.left === current.dom.left && current.public?.top === current.dom.top;
-  }).toBe(true); const before = await ganttState(page); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0); await page.getByRole("tab", { name: "리소스", exact: true }).click(); await expect(root(page)).toHaveAttribute("data-ready", "true"); return { state, identity, before };
+  }).toBe(true); const before = await ganttState(page); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0); await openWorkspaceView(page, "resources"); await expect(root(page)).toHaveAttribute("data-ready", "true"); return { state, identity, before };
 }
 test("#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt", async ({ page }, testInfo) => {
   test.setTimeout(120_000); const { identity, before } = await setup(page); const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); const evidence = []; mkdirSync("output/playwright/issue-526", { recursive: true });

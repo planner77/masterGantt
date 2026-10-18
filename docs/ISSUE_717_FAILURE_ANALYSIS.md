@@ -268,3 +268,45 @@ Issue #717의 **유일한 누적 CI 실패 원장**을 지속 갱신한다. 기�
 - **기존 실패와 재발 관계:** F-004/F-005b/F-008은 숨긴 복사 버튼의 DOM/paint/조작 혼동이라는 TEST_CONTRACT, F-009a도 같은 1차 범주이나 새로운 #527 소비자다. F-009b는 같은 디스클로저 추가가 실제 높이·가시 행 밀도에 영향 준 **별도의 PRODUCT 배치 문제**다. F-003b의 최초 Target ID 복구, F-007의 전역 코드 입력 구분, #719 ContextHelp 및 Issue #717 원문 접근 기능을 훼손하지 않는다.
 - **누적 실제 실패 E2E 파일 합집합 11개:** `logistics-target-authoring.spec.ts`, `issue-622-resource-plan-target.spec.ts`, `milestone-dashboard-state.spec.ts`, `issue-621-resource-target.spec.ts`, `milestone-stage-editor.spec.ts`, `project-filter-toolbar-consistency.spec.ts`, `issue-623-resource-mvp.spec.ts`, `project-workspace-ux.spec.ts`, `resource-developer-grade.spec.ts`, `resource-milestone-views.spec.ts`, **`resource-plan-dashboard.spec.ts`**. 추가 직접/간접/음성: `resource-plan-ui.spec.ts`, `resource-kpi-integration-ui.spec.ts`, `issue-717-name-first.spec.ts`, `issue-717-identity-persistence.spec.ts`, #719 help와 shared Milestone/Resource/Target/Gantt tests.
 - **환경/검증 한계:** GitHub E2E run/job 원본·#526 Playwright JSON·제품/테스트/CSS 코드 대조는 완료. 이 채팅 실행 환경에서 masterGantt 전체 checkout+node_modules+Browser가 없어 현재 변경 candidate의 실제 Node/Chromium/Vitest/Build 실행 `NOT TESTED`. 보완 코드는 정적 계약 점검만 수행하며, 후속 Full E2E6의 현재 HEAD 실제 PASS가 나기 전 Quality/E2E/Docker/Trusted/Owner 합격을 주장하지 않는다. App `0.116.1`, `HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false`, Server/API/DB/Domain/Export/SVAR/CI Gate/timeout/retries/skip 변경0. PR #718 Draft, Issue #717 OPEN. 최신 main ancestry, 리뷰 thread0, mergeable를 PR 게시 직전 검증하고 새 Full Run/Attempt/Head **시작까지만 확인**, CI 완료 모니터링·병합/Main/GHCR/Finalizer/Issue Close 없음.
+
+## 2026-10-18 — F-010: Full PR CI #2956.1 Resource Plan #527 50행 View-return Expander 재발
+
+### 전 이력·실패 합집합 대조
+
+이 문서는 Issue #717 / PR #718만의 **단일 누적 실패 원장**이다. 이전 F-001~F-009의 원본·가설·교정·실패와 당시 PASS를 수정하거나 삭제하지 않는다. PR #718의 11개 Run/Attempt 원본을 재조회했다.
+
+| 원본 | 실패 성격 / 마지막 교정과의 관계 |
+| --- | --- |
+| #2923.1 / #2926.1 | docs Work Packet·PR metadata QA 실패(F-001/F-002), 앱 E2E 미실행 |
+| #2927.1 | docs-only Full SUCCESS, 실제 제품 E2E 검증 SKIPPED |
+| #2935.1 | F-003a Target 신규 입력·raw ID textarea strict 선택 / F-003b 취소된 Shard 안 #622 Resource Plan 최초 Target ID 누락 |
+| #2940.1 | F-004 #463 Milestone 숨긴 raw copy 버튼 layout 계측 오류 |
+| #2942.1 | F-005a #621 Allocation 코드 병기 선택 / F-005b 취소된 Shard 안 #461 membership hidden copy |
+| #2944.1 | F-006a #130 Resource 그룹 이름 선택 / F-006b 취소된 Shard 안 #623 Target 구성원 전체 이름 |
+| #2945.1 | F-007a #76 Workspace 구 이름(코드) 선택 / F-007b 취소 Shard 안 #288 Resource 편집 가능한 코드 입력 |
+| #2952.1 | F-008 #526 Resource Milestone matrix hidden ID 복사 버튼 선택 |
+| #2954.1 | F-009a #527 Plan 첫 20-geometry 시나리오의 `th button` strict selector / F-009b #526 matrix 실제 행 높이 증가 |
+| **[#2956.1](https://github.com/planner77/masterGantt/actions/runs/39107357815)** | **F-010 같은 #527 파일의 별도 50행 View-return 시나리오에서 같은 `th button` 선택자 미수정으로 재발** |
+
+**원본 Source/Run:** [Full #2956.1](https://github.com/planner77/masterGantt/actions/runs/39107357815), Run ID `39107357815`, Attempt `1`, `pull_request`, 2026-10-18 07:21:29–07:39:18 UTC, HEAD `4a41ae41456e048568a4d0443769ad53fb38d45c`, Base/main `7393483c4a15007868fceeaee70fb9e13c8b119a`. 별도 Test-merge SHA 미확보 `UNKNOWN`. QA Preflight/PR Fast Gate, Typecheck/Lint/Vitest/PR production build, Quality aggregate **SUCCESS**; Docker smoke/aggregate **SUCCESS**; [E2E aggregate Job 117619275577](https://github.com/planner77/masterGantt/actions/runs/39107357815/job/117619275577) **FAILURE**, [QA Final Automated 117619292756](https://github.com/planner77/masterGantt/actions/runs/39107357815/job/117619292756) **FAILURE**는 required E2E 실패의 파생이다.
+
+- **F-010 직접:** [Shard5 Job 117616387296](https://github.com/planner77/masterGantt/actions/runs/39107357815/job/117616387296) 74 PASS / **1 FAIL** / 7 DID NOT RUN. `tests/e2e/resource-plan-dashboard.spec.ts:370`, 시나리오 "#527 50visible hierarchy page context and daily pager focus survive view return". 385행 `tr[data-plan-row="group"] ... .locator("th button").click()`에서 Playwright strict mode violation, 기대 1개 버튼 대신 `group expander`, 닫힌 `그룹 ID 복사`, 닫힌 `코드 복사` **3개** 매칭. 실제 `resource-plan-view.tsx`는 펼침 버튼에만 `aria-expanded`를 부여하고 hidden raw copy 버튼은 별도 `IdentifierDetails` 안에 둔다.
+- **나머지:** Shard1/2/3/4/6 final **CANCELLED**, 원격 로그에서 추가 독립 assertion FAIL은 확인되지 않았으나 완결 PASS가 아니다. Shard6에선 과거 F-009b #526 Milestone matrix geometry를 포함한 113개에 PASS가 기록되었고, Shard5의 과거 **F-009a #527 week/month 20geometry** 시나리오(line118)는 PASS, 이어 #527 selected/project 시나리오(line319)도 PASS였다. #2954의 고친 1개 케이스를 **같은 파일 다른 케이스에 적용하지 않아 재발**한 것으로, 해당 Run/HEAD의 과거 PASS를 전체 성공으로 합산하지 않는다.
+
+**분류:** `TEST_CONTRACT` / `INCOMPLETE_CROSS_CONSUMER_FIX`. 제품 Resource Plan expander·raw ID 조회는 직접 실패 근거상 변경 불필요; Runner/네트워크/Timeout 문제가 아니다. F-009a의 `th > button[aria-expanded]` 교정은 첫 테스트에만 적용됐고 이번 후속 시나리오엔 `th button`가 남았다. 이전 F-003a/F-004/F-005b/F-008과 같은 숨긴 복사 버튼 DOM 포함 계열이나 각 실제 증거는 독립 기록한다. F-009b의 실제 제품 row-density 원인은 이 오류와 별개이며 이번 Shard6의 관련 테스트 통과 사실만 인정한다.
+
+**원인별 일괄 보완:** `tests/e2e/resource-plan-dashboard.spec.ts` 50visible 시나리오에서 그룹 expander를 `tr[data-plan-row="group"] th > button[aria-expanded]`로 정확히 한 개 선택하고, 닫힌 `th details:not([open]) button`의 복사 액션 DOM 존재 + `toBeHidden()`을 별도 확인. 그룹 클릭 이후 `aria-expanded=true` 유지 검사, 24명 하위 Resource expander도 동일한 direct-child `th > button[aria-expanded]` 계약으로 통일. 기존 50행·34행 페이지/이전·다음·상세 daily 50/366·Tab/Enter focus·401/409·readonly/Gantt instance 및 원본 Capacity/M/D·식별 정보·권한을 그대로 검사한다. Assertion 축소, Skip, Retry, Timeout 일괄 상향, CI fail-fast/Required Gate 수정0. `docs/TEST_PLAN.md` / Work Packet / active PLAN에 후속 소비자와 실패 원본을 동기화.
+
+**누적 실제 실패 E2E 파일 합집합 11개:** `logistics-target-authoring.spec.ts`, `issue-622-resource-plan-target.spec.ts`, `milestone-dashboard-state.spec.ts`, `issue-621-resource-target.spec.ts`, `milestone-stage-editor.spec.ts`, `project-filter-toolbar-consistency.spec.ts`, `issue-623-resource-mvp.spec.ts`, `project-workspace-ux.spec.ts`, `resource-developer-grade.spec.ts`, `resource-milestone-views.spec.ts`, `resource-plan-dashboard.spec.ts` (**동일 파일 다른 시나리오 별개 기록**). 간접/음성: `resource-plan-ui.spec.ts`, `resource-kpi-integration-ui.spec.ts`, #717 Name-first/identity persistence, #719 ContextHelp, Milestone/Target/Gantt E2E.
+
+**동결 source/리뷰·진행 한계:** 현재 GitHub API 세션에 앱 동일 HEAD 로컬 checkout·npm dependencies·Chromium Runner가 없어 실제 후보 test/unit/build 로컬 실행은 `NOT TESTED`; GitHub 원본 Run/Job·실제 소스·selector 정적 대조는 완료. 현재 main `7393483c4a15007868fceeaee70fb9e13c8b119a` 대비 PR HEAD는 **behind0**, GitHub `mergeable=true`, 미해결 리뷰0/차단 리뷰0. 수정·문서 누적 게시 후 정확 새 HEAD에서 Full PR CI 시작 증거만 확인하며 CI 모니터링 하지 않는다. Issue OPEN/PR Draft, app0.116.1/HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false 및 병합/Main/GHCR/Finalizer/이슈 종료 별도.
+
+### 2026-10-18 main #724 재정렬 — 변경 계약/충돌 해소 추가 기록
+
+F-010 코드와 원장을 GitHub에 게시하기 직전 최신 `main`이 `7393483c4a15007868fceeaee70fb9e13c8b119a`에서 **`ea4194763568432ef98e823bb796b59a5beb317c`**로 7커밋 진전했다. [#724 PR #738](https://github.com/planner77/masterGantt/pull/738)의 전체 Workspace 내비게이션이 `일정 / 대시보드 / 기준정보` + 내부 subview로 재편되어 기존 PR #718 헤드 `4a41ae41456e048568a4d0443769ad53fb38d45c`는 behind7/mergeable=dirty 상태였다. 이 정렬 전 임시 후보는 ref에 게시하지 않았다.
+
+#724는 해당 기준 main 대비 73개 파일, #717 브랜치는 132개 파일에 변경이 있었고 **25개 경로가 중첩**됐다. 제품 `project-readonly-view.tsx`, `project-logistics-management.tsx`와 문서·기존 Chromium E2E의 #724 메뉴 이동을 적용하되 #717의 이름-first, raw full ID·코드 disclosure, 동명 canonical 선택, 정확 수정/삭제·원본 계획/권한/복구를 보존하는 통합 Git Tree를 준비했다. #724 전용 신규 Help/Workspace navigation helper·문서·회귀를 main에서 유지하고, PR #718 전용 이미지/기록·테스트·제품 변경은 유지한다. 병합 대상이 서로 다른 비트의 `package.json`·`package-lock.json` 및 버전/CI 계약을 임의로 수정하지 않는다.
+
+**추가 PR 전용 E2E 소비자:** #724 main에는 #717 신규 파일이 없으므로 `tests/e2e/issue-717-name-first.spec.ts`의 상위 `Milestone 대시보드`/ `물류 구성` 탭과 `tests/e2e/issue-717-identity-persistence.spec.ts`의 Milestone/공정 선택은 변경되지 않고 남아 있었다. 두 테스트를 main의 `openWorkspaceView(page, "milestones" | "processes")` 경로로 이관하고, `hasTouch` 시나리오는 실제 상위 `대시보드` 및 하위 `Milestone` tab에 각각 `.tap()`으로 네이티브 터치 조작을 계속 실측하도록 변경한다. 원본 ID 검색/Clipboard·거부 수동 복사/동명 PATCH·DELETE, readonly mutation0, 390/768/1024/1440/1920px 화면 검증은 그대로 유지한다.
+
+**소스 검증 한계:** GitHub main·Head·patch Hunk·원본 Blob를 대조하고 main-only/PR-only paths 및 중첩 25개 파일을 포함하는 Git Object tree를 제작·검증할 수 있지만 이 컨테이너에는 Node/Playwright와 동일 checkout이 없어 실제 변경된 Workspace의 브라우저 교차 회귀는 `NOT TESTED`. #724의 기존 성공 또는 #2956의 개별 E2E PASS를 **새 통합 HEAD PASS**로 재해석하지 않는다. 신규 Full PR CI에서 이전 11개 실패 파일 합집합 + 신규 #717 두 E2E·#724 Workspace/Navigation·#719 Help와 변경 영향 E2E6를 함께 검증한다. 리뷰 스레드/충돌과 최신 main은 게시 직전 재확인, full CI 시작 후 사용자의 지시에 따라 결과는 모니터링하지 않는다.

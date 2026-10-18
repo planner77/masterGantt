@@ -41,6 +41,14 @@ Reader는 설치2.7.3의 `serialize(tasks/tree/links)`를 읽고 adapter-owned �
 
 # Architecture draft
 
+## Project Workspace 탐색 host (#724)
+
+`ProjectReadonlyView`가 일정·대시보드·기준정보의 탐색과 canonical snapshot을 소유한다. `project-workspace-navigation.ts`는 screenKey/상위 section/기존 view/subview의 순수 매핑만 제공한다. 정확 drill frame에는 실제 출발 screenKey를 보존해 서로 다른 물류 관점과 기준정보를 같은 legacy `logistics` 화면으로 축소하지 않는다.
+
+기존 ProjectGantt·Milestone Dashboard·ResourceWorkload·LogisticsManagement를 각 한 번 유지하며 LogisticsManagement의 controlled subview 및 Unified 관점 adapter로 6개 분석/4개 관리 경로를 연결한다. 후속 모듈은 이 공개 계약을 사용하고 host·CRUD·집계 원장을 중복 생성하지 않는다. Resource 기준정보는 기존 ResourceCatalogAdmin/독립 관리자 인증을 재사용한다. 공통 Task/Assignment/Relation/Copy/Milestone Dialog는 숨는 일정 panel 밖에서 기존 revision·dirty/stale gateway를 사용한다.
+
+탐색은 서버 mutation이나 새 viewport writer가 아니다. 일정은 기존 measured lifecycle·`viewVisible`·Coordinator 및 단일 Gantt 인스턴스를 유지한다. 전체 WBS는 null scope와 별도 명시 명령이며 일반 탭 복귀와 구분한다. 기존 API/service/repository/SQLite·server authorization·스케줄링·marker OFF 경계는 변경하지 않는다. 현재 메뉴·보조 Target·screenKey 및 #720 인계는 [Project UX](PROJECT_UX.md#issue-724--일정대시보드기준정보-현재-workspace-계약)를 따른다.
+
 ## Issue #623 — 기존 경계의 통합 수용
 
 생산용 엔진·서비스·DB schema·API·Gantt/viewport writer를 새로 만들지 않는다. 공통 logical fixture를 동일 canonical snapshot에 매핑하여 기존 resolver→KPI/Plan→read transaction→DTO→UI/OOXML의 raw identity/수치·snapshot·nullable 계약을 검증한다. 상태/저장의 소유권과 읽기/편집/보고서/운영 backup의 경계를 유지한다.

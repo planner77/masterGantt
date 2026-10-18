@@ -14,7 +14,7 @@ Milestone 표·원인/관리·공정/설비/시스템·Target·Resource 기본 �
 
 ## Issue #624 — 물류 통합 조회 UX·Design Delta B (2026-10-17)
 
-프로젝트 작업공간의 **물류 구성 → 통합 조회**에서 네 관점(공정/WorkArea, 설비 종류·인스턴스, 시스템 종류·인스턴스, Target·Resource)을 단일 compact selector로 전환한다. 기간/Target 빠른 필터와 접힘 상세 조건을 제공하고, 기존 Gantt native WBS/Chart에 조회용 가상 행이나 두 번째 날짜축을 주입하지 않는다. Project 구성 인스턴스 수·고유 설비 수량과 현재 T0 Task coverage/Assignment 계획공수·기간가중 일반 Task 진척을 명확히 나눈다. 공유 MCS/fleet·중첩 Target의 표 행은 중복 표시 가능하지만 전체 집계는 서버 distinct ID다.
+프로젝트 작업공간의 **대시보드 → 공정&WorkArea / 설비 / 물류 시스템**에서 네 관점(공정/WorkArea, 설비 종류·인스턴스, 시스템 종류·인스턴스, Target·Resource)을 단일 compact selector로 전환한다. 기간/Target 빠른 필터와 접힘 상세 조건을 제공하고, 기존 Gantt native WBS/Chart에 조회용 가상 행이나 두 번째 날짜축을 주입하지 않는다. Project 구성 인스턴스 수·고유 설비 수량과 현재 T0 Task coverage/Assignment 계획공수·기간가중 일반 Task 진척을 명확히 나눈다. 공유 MCS/fleet·중첩 Target의 표 행은 중복 표시 가능하지만 전체 집계는 서버 distinct ID다.
 
 Task·Assignment·Target 변경은 기존 정확 editor 경로, 일정 복귀는 기존 source/current scope·snapshot·focus 계약을 사용한다. readonly·stale·dirty/pending/오류/조회 전/결과 없음과 최신 응답 역전을 구별하며, 필터·정렬·접힘·페이지·단위 전환은 저장0이다. 전체 Milestone Ready/Blocked·선행·member와 선택 Assignment Task 수는 별도 열이다. 390/768/1024/1440/1920px, 긴 이름/한국어, 표 내부 scroll·keyboard·focus/Escape·document overflow를 Chromium으로 확인해야 UX PASS다. **Design Delta B**: 기존 Light/compact/progressive disclosure·scroll/focus 원칙 구체화로 전역 신규 원칙 A가 없어 `DESIGN.md: N/A`. [Work Packet](exec-plans/active/ISSUE_624.md).
 
@@ -153,13 +153,48 @@ metadata 저장 전후 표시 집합·일정 geometry가 같으면 public/DOM �
 
 390/768px의 기존 최소 720px 내부 Gantt 작업면은 이 수정의 배치 변경 대상이 아니다. 지원 splitter/fullscreen UI를 사용한 좁은 폭 smoke는 Core 논리 Chart viewport reveal과 화면의 실제 교집합을 구별한다. 390px 미래 시작은 논리 viewport 안이어도 화면 밖일 수 있으며 자동 page-follow를 보장하지 않는다. 내부 작업면을 사용자가 pan하는 후속 조작은 NOT TESTED다. 1024/1440/1920px에서는 실제 화면 안의 시작 위치를 별도 검증한다. 상세 실행 범위와 최초 실패는 [테스트 계획](TEST_PLAN.md#issue-514--grid-시작-위치와-peer-복원-영향-검증)에 기록한다.
 
-## Issue #518 — 상위 일정·Milestone 탭 단순화 (현재 Workspace 계약)
+## Issue #724 — 일정·대시보드·기준정보 (현재 Workspace 계약)
 
-Project Workspace의 상위 peer 탭은 **일정 / Milestone 대시보드 / 리소스 / 물류 구성** 순서다. 기본 보기는 `일정`이며 이를 클릭하면 별도 `Gantt` 중간 탭 없이 기존 Gantt/Grid/Chart·검색/필터를 직접 표시한다. `전체 프로젝트 / Summary ...`는 #399의 WBS 범위 탭으로서 일정 내부에 남는다. #463의 기존 Gantt/Dashboard 내부 peer-row 배치 정책은 이 계약으로 대체한다.
+상위 peer 탭은 **일정 / 대시보드 / 기준정보** 순서다. 기본 `일정`은 기존 Gantt/Grid/Chart·검색/필터를 바로 표시한다. 대시보드 하위는 **KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스**, 기준정보 하위는 **공정&WorkArea / 설비 / 물류 시스템 / 리소스** 순서다. #518의 상위 Milestone/리소스/물류 구성 배치는 이 계약으로 이관한다. #399의 Summary 범위 기능은 보존하며 `전체 프로젝트` 중복 하위 탭만 제거한다.
 
-상위 Milestone 대시보드는 #463의 컴포넌트/readonly KPI·drill을 그대로 재사용하고 Project revision/서버 계산을 변경하지 않는다. 탭 전환은 Project/Task/Link/Calendar mutation이 아니며 Gantt 인스턴스와 Day/Week, Grid 분할·열, Chart scroll, WBS scope, 선택·tree·검색 조건 및 대시보드 조회 조건을 보존한다. `일정 → Milestone` 전환 시 일정 panel은 absolute overlay/visibility:hidden/inert/aria-hidden으로 레이아웃 측정을 보존한다. 다른 상위 보기는 native hidden을 사용한다. 일정 복귀 시 scope/filter가 같으면 기존 public scroll-chart와 DOM 위치를 복원하고, 명시적 drill의 새 target/scope는 덮지 않는다.
+일반 `일정` 재진입은 마지막 scope/filter를 유지한다. 명시 전체 일정 명령도 저장된 전체 scope의 사용자 검색/필터를 복원하며, null scope의 임시 exact drill만 원래 전체 조건으로 해제한다. `전체 일정 보기`는 사용자가 전체 scope를 명시적으로 선택하는 별도 명령이다. Summary가 없거나 마지막 탭을 닫으면 전체 WBS를 계속 표시한다. Resource/Logistics/Milestone의 정확 drill 또는 원래 보기 복귀를 이 명령으로 대신하지 않는다. 열린 여러 Summary 탭은 기존처럼 한 번에 단일 root를 활성화하며 #497의 복합 root union 기능을 신규 제공하지 않는다.
 
-Milestone에서 여는 Task/Relation/Copy Dialog는 숨겨지는 일정 panel 밖 Workspace 상위에 렌더링한다. Editor의 origin/focus를 유지한다. 상위 tablist는 peer별 aria-controls/tabpanel, roving tabIndex, Arrow/Home/End 탐색을 제공하고 좁은 화면에서는 tablist 내부만 가로 스크롤한다. fullscreen·기존 Milestone KPI/API 의미는 변경하지 않는다.
+탭 전환은 Project/Task/Link/Calendar mutation이 아니며 같은 Gantt 인스턴스와 Day/Week, Grid 분할·열, Chart scroll, WBS scope, 선택·tree·검색 조건 및 각 분석 화면의 조회 상태를 보존한다. 숨은 panel은 `hidden` 또는 기존 measured 경로의 `inert`·`aria-hidden`으로 접근성을 차단한다. 기존 measured lifecycle·`viewVisible`·Coordinator만 사용하고 강제 remount·새 viewport writer를 만들지 않는다. 복귀 시 같은 scope/filter의 유효 viewport만 복원하며 명시 drill의 새 목적지를 덮지 않는다. marker OFF·full canonical Milestone/Ready/Completed 의미는 유지한다.
+
+Task/Assignment/Relation/Copy Dialog와 Milestone 추가는 비활성 일정 panel 밖 공통 host에 렌더링한다. 편집 origin의 보이는 trigger/fallback으로 focus를 복원한다. readonly에서도 분석·정보 조회는 가능하고 실제 변경은 기존 Project session/Origin/If-Match/revision 또는 독립 Resource 관리자 인증을 따른다. dirty/pending/stale/401/412의 기존 확인·초안·오류 복구는 메뉴 이동으로 우회하지 않는다.
+
+상위/하위 tablist는 별도 ARIA 연결과 roving tabIndex를 가진다. ArrowLeft/Right 및 Home/End는 현재 행 안에서 자동 활성화하고 Enter/Space는 native button 동작을 사용한다. Escape는 열린 popup/dialog의 기존 닫기를 따른다. 좁은 폭에서는 tablist/표가 내부 가로 scroll을 소유하며 문서 폭을 확장하지 않는다. 활성 focus는 nearest로 노출한다.
+
+### 기존 기능 이관표와 후속 통합 소유권
+
+| 이전 위치/기능 | 현재 위치 | 재사용 및 후속 경계 |
+| --- | --- | --- |
+| 물류 구성 → KPI 대시보드 | 대시보드 → KPI | 기존 ProjectLogisticsDashboard의 기준일·기간/KPI·drill |
+| 상위 Milestone 대시보드 | 대시보드 → Milestone | 기존 ProjectMilestoneDashboard의 추가/관리·전체 Gate·정확 소속 작업/Resource |
+| 물류 구성 → 통합 조회 | 대시보드 → 공정&WorkArea / 설비 / 물류 시스템 | 기존 ProjectLogisticsUnified의 각 관점·상세·정확 Task/Assignment |
+| 상위 리소스 | 대시보드 → 리소스 | 기존 ProjectResourceWorkload의 KPI/Plan/Target·교차표/Excel·정확 편집 |
+| 물류 구성 → 공정 / 설비 / 시스템 | 기준정보 → 공정&WorkArea / 설비 / 물류 시스템 | 기존 관리 component와 동일 원본; 새 CRUD는 #725/#726 소유 |
+| 전역 리소스 관리 | 기준정보 → 리소스 및 기존 /resources | 기존 ResourceCatalogAdmin·독립 관리자 인증; Project 참여 등록은 #727 후속 |
+| 물류 대상(Target) / 제어 관계 | 관련 기준정보의 보조 호환 진입 | 기존 composer/member/whole/subset/usage 유지; 주/하위 주메뉴 Target 금지 |
+
+N1이 shared host·routing을 소유한다. 후속 #725/M1, #726/M2, #727/M3, #730/U1 및 #731~#736은 공개 subview/관점 계약을 사용하고 같은 host를 각자 재작성하지 않는다. 물류 공통 CRUD 추출은 #726 소유이며 N1은 최소 adapter만 제공한다. 새 집계/Target0 완결·동적 계층 구현은 이 탭 재배치의 완료 조건이 아니다.
+
+공개 adapter는 `ProjectLogisticsManagementProps.subview/onSubviewChange/onSubviewFocusUnavailable/hideSubviewNavigation/perspective/onPerspectiveChange`와 `ProjectLogisticsUnified`의 `perspective/onPerspectiveChange`다. `SubTab` 값은 기존 `dashboard/unified/targets/processes/equipment/systems/relations`를 유지한다. Host는 subview와 관점만 제어하며 실제 CRUD·revision·사용처 확인·오류/초안 상태는 기존 관리 컴포넌트가 소유한다. 관점별 검색/기간·상세·접힘·단위는 mounted Unified의 view별 상태로 유지한다. 새로운 전역 state store나 별도 Gantt를 만들지 않는다. 원래 trigger가 canonical 재조회로 교체되거나 사라지면 정확 screenKey의 보이는 탭·제목으로 focus를 복원한다. controlled subview에서는 숨은 내부 탭에 focus하지 않고 `onSubviewFocusUnavailable`로 host의 같은 화면 fallback을 사용한다.
+
+### screenKey와 #720 매뉴얼 영향
+
+탐색 preference는 Project별 `mastergantt:project:<publicId>:workspace`의 version1에 활성 screenKey와 마지막 dashboard/master 화면만 저장한다. canonical 데이터·편집 권한·scope/filter·비밀값을 저장하지 않는다. 저장소 접근 실패/잘못된 값은 안전한 기본 일정으로 처리한다. URL은 명시 `screen` → 명시 `rootTask`의 일정 → 호환 `view` → 저장된 화면 → 일정 순으로 해석한다. 기존 `view=schedule|milestones|resources|logistics`를 현재 screenKey로 정규화하며 `rootTask`는 기존 단일 Summary 계약을 따른다. 일반 메뉴 전환으로 `rootTask`나 필터를 몰래 제거하지 않는다.
+
+착수 main에는 #720 제품 `/manual` route·icon·registry가 없다. 현재 화면을 안정된 screenKey로 식별하고 이전 목적지는 새 화면으로 정규화한다. 향후 #720의 단일 manual registry는 이 계약에 연결하며 사용자 ID·인증값을 manual URL에 전달하지 않는다. 실제 key/API와 보조뷰는 이 PR의 routing module을 기준으로 한다.
+
+| 화면/기능 변경 | 논리 screenKey | 사용자 문서/anchor | 검증 |
+| --- | --- | --- | --- |
+| 일정/전체·Summary 범위 | schedule | 이 문서의 Summary 범위 절, 사용자 가이드 시작 절 | Workspace scope/deep-link E2E |
+| KPI·Milestone·세 물류 관점·리소스 | dashboard.kpi / dashboard.milestones / dashboard.process / dashboard.equipment / dashboard.system / dashboard.resources | 사용자 가이드 시작/분석/편집 절 | Workspace tabs·Resource/Logistics/Milestone E2E |
+| 공정·설비·시스템·리소스 관리 | master.processes / master.equipment / master.systems / master.resources | 사용자 가이드 시작/원본 등록 절 | 메뉴/권한·관리 화면 회귀 |
+| Target·Resource 보조 분석 및 Target 편집/제어 관계 | dashboard.target / master.targets / master.relations (주메뉴 아님) | 사용자 가이드 Target 구성 절 | 기존 Target 원본/정확 편집 E2E |
+
+이전 경로명은 아래 과거 검증 이력에 남을 수 있으며 위 이관표가 현재 사용자 탐색의 권위다. #717 이름 우선·#719 상황형 설명과 충돌하는 ID 주메뉴나 상시 설명 패널을 추가하지 않는다. 화면 매뉴얼 제품 구현/최종 Owner 수용은 별도이며 [Work Packet](exec-plans/active/ISSUE_724.md)에 실제 실행 상태를 기록한다.
 
 
 ## Issue #430 — Cut 활성화와 Dependency 경계
@@ -221,9 +256,9 @@ Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure cont
 
 하위 child가 있는 Summary의 Grid/Chart Context Menu `최상위로 열기`는 #399부터 새 browser tab/window를 만들지 않고 현재 Project의 일정 View 내부 WBS 범위 탭을 생성·활성화한다. 일반 Task/Milestone/빈 Summary에는 진입 명령을 표시하지 않으며 accessible name은 `최상위로 열기 (작업공간 탭)`이다. #72의 mouse/keyboard Context Menu 계약을 유지한다.
 
-범위 탭은 `[전체 프로젝트] [Summary A ×] [Summary B ×]` 구조다. 전체 프로젝트는 첫 번째 고정/비삭제 탭이다. Summary 탭은 task public ID로 식별하고 canonical 이름을 label로 사용하며 동일 Summary 재진입은 중복 생성 없이 기존 탭을 활성화한다. active Summary 닫기는 next → previous → 전체 프로젝트 순으로 fallback한다. ArrowLeft/ArrowRight/Home/End automatic activation, Summary 탭 Delete 및 개별 닫기 command를 제공한다. 한 행 `overflow-x:auto` / `overflow-y:hidden`을 사용하고 active/focus 탭은 `inline: nearest`로 노출한다.
+범위 탭은 `[Summary A ×] [Summary B ×]` 구조다. #724부터 전체 WBS는 기본 scope이며 탭으로 중복 표시하지 않는다. 명시 `전체 일정 보기` 명령은 열린 Summary 탭을 삭제하지 않고 전체 scope를 활성화한다. Summary 탭은 task public ID로 식별하고 canonical 이름을 label로 사용하며 동일 Summary 재진입은 중복 생성 없이 기존 탭을 활성화한다. active Summary 닫기는 next → previous → 전체 일정 순으로 fallback한다. 마지막 Summary 닫기 후 focus는 전체 일정 명령으로 복원한다. ArrowLeft/ArrowRight/Home/End automatic activation, Summary 탭 Delete 및 개별 닫기 command를 제공한다. 한 행 `overflow-x:auto` / `overflow-y:hidden`을 사용하고 active/focus 탭은 `inline: nearest`로 노출한다.
 
-기존 `/projects/{publicId}?rootTask={summaryTaskId}` deep link는 외부 공유·reload·직접 진입 계약으로 유지한다. 직접 진입하면 전체 프로젝트와 대상 Summary 내부 탭을 구성해 Summary를 active로 만든다. 내부 scope 전환은 History replace semantics로 `rootTask`만 set/delete하여 full reload와 불필요한 browser history 증가를 만들지 않는다. password/session/internal DB ID는 URL에 넣지 않는다. 열린 탭 집합은 지속하지 않으므로 reload 후 URL의 active scope만 복원한다.
+기존 `/projects/{publicId}?rootTask={summaryTaskId}` deep link는 외부 공유·reload·직접 진입 계약으로 유지한다. 직접 진입하면 대상 Summary 내부 탭을 구성해 Summary를 active로 만든다. 내부 scope 전환은 History replace semantics로 `rootTask`만 set/delete하여 full reload와 불필요한 browser history 증가를 만들지 않는다. password/session/internal DB ID는 URL에 넣지 않는다. 열린 탭 집합은 지속하지 않으므로 reload 후 URL의 active scope만 복원한다.
 
 표시 범위는 #373과 동일하게 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기되 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope와 search/filter의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks`를 재사용한다. root의 canonical parent는 바꾸지 않고 adapter에서만 SVAR `parent=0`으로 투영하며 Task/Relation Editor에는 전체 canonical tasks/links를 전달해 scope 밖 Dependency를 보존한다.
 
@@ -235,7 +270,7 @@ root가 빈 Summary가 되어도 탭은 유지한다. root 삭제/non-Summary �
 
 동일 화면의 내부 scope들은 같은 React canonical state를 공유하므로 한 scope의 성공 mutation이 즉시 다른 내부 탭에도 반영된다. 사용자가 deep link를 실제 별도 browser tab에서 직접 열 수 있으므로 #373의 storage revision announcement와 canonical GET 기반 cross-tab burst/loading freshness는 유지한다.
 
-상위 `일정 / 리소스 / 물류 구성` peer tabs는 scoped schedule에서도 항상 유지한다. WBS 범위 탭은 일정 View의 하위 navigation일 뿐 Resource/Logistics를 subtree로 제한하지 않는다. Logistics→Schedule target filter는 전체 프로젝트 scope를 활성화한 뒤 적용한다. DB/API/Scheduling/Security 계약은 변경하지 않는다.
+상위 `일정 / 대시보드 / 기준정보` peer tabs는 scoped schedule에서도 항상 유지한다. WBS 범위 탭은 일정 View의 하위 navigation일 뿐 Resource/Logistics를 subtree로 제한하지 않는다. Logistics→Schedule target filter는 전체 프로젝트 scope를 활성화한 뒤 적용한다. DB/API/Scheduling/Security 계약은 변경하지 않는다.
 
 ## Issue #345 빈 Summary 현재 정책
 

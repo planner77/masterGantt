@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
@@ -16,7 +17,7 @@ function dashboard(route: Route, revision = 40, longName = false) {
 }
 async function openDashboard(page: Page) {
   await page.goto(`/projects/${publicId}`);
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+  await openWorkspaceView(page, "kpi");
   return page.getByTestId("logistics-dashboard-view");
 }
 
@@ -125,7 +126,7 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.route(dashboardPath, (route) => route.fulfill({ json: { data: dashboard(route, 40, true) } }));
     await page.goto(`/projects/${publicId}`);
     const root = await rememberGanttRoot(page);
-    await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+    await openWorkspaceView(page, "kpi");
     const view = page.getByTestId("logistics-dashboard-view");
     await expect(view.getByRole("tablist", { name: "물류 세부 현황" })).toBeVisible();
     const processes = view.getByRole("tab", { name: /^공정별 현황/ });

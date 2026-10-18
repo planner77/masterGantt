@@ -1,12 +1,24 @@
 ## Issue #624 — 물류 통합 조회 사용자 흐름
 
-작업공간 **물류 구성 → 통합 조회**에서 관점(공정·WorkArea / 설비 종류·인스턴스 / 시스템 종류·인스턴스 / Target·Resource)을 선택하고 기간·Target·상세 필터를 조정한다. 「작업·배정 상세」에서 원본 Task/Assignment를 열거나 정확한 일정으로 이동하며, 「대상 구성 편집」은 기존 Target 관리의 동일 원본을 연다. 조회 전용 모드에서는 변경 불가, stale 상태에서는 새로고침 후 다시 선택한다.
+작업공간 **대시보드 → 공정&WorkArea / 설비 / 물류 시스템**에서 해당 관점과 기존 Target·Resource 보기를 선택하고 기간·Target·상세 필터를 조정한다. 「작업·배정 상세」에서 원본 Task/Assignment를 열거나 정확한 일정으로 이동하며, 「대상 구성 편집」은 기존 Target 관리의 동일 원본을 연다. 조회 전용 모드에서는 변경 불가, stale 상태에서는 새로고침 후 다시 선택한다.
 
 상단 Project 구성 고유 수량은 등록 설비 인스턴스 수량의 distinct 합이며 「현재 Task 범위」는 Target/member가 연결된 작업의 coverage다. 공유 MCS/AMR fleet·복수 Target가 겹쳐도 표의 소계들을 Project 공수/설비 수량으로 더하지 않는다. Task 진척은 기간가중 계획 진척이고 설치완료 실적이 아니며 Milestone Ready/Blocked는 선택 밖 소속 Task·선행을 포함한 **전체 Gate**다. WorkArea 없음·project_common·legacy 직접 연결은 실물 그룹의 자동 저장이 아니다. [설계·검증](exec-plans/active/ISSUE_624.md).
 
 # Target·Resource 사용자 가이드
 
-Issue #623의 Resource 우선 MVP 안내다. 지원 계약은 [Logistics Targets](LOGISTICS_TARGETS.md), 계산은 [Resource KPI](RESOURCE_KPI_DASHBOARD.md), 검증 상태는 [통합 수용표](TARGET_RESOURCE_ACCEPTANCE.md)를 따른다. 후순위 #624 통합 물류 화면이나 #379 전체 참조 JSON의 완료를 뜻하지 않는다.
+Issue #623의 Resource 우선 MVP 안내다. 지원 계약은 [Logistics Targets](LOGISTICS_TARGETS.md), 계산은 [Resource KPI](RESOURCE_KPI_DASHBOARD.md), 검증 상태는 [통합 수용표](TARGET_RESOURCE_ACCEPTANCE.md)를 따른다. 현재 탐색은 #724의 재배치를 따르며 #379 전체 참조 JSON이나 후속 Target0·동적 집계의 완료를 뜻하지 않는다.
+
+## 탐색과 전체 일정 복귀
+
+상위 메뉴는 `일정 / 대시보드 / 기준정보`다. 대시보드에는 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보에는 `공정&WorkArea / 설비 / 물류 시스템 / 리소스`가 있다. 분석은 조회와 정확한 원본 편집 진입, 기준정보는 원본 등록·수정에 사용한다.
+
+`일정`은 기본 전체 WBS를 보여 준다. Summary의 `최상위로 열기`로 여러 범위 탭을 열 수 있고 한 번에 하나를 선택한다. `전체 일정 보기`로 전체 scope에 돌아가며 열린 Summary 탭은 남는다. 마지막 Summary 탭을 닫아도 전체 일정이 표시된다. 일반 `일정` 탭 왕복이나 분석의 원래 보기 복귀는 기존 scope·검색·필터를 유지한다. 중복 `전체 프로젝트` 하위 탭은 없다. `rootTask`가 있는 공유 링크는 해당 Summary로 바로 열린다.
+
+Milestone 추가·소속 관리·Ready/Completed는 `대시보드 → Milestone`, 기존 KPI는 `대시보드 → KPI`, Resource Plan·Excel은 `대시보드 → 리소스`에서 이용한다. 기준정보의 `리소스`는 기존 전역 카탈로그와 독립 관리자 로그인을 사용한다. Project 편집 권한만으로 전역 카탈로그를 수정할 수 없으며, 개인의 작업 배정은 기존 Task Editor의 리소스 탭에서 관리한다. 신규 프로젝트 참여 목록은 #727 후속이다.
+
+원본 관리/분석 이동으로 Task나 Assignment를 복제하지 않는다. Task·Assignment 편집기는 해당 화면에서 바로 열리고 저장·취소 뒤 출발 화면으로 복귀한다. 각 화면의 검색·기간·접힘과 Gantt의 Day/Week·스크롤·선택은 기존 계약을 유지한다. Tab/Arrow/Home/End로 메뉴를 이동하고 Escape는 열린 상세/대화상자를 닫는다. 숨은 panel로 focus가 이동하지 않는다.
+
+이 문서는 저장소 사용자 가이드다. #720의 앱 내 `/manual`·화면별 매뉴얼 버튼은 이 변경에 포함되지 않는다. screenKey/이전 경로/향후 anchor 인계는 [Project UX](PROJECT_UX.md#screenkey와-720-매뉴얼-영향)를 따른다.
 
 ## 1. 프로젝트와 구성 준비
 
@@ -14,7 +26,7 @@ Project direct link는 기본 읽기 전용이다. 조회·Resource 상세·허�
 
 제품 표준 공정을 만들고 유효한 사업부–제품–사업장 관계에서 사업장별 공정 occurrence를 적용한다. 같은 제품의 두 사업장은 표준 공정을 공유하며 특정 사업장 추가 공정은 별도로 둔다. WorkArea는 선택 사항이고 하나의 사업장·제품·공정 occurrence 전용이다. WorkArea를 쓰지 않는 업무에 가짜 기본 구역을 만들거나 다른 공정의 구역을 공유하지 않는다.
 
-프로젝트의 `물류 구성`에서 공정 매핑과 Target를 구성한다. Target A에는 AMR10·ACS A, Target B에는 AMR5·ACS B를 놓고 공통 MCS는 기존 System 인스턴스 하나를 두 Target에서 재사용할 수 있다. 실제 같은 인스턴스를 이름만 바꿔 중복 등록하지 않는다. 시스템 종류 이름과 개별 인스턴스 label은 구별한다. 프로젝트 공통 Target은 명시적 `project_common`이며 임의 공정/WorkArea를 강제하지 않는다.
+프로젝트의 `기준정보 → 공정&WorkArea / 설비 / 물류 시스템`에서 기존 원본을 관리한다. 기존 Target를 사용할 때는 관련 기준정보의 보조 `Target 관리`에서 구성한다. Target는 별도 주메뉴나 새 업무의 필수 생성 단계가 아니며 자동 생성하지 않는다.  Target A에는 AMR10·ACS A, Target B에는 AMR5·ACS B를 놓고 공통 MCS는 기존 System 인스턴스 하나를 두 Target에서 재사용할 수 있다. 실제 같은 인스턴스를 이름만 바꿔 중복 등록하지 않는다. 시스템 종류 이름과 개별 인스턴스 label은 구별한다. 프로젝트 공통 Target은 명시적 `project_common`이며 임의 공정/WorkArea를 강제하지 않는다.
 
 ## 2. 같은 Task를 연결하기
 
@@ -24,7 +36,7 @@ Project direct link는 기본 읽기 전용이다. 조회·Resource 상세·허�
 
 ## 3. Resource에서 같은 원본 조회
 
-`리소스`에서 기간·Target·검색을 선택하고 추가 공정/WorkArea/설비·시스템 조건은 고급 필터에서 펼쳐본다. Resource 우선 Group→Resource→Target, Target 우선 Target→Group→Resource 및 비교표는 같은 원시 Task/Assignment의 조회 방식이다. 정렬·접힘·페이지·보기 전환은 WBS parent·Task 날짜·배정을 저장하지 않는다.
+`대시보드 → 리소스`에서 기간·Target·검색을 선택하고 추가 공정/WorkArea/설비·시스템 조건은 고급 필터에서 펼쳐본다. Resource 우선 Group→Resource→Target, Target 우선 Target→Group→Resource 및 비교표는 같은 원시 Task/Assignment의 조회 방식이다. 정렬·접힘·페이지·보기 전환은 WBS parent·Task 날짜·배정을 저장하지 않는다.
 
 5근무일100% Assignment 하나가 A/B에 함께 연결되면 A5 M/D·B5 M/D지만 선택 A∪B 전체는5 M/D다. Target와 중첩 Group 소계를 더해 전체값을 만들지 않는다. AMR10+5는15대, ACS A/B는2식, 공유 MCS는1식이며 수량을 계획공수에 곱하지 않는다. 관련 계획공수는 원가 배분·실적·잔여공수가 아니다. Task 진척을 바꿔도 계획공수는 줄지 않는다.
 

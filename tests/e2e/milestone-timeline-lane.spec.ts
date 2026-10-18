@@ -1,4 +1,5 @@
 import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
@@ -232,7 +233,7 @@ test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/r
   await frame.locator(".wx-chart").hover();await page.mouse.wheel(0,570);await settle(page);
   const before=await probe<Observation>(frame,"read"),height=await frame.locator(".wx-chart").evaluate(node=>node.getBoundingClientRect().height);
   expect(before.top).toBeGreaterThan(0);
-  await page.getByRole("tab",{name:"Milestone 대시보드",exact:true}).click();
+  await openWorkspaceView(page, "milestones");
   expect(await frame.locator(".project-milestone-lane").evaluate(node=>node.getBoundingClientRect().height)).toBe(64);
   expect(await frame.locator(".wx-chart").evaluate(node=>node.getBoundingClientRect().height)).toBe(height);
   await page.getByRole("tab",{name:"일정",exact:true}).click();await settle(page);const returned=await probe<Observation>(frame,"read");expect(returned.instance).toBe(before.instance);expect(returned.top).toBe(before.top);expect(returned.left).toBe(before.left);

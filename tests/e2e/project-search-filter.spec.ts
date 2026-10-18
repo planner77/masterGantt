@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { installMilestoneDashboardFixture } from "./helpers/milestone-ui";
 import {
@@ -31,7 +32,7 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await expect(page.getByRole("status").filter({ hasText: "1개 일반 Task 일치 · 직접 Summary 0개 · context Summary 1개 / 전체 3개 WBS 작업" })).toBeVisible();
     await expect(rowNamed(page, "Stable milestone")).toHaveCount(0);
     await expect(page.getByLabel("Milestone Timeline", { exact: true })).toHaveCount(0);
-    await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    await openWorkspaceView(page, "milestones");
     await expect(page.locator(`#project-panel-milestones tr[data-milestone-task-id="${state.tasks.find(task => task.type === "milestone")!.taskId}"]`)).toBeVisible();
     await page.getByRole("tab", { name: "일정", exact: true }).click();
     await expect(search).toHaveValue("Existing summary child");
@@ -68,7 +69,7 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await page.setViewportSize({ width: 768, height: 900 });
     await installStatefulProjectFixture(page);
     await page.goto("/projects/" + publicId);
-    await page.getByRole("tab", { name: "리소스", exact: true }).click();
+    await openWorkspaceView(page, "resources");
     const panel = page.getByRole("tabpanel", { name: "리소스" });
     const dashboard = panel.locator('[data-resource-dashboard="true"]');
     const kpis = dashboard.locator('dl[aria-label="선택 범위 KPI"]');

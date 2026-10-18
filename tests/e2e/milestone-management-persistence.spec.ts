@@ -1,4 +1,5 @@
 import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -65,7 +66,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   // The management entry must use a project-root command even inside a Summary scope.
   await page.goto(`/projects/${publicId}?rootTask=${summary.taskId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.locator("#project-panel-milestones");
   await panel.getByRole("button", { name: "Milestone 추가", exact: true }).click();
   const createDialog = page.getByRole("dialog", { name: "Milestone 추가", exact: true });
@@ -171,7 +172,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   await restartIsolatedApplication();
   expect(await get()).toEqual(durableSnapshot);
   await page.reload();
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const durableRow = panel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`);
   await durableRow.getByRole("button", { name: "관리 목록 편집 단계 Milestone 상세", exact: true }).click();
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("관리 목록 편집 단계");
@@ -213,7 +214,7 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
   }));
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   const panel = page.locator("#project-panel-milestones");
   await expect(panel).toContainText("프로젝트에 Milestone이 없습니다.");
   await expect(panel.getByRole("button", { name: "Milestone 추가", exact: true })).toBeEnabled();
@@ -314,7 +315,7 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
     }
   }
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", coreInstance!);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await expect(row.getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true })).toBeEnabled();
   expect(protectedMutations).toBe(0);
   expect(await get()).toEqual(snapshot);
@@ -323,7 +324,7 @@ for (const firstDate of ["past", "future"] as const) test(`#550 실제 빈 프�
   try {
     const readonlyPage = await readonly.newPage();
     await readonlyPage.goto(`/projects/${publicId}`);
-    await readonlyPage.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+    await openWorkspaceView(readonlyPage, "milestones");
     const readonlyPanel = readonlyPage.locator("#project-panel-milestones");
     await expect(readonlyPanel.getByRole("button", { name: "Milestone 추가", exact: true })).toBeDisabled();
     await readonlyPanel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`).getByRole("button", { name: `${milestone.name} Milestone 상세`, exact: true }).click();

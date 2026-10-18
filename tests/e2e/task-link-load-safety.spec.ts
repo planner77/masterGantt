@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, installStatefulProjectFixture, publicId } from "../fixtures/stateful-project";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
@@ -111,8 +112,8 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.route("**/api/resources", (route) => route.fulfill(fail ? { status: 500, json: {} } : { json: { data: { resources: [{ id: "res-1", name: "기존 담당자", code: "ENG-01", active: true }] } } }));
     page.on("request", (request) => { if (request.url().endsWith("/resource-roles") && request.method() === "PUT") mutations++; });
     await page.goto(`/projects/${publicId}`);
-    await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-    await page.getByRole("tab", { name: /^설비 관리/ }).click();
+    await openWorkspaceView(page, "logistics");
+    await openWorkspaceView(page, "equipment");
     await page.getByRole("button", { name: "담당자", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
     await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
@@ -177,8 +178,8 @@ test("재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름
     ),
   );
   await page.goto(`/projects/${publicId}`);
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: /^설비 관리/ }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "equipment");
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   let dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
   await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toBeVisible();
@@ -198,8 +199,8 @@ test("시스템 PI의 malformed 후보에서도 canonical 이름과 저장 차�
   let fail = true;
   await page.route("**/api/resources", (route) => route.fulfill({ json: { data: { resources: fail ? [null] : [] } } }));
   await page.goto(`/projects/${publicId}`);
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: /^물류 시스템/ }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "systems");
   await page.getByRole("button", { name: "PI/개발자", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: /시스템 PI/ });
   await expect(dialog.getByText("기존 PI (PI-01)", { exact: true })).toBeVisible();

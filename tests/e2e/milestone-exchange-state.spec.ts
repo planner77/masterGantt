@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page, type Request } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { installStatefulProjectFixture, publicId, projectPath, deferred, rememberGanttRoot, expectSameGanttRoot } from "../fixtures/stateful-project";
@@ -101,7 +102,7 @@ test("#464 completed Milestone boundary cannot be bypassed by Copy acknowledgeme
  await installMilestoneDashboardFixture(page,fixture);
  await start(page);
  await expect(page.locator(`.wx-row[data-id=":${fixture.tasks[3].taskId}"]`)).toHaveCount(0);
- await page.getByRole("tab",{name:"Milestone 대시보드",exact:true}).click();
+ await openWorkspaceView(page, "milestones");
  const row=page.locator(`[data-milestone-task-id="${fixture.tasks[3].taskId}"]`);
  await expect(row).toBeVisible();
  await row.getByRole("button",{name:"Stable milestone 관리",exact:true}).click();

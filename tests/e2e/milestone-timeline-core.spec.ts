@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
@@ -166,7 +167,7 @@ test("#549 public event order/resize/columns/fullscreen/peer return retain filte
   expect(await page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
   await page.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click(); await settle(page);
   const peerBefore = await probe<Observation>(frame, "read");
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await settle(page);
   const peerAfter = await probe<Observation>(frame, "read");
   expect(Math.abs(peerAfter.left - peerBefore.left)).toBeLessThanOrEqual(1);

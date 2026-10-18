@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, projectPath, rememberGanttRoot } from "../fixtures/stateful-project";
@@ -5,7 +6,7 @@ import { dashboardFixture } from "../fixtures/milestone-dashboard";
 import { resourceDashboardUiFixture, resourceDashboardDetailUiFixture, longResourceDashboardUiFixture, longResourceDashboardDetailUiFixture, LONG_DASHBOARD_COUNTS } from "../fixtures/resource-dashboard-ui";
 const path = `**${projectPath}/resource-dashboard?*`;
 const panel = (page: import("@playwright/test").Page) => page.locator('[data-resource-dashboard="true"]');
-async function open(page: import("@playwright/test").Page) { await page.goto(`/projects/${publicId}`); await page.getByRole("tab", { name: "리소스", exact: true }).click(); await expect(panel(page).getByRole("heading", { name: "리소스 공수" })).toBeVisible(); }
+async function open(page: import("@playwright/test").Page) { await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "resources"); await expect(panel(page).getByRole("heading", { name: "리소스 공수" })).toBeVisible(); }
 async function ready(page: import("@playwright/test").Page) { await expect(panel(page)).toHaveAttribute("data-ready", "true"); }
 
 test("#525 첫 실패·atomic catalog 오류는 입력을 보존하며 개별 상세 실패도 재시도한다", async ({ page }) => {
@@ -42,8 +43,8 @@ test("#525 stale 결과·검색·기간·활성·단위·열린 행을 보존하
 test("#525 중복 새로고침·hidden polling 방지와 focus catch-up 및 revision 복구", async ({ page }) => {
   const state = await installStatefulProjectFixture(page); const gate = deferred(), started = deferred(); let hold = false, calls = 0, ahead = false;
   await page.route(path, async (route) => { calls++; if (hold) { started.resolve(); await gate.promise; } const data = resourceDashboardUiFixture(state, new URL(route.request().url()).searchParams); if (ahead) data.projectRevision++; return route.fulfill({ json: { data } }); });
-  await page.goto(`/projects/${publicId}`); expect(calls).toBe(0); await page.getByRole("tab", { name: "리소스", exact: true }).click(); await ready(page); hold = true; await panel(page).getByRole("button", { name: "새로고침", exact: true }).click(); await started.promise; await expect(panel(page).getByRole("button", { name: "조회 중…" })).toBeDisabled(); hold = false; gate.resolve(); await ready(page);
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); const hiddenCalls = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); expect(calls).toBe(hiddenCalls); await page.getByRole("tab", { name: "리소스", exact: true }).click(); await ready(page); const before = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(before + 1); await ready(page);
+  await page.goto(`/projects/${publicId}`); expect(calls).toBe(0); await openWorkspaceView(page, "resources"); await ready(page); hold = true; await panel(page).getByRole("button", { name: "새로고침", exact: true }).click(); await started.promise; await expect(panel(page).getByRole("button", { name: "조회 중…" })).toBeDisabled(); hold = false; gate.resolve(); await ready(page);
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); const hiddenCalls = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); expect(calls).toBe(hiddenCalls); await openWorkspaceView(page, "resources"); await ready(page); const before = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(before + 1); await ready(page);
   ahead = true; await panel(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(panel(page)).toHaveAttribute("data-ready", "false"); await expect(panel(page).getByRole("alert")).toContainText("데이터가 변경"); state.project.revision++; ahead = false; await panel(page).getByRole("button", { name: "최신 일정 조회" }).click(); await ready(page);
 });
 
@@ -114,7 +115,7 @@ test("#525 개발 견적·단위·필터 keyboard 및 5폭 geometry와 Gantt 실
   expect(await viewport()).toEqual(before);
   expect(before.columns.length).toBeGreaterThan(0);
   expect(before.selection.length).toBeGreaterThan(0);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click(); await ready(page); const root = panel(page); await root.getByRole("button", { name: "개발 견적", exact: true }).click(); await ready(page); await expect(root.getByRole("button", { name: "개인", exact: true })).toHaveAttribute("aria-pressed", "true"); await root.getByRole("button", { name: /^필터/ }).click(); await expect(root.getByLabel("Global Role", { exact: true })).toHaveValue("DEVELOPER"); await root.getByLabel("개발자 등급").selectOption("ADVANCED"); await ready(page); await root.getByLabel("개발자 등급").press("Escape"); await expect(root.getByRole("button", { name: /^필터/ })).toBeFocused(); await root.getByRole("button", { name: /^테스트 리소스$/ }).click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();
+  await openWorkspaceView(page, "resources"); await ready(page); const root = panel(page); await root.getByRole("button", { name: "개발 견적", exact: true }).click(); await ready(page); await expect(root.getByRole("button", { name: "개인", exact: true })).toHaveAttribute("aria-pressed", "true"); await root.getByRole("button", { name: /^필터/ }).click(); await expect(root.getByLabel("Global Role", { exact: true })).toHaveValue("DEVELOPER"); await root.getByLabel("개발자 등급").selectOption("ADVANCED"); await ready(page); await root.getByLabel("개발자 등급").press("Escape"); await expect(root.getByRole("button", { name: /^필터/ })).toBeFocused(); await root.getByRole("button", { name: /^테스트 리소스$/ }).click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();
   const evidence = []; mkdirSync("output/playwright/issue-525", { recursive: true });
   for (const width of [390, 768, 1024, 1440, 1920]) { await page.setViewportSize({ width, height: 900 }); const result = await root.evaluate((element) => {
     const tables = Array.from(element.querySelectorAll("table")).filter((table) => table.getBoundingClientRect().height > 0).map((table) => { const owner = table.closest(".resource-dashboard-table-scroll")!; const head = table.querySelector("thead tr")!; const row = table.querySelector("tbody tr")!; const heads = Array.from(head.children).map((cell) => cell.getBoundingClientRect()); const cells = Array.from(row.children).map((cell) => cell.getBoundingClientRect()); return { widths: heads.map((head) => head.width), detailed: table.classList.contains("resource-dashboard-detail-table"), columns: heads.length, aligned: heads.every((cell, i) => Math.abs(cell.x - cells[i].x) < 1 && Math.abs(cell.width - cells[i].width) < 1), nonoverlap: cells.every((a, i) => cells.slice(i + 1).every((b) => a.right <= b.left + 1)), contained: Array.from(table.querySelectorAll("tbody button")).filter(button => button.checkVisibility()).every((button) => { const b = button.getBoundingClientRect(), cell = button.closest("th,td")!.getBoundingClientRect(); return b.left >= cell.left && b.right <= cell.right && b.top >= cell.top && b.bottom <= cell.bottom; }), populatedRows: table.querySelectorAll("tbody strong").length, scrollWidth: owner.scrollWidth, clientWidth: owner.clientWidth }; });
@@ -148,12 +149,12 @@ test("#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조�
   await page.route(path, (route) => { calls++; return route.fallback(); });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await open(page); await ready(page); const root = panel(page); await root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" }).fill("R-01"); await ready(page); await root.getByRole("button", { name: "개인", exact: true }).click(); await root.getByRole("button", { name: "M/M", exact: true }).click();
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); await openWorkspaceView(page, "milestones"); await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   // The legacy milestone mock has no immutable Resource source descriptor.
   // #528 must disable exact-assignment navigation rather than silently use
   // the unrestricted /resource-workload API.
   await expect(page.getByRole("button", { name: "해당 범위 리소스 보기", exact: true })).toBeDisabled();
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await ready(page);
   await expect(root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" })).toHaveValue("R-01");
   await expect(root.getByRole("button", { name: "개인", exact: true })).toHaveAttribute("aria-pressed", "true");

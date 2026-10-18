@@ -1,4 +1,5 @@
 import { expectRawIdentifier } from "./helpers/identifier-details";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
@@ -25,7 +26,7 @@ async function fixture(page: Page, editable = true, count = 30) {
   });
   await page.goto(`/projects/${publicId}`);
   const identity = await rememberGanttRoot(page);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await expect(panel(page).getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   return { state, identity };
 }

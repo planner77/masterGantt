@@ -1,3 +1,4 @@
+import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
@@ -18,7 +19,7 @@ async function setup(page: Page) {
     return route.fulfill({ json: { data: report } });
   });
   await page.goto(`/projects/${publicId}`);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   const root = page.locator('[data-resource-dashboard="true"]:visible');
   await expect(root).toHaveAttribute("data-ready", "true");
   return { state, root };
@@ -160,7 +161,21 @@ test("#529 상세 stale는 일반 opt-in 생성을 차단하고 숨은 Resource 
   await dialog.getByRole("button", { name: "내보내기", exact: true }).click();
   await expect.poll(() => exports).toBe(1);
   await expect(dialog.getByRole("alert")).toContainText("파일을 생성할 수 없습니다");
+  const primary = page.getByRole("tablist", { name: "프로젝트 작업공간" })
+    .getByRole("tab", { name: "대시보드", exact: true });
+  const secondary = workspaceViewTab(page, "resources");
+  // Both are legitimately selected, so choosing the first global selected tab
+  // restores focus to the wrong level. The secondary destination must win.
+  await expect(primary).toHaveAttribute("aria-selected", "true");
+  await expect(secondary).toHaveAttribute("aria-selected", "true");
+  await expect(secondary).toHaveAttribute("tabindex", "0");
   await page.locator("#project-panel-resources").evaluate(node => { node.setAttribute("hidden", ""); node.setAttribute("inert", ""); });
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("tab", { name: "리소스", exact: true })).toBeFocused();
+  await expect(dialog).toBeHidden();
+  await expect(secondary).toBeFocused();
+  await expect(primary).not.toBeFocused();
+  expect(await secondary.evaluate(tab => ({
+    focusedId: document.activeElement?.id,
+    visible: tab.checkVisibility({ checkVisibilityCSS: true }),
+  }))).toEqual({ focusedId: "project-tab-resources", visible: true });
 });

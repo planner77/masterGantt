@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { installStatefulProjectFixture, publicId, rowNamed, rememberGanttRoot, expectSameGanttRoot } from "../fixtures/stateful-project";
 
@@ -35,7 +36,7 @@ test("#552 explicit WBS mode rollback preserves canonical data with marker effec
   await expect(frame.locator(".project-milestone-lane,.project-milestone-lane-guide")).toHaveCount(0);
   await page.setViewportSize({ width: 1024, height: 900 });
   await page.getByRole("button", { name: "주", exact: true }).click();
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await openWorkspaceView(page, "milestones");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expectSameGanttRoot(page, identity);
   const effects = await page.evaluate(() => Reflect.get(window, "__issue552MarkerEffects"));

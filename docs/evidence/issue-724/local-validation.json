@@ -1,0 +1,104 @@
+{
+  "issue": 724,
+  "baselineMainSha": "3eaa6026923c38f200a463f6985c7cc8f88f9bf0",
+  "branch": "feat/issue-724-workspace-navigation",
+  "candidateVersion": "0.117.0",
+  "scope": "LOCAL_SELECTED_ONLY",
+  "compiler": "Next.js 16.3.8 default Turbopack",
+  "node": "22.14.0",
+  "sourcesSha256": {
+    "src/app/globals.css": "7f0ec327d026ddea7eec8bd0dd857b1a01f60a0769d2599aa551d6f74200ba3f",
+    "src/features/logistics/project-logistics-management.tsx": "595d71a3fd61fc11737b2c00cfee66e21414ec117b24babb6165d3b33bf2a422",
+    "src/features/logistics/project-logistics-unified.tsx": "baa1d991a5bd1d37cd89cccb22a33e48f30e98326aae4a09fd074a3d3c15b357",
+    "src/features/logistics/use-logistics-view-state.ts": "11036e304acc137ee4760af502f0d8bce5c8043251fea4e1733b221f7d6365a2",
+    "src/features/projects/project-readonly-view.tsx": "614a93a2a780bf1a7900825cc95a7b59b05fce7808bb59952bc518919c3799fb",
+    "src/features/projects/project-workspace-navigation.ts": "adc17ec3b148510b72fdfa2a9354b0f2c621d0378c4946ab1ea07e1347510047"
+  },
+  "routingUnit": {
+    "passed": 36,
+    "failed": 0
+  },
+  "finalSelectedChromium": {
+    "cases": 6,
+    "status": "PASS",
+    "composition": "5 PASS in preceding six-case run plus corrected #624 single-case PASS, identical source; not a single 6/6 run",
+    "lastCase": "tests/e2e/issue-624-logistics-unified.spec.ts",
+    "lastCaseDurationSeconds": 23.0,
+    "lastCommandDurationSeconds": 39.4,
+    "viewportWidths": [
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "canonicalWrites": 0,
+    "fullSnapshotUnchanged": true,
+    "sameGanttInstance": true
+  },
+  "focusObservations": [
+    {
+      "phase": "schedule-return",
+      "screen": "dashboard.process",
+      "expectedScreen": "dashboard.process",
+      "visible": true,
+      "hidden": false,
+      "disabled": false,
+      "sameOwner": true,
+      "controlOrHeading": true,
+      "taskId": null,
+      "identityMatches": true,
+      "active": {
+        "tag": "BUTTON",
+        "id": "project-tab-dashboard.process",
+        "role": "tab",
+        "text": "공정&WorkArea"
+      },
+      "accepted": true
+    },
+    {
+      "phase": "task-editor-return",
+      "screen": "dashboard.process",
+      "expectedScreen": "dashboard.process",
+      "visible": true,
+      "hidden": false,
+      "disabled": false,
+      "sameOwner": true,
+      "controlOrHeading": true,
+      "taskId": null,
+      "expectedTaskId": "ca499022-e633-4fb6-951f-eb014ac35355",
+      "identityMatches": true,
+      "active": {
+        "tag": "BUTTON",
+        "id": "project-tab-dashboard.process",
+        "role": "tab",
+        "text": "공정&WorkArea"
+      },
+      "accepted": true
+    },
+    {
+      "phase": "target-unified-return",
+      "screen": "dashboard.target",
+      "expectedScreen": "dashboard.target",
+      "visible": true,
+      "hidden": false,
+      "disabled": false,
+      "sameOwner": true,
+      "controlOrHeading": true,
+      "taskId": null,
+      "identityMatches": true,
+      "active": {
+        "tag": "BUTTON",
+        "id": "project-tab-dashboard.process",
+        "role": "tab",
+        "text": "공정&WorkArea"
+      },
+      "accepted": true
+    }
+  ],
+  "sourceReview": "PASS (separate read-only navigation_review; not remote QA or Owner acceptance)",
+  "remoteRequired": "NOT TESTED",
+  "trustedQa": "NOT TESTED",
+  "ownerAcceptance": "NOT TESTED",
+  "releaseAuthorized": false
+}

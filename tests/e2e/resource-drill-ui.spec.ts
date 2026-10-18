@@ -1,3 +1,4 @@
+import { openWorkspaceView, workspaceViewTab } from "./helpers/workspace-navigation";
 import {
   expect,
   test,
@@ -330,7 +331,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await expect(strip).toContainText("고유 Task 1");
     await strip.getByRole("button", { name: /원래 보기/ }).click();
     await expect(
-      p.getByRole("tab", { name: "리소스", exact: true }),
+      workspaceViewTab(p, "resources"),
     ).toHaveAttribute("aria-selected", "true");
     await expect(detail).toContainText("공동 담당 작업");
     await strip.getByRole("button", { name: /원래 보기/ }).click();
@@ -340,7 +341,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await expect(
       frame.locator(`input[data-copy-selection="${shared.taskId}"]`),
     ).toBeChecked();
-    await p.getByRole("tab", {name:"Milestone 대시보드",exact:true}).click();
+    await openWorkspaceView(p, "milestones");
     const mRoot = p.locator('[data-testid="milestone-dashboard"]');
     await expect(mRoot).toHaveAttribute('data-ready','true');
     await mRoot.getByLabel("수동 기준일", {exact:true}).check();
@@ -352,7 +353,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await mRoot.getByLabel("1 M/M당 M/D", {exact:true}).fill("15");
     await expect(mRoot).toHaveAttribute("data-ready", "true");
     await mRoot.getByRole('button',{name:'완료 Milestone 목록에서 확인',exact:true}).click();
-    await expect(p.getByRole('tab',{name:'Milestone 대시보드',exact:true})).toHaveAttribute('aria-selected','true');
+    await expect(workspaceViewTab(p, "milestones")).toHaveAttribute('aria-selected','true');
     await expect(mRoot.getByRole('status').filter({hasText:'선택 지표의 Milestone 1개'})).toContainText('현재 목록 조건에 1개');
     await expect(mRoot.locator('tr[data-milestone-task-id]')).toHaveCount(1);
     await expect(mRoot.locator(`tr[data-milestone-task-id="${completedMarker.taskId}"]`)).toBeVisible();
@@ -444,7 +445,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await latest.locator('.resource-dashboard-kpis > div').filter({hasText:/^할당 Task/}).getByRole('button').click();
     await p.getByRole('tab',{name:'일정',exact:true}).click();
     await p.getByLabel('작업명, 설명, External ID 검색', {exact:true}).fill('다른 단계 작업');
-    await p.getByRole('tab',{name:'리소스',exact:true}).click();
+    await openWorkspaceView(p, "resources");
     const trigger = latest.locator('.resource-dashboard-detail').getByRole('button',{name:'전체 범위 일정 보기',exact:true});
     await trigger.click();
     const confirmation = p.getByRole('dialog',{name:'조회 범위 충돌 확인',exact:true});
@@ -459,7 +460,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     expect((await get()).data.project.revision).toBe(projectRevisionBeforeCatalog);
     await confirmation.getByRole('button',{name:'전체 대상 별도 범위로 보기',exact:true}).click();
     await expect(p.getByRole('status').filter({hasText:/변경|최신|다시/}).last()).toBeVisible();
-    await expect(p.getByRole('tab',{name:'리소스',exact:true})).toHaveAttribute('aria-selected','true');
+    await expect(workspaceViewTab(p, "resources")).toHaveAttribute('aria-selected','true');
     await confirmation.getByRole('button',{name:'취소',exact:true}).click();
     await expect(trigger).toBeFocused();
     expect(await readonly.cookies()).toEqual([]);
