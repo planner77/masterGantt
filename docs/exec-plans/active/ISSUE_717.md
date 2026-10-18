@@ -91,3 +91,9 @@ Manager는 shared `IdentifierDetails`, Project/Import 표시, 문서/version·E2
 - 변경 영향·확대: Target 생성(whole/subset/공유·관리/412), Resource Plan 첫 daily→day resources→assignments→Task 편집, Target/Resource 표시·ID 코드 원문/동명, #621/#622/#623/#717, 관련 suite + Full E2E6. 기존 테스트 결과 중 취소/미실행을 PASS로 전용하지 않는다.
 - 보존: DB/API/문서 외부 형식·Release 권한/SVAR Core/CI required 3개·Shard6/Fail-Fast·제품 보안/일정 엔진. Version `0.116.1`, `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`.
 - 본 실행 환경 로컬 Node 프로젝트/Chromium runner 미제공: 직접 제품 테스트 **NOT TESTED**. 원격 원본 로그/정적 source-contract 검토를 별도 근거로 기록한다. 새 Full CI는 GitHub에 새로운 Head가 게시된 뒤 Run을 실제 조회하고 시작까지만 확인한다. 미해결 리뷰/최신 main/충돌과 DOC_SYNC는 게시 직전 재검증한다. 새 Head Required3/Trusted/Owner ACCEPT/병합·Main/GHCR·Issue 종료 아직 NOT TESTED/미승인.
+
+## 최신 main #449 합류 및 문서 계약 보존 (2026-10-18)
+
+- Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577` 이후 #449 PR #458 merge `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`가 최신 main이다. 이 SHA는 위의 최초 기준선과 구분한다.
+- `DESIGN.md`: #717의 Name-first §1.3과 #449의 내부 KPI/행 밀도/입력 식별성/실제 browser evidence 공통 기준 전부 보존; `PLAN.md`: #717 REWORK/제품 구현과 #449 감사 절 모두 보존. #449 전용 문서 3개는 upstream 원문 그대로 유지하며 해당 Issue 승인/검증을 #717로 전이하지 않는다.
+- main 정렬은 문서/브랜치 작업이며 전체 E2E/QA/Owner SUCCESS를 뜻하지 않는다. 위 `DOC_SYNC`의 `DESIGN.md`·`PLAN.md` 반영 의미는 그대로 유지된다.

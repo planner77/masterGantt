@@ -79,3 +79,9 @@
 - 직접 두 파일(#717 Target authoring, #622 Plan)과 간접 #623 및 신규 #717 이름-first/동명/권한/원문, 전체 Chromium6 shard를 실행해 통과할 때만 E2E PASS. 원본 실패의 종료가 로그상 재현 불가인 경우 원인 단정하지 않는다.
 - CI Run 등록 자체는 PASS가 아니다. #2935의 shard5 내부 실패 및 F-001/F-002 실패 이력을 지우거나 과거 SUCCESS로 대체하지 않는다.
 - PR CI 성공 후에도 UI 주요 AC의 사용자 수용/Owner 승인·병합/Main/정식 GHCR/이슈 종료는 별도 확인한다.
+
+## 2026-10-18 최신 main #449 합류·충돌 해소 기록
+
+- 준비 당시 #717 Head `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc`, Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`; 이후 `main`은 [#449 PR #458](https://github.com/planner77/masterGantt/pull/458) 병합 `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`으로 5커밋 앞섰고 GitHub `mergeable_state=dirty`로 조회됐다. 소스 컴포넌트·E2E는 main 변경과 중첩되지 않았고 `DESIGN.md`(4 diff hunks)와 `docs/exec-plans/active/PLAN.md`(새 #449 상단 절)만 양쪽 수정이다.
+- 충돌 해결: #717의 이름 우선 정책/지난 실패/구현과 #449의 내부 KPI 참조·목록/입력/검증 정책, ISSUE_449 문서 3개와 PLAN #449 기록을 **양방향 보존**한 신규 두 부모 merge commit으로 최신 main을 브랜치에 포함한다. 공통 원칙과 과거 수행 증거를 삭제/덮어쓰기 하지 않는다.
+- 원본 #2935.1 Head/Base/실패 로그는 불변, 신규 exact Head 테스트는 시작 전 **NOT TESTED**. 리뷰 thread0과 충돌 해소 여부는 ref 게시 후 API를 다시 확인한다.
