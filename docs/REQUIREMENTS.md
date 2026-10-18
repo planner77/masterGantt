@@ -1,3 +1,11 @@
+## Issue #725 — Target 없는 공정·WorkArea 관리
+
+`기준정보 → 공정&WorkArea`에서 Project 자유 공정/occurrence 매핑과 공통 Process Type/제품 표준/사업장 공정/WorkArea를 구분해 등록·검색·정렬·활성/비활성·사용처·안전 삭제·명시 표준 적용을 제공한다. 공통 변경은 독립 관리자, Project 매핑과 설비는 Project edit 권한으로 검증한다. Target0개에서 동작하며 Task/Target를 자동 생성하지 않는다. 미분류 legacy Project의 무관한 작업·설비 편집은 유지한다.
+
+공정 WorkArea0..N, WorkArea 실제 단일 소유, 설비 WorkArea0..N(타 공정 포함)을 typed 관계로 보존한다. Equipment.processId는 주 관리 공정이며 관계 해제는 설비/Task 삭제가 아니다. E10의 다중 구역 관련 수량은 각10이어도 고유 총량은10이다. Task 직접 공정0..N은 사용자가 선택하며 Equipment/System/WorkArea/Target에서 자동 유도하지 않는다. 명시0개와 구형 null을 구별하고 직접 WorkArea는 선택 공정·실제 소유권·self/subtree를 검증한다.
+
+migration0028·canonical DTO·Task 직접 API·Copy/Templatev4·미지원 일정 JSON/Excel no-loss를 같은 변경 단위로 제공한다. 공통 Task Editor 화면은 #726, 해석/집계는 #728/#729, `/manual` 제품 화면은 #720 범위다. [API](API.md#issue-725--target-없는-공정workarea-직접-문맥), [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md#issue-725--공정workarea와-설비-구역-관리), [실행 원장](exec-plans/active/ISSUE_725.md)에서 지원과 실행 증거를 구별한다.
+
 ## Milestone 표시 정책 변경 — marker-OFF WBS 우선 (#548, 2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 기존 #459~#464 Stage Gate·소속·진척·Ready/Completed·Resource/Target 집계 의미는 유지한다. **#552의 필수 제품 목표는 native Grid/Chart Milestone 행·Bar 0, 상단 Timeline marker OFF**이며, 기존 Dashboard·Task 소속 검색·Editor/관계·숨은 canonical 원본·Copy/Export를 보존한다. #551의 앱 소유 marker lane을 삭제하거나 기본 ON으로 전환하지 않는다. marker ON은 #552/#553/#574 baseline 수용 이후 #573 기술 검증·[#693](https://github.com/planner77/masterGantt/issues/693) 별도 구현/승인으로 최후에 판단한다. #667은 marker 기능을 포함하지 않는 최신 main의 Gantt 상태 정합성 통합을 먼저 담당한다. 기존 과거 #196/#462/MT1 설명은 현재 UI 및 결정 이력이고, 이 새 목표의 구현 완료 증거가 아니다.

@@ -4438,3 +4438,42 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 - Existing product `ProjectExportButton` focused the first visible `[aria-selected=true]` tab regardless of nesting, prioritizing parent `대시보드` before child `리소스`. Keep valid original trigger first; on lost trigger prefer connected/visible/enabled **secondary selected tab scoped to this Project**, then selected primary tab, then general export control. CSS-hidden/inert must be rejected. Leave `WorkspaceDialog` semantics unchanged, and never replace one Gantt/scroll focus writer with another.
 - Strengthen *existing* #529 stale/opt-in/409/500 test: confirm parent and secondary both selected, active child tabbable, hide/inert the origin, Escape, Dialog hidden, child focus with exact ID, parent not focused and child visible. Retain original exported-request count, report proof/reconfirmation, failure notice, 5-width geometry & existing focus-return tests. Direct/neighbor negative suite: #529, #572, #724/#518, #551, #552, #719 and #624; source-stable local targeted tests or full remote Shards remain NOT TESTED until run.
 - This is a PRODUCT focus correction, not a F02–F04 TEST_CONTRACT exception. [Single issue cumulative record F05](ISSUE_724_FAILURE_ANALYSIS.md), AGENTS.md #704, GSC-07/08/09/11 and strict source evidence policy apply. Timeouts, retries, skip, Required CI/QA, Owner/HIGH release gates remain unchanged; no merge/GHCR/issue closure in current scope.
+
+## Issue #725 — Target 없는 공정·WorkArea 직접 문맥 수용
+
+[Work Packet](exec-plans/active/ISSUE_725.md)의 AC1~AC9와 [최신 W1/W2](https://github.com/planner77/masterGantt/issues/725#issuecomment-6245426595)를 적용한다. Target0 정상 흐름, 타 공정 WorkArea 동시 연결, Task 명시0과 legacy-null 구분, 구성 변경으로 Task 공정 자동 변경0을 검사한다. Task picker는 #726, 새 공정 KPI/source 해석은 #728/#729의 별도 검증이며 기존 Target/System/Resource 집계의 성공을 새 관점 PASS로 전용하지 않는다.
+
+| 변경 producer | 직접 검사 | 인접·음성 검사 |
+| --- | --- | --- |
+| migration0028·typed repository | `tests/server/process-catalog/process-context-service.test.ts`의0/1/N·actual owner/Project 격리·재시작 | `tests/server/db/database.test.ts`, `issue-623-target-migration.test.ts`, `tests/server/migration-cli.test.ts`의 exact ledger/checksum/FK/rollback |
+| Task GET/PUT·설비 원자 저장·기존 mapping 보호 | 신규 context service의 Request/Response·실제SQLite session/Origin/If-Match/catalog stale | 기존 process catalog service/handlers/compatibility·logistics service/handlers·route security inventory와 delayed body·session철회/type전환 |
+| Project/Task Copy·Templatev4 | `tests/server/templates/logistics-template-graph.test.ts`의E10두구역·명시0/legacy-null·inactive보존·file reopen | 기존 project-copy-logistics/project-copy-service/task-hierarchy-multi-copy, parser unsupported 관계·Resource report opt-in 보존 |
+| 독립 관리 UI·다중 구역 picker | `tests/e2e/issue-725-process-workareas.spec.ts`의 실제HTTP/SQLite·Target0·5폭·원본1/quantity10·저장/해제/reload | readonly/dirty/pending/error/loading/명시갱신·Gantt동일instance·keyboard/focus·긴값/표내부overflow |
+
+최종 동결 source에서 선택 회귀 결과를 아래 실행 원장에 기록한다. 전체 로컬 Vitest/Playwright/Docker/GHCR 반복을 완료 조건으로 삼지 않으며 PR Required Quality/E2E/Docker의 전체 공식 회귀와 구별한다. 운영 DB/off-host 복원·실기기·screen reader·최종 수동 UX는 NOT TESTED다.
+
+초기 원본 실패와 가설:
+
+- migration 기대값 보완 첫 실행:3파일31테스트 중30PASS/1FAIL. `migration-cli.test.ts`의 ledger count27 기대만 남아 실제28과 불일치했다. count를28로 갱신한 뒤 route inventory 포함4파일48PASS를 확인했다. 제품 migration 성공을 실패로 소급 변경하거나 원본 실패를 삭제하지 않는다.
+- backend 초기3FAIL: HTTP fixture dependency key와 구0024 fixture에서 최신 service로 신규 테이블을 조회한 테스트 준비 오류. 실제 구DB 준비는 repository 삽입으로 전환하고 업그레이드 후 최신 service를 검증한다. 상세 최종 개수는 Work Packet에 기록한다.
+- 전용 npm ci는33초에 완료했다. better-sqlite3 v13은 prebuilds를 사용하므로 build/Release의 파일 부재는 native 미설치 증거가 아니다. 직접 SQLite3.53.4 메모리DB 생성 성공으로 초기 환경 가설을 폐기했다.
+- 첫 Chromium 통합 사례는180초 timeout, `관리 범주` locator 대기에서 실패했다. API seed는 실제SQLite에 저장됐으나 UI 수용 후단은 미실행이다. 당시 source/spec·원본trace를 별도 보존하고 actual label·조건을 확인해 보완한다. 제품 source가 진행 중이던 이 실행을 최종source 증거로 사용하지 않는다.
+
+PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종료점은 PR_CI_STARTED다. CI 완료 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료를 수행하지 않는다.
+
+중간 결과: backend 최종 선정18파일197테스트 PASS(16:56:04KST/7.53초); 분리된 context_review의6파일100테스트 PASS는 별도 실행이며 고유 테스트 수로 더하지 않는다. `관리 범주`는 실제 combobox가 존재했으나 implicit label에 option 텍스트가 포함되어 exact label oracle가 틀린 것으로 정정했다. HMR는 추가 오염 요인이며 cold startup을 근본 원인으로 확정하지 않는다. 성공 미적용 알림의 role=status도 테스트에 반영했다. 다섯 번째 실제 실행에서는 mapping 저장 뒤 호출 버튼 focus가 복원되지 않아 제품 REWORK를 진행한다. 앞선 정적 UX PASS와 구분하고 동결 source에서 다시 확인한다.
+
+390px 추가 진단: 신규표 owner client366/scroll680은 정상 containment이며 여섯/일곱 번째 run의 문서669px 실패를 표 폭으로 설명할 수 없다. 여덟 번째 run의 clipping-aware 후보는 닫힌 `.project-info-panel` left330/right688/width358을 확인했지만 아홉 번째 run에서 이 panel의 display:none/rect0 이후에도 문서669px가 남았다. 이를 단일 근본 원인으로 확정했던 가설을 철회하고 숨은 일정/resize 수렴을 추가 진단한다. 닫힌 정보 disclosure만 display:none으로 보완하고, 새 수용 spec에 정보 열기/실제 geometry/Escape/summary focus/닫힘5폭 검사를 추가했다. 기존 `project-workspace-ux.spec.ts`의 정보/더보기 disclosure와 `project-logistics-management.spec.ts`의 탭/Gantt 보존 두 사례를 인접 회귀로 추가 선정한다. 마지막 WorkArea usageCount의 Target 직접 참조 보완은 실제 SQLite45테스트로 확인했다.
+
+
+390px 원인 최종 정정: 아홉/열 번째 run에서 닫힌 정보 panel과2RAF 가설이 기각됐다. 열한 번째 subtree 인과 탐침은 신규공정 section 제거시390, admin제거시647을 관측하여 두 표의 absolute srOnly가 scroll owner 밖에 위치 기준을 잡는 원인을 확인했다. 해당 owner의 position:relative 최소 수정으로 재검증하며 임시 globals.css 정보 panel 변경은 제거한다. 정보의 기존 native 닫힘을 display:none 고정과 혼동하지 않는다. 최초6~11 FAIL과 관측JSON은 Work Packet에 보존하고 diagnostic style 수정으로 PASS를 만들지 않는다.
+
+후속 수용:12회차는 srOnly containing block 수정 후 공정/카탈로그5폭·문서폭·정보 열기/Escape/focus PASS, 기존 설비 코드 React autoFocus가 native showModal로 덮이는 문제에서 FAIL했다. native autofocus 속성 복구 뒤13회차는 설비 초기 focus와5폭·15개 표 geometry를 통과했다. 저장 후 `공유 인스턴스 변경 확인`을 테스트가 누락해 후단이 중단됐으므로 기존 보호 확인을 명시 조작하도록 교정한다. Backend 최종18파일198PASS(17:09:20/5.66초), 추가 기존 Target 업그레이드2파일17PASS는 별도 실행이며 합계의 고유성은 주장하지 않는다.
+
+
+최종 동결 source 통합:20파일215테스트 PASS(17:15:52KST/4.17초), Chromium14회차 실제 통합1case PASS(41.6초/총57.2초). 공정4열/카탈로그6열/설비10열×5폭의15개 populated 표 geometry·keyboard/focus, 타 공정 E10 두 구역/원본1/수량10·2→1→0 해제·실제 서버 재시작, Task legacy-null→2→1→명시0, readonly/error/loading/retry/dirty/pending·realPATCH1·Target0·같은 Gantt를 검증했다. 이전1~13 FAIL/BLOCKED와 가설 기각을 취소하지 않으며 최종수정은 scope 안의CSS position 기준/native autofocus/성공revision채택이다. 공식 전체 회귀는 새 PR exact Head의 Required3가 수행하며 원격 PASS·Owner 승인으로 표시하지 않는다.
+
+최종 이미지 검토:14통합PASS와 기존 인접2casePASS(14.1초) 이후390px 설비 PNG를 실제 열람하여 modal 내부가 잘리는 결함을 발견했다. 문서/모달 외곽 bbox와 표15개 geometry는 내부 form containment를 증명하지 못했다. 설비 폼만 minmax(0,1fr)·min-width0로 보완하고5폭 dialog.scrollWidth≤clientWidth를 추가한다. 이 후속 수정과 새 최종 실행의 결과를14실행과 구분한다.
+
+
+최종15회차: 설비 폼 내부 수축 수정 뒤 실제 통합1case PASS(43.711초/총60.729초),5폭 dialog 내부scrollWidth=clientWidth(390:350/350,나머지606/606)·표15개/문서폭 및 원래 전체 저장/해제/재시작 계약을 다시 검증했다. 실제390/1440 PNG를 별도 UX 검토자가 열람해 잘림 해소를 확인했다. 기존 인접2case PASS14.1초와 구분하며 [로컬 증거](evidence/issue-725/local-validation.json)에 최종 지문·상태·실측을 남긴다. Pre-PR dry-run 자체는10경로 자동 매핑UNKNOWN/Selection BLOCKED·실행NOT TESTED이며 실제 선정 검증과 혼동하지 않는다. 범용 선택기/정책은 수정하지 않는다.

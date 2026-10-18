@@ -1,4 +1,13 @@
+import { ResourceDashboardService } from "../../../src/server/resources/resource-dashboard-service-core";
+import { TaskHierarchyService } from "../../../src/server/projects/task-hierarchy-service-core";
+import { ProjectCopyService } from "../../../src/server/projects/project-copy-service-core";
+import { ProcessContextRepository } from "../../../src/server/repositories/process-context-repository-core";
+import { snapshotProjectContexts } from "../../../src/server/logistics/project-context-transfer-core";
+import { ProjectJsonExportService } from "../../../src/server/exports/project-json-export-core";
+import { ProjectExportSnapshotService } from "../../../src/server/exports/project-export-snapshot-service-core";
 import { randomUUID } from "node:crypto";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
@@ -19,8 +28,8 @@ const password=async()=>({
   n:32768,r:8,p:3,keyLength:32,
 });
 
-async function fixture() {
-  const {database:db}=openDatabase({filename:":memory:",migrationsDirectory});
+async function fixture(filename = ":memory:") {
+  const {database:db}=openDatabase({filename,migrationsDirectory});
   const projectService=new ProjectService(db,{
     clock:()=>now,hashPassword:password,
     generateSessionToken:()=>({rawToken:"src-token",tokenHash:hashSessionToken("src-token")}),
@@ -101,7 +110,7 @@ async function fixture() {
   });
   return {db,project,sourceId,authorization:authorization.authorization,
     projectRevision,templates,targets:[a,b,common],catalog,areaPublicId,
-    occA,occB,mcs};
+    occA,occB,mcs,pA,pB,eqA,eqB,projectService};
 }
 
 describe("Issue #616 versioned Template Target/member graph",()=>{
@@ -205,6 +214,165 @@ describe("Issue #616 versioned Template Target/member graph",()=>{
       const targetRows=new LogisticsTargetService(f.db).list(response.data.project.publicId).targets;
       expect(targetRows).toEqual([]);
       expect(response.data.operation.counts.targets).toBe(0);
+    }finally{f.db.close();}
+  });
+});
+
+
+describe("Issue #725 Copy/Template process context preservation",()=>{
+  async function contextFixture() {
+    const f=await fixture();
+    const add=(name:string,type:"summary"|"task"="task")=>f.projectService.createTask(f.authorization,f.projectRevision(),
+      type==="summary"?{name,externalId:name,type}:{name,externalId:name,type,start:"2026-10-12",duration:1,progress:0}).data.tasks.find(t=>t.externalId===name)!;
+    const root=add("Root","summary"),empty=add("Explicit-empty"),legacy=add("Legacy-null");
+    const repository=new ProcessContextRepository(f.db);
+    repository.replaceEquipment(f.project,f.eqB.id,repository.validateEquipmentWorkAreas(f.project,[{processId:f.pA.publicId,workAreaId:f.areaPublicId}]));
+    const id=(publicId:string)=>(f.db.prepare("SELECT id FROM tasks WHERE public_id=?").get(publicId) as {id:number}).id;
+    repository.replaceTask(f.project,id(root.taskId),repository.validateTaskContext(f.project,id(root.taskId),{
+      processLinks:[{processId:f.pA.publicId,scope:"subtree"},{processId:f.pB.publicId,scope:"self"}],
+      workAreaLinks:[{processId:f.pA.publicId,workAreaId:f.areaPublicId,scope:"subtree"}],
+    }));
+    repository.replaceTask(f.project,id(empty.taskId),{processLinks:[],workAreaLinks:[]});
+    return {...f,root,empty,legacy,repository};
+  }
+  it.each(["copy","template"])("preserves W1 cross-process locations, scoped W2 context and null/empty with %s",async(method)=>{
+    const f=await contextFixture();
+    try {
+      const before=snapshotProjectContexts(f.db,f.project);
+      let targetPublicId:string;
+      if(method==="copy") {
+        const copied=await new ProjectCopyService(f.db,{hashPassword:password,clock:()=>now}).copy(f.authorization,f.projectRevision(),{name:"Copy",description:"",editPassword:"password123",resetProgress:false});
+        targetPublicId=copied.response.data.project.publicId;
+      }else{
+        const saved=f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Context v4"});
+        const payload=JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(saved.id) as {content_json:string}).content_json);
+        expect(payload.logistics.schemaVersion).toBe(4);
+        expect(payload.logistics.taskTargetBindings).toEqual([]);
+        expect(payload.logistics.equipmentWorkAreas).toEqual([{equipmentCode:"AMR-B",workAreaLinks:[{processCode:"PROC-A",workAreaId:f.areaPublicId}]}]);
+        expect(payload.logistics.taskContexts.find((t:{taskExternalId:string})=>t.taskExternalId==="Explicit-empty")).toMatchObject({processLinks:[],workAreaLinks:[]});
+        targetPublicId=(await f.templates.instantiateProject(saved.id,{name:"Installed",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).response.data.project.publicId;
+      }
+      const projectId=(f.db.prepare("SELECT id FROM projects WHERE public_id=?").get(targetPublicId) as {id:number}).id;
+      expect(snapshotProjectContexts(f.db,projectId)).toEqual(before);
+      const targetContexts=f.repository.taskContexts(projectId);
+      const byExternal=new Map((f.db.prepare("SELECT public_id,external_id FROM tasks WHERE project_id=?").all(projectId) as {public_id:string;external_id:string}[]).map(t=>[t.external_id,t.public_id]));
+      expect(targetContexts.find(t=>t.taskId===byExternal.get("Legacy-null"))).toMatchObject({processLinks:null,workAreaLinks:null});
+      expect(targetContexts.find(t=>t.taskId===byExternal.get("Explicit-empty"))).toMatchObject({processLinks:[],workAreaLinks:[]});
+      expect(byExternal.get("Root")).not.toBe(f.root.taskId);
+      expect(snapshotProjectContexts(f.db,f.project)).toEqual(before);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it.each(["copy","template"])("preserves one quantity-10 fleet serving two process-owned WorkAreas through %s and SQLite reopen",async(method)=>{
+    const directory=mkdtempSync(join(tmpdir(),"mastergantt-725-w1-"));
+    const filename=join(directory,"project.sqlite3");
+    const f=await fixture(filename);
+    try {
+      const areaB=randomUUID();
+      f.db.prepare("INSERT INTO work_areas(public_id,occurrence_id,code,name,created_at,updated_at) VALUES(?,?,?,?,?,?)")
+        .run(areaB,f.occB.id,"WA-B","Inspection area B",stamp,stamp);
+      const repository=new ProcessContextRepository(f.db);
+      repository.replaceEquipment(f.project,f.eqA.id,repository.validateEquipmentWorkAreas(f.project,[
+        {processId:f.pA.publicId,workAreaId:f.areaPublicId},
+        {processId:f.pB.publicId,workAreaId:areaB},
+      ]));
+      const before=snapshotProjectContexts(f.db,f.project);
+      expect(before.equipmentWorkAreas).toEqual([{equipmentCode:"AMR-A",workAreaLinks:[
+        {processCode:"PROC-A",workAreaId:f.areaPublicId},
+        {processCode:"PROC-B",workAreaId:areaB},
+      ]}]);
+      const target=method==="copy"
+        ? (await new ProjectCopyService(f.db,{hashPassword:password,clock:()=>now}).copy(f.authorization,f.projectRevision(),{name:"Two-area copy",description:"",editPassword:"password123",resetProgress:false})).response.data.project.publicId
+        : (await f.templates.instantiateProject(f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Two-area template"}).id,{name:"Two-area installed",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).response.data.project.publicId;
+      const targetId=(f.db.prepare("SELECT id FROM projects WHERE public_id=?").get(target) as {id:number}).id;
+      const check=(db:typeof f.db)=>{
+        for(const projectId of [f.project,targetId]){
+          const fleet=db.prepare("SELECT id,public_id,quantity,management_unit FROM project_equipment WHERE project_id=? AND code='AMR-A'").all(projectId) as {id:number;public_id:string;quantity:number;management_unit:string}[];
+          expect(fleet).toHaveLength(1);
+          expect(fleet[0]).toMatchObject({quantity:10,management_unit:"fleet"});
+          const links=new ProcessContextRepository(db).equipmentLinks(projectId).filter(link=>link.equipmentId===fleet[0].public_id);
+          expect(links).toHaveLength(2);
+          expect(new Set(links.map(link=>link.workAreaId))).toEqual(new Set([f.areaPublicId,areaB]));
+          expect(snapshotProjectContexts(db,projectId)).toEqual(before);
+          if(projectId===targetId) expect(fleet[0].public_id).not.toBe(f.eqA.publicId);
+        }
+        expect(db.pragma("foreign_key_check")).toEqual([]);
+      };
+      check(f.db);
+      f.db.close();
+      const reopened=openDatabase({filename,migrationsDirectory}).database;
+      try{check(reopened);}finally{reopened.close();}
+    }finally{if(f.db.open)f.db.close();rmSync(directory,{recursive:true,force:true});}
+  });
+  it.each(["copy","template"])("retains inactive original references with %s",async(method)=>{
+    const f=await contextFixture();
+    try {
+      const before=snapshotProjectContexts(f.db,f.project);
+      f.db.prepare("UPDATE project_processes SET active=0 WHERE id=?").run(f.pA.id);
+      f.db.prepare("UPDATE work_areas SET active=0 WHERE public_id=?").run(f.areaPublicId);
+      const target=method==="copy"
+        ? (await new ProjectCopyService(f.db,{hashPassword:password,clock:()=>now}).copy(f.authorization,f.projectRevision(),{name:"Inactive copy",description:"",editPassword:"password123",resetProgress:false})).response.data.project.publicId
+        : (await f.templates.instantiateProject(f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Inactive v4"}).id,{name:"Inactive installed",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).response.data.project.publicId;
+      const targetId=(f.db.prepare("SELECT id FROM projects WHERE public_id=?").get(target) as {id:number}).id;
+      expect(snapshotProjectContexts(f.db,targetId)).toEqual(before);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("copies subtree explicit contexts while preserving inherited child legacy null",async()=>{
+    const f=await contextFixture();
+    try {
+      const child=f.projectService.createTask(f.authorization,f.projectRevision(),{name:"Inherited-child",externalId:"Inherited-child",type:"task",parentTaskId:f.root.taskId,start:"2026-10-12",duration:1,progress:0}).data.tasks.find(t=>t.externalId==="Inherited-child")!;
+      const destination=f.projectService.createTask(f.authorization,f.projectRevision(),{name:"Destination",externalId:"Destination",type:"summary"}).data.tasks.find(t=>t.externalId==="Destination")!;
+      const originals=f.repository.taskContexts(f.project);
+      const result=new TaskHierarchyService(f.db,{clock:()=>now}).execute(f.authorization,f.projectRevision(),{kind:"copy",taskIds:[f.root.taskId,f.empty.taskId,f.legacy.taskId],anchorTaskId:destination.taskId,placement:"child"});
+      const oldIds=new Set(originals.map(t=>t.taskId));
+      const copied=result.data.tasks.filter(t=>!oldIds.has(t.taskId));
+      const contexts=f.repository.taskContexts(f.project);
+      const copiedContext=(name:string)=>contexts.find(t=>t.taskId===copied.find(c=>c.name===name)!.taskId)!;
+      expect(copiedContext("Root").processLinks).toEqual(originals.find(t=>t.taskId===f.root.taskId)!.processLinks);
+      expect(copiedContext("Root").workAreaLinks).toEqual(originals.find(t=>t.taskId===f.root.taskId)!.workAreaLinks);
+      expect(copiedContext("Explicit-empty")).toMatchObject({processLinks:[],workAreaLinks:[]});
+      expect(copiedContext("Legacy-null")).toMatchObject({processLinks:null,workAreaLinks:null});
+      expect(copiedContext("Inherited-child")).toMatchObject({processLinks:null,workAreaLinks:null});
+      expect(copied.find(t=>t.name==="Inherited-child")!.taskId).not.toBe(child.taskId);
+      expect(f.db.pragma("foreign_key_check")).toEqual([]);
+    }finally{f.db.close();}
+  });
+  it("rejects damaged v4 references, mixed null and downgraded fields atomically",async()=>{
+    const f=await contextFixture();
+    try {
+      const saved=f.templates.createTemplateFromProject(f.authorization,f.projectRevision(),{name:"Strict v4"});
+      const original=JSON.parse((f.db.prepare("SELECT content_json FROM project_templates WHERE public_id=?").get(saved.id) as {content_json:string}).content_json);
+      const before=f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get();
+      const cases=[
+        (p:typeof original)=>{delete p.logistics.taskContexts;},
+        (p:typeof original)=>{p.logistics.schemaVersion=3;},
+        (p:typeof original)=>{p.logistics.equipmentWorkAreas[0].workAreaLinks[0].processCode="PROC-B";},
+        (p:typeof original)=>{p.logistics.equipmentWorkAreas[0].workAreaLinks[0].workAreaId=randomUUID();},
+        (p:typeof original)=>{p.logistics.taskContexts[0].processLinks=null;},
+        (p:typeof original)=>{p.logistics.taskContexts.push(p.logistics.taskContexts[0]);},
+        (p:typeof original)=>{p.logistics.taskContexts.find((t:{taskExternalId:string})=>t.taskExternalId==="Root").workAreaLinks[0].processCode="PROC-B";},
+      ];
+      for(const mutate of cases){
+        const payload=structuredClone(original);mutate(payload);
+        f.db.prepare("UPDATE project_templates SET content_json=? WHERE public_id=?").run(JSON.stringify(payload),saved.id);
+        await expect(f.templates.instantiateProject(saved.id,{name:"Rejected",ownerName:"Owner",editPassword:"password123",projectStartDate:"2026-10-12"})).rejects.toThrow();
+        expect(f.db.prepare("SELECT COUNT(*) FROM projects").pluck().get()).toBe(before);
+        expect(f.db.pragma("foreign_key_check")).toEqual([]);
+      }
+    }finally{f.db.close();}
+  });
+  it("guards schedule JSON/Excel even for explicit empty context",async()=>{
+    const f=await contextFixture();
+    try {
+      expect(()=>new ProjectJsonExportService(f.db).get(f.sourceId,f.projectRevision())).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_EXPORT_UNSUPPORTED"}));
+      expect(()=>new ProjectExportSnapshotService(f.db).get(f.sourceId)).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_EXPORT_UNSUPPORTED"}));
+      const report=new ResourceDashboardService(f.db,{clock:()=>now}).getDashboard(f.sourceId,{})!;
+      expect(()=>new ProjectExportSnapshotService(f.db,{clock:()=>now}).get(f.sourceId,false,{basis:"current",expectedReport:{context:report.resourceScopeContext!,snapshotId:report.snapshotId,filters:{}},granularities:["month"]})).not.toThrow();
+      f.db.prepare("DELETE FROM equipment_work_areas WHERE project_id=?").run(f.project);
+      f.db.prepare("DELETE FROM task_process_links WHERE project_id=?").run(f.project);
+      expect(()=>new ProjectJsonExportService(f.db).get(f.sourceId,f.projectRevision())).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_EXPORT_UNSUPPORTED"}));
+      expect(()=>new ProjectExportSnapshotService(f.db).get(f.sourceId)).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_EXPORT_UNSUPPORTED"}));
     }finally{f.db.close();}
   });
 });

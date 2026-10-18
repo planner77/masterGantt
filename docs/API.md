@@ -1,3 +1,26 @@
+## Issue #725 — Target 없는 공정·WorkArea 직접 문맥
+
+이 절은 #615의 단일 매핑 WorkArea를 설비·Task 전체 구역으로 확장하지 않는다. 공정 occurrence의 WorkArea는0..N이고 각 WorkArea의 소유 occurrence는 하나다. 설비는 타 공정 구역을 포함한0..N 연결을 가질 수 있으며 기존 `processId`는 주 관리 공정이다. Target 생성·Task 공정 자동 유도는 수행하지 않는다.
+
+설비 POST/PATCH는 선택 `workAreaLinks:[{processId,workAreaId}]`와 `processCatalogRevision`을 받는다. `processId`는 그 WorkArea occurrence에 매핑된 Project-local 공정 public ID다. `workAreaIds:[UUID]` 편의 입력은 각 구역의 Project-local 소유 공정을 정확히 하나로 결정할 수 있을 때만 허용하며 두 입력을 함께 보내면400이다. PATCH에서 관계 필드 생략은 유지, 명시 `[]`는 전체 해제다. `EquipmentDto.workAreaIds`와 `EquipmentDto.workAreaLinks:[{processId,workAreaId}]`는 실제 연결을 반환하며 aggregate의 `logistics.equipmentWorkAreas:[{equipmentId,processId,occurrenceId,workAreaId}]`가 전체 typed 문맥을 제공한다. 원수량·주 관리 공정·Task는 마지막 연결 해제로 삭제되지 않는다.
+
+| Method / path | 계약 |
+| --- | --- |
+| GET `/api/projects/{publicId}/tasks/{taskId}/process-context` | public readonly; Task의 직접 `taskId/processLinks/workAreaLinks` 조회 |
+| PUT `/api/projects/{publicId}/tasks/{taskId}/process-context` | Project edit session + exact Origin + strong If-Match(Project); body `processCatalogRevision,processLinks,workAreaLinks` |
+
+GET은 `{data:{projectRevision,processCatalogRevision,context,permission}}`, ETag는 Project revision이다. PUT 성공은 `{data:{project,logistics,context,processCatalogRevision,permission:"edit",operation:{kind:"taskProcessContext",taskId,changed}}}`이며 실제 변경만 revision을1회 증가시키고 동일 값은 no-op이다.
+
+Milestone에는 nonempty 직접 문맥을 저장할 수 없으며400 `PROCESS_CONTEXT_MILESTONE_FORBIDDEN`이다. 직접 공정이 남아 있는 Task를 Milestone로 전환하거나 subtree 문맥이 남아 있는 Summary를 일반 Task로 바꾸는 요청은409 `PROCESS_CONTEXT_TYPE_CONFLICT`로 거부하며 먼저 호환되지 않는 직접 연결을 명시 해제한다.
+
+Task PUT의 두 배열은 필수다. `processLinks=[{processId,scope:"self"|"subtree"}]`, `workAreaLinks=[{processId,workAreaId,scope}]`이며 각각 최대200개다. `[]/[]`는 명시 공정0개를 저장한다. `null/null` 조회는 구형 미도입 상태이며 PUT의 입력 값이 아니다. `subtree`는 Summary만 허용하고 WorkArea의 소유 공정을 같은 요청의 processLinks에 명시해야 한다. WorkArea scope가 subtree이면 대응 공정도 subtree여야 한다. Equipment/System/WorkArea/Target에서 Task 공정을 채우거나 선택을 암묵 추가하지 않는다. 이 API는 #726 Task Editor 화면의 인계 계약이고 #728 해석·#729 집계 API를 구현하지 않는다.
+
+canonical `logistics`는 `equipmentWorkAreas` typed 연결 전체와 모든 Task의 `taskProcessContexts`를 제공한다. 빈 설비 연결 배열은 실제0개, Task의 `[]`는 명시0개, `null`은 legacy를 뜻하며 실패/부분 읽기를 빈 배열로 바꾸지 않는다. 기존 설비/System/Target 직접·상속 출처는 보존한다. Project context 및 공통 catalog/표준 apply API는 #615를 재사용한다.
+
+두 mutation 모두 권한·Project revision·catalog revision·활성·Project 격리·실제 occurrence/WorkArea 소유권을 같은 transaction에서 확인한다. 잘못된 소유 짝은400 `WORK_AREA_OWNER_MISMATCH`, 모호한 편의 입력은400 `WORK_AREA_OWNER_AMBIGUOUS`, 중복은400 `PROCESS_CONTEXT_DUPLICATE`, 선택 공정 없는 구역은400 `WORK_AREA_PROCESS_NOT_SELECTED`, 새 비활성 연결은409 `PROCESS_CATALOG_INACTIVE`, stale catalog는412 `PROCESS_CATALOG_REVISION_MISMATCH`다. 현재 Task 직접 설비 연결 또는 Target membership에서 사용 중인 설비의 WorkArea 관계 변경은409 `EQUIPMENT_WORK_AREA_IN_USE`다. 사용 중 매핑 해제/변경·공정/구역 삭제는409로 보호하고 실패 전체 rollback을 유지한다. 변경 없는 기존 inactive 참조는 읽기·유지·제거 가능하다.
+
+Copy/Template v4의 참조 remap과 일정 JSON/Excel no-loss 경계는 [복사](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)와 [교환 형식](IMPORT_EXPORT.md#issue-725--공정workarea-문맥과-교환-경계)을 따른다. 실행 결과는 [Work Packet](exec-plans/active/ISSUE_725.md)에서 로컬/원격을 분리한다.
+
 ## Issue #624 — 물류 통합 다관점 read-only API 재사용
 
 새 Endpoint·원본 DTO/쓰기 API 추가 없이 기존 `GET /api/projects/{publicId}/resource-dashboard`의 `projectionOrder`를 다음처럼 적용한다: `processType,process,workArea,target`, `equipmentType,equipment,target`, `systemType,system,target`, `target,resource`. 상세는 동일 `snapshotId` + `targetPath`의 bounded `/resource-dashboard/details`를 사용한다. `targetProjection.relatedMembers`는 T0 Task coverage, `summary`는 distinct Assignment A, `stages[].full`은 전체 canonical Milestone Stage Gate다. 기존 public read, catalog fingerprint·revision/If-Match·2MiB 응답 및 상세 페이지 한도는 불변. [Work Packet](exec-plans/active/ISSUE_624.md).
@@ -1551,7 +1574,7 @@ resourceDashboard: {
 
 ## Issue #615 — Process Catalog F1 API
 
-기존 Project Master admin 로그인/cookie를 재사용한다. inline 공통 생성의 `401 PROJECT_MASTER_ADMIN_SESSION_REQUIRED`는 관리자 로그인/등록 권한 필요 안내 계약이며 Project edit cookie로 대체하지 않는다. 공통 공정 관리 화면은 후속 구현이다. 아래 `{kind}`는 `types | standards | occurrences | work-areas`이며 wire의 `work-areas`와 DTO의 `workAreas`를 구분한다. ID는 canonical UUID v4, 쓰기 요청은 JSON의 허용 필드만 받는다. 모든 응답/오류는 private, no-store다.
+기존 Project Master admin 로그인/cookie를 재사용한다. inline 공통 생성의 `401 PROJECT_MASTER_ADMIN_SESSION_REQUIRED`는 관리자 로그인/등록 권한 필요 안내 계약이며 Project edit cookie로 대체하지 않는다. F1 당시 공통 관리 화면은 후속 범위였으며 현재는 #725의 별도 기준정보 화면을 제공한다. 아래 `{kind}`는 `types | standards | occurrences | work-areas`이며 wire의 `work-areas`와 DTO의 `workAreas`를 구분한다. ID는 canonical UUID v4, 쓰기 요청은 JSON의 허용 필드만 받는다. 모든 응답/오류는 private, no-store다.
 
 | Method / path | 인증·revision / 동작 |
 | --- | --- |
@@ -1571,7 +1594,7 @@ resourceDashboard: {
 
 매핑 body 예: `{ "processCatalogRevision": 3, "occurrenceId": "<UUID>", "workAreaId": null }`. occurrenceId=null은 명시 해제이며 WorkArea는 비어 있어야 한다. 성공 응답은 `{data:{project,logistics,permission:"edit",processCatalogRevision,mappings,operation:{kind:"processMapping",processId,changed}}}`로 canonical snapshot을 반환한다. WorkArea 미선택은 null, legacy 미매핑은 mappings 행 부재로 구분한다. mapping.active는 local 공정/occurrence/type/표준/BU·제품·사업장/선택 WorkArea의 전체 활성 경로를 반영하며 비활성 기존 참조도 ID를 보존한다. 외국 occurrence/WorkArea는 원자적으로 거부한다.
 
-401 관리자/편집 session 필요, 403 Origin, 400 허용하지 않은 입력·WorkArea 소유 불일치, 409 활성/사용 중/분류·중복 충돌, 412 stale catalog/Project revision을 구분한다. 기존 metadata는 사용 매핑의 triple 변경에 `409 PROJECT_PROCESS_MAPPING_IN_USE`, mapped Template 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`, mapped 공정 hard delete는 `409 PROCESS_IN_USE`다. 제약 원문을 공개하지 않는다. 후속 UI·Target/member/binding route는 이번 변경에 없다.
+401 관리자/편집 session 필요, 403 Origin, 400 허용하지 않은 입력·WorkArea 소유 불일치, 409 활성/사용 중/분류·중복 충돌, 412 stale catalog/Project revision을 구분한다. 기존 metadata는 사용 매핑의 triple 변경에 `409 PROJECT_PROCESS_MAPPING_IN_USE`, F1 당시 mapped Template 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`였으며 현재 v2/v3/v4 지원을 따른다. mapped 공정 hard delete는 `409 PROCESS_IN_USE`다. 제약 원문을 공개하지 않는다. 이 절의 F1 도입 범위에는 후속 UI·Target/member/binding route가 없었으며 현재 지원은 각 후속 절과 #725를 따른다.
 
 ## Issue #616 — Logistics Target API (implemented F2; acceptance follow-up #672)
 
@@ -1609,7 +1632,7 @@ F3의 런타임·원격 검증 상태는 [#617 Work Packet](exec-plans/active/IS
 
 기존 hierarchy 명령의 `indent`/`outdent`/`reparent`는 새 조상에 의해 Target 출처가 바뀌면 `409 TASK_TARGET_IMPACT_REVIEW_REQUIRED`로 모든 변경 Task의 before/after와 `targetImpactDigest`를 반환하고 전체 시도와 revision을 rollback한다. 명령·Project revision·before/after 전체 snapshot에 묶인 64자리 digest와 같은 strong If-Match로 재요청해야 적용된다. 영향이 없어졌는데 이전 digest를 보내면 `409 TASK_TARGET_IMPACT_STALE`다. binding을 가진 Task→Milestone 전환은 `409 TARGET_BINDING_TYPE_CONFLICT`로 거부한다.
 
-Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON 및 Resource 보고서 opt-in 없는 일정 Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다. Resource opt-in 보고서는 #622의 별도 근거/비왕복 계약을 따른다.
+Template API는 #725의 직접 문맥이 없고 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON 및 Resource 보고서 opt-in 없는 일정 Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다. Resource opt-in 보고서는 #622의 별도 근거/비왕복 계약을 따른다.
 
 
 ## Issue #618 — Target 상세의 canonical 관련 작업

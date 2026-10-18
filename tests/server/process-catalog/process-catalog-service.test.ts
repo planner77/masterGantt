@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ProcessCatalogKind } from "../../../src/contracts/process-catalog";
 import { openDatabase } from "../../../src/server/db/core";
 import { runMigrations } from "../../../src/server/db/migrations";
-import { LogisticsService } from "../../../src/server/logistics/logistics-service-core";
+import { LogisticsRepository } from "../../../src/server/repositories/logistics-repository-core";
 import { ProcessCatalogService } from "../../../src/server/process-catalog/process-catalog-service-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import { ProcessCatalogRepository } from "../../../src/server/repositories/process-catalog-repository-core";
@@ -51,7 +51,9 @@ function setup(filename = ":memory:", migrations = migrationsDirectory) {
   if (result.kind !== "authorized") throw new Error("Fixture authorization failed");
   const authorization = result.authorization;
   const projectRevision = () => new ProjectRepository(database).findByPublicId(project.publicId)!.revision;
-  const process = new LogisticsService(database, { clock: () => now }).createProcess(authorization, projectRevision(), { code: "LEGACY", name: "Existing Process" }).data.logistics.processes[0];
+  // Historical migration fixtures must be written through their historical schema, before the current service requires the latest tables.
+  const legacy = new LogisticsRepository(database).insertProcess({publicId:randomUUID(),projectId:project.id,code:"LEGACY",name:"Existing Process",parentId:null,now:now.toISOString()});
+  const process = {id:legacy.publicId,code:legacy.code,name:legacy.name};
   const service = new ProcessCatalogService(database, { clock: () => now });
   const repository = new ProcessCatalogRepository(database);
   const catalog = () => service.getCatalog(admin.rawToken).data;
@@ -259,7 +261,7 @@ describe("Process catalog migration persistence and SQLite guards", () => {
     const f = setup(filename, migrations);
     const legacyRows = f.database.prepare("SELECT * FROM project_processes").all();
     const beforeRevision = f.projectRevision();
-    expect(runMigrations(f.database, migrationsDirectory).applied).toEqual(["0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql"]);
+    expect(runMigrations(f.database, migrationsDirectory).applied).toEqual(["0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql"]);
     expect(f.database.prepare("SELECT * FROM project_processes").all()).toEqual(legacyRows);
     expect(f.repository.rawMappings(f.project.id)).toEqual([]);
     expect(f.projectRevision()).toBe(beforeRevision);

@@ -1,3 +1,9 @@
+## Issue #725 — Target 없는 공정·WorkArea 관리 M1 (2026-10-18)
+
+[Work Packet](ISSUE_725.md)에 따라 main `7393483c4a15007868fceeaee70fb9e13c8b119a`와 선행 #724 PR #738의 최신 탐색 shell에서 독립 공정/WorkArea 관리·매핑, 설비의 타 공정 포함 WorkArea0..N 원자 연결, Task 직접 공정0..N/WorkArea API와 null/명시0 구분, Copy/Template v4·지원 교환 누락 차단을 구현한다. #723/#725/#728 최신 W1/W2 결정을 적용하며 Target 생성·Task 공정 자동유도·원본 설비/작업 복제는 하지 않는다. 공유 Task picker/#728 해석·#729 집계는 후속 소유다.
+
+후보0.118.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 실제 backend/frontend/Copy·문서·Chromium 담당을 나누어 구현·문서·사전 검토와 선정20파일215테스트 및 최종Chromium1case·기존인접2case를 통과했다. PR Full CI 시작에서 종료한다. 원격 Required/Trusted QA·Owner ACCEPT는 NOT TESTED이며 CI 완료 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다.
+
 ## Issue #724 — 일정·대시보드·기준정보 N1 (2026-10-18)
 
 최신 main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` / version `0.116.0`에서 [Work Packet](ISSUE_724.md)의 N1 탐색·기존 기능 이관을 구현한다. 상위3/분석6/기준정보4, 전체 일정·Summary/rootTask와 동일 Gantt·공통 Editor·정확 drill을 보존하고 공개 screenKey/subview로 #725~#736 후속을 연결한다. DESIGN의 관리/분석 분리 원칙과 현재 화면·사용자 경로·#720 매뉴얼 영향을 동기화한다. 새 CRUD·집계·참여 원장·Target 자동생성은 비범위다.

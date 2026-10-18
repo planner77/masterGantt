@@ -81,6 +81,7 @@ import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
+import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
 import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
@@ -3127,6 +3128,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-logistics-panel"
       >
         {resourceTargetRequest ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {setActiveView("resources"); setResourceTargetRequest(null); requestAnimationFrame(() => { const trigger=resourceTargetTrigger.current; if(isVisibleFocusTarget(trigger)) trigger.focus({preventScroll:true}); else document.querySelector<HTMLElement>("#project-panel-resources input[type=search]")?.focus({preventScroll:true}); });}}>Resource 보기로 돌아가기</button> : null}
+        <ProjectProcessManagement active={activeScreen === "master.processes"}
+          onNotice={message => notify("success", message, "공정 기준정보")}
+          publicId={publicId} revision={project.revision} editable={editing}
+          busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
+          logistics={state.snapshot.data.logistics ?? { processes: [], equipment: [], systems: [], systemLinks: [] }}
+          onMutated={(newLogistics, newProject) => {
+            const current = confirmedSnapshotReference.current;
+            if (current) applySnapshot({ ...current, data: { ...current.data, project: newProject, logistics: newLogistics } });
+            notify("success", "공정 연결 변경 사항을 저장했습니다.", "공정 관리");
+          }}
+          onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
+          onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
+        />
         <ProjectLogisticsManagement
           subview={logisticsSubview(logisticsScreen)} hideSubviewNavigation
           onSubviewFocusUnavailable={() => workspaceFocusFallback(lastUnifiedScreen)?.focus({ preventScroll: true })}

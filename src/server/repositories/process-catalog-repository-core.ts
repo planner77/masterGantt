@@ -48,7 +48,7 @@ const usage: Record<ProcessCatalogKind, string> = {
   types: "(SELECT COUNT(*) FROM product_standard_processes WHERE process_type_id=t.id)+(SELECT COUNT(*) FROM site_product_processes WHERE process_type_id=t.id)",
   standards: "(SELECT COUNT(*) FROM site_product_processes WHERE standard_process_id=t.id)",
   occurrences: "(SELECT COUNT(*) FROM work_areas WHERE occurrence_id=t.id)+(SELECT COUNT(*) FROM project_process_occurrence_mappings WHERE occurrence_id=t.id)",
-  workAreas: "(SELECT COUNT(*) FROM project_process_occurrence_mappings WHERE work_area_id=t.id)",
+  workAreas: "(SELECT COUNT(*) FROM project_process_occurrence_mappings WHERE work_area_id=t.id)+(SELECT COUNT(*) FROM equipment_work_areas WHERE work_area_id=t.id)+(SELECT COUNT(*) FROM task_work_area_links WHERE work_area_id=t.id)+(SELECT COUNT(*) FROM logistics_targets WHERE work_area_id=t.id)",
 };
 const extra: Record<ProcessCatalogKind, string> = {
   types: "",

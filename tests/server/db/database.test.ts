@@ -136,7 +136,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql","0028_process_context.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -180,6 +180,7 @@ describe("SQLite connection and schema", () => {
         "0025_process_catalog.sql",
         "0026_logistics_targets.sql",
         "0027_task_target_bindings.sql",
+        "0028_process_context.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -196,6 +197,7 @@ describe("SQLite connection and schema", () => {
         "business_unit_product_sites",
         "business_unit_products",
         "edit_sessions",
+        "equipment_work_areas",
         "links",
         "logistics_catalog_admin_credentials",
         "logistics_catalog_admin_sessions",
@@ -234,9 +236,12 @@ describe("SQLite connection and schema", () => {
         "task_assignments",
         "task_equipment_links",
         "task_milestone_memberships",
+        "task_process_contexts",
+        "task_process_links",
         "task_system_links",
         "task_target_binding_members",
         "task_target_bindings",
+        "task_work_area_links",
         "tasks",
         "work_areas",
         "work_calendar_dates",
@@ -255,6 +260,8 @@ describe("SQLite connection and schema", () => {
         "edit_sessions_project_expires_idx",
         "equipment_resource_one_primary",
         "equipment_systems_one_primary",
+        "equipment_work_areas_area_idx",
+        "equipment_work_areas_owner_idx",
         "links_project_predecessor_idx",
         "links_project_successor_idx",
         "logistics_catalog_admin_sessions_expiry_idx",
@@ -303,10 +310,13 @@ describe("SQLite connection and schema", () => {
         "task_equipment_links_equipment_idx",
         "task_equipment_links_task_idx",
         "task_milestone_memberships_target_idx",
+        "task_process_links_process_idx",
         "task_system_links_system_idx",
         "task_system_links_task_idx",
         "task_target_binding_member_usage_idx",
         "task_target_binding_target_idx",
+        "task_work_area_links_area_idx",
+        "task_work_area_links_owner_idx",
         "tasks_project_parent_idx",
         "tasks_project_sort_order_idx",
         "work_calendar_dates_rule_date_idx",
@@ -1034,6 +1044,7 @@ describe("project isolation and lifecycle", () => {
         "tasks",
         "links",
         "edit_sessions",
+        "equipment_work_areas",
       ]) {
         expect(
           database.prepare(`SELECT count(*) FROM ${table}`).pluck().get(),

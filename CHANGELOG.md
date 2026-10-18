@@ -1,3 +1,10 @@
+## [0.118.0] — Unreleased / Issue #725
+
+- 기준정보의 공정&WorkArea에서 Target 없이 공정·현장 공정 매핑과 공용 catalog를 관리한다. 공용 관리자와 프로젝트 편집 권한, 명시 갱신·사용 중 보호·기존 자유 공정 트리를 유지한다.
+- 설비는 주 관리 공정과 별도로 서로 다른 공정의 WorkArea0..N개를 원자적으로 연결·해제한다. 원본 설비와 수량은 유지하며 기본 구역·숨은 Target을 만들지 않는다.
+- Task/Summary 직접 공정0..N·선택 WorkArea API와 canonical typed 문맥을 제공하고 구형 미도입 null과 명시0을 구분한다. 구성 관계에서 Task 공정을 자동 유도하지 않으며 편집 UI와 새 KPI 해석은 후속 #726/#728/#729 범위다.
+- migration0028·Project Copy·Template v4의 참조 보존과 미지원 일정 교환의 누락 차단, 관련 계약·사용자 가이드·검증 계획을 갱신한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 원격 CI·Owner 승인·정식 릴리스는 별도 증거로 판정한다.
+
 ## [0.117.0] — Unreleased / Issue #724
 
 - 프로젝트 상위 메뉴를 일정·대시보드·기준정보로 재배치한다. 여섯 분석/네 기준정보 메뉴에서 기존 KPI·Milestone 추가/관리·물류 통합 조회·Resource/Plan/Excel·동일 원본 편집을 재사용한다. Target은 관련 기준정보의 보조 호환 경로로 유지한다.
