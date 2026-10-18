@@ -1,0 +1,67 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 900
+  },
+  "documentWidth": 390,
+  "noteOnlyHeight": 126,
+  "notes": [
+    {
+      "text": "선택 범위: 2026-09-01 ~ 2026-09-30 · 지연 기준일 2026-09-18 (Asia/Seoul) · M/M 기준: 1 M/M = 20 M/D (환경 설정)",
+      "top": 784,
+      "bottom": 820,
+      "left": 12,
+      "right": 378,
+      "width": 366,
+      "height": 36
+    },
+    {
+      "text": "¹ 투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand Total은 선택 Assignment를 한 번만 합산합니다. 복수 그룹·Global Role에 같은 Task/개인이 반복될 수 있어 소계는 서로 더하지 않습니다. 할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가 아닙니다.",
+      "top": 1216,
+      "bottom": 1306,
+      "left": 12,
+      "right": 378,
+      "width": 366,
+      "height": 90
+    }
+  ],
+  "primaryDataTop": 836,
+  "rowCount": 1,
+  "visibleRowCount": 0,
+  "tables": [
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 1405.5,
+      "bottom": 1501.5,
+      "left": 19,
+      "right": 1139,
+      "width": 1120,
+      "height": 96,
+      "ownerWidth": 364,
+      "scrollWidth": 1132
+    }
+  ],
+  "helpTriggerCount": 0,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

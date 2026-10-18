@@ -4362,3 +4362,9 @@ Dashboard KPI의 Milestone ID 집합/직접 선행 M 원인은 native0행 일정
 실제 로컬 테스트는 Node 22에서 수행하고 `verify:prepr --mode=fast` 및 영향 선택의 source/환경/exit를 Work Packet에 기록한다. 자동 선택 dry-run은 실행 결과가 아니며 필요 직접 테스트는 별도 실행한다. 기존 Pre-PR fingerprint 알고리즘과 CI 정책은 재설계하지 않는다. 변경된 제품 UI/HTTP/SQLite 계약은 없으므로 배치 도구 로컬 검증에 전체 Chromium/Docker를 반복 추가하지 않는다. 원격 Full Required 세 검사는 기존 CI가 수행한다.
 
 AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.
+
+## Issue #719 — 설명 밀도·상황형 도움말과 기존 계약 회귀
+
+새 `tests/e2e/issue-719-contextual-help.spec.ts`는 동일 합성 fixture로 Milestone/Resource/물류 Workspace 및 Resource/물류 유형/기준정보 관리자6표시 화면을 390/768/1024/1440/1920px·높이900에서 before/after 비교한다. 설명 전용 높이·주요 데이터 top·가시 행 수와 문서 overflow, Enter/Space/Escape/focus·hover/click·본문 bounds·열림 전후 데이터 위치 불변을 확인하며 touch emulation은 별도44px hit area·tap/바깥 tap을 검사한다.
+
+기존 Resource error recovery/tabs, Master admin/density, Logistics management, Milestone dashboard/state, Resource Target/Plan의 직접·인접·음성 회귀를 선택한다. 변경한 고정 설명 단언은 도움말 열기 후 같은 원문을 검증하고 기존 canonical/권한/401/412/초안/pending/Gantt 보존 단언은 유지한다. 모든 상태×5폭 직적·실제 screen reader/기기/native125%/최종 수동 UX와 GitHub 전체 회귀는 별도 NOT TESTED 경계다. [Work Packet](exec-plans/active/ISSUE_719.md)의 실제 실행 결과·원본 실패를 따른다.

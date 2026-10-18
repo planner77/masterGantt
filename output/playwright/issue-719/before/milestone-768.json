@@ -1,0 +1,93 @@
+{
+  "viewport": {
+    "width": 768,
+    "height": 900
+  },
+  "documentWidth": 768,
+  "noteOnlyHeight": 144,
+  "notes": [
+    {
+      "text": "추가 조건 0개 · 공수 기간 서버 기본 ~ 서버 기본 · 환경 환산 기준",
+      "top": 547.5,
+      "bottom": 565.5,
+      "left": 30,
+      "right": 738,
+      "width": 708,
+      "height": 18
+    },
+    {
+      "text": "자동 기준일 · 서버 Project timezone Asia/Seoul · 평가일 2026-10-06. 현재 snapshot을 평가하며 과거 실제 상태를 복원하지 않습니다.",
+      "top": 577.5,
+      "bottom": 595.5,
+      "left": 30,
+      "right": 738,
+      "width": 708,
+      "height": 18
+    },
+    {
+      "text": "현재 조회 조건 확인 완료 · 계산 2026-10-06T00:00:00.000Z · Project 40 / Catalog 1",
+      "top": 657,
+      "bottom": 675,
+      "left": 30,
+      "right": 738,
+      "width": 708,
+      "height": 18
+    },
+    {
+      "text": "Ready·선행 차단·지연·임박·위험은 중첩 가능한 축입니다. 건수를 합쳐 전체 Milestone 수로 해석하지 않습니다.",
+      "top": 1357,
+      "bottom": 1375,
+      "left": 30,
+      "right": 738,
+      "width": 708,
+      "height": 18
+    },
+    {
+      "text": "프로젝트 전체의 평면 목록이며 적용 예정일·외부 ID·작업 ID 순입니다. 소속 작업과 직접 선행 단계 전체 기준입니다. 계획 공수의 범위와 분모가 다릅니다.",
+      "top": 1417.5,
+      "bottom": 1453.5,
+      "left": 30,
+      "right": 738,
+      "width": 708,
+      "height": 36
+    },
+    {
+      "text": "2026-09-01 ~ 2026-09-30 · 1 M/M = 20 M/D · 환경 설정 기준. 숨긴 Milestone bucket도 전체 합계에 포함하며 위 표시 행의 합계가 아닙니다. 투입률 미설정 0건.",
+      "top": 1976,
+      "bottom": 2012,
+      "left": 30,
+      "right": 738,
+      "width": 708,
+      "height": 36
+    }
+  ],
+  "primaryDataTop": 687,
+  "rowCount": 21,
+  "visibleRowCount": 0,
+  "tables": [
+    {
+      "top": 1462.5,
+      "bottom": 5016.5,
+      "left": 31,
+      "right": 1083,
+      "width": 1052,
+      "height": 3554,
+      "ownerWidth": 706,
+      "scrollWidth": 1052
+    },
+    {
+      "top": 2069,
+      "bottom": 2238,
+      "left": 31,
+      "right": 831,
+      "width": 800,
+      "height": 169,
+      "ownerWidth": 706,
+      "scrollWidth": 800
+    }
+  ],
+  "helpTriggerCount": 0,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

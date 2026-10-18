@@ -57,7 +57,10 @@ test("#455 after 세 범주 5폭 입력·행·표·focus 및 dialog geometry",as
     await page.setViewportSize({width,height:900});
     for(const category of master455Categories){
       const tab=page.getByRole("tab",{name:category.label,exact:true});await tab.click();
-      const normal=await masterGeometry(page);await tab.press("Tab");const focused=await masterGeometry(page);
+      const normal=await masterGeometry(page);await tab.press("Tab");
+      await expect(page.getByRole("button",{name:`${category.label} 항목 추가 도움말`,exact:true})).toBeFocused();
+      await expect(page.getByRole("tooltip")).toBeVisible();
+      await page.keyboard.press("Tab");const focused=await masterGeometry(page);
       expect(normal.documentWidth).toBe(width);expect(normal.table!.width).toBeGreaterThanOrEqual(960);expect(normal.headers[0].width).toBeGreaterThanOrEqual(239);
       expect(normal.headerBodyAligned).toBe(true);expect(Math.abs(normal.firstRowHeaderGap!)).toBeLessThanOrEqual(1);
       expect(normal.allControlsContained).toBe(true);expect(normal.allControlsNonoverlapping).toBe(true);

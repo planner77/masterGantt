@@ -1085,3 +1085,9 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 기준 main `78691a97bb8c0ba74a560965ca39479d7c80b72c`에 선행 #618 composer/#620 보고 API가 반영되어 있다. [#621 Work Packet](ISSUE_621.md)에 따라 기존 Resource 화면의 Target 계층/역방향·Group/Resource×Target 비교, 같은 server filter·총계/분모, 실제 Task/정확 Assignment/Target별 기존 편집 gateway와 scope/focus 복귀를 구현한다. 별도 원장/집계 엔진/PRO/새 Gantt는 만들지 않는다. #622 Plan·Excel 및 #623/#624는 이번 요청 비범위다.
 
 실제 ui_ux/frontend/E2E/infra 역할을 분리하고 Manager가 관련 문서·Design Delta B 및 GSC-01/03/04/06~12·SC-11 적용 범위를 기록한다. application0.113.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 요청 종료점은 구현·Local Fast Feedback·DOCUMENTATION_SYNC·사전 검토 후 PR Full CI 시작 확인이다. CI 모니터링·병합·main/GHCR·Release/tag·cleanup·Issue 종료는 수행하지 않으며 원격 Required/Trusted·Manager ACCEPT는 NOT TESTED다.
+
+## Issue #719 — 4개 화면 설명 밀도와 상황형 도움말
+
+#715 문서 PR #716이 통합된 main d2768676/application0.116.0에서 `feat/issue-719-contextual-help`로 제품 구현을 진행한다. PATCH0.116.1, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false다. [Work Packet](ISSUE_719.md)의 화면별 inventory·공통 도움말·핵심 경고 보존·동일 fixture5폭 측정·기존 상태 교차 회귀와 DOCUMENTATION_SYNC를 따른다.
+
+사용자 요청 종료점은 구현·리뷰 thread/충돌 정리·최신 Head Full PR CI 시작이다. CI 모니터링·병합·Main/GHCR·Finalizer·정식 게시·Issue 종료는 수행하지 않으며 원격 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED다. 기존 #717 이름/ID 표시는 별도 범위로 유지한다.

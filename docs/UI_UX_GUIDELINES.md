@@ -402,3 +402,9 @@ F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활
 날짜 요청은 정확한 Dashboard 상세/소속 Task로 명시 안내하며 숨은 native M 선택·임시 lane·M용 range extension을 실행하지 않는다. Legacy M-only의 빈 WBS와 원본 없음/조건0/미정 날짜/소속0을 구별하고 Dashboard 열기·유형만 명시 해제 선택을 제공한다. 다른 조건은 보존한다. Editor/modal Escape와 닫기 후 실제 가시 trigger focus, 새 pointer/keyboard 입력 우선·dirty/pending/readonly/stale를 검증한다.
 
 390/768/1024/1440/1920px × Day/Week·all/Grid-only/Chart-only·fullscreen에서 native M row/bar/대체 endpoint0, Summary/Task row alignment·tick/clip·문서 overflow·실제 focus/hit 영역을 확인한다. inactive Schedule은 조상 hidden/inert를 상속하고 Toolbar/Grid/Chart가 Dashboard 위에 그려지지 않아야 한다. 같은 Core instance·scroll/열폭/접힘/선택·canonical 전체 보존을 screenshot만으로 대체하지 않는다. WBS legacy 복구의 재빌드/재배포 검증은 marker-only rollback과 별개다. 실행 전 상태는 NOT TESTED이며 [검증 계획](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.
+
+## Issue #719 — 공통 도움말의 실제 적용
+
+#715의 노출 원칙을 Milestone/Resource(Plan·Target·계층 포함)/물류/기준정보에 적용한다. `ContextHelp`는 현재 제목·지표·명령 인접 실제 button과 ARIA 이름/expanded/controls를 제공한다. hover/focus로 열고 click·Enter/Space로 고정/닫으며 Escape 뒤 원래 button으로 preventScroll focus를 복원한다. touch와 바깥 click 닫기도 지원한다. 본문은 React portal + native popover top layer로 배치하여 p/heading 중첩 오류와 scroll owner clipping을 피하고 닫힌 본문은 높이를 예약하지 않는다. 작은 폭은 viewport 경계와 본문 최대 높이·내부 스크롤, coarse pointer는44px hit area를 사용한다.
+
+중요 범위·환산·비가산·미설정/미배정 및 미저장 교체·권한/실패는 짧게 직접 유지한다. 일반 학습문구와 정의만 기본 닫힘으로 이동한다. 원본 설명 inventory·실제 측정과 상태별 실행 범위는 [Work Packet](exec-plans/active/ISSUE_719.md)과 [테스트 계획](TEST_PLAN.md)을 따른다. DESIGN Delta B이며 새 전역 디자인 정책은 없다.
