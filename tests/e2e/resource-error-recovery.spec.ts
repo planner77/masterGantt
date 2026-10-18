@@ -72,6 +72,12 @@ async function openMembers(page: Page) {
   await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
   await forms(page).group.getByRole("button", { name: "구성원", exact: true }).click();
 }
+// #717: the visible label is name-first; codes are on-demand unless names collide.
+// Scope to the selected group's region so the same canonical member is exercised.
+function memberCheckbox(page: Page) {
+  return page.getByRole("region", { name: "물류팀 구성원", exact: true })
+    .getByRole("checkbox", { name: "담당자 B", exact: true });
+}
 
 for (const kind of ["resource", "group"] as const) {
   for (const failure of ["409", "422", "412", "500", "network"] as const) {
@@ -79,7 +85,7 @@ for (const kind of ["resource", "group"] as const) {
       const state = await fixture(page);
       await page.goto("/resources"); await login(page);
       await openMembers(page);
-      await page.getByLabel("담당자 B (R2)", { exact: true }).check();
+      await memberCheckbox(page).check();
       const form = await openCreate(page, kind);
       await form.getByLabel("이름", { exact: true }).fill("새 이름");
       await form.getByLabel("코드", { exact: true }).fill("NEW-CODE");
@@ -101,7 +107,7 @@ for (const kind of ["resource", "group"] as const) {
       await expect(form.getByLabel("코드", { exact: true })).toHaveValue("");
       await form.getByRole("button", { name: "취소", exact: true }).click();
       await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
-      await expect(page.getByLabel("담당자 B (R2)", { exact: true })).toBeChecked();
+      await expect(memberCheckbox(page)).toBeChecked();
       expect(state.posts).toBe(2);
       expect(state.matches).toEqual(failure === "412" ? ['"7"', '"8"'] : ['"7"', '"7"']);
     });
@@ -132,7 +138,7 @@ test("목록 refresh 지연은 중복 GET과 mutation을 잠그고 멤버 초안
   await page.goto("/resources"); await login(page);
   await openMembers(page);
   const members = page.getByRole("region", { name: "물류팀 구성원", exact: true });
-  await members.getByLabel("담당자 B (R2)", { exact: true }).check();
+  await memberCheckbox(page).check();
   await members.getByRole("textbox", { name: "물류팀 구성원 리소스 검색" }).fill("담당자 B");
   state.gate = deferred();
   const initial = state.gets;
@@ -144,13 +150,13 @@ test("목록 refresh 지연은 중복 GET과 mutation을 잠그고 멤버 초안
   state.gate.resolve();
   await expect(members.getByRole("button", { name: "구성원 저장" })).toBeEnabled();
   expect(state.gets).toBe(initial + 1);
-  await expect(members.getByLabel("담당자 B (R2)", { exact: true })).toBeChecked();
+  await expect(memberCheckbox(page)).toBeChecked();
   await expect(members.getByRole("textbox", { name: "물류팀 구성원 리소스 검색" })).toHaveValue("담당자 B");
   state.catalog.data.groups = [];
   await page.getByRole("button", { name: "새로고침", exact: true }).click();
   await expect(members.getByRole("alert")).toContainText("초안을 보존");
   await expect(members.getByRole("button", { name: "구성원 저장" })).toBeDisabled();
-  await expect(members.getByLabel("담당자 B (R2)", { exact: true })).toBeChecked();
+  await expect(memberCheckbox(page)).toBeChecked();
   expect(state.memberPuts).toBe(0);
 });
 
@@ -158,7 +164,7 @@ test("401 재로그인은 비민감 초안·검색·구성원을 보존하고 �
   const state = await fixture(page);
   await page.goto("/resources"); await login(page);
   await openMembers(page);
-  await page.getByLabel("담당자 B (R2)", { exact: true }).check();
+  await memberCheckbox(page).check();
   await page.getByRole("tab", { name: /^리소스 \d/ }).click();
   await page.getByRole("textbox", { name: "리소스 검색", exact: true }).fill("담당자");
   await openCreate(page);
@@ -176,7 +182,7 @@ test("401 재로그인은 비민감 초안·검색·구성원을 보존하고 �
   await page.getByRole("button", { name: "초안 폐기", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "리소스 검색", exact: true })).toHaveValue("담당자");
   await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
-  await expect(page.getByLabel("담당자 B (R2)", { exact: true })).toBeChecked();
+  await expect(memberCheckbox(page)).toBeChecked();
   await page.getByRole("button", { name: "관리자 비밀번호 변경", exact: true }).click();
   const passwordDialog = page.getByRole("dialog", { name: "관리자 비밀번호 변경" });
   await expect(passwordDialog.getByLabel("새 비밀번호", { exact: true })).toHaveValue("");
