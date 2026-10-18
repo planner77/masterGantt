@@ -172,3 +172,10 @@
 - Trace 12122362921/12122537841에서 팝오버 최초 OPEN 이후 제거를 확인했고 실제 닫힘 이벤트 종류는 UNKNOWN으로 유지한다. Product keyboard handler/ARIA/hover/touch·validation·canonical/Gantt 기존 코드는 보존한다.
 - `issue-719-contextual-help.spec.ts` 신규 overflow 한 테스트만 재설계: 초기 viewport를 로그인/렌더 전 고정, 최초 화면 상단 Help button을 keyboard focus, 실제 도움말 문구를 유지한 채 `addStyleTag`로 작은 폭/높이 overflow를 **open 전에** 발생시킨다. `scrollIntoViewIfNeeded` 경합과 React portal 내 `appendChild` mutation을 없애지만 Arrow/Page/Home/End·Escape·ARIA/초점/scrollHeight 엄격 단언은 모두 유지. 기존 6화면×5폭과 인증/초안/경고·marker-OFF 테스트는 그대로.
 - 영향 기준: 직접 #719 help test/공통 ContextHelp 기존 계약, 간접 Master/Resource/Logistics 사용자 흐름, 음성 Gantt state·Milestone·Target·canonical. local typecheck/Playwright·실환경 screen reader **NOT TESTED**, 새 Remote Full CI의 Quality/E2E6/Docker·QA/Trusted/Owner 결정 시작 전 NOT TESTED. `DESIGN.md`/UI_UX_GUIDELINES/API/DB/CI: 정책·제품 코드 불변으로 변경 없음. 후보 `0.116.1`, HIGH/OWNER_MANAGED, `release_required=true/release_authorized=false`; 병합 및 정식 게시 승인 없음.
+
+## 2026-10-18 REWORK #4 — CI #2941.1 F-005 누적 보완
+
+- [#719 누적 실패 원장](../../ISSUE_719_FAILURE_ANALYSIS.md) F-001~F-005 전체 이력 및 직전 [CI #2941.1](https://github.com/planner77/masterGantt/actions/runs/39092799612) 대조. #2941.1은 Quality/Docker SUCCESS, E2E Shard2 43PASS/1FAIL/86NOT RUN 및 다른5 CANCELLED, QA 파생 FAIL.
+- 실제 실패는 keyboard-scroll 새 E2E의 `toBeInViewport` expected in viewport/ratio0. 390×320 관리자 페이지에서 **첫 도움말 버튼이 화면 밖**이므로 팝오버 열기/키보드 동작 전 테스트가 실패했다. F-001 제품 keyboard scroll 결함과 달리 TEST_CONTRACT/LAYOUT_PRECONDITION. F-002 focus/Enter·F-003 scroll·F-004 React-owned portal DOM mutation 교정은 모두 유지.
+- 390×900의 이전 성공한 마스터 화면 geometry를 사용하고 **실제 도움말 팝오버만 56px scrollport**로 제한해 `scrollHeight>clientHeight` 및 `clientHeight<=56`을 증명한다. 112px 폭 CSS, 엄격 버튼 in-viewport/ARIA/Arrow/Page/Home/End 실제 scrollTop/Escape/focus 단언은 유지. 코어 사용자 로직·marker-OFF/권한·집계 변경 없음. 이번 connector-only 환경의 브라우저 재실행 NOT TESTED, 새 Full PR CI에서 E2E 6Shard 전체 재확인.
+- risk HIGH/OWNER_MANAGED, version0.116.1, release_required=true/release_authorized=false. 필수 PR/Trusted QA/Owner·Release 승인은 별도이며 CI 시작 후 모니터링·병합·Main/GHCR·이슈 종료하지 않는다.

@@ -135,10 +135,11 @@ test("#719 focus 유지 pointer leave와 profile modal 도움말 Escape는 초�
 });
 
 test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 복원한다", async ({ page }) => {
-  // F-002/003/004: do not mix a late viewport resize + scroll-to-trigger
-  // with focus-open, or mutate React-owned portal children after it mounts.
-  // Use an actual help message and squeeze its available space *before* open.
-  await page.setViewportSize({ width: 390, height: 320 });
+  // F-002~F-005: retain the already validated 390x900 admin geometry,
+  // where the first help trigger is visible; at 390x320 it is below
+  // the fold (CI #2941: viewport ratio 0). Instead, force a short 56px
+  // scrollport on the real tooltip BEFORE opening, without DOM mutation.
+  await page.setViewportSize({ width: 390, height: 900 });
   const root = await openSurface(page, "master");
   await page.addStyleTag({ content: `
     div[role="tooltip"] {
@@ -162,6 +163,7 @@ test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 �
     viewport: window.innerHeight,
   }));
   expect(dimensions.content).toBeGreaterThan(dimensions.client);
+  expect(dimensions.client).toBeLessThanOrEqual(56);
   expect(dimensions.client).toBeLessThan(dimensions.viewport);
 
   await trigger.press("ArrowDown");

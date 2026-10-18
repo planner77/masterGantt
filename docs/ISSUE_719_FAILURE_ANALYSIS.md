@@ -1,7 +1,7 @@
 # Issue #719 / PR #722 — 누적 PR CI 실패 분석
 Primary Issue: [#719](https://github.com/planner77/masterGantt/issues/719) | 관련 PR: [#722](https://github.com/planner77/masterGantt/pull/722) | 최초 작성: 2026-10-18
 Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
-상태: **Full PR CI 4회 관측** — #2932.1/#2933.1/#2939.1 전체 FAILURE, #2937.1 전체 CANCELLED(단, Shard2 실제 FAILURE). 누적 F-001~F-004 원본 Job·Run·Attempt를 별도 보존하며 완료 상태가 다른 실행을 PASS로 합산하지 않는다. 새 후보의 Quality/E2E/Docker/QA는 시작 전 NOT TESTED.
+상태: **Full PR CI 5회 관측** — #2932.1/#2933.1/#2939.1/#2941.1 전체 FAILURE, #2937.1 전체 CANCELLED(단, Shard2 실제 FAILURE). 누적 F-001~F-005의 원본 Run/Attempt/Job을 별도 보존하고 취소/미실행을 PASS로 합산하지 않는다. 새 후보의 Quality/E2E/Docker/QA는 시작 전 NOT TESTED.
 
 ## 1. Run / Attempt 전체 목록
 
@@ -12,7 +12,9 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 | #722 | [#2937.1 · 39090801870](https://github.com/planner77/masterGantt/actions/runs/39090801870), attempt 1 | CI / `pull_request` Full, 전체 Run CANCELLED | Head `fd51674396f7d69f9edcc08b0af6314a6e2f9d5b`; base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`; test merge `1583e53eeb84277c091c038e1ac90338c9e31275` | Quality SUCCESS / E2E FAILURE (Shard2 실제 FAIL·5 shard CANCELLED) / Docker SUCCESS | keyboard case line148 tooltip missing; shard2 43 PASS/1 FAIL/86 NOT RUN. QA BLOCKED(Head stale), 최종 Run CANCELLED | [Shard2 Job 117567275416](https://github.com/planner77/masterGantt/actions/runs/39090801870/job/117567275416), [trace artifact 12122362921](https://github.com/planner77/masterGantt/actions/runs/39090801870/artifacts/12122362921) |
 | #722 | [#2939.1 · 39091346735](https://github.com/planner77/masterGantt/actions/runs/39091346735), attempt 1 | CI / `pull_request` Full, 전체 Run FAILURE | Head `e16ae7e5aa95ac430bbcd61b429c7196bcd241d1`; base `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`; test merge `ffb0b8ed98b8f834fcbe20a2b542e22620a78638` | Quality SUCCESS / E2E FAILURE (Shard2 FAIL·5 shard CANCELLED) / Docker SUCCESS | keyboard case line157 tooltip locator.evaluate timeout30s after synthetic DOM append; shard2 43 PASS/1 FAIL/86 NOT RUN. QA derived FAIL(required e2e) | [Shard2 Job 117569031265](https://github.com/planner77/masterGantt/actions/runs/39091346735/job/117569031265), [trace artifact 12122537841](https://github.com/planner77/masterGantt/actions/runs/39091346735/artifacts/12122537841) |
 
-네 개 Full Run은 각각의 **서로 다른 Head**에 귀속된다. 각 원본 Run/Attempt의 실패 판정은 불변이며 이후 synchronize/metadata-only/rerun도 Head·event·attempt별 별도 행에 추가한다. 접근 가능한 실행에 한해 집계하므로 미관측 실행을 성공으로 간주하지 않는다.
+| #722 | [#2941.1 · 39092799612](https://github.com/planner77/masterGantt/actions/runs/39092799612), attempt 1, 2026-10-18 03:12~03:23 UTC | CI / `pull_request` Full, 전체 Run FAILURE | HEAD `650488e44a775497cdb66f1f4c205c16178d9d85`; base `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`; test merge `b521ffc99dfc63268dfc13025ac315c62d0c3a01` | Quality SUCCESS (117573499451) / E2E FAILURE (117574895331; shard2 117573274705 FAIL, 다른 5 CANCELLED) / Docker SUCCESS (117573656471) | 동일 keyboard E2E `spec.ts:153` `toBeInViewport()` expected in viewport, received ratio0. Shard2 43 PASS/1 FAIL/86 NOT RUN. QA Final 117574907740 파생 FAIL(required e2e). | [Shard2 job](https://github.com/planner77/masterGantt/actions/runs/39092799612/job/117573274705), [Playwright report 12123900477](https://github.com/planner77/masterGantt/actions/runs/39092799612/artifacts/12123900477) |
+
+다섯 개 Full Run은 각각의 **서로 다른 Head**에 귀속된다. 각 원본 Run/Attempt의 실패 판정은 불변이며 이후 synchronize/metadata-only/rerun도 Head·event·attempt별 별도 행에 추가한다. 접근 가능한 실행에 한해 집계하므로 미관측 실행을 성공으로 간주하지 않는다.
 
 ### 개별 실행 Job 상태
 
@@ -35,7 +37,9 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 | F-003 / #722 · 39090801870.1 / Shard2 117567275416 | 같은 keyboard E2E의 line148 `getByRole('tooltip')` not visible. Focus 직후 `aria-expanded=true`/popover OPEN, 이어 tooltip assertion 중 `false`/닫힘. | **FIXTURE_OBSERVABILITY / TEST_CONTRACT 의심**, 확정된 외부 scroll/resize/blur 원인은 UNKNOWN. F-002의 중복 Enter는 이미 제거돼 해당 이전 원인 재발이 아니다. 전체 Run은 supersede CANCELLED라도 실제 실패 인정. | 뷰포트 변경·하단 요소 scrollIntoView를 focus 전에 일으키지 않게 시나리오 재설계. 최종 Full PR CI NOT TESTED | 제품이 프로그램 scroll 직후 focus로 도움말이 닫히는 실제 현상인지 별도 추적 필요; GUI 수동 검증 미실시 |
 | F-004 / #722 · 39091346735.1 / Shard2 117569031265 | keyboard E2E line157 두 번째 `tooltip.evaluate`의 자동 대기30s timeout. 같은 실행의 first visible/DOM append는 통과; 그 직후 React portal popover 제거. | **TEST_CONTRACT/FIXTURE_OBSERVABILITY**: 테스트가 React 관리하는 열린 tooltip 내부에 직접 DOM append함. Trace는 append 직후 expanded=false를 확인하지만 닫힌 이벤트의 세부 원인은 검증 전 UNKNOWN. F-001 keyboard code의 scroll 동작까지 도달하지 못함. | 앱 실제 help copy를 CSS로 좁혀 overflow를 *열기 전*에 만들고 DOM mutation 제거; keyboard Arrow/Page/Home/End·Escape 단언 모두 유지. 최종 Full CI NOT TESTED | 외부 환경 native zoom·실제 screen reader·오래된 head 재검증 제외 근거 유지 |
 
-누적 원격 실패 **테스트 파일 합집합: `tests/e2e/issue-719-contextual-help.spec.ts`의 동일 keyboard scroll case 1건(F-002/F-003/F-004)**. F-001은 실패한 브라우저 테스트 0건이며 QA 리뷰 차단이다. F-002의 Shard2 43 PASS/1 FAIL/86 NOT RUN과 다른 5 shard CANCELLED를 별도 보존한다. 기존 E2E 6/6 PASS는 F-001의 이전 Head에서만 유효하고 F-002 이후 새 Head로 승계하지 않는다.
+| F-005 / #722 · 39092799612.1 / Shard2 117573274705 | `tests/e2e/issue-719-contextual-help.spec.ts:153` `toBeInViewport` failed; target help trigger was found but 390×320 viewport ratio0. | **TEST_CONTRACT/LAYOUT_PRECONDITION**: top admin heading is below fold at that small viewport; original popup keyboard handler was never reached. F-004 portal DOM mutation had already been removed. | Use known working 390×900 five-width fixture, but cap the real tooltip to max-height 56px and width112px before focus to test actual content overflow. Preserve button visibility, Arrow/Page/Home/End, scrollTop, ARIA, Escape/focus assertions; add `clientHeight<=56`. New Full CI NOT TESTED. | Actual short physical viewport/native zoom/screen-reader manual checks remain separate. No product defect proven. |
+
+누적 원격 실패 **테스트 파일 합집합: `tests/e2e/issue-719-contextual-help.spec.ts`의 동일 keyboard scroll case 1건(F-002/F-003/F-004/F-005)**. F-001은 실패한 브라우저 테스트 0건이며 QA 리뷰 차단이다. F-002의 Shard2 43 PASS/1 FAIL/86 NOT RUN과 다른 5 shard CANCELLED를 별도 보존한다. 기존 E2E 6/6 PASS는 F-001의 이전 Head에서만 유효하고 F-002 이후 새 Head로 승계하지 않는다.
 
 ## 3. 개별 사건: F-001 (2026-10-18)
 
@@ -49,7 +53,7 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 
 ## 4. 전체 이력 종합 진단과 후속 기준
 
-- **접근 가능한 Full PR CI 4개 실행 중 전체 FAILURE 3회·CANCELLED 1회(Shard2 실제 FAIL)**: F-001(#2932.1)은 QA 리뷰 미해결→정책상 정상 차단, F-002(#2933.1)는 신규 E2E focus/Enter 열림 상태 전제 충돌→Shard2 실패·다른 shard 취소 및 QA 파생 실패. 동일 실패로 합산하지 않는다. 원본 로컬 hydration/focus/HMR 교정은 별도 Work Packet 기록이며 원격 실패 수에 포함하지 않는다.
+- **접근 가능한 Full PR CI 5개 실행 중 전체 FAILURE 4회·CANCELLED 1회(Shard2 실제 FAIL)**: F-001(#2932.1)은 QA 리뷰 미해결→정책상 정상 차단, F-002(#2933.1)는 신규 E2E focus/Enter 열림 상태 전제 충돌→Shard2 실패·다른 shard 취소 및 QA 파생 실패. 동일 실패로 합산하지 않는다. 원본 로컬 hydration/focus/HMR 교정은 별도 Work Packet 기록이며 원격 실패 수에 포함하지 않는다.
 - **전체 원인 분류**: F-001의 `PRODUCT`(키보드 scroll 접근성) + `POLICY_CI`(열린 리뷰 적법 차단); F-002의 `TEST_CONTRACT`(focus-open 직후 Enter로 이미 열린 popover 토글). 환경 불안정·fixture·transport 문제로 확정할 증거 없음. 기존 원인과 신규 원인을 코드·Trace·Review 근거로 구분한다.
 - 향후 **동일 #719 CI가 다시 실패**하면 이 문서에 Run/Attempt별 원본 Job/Step/Artifact, 최초 실제 오류, 이전 교정의 영향, 누적 실패 파일 합집합, 공통 원인/신규 원인 매트릭스 및 동일 source 교차 검증을 **추가**한다. 직전 Run만 보고 테스트를 무력화하거나 timeout·retry를 일괄 증가시키지 않는다.
 - 리뷰 thread가 해제되어도 원본 #2932.1 결과는 FAILURE다. 새 Full PR CI의 exact Head/base/test merge 및 Required3종·QA Final 상태는 다시 인증하며, 별도의 Trusted QA/Owner 최종 병합 허가와 정식 release_authorized=false는 보존한다.
@@ -121,4 +125,27 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 - 강제 좁은 도움말은 긴 KO/EN 로컬라이제이션에서 동일한 overflow 조건을 만드는 **통제된 layout proxy**다. 영어 설명 실제 번역 문구를 실행했다고 주장하지 않는다. 여전히 `scrollHeight>clientHeight`, `viewport>clientHeight`, trigger focus + aria-expanded·accessible description, ArrowDown/PageDown/End/PageUp/ArrowUp/Home의 실제 scrollTop, Escape 닫기/초점 복원 **모든 assertion 유지**. 최초 #719 6화면×5폭/Enter·Space·hover·touch/권한·pending/dirty 경로도 유지한다.
 - 변경 영향: 직접 #719 E2E 전체(기존 6화면×5폭 + keyboard); 간접 `project-master-admin.spec.ts`, `resource-error-recovery.spec.ts`, `resource-tabs.spec.ts`, `project-logistics-management.spec.ts`; 음성 Milestone/Target/canonical/Gantt marker-OFF. #2939 동일 Head의 원본 43 PASS는 참고만 하고 새 Head의 CI PASS로 재사용하지 않는다. Test timeout/retry/skip·product validation·CI shard fail-fast·Required check 변경 없음.
 - 원격 최종 source의 local Node/Playwright E2E 및 native125%/screen reader/실기기: **NOT TESTED**(이 환경은 GitHub API 수정 및 기존 zip trace 분석만 수행). 신규 Full PR CI를 정확 Head에서 시작한 뒤 결과는 **IN_PROGRESS/NOT TESTED**로 남기며 요청대로 CI 모니터링·병합·Main/GHCR/Finalizer·tag·Issue 종료는 하지 않는다. 잔여 위험은 실제 focus 상태의 외부 scroll에 의한 tooltip dismissal 여부(원격 trace가 닫힘 원인 이벤트를 노출하지 않음) 및 환경별 확대/스크린리더 실증이다.
-- 후속 실패는 동일 파일에 F-005를 추가하며 실제 Run/Attempt/Job·전체 실패 합집합과 인과관계를 재평가한다.
+- 후속 실패 F-005(#2941.1)는 아래 §9에 추가했다. 다음 #719 실패는 F-006부터 같은 원장에 누적하고 F-001~F-005의 실제 Run/Attempt/Job 및 테스트 합집합을 먼저 재평가한다.
+
+## 9. F-005 — CI #2941.1 재실패 및 화면 배치 테스트 전제 교정 (2026-10-18)
+
+### 원본 증거와 전체 Run 판정
+
+- [PR #722 Full CI #2941.1](https://github.com/planner77/masterGantt/actions/runs/39092799612), Run 39092799612 attempt 1, event `pull_request`, workflow 356198495, HEAD `650488e44a775497cdb66f1f4c205c16178d9d85`, base `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`, test merge `b521ffc99dfc63268dfc13025ac315c62d0c3a01`. 전체 **FAILURE**.
+- Quality aggregate job 117573499451 **SUCCESS**, Docker 117573656471 **SUCCESS**. Chromium aggregate 117574895331 **FAILURE**: [Shard 2 job 117573274705](https://github.com/planner77/masterGantt/actions/runs/39092799612/job/117573274705) 실제 43 PASS / 1 FAIL / 86 NOT RUN, 다른 5 shards Fail-Fast **CANCELLED**. [QA Final job 117574907740](https://github.com/planner77/masterGantt/actions/runs/39092799612/job/117574907740) `required e2e 미성공` 파생 FAIL. Skipped 및 취소는 PASS 아님.
+- 최초 실패 `tests/e2e/issue-719-contextual-help.spec.ts:153:25`: `expect(trigger).toBeInViewport()`에서 `Expected: in viewport`, `Received: viewport ratio 0`, timeout5000ms. Locator는 버튼으로 정상 resolve됨 (`aria-expanded=false`); 팝오버 open/Arrow/Page/Home/End까지 미진행. [Playwright trace/report artifact 12123900477](https://github.com/planner77/masterGantt/actions/runs/39092799612/artifacts/12123900477). 실제 대상은 관리자 상단 `프로젝트 기준정보 관리 도움말`; 390×320에서는 상위 레이아웃 때문에 visible 화면 밖이므로 `toBeInViewport`의 사전 전제가 거짓.
+
+### F-001~F-005 누적 Cross-run 인과와 수렴 판정
+
+| 사건 | 실패 위치/원인 | 보완 유지 여부/이번 차이 |
+| --- | --- | --- |
+| F-001 #2932.1 | 제품 도움말 keyboard scroll 접근성 결함 → 미해결 리뷰 QA BLOCKED | 기존 `ContextHelp` Arrow/Page/Home/End 접근성 코드는 유지. 이번 실패는 호출 전이라 제품 회귀 입증 아님 |
+| F-002 #2933.1 | focus-open 이후 중복 Enter로 tooltip 닫힘 | 중복 Enter 제거 유지; 이번에는 Enter 이전 사전 조건 실패 |
+| F-003 #2937.1 | 이미 열린 팝오버가 focus/scroll 중 사라짐 (root cause UNKNOWN); Run 전체 CANCELLED, shard 실제 FAIL | late scroll/resize 제거는 유지했으나 320px viewport에서 top trigger visible이라는 가정이 남았음 |
+| F-004 #2939.1 | 테스트가 React-owned portal 자식에 직접 DOM append 후 tooltip 소실 | synthetic DOM mutation 제거 유지; 이번 실패는 DOM 조작 이전 |
+| **F-005 #2941.1** | **TEST_CONTRACT / LAYOUT_PRECONDITION** — 390×320에서 top help trigger viewport ratio0 | 실제 앱에서 검증됐던 390×900 관리자 viewport 사용, 열기 전 tooltip **자체를** CSS max-height56px/폭112px으로 제한하여 긴 KO 설명의 `scrollHeight>clientHeight`를 직접 증명 |
+
+- F-002~F-005가 같은 한 테스트에서 순차 발생해도 원인을 하나로 뭉뚱그리지 않는다. 제품 접근성 계약을 검증하기 전 테스트 setup에서 발생한 결함들이며 `flaky`/환경/제품 원인으로 근거 없이 단정하지 않는다. 원본 원장/Run/Trace의 실패를 PASS로 변경하지 않는다.
+- 수정 범위: `tests/e2e/issue-719-contextual-help.spec.ts`의 마지막 keyboard-scroll case만 `page.setViewportSize({ width:390, height:900 })`로 변경. 기존 CSS `width/max-width:112px;max-height:56px` 및 기본 버튼 `toBeInViewport`, `aria-expanded=true`, accessible description, `scrollHeight>clientHeight`, 실제 ArrowUp/Down, PageUp/Down, Home/End scrollTop, Escape/focus restore 단언 **모두 보존**. `clientHeight<=56`을 추가하여 clipping 조건을 직접 강화. 제품/CI/리트라이/timeout/skip 또는 assertion 완화는 없음.
+- 테스트 영향: 직접 six-surface×5-width/keyboard/focus/touch 신규 spec + 기존 F-001~F-004 원인 합집합; 간접 Project Master/Resource profile dirty draft·Logistics/Target UI, 음성 Gantt marker-OFF/canonical/Milestone scope. 새 Full 6 shards에서 이전 취소 영역 재검증. Local browser/Node 진단은 이번 GitHub connector-only 환경에서 **NOT TESTED**; 이전 HEAD PASS는 새 HEAD의 PASS가 아님.
+- 최신 main strict / review thread 0 / Git Tree·부모·PR head/Run ID는 업데이트 뒤 재조회한다. 위험 HIGH, qa_required=true, qa_method=OWNER_MANAGED, release_required=true, release_authorized=false. 정확 신규 Head Required Quality/E2E/Docker/QA는 시작 시 NOT TESTED. 병합/Main/GHCR/Finalizer/tag/Issue 종료는 비범위다.
