@@ -1,3 +1,7 @@
+## Issue #717 — PR CI #2923.1 구조 검증 실패 보완 (2026-10-18)
+
+[#717 누적 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)과 [문서 Work Packet](ISSUE_717.md) 참조. PR #718 Full CI #2923.1은 source 문제·E2E 테스트 실패가 아니라 trusted base QA 경계에서 PR metadata full-line declarations 누락 및 Work Packet의 `DOCUMENTATION_SYNC` / `AC_TEST_COVERAGE` 정규 구조 미일치 때문에 preflight 5 FAIL, 이어 빠른 Gate 1 FAIL/Quality-E2E-Docker 집계3 FAIL이 발생했다. 실제 정책 테스트·Node build·Chromium shard·Docker 실행은 SKIPPED. 필수 선언과 영향 문서/AC1~8 mapping을 정상화하고, 단일 Git 변경 묶음으로 새 full PR CI를 시작한다. 기존 Run은 실패로 영구 보존하며 테스트 skip/timeout/Required 체크/QA 정책을 완화하지 않는다. 앱0.115.0·LOW/OWNER_MANAGED/docs-only·release_required=false/release_authorized=false 유지, 최신 Full/Trusted/Owner 결과 NOT TESTED. 병합/Main/GHCR/이슈 종료는 이번 작업 제외.
+
 ## Issue #717 — 전 화면 이름 우선·코드/ID 보조 표시 원칙 (2026-10-18)
 
 [Issue #717](https://github.com/planner77/masterGantt/issues/717) · [Work Packet](ISSUE_717.md). Milestone 대시보드의 외부/작업 ID 반복 노출과 물류 구성 공정 관리의 긴 코드 선행 표시를 우선 대상으로 등록한다. 기존 #519(단일 picker ID 비노출), #715(상시 설명 축소), `docs/PROJECT_UX.md` #409/#285의 코드 검색·수정 계약을 보존하며, 신규 전역 Name-first/Identifier-on-demand 정책을 `DESIGN.md` §1.3 및 §8에 반영한다.
