@@ -45,3 +45,36 @@
 | R03 | #725와 #727이 Copy/Template/Export·Import·Project 탭·문서/테스트 다수를 병행 수정 | main을 기준 tree로 유지하고 #727 고유 변경 및 양쪽의 다른 API/용어/유실 차단 규칙을 함께 병합. 기존 main 코드를 소거하지 않고 충돌 지점마다 내용 보존을 우선 | text-level 병합만 확인. TS/typecheck, 회귀·DB migration 검증은 새 CI에서 확인 필요 |
 
 CI 결과 미관찰 상태를 과거 SUCCESS로 표시하거나 로컬 미실행을 PASS로 표시하지 않는다.
+
+
+## Issue #727 / PR #739 — 원격 CI 누적 실패 백필 및 REWORK (2026-10-18)
+
+원장 단일 원본: `docs/ISSUE_727_FAILURE_ANALYSIS.md`. 이전 로컬 L01–L10과 정렬/리뷰 R01–R03은 위에 원본 그대로 보존한다. [공통 누적 분석 지침](PR_CI_FAILURE_TRIAGE.md)과 AGENTS.md의 “전체 Run/Attempt 선조회 → 과거 원장 대조 → 실패 합집합·교차 검증 → 변경 묶음 게시”를 따른다. 최초 CI #2958.1을 확인하지 않은 채 최근 #2973.1 오류 두 개만 수정하지 않는다.
+
+### 전체 원격 실행·source provenance
+
+| CI·이벤트·시각 (UTC) | Run의 출처 (정확한 Head/Base/Test merge) | 실제 최초 FAIL/Jobs | 성공/파생 FAIL/취소·미실행 |
+| --- | --- | --- | --- |
+| [CI #2958.1](https://github.com/planner77/masterGantt/actions/runs/39110279370) · `pull_request` · 2026-10-18 08:08:09 시작 | head `192b4f6226dd7105624d6c5a6fd0c36fce7bb3c7`; base `ea4194763568432ef98e823bb796b59a5beb317c`; test merge `997882d900d73290079982351624dab60d33a158`; `ci-pr-source-39110279370-1` artifact로 확인 | E2E Chromium shard5 [Job 117625120254](https://github.com/planner77/masterGantt/actions/runs/39110279370/job/117625120254), `project-workspace-tabs-518.spec.ts` FAIL | policy/preflight/typecheck/lint/Unit/Next build, Required Quality 및 Docker SUCCESS. E2E shard5 50 PASS/1 FAIL/33 NOT RUN; shard1/2/3/4/6 CANCELLED (다섯 shard를 PASS로 셈하지 않음). Required E2E FAIL, QA Final required-E2E 파생 FAIL |
+| [CI #2973.1](https://github.com/planner77/masterGantt/actions/runs/39127471543) · `pull_request` · 2026-10-18 12:29:12 시작 | head `4ea0d824c426e8378d5de45749660852278a666b`; base `4ce564a8d9ec646ba584a585a610537f14698476`; test merge `2e5311b7c03501fd8e95529b4bb73db5171ea794`; `ci-pr-source-39127471543-1` artifact로 확인 | Unit/Vitest [Job 117675637352](https://github.com/planner77/masterGantt/actions/runs/39127471543/job/117675637352) 2 FAIL / 2,962 total | Vitest 2957 PASS/2 FAIL/3 SKIPPED, 파일233 PASS/2 FAIL/1 SKIPPED; policy/preflight/typecheck/lint SUCCESS. PR Fast Gate FAIL, production build·E2E6·Docker 실제 Job **SKIPPED**. Required Quality/E2E/Docker 모두 파생 FAIL 및 QA Final FAIL. E2E/Docker의 독립 실행 실패 증거 없음 |
+
+원격 Run별 attempt=1. 두 개 Full Run 외 추가 rerun attempt는 확보한 PR 커밋별 workflow 기록에 없었다. 예전 #2958 원본 API의 가변 `pull_requests[].base` 대신 *당시 실행 artifact*의 base 값을 사용한다.
+
+### 실패 파일·원인 유형별 교차 매트릭스
+
+| 실패 ID | 원본 테스트·관찰 | 분류 / 과거 이력과 연결 | 원인 및 조치 |
+| --- | --- | --- | --- |
+| F727-001 (#2958.1, shard5) | [`tests/e2e/project-workspace-tabs-518.spec.ts:79`](../tests/e2e/project-workspace-tabs-518.spec.ts): `dashboardTab.toBeFocused()` 예상, 실제 inactive (5초). Error Context/Playwright `playwright-report-shard-5` trace 확인: 상위 일정 탭에 focus 뒤 ArrowRight 전 `screen=dashboard.milestones`, 이후 `screen=dashboard.process`로 의도치 않게 전환. 첫 390px 폭에서 실패 | **PRODUCT / FOCUS·상태**. 기존 R03의 #725/#727 host 통합과 L05 focus 복구·L09 E2E 실행 이력을 교차 검토. 이 실패를 flaky/환경이라고 확정하지 않음 | `selectSection`이 현재 활성 dashboard 아래 Milestone 뷰를 버리고 `lastSectionScreens`의 오래된 process 뷰로 바꾸어 focus 상태 손실. 현재 section의 상위 탭 ArrowRight는 activeScreen을 유지하고, 직접 drill/setActiveView 경로의 마지막 subview 참조도 `useEffect`로 동기화. E2E 기존 5폭(390/768/1024/1440/1920)·3px ring·Gantt instance·scroll/읽기 전용 단언 그대로 보존하면서 현재 URL `dashboard.milestones`/하위 탭 selected/dashboard ready를 추가 검증 |
+| F727-002 (#2973.1 Unit) | [`tests/server/process-catalog/process-context-service.test.ts:219`](../tests/server/process-catalog/process-context-service.test.ts): schema max version **expected 28 / received 29** | **TEST_CONTRACT**. 기존 L06/L07, R02의 #725 migration 0028 / #727 migration 0029 정렬 후 **다른 테스트**에 남은 구 기대값 | DB migration 파일·checksum과 제품 상태 변경 금지. 테스트에서 최신 0029 이름/version, 직전 0028 process-context를 함께 직접 검증. 기존 old DB 작업 행·WorkArea link·restart/foreign key 보존 assertion 제거·skip 없음 |
+| F727-003 (#2973.1 Unit) | [`tests/server/resources/project-resource-memberships.test.ts:171`](../tests/server/resources/project-resource-memberships.test.ts): `expect(...DELETE...).toThrow("책임")` 예상, 실제 아무 예외 없이 완료 | **TEST_CONTRACT**. 기존 R01의 합의된 no-op 수정이 **Milestone role-only/미등록** 테스트에 반영되지 않음 | 미등록·이미 책임참조 존재 Resource의 DELETE를 `changed=false`/revision 불변으로 단언. 같은 리소스를 **명시 등록**한 다음 DELETE는 기존 `409/책임` 차단, 등록 보존 및 revision 불변으로 별도 검증. 제품의 멱등성과 사용중 보호를 동시에 지키며 제품 정책을 오류로 되돌리지 않음 |
+
+- F727-001 원본 [실패 Job](https://github.com/planner77/masterGantt/actions/runs/39110279370/job/117625120254) 로그 및 원본 shard5 artifact에는 error-context.md/trace.zip이 있고, 본 분석에서 artifact를 읽어 실제 화면 전환을 확인했다. 비밀/대용량 Trace/HTML/raw 로그를 Git에 추가하지 않는다. `CI #2958`의 cancel 5개 shard에는 원본 로그상 별도 확정 FAIL은 식별하지 못했으나, **미완료 범위**를 PASS로 승격시키지 않는다.
+- F727-002와 F727-003이 나타난 `#2973`은 빠른 Unit Gate가 heavy jobs를 막았으므로 과거 F727-001의 재발 여부는 **UNKNOWN/NOT RUN**이다. 그 뒤 QA Final은 실제 downstream required 실패를 반영한 파생 결과다.
+- 기존 L01(gh CLI 인증), L02(Node/Next 의존성), L03 fixture, L04 selector, L05 focus, L06/L07 migration oracle, L08 mock setup, L09 Playwright outputDir 경쟁, L10 tracked evidence 복원과 R01–R03(리뷰·migration·병렬 main 통합)을 원문대로 유지한다. F727-002/003은 R02/R01의 보완 후 인접 테스트 누락이고, F727-001은 #724/host의 새로운 직접 E2E FAIL이며 이전 CI 실패를 삭제/소급 PASS로 수정하지 않는다.
+
+### 누적 검증 대상, 제외·잔여 및 재검증 상태
+
+- **직접 실패 3파일 합집합:** `tests/e2e/project-workspace-tabs-518.spec.ts`, `tests/server/process-catalog/process-context-service.test.ts`, `tests/server/resources/project-resource-memberships.test.ts`.
+- **직접/인접·교차:** `tests/e2e/project-workspace-ux.spec.ts`, `tests/e2e/project-resource-memberships-ui.spec.ts`, `tests/e2e/project-resource-memberships-persistence.spec.ts`; `tests/server/db/database.test.ts`, `tests/server/db/issue-623-target-migration.test.ts`, `tests/server/migration-cli.test.ts`, `tests/server/logistics/{logistics-targets-acceptance,task-target-bindings}.test.ts`, `tests/server/process-catalog/process-catalog-service.test.ts`. **음성:** 활성/비활성, 미등록 no-op, 등록/사용 중 409, Project revision rollback, legacy DB→0029, FK, Gantt viewport/keyboard 5폭·focus.
+- **실행 환경/결과:** 연결된 작업 환경에서는 전체 checkout/의존성 및 원격 앱 실행 컨테이너에 접근할 수 없어 이번 수정 source의 `npm test`·Playwright·SQLite·Docker는 **NOT TESTED**. 원격 로그와 Trace의 관찰, TypeScript 소스·테스트 diff의 정적 계약 대조만 수행. 새 소스에 대한 새 Full PR CI와 Trusted QA/Owner 승인은 실제 Run 시작/완료 증거 전 **NOT TESTED**다.
+- **완화 금지:** assertion 삭제/skip/타임아웃 일괄 증가/CI Gate 우회 없이 원인-원장-회귀 한 묶음으로 보완한다. 수정 내용은 `project-readonly-view.tsx`, `project-workspace-tabs-518.spec.ts`, `process-context-service.test.ts`, `project-resource-memberships.test.ts`와 이 원장/Work Packet에만 반영. 새 PR CI 시작 후 모니터링·병합·Main/GHCR·Release·Issue 종료는 별도 승인/후속 요청 범위다.

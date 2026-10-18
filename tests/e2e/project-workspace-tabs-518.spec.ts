@@ -77,6 +77,10 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
     await schedule.focus();
     await page.keyboard.press("ArrowRight");
     await expect(dashboardTab).toBeFocused();
+    // Focus-only parent navigation must not replace the current Milestone view with a stale process view.
+    await expect.poll(() => new URL(page.url()).searchParams.get("screen")).toBe("dashboard.milestones");
+    await expect(milestone).toHaveAttribute("aria-selected", "true");
+    await expect(dashboard).toHaveAttribute("data-ready", "true");
     const focusRing = await dashboardTab.evaluate((button) => {
       const style = getComputedStyle(button);
       return { visible: button.matches(":focus-visible"), kind: style.outlineStyle,

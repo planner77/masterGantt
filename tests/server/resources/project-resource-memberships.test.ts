@@ -168,7 +168,15 @@ describe("Issue727 persisted Project participation", () => {
     expect(data.resources[0]).toMatchObject({ sources: { taskAssignments: false, responsibilityAssignments: true }, usage: { taskAssignments: 0, responsibilityAssignments: 1 } });
     expect(f.membership.get(f.a.publicId, { usage: "assigned" }).data.total).toBe(0);
     expect(f.membership.get(f.a.publicId, { usage: "roleOnly" }).data.total).toBe(1);
-    expect(() => f.membership.mutate(f.a.authorization, f.a.revision(), f.r.id, false)).toThrow("책임");
+    const beforeNoop = f.a.revision();
+    expect(f.membership.mutate(f.a.authorization, beforeNoop, f.r.id, false).data.operation).toMatchObject({ kind: "resourceMembership", resourceId: f.r.id, registered: false, changed: false });
+    expect(f.a.revision()).toBe(beforeNoop);
+    f.register();
+    const registeredRevision = f.a.revision();
+    expect(f.membership.get(f.a.publicId).data.counts.registered).toBe(1);
+    expect(() => f.membership.mutate(f.a.authorization, registeredRevision, f.r.id, false)).toThrow("책임");
+    expect(f.a.revision()).toBe(registeredRevision);
+    expect(f.membership.get(f.a.publicId).data.resources[0].registered).toBe(true);
   });
   it("fails closed for excessive groups and response bytes and rolls back oversized mutation responses", async () => {
     const f = await fixture(), catalog = new ResourceCatalogRepository(f.db);

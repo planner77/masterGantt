@@ -282,6 +282,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [lastUnifiedScreen, setLastUnifiedScreen] = useState<WorkspaceScreen>("dashboard.process");
   if (["dashboard.process", "dashboard.equipment", "dashboard.system", "dashboard.target"].includes(activeScreen) && lastUnifiedScreen !== activeScreen) setLastUnifiedScreen(activeScreen);
   const lastSectionScreens = useRef<Record<"dashboard" | "master", WorkspaceScreen>>({ dashboard: "dashboard.kpi", master: "master.processes" });
+  // Direct drill/view navigation also changes the active screen; preserve that screen for parent-tab return.
+  useEffect(() => {
+    if (activeSection !== "schedule") lastSectionScreens.current[activeSection] = activeScreen;
+  }, [activeScreen, activeSection]);
   const screenTabReferences = useRef(new Map<string, HTMLButtonElement>());
   const [workspaceStorageProject, setWorkspaceStorageProject] = useState<string | null>(null);
   function setActiveView(view: WorkspaceView) {
@@ -312,7 +316,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return isVisibleFocusTarget(parentTab) ? parentTab : null;
   }
   function selectSection(section: WorkspaceSection) {
-    selectScreen(section === "schedule" ? "schedule" : lastSectionScreens.current[section], false);
+    // Keyboard focus may start on an inactive parent while its section is already active.
+    // Preserve the visible subview instead of replacing it with a stale remembered screen.
+    const target = section === "schedule" ? "schedule" : activeSection === section ? activeScreen : lastSectionScreens.current[section];
+    selectScreen(target, false);
     requestAnimationFrame(() => {
       const tab = screenTabReferences.current.get(section);
       tab?.focus({ preventScroll: true }); tab?.scrollIntoView({ block: "nearest", inline: "nearest" });

@@ -133,3 +133,11 @@ node scripts/check-markdown-links.mjs
 - 상호 겹치는 Resource/공정·작업구역/Copy/Template/JSON·Excel guard, Project host, route inventory 및 기존 migration 회귀를 통합한다. 기존 참여-only DELETE의 P2 리뷰는 원래 membership이 없으면 사용 중이더라도 changed=false no-op, membership이 있을 때만 사용 중409로 처리한다.
 - main 0.118.0은 #725 소유이며 이번 신규 기능 후보는 0.119.0이다. 기존 원격 Head192b4f6/local 0.118.0 증거는 역사의 기록으로 보존하되 변경된 통합 tree의 검증 결과로 대체하지 않는다.
 - 환경 제약: GitHub 객체 API를 통한 통합·정적 검토이며 수정된 통합 tree의 로컬 npm/Vitest/Playwright/SQLite 런타임 재실행은 NOT TESTED이다. 새 exact-head Full PR CI(quality/e2e/docker)와 Trusted QA/Owner 승인도 새 Run 증거 전 NOT TESTED다. CI 모니터링·병합/정식 배포/Issue 종료는 이번 범위 밖이다.
+
+
+## PR #739 REWORK — Full CI #2958.1 + #2973.1 (2026-10-18)
+
+- 실패 분석의 단일 출처: [#727 누적 실패 원장](../../ISSUE_727_FAILURE_ANALYSIS.md). #2958.1 Chromium shard5는 parent tab ArrowRight 뒤 `dashboard.milestones`에서 의도치 않게 `dashboard.process`로 전환되어 focused assertion이 실패; 다른 shard5개는 CANCELLED. #2973.1은 #725 0028과 #727 0029 통합 후 기대 migration count28/actual29 및 R01 멱등 DELETE를 오래된 Milestone test가 여전히 409로 기대해 Vitest 2 case가 실패했다. Fast Gate 이후 build/E2E6/Docker는 SKIPPED (실제 테스트 실패 아님).
+- 조치: 이미 선택된 section을 키보드로 이동할 때 activeScreen 보존·직접 view/drill 경로 마지막 subview 동기화, #518 5폭 keyboard/focus·Milestone selected/URL/ready 단언 강화, #725 migration 테스트 0028/0029 이름·순서 증명, #727 미등록+사용중 no-op/명시등록+사용중 409와 revision 불변 구분. Assignment/공수/Capacity R·DB schema/Copy·Template 계약 및 PR Fast Gate/Required 3개 변경 없음.
+- 회귀 계획: 원격 실패3파일 합집합·상위 메뉴 UI/Resource·DB migration/Copy 교차 소비자를 동일 새 source의 Full PR CI에서 재검증. 이 환경에서 실제 Node/Vitest/SQLite/Playwright 실행은 **NOT TESTED**로 명시한다. 과거 Quality/E2E/Docker 성공/실패는 source별 불변 증거이며 새 Head 성공으로 승격 불가.
+- 보완 후 최신 main/PR HEAD/read-back·미해결 Review 0·merge conflict 없음·새 Run ID 확인을 진행하고, 완료 모니터링/병합/Main CI/GHCR/Issue 종료는 하지 않는다. HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false.
