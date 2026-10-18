@@ -32,7 +32,7 @@ export interface Fixture {
   projectReads: number;
 }
 
-export async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean; milestonePeer?: boolean; longList?: boolean } = {}): Promise<Fixture> {
+export async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean; milestonePeer?: boolean; longList?: boolean; scrollCapacityWitness?: boolean } = {}): Promise<Fixture> {
   await page.clock.setFixedTime(new Date("2026-09-16T12:00:00Z"));
   const fixture: Fixture = {
     project: { publicId, name: "Task Editor fixture", description: "Issue #4", status: "planned", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
@@ -52,6 +52,15 @@ export async function setup(page: Page, options: { editable?: boolean; links?: b
   if (options.longList) {
     fixture.tasks[3].parentExternalId = "EDITOR-1";
     for (let index = 50; index < 76; index++) fixture.tasks.push(task(index, `Geometry scroll task ${index}`, { parentExternalId: "EDITOR-1" }));
+  }
+  // #724 Main M01: a single edge-wheel does not guarantee 120px scroll
+  // capacity. Only this opted-in E2E supplies a real scoped date horizon.
+  if (options.scrollCapacityWitness) {
+    if (!options.longList) throw new Error("scrollCapacityWitness requires longList");
+    fixture.tasks.push(task(76, "Scoped Week capacity witness", {
+      parentExternalId: "EDITOR-1", requestedStart: "2027-04-05",
+      start: "2027-04-05", end: "2027-04-05",
+    }));
   }
   const assignmentTargets = options.assignmentTargets ? [
     { kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true, roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"] as const },

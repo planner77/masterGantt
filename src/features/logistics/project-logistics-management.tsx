@@ -1694,7 +1694,7 @@ function EquipmentDialog({
       name: area.name,
       owner: process.name,
       code: area.code,
-      active: area.active && mapping.active && process.active && !!context.occurrences.find(item => item.id === area.occurrenceId && item.active),
+      active: area.active && (mapping.workAreaSelectionActive ?? mapping.active) && process.active && !!context.occurrences.find(item => item.id === area.occurrenceId && item.active),
     }));
   }) ?? [];
 
@@ -1755,7 +1755,7 @@ function EquipmentDialog({
               <button type="button" className="secondary-button" disabled={busy || !workAreaLinks.length} onClick={() => setWorkAreaLinks([])}>전체 연결 해제</button>
               <div className={styles.workAreaOptions}>
                 {workAreaOptions.filter(area => area.active || selectedLinkKeys.includes(linkKey(area))).map(area => <label key={linkKey(area)} className={styles.workAreaOption}>
-                  <input type="checkbox" checked={selectedLinkKeys.includes(linkKey(area))} disabled={busy || (!area.active && !selectedLinkKeys.includes(linkKey(area)))} onChange={event => setWorkAreaLinks(links => event.target.checked ? [...links, { processId: area.processId, workAreaId: area.workAreaId }] : links.filter(link => linkKey(link) !== linkKey(area)))} />
+                  <input type="checkbox" checked={selectedLinkKeys.includes(linkKey(area))} disabled={busy || (!area.active && !selectedLinkKeys.includes(linkKey(area)))} onChange={event => setWorkAreaLinks(links => event.target.checked ? [...links.filter(link => link.workAreaId !== area.workAreaId), { processId: area.processId, workAreaId: area.workAreaId }] : links.filter(link => linkKey(link) !== linkKey(area)))} />
                   <span>{area.name} — {area.owner} · {area.code}{area.active ? "" : " (비활성)"}</span>
                 </label>)}
                 {workAreaLinks.filter(link => !workAreaOptions.some(area => linkKey(area) === linkKey(link))).map(link => <label key={linkKey(link)} className={styles.workAreaOption}><input type="checkbox" checked disabled={busy} onChange={() => setWorkAreaLinks(links => links.filter(value => linkKey(value) !== linkKey(link)))} /><span>확인할 수 없는 WorkArea · {link.workAreaId} · {link.processId}</span></label>)}

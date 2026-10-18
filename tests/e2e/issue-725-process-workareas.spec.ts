@@ -325,3 +325,66 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   await info.attach("issue-725-geometry", { contentType: "application/json", body: Buffer.from(JSON.stringify(measurements, null, 2)) });
   await info.attach("issue-725-acceptance", { contentType: "application/json", body: Buffer.from(JSON.stringify({ widths: [390, 768, 1024, 1440, 1920], targetCount: 0, equipmentCount: 1, quantity: 10, selectedWorkAreaCounts: [0, 2, 1, 0], workAreaOwners: [areaA.occurrenceId, areaB.occurrenceId], mutationCount: writeCount, restart: true })) });
 });
+
+
+test("#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 구역 단일 owner 선택·저장", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
+  const f = await createTargetProject(page, origin, observeIsolatedApi);
+  const occurrence = f.catalog.data.occurrences.find(row => row.code === "A")!;
+  const defaultArea = f.catalog.data.workAreas.find(row => row.code === "WA-A")!;
+  const areaResponse = await page.request.post(`${origin}/api/process-catalog/admin/work-areas`, {
+    headers: { Origin: origin, "If-Match": `"${f.catalog.data.processCatalogRevision}"` },
+    data: { occurrenceId: occurrence.id, code: "WA-SIBLING", name: "활성 공유 구역" },
+  });
+  expect(areaResponse.status()).toBe(200);
+  const updatedCatalog = await areaResponse.json() as ProcessCatalogResponse;
+  const sibling = updatedCatalog.data.workAreas.find(area => area.code === "WA-SIBLING")!;
+  // Two project process IDs deliberately share one physical occurrence.
+  await f.mutate(`/logistics/process-mappings/${f.processIds[0]}`, {
+    processCatalogRevision: updatedCatalog.data.processCatalogRevision, occurrenceId: occurrence.id, workAreaId: defaultArea.id,
+  }, "put");
+  await f.mutate(`/logistics/process-mappings/${f.processIds[1]}`, {
+    processCatalogRevision: updatedCatalog.data.processCatalogRevision, occurrenceId: occurrence.id,
+  }, "put");
+  const disabledResponse = await page.request.patch(`${origin}/api/process-catalog/admin/work-areas/${defaultArea.id}`, {
+    headers: { Origin: origin, "If-Match": `"${updatedCatalog.data.processCatalogRevision}"` }, data: { active: false },
+  });
+  expect(disabledResponse.status()).toBe(200);
+  const contextResponse = await page.request.get(`${f.api}/logistics/process-context`);
+  expect(contextResponse.status()).toBe(200);
+  const context = (await contextResponse.json()).data;
+  expect(context.mappings.find((row: { processId: string }) => row.processId === f.processIds[0]))
+    .toMatchObject({ active: false, workAreaSelectionActive: true });
+  const created = await (await f.mutate("/logistics/equipment", {
+    processId: f.processIds[0], code: "E-DUP", name: "공유 WorkArea 설비",
+    equipmentType: "amr", managementUnit: "fleet", quantity: 10,
+  })).json() as LogisticsMutationResponse;
+  const equipmentId = created.data.logistics.equipment.find(row => row.code === "E-DUP")!.id;
+  await page.reload();
+  await openWorkspaceView(page, "equipment");
+  await page.locator("#panel-equipment").getByRole("row").filter({ hasText: "E-DUP" })
+    .getByRole("button", { name: "수정", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "설비 수정", exact: true });
+  const candidates = dialog.getByRole("checkbox", { name: /활성 공유 구역/ });
+  await expect(candidates).toHaveCount(2);
+  await expect(candidates.nth(0)).toBeEnabled();
+  await expect(candidates.nth(1)).toBeEnabled();
+  // Selecting the second process replaces, rather than duplicates, the owner of the same WorkArea.
+  await candidates.nth(0).check();
+  await candidates.nth(1).check();
+  await expect(candidates.nth(0)).not.toBeChecked();
+  await expect(candidates.nth(1)).toBeChecked();
+  await expect(dialog.getByRole("group", { name: "연결 WorkArea (선택)", exact: true })).toContainText("선택 1개");
+  await submitEquipmentEdit(page, dialog);
+  await expect(dialog).toHaveCount(0);
+  const savedResponse = await page.request.get(`${f.api}/logistics`);
+  expect(savedResponse.status()).toBe(200);
+  const saved = (await savedResponse.json() as ProjectLogisticsResponse).data.logistics;
+  expect(saved.equipment).toHaveLength(1);
+  expect(saved.equipment[0]).toMatchObject({
+    id: equipmentId, quantity: 10, workAreaIds: [sibling.id],
+    workAreaLinks: [{ processId: f.processIds[1], workAreaId: sibling.id }],
+  });
+  expect(saved.equipmentWorkAreas).toEqual([{
+    equipmentId, processId: f.processIds[1], occurrenceId: occurrence.id, workAreaId: sibling.id,
+  }]);
+});

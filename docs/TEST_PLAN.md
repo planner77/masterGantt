@@ -4439,6 +4439,24 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 - Strengthen *existing* #529 stale/opt-in/409/500 test: confirm parent and secondary both selected, active child tabbable, hide/inert the origin, Escape, Dialog hidden, child focus with exact ID, parent not focused and child visible. Retain original exported-request count, report proof/reconfirmation, failure notice, 5-width geometry & existing focus-return tests. Direct/neighbor negative suite: #529, #572, #724/#518, #551, #552, #719 and #624; source-stable local targeted tests or full remote Shards remain NOT TESTED until run.
 - This is a PRODUCT focus correction, not a F02–F04 TEST_CONTRACT exception. [Single issue cumulative record F05](ISSUE_724_FAILURE_ANALYSIS.md), AGENTS.md #704, GSC-07/08/09/11 and strict source evidence policy apply. Timeouts, retries, skip, Required CI/QA, Owner/HIGH release gates remain unchanged; no merge/GHCR/issue closure in current scope.
 
+## Issue #724 — Main CI M01 #456 actual 120px scroll-capacity admission regression (2026-10-18)
+
+- Original [Main Run #2957.1](https://github.com/planner77/masterGantt/actions/runs/39108991895) on merge `ea4194763568432ef98e823bb796b59a5beb317c` fails shard3 #456 `task-editor-form-density.spec.ts:193` BEFORE Editor/metadata: current Core and native Chart do not prove the exact 120px capacity within 5s (`TARGET_CORE_CAPACITY_INSUFFICIENT`/`TARGET_NATIVE_CAPACITY_INSUFFICIENT`). Shard3 91PASS/1FAIL/1SKIP, other5 shard success; required Quality/Docker pass, E2E fail, Main GHCR candidate skipped. Related precedent [#624 F-624-025](https://github.com/planner77/masterGantt/actions/runs/39021459600) requested120/native62 means a single wheel setup is not uniformly sufficient.
+- Add an isolated opt-in test fixture `scrollCapacityWitness` for the scoped Summary `longList` test only: normal dated Task `EDITOR-76`, 2027-04-05, initializes a genuine date horizon. Verify real Core has the witness and both actual Core/native capacities still admit **exact 120px**; keep native wheel fallback and fail closed if invalid. Preserve 120px X/38px Y, same instance, fullscreen, tree/columns/selection, editor cancel/metadata confirmed and PATCH1; unchanged CI/timeout/retry/skip, no product Gantt axis write.
+- Direct #456 and impacted #624/#667 readiness, #551/552/572/529/719/518/724 cross-regression; prior issue-specific [L1–L10/F01–F05/M01](ISSUE_724_FAILURE_ANALYSIS.md) append-only. Local no-fail-fast Chromium, lint, typecheck NOT TESTED in this runtime; new PR and subsequent Main required verification separate. Owner's issue/version authorization does not waive Main/GHCR/formal Release validation.
+
+
+## Issue #724 — F06 보완 PR 정책 선언과 누적 로컬 회귀 (2026-10-18)
+
+- [PR #740 Full CI #2960.1](https://github.com/planner77/masterGantt/actions/runs/39111327137)은 개별 줄이 아닌 위험도/QA 선언으로 Preflight 4 FAIL, QA route BLOCKED. 실제 Quality/E2E/Docker 구현은 SKIPPED/NOT TESTED이며 M01 capacity의 재발 증거가 아니다. [같은 #724 누적 원장 F06](ISSUE_724_FAILURE_ANALYSIS.md) 참조.
+- PR metadata의 단독 줄 선언·단일 Refs·문서 영향/AC1–AC6를 base parser로 확인하고 preflight 기존10회귀 PASS. 검증기/CI를 바꾸지 않는다. M01 보완의 직접 #456 실제 Chromium PASS, 변경2파일 lint/typecheck PASS. 누적 L1–L10/F01–F05/M01 소비자의 같은 source 제한적 회귀를 아래 결과로 구분한다.
+- 교정 PR release_required=false/release_authorized=false(제품 version 불변)와 원본 #724 제품 릴리스 의무/Owner 조건부 v0.117.0 승인은 별개다. 새로운 원격 exact-head Full Required3·Trusted QA 및 수정 Main 실행 결과를 로컬 PASS로 대신하지 않는다.
+
+
+### Main 복구 후보의 최종 로컬 결과
+
+같은 fixture/spec 지문(91774c62/f85f4010)에서 누적9파일91 PASS(7.0분)+인접5파일12 PASS(2.1분), **103개 고유 Chromium 케이스 PASS**, 실패/skip/retry0. 별도 직접 #4561 PASS는 중복 수로 구분한다. 원본 Core62/native63<120은 scoped Task 보완 후 실제1354/1355로 admission 통과했고 exact X120/Y38·같은 Gantt/선택/열/범위·Editor 취소/metadata PATCH1을 보존했다. source/test 변경0. 변경 lint/typecheck·base parser·preflight10·Markdown/version/diff PASS. Pre-PR 자동 선택은 미등록 fixture 매핑 UNKNOWN으로 BLOCKED이며 수동 실제 소비자 선정·검증을 별도 기록했다. 전체 원격 Required3/Trusted/Main/GHCR의 PASS가 아니다. 별도 infra 읽기 전용 소스·문서 검토 PASS, 사람 Owner/Trusted 승인 대체 없음. 전체 이력·정확 지문·명령/환경·미실행·승인 경계는 [누적 원장](ISSUE_724_FAILURE_ANALYSIS.md)에 기록한다.
+
 ## Issue #725 — Target 없는 공정·WorkArea 직접 문맥 수용
 
 [Work Packet](exec-plans/active/ISSUE_725.md)의 AC1~AC9와 [최신 W1/W2](https://github.com/planner77/masterGantt/issues/725#issuecomment-6245426595)를 적용한다. Target0 정상 흐름, 타 공정 WorkArea 동시 연결, Task 명시0과 legacy-null 구분, 구성 변경으로 Task 공정 자동 변경0을 검사한다. Task picker는 #726, 새 공정 KPI/source 해석은 #728/#729의 별도 검증이며 기존 Target/System/Resource 집계의 성공을 새 관점 PASS로 전용하지 않는다.
@@ -4477,3 +4495,10 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 
 
 최종15회차: 설비 폼 내부 수축 수정 뒤 실제 통합1case PASS(43.711초/총60.729초),5폭 dialog 내부scrollWidth=clientWidth(390:350/350,나머지606/606)·표15개/문서폭 및 원래 전체 저장/해제/재시작 계약을 다시 검증했다. 실제390/1440 PNG를 별도 UX 검토자가 열람해 잘림 해소를 확인했다. 기존 인접2case PASS14.1초와 구분하며 [로컬 증거](evidence/issue-725/local-validation.json)에 최종 지문·상태·실측을 남긴다. Pre-PR dry-run 자체는10경로 자동 매핑UNKNOWN/Selection BLOCKED·실행NOT TESTED이며 실제 선정 검증과 혼동하지 않는다. 범용 선택기/정책은 수정하지 않는다.
+
+
+## Issue #725 — PR #741 P2 리뷰 2건 및 최신 main 문서 병합 (2026-10-18)
+
+- 비활성 compatibility/default WorkArea로 인해 `mapping.active=false`가 되더라도 형제 WorkArea 선택은 조상 활성 상태(`mapping.workAreaSelectionActive`)와 후보 구역 활성 상태를 개별 검증한다. 기존 `mapping.active` 의미는 유지한다. 실제 SQLite service 회귀에서 비활성 default + 활성 sibling, 부모 type 비활성을 구분한다.
+- 동일 physical WorkArea가 서로 다른 Project process mapping으로 표시되면 UI 선택은 `workAreaId`별 하나의 owner만 허용하며 마지막으로 사용자가 지정한 `processId`로 대체한다. 실제 isolated Chromium+HTTP+SQLite에서 2개 행→단일 체크→원자 저장→canonical 1개 및 quantity10을 확인하도록 추가한다.
+- #724 후속 Main의 fixture/scroll capacity 증거, TEST_PLAN/PLAN의 독립 변경은 모두 보존한다. connector-only 실행 환경에서 변경 후 로컬 Vitest/Chromium/Typecheck는 NOT TESTED; 새로운 exact-head PR Full Quality/E2E6/Docker가 별도 증거다.

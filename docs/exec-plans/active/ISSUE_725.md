@@ -194,3 +194,12 @@ Target 기존 업그레이드 소비자 두 파일의 ledger 기대값27→28도
 - 원격 Required3/Trusted QA·Owner ACCEPT는 NOT TESTED. 검증 완료 대기 없이 PR Full CI 시작 snapshot만 Issue STATUS로 인계한다.
 
 최종 정적 검사: typecheck·version0.118.0·변경파일ESLint(오류0/기존gradeText경고1)·test discovery234 Unit files/698 browser tests(루트/외부cwd일치)·Markdown254파일·diff PASS. 문서/AC 구조는 STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING이며 사전 의미 검토와 원격QA/Owner 승인 경계는 유지한다. 최종 검사 중 존재하지 않는 verify-markdown-links 경로를 호출한 명령 오류1회가 있었고 실제 check-markdown-links로 교정해254파일PASS를 확인했다.
+
+
+## PR #741 — 최신 main 재정렬 및 리뷰 P2 처리 (2026-10-18)
+
+- 이전 Head `6bdae8ff10b475e4ba91dcf8815ee0f45e0407cf`, 확인된 최신 main `c2395b17d864692c2e5e5aa36f55ea36e7197541` (공통 조상 `ea4194763568432ef98e823bb796b59a5beb317c`). #724 Main 복구의 TEST_PLAN/PLAN 독립 변경, #724 누적 실패 원장/Work Packet, #456 실제 fixture/spec를 충돌 없이 보존한다. branch의 제품·문서·테스트 원본을 덮어쓰지 않는다.
+- P2-1: 호환/default WorkArea의 비활성 상태가 `mapping.active=false`로 형제 후보 전체에 전파되는 오류. 별도의 `workAreaSelectionActive`는 default WorkArea 활성만 제외하고 Project 공정·occurrence·type/standard·사업부/제품/사업장의 활성 경로를 검증한다. picker는 이 속성과 각 WorkArea 자체 활성 상태를 결합한다.
+- P2-2: 복수 Project 공정이 같은 occurrence를 매핑하면 동일 물리 WorkArea에 `processId:workAreaId` 중복 선택이 가능했다. 선택 시 해당 `workAreaId`의 이전 owner를 대체하여 서버의 유일성 계약과 동기화한다.
+- 직접 검증 경로: native process-catalog-service SQLite 회귀와 isolated Chromium/E2E 실제 HTTP 저장 및 canonical 검증을 추가했다. 변경 이후 이 실행 환경은 로컬 저장소·node_modules·Chromium이 없고 외부 GitHub DNS가 차단되어 **로컬 새 테스트 NOT TESTED**. 이전 215개/Chromium PASS를 새 Head PASS로 소급하지 않는다. 신규 PR Full Required3·Trusted QA/Owner ACCEPT도 Run 결과 확인 전 NOT TESTED.
+- Owner의 요청 범위는 최신 main 정렬·두 리뷰 수정/해결·새 PR CI 시작이며 **완료 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료는 제외**한다. `release_required=true`, `release_authorized=false`는 유지한다.

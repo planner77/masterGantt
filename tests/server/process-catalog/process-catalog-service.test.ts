@@ -193,6 +193,19 @@ describe("Process catalog native service contracts", () => {
     expect(f.projectRevision()).toBe(revision);
   });
 
+  it("keeps sibling WorkAreas selectable when the compatibility default is inactive, while blocking inactive ancestors", () => {
+    const f = setup(); const { type, occurrence } = seed(f);
+    const defaultArea = f.mutate("workAreas", { occurrenceId: occurrence.id, code: "DEFAULT", name: "Inactive default" }).workAreas.find(area => area.code === "DEFAULT")!;
+    const sibling = f.mutate("workAreas", { occurrenceId: occurrence.id, code: "SIBLING", name: "Active sibling" }).workAreas.find(area => area.code === "SIBLING")!;
+    f.map(occurrence.id, defaultArea.id);
+    f.mutate("workAreas", { active: false }, defaultArea.id);
+    const context = f.service.context(f.project.publicId).data;
+    expect(context.workAreas.find(area => area.id === sibling.id)?.active).toBe(true);
+    expect(context.mappings[0]).toMatchObject({ workAreaId: defaultArea.id, active: false, workAreaSelectionActive: true });
+    f.mutate("types", { active: false }, type.id);
+    expect(f.service.context(f.project.publicId).data.mappings[0]).toMatchObject({ active: false, workAreaSelectionActive: false });
+  });
+
   it.each(["type", "standard", "businessUnit", "product", "site"] as const)("rejects new WorkArea/mapping through inactive %s and retains existing mapping", inactive => {
     const f = setup(); const { type, standard, occurrence } = seed(f);
     const area = f.mutate("workAreas", { occurrenceId: occurrence.id, code: "WA", name: "Area" }).workAreas[0];
