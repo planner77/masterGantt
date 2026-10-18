@@ -179,3 +179,10 @@
 - 실제 실패는 keyboard-scroll 새 E2E의 `toBeInViewport` expected in viewport/ratio0. 390×320 관리자 페이지에서 **첫 도움말 버튼이 화면 밖**이므로 팝오버 열기/키보드 동작 전 테스트가 실패했다. F-001 제품 keyboard scroll 결함과 달리 TEST_CONTRACT/LAYOUT_PRECONDITION. F-002 focus/Enter·F-003 scroll·F-004 React-owned portal DOM mutation 교정은 모두 유지.
 - 390×900의 이전 성공한 마스터 화면 geometry를 사용하고 **실제 도움말 팝오버만 56px scrollport**로 제한해 `scrollHeight>clientHeight` 및 `clientHeight<=56`을 증명한다. 112px 폭 CSS, 엄격 버튼 in-viewport/ARIA/Arrow/Page/Home/End 실제 scrollTop/Escape/focus 단언은 유지. 코어 사용자 로직·marker-OFF/권한·집계 변경 없음. 이번 connector-only 환경의 브라우저 재실행 NOT TESTED, 새 Full PR CI에서 E2E 6Shard 전체 재확인.
 - risk HIGH/OWNER_MANAGED, version0.116.1, release_required=true/release_authorized=false. 필수 PR/Trusted QA/Owner·Release 승인은 별도이며 CI 시작 후 모니터링·병합·Main/GHCR·이슈 종료하지 않는다.
+
+## 2026-10-18 REWORK #5 — #2943.1 F-006 Resource KPI canonical GET 전송 보호 통합
+
+- [#719 누적 원장 F-001~F-006](../../ISSUE_719_FAILURE_ANALYSIS.md) 종합: #2943.1 Quality/Docker PASS, E2E Shard5 64PASS/1FAIL/17NOTRUN·Shard6 PASS·Shard1~4 CANCELLED, QA Final 파생 FAIL. 이번 #530 `resource-kpi-integration-ui.spec.ts:295` 마지막 canonical GET의 ECONNRESET은 F-002~F-005 #719 도움말 테스트와 다른 `INIT_TRANSPORT`이다.
+- 격리 서버 Parent alive/Health200/14ms/cgroup OOMKill0 확인. Next child RSS·cgroup 증가만으로 물리 원인(OOM/KeepAlive/restart) 단정 불가. 기존 #703의 `observedReadOnlyGet`/Connection close 보호를 미사용한 #530 fixture의 소비자 경계만 고친다.
+- `seedResourceKpiIntegration` 필수 observer 전달을 UI7/API1 **총8개** 소비자에 확대. 첫 GET ECONNRESET 안전 진단→동일 read-only GET 1회만 재조회, 나머지 오류/쓰기 재전송 없음. 4건 Unit 양·음성, 기존 #703 보호 Unit, #530 UI/API, #719 keyboard 및 Resource/Target/Milestone/Gantt/Excel 회귀 계약 유지. CI timeout/retry/shard 정책 변경 없음.
+- DOCUMENTATION_SYNC: Work Packet/이슈 고유 원장 UPDATED, 기존 #703 REMOTE_VALIDATION 및 #697 TEST_PLAN/AGENTS·DESIGN·API·DB·CI는 변경 없는 정책 재사용으로 N/A. Local Playwright/Node 재검증 NOT TESTED(이 연결 환경에서 프로젝트 checkout 없음); exact Head Full Quality/E2E6/Docker/Trusted QA와 Owner ACCEPT는 시작 시 NOT TESTED. risk HIGH/OWNER_MANAGED, release_required=true/release_authorized=false, version0.116.1. 병합/Main/GHCR/Finalizer/Issue 종료는 하지 않는다.
