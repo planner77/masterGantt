@@ -1,3 +1,9 @@
+## Issue #728 — 단일 WBS 작업 해석 경계
+
+`src/domain/resources/wbs-task-ledger.ts`는 기존 #617 Target resolver·Resource KPI/Plan·Milestone Gate authority를 재사용하는 opt-in pure Domain이다. 동일 Project snapshot과 #725 Task 문맥/다중 WorkArea DTO, #727 프로젝트 Resource 참여 DTO를 입력으로 받으며 누락/조회실패를 관계0으로 처리하지 않는다. 새 Task 공정 선택과 legacy Target 공정 source/version을 분리한다.
+
+Task/typed instance/provenance와 개인 Assignment identity를 정규화하고 단계별 selector에서 현재 범위를 계속 교차한다. 구성 membership/controls/coordinates·책임 역할·개인배정과 같은-Task 작업 연관을 구분한다. KPI 부모 총계는 원시 합집합이고 full Milestone Gate·Capacity R는 선택 경로로 축소하지 않는다. UI/Gantt/기존 서비스·DB writer 변경은 없다. #729가 read transaction/revision/snapshot·API/상세/Excel 호환을 결속하고 #730 이후 화면은 같은 경계를 소비한다. [입력·산식·호환 계약](WBS_TASK_LEDGER.md).
+
 ## Issue #725 — 직접 문맥 저장과 기준정보 화면
 
 기존 Route Handler → Service → Repository → SQLite와 공정 catalog/Project mapping을 재사용한다. migration0028은 설비–WorkArea 및 Task 직접 공정/WorkArea typed 관계와 명시0개 marker만 추가한다. 공통 catalog revision과 Project revision은 별도로 검증하며 Project 문맥 변경은 하나의 authorized transaction으로 저장한다. 실제 WorkArea owner는 mapping+occurrence 복합 FK로 결속하고 타 공정 설비 연결을 주 관리 공정 때문에 거부하지 않는다.
@@ -10,7 +16,7 @@ Copy/Templatev4는 원본 직접 관계/marker를 local ID remap으로 복원하
 
 명시 프로젝트 참여 관계는 global Resource와 Project의 연결이며 기존 Task Assignment·설비/시스템 책임 역할 및 편집 ACL과 별도다. Route Handler → Service → Repository → SQLite 경계에서 session/Origin/If-Match와 최신 usage를 transaction 안에 검증한다. 목록은 명시 관계와 프로젝트 안의 기존 사용을 읽는 bounded projection이다. 등록-only 사용자를 Resource KPI 계산 입력으로 주입하지 않으며 기존 domain 계산/Capacity R·Calendar는 유지한다.
 
-Project Copy와 지원 Template는 global Resource ID를 재사용한다. 미지원 일정 교환은 새 관계를 조용히 제거한 성공을 반환하지 않는다. `master.resources` host는 #724의 공개 통합 지점이며 `dashboard.resources`의 기존 Plan·견적·Excel·정확 Assignment 편집은 계속 별도 소비자다. 후속 #728/#729/#736은 이 등록 원장과 출처를 읽되 새 수행 실적이나 ACL로 해석하지 않는다.
+Project Copy와 지원 Template는 global Resource ID를 재사용한다. 미지원 일정 교환은 새 관계를 조용히 제거한 성공을 반환하지 않는다. `master.resources` host는 #724의 공개 통합 지점이며 `dashboard.resources`의 기존 Plan·견적·Excel·정확 Assignment 편집은 계속 별도 소비자다. #728 공통 Domain 및 후속 #729/#736은 이 등록 원장과 출처를 읽되 새 수행 실적이나 ACL로 해석하지 않는다.
 
 ## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
 

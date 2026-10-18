@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "tool": "mastergantt-prepr",
+  "issue": 728,
+  "pr": null,
+  "mode": "targeted",
+  "status": "BLOCKED",
+  "startedAt": "2026-10-18T13:45:41.576Z",
+  "sourceStart": {
+    "baseRef": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+    "baseSha": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+    "headSha": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+    "workingDiffSha256": "909632599c89875e852a9c19de8a179ff86974cfec5b7575915cce948a2380ae",
+    "fingerprint": "b1c3ce6c8e11693599926f0df1224ca6df7403a24cd63f43804fc9c5ba608ade",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/ARCHITECTURE.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "docs/LOGISTICS_TARGETS.md",
+      "docs/REQUIREMENTS.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/TEST_PLAN.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/exec-plans/active/ISSUE_728.md",
+      "docs/exec-plans/active/PLAN.md",
+      "package-lock.json",
+      "package.json",
+      "src/domain/resources/wbs-task-ledger.ts",
+      "tests/domain/wbs-task-ledger-acceptance.test.ts",
+      "tests/domain/wbs-task-ledger.test.ts",
+      "tests/fixtures/wbs-task-ledger.ts"
+    ]
+  },
+  "sourceEnd": {
+    "baseRef": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+    "baseSha": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+    "headSha": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+    "workingDiffSha256": "909632599c89875e852a9c19de8a179ff86974cfec5b7575915cce948a2380ae",
+    "fingerprint": "b1c3ce6c8e11693599926f0df1224ca6df7403a24cd63f43804fc9c5ba608ade",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/ARCHITECTURE.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "docs/LOGISTICS_TARGETS.md",
+      "docs/REQUIREMENTS.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/TEST_PLAN.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/exec-plans/active/ISSUE_728.md",
+      "docs/exec-plans/active/PLAN.md",
+      "package-lock.json",
+      "package.json",
+      "src/domain/resources/wbs-task-ledger.ts",
+      "tests/domain/wbs-task-ledger-acceptance.test.ts",
+      "tests/domain/wbs-task-ledger.test.ts",
+      "tests/fixtures/wbs-task-ledger.ts"
+    ]
+  },
+  "sourceStable": true,
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.120.0",
+    "lockVersion": "0.120.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "package-lock.json",
+        "rule": "issue-552-locked-dependencies",
+        "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+      },
+      {
+        "path": "package.json",
+        "rule": "prepr-tooling",
+        "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+      },
+      {
+        "path": "src/domain/resources/wbs-task-ledger.ts",
+        "rule": "resource-calendar",
+        "reason": "shared resource/calendar/milestone consumers and persisted state"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "tests/fixtures/wbs-task-ledger.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/domain/resource-target-kpi.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/domain/resource-target-plan.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/domain/wbs-task-ledger-acceptance.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/domain/wbs-task-ledger.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-editor.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-resource-calendar-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-work-calendar-preview.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-ui.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/date-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/milestone-timeline-adapter.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "shared resource/calendar/milestone consumers and persisted state"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/scripts/prepr-verifier.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+          "Pre-PR tool parser, source provenance, failure and safety regression"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "diagnostic": null,
+  "steps": [],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "errors": [
+    "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+  ],
+  "artifacts": [],
+  "completedAt": "2026-10-18T13:45:41.809Z"
+}

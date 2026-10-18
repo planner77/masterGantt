@@ -1,3 +1,10 @@
+## [0.120.0] — Unreleased / Issue #728
+
+- WBS Task 중심의 opt-in pure Domain 해석기·KPI 계약을 추가한다. 직접/조상/Target 출처와 고유 Task/Assignment를 보존하고 무배정 작업·등록-only 기준정보를 구분한다.
+- 새 공정 축은 명시 Task 공정0..N만 사용하며 명시0과 구형null을 구분한다. 타 공정 다중 WorkArea·같은 Task 교차 조회·단계별 정확 범위·비가산 총계와 기존 Target/API 호환을 유지한다.
+- 기존 Resource KPI/Plan·Milestone full Gate를 재사용하고 golden/metamorphic 테스트와 관련 입력·산식·문서를 동기화한다. UI·DB writer·신규 endpoint는 후속 #729/#730 범위다.
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 원격 검증 성공·Owner ACCEPT·병합·정식 릴리스 완료가 아니다.
+
 ## [0.119.0] — Unreleased / Issue #727
 
 - 기준정보 → 리소스에서 기존 전역 리소스를 프로젝트에 등록하고 미배정 참여자도 보존합니다.

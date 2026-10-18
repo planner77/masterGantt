@@ -1,0 +1,60 @@
+{
+  "issue": 728,
+  "baseline": "0b8624651ad20ee5c450d29f4f5de2abdce5036b",
+  "version": "0.120.0",
+  "environment": {
+    "node": "22.14.0",
+    "os": "WSL2 Ubuntu",
+    "npm": "11.10.0"
+  },
+  "sourceFiles": {
+    "src/domain/resources/wbs-task-ledger.ts": "6db205f692c01fa6bca1b1ab5b19e0b38858d0a34e397637eb9f13f1b0d7ed34",
+    "tests/domain/wbs-task-ledger.test.ts": "aa7c2e2972fd696a64193a71524c5179f922fc16ea6ffeafd7ee8ef525cbd8f8",
+    "tests/domain/wbs-task-ledger-acceptance.test.ts": "1f28a504d9a99a2a71288ee3c3751fb828f30b3831b4efb78d60cbe60ccbb88e",
+    "tests/fixtures/wbs-task-ledger.ts": "68c3f4a17c69d9e623e2ddd59fce2a0b78e82e99fc07410b669d0a62de0ce081"
+  },
+  "manualRegression": {
+    "status": "PASS",
+    "command": "npm test -- tests/domain/wbs-task-ledger.test.ts tests/domain/wbs-task-ledger-acceptance.test.ts tests/domain/resource-kpi.test.ts tests/domain/resource-kpi-projection.test.ts tests/domain/resource-kpi-integration.test.ts tests/domain/resource-target-kpi.test.ts tests/domain/resource-target-plan.test.ts tests/domain/resource-plan.test.ts tests/domain/task-target-bindings.test.ts tests/domain/milestone-stage-gates.test.ts",
+    "testFiles": 10,
+    "tests": 174,
+    "exitCode": 0,
+    "startedAt": "2026-10-18T22:45:13+09:00",
+    "durationMs": 890
+  },
+  "newTests": {
+    "core": 15,
+    "acceptance": 13,
+    "total": 28
+  },
+  "staticChecks": {
+    "typecheck": "PASS",
+    "scopedEslint": "PASS",
+    "versionCheck": "PASS",
+    "markdownLinks": "PASS",
+    "gitDiffCheck": "PASS"
+  },
+  "agentPreReview": {
+    "reviewer": "ledger_qa (qa_docs)",
+    "status": "PASS",
+    "independentExecutedNewTests": 28,
+    "durationMs": 635,
+    "sourceStable": true,
+    "independentHumanQa": false,
+    "ownerAccept": "NOT TESTED"
+  },
+  "prepr": {
+    "fast": "BLOCKED",
+    "targeted": "BLOCKED",
+    "reason": "신규 tests/fixtures/wbs-task-ledger.ts의 자동 소비자 매핑 UNKNOWN1. 실제 직접 소비자 두 테스트와 기존 authority 회귀는 수동 실행. 자동 검증 통과로 변경하지 않음",
+    "sourceStable": true,
+    "stepsExecuted": 0
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED"
+  },
+  "releaseAuthorized": false
+}

@@ -1,3 +1,9 @@
+## Issue #728 — WBS 공통 해석·KPI 구현 (2026-10-18)
+
+[#728 Work Packet](ISSUE_728.md)의 pure Domain 해석기·공통 golden/metamorphic Unit·관련 문서를 main `0b8624651ad20ee5c450d29f4f5de2abdce5036b` 기준으로 구현한다. #725/#727 실제 DTO를 재사용하고 확정 W1/W2(타 공정 다중 WorkArea·Task 명시 공정0..N/명시0 보호)를 적용한다. 직접/조상/Target 출처·무배정 Task·고유 Assignment·full Gate·기존 Capacity R를 보존하고 공개 API/UI는 #729/#730 이후다.
+
+Manager=통합/문서/게시, scheduler=새 Domain·fixture·Unit 및 별도 acceptance 파일, qa_docs=별도 read-only 사전 검토. HIGH/qa_required=true/OWNER_MANAGED, 후보0.120.0·release_required=true·release_authorized=false. 요청 종료점은 PR Full CI 시작이며 결과 모니터링·병합·main/GHCR·정식 Release·Issue 종료는 비범위다. 새 정확 Head의 Required3/Trusted·Owner ACCEPT는 실제 증거 전 NOT TESTED, MERGE_READY=BLOCKED다.
+
 ## Issue #725 — Target 없는 공정·WorkArea 관리 M1 (2026-10-18)
 
 [Work Packet](ISSUE_725.md)에 따라 main `7393483c4a15007868fceeaee70fb9e13c8b119a`와 선행 #724 PR #738의 최신 탐색 shell에서 독립 공정/WorkArea 관리·매핑, 설비의 타 공정 포함 WorkArea0..N 원자 연결, Task 직접 공정0..N/WorkArea API와 null/명시0 구분, Copy/Template v4·지원 교환 누락 차단을 구현한다. #723/#725/#728 최신 W1/W2 결정을 적용하며 Target 생성·Task 공정 자동유도·원본 설비/작업 복제는 하지 않는다. 공유 Task picker/#728 해석·#729 집계는 후속 소유다.
