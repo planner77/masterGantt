@@ -1,0 +1,38 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "documentWidth": 1440,
+  "noteOnlyHeight": 0,
+  "notes": [],
+  "primaryDataTop": 467.390625,
+  "rowCount": 12,
+  "visibleRowCount": 3,
+  "tables": [
+    {
+      "top": 467.390625,
+      "bottom": 1668.140625,
+      "left": 50,
+      "right": 1390,
+      "width": 1340,
+      "height": 1200.75,
+      "ownerWidth": 1356,
+      "scrollWidth": 1356
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    }
+  ],
+  "helpTriggerCount": 0,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

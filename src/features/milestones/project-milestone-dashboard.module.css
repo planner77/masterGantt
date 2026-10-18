@@ -69,3 +69,6 @@
 .stageTable tr[data-date-highlight="true"] {
   background: var(--action-selected-subtle);
 }
+
+.metricHeading { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.kpis article .metricHeading button { margin-top: 0; }

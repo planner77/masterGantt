@@ -1,0 +1,78 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "documentWidth": 1440,
+  "noteOnlyHeight": 31.09375,
+  "notes": [
+    {
+      "text": "물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.",
+      "top": 194.640625,
+      "bottom": 225.734375,
+      "left": 122.84375,
+      "right": 611.6875,
+      "width": 488.84375,
+      "height": 31.09375
+    }
+  ],
+  "primaryDataTop": 975.46875,
+  "rowCount": 1,
+  "visibleRowCount": 0,
+  "tables": [
+    {
+      "top": 975.46875,
+      "bottom": 1073.46875,
+      "left": 25,
+      "right": 1415,
+      "width": 1390,
+      "height": 98,
+      "ownerWidth": 1390,
+      "scrollWidth": 1390
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    }
+  ],
+  "helpTriggerCount": 0,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

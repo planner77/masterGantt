@@ -29,6 +29,7 @@ import { taskContextLabels } from "./task-context-label";
 import type { ProjectDto } from "@/contracts/projects";
 import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
+import { ContextHelp } from "@/components/ui/context-help";
 import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import { ProjectLogisticsUnified } from "./project-logistics-unified";
@@ -446,15 +447,13 @@ export function ProjectLogisticsManagement({
       {/* Header */}
       <div className={styles.headerSection}>
         <div className={styles.headerTitleGroup}>
-          <h2 className={styles.headerTitle}>
-            물류 구성
-            <span className={styles.wbsNotice} role="note">
-              물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.
-            </span>
-          </h2>
-          <p className={styles.headerDescription}>
-            프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.
-          </p>
+          <div className={styles.headingRow}>
+            <h2 className={styles.headerTitle}>물류 구성</h2><span className={styles.wbsNotice}>Gantt WBS와 독립</span>
+            <ContextHelp label="물류 구성 도움말">
+              <p>프로젝트 내 공정, 설비, 제어 및 조율 시스템과 담당자 배정 관계를 관리합니다.</p>
+              <p>물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다.</p>
+            </ContextHelp>
+          </div>
         </div>
         {!editable ? (
           <div className={styles.readonlyNotice}>
@@ -601,7 +600,7 @@ export function ProjectLogisticsManagement({
                 type="button"
                 onClick={() => {
                   if (logistics.processes.length === 0) {
-                    alert("설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다.");
+                    setErrorMessage("설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다.");
                     return;
                   }
                   setErrorMessage(null);
@@ -693,8 +692,7 @@ export function ProjectLogisticsManagement({
               {filteredProcesses.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 6 : 5} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>등록된 공정이 없습니다.</div>
-                    <p>공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</p>
+                    <div className={styles.emptyStateTitle}>등록된 공정이 없습니다.<ContextHelp label="공정 등록 도움말">공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -788,8 +786,7 @@ export function ProjectLogisticsManagement({
               {filteredEquipment.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>등록된 설비가 없습니다.</div>
-                    <p>공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.</p>
+                    <div className={styles.emptyStateTitle}>등록된 설비가 없습니다.<ContextHelp label="설비 등록 도움말">공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -944,8 +941,7 @@ export function ProjectLogisticsManagement({
               {filteredSystems.length === 0 ? (
                 <tr>
                   <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>등록된 물류 시스템이 없습니다.</div>
-                    <p>제어 시스템(SCS, ACS 등) 및 상위 조율 시스템(MCS)을 등록하세요.</p>
+                    <div className={styles.emptyStateTitle}>등록된 물류 시스템이 없습니다.<ContextHelp label="시스템 등록 도움말">제어 시스템(SCS, ACS 등) 및 상위 조율 시스템(MCS)을 등록하세요.</ContextHelp></div>
                   </td>
                 </tr>
               ) : (
@@ -1125,8 +1121,7 @@ export function ProjectLogisticsManagement({
               logistics.systems.filter((s) => s.layer === "controller").length === 0 ? (
                 <tr>
                   <td colSpan={4} className={styles.emptyState}>
-                    <div className={styles.emptyStateTitle}>연계된 제어·조율 관계가 없습니다.</div>
-                    <p>조율 시스템(MCS)과 제어 시스템(ACS, SCS 등), 그리고 제어 설비를 연결하세요.</p>
+                    <div className={styles.emptyStateTitle}>연계된 제어·조율 관계가 없습니다.<ContextHelp label="제어·조율 관계 도움말">조율 시스템(MCS)과 제어 시스템(ACS, SCS 등), 그리고 제어 설비를 연결하세요.</ContextHelp></div>
                   </td>
                 </tr>
               ) : (

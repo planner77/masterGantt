@@ -1,5 +1,6 @@
 "use client";
 
+import { ContextHelp } from "@/components/ui/context-help";
 import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 
 import type {
@@ -677,11 +678,13 @@ export function ResourceCatalogAdmin() {
       {!filteredGroups.length && catalog.data.groups.length ? <button className="secondary-button" type="button" onClick={() => { setGroupQuery(""); setGroupStatus("all"); }}>조건 초기화</button> : null}
 
     {selectedGroup ? <section className={styles.members} aria-labelledby="members-title">
-      <h2 id="members-title">{selectedGroup.name} 구성원</h2>
+      <div className={styles.headingRow}>
+        <h2 id="members-title">{selectedGroup.name} 구성원</h2>
+        <ContextHelp label="그룹 구성원 도움말"><p>그룹 구성원은 팀 목록이며, 작업의 그룹 할당을 개인 할당으로 자동 복제하지 않습니다.</p></ContextHelp>
+      </div>
       {!currentGroup ? <p className={styles.error} role="alert">선택한 그룹이 최신 목록에 없습니다. 구성원 초안을 보존했으며 저장할 수 없습니다.</p> : null}
       {missingMembers.length ? <p className={styles.error} role="alert">최신 목록에 없는 리소스 {missingMembers.length}개의 선택을 보존했습니다. 최신 목록을 확인해야 저장할 수 있습니다.</p> : null}
       {membersDiffer ? <p className={styles.note}>저장된 구성원과 현재 선택이 다릅니다. 목록을 확인한 후 구성원을 저장해 주세요.</p> : null}
-      <p className={styles.note}>그룹 구성원은 팀 목록이며, 작업의 그룹 할당을 개인 할당으로 자동 복제하지 않습니다.</p>
       <div className={styles.searchBar}>
         <input
           placeholder="구성원 리소스 검색 (이름 또는 코드)"
@@ -714,8 +717,10 @@ export function ResourceCatalogAdmin() {
       <form className={styles.editorForm} onSubmit={(e) => void (editor === "profile" ? saveProfile(e) : editor === "resource" ? addResource(e) : addGroup(e))}>
         <div className={styles.editorBody}>
           {error ? <p className={styles.error} role="alert">{error}</p> : null}
-          <button className="secondary-button" type="button" disabled={busy || !!discard} onClick={() => void refreshCatalog()}>최신 목록 조회</button>
-          <p className={styles.note}>최신 목록을 기준으로 저장하며, 저장 전에는 변경이 적용되지 않습니다.</p>
+          <div className={styles.actions}>
+            <button className="secondary-button" type="button" disabled={busy || !!discard} onClick={() => void refreshCatalog()}>최신 목록 조회</button>
+            <ContextHelp label="리소스 저장 도움말" disabled={busy || !!discard}><p>최신 목록을 기준으로 저장하며, 저장 전에는 변경이 적용되지 않습니다.</p></ContextHelp>
+          </div>
           {editor === "profile" ? <>
             <p className={styles.identityCode}><strong>{profile?.name}</strong><br />{profile?.code ?? "코드 없음"}</p>
             {!profileCurrent ? <p className={styles.error}>최신 목록에 없는 리소스입니다. 초안을 보존했으며 저장할 수 없습니다.</p> : null}

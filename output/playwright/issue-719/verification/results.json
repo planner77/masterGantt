@@ -1,0 +1,93 @@
+{
+  "capturedAt": "2026-10-18T01:30:47.519492+00:00",
+  "unit": {
+    "status": "PASS",
+    "files": 6,
+    "tests": 31
+  },
+  "baseline": {
+    "status": "PASS",
+    "tests": 6,
+    "skippedAfterOnly": 3,
+    "seconds": 18.4
+  },
+  "newHelpBeforePendingCorrection": {
+    "status": "PASS",
+    "tests": 9,
+    "seconds": 45.2
+  },
+  "originalRegression": {
+    "passed": 73,
+    "failed": 2,
+    "skippedBaselineOnly": 2,
+    "seconds": 138,
+    "failures": [
+      {
+        "file": "tests/e2e/master-controls-density.spec.ts",
+        "line": 67,
+        "reason": "새 도움말 Tab 정류장 전에 input focus를 가정한 기존 테스트"
+      },
+      {
+        "file": "tests/e2e/resource-tabs.spec.ts",
+        "line": 245,
+        "reason": "새 저장 도움말 버튼의 pending disabled 누락"
+      }
+    ]
+  },
+  "finalCorrection": {
+    "status": "PASS",
+    "tests": 11,
+    "seconds": 58.8,
+    "includes": "new9 + corrected2; original assertions preserved"
+  },
+  "liveHttpSqlite": {
+    "status": "PASS",
+    "tests": 3,
+    "seconds": 162,
+    "specs": [
+      "issue-621-resource-target.spec.ts (actual HTTP union)",
+      "issue-622-resource-plan-target.spec.ts (80/140)",
+      "milestone-stage-dashboard.spec.ts (actual SQLite)"
+    ],
+    "reuseBoundary": "최종 Catalog pending-only Help disabled 이전의 동일 읽기 경로 증거; pending는 finalCorrection에서 별도 실행"
+  },
+  "lint": {
+    "status": "PASS",
+    "errors": 0,
+    "existingWarnings": 14
+  },
+  "typecheck": "PASS",
+  "productionBuild": {
+    "status": "PASS",
+    "exitCode": 0,
+    "productSourceByteIdentical": true
+  },
+  "offlineDependencies": "PASS",
+  "markdownLinks": "PASS",
+  "testDiscovery": {
+    "status": "PASS",
+    "unitFiles": 231,
+    "browserTests": 694
+  },
+  "automatedPreprSelection": {
+    "status": "BLOCKED",
+    "unknownPaths": 10,
+    "missing": 0,
+    "sourceStable": true,
+    "manualMapping": "docs/exec-plans/active/ISSUE_719.md"
+  },
+  "remoteQualityE2EDocker": "NOT TESTED",
+  "trustedQa": "NOT TESTED",
+  "ownerAccept": "NOT TESTED",
+  "localOnlyRawLogSha256": {
+    "build.log": "bfce0e6b6422eab123959be9e5ba43136061d2ddadad10e897d298210a391a55",
+    "live-integration.log": "4b3e4169e6430b594e893daaf45e2484809f2d0dc65721a46a3d25d8636a17d0",
+    "regression-initial.log": "390e90141bfa499b5bbf0331d68ed96a825e237f85de528c6444f02a63d6fc3c",
+    "lint.log": "b278c422726f2e934917c6130cacce95a3d784c9e5afb13016708f45dd09076d",
+    "after-browser.log": "8cb1c370891e71e3d43bc29fe20a5e6e75978d4104dcdac3a891f6bddae2a3c6",
+    "dependencies.log": "c60700860df8ff97778b6c8b2d69b0c2820dfcf388ea7dde7f80abdee4f0b171",
+    "rework-browser.log": "b25cc32698639dcade6f2c5da2636df4d430330b6691cdd1b9cf36fd9034e710",
+    "before-browser.log": "0ac823f1b7089f7fa91e374fadb73f68049c12aa2a08bf20ae8bf38b2de9c03d"
+  },
+  "rawLogPolicy": "원시 실행 로그는 로컬 진단 자료로 보존하고 Git에는 상태·수치·테스트 경계만 기록한다."
+}

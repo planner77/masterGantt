@@ -1,0 +1,65 @@
+{
+  "viewport": {
+    "width": 768,
+    "height": 900
+  },
+  "documentWidth": 768,
+  "noteOnlyHeight": 96,
+  "notes": [
+    {
+      "text": "전 프로젝트 공통 기준정보를 편집할 수 있습니다.",
+      "top": 226,
+      "bottom": 250,
+      "left": 41,
+      "right": 392.125,
+      "width": 351.125,
+      "height": 24
+    },
+    {
+      "text": "전체 4건 · 표시 4건",
+      "top": 681.59375,
+      "bottom": 705.59375,
+      "left": 41,
+      "right": 177.9375,
+      "width": 136.9375,
+      "height": 24
+    },
+    {
+      "text": "사용 중인 안정 코드는 변경할 수 없습니다.",
+      "top": 717.59375,
+      "bottom": 741.59375,
+      "left": 41,
+      "right": 727,
+      "width": 686,
+      "height": 24
+    },
+    {
+      "text": "항목을 하나씩 저장하세요. 저장·최신 목록 조회 후에는 미저장 입력이 최신 값으로 바뀝니다.",
+      "top": 753.59375,
+      "bottom": 777.59375,
+      "left": 41,
+      "right": 727,
+      "width": 686,
+      "height": 24
+    }
+  ],
+  "primaryDataTop": 796.59375,
+  "rowCount": 4,
+  "visibleRowCount": 1,
+  "tables": [
+    {
+      "top": 796.59375,
+      "bottom": 1018.59375,
+      "left": 48,
+      "right": 1008,
+      "width": 960,
+      "height": 222,
+      "ownerWidth": 684,
+      "scrollWidth": 972
+    }
+  ],
+  "helpTriggerCount": 3,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}
