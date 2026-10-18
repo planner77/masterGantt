@@ -165,3 +165,10 @@
 - #719 전용 원장의 F-001(#2932.1 QA review BLOCKED)·F-002(#2933.1 신규 keyboard E2E FAIL) 두 사례를 함께 분석하고 처음 4개 절의 오래된 1회/실패 테스트 없음 서술을 현재 **2회/1개 테스트 파일** 기준으로 갱신했다. 원본 실패·Trace·과거 보완은 보존한다.
 - [#449 PR #458 main merge](https://github.com/planner77/masterGantt/commit/3eaa6026923c38f200a463f6985c7cc8f88f9bf0) 후 양쪽 수정이 겹친 `docs/exec-plans/active/PLAN.md`는 #449 상단·#719 하단 계획을 모두 남기는 2-parent merge로 해결한다. DESIGN·#449 감사/원장/Work Packet 4개 blob은 main의 exact content를 채택한다. #719 제품 코드·테스트는 이전 F-001/F-002 보완을 그대로 유지한다.
 - #2937.1은 main 정렬 이전 HEAD에서 시작한 CI로 별도 구분하고 새로운 HEAD 전체 Quality/E2E6/Docker/QA를 실행한다. 본 connector에서 로컬 Playwright는 NOT TESTED. version0.116.1, HIGH/OWNER_MANAGED, release_authorized=false, 정식 병합/게시/종료 승인 없음.
+
+## 2026-10-18 REWORK #3 — CI #2937(취소 중 실제 실패)·#2939 종합 보완
+
+- [누적 원장](../../ISSUE_719_FAILURE_ANALYSIS.md) F-001~F-004: 최초 리뷰 접근성 차단, 중복 Enter E2E, focus-open 뒤 panel 소실, React-owned portal에 테스트 DOM 직접 append한 뒤 panel 소실을 **서로 다른 Run/Attempt 증거**로 보존한다. 원본 CI #2937.1은 전체 CANCELLED지만 Shard2 43PASS/1FAIL/86 NOT RUN을 누락하지 않는다. #2939.1은 E2E shard2 FAIL·5CANCELLED, Quality/Docker PASS, QA 파생 FAIL.
+- Trace 12122362921/12122537841에서 팝오버 최초 OPEN 이후 제거를 확인했고 실제 닫힘 이벤트 종류는 UNKNOWN으로 유지한다. Product keyboard handler/ARIA/hover/touch·validation·canonical/Gantt 기존 코드는 보존한다.
+- `issue-719-contextual-help.spec.ts` 신규 overflow 한 테스트만 재설계: 초기 viewport를 로그인/렌더 전 고정, 최초 화면 상단 Help button을 keyboard focus, 실제 도움말 문구를 유지한 채 `addStyleTag`로 작은 폭/높이 overflow를 **open 전에** 발생시킨다. `scrollIntoViewIfNeeded` 경합과 React portal 내 `appendChild` mutation을 없애지만 Arrow/Page/Home/End·Escape·ARIA/초점/scrollHeight 엄격 단언은 모두 유지. 기존 6화면×5폭과 인증/초안/경고·marker-OFF 테스트는 그대로.
+- 영향 기준: 직접 #719 help test/공통 ContextHelp 기존 계약, 간접 Master/Resource/Logistics 사용자 흐름, 음성 Gantt state·Milestone·Target·canonical. local typecheck/Playwright·실환경 screen reader **NOT TESTED**, 새 Remote Full CI의 Quality/E2E6/Docker·QA/Trusted/Owner 결정 시작 전 NOT TESTED. `DESIGN.md`/UI_UX_GUIDELINES/API/DB/CI: 정책·제품 코드 불변으로 변경 없음. 후보 `0.116.1`, HIGH/OWNER_MANAGED, `release_required=true/release_authorized=false`; 병합 및 정식 게시 승인 없음.

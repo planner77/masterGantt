@@ -135,25 +135,28 @@ test("#719 focus 유지 pointer leave와 profile modal 도움말 Escape는 초�
 });
 
 test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 복원한다", async ({ page }) => {
+  // F-002/003/004: do not mix a late viewport resize + scroll-to-trigger
+  // with focus-open, or mutate React-owned portal children after it mounts.
+  // Use an actual help message and squeeze its available space *before* open.
+  await page.setViewportSize({ width: 390, height: 320 });
   const root = await openSurface(page, "master");
-  await page.setViewportSize({ width: 390, height: 280 });
-  const trigger = root.getByRole("button", { name: "기준정보 항목 관리 도움말", exact: true });
-  await trigger.scrollIntoViewIfNeeded();
-  // Keyboard focus itself opens help. Do not immediately press Enter and
-  // accidentally toggle an already expanded control closed: Enter/Space
-  // activation is covered separately by the six-surface interaction tests.
+  await page.addStyleTag({ content: `
+    div[role="tooltip"] {
+      width: 112px !important;
+      max-width: 112px !important;
+      max-height: 56px !important;
+    }
+  ` });
+  // This first heading control is already in view. It requires no pending
+  // programmatic ancestor scroll, unlike the catalog heading below the fold.
+  const trigger = root.getByRole("button", { name: "프로젝트 기준정보 관리 도움말", exact: true });
+  await expect(trigger).toBeInViewport();
   await trigger.focus();
+  await expect(trigger).toBeFocused();
   const tooltip = page.getByRole("tooltip");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await expect(tooltip).toBeVisible();
-
-  // Simulate a long localization at a short viewport without changing the
-  // production help copy. All help instances use this same scrollable primitive.
-  await tooltip.evaluate(element => {
-    const longCopy = document.createElement("p");
-    longCopy.textContent = "긴 한글 안내 Long English localized contextual explanation. ".repeat(80);
-    element.appendChild(longCopy);
-  });
+  await expect(trigger).toHaveAccessibleDescription(/사업부, 제품, 사업장\/법인/);
   const dimensions = await tooltip.evaluate(element => ({
     client: element.clientHeight, content: element.scrollHeight,
     viewport: window.innerHeight,
