@@ -224,14 +224,20 @@ test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard�
     }
     await expect(region).toBeFocused();
     const keyboardMovement = { scrollLeftBefore, scrollLeftAfter: await region.evaluate(element => element.scrollLeft) };
+    if (layout === "tree") {
+      const hiddenIdentityActions = region.locator('tbody details:not([open]) button');
+      expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
+      await expect(hiddenIdentityActions.first()).toBeHidden();
+    }
     const geometry = await region.evaluate(element => {
       const rect = (node: Element) => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width }; };
       const headers = [...element.querySelectorAll("thead tr:first-child > *")].map(rect); const cells = [...element.querySelectorAll("tbody tr:first-child > *")].map(rect);
-      return { viewport: innerWidth, document: document.documentElement.scrollWidth, owner: element.clientWidth, scroll: element.scrollWidth, focused: document.activeElement === element, headers, cells, buttons: [...element.querySelectorAll("tbody button")].map(button => ({ ...rect(button), parent: rect(button.closest("td,th")!) })) };
+      return { viewport: innerWidth, document: document.documentElement.scrollWidth, owner: element.clientWidth, scroll: element.scrollWidth, focused: document.activeElement === element, headers, cells, buttons: [...element.querySelectorAll("tbody button")].filter(button => button.checkVisibility() && button.getBoundingClientRect().width > 0 && button.getBoundingClientRect().height > 0).map(button => ({ ...rect(button), parent: rect(button.closest("td,th")!) })) };
     });
     expect(geometry.document).toBeLessThanOrEqual(width + 1); expect(geometry.focused).toBe(true);
     if (width === 390) expect(geometry.scroll).toBeGreaterThan(geometry.owner);
     for (let i = 0; i < geometry.headers.length; i++) { expect(Math.abs(geometry.headers[i].left - geometry.cells[i].left)).toBeLessThanOrEqual(1); expect(Math.abs(geometry.headers[i].right - geometry.cells[i].right)).toBeLessThanOrEqual(1); }
+    expect(geometry.buttons.length).toBeGreaterThan(0);
     for (const button of geometry.buttons) { expect(button.left).toBeGreaterThanOrEqual(button.parent.left - 1); expect(button.right).toBeLessThanOrEqual(button.parent.right + 1); }
     measurements.push({ layout, ...geometry, keyboardMovement }); await page.screenshot({ path: `output/playwright/issue-623/${layout}-${width}.png`, fullPage: true });
   }
