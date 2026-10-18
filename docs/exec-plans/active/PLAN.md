@@ -1,3 +1,9 @@
+## Issue #729 — versioned WBS 다관점·snapshot·정확 상세 (2026-10-19)
+
+main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`의 #725/#727/#728을 기준으로 [Work Packet](ISSUE_729.md)의 opt-in view spec/root·설비/System 형제 분기·raw union·same-snapshot 상세/drill·기존 Excel 호환 경계를 구현한다. Task 명시 공정0..N과 legacy 유도 의미를 분리하고 기존 projectionOrder/API·full Milestone Gate·Capacity R를 유지한다. UI·DB writer·CI gate 변경은 없다.
+
+Manager 문서/version/통합, backend 구현, 별도 backend SQLite→HTTP 수용, 읽기 전용 qa_docs 사전 검토를 분리한다. 후보0.121.0, HIGH/qa_required=true/OWNER_MANAGED, release_required=true/release_authorized=false. 요청 종료점은 구현·DOCUMENTATION_SYNC·관련 Local Fast Feedback·사전 검토 후 PR Full CI 시작이다. CI 모니터링·병합·main/GHCR·Release·Issue 종료는 범위 밖이며 원격 Required3/Trusted·Owner ACCEPT는 NOT TESTED다.
+
 ## Issue #728 — WBS 공통 해석·KPI 구현 (2026-10-18)
 
 [#728 Work Packet](ISSUE_728.md)의 pure Domain 해석기·공통 golden/metamorphic Unit·관련 문서를 main `0b8624651ad20ee5c450d29f4f5de2abdce5036b` 기준으로 구현한다. #725/#727 실제 DTO를 재사용하고 확정 W1/W2(타 공정 다중 WorkArea·Task 명시 공정0..N/명시0 보호)를 적용한다. 직접/조상/Target 출처·무배정 Task·고유 Assignment·full Gate·기존 Capacity R를 보존하고 공개 API/UI는 #729/#730 이후다.

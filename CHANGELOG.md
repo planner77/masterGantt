@@ -1,3 +1,10 @@
+## [0.121.0] — Unreleased / Issue #729
+
+- WBS 원장 기반 opt-in versioned 조회 API를 추가한다. 선택 root와 순차 하위 단계, 설비/System 형제 분기를 지원하며 기존 projectionOrder/API의 의미는 보존한다.
+- Task 직접 공정0..N·미연결·등록-only root·미배정 작업을 보존한다. 상위 총계는 원시 Task/Assignment 합집합이며 경로별 viewRowKey와 실제 관계 provenance를 제공한다.
+- 같은 SQLite read snapshot의 문맥·이름·다중 WorkArea·참여·Calendar를 fingerprint로 결속하고 정확 상세/drill·미지원 Excel의 명시 오류 경계를 제공한다. 동적 화면은 후속 이슈 범위다.
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 원격 검증 성공·Owner ACCEPT·병합·정식 릴리스 완료가 아니다.
+
 ## [0.120.0] — Unreleased / Issue #728
 
 - WBS Task 중심의 opt-in pure Domain 해석기·KPI 계약을 추가한다. 직접/조상/Target 출처와 고유 Task/Assignment를 보존하고 무배정 작업·등록-only 기준정보를 구분한다.

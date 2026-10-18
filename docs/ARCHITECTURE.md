@@ -1,3 +1,11 @@
+## Issue #729 — versioned WBS 다관점 read adapter
+
+신규 opt-in 조회는 기존 ResourceDashboardService 및 read snapshot/repository와 #728 `wbs-task-ledger`를 연결한다. Route Handler → Service → Repository → SQLite 경계를 유지하고 한 read transaction에서 Project·공정/WorkArea·Target/member/legacy·Task 문맥·Resource 등록/사용/책임·Calendar를 읽는다. 이름·활성·관계 변경까지 fingerprint에 포함하며 별도 영속 snapshot·WBS/Assignment writer를 만들지 않는다. 기존 호출은 기존 snapshot/공정 유도/`projectionOrder` 의미를 유지한다.
+
+View spec의 root와 하위 단계는 표시/조회 구조다. 설비/System 형제 stage는 같은 깊이의 typed 분기이며 직렬 부모자식 관계로 변환하지 않는다. 각 하위 선택은 부모의 원시 Task/Assignment 범위와 교차하고 부모 값은 원시 합집합에서 계산한다. 구성 membership/controls/coordinates와 같은-Task 작업 연관을 구분하며 Project에 관련 없는 전역 Resource는 읽지 않는다. root 재등장·축 반복·잘못된 병렬 단계·fan-out/response 예산 초과를 전체 거부한다.
+
+신규 상세·drill은 spec/filter/source/snapshot 및 경로를 다시 검증한다. stale는 재조회가 필요하고 기존 Excel로 새 spec을 전달해 조건을 누락한 보고서를 만들지 않는다. 기존 KPI/Calendar/Plan·full Milestone Gate authority는 그대로다. 공개 wire·한도·오류는 [API](API.md#issue-729--versioned-wbs-다관점-조회), 의미와 호환은 [WBS 원장](WBS_TASK_LEDGER.md), 실제 실행은 [Work Packet](exec-plans/active/ISSUE_729.md)을 따른다.
+
 ## Issue #728 — 단일 WBS 작업 해석 경계
 
 `src/domain/resources/wbs-task-ledger.ts`는 기존 #617 Target resolver·Resource KPI/Plan·Milestone Gate authority를 재사용하는 opt-in pure Domain이다. 동일 Project snapshot과 #725 Task 문맥/다중 WorkArea DTO, #727 프로젝트 Resource 참여 DTO를 입력으로 받으며 누락/조회실패를 관계0으로 처리하지 않는다. 새 Task 공정 선택과 legacy Target 공정 source/version을 분리한다.

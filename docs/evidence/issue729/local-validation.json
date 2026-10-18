@@ -1,0 +1,173 @@
+{
+  "issue": 729,
+  "baselineSha": "6f6dadb1b3ac10bc837c09273a0922611b2e3f81",
+  "version": "0.121.0",
+  "environment": "Node v22.14.0 / migrated synthetic SQLite / production handler via Node HTTP socket; no Next browser network claim",
+  "files": [
+    {
+      "path": "src/app/api/projects/[publicId]/resource-dashboard/views/route.ts",
+      "sha256": "5067b8d8feee2da66628188fccfb7e78579a4d77cf06a94439c734024fbe6791"
+    },
+    {
+      "path": "src/contracts/wbs-dashboard-views.ts",
+      "sha256": "3c57a1e020d44ea3faf3772303c96da530803032d06b288791ea9685a48ebf3b"
+    },
+    {
+      "path": "src/server/exports/project-excel-export-contract.ts",
+      "sha256": "8c083458c05bae5f100e9fd7bac80c5cf5816858b420269f8ba45107ca848a17"
+    },
+    {
+      "path": "src/server/repositories/resource-dashboard-repository-core.ts",
+      "sha256": "f2ba51f919ef3387d48a9f940f0401bdc1de05b563f88537faa6c2ac78abbda2"
+    },
+    {
+      "path": "src/server/repositories/wbs-view-snapshot-repository-core.ts",
+      "sha256": "3680ee50b22e7d4ff60e56e70ff809db2687081741f86df6ab2fbe79f239e74e"
+    },
+    {
+      "path": "src/server/resources/resource-dashboard-service-core.ts",
+      "sha256": "e23e19c40c9203e2aafc61c2bcc5add5a0a06c07fe783cc979357cc0aa7f0c1e"
+    },
+    {
+      "path": "src/server/resources/resource-data-context-core.ts",
+      "sha256": "98bc97638b0adf65c7583ef7ac55f5f48dade9bde29d5098a369eda41423a8ef"
+    },
+    {
+      "path": "src/server/resources/wbs-dashboard-views-core.ts",
+      "sha256": "4130ee826a276ef3af90277f4b07410e0916477a6cea3350f8f58c5848aa4db8"
+    },
+    {
+      "path": "src/server/resources/wbs-dashboard-views-handlers-core.ts",
+      "sha256": "232d03cc24fd97a4d75c1c2b8d65f9468a2b8cad613a74b766168309f57fe378"
+    },
+    {
+      "path": "src/server/resources/wbs-dashboard-views-query-core.ts",
+      "sha256": "8017af7f85809a20ea04449a5385ff52afd08140d4c0ffcfb66cc2e899a9f3b1"
+    },
+    {
+      "path": "src/server/security/route-security-inventory.ts",
+      "sha256": "24f30bf0092e7fcc1970973eb3dc9d48d0671d96aba683883a42bb3f526e8864"
+    },
+    {
+      "path": "tests/fixtures/wbs-dashboard-views.ts",
+      "sha256": "d1edb91aa8dad0828230ebf0df4adec53740fb01e5e0e5aa34174a47306177c6"
+    },
+    {
+      "path": "tests/server/projects/edit-authorization-handlers.test.ts",
+      "sha256": "0b96cb580abdc5933ed79a9d524edf4dd172c312a9c693328c14a00fe8ef6098"
+    },
+    {
+      "path": "tests/server/resources/wbs-dashboard-views-http.test.ts",
+      "sha256": "a06281f3f45c285b12af400f35857ac0ca34c97ed4e9675109acd636b72c9e8a"
+    }
+  ],
+  "qaSourceTestSha256": "fc1efca907a38d4af1ba5f04a3405e0136e45ea0e21f5fc3b2e1abdc359bc6bf",
+  "runs": [
+    {
+      "tests": 300,
+      "files": 15,
+      "result": "PASS",
+      "durationSeconds": 5.61,
+      "command": "npm test -- tests/server/resources/wbs-dashboard-views-http.test.ts tests/server/resources/resource-dashboard.test.ts tests/server/resources/resource-dashboard-rollup.test.ts tests/server/resources/resource-target-dashboard.test.ts tests/server/resources/resource-drill.test.ts tests/server/resources/resource-plan.test.ts tests/server/resources/resource-kpi-integration.test.ts tests/server/resources/issue-622-target-plan-excel.test.ts tests/server/projects/edit-authorization-handlers.test.ts tests/domain/wbs-task-ledger.test.ts tests/domain/wbs-task-ledger-acceptance.test.ts tests/domain/resource-target-kpi.test.ts tests/domain/resource-target-plan.test.ts tests/domain/resource-kpi.test.ts tests/domain/resource-plan.test.ts"
+    },
+    {
+      "tests": 81,
+      "files": 4,
+      "result": "PASS",
+      "durationSeconds": 3.85,
+      "command": "npm test -- tests/server/projects/resource-excel-export.test.ts tests/server/projects/milestone-dashboard-http.test.ts tests/server/resources/project-resource-memberships.test.ts tests/server/templates/logistics-template-graph.test.ts"
+    }
+  ],
+  "uniqueTests": 381,
+  "uniqueFiles": 19,
+  "newHttpTests": 24,
+  "agentPreReview": {
+    "agent": "views_qa",
+    "result": "PASS",
+    "tests": 101,
+    "files": 4,
+    "durationSeconds": 5.37,
+    "independentHumanQa": false,
+    "managerDecision": "NOT TESTED"
+  },
+  "staticChecks": {
+    "typecheck": "PASS",
+    "scopedEslint": "PASS",
+    "versionCheck": "PASS",
+    "markdownLinks": "PASS",
+    "diffCheck": "PASS"
+  },
+  "prepr": {
+    "fast": "BLOCKED",
+    "targeted": "BLOCKED",
+    "reason": "UNKNOWN producer-consumer mapping 6; missing0; commands0; manual actual coverage documented in Work Packet; not promoted to PASS",
+    "sourceStable": true,
+    "fingerprint": "b2734ded15e53e4b7e9953629cf6c7bc18785b5b97c5b9bb5ab5977c40d1c0ca"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED"
+  },
+  "benchmark": {
+    "environment": "Node HTTP socket → production handler → actual migrated SQLite; not Next browser E2E",
+    "baseline": {
+      "tasks": 8,
+      "members": 2,
+      "queries": 77,
+      "elapsedMs": 13.19023900000002,
+      "responseBytes": 83570
+    },
+    "increased": {
+      "tasks": 128,
+      "assignments": 124,
+      "members": 27,
+      "queries": 77,
+      "elapsedMs": 34.57939699999997,
+      "responseBytes": 656445
+    },
+    "queryPlans": [
+      {
+        "query": "connectedCatalog",
+        "operations": [
+          "SEARCH resources USING INTEGER PRIMARY KEY (rowid=?)",
+          "LIST SUBQUERY 4",
+          "MERGE (UNION)",
+          "LEFT",
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH task_assignments USING COVERING INDEX task_assignments_resource_workload_idx (project_id=? AND resource_id>?)",
+          "RIGHT",
+          "SEARCH project_resource_memberships USING PRIMARY KEY (project_id=?)",
+          "RIGHT",
+          "MERGE (UNION)",
+          "LEFT",
+          "SEARCH project_equipment_resource_roles USING COVERING INDEX sqlite_autoindex_project_equipment_resource_roles_1 (project_id=?)",
+          "USE TEMP B-TREE FOR ORDER BY",
+          "RIGHT",
+          "SEARCH project_system_resource_roles USING COVERING INDEX sqlite_autoindex_project_system_resource_roles_1 (project_id=?)",
+          "USE TEMP B-TREE FOR ORDER BY",
+          "USE TEMP B-TREE FOR ORDER BY"
+        ]
+      },
+      {
+        "query": "taskContexts",
+        "operations": [
+          "SEARCH t USING INDEX tasks_project_sort_order_idx (project_id=?)",
+          "SEARCH c USING COVERING INDEX sqlite_autoindex_task_process_contexts_1 (project_id=? AND task_id=?) LEFT-JOIN",
+          "USE TEMP B-TREE FOR ORDER BY"
+        ]
+      },
+      {
+        "query": "taskProcessLinks",
+        "operations": [
+          "SEARCH l USING INDEX task_process_links_process_idx (project_id=?)",
+          "SEARCH p USING INTEGER PRIMARY KEY (rowid=?)",
+          "USE TEMP B-TREE FOR ORDER BY"
+        ]
+      }
+    ]
+  }
+}

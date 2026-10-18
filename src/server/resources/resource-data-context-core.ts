@@ -1,3 +1,4 @@
+import { readWbsViewContext } from "../repositories/wbs-view-snapshot-repository-core";
 import { readResourceTargetSnapshot } from "../repositories/resource-target-snapshot-repository-core";
 import { createHash } from "node:crypto";
 import type Database from "better-sqlite3";
@@ -13,7 +14,7 @@ import { WorkCalendarRepository } from "../repositories/work-calendar-repository
 
 export const resourceFingerprint = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 /** Called inside the consumer's read transaction. No clock, period projection or mutations. */
-export function readResourceDataSnapshot(database: Database.Database, publicId: string) {
+export function readResourceDataSnapshot(database: Database.Database, publicId: string, includeParticipation = false) {
   const project = new ProjectRepository(database).findByPublicId(publicId);
   if (!project) return undefined;
   const repository = new ResourceDashboardRepository(database), counts = repository.counts(project.id);
@@ -23,7 +24,7 @@ export function readResourceDataSnapshot(database: Database.Database, publicId: 
   const schedule = new ScheduleRepository(database), catalog = new ResourceCatalogRepository(database), calendars = new WorkCalendarRepository(database);
   const storedTasks = schedule.listTasks(project.id).sort((a, b) => a.publicId.localeCompare(b.publicId));
   const assignments = catalog.listAssignments(project.id).sort((a, b) => a.publicId.localeCompare(b.publicId));
-  const { resources, groups } = repository.catalog(project.id);
+  const { resources, groups } = repository.catalog(project.id, includeParticipation);
   const memberships = new MilestoneMembershipRepository(database).list(project.id).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
   const links = schedule.listLinks(project.id).sort((a, b) => a.publicId.localeCompare(b.publicId));
   const calendarRules = calendars.listRules(project.id).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
@@ -31,7 +32,8 @@ export function readResourceDataSnapshot(database: Database.Database, publicId: 
   const projectCalendar = resolveProjectWorkingCalendar(database, project.id);
   const catalogRevision = catalog.getRevision(), calendarRevision = resourceFingerprint({ projectCalendar, rules: calendarRules, dates: calendarDates });
   const targetSnapshot = readResourceTargetSnapshot(database, project.id);
-  const dataSnapshotId = resourceFingerprint({ targetSnapshot: targetSnapshot.identity, projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, storedTasks, assignments, resources, groups, memberships, links });
+  const wbsContext = includeParticipation ? readWbsViewContext(database, project.id, resources, groups) : undefined;
+  const dataSnapshotId = resourceFingerprint({ ...(wbsContext ? { wbsContext } : {}), targetSnapshot: targetSnapshot.identity, projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, storedTasks, assignments, resources, groups, memberships, links });
   const context = { projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, dataSnapshotId };
-  return { targetSnapshot, project, storedTasks, assignments, resources, groups, memberships, links, calendarRules, calendarDates, projectCalendar, context };
+  return { wbsContext, targetSnapshot, project, storedTasks, assignments, resources, groups, memberships, links, calendarRules, calendarDates, projectCalendar, context };
 }

@@ -1,3 +1,9 @@
+## Issue #729 — bounded WBS 조회와 원본 범위
+
+신규 versioned 다관점 POST는 public-read이며 편집 session을 요구하지 않는다. 기존 읽기 전용 POST와 같이 정확 Origin·bounded JSON 입력, canonical Project ID 및 서버 strict schema를 검증한다. 조회는 revision/Task/Assignment/등록/기준정보 mutation0이다. 저장된 Project와 명시 등록/해당 Project 사용·책임으로 연결된 Resource만 읽고 전역 사용자 전체를 응답하지 않는다.
+
+클라이언트의 path/원시 ID/행 key는 권한이나 범위 증명이 아니다. 서버가 동일 snapshot/spec/filter에서 선택 경로와 Task/Assignment 범위를 다시 계산하고 foreign ID·유효하지 않은 경로·stale를 거부한다. 상세·drill의 공유 Milestone 조인은 현재 Task 범위를 확장하지 않는다. 요청·rows/cells/source/계산량/응답 bytes 예산은 유한하며 초과 시 절삭 총계 없이 전체 실패한다. no-store/nosniff와 기존 편집 session/Origin/strong revision·Excel Export 보호는 유지한다. [API](API.md#issue-729--versioned-wbs-다관점-조회) 및 [검증 원장](exec-plans/active/ISSUE_729.md) 참조.
+
 # Security
 
 ## Issue #623 — 통합 수용의 권한·원자성·복구

@@ -1,3 +1,4 @@
+import { PublicApiError } from "../http/api-error-core";
 import { z } from "zod";
 
 import { parseResourceDrillQuery, parseResourceDrillSourceContext } from "../resources/resource-drill-query-core";
@@ -43,7 +44,7 @@ export function parseProjectExcelExportInput(input: unknown): ParseResult {
     try {
       const resourceDashboard = result.data.resourceDashboard === undefined ? undefined : parseResourceExcelOptions(result.data.resourceDashboard);
       return { success: true, data: { ...result.data, ...(resourceDashboard === undefined ? {} : { resourceDashboard }) } as ProjectExcelExportRequest };
-    } catch { return { success: false, details: [{ path: "resourceDashboard", code: "INVALID_FIELD", message: "Invalid Resource report export options." }] }; }
+    } catch (error) { if (error instanceof PublicApiError && error.code === "WBS_VIEW_EXPORT_UNSUPPORTED") throw error; return { success: false, details: [{ path: "resourceDashboard", code: "INVALID_FIELD", message: "Invalid Resource report export options." }] }; }
   }
   return {
     success: false,
@@ -64,6 +65,13 @@ function strictObject(value: unknown, keys: string[]) {
   return value as Record<string, unknown>;
 }
 export function parseResourceExcelOptions(value: unknown): ResourceExcelExportOptions {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const candidate = value as Record<string, unknown>;
+    const expected = candidate.expectedReport as { context?: { schema?: string; spec?: unknown } } | undefined;
+    if (candidate.spec !== undefined || candidate.viewSpec !== undefined || candidate.contextSourceVersion === "explicit-task-context:v1" || expected?.context?.schema === "wbs-view-source/1" || expected?.context?.spec !== undefined) {
+      throw new PublicApiError(409, "WBS_VIEW_EXPORT_UNSUPPORTED", "새 WBS 조회 명세의 Excel 내보내기는 아직 지원하지 않습니다. 기존 보고서 조건으로 자동 변환하지 않습니다.");
+    }
+  }
   const input = strictObject(value, ["basis", "expectedReport", "binding", "originalSourceContext", "granularities"]);
   if (!Array.isArray(input.granularities) || input.granularities.length < 1 || input.granularities.length > 2 || new Set(input.granularities).size !== input.granularities.length || input.granularities.some(item => item !== "week" && item !== "month")) throw new Error("Invalid granularities");
   const granularities = input.granularities as ("week" | "month")[];

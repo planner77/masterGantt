@@ -124,6 +124,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/scope", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/query", method: "POST", policy: "origin-public-query-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/views", method: "POST", policy: "origin-public-query-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/details", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/group-children", method: "GET", policy: "public-read", mutatesState: false },
