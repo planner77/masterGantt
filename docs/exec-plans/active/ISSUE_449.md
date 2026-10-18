@@ -77,3 +77,10 @@ Design Delta A: 내부 KPI 정보구조 참조, reset 이후 입력 식별성, �
 - PR 사전 조회 미해결 review thread0. 게시 직전에 최신 main·expected Head·thread와 전체 tree/부모를 재검증하며 API 방식은 branch Ref를 최종1회 갱신한다. Git CLI 인증401을 변경하거나 자격증명을 추출하지 않고 기존 연결 GitHub 도구를 사용한다.
 
 별도 사전 문서 검토: `ui_scope_review`(ui_ux)와 `qa_docs_review`(qa_docs)는 실제 별도 Sub-Agent로 읽기 전용 검토했다. qa_docs는 제품/테스트/의존성/CI 변경0·248개 링크·공백·main ancestry·원문 AC1~8 매핑과 역사적/환경 미검증 경계를 직접 대조해 사전 문서 범위 PASS·차단 지적0을 보고했다. tree 동등성 표현은 원격 후보↔로컬 검증본 비교임을 명확히 했다. 이 사전 검토는 최신 GitHub Head의 독립 QA_FINAL 승인이나 Owner ACCEPT가 아니다. Reviewer의 gh 인증401로 원격 상태 직접 재조회는 BLOCKED였으며 Manager가 인증된 연결 도구로 조회한 Issue/FINAL 기록을 사용했다. 모델/effort의 실제 runtime metadata를 별도로 검증하지 않았다.
+
+## PR CI #2934.1 실패 분석·보완 (2026-10-18)
+
+- #449 **단일 누적 실패 원장**: [ISSUE_449_FAILURE_ANALYSIS.md](../../ISSUE_449_FAILURE_ANALYSIS.md). 새 Run 실패 시 같은 문서에 F-449-002 이후 append-only 기록한다.
+- [원본 PR Full CI #2934.1](https://github.com/planner77/masterGantt/actions/runs/39089429716): HEAD `84004e9d6fe84905777bd3130656a5ab35eaa9de`, Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, test merge `6906dbea79697e80b436e991116733ac71576257`; required Quality/E2E/Docker aggregate SUCCESS, docs-only 구현 Job SKIPPED, `QA Final — Automated` BLOCKED/FAIL (open review thread). 과거 #1832.1 SUCCESS는 별도 이력이며 새 Head PASS 근거가 아니다.
+- Codex P1 (초기 Head) 활성 PLAN 누락 지적은 현재 `docs/exec-plans/active/PLAN.md` 최상단의 #449 항목과 본 Work Packet의 owner/AC/문서 계약으로 충족함을 확인. [근거 답글](https://github.com/planner77/masterGantt/pull/458#discussion_r4305415726) 후 thread `PRRT_kwDOUUB7Bc6tmh-g` resolved=true를 확인했다. QA/Required check 우회나 제품·테스트 변경 없음.
+- 이 보완은 ledger + 본 Work Packet의 **문서 전용** 변경이다. 다음 exact-Head PR CI Run은 커밋 게시 후에 기록하며, 원격 새 결과/최종 QA·Owner ACCEPT는 시작 시 **NOT TESTED**. #517 실환경/전체 Epic 종결은 별도다. 병합·Main/GHCR·이슈 종료를 수행하지 않는다.
