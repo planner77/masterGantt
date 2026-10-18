@@ -1,3 +1,23 @@
+## Issue #717 — 이름과 canonical identity 분리
+
+Milestone 표·원인/관리·공정/설비/시스템·Target·Resource 기본 목록은 이름을 먼저 표시한다. 코드/외부 ID/UUID는 명시 식별 정보에서 전체 확인·복사한다. #409 관계 Editor의 ID 검색은 보존하고 후보는 부모 이름·날짜 문맥, 동명 문맥에만 외부 ID를 보조한다. #285 공정 추가의 서버 코드 생성과 수정의 전체 코드 편집은 유지한다. #519 Membership picker를 재구현하지 않는다. 선택값·React key·URL·저장·API/DB/Export·revision과 Gantt Core는 불변이다. [인벤토리](ISSUE_717_IDENTITY_INVENTORY.md)에 관리/매핑·삭제/공유 변경 확인 예외와 원문 접근 경로를 기록한다.
+
+## Issue #624 — #456 scoped Week/Fullscreen 정확 120px 시작 전 수용량 확인 (CI #2893.1)
+
+기존 #456 Editor 열기/닫기·metadata 저장 후 120px/38px 좌표 보존은 유지한다. scoped Summary의 Week/Fullscreen에서 native scroll 여유가 62px인 상태를 120px으로 강제하면 browser clamp로 실패한다. 테스트는 현재 U2/U3 projection·Core/native axis가 모두120을 수용하는지 확인한 다음 원래 입력을 수행하고, 부족할 때만 실제 wheel 1회로 준비한다. 제품 동작/시각 설계·SVAR native marker-OFF 정책/스크롤 좌표 단언은 바꾸지 않는다. [실패 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
+
+## Issue #624 PR #702 — 390px 통합 조회 내부 표 가로 넘침 대응 (2026-10-17)
+
+[CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)의 실제 Playwright에서 viewport390px에 document scrollWidth704가 측정됐다(`tests/e2e/issue-624-logistics-unified.spec.ts:107`, 예상≤391). 넓은 Target 688px/Milestone 710px의 **내부 표**는 의도된 해당 표 scroll owner 안에 있어야 하며 document/상위 물류 Grid를 확장해서는 안 된다. Unified 앱 소유 `.root` grid의 암묵적 auto track을 `grid-template-columns:minmax(0,1fr)`·`width:100%`로 바꿔 Grid의 최소 콘텐츠 폭 전파를 차단한다. 별도 synthetic Chromium에서는 390px document712→390 / Resource region client388·scroll710, 768/1024/1440/1920에서도 문서 폭은 viewport 이하를 확인했지만 이는 실제 제품 전체 구조의 PASS가 아니다.
+
+기존 E2E 5폭의 `documentWidth<=width+1` 및390 내부 scroll/정확 Task·Assignment/전체 Milestone Gate·조회mutation0/같은 Gantt 검증은 유지한다. 실패한 viewport에서 root width·scroll owner width·실제 overflow 후보 상위16개를 첨부해 차기 회귀 원인 확인에 사용한다. 테스트값·timeout/skip/QA·SVAR/테이블 최소 너비는 완화하지 않는다. 기존 Light/compact·scroll/focus Design Delta B만 구체화하므로 `DESIGN.md: N/A`. [누적 실패 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_624.md).
+
+## Issue #624 — 물류 통합 조회 UX·Design Delta B (2026-10-17)
+
+프로젝트 작업공간의 **물류 구성 → 통합 조회**에서 네 관점(공정/WorkArea, 설비 종류·인스턴스, 시스템 종류·인스턴스, Target·Resource)을 단일 compact selector로 전환한다. 기간/Target 빠른 필터와 접힘 상세 조건을 제공하고, 기존 Gantt native WBS/Chart에 조회용 가상 행이나 두 번째 날짜축을 주입하지 않는다. Project 구성 인스턴스 수·고유 설비 수량과 현재 T0 Task coverage/Assignment 계획공수·기간가중 일반 Task 진척을 명확히 나눈다. 공유 MCS/fleet·중첩 Target의 표 행은 중복 표시 가능하지만 전체 집계는 서버 distinct ID다.
+
+Task·Assignment·Target 변경은 기존 정확 editor 경로, 일정 복귀는 기존 source/current scope·snapshot·focus 계약을 사용한다. readonly·stale·dirty/pending/오류/조회 전/결과 없음과 최신 응답 역전을 구별하며, 필터·정렬·접힘·페이지·단위 전환은 저장0이다. 전체 Milestone Ready/Blocked·선행·member와 선택 Assignment Task 수는 별도 열이다. 390/768/1024/1440/1920px, 긴 이름/한국어, 표 내부 scroll·keyboard·focus/Escape·document overflow를 Chromium으로 확인해야 UX PASS다. **Design Delta B**: 기존 Light/compact/progressive disclosure·scroll/focus 원칙 구체화로 전역 신규 원칙 A가 없어 `DESIGN.md: N/A`. [Work Packet](exec-plans/active/ISSUE_624.md).
+
 ## Milestone marker-OFF 기본선과 단계 관리 UX 결정 (#548 / 2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)는 이전 #549~#552의 marker 기본 ON 계획 중 화면 활성화 부분보다 우선한다. #552에서 **native Grid/Chart에는 Summary/일반 Task만 표시**하고 Milestone native 행·Bar/대체 endpoint를 만들지 않는다. 상단 Timeline/guide/마커는 운영 OFF이며 화면 여백도 예약하지 않는다. 기존 Milestone Dashboard는 독립된 탭에서 전체 Milestone 목록·생성·상세·소속 관리·관계·Ready/Completed·Resource KPI를 제공한다.

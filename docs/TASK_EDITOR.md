@@ -1,3 +1,7 @@
+## Issue #717 — 이름 우선 식별 정보
+
+Task Editor·Milestone 소속·Target binding의 원문 ID는 접힌 식별 정보로 조회·복사한다. 관계 후보는 부모 이름·시작일, 필요 시 외부 ID로 동명을 구별하며 검색과 연결 body의 canonical ID는 유지한다. 상위 Task ID가 달라도 부모 표시명이 같으면 같은 표시 문맥으로 판정한다. Assignment의 이름 우선 표시와 Target provenance 원문 접근을 분리한다. readonly·dirty/stale·저장 단위·focus·revision 계약은 기존대로다.
+
 ## Issue #550 후속 — 명시 locate의 bounded focus 권한
 
 `일정에서 보기`의 일반 trigger 복원 생략은 유지한다. 이번 요청의 Coordinator 좌표 SETTLED를 확인한 뒤 최대12RAF 동안 현재 가시 Grid 행에 focus를 인계하며, 정확한 intent/gesture/context·API·revision·projection이 유지될 때만 계속한다. 새 locate/사용자 입력/Editor/modal은 이전 인계를 영구 취소한다. 동일 좌표 입력과 짧게 열렸다 닫힌 modal도 예외가 아니다. 가상화 행 교체 후에는 현재 행을 다시 확인하고 실제 Grid viewport 밖의 DOM을 성공 근거로 사용하지 않는다.

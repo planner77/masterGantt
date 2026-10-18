@@ -165,6 +165,38 @@ test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor
   await expect.poll(() => page.evaluate(() => document.fullscreenElement === document.querySelector(".project-gantt-frame"))).toBe(true);
   await target.click({ button: "right", position: { x: 12, y: 19 } }); await page.keyboard.press("Escape");
   const chart = frame.locator(".wx-chart").first(), vertical = frame.locator(".wx-gantt").first();
+  // CI #2893.1 (#456): native scoped Week capacity was 62px, so an immediate
+  // scrollLeft=120 assignment was browser-clamped. Preserve the exact 120px
+  // post-Editor contract, but first establish a current, stable axis that can
+  // actually accept that coordinate in both Core and native DOM.
+  const axisContext: GanttReadinessExpectation = {
+    operation: "observe",
+    // #2897.1: admit only a terminal SUPERSEDED prior RANGE operation.
+    // Current U2/U3, exact source scope, Core/native geometry and 120px admission
+    // remain mandatory; running/failed/unknown viewport work is still blocked.
+    allowCancelledPriorWork: true,
+    api: await frame.getAttribute("data-project-gantt-api-instance"),
+    revision: fixture.project.revision,
+    scale: "week",
+    scope: await page.evaluate(() => new URL(location.href).searchParams.get("rootTask")),
+    query: "",
+    queryWitness: { kind: "unchanged" },
+  };
+  const axisBefore = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  const beforeAdmission = evaluateGanttReadiness(axisBefore, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  if (!beforeAdmission.accepted) {
+    expect(beforeAdmission.coreCapacity, "scoped Week fixture must have positive Core capacity").toBeGreaterThan(0);
+    expect(beforeAdmission.nativeCapacity, "scoped Week fixture must have positive native capacity").toBeGreaterThan(0);
+    await chart.hover();
+    await page.mouse.wheel(120, 0);
+  }
+  const axisReady = await waitForGanttReadiness(frame, { ...axisContext, operation: "scroll", targetLeft: 120, requireRenderedRows: true });
+  const readyAdmission = evaluateGanttReadiness(axisReady, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
+  expect(readyAdmission.accepted, "same current Core/native axis must admit exact 120px").toBe(true);
+  await test.info().attach("issue456-scoped-week-axis-capacity", {
+    contentType: "application/json",
+    body: JSON.stringify({ beforeAdmission, readyAdmission, currentWork: axisReady.currentWork, setup: "one native wheel only when admission lacks capacity" }),
+  });
   await chart.evaluate((element) => { element.scrollLeft = 120; }); await vertical.evaluate((element) => { element.scrollTop = 38; });
   const state = async () => ({ ...(await frame.evaluate((element) => ({ api: element.getAttribute("data-project-gantt-api-instance"), instance: element.getAttribute("data-project-gantt-instance"), publicViewport: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, fullscreen: document.fullscreenElement === element, scale: element.getAttribute("data-gantt-scale-mode"), chartScroll: element.querySelector(".wx-chart")!.scrollLeft, verticalScroll: element.querySelector(".wx-gantt")!.scrollTop, selected: Array.from(element.querySelectorAll('.wx-row[data-copy-selected="true"]')).map((node) => node.getAttribute("data-id")), tree: Array.from(element.querySelectorAll('[data-action="open-task"]')).map((node) => ({ id: node.closest("[data-id]")?.getAttribute("data-id"), closed: node.classList.contains("wxi-menu-right") })), scope: document.querySelector('.project-scope-tabs [aria-selected="true"]')?.textContent, rootTask: new URL(location.href).searchParams.get("rootTask") }))), columnGeometry: { task: (await header.getByText("작업", { exact: true }).locator("..").boundingBox())!.width, externalId: (await header.getByText("외부 ID", { exact: true }).locator("..").boundingBox())!.width } });
   await expect.poll(async () => (await state()).chartScroll).toBe(120);

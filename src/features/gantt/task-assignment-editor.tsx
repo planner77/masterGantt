@@ -1,5 +1,6 @@
 "use client";
 
+import { IdentifierDetails } from "../../components/identifier-details";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type {
@@ -204,7 +205,7 @@ export function TaskAssignmentEditor({ initialAssignment, taskId, revision, edit
       .filter((target) => {
         if (!normalizedQuery) return true;
         return target.name.toLocaleLowerCase("ko").includes(normalizedQuery) ||
-          (target.code ?? "").toLocaleLowerCase("ko").includes(normalizedQuery);
+          (target.code ?? "").toLocaleLowerCase("ko").includes(normalizedQuery) || target.id.toLocaleLowerCase("ko").includes(normalizedQuery);
       })
       .sort((left, right) => {
         const selectedDifference = Number(selected.has(targetKey(right))) - Number(selected.has(targetKey(left)));
@@ -424,7 +425,8 @@ function AssignmentSection({
         const key = targetKey(target);
         const checked = selected.has(key);
         const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
-        const identity = `${kindLabel} ${index + 1} ${target.name}${target.code ? ` (${target.code})` : ""}`;
+        const duplicate = allTargets.some(other => other.id !== target.id && other.name === target.name);
+        const identity = `${kindLabel} ${index + 1} ${target.name}${duplicate ? ` (${target.code || target.id})` : ""}`;
         const percentIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "percent");
         const endIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "end");
         return <article key={key} className={styles.assignmentRow} data-selected={checked || undefined}>
@@ -437,11 +439,12 @@ function AssignmentSection({
             />
             <span className={styles.assignmentIdentity}>
               <strong>{target.name}</strong>
-              {target.code ? <code>{target.code}</code> : null}
+              {duplicate ? <code>{target.code || target.id}</code> : null}
               {target.kind === "resource" ? (target.roles ?? []).map((item) => <span className={styles.roleBadge} key={item}>{ROLE_LABEL[item]}</span>) : null}
               {!target.active ? <span className={styles.inactiveBadge}>비활성</span> : null}
             </span>
           </label>
+          <IdentifierDetails label={`${target.name} 식별 정보`} identifiers={[{label:"ID",value:target.id},...(target.code?[{label:"코드",value:target.code}]:[])]}/>
           {checked && target.kind === "resource" ? <fieldset className={styles.allocationFieldset}>
             <legend>{identity} 투입 정보</legend>
             <div className={styles.allocationGrid}>

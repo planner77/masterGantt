@@ -1,3 +1,29 @@
+## Issue #717 — 제품 이름 우선 표시 구현 (2026-10-18)
+
+[Work Packet](ISSUE_717.md)·[식별자 인벤토리](../../ISSUE_717_IDENTITY_INVENTORY.md). 기존 문서 PR #718을 최신 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`과 통합해 UI 구현으로 확장했다. Milestone/물류/Task·관계/Resource/기준정보/Import의 이름을 우선하고 원문 코드·UUID는 요청 시 확인·복사한다. 공정 identity 최소220px/표 내부 scroll, 실제 표시 동명 구분, ID검색·선택·저장 canonical 불변을 검증한다. API/DB/보안/Export·Gantt Core 변경 없음. HIGH/OWNER_MANAGED/qa_required=true, 후보 PATCH0.116.1, release_required=true/release_authorized=false. 독립 사전 검토와 실제 browser/SQLite 회귀 후 단일 변경 묶음으로 PR CI 시작까지만 진행한다. CI 결과/Trusted/Owner ACCEPT·병합/Main/GHCR/Issue 종료는 범위 밖 또는 NOT TESTED. 아래 이전 문서-only/실패 기록은 역사적 당시 범위로 보존하며 현재 범위는 본 절과 Work Packet이다.
+
+## Issue #624 — CI #2920.1 Gantt Scroll 최대 경계 테스트 보완 (2026-10-18)
+
+PR #702 [#2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264)의 Chromium Shard4 #490 scroll 19/18 직접 실패와 Quality/Docker 성공/나머지 shard 취소·QA 파생 실패를 [실패 원장 §12](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 합집합 기록한다. #703 원본 Main #2901.1 120/18 보완이 부족했던 `min(120,max)` 경계 가정과 #624 과거 일곱 실패를 비교해, #490 테스트의 setup에만 양수 내부 scroll `min(120,floor(capacity/2))`·실제 accepted 진단을 추가한다. Unit 19→9/18→9·capacity0/1·NaN 음성, 기존 WBS/scroll/metadata/fullscreen 엄격 보존 assertion 및 #456/#552/#667/#621/#623/#624 cross-run E2E·Required3/Trusted QA는 불변. 수정 후보 local/remote 성공은 **NOT TESTED**; Owner release 0.116.0 승인 보존, PR CI 시작 후 결과 모니터링·병합·Main/GHCR/Finalizer·Issue 종료 미수행.
+
+## Issue #624 / PR #702 — main #703 합류·E2E fixture 소비자 교정 (2026-10-17)
+
+기존 [PR CI #2900.1](https://github.com/planner77/masterGantt/actions/runs/39028178930)의 Quality/E2E6/Docker 성공은 HEAD `3b0818e011000eee86271ff06a27eba03daa503b`와 이전 main `c0eca9ad...`에 한한다. latest main `72bf35c1...`의 #703 안전 GET observer·Preview/CI/docs와 #624 통합 물류 UI를 함께 보존하도록 실제 2-parent commit으로 정렬한다. Docs Remote/TEST_PLAN 및 Target Fixture 세 동시 변경과 `seedIssue623` 필수 observer를 해소한다. [Work Packet](ISSUE_624.md) 및 [누적 실패 원장 §10](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 전체 원인/교정/미검증 보존. 새 Full PR CI 시작 후 모니터링·병합/Main/GHCR/Issue 종료하지 않는다. HIGH/OWNER_MANAGED/release_authorized=false.
+
+## Issue #624 — CI #2893.1 scoped Week 축 준비·최신 main 합류 (2026-10-17)
+
+[누적 실패 분석](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 F-624-001/007/013/019/022와 신규 025를 모두 연결한다. 이전 #2875~#2887의 DOC_SYNC/AC/Lint/390px/GET ECONNRESET은 #2893의 static Quality/Docker·#624 전용 E2E 개별 PASS·#621 5case 개별 PASS로 직접 재발하지 않았다. 신규 실패는 기존 #456 scoped Week Scroll X120 기대/실제62다. 기존 #552 marker-OFF/Canonical/Visible main을 보존하면서 `waitForGanttReadiness`의 최신 projection/3-frame + Core/native capacity를 확인하고 실제 wheel 한 번의 확장 뒤 원래 exact120/38과 Editor/metadata 보존을 검증한다. assert/retry/skip/CI 정책 완화 없음. Latest main app0.115.0에 새 기능 MINOR0.116.0/HIGH/OWNER_MANAGED/release_authorized=false로 통합하고 PR CI 시작에서 중단한다. 새로운 Required3/Trusted/Owner ACCEPT 및 Main/GHCR는 NOT TESTED.
+## Issue #624 — CI #2887.1 전송 오류 재발·전체 실패 원장 검토 (2026-10-17)
+
+[원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)의 #2875.1(문서 경로), #2876.1(AC parser), #2877.1(React Hooks), #2879.1(390px 폭), #2887.1(#621 canonical snapshot ECONNRESET) 전체를 대조했다. #2887.1에서 QA/TypeScript/Lint/Unit/Build/Docker 성공, Shard3 전송 실패·나머지5 취소. 저장/공수·일정 원본 결함은 확인되지 않았고 idle keep-alive socket 재사용은 **검증 대기 가설**이다. 격리 fixture GET의 `Connection: close`와 실패 시 2초 read-only health 진단으로 fail-closed 보완하며 자동 재시도·QA Gate 완화 없음. #624 five-width E2E는 취소로 미검증. #679 main의 PR 배치 게시/원격 증거 운영 내용을 함께 보존한다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false. 실제 새 Head CI·Owner 결정·병합/GHCR는 별도다.
+
+## Issue #624 — 4차 PR CI #2879.1 실제 UI overflow 및 최신 main 합류 (2026-10-17)
+
+[누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에서 2875.1 문서 영향 경로·2876.1 AC parser·2877.1 React Hooks 오류 및 2879.1 Chromium 390px document704를 전부 대조한다. 2879.1은 Quality/Next Build/Docker PASS, E2E Shard2 신규 #624 spec FAIL 및 다른5 CANCELLED로 Required E2E/QA Final FAIL. 제품 Unified CSS Grid 암묵 auto track을 `minmax(0,1fr)`로 제한하고 기존 화면 너비<=viewport+1/내부 region scroll·canonical/full Gate 단언을 보존하면서 overflow 후보 DOM 진단을 E2E에 추가한다. standalone Chromium에서 390 doc712→390/내부 owner388/710 확인은 **전체 실제 앱 PASS 아님**. 최신 main `78ec8d2...`(원본 base 대비10커밋)에 포함된 #704 [누적 실패 지침](../../PR_CI_FAILURE_TRIAGE.md)을 보존하여 결합. 새 Head의 원격 QA/Required3·Owner ACCEPT/정식 GHCR는 NOT TESTED이며 리뷰·충돌 확인 후 Full PR CI 시작에서 멈춘다.
+
+## Issue #624 — 물류 통합 조회 V1 PR 준비 (2026-10-17)
+
+선행 #623 CLOSED 이후 Resource Target snapshot/정확 edit·drill을 재사용해 공정/WorkArea·설비 종류/인스턴스·시스템 종류/인스턴스·Target→Resource 네 관점을 연결한다. [Work Packet](ISSUE_624.md)에서 canonical Task/Assignment 고유 합계, 공유 AMR/MCS·Milestone 전체 Stage Gate, readonly/stale/복귀, 신규 Chromium5폭·Unit 및 DOCUMENTATION_SYNC/AC를 관리한다. app0.115.0(MINOR), HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 신규 DB/API/PRO/viewport writer 없음, DESIGN Delta B(`DESIGN.md: N/A`). 로컬/새 HEAD Full PR CI·Trusted QA/Owner 승인 전 원격 상태 NOT TESTED; 요청 종료점은 리뷰·충돌 후 **PR CI 시작**이며 결과 모니터링·병합/Main/GHCR/Issue 종료는 별도다.
 ## Issue #717 — PR CI #2923.1 구조 검증 실패 보완 (2026-10-18)
 
 [#717 누적 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)과 [문서 Work Packet](ISSUE_717.md) 참조. PR #718 Full CI #2923.1은 source 문제·E2E 테스트 실패가 아니라 trusted base QA 경계에서 PR metadata full-line declarations 누락 및 Work Packet의 `DOCUMENTATION_SYNC` / `AC_TEST_COVERAGE` 정규 구조 미일치 때문에 preflight 5 FAIL, 이어 빠른 Gate 1 FAIL/Quality-E2E-Docker 집계3 FAIL이 발생했다. 실제 정책 테스트·Node build·Chromium shard·Docker 실행은 SKIPPED. 필수 선언과 영향 문서/AC1~8 mapping을 정상화하고, 단일 Git 변경 묶음으로 새 full PR CI를 시작한다. 기존 Run은 실패로 영구 보존하며 테스트 skip/timeout/Required 체크/QA 정책을 완화하지 않는다. 앱0.115.0·LOW/OWNER_MANAGED/docs-only·release_required=false/release_authorized=false 유지, 최신 Full/Trusted/Owner 결과 NOT TESTED. 병합/Main/GHCR/이슈 종료는 이번 작업 제외.

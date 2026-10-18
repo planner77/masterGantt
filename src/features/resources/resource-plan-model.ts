@@ -147,7 +147,7 @@ export function flattenPlanRows(
       series: r,
       level,
       context,
-      description: `${r.code ?? "코드 미지정"} · ${r.active ? "활성" : "비활성"} · ${r.roles.join(", ") || "Role 미지정"} · ${r.developerGrade ?? "등급 미지정"}`,
+      description: `${r.active ? "활성" : "비활성"} · ${r.roles.join(", ") || "Role 미지정"} · ${r.developerGrade ?? "등급 미지정"}`,
       expandable: r.milestones.length > 0,
     });
     if (expanded.has(key))
@@ -186,7 +186,7 @@ export function flattenPlanRows(
         selector: { kind: "group", groupId: g.groupId },
         series: g,
         level: 0,
-        description: `${g.code ?? "코드 미지정"} · ${g.active ? "활성" : "비활성"}`,
+        description: `${g.active ? "활성" : "비활성"}`,
         expandable: g.resourceIds.length > 0,
       });
       if (expanded.has(key))
@@ -224,7 +224,10 @@ export function planTargetLabel(
 ): string {
   const target = data.targetProjection?.catalog.find((row) => row.dimension === "target" && row.id === targetId)
     ?? data.catalog.targetOptions?.find((row) => row.dimension === "target" && row.id === targetId);
-  return `${target?.name ?? (targetId === "unassigned" ? "Target 미연결" : "Target")} · ${targetId}`;
+  if (!target) return targetId === "unassigned" ? "Target 미연결" : "Target 정보 없음";
+  const catalog = data.targetProjection?.catalog ?? data.catalog.targetOptions ?? [];
+  const duplicate = catalog.some(row => row.dimension === "target" && row.id !== targetId && row.name === target.name);
+  return duplicate ? `${target.name} (${target.code || targetId})` : target.name;
 }
 
 export function planDetailQuery(

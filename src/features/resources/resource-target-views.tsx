@@ -1,5 +1,7 @@
 "use client";
-import { useState, type ReactNode } from "react";
+
+import { IdentifierDetails } from "@/components/identifier-details";
+import { Fragment, useState, type ReactNode } from "react";
 import type { ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSummary, ResourceDashboardTargetNode, ResourceTargetDimension } from "@/contracts/resource-dashboard";
 import { orderTargetMatrixColumns, plannedEffort } from "./resource-dashboard-model";
 import { ResourceDashboardDetails } from "./resource-dashboard-details";
@@ -7,8 +9,8 @@ import { useResourceDrill } from "./resource-drill-context";
 import styles from "./resource-target-views.module.css";
 
 export function projectionRowKey(path: NonNullable<ResourceDashboardSummary["selector"]["targetPath"]>) { return JSON.stringify(path); }
-const EMPTY_LABELS: Partial<Record<ResourceTargetDimension, string>> = { target: "Target 미연결", group: "Group 미지정", resource: "개인 미배정", workArea: "WorkArea 미사용", process: "공정 미매핑" };
-export function targetNodeLabel(node: ResourceDashboardTargetNode) { return node.name ?? (node.dimension === "target" && node.sourceKinds.includes("legacy_direct") ? "Target 없음 · Legacy 직접 출처" : (node.id === null ? EMPTY_LABELS[node.dimension] ?? "미지정" : node.id)); }
+const EMPTY_LABELS: Partial<Record<ResourceTargetDimension, string>> = { target: "Target 미연결 · Legacy/미연결 (조회용)", group: "Group 미지정", resource: "개인 미배정", workArea: "WorkArea 없음 · 프로젝트 공통/미사용 (조회용)", process: "현장 공정 없음 · 프로젝트 공통/Legacy (조회용)", processType: "공정 유형 없음 · 프로젝트 공통/Legacy (조회용)", equipment: "설비 멤버 없음 (조회용)", system: "시스템 멤버 없음 (조회용)", equipmentType: "설비 유형 없음 (조회용)", systemType: "시스템 유형 없음 (조회용)" };
+export function targetNodeLabel(node: ResourceDashboardTargetNode) { return node.name ?? (node.dimension === "target" && node.sourceKinds.includes("legacy_direct") ? "Target 없음 · Legacy 직접 출처" : (node.id === null ? EMPTY_LABELS[node.dimension] ?? "미지정" : "대상 정보 없음")); }
 const FILTERS = [
   ["projectProcessIds", "프로젝트 공정", "projectProcess"], ["processOccurrenceIds", "현장 공정", "process"], ["processTypeIds", "공정 유형", "processType"],
   ["workAreaIds", "WorkArea", "workArea"], ["memberEquipmentIds", "Target 설비 인스턴스", "equipment"], ["memberSystemIds", "Target System 인스턴스", "system"],
@@ -20,11 +22,11 @@ export function ResourceTargetFilters({ data, filters, onChange, quick = false }
   const noCatalog = !data || (!data.targetProjection && data.catalog.targetOptions === undefined);
   const unlinked = filters.targetIds?.includes("unassigned");
   const definitions = quick ? [["targetIds", "Target", "target"] as const] : FILTERS;
-  return <>{definitions.map(([key, label, dimension]) => <label key={key}>{label}<select aria-label={label} value={filters[key]?.[0] ?? ""} disabled={noCatalog || (unlinked && ["memberEquipmentIds","memberSystemIds","equipmentTypeCodes","systemTypeCodes"].includes(key))} title={noCatalog ? "Resource Plan 또는 Target 보기에서 대상 목록을 확인하세요." : undefined} onChange={event => onChange({ [key]: event.target.value ? [event.target.value] : [], ...(key === "targetIds" && event.target.value === "unassigned" ? {memberEquipmentIds:[],memberSystemIds:[],equipmentTypeCodes:[],systemTypeCodes:[]} : {}) })}>
+  return <>{definitions.map(([key, label, dimension]) => <Fragment key={key}><label>{label}<select aria-label={label} value={filters[key]?.[0] ?? ""} disabled={noCatalog || (unlinked && ["memberEquipmentIds","memberSystemIds","equipmentTypeCodes","systemTypeCodes"].includes(key))} title={noCatalog ? "Resource Plan 또는 Target 보기에서 대상 목록을 확인하세요." : undefined} onChange={event => onChange({ [key]: event.target.value ? [event.target.value] : [], ...(key === "targetIds" && event.target.value === "unassigned" ? {memberEquipmentIds:[],memberSystemIds:[],equipmentTypeCodes:[],systemTypeCodes:[]} : {}) })}>
     <option value="">전체</option>{["target", "workArea"].includes(dimension) ? <option value="unassigned">{dimension === "target" ? "Target 미연결" : dimension === "workArea" ? "WorkArea 미사용" : "공정 미매핑"}</option> : null}
-    {catalog.filter(item => item.dimension === dimension).map(item => <option key={item.id} value={item.id}>{item.name}{item.code ? ` (${item.code})` : ""}{!item.active ? " · 비활성 기존 연결" : ""}</option>)}
-    {filters[key]?.[0] && filters[key]?.[0] !== "unassigned" && !catalog.some(item => item.dimension === dimension && item.id === filters[key]?.[0]) ? <option value={filters[key]![0]}>{filters[key]![0]} · 현재 선택</option> : null}
-  </select>{quick && noCatalog ? <small>Resource Plan 또는 Target 보기에서 대상 목록을 확인하세요.</small> : null}</label>)}{quick && unlinked ? <small>Target 미연결은 Target 구성원·유형 조건과 함께 조회하지 않습니다. 해당 조건은 해제됩니다.</small> : null}{!quick ? <label>Target 범위<select aria-label="Target 범위" value={filters.targetScopes?.[0] ?? ""} onChange={event => onChange({targetScopes: event.target.value ? [event.target.value as "process" | "project_common"] : []})}><option value="">전체</option><option value="process">공정 대상</option><option value="project_common">프로젝트 공통</option></select></label> : null}</>;
+    {catalog.filter(item => item.dimension === dimension).map(item => <option key={item.id} value={item.id}>{item.name}{catalog.some(other => other.dimension === dimension && other.id !== item.id && other.name === item.name) ? ` (${item.code || item.id})` : ""}{!item.active ? " · 비활성 기존 연결" : ""}</option>)}
+    {filters[key]?.[0] && filters[key]?.[0] !== "unassigned" && !catalog.some(item => item.dimension === dimension && item.id === filters[key]?.[0]) ? <option value={filters[key]![0]}>대상 정보 없음 · 현재 선택</option> : null}
+  </select></label>{filters[key]?.[0] && filters[key]?.[0] !== "unassigned" ? <IdentifierDetails label={`${label} 선택 식별 정보`} identifiers={[{label: "ID", value: filters[key]![0]}, ...(catalog.find(item => item.dimension === dimension && item.id === filters[key]?.[0])?.code ? [{label: "코드", value: catalog.find(item => item.dimension === dimension && item.id === filters[key]?.[0])!.code!}] : [])]} /> : null}{quick && noCatalog ? <small>Resource Plan 또는 Target 보기에서 대상 목록을 확인하세요.</small> : null}</Fragment>)}{quick && unlinked ? <small>Target 미연결은 Target 구성원·유형 조건과 함께 조회하지 않습니다. 해당 조건은 해제됩니다.</small> : null}{!quick ? <label>Target 범위<select aria-label="Target 범위" value={filters.targetScopes?.[0] ?? ""} onChange={event => onChange({targetScopes: event.target.value ? [event.target.value as "process" | "project_common"] : []})}><option value="">전체</option><option value="process">공정 대상</option><option value="project_common">프로젝트 공통</option></select></label> : null}</>;
 }
 export function ResourceTargetViews({ data, unit, stale, onStale, expanded, onToggle, matrix, onOpen }: {
   data: ResourceDashboardDto; unit: "md" | "mm"; stale: boolean; onStale: () => void; expanded: Set<string>; onToggle: (key: string) => void; matrix: boolean;
@@ -41,6 +43,7 @@ export function ResourceTargetViews({ data, unit, stale, onStale, expanded, onTo
   const treeRows = (nodes: ResourceDashboardTargetNode[], depth = 0): ReactNode => ordered(nodes).map(node => {
     const key = projectionRowKey(node.summary.selector.targetPath!); const contentId = `target-projection-${encodeURIComponent(key)}`; const open = expanded.has(key); const label = targetNodeLabel(node);
     return <tbody key={key} data-projection-row-key={key}><tr><th scope="row" style={{paddingInlineStart: 12 + depth * 16}}><button type="button" aria-expanded={open} aria-controls={contentId} disabled={stale} onClick={() => onToggle(key)}>{open ? "▾" : "▸"} {label}</button>
+      {node.id ? <IdentifierDetails label={`${label} 식별 정보`} identifiers={[{label:"ID",value:node.id},...(projection.catalog.find(item=>item.dimension===node.dimension&&item.id===node.id)?.code ? [{label:"코드",value:projection.catalog.find(item=>item.dimension===node.dimension&&item.id===node.id)!.code!}]:[])]}/> : null}
       {node.sourceKinds.includes("legacy_direct") ? <small>Legacy 직접 연결 (Target 추론 없음)</small> : null}{node.sourceKinds.includes("target_unlinked") ? <small>Target 미연결</small> : null}{node.active === false ? <small>비활성 기존 연결</small> : null}
       {node.dimension === "target" && node.id ? <button type="button" disabled={stale || locked || !onOpenTarget} onClick={event => onOpenTarget?.(node.id!, event.currentTarget, projection.catalog.find(item => item.dimension === "target" && item.id === node.id)?.code)}>대상 구성 편집</button> : null}</th>
       <td>{plannedEffort(node.summary.effort, unit)}</td><td>{node.summary.taskCount}</td><td>{node.summary.completed}</td><td>{node.summary.delayed}</td><td><button type="button" disabled={stale} onClick={event => onOpen(node.summary, label, event.currentTarget)}>작업·배정 상세</button></td></tr>

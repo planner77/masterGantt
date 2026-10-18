@@ -1,3 +1,14 @@
+## Issue #717 — 이름 우선·원문 식별자 회귀
+
+새 `issue-717-name-first.spec.ts`는 5폭 Milestone/공정 identity 폭·내부 scroll·modal bounds·keyboard/focus·ID 검색·전체 복사 및 Clipboard 실패 수동 복사 경로를 검증한다. `issue-717-identity-persistence.spec.ts`는 실제 HTTP/SQLite의 동명2개 중 정확한 canonical 대상만 수정/삭제하는지 검증한다. 기존 관계·Editor·Resource·Target E2E의 ID text selector는 명시 disclosure를 열어 visible textarea의 정확 원문을 검증하도록 변경하며 원래 payload/권한/정확 대상 검증을 유지한다. inventory·증거/실행 범위는 [Work Packet](exec-plans/active/ISSUE_717.md)을 따른다. 실제 screen reader·실기기와 모든 화면 5폭은 별도 NOT TESTED, 로컬 PASS는 원격 CI PASS가 아니다.
+
+## Issue #624 — CI #2920.1/#703 #490 Gantt scroll end-boundary 음성 회귀 (2026-10-18)
+
+- [PR CI #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264) 정확 HEAD `829953e8a108d18cb816880606926f2220d954eb` / Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2` / test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. Shard4의 기존 `project-settings-layout-490.spec.ts:149`에서 DOM `scrollWidth-clientWidth`가 19라 `min(120,19)=19` 기대, 실제 native `scrollLeft=18`을 5초 간격으로 반복 관측해 직접 FAILURE. [Trace artifact](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021) 확인. #703 원본 Main [#2901.1](https://github.com/planner77/masterGantt/actions/runs/39029791058) 120/18과 동일한 '경계 기대가 실제 이동 가능성보다 큰' TEST_CONTRACT 계열이나 서로 다른 커밋/기대값. 물리적 브라우저 clamp 근인은 이 Trace만으로 확정하지 않는다.
+- 새 `interiorGanttScrollLeft`는 원본 max capacity를 확인한 뒤 `Math.min(120, Math.floor(capacity/2))`로 양수 내부 scroll 위치만 선택한다. 검증은 여전히 **정확한 좌표 동등성**(처음 및 설정 탭/닫기/metadata 저장/Fullscreen)으로 유지하며, 0 이동·Axis 소실·세로38px/기존 WBS/컬럼/선택/권한/동일 Gantt instance 변화를 통과시키지 않는다. 준비 단계의 measured/actual/capacity를 JSON artifact로 남긴다.
+- `tests/features/gantt/gantt-scroll-capacity.test.ts` 음성/양성: 19→9, 18→9, 62→31, 120→60, 240/810→120, 0·-1·1·NaN·Infinity→0, invalid preferred→0. 작은 1px capacity는 E2E의 positive expected guard에서 FAIL한다. #490 real Chromium 재현과 #456 scoped Week 120 admission, #552/#570/#667 viewport 및 #621/#623/#624 다관점 E2E 교차 회귀를 신규 Full CI에서 확인한다.
+- 원본 CI #2920.1 Quality/Docker 성공, E2E Shard4 54PASS/1FAIL/88NOT RUN, Shard3 SUCCESS, Shard1/2/5/6 CANCELLED, QA Automated·Trusted 파생 FAIL. [이슈별 F001~034 전체 원장 §12](ISSUE_624_CI_FAILURE_ANALYSIS.md) 참조. 기존 #2900/#2905/#2913 성공은 이전 HEAD/Base에 한정; 새 Head 로컬/원격 Quality/E2E6/Docker/Trusted **NOT TESTED**. Fast Gate/max-failures/timeout/전체 검사 범위 불변.
+
 ## Issue #712 — post-merge provenance / Lifecycle Full CI 판정 회귀 (2026-10-18)
 
 - **검증 대상:** `scripts/verify-pr-metadata-evidence.py`, `scripts/qa_final_automated.py`, `scripts/issue_lifecycle.py`, `.github/workflows/ci.yml`. 고위험 protected 실행·릴리스 Gate이며 UI/DB/API/제품 기능에 영향 없음.
@@ -6,13 +17,17 @@
 - **로컬 정책 회귀:** `python3 scripts/test-pr-metadata-evidence.py`; `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test-issue-712.py`; `PYTHONDONTWRITEBYTECODE=1 python3 scripts/test_qa_final_automated.py`; `python3 scripts/verify-issue-lifecycle.py`. 기존 test/timeout/retry/skip 보호 불변.
 - **원격 수용:** exact new PR Head의 Quality / Chromium E2E 6/6 / Docker / Trusted QA 및 리뷰 0·충돌 없음 후 Owner HIGH 위험 승인; 이어 병합/Main CI/Finalizer는 별도 승인·상태 게이트. CI 시작 후 관측 전 단계는 **NOT TESTED**. 상세 AC1–AC6 매핑은 [Work Packet](exec-plans/active/ISSUE_712.md).
 
-
 ## Issue #703 Main CI #2901.1 / #490 Gantt viewport E2E regression (2026-10-17)
 
 - `tests/e2e/project-settings-layout-490.spec.ts` verifies horizontal scroll preservation through settings tabs, metadata save and native fullscreen round-trip. A hardcoded `scrollLeft=120` is not always achievable if chart `scrollWidth-clientWidth` is smaller; the original Main Run 39029791058 observed 18 instead of 120.
 - Assert `max(0,scrollWidth-clientWidth)>0` first so an actual lost scrollable timeline remains a regression, set/expect `min(120,maxScroll)`, and retain vertical scroll, WBS selection, tree, column width, scope and fullscreen invariants. Do not silently skip the test or loosen the 5s poll timeout.
 - PR #709 Run 39031438869 was blocked by issue branch naming and QA metadata. PR #710 Run 39031667684 was blocked in QA Preflight because this TEST_PLAN sync was absent; Quality/E2E/Docker aggregates were consequential failures, not new Playwright findings. See `docs/ci-failures/ISSUE_703_MAIN_CI_39029791058.md` for the entire F01-F03 evidence chain.
 - Verify with targeted #490 spec and the existing required 6-shard Chromium E2E, Quality and Docker checks; no local/PR PASS is claimed until actual results.
+
+## Issue #624 / PR #702 — #703 Fixture와 공통 Target E2E 소비자 교차 검증 (2026-10-17)
+
+main `72bf35c1accb11d7521a9cc2b5799c82cb879229`의 `createTargetProject(page,origin,observeApi)` / `seedIssue623(page,origin,observeApi,wide)` 계약으로 #624 E2E의 기존 boolean wide 인자를 4번째 위치로 이동한다. 공통 snapshot은 이전 #624 `Connection: close`를 보존하면서 #703 `observedReadOnlyGet` GET 1회 제한 복구/안전 진단을 사용. Mutation 재전송0, API/Task/Assignment/Milestone Stage Gate, 5폭, readonly/dirty/401/412·스크롤 readiness 보호. #2900.1의 성공은 구 main 기준 HEAD만 인정하고, 새 병합 HEAD에서는 TypeScript·Unit·E2E #621/#622/#623/#624 및 #456/#552/#667·Quality/E2E6/Docker를 다시 검증해야 한다. 실제 새 HEAD는 NOT TESTED.
+
 ## Issue #703 — CI #2896 F-004와 전체 E2E GET 전송 실패 합집합 (2026-10-17)
 
 - [누적 실패 원장](ISSUE_703_FAILURE_ANALYSIS.md) 7절과 [공통 REWORK](PR_CI_FAILURE_TRIAGE.md)를 적용한다. #2880 F-001은 QA 문서 구조, #2883 F-002는 #464 canonical GET, #2891 F-003은 #623 GET, #2896 F-004는 #621 GET ECONNRESET 직접 실패다. #2884/#2894 이전 SHA에서 실제 6 Shard·Quality·Docker SUCCESS는 별도 반례이며 최신 Head 증거가 아니다.
@@ -32,6 +47,45 @@
 ## Issue #703 — Preview GHCR Owner·SHA·권한 분리 회귀 (2026-10-17)
 
 변경 producer: .github/workflows/preview-publish.yml, scripts/preview_publish.py. 직접 소비자: authorize→Build/read→trusted image-policy·API/SQLite smoke→artifact→publish/packages:write. 음성 집합: 비Owner, 타 event/repo/ref, Open Issue 아님, branch/Issue 번호·SHA stale, 현재 main SHA stale, GHCR tag 존재/401/403/429/5xx, 출력 injection, Preview가 CI/Release를 오인하게 하는 권한 확장. tests/python/test_preview_publish.py는 GitHub 네트워크 없는 stub·워크플로 정적 검증이며 PR/Main CI 정책 Job에서 실행한다. 실제 Docker Build/Runtime 및 GHCR Registry 인증·digest·롤백/시간 절감은 별도 원격 검증 전 NOT TESTED. 기존 #697 테스트 영향 선정/QA/Required3 범위를 줄이지 않는다. [Preview 가이드](PREVIEW_PUBLISH.md), [실행 계획](exec-plans/active/ISSUE_703.md).
+
+## Issue #624 / PR #702 — PR CI #2897.1 terminal SUPERSEDED readiness 회귀 (2026-10-17)
+
+- 실패 [39026415903.1](https://github.com/planner77/masterGantt/actions/runs/39026415903): #456 scoped WBS Week/fullscreen `task-editor-form-density.spec.ts:152→181`에서 5초 timeout. [Shard3 trace artifact 12099027736](https://github.com/planner77/masterGantt/actions/runs/39026415903/artifacts/12099027736) 단일 blocker `PRIOR_CANCELLED_OPERATION_NOT_ACCEPTED`; prior RANGE_EXTENSION `SUPERSEDED`의 종료 기록과 최신 canonical7/7·U3 delivery SETTLED·Core/native18/18·수용량810/811을 구분한다. Full Quality/Docker 성공, Shard3 FAIL, Shard1/2/4 CANCELLED, 5/6 SUCCESS; E2E/QA 파생 실패.
+- 신규 테스트: `tests/features/gantt/gantt-readiness.test.ts` scoped Week/terminal cancellation·120px positive + APPLYING/wrong outcome/U3 PENDING negatives. 소비자 `tests/e2e/task-editor-form-density.spec.ts`에서만 기존 opt-in 사용; helper/제품/시간/skip/retry/전역 Gate 변경0. 원본 스크롤120/vertical38/Editor·metadata·selection·같은 Gantt instance/조회0 유지.
+- 단일 source 재검증: docs QA preflight·typecheck·lint·Unit → 누적 `issue-624-logistics-unified`, `issue-621-resource-target`, `task-editor-form-density`, `issue-623-resource-mvp` + #552/#570/#667 viewport 음성 Chromium(no fail-fast scoped) → Full PR CI Quality/E2E6/Docker. 연결 환경에서 로컬 실행은 NOT TESTED, [이슈별 실패 전원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)의 과거 PASS를 새 Head로 이월하지 않는다.
+
+## Issue #624 — PR CI #2893.1 Gantt scoped Week X120 조기 입력 교정 (2026-10-17)
+
+- [원본 CI](https://github.com/planner77/masterGantt/actions/runs/39021459600)의 #456 `task-editor-form-density.spec.ts:150`은 scoped Summary/Week/Fullscreen에서 축 용량이 부족한 상황에 `scrollLeft=120`을 먼저 주입해 실제 62px으로 clamp됐다. 해당 Case는 5초 동안 120px 미도달로 실패했으며, Shard3 85PASS/1FAIL/1SKIP/3 NOT RUN, Shard6 113PASS, 다른 4개 취소였다.
+- 기존 #667 날짜축 준비 원장과 최신 main #552 marker-OFF Canonical/Visible 분리 이후의 readiness 계약을 재사용한다. 현재 API·revision·scope·scale·query 및 안정3-frame·Core/native capacity를 본 뒤 targetLeft120 미수용일 경우 양 capacity>0 반례를 단언하고 실제 horizontal wheel 한 번으로 Range extension을 준비한다. SETTLED/target120 admission을 확인한 다음 기존 `chart.scrollLeft=120`, vertical38 및 Editor/Metadata·동일 Gantt instance 완전동등 단언을 **그대로 유지**한다.
+- #621 Target canonical snapshot transport, #624 390px·네 관점/동일 Task/Stage Gate 등 앞선 누적 실패 파일을 함께 선정한다. 이전 #2893.1에서는 이들 #621 5개·#624 신규 E2E 1개가 개별 PASS였으나 전체 Shard2는 취소로 전수 합격 아님. 새 후보 0.116.0의 로컬 Chromium/전체 CI/Trusted는 NOT TESTED. [누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)과 [후속 Work Packet](exec-plans/active/ISSUE_624.md) 참조.
+## Issue #624 / PR #702 — CI #2887.1 누적 실패·전송 진단 (2026-10-17)
+
+[Run #2887.1](https://github.com/planner77/masterGantt/actions/runs/39014302310): 이전 원장 #2875.1 문서 영향, #2876.1 AC parser, #2877.1 Hooks lint는 이번 Preflight/Typecheck/Lint/Unit PASS로 재발하지 않았다. #2879.1 신규 통합 조회 390px overflow 보완은 Shard2 취소로 현재 **미검증**이다. 현재 실 실패는 Shard3의 기존 `tests/e2e/issue-621-resource-target.spec.ts:120` → `tests/e2e/fixtures/target-project.ts:48` GET `ECONNRESET`이며 HTTP 4xx/500/Resource identity assertion 실패와 구별한다. 07:42:38 마지막 GET200 `keep-alive timeout=5` 뒤 6초 이상 유휴 구간에서 TCP reset이 발생해 **INIT_TRANSPORT(유휴 풀 소켓 재사용 가설; 서버 PID/health 당시 UNKNOWN)**로 분류한다. 임의 재시도로 통과시키지 않는다.
+
+공유 fixture의 canonical GET에 `Connection: close`를 사용하고 실패 시 read-only `/api/health/ready`(2초) 진단 및 cause를 보존한다. 동일 응답/If-Match·캐시·권한/Resource·Target 원본 단언 그대로. 누적 실제 실패 직접 파일 `tests/e2e/issue-624-logistics-unified.spec.ts`, `tests/e2e/issue-621-resource-target.spec.ts`와 간접 `tests/e2e/issue-623-resource-mvp.spec.ts`, `tests/e2e/logistics-target-authoring.spec.ts`, `tests/e2e/issue-622-resource-plan-target.spec.ts`, `tests/features/logistics/logistics-unified-model.test.ts`를 영향 순서로 확인한다. 로컬 diagnostic에서는 실패 합집합을 `--workers=1 --retries=0 --max-failures=0`으로 수행(가능한 환경에서만), CI Fast Gate/6 shard/Required3/fail-fast 정책을 바꾸지 않는다. 현재 도구 환경에서는 실제 Chromium/fixture test **NOT TESTED**, 새 Head 원격 결과는 시작 후 별도 판정. [누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
+
+## Issue #624 PR #702 — CI #2879.1 실제 E2E overflow·진단 및 재검증 (2026-10-17)
+
+원본 [CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)에서 Quality/typecheck/lint/unit/Next build/Docker PASS 후 신규 `tests/e2e/issue-624-logistics-unified.spec.ts:107`의 **390px document 704px(허용≤391)**로 Chromium shard2가 실패하고 다른 5 Shard는 fail-fast CANCELLED됐다. 기존 4개 관점/원시 Task·Assignment·전체 Milestone Gate 비교는 선행했지만 반응형/상세/복귀 이후 흐름은 완료되지 않았다.
+
+UI 변경 범위: `src/features/logistics/project-logistics-unified.module.css`의 Grid implicit auto min-content 열을 `grid-template-columns:minmax(0,1fr)` / width100%로 명시해 Target 최소688px/Milestone710px 표를 각 기존 `.scroll`에 가둔다. **원본 `documentWidth<=width+1`·390 내부 scroll·5폭·raw ID/full Gate·query mutation0·same Gantt/반환 focus 단언을 유지**하며 폭 검사 실패 때만 root/scroll 폭·DOM overflow 상위 요소를 artifact로 추가한다. 별도 synthetic Chromium의 390 doc712→390, 내부 client388/scroll710은 UI 메커니즘 근거일 뿐 실제 제품 결과를 대체하지 않는다. 동일 새 Head actual browser와 기존 #623/#621 Resource/Target·#528 drill·Milestone Gate 직접·간접·음성 회귀를 실행해야 한다.
+
+앞선 CI #2875.1 docs 영향, #2876.1 AC parser, #2877.1 Hook ESLint은 #2879.1에서 Preflight·ESLint·Unit 실제 PASS였고 첫 실패부터 [단일 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md)을 보존한다. 신규 [#704 공통 triage](PR_CI_FAILURE_TRIAGE.md) A→G, 동일 candidate freeze/취소 Shard 로그 보존, Head/Base/Test-merge/Run·Attempt을 유지한다. 새 PR CI 결론·Trusted/Owner 승인 전 NOT TESTED.
+
+## Issue #624 PR #702 — CI #2877.1 React Hook lint regression (2026-10-17)
+
+- 최초 두 CI의 문서 계약 실패는 세 번째 [CI #2877.1](https://github.com/planner77/masterGantt/actions/runs/39008625870)에서 QA Preflight PASS로 검증됐다. 정책/Typecheck/Vitest(225 파일 PASS·1 SKIP, 2783 case PASS·3 SKIP)도 PASS. 신규 `src/features/logistics/project-logistics-unified.tsx:76`가 `react-hooks/set-state-in-effect` 규칙 위반으로 ESLint 1error/14warnings가 발생했고 그 결과 Fast Gate에서 E2E6/Build/Docker 실행이 차단됐다.
+- 제품 수정은 current query/snapshot이 다르면 기존 상세를 표시하지 않는 read-only derived gate `currentLogisticsDetail`과 사용자 관점/필터 이벤트의 명시적 selection 무효화로 옮긴다. Effect는 DOM focus만 관리한다. 신규 Unit은 정확한 같은 selection/스냅샷, 다른 query, 다른 snapshot, snapshot 없음/빈 값 및 null 선택을 검증한다.
+- 테스트 계약·표준 시간초과·Skip/Assertion 완화 없음. 새 Head의 scoped ESLint/Unit/Chromium/전체 CI는 **NOT TESTED**이며 #2877.1 PASS를 소급 이관하지 않는다. [누적 실패 분석](ISSUE_624_CI_FAILURE_ANALYSIS.md) 및 [Issue Work Packet](exec-plans/active/ISSUE_624.md) 참조.
+
+## Issue #624 — 통합 다관점 조회 위험기반 회귀 (2026-10-17)
+
+- Unit `tests/features/logistics/logistics-unified-model.test.ts`: 공정/WorkArea·설비·시스템·Target/Resource 관점 순서, 구성 equipmentId/systemId 중복 제거, 동일 ID 수량 불일치 경고, Milestone full Gate 독립성.
+- 실제 HTTP·Chromium `tests/e2e/issue-624-logistics-unified.spec.ts`: #623 두 사업장/제품 표준·선택 WorkArea/AMR fleet·공유 MCS·복수 Target fixture 재사용. 네 관점의 Task/Assignment/knownMd 및 같은 전체 Gate, 정확 Task/Assignment detail·복귀 focus, 읽기만 할 때 mutation0, 동일 Gantt instance, 390/768/1024/1440/1920px document width·표 내부 scroll/키보드 포커스.
+- 기존 #617 resolver, #620 API projection/limits·snapshot/response 예산, #621 exact editor/read-only/stale/dirty, #622 Plan·Excel, #623 golden/HTTP/E2E, #528 drill, Milestone Stage Gate 회귀를 선택 영향 범위로 보존한다. **음성 조건**: shared fleet/MCS/중복 Target 가산·가짜 WorkArea 저장·selected 범위를 full Ready로 승격·null allocation을 100%로 추정·stale/401/412 저장·표 조작 mutation 허용 불가.
+- 신규 E2E의 유한 120s만 scoped fixture 예외이고 Global E2E timeout/skip/retry 및 PR Chromium 6-shard·Quality/Docker Gate는 그대로다. 실제 query count/response 크기·SLA와 브라우저/모든 5폭 결과는 CI 측정 전 NOT TESTED.
+- GitHub API만 사용 가능한 현재 환경은 로컬 `npm ci`·typecheck·Chromium을 실제 수행하지 못했다. 정확 Head 원격 CI/Trusted QA·Owner 허가와 별개로 증거가 있을 때만 PASS 판정한다. [#624 Work Packet](exec-plans/active/ISSUE_624.md).
 
 ## Issue #552 — PR CI #2888 Canonical/Visible WBS 분리의 #456·#570 실제 테스트 계약 (2026-10-17)
 

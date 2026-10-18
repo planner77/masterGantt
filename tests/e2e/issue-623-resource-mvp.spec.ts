@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
 import { inflateRawSync } from "node:zlib";
 import type { ResourceDashboardDto } from "../../src/contracts/resource-dashboard";
@@ -138,7 +139,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   await page.getByRole("tab", { name: "물류 대상(Target)", exact: true }).click();
   await page.getByRole("button", { name: `Target 상세: ${f.targets[0].name}`, exact: true }).click();
   const targetDetail = page.getByRole("dialog", { name: `Target 상세 · ${f.targets[0].name}`, exact: true });
-  await expect(targetDetail).toContainText(f.task.taskId);
+  await expectRawIdentifier(targetDetail, "작업 ID", f.task.taskId);
   await targetDetail.getByRole("button", { name: /원본 작업 편집:.*SHARED · WBS 동일 원본/ }).click();
   await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-10-06");
   await editor(page).getByRole("button", { name: "저장", exact: true }).click();

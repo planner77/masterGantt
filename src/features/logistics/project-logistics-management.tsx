@@ -28,9 +28,13 @@ import type { LogisticsTargetListResponse, LogisticsTargetUsageDto } from "@/con
 import { taskContextLabels } from "./task-context-label";
 import type { ProjectDto } from "@/contracts/projects";
 import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources";
+import { IdentifierDetails } from "@/components/identifier-details";
+import { logisticsName } from "./logistics-identity";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
+import { ProjectLogisticsUnified } from "./project-logistics-unified";
+import type { ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import styles from "./project-logistics-management.module.css";
 
 function developerGradeLabel(grade: ResourceDto["developerGrade"] | undefined): string {
@@ -63,6 +67,8 @@ export interface ProjectLogisticsManagementProps {
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
   onTargetTaskOpen?: (taskId: string) => void;
   onStageSchedule?: (taskIds: string[]) => void;
+  onResourceSchedule?: (request: ResourceScheduleRequest) => void;
+  onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
   projectContext?: Pick<ProjectDto, "businessUnit" | "product" | "siteEntity">;
   publicId: string;
   revision: number;
@@ -79,10 +85,10 @@ export interface ProjectLogisticsManagementProps {
   onUnauthorized: () => void;
 }
 
-type SubTab = "targets" | "dashboard" | "processes" | "equipment" | "systems" | "relations";
+type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
-  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen,
+  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment,
   publicId,
   projectContext,
   revision,
@@ -95,7 +101,22 @@ export function ProjectLogisticsManagement({
 }: ProjectLogisticsManagementProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("dashboard");
   const [targetRequestSequence, setTargetRequestSequence] = useState<number | null>(null);
-  if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) { setTargetRequestSequence(targetOpenRequest.sequence); setActiveSubTab("targets"); }
+  const [unifiedTargetRequest, setUnifiedTargetRequest] = useState<{ id: string; sequence: number; code?: string | null } | null>(null);
+  const unifiedTargetTrigger = useRef<HTMLElement | null>(null);
+  if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) {
+    setTargetRequestSequence(targetOpenRequest.sequence);
+    setUnifiedTargetRequest(null);
+    setActiveSubTab("targets");
+  }
+  function returnToUnified() {
+    setUnifiedTargetRequest(null);
+    setActiveSubTab("unified");
+    requestAnimationFrame(() => {
+      const trigger = unifiedTargetTrigger.current;
+      if (trigger?.isConnected && !trigger.matches(":disabled") && !trigger.closest("[hidden],[inert]")) trigger.focus({ preventScroll: true });
+      else document.getElementById("subtab-unified")?.focus({ preventScroll: true });
+    });
+  }
   const [searchQuery, setSearchQuery] = useState("");
   const [processFilter, setProcessFilter] = useState<string>("all");
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -251,7 +272,7 @@ export function ProjectLogisticsManagement({
       if (!includeInactive && !p.active) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q);
+      return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
     });
   }, [logistics.processes, includeInactive, searchQuery]);
 
@@ -264,6 +285,7 @@ export function ProjectLogisticsManagement({
       return (
         e.name.toLowerCase().includes(q) ||
         e.code.toLowerCase().includes(q) ||
+        e.id.toLowerCase().includes(q) ||
         e.model.toLowerCase().includes(q) ||
         e.manufacturer.toLowerCase().includes(q)
       );
@@ -278,7 +300,7 @@ export function ProjectLogisticsManagement({
       }
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q);
+      return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     });
   }, [logistics.systems, includeInactive, processFilter, searchQuery]);
 
@@ -376,7 +398,7 @@ export function ProjectLogisticsManagement({
         if(!res.ok)throw new Error();
         const data=(await res.json() as LogisticsTargetListResponse).data;
         if(data.projectRevision!==revision)throw new Error();
-        matching.push(...data.targets.filter(t=>t.members.some(m=>m.kind===kind&&m.entityId===id)).map(t=>({id:t.id,name:`${t.code} · ${t.name} (ID: ${t.id})`})));
+        matching.push(...data.targets.filter(t=>t.members.some(m=>m.kind===kind&&m.entityId===id)).map(t=>({id:t.id,name:`${t.name} (${t.code})`})));
         offset+=data.targets.length;if(offset>=data.total)break;if(!data.targets.length||offset>10000)throw new Error();
       }
       const candidateTaskIds=new Set<string>();const taskIds=new Set<string>();let legacyCount:number|null=null;
@@ -401,7 +423,7 @@ export function ProjectLogisticsManagement({
   }
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, tab: SubTab) => {
-    const tabs: SubTab[] = ["dashboard", "targets", "processes", "equipment", "systems", "relations"];
+    const tabs: SubTab[] = ["dashboard", "unified", "targets", "processes", "equipment", "systems", "relations"];
     const idx = tabs.indexOf(tab);
     let nextTab: SubTab | null = null;
     if (e.key === "ArrowRight") {
@@ -458,6 +480,11 @@ export function ProjectLogisticsManagement({
           onKeyDown={(e) => handleTabKeyDown(e, "dashboard")}
         >
           KPI 대시보드
+        </button>
+        <button id="subtab-unified" className={styles.subTabButton} role="tab" type="button"
+          aria-selected={activeSubTab === "unified"} aria-controls="panel-unified" tabIndex={activeSubTab === "unified" ? 0 : -1}
+          onClick={() => setActiveSubTab("unified")} onKeyDown={e => handleTabKeyDown(e, "unified")}>
+          통합 조회
         </button>
         <button id="subtab-targets" className={styles.subTabButton} role="tab" type="button" aria-selected={activeSubTab === "targets"} aria-controls="panel-targets" tabIndex={activeSubTab === "targets" ? 0 : -1} onClick={() => setActiveSubTab("targets")} onKeyDown={e => handleTabKeyDown(e, "targets")}>물류 대상(Target)</button>
         <button
@@ -518,16 +545,17 @@ export function ProjectLogisticsManagement({
       </div>
 
       <div id="panel-targets" role="tabpanel" aria-labelledby="subtab-targets" hidden={activeSubTab !== "targets"}>
-        <ProjectLogisticsTargets openRequest={targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
+        {unifiedTargetRequest ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
+        <ProjectLogisticsTargets openRequest={unifiedTargetRequest ?? targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
       </div>
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
-      {activeSubTab !== "dashboard" && activeSubTab !== "targets" ? (
+      {activeSubTab !== "dashboard" && activeSubTab !== "unified" && activeSubTab !== "targets" ? (
         <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
           <div className={styles.filtersGroup}>
             <input
               className={styles.searchInput}
               type="search"
-              placeholder="코드 또는 이름 검색"
+              placeholder="이름, 코드 또는 ID 검색"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="물류 항목 검색"
@@ -542,7 +570,7 @@ export function ProjectLogisticsManagement({
                 <option value="all">전체 공정</option>
                 {logistics.processes.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.code} - {p.name}
+                    {logisticsName(p, logistics.processes)}
                   </option>
                 ))}
               </select>
@@ -632,6 +660,19 @@ export function ProjectLogisticsManagement({
         />
       </div>
 
+      <div id="panel-unified" role="tabpanel" aria-labelledby="subtab-unified" hidden={activeSubTab !== "unified"}>
+        <ProjectLogisticsUnified publicId={publicId} revision={revision}
+          active={active && activeSubTab === "unified"} busy={busy || isSubmitting} editable={editable}
+          logistics={logistics} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
+          onOpenMilestone={taskId => onStageOpen?.(taskId)} onResourceSchedule={onResourceSchedule}
+          onOpenTarget={(id, trigger, code) => {
+            if (!editable || busy || isSubmitting) return;
+            unifiedTargetTrigger.current = trigger;
+            setUnifiedTargetRequest({ id, code, sequence: Date.now() });
+            setActiveSubTab("targets");
+          }} />
+      </div>
+
       {/* Sub-panel 1: Processes */}
       <div
         id="panel-processes"
@@ -640,10 +681,9 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "processes"}
       >
         <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+          <table className={`${styles.dataTable} ${styles.processTable}`}>
             <thead>
               <tr>
-                <th>공정 코드</th>
                 <th>공정명</th>
                 <th>상위 공정</th>
                 <th>정렬 순서</th>
@@ -654,7 +694,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredProcesses.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 6 : 5} className={styles.emptyState}>
+                  <td colSpan={editable ? 5 : 4} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 공정이 없습니다.</div>
                     <p>공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</p>
                   </td>
@@ -665,15 +705,13 @@ export function ProjectLogisticsManagement({
                   return (
                     <tr key={p.id} className={!p.active ? styles.inactiveRow : undefined}>
                       <td>
-                        <strong>{p.code}</strong>
-                      </td>
-                      <td>
                         <span className={parent ? styles.treeItemLevel1 : styles.treeItemLevel0}>
                           {parent ? "└ " : ""}
-                          {p.name}
+                          <strong>{p.name.trim() || "이름 확인 필요"}</strong>
                         </span>
+                        <IdentifierDetails identifiers={[{ label: "공정 코드", value: p.code }, { label: "공정 ID", value: p.id }]} />
                       </td>
-                      <td>{parent ? `${parent.name} (${parent.code})` : "-"}</td>
+                      <td>{parent ? logisticsName(parent, logistics.processes) : "-"}</td>
                       <td>{p.sortOrder}</td>
                       <td>
                         <span
@@ -732,11 +770,10 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "equipment"}
       >
         <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+          <table className={`${styles.dataTable} ${styles.equipmentTable}`}>
             <thead>
               <tr>
                 <th>소속 공정</th>
-                <th>설비 코드</th>
                 <th>설비명</th>
                 <th>유형</th>
                 <th>단위/수량</th>
@@ -749,7 +786,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredEquipment.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
+                  <td colSpan={editable ? 8 : 7} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 설비가 없습니다.</div>
                     <p>공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.</p>
                   </td>
@@ -765,11 +802,8 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={eq.id} className={!eq.active ? styles.inactiveRow : undefined}>
-                      <td>{proc ? `${proc.name} (${proc.code})` : eq.processId}</td>
-                      <td>
-                        <strong>{eq.code}</strong>
-                      </td>
-                      <td>{eq.name}</td>
+                      <td>{proc ? logisticsName(proc, logistics.processes) : "공정 참조 확인 필요"}</td>
+                      <td><strong>{eq.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
                           {equipmentTypeLabels.get(eq.equipmentType) ?? eq.equipmentType}
@@ -888,10 +922,9 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "systems"}
       >
         <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+          <table className={`${styles.dataTable} ${styles.systemTable}`}>
             <thead>
               <tr>
-                <th>시스템 코드</th>
                 <th>시스템명</th>
                 <th>유형</th>
                 <th>계층</th>
@@ -905,7 +938,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredSystems.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
+                  <td colSpan={editable ? 8 : 7} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 물류 시스템이 없습니다.</div>
                     <p>제어 시스템(SCS, ACS 등) 및 상위 조율 시스템(MCS)을 등록하세요.</p>
                   </td>
@@ -920,10 +953,7 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={sys.id} className={!sys.active ? styles.inactiveRow : undefined}>
-                      <td>
-                        <strong>{sys.code}</strong>
-                      </td>
-                      <td>{sys.name}</td>
+                      <td><strong>{sys.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
                           {systemTypeLabels.get(sys.systemType) ?? sys.systemType}
@@ -947,7 +977,7 @@ export function ProjectLogisticsManagement({
                               const p = processById.get(pid);
                               return (
                                 <span key={pid} className={styles.roleTag}>
-                                  {p ? p.name : pid}
+                                  {p ? logisticsName(p, logistics.processes) : "공정 참조 확인 필요"}
                                 </span>
                               );
                             })}
@@ -1104,7 +1134,7 @@ export function ProjectLogisticsManagement({
                       return (
                         <tr key={coordSys.id}>
                           <td>
-                            <strong>{coordSys.name}</strong> ({coordSys.code})
+                            <strong>{logisticsName(coordSys, logistics.systems)}</strong>
                           </td>
                           <td style={{ color: "var(--text-muted)" }}>연계된 하위 시스템 없음</td>
                           <td>-</td>
@@ -1123,7 +1153,7 @@ export function ProjectLogisticsManagement({
                         <tr key={`${coordSys.id}-${ctrlSys.id}`}>
                           {idx === 0 ? (
                             <td rowSpan={childSys.length}>
-                              <strong>{coordSys.name}</strong> ({coordSys.code})
+                              <strong>{logisticsName(coordSys, logistics.systems)}</strong>
                               <br />
                               <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
                                 {pi ? `★ PI: ${pi.resourceName}` : "PI 미지정"}
@@ -1131,7 +1161,7 @@ export function ProjectLogisticsManagement({
                             </td>
                           ) : null}
                           <td>
-                            <strong>{ctrlSys.name}</strong> ({ctrlSys.code})
+                            <strong>{logisticsName(ctrlSys, logistics.systems)}</strong>
                             {ctrlPi ? ` [PI: ${ctrlPi.resourceName}]` : ""}
                           </td>
                           <td>
@@ -1149,7 +1179,7 @@ export function ProjectLogisticsManagement({
                                       style={{ marginRight: "0.25rem", marginBottom: "0.2rem" }}
                                     >
                                       {isPrimaryCtrl ? "★ " : ""}
-                                      {e.name} ({e.code})
+                                      {logisticsName(e, logistics.equipment)}
                                     </span>
                                   );
                                 })}
@@ -1162,7 +1192,7 @@ export function ProjectLogisticsManagement({
                             {controlledEq
                               .map((e) => {
                                 const owner = e.resourceRoles.find((r) => r.isPrimary);
-                                return owner ? `${e.code}: ${owner.resourceName}` : null;
+                                return owner ? `${e.name}: ${owner.resourceName}` : null;
                               })
                               .filter(Boolean)
                               .join(", ") || "-"}
@@ -1513,7 +1543,7 @@ function ProcessDialog({
               <option value="">(최상위 공정)</option>
               {eligibleParents.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
+                  {logisticsName(p, allProcesses)}
                 </option>
               ))}
             </select>
@@ -1623,7 +1653,7 @@ function EquipmentDialog({
             >
               {allProcesses.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
+                  {logisticsName(p, allProcesses)}
                 </option>
               ))}
             </select>
@@ -1838,7 +1868,7 @@ function EquipmentSystemsDialog({
                       onChange={(e) => toggleSystem(s.id, e.target.checked)}
                     />
                     <span>
-                      <strong>{s.name}</strong> ({s.code}) - {s.systemType.toUpperCase()}
+                      <strong>{logisticsName(s, allSystems)}</strong> - {s.systemType.toUpperCase()}
                     </span>
                   </label>
                   {isSelected ? (
@@ -2011,7 +2041,7 @@ function EquipmentRolesDialog({
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
               const canonical = equipment.resourceRoles.find((role) => role.resourceId === item.resourceId);
-              const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const displayName = catalogReady && res ? (catalogResources.filter(item => item.name === res.name).length > 1 ? `${res.name} (${res.code ?? res.id})` : res.name) : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
               const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
@@ -2083,7 +2113,7 @@ function EquipmentRolesDialog({
               <option value="">(리소스 선택)</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {r.name} ({r.code ?? "코드없음"}) · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
+                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
                 </option>
               ))}
             </select>
@@ -2358,7 +2388,7 @@ function SystemProcessesDialog({
                   onChange={(e) => toggle(p.id, e.target.checked)}
                 />
                 <span>
-                  <strong>{p.code}</strong> - {p.name}
+                  <strong>{logisticsName(p, allProcesses)}</strong>
                 </span>
               </label>
             ))
@@ -2412,7 +2442,7 @@ function SystemChildrenDialog({
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-muted)" }}>
-          상위 조율 시스템({system.code})이 명령/작업을 조율할 하위 제어/조율 시스템을 선택합니다.
+          상위 조율 시스템({system.name})이 명령/작업을 조율할 하위 제어/조율 시스템을 선택합니다.
           <br />
           순환 연계(DAG cycle)는 서버에서 자동으로 검증 및 방지됩니다.
         </p>
@@ -2440,7 +2470,7 @@ function SystemChildrenDialog({
                   onChange={(e) => toggle(s.id, e.target.checked)}
                 />
                 <span>
-                  <strong>{s.code}</strong> - {s.name} ({s.layer === "coordinator" ? "조율" : "제어"})
+                  <strong>{logisticsName(s, allSystems)}</strong> ({s.layer === "coordinator" ? "조율" : "제어"})
                 </span>
               </label>
             ))
@@ -2590,7 +2620,7 @@ function SystemRolesDialog({
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
               const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
-              const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const displayName = catalogReady && res ? (catalogResources.filter(item => item.name === res.name).length > 1 ? `${res.name} (${res.code ?? res.id})` : res.name) : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
               const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
@@ -2662,7 +2692,7 @@ function SystemRolesDialog({
               <option value="">(리소스 선택)</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {r.name} ({r.code ?? "코드없음"}) {!r.active ? " · 비활성" : ""}
+                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} {!r.active ? " · 비활성" : ""}
                 </option>
               ))}
             </select>

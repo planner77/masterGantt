@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { targetMasterPassword } from "./fixtures/target-project";
@@ -49,7 +50,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await table.locator("tbody tr").filter({ hasText: f.resources[0].name }).getByRole("button", { name: /Project 전체 · 초과/ }).first().click();
   const detail = root.getByRole("region", { name: "기간 부하 상세", exact: true });
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
-  await expect(detail).toContainText(f.targets[0].id);
+  await expectRawIdentifier(detail, "Target ID", f.targets[0].id);
   await expect(detail).toContainText(f.targets[0].name);
   await expect(detail).toContainText("선택 Target 밖 배정 포함");
   await detail.locator("tbody th button").first().click();

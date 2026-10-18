@@ -11,6 +11,8 @@ export interface ResourceScheduleRequest {
   trigger: HTMLElement;
   taskId?: string;
   assignmentId?: string;
+  /** undefined: current Resource tab binding; null: whole-Project Logistics source. */
+  binding?: ResourceDrillBinding | null;
 }
 export const ResourceDrillContext = createContext<{
   binding: ResourceDrillBinding | null;

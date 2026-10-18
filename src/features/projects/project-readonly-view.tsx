@@ -81,6 +81,7 @@ import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
+import { logisticsName } from "@/features/logistics/logistics-identity";
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
 import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
@@ -1923,7 +1924,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       let projection = request.projection;
       let expected = request.data.resourceScopeContext;
       if (!expected) throw Error("INVALID_RESPONSE");
-      let commandBinding = resourceBinding;
+      let commandBinding = request.binding !== undefined ? request.binding : resourceBinding;
       if (request.taskId) {
         if (request.assignmentId)
           commandBinding = {
@@ -2867,7 +2868,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               </div>
               <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
                 const key = `${target.kind}:${target.id}`;
-                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
+                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name || "이름 확인 필요"}{target.code && assignedTargets.some(peer => peer.id !== target.id && peer.name === target.name) ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
               })}</div>
             </fieldset> ) : null}
           </section>
@@ -2893,7 +2894,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                             }))
                           }
                         />
-                        <span>{proc.name} <code>({proc.code})</code></span>
+                        <span>{logisticsName(proc, logistics.processes)}</span>
                       </label>
                     ))}
                   </div>
@@ -2917,7 +2918,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                             }))
                           }
                         />
-                        <span>{eq.name} <code>({eq.code})</code></span>
+                        <span>{logisticsName(eq, logistics.equipment)}</span>
                       </label>
                     ))}
                   </div>
@@ -2941,7 +2942,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                             }))
                           }
                         />
-                        <span>{sys.name} <code>({sys.code})</code></span>
+                        <span>{logisticsName(sys, logistics.systems)}</span>
                       </label>
                     ))}
                   </div>
@@ -3034,6 +3035,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           tasks={tasks}
           active={activeView === "logistics"}
           onStageSchedule={drillDashboardSchedule}
+          onResourceSchedule={scheduleResourceRequest}
+          onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
           onStageOpen={(taskId, tab) => { setActiveView(tasks.find(task => task.taskId === taskId)?.type === "milestone" ? "milestones" : "schedule"); openTaskEditor(taskId, tab); }}
           onTargetTaskOpen={(taskId) => openTaskEditor(taskId)}
           logistics={state.snapshot.data.logistics}

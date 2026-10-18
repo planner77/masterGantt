@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -91,7 +92,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor).toBeVisible();
   // The Editor displays External ID; the PATCH URL below verifies public taskId identity.
-  await expect(editor).toContainText(milestone.externalId);
+  await expectRawIdentifier(editor, "외부 ID", milestone.externalId);
   await editor.getByLabel("작업명", { exact: true }).fill("관리 목록 편집 단계");
   await editor.getByLabel("요청 시작일", { exact: true }).fill("2026-10-12");
   await editor.getByLabel("Description", { exact: true }).fill("합성 설명: 관리 진입의 동일 canonical identity");
@@ -174,7 +175,7 @@ test("#550 관리 진입 실제 HTTP·SQLite 생성/편집·전체 Gate·보호 
   const durableRow = panel.locator(`tr[data-milestone-task-id="${milestone.taskId}"]`);
   await durableRow.getByRole("button", { name: "관리 목록 편집 단계 Milestone 상세", exact: true }).click();
   await expect(editor.getByLabel("작업명", { exact: true })).toHaveValue("관리 목록 편집 단계");
-  await expect(editor).toContainText(milestone.externalId);
+  await expectRawIdentifier(editor, "외부 ID", milestone.externalId);
   await expect(editor).toContainText("완료 기록과 현재 소속/선행 상태가 일치하지 않습니다");
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   expect(await get()).toEqual(durableSnapshot);

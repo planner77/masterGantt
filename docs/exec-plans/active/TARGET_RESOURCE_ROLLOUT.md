@@ -18,7 +18,7 @@
 | R3 | [#621](https://github.com/planner77/masterGantt/issues/621) | ui_ux/frontend: Resource/Group/Target 동일 원본 편집 | #618/#620 | #621 CLOSED / PR #683 병합, main/Finalizer 성공 원장은 Q1 수용표 참조 |
 | R4 | [#622](https://github.com/planner77/masterGantt/issues/622) | scheduler/backend/frontend: 주·월 Plan·전체 과투입·Excel | #619/#620, UI #621 | #622 OPEN / PR #684 병합, PR #2770.1 SUCCESS. 착수 조회 Main #2771.1 진행 중·artifact/Finalizer NOT TESTED |
 | Q1 | [#623](https://github.com/planner77/masterGantt/issues/623) | qa_docs/Manager: Resource MVP 종단간·이관·운영 수용 | #614~#622 | #623 구현·로컬 통합 수용 후보, [Work Packet](ISSUE_623.md) / PR CI 시작까지. M2 최종 gate BLOCKED |
-| V1 | [#624](https://github.com/planner77/masterGantt/issues/624) | ui_ux/frontend/backend: 공정/구역/인스턴스 확장·Milestone 교차 | #623 | #624 후순위 / NOT TESTED, Epic 전체 완료 아님 |
+| V1 | [#624](https://github.com/planner77/masterGantt/issues/624) | ui_ux/frontend/backend: 공정/구역/인스턴스 확장·Milestone 교차 | #623 | 구현/전용 테스트·문서 후보. exact-head CI/Owner 수용 전 NOT TESTED, Epic 전체 완료 아님 |
 
 M1=#614~#618, M2=M1+#619~#623, M3=M2+#624. M2 수용이 Epic 전체 완료를 뜻하지 않는다. #617 계약과 실제 구현이 완료되면 #618 UI와 #619 Domain을 분리 파일 소유권으로 병행할 수 있다. #620은 API 독립 검증까지 가능하나 #621 사용자 수용은 #618 완료가 필요하다.
 
@@ -94,3 +94,18 @@ F3 #617 PR #676이 main `96c6c74b304f1ccd09f7340f37ebf0b0c393ae3b`에 병합되�
 Q1은 같은 F0 golden의 Domain/API/UI/OOXML, 다관점 개별 편집·복귀, actual legacy migration·Copy/Template·합성 backup/restore·5폭/한도 관측과 사용자/운영 가이드를 통합한다. 테스트/문서 전용이면 app0.114.0 유지, HIGH/OWNER_MANAGED/qa_required=true, release_required=false/release_authorized=false다. 실제 수행과 최초 실패·보완은 [ISSUE_623](ISSUE_623.md)을 따른다.
 
 요청은 사전 검토·리뷰/충돌 처리 후 exact-head Full PR CI 시작까지다. Q1 로컬 후보·PR 생성은 M2 최종 수용/Owner ACCEPT/main artifact·운영 환경 수용이 아니다. #624/V1은 NOT TESTED이며 Epic #613 전체 완료로 확대하지 않는다.
+
+## Issue #624 — V1 물류 통합 조회 구현 후보 (2026-10-17)
+
+선행 #623의 Task/Assignment/Target 고유 원본과 Resource read model을 재사용하여 앱 소유 `projectionOrder`로 공정·선택 WorkArea/설비·시스템 인스턴스/Target→Resource를 제공한다. 구성 고유 설비 수량과 Task coverage, 서버 고유 공수/기간가중 진척, full Milestone Gate/selected 관련 Task를 분리한다. Gantt WBS/Timeline writer·새 DB/API/PRO 불필요. 실제 기능·AC/새 E2E·로컬 미검증·문서/QA 원장은 [#624 Work Packet](ISSUE_624.md) 기준.
+
+app0.116.0 MINOR / HIGH / OWNER_MANAGED / qa_required=true / release_required=true / release_authorized=false. 최신 main·리뷰/충돌 확인 후 Full PR CI 시작만 이번 요청 범위이고, 원격 결과·Trusted QA/Owner 위험 수용·Main/GHCR·Epic #613 종결은 별도다.
+
+## Issue #624 V1 — 4차 CI/누적 분석 수렴 (2026-10-17)
+
+앞선 #2875~2877 문서/ESLint 근인은 #2879.1의 성공 Job에서 재발하지 않았다. 새로운 실제 실패는 Chromium 2/6의 `issue-624-logistics-unified.spec.ts` 390px document width 704 (<=391 expected); 다른 5 shard는 취소돼 미검증이다. `src/features/logistics/project-logistics-unified.module.css` Grid track의 min-content 전파 차단과 strict E2E/실패 geometry 진단을 선택했다. 전체 원본/교정·동결 후보·재검증 및 최신 #704 정책은 [Issue #624 Work Packet](ISSUE_624.md)과 [누적 실패 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)을 따른다. 현재 V1/M3/Epic 수용·원격 성공/릴리스 승인 **NOT TESTED**.
+
+
+## #624 V1 — CI #2893.1 Scoped Week axis prep 보완 (2026-10-17)
+
+[누적 원장](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)의 전체 #2875→#2887 실제 실패와 #2893의 #456 X62/expected120을 함께 검토한다. 신규 #624 5폭 및 직전 #621 E2E는 개별 PASS이나 취소 Shard의 종합 PASS는 아니다. #456 WBS Summary/fullscreen/Week의 current Core/native capacity 확인 → 필요할 때 한 번의 실제 wheel → target120 안정 수용 → 기존 exact120/vertical38·metadata/save/Editor state 단언 유지. 새 테스트 skip/timeout/QA 축소 없음. 최신 main #552 Gantt marker-OFF 변경을 보존한 app0.116.0 MINOR/HIGH/OWNER_MANAGED/release_authorized=false 후보로 병합·검증한다. 새 exact-head Full PR CI 시작은 전체 성공/Owner 승인/정식 GHCR 출고가 아니다.

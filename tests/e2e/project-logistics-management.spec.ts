@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 import {
   expectSameGanttRoot,
@@ -6,6 +6,16 @@ import {
   publicId,
   rememberGanttRoot,
 } from "../fixtures/stateful-project";
+
+async function expectIdentifier(panel: Locator, name: string, label: string, value: string) {
+  const row = panel.getByRole("row").filter({ has: panel.page().locator("strong").filter({ hasText: name }) }).first();
+  await expect(row.getByText(name, { exact: true })).toBeVisible();
+  const identifiers = row.locator("details").first();
+  await identifiers.locator("summary").click();
+  await expect(identifiers.getByLabel(label, { exact: true })).toBeVisible();
+  await expect(identifiers.getByLabel(label, { exact: true })).toHaveValue(value);
+  await identifiers.locator("summary").click();
+}
 
 function sampleLogisticsData(): ProjectLogisticsDto {
   return {
@@ -241,31 +251,31 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");
     await page.getByRole("tab", { name: "공정 관리" }).click();
     const processPanel = page.locator("#panel-processes");
-    await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
+    await expectIdentifier(processPanel, "입고 공정", "공정 코드", "PROC-01");
+    await expect(processPanel.locator("strong").filter({ hasText: "입고 공정" })).toBeVisible();
+    await expectIdentifier(processPanel, "보관 공정", "공정 코드", "PROC-02");
     await expect(processPanel.getByText("보관 공정")).toBeVisible();
-    await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
+    await expectIdentifier(processPanel, "출고 공정", "공정 코드", "PROC-03");
     await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 2: Equipment
     await page.getByRole("tab", { name: "설비 관리" }).click();
     const equipmentPanel = page.locator("#panel-equipment");
-    await expect(equipmentPanel.getByText("STK-01", { exact: true })).toBeVisible();
+    await expectIdentifier(equipmentPanel, "1번 자동창고 스토커", "설비 코드", "STK-01");
     await expect(equipmentPanel.getByText("1번 자동창고 스토커", { exact: true })).toBeVisible();
-    await expect(equipmentPanel.getByText("AGV-F1", { exact: true })).toBeVisible();
+    await expectIdentifier(equipmentPanel, "입고 무인운반차 편대", "설비 코드", "AGV-F1");
     await expect(equipmentPanel.getByText("입고 무인운반차 편대", { exact: true })).toBeVisible();
-    await expect(equipmentPanel.getByText("AMR-F1", { exact: true })).toBeVisible();
+    await expectIdentifier(equipmentPanel, "출고 자율이동로봇 편대", "설비 코드", "AMR-F1");
     // Check primary owner tag
     await expect(equipmentPanel.getByText("★ 홍길동 (owner)", { exact: true }).first()).toBeVisible();
 
     // Switch to Sub-tab 3: Systems
     await page.getByRole("tab", { name: "물류 시스템" }).click();
     const systemsPanel = page.locator("#panel-systems");
-    await expect(systemsPanel.getByText("MCS-01", { exact: true })).toBeVisible();
+    await expectIdentifier(systemsPanel, "통합 반송 조율 시스템", "시스템 코드", "MCS-01");
     await expect(systemsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
-    await expect(systemsPanel.getByText("ACS-01", { exact: true })).toBeVisible();
-    await expect(systemsPanel.getByText("SCS-01", { exact: true })).toBeVisible();
+    await expectIdentifier(systemsPanel, "AGV 관제 제어 시스템", "시스템 코드", "ACS-01");
+    await expectIdentifier(systemsPanel, "스토커 제어 시스템", "시스템 코드", "SCS-01");
     // Check project-common scope badge
     await expect(systemsPanel.getByText("프로젝트 공통", { exact: true })).toBeVisible();
     // Check primary PI tag
@@ -276,8 +286,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     const relationsPanel = page.locator("#panel-relations");
     const relationRows = relationsPanel.getByRole("row");
     await expect(relationRows.filter({ hasText: "통합 반송 조율 시스템" }).first()).toBeVisible();
-    await expect(relationRows.filter({ hasText: "AGV 관제 제어 시스템 (ACS-01)" }).first()).toBeVisible();
-    await expect(relationRows.filter({ hasText: "스토커 제어 시스템 (SCS-01)" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "AGV 관제 제어 시스템" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "스토커 제어 시스템" }).first()).toBeVisible();
 
     // Switch back to schedule tab and verify Gantt intact
     await scheduleTab.click();
@@ -436,11 +446,11 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     });
     expect(requestBody).not.toHaveProperty("code");
     await expect(dialog).toHaveCount(0);
-    await expect(page.getByText("PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", { exact: true })).toBeVisible();
-    await expect(page.getByText("자동 생성 코드 공정", { exact: true })).toBeVisible();
+    await expectIdentifier(page.locator("#panel-processes"), "자동 생성 코드 공정", "공정 코드", "PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    await expect(page.locator("#panel-processes").getByText("자동 생성 코드 공정", { exact: true })).toBeVisible();
 
     const processPanel = page.locator("#panel-processes");
-    const legacyRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    const legacyRow = processPanel.getByRole("row").filter({ has: page.locator("strong").filter({ hasText: "입고 공정" }) });
     await expect(legacyRow).toHaveCount(1);
     await legacyRow.getByRole("button", { name: "수정", exact: true }).click();
     const editDialog = page.getByRole("dialog", { name: "공정 수정" });
@@ -505,7 +515,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await page.getByRole("tab", { name: "물류 구성" }).click();
     await page.getByRole("tab", { name: "물류 시스템" }).click();
 
-    const mcsRow = page.locator("tr", { hasText: "MCS-01" });
+    const mcsRow = page.locator("#panel-systems").getByRole("row").filter({ has: page.getByText("통합 반송 조율 시스템", { exact: true }) });
     await mcsRow.getByRole("button", { name: "하위연계" }).click();
     const dialog = page.getByRole("dialog", { name: /하위 조율 시스템 연계/ });
     await dialog.getByRole("button", { name: "저장" }).click();
@@ -535,7 +545,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await page.getByRole("tab", { name: "공정 관리" }).click();
 
     const processPanel = page.locator("#panel-processes");
-    const processRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    const processRow = processPanel.getByRole("row").filter({ has: page.locator("strong").filter({ hasText: "입고 공정" }) });
     await expect(processRow).toHaveCount(1);
     await processRow.getByRole("button", { name: "삭제", exact: true }).click();
     const confirm = page.getByRole("dialog", { name: "삭제 확인" });

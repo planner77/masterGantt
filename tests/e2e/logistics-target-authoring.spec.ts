@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { mkdir } from "node:fs/promises";
 import type { Locator } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -98,7 +99,7 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
   await page.getByRole("button", { name: "Target 상세: Target A", exact: true }).click();
   const detail = page.getByRole("dialog", { name: "Target 상세 · Target A", exact: true });
-  await expect(detail).toContainText(f.task.taskId);
+  await expectRawIdentifier(detail, "작업 ID", f.task.taskId);
   await expect(detail).toContainText("Target 2개에서 공유");
   let taskPatches = 0;
   page.on("request", request => { if (request.method() === "PATCH" && new URL(request.url()).pathname === `/api/projects/${f.publicId}/tasks/${f.task.taskId}`) taskPatches += 1; });
@@ -256,7 +257,7 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await bindings.getByLabel("상속 대상 (INHERITED)", { exact: true }).check();
   await bindings.getByRole("combobox", { name: "상속 대상 적용 범위", exact: true }).selectOption("subtree");
   await expect(bindings).toContainText("검토할 하위 작업 1개");
-  await expect(bindings).toContainText(f.task.taskId);
+  await expectRawIdentifier(bindings, "작업 ID", f.task.taskId);
   await expect(bindings.getByRole("button", { name: "Target 연결 저장", exact: true })).toBeDisabled();
   await bindings.getByRole("button", { name: "하위 작업 영향 확인 후 적용", exact: true }).click();
   await bindings.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
@@ -278,7 +279,7 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await editor.getByRole("tab", { name: /물류 연결/ }).click();
   await expect(bindings).toContainText("조상 상속");
   await expect(bindings).toContainText("기존 직접 설비·System 출처 1개");
-  await expect(bindings).toContainText(f.parentTask.taskId);
+  await expectRawIdentifier(bindings, "작업 ID", f.parentTask.taskId);
   const inherited = await (await page.request.get(`${f.api}/tasks/${f.task.taskId}/target-bindings`)).json();
   expect(inherited.data.bindings).toEqual([]);
   expect(inherited.data.effective.effectiveSystemIds).toEqual([target.members[0].entityId]);

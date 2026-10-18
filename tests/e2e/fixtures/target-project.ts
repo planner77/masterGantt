@@ -46,12 +46,14 @@ export async function createTargetProject(page: Page, origin: string, observeApi
   } }))).json() as CreateProjectResponse;
   const publicId = created.data.project.publicId;
   const api = `${origin}/api/projects/${publicId}`;
-  // A transport-only GET reset may occur despite a live isolated server.
-  // Observe the first failure before one bounded retry; never retry writes.
+  // #624: close the canonical GET connection to avoid reusing idle pooled sockets.
+  // #703: retain safe process/health diagnostics and one GET-only ECONNRESET
+  // retry; other transport/HTTP failures and all writes remain fail-closed.
   const snapshot = async () => {
     // The observer receives the normalized API route, never an absolute URL or
     // credential-bearing request. All consumers must supply real E2E diagnostics.
-    const response = await observedReadOnlyGet(observeApi, `/api/projects/${publicId}`, () => page.request.get(api));
+    const response = await observedReadOnlyGet(observeApi, `/api/projects/${publicId}`, () =>
+      page.request.get(api, { headers: { Connection: "close" } }));
     expect(response.status()).toBe(200);
     return await (await successful(response)).json() as ProjectSnapshotResponse;
   };

@@ -1,4 +1,6 @@
 "use client";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import { resourceProjectionFetch } from "./resource-drill-transport";
 import {
@@ -264,9 +266,9 @@ export function ResourceMilestoneMatrix(props: Props) {
                   >
                     {row.name}
                   </span>
+                  {row.id ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
                   <small>
-                    {row.code}
-                    {!row.active ? " · 비활성" : ""}
+                    {!row.active ? "비활성" : ""}
                   </small>
                 </th>
                 {visible.map((m) => (

@@ -1,5 +1,7 @@
 "use client";
 
+import { IdentifierDetails } from "@/components/identifier-details";
+
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { linkStructureLocked } from "./relation-editor-model";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
@@ -375,9 +377,10 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
         <h2 id="task-editor-title">작업 정보</h2>
         <p className={styles.headerMeta} id="task-editor-description">
           <span className={styles.typeBadge}>{taskTypeLabel}</span>
-          <span>External ID <code>{base.task.externalId}</code></span>
+          <span>{base.task.name}</span>
           <span>Revision {base.revision}</span>
         </p>
+        <IdentifierDetails label={`${base.task.name} 식별 정보`} identifiers={[{label: "외부 ID", value: base.task.externalId}, {label: "작업 ID", value: base.task.taskId}]} />
       </div>
       <button className="secondary-button" type="button" disabled={locked || awaitingDecision} onClick={close} aria-label="작업 편집기 닫기">닫기</button>
     </header>

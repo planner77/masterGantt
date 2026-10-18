@@ -34,3 +34,19 @@
 - 기존 Run이 취소되거나 재실행된 시도가 추가 확인되면 원본을 소급 수정하지 말고 F-002 이후 새 절을 추가한다.
 - 담당: Manager=PR metadata/Work Packet/doc 영향 및 최종 판정; infra=Git 변경 묶음 게시·CI Run 증거; frontend=후속 UI 실제 구현·테스트; qa_docs=증거 검토. 이번 재작업은 **문서 CI 정상화**, 제품 구현·main merge·GHCR·Issue Close 제외.
 - 완료 조건(이번 요청): 새 Head를 반영한 **새 Full PR CI 실행 시작**. 모니터링·CI 성공·Trusted QA PASS·Owner 병합 승인은 후속 실제 결과 없이는 주장하지 않는다.
+
+
+## 2026-10-18 제품 구현 재개와 추가 원장
+
+- 이전 Full #2923.1 원본 FAIL은 불변이다. Issue의 [당시 STATUS](https://github.com/planner77/masterGantt/issues/717#issuecomment-6243490398)는 metadata-only [#2926.1 / 39081286379](https://github.com/planner77/masterGantt/actions/runs/39081286379)도 구 Head `23e09aada982087047d90037704cdbb8b750bf97`에서 FAIL했다고 기록한다. 이 보조 실행은 새 Full #2927.1(`39081290832`, head `d97f1e60419575f4db3785c239b3ae341b3086d5`)의 결과를 대신하지 않는다. 이번 요청은 CI 모니터링을 제외하므로 #2927의 최종 결론을 새로 추정하지 않는다.
+- 현재 제품 구현은 기존 docs-only 범위를 확장한 신규 묶음이며 최신 main을 보존하고 충돌 PLAN을 통합한다. PR metadata를 MEDIUM/OWNER_MANAGED/qa_required=true와 release_required=true/release_authorized=false로 교정한 뒤 최종 소스 tree를 한 번 게시한다. metadata-only 이벤트는 Full과 구별한다.
+- 로컬 신규 E2E 최초 실패: implicit textarea label의 exact 질의 불일치(명시 aria-label 보완), count badge를 포함한 공정 tab의 exact name selector(실제 AX 이름 사용), search input의 role=textbox 오인(searchbox/label selector 수정). 원래 원문/검색/권한 assertion을 완화하지 않았다. interrupted 실행은 PASS로 집계하지 않는다.
+- 독립 PRE_QA는 모바일 공정 identity 약60px 붕괴와 관계 후보의 같은 표시 부모 이름 충돌, Resource Plan 원문 코드·Target ID 접근 누락을 발견했다. 셀 예산/내부 scroll과 실제 cell>=220px 단언, 표시 context 기준 동명 보조, 각 원문 disclosure로 보완했다. 초기 REWORK는 보존하고 새 source 검증을 분리한다.
+- 실제 HTTP 새 테스트 초기 setup HTTP400은 필수 description 입력 누락으로 fixture를 수정했다. 제품 HTTP validation을 완화하지 않았다. 최종 실행 결과는 Work Packet/인계 원장으로 구별한다.
+
+- 로컬 전체 Vitest는 2875PASS/3SKIPPED/보안 KDF2FAIL(5초 timeout과 capacity 후속 결과). 제품 보안 소스 변경 없이 관련 보안 파일10+새 Milestone1의 좁은 재실행11/11PASS이며 전체 최초 FAIL은 유지한다. full build·다중 Chromium·잘못 포함한 task-local 생성물 lint가 동시에 실행된 부하가 있었으나 인과를 확정하지 않는다.
+- 관련 Chromium66의 최초 소스는 닫힌 disclosure의 숨겨진 버튼을 실제 visible geometry로 계산(5폭 FAIL), 코드 병기 제거 뒤 기존 global name selector 중복(공정1), 예전 code 포함 resource button selector(관련 status)로 실패했다. visible-only 측정·명시 원문 hidden 단언·정확 panel/name selector로 보완하며 기존 허용 오차·mutation/권한/본문 검증은 유지한다. 해당 최신 실패 재검증을 별도 기록한다.
+- Local Pre-PR는 MEDIUM이 path HIGH 최소분류보다 낮아 BLOCKED → HIGH 승격 후 미등록18경로·동시 생성물 sourceStable=false로 BLOCKED. 수동 영향 매핑과 개별 실행 증거는 별도이며 자동선택기 정책을 바꾸거나 BLOCKED를 PASS로 재기록하지 않는다.
+
+- 최종 전체 Unit 동일 제품 소스 재실행(`--maxWorkers=2`)은 234 files PASS/1 file SKIPPED, 2877 PASS/3 SKIPPED,62.60초다. 최초 전체2 FAIL은 보존하며 worker 상한으로 로컬 동시성만 제한했고 테스트 timeout·assertion·원격 CI 설정은 바꾸지 않았다.
+- 관련66 최초55PASS/10FAIL/기존1SKIPPED에서 실패10의 각 후속 검증은 관리5/5·Resource9/9·공정1/1 PASS. 신규5폭/touch6/6와 real SQLite1/1 PASS. 새 Full PR CI는 별도이며 성공을 미리 선언하지 않는다.

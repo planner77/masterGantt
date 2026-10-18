@@ -1,3 +1,9 @@
+## Issue #624 — 물류 통합 조회 사용자 흐름
+
+작업공간 **물류 구성 → 통합 조회**에서 관점(공정·WorkArea / 설비 종류·인스턴스 / 시스템 종류·인스턴스 / Target·Resource)을 선택하고 기간·Target·상세 필터를 조정한다. 「작업·배정 상세」에서 원본 Task/Assignment를 열거나 정확한 일정으로 이동하며, 「대상 구성 편집」은 기존 Target 관리의 동일 원본을 연다. 조회 전용 모드에서는 변경 불가, stale 상태에서는 새로고침 후 다시 선택한다.
+
+상단 Project 구성 고유 수량은 등록 설비 인스턴스 수량의 distinct 합이며 「현재 Task 범위」는 Target/member가 연결된 작업의 coverage다. 공유 MCS/AMR fleet·복수 Target가 겹쳐도 표의 소계들을 Project 공수/설비 수량으로 더하지 않는다. Task 진척은 기간가중 계획 진척이고 설치완료 실적이 아니며 Milestone Ready/Blocked는 선택 밖 소속 Task·선행을 포함한 **전체 Gate**다. WorkArea 없음·project_common·legacy 직접 연결은 실물 그룹의 자동 저장이 아니다. [설계·검증](exec-plans/active/ISSUE_624.md).
+
 # Target·Resource 사용자 가이드
 
 Issue #623의 Resource 우선 MVP 안내다. 지원 계약은 [Logistics Targets](LOGISTICS_TARGETS.md), 계산은 [Resource KPI](RESOURCE_KPI_DASHBOARD.md), 검증 상태는 [통합 수용표](TARGET_RESOURCE_ACCEPTANCE.md)를 따른다. 후순위 #624 통합 물류 화면이나 #379 전체 참조 JSON의 완료를 뜻하지 않는다.

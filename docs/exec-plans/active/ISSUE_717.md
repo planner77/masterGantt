@@ -1,76 +1,83 @@
-# Issue #717 — 이름 우선·코드/ID 보조 표시 원칙 및 화면 개선
+# Issue #717 — 이름 우선·코드/ID 요청 조회
 
-## ISSUE WORK PACKET / 문서 정책 등록 단계
+## 실행 범위와 승인
 
-- 최신 PR: [#718](https://github.com/planner77/masterGantt/pull/718). 실패 Full CI [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283)의 동일 Issue 누적 원장은 [docs/ISSUE_717_FAILURE_ANALYSIS.md](../../ISSUE_717_FAILURE_ANALYSIS.md). 원본 FAIL은 고정해 보존하고 새 Head 성공으로 소급 수정하지 않는다.
+- Issue: [#717](https://github.com/planner77/masterGantt/issues/717), 기존 PR [#718](https://github.com/planner77/masterGantt/pull/718) 재사용. 2026-10-18 사용자 요청으로 과거 docs-only 제안을 제품 구현·미해결 리뷰/충돌 해결·Full PR CI 시작까지 확장했다. CI 완료 모니터링·병합·Main/GHCR·Issue 종료는 범위 밖이다.
+- 기준 main: `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, 기존 원격 Head `d97f1e60419575f4db3785c239b3ae341b3086d5`. 작업 worktree `issue-717`, local branch `fix/issue-717-name-first-ui`, 게시 대상은 기존 `docs/issue-717-name-first-identifier-policy`다. main과 기존 PR을 모두 조상으로 보존해 PLAN 충돌을 양쪽 기록 유지로 통합했다.
+- Version: main `0.116.0` → 호환 표시 개선 PATCH `0.116.1`. `release_required=true`, `release_authorized=false`. 버전 변경은 태그·GHCR 승인 근거가 아니다.
+- `risk_level: HIGH`, `qa_required: true`, `qa_method: OWNER_MANAGED`. 초기 MEDIUM에서 로컬 영향 선택기의 HIGH 최소 위험도(공유 Workspace/Resource·TEST_PLAN·E2E helper)에 맞춰 승격했다. 다중 frontend 조회/선택 표시와 공통 disclosure 영향; API/DB/권한/비동기 복구 엔진 변경 없음. 보호된 package/lock은 버전 일치 변경만 있다. 최신 main Owner-managed 경로를 유지하며 사용자 제공 AGENT 보호 검토 기준도 약화하지 않는다. 독립 qa_docs 사전 검토와 최종 신뢰된 QA/Owner 병합 허가는 구별한다.
+- `manager_decision: NOT TESTED`, `MERGE_READY: BLOCKED`; exact-head Required3/Trusted/Owner 승인 전 ACCEPT 금지. Reviewer와 최종 소스 지문은 검증 절에 남긴다.
 
-- Issue: [#717](https://github.com/planner77/masterGantt/issues/717)
-- 기준 main: `6fea0397bc07d0c3adf2d769f9ba6829473503a2` (2026-10-18 브랜치 생성 시점); 구현/병합 전 최신 main과 충돌을 재검증한다.
-- Branch: `docs/issue-717-name-first-identifier-policy`. 이번 변경은 **DESIGN.md와 문서 계획만**; UI 코드 구현은 후속 단계다.
-- Phase: PR_CI_FAIL → REWORK(DOCUMENTATION_SYNC + PR metadata) → 문서 PR 재검증. 제품 UI 구현, 브라우저 검증, QA, Main/GHCR, 이슈 종료는 **미착수**.
-- Risk (이번 docs-only 변경): `LOW`, `qa_required=false`, `qa_method=OWNER_MANAGED`. protected CI·보안·QA 스크립트/워크플로/DB/API/SVAR 변경 없음. 추후 UI 구현 PR의 위험도/QA는 새 기준으로 다시 판단한다.
-- Version: application `0.115.0` 유지; `release_required=false`, `release_authorized=false` (이번 문서 변경). 제품 변경 이후 버전·릴리스는 별도 Owner 판정.
-- 역할: Manager=정책/원칙 채택 및 문서 작성, ui_ux=read-only 비교·검토, frontend=후속 UI 구현·테스트, qa_docs=QA 근거 검토, infra=승인 후 GitHub CI/병합/릴리스. 실제 별도 Agent/브라우저/CI 검증을 수행했다고 주장하지 않는다.
-- 이번 승인 종료점: 새 Issue와 문서 커밋, PR 제안까지만. PR Merge/Main CI/GHCR/Issue Close는 승인 범위 밖.
+## 역할·설계·경계
 
-## CURRENT STATE / 관련 계약
+Manager는 shared `IdentifierDetails`, Project/Import 표시, 문서/version·E2E·게시를 담당한다. `identity_design` ui_ux는 전 화면 inventory/read-only 설계, `milestone_identity` frontend는 Milestone/기존 E2E 및 실제 HTTP 테스트, `logistics_identity` frontend는 물류와 관련 단위 테스트, `editor_resource_identity` frontend는 Editor·Resource·기준정보, `identity_qa` qa_docs는 독립 read-only 사전 검토를 수행했다. 실제 분리 Agent 실행이며 동일 파일 동시 작성·sub-agent GitHub 댓글 없음. 모델/effort는 런타임 role 설정이며 별도 성능 검증을 주장하지 않는다.
 
-1. `src/features/milestones/project-milestone-stage-table.tsx`의 Milestone 이름 아래 외부 ID, 원인 행에 외부 ID+작업 ID 반복 노출.
-2. `src/features/logistics/project-logistics-management.tsx`의 공정 표가 `공정 코드`를 `공정명` 앞 열에 배치하고 다른 연결 보기에서 `이름(코드)`/ `이름(ID)`를 사용.
-3. `docs/PROJECT_UX.md` #409의 Relation Editor ID 검색/표시, #285의 공정 신규 코드 자동 생성·수정 코드 편집; #519의 Membership picker 비노출을 유지·범위별로 정합화.
-4. #715의 불필요한 설명 문구 축소는 별도 UI 작업이다. 식별자 주·보조 정보 계층은 본 #717에서 담당.
+`ui-ux-pro-max` keyboard/접근성 지침과 `playwright`를 적용했다. **Design Delta A**는 기존 #717 문서 제안의 `DESIGN.md` §1.3을 구현하며 원칙 자체를 재정의하지 않는다. native disclosure·semantic token·44px·이름 최소폭은 기존 공통 원칙의 B 구체화다. 별도 색상·폰트·시각 시스템은 추가하지 않는다. SVAR native API/interaction/Core 변경이 없어 신규 SVAR 공식 sample/API 조사 N/A; 기존 실제 Gantt 인스턴스 보존 회귀는 유지한다.
 
-## DESIGN DELTA / SCOPE
+포함: 일반 Milestone·물류·Target·Task/관계·Resource·기준정보·Import 표시, 선택 후보 문맥과 원문 조회·복사, 관련 local 검색과 테스트. [전체 인벤토리](../../ISSUE_717_IDENTITY_INVENTORY.md)에 파일별 개선/예외/원문 경로를 기록한다. #519 picker 기존 구현과 #715의 설명 축소는 재구현하지 않는다.
 
-- 판정: **A — 전역 새로 채택한 시각적 정보 계층**. 기존 Workspace-first, Data-dense, Progressive disclosure를 여러 엔터티 화면의 primary name/secondary identifier 구조로 **명시적으로 구체화**한다. 화면별 긴 코드 제거·숨김/정확 대상 확인 예외까지 공통으로 적용.
-- `DESIGN.md` §1.3에 이름 우선·요청 시 ID 접근·동명이인 구분·식별자 데이터 불변·접근성/가독성 규칙을 추가. §8 UI Issue Workflow에 변경 시 §1.3 검토 연결.
-- 이번 PR 포함: `DESIGN.md`, `docs/exec-plans/active/ISSUE_717.md`, `docs/exec-plans/active/PLAN.md`, `docs/ISSUE_717_FAILURE_ANALYSIS.md`.
-- 제외: Milestone Dashboard/물류 공정 UI 코드·테스트, catalog/DB/API/DTO/schema/export 변경, SVAR Core 수정, 배포/릴리스/이슈 종료.
-- UX 공통 원칙이 적용된 **실제 구현**은 후속 PR에서 화면별 계약, 코드/ID 검색·Copy ID·canonical selection, 동일 이름, 긴 코드, 390/768/1024/1440/wide desktop, keyboard/focus/touch 및 browser evidence로 확인한다.
+불변: canonical code/externalId/taskId 데이터, React key/선택값/링크/저장·cache/API/DB/DTO/schema/JSON/Excel·Copy ID, 보안/Origin/If-Match/revision, Gantt Core/일정 엔진. 관리 코드 입력·외부 매핑·검증 오류·파괴적 공유 변경 확인은 근거 있는 예외다.
+
+## 구현과 회귀 보완
+
+- 기본 목록은 이름·상태·날짜/상위 경로. 전체 ID는 닫힌 native details의 읽기 전용 원문·명시 복사로 조회한다. Clipboard 실패 안내와 전체 텍스트 선택 대체 경로가 있다. 피드백은 현재 원문 scope와 일치할 때만 표시한다.
+- 공정명은 첫 열, 최소220px; 공정 전체 표 최소728px와 셀 예산220/180/80/88/160px로 내부 가로 scroll을 소유한다. 기존 코드 자동 생성·수정 원문은 유지한다.
+- 동명 관계 후보는 실제 표시 부모 이름/날짜가 같은지 비교한다. 다른 canonical 부모라도 같은 표시명이면 외부 ID로 보조 구분한다. 코드/ID 검색·선택/저장 body 원문은 유지한다.
+- 기본 목록의 이름 누락은 읽을 수 있는 확인 필요 상태이며, Resource Plan/Target의 전체 원문 코드·ID는 각 disclosure에서 확인한다.
+- 초기 독립 PRE_QA REWORK: 모바일 공정명 약60px 축소, 관계 후보 표시 충돌, Resource Plan 그룹/개인/Target 원문 접근 누락을 각각 보완했다. 원본 지적을 PASS로 소급하지 않으며 새 소스로 재검토한다.
 
 ## DOCUMENTATION_SYNC
 
-정확히 다음 Markdown 항목 단위로 문서 영향·이번 변경 파일 여부를 분리한다. 이번 변경은 사용자 화면이 아닌 **docs-only 정책 원칙**이며 #717의 제품 수용 기준 전부가 완료됐음을 뜻하지 않는다.
-
 - `DESIGN.md`: UPDATED
+- `docs/UI_UX_GUIDELINES.md`: UPDATED
+- `docs/PROJECT_UX.md`: UPDATED
+- `docs/TASK_EDITOR.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/ISSUE_717_IDENTITY_INVENTORY.md`: UPDATED
+- `docs/ISSUE_717_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_717.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
-- `docs/ISSUE_717_FAILURE_ANALYSIS.md`: UPDATED
-- `AGENTS.md`: N/A(기존 DESIGN 참조 및 UI Source of Truth 계약 유지)
-- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 단계별 검증과 승인 게이트 유지)
-- `docs/AGENT_PROMPTS.md`: N/A(에이전트 역할 및 문서 동기화 절차 불변)
-- `docs/UI_UX_GUIDELINES.md`: N/A(제품 화면 interaction 변경 없음, 후속 UI 구현에서 세칙 적용)
-- `docs/PROJECT_UX.md`: N/A(현재 Milestone 및 공정 화면 표시 동작 변경 없음)
-- `docs/TASK_EDITOR.md`: N/A(현재 Editor/Picker 화면 동작 변경 없음)
-- `docs/TEST_PLAN.md`: N/A(제품 UI 테스트 코드 변경 없음, 후속 구현에서 보완)
-- `CHANGELOG.md`: N/A(기능 및 배포 버전 변화 없는 docs-only 기록)
-- `docs/API.md`: N/A(HTTP API 및 외부 DTO 계약 변경 없음)
-- `docs/DB_SCHEMA.md`: N/A(DB 스키마 및 마이그레이션 변경 없음)
-- `docs/SECURITY.md`: N/A(인증, 권한 및 세션 정책 변경 없음)
-- `package.json`: N/A(제품 버전 0.115.0 변경 없음)
+- `CHANGELOG.md`: UPDATED
+- `AGENTS.md`: N/A(기존 역할·보안·문서·Owner 승인 기준 유지)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 단계·증거·Owner 승인·종료 게이트 불변)
+- `docs/QA_REVIEW_POLICY.md`: N/A(최신 main의 Owner-managed 정책 불변, 보호 파일 자기 승인 없음)
+- `docs/AGENT_PROMPTS.md`: N/A(역할/모델·위임 절차 불변)
+- `docs/GITHUB_OPERATIONS.md`: N/A(기존 PR 재사용과 B 게시 경로를 적용하며 권한·workflow·Ruleset 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(공식 Required3·Trusted QA·main/GHCR 게이트 불변)
+- `docs/CI_CD.md`: N/A(기존 PATCH/version 승인·릴리스 계약 적용, CI 설정 변경 없음)
+- `docs/API.md`: N/A(HTTP API·DTO·저장 payload 불변)
+- `docs/DB_SCHEMA.md`: N/A(DB/schema/migration 불변)
+- `docs/SCHEDULING_ENGINE.md`: N/A(일정/달력/원장 알고리즘 불변)
+- `docs/SECURITY.md`: N/A(인증/권한·Origin/revision 불변)
+- `docs/IMPORT_SCHEMA.md`: N/A(파일 schema·canonical 외부 교환 원본 불변)
+- `docs/IMPORT_EXPORT.md`: N/A(입출력 표시만 변경, 서버 처리·파일 규격 불변)
+- `docs/DEPLOYMENT.md`: N/A(배포·Docker·운영 구성 불변)
 
 ## AC_TEST_COVERAGE
 
-아래 AC별 계획은 Issue 수용 기준과 테스트 책임을 **추적하기 위한 매핑**이다. 문서-only 단계에서 제품 기능이 검증됐다는 의미가 아니다.
+- AC1: `docs/ISSUE_717_IDENTITY_INVENTORY.md` 전 화면 파일별 조사·반영·예외·원문 접근; #519/#715 중복 비구현 확인.
+- AC2: `tests/features/milestones/milestone-name-first.test.ts`, `tests/e2e/issue-717-name-first.spec.ts` 이름/상태/날짜와 닫힌 raw ID, 관리·원인/Copy ID 회귀.
+- AC3: `tests/features/logistics/logistics-identity.test.ts`, 기존 `project-logistics-management.spec.ts`, 새 5폭 cell>=220px; 자동 코드 생성·원문 수정은 기존+실제 HTTP 회귀.
+- AC4: inventory의 물류/Resource/Target·Task/관계·기준정보·Import 반영과 화면별 예외, 변경된 관련 Unit/E2E. 나머지 모든 화면의 5폭 전체 실증을 완료로 표시하지 않음.
+- AC5: `relation-candidate-context.test.ts`, `resource-search-filter.test.ts`, 물류 identity/context·Resource Plan 단위 및 새 `issue-717-identity-persistence.spec.ts`; 같은 이름 중 정확 UUID 수정/삭제, 코드/ID/이름 검색, 전체 복사·누락 이름 회귀.
+- AC6: 실제 Chromium/mock HTTP before+after 각 390/768/1024/1440/1920px, `issue-717-name-first.spec.ts` keyboard/Enter/Space/관리 Escape focus/전체원문 복사·거부 수동 선택/표 내부scroll·cell/dialog/document geometry. 실제 screen reader·실기기·모든 변경 화면 5폭은 NOT TESTED.
+- AC7: diff의 server/domain/API/DB/export·SVAR Core 변경0, version/lock 일치, 관련 문서·기존 canonical E2E 보존. DOC_SYNC와 실제 local 검증·원격 CI를 구별.
+- AC8: 기존 PR #718 재사용·최신 main ancestry/충돌 해결·리뷰 thread 재조회·B 단일 Ref 게시; Required quality/e2e/docker·Trusted·Owner ACCEPT는 새 exact head CI 완료 전 NOT TESTED.
 
-- AC1: Milestone 표·원인/공정 관리 노출 위치를 소스 기반으로 확인; 전 화면 전체 인벤토리 미완료, 후속 frontend 감사 필요.
-- AC2: Milestone 대시보드 이름 우선/ID on-demand 실제 구현 및 단위·브라우저 검증 필요. NOT TESTED.
-- AC3: 공정 관리 공정명 우선/긴 코드 보조 표시·코드 자동생성 보존의 실제 구현과 브라우저 검증 필요. NOT TESTED.
-- AC4: 물류/리소스/Target/기준정보 화면별 예외·원문 접근 흐름을 전수 조사하고 구현 후 검증 필요. NOT TESTED.
-- AC5: 이름·코드·외부 ID·UUID 검색, Copy ID, 동일 이름/누락 이름의 canonical 정확 선택·수정·삭제를 제품 회귀로 검증 필요. NOT TESTED.
-- AC6: 390/768/1024/1440/wide desktop 및 keyboard/focus/스크린리더/touch, 긴 ID truncated copy 원문·내부 표 scroll 검증 필요. NOT TESTED.
-- AC7: 실제 후속 UI 코드·테스트·문서 동기화와 API/DB/JSON/Excel/revision 무변경 여부 검증 필요. 이번 문서 PR에서는 변경 diff만 정적 확인.
-- AC8: AGENTS.md와 DESIGN.md/하위 문서·Issue Lifecycle 준수는 문서 정적 점검; 원격 PR required/Trusted QA/Owner ACCEPT는 새 Run 전 NOT TESTED.
+## 검증 증거와 현재 상태
 
-## CI #2923.1 (2026-10-18 KST) 누적 REWORK 진단
+- Baseline before: main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, 독립 임시 worktree 실제 Chromium/mock HTTP 5개 폭 캡처 PASS. UI 데이터는 synthetic fixture이며 실제 업무 데이터 아님.
+- 후보 after: 5폭+touch Chromium **6/6 PASS**, 공정 identity 최소220px, document<=viewport+1·modal bounds·원문 Clipboard·keyboard/focus·동일 Gantt·조회 mutation0. 1440 Clipboard 거부/수동 전체 선택 포함. `output/playwright/issue-717/{before,after}` geometry와 대표 screenshot을 보존한다.
+- 구현 Agent local: Milestone 모델/SSR69 PASS, 물류13 PASS, Editor/Resource81 PASS, 관계 후보2/기존 관계7 PASS, 추가 Picker2 PASS. 서로 중복 실행한 사례는 합산해 unique test 수로 주장하지 않는다. 기존 관련 Chromium 타깃7 PASS. Production build/runtime-tools PASS, lint PASS(0 errors/기존14 warnings; task-local 생성 디렉터리만 CLI ignore), Markdown249파일/version/diff 검사 PASS. 전체 Vitest는 2875 PASS/3 SKIPPED/보안 KDF2 FAIL였다. 부하와 동시에 5초 timeout·뒤이은 capacity 결과가 발생했으며 관련 미수정 보안 파일10건+새 Milestone1건의 좁은 재실행11/11 PASS로 구별한다. 최종 전체 재실행 `vitest --maxWorkers=2`는 **2877 PASS/3 SKIPPED(234 PASS files/1 SKIPPED file), 62.60초**. 최초 전체 unit FAIL 이력은 소급 PASS하지 않는다.
+- 실제 HTTP/격리 SQLite 동명 수정·삭제·readonly: **1/1 PASS**. 같은 이름의 두 번째 Milestone PATCH와 공정 PATCH/DELETE204만 실행, 첫 번째 원본 불변·전체 코드 유지·각 revision+1·readonly 무mutation/Clipboard를 확인했다. 최종 실행15.4초/전체44.9초; 앞선 fixture description400·count tab selector 실패와 구별한다.
+- 독립 `identity_qa` 사전검토: 초기 REWORK·지적 보완 완료, 최신 source/docs 재검토 미해결 P1/P2=0. 직접 unit6파일30건 PASS. 최종 Head 재확인 대기. 최종 QA·Trusted/Owner ACCEPT 아님.
+- 원격 Head/Full run/attempt: 게시 후 Issue STATUS 댓글의 실제 값을 authority로 사용한다. Required3·Trusted·Owner·Main/GHCR/tag/cleanup은 NOT TESTED/범위 밖, Issue OPEN 유지.
+- 최초 Full #2923.1과 metadata #2926.1 실패는 [누적 원장](../../ISSUE_717_FAILURE_ANALYSIS.md)에 보존한다. 새 CI 결과를 모니터링하지 않는다.
 
-- 확인된 관련 PR: #718 하나. 기존 최초 Full Run `39080414283.1`, Head `23e09aada982087047d90037704cdbb8b750bf97`, Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2`, test merge `fc3aada1cc42043ede90e4af6c7d0c46320218ad`.
-- 원인: PR 본문 필수 full-line `risk_level` / `qa_method` / `qa_required` 누락과 Work Packet 정규 heading·기계 판독 가능한 doc impact·AC 1~8 행 누락. 즉 `POLICY_CI / METADATA_DOCUMENTATION` 실패이며 실제 E2E6/Docker/앱 코드 테스트는 실행되지 않았다.
-- 대응: QA parser나 required check/검증 난이도를 완화하지 않고, PR 본문 단일 선언과 본 Packet의 exact heading/line-by-line 영향/AC mapping을 정규화한다. 신규 Run 이전에는 로컬/원격 PASS 주장 금지.
-- 새로운 동기화 이벤트의 Full PR CI는 새 Head+Base/Test-Merge 및 동일 Source of Truth로 재평가해야 한다. QA/Owner/병합·Main/GHCR/Issue close 금지.
 
-## 다음 단계
+## 로컬 사전 도구 결과와 공개 한계
 
-1. 문서 PR은 **일부 산출물만 제안**하므로 Merge/완료·release 승인으로 해석하지 않는다.
-2. 제품 구현 착수 시 #717의 AC 전체·현재 main/중복 UI 이슈/화면 계약·릴리스·risk/qa를 다시 확정하고 화면별 개선·테스트·문서 동기화를 진행한다.
-3. 최신 PR Head의 required CI/Trusted QA/Review thread/Manager ACCEPT 및 충돌 해결을 확인한 이후에만 병합을 판단한다.
+`verify:prepr --mode=fast`는 최초 MEDIUM/HIGH 최소 위험도 불일치로 BLOCKED, HIGH 재분류 후에도 미등록 경로18개로 BLOCKED(sourceStable=false, 동시 생성물 변경)다. 자동 선택기를 완화하지 않았다. [inventory 수동 영향 매핑](../../ISSUE_717_IDENTITY_INVENTORY.md)에 실제 소비자·직접 테스트 및 미검증 범위를 기록하고 개별 Typecheck/Lint/Unit/Build/Chromium을 별도 실행했다. 이 결과를 CLI PASS로 부르지 않는다. 범위가 넓어 관련 기존 회귀·독립 QA를 수행하며, 자동 매핑 영속 보완·모든 화면 모든 조합은 후속이다. PR CI 시작은 이러한 미완료를 숨기는 병합 승인이나 전체 Lifecycle 완료가 아니다.
+
+- 관련 기존 Chromium 최초66: 55 PASS/10 FAIL/기존 baseline capture1 SKIPPED. 실패10은 숨긴 copy control geometry5·공정 global selector1·구 resource label/geometry4였다. 수정 후 실패 사례 전부 재검증: Milestone 관리5/5, Resource 상태9/9(해당 실패4 포함), 공정 자동 코드1/1 PASS. 신규 #717 geometry/touch6/6와 실제 격리 HTTP1/1 PASS. 서로 중복하는 실행을 단일66-run PASS로 포장하지 않는다.
+- 실제 Resource catalog 기존 E2E의 resource/group 5폭 캡처를 `output/playwright/issue-717/after/resource-catalog`에 보존한다. 그 밖의 과거 Issue screenshot은 덮어쓰지 않고 이 작업에서 생성한 변경만 복원했다.

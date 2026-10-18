@@ -1,3 +1,7 @@
+## Issue #624 — 물류 통합 다관점 read-only API 재사용
+
+새 Endpoint·원본 DTO/쓰기 API 추가 없이 기존 `GET /api/projects/{publicId}/resource-dashboard`의 `projectionOrder`를 다음처럼 적용한다: `processType,process,workArea,target`, `equipmentType,equipment,target`, `systemType,system,target`, `target,resource`. 상세는 동일 `snapshotId` + `targetPath`의 bounded `/resource-dashboard/details`를 사용한다. `targetProjection.relatedMembers`는 T0 Task coverage, `summary`는 distinct Assignment A, `stages[].full`은 전체 canonical Milestone Stage Gate다. 기존 public read, catalog fingerprint·revision/If-Match·2MiB 응답 및 상세 페이지 한도는 불변. [Work Packet](exec-plans/active/ISSUE_624.md).
+
 # Backend API
 
 ## Issue #623 — 기존 API의 통합 수용 범위

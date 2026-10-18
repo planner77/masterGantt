@@ -1,4 +1,6 @@
 "use client";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import {
   resourceProjectionFetch,
@@ -273,11 +275,9 @@ export function ResourcePlanDetails({
                           >
                             이 Task 일정
                           </button>
-                          <button type="button" data-resource-assignment-edit disabled={stale || locked || !onOpenAssignment || row.resourceActive !== true} title={row.resourceActive !== true ? "비활성 또는 상태 미확인 개인 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignmentId, row.resourceId, event.currentTarget)}>배정 편집: {data.catalog.resources.find(resource => resource.id === row.resourceId)?.name ?? row.resourceId}</button>
+                          <button type="button" data-resource-assignment-edit disabled={stale || locked || !onOpenAssignment || row.resourceActive !== true} title={row.resourceActive !== true ? "비활성 또는 상태 미확인 개인 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignmentId, row.resourceId, event.currentTarget)}>배정 편집: {data.catalog.resources.find(resource => resource.id === row.resourceId)?.name ?? "리소스 정보 없음"}</button>
                           {row.targetSources ? <small>현재 배정 Target: {row.targetSources.effectiveTargetIds.map(targetLabel).join(" / ") || "Target 미연결"} · 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy {row.targetSources.legacySources.length}</small> : null}
-                          <small>
-                            {row.externalId} · Assignment {row.assignmentId}
-                          </small>
+                          <IdentifierDetails label={`${row.taskName} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, {label: "Assignment ID", value: row.assignmentId}, {label: "Resource ID", value: row.resourceId}, ...(row.targetSources?.effectiveTargetIds.map(value => ({label: "Target ID", value})) ?? [])]} />
                           <small>
                             작업 {row.taskStart ?? "—"}–{row.taskEnd ?? "—"} /
                             배정 {row.assignmentStart ?? "상속"}–
@@ -321,9 +321,10 @@ export function ResourcePlanDetails({
                           >
                             {"name" in row ? row.name : row.date}
                           </button>
+                          {"code" in row ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"Resource ID",value:row.resourceId},...(row.code?[{label:"코드",value:row.code}]:[])]}/> : null}
                           {"code" in row ? (
                             <small>
-                              {row.code} · {row.active ? "활성" : "비활성"} ·{" "}
+                              {row.active ? "활성" : "비활성"} ·{" "}
                               {row.roles.join(", ") || "Role 미지정"} ·{" "}
                               {row.developerGrade ?? "등급 미지정"}
                             </small>
