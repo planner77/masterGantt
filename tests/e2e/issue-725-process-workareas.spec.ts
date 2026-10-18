@@ -335,7 +335,9 @@ test("#725 비활성 기본 구역과 중복 occurrence 매핑에서도 활성 �
     headers: { Origin: origin, "If-Match": `"${f.catalog.data.processCatalogRevision}"` },
     data: { occurrenceId: occurrence.id, code: "WA-SIBLING", name: "활성 공유 구역" },
   });
-  expect(areaResponse.status()).toBe(200);
+  // The catalog create handler intentionally returns 201; PATCH retains 200.
+  // Keep a strict contract assertion instead of accepting arbitrary 2xx status.
+  expect(areaResponse.status()).toBe(201);
   const updatedCatalog = await areaResponse.json() as ProcessCatalogResponse;
   const sibling = updatedCatalog.data.workAreas.find(area => area.code === "WA-SIBLING")!;
   // Two project process IDs deliberately share one physical occurrence.

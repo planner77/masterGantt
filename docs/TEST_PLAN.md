@@ -4502,3 +4502,11 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 - 비활성 compatibility/default WorkArea로 인해 `mapping.active=false`가 되더라도 형제 WorkArea 선택은 조상 활성 상태(`mapping.workAreaSelectionActive`)와 후보 구역 활성 상태를 개별 검증한다. 기존 `mapping.active` 의미는 유지한다. 실제 SQLite service 회귀에서 비활성 default + 활성 sibling, 부모 type 비활성을 구분한다.
 - 동일 physical WorkArea가 서로 다른 Project process mapping으로 표시되면 UI 선택은 `workAreaId`별 하나의 owner만 허용하며 마지막으로 사용자가 지정한 `processId`로 대체한다. 실제 isolated Chromium+HTTP+SQLite에서 2개 행→단일 체크→원자 저장→canonical 1개 및 quantity10을 확인하도록 추가한다.
 - #724 후속 Main의 fixture/scroll capacity 증거, TEST_PLAN/PLAN의 독립 변경은 모두 보존한다. connector-only 실행 환경에서 변경 후 로컬 Vitest/Chromium/Typecheck는 NOT TESTED; 새로운 exact-head PR Full Quality/E2E6/Docker가 별도 증거다.
+
+
+## Issue #725 — PR #741 연속 원격 E2E 실패 F001+F002 교차 검증 (2026-10-18)
+
+- 누적 정규 [실패 원장](ISSUE_725_FAILURE_ANALYSIS.md)에서 [Full #2961.1](https://github.com/planner77/masterGantt/actions/runs/39111408691) Shard3 `task-editor-form-density.spec.ts` #456 scroll admission/Core+native capacity 부족(F001)과 [Full #2965.1](https://github.com/planner77/masterGantt/actions/runs/39117714154) Shard3 `issue-725-process-workareas.spec.ts:338` 생성 HTTP `200 expected/201 received`(F002)를 별도로 관리한다. 각 Run의 취소/미실행 Shard는 PASS가 아니다.
+- handler의 기존 canonical 정책: `POST /api/process-catalog/admin/work-areas` 성공 시 **201 Created**, `PATCH .../work-areas/[id]` 성공 시 **200 OK**. 신규 E2E의 잘못된 POST `200`만 `201`로 엄격 수정하고 이후 `updatedCatalog`/두 process 동일 occurrence/비활성 default/owner 교체/real HTTP 저장/canonical 단일 관계·Fleet10을 모두 유지한다.
+- 과거 F001의 #724 scoped-date witness가 최신 main에 합류됐지만 F002가 앞에서 중단되어 현재 candidate의 #456 remote PASS는 미검증이다. 직접 #725의 구/신규 case, Gantt #456, native catalog inactive sibling test, context service/Copy/Template/재시작·권한/412/중복과 인접 UI E2E를 새 **동일 Head** Full6-shard에서 재검증한다. No-fail-fast 로컬 진단은 개발 checkout 불가로 NOT TESTED.
+- 실제 GitHub Full PR CI의 새 Run/Attempt/Head/base/test merge와 Required Quality/E2E6/Docker 및 default-main Trusted QA는 완료 후에만 평가. 로컬 test/CI 파이프라인 변경·timeout/skip/retry 완화 없음. Manager/Owner HIGH 승인·GHCR·Issue close는 이 요청에 포함되지 않는다.
