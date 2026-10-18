@@ -1,0 +1,115 @@
+{
+  "schema": "mastergantt-issue-725-local-validation-v1",
+  "scope": "LOCAL_FAST_FEEDBACK_ONLY",
+  "baseSha": "ea4194763568432ef98e823bb796b59a5beb317c",
+  "applicationVersion": "0.118.0",
+  "environment": {
+    "node": "22.14.0",
+    "npm": "11.10.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "browserConfig": "local override: shared mock port3115 and temporary SQLite; official config unchanged"
+  },
+  "selectedUnitIntegration": {
+    "status": "PASS",
+    "files": 20,
+    "tests": 215,
+    "startedAt": "2026-10-18T17:15:52+09:00",
+    "durationSeconds": 4.17,
+    "log": "/tmp/issue725-final-all-targeted.log"
+  },
+  "actualBrowser": {
+    "status": "PASS",
+    "cases": 1,
+    "attemptName": "fifteenth",
+    "caseSeconds": 43.711,
+    "totalSeconds": 60.729,
+    "log": "/tmp/mastergantt-725-e2e-fifteenth/run.log"
+  },
+  "adjacentBrowser": {
+    "status": "PASS",
+    "cases": 2,
+    "durationSeconds": 14.1,
+    "log": "/tmp/mastergantt-725-e2e-indirect/run.log"
+  },
+  "preprDryRun": {
+    "status": "NOT TESTED",
+    "selection": "BLOCKED",
+    "unknownPaths": 10,
+    "sourceStable": true
+  },
+  "priorFailures": "See ISSUE_725 Work Packet and TEST_PLAN cumulative execution ledger; earlier failures are not erased.",
+  "preReviews": {
+    "context_review": "PASS (backend/contract only)",
+    "ux_review": "PASS (static and final actual PNG/geometry only)"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQA": "NOT TESTED",
+    "ownerAccept": "NOT TESTED"
+  },
+  "sourceSha256": {
+    "db/migrations/0028_process_context.sql": "89dc5bff11a7523783a7f0239a872598ddf1eaa47401fc5a8c8a2f31ee3db576",
+    "package-lock.json": "1118ddcb9232d879bb204825d2cd7a52ba64c4dc956f34856499ad589bf842e1",
+    "package.json": "89badf606c6c1d609aa7732ace6007b4f3dbc43695b34848d08656a9dfbda928",
+    "src/app/api/projects/[publicId]/tasks/[taskId]/process-context/route.ts": "e189c713e657d9f673415fbb281f2ed5cb07d7f3c4bc0c69c033fdbaedc9fff0",
+    "src/contracts/logistics.ts": "f972de8635a4ff9f3ee97ee57694e307c1592b2c775b98863093ec961f80319d",
+    "src/contracts/process-context.ts": "aea058747782fa6d961fe2e1eb48894fb985a07746abe4c1f7b60dc5df2ac888",
+    "src/contracts/project-templates.ts": "df85d9cbbb71d7cdd44e8dedd5a4b1e77faead27d373e60d0ec72bd1066bb21c",
+    "src/features/logistics/project-logistics-management.module.css": "8fa23e2e31e2c1a53c6db5920cdeacba6bb530d6e6927ddda8d61dd3b22d74ec",
+    "src/features/logistics/project-logistics-management.tsx": "6434ab31215614c2ac350070e5def25b84f11dec45e4a0e16e73d5f54c516344",
+    "src/features/logistics/project-process-management.module.css": "b3716db5ad4d203f4bc88da64f12d1f7825d79489e7c13bdd5f3880c52d18435",
+    "src/features/logistics/project-process-management.tsx": "633daf03f50053b54003f39d3fbe28956f150e22f774a5b55455d79ffa0f49b9",
+    "src/features/projects/project-readonly-view.tsx": "97ba93a1f3a806f80cfab1b24e6b479e2bdbf5986017fe764d2c8bd5c1d3c551",
+    "src/server/exports/project-context-export-guard-core.ts": "fbe356f58b0f034c900cc242f91dceba8e365918f71bb7ed5b5914ab831989eb",
+    "src/server/exports/project-export-snapshot-service-core.ts": "0d040ba278906a7f6e95872b3a6a17fc6ab3f2a36babc34aa11a73691d4fad9e",
+    "src/server/exports/project-json-export-core.ts": "c39c54a5ed9e0362c6e06ea7d4baf2afa903319d702a4d58ae680b7f1861277a",
+    "src/server/imports/project-import-parser-core.ts": "899f6cfb006bf8d7a247845ebe1d12b19a8be5d056690bff50856af4f5a49b5f",
+    "src/server/logistics/logistics-contract.ts": "c308803472514f2494f695d5e5a3bd7a53a1dde6570d63a67e85a22bead486b0",
+    "src/server/logistics/logistics-handlers-core.ts": "d9c481bf68ed0c839bcc94d7c93f356c161fd6ff5100301d8ba66ee60f6e9e29",
+    "src/server/logistics/logistics-service-core.ts": "0a58cbfad35ceb86876fb3481fa62c0d3ef025958e64cbb9cb2df497c33d7b76",
+    "src/server/logistics/project-context-transfer-core.ts": "4098a8380db81dd9fc0b38a6e1e6aba7dfd8c5d3d26df80fd86d75d50297f38d",
+    "src/server/process-catalog/process-catalog-handlers-core.ts": "a6c9a796e8ff8e131a52252a5e166e236c08850f256a9162e89a0f5c91724297",
+    "src/server/process-catalog/process-catalog-service-core.ts": "cc50d0fd27163049b7a1f4ebc58adad32297dc84e79297bf753c89be43c53c2b",
+    "src/server/projects/project-copy-service-core.ts": "f487c34af99f718540bd51ef52e0c55cb3d7076c64ba1ce28f75eff0c5b4cd87",
+    "src/server/projects/task-hierarchy-service-core.ts": "eff4780c9a0f65d6ca1f4d0d039c17bac09081121f2732d88cad63e619f9705a",
+    "src/server/repositories/process-catalog-repository-core.ts": "d5b685c4a3940675a081f42de9856867be3519cd9dfc425a790881ac0249997b",
+    "src/server/repositories/process-context-repository-core.ts": "14d283ad864d5b9a244272343b890e5b0794d89d5b0bc1fba2b2a6834b24d389",
+    "src/server/security/route-security-inventory.ts": "d38e63857ed8b2b24c73dbabd4eb4eae551fd05a6490a81d4ddfc27f09578dc1",
+    "src/server/templates/logistics-template-graph-core.ts": "d7de279df1bfb546d6f49fadea28689a74da71aca18663dac32f0292e66db2a8",
+    "tests/e2e/issue-725-process-workareas.spec.ts": "a254ac83d8033e9fd2ada9c4d053313747c65b14de5d14f7d62c3097ec3db13f",
+    "tests/server/db/database.test.ts": "a3fd9b3abfb72e8c526556857458ae59a826ba03036bb7186f5facf0dcfc7de3",
+    "tests/server/db/issue-623-target-migration.test.ts": "3751ada77556187446cb7cda86251090cefb5b59bdfc577f3901c1ea60fa8369",
+    "tests/server/imports/project-import-parser.test.ts": "aa3294b27e92a89a47210e130a65da0069d3fa2d0849f88d2baab44c6bb47f88",
+    "tests/server/logistics/logistics-targets-acceptance.test.ts": "695465d9d45af3f878b5798a2c26459e0d3c4a57860817ffb75c057ac685924c",
+    "tests/server/logistics/task-target-bindings.test.ts": "47eb3127e1aa5c5dec82adc171dbf0248d9466cc262ce591a2a4ea22aabac791",
+    "tests/server/migration-cli.test.ts": "5247c9a8f37407f361b96ef216c4e060bf3ed5fc3fd73b60c55ae0b53d5b5049",
+    "tests/server/process-catalog/process-catalog-service.test.ts": "69403889d3b284ed8aef315e5eee41a421881dfbfdc62791c3b794bbe69333ea",
+    "tests/server/process-catalog/process-context-service.test.ts": "3de530fe0d5635f7dc0ea9c9427074aed9b020f4c1ea155155a574579c8fe0f9",
+    "tests/server/projects/edit-authorization-handlers.test.ts": "c2f2400d1bca5ebc72270441bc5a7adf30657029d812ffd4af69c7701c9d710d",
+    "tests/server/templates/logistics-template-graph.test.ts": "b545209c44222e0cc64d8633e11b79642e2642a196e4e9278f6187d44867e078"
+  },
+  "static": {
+    "typecheck": "PASS",
+    "version": "PASS v0.118.0",
+    "changedFileEslint": {
+      "status": "PASS",
+      "errors": 0,
+      "existingWarnings": 1
+    },
+    "testDiscovery": {
+      "status": "PASS",
+      "unitFiles": 234,
+      "browserTests": 698,
+      "cwdParity": true
+    },
+    "markdownLinks": {
+      "status": "PASS",
+      "files": 254
+    },
+    "diffCheck": "PASS",
+    "documentationAcStructure": "STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING"
+  }
+}

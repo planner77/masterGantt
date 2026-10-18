@@ -1,3 +1,13 @@
+## Issue #725 — Target0과 직접 공정·WorkArea 계약
+
+공정·WorkArea 기준정보와 설비·Task 직접 문맥은 Target 존재에 의존하지 않는다. 별도 기준정보 화면에서 공정/선택 WorkArea를 관리하며 숨은 Target이나 구역별 WBS를 만들지 않는다. 기존 Target scope/process/WorkArea/member/binding 및 direct/subtree 합집합 계약은 그대로 보존한다.
+
+설비의 typed `workAreaLinks`는 타 공정 구역을 포함한0..N이고 각 관계는 실제 소유 local process/occurrence/WorkArea를 제공한다. 공정 매핑의 기존 단일 `workAreaId`를 모든 설비/Task의 구역으로 해석하지 않는다. E10이 두 구역에 연결되어도 원본1개·수량10이며 관련 소계의 합을 고유 총량으로 사용하지 않는다.
+
+Task 직접 `processLinks/workAreaLinks`는 별도0..N 컬렉션이다. 명시0개(배열)와 구형 미도입(null)을 구분하고 Equipment/System/Target에서 Task 공정을 자동 유도하지 않는다. 직접 WorkArea의 소유 공정은 사용자가 명시 선택해야 한다. self/subtree API·저장은 #725, Editor 화면은 #726, 출처별 공통 해석과 동적 집계는 #728/#729다. 기존 Target/설비/System 상속 출처를 삭제하거나 평탄화하지 않는다.
+
+migration0028·canonical DTO·권한/stale/사용중 보호는 [API](API.md#issue-725--target-없는-공정workarea-직접-문맥)와 [DB](DB_SCHEMA.md#issue-725--선택적-다중-workareatask-직접-문맥-migration-0028), v4 remap·무손실 경계는 [Copy·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 따른다. 아래 F1 mapped Template 미지원·후속 관리 화면 표기는 당시 단계의 이력이다. 현재 지원을 해당 초기 차단으로 되돌리지 않으며 [실행 원장](exec-plans/active/ISSUE_725.md)의 실제 증거를 별도로 확인한다.
+
 ## Issue #624 — 물류 Target 이후 V1 다관점 조회
 
 공정·WorkArea/설비·시스템/Target/Resource는 **저장 계층이 아닌** 기존 Resource Target 보고서의 `projectionOrder`다. 공통 Process Type과 site/product occurrence는 다르며 WorkArea 없는 Target, project_common 및 legacy 직접 연결은 null/조회용 그룹으로 유지한다. 표시용 `projectionRowKey`가 달라도 Task/Assignment/Target/instance는 동일 canonical ID를 사용하며 조회만으로 WBS 자동변경·Task 복제·DB mutation이 없다.
@@ -36,7 +46,7 @@ F0 계약 이후 main `9f17dbb2ad6814d952aef4fb1b6eaea721fb6794`에서 F1을 구
 
 F1은 ER의 process_types/product_standard_processes/site_product_processes/work_areas/project_process_occurrence_mappings까지만 추가한다. 제품 표준은 product ID로 공유하고 occurrence는 #538의 BU/product/site triple로 구분한다. 자유 공정에 occurrence와 선택 WorkArea를 명시 연결하며 미매핑 legacy·Task/설비·parent tree를 보존한다. 공정당 WorkArea0..N, 선택 null은 정상이며 가짜 기본 구역은 없다. 공통 관리자 API만 제공하고 화면은 #618에서 구현한다.
 
-표준 diff/apply는 catalog occurrence의 missing/name/sortOrder 반영이며 Project 공정 생성·삭제·Target 자동 변경을 수행하지 않는다. 매핑 참조 중 Project triple 변경은409로 거부하고 명시 해제→분류 변경→재매핑한다. 같은 triple copy에서 local 공정 ID만 치환하고 비활성 공통 참조도 유지한다. 기존 Template 형식은 매핑을 담지 못하므로 mapped source의 저장은409로 차단한다. versioned Template은 #616에서 확장한다. 기존 WBS JSON/Excel은 새 참조를 포함한 전체 backup 포맷이 아니다.
+표준 diff/apply는 catalog occurrence의 missing/name/sortOrder 반영이며 Project 공정 생성·삭제·Target 자동 변경을 수행하지 않는다. 매핑 참조 중 Project triple 변경은409로 거부하고 명시 해제→분류 변경→재매핑한다. 같은 triple copy에서 local 공정 ID만 치환하고 비활성 공통 참조도 유지한다. F1 당시 Template 형식은 매핑을 담지 못해 mapped source 저장을409로 차단했다. 현재는 #616 v2/#617 v3/#725 v4 지원을 따른다. 기존 WBS JSON/Excel은 새 참조를 포함한 전체 backup 포맷이 아니다.
 
 F1 API는 bounded query/overflow422와 별도 catalog/Project revision을 제공한다. 후속 Target/member/binding 및 Resource snapshot은 아직 제안 계약이며 이 문서의 아래 전체 ER을 구현 완료로 읽지 않는다. SVAR Core2.7.3/Gantt API·UI는 변경하지 않으므로 새 demo 조작·화면 캡처·반응형 검증은 N/A다.
 

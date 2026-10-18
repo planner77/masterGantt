@@ -1,3 +1,4 @@
+import { ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 import type { ProcessContextResponse } from "../../contracts/process-catalog";
 
@@ -52,7 +53,7 @@ function json(body: unknown, revision: number, status = 200): Response {
 
 function fail(error: unknown, d: ProcessCatalogHandlerDependencies): Response {
   let mapped = error;
-  if (error instanceof ProcessCatalogError) mapped = new PublicApiError(error.status, error.code, error.message);
+  if (error instanceof ProcessCatalogError || error instanceof ProcessContextError) mapped = new PublicApiError(error.status, error.code, error.message);
   else if (error instanceof EditSessionInvalidError) mapped = new PublicApiError(401, "EDIT_SESSION_REQUIRED", "A valid edit session is required.");
   else if (error instanceof RevisionMismatchError) mapped = new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
   const response = apiErrorResponse(mapped, (d.requestId ?? randomUUID)());
@@ -176,4 +177,24 @@ export async function handleMapProjectProcess(request: Request, publicId: string
     const result = resolve(d.service).mapProjectProcess(authorization.authorization, revision, processId, body);
     return json(result, result.data.project.revision);
   } catch (error) { return fail(error, d); }
+}
+
+export function handleGetTaskProcessContext(request:Request,publicId:string,taskId:string,d:ProcessCatalogHandlerDependencies):Response {
+ try {
+  const url=applicationUrl(d);query(request,[]);
+  const authorization=projectAuthorization(request,publicId,d,url);
+  const result=resolve(d.service).taskContext(publicId,taskId);
+  return json({data:{...result.data,permission:authorization.kind==="authorized"?"edit":"readonly"}},result.data.projectRevision);
+ } catch(error){return fail(error,d);}
+}
+export async function handleReplaceTaskProcessContext(request:Request,publicId:string,taskId:string,d:ProcessCatalogHandlerDependencies):Promise<Response> {
+ try {
+  const url=applicationUrl(d);requireOrigin(request,url);query(request,[]);
+  const authorization=projectAuthorization(request,publicId,d,url);
+  if(authorization.kind!=="authorized") throw new PublicApiError(401,"EDIT_SESSION_REQUIRED","A valid edit session is required.");
+  if(!isCanonicalUuidV4(taskId)) invalid();
+  const revision=parseRequiredIfMatch(request),body=await readBoundedJson(request);
+  const result=resolve(d.service).replaceTaskContext(authorization.authorization,revision,taskId,body);
+  return json(result,result.data.project.revision);
+ } catch(error){return fail(error,d);}
 }

@@ -1,3 +1,9 @@
+## Issue #725 — 직접 문맥은 schedule-stage 입력에서 미지원
+
+schema1.0/1.1은 Equipment–WorkArea/Task 직접 공정·WorkArea 컬렉션과 명시0개 marker를 받지 않는다. `equipmentWorkAreas`, `workAreaIds`, `taskContexts`, `taskProcessContexts`, `processLinks`, `workAreaLinks` 및 해당 snake_case 필드가 어느 깊이에 있어도400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 전체 거부한다. unknown field를 무시하거나 legacy-null/명시0을 서로 변환하지 않는다.
+
+이 그래프는 Project Copy/별도 Template의 `logistics.schemaVersion=4`에서 remap한다. Templatev4 지원이 schedule JSON1.1의 전체 backup 지원을 뜻하지 않는다. marker/관계가 존재하는 일정 JSON/plain 일정 Excel Export는409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 거부한다. [교환 경계](IMPORT_EXPORT.md#issue-725--공정workarea-문맥과-교환-경계), [Copy·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 따른다.
+
 # Import contract 1.0 / 1.1
 
 ## Issue #464 — JSON 1.1과 보호된 Import/Export
@@ -161,4 +167,4 @@ Preview 응답과 오류 envelope, HTTP status, auth, revision은 [API.md](API.m
 
 ## Issue #617 — 외부 Target binding 입력 경계
 
-JSON schema1.0/1.1의 schedule-stage payload에는 Target/binding/member/coverage 원장이 없다. 신규 binding 필드를 지원으로 오인해 무시하지 않고 `TARGET_BINDING_IMPORT_UNSUPPORTED` 등 validation 오류로 거부한다. 현행 payload의 strict Task/Link/Milestone membership·Calendar·create-only transaction 계약은 유지한다. Template의 별도 `logistics.schemaVersion=3` 지원이 JSON schema1.1의 Target 왕복 지원을 뜻하지 않는다. full graph 외부 참조 포맷은 #379에서 별도 version/capability를 설계한다.
+JSON schema1.0/1.1의 schedule-stage payload에는 Target/binding/member/coverage 원장이 없다. 신규 binding 필드를 지원으로 오인해 무시하지 않고 `TARGET_BINDING_IMPORT_UNSUPPORTED` 등 validation 오류로 거부한다. 현행 payload의 strict Task/Link/Milestone membership·Calendar·create-only transaction 계약은 유지한다. Template의 별도 `logistics.schemaVersion=3` 및 #725 v4 지원이 JSON schema1.1의 Target 왕복 지원을 뜻하지 않는다. full graph 외부 참조 포맷은 #379에서 별도 version/capability를 설계한다.

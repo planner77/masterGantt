@@ -1,8 +1,16 @@
+## Issue #725 — 공정·WorkArea 문맥과 교환 경계
+
+일정 JSON1.0/1.1과 Excel은 설비의 다중 WorkArea 또는 Task 직접 공정/WorkArea·명시0개 marker를 보존하는 전체 backup 포맷이 아니다. 해당 관계 또는 marker가 존재하면 일정 JSON/Excel Export는409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 전체 거부한다. 명시 공정0개도 legacy와 의미가 다르므로 관계 행0개라는 이유로 내보내지 않는다. 기존 Target/binding 손실 방지는 유지한다. 명시 Resource 보고서 opt-in Excel은 기존 보고서 범위로 허용하며 신규 직접 관계의 전체 backup·왕복 포맷으로 부르지 않는다.
+
+JSON Import에서 `equipmentWorkAreas`, `workAreaIds`, `taskContexts`, `taskProcessContexts`, `processLinks`, `workAreaLinks` 등 신규 문맥 필드는 중첩 위치와 무관하게400 `PROCESS_CONTEXT_IMPORT_UNSUPPORTED`로 거부한다. 일부 항목만 무시하거나 빈 배열로 저장하지 않는다. schedule-stage/create-only 계약을 전체 참조 restore로 확대하지 않는다.
+
+해당 그래프를 옮길 때는 [Project Copy 또는 지원 Templatev4](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 사용한다. global 실제 소유권·Project triple·local ID remap·원자 rollback을 재검증한다. full JSON 교환 #379 재개발, 실제 Excel/VBA/DRM 환경 검증은 이번 범위가 아니다. 실제 검증 결과는 [Work Packet](exec-plans/active/ISSUE_725.md)을 따른다.
+
 # Import / Export
 
 ## Issue #623 — Copy·Template·보고서와 backup 분리
 
-Q1은 기존 Project/Task Copy·Template logistics schemaVersion3(binding 포함)/v2/legacy·cut/reparent의 local ID remap/sharedMCS/global catalog 재사용·coverage/상속과 잘못된 site 참조 원자 거부를 통합 검증한다. 새 포맷/무손실 Import/자동 cross-site 이름 매핑을 추가하지 않는다.
+Q1은 기존 Project/Task Copy·Template logistics schemaVersion3(binding 포함)/v2/legacy(이후 #725 v4 확장)·cut/reparent의 local ID remap/sharedMCS/global catalog 재사용·coverage/상속과 잘못된 site 참조 원자 거부를 통합 검증한다. 새 포맷/무손실 Import/자동 cross-site 이름 매핑을 추가하지 않는다.
 
 #379 전체 참조 JSON은 미완료다. Target-bearing plain 일정 JSON/Excel 거부와 명시 Resource Excel 보고서 허용은 기존 loss guard이며 보고서는 전체 Target backup이 아니다. 이관/rollback은 대응 DB backup+image 또는 forward corrective 절차로 구별한다. 실제 지원과 합성/운영 증거는 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)를 따른다.
 

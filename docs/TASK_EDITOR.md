@@ -1,3 +1,13 @@
+## Issue #725 — 직접 공정·WorkArea API 인계 (#726 화면 비범위)
+
+Task/Summary의 사용자 선택 공정0..N을 Target 없이 저장하는 `GET/PUT /api/projects/{publicId}/tasks/{taskId}/process-context`를 추가한다. 이번 변경은 공용 Task Editor의 선택 UI를 추가하지 않으며 #726이 이 API와 canonical `logistics.taskProcessContexts`를 소비한다. 기존 설비/System/Target 편집과 상속은 유지한다.
+
+직접 `processLinks:[{processId,scope}]`와 `workAreaLinks:[{processId,workAreaId,scope}]`는 별도 컬렉션이다. `[]/[]`는 명시 공정0개, 조회의 `null/null`은 신규 문맥 미도입 legacy다. Equipment/System/WorkArea/Target를 선택하거나 그 소속을 바꿔도 Task 공정을 자동 추가·변경하지 않는다. 공통 System Task의 공정0개는 정상이다. 명시0을 조상/Target fallback 허가로 읽지 않는다.
+
+Milestone의 nonempty 직접 문맥 저장은400 `PROCESS_CONTEXT_MILESTONE_FORBIDDEN`이며 기존 직접 공정을 남긴 Milestone 전환이나 subtree 연결을 남긴 Summary 해제는409 `PROCESS_CONTEXT_TYPE_CONFLICT`다. 먼저 직접 연결을 명시 해제하며 type 변경으로 관계를 조용히 지우지 않는다.
+
+기본 self, Summary만 subtree를 명시한다. WorkArea는 실제 소유 공정을 직접 선택한 경우에만 허용하고 scope=subtree이면 공정도 subtree여야 한다. UI에서 구역을 고를 때 공정을 암묵 추가하지 않는다. 변경 권한·Origin·If-Match·catalog revision·원자 실패와 정확 DTO는 [API](API.md#issue-725--target-없는-공정workarea-직접-문맥)를 따른다. 직접/legacy/기준정보 출처의 공통 해석은 #728/#729이며 이번 화면 구현 완료로 표현하지 않는다.
+
 ## Issue #550 후속 — 명시 locate의 bounded focus 권한
 
 `일정에서 보기`의 일반 trigger 복원 생략은 유지한다. 이번 요청의 Coordinator 좌표 SETTLED를 확인한 뒤 최대12RAF 동안 현재 가시 Grid 행에 focus를 인계하며, 정확한 intent/gesture/context·API·revision·projection이 유지될 때만 계속한다. 새 locate/사용자 입력/Editor/modal은 이전 인계를 영구 취소한다. 동일 좌표 입력과 짧게 열렸다 닫힌 modal도 예외가 아니다. 가상화 행 교체 후에는 현재 행을 다시 확인하고 실제 Grid viewport 밖의 DOM을 성공 근거로 사용하지 않는다.

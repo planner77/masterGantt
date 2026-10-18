@@ -4456,3 +4456,65 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 ### Main 복구 후보의 최종 로컬 결과
 
 같은 fixture/spec 지문(91774c62/f85f4010)에서 누적9파일91 PASS(7.0분)+인접5파일12 PASS(2.1분), **103개 고유 Chromium 케이스 PASS**, 실패/skip/retry0. 별도 직접 #4561 PASS는 중복 수로 구분한다. 원본 Core62/native63<120은 scoped Task 보완 후 실제1354/1355로 admission 통과했고 exact X120/Y38·같은 Gantt/선택/열/범위·Editor 취소/metadata PATCH1을 보존했다. source/test 변경0. 변경 lint/typecheck·base parser·preflight10·Markdown/version/diff PASS. Pre-PR 자동 선택은 미등록 fixture 매핑 UNKNOWN으로 BLOCKED이며 수동 실제 소비자 선정·검증을 별도 기록했다. 전체 원격 Required3/Trusted/Main/GHCR의 PASS가 아니다. 별도 infra 읽기 전용 소스·문서 검토 PASS, 사람 Owner/Trusted 승인 대체 없음. 전체 이력·정확 지문·명령/환경·미실행·승인 경계는 [누적 원장](ISSUE_724_FAILURE_ANALYSIS.md)에 기록한다.
+
+## Issue #725 — Target 없는 공정·WorkArea 직접 문맥 수용
+
+[Work Packet](exec-plans/active/ISSUE_725.md)의 AC1~AC9와 [최신 W1/W2](https://github.com/planner77/masterGantt/issues/725#issuecomment-6245426595)를 적용한다. Target0 정상 흐름, 타 공정 WorkArea 동시 연결, Task 명시0과 legacy-null 구분, 구성 변경으로 Task 공정 자동 변경0을 검사한다. Task picker는 #726, 새 공정 KPI/source 해석은 #728/#729의 별도 검증이며 기존 Target/System/Resource 집계의 성공을 새 관점 PASS로 전용하지 않는다.
+
+| 변경 producer | 직접 검사 | 인접·음성 검사 |
+| --- | --- | --- |
+| migration0028·typed repository | `tests/server/process-catalog/process-context-service.test.ts`의0/1/N·actual owner/Project 격리·재시작 | `tests/server/db/database.test.ts`, `issue-623-target-migration.test.ts`, `tests/server/migration-cli.test.ts`의 exact ledger/checksum/FK/rollback |
+| Task GET/PUT·설비 원자 저장·기존 mapping 보호 | 신규 context service의 Request/Response·실제SQLite session/Origin/If-Match/catalog stale | 기존 process catalog service/handlers/compatibility·logistics service/handlers·route security inventory와 delayed body·session철회/type전환 |
+| Project/Task Copy·Templatev4 | `tests/server/templates/logistics-template-graph.test.ts`의E10두구역·명시0/legacy-null·inactive보존·file reopen | 기존 project-copy-logistics/project-copy-service/task-hierarchy-multi-copy, parser unsupported 관계·Resource report opt-in 보존 |
+| 독립 관리 UI·다중 구역 picker | `tests/e2e/issue-725-process-workareas.spec.ts`의 실제HTTP/SQLite·Target0·5폭·원본1/quantity10·저장/해제/reload | readonly/dirty/pending/error/loading/명시갱신·Gantt동일instance·keyboard/focus·긴값/표내부overflow |
+
+최종 동결 source에서 선택 회귀 결과를 아래 실행 원장에 기록한다. 전체 로컬 Vitest/Playwright/Docker/GHCR 반복을 완료 조건으로 삼지 않으며 PR Required Quality/E2E/Docker의 전체 공식 회귀와 구별한다. 운영 DB/off-host 복원·실기기·screen reader·최종 수동 UX는 NOT TESTED다.
+
+초기 원본 실패와 가설:
+
+- migration 기대값 보완 첫 실행:3파일31테스트 중30PASS/1FAIL. `migration-cli.test.ts`의 ledger count27 기대만 남아 실제28과 불일치했다. count를28로 갱신한 뒤 route inventory 포함4파일48PASS를 확인했다. 제품 migration 성공을 실패로 소급 변경하거나 원본 실패를 삭제하지 않는다.
+- backend 초기3FAIL: HTTP fixture dependency key와 구0024 fixture에서 최신 service로 신규 테이블을 조회한 테스트 준비 오류. 실제 구DB 준비는 repository 삽입으로 전환하고 업그레이드 후 최신 service를 검증한다. 상세 최종 개수는 Work Packet에 기록한다.
+- 전용 npm ci는33초에 완료했다. better-sqlite3 v13은 prebuilds를 사용하므로 build/Release의 파일 부재는 native 미설치 증거가 아니다. 직접 SQLite3.53.4 메모리DB 생성 성공으로 초기 환경 가설을 폐기했다.
+- 첫 Chromium 통합 사례는180초 timeout, `관리 범주` locator 대기에서 실패했다. API seed는 실제SQLite에 저장됐으나 UI 수용 후단은 미실행이다. 당시 source/spec·원본trace를 별도 보존하고 actual label·조건을 확인해 보완한다. 제품 source가 진행 중이던 이 실행을 최종source 증거로 사용하지 않는다.
+
+PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종료점은 PR_CI_STARTED다. CI 완료 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료를 수행하지 않는다.
+
+중간 결과: backend 최종 선정18파일197테스트 PASS(16:56:04KST/7.53초); 분리된 context_review의6파일100테스트 PASS는 별도 실행이며 고유 테스트 수로 더하지 않는다. `관리 범주`는 실제 combobox가 존재했으나 implicit label에 option 텍스트가 포함되어 exact label oracle가 틀린 것으로 정정했다. HMR는 추가 오염 요인이며 cold startup을 근본 원인으로 확정하지 않는다. 성공 미적용 알림의 role=status도 테스트에 반영했다. 다섯 번째 실제 실행에서는 mapping 저장 뒤 호출 버튼 focus가 복원되지 않아 제품 REWORK를 진행한다. 앞선 정적 UX PASS와 구분하고 동결 source에서 다시 확인한다.
+
+390px 추가 진단: 신규표 owner client366/scroll680은 정상 containment이며 여섯/일곱 번째 run의 문서669px 실패를 표 폭으로 설명할 수 없다. 여덟 번째 run의 clipping-aware 후보는 닫힌 `.project-info-panel` left330/right688/width358을 확인했지만 아홉 번째 run에서 이 panel의 display:none/rect0 이후에도 문서669px가 남았다. 이를 단일 근본 원인으로 확정했던 가설을 철회하고 숨은 일정/resize 수렴을 추가 진단한다. 닫힌 정보 disclosure만 display:none으로 보완하고, 새 수용 spec에 정보 열기/실제 geometry/Escape/summary focus/닫힘5폭 검사를 추가했다. 기존 `project-workspace-ux.spec.ts`의 정보/더보기 disclosure와 `project-logistics-management.spec.ts`의 탭/Gantt 보존 두 사례를 인접 회귀로 추가 선정한다. 마지막 WorkArea usageCount의 Target 직접 참조 보완은 실제 SQLite45테스트로 확인했다.
+
+
+390px 원인 최종 정정: 아홉/열 번째 run에서 닫힌 정보 panel과2RAF 가설이 기각됐다. 열한 번째 subtree 인과 탐침은 신규공정 section 제거시390, admin제거시647을 관측하여 두 표의 absolute srOnly가 scroll owner 밖에 위치 기준을 잡는 원인을 확인했다. 해당 owner의 position:relative 최소 수정으로 재검증하며 임시 globals.css 정보 panel 변경은 제거한다. 정보의 기존 native 닫힘을 display:none 고정과 혼동하지 않는다. 최초6~11 FAIL과 관측JSON은 Work Packet에 보존하고 diagnostic style 수정으로 PASS를 만들지 않는다.
+
+후속 수용:12회차는 srOnly containing block 수정 후 공정/카탈로그5폭·문서폭·정보 열기/Escape/focus PASS, 기존 설비 코드 React autoFocus가 native showModal로 덮이는 문제에서 FAIL했다. native autofocus 속성 복구 뒤13회차는 설비 초기 focus와5폭·15개 표 geometry를 통과했다. 저장 후 `공유 인스턴스 변경 확인`을 테스트가 누락해 후단이 중단됐으므로 기존 보호 확인을 명시 조작하도록 교정한다. Backend 최종18파일198PASS(17:09:20/5.66초), 추가 기존 Target 업그레이드2파일17PASS는 별도 실행이며 합계의 고유성은 주장하지 않는다.
+
+
+최종 동결 source 통합:20파일215테스트 PASS(17:15:52KST/4.17초), Chromium14회차 실제 통합1case PASS(41.6초/총57.2초). 공정4열/카탈로그6열/설비10열×5폭의15개 populated 표 geometry·keyboard/focus, 타 공정 E10 두 구역/원본1/수량10·2→1→0 해제·실제 서버 재시작, Task legacy-null→2→1→명시0, readonly/error/loading/retry/dirty/pending·realPATCH1·Target0·같은 Gantt를 검증했다. 이전1~13 FAIL/BLOCKED와 가설 기각을 취소하지 않으며 최종수정은 scope 안의CSS position 기준/native autofocus/성공revision채택이다. 공식 전체 회귀는 새 PR exact Head의 Required3가 수행하며 원격 PASS·Owner 승인으로 표시하지 않는다.
+
+최종 이미지 검토:14통합PASS와 기존 인접2casePASS(14.1초) 이후390px 설비 PNG를 실제 열람하여 modal 내부가 잘리는 결함을 발견했다. 문서/모달 외곽 bbox와 표15개 geometry는 내부 form containment를 증명하지 못했다. 설비 폼만 minmax(0,1fr)·min-width0로 보완하고5폭 dialog.scrollWidth≤clientWidth를 추가한다. 이 후속 수정과 새 최종 실행의 결과를14실행과 구분한다.
+
+
+최종15회차: 설비 폼 내부 수축 수정 뒤 실제 통합1case PASS(43.711초/총60.729초),5폭 dialog 내부scrollWidth=clientWidth(390:350/350,나머지606/606)·표15개/문서폭 및 원래 전체 저장/해제/재시작 계약을 다시 검증했다. 실제390/1440 PNG를 별도 UX 검토자가 열람해 잘림 해소를 확인했다. 기존 인접2case PASS14.1초와 구분하며 [로컬 증거](evidence/issue-725/local-validation.json)에 최종 지문·상태·실측을 남긴다. Pre-PR dry-run 자체는10경로 자동 매핑UNKNOWN/Selection BLOCKED·실행NOT TESTED이며 실제 선정 검증과 혼동하지 않는다. 범용 선택기/정책은 수정하지 않는다.
+
+
+## Issue #725 — PR #741 P2 리뷰 2건 및 최신 main 문서 병합 (2026-10-18)
+
+- 비활성 compatibility/default WorkArea로 인해 `mapping.active=false`가 되더라도 형제 WorkArea 선택은 조상 활성 상태(`mapping.workAreaSelectionActive`)와 후보 구역 활성 상태를 개별 검증한다. 기존 `mapping.active` 의미는 유지한다. 실제 SQLite service 회귀에서 비활성 default + 활성 sibling, 부모 type 비활성을 구분한다.
+- 동일 physical WorkArea가 서로 다른 Project process mapping으로 표시되면 UI 선택은 `workAreaId`별 하나의 owner만 허용하며 마지막으로 사용자가 지정한 `processId`로 대체한다. 실제 isolated Chromium+HTTP+SQLite에서 2개 행→단일 체크→원자 저장→canonical 1개 및 quantity10을 확인하도록 추가한다.
+- #724 후속 Main의 fixture/scroll capacity 증거, TEST_PLAN/PLAN의 독립 변경은 모두 보존한다. connector-only 실행 환경에서 변경 후 로컬 Vitest/Chromium/Typecheck는 NOT TESTED; 새로운 exact-head PR Full Quality/E2E6/Docker가 별도 증거다.
+
+
+## Issue #725 — PR #741 연속 원격 E2E 실패 F001+F002 교차 검증 (2026-10-18)
+
+- 누적 정규 [실패 원장](ISSUE_725_FAILURE_ANALYSIS.md)에서 [Full #2961.1](https://github.com/planner77/masterGantt/actions/runs/39111408691) Shard3 `task-editor-form-density.spec.ts` #456 scroll admission/Core+native capacity 부족(F001)과 [Full #2965.1](https://github.com/planner77/masterGantt/actions/runs/39117714154) Shard3 `issue-725-process-workareas.spec.ts:338` 생성 HTTP `200 expected/201 received`(F002)를 별도로 관리한다. 각 Run의 취소/미실행 Shard는 PASS가 아니다.
+- handler의 기존 canonical 정책: `POST /api/process-catalog/admin/work-areas` 성공 시 **201 Created**, `PATCH .../work-areas/[id]` 성공 시 **200 OK**. 신규 E2E의 잘못된 POST `200`만 `201`로 엄격 수정하고 이후 `updatedCatalog`/두 process 동일 occurrence/비활성 default/owner 교체/real HTTP 저장/canonical 단일 관계·Fleet10을 모두 유지한다.
+- 과거 F001의 #724 scoped-date witness가 최신 main에 합류됐지만 F002가 앞에서 중단되어 현재 candidate의 #456 remote PASS는 미검증이다. 직접 #725의 구/신규 case, Gantt #456, native catalog inactive sibling test, context service/Copy/Template/재시작·권한/412/중복과 인접 UI E2E를 새 **동일 Head** Full6-shard에서 재검증한다. No-fail-fast 로컬 진단은 개발 checkout 불가로 NOT TESTED.
+- 실제 GitHub Full PR CI의 새 Run/Attempt/Head/base/test merge와 Required Quality/E2E6/Docker 및 default-main Trusted QA는 완료 후에만 평가. 로컬 test/CI 파이프라인 변경·timeout/skip/retry 완화 없음. Manager/Owner HIGH 승인·GHCR·Issue close는 이 요청에 포함되지 않는다.
+
+
+## Issue #725 — #2966.1 F003 공정 오너 선택 E2E 재발·누적 회귀 (2026-10-18)
+
+- [Full PR CI #2966.1](https://github.com/planner77/masterGantt/actions/runs/39119998735) Head `42c90835c3289a725b0e466ac9f040da1b4e02c8`: Shard3의 `issue-725-process-workareas.spec.ts:385`에서 WorkArea 하나의 `processId`가 fixture B 기대와 달리 fixture A로 반환되어 직접 FAIL(46PASS/1FAIL/48NOT RUN, 나머지 5개 shard CANCELLED). 이전 [#2961.1](https://github.com/planner77/masterGantt/actions/runs/39111408691) F001 #456 scoped Gantt 120px Core/native 부족, [#2965.1](https://github.com/planner77/masterGantt/actions/runs/39117714154) F002 HTTP POST201 기대200 및 교정을 **같은 #725 단일 실패 원장** [F001–F003](ISSUE_725_FAILURE_ANALYSIS.md)으로 누적 참조한다.
+- `createTargetProject`는 process A/B를 순서대로 만들지만 code 생략 시 `PROC-${UUID}`, 서버 `mappings()`는 `sort_order,code,public_id` 순으로 정렬하므로 DOM의 `nth(0/1)`과 A/B 대응은 보장되지 않는다. 새 E2E는 role checkbox accessible **owner 이름** `활성 공유 구역.*A 공정`/`.*B 공정` 1개씩 조회, A를 선택 후 B로 전환, A unchecked/B checked/총1을 검증한다. 전송 PATCH `workAreaLinks=[{processId:B,workAreaId:sibling}]`와 응답 canonical `equipment.workAreaLinks/equipmentWorkAreas`의 B owner, WorkArea ID, 원본 설비1개/quantity10을 **모두** 엄격 검증한다. POST201/PATCH200 및 발생 시 오류는 완화하지 않는다.
+- 누적 직접·음성: 신규 owner E2E와 이전 #725 Target0/restart/0→2→1→0 다중 구역, native catalog inactive default-vs-sibling 및 duplicate/foreign/stale/rollback, Task direct null/[], Copy/Template 복구와 #456 WBS scroll/metadata, 인접 #624/#667 Gantt readiness. 제품 코드/일정축/API/CI Required3·fail-fast 정책 변경 없음.
+- 본 세션에서 source/원격 로그/handler/고유 WorkArea 및 process 정렬을 정적으로 대조했으나 새 Head **실제 로컬 no-fail-fast Chromium/SQLite/Typecheck 재검증 NOT TESTED**(checkout/browser/runtime 부재). 공식 Full PR Quality/E2E6/Docker/Trusted QA/Owner ACCEPT도 새 Run의 실제 결론 전 NOT TESTED. 사용자 요청은 PR CI 시작만, 완료 모니터링과 병합/배포·Issue 종료 제외.

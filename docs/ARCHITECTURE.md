@@ -1,3 +1,11 @@
+## Issue #725 — 직접 문맥 저장과 기준정보 화면
+
+기존 Route Handler → Service → Repository → SQLite와 공정 catalog/Project mapping을 재사용한다. migration0028은 설비–WorkArea 및 Task 직접 공정/WorkArea typed 관계와 명시0개 marker만 추가한다. 공통 catalog revision과 Project revision은 별도로 검증하며 Project 문맥 변경은 하나의 authorized transaction으로 저장한다. 실제 WorkArea owner는 mapping+occurrence 복합 FK로 결속하고 타 공정 설비 연결을 주 관리 공정 때문에 거부하지 않는다.
+
+canonical logistics에 `equipmentWorkAreas`와 `taskProcessContexts`를 추가해 원본과 provenance를 전달한다. Task의 legacy null과 명시 배열을 구별하고 Equipment/System/Target에서 Task 공정을 자동 유도하지 않는다. 서버 부분 조회 실패를 관계0개로 숨기지 않는다. 공정/설비 기준정보 UI는 #724 host의 `master.processes`/`master.equipment`를 사용하고 Gantt instance나 별도 WBS를 만들지 않는다. Task Editor UI는 #726, 공통 해석/동적 집계는 #728/#729의 별도 소유다.
+
+Copy/Templatev4는 원본 직접 관계/marker를 local ID remap으로 복원하며 schedule JSON/Excel의 미지원 관계를 손실 성공으로 내보내지 않는다. [API](API.md#issue-725--target-없는-공정workarea-직접-문맥), [DB](DB_SCHEMA.md#issue-725--선택적-다중-workareatask-직접-문맥-migration-0028), [복사](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 따른다. 이 절은 배포·원격 CI PASS를 뜻하지 않으며 실제 상태는 [실행 원장](exec-plans/active/ISSUE_725.md)에서 관리한다.
+
 ## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
 
 아래 순서는 2026-10-15 결정 당시 계획이다. #667 공통 제품 연결은 이후 main merge `bdaed6bd`로 통합되었으며, U2~U4 개별 절의 미연결 설명은 각 모듈 도입 당시 범위로 읽는다. #552 새 후보는 통합된 단일 authority를 재사용하고 자체 수용/CI 결과를 별도로 검증한다.

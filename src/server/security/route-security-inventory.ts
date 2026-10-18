@@ -135,6 +135,8 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/tasks/{taskId}/assignments", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/process-context", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/logistics/process-mappings/{processId}", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/tasks/{taskId}/process-context", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/tasks/{taskId}/process-context", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/targets", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/logistics/targets", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "GET", policy: "optional-session-read", mutatesState: false },
