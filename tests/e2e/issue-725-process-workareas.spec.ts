@@ -310,7 +310,12 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
     await openWorkspaceView(readonly, "processes");
     await expect(readonly.getByRole("button", { name: "연결 설정 A 공정", exact: true })).toBeDisabled();
     await openWorkspaceView(readonly, "equipment");
-    await expect(readonly.locator("#panel-equipment").getByText("E10", { exact: true })).toBeVisible();
+    const readonlyEquipment = readonly.locator("#panel-equipment").getByRole("row").filter({ hasText: "다공정 AMR Fleet" });
+    await expect(readonlyEquipment.getByText("다공정 AMR Fleet · 광역 통합 반송 장비 Long operational equipment instance", { exact: true })).toBeVisible();
+    const readonlyIdentifiers = readonlyEquipment.locator("details").filter({ hasText: "설비 코드" });
+    await expect(readonlyIdentifiers).not.toHaveAttribute("open", "");
+    await readonlyIdentifiers.locator("summary").click();
+    await expect(readonlyIdentifiers.getByText("E10", { exact: true })).toBeVisible();
     await expect(readonly.locator("#panel-equipment").getByRole("button", { name: "수정", exact: true })).toHaveCount(0);
   } finally { await readonlyContext.close(); }
   await openWorkspaceView(page, "schedule");
