@@ -623,7 +623,7 @@ export function ProjectLogisticsManagement({
               <button
                 className="primary-button"
                 type="button"
-                disabled={busy || isSubmitting || logistics.processes.length === 0}
+                disabled={busy || isSubmitting}
                 onClick={() => {
                   if (logistics.processes.length === 0) {
                     setErrorMessage("설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다.");

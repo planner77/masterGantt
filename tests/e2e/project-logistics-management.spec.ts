@@ -215,6 +215,86 @@ function sampleLogisticsData(): ProjectLogisticsDto {
 }
 
 test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
+  test("#726 설비 유형 조회 중·실패·빈 목록은 이유와 초안을 유지하고 readonly는 추가를 숨긴다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.logistics = sampleLogisticsData();
+    const writes: string[] = [];
+    page.on("request", request => {
+      if (request.url().includes("/api/") && !["GET", "HEAD"].includes(request.method())) {
+        writes.push(`${request.method()} ${new URL(request.url()).pathname}`);
+      }
+    });
+    let catalogMode: "loading" | "empty" | "ready" = "loading";
+    let releaseLoading!: () => void;
+    const loadingResponse = new Promise<void>(resolve => { releaseLoading = resolve; });
+    await page.route("**/api/logistics-catalog/types", async route => {
+      if (catalogMode === "loading") {
+        await loadingResponse;
+        await route.fulfill({ status: 503, json: { error: { code: "TEST_UNAVAILABLE" } } });
+        return;
+      }
+      await route.fulfill({ json: { data: {
+        equipmentTypes: catalogMode === "ready" ? [{ code: "agv", name: "무인운반차" }] : [],
+        systemTypes: [],
+      } } });
+    });
+    await page.route(`**/api/projects/${publicId}/logistics/process-context`, route => route.fulfill({ json: { data: {
+      projectRevision: fixture.project.revision,
+      processCatalogRevision: 1,
+      workAreas: [], occurrences: [], mappings: [],
+    } } }));
+    try {
+      await page.goto(`/projects/${publicId}`);
+      await openWorkspaceView(page, "equipment");
+      await page.getByRole("button", { name: "+ 설비 추가", exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: "설비 추가", exact: true });
+      const code = dialog.getByRole("textbox", { name: "설비 코드", exact: false });
+      const name = dialog.getByRole("textbox", { name: "설비명", exact: false });
+      const type = dialog.getByRole("combobox", { name: "설비 유형", exact: false });
+      await code.fill("DRAFT-726");
+      await name.fill("유형 조회 중 보존할 설비 초안");
+      await expect(dialog.getByRole("status").filter({ hasText: "설비 유형 목록을 불러오는 중" })).toBeVisible();
+      await expect(type).toBeDisabled();
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+
+      releaseLoading();
+      await expect(dialog.getByRole("alert").filter({ hasText: "설비 유형 조회에 실패해 저장할 수 없습니다" })).toBeVisible();
+      await expect(type).toBeDisabled();
+      await expect(dialog.getByRole("button", { name: "유형 조회 실패", exact: true })).toBeDisabled();
+      await expect(code).toHaveValue("DRAFT-726");
+      await expect(name).toHaveValue("유형 조회 중 보존할 설비 초안");
+
+      catalogMode = "empty";
+      await dialog.getByRole("button", { name: "유형 목록 다시 시도", exact: true }).click();
+      await expect(dialog.getByRole("status").filter({ hasText: "활성 설비 유형이 없습니다" })).toBeVisible();
+      await expect(dialog).toContainText("공통 기준정보 관리자가 유형을 등록·활성화한 뒤 다시 조회해 주세요.");
+      await expect(type).toBeEnabled();
+      await expect(type.getByRole("option")).toHaveCount(1);
+      await expect(type).toHaveValue("");
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+
+      catalogMode = "ready";
+      await dialog.getByRole("button", { name: "유형 목록 다시 시도", exact: true }).click();
+      await expect(type.getByRole("option", { name: "무인운반차", exact: true })).toHaveCount(1);
+      await type.selectOption("agv");
+      await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+      await expect(code).toHaveValue("DRAFT-726");
+      await expect(name).toHaveValue("유형 조회 중 보존할 설비 초안");
+      await dialog.getByRole("button", { name: "취소", exact: true }).click();
+      await dialog.getByRole("button", { name: "변경 폐기", exact: true }).click();
+      await expect(dialog).toHaveCount(0);
+
+      fixture.sessionEditable = false;
+      await page.reload();
+      await openWorkspaceView(page, "equipment");
+      await expect(page.getByText("조회 전용 모드입니다. 편집을 수행하려면 작업공간 상단의 '편집 활성화'를 진행해 주세요.")).toBeVisible();
+      await expect(page.getByRole("button", { name: "+ 설비 추가", exact: true })).toHaveCount(0);
+      expect(writes).toEqual([]);
+    } finally {
+      releaseLoading();
+    }
+  });
+
   test("물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다", async ({
     page,
   }) => {

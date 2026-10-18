@@ -1,5 +1,6 @@
 ## [0.121.0] — Unreleased / Issue #726
 
+- 공정이 없는 프로젝트에서 설비 추가 버튼이 선행 공정 등록 안내를 표시하도록 복원하고 생성 금지·읽기 전용·저장 중 보호는 유지한다.
 - 기준정보 설비·물류 시스템의 기존 원본 CRUD를 재사용하며 유형 조회 상태·재시도·저장 비활성 이유와 System dirty/stale 보호를 보강했다.
 - Task 물류 연결에서 직접 공정·WorkArea0..N 편집과 직접 설비/System 연결을 우선 제공하고 기존 Target whole/subset/coverage는 보조 호환 영역에 보존했다.
 - 기존 canonical·권한·revision과 다중 WorkArea/공유 원본을 유지하고 사용자 가이드·문서·관련 수용 검증을 갱신했다. 원격 CI·Owner 최종 판정은 별도다.

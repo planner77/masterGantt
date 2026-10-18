@@ -183,3 +183,25 @@ Issue 본문과 다중 WorkArea 보완 댓글을 적용한다. #725/#728 최종 
 - F-001 UUID 케이스는 #2987 Shard4에서 실제 개별 PASS. F-002 #518 Navigation 전체 E2E는 #2987 Shard5가 취소돼 이번 Head에서 완료 PASS 확인 못함. 세 실패 파일 합집합과 #717 name-first/Target authoring/Task Editor/#725 WorkArea/readonly·권한·동일 Gantt 회귀는 다음 Full CI 필수.
 - DOCUMENTATION_SYNC: 누적 실패 원장/본 Work Packet UPDATED. Product/API/DB/DESIGN/SECURITY/CI_CD/CHANGELOG/사용자 매뉴얼은 동작·계약·버전 불변으로 N/A. GitHub 원격 소스·원본 Run 로그를 검토했으며 로컬 Node/npm/Playwright 실행은 GitHub clone DNS 불가로 **NOT TESTED**. CI의 Quality/E2E6/Docker·Trusted QA·Owner ACCEPT는 신규 Head에서 다시 검증 필요.
 - 최종 main 정렬·리뷰0·충돌0 및 새 PR Full CI 시작까지만 수행. 병합/Main CI/GHCR·정식 Release/Issue 종료, CI 모니터링 제외. HIGH / OWNER_MANAGED / release_authorized=false 유지.
+
+
+## 2026-10-19 — PR #743 CI #2988.1 F-004 누적 실패 REWORK
+
+- 재작업 기준: PR Head `1120722a4f6fa4cf8dd9976e9af1472786b08d88`, main/Base `0209c72f8a0702415f2e00b63c895549a65dbe81`. main은 Head의 조상이며 최초 조회 mergeable=true, 미해결 리뷰 스레드0. 게시 직전 다시 확인한다. 기존 작업 트리와 분리한 worktree를 사용한다.
+- [단일 누적 실패 원장](../../ISSUE_726_FAILURE_ANALYSIS.md) §7과 [원격 정제 증거](../../evidence/issue726/ci-cumulative-20261019.json)에 과거4 Full Run/24 Shard 원본 로그를 대조했다. 실제 실패는5회/고유4사례/4파일이며, F-002 취소 Shard2 안의 #719 실제 FAIL을 추가 확보했다. F-004는 같은 결함의 재발이다. F-002 QA의 실제 BLOCKED 사유는 stale merge 출처이며 단순 E2E 파생으로 기록한 과거 설명을 정정한다. 과거 기록을 삭제하거나 취소된 전체 Shard를 PASS로 바꾸지 않는다.
+- 원인/수정: #726이 공정0일 때 `+ 설비 추가`를 비활성화해 기존 지속 오류 안내 분기를 실행할 수 없었다. 공정수에 의한 disabled만 제거하고 busy/submitting·readonly와 공정0 생성 금지 guard를 유지한다. 원래 #719 테스트의 assertion/timeout은 그대로이며 수정 전 실제30.2초 FAIL을 재현했다.
+- 검증 선정: 누적 실패4파일(`#726 Task`, `#518 Navigation`, `Target authoring`, `#719 ContextHelp`) 전체와 직접 소비자 `project-logistics-management`·`#726 master`를 동일 동결 소스로 실행한다. loading/503/active 유형0/복구·초안·readonly/mutation0 음성 회귀를 추가한다. 최종 결과와 추가 발견은 원장 §7에 보존한다.
+- 실제 역할: Manager가 분석·문서·통합, 감사 infra가 원격24 Shard 출처 대조와 정제 증거 작성, 별도 게시 infra가 Manager의 최종 위임 뒤 PR branch 게시/CI 등록 snapshot, frontend가 최소 제품·회귀 수정, 별도 qa_docs가 읽기 전용 사전 검토를 담당한다. 인간 Reviewer의 QA_FINAL·Owner ACCEPT와 구별한다. HIGH/OWNER_MANAGED/qa_required=true, version0.121.0 유지, 이번 재작업 자체 version bump 없음. 전체 feature의 release_required=true/release_authorized=false 유지.
+- GSC read_doc_commit: `1120722a4f6fa4cf8dd9976e9af1472786b08d88`(main `0209c72f8a0702415f2e00b63c895549a65dbe81` 포함). GSC1.0.0-candidate/REVIEW_PENDING, CONFORMANCE·ADAPTER_ADR·SYNC_TRACE·활성 remediation 지침을 읽었다. GSC-01/09/11/12 및 Navigation·동일 Gantt instance·관리 왕복/권한·초안 보존을 관련 범위로 대조한다. SC-11의 Workspace 왕복/instance·SC-13의 원본 상세/focus/무mutation 부분을 관련 시나리오로 연결하며 두 시나리오 전체 PASS를 선언하지 않는다. 일정 계산/축/DnD writer·새 adapter는 비영향으로 나머지 해당 시나리오 N/A, 예외 ADR 없음. 표준 자체의 승인 또는 전체 준수를 선언하지 않는다.
+- DOCUMENTATION_SYNC UPDATED: 실패 원장/정제 증거/본 Work Packet/PLAN/TEST_PLAN/PROJECT_UX/TARGET_RESOURCE_USER_GUIDE/CHANGELOG. DB_SCHEMA/API/SECURITY/SCHEDULING_ENGINE/DESIGN/UI_UX_GUIDELINES/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS는 기존 계약·정책을 복원할 뿐 새 계약/DDL/서버·CI 변경이 없어 N/A다.
+- 요청 종료점은 기존 PR branch synchronize 후 새 Full CI 등록까지다. 새 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED, MERGE_READY=BLOCKED. CI 모니터링·merge·main/GHCR·Release·Issue 종료는 수행하지 않는다.
+
+
+### F-004 최종 로컬 검증·인계
+
+- 새 동결 Chromium6파일36/36 PASS(427.26초, skip0/flaky0), 관련 Unit4파일51/51 PASS, TypeScript·변경3파일 scoped ESLint·version/Markdown/diff PASS. 첫36개 실행의35PASS/1FAIL은 L-001 원본으로 보존하고 새36개 성공과 중복 합산하지 않는다. [정제 manifest](../../evidence/issue726/f004-local-validation.json)와 [누적 원장 §7](../../ISSUE_726_FAILURE_ANALYSIS.md)을 따른다.
+- src/tests/package+lock 추적933파일 지문 시작/끝 drift0, aggregate `4be3aa23850d6a4716b7caafd79d6a2ac19e51b032d34d1e775a359cb2dec8d3`. Next 설정/기존 #719/#724/Target 산출물80개는 이번 시험의 생성 변경만 복원했고 raw config.env/trace는 Git에서 제외했다.
+- 실제 최종 [Pre-PR fast](../../evidence/issue726/f004-prepr-fast.json)/[targeted](../../evidence/issue726/f004-prepr-targeted.json) 모두 UNKNOWN7/missing0/steps0/sourceStable=true로 BLOCKED다. working fingerprint `37a8e2d63e450a2c330f0503c7e08c3b724e099e4eddc7d38669589465cac8a1`. 기존 전체 PR 자동 매핑 부족과 수동 영향 선정/실제36 Chromium·51 Unit을 구분한다. 이후 문서/정제 증거 추가는 제품·테스트 지문을 변경하지 않는다.
+- Manager의 게시 허용은 사용자 요청인 PR CI 시작만을 위한 것이며 원격 Required3·Trusted/Owner ACCEPT는 NOT TESTED/MERGE_READY=BLOCKED다. 원격 CI 결과는 모니터링하지 않는다.
+
+- 별도 `qa_726_rework` read-only 사전 검토 PASS: 코드/문서·24 Shard 합계·실제 raw36개↔manifest exact일치·933 지문 drift0·Pre-PR BLOCKED 구분 확인. 인간 QA_FINAL/Trusted/Owner ACCEPT는 NOT TESTED이며 이 Agent PASS를 병합 승인으로 사용하지 않는다.

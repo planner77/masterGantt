@@ -92,7 +92,15 @@ test("#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet�
   expect((await targets.json()).data.total).toBe(0);
   await page.reload();
   await openWorkspaceView(page, "equipment");
-  await expect(page.getByText("A 운반로봇", { exact: true })).toBeVisible();
+  const equipmentCell = page.locator("#panel-equipment").getByRole("cell")
+    .filter({ has: page.getByText("A 운반로봇", { exact: true }) });
+  await expect(equipmentCell).toHaveCount(1);
+  await expect(equipmentCell).toBeVisible();
+  await expect(equipmentCell.getByText("A 운반로봇", { exact: true })).toBeVisible();
   await openWorkspaceView(page, "systems");
-  await expect(page.locator("#panel-systems").getByRole("cell", { name: "MCS 원본", exact: true })).toBeVisible();
+  const systemCell = page.locator("#panel-systems").getByRole("cell")
+    .filter({ has: page.getByText("MCS 원본", { exact: true }) });
+  await expect(systemCell).toHaveCount(1);
+  await expect(systemCell).toBeVisible();
+  await expect(systemCell.getByText("MCS 원본", { exact: true })).toBeVisible();
 });
