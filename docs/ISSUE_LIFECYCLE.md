@@ -345,6 +345,8 @@ DOCUMENTATION_SYNC PASS 조건:
 - 변경된 기능·API·DB·Scheduling·UI/UX·Excel·배포·CI·보안·운영 계약이 어떤 문서에 영향을 주는지 문서 영향 분석을 수행한다.
 - Work Packet의 `required_docs` 각 항목을 실제 변경하거나, 갱신이 불필요하면 항목별로 `N/A`와 근거를 Result Contract·Issue·PR 중 추적 가능한 위치에 기록한다. 실제 갱신 문서는 해당 작업 head에 포함되어야 하지만 N/A 근거만을 위해 불필요한 Git 파일 변경을 만들지 않는다.
 - 최소한 관련 요구사항/Architecture/API/DB/Scheduling/UI/Deployment/CI/Test Plan/CHANGELOG 중 영향받는 문서를 현재 코드 및 Issue AC와 일치시킨다.
+- **사용자 화면/기능–웹 매뉴얼 동기화 (#720)**: 사용자-facing 화면·탭·기능의 **추가·변경·삭제**는 `화면/기능 변경 → screenKey·anchor → 매뉴얼 원본 Markdown/목차/링크 → 문서·브라우저 검증`을 영향 분석하고, 배포되는 매뉴얼이 있는 경우 **동일한 기능 구현 PR에서 해당 페이지·관련 링크·예시·권한·오류/상태 안내를 갱신**한다. 기능/화면 삭제는 기존 링크/anchor를 제거 또는 유효 경로로 이관한다. 실제 변경 영향이 없을 때만 `N/A`와 구체적인 이유를 허용한다. Work Packet의 `required_docs`, Result Contract의 `documentation_impact`/`docs_required`/`docs_updated`/`docs_n_a_with_reason` 및 PR의 AC 매핑에 증거를 남긴다. 자동 링크 검사와 Reviewer의 실제 UI↔사용자 안내 의미 일치 확인은 구분하며, 갱신이 필수인데 누락되면 DOCUMENTATION_SYNC/QA_READY는 `BLOCKED`다. 내용·접근성/화면 연결 상세는 [UI/UX 매뉴얼 가이드](UI_UX_GUIDELINES.md#화면별-웹-매뉴얼-진입과-변경-동기화-issue-720)를 따른다.
+- **최초 구축 전환**: Issue #720의 `/manual`과 초기 화면별 매뉴얼 baseline이 실제 코드로 병합되기 전의 UI PR은 예정 screenKey·해당 변경과 문서 미구현 상태를 명시적으로 원장에 남긴다. 존재하지 않는 페이지를 갱신했다고 위조하거나 이 예외를 영구 `N/A`로 인정하지 않는다. 최초 baseline 완료 후에는 이 임시 인계 예외를 종료하고 위 동일 PR 문서 갱신을 필수 적용한다. 기존 QA/CI/릴리스 판정 규칙은 변경하지 않는다.
 - 과거 검증 기록이나 완료 시점 문서를 현재 상태로 소급 변조하지 않는다. 새 상태는 현재 문서/Issue/PR에 추가 기록한다.
 - Result Contract에 `documentation_impact`, `docs_required`, `docs_updated`, `docs_n_a_with_reason`을 남긴다.
 - 문서 링크/참조와 용어·버전·계약이 현재 구현과 모순되지 않는지 확인한다.
