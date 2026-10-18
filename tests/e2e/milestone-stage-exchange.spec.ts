@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { inflateRawSync } from "node:zlib";
 import type { Page, Download } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
@@ -169,7 +170,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect(full.rows.find((stage) => stage.milestoneTaskId === join.taskId)?.stageGate.incompletePredecessorMilestoneTaskIds).toHaveLength(2); expect(full.rows.find((stage) => stage.milestoneTaskId === join.taskId)?.stageGate.ready).toBe(false); expect(full.kpi.ready.milestoneTaskIds).toContain(b.taskId);
   const logistics = (await (await page.request.get(`${project.api}/logistics/dashboard?equipmentIds=${fixture.equipmentId}`)).json()).data;
   expect(logistics.milestoneStages.milestoneTaskIds).toEqual([join.taskId]); expect(logistics.milestoneStages.rows[0].stageGate).toEqual(partial.rows[0].stageGate);
-  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); const stagePanel = page.getByTestId("milestone-dashboard"); await expect(stagePanel).toHaveAttribute("data-ready", "true");
+  await openWorkspaceView(page, "milestones"); const stagePanel = page.getByTestId("milestone-dashboard"); await expect(stagePanel).toHaveAttribute("data-ready", "true");
   await stagePanel.getByText("Milestone 표시·공수 범위 조건", { exact: true }).click(); await stagePanel.getByLabel("공수 시작일", { exact: true }).fill("2026-10-06"); await stagePanel.getByLabel("공수 종료일", { exact: true }).fill("2026-10-07"); await stagePanel.getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(stagePanel).toHaveAttribute("data-ready", "true"); await expect(stagePanel).toContainText("4 M/D");
   // Exact assignment scope is POSTed and validated against the canonical fingerprint.
   const drillRequest = page.waitForRequest((request) => request.method() === "POST" && request.url().includes(`${project.api}/resource-dashboard/query`) && request.postData()?.includes('"exactAssignments"') === true);
@@ -178,7 +179,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect([...requestPayload.scope.assignmentIds].sort()).toEqual([...partial.effort.assignmentIds].sort());
   expect(requestPayload.filters).toMatchObject({ from: "2026-10-06", to: "2026-10-07" });
   await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click(); await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click(); await expect(page.getByRole("tabpanel", { name: "물류 구성", exact: true }).getByRole("row", { name: /M-JOIN/ })).toContainText("3");
+  await openWorkspaceView(page, "logistics"); await openWorkspaceView(page, "kpi"); await expect(page.locator("#project-panel-logistics").getByRole("row", { name: /M-JOIN/ })).toContainText("3");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
 
   // Download both formats through the actual UI, then inspect their bytes.
@@ -267,7 +268,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
     const checkpoints = [await checkpoint("baseline")];
     await peer.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click(); await expect.poll(() => peer.evaluate(() => Boolean(document.fullscreenElement))).toBe(true); checkpoints.push(await checkpoint("fullscreen"));
     await peer.getByRole("button", { name: "Gantt 전체 화면 종료", exact: true }).click(); await expect.poll(() => peer.evaluate(() => Boolean(document.fullscreenElement))).toBe(false); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("fullscreen-exit"));
-    await peer.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true"); await peer.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("peer-return"));
+    await openWorkspaceView(peer, "milestones"); await expect(peer.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true"); await peer.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("peer-return"));
     expect(checkpoints.at(-1)!.gridWidth).toBe(checkpoints[0].gridWidth); expect(checkpoints.at(-1)!.chartWidth).toBe(checkpoints[0].chartWidth);
     await peer.setViewportSize({ width: 1456, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); await peer.setViewportSize({ width: 1440, height: 900 }); await expect.poll(live).toEqual({ left: 120, top: 96, publicLeft: 120, publicTop: 96 }); checkpoints.push(await checkpoint("subsequent-layout"));
     await expect(peerHeader.getByText("Milestone", { exact: true })).toBeVisible();

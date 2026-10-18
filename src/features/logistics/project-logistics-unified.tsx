@@ -10,8 +10,11 @@ import { ResourceTargetFilters, ResourceTargetViews } from "@/features/resources
 import { useResourceDashboard } from "@/features/resources/use-resource-dashboard";
 import { configuredLogisticsInventory, currentLogisticsDetail, fullMilestoneGateLabel, LOGISTICS_PERSPECTIVES, type LogisticsPerspective } from "./logistics-unified-model";
 import styles from "./project-logistics-unified.module.css";
+import { useLogisticsViewState } from "./use-logistics-view-state";
 
 interface Props {
+  perspective?: LogisticsPerspective;
+  onPerspectiveChange?: (view: LogisticsPerspective) => void;
   publicId: string;
   revision: number;
   active: boolean;
@@ -43,21 +46,23 @@ export function ProjectLogisticsUnified(props: Props) {
   );
 }
 
-function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMilestone }: Props) {
-  const [perspective, setPerspective] = useState<LogisticsPerspective>("process");
-  const [filters, setFilters] = useState<ResourceDashboardFilterInput>({ mode: "resource" });
-  const [advanced, setAdvanced] = useState(false);
-  const [unit, setUnit] = useState<"md" | "mm">("md");
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
-  const [stageExpanded, setStageExpanded] = useState(false);
-  const [staleSnapshot, setStaleSnapshot] = useState<string | null>(null);
-  const [selection, setSelection] = useState<{
+function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMilestone, perspective: controlledPerspective, onPerspectiveChange }: Props) {
+  const [localPerspective, setLocalPerspective] = useState<LogisticsPerspective>("process");
+  const perspective = controlledPerspective ?? localPerspective;
+  function setPerspective(view: LogisticsPerspective) { setLocalPerspective(view); onPerspectiveChange?.(view); }
+  const [filters, setFilters] = useLogisticsViewState<ResourceDashboardFilterInput>(perspective, { mode: "resource" });
+  const [advanced, setAdvanced] = useLogisticsViewState(perspective, false);
+  const [unit, setUnit] = useLogisticsViewState<"md" | "mm">(perspective, "md");
+  const [expanded, setExpanded] = useLogisticsViewState<Set<string>>(perspective, () => new Set());
+  const [stageExpanded, setStageExpanded] = useLogisticsViewState(perspective, false);
+  const [staleSnapshot, setStaleSnapshot] = useLogisticsViewState<string | null>(perspective, null);
+  const [selection, setSelection] = useLogisticsViewState<{
     selector: ResourceDashboardSelector;
     label: string;
     snapshotId: string;
     queryKey: string;
-  } | null>(null);
-  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
+  } | null>(perspective, null);
+  const [selectionNotice, setSelectionNotice] = useLogisticsViewState<string | null>(perspective, null);
   const detailsTrigger = useRef<HTMLElement | null>(null);
   const detailsHeading = useRef<HTMLHeadingElement | null>(null);
   const viewSelect = useRef<HTMLSelectElement | null>(null);
@@ -120,7 +125,7 @@ function UnifiedContent({ publicId, revision, active, busy, logistics, onOpenMil
     <div className={styles.toolbar}>
       <label>조회 관점
         <select ref={viewSelect} aria-label="물류 통합 조회 관점" value={perspective}
-          onChange={event => { setPerspective(event.target.value as LogisticsPerspective); setExpanded(new Set()); invalidateSelection(); }}>
+          onChange={event => setPerspective(event.target.value as LogisticsPerspective)}>
           {Object.entries(LOGISTICS_PERSPECTIVES).map(([key, view]) =>
             <option key={key} value={key}>{view.label}</option>)}
         </select>

@@ -1,3 +1,5 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { workspaceViewTab } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 import { dashboardFixture } from "../fixtures/milestone-dashboard";
@@ -11,7 +13,7 @@ async function fixture(page: Page) {
   for (let i = 5; i < 23; i++) state.tasks.push({ ...original, taskId: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`, externalId: `M-${i}`, siblingOrder: i, name: `단계 ${i} 긴 한글 English extraordinary identity` });
   return state;
 }
-const tab = (page: Page) => page.getByRole("tab", { name: "Milestone 대시보드", exact: true });
+const tab = (page: Page) => workspaceViewTab(page, "milestones");
 const dashboard = (page: Page) => page.getByTestId("milestone-dashboard");
 
 test("#463 readonly full-state/F separation, keyboard and five-width geometry", async ({ page }) => {
@@ -19,7 +21,7 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
   const state = await fixture(page); let writes = 0;
   page.on("request", (request) => { if (request.url().includes(projectPath) && !["GET", "HEAD"].includes(request.method())) writes++; });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   const region = page.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" });
   await expect(region.getByRole("row")).toHaveCount(20);
   await dashboard(page).getByLabel("Milestone 검색", { exact: true }).fill("no matching stage");
@@ -65,14 +67,14 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
 test("#463 request reversal, stale error and explicit retry preserve filters", async ({ page }) => {
   const state = await fixture(page), gate = deferred(), started = deferred(); let fail = false;
   await page.route(`**${projectPath}/milestone-dashboard?*`,async(route)=>{const params=new URL(route.request().url()).searchParams;if(params.get("search")==="older"){started.resolve();await gate.promise;}if(fail){await route.fulfill({status:500,json:{error:{code:"FIXTURE_ERROR"}}});return;}await route.fulfill({json:{data:dashboardFixture(state,params)}});});
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); const search=dashboard(page).getByLabel("Milestone 검색",{exact:true}); await search.fill("older"); await started.promise; await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); await search.fill("단계 5"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); gate.resolve(); await expect(dashboard(page).getByRole("heading",{name:"Milestone 전체 상태 · 표시 1개"})).toBeVisible(); fail=true; await search.fill("failed"); await expect(dashboard(page).getByRole("alert")).toContainText("HTTP 500"); await expect(search).toHaveValue("failed"); await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); fail=false; await dashboard(page).getByRole("button",{name:"다시 시도",exact:true}).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); await expect(search).toHaveValue("failed");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); const search=dashboard(page).getByLabel("Milestone 검색",{exact:true}); await search.fill("older"); await started.promise; await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); await search.fill("단계 5"); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); gate.resolve(); await expect(dashboard(page).getByRole("heading",{name:"Milestone 전체 상태 · 표시 1개"})).toBeVisible(); fail=true; await search.fill("failed"); await expect(dashboard(page).getByRole("alert")).toContainText("HTTP 500"); await expect(search).toHaveValue("failed"); await expect(dashboard(page).getByRole("button",{name:"해당 범위 리소스 보기"})).toBeDisabled(); fail=false; await dashboard(page).getByRole("button",{name:"다시 시도",exact:true}).click(); await expect(dashboard(page)).toHaveAttribute("data-ready","true"); await expect(search).toHaveValue("failed");
 });
 
 test("#463 server date authority, bounded day refresh and same-day catalog catch-up",async({page})=>{
   const state=await fixture(page);let calls=0,serverDay="2026-10-06",catalog=1;
   await page.clock.install({time:new Date("2026-10-06T14:59:00Z")});
   await page.route(`**${projectPath}/milestone-dashboard?*`,(route)=>{calls++;return route.fulfill({json:{data:dashboardFixture(state,new URL(route.request().url()).searchParams,serverDay,catalog)}});});
-  await page.goto(`/projects/${publicId}`);await tab(page).click();await expect(dashboard(page)).toHaveAttribute("data-ready","true");await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue("2026-10-06");const initial=calls;
+  await page.goto(`/projects/${publicId}`);await openWorkspaceView(page, "milestones");await expect(dashboard(page)).toHaveAttribute("data-ready","true");await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue("2026-10-06");const initial=calls;
   await page.clock.runFor(65_000);await expect.poll(()=>calls).toBe(initial+1);await expect(dashboard(page)).toHaveAttribute("data-ready","true");await page.clock.runFor(180_000);expect(calls).toBe(initial+1);
   serverDay="2026-10-07";catalog=2;await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect.poll(()=>calls).toBe(initial+2);await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue(serverDay);await expect(dashboard(page).getByText(/Project 40 \/ Catalog 2/)).toBeVisible();
   await dashboard(page).getByLabel("수동 기준일",{exact:true}).check();await expect(dashboard(page)).toHaveAttribute("data-ready","true");await dashboard(page).getByLabel("기준일",{exact:true}).fill("2026-01-02");await expect(dashboard(page)).toHaveAttribute("data-ready","true");const manual=calls;await page.clock.runFor(120_000);expect(calls).toBe(manual);catalog=3;await page.evaluate(()=>window.dispatchEvent(new Event("focus")));await expect.poll(()=>calls).toBe(manual+1);await expect(dashboard(page).getByLabel("기준일",{exact:true})).toHaveValue("2026-01-02");await expect(dashboard(page).getByText(/Project 40 \/ Catalog 3/)).toBeVisible();await page.getByRole("tab",{name:"일정",exact:true}).click();const hidden=calls;await page.clock.setSystemTime(new Date("2026-10-08T00:00:00Z"));await page.clock.runFor(120_000);expect(calls).toBe(hidden);
@@ -81,7 +83,7 @@ test("#463 server date authority, bounded day refresh and same-day catalog catch
 test("#463 shared multi-selection, null conversion and canonical/catalog invalidation", async ({ page }) => {
   const state = await fixture(page); let catalog = 2, staleRevision = false;
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => { const data = dashboardFixture(state, new URL(route.request().url()).searchParams, "2026-10-06", catalog); if (staleRevision) data.projectRevision--; return route.fulfill({ json: { data } }); });
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await dashboard(page).getByText("Milestone 표시·공수 범위 조건", { exact: true }).click(); const choices = dashboard(page).getByRole("group", { name: "표시 Milestone", exact: true }); await choices.getByRole("checkbox").nth(0).check(); await choices.getByRole("checkbox").nth(1).check(); await expect(dashboard(page).getByText("여러 Milestone 2개 선택", { exact: true })).toBeVisible(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toHaveCount(0); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await dashboard(page).getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await expect(dashboard(page).getByText("5 M/D / — M/M", { exact: true })).toBeVisible(); await dashboard(page).getByRole("button", { name: "모든 Milestone 선택 해제", exact: true }).click(); await expect(dashboard(page).locator(".project-stage-filter-trigger")).toBeVisible();
   catalog = 1; await dashboard(page).getByRole("button", { name: "새로고침", exact: true }).click(); await expect(dashboard(page).getByRole("alert")).toContainText("Revision·조회 조건"); await expect(dashboard(page).getByRole("button", { name: "해당 범위 리소스 보기" })).toBeDisabled();
@@ -92,7 +94,7 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   const state = await fixture(page), gate = deferred(), started = deferred(); let calls = 0;
   await page.clock.install({ time: new Date("2026-10-06T00:00:00Z") });
   await page.route(`**${projectPath}/milestone-dashboard?*`, async (route) => { calls++; const params = new URL(route.request().url()).searchParams; if (params.get("search") === "slow") { started.resolve(); await gate.promise; } await route.fulfill({ json: { data: dashboardFixture(state, params) } }); });
-  await page.goto(`/projects/${publicId}`); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill("");
+  await page.goto(`/projects/${publicId}`); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); const search = dashboard(page).getByLabel("Milestone 검색", { exact: true }); await search.fill("slow"); await started.promise; await search.fill("");
   // Playwright's installed clock also owns React's timer/animation scheduling.
   // Settle one bounded frame without releasing the stale server response: the
   // confirmed cached query must be ready with zero additional network calls.
@@ -111,7 +113,7 @@ test("#463 aborted request to cached query still permits focus catch-up", async 
   expect(readyFromCache, "cached Milestone query should recover within eight animation frames").toBe(true);
   expect(calls, "cache re-entry must not issue a third HTTP request").toBe(2);
   gate.resolve();
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); expect(calls).toBe(2); await page.clock.runFor(31_000); await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await expect.poll(() => calls).toBe(3); await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
 });
 
 test("#463 public viewport and native scroll survive peer/layout, stale restore is consumed", async ({ page }, testInfo) => {
@@ -148,7 +150,7 @@ test("#463 public viewport and native scroll survive peer/layout, stale restore 
     // 이전 축의 Core/native 반영이 끝난 뒤 다음 독립 native 입력을 시작한다.
     await expect.poll(viewport).toEqual({ public: { left: 0, top: 96 }, dom: { left: 0, top: 96 } });
     await chart.evaluate((element) => { element.scrollLeft = 120; }); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
-    await tab(page).click(); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
+    await openWorkspaceView(page, "milestones"); await expect(dashboard(page)).toHaveAttribute("data-ready", "true"); await page.getByRole("tab", { name: "일정", exact: true }).click(); await expect.poll(viewport).toEqual({ public: { left: 120, top: 96 }, dom: { left:120,top:96 } });
     // 좌표 도달과 3-frame 완료 영수증은 별개다. 정상 복귀가 완료된 뒤 검색 기준을 캡처한다.
     await expect.poll(() => frame.getAttribute("data-gantt-peer-restore")).not.toBeNull();
     const completed = JSON.parse((await frame.getAttribute("data-gantt-peer-restore"))!);
@@ -313,7 +315,7 @@ test("#463 실제 검색 input은 pending peer 복원 완료 영수증을 취소
       coordinator: await frame.getAttribute("data-gantt-viewport-coordinator") }),
     contentType: "application/json",
   });
-  await tab(page).click();
+  await openWorkspaceView(page, "milestones");
   await expect(dashboard(page)).toHaveAttribute("data-ready", "true");
   await expect.poll(() => frame.evaluate(element => !!Reflect.get(element, "__issue568Trace"))).toBe(true);
   // 실제 RAF callback만 유한하게 보류한다. 해제 후에도 원래 RAF에서 실행하며 Core는 그대로 사용한다.

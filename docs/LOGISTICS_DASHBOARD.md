@@ -1,3 +1,7 @@
+## Issue #724 — 현재 탐색 경로
+
+기존 KPI는 `대시보드 → KPI`, 통합 조회의 세 관점은 `대시보드 → 공정&WorkArea / 설비 / 물류 시스템`, 원본 관리는 `기준정보`의 같은 엔터티 메뉴로 이동한다. 기존 산식·서버 snapshot·정확 Task/Assignment/Target 편집·일정 drill은 그대로 재사용한다. Target 구성/제어·조율 관계는 관련 기준정보의 보조 호환 진입이며 별도 상위/하위 Target 주메뉴를 만들지 않는다. 아래 #624의 이전 `물류 구성 → 통합 조회` 표기는 당시 경로이며 현재 이관표·공개 subview 계약은 [Project UX](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 따른다. 새 Target0 집계·동적 계층은 #728~#736 후속이다.
+
 ## Issue #624 — 물류 통합 관점 V1 (기존 Dashboard의 읽기 전용 확장)
 
 물류 구성의 새 **통합 조회** 탭은 기존 KPI 화면과 Task 직접연결·조율 범위 산식을 바꾸지 않는다. #619/#620 Resource Dashboard의 동일 `targetProjection`·`summary`·`stages`를 `projectionOrder`로 재배열하여 공정 종류→site/product 공정→선택 WorkArea→Target, 설비 종류→인스턴스→Target, 시스템 종류→인스턴스→Target, Target→Resource 관점을 제공한다.

@@ -34,6 +34,8 @@ import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import { ProjectLogisticsUnified } from "./project-logistics-unified";
 import type { ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import styles from "./project-logistics-management.module.css";
+import { useLogisticsViewState } from "./use-logistics-view-state";
+import { isVisibleFocusTarget } from "@/features/milestones/milestone-management-model";
 
 function developerGradeLabel(grade: ResourceDto["developerGrade"] | undefined): string {
   switch (grade) {
@@ -58,6 +60,12 @@ function isTypeCatalog(value: unknown): value is LogisticsActiveTypeCatalogRespo
 import type { ProjectTaskDto } from "@/contracts/projects";
 
 export interface ProjectLogisticsManagementProps {
+  subview?: SubTab;
+  onSubviewChange?: (view: SubTab) => void;
+  onSubviewFocusUnavailable?: () => void;
+  hideSubviewNavigation?: boolean;
+  perspective?: import("./logistics-unified-model").LogisticsPerspective;
+  onPerspectiveChange?: (view: import("./logistics-unified-model").LogisticsPerspective) => void;
   tasks?: readonly ProjectTaskDto[];
   targetOpenRequest?: {id:string;sequence:number;code?:string | null} | null;
   active?: boolean;
@@ -83,9 +91,10 @@ export interface ProjectLogisticsManagementProps {
   onUnauthorized: () => void;
 }
 
-type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
+export type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
+  subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
   targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment,
   publicId,
   projectContext,
@@ -97,27 +106,33 @@ export function ProjectLogisticsManagement({
   onNavigateToSchedule,
   onUnauthorized,
 }: ProjectLogisticsManagementProps) {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>("dashboard");
+  const [localSubTab, setLocalSubTab] = useState<SubTab>("dashboard");
+  const activeSubTab = subview ?? localSubTab;
+  function setActiveSubTab(view: SubTab) { setLocalSubTab(view); onSubviewChange?.(view); }
   const [targetRequestSequence, setTargetRequestSequence] = useState<number | null>(null);
   const [unifiedTargetRequest, setUnifiedTargetRequest] = useState<{ id: string; sequence: number; code?: string | null } | null>(null);
   const unifiedTargetTrigger = useRef<HTMLElement | null>(null);
   if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) {
     setTargetRequestSequence(targetOpenRequest.sequence);
     setUnifiedTargetRequest(null);
-    setActiveSubTab("targets");
+    setLocalSubTab("targets");
   }
   function returnToUnified() {
     setUnifiedTargetRequest(null);
     setActiveSubTab("unified");
     requestAnimationFrame(() => {
       const trigger = unifiedTargetTrigger.current;
-      if (trigger?.isConnected && !trigger.matches(":disabled") && !trigger.closest("[hidden],[inert]")) trigger.focus({ preventScroll: true });
-      else document.getElementById("subtab-unified")?.focus({ preventScroll: true });
+      if (isVisibleFocusTarget(trigger)) trigger.focus({ preventScroll: true });
+      else {
+        const tab = document.getElementById("subtab-unified");
+        if (isVisibleFocusTarget(tab)) tab.focus({ preventScroll: true });
+        else onSubviewFocusUnavailable?.();
+      }
     });
   }
-  const [searchQuery, setSearchQuery] = useState("");
-  const [processFilter, setProcessFilter] = useState<string>("all");
-  const [includeInactive, setIncludeInactive] = useState(false);
+  const [searchQuery, setSearchQuery] = useLogisticsViewState(activeSubTab, "");
+  const [processFilter, setProcessFilter] = useLogisticsViewState<string>(activeSubTab, "all");
+  const [includeInactive, setIncludeInactive] = useLogisticsViewState(activeSubTab, false);
   const [typeCatalog, setTypeCatalog] = useState<LogisticsActiveTypeCatalogResponse["data"] | null>(null);
   const [typeCatalogState, setTypeCatalogState] = useState<"loading" | "ready" | "error">("loading");
   const typeCatalogRequest = useRef<AbortController | null>(null);
@@ -464,7 +479,7 @@ export function ProjectLogisticsManagement({
       </div>
 
       {/* Sub Navigation */}
-      <div className={styles.subTabList} role="tablist" aria-label="물류 구성 세부 영역">
+      <div style={hideSubviewNavigation ? { display: "none" } : undefined} hidden={hideSubviewNavigation} className={styles.subTabList} role="tablist" aria-label="물류 구성 세부 영역">
         <button
           id="subtab-dashboard"
           className={styles.subTabButton}
@@ -541,7 +556,7 @@ export function ProjectLogisticsManagement({
         </button>
       </div>
 
-      <div id="panel-targets" role="tabpanel" aria-labelledby="subtab-targets" hidden={activeSubTab !== "targets"}>
+      <div id="panel-targets" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-targets"} hidden={activeSubTab !== "targets"}>
         {unifiedTargetRequest ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
         <ProjectLogisticsTargets openRequest={unifiedTargetRequest ?? targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
       </div>
@@ -645,7 +660,7 @@ export function ProjectLogisticsManagement({
       <div
         id="panel-dashboard"
         role="tabpanel"
-        aria-labelledby="subtab-dashboard"
+        aria-labelledby={hideSubviewNavigation ? undefined : "subtab-dashboard"}
         hidden={activeSubTab !== "dashboard"}
       >
         <ProjectLogisticsDashboard
@@ -657,8 +672,8 @@ export function ProjectLogisticsManagement({
         />
       </div>
 
-      <div id="panel-unified" role="tabpanel" aria-labelledby="subtab-unified" hidden={activeSubTab !== "unified"}>
-        <ProjectLogisticsUnified publicId={publicId} revision={revision}
+      <div id="panel-unified" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-unified"} hidden={activeSubTab !== "unified"}>
+        <ProjectLogisticsUnified perspective={perspective} onPerspectiveChange={onPerspectiveChange} publicId={publicId} revision={revision}
           active={active && activeSubTab === "unified"} busy={busy || isSubmitting} editable={editable}
           logistics={logistics} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
           onOpenMilestone={taskId => onStageOpen?.(taskId)} onResourceSchedule={onResourceSchedule}
@@ -674,7 +689,7 @@ export function ProjectLogisticsManagement({
       <div
         id="panel-processes"
         role="tabpanel"
-        aria-labelledby="subtab-processes"
+        aria-labelledby={hideSubviewNavigation ? undefined : "subtab-processes"}
         hidden={activeSubTab !== "processes"}
       >
         <div className={styles.tableContainer}>
@@ -766,7 +781,7 @@ export function ProjectLogisticsManagement({
       <div
         id="panel-equipment"
         role="tabpanel"
-        aria-labelledby="subtab-equipment"
+        aria-labelledby={hideSubviewNavigation ? undefined : "subtab-equipment"}
         hidden={activeSubTab !== "equipment"}
       >
         <div className={styles.tableContainer}>
@@ -922,7 +937,7 @@ export function ProjectLogisticsManagement({
       <div
         id="panel-systems"
         role="tabpanel"
-        aria-labelledby="subtab-systems"
+        aria-labelledby={hideSubviewNavigation ? undefined : "subtab-systems"}
         hidden={activeSubTab !== "systems"}
       >
         <div className={styles.tableContainer}>
@@ -1107,7 +1122,7 @@ export function ProjectLogisticsManagement({
       <div
         id="panel-relations"
         role="tabpanel"
-        aria-labelledby="subtab-relations"
+        aria-labelledby={hideSubviewNavigation ? undefined : "subtab-relations"}
         hidden={activeSubTab !== "relations"}
       >
         <div className={styles.tableContainer}>

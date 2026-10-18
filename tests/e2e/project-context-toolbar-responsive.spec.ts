@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
@@ -119,7 +120,7 @@ for (const width of [390, 768, 1024, 1440]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
       await page.screenshot({ path: testInfo.outputPath(`issue-118-${width}-${editing ? "edit" : "readonly"}-search-reset.png`) });
 
-      await page.getByRole("tab", { name: "리소스", exact: true }).click();
+      await openWorkspaceView(page, "resources");
       await page.getByRole("tab", { name: "일정", exact: true }).click();
       await expectSameGanttRoot(page, identity);
       await expect(gantt).toHaveAttribute("data-gantt-scale-mode", "week");

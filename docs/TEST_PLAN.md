@@ -4362,3 +4362,37 @@ Dashboard KPI의 Milestone ID 집합/직접 선행 M 원인은 native0행 일정
 실제 로컬 테스트는 Node 22에서 수행하고 `verify:prepr --mode=fast` 및 영향 선택의 source/환경/exit를 Work Packet에 기록한다. 자동 선택 dry-run은 실행 결과가 아니며 필요 직접 테스트는 별도 실행한다. 기존 Pre-PR fingerprint 알고리즘과 CI 정책은 재설계하지 않는다. 변경된 제품 UI/HTTP/SQLite 계약은 없으므로 배치 도구 로컬 검증에 전체 Chromium/Docker를 반복 추가하지 않는다. 원격 Full Required 세 검사는 기존 CI가 수행한다.
 
 AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.
+## Issue #724 — 탐색 N1 변경 영향과 검증
+
+기준 main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`, 후보 `0.117.0`, HIGH/OWNER_MANAGED. 구현·기존 테스트 갱신·Local Fast Feedback·사전 검토 후 PR CI 시작까지만 수행한다. 원격 Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 결과 확인 전 NOT TESTED이며 로컬 검증으로 대체하지 않는다. [Work Packet](exec-plans/active/ISSUE_724.md), [누적 실패·차단](ISSUE_724_FAILURE_ANALYSIS.md)을 따른다.
+
+| 수정 지점/전후 | 직접·간접 소비자/음성 사례 | 위험 | 선정 테스트·환경 | 상태/범위 |
+| --- | --- | --- | --- | --- |
+| 기존4상위 → 3상위/6분석/4관리·screenKey | Workspace·모든 기존 Milestone/Resource/Logistics 경로, 잘못된 저장값/URL | HIGH | routing unit, 기존 `project-workspace-tabs-518`, `project-workspace-ux`; 실제 Chromium5폭 | 선정 Local PASS, 실행 단계별 결과는 아래 기록 |
+| null 전체 scope tab → 명시 전체 일정 button | Summary 추가/중복/닫기·마지막 fallback·rootTask·Header Add·필터 복귀 | HIGH | 기존 `task-context-menu-hierarchy`, `project-search-filter`, scope/toolbar 회귀 | 기존 기능·음성 단언 보존 |
+| 단일 logistics host controlled subview/perspective | KPI·통합 조회·Target/제어관계 보조 진입·기간/검색/접힘·stale 응답 | HIGH | 기존 `project-logistics-management`, `logistics-target-authoring`, `issue-624-logistics-unified`, request-state | 새 집계/CRUD를 검사한 것으로 주장하지 않음 |
+| 정확 drill/editor origin에 screenKey | Task/Assignment/Milestone 추가·원본 Target 편집·readonly/dirty/pending/stale/401/412 | HIGH | 기존 `resource-drill-*`, `issue-621-resource-target`, Milestone 관리/교환 회귀 | Editor가 숨은 일정 panel에 갇히지 않는지 확인 |
+| Gantt 비활성 측정/복귀·메뉴 왕복 | 같은 API/instance·scroll/Day/Week·tree/선택·fullscreen·marker OFF·mutation0 | HIGH | 기존 Workspace/Resource KPI/Gantt 제품 통합 및 Milestone 표시 회귀 | 별도 writer/remount·수치 허용오차·skip/retry 완화 금지 |
+| Resource master에 기존 카탈로그 재사용 | 독립 관리자 인증·Project readonly·등록과 배정 구분 | MEDIUM/HIGH 교차 | 메뉴/관리 컴포넌트 기존 회귀·브라우저 | 새 Project 참여 CRUD #727은 NOT IMPLEMENTED |
+| DESIGN/현재 경로/사용자 가이드·#720 인계 | 이전 메뉴명·manual screenKey/anchor·API/DB 무영향 | HIGH 정합성 | markdown link·diff 정합성·독립 사전 검토 | 실제 매뉴얼 route/icon 구현 아님 |
+
+공통 navigation test helper는 실제 상위→하위 버튼을 클릭한다. 기존 테스트를 숨은 구형 버튼으로 우회하지 않는다. 탐색 selector/의도된 메뉴 기대값만 이관하고 canonical/권한/정확 ID/교환·무쓰기·엄격한 viewport/instance·marker OFF 단언은 유지한다. 신규 중복 spec 대신 기존 Workspace·scope 테스트를 확장한다. 전체 공식 회귀는 동일 Head의 원격6 shard CI에서 수행한다.
+
+### 실행 결과
+
+선정한 Local Fast Feedback는 최종 보완 source에서 PASS다. 원격 전체 회귀의 PASS가 아니다.
+
+| 단계 | 실행/환경 | 실제 결과와 범위 |
+| --- | --- | --- |
+| 초기 | routing21·typecheck/변경 source lint | 초기 결과이며 후속36개 및 최종 source 검사로 인계 |
+| 환경 차단/회복 | 외부 node_modules symlink를 Turbopack가 거부. 초기 Webpack dev3124 실행 후 격리 `npm ci`447개/14초 | 원본 BLOCKED 보존, 이후 기본 Turbopack·기존 Playwright config로 검증 |
+| 초기 Chromium | Workspace/관리3파일29케이스 | 27 PASS/2 FAIL: 내부 heading 및 screen query 기대 오류. 이후 해당2개 기본 compiler 재검증 PASS |
+| 기본 compiler 선택 | 8파일14케이스 | 12 PASS/2 FAIL: Target helper 목적지·전체 scope button의 aria 기대 오류. 이후 해당2개 교정 PASS |
+| source focus 보완 | 기존 테스트6케이스 | 5 PASS/1 FAIL: 추가 #624 음성 테스트의 hidden origin 준비 locator. 원본/두 번의 준비 실패·추가 진단·과도한 신규 focus/Target Dialog 기대 오류는 누적 원장에 모두 보존 |
+| 최종 #624 | 동일 동결 source·기존 통합 spec 단독, 기본 Turbopack/실제 HTTP·SQLite/Chromium | PASS: 테스트23.0초/전체39.4초. 기존4관점·full Gate·5폭·정확 ID·3개 origin 소실 복귀·무쓰기·full snapshot·동일 Gantt 유지 |
+| 최종 보완 집합 | 앞선 동일 source5 PASS + 마지막 #6241 PASS | 보완 대상6케이스 모두 PASS. 같은 실행 하나의6/6으로 표기하거나 반복/중복 케이스 수를 합산하지 않음 |
+| 코드/문서 독립 사전 검토 | 실제 별도 navigation_review | REWORK focus3곳 보완 뒤 source·문서 및 최종 음성 test-contract PASS. 원격 Trusted QA/Owner 승인과 구별 |
+
+최종 source의 typecheck PASS, 변경 source lint0error/기존warning1, 변경46테스트 lint0error0warning, routing36개 unit PASS, diff-check·version0.117.0 일치·Markdown 링크 PASS를 확인했다. [최종 검증 JSON](evidence/issue-724/local-validation.json)에 source6개 SHA256과 세 복귀 단계의 실제 focus 증거를 남겼다. source2개 SHA256은 Work Packet의 검토값과 같다. UI 캡처는 고정 fixture의 [390px 분석](evidence/issue-724/navigation-390.png) 및 [1440px 기준정보](evidence/issue-724/navigation-1440.png)이며 실제 운영 데이터가 아니다. 나머지5폭/Resource 관리자 로그인 geometry·Summary/rootTask·정확 drill·LIFO·Milestone 실제 추가/readonly는 단계별 기존 테스트에서 확인했다.
+
+최종 #624의 보완 검사는 특정 버튼 하나를 강제하지 않고 원래 설계대로 정확한 화면의 보이는 control/heading/활성 tab을 검사한다. Task control이면 canonical ID도 맞아야 한다. 숨은 요소·본문·다른 화면·disabled는 실패로 유지한다. 기존 실적/수치/권한/무쓰기·snapshot 단언을 삭제하지 않았다. 실제 수동 UX/스크린리더·운영 배포 및 원격 Required Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED다.

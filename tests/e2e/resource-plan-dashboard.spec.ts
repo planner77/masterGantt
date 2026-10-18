@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import {
@@ -105,7 +106,7 @@ async function setup(page: import("@playwright/test").Page) {
       current.public?.left === current.dom.left && current.public?.top === current.dom.top;
   }).toBe(true);
   const before = await viewport(page);
-  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await openWorkspaceView(page, "resources");
   await expect(root(page)).toHaveAttribute("data-ready", "true");
   await root(page)
     .getByLabel("리소스 보기", { exact: true })

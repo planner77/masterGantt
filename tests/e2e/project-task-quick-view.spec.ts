@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rowNamed } from "../fixtures/stateful-project";
 
@@ -31,7 +32,7 @@ test.describe("Issue #552 replaces #196 quick views with marker-OFF WBS", () => 
     await page.getByRole("button",{name:/^필터/}).click();await page.getByRole("group",{name:"Task type",exact:true}).getByRole("checkbox",{name:"task",exact:true}).check();await page.keyboard.press("Escape");
     await expect(rowNamed(page,"Existing summary child")).toBeVisible();await expect(rowNamed(page,"Stable leaf")).toHaveCount(0);
     const toggle=page.getByRole("button",{name:"◆ Milestone 표시",exact:true}); await expect(toggle).toHaveCount(0);
-    await page.getByRole("tab",{name:"Milestone 대시보드",exact:true}).click(); await page.getByRole("tab",{name:"일정",exact:true}).click();
+    await openWorkspaceView(page, "milestones"); await page.getByRole("tab",{name:"일정",exact:true}).click();
     await expect(search).toHaveValue("Existing");await expect(rowNamed(page,"Existing summary child")).toBeVisible();await expect(rowNamed(page,"Stable leaf")).toHaveCount(0);
     await expect(page.getByLabel("Milestone Timeline", {exact:true})).toHaveCount(0);
   });

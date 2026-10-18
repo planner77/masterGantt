@@ -1,3 +1,4 @@
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Locator, type Page, type Request, type Route } from "@playwright/test";
 import type { TaskMutationResponse } from "../../src/contracts/projects";
 import { installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
@@ -152,7 +153,7 @@ for (const [tab, visibilityAttribute] of [
     try {
       const name = `Saved while ${tab} hidden`;
       await input.fill(name);
-      await page.locator(`#project-tab-${tab}`).click();
+      await openWorkspaceView(page, tab);
       await expect.poll(() => route.patches.length).toBe(1);
       const schedulePanel = page.locator("#project-panel-schedule");
       await expect(schedulePanel).toHaveAttribute(visibilityAttribute, "");

@@ -1,3 +1,5 @@
+import type { Locator, Page } from "@playwright/test";
+import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../src/contracts/resource-dashboard";
 import { detailsQuery } from "../../src/features/resources/resource-dashboard-model";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
@@ -11,6 +13,34 @@ test.use({
   isolatedResourceAdminPassword: issue621ResourcePassword,
   viewport: { width: 1440, height: 1000 },
 });
+
+// Replace only the DOM origin to exercise a disconnected React reference, then
+// restore it after the focus assertion. Canonical fixture data is untouched.
+async function replaceFocusOrigin(origin: Locator, navigate: () => Promise<void>) {
+  const handle = await origin.elementHandle();
+  if (!handle) throw new Error("Focus origin must exist before navigation");
+  await navigate();
+  await handle.evaluate(node => {
+    // Some projections naturally unmount their inactive details. That already
+    // supplies the disconnected origin; retain the real reference either way.
+    if (!node.isConnected) return;
+    const replacement = node.cloneNode(true) as HTMLButtonElement;
+    replacement.disabled = false;
+    replacement.dataset.issue724FocusReplacement = "true";
+    Reflect.set(replacement, "originalFocusNode", node);
+    node.replaceWith(replacement);
+  });
+  expect(await handle.evaluate(node => node.isConnected)).toBe(false);
+  await handle.dispose();
+}
+async function restoreFocusOrigin(page: Page) {
+  await page.locator('[data-issue724-focus-replacement="true"]').evaluateAll(nodes => {
+    for (const node of nodes) {
+      const original = Reflect.get(node, "originalFocusNode") as HTMLElement;
+      node.replaceWith(original);
+    }
+  });
+}
 
 const orders = {
   process: "processType,process,workArea,target",
@@ -35,6 +65,36 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
   const before = await f.snapshot();
   const frame = page.locator(".project-gantt-frame");
   const ganttInstance = await frame.getAttribute("data-project-gantt-instance");
+  async function expectReturnedFocus(phase: string, expectedScreen: string, expectedTaskId?: string) {
+    await expect(root).toBeVisible();
+    const observe = () => page.evaluate(({ expectedScreen, expectedTaskId }) => {
+      const active = document.activeElement;
+      const screen = new URL(location.href).searchParams.get("screen");
+      const visible = active instanceof HTMLElement && active.isConnected && active.checkVisibility({ checkVisibilityCSS: true, checkOpacity: true }) && active.getBoundingClientRect().width > 0 && active.getBoundingClientRect().height > 0;
+      const hidden = Boolean(active?.closest("[hidden],[inert]"));
+      const disabled = active?.matches(":disabled,[aria-disabled=true]") ?? true;
+      const panel = document.querySelector("#project-panel-logistics");
+      const currentTab = active?.matches('[role=tab]') && active.getAttribute("tabindex") === "0" &&
+        (active.id === (expectedScreen === "dashboard.target" ? "project-tab-dashboard.process" : `project-tab-${expectedScreen}`) || active.id === "project-tab-dashboard");
+      const sameOwner = Boolean(panel?.contains(active)) || Boolean(currentTab);
+      const controlOrHeading = active?.matches('button,input,select,textarea,a[href],[role=button],h1,h2,h3,h4,h5,h6,[role=heading]') ?? false;
+      const taskButton = active?.matches('[data-resource-action],[data-resource-assignment-edit]') ?? false;
+      const taskId = active?.closest("[data-canonical-task-id]")?.getAttribute("data-canonical-task-id") ?? null;
+      const identityMatches = !taskButton || (expectedTaskId !== undefined && taskId === expectedTaskId);
+      return { screen, expectedScreen, visible, hidden, disabled, sameOwner, controlOrHeading, taskId, expectedTaskId, identityMatches,
+        active: active ? { tag: active.tagName, id: active.id, role: active.getAttribute("role"), text: active.textContent?.slice(0, 180) } : null,
+        accepted: screen === expectedScreen && visible && !hidden && !disabled && sameOwner && controlOrHeading && identityMatches };
+    }, { expectedScreen, expectedTaskId });
+    try {
+      await expect.poll(async () => (await observe()).accepted).toBe(true);
+    } catch (error) {
+      const evidence = await observe();
+      await info.attach(`issue724-focus-failure-${phase}`, { contentType: "application/json", body: JSON.stringify(evidence, null, 2) });
+      console.log(`issue724-focus-failure-${phase}: ${JSON.stringify(evidence)}`);
+      throw error;
+    }
+    await info.attach(`issue724-focus-pass-${phase}`, { contentType: "application/json", body: JSON.stringify(await observe(), null, 2) });
+  }
   const writes: string[] = [];
   page.on("request", request => {
     const path = new URL(request.url()).pathname;
@@ -56,8 +116,8 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
     return (await response.json()).data as ResourceDashboardDto;
   };
   const first = nextReport(orders.process);
-  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
-  await page.getByRole("tab", { name: "통합 조회", exact: true }).click();
+  await openWorkspaceView(page, "logistics");
+  await openWorkspaceView(page, "unified");
   const root = page.getByTestId("logistics-unified-view");
   await expect(root).toBeVisible();
   reports.process = await first;
@@ -148,6 +208,47 @@ test("#624 same canonical Project across four logistics perspectives, full Miles
   await expect(detail.locator(`[data-canonical-task-id="${f.task.taskId}"]`).first()).toBeVisible();
   await detail.getByRole("button", { name: "상세 닫기", exact: true }).click();
   await expect(trigger).toBeFocused();
+
+  // A retained screen must restore visible focus even when the original node
+  // disappeared while its panel was inactive.
+  await trigger.click();
+  const scheduleOrigin = root.locator('section[aria-label="정확 Task 및 Assignment 상세"]').getByRole("button", { name: "전체 범위 일정 보기", exact: true, includeHidden: true });
+  await replaceFocusOrigin(scheduleOrigin, async () => {
+    await scheduleOrigin.click();
+    await expect(page.locator("#project-panel-schedule")).toBeVisible();
+  });
+  await page.getByRole("region", { name: "임시 조회 범위", exact: true }).getByRole("button", { name: /원래 보기/ }).click();
+  const processTab = page.getByRole("tablist", { name: "대시보드 보기" }).getByRole("tab", { name: "공정&WorkArea", exact: true });
+  await expectReturnedFocus("schedule-return", "dashboard.process");
+  await expect(processTab).toHaveAttribute("aria-selected", "true");
+  await restoreFocusOrigin(page);
+
+  const taskOrigin = detail.locator('[data-resource-action="task"]').first();
+  const originTaskId = await taskOrigin.evaluate(node => node.closest("[data-canonical-task-id]")!.getAttribute("data-canonical-task-id")!);
+  const taskEditor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await replaceFocusOrigin(taskOrigin, async () => {
+    await taskOrigin.click();
+    await expect(taskEditor).toBeVisible();
+  });
+  await taskEditor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await expectReturnedFocus("task-editor-return", "dashboard.process", originTaskId);
+  await restoreFocusOrigin(page);
+
+  const targetReport = nextReport(orders.target);
+  await root.getByLabel("물류 통합 조회 관점").selectOption("target");
+  await targetReport;
+  const targetOrigin = root.getByRole("button", { name: "대상 구성 편집", exact: true, includeHidden: true }).first();
+  const targetDialog = page.getByRole("dialog", { name: "Target 수정", exact: true });
+  await replaceFocusOrigin(targetOrigin, async () => {
+    await targetOrigin.click();
+    await expect(targetDialog).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(targetDialog).toHaveCount(0);
+  });
+  await page.getByRole("button", { name: "통합 조회로 돌아가기", exact: true }).click();
+  await expect(root.getByLabel("물류 통합 조회 관점")).toHaveValue("target");
+  await expectReturnedFocus("target-unified-return", "dashboard.target");
+  await restoreFocusOrigin(page);
 
   expect(writes).toEqual([]);
   expect(await f.snapshot()).toEqual(before);
