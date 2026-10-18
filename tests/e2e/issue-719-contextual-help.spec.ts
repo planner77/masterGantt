@@ -139,9 +139,12 @@ test("#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 �
   await page.setViewportSize({ width: 390, height: 280 });
   const trigger = root.getByRole("button", { name: "기준정보 항목 관리 도움말", exact: true });
   await trigger.scrollIntoViewIfNeeded();
+  // Keyboard focus itself opens help. Do not immediately press Enter and
+  // accidentally toggle an already expanded control closed: Enter/Space
+  // activation is covered separately by the six-surface interaction tests.
   await trigger.focus();
-  await trigger.press("Enter");
   const tooltip = page.getByRole("tooltip");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
   await expect(tooltip).toBeVisible();
 
   // Simulate a long localization at a short viewport without changing the

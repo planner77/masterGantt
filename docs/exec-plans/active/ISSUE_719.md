@@ -151,3 +151,11 @@
 - `tests/e2e/issue-719-contextual-help.spec.ts`: 짧은 viewport + 긴 KO/EN을 합성해 실제 overflow를 확인하고 Arrow/Page/Home/End, 열린 상태/trigger focus/Escape 복원을 단언한다. 기존 동일 fixture 다섯 폭/hover/focus/touch, 관리자 초안·비활성화, 대상 대시보드·Gantt/marker-OFF은 인접 회귀 대상이다.
 - 전체 이력 및 최신 오류·분류·보완·재검증 범위·미검증: [전용 누적 실패 원장](../../ISSUE_719_FAILURE_ANALYSIS.md). 이 제품 접근성 교정은 AC3·AC6의 증거 추가이며, 원본 before/after 측정과 원본 Run 원장을 덮어쓰지 않는다.
 - 수정 후보의 로컬 E2E/typecheck/lint: **NOT TESTED**(이번 GitHub connector 환경에는 소스 checkout·브라우저 실행이 없음). 새로운 exact-Head Full PR CI 결과는 실행 전 **NOT TESTED**이며, QA/Trusted·Owner 최종 ACCEPT와 정식 GHCR 릴리스도 승인받지 않았다.
+
+## 2026-10-18 REWORK #2 — Run #2933.1 누적 진단 / 정확 테스트 전제 보완
+
+- [이슈 전용 실패 누적 원장](../../ISSUE_719_FAILURE_ANALYSIS.md)에 F-001(#2932.1 QA review BLOCKED)과 F-002(#2933.1 신규 keyboard E2E FAILED) 전체 Run/Attempt/Job·원본 trace·재발/신규 원인·교차 테스트 범위를 함께 기록했다. F-001 원본은 덮어쓰지 않았다.
+- [Run #2933.1](https://github.com/planner77/masterGantt/actions/runs/39089185087): Quality/Docker SUCCESS, Chromium Shard2 신규 `issue-719-contextual-help.spec.ts:145`에서 `tooltip not found`로 FAIL; 다른 5 shard는 CI fail-fast CANCELLED, QA Final은 `required e2e 미성공` 파생 FAIL. Shard2는 43 PASS/1 FAIL/86 NOT RUN; 미실행을 PASS로 합산하지 않는다.
+- 실제 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/39089185087/artifacts/12121239923) 분석: focus 후 tooltip은 이미 OPEN/aria-expanded=true, 이어지는 Enter 뒤 닫힘. **실제 keyboard scroll 실행 이전의 중복 토글/테스트 상태 전제 오류**다. 기존 제품 Arrow/Page/Home/End 기능 실패라고 단정하지 않고, keyboard scroll 케이스의 중복 Enter만 제거하며 focus-open + 최종 overflow/scroll/Escape 검증을 강화했다. 6화면×5폭 Enter/Space 회귀는 그대로 둔다.
+- 이전 F-001 코드 교정과 WCAG 관련 사용자 요구, 공통 ContextHelp·원본 제품 범위/권한·API·DB·Gantt 계약은 변경하지 않았다. 이번 코드 변경은 E2E test contract만이며 `DESIGN.md`/영속 가이드 추가 수정은 N/A(이미 영속화됨).
+- 새로운 exact-head Full PR CI 결과는 시작 시점 **NOT TESTED**. `risk_level=HIGH`, `qa_required=true`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`. 원격 final success/Trusted QA/Owner ACCEPT·병합/Main/GHCR/Finalizer는 본 요청에서 승인되지 않았다.
