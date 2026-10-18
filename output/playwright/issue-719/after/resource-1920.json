@@ -1,0 +1,67 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 900
+  },
+  "documentWidth": 1920,
+  "noteOnlyHeight": 36,
+  "notes": [
+    {
+      "text": "선택 범위: 2026-09-01 ~ 2026-09-30 · 지연 기준일 2026-09-18 (Asia/Seoul) · M/M 기준: 1 M/M = 20 M/D (환경 설정)",
+      "top": 475,
+      "bottom": 493,
+      "left": 24,
+      "right": 1896,
+      "width": 1872,
+      "height": 18
+    },
+    {
+      "text": "선택 Assignment 중복 제외 · 그룹·Global Role 소계 합산 불가 · 진척은 실제 기여·소진 공수 아님",
+      "top": 687.5,
+      "bottom": 705.5,
+      "left": 24,
+      "right": 1896,
+      "width": 1872,
+      "height": 18
+    }
+  ],
+  "primaryDataTop": 509,
+  "rowCount": 1,
+  "visibleRowCount": 1,
+  "tables": [
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 0,
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "height": 0,
+      "ownerWidth": 0,
+      "scrollWidth": 0
+    },
+    {
+      "top": 784.5,
+      "bottom": 862.5,
+      "left": 31,
+      "right": 1889,
+      "width": 1858,
+      "height": 78,
+      "ownerWidth": 1870,
+      "scrollWidth": 1870
+    }
+  ],
+  "helpTriggerCount": 1,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

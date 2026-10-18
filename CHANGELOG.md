@@ -5,6 +5,13 @@
 - 공개 screenKey/subview/관점 adapter와 기존 탭·범위 E2E를 동기화하고 DESIGN·현재 화면·사용자 가이드를 갱신한다. 새 CRUD·집계 엔진·프로젝트 리소스 참여 원장·앱 내 매뉴얼 제품은 후속 범위다.
 - HIGH/OWNER_MANAGED, release_required=true, release_authorized=false. PR CI 시작까지만 요청되었으며 원격 Required/Trusted·Owner ACCEPT·병합·릴리스는 실제 증거 전 NOT TESTED다.
 
+## [0.116.1] — Unreleased / Issue #719
+
+- Milestone·리소스·물류 구성·기준정보의 반복 설명을 인접 도움말로 이동하고 핵심 범위·단위·비가산·미저장 입력 경고는 직접 유지한다.
+- 공통 도움말은 hover/focus·click/touch·Enter/Space·Escape와 초점 복귀를 지원하며 기본 닫힌 본문은 레이아웃 높이를 예약하지 않는다. 설비 등록의 공정 선행 조건은 지속 인라인 오류로 안내한다.
+- 기존 집계·권한·revision·canonical/Gantt 상태 계약은 유지한다. 로컬 검증·실제 5폭 비교·문서 영향은 [Work Packet](docs/exec-plans/active/ISSUE_719.md)에 구분한다. PR CI 시작은 원격 PASS/Owner 병합·정식 릴리스 승인이 아니다.
+- release_required=true, release_authorized=false; 정식 GHCR/tag/운영 배포는 이번 요청 범위 밖이다.
+
 ## [0.116.0] — Unreleased / Issue #624
 - CI #2893.1의 기존 #456 scoped Week X62/expected120 실패는 새 Gantt writer 수정 대신 현재 Core/native 축 용량·3-frame readiness를 확인하고 필요할 때 실제 wheel로 확장하는 fixture 준비 절차를 추가한다. 이전 #2875~#2887 실패 전체 비교 및 #552 marker-OFF main 변경 보존. 새 전체 PR CI 전 기능/회귀 PASS 미판정.
 

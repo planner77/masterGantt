@@ -132,3 +132,8 @@ L9 실제 진단2: Task Editor 종료 후 `BUTTON#project-tab-dashboard.process`
 
 
 최종 정리: typecheck PASS, 변경46테스트 ESLint0error0warning, routing36/36 PASS, diff-check·version0.117.0·Markdown 링크 PASS. 최종 세 복귀 실제 focus는 모두 보이는/활성/동일 host의 공정&WorkArea 탭이며 screenKey는 process/process/target이다. [검증 JSON](../../evidence/issue-724/local-validation.json)에 source6 SHA256·실제 focus·실행 경계를 남겼다. Next 자동 생성 next-env/tsconfig 및 tracked cross-flow 실측 파일은 baseline으로 복원했고 신규 실측은 별도 /tmp에 보존했다. 현재 미해결 로컬 지적 없음, 원격 PR CI 등록은 infra에 인계한다.
+
+
+### PR CI 첫 원격 실패 F01 / 리뷰·최신 main 충돌 보완 (2026-10-18)
+
+[Run #2947.1](https://github.com/planner77/masterGantt/actions/runs/39099275805) HEAD `ab5693ab911f280188f783865448940ab1aa3543`에서 Chromium shard1 #551 Chart 563→510px가 직접 실패했고 다른 5 shard는 취소되었다. QA Final은 E2E 실패 및 mergeability/test-merge 불일치를 보고했다. 원격 최초 F01과 과거 로컬 L1–L10의 교차 분석·근본 원인·수정·추후 재발 대응은 [#724 단일 누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 기록한다. 비활성 일정 패널 measured-height 보존, 보조 화면 ARIA 선택/roving 일치, 기존 E2E 엄격 단언과 추가 직접 회귀, 최신 main #719 도움말/테스트/문서/버전 충돌 보존을 수정 후보에 적용한다. 새로운 exact Head의 Required3/Trusted QA/Owner ACCEPT는 아직 **NOT TESTED**. `release_authorized=false`, 병합·Main/GHCR·Issue 종료·CI 완료 모니터링은 요청 범위 밖이다.

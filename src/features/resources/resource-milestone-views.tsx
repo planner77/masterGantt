@@ -1,4 +1,5 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
 import { useResourceDrill } from "./resource-drill-context";
 import { resourceProjectionFetch } from "./resource-drill-transport";
 import {
@@ -335,10 +336,6 @@ export function ResourceMilestoneTree(
       }}
     >
       <section aria-label="Milestone 계층 현황">
-        <p className="resource-dashboard-hint">
-          현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지
-          위치는 보존되며 집계 범위는 바뀌지 않습니다.
-        </p>
         <button
           type="button"
           className="secondary-button"
@@ -346,6 +343,7 @@ export function ResourceMilestoneTree(
         >
           계층 모두 접기
         </button>
+        <ContextHelp label="Milestone 계층 도움말"><p>현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.</p></ContextHelp>
         <Pager
           label="상위 행"
           offset={offset}

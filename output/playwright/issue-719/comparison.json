@@ -1,0 +1,636 @@
+{
+  "measurementScope": "notesHeight counts visible p with note/hint/description CSS class and role=note; excludes unclassed KPI prose, top-page prose, margins and hidden text. Table top selects first nonzero-height table. All viewports height900/default zoom. Unchanged visible row count does not imply a gain.",
+  "environment": "Both captures: physical package-lock dependencies, Next16.3.8 default Turbopack dev; same fixture and Chromium version.",
+  "measurements": [
+    {
+      "surface": "milestone",
+      "width": 390,
+      "notesHeight": {
+        "before": 252,
+        "after": 180
+      },
+      "primaryDataTop": {
+        "before": 912,
+        "after": 894
+      },
+      "visibleTableTop": {
+        "before": 2226,
+        "after": 2086.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 390
+    },
+    {
+      "surface": "milestone",
+      "width": 768,
+      "notesHeight": {
+        "before": 144,
+        "after": 126
+      },
+      "primaryDataTop": {
+        "before": 687,
+        "after": 687
+      },
+      "visibleTableTop": {
+        "before": 1462.5,
+        "after": 1417.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 768
+    },
+    {
+      "surface": "milestone",
+      "width": 1024,
+      "notesHeight": {
+        "before": 108,
+        "after": 108
+      },
+      "primaryDataTop": {
+        "before": 639,
+        "after": 639
+      },
+      "visibleTableTop": {
+        "before": 1396.5,
+        "after": 1369.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 1024
+    },
+    {
+      "surface": "milestone",
+      "width": 1440,
+      "notesHeight": {
+        "before": 108,
+        "after": 108
+      },
+      "primaryDataTop": {
+        "before": 496,
+        "after": 496
+      },
+      "visibleTableTop": {
+        "before": 918.5,
+        "after": 918.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 1440
+    },
+    {
+      "surface": "milestone",
+      "width": 1920,
+      "notesHeight": {
+        "before": 108,
+        "after": 108
+      },
+      "primaryDataTop": {
+        "before": 496,
+        "after": 496
+      },
+      "visibleTableTop": {
+        "before": 918.5,
+        "after": 918.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 1920
+    },
+    {
+      "surface": "resource",
+      "width": 390,
+      "notesHeight": {
+        "before": 126,
+        "after": 72
+      },
+      "primaryDataTop": {
+        "before": 836,
+        "after": 836
+      },
+      "visibleTableTop": {
+        "before": 1405.5,
+        "after": 1351.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 390
+    },
+    {
+      "surface": "resource",
+      "width": 768,
+      "notesHeight": {
+        "before": 72,
+        "after": 36
+      },
+      "primaryDataTop": {
+        "before": 623,
+        "after": 623
+      },
+      "visibleTableTop": {
+        "before": 1001.5,
+        "after": 965.5
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 768
+    },
+    {
+      "surface": "resource",
+      "width": 1024,
+      "notesHeight": {
+        "before": 54,
+        "after": 36
+      },
+      "primaryDataTop": {
+        "before": 509,
+        "after": 509
+      },
+      "visibleTableTop": {
+        "before": 802.5,
+        "after": 784.5
+      },
+      "visibleRowCount": {
+        "before": 1,
+        "after": 1
+      },
+      "documentWidthAfter": 1024
+    },
+    {
+      "surface": "resource",
+      "width": 1440,
+      "notesHeight": {
+        "before": 54,
+        "after": 36
+      },
+      "primaryDataTop": {
+        "before": 509,
+        "after": 509
+      },
+      "visibleTableTop": {
+        "before": 802.5,
+        "after": 784.5
+      },
+      "visibleRowCount": {
+        "before": 1,
+        "after": 1
+      },
+      "documentWidthAfter": 1440
+    },
+    {
+      "surface": "resource",
+      "width": 1920,
+      "notesHeight": {
+        "before": 36,
+        "after": 36
+      },
+      "primaryDataTop": {
+        "before": 509,
+        "after": 509
+      },
+      "visibleTableTop": {
+        "before": 784.5,
+        "after": 784.5
+      },
+      "visibleRowCount": {
+        "before": 1,
+        "after": 1
+      },
+      "documentWidthAfter": 1920
+    },
+    {
+      "surface": "resource-admin",
+      "width": 390,
+      "notesHeight": {
+        "before": 0,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 584.171875,
+        "after": 536.171875
+      },
+      "visibleTableTop": {
+        "before": 584.171875,
+        "after": 536.171875
+      },
+      "visibleRowCount": {
+        "before": 2,
+        "after": 2
+      },
+      "documentWidthAfter": 390
+    },
+    {
+      "surface": "resource-admin",
+      "width": 768,
+      "notesHeight": {
+        "before": 0,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleTableTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 768
+    },
+    {
+      "surface": "resource-admin",
+      "width": 1024,
+      "notesHeight": {
+        "before": 0,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleTableTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 1024
+    },
+    {
+      "surface": "resource-admin",
+      "width": 1440,
+      "notesHeight": {
+        "before": 0,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleTableTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 1440
+    },
+    {
+      "surface": "resource-admin",
+      "width": 1920,
+      "notesHeight": {
+        "before": 0,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleTableTop": {
+        "before": 467.390625,
+        "after": 443.390625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 1920
+    },
+    {
+      "surface": "logistics",
+      "width": 390,
+      "notesHeight": {
+        "before": 49,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 2334.53125,
+        "after": 2229.9375
+      },
+      "visibleTableTop": {
+        "before": 2334.53125,
+        "after": 2229.9375
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 390
+    },
+    {
+      "surface": "logistics",
+      "width": 768,
+      "notesHeight": {
+        "before": 31.09375,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 2196.34375,
+        "after": 2169.75
+      },
+      "visibleTableTop": {
+        "before": 2196.34375,
+        "after": 2169.75
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 768
+    },
+    {
+      "surface": "logistics",
+      "width": 1024,
+      "notesHeight": {
+        "before": 31.09375,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 1278.84375,
+        "after": 1203.875
+      },
+      "visibleTableTop": {
+        "before": 1278.84375,
+        "after": 1203.875
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 1024
+    },
+    {
+      "surface": "logistics",
+      "width": 1440,
+      "notesHeight": {
+        "before": 31.09375,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 975.46875,
+        "after": 948.875
+      },
+      "visibleTableTop": {
+        "before": 975.46875,
+        "after": 948.875
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 1440
+    },
+    {
+      "surface": "logistics",
+      "width": 1920,
+      "notesHeight": {
+        "before": 31.09375,
+        "after": 0
+      },
+      "primaryDataTop": {
+        "before": 975.46875,
+        "after": 948.875
+      },
+      "visibleTableTop": {
+        "before": 975.46875,
+        "after": 948.875
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 1920
+    },
+    {
+      "surface": "logistics-admin",
+      "width": 390,
+      "notesHeight": {
+        "before": 24,
+        "after": 24
+      },
+      "primaryDataTop": {
+        "before": 721.21875,
+        "after": 697.21875
+      },
+      "visibleTableTop": {
+        "before": 721.21875,
+        "after": 697.21875
+      },
+      "visibleRowCount": {
+        "before": 1,
+        "after": 1
+      },
+      "documentWidthAfter": 390
+    },
+    {
+      "surface": "logistics-admin",
+      "width": 768,
+      "notesHeight": {
+        "before": 24,
+        "after": 24
+      },
+      "primaryDataTop": {
+        "before": 489.8125,
+        "after": 489.8125
+      },
+      "visibleTableTop": {
+        "before": 489.8125,
+        "after": 489.8125
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 768
+    },
+    {
+      "surface": "logistics-admin",
+      "width": 1024,
+      "notesHeight": {
+        "before": 24,
+        "after": 24
+      },
+      "primaryDataTop": {
+        "before": 417.40625,
+        "after": 417.40625
+      },
+      "visibleTableTop": {
+        "before": 417.40625,
+        "after": 417.40625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 1024
+    },
+    {
+      "surface": "logistics-admin",
+      "width": 1440,
+      "notesHeight": {
+        "before": 24,
+        "after": 24
+      },
+      "primaryDataTop": {
+        "before": 417.40625,
+        "after": 417.40625
+      },
+      "visibleTableTop": {
+        "before": 417.40625,
+        "after": 417.40625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 1440
+    },
+    {
+      "surface": "logistics-admin",
+      "width": 1920,
+      "notesHeight": {
+        "before": 24,
+        "after": 24
+      },
+      "primaryDataTop": {
+        "before": 417.40625,
+        "after": 417.40625
+      },
+      "visibleTableTop": {
+        "before": 417.40625,
+        "after": 417.40625
+      },
+      "visibleRowCount": {
+        "before": 3,
+        "after": 3
+      },
+      "documentWidthAfter": 1920
+    },
+    {
+      "surface": "master",
+      "width": 390,
+      "notesHeight": {
+        "before": 240,
+        "after": 168
+      },
+      "primaryDataTop": {
+        "before": 1227.78125,
+        "after": 1158.171875
+      },
+      "visibleTableTop": {
+        "before": 1227.78125,
+        "after": 1158.171875
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 0
+      },
+      "documentWidthAfter": 390
+    },
+    {
+      "surface": "master",
+      "width": 768,
+      "notesHeight": {
+        "before": 144,
+        "after": 96
+      },
+      "primaryDataTop": {
+        "before": 870.203125,
+        "after": 796.59375
+      },
+      "visibleTableTop": {
+        "before": 870.203125,
+        "after": 796.59375
+      },
+      "visibleRowCount": {
+        "before": 0,
+        "after": 1
+      },
+      "documentWidthAfter": 768
+    },
+    {
+      "surface": "master",
+      "width": 1024,
+      "notesHeight": {
+        "before": 144,
+        "after": 96
+      },
+      "primaryDataTop": {
+        "before": 675.015625,
+        "after": 665.40625
+      },
+      "visibleTableTop": {
+        "before": 675.015625,
+        "after": 665.40625
+      },
+      "visibleRowCount": {
+        "before": 4,
+        "after": 4
+      },
+      "documentWidthAfter": 1024
+    },
+    {
+      "surface": "master",
+      "width": 1440,
+      "notesHeight": {
+        "before": 144,
+        "after": 96
+      },
+      "primaryDataTop": {
+        "before": 675.015625,
+        "after": 665.40625
+      },
+      "visibleTableTop": {
+        "before": 675.015625,
+        "after": 665.40625
+      },
+      "visibleRowCount": {
+        "before": 4,
+        "after": 4
+      },
+      "documentWidthAfter": 1440
+    },
+    {
+      "surface": "master",
+      "width": 1920,
+      "notesHeight": {
+        "before": 144,
+        "after": 96
+      },
+      "primaryDataTop": {
+        "before": 675.015625,
+        "after": 665.40625
+      },
+      "visibleTableTop": {
+        "before": 675.015625,
+        "after": 665.40625
+      },
+      "visibleRowCount": {
+        "before": 4,
+        "after": 4
+      },
+      "documentWidthAfter": 1920
+    }
+  ]
+}

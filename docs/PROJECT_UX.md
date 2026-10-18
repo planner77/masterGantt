@@ -1473,3 +1473,9 @@ Milestone native 행을 숨겨도 기존 Task↔Milestone leaf 유형 전환은 
 허용되는 leaf의 Task→Milestone→Task 왕복은 같은 canonical Task ID/externalId·parent/sibling order와 서버 revision 진행, 부모 소속의 기존 상속 재계산 결과를 검증한다. 변환을 위해 기존 Membership/Link를 임의 삭제하지 않으며 보호된 대상의 거부는 원본·revision 불변이어야 한다.
 
 일정 Toolbar의 `전체 | Task | Milestone` 빠른 보기 3종은 모두 제거한다. 고급 유형 선택에는 Summary/Task만 제공하고 새로운 M 조건을 만들지 않는다. 이미 메모리에 남은 legacy M-only는 빈 WBS와 Dashboard 열기/유형 조건만 명시 해제를 제공하며 검색·다른 필터·scope를 유지한다. Milestone 표시 toggle로 대체하거나 자동 전체 작업으로 복구하지 않는다.
+
+## Issue #719 — Workspace 설명과 도움말
+
+Milestone·리소스·물류 구성의 교육용 고정 문단은 인접 도움말로 옮기고 현재 선택/전체 범위·날짜·환산·합산 제한은 짧게 유지한다. 도움말은 readonly에서도 접근 가능하며 canonical mutation·필터/드릴다운·Editor/Gantt instance·viewport·선택·marker-OFF 정책을 변경하지 않는다. 로컬 UI 상태가 권한 근거가 되지 않는다. loading/stale/401/412/network 오류와 복구 action은 기존 지속 피드백을 사용한다.
+
+물류 구성에서 공정 없는 설비 추가는 기존처럼 생성하지 않고, 브라우저 alert 대신 현재 영역의 지속 오류로 공정 등록 선행 조건을 안내한다. 기준정보의 사용 중 code 잠금 이유와 저장/최신 조회에 따른 미저장 입력 교체 안내는 유지한다. [Work Packet](exec-plans/active/ISSUE_719.md)에서 실측·미검증 환경을 구별한다.

@@ -23,6 +23,8 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   const gantt = page.locator(".project-gantt-frame");
   await expect(gantt).toHaveAttribute("data-project-gantt-api-instance", /.+/);
   const instance = await gantt.getAttribute("data-project-gantt-api-instance");
+  const chartHeight = await gantt.locator(".wx-chart").evaluate(element => element.getBoundingClientRect().height);
+  expect(chartHeight).toBeGreaterThan(0);
 
   await expect(tabs.getByRole("tab")).toHaveText(["일정", "대시보드", "기준정보"]);
 
@@ -40,6 +42,7 @@ test("#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5
   await expect(inactive).toHaveAttribute("aria-hidden", "true");
   await expect(inactive).toHaveAttribute("inert", "");
   await expect(inactive).toHaveCSS("visibility", "hidden");
+  expect(await gantt.locator(".wx-chart").evaluate(element => element.getBoundingClientRect().height)).toBe(chartHeight);
   expect(await gantt.evaluate((element) => element.getBoundingClientRect().width)).toBeGreaterThan(0);
   const detail = dashboard.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤" })
     .getByRole("row").nth(1).getByRole("button", { name: /Milestone 상세$/ });
@@ -141,4 +144,22 @@ test("#724 exact screen·legacy URL·저장된 보기와 Resource 관리자 경�
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /.+/);
   expect(instance).toBeTruthy();
   expect(writes).toBe(0);
+});
+
+
+test("#724 auxiliary screen selection has one accessible secondary tab", async ({ page }) => {
+  await installStatefulProjectFixture(page);
+  for (const [screen, section, fallback] of [
+    ["dashboard.target", "대시보드", "공정&WorkArea"],
+    ["master.targets", "기준정보", "공정&WorkArea"],
+    ["master.relations", "기준정보", "공정&WorkArea"],
+  ] as const) {
+    await page.goto(`/projects/${publicId}?screen=${screen}`);
+    const tabs = page.getByRole("tablist", { name: `${section} 보기` });
+    const tab = tabs.getByRole("tab", { name: fallback, exact: true });
+    await expect(tab).toHaveAttribute("aria-selected", "true");
+    await expect(tab).toHaveAttribute("tabindex", "0");
+    await expect(tabs.locator('[role="tab"][aria-selected="true"]')).toHaveCount(1);
+    await expect(tabs.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+  }
 });

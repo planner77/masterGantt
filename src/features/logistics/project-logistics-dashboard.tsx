@@ -6,6 +6,7 @@ import type { ProjectTaskDto } from "@/contracts/projects";
 import { ProjectMilestoneStageTable } from "../milestones/project-milestone-stage-table";
 import { conversionLabel, dashboardStageValid, projectDateAt } from "../milestones/milestone-dashboard-model";
 import { parseDateOnly } from "@/domain/scheduling/date-only";
+import { ContextHelp } from "@/components/ui/context-help";
 import styles from "./project-logistics-dashboard.module.css";
 
 export interface ProjectLogisticsDashboardProps {
@@ -423,8 +424,8 @@ export function ProjectLogisticsDashboard({
           </div>
 
           {dashboard.milestoneStages ? <section className={styles.relatedStages} aria-labelledby={`${tabId}-stages`}>
-            <h3 id={`${tabId}-stages`}>관련 Milestone — Milestone 전체 상태 기준</h3>
-            <p className={styles.scopeNote}>물류 연결에 관련된 고유 Milestone입니다. Ready·소속 진척·원인은 전체 소속 작업과 직접 선행 Milestone 기준이며 위 물류 Task·진척·계획 M/D 범위를 확장하지 않습니다.</p>
+            <div className={styles.headingRow}><h3 id={`${tabId}-stages`}>관련 Milestone — Milestone 전체 상태 기준</h3><ContextHelp label="물류 관련 Milestone 도움말">물류 연결에 관련된 고유 Milestone입니다. Ready·소속 진척·원인은 전체 소속 작업과 직접 선행 Milestone 기준입니다.</ContextHelp></div>
+            <p className={styles.scopeNote}>Milestone 전체 소속 작업·직접 선행 Milestone 기준 · 위 물류 Task·진척·계획 M/D 범위를 확장하지 않습니다.</p>
             {dashboard.milestoneStages.rows.length ? <ProjectMilestoneStageTable rows={dashboard.milestoneStages.rows} tasks={tasks} enabled={ready && !busy} onOpenTask={onStageOpen} onSchedule={onStageSchedule} /> : <p>관련 Milestone이 없습니다.</p>}
           </section> : null}
 

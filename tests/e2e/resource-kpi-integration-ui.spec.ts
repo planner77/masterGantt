@@ -13,9 +13,9 @@ import type { ResourceDashboardDto, ResourceDashboardDetailsDto } from "../../sr
 
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: integrationAdminPassword, viewport: { width: 1440, height: 900 } });
 
-test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt 왕복", async ({ page, baseURL }, info) => {
+test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt 왕복", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(240_000);
-  const seeded = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seeded = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   const canonical = await seeded.getSnapshot();
   const reports: ResourceDashboardDto[] = [];
   const exportRequests: ProjectExcelExportRequest[] = [];
@@ -298,9 +298,9 @@ test("#530 실제 SQLite 원장과 UI 3계층·2matrix·Plan·5폭·Excel·Gantt
   if (process.env.CAPTURE_ISSUE_530 === "1") await writeFile("output/playwright/issue530/geometry.json", JSON.stringify({ environment: "actual SQLite HTTP Chromium", browserVersion: page.context().browser()?.version(), devicePixelRatio: await page.evaluate(() => devicePixelRatio), observations }, null, 2));
 });
 
-test("#530 실제 readonly 원장의 외부 변경은 상세와 Excel을 stale로 잠근다", async ({ page, browser, baseURL }) => {
+test("#530 실제 readonly 원장의 외부 변경은 상세와 Excel을 stale로 잠근다", async ({ page, browser, baseURL, observeIsolatedApi }) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   const readonly = await browser.newContext({ baseURL });
   try {
     const publicPage = await readonly.newPage();
@@ -330,9 +330,9 @@ test("#530 실제 readonly 원장의 외부 변경은 상세와 Excel을 stale�
   } finally { await readonly.close(); }
 });
 
-test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존", async ({ page, baseURL }, info) => {
+test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport를 보존", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}`);
   const frame = page.locator(".project-gantt-frame");
   await expect(frame).toBeVisible();
@@ -403,9 +403,9 @@ test("#530 고정 geometry exact 일정 drill 복귀는 원래 nonzero viewport�
   }
 });
 
-test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존", async ({ page, baseURL }, info) => {
+test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치를 보존", async ({ page, baseURL, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request, baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request, baseURL!, observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}?__coreTrace=1`);
   const frame = page.locator(".project-gantt-frame");
   const schedule = page.getByRole("tab", {name: "일정", exact: true});
@@ -525,8 +525,8 @@ test("#530 nested frame pop과 clear는 서로 다른 원래 Core/native 위치�
   }
 });
 
-test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL},info) => {
-  const seed = await seedResourceKpiIntegration(page.request,baseURL!);
+test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/native 사용자 위치를 유지", async ({page,baseURL,observeIsolatedApi},info) => {
+  const seed = await seedResourceKpiIntegration(page.request,baseURL!,observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}`);
   const frame=page.locator(".project-gantt-frame"), chart=frame.locator(".wx-chart");
   const schedule=page.getByRole("tab",{name:"일정",exact:true}), resource=workspaceViewTab(page, "resources");
@@ -573,8 +573,8 @@ test("#530 explicit frame 복귀 pending queue는 실제 wheel 이후 Core/nativ
   await page.clock.resume();
 });
 
-test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다", async ({page,baseURL},info) => {
-  const seed = await seedResourceKpiIntegration(page.request,baseURL!);
+test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위치를 복원하지 않는다", async ({page,baseURL,observeIsolatedApi},info) => {
+  const seed = await seedResourceKpiIntegration(page.request,baseURL!,observeIsolatedApi);
   await page.goto(`/projects/${seed.publicId}`);
   const frame=page.locator(".project-gantt-frame"), chart=frame.locator(".wx-chart");
   const schedule=page.getByRole("tab",{name:"일정",exact:true}), resource=workspaceViewTab(page, "resources");
@@ -614,9 +614,9 @@ test("#530 explicit frame pending queue는 실제 viewport resize 후 이전 위
   await page.clock.resume();
 });
 
-test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource→M1 LIFO", async ({page,baseURL},info) => {
+test("#530 실제 M1 원인→정확한 Resource 지연 KPI→일정→Resource→M1 LIFO", async ({page,baseURL,observeIsolatedApi},info) => {
   test.setTimeout(180_000);
-  const seed = await seedResourceKpiIntegration(page.request,baseURL!);
+  const seed = await seedResourceKpiIntegration(page.request,baseURL!,observeIsolatedApi);
   // Explicit derived ledger: only T1 and its two personal allocation windows
   // move to a completed five-workday period. The shared oracle stays immutable.
   const range = {from:"2026-09-28",to:"2026-10-02"};

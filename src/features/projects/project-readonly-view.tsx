@@ -1620,6 +1620,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       !panel?.isConnected || panel.closest("[hidden], [inert]")) return;
     const chart = panel.querySelector<HTMLElement>(".wx-chart"), frame = panel.querySelector<HTMLElement>(".project-gantt-frame");
     if (!chart?.getClientRects().length || !frame) return;
+    // #724 F01: preserve the last visible schedule height while peer tabs
+    // consume vertical space; no new viewport writer or Gantt remount.
+    const measuredHeight = panel.getBoundingClientRect().height;
+    if (measuredHeight > 0) panel.style.setProperty("--project-inactive-schedule-height", `${measuredHeight}px`);
     const sample = viewportController.current?.capture();
     const captured = sample ? { public: sample.core, dom: sample.native } : null;
     // Never manufacture a Core position from DOM if no SVAR public reader exists.
@@ -2690,7 +2694,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           ref={node => { if (node) screenTabReferences.current.set(key, node); else screenTabReferences.current.delete(key); if (key === "dashboard.milestones") milestoneTabReference.current = node; if (key === "dashboard.resources") resourceTabReference.current = node; if (key === "master.processes") logisticsTabReference.current = node; }}
           id={key === "dashboard.milestones" ? "project-tab-milestones" : key === "dashboard.resources" ? "project-tab-resources" : key === "master.processes" ? "project-tab-logistics" : `project-tab-${key}`}
           role="tab" type="button" aria-controls={workspaceView(key) === "milestones" ? "project-panel-milestones" : workspaceView(key) === "resources" ? "project-panel-resources" : workspaceView(key) === "resource-master" ? "project-panel-resource-master" : "project-panel-logistics"}
-          aria-selected={activeScreen === key} tabIndex={activeScreen === key || (activeScreen === "dashboard.target" && key === "dashboard.process") || (section === "master" && (activeScreen === "master.targets" || activeScreen === "master.relations") && key === "master.processes") ? 0 : -1}
+          aria-selected={activeScreen === key || (activeScreen === "dashboard.target" && key === "dashboard.process") || (section === "master" && (activeScreen === "master.targets" || activeScreen === "master.relations") && key === "master.processes")} tabIndex={activeScreen === key || (activeScreen === "dashboard.target" && key === "dashboard.process") || (section === "master" && (activeScreen === "master.targets" || activeScreen === "master.relations") && key === "master.processes") ? 0 : -1}
           onClick={() => selectScreen(key)} onKeyDown={event => handleNavigationKey(event, key, (section === "dashboard" ? DASHBOARD_SCREENS : MASTER_SCREENS).map(item => item.key), value => selectScreen(value as WorkspaceScreen))}>{label}</button>)}
       </div>
       {section === "master" ? <div className="project-workspace-auxiliary" aria-label="기준정보 보조 도구">

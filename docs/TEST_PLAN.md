@@ -4396,3 +4396,16 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 최종 source의 typecheck PASS, 변경 source lint0error/기존warning1, 변경46테스트 lint0error0warning, routing36개 unit PASS, diff-check·version0.117.0 일치·Markdown 링크 PASS를 확인했다. [최종 검증 JSON](evidence/issue-724/local-validation.json)에 source6개 SHA256과 세 복귀 단계의 실제 focus 증거를 남겼다. source2개 SHA256은 Work Packet의 검토값과 같다. UI 캡처는 고정 fixture의 [390px 분석](evidence/issue-724/navigation-390.png) 및 [1440px 기준정보](evidence/issue-724/navigation-1440.png)이며 실제 운영 데이터가 아니다. 나머지5폭/Resource 관리자 로그인 geometry·Summary/rootTask·정확 drill·LIFO·Milestone 실제 추가/readonly는 단계별 기존 테스트에서 확인했다.
 
 최종 #624의 보완 검사는 특정 버튼 하나를 강제하지 않고 원래 설계대로 정확한 화면의 보이는 control/heading/활성 tab을 검사한다. Task control이면 canonical ID도 맞아야 한다. 숨은 요소·본문·다른 화면·disabled는 실패로 유지한다. 기존 실적/수치/권한/무쓰기·snapshot 단언을 삭제하지 않았다. 실제 수동 UX/스크린리더·운영 배포 및 원격 Required Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED다.
+
+## Issue #719 — 설명 밀도·상황형 도움말과 기존 계약 회귀
+
+새 `tests/e2e/issue-719-contextual-help.spec.ts`는 동일 합성 fixture로 Milestone/Resource/물류 Workspace 및 Resource/물류 유형/기준정보 관리자6표시 화면을 390/768/1024/1440/1920px·높이900에서 before/after 비교한다. 설명 전용 높이·주요 데이터 top·가시 행 수와 문서 overflow, Enter/Space/Escape/focus·hover/click·본문 bounds·열림 전후 데이터 위치 불변을 확인하며 touch emulation은 별도44px hit area·tap/바깥 tap을 검사한다.
+
+기존 Resource error recovery/tabs, Master admin/density, Logistics management, Milestone dashboard/state, Resource Target/Plan의 직접·인접·음성 회귀를 선택한다. 변경한 고정 설명 단언은 도움말 열기 후 같은 원문을 검증하고 기존 canonical/권한/401/412/초안/pending/Gantt 보존 단언은 유지한다. 모든 상태×5폭 직적·실제 screen reader/기기/native125%/최종 수동 UX와 GitHub 전체 회귀는 별도 NOT TESTED 경계다. [Work Packet](exec-plans/active/ISSUE_719.md)의 실제 실행 결과·원본 실패를 따른다.
+
+
+## Issue #724 — PR CI #2947.1 장애 대응 추가 회귀 (2026-10-18)
+
+- 기존 #551 `milestone-timeline-lane.spec.ts`에서 3,000-row/preview 표시 후 peer 이동 시 native Chart 높이 1:1 보존, 복귀 instance/scroll, Grid resize/fullscreen/Milestone 표시·canonical write0를 계속 확인한다. 원본 E2E 실패는 563px 기대/510px 실제이며 엄격 단언을 완화하지 않는다.
+- `project-workspace-tabs-518.spec.ts`에서 두 단계 tablist의 추가 높이가 있어도 비활성 inert/aria-hidden 일정 Gantt Chart 측정 높이 보존과 보조 `dashboard.target/master.targets/master.relations`의 `aria-selected`/roving `tabIndex` 단일 선택(1개) 계약을 검사한다. 숨은 panel focus 차단/정확 drill/범위 선택도 보존한다.
+- 최신 main #719 도움말, `project-logistics-management.spec.ts` 도움말과 3/6/4 메뉴 이관, `resource-kpi-integration-ui.spec.ts`의 `observeIsolatedApi` 실제 fixture callback을 모두 보존한다. 새로운 정확 Head Required3·Trusted QA·Owner 수용은 원격 증거 전 NOT TESTED. [#724 L1–L10 및 F01 누적 분석](ISSUE_724_FAILURE_ANALYSIS.md)을 따른다.

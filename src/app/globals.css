@@ -2596,7 +2596,8 @@ h2 {
 .project-schedule[data-dashboard-inactive="true"] {
   position: absolute;
   inset: 0;
-  height: 100%;
+  /* #724 F01: keep the measured schedule height when secondary peer tabs appear. */
+  height: var(--project-inactive-schedule-height, 100%);
   visibility: hidden;
   pointer-events: none;
 }

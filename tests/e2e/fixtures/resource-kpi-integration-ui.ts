@@ -1,11 +1,22 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../../src/contracts/projects";
 import { resourceKpiIntegrationFixture } from "../../fixtures/resource-kpi-integration";
+import { observedReadOnlyGet, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 export const integrationAdminPassword = "Synthetic530Only!";
 
+/** #719 F-006: the existing #703 observed read-only ECONNRESET contract. */
+export async function readResourceKpiSnapshot(
+  request: APIRequestContext, path: string, observer: ObserveIsolatedApi,
+): Promise<ProjectSnapshotResponse> {
+  const response = await observedReadOnlyGet(observer, path,
+    () => request.get(path, { headers: { Connection: "close" } }));
+  if (response.status() !== 200) throw new Error(`Resource KPI canonical GET returned HTTP ${response.status()}`);
+  return await response.json() as ProjectSnapshotResponse;
+}
+
 /** Real HTTP mutations populate this fixture's disposable SQLite database. */
-export async function seedResourceKpiIntegration(request: APIRequestContext, origin: string) {
+export async function seedResourceKpiIntegration(request: APIRequestContext, origin: string, observer: ObserveIsolatedApi) {
   const source = resourceKpiIntegrationFixture();
   const headers = { Origin: origin };
   const created = await request.post("/api/projects", { headers, data: {
@@ -15,7 +26,7 @@ export async function seedResourceKpiIntegration(request: APIRequestContext, ori
   expect(created.status(), await created.text()).toBe(201);
   const publicId = (await created.json()).data.project.publicId as string;
   const api = `/api/projects/${publicId}`;
-  const getSnapshot = async () => (await (await request.get(api)).json()) as ProjectSnapshotResponse;
+  const getSnapshot = () => readResourceKpiSnapshot(request, api, observer);
   let snapshot = await getSnapshot();
   const mutate = async (path: string, data: unknown, method: "post" | "put" | "patch" = "post", status = 200) => {
     const response = await request[method](`${api}${path}`, { headers: { ...headers, "If-Match": `"${snapshot.data.project.revision}"` }, data });

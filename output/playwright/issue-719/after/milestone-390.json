@@ -1,0 +1,93 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 900
+  },
+  "documentWidth": 390,
+  "noteOnlyHeight": 180,
+  "notes": [
+    {
+      "text": "추가 조건 0개 · 공수 기간 서버 기본 ~ 서버 기본 · 환경 환산 기준",
+      "top": 718.5,
+      "bottom": 736.5,
+      "left": 18,
+      "right": 372,
+      "width": 354,
+      "height": 18
+    },
+    {
+      "text": "자동 기준일 · 서버 Project timezone Asia/Seoul · 평가일 2026-10-06. 현재 snapshot 평가 · 과거 상태 복원 아님.",
+      "top": 748.5,
+      "bottom": 784.5,
+      "left": 18,
+      "right": 372,
+      "width": 354,
+      "height": 36
+    },
+    {
+      "text": "현재 조회 조건 확인 완료 · 계산 2026-10-06T00:00:00.000Z · Project 40 / Catalog 1",
+      "top": 846,
+      "bottom": 882,
+      "left": 18,
+      "right": 372,
+      "width": 354,
+      "height": 36
+    },
+    {
+      "text": "지표 중복 집계 · 건수 합산 불가",
+      "top": 1999,
+      "bottom": 2017,
+      "left": 18,
+      "right": 372,
+      "width": 354,
+      "height": 18
+    },
+    {
+      "text": "전체 소속·직접 선행 기준 · 계획 공수와 분모 다름",
+      "top": 2059.5,
+      "bottom": 2077.5,
+      "left": 18,
+      "right": 372,
+      "width": 354,
+      "height": 18
+    },
+    {
+      "text": "2026-09-01 ~ 2026-09-30 · 1 M/M = 20 M/D · 환경 설정 기준. 숨긴 Milestone bucket도 전체 합계에 포함하며 위 표시 행의 합계가 아닙니다. 투입률 미설정 0건.",
+      "top": 2600,
+      "bottom": 2654,
+      "left": 18,
+      "right": 372,
+      "width": 354,
+      "height": 54
+    }
+  ],
+  "primaryDataTop": 894,
+  "rowCount": 21,
+  "visibleRowCount": 0,
+  "tables": [
+    {
+      "top": 2086.5,
+      "bottom": 5640.5,
+      "left": 19,
+      "right": 1071,
+      "width": 1052,
+      "height": 3554,
+      "ownerWidth": 352,
+      "scrollWidth": 1052
+    },
+    {
+      "top": 2747,
+      "bottom": 2916,
+      "left": 19,
+      "right": 819,
+      "width": 800,
+      "height": 169,
+      "ownerWidth": 352,
+      "scrollWidth": 800
+    }
+  ],
+  "helpTriggerCount": 6,
+  "browserVersion": "153.0.8010.12",
+  "fixture": "issue-719 shared synthetic fixtures",
+  "zoom": "100% browser default"
+}

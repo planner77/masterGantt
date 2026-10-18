@@ -1,4 +1,5 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
 import { useResourceDrill } from "./resource-drill-context";
 import {
   useCallback,
@@ -341,10 +342,7 @@ export function ProjectResourceDashboard({
                 </div>
               ) : null}
               {kind === "group" ? (
-                <p className="resource-dashboard-hint">
-                  그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는
-                  Task는 아래 보조 진단에서 조회합니다.
-                </p>
+                <p className="resource-dashboard-hint">Group 직접 담당 Task는 보조 진단에 표시합니다.</p>
               ) : (
                 <FocusRestoreBoundary
                   key={`${data!.snapshotId}:${key}`}
@@ -379,6 +377,11 @@ export function ProjectResourceDashboard({
       {selectionNotice ? <p role="status">{selectionNotice}</p> : null}
       <div className="resource-dashboard-toolbar">
         <h2 id="resource-dashboard-heading">리소스 공수</h2>
+        <ContextHelp label="리소스 공수 도움말">
+          <p>투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand Total은 선택 Assignment를 한 번만 합산합니다.</p>
+          <p>할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가 아닙니다.</p>
+          <p>그룹은 현재 개인 소속 분류입니다. Group 직접 담당만 있는 Task는 보조 진단에서 조회합니다.</p>
+        </ContextHelp>
         <button type="button" className="secondary-button" disabled={refreshDisabled}
           onClick={event => exportContext.onExport?.(event.currentTarget)}>Excel 보고서</button>
         <div
@@ -895,11 +898,8 @@ export function ProjectResourceDashboard({
             })}
           </dl>
           <p className="resource-dashboard-hint">
-            ¹ 투입 시작/종료는 선택 기간으로 자른 Assignment 구간입니다. Grand
-            Total은 선택 Assignment를 한 번만 합산합니다. 복수 그룹·Global
-            Role에 같은 Task/개인이 반복될 수 있어 소계는 서로 더하지 않습니다.
-            할당 작업 진척은 계획기간 가중값이며 개인의 실제 기여도·소진 공수가
-            아닙니다.
+            선택 Assignment 중복 제외 · 그룹·Global Role 소계 합산 불가 · 진척은 실제 기여·소진 공수 아님
+            {data.summary.effort.unsetCount ? " · 공수 미설정 포함: 알려진 공수만 표시" : ""}
           </p>
           {report.planData ? (
             <div hidden={view !== "plan"} inert={view !== "plan"}>
@@ -1119,8 +1119,8 @@ function DashboardHeaders() {
         <th>진행</th>
         <th>지연</th>
         <th>할당 작업 진척</th>
-        <th>투입 시작¹</th>
-        <th>투입 종료¹</th>
+        <th>투입 시작</th>
+        <th>투입 종료</th>
         <th>계획 공수</th>
         <th>공수 설정</th>
       </tr>

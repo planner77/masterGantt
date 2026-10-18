@@ -229,3 +229,9 @@ Resource 선택 진척과 전체 canonical Ready/Blocked는 별개다. R8 통합
 Copy/Delete/Move 대상은 전체 canonical subtree이며 숨은 M을 제외하지 않는다. Copy의 외부 소속/incident/완료/Assignment 제한과 기존 삭제·구조 명령 guard를 구별한다. types 호환, 날짜 확인·복귀와 M root drift는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
 
 #552 marker-OFF의 `Milestone 날짜·소속 확인`은 같은 canonical M 상세를 열며 미정 날짜도 조회 가능하다. 소속 Task0은 일정 탐색 불가 사유로 구별하며 Ready=true로 바꾸지 않는다. production lane/예약 높이/marker-only side effect0과 native M row/bar0은 독립 검증한다. Summary full subtree Copy/Delete/Move와 completed/fullE/explicit/incident/external Membership·Assignment Copy 보호는 보존하며 legacy WBS 비상 복구가 Gate/Resource/Target 계산을 바꾸지 않는다.
+
+## Issue #719 — 지표 인접 도움말
+
+Ready/선행 차단/지연/임박/위험 정의와 전체 상태 정렬 상세는 각 지표/표 인접 도움말로 제공한다. 프로젝트 전체·WBS 미적용, 자동/수동 기준일·현재 snapshot, 지표 중복/건수 합산 불가, 전체 소속·직접 선행 기준과 계획 공수의 다른 분모는 짧게 직접 유지한다. 공수 기간·환산·숨은 Milestone bucket 합산·미설정 수, 완료 처리율/소속 적용률의 분자·분모도 그대로다.
+
+이 변경은 Stage Gate 계산/Ready·Completed·drill/marker-OFF·canonical 계약을 바꾸지 않는다. 동일 fixture 5폭/keyboard·touch·범위/상태 보존 검증은 [Work Packet](exec-plans/active/ISSUE_719.md)을 따른다.
