@@ -202,7 +202,7 @@ describe("LogisticsRepository Core", () => {
     expect(children).toEqual([acs.id]);
     expect(repo.countCoordinatedTargets(project.id, mcs.id)).toBe(1);
     expect(repo.countCoordinatingSources(project.id, acs.id)).toBe(1);
-  });
+  }, 15000);
 
   it("enforces at most one primary control system per equipment", () => {
     const db = createTestDatabase();

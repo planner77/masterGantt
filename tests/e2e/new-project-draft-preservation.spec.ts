@@ -100,6 +100,7 @@ for (const mode of ["blank", "template"] as const) {
     });
     await page.goto(`/projects/new${mode === "template" ? "?mode=template" : ""}`);
     const panel = mode === "blank" ? blank(page) : template(page);
+    if (mode === "blank") await expect(panel.locator("#project-business-unit")).toBeVisible();
     await panel.locator(mode === "blank" ? "#project-name" : "#inst-project-name").fill("실패 후 남는 초안");
     await panel.locator(mode === "blank" ? "#project-owner" : "#inst-owner-name").fill("초안 소유자");
     const password = panel.locator(mode === "blank" ? "#project-edit-password" : "#inst-password");

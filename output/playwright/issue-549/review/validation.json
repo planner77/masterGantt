@@ -1,0 +1,31 @@
+{
+  "issue": 549,
+  "capturedAt": "2026-10-08T14:31:26Z",
+  "sourceBaselineSha": "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0",
+  "sourceHeadCommit": "UNCOMMITTED",
+  "status": "PASS",
+  "command": "CAPTURE_ISSUE_549=review npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-timeline-core.spec.ts --project chromium",
+  "exitCode": 0,
+  "testCount": 9,
+  "durationSeconds": 30.2,
+  "browserTimezone": "America/New_York",
+  "serverProjectTimezone": "Asia/Seoul",
+  "scope": "Synthetic development ProjectGantt technical integration only; production lane UI, full regression and server persistence are NOT TESTED",
+  "otherChecks": {
+    "adapterNewUnit": 5,
+    "adapterAdjacentUnit": 11,
+    "modelNewUnit": 24,
+    "modelAdjacentUnit": 32,
+    "typecheck": "PASS",
+    "lintErrors": 0,
+    "existingWarnings": 4,
+    "markdownLinks": "PASS",
+    "diffWhitespace": "PASS"
+  },
+  "remoteCi": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED"
+  },
+  "firstFail": "../initial-failure.json"
+}

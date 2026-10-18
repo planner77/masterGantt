@@ -1,3 +1,8 @@
+import { copyTaskTargetBindings } from "../logistics/task-target-transfer-core";
+import { copyLogisticsTargets } from "../logistics/logistics-targets-service-core";
+import { readStageSnapshot, withStageProjection } from "./milestone-stage-core";
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -24,8 +29,10 @@ import {
   type LogisticsSystemRecord,
 } from "../repositories/logistics-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
-import { LogisticsService, LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
+import { LogisticsService, LogisticsConflictError, LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
 import { ProjectMasterService } from "../project-master/project-master-service-core";
+import { ProcessCatalogRepository } from "../repositories/process-catalog-repository-core";
+import { ProjectMasterRepository } from "../repositories/project-master-repository-core";
 import {
   hashEditPassword,
   type PasswordHashRecord,
@@ -94,7 +101,7 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
     target: { kind: assignment.kind, id: assignment.targetPublicId },
-    role: assignment.kind === "resource" ? assignment.assignmentRole : null,
+    role: null,
     allocation: assignment.kind === "resource"
       ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
       : null,
@@ -183,6 +190,8 @@ export class ProjectCopyService {
           throw new RevisionMismatchError();
         }
 
+        const sourceStage = readStageSnapshot(this.database, source.id);
+        projectStageGates(sourceStage);
         const sourceTasks = this.schedules.listTasks(source.id);
         const sourceLinks = this.schedules.listLinks(source.id);
         const sourceHolidays = this.schedules.listHolidays(source.id);
@@ -193,7 +202,7 @@ export class ProjectCopyService {
         }
 
         const calendar = resolveProjectWorkingCalendar(this.database, source.id);
-        recalculatePersistedHierarchy(sourceTasks, calendar);
+        recalculatePersistedHierarchy(sourceTasks, calendar, sourceLinks);
 
         const project = this.projects.insert({
           publicId: newPublicId,
@@ -318,6 +327,16 @@ export class ProjectCopyService {
           }
         }
 
+        const sourceByPublicId = new Map(sourceTasks.map((task) => [task.publicId, task]));
+        const memberships = new MilestoneMembershipRepository(this.database);
+        for (const row of sourceStage.memberships) {
+          const originalMember = sourceByPublicId.get(row.taskId), originalMilestone = sourceByPublicId.get(row.milestoneTaskId);
+          const member = originalMember && newBySourceId.get(originalMember.id);
+          const milestone = originalMilestone && newBySourceId.get(originalMilestone.id);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          memberships.set(project.id, member.id, milestone.id);
+        }
+
         if (input.resetProgress) {
           const copiedTasks = this.schedules.listTasks(project.id);
           const derived = recalculateHierarchy(dtoTasks(copiedTasks), calendar);
@@ -382,7 +401,6 @@ export class ProjectCopyService {
           assignmentStart: string | null;
           assignmentEnd: string | null;
           allocationPercent: number | null;
-          assignmentRole: import("../../contracts/resources").ResourceRole | null;
         }>>();
 
         for (const sa of sourceAssignments) {
@@ -397,7 +415,6 @@ export class ProjectCopyService {
             assignmentStart: sa.assignmentStart,
             assignmentEnd: sa.assignmentEnd,
             allocationPercent: sa.allocationPercent,
-            assignmentRole: sa.assignmentRole,
           });
           copiedAssignmentsByTask.set(newTask.id, list);
         }
@@ -440,6 +457,22 @@ export class ProjectCopyService {
           if (insertedCount === 0) {
             throw new Error("Cycle detected in source process hierarchy.");
           }
+        }
+
+        // Global occurrence/WorkArea identities remain stable; only local IDs change.
+        const processCatalog = new ProcessCatalogRepository(this.database);
+        const targetSelection = new ProjectMasterRepository(this.database).getProjectSelection(project.id);
+        for (const mapping of processCatalog.rawMappings(source.id)) {
+          const copiedProcess = newBySourceProcessId.get(mapping.project_process_id);
+          if (!copiedProcess || targetSelection.businessUnit?.id !== mapping.business_unit_id ||
+              targetSelection.product?.id !== mapping.product_id ||
+              targetSelection.siteEntity?.id !== mapping.site_entity_id) {
+            throw new LogisticsConflictError(
+              "PROJECT_PROCESS_MAPPING_IN_USE",
+              "공정 매핑과 복사 대상의 사업부·제품·사업장이 일치하지 않습니다.",
+            );
+          }
+          processCatalog.insertCopiedMapping(project.id, copiedProcess.id, mapping, nowText);
         }
 
         // 3. 물류 시스템(Systems) 복사 및 담당 공정, 리소스 역할 복사
@@ -557,6 +590,18 @@ export class ProjectCopyService {
             );
           }
         }
+
+        // Target identity is project-local; shared Equipment/System copy maps stay one-to-one.
+        copyLogisticsTargets(
+          this.database, source.id, project.id,
+          new Map([...newBySourceProcessId].map(([oldId, row]) => [oldId, row.id])),
+          new Map([...newBySourceEquipmentId].map(([oldId, row]) => [oldId, row.id])),
+          new Map([...newBySourceSystemId].map(([oldId, row]) => [oldId, row.id])),
+          nowText,
+        );
+
+        copyTaskTargetBindings(this.database, source.id, project.id,
+          new Map([...newBySourceId].map(([id, task]) => [id, task.id])), nowText);
 
         // 6. 태스크 물류 연결(Task Logistics Links) 복사
         const sourceEqLinks = this.logistics.listAllTaskEquipmentLinks(source.id);
@@ -685,7 +730,7 @@ export class ProjectCopyService {
         };
 
         return {
-          response,
+          response: withStageProjection(this.database, project.id, response),
           rawSessionToken: newSession.rawToken,
         };
       });

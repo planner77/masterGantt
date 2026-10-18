@@ -1,0 +1,538 @@
+[
+  {
+    "run": "pr562-trials",
+    "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+    "test": "#551 opt-in sibling lane 390px actual geometry",
+    "workerIndex": 0,
+    "attachment": "lane-day-390",
+    "observations": {
+      "width": 390,
+      "scale": "day",
+      "observed": {
+        "lane": {
+          "x": -343,
+          "y": 649,
+          "right": 377,
+          "bottom": 713,
+          "width": 720,
+          "height": 64
+        },
+        "plot": {
+          "x": 142,
+          "y": 713,
+          "right": 377,
+          "bottom": 1129,
+          "width": 235,
+          "height": 416
+        },
+        "clip": {
+          "x": 12,
+          "y": 648,
+          "right": 378,
+          "bottom": 1000,
+          "width": 366,
+          "height": 352
+        },
+        "list": {
+          "x": 21,
+          "y": 659,
+          "right": 111,
+          "bottom": 703,
+          "width": 90,
+          "height": 44
+        },
+        "anchor": {
+          "tick": 142,
+          "native": 143
+        },
+        "alignment": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "gridCenter": 805,
+            "chartCenter": 804.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "gridCenter": 843,
+            "chartCenter": 842.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "gridCenter": 881,
+            "chartCenter": 880.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "gridCenter": 919,
+            "chartCenter": 918.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "gridCenter": 957,
+            "chartCenter": 956.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "gridCenter": 995,
+            "chartCenter": 994.5
+          }
+        ],
+        "markers": [
+          {
+            "rect": {
+              "x": 150,
+              "y": 659,
+              "right": 310,
+              "bottom": 703,
+              "width": 160,
+              "height": 44
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000010",
+            "height": 38
+          }
+        ]
+      },
+      "metrics": {
+        "count": 3,
+        "coordinateCount": 3,
+        "durationMs": 0.5,
+        "sourceTasks": 10,
+        "sourceMilestones": 3,
+        "queueVersion": 2
+      },
+      "mutationCount": 0,
+      "instance": "svar-api-1",
+      "sourceHashes": {}
+    }
+  },
+  {
+    "run": "pr562-trials",
+    "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+    "test": "#551 opt-in sibling lane 390px actual geometry",
+    "workerIndex": 0,
+    "attachment": "lane-week-390",
+    "observations": {
+      "width": 390,
+      "scale": "week",
+      "observed": {
+        "lane": {
+          "x": -343,
+          "y": 649,
+          "right": 377,
+          "bottom": 713,
+          "width": 720,
+          "height": 64
+        },
+        "plot": {
+          "x": 142,
+          "y": 713,
+          "right": 377,
+          "bottom": 1129,
+          "width": 235,
+          "height": 416
+        },
+        "clip": {
+          "x": 12,
+          "y": 648,
+          "right": 378,
+          "bottom": 1000,
+          "width": 366,
+          "height": 352
+        },
+        "list": {
+          "x": 21,
+          "y": 659,
+          "right": 111,
+          "bottom": 703,
+          "width": 90,
+          "height": 44
+        },
+        "anchor": {
+          "tick": 142,
+          "native": 143
+        },
+        "alignment": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "gridCenter": 805,
+            "chartCenter": 804.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "gridCenter": 843,
+            "chartCenter": 842.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "gridCenter": 881,
+            "chartCenter": 880.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "gridCenter": 919,
+            "chartCenter": 918.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "gridCenter": 957,
+            "chartCenter": 956.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "gridCenter": 995,
+            "chartCenter": 994.5
+          }
+        ],
+        "markers": [
+          {
+            "rect": {
+              "x": 150,
+              "y": 659,
+              "right": 310,
+              "bottom": 703,
+              "width": 160,
+              "height": 44
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000010",
+            "height": 38
+          }
+        ]
+      },
+      "metrics": {
+        "count": 5,
+        "coordinateCount": 3,
+        "durationMs": 0.09999999403953552,
+        "sourceTasks": 10,
+        "sourceMilestones": 3,
+        "queueVersion": 2
+      },
+      "mutationCount": 0,
+      "instance": "svar-api-1",
+      "sourceHashes": {}
+    }
+  },
+  {
+    "run": "pr562-trials",
+    "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+    "test": "#551 opt-in sibling lane 390px actual geometry",
+    "workerIndex": 1,
+    "attachment": "lane-day-390",
+    "observations": {
+      "width": 390,
+      "scale": "day",
+      "observed": {
+        "lane": {
+          "x": -343,
+          "y": 649,
+          "right": 377,
+          "bottom": 713,
+          "width": 720,
+          "height": 64
+        },
+        "plot": {
+          "x": 142,
+          "y": 713,
+          "right": 377,
+          "bottom": 1129,
+          "width": 235,
+          "height": 416
+        },
+        "clip": {
+          "x": 12,
+          "y": 648,
+          "right": 378,
+          "bottom": 1000,
+          "width": 366,
+          "height": 352
+        },
+        "list": {
+          "x": 21,
+          "y": 659,
+          "right": 110.890625,
+          "bottom": 703,
+          "width": 89.890625,
+          "height": 44
+        },
+        "anchor": {
+          "tick": 142,
+          "native": 143
+        },
+        "alignment": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "gridCenter": 805,
+            "chartCenter": 804.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "gridCenter": 843,
+            "chartCenter": 842.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "gridCenter": 881,
+            "chartCenter": 880.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "gridCenter": 919,
+            "chartCenter": 918.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "gridCenter": 957,
+            "chartCenter": 956.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "gridCenter": 995,
+            "chartCenter": 994.5
+          }
+        ],
+        "markers": [
+          {
+            "rect": {
+              "x": 150,
+              "y": 659,
+              "right": 310,
+              "bottom": 703,
+              "width": 160,
+              "height": 44
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000010",
+            "height": 38
+          }
+        ]
+      },
+      "metrics": {
+        "count": 3,
+        "coordinateCount": 3,
+        "durationMs": 0.20000001788139343,
+        "sourceTasks": 10,
+        "sourceMilestones": 3,
+        "queueVersion": 2
+      },
+      "mutationCount": 0,
+      "instance": "svar-api-1",
+      "sourceHashes": {}
+    }
+  },
+  {
+    "run": "pr562-trials",
+    "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+    "test": "#551 opt-in sibling lane 390px actual geometry",
+    "workerIndex": 1,
+    "attachment": "lane-week-390",
+    "observations": {
+      "width": 390,
+      "scale": "week",
+      "observed": {
+        "lane": {
+          "x": -343,
+          "y": 649,
+          "right": 377,
+          "bottom": 713,
+          "width": 720,
+          "height": 64
+        },
+        "plot": {
+          "x": 142,
+          "y": 713,
+          "right": 377,
+          "bottom": 1129,
+          "width": 235,
+          "height": 416
+        },
+        "clip": {
+          "x": 12,
+          "y": 648,
+          "right": 378,
+          "bottom": 1000,
+          "width": 366,
+          "height": 352
+        },
+        "list": {
+          "x": 21,
+          "y": 659,
+          "right": 111,
+          "bottom": 703,
+          "width": 90,
+          "height": 44
+        },
+        "anchor": {
+          "tick": 142,
+          "native": 143
+        },
+        "alignment": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "gridCenter": 805,
+            "chartCenter": 804.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "gridCenter": 843,
+            "chartCenter": 842.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "gridCenter": 881,
+            "chartCenter": 880.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "gridCenter": 919,
+            "chartCenter": 918.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "gridCenter": 957,
+            "chartCenter": 956.5
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "gridCenter": 995,
+            "chartCenter": 994.5
+          }
+        ],
+        "markers": [
+          {
+            "rect": {
+              "x": 150,
+              "y": 659,
+              "right": 310,
+              "bottom": 703,
+              "width": 160,
+              "height": 44
+            }
+          }
+        ],
+        "rows": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000002",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000004",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000005",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000006",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000007",
+            "height": 38
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000010",
+            "height": 38
+          }
+        ]
+      },
+      "metrics": {
+        "count": 6,
+        "coordinateCount": 3,
+        "durationMs": 0.09999999403953552,
+        "sourceTasks": 10,
+        "sourceMilestones": 3,
+        "queueVersion": 2
+      },
+      "mutationCount": 0,
+      "instance": "svar-api-1",
+      "sourceHashes": {}
+    }
+  }
+]

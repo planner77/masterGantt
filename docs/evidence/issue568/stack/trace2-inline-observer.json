@@ -1,0 +1,5562 @@
+{
+  "schemaVersion": 1,
+  "capacity": 512,
+  "dropped": 0,
+  "entries": [
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 1,
+      "elapsedMs": 0.09999999403953552,
+      "rafTick": 0,
+      "event": "component-mount",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 2,
+      "elapsedMs": 0.800000011920929,
+      "rafTick": 0,
+      "event": "observer-installed",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 3,
+      "elapsedMs": 0.800000011920929,
+      "rafTick": 0,
+      "event": "react-effect-installed",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 4,
+      "elapsedMs": 10.300000011920929,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 5,
+      "elapsedMs": 10.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 6,
+      "elapsedMs": 13.099999994039536,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "update-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000004"
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 7,
+      "elapsedMs": 13.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "update-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000004"
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 8,
+      "elapsedMs": 15.800000011920929,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": -484,
+        "height": -72
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": null,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 9,
+      "elapsedMs": 16.099999994039536,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": -484,
+        "height": -72
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": -484,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 225,
+          "clientHeight": 0
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 0
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 10,
+      "elapsedMs": 143.30000001192093,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": -484,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 416,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 11,
+      "elapsedMs": 153.09999999403954,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": -484,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 416,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 12,
+      "elapsedMs": 153.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 416,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "manual",
+      "head": "unknown",
+      "scenario": "project",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 13,
+      "elapsedMs": 153.80000001192093,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 416,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 14,
+      "elapsedMs": 178.19999998807907,
+      "rafTick": 0,
+      "event": "scenario-start",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 15,
+      "elapsedMs": 183.19999998807907,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 16,
+      "elapsedMs": 183.59999999403954,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 17,
+      "elapsedMs": 246.40000000596046,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 0,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 18,
+      "elapsedMs": 247.09999999403954,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 0,
+      "intentSource": "initial",
+      "sequence": 19,
+      "elapsedMs": 311.5,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 1,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 20,
+      "elapsedMs": 361.30000001192093,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 2,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 21,
+      "elapsedMs": 411.19999998807907,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 2,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 22,
+      "elapsedMs": 426,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 23,
+      "elapsedMs": 440.09999999403954,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 24,
+      "elapsedMs": 587.3000000119209,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 25,
+      "elapsedMs": 587.5999999940395,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 26,
+      "elapsedMs": 587.5999999940395,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 3,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 27,
+      "elapsedMs": 598.5999999940395,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 4,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 28,
+      "elapsedMs": 632.4000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 1,
+      "intentSource": "native-pointerdown",
+      "sequence": 29,
+      "elapsedMs": 660.9000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 30,
+      "elapsedMs": 722.8000000119209,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 31,
+      "elapsedMs": 736.6999999880791,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 32,
+      "elapsedMs": 739,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 8944
+      },
+      "sample": {
+        "core": {
+          "left": 0,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 33,
+      "elapsedMs": 739.1999999880791,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 8944
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 34,
+      "elapsedMs": 739.4000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 0,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 5,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 35,
+      "elapsedMs": 750.9000000059605,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 36,
+      "elapsedMs": 767.9000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 720,
+          "height": 388,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 37,
+      "elapsedMs": 912.6999999880791,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 361,
+          "clientHeight": 288
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 235,
+          "chartHeight": 288
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 38,
+      "elapsedMs": 922.8000000119209,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 361,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 39,
+      "elapsedMs": 923.4000000059605,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 490,
+        "height": 248
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 361,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 40,
+      "elapsedMs": 923.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 490,
+        "height": 248
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 361,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 6,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 41,
+      "elapsedMs": 923.5999999940395,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 361,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 7,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 42,
+      "elapsedMs": 963.6999999880791,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 2,
+      "intentSource": "native-pointerdown",
+      "sequence": 43,
+      "elapsedMs": 998.1999999880791,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 44,
+      "elapsedMs": 1021.6999999880791,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 45,
+      "elapsedMs": 1027.9000000059605,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 46,
+      "elapsedMs": 1029.699999988079,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 47,
+      "elapsedMs": 1029.699999988079,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 8,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 48,
+      "elapsedMs": 1029.800000011921,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 9,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 49,
+      "elapsedMs": 1085.300000011921,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 489,
+          "scrollHeight": 393,
+          "clientHeight": 320
+        },
+        "geometry": {
+          "width": 976,
+          "height": 436,
+          "chartWidth": 489,
+          "chartHeight": 320
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 9,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 50,
+      "elapsedMs": 1206.9000000059605,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 412,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 9,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 51,
+      "elapsedMs": 1207.4000000059605,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 340
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 490,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 412,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 9,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 52,
+      "elapsedMs": 1207.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 906,
+        "height": 340
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 412,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 9,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 53,
+      "elapsedMs": 1207.699999988079,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 412,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 10,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 54,
+      "elapsedMs": 1238.4000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 3,
+      "intentSource": "native-pointerdown",
+      "sequence": 55,
+      "elapsedMs": 1256.0999999940395,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 56,
+      "elapsedMs": 1289.4000000059605,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 57,
+      "elapsedMs": 1295.800000011921,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 58,
+      "elapsedMs": 1298,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 59,
+      "elapsedMs": 1298,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 11,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 60,
+      "elapsedMs": 1298.0999999940395,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 12,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 61,
+      "elapsedMs": 1325.4000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 905,
+          "scrollHeight": 485,
+          "clientHeight": 412
+        },
+        "geometry": {
+          "width": 1392,
+          "height": 528,
+          "chartWidth": 905,
+          "chartHeight": 412
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 12,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 62,
+      "elapsedMs": 1421.0999999940395,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 485,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 12,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 63,
+      "elapsedMs": 1421.699999988079,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 485,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 12,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 64,
+      "elapsedMs": 1421.800000011921,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 485,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 12,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 65,
+      "elapsedMs": 1421.9000000059605,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 485,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 13,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 66,
+      "elapsedMs": 1439.199999988079,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 14,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 4,
+      "intentSource": "native-pointerdown",
+      "sequence": 67,
+      "elapsedMs": 1466.4000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 14,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 68,
+      "elapsedMs": 1488.5,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 14,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 69,
+      "elapsedMs": 1496.699999988079,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 15,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 70,
+      "elapsedMs": 1519.199999988079,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 16,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 71,
+      "elapsedMs": 1587.5999999940395,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 17,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 72,
+      "elapsedMs": 1698.5,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 17,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 73,
+      "elapsedMs": 1700.0999999940395,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 18,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 74,
+      "elapsedMs": 1738.800000011921,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 75,
+      "elapsedMs": 1791.5999999940395,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 5,
+      "intentSource": "native-pointerdown",
+      "sequence": 76,
+      "elapsedMs": 1793.4000000059605,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 77,
+      "elapsedMs": 1973,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 78,
+      "elapsedMs": 1977.699999988079,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 79,
+      "elapsedMs": 1980.5,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 80,
+      "elapsedMs": 1980.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 19,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 81,
+      "elapsedMs": 1980.9000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "select-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "show": "xy"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 20,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 82,
+      "elapsedMs": 2022.699999988079,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "input"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 21,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 6,
+      "intentSource": "native-pointerdown",
+      "sequence": 83,
+      "elapsedMs": 2133.199999988079,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "body"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 21,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 84,
+      "elapsedMs": 2144.5,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "keydown",
+      "params": {
+        "key": "Tab"
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8944,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 22,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 85,
+      "elapsedMs": 2158.5,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 22,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 86,
+      "elapsedMs": 2161,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 22,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 87,
+      "elapsedMs": 2161.5,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 8793
+      },
+      "sample": {
+        "core": {
+          "left": 8944,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 22,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 88,
+      "elapsedMs": 2161.5999999940395,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 8793
+      },
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 22,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 89,
+      "elapsedMs": 2161.699999988079,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 22,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 90,
+      "elapsedMs": 2162.5999999940395,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 40,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 23,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 91,
+      "elapsedMs": 2177.5,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 277,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 24,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 92,
+      "elapsedMs": 2241,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 24,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 93,
+      "elapsedMs": 2244.5999999940395,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "update-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003"
+      },
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 24,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 94,
+      "elapsedMs": 2244.699999988079,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "update-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000003"
+      },
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 2,
+      "projectionEpoch": 24,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 95,
+      "elapsedMs": 2244.9000000059605,
+      "rafTick": 0,
+      "event": "resize-observer",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 25,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 96,
+      "elapsedMs": 2269.5999999940395,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 25,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 97,
+      "elapsedMs": 2270.800000011921,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "update-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000004"
+      },
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 25,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 98,
+      "elapsedMs": 2270.9000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "update-task",
+      "params": {
+        "id": "00000000-0000-4000-8000-000000000004"
+      },
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 26,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 7,
+      "intentSource": "native-keydown",
+      "sequence": 99,
+      "elapsedMs": 2419.5,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 26,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "day",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 100,
+      "elapsedMs": 2457.300000011921,
+      "rafTick": 0,
+      "event": "native-intent",
+      "action": "pointerdown",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "div"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 101,
+      "elapsedMs": 2462.4000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 12528
+        },
+        "native": {
+          "left": 8793,
+          "top": 0,
+          "scrollWidth": 12528,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 102,
+      "elapsedMs": 2478.9000000059605,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 103,
+      "elapsedMs": 2479,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 8469
+      },
+      "sample": {
+        "core": {
+          "left": 8793,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 104,
+      "elapsedMs": 2479.199999988079,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 8469
+      },
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 105,
+      "elapsedMs": 2479.4000000059605,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 106,
+      "elapsedMs": 2479.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "set-columns",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 107,
+      "elapsedMs": 2479.5999999940395,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 108,
+      "elapsedMs": 2479.9000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "filter-tasks",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 109,
+      "elapsedMs": 2480.300000011921,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 3740,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 110,
+      "elapsedMs": 2481.9000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 3740,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 3740,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 111,
+      "elapsedMs": 2482,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 3740,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 27,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 112,
+      "elapsedMs": 2482,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 8469,
+          "top": 0,
+          "scrollWidth": 8704,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 113,
+      "elapsedMs": 2490,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 114,
+      "elapsedMs": 2499.300000011921,
+      "rafTick": 0,
+      "event": "native-scroll",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 115,
+      "elapsedMs": 2499.300000011921,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "scroll-chart",
+      "params": {
+        "left": 3505
+      },
+      "sample": {
+        "core": {
+          "left": 3232,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 116,
+      "elapsedMs": 2499.5,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "scroll-chart",
+      "params": {
+        "left": 3505
+      },
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 117,
+      "elapsedMs": 2499.800000011921,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 4012,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 3740
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 118,
+      "elapsedMs": 2501.4000000059605,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 4012,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 4012,
+          "scalesWidth": 4012
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 119,
+      "elapsedMs": 2501.5,
+      "rafTick": 0,
+      "event": "core-before",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 4012,
+          "scalesWidth": 4012
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 28,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 120,
+      "elapsedMs": 2501.5999999940395,
+      "rafTick": 0,
+      "event": "core-after",
+      "action": "resize-chart",
+      "params": {
+        "width": 236,
+        "height": 344
+      },
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 4012
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 3740,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      },
+      "result": "CORE_STATE_UPDATED"
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 29,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 121,
+      "elapsedMs": 2511.0999999940395,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 4012
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 4012,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 30,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 122,
+      "elapsedMs": 2518.9000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 4012
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 4012,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    },
+    {
+      "run": "trace2",
+      "head": "afd5ec2899183a2464b64f91d34e9de5d8a8319c",
+      "scenario": "inline-week",
+      "layer": "FULL_APP",
+      "apiInstance": "svar-api-1",
+      "projectRevision": 41,
+      "canonicalEpoch": 3,
+      "projectionEpoch": 31,
+      "scope": "project",
+      "filterKey": "filtered",
+      "scale": "week",
+      "intentId": 8,
+      "intentSource": "native-pointerdown",
+      "sequence": 123,
+      "elapsedMs": 2561.9000000059605,
+      "rafTick": 0,
+      "event": "react-commit",
+      "action": "none",
+      "params": {},
+      "sample": {
+        "core": {
+          "left": 3504,
+          "top": 0,
+          "chartWidth": 236,
+          "scalesWidth": 4012
+        },
+        "native": {
+          "left": 3505,
+          "top": 0,
+          "scrollWidth": 4012,
+          "clientWidth": 235,
+          "scrollHeight": 489,
+          "clientHeight": 416
+        },
+        "geometry": {
+          "width": 366,
+          "height": 313,
+          "chartWidth": 235,
+          "chartHeight": 416
+        },
+        "focus": "button"
+      }
+    }
+  ]
+}

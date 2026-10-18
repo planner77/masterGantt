@@ -32,7 +32,9 @@ function sameTask(first: ITask, second: ITask): boolean {
     // the canonical adapter payload and must not cause all rows to update.
     first.progress === second.progress &&
     first.type === second.type && first.parent === second.parent &&
-    first.externalId === second.externalId;
+    first.externalId === second.externalId && first.projectDisplayKey === second.projectDisplayKey &&
+    first.baselineStart === second.baselineStart && first.baselineEnd === second.baselineEnd &&
+    first.baselineDuration === second.baselineDuration;
 }
 
 function normalizedParent(task: ITask | undefined): string {
@@ -78,6 +80,8 @@ async function syncExistingTaskHierarchy(
     if (!existingIds.has(id) || !hierarchyChanged(task, current, canonical)) continue;
 
     const parent = normalizedParent(task);
+    // New parent targets become available only after add-task below.
+    if (parent !== "0" && !existingIds.has(parent)) continue;
     const siblings = canonical.filter((candidate) =>
       normalizedParent(candidate) === parent && existingIds.has(String(candidate.id)),
     );
@@ -86,7 +90,7 @@ async function syncExistingTaskHierarchy(
     const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
     const currentTask = current.find((candidate) => String(candidate.id) === id);
 
-    if (parent !== "0" && normalizedParent(currentTask) !== parent && task.parent !== undefined && task.parent !== null) {
+    if (normalizedParent(currentTask) !== parent && task.parent !== undefined && task.parent !== null) {
       await api.exec("move-task", { id: taskId, mode: "child", target: task.parent, eventSource: "project-canonical-sync" });
     }
     if (!isCurrent()) return;
@@ -154,7 +158,7 @@ export function planCanonicalGanttSync(
  * queue, synchronization guard and recovery. Rejections deliberately propagate.
  */
 export async function applyCanonicalGanttSync(
-  api: Pick<IApi, "exec">,
+  api: Pick<IApi, "exec"> & Partial<Pick<IApi, "getTask">>,
   current: CanonicalGanttSnapshot,
   canonical: CanonicalGanttSnapshot,
   isCurrent: () => boolean = () => true,
@@ -163,6 +167,9 @@ export async function applyCanonicalGanttSync(
   const currentById = new Map(current.tasks.map((task) => [task.id, task]));
   const parentIds = new Set(canonical.tasks.map((task) => task.parent));
   const currentParentIds = new Set(current.tasks.map((task) => task.parent));
+  const collapsedSummaries = current.tasks.flatMap(task => task.id !== undefined &&
+    ["summary", "summary-container"].includes(task.type ?? "") && task.open === false &&
+    currentParentIds.has(task.id) && parentIds.has(task.id) ? [task.id] : []);
   // Capture transitions before exec can mutate objects returned by serialize.
   const summaryIdsToOpen = canonical.tasks.flatMap((task) => (
     task.id !== undefined && (task.type === "summary" || task.type === "summary-container") &&
@@ -176,11 +183,23 @@ export async function applyCanonicalGanttSync(
     if (!isCurrent()) return;
     if (plan.replaceLinks && link.id !== undefined) await api.exec("delete-link", { id: link.id });
   }
+  // Detach surviving descendants before deleting their former parent. Core
+  // delete-task cascades through its tree even when canonical keeps a child.
+  const deletedIds = new Set(plan.deletedTaskIds);
+  const detachedIds = new Set<string>();
+  for (const task of canonical.tasks) {
+    if (!isCurrent()) return;
+    const existing = current.tasks.find(candidate => candidate.id === task.id);
+    if (task.id !== undefined && existing && deletedIds.has(normalizedParent(existing))) {
+      await api.exec("move-task", { id: task.id, mode: "child", target: 0, eventSource: "project-canonical-sync" });
+      detachedIds.add(String(task.id));
+    }
+  }
   for (const id of plan.deletedTaskIds) {
     if (!isCurrent()) return;
     await api.exec("delete-task", { id });
   }
-  await syncExistingTaskHierarchy(api, current.tasks, canonical.tasks, isCurrent);
+  await syncExistingTaskHierarchy(api, current.tasks.map(task => detachedIds.has(String(task.id)) ? { ...task, parent: 0 } : task), canonical.tasks, isCurrent);
   for (const task of plan.updatedTasks) {
     if (!isCurrent()) return;
     const { id, ...update } = task;
@@ -192,18 +211,47 @@ export async function applyCanonicalGanttSync(
       await api.exec("update-task", { id, task: update, eventSource: "project-canonical-sync", skipUndo: true });
     }
   }
+  const originalIds = new Set(current.tasks.map(task => String(task.id)));
+  const canonicalById = new Map(canonical.tasks.map(task => [String(task.id), task]));
+  const actualParents = new Map(current.tasks.filter(task => !deletedIds.has(String(task.id))).map(task => {
+    const desired = canonicalById.get(String(task.id));
+    const target = normalizedParent(desired);
+    return [String(task.id), desired && (target === "0" || originalIds.has(target)) ? target : detachedIds.has(String(task.id)) ? "0" : normalizedParent(task)];
+  }));
   for (const task of plan.addedTasks) {
     if (!isCurrent()) return;
     const { id, ...add } = task;
     delete add.open;
+    const siblings = canonical.tasks.filter(candidate => normalizedParent(candidate) === normalizedParent(task));
+    const position = siblings.findIndex(candidate => candidate.id === id);
+    const previous = siblings.slice(0, position).findLast(candidate => actualParents.get(String(candidate.id)) === normalizedParent(task));
+    const next = siblings.slice(position + 1).find(candidate => actualParents.get(String(candidate.id)) === normalizedParent(task));
+    const placement = previous ? { target: previous.id, mode: "after" as const }
+      : next ? { target: next.id, mode: "before" as const }
+      : task.parent && task.parent !== 0 ? { target: task.parent, mode: "child" as const } : {};
     await api.exec("add-task", {
       id,
       // Core reads task.id; preserve the public top-level action ID as well.
       task: { ...add, id },
       select: false,
       eventSource: "project-canonical-sync",
-      ...(task.parent && task.parent !== 0 ? { target: task.parent, mode: "child" as const } : {}),
+      ...placement,
     });
+    actualParents.set(String(id), normalizedParent(task));
+  }
+  for (const task of canonical.tasks) {
+    if (!isCurrent()) return;
+    const parent = normalizedParent(task);
+    if (task.id === undefined || !originalIds.has(String(task.id)) || parent === "0" || originalIds.has(parent)) continue;
+    await api.exec("move-task", { id: task.id, mode: "child", target: task.parent, eventSource: "project-canonical-sync" });
+    const siblings = canonical.tasks.filter(candidate => normalizedParent(candidate) === parent);
+    const position = siblings.findIndex(candidate => candidate.id === task.id);
+    actualParents.set(String(task.id), parent);
+    const previous = siblings.slice(0, position).findLast(candidate => actualParents.get(String(candidate.id)) === parent);
+    const next = siblings.slice(position + 1).find(candidate => actualParents.get(String(candidate.id)) === parent);
+    if (!isCurrent()) return;
+    if (previous?.id !== undefined) await api.exec("move-task", { id: task.id, mode: "after", target: previous.id, eventSource: "project-canonical-sync" });
+    else if (next?.id !== undefined) await api.exec("move-task", { id: task.id, mode: "before", target: next.id, eventSource: "project-canonical-sync" });
   }
   // A former leaf has no child collection until add-task has run. Opening it
   // earlier exposes an invalid intermediate tree to Core's synchronous render.
@@ -211,6 +259,12 @@ export async function applyCanonicalGanttSync(
   for (const id of summaryIdsToOpen) {
     if (!isCurrent()) return;
     await api.exec("open-task", { id, mode: true });
+  }
+  // Core move-task/add-task can automatically open an existing target and
+  // its ancestors. Passive reconciliation must retain the user's closed tree.
+  for (const id of collapsedSummaries) {
+    if (!isCurrent()) return;
+    if (api.getTask?.(id)?.open === true) await api.exec("open-task", { id, mode: false });
   }
   if (plan.replaceLinks) for (const link of canonical.links) {
     if (!isCurrent()) return;

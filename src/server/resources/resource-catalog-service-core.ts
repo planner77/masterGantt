@@ -38,17 +38,6 @@ export class ResourceCatalogAuthorizationError extends Error {}
 export class ResourceCatalogRevisionMismatchError extends Error {}
 export class ResourceCatalogTargetNotFoundError extends Error {}
 export class ResourceCatalogTargetInactiveError extends Error {}
-export class ResourceCatalogAssignmentRoleInvalidError extends Error {}
-export class ResourceCatalogRoleInUseError extends Error {
-  constructor(
-    readonly role: ResourceRole,
-    readonly projectCount: number,
-    readonly taskCount: number,
-  ) {
-    super(`Resource role ${role} is used by task assignments.`);
-    this.name = "ResourceCatalogRoleInUseError";
-  }
-}
 export class ResourceCatalogTargetInUseError extends Error {
   constructor(
     readonly kind: "resource" | "group",
@@ -149,7 +138,7 @@ function assignmentDtos(records: readonly AssignmentRecord[]): ProjectAssignment
     id: record.publicId,
     taskId: record.taskPublicId,
     target: { kind: record.kind, id: record.targetPublicId },
-    role: record.kind === "resource" ? record.assignmentRole : null,
+    role: null,
     allocation: record.kind === "resource" ? { start: record.assignmentStart, end: record.assignmentEnd, percent: record.allocationPercent } : null,
   }));
 }
@@ -315,13 +304,6 @@ export class ResourceCatalogService {
       const current = kind === "resource" ? this.catalog.findResourceByPublicId(publicId) : this.catalog.findGroupByPublicId(publicId);
       if (!current) throw new ResourceCatalogTargetNotFoundError(); if (sameTarget(current, canonical)) return this.getCatalog(rawAdminToken); const now = this.clock().toISOString();
       if (kind === "resource") {
-        if (canonical.roles !== undefined) {
-          const removedRoles = current.roles.filter((role) => !canonical.roles!.includes(role));
-          for (const role of removedRoles) {
-            const usage = this.catalog.getResourceRoleAssignmentUsage(current.id, role);
-            if (usage.taskCount > 0) throw new ResourceCatalogRoleInUseError(role, usage.projectCount, usage.taskCount);
-          }
-        }
         this.catalog.updateResource(current.id, canonical, now);
         if (canonical.roles !== undefined) this.catalog.replaceResourceRoles(current.id, canonical.roles, now);
       } else {
@@ -421,13 +403,18 @@ export class ResourceCatalogService {
 
   replaceTaskAssignments(authorization: AuthorizedEditSession, expectedProjectRevision: number, taskPublicId: string, input: ReplaceTaskAssignmentsRequest): ReplaceTaskAssignmentsMutationResult {
     if (!input || !Number.isSafeInteger(input.catalogRevision) || input.catalogRevision < 1 || !Array.isArray(input.targets) || input.targets.length > MAX_TARGETS_PER_TASK) throw new ResourceCatalogInvalidInputError();
+    const exactEdit = input.editAssignmentId !== undefined;
+    if (exactEdit && (typeof input.editAssignmentId !== "string" || !isCanonicalUuidV4(input.editAssignmentId) || input.targets.length !== 1 || input.targets[0]?.kind !== "resource" ||
+      Object.keys(input).some((key) => !["catalogRevision", "targets", "editAssignmentId"].includes(key)) ||
+      Object.keys(input.targets[0]).some((key) => !["kind", "id", "role", "allocation"].includes(key)))) throw new ResourceCatalogInvalidInputError();
     const keys = input.targets.map((target) => `${target?.kind}:${target?.id}`);
     if (new Set(keys).size !== keys.length || input.targets.some((target) => !target || (target.kind !== "resource" && target.kind !== "group") || !isCanonicalUuidV4(target.id))) throw new ResourceCatalogInvalidInputError();
     for (const target of input.targets) {
       if (target.kind === "group" && (target.allocation !== undefined || target.role !== undefined)) throw new ResourceCatalogInvalidInputError();
-      if (target.kind === "resource" && target.role !== undefined && target.role !== null && !RESOURCE_ROLES.has(target.role)) throw new ResourceCatalogInvalidInputError();
+      if (target.kind === "resource" && target.role !== undefined && target.role !== null) throw new ResourceCatalogInvalidInputError();
       if (target.kind === "resource" && target.allocation !== undefined) {
         const allocation = target.allocation;
+        if (exactEdit && allocation && Object.keys(allocation).some((key) => !["start", "end", "percent"].includes(key))) throw new ResourceCatalogInvalidInputError();
         if (!allocation || !Number.isFinite(allocation.percent) || allocation.percent <= 0 || allocation.percent > 100 || !validDateOrNull(allocation.start) || !validDateOrNull(allocation.end)) throw new ResourceCatalogInvalidInputError();
         if (allocation.start && allocation.end && allocation.start > allocation.end) throw new ResourceCatalogInvalidInputError();
       }
@@ -436,22 +423,28 @@ export class ResourceCatalogService {
       const currentProject = this.requireProjectAuthorization(authorization); if (currentProject.revision !== expectedProjectRevision) throw new ResourceCatalogProjectRevisionMismatchError();
       const catalogRevision = this.catalog.getRevision(); if (catalogRevision !== input.catalogRevision) throw new ResourceCatalogRevisionMismatchError();
       const task = this.schedules.findTaskByPublicId(currentProject.id, taskPublicId); if (!task) throw new ResourceCatalogTaskNotFoundError();
+      const current = this.catalog.listAssignments(currentProject.id).filter((assignment) => assignment.taskPublicId === taskPublicId);
+      const editedAssignment = exactEdit ? current.find((assignment) => assignment.publicId === input.editAssignmentId) : undefined;
+      if (exactEdit && (task.type !== "task" || !editedAssignment || editedAssignment.kind !== "resource" || editedAssignment.targetPublicId !== input.targets[0].id)) throw new ResourceCatalogInvalidInputError();
       const resolved = input.targets.map((target) => {
         const record = target.kind === "resource" ? this.catalog.findResourceByPublicId(target.id) : this.catalog.findGroupByPublicId(target.id);
         if (!record) throw new ResourceCatalogTargetNotFoundError(); if (!record.active) throw new ResourceCatalogTargetInactiveError();
-        const role = target.kind === "resource" ? target.role ?? null : null;
-        if (target.kind === "resource" && role !== null && !record.roles.includes(role)) throw new ResourceCatalogAssignmentRoleInvalidError();
         const start = target.kind === "resource" ? target.allocation?.start ?? null : null;
         const end = target.kind === "resource" ? target.allocation?.end ?? null : null;
         if (task.type === "task" && ((start && (start < task.startDate || start > task.endDate)) || (end && (end < task.startDate || end > task.endDate)))) throw new ResourceCatalogInvalidInputError();
-        return { kind: target.kind, publicId: target.id, internalId: record.id, assignmentStart: start, assignmentEnd: end, allocationPercent: target.kind === "resource" ? target.allocation?.percent ?? null : null, assignmentRole: role };
+        return { kind: target.kind, publicId: target.id, internalId: record.id, assignmentStart: start, assignmentEnd: end, allocationPercent: target.kind === "resource" ? target.allocation?.percent ?? null : null, assignmentRole: null };
       });
-      const current = this.catalog.listAssignments(currentProject.id).filter((assignment) => assignment.taskPublicId === taskPublicId);
-      const currentKeys = current.map((assignment) => `${assignment.kind}:${assignment.targetPublicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}:${assignment.assignmentRole ?? ""}`).sort();
-      const requestedKeys = resolved.map((assignment) => `${assignment.kind}:${assignment.publicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}:${assignment.assignmentRole ?? ""}`).sort();
+      const comparedAssignments = editedAssignment ? [editedAssignment] : current;
+      const currentKeys = comparedAssignments.map((assignment) => `${assignment.kind}:${assignment.targetPublicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}`).sort();
+      const requestedKeys = resolved.map((assignment) => `${assignment.kind}:${assignment.publicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}`).sort();
       if (currentKeys.length === requestedKeys.length && currentKeys.every((key, index) => key === requestedKeys[index])) return { data: { projectRevision: currentProject.revision, catalogRevision, assignments: assignmentDtos(this.catalog.listAssignments(currentProject.id)), operation: { kind: "taskAssignments" as const, taskId: taskPublicId, changed: false } } };
       const now = this.clock().toISOString();
-      this.catalog.replaceTaskAssignments({ projectId: currentProject.id, taskId: task.id, targets: resolved.map((target) => { const assignmentPublicId = this.generateAssignmentPublicId(); if (!isCanonicalUuidV4(assignmentPublicId)) throw new ResourceCatalogInvalidInputError(); return { ...target, assignmentPublicId }; }), now });
+      if (editedAssignment) {
+        const target = resolved[0];
+        if (!this.catalog.updateAssignmentAllocation({ projectId: currentProject.id, taskId: task.id, resourceId: target.internalId, assignmentPublicId: editedAssignment.publicId, assignmentStart: target.assignmentStart, assignmentEnd: target.assignmentEnd, allocationPercent: target.allocationPercent, now })) throw new ResourceCatalogInvalidInputError();
+      } else {
+        this.catalog.replaceTaskAssignments({ projectId: currentProject.id, taskId: task.id, targets: resolved.map((target) => { const assignmentPublicId = this.generateAssignmentPublicId(); if (!isCanonicalUuidV4(assignmentPublicId)) throw new ResourceCatalogInvalidInputError(); return { ...target, assignmentPublicId }; }), now });
+      }
       const updatedProject = this.projects.advanceRevision(currentProject.id, expectedProjectRevision, now); if (!updatedProject) throw new ResourceCatalogProjectRevisionMismatchError();
       return { data: { projectRevision: updatedProject.revision, catalogRevision, assignments: assignmentDtos(this.catalog.listAssignments(currentProject.id)), operation: { kind: "taskAssignments" as const, taskId: taskPublicId, changed: true } } };
     });

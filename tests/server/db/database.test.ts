@@ -122,6 +122,27 @@ afterEach(() => {
 });
 
 describe("SQLite connection and schema", () => {
+  it("adds explicit stage storage to schema 21 without inferring or altering existing data", () => {
+    const filename = join(temporaryDirectory(), "legacy-stage.sqlite3");
+    const original = openDatabase({ filename, migrationsDirectory: copiedMigrations(21) }).database;
+    const projectId = insertProject(original, "Legacy Stage");
+    const repo = new ScheduleRepository(original), stamp = "2026-10-05T01:00:00.000Z";
+    const member = repo.insertTask({ projectId, publicId: randomUUID(), externalId: "T", name: "Member", type: "task", scheduleMode: "auto", requestedStart: "2026-10-05", startDate: "2026-10-05", endDate: "2026-10-06", duration: 2, progress: 100, status: "completed", parentId: null, sortOrder: 0, createdAt: stamp, updatedAt: stamp });
+    const milestone = repo.insertTask({ projectId, publicId: randomUUID(), externalId: "M", name: "Stage", type: "milestone", scheduleMode: "auto", requestedStart: "2026-10-05", startDate: "2026-10-05", endDate: "2026-10-05", duration: 0, progress: 100, status: "completed", parentId: null, sortOrder: 1, createdAt: stamp, updatedAt: stamp });
+    repo.insertLink({ projectId, publicId: randomUUID(), predecessorTaskId: member.id, successorTaskId: milestone.id, type: "SS", lag: -1, createdAt: stamp, updatedAt: stamp });
+    original.prepare("INSERT INTO resources(public_id,name,created_at,updated_at) VALUES(?,?,?,?)").run(randomUUID(), "Legacy R", stamp, stamp);
+    original.prepare("INSERT INTO task_assignments(public_id,project_id,task_id,resource_id,created_at,updated_at) VALUES(?,?,?,1,?,?)").run(randomUUID(), projectId, member.id, stamp, stamp);
+    const state = (db: Database.Database) => ["projects", "tasks", "links", "resources", "task_assignments"].map((table) => db.prepare(`SELECT * FROM ${table} ORDER BY id`).all());
+    const before = state(original); original.close();
+    const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
+    try {
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_project_master_relations.sql", "0025_process_catalog.sql","0026_logistics_targets.sql","0027_task_target_bindings.sql"]);
+      expect(state(migrated.database)).toEqual(before);
+      expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
+      expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    } finally { migrated.database.close(); }
+  });
+
   it("applies the schema with the required connection pragmas and indexes", () => {
     const directory = temporaryDirectory();
     const filename = join(directory, "application.sqlite3");
@@ -153,6 +174,12 @@ describe("SQLite connection and schema", () => {
         "0019_task_status.sql",
         "0020_resource_roles.sql",
         "0021_task_assignment_roles.sql",
+        "0022_task_milestone_memberships.sql",
+        "0023_deprecate_task_assignment_roles.sql",
+        "0024_project_master_relations.sql",
+        "0025_process_catalog.sql",
+        "0026_logistics_targets.sql",
+        "0027_task_target_bindings.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -166,13 +193,20 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(tables).toEqual([
+        "business_unit_product_sites",
+        "business_unit_products",
         "edit_sessions",
         "links",
         "logistics_catalog_admin_credentials",
         "logistics_catalog_admin_sessions",
         "logistics_equipment_types",
         "logistics_system_types",
+        "logistics_target_members",
+        "logistics_targets",
         "logistics_type_catalog_state",
+        "process_catalog_state",
+        "process_types",
+        "product_standard_processes",
         "project_equipment",
         "project_equipment_resource_roles",
         "project_equipment_systems",
@@ -181,6 +215,7 @@ describe("SQLite connection and schema", () => {
         "project_master_admin_sessions",
         "project_master_catalog_state",
         "project_master_items",
+        "project_process_occurrence_mappings",
         "project_processes",
         "project_system_links",
         "project_system_processes",
@@ -195,10 +230,15 @@ describe("SQLite connection and schema", () => {
         "resource_roles",
         "resources",
         "schema_migrations",
+        "site_product_processes",
         "task_assignments",
         "task_equipment_links",
+        "task_milestone_memberships",
         "task_system_links",
+        "task_target_binding_members",
+        "task_target_bindings",
         "tasks",
+        "work_areas",
         "work_calendar_dates",
         "work_calendar_rules",
       ]);
@@ -210,12 +250,22 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(indexes).toEqual([
+        "business_unit_product_sites_site_idx",
+        "business_unit_products_product_idx",
         "edit_sessions_project_expires_idx",
         "equipment_resource_one_primary",
         "equipment_systems_one_primary",
         "links_project_predecessor_idx",
         "links_project_successor_idx",
         "logistics_catalog_admin_sessions_expiry_idx",
+        "logistics_target_member_equipment_uq",
+        "logistics_target_member_equipment_usage_idx",
+        "logistics_target_member_system_uq",
+        "logistics_target_member_system_usage_idx",
+        "logistics_targets_process_idx",
+        "logistics_targets_project_scope_idx",
+        "logistics_targets_work_area_idx",
+        "product_standard_processes_type_idx",
         "project_equipment_project_process_idx",
         "project_equipment_resource_roles_equipment_idx",
         "project_equipment_resource_roles_resource_idx",
@@ -223,6 +273,8 @@ describe("SQLite connection and schema", () => {
         "project_equipment_systems_system_idx",
         "project_master_admin_sessions_expiry_idx",
         "project_master_items_category_active_sort_idx",
+        "project_process_occurrence_mappings_occurrence_idx",
+        "project_process_occurrence_mappings_work_area_idx",
         "project_processes_project_parent_idx",
         "project_processes_project_sort_order_idx",
         "project_system_links_source_idx",
@@ -239,27 +291,32 @@ describe("SQLite connection and schema", () => {
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
         "resource_roles_role_resource_idx",
+        "site_product_processes_standard_idx",
+        "site_product_processes_type_idx",
         "system_resource_one_primary",
         "task_assignments_group_idx",
         "task_assignments_group_unique_idx",
         "task_assignments_project_task_idx",
         "task_assignments_resource_idx",
-        "task_assignments_resource_role_idx",
         "task_assignments_resource_unique_idx",
         "task_assignments_resource_workload_idx",
         "task_equipment_links_equipment_idx",
         "task_equipment_links_task_idx",
+        "task_milestone_memberships_target_idx",
         "task_system_links_system_idx",
         "task_system_links_task_idx",
+        "task_target_binding_member_usage_idx",
+        "task_target_binding_target_idx",
         "tasks_project_parent_idx",
         "tasks_project_sort_order_idx",
         "work_calendar_dates_rule_date_idx",
         "work_calendar_rules_project_idx",
       ]);
+      expect(database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
       expect(database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'assignment_role'").get())
         .toEqual({ name: "assignment_role", type: "TEXT" });
       expect(database.prepare("SELECT name FROM sqlite_schema WHERE type = 'trigger' AND name = 'resource_roles_assignment_delete_guard'").pluck().get())
-        .toBe("resource_roles_assignment_delete_guard");
+        .toBeUndefined();
     } finally {
       database.close();
     }

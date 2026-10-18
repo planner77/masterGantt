@@ -1,0 +1,23 @@
+{
+  "viewport": 768,
+  "documentWidth": 768,
+  "dialog": {
+    "x": 80,
+    "y": 189.40625,
+    "width": 608,
+    "height": 465.1875,
+    "top": 189.40625,
+    "right": 688,
+    "bottom": 654.59375,
+    "left": 80
+  },
+  "controls": 8,
+  "failures": [],
+  "overlaps": [],
+  "tables": [],
+  "focusVisible": true,
+  "outline": "solid",
+  "bodyHeight": 463,
+  "bodyScrollHeight": 463,
+  "verticalOwners": []
+}

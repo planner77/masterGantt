@@ -1,4 +1,11 @@
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
+import { readStageSnapshot, withStageProjection } from "../projects/milestone-stage-core";
 import { PersistedScheduleInvalidError } from "../projects/project-service-core";
+import {
+  snapshotLogisticsTemplateGraph,
+  restoreLogisticsTemplateGraph,
+} from "./logistics-template-graph-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -70,6 +77,7 @@ export class ProjectTemplateError extends Error {
   readonly code:
     | "TEMPLATE_NOT_FOUND"
     | "TEMPLATE_INACTIVE"
+    | "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED"
     | "INVALID_TEMPLATE_REQUEST"
     | "SOURCE_PROJECT_NOT_FOUND"
     | "UNAUTHORIZED"
@@ -79,6 +87,7 @@ export class ProjectTemplateError extends Error {
     code:
       | "TEMPLATE_NOT_FOUND"
       | "TEMPLATE_INACTIVE"
+      | "PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED"
       | "INVALID_TEMPLATE_REQUEST"
       | "SOURCE_PROJECT_NOT_FOUND"
       | "UNAUTHORIZED"
@@ -97,8 +106,9 @@ function validSession(
   authorization: AuthorizedEditSession,
   now: Date,
 ): boolean {
-  if (!session || !project) return false;
-  if (session.projectId !== authorization.projectId) return false;
+  if (!session || !project || session.revokedAt !== null) return false;
+  if (project.id !== authorization.projectId || project.publicId !== authorization.projectPublicId) return false;
+  if (session.projectId !== project.id || session.id !== authorization.sessionId) return false;
   if (session.authVersion !== authorization.projectAuthVersion) return false;
   if (!session.tokenHash.equals(authorization.tokenHash)) return false;
   if (project.authVersion !== authorization.projectAuthVersion) return false;
@@ -186,7 +196,13 @@ export class ProjectTemplateService {
         throw new RevisionMismatchError();
       }
 
+      // F2 snapshots include global occurrence/WorkArea identities and local
+      // typed Target member codes; no unversioned graph can be silently dropped.
+      const logisticsGraph = snapshotLogisticsTemplateGraph(this.database, source.id);
+
       const calendar = resolveProjectWorkingCalendar(this.database, source.id);
+      const sourceStage = readStageSnapshot(this.database, source.id);
+      projectStageGates(sourceStage);
       const tasks = this.schedules.listTasks(source.id);
       const links = this.schedules.listLinks(source.id);
       const assignments = this.resources.listAssignments(source.id);
@@ -255,7 +271,6 @@ export class ProjectTemplateService {
           offsetStartDays,
           offsetEndDays,
           allocationPercent: a.allocationPercent,
-          assignmentRole: a.kind === "resource" ? a.assignmentRole : null,
         };
       }).filter((a) => a.taskExternalId.length > 0);
 
@@ -336,6 +351,12 @@ export class ProjectTemplateService {
 
       const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
+        memberships: sourceStage.memberships.map((row) => {
+          const member = tasks.find((task) => task.publicId === row.taskId);
+          const milestone = tasks.find((task) => task.publicId === row.milestoneTaskId);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          return { taskExternalId: member.externalId, milestoneExternalId: milestone.externalId };
+        }),
         sourceRevision: source.revision,
         projectMaster: {
           businessUnitId: selectedMaster.businessUnit?.id ?? null,
@@ -356,6 +377,7 @@ export class ProjectTemplateService {
           systems: systemSnapshots,
           taskEquipmentLinks: taskEquipmentLinkSnapshots,
           taskSystemLinks: taskSystemLinkSnapshots,
+          ...logisticsGraph,
         },
       };
 
@@ -605,6 +627,23 @@ export class ProjectTemplateService {
         }
       }
 
+      const seenMembers = new Set<string>();
+      if (snapshot.memberships !== undefined && !Array.isArray(snapshot.memberships)) {
+        throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Template memberships must be an array.");
+      }
+      const resolvedMemberships = (snapshot.memberships ?? []).map((row) => {
+        const member = row && newByExternalId.get(row.taskExternalId);
+        const milestone = row && newByExternalId.get(row.milestoneExternalId);
+        if (!member || !milestone || member.type === "milestone" || milestone.type !== "milestone" || seenMembers.has(row.taskExternalId)) {
+          throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Template membership references are invalid.");
+        }
+        seenMembers.add(row.taskExternalId);
+        return { memberId: member.id, milestoneId: milestone.id };
+      });
+      const memberships = new MilestoneMembershipRepository(this.database);
+      for (const row of resolvedMemberships) memberships.set(project.id, row.memberId, row.milestoneId);
+      projectStageGates(readStageSnapshot(this.database, project.id));
+
       // 4. 의존관계(Links) 삽입
       for (const link of snapshot.links) {
         const pred = newByExternalId.get(link.predecessorExternalId);
@@ -677,7 +716,6 @@ export class ProjectTemplateService {
         assignmentStart: string | null;
         assignmentEnd: string | null;
         allocationPercent: number | null;
-        assignmentRole: import("../../contracts/resources").ResourceRole | null;
       }>>();
 
       for (const a of snapshot.assignments) {
@@ -686,17 +724,12 @@ export class ProjectTemplateService {
 
         let internalTargetId: number | undefined;
         let isActive = true;
-        let assignmentRole = a.kind === "resource" ? a.assignmentRole ?? null : null;
 
         if (a.kind === "resource") {
           const res = this.resources.findResourceByPublicId(a.targetPublicId);
           if (res) {
             internalTargetId = res.id;
             isActive = res.active;
-            if (assignmentRole !== null && !res.roles.includes(assignmentRole)) {
-              warnings.push(`배정 대상 리소스(${a.targetPublicId})의 수행 역할(${assignmentRole})이 현재 Global Role에 없어 역할 미지정으로 복원되었습니다.`);
-              assignmentRole = null;
-            }
           }
         } else {
           const grp = this.resources.findGroupByPublicId(a.targetPublicId);
@@ -727,7 +760,6 @@ export class ProjectTemplateService {
             ? null
             : endFromStart(projectStart, a.offsetEndDays + 1, calendar),
           allocationPercent: a.allocationPercent,
-          assignmentRole,
         });
         assignmentsByTaskId.set(taskInfo.id, list);
       }
@@ -743,6 +775,8 @@ export class ProjectTemplateService {
 
       // 7. 물류 마스터 복제
       const logisticsSnapshot = snapshot.logistics;
+      let restoredTargetCount = 0;
+      let restoredMappingCount = 0;
       if (logisticsSnapshot) {
         // 7.1 공정
         const processByCode = new Map<string, { id: number; publicId: string }>();
@@ -905,6 +939,15 @@ export class ProjectTemplateService {
         for (const [taskId, links] of sysLinksByTaskId.entries()) {
           this.logisticsRepo.replaceTaskSystemLinks(project.id, taskId, links, nowText);
         }
+
+        const restored = restoreLogisticsTemplateGraph(this.database, project.id, logisticsSnapshot, {
+          processes: processByCode,
+          equipment: equipmentByCode,
+          systems: systemByCode,
+        }, nowText, newByExternalId);
+        restoredTargetCount = restored.targets;
+        restoredMappingCount = restored.processMappings;
+        warnings.push(...restored.warnings);
       }
 
       // 8. 세션 생성
@@ -962,7 +1005,7 @@ export class ProjectTemplateService {
         id: assignment.publicId,
         taskId: assignment.taskPublicId,
         target: { kind: assignment.kind, id: assignment.targetPublicId },
-        role: assignment.kind === "resource" ? assignment.assignmentRole : null,
+        role: null,
         allocation: assignment.kind === "resource"
           ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
           : null,
@@ -987,13 +1030,15 @@ export class ProjectTemplateService {
               processes: logisticsSnapshot?.processes.length ?? 0,
               equipment: logisticsSnapshot?.equipment.length ?? 0,
               systems: logisticsSnapshot?.systems.length ?? 0,
+              targets: restoredTargetCount,
+              processMappings: restoredMappingCount,
             },
           },
           warnings,
         },
       };
 
-      return { response, rawSessionToken: sessionToken.rawToken };
+      return { response: withStageProjection(this.database, project.id, response), rawSessionToken: sessionToken.rawToken };
     })();
   }
 
@@ -1001,12 +1046,16 @@ export class ProjectTemplateService {
     let processCount = 0;
     let equipmentCount = 0;
     let systemCount = 0;
+    let targetCount = 0;
+    let processMappingCount = 0;
     try {
       const parsed = JSON.parse(record.contentJson) as ProjectTemplateSnapshot;
       if (parsed.logistics) {
         processCount = parsed.logistics.processes?.length ?? 0;
         equipmentCount = parsed.logistics.equipment?.length ?? 0;
         systemCount = parsed.logistics.systems?.length ?? 0;
+        targetCount = parsed.logistics.targets?.length ?? 0;
+        processMappingCount = parsed.logistics.processMappings?.length ?? 0;
       }
     } catch {
       // ignore parse errors for counts
@@ -1024,6 +1073,8 @@ export class ProjectTemplateService {
       processCount,
       equipmentCount,
       systemCount,
+      targetCount,
+      processMappingCount,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     };

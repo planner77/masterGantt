@@ -2,7 +2,33 @@
 
 검토일: 2026-10-05. 상위 이슈: [#449](https://github.com/planner77/masterGantt/issues/449).
 
-## 1. 범위와 상태
+## 2026-10-18 재개: 구현 대조와 현재 범위
+
+현재 기준은 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`, application `0.116.0`, SVAR Core `2.7.3`이다. 최신 사용자 요청은 구현·문서 동기화·미해결 리뷰/충돌 해소 후 PR CI 시작까지이며 초기의 등록 전용 범위보다 우선한다. 아래 1~8절의 2026-10-05 감사는 원래 SHA·관찰·CSS 실험에 묶인 역사 기록이다. 그 안의 “현재”, “미구현”, “NOT TESTED”를 최신 제품 상태로 해석하지 않는다.
+
+원격 Issue 본문·댓글의 완료 기록과 최신 main의 구현·테스트를 대조했다. #452~#457 및 제품 후속 #490/#491/#502는 closed/completed이며 원래 UI-01~09의 명백한 미구현 결함은 이번 소스 대조에서 발견하지 못했다. 기존 구현을 다시 작성하지 않고 미병합 문서 PR #458을 최신 main과 통합한다. 이 대조는 최신 앱의 실제 전 화면 UX 실행 PASS가 아니다.
+
+| 범위 | main에 존재하는 구현·테스트 | 완료 기록 |
+| --- | --- | --- |
+| #452 공통 기반 | globals.css admin shell·button margin 0, 공통 인증 presentation, admin-auth-layout.spec.ts | [FINAL / 보완 PR #469](https://github.com/planner77/masterGantt/issues/452#issuecomment-6007338285); 제품 PR #466 |
+| #453 Resource/Group | 독립 peer tabs·프로필 Dialog, resource-catalog-admin 및 관련 layout spec | [FINAL / PR #477](https://github.com/planner77/masterGantt/issues/453#issuecomment-6011610700) |
+| #454 물류 목록 | 명시적 table column budget·내부 scroll·40px action·focus 접근 보강 | [FINAL / PR #478](https://github.com/planner77/masterGantt/issues/454#issuecomment-6012646066) |
+| #455 기준정보 | 입력 경계·padding·focus, 추가/행 action·내부 table scroll | [FINAL / 보완 PR #489](https://github.com/planner77/masterGantt/issues/455#issuecomment-6013120202); 제품 PR #481 |
+| #456 Task Editor | content-aware footer, 44px hit-area·pending Escape·비기본 Gantt 상태 보존 테스트 | [FINAL / 보완 PR #504](https://github.com/planner77/masterGantt/issues/456#issuecomment-6026134704); 제품 PR #500 |
+| #457 회귀 체계 | 공통 ui-geometry helper·cross-screen-regression.spec.ts·11행 coverage | [FINAL / PR #503](https://github.com/planner77/masterGantt/issues/457#issuecomment-6026944224) |
+| #490 설정·근무 규칙 | 의미별 grouping·footer·busy guard 및 project-settings-layout-490.spec.ts | [FINAL / 보완 PR #512](https://github.com/planner77/masterGantt/issues/490#issuecomment-6033037217); 제품 PR #509 |
+| #491 생성·입출력 | 템플릿·Export footer 간격, Import focus ring·내부 scroll 및 project-transfer-layout-491.spec.ts | [FINAL / PR #515](https://github.com/planner77/masterGantt/issues/491#issuecomment-6037755697) |
+| #502 오류 경계 | non-production 실제 React boundary probe·error-boundary-regression.spec.ts | [FINAL / PR #516](https://github.com/planner77/masterGantt/issues/502#issuecomment-6039808174) |
+
+위 링크는 기존 exact SHA의 lifecycle 기록이며 이번 PR HEAD의 CI/QA·GHCR 증거로 재사용하지 않는다. 현재 구현과 충돌하는 초기 목표(예: #453 미래 목표, #454/#455 40~48px 초기 row 목표)는 DESIGN.md의 영속 기준으로 남기지 않는다. shell·spacing은 기존 §4를 보존하고 내부 KPI 참조·입력 식별성·peer 목록·content-driven row·증거 구분만 관련 절에 통합한다.
+
+남은 범위:
+
+- [#517](https://github.com/planner77/masterGantt/issues/517) open: native 125%·실기기·screen reader·최종 수동 UX는 NOT TESTED, 승인 운영 source SHA/application version/reverse proxy 대조는 BLOCKED / NOT TESTED다. 현재 저장소 version을 실제 배포 version으로 쓰지 않는다.
+- [#457 coverage](ISSUE_457_UI_UX_COVERAGE.md)의 표면별 미실행 조합과 역사적 AC2 GAP/FAIL은 그대로 보존한다. #452 첫 PR에 재사용 helper가 없었던 시점 조건을 현재 helper로 소급 PASS하지 않는다.
+- Epic 원문의 모든 폭×상태 조합과 최신 HEAD 원격 CI·Trusted QA·Owner ACCEPT는 완료로 주장하지 않는다. 이번 문서 PR로 Epic을 닫지 않으며 최종 수용은 별도다.
+
+## 1. 범위와 상태 (2026-10-05 역사 기록)
 
 사용자 요청은 DESIGN.md와 실제 사용 관찰을 바탕으로 UI/UX 개선점을 검토하고 실행 가능한 이슈로 등록하며, 반복 방지 지침을 보강하는 것이다. 이번 문서 작업은 제품 UI 구현·병합·릴리스·Epic 종료가 아니다.
 
@@ -207,7 +233,7 @@ console.table([before, fixed].map(section => {
 </script>
 ```
 
-## 6. 共通 검증 계약
+## 6. 공통 검증 계약
 
 - 같은 목적의 admin shell은 동일 viewport에서 header-to-heading gap, gutter, 인증 control geometry를 비교한다. 서로 다른 길이의 설명을 억지로 같은 card 높이로 만들지 않는다.
 - normal/focus/disabled/error/readonly control의 computed border/background/padding/font/height와 label/error 연결을 검증한다.
@@ -220,7 +246,7 @@ console.table([before, fixed].map(section => {
 
 ## 7. 지침 반영과 실행 순서
 
-DESIGN.md 11절에 내부 KPI reference, 공통 인증 presentation, parent-owned spacing, reset 이후 input 식별성, peer views, row/content budget, cross-screen 검증 원칙을 보강한다. 기존 1–10절의 방향·기능 계약·비범위는 유지한다.
+당시 제안은 DESIGN.md 11절에 아래 원칙을 추가하는 것이었다. 2026-10-18 통합에서는 후속 main의 공통 shell·spacing 원칙과 중복되는 별도 11절을 만들지 않고, 내부 KPI reference·reset 이후 input 식별성·peer views·row/content budget·cross-screen 증거 구분을 관련 기존 절에 통합한다. 아래 실행 순서는 당시 계획으로 보존한다.
 
 실행 순서:
 

@@ -1,0 +1,1146 @@
+{
+  "issue": 552,
+  "pr": 561,
+  "date": "2026-10-17",
+  "correction_base_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+  "main_sha": "c063101ed7b1d08803c3dac15a41e67842071187",
+  "original": {
+    "run_id": 38978855656,
+    "run_attempt": 1,
+    "head_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+    "base_sha": "c063101ed7b1d08803c3dac15a41e67842071187",
+    "test_merge_sha": "087feb6d612b9e2a3fd1d138f38f98a3a7e9de42",
+    "job_id": 117235287068,
+    "artifact_id": 12080427286,
+    "artifact_sha256": "797bf5b772a96606050464813d321bc647ecf2267ccbe45386672e3b75d4f04a",
+    "quality": "PASS",
+    "docker": "PASS",
+    "e2e": "FAIL",
+    "qa_final": "FAIL",
+    "shard6": {
+      "passed": 2,
+      "failed": 1,
+      "not_run": 87
+    },
+    "other_shards": "CANCELLED",
+    "goto_load_ms": 29235.108,
+    "mock_har_request_to_response_ms": 26444.084,
+    "route_fulfill_ms": 2.479,
+    "dcl_time": "NOT TESTED",
+    "get500_injection_reached": false,
+    "root_cause": "UNKNOWN",
+    "html_response_ms": 138.172,
+    "remaining_budget_near_tab_wait_ms": 699.161,
+    "recorded_mock_fulfill_statuses": [
+      200,
+      200,
+      200
+    ],
+    "source_artifact_id": 12079499516,
+    "source_artifact_sha256": "50bc87bacd244383f66806f1e9c2d8bc7de2816c66227427e390ee2e7448e623",
+    "attribution_boundary": "PR artifact는 비신뢰 자료이며 run/attempt/현재 PR/test merge parents/commit→PR561 단일귀속으로 교차. Trusted QA 전체 PASS 아님."
+  },
+  "original_source_sha256": "54bc5c31bd0b432916bc9b9b7012085b70350f73d7d3bcc5df4877e6e492f133",
+  "local_original_reproduction": {
+    "single": {
+      "passed": 2,
+      "seconds": [
+        5.4,
+        2.0
+      ],
+      "wall_seconds": 13.6,
+      "log_sha256": "2fb62fb37b3a6b4e2bd8f3f1b908f4b82a90f32a9743d537cea17c47611dd813"
+    },
+    "ordered": {
+      "passed": 3,
+      "wall_seconds": 15.9,
+      "order": [
+        "copy401",
+        "copy412",
+        "copy first GET500"
+      ]
+    },
+    "timeout_reproduced": false,
+    "discovery_anchor_attempt": "FAIL (no tests; not counted as execution PASS)"
+  },
+  "diagnostic": {
+    "state": "PASS (임시 계측3case 실행; 원격26초 미재현)",
+    "cases": [
+      {
+        "title": "copy 401 재인증은 초안을 보존하고 auth POST부터 닫기·중복 제출을 잠근다",
+        "events": [
+          {
+            "event": "goto.start",
+            "elapsedMs": 0.0
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "DCL",
+              "milliseconds": 2194.39999999851
+            },
+            "elapsedMs": 2206.613
+          },
+          {
+            "event": "page.DCL",
+            "elapsedMs": 2206.781
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 67
+            },
+            "elapsedMs": 2292.625
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 101
+            },
+            "elapsedMs": 2570.703
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "load",
+              "milliseconds": 2724.6999999955297
+            },
+            "elapsedMs": 2736.286
+          },
+          {
+            "event": "page.load",
+            "elapsedMs": 2743.239
+          },
+          {
+            "event": "goto.complete",
+            "elapsedMs": 2759.796
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 2878.887
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 2879.181
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 2883.613
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 2883.757
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 8.543231999999989,
+            "elapsedMs": 2887.709
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 4.566933000000063,
+            "elapsedMs": 2888.326
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 2889.451
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 68
+            },
+            "elapsedMs": 3022.477
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 246
+            },
+            "elapsedMs": 3546.835
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 170
+            },
+            "elapsedMs": 3547.163
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 56
+            },
+            "elapsedMs": 3791.241
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 3859.948
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 3860.137
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 4.891284000000269,
+            "elapsedMs": 3865.029
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 3871.09
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 4156.248
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 4156.449
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 2.847899999999754,
+            "elapsedMs": 4159.298
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 4161.281
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 4515.225
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 4515.385
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 2.923410000000331,
+            "elapsedMs": 4518.308
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 4539.424
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 148
+            },
+            "elapsedMs": 4997.775
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 125
+            },
+            "elapsedMs": 4997.917
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 66
+            },
+            "elapsedMs": 5137.39
+          },
+          {
+            "event": "test.end",
+            "elapsedMs": 5144.465
+          }
+        ],
+        "maxObservedWorkerExtraDelayMs": 0,
+        "maxObservedBrowserLongtaskMs": 246
+      },
+      {
+        "title": "copy 412는 명시 원본 GET 후 새 If-Match로만 재제출한다",
+        "events": [
+          {
+            "event": "goto.start",
+            "elapsedMs": 0.0
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 69
+            },
+            "elapsedMs": 217.774
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "DCL",
+              "milliseconds": 202.60000000149012
+            },
+            "elapsedMs": 217.897
+          },
+          {
+            "event": "page.DCL",
+            "elapsedMs": 217.944
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 134
+            },
+            "elapsedMs": 503.285
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "load",
+              "milliseconds": 715.6000000014901
+            },
+            "elapsedMs": 728.526
+          },
+          {
+            "event": "page.load",
+            "elapsedMs": 728.687
+          },
+          {
+            "event": "goto.complete",
+            "elapsedMs": 760.616
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 890.855
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 891.032
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 894.817
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 894.996
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 7.655988000000434,
+            "elapsedMs": 898.684
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 4.141446999999971,
+            "elapsedMs": 899.133
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 901.487
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 78
+            },
+            "elapsedMs": 1032.812
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 68
+            },
+            "elapsedMs": 1456.087
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 78
+            },
+            "elapsedMs": 1456.237
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 53
+            },
+            "elapsedMs": 1624.644
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 1682.512
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 1682.746
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 3.41001899999992,
+            "elapsedMs": 1686.151
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 1686.822
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 1917.598
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 1917.828
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 2.854782000000341,
+            "elapsedMs": 1920.677
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 1922.557
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 2049.549
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 2049.738
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 4.355351000000155,
+            "elapsedMs": 2054.099
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 2061.375
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 2232.237
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 2232.41
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 2.8665450000007695,
+            "elapsedMs": 2235.264
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 2236.058
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 132
+            },
+            "elapsedMs": 2655.995
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 104
+            },
+            "elapsedMs": 2656.116
+          },
+          {
+            "event": "test.end",
+            "elapsedMs": 2690.835
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 71
+            },
+            "elapsedMs": 2779.618
+          }
+        ],
+        "maxObservedWorkerExtraDelayMs": 0,
+        "maxObservedBrowserLongtaskMs": 134
+      },
+      {
+        "title": "copy 최초 GET 500는 mutation을 막고 retry로 복구한다",
+        "events": [
+          {
+            "event": "goto.start",
+            "elapsedMs": 0.0
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "DCL",
+              "milliseconds": 121.59999999403954
+            },
+            "elapsedMs": 132.285
+          },
+          {
+            "event": "page.DCL",
+            "elapsedMs": 132.389
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 64
+            },
+            "elapsedMs": 215.988
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 129
+            },
+            "elapsedMs": 485.952
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "load",
+              "milliseconds": 691.1999999955297
+            },
+            "elapsedMs": 712.731
+          },
+          {
+            "event": "page.load",
+            "elapsedMs": 712.805
+          },
+          {
+            "event": "goto.complete",
+            "elapsedMs": 725.738
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 848.764
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 848.961
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 853.046
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 853.248
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 6.667799999999261,
+            "elapsedMs": 855.629
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 3.077331000000413,
+            "elapsedMs": 856.324
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 858.086
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 69
+            },
+            "elapsedMs": 971.091
+          },
+          {
+            "event": "schedule-tab.ready",
+            "elapsedMs": 1118.708
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 66
+            },
+            "elapsedMs": 1429.038
+          },
+          {
+            "event": "browser.performance",
+            "data": {
+              "event": "longtask",
+              "milliseconds": 84
+            },
+            "elapsedMs": 1429.13
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 1621.334
+          },
+          {
+            "event": "mock.receipt",
+            "failure": "500",
+            "elapsedMs": 1621.484
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 3.426422000000457,
+            "elapsedMs": 1624.911
+          },
+          {
+            "event": "canonical.response",
+            "status": 500,
+            "elapsedMs": 1625.984
+          },
+          {
+            "event": "canonical.request",
+            "elapsedMs": 1723.996
+          },
+          {
+            "event": "mock.receipt",
+            "failure": null,
+            "elapsedMs": 1724.361
+          },
+          {
+            "event": "mock.callback-complete",
+            "milliseconds": 3.726634999999078,
+            "elapsedMs": 1728.084
+          },
+          {
+            "event": "canonical.response",
+            "status": 200,
+            "elapsedMs": 1728.799
+          },
+          {
+            "event": "test.end",
+            "elapsedMs": 1783.576
+          }
+        ],
+        "maxObservedWorkerExtraDelayMs": 0,
+        "maxObservedBrowserLongtaskMs": 129
+      }
+    ],
+    "clock_boundary": "browser performance origin과Node 수신 elapsed를 구별한다. 원본의 DCL/load 독립 시각은 없음.",
+    "sampling_boundary": "worker는 >50ms 추가 delay의 표본을 관측하며0은 해당threshold 미관측이다. Next server eventloop는 NOT MEASURED.",
+    "source_boundary": "임시 계측 source는 원본/최종 source와 hash 분리·원본 복원. 진단 PASS는 최종구현/원격PASS 아님."
+  },
+  "correction": {
+    "files": [
+      "tests/e2e/derived-dialog-recovery.spec.ts"
+    ],
+    "navigation": "DCL + exact canonical GET200/fixture completion + 일정tab/Gantt DOM identity/actionmenu trial actionable",
+    "copy_query": "copy=1은 DCL 이후 기존dialog 실제ready 단언 유지",
+    "controlled_cases": [
+      "Copy held image: interactive/loadEventEnd0에서정상ready→500차단/명시retry/원본동일/동일GanttDOM",
+      "Template held image: interactive/loadEventEnd0에서정상ready→500차단/명시retry/원본동일/동일GanttDOM",
+      "초기canonicalGETgate: readyfalse/DOM0→해제후ready·POST0·원본동일"
+    ],
+    "trust_boundary": "DOM Gantt root/API instance attributes and existing DOM identity helper; no private Core API or readiness probe introduced.",
+    "unchanged": [
+      "기존28case의401/412/5종GET음성/초안/IfMatch/POST0/stale응답/4폭/원본동일/GanttDOM",
+      "30초 test budget/retries0/no new skip",
+      "제품/공유fixture/helpers/CI/Required3/6-shard/version/권한"
+    ]
+  },
+  "local_prepr": {
+    "state": "BLOCKED",
+    "reports": [
+      {
+        "scope": "fullpr",
+        "report_path": ".prepr-reports/552-ci2864-fullpr/report.json",
+        "report_sha256": "0094266a6c8137101094456c21b84888ab45d6e92057707a0416694cb25db220",
+        "status": "BLOCKED",
+        "mode": "fast",
+        "risk": "HIGH",
+        "source_stable": true,
+        "base_ref": "origin/main",
+        "base_sha": "c063101ed7b1d08803c3dac15a41e67842071187",
+        "head_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "start_fingerprint": "38aa3af4d3528b1acd3852c928dead2cdf44f31750586b5aab729993fc542493",
+        "end_fingerprint": "38aa3af4d3528b1acd3852c928dead2cdf44f31750586b5aab729993fc542493",
+        "versions": {
+          "os": "linux",
+          "release": "6.6.87.2-microsoft-standard-WSL2",
+          "cpuCount": 16,
+          "node": "v22.14.0",
+          "npm": "11.10.0",
+          "packageVersion": "0.115.0",
+          "lockVersion": "0.115.0",
+          "playwright": "1.63.0",
+          "chromiumRevision": "1243",
+          "ciNode": "22",
+          "ciPlaywright": "1.63.0",
+          "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+          "e2e": {
+            "fullyParallel": true,
+            "workers": 1,
+            "shardsLocal": 1,
+            "shardsGitHub": 6,
+            "config": "tests/config/playwright.config.ts"
+          }
+        },
+        "selected_count": 56,
+        "unknown": [
+          {
+            "path": "package-lock.json",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/gantt/gantt-scale-toolbar.css",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/gantt/project-gantt.tsx",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/projects/project-copy-membership-confirm.tsx",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/projects/project-readonly-view.tsx",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "tests/e2e/helpers/milestone-ui.ts",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          }
+        ],
+        "missing": [],
+        "exclusions": [],
+        "steps": [],
+        "errors": [
+          "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+        ]
+      },
+      {
+        "scope": "corrective-fast",
+        "report_path": ".prepr-reports/552-ci2864-corrective-fast/report.json",
+        "report_sha256": "3f9426b560b4c7847d2cec169bb94b5cbe843f61f8fc126c4622c4c5a18772dc",
+        "status": "BLOCKED",
+        "mode": "fast",
+        "risk": "HIGH",
+        "source_stable": false,
+        "base_ref": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "base_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "head_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "start_fingerprint": "bc7c3ed29636b882b1a972c352cdd63b633cbedbf740327acb58e7ffc15f5456",
+        "end_fingerprint": "a84a70c1f3eeecc3c96e66b04e7d320ee875f930b505d2acabbeb29a32264d18",
+        "versions": {
+          "os": "linux",
+          "release": "6.6.87.2-microsoft-standard-WSL2",
+          "cpuCount": 16,
+          "node": "v22.14.0",
+          "npm": "11.10.0",
+          "packageVersion": "0.115.0",
+          "lockVersion": "0.115.0",
+          "playwright": "1.63.0",
+          "chromiumRevision": "1243",
+          "ciNode": "22",
+          "ciPlaywright": "1.63.0",
+          "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+          "e2e": {
+            "fullyParallel": true,
+            "workers": 1,
+            "shardsLocal": 1,
+            "shardsGitHub": 6,
+            "config": "tests/config/playwright.config.ts"
+          }
+        },
+        "selected_count": 1,
+        "unknown": [],
+        "missing": [],
+        "exclusions": [],
+        "steps": [
+          {
+            "label": "Version contract",
+            "command": [
+              "node",
+              "scripts/verify-release-version.mjs"
+            ],
+            "startedAt": "2026-10-16T23:27:55.408Z",
+            "durationMs": 41,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Test discovery",
+            "command": [
+              "node",
+              "scripts/verify-test-discovery.mjs"
+            ],
+            "startedAt": "2026-10-16T23:27:55.449Z",
+            "durationMs": 4237,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Markdown links",
+            "command": [
+              "node",
+              "scripts/check-markdown-links.mjs"
+            ],
+            "startedAt": "2026-10-16T23:27:59.686Z",
+            "durationMs": 95,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "CI cache contract",
+            "command": [
+              "node",
+              "scripts/verify-ci-cache-contract.mjs"
+            ],
+            "startedAt": "2026-10-16T23:27:59.782Z",
+            "durationMs": 36,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Local QA fixture policy",
+            "command": [
+              "python3",
+              "scripts/test_qa_preflight.py"
+            ],
+            "startedAt": "2026-10-16T23:27:59.818Z",
+            "durationMs": 101,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Dependencies",
+            "command": [
+              "npm",
+              "ls",
+              "--depth=0",
+              "--offline"
+            ],
+            "startedAt": "2026-10-16T23:27:59.919Z",
+            "durationMs": 605,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Typecheck",
+            "command": [
+              "npm",
+              "run",
+              "typecheck"
+            ],
+            "startedAt": "2026-10-16T23:28:00.524Z",
+            "durationMs": 4565,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Lint",
+            "command": [
+              "npm",
+              "run",
+              "lint"
+            ],
+            "startedAt": "2026-10-16T23:28:05.089Z",
+            "durationMs": 41644,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Unit",
+            "command": [
+              "npm",
+              "test"
+            ],
+            "startedAt": "2026-10-16T23:28:46.734Z",
+            "durationMs": 22377,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": 2786
+          },
+          {
+            "label": "Production build",
+            "command": [
+              "npm",
+              "run",
+              "build"
+            ],
+            "startedAt": "2026-10-16T23:29:09.111Z",
+            "durationMs": 70461,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          }
+        ],
+        "errors": [
+          "STALE: working source/base/head changed during local verification"
+        ]
+      },
+      {
+        "scope": "corrective-targeted",
+        "report_path": ".prepr-reports/552-ci2864-corrective-targeted/report.json",
+        "report_sha256": "0aba4d7b7ee896fd5f308c73ed1c537836220063d757c097398e749891cdcff1",
+        "status": "BLOCKED",
+        "mode": "targeted",
+        "risk": "HIGH",
+        "source_stable": false,
+        "base_ref": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "base_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "head_sha": "f48689df9141e2f90fa729a644db52d6bbfb8016",
+        "start_fingerprint": "bc7c3ed29636b882b1a972c352cdd63b633cbedbf740327acb58e7ffc15f5456",
+        "end_fingerprint": "46b0456bc75bcc4de3ddf1eb385f04c267f5a0d57249cc9ad3efdb65b9a9b76a",
+        "versions": {
+          "os": "linux",
+          "release": "6.6.87.2-microsoft-standard-WSL2",
+          "cpuCount": 16,
+          "node": "v22.14.0",
+          "npm": "11.10.0",
+          "packageVersion": "0.115.0",
+          "lockVersion": "0.115.0",
+          "playwright": "1.63.0",
+          "chromiumRevision": "1243",
+          "ciNode": "22",
+          "ciPlaywright": "1.63.0",
+          "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+          "e2e": {
+            "fullyParallel": true,
+            "workers": 1,
+            "shardsLocal": 1,
+            "shardsGitHub": 6,
+            "config": "tests/config/playwright.config.ts"
+          }
+        },
+        "selected_count": 1,
+        "unknown": [],
+        "missing": [],
+        "exclusions": [],
+        "steps": [
+          {
+            "label": "Chromium E2E",
+            "command": [
+              "npm",
+              "run",
+              "test:e2e",
+              "--",
+              "--project=chromium",
+              "--workers=1",
+              "--retries=0",
+              "tests/e2e/derived-dialog-recovery.spec.ts"
+            ],
+            "startedAt": "2026-10-16T23:30:37.940Z",
+            "durationMs": 77771,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": 31
+          }
+        ],
+        "errors": [
+          "STALE: working source/base/head changed during local verification"
+        ]
+      }
+    ],
+    "interpretation": "상위BLOCKED와각실제명령PASS를구별. 전체PR UNKNOWN은교정base검증으로대체하지않음.",
+    "post_validation_change": "결과·측정경계·선정/미실행을문서/원장에만반영. 실행spec hash는불변이며최종Markdown/docs_gate/diff별도확인.",
+    "fast_unit": {
+      "passed_files": 225,
+      "passed_tests": 2786,
+      "existing_skipped_files": 1,
+      "existing_skipped_tests": 3,
+      "new_skips": 0
+    },
+    "generated_changes": {
+      "corrective_fast": [
+        "next-env.d.ts: .next-prepr refs",
+        "tsconfig.json: .next-prepr types/dev include2"
+      ],
+      "corrective_targeted": [
+        "next-env.d.ts: .next-e2e/dev/types refs",
+        "output/playwright/issue-269/{copy,template}-401-{390,768,1024,1440}.png (8)"
+      ],
+      "targeted_tsconfig_changed": false,
+      "restoration": "run별사본 /tmp보존후원본byte복원. fast/targeted 동시실행0. 기존user untracked6경로보존."
+    },
+    "LOCAL_VALIDATED": "BLOCKED",
+    "scope_decision": "전체PR UNKNOWN6과교정fast/targeted STALE을해소됐다고판정하지않음. 명시된사용자범위의새FullCI검증으로인계하며최종QA·Owner·merge는BLOCKED유지."
+  },
+  "independent_pre_qa": {
+    "state": "PASS (bounded corrective spec 사전검토)",
+    "reviewer": "/root/qa_review_552",
+    "direct_unit": {
+      "files": [
+        "tests/domain/project-copy-confirm-model.test.ts",
+        "tests/features/projects/canonical-snapshot-recovery.test.ts"
+      ],
+      "cases": 12,
+      "state": "PASS",
+      "not_bootstrap_browser_proof": true
+    },
+    "documentation_sync": "의미 ACK 별도; 최종인간QA/Owner수용 아님"
+  },
+  "remote_new_ci": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "monitoring_requested": false
+  },
+  "approval": {
+    "risk_level": "HIGH",
+    "qa_method": "OWNER_MANAGED",
+    "qa_required": true,
+    "manager_decision": "NOT TESTED",
+    "MERGE_READY": "BLOCKED",
+    "release_required": true,
+    "release_authorized": false
+  },
+  "storage_boundary": "최소 안전 측정/source hash만 보관. raw zip/trace/log/DB는 Git 외부에 보존.",
+  "source_hashes": {
+    "original_spec": "54bc5c31bd0b432916bc9b9b7012085b70350f73d7d3bcc5df4877e6e492f133",
+    "final_spec": "10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4",
+    "diagnostic_spec": "4ba6f6175c14d99bd839f9932e20e30d55a84798c7ef6b7bfce9f5033150647d"
+  },
+  "log_hashes": {
+    "original-single-repeat2.log": "2fb62fb37b3a6b4e2bd8f3f1b908f4b82a90f32a9743d537cea17c47611dd813",
+    "original-sequence3.log": "ec50d41ed8f9ab3f05ff9cd53466bab13877019b055772d95de58b3a3205840d",
+    "diagnostic-sequence3.log": "5539049e89dc457a4462a0d61fa10c7c8c86e20dad784b9d5a9a2082312233d6",
+    "diagnostic-events.jsonl": "114015f20425bb8b51865bbec01f8da41244b29a68f46ad74aff674f05d52836",
+    "derived-dialog-recovery.original.ts": "54bc5c31bd0b432916bc9b9b7012085b70350f73d7d3bcc5df4877e6e492f133",
+    "derived-dialog-recovery.diagnostic.ts": "4ba6f6175c14d99bd839f9932e20e30d55a84798c7ef6b7bfce9f5033150647d",
+    "final-recovery31.log": "03b339a3e95b5ca184fee0d5692956d382529e0ef19a76bd3c5ff8badc118fc3",
+    "final-cross6.log": "dfdedf4c6e3eecaa79bd7ffb916cd9f361b365d9154ff69af957327a55a5f8e4",
+    "final-adjacent2.log": "3e6ae8ecbec7245ae7c626667c6c5c35a88b1cf0ce372d7744ad268141751a42",
+    "prepr-fullpr.log": "9c2481178118da91351969b4e56bdc01d561c169168951524f3a9be7c960b4ee",
+    "prepr-corrective-fast.log": "11b3455ea9dc8716d5259e38fe3a8173363a7a3c915187d3015d6f857da1afdc",
+    "prepr-corrective-targeted.log": "a9987c4c98cb881384aedb43b5b4b33959d6651f1079dc90678be81c919a8478"
+  },
+  "local_runs": {
+    "originalSingle": {
+      "pass": 2,
+      "durationSeconds": [
+        5.4,
+        2.0
+      ]
+    },
+    "originalSequence": {
+      "pass": 3
+    },
+    "instrumentedDiagnostic": {
+      "pass": 3,
+      "causality": "Local timeline observation, remote26s cause UNKNOWN. Next server eventloop NOT MEASURED. Worker delay sampler reports only >50ms additional delay; zero is no sampled threshold exceedance."
+    },
+    "finalRecovery": {
+      "pass": 31,
+      "unique": 31,
+      "note": "31 includes original28 and controlled3",
+      "displayedDuration": "1.3m"
+    },
+    "cross": {
+      "pass": 6,
+      "unique": 6,
+      "cases": [
+        "550past",
+        "550future",
+        "551Taskfilter",
+        "637wideDay",
+        "637wideWeek",
+        "637Ynegative"
+      ]
+    },
+    "adjacent": {
+      "pass": 2,
+      "unique": 2,
+      "actualHTTP": true,
+      "durationSeconds": [
+        11.4,
+        17.9
+      ]
+    },
+    "targetedPrepr": {
+      "pass": 31,
+      "unique": 31,
+      "displayedDuration": "1.3m"
+    }
+  },
+  "final_browser": {
+    "state": "PASS",
+    "executions": 70,
+    "unique_cases": 39,
+    "breakdown": {
+      "recovery_unique": 31,
+      "previous_milestone_projection_cross_unique": 6,
+      "actual_http_transfer_unique": 2,
+      "prepr_recovery_repeated_executions": 31
+    },
+    "excluded_from_final_count": {
+      "original_single": 2,
+      "original_sequence": 3,
+      "temporary_diagnostic": 3
+    },
+    "environment": {
+      "node": "22.14.0",
+      "fully_parallel": true,
+      "workers": 1,
+      "retries": 0,
+      "test_timeout_ms": 30000
+    },
+    "boundary": "Copy actual HTTP 인접은 취소와Template성공·401/412 경계이며 Copy성공actual HTTP 전수 증거가 아니다."
+  },
+  "restored_validation": {
+    "typecheck": "PASS",
+    "diff_check": "PASS",
+    "final_spec_sha256": "10fa15975a4a596061b4652d18c81d066d4ab1ef8b697da00f9ddb322d981eb4",
+    "next_env_tsconfig_baseline_bytes_equal": true,
+    "owned_port_database_build_reports_cleaned": true,
+    "frontend_safe_ledger_sha256": "df55ed3c7acc3c8895ec7b20dab52def82e7b3da3f7f5cde2acd238978e3fef8"
+  }
+}

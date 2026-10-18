@@ -92,11 +92,11 @@ test.describe("Issue #120 semantic UI state tokens", () => {
     await page.goto("/resources");
     await page.getByLabel("관리자 비밀번호").fill("x");
     await page.getByRole("button", { name: "로그인" }).click();
-    const inactiveBadge = page.getByText("비활성", { exact: true }).first();
+    const inactiveBadge = page.getByRole("table", { name: "리소스 목록", exact: true }).getByRole("cell").filter({ hasText: /^비활성/ }).first();
     await expect(inactiveBadge).toBeVisible();
     const rendered = await inactiveBadge.evaluate((element) => {
       const style = getComputedStyle(element);
-      const row = element.closest("li");
+      const row = element.closest("tr");
       const rowStyle = row ? getComputedStyle(row) : null;
       return {
         color: style.color,

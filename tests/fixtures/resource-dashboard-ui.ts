@@ -1,0 +1,59 @@
+import type { ResourceDashboardDto, ResourceDashboardDetailsDto, ResourceDashboardSummary, ResourceDashboardSelector } from "../../src/contracts/resource-dashboard";
+import { RESOURCE_DASHBOARD_LIMITS } from "../../src/contracts/resource-dashboard";
+import { normalizeResourceDashboardFilters, parseResourceDashboardQuery, parseResourceDashboardDetails } from "../../src/server/resources/resource-dashboard-query-core";
+import type { StatefulProjectFixture } from "./stateful-project";
+
+export const dashboardResourceId = "11111111-1111-4111-8111-111111111111";
+export const dashboardGroupId = "22222222-2222-4222-8222-222222222222";
+export function resourceDashboardUiFixture(fixture: StatefulProjectFixture, query = new URLSearchParams()): ResourceDashboardDto {
+  const filters = normalizeResourceDashboardFilters(parseResourceDashboardQuery(query));
+  // Synthetic personal Assignment exists only from 2026-09-16 through 2026-09-18.
+  // Mirror the read API's inclusive date intersection for the selected scope;
+  // an out-of-range query must not fabricate a nonzero Resource subtotal.
+  const assignmentInRange = (!filters.from || filters.from <= "2026-09-18") && (!filters.to || filters.to >= "2026-09-16");
+  const empty = !assignmentInRange || Boolean(filters.search && !["테스트 리소스", "R-01", "개발팀", "G-01", "Stable leaf", "LEAF-1"].some((text) => text.toLowerCase().includes(filters.search.toLowerCase()))) || filters.resourceActivity === "inactive" || filters.groupActivity === "inactive" || (filters.roles.length > 0 && !filters.roles.includes("DEVELOPER")) || (filters.developerGrades.length > 0 && !filters.developerGrades.includes("ADVANCED")) || (filters.statuses.length > 0 && !filters.statuses.includes("in_progress"));
+  const summary = (selector: ResourceDashboardSelector): ResourceDashboardSummary => ({ taskCount: empty ? 0 : 1, resourceCount: empty ? 0 : 1, assignmentCount: empty ? 0 : 1, notStarted: 0, inProgress: empty ? 0 : 1, completed: 0, delayed: 0, completion: { numerator: 0, denominator: empty ? 0 : 1, percent: empty ? null : 0 }, assignedTaskProgress: { numerator: empty ? 0 : 50, denominator: empty ? 0 : 1, percent: empty ? null : 50 }, effort: { knownMd: empty ? 0 : 5, plannedMd: empty ? 0 : 5, plannedMm: empty ? 0 : .25, state: empty ? "empty" : "configured", partial: false, unsetCount: 0 }, selector });
+  const all = summary({ dimension: "all", id: null, metric: "all" });
+  const resources = empty ? [] : [{ id: dashboardResourceId, name: "테스트 리소스", code: "R-01", active: true, summary: summary({ dimension: "resource", id: dashboardResourceId, metric: "all" }), resourceIds: [dashboardResourceId], assignmentRange: { from: "2026-09-16", to: "2026-09-18" }, milestones: [] }];
+  const groups = empty ? [] : [{ id: dashboardGroupId, name: "개발팀", code: "G-01", active: true, summary: summary({ dimension: "group", id: dashboardGroupId, metric: "all" }), resourceIds: [dashboardResourceId], assignmentRange: { from: "2026-09-16", to: "2026-09-18" }, milestones: [] }];
+  return { schema: "resource-dashboard/1", projectPublicId: fixture.project.publicId, projectRevision: fixture.project.revision, catalogRevision: 1, calendarRevision: "c".repeat(64), snapshotId: "a".repeat(64), calculatedAt: "2026-10-08T00:00:00.000Z", asOfDate: filters.asOfDate ?? "2026-09-18", timezone: "Asia/Seoul", filters, range: { from: filters.from ?? "2026-09-01", to: filters.to ?? "2026-09-30" }, rangeFallback: false, mdPerMm: 20, mdPerMmSource: "environment", scope: { assignment: "A", diagnostics: "T0", identity: "a".repeat(64) }, summary: all, resources, groups, roleTotals: [{ role: "DEVELOPER", summary: all }], milestones: [], stages: [], diagnostics: { denominator: 2, completelyUnassigned: { count: 1, selector: { dimension: "diagnostic", id: null, metric: "completelyUnassigned" } }, groupOnly: { count: 0, selector: { dimension: "diagnostic", id: null, metric: "groupOnly" } }, personallyUnassigned: { count: 1, selector: { dimension: "diagnostic", id: null, metric: "personallyUnassigned" } }, unsetTasks: { count: 0, selector: { dimension: "diagnostic", id: null, metric: "unset" } }, unsetAssignmentCount: 0, inapplicableFilters: [], personalFiltersAppliedToA: true }, catalog: { resources: [{ id: dashboardResourceId, name: "테스트 리소스", code: "R-01", active: true, roles: ["DEVELOPER"], developerGrade: "ADVANCED", groupIds: [dashboardGroupId] }], groups: [{ id: dashboardGroupId, name: "개발팀", code: "G-01", active: true }], milestones: [], wbsRoots: [] }, metadata: { groupRoleSubtotalsAdditive: false, precision: "raw", diagnosticsScope: "T0", searchScope: "A", historicalStateRestoration: false, totalFrom: "full selected assignment set", limits: RESOURCE_DASHBOARD_LIMITS } };
+}
+export function resourceDashboardDetailUiFixture(fixture: StatefulProjectFixture, query: URLSearchParams): ResourceDashboardDetailsDto {
+  const checked = parseResourceDashboardDetails(query);
+  const filterQuery = new URLSearchParams(query);
+  for (const key of ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope"]) filterQuery.delete(key);
+  const report = resourceDashboardUiFixture(fixture, filterQuery);
+  const task = fixture.tasks[2];
+  return { schema: report.schema, projectPublicId: report.projectPublicId, projectRevision: report.projectRevision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision, ...checked, totalCount: 1, nextOffset: null, rows: [{ taskId: task.taskId, taskName: task.name, externalId: task.externalId, status: "in_progress", progress: 50, taskStart: "2026-09-16", taskEnd: "2026-09-18", duration: 3, wbsPath: [], effectiveMilestoneTaskId: null, explicitMilestoneTaskId: null, inheritedFromTaskId: null, assignment: checked.view === "tasks" ? null : { assignmentId: "33333333-3333-4333-8333-333333333333", resourceId: dashboardResourceId, resourceName: "테스트 리소스", resourceCode: "R-01", active: true, roles: ["DEVELOPER"], developerGrade: "ADVANCED", groupIds: [dashboardGroupId], assignmentStart: null, assignmentEnd: null, from: "2026-09-16", to: "2026-09-18", allocationPercent: 100, effectiveWorkingDays: 3, plannedMd: 5, plannedMm: .25 } }] };
+}
+
+/** Large fixed HTTP payload for geometry, deliberately independent of the Gantt rows. */
+export const LONG_DASHBOARD_COUNTS = { groups: 12, resources: 40, tasksPerResource: 120, detailPage: 50 } as const;
+export function longResourceDashboardUiFixture(fixture: StatefulProjectFixture, query: URLSearchParams): ResourceDashboardDto {
+  const report = resourceDashboardUiFixture(fixture, query);
+  const id = (kind: number, ordinal: number) => `${String(kind).padStart(8, "0")}-0000-4000-8000-${String(ordinal).padStart(12, "0")}`;
+  const resourceIds = Array.from({ length: LONG_DASHBOARD_COUNTS.resources }, (_, i) => id(5251, i));
+  const groupIds = Array.from({ length: LONG_DASHBOARD_COUNTS.groups }, (_, i) => id(5252, i));
+  const rawSummary = (selector: ResourceDashboardSelector, members: number): ResourceDashboardSummary => ({ taskCount: 120, resourceCount: members, assignmentCount: 120 * members, notStarted: 30, inProgress: 60, completed: 30, delayed: 40, completion: { numerator: 30, denominator: 120, percent: 25 }, assignedTaskProgress: { numerator: 17500, denominator: 320, percent: 54.6875 }, effort: { knownMd: 63.6 * members, plannedMd: 63.6 * members, plannedMm: 3.18 * members, state: "partial", partial: true, unsetCount: members }, selector });
+  const catalogResources: ResourceDashboardDto["catalog"]["resources"] = resourceIds.map((resourceId, i) => ({ id: resourceId, name: (`개인 ${i} 긴 한국어 담당자 이름 `.repeat(4) + `Long English resource identity ${i} `.repeat(3)).slice(0, 200).trim(), code: `RESOURCE-525-${String(i).padStart(4, "0")}-LONG-IDENTIFIER-CODE`, active: i % 7 !== 0, roles: i === 0 ? ["PI", "DEVELOPER", "EQUIPMENT_OWNER"] : i === 1 ? [] : ["DEVELOPER", "PI"], developerGrade: "ADVANCED", groupIds: i === 0 ? groupIds : [groupIds[0], groupIds[1 + (i % 11)]] }));
+  const catalogGroups = groupIds.map((groupId, i) => ({ id: groupId, name: (`그룹 ${i} 긴 한국어 공동 담당 조직 `.repeat(4) + `Long English Group classification ${i} `.repeat(3)).slice(0, 200).trim(), code: `GROUP-525-${String(i).padStart(4, "0")}-LONG-IDENTIFIER-CODE`, active: i % 4 !== 0 }));
+  report.catalog.resources = catalogResources; report.catalog.groups = catalogGroups;
+  report.resources = catalogResources.map((resource) => ({ id: resource.id, name: resource.name, code: resource.code, active: resource.active, summary: rawSummary({ dimension: "resource", id: resource.id, metric: "all" }, 1), resourceIds: [resource.id], assignmentRange: { from: "2026-09-16", to: "2026-09-18" }, milestones: [] }));
+  report.groups = catalogGroups.map((group) => { const members = catalogResources.filter((resource) => resource.groupIds.includes(group.id)).map((resource) => resource.id); return { id: group.id, name: group.name, code: group.code, active: group.active, summary: rawSummary({ dimension: "group", id: group.id, metric: "all" }, members.length), resourceIds: members, assignmentRange: { from: "2026-09-16", to: "2026-09-18" }, milestones: [] }; });
+  report.summary = rawSummary({ dimension: "all", id: null, metric: "all" }, resourceIds.length);
+  report.roleTotals = ["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"].map((role) => ({ role: role as "PI" | "DEVELOPER" | "EQUIPMENT_OWNER" | "UNSPECIFIED", summary: rawSummary({ dimension: "role", id: role, metric: "all" }, role === "PI" || role === "DEVELOPER" ? 39 : 1) }));
+  report.diagnostics.denominator = 124;
+  report.diagnostics.completelyUnassigned.count = 2; report.diagnostics.groupOnly.count = 2; report.diagnostics.personallyUnassigned.count = 4; report.diagnostics.unsetTasks.count = 1; report.diagnostics.unsetAssignmentCount = 40;
+  return report;
+}
+export function longResourceDashboardDetailUiFixture(fixture: StatefulProjectFixture, query: URLSearchParams): ResourceDashboardDetailsDto {
+  const details = resourceDashboardDetailUiFixture(fixture, query);
+  const resourceId = details.selector.id ?? "00005251-0000-4000-8000-000000000000";
+  details.totalCount = LONG_DASHBOARD_COUNTS.tasksPerResource;
+  details.nextOffset = details.offset + 50 < details.totalCount ? details.offset + 50 : null;
+  details.rows = Array.from({ length: Math.min(50, details.totalCount - details.offset) }, (_, index) => {
+    const ordinal = index + details.offset, base = details.rows[0];
+    return { ...base, taskId: `00005253-0000-4000-8000-${String(ordinal).padStart(12, "0")}`, taskName: (`긴 한국어 공동 작업명 ${ordinal} `.repeat(5) + `Long English task identity ${ordinal} `.repeat(3)).slice(0, 200).trim(), externalId: `TASK-525-${String(ordinal).padStart(6, "0")}-EXTRAORDINARILY-LONG-EXTERNAL-ID`, status: ordinal < 30 ? "not_started" : ordinal < 90 ? "in_progress" : "completed", progress: ordinal < 30 ? 0 : ordinal < 90 ? 50 : 100, taskEnd: ordinal < 40 ? "2026-09-17" : "2026-09-18", duration: ordinal < 40 ? 2 : 3, wbsPath: [0, 1, 2].map((level) => ({ taskId: `00005254-0000-4000-8000-${String(level).padStart(12, "0")}`, name: `WBS ${level} 긴 한국어 경로 이름 Long English hierarchy `.repeat(3) })), assignment: base.assignment ? { ...base.assignment, resourceId, assignmentId: `00005255-0000-4000-8000-${String(ordinal).padStart(12, "0")}`, resourceName: "긴 한국어 담당자 Long English resource identity", roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"], active: false, to: ordinal < 40 ? "2026-09-17" : "2026-09-18", allocationPercent: ordinal === 0 ? null : 20, effectiveWorkingDays: ordinal < 40 ? 2 : 3, plannedMd: ordinal === 0 ? null : ordinal < 40 ? .4 : .6, plannedMm: ordinal === 0 ? null : ordinal < 40 ? .02 : .03 } : null };
+  });
+  return details;
+}

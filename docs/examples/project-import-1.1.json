@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "1.1",
+  "project": {
+    "name": "단계 교환 예제",
+    "description": "정보용이며 대상 Project metadata를 바꾸지 않습니다."
+  },
+  "tasks": [
+    {
+      "externalId": "S-10",
+      "name": "설계 묶음",
+      "type": "summary",
+      "parentExternalId": null,
+      "predecessors": []
+    },
+    {
+      "externalId": "T-11",
+      "name": "검토",
+      "type": "task",
+      "parentExternalId": "S-10",
+      "requestedStart": "2026-10-06",
+      "duration": 2,
+      "progress": 0,
+      "status": "in_progress",
+      "description": "설계 검토",
+      "url": "https://example.com/review",
+      "baseline": {
+        "start": "2026-10-06",
+        "duration": 2
+      },
+      "predecessors": []
+    },
+    {
+      "externalId": "M-20",
+      "name": "설계 승인",
+      "type": "milestone",
+      "parentExternalId": null,
+      "requestedStart": "2026-10-08",
+      "duration": 0,
+      "progress": 0,
+      "status": "not_started",
+      "predecessors": []
+    }
+  ],
+  "memberships": [
+    {
+      "taskExternalId": "S-10",
+      "milestoneExternalId": "M-20"
+    },
+    {
+      "taskExternalId": "T-11",
+      "milestoneExternalId": null
+    }
+  ]
+}

@@ -1,5 +1,39 @@
 # Security
 
+## Issue #623 — 통합 수용의 권한·원자성·복구
+
+기존 public read와 보호 mutation의 session/Origin/strong If-Match,exact canonical Assignment·source/current scope를 실제 HTTP/Chromium·SQLite로 검증한다. 조회/그룹/페이지는 저장0,각 실제 편집은 저장1·원본 ID 보존,401/409/412·잘못된 참조·migration 실패는 부분 저장0을 확인한다. Target/master/Calendar/Resource 변경은 구 report/detail/Excel 성공과 혼합하지 않는다.
+
+합성 DB/화면·제한된 numeric/UUID/hash evidence만 게시하며 실제 backup/DB/WAL/SHM·password/token/.env·운영 로그는 포함하지 않는다. 기존 formula inlineStr/XML escape·한도·no-store/nosniff·포맷 loss guard를 검증하며 보안 정책을 완화하지 않는다. [운영 절차](TARGET_RESOURCE_OPERATIONS.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에서 운영 restore/환경별 미검증을 구별한다.
+
+## Issue #622 — Target Plan·Resource Excel 안전 경계
+
+기존 public read Plan/detail의 Target/member 근거는 같은 Project read guard·snapshot·bounded page/source/JSON 검증 안에서 제공한다. 선택 밖 Project 참고도 같은 Capacity R의 해당 Project 배정이며 전사 Resource 정보를 조회하지 않는다. 정확 Assignment 수정은 기존 session/Origin/strong If-Match·canonical Task/개인 ID 검증을 그대로 사용한다.
+
+Resource Excel opt-in의 Target 조건은 공통 strict parser로 검증하고 source/current context와 Target/master fingerprint를 같은 read transaction에서 확인한다. stale는 공개 export412로 전체 실패한다. Plain Target-bearing 일정/JSON의 손실 방지는 유지하며 보고서 opt-in만 명시 current/project 근거를 append한다. Target label/분류 문자열은 inlineStr/XML escape·문자 한도·불허 문자 검사로 보호하고 formula/매크로/외부 workbook 관계를 생성하지 않는다. 기존 읽기/편집 권한·no-store/nosniff·본문8KiB 및 row/cell/XML/ZIP·원본/응답 예산을 높이지 않는다. 안전 회귀와 환경별 미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+## Issue #538 — Project master relation mutation
+
+`POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.
+
+## Issue #460 — 단계 mutation과 데이터 유실 방지
+
+새 `POST /api/projects/{publicId}/milestone-memberships`는 route security inventory의 `origin-session-if-match` 보호 mutation이다. Task PATCH의 Membership도 동일 session/Origin/strong revision 및 transaction 내 최신 권한 재검증을 사용한다. type/Project/FK/unique/완료 구조/완료 가능 조건을 서버에서 확인하고 client effective/Ready/legacy flag를 신뢰하지 않는다. 실패 시 Task 필드·소속·revision을 전부 rollback하며 공개 오류에는 public Task ID만 제공한다.
+
+기존 mixed 관계는 보존하되 신규 mixed는 거부한다. 완료 구조 변경을 name/progress UI 상태로 우회할 수 없다. Issue #464의 Copy/Template/Excel은 explicit remap과 보존 검증을 수행하며 검증 불가능한 상태는 전체 거부한다. 보호된 JSON preview/commit은 Origin/session 및 file/target/revision digest 재검증 후 원자 저장을 수행한다. Password/session/token/internal SQL을 Membership DTO/export/로그에 추가하지 않는다. [Stage Gate 계약과 경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
+## Issue #464 — Import/Export와 Template 권한 재검증
+
+Production Import routes는 이전 unavailable stub를 사용하지 않는다. Preview도 exact Origin과 Project edit session을 요구하며 commit은 strong If-Match와 X-Import-Preview-Digest를 추가로 검사한다. 파일 read 전 authorization을 확인하고 read/IMMEDIATE transaction 안에서 현재 Project binding/authVersion/expiry/revocation을 다시 확인한다. digest는 exact raw bytes+target publicId+baseRevision을 묶는 consistency 값이며 client를 신뢰하는 권한 토큰이나 preview 실행 증명은 아니다. sourceTaskId/source Project UUID는 FK가 아니고 새 UUID만 발급한다. 새 Completed Milestone은 기존 full E/P guard를 통과해야 하며 server Copy의 trusted historical baseline을 import에서 허용하지 않는다.
+
+파일5 MiB, multipart framing16 KiB, JSON syntax depth64, Task5000/Link20000/perTask predecessor100을 제한한다. Content-Length와 실제 stream bytes를 확인한 뒤 bounded buffer에 대해서만 multipart를 파싱한다. unknown/duplicate/text part, fatal UTF-8 오류, 두 BOM, decoded duplicate JSON key, derived/client bypass field, 새 mixed Link, malformed target/collision/완료 상태는 전체 거부한다. Task description/HTTP(S) URL은 기존 public validator로 재검증하며 URL을 fetch하지 않는다. 실패는 Task/Link/membership/revision 전체 rollback이고 request/error log에 파일 내용·Password·session token·내부 SQL을 추가하지 않는다. 기존 rate-limit 표의 Import10회/분은 별도 계획이며 이번 구현이 해당 rate limiter를 추가했다고 주장하지 않는다.
+
+JSON/Excel Export는 readonly Origin+strong revision 보호이며 edit session을 요구하지 않는다. JSON scope는 strict full project이고 새 route security inventory의 origin-if-match-read다. 같은 SQLite read snapshot/clock에서 revision을 확인하며 no-store/nosniff/UUID filename을 유지한다. JSON의5 MiB 및 Excel text32767/Stage50000행 등 한도를 넘으면 전체 실패하며 식별자/Link 생략·절삭이 없다. Workbook은 inlineStr/escaping/no formula 정책을 유지한다. legacy 시트의 외부 관계는 그대로이고 #529 opt-in Resource Report만 검증 Project direct hyperlink 관계 1개를 허용한다. Calendar source metadata의 exceptions 우선/legacy holidays fallback은 동일 날짜 중복 적용을 방지하며 대상 Calendar의 authority를 바꾸지 않는다.
+
+Template create의 기존 validSession이 revokedAt를 검사하지 않는 실제 결함을 관련 SQLite 회귀에서 확인하여 보존 담당이 보강했다. 이제 source public/internal Project와 session Project/id binding, revokedAt=null, session/project authVersion, tokenHash와 expiry를 재검증한다. wrong-public-id/wrong-project-id/expired/authVersion/revoked 회귀를 추가하며 기존 TTL/Origin/authorization scope는 유지한다. Copy ack는 완료/Assignment/권한 guard를 우회하지 않는다. 실제 LFF와 최초 실패는 TEST_PLAN을 따르며 원격 CI나 운영 proxy 검증과 구분한다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
@@ -203,7 +237,7 @@ SVG export POST는 readonly 경로이지만 exact `Origin`, strong `If-Match`, c
 
 ### Excel export
 
-- ExcelJS cell에는 user string을 string value로만 넣고 `formula`, rich value, hyperlink object로 해석하지 않는다.
+- handcrafted OOXML writer는 사용자 문자열을 XML-escaped inlineStr로 기록하고 formula/rich value로 해석하지 않는다. 기존 Logistics/Resource Effort의 apostrophe 정책을 유지하고 신규 Resource report는 원문 literal text를 보존한다. finite raw 숫자는 numeric cell, null/미설정은 공란이며 0~100 진척/Load에 percent style을 적용하지 않는다.
 - `=`, `+`, `-`, `@`로 시작하는 사용자 값도 formula로 만들지 않도록 workbook XML round-trip test를 둔다.
 - 외부 hyperlink는 검증한 `APP_BASE_URL`과 Project public UUID로 만든 direct URL 하나만 허용한다.
 - Task/description에 들어 있는 URL을 자동 hyperlink로 만들지 않는다.
@@ -353,3 +387,83 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 프로젝트 기준정보 변경은 Project edit session 및 Resource/Logistics 관리자와 분리된 `PROJECT_MASTER_ADMIN_PASSWORD` bootstrap credential과 전용 HttpOnly/SameSite=Strict Cookie를 사용한다. bootstrap 값은 DB credential이 없을 때만 seed하며 원문 비밀번호와 session token은 DB·응답·로그에 저장하지 않는다. HTTPS production에서는 `__Host-` Cookie와 Secure 속성을 적용한다.
 
 관리자 로그인은 #280 물류 관리자와 같은 bounded process-global 제한(20회/15분)을 적용한 뒤 KDF를 수행한다. 관리자 mutation은 exact Origin과 catalog revision을 서버에서 다시 검증하며 UI 로그인 상태를 권한 근거로 사용하지 않는다. 비밀번호 회전 시 기존 project-master 관리자 세션은 모두 revoke하고, 사용 중 stable code 변경과 FK parent 삭제는 fail-closed 처리한다.
+
+
+## Issue #463 — readonly Milestone 대시보드
+
+`GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
+
+이 조회 추가와 명시 M/M 설정은 보호 mutation의 Origin/session/revision 검증을 제거하지 않는다. production HTTPS 및 명시 내부망 HTTP 지원은 기존 공용 URL parser/cookie 정책과 [HTTP 운영](HTTP_OPERATION.md)을 유지한다. 새로운 비밀번호·권한·세션·환경 secret을 만들지 않는다.
+
+
+## Issue #524 Resource Dashboard public read
+
+신규 report/details GET 두 경로는 route security inventory의 public-read/stateless다. 서버가 canonical UUIDv4와 Project 존재를 확인하며 편집 쿠키를 읽기 권한으로 승격하거나 신규 쿠키를 발급하지 않는다. Project에 연결되지 않은 catalog ID/다른 Project Task·Milestone은 공개 selection으로 사용할 수 없다. Repository는 해당 Project Task 직접 참조 Resource, 직접 Group 참조 또는 그 Resource의 Group만 projection하고 전역 미할당 인력·Group 전체 멤버·description·내부PK/비밀번호/KDF/session/token을 DTO에 넣지 않는다.
+
+성공과 오류는 private/no-store·nosniff·request ID이며 CORS/Origin/session/revision mutation 정책을 변경하지 않는다. same-snapshot SHA256은 권한 token이 아니라 현재 보고서의 정합성 identity다. Detail에서 source/filter/날짜/환산이 바뀌면409 stale이고 기존 KPI와 새 행을 성공으로 혼합하지 않는다. unknown scalar/잘못된 배열·날짜·페이지·selector는400, 유한 raw/cell/path/JSON 예산 초과는422다. raw query/SQL/stack/secret을 공개 오류로 전달하지 않으며 새 migration·report 저장 원장이 없다. [KPI/API 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+
+## Issue #526 Group 자식 조회와 비교 범위
+
+resource-dashboard/group-children GET은 inventory public-read/mutatesState=false이며 기존 UUIDv4+Project 존재 guard, private/no-store·nosniff·request ID를 사용한다. 상세 resourceId는 Group selector에서만 허용하며 Project 연결과 실제 해당 Group membership을 서버에서 검증한다. filtered-out valid member는 empty, 미연결/다른 Group 개인은 INVALID_SELECTION이다. Group 전체/글로벌 미배정 개인을 공개하는 API로 확장하지 않는다.
+
+reference/excluded scope는 동일 필터 중 Milestone 조건만 제거한 해당 Project 개인 Assignment 집합이다. snapshot identity를 먼저 재확인하며 SHA는 권한 token이 아니다. group children query/page/cells/JSON은 유한 allowlist/상한으로 검증하고 초과값을 완전 합계로 절삭하지 않는다. Origin/session/revision 보호 mutation, HTTPS/명시 HTTP cookie 정책, password/secret/SQL 비노출은 불변이다. [조회 계약](API.md#issue-526-milestone-roll-up-조회-확장)을 따른다.
+
+
+## Issue #527 Resource Plan public read
+
+신규 Plan daily/day-resources/day-assignments GET 세 경로는 inventory public-read/mutatesState=false이며 canonical UUIDv4+Project 존재 guard를 유지한다. 쿠키/편집 권한 없이 같은 공개 Project 범위에서 조회하고 보호 mutation의 exact Origin/session/revision과 production HTTPS·명시 HTTP 쿠키 정책을 변경하지 않는다. Capacity R는 일반 Task 개인 Assignment 이력으로 한정하고 전역 미배정 Group 구성원·책임 참조뿐인 개인은 Plan 인력으로 공개하지 않는다. 안전 metadata에는 이름/code/분류만 포함하며 description/내부PK/password/KDF/token/SQL/stack은 포함하지 않는다.
+
+모든 상세는 snapshot을 먼저 재확인하고 normalized filter/range/asOf/M/M 및 parent periodId/date/selector/demandScope를 검증한다. SHA는 권한 token이 아니다. stale409, malformed/foreign400, resource-day/assignment-day/matrix/JSON 예산422를 구별하며 임의 절삭이나 오류 원문 공개를 하지 않는다. Group 표시 조건은 전체 Calendar 소속을 변경하지 않는다. 성공·오류 private/no-store/nosniff/X-Request-ID와 unsupported mutation405를 유지한다. [API](API.md#issue-527-resource-plan-공개-조회)를 따른다.
+
+## Issue #528 — 공개 읽기 POST scope query
+
+`resource-dashboard/scope` GET은 public-read/mutatesState=false, `resource-dashboard/query` POST는 inventory `origin-public-query-read`/mutatesState=false다. POST는 검증된 APP_BASE_URL과 exact Origin을 비교하며 production HTTPS 기본값/명시 ALLOW_INSECURE_HTTP=true 내부망 HTTP 정책을 재사용한다. 편집 session이나 mutation revision 보호를 제거하지 않는다. 조회는 session 없이 허용하고 모든 응답에 private/no-store/nosniff/request ID를 적용하며 쿠키·credentialed CORS·권한 token·서버 scope ledger를 만들지 않는다.
+
+POST는 실제 UTF-8 byte1MiB, content-type/charset/content-encoding, strict object/selector/filter/UUID allowlist와 raw source ID5000/8000 상한을 검사한다. unknown/foreign selector는400, 원본 fingerprint와 환경 M-D 정책 변경은409이며 문법 정상인 descriptor의 foreign 의미 검사보다 stale을 먼저 판정한다. 원본/계산/직렬화 한도는422, 전송 한도는413이고 부분 scope를 완전한 결과로 반환하지 않는다. dataSnapshotId/snapshotId는 최신 데이터 비교용이며 authorization token이 아니다. Project 연결 Catalog만 fingerprint/enrichment하고 SQL/password/session 원문을 공개하지 않는다. 실제 원장 변경과 protected mutation denied/no-cookie/no-mutation 회귀는 [TEST_PLAN](TEST_PLAN.md)을 따른다.
+
+
+## Issue #529 Excel Resource report opt-in 보안
+
+기존 origin-if-match-read Export의 exact Origin·strong If-Match·실제 UTF-8 stream8KiB·readonly/no session 정책은 유지한다. source raw fingerprint/Calendar/Catalog/Project와 actual 대상 range/asOf/환산값·출처·provided 여부를 같은 read transaction에서 검증한다. 과거 raw source 또는 scope-bound current snapshot 불일치는 Export412로 전체 실패하며 fresh Project GET으로 이전 context를 대체하지 않는다. 요청 shape400, body413, 계산/row/cell/XML/ZIP 예산422를 구별하고 ID/시트/문자열을 절삭하지 않는다.
+
+opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bundle)의 XML1.0 불허 문자·U+FFFE/U+FFFF·unpaired surrogate는 JSON escaping 이전에도 검증해 EXPORT_UNSUPPORTED로 전체 실패한다. tab/LF/CR와 유효 supplementary Unicode/=+-@ 원문을 보존한다. 신규 시트당50000/전체150000행·1000000실제셀·opt-in 전체XML32MiB/ZIP16MiB의 사전/최종 actualbyte 검증은 legacy opt-in 없는 파일에 적용하지 않는다.
+
+신규 Resource Report에만 validated APP_BASE_URL parser에서 만든 canonical `/projects/{publicId}` external hyperlink relationship 1개를 허용한다. writer는 server-only canonicalProjectUrl만 받고 request에 URL 필드는 없다. Task/user URL·credential·query·fragment·secret은 relationship target으로 만들지 않는다. Password/hash/session/Cookie/internal SQL/DB ID를 보고서·오류·로그에 추가하지 않는다. 성공/오류 private,no-store/nosniff/no-cookie와 UUID filename은 유지한다. [API](API.md#issue-529-resource-보고서-excel-opt-in)를 따른다.
+
+## Issue #530 공개 조회와 편집 권한 통합 회귀
+
+Resource GET의 Project UUID 공개 읽기, query POST의 exact Origin, Excel POST의 exact Origin·strong `If-Match`와 보호 Task mutation의 edit session을 실제 HTTP로 각각 확인한다. 공개 읽기와 Export는 edit session 없이 허용한다. `private, no-store`는 응답 cache 정책이며 private Project authorization 모델을 뜻하지 않는다. 현재 별도의 private Project 모델은 없고 공개 링크 보유자의 읽기를 차단하는 신규 권한을 이 회귀에 추가하지 않는다. 조직 SSO/reverse proxy 접근 통제는 해당 운영 환경의 별도 검증이다.
+
+회귀는 foreign Project ID 거부, stale report/export 실패, 조회/Export 전후 canonical snapshot 불변, 쿠키 발급 없음과 Workbook 내 credential 필드 없음·서버 생성 Project hyperlink를 확인한다. 합성 admin/edit password는 disposable test instance의 fixture에만 사용하며 운영 secret이나 SQLite 파일을 게시하지 않는다. 신규 session/token 저장소·Origin 예외·권한 우회는 없다.
+
+## Issue #615 — 공정 catalog 권한·동시성
+
+공통 catalog 읽기/쓰기 및 standard diff/apply는 기존 Project Master admin cookie/session을 요구한다. Project edit cookie로 관리자 권한을 얻지 못한다. mutation은 정확 Origin + strong If-Match(process catalog revision)을 요구하고 body 대기 이후 IMMEDIATE transaction에서 관리자 만료/폐기·revision을 재검증한다. catalog 조회/오류에도 `Cache-Control: private, no-store`를 사용한다.
+
+Project context는 현재 direct-link public readonly 정책을 적용한다. 존재하는 Project는 edit cookie 없이 readonly context를 읽고 유효한 Project edit session이면 permission=edit다. 이 API가 새로운 private Project 모드를 도입하지 않으며 public ID+정확 선택 triple로만 데이터를 제한한다. Project mapping은 edit session/Origin/strong If-Match(Project revision) + body processCatalogRevision을 transaction 안에서 검증한다. foreign Project process·다른 BU/product/site occurrence·다른 occurrence WorkArea를 거부하고 실패 시 전체 rollback한다. 공통 admin 권한으로 Project edit 권한을 대신하지 않는다.
+
+미인증401, Origin403, 참조/활성/분류 충돌409, stale revision412를 구분하며 일반500으로 FK 원문/SQL/비밀값을 노출하지 않는다. UUID/허용 필드/검색 길이/limit/JSON body 크기를 제한한다. 비활성 기존 참조는 보존하고 신규 참조만 거부한다. 관리자 비밀값·세션·실제 DB/log를 Git/Issue/PR에 기록하지 않는다. 운영 TLS/proxy 검증은 별도다.
+
+## Target write authority (#616)
+
+GET Target and usage follow the Project logistics read policy. Create/PATCH/DELETE requires the existing Project edit session, exact trusted Origin and strong If-Match; checks repeat inside IMMEDIATE SQL transaction after request body await. Composite project FKs and process/WorkArea FK reject foreign instances. Shared instance memberships never elevate Project edit permission to global catalog admin. Unsupported lossy Template/JSON paths fail closed. Target mutation, inline instance creation and Project revision commit or roll back together. Generic Project auth/Origin/revision policy and historical F2 service tests passed on v0.108.0 Main #2710.1/Release #167.1; dedicated Target HTTP 401/403/409/412, bad ETag, malformed/oversize, rollback tests are newly added in #672 and **NOT TESTED until its exact-Head PR CI**. Product API and authorization policy remain unchanged.
+
+## #616 versioned Template graph security
+
+Template 저장은 유효한 소스 Project edit-session/strong revision을 확인한 transactional source snapshot에서 F1 occurrence/WorkArea와 F2 typed instance/Target 관계를 수집한다. Template 생성 시 common catalog를 수정하지 않는다. Instantiate는 기존 Origin/create rate limit과 새 Project atomic write를 재사용하며 BU/Product/Site triple·global occurrence/WorkArea·typed member ID를 서버에서 재검증한다. 부재, 중복, 외부 공정, unsupported graphVersion은 409로 전체 rollback한다. Legacy Template은 무그래프 호환, schedule-only JSON 1.1은 Target이 있으면 기존 409 차단 유지.
+
+## Issue #620 — Target 보고 조회 신뢰 경계
+
+Resource–Target 보고는 기존 Project public UUID read를 재사용한다. 별도 private Project 모델이나 조회용 edit password 요구를 추가하지 않으며 Project 편집 세션을 master 관리 권한으로 확대하지 않는다. 기존 protected mutation/admin의 session/Origin/strong If-Match 및401/403은 그대로다. 조회는 `private, no-store`·nosniff이며 Task/Target/기준정보나 revision을 변경하지 않는다.
+
+Target/member/binding·공정 매핑·관련 master 이름/active는 동일 read transaction의 fingerprint에 결속한다. report/detail/drill에서 stale source 또는 현재 Target 참조 변경은409로 거부한다. `exactAssignments`의 출처 제한을 공동담당자의 다른 Assignment로 확대하지 않는다. Target/member 필터의 서로 다른 binding 혼합, 같은 kind의 다른 member type/instance 혼합을 금지한다. canonical public ID를 사용하며 내부 PK·다른 Project Target/instance·글로벌 미할당 Resource/membership을 응답하지 않는다.
+
+새 조건 없는 기존 보고 호환을 유지하고 unknown/cross-project 선택은400, fan-out/cell/응답 예산 초과는422로 전체 거부한다. 오류에 SQL/stack/secret을 포함하지 않으며 부분총계를 완전한 결과로 반환하지 않는다. 전체 Project 참고는 현재 Project 안의 명시 범위이며 다른 Project 데이터 접근 권한이 아니다. [API](API.md), [R2 검증 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+## Issue #621 — Resource Target 조회·정확 Assignment 수정 경계
+
+Target 계층·비교·필터·헤더 상세는 기존 공개 Project read/Resource 보고 scope를 사용하며 저장 권한이나 revision을 변경하지 않는다. #528 exactAssignments source 제한은 Target 조건과 교집합으로 전달하고 공동담당자 전체로 확대하지 않는다. 서버 총계·참고 scope·snapshot 검증과 bounded report 오류를 유지한다.
+
+Assignment 수정은 기존 Task assignments PUT의 optional `editAssignmentId`로 요청하며 기존 session·Origin·strong If-Match·catalog revision을 그대로 적용한다. Project/Task/resource에 속한 정확 Assignment를 검증한 뒤 선택 row만 갱신한다. 다른 Task/Project·Group·가상 Target 헤더·잘못된 ID/기간/allocation은 원자적으로 거부한다. 기존 generic 교체의 의미를 우회하거나 권한 없는 보존/수정 경로를 만들지 않는다. 공동담당자의 allocation=null·비활성/legacy 값은 조회상 원본이며 해당 exact 수정의 대상이 아니다.
+
+readonly/401/409/412·pending/dirty·응답역전에서 기존 Editor 초안·취소/재조회 guard를 사용한다. Client 표시 상태는 서버 authorization 근거가 아니며 저장 후 report는 최신 canonical snapshot 또는 명시 stale다. 실제 실행 범위는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다.

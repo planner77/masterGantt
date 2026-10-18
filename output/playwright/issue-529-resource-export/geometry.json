@@ -1,0 +1,563 @@
+{
+  "environment": "mock Chromium",
+  "capturedAt": "2026-10-08T00:25:17.021Z",
+  "hashes": {
+    "src/features/projects/project-excel-export-button.tsx": "9a7ad810ec801a34829ec439827cd3b52fd8a79e67f62799fbb0bc44081fcf55",
+    "src/features/projects/project-export.module.css": "46171c4068de4a3d15c3a4b28d154b55f17c0580e4e44ce63c0cc5a948c1d9bf",
+    "src/features/resources/resource-export-model.ts": "d72e85d348bd839c227c110110a0b84a1a7088215f337f4b0d95fbfde090b4df",
+    "src/features/resources/project-resource-dashboard.tsx": "a70f150f232658cb74acc3770e29b2ec180bdd031c951230fefb1be33e286d99"
+  },
+  "geometry": [
+    {
+      "width": 390,
+      "left": 19,
+      "right": 371,
+      "overflow": 0,
+      "scrollHeight": 1847,
+      "clientHeight": 866,
+      "controls": [
+        {
+          "name": "내보내기 닫기",
+          "left": 292,
+          "right": 350
+        },
+        {
+          "name": "Excel (.xlsx)JSON (.json)SVG (.svg)PNG (.png)",
+          "left": 40,
+          "right": 350
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "현재 조건과 원장 확인",
+          "left": 40,
+          "right": 350
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "",
+          "left": 106.890625,
+          "right": 119.890625
+        },
+        {
+          "name": "보고서 다시 조회",
+          "left": 40,
+          "right": 350
+        },
+        {
+          "name": "현재 보고서 확인",
+          "left": 40,
+          "right": 350
+        },
+        {
+          "name": "",
+          "left": 40,
+          "right": 53
+        },
+        {
+          "name": "내보내기",
+          "left": 40,
+          "right": 350
+        },
+        {
+          "name": "취소",
+          "left": 40,
+          "right": 350
+        }
+      ],
+      "buttons": [
+        {
+          "text": "보고서 다시 조회",
+          "height": 40
+        },
+        {
+          "text": "현재 보고서 확인",
+          "height": 40
+        },
+        {
+          "text": "내보내기",
+          "height": 40
+        },
+        {
+          "text": "취소",
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "left": 80,
+      "right": 688,
+      "overflow": 0,
+      "scrollHeight": 1422,
+      "clientHeight": 866,
+      "controls": [
+        {
+          "name": "내보내기 닫기",
+          "left": 609,
+          "right": 667
+        },
+        {
+          "name": "Excel (.xlsx)JSON (.json)SVG (.svg)PNG (.png)",
+          "left": 101,
+          "right": 667
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "현재 조건과 원장 확인",
+          "left": 101,
+          "right": 667
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "",
+          "left": 167,
+          "right": 180
+        },
+        {
+          "name": "보고서 다시 조회",
+          "left": 101,
+          "right": 667
+        },
+        {
+          "name": "현재 보고서 확인",
+          "left": 101,
+          "right": 667
+        },
+        {
+          "name": "",
+          "left": 101,
+          "right": 114
+        },
+        {
+          "name": "내보내기",
+          "left": 101,
+          "right": 187
+        },
+        {
+          "name": "취소",
+          "left": 199,
+          "right": 257
+        }
+      ],
+      "buttons": [
+        {
+          "text": "보고서 다시 조회",
+          "height": 40
+        },
+        {
+          "text": "현재 보고서 확인",
+          "height": 40
+        },
+        {
+          "text": "내보내기",
+          "height": 40
+        },
+        {
+          "text": "취소",
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "left": 208,
+      "right": 816,
+      "overflow": 0,
+      "scrollHeight": 1422,
+      "clientHeight": 866,
+      "controls": [
+        {
+          "name": "내보내기 닫기",
+          "left": 737,
+          "right": 795
+        },
+        {
+          "name": "Excel (.xlsx)JSON (.json)SVG (.svg)PNG (.png)",
+          "left": 229,
+          "right": 795
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "현재 조건과 원장 확인",
+          "left": 229,
+          "right": 795
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "",
+          "left": 295,
+          "right": 308
+        },
+        {
+          "name": "보고서 다시 조회",
+          "left": 229,
+          "right": 795
+        },
+        {
+          "name": "현재 보고서 확인",
+          "left": 229,
+          "right": 795
+        },
+        {
+          "name": "",
+          "left": 229,
+          "right": 242
+        },
+        {
+          "name": "내보내기",
+          "left": 229,
+          "right": 315
+        },
+        {
+          "name": "취소",
+          "left": 327,
+          "right": 385
+        }
+      ],
+      "buttons": [
+        {
+          "text": "보고서 다시 조회",
+          "height": 40
+        },
+        {
+          "text": "현재 보고서 확인",
+          "height": 40
+        },
+        {
+          "text": "내보내기",
+          "height": 40
+        },
+        {
+          "text": "취소",
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "left": 416,
+      "right": 1024,
+      "overflow": 0,
+      "scrollHeight": 1422,
+      "clientHeight": 866,
+      "controls": [
+        {
+          "name": "내보내기 닫기",
+          "left": 945,
+          "right": 1003
+        },
+        {
+          "name": "Excel (.xlsx)JSON (.json)SVG (.svg)PNG (.png)",
+          "left": 437,
+          "right": 1003
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "현재 조건과 원장 확인",
+          "left": 437,
+          "right": 1003
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "",
+          "left": 503,
+          "right": 516
+        },
+        {
+          "name": "보고서 다시 조회",
+          "left": 437,
+          "right": 1003
+        },
+        {
+          "name": "현재 보고서 확인",
+          "left": 437,
+          "right": 1003
+        },
+        {
+          "name": "",
+          "left": 437,
+          "right": 450
+        },
+        {
+          "name": "내보내기",
+          "left": 437,
+          "right": 523
+        },
+        {
+          "name": "취소",
+          "left": 535,
+          "right": 593
+        }
+      ],
+      "buttons": [
+        {
+          "text": "보고서 다시 조회",
+          "height": 40
+        },
+        {
+          "text": "현재 보고서 확인",
+          "height": 40
+        },
+        {
+          "text": "내보내기",
+          "height": 40
+        },
+        {
+          "text": "취소",
+          "height": 40
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "left": 656,
+      "right": 1264,
+      "overflow": 0,
+      "scrollHeight": 1422,
+      "clientHeight": 866,
+      "controls": [
+        {
+          "name": "내보내기 닫기",
+          "left": 1185,
+          "right": 1243
+        },
+        {
+          "name": "Excel (.xlsx)JSON (.json)SVG (.svg)PNG (.png)",
+          "left": 677,
+          "right": 1243
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "현재 조건과 원장 확인",
+          "left": 677,
+          "right": 1243
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "",
+          "left": 743,
+          "right": 756
+        },
+        {
+          "name": "보고서 다시 조회",
+          "left": 677,
+          "right": 1243
+        },
+        {
+          "name": "현재 보고서 확인",
+          "left": 677,
+          "right": 1243
+        },
+        {
+          "name": "",
+          "left": 677,
+          "right": 690
+        },
+        {
+          "name": "내보내기",
+          "left": 677,
+          "right": 763
+        },
+        {
+          "name": "취소",
+          "left": 775,
+          "right": 833
+        }
+      ],
+      "buttons": [
+        {
+          "text": "보고서 다시 조회",
+          "height": 40
+        },
+        {
+          "text": "현재 보고서 확인",
+          "height": 40
+        },
+        {
+          "text": "내보내기",
+          "height": 40
+        },
+        {
+          "text": "취소",
+          "height": 40
+        }
+      ]
+    }
+  ],
+  "nativeFocus": {
+    "top": 793.34375,
+    "bottom": 806.34375,
+    "left": 677,
+    "right": 690,
+    "ownerTop": 16,
+    "ownerBottom": 884,
+    "scrollTop": 556,
+    "outline": "solid",
+    "outlineWidth": "3px"
+  }
+}

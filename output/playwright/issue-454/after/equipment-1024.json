@@ -1,0 +1,964 @@
+{
+  "viewport": {
+    "width": 1024,
+    "height": 900
+  },
+  "documentWidth": 1024,
+  "environment": {
+    "locale": "en-US",
+    "timezone": "Asia/Seoul",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+    "zoom": "100% default; native 125% NOT TESTED"
+  },
+  "table": {
+    "x": 37,
+    "y": 417.40625,
+    "width": 950,
+    "height": 296.1875,
+    "right": 987,
+    "bottom": 713.59375
+  },
+  "owner": {
+    "x": 24,
+    "y": 408.40625,
+    "width": 976,
+    "height": 314.1875,
+    "right": 1000,
+    "bottom": 722.59375,
+    "clientWidth": 974,
+    "scrollWidth": 974
+  },
+  "allControlsNonoverlapping": true,
+  "allCellControlsContained": true,
+  "allTextContained": true,
+  "textRects": [
+    {
+      "cell": {
+        "x": 37,
+        "y": 453.09375,
+        "width": 366,
+        "height": 47,
+        "right": 403,
+        "bottom": 500.09375
+      },
+      "rects": [
+        {
+          "x": 46,
+          "y": 467.59375,
+          "right": 79.796875,
+          "bottom": 484.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 403,
+        "y": 453.09375,
+        "width": 160,
+        "height": 47,
+        "right": 563,
+        "bottom": 500.09375
+      },
+      "rects": [
+        {
+          "x": 412,
+          "y": 468.09375,
+          "right": 440.8125,
+          "bottom": 486.09375
+        },
+        {
+          "x": 412,
+          "y": 468.09375,
+          "right": 440.8125,
+          "bottom": 486.09375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 563,
+        "y": 453.09375,
+        "width": 88,
+        "height": 47,
+        "right": 651,
+        "bottom": 500.09375
+      },
+      "rects": [
+        {
+          "x": 572,
+          "y": 467.59375,
+          "right": 604,
+          "bottom": 484.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 651,
+        "y": 453.09375,
+        "width": 104,
+        "height": 47,
+        "right": 755,
+        "bottom": 500.09375
+      },
+      "rects": [
+        {
+          "x": 737.09375,
+          "y": 467.59375,
+          "right": 746,
+          "bottom": 484.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 37,
+        "y": 500.09375,
+        "width": 366,
+        "height": 157,
+        "right": 403,
+        "bottom": 657.09375
+      },
+      "rects": [
+        {
+          "x": 46,
+          "y": 545.59375,
+          "right": 385.5625,
+          "bottom": 562.59375
+        },
+        {
+          "x": 46,
+          "y": 569.59375,
+          "right": 356.34375,
+          "bottom": 586.59375
+        },
+        {
+          "x": 46,
+          "y": 593.59375,
+          "right": 335.609375,
+          "bottom": 610.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 403,
+        "y": 500.09375,
+        "width": 160,
+        "height": 157,
+        "right": 563,
+        "bottom": 657.09375
+      },
+      "rects": [
+        {
+          "x": 412,
+          "y": 507.59375,
+          "right": 460.015625,
+          "bottom": 525.59375
+        },
+        {
+          "x": 412,
+          "y": 532.59375,
+          "right": 546.421875,
+          "bottom": 550.59375
+        },
+        {
+          "x": 412,
+          "y": 557.59375,
+          "right": 546.421875,
+          "bottom": 575.59375
+        },
+        {
+          "x": 412,
+          "y": 582.59375,
+          "right": 546.421875,
+          "bottom": 600.59375
+        },
+        {
+          "x": 412,
+          "y": 607.59375,
+          "right": 546.421875,
+          "bottom": 625.59375
+        },
+        {
+          "x": 412,
+          "y": 632.59375,
+          "right": 440.8125,
+          "bottom": 650.59375
+        },
+        {
+          "x": 412,
+          "y": 507.59375,
+          "right": 460.015625,
+          "bottom": 525.59375
+        },
+        {
+          "x": 412,
+          "y": 532.59375,
+          "right": 546.421875,
+          "bottom": 550.59375
+        },
+        {
+          "x": 412,
+          "y": 557.59375,
+          "right": 546.421875,
+          "bottom": 575.59375
+        },
+        {
+          "x": 412,
+          "y": 582.59375,
+          "right": 546.421875,
+          "bottom": 600.59375
+        },
+        {
+          "x": 412,
+          "y": 607.59375,
+          "right": 546.421875,
+          "bottom": 625.59375
+        },
+        {
+          "x": 412,
+          "y": 632.59375,
+          "right": 440.8125,
+          "bottom": 650.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 563,
+        "y": 500.09375,
+        "width": 88,
+        "height": 157,
+        "right": 651,
+        "bottom": 657.09375
+      },
+      "rects": [
+        {
+          "x": 572,
+          "y": 569.59375,
+          "right": 604,
+          "bottom": 586.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 651,
+        "y": 500.09375,
+        "width": 104,
+        "height": 157,
+        "right": 755,
+        "bottom": 657.09375
+      },
+      "rects": [
+        {
+          "x": 701.5,
+          "y": 569.59375,
+          "right": 746,
+          "bottom": 586.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 37,
+        "y": 657.09375,
+        "width": 366,
+        "height": 56.5,
+        "right": 403,
+        "bottom": 713.59375
+      },
+      "rects": [
+        {
+          "x": 46,
+          "y": 676.59375,
+          "right": 331.4375,
+          "bottom": 693.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 403,
+        "y": 657.09375,
+        "width": 160,
+        "height": 56.5,
+        "right": 563,
+        "bottom": 713.59375
+      },
+      "rects": [
+        {
+          "x": 412,
+          "y": 664.59375,
+          "right": 479.21875,
+          "bottom": 682.59375
+        },
+        {
+          "x": 412,
+          "y": 689.59375,
+          "right": 498.421875,
+          "bottom": 707.59375
+        },
+        {
+          "x": 412,
+          "y": 664.59375,
+          "right": 479.21875,
+          "bottom": 682.59375
+        },
+        {
+          "x": 412,
+          "y": 689.59375,
+          "right": 498.421875,
+          "bottom": 707.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 563,
+        "y": 657.09375,
+        "width": 88,
+        "height": 56.5,
+        "right": 651,
+        "bottom": 713.59375
+      },
+      "rects": [
+        {
+          "x": 572,
+          "y": 676.59375,
+          "right": 620,
+          "bottom": 693.59375
+        }
+      ],
+      "contained": true
+    },
+    {
+      "cell": {
+        "x": 651,
+        "y": 657.09375,
+        "width": 104,
+        "height": 56.5,
+        "right": 755,
+        "bottom": 713.59375
+      },
+      "rects": [
+        {
+          "x": 737.09375,
+          "y": 676.59375,
+          "right": 746,
+          "bottom": 693.59375
+        }
+      ],
+      "contained": true
+    }
+  ],
+  "allOtherControlsContained": true,
+  "numericHeaderAlignment": "right",
+  "numericCells": [
+    {
+      "alignment": "right",
+      "variant": "tabular-nums"
+    },
+    {
+      "alignment": "right",
+      "variant": "tabular-nums"
+    },
+    {
+      "alignment": "right",
+      "variant": "tabular-nums"
+    }
+  ],
+  "headerBodyAligned": true,
+  "headers": [
+    {
+      "x": 37,
+      "y": 417.40625,
+      "width": 366,
+      "height": 35.6875,
+      "right": 403,
+      "bottom": 453.09375
+    },
+    {
+      "x": 403,
+      "y": 417.40625,
+      "width": 160,
+      "height": 35.6875,
+      "right": 563,
+      "bottom": 453.09375
+    },
+    {
+      "x": 563,
+      "y": 417.40625,
+      "width": 88,
+      "height": 35.6875,
+      "right": 651,
+      "bottom": 453.09375
+    },
+    {
+      "x": 651,
+      "y": 417.40625,
+      "width": 104,
+      "height": 35.6875,
+      "right": 755,
+      "bottom": 453.09375
+    },
+    {
+      "x": 755,
+      "y": 417.40625,
+      "width": 232,
+      "height": 35.6875,
+      "right": 987,
+      "bottom": 453.09375
+    }
+  ],
+  "rows": [
+    {
+      "rect": {
+        "x": 37,
+        "y": 453.09375,
+        "width": 950,
+        "height": 47,
+        "right": 987,
+        "bottom": 500.09375
+      },
+      "cells": [
+        {
+          "rect": {
+            "x": 37,
+            "y": 453.09375,
+            "width": 366,
+            "height": 47,
+            "right": 403,
+            "bottom": 500.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 403,
+            "y": 453.09375,
+            "width": 160,
+            "height": 47,
+            "right": 563,
+            "bottom": 500.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 563,
+            "y": 453.09375,
+            "width": 88,
+            "height": 47,
+            "right": 651,
+            "bottom": 500.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 651,
+            "y": 453.09375,
+            "width": 104,
+            "height": 47,
+            "right": 755,
+            "bottom": 500.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 755,
+            "y": 453.09375,
+            "width": 232,
+            "height": 47,
+            "right": 987,
+            "bottom": 500.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ],
+      "actions": [
+        {
+          "label": "이름 수정",
+          "rect": {
+            "x": 764,
+            "y": 456.59375,
+            "width": 85.890625,
+            "height": 40,
+            "right": 849.890625,
+            "bottom": 496.59375
+          },
+          "marginTop": "0px"
+        },
+        {
+          "label": "비활성화",
+          "rect": {
+            "x": 857.890625,
+            "y": 456.59375,
+            "width": 82,
+            "height": 40,
+            "right": 939.890625,
+            "bottom": 496.59375
+          },
+          "marginTop": "0px"
+        }
+      ]
+    },
+    {
+      "rect": {
+        "x": 37,
+        "y": 500.09375,
+        "width": 950,
+        "height": 157,
+        "right": 987,
+        "bottom": 657.09375
+      },
+      "cells": [
+        {
+          "rect": {
+            "x": 37,
+            "y": 500.09375,
+            "width": 366,
+            "height": 157,
+            "right": 403,
+            "bottom": 657.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 403,
+            "y": 500.09375,
+            "width": 160,
+            "height": 157,
+            "right": 563,
+            "bottom": 657.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 563,
+            "y": 500.09375,
+            "width": 88,
+            "height": 157,
+            "right": 651,
+            "bottom": 657.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 651,
+            "y": 500.09375,
+            "width": 104,
+            "height": 157,
+            "right": 755,
+            "bottom": 657.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 755,
+            "y": 500.09375,
+            "width": 232,
+            "height": 157,
+            "right": 987,
+            "bottom": 657.09375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ],
+      "actions": [
+        {
+          "label": "이름 수정",
+          "rect": {
+            "x": 764,
+            "y": 558.59375,
+            "width": 85.890625,
+            "height": 40,
+            "right": 849.890625,
+            "bottom": 598.59375
+          },
+          "marginTop": "0px"
+        },
+        {
+          "label": "비활성화",
+          "rect": {
+            "x": 857.890625,
+            "y": 558.59375,
+            "width": 82,
+            "height": 40,
+            "right": 939.890625,
+            "bottom": 598.59375
+          },
+          "marginTop": "0px"
+        }
+      ]
+    },
+    {
+      "rect": {
+        "x": 37,
+        "y": 657.09375,
+        "width": 950,
+        "height": 56.5,
+        "right": 987,
+        "bottom": 713.59375
+      },
+      "cells": [
+        {
+          "rect": {
+            "x": 37,
+            "y": 657.09375,
+            "width": 366,
+            "height": 56.5,
+            "right": 403,
+            "bottom": 713.59375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 403,
+            "y": 657.09375,
+            "width": 160,
+            "height": 56.5,
+            "right": 563,
+            "bottom": 713.59375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 563,
+            "y": 657.09375,
+            "width": 88,
+            "height": 56.5,
+            "right": 651,
+            "bottom": 713.59375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 651,
+            "y": 657.09375,
+            "width": 104,
+            "height": 56.5,
+            "right": 755,
+            "bottom": 713.59375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 755,
+            "y": 657.09375,
+            "width": 232,
+            "height": 56.5,
+            "right": 987,
+            "bottom": 713.59375
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ],
+      "actions": [
+        {
+          "label": "이름 수정",
+          "rect": {
+            "x": 764,
+            "y": 665.59375,
+            "width": 85.890625,
+            "height": 40,
+            "right": 849.890625,
+            "bottom": 705.59375
+          },
+          "marginTop": "0px"
+        },
+        {
+          "label": "재활성화",
+          "rect": {
+            "x": 857.890625,
+            "y": 665.59375,
+            "width": 82,
+            "height": 40,
+            "right": 939.890625,
+            "bottom": 705.59375
+          },
+          "marginTop": "0px"
+        }
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "tag": "BUTTON",
+      "label": "설비 유형",
+      "rect": {
+        "x": 24,
+        "y": 183.5,
+        "width": 89.890625,
+        "height": 39,
+        "right": 113.890625,
+        "bottom": 222.5
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "시스템 유형",
+      "rect": {
+        "x": 121.078125,
+        "y": 183.5,
+        "width": 103.890625,
+        "height": 39,
+        "right": 224.96875,
+        "bottom": 222.5
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "관리자 비밀번호 변경",
+      "rect": {
+        "x": 649.84375,
+        "y": 183,
+        "width": 163.78125,
+        "height": 40,
+        "right": 813.625,
+        "bottom": 223
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "새로고침",
+      "rect": {
+        "x": 820.8125,
+        "y": 183,
+        "width": 86,
+        "height": 40,
+        "right": 906.8125,
+        "bottom": 223
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "로그아웃",
+      "rect": {
+        "x": 914,
+        "y": 183,
+        "width": 86,
+        "height": 40,
+        "right": 1000,
+        "bottom": 223
+      }
+    },
+    {
+      "tag": "INPUT",
+      "label": "",
+      "rect": {
+        "x": 41,
+        "y": 282.40625,
+        "width": 408.71875,
+        "height": 38,
+        "right": 449.71875,
+        "bottom": 320.40625
+      }
+    },
+    {
+      "tag": "INPUT",
+      "label": "",
+      "rect": {
+        "x": 457.71875,
+        "y": 282.40625,
+        "width": 284.328125,
+        "height": 38,
+        "right": 742.046875,
+        "bottom": 320.40625
+      }
+    },
+    {
+      "tag": "INPUT",
+      "label": "",
+      "rect": {
+        "x": 750.046875,
+        "y": 282.40625,
+        "width": 135.0625,
+        "height": 38,
+        "right": 885.109375,
+        "bottom": 320.40625
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "유형 추가",
+      "rect": {
+        "x": 893.109375,
+        "y": 280.40625,
+        "width": 89.890625,
+        "height": 40,
+        "right": 983,
+        "bottom": 320.40625
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "전체",
+      "rect": {
+        "x": 24,
+        "y": 353.40625,
+        "width": 58,
+        "height": 39,
+        "right": 82,
+        "bottom": 392.40625
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "활성",
+      "rect": {
+        "x": 89.1875,
+        "y": 353.40625,
+        "width": 58,
+        "height": 39,
+        "right": 147.1875,
+        "bottom": 392.40625
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "비활성",
+      "rect": {
+        "x": 154.375,
+        "y": 353.40625,
+        "width": 72,
+        "height": 39,
+        "right": 226.375,
+        "bottom": 392.40625
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "이름 수정",
+      "rect": {
+        "x": 764,
+        "y": 456.59375,
+        "width": 85.890625,
+        "height": 40,
+        "right": 849.890625,
+        "bottom": 496.59375
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "비활성화",
+      "rect": {
+        "x": 857.890625,
+        "y": 456.59375,
+        "width": 82,
+        "height": 40,
+        "right": 939.890625,
+        "bottom": 496.59375
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "이름 수정",
+      "rect": {
+        "x": 764,
+        "y": 558.59375,
+        "width": 85.890625,
+        "height": 40,
+        "right": 849.890625,
+        "bottom": 598.59375
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "비활성화",
+      "rect": {
+        "x": 857.890625,
+        "y": 558.59375,
+        "width": 82,
+        "height": 40,
+        "right": 939.890625,
+        "bottom": 598.59375
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "이름 수정",
+      "rect": {
+        "x": 764,
+        "y": 665.59375,
+        "width": 85.890625,
+        "height": 40,
+        "right": 849.890625,
+        "bottom": 705.59375
+      }
+    },
+    {
+      "tag": "BUTTON",
+      "label": "재활성화",
+      "rect": {
+        "x": 857.890625,
+        "y": 665.59375,
+        "width": 82,
+        "height": 40,
+        "right": 939.890625,
+        "bottom": 705.59375
+      }
+    }
+  ],
+  "dialog": null,
+  "focused": {
+    "tag": "BUTTON",
+    "rect": {
+      "x": 24,
+      "y": 183.5,
+      "width": 89.890625,
+      "height": 39,
+      "right": 113.890625,
+      "bottom": 222.5
+    }
+  },
+  "browserVersion": "153.0.8010.12",
+  "keyboardFocus": {
+    "left": 857.890625,
+    "right": 939.890625,
+    "ownerLeft": 24,
+    "ownerRight": 1000,
+    "top": 665.59375,
+    "bottom": 705.59375,
+    "ownerTop": 408.40625,
+    "ownerBottom": 722.59375,
+    "scrollLeft": 0,
+    "outline": "solid"
+  }
+}

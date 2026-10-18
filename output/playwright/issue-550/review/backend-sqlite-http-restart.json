@@ -1,0 +1,48 @@
+{
+  "environment": "Next development isolatedApplication + real SQLite",
+  "restarted": true,
+  "publicId": "10e24e67-b912-4cd9-b728-a06e374a85be",
+  "revision": 20,
+  "taskIds": [
+    "3d56582b-3a21-40dd-a91a-feecd2b3c251",
+    "08c04f41-2782-4ac4-96cd-44f1ca0f61bd",
+    "7c666612-6424-4dd9-9677-e95fe704a830",
+    "cfb1d7e4-6398-487b-8656-7714f133c8ba",
+    "83bb6a4e-9b0a-4b29-b0c4-e868e797d9d5",
+    "553fe283-6fee-44a0-bb5d-1f3c4942ae91",
+    "84510f29-c24b-4b98-b15d-0240fa064afb",
+    "b78dfe53-3987-4e60-b694-2117f29e9e79"
+  ],
+  "milestoneTaskId": "83bb6a4e-9b0a-4b29-b0c4-e868e797d9d5",
+  "parentExternalId": null,
+  "siblingOrder": 4,
+  "fullMemberTaskIds": [
+    "08c04f41-2782-4ac4-96cd-44f1ca0f61bd",
+    "84510f29-c24b-4b98-b15d-0240fa064afb"
+  ],
+  "directPredecessorTaskIds": [
+    "7c666612-6424-4dd9-9677-e95fe704a830"
+  ],
+  "completedManualCopy": {
+    "sourceTaskId": "cfb1d7e4-6398-487b-8656-7714f133c8ba",
+    "copiedTaskId": "553fe283-6fee-44a0-bb5d-1f3c4942ae91",
+    "manualEvent": true,
+    "ready": null
+  },
+  "rejectedPartialCompletedCopy": "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED",
+  "rejectedHttpStatuses": [
+    401,
+    403,
+    428,
+    412,
+    409,
+    400
+  ],
+  "legacyExistingMixed": "Separate real SQLite service regression; this browser fixture does not scan or write its database",
+  "sourceHashes": {
+    "tests/e2e/milestone-management-persistence.spec.ts": "7e11e39f1d079000c5aed85a7e4e5850d6be6374315918f2ecc5de0b06faafc8",
+    "tests/e2e/fixtures/isolated-application.ts": "222ca04e2153a78c2416f0e2bc1d473b8b38928f88e3e14f99f206cb933941a2",
+    "src/server/projects/project-service-core.ts": "ac9701ecfec38ccda6b91f9d6fe7696056d8b25bce93ff4238468dea56631990",
+    "src/domain/milestones/stage-gates.ts": "8451f75117a15780f77a9b1d5f63f5d465a504217dfa19cfb536a699c0b6e9ec"
+  }
+}

@@ -13,6 +13,17 @@ describe("multi-source Copy input", () => {
     expect(parseTaskHierarchyCommand({ kind: "reparent", taskId: first, anchorTaskId, placement: "child" }))
       .toEqual({ success: true, data: { kind: "reparent", taskId: first, anchorTaskId, placement: "child" } });
   });
+  it.each([true, false])("preserves optional membership acknowledgement %s in normalized Copy", (ack) => {
+    expect(parseTaskHierarchyCommand({ ...base, taskId: first, acknowledgedMembershipExclusions: ack })).toEqual({
+      success: true, data: { ...base, taskIds: [first], acknowledgedMembershipExclusions: ack },
+    });
+  });
+  it.each([null, "true", 1, {}])("rejects non-boolean acknowledgement %j", (ack) => {
+    expect(parseTaskHierarchyCommand({ ...base, taskIds: [first], acknowledgedMembershipExclusions: ack }).success).toBe(false);
+  });
+  it("does not accept acknowledgement on other commands", () => {
+    expect(parseTaskHierarchyCommand({ kind: "reparent", taskId: first, anchorTaskId, placement: "child", acknowledgedMembershipExclusions: true }).success).toBe(false);
+  });
   it("accepts independent sources and the exact source limit", () => {
     expect(parseTaskHierarchyCommand({ ...base, taskIds: [second, first] })).toEqual({
       success: true, data: { ...base, taskIds: [second, first] },

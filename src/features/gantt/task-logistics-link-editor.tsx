@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   EquipmentDto,
   LogisticsSystemDto,
@@ -19,6 +19,10 @@ interface Props {
   readonly editable: boolean;
   readonly disabled: boolean;
   readonly onApplied: () => Promise<void>;
+  readonly onUnauthorized?: () => void;
+  readonly onPendingChange?: (pending: boolean) => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
+  readonly discardGeneration?: number;
   readonly onSelectionCountChange?: (count: number) => void;
 }
 
@@ -56,6 +60,10 @@ export function TaskLogisticsLinkEditor({
   editable,
   disabled,
   onApplied,
+  onDirtyChange,
+  onPendingChange,
+  onUnauthorized,
+  discardGeneration = 0,
   onSelectionCountChange,
 }: Props) {
   const [equipmentList, setEquipmentList] = useState<EquipmentDto[]>([]);
@@ -63,6 +71,9 @@ export function TaskLogisticsLinkEditor({
   const [links, setLinks] = useState<TaskLogisticsLinksDto | null>(null);
 
   // Draft state
+  const initialDraft = useRef<string | null>(null);
+  const dirtyReference = useRef(false);
+  const loadedDiscardGeneration = useRef(discardGeneration);
   const [selectedEquipment, setSelectedEquipment] = useState<
     Map<string, TaskLogisticsLinkScope>
   >(new Map());
@@ -72,12 +83,13 @@ export function TaskLogisticsLinkEditor({
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  useEffect(() => { onPendingChange?.(saving); }, [saving, onPendingChange]);
   const [error, setError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
   const [retry, setRetry] = useState(0);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
-  const snapshotKey = `${taskId}:${revision}:${retry}`;
+  const snapshotKey = `${taskId}:${revision}:${retry}:${discardGeneration}`;
   const ready = loadedKey === snapshotKey && !loading;
 
   const isSummary = taskType === "summary";
@@ -95,6 +107,8 @@ export function TaskLogisticsLinkEditor({
         return;
       }
 
+      if (dirtyReference.current && loadedDiscardGeneration.current === discardGeneration) { setLoading(false); setError("기준 정보 또는 권한이 변경되었습니다. 물류 초안은 유지됩니다. 최신 정보 다시 불러오기에서 명시적으로 폐기하고 검토해 주세요."); return; }
+      loadedDiscardGeneration.current = discardGeneration;
       try {
         setLoading(true);
         setLoadedKey(null);
@@ -137,6 +151,9 @@ export function TaskLogisticsLinkEditor({
         for (const item of linksBody.data.links.directSystemLinks) {
           initialSys.set(item.systemId, item.scope);
         }
+        initialDraft.current = JSON.stringify({ equipment: [...initialEq].sort(), systems: [...initialSys].sort() });
+        dirtyReference.current = false;
+        onDirtyChange?.(false);
         setSelectedSystems(initialSys);
 
         const directCount =
@@ -158,7 +175,14 @@ export function TaskLogisticsLinkEditor({
       alive = false;
       controller.abort();
     };
-  }, [taskId, revision, retry, snapshotKey, onSelectionCountChange]);
+  }, [taskId, revision, retry, snapshotKey, onSelectionCountChange, onDirtyChange, discardGeneration]);
+
+  useEffect(() => {
+    if (ready && initialDraft.current !== null) {
+      dirtyReference.current = JSON.stringify({ equipment: [...selectedEquipment].sort(), systems: [...selectedSystems].sort() }) !== initialDraft.current;
+      onDirtyChange?.(dirtyReference.current);
+    }
+  }, [ready, selectedEquipment, selectedSystems, onDirtyChange]);
 
   const toggleEquipment = (equipmentId: string) => {
     if (!editable || disabled || saving || !ready) return;
@@ -251,6 +275,7 @@ export function TaskLogisticsLinkEditor({
         return;
       }
       if (res.status === 401) {
+        onUnauthorized?.();
         setError("편집 권한이 만료되었습니다. 다시 로그인해 주세요.");
         return;
       }

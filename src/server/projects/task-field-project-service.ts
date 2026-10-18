@@ -1,3 +1,4 @@
+import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
@@ -54,7 +55,7 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
     target: { kind: assignment.kind, id: assignment.targetPublicId },
-    role: assignment.kind === "resource" ? assignment.assignmentRole : null,
+    role: null,
     allocation: assignment.kind === "resource"
       ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
       : null,
@@ -296,6 +297,10 @@ export class TaskFieldProjectService extends ProjectService {
       return this.enrichMutation(response, authorization.projectId);
     });
     return mutation.immediate();
+  }
+
+  override updateMilestoneMemberships(authorization: AuthorizedEditSession, expectedRevision: number, command: MilestoneMembershipCommand): TaskMutationResponse {
+    return this.fieldDatabase.transaction(() => this.enrichMutation(super.updateMilestoneMemberships(authorization, expectedRevision, command), authorization.projectId)).immediate();
   }
 
   override deleteTask(

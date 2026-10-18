@@ -1,0 +1,602 @@
+{
+  "issue": 552,
+  "pr": 561,
+  "date": "2026-10-17",
+  "correction_base_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+  "main_sha": "c063101ed7b1d08803c3dac15a41e67842071187",
+  "original": {
+    "source": {
+      "repository": "planner77/masterGantt",
+      "issue": 552,
+      "pr": 561,
+      "run_id": 38966513185,
+      "run_attempt": 1,
+      "job_id": 117195065949,
+      "head_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+      "artifact_id": 12074827958,
+      "artifact_name": "playwright-report-shard-3",
+      "artifact_bytes": 7777650,
+      "artifact_sha256": "da348c613a4f5691d142f0380937daac567ef887724c2ac83ea1f6ecaba5575e"
+    },
+    "result": {
+      "total": 129,
+      "passed": 2,
+      "failed": 1,
+      "did_not_run": 126,
+      "retry": 0,
+      "outside_error_is_fail_fast_notice": true,
+      "first_failure": "issue-623-resource-mvp.spec.ts:131 -> assertSaved(2):108 -> target-project.ts:48 GET ECONNRESET",
+      "failed_get_started_utc": "2026-10-16T21:06:25.549Z",
+      "previous_second_task_patch_started_utc": "2026-10-16T21:06:24.429Z",
+      "previous_second_task_patch_status": 200,
+      "failed_get_duration_ms": 89.627
+    },
+    "runtime_lifecycles": [
+      {
+        "scope": "beforeAll",
+        "setup_trace": "fixture@21",
+        "teardown_trace": "fixture@37",
+        "setup_duration_ms": 13652,
+        "teardown_duration_ms": 81,
+        "observed_launcher_pid": null,
+        "spawn_count_source_and_trace_inference": 1
+      },
+      {
+        "scope": "body",
+        "setup_trace": "fixture@82",
+        "teardown_trace": "fixture@327",
+        "setup_duration_ms": 13795,
+        "teardown_duration_ms": 229,
+        "observed_launcher_pid": 3652,
+        "observed_http_worker_pid": 3664,
+        "observed_generation": 1,
+        "spawn_count_source_and_trace_inference": 1
+      },
+      {
+        "scope": "afterAll",
+        "setup_trace": "fixture@374",
+        "teardown_trace": "fixture@390",
+        "setup_duration_ms": 13488,
+        "teardown_duration_ms": 104,
+        "observed_launcher_pid": 4356,
+        "observed_http_worker_pid": 4368,
+        "observed_generation": 1,
+        "spawn_count_source_and_trace_inference": 1
+      }
+    ],
+    "limitations": [
+      "원본 artifact에 beforeAll PID는 없음.",
+      "fixture setup/teardown 3쌍이며 표시명6개가 서버6개를 뜻하지 않음.",
+      "본문/afterAll은 다른 새 runtime이며 restart generation이 아님.",
+      "RSS 증가만으로 V8 heap 임계 재시작을 입증하지 못함.",
+      "동일 본문 worker PID·alive·health200·OOM0이며 ECONNRESET 근본 원인은 미확정.",
+      "안전 출력 ring은 일반 Next 메시지를 버리므로 경고 미기록이 재시작 부재의 증거가 아님.",
+      "미실행126개는 fail-fast로 실행되지 않았으며 PASS가 아님.",
+      "원본 #2844 SC-13 oracle 실패와 #2859 전송 오류를 구별함."
+    ]
+  },
+  "original_server_observation": {
+    "worker_pid": 3664,
+    "launcher_pid": 3652,
+    "alive": true,
+    "health_status": 200,
+    "health_ms": 33,
+    "oom": 0,
+    "oom_kill": 0,
+    "worker_rss_kib": [
+      1834956,
+      5583304
+    ],
+    "cgroup_bytes": [
+      6279487488,
+      10605490176
+    ]
+  },
+  "local_original_reproduction": {
+    "state": "PASS",
+    "meaning": "원본 case 실행 PASS, ECONNRESET 미재현",
+    "cases": 1,
+    "repeat_each": 3,
+    "executions": 3,
+    "durations_seconds": [
+      43.9,
+      40.1,
+      40.6
+    ],
+    "total_wall_minutes": 4.4,
+    "workers": 1,
+    "fully_parallel": true,
+    "retries": 0,
+    "isolated_launcher_count": 9,
+    "per_worker_launcher_count": 3,
+    "config_global_launcher_count": 1,
+    "limitations": [
+      "Launcher count is CLI parent observation; some Next HTTP worker cwd differed and were not sampled.",
+      "Local PASS does not negate original CI FAIL or prove transport root cause."
+    ],
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "--config",
+      "tests/config/playwright.config.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "--grep",
+      "여섯 별도 mutation",
+      "--repeat-each=3",
+      "--workers=1"
+    ],
+    "log_sha256": "1e3df3e9974cec17544d6e7879ff889ae6e0992a2712145accec1fa8b949f774"
+  },
+  "correction": {
+    "files": [
+      "tests/e2e/issue-623-resource-mvp.spec.ts"
+    ],
+    "runtime": "spec-local test-scoped environment prerequisite; finally restore; no hook-only runtimes",
+    "ui_saved_snapshot": "여섯 저장+일정 복귀 확인 총7회: 기존 동일원본 browser GET·cookie/no-store/HTTP200/JSON 검사, retry0",
+    "unchanged": [
+      "Six mutation count/revision/Task ID order/field/Core instance assertions",
+      "Seed/auth/If-Match/initial snapshot/OOXML independent API",
+      "Product source/shared fixtures/CI rules/6 shards/timeouts/skips"
+    ]
+  },
+  "intermediate_failure": {
+    "state": "FAIL",
+    "cause": "Absolute f.api rejected by existing relative canonical path helper guard; caller correction required.",
+    "product_failure": false,
+    "followup": "Pass exact relative /api/projects/{publicId}; preserve guard and no retry.",
+    "failed": 1,
+    "interrupted": 1,
+    "not_run": 2,
+    "exit_code": 130,
+    "source_sha256": "ddac634b4e1895f969aab9300c2dc980a5b960f53ff8a29bd68a6017eb1aec86",
+    "log_sha256": "c76bac4a68896702fc46f2e13d98b42e6d4855009f7a0a14bc22441906de86e2"
+  },
+  "corrected_local_validation": {
+    "state": "PASS",
+    "focused": {
+      "unique_cases": 2,
+      "repeat_each": 2,
+      "executions": 4,
+      "exit_code": 0,
+      "durations_seconds": [
+        41.5,
+        25.7,
+        43.2,
+        25.8
+      ],
+      "total_wall_minutes": 3.4,
+      "fixture_launchers": 4,
+      "launchers_per_case": 1,
+      "initial_parent_RESOURCE_MD_PER_MM": "37",
+      "actual_app_md_per_mm": 20,
+      "log_sha256": "760dbeba7cdb00e13eb5a56cad9eea73e75209e6b68df5553dab230a501aaaff",
+      "command": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "--repeat-each=2",
+        "--workers=1"
+      ]
+    },
+    "cross_SC13": {
+      "executions": 1,
+      "unique_cases": 1,
+      "case_seconds": 6.5,
+      "state": "PASS"
+    },
+    "helper_unit": {
+      "unique_cases": 7,
+      "state": "PASS",
+      "developer_and_independent_reviewer_same_cases": true,
+      "negative_cases": [
+        "HTTP500",
+        "invalid JSON",
+        "원본 transport Error 재전달",
+        "retry0",
+        "외부/query/비canonical 경로 거부"
+      ]
+    },
+    "limits": [
+      "finally 환경 복원은 fixture 의존성·teardown 정적 검토 근거이며 별도 env leak assertion은 NOT TESTED.",
+      "로컬 worker1/fullyParallel=true는 여섯 독립 GitHub runner와 같은 환경이 아니다.",
+      "원본 ECONNRESET 근본 원인과 메모리 증가 인과는 미확정."
+    ],
+    "prepr_targeted": {
+      "unique_cases": 2,
+      "executions": 2,
+      "state": "PASS (Chromium step only)",
+      "durations_seconds": [
+        45.6,
+        25.8
+      ],
+      "total_wall_minutes": 1.8,
+      "helper_unit_same_unique_cases": 7
+    },
+    "execution_totals": {
+      "final_source_browser_executions": 7,
+      "final_source_browser_unique_cases": 3,
+      "note": "집중4+SC13 1+targeted2이며 같은2case의 반복을 고유case로 합산하지 않음"
+    }
+  },
+  "local_prepr": {
+    "state": "BLOCKED",
+    "reports": [
+      {
+        "scope": "fullpr",
+        "report_path": ".prepr-reports/552-ci2859-fullpr/report.json",
+        "report_sha256": "9734cd6666f98cee8b295563bea623b6fac7c6b028a0f9cfa2dd1ef0488c72c5",
+        "status": "BLOCKED",
+        "mode": "fast",
+        "risk": "HIGH",
+        "source_stable": true,
+        "base_ref": "origin/main",
+        "base_sha": "c063101ed7b1d08803c3dac15a41e67842071187",
+        "head_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "start_fingerprint": "2841587a003079f379a8a88fa612cf7556c7d122042e9572d7741ddbb34951e8",
+        "end_fingerprint": "2841587a003079f379a8a88fa612cf7556c7d122042e9572d7741ddbb34951e8",
+        "versions": {
+          "os": "linux",
+          "release": "6.6.87.2-microsoft-standard-WSL2",
+          "cpuCount": 16,
+          "node": "v22.14.0",
+          "npm": "11.10.0",
+          "packageVersion": "0.115.0",
+          "lockVersion": "0.115.0",
+          "playwright": "1.63.0",
+          "chromiumRevision": "1243",
+          "ciNode": "22",
+          "ciPlaywright": "1.63.0",
+          "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+          "e2e": {
+            "fullyParallel": true,
+            "workers": 1,
+            "shardsLocal": 1,
+            "shardsGitHub": 6,
+            "config": "tests/config/playwright.config.ts"
+          }
+        },
+        "selected_count": 51,
+        "unknown": [
+          {
+            "path": "package-lock.json",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/gantt/gantt-scale-toolbar.css",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/gantt/project-gantt.tsx",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/projects/project-copy-membership-confirm.tsx",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "src/features/projects/project-readonly-view.tsx",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          },
+          {
+            "path": "tests/e2e/helpers/milestone-ui.ts",
+            "reason": "No verified producer→consumer test map. Manager must map/verify."
+          }
+        ],
+        "missing": [],
+        "exclusions": [],
+        "steps": [],
+        "errors": [
+          "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+        ]
+      },
+      {
+        "scope": "corrective-fast",
+        "report_path": ".prepr-reports/552-ci2859-corrective-fast/report.json",
+        "report_sha256": "742155b99d9f783629abc199fb76e5059c748cde7e3a48b1886eab2807622fcb",
+        "status": "BLOCKED",
+        "mode": "fast",
+        "risk": "HIGH",
+        "source_stable": false,
+        "base_ref": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "base_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "head_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "start_fingerprint": "f88dc32b3a81c6ada95b7f7da3fae3e98477f860360cdaff198237cb0bacffaf",
+        "end_fingerprint": "7e3058814fa4d1f74402e8e0717aa8a107d72dd698b8c3cb5c3f244c03b4c8b9",
+        "versions": {
+          "os": "linux",
+          "release": "6.6.87.2-microsoft-standard-WSL2",
+          "cpuCount": 16,
+          "node": "v22.14.0",
+          "npm": "11.10.0",
+          "packageVersion": "0.115.0",
+          "lockVersion": "0.115.0",
+          "playwright": "1.63.0",
+          "chromiumRevision": "1243",
+          "ciNode": "22",
+          "ciPlaywright": "1.63.0",
+          "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+          "e2e": {
+            "fullyParallel": true,
+            "workers": 1,
+            "shardsLocal": 1,
+            "shardsGitHub": 6,
+            "config": "tests/config/playwright.config.ts"
+          }
+        },
+        "selected_count": 1,
+        "unknown": [],
+        "missing": [],
+        "exclusions": [],
+        "steps": [
+          {
+            "label": "Version contract",
+            "command": [
+              "node",
+              "scripts/verify-release-version.mjs"
+            ],
+            "startedAt": "2026-10-16T21:32:54.170Z",
+            "durationMs": 46,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Test discovery",
+            "command": [
+              "node",
+              "scripts/verify-test-discovery.mjs"
+            ],
+            "startedAt": "2026-10-16T21:32:54.216Z",
+            "durationMs": 9263,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Markdown links",
+            "command": [
+              "node",
+              "scripts/check-markdown-links.mjs"
+            ],
+            "startedAt": "2026-10-16T21:33:03.479Z",
+            "durationMs": 94,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "CI cache contract",
+            "command": [
+              "node",
+              "scripts/verify-ci-cache-contract.mjs"
+            ],
+            "startedAt": "2026-10-16T21:33:03.573Z",
+            "durationMs": 34,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Local QA fixture policy",
+            "command": [
+              "python3",
+              "scripts/test_qa_preflight.py"
+            ],
+            "startedAt": "2026-10-16T21:33:03.607Z",
+            "durationMs": 124,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Dependencies",
+            "command": [
+              "npm",
+              "ls",
+              "--depth=0",
+              "--offline"
+            ],
+            "startedAt": "2026-10-16T21:33:03.731Z",
+            "durationMs": 652,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Typecheck",
+            "command": [
+              "npm",
+              "run",
+              "typecheck"
+            ],
+            "startedAt": "2026-10-16T21:33:04.383Z",
+            "durationMs": 28936,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Lint",
+            "command": [
+              "npm",
+              "run",
+              "lint"
+            ],
+            "startedAt": "2026-10-16T21:33:33.319Z",
+            "durationMs": 47151,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          },
+          {
+            "label": "Unit",
+            "command": [
+              "npm",
+              "test"
+            ],
+            "startedAt": "2026-10-16T21:34:20.470Z",
+            "durationMs": 24412,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": 2786
+          },
+          {
+            "label": "Production build",
+            "command": [
+              "npm",
+              "run",
+              "build"
+            ],
+            "startedAt": "2026-10-16T21:34:44.883Z",
+            "durationMs": 78609,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": null
+          }
+        ],
+        "errors": [
+          "STALE: working source/base/head changed during local verification"
+        ]
+      },
+      {
+        "scope": "corrective-targeted",
+        "report_path": ".prepr-reports/552-ci2859-corrective-targeted/report.json",
+        "report_sha256": "811178cc2e72482cb68eca2287b67e1294620b756f2b98e3c70353f79cb8cba5",
+        "status": "BLOCKED",
+        "mode": "targeted",
+        "risk": "HIGH",
+        "source_stable": false,
+        "base_ref": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "base_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "head_sha": "a7ad34482aeb8def79bd01d641a65f305043d593",
+        "start_fingerprint": "f88dc32b3a81c6ada95b7f7da3fae3e98477f860360cdaff198237cb0bacffaf",
+        "end_fingerprint": "639cf2957461170293c8d034ed5517024b32e82020486d04a5eb9903610d4d92",
+        "versions": {
+          "os": "linux",
+          "release": "6.6.87.2-microsoft-standard-WSL2",
+          "cpuCount": 16,
+          "node": "v22.14.0",
+          "npm": "11.10.0",
+          "packageVersion": "0.115.0",
+          "lockVersion": "0.115.0",
+          "playwright": "1.63.0",
+          "chromiumRevision": "1243",
+          "ciNode": "22",
+          "ciPlaywright": "1.63.0",
+          "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+          "e2e": {
+            "fullyParallel": true,
+            "workers": 1,
+            "shardsLocal": 1,
+            "shardsGitHub": 6,
+            "config": "tests/config/playwright.config.ts"
+          }
+        },
+        "selected_count": 2,
+        "unknown": [],
+        "missing": [],
+        "exclusions": [],
+        "steps": [
+          {
+            "label": "Targeted Unit",
+            "command": [
+              "npm",
+              "test",
+              "--",
+              "tests/server/e2e/browser-canonical-snapshot.test.ts"
+            ],
+            "startedAt": "2026-10-16T21:36:26.640Z",
+            "durationMs": 1137,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": 7
+          },
+          {
+            "label": "Chromium E2E",
+            "command": [
+              "npm",
+              "run",
+              "test:e2e",
+              "--",
+              "--project=chromium",
+              "--workers=1",
+              "--retries=0",
+              "tests/e2e/issue-623-resource-mvp.spec.ts"
+            ],
+            "startedAt": "2026-10-16T21:36:27.779Z",
+            "durationMs": 109373,
+            "exitCode": 0,
+            "signal": null,
+            "status": "PASS",
+            "caseCount": 2
+          }
+        ],
+        "errors": [
+          "STALE: working source/base/head changed during local verification"
+        ]
+      }
+    ],
+    "boundary": "전체 PR의 매핑 UNKNOWN6과 교정 delta의 실제 검사/생성 파일 source drift를 구별한다. 최상위 BLOCKED를 PASS로 바꾸지 않는다.",
+    "post_validation_change": "검사 종료 후 결과·정확한 GET7회·미검증을 문서/원장에만 반영했다. 실행한 spec 및 공통 helper/fixture source hash는 동일하고 Markdown/docs_gate/diff를 별도 재검증한다.",
+    "fast_unit": {
+      "passed_tests": 2786,
+      "passed_files": 225,
+      "existing_skipped_tests": 3,
+      "existing_skipped_files": 1,
+      "new_skips": 0
+    },
+    "generated_changes": {
+      "corrective_fast": [
+        "next-env.d.ts: .next-prepr types references",
+        "tsconfig.json: .next-prepr types/dev globs"
+      ],
+      "corrective_targeted": [
+        "next-env.d.ts/tsconfig.json: isolated Next types references",
+        "output/playwright/issue-623/*.json and PNG generated measurements"
+      ],
+      "restoration": "각 run 후 자신의 생성물을 /tmp 보존하고 원본 byte 복원. fast와 targeted 동시 실행0. 원본 시작 산출물·untracked 사용자 자료 보존."
+    },
+    "scope_rationale": "이번 단일 spec 교정의 producer→실제 소비자·음성/SC-13은 실행했다. 전체 PR 기존 UNKNOWN6은 후속 매핑 대상으로 BLOCKED 인계하며 새 full CI 결과/최종 QA·Owner 승인 전 merge 금지."
+  },
+  "remote_new_ci": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "monitoring_requested": false
+  },
+  "approval": {
+    "risk_level": "HIGH",
+    "qa_method": "OWNER_MANAGED",
+    "qa_required": true,
+    "pre_qa": "PASS (corrective spec에 한정한 독립 read-only 사전 검토; 최종 인간 QA 아님)",
+    "manager_decision": "NOT TESTED",
+    "MERGE_READY": "BLOCKED",
+    "release_required": true,
+    "release_authorized": false,
+    "reviewer": "/root/qa_review_552"
+  },
+  "storage_boundary": "Only selected safe measurements/source hashes. Raw zip/trace/log/runtime DB remain outside Git.",
+  "source_hashes": {
+    "tests/e2e/issue-623-resource-mvp.spec.ts": "5fa6e87da9ad8d3c82ffbabfd571568781239302f9379403eb3218d54babb871",
+    "tests/e2e/fixtures/isolated-application.ts": "2719b2924041185d225f96b23031bf1bfcc4a2d14694871efb80ff7f46f4d695",
+    "tests/e2e/fixtures/isolated-application-diagnostics.ts": "05ee0f0deef46be9c724bce0a58751c459e39ea88bc4b4402449b9b6101004fb",
+    "tests/e2e/helpers/browser-canonical-snapshot.ts": "57c5c151745b48abcc3b15f2c93d2bd8e26ac87bee530b9218e0c54ce90c5b99",
+    "tests/e2e/fixtures/target-project.ts": "ecc176069e31ad3354c461f4a5cda8510b8ac495d14a26f43db1d225ab61024a",
+    "tests/e2e/fixtures/issue-623-target-resource.ts": "d181a8e9c33e55504da885d8ca847110228af9d633bcf422988727e0cce44e38"
+  }
+}

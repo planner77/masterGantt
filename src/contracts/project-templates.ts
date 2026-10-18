@@ -14,6 +14,9 @@ export interface ProjectTemplateDto {
   processCount: number;
   equipmentCount: number;
   systemCount: number;
+  /** F2 snapshots preserve Target/member graph. Earlier snapshots return zero. */
+  targetCount?: number;
+  processMappingCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +66,7 @@ export interface TemplateAssignmentSnapshotItem {
   offsetStartDays?: number | null;
   offsetEndDays?: number | null;
   allocationPercent: number | null;
+  /** @deprecated Issue #485: legacy snapshots may contain this field; new snapshots omit it. */
   assignmentRole?: "PI" | "DEVELOPER" | "EQUIPMENT_OWNER" | null;
 }
 
@@ -115,7 +119,33 @@ export interface TemplateTaskSystemLinkSnapshotItem {
   scope: "self" | "subtree";
 }
 
+/** F2 portable reference to a global occurrence, keyed by the local process code. */
+export interface TemplateProcessMappingSnapshotItem {
+  processCode: string;
+  occurrenceId: string;
+  workAreaId: string | null;
+}
+
+export interface TemplateTargetSnapshotItem {
+  code: string;
+  name: string;
+  scope: "process" | "project_common";
+  processCode: string | null;
+  occurrenceId: string | null;
+  workAreaId: string | null;
+  active: boolean;
+  description: string;
+  members: Array<{ kind: "equipment" | "system"; instanceCode: string }>;
+}
+
+export interface TemplateMembershipSnapshotItem {
+  taskExternalId: string;
+  milestoneExternalId: string;
+}
+
 export interface ProjectTemplateSnapshot {
+  /** Omission supports snapshots saved before membership preservation. */
+  memberships?: TemplateMembershipSnapshotItem[];
   sourceRevision: number;
   projectMaster?: {
     businessUnitId: string | null;
@@ -136,6 +166,12 @@ export interface ProjectTemplateSnapshot {
     systems: TemplateSystemSnapshotItem[];
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
+    /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
+    schemaVersion?: 2 | 3;
+    /** Version 3 preserves explicit WBS bindings; inherited rows are never saved. */
+    taskTargetBindings?: Array<{ taskExternalId: string; targetCode: string; scope: "self" | "subtree"; selection: "whole" | "subset"; members: Array<{kind: "equipment" | "system"; instanceCode: string; coverage: number | null}> }>;
+    processMappings?: TemplateProcessMappingSnapshotItem[];
+    targets?: TemplateTargetSnapshotItem[];
   };
 }
 
@@ -200,6 +236,8 @@ export interface InstantiateProjectTemplateResponse {
         processes?: number;
         equipment?: number;
         systems?: number;
+        targets?: number;
+        processMappings?: number;
       };
     };
     warnings: string[];

@@ -1,3 +1,4 @@
+import { linkStructureLocked, COMPLETED_LINK_EXPLANATION } from "./relation-editor-model";
 import React, { useEffect, useId, useRef, useState } from "react";
 import type { DependencyType, ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 
@@ -70,11 +71,12 @@ export function RelationContextMenu({
 
   if (!link) return null;
 
+  const structureLocked = linkStructureLocked(link, tasks);
   const isDirty = type !== link.type || lag !== link.lag;
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
-    if (!editable || !isDirty || isSubmitting) return;
+    if (!editable || structureLocked || !isDirty || isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
     try {
@@ -88,7 +90,7 @@ export function RelationContextMenu({
   }
 
   async function handleDelete() {
-    if (!editable || isSubmitting) return;
+    if (!editable || structureLocked || isSubmitting) return;
     setIsSubmitting(true);
     setError(null);
     try {
@@ -162,11 +164,12 @@ export function RelationContextMenu({
           </div>
         </div>
 
+        {structureLocked ? <p>{COMPLETED_LINK_EXPLANATION}</p> : null}
         <form onSubmit={handleSave}>
           <div className="project-relation-field">
             <label htmlFor="relation-type-select">관계 종류</label>
             <select
-              disabled={!editable || isSubmitting}
+              disabled={!editable || structureLocked || isSubmitting}
               id="relation-type-select"
               onChange={(e) => setType(e.target.value as DependencyType)}
               ref={typeSelectRef}
@@ -185,7 +188,7 @@ export function RelationContextMenu({
               Lag (근무일수, 음수는 Lead)
             </label>
             <input
-              disabled={!editable || isSubmitting}
+              disabled={!editable || structureLocked || isSubmitting}
               id="relation-lag-input"
               max={10000}
               min={-10000}
@@ -203,7 +206,7 @@ export function RelationContextMenu({
               <>
                 <button
                   className="project-relation-delete-btn"
-                  disabled={isSubmitting}
+                  disabled={structureLocked || isSubmitting}
                   onClick={handleDelete}
                   type="button"
                 >
@@ -220,7 +223,7 @@ export function RelationContextMenu({
                 </button>
                 <button
                   className="project-relation-save-btn"
-                  disabled={!isDirty || isSubmitting}
+                  disabled={structureLocked || !isDirty || isSubmitting}
                   type="submit"
                 >
                   저장

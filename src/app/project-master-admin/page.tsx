@@ -2,7 +2,7 @@ import { ProjectMasterAdmin } from "@/features/project-master/project-master-adm
 
 export default function ProjectMasterAdminPage() {
   return (
-    <section className="workspace-section project-master-admin-page">
+    <section className="workspace-section admin-page project-master-admin-page">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Global master data</p>

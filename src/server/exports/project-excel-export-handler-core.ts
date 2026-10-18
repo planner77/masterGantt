@@ -1,15 +1,17 @@
+import type { ResourceExcelExportOptions } from "../../contracts/resource-excel-export";
 import { randomUUID } from "node:crypto";
 
 import type { ProjectSnapshotResponse } from "@/contracts/projects";
 import type { ResourceWorkloadResponse } from "@/contracts/resources";
-import { apiErrorResponse, PublicApiError } from "@/server/http/api-error-core";
-import { parseRequiredIfMatch, readBoundedJson } from "@/server/http/request-core";
-import { isCanonicalUuidV4 } from "@/server/projects/project-contract";
+import { apiErrorResponse, PublicApiError } from "../http/api-error-core";
+import type { ProjectExportSnapshotBundle } from "./project-export-snapshot-service-core";
+import { parseRequiredIfMatch, readBoundedJson } from "../http/request-core";
+import { isCanonicalUuidV4 } from "../projects/project-contract";
 import {
   ConfigurationError,
   isExactAllowedOrigin,
   parseApplicationBaseUrl,
-} from "@/server/security/origin-core";
+} from "../security/origin-core";
 import { parseProjectExcelExportInput } from "./project-excel-export-contract";
 import {
   buildProjectExcelWorkbook,
@@ -33,6 +35,7 @@ export interface ProjectExcelExportHandlerDependencies {
   requestId?: () => string;
   buildWorkbook?: typeof buildProjectExcelWorkbook;
   getResourceWorkload?: (publicId: string) => ResourceWorkloadResponse | undefined;
+  getExportBundle?: (publicId: string, includeResourceEffort: boolean, resourceOptions?: ResourceExcelExportOptions, expectedRevision?: number) => ProjectExportSnapshotBundle | undefined;
 }
 
 function resolveDependency<T>(dependency: T | (() => T)): T {
@@ -74,7 +77,8 @@ export async function handleProjectExcelExport(
       throw new PublicApiError(400, "INVALID_REQUEST", "The export input is invalid.", parsed.details);
     }
 
-    const snapshot = resolveDependency(dependencies.service).getReadonlySnapshot(publicId);
+    const bundle = dependencies.getExportBundle?.(publicId, Boolean(parsed.data.includeResourceEffort), parsed.data.resourceDashboard, expectedRevision);
+    const snapshot = dependencies.getExportBundle ? bundle?.snapshot : resolveDependency(dependencies.service).getReadonlySnapshot(publicId);
     if (!snapshot) {
       throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
     }
@@ -82,20 +86,29 @@ export async function handleProjectExcelExport(
       throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
     }
 
+    const stageDashboard = bundle?.stageDashboard;
+    if (snapshot.data.tasks.some((task) => task.type === "milestone" || task.membership?.explicitMilestoneTaskId || task.membership?.effectiveMilestoneTaskId) && !stageDashboard) {
+      throw new PublicApiError(500, "CONFIGURATION_ERROR", "Milestone stage export is not configured.");
+    }
+    if (stageDashboard && (stageDashboard.projectPublicId !== publicId || stageDashboard.projectRevision !== expectedRevision)) {
+      throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
+    }
     let resourceWorkload: ResourceWorkloadResponse | undefined;
     if (parsed.data.includeResourceEffort) {
-      resourceWorkload = dependencies.getResourceWorkload?.(publicId);
+      resourceWorkload = dependencies.getExportBundle ? bundle?.resourceWorkload : dependencies.getResourceWorkload?.(publicId);
       if (!resourceWorkload) {
         throw new PublicApiError(500, "CONFIGURATION_ERROR", "Resource workload export is not configured.");
       }
-      if (resourceWorkload.data.projectRevision !== expectedRevision) {
+      if (resourceWorkload.data.projectRevision !== expectedRevision || (stageDashboard && resourceWorkload.data.catalogRevision !== stageDashboard.catalogRevision)) {
         throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
       }
     }
 
+    if (parsed.data.resourceDashboard && !bundle?.resourceDashboard) throw new PublicApiError(500, "CONFIGURATION_ERROR", "Resource report export is not configured.");
+    if (bundle?.resourceDashboard) bundle.resourceDashboard.canonicalProjectUrl = new URL(`/projects/${publicId}`, applicationUrl).href;
     let workbook: Uint8Array<ArrayBuffer>;
     try {
-      workbook = (dependencies.buildWorkbook ?? buildProjectExcelWorkbook)(snapshot, parsed.data, resourceWorkload);
+      workbook = (dependencies.buildWorkbook ?? buildProjectExcelWorkbook)(snapshot, parsed.data, resourceWorkload, stageDashboard, bundle?.resourceDashboard);
     } catch (error) {
       if (error instanceof ProjectExcelExportError) {
         throw new PublicApiError(
@@ -122,8 +135,10 @@ export async function handleProjectExcelExport(
       },
     });
   } catch (error) {
-    const response = apiErrorResponse(error, requestId);
+    const normalized = error instanceof PublicApiError && error.code === "REPORT_STALE" ? new PublicApiError(412, "REVISION_MISMATCH", "보고 기준이 변경되었습니다. 다시 조회하고 확인해 주세요.") : error;
+    const response = apiErrorResponse(normalized, requestId);
     response.headers.set("Cache-Control", NO_STORE);
+    response.headers.set("X-Content-Type-Options", "nosniff");
     return response;
   }
 }

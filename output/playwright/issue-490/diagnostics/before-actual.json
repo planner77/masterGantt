@@ -1,0 +1,29 @@
+{
+  "responseKind": "actual API Route→Service→SQLite, no route mocks",
+  "method": "PATCH",
+  "status": 200,
+  "origin": "http://127.0.0.1:36715",
+  "ifMatch": "\"35\"",
+  "before": {
+    "api": "svar-api-1",
+    "instance": "project-gantt-raaihnrtwq",
+    "publicViewport": {
+      "left": 120,
+      "top": 38
+    },
+    "chartScroll": 120,
+    "verticalScroll": 38,
+    "scale": "week"
+  },
+  "after": {
+    "api": "svar-api-1",
+    "instance": "project-gantt-raaihnrtwq",
+    "publicViewport": {
+      "left": 120,
+      "top": 38
+    },
+    "chartScroll": 120,
+    "verticalScroll": 38,
+    "scale": "week"
+  }
+}

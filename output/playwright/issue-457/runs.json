@@ -1,0 +1,364 @@
+[
+  {
+    "run": 1,
+    "report": "/tmp/issue457-run1-playwright-report",
+    "htmlSha256": "59abfed37621aacec509eb05263077f563d7a6f02a048565242782092207a9b4",
+    "decodedReportSha256": "c707e403a59f9c92740e13cf1573761cde10a3b7f3db7e2ceb0fa64559bce5f6",
+    "stdout": "/tmp/issue457-run1-stdout.log",
+    "stats": {
+      "total": 6,
+      "expected": 5,
+      "unexpected": 1,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": false
+    },
+    "cases": [
+      {
+        "testId": "f93a96611debfb5eee7c-83b171d95763414cef5d",
+        "title": "#457 기준정보 populated table은 공통 observer로 밀도와 열 경계를 확인한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 675,
+        "outcome": "unexpected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-796fc78d38b993b2e7e8",
+        "title": "#457 세 관리자 정상 shell을 동일 다섯 폭에서 직접 비교한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 3474,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-19fb7854654fa5144a2b",
+        "title": "#457 404 복구와 demo의 공유 controls는 좁은 폭에서도 keyboard로 접근한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4473,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-8c0f54b3142cb8ddc969",
+        "title": "Issue #452: resource authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2770,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-6296c059248074d4b175",
+        "title": "Issue #452: logistics authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2257,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-ff11c0bd15502b1097db",
+        "title": "Issue #452: master authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2425,
+        "outcome": "expected"
+      }
+    ]
+  },
+  {
+    "run": 2,
+    "report": "/tmp/issue457-run2-playwright-report",
+    "htmlSha256": "53184d6e5b260bddb673f4470eb54cecc8d5bf350fca6dc02d18a16f18f7cbfd",
+    "decodedReportSha256": "755e31e3148aa1cd985d06dfcf3d4c7b0cdf3b9253e91aa080e32a4cef94e3c4",
+    "stdout": "/tmp/issue457-run2-stdout.log",
+    "stats": {
+      "total": 6,
+      "expected": 6,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "cases": [
+      {
+        "testId": "160b2d3ff570f379d5d2-8c0f54b3142cb8ddc969",
+        "title": "Issue #452: resource authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 3174,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-6296c059248074d4b175",
+        "title": "Issue #452: logistics authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2778,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-ff11c0bd15502b1097db",
+        "title": "Issue #452: master authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2755,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-796fc78d38b993b2e7e8",
+        "title": "#457 세 관리자 정상 shell을 동일 다섯 폭에서 직접 비교한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4546,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-83b171d95763414cef5d",
+        "title": "#457 기준정보 populated table은 공통 observer로 밀도와 열 경계를 확인한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2063,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-19fb7854654fa5144a2b",
+        "title": "#457 404 복구와 demo의 공유 controls는 좁은 폭에서도 keyboard로 접근한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 3976,
+        "outcome": "expected"
+      }
+    ]
+  },
+  {
+    "run": 3,
+    "report": "/tmp/issue457-run3-playwright-report",
+    "htmlSha256": "552063dc9a7d0be4acbb43b0f4a38d8a598fa65e2e1a18cd232bf7d50c315f47",
+    "decodedReportSha256": "bb3f72490963b78034ab0c66f0c44a72aa657c76a0a7f4b060c30c6843efbcfc",
+    "stdout": "/tmp/issue457-run3-stdout.log",
+    "stats": {
+      "total": 17,
+      "expected": 16,
+      "unexpected": 1,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": false
+    },
+    "cases": [
+      {
+        "testId": "fb64b9167a085853cf42-9821e4d91ac7ec8cf48d",
+        "title": "Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다",
+        "path": [
+          "Issue #84 프로젝트 목록 검색·필터"
+        ],
+        "projectName": "chromium",
+        "duration": 1107,
+        "outcome": "unexpected"
+      },
+      {
+        "testId": "af6fafc5f618c0a751ab-e81d2d8a0a0730c1213b",
+        "title": "Issue #452: empty project CTA and manual-copy dialog keep parent-owned spacing",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 1220,
+        "outcome": "expected"
+      },
+      {
+        "testId": "38413ce23507de512437-498aa2558854695fc845",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 3641,
+        "outcome": "expected"
+      },
+      {
+        "testId": "38413ce23507de512437-1c7e0d86db62c2bd60f5",
+        "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2552,
+        "outcome": "expected"
+      },
+      {
+        "testId": "17e1802171d13c6433e6-5c85f31764b4a2360f89",
+        "title": "#454 after 두 유형·dialog 5폭 정렬과 마지막 action keyboard 접근",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4920,
+        "outcome": "expected"
+      },
+      {
+        "testId": "426a439c6a961da66a9b-83c1913822d8d4c25b49",
+        "title": "#455 after 세 범주 5폭 입력·행·표·focus 및 dialog geometry",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4283,
+        "outcome": "expected"
+      },
+      {
+        "testId": "bebd3ad0ee1919f4d67e-2b278e1383f4991eb6d9",
+        "title": "#464 Import and Copy 5-width dialog owned-scroll/header-body/all-control/focus geometry",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 5965,
+        "outcome": "expected"
+      },
+      {
+        "testId": "ace32eee3e1767fb9710-0deae431ad42b15bf1c5",
+        "title": "Issue #282: 프로젝트 생성 화면이 390px에서 wide/reflow 계약을 지킨다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 1236,
+        "outcome": "expected"
+      },
+      {
+        "testId": "ace32eee3e1767fb9710-3132e63fc376dd935c54",
+        "title": "Issue #282: 프로젝트 생성 화면이 1440px에서 wide/reflow 계약을 지킨다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 1056,
+        "outcome": "expected"
+      },
+      {
+        "testId": "ace32eee3e1767fb9710-ea53ee0ee492fcde8fc5",
+        "title": "Issue #282: 프로젝트 생성 화면이 1920px에서 wide/reflow 계약을 지킨다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 1014,
+        "outcome": "expected"
+      },
+      {
+        "testId": "8ecc1c4ecbca673f2351-5c0717fa704275dff60a",
+        "title": "Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Gantt 상태를 보존한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2976,
+        "outcome": "expected"
+      },
+      {
+        "testId": "c077c51e788aec9444d1-1371bd654b40659dcb2b",
+        "title": "Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 시 초안 보존 및 반응형 검증",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 3525,
+        "outcome": "expected"
+      },
+      {
+        "testId": "84ad685e4c544a7eb57e-2f8f9ff804b741853a87",
+        "title": "keeps workspace headers fixed and formats date-only values in ko-KR",
+        "path": [
+          "ko-KR"
+        ],
+        "projectName": "chromium",
+        "duration": 3065,
+        "outcome": "expected"
+      },
+      {
+        "testId": "1fb55c8af9937d365b79-1379b078ed391e75e619",
+        "title": "#453 after 동일 5폭 두 표·모달·footer·focus geometry",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 5059,
+        "outcome": "expected"
+      },
+      {
+        "testId": "35db16e6a4a1be436d8f-11e69ec2b3cf855bd6d7",
+        "title": "#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠금을 보존한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2595,
+        "outcome": "expected"
+      },
+      {
+        "testId": "35db16e6a4a1be436d8f-19588361e2dc2f1bfcc7",
+        "title": "#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4760,
+        "outcome": "expected"
+      },
+      {
+        "testId": "4889b6f572b8faffc47d-db913b26c6c6e44407e5",
+        "title": "필드 오류 aria 연결·최초 오류 focus·수정 후 해제 및 정상 생성",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 768,
+        "outcome": "expected"
+      }
+    ]
+  },
+  {
+    "run": 4,
+    "report": "/tmp/issue457-run4-playwright-report",
+    "htmlSha256": "a978ef5435660743411a3c600e19133ea79edec1ac8178aeaae6cf17e57876e5",
+    "decodedReportSha256": "3ca1e08511e8514ba4a8ebd9fca65d2aaf1dd784d23050aebb438c937885b8f2",
+    "stdout": "/tmp/issue457-run4-stdout.log",
+    "stats": {
+      "total": 7,
+      "expected": 7,
+      "unexpected": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "ok": true
+    },
+    "cases": [
+      {
+        "testId": "160b2d3ff570f379d5d2-8c0f54b3142cb8ddc969",
+        "title": "Issue #452: resource authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2330,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-6296c059248074d4b175",
+        "title": "Issue #452: logistics authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2359,
+        "outcome": "expected"
+      },
+      {
+        "testId": "160b2d3ff570f379d5d2-ff11c0bd15502b1097db",
+        "title": "Issue #452: master authentication geometry and states",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 2848,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-796fc78d38b993b2e7e8",
+        "title": "#457 세 관리자 정상 shell을 동일 다섯 폭에서 직접 비교한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4280,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-83b171d95763414cef5d",
+        "title": "#457 기준정보 populated table은 공통 observer로 밀도와 열 경계를 확인한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 1375,
+        "outcome": "expected"
+      },
+      {
+        "testId": "f93a96611debfb5eee7c-19fb7854654fa5144a2b",
+        "title": "#457 404 복구와 demo의 공유 controls는 좁은 폭에서도 keyboard로 접근한다",
+        "path": [],
+        "projectName": "chromium",
+        "duration": 4158,
+        "outcome": "expected"
+      },
+      {
+        "testId": "fb64b9167a085853cf42-9821e4d91ac7ec8cf48d",
+        "title": "Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다",
+        "path": [
+          "Issue #84 프로젝트 목록 검색·필터"
+        ],
+        "projectName": "chromium",
+        "duration": 1720,
+        "outcome": "expected"
+      }
+    ]
+  }
+]

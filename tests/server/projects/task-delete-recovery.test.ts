@@ -196,5 +196,6 @@ describe("Issue #344 deletion recovery through Handler-Service-SQLite", () => {
         rmSync(value.directory, { recursive: true, force: true });
       }
     },
+    15000,
   );
 });

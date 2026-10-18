@@ -1,5 +1,11 @@
 # Deployment
 
+## Issue #623 — Target 이관·복구 인계
+
+Target 관련0025→0026→0027의 실제 형태 legacy 이관·checksum/order·pending batch rollback·합성 backup/restore/restart를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)에 정리했다. 기존 app single instance·Compose project/volume·UID:GID1001:1001·absolute /data·readiness/entrypoint 계약은 불변이다.
+
+운영 backup CLI는 추가하지 않는다. 기존§8의 clean stop 후 /data 전체 일관 snapshot·새 격리 volume·대응 exact image 복원을 따른다. 구 binary만의 rollback/ledger 편집/volume 삭제는 복구 절차가 아니다. 합성 SQLite backup API 테스트 성공은 off-host/운영 restore PASS가 아니며 실제 환경 수용과 정식 release 권한은 별도다. [수용표](TARGET_RESOURCE_ACCEPTANCE.md)의 NOT TESTED를 유지한다.
+
 ## Issue #283 standalone production runtime
 
 production container는 Next.js Output File Tracing의 `output: "standalone"` 산출물을 실행한다. build stage는 full dependency와 native build toolchain으로 application을 build한 뒤 `scripts/prepare-standalone-runtime.mjs`가 `.next/static`, optional `public/`, `db/migrations`를 `.next/standalone` tree에 stage한다. final runtime stage에는 이 prepared standalone tree와 build-time compiled startup JavaScript만 복사한다. 전체 production `node_modules`, 전체 `.next`, application `src`, `.next/cache`, TypeScript source/loader는 final image에 복사하지 않는다.
@@ -245,7 +251,7 @@ PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-c
 
 ### Main commit 테스트 image
 
-`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다. digest 검증이 끝난 일반 merge의 `ci-*` package version은 자동 삭제하지만, package version이 first-parent 대비 변경된 merge의 successful `ci-*`는 formal release에서 동일 digest를 재사용하기 위해 보존한다.
+`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다. digest 검증을 통과한 successful non-docs `ci-*`는 Main CI에서 즉시 삭제하지 않고 Generic Release Finalizer에 인계한다. no-release finalize는 exact temporary candidate를 삭제하며, release-required candidate는 formal release에서 동일 digest를 재사용하기 위해 보존한다.
 
 Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
 
@@ -253,7 +259,7 @@ Workflow는 build output digest를 다시 pull해 image policy와 readiness를 �
 docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
 ```
 
-Commit image 자체는 release authority가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 다만 version-changing merge의 verified `ci-<SHA>`는 build-once release candidate로 보존된다. 아래 release workflow는 annotated tag target SHA에 해당하는 candidate exact digest를 재검증한 뒤 새 build 없이 exact SemVer/rolling alias로 동일 digest를 promotion한다.
+Commit image 자체는 release authority가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. successful non-docs main merge의 verified `ci-<SHA>`는 Finalizer가 release/cleanup을 결정할 때까지 build-once candidate로 보존된다. 아래 release workflow는 annotated tag target SHA에 해당하는 candidate exact digest를 재검증한 뒤 새 build 없이 exact SemVer/rolling alias로 동일 digest를 promotion한다.
 
 ### 안정 SemVer와 GHCR publish
 
@@ -338,3 +344,9 @@ Docker Compose 배포는 `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 app container에 
 0.59.0의 `0018_empty_summary_schedule.sql`은 기존 tasks ID/parent/order/일정·Baseline·속성 및 참조를 보존하며 Summary에 한정한 일정 all-null 저장을 추가한다. 기존 migration 파일은 수정하지 않는다. 최초 연결의 migration runner가 참조 table 재생성에 필요한 FK OFF를 transaction 밖에서 한정 적용하고 commit 전 FK 무결성을 검사한다. 실패 시 schema·rows·ledger 모두 rollback하고 FK 설정을 복원하므로 준비 상태를 성공으로 보고하지 않는다.
 
 운영 upgrade 전 기존 backup 절차를 수행하고 새 버전의 migrations 전체를 함께 배포한다. 변경된 schema의 null Summary를 이전 application binary가 처리할 수 있다고 가정하지 않는다. rollback은 이전 이미지로의 단순 교체가 아닌 검증된 backup/schema 복구 절차를 따른다. 실제 production upgrade/backup 복구는 NOT TESTED이며 파일 SQLite upgrade/reopen/참조·실패 rollback은 로컬 자동 테스트로 구분한다. Docker/Compose/volume/security 정책 변경은 없다.
+
+## Issue #552 — Milestone WBS 표시의 비상 복구
+
+기본 빌드는 Summary/Task만 native WBS에 표시하고 Milestone 상단 marker는 OFF다. #552 자체 회귀를 조사할 때의 명시적 legacy 프로파일은 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`를 **Next.js 빌드 전에** 지정한다. `NEXT_PUBLIC_*`는 클라이언트 번들에 고정되므로 실행 중 환경변수 변경이나 컨테이너 재시작만으로 기존 번들을 바꾸지 않는다. 별도 환경에서 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy npm run build`로 생성한 후보와 canonical/selection/filter/viewport·marker OFF를 검증한 뒤 새 CI와 Owner 승인 절차를 따른다. 사용자 화면의 표시 토글이나 marker 기능의 rollback과 혼용하지 않는다.
+
+이번 변경은 Dockerfile의 새 build arg나 Compose runtime 설정을 추가하지 않는다. 기존 정식 Docker 이미지에 위 환경변수를 주입해서 legacy로 바뀐다고 가정하지 않는다. 컨테이너 운영의 코드 rollback은 검토된 revert PR·새 Required CI·정식 이미지/digest 승인·배포 절차를 사용한다. tag/digest/DB를 강제 변경하지 않으며 서버 canonical ID·Milestone/Link/Membership/Resource 데이터 migration은 없다. 이번 legacy probe와 실제 운영 이미지 재빌드/배포·복구 검증은 [Work Packet](exec-plans/active/ISSUE_552.md)에서 환경별로 구분한다.

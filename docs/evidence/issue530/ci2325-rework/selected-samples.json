@@ -1,0 +1,863 @@
+[
+  {
+    "kind": "completed-peer",
+    "status": "passed",
+    "phases": [
+      {
+        "phase": "before-filter",
+        "public": {
+          "left": 120,
+          "top": 96
+        },
+        "native": {
+          "left": 120,
+          "top": 96
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 532,
+          "capacity": 376
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "filter-applied",
+        "public": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "rows": 3,
+        "renderedGridRows": 2,
+        "vertical": {
+          "scrollHeight": 504,
+          "clientHeight": 504,
+          "capacity": 0
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "filter-cleared",
+        "public": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "rows": 18,
+        "renderedGridRows": 17,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "new-user-viewport",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "capacity-preserving-filter",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 18,
+        "renderedGridRows": 17,
+        "vertical": {
+          "scrollHeight": 756,
+          "clientHeight": 504,
+          "capacity": 252
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "capacity-preserving-filter-cleared",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "new-user-layout-cycle",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      }
+    ]
+  },
+  {
+    "kind": "pending-cancel",
+    "status": "passed",
+    "barrier": {
+      "holding": false,
+      "autoReleased": false,
+      "rafRestored": true,
+      "heldFrames": 0,
+      "marker": null,
+      "peerRequested": true,
+      "peerRequestSequence": 73,
+      "peerCleanupObserved": true,
+      "peerPending": false
+    },
+    "actualInput": {
+      "at": 1761,
+      "trusted": true,
+      "targetIsSearch": true,
+      "expectedValue": true,
+      "holding": true,
+      "autoReleased": false,
+      "heldFrames": 3,
+      "peerRequested": true,
+      "peerRequestSequence": 73,
+      "peerCleanupObserved": false,
+      "peerPending": true,
+      "marker": null
+    },
+    "viewport": {
+      "public": {
+        "left": 120,
+        "top": 0
+      },
+      "native": {
+        "left": 120,
+        "top": 0
+      }
+    },
+    "orderedEffects": [
+      {
+        "sequence": 73,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 803.8000000119209,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 75,
+        "event": "effect-cleanup",
+        "action": "peer-restore",
+        "elapsedMs": 897.8000000119209,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 77,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 898.6999999880791,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 82,
+        "event": "effect-cleanup",
+        "action": "peer-restore",
+        "elapsedMs": 1023,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 504
+        }
+      },
+      {
+        "sequence": 133,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 1213.5,
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 504,
+          "clientHeight": 504
+        }
+      }
+    ]
+  },
+  {
+    "kind": "completed-peer",
+    "status": "passed",
+    "phases": [
+      {
+        "phase": "before-filter",
+        "public": {
+          "left": 120,
+          "top": 96
+        },
+        "native": {
+          "left": 120,
+          "top": 96
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 532,
+          "capacity": 376
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "filter-applied",
+        "public": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "rows": 3,
+        "renderedGridRows": 2,
+        "vertical": {
+          "scrollHeight": 504,
+          "clientHeight": 504,
+          "capacity": 0
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "filter-cleared",
+        "public": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "rows": 18,
+        "renderedGridRows": 17,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "new-user-viewport",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "capacity-preserving-filter",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 18,
+        "renderedGridRows": 17,
+        "vertical": {
+          "scrollHeight": 756,
+          "clientHeight": 504,
+          "capacity": 252
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "capacity-preserving-filter-cleared",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "new-user-layout-cycle",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      }
+    ]
+  },
+  {
+    "kind": "pending-cancel",
+    "status": "passed",
+    "barrier": {
+      "holding": false,
+      "autoReleased": false,
+      "rafRestored": true,
+      "heldFrames": 0,
+      "marker": null,
+      "peerRequested": true,
+      "peerRequestSequence": 73,
+      "peerCleanupObserved": true,
+      "peerPending": false
+    },
+    "actualInput": {
+      "at": 1615.199999988079,
+      "trusted": true,
+      "targetIsSearch": true,
+      "expectedValue": true,
+      "holding": true,
+      "autoReleased": false,
+      "heldFrames": 3,
+      "peerRequested": true,
+      "peerRequestSequence": 73,
+      "peerCleanupObserved": false,
+      "peerPending": true,
+      "marker": null
+    },
+    "viewport": {
+      "public": {
+        "left": 120,
+        "top": 0
+      },
+      "native": {
+        "left": 120,
+        "top": 0
+      }
+    },
+    "orderedEffects": [
+      {
+        "sequence": 73,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 728.5999999642372,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 75,
+        "event": "effect-cleanup",
+        "action": "peer-restore",
+        "elapsedMs": 819.8999999761581,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 77,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 820.7999999523163,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 82,
+        "event": "effect-cleanup",
+        "action": "peer-restore",
+        "elapsedMs": 911.3999999761581,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 504
+        }
+      },
+      {
+        "sequence": 133,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 1035.3999999761581,
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 504,
+          "clientHeight": 504
+        }
+      }
+    ]
+  },
+  {
+    "kind": "completed-peer",
+    "status": "passed",
+    "phases": [
+      {
+        "phase": "before-filter",
+        "public": {
+          "left": 120,
+          "top": 96
+        },
+        "native": {
+          "left": 120,
+          "top": 96
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 532,
+          "capacity": 376
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "filter-applied",
+        "public": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "rows": 3,
+        "renderedGridRows": 2,
+        "vertical": {
+          "scrollHeight": 504,
+          "clientHeight": 504,
+          "capacity": 0
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "filter-cleared",
+        "public": {
+          "left": 120,
+          "top": 0
+        },
+        "native": {
+          "left": 120,
+          "top": 0
+        },
+        "rows": 18,
+        "renderedGridRows": 17,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "new-user-viewport",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "capacity-preserving-filter",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 18,
+        "renderedGridRows": 17,
+        "vertical": {
+          "scrollHeight": 756,
+          "clientHeight": 504,
+          "capacity": 252
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "capacity-preserving-filter-cleared",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      },
+      {
+        "phase": "new-user-layout-cycle",
+        "public": {
+          "left": 180,
+          "top": 128
+        },
+        "native": {
+          "left": 180,
+          "top": 128
+        },
+        "rows": 19,
+        "renderedGridRows": 18,
+        "vertical": {
+          "scrollHeight": 908,
+          "clientHeight": 504,
+          "capacity": 404
+        },
+        "identity": "svar-api-1",
+        "restore": "{\"count\":1,\"requestedLeft\":120,\"publicLeft\":120,\"publicTop\":96,\"domLeft\":120,\"nativeCapacity\":2563,\"admissionCapacity\":2563,\"capacityStableFrames\":3,\"settleStableFrames\":3}"
+      }
+    ]
+  },
+  {
+    "kind": "pending-cancel",
+    "status": "passed",
+    "barrier": {
+      "holding": false,
+      "autoReleased": false,
+      "rafRestored": true,
+      "heldFrames": 0,
+      "marker": null,
+      "peerRequested": true,
+      "peerRequestSequence": 73,
+      "peerCleanupObserved": true,
+      "peerPending": false
+    },
+    "actualInput": {
+      "at": 1599.699999988079,
+      "trusted": true,
+      "targetIsSearch": true,
+      "expectedValue": true,
+      "holding": true,
+      "autoReleased": false,
+      "heldFrames": 3,
+      "peerRequested": true,
+      "peerRequestSequence": 73,
+      "peerCleanupObserved": false,
+      "peerPending": true,
+      "marker": null
+    },
+    "viewport": {
+      "public": {
+        "left": 120,
+        "top": 0
+      },
+      "native": {
+        "left": 120,
+        "top": 0
+      }
+    },
+    "orderedEffects": [
+      {
+        "sequence": 73,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 736.5999999642372,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 75,
+        "event": "effect-cleanup",
+        "action": "peer-restore",
+        "elapsedMs": 819,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 77,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 819.8999999761581,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 532
+        }
+      },
+      {
+        "sequence": 82,
+        "event": "effect-cleanup",
+        "action": "peer-restore",
+        "elapsedMs": 936.0999999642372,
+        "core": {
+          "left": 120,
+          "top": 96,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 96,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 908,
+          "clientHeight": 504
+        }
+      },
+      {
+        "sequence": 133,
+        "event": "effect-request",
+        "action": "peer-restore",
+        "elapsedMs": 1048.5,
+        "core": {
+          "left": 120,
+          "top": 0,
+          "chartWidth": 906,
+          "scalesWidth": 3468
+        },
+        "native": {
+          "left": 120,
+          "top": 0,
+          "scrollWidth": 3468,
+          "clientWidth": 905,
+          "scrollHeight": 504,
+          "clientHeight": 504
+        }
+      }
+    ]
+  }
+]

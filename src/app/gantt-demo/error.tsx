@@ -6,7 +6,9 @@ export default function GanttDemoError({ reset }: Readonly<{ reset: () => void }
       <p className="eyebrow">GANTT DEMO</p>
       <h1 id="gantt-error-heading">Gantt를 표시할 수 없습니다</h1>
       <p>브라우저에서 Gantt 구성 요소를 다시 불러와 보세요.</p>
-      <button className="secondary-button" onClick={reset} type="button">다시 시도</button>
+      <div className="standalone-actions">
+        <button className="secondary-button" onClick={reset} type="button">다시 시도</button>
+      </div>
     </section>
   );
 }

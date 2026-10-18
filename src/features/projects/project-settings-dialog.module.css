@@ -8,7 +8,9 @@
   display: flex;
   gap: 0.5rem;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0.25rem;
+  /* Keep the 3px outline plus 3px offset inside this scroll owner. */
+  padding: 0.375rem;
+  margin-inline: -0.375rem;
   overflow-x: auto;
 }
 

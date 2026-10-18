@@ -1,8 +1,10 @@
 import { E2E_PROJECT_OWNER, expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 
+import { captureUi } from "./helpers/ui-geometry";
+
 test.use(isolatedApplicationOptions);
 
-test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 시 초안 보존 및 반응형 검증", async ({ page, baseURL }) => {
+test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 시 초안 보존 및 반응형 검증", async ({ page, baseURL }, testInfo) => {
   if (!baseURL) throw new Error("격리 E2E origin 누락");
   // 프로젝트 생성: 실제 서버 계약(Origin + 필수 payload)을 그대로 사용한다.
   const createResponse = await page.request.post("/api/projects", {
@@ -83,6 +85,8 @@ test("Issue #232: 프로젝트 설정 다이얼로그 정보 구조, 탭 전환 
     );
     expect(hasHorizontalScroll).toBe(false);
   }
+
+  await captureUi(page, testInfo, "settings-draft-1440", "dialog[open]");
 
   // 6. Escape 닫기 및 포커스 복원 검증
   await page.keyboard.press("Escape");

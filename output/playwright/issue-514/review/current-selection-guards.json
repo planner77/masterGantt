@@ -1,0 +1,1023 @@
+{
+  "capturedAt": "2026-10-08T10:20:28.531Z",
+  "observations": [
+    {
+      "before": {
+        "public": {
+          "left": 0,
+          "top": 0
+        },
+        "dom": {
+          "left": 0,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": false,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": []
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "contextBeforeReveal": {
+        "public": {
+          "left": 0,
+          "top": 0
+        },
+        "dom": {
+          "left": 0,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": false,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "revealed": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "contextAfterReveal": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000101"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      }
+    },
+    {
+      "modifier": "Control",
+      "prior": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000101"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "after": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      }
+    },
+    {
+      "modifier": "Meta",
+      "prior": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "after": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000105"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      }
+    },
+    {
+      "priorKeyboard": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "resize-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "afterKeyboard": {
+        "public": {
+          "left": 19830,
+          "top": 0
+        },
+        "dom": {
+          "left": 19830,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 905,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": []
+        },
+        "geometry": {
+          "chart": {
+            "left": 510,
+            "right": 1415
+          },
+          "grid": {
+            "left": 25,
+            "right": 506
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19830
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": false,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "resize-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": true,
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "select-task",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "eventSource": "project-owned-selection"
+          },
+          {
+            "action": "resize-chart",
+            "left": 19830,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      }
+    }
+  ],
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+    "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "01e359eee568d3abc75170c193750aed9cbebce3781a9e05a7687734965e9394"
+  },
+  "environment": "Next16.3.8/Core2.7.3; mocked canonical API, native browser pointer"
+}

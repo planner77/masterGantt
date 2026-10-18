@@ -1,0 +1,608 @@
+{
+  "phase": "before",
+  "contracts": [
+    {
+      "originalFile": "output/playwright/issue-491/before-final/copy-contract.json",
+      "originalSha256": "3d0934006d5d088e2d66cdd682507d7f7cb46577656924e2143b74ce81b1e6aa",
+      "record": {
+        "sourceUnchanged": true,
+        "actualSuccessStatus": 201,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/projects/8d6cf6b2-3bd4-4f3d-a4e3-5a7c3daa95ce/copy",
+            "Origin": "http://127.0.0.1:38929",
+            "ifMatch": "\"4\"",
+            "status": 500
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/8d6cf6b2-3bd4-4f3d-a4e3-5a7c3daa95ce/copy",
+            "Origin": "http://127.0.0.1:38929",
+            "ifMatch": "\"4\"",
+            "status": 412
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/8d6cf6b2-3bd4-4f3d-a4e3-5a7c3daa95ce/copy",
+            "Origin": "http://127.0.0.1:38929",
+            "ifMatch": "\"4\"",
+            "status": 401
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/8d6cf6b2-3bd4-4f3d-a4e3-5a7c3daa95ce/copy",
+            "Origin": "http://127.0.0.1:38929",
+            "ifMatch": "\"4\""
+          }
+        ],
+        "newPublicIdNavigation": true,
+        "passwordClearedOnFailures": true,
+        "staleDraftPreserved": true
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-final/create-contract.json",
+      "originalSha256": "e8e40faa0b3addb44e8f721fefa8243d5fe598c69587b43c20dc47f474ac2bba",
+      "record": {
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/projects",
+            "Origin": "http://127.0.0.1:44837"
+          }
+        ],
+        "status": 201,
+        "newProjectReady": true,
+        "metadataPreserved": true,
+        "passwordCleared": true,
+        "workspaceNavigation": "new publicId; same-instance preservation N/A"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-final/effort-contract.json",
+      "originalSha256": "fd441295872bff817a0c516de330fa84b1f8770b001725c0ca5a78d2ee7e7d9a",
+      "record": {
+        "actualApiStatus": 200,
+        "actualAssignmentCount": 0,
+        "actualMmUnconfigured": true,
+        "serverFixtureMm": 20,
+        "largeDisplayOnly": true,
+        "separateEffortModal": "N/A: inline controls and Excel include checkbox are supported entries"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-targeted/export-contract.json",
+      "originalSha256": "22045ea1807cde2ec0f08b7da0b30bff4fac8e82d9d81ee10909debbd3ffb36a",
+      "record": {
+        "downloads": [
+          {
+            "format": "excel",
+            "status": 200,
+            "bytes": 15696,
+            "filename": "mastergantt-45fee187-df86-4f16-9592-9b169f4c8d1d-r4.xlsx"
+          },
+          {
+            "format": "json",
+            "status": 200,
+            "bytes": 10405,
+            "filename": "mastergantt-45fee187-df86-4f16-9592-9b169f4c8d1d-r4.json"
+          },
+          {
+            "format": "svg",
+            "status": 200,
+            "bytes": 26700,
+            "filename": "mastergantt-45fee187-df86-4f16-9592-9b169f4c8d1d-r4.svg"
+          },
+          {
+            "format": "png",
+            "status": 200,
+            "bytes": 71122,
+            "filename": "mastergantt-45fee187-df86-4f16-9592-9b169f4c8d1d-r4.png"
+          }
+        ],
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/projects/45fee187-df86-4f16-9592-9b169f4c8d1d/exports/gantt-svg",
+            "Origin": "http://127.0.0.1:45463",
+            "ifMatch": "\"4\"",
+            "status": 500
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/45fee187-df86-4f16-9592-9b169f4c8d1d/exports/gantt-svg",
+            "Origin": "http://127.0.0.1:45463",
+            "ifMatch": "\"4\"",
+            "status": 412
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/45fee187-df86-4f16-9592-9b169f4c8d1d/exports/excel",
+            "Origin": "http://127.0.0.1:45463",
+            "ifMatch": "\"4\""
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/45fee187-df86-4f16-9592-9b169f4c8d1d/exports/json",
+            "Origin": "http://127.0.0.1:45463",
+            "ifMatch": "\"4\""
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/45fee187-df86-4f16-9592-9b169f4c8d1d/exports/gantt-svg",
+            "Origin": "http://127.0.0.1:45463",
+            "ifMatch": "\"4\""
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/45fee187-df86-4f16-9592-9b169f4c8d1d/exports/gantt-svg",
+            "Origin": "http://127.0.0.1:45463",
+            "ifMatch": "\"4\""
+          }
+        ],
+        "readonlySupported": true,
+        "sourceUnchanged": true,
+        "normalEscapeRestore": true,
+        "realExcelDrm": "NOT TESTED",
+        "fullWorkbookFormulaRegression": "NOT TESTED: existing dedicated tests own semantic coverage"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-targeted/fullscreen-entry-scope.json",
+      "originalSha256": "6261a4cafef29418655808734c7919c04e9b13044c6e29522fe257128b59c3e8",
+      "record": {
+        "headerInsideFullscreenHost": false,
+        "headerReceivesHit": false,
+        "modalEntry": "N/A: header is outside fullscreen host",
+        "browserFullscreenEscape": "NOT TESTED: headless keyboard event did not invoke browser exit; original run4 FAIL preserved"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-targeted/gantt-state-contract.json",
+      "originalSha256": "0e43bf764b752fed5e524fe0797ff31744c51d6f95168af39e90452d04e6d390",
+      "record": {
+        "phases": [
+          {
+            "phase": "prepared",
+            "state": {
+              "api": "svar-api-1",
+              "instance": "project-gantt-ifwod2lebw",
+              "viewport": {
+                "left": 120,
+                "top": 38
+              },
+              "scale": "week",
+              "left": 120,
+              "top": 38,
+              "selected": [
+                ":451c7439-965b-4729-ad9f-293fa047495e"
+              ],
+              "tree": [
+                {
+                  "id": ":44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+                  "closed": false
+                },
+                {
+                  "id": ":08c7f35b-a270-4420-b7ad-322e3da39220",
+                  "closed": true
+                }
+              ],
+              "scope": "보존할 Summary",
+              "rootTask": "44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+              "columns": [
+                {
+                  "id": ":copySelection",
+                  "width": 56
+                },
+                {
+                  "id": ":text",
+                  "width": 274
+                },
+                {
+                  "id": ":externalId",
+                  "width": 108
+                },
+                {
+                  "id": ":projectStart",
+                  "width": 104
+                },
+                {
+                  "id": ":projectDuration",
+                  "width": 56
+                },
+                {
+                  "id": ":add-task",
+                  "width": 37
+                }
+              ]
+            }
+          },
+          {
+            "phase": "프로젝트 복사 canceled",
+            "state": {
+              "api": "svar-api-1",
+              "instance": "project-gantt-ifwod2lebw",
+              "viewport": {
+                "left": 120,
+                "top": 38
+              },
+              "scale": "week",
+              "left": 120,
+              "top": 38,
+              "selected": [
+                ":451c7439-965b-4729-ad9f-293fa047495e"
+              ],
+              "tree": [
+                {
+                  "id": ":44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+                  "closed": false
+                },
+                {
+                  "id": ":08c7f35b-a270-4420-b7ad-322e3da39220",
+                  "closed": true
+                }
+              ],
+              "scope": "보존할 Summary",
+              "rootTask": "44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+              "columns": [
+                {
+                  "id": ":copySelection",
+                  "width": 56
+                },
+                {
+                  "id": ":text",
+                  "width": 274
+                },
+                {
+                  "id": ":externalId",
+                  "width": 108
+                },
+                {
+                  "id": ":projectStart",
+                  "width": 104
+                },
+                {
+                  "id": ":projectDuration",
+                  "width": 56
+                },
+                {
+                  "id": ":add-task",
+                  "width": 37
+                }
+              ]
+            }
+          },
+          {
+            "phase": "템플릿으로 저장 canceled",
+            "state": {
+              "api": "svar-api-1",
+              "instance": "project-gantt-ifwod2lebw",
+              "viewport": {
+                "left": 120,
+                "top": 38
+              },
+              "scale": "week",
+              "left": 120,
+              "top": 38,
+              "selected": [
+                ":451c7439-965b-4729-ad9f-293fa047495e"
+              ],
+              "tree": [
+                {
+                  "id": ":44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+                  "closed": false
+                },
+                {
+                  "id": ":08c7f35b-a270-4420-b7ad-322e3da39220",
+                  "closed": true
+                }
+              ],
+              "scope": "보존할 Summary",
+              "rootTask": "44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+              "columns": [
+                {
+                  "id": ":copySelection",
+                  "width": 56
+                },
+                {
+                  "id": ":text",
+                  "width": 274
+                },
+                {
+                  "id": ":externalId",
+                  "width": 108
+                },
+                {
+                  "id": ":projectStart",
+                  "width": 104
+                },
+                {
+                  "id": ":projectDuration",
+                  "width": 56
+                },
+                {
+                  "id": ":add-task",
+                  "width": 37
+                }
+              ]
+            }
+          },
+          {
+            "phase": "export canceled",
+            "state": {
+              "api": "svar-api-1",
+              "instance": "project-gantt-ifwod2lebw",
+              "viewport": {
+                "left": 120,
+                "top": 38
+              },
+              "scale": "week",
+              "left": 120,
+              "top": 38,
+              "selected": [
+                ":451c7439-965b-4729-ad9f-293fa047495e"
+              ],
+              "tree": [
+                {
+                  "id": ":44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+                  "closed": false
+                },
+                {
+                  "id": ":08c7f35b-a270-4420-b7ad-322e3da39220",
+                  "closed": true
+                }
+              ],
+              "scope": "보존할 Summary",
+              "rootTask": "44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+              "columns": [
+                {
+                  "id": ":copySelection",
+                  "width": 56
+                },
+                {
+                  "id": ":text",
+                  "width": 274
+                },
+                {
+                  "id": ":externalId",
+                  "width": 108
+                },
+                {
+                  "id": ":projectStart",
+                  "width": 104
+                },
+                {
+                  "id": ":projectDuration",
+                  "width": 56
+                },
+                {
+                  "id": ":add-task",
+                  "width": 37
+                }
+              ]
+            }
+          },
+          {
+            "phase": "actual template save success",
+            "state": {
+              "api": "svar-api-1",
+              "instance": "project-gantt-ifwod2lebw",
+              "viewport": {
+                "left": 120,
+                "top": 38
+              },
+              "scale": "week",
+              "left": 120,
+              "top": 38,
+              "selected": [
+                ":451c7439-965b-4729-ad9f-293fa047495e"
+              ],
+              "tree": [
+                {
+                  "id": ":44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+                  "closed": false
+                },
+                {
+                  "id": ":08c7f35b-a270-4420-b7ad-322e3da39220",
+                  "closed": true
+                }
+              ],
+              "scope": "보존할 Summary",
+              "rootTask": "44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+              "columns": [
+                {
+                  "id": ":copySelection",
+                  "width": 56
+                },
+                {
+                  "id": ":text",
+                  "width": 274
+                },
+                {
+                  "id": ":externalId",
+                  "width": 108
+                },
+                {
+                  "id": ":projectStart",
+                  "width": 104
+                },
+                {
+                  "id": ":projectDuration",
+                  "width": 56
+                },
+                {
+                  "id": ":add-task",
+                  "width": 37
+                }
+              ]
+            }
+          },
+          {
+            "phase": "native fullscreen round trip",
+            "state": {
+              "api": "svar-api-1",
+              "instance": "project-gantt-ifwod2lebw",
+              "viewport": {
+                "left": 120,
+                "top": 38
+              },
+              "scale": "week",
+              "left": 120,
+              "top": 38,
+              "selected": [
+                ":451c7439-965b-4729-ad9f-293fa047495e"
+              ],
+              "tree": [
+                {
+                  "id": ":44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+                  "closed": false
+                },
+                {
+                  "id": ":08c7f35b-a270-4420-b7ad-322e3da39220",
+                  "closed": true
+                }
+              ],
+              "scope": "보존할 Summary",
+              "rootTask": "44d978f8-8196-4a97-9c81-e32ba0cc5fa2",
+              "columns": [
+                {
+                  "id": ":copySelection",
+                  "width": 56
+                },
+                {
+                  "id": ":text",
+                  "width": 274
+                },
+                {
+                  "id": ":externalId",
+                  "width": 108
+                },
+                {
+                  "id": ":projectStart",
+                  "width": 104
+                },
+                {
+                  "id": ":projectDuration",
+                  "width": 56
+                },
+                {
+                  "id": ":add-task",
+                  "width": 37
+                }
+              ]
+            }
+          }
+        ],
+        "nativeResizePixels": 48,
+        "responseKind": "actual SQLite and installed Core",
+        "fullscreenModalEntry": "N/A: Project header outside native fullscreen host"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-targeted/import-contract.json",
+      "originalSha256": "7216f9a1686d3748a86a4f1467e00e5aeecf1aca7abff3bef4a4b31a61acc5d2",
+      "record": {
+        "actualPreviewReady": true,
+        "actualCommitStatus": 201,
+        "ganttInstanceApiScalePreserved": true,
+        "addedTaskCount": 1,
+        "existingTasksLinksUnchanged": true,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/projects/f38a07f8-ecc6-4b7e-9371-b24972ff9c37/imports",
+            "Origin": "http://127.0.0.1:46091",
+            "ifMatch": "\"4\"",
+            "status": 412
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/f38a07f8-ecc6-4b7e-9371-b24972ff9c37/imports",
+            "Origin": "http://127.0.0.1:46091",
+            "ifMatch": "\"4\"",
+            "status": 401
+          },
+          {
+            "method": "POST",
+            "path": "/api/projects/f38a07f8-ecc6-4b7e-9371-b24972ff9c37/imports",
+            "Origin": "http://127.0.0.1:46091",
+            "ifMatch": "\"4\""
+          }
+        ],
+        "previewCancelAllowed": true,
+        "commitRepeatedEscapeBlocked": true,
+        "csvStatus": 415,
+        "csvMappingUi": "N/A: accept JSON only; no mapping entry"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-targeted/import-table-owner.json",
+      "originalSha256": "44487424c62be61cfd6a0b03ac3f657f1c00a269f7d796a1d192e2a89ed57034",
+      "record": {
+        "viewportWidth": 390,
+        "clientWidth": 300,
+        "scrollWidth": 960,
+        "tableWidth": 960
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-final/template-create-contract.json",
+      "originalSha256": "97334e8f67de7cb26f8a8a26f5d9e040e59d4f2525fc3ee3dec4cb54777679d6",
+      "record": {
+        "actualTemplateSaved": true,
+        "actualInstantiationStatus": 201,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/project-templates/a2219df4-165f-4aac-b988-f3217ba8eb29/instantiate",
+            "Origin": "http://127.0.0.1:36981"
+          }
+        ],
+        "newProjectNavigation": true,
+        "sourceUnchanged": true,
+        "csvMappingUi": "N/A: JSON-only import is a separate surface"
+      }
+    },
+    {
+      "originalFile": "output/playwright/issue-491/before-targeted/template-save-contract.json",
+      "originalSha256": "926c01cd3d9c503b4cef92b23170df5e6bed3feeecb510affb44bd43e55b95ba",
+      "record": {
+        "actualStatus": 201,
+        "sourceUnchanged": true,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/project-templates",
+            "Origin": "http://127.0.0.1:38491",
+            "ifMatch": "\"4\"",
+            "status": 500
+          },
+          {
+            "method": "POST",
+            "path": "/api/project-templates",
+            "Origin": "http://127.0.0.1:38491",
+            "ifMatch": "\"4\"",
+            "status": 412
+          },
+          {
+            "method": "POST",
+            "path": "/api/project-templates",
+            "Origin": "http://127.0.0.1:38491",
+            "ifMatch": "\"4\"",
+            "status": 401
+          },
+          {
+            "method": "POST",
+            "path": "/api/project-templates",
+            "Origin": "http://127.0.0.1:38491",
+            "ifMatch": "\"4\""
+          }
+        ],
+        "staleDraftPreserved": true,
+        "normalEscapeRestore": true,
+        "successFocus": "BUTTON"
+      }
+    }
+  ]
+}

@@ -1,4 +1,29 @@
+## Issue #552 — 읽기 전용 관계 조회 경로 (2026-10-13)
+
+- Milestone native WBS 행을 제거한 상태에서도 일반 Task의 Relation Editor는 Task 정보 → 관계 탭 → 해당 Link의 **관계 조회**로 진입한다. 읽기 전용에서는 링크 조회 버튼을 제공하고 관계 추가·삭제/수정 제출은 제공하지 않는다. 편집 권한이 있으면 기존 **관계 편집**과 보호된 변경·삭제가 가능하다.
+- 유효하지 않은/stale 링크 또는 현재 편집 중 잠금일 때 조회 버튼의 활성화도 차단한다. 기존 관계 ID, Summary/Task scheduling, read-only 상태, focus·모달 동작을 유지한다.
+
 # Issue #34 — Task Editor 작업 관계 표시
+
+## Issue #460 — Dependency 종류와 Stage Membership
+
+현재 신규 Link는 일반 Task→Task 또는 Milestone→Milestone만 허용한다. 서로 다른 단계의 Task 간 관계는 가능하지만 Task↔Milestone 신규 관계와 Summary endpoint는 서버에서 거부한다. 기존 mixed Link는 canonical `legacyMixed=true`로 보존하며 endpoint를 유지한 type/Lag 수정과 삭제를 허용한다. 완료 Milestone endpoint의 관계 구조는 재개 후 변경한다. 기존 Link ID/일정/유형/근무일 Lag 의미와 graph guard는 유지한다.
+
+Membership은 Dependency나 WBS reparent가 아니다. Task/Summary의 명시 소속과 Summary 상속, Ready/완료 조건은 [Stage Gates](MILESTONE_STAGE_GATES.md)를 따른다. 아래 과거 Leaf Task/Milestone 혼합 후보와 Summary name-only 설명은 당시 범위이며 현재 Summary PATCH는 name/Membership만 원자 편집할 수 있다. #461의 Editor 후보 UI는 별도 단계다.
+
+
+
+## Issue #464 — Subtree Copy 소속 경계와 Cut
+
+Copy의 정규화 root+descendant union C에 대해 Dependency와 Membership을 각각 처리한다. Dependency는 기존처럼 양 endpoint가 C 안인 Link만 새 ID로 복제한다. Membership은 member Task/Summary와 target M가 모두 C 안이면 새 FK로 remap한다. member만 C 안이면 외부 target의 명시 row를 복제하지 않고, target만 C 안이면 외부 member를 복사본 M에 연결하지 않는다. 외부 Summary에서 받은 상속을 새 explicit 설정으로 생성하지 않는다.
+
+`membership-copy-plan.ts`는 UI/서버가 함께 사용하는 순수 영향 계획이다. 현재 canonical full snapshot과 source IDs·anchor·placement에서 C와 destination hierarchy를 정하고 새 effective/상속 출처를 계산한다. 명시 제외 row 수와 영향을 받은 descendant 수는 다르므로 각각 표시한다. 외부 명시 제외, 외부 상속의 소속/출처 변화, 미지정→destination 상속 같은 변화는 mutation 전에 확인한다. 같은 target M여도 상속 출처가 달라지면 확인한다. 완전한 내부 remap은 이 손실 확인 대상이 아니다. 새 복제 예정 M/Summary 참조는 `copiedFromMilestoneTaskId`/`copiedFromSummaryTaskId`로 기존 Task ID와 구분한다. canonical 소속 projection 누락은 미지정으로 추정하지 않고 fail-closed한다.
+
+copy-only optional boolean `acknowledgedMembershipExclusions`는 위 소속 변화 전부를 확인했다는 뜻이다. omission/false에서 확인이 필요하면 서버가 `TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED`로 전체 거부한다. 서버는 동일 revision의 transaction 안에서 계획을 다시 계산하며 boolean이 권한·완료 잠금·Assignment 제한을 우회하지 않는다. UI에서 revision/source/destination이 바뀌면 확인 내용은 무효다. menu와 keyboard Paste는 공통 확인 경로를 사용한다.
+
+C에 completed M가 포함되면 전체 E, M를 참조하는 모든 explicit source 및 모든 incident Link의 endpoint가 C 안이어야 한다. 실제 복사본 E/P/명시 source/incident Link를 원본으로 역매핑하여 동일성을 검사하며 손실은 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`로 거부한다. 완전 보존된 서버 소유 완료 기록만 기존 상태/불일치 진단을 유지한다. status를 자동 reset하거나 외부 JSON을 trusted Copy로 취급하지 않는다. 기존 completed destination에 일반 구성원을 추가하는 구조 변경은 항상 잠긴다. 상속만 받는 빈 Summary 추가는 E/명시 row 변화가 없으면 이 잠금 대상이 아니지만 상속 변화 확인은 필요할 수 있다.
+
+Cut/reparent는 동일 Task identity·명시 FK를 유지한다. inherited old/new target 변경에는 기존 완료 구조 잠금이 적용되고 Dependency boundary guard도 유지한다. 원본 baseline은 불변이며 subtree 복사본 baseline은 기존 null 정책이다. Resource Assignment를 포함한 subtree Copy는 계속 거부한다. 모든 성공은 기존 canonical snapshot과 revision+1이고 실패는 전체 rollback한다.
 
 ## Issue #430 — Cut/Reparent의 Dependency 경계
 
@@ -154,3 +179,25 @@ Summary endpoint, graph validation, FS/SS/FF/SF 계산, Lag/Lead, Link API/DB sc
 Dependency Link의 의미와 WBS sibling order는 별도 계약이다. 같은 parent에서 Task/subtree의 위치만 바꾸는 `move up/down` 또는 `before/after`는 Link ID, predecessor/successor, type, signed lag/lead를 변경하지 않으며 Dependency 일정 재계산 입력을 새로 만들지 않는다. requested/effective schedule 및 Task status/progress도 reorder 자체로 변경하지 않는다.
 
 서버는 command가 실제 parent 변경인지 먼저 판정한다. same-parent reorder만 Link guard 예외이며 cross-parent/child, Indent/Outdent, Cut/Paste, Delete, Convert와 Link 자체 mutation은 기존 검증을 유지한다. canonical 응답의 동일 Link를 기준으로 relation line이 이동한 row endpoint를 따라야 한다.
+
+## Issue #462 신규 같은 유형 관계와 완료 endpoint 잠금
+
+새 Relation Editor 후보와 native add-link는 Task→Task 또는 Milestone→Milestone만 허용한다. Summary/자기 자신/동일 방향 기존 연결을 후보에서 제외하고 미해결 anchor는 후보가 없다. 서로 다른 단계에 소속된 일반 Task끼리의 일정 관계는 허용한다. Membership은 일반 Dependency가 아니며 Milestone 연결 명령으로 관리한다. 타입 제한 안내는 새 연결에만 적용한다. 기존 legacyMixed 관계는 선행/후행 목록·Task Editor·Relation Editor·canonical SVAR links에서 숨기거나 삭제하지 않고 endpoint 고정 type/Lag 편집·삭제 호환을 유지한다.
+
+완료 Milestone endpoint에 연결된 관계는 양쪽 full canonical endpoint를 검사하여 type/Lag/create/delete를 잠근다. 기준이 일반 Task여도 상대가 완료 M이면 잠긴다. 일반 Task의 completed 상태/Milestone 소속은 이 잠금 조건이 아니다. Context Menu와 Relation Editor의 표시·실행 handler, Task Editor per-link 삭제 및 Workspace 실제 saveLink dispatch에서 같은 UI guard를 사용하고 선택 후 canonical 타입/상태 변경도 최신 map으로 재검증한다. 서버의 #460 session/Origin/revision/structure guard는 최종 authority로 유지한다. 명시 reopen canonical 성공 뒤 잠금이 해제된다. native canonicalSyncDepth의 내부 동기화 bypass는 기존 legacy links 복원에 사용하며 신규 사용자 연결 권한을 부여하지 않는다.
+
+
+
+## Issue #550 — 관리 목록 관계 진입
+
+Milestone 관리 메뉴는 같은 canonical taskId로 기존 Task Editor의 relations 탭을 연다. 그 안에서 기존 Relation Editor와 saveLink를 재사용하며 full canonical endpoint를 조회한다. readonly/dirty/pending/기준 revision/완료 단계의 기존 guard를 바꾸지 않는다. Task→Task와 M→M 신규, legacy mixed 조회·허용 수정/삭제, Summary endpoint 금지·순환·Lag·calendar 검증은 기존 서버 계약이다. 관리 메뉴가 새 그래프/가짜 Membership Link를 만들지 않는다. Dashboard에서 시작한 관계 화면은 visible actual trigger로 복귀하고 trigger가 없으면 보이는 Dashboard 검색/추가/heading으로 복귀한다. Copy acknowledgement는 기존 소속 제외·상속 효과만 확인하며 Assignment나 완료 fullE/explicit/incident 경계를 해제하지 않는다.
+
+## Issue #552 — 숨은 endpoint와 canonical 관계 보존
+
+WBS에서 M을 숨겨도 Core에 전달하는 canonical Link 입력과 기존 Editor 관계 목록은 전체를 유지한다. native Chart의 숨은 M→M/legacy mixed endpoint 선은 다른 Summary/Task 행에 재연결하지 않는다. ordinary Task→Task 선은 가시 endpoint를 따라 유지하고 접힘으로 endpoint가 사라지면 잘못된 대체 선을 그리지 않는다. 신규 mixed/ Summary endpoint 허용 정책은 만들지 않는다.
+
+Summary Copy는 숨은 M과 내부 Link/remap을 포함하는 전체 subtree이고 기존 completed/fullE/explicit/incident/external membership/Assignment Copy guard와 auth/revision의 서버 판정은 그대로다. 표시 UI는 새 관계 엔진/가짜 Membership Link를 만들지 않는다. actual Core 표시와 실제 HTTP/SQLite 명령 증거를 [테스트 계획](TEST_PLAN.md#issue-552--milestone-표시-분리-검증)에서 분리한다.
+
+#552 marker-OFF에서는 날짜 관리가 `Milestone 날짜·소속 확인`으로 같은 canonical M 상세를 열며, 관계는 해당 Editor의 기존 readonly 조회/허용 mutation 경로를 유지한다. marker/native M select·대체 endpoint·M 날짜축 확장 없이 M→M/legacy mixed 원본 관계를 조회한다. 완료 endpoint/full canonical 잠금·신규 type 제한·session/Origin/revision 서버 검증은 표시 여부와 독립이다. #667 단일 동기화/port를 사용하며 별도 관계/viewport writer는 추가하지 않는다.
+
+#552의 Dashboard `일반 Task로 전환`은 기존 leaf 변환 gateway를 재사용하며 Link endpoint의 Convert 잠금을 해제하지 않는다. 완료 M·Membership 참조·신규 타입 제한/기존 혼합 관계·session/Origin/revision 서버 guard는 그대로다. 변환 가능성을 만들기 위한 Link/Membership 자동 삭제는 금지한다. 정상 Task→M→Task 왕복은 같은 canonical ID·부모/sibling order·revision과 부모 소속 상속의 기존 결과를 확인하며, 관계/완료/참조 때문에 거부된 변환은 full canonical·Link/Membership·revision 불변을 검사한다.

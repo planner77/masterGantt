@@ -1,4 +1,83 @@
+## Issue #624 — 물류 통합 다관점 read-only API 재사용
+
+새 Endpoint·원본 DTO/쓰기 API 추가 없이 기존 `GET /api/projects/{publicId}/resource-dashboard`의 `projectionOrder`를 다음처럼 적용한다: `processType,process,workArea,target`, `equipmentType,equipment,target`, `systemType,system,target`, `target,resource`. 상세는 동일 `snapshotId` + `targetPath`의 bounded `/resource-dashboard/details`를 사용한다. `targetProjection.relatedMembers`는 T0 Task coverage, `summary`는 distinct Assignment A, `stages[].full`은 전체 canonical Milestone Stage Gate다. 기존 public read, catalog fingerprint·revision/If-Match·2MiB 응답 및 상세 페이지 한도는 불변. [Work Packet](exec-plans/active/ISSUE_624.md).
+
 # Backend API
+
+## Issue #623 — 기존 API의 통합 수용 범위
+
+새 route/DTO·권한·오류/예산 계약을 추가하지 않는다. 공정 표준/사업장 occurrence/WorkArea→Target/member→Task binding→Resource report/detail/Plan→exact Assignment 편집→Resource Excel을 기존 API로 연결해 같은 raw identity/snapshot과 원자성을 검증한다. name/date/status/progress/allocation/membership mutation은 각각 정확 method/path/body·revision1회·복제0으로 관측한다.
+
+master/Target/binding/Calendar/Resource 변경 후 구 report/detail/source·current/project export는 mixed snapshot 성공을 반환하지 않는다. 기존 snapshot stale409/Excel412,session/Origin/strong If-Match,readonly 및 body/response/fan-out/workbook 한도를 유지한다. Copy/Template의 다른 사업장 자동 retarget을 새 API로 추정하지 않는다. [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)의 실제 테스트/미검증을 따른다.
+
+## Issue #622 — Target Resource Plan 상세 및 Excel
+
+`granularity=week|month` Plan 조회 시 optional `catalog.targetOptions` (Target/공정/WorkArea/설비·시스템 유형/인스턴스의 기존 canonical 목록)를 반환해 필터 UI를 지원한다. Plan은 `projectionOrder`를 암묵적으로 전송하지 않으며 이를 명시하지 않은 Plan 요청에서는 Target 필터가 있어도 `targetProjection` 전체 계층을 생성하지 않는다. 기존 Target 보기의 명시적 계층 투영과 granularity 없는 Target-only 보고서는 기존 예산·응답을 유지한다. 대량 Plan은 새 projectionCells5000 실패를 피하되 일반 KPI/Plan/2MiB/snapshot 상한 및 명시 Target 계층 요청의 422는 완화하지 않는다.
+
+기존 report/Plan·daily/day-resources/day-assignments와 exact drill 경로를 재사용한다. Target 조건은 selected A를 제한하고 R·같은 R/기간의 Project 배정을 보존한다. `ResourceDashboardPlanDto.targetContext`는 optional `{filters,measure:"related planned effort",subtotalsAdditive:false,projectReferenceScope:"same Capacity R and period; Target/Task/Milestone/source restrictions removed"}`다. Target 조건 없는 Plan은 기존 수치/구조를 유지한다.
+
+Plan 상세는 같은 snapshot의 optional `resourceScopeContext`, `resourceDataContext`와 Target 요청의 `targetContext`를 제공한다. day-assignments row는 `resourceActive` 및 Target 요청의 canonical `targetSources: TaskTargetBindingsDto`를 보강한다. selected와 project 상세 모두 원래 filters/snapshot을 echo하되 `demandScope`로 실제 기여 집합을 구별하며 project는 선택 Target 밖 Assignment도 포함한다. 원본 source context와 현재 참고 범위를 혼용하지 않는다. 새 필드는 기존 공통 Editor·drill transport의 현재 revision/정확 Assignment 결속에 사용하며 authorization token이 아니다.
+
+기존 `resourceDashboard` Excel strict union의 current `expectedReport.filters`에 공통 Target 필터·`projectionOrder`를 bound/unbound 모두 허용한다. malformed/unknown 조건은400이며 조건을 버리지 않는다. current는 정확 source 제한/Target 조건/snapshot을 보존하고 project는 실제 기간/asOf/M/M 정책을 유지하면서 개인/Task/Milestone/Target/공정/WorkArea/member/type/instance 및 exact 조건을 제거한다. Target-bearing Project의 Resource 보고서 opt-in만 Target 근거를 append해 허용하며 plain 일정/JSON의 `TASK_TARGET_EXPORT_UNSUPPORTED` 손실 방지는 유지한다.
+
+Task/Assignment/Calendar/Target/master fingerprint를 같은 SQLite transaction에서 검증한다. Plan/details `409 REPORT_STALE`, export의 `412 REVISION_MISMATCH`, 잘못된 선택400·계산/JSON/workbook 예산422·export 본문8KiB/413 등 기존 오류와 한도를 유지한다. 필수 sheet/raw/null/안전 계약은 [EXCEL_EXPORT](EXCEL_EXPORT.md), 실제 검증 상태는 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+## Issue #620 — Resource–Target R2 조회 계약
+
+기존 `/api/projects/{publicId}/resource-dashboard`, `/details`, `/group-children` 및 POST `/api/projects/{publicId}/resource-dashboard/query`를 확장한다. 새 endpoint나 편집 권한을 만들지 않는다. 기존 `resource-dashboard/1`은 하위 호환 optional 필드를 추가하며 새 조건 없는 호출의 기존 결과·오류 의미를 유지한다.
+
+### Query 및 selector
+
+기존 Resource 조건에 `targetIds`, `projectProcessIds`, `processOccurrenceIds`, `processTypeIds`, `workAreaIds`, `targetScopes`, `memberEquipmentIds`, `memberSystemIds`, `equipmentTypeCodes`, `systemTypeCodes`, `directEquipmentIds`, `directSystemIds`, `projectionOrder`를 추가한다. 배열은 기존 반복 key/쉼표 형식을 사용하며 같은 축 OR·다른 축 AND다. UUID는 canonical public ID이며 type은 master code다. `targetScopes=process,project_common`, `targetIds=unassigned`는 Target 미연결, `workAreaIds=unassigned`는 무구역이다. Target 미연결과 member 조건의 동시 요청은400이다. 생략/빈 배열은 제한 없음이며 빈 token은400이다.
+
+`projectionOrder`는 `target,process,processType,workArea,scope,equipmentType,systemType,equipment,system,group,resource` 중 중복 없는 순서다. Target 분석을 요청하면 optional `targetProjection`을 반환한다. `process` node ID는 occurrence ID이며 Project-local 공정은 `projectProcessIds`로 선택한다. Target/member 축은 같은 binding에서, 같은 kind type/instance는 같은 member에서 만족해야 한다. 기존 legacy 직접 link 조건은 별도 출처의 Task 조건이며 Target 역추론을 만들지 않는다. inactive 기존 참조는 조회 보존하고 다른 Project/알 수 없는 선택을 조용히 제거하지 않는다.
+
+projection node는 `dimension/id/name/active/summary/sourceKinds/equipmentQuantity/systemCount/children`를 제공한다. `summary.selector`의 `dimension=targetProjection`, `id=null`, `targetPath=[{dimension,id},...]`를 details에 그대로 전달한다. GET의 `targetPath`는 JSON URL 인코딩, POST는 typed selector 객체다. `targetProjection` selector는 선택 Assignment만 나타내므로 `assignmentScope`는 생략 또는 `selected`만 허용하며 다른 참고 범위 조합은400이다. 전체 raw Task/Assignment ID 목록을 각 node에 반복하지 않는다. details `view=tasks`는 고유 Task와 `assignment=null`, `view=assignments`는 원시 개인 Assignment이며 optional `targetSources`는 같은 Task의 canonical binding/legacy 출처다. page 최대100 및 offset8000을 유지한다.
+
+### 동일 기준·분모·오류
+
+`targetProjection.projectReference`는 같은 기간/Calendar/asOf/M/M 기준의 full canonical Project 참고이며 source·사용자 선택을 적용한 전체와 구분한다. `metadata.subtotalsAdditive=false`, `assignmentScope=A`, `memberScope=T0`를 명시한다. `targetProjection.projectReference`의 selector는 `dimension=all`, `assignmentScope=projectReference`로 source·사용자 필터를 제거한 full canonical Project 상세를 명시 요청한다. 다른 dimension과의 조합은400이다. 기존 `drill.assignmentScope=exact-source-intersection`는 선택 A 계약이고 이 명시적 참고 상세는 `data.selector.assignmentScope=projectReference` 및 Target 참고 scope로 구분한다. Target 소계는 중첩될 수 있고 선택 전체는 원시 Assignment 합집합이다. null/partial/빈 결과·Target 미연결·legacy-only·무구역·공통·공정 미매핑을 구분한다. 개인 필터는 T0 미배정 진단을 제거하지 않는다.
+
+source `ResourceDataContext.dataSnapshotId`, report `snapshotId`와 detail/export 공통 identity는 같은 read transaction의 Task/Assignment/Calendar/Resource와 Target/member/binding·legacy link·Project 공정 매핑·공정/WorkArea/type master 이름 및 active 참조를 결속한다. Project revision만 동일해도 참조 변경은 이전 details/drill에서 `409 REPORT_STALE`다. POST drill의 `exactAssignments`는 source 원시 Assignment와 destination Target 조건의 교집합이며 같은 Task의 공동담당 Assignment로 확대하지 않는다. 반환 `sourceContext`와 `drill.targetFilters`는 원본과 현재 선택을 구분한다. 기존 `drill.projectReferenceScope=same-resource-population-and-period`는 Plan 참고 범위를 보존하며 optional `drill.targetProjectReferenceScope=full-canonical-project-same-period`는 Target 참고 범위를 추가로 명시한다. `projectionOrder`는 표시 순서이므로 snapshot identity에서 제외하고 필터·source 집합은 유지한다.
+
+malformed/unknown key·중복 scalar·잘못된 UUID/selector는 `400 INVALID_REQUEST`, unknown/cross-project 선택은 `400 INVALID_SELECTION`, snapshot 불일치는 `409 REPORT_STALE`, 원본/fan-out/cell/응답 예산 초과는 `422 REPORT_LIMIT_EXCEEDED`다. 기간366일·응답2MiB·필드200/전체400 token 상한을 유지한다. Target 원본 관계 합50000, provenance paths50000, lineage edges50000, projection cells5000, 보고·상세 페이지 출처 각각5000을 사전 제한하며 부분총계를 절삭해 성공하지 않는다. public UUID read 및 기존 read guard, `private, no-store`·nosniff, 보호 mutation의 session/Origin/strong If-Match는 유지한다. 기존 Plan의 선택 demand에는 공통 Target 필터 교집합을 적용하되 R 모집단과 같은 R의 전체 Project 부하는 유지한다. R2 당시 분리했던 Target 조건 Plan 상세·Excel 필터/근거 시트는 현재 #622 절을 따른다. 공통 fingerprint에 따른 서비스 stale409는 공개 Excel API에서 기존 `412 REVISION_MISMATCH`로 매핑한다. 실제 실행 상태는 [R2 Work Packet](exec-plans/active/ISSUE_620.md)을 따른다.
+
+
+## Issue #538 — Project Master 관계 계약
+
+`GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.
+
+`POST /api/project-master/admin/relations`은 연결, `DELETE`는 해제다. JSON body는 `{businessUnitId:string,productId:string,siteEntityId?:string|null}`이며 미지정 site는 제품 연결로 해석한다. 기존 관리자 Cookie, Origin, strong catalog `If-Match`, request logging, `private,no-store`, 최신 revision/ETag를 유지한다. 동일 관계 재연결은 no-op(리비전 유지). Category·UUID 불일치/존재하지 않는 부모 관계는 409 `PROJECT_MASTER_RELATION_INVALID`, 프로젝트 사용 또는 하위 site 연결이 남은 해제는 409 `PROJECT_MASTER_RELATION_IN_USE`, 비활성 항목 신규 연결은 409 `PROJECT_MASTER_INACTIVE`, stale revision은 412다.
+
+Project create/update에서 조합이 맞지 않으면 409 `PROJECT_MASTER_RELATION_INVALID`. Project는 모두 null, 사업부만, 사업부+제품, 사업부+제품+사이트 형태만 신규 허용한다. 기존 Project와 동일한 legacy 관계가 그대로 유지될 때는 비분류 메타데이터 변경을 허용한다. Copy는 원본 관계를 안정 ID 그대로 보존한다.
+
+### Issue #538 review follow-up — template hierarchy conflict
+
+기존 Template snapshot의 사업부/제품/사업장 조합이 현행 관계 제약에 맞지 않으면 인스턴스화 API는 `409 PROJECT_MASTER_RELATION_INVALID`를 반환한다. 템플릿 자체를 임의 변환/자동 수정하거나 신규 Project를 불완전하게 생성하지 않는다.
+
+## Issue #460 — Milestone 소속 / 완료 Gate API
+
+Canonical Task 응답은 `membership={explicitMilestoneTaskId,effectiveMilestoneTaskId,inheritedFromTaskId}`를 null 정규화하여 제공하고 Milestone은 `stageGate`를 제공한다. 모든 ID는 immutable public Task UUID다. effective/inheritance/Ready는 read-only projection이며 저장 입력으로 신뢰하지 않는다. 기존 mixed Link에는 `legacyMixed=true`, 정상 homogeneous Link에는 false를 제공한다. [정확한 DTO·판정·inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+`PATCH /api/projects/{publicId}/tasks/{taskId}`의 strict 필드에 `explicitMilestoneTaskId: UUID|null`을 추가한다. omission=현재 명시 소속 보존, null=해제 후 상속 복귀다. Task 기존 허용 필드와 원자 저장하며 Summary는 `name`/Membership 조합만 허용한다. Summary 일정/진척/Baseline 등은 계속 readonly다.
+
+`POST /api/projects/{publicId}/milestone-memberships`는 `{changes:[{taskId,milestoneTaskId:UUID|null}]}`를 받는다. 1..500 unique source와 기존 bounded JSON byte limit을 적용한다. 후보 조회는 전체 Project snapshot을 사용한다. 같은 Project의 Task/Summary→Milestone만 허용한다. exact Origin/edit session/strong If-Match 및 transaction 내 session/revision 재검증을 요구한다. 성공 200+ETag, canonical full snapshot, `operation.kind=milestoneMembership`, revision +1이다. changedTaskExternalIds는 명시 source와 실제 소속/Gate projection이 변한 Task/Milestone을 포함한다. Membership-only 명령은 일정/WBS/Link/Assignment를 변경하지 않으며 실패 시 전부 rollback한다. 다른 operation의 changed 목록을 부분 snapshot으로 해석하지 말고 전체 canonical tasks/links를 반영한다.
+
+기존 401/403/428/412 보호 오류를 유지한다. `409 INVALID_MILESTONE_MEMBERSHIP`, `COMPLETED_MILESTONE_STRUCTURE_LOCKED`, `MILESTONE_NOT_READY`, `MILESTONE_REFERENCED`, `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`는 공통 `{error:{code,message,details[],requestId}}`로 반환하고 관련 public Task ID를 details에 제공한다. 내부 SQL/PK를 노출하지 않는다. 완료 guard는 새 status=completed 및 progress=100 전환을 모두 검사한다. Milestone 구조 변경은 명시 재개 후 요청해야 한다.
+
+신규 Link 생성은 task→task 또는 milestone→milestone만 허용하고 mixed는 `409 MIXED_DEPENDENCY_ENDPOINT`다. 기존 mixed Link는 endpoint가 동일한 type/Lag 수정·삭제·조회·일정 계산에서 보존한다(완료 endpoint 잠금 적용). client legacy flag는 unknown field로 거부한다.
+
+Issue #464는 Copy/Template/subtree의 명시 membership FK remap과 상속 의미 검증, 단계 Excel 보고, JSON1.1 교환을 구현하여 초기 unavailable 제한을 대체한다. subtree의 제외 소속 확인과 Completed 복제 경계 guard는 아래 계약을 따른다. 실제 JSON preview/commit은 Origin/session 및 stateless preview digest/strong revision/원자 재검증을 사용한다.
+
+
+## Issue #464 — Copy/Template 보존 확장
+
+Copy `task-commands` 입력에만 optional boolean `acknowledgedMembershipExclusions`를 추가한다. 외부 explicit 제외 또는 외부 Summary 상속/source·새 destination effective 변화(미지정→상속 포함)가 있으면 omission/false에서409 TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED이며 details에 source public Task IDs를 반환하고 revision/DB는 그대로다. 완전한 내부 remap에는 확인이 필요하지 않다. source/destination/revision이 바뀌면 UI 확인을 폐기하고 서버도 transaction 안에서 계획을 다시 계산한다. 새 preview API는 없으며 ack는 Assignment/완료/권한 잠금 우회가 아니다. partial/absent canonical membership snapshot은 INVALID_COPY_MEMBERSHIP_SNAPSHOT으로 fail-closed다.
+
+Completed M이 C에 있으면 full E·모든 explicit source·모든 incident Dependency endpoint를 C 안에 포함하고 복제 후보의 E/P·명시·incident Link 역매핑 동일성을 검증한다. 실패는409 COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED이며 ack로 우회할 수 없다. destination 기존 완료 구조 변경은 COMPLETED_MILESTONE_STRUCTURE_LOCKED다. cheap source resolve→budget→Assignment→full plan 순서로 기존 unknown/foreign404 TASK_NOT_FOUND 및 TASK_LIMIT_EXCEEDED/Assignment 제한을 유지한다. 성공 canonical TaskMutationResponse/revision+1/ETag/operation은 기존대로다.
+
+전체 Project Copy API shape는 불변이며 모든 membership FK를 새 Task UUID로 remap한다. 기존 resetProgress 정책, trusted historical completion inconsistency와 legacy mixed Link를 완전 보존하고 source revision/status/links/assignments는 불변이다. Template 내부 snapshot은 optional `memberships:[{taskExternalId,milestoneExternalId}]`를 저장하며 omission은 과거 미지정 snapshot이다. 외부 Template API shape는 불변이고 target resolve/type/unique/FK 검증 후 leaf/M progress0/not_started·Project planned로 원자 생성한다. malformed snapshot은 전체 rollback이다. Template 저장 권한은 source/session binding·revocation·expiry/authVersion을 재검증한다. Cut의 identity·명시 row 보존/상속 재파생은 기존 reparent 계약이다.
+
 
 ## Issue #430 — `task-commands` Cut/Reparent Dependency 경계
 
@@ -580,7 +659,7 @@ UI 생성에서는 `externalId` 생략을 허용하고 server가 Task `taskId`�
 
 ### `PATCH /api/projects/{publicId}/tasks/{taskId}`
 
-Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, 마일스톤의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 이름만 변경할 수 있고 날짜·기간·진척·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다.
+Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, Milestone의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 변경할 수 있고 날짜·기간·진척·상태·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다. Description/URL은 일반 Task와 동일한 길이·정규화·HTTP(S) URL 검증을 사용한다.
 
 Issue #258부터 incoming/outgoing/both 관계가 있는 일반 Task/Milestone도 편집할 수 있다. `name/description/url/progress/Baseline`만 보낸 요청은 저장된 effective `start/end`와 `requestedStart`를 그대로 보존하고 필요한 Summary 진척/Baseline만 재집계한다. 일정 필드(`start/duration/scheduleMode/end`)가 있으면 Calendar 정규화 및 optional `end` assertion을 먼저 검사하고 모든 leaf를 각 `requestedStart`에서 다시 만들어 현재 FS/SS/FF/SF와 signed lag 그래프를 재계산한다. `end` assertion은 관계 적용 전 Calendar 계산값에 대한 검증이다. Auto 후행은 지연과 앞당김 모두 가능하며, 명시적으로 바꾸지 않은 후행 요청일과 Baseline은 유지한다.
 
@@ -694,52 +773,29 @@ Link 변경 API는 `POST /api/projects/{publicId}/links`, `PATCH /api/projects/{
 
 ## 7. Import API
 
-공식 payload contract는 `docs/IMPORT_SCHEMA.md`이며 API 문서가 독자적으로 schema를 변경하지 않는다. Import 대상은 URL로 지정한 기존 Project이고 unlock 상태여야 한다. Payload의 Project name/description은 정보용이며 Project metadata를 덮어쓰지 않는다.
+공식 payload는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)의 strict JSON1.0/1.1이다. 대상은 기존 Project이며 payload Project metadata/source Calendar는 정보용이다. raw `application/json`/`application/vnd.mastergantt.import+json`(UTF-8) 또는 정확히 하나의 multipart `file`만 받는다. CSV/압축 body는415다. fatal UTF-8/leading BOM1/decoded duplicate key/JSON nesting64/파일5 MiB를 bounded parser에서 검증하고 multipart는16 KiB framing을 별도로 제한한다. unknown/duplicate/text parts는400이며 실제 stream bytes도 제한한다.
 
 ### `POST /api/projects/{publicId}/imports/preview`
 
-Edit session이 필요하지만 Project revision을 변경하지 않는다.
+exact Origin/edit session이 필요하며 If-Match는 요구하지 않는다. 현재 Project row/revision/Calendar/충돌/Domain을 같은 read transaction에서 재검증하고 저장/revision 변경 없이200 `{data: ProjectImportPreviewDto}`를 반환한다. `data`는 `schemaVersion`, `projectPublicId`, `baseRevision`, `previewDigest`, `canCommit`, `sourceProject`, `summary:{taskCreates,linkCreates,explicitMembershipCreates}`, `normalizedTasks`, `changedTasks`, `warnings`, `targetCalendar`다. typed contract는 `src/contracts/project-import.ts`다.
 
-- JSON: `Content-Type: application/vnd.mastergantt.import+json`, body는 schema `1.0` object
-- CSV: `Content-Type: text/csv; charset=utf-8`, body는 `docs/IMPORT_SCHEMA.md`의 승인된 CSV 1.0 contract
-
-CSV reader는 BOM 유무를 허용하고 header name으로 mapping한다. Missing/duplicate/unknown header, malformed predecessor JSON array, row별 schema/project metadata 불일치를 거부한다. 임의의 predecessor 축약 문법으로 데이터를 손실시키지 않는다.
-
-Preview 단계도 server가 parsing, schema, business, calendar, hierarchy, dependency와 cycle을 모두 검증한다.
-
-```json
-{
-  "data": {
-    "schemaVersion": "1.0",
-    "baseRevision": 7,
-    "summary": { "taskCreates": 12, "linkCreates": 9 },
-    "normalizedTasks": [],
-    "changedTasks": [],
-    "warnings": []
-  }
-}
-```
-
-`changedTasks`에는 dependency 때문에 requested schedule에서 이동한 effective start/end와 reason을 포함한다. 오류가 있으면 commit 가능한 부분 결과를 반환하지 않는다.
+`normalizedTasks`는 externalId/sourceTaskId/name/type/parentExternalId/description/url/scheduleMode, 요청·effective 날짜/기간/진척/status·Baseline 및 명시/effective/inherited source external ID projection을 담는다. `changedTasks`는 externalId/before/after/reasonCodes이고 diagnostics는 code/path/message/optional externalId다. 전체 오류 시 commit 가능한 부분 결과는 없다. 빈1.1 파일은 counts0/canCommit=false/EMPTY_IMPORT warning이다. ETag는 baseRevision이다.
 
 ### `POST /api/projects/{publicId}/imports`
 
-Preview와 같은 payload를 다시 제출하며 edit session 및 `If-Match: "<baseRevision>"`가 필요하다. Server는 payload와 최신 DB 상태를 다시 검증한다.
+동일 bytes와 `X-Import-Preview-Digest: <64 lowercase hex>`, `If-Match: "<baseRevision>"`, 유효 Origin/edit session을 제출한다. digest는 bytes+target publicId+baseRevision의 stateless SHA-256이며 권한/preview 실행 증명이 아니다. 누락 digest는428 IMPORT_PREVIEW_REQUIRED, malformed digest는400 INVALID_REQUEST, 파일/target 변경은409 IMPORT_PREVIEW_MISMATCH, stale revision은412 REVISION_MISMATCH다.
 
-v1 import는 create-only, all-or-nothing이다.
+IMMEDIATE transaction에서 session Project binding/authVersion/expiry/revocation, target/revision/digest, 기존 externalId 충돌, parent/Dependency/membership batch 참조, 전체 candidate budget, Calendar와 완료 Milestone guard를 다시 검증한다. 신규 mixed Link는422 MIXED_DEPENDENCY_UNSUPPORTED로 파일 전체를 거부한다. 1.0 omitted status는 기존 progress helper,1.1 explicit status는 일관성 검사다. 새 Completed Milestone은 전체 E/P 및 빈 manual event 정책을 재사용한다. 기존 row 변경/upsert/delete/implicit membership clear·source UUID FK 사용은 없다. 모든 Task/Link/membership과 revision+1은 원자적이며 DB 중간 실패도 전체 rollback한다.
 
-- Payload 내부 duplicate external ID 또는 Project DB의 기존 external ID가 하나라도 있으면 전체 거부
-- Parent/dependency는 같은 batch의 external ID만 참조
-- Missing/invalid parent, dependency, cycle, 잘못된 날짜/progress/type 또는 sibling 배열 순서는 전체 거부
-- 비지원 dependency type 또는 lag는 전체 거부하고 FS/0으로 자동 변환하지 않음
-- Existing task update/delete, implicit replacement, Project metadata 변경 없음
-- Manual conflict가 하나라도 있으면 전체 rollback
+성공은201 `ProjectSnapshotResponse` canonical full snapshot(`permission: "edit"`)이고 ETag는 새 revision이다. 별도 operation/count wrapper는 붙이지 않는다. 빈 commit은422 EMPTY_IMPORT와 row0/revision 변경0이다. validation은422 IMPORT_VALIDATION_FAILED, budget은413 IMPORT_TOO_LARGE, target externalId 충돌은409 DUPLICATE_EXTERNAL_ID다. Stage guard는 기존409 code/details를 유지한다. 모든 응답은 private,no-store다.
 
-성공은 `201 Created`와 최신 canonical full snapshot을 반환하고 `operation`에 생성 수와 import warning/diff를 포함한다.
+## 7.1. JSON Export API
 
-### 입력 상한
+### `POST /api/projects/{publicId}/exports/json`
 
-초기 server-side 상한 가정은 payload 5 MiB, task 5,000개, 전체 Link 20,000개, task당 predecessor 100개, hierarchy depth 64, 날짜 `1900-01-01..2199-12-31`, 일반 task duration `1..10000` working days이다. Date 계산 결과도 범위를 벗어나면 안 된다. 이는 성능 보장이 아니며 SVAR/Scheduling benchmark 후 producer/consumer 문서를 함께 변경한다. Stream을 무제한 buffering하지 않고 content length와 실제 read bytes를 모두 제한한다.
+Readonly에서 exact Origin/strong If-Match와8 KiB 이하 strict `{ "scope": "project" }`만 검사하며 edit session은 요구하지 않는다. 같은 SQLite read transaction과 clock1회에서 canonical full snapshot을 읽고 revision을 확인한다. UI/WBS/Dashboard 필터는 적용하지 않는다.1.1 tasks·모든 Dependency·명시 memberships·source metadata를 출력하고 sourceTaskId는 참고 UUID다. Summary derived 값과 Ready/effective/KPI/권한/Resource/물류를 authored 파일에 넣지 않는다. existing mixed Link도 생략하지 않지만 해당 파일의 새 Import는 전체 거부된다. 빈 Project Export는 허용한다.5 MiB/Task5000/Link20000/Task당 incoming100 한도를 넘거나 표현 불가능하면422 EXPORT_LIMIT_EXCEEDED/EXPORT_UNSUPPORTED다. canonical LinkService가 허용한 incoming101도 JSON 교환 cap100 때문에 전체 실패하며 Link를 절삭하지 않는다.
+
+성공 MIME은 `application/vnd.mastergantt.import+json; charset=utf-8`, UTF-8 no BOM, filename은 `mastergantt-{publicId}-r{revision}.json`, ETag는 revision, nosniff/private,no-store다. 실제 leaf description/url/baseline·status·requestedStart 및 배열 sibling 순서를 보존하고 target Calendar 차이는 재import Preview에서 확인한다.
 
 ## 8. Excel Export API
 
@@ -755,7 +811,7 @@ Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 Content-Disposition: attachment; filename="mastergantt-<publicId>-r<revision>.xlsx"
 ```
 
-Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 내부 OOXML/ZIP writer로 Gantt/Tasks/Project, 선택적 Dependencies, 선택적 Logistics sheet를 생성한다. Project 상태는 읽기 전용 metadata로 출력하며 Import의 Project metadata 변경 계약에는 영향을 주지 않는다.
+Excel 전용 bundle은 같은 SQLite deferred read transaction/clock1회에서 canonical Project/default MilestoneDashboardDto/optional ResourceWorkload를 읽고 Project/Catalog revision을 검증한다. mismatch는412다. Membership/Milestone이 있는 snapshot에 Stage DTO가 없으면 handler500 CONFIGURATION_ERROR, builder EXPORT_UNSUPPORTED로 no-loss 실패한다. writer는 transaction 밖에서 Gantt/Tasks/Project, 선택적 Dependencies/Logistics/ResourceEffort 및 Milestone Stages를 생성한다. Tasks에는 Dependency 옵션과 독립된 Task ID/parentExternalId/requestedStart/status/leaf Baseline3/explicit·effective·inherited source ID+externalId를 추가한다. Stage는 전체F/defaultfilters/asOf/horizon14/timezone/calculatedAt/Project·Catalog revision/원시 KPI·full E/P/Gate/risk/role·all buckets·미지정/Grand Total/개인 assignment/null allocation·M/M 값/출처를 #463 DTO 그대로 출력한다. 현재 Dashboard UI 조건과 다른 default full Project 기준이며 UUID는 한 개씩 행으로 기록한다. Stage50000행/text32767 초과는 전체 실패다. Project 상태는 읽기 전용 metadata로 출력하며 Import의 Project metadata 변경 계약에는 영향을 주지 않는다.
 
 ## 8.1. Gantt 이미지 Export API
 
@@ -977,114 +1033,115 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
 
 ### `GET /api/projects/{publicId}/logistics/dashboard`
 - **권한**: Public-read (프로젝트 직람 가능 시 편집 세션 불필요).
-- **설명**: 물류 프로젝트의 3개 핵심 KPI(기간 가중 진척률, 미완료 지연 작업, 마일스톤 경보), 보조 계획 공수(M/D, M/M), 데이터 품질 진단, 공정·설비·시스템별 세부 집계를 단일 읽기 트랜잭션 내에서 일관된 스냅샷으로 계산하여 반환한다.
+- **설명**: 물류 프로젝트의 3개 핵심 KPI(기간 가중 진척률, 미완료 지연 작업, Milestone 경보), 보조 계획 공수(M/D, M/M), 데이터 품질 진단, 공정·설비·시스템별 세부 집계를 단일 읽기 트랜잭션 내에서 일관된 스냅샷으로 계산하여 반환한다.
 - **쿼리 파라미터**:
   - `asOfDate` (string, `YYYY-MM-DD`): 기준일 (기본값: 오늘 일자).
-  - `horizonDays` (number, `1`~`90`): 마일스톤 임박 판정 기간 일수 (기본값: `14`).
+  - `horizonDays` (number, `1`~`90`): Milestone 임박 판정 기간 일수 (기본값: `14`).
   - `systemView` (`"direct"` | `"coordination"`): 시스템 집계 모드 (기본값: `"direct"`).
     - `direct`: 태스크에 직접 연결된 시스템 기준.
     - `coordination`: Coordinator DAG를 순회하여 하위 Controller 및 해당 Controller가 제어하는 설비까지 roll-up(중복 태스크는 정확히 1번만 집계).
   - `activeOnly` (boolean): `true`일 경우 활성(`active = true`) 마스터 항목만 집계에 포함 (기본값: `false`).
   - `includeDescendantProcesses` (boolean): 공정 필터 시 하위 공정 포함 여부 (기본값: `true`).
-  - `mdPerMm` (number): M/M 환산 기준 M/D 일수 (기본값: `20`, 양수).
+  - `mdPerMm` (number 또는 문자열 `null`): 유한 양수인 명시 환산 기준. 생략하면 유효한 `RESOURCE_MD_PER_MM`, 미설정/잘못된 ENV이면 `null`이다. `mdPerMm=null`은 ENV와 무관하게 환산하지 않는다. 빈 값/잘못된 값/반복 scalar는 `400 INVALID_REQUEST`다. #463부터 숨은 20일 기본값을 제거했다.
   - `processIds` (string): 콤마로 구분된 공정 ID 목록.
   - `equipmentIds` (string): 콤마로 구분된 설비 ID 목록.
   - `systemIds` (string): 콤마로 구분된 시스템 ID 목록.
   - `taskAssigneeResourceIds` (string): 콤마로 구분된 태스크 배정 리소스 ID 목록.
   - `roleResourceIds` (string): 콤마로 구분된 설비/시스템 담당 역할 리소스 ID 목록.
-- **성공 응답** (`200 OK`):
+- **성공 응답** (`200 OK`): 일반 Task가 없고 수동 이벤트 Milestone 하나가 있는 Project, query/ENV 환산 기준이 없는 경우다. 실제 `LogisticsDashboardDto` 필드명을 사용한다.
+
   ```json
   {
     "data": {
-      "project": {
-        "publicId": "project-public-id",
-        "name": "스마트 물류센터 프로젝트",
-        "status": "in_progress",
-        "revision": 12
-      },
-      "catalogRevision": 3,
+      "projectRevision": 1,
+      "catalogRevision": 1,
       "asOfDate": "2026-10-06",
+      "timezone": "Asia/Seoul",
+      "calculatedAt": "2026-10-06T01:00:00.000Z",
       "horizonDays": 14,
-      "systemView": "coordination",
-      "kpis": {
-        "progressPercent": 62.5,
-        "overdueLeafTaskCount": 1,
-        "delayedMilestoneCount": 0,
-        "upcomingMilestoneCount": 1,
-        "totalLeafTaskCount": 3,
-        "totalMilestoneCount": 1,
-        "totalDurationDays": 8
+      "systemView": "direct",
+      "activeOnly": false,
+      "kpi": {
+        "progressPercent": null,
+        "totalDuration": 0,
+        "taskCount": 0,
+        "overdueTaskCount": 0,
+        "overdueTaskIds": [],
+        "milestoneTotalCount": 1,
+        "milestoneOverdueCount": 0,
+        "milestoneOverdueIds": [],
+        "milestoneUpcomingCount": 1,
+        "milestoneUpcomingIds": [
+          "a11b1111-1111-4111-8111-111111111111"
+        ]
       },
       "effort": {
-        "plannedTotalMd": 5.0,
-        "plannedTotalMm": 0.25,
-        "unassignedEffortLeafTaskCount": 1,
-        "mdPerMm": 20
+        "plannedMd": 0,
+        "plannedMm": null,
+        "mdPerMm": null,
+        "mdPerMmSource": "unset",
+        "unsetAllocationCount": 0,
+        "workloadRange": {
+          "from": null,
+          "to": null
+        }
       },
       "quality": {
-        "unlinkedLeafTaskCount": 0,
-        "totalLeafTaskCount": 3,
-        "unlinkedLeafTaskPercent": 0,
+        "unlinkedLeafTaskCount": 1,
+        "totalLeafTaskCount": 1,
+        "unlinkedLeafTaskPercent": 100,
         "equipmentWithoutPrimaryControllerCount": 0,
         "equipmentWithoutOwnerCount": 0,
         "systemsWithoutPrimaryPICount": 0,
-        "totalEquipmentQuantity": 8
+        "totalEquipmentMasterCount": 0,
+        "totalEquipmentQuantity": 0
       },
       "breakdowns": {
-        "processes": [
-          {
-            "id": "proc-id",
-            "code": "P1",
-            "name": "보관공정",
-            "parentProcessId": null,
-            "sortOrder": 1,
-            "active": true,
-            "taskCount": 1,
-            "progressPercent": 50.0,
-            "overdueTaskCount": 1,
-            "plannedMd": 2.0,
-            "taskIds": ["task-1"]
-          }
+        "processes": [],
+        "equipment": [],
+        "systems": []
+      },
+      "includedTaskIds": [],
+      "includedMilestoneIds": [
+        "a11b1111-1111-4111-8111-111111111111"
+      ],
+      "milestoneStages": {
+        "milestoneTaskIds": [
+          "a11b1111-1111-4111-8111-111111111111"
         ],
-        "equipment": [
+        "rows": [
           {
-            "id": "eq-id",
-            "code": "E1",
-            "name": "Stocker unit1",
-            "equipmentType": "stocker",
-            "quantity": 1,
-            "processId": "proc-id",
-            "processName": "보관공정",
-            "primaryControllerName": "SCS",
-            "ownerName": "홍길동",
-            "active": true,
-            "taskCount": 1,
-            "progressPercent": 50.0,
-            "overdueTaskCount": 1,
-            "plannedMd": 2.0,
-            "taskIds": ["task-1"]
-          }
-        ],
-        "systems": [
-          {
-            "id": "sys-id",
-            "code": "C3",
-            "name": "MCS",
-            "systemType": "mcs",
-            "layer": "coordinator",
-            "scope": "project",
-            "primaryPiName": "홍길동",
-            "active": true,
-            "taskCount": 3,
-            "progressPercent": 62.5,
-            "overdueTaskCount": 1,
-            "plannedMd": 5.0,
-            "taskIds": ["task-1", "task-2", "task-3"]
+            "milestoneTaskId": "a11b1111-1111-4111-8111-111111111111",
+            "name": "검토 이벤트",
+            "externalId": "M1",
+            "scheduledDate": "2026-10-06",
+            "status": "not_started",
+            "progress": 0,
+            "stageGate": {
+              "memberTaskIds": [],
+              "memberCount": 0,
+              "completedMemberCount": 0,
+              "incompleteMemberTaskIds": [],
+              "memberProgressPercent": null,
+              "predecessorMilestoneTaskIds": [],
+              "incompletePredecessorMilestoneTaskIds": [],
+              "membersCompleted": false,
+              "predecessorsCompleted": true,
+              "ready": null,
+              "blocked": false,
+              "manualEvent": true,
+              "completionInconsistent": false
+            },
+            "memberDurationSum": 0,
+            "memberWeightedProgressSum": 0,
+            "overdue": false,
+            "upcoming": true,
+            "atRisk": false,
+            "riskTaskIds": [],
+            "risks": []
           }
         ]
-      },
-      "includedLeafTaskIds": ["task-1", "task-2", "task-3"],
-      "includedMilestoneIds": ["milestone-1"]
+      }
     }
   }
   ```
@@ -1288,7 +1345,7 @@ Frontend는 현재 Project `publicId`와 마지막 확정 revision을 기준으�
 
 Summary는 자식 수와 무관하게 유효한 WBS 컨테이너다. 모든 canonical GET/mutation 응답에서 일정 있는 Task/Milestone 자손이 없으면 `type: summary`, `scheduleMode: auto`, `requestedStart/start/end/duration/progress: null`을 반환한다. 빈 Summary들만 중첩된 경우도 동일하다. 이름/ID/parent/order·직접 Resource/Group·물류 `self/subtree` 연결은 유지한다. Leaf의 필수 날짜·기간·진척, Summary Dependency endpoint 금지는 유지한다.
 
-`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 기존 이름 변경 정책을 유지하며 일정 수동 입력을 허용하지 않는다. 생성/복사 시 저장한 description/URL은 부모가 비어도 보존한다.
+`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 이름·description·URL·명시 Milestone 소속만 직접 변경할 수 있으며 일정·진척·상태·Baseline 수동 입력을 허용하지 않는다. 생성/복사/직접 편집으로 저장한 description/URL은 부모가 비거나 일정 재계산이 발생해도 보존한다.
 
 단건 DELETE는 빈 Summary 자체를 삭제할 수 있다. 자손이 있는 Summary는 기존 `includeDescendants=true` 확인 경로를 이용한다. 마지막 child/선택 subtree 삭제 또는 reparent/indent/outdent 이후에도 범위 밖 부모가 비었다는 이유로 `EMPTY_SUMMARY_NOT_ALLOWED`를 반환하지 않는다. 한 논리적 변경의 transaction/revision/changed/deleted ID 계약과 보호 정책은 유지한다. 과거 오류 코드는 legacy error adapter의 호환 mapping만 남아 있으며 이 조건에서는 발생하지 않는다.
 
@@ -1339,54 +1396,233 @@ Resource Catalog의 Resource 표현은 `roles` 배열을 반환한다.
 
 Task assignment search/assigned-target DTO에는 이 Issue에서 roles를 새로 결합하지 않는다. 역할 적합성 기반 Task assignment는 후속 #413의 범위다.
 
-## Issue #413 — Task assignment 수행 역할
+## Issue #485 — Task assignment와 Global Role
 
-`GET /api/projects/{publicId}/assignment-targets`와 `GET /api/projects/{publicId}/assigned-targets`의 Resource target은 `roles: ("PI" | "DEVELOPER" | "EQUIPMENT_OWNER")[]`를 제공한다. Group target에는 roles를 제공하지 않는다.
+`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 개인 Resource target은 `kind`, `id`, 선택적 `allocation`만 사용한다. Task별 수행 역할은 저장하지 않는다.
 
-`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 Resource target은 optional `role`을 함께 받는다.
+- 호환용 request `role`은 omitted/null만 허용하고 non-null 값은 invalid request다.
+- canonical `ProjectAssignmentDto.role`은 Resource/Group 모두 null이다. 역할 정보가 필요하면 assignment target/Resource catalog의 Global `roles`를 사용한다.
+- `assignment-targets?kind=resource&role=...`의 `role`은 **Global Role 후보 검색 조건**이다. MAX_SEARCH_RESULTS 적용 전에 서버에서 필터하며 catalog revision 계약을 유지한다.
+- Global Role 변경은 Task assignment usage 때문에 차단하지 않는다. `ASSIGNMENT_ROLE_INVALID`/`RESOURCE_ROLE_IN_USE` Task-role 오류는 더 이상 사용하지 않는다.
+- Project Copy/Template은 Task별 role을 보존하지 않고 assignment/allocation만 보존한다. legacy template의 `assignmentRole`은 읽을 수 있으나 instantiate 시 무시한다.
 
-```json
-{
-  "catalogRevision": 23,
-  "targets": [
-    {
-      "kind": "resource",
-      "id": "<resource uuid>",
-      "role": "DEVELOPER",
-      "allocation": { "start": null, "end": null, "percent": 60 }
-    }
-  ]
-}
-```
+## Issue #414 — Global Role 기반 Resource workload 응답
 
-non-null role은 해당 Resource가 현재 보유한 Global Resource Role이어야 한다. omitted/null은 migration 이전 연동과 기존 역할 미지정 assignment의 하위 호환 상태로 유지된다. Group target에 `role` 또는 allocation을 보내면 invalid request다. 응답 `ProjectAssignmentDto.role`은 Resource에서 수행 역할 또는 null, Group에서 null이다.
-
-역할 검증은 기존 edit session, exact Origin, strong Project `If-Match`, `catalogRevision`과 같은 transaction에서 수행한다. stale catalog는 `412 CATALOG_REVISION_MISMATCH`, Resource가 보유하지 않은 role은 `409 ASSIGNMENT_ROLE_INVALID`이다. Resource Catalog에서 사용 중 role 제거는 `409 RESOURCE_ROLE_IN_USE`와 role/Project count/Task count detail을 반환한다.
-
-### Issue #413 역할 기반 assignment target 검색
-
-`GET /api/projects/{publicId}/assignment-targets`는 optional `role=PI|DEVELOPER|EQUIPMENT_OWNER`를 지원한다. role은 Resource 후보에만 적용하며 `kind=group`과 함께 보내면 `400 INVALID_REQUEST`다. 서버는 Global Resource Role membership으로 먼저 필터한 뒤 기존 최대 100건 제한을 적용하므로, 전체 활성 대상이 100건을 넘어도 해당 역할 Resource가 앞선 무관 후보 때문에 잘리지 않는다.
-
-Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Role에서 제거된 경우 project 생성 자체를 실패시키지 않는다. 기존 assignment와 allocation은 보존하고 수행 역할만 `null`로 복원하며 warnings에 stale 역할을 명시한다.
-
-## Issue #414 — 역할 기반 Resource workload 응답 확장
-
-`GET /api/projects/{publicId}/resource-workload`는 #56의 public-read/조회범위/M-D·M-M 계산 계약을 유지하면서 역할 기반 진단 필드를 추가한다.
-
-- `asOfDate` / `timezone`: Project calendar timezone 기준 서버 기준일과 timezone.
-- `roleTotals[]`: `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`별 `assignmentCount`, `effortMd`, `effortMm`, `unsetCount`.
-- `unspecifiedRoleCount`: 조회 범위에 포함된 role-null 일반 Task Resource assignment 수.
-- `overAllocatedResourceCount`: 기존 일별 allocation 합계 100% 초과 규칙으로 판정한 고유 Resource 수.
-- Resource row는 `developerGrade`를, Task row는 `role`, canonical `taskStart/taskEnd`, `progress`, `status`, `delayed`를 제공한다.
-
-역할은 분류 축일 뿐 공수를 생성하지 않는다. Grand Total과 역할 subtotal은 동일 assignment를 중복 생성하지 않으며 role-null은 Global Role로 추정하지 않고 `UNSPECIFIED`로 유지한다. `delayed`는 #188과 동일하게 `progress < 100 && canonical end < asOfDate`다. 진행률/상태는 계획 공수 산식의 입력이 아니다.
-
-상세 설계: [ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md).
-
-
-
+- Grand Total M/D·M/M은 assignmentId 기준 한 번만 합산한다.
+- 각 개인 assignment의 역할 표시는 Resource의 현재 Global `roles`를 사용한다. 역할이 없으면 `UNSPECIFIED` 분류를 사용한다.
+- 복수 Global Role Resource는 동일 assignment가 여러 role subtotal에 포함될 수 있으므로 role subtotal은 비가산 분류다. subtotal 합은 Grand Total과 일치할 필요가 없다.
+- `unspecifiedRoleCount`는 Global Role이 없는 Resource assignment 수다.
+- 기존 `assignmentRoles` query key는 호환을 위해 유지하되 Global Role 필터 의미다. resource/Global Role/developerGrade 조건은 같은 Resource assignment에서 AND로 만족해야 한다.
 ## Issue #415 — Excel Resource Effort 옵션
 
 `POST /api/projects/{publicId}/exports/excel` 요청에 optional boolean `includeResourceEffort`를 추가한다. true이면 서버는 #414와 동일한 기본 range 및 `RESOURCE_MD_PER_MM` 환경값으로 Resource workload를 계산하고, export 대상 Project snapshot의 revision과 workload `projectRevision`을 비교한다. 불일치하면 기존 stale 보호와 동일하게 412 `REVISION_MISMATCH`를 반환한다.
 
 `GET /api/projects/{publicId}/resource-workload`의 assignment detail에는 additive field `effectiveWorkingDays`가 포함된다. 이 값은 assignment/range clipping 및 Project/Group/Resource Calendar override를 적용한 canonical 근무일 수이며, Excel은 이를 재계산하지 않는다.
+
+
+## Issue #461 Editor의 기존 소속 API 사용
+
+신규 endpoint/DTO/authorization 계약은 없다. Task/Summary 기본 저장은 변경된 허용 기본 필드와 `explicitMilestoneTaskId`를 기존 Task PATCH 한 요청에 담는다. omission은 기존 직접 지정 보존, null은 직접 지정 해제·상속 복귀다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 전송하며 일정·진척·상태·Baseline은 계속 파생/read-only다. Milestone 소속 탭은 기존 `POST /api/projects/{publicId}/milestone-memberships`의 changes를 한 번 전송한다.
+
+UI canonical parser는 `operation.kind=milestoneMembership`을 Task mutation으로 수락하고 응답 전체 tasks/links/project.revision을 Workspace와 열린 Editor에 함께 적용한다. 클라이언트 dirty/pending/완료 disable은 서버 권한을 대신하지 않는다. Editor 실패는 초안을 보존하며 412 이후 명시 GET·폐기 확인·최신 값 검토가 필요하고 자동 재전송하지 않는다. 완료/재개는 기존 status PATCH이며 재개와 소속 batch를 숨은 복합 요청으로 만들지 않는다.
+
+
+## Issue #463: Milestone Dashboard API
+
+### `GET /api/projects/{publicId}/milestone-dashboard`
+
+Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-Match 없는 조회이며 DB 및 revision을 변경하지 않는다. 보호 mutation의 기존 session/Origin/revision 계약은 유지한다. 모든 대상 ID는 immutable public UUID다. 정확한 필드 타입은 [milestone-dashboard.ts](../src/contracts/milestone-dashboard.ts), 계산·분모는 [Milestone 대시보드 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
+
+| Query | 검증/기본값 |
+| --- | --- |
+| search | 이름/externalId/taskId substring, trim, 최대200자. casing은 echo에서 보존 |
+| milestoneIds | 표시 S 선택, F 공수는 유지 |
+| asOfDate | YYYY-MM-DD, 생략 시 현재 Project timezone 날짜 |
+| horizonDays | 정수1..90, 기본14 |
+| from / to | YYYY-MM-DD, F 기간만 제한. 생략 시 일반 Task 일정 min/max; 빈 Project는 기준일 조회 범위. resolved from>to이면400 |
+| resourceIds / assignmentRoles / developerGrades | 동일 개인 assignment에 AND 적용. 수행 역할 PI/DEVELOPER/EQUIPMENT_OWNER/UNSPECIFIED, 등급 BEGINNER/INTERMEDIATE/ADVANCED/EXPERT/UNSPECIFIED |
+| processIds / equipmentIds / systemIds / roleResourceIds | 기존 물류 direct/subtree/coordination matcher 재사용 |
+| systemView | direct(기본)/coordination |
+| activeOnly / includeDescendantProcesses | true/false만, 기본false/true |
+| mdPerMm | 유한 양수 또는 null 문자열, 생략 ENV 정책 |
+
+배열은 반복 key/CSV를 모두 지원하고 unique/sort한다. 배열별 최대500 고유 값, query 직렬화 최대16384자다. unknown query, 반복 scalar, 빈/잘못된 배열 ID·enum·날짜·숫자는400 `INVALID_REQUEST`다. 구문상 유효하지만 현재 Project/catalog에 없는 선택은 정상 empty-match이며 전체 범위로 확대하지 않는다. 잘못된/없는 publicId는404 `PROJECT_NOT_FOUND`, 내부 오류는500 `INTERNAL_ERROR` 공통 envelope이며 SQL/stack/path를 노출하지 않는다.
+
+200 `{data: MilestoneDashboardDto}`는 projectPublicId/projectRevision/catalogRevision/calculatedAt/timezone/asOfDate/horizonDays/filters/workloadRange/mdPerMm/mdPerMmSource, kpi/rows/scope/effort/catalog를 반환한다. filters의 요청 날짜 omission은 null, `mdPerMmProvided`는 omission=false/명시 숫자 또는null=true다. root 날짜/기준값은 resolved 결과다. kpi 비율은 numerator/denominator/percent와 대상 ID, count는 count+milestoneTaskIds를 함께 제공한다. rows는 full E/P의 stageGate·raw 소속 진척 numerator/denominator·위험 원인·scopedTaskIds/effort다. effort는 전체 F의 assignment detail, role totals, hidden 단계 포함 bucket과 null 미지정 bucket이며 rows 합으로 Grand Total을 대체하지 않는다. catalog는 Project 관련 단계/물류/참조 Resource의 최소 이름/code/active/grade 후보이며 관리자 데이터 전체를 공개하지 않는다.
+
+기존 Logistics dashboard는 additive `milestoneStages={milestoneTaskIds,rows}`로 같은 full-stage projection을 제공한다. 기존 includedTaskIds/progress/plannedMd/경보 수치는 확장하지 않는다. effort.mdPerMmSource를 추가하고 숨은20일 환산을 제거하므로 설정이 없으면 plannedMm/mdPerMm=null이다. `mdPerMm=null`은 ENV를 무시하며 invalid/빈/반복 mdPerMm은 이전의 조용한 무시 대신400을 반환한다.
+
+단계→Resource drill은 기존 `GET /api/projects/{publicId}/resource-workload?from=&to=`를 같은 기간으로 호출한다. 기존 API 필드·ENV 환산·4자리 rounding은 N/A(변경 없음)이며 UI가 range echo/Project/Catalog revision을 검사하고 받은 개인 assignment만 표시 필터한다. Stage raw 공수 및 query 환산 기준과 기존 Resource 기간 subtotal/ENV 기준을 구분하고, scope 해제는 기본 조회로 복귀한다. 이 동작은 Resource API에 새 필터나 계산 엔진을 추가하지 않는다.
+
+## Issue #524 Resource Dashboard 조회 PLAN
+
+`GET /api/projects/{publicId}/resource-dashboard`와 `GET /api/projects/{publicId}/resource-dashboard/details`는 현재 Project public-read 정책(UUIDv4+Project 존재 확인)을 적용하는 stateless readonly API다. 성공·오류 응답은 `private, no-store`, `X-Content-Type-Options: nosniff`, `X-Request-ID`를 제공하며 쿠키/CORS 권한을 추가하지 않는다. detail은 동일 query/filter/snapshotId를 요구하며 stale이면409 REPORT_STALE다.
+
+정확한 query/DTO/선택·검색·null·snapshot·budget 계약은 [Resource KPI 공통 집계](RESOURCE_KPI_DASHBOARD.md#issue-524-서버-report-plan과-공개-계약)와 `src/contracts/resource-dashboard.ts`를 따른다. mode는 Resource/Group projection만 선택한다. 새 API는 unknown/stale/다른 Project/Project 미연결 public ID를400 INVALID_SELECTION으로 거부한다. 기존 resource-workload 및 Stage/Logistics 응답/4자리 의미는 변경하지 않는다. fullTask5000/Assignment8000/Link20000/Calendar rule·date각20000/연결Group소속16000,366일, Group 반복16000/cell5000/WBS누적node50000/path이름20000자/report·detail각2MiB/detail100 등의 유한 한도를 넘으면422 REPORT_LIMIT_EXCEEDED이고 완전한 합계처럼 부분 결과를 반환하지 않는다.
+
+
+Report query는 `from`, `to`, `asOfDate`, `search`, `taskSearch`, `mode=resource|group`, `resourceActivity=all|active|inactive`, `groupActivity=all|active|inactive`, `mdPerMm` 및 배열 `resourceIds/groupIds/roles/developerGrades/milestoneIds/taskIds/wbsRootIds/statuses`다. 배열은 반복 key 또는 comma 값이며 exact duplicates는 unique/sort한다. Query 전체32768자, 검색각200자, 배열축 raw200/전체400개다. 빈 배열을 전송하지 않고 필터 해제는 key omission을 사용한다. scalar 중복과 unknown key는400이다. 날짜 echo omission=null과 resolved range/asOfDate를 구분한다.
+
+Detail query는 동일 report 조건에 필수 `snapshotId=<64 lowercase hex>`, `dimension`, 필요 `id`, optional `milestoneTaskId`, `metric`, `view=tasks|assignments`, `offset=0..8000`, `limit=1..100`(기본50)를 더한다. Row/cell의 selector에서 Group id=null은 id=ungrouped, Milestone id=null 및 milestoneTaskId=null은unassigned로 변환한다. all/diagnostic은id를 생략한다. diagnostic은 view=tasks, 완전미할당/Group-only/개인미배정/unset metric만 허용한다. Task KPI는 view=tasks로 고유 Task ID 집합, Assignment KPI는 view=assignments로 원시 grain을 resolve한다.
+
+Report `data`는 schema/projectPublicId/projectRevision/catalogRevision/calendarRevision/snapshotId/calculatedAt/asOfDate/timezone/filters/range/rangeFallback/mdPerMm/mdPerMmSource/scope, compact summary/resources/groups/roleTotals/milestones/stages/diagnostics/catalog/metadata다. Resource/Group 행은 서버가 계산한 assignmentRange를 포함한다. full stage 진척/Ready/Blocked와 selected Task summary는 별개다. Detail `data`는 동일 schema/identity/revision과 selector/view/offset/limit/totalCount/nextOffset/rows다. 행은 Task/WBS/Milestone public identity와 canonical Task 일정·status/progress, 개인 Assignment가 있을 때 개인 분류·투입기간·raw 계획 공수를 포함한다. 빈 결과나 미할당 진단에 가짜 Assignment를 만들지 않는다.
+
+`mdPerMmProvided=false`인 report filter를 상세 query로 재전송할 때 mdPerMm은 생략한다. explicit null은문자열null이다. 동일 filter에 projection mode만 바꿀 수 있으며 다른 날짜/filter/환산 또는 데이터 변경은409 REPORT_STALE다. Task 삭제로 선택 ID가 stale된 detail도409를 반환하고 report 조회의 INVALID_SELECTION과 구분한다. 예산은422 REPORT_LIMIT_EXCEEDED, Calendar same-level conflict는409 RESOURCE_CALENDAR_EXCEPTION_CONFLICT, 존재하지 않는 Project는404 PROJECT_NOT_FOUND다. 오류에는 SQL/stack/내부PK/secret을 노출하지 않는다.
+
+
+## Issue #526 Milestone roll-up 조회 확장
+
+기존 `resource-dashboard/1` report/detail은 호환 유지한다. report는 `reference`/`excluded` compact summary와 `milestoneSelection`을 항상 반환하며 TypeScript 타입은 additive optional이다. reference는 Milestone 필터만 제거, excluded는 실제 Assignment 집합 차이다. 각 summary.selector.assignmentScope는 milestoneReference/milestoneExcluded, 기존 선택은 selected다. Detail query에 optional assignmentScope를 추가하고 omission을 selected로 echo한다. diagnostic은 selected만 허용한다. optional resourceId는 dimension=group에서만 public UUID 문자열로 받으며 null은400이다.
+
+신규 `GET /api/projects/{publicId}/resource-dashboard/group-children`은 동일 report filters와 snapshotId/groupId, optional milestoneTaskId, offset/limit를 사용한다. groupId=ungrouped와 milestoneTaskId=unassigned는 null이며 Milestone omission은 전체다. metric/assignmentScope/resourceId는 이 경로에서400이다. 동일 public-read guard와 성공·오류 private/no-store/nosniff/X-Request-ID를 적용한다. default50/max100/offset8000, pagecells5000 및 JSON2MiB를 적용한다.
+
+응답 `{data: ResourceDashboardGroupChildrenDto}`는 schema/snapshotId/projectPublicId/projectRevision/catalogRevision/calendarRevision/filters/range/asOfDate/mdPerMm/mdPerMmSource/groupId/optional milestoneTaskId/summary/offset/limit/totalCount/nextOffset/rows다. rows는 Group 교집합 ResourceDashboardRow이며 selector.dimension=group/id=groupId/resourceId를 유지한다. 개인 ID 순 페이지, Milestone 예정일+ID 순/미지정 마지막이다. 현재 필터에 없는 유효 Group 구성원 상세는200empty, 다른 Group/미연결 Resource는400 INVALID_SELECTION, source/scope 변경은409 REPORT_STALE다. full snapshot 예산 초과는 기존422를 유지한다. 정확한 계산·null·범위는 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
+
+
+## Issue #527 Resource Plan 공개 조회
+
+`GET /api/projects/{publicId}/resource-dashboard?granularity=week|month`는 기존 `resource-dashboard/1`에 optional `plan`을 추가한다. granularity 생략 시 Plan 계산·필드가 없고 기존 raw/null/legacy 응답을 유지한다. mode와 granularity는 projection이므로 snapshotId에서 제외한다. normalized filters에는 요청 granularity를 echo하며 기간·개인 조건·Task 조건·asOfDate·M/M 정책은 계속 identity에 포함한다. 같은 normalized 조회의 기본/week/month는 동일 snapshotId다.
+
+Plan은 periods/population/totals/resources/groups/metadata를 제공한다. Resource는 R 전체의 안전한 이름/code/active/groupIds/Global Role/개발 등급을 포함해 0부하 개인을 유지한다. Group은 R 구성원의 고유 resourceIds만 반환한다. 각 summary/cell은 selected/project 지표 쌍이며 cell.periodKey는 periods.key다. 개인별 sparse Milestone에는 canonical 이름/예정일, capacityReferenceOnly/projectReferenceOnly와 projectReferenceRow를 제공한다. Milestone의 selected는 기여, project는 동일 개인 Project 전체 참고로서 Milestone 귀속 공수나 과투입이 아니다.
+
+신규 GET 경로는 다음과 같다. 세 경로 모두 기존 public-read Project guard와 성공/오류 private/no-store/nosniff/X-Request-ID를 사용하고 session 없이 조회한다.
+
+| 경로 | selector | 추가 필수 조건 | 응답 view |
+| --- | --- | --- | --- |
+| `/resource-dashboard/plan/daily` | total/group/resource/resourceMilestone | 없음 | daily |
+| `/resource-dashboard/plan/day-resources` | total/group | date | day-resources |
+| `/resource-dashboard/plan/day-assignments` | resource/resourceMilestone | date | day-assignments |
+
+모든 상세는 기존 report filters와 snapshotId(64자리 SHA256), granularity, periodId, row, demandScope를 필수로 보낸다. periodId=all은 조회 전체, 나머지는 해당 granularity의 실제 periods.key다. date는 부모 periodId의 clipped 범위 안이어야 한다. row=group은 groupId=UUID|ungrouped, row=resource는 resourceId=UUID, row=resourceMilestone은 resourceId와 milestoneTaskId=UUID|unassigned를 요구한다. total에는 ID를 보내지 않는다. demandScope=selected|project를 생략하지 않는다. 기본 offset0/limit50, 최대 offset8000/limit100이며 반복 scalar·unknown key·잘못된 조합은400 INVALID_REQUEST다. metric/view/assignmentScope는 새 경로에서 허용하지 않는다.
+
+응답 `{data: ResourcePlanDetailsDto}`는 schema/projectPublicId/snapshotId/Project·Catalog·Calendar revisions, filters/range/asOfDate/mdPerMm/mdPerMmSource, granularity/periodId/selector/demandScope/optional date, view/offset/limit/totalCount/nextOffset/rows를 echo한다. Daily는 날짜별 numeric metrics이며 Assignment ID 배열을 반복하지 않는다. day-resources는 Resource ID 안정 정렬, 0부하 개인 포함 및 안전한 분류 metadata와 당일 metrics를 반환한다. day-assignments는 Resource ID→Task ID→Assignment ID 안정 정렬의 별도 bounded 원인 페이지이며 날짜·투입률·근무 여부·일별 known/planned M/D, canonical Task/원시 Assignment 기간, Milestone 이름, WBS public path를 제공한다. page를 전체 KPI로 재합산하지 않는다.
+
+예시: `plan/daily?from=2026-10-19&to=2026-10-20&granularity=week&snapshotId=<report.snapshotId>&periodId=all&row=resource&resourceId=<R>&demandScope=project`. 다음 원인 조회는 같은 context에 `date=2026-10-19`를 추가해 `plan/day-assignments`로 보낸다. Milestone 행의 전체 과투입 참고 원인은 row=resource/demandScope=project로 조회해 선택 Milestone 밖 원인을 유지한다. row=resourceMilestone/demandScope=project 자체는 해당 Milestone의 Project 기여이므로 report Milestone.project 참고값과 동일하다고 해석하지 않는다.
+
+현재 snapshot을 먼저 확인해 source/filter/환산 변경은409 REPORT_STALE, 이후 foreign ID·R 밖 개인·비표시/멤버 없는 Group·잘못된 실제 period/date는400 INVALID_SELECTION이다. 기간366/resourceDays200000/assignmentDays1000000/matrixCells5000/응답 JSON2097152 bytes를 초과하면422 REPORT_LIMIT_EXCEEDED다. 실제 `{data}` envelope까지 bytes를 검사하며 부분 기간·개인을 절삭하지 않는다. 전체 계산·Capacity·unknown 의미는 [Resource Plan 계약](RESOURCE_KPI_DASHBOARD.md#issue-527-backend-resource-plan-범위와-api)을 따른다.
+
+## Issue #528 — 정확한 Resource·일정 drill 조회
+
+`GET /api/projects/{publicId}/resource-dashboard/scope`와 `POST /api/projects/{publicId}/resource-dashboard/query`는 공개 읽기 전용이다. GET의 `view=context`는 원본 데이터 context만 반환하며 기간 계산을 하지 않는다. `view=dashboard`는 기존 report 필터와 snapshotId/dimension/id/metric/assignmentScope/optional milestoneTaskId/resourceId를 사용하고, `view=plan`은 기존 granularity/snapshotId/row/periodId/demandScope와 optional date를 사용한다. 두 scope projection 모두 offset/limit를 거부하며 전체 고유 일반 Task IDs≤5000, 개인 Assignment IDs≤8000, 건수와 ancestorSummaryIds를 반환한다. 조상 Summary는 표시 context이며 taskCount 분모에 포함하지 않는다. GET에서 변경되거나 삭제된 필터 대상은 기존 상세와 같이409 REPORT_STALE, fresh snapshot의 외부 selector는400 INVALID_SELECTION이다.
+
+POST는 exact Origin을 요구하되 편집 session은 요구하지 않는다. 본문은 실제 UTF-8 stream1MiB 제한의 `readBoundedJson`을 사용한다. JSON media/charset/encoding 위반은415, JSON·descriptor 문법·필터·raw 입력 배열 상한 위반은400, stream 상한 초과는413이다. 원본 원장·기간366일·projection/cells/serialized response2MiB 등 계산 한도는422이며 절삭하지 않는다. 성공·오류는 private/no-store/nosniff/request ID를 반환하며 쿠키·CORS 권한·서버 token·원장 mutation을 추가하지 않는다.
+
+본문 계약은 `src/contracts/resource-drill.ts`다. `{sourceContext,scope,filters,projection}`을 받으며 scope는 `scheduleSelection/nodeIds≤5000`, `summarySubtree/rootId`, `exactAssignments/assignmentIds≤8000`이다. raw 배열 상한은 중복 제거 전에 검사하고 정규화된 exact set은 정렬·중복 제거한다. 명시 빈 배열은 빈 집합이다. scheduleSelection은 일반 Task와 Summary의 일반 Task 자손만 허용하며 Milestone 노드는 거부한다. exactAssignments는 해당 Project 일반 Task의 개인 Assignment만 허용한다.
+
+projection은 `report`, 기존 상세 입력을 포함한 `details`/`groupChildren`, 기존 Plan 입력을 포함한 `planDaily`/`planDayResources`/`planDayAssignments`, 또는 `scope`의 target=`dashboard|plan`이다. 모든 후속 상세에도 같은 source descriptor를 POST 재전송한다. `{data,drill}` 응답의 drill은 원래 sourceContext/normalized scope/targetFilters/projection과 `assignmentScope=exact-source-intersection`, `projectReferenceScope`를 echo한다. 기존 Plan 참고는 `same-resource-population-and-period`이며 Target 조건 요청은 추가 `targetProjectReferenceScope=full-canonical-project-same-period`로 full canonical Project 참고를 구분한다. 보고에 Plan과 Target projection을 함께 반환해도 두 참고 범위를 혼합하지 않는다. data.sourceContext가 있는 scope 응답은 실제 target range/asOfDate/M-D 정책과 현재 selector의 새 출발 context다. 기존 출발 context를 새 target 조건으로 덮어쓰지 않는다.
+
+ResourceDataContext는 projectPublicId/projectRevision/catalogRevision/calendarRevision/dataSnapshotId다. 공용 reader는 같은 read transaction에서 정렬된 원시 Task/Link/Membership/Assignment/Project 연결 Catalog/Calendar와 R2 Target/binding/member·공정 매핑·관련 master 이름/active 참조를 fingerprint한다. ResourceDrillSourceContext는 실제 source range/asOfDate/mdPerMm/mdPerMmSource/mdPerMmProvided/sourceProjection을 추가한다. sourceProjection은 schedule/milestoneReport/report/details/groupChildren/plan 중 하나이며 Plan은 granularity/periodId/selector/demandScope/optional date를 보존한다. stale 원본 fingerprint 및 미지정 환경 환산 정책 변경은 selector의 의미 검증보다 먼저409다. 실제 parent period 밖 source 또는 target date는400이다. report snapshot identity는 원본 data fingerprint+normalized exact scope+필터/기간/asOf/M-D 정책을 포함하며 mode/page/granularity/projectionOrder를 제외한다.
+
+새 Resource report는 additive resourceScopeContext를 항상 제공한다. 기존 상세/Group/Plan은 additive resourceDataContext를 제공한다. Legacy Milestone report는 같은 read transaction의 additive resourceScopeContext와 resourceScopeUnavailableReason을 제공한다. 추가 원본 context 한도만 초과하면 기존 Milestone 조회를 보존하며 context=null/reason=`limit-exceeded`를 반환한다. 이때 정확한 cross drill은 비활성화하며 새 bootstrap으로 과거 report를 fresh로 대체할 수 없다. Schedule 출발에는 환산 계산이 없으므로 sourceProjection=schedule/mdPerMm=null/source=query/provided=true를 명시하고 실제 target 환산 정책은 별도로 유지한다.
+
+## Issue #529 Resource 보고서 Excel opt-in
+
+기존 `POST /api/projects/{publicId}/exports/excel`에 optional `resourceDashboard`를 추가한다. 생략하면 기존 시트·수치·문자열·예산 계약을 유지한다. exact Origin, strong If-Match, readonly 접근(edit session 불필요), 실제 UTF-8 stream 8 KiB는 그대로다. descriptor가 8 KiB를 넘으면 413 전체 실패이며 ID 절삭이나 상세 page로 대체하지 않는다.
+
+`resourceDashboard`는 다음 strict union이다. `expectedReport.context`는 실제 대상 Resource report의 `resourceScopeContext` 원문이며 `sourceProjection.kind=report`다. raw Project/Catalog/Calendar/dataSnapshot identity와 기간/asOf/환산값·출처·provided 여부를 같은 read snapshot에서 검증한다.
+
+```typescript
+// 기존 Export request의 선택 필드
+resourceDashboard: {
+  basis: "current",
+  expectedReport: { context: targetReport.resourceScopeContext,
+    snapshotId: targetReport.snapshotId, filters: actualFilterInput },
+  binding: { sourceContext: originalDrillSourceContext, scope: originalExactScope }, // drill일 때
+  originalSourceContext: originalDrillSourceContext, // 선택 provenance
+  granularities: ["week", "month"] // unique, 1..2
+}
+```
+
+정상 비-drill current는 binding을 생략할 수 있다. exact report snapshotId를 유지하면서 원래 binding을 누락·변경하면 scope-bound identity가 달라져 412 `REVISION_MISMATCH`로 실패한다. project는 `{basis:"project",expectedReport:{context:targetReport.resourceScopeContext},granularities:["month"]}` 형태이며 filters/snapshotId/binding을 받지 않는다. 실제 대상의 range/asOf/환산 정책은 유지하고 개인·Group·Role·등급·활성·Task/WBS/Milestone·검색·상태·exact 제한을 제거한다. `originalSourceContext`는 선택 출처이며 현재 또는 전체 합계와 동일하다는 근거가 아니다. 서버가 반환한 actual report context를 Workbook 기준으로 기록한다.
+
+동일 deferred SQLite read transaction과 clock 1회에서 기존 KPI·Plan 서비스를 재사용한다. Resource의 REPORT_STALE 409를 이 Export에서는 412 REVISION_MISMATCH로 매핑한다. missing DTO·비유한 값·ID/count/합계/기간 parity 오류와 계산·시트·파일 예산은 422 전체 실패다. malformed request 400, Origin 403, media type 415, stream 413은 기존 계약이다. 성공은 XLSX attachment+ETag/private,no-store/nosniff이고 오류는 JSON/no-store/nosniff이며 cookie를 발급하지 않는다.
+
+새 7개 시트·raw/null·예산 및 단일 검증 Project hyperlink는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다. 기존 Gantt/Stages/Resource Effort는 기존 전체 범위다.
+
+미설정 원장 상세 보완: `dimension=diagnostic&metric=unset&view=assignments`만 허용한다. T0에 원래 source Task/exact Assignment 교집합을 먼저 적용하고 개인·역할 조건 전 raw unset IDs를 count/detail/scope에서 공유한다. 기간 교차 행은 기존 clipped 값과 optional `allocationOverlapsReport=true,effortRangeBasis=report-overlap`을 제공한다. 기간 밖 행은 원래 from/to, 기존 Calendar helper의 근무일, null MD/MM과 `false,raw-allocation`을 제공한다. required numeric 필드는 유지한다. page 전에 모든 대상 원래 기간 합 1,000,000일을 검증하고 초과는 422 REPORT_LIMIT_EXCEEDED(`diagnostic.assignmentDays`)다. 개별 366일 제한을 추가하지 않으며 개인 필터/page로 이 예산을 우회하지 않는다.
+
+## Issue #530 통합 회귀의 조회 기준
+
+`tests/fixtures/resource-kpi-integration.ts`의 동일 6개 Task 원장을 Domain, native SQLite HTTP handler, 실제 Next HTTP와 Excel 회귀에서 재사용한다. 테스트 adapter는 Task/Resource/Group/Assignment의 런타임 public ID를 매핑하고 상태·기간·분류·Milestone 소속을 유지한다. 명시 조회는 `2026-10-05..09`, `asOfDate=2026-10-10`, `mdPerMm=20`이며 known11.5 M/D, unknown1 Assignment, 고유 Task4/Assignment5/Resource2, Capacity10 M/D와 M/M0.575를 확인한다. UI의 서버 기본 기준일·환경 환산은 실제 report echo로 비교하며 이 명시 조회와 동일하다고 간주하지 않는다.
+
+신규 API나 DB 계약은 추가하지 않는다. GET은 Project UUID 기반 공개 읽기이고, 읽기 POST query는 exact Origin, readonly Excel POST는 exact Origin과 strong `If-Match`를 검증한다. 편집 session 없이 조회·Export할 수 있지만 Task 변경은 server session을 요구한다. 다른 Project Task 선택은400, stale drill은409, stale Export는412이며 전체 파일 생성 실패를 유지한다. 현재 제품에 별도의 private Project 모델은 없다. 공개 링크의 읽기 접근을 편집 권한이나 조직 SSO 권한으로 설명하지 않는다.
+
+실제 회귀는 `tests/server/resources/resource-kpi-integration.test.ts`와 `tests/e2e/resource-kpi-integration-api.spec.ts`에 있다. 원격 `quality/e2e/docker`와 실제 reverse proxy/SSO 운영 검증은 이 로컬 증거와 별도로 판정한다.
+
+## Issue #615 — Process Catalog F1 API
+
+기존 Project Master admin 로그인/cookie를 재사용한다. inline 공통 생성의 `401 PROJECT_MASTER_ADMIN_SESSION_REQUIRED`는 관리자 로그인/등록 권한 필요 안내 계약이며 Project edit cookie로 대체하지 않는다. 공통 공정 관리 화면은 후속 구현이다. 아래 `{kind}`는 `types | standards | occurrences | work-areas`이며 wire의 `work-areas`와 DTO의 `workAreas`를 구분한다. ID는 canonical UUID v4, 쓰기 요청은 JSON의 허용 필드만 받는다. 모든 응답/오류는 private, no-store다.
+
+| Method / path | 인증·revision / 동작 |
+| --- | --- |
+| GET `/api/process-catalog/admin` | admin; processCatalogRevision ETag, types/standards/occurrences/workAreas |
+| POST `/api/process-catalog/admin/{kind}` | admin + Origin + strong If-Match(catalog); create201 |
+| PATCH/DELETE `/api/process-catalog/admin/{kind}/{id}` | admin + Origin + strong If-Match(catalog); update/delete200 |
+| GET `/api/process-catalog/admin/standard-diff?businessUnitId=…&productId=…&siteEntityId=…` | admin; missingStandardIds/retiredOccurrenceIds/changed(fields,canApply) |
+| POST `/api/process-catalog/admin/occurrences/apply-standard` | admin + Origin + strong If-Match(catalog); body triple + standardIds |
+| GET `/api/projects/{publicId}/logistics/process-context` | 기존 direct-link public readonly/선택 edit session; 정확 triple의 bounded context, ETag=Project revision |
+| PUT `/api/projects/{publicId}/logistics/process-mappings/{processId}` | Project edit session + Origin + strong If-Match(Project); body processCatalogRevision, occurrenceId, optional workAreaId |
+
+공통 항목은 `{id,code,name,active,sortOrder,usageCount}`다. create의 code/name 필수, active 기본true, sortOrder 기본0. standards에는 productId/processTypeId, occurrences에는 businessUnitId/productId/siteEntityId/processTypeId와 nullable standardProcessId, WorkArea에는 occurrenceId가 필수다. Process Type code는 immutable이다. PATCH는 부분 필드이며 공통 부모 변경은 사용 중409, WorkArea reparent는 항상409다. 이름 중복은 허용하고 owner 범위 code 중복은409다. name≤200자, code≤64자, sortOrder 정수0..1000000이다.
+
+목록 query는 search/limit/active만 허용한다. HTTP search는 비어 있지 않은 최대100자, limit은1..200(기본200), active는 true/false다. 결정적 sortOrder/name/code/public ID 순서를 사용하고 상한 초과는 `422 PROCESS_CATALOG_LIMIT_EXCEEDED`로 거부한다. 잘린 목록을 전체로 가장하지 않는다. F1은 페이지네이션을 제공하지 않으며 전체 catalog의 entity별200개 상한을 넘기는 mutation도 응답 overflow로 전체 rollback한다. 규모 확대는 scoped 관리·페이지네이션을 포함한 후속 계약이 필요하다. Project context는 projectRevision/processCatalogRevision/projectMasterRevision, nullable public ID selection과 selectionValid를 함께 반환한다. `data.permission`은 유효한 Project 편집 세션이 있으면 `"edit"`, 그 외에는 `"readonly"`이며 표시용 권한으로서 별도의 mutation 인증을 대체하지 않는다. 불완전·무효 legacy triple은 selectionValid=false와 빈 후보 배열로 남긴다. 다른 BU/product/site occurrence/WorkArea를 포함하지 않고 현재 매핑의 비활성 참조를 필터 때문에 잃지 않는다.
+
+표준 diff는 조회만 수행한다. 명시 apply는 지정한 활성 제품 표준의 missing occurrence 생성 또는 name/sortOrder 차이를 반영하며 다른 사업장 및 Project 자유 공정을 변경하지 않는다. retiredOccurrenceIds는 자동 삭제·재활성화하지 않는다. 공통 변경은 catalog revision만, Project 매핑 변경은 Project revision만 한 번 증가한다. 동일 값 no-op은 증가하지 않는다.
+
+매핑 body 예: `{ "processCatalogRevision": 3, "occurrenceId": "<UUID>", "workAreaId": null }`. occurrenceId=null은 명시 해제이며 WorkArea는 비어 있어야 한다. 성공 응답은 `{data:{project,logistics,permission:"edit",processCatalogRevision,mappings,operation:{kind:"processMapping",processId,changed}}}`로 canonical snapshot을 반환한다. WorkArea 미선택은 null, legacy 미매핑은 mappings 행 부재로 구분한다. mapping.active는 local 공정/occurrence/type/표준/BU·제품·사업장/선택 WorkArea의 전체 활성 경로를 반영하며 비활성 기존 참조도 ID를 보존한다. 외국 occurrence/WorkArea는 원자적으로 거부한다.
+
+401 관리자/편집 session 필요, 403 Origin, 400 허용하지 않은 입력·WorkArea 소유 불일치, 409 활성/사용 중/분류·중복 충돌, 412 stale catalog/Project revision을 구분한다. 기존 metadata는 사용 매핑의 triple 변경에 `409 PROJECT_PROCESS_MAPPING_IN_USE`, mapped Template 저장은 `409 PROCESS_MAPPING_TEMPLATE_NOT_SUPPORTED`, mapped 공정 hard delete는 `409 PROCESS_IN_USE`다. 제약 원문을 공개하지 않는다. 후속 UI·Target/member/binding route는 이번 변경에 없다.
+
+## Issue #616 — Logistics Target API (implemented F2; acceptance follow-up #672)
+
+Project-local `/api/projects/{publicId}/logistics/targets` supports GET (limit 1–100, offset 0–10000, search ≤100) and POST; `.../targets/{targetId}` supports GET/PATCH/DELETE and `.../usage` GET. GET returns a bounded list with projectRevision/total and typed members (public member ID, instance ID, original equipment quantity / System 1); usage includes shared Target count and direct Task links, not a fabricated WBS Target binding. Mutations require exact Origin, Project edit session, strong If-Match and rollback-on-error; successful mutations advance Project revision once, no-op update advances zero. Error status: malformed400, missing/unowned reference404 or409, no session401, Origin403, conflict409, stale412. Existing instances and controls/coordinates are never auto-modified by member association. Inline creation creates Project-local Equipment/System in the same transaction, requires active existing type catalog, and duplicate label requires explicit confirmation. Global catalog creation is *not* part of the Project transaction. Target write body schema is `src/contracts/logistics-targets.ts`. Legacy logistics DTO and direct Task links unchanged.
+
+Issue #618 Target 구성 목록은 선택 query `activeOnly=true`로 활성 Target만 조회한다. SQL의 `total` 집계와 `targets` 정렬/`LIMIT`/`OFFSET`에 같은 활성 조건을 적용하므로 50개 비활성 행이 뒤의 활성 행을 가리지 않는다. 생략 시 기존 API 계약대로 활성/비활성을 모두 포함해 shared-member 전체 집계가 가능하다. `activeOnly=false` 등 `true` 이외 값, 중복 key는 HTTP 400; 필터 전환 시 클라이언트 offset은 0으로 초기화한다. 조회 옵션은 Project revision/권한/영속 데이터에 영향을 주지 않는다.
+
+Source was merged in #616 PR #631, and the corrected v0.108.0 main/release Quality+E2E6+Docker succeeded (Main #2710.1, Release #167.1). The focused #672 Target HTTP/transaction tests are NOT TESTED until its exact PR Head CI. Before F3 #617, the F2 usage field `referencedByTaskCount` was a compatibility placeholder fixed to `0`: **do not treat zero as an authoritative zero Task count or as a KPI**; only per-member `directTaskCount` reports existing legacy direct instance links. Product API / DB contract remains unchanged in #672.
+
+## #616 Project Template graph v2
+
+`POST /api/project-templates`는 유효 edit session/strong revision 확인 후 `ProjectTemplateSnapshot.logistics.schemaVersion=2`, `processMappings[]`(processCode, occurrenceId, workAreaId|null), `targets[]`(code/name/scope/processCode/occurrenceId/workAreaId/active/description 및 typed member kind+instanceCode)를 원본 transaction에 저장한다. `POST /api/project-templates/{templateId}/instantiate`는 모든 Project-local identity를 새로 생성하고 global occurrence/WorkArea 및 Project BU/Product/Site를 서버 재검증하며 공유 MCS 인스턴스를 단 한 번 복원한다. 성공 응답 counts.targets/processMappings와 목록의 targetCount/processMappingCount를 제공한다. 버전/참조가 틀리면 409 `TEMPLATE_LOGISTICS_REFERENCE_INVALID` 또는 `TEMPLATE_LOGISTICS_VERSION_UNSUPPORTED`, 프로젝트 전체 rollback. Legacy snapshot은 유지. JSON schema1.1 Target 보호 409는 지속.
+
+## Issue #617 — Task Target binding API (F3 구현 후보)
+
+모든 ID는 public UUID다. 아래 경로는 query parameter를 받지 않으며 응답은 `Cache-Control: private, no-store`, `ETag: "<Project revision>"`를 제공한다. 기존 direct-link read/edit 정책과 legacy `/logistics-links` API는 유지한다.
+
+| 경로 | 계약 |
+| --- | --- |
+| `GET /api/projects/{publicId}/tasks/{taskId}/target-bindings` | public readonly 또는 유효 Project edit cookie. `{data:{projectRevision,taskId,bindings,effective,permission}}` |
+| `PUT /api/projects/{publicId}/tasks/{taskId}/target-bindings` | exact Origin + 유효 Project edit session + strong `If-Match`. Task의 명시 binding 전체 교체. `{data:{projectRevision,taskId,bindings,effective}}` |
+| `POST /api/projects/{publicId}/logistics/targets/{targetId}/impact` | PATCH와 같은 body를 검증하는 읽기 전용 영향 preview. exact Origin/edit session/strong If-Match 필수, revision 증가0 |
+
+PUT body는 `{bindings:[{id?,targetId,scope,selection,memberIds,coverageByMember?}]}`다. `scope` 생략은 self, subtree는 Summary만 허용한다. `(project,task,target)` 중복은 거부한다. whole의 memberIds는 필수 `[]`이며 coverageByMember는 생략 또는 `[]`만 허용한다. subset은 같은 Target의 member UUID 1개 이상이며 다른 Target/Project member·중복·빈 subset을 거부한다. `coverageByMember=[{memberId,coverage}]`는 선택된 Equipment에 null 또는 quantity 이하 양의 정수, System에 null만 허용한다. 기존 Target 연결의 binding UUID는 보존하며 새 연결만 새 UUID를 발급한다. Milestone에 비어 있지 않은 새 Target authoring은 거부하고 기존 직접 물류 API는 유지한다.
+
+`effective`는 직접 bindings, inheritedBindings, effectiveMembers의 전체 Target provenance, legacySources, effectiveEquipmentIds/effectiveSystemIds/effectiveTargetIds를 제공한다. 직접+모든 조상 Summary subtree의 합집합이며 하위 명시는 조상을 override하지 않는다. 동일 kind+instance는 1개로 표현하되 binding/sourceTask/Target/member/상속/coverage 출처는 모두 남긴다. shared legacy MCS만으로 Target을 추론하지 않는다. provenance의 `coverageMode=whole|partial|unspecified`는 전체 구성 또는 원본 quantity와 동일한 명시 coverage/부분 수량/미지정 상태를 구분하고, effective member의 `coverageState=single|multiple|unspecified`는 여러 출처 값의 충돌을 보존한다. 상충 수량을 합산/max로 바꾸지 않는다. 조회는 mutation을 만들지 않으며 PUT은 한 IMMEDIATE transaction에서 검증·저장·revision+1을 수행한다.
+
+Target 영향 preview의 `data`는 projectRevision/targetId/impactToken/wholeBindingIds/subsetBindingIds/affectedTaskIds/removedMemberIds/addedEntityIds/blockedSubsetMemberIds/membershipChanged다. whole을 참조하는 binding이 있는 Target의 실제 member 추가/제거 PATCH는 `impactToken`(64자리 소문자 SHA-256)과 `confirmImpact=true`를 요구한다. token은 정규화한 patch와 Project revision, 공정/물류 유형 catalog revision, 현재 Target/member/binding/Task snapshot에 결속된다. 다른 변경이나 snapshot에서 재사용할 수 없고 session/If-Match를 대체하지 않는다. subset 참조 member 제거는 `409 TARGET_SUBSET_MEMBER_IN_USE`, 사용 중 Target 삭제는 `409 TARGET_IN_USE`, 미확인 whole 변경은 `409 TARGET_IMPACT_CONFIRMATION_REQUIRED`, 잘못된 token은 `412 TARGET_IMPACT_STALE`다. coverage 초과 및 원본 quantity 축소 충돌은 `TARGET_COVERAGE_EXCEEDS_QUANTITY`로 원자적으로 차단한다.
+
+공통 오류는 잘못된 입력400, 유효 edit session 없음401, Origin403, Project/Task 없음404, 사용/활성 상태 충돌409, strong If-Match 누락428 또는 잘못된 형식400, stale revision412, 요청 byte 초과413이다. body는 UTF-8 application/json 32KiB 상한이며 비지원 media type/encoding은415다. binding/member/coverage 배열은 각각100건 이하이며 unknown-field/중복 검증을 적용한다. partial success/skip은 없다.
+
+F3 usage의 `referencedByTaskCount: number | null`은 **고유 일반 Task만** 센다. null=미지원/미산출, 0=실제 계산한0건, N=직접 또는 subtree 상속으로 연결된 N건이며 Summary는 `referencedBySummaryCount: number | null`로 별도 제공한다. Milestone은 일반 Task 수에 포함하지 않는다. member `directTaskCount`는 legacy 직접 instance 링크, `targetCount`는 instance의 공유 Target 수로 서로 다른 grain이다. F2의 과거 고정0 placeholder를 실제0으로 재해석하지 않는다. 응답의 nullable 전환은 소비자가 null을 미산출 상태로 표시해야 하는 API 이행이며 신규 binding UI는 #618에서 연결한다.
+
+F3의 런타임·원격 검증 상태는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다. 이전 #616/#672의 미구현 표기는 해당 단계의 이력이며 F3의 CI 성공 근거로 사용할 수 없다.
+
+기존 hierarchy 명령의 `indent`/`outdent`/`reparent`는 새 조상에 의해 Target 출처가 바뀌면 `409 TASK_TARGET_IMPACT_REVIEW_REQUIRED`로 모든 변경 Task의 before/after와 `targetImpactDigest`를 반환하고 전체 시도와 revision을 rollback한다. 명령·Project revision·before/after 전체 snapshot에 묶인 64자리 digest와 같은 strong If-Match로 재요청해야 적용된다. 영향이 없어졌는데 이전 digest를 보내면 `409 TASK_TARGET_IMPACT_STALE`다. binding을 가진 Task→Milestone 전환은 `409 TARGET_BINDING_TYPE_CONFLICT`로 거부한다.
+
+Template API는 명시 binding이 있으면 `logistics.schemaVersion=3`과 `taskTargetBindings`를 저장하며 v2는 binding 없는 graph로 유지한다. v3 필수 배열의 `{taskExternalId,targetCode,scope,selection,members:[{kind,instanceCode,coverage}]}`를 새 Task/Target/member에 재매핑하고 누락/타 graph 참조는 whole Project rollback한다. 명시 binding과 effective projection은 전용 Task target-bindings aggregate로 조회하며 기존 전체 ProjectSnapshot DTO에는 새 binding 필드를 추가하지 않는다. JSON 및 Resource 보고서 opt-in 없는 일정 Excel의 지원되지 않는 export는 `409 TASK_TARGET_EXPORT_UNSUPPORTED`, 외부 Import 신규 binding 입력은 `400 TARGET_BINDING_IMPORT_UNSUPPORTED`다. Resource opt-in 보고서는 #622의 별도 근거/비왕복 계약을 따른다.
+
+
+## Issue #618 — Target 상세의 canonical 관련 작업
+
+기존 GET `.../logistics/targets/{targetId}/usage`의 `data`에 `projectRevision`과 `relatedTasks:[{taskId,type}]`를 additive로 제공한다. ID와 일반 Task/Summary counts/member usage는 동일한 SQLite read snapshot에서 계산한다. `relatedTasks`는 직접 binding과 subtree 상속을 반영한 고유 canonical Task UUID이며 legacy 인스턴스만 연결한 Task를 Target으로 역추론하지 않는다. Task별 GET fan-out 없이 기존 canonical Project tasks의 이름·WBS 경로와 연결해 공통 Editor를 연다. 소비 UI는 revision이 다른 usage/tasks 조합을 최신으로 표시하지 않고 재조회 안내한다. 조회로 Task/binding/revision을 변경하지 않는다.
+
+F4는 기존 Target POST/PATCH/DELETE, read-only impact POST, Task target-bindings GET/PUT를 사용한다. Project session/Origin/strong If-Match 및 whole impact token/subset 삭제 차단은 그대로 유지한다. Target 구성 저장과 Task 기본 정보 저장은 각각 명시 명령이며 Task 생성/복제는 수행하지 않는다.
+## Issue #621 — 기존 Task Assignment PUT의 정확 배정 편집
+
+`PUT /api/projects/:publicId/tasks/:taskId/assignments`는 기존 generic 전체 교체와 별개로 optional `editAssignmentId`를 받는다. 지정 시 `targets`는 해당 Assignment의 resource 한 건이며 allocation의 기간·투입률을 명시한다(생략 시 해당 배정의 날짜/투입률을 null로 해제). 서버는 일반 Task의 현재 Assignment ID 및 resource ID 일치를 확인하고 해당 DB row만 갱신한다. 선택 Assignment public ID와 모든 공동담당자/Group 배정의 ID·값·기간·미설정 allocation·timestamps는 보존한다. 다른 ID를 Target/Group 헤더의 편집 대상으로 사용하거나 다른 Task/Project의 배정을 바꿀 수 없다.
+
+기존 Project edit session/Origin/strong `If-Match` 및 `catalogRevision`, Task 기간 안의 배정 날짜·투입률 범위 검증을 적용한다. 현재 revision에서 실제 변경이 없으면 `operation.changed=false`와 같은 Project revision을 반환한다. 오류·revision mismatch는 전체 원자적 실패이며 성공 시 Project revision을 한 번 증가시킨다. 기존 `taskAssignments` 응답·오류 envelope/no-store를 재사용하고 새 route·별도 인증을 만들지 않는다. `editAssignmentId`를 생략한 generic 요청의 전체 교체·allocation 생략=null 의미는 그대로다.
+
+exact 모드의 잘못된 Assignment/Task/resource 조합·Group·일반 Task가 아닌 대상·혼합/추가 payload 필드·날짜/투입률 입력 오류는400이다. 편집 대상이 비활성이면 기존409, Project revision 불일치는412 `REVISION_MISMATCH`, catalog revision 불일치는412 `CATALOG_REVISION_MISMATCH`다. 잘못된 Project read/mutation 권한·Origin·If-Match 오류는 기존 route 정책을 따른다.
+
+사용자 경로는 Resource–Target 상세의 정확한 개인 배정 편집이다. 조회 selector/path는 저장 대상 ID가 아니며 변경 후 report는 새 canonical revision으로 재조회하거나 stale로 잠근다. [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 실제 server/HTTP/Chromium 검증과 미검증을 기록한다.

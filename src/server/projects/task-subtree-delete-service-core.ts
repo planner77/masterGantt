@@ -1,3 +1,4 @@
+import { assertStageMutation, readStageSnapshot, withStageProjection } from "./milestone-stage-core";
 import type Database from "better-sqlite3";
 
 import { projectCalendarDto, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
@@ -139,6 +140,7 @@ export class TaskSubtreeDeleteService {
       }
       if (project.revision !== expectedRevision) throw new RevisionMismatchError();
 
+      const stageBefore = readStageSnapshot(this.database, project.id);
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
@@ -191,11 +193,12 @@ export class TaskSubtreeDeleteService {
         changedSummaryExternalIds.push(task.externalId);
       }
 
+      assertStageMutation(this.database, project.id, stageBefore);
       const updatedProject = this.projects.advanceRevision(project.id, expectedRevision, nowText);
       if (!updatedProject) throw new RevisionMismatchError();
       const latestTasks = this.schedules.listTasks(project.id);
       const latestLinks = this.schedules.listLinks(project.id);
-      return {
+      return withStageProjection(this.database, project.id, {
         data: {
           project: {
             publicId: updatedProject.publicId,
@@ -215,7 +218,7 @@ export class TaskSubtreeDeleteService {
             deletedLinkIds: [],
           },
         },
-      } satisfies TaskMutationResponse;
+      } satisfies TaskMutationResponse);
     });
     return mutate.immediate();
   }

@@ -1,0 +1,1155 @@
+{
+  "selectionReason": "before-final ring/native-focus/calendar coverage plus missing auth/pending/error states from before-run2; source bytehash baseline is identical; test versions remain original in every JSON and are not retrospectively changed",
+  "files": [
+    {
+      "path": "before-selected/calendar-401-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-401-1024.json",
+      "sha256": "dfe01c063d296f95df7e3e06c1b7c0e3d6181ec6358ffd79f99b35fe921cf990"
+    },
+    {
+      "path": "before-selected/calendar-401-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-401-1024.png",
+      "sha256": "a9fc45a1f0a45a145a8c956574d4406f3086c72db1460d6c5241a629eb3a3eca"
+    },
+    {
+      "path": "before-selected/calendar-401-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-401-1440.json",
+      "sha256": "49b65983f7ce6ad0f9e2d9d04e7e735dce5b0dac157e9f136a52345339f288c5"
+    },
+    {
+      "path": "before-selected/calendar-401-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-401-1440.png",
+      "sha256": "1a6c92d549d044704896de04fa42b47a08e3b88ab6ed7764a195839047957e0b"
+    },
+    {
+      "path": "before-selected/calendar-401-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-401-1920.json",
+      "sha256": "b97055995ef80294581ab56ea6f81ba6b0ed130e42e8e8ed601db40d60377659"
+    },
+    {
+      "path": "before-selected/calendar-401-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-401-1920.png",
+      "sha256": "570162cf5bc286e71a21cfde868a42b958ba60a06beba421c035200bdf8e65be"
+    },
+    {
+      "path": "before-selected/calendar-401-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-401-390.json",
+      "sha256": "e54af48c7fd4e314a287ff886f0a54c98ea84b915c2efa092b824c27af81c246"
+    },
+    {
+      "path": "before-selected/calendar-401-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-401-390.png",
+      "sha256": "8034a524ac8704ee62fcd77f41feaead71c6157d3a8fd608e284f61f40e397bb"
+    },
+    {
+      "path": "before-selected/calendar-401-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-401-768.json",
+      "sha256": "ccfaa7af1a13a37fa831018a104bc825dfb7ba4079676fe81594e76f80f3eb67"
+    },
+    {
+      "path": "before-selected/calendar-401-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-401-768.png",
+      "sha256": "f67450e6b9f76299ec9bfe4db2d5513c4518511272b1165005ac25f72ce4c0f0"
+    },
+    {
+      "path": "before-selected/calendar-412-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-412-1024.json",
+      "sha256": "8cdf9c0db7387620df117e4c4e090229d57ac3a09ad5d2b558012bd17a47b2cd"
+    },
+    {
+      "path": "before-selected/calendar-412-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-412-1024.png",
+      "sha256": "43718f5561429050a9de881a36ee73be5e1e93d4c88a0dae0565e4acc80aced0"
+    },
+    {
+      "path": "before-selected/calendar-412-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-412-1440.json",
+      "sha256": "cf4caf10a9015a6e043883b292b65e471e0be7d4a4cc22232249c9972a4017a9"
+    },
+    {
+      "path": "before-selected/calendar-412-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-412-1440.png",
+      "sha256": "0a0c019d4afe33b4fa5a6b93858a92ecf554086e6e67fe981cce87cee66a92e7"
+    },
+    {
+      "path": "before-selected/calendar-412-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-412-1920.json",
+      "sha256": "ff15d1661ee25f1ac3756624a84c03e7ceab90bd28d593792fbdddb09fb34380"
+    },
+    {
+      "path": "before-selected/calendar-412-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-412-1920.png",
+      "sha256": "129ed388e2f758200c510cbaf3a98638f3eb30c4323c6ec974267d1a1d8b4859"
+    },
+    {
+      "path": "before-selected/calendar-412-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-412-390.json",
+      "sha256": "fdb819c3f765df8b0d663d73057ab99c15bc4e523dacb972cd659cbb2d3312d5"
+    },
+    {
+      "path": "before-selected/calendar-412-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-412-390.png",
+      "sha256": "df0f9505eb899873c610da3aafdb8e56adbd2152061f1db80bbcef9c0f472bf4"
+    },
+    {
+      "path": "before-selected/calendar-412-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-412-768.json",
+      "sha256": "966a4b83601006f377a7878d9352d203c65e15de0a618e2af2497cd0a1b6f5cc"
+    },
+    {
+      "path": "before-selected/calendar-412-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-412-768.png",
+      "sha256": "cb6ce0bb3b1887676ca6759bd48078c047987807f7a08f2c344e9cb3e968ff1e"
+    },
+    {
+      "path": "before-selected/calendar-error-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-error-1024.json",
+      "sha256": "0be5b8361cce02277ff384ba3b6925a76ac254831e949376615e16196fbe6476"
+    },
+    {
+      "path": "before-selected/calendar-error-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-error-1024.png",
+      "sha256": "79d4cd8c6d6ea3b8223470698280b4fbdbed7466533b969c29930ea98bc42503"
+    },
+    {
+      "path": "before-selected/calendar-error-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-error-1440.json",
+      "sha256": "9756b5aa962c9582f91bdea6a3f8fcd1584f219a9e576bf7c591dbba873e6c6a"
+    },
+    {
+      "path": "before-selected/calendar-error-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-error-1440.png",
+      "sha256": "081144480730fe6c9bdbbf5b7cf64e52ca3c6b7c822eb44b7d46ae0dd724976c"
+    },
+    {
+      "path": "before-selected/calendar-error-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-error-1920.json",
+      "sha256": "e40e1a3874cd95b2f3ac2d74357dfefb1b59bf32fc41fe885c426ab84f70a57b"
+    },
+    {
+      "path": "before-selected/calendar-error-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-error-1920.png",
+      "sha256": "0e23084d0249d27228d9d00d21f875afba3bafbfde8f5d057915cfcd7e2f7b0a"
+    },
+    {
+      "path": "before-selected/calendar-error-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-error-390.json",
+      "sha256": "d017a81a847c9fe20a996dc999af47f82841f36abfa7010467f8d6b6e0a9fdc4"
+    },
+    {
+      "path": "before-selected/calendar-error-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-error-390.png",
+      "sha256": "4b11ffe2955cc8e24c6e53925a83a80a7714f5782dd83b6b43e14222a1659f46"
+    },
+    {
+      "path": "before-selected/calendar-error-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-error-768.json",
+      "sha256": "9ecf936abb54ef62ab9a17ecfed5cfceb0996a612cb69872d0d7a65d35b8db4a"
+    },
+    {
+      "path": "before-selected/calendar-error-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-error-768.png",
+      "sha256": "e12e9e1ec34b6c089f1ca466a23b8adfcf357f05064c629f6f2853c780c66b72"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-1024.json",
+      "sha256": "9c53589c1d3a23d2168c9a28b48489d0ff96bb8ec2d55a227006f4e266fc07f0"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-1024.png",
+      "sha256": "6ecc3033442e60008d3a1d2eb520f5822f9da5d954c1f0cb100a41587e3e6655"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-1440.json",
+      "sha256": "2fe7c6aa409f8f65f6efc5aef7a190cb91138494e519b30f4baad3723f4cd3c2"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-1440.png",
+      "sha256": "3e0396694aa5f6df5dc59b700a40f1a549943c2a035bf1c7f3a17d19b508d5c1"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-1920.json",
+      "sha256": "36dda5e688bb8ea799ef9b912f45842e92a06c9cdc9a961770aca15733a6c01a"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-1920.png",
+      "sha256": "92fba4a2528fa649682863a0d92043b0065575f62f800e1eb5a6e00fa4933e2c"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-390.json",
+      "sha256": "bc48201de1a5621c62473435a18dcf0f69201957b81b2f1c28a0036e82fb982b"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-390.png",
+      "sha256": "05a86688f4773ec7c7d5b8467783d46c00fd1045e5755a33561f804cd961fb4a"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-768.json",
+      "sha256": "ba76ab93777b6fbdceb5540d666c7a07d74c659b11e74a072367ca9909dc7382"
+    },
+    {
+      "path": "before-selected/calendar-long-dates-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-long-dates-768.png",
+      "sha256": "08f0f3e53e85d0aa54dca14211154f1e18753ee1a8256b8d64461a4c586195ca"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-1024.json",
+      "sha256": "246d072aa0a1cc6f22d11436577b87b6ddcb81955507c930e2bbde9721f4ee6e"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-1024.png",
+      "sha256": "09e7a815b5cb5474e10036a8a68c59c8472c8aab109f777047705c20a857ad7a"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-1440.json",
+      "sha256": "c8feadd2e5131b1ef670cff42f6d46d59dfac7c0a6997858a8b95ecc751b630c"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-1440.png",
+      "sha256": "3333041984a738c7c04fbd00bb99d04dbaabbc09a7b159979345882094e64746"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-1920.json",
+      "sha256": "54bb663b4c973cd13330d1680448801e5b7ab3e4b6724a967b5054d5dd1287a6"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-1920.png",
+      "sha256": "0c7a8ecde753899c10866cfafe06c5d5a7948d00c96c9307706a3d7d9d0d153e"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-390.json",
+      "sha256": "598336d21e7a5a467e9f0cac89260050217b9c60c07c63b1b071d698e33b00b5"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-390.png",
+      "sha256": "88dd33ecfd412fb5bf0b140be929c71087a54b4190647c9bc18b4a99ce4a3e56"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-768.json",
+      "sha256": "e857b1277003a305a41e2c7897f9dfa82955db90d115c5261483797db3b1d14d"
+    },
+    {
+      "path": "before-selected/calendar-native-focus-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-native-focus-768.png",
+      "sha256": "68e8b9e6ce1dd2e393d7942ea0398cb7bdfb1774a4263c23429428df511573f9"
+    },
+    {
+      "path": "before-selected/calendar-pending-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-pending-1024.json",
+      "sha256": "bab54e42cf6efbeb59f0eb0de39f6d50646316b4577ad9f030bb39311d4768f8"
+    },
+    {
+      "path": "before-selected/calendar-pending-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-pending-1024.png",
+      "sha256": "6423157709375b9e357789e70e49efbf6f3cb5d4fc8493625e42aa0f66f76447"
+    },
+    {
+      "path": "before-selected/calendar-pending-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-pending-1440.json",
+      "sha256": "d80d1e47ced7d4850de1e866e080b3c084f93ff8d0166c3393e48133c2313a5d"
+    },
+    {
+      "path": "before-selected/calendar-pending-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-pending-1440.png",
+      "sha256": "23f617728d97f6d534e6cfda47a87e52e47104aef89baecfeea38a40cc1d3062"
+    },
+    {
+      "path": "before-selected/calendar-pending-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-pending-1920.json",
+      "sha256": "492419d6fbc32f5a5b42a673cab29b5e5f4bfd86fb932621e7c548463025eca3"
+    },
+    {
+      "path": "before-selected/calendar-pending-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-pending-1920.png",
+      "sha256": "4347c208e15aac3d46de0b0c2a25dcf0b51eb041e5c7cc223645c1209811c6bb"
+    },
+    {
+      "path": "before-selected/calendar-pending-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-pending-390.json",
+      "sha256": "9c1c1d2363669deb5f5c08d30e4229277304d7617bb015963dc6b89699a168a5"
+    },
+    {
+      "path": "before-selected/calendar-pending-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-pending-390.png",
+      "sha256": "6634e7b351073edefbbfc515289882eece6c9d1bb556c7bec19dfea0e58cceb6"
+    },
+    {
+      "path": "before-selected/calendar-pending-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-pending-768.json",
+      "sha256": "0b5f7575f96d35a7e599860d70b4b866b21e184c0d344754990250c4808052ee"
+    },
+    {
+      "path": "before-selected/calendar-pending-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-pending-768.png",
+      "sha256": "691efb5aec86550ec59a6b59b8b4da7a21bb78ec6df0601fe8fee268745bc64c"
+    },
+    {
+      "path": "before-selected/calendar-ready-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-ready-1024.json",
+      "sha256": "cf943ae6bcd245379154457241cc3d905854d960a99e3bcf9e414aab0e3eb6fa"
+    },
+    {
+      "path": "before-selected/calendar-ready-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-ready-1024.png",
+      "sha256": "471e1560013ecb4c8d303034bd6711a092ff35396d2079ac53c28ff260f8970b"
+    },
+    {
+      "path": "before-selected/calendar-ready-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-ready-1440.json",
+      "sha256": "7db675fff04384b5f46bb59a395ed18fc1fb6a0a45f05d65c60c67b7601eb190"
+    },
+    {
+      "path": "before-selected/calendar-ready-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-ready-1440.png",
+      "sha256": "ac48eebe6ca17e2818c9666b6f9aa0b1dfbf191dcbaa5c20b10eb2cce8eb8562"
+    },
+    {
+      "path": "before-selected/calendar-ready-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-ready-1920.json",
+      "sha256": "e32270db7fd3c0df4ee615bbed95a440efd5e564fae13b1f5e65e8c36f574c85"
+    },
+    {
+      "path": "before-selected/calendar-ready-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-ready-1920.png",
+      "sha256": "5ab576688567391a375d74f8d7bb189ab2a326a6b00b000a15342eeafeda947d"
+    },
+    {
+      "path": "before-selected/calendar-ready-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-ready-390.json",
+      "sha256": "a88a938664a4dad4d518bbab892dda994a5c59b72bf4fe69d90b62afc731d4e5"
+    },
+    {
+      "path": "before-selected/calendar-ready-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-ready-390.png",
+      "sha256": "14bc3d5312b2a4e261d7f77750516e098f1e0a97b2b1f97a39308478735fd588"
+    },
+    {
+      "path": "before-selected/calendar-ready-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-ready-768.json",
+      "sha256": "4abfc808a0ff033382e7878664f0f19a5f6f9c876af87bc724d9630f5a24b488"
+    },
+    {
+      "path": "before-selected/calendar-ready-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-ready-768.png",
+      "sha256": "c6b9954b6fba6e7f7dddf58ad48a9e5ee3c979c1c0e8ca827111da6201fbc01c"
+    },
+    {
+      "path": "before-selected/calendar-stale-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-stale-1024.json",
+      "sha256": "9d30c7b5fd899d7f5fbba009db25b2c799e4c4f16ecb2c47cf16bdbd274d9d0a"
+    },
+    {
+      "path": "before-selected/calendar-stale-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-stale-1024.png",
+      "sha256": "956f44a59f4136e88eb34c479fce0ef35e77d7272daca9a2b0e201ab89fbef6f"
+    },
+    {
+      "path": "before-selected/calendar-stale-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-stale-1440.json",
+      "sha256": "832d9c3aaa949a150730ddeb50afc1394871845d0e3c198255f27f7947d1461d"
+    },
+    {
+      "path": "before-selected/calendar-stale-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-stale-1440.png",
+      "sha256": "2b039f90eda7914aaa28a27c498c2ccd59d5229a78519485f347062925ea4d7b"
+    },
+    {
+      "path": "before-selected/calendar-stale-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-stale-1920.json",
+      "sha256": "86042bd548992cf5cf5ed2c0e24ff6b20e6836d109fc64b85b623d84d2137d00"
+    },
+    {
+      "path": "before-selected/calendar-stale-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-stale-1920.png",
+      "sha256": "8d2532b9c3cac85beddf16c4a3b33873dbcc153b9dc92a7c9d36d0b426c65a8e"
+    },
+    {
+      "path": "before-selected/calendar-stale-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-stale-390.json",
+      "sha256": "0cc8cf1b2e8e1d8bc7869df24d6fac76fbe97c02eaaa78d0d88ebcc986a7a022"
+    },
+    {
+      "path": "before-selected/calendar-stale-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-stale-390.png",
+      "sha256": "a019bf5e9461e3d003a9b2fbb5fe29b18827f9a628c77a65e2c9c194090072a7"
+    },
+    {
+      "path": "before-selected/calendar-stale-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-stale-768.json",
+      "sha256": "3482eea865cff24e9471620d5a4064de87fa46b1866db4936e14a2db6c2b9ad1"
+    },
+    {
+      "path": "before-selected/calendar-stale-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-stale-768.png",
+      "sha256": "7506c30f74131566730f40221fb09a266093d6988288f177f99f154a2032ee44"
+    },
+    {
+      "path": "before-selected/calendar-validation-1024.json",
+      "copiedUnchangedFrom": "before-final/calendar-validation-1024.json",
+      "sha256": "4625cb859c177cc55efda951432dfcd8d424116ae8b2425dda7df29e804f2917"
+    },
+    {
+      "path": "before-selected/calendar-validation-1024.png",
+      "copiedUnchangedFrom": "before-final/calendar-validation-1024.png",
+      "sha256": "eb19e6f135f222756be72dc8a0c79c419bdbbd5ac0900e9be1eca8ae0a83889f"
+    },
+    {
+      "path": "before-selected/calendar-validation-1440.json",
+      "copiedUnchangedFrom": "before-final/calendar-validation-1440.json",
+      "sha256": "ba90e38a90d99d378e55f83b7700346bb36ced5ebb30e2a5670c31f7b76924fd"
+    },
+    {
+      "path": "before-selected/calendar-validation-1440.png",
+      "copiedUnchangedFrom": "before-final/calendar-validation-1440.png",
+      "sha256": "958b3a7b919cee6e22f38d47e9991e36b53fc5fce84a98d0399aa91005da1280"
+    },
+    {
+      "path": "before-selected/calendar-validation-1920.json",
+      "copiedUnchangedFrom": "before-final/calendar-validation-1920.json",
+      "sha256": "0894594bd049ff132d8acd0b1b1a9ede152dbbfefa4413bd08b2e9024f968f6d"
+    },
+    {
+      "path": "before-selected/calendar-validation-1920.png",
+      "copiedUnchangedFrom": "before-final/calendar-validation-1920.png",
+      "sha256": "989d0778328382c4d50a85a34f2f72507e2155fe9eea0d99b785a8b611c3620e"
+    },
+    {
+      "path": "before-selected/calendar-validation-390.json",
+      "copiedUnchangedFrom": "before-final/calendar-validation-390.json",
+      "sha256": "31a6813b6e9f95bb7a021c361a92ea86ffcd6fba5d03353073d8f604c489ed9c"
+    },
+    {
+      "path": "before-selected/calendar-validation-390.png",
+      "copiedUnchangedFrom": "before-final/calendar-validation-390.png",
+      "sha256": "12b94e80e59fa3b17904f5526ebd75222e4c3895339e467000f7d5ce2f028bbc"
+    },
+    {
+      "path": "before-selected/calendar-validation-768.json",
+      "copiedUnchangedFrom": "before-final/calendar-validation-768.json",
+      "sha256": "d4cef9763fc1fbdd535fb0c610c1bb6b46246fd4fb002b6071c5cce73ca165f8"
+    },
+    {
+      "path": "before-selected/calendar-validation-768.png",
+      "copiedUnchangedFrom": "before-final/calendar-validation-768.png",
+      "sha256": "ded2eb23aedc6db1641c7177a04aaab79e5cdeaba21597645fb4889ef24b42f9"
+    },
+    {
+      "path": "before-selected/general-long-1024.json",
+      "copiedUnchangedFrom": "before-final/general-long-1024.json",
+      "sha256": "f1f055a83837701deb3c8ff7c0c24948abd16346cc947b44643d8e38a6a3ce19"
+    },
+    {
+      "path": "before-selected/general-long-1024.png",
+      "copiedUnchangedFrom": "before-final/general-long-1024.png",
+      "sha256": "02dad1f00595f0a6ae3411df24c750c149412db581f888064b979acf27a6824f"
+    },
+    {
+      "path": "before-selected/general-long-1440.json",
+      "copiedUnchangedFrom": "before-final/general-long-1440.json",
+      "sha256": "99d0dfd7f3dadd9c43c0ea5534302b3dcee237c029b89995d04397b4f342eb8d"
+    },
+    {
+      "path": "before-selected/general-long-1440.png",
+      "copiedUnchangedFrom": "before-final/general-long-1440.png",
+      "sha256": "affcc1ad6a635a1405c116d3a0febf6d812553515957cd365c5ebb6abd96170f"
+    },
+    {
+      "path": "before-selected/general-long-1920.json",
+      "copiedUnchangedFrom": "before-final/general-long-1920.json",
+      "sha256": "9582f4d791e17a55b6cbf73fa60aa019ce0248f97cea1062e0c226e79db70f1d"
+    },
+    {
+      "path": "before-selected/general-long-1920.png",
+      "copiedUnchangedFrom": "before-final/general-long-1920.png",
+      "sha256": "ae788a9b38eeea97d47a87afeaa8a03503b263749ad09fb6ee8c1b4276b22b4b"
+    },
+    {
+      "path": "before-selected/general-long-390.json",
+      "copiedUnchangedFrom": "before-final/general-long-390.json",
+      "sha256": "e6ec991194ec68a81e3d0cbfb0e0da03cc9c1470bb07055b5276baceabbe965d"
+    },
+    {
+      "path": "before-selected/general-long-390.png",
+      "copiedUnchangedFrom": "before-final/general-long-390.png",
+      "sha256": "547440e26c363c77221b0d53d895c5a8d3ba5fc46f2e431481d5714a391b9668"
+    },
+    {
+      "path": "before-selected/general-long-768.json",
+      "copiedUnchangedFrom": "before-final/general-long-768.json",
+      "sha256": "0454535afdc97870b1646a10ac065a4267074655af5a63695ed33cd6a5683a42"
+    },
+    {
+      "path": "before-selected/general-long-768.png",
+      "copiedUnchangedFrom": "before-final/general-long-768.png",
+      "sha256": "1b709638343218da867952951606da3c20dc95654ce4cf223e99e5292d6fc99b"
+    },
+    {
+      "path": "before-selected/general-native-focus-1024.json",
+      "copiedUnchangedFrom": "before-final/general-native-focus-1024.json",
+      "sha256": "27f9cf29b7d816587009773a629c0f44c0bfe4d1f03e6391fe53d642fabace18"
+    },
+    {
+      "path": "before-selected/general-native-focus-1024.png",
+      "copiedUnchangedFrom": "before-final/general-native-focus-1024.png",
+      "sha256": "7d1beb49af98b02fa190d5c603685cc1bc4a12d0519d7728119d86c56031c599"
+    },
+    {
+      "path": "before-selected/general-native-focus-1440.json",
+      "copiedUnchangedFrom": "before-final/general-native-focus-1440.json",
+      "sha256": "2d479fc781627636b5026d80094be521cf2a8810b51d233573713f49a8809b70"
+    },
+    {
+      "path": "before-selected/general-native-focus-1440.png",
+      "copiedUnchangedFrom": "before-final/general-native-focus-1440.png",
+      "sha256": "e11725da7ae47e867712889d41a60a1e5c937dd1e4867adcaac0e66791050474"
+    },
+    {
+      "path": "before-selected/general-native-focus-1920.json",
+      "copiedUnchangedFrom": "before-final/general-native-focus-1920.json",
+      "sha256": "ac24aba92fbbb5b3765326e391bedb5c63a3cd86f1a2feb9b6429d21770a2be8"
+    },
+    {
+      "path": "before-selected/general-native-focus-1920.png",
+      "copiedUnchangedFrom": "before-final/general-native-focus-1920.png",
+      "sha256": "de6908440739ceba388edf6f31bf634672992f5e71dfc7a1390122b9b6089723"
+    },
+    {
+      "path": "before-selected/general-native-focus-390.json",
+      "copiedUnchangedFrom": "before-final/general-native-focus-390.json",
+      "sha256": "4be75cd26bfd50898d6e5551f38cfe9f9b007c089d5bace31f9559c1c8cead1d"
+    },
+    {
+      "path": "before-selected/general-native-focus-390.png",
+      "copiedUnchangedFrom": "before-final/general-native-focus-390.png",
+      "sha256": "d99fbfabba4a2abe526b6428d10cef87e684a0144df63cc806e8d89c8a536039"
+    },
+    {
+      "path": "before-selected/general-native-focus-768.json",
+      "copiedUnchangedFrom": "before-final/general-native-focus-768.json",
+      "sha256": "d20bfd98761e1f482d6fb8fe4b4d1705c42d5633488b26d2ff06dc4e29551edc"
+    },
+    {
+      "path": "before-selected/general-native-focus-768.png",
+      "copiedUnchangedFrom": "before-final/general-native-focus-768.png",
+      "sha256": "a51288778dadf581b0ac7b1ac054aec0af4f015dd3adcab6b45dbe2856d6fdc3"
+    },
+    {
+      "path": "before-selected/general-validation-1024.json",
+      "copiedUnchangedFrom": "before-final/general-validation-1024.json",
+      "sha256": "f7077c97d8c86fe36c83906cf8d6587756ccf30be4c2be4b265bd1a348814de1"
+    },
+    {
+      "path": "before-selected/general-validation-1024.png",
+      "copiedUnchangedFrom": "before-final/general-validation-1024.png",
+      "sha256": "723f69b43ce9c822890bbe9f795d7785f7336e5392411f096d21570760c4abea"
+    },
+    {
+      "path": "before-selected/general-validation-1440.json",
+      "copiedUnchangedFrom": "before-final/general-validation-1440.json",
+      "sha256": "b8e9fb82876d2844a4ccbce95d4b5bd631f042e5c61eed18a75c8451889078fa"
+    },
+    {
+      "path": "before-selected/general-validation-1440.png",
+      "copiedUnchangedFrom": "before-final/general-validation-1440.png",
+      "sha256": "9969effeff94783328da32c12c949ad185cc33c6ddaf05f4c4915451a5f5ada8"
+    },
+    {
+      "path": "before-selected/general-validation-1920.json",
+      "copiedUnchangedFrom": "before-final/general-validation-1920.json",
+      "sha256": "d88d7326eb24d08cda2df29b168f5fe40f81b789e03baf1ced9ce459eec35fb2"
+    },
+    {
+      "path": "before-selected/general-validation-1920.png",
+      "copiedUnchangedFrom": "before-final/general-validation-1920.png",
+      "sha256": "06a85602661f84385c71173264cbd2e95f0e109f481f93e040b04d7ae2a0b11a"
+    },
+    {
+      "path": "before-selected/general-validation-390.json",
+      "copiedUnchangedFrom": "before-final/general-validation-390.json",
+      "sha256": "218eeb28cc2545a8161f4eb841efdafe31f3143be2756b9d748a8aae1f1fb479"
+    },
+    {
+      "path": "before-selected/general-validation-390.png",
+      "copiedUnchangedFrom": "before-final/general-validation-390.png",
+      "sha256": "5d9f2d3d88f55544e76e47d4df77f96d1ff77a38e98087f18971605f91f97d63"
+    },
+    {
+      "path": "before-selected/general-validation-768.json",
+      "copiedUnchangedFrom": "before-final/general-validation-768.json",
+      "sha256": "378f82f02b1c0fe70c21943647de3815b4c5168fc7c388638f22d8f058f36073"
+    },
+    {
+      "path": "before-selected/general-validation-768.png",
+      "copiedUnchangedFrom": "before-final/general-validation-768.png",
+      "sha256": "b2912134e5d28eb0ffcf8a49eb9859fcf52433088dbe8820509fd54f62069b52"
+    },
+    {
+      "path": "before-selected/security-normal-1024.json",
+      "copiedUnchangedFrom": "before-final/security-normal-1024.json",
+      "sha256": "ba5720965c14882fd21eed7519fed3200fa7287cbec88ba6c01d628f9f930ad0"
+    },
+    {
+      "path": "before-selected/security-normal-1024.png",
+      "copiedUnchangedFrom": "before-final/security-normal-1024.png",
+      "sha256": "8ed39f7adb8c7f421feebd89eecb73e894840f64b323846c41f99cc0e1f1532d"
+    },
+    {
+      "path": "before-selected/security-normal-1440.json",
+      "copiedUnchangedFrom": "before-final/security-normal-1440.json",
+      "sha256": "2aff91ec90001be9841b940d7c0caab90bd3d6829013e5edb13e6fd450df642a"
+    },
+    {
+      "path": "before-selected/security-normal-1440.png",
+      "copiedUnchangedFrom": "before-final/security-normal-1440.png",
+      "sha256": "570dc0bf2ac848efb53234fc5c12228508891aae4757fae0f7c0d2e6dcbc897d"
+    },
+    {
+      "path": "before-selected/security-normal-1920.json",
+      "copiedUnchangedFrom": "before-final/security-normal-1920.json",
+      "sha256": "980410fee0bab29a481dbeb44111967ce0e1093479ef82ec8a7658aa838df169"
+    },
+    {
+      "path": "before-selected/security-normal-1920.png",
+      "copiedUnchangedFrom": "before-final/security-normal-1920.png",
+      "sha256": "855065083ee1cf305bcfeaeeb6549dba4a0c05abe930e15802d745e998524e42"
+    },
+    {
+      "path": "before-selected/security-normal-390.json",
+      "copiedUnchangedFrom": "before-final/security-normal-390.json",
+      "sha256": "41bdd573d681f5dd43470d7af7cfc19e235307a899d272f84b0a597b4a048646"
+    },
+    {
+      "path": "before-selected/security-normal-390.png",
+      "copiedUnchangedFrom": "before-final/security-normal-390.png",
+      "sha256": "3fb68e7633e15213663adef821ab8ee1faf63f9245c4045c0be6ecd1298ae3f1"
+    },
+    {
+      "path": "before-selected/security-normal-768.json",
+      "copiedUnchangedFrom": "before-final/security-normal-768.json",
+      "sha256": "1e843051264bedfbfc633eafaa7b24b3df189fcb28ffd810c2ec84d25fa9f6c7"
+    },
+    {
+      "path": "before-selected/security-normal-768.png",
+      "copiedUnchangedFrom": "before-final/security-normal-768.png",
+      "sha256": "38b6862f0b530d0619a587a49c95fbe4ace4e25b465f634ba44c2134adbd115b"
+    },
+    {
+      "path": "before-selected/security-validation-1024.json",
+      "copiedUnchangedFrom": "before-final/security-validation-1024.json",
+      "sha256": "a349cbb8518e4304a188423eac5fb5f1f07531b516dae9e44d38e7ccb41335e0"
+    },
+    {
+      "path": "before-selected/security-validation-1024.png",
+      "copiedUnchangedFrom": "before-final/security-validation-1024.png",
+      "sha256": "7dc77b84146bf74ee7ca7bc80f101d8c801a70a5e5292e107160fc03a121d979"
+    },
+    {
+      "path": "before-selected/security-validation-1440.json",
+      "copiedUnchangedFrom": "before-final/security-validation-1440.json",
+      "sha256": "be4b6495759e6e4ffad56ce83c1cd4eb62c1fb358343ae1cbb8c6270a3210e82"
+    },
+    {
+      "path": "before-selected/security-validation-1440.png",
+      "copiedUnchangedFrom": "before-final/security-validation-1440.png",
+      "sha256": "7cc6c6e13031b9f2b77ccf5314c51bcc9ef662ce02183c806d0c6000f61918ed"
+    },
+    {
+      "path": "before-selected/security-validation-1920.json",
+      "copiedUnchangedFrom": "before-final/security-validation-1920.json",
+      "sha256": "03b4441176baa9724f1e75026536c2906aeef03493728d195d0376a8ae80a297"
+    },
+    {
+      "path": "before-selected/security-validation-1920.png",
+      "copiedUnchangedFrom": "before-final/security-validation-1920.png",
+      "sha256": "ced9490cb1d6672d0409dadd6ac3466c67d9dd557ee3649f0b519d75a6328698"
+    },
+    {
+      "path": "before-selected/security-validation-390.json",
+      "copiedUnchangedFrom": "before-final/security-validation-390.json",
+      "sha256": "f67f4a839cdf5bafb9df7a615f4ac59ba902ac7851a0362abd62154b5905df13"
+    },
+    {
+      "path": "before-selected/security-validation-390.png",
+      "copiedUnchangedFrom": "before-final/security-validation-390.png",
+      "sha256": "3f73faef07556d9df885e8022cd4b8a841901bafba03f573a3f9003578e6e949"
+    },
+    {
+      "path": "before-selected/security-validation-768.json",
+      "copiedUnchangedFrom": "before-final/security-validation-768.json",
+      "sha256": "b019cb0942822f67ab559047285f19898c6e0eced9bb76a9cde4d5319898b548"
+    },
+    {
+      "path": "before-selected/security-validation-768.png",
+      "copiedUnchangedFrom": "before-final/security-validation-768.png",
+      "sha256": "d4e09f7fd4ee7735b669e31001c9b5a96895d82e0aa1e6392f0f2c5666d713f3"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-1024.json",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-1024.json",
+      "sha256": "78ea290fc78b9acdec05b1867b0c19b5d4cc0ef95789d40a38e7f0ae9314ec08"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-1024.png",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-1024.png",
+      "sha256": "4f73f49dd266862d145f90bbf213b3d17b0876ea130d1d8bb99e1608c8b57306"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-1440.json",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-1440.json",
+      "sha256": "88e9fa8b20a89e6bec505461d40ce67bea29b37511660e2e16cc57c2f6a41a45"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-1440.png",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-1440.png",
+      "sha256": "dfc09e61a0f3e57ebe140707dcd03fdf5b71a20bc393c55b28a92f68f5e9bc8d"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-1920.json",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-1920.json",
+      "sha256": "9e113a9207a98f6888581300411a8f86ff7de01bf93ba4559846c5ce5ec4e763"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-1920.png",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-1920.png",
+      "sha256": "ff7c5d0fb62a31563b25ec9ba43c77696dfeb54b768352ee9a696aa3f3602d33"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-390.json",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-390.json",
+      "sha256": "6a96376a78a6ddb83eeaa0240ef0d5304314c56bc5dcff295bcd0aa7c29b4f50"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-390.png",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-390.png",
+      "sha256": "9757cd7400c643af8396d1e3de55b557aad82ff31ee40860908587ba566df6c0"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-768.json",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-768.json",
+      "sha256": "f87fd608540a319f4cd04aa953bc85cf85e3cff2043d1639875948df9866f124"
+    },
+    {
+      "path": "before-selected/tab-calendar-focus-768.png",
+      "copiedUnchangedFrom": "before-final/tab-calendar-focus-768.png",
+      "sha256": "726e631ded884ea7b27578d8e91a3bd99988fa7111453a746adf79b4d7331187"
+    },
+    {
+      "path": "before-selected/tab-general-focus-1024.json",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-1024.json",
+      "sha256": "430cbb61c8a9192d3c677080a98d1e8ecb5bed125ee646bb8521e067b2d696b9"
+    },
+    {
+      "path": "before-selected/tab-general-focus-1024.png",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-1024.png",
+      "sha256": "b899add56494150dd92c4987d65f3071cd5140b3192fda496beaa4d4454a684a"
+    },
+    {
+      "path": "before-selected/tab-general-focus-1440.json",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-1440.json",
+      "sha256": "3586761e6552aafd1508f75d818d99665da8f905230c27ccbcfcf4f62bc6da8f"
+    },
+    {
+      "path": "before-selected/tab-general-focus-1440.png",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-1440.png",
+      "sha256": "6cbf596c6f8711c78af61c35f0f5ac987e3f9824f67e186187f6479bc01a19e1"
+    },
+    {
+      "path": "before-selected/tab-general-focus-1920.json",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-1920.json",
+      "sha256": "f4d1e8771b080690286fff77bc30317716d68127b912af025fd42f9d169cde94"
+    },
+    {
+      "path": "before-selected/tab-general-focus-1920.png",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-1920.png",
+      "sha256": "de1cb47f21bd0e40426525aeffb301b1363c52d47be65043d818ac0c6aa41a98"
+    },
+    {
+      "path": "before-selected/tab-general-focus-390.json",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-390.json",
+      "sha256": "01b9f50943733271fa7314fdc042ee83ad5f0469b4a61db51167843561bff9f0"
+    },
+    {
+      "path": "before-selected/tab-general-focus-390.png",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-390.png",
+      "sha256": "69562ee8f901ac3ce82a3235a3d1052c4710e141871ed9b70b00bd99e9eac733"
+    },
+    {
+      "path": "before-selected/tab-general-focus-768.json",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-768.json",
+      "sha256": "eb2ce26f579d4ce866297930dfd52cc7affa7a6505e5d36226ec9835841f76f7"
+    },
+    {
+      "path": "before-selected/tab-general-focus-768.png",
+      "copiedUnchangedFrom": "before-final/tab-general-focus-768.png",
+      "sha256": "b747f302d25bb66a1ba8b7d70ef706798650899d261f958c508f9fd45ac4753b"
+    },
+    {
+      "path": "before-selected/tab-security-focus-1024.json",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-1024.json",
+      "sha256": "1b146caeb0e60da9359ce04cff976d147a725f017c25117195eeafb806f4f366"
+    },
+    {
+      "path": "before-selected/tab-security-focus-1024.png",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-1024.png",
+      "sha256": "a01c496e3e60018ddb4183a55a3859a0405a4500390f2dd59496bd78f2801959"
+    },
+    {
+      "path": "before-selected/tab-security-focus-1440.json",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-1440.json",
+      "sha256": "1bf2383746f936cb7a993038f04b3ad627b82e1e08094b6f689fcc702c82d4b9"
+    },
+    {
+      "path": "before-selected/tab-security-focus-1440.png",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-1440.png",
+      "sha256": "f6ad7ccda451cf3749472b7ae1fb54a2e0104c3d579d267ceb202b69961637d9"
+    },
+    {
+      "path": "before-selected/tab-security-focus-1920.json",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-1920.json",
+      "sha256": "585d90a6a9e62ced531b28f6065c464127280d7bec276f76ea9bddfb58e0b224"
+    },
+    {
+      "path": "before-selected/tab-security-focus-1920.png",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-1920.png",
+      "sha256": "79c7d887bbb634a1b10092d3eea60ae69a7d15e3fe5e937e8d1b9e63b9240ffc"
+    },
+    {
+      "path": "before-selected/tab-security-focus-390.json",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-390.json",
+      "sha256": "bd3279335945f90f4ebccb7eefa10ff9ddd1bf83abb503355d7416d53a4d33e0"
+    },
+    {
+      "path": "before-selected/tab-security-focus-390.png",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-390.png",
+      "sha256": "42807c58f9d9596fe5abe396252b634abfce60b53c9ca3d4ec6c48cea277b516"
+    },
+    {
+      "path": "before-selected/tab-security-focus-768.json",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-768.json",
+      "sha256": "3a16328e8ae3e617d033910041804b1a260ee1f558e8640db17bb266c892b192"
+    },
+    {
+      "path": "before-selected/tab-security-focus-768.png",
+      "copiedUnchangedFrom": "before-final/tab-security-focus-768.png",
+      "sha256": "659f0f6e86dacfcf08f5d5068d965a0ca9decddbe39288368baebef29dbe40c1"
+    },
+    {
+      "path": "before-selected/auth-401-1024.json",
+      "copiedUnchangedFrom": "before-run2/auth-401-1024.json",
+      "sha256": "1fd6825fbc913aad6895da4e45a0accc0ed9bc6779e1add52a524855a0dd110f"
+    },
+    {
+      "path": "before-selected/auth-401-1024.png",
+      "copiedUnchangedFrom": "before-run2/auth-401-1024.png",
+      "sha256": "367919fb3c29033fcb712f5553065abe162155c15622d99003e098cdf89987e2"
+    },
+    {
+      "path": "before-selected/auth-401-1440.json",
+      "copiedUnchangedFrom": "before-run2/auth-401-1440.json",
+      "sha256": "fa8e99607c845aa5091d9331d180bbbb2e260bdc40bca8b7a51c41baef996fa3"
+    },
+    {
+      "path": "before-selected/auth-401-1440.png",
+      "copiedUnchangedFrom": "before-run2/auth-401-1440.png",
+      "sha256": "b1799a91918877da9af66ce563b2e06a2238c1e44e7c7df36b7c79c570e74a3d"
+    },
+    {
+      "path": "before-selected/auth-401-1920.json",
+      "copiedUnchangedFrom": "before-run2/auth-401-1920.json",
+      "sha256": "c6590022ee3e21aa7e93e1a81f671adb669b4740024c28821466fed1e47678b0"
+    },
+    {
+      "path": "before-selected/auth-401-1920.png",
+      "copiedUnchangedFrom": "before-run2/auth-401-1920.png",
+      "sha256": "0bae2d8fb18dbba6d37dbf9951e663dca0b412d951745d3a3043fc7fd245b5e0"
+    },
+    {
+      "path": "before-selected/auth-401-390.json",
+      "copiedUnchangedFrom": "before-run2/auth-401-390.json",
+      "sha256": "128e0af33ba830dfdc7c6be99351252dddff97bd900c4605bb1fdc0417cfc6f4"
+    },
+    {
+      "path": "before-selected/auth-401-390.png",
+      "copiedUnchangedFrom": "before-run2/auth-401-390.png",
+      "sha256": "521d04646a7ae19bda8e45c998f3bedde2cc2ef05eb67d5770c528f877964588"
+    },
+    {
+      "path": "before-selected/auth-401-768.json",
+      "copiedUnchangedFrom": "before-run2/auth-401-768.json",
+      "sha256": "fc5ea013fe5356e1315a671b2e4b5e6ee9c0ba6222874df34ea948c1aa5ea0a0"
+    },
+    {
+      "path": "before-selected/auth-401-768.png",
+      "copiedUnchangedFrom": "before-run2/auth-401-768.png",
+      "sha256": "5ccf743e99c758b65879996cd6eff6fe3b49cc755ff450407371eb772b7f89f8"
+    },
+    {
+      "path": "before-selected/auth-pending-1024.json",
+      "copiedUnchangedFrom": "before-run2/auth-pending-1024.json",
+      "sha256": "d6b4cfdf163545069eec0c06640a1851b63e7981b62c40b89af572b956a6f313"
+    },
+    {
+      "path": "before-selected/auth-pending-1024.png",
+      "copiedUnchangedFrom": "before-run2/auth-pending-1024.png",
+      "sha256": "fc5fbfd901c3705ccf8889471b9faed50fcebfcc00242e320d2ae6739aedc837"
+    },
+    {
+      "path": "before-selected/auth-pending-1440.json",
+      "copiedUnchangedFrom": "before-run2/auth-pending-1440.json",
+      "sha256": "0b6a818814e48ad33f625d94beceb8f3dc20aed8c1f9a150e7dbce27a62edeb4"
+    },
+    {
+      "path": "before-selected/auth-pending-1440.png",
+      "copiedUnchangedFrom": "before-run2/auth-pending-1440.png",
+      "sha256": "11d0481f244301e97064cd8293d8b3499f2a7962226dd39b0f05da156329a57a"
+    },
+    {
+      "path": "before-selected/auth-pending-1920.json",
+      "copiedUnchangedFrom": "before-run2/auth-pending-1920.json",
+      "sha256": "4b5ec2dfc977cc795e9cefa5ee6cb48af0fee8f7174a647e6392e7ed636983e3"
+    },
+    {
+      "path": "before-selected/auth-pending-1920.png",
+      "copiedUnchangedFrom": "before-run2/auth-pending-1920.png",
+      "sha256": "34c0e023b42e1da6326291f36e3752a667118a9c704f081c5bc09449ae5acdce"
+    },
+    {
+      "path": "before-selected/auth-pending-390.json",
+      "copiedUnchangedFrom": "before-run2/auth-pending-390.json",
+      "sha256": "643bad0935f7d10a79f4a7a61b59df18d5145e23259b2be2a33e94ba50383646"
+    },
+    {
+      "path": "before-selected/auth-pending-390.png",
+      "copiedUnchangedFrom": "before-run2/auth-pending-390.png",
+      "sha256": "5a81692140e11522b4738038e2a893f634014be381ce737f48637732454df5fc"
+    },
+    {
+      "path": "before-selected/auth-pending-768.json",
+      "copiedUnchangedFrom": "before-run2/auth-pending-768.json",
+      "sha256": "5d9823b44771b935d5f1ef17fff5cee60282e935cb339af593143853725528a6"
+    },
+    {
+      "path": "before-selected/auth-pending-768.png",
+      "copiedUnchangedFrom": "before-run2/auth-pending-768.png",
+      "sha256": "93b7b9557ffd4d76b8afd2db4265d6dd21a246beb60128967d03f6030f97c2ce"
+    },
+    {
+      "path": "before-selected/auth-readonly-1024.json",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-1024.json",
+      "sha256": "72195e5320e94534d83445a539d8f74da8d13a6e192641a61498793d7b242b61"
+    },
+    {
+      "path": "before-selected/auth-readonly-1024.png",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-1024.png",
+      "sha256": "c57699a7ed05905514b4ed3a8c3b8553916140dcd868e5c54e615d99cc6a9821"
+    },
+    {
+      "path": "before-selected/auth-readonly-1440.json",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-1440.json",
+      "sha256": "0104b5d5cae33e275f5cf12263f3882d48a4435e37a45669a580eb60a358c35a"
+    },
+    {
+      "path": "before-selected/auth-readonly-1440.png",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-1440.png",
+      "sha256": "8ab2ebea853aba9edb1dbc29ef6c960c53ba5f68c65637c948a1b222af7466df"
+    },
+    {
+      "path": "before-selected/auth-readonly-1920.json",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-1920.json",
+      "sha256": "4eedcab927c62fef5a26b49370f68ea9d74b06e210b0e92097167eb92470574d"
+    },
+    {
+      "path": "before-selected/auth-readonly-1920.png",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-1920.png",
+      "sha256": "8c1426c6265a9a9c1d05f2161ff54e0928ecf9e50b33363ffa3b3a252a5e9000"
+    },
+    {
+      "path": "before-selected/auth-readonly-390.json",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-390.json",
+      "sha256": "fbf561d0e81cac9b5924d304cdb5e21877d9683b88faf7b8f6256cb6cc14f9cc"
+    },
+    {
+      "path": "before-selected/auth-readonly-390.png",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-390.png",
+      "sha256": "55745beb5b7aac03d543112db4da123e1d65dc717769a7cce3ed290f8a1ebf91"
+    },
+    {
+      "path": "before-selected/auth-readonly-768.json",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-768.json",
+      "sha256": "f2fcfd93a4ec3f384aa4f7ccf9303d82834e8e8f4a3c1d4b4f61d7de33f06d74"
+    },
+    {
+      "path": "before-selected/auth-readonly-768.png",
+      "copiedUnchangedFrom": "before-run2/auth-readonly-768.png",
+      "sha256": "b81310310603da7b2734de20a7600fc0476286c293c756ff4ffa9bc9fc9ebd3e"
+    },
+    {
+      "path": "before-selected/auth-validation-1024.json",
+      "copiedUnchangedFrom": "before-run2/auth-validation-1024.json",
+      "sha256": "41f1d7ddfad1ecb1e9d9454580ccbd928a340e6d555d66293d78c7d48ef3447b"
+    },
+    {
+      "path": "before-selected/auth-validation-1024.png",
+      "copiedUnchangedFrom": "before-run2/auth-validation-1024.png",
+      "sha256": "0143a3cc7142675a8bca576b333215eafc6e32275e724ab16995875d85332cf3"
+    },
+    {
+      "path": "before-selected/auth-validation-1440.json",
+      "copiedUnchangedFrom": "before-run2/auth-validation-1440.json",
+      "sha256": "482fea35bb5611c428e1e0fd03c2e2dddcec5de8fe3eeab7841bedcdf081a736"
+    },
+    {
+      "path": "before-selected/auth-validation-1440.png",
+      "copiedUnchangedFrom": "before-run2/auth-validation-1440.png",
+      "sha256": "d5e163f4fc71daf8fd8fbd7d01c0c1a0aac1f35b96edfd7f0172fa176f470c71"
+    },
+    {
+      "path": "before-selected/auth-validation-1920.json",
+      "copiedUnchangedFrom": "before-run2/auth-validation-1920.json",
+      "sha256": "6d87e17098a0658735f3ba6c288242a46c61e530943fca8716db8fcc17e0b9cb"
+    },
+    {
+      "path": "before-selected/auth-validation-1920.png",
+      "copiedUnchangedFrom": "before-run2/auth-validation-1920.png",
+      "sha256": "003d77ea3583d0156c9cfe427c36f43d437d40586999df0fb41ff68f20ecb36f"
+    },
+    {
+      "path": "before-selected/auth-validation-390.json",
+      "copiedUnchangedFrom": "before-run2/auth-validation-390.json",
+      "sha256": "42c2b4745e9ff3a2d70fcfcc17808928c7d6048fa2d02b8817e32aa8c53f9835"
+    },
+    {
+      "path": "before-selected/auth-validation-390.png",
+      "copiedUnchangedFrom": "before-run2/auth-validation-390.png",
+      "sha256": "883bc6bbb8950972c7dd86a9c914cd3a783104dfb1fc41026c8000e4cc9349a3"
+    },
+    {
+      "path": "before-selected/auth-validation-768.json",
+      "copiedUnchangedFrom": "before-run2/auth-validation-768.json",
+      "sha256": "14638057a4e7d6eb6127d1de2328efd6a5dd51c2457f1568660dd71e300f88f1"
+    },
+    {
+      "path": "before-selected/auth-validation-768.png",
+      "copiedUnchangedFrom": "before-run2/auth-validation-768.png",
+      "sha256": "e3006015ce1de707110c0669be73ac254dde8e47b8bd700766ea712654374ff3"
+    },
+    {
+      "path": "before-selected/general-error-1024.json",
+      "copiedUnchangedFrom": "before-run2/general-error-1024.json",
+      "sha256": "c1c4091ebc513e17a1a7fe94720ff1b175b80a13cda4899377ae4c796b56072e"
+    },
+    {
+      "path": "before-selected/general-error-1024.png",
+      "copiedUnchangedFrom": "before-run2/general-error-1024.png",
+      "sha256": "873f1c4a1725b36733d79d5fe41187275022289caa4a9c4bb6a3b52e753d4cec"
+    },
+    {
+      "path": "before-selected/general-error-1440.json",
+      "copiedUnchangedFrom": "before-run2/general-error-1440.json",
+      "sha256": "d51d6f8fd5cd3279de3b250139d2f1022c8c9a2cfbd694be2cbbc434ad41c895"
+    },
+    {
+      "path": "before-selected/general-error-1440.png",
+      "copiedUnchangedFrom": "before-run2/general-error-1440.png",
+      "sha256": "40ff9f7883e5ac8f1d90c3c0e92dc969314039e7a53b0533a6f60fdb55a99c0c"
+    },
+    {
+      "path": "before-selected/general-error-1920.json",
+      "copiedUnchangedFrom": "before-run2/general-error-1920.json",
+      "sha256": "e378d6ca75aef1aab0dbb749eb13fcc74a1c946af44473516d98620d26c79398"
+    },
+    {
+      "path": "before-selected/general-error-1920.png",
+      "copiedUnchangedFrom": "before-run2/general-error-1920.png",
+      "sha256": "a40f7800c93a7cba993df1aaed3a628a1bd11c00b36bd566e28850df2c57c94c"
+    },
+    {
+      "path": "before-selected/general-error-390.json",
+      "copiedUnchangedFrom": "before-run2/general-error-390.json",
+      "sha256": "d6a7c4501f903af6430975c01167ec23ad0a49736be71688aad18e96a329d7df"
+    },
+    {
+      "path": "before-selected/general-error-390.png",
+      "copiedUnchangedFrom": "before-run2/general-error-390.png",
+      "sha256": "babfcbbe65a2121bcb80108a1d6d86e967b28085655013885b97e76deec34ac9"
+    },
+    {
+      "path": "before-selected/general-error-768.json",
+      "copiedUnchangedFrom": "before-run2/general-error-768.json",
+      "sha256": "c710fb6da69130fb2758c1fe07728840602961aa5df7254cf5de1fad76ed9bf1"
+    },
+    {
+      "path": "before-selected/general-error-768.png",
+      "copiedUnchangedFrom": "before-run2/general-error-768.png",
+      "sha256": "cd220b85875ec49775bca1bcf07b99283213ce37bee504392d8cafd977a3c781"
+    },
+    {
+      "path": "before-selected/general-pending-1024.json",
+      "copiedUnchangedFrom": "before-run2/general-pending-1024.json",
+      "sha256": "101105824f10f287a892df52e2fb3b95f598aa4615c43e1cb799f892915a6372"
+    },
+    {
+      "path": "before-selected/general-pending-1024.png",
+      "copiedUnchangedFrom": "before-run2/general-pending-1024.png",
+      "sha256": "0887e6eb4fb7f8885555859d0edb296a5ecae7ea570ec28612fb19caf614b03e"
+    },
+    {
+      "path": "before-selected/general-pending-1440.json",
+      "copiedUnchangedFrom": "before-run2/general-pending-1440.json",
+      "sha256": "dc3ebf389eeab7b1d85a79747bf60102e5f59d6c3e4ce7881111a873ecc26d41"
+    },
+    {
+      "path": "before-selected/general-pending-1440.png",
+      "copiedUnchangedFrom": "before-run2/general-pending-1440.png",
+      "sha256": "e3df0576c09b1862dd7517741658d91ef701d6b6b906d516e39693677578c3ed"
+    },
+    {
+      "path": "before-selected/general-pending-1920.json",
+      "copiedUnchangedFrom": "before-run2/general-pending-1920.json",
+      "sha256": "e20405f6efbb6a99dacc0fa2a93700153ec7fa25120feb5324ffe6dbbc7bfd21"
+    },
+    {
+      "path": "before-selected/general-pending-1920.png",
+      "copiedUnchangedFrom": "before-run2/general-pending-1920.png",
+      "sha256": "7367abf3c80585b570d3509e58e0f855d04e844c64305a54e3adc955b36720e6"
+    },
+    {
+      "path": "before-selected/general-pending-390.json",
+      "copiedUnchangedFrom": "before-run2/general-pending-390.json",
+      "sha256": "e59af77f2ece48a1650154aabaa5718321089d6cca715587c6d073c2509ea7cd"
+    },
+    {
+      "path": "before-selected/general-pending-390.png",
+      "copiedUnchangedFrom": "before-run2/general-pending-390.png",
+      "sha256": "84a3f3560c94a5e85d7ca4106b70d8c388003c1b946a424ff64387c10141ca43"
+    },
+    {
+      "path": "before-selected/general-pending-768.json",
+      "copiedUnchangedFrom": "before-run2/general-pending-768.json",
+      "sha256": "b75e1b6992665e727126863434478c602753a0c04c735e63707b6d0b6c4a3e5c"
+    },
+    {
+      "path": "before-selected/general-pending-768.png",
+      "copiedUnchangedFrom": "before-run2/general-pending-768.png",
+      "sha256": "58694321371a284cc6642fa5079566bd049375776d53cdb7cb5afd6a7654c858"
+    }
+  ]
+}

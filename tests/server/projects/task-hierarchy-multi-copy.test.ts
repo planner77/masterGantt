@@ -225,7 +225,10 @@ describe("atomic multi-root Copy", () => {
     });
     f.revision = baseline.data.project.revision;
     const target = f.add("Target", undefined, "summary");
-    f.relate(manual, milestone, "SS", 0);
+    // Seed legacy mixed endpoints: the server-owned Copy preserves these existing records.
+    f.db.prepare(`INSERT INTO links(public_id,project_id,predecessor_task_id,successor_task_id,type,lag,created_at,updated_at)
+      SELECT ?,?,?,id,'SS',0,?,? FROM tasks WHERE public_id=?`).run(randomUUID(), f.authorization.projectId,
+        (f.db.prepare("SELECT id FROM tasks WHERE public_id=?").pluck().get(manual.taskId)), clock().toISOString(), clock().toISOString(), milestone.taskId);
     f.db.prepare("UPDATE tasks SET description='kept', url='https://example.com/manual' WHERE public_id=?").run(manual.taskId);
     const original = f.db.prepare("SELECT * FROM tasks WHERE public_id=?").get(manual.taskId);
     const result = f.copy([milestone.taskId, manual.taskId], target);
@@ -237,7 +240,7 @@ describe("atomic multi-root Copy", () => {
     expect(result.data.project.revision).toBe(f.revision + 1);
   });
 
-  it("retains original logistics links without implicitly cloning them", async () => {
+  it("copies explicit logistics links with reused instances and retains original rows", async () => {
     const f = await fixture();
     const first = f.add("First"), second = f.add("Second"), target = f.add("Target", undefined, "summary");
     const stamp = clock().toISOString();
@@ -248,7 +251,11 @@ describe("atomic multi-root Copy", () => {
     const before = f.db.prepare("SELECT * FROM task_system_links").all();
     const result = f.copy([first.taskId, second.taskId], target);
     expect(children(result.data.tasks, target.externalId)).toHaveLength(2);
-    expect(f.db.prepare("SELECT * FROM task_system_links").all()).toEqual(before);
+    expect(f.db.prepare("SELECT * FROM task_system_links WHERE task_id=?").all(task.id)).toEqual(before);
+    const copiedFirst = children(result.data.tasks, target.externalId).find(t => t.name === first.name)!;
+    const copiedId = f.db.prepare("SELECT id FROM tasks WHERE public_id=?").pluck().get(copiedFirst.taskId);
+    expect(f.db.prepare("SELECT system_id,scope FROM task_system_links WHERE task_id=?").all(copiedId)).toEqual([{system_id:Number(system),scope:"self"}]);
+    expect(f.db.prepare("SELECT COUNT(*) FROM task_system_links").pluck().get()).toBe(2);
     expect(result.data.logistics?.systems).toHaveLength(1);
   });
 

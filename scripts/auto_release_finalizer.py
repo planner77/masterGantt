@@ -4,13 +4,17 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from types import SimpleNamespace
 from typing import Any
+
+from issue_lifecycle import LifecycleError, audited_final_markers
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 REF_RE = re.compile(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$")
@@ -50,15 +54,54 @@ class WorkItem:
     current_version: str
     validation_docs_only: bool = False
     cleanup_pr_numbers: tuple[int, ...] = ()
+    actionable: bool = True
+    # Physical first-parent version stays unchanged. This field records an
+    # unissued release inherited from a failed, same-Issue main attempt.
+    inherited_release_base_version: str | None = None
+
+    @property
+    def release_base_version(self) -> str:
+        return self.inherited_release_base_version or self.previous_version
+
+    @property
+    def release_required(self) -> bool:
+        return self.release_base_version != self.current_version
 
 
-def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(args, text=True, capture_output=True)
+def run(
+    *args: str,
+    check: bool = True,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(args, text=True, capture_output=True, env=env)
     if check and result.returncode != 0:
         raise AutoFinalizerError(
             f"command failed ({result.returncode}): {' '.join(args)}\n{result.stderr.strip()}"
         )
     return result
+
+
+def git_remote_auth_env() -> dict[str, str]:
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token:
+        raise AutoFinalizerError("GITHUB_TOKEN is required for authenticated git remote access")
+
+    basic = base64.b64encode(f"x-access-token:{token}".encode("utf-8")).decode("ascii")
+    env = os.environ.copy()
+    env.update(
+        {
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_0": "",
+            "GIT_CONFIG_KEY_1": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_1": f"AUTHORIZATION: basic {basic}",
+        }
+    )
+    return env
+
+
+def run_git_remote(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return run("git", *args, check=check, env=git_remote_auth_env())
 
 
 def gh(path: str) -> Any:
@@ -160,6 +203,10 @@ def select_authorization(
         marker = parse_authorization_marker(comment.get("body") or "")
         if marker is None:
             continue
+        if marker["expected_version"] != expected_version:
+            # An independent version's approval or revocation must not
+            # supersede this exact release target's trusted decision.
+            continue
         trusted_markers.append((int(comment.get("id") or 0), comment, marker))
 
     if not trusted_markers:
@@ -175,11 +222,6 @@ def select_authorization(
         actor=actor,
         evidence_url=evidence_url,
     )
-    if authorization.expected_version != expected_version:
-        raise AutoFinalizerBlocked(
-            "최신 신뢰 승인 marker의 대상 version이 "
-            f"{authorization.expected_version}이며 현재 {expected_version}과 다릅니다"
-        )
     if not authorization.authorized:
         raise AutoFinalizerBlocked(
             f"최신 신뢰 승인 marker가 {expected_version} release 승인을 명시적으로 철회했습니다"
@@ -261,25 +303,37 @@ def issue_comments(repo: str, issue_number: int) -> list[dict[str, Any]]:
 
 
 def is_finalized_boundary(repo: str, item: WorkItem) -> bool:
+    """Only authenticated, exact PR/main FINAL evidence can end traversal.
+
+    A user-authored marker must fail closed rather than silently skip branch
+    cleanup, GHCR candidate cleanup, or per-target lifecycle recording.
+    """
+    context = SimpleNamespace(
+        issue_number=item.issue_number,
+        pr_number=item.pr_number,
+        merge_sha=item.target_sha,
+    )
+    try:
+        records = audited_final_markers(repo, context)
+    except LifecycleError as exc:
+        raise AutoFinalizerError(
+            f"Issue #{item.issue_number} PR #{item.pr_number} "
+            f"SHA {item.target_sha} phase=FINAL_BOUNDARY_AUDIT: {exc}"
+        ) from exc
+    return item.target_sha in records
+
+
+def is_closed_issue(repo: str, item: WorkItem) -> bool:
     issue = gh(f"/repos/{repo}/issues/{item.issue_number}")
     if not isinstance(issue, dict):
         raise AutoFinalizerError(f"Issue #{item.issue_number} 응답 형식이 올바르지 않습니다")
-    comments = issue_comments(repo, item.issue_number)
-    marker = final_marker(item.issue_number, item.target_sha)
-    if any(
-        line.strip() == marker
-        for comment in comments
-        for line in (comment.get("body") or "").splitlines()
-    ):
-        return True
-
-    # Legacy lifecycle before #350 may have closed an Issue without the generic
-    # marker. Treat a closed Issue as a historical boundary and never reopen it.
     return issue.get("state") == "closed"
 
 
 def collect_pending_work(
-    repo: str, latest_main_sha: str, *, max_depth: int = MAX_BACKLOG_DEPTH
+    repo: str, latest_main_sha: str, *,
+    max_depth: int = MAX_BACKLOG_DEPTH,
+    finalized_boundary: list[WorkItem] | None = None,
 ) -> list[WorkItem]:
     pending_newest_first: list[WorkItem] = []
     cursor = latest_main_sha
@@ -292,7 +346,21 @@ def collect_pending_work(
             # rather than inventing an Issue identity.
             return list(reversed(pending_newest_first))
         if is_finalized_boundary(repo, item):
+            if finalized_boundary is not None:
+                finalized_boundary.append(item)
             return list(reversed(pending_newest_first))
+        if is_closed_issue(repo, item) and not any(
+            line.strip().startswith(f"{FINAL_MARKER_PREFIX}{item.issue_number}:")
+            for comment in issue_comments(repo, item.issue_number)
+            for line in (comment.get("body") or "").splitlines()
+        ):
+            # A later maintenance/fix PR may legitimately reference an Issue
+            # whose older target was already finalized.  Keep it as a
+            # non-actionable ordering barrier so adjacency-sensitive retry
+            # coalescing cannot cross this merge, while continuing traversal.
+            pending_newest_first.append(replace(item, actionable=False))
+            cursor = item.first_parent_sha
+            continue
         pending_newest_first.append(item)
         cursor = item.first_parent_sha
 
@@ -302,45 +370,8 @@ def collect_pending_work(
 
 
 def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
-    """Collapse adjacent same-Issue retries only when validation scope matches.
-
-    The latest target can stand in for earlier attempts only when both merges
-    require the same docs-only/non-docs main validation scope. This prevents a
-    docs-only follow-up from masking an earlier code merge whose exact main CI
-    never produced the required E2E/Docker/GHCR evidence. Every collapsed PR
-    identity is retained so all merged branches can be safely cleaned before
-    FINAL/Issue close.
-    """
-    coalesced: list[WorkItem] = []
-    for item in items:
-        if (
-            coalesced
-            and coalesced[-1].issue_number == item.issue_number
-            and coalesced[-1].validation_docs_only == item.validation_docs_only
-        ):
-            previous = coalesced[-1]
-            cleanup_pr_numbers = tuple(
-                dict.fromkeys(
-                    (
-                        *previous.cleanup_pr_numbers,
-                        previous.pr_number,
-                        *item.cleanup_pr_numbers,
-                    )
-                )
-            )
-            coalesced[-1] = WorkItem(
-                target_sha=item.target_sha,
-                first_parent_sha=previous.first_parent_sha,
-                pr_number=item.pr_number,
-                issue_number=item.issue_number,
-                previous_version=previous.previous_version,
-                current_version=item.current_version,
-                validation_docs_only=item.validation_docs_only,
-                cleanup_pr_numbers=cleanup_pr_numbers,
-            )
-            continue
-        coalesced.append(item)
-    return coalesced
+    """Preserve every successful target; no per-merge CI/GHCR obligation may vanish."""
+    return list(items)
 
 
 def validation_scope_covers(older: WorkItem, replacement: WorkItem) -> bool:
@@ -354,6 +385,7 @@ def supersede_failed_issue_retries(
     items: list[WorkItem],
     ci_success: dict[str, bool],
     release_failed: dict[str, bool] | None = None,
+    first_parent_items: list[WorkItem] | None = None,
 ) -> tuple[list[WorkItem], list[tuple[WorkItem, WorkItem]]]:
     """Defer a failed attempt to a later Green merge for the same Issue.
 
@@ -366,8 +398,13 @@ def supersede_failed_issue_retries(
     """
     superseded_indices: set[int] = set()
     cleanup_by_index: dict[int, list[int]] = {}
+    inherited_release_by_index: dict[int, str] = {}
     superseded: list[tuple[WorkItem, WorkItem]] = []
     release_failed = release_failed or {}
+    # Include even closed/non-actionable merges when checking adjacency for
+    # previously unissued SemVer authority. They are ordering barriers.
+    first_parent_items = first_parent_items if first_parent_items is not None else items
+    positions = {work.target_sha: n for n, work in enumerate(first_parent_items)}
 
     for index, item in enumerate(items):
         item_failed = (
@@ -387,6 +424,41 @@ def supersede_failed_issue_retries(
                 continue
             if not validation_scope_covers(item, candidate):
                 continue
+            if (item.release_required and release_failed.get(item.target_sha, False)
+                    and candidate.current_version == item.current_version):
+                # An existing immutable failed release tag is bound to the old
+                # SHA; never transfer the same tag to a different merge SHA.
+                continue
+            if item.release_required and not ci_success.get(item.target_sha, False):
+                if candidate.current_version != item.current_version:
+                    # No silent supersession across version differences for
+                    # a failed main target that never published its release.
+                    continue
+                # Main CI failed before the original version's tag was created.
+                # A later same-version corrective merge has a zero physical
+                # version delta; do not silently discard its approved release.
+                # Only an uninterrupted same-Issue, non-docs, unchanged-version
+                # chain may inherit that obligation. A tag/release failure must
+                # instead use a new immutable SemVer corrective release.
+                if ci_success.get(item.target_sha, False) or release_failed.get(item.target_sha, False):
+                    continue
+                start = positions.get(item.target_sha)
+                finish = positions.get(candidate.target_sha)
+                if start is None or finish is None or finish <= start:
+                    continue
+                chain = first_parent_items[start + 1 : finish + 1]
+                if any(
+                    step.issue_number != item.issue_number
+                    or step.validation_docs_only
+                    or step.previous_version != item.current_version
+                    or step.current_version != item.current_version
+                    for step in chain
+                ):
+                    continue
+                inherited = inherited_release_by_index.get(candidate_index)
+                if inherited is not None and inherited != item.release_base_version:
+                    continue
+                inherited_release_by_index[candidate_index] = item.release_base_version
             replacement_index = candidate_index
             break
         if replacement_index is None:
@@ -404,22 +476,55 @@ def supersede_failed_issue_retries(
         if index in superseded_indices:
             continue
         extra_cleanup = cleanup_by_index.get(index, [])
-        if extra_cleanup:
+        inherited = inherited_release_by_index.get(index)
+        if extra_cleanup or inherited is not None:
             cleanup = tuple(
                 dict.fromkeys((*item.cleanup_pr_numbers, *extra_cleanup))
             )
-            item = WorkItem(
-                target_sha=item.target_sha,
-                first_parent_sha=item.first_parent_sha,
-                pr_number=item.pr_number,
-                issue_number=item.issue_number,
-                previous_version=item.previous_version,
-                current_version=item.current_version,
-                validation_docs_only=item.validation_docs_only,
-                cleanup_pr_numbers=cleanup,
+            item = replace(
+                item, cleanup_pr_numbers=cleanup,
+                inherited_release_base_version=inherited or item.inherited_release_base_version,
             )
         planned.append(item)
     return planned, superseded
+
+
+def release_evidence_after_ci_supersession(
+    repo: str,
+    items: list[WorkItem],
+    ci_success: dict[str, bool],
+    first_parent_items: list[WorkItem],
+) -> dict[str, tuple[str, str | None]]:
+    """Read release tags after validating the strictly limited failed-CI lineage.
+
+    A previously failed Main CI may have been superseded by the next same-Issue,
+    same-version, non-docs successful merge. The official immutable tag then
+    belongs to the corrective commit, not to the failed ancestor. Only that
+    exact correction may be recognized while reading the failed ancestor's
+    release evidence. No permission to move tags or to skip the correction's
+    own release/CI validation is implied.
+    """
+    _, tentative = supersede_failed_issue_retries(
+        items, ci_success, first_parent_items=first_parent_items,
+    )
+    # Never accept a different tag source on a CI-successful ancestor or a
+    # merely same-version, non-adjacent, unrelated or docs-only correction.
+    permitted: dict[str, str] = {
+        failed.target_sha: correction.target_sha
+        for failed, correction in tentative
+        if not ci_success.get(failed.target_sha, False)
+        and failed.release_required
+        and correction.issue_number == failed.issue_number
+        and correction.current_version == failed.current_version
+        and not correction.validation_docs_only
+        and ci_success.get(correction.target_sha, False)
+    }
+    return {
+        item.target_sha: exact_release_state(
+            repo, item, corrective_sha=permitted.get(item.target_sha),
+        )
+        for item in items
+    }
 
 
 def current_main_sha(repo: str) -> str:
@@ -437,15 +542,43 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
     )
     if not isinstance(data, dict):
         raise AutoFinalizerError("main CI 조회 응답 형식이 올바르지 않습니다")
-    runs = [run_data for run_data in data.get("workflow_runs", []) if run_data.get("head_sha") == sha]
+    runs = [
+        run_data
+        for run_data in data.get("workflow_runs", [])
+        if run_data.get("head_sha") == sha
+    ]
     if not runs:
-        return False, None
-    latest = sorted(runs, key=lambda run_data: run_data.get("created_at", ""))[-1]
-    ok = latest.get("status") == "completed" and latest.get("conclusion") == "success"
-    return ok, latest.get("html_url")
+        # A wrong-SHA API response is not evidence of a missing push run.
+        if data.get("workflow_runs"):
+            return False, None
+        from main_ci_recovery import discover_completed_recovery
+        evidence = discover_completed_recovery(repo, sha)
+        return (True, evidence[0]) if evidence else (False, None)
+
+    def run_order(run_data: dict[str, Any]) -> tuple[str, int, int]:
+        return (
+            str(run_data.get("created_at") or ""),
+            int(run_data.get("run_attempt") or 0),
+            int(run_data.get("id") or 0),
+        )
+
+    successful = [
+        run_data
+        for run_data in runs
+        if run_data.get("status") == "completed"
+        and run_data.get("conclusion") == "success"
+    ]
+    if successful:
+        latest_success = sorted(successful, key=run_order)[-1]
+        return True, latest_success.get("html_url")
+
+    latest = sorted(runs, key=run_order)[-1]
+    return False, latest.get("html_url")
 
 
-def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
+def exact_release_state(
+    repo: str, item: WorkItem, *, corrective_sha: str | None = None,
+) -> tuple[str, str | None]:
     """Return formal release evidence without mutating tags or workflows.
 
     States:
@@ -456,12 +589,11 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
     - success: exact release-image evidence completed successfully.
     - failed: tag exists and exact release-image attempts completed without success.
     """
-    if item.previous_version == item.current_version:
+    if not item.release_required:
         return "not-required", None
 
     tag = f"v{item.current_version}"
-    remote = run(
-        "git",
+    remote = run_git_remote(
         "ls-remote",
         "--exit-code",
         "--tags",
@@ -472,13 +604,19 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
     if remote.returncode != 0:
         return "not-started", None
 
-    run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
+    run_git_remote("fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
     if run("git", "cat-file", "-t", f"refs/tags/{tag}").stdout.strip() != "tag":
         raise AutoFinalizerError(
             f"{tag}: existing release tag is lightweight; refusing supersession"
         )
     actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()
     if actual != item.target_sha:
+        if corrective_sha is not None and actual == corrective_sha:
+            # Reached only from a verified failed-CI same-Issue corrective chain.
+            # The failed SHA remains FAIL and does not own the release; the
+            # corrective WorkItem must still validate its own immutable tag,
+            # release-image success, Owner authority and digest before mutation.
+            return "superseded-by-corrective", None
         raise AutoFinalizerError(
             f"{tag}: existing release tag points to {actual}, expected {item.target_sha}"
         )
@@ -542,7 +680,11 @@ def lifecycle_command(
     expected_version: str,
     authorization_note: str,
     cleanup_pr_numbers: tuple[int, ...] = (),
+    defer_close: bool = False,
+    main_snapshot_sha: str = "",
 ) -> list[str]:
+    if not SHA_RE.fullmatch(main_snapshot_sha):
+        raise AutoFinalizerError("ordered lifecycle command requires main snapshot SHA")
     command = [
         "python3",
         "scripts/issue_lifecycle.py",
@@ -559,14 +701,19 @@ def lifecycle_command(
         expected_version,
         "--authorization-note",
         authorization_note,
+        "--resolver-ordered",
+        "--resolver-main-sha",
+        main_snapshot_sha,
     ]
+    if defer_close:
+        command.append("--defer-close")
     for cleanup_pr_number in cleanup_pr_numbers:
         command.extend(["--cleanup-pr", str(cleanup_pr_number)])
     return command
 
 
-def process_item(repo: str, item: WorkItem, release_state: str) -> str:
-    release_required = item.previous_version != item.current_version
+def process_item(repo: str, item: WorkItem, release_state: str, *, main_snapshot_sha: str, defer_close: bool = False) -> str:
+    release_required = item.release_required
     operation = "finalize"
     release_authorized = False
     authorization_note = ""
@@ -606,6 +753,8 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
             f"- PR: #{item.pr_number}",
             f"- Issue: #{item.issue_number}",
             f"- application version: `{item.previous_version}` → `{item.current_version}`",
+            f"- release obligation baseline: `{item.release_base_version}`"
+            f" (inherited={str(item.inherited_release_base_version is not None).lower()})",
             f"- validation scope docs-only: `{str(item.validation_docs_only).lower()}`",
             f"- additional cleanup PRs: {', '.join(f'#{number}' for number in item.cleanup_pr_numbers) or 'none'}",
             f"- release_required: `{str(release_required).lower()}`",
@@ -625,6 +774,8 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
             expected_version=item.current_version if release_required else "",
             authorization_note=authorization_note,
             cleanup_pr_numbers=item.cleanup_pr_numbers,
+            defer_close=defer_close,
+            main_snapshot_sha=main_snapshot_sha,
         ),
         check=False,
     )
@@ -637,6 +788,37 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
     return operation
 
 
+def resume_unclosed_final(
+    repo: str, boundary: WorkItem, newer: list[WorkItem], main_snapshot_sha: str
+) -> bool:
+    """Recover a committed FINAL followed by a failed Issue close."""
+    if any(item.issue_number == boundary.issue_number for item in newer):
+        return False
+    if is_closed_issue(repo, boundary):
+        return False
+    result = run(
+        *lifecycle_command(
+            operation="close_resume",
+            issue_number=boundary.issue_number,
+            pr_number=boundary.pr_number,
+            release_required=False,
+            release_authorized=False,
+            expected_version="",
+            authorization_note="",
+            main_snapshot_sha=main_snapshot_sha,
+        ),
+        check=False,
+    )
+    sys.stdout.write(result.stdout)
+    sys.stderr.write(result.stderr)
+    if result.returncode != 0:
+        raise AutoFinalizerError(
+            f"Issue #{boundary.issue_number} PR #{boundary.pr_number} "
+            f"SHA {boundary.target_sha} phase=CLOSE_RESUME failed with {result.returncode}"
+        )
+    return True
+
+
 def execute(trigger_sha: str) -> int:
     repo = os.environ.get("GITHUB_REPOSITORY", "")
     if not repo:
@@ -645,16 +827,24 @@ def execute(trigger_sha: str) -> int:
         raise AutoFinalizerError("trigger SHA는 40자리 SHA여야 합니다")
 
     latest_main = current_main_sha(repo)
-    pending_raw = collect_pending_work(repo, latest_main)
-    pending_coalesced = coalesce_consecutive_issue_retries(pending_raw)
+    # Boundary audit and history resolution must inspect the actual latest main.
+    # Use process-scoped auth; do not persist checkout credentials.
+    run_git_remote("fetch", "--no-tags", "origin", "main")
+    finalized_boundary: list[WorkItem] = []
+    pending_raw = collect_pending_work(repo, latest_main, finalized_boundary=finalized_boundary)
+    pending_with_barriers = coalesce_consecutive_issue_retries(pending_raw)
+    closed_barriers = [item for item in pending_with_barriers if not item.actionable]
+    pending_coalesced = [item for item in pending_with_barriers if item.actionable]
     ci_evidence = {
         item.target_sha: exact_main_ci_success(repo, item.target_sha)
         for item in pending_coalesced
     }
-    release_evidence = {
-        item.target_sha: exact_release_state(repo, item)
-        for item in pending_coalesced
-    }
+    release_evidence = release_evidence_after_ci_supersession(
+        repo,
+        pending_coalesced,
+        {sha: evidence[0] for sha, evidence in ci_evidence.items()},
+        pending_with_barriers,
+    )
     pending, superseded = supersede_failed_issue_retries(
         pending_coalesced,
         {sha: evidence[0] for sha, evidence in ci_evidence.items()},
@@ -662,7 +852,45 @@ def execute(trigger_sha: str) -> int:
             sha: state == "failed"
             for sha, (state, _url) in release_evidence.items()
         },
+        first_parent_items=pending_with_barriers,
     )
+
+    # B2 retirement is a separate, narrow Owner-authorized exception. Without
+    # the exact current main SHA and the two original revocations, it remains
+    # a NO-OP and the historical failed CI is the oldest ordering blocker.
+    from release_debt_recovery import plan_b2, finalize_b2
+    # Once the B2 target has its authenticated FINAL marker, the old Owner
+    # decision must not affect later unrelated first-parent lifecycles.
+    recovery_plan = (
+        plan_b2(sys.modules[__name__], repo, latest_main, pending_raw)
+        if any(item.target_sha == latest_main and item.issue_number == 633
+               and item.current_version == "0.106.1" for item in pending_raw)
+        else None
+    )
+    if recovery_plan is not None:
+        pending = [
+            item for item in pending if item.target_sha not in recovery_plan.retired_shas
+        ]
+        write_summary([
+            "### Owner B2 승인된 미발행 릴리스 예외",
+            f"- Owner audit evidence: {recovery_plan.marker_url}",
+            "- v0.105.0/v0.106.0 old Main CI: FAIL unchanged; release not authorized",
+            f"- new release: v{recovery_plan.target.current_version} / {recovery_plan.sha}",
+            "- old PR cleanup/Issue close: ONLY after new exact release succeeded",
+        ])
+
+    if finalized_boundary:
+        recovered = resume_unclosed_final(
+            repo, finalized_boundary[0], pending_raw, latest_main
+        )
+        if recovered:
+            write_summary([
+                "### 이전 FINAL의 종료 단계 복구",
+                "",
+                f"- Issue #{finalized_boundary[0].issue_number} / PR #{finalized_boundary[0].pr_number}",
+                f"- exact SHA: {finalized_boundary[0].target_sha}",
+                "- 결과: 인증된 FINAL의 Issue close 재시도 PASS; FINAL comment/cleanup 재실행 없음",
+            ])
 
     if not pending:
         write_summary(
@@ -685,6 +913,7 @@ def execute(trigger_sha: str) -> int:
             f"- dispatcher main snapshot: `{latest_main}`",
             f"- pending first-parent merges: `{len(pending_raw)}`",
             f"- targets after adjacent same-Issue convergence: `{len(pending_coalesced)}`",
+            f"- non-actionable closed ordering barriers: `{len(closed_barriers)}`",
             f"- superseded failed attempts: `{len(superseded)}`",
             f"- lifecycle targets: `{len(pending)}`",
             "- 처리 순서: oldest → newest; intervening Issues retain their position",
@@ -723,10 +952,11 @@ def execute(trigger_sha: str) -> int:
             item.target_sha,
             exact_main_ci_success(repo, item.target_sha),
         )
-        release_state, release_url = release_evidence.get(
-            item.target_sha,
-            exact_release_state(repo, item),
-        )
+        release_state, release_url = release_evidence.get(item.target_sha, (None, None))
+        if release_state is None or (release_state == "not-required" and item.release_required):
+            # A same-version corrective SHA may have inherited a previous
+            # failed main target's release; recheck its *own* immutable tag.
+            release_state, release_url = exact_release_state(repo, item)
         if not ci_ok:
             write_summary(
                 [
@@ -758,7 +988,16 @@ def execute(trigger_sha: str) -> int:
                 ]
             )
             return 0
-        operation = process_item(repo, item, release_state)
+        newer_same_issue = any(
+            candidate.issue_number == item.issue_number and candidate.target_sha != item.target_sha
+            for candidate in pending[pending.index(item) + 1:]
+        )
+        if (recovery_plan is not None and item.target_sha == recovery_plan.sha
+                and release_state == "success"):
+            # Verified immutable release and digest promotion BEFORE retiring
+            # historical versions. Partial cleanup fails closed and is replayable.
+            finalize_b2(sys.modules[__name__], repo, latest_main, recovery_plan)
+        operation = process_item(repo, item, release_state, main_snapshot_sha=latest_main, defer_close=newer_same_issue)
         if operation == "release_start":
             write_summary(
                 [

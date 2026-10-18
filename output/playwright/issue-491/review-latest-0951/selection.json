@@ -1,0 +1,133 @@
+{
+  "files": [
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/contracts.json",
+      "bytes": 19677,
+      "sha256": "45f3762c42b57caa14fc7480aece688d40ec3eaf23986cd4349197330d0ecf5c"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/copy-stale-1440.png",
+      "bytes": 164968,
+      "sha256": "3e548e7e42eaf5c430992ec80c6904100782fc57e71d70685dc4e36dc56eaee1"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/create-native-focus-390.png",
+      "bytes": 96960,
+      "sha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/export-date-native-focus-1440.png",
+      "bytes": 119441,
+      "sha256": "4433cd2a4658ef9a0ac3bf68495ea6444458e33a064f72a969aa5768fc315959"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/export-image-range-390.png",
+      "bytes": 55177,
+      "sha256": "ac355be07fa0451ce9f897adf497a8488c92483d42fbbc77a4e26fb9f6f0c675"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/gantt-state-1440.png",
+      "bytes": 218741,
+      "sha256": "fdd2a262fcffedd0ee0498792a445e64dd883e9ec0f0a9c4682eb59a6682e902"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/geometry.json",
+      "bytes": 6230361,
+      "sha256": "808313730011b0e06224f15ddf3306a5b88a6be168c44f54fd4169ac203bddd9"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/import-table-native-focus-1440.png",
+      "bytes": 168652,
+      "sha256": "37daf6a1cc57851aeee9abcbda7821f6b662b58754ade79afaef161f136fcf8e"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/import-table-native-focus-390.png",
+      "bytes": 72292,
+      "sha256": "e8f73ef0671b8451fa0bb4e38a875d887da0e93c6732525a28cc9d9cce3c3c94"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/run.json",
+      "bytes": 110070,
+      "sha256": "20fd6060fc3ab169748393df5a4bde47d5d72a1e5f0074e39d83e8e9fa59143c"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/source-provenance.json",
+      "bytes": 58009,
+      "sha256": "fd68d9571e13658b64cfc257fd51f7dae3ae1ce45d86ff6337f1f80ee2528a59"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/template-create-native-focus-390.png",
+      "bytes": 261323,
+      "sha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/template-save-long-390.png",
+      "bytes": 85871,
+      "sha256": "d5c6f065f777096b48153ab3bba3b1762174e34a3aac8ee0e1b70b92d5d039d3"
+    },
+    {
+      "path": "output/playwright/issue-491/review-latest-0951/template-save-native-focus-1440.png",
+      "bytes": 147204,
+      "sha256": "5d964af5f2448f6a3a3f7048aea15ab5387aafaaf9bab4832615cdf7e16ac928"
+    }
+  ],
+  "pngOriginals": [
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/template-save-long-390.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/template-save-long-390.png",
+      "originalSha256": "d5c6f065f777096b48153ab3bba3b1762174e34a3aac8ee0e1b70b92d5d039d3"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/template-save-native-focus-1440.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/template-save-native-focus-1440.png",
+      "originalSha256": "5d964af5f2448f6a3a3f7048aea15ab5387aafaaf9bab4832615cdf7e16ac928"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/export-image-range-390.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/export-image-range-390.png",
+      "originalSha256": "ac355be07fa0451ce9f897adf497a8488c92483d42fbbc77a4e26fb9f6f0c675"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/export-date-native-focus-1440.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/export-date-native-focus-1440.png",
+      "originalSha256": "4433cd2a4658ef9a0ac3bf68495ea6444458e33a064f72a969aa5768fc315959"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/import-table-native-focus-390.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/import-table-native-focus-390.png",
+      "originalSha256": "e8f73ef0671b8451fa0bb4e38a875d887da0e93c6732525a28cc9d9cce3c3c94"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/import-table-native-focus-1440.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/import-table-native-focus-1440.png",
+      "originalSha256": "37daf6a1cc57851aeee9abcbda7821f6b662b58754ade79afaef161f136fcf8e"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/create-native-focus-390.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/create-native-focus-390.png",
+      "originalSha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/template-create-native-focus-390.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/template-create-native-focus-390.png",
+      "originalSha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/copy-stale-1440.png",
+      "originalFile": "output/playwright/issue-491/after-latest-0951/copy-stale-1440.png",
+      "originalSha256": "3e548e7e42eaf5c430992ec80c6904100782fc57e71d70685dc4e36dc56eaee1"
+    },
+    {
+      "file": "output/playwright/issue-491/review-latest-0951/gantt-state-1440.png",
+      "originalFile": "/tmp/issue491-after-latest-0951/results/project-transfer-layout-49-d344b-e·선택·scroll-및-fullscreen-보존-chromium/gantt-state.png",
+      "originalSha256": "fdd2a262fcffedd0ee0498792a445e64dd883e9ec0f0a9c4682eb59a6682e902"
+    }
+  ],
+  "excludedRaw": "새 실행 전체242 PNG/원래 geometry와 private stdout/HTML/results/trace는 원본 보존하며 게시 선택 밖이다. 역사적 review63 및 review-current-0944의15개는 불변 유지.",
+  "counts": {
+    "selectedPng": 10,
+    "geometry": 242,
+    "contracts": 10,
+    "filesIncludingSelection": 15
+  }
+}

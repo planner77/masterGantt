@@ -50,10 +50,13 @@ test("Issue #288: resource developer grade is created, displayed, and editable",
   await page.getByLabel("관리자 비밀번호", { exact: true }).fill("resource-admin");
   await page.getByRole("button", { name: "로그인", exact: true }).click();
 
-  await expect(page.getByText("개발자 등급: 미지정", { exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "미지정", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "김개발 프로필 편집", exact: true }).click();
   const existingGrade = page.getByLabel("김개발 개발자 등급", { exact: true });
   await existingGrade.selectOption("EXPERT");
-  await expect(page.getByText("개발자 등급: 특급", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "프로필 저장", exact: true }).click();
+  await expect(page.getByRole("cell", { name: "특급", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "리소스 추가", exact: true }).click();
 
   await page.getByLabel("이름", { exact: true }).first().fill("신규개발자");
   await page.getByLabel("코드", { exact: true }).first().fill("DEV-02");

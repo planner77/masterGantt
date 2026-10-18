@@ -1,0 +1,22 @@
+{
+  "viewport": {
+    "width": 768,
+    "height": 900
+  },
+  "bounds": {
+    "x": 80,
+    "y": 362.1875,
+    "width": 608,
+    "height": 175.609375,
+    "top": 362.1875,
+    "right": 688,
+    "bottom": 537.796875,
+    "left": 80
+  },
+  "documentWidth": 768,
+  "allControlsContained": true,
+  "allControlsDisabled": false,
+  "focusWithinModal": true,
+  "focusedLabel": null,
+  "nativeModal": true
+}

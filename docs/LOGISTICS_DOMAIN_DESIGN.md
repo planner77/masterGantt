@@ -1,5 +1,13 @@
 # 물류 구축 프로젝트 도메인 설계
 
+## Issue #615 — F1 기반 모델
+
+[#615 Work Packet](exec-plans/active/ISSUE_615.md)의 migration0025·공통 process catalog·명시 Project mapping API가 F1 구현 범위다. legacy 공정/Task/설비를 변환하지 않고 WorkArea는 선택 사항이며 BU/product/site의 정확한 occurrence만 연결한다. 표준 변경은 Project 공정을 자동 생성·삭제하지 않는다. 같은 triple copy는 공통 ID를 보존하고 mapped Template 저장은 포맷 확장 전409다. 실제 계약은 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)/[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)를 따른다. 새 화면·Target/member/binding·Resource 축 및 운영 적용/원격 CI 성공은 후속 증거가 필요하다.
+
+## Issue #614 — 현행 물류와 Target 확장 계약
+
+이 문서의 최초 계획 상태와 과거 고정 type 목록은 당시 설계 이력이다. 현재 구현은 `src/contracts/logistics.ts`·Service·migration ledger와 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)를 우선하며 Equipment/System type은 동적 catalog code string이다. 새 공정 master·occurrence/WorkArea·Target/member/binding·관련 Resource 공수 계약은 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md), 우선순위와 책임은 [Target/Resource 실행 계획](exec-plans/active/TARGET_RESOURCE_ROLLOUT.md)을 따른다. F0는 문서·합성 fixture 검산이며 신규 runtime/DDL 구현을 의미하지 않는다. 기존 직접 연결·합집합 상속·권한·일정 계약은 보존한다.
+
 ## 1. 상태·요구·근거
 
 - 상위: [Epic #183](https://github.com/planner77/masterGantt/issues/183).
@@ -213,3 +221,9 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 ## Issue #345: 빈 컨테이너의 연결
 
 Summary는 자손 0개여도 `self/subtree` 연결을 그대로 보존한다. 마지막 자식 삭제·이동은 부모 연결의 scope를 바꾸거나 삭제하지 않으며 나중에 추가되는 실제 자손은 기존 ancestor subtree 상속 규칙을 적용받는다. 미산정 Summary는 날짜 있는 Leaf로 취급하지 않는다. 명시적으로 Summary 자체를 삭제할 때만 그 row의 직접 연결이 기존 FK 삭제 계약을 따른다.
+
+## Issue #617 — WBS–Target 연결과 단일 해석기
+
+F3는 Target/member를 Task/Summary에 whole/subset 및 self/subtree로 연결한다. 모든 Summary 조상의 subtree와 직접 연결을 합집합으로 읽으며 하위 명시는 조상을 대체하지 않는다. Project-local UUID와 typed member 소유를 저장 경계에서 검증하고 effective instance dedup 뒤에도 모든 Target 경로와 legacy 직접 연결 출처를 보존한다. 공유 System 직접 연결만으로 Target을 추론하지 않는다. Equipment coverage는 연결의 작업 수량이고 instance quantity와 Resource 공수 원장을 변경하지 않는다.
+
+[LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 F3 절 및 [API](API.md)/[DB_SCHEMA](DB_SCHEMA.md)가 신규 runtime 계약이다. 모든 후속 보기/Resource 계산은 같은 pure resolver를 재사용하며 별도 화면 해석기를 만들지 않는다. 현재 물류 Dashboard/Resource KPI의 기존 필터·분모를 조용히 Target 축으로 확대하지 않는다. Target UI/Resource 축은 #618/#619 이후, 이번 원격 CI·운영 적용 증거는 [#617 Work Packet](exec-plans/active/ISSUE_617.md)에서 별도로 판정한다.

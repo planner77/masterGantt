@@ -109,3 +109,23 @@ Core 2.7.3의 공개 Grid text editor·Chart move/resize·update-task interactio
 
 same-parent Chart reorder는 SVAR PRO에 의존하지 않는다. Core 2.7.3의 공개 `drag-task(top)` feedback과 masterGantt의 protected hierarchy command를 연결하며, 별도 PRO package·비공개 구현·cross-parent implicit reparent는 사용하지 않는다.
 
+
+## Issue #549 — Milestone Timeline Core 연동 제한
+
+확인일 2026-10-08, react-gantt 2.7.3 / 종속 gantt-store 2.7.2. [markers](https://docs.svar.dev/react/gantt/api/properties/markers/)는 PRO이며 MT1은 이를 호출하거나 복제하지 않는다. 공개 filter-tasks/scroll-chart/getState를 사용한다. date geometry의 문서화된 안정 widget API는 확인되지 않았으며 published typed derived scale state와 이미 설치된 store package-root exported getDiffer의 read-only 조합을 단일 version-bound 앱 adapter에 격리한다. react-gantt 타입 reexport와 runtime 미export의 차이 때문에 store root를 사용하며 deep import/새 패키지/private write는 없다. Day/Week step1/lengthUnit day의 실제 DOM ±1px 기준 검증과 unsupported/zero-size fail-closed가 후속 활성화 조건이다. Core 단발 filter는 scale props 갱신 후 초기화될 수 있어 앱의 canonical queue 뒤 controlled projection 재적용이 필요하다. 현재 운영 행 전환과 PRO 기능 parity는 완료 범위가 아니다. [기술 gate·실패·대안](MILESTONE_TIMELINE.md)을 따른다.
+
+#549 독립 UI/UX 비교에서 Week month/year 헤더와 native Task의 canonical 날짜 의미 불일치가 선별 화면으로 확인되었다. Task start 대비 adapter x ±1px 자동 PASS는 전체 헤더 의미 PASS가 아니다. 원인/변경 전 baseline 재현은 NOT TESTED이며 #551 lane 활성화는 [별도 date/header 의미 gate](MILESTONE_TIMELINE.md#독립-uiux-비교에서-확인한-week-날짜-헤더-불일치)를 통과하기 전 허용하지 않는다.
+
+## Issue #551 — 공개 Week 대안과 앱 소유 lane
+
+2026-10-09의 설치 Core2.7.3/store2.7.2 actual before는 #549 Week FAIL을 독립 재현했다. 공개 scoped Locale의 calendar.weekStart=1과 공개 scales의 week formatter(date,next)를 사용하여 실제 ISO 주 셀의 포함 Gregorian 월·연도 span으로 대체한다. Day는 기존 month/day다. native month rounding 구현을 patch하거나 원래 오류를 수정한 것으로 표기하지 않는다. metadata의 2200 exclusive end는 Calendar domain 지원 날짜 확대가 아니다.
+
+기본 OFF opt-in sibling lane는 공개 Core getState/scroll/filter 및 기존 단일 adapter를 사용한다. `_scales`/폭의 published typed derived fields와 read-only `.wx-chart` bbox/client owner clip은 버전 결합이며 안정 문서화 geometry API가 아니다. 앱 소유 64px 공간/marker/묶음 native dialog는 canonical 조회 UI이고 PRO markers/새 Gantt/fake Task/private state write/deep import/library patch/새 패키지를 사용하지 않는다. supported Day/Week step1 이외와 invalid/hidden/zero-size/폭 불일치는 fail-closed다. 개발 public displayMode 실험은 사용자 제품 명령이 아니며 Chart-only 실제 plot은 Core 고유 42px rail을 제외한다. [실제 gate와 제한](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #552 — Core WBS 분리와 운영 marker-OFF
+
+공개 Core `filter-tasks`와 기존 controlled projection으로 Summary/Task만 표시하며 M native row/bar/대체 endpoint는0이다. canonical 전체 Task/Link/Membership·Summary 파생·전체 Gate·Resource/Target·Export는 유지한다. 운영 marker lane/guide/예약 높이·marker-only observer/listener/RAF/date-axis/scroll은0이고 Toolbar toggle/default ON/임시 날짜 ON은 제거한다. 날짜 확인은 Dashboard의 같은 canonical M Editor와 정확한 소속 Task 경로를 사용하며 숨은 M select·M 날짜축 확장은 금지한다.
+
+#551 기본 OFF 개발 opt-in capability와 버전 결합 read-only geometry adapter는 보존한다. PRO markers·private write·deep import·library patch·새 Gantt/remount·새 package를 추가하지 않는다. 과거 #552 독자 resize 보완은 현재 authority가 아니며 main #667의 단일 sync/Coordinator/U4 port를 소비한다. 안정 공식 geometry 보장이나 PRO parity로 표기하지 않는다. `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`는 marker gate와 독립인 build-time 비상 복구로 재빌드/재배포가 필요하다. 실제 browser/HTTP·SQLite/원격 Quality/E2E/Docker 결과는 [Work Packet](exec-plans/active/ISSUE_552.md)에서 source별로 분리한다.

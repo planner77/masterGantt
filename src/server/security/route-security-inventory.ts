@@ -1,4 +1,5 @@
 export type RouteSecurityPolicy =
+  | "origin-public-query-read"
   | "public-read"
   | "origin-and-create-limit"
   | "origin-and-password-limit"
@@ -21,6 +22,9 @@ export type RouteSecurityPolicy =
   | "origin-logistics-admin-if-match"
   | "project-master-catalog-read"
   | "project-master-admin-read"
+  // Process catalog uses Project Master admin sessions and its own catalog revision.
+  | "process-catalog-admin-read"
+  | "origin-process-catalog-admin-if-match"
   | "origin-project-master-admin-auth"
   | "origin-project-master-admin-logout"
   | "origin-project-master-admin-password"
@@ -42,9 +46,26 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/project-master/admin/items", method: "GET", policy: "project-master-admin-read", mutatesState: false },
   { template: "/api/project-master/admin/items", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-master/admin/items/{itemId}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/relations", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/relations", method: "DELETE", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "POST", policy: "origin-project-master-admin-auth", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "DELETE", policy: "origin-project-master-admin-logout", mutatesState: true },
   { template: "/api/project-master/admin-password", method: "PUT", policy: "origin-project-master-admin-password", mutatesState: true },
+  { template: "/api/process-catalog/admin", method: "GET", policy: "process-catalog-admin-read", mutatesState: false },
+  { template: "/api/process-catalog/admin/standard-diff", method: "GET", policy: "process-catalog-admin-read", mutatesState: false },
+  { template: "/api/process-catalog/admin/types", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/types/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/types/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/standards", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/standards/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/standards/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/work-areas", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/work-areas/{id}", method: "PATCH", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/work-areas/{id}", method: "DELETE", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
+  { template: "/api/process-catalog/admin/occurrences/apply-standard", method: "POST", policy: "origin-process-catalog-admin-if-match", mutatesState: true },
   { template: "/api/project-templates", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/project-templates", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/project-templates/{templateId}", method: "GET", policy: "public-read", mutatesState: false },
@@ -56,6 +77,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/copy", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/exports/json", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/exports/excel", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/exports/gantt-svg", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/imports/preview", method: "POST", policy: "origin-session", mutatesState: false },
@@ -64,6 +86,8 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "DELETE", policy: "origin-and-target-logout", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-password", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/milestone-memberships", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/milestone-dashboard", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/tasks", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/links", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/links/{linkId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
@@ -95,12 +119,29 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/logistics-catalog/admin/system-types/{code}", method: "PATCH", policy: "origin-logistics-admin-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/scope", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/query", method: "POST", policy: "origin-public-query-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/details", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/group-children", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/plan/daily", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/plan/day-resources", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/plan/day-assignments", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-workload", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/work-calendars/countries", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar/preview", method: "POST", policy: "origin-session-if-match", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks/{taskId}/assignments", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/process-context", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/process-mappings/{processId}", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/targets", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}/impact", method: "POST", policy: "origin-session-if-match", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/targets/{targetId}/usage", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/logistics", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/logistics/processes", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/processes/{processId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
@@ -116,6 +157,8 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/logistics/systems/{systemId}/children", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/equipment/{equipmentId}/resource-roles", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/systems/{systemId}/resource-roles", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/tasks/{taskId}/target-bindings", method: "GET", policy: "optional-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/tasks/{taskId}/target-bindings", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks/{taskId}/logistics-links", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/tasks/{taskId}/logistics-links", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/dashboard", method: "GET", policy: "public-read", mutatesState: false },

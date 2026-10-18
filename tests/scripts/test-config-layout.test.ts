@@ -5,6 +5,15 @@ import { describe, expect, it } from "vitest";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const text = (path: string) => readFileSync(resolve(root, path), "utf8");
+const versionAtLeast = (value: unknown, minimum: [number, number, number]) => {
+  const parts = String(value ?? "").split(".").map(Number);
+  if (parts.length < 3 || parts.some((part) => !Number.isFinite(part))) return false;
+  for (let index = 0; index < 3; index += 1) {
+    if (parts[index]! > minimum[index]!) return true;
+    if (parts[index]! < minimum[index]!) return false;
+  }
+  return true;
+};
 
 describe("test configuration repository layout", () => {
   it("uses one explicit configuration per test runner", () => {
@@ -60,11 +69,73 @@ describe("test configuration repository layout", () => {
       expect(workflow).toContain("tests/config/e2e-shard-plan.json");
       expect(workflow).toContain("E2E_TIMING_OUTPUT");
       expect(workflow).toContain("native 6-way sharding fallback");
+      // Scope timeout verification to this job, not another workflow job.
+      const shard = workflow.split(/\n  (?:release_)?e2e_shard:\n/)[1]?.split(/\n  [a-z_]+:\n/)[0];
+      expect(shard).toBeDefined();
+      expect(shard).toMatch(/^    timeout-minutes: 35$/m);
     }
+    const dockerJob = ci.split("\n  docker_smoke:\n")[1]?.split(/\n  [a-z_]+:\n/)[0];
+    expect(dockerJob).toBeDefined();
+    expect(dockerJob).toMatch(/^    timeout-minutes: 40$/m);
+    // The same shared Playwright setup also runs inside Main GHCR candidate and
+    // Release candidate jobs. Their budgets must allow both bounded attempts.
+    const mainImageJob = ci.split("\n  publish-commit-image:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(mainImageJob).toBeDefined();
+    expect(mainImageJob).toMatch(/^    timeout-minutes: 50$/m);
+    const releaseCandidateJob = release.split("\n  container:\n")[1]?.split(/\n  [\w-]+:\n/)[0];
+    expect(releaseCandidateJob).toBeDefined();
+    expect(releaseCandidateJob).toMatch(/^    timeout-minutes: 40$/m);
+    const playwrightSetup = text(".github/actions/playwright-setup/action.yml");
+    expect(playwrightSetup).toContain("timeout --signal=TERM --kill-after=10s 360s");
+    expect(playwrightSetup).toContain("azure.archive.ubuntu.com/ubuntu");
+    expect(playwrightSetup).toContain("https://archive.ubuntu.com/ubuntu");
+    // Ubuntu 24.04 deb822 ubuntu.sources may use mirror+file indirection.
+    // The Azure URL must be detected and rewritten in the referenced file.
+    expect(playwrightSetup).toContain("mirror+file:/etc/apt/apt-mirrors.txt");
+    expect(playwrightSetup).toContain("for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list");
+    expect(playwrightSetup).toContain("grep -Fq 'azure.archive.ubuntu.com/ubuntu' \"$source\"");
+    expect(playwrightSetup).toContain('azure_sources+=("$source")');
+    expect(playwrightSetup).toContain("sudo sed -i");
+    expect(playwrightSetup).toContain("steps.browser-start.outputs.started_ms != ''");
+    // #487 Main #2203.1: timed-out npx can leave sudo apt-get holding its lock.
+    // Runner mirror normalization must precede the first Playwright attempt;
+    // retry is legal only after the original apt process released its locks.
+    const normalizedAt = playwrightSetup.indexOf('sudo sed -i');
+    const firstInstallAt = playwrightSetup.indexOf('install_deps || install_status=$?');
+    const lockWaitAt = playwrightSetup.indexOf('if ! apt_locked; then');
+    const retryInstallAt = playwrightSetup.lastIndexOf('            install_deps');
+    expect(normalizedAt).toBeGreaterThan(0);
+    expect(normalizedAt).toBeLessThan(firstInstallAt);
+    expect(lockWaitAt).toBeGreaterThan(firstInstallAt);
+    expect(retryInstallAt).toBeGreaterThan(lockWaitAt);
+    expect(playwrightSetup).toContain('Acquire::http::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::https::Timeout "45"');
+    expect(playwrightSetup).toContain('Acquire::Retries "1"');
+    expect(playwrightSetup).toContain("command -v fuser");
+    expect(playwrightSetup).toContain("::notice::Playwright 의존성 설치 전에 Ubuntu 공식 미러를 선택했습니다.");
+    expect(playwrightSetup).toContain("::warning::Playwright OS 의존성 첫 설치 실패");
+    expect(playwrightSetup).toContain("APT 잠금 해제 확인 불가");
+    expect(playwrightSetup).toContain("sudo fuser -s");
+    expect(playwrightSetup).toContain("/var/lib/apt/lists/lock");
+    expect(playwrightSetup).toContain("/var/lib/dpkg/lock-frontend");
+    expect(playwrightSetup).toContain("APT 잠금이 60초 동안 해제되지 않아 Playwright install-deps 중복 실행을 거부합니다.");
+    expect(playwrightSetup).toContain('exit "$install_status"');
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");
     expect(optimizer).toContain("scripts/e2e-shard-planner.mjs analyze");
+    expect(text("scripts/e2e-shard-planner.mjs")).toContain(
+      'args.output || "e2e-shard-proposal.json"',
+    );
+    expect(optimizer).toContain("--output e2e-shard-proposal.json");
+    expect(optimizer).toContain("path: e2e-shard-proposal.json");
+    expect(optimizer).not.toContain(".e2e-shard-proposal.json");
+    expect(optimizer).toContain('number="$(node scripts/e2e-shard-optimizer-pr.mjs)"');
+    expect(optimizer).not.toContain("gh pr list");
+    expect(optimizer).toContain(
+      "if: steps.analyze.outputs.should_update == 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)",
+    );
+    expect(optimizer).toContain("steps.existing.outputs.number == ''");
     expect(optimizer).toContain("actions: write");
     expect(optimizer).toContain("[Issue #437] ci: E2E 샤드 계획 갱신");
     expect(optimizer).toContain("actions/workflows/ci.yml/dispatches");
@@ -111,6 +182,67 @@ describe("test configuration repository layout", () => {
     expect(timingReporter).toContain("E2E_RUN_STARTED_MS");
     expect(timingReporter).toContain("runnerReadyMs");
     expect(existsSync(resolve(root, "scripts/analyze-ci-setup-metrics.mjs"))).toBe(true);
+  });
+
+  it("keeps audited sharp and libvips production dependencies patched", () => {
+    const lock = JSON.parse(text("package-lock.json"));
+    expect(versionAtLeast(lock.packages["node_modules/sharp"]?.version, [0, 35, 5])).toBe(true);
+    for (const [path, metadata] of Object.entries(
+      lock.packages as Record<string, { version?: string }>,
+    )) {
+      if (path.startsWith("node_modules/@img/sharp-libvips-")) {
+        expect(versionAtLeast(metadata.version, [1, 3, 4])).toBe(true);
+      }
+    }
+  });
+
+  it("keeps Issue #457 evidence publication opt-in and source-baseline-aware", () => {
+    const geometry = text("tests/e2e/helpers/ui-geometry.ts");
+    expect(geometry).toContain("process.env.ISSUE_457_EVIDENCE_DIR?.trim()");
+    expect(geometry).toContain('testInfo.outputPath("issue-457-evidence")');
+    expect(geometry).toContain("ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256");
+    expect(geometry).not.toContain("KEEP: unchanged product source; new regression observation");
+  });
+
+  it("keeps Issue #502 error-boundary probes non-production and E2E-only", () => {
+    const browser = text("tests/config/playwright.config.ts");
+    const gate = text("src/server/testing/error-boundary-probe-gate.ts");
+    const rootProbe = text("src/app/e2e-error-boundary/page.tsx");
+    const demoPage = text("src/app/gantt-demo/page.tsx");
+    const probe = text("src/features/testing/error-boundary-probe.tsx");
+    expect(browser).toContain('E2E_ERROR_BOUNDARY_PROBE: "true"');
+    expect(gate).toContain('process.env.NODE_ENV !== "production"');
+    expect(gate).toContain('process.env.E2E_ERROR_BOUNDARY_PROBE === "true"');
+    expect(rootProbe).toContain("notFound()");
+    expect(rootProbe).toContain("isE2eErrorBoundaryProbeEnabled()");
+    expect(demoPage).toContain('params.__e2eBoundary === "1"');
+    expect(demoPage).toContain("isE2eErrorBoundaryProbeEnabled()");
+    expect(probe).toContain("window.setTimeout");
+    expect(probe).toContain("autoFocus={recovered}");
+  });
+
+  it("keeps Issue #502 evidence separate while reusing the #457 geometry provenance helper", () => {
+    const geometry = text("tests/e2e/helpers/ui-geometry.ts");
+    expect(geometry).toContain("ISSUE_502_EVIDENCE_DIR");
+    expect(geometry).toContain("ISSUE_502_BASELINE_SOURCE_AGGREGATE_SHA256");
+    expect(geometry).toContain('testInfo.outputPath("issue-502-evidence")');
+    expect(geometry).toContain('testInfo.outputPath("issue-457-evidence")');
+    expect(geometry).toContain('evidenceScope: "457" | "502" = "457"');
+  });
+
+  it("guards Release static metrics after earlier gate failures and keeps source-map-js patched", () => {
+    const release = text(".github/workflows/release-image.yml");
+    const lock = JSON.parse(text("package-lock.json"));
+    const sourceMapVersion = lock.packages["node_modules/source-map-js"]?.version;
+    const [major, minor, patch] = String(sourceMapVersion ?? "").split(".").map(Number);
+    expect(
+      major > 1 ||
+        (major === 1 && (minor > 2 || (minor === 2 && patch >= 2))),
+    ).toBe(true);
+    expect(release).toContain("Release production build 시간 기록");
+    expect(release).toContain(
+      "if: ${{ always() && steps.release-build-start.outputs.started_ms != '' }}",
+    );
   });
 
   it("keeps release candidate container aligned with registry API smoke allowlist", () => {

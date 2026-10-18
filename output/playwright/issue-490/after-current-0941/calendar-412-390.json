@@ -1,0 +1,3105 @@
+{
+  "provenance": {
+    "capturedAt": "2026-10-07T00:00:23.934Z",
+    "sourceSha": "4f8fc2c9c86941d1b86ae4472b1e953707c85ef7",
+    "sourceFiles": [
+      {
+        "path": "src/app/api/health/live/route.ts",
+        "sha256": "02aad3c326b235aaf0a45f53419b32605d4bf5ead9ac14c5a704418dcb31ef03"
+      },
+      {
+        "path": "src/app/api/health/ready/route.ts",
+        "sha256": "e8cf6cc27a3cb67d5d9322ddeeb1afde548c2e71988b41fa0fc7277801491637"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/admin-password/route.ts",
+        "sha256": "640951cba70c91db3099bc3c1c9edf67a96158fb3fe170ee60b22c6e711da876"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/admin-sessions/route.ts",
+        "sha256": "789a635a875b086d074a2fa8aec7ea53df24e2ee501c7c6269447c60db37e44a"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/admin/equipment-types/[code]/route.ts",
+        "sha256": "cb3cf3afd668faa8ca7ba4a4fe93c2e003a9081910831b71281009742b1697f2"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/admin/equipment-types/route.ts",
+        "sha256": "c93bf903ee516ae32b91eff92dcb13bb278595b342a12764e6268bb569d86dfe"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/admin/system-types/[code]/route.ts",
+        "sha256": "1d72b6bac13a2d189e65ec233fb55f4fdd0dda9cf0c651cf17b914d40e15657f"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/admin/system-types/route.ts",
+        "sha256": "e0db9594147771335d9e702cf6d3a814dd5c2cd21354a65e78a4d4d44ee9318f"
+      },
+      {
+        "path": "src/app/api/logistics-catalog/types/route.ts",
+        "sha256": "6b44d9ba33315a5f354b97e79917b9471762b27093dff1a456708681ddfa4e12"
+      },
+      {
+        "path": "src/app/api/project-master/admin-password/route.ts",
+        "sha256": "00e22a2a3b35630e5a92acb04f791945a6e8da3c12058c361d31c81161568644"
+      },
+      {
+        "path": "src/app/api/project-master/admin-sessions/route.ts",
+        "sha256": "b1ee722c0c16d3315d226d338feb1f6e65fe931ee7f170787d74345862b575dc"
+      },
+      {
+        "path": "src/app/api/project-master/admin/items/[itemId]/route.ts",
+        "sha256": "504783fd4f88a77ba360721af8d8a8826f53486a7cb43337c2ebd797d877941b"
+      },
+      {
+        "path": "src/app/api/project-master/admin/items/route.ts",
+        "sha256": "8392ff4f663e86d824b4b800b3ebc45a0f7ec59862cdcd09afdf914822403b1c"
+      },
+      {
+        "path": "src/app/api/project-master/catalog/route.ts",
+        "sha256": "5d6d0937a4dcba0f5a1de66d583f0001d752a24d1d3261a0b45fbfedab2ded74"
+      },
+      {
+        "path": "src/app/api/project-templates/[templateId]/duplicate/route.ts",
+        "sha256": "8419732d23ecaa48169bd6494ed7e14d45285e5b53ed4cbefea737ef1b42b270"
+      },
+      {
+        "path": "src/app/api/project-templates/[templateId]/instantiate/route.ts",
+        "sha256": "ece51f1f150020022ac68a6e8c5469c129ba1b3ebc2c7240b1089446b55aa6f3"
+      },
+      {
+        "path": "src/app/api/project-templates/[templateId]/route.ts",
+        "sha256": "4fe172a15ff2b34ffad7e3e445224f9b3a02d3fa7f7834ff9918f4f0ac6bcac3"
+      },
+      {
+        "path": "src/app/api/project-templates/route.ts",
+        "sha256": "e5c3797c98a7efba728bead9939f20f62c0e379d5d70b51f664e95cfadbab64d"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/assigned-targets/route.ts",
+        "sha256": "7a71a55d11686b4f50dd8a876ec1325d2483e1c0533b5d6cf71df9e1e63ef26a"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/assignment-targets/route.ts",
+        "sha256": "2700547f05549a269d76735b830a9c308f667f858a8080e7ea143c76609d3fb3"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/copy/route.ts",
+        "sha256": "3c9e75524edaa74e1681765c5e01af6a20b3e1bc000a29a6aca12a35d478075e"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/edit-password/route.ts",
+        "sha256": "c6c3634ebbc42c1734b7ae2f1edd7c15c9328781d6c768febf9b3add39974f6b"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/edit-sessions/current/route.ts",
+        "sha256": "a2ab1c058c4a4ac115dde820ba041d65ad6711af10127ab50a87fb4f0c69aed1"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/edit-sessions/route.ts",
+        "sha256": "350aabcea924545e6d76c85109ec40aeedb2d7d9a936bf354c268b6b5db27408"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/exports/excel/route.ts",
+        "sha256": "5f684a8c8a1ae56358c519ae428ae9e7867d0763c18772f104edc1dfb4123671"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/exports/gantt-svg/route.ts",
+        "sha256": "87fae0ac39f1fccd8f479bc8a9055ac567143586f2baea9bc91098cbdd0f6a3e"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/exports/json/route.ts",
+        "sha256": "77d7438ea3a567e6ae53fbdc9f96df47ecf37b7b60e5c9cd002ebe4be3493ba8"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/imports/preview/route.ts",
+        "sha256": "82e75f8151670d9d1ff8cd10f9879099abad598436bf62cb6d9dfc46ffc7bd86"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/imports/route.ts",
+        "sha256": "15a357cc85b53e08c69d99e3ddcf8f35f7cd0974a06f257fd17bf92e776679ec"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/links/[linkId]/route.ts",
+        "sha256": "ed3ead588d79d3c1f11c5a3d1175b26610eccbce9066daafaa2c9ae521827607"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/links/route.ts",
+        "sha256": "e249ae3f8c4a718257178ca8a2e9bc6f64969f44481b210b4ae3792f367f9a55"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/dashboard/route.ts",
+        "sha256": "801c0c33d6ac66f1e36481a9f0d92bf9f99b899f4fb9661a7e9d35dab92deeb4"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/resource-roles/route.ts",
+        "sha256": "5ad86179cc76ed7e7e89e5b1f62d583a6ff954f233c94add27bc0fdaa536072e"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/route.ts",
+        "sha256": "868860197424b14fb193376a6b316a22d9f019a3f82adcb941fbca06a2518792"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/systems/route.ts",
+        "sha256": "27de39315bbce8f498df14d645e526df3705ce0534d0cf9d46012a0b3a37a399"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/equipment/route.ts",
+        "sha256": "df87c419d42a448770d4e06dc4e4cfaef0207860482de4c899fd55e446983d12"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/processes/[processId]/route.ts",
+        "sha256": "5206bf086dc95012f84a3ef4c6c0b281bdace99319319d6a5799333dae35881e"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/processes/route.ts",
+        "sha256": "0f3d55af440e9c1a76c0aa6f9178cf3bdd42c3e448a0bf4fd262397b5788a7ef"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/route.ts",
+        "sha256": "9daf77c598b903809a8037be4dfc1b860da460f08a3fca2ab602f03aa7715668"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/systems/[systemId]/children/route.ts",
+        "sha256": "c7d218b8b72ac4b843660e10b5c4bc9d09e50a510e7c0fe2c77b64f0ccf951e3"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/systems/[systemId]/processes/route.ts",
+        "sha256": "83fac483a9fad5e3813ec360ccd352f0194359304ee42d3f3f4d610699bbb6ab"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/systems/[systemId]/resource-roles/route.ts",
+        "sha256": "faac0b1c0ae369bbb047b12308aafb895a497c8ec2b55a72bb4a0b0172f2e945"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/systems/[systemId]/route.ts",
+        "sha256": "d2d374b316ba7372e3bb798279a64e1c5affd78b137f61f617890a7499bce92d"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/systems/route.ts",
+        "sha256": "b1d056910469fa05947bc5e308263a50c5db5454270530c49e3f12042da46900"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/milestone-dashboard/route.ts",
+        "sha256": "905bf9078d8b5d25a6b0d8efc350aeefb17f55e9f5c4ecf69badc1bf782e661e"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/milestone-memberships/route.ts",
+        "sha256": "4c5a9d1c3202336684716b7d451cc9f49eb5e56c64be0a5c71fc723aea73f048"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/resource-workload/route.ts",
+        "sha256": "df7c392361bd601956d8cefcb82c9e7285e954a130e66da267d85cc184428e90"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/route.ts",
+        "sha256": "e682b60d18bf42ae8ca199764e30b9b3f7ccf2aae465f074a8d342813f4e646b"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/task-commands/route.ts",
+        "sha256": "dee48e0e0cf6623260a8ec0f73f2fa09786d9006c2e734f8f4294f717faa1532"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/tasks/[taskId]/assignments/route.ts",
+        "sha256": "a81a330409293351fbc2682d3982cc687ecd33897b89b7ce72d5eef248996abc"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/tasks/[taskId]/logistics-links/route.ts",
+        "sha256": "e61ffb686cc29514b2baeada2e1e8e92452b86e91693de7c2532bb59384283b4"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/tasks/[taskId]/route.ts",
+        "sha256": "19c645f53d83b77058d20025df995b3d295f4078c27f8a9429786e4151e19066"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/tasks/route.ts",
+        "sha256": "ddd613eed2d758cae91a83029d758dc26158eb503a2c8e21b9fc626b34e3a3e2"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/work-calendar/preview/route.ts",
+        "sha256": "88016b4b993e7913b1d9b370f9bd04705ea51d2c95ac32f74a39b8921dfb97b8"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/work-calendar/route.ts",
+        "sha256": "c53ccb560403cbfc77a2f4b1ec429423723d6e40947567349546ece59ef9e94e"
+      },
+      {
+        "path": "src/app/api/projects/route.ts",
+        "sha256": "9fa0b4bc8b0158e446d1e4e915ac2effa2bf5602aacc89887b6ecd5094b35537"
+      },
+      {
+        "path": "src/app/api/resource-catalog/admin-password/route.ts",
+        "sha256": "72702bcaede542abe5574ddd603e75c157cd9df75587cc0859ec36d70454ae0a"
+      },
+      {
+        "path": "src/app/api/resource-catalog/admin-sessions/route.ts",
+        "sha256": "44589577b762c12afaffad9bdc6107414450e2226cf161f2f34b61538ccf418f"
+      },
+      {
+        "path": "src/app/api/resource-groups/[groupId]/members/route.ts",
+        "sha256": "5542f188332c3c01122f94920f413c48a783d15c4133009e62b381c67e04b89e"
+      },
+      {
+        "path": "src/app/api/resource-groups/[groupId]/route.ts",
+        "sha256": "f86c11757dd6ce1de8d8274914511f32af7317131b51130dcf3ca33bda64d6f7"
+      },
+      {
+        "path": "src/app/api/resource-groups/route.ts",
+        "sha256": "44ae00740ada768091d189cad0545c32b9032741fbeed2b639b8a4398b33f8a9"
+      },
+      {
+        "path": "src/app/api/resources/[resourceId]/route.ts",
+        "sha256": "ef7a2234b25ae585edba98945bc82f460a69a72ad4e70cf5aaa04225085edee6"
+      },
+      {
+        "path": "src/app/api/resources/route.ts",
+        "sha256": "1fb76f64d64e5fa95e843abea253ba44f079dad11df2f821ca5ef4bff6336192"
+      },
+      {
+        "path": "src/app/api/work-calendars/countries/route.ts",
+        "sha256": "e9c179ee8e5e1959c358a6f65e5c7b5acad43915fac74cd63b2a175e78654f41"
+      },
+      {
+        "path": "src/app/error.tsx",
+        "sha256": "408057aacbe95ae76b34164056f8666eab25128df9163cf4d37d50c5c1620346"
+      },
+      {
+        "path": "src/app/gantt-demo/error.tsx",
+        "sha256": "3414546ee3576f8c4b78c2ce0f5cead9ec3a6069bd13eb3ee08848632fdfc66d"
+      },
+      {
+        "path": "src/app/gantt-demo/page.tsx",
+        "sha256": "aeaa0947216c684a596c897af44c6c9de6fff28f609495793c09f8237fbad688"
+      },
+      {
+        "path": "src/app/globals.css",
+        "sha256": "9c6bb91c4e296d98cc52b5a947d2026e6add6c5697b123fb45eeac6a580bea3f"
+      },
+      {
+        "path": "src/app/icon.svg",
+        "sha256": "46ea8567d16879aafb998f675188043dab8b45d03ae5bb389c426e2e76364bd8"
+      },
+      {
+        "path": "src/app/layout.tsx",
+        "sha256": "3fc011bb5ce44ac67206f9e3ae6795a3a2cd0c8b611f5959e377000339dbbd9c"
+      },
+      {
+        "path": "src/app/loading.tsx",
+        "sha256": "74e465dfa4443a7fe61180b78d508e31ba34808f2fb839b3fa353d509166692f"
+      },
+      {
+        "path": "src/app/logistics-admin/page.tsx",
+        "sha256": "159839d9fd89d914547b0509f7e8ab2c095be1a1be8728a293c48692076bbeaa"
+      },
+      {
+        "path": "src/app/not-found.tsx",
+        "sha256": "daf61ff5cb55a865224a8862625c0ac225a3db9d48255740522a5a2c85fa5beb"
+      },
+      {
+        "path": "src/app/page.tsx",
+        "sha256": "8496e1af881f59039efc92ed48602ddcd41bffa604efc6c1865a016073c65f36"
+      },
+      {
+        "path": "src/app/project-master-admin/page.tsx",
+        "sha256": "1bbf2f3474a807ceec1dfd13077d2c80a2f512c5c83a50d5d736eb656d953596"
+      },
+      {
+        "path": "src/app/projects/[publicId]/page.tsx",
+        "sha256": "d737b1bd1928473c6895ef1f7fe00f922d5384fe31126ef2137244466211ea6b"
+      },
+      {
+        "path": "src/app/projects/new/page.tsx",
+        "sha256": "4740fbaac6770ca1e59788d185ebc573202d76bb89cb949fd3fc9d82b7df7cf6"
+      },
+      {
+        "path": "src/app/resources/page.tsx",
+        "sha256": "196892d2263b6870c40dbabbcb0d243196c442b0eb8c9703ed143814af5a756c"
+      },
+      {
+        "path": "src/components/admin-auth.module.css",
+        "sha256": "4bad4d9d81d5ab3acdcd9385b6ac77475d8fc5946fa901e5bd2d9a17ed4948f9"
+      },
+      {
+        "path": "src/components/admin-auth.tsx",
+        "sha256": "63b3211d7093ddf7051c7a1169f4c9ddfa47180c5f57bd53a66f6ed8462b0f88"
+      },
+      {
+        "path": "src/components/clipboard-write.ts",
+        "sha256": "d80a8a8e4f18dfaac68f1f0a52fdc482a1db9213060d7eafccb19eef1848b8a2"
+      },
+      {
+        "path": "src/components/empty-projects.tsx",
+        "sha256": "0a9ca79a3af9d589e0cc5cc3ca4c6a881d231fb2d7e5fb4cc9772f7a77a536a4"
+      },
+      {
+        "path": "src/components/project-link-button.tsx",
+        "sha256": "e18126a0b0933020b01fbd5a17dab31e4c7b456bceb4fbfce3c23c83ec98a72b"
+      },
+      {
+        "path": "src/components/project-list.module.css",
+        "sha256": "98bcbb05e7cbb1da8eb47be2998213da1606737251550f58da8e9310fa1c2493"
+      },
+      {
+        "path": "src/components/project-list.tsx",
+        "sha256": "be9f6bb92e08335b38cbd4566612b249f042c633089ccd588f35fd6c0dd63e15"
+      },
+      {
+        "path": "src/components/project-row-actions.module.css",
+        "sha256": "5b342f67460f3b91cff61817c39502f63fe672bc40392686d7710a93345d28df"
+      },
+      {
+        "path": "src/components/project-row-actions.tsx",
+        "sha256": "fe07df9acdd79bdca4bbe34e990c527d74726765f549aa190df80f5a08c4fbe7"
+      },
+      {
+        "path": "src/components/workspace-dialog.tsx",
+        "sha256": "3d87010a40f35cc2527c651567562ebf0ba5c068690d0ba842d699bea9a0ee30"
+      },
+      {
+        "path": "src/components/workspace-feedback.module.css",
+        "sha256": "b3682a827ff45ac1a15696120a25ec3aded6b1b36287439e8e66924b4e2294bc"
+      },
+      {
+        "path": "src/components/workspace-message-context.ts",
+        "sha256": "c8f7c9658478072dc2fa6fe0650d18c8a81cdfcc401f9c413a8d5a6cec4f36fe"
+      },
+      {
+        "path": "src/components/workspace-navigation.tsx",
+        "sha256": "b1816bbf4fe444cfdf6f13bf1600174d6ee9e8f76573d8c6886f7759e90effe1"
+      },
+      {
+        "path": "src/components/workspace-notification-state.ts",
+        "sha256": "1d24d913340283fb1b6699953b9867e04355ae0034e7787d32b45af2508d7bca"
+      },
+      {
+        "path": "src/components/workspace-notifications.tsx",
+        "sha256": "fc72d8d512f31709e8d5a036e3e1f3378090ec9225141add4a32fcdb64371f2a"
+      },
+      {
+        "path": "src/components/workspace-shell.tsx",
+        "sha256": "09e92a535e60e4eb4ec4f391a978267088fb6d26f47744777e4f0fc375b18326"
+      },
+      {
+        "path": "src/contracts/import.ts",
+        "sha256": "cd6c5e5f46a858a443173b942ea3ad88232b2ec896006a8ae6be13419b2c4384"
+      },
+      {
+        "path": "src/contracts/logistics-dashboard.ts",
+        "sha256": "fcfe969e35d7c82ea03e7e731e0700733556406e79609d85717ace232bded52e"
+      },
+      {
+        "path": "src/contracts/logistics.ts",
+        "sha256": "a65a0bef6da0d9720a9665e4eb43c915db218e881656de25ef986636bb7bdd03"
+      },
+      {
+        "path": "src/contracts/milestone-dashboard.ts",
+        "sha256": "e960eed0218b8c7b8f1cd296a878b62ab28038897ecae195ab34e21552aaa803"
+      },
+      {
+        "path": "src/contracts/milestones.ts",
+        "sha256": "d4d27d065ad213e329aa2212aeea08956cd27292894bacf91cfd3be2df5ad17f"
+      },
+      {
+        "path": "src/contracts/project-excel-export.ts",
+        "sha256": "dae37c5d8d562b969d7d5e3bbf5e3ac702f59a29808654ac3aaec6725d50bbd8"
+      },
+      {
+        "path": "src/contracts/project-gantt-image-export.ts",
+        "sha256": "92573fde709afccafc7200fa1090a7956b13637595a8fb48d5bd6e717850575b"
+      },
+      {
+        "path": "src/contracts/project-import.ts",
+        "sha256": "9048f1f9c4afd679a729720ddfe4a6a8d217d699e9c7d51ae19edba459502189"
+      },
+      {
+        "path": "src/contracts/project-json-export.ts",
+        "sha256": "04670c230cd33082bdfea1cf38b43cd4f2e40c506e518d7f08bcc8dd225da72f"
+      },
+      {
+        "path": "src/contracts/project-master.ts",
+        "sha256": "82aa1f87e651742df91d36f74cf420db8b652c6f545afda70c5756b1d1a9a3c6"
+      },
+      {
+        "path": "src/contracts/project-templates.ts",
+        "sha256": "fb66174483ca8a9b0fd8457dcee13e363befd689ab785a38284ae7126dc43ee7"
+      },
+      {
+        "path": "src/contracts/projects.ts",
+        "sha256": "82bb3ba3efc89dd04ce09276e97402d8569d01c2c54239d0d5110ad4de5ebeda"
+      },
+      {
+        "path": "src/contracts/resources.ts",
+        "sha256": "b296137c860a5c8f1c0bc4a0db38c3e631d9439a1eeca8f09ab56972e7e9ce01"
+      },
+      {
+        "path": "src/contracts/work-calendar.ts",
+        "sha256": "f6eb185e525ded026843c68893033a33c77598f8c0eee3c87072c9b3ff58de59"
+      },
+      {
+        "path": "src/domain/milestones/membership-copy-plan.ts",
+        "sha256": "e93871b8841f5d119efd35b8bfbacfef5e8e94aaf92422d7431b4b6e79a8d240"
+      },
+      {
+        "path": "src/domain/milestones/project-stage-model.ts",
+        "sha256": "daf201bee0f29156f9e020314172fcd6c291cb36f1322d68a717abe1fd0af785"
+      },
+      {
+        "path": "src/domain/milestones/stage-gates.ts",
+        "sha256": "8451f75117a15780f77a9b1d5f63f5d465a504217dfa19cfb536a699c0b6e9ec"
+      },
+      {
+        "path": "src/domain/scheduling/calendar.ts",
+        "sha256": "4539e95094c270b205af5c88efae021db7816efa8d70bfa5ba3a55de15ea48ae"
+      },
+      {
+        "path": "src/domain/scheduling/date-only.ts",
+        "sha256": "03713b4fe4225a87103cf20fe17e2d9ab056a7870c862d9bf06e7fe06ca73e88"
+      },
+      {
+        "path": "src/domain/scheduling/dependency.ts",
+        "sha256": "e37ab1d5404901398b8f67d436d1cbcdc34664303e3add8c5ada82780e541c00"
+      },
+      {
+        "path": "src/domain/scheduling/errors.ts",
+        "sha256": "c9603b552279d75fcd723b058912e3eb2459d4708bd0fa92cc95ffb5a9be6737"
+      },
+      {
+        "path": "src/domain/scheduling/hierarchy.ts",
+        "sha256": "3daac30d19488512f9c8edb555871dd8fe9c5bbec2eb5bb7fef949b90d2408d3"
+      },
+      {
+        "path": "src/domain/scheduling/index.ts",
+        "sha256": "6b1da1a514b3f5602bab5f9800fcf1b6d08551780b87fcbdaba899b54cbb2094"
+      },
+      {
+        "path": "src/domain/scheduling/leaf.ts",
+        "sha256": "c93789e0435f9e4999d9704a71895883f59ecf5d8728ae719b26e091dea16ac4"
+      },
+      {
+        "path": "src/domain/scheduling/resource-calendar.ts",
+        "sha256": "05189427abeff43af60c61db7ab23cadcf2d0b6789e863d8a492dbcf87b6114e"
+      },
+      {
+        "path": "src/domain/scheduling/task-candidate.ts",
+        "sha256": "88310b0cd5408448233cc6ad5373be09a7d957a42ad8168bf293dd42232a9bcf"
+      },
+      {
+        "path": "src/domain/task-status.ts",
+        "sha256": "fa80ce490ac8f61ad9581f667bbeadc2eac7d3b2b0b00d78c3e60336ca358674"
+      },
+      {
+        "path": "src/domain/tasks/task-patch-fields.ts",
+        "sha256": "88e286a548a228c95edd03ba6e4c20f01b83c1184660a49ad697214f96c60305"
+      },
+      {
+        "path": "src/features/gantt/canonical-snapshot-sync.ts",
+        "sha256": "6a507571822a78efa001c3c6c0cfb9ac678741974170217fba26a24f50ab940c"
+      },
+      {
+        "path": "src/features/gantt/chart-vertical-dnd.ts",
+        "sha256": "bc6f7fbb81935ba1fdd994db6a239c0d7a4df600edbdffe386671aab91cbadf4"
+      },
+      {
+        "path": "src/features/gantt/command-gateway.ts",
+        "sha256": "b0965b60062b508e17dbc131fbafa03d9cf2b2c1a1cf6f1b82bc754256c32779"
+      },
+      {
+        "path": "src/features/gantt/date-adapter.ts",
+        "sha256": "d31b3ca719a6ba6436b653dc5369602475c0d9bef1e7691205d968dcd8f442e5"
+      },
+      {
+        "path": "src/features/gantt/day-header-tooltip.ts",
+        "sha256": "07aa77fe0cec7c14592a61aba9bb7e418ee8cf5c929b6c192dd4e25688d5214a"
+      },
+      {
+        "path": "src/features/gantt/gantt-demo.tsx",
+        "sha256": "e1c570137d1400f1c28702473b1660ba5a176d0729bbc17e302a430effab726c"
+      },
+      {
+        "path": "src/features/gantt/gantt-scale-toolbar.css",
+        "sha256": "d9b449a48613aab01dddce4845c417025117c382a2ae0335298a70bfb0e5fc03"
+      },
+      {
+        "path": "src/features/gantt/grid-start-date-editor.ts",
+        "sha256": "8daf2b629734fdf0fb2bee6374312a5b751d8346a8c6f2e7f09b275ab153e012"
+      },
+      {
+        "path": "src/features/gantt/menu-scroll-guard.ts",
+        "sha256": "a7af233b724de3347af3f893f32ff85208cde198c760492d3c26aa539f1d9cad"
+      },
+      {
+        "path": "src/features/gantt/milestone-membership-model.ts",
+        "sha256": "27c132a4d317e85515529f21e50254b20882e85b01d8b16933f9c273e43f4cdb"
+      },
+      {
+        "path": "src/features/gantt/milestone-membership-panel.tsx",
+        "sha256": "4fbba7072a3ef36fb6a96af9a2a83555ddaf4b3ccd5389ac33d329fec7fcb0dc"
+      },
+      {
+        "path": "src/features/gantt/milestone-membership-picker.tsx",
+        "sha256": "72659c2c6d27fe1363c4618ff3a6091973c639cb9f9494026b7ed111dd279604"
+      },
+      {
+        "path": "src/features/gantt/native-task-add-intent.ts",
+        "sha256": "3d19bc5170a13b06304a040cd4f220af8d1d6d302341f6e1e74882cc28232af4"
+      },
+      {
+        "path": "src/features/gantt/project-gantt.tsx",
+        "sha256": "d2dedea2cd66abfd92bb46c9497f4a037b3132922e9123886e73212276727cdb"
+      },
+      {
+        "path": "src/features/gantt/project-task-adapter.ts",
+        "sha256": "0d5fda3b8397e9cabd72d4849732ebd6acd88a972205ae00a77c6b825952db5b"
+      },
+      {
+        "path": "src/features/gantt/project-task-editor.module.css",
+        "sha256": "2daefb63988357bded3536bf9bfa5f8fce288e732906643f23660c50b194c9fb"
+      },
+      {
+        "path": "src/features/gantt/project-task-editor.tsx",
+        "sha256": "792fe8feb9489f7dba5e45aeefda1281ff7011be015dc84927e3d6cefc3fbe36"
+      },
+      {
+        "path": "src/features/gantt/relation-context-menu.tsx",
+        "sha256": "cb846de8dab40abf54d8ce7957c67d4e1a17886f12d47c31c643b3f09e7ac9e2"
+      },
+      {
+        "path": "src/features/gantt/relation-editor-dialog.css",
+        "sha256": "e22588fe754bc3d7841eb3b976c436af95a684874d35fdd445e664357a7cbdc1"
+      },
+      {
+        "path": "src/features/gantt/relation-editor-dialog.tsx",
+        "sha256": "fdf964d21a150729926334e109b25bd11aaa4b3fd1400ec0d76708e7e0a94a67"
+      },
+      {
+        "path": "src/features/gantt/relation-editor-model.ts",
+        "sha256": "819e262f22f4b331201807c77c90f94d3afaefbaf6a9843f303fab96bbab1939"
+      },
+      {
+        "path": "src/features/gantt/scheduling-runtime-fixture.ts",
+        "sha256": "0b4bdd98fe369c350b2384980fa5c8f43d27652e85e7377c8c329afe456dd696"
+      },
+      {
+        "path": "src/features/gantt/summary-toggle-preference.ts",
+        "sha256": "a3ac8bf519c74762bf1c7a93b4dae22c8b150b8956889bf0683b2aa83604aaf3"
+      },
+      {
+        "path": "src/features/gantt/svar-gantt.tsx",
+        "sha256": "a7d7d7e6f128ff041d65f85f186eeca1a520aab6354e380e6217f8f371be0d83"
+      },
+      {
+        "path": "src/features/gantt/task-assignment-editor.tsx",
+        "sha256": "cc914ad1abcc5f0d95a92a586091e558648a3972585acc8fc4cd5a98a1047b1f"
+      },
+      {
+        "path": "src/features/gantt/task-context-menu-model.ts",
+        "sha256": "37f3837f2fdba6c85f47593c72f5ebcbd78a14368fc472ab4c9df1d11a76553d"
+      },
+      {
+        "path": "src/features/gantt/task-context-menu.css",
+        "sha256": "5c9c6d2a73d2ceadf6453541449ac7a06baa573911b14b0e6764a728021f187f"
+      },
+      {
+        "path": "src/features/gantt/task-context-target.ts",
+        "sha256": "ee8cb1f33f01b64d0698e5d9609aa6e753d6616836876fffa6a21bb3bb71f87f"
+      },
+      {
+        "path": "src/features/gantt/task-delete-model.ts",
+        "sha256": "18d123600f4d5cf73fa9e7ff30bbe5d2cd0d85fd61e58bc18fd9a43e6330e4d7"
+      },
+      {
+        "path": "src/features/gantt/task-editor-model.ts",
+        "sha256": "46dd68270d5e83bba8eed9237127d8a3a6b566d3d12831ffc868718e5204559b"
+      },
+      {
+        "path": "src/features/gantt/task-editor-view-model.ts",
+        "sha256": "b130c2abd5c185d75f425acdb9948b0e4961b3d8817614ce7d025dca849eee41"
+      },
+      {
+        "path": "src/features/gantt/task-link-scope.ts",
+        "sha256": "471549dd2ac18341206fa690e9e6e7cfa48b15a98cfdd065a85689974c82b177"
+      },
+      {
+        "path": "src/features/gantt/task-logistics-link-editor.tsx",
+        "sha256": "7a40f81af03954d2ad17f33fbb4024d7eab5806ee093b910f3eefa55bc372d39"
+      },
+      {
+        "path": "src/features/gantt/task-move-gateway.ts",
+        "sha256": "eaf6ccc7925dcf18abcf2a868fde95ba47e42b586d83410d6b20a40012acc0c0"
+      },
+      {
+        "path": "src/features/gantt/task-relations.ts",
+        "sha256": "b9a037011f0f853c0d7db9e38eeab1cfc5377b56a9ef902d103219b7b77148f4"
+      },
+      {
+        "path": "src/features/gantt/task-selection-model.ts",
+        "sha256": "c92e8e723fec40ac2b00be68013fbfb8f51cac86f84e3e00c6c71ba17e6cfb08"
+      },
+      {
+        "path": "src/features/gantt/task-subtree-scope.ts",
+        "sha256": "42748565c6c1f1324bba58482a6707d53e1752d455ff1a44aafd8a99a1c090dc"
+      },
+      {
+        "path": "src/features/gantt/timeline-range.ts",
+        "sha256": "10eac801f3aa066088b48574624db65c4663f1e38551e2026fc87f713c3c74c3"
+      },
+      {
+        "path": "src/features/gantt/week-header-tooltip.ts",
+        "sha256": "164cd434ef364021f020c46796ee72c06dc6121a6eb80b653d7a843c8c5cb170"
+      },
+      {
+        "path": "src/features/logistics/logistics-type-catalog-admin.module.css",
+        "sha256": "4338525bd64033641c82b8b6a139b68b315bef1ec5c92125894cb7ae8e66fce1"
+      },
+      {
+        "path": "src/features/logistics/logistics-type-catalog-admin.tsx",
+        "sha256": "f8af1183bc0e46467ff4f25d4b1a62910f2a8eac515f9203102692d8c481a276"
+      },
+      {
+        "path": "src/features/logistics/project-logistics-dashboard.module.css",
+        "sha256": "9459b706eabbdad829ce910f90e53acd731503c535ce81eaffdce6a8bc42d1ac"
+      },
+      {
+        "path": "src/features/logistics/project-logistics-dashboard.tsx",
+        "sha256": "d37085111cb2ed7cfe53c9a08bfd621587483e094313e6251db1c7c64ef9d979"
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.module.css",
+        "sha256": "b4be57164086ee0282ff4c32f34fbfb97fb08d471c7d7d233dec4d8726d242fd"
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.tsx",
+        "sha256": "7f8d4833d1697a8d48935ad31775314025d0361af6baa1b27a40162193ce43cc"
+      },
+      {
+        "path": "src/features/milestones/milestone-dashboard-model.ts",
+        "sha256": "e577c09f596ddf29a11fe157bfca58eab51d651a21016c2aa10bbfd8d43a4662"
+      },
+      {
+        "path": "src/features/milestones/project-milestone-dashboard.module.css",
+        "sha256": "28354000e922f12614c2bb4199bae37de3cc18d21a87d8d019af82d53570b4bc"
+      },
+      {
+        "path": "src/features/milestones/project-milestone-dashboard.tsx",
+        "sha256": "d9cbe0594f067bdeff129f25974c363f9f0d3e3f97996ce49096101a81d507f7"
+      },
+      {
+        "path": "src/features/milestones/project-milestone-stage-table.tsx",
+        "sha256": "6e7ca5253f25081ea1a084b9f63e93f50b111d4031db896829bd8deffa229e7e"
+      },
+      {
+        "path": "src/features/milestones/use-milestone-dashboard.ts",
+        "sha256": "3d94a987c4aa8e223379f7f21a3113776f35584f573a0f4990e1677fdbf8eb4d"
+      },
+      {
+        "path": "src/features/project-master/project-master-admin.module.css",
+        "sha256": "f2785d461f737bbd96180ca43a15073a1d0976c48c7605c25018c2bbc21aef39"
+      },
+      {
+        "path": "src/features/project-master/project-master-admin.tsx",
+        "sha256": "0e3e213ffbd8d8adfe417a825a3b087c37c81c6969764af10b5e34682830608c"
+      },
+      {
+        "path": "src/features/projects/canonical-snapshot-recovery.ts",
+        "sha256": "d0400bab93288ef963e378cbb9cf309eeabc6ed0b728530dc3a2192072758dc5"
+      },
+      {
+        "path": "src/features/projects/create-project-form.tsx",
+        "sha256": "280656c8016b5085966aa25c9cb2445dc07fe4a43d485a98c3b73d7135c1794b"
+      },
+      {
+        "path": "src/features/projects/edit-permission.ts",
+        "sha256": "1792ee6d87db080923584e06667eb4af81cb1ca74b0ad52e3533e04aa457caaf"
+      },
+      {
+        "path": "src/features/projects/new-project-tabs.tsx",
+        "sha256": "f183df9749c86ce714badbef2cf28f5cab77ab665fc3d6b2b8648f3dfd9b59a1"
+      },
+      {
+        "path": "src/features/projects/project-copy-button.tsx",
+        "sha256": "b5a778ae201b9c8da16eef004e0b3d8d3497d3623f08d05bf6dad3a58e6299ab"
+      },
+      {
+        "path": "src/features/projects/project-copy-confirm-model.ts",
+        "sha256": "e3d9241f8799ecdeff6735a4045f5209315d4907d23e01e973dbde9d752ced56"
+      },
+      {
+        "path": "src/features/projects/project-copy-entry.tsx",
+        "sha256": "9b0be1ea01a673708653e6da5974e1e85de2a7a99ed5642e5527c10f2ac97522"
+      },
+      {
+        "path": "src/features/projects/project-copy-membership-confirm.module.css",
+        "sha256": "0496e5f992d5747531478a8fe5a0de4f66a5188157a1d4467e183c2dade9a6f4"
+      },
+      {
+        "path": "src/features/projects/project-copy-membership-confirm.tsx",
+        "sha256": "dad61446108810e59f14d954c8c9991e947973cf78da6f159eb7fa743b2bfaaf"
+      },
+      {
+        "path": "src/features/projects/project-excel-export-button.tsx",
+        "sha256": "24b93a873d99860eab4fdd58b3ad4bd5a98cb13f9ddab48ef34c96420cfecb95"
+      },
+      {
+        "path": "src/features/projects/project-export.module.css",
+        "sha256": "7b6991191aed62c766c7b65619960f0ded23ba29876c1594b4d12873ee1b7d16"
+      },
+      {
+        "path": "src/features/projects/project-import-button.tsx",
+        "sha256": "4acd27921a6457bbbc9a213d0f688095a115616e94177fa96333aacbc9595d62"
+      },
+      {
+        "path": "src/features/projects/project-import-model.ts",
+        "sha256": "9af05c77735f4b090e7ff9c7ccc4e2a3080303d4b0d5424661900b93db1aeab7"
+      },
+      {
+        "path": "src/features/projects/project-import-preview.module.css",
+        "sha256": "7cad7dc2b940e090a50c5e0637c450f3c3e4266a07d83d90eafc24ab53a69428"
+      },
+      {
+        "path": "src/features/projects/project-import-preview.tsx",
+        "sha256": "dfbb2034f9c96aec27e35f3441b0c42ba4fdb1b1fca433a9002dcdb3044d8395"
+      },
+      {
+        "path": "src/features/projects/project-list-filter.ts",
+        "sha256": "559dd657f9305250729c9c3f17a61ebb57e524b3e1bd765019276e244a258e0f"
+      },
+      {
+        "path": "src/features/projects/project-list-metadata.ts",
+        "sha256": "f78d6162c17352a59f188e06c8c38a837ad82d099ba3bd3636eb5399d087ee46"
+      },
+      {
+        "path": "src/features/projects/project-master-select-fields.tsx",
+        "sha256": "a5bbd19bb9b12361477f39726775dcade2d42253ea09478528aa524d62960606"
+      },
+      {
+        "path": "src/features/projects/project-owner-display.tsx",
+        "sha256": "a36fff1966f1f81ae29215ea2503a184bce5ab6e3d371dcadb7d4c2e72f59184"
+      },
+      {
+        "path": "src/features/projects/project-permission-recheck-boundary.tsx",
+        "sha256": "9c6d70a729a81dda1362e5705bdcfdb87f2e90fba845736ba27887849f63b960"
+      },
+      {
+        "path": "src/features/projects/project-readonly-view.tsx",
+        "sha256": "5b1fb1b1abaa143b336142da8996971b39d02c7cd6bfa2b3ffd3467f4e321b37"
+      },
+      {
+        "path": "src/features/projects/project-revision-sync.ts",
+        "sha256": "ad573211c0257391fc3355574eca60a6d747dc8b84715d48501fdef2538edd50"
+      },
+      {
+        "path": "src/features/projects/project-search-filter.ts",
+        "sha256": "9827bad17a0c4206585f7a70abcf0510d42591d93c3d74be227811adc3871388"
+      },
+      {
+        "path": "src/features/projects/project-settings-dialog.module.css",
+        "sha256": "60d617d6103c0881b85e32c9f7600d52e974a21077fc77dc37ce0bf0003c05b7"
+      },
+      {
+        "path": "src/features/projects/project-settings-dialog.tsx",
+        "sha256": "04d7c6bd5adb774adf96ec2554a70b2c5bfcef6a936b2b1b84b2dafbf85ae336"
+      },
+      {
+        "path": "src/features/projects/project-status-mutation.ts",
+        "sha256": "00c501feb0ca3192c4b84e3e95a4fc29b7e00c15a54b192463b5af0efed41981"
+      },
+      {
+        "path": "src/features/projects/project-status.ts",
+        "sha256": "34bf24c256859c6806a0318ae8fab0743b55edf3f35dde559e88981a579493d8"
+      },
+      {
+        "path": "src/features/projects/project-work-calendar-editor.module.css",
+        "sha256": "9614cea4482f886248781cd63aaad54e0dce7e7321b8faf32ce44a16c75a89a5"
+      },
+      {
+        "path": "src/features/projects/project-work-calendar-editor.tsx",
+        "sha256": "d39823e857c8ca801ba10fef686c601c80ac4da59878cd31785c7319091538e3"
+      },
+      {
+        "path": "src/features/projects/stage-filter-picker.css",
+        "sha256": "1d7167b8bd47696381c9342506c1d284b2f4cc87fe7a22915c812258e293b4d8"
+      },
+      {
+        "path": "src/features/projects/stage-filter-picker.tsx",
+        "sha256": "9a7eaa079064658a04b0f53b8386adfa1b2c4f4348287ef886a20b2c17b70067"
+      },
+      {
+        "path": "src/features/resources/milestone-resource-drill.ts",
+        "sha256": "54d490808541fc8d8d265c0804bb959e4242648b5067bbc8c4c55d3b37ea30ac"
+      },
+      {
+        "path": "src/features/resources/project-resource-workload.tsx",
+        "sha256": "37fff68fe57fc18269d2f1ca74565be878c3df1626e2b250be667f4efbb8ecbe"
+      },
+      {
+        "path": "src/features/resources/resource-catalog-admin.module.css",
+        "sha256": "8dd6425a118ac7c36e7f1b72c3fb61fde7888478d9bb805e4ce8bb5e4988bda7"
+      },
+      {
+        "path": "src/features/resources/resource-catalog-admin.tsx",
+        "sha256": "ae774e91d6cb984534c2757c4023921b6069cd7b820fb4001b8aad9305497efb"
+      },
+      {
+        "path": "src/features/resources/resource-search-filter.ts",
+        "sha256": "a191469ef97111d0044f00864c25088d8d4d80c1d3e40ca94707eed0c981768a"
+      },
+      {
+        "path": "src/features/templates/create-from-template-form.tsx",
+        "sha256": "24c1ada5b06662126e7f65e7391ad127d98d62948cb678367500278cf6831970"
+      },
+      {
+        "path": "src/features/templates/project-save-as-template-button.tsx",
+        "sha256": "e29d071f8367f58d1fe78e44af5641350e9bf6b17d07765da0ca6b961bfe9c8f"
+      },
+      {
+        "path": "src/instrumentation.ts",
+        "sha256": "b8436d6d287b7413f731b5e1720779d338643a6c2de3ab1510e69c241b108e1b"
+      },
+      {
+        "path": "src/lib/client-local-id.ts",
+        "sha256": "e534400e76d705748c41e78175fc153a6147ee0bd59002e0db8160f80ab76b45"
+      },
+      {
+        "path": "src/lib/date-display.ts",
+        "sha256": "97be20e8e5d2f85768654ad322b2400fe40e851cdc041eaa7b632233d8162047"
+      },
+      {
+        "path": "src/lib/gantt-scale-format.ts",
+        "sha256": "798a69deb9f3ba03623c9ede01dca0b52ea18c1f7f41df152801982ab0cde062"
+      },
+      {
+        "path": "src/lib/iso-week.ts",
+        "sha256": "ff8491eaa8d8cd6cd30eec72e25d1e3bb743195f033ad170f44bfbc9f05526f5"
+      },
+      {
+        "path": "src/server/calendars/calendar-resolution-core.ts",
+        "sha256": "fd216a151d57e6fb82a2b886a5aa8b802dc072f6849642bb521d7345436a804f"
+      },
+      {
+        "path": "src/server/calendars/country-calendar-data.ts",
+        "sha256": "cf054bed0ea9a8a359ffabc3641715ec76df3603fdcbbbc603d3685162c41cf8"
+      },
+      {
+        "path": "src/server/calendars/default-calendar-core.ts",
+        "sha256": "6e56268d23c020852304b3e34a74a024dce686cb892384bea866f207218fac3a"
+      },
+      {
+        "path": "src/server/calendars/resource-calendar-error-core.ts",
+        "sha256": "b711617689c1ca5f3afff979e2fc12756ba3c970a045b2498218e8bdbac69fcd"
+      },
+      {
+        "path": "src/server/calendars/work-calendar-handlers-core.ts",
+        "sha256": "760a25abab26e75ea4c206898c75df86087aee2cdb541169d7a36e45580629b1"
+      },
+      {
+        "path": "src/server/calendars/work-calendar-service-core.ts",
+        "sha256": "ec572a08400a000a7dcdd18725c8e6516a2cd6a934997c26e71dae82feb7b5b4"
+      },
+      {
+        "path": "src/server/calendars/work-calendar-service.ts",
+        "sha256": "3c5ac614e9bd74ffc502d34f8ddf95ff3436e5523b27bb6dfcdd0527afdc2bf5"
+      },
+      {
+        "path": "src/server/db/config.ts",
+        "sha256": "8f3b6138dd9544eb619b998a1203b33fd108f799da254c7423c8543a04e6e2f8"
+      },
+      {
+        "path": "src/server/db/core.ts",
+        "sha256": "e85fd2a9bbee3653ddb954466b6c0d39fd9f236ae573eff117ac6f6ec083b78b"
+      },
+      {
+        "path": "src/server/db/database.ts",
+        "sha256": "2c7e27d3ac3311ea225d32d435a4d45de8906854e8559464ebfd7b5faf6f74ea"
+      },
+      {
+        "path": "src/server/db/index.ts",
+        "sha256": "1ab755b98afdee69ce37ecf3bf62784957c3852c02512c16425329875d9f18df"
+      },
+      {
+        "path": "src/server/db/migrations.ts",
+        "sha256": "1d1f2739467549a8894b8404a1a019457ba8c58e0bcd6360b065a99bffbdb2b7"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-contract.ts",
+        "sha256": "f537031072fbdf41661d421d16f7f35e9d43bc50ce67c00c020f82430fb4920b"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-core.ts",
+        "sha256": "5a8f805d412cef95a484b449f27e64d16c6ece858bd76538b2aa63c011a0230f"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-handler-core.ts",
+        "sha256": "ac5686524222faba1a57bd733407c337640a0f84760b72a4186294aec284ca8f"
+      },
+      {
+        "path": "src/server/exports/project-excel-export-style-types.d.ts",
+        "sha256": "7800a00686fa62f0ad4fe6c1831ee63a37a8e2ae10840d13bb39cca19762dda8"
+      },
+      {
+        "path": "src/server/exports/project-export-snapshot-service-core.ts",
+        "sha256": "c6953e682875a6b1037828b63c4a311de7c456ac44221f553fadbe0c7981e7b3"
+      },
+      {
+        "path": "src/server/exports/project-json-export-core.ts",
+        "sha256": "f7b042be6b48131c671cc931a776832f9d7d08114e72b6b6c467a319f7109dfe"
+      },
+      {
+        "path": "src/server/exports/project-json-export-handler-core.ts",
+        "sha256": "bab630c42b9c8b50f114497d2f069f8ab522c3b4e63a7fa5654135e5c991f1a6"
+      },
+      {
+        "path": "src/server/exports/project-svg-export-contract.ts",
+        "sha256": "0f7c0465eebd9f7ac580efd77280bdd2c12b3b2a9d528a7a5a2a2760bc200c96"
+      },
+      {
+        "path": "src/server/exports/project-svg-export-core.ts",
+        "sha256": "7d9a5bc291dc667eabf29e48f5a2c3f11780ac941953b1332331ddf4387696ea"
+      },
+      {
+        "path": "src/server/exports/project-svg-export-handler-core.ts",
+        "sha256": "dc6a40373163a6bf4644c76322cbbc0813c37b992c8be285e422d2ee596e340d"
+      },
+      {
+        "path": "src/server/health/liveness-core.ts",
+        "sha256": "923fcb0543d505513a6d10c8aa8bd8d46c63135112ef6ed711ca775f2d252756"
+      },
+      {
+        "path": "src/server/health/liveness.ts",
+        "sha256": "ef54eb0fcc54b079a1e49c2643f41ab5f89798536f77a29ab93724764758f44e"
+      },
+      {
+        "path": "src/server/health/readiness-core.ts",
+        "sha256": "ff43835bd3d8b21bff9ffac9eb24bfc6f98367f8c8b09f9239b48f3059498bda"
+      },
+      {
+        "path": "src/server/health/readiness-handler-core.ts",
+        "sha256": "44e9b8316f777f866ad9f11f17b3f326670f6b0b716fbb4cc66c6b297c2a5310"
+      },
+      {
+        "path": "src/server/health/readiness-service-core.ts",
+        "sha256": "10bd06e0bdc5e715fcdf6658300a0de75cd0f8ae41145d59032656cbcfb9c519"
+      },
+      {
+        "path": "src/server/health/readiness.ts",
+        "sha256": "547a48a3f01bdd6f1fd9ead992fbe09c65558ed97ec98fe7c83ab171d538c84f"
+      },
+      {
+        "path": "src/server/http/api-error-core.ts",
+        "sha256": "8c8adb73f80fdb1b08f2e3622e127c3e511d90178abf618d115842ec409bd605"
+      },
+      {
+        "path": "src/server/http/request-context-core.ts",
+        "sha256": "d525dd03359f20045123ff8e556079f38f0941f767948adf5385d505b14b5b79"
+      },
+      {
+        "path": "src/server/http/request-core.ts",
+        "sha256": "a1fe33c601679e3f864f4016a0753e40f0015f9c196463da2ed3f73f549b694d"
+      },
+      {
+        "path": "src/server/imports/project-import-handlers-core.ts",
+        "sha256": "f826dcd2271944d16737e97b4cf4e879b0146d572696b5f9837a8c45ec76bd28"
+      },
+      {
+        "path": "src/server/imports/project-import-parser-core.ts",
+        "sha256": "fac42c77e7b83b83bb557b8c772044e8e715c35dd54c219b3787b133734cf4a1"
+      },
+      {
+        "path": "src/server/imports/project-import-service-core.ts",
+        "sha256": "fab81cea61043df978f4fa5d095eed081da92df3757647136eac7305a9a7745c"
+      },
+      {
+        "path": "src/server/imports/project-import-service.ts",
+        "sha256": "b35060a31c3ff007a067977b7fa72e87cdc366c420e4b0f006fe1f107d185bc9"
+      },
+      {
+        "path": "src/server/logging/logger-core.ts",
+        "sha256": "9373cc6733a604620a5cbf8b2fcfd820c188870420c5bfc27b66df615e0679d4"
+      },
+      {
+        "path": "src/server/logging/logger.ts",
+        "sha256": "f7f6a282d18db1b78a4f943d0a50a006c1e0b6202fe335bddba5418e6c479fc8"
+      },
+      {
+        "path": "src/server/logistics/logistics-contract.ts",
+        "sha256": "bf322afba94c59e93634109dc43cb0fd1ba95a61080eb768054a94b22ff2b055"
+      },
+      {
+        "path": "src/server/logistics/logistics-dashboard-service.ts",
+        "sha256": "324cdacab15f076c3a471a8dbaf2c9d65c139df16650ba09ad376172769901ed"
+      },
+      {
+        "path": "src/server/logistics/logistics-handlers-core.ts",
+        "sha256": "fef72fd6877ae3e7989bc750ab9dafc80071b25d78e86098816572cfce66fe98"
+      },
+      {
+        "path": "src/server/logistics/logistics-service-core.ts",
+        "sha256": "b0035a335a5f2cca66703626c5cf975491cd8bc26bdfd18c0552945ecdb9c1b0"
+      },
+      {
+        "path": "src/server/logistics/logistics-service.ts",
+        "sha256": "a905be3a1aac4333a5756b0886a6f9ac7fde96a1f6073de144fcc3e55989e032"
+      },
+      {
+        "path": "src/server/logistics/logistics-type-catalog-handlers-core.ts",
+        "sha256": "3a537a3eff4d83db1e714a7bdd26f9f76182ba01916d2e4160732dbe0c3cf896"
+      },
+      {
+        "path": "src/server/logistics/logistics-type-catalog-service-core.ts",
+        "sha256": "6c2fe6c93b57d113a9bac26526f573630254d900616ca016ad27ff076e838de5"
+      },
+      {
+        "path": "src/server/logistics/logistics-type-catalog-service.ts",
+        "sha256": "0bd114579e667c8c73deaf1904fd853cee21a24fc1dc8d78ff9be317f2b3c7fa"
+      },
+      {
+        "path": "src/server/project-master/project-master-handlers-core.ts",
+        "sha256": "893d8dc48b94096f6fc498ffd0a4bce19365c11076ecbd712df7adf4c8382fab"
+      },
+      {
+        "path": "src/server/project-master/project-master-service-core.ts",
+        "sha256": "476664ff22bfb8df0bc3bbef6d31e0eefc4e694618e390a7b9eec129d95a1aca"
+      },
+      {
+        "path": "src/server/project-master/project-master-service.ts",
+        "sha256": "e3a9af8246f39ae2191b6c015d9a354f8be7c656b0dad9ed4ebdc9c3af092f91"
+      },
+      {
+        "path": "src/server/projects/edit-session-handlers-core.ts",
+        "sha256": "615ba26669a7ee36ccbb0e6269c245b3b0cd607aa730c4d7df71fb1955bcabfa"
+      },
+      {
+        "path": "src/server/projects/link-contract.ts",
+        "sha256": "30332b0f95475bb4b6f461875e364c37b7b275bd5cd4d0d86efea45a258a659f"
+      },
+      {
+        "path": "src/server/projects/link-handlers-core.ts",
+        "sha256": "919eefd4c78421ca3320a2c60313ebc0bf76c3ae6d639558467fa482f4d1b18b"
+      },
+      {
+        "path": "src/server/projects/link-service-core.ts",
+        "sha256": "6f48a88626e58cc63449b1379f96596897d6f1984eab3c209e7c4fb3269cf21e"
+      },
+      {
+        "path": "src/server/projects/milestone-dashboard-calculation-core.ts",
+        "sha256": "92b23b96ba192cc46c11d560ac38466f4cd172e8c235bf17689437b93a10df47"
+      },
+      {
+        "path": "src/server/projects/milestone-dashboard-handlers-core.ts",
+        "sha256": "5ec810dcb0f01a0177db33f82fa4c8fa6371a806c5f822caf643b5970637d37e"
+      },
+      {
+        "path": "src/server/projects/milestone-dashboard-projection-core.ts",
+        "sha256": "d1b15dc03c637062354bbfaf1a3fe971daf005a4be9aac0ab1e5a7dbdbd42766"
+      },
+      {
+        "path": "src/server/projects/milestone-dashboard-service-core.ts",
+        "sha256": "4ba46ce3cf8900401f599ffcbc1edf4a59b20fe5b50f5146c39ebb1b69ad89c4"
+      },
+      {
+        "path": "src/server/projects/milestone-dashboard-service.ts",
+        "sha256": "9fccfdc7a1056cdcb26301131d4cba1eb2ccd0f38caf9791f73f268523e0912e"
+      },
+      {
+        "path": "src/server/projects/milestone-stage-core.ts",
+        "sha256": "6e49b0a318b072ad4cf525251c3969cc98dbb0cb13f887b1418bbec2be9acf15"
+      },
+      {
+        "path": "src/server/projects/project-contract.ts",
+        "sha256": "42056f8578fcfeae1127defcb7e649b64b719a85adb79c853b6912205eb372e3"
+      },
+      {
+        "path": "src/server/projects/project-copy-handler-core.ts",
+        "sha256": "456fb5af77f8eaec0f9435b2b3d6e9e9b56275cab00b949b7f41917b052a66d5"
+      },
+      {
+        "path": "src/server/projects/project-copy-service-core.ts",
+        "sha256": "299623e336d65a10c7f5288ac63c28dd1506434e7d0b39b19c2b26400622f57a"
+      },
+      {
+        "path": "src/server/projects/project-handlers-core.ts",
+        "sha256": "34ffd565abd60cd2533b81f447102d06b3a3376989de607d6ba8e5aea47c370f"
+      },
+      {
+        "path": "src/server/projects/project-service-core.ts",
+        "sha256": "ac9701ecfec38ccda6b91f9d6fe7696056d8b25bce93ff4238468dea56631990"
+      },
+      {
+        "path": "src/server/projects/project-service.ts",
+        "sha256": "9385dbcf0fb810ab06f14a9d213fcf68fc0f6744fdb8574f2101e397d549cef7"
+      },
+      {
+        "path": "src/server/projects/project-share-url-core.ts",
+        "sha256": "91a9554650297e9da732a0bb08592e4b8d270c5603cb0e003727a25483a2ec3e"
+      },
+      {
+        "path": "src/server/projects/task-contract.ts",
+        "sha256": "9e5ff66a11a29c4e2cb7ee91ea594c6fe5964d7b9bbf574bbb77e6b8513801f7"
+      },
+      {
+        "path": "src/server/projects/task-field-companion-services.ts",
+        "sha256": "2f8998d21248a365a490e67990d3e08432d59e8a185814e9c7612e98dfcf4d2b"
+      },
+      {
+        "path": "src/server/projects/task-field-project-service.ts",
+        "sha256": "30e1aee93212cd093c3489e6c50886b957e1a65ad01b706a59c6f1199693d019"
+      },
+      {
+        "path": "src/server/projects/task-handlers-core.ts",
+        "sha256": "34c13dcd2f7e9934289ec3ddff09ace9cd91c6ef9e1e06acf8c688da990b39f4"
+      },
+      {
+        "path": "src/server/projects/task-hierarchy-contract.ts",
+        "sha256": "462b7185ff0c05423e8c82810ab69596fb52c7223e03684ff83417a5783b2779"
+      },
+      {
+        "path": "src/server/projects/task-hierarchy-handlers-core.ts",
+        "sha256": "e3f0e9a7478ad5a80f58da6a7a4d52e600c5af7def3ebfb71f4c97cf9fd962a2"
+      },
+      {
+        "path": "src/server/projects/task-hierarchy-service-core.ts",
+        "sha256": "2138740f3ffc0510a2bb6b5464589448b832bf01f54ed0600202daeba349d124"
+      },
+      {
+        "path": "src/server/projects/task-schedule-guard.ts",
+        "sha256": "69896d484d779e3996e8331be50ac6a514c58d925b85db9677598dc1c196c6a4"
+      },
+      {
+        "path": "src/server/projects/task-subtree-delete-service-core.ts",
+        "sha256": "495858da4c026b87f039f82c16ed32412f72a628ef085c74920aea2c344eef7b"
+      },
+      {
+        "path": "src/server/repositories/index.ts",
+        "sha256": "47e97954f98f5bd1d7a8b04ac3cec77e0484b93d20ca241621fd665c08534095"
+      },
+      {
+        "path": "src/server/repositories/logistics-repository-core.ts",
+        "sha256": "809ea46ea46335e8fb196c247f3976b165b033277c7390ba8fb94bc2ed58da35"
+      },
+      {
+        "path": "src/server/repositories/logistics-repository.ts",
+        "sha256": "c07e383dbb9d44dc5debada94183091ef7d6b177639b659b474408d087540ba1"
+      },
+      {
+        "path": "src/server/repositories/logistics-type-catalog-repository-core.ts",
+        "sha256": "46a7e121cea9f4495b5cb2eae423396117badfe552f1362e60e126ae12664e87"
+      },
+      {
+        "path": "src/server/repositories/milestone-membership-repository-core.ts",
+        "sha256": "cdc567e30c38c155b7acc1c6ef7c98d048883119b4c7af43f6556bafa8bf3294"
+      },
+      {
+        "path": "src/server/repositories/project-master-repository-core.ts",
+        "sha256": "2a8d5e11d043632ddb42ee33a518a161ceac3e18a30bf9e52fa2817067ead68e"
+      },
+      {
+        "path": "src/server/repositories/project-owner-repository-core.ts",
+        "sha256": "28946f0a0ca3be7a004ec9e6224082809e77146d7c72624a16990ae77c30e9ee"
+      },
+      {
+        "path": "src/server/repositories/project-repository-core.ts",
+        "sha256": "0ab88263a2d1fd46d13d870f262c6010ed2c513d5be52479ce699d6dc51e64db"
+      },
+      {
+        "path": "src/server/repositories/project-repository.ts",
+        "sha256": "34b6bebe30868b099f6e591240bb856b6b9253931778e1bf72b94dcfb32bf331"
+      },
+      {
+        "path": "src/server/repositories/project-template-repository-core.ts",
+        "sha256": "365e29057cab55c59afb32443d8fdc9b6f450d053285336ca042d69693d6dcf3"
+      },
+      {
+        "path": "src/server/repositories/resource-catalog-repository-core.ts",
+        "sha256": "4b3708d0126965453a00eee795f6bc5f94a07ee5ab2228d7a890411200181764"
+      },
+      {
+        "path": "src/server/repositories/schedule-repository-core.ts",
+        "sha256": "820090952637ae8f78df655240e349b815336293e1af4cd2aaa5293cdb72f968"
+      },
+      {
+        "path": "src/server/repositories/schedule-repository.ts",
+        "sha256": "5462dfdf51e29dadf90b7441cc7537e376bcdd51d26f755aec462e3da53102b9"
+      },
+      {
+        "path": "src/server/repositories/work-calendar-repository-core.ts",
+        "sha256": "2197f81804f74695199895a93e19aa4f454b94345fe94ef41a7770cc621e7ac7"
+      },
+      {
+        "path": "src/server/resources/md-per-mm-core.ts",
+        "sha256": "87a174ffc8a475fc22869bee772cd0baa9abe04fbd44f373b86c1baa1a6466ff"
+      },
+      {
+        "path": "src/server/resources/resource-catalog-handlers-core.ts",
+        "sha256": "7944770b804a4ed7a5ac3b8a0c81bb14657380d7c862b6472b6fd65ba19f40df"
+      },
+      {
+        "path": "src/server/resources/resource-catalog-service-core.ts",
+        "sha256": "26b5828989474db56b88b038e8b6a3335818ff46d85f31c627c9fab8296187e7"
+      },
+      {
+        "path": "src/server/resources/resource-catalog-service.ts",
+        "sha256": "1c7d22cc20b86e6e925ac54543b5ecf9ccded2e318ea6ae91da0a5d952782fd3"
+      },
+      {
+        "path": "src/server/resources/resource-workload-service-core.ts",
+        "sha256": "a35da87965afe510fbfa86f30a65dab1646132d6fc34d14d948cfc44ca36c7b8"
+      },
+      {
+        "path": "src/server/security/cookie-core.ts",
+        "sha256": "b52e04e06cfa29451a48f8bb7caf14716c303da77b278560bdf49d5a0502bf24"
+      },
+      {
+        "path": "src/server/security/logistics-catalog-cookie-core.ts",
+        "sha256": "4798cf651fa2959e11e75cbd17ac5801b8afffc1b15a0eb7efa925659c21f575"
+      },
+      {
+        "path": "src/server/security/origin-core.ts",
+        "sha256": "1d372ff27c7c0e6fbe6d2a92f36c743af5f74641cffe3b79ec3a71ca9c19e530"
+      },
+      {
+        "path": "src/server/security/password-core.ts",
+        "sha256": "51de3d88f093abbb947b2f83b09b1032f5097b677bc067f770312f2e67d0bd71"
+      },
+      {
+        "path": "src/server/security/password.ts",
+        "sha256": "4b135c5cf5277b7dec7803654b5bf4570d669cf317aed6cbb6e6dc1011f0992d"
+      },
+      {
+        "path": "src/server/security/project-master-admin-cookie-core.ts",
+        "sha256": "1ecd73e49c6618eb3d9fb8cf060d37c3206d06f055c1147d0ffc3b56348e2229"
+      },
+      {
+        "path": "src/server/security/rate-limit-core.ts",
+        "sha256": "464fa9c37a56f40b5ee36db52b4ce37455c11c3e2fc9c0f9694de65bef310ff7"
+      },
+      {
+        "path": "src/server/security/resource-catalog-cookie-core.ts",
+        "sha256": "b2228b8e086e916cd6d055a7e51ab9df81a753e0215e023b18b608aad48aaae4"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "sha256": "aa044a8f6f3f3c05058b7ddd3d8084120960c0396996d901554e93a1b4167089"
+      },
+      {
+        "path": "src/server/security/session-core.ts",
+        "sha256": "df6ab1a0b515fba50849276f3993bc4912767b3bb077dd0c38e1e36d9192ac06"
+      },
+      {
+        "path": "src/server/templates/project-template-handlers-core.ts",
+        "sha256": "0cc74ecdd015ef60547cd8b88cfb01ea89ee8ada1ca965fe662de63d960a889f"
+      },
+      {
+        "path": "src/server/templates/project-template-service-core.ts",
+        "sha256": "ef395b4c2935b5dc135f9be21eb2e2e2e0b6efa39a8281917eddb2ae5e79ed88"
+      },
+      {
+        "path": "src/server/templates/project-template-service.ts",
+        "sha256": "39863783008a9e81ccda13e22baee3023de5c7a859b8a7c71d4ea769468871e5"
+      }
+    ],
+    "sourceAggregateSha256": "47c3326c89ceb733d43b7c03664fa56fdabfe5732cbca15294b5c8afe1a9acb9",
+    "tests": [
+      {
+        "path": "tests/e2e/project-settings-layout-490.spec.ts",
+        "sha256": "e4ca40048a4c7151abf80bed8034c5a489dccfdd21fa8052a1f674187da61ef5"
+      },
+      {
+        "path": "tests/e2e/helpers/issue490-settings-fixture.ts",
+        "sha256": "1bc5e8bbbf9a7ab4426c050c55cd119acf98d46dfbad7e527100b44e17ff3468"
+      },
+      {
+        "path": "tests/e2e/helpers/ui-geometry.ts",
+        "sha256": "625d8e4828f330685a16854ac7ddef8b14bde748a00215c9098067974f2f95dd"
+      },
+      {
+        "path": "tests/e2e/fixtures/isolated-application.ts",
+        "sha256": "222ca04e2153a78c2416f0e2bc1d473b8b38928f88e3e14f99f206cb933941a2"
+      },
+      {
+        "path": "tests/e2e/fixtures/task-editor-density.ts",
+        "sha256": "815c52fa48a91a59c6c1f10e2b53c4f24ca8c8aafe14e9505f39682743bb0199"
+      },
+      {
+        "path": "tests/config/playwright.config.ts",
+        "sha256": "d018c7a039018597383375bd341627f3386b05317bae85e40437d6d87e3d2dd4"
+      }
+    ],
+    "appVersion": "0.94.1",
+    "browserVersion": "153.0.8010.12",
+    "responseKind": "controlled preview412; actual canonical refresh",
+    "command": "ISSUE_490_PHASE=after ISSUE_490_EVIDENCE_DIR=output/playwright/issue-490/after-current-0941 PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/issue490-after-current-0941-html npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts --output=/tmp/issue490-after-current-0941-results",
+    "report": "/tmp/issue490-after-current-0941-html",
+    "phase": "after"
+  },
+  "facts": {
+    "route": "/projects/7f1c592b-aab7-428a-8933-adb7b782e199",
+    "viewport": {
+      "width": 390,
+      "height": 900
+    },
+    "document": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "environment": {
+      "locale": "ko-KR",
+      "timezone": "Asia/Seoul",
+      "dpr": 1,
+      "rootFont": "16px",
+      "visualViewportScale": 1,
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+      "zoom": "default 100%; native125% NOT TESTED; no DPR zoom substitution"
+    },
+    "shell": {
+      "main": {
+        "x": 12,
+        "y": 57,
+        "right": 378,
+        "bottom": 901,
+        "width": 366,
+        "height": 844
+      },
+      "heading": {
+        "x": 12,
+        "y": 77.953125,
+        "right": 178,
+        "bottom": 100.046875,
+        "width": 166,
+        "height": 22.09375
+      },
+      "headerBottom": 57,
+      "auth": null
+    },
+    "controls": [
+      {
+        "tag": "SELECT",
+        "id": "",
+        "type": null,
+        "label": "프로젝트 상태 변경",
+        "rect": {
+          "x": 184,
+          "y": 73.796875,
+          "right": 261,
+          "bottom": 104.1875,
+          "width": 77,
+          "height": 30.390625
+        },
+        "owner": {
+          "x": 12,
+          "y": 71,
+          "right": 378,
+          "bottom": 107,
+          "width": 366,
+          "height": 36
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(30, 64, 175)",
+            "rgb(30, 64, 175)",
+            "rgb(30, 64, 175)",
+            "rgb(30, 64, 175)"
+          ],
+          "background": "rgb(239, 246, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "4px 8px",
+          "font": "650 12px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "12px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "normal",
+          "minHeight": "30.4px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 64, 175)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 64, 175)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "프로젝트 설정 배치 검증 — 긴 한국어 프로젝트명과 International engineering workspace 프로젝트 링크 복사",
+        "rect": {
+          "x": 12,
+          "y": 120.5,
+          "right": 96.65625,
+          "bottom": 156.5,
+          "width": 84.65625,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 119,
+          "right": 378,
+          "bottom": 158,
+          "width": 366,
+          "height": 39
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6.4px 10px",
+          "font": "650 13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "내보내기",
+        "rect": {
+          "x": 102.65625,
+          "y": 119,
+          "right": 188.328125,
+          "bottom": 158,
+          "width": 85.671875,
+          "height": 39
+        },
+        "owner": {
+          "x": 12,
+          "y": 119,
+          "right": 378,
+          "bottom": 158,
+          "width": 366,
+          "height": 39
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 10px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "프로젝트 설정",
+        "rect": {
+          "x": 194.328125,
+          "y": 119,
+          "right": 311,
+          "bottom": 158,
+          "width": 116.671875,
+          "height": 39
+        },
+        "owner": {
+          "x": 12,
+          "y": 119,
+          "right": 378,
+          "bottom": 158,
+          "width": 366,
+          "height": 39
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 10px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-schedule",
+        "type": "button",
+        "label": "일정",
+        "rect": {
+          "x": 12,
+          "y": 172,
+          "right": 48,
+          "bottom": 208,
+          "width": 36,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 172,
+          "right": 378,
+          "bottom": 209,
+          "width": 366,
+          "height": 37
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(37, 99, 168)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-resources",
+        "type": "button",
+        "label": "리소스",
+        "rect": {
+          "x": 60,
+          "y": 172,
+          "right": 110,
+          "bottom": 208,
+          "width": 50,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 172,
+          "right": 378,
+          "bottom": 209,
+          "width": 366,
+          "height": 37
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-tab-logistics",
+        "type": "button",
+        "label": "물류 구성",
+        "rect": {
+          "x": 122,
+          "y": 172,
+          "right": 189,
+          "bottom": 208,
+          "width": 67,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 172,
+          "right": 378,
+          "bottom": 209,
+          "width": 366,
+          "height": 37
+        },
+        "labels": [],
+        "clipOwners": [],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 4px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-schedule-tab-gantt",
+        "type": "button",
+        "label": "Gantt",
+        "rect": {
+          "x": 18,
+          "y": 227,
+          "right": 73,
+          "bottom": 264.5,
+          "width": 55,
+          "height": 37.5
+        },
+        "owner": {
+          "x": 12,
+          "y": 221,
+          "right": 378,
+          "bottom": 270.5,
+          "width": 366,
+          "height": 49.5
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 221,
+              "right": 378,
+              "bottom": 270.5,
+              "width": 366,
+              "height": 49.5
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(37, 99, 168)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgb(237, 241, 247)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 12px",
+          "font": "13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-schedule-tab-milestones",
+        "type": "button",
+        "label": "완료 단계 대시보드",
+        "rect": {
+          "x": 81,
+          "y": 227,
+          "right": 215,
+          "bottom": 264.5,
+          "width": 134,
+          "height": 37.5
+        },
+        "owner": {
+          "x": 12,
+          "y": 221,
+          "right": 378,
+          "bottom": 270.5,
+          "width": 366,
+          "height": 49.5
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 221,
+              "right": 378,
+              "bottom": 270.5,
+              "width": 366,
+              "height": 49.5
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(100, 116, 139)",
+            "rgb(100, 116, 139)",
+            "rgba(0, 0, 0, 0)",
+            "rgb(100, 116, 139)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 12px",
+          "font": "13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(100, 116, 139)",
+          "outlineOffset": "0px",
+          "color": "rgb(100, 116, 139)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "project-scope-tab-all",
+        "type": "button",
+        "label": "전체 프로젝트",
+        "rect": {
+          "x": 12,
+          "y": 278.5,
+          "right": 113,
+          "bottom": 312.5,
+          "width": 101,
+          "height": 34
+        },
+        "owner": {
+          "x": 12,
+          "y": 278.5,
+          "right": 378,
+          "bottom": 313.5,
+          "width": 366,
+          "height": 35
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 313.5,
+              "width": 366,
+              "height": 35
+            },
+            "overflowX": "auto",
+            "overflowY": "hidden"
+          },
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "2px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "solid",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(23, 32, 51)",
+            "rgb(23, 32, 51)",
+            "rgb(37, 99, 168)",
+            "rgb(23, 32, 51)"
+          ],
+          "background": "rgb(237, 241, 247)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "4px 10px",
+          "font": "650 13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "34px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "",
+        "type": "search",
+        "label": "작업명, 설명, External ID 검색",
+        "rect": {
+          "x": 12,
+          "y": 359.5,
+          "right": 312,
+          "bottom": 395.5,
+          "width": 300,
+          "height": 36
+        },
+        "owner": {
+          "x": 12,
+          "y": 359.5,
+          "right": 312,
+          "bottom": 395.5,
+          "width": 300,
+          "height": 36
+        },
+        "labels": [
+          {
+            "id": "",
+            "htmlFor": "",
+            "wrapsControl": true,
+            "text": "작업 검색"
+          }
+        ],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 10px",
+          "font": "650 12px / 18px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "12px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "18px",
+          "minHeight": "36px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "필터",
+        "rect": {
+          "x": 320,
+          "y": 357.5,
+          "right": 378,
+          "bottom": 397.5,
+          "width": 58,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 357.5,
+          "right": 378,
+          "bottom": 535.5,
+          "width": 366,
+          "height": 178
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "완료 단계: 전체",
+        "rect": {
+          "x": 12,
+          "y": 451.5,
+          "right": 378,
+          "bottom": 491.5,
+          "width": 366,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 451.5,
+          "right": 378,
+          "bottom": 491.5,
+          "width": 366,
+          "height": 40
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)",
+            "rgb(185, 200, 218)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "8px 14px",
+          "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "14px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "21px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "전체",
+        "rect": {
+          "x": 15,
+          "y": 408.5,
+          "right": 133.65625,
+          "bottom": 440.5,
+          "width": 118.65625,
+          "height": 32
+        },
+        "owner": {
+          "x": 12,
+          "y": 405.5,
+          "right": 378,
+          "bottom": 443.5,
+          "width": 366,
+          "height": 38
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "0px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(255, 255, 255)",
+            "rgb(255, 255, 255)",
+            "rgb(255, 255, 255)",
+            "rgb(255, 255, 255)"
+          ],
+          "background": "rgb(37, 99, 168)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "4px 10px",
+          "font": "700 13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "32px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineOffset": "0px",
+          "color": "rgb(255, 255, 255)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "Task",
+        "rect": {
+          "x": 135.65625,
+          "y": 408.5,
+          "right": 254.328125,
+          "bottom": 440.5,
+          "width": 118.671875,
+          "height": 32
+        },
+        "owner": {
+          "x": 12,
+          "y": 405.5,
+          "right": 378,
+          "bottom": 443.5,
+          "width": 366,
+          "height": 38
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "0px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(30, 58, 95)",
+            "rgb(30, 58, 95)",
+            "rgb(30, 58, 95)",
+            "rgb(30, 58, 95)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "4px 10px",
+          "font": "600 13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "32px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "Milestone",
+        "rect": {
+          "x": 256.328125,
+          "y": 408.5,
+          "right": 375,
+          "bottom": 440.5,
+          "width": 118.671875,
+          "height": 32
+        },
+        "owner": {
+          "x": 12,
+          "y": 405.5,
+          "right": 378,
+          "bottom": 443.5,
+          "width": 366,
+          "height": 38
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "0px",
+            "0px",
+            "0px",
+            "0px"
+          ],
+          "borderStyles": [
+            "none",
+            "none",
+            "none",
+            "none"
+          ],
+          "borderColors": [
+            "rgb(30, 58, 95)",
+            "rgb(30, 58, 95)",
+            "rgb(30, 58, 95)",
+            "rgb(30, 58, 95)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "4px 10px",
+          "font": "600 13px / 19.5px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+          "lineHeight": "19.5px",
+          "minHeight": "32px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(30, 58, 95)",
+          "outlineOffset": "0px",
+          "color": "rgb(30, 58, 95)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "일",
+        "rect": {
+          "x": 88,
+          "y": 548.5,
+          "right": 128,
+          "bottom": 580.5,
+          "width": 40,
+          "height": 32
+        },
+        "owner": {
+          "x": 12,
+          "y": 543.5,
+          "right": 177,
+          "bottom": 585.5,
+          "width": 165,
+          "height": 42
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)",
+            "rgb(37, 99, 168)"
+          ],
+          "background": "rgb(37, 99, 168)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "4px 10px",
+          "font": "650 13px / 20px \"Open Sans\", Arial, Helvetica, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "\"Open Sans\", Arial, Helvetica, sans-serif",
+          "lineHeight": "20px",
+          "minHeight": "32px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(255, 255, 255)",
+          "outlineOffset": "0px",
+          "color": "rgb(255, 255, 255)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "주",
+        "rect": {
+          "x": 132,
+          "y": 548.5,
+          "right": 172,
+          "bottom": 580.5,
+          "width": 40,
+          "height": 32
+        },
+        "owner": {
+          "x": 12,
+          "y": 543.5,
+          "right": 177,
+          "bottom": 585.5,
+          "width": 165,
+          "height": 42
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgba(0, 0, 0, 0)",
+            "rgba(0, 0, 0, 0)",
+            "rgba(0, 0, 0, 0)",
+            "rgba(0, 0, 0, 0)"
+          ],
+          "background": "rgba(0, 0, 0, 0)",
+          "surroundingBackground": "rgb(255, 255, 255)",
+          "padding": "4px 10px",
+          "font": "650 13px / 20px \"Open Sans\", Arial, Helvetica, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "\"Open Sans\", Arial, Helvetica, sans-serif",
+          "lineHeight": "20px",
+          "minHeight": "32px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "선택 복사",
+        "rect": {
+          "x": 69,
+          "y": 593.5,
+          "right": 142,
+          "bottom": 627.5,
+          "width": 73,
+          "height": 34
+        },
+        "owner": {
+          "x": 12,
+          "y": 593.5,
+          "right": 378,
+          "bottom": 655.5,
+          "width": 366,
+          "height": 62
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": true,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 8px",
+          "font": "13px / 20px \"Open Sans\", Arial, Helvetica, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "\"Open Sans\", Arial, Helvetica, sans-serif",
+          "lineHeight": "20px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "0.6",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "선택 해제",
+        "rect": {
+          "x": 150,
+          "y": 593.5,
+          "right": 223,
+          "bottom": 627.5,
+          "width": 73,
+          "height": 34
+        },
+        "owner": {
+          "x": 12,
+          "y": 593.5,
+          "right": 378,
+          "bottom": 655.5,
+          "width": 366,
+          "height": 62
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": true,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 8px",
+          "font": "13px / 20px \"Open Sans\", Arial, Helvetica, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "\"Open Sans\", Arial, Helvetica, sans-serif",
+          "lineHeight": "20px",
+          "minHeight": "auto",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "0.6",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "요약 작업 추가",
+        "rect": {
+          "x": 12,
+          "y": 663.5,
+          "right": 122,
+          "bottom": 703.5,
+          "width": 110,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 543.5,
+          "right": 378,
+          "bottom": 711.5,
+          "width": 366,
+          "height": 168
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 12px",
+          "font": "650 13px / 20px \"Open Sans\", Arial, Helvetica, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "\"Open Sans\", Arial, Helvetica, sans-serif",
+          "lineHeight": "20px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "label": "Gantt 전체 화면",
+        "rect": {
+          "x": 130,
+          "y": 663.5,
+          "right": 211,
+          "bottom": 703.5,
+          "width": 81,
+          "height": 40
+        },
+        "owner": {
+          "x": 12,
+          "y": 543.5,
+          "right": 378,
+          "bottom": 711.5,
+          "width": 366,
+          "height": 168
+        },
+        "labels": [],
+        "clipOwners": [
+          {
+            "rect": {
+              "x": 12,
+              "y": 278.5,
+              "right": 378,
+              "bottom": 889,
+              "width": 366,
+              "height": 610.5
+            },
+            "overflowX": "hidden",
+            "overflowY": "hidden"
+          }
+        ],
+        "focused": false,
+        "focusVisible": false,
+        "disabled": false,
+        "readonly": false,
+        "invalid": null,
+        "describedBy": [],
+        "style": {
+          "borderWidths": [
+            "1px",
+            "1px",
+            "1px",
+            "1px"
+          ],
+          "borderStyles": [
+            "solid",
+            "solid",
+            "solid",
+            "solid"
+          ],
+          "borderColors": [
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)",
+            "rgb(148, 163, 184)"
+          ],
+          "background": "rgb(255, 255, 255)",
+          "surroundingBackground": "rgba(0, 0, 0, 0)",
+          "padding": "6px 12px",
+          "font": "650 13px / 20px \"Open Sans\", Arial, Helvetica, sans-serif",
+          "fontSize": "13px",
+          "fontFamily": "\"Open Sans\", Arial, Helvetica, sans-serif",
+          "lineHeight": "20px",
+          "minHeight": "40px",
+          "boxSizing": "border-box",
+          "outlineStyle": "none",
+          "outlineWidth": "3px",
+          "outlineColor": "rgb(23, 32, 51)",
+          "outlineOffset": "0px",
+          "color": "rgb(23, 32, 51)",
+          "opacity": "1",
+          "marginTop": "0px"
+        }
+      }
+    ],
+    "excludedControls": 74,
+    "tables": []
+  },
+  "modal": {
+    "native": false,
+    "open": false,
+    "rect": {
+      "x": 12,
+      "y": 57,
+      "right": 378,
+      "bottom": 901,
+      "width": 366,
+      "height": 844
+    },
+    "scrollWidth": 366,
+    "clientWidth": 366,
+    "scrollHeight": 844,
+    "clientHeight": 844,
+    "overflowX": "visible",
+    "overflowY": "visible",
+    "groups": [
+      {
+        "tag": "DIV",
+        "role": "tablist",
+        "rect": {
+          "x": 12,
+          "y": 172,
+          "width": 366,
+          "height": 37
+        },
+        "clientWidth": 366,
+        "scrollWidth": 366,
+        "clientHeight": 36,
+        "scrollHeight": 36
+      },
+      {
+        "tag": "DIV",
+        "role": "tablist",
+        "rect": {
+          "x": 12,
+          "y": 221,
+          "width": 366,
+          "height": 49.5
+        },
+        "clientWidth": 366,
+        "scrollWidth": 366,
+        "clientHeight": 50,
+        "scrollHeight": 50
+      },
+      {
+        "tag": "DIV",
+        "role": "tablist",
+        "rect": {
+          "x": 12,
+          "y": 278.5,
+          "width": 366,
+          "height": 35
+        },
+        "clientWidth": 366,
+        "scrollWidth": 366,
+        "clientHeight": 34,
+        "scrollHeight": 34
+      }
+    ]
+  }
+}

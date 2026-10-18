@@ -1,0 +1,56 @@
+{
+  "schema": "mastergantt-evidence-manifest-v1",
+  "baselineHead": "9f0458124198470872c6764cbd5b00dedc75417b",
+  "source": {
+    "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+    "originalSha256": "bfb0b6994be6cd605f8bc56152962eaa9a1c8436563dbc0b759081ae8a75e901",
+    "finalSha256": "14c3ca85cde5ef14dc0eea64bc851eaca282509de99b108552c8f9ec5d2ca4c5"
+  },
+  "artifacts": [
+    {
+      "file": "docs/evidence/issue569/rework/ci-history.json",
+      "sha256": "72b0e77d52c50f01fbedf984e03cb8a35d0638394d06daa626b2e295fa6b70a5",
+      "bytes": 11806
+    },
+    {
+      "file": "docs/evidence/issue569/rework/ci2295-failure-viewport.json",
+      "sha256": "0344aae7524378d46b277a8a21b2c9b2e9ec0ac1b56e78d7f41ffb53340cf5b2",
+      "bytes": 1456
+    },
+    {
+      "file": "docs/evidence/issue569/rework/full-spec-phases.json",
+      "sha256": "503d88f7feade01aefade8b4e35681f7c903d2b4ab5377da004387dcbb7282ac",
+      "bytes": 9031
+    },
+    {
+      "file": "docs/evidence/issue569/rework/original-failure-viewport.json",
+      "sha256": "cd4f343c01717944b32eb6162d5ba9f521f8fb9b80c73b23b082691a2fffa711",
+      "bytes": 875
+    },
+    {
+      "file": "docs/evidence/issue569/rework/probe-phases.json",
+      "sha256": "4b1c48a15b84a55da8640b866203fbf9e9f711b043a921b8fb9bec0516ff95ea",
+      "bytes": 3897
+    },
+    {
+      "file": "docs/evidence/issue569/rework/repeat1-phases.json",
+      "sha256": "a3b0390aa1cca2b40058a68a22175f3021eabcf9bd64f33491189094a33c46f8",
+      "bytes": 10431
+    },
+    {
+      "file": "docs/evidence/issue569/rework/repeat2-phases.json",
+      "sha256": "503d88f7feade01aefade8b4e35681f7c903d2b4ab5377da004387dcbb7282ac",
+      "bytes": 9031
+    },
+    {
+      "file": "docs/evidence/issue569/rework/repeat3-phases.json",
+      "sha256": "503d88f7feade01aefade8b4e35681f7c903d2b4ab5377da004387dcbb7282ac",
+      "bytes": 9031
+    },
+    {
+      "file": "docs/evidence/issue569/rework/summary.json",
+      "sha256": "e0558b1c9431f39be70827494b0ea9c34b29cca3d397b4ad8b3a7cf7f583cef9",
+      "bytes": 3609
+    }
+  ]
+}

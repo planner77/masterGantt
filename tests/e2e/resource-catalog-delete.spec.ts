@@ -110,17 +110,23 @@ test("Issue #329: unused Resource/Group guarded delete UX", async ({ page }) => 
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     await expect(page.getByRole("button", { name: "사용 중 리소스 삭제 불가", exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
     await expect(page.getByRole("button", { name: "사용 중 그룹 삭제 불가", exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: /^리소스 \d/ }).click();
   }
 
   await expect(page.getByText("2개 프로젝트에서 사용 중", { exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
   await expect(page.getByText("1개 프로젝트에서 사용 중", { exact: true })).toBeVisible();
+  await page.getByRole("tab", { name: /^리소스 \d/ }).click();
   await expect(page.getByRole("button", { name: "사용 중 리소스 삭제 불가", exact: true }))
     .toHaveAttribute("aria-disabled", "true");
 
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
   await page.getByRole("button", { name: "구성원", exact: true }).first().click();
   await expect(page.getByText("일치 2 / 전체 2 · 선택 2", { exact: true })).toBeVisible();
 
+  await page.getByRole("tab", { name: /^리소스 \d/ }).click();
   const resourceSearch = page.getByLabel("리소스 검색", { exact: true });
   await resourceSearch.fill("리소스");
   const resourceDelete = page.getByRole("button", { name: "미사용 리소스 삭제", exact: true });
@@ -138,6 +144,7 @@ test("Issue #329: unused Resource/Group guarded delete UX", async ({ page }) => 
   await expect(page.getByText("미사용 리소스", { exact: true })).toHaveCount(0);
   await expect(resourceSearch).toHaveValue("리소스");
   await expect(resourceSearch).toBeFocused();
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
   await expect(page.getByText("일치 1 / 전체 1 · 선택 1", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "구성원 저장", exact: true }).click();
   await expect(page.getByText("변경사항을 저장했습니다.", { exact: true })).toBeVisible();
@@ -150,7 +157,7 @@ test("Issue #329: unused Resource/Group guarded delete UX", async ({ page }) => 
   await groupDialog.getByRole("button", { name: "영구 삭제", exact: true }).click();
 
   await expect(page.getByText("미사용 그룹", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("사용 중 리소스", { exact: true })).toBeVisible();
+  await expect(page.locator("#resource-panel-resources").getByText("사용 중 리소스", { exact: true })).toHaveCount(1);
   await expect(groupSearch).toHaveValue("그룹");
   await expect(groupSearch).toBeFocused();
 });

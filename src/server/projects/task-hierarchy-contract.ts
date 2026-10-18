@@ -41,19 +41,23 @@ const commandSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("indent"),
     taskId: uuid,
+    targetImpactDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   }).strict(),
   z.object({
     kind: z.literal("outdent"),
     taskId: uuid,
+    targetImpactDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   }).strict(),
   z.object({
     kind: z.literal("reparent"),
     taskId: uuid,
+    targetImpactDigest: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     anchorTaskId: uuid,
     placement,
   }).strict(),
   z.object({
     kind: z.literal("copy"),
+    acknowledgedMembershipExclusions: z.boolean().optional(),
     taskId: uuid.optional(),
     taskIds: z.array(uuid).min(1).max(MAX_TASK_COPY_SOURCES)
       .refine((ids) => new Set(ids).size === ids.length).optional(),
@@ -103,6 +107,7 @@ export function parseTaskHierarchyCommand(input: unknown): ParseResult {
       taskIds: command.taskIds ?? [command.taskId!],
       anchorTaskId: command.anchorTaskId,
       placement: command.placement,
+      ...(command.acknowledgedMembershipExclusions !== undefined ? { acknowledgedMembershipExclusions: command.acknowledgedMembershipExclusions } : {}),
     } };
   }
   return { success: true, data: command };

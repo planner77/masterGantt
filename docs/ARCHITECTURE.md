@@ -1,4 +1,207 @@
+## #548 / 2026-10-15 — Milestone 기본 표시와 marker 분리의 코드 소유권
+
+아래 순서는 2026-10-15 결정 당시 계획이다. #667 공통 제품 연결은 이후 main merge `bdaed6bd`로 통합되었으며, U2~U4 개별 절의 미연결 설명은 각 모듈 도입 당시 범위로 읽는다. #552 새 후보는 통합된 단일 authority를 재사용하고 자체 수용/CI 결과를 별도로 검증한다.
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에 따라 서버 canonical Milestone/Stage Gate/Resource·Target Assignment·Summary roll-up은 WBS native visibility의 입력 여부와 독립이다. 기존 #570 projection의 `displayMode: compatibility | separate-milestones`, #551 `MilestoneTimelineCapability`(기본 OFF), #663~#666의 아직 미연결 정합성 모듈은 **세 가지 서로 다른 계약**이다. Main 제품 적용 순서를 혼합하지 않는다.
+
+1. #667: **main 기반** 실제 Core conformance/recall·semantic receipt·axis transaction을 ProjectGantt와 Coordinator에 순차 통합. 같은 API/user intent/actual Core/native 측정의 GSC SC 누적 결과 없이 no-op·복원 성공을 보고하지 않는다. Milestone 표시 모드·marker 활성화는 변경하지 않는다.
+2. #552: 별도 WBS projection에서 milestone native Grid/Chart row/bar/hidden endpoint를 제거하되 canonical ID/Link/Membership/Stage/Export와 Task/Summary hierarchy 유지. Marker capability 운영 enabled=false; 임시 날짜 reveal/Preference ON을 참조하지 않는다. Dashboard·소속 일반 Task의 별도 경로를 제공한다. 긴밀하게 결합된 #552/PR #561 source는 marker ON을 추출한 뒤에만 수용한다.
+3. #553/#574: marker OFF에서도 JSON/Excel/SVG/PNG/Copy/Template·Result/Error/Focus/Resource Roll-up과 5폭이 실제 source/HTTP·SQLite/6-shard CI를 통과해야 한다.
+4. #573/#693(선택): #551 앱 소유 marker lane의 독립 상태 gate 기본 OFF, marker-only observer·RAF·scroll/resize/reveal0, production WBS mode 불변. #573 marker ON geometry/focus/틱±1px 검증 없으면 ON은 DEFER. standalone PR의 flag-OFF / revert rollback을 실제 시험한다.
+
+이 순서는 과거 #567/#548의 기능 결합 구현·테스트 기록을 삭제하지 않고 **앞선 제품 활성화 의존을 대체**한다. #674/PR #675의 동일 `project-gantt.tsx` 진단 수정을 #667보다 먼저 정렬하거나 명시 충돌 인계한다. Production Gantt/Workspace/port는 단계마다 작성자 하나만 소유한다. UI flag/필터/레이아웃 전환을 Project DB mutation으로 저장하거나 private Core store를 직접 쓰지 않는다.
+
+---
+
+## Issue #664 — opt-in actual-Core 복구 모듈
+
+`core-conformance.ts`와 `canonical-recovery.ts`는 #663 U1의 public reader/type/clock/abort 포트를 소비하는 미연결 U2다. 기존 `canonical-snapshot-sync.ts`의 signature/제품 경로를 유지하고 실제 normalized Task·parent/preorder·Link와 desired를 비교한다. revision/key만으로 no-op을 승인하지 않으며 native dirty·request/API/query/scope 변경은 증거를 무효화한다. 복구는 public task 최소 diff와 필요한 Link 차이만 적용한 뒤 실제 Core를 다시 읽어 확인한다. viewport·filter·columns·서버 mutation은 이 모듈의 쓰기 권한에 없다.
+
+복구 전체 deadline/frame budget과 별도 wall-time watchdog·abort wake-up을 사용하여 RAF와 GET이 멈춰도 유한 결과를 반환하고 timer/listener를 정리한다. 서버 저장 gateway와 Core reconcile을 분리한다. U5는 request/base revision/affected IDs와 invalidation, 401 권한 잠금·초안 보존, 412 최신 조회, 500/timeout/network의 uncertain·GET 실패 쓰기 차단을 기존 UI에 연결한다. 기존 Workspace GET helper의 즉시 canonical 게시를 그대로 U2 fetch port로 넘기지 않는다. 읽기 전용 GET → identity/revision 확인 → 현재 요청의 Core 복구·검증 → 조건부 canonical 게시 순서가 필요하다. 실제 제품 wiring0이며 #552 HTTP/SQLite·Bar/viewport 해결은 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_664.md).
+
+## Issue #665 — opt-in 의미 기반 Projection 관측
+
+`viewport/projection-observation.ts`의 `createProjectionObservation`은 U1 Core reader/verifier·geometry·recovery·clock/abort 포트를 소비하는 읽기 전용 facade다. observation attempt와 semantic completion을 분리하며, 같은 desired/API/dirty/recovery/query/scope/layout/axis 및 원래 사용자 lease에서 현재 Core와 논리 행·mounted subset을 다시 검증한 경우에만 완료 의미를 재사용한다. canonical key 또는 verifier의 성공 자기신고만으로는 승인하지 않는다.
+
+전체 Task/tree/Link 정합과 mounted 이름/순서/행 정렬은 data receipt의 범위다. 수평 viewport 완료와 Core/native X 일치를 선행 조건으로 두지 않아 그 receipt를 기다리는 Coordinator와 교착하지 않는다. 물리 layout·actual axis·source 변경, Core drift·proof 부재·숨김·unmount·cancel/dispose는 과거 완료 재사용/전달을 거부한다. 관측이 사용자 lease를 발급하거나 갱신하지 않는다.
+
+기존 `observeProjectionSettled`/`deliverProjectionReceipt` 및 production 호출은 유지한다. 신규 facade는 제품에 연결하지 않으며 U2/U4 concrete import·Core/DOM/viewport/서버 쓰기는 없다. #667이 semantic ID와 실제 source invalidation 책임을 기존 Coordinator에 연결한 뒤 #574에서 제품 Calendar·Resource·filter bookmark를 검증해야 한다. 독립 모듈/fixture 성공은 제품 해결이나 전체 CI PASS가 아니다. [U3 Work Packet](exec-plans/active/ISSUE_665.md).
+
+## Issue #666 — 미연결 날짜축 transaction
+
+`viewport/axis-transaction.ts`는 U1 public geometry/clock/abort/원래 user lease를 소비하는 유한 transaction facade다. 날짜 extent와 실제 container 크기·capacity·승인 X/Y 정책을 분리하고 prepare → axis change → actual geometry → policy → Core/native settle 순서로 관측한다. resize 이후 좌표를 자동 승인하지 않으며 사용자 입력·API/query/axis/layout 교체·hidden/unmount는 오래된 후속 쓰기를 취소한다. synthetic 도중 중단한 geometry는 taint로 남겨 실제 physical 회복 확인 전에 재사용하지 않는다.
+
+기존 production Coordinator/port/ProjectGantt/Workspace에는 연결하지 않는다. state-consistency의 type-only port 계약을 재사용하며 U2/U3 concrete 구현·두 번째 viewport writer·서버 mutation·새 store를 만들지 않는다. 설치 Core fixture의 관측과 제품 HTTP/SQLite 통합은 구별한다. 전략 지원·한계·typed 결과는 [ADR](GANTT_ADAPTER_ADR.md), 실제 source/실행 및 U5 인계는 [Work Packet](exec-plans/active/ISSUE_666.md)을 따른다.
+
+## Issue #663 — 미연결 Gantt 공통 상태 계약
+
+`src/features/gantt/state-consistency/index.ts`는 후속 U2/U3/U4가 공유할 type-only authority adapter와 읽기 전용 public Core reader를 제공한다. canonical revision/desired query·scope, api/dirty/recovery generation, observation attempt, layout/axis 및 user intent lease를 별도로 유지한다. 서버 snapshot·existing projection/receipt/viewport 타입을 재사용하며 두 번째 store·쓰기 소유자는 만들지 않는다.
+
+Reader는 설치2.7.3의 `serialize(tasks/tree/links)`를 읽고 adapter-owned 필드·전체 DFS/parent/형제 순서/Link를 검증한다. null/예외/잘못된 계층은 FAILED이며 revision 또는 관측 횟수만으로 실제 일치를 승인하지 않는다. renderer duration/open/좌표 캐시는 canonical 필드가 아니다. canonical Summary가 날짜를 생략한 경우에만 자식에서 최소 시작·최대 종료의 기대값을 bottom-up으로 도출한다. 명시한 canonical 날짜와 실제 Core 날짜는 그대로 비교하여 Summary/leaf drift를 숨기지 않는다. 구체 Reconciler·복구·receipt 재사용·axis transaction은 #664~#666, 제품 연결은 #667의 단독 책임이다. 현재 production import0이며 실제 제품 상태 정합성 해결은 NOT TESTED다. [Work Packet](exec-plans/active/ISSUE_663.md), [Conformance](GANTT_STATE_CONFORMANCE.md).
+
 # Architecture draft
+
+## Issue #623 — 기존 경계의 통합 수용
+
+생산용 엔진·서비스·DB schema·API·Gantt/viewport writer를 새로 만들지 않는다. 공통 logical fixture를 동일 canonical snapshot에 매핑하여 기존 resolver→KPI/Plan→read transaction→DTO→UI/OOXML의 raw identity/수치·snapshot·nullable 계약을 검증한다. 상태/저장의 소유권과 읽기/편집/보고서/운영 backup의 경계를 유지한다.
+
+신규 통합 tests와 기존 회귀·사용자/이관 문서·원격/환경별 gate는 [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)에 연결한다. 테스트/문서 전용일 때 app0.114.0·dependency graph를 유지하며 제품 결함 수정은 별도 영향/version 판정이 필요하다.
+
+## Issue #622 — 기존 Plan·Excel의 Target 분석 확장
+
+R4는 기존 ResourceDashboardService의 read transaction과 #619 projector/#617 resolver, pure Plan/Calendar/M/M 계산기를 재사용한다. Target 선택은 selected A만 제한하고 Capacity R 및 same-R fullProject A를 보존한다. 일별 상세의 Target 출처·source/current context와 Excel의 canonical graph/원시 Assignment 근거는 같은 read snapshot에서 enrich하며 별도 공수 원장·Calendar·Excel 계산기를 만들지 않는다.
+
+Excel writer는 기존 sheet/header 뒤에 Target 분석·분류/근거·Project 참고를 append하고 원시 Assignment union 총계를 검증한다. 보고서 opt-in 경로만 Target-bearing 일정과 함께 출력하며 plain schedule export/JSON Import의 손실 방지는 유지한다. stale report와 새 Target graph를 섞지 않고 기존 Origin/If-Match 및 byte/row/cell 예산을 적용한다. UI는 기존 Editor/gateway·viewport coordinator를 재사용하며 신규 Gantt/writer는 없다. 실제 지원·검증은 [API](API.md), [EXCEL_EXPORT](EXCEL_EXPORT.md), [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+## Issue #620 — Target 보고 snapshot과 projection 경계
+
+Resource report/detail/drill의 공통 read snapshot에 Target/member/binding, legacy 직접 연결, Project-local 공정 매핑과 해당 공정 occurrence/Process Type/WorkArea·Equipment/System type의 이름 및 active 참조를 추가한다. Task/Assignment/Resource/Calendar와 동일 SQLite read transaction에서 읽고 fingerprint에 포함하므로 revision 증가 없는 참조 변경도 이전 report/detail identity를 무효화한다. 조회는 revision을 증가시키지 않고 별도 snapshot 저장소나 공수 원장을 만들지 않는다.
+
+서비스는 #619 pure Target projector와 #617 단일 상속 resolver를 재사용한다. Group/Resource/Target의 순서는 projection selector이며 원시 Assignment grain·Grand Total·T0/A를 변경하지 않는다. 공개 DTO는 compact node 및 bounded path selector로 원시 ID 배열의 셀별 반복을 피한다. Task detail과 Assignment detail을 구별하고 exact source Assignment 제한과 destination 조건을 교차한다. 기존 report schema/route는 optional Target 분석으로 확장하며 기존 Plan 선택 demand는 공통 Target 조건의 교집합을 반영하되 R 및 전체 Project 부하는 보존한다. 새 Target UI 및 Target별 기간 행/전용 selector·Excel 시트 확장은 #621/#622에 인계한다. [API](API.md), [집계 계약](RESOURCE_KPI_DASHBOARD.md), [R2 원장](exec-plans/active/ISSUE_620.md)을 참조한다.
+
+
+## Issue #619 — Target Resource KPI projection 경계
+
+`src/domain/resources/`의 기존 KPI·Calendar·M/M 계산기를 확장하며 물류 상속의 authority는 `src/domain/logistics/task-target-bindings.ts` 단일 resolver로 유지한다. canonical Task·개인 Assignment·Target/member/legacy snapshot을 읽어 필터·원시 ID·출처·중첩 소계·distinct Grand Total을 계산하는 pure projection이며 별도 공수 원장/상속 엔진/Calendar나 DB 저장을 만들지 않는다.
+
+Target 선택은 T0와 그 작업의 A를 제한한다. ResourcePlan R 모집단과 전체 Project 부하는 선택 Target 밖 Assignment도 보존한다. 기존 HTTP report/plan/detail DTO·snapshot identity·selector는 R1에서 변경하지 않으며 #620에서 같은 read snapshot에 Target provenance를 통합한다. 사용자 화면·Excel 공개는 #618/#621/#622 후속이다. [집계 계약](RESOURCE_KPI_DASHBOARD.md), [실행 원장](exec-plans/active/ISSUE_619.md)을 참조한다.
+
+## Issue #551 — Milestone 진단 프로브의 SVAR API 초기화 소유권 (2026-10-13)
+
+Milestone Timeline의 개발 전용 `__masterganttMilestoneTimeline` 진단 hook은 React의 후속 state commit/effect 완료가 아니라 native SVAR `init(api)`가 실제 API를 제공하는 시점에 소유권을 등록한다. 최초 설치는 동기식이고, `apiInstanceId`/frame/lifecycle identity가 동일하면 중복 수신기를 두지 않는다. React layout cleanup·StrictMode 재실행과 API 교체 시 이전 tagged listener/DOM property만 정리하고 현재 인스턴스의 상태·selection·canonical data는 변경하지 않는다. `process.env.NODE_ENV === "production"`에서는 hook을 등록하지 않으며 Viewer/Editor/DB/ViewportCoordinator의 production 계약을 확장하지 않는다.
+
+
+## Issue #551 — 개발 calendar reveal과 진단 정착 경계 (2026-10-13)
+
+Milestone Timeline 개발 probe의 `reveal`은 canonical queue 이후 현재 API/표시 문맥/단일 adapter의 날짜 범위를 확인한다. calendar `contentX`와 실제 native `.wx-scale` 원점으로 가시성을 읽고 이미 보이는 날짜는 이동하지 않는다. 화면 밖 날짜는 기존 `DIAGNOSTIC_SCROLL(left)`의 coordinator/port에 요청하며 실제 Core/native 정착 결과를 반환한다. native `scroll-chart({date})`를 사용하는 `nativeDateReveal`은 별도 원형 비교 진단이다. 공개 native date와 calendar-day 좌표가 같다고 가정하지 않는다.
+
+기존 개발 진단 scroll은 custom filter가 production projection receipt와 다른 기술 실험에도 쓰인다. 기존 receipt 비의존 경로를 유지하며 현재 의도·가시성·capacity를 검사하고 최대3회 native 보정과 유한 frame 안에서 Core/native 위치를 검증한다. 진단 보정 예산은 peer/restore와 분리하며 production에서 거부한다. 진단 중 revision/projection generation 변경은 취소한다. native Chart 논리 plot의 가시성과 외부 wrapper clip을 구별하고 축 끝 reveal의 target은 실제 최대 offset을 넘지 않는다. canonical contentX/anchor는 변경하지 않는다. 이 보완은 개발 진단에 한정하며 production DATE_REVEAL 지원, restore authority, projection receipt 검사나 별도 scroll writer를 추가하지 않는다. lane의 실제 원점·clip과 production 기본 OFF는 유지한다. #2600.1의 원본 Core7 FAIL과 앞선 #2595 교정에서의 공유 테스트 누락은 Work Packet에 보존한다.
+
+## Issue #551 — 실제 native 날짜축 원점과 앱 Timeline lane (2026-10-12)
+
+설치 SVAR Core2.7.3/store2.7.2의 계산 날짜 `contentX`와 화면의 native Chart 물리 scroll은 viewport 제어 과정에서 일시적으로 차이가 발생할 수 있다. `readMilestonePlotGeometry`는 이미 사용하는 실제 Chart plot bbox와 동일 native `.wx-scale` bbox의 상대 원점 `axisOrigin`을 함께 측정하고 앱 소유 sibling lane은 `axisOrigin + contentX`로 마커를 렌더링한다. private Core store write·Chart 자동 선택·새 인스턴스/별도 scrollbar는 추가하지 않는다. Native Chart `scroll`/resize와 기존 queue-version bounded 구독을 유지하며 mount teardown에서 제거한다. 이 계약은 날짜 헤더/Task bar/marker의 실제 DOM X 동등성으로 검증해야 하고, Node-only 계산의 PASS로 대체하지 않는다.
+
+## Issue #637 — canonical projection과 pane overflow 경계
+
+원본 Release #165.1의 실제 DOM trace에서 header add locator의 자동 `scrollIntoView` 구간(44852.545~44853.646ms)에 Grid pane scrollTop이0→28이 됐다. 실제 click(44863.804ms)·add/canonical 적용 이전의 변화이며 Core/Gantt/Chart top은0이었다. Grid 행 y400/h38와 Chart bar y431/h31의 중심 차이27.5px는 이 독립 pane 이동으로 설명된다. 행/바38px 간격·bar top3px/높이31px·scale72px는 유지되어 payload/ID/queue 완료와 정렬 완료가 구별된다.
+
+관찰자는 같은 viewport의 Grid 행과 바깥 `.wx-bar` rect를 비교한다. CSS transform된 내부 Milestone content, Core `$y`, 문서 좌표를 혼합하지 않는다. 원본 TIMED_OUT은 올바른 실패이며 observer1500ms·E2E expect.poll5s·±1px 조건을 유지한다. 수정은 비소유 Grid 세로 overflow 발생 경계에 한정하고 public Core/Gantt의 기존 viewport ownership·가로 Grid scroll·canonical queue·filter/columns/selection 계약을 보존한다. 새 복원 명령·private Core write·retry/remount를 도입하지 않는다.
+
+설치 Grid는 viewport632px에서 내부 `.wx-table`에 `min-height:784px`를 설정해4행(38×4)의 overscan 높이가 X-scroll container의 비소유 Y scrollrange로 노출된다. 앱의 `.project-gantt-widget .wx-table-container > .wx-table`만 `min-height:100% !important; max-height:100%; overflow:clip`으로 실제 viewport에 제한한다. 내부 overscan 데이터·렌더링은 Core에 남기고 table 밖으로 넘친 부분만 clip한다. X-scroll container의 `overflow-x:auto`는 유지한다. [CSS Overflow3](https://www.w3.org/TR/css-overflow-3/#overflow-properties)의 축 계산대로 X auto와 Y clip을 같은 요소에 설정하면 computed Y가 hidden으로 바뀌므로 container 자체 Y clip은 해결책이 아니다. CSS의 기존 Core inline min-height를 이 경계에서만 재정의하며 스크롤 state/좌표를 쓰지 않는다.
+
+설치 Core2.7.3의 `cellHeight`/`scaleHeight`, `resize-chart`/`filter-tasks`는 각각 공식 크기·표시 API이며 DOM 정렬 완료 보증은 아니다. [cellHeight](https://docs.svar.dev/react/gantt/api/properties/cellheight/), [scaleHeight](https://docs.svar.dev/react/gantt/api/properties/scaleheight/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/), [filter-tasks](https://docs.svar.dev/react/gantt/api/actions/filter-tasks/)를2026-10-12 설치 타입과 대조했다. 실제 demo 조작과 별개다. [#637 근거·AC](exec-plans/active/ISSUE_637.md) 참조.
+
+## Issue #572 — Inline 이름 요청·확정·표시의 분리
+
+native Table `close-editor → update-cell`을 앱의 단일 name-only mutation gateway로 연결한다. 순수 `inline-name-session.ts`는 편집 session·request identity, base revision·원문 draft, Committing/AwaitingConfirmation/Confirmed/Rejected 전이를 소유한다. `saved`는 서버 저장 결과이며 렌더 완료가 아니다. 부모는 검증·적용한 동일 응답 snapshot에서 taskId/revision/name을 반환하고 inline 요청의 전역 성공 toast를 지연한다. 다른 Task Editor·날짜/Chart 명령의 기존 피드백 계약은 유지한다.
+
+Gantt 연결부는 같은 API/session/request의 정확한 confirmation과 현재 canonical DTO, Core `getTask().text`, 실제 mounted Grid 이름 및 관측 가능한 Chart 이름의 정합을 확인한다. 명령 반환이나 projection receipt만으로 이름 렌더 PASS를 만들지 않는다. 정상 자기 PATCH의 revision이 Promise callback보다 먼저 React에 도착해도 요청 identity를 유지하며, 외부 최신 revision·새 세션·API 교체의 늦은 결과는 현재 draft/focus를 덮지 않는다. 원본 native `update-cell`은 계속 차단하고 서버 확정 payload만 기존 #570 projection 경로로 적용한다. 임의 DOM 텍스트 수정·private store write·새 scroll writer는 추가하지 않는다.
+
+실패 draft는 메모리에만 보존하고 같은 작업의 명시 재편집에 연결한다. 자동 재전송·stale base의 묵시적 revision 승격은 금지한다. 이름 변경은 기존 metadata-only 경로이므로 일정/Link/Resource 원장과 #571 viewport 소유권을 바꾸지 않는다. #552 미통합 표시 stack의 활성화는 범위 밖이며 projection에서 제외된 Milestone을 재삽입하지 않는다. [정확한 적용 범위·검증 원장](exec-plans/active/ISSUE_572.md)을 따른다.
+
+## Issue #571 — Viewport Coordinator와 명령 소유권
+
+### Main CI #2504.1: FILTER_RETURN의 완료 후 보호 권한 분리
+
+2026-10-11 Main CI의 실제 #463 Playwright Trace는 FILTER_RETURN(120,0)의 APPLYING/SETTLING 도중 새 Core/native 이동(180,128)이 허용되지 않고 기존 좌표120으로 되돌아가며 TIMED_OUT으로 끝난 것을 보여준다. 수평 DOM capacity는 2563px로 180px을 허용하므로 capacity 문제가 아니라 필터 bookmark의 과도한 scroll-chart intercept/reconciliation 문제다. FILTER_RETURN은 현재 쿼리에서만 1회 복원하고, 이후 다른 정합 Core/native 위치가 보이면 SUPERSEDED로 끝내며 native repair/장기 guard를 획득하지 않는다. PEER_RETURN/PASSIVE_RESTORE의 최신 권한 검증 및 늦은 0px rewind 보호는 유지한다. 원본 실패 [#2504.1](https://github.com/planner77/masterGantt/actions/runs/38139399072)를 보존한다.
+
+2026-10-11 PR #610 보완: #570 canonical projection receipt는 데이터·행·수직 정합까지만 증명한다. 가로 Core/native 불일치는 #571 단일 프로그램 writer/실측 settle의 소유이며, 가로 불일치를 projection success 조건에 넣으면 peer 복구 스크롤 발행 자체가 차단되는 교착을 만든다. 브라우저 viewport/Fullscreen은 restore intent context lease에 포함된다. 현재 #667 준비는 retained 날짜 end가 보존되고 Core exact/native±1 수용 범위가 함께 충분할 때만 확장 no-op이며, dev-only 날짜 probe/수평 probe는 production adapter의 별도 unsupported ingress다.
+
+#570 projection receipt의 후속 소비자는 단일 Viewport Coordinator다. canonical 데이터·조회 projection의 authority는 그대로 유지하고, viewport 의도/실행/완료 관측만 분리한다. 부모 Workspace는 유효한 visible capture와 typed peer/Task reveal 요청을 전달하며 Gantt native DOM 복원을 별도 실행하지 않는다.
+
+순수 Coordinator는 API/context·intent/projection/geometry·user gesture 세대와 pending operation을 검사한다. 실제 사용자 입력 및 명시 reveal > scope/filter > peer return > passive preservation 순으로 처리하며 늦게 도착한 passive 이벤트가 최근 사용자 의도를 덮지 않는다. production port가 앱 scroll-chart/native 보정과 기존 range compatibility 명령의 실행 경계다. Native Core wheel/Grid reveal은 Core 소유로 유지하고 관측 이벤트를 새 앱 명령으로 재귀 처리하지 않는다. 단일 writer 근거는 production 앱 경로에 한정한다. 기존 #549 개발 전용 __masterganttMilestoneTimeline.reveal은 단일 calendar adapter의 좌표를 읽어 기존 DIAGNOSTIC_SCROLL coordinator 경로를 사용한다. #569 PoC/trace fixture의 직접 명령은 별도 진단 예외이며 제품 DATE_REVEAL 지원·단일 writer 실증에 포함하지 않는다.
+
+native Core의 명시 select-task show 이동은 기존 관측 경계에서 Coordinator user-input 세대를 갱신하고 오래된 metadata capture를 폐기한다. 포인터 capture와 실제 Core reveal 사이에 등록된 passive 작업도 취소해야 한다. show:false·canonical-sync·project-owned-selection은 제외하며 새 앱 reveal 명령을 중복 발행하지 않는다.
+
+projection receipt는 행 정합을 보장할 뿐 viewport 완료가 아니다. 동일 canonical revision의 대기 중 관측 generation 변경은 최신 receipt를 따라 geometry 안정 관측을 재시작하며, 적용 직전 고정한 generation이 명령 후 바뀌면 추가 쓰기를 중단한다. metadata/peer 요청은 canonical queue에서 등록한 뒤 queue 밖에서 최신 receipt와 visible geometry를 기다려야 한다. receipt를 생성하는 queue 안에서 viewport 완료를 기다려 교착시키지 않는다. Core exact/native ±1px의 연속 안정 frame과 유한 예산으로 완료·SUPERSEDED·NOT_MEASURABLE·NO_SCROLL_CAPACITY·TIMED_OUT·FAILED를 구분한다.
+
+필터 bookmark는 source context·gesture와 수평 left만 저장한다. FILTER_RETURN은 준비와 실제 적용 각각에서 현재 Core top을 사용하고, 최신 receipt와 함께 Core/native 세로 정합·top 안정성을 확인한다. 조회 결과 감소에 따른 native 세로 clamp를 과거 bookmark top으로 되돌리지 않는다. 대기 중 새 입력·조회 문맥 변경의 취소 계약은 유지한다.
+
+기존 range compatibility 준비는 좌표 적용 전에 PREPARING_GEOMETRY에서 수행한다. 실제 resize를 발행한 경우 준비 전 generation보다 새로운 성공 projection을 요구하고 최신 geometry를 다시 검증한 뒤 좌표 명령의 generation을 고정한다. 준비 중 같은 canonical 데이터의 관측 갱신은 허용하지만 실제 revision·입력·API/조회 문맥 변경은 취소한다. 좌표 명령 이후의 stale generation/receipt 차단은 유지한다.
+
+탭 복귀 직후 논리적으로 visible이지만 chart 크기가 일시적으로0이면 원래 intent 권한으로 중앙 상태 머신에서 유한 대기한다. 측정 전에는 명령을 발행하지 않으며 새 입력·조회 문맥 변경은 대기를 취소한다. port는 detached, hidden/inert, document hidden 및 자체 display/visibility 비활성을 별도로 visible=false로 전달하므로 일시적 크기0과 구분한다. 지속되는 크기0은 실패로 끝내며 새 snapshot으로 재승인하지 않는다.
+
+#569 실험 adapter 제품 채택과 새 날짜 좌표 수식은 DEFER다. 기존 #367 range compatibility를 단일 port로 옮기는 것은 공식 무한 capacity 지원의 실증이 아니다. native-add continuity는 클릭 때의 입력 권한과 API/scope/filter/scale/columns/visible 문맥을 캡처한다. 정상 add의 canonical geometry 갱신을 인계하더라도 실제 사용자 입력·filter·명시 reveal·API 교체는 이전 capture를 취소하며 대기 뒤 fresh 입력 권한으로 재승인하지 않는다. window 복원과 focus도 같은 stale/측정 검사를 따른다. metadata revision만으로 reset/remount하지 않으며 hidden/inert/zero-size capture, stale async write, 무한 RAF를 금지한다. [구현·검증 Work Packet](exec-plans/active/ISSUE_571.md)을 따른다.
+
+## Issue #570 — Canonical projection과 native 동기화 경계
+
+서버 ProjectSnapshot/revision은 계속 유일한 저장 authority다. Gantt projection은 canonical Task/Link 전체 입력, scope/filter/display mode의 membership, 접힘 상태의 논리 visible order, 가상화된 DOM subset을 구분한다. DOM에 없는 접힌 자식이나 offscreen 행은 데이터 삭제를 뜻하지 않으며, 허용 ID의 부분집합 검사만으로 필수 행 정합성을 승인하지 않는다.
+
+순수 `buildProjection`/`diffProjection`은 data·structure·membership·layout 변경 이유를 분리한다. 같은 membership의 metadata-only 갱신은 canonical Task payload만 동기화하고 filter/columns를 다시 설정하지 않는다. 실제 구조·조회 집합 변화 또는 Core 설정 전환으로 투영이 초기화된 경우에는 필요한 공개 action을 재검증한다. 열 getter는 최신 canonical DTO를 참조하며 사용자 width/flexgrow와 기존 Summary 접힘·selection을 보존한다.
+
+새 canonical 작업은 존재하는 형제를 기준으로 공개 before/after 삽입해 형제 순서를 유지한다. 삭제될 부모 아래에서 canonical에 살아남는 자식은 Core subtree 삭제 전에 안전하게 분리한 뒤 최종 계층에 배치한다. 서버 subtree 삭제와 여러 revision을 건너뛴 표시 동기화를 혼동하지 않으며 표시 보정을 서버 mutation으로 다시 저장하지 않는다. 기존 자식이 있는 접힌 Summary로 passive 이동할 때 Core의 자동 열림은 공개 open-task로 원래 접힘을 복원하고 사용자 의도를 덮어쓰지 않는다. 첫 자식이 생기는 신규 container의 기존 auto-open 계약은 유지한다.
+
+현재 revision·API instance·generation이 유효한 작업만 직렬 queue에서 적용한다. projection 완료는 명령 반환과 구분하며 실제 Core payload/논리 행 순서와 native DOM subset·텍스트·행 정렬을 유한 관찰한 receipt로 전달한다. 이 receipt는 #571의 입력이며 viewport를 직접 쓰거나 새 data authority를 만들지 않는다. #569 adapter 제품 도입 DEFER와 #552 미도입 표시 전환 경계는 유지한다. 상세 구현·검증 범위는 [Work Packet](exec-plans/active/ISSUE_570.md)을 따른다.
+
+### #571에 전달하는 projection receipt
+
+Gantt frame은 `mastergantt:projection-settled` DOM event의 detail로 `revision`, `apiInstance`, `generation`, `reasons`, `outcome`, 논리/Core/DOM ID 관측, columns/scale, scope/filter identity, `queryConditionsChanged`, `taskSelectionChanged` 및 selected IDs를 전달한다. 필터 원문이나 Task 내용은 event payload에 포함하지 않는다. `outcome=SETTLED`만 실제 관측 성공이며 `SUPERSEDED`, `NOT_MEASURABLE`, `TIMED_OUT`은 성공과 구분한다. 소비자는 최신 revision·instance·generation과 자신의 intent를 다시 확인해야 하며 이벤트 이름 자체를 성공으로 취급하지 않는다. 개발 전용 `data-gantt-projection-receipt`는 동일 결과의 검사 창구다.
+
+SETTLED의 범위는 canonical Task/Link payload, 행 membership·순서, Grid/Chart 텍스트 및 수직 행 정합이다. bar의 수평 X/width, native Link DOM 기하, 최종 viewport/date reveal 완료는 이 receipt로 보장하지 않는다. #571 소비자는 #569의 기하 검증을 별도로 통과해야 한다.
+
+관찰은 유한 timeout과 RAF/timer cleanup을 가지며 조회 조건 변화와 실제 선택 action을 구분한다. `queryConditionsChanged`는 각 관찰을 시작할 때 직전 전달한 receipt의 조회 identity와 비교한다. 최초 effect 설치 시의 값을 선택·접힘·layout 재관찰에 재사용하지 않는다. `taskSelectionChanged`는 native 선택 action과 같은 API instance에서 마지막 전달 receipt 대비 실제 selected IDs의 차이를 확인한다. 선택 직후 effect 재설치나 layout 관찰이 앞선 관찰을 대체해도 아직 전달하지 않은 선택 변화는 다음 유효 receipt에 남는다. 이 이벤트를 받았다는 이유만으로 #571의 scroll intent 우선순위/단일 writer 구현이 완료됐다고 보고하지 않는다.
+
+필터 뒤 Summary 열림/접힘 복원은 현재 Core Task에 실제 자식이 있는 container에만 적용한다. 빈 Summary 및 마지막 자식이 삭제된 Summary에 `open-task(true)`를 보내면 Core 2.7.3의 null 자식 컬렉션 순회 오류로 복구 경로가 실행될 수 있다. 저장된 사용자 intent는 유지하되 자식 없는 행을 여는 명령으로 바꾸지 않는다.
+
+무필터 상태의 fast path도 마지막으로 적용한 structure key가 같아야 한다. `serialize()`의 canonical Task가 갱신되어도 Core `_tasks`에 이전 Summary 렌더 payload가 남을 수 있으므로 행 ID 일치만으로 구조 변경의 재투영을 생략하지 않는다. metadata-only의 같은 구조·membership에서는 기존 action 0회 계약을 유지한다.
+
+metadata viewport 복원 직후에도 Core의 늦은 native scroll event가 원래 가로 위치를 덮을 수 있다. 기존 Editor·no-op canonical sync의 일회성 snapshot/복원은 유지한다. 잔존 guard는 직전 완료한 baseline 대비 실제 Task metadata 또는 Project revision 변경이 있고, 같은 geometry·semantic filter·API/DOM·scale·열폭·사용자 입력 없음이 확인된 복원에 한정하여 기존 peer scroll guard를 재사용한다. metadata guard에는 완료한 geometry와 revision을 추가하고 다음 revision·geometry·조회 문맥 변경 시 layout effect에서 해제한다. 기존 peer authority를 덮지 않으며 동일 guard의 사용자 입력 취소와 native repair 최대 3회 예산을 유지한다. 새 viewport writer나 #571 Coordinator를 도입하는 변경은 아니다.
+
+기존 metadata request의 복원 시도는 한 번만 소비하고, 유효한 capture는 다음 같은 문맥의 canonical metadata/revision 변경에 인계할 좌표로 보존한다. RAF 대기 중 supersede되어 명령을 실행하지 못한 경우에도 입력·geometry·API/DOM·peer 문맥이 같으면 좌표 인계는 유지하되 오래된 명령을 다시 실행하지 않는다. 중간 no-op 복원은 현재 좌표를 사용하고 이 인계 좌표를 transient native reset으로 교체하지 않는다. baseline의 metadata/revision은 최신 복원 시도가 끝난 뒤 갱신한다. Chart/Grid pointer·wheel·keyboard·touch, 명시 검색/필터 입력, geometry·scope/숨김, API 교체, peer 복원 및 unmount는 capture를 폐기하고 listener를 정리한다.
+
+빈 projection에는 보존할 행 viewport가 없으므로 metadata snapshot을 만들지 않는다. 실제 ID 집합이 빈집합으로 바뀐 뒤 후속 no-op sync가 native clamp 중의 임시 비영점 좌표를 다시 보존하는 것을 방지하며, 별도 scroll writer 없이 기존 Core의 빈 결과 처리를 따른다.
+
+## Issue #569 — 공개 API Adapter의 도입 전 경계
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)은 Core/native 읽기와 공개 scroll/date reveal/finite settle 명령을 분리하는 인터페이스·PoC다. 제품 ProjectGantt의 기존 viewport writer나 Coordinator를 교체하지 않는다. 공개 controlled scale 설정과 native chart를 같은 좌표계로 검증하고 hidden/inert/zero-size를 유효한 viewport로 저장하지 않는다.
+
+A(autoScale)/B(명시 범위)/C(2.7.3 resize 호환)의 실제 성공·실패와 보존 조건을 비교한 뒤 후속 도입 여부를 판단한다. C의 synthetic width는 공식 physical container 의미 밖의 예외이므로 버전 가드·명시 opt-in·유한 상한을 갖는 교체 가능한 모듈로 한정한다. 직접 Store/DOM 폭 쓰기·PRO·서버 상태 authority 추가는 없다.
+
+## Issue #568 — 동기화 관측 도구의 경계
+
+비교 stack의 filter 이후 native clamp→Core scroll 반영은 관측 순서이며 직접 DOM writer는 미확정이다. 이 결과만으로 Core 결함이나 adapter 수정 방향을 확정하지 않는다.
+
+[Core Action Trace](GANTT_SYNC_TRACE.md)는 #567의 설계 가설을 실측하기 위한 dev/test-only 도구다. 서버 canonical snapshot/revision, React projection, Core 공개 state, native DOM geometry, 사용자 intent를 서로 다른 관측 층으로 기록한다. trace가 제품 상태 authority나 두 번째 viewport writer가 되어서는 안 된다. Core 단독/React wrapper와 고정 PR #562 앱의 관측을 같은 source라고 취급하지 않는다.
+
+명령 반환·Core state 변경·native layout 안정화를 별도 분류한다. 공개 getState 좌표와 native scroll capacity·3개 연속 안정 frame을 bounded timeout 안에서 확인하고 superseding intent를 실패·성공과 구분한다. 최신 공식 exec 문서의 void 선언과 설치 2.7.3 타입/실행 반환은 별도 검증 대상이다. 실제 첫 writer가 관측되지 않은 원인은 가설로 남긴다. 단일 Coordinator 및 geometry adapter의 제품 도입은 후속 이슈에서 결정한다.
+
+## Issue #538 — Project master relations
+
+계층 관계는 SVAR와 분리된 전역 Project Master Domain이다. `project_master_items`는 안정된 item authority, `business_unit_products` 및 `business_unit_product_sites`는 재사용 가능한 연결 authority, Project는 기존 nullable FK를 보유한다. `Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`의 transaction boundary에서 관계 생성/해제·Project 조합 validation·catalog revision 경쟁 검사를 실행한다. Frontend cascading은 서버의 `relations`를 읽는 projection이며 자체 Source of Truth가 아니다.
+
+## Issue #459 — Stage Gate 통합 데이터 흐름
+
+Stage Gate는 별도 Gantt 엔진이나 UI별 계산기가 아니라 하나의 canonical Project snapshot에서 파생되는 공통 도메인 projection이다.
+
+```text
+SQLite explicit membership + canonical Task/Link/WBS
+  → projectStageGates / milestone-stage-core
+  → canonical Project Task.membership + Milestone.stageGate
+  → Task Editor / Gantt Grid·filter / Milestone Dashboard
+  → Logistics·Resource drill-down / JSON·Excel projection
+```
+
+- 저장 authority는 explicit Task/Summary→Milestone row이며 effective membership과 Ready는 full hierarchy/Link snapshot에서 계산한다.
+- Task→Task 실행 Dependency와 Milestone→Milestone Gate Dependency는 같은 Link 저장소를 사용하더라도 의미를 섞지 않는다. member Task들의 Dependency를 단계 edge로 자동 투영하지 않는다.
+- UI scope/filter/접힘/현재 Dashboard 조건은 Stage 계산 authority가 아니다. 화면은 서버 canonical projection 또는 동일 pure domain preview를 소비한다.
+- Dashboard와 Export는 Ready/진척을 독자 계산하지 않고 같은 typed projection을 사용한다. 부분 물류·Resource 조건은 단계 선택/공수 범위를 제한할 수 있지만 full-stage Ready를 재정의하지 않는다.
+- Import/Copy/Template는 explicit row identity를 remap·보존하고 파생 projection을 입력 authority로 저장하지 않는다.
+
+#460~#464가 이 경계를 각각 저장/Editor/Gantt/KPI/교환 경로에 구현한다. 세부 계약은 [Milestone Stage Gates](MILESTONE_STAGE_GATES.md)를 따른다.
+
+## Issue #460 — 공유 Stage Gate 경계
+
+`src/domain/milestones/stage-gates.ts`는 SVAR/SQLite와 독립된 전체 hierarchy 상속·Ready·완료 진단·구조 잠금 계산이다. 브라우저 DTO adapter/draft preview도 같은 pure 함수를 사용한다. `MilestoneMembershipRepository`는 explicit row만 저장하고 `milestone-stage-core.ts`가 DB snapshot/projector/보존 guard를 공유한다. Route → Service → Repository → SQLite 경계와 IMMEDIATE transaction/session/revision을 유지한다. 각 Task/Link/hierarchy/subtree/metadata canonical 응답에 같은 projection을 반영하며 Calendar/Assignment/Logistics 전용 응답은 기존 갱신 계약을 유지한다. 신규 UI나 별도 Gantt 엔진은 도입하지 않는다. [상세 저장·경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
+## Issue #464 — 보존과 JSON 교환 서비스
+
+`ProjectImportService`는 기존 Repository/Task DTO/Calendar/Scheduling/Stage guard를 조합하여 create-only preview/commit을 제공한다. HTTP handler가 Origin/session/strong revision과 bounded file parser를 연결하고 wrapper는 기존 DB/Project authorization을 재사용한다. Parser는 fatal UTF-8/한 BOM/duplicate key/JSON syntax depth64를 JSON.parse 이전에 확인한다. `validateProjectImportPayload`는1.0 pure validator를 그대로 dispatch하고1.1 authored leaf/Summary/membership을 검증한다. source UUID/Calendar는 참고이며 target Calendar와 새 UUID가 authority다. preview read transaction과 commit IMMEDIATE transaction에서 권한/revision/collision/budget/전체 E/P 완료 guard를 재검증한다. digest는 상태 없는 file+target+baseRevision binding이며 preview 저장소나 새로운 권한 모델은 없다. canonical201 응답은 기존 ProjectSnapshotResponse/permission edit를 사용한다.
+
+`ProjectJsonExportService`는 같은 DB read transaction과 clock1회에서 전체 canonical snapshot을1.1 authored 파일로 변환한다. 기존 mixed Dependency도 원형 유지하고 imports는 신규 mixed 정책으로 전체 거부한다. JSON은 source UUID/metadata만 전달하고 Resource/물류/Password/session·새 Direct Hyperlink를 추가하지 않는다. `ProjectExportSnapshotService`는 Excel 전용 canonical/defaultStage/optionalResource bundle을 같은 read transaction에서 만들고 Project/Catalog revision을 확인한다. Stage 산식/Ready를 workbook에서 재계산하지 않으며 default 전체F는 현재 Dashboard 필터와 별개다. writer는 원시/null 수치와 행별 식별자를 OOXML inlineStr/안전 숫자로 출력하고 한도 초과는 전체 실패다.
+
+Copy/Template은 explicit FK remap과 서버 소유 전체 보존 검증을 사용한다. subtree Copy의 사용자 확인은 외부 소속·상속·destination 효과만 확인하며 Assignment/완료/권한 잠금을 우회하지 않는다. trusted historical completion baseline은 완전 보존된 서버 Copy에만 허용하고 외부 JSON import는 사용하지 않는다. 저장 schema/migration/Calendar·Dependency 알고리즘/Resource engine은 변경하지 않는다.
+
 
 상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence, W20의 CI/CD·최소 container artifact 기반 및 W21의 동기 Grid+Chart 작업공간을 구현했다. W24는 child 저장·Summary 집계와 순수 WBS 계산을 선행했고 Excel 및 Issue #245 SVG/PNG 내보내기를 추가했다. 이 상태가 Import 전체, W08 전체 또는 production 배포 승인을 뜻하지는 않는다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
@@ -78,7 +281,7 @@ Project Direct GET snapshot은 Cookie가 있어도 항상 Readonly다. UI는 별
 
 UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W07은 설치된 Core 2.7.3에서 실제 이동·좌우 resize를 수행해 exclusive widget end↔inclusive domain end 변환과 서버 저장 왕복을 확인했다. 최종 콜백의 전체 Task 상태는 기존 endpoint와 비교해 move/start-resize/end-resize 명령으로 구분한다.
 
-편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 `no-store`로 서버를 재조회하며 Project identity와 revision을 검증한다. 재조회 실패나 오래된 응답은 마지막 서버 확정 snapshot을 동일 SVAR 인스턴스의 공개 serialize/exec 동기화 경로로 다시 적용한다(#344). 요청의 실패로 이전 성공 변경을 되돌리거나 widget을 재마운트하지 않는다. 공개 SVAR 동기화 자체가 예외를 낸 경우의 최후 reset fallback은 별도 경로로 유지한다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
+편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 `no-store`로 서버를 재조회하며 Project identity와 revision을 검증한다. 과거 #344의 마지막 snapshot 재적용/reset fallback은 #667 제품 통합에서 대체했다. 현재 재조회 실패·오래된 응답은 UNKNOWN 잠금과 초안을 유지하고, 확인된 최신 canonical snapshot 수용 전에는 이전 snapshot 재생·Core 복구 쓰기·remount/reset으로 결과를 추측하지 않는다. 동기화 예외도 blocked 상태와 명시적 최신 조회로 처리하며 요청 실패로 이전 성공 변경을 되돌리지 않는다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
 
 Issue #3에서는 React canonical snapshot 교체와 SVAR 재마운트를 분리한다. 정상 저장은 동일 인스턴스에서 공개 serialize/exec 기반 차이 반영을 사용하며 요청 중 잠금은 권한/readonly와 분리한다. 기존 scroll·선택·접힘을 우선 보존하고 임의 신규 행 이동을 하지 않는다. 내부 반영은 사용자 command로 재전송하지 않는다. 상세 정책과 실제 검증 상태는 [Issue #3 기록](ISSUE_3_REVIEW.md)을 따른다. 현재 Grid Header `+`와 행 `+`는 입력창 없이 `새 작업`, 브라우저 local 오늘, 기간 1일을 적용한다. 첫 child의 일반 Task→Summary 전환도 별도 확인창 없이 아래의 명시적 서버 옵션으로 원자 처리한다.
 
@@ -158,7 +361,7 @@ Project-level status 변경은 새 서버 endpoint나 DB 계층을 만들지 않
 
 `ProjectService.updateTask`는 현재 aggregate 유효성을 확인한 뒤 field-only 요청에서는 저장된 effective start/end/requestedStart를 쓰고 Summary 진척/Baseline을 파생한다. 일정 요청에서는 직접 Task의 Calendar 계산과 end assertion을 먼저 검증하고 `src/domain/scheduling/task-candidate.ts`의 `recalculateTaskCandidate`에 전체 Project Task/Link를 넘긴다. 후보는 leaf requestedStart 재생성 → 기존 generic dependency forward-pass → Summary 계산 순서로 만든다. Service는 원본↔최종 날짜 diff로 모든 영향 leaf의 할당 범위를 한 번 읽어 검증한 뒤 후보 leaf/직접 편집/Baseline/Summary와 revision을 같은 IMMEDIATE transaction에 저장한다. `ScheduleRepository.updateLeafSchedules`는 prepared UPDATE를 재사용하고 후행별 SELECT 재조회를 하지 않는다.
 
-Manual/resource conflict는 Task 전용 오류로 Handler에서 HTTP 409로 매핑한다. `TaskFieldProjectService`는 같은 외부 transaction에서 description/url을 저장하고 canonical assignment/logistics를 enrich하므로 부분 저장이나 별도 revision 증가가 없다. Task Service에서 LinkService의 공개 mutation을 호출하지 않으며 순환 service 의존성도 추가하지 않는다. Link와 Calendar 경로는 기존 domain 공식을 계속 사용한다. 구조 명령/삭제의 linked guard는 유지한다. DB schema, migration, auth/session/Origin 계약과 CI workflow는 바뀌지 않는다.
+Manual/resource conflict는 Task 전용 오류로 Handler에서 HTTP 409로 매핑한다. `ProjectService`의 Summary PATCH allowlist는 name/description/url/explicitMilestoneTaskId만 허용하고 파생 일정·진척·상태·Baseline은 계속 거부한다. `TaskFieldProjectService`는 같은 외부 transaction에서 Task/Summary description/url을 저장하고 canonical assignment/logistics를 enrich하므로 부분 저장이나 별도 revision 증가가 없다. Task Service에서 LinkService의 공개 mutation을 호출하지 않으며 순환 service 의존성도 추가하지 않는다. Link와 Calendar 경로는 기존 domain 공식을 계속 사용한다. 구조 명령/삭제의 linked guard는 유지한다. DB schema, migration, auth/session/Origin 계약과 CI workflow는 바뀌지 않는다.
 
 
 ## Issue #289 — Project master data boundary
@@ -174,3 +377,142 @@ Summary의 WBS 구조와 자손에서 파생하는 일정은 분리한다. DTO/R
 Project/Subtree copy와 Template 인스턴스화는 null Summary 날짜를 상대 날짜 0으로 계산하지 않는다. Excel/SVG는 canonical snapshot의 모든 구조 행을 보존하고 실제 일정 집합으로 기간/bar를 계산한다. Resource workload와 물류 KPI는 Summary를 실제 Leaf의 공수·완료율 대상으로 포함하지 않는다. 부모 직접 연결과 subtree 상속은 구조를 기준으로 유지한다.
 
 Import는 서버를 참조하지 않는 `src/contracts/import.ts`의 JSON object strict 검증 및 순수 Domain 정규화만 추가했다. schemaVersion 1.0, 기존 유효 Summary source snapshot, 생략/null 미산정 입력을 지원한다. byte/encoding/CSV parser, target DB 충돌, preview/commit API/UI/transaction Import는 별도 구현 범위이며 이 validator로 인증·persist 성공을 주장하지 않는다.
+
+
+## Issue #463 — Stage Dashboard snapshot
+
+Milestone dashboard Route → read Service → 기존 Project/Schedule/Membership/Resource Catalog/Logistics/Calendar Repository → SQLite 경계를 유지한다. Project row부터 모든 입력을 하나의 read transaction에서 조회하고 clock을 한 번 캡처한다. 새로운 DB 테이블/집계 job/cache는 없다. `milestone-dashboard-calculation-core.ts`는 전체 `projectStageGates`와 기존 Logistics pure matcher를 재사용한다. Logistics는 독립 `milestone-dashboard-projection-core.ts`만 호출하므로 두 service 사이 순환 의존성이 없다.
+
+전체 E/P Gate와 선택 S, 공수 F는 [단계 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)으로 분리한다. S 검색/선택과 WBS 화면 scope는 전체 F 합계를 축소하지 않는다. ProjectRevision은 일정/소속/관계/상태/assignment/Project Calendar/물류를, CatalogRevision은 Resource 이름·등급·그룹/calendar 선택 의존성을 반영한다. 물류 유형 code를 재해석하지 않으므로 유형 catalog revision은 계산 입력이 아니다. `md-per-mm-core.ts`는 query/ENV/null 환산을 공유하며 pure 계산 안에서 process.env를 읽지 않는다. readonly UI는 같은 snapshot의 최소 관련 catalog를 받는다. Gantt와 Dashboard peer는 같은 grid cell에 mount 상태를 유지한다. 비활성 peer는 visibility:hidden/inert/aria-hidden으로 입력과 접근성을 제외하면서 layout box를 보존한다. peer 숨김/복귀 때 기존 Gantt의 공개 scroll 상태가 손실되는 actual 회귀에 대응하여 이 배치를 적용했으며 client의 E/P/Ready/공수 계산은 추가하지 않는다.
+
+
+## Issue #523 Resource KPI pure Domain
+
+`src/domain/resources/resource-kpi.ts`는 전체 Project canonical Task/Assignment/Resource snapshot과 명시 date-only 기간·기준일·timezone, Calendar 규칙, 주입된 M/M 환경 문자열에서 결정적으로 집계한다. DB/React/SVAR/ENV/clock을 직접 읽지 않는다. `projectStageGates`, `resolveResourceCalendar`, `workingDaysBetween`을 재사용하고 A의 개인 필터와 T0 진단, full-stage 상태를 각각 typed 출력으로 분리한다. pure M/M 정책은 `domain/resources/md-per-mm.ts`로 이동하고 기존 server 경로는 re-export해 legacy caller를 보존한다. 현재 API/Repository/SQLite/권한 경계는 불변이며 공개 DTO와 bounded detail adapter는 후속 단위다. [공통 KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+
+## Issue #524 Resource Dashboard 조회 경계
+
+신규 Node GET route → ResourceDashboardService → Project/Schedule/Membership/Calendar/Catalog 및 ResourceDashboardRepository → SQLite read transaction → #523 pure Domain → compact public report/detail 순서다. Project read는 기존 public ID+존재 guard이고 clock1회를 고정한다. Repository는 Project-connected Resource/Group/Role/member를 bulk projection해 글로벌 미배정 인력이나 Group 전체 멤버를 읽기 응답에 노출하지 않는다. Calendar bulk helper와 전체 유효 Group을 재사용하며 개인 필터로 달력 소속을 잘라내지 않는다.
+
+Report snapshotId는 revision뿐 아니라 같은 snapshot의 원시 Task/Link/Membership/Assignment/Calendar와 연결 catalog/normalized filter/유효 날짜/환산을 SHA256으로 결속한다. Detail은 동일 scope를 재계산해 stale409로 거부하고 report cache/별도 authoritative 원장/새 migration을 추가하지 않는다. compact subtotal/cell selector와 bounded page를 사용하고 full-stage 상태/T0/A를 분리한다. source/cell/path/JSON 예산을 적용하며 부분 결과를 성공 합계로 반환하지 않는다. [공통 계약](RESOURCE_KPI_DASHBOARD.md)과 [API](API.md)를 따른다.
+
+
+## Issue #526 준비 Snapshot과 집계 재사용
+
+ResourceDashboardService는 같은 SQLite read transaction의 prepareSnapshot, pure 선택/합계, report/detail/group-child 렌더링을 분리한다. Domain prepareResourceKpiSnapshot/selectResourceKpiAssignments/summarizeResourceKpiAssignments/getResourceKpiDiagnostics/renderResourceKpi를 공유하고 기존 calculateResourceKpi는 호환 wrapper다. full Stage projector는 준비 시1회, Calendar와 동일 clipped Assignment 행은 선택/reference 사이에 재사용한다. reference/excluded는 실제 원시 행 집합의 totals-only이며 미선택 전체 cells를 생성하지 않는다.
+
+신규 Group 자식 GET은 동일 snapshot identity와 Project-connected Group∩Resource 범위의 bounded 페이지다. 후속 capacity가 준비 입력과 검증된 Assignment grain을 재사용할 수 있도록 경계를 유지하며 새 DB 저장/서버 간 상태 cache는 없다. route/service/repository/SQLite 권한 경계와 기존 workload/Stage/Logistics 계산은 유지한다. [공개 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
+
+
+## Issue #527 Resource Plan 조회 경계
+
+기존 ResourceDashboardService가 같은 SQLite read transaction/clock1회와 준비 ResourceKpi snapshot에서 Capacity R, selectedA, fullProjectA를 구성하고 pure Resource Plan으로 전달한다. Domain은 HTTP/DB/clock/ENV를 읽지 않으며 서비스는 Project 연결 metadata를 compact report와 bounded numeric/Assignment DTO에 enrich한다. granularity는 opt-in projection으로 snapshot hash에서 제외하되 canonical source/실제 filter/range/asOf/M/M identity를 유지한다.
+
+Calendar의 전체 Group 소속과 Group 출력 projectionGroupIds를 분리한다. 선택 기간/Task/Milestone/search로 R를 축소하지 않고 Group/Role 중첩 Capacity를 Grand로 합산하지 않는다. 신규 daily/day-resources/day-assignments GET은 기존 route→service→repository→SQLite 경계를 유지하며 전역 Group 멤버·원장·cache·migration을 추가하지 않는다. 실제 daily ID 원인은 별도 page이며 시간축 전체 ID 배열을 report에 복제하지 않는다. [Plan 공개 계약](API.md#issue-527-resource-plan-공개-조회)을 따른다.
+
+## Issue #528 — Stateless scope query 경계
+
+Resource drill DTO와 strict 입력 parser, 공개 Route Handler, ResourceDashboardService, 공용 `readResourceDataSnapshot`, 기존 Repository/SQLite를 사용한다. POST는 exact Origin과 실제 stream1MiB를 검증하는 읽기 전용 경로이며 session·DB schema·scope token 저장소를 추가하지 않는다. 공용 원본 reader는 clock/기간 projection 없이 동일 read transaction의 raw 원장과 연결 Catalog/Calendar를 정렬·fingerprint한다. Resource report, bootstrap/query와 Legacy Milestone의 context 계산이 동일 helper를 사용한다. query는 source fingerprint/환경 환산 정책을 먼저 확인하고 한 clock/read transaction에서 target projection을 읽는다.
+
+source restriction은 선택 A와 T0에만 적용한다. exact Assignment 교집합은 다른 co-assignee로 확대하지 않고, T0의 raw 진단은 허용 일반 Task 집합 안에서 개인 조건 전 의미를 유지하며 exact Assignment source의 ID 교집합도 보존한다. Milestone reference는 source restriction을 유지하면서 M 조건만 제거한다. Plan Capacity R/history/fullProjectA 및 full canonical Stage Gate는 source restriction으로 좁히지 않는다. Plan의 project는 같은 R/기간 전체 참고로 명시한다. UI는 원래 출발 context와 target 조건을 별도 echo로 검증한다. Legacy Milestone의 추가 fingerprint 한도 초과는 report 전체 실패가 아니라 nullable context로 표현한다. 상세 계약은 [API](API.md#issue-528-정확한-resource일정-drill-조회)를 따른다.
+
+## Issue #529 Resource Excel report projection
+
+기존 Excel Route Handler → ProjectExportSnapshotService → 기존 Project/Resource services/repositories → SQLite 경계를 유지한다. ProjectExportSnapshotService의 deferred read transaction과 한 번 캡처한 clock에서 canonical Project/Stage/legacy Resource Effort 및 opt-in KPI·Plan bundle을 읽는다. ResourceDashboardService는 source raw fingerprint/환산 정책과 current scope-bound snapshot 또는 project 전체 intent를 검증하고 기존 pure KPI/Plan을 재사용한다. writer는 typed bundle의 identity/finite/null/count/period partition을 검증해 7개 worksheet를 append하며 별도 Calendar/공수/상태 계산 엔진을 만들지 않는다.
+
+actual target report context와 original drill provenance는 별도다. source 제한은 A와 T0에 적용하고 exact Assignment를 공동담당자로 확대하지 않는다. #526 reference는 source를 유지해 M만 제거하고 #527 project 참고는 동일 Capacity R 전체다. 진단의 원래 기간 계산은 기존 Calendar helper와 별도 Assignment row cache를 사용하며 prepared snapshot을 mutate하지 않는다. 저장 schema·migration·report cache·token 원장은 추가하지 않는다. OOXML/ZIP 예산과 검증된 Project hyperlink 단일 관계는 [Excel 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)을 따른다.
+
+## Issue #530 공통 원장 통합 회귀
+
+새 공통 fixture는 pure 데이터이며 DB 또는 브라우저를 import하지 않는다. Domain 입력, native SQLite Repository seed와 실제 HTTP mutation seed가 이를 각각 현재 계층의 ID·DTO로 변환한다. 테스트는 mock report를 반환하지 않고 기존 Route Handler → Service → Repository → SQLite와 API에서 생성한 ZIP/OOXML을 통과시킨다. 서버 코드·schema·migration·환산 helper와 인증 경계는 변경하지 않는다.
+
+공통 원장과 평가 context는 구분한다. 고정 명시 기준일/환산 query와 UI의 실제 서버 clock/환경 환산값을 혼합하지 않고 같은 report echo에 맞춰 원시 수치와 ID·범위·revision·Calendar identity를 대조한다. KPI의 Assignment 단위 곱과 Plan의 일별 누적은 부동소수 연산 순서가 다르므로 수치 정합성은 기존 raw 정밀도 범위에서 검사한다. ID·count·null/state·scope는 정확히 비교하며 표시 반올림으로 차이를 숨기지 않는다. [통합 검증 범위](TEST_PLAN.md)를 따른다.
+
+클라이언트의 Resource navigation frame은 source와 destinationBefore의 공개 Core 좌표 및 native scroll 좌표를 불변 기록으로 보존한다. pop/clear는 임시 일정의 현재 좌표를 원래 기록에 재캡처하지 않고 복귀 대상의 기록을 선택한다. 원본 snapshot·reset·reader/API identity·target key 검증 후 기존 Gantt canonical queue에 새 복귀 요청을 전달하며, 실제 target filter·동기화 epoch·layout·사용자 입력 취소 검사를 통과해야 각각의 좌표를 복원한다. 원래 source epoch를 현재 값으로 덮어쓰거나 native 값을 Core 명령으로 대체하지 않는다. 일반 탭 이동의 기존 peer capture는 유지한다. 상세 동작과 실행 범위는 [프로젝트 UX](PROJECT_UX.md)와 [통합 검증](TEST_PLAN.md)을 따른다.
+## Issue #549 — version-bound Timeline display adapter
+
+`milestone-timeline-model.ts`는 전체 canonical Task/Link와 기존 Gate 계산을 유지하는 순수 조회 projection이다. 단일 `milestone-timeline-adapter.ts`는 공개 Core filter/scroll/state와 기존 local date adapter를 연결한다. react-gantt 2.7.3의 타입/runtime calendar helper reexport 차이를 격리하기 위해 이미 설치된 gantt-store 2.7.2 package-root getDiffer를 사용한다. typed `_scales`/viewport derived fields는 read-only 관찰이며 공식 안정 geometry API 보장이 아니다. 검증한 Day/Week 설정 밖은 fail-closed다. source 복제/private store write/PRO markers/독립 Gantt/remount/DOM 강제 scroll은 사용하지 않는다.
+
+Core scale/config 갱신은 단발 filter를 초기화할 수 있으므로 표시 projection 재적용은 기존 canonical sync queue 이후 같은 API/source/현재 요청 조건에서 수행해야 한다. MT1의 개발 전용 bounded probe는 운영 row 전환을 제공하지 않으며 후속 production 통합은 실제 visibleTaskIds/공통 queue 경계를 사용해야 한다. [Milestone Timeline](MILESTONE_TIMELINE.md)에 실제 gate와 실패·제약을 기록한다. Route Handler → Service → Repository → SQLite와 server authorization/revision 계약은 불변이다.
+
+## Issue #615 — Process Catalog 경계
+
+`src/app/api/process-catalog/**` 및 Project logistics의 process-context/process-mappings route는 `process-catalog-handlers-core → ProcessCatalogService → ProcessCatalogRepository → SQLite`로 연결한다. Node runtime과 기존 DB singleton을 사용하며 Next Route Handler는 Request/Response adapter에 한정한다. 공통 관리자 인증은 ProjectMasterService의 기존 세션 검증을 재사용한다.
+
+공통 process catalog revision과 Project revision, Project Master revision은 별개다. context는 Project의 정확 triple만 읽고 전체 global master를 Project 응답에 넣지 않는다. 고정 수 SQL과 owner/triple index를 사용하며 항목별 N+1을 만들지 않는다. mapping 성공은 canonical Project/logistics aggregate와 매핑·revision을 반환한다. 기존 aggregate DTO에 새 필수 필드를 끼우지 않고 전용 endpoint에서 확장한다.
+
+기존 ProjectMaster 선택/참조, Logistics 공정 삭제, ProjectCopy, ProjectTemplate service는 새 매핑 guard를 같은 transaction에 포함한다. 이는 Project-local 자유 공정과 공통 occurrence를 분리하는 additive 모델이며 Gantt/Scheduling Engine 변경이나 자동 공정 생성이 아니다. 상세 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [Target 계약](LOGISTICS_TARGETS.md)을 따른다.
+
+## F2 Project Target aggregate (#616)
+
+Target is Project-local grouping of existing logistics instances, not a new Equipment/System catalog or WBS node. `logistics-targets-service-core` holds transactional orchestration, `logistics-targets-handlers-core` owns HTTP authorization, and typed members are enforced by `0026_logistics_targets.sql`. F1 common process occurrence WorkArea identity remains global and stable, local process and equipment/system IDs are remapped on Project Copy. Canonical Task and Resource identity are unchanged. Schedule-only JSON export rejects Target-bearing sources. The later F2 Template v2 supports the complete Target/member graph; F3 #617 below extends explicit bindings, while #619 Resource projection remains separate.
+
+## #616 Template portable logistics graph
+
+`src/server/templates/logistics-template-graph-core.ts`의 snapshotLogisticsTemplateGraph()/restoreLogisticsTemplateGraph()는 Template v2의 F1 Process Mapping+F2 Target/member ID 관계를 담당한다. 전역 occurrence/WorkArea UUID는 그대로, Project-local Process/Equipment/System/Target/member는 새 UUID로 재발급한다. 새 System은 기존 Template 복원 코드에서 먼저 1회 만들고 N개 Target에서 참조한다. 이 복원은 동일 프로젝트 transaction에 있으며 별도 common admin/master create가 없다. Legacy Template snapshot은 기존 분기, JSON schedule-stage Target 참조는 미포함 409 차단 유지.
+
+## Issue #551 — 앱 소유 opt-in lane 경계
+
+Workspace는 전체 canonical snapshot에서 Timeline 모델을 memoize하고 단일 ProjectGantt에 기본 OFF capability를 전달한다. scroll/resize RAF는 모델의 유효 날짜 좌표/clip/cluster만 측정하며 전체 E/P graph를 다시 계산하지 않는다. 같은 wrapper/key의 sibling 64px → native owner 구조로 Core 내부 DOM 삽입/scaleHeight/fake Task/독립 Gantt/remount 없이 배치한다. ON인 숨은 peer view도 공간을 유지한다. 원래 날짜 tick과 control clamp/physical clip은 별도다.
+
+단일 version-bound adapter만 공개 getState/calendar helper와 read-only Chart bbox·app scroll owner clientbox·window 교집합을 결합한다. 안정 widget geometry API로 주장하지 않고 폭 일치/지원 scale/hidden/zero-size를 검사한다. 측정은 canonical queue 뒤 한정 RAF이며 source model/API/문맥/scale/display가 바뀐 결과는 노출하지 않는다. tagged public event/ResizeObserver/owner scroll listener는 cleanup한다. 앱 wrapper overflow:clip은 원래 clip을 유지하며 sticky 전체 목록이 실제 outer scroll owner를 따르게 한다.
+
+Week는 Gantt에만 scoped Locale Monday 시작과 공개 weekly scales formatter를 사용한다. 상위 label은 실제 주가 포함하는 Gregorian 월·연도 span이며 native monthly rounding 구현 변경이 아니다. UI interval의 2200 metadata와 Calendar supported domain을 구별하고 전체 근무일 미산정 fallback만 제공한다. Editor·Calendar·API·server/auth/DB/일정 알고리즘 계약은 유지한다. [기술/UX 계약](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+## Issue #617 — Task Target binding aggregate
+
+F3는 application-owned Task–Target 명시 관계와 typed subset member/coverage를 SQLite에 저장하고, SVAR와 독립된 pure resolver에서 직접+조상 Summary subtree 합집합 및 provenance를 계산한다. `Route Handler → Service → Repository → SQLite` 경계를 유지한다. 명시 관계는 SQLite와 전용 GET/PUT target-bindings aggregate에서 보존하며, 기존 전체 ProjectSnapshot DTO를 새 binding 원장으로 확장하지 않는다. 파생 상속 결과를 새로운 저장 row로 평탄화하지 않는다. 기존 직접 Equipment/System 출처와 신규 Target 출처는 instance ID로 dedup해도 구분해 제공한다.
+
+mutation은 기존 Project session/Origin/strong If-Match와 IMMEDIATE transaction을 재사용한다. Target 구성 영향 token은 revision·정규화 diff·snapshot에 묶인 확인 장치이며 권한 근거가 아니다. Copy/Template은 명시 binding/subset/member ID를 해당 local ID map으로 한 번씩 치환한다. UI(#618)와 Resource 축(#619 이후)은 이 resolver를 재사용하며 독자 상속 엔진·새 Resource 배정·일정 writer를 추가하지 않는다. 상세 API/DDL·검증 상태는 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [#617 Work Packet](exec-plans/active/ISSUE_617.md)을 따른다.
+
+
+## Issue #618 — Target UI와 canonical 편집 경계
+
+F4 authoring은 기존 Target/Task binding HTTP service/repository 원장을 재사용한다. usage DTO의 relatedTasks와 projectRevision은 기존 pure Target resolver의 직접/상속 결과를 같은 read transaction에서 제공하며 별도 UI graph를 만들지 않는다. Target 상세의 관련 작업 탐색은 Task별 GET 없이 usage 한 번으로 제공한다. 공유 원본 인스턴스 변경 영향은 Target usage 후보를 최대1,000개 Task별 binding aggregate로 확인해 subset의 다른 구성원을 잘못 포함하지 않는다. 한도/조회 오류는 원본 저장을 차단하며 기존 직접 연결 수를 산출하지 못한 경우 미산정으로 표시한다. UI는 canonical Task UUID로 공통 ProjectTaskEditor와 기존 mutation gateway를 열고 사용 중 Gantt를 유지한다. Target/instance 저장은 명시 composer 명령이며 저장 성공 뒤 공통 canonical 재조회한다. Legacy 직접 instance에서 Target을 역추론하지 않으며 Resource/일정/Dependency/DB schema는 변경하지 않는다.
+## Issue #621 — Target Resource projection과 exact Assignment 저장
+
+기존 Resource Dashboard의 app-owned Target 계층/교차표는 #620 서버 projection·filter·selector를 읽는다. 표시 key와 canonical Task/Assignment/Target ID를 분리하며 별도 보고 원장·집계 엔진·Gantt 인스턴스/viewport writer는 추가하지 않는다. Editor/composer·canonical reconciler·drill provider/viewport coordinator의 기존 경계를 재사용한다.
+
+정확 Assignment 편집은 기존 Route Handler→Resource Catalog Service→Repository→SQLite의 PUT 경로에서 optional `editAssignmentId`를 검증한다. generic 전체 교체는 유지하고 exact 요청만 현재 Task/resource/assignment tuple의 row를 원자적으로 갱신한다. 현재 Project/catalog revision 검증과 저장1회·public ID·공동담당 원본 보존을 같은 transaction에서 보장한다. 저장 뒤 report identity를 재검증하며 stale 응답을 최신 결과로 표시하지 않는다. 계약·실제 증거는 [API](API.md)와 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. DB schema/migration·Scheduling 알고리즘 변경은 없다.
+
+## Issue #667 — main 제품 정합성 연결
+
+Workspace가 HTTP 결과와 최신 canonical 조회를 소유하고, ProjectGantt의 mount 단위 `product-consistency.ts`가 U2 actual-Core 복구와 U3 의미 관측을 소비한다. 데이터 queue는 실제 Task/tree/Link 비교와 차이 적용만 완료하며 viewport 완료를 기다리지 않는다. Coordinator가 원래 사용자 의도를 중재하고 단일 `svar-viewport-port.ts`가 U4 날짜축 transaction·Core/native 위치 정착을 담당한다.
+
+서버 snapshot/권한/revision이 저장 authority다. 저장 응답이 불명확하고 최신 GET도 실패하면 UNCERTAIN 안내와 충돌 쓰기 차단을 유지한다. 초안은 보존하고 자동 mutation 재시도나 Gantt remount로 결과를 추측하지 않는다. 기존 API/DB 계층·full canonical·native Milestone 행과 marker 미활성 상태는 유지한다. 실제 적용 source·검증·한계는 [Work Packet](exec-plans/active/ISSUE_667.md)을 따른다.
+
+canonical GET은 요청 generation을 가지며 mutation 시작 시 이전 read를 동기 무효화한다. 최신 read만 snapshot 적용·UNKNOWN 해제를 허용하고 늦은 이전 GET은 revision이 같아도 복구 근거로 사용하지 않는다. Editor/import 공통 조회에도 같은 경계를 적용한다.
+
+U4가 실제 axis/physical extent 변경을 SETTLED로 확인한 뒤에는 기존 U3 관측기에 읽기 전용 재관측을 요청한다. scrollWidth/axis 변경은 client-size ResizeObserver 이벤트를 보장하지 않으므로 이 연결을 명시한다. prepare의 후속 receipt floor는 실제 axis signature 변경에만 요구하며 단순 resize/scroll write 수로 결정하지 않는다. canonical queue는 순서 barrier이며 관측/viewport 완료를 그 queue 안에서 기다리지 않는다.
+
+#667 CI 보완에서는 cross-tab canonical GET도 mutation/recovery와 동일한 read generation을 사용한다. 실패 mutation은 조회 시작 전에 UNKNOWN을 고정하고, 더 새 조회의 시작만으로 잠금을 해제하지 않는다. 실제 현재 세대의 성공 snapshot 수용만 해제 근거다. 숨김/표시 전환에서는 이전 visible bridge를 폐기해 새 layout 관측과 단일 Coordinator의 완료를 분리한다.
+
+#667 CI #2812 보완은 mount에 고정한 start prop을 생략한다. 설치 Core가 canonical Task 날짜에서 유효한 left bound를 계산하고 U4 resize는 그 현재 bound를 보존한다. 최초 right extent 보존·stable tasks/links/columns와 단일 Coordinator는 유지하며 React start/end 변경에 의한 store init이나 private Store 쓰기를 사용하지 않는다.
+
+#667 종합 회귀의 Copy 연속성 보완은 내부 client mutation capsule에 한정한다. Workspace의 실제 copy dispatch에서 원래 API/측정 X·사용자 gesture/intent·비데이터 context를 고정하고 해당 request ID/base revision에 연결한다. HTTP ok만으로 승인하지 않고 검증된 응답 body와 실제 수용한 canonical revision을 기록한다. Gantt는 정확한 현재 request/revision의 U2 proof 뒤 원래 권한·동일 비데이터 context가 살아있을 때만 기존 Coordinator에 한 번 전달한다. queue 안에서 viewport 완료를 기다리지 않고 새 scroll writer·server DTO/DB contract를 추가하지 않는다. 새 입력/조회/실패/UNKNOWN은 과거 복원을 폐기하며 최종 실제 범위는 Work Packet을 따른다.
+
+#667 Resource 복귀 준비는 retained 날짜 end와 Core/native 수용 범위를 함께 확인한다. DOM scrollWidth-clientWidth는 Core scaleWidth-physicalWidth의 정확 좌표 상한과 다를 수 있으므로 native 범위만으로 완료하지 않는다. 실제 Core geometry가 유효하고 Core exact target/native±1가 가능해야 하며 부족 범위는 기존 U4 PRESERVE transaction에서만 준비한다. 원래 lease/source·extent 합집합·실제 변경 뒤 U3 재관측/receipt floor를 유지한다.
+
+
+#667 CI #2817 후속의 projection 관측 ingress는 최초 적용·tree/selection·layout 요청을 현재 effect/API의 scheduler로 모아 최신 canonical data queue 완료 뒤 실행한다. 기다리는 사이 교체된 queue와 selection/layout trigger를 보존하고 cleanup 또는 실패로 폐기한 drain의 옛 callback은 새 요청을 실행할 수 없다. 관측 완료를 data queue에 합류시키거나 실패 결과를 자동 재시도하지 않으며 actual Core/semantic receipt/viewport의 소유권과 성공 조건을 유지한다. 원격 근인의 확정 범위와 실제 선택 검증은 [누적 분석](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
+
+#667 CI #2818 후속에서 U3 의미 관측 clock의 frame 대기는 viewport port와 분리한다. 의미 관측의 기존1500ms wall-time watchdog/120실제frame/3안정frame이 종료를 소유하며 실제 RAF만 성공한다. U2 recovery/U4 viewport의50ms frame tick은 유지한다. 같은 revision 재조회에서 한 프레임 지연을 전체 관측 예산 소진으로 잘못 처리하는 경계를 원본90ms 지연 browser 회귀로 재현했고, 실제 원격 runner의 지연 원인까지 확정한 증거는 아니다.
+
+
+## Issue #667 / CI #2827 — native clamp의 입력 분류 경계
+
+날짜축 전환에서는 Core 좌표가 먼저 Week로 바뀌고 native DOM에 이전 Day 좌표가 남을 수 있다. 단일 viewport port는 axis 등록 시 같은 `read()`에서 Core/native 가로 좌표를 함께 읽고 최댓값을 baseline으로 고정한다. 두 등록 좌표보다1px 초과 앞선 실제 native/event 일치 이동만 기존 forward 취소 경로에 전달한다. native가 뒤로 clamp됐으나 더 작은 Core 좌표보다 크다는 이유로 새 사용자 의도를 만들지 않는다. 원래 lease·own tagged 제외·한 번의 nativeHandled·실제 wheel/pointer/keyboard 취소·단일 writer는 유지한다. 서버 canonical/authorization·API/DB·U2/U3 계약 변경은 없다. 원본/Unit/교차 검증은 [누적 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md)과 [ci2827](evidence/issue-667/ci2827-correction.json)에 source별로 기록한다.
+
+## Issue #552 — marker-OFF WBS 표시 경계
+
+전체 프로젝트·사용자 필터 없음은 기존 `visibleTaskIds=null` 의미를 유지한다. Milestone 제외는 separate projection의 표시 authority가 수행하며, 파생 WBS ID 집합을 사용자 query/filter identity로 전달하지 않는다. 그래야 일반 Task 추가가 조회 변경으로 오인되어 Native Add 복원을 취소하지 않는다. 선택 gesture의 ordinary WBS ID 집합은 별도로 유지하여 숨은 M을 선택/Task clipboard에 넣지 않는다.
+
+main #667(`bdaed6bd`)의 Workspace canonical read generation/U2 actual-Core recovery/U3 semantic observation/단일 Coordinator·U4 port를 그대로 소비한다. 데이터 queue와 viewport 정착을 별도로 판정하고 기존 UNKNOWN/권한/revision/새 사용자 입력 경계를 유지한다. #552가 과거에 추가했던 독자 resize correction·production DATE_REVEAL·no-op 재동기화 authority를 다시 연결하지 않는다.
+
+공개 controlled projection은 native Summary/Task만 표시하지만 full canonical Task/Link/Membership과 Summary 파생·Ready/Completed·Resource/Target·Export를 보존한다. native M row/bar/대체 endpoint는0이며 관계 선을 다른 행에 재연결하지 않는다. 운영 lane/marker/guide/예약 높이·marker-only observer/listener/RAF/date-axis/scroll은0이다. #551 개발 opt-in capability는 운영 preference와 분리해 유지하며 Toolbar toggle/default ON/temporary ON authority는 제거한다.
+
+Milestone 날짜는 Dashboard 상세/정확한 소속 Task 경로로 안내하고 숨은 M select·날짜축 확장 요청은 내지 않는다. 일반 Task 날짜축·viewport는 기존 #667 port가 처리한다. 별도 WBS build-time gate `NEXT_PUBLIC_GANTT_WBS_MODE=legacy`는 재빌드/재배포가 필요한 명시 비상 복구이고 marker gate와 독립이다. API/DB/auth/Scheduling engine 계약 변경은 N/A다. 최신 검증 및 미검증은 [#552 Work Packet](exec-plans/active/ISSUE_552.md)을 따른다.

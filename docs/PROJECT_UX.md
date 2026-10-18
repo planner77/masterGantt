@@ -1,4 +1,162 @@
+## Issue #624 — #456 scoped Week/Fullscreen 정확 120px 시작 전 수용량 확인 (CI #2893.1)
+
+기존 #456 Editor 열기/닫기·metadata 저장 후 120px/38px 좌표 보존은 유지한다. scoped Summary의 Week/Fullscreen에서 native scroll 여유가 62px인 상태를 120px으로 강제하면 browser clamp로 실패한다. 테스트는 현재 U2/U3 projection·Core/native axis가 모두120을 수용하는지 확인한 다음 원래 입력을 수행하고, 부족할 때만 실제 wheel 1회로 준비한다. 제품 동작/시각 설계·SVAR native marker-OFF 정책/스크롤 좌표 단언은 바꾸지 않는다. [실패 누적 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md).
+
+## Issue #624 PR #702 — 390px 통합 조회 내부 표 가로 넘침 대응 (2026-10-17)
+
+[CI #2879.1](https://github.com/planner77/masterGantt/actions/runs/39009419792)의 실제 Playwright에서 viewport390px에 document scrollWidth704가 측정됐다(`tests/e2e/issue-624-logistics-unified.spec.ts:107`, 예상≤391). 넓은 Target 688px/Milestone 710px의 **내부 표**는 의도된 해당 표 scroll owner 안에 있어야 하며 document/상위 물류 Grid를 확장해서는 안 된다. Unified 앱 소유 `.root` grid의 암묵적 auto track을 `grid-template-columns:minmax(0,1fr)`·`width:100%`로 바꿔 Grid의 최소 콘텐츠 폭 전파를 차단한다. 별도 synthetic Chromium에서는 390px document712→390 / Resource region client388·scroll710, 768/1024/1440/1920에서도 문서 폭은 viewport 이하를 확인했지만 이는 실제 제품 전체 구조의 PASS가 아니다.
+
+기존 E2E 5폭의 `documentWidth<=width+1` 및390 내부 scroll/정확 Task·Assignment/전체 Milestone Gate·조회mutation0/같은 Gantt 검증은 유지한다. 실패한 viewport에서 root width·scroll owner width·실제 overflow 후보 상위16개를 첨부해 차기 회귀 원인 확인에 사용한다. 테스트값·timeout/skip/QA·SVAR/테이블 최소 너비는 완화하지 않는다. 기존 Light/compact·scroll/focus Design Delta B만 구체화하므로 `DESIGN.md: N/A`. [누적 실패 원장](ISSUE_624_CI_FAILURE_ANALYSIS.md), [Work Packet](exec-plans/active/ISSUE_624.md).
+
+## Issue #624 — 물류 통합 조회 UX·Design Delta B (2026-10-17)
+
+프로젝트 작업공간의 **물류 구성 → 통합 조회**에서 네 관점(공정/WorkArea, 설비 종류·인스턴스, 시스템 종류·인스턴스, Target·Resource)을 단일 compact selector로 전환한다. 기간/Target 빠른 필터와 접힘 상세 조건을 제공하고, 기존 Gantt native WBS/Chart에 조회용 가상 행이나 두 번째 날짜축을 주입하지 않는다. Project 구성 인스턴스 수·고유 설비 수량과 현재 T0 Task coverage/Assignment 계획공수·기간가중 일반 Task 진척을 명확히 나눈다. 공유 MCS/fleet·중첩 Target의 표 행은 중복 표시 가능하지만 전체 집계는 서버 distinct ID다.
+
+Task·Assignment·Target 변경은 기존 정확 editor 경로, 일정 복귀는 기존 source/current scope·snapshot·focus 계약을 사용한다. readonly·stale·dirty/pending/오류/조회 전/결과 없음과 최신 응답 역전을 구별하며, 필터·정렬·접힘·페이지·단위 전환은 저장0이다. 전체 Milestone Ready/Blocked·선행·member와 선택 Assignment Task 수는 별도 열이다. 390/768/1024/1440/1920px, 긴 이름/한국어, 표 내부 scroll·keyboard·focus/Escape·document overflow를 Chromium으로 확인해야 UX PASS다. **Design Delta B**: 기존 Light/compact/progressive disclosure·scroll/focus 원칙 구체화로 전역 신규 원칙 A가 없어 `DESIGN.md: N/A`. [Work Packet](exec-plans/active/ISSUE_624.md).
+
+## Milestone marker-OFF 기본선과 단계 관리 UX 결정 (#548 / 2026-10-15)
+
+[Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)는 이전 #549~#552의 marker 기본 ON 계획 중 화면 활성화 부분보다 우선한다. #552에서 **native Grid/Chart에는 Summary/일반 Task만 표시**하고 Milestone native 행·Bar/대체 endpoint를 만들지 않는다. 상단 Timeline/guide/마커는 운영 OFF이며 화면 여백도 예약하지 않는다. 기존 Milestone Dashboard는 독립된 탭에서 전체 Milestone 목록·생성·상세·소속 관리·관계·Ready/Completed·Resource KPI를 제공한다.
+
+Task/Summary의 Milestone 명시 소속·상속·override는 기존 Editor와 `Milestone 소속: 전체/미지정/선택` 작업 필터로 접근한다. 조회0/일반 Task0/M-only/날짜 미정과 legacy 유형 Milestone-only를 구별하고, 현재 native Grid에서 찾을 수 없다고 Milestone 삭제로 취급하지 않는다. 기존 `전체 | Task | Milestone` 단축 보기의 변환·안내는 #552의 별도 명시 사용자 UX이며 설정 변경/조회만으로 서버 저장하지 않는다.
+
+Marker OFF인 상황에서 `해당 날짜에서 보기`는 날짜축에 숨은 마커를 만들거나 임시 ON/scroll 요청을 내지 않고 Dashboard의 Milestone 상세 또는 정확한 소속 Task 목록·일정으로 이동하도록 사용자에게 명시한다. 이동·대화상자/Editor 닫기 후의 보이는 유효 트리거로 focus를 복원하며 원래 WBS/Resource filter·selection/scroll·dirty/readonly/pending/stale 문맥을 보존한다. 없는 native Milestone 행을 선택한 척하지 않는다.
+
+Milestone 연관 Summary의 전체 subtree Copy/Cut/Move/Delete, legacy mixed Link, 완료 잠금, canonical JSON/Excel/SVG/PNG 보존, Resource/Target 전체 멤버·Assignment Roll-up은 행 표시와 무관하다. WBS 행 제거 중 Gantt remount·의도하지 않은 scrollbar 위치 초기화·server mutation이 발생하면 FAIL이다.
+
+#667 main-first 공통 상태 정합 → #552 OFF/행 분리 → #553 무손실 교환 → #574 OFF 통합 수용 뒤, 필요할 때만 #573 marker-ON geometry 검증과 #693 독립 marker activation/rollback을 수행한다. #551의 앱 소유 lane은 유지하지만 baseline 제품 UI에 자동 렌더하지 않는다.
+
+---
+
+## Issue #623 — 구성부터 Resource·같은 원본 편집의 수용
+
+제품 공정·두 사업장/선택 WorkArea·TargetA/B/sharedMCS→Task/Summary whole/subset→Resource 계층/교차표→같은 Task/정확 Assignment 편집→원래 WBS/Resource 복귀를 실제 HTTP/Chromium으로 연결한다. name/date/status/progress/allocation/membership은 각각 별도 저장이며 Task 표시 행 중복을 원본 복제로 처리하지 않는다. 기존 Editor·dirty/pending·readonly/권한/stale·focus·same Core/단일 viewport writer를 유지한다.
+
+390/768/1024/1440/1920px의 긴 이름·표 내부 scroll·열 경계·keyboard/Enter/Tab/Escape·복귀와 조회 mutation0을 확인한다. 기존 #621/#622/#528 회귀를 재사용하며 SC-11 집중 수용을 GSC 전체/#574 완료로 확대하지 않는다. Design Delta B,DESIGN.md N/A다. [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md), [수용표](TARGET_RESOURCE_ACCEPTANCE.md), [Work Packet](exec-plans/active/ISSUE_623.md)에 실제 명령/증거/실패/미검증을 기록한다.
+
+## Issue #621 PR #683 — Resource 상세 Snapshot 무효화·Target 유지 (2026-10-14)
+
+## Issue #622 — Target Plan·선택 밖 과투입 원인·Excel
+
+Plan은 주/월 조회에서 전체 Target 집계 계층을 생성하지 않고 같은 canonical snapshot의 경량 `catalog.targetOptions`로 Target 선택 목록과 정확 Assignment 출처 이름을 표시한다. 전체 Project 참고에서 출발 선택 밖 Target B를 찾아도 임의 `Target · UUID`로 이름을 잃어버리지 않는다. 선택/참고의 범위와 ID는 유지하고 이름만 원본 Target catalog에서 lookup한다. 전체 Target projection을 명시한 Target 보기의 기존 계층·예산은 그대로다.
+
+기존 Resource 화면의 Target/고급 조건을 그대로 Plan에 전달한다. `선택 Target·Milestone·Task 기여`와 `동일 개인의 Project 전체 참고`를 구별하고 같은 R·기간의 전체 부하에 선택 밖 배정이 포함됨을 안내한다. 기간→일별→개인→Assignment 단계에서 출발 선택 조건과 현재 참고 범위·revision을 함께 표시한다. Capacity는 고유 resource-day이며 반복 Group/Milestone/Target 참고값을 합산하지 않는다.
+
+Task 열기와 정확 Assignment 편집은 기존 공통 Editor를 사용한다. 전체 참고에서 선택 밖 원인을 수정해도 출발 Target 조건을 Project 전체 조건으로 덮어쓰지 않는다. 저장 후 최신 report/detail snapshot이 확인되기 전 이전 명령을 잠그며 같은 단계와 유효한 정확 Assignment trigger로 복귀한다. 필터 탈락/삭제로 trigger가 없으면 사유와 유효 Plan control focus를 제공한다. 사용자 입력·dirty/pending·readonly/401·409/412·응답역전 guard를 보존한다.
+
+Excel 대화상자의 current/project 범위는 추가 Resource 보고서에만 적용하며 legacy Gantt/Tasks는 Project 전체다. current는 Target 조건/source를 보존하고 project는 Target/공정/WorkArea/인스턴스·개인·Task/Milestone·exact 제한을 제거하되 실제 기간/asOf/M/M 정책을 유지한다. 관련 계획공수/비가산/미설정·M/M 기준·revision과 Target 출처는 workbook에 남긴다. 기존 #621의 Target Excel 잠금은 R4 지원으로 해제한다.
+
+표는 기존 compact 시각 언어와 표 소유 내부 scroll을 유지한다. 상세 identity340px+나머지3열 각220px의 최소1000px에서 Target 근거를 줄바꿈하고 390/768/1024/1440/1920px·Tab/Enter/Escape·focus를 확인한다. Design Delta B이며 DESIGN.md 수정 N/A다. 실제 browser/원격 증거·미검증은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+기존 리소스 KPI·Milestone·진단 상세는 **서버에서 확정된 새 Snapshot**이 도착하면 이전 selector를 계속 열어두지 않고 상세를 닫고 기존 FocusRestoreBoundary의 출발 명령으로 focus를 돌린다. 현재 탭·검색 조건과 일반 Resource 화면의 소유 상태는 보존하되 다른 시점의 상세를 새 보고서의 유효 원본으로 가장하지 않는다. Query 변경도 기존처럼 선택을 해제한다.
+
+Target 교차/계층 상세만 예외로 현재 보고서 projection에서 동일 canonical `targetPath`를 재확인한 경우 현재 서버 selector로 재결속할 수 있다. 이탈·삭제·미매핑으로 경로가 사라지면 상세를 닫고 사용자에게 Target 필터 확인을 안내한다. 가상 행을 Task/Assignment 저장 원본과 혼동하지 않으며 원본 수정·임의 WBS 이동·새 viewport writer·Gantt remount는 없다. UI/UX 상태·권한·stale·focus 계약 및 [#621 Work Packet](exec-plans/active/ISSUE_621.md)을 따른다. Design Delta B(기존 디자인 원칙 적용).
+
+## Issue #647 — Milestone 삭제 확인 뒤 native modal 포커스 인계 (2026-10-13)
+
+- 삭제 확인 Dialog의 성공/충돌/취소 경로는 기존 원 Milestone 목록의 **연결된 가시 관리 버튼**으로 포커스를 되돌리고, 삭제로 버튼이 소멸하면 같은 Dashboard에서 검색→추가→heading의 순서로 대체한다. modal `:modal` 상태에서는 외부 focus가 거부될 수 있으므로 WorkspaceDialog의 비동기 unmount/cleanup을 확인한 뒤 제한된 RAF로 복원한다. 다른 열린 modal·숨은 탭·다른 프로젝트·disabled/inert 노드로 포커스를 옮기거나 오래된 복원 요청을 무한 지속하지 않는다.
+- 원본 Merge `b97709df...`의 복구 [CI #2621.1](https://github.com/planner77/masterGantt/actions/runs/38313359094) shard3에서 삭제 후 `data-milestone-focus=null`이 재현되었으며 native modal 종료/React cleanup 경쟁은 검토 가능한 유력 경로다. 실제 원격 브라우저 원인은 수정 PR의 targeted Playwright 실증 전까지 단정하지 않는다. 별도 shard5 `2건` 중복 selector는 현재 main의 #639 교정 테스트로 이미 해결되어 있고 원본 SHA에는 부재한다.
+- 신규 디자인 언어/레이아웃 변경 없음(Design Delta B). 원본 Gantt instance·작업 ID·권한·일정 엔진 및 기존 목록 키보드/편집·readonly 정책을 유지한다. [Issue #647 Work Packet](exec-plans/active/ISSUE_647.md)에 검증 범위를 기록한다.
+- [PR CI #2626.1](https://github.com/planner77/masterGantt/actions/runs/38320235805) detected four focus-visibility regressions caused by focus restoration with `preventScroll:true`: Milestone toolbar focus existed but was outside the viewport (y≈−363.5px) or failed `elementFromPoint` hit-testing. Keep native focus scroll for Milestone-panel fallback after async native dialog closure; retain closed-dialog bounded RAF, connected same-project guard and Gantt chart's own scroll invariant. Add E2E assertion that the restored focus is not merely DOM-active but visibly keyboard-accessible.
+
+## Issue #637 — Grid 내부 스크롤과 실제 행 정렬
+
+구조 삽입 후 같은 Task ID의 Grid 행과 Chart 바깥 `.wx-bar` 중심 Y는 같은 viewport 좌표에서 ±1px 이내여야 한다. 행 높이38px와 bar높이31px의 차이는 중심 계산에 포함된다. 내부 Milestone diamond의 회전/축소는 이 비교에 사용하지 않는다. membership·canonical queue 완료만으로 화면 정렬 성공을 알리지 않는다.
+
+Release #165.1의 header add 클릭 전 자동 `scrollIntoView`가 Grid 내부 pane만28px 이동시켰고, Core/Chart/공통 Gantt scrollTop0과 어긋난 상태가 유지되어 중심 차이27.5px가 발생했다. Grid 비소유 세로 overflow를 실제로 제거하되 기존 Grid 가로 스크롤과 Core/Gantt 세로 스크롤·keyboard focus를 보존해야 한다. 상수 보정·중심 허용치 완화·강제 remount·새 scroll writer로 숨기지 않는다. 숨김/inert·가상화·새 입력·selection/viewport 보존의 기존 계약은 유지한다.
+
+DESIGN Delta B이며 시각 언어·기능·서버 권한을 바꾸지 않는다. 원본 실패와 수정별 실행 범위는 [#637 Work Packet](exec-plans/active/ISSUE_637.md)을 따른다.
+
+## Issue #550 후속 — Task reveal 좌표와 focus 완료 분리
+
+Editor의 명시 `일정에서 보기`는 Coordinator의 이번 `TASK_REVEAL` 좌표 SETTLED 이후 현재 가시 Grid 행으로 focus를 인계한다. 좌표 완료·projection 완료·DOM 행 존재·실제 focus 완료는 별개다. 최대12RAF의 기존 제한 안에서 정확한 controller/API·revision·projection과 Coordinator intent/gesture/context를 확인하며 새 사용자 입력, 새 locate, scope/geometry 변경 또는 새 Editor/modal이면 오래된 인계를 종료한다. 좌표가 움직이지 않은 입력도 취소 근거다. modal이 잠깐 열렸다 닫혀도 이전 인계를 재개하지 않는다.
+
+행은 현재 연결되고 hidden/inert가 아니며 실제 Grid viewport와 교차해야 한다. 인계는 별도 focus 결과로 관찰하고 Coordinator의 SETTLED 의미를 확대하지 않는다. 좌표 단계가 SETTLED에 이르지 않으면 focus 결과 SUPERSEDED는 인계 미시작을 뜻하며, 원래 좌표 실패·timeout은 Coordinator 영수증에 그대로 남는다. 일반 Editor 닫기·취소의 trigger 복원과 Dashboard의 visible trigger/검색/추가/heading fallback은 기존 계약을 유지한다. Design Delta B: 기존 focus·상태 보존 계약의 구체화이며 새 전역 시각 규칙은 없다. [실행·검증 원장](exec-plans/active/ISSUE_550.md)을 따른다.
+
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
+
+## Issue #572 — 반복 이름 편집의 저장·표시 피드백
+
+Grid 이름의 native inline editor를 유지하고 저장 요청, 서버 확정, 실제 이름 표시 확인을 구분한다. 저장 중에는 중복 요청을 막고 확정 응답 뒤에는 화면 반영 확인 상태를 표시한다. 성공 문구는 같은 요청의 canonical 이름·revision, Core text와 실제 Grid/관측 가능한 Chart 이름이 일치한 뒤 제공한다. 새 편집이나 최신 revision이 오래된 결과에 의해 덮이지 않아야 한다.
+
+Enter는 저장, Tab/Shift+Tab과 pointer blur는 저장과 native 도착 focus를 유지한다. Escape는 취소하고 조합 중 Enter/Escape는 IME가 처리한다. 기존 validation/readonly/401/stale 정책을 유지하며 오류 후 같은 작업의 명시 재편집에서 실패 draft를 복원하되 자동 재전송하지 않는다. 비동기 결과가 이미 이동한 focus를 탈취하지 않는다. 좁은 화면과 가상화는 기존 Grid 소유 폭·getter/canonical projection을 사용하고 임의 DOM 텍스트 수정이나 별도 viewport 복원으로 해결하지 않는다.
+
+DESIGN Delta B: 기존 precise feedback·SVAR-native·keyboard/focus·상태 보존의 구체화다. 새 전역 시각 규칙은 없다. main에 미통합인 #552 표시 전환을 대신 활성화하지 않으며 현재 projection에서 제외된 Milestone의 재주입은 금지한다. 실행별 PASS/FAIL과 실제 OS IME·미통합 Dashboard·원격 CI 경계는 [#572 Work Packet](exec-plans/active/ISSUE_572.md)을 따른다.
+
+
+리소스 탭의 `hidden` 또는 Milestone 탭의 `inert` 상태에서 저장된 인라인 이름은 일정 복귀 시 canonical/Core/Grid 표시 확인을 재실행한다. 이미 저장한 PATCH를 중복 발행하지 않고 현재 Gantt instance와 viewport를 유지한다.
+## Issue #552 — 과거 날짜 탐색 포커스와 작업 추가 기록
+
+아래 두 문단은 2026-10-13 후보의 기록이다. 현재 marker-OFF의 날짜 요청은 동일 canonical ID의 Editor 상세로 연결하고 기존 modal 닫기/가시 trigger 복귀를 사용한다. exact-ID highlight 자동 focus repair와 이 후보의 별도 native-add 복원 구현은 현재 authority가 아니며, 최신 main #667 공통 정합성 경로 및 이 문서의 최신 #552 절이 우선한다.
+
+OFF 날짜 탐색이 전체 Milestone 목록으로 안내한 뒤 조회 갱신이 해당 행의 관리 버튼을 일시 비활성화하거나 교체하면, 활성 panel의 동일 canonical ID로 잃은 focus만 복구한다. 이후 사용자가 pointer/keyboard로 검색 등 다른 control을 조작하면 그 입력을 우선하고, 갱신된 목록이 focus를 다시 빼앗지 않는다. 숨은 panel이나 modal 뒤의 대상에는 focus를 적용하지 않는다.
+
+Native 작업 추가의 복원 문맥은 작업 추가로 달라지는 표시 ID 집합과 별개로 현재 조회 조건·scope·instance·scale·열·가시성을 확인한다. 같은 조건의 canonical 추가 때문에 저장한 위치를 폐기하지 않으며, 추가 전 위치의 복원이 끝나기 전에 metadata-only 복원이 새 의도로 끼어들지 않는다. 실제 조건 변경이나 새 사용자 입력의 취소 경계는 유지한다. canonical 추가만으로 기존 Task clipboard를 조회 조건 변경으로 판정하지 않는다.
+
+## Issue #571 — 사용자 이동 우선의 화면 복귀
+
+같은 일정으로 돌아올 때 유효한 직전 위치를 보존하되, 돌아오는 동안 사용자가 wheel/pan·Task 선택·명시 날짜 이동을 하면 그 새 위치를 우선한다. 지연된 peer/metadata 복원이 새 위치를 덮지 않는다. Grid/Chart의 pointer/wheel/touch/keyboard 입력은 오래된 복원을 취소한다. toolbar·Editor 입력 자체는 일정 이동으로 취급하지 않으며 Editor의 '일정에서 보기'는 명시 Task reveal이다. 명시 locate는 이전 Editor trigger 대신 완료한 대상 Grid 행을 focus 소유자로 삼고, 일반 취소·닫기는 기존 trigger 복원을 유지한다.
+
+Grid의 일반 선택은 native Core가 날짜 있는 Task를 show:xy, 날짜 없는 Summary를 show:y로 이동한다. 포인터 입력 뒤 비동기로 발생한 이 명시 native reveal도 최신 사용자 이동으로 관측하여 이전 passive/metadata 복원을 취소한다. show:false 및 canonical·앱의 선택 동기화는 새 사용자 이동으로 승격하지 않는다. 복수 선택·checkbox의 Core toggle은 show:false를 명시하고 modifier/Shift 선택 mirror는 별도 Task reveal을 발행하지 않는다.
+
+검색/유형/selected ID/scope는 조회 의도다. 필터 중 이동·reveal·scope 전환이 있었다면 검색 전 bookmark를 폐기한다. 빈 결과에 이전 비영점 위치를 재생하지 않는다. 필터 해제 bookmark의 복원 권한은 수평 위치에 한정한다. 이 bookmark는 한 번만 복원하며 복원 도중 native Core/DOM의 새 정합 좌표가 생기면 이전 bookmark를 포기한다. 복원 완료 뒤에도 이전 filter bookmark가 새 native scroll을 가로채거나 되감지 않는다. 실제 사용자 wheel/peer stale0 차단은 기존 권한 계약대로 유지한다. 필터 결과의 행 수 감소로 합법적으로 clamp된 세로 위치는 과거 top으로 되살리지 않으며, 준비 단계와 실제 적용 직전의 최신 정합 Core top을 유지한다. 숨겨진 일정은 0좌표로 저장하지 않으며 다시 보인 뒤 최신 projection과 실제 geometry를 확인한다.
+
+화면 배치·공통 색상·폰트는 유지한다. DESIGN Delta B로 기존 상태 보존 원칙을 구체화하며 DESIGN.md 수정은 N/A다. parent는 capture/request만 전달하고 일정 native 복원은 Coordinator가 실행한다. Resource 표·tablist/focus는 해당 화면의 스크롤 소유권을 유지한다. readonly 조회·탭 전환의 server mutation0, canonical revision·권한 및 draft/selection/columns/scale/instance 보존 계약은 그대로다. [#571 Work Packet](exec-plans/active/ISSUE_571.md)의 환경별 증거를 전체 UX PASS로 확대하지 않는다.
+
+## Issue #570 — 조회 투영과 메타데이터 갱신
+
+작업명·설명·상태·진척 등 canonical metadata만 바뀌고 표시 집합·계층·열 설정이 같으면 Grid/Chart를 같은 Core instance에서 갱신한다. 이 변경만으로 filter나 columns를 재설정하지 않는다. 활성 이름/상태 필터의 실제 결과가 달라지는 변경은 membership 변화로 처리하며 빈 결과를 전체 Task로 바꾸지 않는다.
+
+Summary 접힘, 선택, 사용자 열폭은 조회·canonical 갱신의 별도 상태다. 0건 필터·scale 전환 후 조건을 초기화할 때도 기존 Summary 접힘 의도를 실제 Core 상태에 다시 맞추며, 초기화가 자식을 임의로 여는 명령이 되지 않는다. 기존 자식이 있는 접힌 Summary로 passive canonical 이동이 발생해도 접힘 의도를 보존하며, 첫 자식 추가의 기존 auto-open 동작은 유지한다. 접힌 자식과 가상화된 offscreen 행을 누락 오류로 혼동하지 않되 실제 필수 행 누락·잘못된 순서는 승인하지 않는다. scope/filter/scale/instance가 달라진 오래된 동기화는 최신 상태를 덮지 않는다. 숨김·inert·zero-size 화면은 성공한 layout 완료로 보고하지 않는다.
+
+빈 Summary와 마지막 자식을 삭제한 Summary는 필터·열·scale 변경 뒤에도 같은 Gantt instance의 행으로 남는다. 자식 없는 Summary의 저장된 열림 의도를 복원하기 위해 native 열기 명령을 발행하지 않는다. Milestone 조건과 일반 Task 필터를 바꿔도 정상적인 표시 집합·선택 정리 계약을 유지한다.
+
+마지막 dated 자식을 밖으로 이동해 Summary 일정이 미산정으로 돌아가면 해당 Summary의 bar를 제거한다. 행 ID가 같다는 이유로 이전 dated Summary 표시를 남기지 않으며 같은 Core instance에서 필요한 구조 재투영을 수행한다.
+
+metadata 저장 전후 표시 집합·일정 geometry가 같으면 public/DOM 가로 위치도 보존한다. 복원 직후 늦게 도착한 native scroll은 기존 보호 경로에서 처리하며, 실제 사용자 스크롤·검색/필터 입력·조회 집합·geometry·revision 변경에는 보호를 해제한다. active name filter의 실제 결과가 빈집합으로 바뀐 경우에는 원래 위치를 다시 적용하지 않는다.
+
+표시 결과가 빈집합이면 후속 metadata/no-op 동기화도 위치 보존 snapshot을 생성하지 않는다. 빈 결과에서 native clamp 중 잠시 관측한 비영점 좌표를 저장해 다시 적용하지 않으며, 같은 Gantt instance의 빈 결과와 public/DOM 위치 정합을 유지한다.
+
+이 변경은 새 사용자 조작이나 Milestone 표시 전환을 추가하지 않는다. 현재 Milestone 행/빠른 보기 호환, readonly와 401/412 복구, draft/focus/viewport 보호 및 서버 revision 계약을 유지한다. 실제 제품 projection receipt와 검증 범위는 [#570 실행 기록](exec-plans/active/ISSUE_570.md)에 남긴다.
+
+## Issue #569 — 기하·날짜 이동의 설계 실험
+
+[Adapter ADR](GANTT_ADAPTER_ADR.md)의 fixture는 개발·테스트 전용이며 기존 프로젝트 화면을 바꾸지 않는다. 명령 반환만으로 날짜 이동 완료를 알리지 않고 actual Core/native 좌표와3안정frame을 따로 확인한다. hidden/inert/zero-size/scroll capacity 부족은 측정·복원을 중지하는 명시적 결과로 다룬다.
+
+실제 공간 부족 시 제안된 회복은 보이는 layout 복귀, Chart 공간 확대, 사용자 명시 재시도다. 자동 무한 retry나 오래된 viewport 적용을 하지 않는다. 이 제안은 제품 도입 전 UX 연결이 필요하며 #569만으로 새 feedback 흐름이 제품에 구현된 것은 아니다. 기존 #367의 우측 탐색, #514의 Task 시작일 reveal, #551 비교 stack의 Milestone geometry와 원본 identity/권한 계약은 별도 회귀로 유지한다.
+
+#569의 PR CI 보완에서는 peer/layout 복귀의 동일 scope 위치 보존과 검색으로 줄어든 행의 native scroll clamp를 구분한다. capacity 0인 검색 결과에 이전 세로 위치를 강제하지 않으며, 검색 해제 후 새 사용자 위치를 오래된 peer 복원이 덮어쓰지 않는지 검증한다. 이번 변경은 이 기존 경계를 확인하는 테스트 보완이며 제품 viewport writer나 검색 동작을 바꾸지 않는다.
+
+## Issue #568 — 실제 동기화 완료의 관측
+
+고정 PR #562의 로컬 반복에서 pending wheel의 최신 사용자 위치와 Week 전환 후 Inline 이름 표시 계약 위반이 재현됐다. 이번 진단 도구 추가는 이 두 제품 회귀의 해결을 의미하지 않는다.
+
+조회 탭·Resource 복귀·검색·fullscreen·Inline 저장의 기존 사용자 계약은 유지한다. 분석 fixture는 명시적인 dev/test opt-in에서만 합성 데이터로 제공하며 일반 Project 탐색에 추가하지 않는다. Core 명령 반환을 화면 복귀 완료로 간주하지 않는다. 검증은 Core 공개 좌표 exact, DOM 정수화 ±1px, 실제 scroll capacity, 연속 안정 frame, 새 사용자 입력의 우선권을 함께 관측한다.
+
+[진단 가이드](GANTT_SYNC_TRACE.md)의 단독 Core 관측은 서버 저장·권한·Milestone lane의 제품 인수를 대신하지 않는다. 서버 saved/canonical 값과 native Grid 표시, 첫 focus와 Enter/Tab/Escape는 각각 검증해야 한다. 관측·재현 실패와 후속 제품 수정은 분리한다.
+
+## Issue #538 — Project 분류의 종속 선택
+
+기존 #289의 독립 3개 Select를 관계 기반 `사업부 → 제품 → 사업장/법인`으로 확장한다. 초기값은 모두 미지정, 사업부/제품 변경 시 하위 값은 초안에서만 지우고 `role=status`로 안내하며 저장 전 사용자 확인을 기다린다. 사업부 없이는 제품을, 사업부·제품 없이는 사이트를 변경할 수 없다. 기존 inactive/legacy 참조는 현재값 옵션에 남기고 새 선택은 active relation만 허용한다.
+
+`/project-master-admin`에서는 기존 category Tab과 항목 표 아래에 독립 관계 편집 영역을 둔다. 먼저 사업부-제품을 연결한 후 동일 조합에 사업장/법인을 연결할 수 있다. 관계 해제는 두 번째 명시 클릭이 필요하며, 프로젝트/하위 관계 사용 중에는 서버가 거부한다. 390~wide에서는 control wrap/표 자체 가로 scroll을 유지하고 keyboard/tab/aria/focus, 기존 조회 오류/비밀번호 UI를 보존한다.
+
+## Issue #514 — Grid 시작 위치와 지연된 peer 복원
+
+일반 Grid pointer 선택의 native Core `show:xy`를 유지한다. canonical Task start가 있는 작업은 기존 양축 reveal을 사용하며, renderer가 임시 anchor를 가진 canonical start=null 작업은 `show:y`로 제한해 선택·focus·수직 이동을 유지하고 임의 수평 날짜 이동을 방지한다. Context Menu의 `show:false`, 앱 소유 modifier/checkbox/keyboard 선택과 canonical mirror의 기존 의미는 변경하지 않는다. Week에서 이미 보이는 시작을 재클릭할 때 Core의 작은 padding 조정은 허용하되 시작 가시성과 큰 왕복 이동 없음으로 판단한다.
+
+일정에서 상위 peer로 떠날 때 보이는 Gantt의 snapshot·scope/filter·instance·동기화 세대와 viewport를 저장한다. 복귀의 DOM/Public Core 복원은 실제 Grid/Chart pointerdown·wheel·keydown 뒤 취소하며, source·instance·세대·visibility·scale·column/grid 조건이 달라진 오래된 복원을 적용하지 않는다. 양쪽 복원 경로가 같은 경계를 지켜야 하며 Core 진단 marker가 없어지는 것만으로 입력 위치 보존을 판정하지 않는다. 공개 viewport와 native DOM의 실제 값은 각각 확인한다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다. #518의 상위 일정/Milestone 탭 구조와 무입력 복귀·선택/tree/열/scale/인스턴스 보존은 유지한다.
+
+390/768px의 기존 최소 720px 내부 Gantt 작업면은 이 수정의 배치 변경 대상이 아니다. 지원 splitter/fullscreen UI를 사용한 좁은 폭 smoke는 Core 논리 Chart viewport reveal과 화면의 실제 교집합을 구별한다. 390px 미래 시작은 논리 viewport 안이어도 화면 밖일 수 있으며 자동 page-follow를 보장하지 않는다. 내부 작업면을 사용자가 pan하는 후속 조작은 NOT TESTED다. 1024/1440/1920px에서는 실제 화면 안의 시작 위치를 별도 검증한다. 상세 실행 범위와 최초 실패는 [테스트 계획](TEST_PLAN.md#issue-514--grid-시작-위치와-peer-복원-영향-검증)에 기록한다.
+
+## Issue #518 — 상위 일정·Milestone 탭 단순화 (현재 Workspace 계약)
+
+Project Workspace의 상위 peer 탭은 **일정 / Milestone 대시보드 / 리소스 / 물류 구성** 순서다. 기본 보기는 `일정`이며 이를 클릭하면 별도 `Gantt` 중간 탭 없이 기존 Gantt/Grid/Chart·검색/필터를 직접 표시한다. `전체 프로젝트 / Summary ...`는 #399의 WBS 범위 탭으로서 일정 내부에 남는다. #463의 기존 Gantt/Dashboard 내부 peer-row 배치 정책은 이 계약으로 대체한다.
+
+상위 Milestone 대시보드는 #463의 컴포넌트/readonly KPI·drill을 그대로 재사용하고 Project revision/서버 계산을 변경하지 않는다. 탭 전환은 Project/Task/Link/Calendar mutation이 아니며 Gantt 인스턴스와 Day/Week, Grid 분할·열, Chart scroll, WBS scope, 선택·tree·검색 조건 및 대시보드 조회 조건을 보존한다. `일정 → Milestone` 전환 시 일정 panel은 absolute overlay/visibility:hidden/inert/aria-hidden으로 레이아웃 측정을 보존한다. 다른 상위 보기는 native hidden을 사용한다. 일정 복귀 시 scope/filter가 같으면 기존 public scroll-chart와 DOM 위치를 복원하고, 명시적 drill의 새 target/scope는 덮지 않는다.
+
+Milestone에서 여는 Task/Relation/Copy Dialog는 숨겨지는 일정 panel 밖 Workspace 상위에 렌더링한다. Editor의 origin/focus를 유지한다. 상위 tablist는 peer별 aria-controls/tabpanel, roving tabIndex, Arrow/Home/End 탐색을 제공하고 좁은 화면에서는 tablist 내부만 가로 스크롤한다. fullscreen·기존 Milestone KPI/API 의미는 변경하지 않는다.
+
 
 ## Issue #430 — Cut 활성화와 Dependency 경계
 
@@ -22,7 +180,7 @@ Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`�
 
 ## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
 
-Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
+Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `start/end` prop을 반복 변경하지 않고 Core가 Task 날짜에서 계산하는 start/open end의 SVAR public resize path를 사용한다. #667 CI #2812 보완부터 고정 left bound를 생략하여 과거의 첫 Task/Milestone도 유효한 날짜축에 포함한다. 초기 오늘 기준 왼쪽 여백은 강제하지 않으며 기존 초기 right extent의 보존 하한은 유지한다.
 
 동적 확장은 UI 전용 상태다. Task/Link/Calendar, Scheduling 결과, revision, DB/API, edit permission을 변경하거나 서버 요청을 만들지 않는다. 사용자가 확보한 미래 end는 단조 증가시키며 canonical sync나 Day/Week 전환 뒤에도 이전 end 이상을 public resize path로 복구한다. range extension 자체가 Core store를 re-init하지 않으므로 Gantt/API instance, horizontal/vertical scroll, tree, column, filter, selection 상태를 불필요하게 초기화하지 않는다.
 
@@ -43,9 +201,11 @@ Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure cont
 선택 해제 버튼은 Grid region으로 focus를 복원한다. 메뉴/inline editor 밖 Escape는 선택만 해제하고 focus를 유지한다. Day·Week header의 Escape는 기존 Tooltip 닫기를 우선하며 Task 선택을 유지한다. checkbox의 Copy/Paste와 keyboard Context Menu를 지원하며 다른 input/editor/dialog/contenteditable shortcut은 가로채지 않는다. readonly/saving은 기존 Copy/Paste guard를 따른다. Core에는 공개 select-task로 단일 primary만 반영해 Cut/Move/Delete/Edit는 기존 단일 target을 유지한다. canonical sync 선택은 사용자 gesture로 처리하지 않으며 동일 Gantt instance/scale/scroll/collapse/columns 계약을 유지한다.
 ## Issue #331 Resource 관리 신규 생성 폼 레이아웃
 
-`/resources`의 신규 리소스 폼(이름/코드/개발자 등급/추가)과 신규 리소스 그룹 폼(이름/코드/추가)은 서로 다른 field count를 가지므로 동일한 고정 4열 최소폭 계약을 공유하지 않는다. 각 폼은 전용 grid modifier를 사용하고 데이터 입력 track은 `minmax(0, ...)`로 shrink 가능하게 하며 label/grid item에는 `min-width: 0`, input/select에는 가용 track을 넘지 않는 width/max-width/box-sizing 계약을 적용한다. Action 버튼은 자신의 grid cell 안에서만 배치한다.
+아래는 #331 당시 inline 폼 해결 기록이다. 현재 #453부터 생성 폼은 compact dialog로 이동하며 독립 탭을 사용한다. 입력 containment·native label·API 보호 목적은 유지하고 과거 두 카드/grid 배치는 현행 계약으로 적용하지 않는다.
 
-기존 두 카드의 desktop 2열 배치와 820px 이하 1열 전환은 유지한다. 390/768/1024/1440px에서 리소스·그룹 생성 폼의 direct child bounding box가 서로 겹치지 않고 form/document 밖으로 수평 침범하지 않아야 한다. DOM 순서와 native label/input/select/button을 유지해 keyboard Tab 순서와 focus-visible을 바꾸지 않는다. Resource Catalog API, 관리자 session, catalog revision, `If-Match`, stale recovery 및 개발자 등급 값 계약은 변경하지 않는다.
+#331 당시 `/resources`의 신규 리소스 폼(이름/코드/개발자 등급/추가)과 신규 리소스 그룹 폼(이름/코드/추가)은 서로 다른 field count를 가지므로 동일한 고정 4열 최소폭 계약을 공유하지 않는다. 각 폼은 전용 grid modifier를 사용하고 데이터 입력 track은 `minmax(0, ...)`로 shrink 가능하게 하며 label/grid item에는 `min-width: 0`, input/select에는 가용 track을 넘지 않는 width/max-width/box-sizing 계약을 적용한다. Action 버튼은 자신의 grid cell 안에서만 배치한다.
+
+당시에는 두 카드의 desktop 2열 배치와 820px 이하 1열 전환을 유지했다. #453에서는 이 배치를 독립 탭으로 대체한다. 390/768/1024/1440px에서 리소스·그룹 생성 폼의 direct child bounding box가 서로 겹치지 않고 form/document 밖으로 수평 침범하지 않아야 한다. DOM 순서와 native label/input/select/button을 유지해 keyboard Tab 순서와 focus-visible을 바꾸지 않는다. Resource Catalog API, 관리자 session, catalog revision, `If-Match`, stale recovery 및 개발자 등급 값 계약은 변경하지 않는다.
 
 ## Issue #375 Summary Task bar 시각 계층
 
@@ -116,7 +276,7 @@ Project Workspace의 물류 구성 하위 탐색은 `KPI 대시보드 / 공정 �
 
 ## Issue #268 리소스 관리자 실패·재조회 복구
 
-리소스/그룹 추가는 성공한 canonical 응답을 확인한 경우에만 해당 이름·코드를 지운다. 실패·중복 요청 방어로 실행하지 않은 경우는 입력을 유지하며 다른 폼·검색·구성원 선택 초안을 초기화하지 않는다. 목록 조회 중·실패와 정상 결과를 구분하고, 최신 목록을 확인하지 못하면 이전 결과임을 표시하며 revision을 사용하는 mutation을 잠근다. 재시도는 GET만 수행하고 저장은 사용자가 명시적으로 다시 실행한다.
+리소스/그룹 추가는 성공한 canonical 응답을 확인한 경우에만 해당 이름·코드를 지운다. 실패·중복 요청 방어로 실행하지 않은 경우는 입력을 유지하며 다른 저장 단위·검색·구성원 선택 초안을 초기화하지 않는다. #453의 생성 dialog는 하나만 열 수 있으며 다른 단위 보존 검증은 구성원 초안과 교차한다. 목록 조회 중·실패와 정상 결과를 구분하고, 최신 목록을 확인하지 못하면 이전 결과임을 표시하며 revision을 사용하는 mutation을 잠근다. 재시도는 GET만 수행하고 저장은 사용자가 명시적으로 다시 실행한다.
 
 401은 관리자 화면을 해제하고 재로그인 경로를 제공하되 일반 초안은 페이지 메모리에 보존한다. 로그인·비밀번호 변경의 민감 입력은 네트워크 실패를 포함한 요청 종료 경로에서 지운다. 412는 초안을 유지한 채 최신 목록을 조회하고 다시 확인한 후 저장하도록 안내하며 자동 mutation 재전송은 하지 않는다. 결과를 확인할 수 없는 mutation도 목록 재확인 전 재저장을 막는다.
 
@@ -171,7 +331,7 @@ Project 생성 API/DB, 기준정보 catalog, Owner 의미, password/session/Orig
 | --- | --- | --- |
 | #9 | 프로젝트명 아래 Revision/시간대/휴일/작업/연결 정보와 펼침 설정 패널을 제거한다. 기존 프로젝트 정보·비밀번호 변경·편집 종료 기능은 헤더의 설정 버튼과 별도 모달에 보존한다. | 데이터와 revision은 삭제하지 않는다. 설정 열기·닫기는 Gantt를 재마운트하지 않는다. |
 | #10 | 프로젝트 목록에 삭제 버튼을 항상 표시한다. 클릭 시 최신 이름/revision을 조회하고 파괴적 삭제 경고와 비밀번호 입력 창을 표시한다. 기존 편집 세션이 있어도 새로 입력한 비밀번호 확인이 성공해야 DELETE를 전송한다. | 기존 session/Origin/If-Match 서버 검증, rate limit, transaction, cascade와 rollback을 유지한다. |
-| #11 | Grid 행 +의 첫 하위 작업은 확인 팝업 없이 추가한다. 일반 leaf 부모에는 기존 `convertParentToSummary: true`를 명시한다. | 마일스톤 부모 금지, 근무일 보정, 상위 일정·진척 집계, 중복 mutation 차단을 유지한다. 빈 Summary는 #345 현재 정책을 따른다. |
+| #11 | Grid 행 +의 첫 하위 작업은 확인 팝업 없이 추가한다. 일반 leaf 부모에는 기존 `convertParentToSummary: true`를 명시한다. | Milestone 부모 금지, 근무일 보정, 상위 일정·진척 집계, 중복 mutation 차단을 유지한다. 빈 Summary는 #345 현재 정책을 따른다. |
 | #18 | 정상 결과는 5초 하단 overlay Toast, 오류는 우측 상단 알림함과 복사 가능한 내용으로 제공한다. | 알림 때문에 화면 공간·scroll·focus·Gantt 인스턴스를 변경하지 않는다. 기존 명시적 오류 복구는 유지한다. |
 | #21 | 목록 행과 상세 헤더에 동일한 공용 링크 복사 버튼을 제공한다. 읽기 전용에서도 사용한다. | 서버의 `APP_BASE_URL` 검증과 publicId 직접 접근·인증을 유지한다. 복사는 navigation/DB mutation/revision 변경을 수행하지 않는다. |
 
@@ -201,7 +361,7 @@ Project 생성 API/DB, 기준정보 catalog, Owner 의미, password/session/Orig
 
 오류는 최신순 최대 50건이다. 한도를 넘은 이전 항목의 제외 건수를 표시한다. 패널을 열면 표시 중인 항목을 읽음 처리하고 열린 동안 도착한 오류도 읽음으로 처리한다. “읽은 알림 지우기”는 명시적 사용자 동작이다. 이 보관 상한·읽음 시점은 구현 정책이며 사용자가 숫자를 지정한 것으로 표현하지 않는다.
 
-비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. Task mutation 실패의 canonical 재조회가 실패해도 같은 Gantt 인스턴스에 마지막 확정 일정을 다시 동기화한다(#344). 기존 Gantt reset은 공개 SVAR 동기화 자체가 예외를 낸 최후 복구 경로에만 사용한다.
+비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. 과거 #344의 실패 GET 뒤 snapshot 재생/reset fallback은 #667에서 대체했다. 현재 Task mutation 복구 조회가 실패하거나 오래된 응답이면 UNKNOWN 안내·초안·충돌 쓰기 차단을 유지한다. 같은 Gantt 인스턴스를 보존하고 명시적 최신 조회의 검증된 snapshot 수용으로만 복구하며 자동 재생·reset/remount로 결과를 추측하지 않는다.
 
 `WorkspaceDialog`는 native dialog의 top layer를 사용한다. 설정 모달 안에서도 안내가 보이도록 해당 dialog 안에 live region을 둔다. 알림함에는 자체 복사 안내 live region을 사용한다. Escape/닫기 후 원래 버튼으로 `preventScroll` focus를 복귀한다. 전송 중인 파괴적 동작은 중복 제출과 닫기를 차단한다. 좁은 화면과 긴 내용은 최대 viewport 크기 및 내부 스크롤/줄바꿈으로 처리한다.
 
@@ -438,7 +598,7 @@ Next App Router의 `src/app/icon.svg`는 사이트 헤더의 파란 M 마크를 
 
 편집 가능한 프로젝트의 Grid `작업` 열에서 Summary·Task·Milestone의 이름 텍스트를 한 번 클릭하면 SVAR Core text editor가 열린다. 셀 여백, Summary 펼침 아이콘, 다른 열, Chart와 Context Menu는 이 진입점이 아니다. Grid의 기본 키보드/F2와 이름 더블클릭도 같은 이름 전용 검증·저장 경로를 사용한다. Enter 또는 일반 blur에서 trim한 이름을 보호 Task PATCH로 한 번 저장하고, Escape는 `close-editor({ignore:true})`로 취소한다. 한글 IME 조합 확정 Enter는 저장으로 취급하지 않는다. 빈 값·공백만·well-formed Unicode가 아닌 값·200자 초과는 요청 없이 input을 열어 둔 채 해당 input의 `aria-invalid`/`aria-describedby`와 오류 안내를 제공한다. 숫자처럼 보이는 `001`도 문자열 그대로 저장한다.
 
-저장 중 재입력을 잠그고 서버 성공 후 canonical snapshot을 기존 Gantt 인스턴스에 동기화한다. 실패·401·412·409에서는 기존 이름과 명시적 오류/권한 상태를 유지하며, 서버의 Origin·session·If-Match·revision 검사와 기존 rollback/재조회 경로를 재사용한다. Task Editor의 Summary readonly와 별도 Task/Assignment 저장 계약은 유지한다. 관계 양 끝 Task의 과거 이름 제한은 #258에서 대체하여 linked leaf도 이름 editor를 연다. 편집 가능한 이름 클릭에서는 작업 URL을 열지 않고, readonly 이름처럼 editor가 열리지 않는 행과 Chart bar의 기존 URL 동작은 유지한다. Readonly에서는 inline editor가 없다.
+저장 중 재입력을 잠그고 서버 성공 후 canonical snapshot을 기존 Gantt 인스턴스에 동기화한다. 실패·401·412·409에서는 기존 이름과 명시적 오류/권한 상태를 유지하며, 서버의 Origin·session·If-Match·revision 검사와 기존 rollback/재조회 경로를 재사용한다. Task Editor의 Summary 일정·진척·Baseline readonly와 별도 Task/Assignment 저장 계약은 유지한다. #461부터 Summary 이름·기본 Milestone은 편집 가능하다. 관계 양 끝 Task의 과거 이름 제한은 #258에서 대체하여 linked leaf도 이름 editor를 연다. 편집 가능한 이름 클릭에서는 작업 URL을 열지 않고, readonly 이름처럼 editor가 열리지 않는 행과 Chart bar의 기존 URL 동작은 유지한다. Readonly에서는 inline editor가 없다.
 
 전용 unit/E2E 명세에는 세 유형, 단일 클릭과 F2, Enter/blur/Escape, 오류·중복·IME, 숫자 원문, 401/409/412/네트워크, 링크 무관 작업, 새로고침 영속성, Grid/Chart 인스턴스 및 390/768/1024/1440px overflow를 포함한다. 이 명세와 구현은 정적 검토만 했으며 실제 로컬 test/lint/typecheck/build/브라우저 조작, 구현 전후 화면 수치는 사용자 지시에 따라 **NOT TESTED**다. 공식 SVAR React Gantt Core 2.7.3의 text column, `getTable(true)`와 Table `open-editor`/`close-editor` API 및 설치 EventBus 순서를 확인했다(2026-09-24); 공식 demo의 실제 조작은 미실행이다. API·DB·Scheduling·Security 계약 문서 변경은 서버 계약 불변으로 N/A다.
 
@@ -506,7 +666,7 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - **4대 핵심 KPI 카드 그리드**:
   - **기간 가중 진척률**: `Σ(duration * progress) / Σ(duration)` (Summary 및 Milestone 제외, taskId 중복 없이 정확히 1번 집계)과 시각적 진행 게이지 바, 총 대상 작업 수 및 총 기간(근무일수) 표시.
   - **미완료 지연 작업**: 기준일 기준 `progress < 100 AND end < asOfDate`인 지연 일반 작업 건수 및 '일정 필터' drill-down 버튼.
-  - **마일스톤 경보**: 기준일 이전 미달성된 지연 마일스톤 수 및 `horizonDays` 이내 도래하는 임박 마일스톤 수 경보 뱃지 및 drill-down 버튼.
+  - **Milestone 경보**: 기준일 이전 미달성된 지연 Milestone 수 및 `horizonDays` 이내 도래하는 임박 Milestone 수 경보 뱃지 및 drill-down 버튼.
   - **투입 계획 공수**: 대상 작업들에 배정된 리소스 계획 공수의 총 M/D 및 M/M 환산치, 공수 미배정 일반 작업 건수 표시.
 - **데이터 품질 및 구성 진단 패널**:
   - 물류 미연결 일반 작업 수 및 전체 대비 백분율.
@@ -528,7 +688,7 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
   - 원본 프로젝트의 일정·휴일뿐 아니라 물류 구성(공정 계층, 설비, 시스템, 제어·조율 관계, 리소스 역할, 태스크 물류 연결)과 리소스 배정이 동일 트랜잭션에서 함께 복사된다.
   - 다이얼로그 본문에 작업·연결·휴일 수 외에 `공정 N · 설비 N · 시스템 N` 카운트를 함께 표시하고, "서버에 저장된 최신 일정·물류 구조를 독립 복사하며, 글로벌 리소스 참조는 그대로 유지됩니다." 안내 문구를 제공한다.
   - 비활성 마스터나 비활성 리소스가 포함된 프로젝트 복사 완료 시, 반환된 `warnings` 목록을 하단 토스트 알림(`notify("info", warning)`)으로 사용자에게 안내한다.
-  - `진척률 0%로 초기화` 옵션 선택 시 Leaf 작업 및 마일스톤 진척은 0으로 초기화되고 Summary 작업은 계층 규칙에 따라 자동으로 재계산된다.
+  - `진척률 0%로 초기화` 옵션 선택 시 Leaf 작업 및 Milestone 진척은 0으로 초기화되고 Summary 작업은 계층 규칙에 따라 자동으로 재계산된다.
 - **Excel 내보내기 모달 (`ProjectExcelExportButton`)**:
   - 기존 작업 관계 포함/제외 선택에 더하여, "물류 구성 보고서 포함 (공정·설비·시스템·연결 시트)" 체크박스 옵션을 제공한다 (기본 체크).
   - 체크 시 프로젝트에 등록된 물류 데이터가 있을 경우 독립된 `"Logistics"` 시트가 추가되어 공정/설비/시스템/제어·조율/역할/태스크-물류 연결 정보를 포함한다.
@@ -550,7 +710,7 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 
 - **템플릿 기반 새 프로젝트 생성 (`/projects/new` 및 `CreateFromTemplateForm`)**:
   - 새 프로젝트 생성 페이지(`/projects/new`) 상단에 "빈 프로젝트 만들기"와 "템플릿에서 만들기" 2개 탭(`NewProjectTabs`)을 제공한다 (`role="tablist"` 및 키보드 화살표 탐색 지원).
-  - **템플릿 선택**: 등록된 활성 템플릿 목록을 그리드 카드로 표시하며, 템플릿명/설명 실시간 검색창을 제공한다. 각 카드는 설명, 작업/마일스톤 수와 물류 포함 여부를 표시한다. 동일 그룹의 native radio로 클릭·방향키·Space 선택을 지원한다.
+  - **템플릿 선택**: 등록된 활성 템플릿 목록을 그리드 카드로 표시하며, 템플릿명/설명 실시간 검색창을 제공한다. 각 카드는 설명, 작업/Milestone 수와 물류 포함 여부를 표시한다. 동일 그룹의 native radio로 클릭·방향키·Space 선택을 지원한다.
   - **시작일 기준 일정 자동 재계산**: 새 프로젝트명, 시작일(`projectStartDate`, 기본 오늘), 소유자, 비밀번호(필수 1~12자)를 입력받는다. 인스턴스화 시 지정 시작일 기준으로 작업들의 일정이 근무일 캘린더에 맞춰 자동 재배치되고, 스케줄링 엔진(`recalculateFinishStartDependencies` + `recalculateHierarchy`)을 통해 FS 종속성 및 상위 Summary 일정을 재계산한다. 진척률은 0%로 초기화된다.
   - **세션 자동 발급 및 즉시 전환**: 인스턴스화 완료 시 생성된 프로젝트에 대한 편집 세션 쿠키가 즉시 발급되어 사용자가 비밀번호를 다시 입력할 필요 없이 곧바로 새 프로젝트 편집 화면으로 이동한다.
   - **데이터 독립성 및 오류 처리**: 템플릿이 삭제되어도 생성된 프로젝트는 보존되며, 원본 프로젝트가 삭제되어도 템플릿은 보존된다. 성공한 빈 배열만 등록된 템플릿 없음으로 표현한다. HTTP·네트워크·잘못된 응답은 오류와 명시적 목록 재시도로 구분한다.
@@ -704,7 +864,7 @@ Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. D
 
 ## Issue #235 Resource 관리 화면
 
-`/resources`는 일반 콘텐츠 페이지보다 높은 정보 밀도가 필요한 관리 workspace다. App Shell header와 첫 heading 사이의 top spacing은 Resource route에 한정해 compact하게 유지하며 다른 페이지의 `.main-content` geometry는 변경하지 않는다.
+`/resources`는 일반 콘텐츠 페이지보다 높은 정보 밀도가 필요한 관리 workspace다. Issue #452부터 App Shell header와 첫 heading 사이의 compact top spacing을 `/logistics-admin`, `/project-master-admin`과 공통 관리 shell로 적용한다. Project List/Workspace/생성 화면의 별도 `.main-content` geometry 계약은 유지한다.
 
 로그인 후 상단 관리 명령은 `관리자 비밀번호 변경 / 새로고침 / 로그아웃`을 하나의 행으로 그룹화한다. 내부 optimistic concurrency 번호인 `Catalog Revision N`은 화면에 표시하지 않지만 catalog `revision`, `If-Match`, 412 stale reload 계약은 그대로 유지한다.
 
@@ -780,7 +940,7 @@ Header에는 어느 요일이 근무 가능한지, 공휴일명·비근무 사�
 
 Task C 삭제가 서버에서 성공한 뒤 Summary의 마지막 child 삭제가 `409 EMPTY_SUMMARY_NOT_ALLOWED`로 거부되면, 마지막 child는 유지되고 이미 삭제된 Task C는 Grid/Chart에 다시 나타나지 않아야 한다. 실패 복구의 범위는 현재 요청에서 발생한 미확정 변화다. 빈 Summary를 자동 삭제하거나 일반 Task로 전환하지 않는다.
 
-Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 재조회가 실패하거나 오래된 응답을 반환하면 마지막 확정 snapshot을 기존 SVAR API 동기화 경로로 다시 적용한다. 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않으며, Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
+Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 과거 #344의 마지막 확정 snapshot 재적용은 #667에서 대체했다. 현재 재조회 실패·오래된 응답은 UNKNOWN 안내와 충돌 쓰기 잠금을 유지하고, 최신 세대의 검증된 서버 snapshot 수용 전에는 과거 snapshot을 Core에 재생하지 않는다. 명시적 앱 최신 조회로 복구하며 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않는다. Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
 
 `401`은 읽기 전용으로 전환하고 편집 잠금 해제를 안내한다. `412`는 최신 일정을 확인하도록 안내하며, network 실패는 서버 저장 여부를 단정하지 않고 canonical GET 결과를 확인한다. GET이 현재 확정 revision 이상이면 해당 서버 상태를 적용하고, 조회할 수 없으면 마지막 확인 상태를 유지한다. 실패 요청을 자동 재전송하지 않는다. 서버 authorization·Origin·revision 계약과 Task Editor 초안 정책은 기존 계약을 따른다.
 
@@ -853,7 +1013,7 @@ Chart의 Task/Summary/Milestone bar를 위·아래로 drag해 같은 parent의 v
 
 ## Issue #412 — Resource Catalog 전역 역할 관리
 
-`/resources`의 Resource 영역은 이름/코드/개발자 등급과 별도로 **전역 역할** checkbox group을 제공한다. 생성과 기존 Resource 편집 모두 `PI`, `개발자`, `설비 담당`을 복수 선택할 수 있고 역할이 없으면 명시적으로 `전역 역할: 없음`을 표시한다.
+`/resources`의 Resource 영역은 이름/코드/개발자 등급과 별도로 **전역 역할** checkbox group을 제공한다. 생성과 기존 Resource 편집 모두 `PI`, `개발자`, `설비 담당`을 복수 선택할 수 있고 역할이 없으면 전역 역할 열에 `없음`을 표시한다. #453부터 checkbox는 생성/프로필 dialog에서 제공하며 프로필 변경은 명시 저장한다.
 
 개발자 등급과 전역 역할은 서로 다른 의미다. 역할 checkbox 조작으로 등급 select가 자동 변경되지 않으며 반대도 동일하다. Resource Group 구성원 선택 화면은 각 Resource 역할을 참고 텍스트로 보여 주지만 역할에 따라 구성원을 자동 추가/제거하지 않는다.
 
@@ -863,23 +1023,418 @@ SVAR PRO Resource management는 사용하지 않으며 이 화면은 app-level m
 
 ## Issue #426 — Resource Catalog 역할 UI geometry 정돈
 
-`/resources`의 Resource pane은 역할·개발자 등급·상태·삭제까지 편집하는 primary workspace이므로 Group pane과 동일 폭을 강제하지 않는다. 충분한 desktop/wide 폭에서는 Resource pane에 더 큰 flexible budget을 주고, 가용 폭이 부족하면 두 pane을 조기에 vertical stack하여 어느 쪽도 sibling content 때문에 collapse하지 않게 한다.
-
-Resource row는 **Identity / Profile / Lifecycle·Destructive action** 세 의미 영역으로 읽힌다. Identity는 이름·코드·활성 상태·Project usage를 빠르게 scan할 수 있는 flexible 영역이며, Profile은 현재 developer grade와 Global role 요약을 표시하고 같은 영역에서 select/checkbox로 편집한다. 활성/비활성·삭제는 profile 편집과 divider/spacing으로 분리한다. 역할이 0/1/3개인 경우와 가장 긴 이름·코드에서도 identity와 profile/action bounding box가 겹치지 않아야 한다.
-
-검색 toolbar, 신규 Resource 생성 form, Resource list는 서로 다른 layout responsibility로 유지한다. 검색 결과 count나 생성 form의 intrinsic width가 list usable width를 줄이지 않으며 390/768/1024/1440/wide desktop에서 자연스럽게 reflow한다.
+#426의 Identity/Profile/상태·삭제 경계와 footer 보호는 유지한다. #453부터 동시 두 pane·inline 생성/프로필 편집은 아래 독립 탭·표·dialog 계약으로 대체한다. 과거 Resource pane > Group pane 비율/vertical stack은 새 화면의 인수 기준이 아니다.
 
 Resource Group 구성원 footer는 `닫기` secondary를 좌측, `구성원 저장` primary를 우측에 둔다. 두 버튼은 동일한 control 높이/baseline을 유지하며 좁은 화면에서 wrap되더라도 DOM/keyboard 의미 순서와 document overflow 부재를 보존한다.
 
 이 변경은 Resource Catalog의 관리자 session, Origin, strong `If-Match`, revision/412 stale recovery, 삭제 usage guard, Group membership, 역할 PATCH 실패 시 draft 보존 계약을 변경하지 않는다. #288의 개발자 등급 읽기 표시와 #412의 역할 요약 표시 계약도 유지한다.
 
-## Issue #414 — Resource 역할 공수 및 개발 견적
+## Issue #414/#485 — Global Role 공수 및 개발 견적
 
 Resource tab의 기존 Group → Resource → Task hierarchy를 유지하면서 역할 기반 분석을 같은 full-width workspace 안에 확장한다.
 
-상단은 전체 계획 공수·공수 미설정·과투입과 PI/개발자/설비 담당/역할 미지정 역할 subtotal을 flat summary로 제공한다. 고급 필터에는 수행 역할과 개발자 등급을 추가하며 `개발 견적` preset은 Resource + DEVELOPER 조건을 한 번에 적용한다. 필터는 서버 집계를 다시 요청하지 않고 현재 성공 snapshot의 drill-down 표시 범위만 변경한다.
+상단은 전체 계획 공수·공수 미설정·과투입과 PI/개발자/설비 담당/Global Role 미지정 subtotal을 flat summary로 제공한다. 고급 필터에는 Global Role과 개발자 등급을 추가하며 `개발 견적` preset은 Resource + Global Role=DEVELOPER 조건을 한 번에 적용한다. 필터는 서버 집계를 다시 요청하지 않고 현재 성공 snapshot의 drill-down 표시 범위만 변경한다.
 
-역할/기간/등급 필터가 적용되면 Group/Resource row의 표시 subtotal은 현재 보이는 Task만 합산한다. 반대로 상단 Project 전체 및 역할 subtotal은 필터와 무관한 서버 권위 값이다. 개발자 row에는 등급을 표시하고 Task detail에는 수행 역할, canonical 상태/진행률/일정, allocation 기간/%, 계획 M/D·M/M을 함께 표시한다. 지연은 Project timezone 기준 `미완료 && end < 기준일`이다.
+Global Role/기간/등급 필터가 적용되면 Group/Resource row의 표시 subtotal은 현재 보이는 Task만 합산한다. 반대로 상단 Project 전체 및 역할 subtotal은 필터와 무관한 서버 권위 값이다. 개발자 row에는 등급을 표시하고 Task detail에는 Global Role 집합, canonical 상태/진행률/일정, allocation 기간/%, 계획 M/D·M/M을 함께 표시한다. 지연은 Project timezone 기준 `미완료 && end < 기준일`이다.
 
 기존 independent workload/assigned-target query, stale 결과 보존, source별 retry, M/M 미설정 비활성화, Resource tab 내부 table horizontal scroll, 390/768/1024/1440 responsive, 일정↔리소스 탭 전환 시 Gantt mount/state 보존 계약을 유지한다.
 
+
+## Issue #452 — 공통 관리자 shell·인증 presentation과 action 간격
+
+`/resources`, `/logistics-admin`, `/project-master-admin`은 동일 관리 page shell을 사용한다. 로그인 전후 heading 시작점과 gutter는 동일하며, description의 자연 줄 수를 고정 높이로 숨기지 않는다. 공통 compact top padding은 1.25rem, bottom은 2.5rem이다. Page 최대 폭은 100rem, 좌우 gutter는 24px(640px 이하 16px), heading은 24px, heading→content gap은 16px이다. 인증 panel만 최대 32.5rem으로 제한하고 기존 관리 목록/작업 영역의 별도 폭은 유지한다.
+
+공통 인증 presentation은 padding 1rem, gap 0.75rem과 제목·권한 설명·visible password label·입력·제출·오류/상태를 제공한다. desktop input/submit은 40px 높이와 bottom alignment를 공유하고, 540px 이하에서는 입력 다음 제출 순서로 쌓는다. 입력은 reset 이후에도 border/background/padding/font/focus/disabled가 식별 가능하며 고유 오류 ID와 연결된다.
+
+물류 관리자 만료 재인증은 로그인 입력이 mount된 뒤 focus를 복원하도록 타이밍을 보정한다. 기존 인증·권한 정책 자체는 바꾸지 않는다.
+
+인증 logic은 각각의 feature에 남는다. Resource/Logistics/Project Master session·비밀번호·API 및 Project edit permission은 서로 교차 승인하지 않는다. Enter/중복 제출 방지/401·403·429/만료 후 재인증/민감 입력 삭제/기존 focus 정책, #268 일반 초안·복구 및 #280/#332 dialog·CRUD·revision 계약을 보존한다.
+
+Secondary button은 기본 외부 margin 0이며 간격은 부모 toolbar/form/footer/독립 CTA가 소유한다. `.text-link`의 기존 간격, KPI의 `margin-top:auto` 및 Task Editor 44px hit-area는 유지한다. 세부 Resource 탭/row·물류 표·기준정보 표 재설계는 #453–#457 후속 범위다. [실행 계획](exec-plans/active/ISSUE_452.md)과 [테스트 계획](TEST_PLAN.md)의 실제 증거를 함께 확인한다.
+
+
+## Issue #461 양쪽 Editor의 Milestone 관리
+
+Task/Summary 작업 정보의 단일 Milestone 검색과 Milestone의 두 번째 소속 작업 N 탭은 같은 canonical Membership을 관리한다. #519부터 이 Task/Summary picker 후보는 이름·날짜·상태만 표시하고 외부 ID 및 작업 ID는 표시하지 않는다. 검색은 이름/externalId/taskId를 trim·대소문자 무관으로 계속 지원하며 중복 이름의 선택 값과 React key는 canonical taskId다. Relation Editor, Grid Milestone 필터, Dashboard, Milestone 소속 작업 표는 변경하지 않는다. Summary 기본값과 자손 override를 구분하고 해제는 상속 복귀다. Milestone 후보는 Task/Summary이며 현재 단계 조회와 전체/타 단계 후보 검색을 구분한다. 변경은 검색이나 선택 시 저장하지 않고 기본 한 PATCH 또는 소속 batch 한 POST로 명시 저장한다.
+
+기본·소속·Resource·Logistics의 별도 초안은 탭 전환에 남고 교차 mutation을 잠근다. 연결 작업 열기/일정에서 보기와 닫기/최신 조회에는 전체 미저장 초안의 명시 폐기 확인이 필요하다. 성공은 full canonical tasks/links/revision을 기존 Workspace와 열린 Editor에 반영하며 Gantt를 remount하지 않는다. 오류/401/412/network에서 초안을 자동 폐기하거나 재전송하지 않는다. 완료·재개는 상태 명시 저장이며 구조 변경과 묶지 않는다.
+
+고정 Header/Tab/Footer와 단일 active body scroll을 유지한다. 탭은 한 행 내부 horizontal scroll과 동적 keyboard navigation, 소속 표는 이름/WBS300+유형88+현재 단계180+방식/출처180+상태100+명령112=960px 내부 scroll을 사용한다. 390/768/1024/1440/1920px 실제 Chromium 측정과 캡처는 `output/playwright/issue-461/`에 생성하며 원격 E2E의 같은 fixture로 검증한다. 최종 수동 UX/실기기/스크린리더와 PR quality/e2e/docker는 별도 상태다.
+
+
+## Issue #453 — 리소스 관리 독립 탭과 명시 프로필 저장
+
+기본 `리소스 N`과 `리소스 그룹 N`은 동일 카탈로그의 독립 tabpanel이다. 두 panel은 mounted 상태로 유지하고 비활성 panel은 `hidden`으로 접근성과 focus에서 제외한다. ArrowLeft/Right, Home/End로 탭을 활성화하고 focus를 탭에 유지한다. 다음 Tab은 활성 검색으로 이동하며 Up/Down을 가로채지 않는다. 탭 전환은 GET/mutation을 수행하지 않고 각 검색·상태 조건·표 scroll·구성원 선택과 검색을 보존한다.
+
+리소스 표는 이름/코드 240px 이상, 역할 badge 200px, 등급 112px, 상태/사용 176px, 작업 248px의 최소 976px budget을 갖는다. 그룹 표는 이름/코드 240px 이상, 구성원 수 104px, 상태/사용 176px, 작업 280px의 최소 800px budget이다. fixed 열은 padding을 포함하며 identity만 남는 폭을 사용한다. 긴 한국어/영문 값은 wrap하고 전체 이름을 title과 accessible name으로 제공한다. 좁은 화면의 가로 scroll은 각 표 wrapper가 소유하며 활성 panel은 #452 shell의 가용 작업 폭을 사용한다. 1920px viewport 전체 폭을 작업 폭으로 간주하지 않는다. 검색·전체/활성/비활성·일치 건수·추가 버튼은 toolbar에서 reflow한다.
+
+목록은 표시 중심이며 생성은 compact dialog, 기존 리소스 프로필은 한 dialog에서 등급과 전역 역할을 함께 편집한다. 입력 변경으로 PATCH하지 않고 `프로필 저장` 한 번이 `developerGrade`와 ordered `roles`를 포함하는 기존 PATCH를 원자적으로 호출한다. 역할과 등급, 그룹 구성원의 의미는 독립적이다. 생성 이름 200자·코드 64자 한도는 유지하며 profile에 이름/코드 편집을 추가하지 않는다. 모달은 native WorkspaceDialog를 재사용하며 내부 revision 번호를 표시하지 않는다. 최신 목록 기준 저장 안내로 사용자 맥락을 제공하고 actual If-Match/revision 검증은 유지한다. 생성은 이름, profile은 등급, 폐기 확인은 `계속 편집`에 표시 후 focus를 둔다.
+
+Dirty 생성/profile 취소·닫기·Escape는 `계속 편집 / 초안 폐기` 확인을 거친다. 취소는 원래 control, 폐기는 호출 버튼으로 focus를 복원한다. Group 구성원 section은 그룹 탭 안 목록 아래에 하나만 표시한다. 탭 이동은 초안을 유지하고 다른 그룹 선택 또는 구성원 닫기는 dirty 확인을 거친다. 검색에서 사라진 선택은 보존하며 전체 선택 ID를 PUT한다. 최신 조회에서 그룹이나 선택 Resource가 사라져도 초안을 남기고 이유를 표시하며 부분 PUT를 차단한다. Footer는 닫기 좌측·구성원 저장 우측·동일 높이/중앙 정렬을 유지한다.
+
+두 inline 생성 폼을 동시에 채우던 기존 회귀는 modal 배경 접근 금지 정책에 맞게 이관한다. 실패한 생성 초안·수동 재시도·성공한 저장 단위만 정리는 계속 검증하며 다른 단위 초안 보존은 선행 Group 구성원 초안과 생성 실패/성공을 교차한다. 열린 모달의 `최신 목록 조회`는 기존 GET을 명시 실행하며 초안을 덮어쓰거나 mutation을 자동 재시도하지 않는다.
+
+Pending에서 disabled control 때문에 focus가 body로 빠지지 않도록 해당 열린 native dialog에 focus를 두고, owned panel의 Escape capture로 반복 닫기 요청을 차단한다. Tab/ShiftTab은 dialog 안에 유지한다. Pending은 기존 동기 ref와 표시 disabled를 공유하여 이중 submit·입력·모달 닫기/Escape를 잠근다. 401은 모든 비밀번호를 지우고 로그인 focus로 전환하며 비민감 초안을 memory에 보존한다. 인증 전에는 초안 모달이 로그인 focus를 가리지 않는다. 재로그인 후 최신 카탈로그를 조회하고 `보존한 초안 계속 편집`으로 명시 재진입한다. 412는 기존 최신 GET과 strong If-Match 계약을 유지하며 최신 저장 값과 보존 초안을 검토한 후 수동 저장한다. network/5xx/불명 응답은 저장 완료로 취급하지 않고 mutation을 잠가 명시 최신 조회로 복구한다. 403은 성공 표시 없이 초안을 보존한다.
+
+Issue #486부터 재로그인 후 suspended dirty Resource/Group/Profile 초안이 있는 상태에서 다른 `리소스 추가`/`그룹 추가`/`프로필 편집` trigger를 눌러도 기존 editor를 묵시적으로 재개하지 않는다. `보존한 초안 확인`에서 `초안 유지`를 선택하면 suspended draft와 trigger focus를 그대로 보존하고, 기존 초안의 직접 재개는 계속 `보존한 초안 계속 편집`만 담당한다. `초안 폐기 후 …`를 선택하면 기존 editor draft만 초기화하고 사용자가 실제로 누른 editor kind/resource를 연다. 이 분기는 401/session/revision/pending/keyboard 계약을 바꾸지 않는다.
+
+명시 로그아웃은 성공 또는 서버 확인 실패 모두 관리 화면을 잠근다. 기존 catalog·선택 Group·선택 members·비밀번호 초기화 범위를 유지하며 일반 생성 입력/검색까지 임의 초기화하지 않는다. 삭제는 서버 `deletable === true`일 때만 허용하며 사용 중·사용 여부 미확인을 구분한다. 409/412 삭제 재검증, 취소 호출 버튼 focus·삭제 후 검색 focus 계약은 유지한다. API/DB/auth/domain/공유 dialog primitive 변경은 없다.
+
+## Issue #454 물류 유형 native table 밀도·열·dialog
+
+설비/시스템 유형의 기존 버튼 그룹·공유 상태 필터·inline 추가 폼은 #330 계약을 유지한다. 이름 수정은 stable code를 바꾸지 않는 name-only PATCH이고 활성 변경은 active-only PATCH다. 기존 사용 건수와 프로젝트의 비활성 유형 참조 정책은 서버 계약을 그대로 따른다.
+
+목록은 최소824px native table이다. 표시명은 최소240px에서 남는 폭을 받고, 코드160px·상태88px·사용 건수104px·작업232px은 고정 예산을 사용한다. 긴 한글/영문 표시명과 최대64자 코드는 셀 안에서 줄바꿈하며 전체 값을 숨기지 않는다. 사용 건수는 header/body 우측 및 tabular numeric 정렬이다. 두 row action은40px control과8px gap으로 같은 줄에 두고, td 위아래3px padding을 사용한다. 실제 짧은 AGV/agv 및 MCS/mcs 행은5폭 모두47px이며 긴 값은 필요한 만큼 행 높이가 증가한다. 강제 row height/max-height로 자르지 않는다.
+
+390/768px에서 wrapper만 가로 scroll을 소유하고 문서 폭은 viewport를 넘지 않는다. 1024/1440/1920px에서도 #452 shell 가용 폭을 기준으로 표시명이 확장된다. 부분적으로 보이는 버튼에 native Tab focus가 머물 때는 이 목록 wrapper의 focus capture가 필요한 가로 delta만 적용해 focused control과6px outline 공간을 보인다. 문서/세로 위치나 keyboard 순서를 변경하지 않고 이미 충분히 보이는 pointer control은 가로 이동하지 않는다.
+
+이름 수정과 관리자 비밀번호 dialog의 취소/저장·변경은 같은40px control, 우측 정렬과8px gap을 사용한다. 초기 focus는 이름 또는 새 비밀번호이고 비pending Escape/취소는 호출 버튼으로 복귀한다. 비밀번호 닫기·변경 완료·401에는 password draft를 지운다. 동기 중복 제출은 pending ref로 요청1개만 보내며 pending 입력/취소/닫기 잠금과 실행 handler가 일치한다. 모든 control이 disabled인 동안 열린 dialog에 focus를 유지하고 반복 Escape의 native 닫힘을 owned capture에서 차단한다. 공유 WorkspaceDialog는 수정하지 않는다.
+
+412는 최신 GET 성공일 때 stale 안내를 표시하고 입력을 보존한 수동 저장만 허용한다. 최신 GET이 실패하거나401이면 그 조회/인증 원인을 stale 안내로 덮지 않는다. 열린 이름 dialog의 조회 오류에는 기존 GET을 명시 실행하는 `최신 목록 조회`를 보여주며 정상 상태에는 간단한 기존 footer를 유지한다. network·알 수 없는 canonical 응답은 성공/초안 초기화로 처리하지 않고 최신 조회 전 변경을 잠근다. 401은 보호 화면을 잠그고 비밀번호를 비운 후 로그인 focus로 복귀한다. 새로운 dirty 확인 흐름이나 자동 mutation retry는 추가하지 않는다.
+
+#452가 이미 action margin0을 적용했으므로 역사적 분리 CSS의77.78125→53.78125/24px 제거를 이번 개선 수치로 사용하지 않는다. 동일 긴 code dataset의 before 짧은 행은 자동 열 배분과 작업 열 wrap 때문에390/768에서224.96875px,1024에서140.96875px,1440/1920에서100.96875px였다. after는 같은 dataset에서47px이다. 자세한 실측·실행 실패와 검증 경계는 TEST_PLAN의 #454 절을 따른다.
+
+## Issue #455 — 프로젝트 기준정보 입력과 행 밀도
+
+#332의 인증/관리/생성/목록 section, 범주 roving tab 및 상태 필터 계약을 유지하면서 중복된 제목을 줄인다. 인증 상태는 `관리자 인증됨`, 관리 영역은 `항목 관리`로 표시하고 생성 제목과 이름/코드/정렬 label은 현재 범주를 명시한다. 범주를 바꾸면 공통 생성 입력 값은 유지되며 현재 선택 범주가 제출 대상이다. 별도 범주별 생성 초안이나 확인 단계는 추가하지 않는다.
+
+이름/코드/정렬 입력은 로컬 1px 테두리·불투명 표면·8px 내부 여백·14px/20px 글꼴·40px 최소 높이를 사용한다. focus outline, disabled 표면과 실제 필드 오류 테두리를 구분한다. 일반 서버 오류는 alert이며 정상 필드나 사용 중인 disabled code에 오류 상태를 붙이지 않는다. 사용 중인 code에는 보이는 변경 불가 이유를 `aria-describedby`로 연결한다. 이름 200자/code 64자/정렬 0~1000000의 기존 한도를 유지하며 긴 값은 single-line input의 전체 accessible value, 이름 title 및 native caret/내부 text scroll로 접근한다.
+
+목록은 native table이며 최소 960px budget은 이름 최소 240px + code 192px + 정렬 120px + 상태/사용 216px + 작업 192px이다. 넓은 작업면의 추가 폭은 이름에 사용한다. 입력/작업 버튼은 40px, cell 상하 padding은 3px이며 짧은 행 목표는 divider를 포함한 47px이다. 행 높이를 고정하거나 상태 의미를 잘라내지 않는다. 폭이 부족하면 표 자체의 수평 scroll을 사용한다. 실제 Tab/pointer focus에서 필요한 수평 delta만 보정해 표 owner 안에 focus 외곽선 여유를 확보하며 문서/세로 scroll은 직접 변경하지 않는다.
+
+범주/상태 필터만 바꾸는 동작은 GET/mutation/revision 변경 없이 행 초안과 공통 생성 입력을 유지한다. 반면 기존 `applyCatalog`는 저장·활성 상태 변경·새로고침·412 후 GET 성공 시 모든 행 초안을 canonical 값으로 다시 만든다. 다른 미저장 행을 덮는 이 기존 위험은 Manager 결정으로 이번 범위에서 DEFER이며 초안 merge/확인 dialog는 추가하지 않는다. 화면에 한 항목씩 저장하고 최신 목록 조회 시 미저장 입력이 바뀐다는 안내를 제공한다.
+
+생성/행 저장/password 저장은 동기 pending guard로 중복 요청을 막는다. 비밀번호 dialog는 새 비밀번호 초기 focus, Escape/취소의 입력 정리와 trigger 복원, pending 중 반복 Escape/닫기 잠금을 제공한다. 412 후 최신 GET 실패나 401 원인을 stale 안내로 덮지 않으며 자동 mutation 재시도는 하지 않는다. 서버 session/Origin/If-Match/안정 code 및 inactive 참조 정책은 변경하지 않는다.
+
+## Issue #462 Milestone 조회와 Grid 진입
+
+일정 toolbar의 Milestone 조건(전체/미지정/특정 Milestone)은 유형 빠른 보기와 독립적으로 유지한다. 기존 검색·기간·리소스·물류·WBS scope 조건과 AND로 조합하고 scope별 TaskFilterState Map에 함께 보존한다. 후보는 이름/외부 ID/작업 ID를 trim·case-insensitive 검색하며 canonical start, externalId, taskId 순으로 안정 정렬한다. 요청일은 상세 metadata이며 정렬이나 WBS 저장의 기준이 아니다. Milestone 조건 해제는 나머지 조건을 보존하고 전체 초기화는 모두 비운다.
+
+특정 단계의 진짜 matching은 그 Milestone과 effective 일반 Task다. Summary는 필요한 ancestor/설정 context이며 matchCount/matchingTaskIds와 고유 일반 Task 수에서 제외한다. 빈 Summary의 단계 기본값 context는 types를 제외한 다른 조건을 통과해야 하며 scope 밖 행을 끌어오지 않는다. 미지정은 effective target이 없는 일반 Task이며 상속 Task는 포함하지 않는다. 전체 canonical hierarchy로 projection을 계산하고 가시성만 공개 filter-tasks로 적용한다. open:false는 사용자가 접은 tree 상태를 보존한다.
+
+Milestone 열은 기본 숨김·180px로 기존 열 메뉴에서 선택한다. 기본 최소 budget 433px, 단계 포함 613px, 전체 선택 열 포함 929px이며 작업명 최소 180px와 owned horizontal scroll을 유지한다. 공개 set-columns는 기존 조절 width/flex를 보존한다. 일반 Task/Summary 셀은 effective 이름·직접/상속을 표시하고 focus 가능한 동일 Editor 진입 버튼의 설명/상세에서 전체 이름·외부 ID·작업 ID·상속 출처를 확인한다. Milestone 자신의 행은 소속으로 표시하지 않는다.
+
+Context Menu Milestone 연결…은 #461 기본 작업 탭, 소속 작업 관리…은 같은 Editor의 Milestone 소속 탭을 연다. readonly/완료 상태도 조회할 수 있고 pending은 셀·메뉴 표시와 실제 handler 모두 차단한다. 진입은 mutation하지 않으며 Escape/닫기 후 기존 행 focus로 돌아간다. 필터·열 전환은 Project GET/mutation/revision 증가/remount를 만들지 않는다. URL launcher의 DOM observer는 각 Gantt frame에 공급된 full canonical URL Map을 decoration할 뿐 Project GET을 수행하지 않는다. frame cleanup은 이전 URL을 제거하고 다른 프로젝트 데이터와 격리한다. 초기 조회/명시 refresh·retry와 cross-tab canonical catch-up, 서버 authorization은 기존 계약을 유지한다.
+
+특정 M + Milestone-only는 M 자체와 해당 행을 표시하기 위한 scope 내 hierarchy ancestors만 표시한다. Membership 설정용 Summary context/빈 Summary는 추가하지 않는다. 전체/Task-only에서는 설정 context를 유지하며 match/count와 구분한다.
+
+Milestone 열 표시 시 공개 `set-columns`의 현재 사용자 width/flexgrow를 보존하고 `resize-grid`로 optional 열의 폭 증감만 반영한다. 작업명 최소 180px을 stage 열 추가로 소비하지 않으며 기본 최소 433px/단계 포함 613px/전체 optional 929px 예산은 Gantt 내부 scroll owner에서 처리한다. 2026-10-06 [공식 resize-grid action](https://docs.svar.dev/react/gantt/api/actions/resize-grid/)과 설치 Core 2.7.3 구현을 확인했고, 실제 grip 조절 뒤 Milestone 열 표시/숨김의 폭 보존은 관련 Chromium fixture로 검증한다.
+
+## Issue #463 Milestone 대시보드
+
+#463의 Dashboard는 같은 Project snapshot의 읽기 전용 보고서다. 다만 당시 일정 내부 Gantt/Dashboard peer 배치·grid cell·숨김/복원 설명은 **#518의 상위 Workspace tab 계약**으로 대체한다. 현재 Gantt 인스턴스와 WBS 범위·검색을 보존하고 Dashboard는 **프로젝트 전체 기준 · Gantt WBS 범위 미적용**을 표시한다. 명시적 전체 일정 drill은 대상 ID 조건을 적용하고 이전 범위·조건 복구 버튼을 제공한다. 상세·소속 작업은 동일 Editor에서 열리며 readonly에서도 조회 가능하다. Gantt fullscreen 종료 뒤 상위 뷰를 전환한다.
+
+기본 조건은 단계 이름·외부 ID·작업 ID 검색, Milestone 선택, 자동/수동 기준일, 1~90일 임박 기간이다. 추가 조건은 개인 리소스·assignment 역할·개발자 등급·물류·공수 기간·M/M 기준이다. 적용 조건 수와 기간·환산 기준을 disclosure 밖에도 표시한다. 여러 Milestone 선택은 같은 milestoneIds 상태에 유지하고 단일 picker 대신 선택 개수와 해제를 표시한다. 검색과 Milestone 선택은 표시 단계 S만 제한한다. 기간과 리소스·물류 조건은 Project 전체 보고 공수 F를 제한한다.
+
+완료율·Ready·선행 차단·지연·임박·계획 위험·소속 적용률은 중첩 가능한 지표다. 분모 0은 대상 없음, 실제 0은 0%로 표시한다. Milestone 전체 상태 표는 서버 full member/predecessor 상태와 진행률을 표시하며 F의 일부 작업으로 Ready를 다시 계산하지 않는다. 전체 원인에는 현재 보고 조건이나 Gantt WBS 밖의 미완료 작업·직접 선행 단계도 이름과 ID로 공개한다. 완료 기록 불일치는 진단이며 자동 완료·재개를 만들지 않는다.
+
+공수 표는 별도로 모든 F 단계 bucket과 미지정을 표시한다. Milestone 검색 결과가 0개여도 F 합계가 있으면 유지한다. Grand Total은 표시 단계 행의 합이 아니라 모든 bucket과 미지정의 합이다. M/M은 명시 query 기준, 유효 환경 기준, 미설정 순이며 미설정은 —와 사유를 표시한다. 기준값·출처를 함께 표시하고 고정 20 fallback을 사용하지 않는다.
+
+리소스 drill은 응답의 Project/Catalog revision, 개인 resource/task/assignment ID, 공수 from/to와 원본 Stage total을 전달한다. 기존 Resource 공수 GET에 같은 기간을 요청하고 range echo와 두 revision을 확인한 뒤 기존 표시 필터와 AND로 조합한다. 빈 ID는 전체로 확대하지 않는다. 범위 해제는 기본 Resource 조회 기간으로 복귀한다. Stage 공수는 반올림 전 합계이고 Resource는 기존 반올림 기준이다. Stage 명시 M/M 기준은 Resource에 전달하지 않으며 Resource 환경 기준과 상단 Project 전체 기간 합계/아래 선택 표시 subtotal 차이를 안내한다.
+
+초기 값은 서버 Project timezone의 기준일이다. 수동 기준일은 현재 snapshot의 평가일이며 과거 실제 상태를 복원하지 않는다. 성공 응답은 프로젝트·revision·정규화된 조건 echo·catalog revision을 확인한다. 이전 요청 역전은 무시하고 조건 변경 중 이전 값을 유지하면 stale 사유와 drill 잠금을 표시한다. 오류에는 명시 재시도를 제공한다. 30초 캐시는 활성 진입과 focus/visibility에서 같은 날의 catalog 변경도 catch-up하며 비활성/hidden 무한 polling을 하지 않는다. 자동 날짜 경계 timer는 local Project day당 한 번만 시도하며 실패하거나 서버가 이전 날짜를 유지해도 매분 재요청하지 않는다. focus/visibility의 TTL 재시도는 별도다. known canonical revision 변경은 즉시 재조회한다.
+
+물류 대시보드는 기존 KPI·포함 작업·진척·계획 M/D를 유지하고 관련 Milestone 전체 상태를 별도 섹션에 표시한다. 관련 단계는 서버 projection이며 화면이 새 Gate를 계산하지 않는다. 미설정 M/M은 —와 기준 설명을 제공한다.
+
+
+### #463 Context Menu 선택과 peer layout scroll
+
+Gantt의 Task Context Menu로 현재 선택 밖 작업을 열 때 기존 #384의 app-owned `selectedTaskIds/data-copy-selected`와 공개 Core selection mirror를 모두 유지한다. 다만 Context Menu open 직후 app-owned selection과 React/SVAR virtual-row layout 정렬이 내부 Grid scroll을 만들 수 있으므로, 메뉴 scroll guard는 임의 timeout 없이 bounded two animation frames의 opening settle 동안 이 내부 이동을 새 baseline으로 흡수한다. settle이 끝나면 현재 canonical task element의 실제 scroll 위치를 기준으로 arm하며 이후 가로/세로/페이지의 실제 사용자 scroll은 기존처럼 즉시 메뉴를 닫는다. 동일 위치의 지연 scroll 알림은 닫힘 신호가 아니다. Edit/Copy/Cut/Move/Delete 등 메뉴 명령, 일반 click/checkbox/keyboard selection, 권한·revision·scope 계약은 변경하지 않는다.
+
+
+### #463 Context Menu settle surface 보존
+
+Task Menu opening settle 중 scroll baseline을 다시 잡을 때는 menu를 연 원래 surface를 보존한다. 연결된 trigger가 남아 있으면 그 실제 DOM 요소를 사용하고, virtual row/bar 교체로 끊어진 경우에만 taskId와 원래 `grid|chart` surface를 함께 사용해 동등한 현재 요소를 찾는다. 따라서 Grid selection/layout 내부 보정은 opening settle에서 흡수하면서도 Chart bar에서 연 메뉴의 이후 실제 Chart scroll은 기존처럼 즉시 닫힘 신호가 된다.
+
+
+### #463 Milestone picker keyboard visibility
+
+Milestone picker의 Home/End/Arrow 이동은 `aria-activedescendant` 갱신과 대상 option의 list viewport 가시성을 하나의 keyboard 처리 경계에서 보장한다. 열린 list의 option DOM은 이미 존재하므로 대상 option을 animation frame으로 지연하지 않고 즉시 `scrollIntoView({ block: "nearest" })`한다. 입력 focus는 유지하고 popup viewport fit, Escape trigger focus 복귀, list 내부 scroll 소유권은 기존 계약을 유지한다.
+
+## Issue #464 Milestone 소속 보존과 JSON 교환
+
+Task 메뉴의 Copy/Paste와 Ctrl/Cmd+C/V는 Workspace의 같은 hierarchy command 경로를 사용한다. 공유 `previewMembershipCopy`는 화면에 보이는 행이 아니라 현재 revision의 전체 canonical Task/Link와 정규화 root·자손 집합 C, 목적지 anchor/placement를 사용한다. 외부 명시 소속 제외 또는 상속 변화가 있으면 저장 전에 영향 확인 대화상자를 연다. 외부 명시 연결 제외 건수와 유효 소속·상속 출처가 달라지는 Task/Summary 건수를 구분하고, 기존 Milestone과 복제될 Milestone의 원본 ID를 구별한다. 복사본의 신규 UUID를 미리 생성한 것처럼 표시하지 않는다.
+
+취소는 POST를 보내지 않는다. 확인은 검토한 publicId/revision/roots/C/anchor/placement와 영향 계획을 재검증한 뒤 같은 revision의 단일 Copy 요청에 `acknowledgedMembershipExclusions:true`를 포함한다. 권한·revision·Milestone·배정 제한은 서버가 다시 검사한다. 완료 잠금이나 불완전한 canonical 소속은 동의로 우회하지 않는다. 저장 중 중복 실행·닫기·Escape 및 다른 mutation을 잠그고, 실패하면 검토 내용을 유지하며 자동 재전송하지 않는다. native Gantt fullscreen에서는 기존 fullscreen host에 확인 대화상자를 portal로 연결한다. 취소 후 목적지 작업으로 focus를 복원한다.
+
+가져오기는 보호된 JSON preview/commit 두 단계다. preview는 동일 File을 서버에 검증 요청하고 대상 publicId/baseRevision/previewDigest와 신규 작업·연결·명시 소속 수, 정규화 소속·상속 출처, 일정·Baseline 변경, 경고 및 대상 Calendar를 표시한다. commit은 미리본 원본 File과 `X-Import-Preview-Digest`, `If-Match` preview revision을 함께 전송한다. 성공 201의 canonical identity/revision을 확인해 Workspace에 적용한 뒤 닫는다. 파일·대상·revision·권한 세대가 바뀌면 기존 preview 동의가 만료된다. preview 조회 취소는 abort하고 늦은 응답을 무시한다. commit 중에는 중복 Enter/클릭·닫기·Escape를 막는다. 401/412/네트워크 오류에는 File을 유지하고 새 인증·최신 조회·새 preview를 사용자가 명시적으로 실행한다. 자동 commit/retry는 없다.
+
+내보내기에는 JSON 1.1 형식이 추가된다. 전체 일정·Dependency·명시 소속·Description·URL·Baseline을 다운로드하며 Resource/Logistics는 포함하지 않는다. 원본 UUID는 참고 metadata이고 가져오기 대상 UUID는 새로 생성한다. JSON에서는 이미지 기간·시간 단위 옵션을 숨긴다. 최신 GET snapshot과 실제 export `If-Match` revision이 같은 legacy mixed Dependency 안내를 먼저 보여 주고, 사용자가 원형 보존 및 현재 Import 제한을 확인한 뒤 다운로드한다. 412는 기존 확인을 폐기하고 새 검토를 요구한다. Excel의 단계 출력은 일정 Dependency 포함/제외와 독립이며 서버 기본 전체 Project·오늘 Project timezone·임박 14일·서버 환산 기준을 사용한다. 현재 Dashboard 검색·선택·공수 범위·수동 평가일과 같다고 표시하지 않는다.
+
+새 Copy 영향 표는 최소 720px, Import preview 표는 최소 960px이며 각 표가 가로 스크롤을 소유한다. Copy/Import dialog는 헤더와 저장 action을 고정하고 내부 body가 세로 스크롤을 소유한다. 표 세로 조회는 최대 `min(360px,40dvh)` 내부 스크롤을 사용하고, 긴 이름·외부 ID·UUID는 줄바꿈한다. 390px action은 한 열로 배치하고 native dialog의 키보드 경계·Escape·focus 복원을 유지한다. 변경 전 실제 캡처는 NOT TESTED다. baseline `ca15145b1167b7253841e648d23e59d1a172022a`의 Import 즉시 업로드/Copy 무확인/Excel·SVG·PNG 형식 선택 소스와 동일 fixture 재현 절차를 비교 근거로 사용한다. 로컬 fixture와 원격 CI/독립 QA 증거는 구분한다.
+
+Import 412에서는 파일과 dialog를 유지한 채 `최신 일정 조회`로 전체 canonical snapshot을 명시적으로 조회한다. 이 GET은 Workspace ready 상태를 유지하고 dialog를 unmount하지 않는다. 기존 preview를 무효화한 뒤 새 revision이 표시되면 사용자가 `다시 미리보기`와 `기존 일정에 추가`를 각각 실행한다. 자동 preview/commit은 없다. 최신 조회도 취소·target/generation·AbortSignal을 검사하며, 취소하거나 프로젝트가 바뀐 뒤 도착한 응답은 parent snapshot 적용 전에 폐기한다. 조회 실패에는 File을 유지하고 명시적 재조회만 허용한다.
+
+작업 메뉴를 열기 위한 미선택 행 선택은 공개 `select-task`의 `show:false`로 Core에 반영한다. 이미 보이는 호출 대상의 위치를 선택 직후 자동으로 이동시키지 않으며, 일반 클릭·키보드 선택의 기존 reveal 및 modifier/multi-selection은 유지한다. 메뉴가 열린 뒤 실제 사용자 스크롤·resize에는 기존 guard가 즉시 메뉴를 닫고, 같은 위치의 지연 scroll 알림은 무시한다. 설치 Core 2.7.3 타입과 [공식 select-task action](https://docs.svar.dev/react/gantt/api/actions/select-task/)의 show 기본 true/false 계약을 2026-10-06 확인했다. 하단 가상 행의 미선택 namecell 우클릭과 native/public 수직 위치 보존은 `tests/e2e/task-context-menu-scroll.spec.ts`에서 검증하며, 문서 확인과 실제 browser 결과를 구분한다.
+
+Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적지 우클릭 직후 조건부 feedback 줄을 제거하면 Gantt 높이가 바뀌고 scrollIntoView된 Grid 조상의 위치가 clamp되어 새 메뉴가 닫힐 수 있기 때문이다. 메시지는 clipboard의 복사 결과를 계속 설명하며 일반 클릭·키보드·modifier 선택의 기존 메시지 정리는 유지한다. Copy→더 아래 목적지 이름 셀 우클릭→활성 Paste 위치 submenu→소속 영향 확인·취소의 실제 경로를 검증하며 clipboard/revision 조건이나 실제 사용자 scroll 닫힘을 완화하지 않는다.
+
+
+## Issue #456 — Editor 조작과 metadata 저장의 Gantt 상태 보존
+
+Task Editor 진입·탭 이동·취소는 동일 API/instance와 현재 WBS 범위·fullscreen·scale·행 선택·tree·실제 열 폭 및 public/DOM scroll을 보존한다. scoped 표시 ID 배열은 상위 렌더마다 새로 생성될 수 있으므로 filter-tasks는 같은 API와 정렬·중복 제거한 ID 집합에 대해 재적용하지 않는다. null(필터 해제), 빈집합, 실제 ID 변경 및 새 API는 구분하고 기존 `open:false`와 serialized queue를 유지한다. metadata는 기존 canonical sync가 소유하며 필터 dependency에 Task 객체 identity를 넣지 않는다. active name/status 필터의 metadata 변경으로 표시 ID 집합이 바뀌면 raw query가 같아도 metadata-only 복원 대상에서 제외한다.
+
+metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정렬·중복 제거한 ID 집합), Project Calendar, 행 순서와 각 Task의 taskId/externalId/parentExternalId/siblingOrder/type/start/end/duration/requestedStart/scheduleMode/baselineStart/baselineDuration/baselineEnd 및 scoped SVAR Link 의미가 같은 경우에 한정한다. name/description/url/progress/status 변경은 Task metadata signature로, Project metadata 저장은 canonical revision 진행으로 구분한다. 기존 Editor·no-op 렌더의 일회성 snapshot/복원은 유지하고 잔존 metadata guard만 실제 Task metadata 또는 Project revision 변경에 한정한다. 날짜·기간·유형·계층·Link 변경은 이 보존 경로를 사용하지 않는다.
+
+canonical sync에서 public scroll 좌표를 기록하고 layout settle 뒤 ensureTimelineEnd를 다시 확인한다. 같은 API, 실제 연결된 Gantt DOM, 동일한 현재 semantic filter signature, visible 상태, continuity key, 최신 sync version, scale, public gridWidth와 열 ID/width/hidden 의미가 유지되고 Chart/Grid pointer·wheel·keyboard 입력이 없을 때만 공개 scroll-chart로 원래 좌표를 복원한다. #538 후속의 기존 helper는 0 reset뿐 아니라 120→91 같은 Core의 비영점 이동도 이 조건 안에서 복원한다. 실제 membership·geometry 변화에 의한 clamp는 이 경로의 복원 대상이 아니다. scope/filter/date 이동이나 사용자 scale·열 변경을 이전 viewport로 덮지 않는다. 새 sync에서는 유효한 인계 좌표를 먼저 확인하고 이전 listener를 교체한다. 입력·문맥 무효화·catch·API 교체·unmount에서는 snapshot/input listener를 정리한다. unmount는 listener 제거와 함께 request ref를 null로 무효화하고, 뒤늦은 queue 실행은 연결된 root가 있을 때만 snapshot을 생성한다.
+
+metadata request의 복원 시도는 한 번만 소비한다. 같은 API/DOM·geometry·scope/filter·scale/열·peer 문맥이고 실제 입력이 없으면 해당 capture의 인계 좌표와 입력 listener를 다음 metadata/revision 변경까지 유지한다. 새 render로 복원 시도가 대체된 경우도 인계 좌표는 유지하되 오래된 명령을 재실행하지 않는다. 중간 no-op 복원은 현재 좌표를 사용하므로 초기화와 Editor 취소의 기존 동작을 유지한다. 입력·문맥 무효화·API 교체·unmount에서는 listener와 capture를 정리한다.
+
+#570의 metadata 복원 완료 뒤에는 기존 peer scroll guard에 geometry·revision을 포함한 가로 위치 보호를 남겨 늦은 native scroll을 처리한다. 기존 peer guard가 있으면 덮지 않으며, 사용자 입력·숨김·scope/filter/scale/열·실제 DOM geometry 변경과 다음 revision에서 보호를 해제한다. native repair는 기존 최대 3회 예산을 사용한다. 실제 membership 변경으로 결과가 빈집합이 되면 metadata 보호를 동기 해제하고 이전 가로 위치를 복원하지 않는다.
+
+설치 SVAR Core 2.7.3의 공개 getState scrollLeft/scrollTop(pixel), scroll-chart(left/top), set-columns(columns)를 사용한다. Core/PRO 내부 구현을 복제하거나 새로운 controller/API를 도입하지 않는다. 반복 filter action 제거와 canonical/columns 뒤 복원은 실제 #456 브라우저 관찰을 위한 앱 보강이며 SVAR가 일반적으로 viewport 보존을 보장한다는 뜻은 아니다.
+
+## Issue #493 — Summary 메타데이터 편집
+
+작업 정보에서 Summary도 Description과 URL을 일반 Task와 같은 위치·컴포넌트로 편집한다. Summary라는 이유만으로 두 입력을 숨기거나 readOnly로 만들지 않으며, 프로젝트 readonly·저장 중·다른 편집 단위의 미저장 초안 등 기존 mutation 잠금은 동일하게 적용한다.
+
+Summary의 일정·진척·상태·Baseline은 자손 기반 파생값이므로 기존 readOnly 표현을 유지한다. Description/URL 저장은 동일 PATCH와 canonical snapshot 갱신을 사용하며 Gantt remount, reload, selection/scroll/scale 초기화를 유발하지 않는다.
+
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+Project 일정에서 Grid의 작업 행 또는 Chart의 Task/Summary/Milestone bar에 pointer를 올리면 같은 조회 전용 Tooltip을 표시한다. 정보 구조는 두 줄이다.
+
+```text
+작업명
+시작일: <locale date 또는 —> · 종료일: <locale date 또는 —>
+```
+
+작업명·시작일·종료일의 authority는 현재 canonical `ProjectTaskDto`다. SVAR `ITask`는 hit target 식별에만 사용하며, 일정 없는 Summary에 Core가 넣는 anchor 날짜를 Tooltip 일정으로 사용하지 않는다. 날짜는 Grid와 같은 `formatLocaleDateOnly`/browser locale 정책을 재사용한다.
+
+SVAR 공식 Tooltip API는 설계 참고로 확인했지만 설치 2.7.3의 실제 wrapper가 Milestone·WBS scope와 Header Tooltip 공존에서 불안정함이 PR CI로 확인되어 최종 구현에는 사용하지 않는다. 기존 `TASK_TARGET_SELECTOR`에 app-owned mouse event delegation을 적용해 Grid row와 Chart bar를 같은 canonical taskId로 해석한다. Tooltip은 hover 중에만 존재하고 focus/scroll/영역 이탈 시 닫히며 click/double-click/context menu/drag/dependency 동작을 가로채지 않는다. Tooltip hover state와 native event listener는 별도 `TaskHoverTooltipLayer`가 소유하여 표시/닫힘이 `ProjectGantt`/SVAR를 재렌더링하지 않는다. Day/Week, readonly/edit, fullscreen, `최상위로 열기` WBS scope가 바뀌어도 Gantt/API instance를 재생성하지 않고 현재 canonical snapshot을 읽으며 긴 이름은 최대 viewport 폭 안에서 wrap한다.
+
+## Issue #490 — 프로젝트 설정 폼과 상태 보존
+
+프로젝트 설정의 기본 정보·작업 캘린더·편집/보안 탭은 기존 순서와 저장 단위를 유지한다. 탭의 스크롤 영역은 3px outline과 3px offset이 보이도록 사방 6px 여유를 둔다. 작업 캘린더의 국가·기간·날짜 예외 입력은 기존 semantic input token, 40px 높이, 1px 테두리와 8px/12px 안쪽 여백을 사용한다. 미리보기/저장 버튼은 내용 폭을 유지하며 12px 간격으로 자연스럽게 줄바꿈한다.
+
+저장 중 WorkspaceDialog는 가장 위의 자체 native modal에 대한 Escape keydown을 취소한다. disabled 제출 버튼에서 BODY로 초점이 옮겨져도 빠른 두 번의 Escape가 취소 불가능한 native close를 만들지 않도록 commit 시점에 보호하며, 중첩 nonbusy modal의 Escape와 busy 해제/언마운트 뒤 정상 닫기는 유지한다. 기존 Tab 순환·호출 버튼 초점 복원·onCancel 정책은 그대로 사용한다.
+
+기본 정보 초안은 탭 전환과 Escape/reopen 사이에 기존 부모 state로 남는다. 작업 캘린더 내부 초안과 비밀번호 입력의 기존 수명·민감 입력 초기화는 변경하지 않는다. 401은 readonly 전환, 412는 설정 닫기와 canonical 재조회/metadata 재작성이라는 기존 정책을 따른다. 모든 초안을 412 뒤 보존한다는 계약을 추가하지 않는다.
+
+Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 반환할 때도 canonical geometry가 같으면 기존 Gantt viewport 복원 후보가 된다. 같은 instance/context/filter/scale/grid/columns, 사용자 입력 없음과 scroll이 0으로 붕괴한 조건을 계속 확인하며 실제 geometry/date/filter 변경에는 복원을 적용하지 않는다. Calendar 저장 뒤에도 canonical 날짜와 Link geometry가 같으면 보존 후보를 유지한다. 실제 API의 복합 조건 PASS와 정식 DTO를 사용한 mock canonical 경로의 가로 scroll 120→0 FAIL은 별도 근거다. 전체 실제 API 결함으로 확대하지 않는다. 검증 범위와 원본 이력은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+### Issue #490 비밀번호 변경 검증 보완
+
+유효한 비밀번호 변경은 실제 PUT204 후 호출자에게 새 edit session을 발급하고 기존 다른 세션을 revoke한다. UI는 beginRefresh(false)로 설정을 닫고 canonical GET/current-session을 재확인한다. 잠시 readonly/checking을 거쳐 호출자는 edit를 유지하며 revision은1 증가한다. 변경 중 비밀번호 입력은 즉시 비우고 disabled로 잠그며 빠른 두Escape와 중복 제출을 기존 busy guard로 막는다. 탭의 native keyboard focus는 사용할 수 있다.
+
+성공 재조회 동안 호출 버튼이 unmount되어 실제 초점은 BODY로 돌아간다. 이를 성공 후 호출 버튼 복원 PASS로 보고하지 않는다. 재조회 후 정상 설정 Escape는 settings 버튼, logout은 unlock 버튼, 새 비밀번호 unlock은 settings 버튼으로 복원하는 기존 흐름을 별도로 검증한다. 구 비밀번호는401, 새 비밀번호는204이며 다른 이전 세션은 readonly다. fullscreen frame 밖의 프로젝트 header에는 fullscreen 중 설정 진입이 없으므로 그 조작은 N/A이며 지원 fullscreen 왕복 상태 보존과 구분한다. 상세 실제 계약/관측은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+## Issue #491 프로젝트 전송 폼 배치
+
+프로젝트 생성·복사·템플릿 선택/생성, JSON preview/commit, readonly Excel/JSON/이미지 Export와 inline 공수 옵션을 실제로 관측했다. 템플릿 저장 form의 field/footer와 footer peers, Export footer peers는 소비자 로컬 12px gap을 갖고 Export390px stack을 유지한다. JSON Import body는8px gutter/scroll padding과 table-owned scroll margin으로 native region focus ring의6px 예산을 확보한다. 전역 control/공용 dialog/controller/API 계약을 바꾸지 않는다.
+
+복사·템플릿 저장은412 최신 원본 조회 후 명시 재제출과 비민감 초안 보존, 민감 입력 clearing을 유지한다. Import preview는 취소 가능하고 commit은 busy 취소 금지다. readonly Export 실제 성공은 dialog를 닫는다. 새 publicId를 만드는 생성/복사/instantiate navigation은 같은 Gantt instance 보존 N/A이고, 기존 workspace의 dialog 취소/템플릿 저장/지원 fullscreen 버튼 왕복 및 실제 Import commit은 검증한 상태를 보존한다. C header가 native fullscreen host 밖인 진입, CSV mapping UI, 별도 견적 modal은 지원하지 않는다.
+
+최종 로컬8case PASS와 5폭 geometry·대표390/1440 native focus, 원래 실패·helper 분류 정정·실제 API와 controlled 상태의 범위는 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. 원격 quality/e2e/docker, 독립 최종 QA, 실기기/125%/스크린리더/운영은 별도이며 CI 등록만으로 PASS를 주장하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #525 리소스 기본 Dashboard
+
+리소스 탭은 기본 그룹/개인 표시 모드와 compact toolbar·flat 선택 범위/Global Role KPI·내부 scroll 표를 사용한다. #495/#518의 상위 peer 탭/용어 재설계는 이 변경에 포함하지 않는다. 그룹/개인 모드·단위·필터만으로 Gantt를 remount하거나 페이지를 reload하지 않는다. 개발 견적은 Global Role preset으로 유지한다. 상세 grain과 서버 raw KPI·필터·null·snapshot 계약은 [Resource KPI 기본 화면](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)을 따른다.
+
+고급 필터 Escape는 필터 trigger로 복원한다. KPI 상세는 인라인 section으로 열고 제목에 초점을 둔다. Escape/닫기는 호출 KPI로 복원하며 호출 control이 stale로 disabled/제거되면 검색 입력으로 복원한다. 외부 snapshot/조건 교체가 상세를 제거하면 상세 내부 focus만 복원하고 이미 필터에 있는 focus는 이동하지 않는다. row disclosure는 실제 button/aria-expanded/aria-controls와 native keyboard를 사용한다.
+
+새 조건 로딩·오류에서 이전 값은 이전 성공 결과라고 표시하고 상세/페이지 이동을 잠근다. 필터 입력과 표시 단위를 유지한다.400 삭제된 선택은 조건 해제/초기화,422는 범위 축소,409는 새로고침 후 상세 명시 재진입을 안내한다. 외부 Project revision 변경은 busy/편집기 guard가 있는 `최신 일정 조회`로 canonical snapshot을 명시 갱신한다. hidden tab의 조회를 중단하고 활성화·focus/visibility 복귀에 최신 report를 조회한다.
+
+선택된 KPI 상세와 펼친 행은 Project/revision/검색·기간·필터 query/snapshot이 달라지면 **즉시 해제**한다. 사용자가 이전 검색 조건을 복원하더라도 deterministic snapshot ID를 근거로 과거 상세를 자동 재개하거나 detail API를 재호출하지 않는다. 같은 scope의 상세 조회 오류는 명시적 `상세 다시 시도`로 재시도할 수 있다. 이 동작은 hidden peer tab 보존(조건이 불변일 때)과 구별한다.
+
+기존 단계→리소스 exact assignment drill은 legacy UI/API를 유지한다. drill 중 기본 Dashboard는 hidden/inert로 mount 보존하고, 범위 해제 후 원래 필터·단위·모드로 돌아온다. 기존 legacy filter 종류와 새 표시 모드의 의미를 혼합하지 않는다. Assignment 저장 override/작업 상속과 이번 선택 구간은 별도로 표시하고 실제 작업 일정과 혼동하지 않는다.
+
+390/768/1024/1440/1920px의 문서 overflow·내부 scroll·직접 header/body 열 정렬·cell/control containment·native focus와 기존 Gantt 인스턴스/scroll/선택/열폭/scale 보존은 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)에서 실행 근거와 한계를 확인한다.
+
+
+### Issue #525 긴 이름·다중 행 인수 보완
+
+2026-10-08 독립 QA에서 기존 짧은 Dashboard fixture만으로 긴 이름·많은 행을 검증하지 못한 점을 발견하여, 제품 코드를 변경하지 않고 별도 `longResourceDashboardUiFixture`를 추가했다. 합성 입력은 Group12개·Resource40명·공동 Task120개·Assignment4800개이며 이름200자/코드64자/외부 ID128자 및 WBS 각 구간200자 상한 안의 긴 한국어·영문을 사용한다. 최대3개 Global Role(PI/DEVELOPER/EQUIPMENT_OWNER)과 Role 미지정 각각1행, 복수 Role39행 및 비활성 개인·Group을 포함한다.
+
+`project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
+
+기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+## Issue #526 리소스 Milestone 조회
+
+리소스 탭의 보기 선택에 계층/비교표를 추가한다. Group 중심은 Milestone 우선 또는 개인 우선 집계 순서를 선택하고, 개인 중심은 Milestone 소계에서 상세를 연다. 상위 Workspace navigation은 추가하지 않는다. 기존 기본 현황과 legacy stage drill은 유지한다. 필터·단위·snapshot은 공유하고 행/열 페이지는 계산 범위를 바꾸지 않는다.
+
+계획 공수의 서버 `effort.state=empty`는 `할당 없음`이며 의도적으로 설정된 0공수(`configured`의 `0.00 M/D` 또는 `0.00 M/M`)와 구분한다. `unset`은 `산정 불가 · 공수 미설정`, `partial`은 `알려진 부분합` 표시를 유지한다. 비어 있는 Role 소계에도 가짜 확정 0공수를 노출하지 않는다.
+
+긴 Group/Resource/Milestone 이름은2줄로 보이되 full accessible name/title을 보존한다. 비교표는 내부 scroll을 가진50행×6단계+전체이며 visible 개수와 전체 scope를 구분한다. 계층은12개 실제 펼침 상한과 안정 ID별 보존 상태를 사용한다. 상세의 이름은 row·Milestone·metric을 포함하고 Escape는 숨김/inert trigger를 피하여 검색으로 복원한다. Gantt instance 및 기존 일정 scroll/선택/열/tree/scale을 변경하지 않는다. 정량 검증은 TEST_PLAN의 #526 UI 절을 따른다.
+
+## Issue #527 기간 Resource Plan
+
+리소스 탭 안에서 주/월 기간 matrix를 선택한다. Group/개인 집계 기준과 기존 필터·단위를 공유하고 별도 상위 navigation을 추가하지 않는다. 한 번에 전체1행+분류49행/4기간+전체만 표시하며 page2에 parent가 없어도 child의 Group/Resource context와 code/activity/Role/grade를 확인한다. 좁은 화면 identity144px/기간176px, desktop identity280px와 sticky header/identity·표 내부 scroll을 사용한다.
+
+선택 기여와 동일 개인의 Project 전체 참고는 명시적 scope다. Milestone 행은 선택 Milestone 기여와 개인 전체 참고를 함께 구별하고 parent 전체 경고에서 Resource/project 원인을 조회한다. Group 평균으로 개인 초과를 숨기지 않으며 R0·0부하·미설정·부분합·비근무기간을 구분한다. 상세는 날짜→개인→Assignment의 점진적 조회이며 readonly다.
+
+Plan/기본 현황/#526 보기와 Group/개인·주/월 전환에서 상태를 보존한다. 마지막 Plan DTO는 비활성 보기에서 hidden/inert·drill 잠금 상태로 보존하고 실제 snapshot/filter 변화는 새 상태로 취급한다. Step 진입 제목 focus/Escape 한 단계 복귀, 안정적인 retry/pager focus, 늦은 canceled409 무시와 stale 차단을 검증한다. 실제 Gantt scroll120/96·선택/tree/열/주scale·instance 보존과5폭 geometry는 TEST_PLAN의 #527 UI 절을 따른다.
+
+Resource Plan owner는 sticky identity 폭(280px/144px)을 scroll-padding에 반영하고 기간 버튼에 scroll-margin을 적용한다. 가로·세로 scroll 뒤 native Tab focus ring이 identity/header 아래에 숨지 않고 owner 안에 드러나도록 유지한다. 상세 Assignment 0건의 페이지 표기는 `0–0 / 0`이며 이전/다음은 잠긴다.
+
+## Issue #528 — 정확한 화면 간 조회 범위
+
+일정의 선택 일반 Task 또는 Summary 자손에서 모든 개인 담당을 조회하고, Resource 상세의 전체 범위에서 일정으로 이동한다. 상세의 전체 일정 명령은 현재 page50이 아닌 서버의 전체 고유 Task/Assignment 집합을 사용한다. Task 이름은 기존 작업 정보 Editor를 열며 개별 일정 명령과 전체 범위 명령을 구분한다. Milestone 원본은 실제 출발 context가 있을 때 기본 Resource Dashboard로 이동한다. 직접 Milestone 일정 위치는 표시 노드이며 일반 Task 분모에 포함하지 않는다.
+
+임시 조회 범위 strip은 출발 화면, 고유 일반 Task, Assignment, 조상 문맥, 실제 기간과 선택 기여/Project 전체 참고를 표시한다. 다른 탭을 수동으로 열면 최근 이동의 대상 화면을 명시하여 그 집합을 현재 화면 결과로 표시하지 않는다. 최대8단계 LIFO 복귀에서 원래 보기는 직전 출발의 조건·선택·펼침·페이지·단위·지표·scroll을 복원한다. 임시 이동 범위 전체 해제는 현재 화면을 유지하고 그 화면의 첫 이동 전 조건을 복원하며 전체 복귀 기록을 폐기한다. 오래된 원본을 조용히 밀어내지 않고9번째 이동을 차단한다. 현재 및 live frame의 방문 context만 최대9개 보존한다.
+
+WBS·필터 또는 기존 Resource 분류·기간의 전체 scope가 명시 대상 일부를 숨기면 숨길 일반 Task 수와 전체 수를 확인하고 별도 범위 이동 또는 취소를 선택한다. 출발 데이터 identity와 서버 환산 정책은 비동기 조회 뒤, 확인 승인 직전에 다시 검증한다. 로딩 취소/Escape/overlay는 요청 generation을 폐기하고 visible 출발 trigger 또는 탭으로 focus를 돌린다. 도착 시 visible 제목에 focus한다. dirty Editor·관계·설정·삭제·복사·Import 진행 중에는 새 범위 이동을 차단하고 기존 편집 권한·초안 계약을 유지한다.
+
+조회는 기존 Gantt instance와 공개 Core 선택 API를 유지한다. 선택 복원은 현재 canonical/권한 검증 후 show:false로 수행하여 viewport 복원과 자동 reveal이 경합하지 않게 한다. 설치 SVAR React Gantt Core2.7.3의 grouping 공식 자료는2026-10-08 URL로 확인했으며 PRO grouping 복제는 사용하지 않는다. 공식 demo 실제 조작은 NOT TESTED다.
+
+Issue #528의 임시 범위 strip 버튼은 기존 secondary-button(최소40px)과 공통 focus-visible outline을 사용한다. 신규 Resource 방문 도착 시 hidden/inert 조상 없이 실제 보이는 제목을 선택하여 focus하며, 이전 방문의 숨은 제목을 선택하지 않는다. Milestone 직접 노드 일정 명령은 검증한 원본 range/asOf/환산/sourceProjection을 복귀 frame에 그대로 보존하고 lookup snapshot·오늘 target 조건과 분리한다.
+
+### Resource Excel 보고서 선택 (#529)
+
+Project Context의 기존 내보내기 대화상자를 재사용한다. 일반 진입의 리소스 현황 보고서 포함은 기본 해제이고, Resource toolbar의 `Excel 보고서`는 Excel·리소스 보고서 포함·현재 선택 조건으로 같은 대화상자를 연다. 추가 7개 보고 시트의 현재/Project 전체 선택과 주·월 계획 선택은 기존 일정·단계·물류·견적 시트의 Project 전체 기준을 변경하지 않는다.
+
+현재 선택은 활성 방문의 조회 완료 상태, 실제 query와 이동 binding, 대상 report의 원장 fingerprint·기간·기준일·환산 정책을 확인한다. exact Assignment 이동의 원래 binding을 포함하고 DTO 전용 환산 metadata는 query input에서 제외한다. Project 전체는 확인된 대상 context만 보내고 분류·Task·WBS·Milestone·검색·상태·exact 범위는 적용하지 않는다. 확인된 기간·기준일·환산 정책은 유지하며 사용자 화면 조건·복귀 기록·캐시는 바꾸지 않는다. 대상 보고서 문맥과 원래 이동 출발 문맥은 따로 표시한다.
+
+리소스 보고서 내보내기는 원래 report의 Project revision을 사용하며, 최신 Project GET으로 과거 보고서 revision을 바꾸지 않는다. stale 응답은 옵션과 기존 확인 증거를 보존하고 생성을 잠근다. 성공 조회마다 부여한 receipt를 Project·visit·query·binding과 묶어 같은 요청에서는 서버 stale 당시보다 새로워지고 사용자가 현재 보고서를 명시적으로 확인해야 잠금을 해제한다. 같은 cached report의 확인만으로 재생성하지 않는다. 실제 다른 Project 또는 새 visit·query·binding의 ready 조회는 이전 방문의 큰 receipt와 비교하지 않지만 사용자 명시 확인은 동일하게 요구한다. 접이식 근거에서 실제 이름·안정 ID·분류·검색·상태·활성 조건·시간대·세 revision·Task/Assignment와 exact 범위를 확인한다. pending 중복 제출과 늦은 다운로드를 generation·활성 방문·query·binding·원장·옵션으로 차단한다. 전체 JSON 요청이 UTF-8 8 KiB를 초과하면 배정 목록을 절삭하지 않고 명시적으로 실패한다. Readonly 조회·내보내기는 기존 서버 권한 계약을 유지한다.
+
+공수 미설정 진단의 기간 밖 Assignment는 `조회 기간 밖 · 원래 배정 기간 기준`을 표시한다. 원래 실효기간·근무일·null 공수를 현재 조회 기간의 공수 부분합처럼 표시하지 않는다. Export 종료 시 Resource trigger가 숨겨지거나 제거되면 현재 visible tab 또는 일반 Export 버튼으로 focus를 복원한다. 실제 브라우저와 원격 CI 판정은 별도 실행 증거로 기록한다.
+
+내보내기 대화상자의 재조회는 Resource 화면과 같은 stale 해제 경로를 사용한다. 상세 snapshot 409 뒤 동일 snapshotId가 다시 조회되어도 새 receipt와 사용자 명시 확인으로 복구할 수 있다. 기존 펼침·선택 초기화는 stale 상태에만 적용한다.
+
+일정에서 Resource 또는 물류 workspace로 이동할 때 활성 Gantt의 공개 viewport와 원본·인스턴스·동기화 generation을 보존한다. 숨은 DOM의 0을 저장값으로 덮어쓰지 않는다. 복귀는 기존 공개 Core resize/scroll 경로를 사용하며 원본·조건·scale·열폭·gridWidth가 달라지거나 Gantt pointer/wheel/keydown 입력이 발생하면 대기 중 복원을 취소한다. 공개 API에는 layout settled 보장이 없으므로 앱이 소유한 timeline 정리와 RAF 뒤 필요한 가로 범위를 준비하고 한 번 복원한다. 기존 Task 날짜·scale 선택·Gantt 인스턴스는 변경하지 않는다.
+
+2026-10-08 설치 SVAR React Gantt Core2.7.3에서 [exec](https://docs.svar.dev/react/gantt/api/methods/exec/), [scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/) 공개 계약과 타입을 read-only 조사했다. URL/문서 확인과 실제 Chromium의 positive·입력취소·조건변경 조작 증거를 분리한다. Core 공개 기능을 사용하며 PRO 기능/비공개 구현을 복제하지 않는다.
+
+Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 작업 검색·고급 필터의 명시적 입력/변경도 최신 viewport 의도로 간주해, 브라우저 입력 캡처 단계에서 이전 peer 복원 요청과 복원 보호를 취소한다. 단순히 Gantt 밖의 Task Editor·툴바를 클릭하는 것은 의도적인 일정 위치 변경이 아니므로 동일하게 취소하지 않는다. 실제 Core/DOM 3개 RAF 안정화로 복원 성공이 확정된 후에는 별도의 제한된 네이티브 재정합 예산을 유지하며, 숨김/취소로 안정화가 중단된 요청의 보호는 즉시 정리한다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
+
+### Issue #529 — Resource Excel 보고서 범위 확인
+
+- 현재 조건 확인창의 Resource·Group·Milestone·Task·WBS 선택은 사람이 확인할 수 있는 **이름(코드가 있으면 코드 포함) + 안정 ID**로 표시한다. 선택 범위가 비어 있으면 전체, 보고서 snapshot catalog에서 찾을 수 없는 ID는 ID 그대로 표시한다. 다른 Task/WBS가 동일한 이름이어도 ID로 구별한다.
+- Raw unset Assignment의 Excel Quality 보고는 interactive 진단과 같은 원래 실효기간 합산 1,000,000일 제한을 따른다. 초과 시 부분 결과를 제공하지 않고 422 `REPORT_LIMIT_EXCEEDED`를 반환한다.
+
+### Issue #529 — Gantt peer 복귀의 Core/DOM 별도 좌표
+
+- SVAR 공개 Core `scrollLeft/scrollTop`은 자식 Gantt가 읽기 전용 callback으로 현재 값만 전달한다. 부모는 보이는 Chart의 native `scrollLeft/scrollTop`을 별도로 캡처한다. 레이아웃 반올림 등으로 공개 Core와 DOM에 1px 차이가 있어도 Core 복원을 DOM 값으로 덮어쓰지 않는다.
+- `scroll-chart`에는 캡처한 공개 Core 좌표를 사용하고 기존 DOM native 좌표는 별도 복귀 대상으로 유지한다. 공개 reader가 준비되지 않거나 유효하지 않으면 DOM 값을 Core로 대체하지 않고 해당 peer Core 복원을 취소한다. 원장/snapshot, task root/filter, Gantt instance, sync generation, 사용자 입력/geometry 취소 정책은 유지한다.
+
+
+## Issue #530 통합 회귀의 사용자 조건
+
+리소스 화면의 기간·보기·집계 순서·표시 단위를 왕복해도 고유 개인 Assignment 원장의 Grand 공수는 변하지 않는다. 복수 Group 소속의 소계는 중복 기여를 포함하므로 Grand와 합산하지 않는다. 공수 미설정은 알려진 부분합과 함께 표시하며 M/M 기준이 없으면 전환을 잠근다.
+
+현재 화면에는 조회 기준일이나 M/D 환산값을 직접 입력하는 control이 없다. 서버 응답에 표시된 기준일·환산값·출처를 API 및 Excel과 비교해야 하며 다른 기준일의 지연 KPI를 같은 조건의 결과로 취급하지 않는다. 명시적인 `mdPerMm=20` API 조회와 화면의 환경/미설정 환산은 별도 조건이다.
+
+통합 회귀는 합성 원장을 실제 SQLite/HTTP로 생성하고 계층·비교표·Resource Plan·Excel 명령·상위 Workspace 탭 왕복을 검사한다. 조회와 파일 생성으로 Project/Task/Link revision을 바꾸지 않는다. 로컬 Chromium 증거와 PR의 원격 전체 회귀는 별도로 판정한다.
+
+상세/report에서 stale를 확인한 경우 Excel Dialog는 열어 조건을 검토할 수 있다. 리소스 보고서를 포함한 생성은 현재 보고서 확인 전 로컬 handler에서 안내하고 POST를 보내지 않는다. 이 로컬 사전 차단은 실제 Excel POST의 409/412 응답으로 해당 증명이 거부되어 생성 버튼을 잠그는 상태와 구별한다.
+
+Resource 임시 범위 이동의 각 반환 단계는 당시 일정의 SVAR public 좌표와 native scroll 좌표를 독립된 불변 기록으로 보관한다. 원래 보기와 전체 해제는 복귀 대상 단계의 기록을 사용하며, 떠나는 임시 일정의 위치로 원본을 덮어쓰지 않는다. 동일 canonical snapshot 객체, Project·scope/filter, reset 세대, 실제 API reader identity 및 scale/grid/columns/viewport 조건이 맞는 명시적 frame 귀환만 기존 canonical queue에서 새 복원 요청을 만든다. 복원 전에 사용자가 일정에 입력하거나 조건이 바뀌면 Core와 native 복원을 함께 취소하고 사용자 위치를 유지한다. 일반 탭 전환과 일반 필터 변경의 기존 취소 계약은 유지한다.
+
+동일 1440×900 window에서 scope 반환 시 실제 Gantt root 높이가 532px에서 504px로 바뀌는 정상 배치를 확인했다. 원본과 target의 절대 높이 동일성을 요구하지 않고, 원본 window 크기·fullscreen host·scale/columns/grid/root 폭 조건을 유지하면서 target canonical filter 적용 후 보이는 root 크기를 해당 복원 요청의 기준으로 삼는다. 이후 geometry·입력·canonical 세대 변경은 복원을 취소하며, 움직이는 배치를 계속 재캡처하지 않는다.
+
+Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개의 기간만2026-09-28~10-02로 이동한 명시 파생 원장에서 검증한다. M1 원인→정확한 Resource(T1/Assignment2,known7.5 M/D)→지연 KPI1→정확한T1 일정→원래 Resource 지연 상세→원래 M1 원인·검색·기간·focus의 두 단계 LIFO 복귀와 조회 전후 canonical/revision 불변을 확인했다. 실제 server asOf2026-10-08과 해당 report scope/환산을 사용하며 공통 기본11.5 M/D 원장과 파생 조회 context를 혼합하지 않는다. Source-bound report/detail은 같은 binding의 POST query로 대조하며 binding 없는 GET fallback으로 범위를 확대하지 않는다. [실행 증거](../output/playwright/issue530/cross-flow-evidence.json)는 제품4개·fixture/helper 불변, 기존spec32,454byte prefix 보존, 추가case1건12.0초PASS를 기록한다.
+
+## Issue #538 — 새 프로젝트 생성 화면 Skip Link와 키보드 순서 보완
+
+새 프로젝트 생성 화면에서 `본문으로 바로가기`를 누르면 native anchor의 `main#main-content` focus를 유지하면서 두 생성 방식 탭의 순차 `tabindex`를 즉시 -1로 변경한다. 다음 Tab은 현재 활성 폼의 첫 컨트롤로 진입해야 한다. 해당 폼에 focus가 들어오면 선택된 탭의 roving `tabindex=0`를 복원하고 이후 ArrowLeft/Right/Home/End 탐색은 이전과 동일해야 한다. Client handler 등록 준비는 E2E에서 `data-skip-link-ready`로 구분해 SSR 탭 DOM 표시만으로 hydration을 추론하지 않는다. `#121` App Shell Skip Link와 `#264` 초안 보존 및 inactive panel 금지는 유지한다. 권한·저장 API 변화는 없다.
+## Issue #549 — Timeline 공통 모델과 현재 UX 보존
+
+이 절과 아래 #550/#551의 당시 current/target 및 기본 ON·일시 표시 설명은 기존 기술 실험의 이력이다. 현재 #552 후보는 이 문서의 최신 marker-OFF 절을 따르며 기본 ON/임시 날짜 ON을 활성화하지 않는다.
+
+현재 `TaskFilterState.types`는 React 메모리와 scope별 Map에 보존하며 URL/localStorage에 저장하지 않는다. MT1은 표시 preference v1의 기본 ON 정규화와 types 변환 함수를 제공하지만 현재 화면에 적용하지 않는다. Task-only를 새 OFF로 자동 이식하지 않고 mixed 조합은 Milestone 유형만 제외하며 나머지 조건을 보존한다. Milestone-only는 원래 조건을 보존하고 Dashboard/명시 유형 해제 호환 UI를 후속 MT4에서 제공한다. OFF 날짜 조회의 일시 표시와 복귀 OFF, 사용자 toggle만 저장하는 계약도 후속 연결 대상이다.
+
+#399의 단일 Summary `rootTask` scope와 현재 작업 선택/Editor/clipboard/viewport를 유지한다. #497 복합 scope/Milestone root를 구현된 기능으로 간주하지 않는다. 숨은 Milestone은 Summary roll-up/전체 subtree 명령과 canonical JSON/Excel/이미지 export에 계속 포함한다. 새 Timeline 조회 선택은 native 작업 다중 선택과 분리하며 가시 일반 작업 교집합만 강조한다. [상세 계약과 기술 gate](MILESTONE_TIMELINE.md)를 따른다.
+
+
+
+## Issue #550 — Milestone Dashboard 관리
+
+기존 Dashboard의 평면 목록은 canonical 적용 예정일/externalId/taskId 순이며 보고 population·KPI·조회 조건을 보존한다. 조회 144px 열의 관리 버튼으로 상세/소속/관계/ID 복사와 허용 단일 복사·삭제·날짜/소속 일정 이동을 제공한다. 편집 모드의 Milestone 추가는 현재 Summary나 WBS scope와 무관한 프로젝트 root append이며 작은 name/date form 후 같은 Editor를 연다. 저장 성공의 유일한 새 canonical ID를 확인하며 동명이나 배열 순서를 추측하지 않는다.
+
+표는 최소 1052px 가로 예산과 480px 내부 세로 scroll, 좁은 폭 toolbar reflow를 사용한다. native modal/키보드/초안 폐기 확인/pending 닫기 보호를 유지한다. Editor·관계 닫기에서 실제 보이는 Dashboard trigger를 복원하며 삭제/갱신 뒤에는 검색·추가·heading fallback을 사용한다. 401/412/network와 revision 변경은 초안을 보존하고 자동 저장/재전송하지 않는다. 조회 전환의 Gantt instance와 기존 scope/filter/viewport 경계는 유지한다. 명령별 권한과 비지원 범위는 [Milestone Timeline](MILESTONE_TIMELINE.md#issue-550--기존-dashboard의-독립-관리-진입)을 따른다. #549 Week header FAIL의 #551 활성화 gate와 현재 M행/빠른 보기 유지 계약은 변경하지 않는다.
+
+
+열린 관리 메뉴의 대상이 외부 canonical 삭제 또는 보고 population 변화로 사라지면 메뉴 ID를 폐기하고 현재 Project의 보이는 Dashboard fallback으로 focus를 복원한다. 같은 대상이 재등장해도 메뉴를 자동으로 열지 않는다. 실제5폭 geometry는 표 header/body 경계 차이0px, 문서폭=viewport, sibling/button/toolbar/focus-owner containment ±1px와 표 키보드 scroll을 검증한다. 모달 screenshot의 폭만으로 표 전체 geometry를 PASS로 간주하지 않는다.
+
+#550 관리 대상 소멸은 자식 commit 전 현재 컴포넌트 state에서 ID를 폐기하며 focus만 한정된 RAF로 분리한다. 대상의 RAF 전 복귀로 메뉴를 자동 재개하지 않는다. 같은/다른 ID의 명시 열기는 오래된 focus를 취소한다. 삭제 확인 취소/Escape는 외부 갱신으로 trigger가 사라져도 현재 Dashboard의 보이는 검색/추가/heading으로 복귀하고 삭제 요청을 보내지 않는다.
+
+
+Issue #550 통합 보완: 412 생성 충돌 후 초안은 보존하지만 반복 제출은 비활성화한다. 세로 480px 상한은 관리 표만 적용한다.
+
+### Issue #550 — PR CI #2368.1 용어/접근성 회귀 보완 (2026-10-10)
+
+기존 #495의 사용자 표시 `Milestone` 용어를 새 관리 표와 기존 독립 Dashboard에 일관되게 사용한다. 표의 상세 버튼 접근성 이름은 `<Milestone 이름> Milestone 상세`, 검색 label은 `Milestone 검색`, 검색 결과 0개(프로젝트 Milestone은 존재)는 `조건에 일치하는 Milestone이 없습니다.`다. 프로젝트 전체에 Milestone이 없을 때의 `프로젝트에 Milestone이 없습니다.`와 구분한다. 관리 명령의 `Milestone 상세`도 같은 용어를 사용한다. 서버 canonical ID/조회 범위/전체 KPI·Ready·Revision·편집 권한은 변경하지 않는다.
+
+## Issue #551 — opt-in Milestone Timeline 작업면
+
+운영 기본은 OFF이며 기존 native M 행/빠른 보기를 유지한다. 개발 전용 기술 미리보기에서 전체 canonical Milestone 모델을 사용하는 같은 Gantt의 capability를 검증한다. 전체 목록은 Task 필터·WBS scope와 독립임을 표시한다. 프로젝트 전체 0개와 날짜 viewport 0개, 미정/invalid 날짜, 물리 화면 밖/읽기 조작 폭 부족을 구별한다. 모델이나 DOM clip을 저장·Export·전체 Gate의 모집단으로 사용하지 않는다.
+
+앱 소유 64px sibling lane → native Grid/date header → Task 행 순서이며 native 헤더 아래 삽입이 아니다. 숨은 peer 탭도 ON의 공간을 유지하고 marker만 숨기며 OFF만 64→0으로 반환한다. 같은 wrapper/key/API를 유지한다. Chart-only는 Core 고유 42px rail을 제외한 실제 전체 plot과 같은 원점/폭, 개발 실험의 Grid-only는 lane 없음이다.
+
+이름/상태의 두 줄 160×44px control과 원래 날짜 tick을 분리한다. 이름은 제한 폭에서 축약하고 accessible label 및 정확한 ID의 기존 Editor/50개씩 묶음 목록에서 전체 값을 제공한다. 묶음은 N개 Milestone+동일일/근접 날짜 범위다. outline 3px+offset 3px(외곽 6px)+양쪽 2px 여유가 겹치면 묶고 control만 8px/전체 목록/owner/window clip 안으로 clamp한다. 390px의 최소 720px 작업면은 native owner 가로 scroll로 접근한다. glyph만 남겨 이름을 없애지 않으며 폭 부족 시 전체 목록으로 안내한다.
+
+Lane Left/Right/Home/End roving Tab 1개, Enter/Space; 묶음 Up/Down/Home/End/Tab/Escape를 사용한다. 같은 Editor는 actual trigger를 보존하고 끊긴 marker/item에는 보이는 전체 목록/일정 작업면으로 복귀한다. OFF가 열린 Editor의 dirty/pending 초안을 폐기하지 않는다. focus/hover/별도 조회 선택에서 derive한 guide 하나는 pointer-events:none이며 Task 선택/clipboard·native pointer/context menu를 가로채지 않는다.
+
+Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 ISO 주차를 구별한다. Day의 기존 월/일 의미는 유지한다. 2199-12-31의 2200 exclusive-end metadata는 표시 전용이며 해당 주 전체 Calendar 근무일은 미산정 사유를 표시한다. 원래 native 월 셀 오류를 고쳤다고 표기하지 않는다. 상세 current/target/compatibility와 검증 경계는 [Milestone Timeline](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
+
+
+## Issue #618 — 물류 Target 구성·원본 Task 왕복
+
+기존 물류 구성에 Target 하위탭을 추가한다. 검색→목록 선택→상세→구성 composer→검토/저장 흐름으로 Gantt 작업 면적을 유지한다. Target 상세의 관련 작업은 동일 canonical Task ID/WBS 경로로 공통 Task Editor를 열며 물류탭을 강제 일정탭으로 바꾸지 않는다. 닫으면 같은 Target 검색/선택·focus로 돌아온다. WBS 물류 연결에서도 Target 상세로 이동할 수 있다. 저장 후 공통 canonical 재조회와 revision으로 목록·상세·작업 정보 정합성을 유지한다.
+
+공정/WorkArea, whole/subset 구성과 subtree 변경에는 관련 대상/영향 정보를 표시한다. 기존 instance 재사용과 신규 생성을 구분하고 공유 사용처를 표시한다. 조회용 Target grouping이 WBS parent를 바꾸지 않으며 Gantt instance/scroll/selection/scale/column/fullscreen은 기존 workspace/canonical/viewport 경로를 유지한다. 별도 Gantt·viewport writer·query-only mutation은 없다.
+
+F4의 실제 관리자 inline 등록은 별도 세션을 확인한 후에만 활성화한다. WorkArea/유형/공정 기준정보는 별도 저장이며, 새 Project 공정 생성과 occurrence 매핑은 순차 transaction이다. 부분 성공은 남은 공정과 revision을 안내하고 Target 초안은 유지한다. 이 흐름에서 저장된 정확 revision은 `변경된 기준정보 적용`을 눌러 채택하며 외부 변경을 자동 승인하지 않는다. 공유 원본 수정은 usage·subset 유효 대상 확인 후 명시 저장한다.
+## Issue #621 — Resource–Target 분석에서 편집·복귀
+
+기존 상위 `리소스` 탭 안에서 Group/Resource→Target 계층, Target→Group/Resource 역방향 및 Group/Resource×Target 교차표를 제공한다. 별도 Workspace·Resource 원장·Gantt 인스턴스를 만들지 않는다. Target/기간/검색을 먼저 표시하고 추가 축은 고급 필터로 펼친다. 총계·헤더는 조회용이며 표시 grouping을 WBS 구조 변경으로 해석하지 않는다.
+
+실제 Task·Assignment 편집은 Workspace의 공통 Editor를 사용한다. Assignment는 개인과 배정 ID를 명시하고 기존 Resource 편집 경로로 들어가며 Target 구성은 물류 composer로 구별한다. Editor가 숨겨진 일정 panel 안으로 이동하지 않도록 기존 상위 렌더링과 origin/focus 계약을 재사용한다. 조회·전환·취소만으로 server mutation을 발생시키지 않는다.
+
+Resource→일정→Resource 복귀는 기존 drill/return frame과 단일 viewport coordinator를 사용한다. 같은 의미의 조건·보기·펼침·페이지·선택은 가능한 유지하며 새로운 사용자 입력보다 오래된 복원을 우선하지 않는다. 저장으로 report identity가 바뀌면 이전 결과의 상세/편집을 잠그거나 새 snapshot을 조회한다. 필터에 맞지 않게 된 출발 행에는 과거 focus를 강제하지 않고 사유와 유효한 컨트롤을 제공한다. dirty/pending/stale·401/409/412의 초안과 재조회는 기존 guard를 따른다.
+
+Resource 재활성화의 focus는 이전 cached ready가 아니라 현재 보고서와 정확 상세의 새 조회 완료를 확인한 뒤 한 번 복원한다. 새 조회가 상세 행을 교체하는 동안 이전 행의 편집 명령을 잠근다. 그동안 사용자가 검색·keyboard·pointer/wheel 입력을 하면 오래된 복귀 요청을 취소한다. 준비 실패·범위 소멸 시 유효한 복귀 컨트롤을 사용하며 Gantt를 재생성하지 않는다.
+
+긴 이름과 다열 표는 table-owned scroll로 처리한다. 390/768/1024/1440/wide의 keyboard·Escape·복귀 focus·내부 overflow와 같은 Gantt instance를 별도 검증하며 실제 결과는 [#621 Work Packet](exec-plans/active/ISSUE_621.md)에 기록한다. GSC 전체 수용·main/릴리스 검증과 구별한다.
+
+## Issue #667 — 저장 결과 불명확 시 명시적 복구
+
+작업 저장 오류 뒤 최신 서버 snapshot을 확인하면 같은 Gantt 인스턴스에서 실제 Core의 순서·계층·날짜·관계를 정합하게 복구한다. 서버가 저장했는지 확인할 수 없고 최신 조회도 실패하면 저장 결과를 확인할 수 없다는 안내와 `최신 상태 다시 조회` 버튼을 표시한다. 확인 전 충돌하는 추가 편집·저장은 잠그며 초안은 유지하고 저장 요청을 자동으로 다시 보내지 않는다. 명시적 조회 성공 뒤 최신 canonical을 적용하고 편집을 재개한다. 권한 만료는 기존 읽기 전용/잠금 해제 정책을 따른다.
+
+일정/Resource/Calendar 왕복·검색·동일 DTO 재조회는 불필요한 remount를 만들지 않는다. data receipt와 viewport 정착은 별개이며 실제 사용자 입력이 이전 복원보다 우선한다. 이 공통 연결은 #552의 native Milestone 행 제거·marker 활성화를 포함하지 않는다. 실제 검증과 미검증은 [#667 Work Packet](exec-plans/active/ISSUE_667.md)에 기록한다.
+
+저장 전에 시작한 이전 조회가 늦게 도착해도 저장 결과 불명확 안내나 편집 잠금을 해제하지 않는다. 현재 요청의 최신 서버 확인만 복구를 확정한다. Editor의 재조회·취소는 사용할 수 있지만 UNKNOWN의 추가 저장과 하위 편집은 잠근다.
+
+화면을 숨겼다가 일정으로 복귀할 때는 이전 visible session의 완료 영수증을 현재 복귀의 근거로 재사용하지 않는다. 새 visible 관측 뒤 실제 정착을 확인한다. 다른 탭의 최신 확인이 진행 중이거나 실패하면 실패 mutation의 UNKNOWN 잠금을 유지하고, 최신 성공 조회만 해제한다.
+
+#667 반복 삭제 거부 후 canonical 조회가 stale/실패면 기존 확정 삭제를 보존하면서 UNKNOWN 잠금을 유지한다. 테스트 외부의 API 조회나 편집 session 재활성화만으로 성공 복구를 추론하지 않는다. UI의 명시적 최신 상태 재조회가 현재 snapshot을 수용한 뒤에만 다음 삭제를 허용하며 같은 Gantt 인스턴스·접힘·scale·viewport를 보존한다.
+
+#667 종합 회귀 보완: 다중 Copy/Paste 뒤 canonical 데이터·Link 보존과 viewport 보존을 별도로 확인한다. 원래 가로 위치는 실제 copy dispatch 시점에 캡처하고 검증된 성공 canonical revision·현재 U2 proof에 연결해 기존 Coordinator로 한 번 복원한다. 늦은 저장 응답이 새로운 사용자 입력 권한을 만들지 않으며 pending 중 실제 wheel·filter/reveal·API 교체·UNKNOWN이면 과거 위치를 복원하지 않는다. 기존 same-instance·열폭/scale/접힘·정확한 scroll 검증을 완화하지 않는다. 원본46→0 FAIL·보완·미검증은 [종합 분석](ISSUE_667_FAILURE_ANALYSIS.md)을 따른다.
+
+#667 Resource 복귀의 보존 대상 X는 실제 Core/native가 일치한 캡처다. 복귀 시 두 수용 범위가1px 다르더라도 Core exact 목표를 낮추지 않는다. retained 날짜축과 양쪽 범위를 기존 단일 Coordinator/U4에서 준비한 뒤 현재 projection과3실제 프레임 정착으로 완료한다. 미확인 geometry는 완료로 표시하지 않는다.
+
+
+## Issue #667 / CI #2827 — 날짜축 전환의 프로그램 clamp와 최신 입력
+
+Day→Week 전환 중 native scroll이 새 범위로 뒤로 제한되는 것은 새 사용자 스크롤이 아니다. 기존 단일 Coordinator/port는 등록 당시 Core와 native 좌표를 함께 기준으로 삼아 프로그램 clamp가 명시 날짜 이동을 잘못 취소하지 않게 한다. 실제 wheel/pointer/keyboard 최신 입력은 이전 자동 복원보다 우선한다. Task/Link/Calendar·revision/서버 요청·scale 표시/인스턴스·좌표 허용 오차는 변경하지 않는다.
+
+Week Header의 Escape는 Tooltip을 닫고 해당 셀 focus를 유지한다. 날짜 가상화가 같은 DOM 셀을 재사용하더라도 단순 `.focus()` 재호출은 새 focus 진입이 아니다. CI oracle은 보이는 기존 Week control로 이탈한 뒤 날짜 셀에 재진입해 기존 ISO/포함월 내용을 확인하고, Escape 닫힘과 focus 유지도 검증한다. 새 Tooltip 자동 재개 정책을 만들지 않는다. 증거는 [별도 실패 분석](ISSUE_667_FAILURE_ANALYSIS.md)에 보존한다.
+
+## Issue #552 — marker-OFF WBS와 명시 관리 경로
+
+전체 프로젝트·사용자 필터 없음은 기존 `visibleTaskIds=null` 의미를 유지한다. Milestone 제외는 separate projection의 표시 authority가 수행하며, 파생 WBS ID 집합을 사용자 query/filter identity로 전달하지 않는다. 그래야 일반 Task 추가가 조회 변경으로 오인되어 Native Add 복원을 취소하지 않는다. 선택 gesture의 ordinary WBS ID 집합은 별도로 유지하여 숨은 M을 선택/Task clipboard에 넣지 않는다.
+
+Dashboard의 Milestone KPI(완료·임박·지연 등)와 미완료 직접 선행 Milestone 원인은 숨은 native 행으로 이동하지 않는다. 단일 원인은 동일 canonical ID의 상세에서 확인하고, 여러 Milestone의 KPI는 현재 Dashboard 관리 목록의 정확 ID 선택으로 확인하고 지표 선택 해제 경로를 제공한다. 원래 조회 조건은 보존하며 조건 밖/삭제된 ID와 실제 표시 수를 구분한다. 일반 Task coverage/bucket과 정확한 소속 Task의 일정 이동·source 조건·복귀 정보는 유지한다. Milestone 집합을 일부 대상이나 전체 Task로 암묵 대체하지 않는다.
+
+일정의 native 행/Bar는 Summary/일반 Task이며 M 행·대체 endpoint는0이다. Milestone 표시 Toolbar toggle·프로젝트 기본 ON preference·임시 날짜 ON을 제공하지 않고 상단 lane/marker/guide·예약 높이도0이다. #551 개발 opt-in은 제품 활성화와 구별한다. 이전 #549~#551의 ON 공간/표시 설정 설명은 당시 실험 계약이며 이번 UI authority가 아니다.
+
+Milestone 날짜 요청은 현재 Dashboard의 정확한 ID 상세와 소속 일반 Task 탐색을 명시 안내한다. 숨은 M 행 선택·M 날짜용 scroll/range extension은 실행하지 않는다. 소속0/미정 날짜/조건0/legacy M-only는 서로 다른 상태다. M-only는 원 조건과 이유를 보존하고 Dashboard 열기 또는 사용자가 유형만 해제하는 선택을 제공한다. Dashboard 조건·dirty/pending/readonly/401/412·실제 visible trigger focus와 원래 peer 문맥을 유지한다.
+
+Summary full subtree/숨은 M·Link·Membership·Summary 파생·Ready/Completed·Resource/Target·Export는 표시와 독립이다. Copy/Delete 확인과 서버 완료/관계/Assignment Copy 잠금은 그대로다. invalid Summary scope의 삭제/M drift·같은 instance hidden/inert·명시 전체 프로젝트 복귀 및 Dashboard peer의 hidden paint를 보존한다.
+
+canonical 재조회·작업 추가·peer 복귀·filter0/Day/Week·resize는 #667의 단일 공통 정합성 경로가 담당한다. 과거 #552의 별도 resize/date reveal/동기화 보완을 신규 authority로 추가하지 않는다. WBS legacy 복구는 `NEXT_PUBLIC_GANTT_WBS_MODE=legacy` 재빌드/재배포이며 marker OFF는 유지한다. [최신 Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)과 [현재 검증 계획](TEST_PLAN.md#issue-552--marker-off-기준선-재검증)을 따른다.
+
+### #552 기존 유형 전환과 작업 필터 보존
+
+Milestone native 행을 숨겨도 기존 Task↔Milestone leaf 유형 전환은 제거하지 않는다. Dashboard의 정확한 Milestone ID 관리 메뉴에 `일반 Task로 전환`을 제공하고 기존 `saveTaskHierarchyCommand({kind:"convert",taskId,targetType:"task"})`와 `performTaskHierarchyCommand` HTTP gateway를 재사용한다. readonly/pending/UNKNOWN·완료 Milestone·Link endpoint·소속 참조 및 기존 자식/날짜 guard를 유지하며 별도 domain/API 정책이나 우회 mutation을 추가하지 않는다. 성공은 서버 canonical 응답으로 같은 ID의 일반 Task WBS를 갱신하고, Dashboard에서 대상이 사라지면 기존 가시 heading focus fallback으로 돌아간다. 다른 조건 때문에 일반 Task가 안 보이면 그 조건을 자동 초기화하지 않는다.
+
+허용되는 leaf의 Task→Milestone→Task 왕복은 같은 canonical Task ID/externalId·parent/sibling order와 서버 revision 진행, 부모 소속의 기존 상속 재계산 결과를 검증한다. 변환을 위해 기존 Membership/Link를 임의 삭제하지 않으며 보호된 대상의 거부는 원본·revision 불변이어야 한다.
+
+일정 Toolbar의 `전체 | Task | Milestone` 빠른 보기 3종은 모두 제거한다. 고급 유형 선택에는 Summary/Task만 제공하고 새로운 M 조건을 만들지 않는다. 이미 메모리에 남은 legacy M-only는 빈 WBS와 Dashboard 열기/유형 조건만 명시 해제를 제공하며 검색·다른 필터·scope를 유지한다. Milestone 표시 toggle로 대체하거나 자동 전체 작업으로 복구하지 않는다.

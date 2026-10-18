@@ -25,6 +25,10 @@ test-results/
 __pycache__/
 *.pyc
 .e2e-history/
-.e2e-shard-proposal.json
+e2e-shard-proposal.json
 .ci-setup-metrics/
 ci-setup-metrics-analysis.json
+
+# Local pre-PR evidence and isolated production build
+.prepr-reports/
+.next-prepr/

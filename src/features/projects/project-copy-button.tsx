@@ -335,7 +335,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
     {open ? <WorkspaceDialog title="프로젝트 복사" onClose={close} busy={copying} restoreFocusRef={trigger}>
       {loading ? <p role="status">원본 프로젝트를 확인하는 중…</p> : null}
       {sourceNotice ? <p role="status">{sourceNotice}</p> : null}
-      {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <button className="secondary-button" type="button" disabled={copying} onClick={() => void refreshForCopy()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button> : null}
+      {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={copying} onClick={() => void refreshForCopy()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button></div> : null}
       {project ? <p>원본 revision {project.revision}{!ready ? " · 이전 조회 정보 · 최신 상태 확인 필요" : ""} · 작업 {tasks.length} · 연결 {links.length} · 휴일 {project.calendar.holidays.length}{hasLogistics ? ` · 공정 ${logistics?.processes.length} · 설비 ${logistics?.equipment.length} · 시스템 ${logistics?.systems.length}` : ""}. 서버에 저장된 일정·물류 구조를 독립 복사하며, 글로벌 리소스 참조는 그대로 유지됩니다.</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {project ? <form className="project-form compact-form" noValidate onSubmit={submit}>

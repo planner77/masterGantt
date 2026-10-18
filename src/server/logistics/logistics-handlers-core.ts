@@ -761,12 +761,17 @@ export async function handleGetLogisticsDashboard(
     const includeDescendantProcesses = url.searchParams.get("includeDescendantProcesses") !== "false";
 
     const mdPerMmRaw = url.searchParams.get("mdPerMm");
+    if (url.searchParams.getAll("mdPerMm").length > 1) {
+      throw new PublicApiError(400, "INVALID_REQUEST", "mdPerMm must occur once.");
+    }
     let mdPerMm: number | null | undefined;
-    if (mdPerMmRaw !== null && mdPerMmRaw.trim() !== "") {
+    if (mdPerMmRaw === "null") mdPerMm = null;
+    else if (mdPerMmRaw !== null) {
       const parsed = Number(mdPerMmRaw);
-      if (Number.isFinite(parsed) && parsed > 0) {
-        mdPerMm = parsed;
+      if (mdPerMmRaw.trim() === "" || !Number.isFinite(parsed) || parsed <= 0) {
+        throw new PublicApiError(400, "INVALID_REQUEST", "mdPerMm must be a positive finite number or null.");
       }
+      mdPerMm = parsed;
     }
 
     const parseQueryArray = (paramName: string): string[] | undefined => {
@@ -806,4 +811,3 @@ export async function handleGetLogisticsDashboard(
     return mapError(error, requestId);
   }
 }
-

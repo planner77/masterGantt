@@ -1,0 +1,197 @@
+{
+  "capturedAt": "2026-10-08T18:48:33.966Z",
+  "environment": "Chromium / Next dev / Core2.7.3 / synthetic API / America/New_York",
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "2557408da0f153453e029becf951630f86792c995c21ff19ed33573e8c6fb16d",
+    "src/features/gantt/project-gantt.tsx": "57cb2944a247824e6a15a40596c7677d5d2e1381cbe71f2194aa6c7360ab7e28",
+    "src/features/gantt/milestone-timeline-lane.tsx": "5447dbe3fbf9d6e1cdf0fe20254e27552e8ab18b8b8561bee5de9d20e6f19951",
+    "src/features/milestones/milestone-timeline-preference.ts": "e6437005a980ac18a8e66bb01deacaef4343de34b52a5f0193e8f239e6dc119a",
+    "src/features/milestones/use-milestone-timeline-preference.ts": "bbe41088310bf8deb51c7ecd43fe94d026b5856ee02badfb674848fdefffb93d",
+    "src/features/milestones/project-milestone-dashboard.tsx": "7f65239a7c6b1af09e0ba9f325bc6c1030e6a30717c25ea7ed4fb653b52a6724",
+    "tests/e2e/milestone-visibility.spec.ts": "fb1e55ca542f35363e1bf941dea8aab5f7524223086a6f9b4605801dd65aec04"
+  },
+  "data": {
+    "geometry": {
+      "lane": {
+        "x": -343,
+        "y": 689,
+        "width": 720,
+        "height": 64
+      },
+      "chart": {
+        "x": 250,
+        "y": 753,
+        "width": 127,
+        "height": 416
+      },
+      "rowCenter": 883,
+      "chartCenter": 882.5,
+      "anchor": null,
+      "documentWidth": 390,
+      "windowWidth": 390
+    },
+    "core": {
+      "instance": "svar-api-1",
+      "left": 0,
+      "top": 0,
+      "gridWidth": 588,
+      "start": "2026-10-01T04:00:00.000Z",
+      "end": "2026-10-17T04:00:00.000Z",
+      "width": 576,
+      "chartWidth": 128,
+      "weekStart": 1,
+      "scaleRows": [
+        {
+          "count": 1,
+          "width": 576,
+          "first": [
+            {
+              "date": "2026-10-01T04:00:00.000Z",
+              "width": 576,
+              "value": "October 2026"
+            }
+          ],
+          "last": [
+            {
+              "date": "2026-10-01T04:00:00.000Z",
+              "width": 576,
+              "value": "October 2026"
+            }
+          ]
+        },
+        {
+          "count": 16,
+          "width": 576,
+          "first": [
+            {
+              "date": "2026-10-01T04:00:00.000Z",
+              "width": 36,
+              "value": "1"
+            },
+            {
+              "date": "2026-10-02T04:00:00.000Z",
+              "width": 36,
+              "value": "2"
+            },
+            {
+              "date": "2026-10-03T04:00:00.000Z",
+              "width": 36,
+              "value": "3"
+            }
+          ],
+          "last": [
+            {
+              "date": "2026-10-14T04:00:00.000Z",
+              "width": 36,
+              "value": "14"
+            },
+            {
+              "date": "2026-10-15T04:00:00.000Z",
+              "width": 36,
+              "value": "15"
+            },
+            {
+              "date": "2026-10-16T04:00:00.000Z",
+              "width": 36,
+              "value": "16"
+            }
+          ]
+        }
+      ],
+      "rows": [
+        {
+          "id": "00000000-0000-4000-8000-000000000001",
+          "y": 3,
+          "x": 144,
+          "height": 31
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000002",
+          "y": 41,
+          "x": 144,
+          "height": 31
+        },
+        {
+          "id": "00000000-0000-4000-8000-000000000003",
+          "y": 79,
+          "x": 144,
+          "height": 31
+        }
+      ],
+      "links": [],
+      "canonicalIds": [
+        "00000000-0000-4000-8000-000000000001",
+        "00000000-0000-4000-8000-000000000002",
+        "00000000-0000-4000-8000-000000000003",
+        "00000000-0000-4000-8000-000000000004"
+      ],
+      "events": [
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "filter-tasks",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        },
+        {
+          "action": "resize-chart",
+          "left": 0,
+          "top": 0
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "capturedAt": "2026-10-14T08:39:29.849995+00:00",
+  "baseHead": "78691a97bb8c0ba74a560965ca39479d7c80b72c",
+  "run": "최신 source 전체 신규5case Chromium PASS",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "sha256": "48caffafd216b1031e184cdf9c60eb9a8a2a35564b704f9f84ac8b8569e21d25"
+    },
+    {
+      "path": "package.json",
+      "sha256": "c8cebfafda056d5fda0b3f669ee3975939bcfb14898c83f0b4f99b7981c0a388"
+    },
+    {
+      "path": "src/contracts/resources.ts",
+      "sha256": "9c0329aa55f40128d3682af629af1801408eb542d9d723e1da234802df2f61b2"
+    },
+    {
+      "path": "src/features/gantt/project-task-editor.tsx",
+      "sha256": "83bf88c78a57e59a9f69a210d22846e291046c7814dd37de26d628de96523b27"
+    },
+    {
+      "path": "src/features/gantt/task-assignment-editor.tsx",
+      "sha256": "2f52de793daad2b553429276ad1faa3317d546119fbe7917b54fe58faf41e472"
+    },
+    {
+      "path": "src/features/logistics/project-logistics-management.tsx",
+      "sha256": "c934be1ab71fd1385f7da3314f4ec8514176cb5b422c15b29be52f221fb1dccb"
+    },
+    {
+      "path": "src/features/logistics/project-logistics-targets.tsx",
+      "sha256": "d27dae332c30215b3458cd12bb9415648c9514665883382c4441ff6115ad20dc"
+    },
+    {
+      "path": "src/features/projects/project-readonly-view.tsx",
+      "sha256": "b9bf446154fd3c683b3ebbafe813104511061fdf25d153185ab26bb429253475"
+    },
+    {
+      "path": "src/features/resources/project-resource-dashboard.tsx",
+      "sha256": "51176782a1d9f11cc690932893a01a31b80ee92f96c3ce5752dcc49e0454965e"
+    },
+    {
+      "path": "src/features/resources/project-resource-workload.tsx",
+      "sha256": "e807a20ed551c11ccd7bfc5c090cb3b36128c978fd1e4dc0515b4a43897a88fb"
+    },
+    {
+      "path": "src/features/resources/resource-dashboard-details.tsx",
+      "sha256": "52dbe0c3f1f054229ad6efb1dd46f07858ac62ac74dc0630569d0e62b67ce6a8"
+    },
+    {
+      "path": "src/features/resources/resource-dashboard-model.ts",
+      "sha256": "45c567d2e815133049b32d5a9fb89d0835bd0c36d29710d7f09d58afb0cbdc6b"
+    },
+    {
+      "path": "src/features/resources/resource-drill-context.tsx",
+      "sha256": "6822f6e95876be79b494cea5a97552f189c5e8f57d86bb397878a40256838555"
+    },
+    {
+      "path": "src/features/resources/resource-drill-transport.ts",
+      "sha256": "9d790b67f0cf56bd92b39d6532e8fc6dd03d7556bae4223dc9b57d617d608cd7"
+    },
+    {
+      "path": "src/features/resources/resource-target-views.module.css",
+      "sha256": "f93915862d56cf9b111965fcf58e08de17bcc167acbe79fa7a24a1e53159a0bb"
+    },
+    {
+      "path": "src/features/resources/resource-target-views.tsx",
+      "sha256": "1ae4d63f52a17b5811a8536b2e52ad0d992a4baf310cf1f1165d248afc670889"
+    },
+    {
+      "path": "src/server/repositories/resource-catalog-repository-core.ts",
+      "sha256": "900758082a1d0c883b5210b9efce913cb3d78c7629289435d8cd54d7cc975efb"
+    },
+    {
+      "path": "src/server/resources/resource-catalog-service-core.ts",
+      "sha256": "31501058f22b1f6bae7612b869d5db368d50ecfc821bf572b462018f1ba320d9"
+    },
+    {
+      "path": "tests/e2e/fixtures/issue-621-target-project.ts",
+      "sha256": "177687b6fee686f717857e277d27006202d6b56f9b8ea51ffeb8f92b23b62ffd"
+    },
+    {
+      "path": "tests/e2e/issue-621-resource-target.spec.ts",
+      "sha256": "95c399de9c5899cb543c3c4513dd0411de5779874db6d84af1cf0d97f4dbfffc"
+    }
+  ],
+  "inventorySha256": "d6d5da25c3f555c99e7068fe41036e511b8c68c57a5e3ddf4a781a01410499e3"
+}

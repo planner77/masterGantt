@@ -50,7 +50,7 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, ta
       <p>자동 복사를 사용할 수 없습니다. 아래 주소를 선택해 수동으로 복사해 주세요.</p>
       <input aria-label="프로젝트 바로 가기 URL" className={styles.copyValue} readOnly value={projectUrl}
         onFocus={(event) => event.currentTarget.select()} />
-      <button className="secondary-button" type="button" onClick={() => void copy()}>복사 다시 시도</button>
+      <div className="standalone-actions"><button className="secondary-button" type="button" onClick={() => void copy()}>복사 다시 시도</button></div>
     </WorkspaceDialog> : null}
   </>;
 }

@@ -573,6 +573,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 
 | 목적 | 문서 |
 | --- | --- |
+| Target·Resource 사용·이관·수용 | [사용자 가이드](docs/TARGET_RESOURCE_USER_GUIDE.md), [운영 절차](docs/TARGET_RESOURCE_OPERATIONS.md), [Resource MVP 수용표](docs/TARGET_RESOURCE_ACCEPTANCE.md) |
 | 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W22 작업 목록](docs/ISSUE_BREAKDOWN.md) |
 | 요구사항과 구조 | [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | DB·API·보안 계약 | [DB_SCHEMA](docs/DB_SCHEMA.md), [API](docs/API.md), [SECURITY](docs/SECURITY.md) |
@@ -598,7 +599,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 
 ## 9. README 유지관리 원칙
 
-각 작업·마일스톤 진행 시 프로젝트 개요, 실제 기술 스택, 설치·재설치·설정·실행 방법, 현재 구현 상태, 관련 산출물 링크를 함께 갱신한다. 실행 명령이나 환경 변수 사용이 바뀌면 해당 구현과 같은 변경에 README를 포함한다. 완료·계획·미검증 상태를 구분하고 상세 계약은 해당 문서를 연결하여 관리한다.
+각 작업·Milestone 진행 시 프로젝트 개요, 실제 기술 스택, 설치·재설치·설정·실행 방법, 현재 구현 상태, 관련 산출물 링크를 함께 갱신한다. 실행 명령이나 환경 변수 사용이 바뀌면 해당 구현과 같은 변경에 README를 포함한다. 완료·계획·미검증 상태를 구분하고 상세 계약은 해당 문서를 연결하여 관리한다.
 
 ## 저장소 파일 배치와 Compose 경로
 

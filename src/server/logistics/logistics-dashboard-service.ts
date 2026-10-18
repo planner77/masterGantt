@@ -20,20 +20,19 @@ import type { ProjectAssignmentDto, ResourceDto, ResourceGroupDto } from "../../
 import type { ProjectTaskDto, ProjectDto } from "../../contracts/projects";
 import { workingDaysBetween, type WorkingCalendar } from "../../domain/scheduling/calendar";
 import { resolveResourceWorkingCalendar } from "../calendars/calendar-resolution-core";
-import { dateToOrdinal, ordinalToDate, parseDateOnly } from "../../domain/scheduling/date-only";
+import { dateToOrdinal, parseDateOnly } from "../../domain/scheduling/date-only";
 import { ProjectRepository } from "../repositories/project-repository-core";
 import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { LogisticsService } from "./logistics-service-core";
+import { mdPerMmSource, resolveMdPerMm } from "../resources/md-per-mm-core";
+import { readStageSnapshot } from "../projects/milestone-stage-core";
+import { milestoneDashboardStages, relatedMilestoneStages } from "../projects/milestone-dashboard-projection-core";
+import type { StageSnapshot } from "../../domain/milestones/stage-gates";
 
 function round4(value: number): number {
   return Math.round(value * 10000) / 10000;
-}
-
-function addDaysToDateString(dateStr: string, days: number): string {
-  const ordinal = dateToOrdinal(dateStr) + days;
-  return ordinalToDate(ordinal);
 }
 
 function dateInTimeZone(date: Date, timeZone: string): string {
@@ -124,6 +123,8 @@ export function buildAllEffectiveTaskLogistics(
 }
 
 export interface CalculateDashboardInput {
+  stageSnapshot?: StageSnapshot;
+  mdPerMmEnvironment?: string;
   project: ProjectDto;
   catalogRevision: number;
   tasks: ProjectTaskDto[];
@@ -157,7 +158,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   const systemView = filter.systemView ?? "direct";
   const activeOnly = filter.activeOnly ?? false;
   const includeDescendantProcesses = filter.includeDescendantProcesses ?? true;
-  const mdPerMm = filter.mdPerMm ?? 20;
+  const mdPerMm = resolveMdPerMm(filter.mdPerMm, input.mdPerMmEnvironment);
 
   const calculatedAt = now.toISOString();
 
@@ -457,7 +458,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   const progressPercent = totalDuration > 0 ? round4(weightedProgressSum / totalDuration) : null;
 
   // 2. Milestone 경보
-  const upcomingLimitDate = addDaysToDateString(asOfDate, horizonDays - 1);
+  const upcomingLimitOrdinal = dateToOrdinal(asOfDate) + horizonDays - 1;
   const milestoneOverdueIds: string[] = [];
   const milestoneUpcomingIds: string[] = [];
 
@@ -466,7 +467,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
       const due = m.start; // 마일스톤 start === end
       if (due < asOfDate) {
         milestoneOverdueIds.push(m.taskId);
-      } else if (due >= asOfDate && due <= upcomingLimitDate) {
+      } else if (due >= asOfDate && dateToOrdinal(due) <= upcomingLimitOrdinal) {
         milestoneUpcomingIds.push(m.taskId);
       }
     }
@@ -522,6 +523,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     plannedMd,
     plannedMm,
     mdPerMm,
+    mdPerMmSource: mdPerMmSource(filter.mdPerMm, input.mdPerMmEnvironment),
     unsetAllocationCount,
     workloadRange: {
       from: minWorkloadDate,
@@ -794,7 +796,11 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     };
   });
 
+  const stageRows = input.stageSnapshot
+    ? milestoneDashboardStages(tasks, input.stageSnapshot, asOfDate, horizonDays).rows
+    : undefined;
   return {
+    ...(stageRows ? { milestoneStages: relatedMilestoneStages(stageRows, includedTasks.map((task) => task.taskId), includedMilestones.map((task) => task.taskId)) } : {}),
     projectRevision: project.revision,
     catalogRevision,
     asOfDate,
@@ -825,7 +831,7 @@ export class LogisticsDashboardService {
 
   constructor(
     private readonly database: Database.Database,
-    private readonly options?: { clock?: () => Date },
+    private readonly options?: { clock?: () => Date; mdPerMmEnvironment?: string },
   ) {
     this.projects = new ProjectRepository(database);
     this.owners = new ProjectOwnerRepository(database);
@@ -835,11 +841,10 @@ export class LogisticsDashboardService {
   }
 
   getDashboard(projectPublicId: string, filter: LogisticsDashboardFilterInput = {}): LogisticsDashboardDto | undefined {
-    const project = this.projects.findByPublicId(projectPublicId);
-    if (!project) return undefined;
-
     // 하나의 read transaction 안에서 모든 데이터 일관성 있게 조회
     return this.database.transaction(() => {
+      const project = this.projects.findByPublicId(projectPublicId);
+      if (!project) return undefined;
       const tasks = this.schedules.listTasks(project.id).map((task) => ({
         taskId: task.publicId,
         externalId: task.externalId,
@@ -851,6 +856,7 @@ export class LogisticsDashboardService {
         end: task.endDate,
         duration: task.duration,
         progress: task.progress,
+        status: task.status,
         parentExternalId: task.parentId
           ? this.schedules.findTaskById(project.id, task.parentId)?.externalId ?? null
           : null,
@@ -864,6 +870,7 @@ export class LogisticsDashboardService {
         id: a.publicId,
         taskId: a.taskPublicId,
         target: { kind: a.kind, id: a.targetPublicId },
+        role: null,
         allocation: {
           start: a.assignmentStart,
           end: a.assignmentEnd,
@@ -877,6 +884,7 @@ export class LogisticsDashboardService {
         code: r.code,
         description: r.description ?? "",
         active: r.active,
+        developerGrade: r.developerGrade,
       }));
 
       const groups = this.catalog.listGroups().map((g) => ({
@@ -913,6 +921,8 @@ export class LogisticsDashboardService {
       };
 
       return calculateLogisticsDashboardPure({
+        stageSnapshot: readStageSnapshot(this.database, project.id),
+        mdPerMmEnvironment: this.options?.mdPerMmEnvironment,
         project: projectDto,
         catalogRevision: this.catalog.getRevision(),
         tasks,

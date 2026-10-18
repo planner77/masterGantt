@@ -1,3 +1,5 @@
+> **Issue #485 update (2026-10-06):** 아래 문서의 `수행 역할`/`assignment_role`은 더 이상 Task별 저장값이 아니다. 역할 Source of Truth는 Resource의 현재 Global Role 집합이며, 복수 역할 subtotal은 비가산 분류다. Grand Total은 assignmentId 기준으로만 계산한다.
+
 # Issue #414 — 역할 기반 Resource workload 및 개발자 공수 견적
 
 ## 기준
@@ -12,7 +14,7 @@
 
 ## 목적
 
-기존 #56 Resource workload를 새 계산 엔진으로 교체하지 않고, 같은 Task Resource assignment를 수행 역할 기준으로 분류해 PI·개발자·설비 담당 공수와 개발자 견적을 Project Resource View에서 확인한다.
+기존 #56 Resource workload를 새 계산 엔진으로 교체하지 않고, 같은 Task Resource assignment를 Resource의 현재 Global Role 기준으로 분류해 PI·개발자·설비 담당 공수와 개발자 견적을 Project Resource View에서 확인한다.
 
 ## 계산 계약
 
@@ -27,8 +29,8 @@ M/M = M/D / RESOURCE_MD_PER_MM
 - 개인 Resource가 직접 할당된 일반 Task만 계획 공수를 생성한다.
 - Group, Summary, Milestone, Project Equipment/System 책임 관계는 개인 공수를 생성하지 않는다.
 - Grand Total은 기존처럼 `assignmentId`별 한 번만 합산한다. 한 Resource가 여러 Group에 속해도 Grand Total은 증가하지 않는다.
-- 역할 subtotal도 동일 assignment row의 `assignment_role`을 기준으로 정확히 한 bucket에 넣는다.
-- `assignment_role = NULL`은 Global Role에서 추정하지 않고 `UNSPECIFIED`로 별도 집계한다.
+- 역할 subtotal은 Resource의 현재 Global Role 집합을 기준으로 만든다. 복수 역할 Resource는 동일 assignment가 여러 bucket에 포함될 수 있다.
+- Global Role이 0개인 Resource assignment를 `UNSPECIFIED`로 별도 집계한다.
 - `allocationPercent = NULL`은 기존처럼 공수 미설정이며 100%로 추정하지 않는다.
 - Resource Calendar 계층과 과투입 판정은 #56/#261 계약을 그대로 사용한다.
 - Task progress/status는 표시 정보다. 계획 공수를 진척률로 차감하거나 실제 소진 공수로 환산하지 않는다.
@@ -64,8 +66,8 @@ delayed = progress < 100 AND canonical end < asOfDate
 
 - 상단 전체 계획 공수 / 공수 미설정 / 과투입 요약을 유지한다.
 - PI / 개발자 / 설비 담당 / 역할 미지정 역할 subtotal을 별도 flat summary row로 표시한다.
-- 고급 필터에 수행 역할과 개발자 등급을 추가한다.
-- `개발 견적` preset은 `종류=Resource`, `수행 역할=DEVELOPER`를 한 번에 적용한다.
+- 고급 필터에 Global Role과 개발자 등급을 추가한다.
+- `개발 견적` preset은 `종류=Resource`, `Global Role=DEVELOPER`를 한 번에 적용한다.
 - preset 및 역할/기간/등급 필터가 적용된 drill-down의 Resource/Group subtotal은 **현재 표시 Task**만 다시 합산한다. 상단 Project 전체 역할 subtotal은 필터와 무관한 서버 권위 값으로 유지한다.
 - 개발자 Resource에는 개발자 등급을 표시하고 Task row에서 역할, 상태/지연, 진행률, canonical 일정, allocation 기간/%, 계획 공수를 함께 본다.
 - M/M 기준 미설정이면 기존처럼 M/M 전환을 비활성화한다.
@@ -98,3 +100,19 @@ Chromium:
 - 기존 loading/error/stale/partial retry 회귀 유지
 
 전체 판정은 PR exact head의 GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+
+## Issue #523 공통 Task/Assignment KPI
+
+[공통 Resource KPI](RESOURCE_KPI_DASHBOARD.md)는 현재 Global Role 복수 분류와 같은 Resource Calendar 산식을 사용한다. 역할마다 중복 subtotal이 생길 수 있지만 Grand Total은 raw 개인 Assignment ID에서 한 번만 계산한다. 할당 Task/완료율/진척은 역할 범위의 고유 일반 Task 기준이며 개인 생산성이 아니다. canonical `progress<100 AND end<asOfDate` 지연 정의와 date-only/Project timezone을 유지한다. 개인 조건의 A와 개인/Role/등급 조건을 적용할 수 없는 T0 미배정 진단을 별도로 명시한다. 기존 workload API·Global Role 저장·legacy rounding은 변경하지 않는다.
+
+## Issue #525 Global Role 기본 Dashboard 연결
+
+기본 Resource Dashboard는 Global Role 공수 flat summary와 개발 견적 preset을 유지한다. 개발 견적은 서버 A의 DEVELOPER 조건과 개인 표시 모드를 선택하고 등급 필터를 추가할 수 있다. Global Role은 현재 catalog가 source이며 Task별 역할 저장을 다시 만들지 않는다. 역할 소계는 복수 Role 때문에 비가산이고 Grand Total은 원시 Assignment에서 서버가 계산한 값이다. 검색/역할/등급/activity/개인 조건이 T0 미배정 진단을 제한하지 않는다는 설명을 함께 제공한다.
+
+새 기본 화면의 역할·등급·상태·기간 필터는 서버 조회 조건이다. 과거의 client-only 표시 subtotal/필터 시 네트워크0 조건은 새 기본 화면에 적용하지 않는다. 기존 exact Milestone drill은 legacy 의미를 유지한다. raw/null/snapshot 및 독립 상세 실패·stale·keyboard·Gantt 보존 검증은 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)과 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)을 따른다.
+
+
+## Issue #530 개발 견적 통합 사용 흐름
+
+Global Role·등급 조건의 raw 계획 공수 확인과 동일 범위 Excel 내보내기는 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#개발자-역할등급-견적과-같은-범위-excel)를 따른다. 복수 Role/Group 소계는 비가산이며 Grand Total은 고유 Assignment에서 계산한다. 현재 분류를 과거 이력·실제 실적·금액으로 확대하지 않고 기존 legacy workload API 의미를 유지한다.

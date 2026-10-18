@@ -1,5 +1,5 @@
 const SCHEDULE_FIELDS = new Set(["start", "duration", "end", "scheduleMode"]);
-const METADATA_FIELDS = new Set(["name", "description", "url"]);
+const METADATA_FIELDS = new Set(["name", "description", "url", "explicitMilestoneTaskId"]);
 const BASELINE_FIELDS = new Set(["baseline", "baselineStart", "baselineDuration", "baselineEnd"]);
 
 /** Classifies supplied fields only; validation remains the strict API contract's responsibility. */

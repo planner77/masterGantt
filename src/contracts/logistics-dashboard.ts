@@ -1,3 +1,5 @@
+import type { MdPerMmSource, MilestoneDashboardStageDto } from "./milestone-dashboard";
+
 export interface LogisticsDashboardFilterInput {
   asOfDate?: string;
   horizonDays?: number;
@@ -29,6 +31,7 @@ export interface LogisticsDashboardEffortDto {
   plannedMd: number;
   plannedMm: number | null;
   mdPerMm: number | null;
+  mdPerMmSource?: MdPerMmSource;
   unsetAllocationCount: number;
   workloadRange: {
     from: string | null;
@@ -93,6 +96,8 @@ export interface LogisticsDashboardSystemRowDto {
 }
 
 export interface LogisticsDashboardDto {
+  /** Additive full-stage projection; existing KPI/effort/included ID scopes are unchanged. */
+  milestoneStages?: { milestoneTaskIds: string[]; rows: MilestoneDashboardStageDto[] };
   projectRevision: number;
   catalogRevision: number;
   asOfDate: string;

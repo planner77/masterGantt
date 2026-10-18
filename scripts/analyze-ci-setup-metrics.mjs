@@ -27,11 +27,21 @@ function p90(values) {
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.max(0, Math.ceil(sorted.length * 0.9) - 1)];
 }
+function lane(workflow, eventName) {
+  if (workflow.endsWith("/ci.yml") && eventName === "pull_request") return "PR";
+  if (workflow.endsWith("/ci.yml") && eventName === "push") return "Main";
+  if (workflow.endsWith("/release-image.yml")) return "Release";
+  return "Other";
+}
+function rounded(value, digits = 3) {
+  return Number(value.toFixed(digits));
+}
 
 const input = arg("input", ".ci-setup-metrics");
 const minSamples = Number(arg("min-samples", "10"));
 const output = arg("output", "");
 const summary = arg("summary", process.env.GITHUB_STEP_SUMMARY || "");
+const requireBoundProvenance = arg("require-bound-provenance", "false") === "true";
 if (!Number.isInteger(minSamples) || minSamples <= 0) throw new Error("--min-samples must be a positive integer.");
 
 const records = [];
@@ -45,7 +55,8 @@ for (const file of walk(input)) {
       const job = String(value?.job || "").trim();
       const eventName = String(value?.eventName || "").trim();
       const metric = String(value?.metric || "").trim();
-      if (value?.schemaVersion === 2 && value?.issue === 439 && runId && workflow && job && eventName && metric && Number.isFinite(Number(value.durationMs))) {
+      const provenanceAccepted = !requireBoundProvenance || value?.provenanceBound === true;
+      if (value?.schemaVersion === 2 && value?.issue === 439 && provenanceAccepted && runId && workflow && job && eventName && metric && Number.isFinite(Number(value.durationMs))) {
         records.push({ ...value, runId, workflow, job, eventName, metric });
       }
     } catch {
@@ -75,7 +86,13 @@ for (const record of records) {
 
 const result = [...groups.values()].map((group) => {
   const successfulRuns = group.runIds.size;
+  const totalDurationMs = group.durations.reduce((sum, value) => sum + value, 0);
+  const cache = Object.fromEntries([...group.cache.entries()].sort(([a], [b]) => a.localeCompare(b)));
+  const exactHits = cache["exact-hit=true"] ?? 0;
+  const exactMisses = cache["exact-hit=false"] ?? 0;
+  const cacheObservations = exactHits + exactMisses;
   return {
+    lane: lane(group.workflow, group.eventName),
     workflow: group.workflow,
     eventName: group.eventName,
     job: group.job,
@@ -85,7 +102,11 @@ const result = [...groups.values()].map((group) => {
     enoughSamples: successfulRuns >= minSamples,
     medianMs: Math.round(median(group.durations)),
     p90Ms: Math.round(p90(group.durations)),
-    cache: Object.fromEntries([...group.cache.entries()].sort(([a], [b]) => a.localeCompare(b))),
+    totalDurationMs: Math.round(totalDurationMs),
+    runnerMinutes: rounded(totalDurationMs / 60_000),
+    runnerMinutesPerSuccessfulRun: successfulRuns > 0 ? rounded(totalDurationMs / successfulRuns / 60_000) : 0,
+    cacheHitRate: cacheObservations > 0 ? rounded(exactHits / cacheObservations, 4) : null,
+    cache,
   };
 }).sort((a, b) =>
   a.workflow.localeCompare(b.workflow) ||
@@ -94,7 +115,49 @@ const result = [...groups.values()].map((group) => {
   a.metric.localeCompare(b.metric)
 );
 
-const payload = { schemaVersion: 2, issue: 439, minSamples, records: records.length, metrics: result };
+const targetLanes = ["PR", "Main", "Release"];
+const readiness = Object.fromEntries(targetLanes.map((name) => {
+  const metrics = result.filter((item) => item.lane === name);
+  const readyGroups = metrics.filter((item) => item.enoughSamples).length;
+  return [name, {
+    groups: metrics.length,
+    readyGroups,
+    notReadyGroups: metrics.length - readyGroups,
+    ready: metrics.length > 0 && readyGroups === metrics.length,
+  }];
+}));
+const candidates = result
+  .filter((item) => item.enoughSamples && item.lane !== "Other")
+  .sort((a, b) =>
+    b.runnerMinutesPerSuccessfulRun - a.runnerMinutesPerSuccessfulRun ||
+    b.p90Ms - a.p90Ms ||
+    b.medianMs - a.medianMs
+  )
+  .map((item, index) => ({
+    rank: index + 1,
+    lane: item.lane,
+    workflow: item.workflow,
+    eventName: item.eventName,
+    job: item.job,
+    metric: item.metric,
+    medianMs: item.medianMs,
+    p90Ms: item.p90Ms,
+    runnerMinutesPerSuccessfulRun: item.runnerMinutesPerSuccessfulRun,
+    cacheHitRate: item.cacheHitRate,
+  }));
+
+const payload = {
+  schemaVersion: 2,
+  issue: 439,
+  phase2Issue: 444,
+  minSamples,
+  requireBoundProvenance,
+  records: records.length,
+  phase2Ready: targetLanes.every((name) => readiness[name].ready),
+  readiness,
+  candidates,
+  metrics: result,
+};
 
 if (output) {
   const { writeFileSync } = await import("node:fs");
@@ -108,12 +171,23 @@ if (summary) {
     "",
     `- 최소 successful run 표본: \`${minSamples}\``,
     `- 수집 record: \`${records.length}\``,
+    `- trusted provenance binding 필수: \`${requireBoundProvenance}\``,
     "- 입력은 successful workflow run에서 내려받은 artifact만 사용한다. 동일 run ID의 rerun/matrix shard는 run 표본을 늘리지 않는다.",
+    `- Phase 2 전체 readiness: \`${payload.phase2Ready ? "READY" : "COLLECTING"}\``,
+    ...targetLanes.map((name) => `- ${name}: groups=\`${readiness[name].groups}\`, ready=\`${readiness[name].readyGroups}\`, not-ready=\`${readiness[name].notReadyGroups}\``),
     "",
-    "| workflow | event | job | metric | records | successful runs | median | p90 | cache |",
-    "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |",
+    "| lane | workflow | event | job | metric | records | successful runs | median | p90 | runner min/run | cache hit | cache |",
+    "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ...result.map((item) =>
-      `| ${item.workflow} | ${item.eventName} | ${item.job} | ${item.metric} | ${item.samples} | ${item.successfulRuns}${item.enoughSamples ? "" : " ⚠"} | ${(item.medianMs / 1000).toFixed(2)}s | ${(item.p90Ms / 1000).toFixed(2)}s | ${Object.entries(item.cache).map(([k, v]) => `${k}=${v}`).join(", ") || "n/a"} |`
+      `| ${item.lane} | ${item.workflow} | ${item.eventName} | ${item.job} | ${item.metric} | ${item.samples} | ${item.successfulRuns}${item.enoughSamples ? "" : " ⚠"} | ${(item.medianMs / 1000).toFixed(2)}s | ${(item.p90Ms / 1000).toFixed(2)}s | ${item.runnerMinutesPerSuccessfulRun.toFixed(3)} | ${item.cacheHitRate === null ? "n/a" : (item.cacheHitRate * 100).toFixed(1) + "%"} | ${Object.entries(item.cache).map(([k, v]) => `${k}=${v}`).join(", ") || "n/a"} |`
+    ),
+    "",
+    "### Phase 2 비용 후보",
+    "",
+    "| rank | lane | job | metric | median | p90 | runner min/run | cache hit |",
+    "| ---: | --- | --- | --- | ---: | ---: | ---: | ---: |",
+    ...candidates.slice(0, 20).map((item) =>
+      `| ${item.rank} | ${item.lane} | ${item.job} | ${item.metric} | ${(item.medianMs / 1000).toFixed(2)}s | ${(item.p90Ms / 1000).toFixed(2)}s | ${item.runnerMinutesPerSuccessfulRun.toFixed(3)} | ${item.cacheHitRate === null ? "n/a" : (item.cacheHitRate * 100).toFixed(1) + "%"} |`
     ),
   ];
   appendFileSync(summary, lines.join("\n") + "\n", "utf8");

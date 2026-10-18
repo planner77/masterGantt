@@ -1,0 +1,51 @@
+{
+  "schema": "mastergantt/resource-target-benchmark/1",
+  "issue": 620,
+  "baseline_sha": "b19b913f9e55870e48b9b955b3a321485021b781",
+  "candidate": "baseline plus reviewed Issue 620 working tree",
+  "measured_by": "/root/backend",
+  "environment": "local native SQLite; synthetic fixture; not a production SLA",
+  "response_envelope": "data",
+  "source_sha256": {
+    "src/server/resources/resource-dashboard-service-core.ts": "33a67281a37e502a9f3c61d232ef09111793733bd42e5dac4ca1ee4e8e156ee2",
+    "src/server/repositories/resource-target-snapshot-repository-core.ts": "82be65556a43f9121149f053cb598e2e7c6f22b5ef6fbd5aae734a5a11edfc44",
+    "src/domain/resources/resource-target-kpi.ts": "5774d51f0fb0a73f37c98b282026273f8cd499cdaca53f2eb5a3ec718cd68c53",
+    "tests/fixtures/resource-dashboard-targets.ts": "1d3ade705a5c422fe4282032e9d989e7f173c10aa973d0f9e0dbdb7af3b93bee"
+  },
+  "measurement": {
+    "tasks": 131,
+    "assignments": 245,
+    "targets": 2,
+    "members": 6,
+    "bindings": 245,
+    "queryCount": 48,
+    "elapsedMs": 34.36,
+    "responseBytes": 294445,
+    "plans": [
+      [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 61,
+          "detail": "SEARCH logistics_targets USING INDEX logistics_targets_process_idx (project_id=?)"
+        }
+      ],
+      [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 61,
+          "detail": "SEARCH task_target_bindings USING INDEX task_target_binding_target_idx (project_id=?)"
+        }
+      ],
+      [
+        {
+          "id": 3,
+          "parent": 0,
+          "notused": 61,
+          "detail": "SEARCH logistics_target_members USING INDEX logistics_target_member_system_usage_idx (project_id=?)"
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "viewport": {
+    "width": 1920,
+    "height": 900
+  },
+  "bounds": {
+    "x": 656,
+    "y": 173.296875,
+    "width": 608,
+    "height": 553.40625,
+    "top": 173.296875,
+    "right": 1264,
+    "bottom": 726.703125,
+    "left": 656
+  },
+  "documentWidth": 1920,
+  "controlCount": 10,
+  "allControlsContained": true,
+  "focusVisible": true,
+  "scrollOwners": [
+    {
+      "clientHeight": 387,
+      "scrollHeight": 387
+    }
+  ]
+}

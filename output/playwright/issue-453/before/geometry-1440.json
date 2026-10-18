@@ -1,0 +1,1769 @@
+{
+  "viewport": 1440,
+  "documentWidth": 1440,
+  "zoom": "100% default browser zoom",
+  "sections": [
+    {
+      "heading": "리소스",
+      "bounds": {
+        "x": 24,
+        "y": 273,
+        "width": 899.6875,
+        "height": 2273.8125,
+        "top": 273,
+        "right": 923.6875,
+        "bottom": 2546.8125,
+        "left": 24
+      }
+    },
+    {
+      "heading": "리소스 그룹",
+      "bounds": {
+        "x": 939.6875,
+        "y": 273,
+        "width": 476.3125,
+        "height": 1199.09375,
+        "top": 273,
+        "right": 1416,
+        "bottom": 1472.09375,
+        "left": 939.6875
+      }
+    },
+    {
+      "heading": "긴 한국어 English Group Identity 구성원 관리 0 구성원",
+      "bounds": {
+        "x": 24,
+        "y": 2562.8125,
+        "width": 1392,
+        "height": 540.578125,
+        "top": 2562.8125,
+        "right": 1416,
+        "bottom": 3103.390625,
+        "left": 24
+      }
+    }
+  ],
+  "rows": [
+    {
+      "x": 41,
+      "y": 518.6875,
+      "width": 865.6875,
+      "height": 158.65625,
+      "top": 518.6875,
+      "right": 906.6875,
+      "bottom": 677.34375,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 685.34375,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 685.34375,
+      "right": 906.6875,
+      "bottom": 846.40625,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 854.40625,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 854.40625,
+      "right": 906.6875,
+      "bottom": 1015.46875,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 1023.46875,
+      "width": 865.6875,
+      "height": 158.65625,
+      "top": 1023.46875,
+      "right": 906.6875,
+      "bottom": 1182.125,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 1190.125,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 1190.125,
+      "right": 906.6875,
+      "bottom": 1351.1875,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 1359.1875,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 1359.1875,
+      "right": 906.6875,
+      "bottom": 1520.25,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 1528.25,
+      "width": 865.6875,
+      "height": 158.65625,
+      "top": 1528.25,
+      "right": 906.6875,
+      "bottom": 1686.90625,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 1694.90625,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 1694.90625,
+      "right": 906.6875,
+      "bottom": 1855.96875,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 1863.96875,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 1863.96875,
+      "right": 906.6875,
+      "bottom": 2025.03125,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 2033.03125,
+      "width": 865.6875,
+      "height": 158.65625,
+      "top": 2033.03125,
+      "right": 906.6875,
+      "bottom": 2191.6875,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 2199.6875,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 2199.6875,
+      "right": 906.6875,
+      "bottom": 2360.75,
+      "left": 41
+    },
+    {
+      "x": 41,
+      "y": 2368.75,
+      "width": 865.6875,
+      "height": 161.0625,
+      "top": 2368.75,
+      "right": 906.6875,
+      "bottom": 2529.8125,
+      "left": 41
+    },
+    {
+      "x": 956.6875,
+      "y": 440.1875,
+      "width": 442.3125,
+      "height": 183.90625,
+      "top": 440.1875,
+      "right": 1399,
+      "bottom": 624.09375,
+      "left": 956.6875
+    },
+    {
+      "x": 956.6875,
+      "y": 632.09375,
+      "width": 442.3125,
+      "height": 247.28125,
+      "top": 632.09375,
+      "right": 1399,
+      "bottom": 879.375,
+      "left": 956.6875
+    },
+    {
+      "x": 956.6875,
+      "y": 887.375,
+      "width": 442.3125,
+      "height": 183.90625,
+      "top": 887.375,
+      "right": 1399,
+      "bottom": 1071.28125,
+      "left": 956.6875
+    },
+    {
+      "x": 956.6875,
+      "y": 1079.28125,
+      "width": 442.3125,
+      "height": 183.90625,
+      "top": 1079.28125,
+      "right": 1399,
+      "bottom": 1263.1875,
+      "left": 956.6875
+    },
+    {
+      "x": 956.6875,
+      "y": 1271.1875,
+      "width": 442.3125,
+      "height": 183.90625,
+      "top": 1271.1875,
+      "right": 1399,
+      "bottom": 1455.09375,
+      "left": 956.6875
+    }
+  ],
+  "controls": [
+    {
+      "label": "관리자 비밀번호 변경",
+      "bounds": {
+        "x": 1047.21875,
+        "y": 200,
+        "width": 163.78125,
+        "height": 40,
+        "top": 200,
+        "right": 1211,
+        "bottom": 240,
+        "left": 1047.21875
+      }
+    },
+    {
+      "label": "새로고침",
+      "bounds": {
+        "x": 1219,
+        "y": 200,
+        "width": 86,
+        "height": 40,
+        "top": 200,
+        "right": 1305,
+        "bottom": 240,
+        "left": 1219
+      }
+    },
+    {
+      "label": "로그아웃",
+      "bounds": {
+        "x": 1313,
+        "y": 200,
+        "width": 86,
+        "height": 40,
+        "top": 200,
+        "right": 1399,
+        "bottom": 240,
+        "left": 1313
+      }
+    },
+    {
+      "label": "리소스 검색",
+      "bounds": {
+        "x": 41,
+        "y": 325,
+        "width": 758.671875,
+        "height": 38.78125,
+        "top": 325,
+        "right": 799.671875,
+        "bottom": 363.78125,
+        "left": 41
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 41,
+        "y": 402.1875,
+        "width": 335.859375,
+        "height": 38,
+        "top": 402.1875,
+        "right": 376.859375,
+        "bottom": 440.1875,
+        "left": 41
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 384.859375,
+        "y": 402.1875,
+        "width": 223.90625,
+        "height": 38,
+        "top": 402.1875,
+        "right": 608.765625,
+        "bottom": 440.1875,
+        "left": 384.859375
+      }
+    },
+    {
+      "label": "신규 리소스 개발자 등급",
+      "bounds": {
+        "x": 616.765625,
+        "y": 402.1875,
+        "width": 223.921875,
+        "height": 38,
+        "top": 402.1875,
+        "right": 840.6875,
+        "bottom": 440.1875,
+        "left": 616.765625
+      }
+    },
+    {
+      "label": "추가",
+      "bounds": {
+        "x": 848.6875,
+        "y": 400.1875,
+        "width": 58,
+        "height": 40,
+        "top": 400.1875,
+        "right": 906.6875,
+        "bottom": 440.1875,
+        "left": 848.6875
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 50,
+        "y": 472.5,
+        "width": 13,
+        "height": 38,
+        "top": 472.5,
+        "right": 63,
+        "bottom": 510.5,
+        "left": 50
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 90.28125,
+        "y": 472.5,
+        "width": 13,
+        "height": 38,
+        "top": 472.5,
+        "right": 103.28125,
+        "bottom": 510.5,
+        "left": 90.28125
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 156.859375,
+        "y": 472.5,
+        "width": 13,
+        "height": 38,
+        "top": 472.5,
+        "right": 169.859375,
+        "bottom": 510.5,
+        "left": 156.859375
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 0 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 566.109375,
+        "width": 75.375,
+        "height": 34,
+        "top": 566.109375,
+        "right": 503.40625,
+        "bottom": 600.109375,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 0 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 584.671875,
+        "width": 13,
+        "height": 13,
+        "top": 584.671875,
+        "right": 533.40625,
+        "bottom": 597.671875,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 0 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 584.671875,
+        "width": 13,
+        "height": 13,
+        "top": 584.671875,
+        "right": 573.6875,
+        "bottom": 597.671875,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 0 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 584.671875,
+        "width": 13,
+        "height": 13,
+        "top": 584.671875,
+        "right": 640.265625,
+        "bottom": 597.671875,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 625.953125,
+        "width": 86,
+        "height": 40,
+        "top": 625.953125,
+        "right": 854.5,
+        "bottom": 665.953125,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 0 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 633.953125,
+        "width": 32,
+        "height": 24,
+        "top": 633.953125,
+        "right": 893.6875,
+        "bottom": 657.953125,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 1 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 735.171875,
+        "width": 75.375,
+        "height": 34,
+        "top": 735.171875,
+        "right": 503.40625,
+        "bottom": 769.171875,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 1 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 753.734375,
+        "width": 13,
+        "height": 13,
+        "top": 753.734375,
+        "right": 533.40625,
+        "bottom": 766.734375,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 1 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 753.734375,
+        "width": 13,
+        "height": 13,
+        "top": 753.734375,
+        "right": 573.6875,
+        "bottom": 766.734375,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 1 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 753.734375,
+        "width": 13,
+        "height": 13,
+        "top": 753.734375,
+        "right": 640.265625,
+        "bottom": 766.734375,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 795.015625,
+        "width": 86,
+        "height": 40,
+        "top": 795.015625,
+        "right": 854.5,
+        "bottom": 835.015625,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 1 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 803.015625,
+        "width": 32,
+        "height": 24,
+        "top": 803.015625,
+        "right": 893.6875,
+        "bottom": 827.015625,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 2 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 904.234375,
+        "width": 75.375,
+        "height": 34,
+        "top": 904.234375,
+        "right": 503.40625,
+        "bottom": 938.234375,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 2 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 922.796875,
+        "width": 13,
+        "height": 13,
+        "top": 922.796875,
+        "right": 533.40625,
+        "bottom": 935.796875,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 2 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 922.796875,
+        "width": 13,
+        "height": 13,
+        "top": 922.796875,
+        "right": 573.6875,
+        "bottom": 935.796875,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 2 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 922.796875,
+        "width": 13,
+        "height": 13,
+        "top": 922.796875,
+        "right": 640.265625,
+        "bottom": 935.796875,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "재활성화",
+      "bounds": {
+        "x": 710.609375,
+        "y": 964.078125,
+        "width": 86,
+        "height": 40,
+        "top": 964.078125,
+        "right": 796.609375,
+        "bottom": 1004.078125,
+        "left": 710.609375
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 2 삭제 불가",
+      "bounds": {
+        "x": 803.796875,
+        "y": 964.078125,
+        "width": 89.890625,
+        "height": 40,
+        "top": 964.078125,
+        "right": 893.6875,
+        "bottom": 1004.078125,
+        "left": 803.796875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 3 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 1070.890625,
+        "width": 75.375,
+        "height": 34,
+        "top": 1070.890625,
+        "right": 503.40625,
+        "bottom": 1104.890625,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 3 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 1089.453125,
+        "width": 13,
+        "height": 13,
+        "top": 1089.453125,
+        "right": 533.40625,
+        "bottom": 1102.453125,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 3 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 1089.453125,
+        "width": 13,
+        "height": 13,
+        "top": 1089.453125,
+        "right": 573.6875,
+        "bottom": 1102.453125,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 3 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 1089.453125,
+        "width": 13,
+        "height": 13,
+        "top": 1089.453125,
+        "right": 640.265625,
+        "bottom": 1102.453125,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 710.609375,
+        "y": 1130.734375,
+        "width": 86,
+        "height": 40,
+        "top": 1130.734375,
+        "right": 796.609375,
+        "bottom": 1170.734375,
+        "left": 710.609375
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 3 삭제 불가",
+      "bounds": {
+        "x": 803.796875,
+        "y": 1130.734375,
+        "width": 89.890625,
+        "height": 40,
+        "top": 1130.734375,
+        "right": 893.6875,
+        "bottom": 1170.734375,
+        "left": 803.796875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 4 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 1239.953125,
+        "width": 75.375,
+        "height": 34,
+        "top": 1239.953125,
+        "right": 503.40625,
+        "bottom": 1273.953125,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 4 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 1258.515625,
+        "width": 13,
+        "height": 13,
+        "top": 1258.515625,
+        "right": 533.40625,
+        "bottom": 1271.515625,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 4 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 1258.515625,
+        "width": 13,
+        "height": 13,
+        "top": 1258.515625,
+        "right": 573.6875,
+        "bottom": 1271.515625,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 4 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 1258.515625,
+        "width": 13,
+        "height": 13,
+        "top": 1258.515625,
+        "right": 640.265625,
+        "bottom": 1271.515625,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 1299.796875,
+        "width": 86,
+        "height": 40,
+        "top": 1299.796875,
+        "right": 854.5,
+        "bottom": 1339.796875,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 4 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 1307.796875,
+        "width": 32,
+        "height": 24,
+        "top": 1307.796875,
+        "right": 893.6875,
+        "bottom": 1331.796875,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 5 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 1409.015625,
+        "width": 75.375,
+        "height": 34,
+        "top": 1409.015625,
+        "right": 503.40625,
+        "bottom": 1443.015625,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 5 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 1427.578125,
+        "width": 13,
+        "height": 13,
+        "top": 1427.578125,
+        "right": 533.40625,
+        "bottom": 1440.578125,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 5 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 1427.578125,
+        "width": 13,
+        "height": 13,
+        "top": 1427.578125,
+        "right": 573.6875,
+        "bottom": 1440.578125,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 5 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 1427.578125,
+        "width": 13,
+        "height": 13,
+        "top": 1427.578125,
+        "right": 640.265625,
+        "bottom": 1440.578125,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "재활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 1468.859375,
+        "width": 86,
+        "height": 40,
+        "top": 1468.859375,
+        "right": 854.5,
+        "bottom": 1508.859375,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 5 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 1476.859375,
+        "width": 32,
+        "height": 24,
+        "top": 1476.859375,
+        "right": 893.6875,
+        "bottom": 1500.859375,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 6 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 1575.671875,
+        "width": 75.375,
+        "height": 34,
+        "top": 1575.671875,
+        "right": 503.40625,
+        "bottom": 1609.671875,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 6 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 1594.234375,
+        "width": 13,
+        "height": 13,
+        "top": 1594.234375,
+        "right": 533.40625,
+        "bottom": 1607.234375,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 6 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 1594.234375,
+        "width": 13,
+        "height": 13,
+        "top": 1594.234375,
+        "right": 573.6875,
+        "bottom": 1607.234375,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 6 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 1594.234375,
+        "width": 13,
+        "height": 13,
+        "top": 1594.234375,
+        "right": 640.265625,
+        "bottom": 1607.234375,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 1635.515625,
+        "width": 86,
+        "height": 40,
+        "top": 1635.515625,
+        "right": 854.5,
+        "bottom": 1675.515625,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 6 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 1643.515625,
+        "width": 32,
+        "height": 24,
+        "top": 1643.515625,
+        "right": 893.6875,
+        "bottom": 1667.515625,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 7 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 1744.734375,
+        "width": 75.375,
+        "height": 34,
+        "top": 1744.734375,
+        "right": 503.40625,
+        "bottom": 1778.734375,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 7 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 1763.296875,
+        "width": 13,
+        "height": 13,
+        "top": 1763.296875,
+        "right": 533.40625,
+        "bottom": 1776.296875,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 7 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 1763.296875,
+        "width": 13,
+        "height": 13,
+        "top": 1763.296875,
+        "right": 573.6875,
+        "bottom": 1776.296875,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 7 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 1763.296875,
+        "width": 13,
+        "height": 13,
+        "top": 1763.296875,
+        "right": 640.265625,
+        "bottom": 1776.296875,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 1804.578125,
+        "width": 86,
+        "height": 40,
+        "top": 1804.578125,
+        "right": 854.5,
+        "bottom": 1844.578125,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 7 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 1812.578125,
+        "width": 32,
+        "height": 24,
+        "top": 1812.578125,
+        "right": 893.6875,
+        "bottom": 1836.578125,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 8 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 1913.796875,
+        "width": 75.375,
+        "height": 34,
+        "top": 1913.796875,
+        "right": 503.40625,
+        "bottom": 1947.796875,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 8 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 1932.359375,
+        "width": 13,
+        "height": 13,
+        "top": 1932.359375,
+        "right": 533.40625,
+        "bottom": 1945.359375,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 8 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 1932.359375,
+        "width": 13,
+        "height": 13,
+        "top": 1932.359375,
+        "right": 573.6875,
+        "bottom": 1945.359375,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 8 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 1932.359375,
+        "width": 13,
+        "height": 13,
+        "top": 1932.359375,
+        "right": 640.265625,
+        "bottom": 1945.359375,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "재활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 1973.640625,
+        "width": 86,
+        "height": 40,
+        "top": 1973.640625,
+        "right": 854.5,
+        "bottom": 2013.640625,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 8 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 1981.640625,
+        "width": 32,
+        "height": 24,
+        "top": 1981.640625,
+        "right": 893.6875,
+        "bottom": 2005.640625,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 9 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 2080.453125,
+        "width": 75.375,
+        "height": 34,
+        "top": 2080.453125,
+        "right": 503.40625,
+        "bottom": 2114.453125,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 9 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 2099.015625,
+        "width": 13,
+        "height": 13,
+        "top": 2099.015625,
+        "right": 533.40625,
+        "bottom": 2112.015625,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 9 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 2099.015625,
+        "width": 13,
+        "height": 13,
+        "top": 2099.015625,
+        "right": 573.6875,
+        "bottom": 2112.015625,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 9 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 2099.015625,
+        "width": 13,
+        "height": 13,
+        "top": 2099.015625,
+        "right": 640.265625,
+        "bottom": 2112.015625,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 2140.296875,
+        "width": 86,
+        "height": 40,
+        "top": 2140.296875,
+        "right": 854.5,
+        "bottom": 2180.296875,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 9 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 2148.296875,
+        "width": 32,
+        "height": 24,
+        "top": 2148.296875,
+        "right": 893.6875,
+        "bottom": 2172.296875,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 10 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 2249.515625,
+        "width": 75.375,
+        "height": 34,
+        "top": 2249.515625,
+        "right": 503.40625,
+        "bottom": 2283.515625,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 10 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 2268.078125,
+        "width": 13,
+        "height": 13,
+        "top": 2268.078125,
+        "right": 533.40625,
+        "bottom": 2281.078125,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 10 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 2268.078125,
+        "width": 13,
+        "height": 13,
+        "top": 2268.078125,
+        "right": 573.6875,
+        "bottom": 2281.078125,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 10 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 2268.078125,
+        "width": 13,
+        "height": 13,
+        "top": 2268.078125,
+        "right": 640.265625,
+        "bottom": 2281.078125,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 2309.359375,
+        "width": 86,
+        "height": 40,
+        "top": 2309.359375,
+        "right": 854.5,
+        "bottom": 2349.359375,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 10 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 2317.359375,
+        "width": 32,
+        "height": 24,
+        "top": 2317.359375,
+        "right": 893.6875,
+        "bottom": 2341.359375,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 11 개발자 등급",
+      "bounds": {
+        "x": 428.03125,
+        "y": 2418.578125,
+        "width": 75.375,
+        "height": 34,
+        "top": 2418.578125,
+        "right": 503.40625,
+        "bottom": 2452.578125,
+        "left": 428.03125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 11 PI 역할",
+      "bounds": {
+        "x": 520.40625,
+        "y": 2437.140625,
+        "width": 13,
+        "height": 13,
+        "top": 2437.140625,
+        "right": 533.40625,
+        "bottom": 2450.140625,
+        "left": 520.40625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 11 개발자 역할",
+      "bounds": {
+        "x": 560.6875,
+        "y": 2437.140625,
+        "width": 13,
+        "height": 13,
+        "top": 2437.140625,
+        "right": 573.6875,
+        "bottom": 2450.140625,
+        "left": 560.6875
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 11 설비 담당 역할",
+      "bounds": {
+        "x": 627.265625,
+        "y": 2437.140625,
+        "width": 13,
+        "height": 13,
+        "top": 2437.140625,
+        "right": 640.265625,
+        "bottom": 2450.140625,
+        "left": 627.265625
+      }
+    },
+    {
+      "label": "재활성화",
+      "bounds": {
+        "x": 768.5,
+        "y": 2478.421875,
+        "width": 86,
+        "height": 40,
+        "top": 2478.421875,
+        "right": 854.5,
+        "bottom": 2518.421875,
+        "left": 768.5
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 11 삭제",
+      "bounds": {
+        "x": 861.6875,
+        "y": 2486.421875,
+        "width": 32,
+        "height": 24,
+        "top": 2486.421875,
+        "right": 893.6875,
+        "bottom": 2510.421875,
+        "left": 861.6875
+      }
+    },
+    {
+      "label": "리소스 그룹 검색",
+      "bounds": {
+        "x": 956.6875,
+        "y": 325,
+        "width": 349.765625,
+        "height": 38.78125,
+        "top": 325,
+        "right": 1306.453125,
+        "bottom": 363.78125,
+        "left": 956.6875
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 956.6875,
+        "y": 402.1875,
+        "width": 200.890625,
+        "height": 38,
+        "top": 402.1875,
+        "right": 1157.578125,
+        "bottom": 440.1875,
+        "left": 956.6875
+      }
+    },
+    {
+      "label": "",
+      "bounds": {
+        "x": 1165.578125,
+        "y": 402.1875,
+        "width": 167.40625,
+        "height": 38,
+        "top": 402.1875,
+        "right": 1332.984375,
+        "bottom": 440.1875,
+        "left": 1165.578125
+      }
+    },
+    {
+      "label": "추가",
+      "bounds": {
+        "x": 1340.984375,
+        "y": 400.1875,
+        "width": 58,
+        "height": 40,
+        "top": 400.1875,
+        "right": 1398.984375,
+        "bottom": 440.1875,
+        "left": 1340.984375
+      }
+    },
+    {
+      "label": "구성원",
+      "bounds": {
+        "x": 1181.625,
+        "y": 512.140625,
+        "width": 72,
+        "height": 40,
+        "top": 512.140625,
+        "right": 1253.625,
+        "bottom": 552.140625,
+        "left": 1181.625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 1260.8125,
+        "y": 512.140625,
+        "width": 86,
+        "height": 40,
+        "top": 512.140625,
+        "right": 1346.8125,
+        "bottom": 552.140625,
+        "left": 1260.8125
+      }
+    },
+    {
+      "label": "긴 한국어 English Group Identity 구성원 관리 0 삭제",
+      "bounds": {
+        "x": 1354,
+        "y": 520.140625,
+        "width": 32,
+        "height": 24,
+        "top": 520.140625,
+        "right": 1386,
+        "bottom": 544.140625,
+        "left": 1354
+      }
+    },
+    {
+      "label": "구성원",
+      "bounds": {
+        "x": 1123.734375,
+        "y": 735.734375,
+        "width": 72,
+        "height": 40,
+        "top": 735.734375,
+        "right": 1195.734375,
+        "bottom": 775.734375,
+        "left": 1123.734375
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 1202.921875,
+        "y": 735.734375,
+        "width": 86,
+        "height": 40,
+        "top": 735.734375,
+        "right": 1288.921875,
+        "bottom": 775.734375,
+        "left": 1202.921875
+      }
+    },
+    {
+      "label": "긴 한국어 English Group Identity 구성원 관리 1 삭제 불가",
+      "bounds": {
+        "x": 1296.109375,
+        "y": 735.734375,
+        "width": 89.890625,
+        "height": 40,
+        "top": 735.734375,
+        "right": 1386,
+        "bottom": 775.734375,
+        "left": 1296.109375
+      }
+    },
+    {
+      "label": "구성원",
+      "bounds": {
+        "x": 1181.625,
+        "y": 959.328125,
+        "width": 72,
+        "height": 40,
+        "top": 959.328125,
+        "right": 1253.625,
+        "bottom": 999.328125,
+        "left": 1181.625
+      }
+    },
+    {
+      "label": "재활성화",
+      "bounds": {
+        "x": 1260.8125,
+        "y": 959.328125,
+        "width": 86,
+        "height": 40,
+        "top": 959.328125,
+        "right": 1346.8125,
+        "bottom": 999.328125,
+        "left": 1260.8125
+      }
+    },
+    {
+      "label": "긴 한국어 English Group Identity 구성원 관리 2 삭제",
+      "bounds": {
+        "x": 1354,
+        "y": 967.328125,
+        "width": 32,
+        "height": 24,
+        "top": 967.328125,
+        "right": 1386,
+        "bottom": 991.328125,
+        "left": 1354
+      }
+    },
+    {
+      "label": "구성원",
+      "bounds": {
+        "x": 1181.625,
+        "y": 1151.234375,
+        "width": 72,
+        "height": 40,
+        "top": 1151.234375,
+        "right": 1253.625,
+        "bottom": 1191.234375,
+        "left": 1181.625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 1260.8125,
+        "y": 1151.234375,
+        "width": 86,
+        "height": 40,
+        "top": 1151.234375,
+        "right": 1346.8125,
+        "bottom": 1191.234375,
+        "left": 1260.8125
+      }
+    },
+    {
+      "label": "긴 한국어 English Group Identity 구성원 관리 3 삭제",
+      "bounds": {
+        "x": 1354,
+        "y": 1159.234375,
+        "width": 32,
+        "height": 24,
+        "top": 1159.234375,
+        "right": 1386,
+        "bottom": 1183.234375,
+        "left": 1354
+      }
+    },
+    {
+      "label": "구성원",
+      "bounds": {
+        "x": 1181.625,
+        "y": 1343.140625,
+        "width": 72,
+        "height": 40,
+        "top": 1343.140625,
+        "right": 1253.625,
+        "bottom": 1383.140625,
+        "left": 1181.625
+      }
+    },
+    {
+      "label": "비활성화",
+      "bounds": {
+        "x": 1260.8125,
+        "y": 1343.140625,
+        "width": 86,
+        "height": 40,
+        "top": 1343.140625,
+        "right": 1346.8125,
+        "bottom": 1383.140625,
+        "left": 1260.8125
+      }
+    },
+    {
+      "label": "긴 한국어 English Group Identity 구성원 관리 4 삭제",
+      "bounds": {
+        "x": 1354,
+        "y": 1351.140625,
+        "width": 32,
+        "height": 24,
+        "top": 1351.140625,
+        "right": 1386,
+        "bottom": 1375.140625,
+        "left": 1354
+      }
+    },
+    {
+      "label": "긴 한국어 English Group Identity 구성원 관리 0 구성원 리소스 검색",
+      "bounds": {
+        "x": 41,
+        "y": 2636.421875,
+        "width": 1202.578125,
+        "height": 38.78125,
+        "top": 2636.421875,
+        "right": 1243.578125,
+        "bottom": 2675.203125,
+        "left": 41
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 0 (RESOURCE-0-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 41,
+        "y": 2764.703125,
+        "width": 13,
+        "height": 13,
+        "top": 2764.703125,
+        "right": 54,
+        "bottom": 2777.703125,
+        "left": 41
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 1 (RESOURCE-1-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 268.53125,
+        "y": 2764.703125,
+        "width": 13,
+        "height": 13,
+        "top": 2764.703125,
+        "right": 281.53125,
+        "bottom": 2777.703125,
+        "left": 268.53125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 2 (RESOURCE-2-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 496.0625,
+        "y": 2764.703125,
+        "width": 13,
+        "height": 13,
+        "top": 2764.703125,
+        "right": 509.0625,
+        "bottom": 2777.703125,
+        "left": 496.0625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 3 (RESOURCE-3-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 723.59375,
+        "y": 2764.703125,
+        "width": 13,
+        "height": 13,
+        "top": 2764.703125,
+        "right": 736.59375,
+        "bottom": 2777.703125,
+        "left": 723.59375
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 4 (RESOURCE-4-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 951.125,
+        "y": 2764.703125,
+        "width": 13,
+        "height": 13,
+        "top": 2764.703125,
+        "right": 964.125,
+        "bottom": 2777.703125,
+        "left": 951.125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 5 (RESOURCE-5-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 1178.65625,
+        "y": 2764.703125,
+        "width": 13,
+        "height": 13,
+        "top": 2764.703125,
+        "right": 1191.65625,
+        "bottom": 2777.703125,
+        "left": 1178.65625
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 6 (RESOURCE-6-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 41,
+        "y": 2939.890625,
+        "width": 13,
+        "height": 13,
+        "top": 2939.890625,
+        "right": 54,
+        "bottom": 2952.890625,
+        "left": 41
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 7 (RESOURCE-7-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 268.53125,
+        "y": 2939.890625,
+        "width": 13,
+        "height": 13,
+        "top": 2939.890625,
+        "right": 281.53125,
+        "bottom": 2952.890625,
+        "left": 268.53125
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 8 (RESOURCE-8-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 496.0625,
+        "y": 2939.890625,
+        "width": 13,
+        "height": 13,
+        "top": 2939.890625,
+        "right": 509.0625,
+        "bottom": 2952.890625,
+        "left": 496.0625
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 9 (RESOURCE-9-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 723.59375,
+        "y": 2939.890625,
+        "width": 13,
+        "height": 13,
+        "top": 2939.890625,
+        "right": 736.59375,
+        "bottom": 2952.890625,
+        "left": 723.59375
+      }
+    },
+    {
+      "label": "긴 한국어 리소스 이름 역할 등급 비교 대상 10 (RESOURCE-10-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 951.125,
+        "y": 2939.890625,
+        "width": 13,
+        "height": 13,
+        "top": 2939.890625,
+        "right": 964.125,
+        "bottom": 2952.890625,
+        "left": 951.125
+      }
+    },
+    {
+      "label": "Long English Resource Identity For Comparison 11 (RESOURCE-11-LONG-CODE-LONG-CODE-LONG-CODE-LONG-CODE-)",
+      "bounds": {
+        "x": 1178.65625,
+        "y": 2939.890625,
+        "width": 13,
+        "height": 13,
+        "top": 2939.890625,
+        "right": 1191.65625,
+        "bottom": 2952.890625,
+        "left": 1178.65625
+      }
+    },
+    {
+      "label": "닫기",
+      "bounds": {
+        "x": 41,
+        "y": 3046.390625,
+        "width": 58,
+        "height": 40,
+        "top": 3046.390625,
+        "right": 99,
+        "bottom": 3086.390625,
+        "left": 41
+      }
+    },
+    {
+      "label": "구성원 저장",
+      "bounds": {
+        "x": 1295.109375,
+        "y": 3046.390625,
+        "width": 103.890625,
+        "height": 40,
+        "top": 3046.390625,
+        "right": 1399,
+        "bottom": 3086.390625,
+        "left": 1295.109375
+      }
+    }
+  ],
+  "footer": [
+    {
+      "label": "닫기",
+      "bounds": {
+        "x": 41,
+        "y": 3046.390625,
+        "width": 58,
+        "height": 40,
+        "top": 3046.390625,
+        "right": 99,
+        "bottom": 3086.390625,
+        "left": 41
+      }
+    },
+    {
+      "label": "구성원 저장",
+      "bounds": {
+        "x": 1295.109375,
+        "y": 3046.390625,
+        "width": 103.890625,
+        "height": 40,
+        "top": 3046.390625,
+        "right": 1399,
+        "bottom": 3086.390625,
+        "left": 1295.109375
+      }
+    }
+  ]
+}

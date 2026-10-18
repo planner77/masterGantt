@@ -18,8 +18,37 @@
   justify-content: flex-end;
   margin-top: 0.25rem;
 }
-.field { display: grid; gap: 0.3rem; min-width: 0; }
-.field input, .field select { min-width: 0; width: 100%; }
+.field { display: grid; gap: 0.3rem; min-width: 0; font-size: 0.875rem; font-weight: 650; }
+.field input, .field select {
+  min-width: 0;
+  width: 100%;
+  height: 2.5rem;
+  box-sizing: border-box;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 400;
+  line-height: 1.25;
+  padding: 0.5rem 0.75rem;
+}
+.field input:focus-visible, .field select:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+.field input:disabled, .field select:disabled {
+  cursor: not-allowed;
+  opacity: var(--state-disabled-opacity);
+}
+.field input[aria-invalid="true"], .field select[aria-invalid="true"] { border-color: var(--status-error); }
+.footerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
 .dateFields {
   grid-column: 1 / -1;
   display: grid;

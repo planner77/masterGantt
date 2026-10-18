@@ -1,0 +1,70 @@
+{
+  "capturedAt": "2026-10-08T14:31:16.660Z",
+  "baseline": "dca2f7821f277ef31ee3dbcbdc1e51ad257209f0",
+  "core": "2.7.3",
+  "store": "2.7.2",
+  "environment": "Chromium/Next dev, synthetic mocked canonical API",
+  "before": {
+    "instance": "svar-api-1",
+    "left": 0,
+    "top": 0,
+    "gridWidth": 480,
+    "start": "2026-10-08T04:00:00.000Z",
+    "end": "2026-11-07T05:00:00.000Z",
+    "width": 1080,
+    "chartWidth": 746,
+    "rows": [],
+    "links": [],
+    "canonicalIds": [],
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      }
+    ]
+  },
+  "after": {
+    "instance": "svar-api-1",
+    "left": 0,
+    "top": 0,
+    "gridWidth": 480,
+    "start": "2026-10-08T04:00:00.000Z",
+    "end": "2026-11-07T05:00:00.000Z",
+    "width": 1080,
+    "chartWidth": 746,
+    "rows": [],
+    "links": [],
+    "canonicalIds": [],
+    "events": [
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "resize-chart",
+        "left": 0,
+        "top": 0
+      },
+      {
+        "action": "filter-tasks",
+        "left": 0,
+        "top": 0
+      }
+    ]
+  },
+  "population": 0,
+  "coordinateAfter": null,
+  "mutationCount": 0,
+  "sourceHashes": {
+    "src/features/gantt/milestone-timeline-adapter.ts": "8f3dc6a6587def3f8fac6e5c585f0f2f944df04732dc13b9d4b4f5886f641798",
+    "src/features/gantt/project-gantt.tsx": "86b885a40a6d017488eec9de0457bfaabcd86e0505643cb4b3e88bca4bd7ab8d",
+    "tests/e2e/milestone-timeline-core.spec.ts": "ae608ffe280a0f0e9667a1e918523c85b61074d8b725f267e847238b1a42c2fb"
+  }
+}

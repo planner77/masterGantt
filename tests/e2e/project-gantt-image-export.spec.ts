@@ -34,8 +34,9 @@ test("SVG/PNG export uses current revision, preserves the workspace, and validat
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "내보내기", exact: true });
   await expect(dialog.getByLabel("형식")).toBeFocused();
-  await expect(dialog.getByText("관계 포함", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("일정 Dependency 포함", { exact: true })).toBeVisible();
   await dialog.getByLabel("형식").selectOption("svg");
+  await expect(dialog).toContainText("작업명·시작일·기간 고정 열");
   await dialog.getByLabel("날짜 범위 (차트만)").check();
   await dialog.getByRole("button", { name: "내보내기", exact: true }).click();
   await expect(dialog.getByRole("alert")).toContainText("시작일과 종료일");
@@ -123,7 +124,7 @@ test("SVG/PNG export uses current revision, preserves the workspace, and validat
 
   await trigger.click();
   await dialog.getByLabel("형식").selectOption("excel");
-  await dialog.getByLabel("관계 제외").check();
+  await dialog.getByLabel("일정 Dependency 제외").check();
   const [excelRequest, excelDownload] = await Promise.all([
     page.waitForRequest((request) => request.method() === "POST" && new URL(request.url()).pathname === `${apiPath}/exports/excel`),
     page.waitForEvent("download"),

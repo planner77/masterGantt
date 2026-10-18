@@ -1,0 +1,33 @@
+.card {
+  width: 100%;
+  max-width: 32.5rem;
+  min-width: 0;
+  box-sizing: border-box;
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  background: var(--surface-panel);
+  padding: 1rem;
+}
+.heading { display: grid; gap: 0.25rem; min-width: 0; overflow-wrap: anywhere; }
+.heading h2 { margin: 0; font-size: 1rem; font-weight: 650; line-height: 1.5; }
+.heading p { margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+.form { display: grid; gap: 0.75rem; }
+.controls { display: grid; grid-template-columns: minmax(0, 1fr) max-content; align-items: end; gap: 0.75rem; }
+.field { display: grid; min-width: 0; gap: 0.3rem; overflow-wrap: anywhere; font-size: 0.9rem; line-height: 1.5; }
+.field input {
+  width: 100%; min-width: 0; height: 2.5rem; box-sizing: border-box;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel); color: var(--text-default);
+  padding: 0.45rem 0.6rem; font: inherit;
+}
+.submit { height: 2.5rem; min-height: 2.5rem; box-sizing: border-box; margin: 0; font-size: 0.875rem; line-height: 1.5; }
+.field input:focus-visible, .submit:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.field input:disabled, .submit:disabled { opacity: var(--state-disabled-opacity); cursor: not-allowed; }
+.error { min-width: 0; overflow-wrap: anywhere; margin: 0; color: var(--status-error); font-size: 0.9rem; line-height: 1.5; }
+@media (max-width: 540px) {
+  .controls { grid-template-columns: minmax(0, 1fr); }
+  .submit { width: 100%; }
+}

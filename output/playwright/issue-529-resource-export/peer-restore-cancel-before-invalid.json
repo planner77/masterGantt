@@ -1,0 +1,66 @@
+{
+  "capturedAt": "2026-10-08T00:44:05.379Z",
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "a3377f491a30dee14e5dca4839a84462577ade5f0392d3298508fbb42b1362f2",
+    "src/features/gantt/project-gantt.tsx": "fbc5605bda6ac32bc6cd7987bd1c73b715c1fda39cfc68aced3b7ee026777704",
+    "src/features/projects/project-excel-export-button.tsx": "9a7ad810ec801a34829ec439827cd3b52fd8a79e67f62799fbb0bc44081fcf55",
+    "src/features/resources/resource-export-model.ts": "d72e85d348bd839c227c110110a0b84a1a7088215f337f4b0d95fbfde090b4df",
+    "src/features/resources/project-resource-dashboard.tsx": "a70f150f232658cb74acc3770e29b2ec180bdd031c951230fefb1be33e286d99",
+    "tests/e2e/resource-excel-export-ui.spec.ts": "d098566cbaace61634224b45247689eeb73d7963f89b9d02567348ed035b3356"
+  },
+  "timerControl": "paused RAF while native wheel/filter invalidates pending restore",
+  "afterInput": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "dom": {
+      "left": 120,
+      "top": 0
+    },
+    "events": "[{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true,\"requestedLeft\":120},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":false,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":0,\"top\":0,\"visible\":true,\"requestedLeft\":0},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":30,\"top\":0,\"visible\":true,\"requestedLeft\":31},{\"action\":\"resize-chart\",\"left\":30,\"top\":0,\"visible\":true,\"width\":1944,\"height\":407},{\"action\":\"resize-chart\",\"left\":30,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":120,\"top\":0,\"visible\":true,\"requestedLeft\":120}]",
+    "restore": null,
+    "instance": "svar-api-1",
+    "syncDepth": "0",
+    "syncGeneration": "2",
+    "settledGeneration": "2",
+    "activeTabs": [
+      "일정",
+      "Gantt",
+      "전체 프로젝트",
+      "KPI 대시보드",
+      "공정별 현황 (0)"
+    ],
+    "resourceVisits": [
+      "0"
+    ]
+  },
+  "afterFilter": {
+    "public": {
+      "left": 0,
+      "top": 0
+    },
+    "dom": {
+      "left": 0,
+      "top": 0
+    },
+    "events": "[{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":false,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":120,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"scroll-chart\",\"left\":0,\"top\":0,\"visible\":true,\"requestedLeft\":0},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":2016,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":407},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":379},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":2052,\"height\":379},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":379},{\"action\":\"resize-chart\",\"left\":0,\"top\":0,\"visible\":true,\"width\":906,\"height\":379}]",
+    "restore": null,
+    "instance": "svar-api-1",
+    "syncDepth": "0",
+    "syncGeneration": "3",
+    "settledGeneration": "3",
+    "activeTabs": [
+      "일정",
+      "Gantt",
+      "전체 프로젝트",
+      "KPI 대시보드",
+      "공정별 현황 (0)"
+    ],
+    "resourceVisits": [
+      "0"
+    ]
+  },
+  "status": "NOT VALID",
+  "reviewReason": "Oracle checked only Core restore attribute; readonly DOM RAF overwrote actual native wheel position30 with120."
+}

@@ -21,7 +21,17 @@ async function openMenu(page: import("@playwright/test").Page, name: string) {
 }
 
 async function openMenuByTaskId(page: import("@playwright/test").Page, taskId: string) {
-  await rowByTaskId(page, taskId).click({ button: "right" });
+  const target = rowByTaskId(page, taskId);
+  const nameTarget = target.locator('[role="gridcell"][data-col-id=":text"] .wx-content > .wx-text').first();
+  // Keep the gesture on the canonical task-name hit area. Right-clicking the
+  // row's geometric center can land on app-owned controls (for example the
+  // child-add action), which are intentionally excluded from Task context
+  // resolution and vary with viewport geometry.
+  await nameTarget.scrollIntoViewIfNeeded();
+  await expect(nameTarget).toBeVisible();
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await page.mouse.move(0, 0);
+  await nameTarget.click({ button: "right" });
   await expect(menu(page)).toBeVisible();
   return menu(page);
 }
@@ -370,19 +380,18 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
 
   await openMenuByTaskId(page, headerLeaf!.taskId);
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
   const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
-  const milestoneAdd = rowByTaskId(page, headerLeaf!.taskId).locator('[data-action="add-task"]');
-  await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
-  let milestonePosts = 0;
-  const countMilestonePost = (request: import("@playwright/test").Request) => {
-    if (request.method() === "POST" && new URL(request.url()).pathname === `${api}/tasks`) milestonePosts += 1;
-  };
-  page.on("request", countMilestonePost);
-  await milestoneAdd.click({ force: true });
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다.");
-  page.off("request", countMilestonePost);
-  expect(milestonePosts).toBe(0);
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  const rejected = await page.request.post(`${api}/tasks`, {
+    headers: { Origin: origin, "If-Match": `"${milestoneSnapshot.data.project.revision}"` },
+    data: { name: "Forbidden milestone child", type: "task", parentTaskId: headerLeaf!.taskId, start: "2026-09-18", duration: 1, progress: 0 },
+  });
+  expect(rejected.status()).toBe(409);
+  const afterGuard = (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  expect(afterGuard.data.project.revision).toBe(milestoneSnapshot.data.project.revision);
+  expect(afterGuard.data.tasks.some(task => task.name === "Forbidden milestone child")).toBe(false);
 
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
@@ -390,7 +399,8 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
 
   await allTab.click();
   await expect(allTab).toHaveAttribute("aria-selected", "true");
-  for (const taskId of [headerLeaf!.taskId, keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveCount(0);
+  for (const taskId of [keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
     await expect(rowByTaskId(page, taskId)).toBeVisible();
   }
 });
@@ -606,14 +616,6 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   expect(outdented.data.tasks.find((task) => task.name === "Gamma")!.parentExternalId).toBeNull();
 
   await openMenu(page, "Beta");
-  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
-  expect(milestone.data.tasks.find((task) => task.name === "Beta")!.type).toBe("milestone");
-
-  await openMenu(page, "Beta");
-  const taskAgain = await chooseSubmenu(page, "Convert to", "Task");
-  expect(taskAgain.data.tasks.find((task) => task.name === "Beta")!.type).toBe("task");
-
-  await openMenu(page, "Beta");
   await menu(page).getByRole("menuitem", { name: "Copy", exact: true }).click();
   await expect(menu(page)).toHaveCount(0);
   await openMenu(page, "Gamma");
@@ -623,8 +625,30 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   await openMenu(page, "Gamma");
   const added = await chooseSubmenu(page, "Add", "Task above");
   expect(added.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
+  await openMenu(page, "Beta");
+  const milestone = await chooseSubmenu(page, "Convert to", "Milestone");
+  expect(milestone.data.tasks.find((task) => task.name === "Beta")!.type).toBe("milestone");
+  await expect(row(page, "Beta")).toHaveCount(1); // Only the separately copied Task remains visible.
 
-  const finalRevision = added.data.project.revision;
+  const convertedMilestone = milestone.data.tasks.find(task => task.name === "Beta")!;
+  await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click();
+  await page.locator("#project-panel-milestones").getByLabel("Milestone 검색", { exact: true }).fill(convertedMilestone.taskId);
+  await page.locator(`[data-milestone-task-id="${convertedMilestone.taskId}"]`).getByRole("button", { name: / 관리$/ }).click();
+  const [roundtripResponse] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith(`${api}/task-commands`) && response.request().method() === "POST"),
+    page.getByRole("dialog", { name: / 관리$/ }).getByRole("button", { name: "일반 Task로 전환", exact: true }).click(),
+  ]);
+  expect(roundtripResponse.status()).toBe(200);
+  expect(roundtripResponse.request().postDataJSON()).toEqual({ kind: "convert", taskId: convertedMilestone.taskId, targetType: "task" });
+  const roundtrip = await roundtripResponse.json() as TaskMutationResponse;
+  const ordinary = roundtrip.data.tasks.find(task => task.taskId === convertedMilestone.taskId)!;
+  expect(ordinary).toMatchObject({ taskId: convertedMilestone.taskId, externalId: convertedMilestone.externalId, parentExternalId: convertedMilestone.parentExternalId, siblingOrder: convertedMilestone.siblingOrder, type: "task" });
+  expect(ordinary.membership).toEqual(convertedMilestone.membership);
+  expect(roundtrip.data.project.revision).toBe(milestone.data.project.revision + 1);
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(page.locator(".wx-table-container .wx-row[data-id]", { hasText: "Beta" })).toHaveCount(2);
+  await expect(rowByTaskId(page, ordinary.taskId)).toBeVisible();
+  const finalRevision = roundtrip.data.project.revision;
   await page.reload();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;

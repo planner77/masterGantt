@@ -22,6 +22,13 @@
 - **SVAR-native interaction**: Gantt 내부 동작은 설치된 SVAR React Gantt Core의 공식 기능/API와 사용자 기대를 우선한다.
 - **Scope-relative command semantics**: 동일한 native action은 현재 WBS scope의 사용자 의미와 canonical hierarchy를 함께 반영하는 단일 resolver로 해석한다. 표시된 enabled/disabled 상태, pointer/keyboard target, 실제 서버 command가 서로 다른 의미를 가져서는 안 되며 scope 변경을 Gantt remount나 임시 client state로 해결하지 않는다.
 
+### 1.2 Product Terminology (Issue #495)
+
+- 프로젝트 일정의 확인 지점인 엔터티는 모든 사용자 화면, 검색·필터, Editor, Dashboard, 도움말, 오류 및 접근성 이름에서 **Milestone**이라고 표기한다. 같은 엔터티를 `완료 단계`, `마일스톤`, `Stage Gate`로 별도 명명하지 않는다.
+- Milestone의 `Ready`(완료 가능 판정)와 `Completed`(명시 완료 상태)는 다르다. 일반 Task의 완료 상태, 구현·배포·CI 단계, Gantt 계층 깊이는 별개의 의미다.
+- 내부 `stageGate` DTO/guard, API 경로, DB 스키마 및 JSON·Excel의 기존 고정 key/header는 호환성 계약이다. 표시 용어만을 이유로 변경하지 않으며 외부 형식 변경은 별도 versioning 검토를 요구한다.
+- `Milestone` 표기의 길이가 Grid/Table/Popover의 geometry·접근성·keyboard/focus 계약을 깨지 않아야 한다. 구체 동작은 UI_UX_GUIDELINES와 화면별 Source of Truth를 따른다.
+
 ## 2. Reference Hierarchy
 
 외부 제품의 CSS나 비공개 구현을 복제하지 않는다. 다음 순서로 **설계 언어와 interaction을 참고**한다.
@@ -40,6 +47,10 @@
 3. `docs/UI_UX_GUIDELINES.md`
 4. 화면별 현재 계약 문서
 5. 외부 reference
+
+### 내부 참조: 프로젝트 물류 KPI (Issue #449)
+
+프로젝트 → 물류 구성 → KPI 대시보드는 의미별 구획, 수평 필터 묶음, 가용 폭에 따른 grid, 숫자·단위 정렬과 상태색의 내부 참조다. 이 정보 구조를 해당 업무에 맞게 적용하며 모든 화면을 KPI 카드로 감싸거나 raw fallback 색상·미정의 token을 복사하지 않는다. Gantt/Grid 작업 면적과 기존 semantic token·도메인 계산을 우선한다.
 
 ## 3. Visual Foundation
 
@@ -121,6 +132,14 @@ Primary Work Surface
 - 화면별 작업 명령을 전역 header에 섞지 않는다.
 - viewport 기반 gutter를 사용하며 업무 화면을 불필요한 중앙 max-width로 제한하지 않는다.
 
+### 공통 관리자 페이지와 인증 폼 (Issue #452)
+
+`/resources`, `/logistics-admin`, `/project-master-admin`은 동일 레벨의 관리 workspace로 같은 page gutter·compact top spacing·heading scale을 사용한다. 로그인 전후 page shell은 같으며 설명 줄 수에 따른 자연 높이 차이를 고정 높이로 숨기지 않는다. 인증 form만 내용 제한 폭을 적용하고 관리 목록의 작업 면적은 별도로 확보한다.
+
+관리 page는 desktop 최대 100rem, 좌우 gutter 24px(640px 이하 16px), top 20px/bottom 40px, heading 24px와 heading→content gap 16px를 소유한다. 공통 presentation은 최대 `32.5rem` 인증 panel, 16px padding, 12px gap과 명시적인 입력 경계·배경·높이·padding을 소유한다. desktop에서는 label 아래 password input과 제출 버튼의 bottom alignment 및 40px control-size를 맞춘다. 같은 행의 top/height 차이는 1 CSS px 이하여야 하며 좁은 화면은 input 다음 submit 순서로 쌓는다. 세 관리자 영역의 비밀번호·세션·API·권한은 공유하지 않는다.
+
+button primitive의 기본 외부 margin은 0이며 간격과 위치는 toolbar/form/footer/독립 CTA의 부모가 소유한다. `.text-link`의 문맥별 간격, KPI 카드의 `margin-top:auto`와 Task Editor의 기존 44px hit-area는 별도 의미를 유지한다. 전역 `button { margin:0!important }`나 화면별 무차별 상쇄 대신 실제 소비자의 의도 간격을 이관한다. [구현·검증 계획](docs/exec-plans/active/ISSUE_452.md)을 따른다.
+
 ### Project List
 
 - wide data workspace로 취급한다.
@@ -152,6 +171,12 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 - search/filter/create toolbar와 실제 list workspace는 서로 다른 layout responsibility다. toolbar 또는 create form의 intrinsic width가 list usable width를 소유하거나 침범하지 않게 한다.
 - footer에서는 secondary navigation/cancel과 primary commit action의 우선순위·위치를 화면 계약으로 명시하고 전역 button margin 때문에 footer geometry가 변하지 않게 한다.
 - 필드/role/action 추가 시 기존 CSS를 그대로 재사용하지 말고 pane/row budget을 다시 계산한다. 390/768/1024/1440/wide desktop과 긴 문자열·최대 control 조합을 실제 browser geometry로 검증한다.
+
+### 동등한 목록과 행 밀도 (Issue #449)
+
+- 동시 비교가 필요 없는 동등한 목록은 활성 목록이 가용 작업 폭을 쓰는 peer tab을 우선 검토한다. 동시 비교가 필요한 pane은 기존 content-aware budget을 유지한다. 탭 전환으로 각 목록의 search/filter/scroll·초안·keyboard/focus를 잃지 않게 한다.
+- 목록은 비교용 정보를 우선하며 모든 행에 표시값과 편집기를 중복 상시 노출하지 않는다. 생성·프로필·구성원 편집은 필요한 시점에 열 수 있게 하고 기존 권한·저장·복귀 계약을 보존한다.
+- row height는 content/control과 내부 padding으로 결정한다. action margin·중복 heading·불필요한 section 여백을 먼저 줄이고 고정 height나 clipping으로 장문·오류·focus를 잘라 밀도를 맞추지 않는다. 높이·버튼 폭의 예외는 화면 계약과 실제 측정 근거를 남긴다. 관리자 40px control과 Task Editor 44px hit-area를 하나의 전역 크기로 강제하지 않는다.
 
 ### Project Workspace
 
@@ -190,6 +215,22 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 | loading/saving | 중복 mutation을 막고 현재 진행 중임을 텍스트로 알린다. |
 | empty/no result | 실제 데이터 없음과 검색 결과 없음의 의미를 구분한다. |
 | stale/conflict | 최신 상태 재조회/재시도 경로를 명확히 제공한다. |
+
+### 입력 컨트롤 식별성 (Issue #449)
+
+input/select/textarea는 CSS reset 이후에도 정상 상태의 경계·배경·내부 padding·높이·font와 focus/error/disabled/readonly 상태가 식별되어야 한다. label과 오류 연결을 유지하며 placeholder·DOM 존재·fill 성공만으로 식별성을 판정하지 않는다. native radio/checkbox는 브라우저 표현과 연결 label·접근 가능한 target을 검증하며 text input의 border/크기를 일괄 강제하지 않는다. 세부 computed-style·키보드 검증은 [공통 UI/UX 가이드](docs/UI_UX_GUIDELINES.md)와 [회귀 coverage](docs/ISSUE_457_UI_UX_COVERAGE.md)를 따른다.
+
+### 설명 밀도 및 상황형 도움말 정책 (Issue #715)
+
+Milestone 대시보드, Resource·물류 구성 Workspace, 리소스·물류 유형·기준정보 관리 등 **반복 조회·편집형 화면에서 설명을 별도 상시 영역으로 쌓지 않는다.** 정보 전달 자체를 줄이기보다 사용자에게 **언제, 어디서 필요한가**를 기준으로 노출 수준을 정한다. 이는 기존 Workspace-first·Data-dense·Progressive disclosure를 여러 화면에 일관 적용하기 위한 영속 UI 정책이다.
+
+- **기본 화면:** 화면·현재 범위/선택·주요 KPI와 단위·유효 상태·핵심 작업 명령을 우선한다. 제목을 반복하거나 일반적인 사용 방법을 설명하는 고정 문단/배너가 Primary Work Surface를 밀어내게 하지 않는다. 기본 접힘 도움말이 빈 자리나 고정 높이를 예약하지 않는다.
+- **보조·학습 정보:** 필드 의미, 관계 규칙, 사용 방법, 상세 계산 기준처럼 즉시 읽지 않아도 작업 가능한 설명은 해당 헤더·지표·필드 옆의 명명된 도움말 진입점(tooltip/popover/상세 보기)으로 필요할 때 제공한다. **Hover만으로 제공하지 않고 keyboard focus·click/touch·보조기술로 접근 가능**하게 한다.
+- **의사결정에 필수인 맥락:** 선택 범위와 전체 기준의 차이, 지표 분모·단위, 집계 불가·미산정/부분합, 권한·삭제 영향·데이터 손실 등 **숨기면 오해하거나 되돌리기 어려운 정보는** 짧은 인접 라벨·상태/경고·행위 직전 확인으로 명확히 남긴다. 필수 근거를 접근 불가능한 tooltip 하나에만 숨기지 않는다.
+- **상황형 피드백:** 단순 성공·비차단 결과는 임시 상태 알림/Toast, 사용자가 즉시 수정할 입력 오류는 해당 필드, 지속적인 오류·stale·401/412 등은 원인과 복구 경로가 남는 상태 영역, 삭제·파괴적 변경이나 명시적 결정이 필요한 경우는 확인 Dialog를 사용한다. 일반 오류마다 차단 Modal을 남발하지 않고 실패를 성공/빈 결과처럼 표시하지 않는다.
+- **회귀 기준:** 설명을 옮겨도 실제 기능/도메인/API·권한·revision·canonical snapshot 계약과 기존 조회/편집 상태를 바꾸지 않는다. 동일 조건 before/after에서 설명 점유 높이·업무 내용의 시작 위치·가시성, 390/768/1024/1440/wide 폭, keyboard/Escape/focus·touch·접근성·오류 복구를 증거로 확인한다. 실제 실행 전에는 PASS로 표기하지 않는다.
+
+상세 진입·닫기·피드백·상태/검증 규칙은 [공통 UI/UX 가이드](docs/UI_UX_GUIDELINES.md#설명도움말피드백-노출-기준-issue-715)를 따른다. 이번 영속 원칙은 [#715](https://github.com/planner77/masterGantt/issues/715)의 **제품 구현 완료**를 뜻하지 않으며 각 화면의 실제 개편은 별도 구현·검증·병합 Gate를 통과해야 한다.
 
 ## 6. Responsive and Accessibility
 
@@ -230,9 +271,26 @@ UI/UX Issue를 시작할 때 최소 다음을 확인한다.
 4. 관련 기존/후속 Issue
 5. SVAR 영향이 있으면 공식 demo/API와 설치 버전
 
+### UI/UX Skill 기반 Design Delta와 조건부 원칙 승격 (Issue #589)
+
+UI/UX 관련 Skill을 **실제로 사용**해 화면을 설계·구현·검토했다면, DOCUMENTATION_SYNC에서 Skill의 제안 중 **프로젝트가 실제 채택한 지침**을 기존 설계·계약과 비교한다. Skill 사용 자체는 의무가 아니며 재사용 가능한 제안이라고 자동 채택하거나 기존 계약을 덮어쓰지 않는다.
+
+| 판정 | 기준 | 문서 처리 |
+| --- | --- | --- |
+| **A. 신규 공통 원칙** | 기존 `DESIGN.md`에 없고, 정보 구조·시각 계층·배치·상태·탐색·상호작용 방향에 여러 화면/공통 컴포넌트에 걸쳐 지속 적용되며, 프로젝트가 실제 채택함 | **같은 구현 PR에서 `DESIGN.md` 갱신**. 적절한 기존 절에 원칙·의도·적용 대상·예외를 간결하게 통합하고 필요한 상세 가이드를 연결 |
+| **B. 기존 원칙의 구체화** | 상위 방향은 이미 이 문서에 있으며, 세부 interaction·keyboard/focus·반응형·접근성·검증 또는 화면별 계약만 새로 확정 | 중복된 전역 원칙을 추가하지 않고 `docs/UI_UX_GUIDELINES.md` 또는 해당 화면 계약만 필요에 따라 갱신. `DESIGN.md: N/A` |
+| **C. 국소적 수정** | 한 화면의 padding·버튼 폭·아이콘 위치·일회성 CSS 보정·개별 버그 해결처럼 공통 원칙이 아님 | `DESIGN.md` 수정 없음. 필요한 경우 Issue/PR·컴포넌트·테스트에만 기록하고 `DESIGN.md: N/A` |
+| **D. 충돌·미확정** | Skill 권고가 기존 DESIGN 또는 더 우선하는 보안·도메인·API·revision·canonical snapshot·SVAR 계약과 충돌하거나 범위/채택 여부가 미확정 | 자동 승격·무단 덮어쓰기 금지. Manager가 근거/대안을 검토하고 별도 의사결정·필요 승인 전에는 원칙 변경 보류 |
+
+예시: 여러 화면에 채택한 **새 탐색·상태 표시 방향**은 A, 기존 compact controls에 따른 **툴바 간격 조정**은 C, 특정 Dialog의 **Escape/focus 복원 세칙**은 B(하위 가이드/화면 문서), 보안·SVAR Core 계약에 반하는 Skill 권고는 D다. 제안이 여러 곳에 적용 가능하다는 이유만으로 A가 되지 않는다.
+
+`ui_ux`는 read-only로 제안과 기존 원칙 간 차이·근거를 제공하고, `frontend`는 승인된 UI/test 변경을 구현한다. **Manager 또는 지정된 문서 작성자**가 원칙 채택 여부와 `DESIGN.md` 변경의 최종 책임을 진다. A라면 PR에 채택 이유, 영향 화면/공통 컴포넌트, 하위 문서 연결을 설명한다. A가 없다면 **구현 PR에 반드시** `DESIGN.md: N/A — 기존 원칙 구체화 / 국소 변경`처럼 짧은 판정 사유를 남기고, 필요하면 최종 보고에도 반복한다. 기존 Source of Truth 우선순위, read-only 역할, DOCUMENTATION_SYNC 및 QA/CI/release gate는 그대로 유지한다.
+
 구현 전에는 current-state 문제, 목표 사용자 흐름, text wireframe 또는 layout 설명, state matrix, responsive/accessibility 기준을 남긴다.
 
 구현 후에는 before/after browser evidence, keyboard/focus, overflow, relevant E2E와 동일 PR head의 원격 CI를 분리해 검증한다.
+
+공통 CSS/primitive 변경은 양호한 기존 화면도 포함한 소비자 목록을 작성하고 같은 fixture·viewport·실제 환경에서 screenshot과 geometry를 비교한다. 사용자 관찰·source 사실·분리 CSS 실험·실제 앱 조작·E2E·원격 CI·독립 QA를 구분하며 한 증거를 다른 단계의 PASS로 확대하지 않는다. 실제 native 125% zoom과 DPR/deviceScaleFactor는 다른 검증이다. 미실행 환경은 사유와 담당 후속을 남긴다. #449의 역사적 감사와 현재 이관은 [감사 기록](docs/ISSUE_449_UI_UX_AUDIT.md), 화면별 검증 범위와 예외는 [회귀 coverage](docs/ISSUE_457_UI_UX_COVERAGE.md)를 따른다.
 
 ## 9. Rollout Strategy
 
@@ -254,45 +312,15 @@ UI/UX Issue를 시작할 때 최소 다음을 확인한다.
 - 디자인 정합화를 이유로 API/DB/scheduling/security 정책 변경
 - 모든 기존 화면을 한 PR에서 일괄 restyle
 
-## 11. Cross-screen Consistency and Density (Issue #449)
+## Milestone Timeline 표시 분리 (#549)
 
-지침 보강: 2026-10-05. 이 절은 기존 시각 언어와 보안·도메인 우선순위를 보완한다. 문서 추가는 제품 화면 구현 완료를 뜻하지 않는다. 근거·화면 범위·실험 한계·실행 이슈는 [UI/UX 감사 기록](docs/ISSUE_449_UI_UX_AUDIT.md)을 따른다.
+[Milestone Timeline](docs/MILESTONE_TIMELINE.md)의 MT1은 WBS 작업 행과 프로젝트 전체 날짜 모집단, 작업 필터와 별도 표시 환경설정을 분리한다. 기본 ON 설정과 가시 member 강조는 canonical 일정·전체 Gate 계산·권한·Export를 바꾸지 않는다. 현재 Milestone 행/빠른 보기는 유지하며 후속 lane/표시 전환은 기술 gate 이후다. 기존 파란 Light UI, system font와 semantic token, flat/compact 배치로 Grid/Chart 작업 면적을 유지한다.
 
-### Internal reference: Project Logistics KPI
 
-프로젝트 → 물류 구성 → KPI 대시보드를 내부의 양호한 배치 사례로 사용한다. 참고 대상은 의미별 구획, 수평 필터 묶음, 가용 폭에 따른 grid, 숫자와 단위의 정렬, 일관된 상태색과 정보 우선순위다. 모든 화면을 KPI 카드로 만들거나 해당 CSS의 fallback 색상·미정의 token까지 복사하지 않는다. 외부 reference hierarchy와 현재 blue Light semantic token을 유지한다.
+## Milestone WBS 표시 우선·선택적 상단 마커 (#548 / 2026-10-15)
 
-### Same-purpose pages and authentication
+[Milestone Presentation Policy](docs/MILESTONE_PRESENTATION_POLICY.md)의 현행 수용 목표는 **Gantt native Grid/Chart에서 Milestone 행·Bar를 제외하고 Stage Gate/Task 취합·Roll-up을 기존 Milestone Dashboard에서 관리하는 marker-OFF 기준선**이다. 앞 절 #549의 '기본 ON'은 당시 계획/순수 모델 값이며 이번 별도 제품 활성화의 기본값이 아니다. 기본 화면은 Summary/일반 Task에 공간을 우선 배정하며 'Milestone 표시'와 Milestone 소속 Task 필터를 같은 조작으로 혼합하지 않는다.
 
-- 같은 navigation level과 목적의 관리 화면은 공통 page shell의 gutter, header-to-body spacing, heading, 인증 panel 및 action 정렬 계약을 재사용한다. 화면별 `:has()`/margin override를 추가하기 전에 공통 layout 또는 명시적 variant로 해결한다.
-- 인증 form은 content-aware constrained width, 로그인 후 catalog는 wide workspace로 취급한다. 폭이 다른 목적을 하나의 max-width에 억지로 맞추지 않는다.
-- 리소스·물류·기준정보 인증의 표현은 같게 하되 API, 세션, 비밀번호, 권한 scope와 오류 정책은 합치지 않는다. 프로젝트 편집 권한을 글로벌 관리자 권한으로 확장하지 않는다.
-- 같은 viewport에서 page heading 시작점·좌우 gutter·동급 control 크기를 비교한다. 설명 줄 수에 따른 정상 높이 차이를 숨기려고 card 높이를 강제로 고정하지 않는다.
+Milestone 관리·날짜·소속 Task 탐색은 Gantt marker 없이도 항상 접근 가능해야 한다. 사용자가 marker OFF 상태에서 '해당 날짜에서 보기'를 요청하면 숨은 native 행이나 일시 marker 활성화에 의존하지 않고 기존 Dashboard·Task로 명시적으로 안내한다. 표시 전환은 원본 Stage Gate, 일정, Link, Resource/Target 집계, 권한·Export를 바꾸지 않는다.
 
-### Controls own appearance; parents own spacing
-
-- 재사용 button/control의 기본 외부 margin은 0으로 하고, toolbar/form/footer가 gap과 위치를 소유한다. 버튼의 global `margin-top`으로 페이지 간격을 만드는 패턴을 금지한다.
-- legacy margin을 이관할 때는 모든 사용처를 조사하고 의도된 parent spacing을 복구한다. 무차별 `button { margin: 0 !important }`나 화면별 reset 누적을 해결책으로 삼지 않는다. flex card의 의도된 `margin-top:auto` 등은 별도 layout 계약으로 보존한다.
-- input/select/textarea는 CSS reset 이후에도 normal 상태의 경계·배경·내부 padding·높이·font와 focus/error/disabled/readonly 상태를 식별할 수 있어야 한다. input DOM 존재·fill 성공·placeholder만으로 식별성을 판정하지 않는다.
-- 같은 행의 동급 control은 같은 size variant를 사용한다. button 폭은 text+padding을 우선하고, 고정 최소 폭/전체 폭에는 longest label·loading·mobile·접근성 등 근거를 남긴다.
-- compact는 작은 클릭 영역과 동의어가 아니다. 기존 Task Editor 등의 hit-area/focus/keyboard 계약은 유지하며 축소가 필요하면 별도 근거·검증·승인 없이 변경하지 않는다.
-
-### Peer views, rows and meaningful grouping
-
-- 동시 비교가 필요 없는 동등한 목록은 split/vertical stack보다 peer tab을 우선 검토하여 active list가 가용 작업 폭을 사용하게 한다. #453의 Resource/Group은 독립 탭으로 분리하는 목표를 가진다. 동시 비교가 필요한 pane은 기존 content-aware budget 규칙을 사용한다.
-- 목록은 비교용 정보 중심으로 구성하고, 모든 행에 표시값과 편집기를 중복 상시 노출하지 않는다. 생성·프로필·구성원 상세 편집은 필요한 시점에 접근 가능하게 하며 draft, search/filter/scroll, keyboard와 초점 복귀를 보존한다.
-- 이름/설명은 flexible, 코드/날짜/상태는 minimum, 숫자/정렬/행 명령은 content-aware budget을 가진다. 동등한 행·열의 정보가 같은 위치에서 읽히게 한다.
-- row height는 control/content와 내부 padding으로 결정한다. 불필요한 action margin, 중복 heading, 과도한 section 여백을 먼저 줄이고 고정 height/max-height와 clipping으로 정보 밀도 수치만 맞추지 않는다.
-- single-line desktop 관리 row의 40–48px는 #454/#455에서 검토할 초기 목표이지 전체 화면·장문·오류·touch에 적용하는 강제 기준이 아니다. 실제 채택 값과 예외는 browser 측정과 접근성 근거로 screen contract에 남긴다.
-- Task/설정/생성/입출력 form은 관련 필드를 가까이 묶고 데이터 길이에 맞춰 폭을 배분한다. 모든 입력을 동일 1fr/100%로 만들거나, 중요한 경고·오류를 접어 높이만 줄이지 않는다.
-- footer의 primary/secondary 위치는 화면 계약을 따른다. Resource Group의 Close-left/Save-right 같은 기존 의미를 일괄 right-align로 덮어쓰지 않는다.
-
-### Cross-screen evidence and rollout
-
-- 공통 CSS/primitive 변경은 Project List/New Project/Workspace, 관리자 3종, Task Editor/설정/부가 dialog, KPI, loading/empty/error까지 영향 목록을 작성한다. 원래 양호한 화면도 회귀 대상이다.
-- 같은 fixture/viewport에서 screenshot과 geometry를 함께 검증한다. header-to-body gap, control computed style, sibling overlap, header/body 열 경계, row height/usable list area, footer 정렬을 포함한다.
-- 동일 행·동일 size의 action top/height 차이는 1 CSS px 이내를 기준으로 하고 wrap/stack은 별도 기대값을 사용한다. document-level overflow와 의도된 component scroll을 구분한다.
-- 390/768/1024/1440/1920px, 긴 한글·영문, 최대 control 조합, 빈 목록/오류/읽기 전용/저장 중/stale/세션 만료를 위험 기반 조합으로 검증한다. 100% zoom과 실제 125% zoom의 실행 여부를 구분하며 deviceScaleFactor를 browser zoom 증거로 쓰지 않는다.
-- 사용자 관찰, source 사실, 분리 CSS 실험, 실제 앱 조작, E2E, 원격 CI, 독립 QA를 구분한다. 미실행 표면은 NOT TESTED/BLOCKED이며 정적 검토나 screenshot만으로 전체 UX PASS를 선언하지 않는다.
-- #449의 이번 단계 순서는 `#457 baseline/helper + #452 공통 기반 → #453/#454/#455 화면별 적용 → #456 폼 보완 → #457 통합 검증`이다. 각 PR이 자신의 테스트·문서·증거를 처음부터 포함하며 공유 파일 소유권을 나눈다. 기존 9절의 완료된 단계와 기능을 되돌리지 않는다.
-- 이슈 연결은 계획/추적이며 다음 구현·PR·CI 자동 실행이나 병합·릴리스 승인이 아니다. 문서 PR만으로 제품 개선 Epic을 종료하지 않는다.
+추후 상단 Timeline marker는 [#693](https://github.com/planner77/masterGantt/issues/693)의 **선택적인 별도 단계**로만 활성화하며 처음에는 OFF여야 한다. #573의 접근성/390px/날짜축 gate 및 실제 rollback 검증 전 기본 ON으로 출시하지 않는다. 같은 화면에 native Milestone 행과 marker를 중복 노출하지 않는다. 기존 token/flat density/keyboard/focus 원칙은 유지하고 새 시각 테마를 만들지 않는다.

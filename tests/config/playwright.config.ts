@@ -44,6 +44,7 @@ export default defineConfig({
           APP_BASE_URL: baseURL,
           DATABASE_PATH: isolatedDatabasePath,
           NEXT_DIST_DIR: ".next-e2e",
+          E2E_ERROR_BOUNDARY_PROBE: "true",
         },
       },
   projects: [

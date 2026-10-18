@@ -155,21 +155,35 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(rootAdd(page)).toBeVisible();
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
     await expectSameGanttRoot(page, initialIdentity);
-    const milestoneAdd = rowNamed(page, "Stable milestone").locator('[data-action="add-task"]');
-    await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
-    await milestoneAdd.dispatchEvent("click");
-    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다");
+    await expect(rowNamed(page, "Stable milestone")).toHaveCount(0); // #552 removes native Milestone add targets.
+    await expect(page.locator('.project-gantt-widget [data-action="add-task"]').filter({ hasText: "Stable milestone" })).toHaveCount(0);
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
       const taskCount = fixture.tasks.length; const postCount = fixture.posts.length;
-      fixture.nextPost = outcome; await trigger.click();
+      const frame = ganttRoot(page);
+      const generationBefore = Number(await frame.getAttribute("data-gantt-canonical-sync-generation") ?? "0");
+      // Each failed mutation reloads the canonical snapshot. Prove that the next POST
+      // starts, then wait for the newly scheduled sync generation itself to settle;
+      // accepting an old depth=0 can race with the passive effect that starts that sync.
+      await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+      await expect(trigger).toHaveAttribute("aria-disabled", "false");
+      const requestStarted = page.waitForRequest((request) =>
+        request.method() === "POST" && new URL(request.url()).pathname === taskPath,
+      );
+      fixture.nextPost = outcome; await trigger.click(); await requestStarted;
       await expect(page.getByTestId("workspace-toast")).toContainText(expectedNotice);
+      await expect.poll(async () => {
+        const generation = Number(await frame.getAttribute("data-gantt-canonical-sync-generation") ?? "0");
+        const settled = Number(await frame.getAttribute("data-gantt-canonical-sync-settled-generation") ?? "0");
+        const depth = Number(await frame.getAttribute("data-gantt-canonical-sync-depth") ?? "0");
+        return generation > generationBefore && settled === generation && depth === 0;
+      }).toBe(true);
       expect(fixture.posts).toHaveLength(postCount + 1); expect(fixture.tasks).toHaveLength(taskCount);
       expect(fixture.createdTaskIds).toHaveLength(2);
       await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
       expect(fixture.patchRequests).toHaveLength(0);
     }
-    await rejectNextAdd({ kind: "error", status: 422, code: "INVALID_PARENT_TASK" }, "마일스톤에는 하위 작업을 추가할 수 없습니다", rowNamed(page, "Stable summary").locator('[data-action="add-task"]'));
+    await rejectNextAdd({ kind: "error", status: 422, code: "INVALID_PARENT_TASK" }, "Milestone에는 하위 작업을 추가할 수 없습니다", rowNamed(page, "Stable summary").locator('[data-action="add-task"]'));
     await rejectNextAdd({ kind: "error", status: 412, code: "REVISION_MISMATCH" }, "다른 편집 내용이 먼저 저장되었습니다");
     await rejectNextAdd({ kind: "error", status: 500, code: "INTERNAL_ERROR" }, "작업을 저장할 수 없습니다");
     await rejectNextAdd({ kind: "network" }, "네트워크 연결을 확인한 뒤 다시 시도해 주세요");

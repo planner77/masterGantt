@@ -1,5 +1,22 @@
 # Scheduling Engine 설계
 
+## Issue #622 — Target Resource Plan 계산 재사용
+
+R4 runtime은 서비스의 기존 `planInput` → `calculateResourcePlan` 및 일별 상세 함수를 사용한다. Domain adapter `selectResourceTargetPlanScope`도 같은 R/선택/전체 계약으로 회귀 검증한다. Target 조건은 선택 원시 Assignment만 제한하고 R/전체 Project 배정·Resource Calendar 우선순위·inclusive 기간·M/M 산식은 유지한다. Target 근거는 서비스의 read-only enrichment이며 scheduling/공수 원장을 만들지 않는다. Group/Target/기간의 overlapping 소계·distinct 인원/Assignment와 nullable 상태는 전체 집합에서 재계산한다.
+
+신규 `tests/domain/resource-target-plan.test.ts`는 selected80/project140·Group95/개인140·일별150→0·다중Target/Group·Calendar/nullMM/partial·윤년/ISO·capacity0/legacy 호환을 기존 엔진으로 검증한다. 알고리즘 변경과 운영 검증을 주장하지 않으며 실제 실행은 [#622 Work Packet](exec-plans/active/ISSUE_622.md)을 따른다.
+
+## Issue #619 — Target 필터와 Resource Calendar·Milestone 보존
+
+Target 분석은 기존 개인 Assignment의 inclusive 유효기간과 `resolveResourceCalendar`/`workingDaysBetween`을 사용한다. 선택한 Group/Target 때문에 Resource의 전체 Calendar 소속을 잘라내지 않는다. Summary/Milestone/직접 Group 참조나 설비 담당/PI 책임 참조만으로 개인 계획공수를 생성하지 않는다. 실제 개인 일반 Task Assignment만 공수 원장이다.
+
+Target별 관련 계획 공수는 중첩될 수 있지만 전체는 원시 Assignment 합집합이다. 완료/진척 변경은 계획공수를 줄이지 않고 allocation null·known0·partial·미설정 M/M 의미를 유지한다. Target 선택 전 full canonical `projectStageGates`의 Ready/Blocked·진척을 보존한다. ResourcePlan의 R/Capacity 및 전체 Project load는 Target 선택으로 축소하지 않는다. 일정·Dependency·Milestone membership mutation은 없으며 [KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+## Issue #460 — 일정과 Stage Gate의 분리
+
+단계 Membership/Ready는 `src/domain/milestones/stage-gates.ts`에서 전체 canonical hierarchy와 Task status/duration/progress, 직접 Milestone predecessor를 사용하여 계산한다. 일정 graph/WBS를 재작성하거나 Task graph를 단계 graph로 축약하지 않는다. Membership-only 저장은 요청/적용일·기간·mode·Link·Assignment 불변이다. Milestone→Milestone 날짜는 기존 FS/SS/FF/SF/signed Lag/Auto·Manual/근무일 계약을 그대로 사용하며 FS/0을 임의 같은 날로 바꾸지 않는다. 새 mixed Link 금지는 생성 service 경계에만 적용하고 기존 mixed를 pure scheduling에서 일괄 거부하지 않는다. 준비율은 duration 가중 진척, Ready/완료 조건은 canonical status로 판정하며 수동 이벤트는 null이다. [상세 계약](MILESTONE_STAGE_GATES.md), 별도 scheduler 회귀 `tests/domain/milestone-dependency-scheduling.test.ts`를 따른다.
+
+
 ## Issue #430 — Cut/Reparent와 Dependency 경계
 
 Cut/Paste의 실제 저장은 기존 hierarchy `reparent`이며 새 일정 알고리즘을 추가하지 않는다. source Task + descendants를 이동 집합으로 계산해 Dependency 양 endpoint가 모두 집합 내부인 Link는 그대로 보존한다. 따라서 내부 Link의 ID/source/target/type/lag와 leaf의 `requestedStart/start/end/duration/scheduleMode`는 계층 이동 자체로 변경하지 않는다.
@@ -105,7 +122,7 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 - `parseDateOnly`, ordinal 변환·가감·요일: strict Gregorian label과 범위 검사
 - `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, legacy Holiday 및 `WORKING/NON_WORKING` exception 검증·정렬·불변 복사
 - `isWorkingDay`, `nextWorkingDay`, `workingDaysBetween`, `endFromStart`: 양 끝 포함 근무일 연산
-- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone와 dependency 전 optional end 검증
+- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone과 dependency 전 optional end 검증
 - `recalculateFinishStartDependencies`: calendar-normalized Leaf와 FS/lag=0 graph를 검증하고 Kahn forward-pass로 Auto 일정 이동 및 Manual lower-bound conflict를 계산
 - `SchedulingError`: 안정적인 `code`와 제한된 `field/date/expectedDate/index` context
 - `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`, `MAX_CALENDAR_EXCEPTIONS`: 실행 가능한 자원 경계
@@ -169,7 +186,7 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 
 ### 4대 의존성 관계 종류 및 Lag 공식
 
-선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 마일스톤) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
+선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 Milestone) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
 
 1. **FS (Finish-to-Start, 종료 후 시작)**
    - 기준: $A$의 종료일 다음 첫 근무일로부터 $Lag$ 근무일 오프셋 이동.
@@ -180,7 +197,7 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 3. **FF (Finish-to-End, 종료 후 종료)**
    - 기준: $A$의 종료일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
    - $requiredEnd = \text{shiftWorkingDate}(A.end, Lag)$
-   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, 마일스톤은 $requiredEnd$ 자체)
+   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, Milestone은 $requiredEnd$ 자체)
 4. **SF (Start-to-End, 시작 후 종료)**
    - 기준: $A$의 시작일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
    - $requiredEnd = \text{shiftWorkingDate}(A.start, Lag)$
@@ -333,3 +350,45 @@ Service는 원본 persisted↔최종 candidate 날짜를 비교하여 target/앞
 
 Chart vertical DnD는 일정 계산 명령이 아니다. vertical axis가 lock되면 `start/end/duration` PATCH를 생성하지 않고 same-parent sibling order만 hierarchy transaction으로 확정한다. #335와 같이 Dependency Link 및 requested/effective schedule은 변경하지 않으며 Calendar/Summary/Dependency scheduling 규칙도 변경하지 않는다.
 
+
+
+## Issue #523 Resource KPI와 일정 엔진 경계
+
+Resource KPI는 일정 mutation이나 별도 공수 엔진이 아니라 기존 `resolveResourceCalendar` 및 `workingDaysBetween`의 조회 projection이다. Project < Group < Resource 예외와 same-layer conflict를 유지하고 Task Calendar AND를 추가하지 않는다. canonical Task 기간과 조회 기간은 T0 진단을, 유효 Assignment 기간의 교집합은 A 공수를 제한한다. allocation은 null 또는0초과100이하이며 비근무일 부분기간은 설정된0공수다. raw 공수는 Task progress/status로 차감하지 않고 Group/Role/개인/Milestone partition의 중복을 제거한다. full `projectStageGates`의 Membership/Ready/Blocked는 선택 범위와 별도이며 Task Link를 Stage Link로 추론하지 않는다. [KPI 사전·fixture](RESOURCE_KPI_DASHBOARD.md), `tests/domain/resource-kpi.test.ts` 및 native legacy precision 회귀를 따른다.
+
+
+## Issue #526 Resource KPI helper 추출 영향
+
+기존 KPI 진입점은 pure snapshot 준비/Assignment 선택/실제 집합 totals/T0 진단/선택 projection helper의 wrapper로 유지한다. full projectStageGates와 전체 Group Resource Calendar를 준비 입력에서 재사용하며 raw/null/M/M·distinct·지연 계약을 변경하지 않는다. 동일 Assignment의 clipped 공수 행을 선택/reference에서 공유한다. reference/excluded는 실제 집합 totals이며 Group/Role/Milestone 전체 cell 재계산으로 대체하지 않는다.
+
+일정 mutation·Calendar 우선순위·Duration·Dependency·Summary·Membership 완료 규칙은 N/A(변경 없음)다. pure helper 회귀와 기존 Calendar/Stage/Workload/Logistics 테스트로 호환성을 확인한다. [공개 계산 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
+
+## Issue #527 주·월 Resource Plan 조회 엔진
+
+`src/domain/resources/resource-plan.ts`와 `resource-plan-periods.ts`는 SVAR와 독립적인 pure read projection이다. backend가 확정한 Capacity 모집단 R과 같은 Project의 selected/fullProject 개인 Assignment 행, 전체 Group 소속, 기존 Calendar, 명시 M/M 기준 및 유한 예산을 입력받는다. HTTP/SQLite/ENV/사용자 필터를 해석하거나 일정·Calendar·Membership을 변경하지 않는다. 기존 KPI helper와 scheduling mutation 알고리즘은 유지한다.
+
+유효 Resource 근무일마다 Capacity 1 M/D이며 Assignment의 실제 조회 교집합에 allocation/100을 일별 배분한다. Project < Group < Resource와 same-layer conflict는 기존 `resolveResourceCalendar`를 사용한다. 전체 Group 달력을 보존하며 Task 근무일과 AND하지 않는다. backend는 R을 Project 일반 Task의 개인 할당 이력과 Resource 분류 조건으로 확정하고 기간·Task·Milestone·검색 조건으로 줄이지 않는다. Global 미배정 멤버나 비활성 flag로 고용시간을 추론하지 않는다.
+
+ISO 주는 월요일 시작/week-year, 월은 date-only calendar month다. 조회 범위의 부분 기간을 clip하고 전체 기간을 생략하지 않는다. `2199-12-31`의 ISO metadata `2200-W01`은 지원되지만 2200 날짜 입력은 기존 parser가 거부한다. M/M은 명시 환산값만 사용하며 실제 월 근무일이나 임의 8시간으로 대체하지 않는다.
+
+원시 known M/D는 일별 합이며 반올림하지 않는다. 미설정 Assignment는 유효 근무일이 없어도 inclusive 날짜 교차의 고유 ID 집합에 포함한다. `unknownResourceDayCount`는 미설정이 있는 유효 개인 근무일 수다. 기간 전체 상태/unknown Assignment 수는 실제 전체 집합에서 재판정하여 월 경계의 동일 미설정을 중복 합산하지 않는다. empty는0, 모두 미설정은null/unset, 설정+미설정은known 합/partial, 설정된 비근무일은0/configured다. Capacity 0이면 Load/Peak는null이며 모두 미설정이면 계획 Load/Peak는null, 별도 known Load/Peak는 확인된 하한이다. partial의 계획 지표도 확인된 부분합이며 정상·가용을 확정하지 않는다.
+
+개인별 known demand가 Capacity를 넘는 날짜를 계산한다. `overAllocatedDayCount`는 한 명 이상 초과한 고유 날짜, `overAllocatedResourceDayCount`는 개인-날짜 수, `overAllocatedResourceCount`는 고유 개인 수다. `excessMd`는 개인별 `max(0,demand-capacity)`의 합이다. Group 가중 `peakDailyLoadPercent`와 `peakResourceDailyLoadPercent`를 구분하여 Group 평균75% 안의 개인150%를 보존한다. 부동소수점의 가짜 초과는 판정에만 `1e-12 × max(1,demand,capacity)` tolerance를 적용하고 원시 합계를 반올림하지 않는다. Grand Capacity는 고유 resource-day이며 복수 Group/Role 소계와 Milestone 반복 Capacity는 비가산이다.
+
+`calculateResourcePlan`은 grand/Resource/Group의 전체·기간별 selected/project 지표 쌍과 Resource별 sparse Milestone 기여를 반환한다. M행 selected는 해당 Milestone 기여, project는 같은 Resource 전체 참고이며 `projectReferenceOnly`와 `projectReferenceRow`로 구분한다. 일별/개인별/Assignment별 상세는 각각 `getResourcePlanDailyPage`, `getResourcePlanDayResources`, `getResourcePlanDayAssignments`가 제공한다. 일별 `periodKey=all`은 전체 조회 기간이다. `resourceMilestone` 상세 selector는 selected/project 양쪽에서 해당 Milestone으로 제한하므로 M행 전체 과투입 원인은 명시 Resource/project selector로 조회한다. Group 일별 평균에서 개인별 numeric 페이지를 거쳐 원인 Assignment 페이지로 이동할 수 있고 0부하 R을 포함한다. 반환 페이지는 최대100이며 개인 numeric 계산은 요청 페이지에 한정한다.
+
+resource-day200000, full Assignment-day1000000, 전체 projection cell5000의 예산을 buffer/cell materialization 전에 확인한다. selected는 fullProject의 같은 값·고유 ID 부분집합이어야 하며 중복/충돌 Resource metadata·Assignment grain·잘못된 finite allocation/환산값·조회범위를 거부한다. 일별 IDs 전체 배열을 numeric 응답에 넣지 않는다. 응답2MiB와 인증·snapshot/HTTP 오류 변환은 backend 계약이다. 실제 fixture benchmark는 [Resource KPI 문서](RESOURCE_KPI_DASHBOARD.md#issue-527-resource-plan-domain-계약)를 따른다.
+
+경계·회귀는 `tests/domain/resource-plan*.test.ts`와 `tests/fixtures/resource-plan.ts`에 기록한다. 기존 KPI main finite-validation 회귀도 관련 Local Fast Feedback으로 함께 실행한다. Domain PASS는 원격 quality/e2e/docker PASS 또는 최종 수동 UX 검증을 대체하지 않는다.
+
+### Issue #527 표시 Group 예산과 Calendar 범위 분리
+
+`ResourcePlanInput.projectionGroupIds`는 출력 Group series와 projection cell 예산만 제한한다. 생략은 기존 전체 R 소속 Group 출력, 명시 빈 배열은 Group series 없음이다. Resource의 전체 `groupIds`와 Calendar 입력은 항상 유지하므로 숨은 Group 휴일/근무 예외가 Capacity와 공수에 반영된다. Resource/Grand/Milestone 계산과 R은 표시 Group 조건으로 줄이지 않는다.
+
+중복 projection ID는 거부하고 문자열 ID는 전체 입력 Resource 소속에 존재해야 한다. null은 미분류 selector sentinel로 허용한다. 알려진 Group이라도 R에 구성원이 없으면 기존 sparse 계약대로 출력 행을 생성하지 않는다. 표시되지 않는 Group을 먼저 materialize해 cell 예산을 부과하지 않는다. Group1 표시+숨은 Group2 휴일 fixture에서 정확히 grand/Resource/Group의3기간 셀을 허용하고2셀 예산은 거부한다. 명시 빈 배열은2셀과 같은 Capacity를 유지하며32개 소속 중1개만 표시하는 회귀도 고정한다.
+
+## Issue #530 KPI·Plan 통합 수치 검증
+
+고정 5근무일 fixture의 T1은 A50%와 B100%로7.5 M/D, T2는 A60%로3 M/D, T3는 B20%로1 M/D, T6의 A는 allocation=null이다. T4는 완전 미할당, T5는 Group만 지정이다. 개인 A5.5/B6, Grand11.5이며 G1/G2 중첩 소계17을 Grand로 더하지 않는다. Capacity는 고유 개인×근무일10이고 명시20 M/D 기준에서만0.575 M/M다.
+
+KPI의11.5와 일별 반복 합산 Plan의11.499999999999998, 개인 초과 합1.5000000000000002는 raw 연산 순서 차이다. 통합 테스트는 `toBeCloseTo(..., 14)`로 수치 오차를 검사하며 저장/출력 계산에 반올림을 추가하지 않는다. ID·count·null/state는 정확히 비교한다. 원장은 복사본으로 파생하며 Calendar 우선순위, hidden incomplete member/full predecessor Blocked, 미설정/설정0/empty와150% peak를 별도로 검증한다. 기존 Plan/ISO 기간/예산 회귀를 함께 선택 실행하며 Scheduling mutation 알고리즘은 변경하지 않는다.

@@ -1,3 +1,9 @@
+## Issue #624 — 물류 통합 관점 V1 (기존 Dashboard의 읽기 전용 확장)
+
+물류 구성의 새 **통합 조회** 탭은 기존 KPI 화면과 Task 직접연결·조율 범위 산식을 바꾸지 않는다. #619/#620 Resource Dashboard의 동일 `targetProjection`·`summary`·`stages`를 `projectionOrder`로 재배열하여 공정 종류→site/product 공정→선택 WorkArea→Target, 설비 종류→인스턴스→Target, 시스템 종류→인스턴스→Target, Target→Resource 관점을 제공한다.
+
+고유 equipmentId 기반 구성 수량과 현재 T0 작업 대상 coverage를 분리한다. 공유 MCS/AMR fleet의 수량·공수는 중첩 Target 소계로 합산할 수 없고 Assignment union 총계만 공인한다. 기간가중 일반 Task 진척과 Milestone 전체 effective membership/Stage Gate Ready/Blocked를 구분하고 선택 Assignment의 Task 수로 full Gate를 바꾸지 않는다. #621 정확 editor/#528 drill과 query/snapshot/stale/focus 복귀 경로를 재사용한다. [#624 Work Packet](exec-plans/active/ISSUE_624.md) 참조.
+
 # 물류 구축 대시보드 계산·조회 계약
 
 ## 1. 상태와 목적
@@ -197,3 +203,14 @@ Unit은 집합/중복/진척/날짜경계/분모0/미설정/Scope를 검증한�
 ## Issue #345: 미산정 Summary 집계
 
 빈 Summary 및 빈 Summary들만 있는 트리는 유효한 구조다. 날짜/기간/진척 null은 0일/0%/100% Leaf가 아니며 KPI의 Leaf 개수·기간 가중 진척·지연·공수 분모에 포함하지 않는다. 직접 물류 연결은 조회할 수 있고 subtree 연결은 이후 실제 자손에 상속된다. 실제 Leaf가 없는 집합은 기존 대상 없음/null 지표 계약을 유지한다.
+
+
+## Issue #463 — 관련 단계 projection와 명시 M/M 기준
+
+기존 `includedTaskIds`, progressPercent, plannedMd, 기간 범위 및 Milestone 경보의 계산 범위는 유지한다. `milestoneStages={milestoneTaskIds,rows}`는 M 직접 물류 일치 또는 effective member의 물류 일치를 통해 관련 고유 M을 추가 표시한다. 해당 row는 전체 E/P의 Ready/Blocked/memberProgress와 전체 위험 원인을 제공하므로 필터 밖 미완료 Task/predecessor도 숨기지 않는다. 관련 M의 전체 E를 기존 물류 수치의 포함 Task 집합에 추가하지 않는다. 상세 [Stage Dashboard 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
+
+기존 구현의 `filter.mdPerMm ?? 20`은 제거했다. 명시 유한 양수 query, 생략 시 유효 RESOURCE_MD_PER_MM, 그 외 null을 사용한다. `mdPerMm=null`은 ENV를 무시하며 empty/invalid/반복 mdPerMm은400이다. 이는 기존 기본20일 환산 및 invalid 무시의 의미 변경이다. M/D는 유지하고 M/M 미설정과 `mdPerMmSource=query|environment|unset`/실제 기준을 UI에 표시한다. 기존 Resource workload의 ENV 기준은 그대로다. horizon 날짜 상한은 ordinal 비교로 처리하여 지원 날짜 말일에서도 기존 inclusive 경계 의미를 유지한다.
+
+## Issue #617 — Target resolver 재사용 경계
+
+F3의 직접+모든 Summary 조상 subtree Target 합집합·typed subset·legacy 출처는 [LOGISTICS_TARGETS](LOGISTICS_TARGETS.md)의 단일 pure resolver가 담당한다. 후속 Target/Resource 보기에서 독자 상속 해석기를 만들거나 legacy MCS로 Target을 추론하지 않는다. 이번 변경은 기존 Dashboard의 직접설비/시스템 필터·Task/KPI 분모·Milestone full Gate를 새 Target 축으로 자동 확대하지 않으며 UI와 Resource 축 연결은 #618/#619 이후다. usage의 실제 일반 Task 수와 별도 Summary 수는 legacy directTaskCount 또는 물리 quantity가 아니다.

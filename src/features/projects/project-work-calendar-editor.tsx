@@ -391,7 +391,7 @@ export function ProjectWorkCalendarEditor({
       <strong>작업 캘린더 입력 {issues.length}곳을 확인해 주세요.</strong>
       <ul>{issues.map((issue)=><li key={issue.id}><button type="button" onClick={()=>document.getElementById(issue.id)?.focus()}>{issue.label}: {issue.message}</button></li>)}</ul>
     </div>:null}
-    <div>
+    <div className={styles.footerActions}>
       <button ref={previewButton} className="secondary-button" disabled={disabled||working!==null} type="button" onClick={()=>void previewCalendar()}>{working==="preview"?"계산 중…":"미리보기 계산"}</button>
       <button className="primary-button" disabled={disabled||working!==null||serverConflict!==null} type="button" onClick={()=>void saveCalendar()}>{working==="save"?"저장 중…":"작업 캘린더 저장"}</button>
     </div>

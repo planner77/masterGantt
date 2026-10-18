@@ -21,10 +21,75 @@ runs:
 
     - name: Chromium OS dependency 설치
       shell: bash
-      run: npx --no-install playwright install-deps chromium
+      run: |
+        set -euo pipefail
 
+        # #487 Main CI #2203.1: npx timeout can leave a sudo apt-get child
+        # holding /var/lib/apt/lists/lock after the parent exits.
+        # Normalize the known slow Azure runner mirror BEFORE the first apt
+        # operation, including Ubuntu 24.04 mirror+file:/etc/apt/apt-mirrors.txt indirection.
+        azure_sources=()
+        for source in /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list; do
+          [[ -f "$source" ]] || continue
+          if grep -Fq 'azure.archive.ubuntu.com/ubuntu' "$source"; then
+            azure_sources+=("$source")
+          fi
+        done
+        if (( ${#azure_sources[@]} > 0 )); then
+          echo "::notice::Playwright 의존성 설치 전에 Ubuntu 공식 미러를 선택했습니다."
+          for source in "${azure_sources[@]}"; do
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|https://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' "$source"
+          done
+        fi
+
+        # APT network deadlines let sudo apt-get unwind locks rather than
+        # relying only on the outer npx timeout to terminate child processes.
+        sudo tee /etc/apt/apt.conf.d/99mastergantt-playwright-ci >/dev/null <<'APT_CONF'
+        Acquire::http::Timeout "45";
+        Acquire::https::Timeout "45";
+        Acquire::Retries "1";
+        APT_CONF
+
+        install_deps() {
+          timeout --signal=TERM --kill-after=10s 360s npx --no-install playwright install-deps chromium
+        }
+        install_status=0
+        install_deps || install_status=$?
+        if (( install_status == 0 )); then
+          exit 0
+        fi
+
+        # Only retry after a normalized Azure source failed. A timed-out npm
+        # ancestor may leave its apt-get child active. Never overlap apt-get
+        # instances, kill unrelated processes or weaken validation.
+        if (( ${#azure_sources[@]} == 0 )); then
+          echo "Playwright OS 의존성 설치 실패(exit=$install_status): 복구 가능한 Azure 미러 설정이 없습니다." >&2
+          exit "$install_status"
+        fi
+        if ! command -v fuser >/dev/null 2>&1; then
+          echo "APT 잠금 해제 확인 불가: fuser 명령을 사용할 수 없습니다." >&2
+          exit "$install_status"
+        fi
+        apt_locked() {
+          local locks=()
+          for lock in /var/lib/apt/lists/lock /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock; do
+            [[ -e "$lock" ]] && locks+=("$lock")
+          done
+          (( ${#locks[@]} == 0 )) && return 1
+          sudo fuser -s "${locks[@]}" 2>/dev/null
+        }
+        for (( attempt=0; attempt<30; attempt++ )); do
+          if ! apt_locked; then
+            echo "::warning::Playwright OS 의존성 첫 설치 실패(exit=$install_status): APT 잠금 해제를 확인했고 1회 재시도합니다."
+            install_deps
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "APT 잠금이 60초 동안 해제되지 않아 Playwright install-deps 중복 실행을 거부합니다." >&2
+        exit "$install_status"
     - name: Chromium OS dependency 시간 기록
-      if: always()
+      if: ${{ always() && steps.deps-start.outputs.started_ms != '' }}
       shell: bash
       run: node scripts/record-ci-setup-metric.mjs --metric playwright-os-deps --started-ms "${{ steps.deps-start.outputs.started_ms }}" --cache "not-enabled"
 
@@ -38,6 +103,6 @@ runs:
       run: npx --no-install playwright install --only-shell chromium
 
     - name: Chromium headless shell 시간 기록
-      if: always()
+      if: ${{ always() && steps.browser-start.outputs.started_ms != '' }}
       shell: bash
       run: node scripts/record-ci-setup-metric.mjs --metric playwright-headless-shell --started-ms "${{ steps.browser-start.outputs.started_ms }}" --cache "not-enabled"

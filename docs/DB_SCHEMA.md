@@ -1,5 +1,31 @@
 # Database Schema
 
+## Issue #623 — legacy 이관·복원 통합 수용
+
+신규 schema/migration을 추가하지 않는다. 실제0024 schema 형태의 합성 파일 DB에서0025_process_catalog→0026_logistics_targets→0027_task_target_bindings를 적용하여 ledger 순서/SQL checksum·FK·원본 ID/미매핑 자유공정·비활성 참조·재기동을 확인한다. 전체 pending batch의 늦은 실패는 schema/rows/ledger rollback,checksum/order drift·구 migration과 새 ledger 조합은 fail-closed여야 한다.
+
+합성 SQLite backup→새 파일 restore→integrity/FK→재기동과 구 backup+대응 구 migration 복구는 전용 테스트 범위다. 운영 DB/off-host volume 복원과 자동 down migration 지원을 뜻하지 않는다. binding 포함 Templatev3·local ID remap/sharedMCS/globalreuse·wrong site 참조 거부를 [운영 절차](TARGET_RESOURCE_OPERATIONS.md)와 [수용표](TARGET_RESOURCE_ACCEPTANCE.md)에 연결한다.
+
+## Issue #538 — 사업부/제품/사업장 연결 (migration 0024)
+
+`db/migrations/0024_project_master_relations.sql`은 `business_unit_products(business_unit_id,product_id)` 및 `business_unit_product_sites(business_unit_id,product_id,site_entity_id)` STRICT 복합 PK/FK 연결 테이블을 생성한다. site 연결은 유효한 business_unit_products 연결에만 귀속된다. INSERT category trigger는 BUSINESS_UNIT/PRODUCT/SITE_ENTITY 타입을 강제하며 FK는 삭제와 고아 관계를 보호한다.
+
+Migration은 기존 Project의 **사업부+제품이 모두 지정된 조합**을 중복 없이 backfill하고 site가 있는 3개 조합도 연결한다. Project의 FK/row/revision이나 부분·legacy 선택을 추정/수정하지 않는다. migration ledger의 순서 및 checksum 검증은 유지한다.
+
+## Issue #460 — 명시 Milestone Membership
+
+Migration `0022_task_milestone_memberships.sql`은 `task_milestone_memberships(project_id, member_task_id, milestone_task_id)` STRICT table을 추가한다. `PRIMARY KEY(project_id, member_task_id)`로 단일 소속을 보장한다. Project FK 및 두 `(project_id, task_id)` composite FK는 Project 경계와 삭제 cascade를 제공하고 target 조회 index를 둔다. INSERT/UPDATE type trigger는 source Task/Summary, target Milestone을 검증하며 Task type 변경 trigger도 이 불변조건을 유지한다. 상속/effective/Ready/KPI는 저장하지 않는다.
+
+기존 row/ID/상태/진척/일정/Link/Assignment/revision은 수정하거나 추정 backfill하지 않는다. Task 삭제/타입 전환 서비스는 이전/새 snapshot과 참조를 검사하여 Milestone 구조 변경 또는 참조받는 Milestone 삭제를 rollback한다. target FK cascade가 소속을 조용히 없애는 public mutation을 허용하지 않는다. 기존 Project 전체 삭제의 cascade는 유지한다. 미병합 다른 0022 migration과 통합 시 최신 ledger 기준 번호 조정이 필요하며 loader 연속성/checksum gate를 제거하지 않는다. [Stage Gate 계약](MILESTONE_STAGE_GATES.md)을 참조한다.
+
+
+## Issue #464 — 복사와 Template의 소속 보존
+
+새 migration이나 영속 projection은 추가하지 않는다. 전체 Project Copy는 원본 명시 row의 두 endpoint를 새 Task 내부 PK로 remap하여 기존 `task_milestone_memberships`에 저장한다. Subtree Copy는 정규화된 Copy 집합 안의 두 endpoint만 remap하고 외부 명시 target 제외·상속 변화는 저장 전에 확인한다. 유효 소속을 명시 row로 평탄화하지 않는다. Cut/reparent는 Task identity와 명시 row를 보존한다. 기존 완료 구조 잠금, composite FK/type/unique와 실패 시 전체 transaction rollback을 유지한다.
+
+`project_templates.content_json`의 독립 `ProjectTemplateSnapshot`에는 optional `memberships:[{taskExternalId,milestoneExternalId}]`를 추가한다. 외부 ID는 snapshot 전체 Task 안에서만 resolve하고 원본 public UUID를 새 FK로 쓰지 않는다. 필드 omission은 과거 소속 없는 Template을 의미한다. 저장 시 원본의 명시 row만 직렬화하고 생성 시 모든 member/target을 먼저 resolve·검증한 뒤 새 FK를 저장한다. 중복 source·유실/잘못된 유형 target은 전체 거부하며 부분 row를 생략하지 않는다. Template leaf/M은 기존 progress0/not_started 초기 상태를 유지한다. 원본 삭제 후에도 snapshot 소속은 보존된다. 자세한 경계와 완료 기록 정책은 [Stage Gates](MILESTONE_STAGE_GATES.md#issue-464-복사template의-명시-보존)를 따른다.
+
+
 ## 1. 문서 상태와 범위
 
 이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가했다. Issue #184에서 물류 도메인 공정·설비·제어/조율 시스템 기초 영속 모델을 위한 `0009_logistics_domain.sql`을 추가한다. Issue #195에서 프로젝트 템플릿 등록·관리 및 템플릿 기반 인스턴스화를 위한 `0012_project_templates.sql`을 추가한다. Issue #200에서 관계 유형(FS/SS/FF/SF) 및 Lag 지원을 위한 `0013_link_types_and_lag.sql`을 추가한다. Issue #202에서 기준 일정(Baseline) 영속화를 위한 `0014_task_baseline.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
@@ -117,7 +143,7 @@ Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기�
 | `parent_id` | INTEGER | Y | 같은 Project의 summary task만 허용 |
 | `sort_order` | INTEGER | N | 같은 parent 아래 sibling의 안정적인 순서, 0 이상 |
 | `baseline_start` | TEXT | Y | 기준 일정 시작일 (ISO date YYYY-MM-DD); 미설정 시 NULL (0014 추가) |
-| `baseline_duration` | INTEGER | Y | 기준 일정 근무일 기간; 미설정 시 NULL, 마일스톤은 0 (0014 추가) |
+| `baseline_duration` | INTEGER | Y | 기준 일정 근무일 기간; 미설정 시 NULL, Milestone은 0 (0014 추가) |
 | `baseline_end` | TEXT | Y | 기준 일정 종료일 (ISO date YYYY-MM-DD); 미설정 시 NULL (0014 추가) |
 | `created_at` | TEXT | N | UTC timestamp |
 | `updated_at` | TEXT | N | UTC timestamp |
@@ -149,7 +175,7 @@ Issue #300: Grid DnD와 Context Menu의 기존 hierarchy command는 parent별 si
 - Summary span duration은 모든 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration의 합이 아니다.
 - 빈 Summary와 빈 Summary만 중첩된 구조를 최종 snapshot에서 허용한다. Parent가 될 수 있는 type은 summary뿐이다.
 - `baseline_start`, `baseline_duration`, `baseline_end`(0014)는 프로젝트 계획 기준점(Baseline) 일정이다.
-  - Leaf 작업(일반 작업, 마일스톤)은 사용자가 직접 지정하거나 현재 일정에서 복사해 저장할 수 있다.
+  - Leaf 작업(일반 작업, Milestone)은 사용자가 직접 지정하거나 현재 일정에서 복사해 저장할 수 있다.
   - Summary 작업의 baseline은 모든 하위 자손(leaf)에 baseline이 존재할 때만 자손들로부터 파생(`min(baseline_start)`, `max(baseline_end)`, `workingDaysBetween`)된다. 실제 Task/Milestone 자손 중 하나라도 baseline이 없으면 Summary baseline은 NULL이다. 빈 Summary는 baseline 완비성에서 중립이고 실제 Leaf가 하나도 없으면 파생 Summary baseline은 NULL이다. Summary baseline의 직접 수동 수정은 허용되지 않는다(`SummaryScheduleReadonlyError`).
 
 이 규칙은 DB trigger로 중복 구현하지 않고 Scheduling Engine을 단일 계산 소스로 사용한다. 저장 직전 Service가 전체 aggregate 결과를 검증한다.
@@ -586,7 +612,7 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 
 ### 5.24 `project_templates`
 
-프로젝트 템플릿 등록 및 템플릿 기반 새 프로젝트 생성을 위한 전역 템플릿 보관 테이블이다 (Issue #195, `0012_project_templates.sql`). 기존 프로젝트에서 태스크(상대 근무일 offsetDays 기준), 링크, 리소스 배정, 물류 마스터(공정, 설비, 시스템, 역할, 링크) 스냅샷을 `content_json`에 비정규화 보관한다. 원본 프로젝트가 삭제되어도 템플릿은 보존되며(`source_project_id ON DELETE SET NULL`), 템플릿이 삭제되어도 이미 생성된 프로젝트는 영향받지 않는다.
+프로젝트 템플릿 등록 및 템플릿 기반 새 프로젝트 생성을 위한 전역 템플릿 보관 테이블이다 (Issue #195, `0012_project_templates.sql`). 기존 프로젝트에서 태스크(상대 근무일 offsetDays 기준), 링크, 리소스 배정, 물류 마스터(공정, 설비, 시스템, 역할, 링크) 스냅샷과 optional 명시 Milestone 소속 external references를 `content_json`에 비정규화 보관한다. 원본 프로젝트가 삭제되어도 템플릿은 보존되며(`source_project_id ON DELETE SET NULL`), 템플릿이 삭제되어도 이미 생성된 프로젝트는 영향받지 않는다.
 
 | Column | Type | Null | 의미 |
 |---|---|---:|---|
@@ -597,8 +623,8 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 | `source_project_id` | INTEGER | Y | 원본 프로젝트 FK (`projects.id` ON DELETE SET NULL) |
 | `source_project_name` | TEXT | Y | 원본 프로젝트 명칭 (원본 삭제 후에도 표시용 보존) |
 | `active` | INTEGER | N | 활성 상태 (0 또는 1, 기본 1) |
-| `task_count` | INTEGER | N | 작업 수 (마일스톤 제외 일반/요약 작업 수, 기본 0) |
-| `milestone_count` | INTEGER | N | 마일스톤 수 (기본 0) |
+| `task_count` | INTEGER | N | 작업 수 (Milestone 제외 일반/요약 작업 수, 기본 0) |
+| `milestone_count` | INTEGER | N | Milestone 수 (기본 0) |
 | `content_json` | TEXT | N | 템플릿 전체 스냅샷 JSON (태스크, 링크, 배정, 물류 마스터/연결) |
 | `created_at` | TEXT | N | UTC timestamp |
 | `updated_at` | TEXT | N | UTC timestamp |
@@ -657,10 +683,52 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 
 상세 결정과 검증 범위는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 따른다.
 
-## Issue #413 — Task assignment 수행 역할 migration 0021
+## Issue #485 — Task assignment 역할 비권위화 migration 0023
 
-`0021_task_assignment_roles.sql`은 기존 `task_assignments`에 nullable `assignment_role TEXT`를 추가한다. 허용값은 `PI | DEVELOPER | EQUIPMENT_OWNER`이며 migration 이전 row는 `NULL`을 유지한다. Group assignment는 역할을 사용하지 않는다.
+`0021_task_assignment_roles.sql`이 추가했던 nullable `task_assignments.assignment_role`은 기존 DB/백업 호환을 위해 컬럼 자체는 유지하지만 #485부터 non-authoritative다.
 
-`task_assignments_resource_role_idx(resource_id, assignment_role)`는 사용 중 역할 조회를 지원한다. INSERT/UPDATE guard는 non-null 수행 역할이 해당 Resource의 `resource_roles`에 존재하는지 검사하고, `resource_roles_assignment_delete_guard`는 Task assignment가 참조 중인 Global Role 삭제를 거부한다. 기존 `(project_id, task_id, resource_id)` unique index는 그대로 유지하므로 하나의 Task+Resource는 최대 하나의 수행 역할만 가진다.
+`0023_deprecate_task_assignment_roles.sql`은 기존 값을 모두 `NULL`로 정규화하고 `task_assignments_resource_role_idx`, assignment role INSERT/UPDATE guard, `resource_roles_assignment_delete_guard`를 제거한다. 신규 repository 저장도 항상 null을 기록한다.
 
-Project Copy와 Template은 `assignment_role`을 보존하고 workload/Calendar 계산은 이 필드에 의존하지 않는다. 상세 결정은 [ISSUE_413_TASK_ASSIGNMENT_ROLES.md](ISSUE_413_TASK_ASSIGNMENT_ROLES.md)를 따른다.
+역할의 Source of Truth는 `resource_roles(resource_id, role)`뿐이다. Global Role 변경은 Task assignment 참조 때문에 차단하지 않으며 `(project_id, task_id, resource_id)` unique invariant와 allocation index/Calendar 계약은 유지한다. Project Copy/Template은 Task별 역할을 복제하지 않는다.
+
+## Issue #615 — 공통 공정 catalog와 명시 프로젝트 매핑
+
+`0025_process_catalog.sql`은 0024 다음 additive migration이다. 기존 공정/Task/설비를 다시 쓰거나 이름·parent로 매핑을 추론하지 않는다. UUID public ID와 내부 INTEGER PK를 구분한다.
+
+| 테이블 | 핵심 제약 |
+| --- | --- |
+| `process_catalog_state` | singleton(id=1), 독립 revision≥1 |
+| `process_types` | public_id/code UNIQUE, name/active/sort_order |
+| `product_standard_processes` | PRODUCT master FK + type FK, UNIQUE(product_id,code), UNIQUE(id,product_id,process_type_id), PRODUCT category insert/update trigger |
+| `site_product_processes` | #538 business_unit_product_sites의 정확 triple FK, optional standard_process_id와 product/type 복합 FK, UNIQUE(triple,code), UNIQUE(triple,standard_process_id), UNIQUE(id,triple) |
+| `work_areas` | occurrence 필수, UNIQUE(occurrence_id,code), UNIQUE(occurrence_id,id), occurrence reparent 금지 trigger |
+| `project_process_occurrence_mappings` | PRIMARY KEY(project_id,project_process_id), local process 복합 FK, occurrence+triple 복합 FK, optional WorkArea+occurrence 복합 FK |
+
+Project mapping insert/update와 Project triple 변경 trigger가 정확한 Project 선택 일치를 방어한다. 프로젝트 삭제는 local 매핑을 CASCADE하되 공통 master는 유지한다. occurrence/standard/type/WorkArea 참조는 RESTRICT와 Service 사용량 검사로 보호한다. 조회용 occurrence type/standard, mapping occurrence/WorkArea index와 triple/owner unique index를 둔다.
+
+Service가 `IMMEDIATE` transaction에서 admin/edit session·expected revision·활성 상태·유효 triple·사용량을 다시 검사한다. 표준은 product ID만으로 공유하고 occurrence는 BU/product/site별로 독립이다. WorkArea는 0..N이며 NULL은 구역 미선택, 매핑 행 부재는 legacy/unmapped다. 표준 변경은 Project 공정 생성·삭제·자동 재매핑을 하지 않는다. 해당 F1 구현 당시에는 F2 테이블이 없었다. **F2에서는 migration0026으로 Target/typed member를 도입했고, F3 후보 #617에서 아래 migration0027로 WBS–Target binding을 추가한다.**
+
+기존 migration checksum을 수정하지 않는다. fresh/0024 upgrade·foreign_key_check·restart는 관련 SQLite 테스트로 검증한다. 운영 적용/backup restore는 별도 NOT TESTED. 0025 적용 DB를 구버전 앱으로 단순 downgrade하지 않으며 사전 backup+대응 구버전 앱 복원 또는 forward migration을 사용한다.
+
+## 0026 — Logistics Target typed membership (#616)
+
+`db/migrations/0026_logistics_targets.sql` adds `logistics_targets` and `logistics_target_members`. Targets carry stable public UUID, project-local unique code, process/project_common scope, optional mapped occurrence-bound WorkArea, active/description. Typed members reference original `project_equipment` or `project_logistics_systems` through composite project FKs, with exactly-one checks and kind-specific unique indexes; member public IDs are fresh on re-add. Many Targets can reference the same original System or Equipment (including one MCS shared across Targets). Trigger guards stop equipment process changes and common System scope changes that would break Target invariants. An individual Target cannot persist empty members; deleting a Target removes membership references, not original equipment/system instances. Current same-project process mapping is mandatory for process scope. Scope mismatch, wrong WorkArea, duplicate pair and cross-project references fail rather than silently remap. Schema runs through the existing checksum migration ledger. Migration CLI의 신규 생성·재실행/26건 ledger 테스트는 Main #2710.1/Release #167.1에서 PASS; 기존 0025→0026 파일 SQLite의 실제 Target 저장·종료·재시작·FK 검증은 #672 전용 회귀를 추가했으며 새 PR CI 이전 NOT TESTED. 운영환경 backup/restore는 여전히 NOT TESTED.
+
+## #616 Target nonempty COMMIT FK
+
+Migration 0026은 `logistics_targets.anchor_member_id` required 필드와 `(project_id,id,anchor_member_id)` → `logistics_target_members(project_id,target_id,id)` `DEFERRABLE INITIALLY DEFERRED` composite FK로 빈 구성 commit을 막는다. 기존 last-member DELETE 트리거는 제거하고 서비스가 Target 생성·복사·Template 복원·멤버 교체 후 살아 있는 member를 anchor로 설정한다. 단일 transaction 내부의 old member 삭제→공정 전환→new member 생성은 허용하지만 마지막 member만 지운 COMMIT은 FK 실패한다. migration0026은 #616 원본 PR #631로 병합됐으며 v0.108.0 릴리스 코드에서 checksum ledger로 관리한다. 과거 0026 파일을 다시 작성하거나 checksum을 변경하지 않는다.
+
+## Issue #617 — migration 0027 Task Target bindings
+
+`db/migrations/0027_task_target_bindings.sql`은 0026 다음 additive migration이며 기존 checksum/Target/member/legacy 직접 링크 row를 변경하거나 backfill하지 않는다.
+
+| 테이블 | 저장·제약 |
+| --- | --- |
+| `task_target_bindings` | public UUID UNIQUE, project/task/Target FK, `UNIQUE(project_id,task_id,target_id)`, scope self/subtree, selection whole/subset. Task 삭제 CASCADE, Target 참조는 deferred NO ACTION |
+| `task_target_binding_members` | subset만 저장. `UNIQUE(binding_id,member_id)`, `(project_id,binding_id,target_id)` 및 `(project_id,target_id,member_id)` 복합FK로 같은 Project/Target 소유를 결속. member 참조는 deferred NO ACTION, binding 삭제 CASCADE |
+
+subset binding의 required anchor는 자신의 subset row로 `DEFERRABLE INITIALLY DEFERRED` 복합FK를 가진다. 빈 subset commit은 실패하고 whole은 anchor NULL 및 subset row0이어야 한다. insert 및 selection 변경 trigger는 whole에 member가 남지 못하게 하고 binding의 public/project/task/Target identity와 member row update는 immutable이다. 교체는 transaction 내 삭제/재삽입으로 수행한다. deferred Target/member FK는 전체 Project cascade를 허용하되 단독 사용 중 삭제는 Service 및 commit FK로 거부한다.
+
+subtree insert/update 및 Task type-change trigger는 Summary-only를 강제한다. coverage는 NULL 또는 양의 INTEGER이며 trigger가 같은 Target의 Equipment에만 현재 quantity 이하 값을 허용한다. System의 nonnull coverage와 shared Equipment quantity를 live coverage보다 작게 축소하는 변경은 DB에서도 거부한다. Service는 전체 binding/subset/활성/영향 및 Project revision을 IMMEDIATE transaction에서 다시 검증한다. 조회는 row/revision을 바꾸지 않는다. Project 삭제는 local graph만 삭제하고 글로벌 공정/Resource를 보존한다.
+
+새 DB·0026 upgrade·FK 위반·실패 rollback·persisted restart는 #617 전용 SQLite 검증 대상이다. 로컬 실행 및 PR CI 증거는 [Work Packet](exec-plans/active/ISSUE_617.md)에서 구분하며 운영 DB migration/backup-restore 성공은 별도 NOT TESTED다.

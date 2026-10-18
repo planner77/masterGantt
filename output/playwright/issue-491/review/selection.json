@@ -1,0 +1,716 @@
+{
+  "files": [
+    {
+      "path": "output/playwright/issue-491/review/after-contracts.json",
+      "bytes": 19200,
+      "sha256": "fbe59e884ce822ce4e667e235d5a4a6754eb8d68eb42eada88aa2eeba6e573e0"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-copy-long-1440.png",
+      "bytes": 148658,
+      "sha256": "c89a1d3237ecdc417d3718986dff11e5ec7dc7e98bd537f2d68587331b5243ba"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-copy-long-390.png",
+      "bytes": 64596,
+      "sha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-copy-stale-1440.png",
+      "bytes": 165061,
+      "sha256": "56ad88863649a22475012a6e84b229d5965489ab135713ecf9350c35f31c3b14"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-create-long-1440.png",
+      "bytes": 142535,
+      "sha256": "252224a61a38cb9370e4736224eee28fa392153bbb1864d75d984b161819579e"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-create-long-390.png",
+      "bytes": 96063,
+      "sha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-create-native-focus-390.png",
+      "bytes": 96960,
+      "sha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-effort-filter-native-focus-390.png",
+      "bytes": 54725,
+      "sha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-effort-large-server-values-1440.png",
+      "bytes": 130164,
+      "sha256": "6fcb2c3d21f03ffc60f96973c8ed8a72fe371459b60acaa5809fa363a069b2bb"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-date-native-focus-1440.png",
+      "bytes": 119537,
+      "sha256": "b3ef6f46de23daec0bb060514782663c581bfce357541030723f6ade17146662"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-date-native-focus-390.png",
+      "bytes": 58550,
+      "sha256": "21f27f8b382abfa76f346d30705dff5cc24589405a7090eb8819d5cc43cce277"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-excel-options-1440.png",
+      "bytes": 127249,
+      "sha256": "20840323c38d63fe91a390cb24525cc44a5d08dd41f13750145dd83427d8dea5"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-excel-options-390.png",
+      "bytes": 77669,
+      "sha256": "9e8b3c8a44a031230b5cb5eb99e6bde210131ae2bb592ccfc303c1818b9cbaa9"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-image-range-1440.png",
+      "bytes": 114256,
+      "sha256": "98fee48724779d8b6e0f3ea18bcdd9da04ec464bb8e1bfe610c7803ac05b8641"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-image-range-390.png",
+      "bytes": 55177,
+      "sha256": "ac355be07fa0451ce9f897adf497a8488c92483d42fbbc77a4e26fb9f6f0c675"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-export-pending-390.png",
+      "bytes": 55712,
+      "sha256": "541cf60afe7cfe81dd4a2eb0323b2bc66a3d095346c1f06a96d30e9385950673"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-gantt-state-1440.png",
+      "bytes": 218853,
+      "sha256": "4b29974086cd0e93201251083aacbbc1deb12696bb3b6f85f3d64a3fc0ca14b7"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-geometry.json",
+      "bytes": 6226295,
+      "sha256": "33e1f48c0df3996a09c8d02cdcc1724390001a106f10c7a0836df98cd432fbac"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-import-commit-pending-390.png",
+      "bytes": 78382,
+      "sha256": "3f55c2d6292561ded0f18987db0dc8d9e13406c47743f38e1abf4ae93ab6ed99"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-import-preview-long-1440.png",
+      "bytes": 168755,
+      "sha256": "2d1fb3600a6d9421cb1ed7f25c6d5330ece716fdaec96be899a07eb4df5a798c"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-import-preview-long-390.png",
+      "bytes": 80490,
+      "sha256": "ee160668db8d21c8432ddea2898e0ef7316679bd2769f0178910243c4d1dae60"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-import-table-native-focus-1440.png",
+      "bytes": 168837,
+      "sha256": "c0d53dc0343824f00068781d735efc30126ffc46f04dd22c07b985594b237da4"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-import-table-native-focus-390.png",
+      "bytes": 72292,
+      "sha256": "e8f73ef0671b8451fa0bb4e38a875d887da0e93c6732525a28cc9d9cce3c3c94"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-create-native-focus-390.png",
+      "bytes": 261323,
+      "sha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-large-counts-1440.png",
+      "bytes": 273913,
+      "sha256": "5d6315b72b19dc2f02cfda7017302034fddaaafc678831ccb68501067485b5aa"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-save-long-1440.png",
+      "bytes": 150002,
+      "sha256": "261803727d2d7695d744d61fe0ff7f4e2b0663ae10684e03043f99bae3322e86"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-save-long-390.png",
+      "bytes": 85883,
+      "sha256": "2954069bd07b230c8bc1f6cd8f9324312a51e584ea3c80387775aae0b6b0950a"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-save-native-focus-1440.png",
+      "bytes": 147303,
+      "sha256": "ed6a3522a0b3191ba6330c4148028c5b194fdb527cb3d598d877969cb66c592b"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-save-native-focus-390.png",
+      "bytes": 83135,
+      "sha256": "20afc245d0ee3410bb98ce3a0fa3f85a296fcbac427aed507805f8550bfc7fd7"
+    },
+    {
+      "path": "output/playwright/issue-491/review/after-template-save-pending-390.png",
+      "bytes": 81607,
+      "sha256": "d6dcb87bcf0c1589a6b56842c9341665d5f424d885ed0c559040a3eae930b101"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-contracts.json",
+      "bytes": 19223,
+      "sha256": "bc7a6a6eef026d7fd7be23300f3b1f9e166114f4801e8c8054b310747bfacfc4"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-copy-long-1440.png",
+      "bytes": 148650,
+      "sha256": "09c0254b47b566ddb79eb0335cc26d963aa3506ccfbd10677dcc8e19f086807d"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-copy-long-390.png",
+      "bytes": 64596,
+      "sha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-copy-stale-1440.png",
+      "bytes": 165052,
+      "sha256": "df8a370f2582868f79b1143adc254254e1a0fd0975372ca1fae14f3a422bfbee"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-create-long-1440.png",
+      "bytes": 142490,
+      "sha256": "9ff79df75983ebfe4b56ab868ef6af137d98627c9862676511f81d3701e913d5"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-create-long-390.png",
+      "bytes": 96063,
+      "sha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-create-native-focus-390.png",
+      "bytes": 96960,
+      "sha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-effort-filter-native-focus-390.png",
+      "bytes": 54725,
+      "sha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-effort-large-server-values-1440.png",
+      "bytes": 130003,
+      "sha256": "2718e2fdc7ad76956a1e72b75ea4a27a67a651637ab5a2fdb536a83a96b5778d"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-date-native-focus-1440.png",
+      "bytes": 119506,
+      "sha256": "2765b2ef22c10406c6ea3c25d47ec115b6c940a86e0e02058aa0bc966db80eda"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-date-native-focus-390.png",
+      "bytes": 59798,
+      "sha256": "fac4c4adda74ffcc0466b7e6c705db0a0b65cbc55eb819d49575c6656da22b59"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-excel-options-1440.png",
+      "bytes": 127214,
+      "sha256": "2b8596dfaecef5e331ae242118dd8e37edc3d73069c6e6e70ddf678b437d1cb0"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-excel-options-390.png",
+      "bytes": 79401,
+      "sha256": "a7ced76f881cca48306d031c6d931d9391f6360e9df792e030dd319cd716a49d"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-image-range-1440.png",
+      "bytes": 114226,
+      "sha256": "3a2f012f5a936dbe792e47a5d2ce64a74b9047f96976127e34b7d35276dc563b"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-image-range-390.png",
+      "bytes": 55594,
+      "sha256": "ce4e0dec20265fc25ea13e7ee1e40cded02e28c909f3c70b6fcf210c8c53d2f5"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-export-pending-390.png",
+      "bytes": 56094,
+      "sha256": "2db9863fdaab9da95b8e1612a4cc22805fce828982e9d142e7cf2fbf71163930"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-gantt-state-1440.png",
+      "bytes": 218842,
+      "sha256": "028598a44915a401397d6591b90abec8f8034eb0aa30b112b8e4df14a5efc5dd"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-geometry.json",
+      "bytes": 6231677,
+      "sha256": "6577abef6ae4f64d28015848f004a76126bbfb5e0db515ae54760c41b35aa2c1"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-import-commit-pending-390.png",
+      "bytes": 78327,
+      "sha256": "cdbcf08de51dd5100e2cdcff4873152b20c82a408810115e519131cd41c8d7ee"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-import-preview-long-1440.png",
+      "bytes": 169096,
+      "sha256": "99a0ef313a61036b0ba98cc13db32c958404b02833554367db12f9461437ab90"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-import-preview-long-390.png",
+      "bytes": 80445,
+      "sha256": "e79228ace1bab756c7f4894752d10c18d4cba09cbde03893bfdd5785d9fb3d0a"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-import-table-native-focus-1440.png",
+      "bytes": 168846,
+      "sha256": "3defadf74dc1c03b1fefffde7746040acfd75b282fca925f90c6e1018ba4d4b1"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-import-table-native-focus-390.png",
+      "bytes": 74598,
+      "sha256": "7165c88e5886fb811b3a15215b1709265b0b6e6fe095e51d78c6128924b82447"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-create-native-focus-390.png",
+      "bytes": 261323,
+      "sha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-large-counts-1440.png",
+      "bytes": 273867,
+      "sha256": "fa16a0e06b229f7d6feb3d2f1823c0f13b4f3b9f514529dd09c1febe08c2baee"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-save-long-1440.png",
+      "bytes": 149974,
+      "sha256": "98cccd388a56bbf58feb3f67292690abe58ff9f8d089076a27afed846c2a820d"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-save-long-390.png",
+      "bytes": 86566,
+      "sha256": "86dc4bb647dad45555e46b6e95f523e74d268bac4247f2c0eee059cf5b947976"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-save-native-focus-1440.png",
+      "bytes": 147242,
+      "sha256": "560e6dd2c96b29717cda9ef597913e4f7452fb234a62bc602b40cbbc826e3bfb"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-save-native-focus-390.png",
+      "bytes": 83825,
+      "sha256": "d420d0c20db63a0d7657abef246e2079356e882d4411a22ca97467f6f8961a87"
+    },
+    {
+      "path": "output/playwright/issue-491/review/before-template-save-pending-390.png",
+      "bytes": 82352,
+      "sha256": "7e4c04f68993804ad17e38176c3ef213047de45abe2cb5da8dfe05ce9395d821"
+    },
+    {
+      "path": "output/playwright/issue-491/review/runs.json",
+      "bytes": 523073,
+      "sha256": "6f99684247c82cc2bfe115c0899efbc605dee7714900b9ba10e63958017145fd"
+    },
+    {
+      "path": "output/playwright/issue-491/review/source-provenance.json",
+      "bytes": 114121,
+      "sha256": "55ef1dfd5603949ad2894a79750dae9cdfa2cc27af79f0af5232161e3516b4fb"
+    }
+  ],
+  "pngOriginals": [
+    {
+      "file": "output/playwright/issue-491/review/before-export-excel-options-390.png",
+      "sha256": "a7ced76f881cca48306d031c6d931d9391f6360e9df792e030dd319cd716a49d",
+      "bytes": 79401,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-excel-options-390.png",
+      "originalSha256": "a7ced76f881cca48306d031c6d931d9391f6360e9df792e030dd319cd716a49d"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-excel-options-390.png",
+      "sha256": "9e8b3c8a44a031230b5cb5eb99e6bde210131ae2bb592ccfc303c1818b9cbaa9",
+      "bytes": 77669,
+      "originalFile": "output/playwright/issue-491/after-final/export-excel-options-390.png",
+      "originalSha256": "9e8b3c8a44a031230b5cb5eb99e6bde210131ae2bb592ccfc303c1818b9cbaa9"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-export-excel-options-1440.png",
+      "sha256": "2b8596dfaecef5e331ae242118dd8e37edc3d73069c6e6e70ddf678b437d1cb0",
+      "bytes": 127214,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-excel-options-1440.png",
+      "originalSha256": "2b8596dfaecef5e331ae242118dd8e37edc3d73069c6e6e70ddf678b437d1cb0"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-excel-options-1440.png",
+      "sha256": "20840323c38d63fe91a390cb24525cc44a5d08dd41f13750145dd83427d8dea5",
+      "bytes": 127249,
+      "originalFile": "output/playwright/issue-491/after-final/export-excel-options-1440.png",
+      "originalSha256": "20840323c38d63fe91a390cb24525cc44a5d08dd41f13750145dd83427d8dea5"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-export-image-range-390.png",
+      "sha256": "ce4e0dec20265fc25ea13e7ee1e40cded02e28c909f3c70b6fcf210c8c53d2f5",
+      "bytes": 55594,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-image-range-390.png",
+      "originalSha256": "ce4e0dec20265fc25ea13e7ee1e40cded02e28c909f3c70b6fcf210c8c53d2f5"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-image-range-390.png",
+      "sha256": "ac355be07fa0451ce9f897adf497a8488c92483d42fbbc77a4e26fb9f6f0c675",
+      "bytes": 55177,
+      "originalFile": "output/playwright/issue-491/after-final/export-image-range-390.png",
+      "originalSha256": "ac355be07fa0451ce9f897adf497a8488c92483d42fbbc77a4e26fb9f6f0c675"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-export-image-range-1440.png",
+      "sha256": "3a2f012f5a936dbe792e47a5d2ce64a74b9047f96976127e34b7d35276dc563b",
+      "bytes": 114226,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-image-range-1440.png",
+      "originalSha256": "3a2f012f5a936dbe792e47a5d2ce64a74b9047f96976127e34b7d35276dc563b"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-image-range-1440.png",
+      "sha256": "98fee48724779d8b6e0f3ea18bcdd9da04ec464bb8e1bfe610c7803ac05b8641",
+      "bytes": 114256,
+      "originalFile": "output/playwright/issue-491/after-final/export-image-range-1440.png",
+      "originalSha256": "98fee48724779d8b6e0f3ea18bcdd9da04ec464bb8e1bfe610c7803ac05b8641"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-export-date-native-focus-390.png",
+      "sha256": "fac4c4adda74ffcc0466b7e6c705db0a0b65cbc55eb819d49575c6656da22b59",
+      "bytes": 59798,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-date-native-focus-390.png",
+      "originalSha256": "fac4c4adda74ffcc0466b7e6c705db0a0b65cbc55eb819d49575c6656da22b59"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-date-native-focus-390.png",
+      "sha256": "21f27f8b382abfa76f346d30705dff5cc24589405a7090eb8819d5cc43cce277",
+      "bytes": 58550,
+      "originalFile": "output/playwright/issue-491/after-final/export-date-native-focus-390.png",
+      "originalSha256": "21f27f8b382abfa76f346d30705dff5cc24589405a7090eb8819d5cc43cce277"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-export-date-native-focus-1440.png",
+      "sha256": "2765b2ef22c10406c6ea3c25d47ec115b6c940a86e0e02058aa0bc966db80eda",
+      "bytes": 119506,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-date-native-focus-1440.png",
+      "originalSha256": "2765b2ef22c10406c6ea3c25d47ec115b6c940a86e0e02058aa0bc966db80eda"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-date-native-focus-1440.png",
+      "sha256": "b3ef6f46de23daec0bb060514782663c581bfce357541030723f6ade17146662",
+      "bytes": 119537,
+      "originalFile": "output/playwright/issue-491/after-final/export-date-native-focus-1440.png",
+      "originalSha256": "b3ef6f46de23daec0bb060514782663c581bfce357541030723f6ade17146662"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-export-pending-390.png",
+      "sha256": "2db9863fdaab9da95b8e1612a4cc22805fce828982e9d142e7cf2fbf71163930",
+      "bytes": 56094,
+      "originalFile": "output/playwright/issue-491/before-targeted/export-pending-390.png",
+      "originalSha256": "2db9863fdaab9da95b8e1612a4cc22805fce828982e9d142e7cf2fbf71163930"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-export-pending-390.png",
+      "sha256": "541cf60afe7cfe81dd4a2eb0323b2bc66a3d095346c1f06a96d30e9385950673",
+      "bytes": 55712,
+      "originalFile": "output/playwright/issue-491/after-final/export-pending-390.png",
+      "originalSha256": "541cf60afe7cfe81dd4a2eb0323b2bc66a3d095346c1f06a96d30e9385950673"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-save-long-390.png",
+      "sha256": "86dc4bb647dad45555e46b6e95f523e74d268bac4247f2c0eee059cf5b947976",
+      "bytes": 86566,
+      "originalFile": "output/playwright/issue-491/before-targeted/template-save-long-390.png",
+      "originalSha256": "86dc4bb647dad45555e46b6e95f523e74d268bac4247f2c0eee059cf5b947976"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-save-long-390.png",
+      "sha256": "2954069bd07b230c8bc1f6cd8f9324312a51e584ea3c80387775aae0b6b0950a",
+      "bytes": 85883,
+      "originalFile": "output/playwright/issue-491/after-final/template-save-long-390.png",
+      "originalSha256": "2954069bd07b230c8bc1f6cd8f9324312a51e584ea3c80387775aae0b6b0950a"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-save-long-1440.png",
+      "sha256": "98cccd388a56bbf58feb3f67292690abe58ff9f8d089076a27afed846c2a820d",
+      "bytes": 149974,
+      "originalFile": "output/playwright/issue-491/before-targeted/template-save-long-1440.png",
+      "originalSha256": "98cccd388a56bbf58feb3f67292690abe58ff9f8d089076a27afed846c2a820d"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-save-long-1440.png",
+      "sha256": "261803727d2d7695d744d61fe0ff7f4e2b0663ae10684e03043f99bae3322e86",
+      "bytes": 150002,
+      "originalFile": "output/playwright/issue-491/after-final/template-save-long-1440.png",
+      "originalSha256": "261803727d2d7695d744d61fe0ff7f4e2b0663ae10684e03043f99bae3322e86"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-save-native-focus-390.png",
+      "sha256": "d420d0c20db63a0d7657abef246e2079356e882d4411a22ca97467f6f8961a87",
+      "bytes": 83825,
+      "originalFile": "output/playwright/issue-491/before-targeted/template-save-native-focus-390.png",
+      "originalSha256": "d420d0c20db63a0d7657abef246e2079356e882d4411a22ca97467f6f8961a87"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-save-native-focus-390.png",
+      "sha256": "20afc245d0ee3410bb98ce3a0fa3f85a296fcbac427aed507805f8550bfc7fd7",
+      "bytes": 83135,
+      "originalFile": "output/playwright/issue-491/after-final/template-save-native-focus-390.png",
+      "originalSha256": "20afc245d0ee3410bb98ce3a0fa3f85a296fcbac427aed507805f8550bfc7fd7"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-save-native-focus-1440.png",
+      "sha256": "560e6dd2c96b29717cda9ef597913e4f7452fb234a62bc602b40cbbc826e3bfb",
+      "bytes": 147242,
+      "originalFile": "output/playwright/issue-491/before-targeted/template-save-native-focus-1440.png",
+      "originalSha256": "560e6dd2c96b29717cda9ef597913e4f7452fb234a62bc602b40cbbc826e3bfb"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-save-native-focus-1440.png",
+      "sha256": "ed6a3522a0b3191ba6330c4148028c5b194fdb527cb3d598d877969cb66c592b",
+      "bytes": 147303,
+      "originalFile": "output/playwright/issue-491/after-final/template-save-native-focus-1440.png",
+      "originalSha256": "ed6a3522a0b3191ba6330c4148028c5b194fdb527cb3d598d877969cb66c592b"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-save-pending-390.png",
+      "sha256": "7e4c04f68993804ad17e38176c3ef213047de45abe2cb5da8dfe05ce9395d821",
+      "bytes": 82352,
+      "originalFile": "output/playwright/issue-491/before-targeted/template-save-pending-390.png",
+      "originalSha256": "7e4c04f68993804ad17e38176c3ef213047de45abe2cb5da8dfe05ce9395d821"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-save-pending-390.png",
+      "sha256": "d6dcb87bcf0c1589a6b56842c9341665d5f424d885ed0c559040a3eae930b101",
+      "bytes": 81607,
+      "originalFile": "output/playwright/issue-491/after-final/template-save-pending-390.png",
+      "originalSha256": "d6dcb87bcf0c1589a6b56842c9341665d5f424d885ed0c559040a3eae930b101"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-import-preview-long-390.png",
+      "sha256": "e79228ace1bab756c7f4894752d10c18d4cba09cbde03893bfdd5785d9fb3d0a",
+      "bytes": 80445,
+      "originalFile": "output/playwright/issue-491/before-targeted/import-preview-long-390.png",
+      "originalSha256": "e79228ace1bab756c7f4894752d10c18d4cba09cbde03893bfdd5785d9fb3d0a"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-import-preview-long-390.png",
+      "sha256": "ee160668db8d21c8432ddea2898e0ef7316679bd2769f0178910243c4d1dae60",
+      "bytes": 80490,
+      "originalFile": "output/playwright/issue-491/after-final/import-preview-long-390.png",
+      "originalSha256": "ee160668db8d21c8432ddea2898e0ef7316679bd2769f0178910243c4d1dae60"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-import-preview-long-1440.png",
+      "sha256": "99a0ef313a61036b0ba98cc13db32c958404b02833554367db12f9461437ab90",
+      "bytes": 169096,
+      "originalFile": "output/playwright/issue-491/before-targeted/import-preview-long-1440.png",
+      "originalSha256": "99a0ef313a61036b0ba98cc13db32c958404b02833554367db12f9461437ab90"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-import-preview-long-1440.png",
+      "sha256": "2d1fb3600a6d9421cb1ed7f25c6d5330ece716fdaec96be899a07eb4df5a798c",
+      "bytes": 168755,
+      "originalFile": "output/playwright/issue-491/after-final/import-preview-long-1440.png",
+      "originalSha256": "2d1fb3600a6d9421cb1ed7f25c6d5330ece716fdaec96be899a07eb4df5a798c"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-import-table-native-focus-390.png",
+      "sha256": "7165c88e5886fb811b3a15215b1709265b0b6e6fe095e51d78c6128924b82447",
+      "bytes": 74598,
+      "originalFile": "output/playwright/issue-491/before-targeted/import-table-native-focus-390.png",
+      "originalSha256": "7165c88e5886fb811b3a15215b1709265b0b6e6fe095e51d78c6128924b82447"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-import-table-native-focus-390.png",
+      "sha256": "e8f73ef0671b8451fa0bb4e38a875d887da0e93c6732525a28cc9d9cce3c3c94",
+      "bytes": 72292,
+      "originalFile": "output/playwright/issue-491/after-final/import-table-native-focus-390.png",
+      "originalSha256": "e8f73ef0671b8451fa0bb4e38a875d887da0e93c6732525a28cc9d9cce3c3c94"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-import-table-native-focus-1440.png",
+      "sha256": "3defadf74dc1c03b1fefffde7746040acfd75b282fca925f90c6e1018ba4d4b1",
+      "bytes": 168846,
+      "originalFile": "output/playwright/issue-491/before-targeted/import-table-native-focus-1440.png",
+      "originalSha256": "3defadf74dc1c03b1fefffde7746040acfd75b282fca925f90c6e1018ba4d4b1"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-import-table-native-focus-1440.png",
+      "sha256": "c0d53dc0343824f00068781d735efc30126ffc46f04dd22c07b985594b237da4",
+      "bytes": 168837,
+      "originalFile": "output/playwright/issue-491/after-final/import-table-native-focus-1440.png",
+      "originalSha256": "c0d53dc0343824f00068781d735efc30126ffc46f04dd22c07b985594b237da4"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-import-commit-pending-390.png",
+      "sha256": "cdbcf08de51dd5100e2cdcff4873152b20c82a408810115e519131cd41c8d7ee",
+      "bytes": 78327,
+      "originalFile": "output/playwright/issue-491/before-targeted/import-commit-pending-390.png",
+      "originalSha256": "cdbcf08de51dd5100e2cdcff4873152b20c82a408810115e519131cd41c8d7ee"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-import-commit-pending-390.png",
+      "sha256": "3f55c2d6292561ded0f18987db0dc8d9e13406c47743f38e1abf4ae93ab6ed99",
+      "bytes": 78382,
+      "originalFile": "output/playwright/issue-491/after-final/import-commit-pending-390.png",
+      "originalSha256": "3f55c2d6292561ded0f18987db0dc8d9e13406c47743f38e1abf4ae93ab6ed99"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-create-long-390.png",
+      "sha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa",
+      "bytes": 96063,
+      "originalFile": "output/playwright/issue-491/before-final/create-long-390.png",
+      "originalSha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-create-long-390.png",
+      "sha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa",
+      "bytes": 96063,
+      "originalFile": "output/playwright/issue-491/after-final/create-long-390.png",
+      "originalSha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-create-long-1440.png",
+      "sha256": "9ff79df75983ebfe4b56ab868ef6af137d98627c9862676511f81d3701e913d5",
+      "bytes": 142490,
+      "originalFile": "output/playwright/issue-491/before-final/create-long-1440.png",
+      "originalSha256": "9ff79df75983ebfe4b56ab868ef6af137d98627c9862676511f81d3701e913d5"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-create-long-1440.png",
+      "sha256": "252224a61a38cb9370e4736224eee28fa392153bbb1864d75d984b161819579e",
+      "bytes": 142535,
+      "originalFile": "output/playwright/issue-491/after-final/create-long-1440.png",
+      "originalSha256": "252224a61a38cb9370e4736224eee28fa392153bbb1864d75d984b161819579e"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-create-native-focus-390.png",
+      "sha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc",
+      "bytes": 96960,
+      "originalFile": "output/playwright/issue-491/before-final/create-native-focus-390.png",
+      "originalSha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-create-native-focus-390.png",
+      "sha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc",
+      "bytes": 96960,
+      "originalFile": "output/playwright/issue-491/after-final/create-native-focus-390.png",
+      "originalSha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-large-counts-1440.png",
+      "sha256": "fa16a0e06b229f7d6feb3d2f1823c0f13b4f3b9f514529dd09c1febe08c2baee",
+      "bytes": 273867,
+      "originalFile": "output/playwright/issue-491/before-final/template-large-counts-1440.png",
+      "originalSha256": "fa16a0e06b229f7d6feb3d2f1823c0f13b4f3b9f514529dd09c1febe08c2baee"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-large-counts-1440.png",
+      "sha256": "5d6315b72b19dc2f02cfda7017302034fddaaafc678831ccb68501067485b5aa",
+      "bytes": 273913,
+      "originalFile": "output/playwright/issue-491/after-final/template-large-counts-1440.png",
+      "originalSha256": "5d6315b72b19dc2f02cfda7017302034fddaaafc678831ccb68501067485b5aa"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-template-create-native-focus-390.png",
+      "sha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4",
+      "bytes": 261323,
+      "originalFile": "output/playwright/issue-491/before-final/template-create-native-focus-390.png",
+      "originalSha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-template-create-native-focus-390.png",
+      "sha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4",
+      "bytes": 261323,
+      "originalFile": "output/playwright/issue-491/after-final/template-create-native-focus-390.png",
+      "originalSha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-copy-long-390.png",
+      "sha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f",
+      "bytes": 64596,
+      "originalFile": "output/playwright/issue-491/before-final/copy-long-390.png",
+      "originalSha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-copy-long-390.png",
+      "sha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f",
+      "bytes": 64596,
+      "originalFile": "output/playwright/issue-491/after-final/copy-long-390.png",
+      "originalSha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-copy-long-1440.png",
+      "sha256": "09c0254b47b566ddb79eb0335cc26d963aa3506ccfbd10677dcc8e19f086807d",
+      "bytes": 148650,
+      "originalFile": "output/playwright/issue-491/before-final/copy-long-1440.png",
+      "originalSha256": "09c0254b47b566ddb79eb0335cc26d963aa3506ccfbd10677dcc8e19f086807d"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-copy-long-1440.png",
+      "sha256": "c89a1d3237ecdc417d3718986dff11e5ec7dc7e98bd537f2d68587331b5243ba",
+      "bytes": 148658,
+      "originalFile": "output/playwright/issue-491/after-final/copy-long-1440.png",
+      "originalSha256": "c89a1d3237ecdc417d3718986dff11e5ec7dc7e98bd537f2d68587331b5243ba"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-copy-stale-1440.png",
+      "sha256": "df8a370f2582868f79b1143adc254254e1a0fd0975372ca1fae14f3a422bfbee",
+      "bytes": 165052,
+      "originalFile": "output/playwright/issue-491/before-final/copy-stale-1440.png",
+      "originalSha256": "df8a370f2582868f79b1143adc254254e1a0fd0975372ca1fae14f3a422bfbee"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-copy-stale-1440.png",
+      "sha256": "56ad88863649a22475012a6e84b229d5965489ab135713ecf9350c35f31c3b14",
+      "bytes": 165061,
+      "originalFile": "output/playwright/issue-491/after-final/copy-stale-1440.png",
+      "originalSha256": "56ad88863649a22475012a6e84b229d5965489ab135713ecf9350c35f31c3b14"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-effort-large-server-values-1440.png",
+      "sha256": "2718e2fdc7ad76956a1e72b75ea4a27a67a651637ab5a2fdb536a83a96b5778d",
+      "bytes": 130003,
+      "originalFile": "output/playwright/issue-491/before-final/effort-large-server-values-1440.png",
+      "originalSha256": "2718e2fdc7ad76956a1e72b75ea4a27a67a651637ab5a2fdb536a83a96b5778d"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-effort-large-server-values-1440.png",
+      "sha256": "6fcb2c3d21f03ffc60f96973c8ed8a72fe371459b60acaa5809fa363a069b2bb",
+      "bytes": 130164,
+      "originalFile": "output/playwright/issue-491/after-final/effort-large-server-values-1440.png",
+      "originalSha256": "6fcb2c3d21f03ffc60f96973c8ed8a72fe371459b60acaa5809fa363a069b2bb"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-effort-filter-native-focus-390.png",
+      "sha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578",
+      "bytes": 54725,
+      "originalFile": "output/playwright/issue-491/before-final/effort-filter-native-focus-390.png",
+      "originalSha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-effort-filter-native-focus-390.png",
+      "sha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578",
+      "bytes": 54725,
+      "originalFile": "output/playwright/issue-491/after-final/effort-filter-native-focus-390.png",
+      "originalSha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578"
+    },
+    {
+      "file": "output/playwright/issue-491/review/before-gantt-state-1440.png",
+      "sha256": "028598a44915a401397d6591b90abec8f8034eb0aa30b112b8e4df14a5efc5dd",
+      "bytes": 218842,
+      "originalFile": "/tmp/issue491-before-targeted/results/project-transfer-layout-49-d344b-e·선택·scroll-및-fullscreen-보존-chromium/gantt-state.png",
+      "originalSha256": "028598a44915a401397d6591b90abec8f8034eb0aa30b112b8e4df14a5efc5dd"
+    },
+    {
+      "file": "output/playwright/issue-491/review/after-gantt-state-1440.png",
+      "sha256": "4b29974086cd0e93201251083aacbbc1deb12696bb3b6f85f3d64a3fc0ca14b7",
+      "bytes": 218853,
+      "originalFile": "/tmp/issue491-after-final/results/project-transfer-layout-49-d344b-e·선택·scroll-및-fullscreen-보존-chromium/gantt-state.png",
+      "originalSha256": "4b29974086cd0e93201251083aacbbc1deb12696bb3b6f85f3d64a3fc0ca14b7"
+    }
+  ],
+  "excludedRaw": "before-run1/2/3/4/final/targeted와 after-run1/final 원본은 원래 output/playwright/issue-491 및 실행별 /tmp에 보존하되 이 selection 밖 raw PNG/JSON/HTML/trace/stdout은 게시하지 않는다.",
+  "counts": {
+    "beforeGeometry": 242,
+    "afterGeometry": 242,
+    "selectedPng": 56,
+    "filesIncludingSelection": 63,
+    "bytesExcludingSelection": 19896951
+  }
+}
