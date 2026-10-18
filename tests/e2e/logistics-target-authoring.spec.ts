@@ -319,7 +319,11 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
   await expect(bindings).not.toBeVisible();
   await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
-  await expect(bindings.getByLabel("상속 대상 (INHERITED)", { exact: true })).toBeChecked();
+  // #717 name-first contract: unique Targets expose their name; code is only an ambiguity suffix.
+  // Closing/reopening compatibility details during pending save must preserve the exact draft.
+  const pendingTarget = bindings.getByRole("checkbox", { name: "상속 대상", exact: true });
+  await expect(pendingTarget).toHaveCount(1);
+  await expect(pendingTarget).toBeChecked();
   await expect(bindings.getByRole("button", { name: /Target 연결 저장 중/ })).toBeDisabled();
   await page.keyboard.press("Escape");
   await expect(editor).toBeVisible();

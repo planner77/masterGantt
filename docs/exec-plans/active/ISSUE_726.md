@@ -175,3 +175,11 @@ Issue 본문과 다중 WorkArea 보완 댓글을 적용한다. #725/#728 최종 
 - 누적 실패/반례/교차 영향, 전체 Shard 상태와 직접·인접 E2E/Unit 선정은 [전용 실패 원장](../../ISSUE_726_FAILURE_ANALYSIS.md) F-001·F-002에 기록. 기존 F-001 #2985 Shard4 개별 PASS를 전체 E2E 성공으로 사용하지 않음.
 - 신규 직접 물류 Editor의 설비/System은 #717 이름 우선 표시, 동명 코드 보조 및 `IdentifierDetails`에서 canonical 코드·ID 조회. 관리 UI도 main #717 원문 인력 식별 정보와 #726 type field/수정 흐름을 모두 보존한다. 기존 Task/link scope/Revision/permission, Target whole/subset/coverage/API와 단일 Gantt 원본 변경 없음.
 - 현재 도구에는 로컬 프로젝트 checkout/npm/browser 런타임이 없어 신규 통합 소스의 typecheck/Playwright 재현은 **NOT TESTED**. 원격 새 exact-Head Full PR CI Quality/Chromium6/Docker로 확인해야 한다. 문서 동기화 UPDATED: 원장/Work Packet 및 main 병합 문서; CI/CD·DB/서버 API·보안 권한 정책·테스트 timeout/retry/Required job 변경 없음. Reviewer/Trusted/Owner·MAIN/GHCR/Release/Issue 종료는 사용자 요청 범위 밖.
+
+## 2026-10-19 — PR #743 CI #2987.1 F-003 누적 실패 REWORK
+
+- [#2987.1](https://github.com/planner77/masterGantt/actions/runs/39172673374) Head `f00755046eb8c80bb3a0eb4187c0bdd84aa00945`/Base `0209c72f8a0702415f2e00b63c895549a65dbe81`에서 Quality·Docker PASS / Chromium Shard4 **10PASS·1FAIL·147 NOT RUN**, 나머지5 Shard CANCELLED, QA Final은 E2E 실패의 파생 FAIL. 이전 F-001 #2982.1·F-002 #2985.1의 원본 사건과 상호 관계는 [이슈별 단일 실패 원장](../../ISSUE_726_FAILURE_ANALYSIS.md)에 별도 기록.
+- F-003 첫 실제 실패는 `logistics-target-authoring.spec.ts:322` pending+Target 호환 disclosure 닫기→재열기 후 기존 `상속 대상 (INHERITED)` 체크박스 탐색 오류. #717 이름 우선 UI는 동명 없는 Target에서 접근성 이름을 `상속 대상`으로 제공. **TEST_CONTRACT**로 분류해 유일한 잔여 old selector를 정확한 Role/Name으로 보완하고 `toHaveCount(1)`·checked·pending·401·dirty·상속/서버 API assertions 유지. 제품 자체 수정/timeout/retry/skip/assertion 완화 없음.
+- F-001 UUID 케이스는 #2987 Shard4에서 실제 개별 PASS. F-002 #518 Navigation 전체 E2E는 #2987 Shard5가 취소돼 이번 Head에서 완료 PASS 확인 못함. 세 실패 파일 합집합과 #717 name-first/Target authoring/Task Editor/#725 WorkArea/readonly·권한·동일 Gantt 회귀는 다음 Full CI 필수.
+- DOCUMENTATION_SYNC: 누적 실패 원장/본 Work Packet UPDATED. Product/API/DB/DESIGN/SECURITY/CI_CD/CHANGELOG/사용자 매뉴얼은 동작·계약·버전 불변으로 N/A. GitHub 원격 소스·원본 Run 로그를 검토했으며 로컬 Node/npm/Playwright 실행은 GitHub clone DNS 불가로 **NOT TESTED**. CI의 Quality/E2E6/Docker·Trusted QA·Owner ACCEPT는 신규 Head에서 다시 검증 필요.
+- 최종 main 정렬·리뷰0·충돌0 및 새 PR Full CI 시작까지만 수행. 병합/Main CI/GHCR·정식 Release/Issue 종료, CI 모니터링 제외. HIGH / OWNER_MANAGED / release_authorized=false 유지.
