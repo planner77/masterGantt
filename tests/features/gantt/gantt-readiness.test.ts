@@ -44,6 +44,33 @@ describe("operation별 Gantt 준비 계약", () => {
     expect(evaluateGanttReadiness(snapshot, expected).ready).toBe(false);
     expect(evaluateGanttReadiness(snapshot, { ...expected, allowCancelledPriorWork: true }).ready).toBe(true);
   });
+  it("#624 #2897: scoped Week 120px은 종료된 RANGE 취소만 수용하고 현재 작업 실패를 차단한다", () => {
+    const { snapshot, expected } = fixture();
+    const scope = "00000000-0000-4000-8000-000000000001";
+    snapshot.scope = scope;
+    snapshot.lastSuccess = { ...snapshot.lastSuccess!, scope };
+    snapshot.core = { ...snapshot.core!, left: 18, width: 1632, chartWidth: 822 };
+    snapshot.native = { ...snapshot.native, left: 18, capacity: 811 };
+    snapshot.currentWork = {
+      phase: "SUPERSEDED", outcome: "SUPERSEDED", kind: "RANGE_EXTENSION",
+      apiInstance: "a", intentEpoch: 3, contextEpoch: 3, gesture: 2, projectionEpoch: 3,
+    };
+    const ready = { ...expected, scope, requireRenderedRows: true, allowCancelledPriorWork: true };
+    expect(evaluateGanttReadiness(snapshot, { ...ready, operation: "observe" })).toMatchObject({ ready: true, blockers: [] });
+    const admission = evaluateGanttReadiness(snapshot, { ...ready, operation: "scroll", targetLeft: 120 });
+    expect(admission).toMatchObject({
+      ready: true, blockers: [],
+      admission: { requestedLeft: 120, coreCapacity: 810, nativeCapacity: 811, accepted: true },
+    });
+    snapshot.currentWork = { ...snapshot.currentWork, phase: "APPLYING" };
+    expect(evaluateGanttReadiness(snapshot, ready).blockers).toContain("CURRENT_OPERATION_BUSY");
+    snapshot.currentWork = { ...snapshot.currentWork, phase: "SUPERSEDED", outcome: "FAILED" };
+    expect(evaluateGanttReadiness(snapshot, ready).blockers).toContain("PRIOR_CANCELLED_OPERATION_NOT_ACCEPTED");
+    snapshot.currentWork = { ...snapshot.currentWork, outcome: "SUPERSEDED" };
+    snapshot.latestAttempt = { generation: 10, stage: "rows", outcome: "PENDING" };
+    expect(evaluateGanttReadiness(snapshot, ready).blockers).toContain("LATEST_ATTEMPT_rows_PENDING");
+  });
+
   it("현재유효성은 유지한 counter-only 갱신은 stability를 바꾸지 않고 authority 변경은 바꾼다", () => {
     const { snapshot, expected } = fixture(); const before = ganttReadinessStabilityKey(snapshot);
     snapshot.latestAttempt!.generation++; snapshot.semantic!.observation++; snapshot.currentWork!.writes = 50;

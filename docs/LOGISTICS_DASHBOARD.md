@@ -1,3 +1,9 @@
+## Issue #624 — 물류 통합 관점 V1 (기존 Dashboard의 읽기 전용 확장)
+
+물류 구성의 새 **통합 조회** 탭은 기존 KPI 화면과 Task 직접연결·조율 범위 산식을 바꾸지 않는다. #619/#620 Resource Dashboard의 동일 `targetProjection`·`summary`·`stages`를 `projectionOrder`로 재배열하여 공정 종류→site/product 공정→선택 WorkArea→Target, 설비 종류→인스턴스→Target, 시스템 종류→인스턴스→Target, Target→Resource 관점을 제공한다.
+
+고유 equipmentId 기반 구성 수량과 현재 T0 작업 대상 coverage를 분리한다. 공유 MCS/AMR fleet의 수량·공수는 중첩 Target 소계로 합산할 수 없고 Assignment union 총계만 공인한다. 기간가중 일반 Task 진척과 Milestone 전체 effective membership/Stage Gate Ready/Blocked를 구분하고 선택 Assignment의 Task 수로 full Gate를 바꾸지 않는다. #621 정확 editor/#528 drill과 query/snapshot/stale/focus 복귀 경로를 재사용한다. [#624 Work Packet](exec-plans/active/ISSUE_624.md) 참조.
+
 # 물류 구축 대시보드 계산·조회 계약
 
 ## 1. 상태와 목적

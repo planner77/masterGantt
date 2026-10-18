@@ -31,6 +31,8 @@ import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
+import { ProjectLogisticsUnified } from "./project-logistics-unified";
+import type { ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
 import styles from "./project-logistics-management.module.css";
 
 function developerGradeLabel(grade: ResourceDto["developerGrade"] | undefined): string {
@@ -63,6 +65,8 @@ export interface ProjectLogisticsManagementProps {
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
   onTargetTaskOpen?: (taskId: string) => void;
   onStageSchedule?: (taskIds: string[]) => void;
+  onResourceSchedule?: (request: ResourceScheduleRequest) => void;
+  onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
   projectContext?: Pick<ProjectDto, "businessUnit" | "product" | "siteEntity">;
   publicId: string;
   revision: number;
@@ -79,10 +83,10 @@ export interface ProjectLogisticsManagementProps {
   onUnauthorized: () => void;
 }
 
-type SubTab = "targets" | "dashboard" | "processes" | "equipment" | "systems" | "relations";
+type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
-  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen,
+  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment,
   publicId,
   projectContext,
   revision,
@@ -95,7 +99,22 @@ export function ProjectLogisticsManagement({
 }: ProjectLogisticsManagementProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("dashboard");
   const [targetRequestSequence, setTargetRequestSequence] = useState<number | null>(null);
-  if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) { setTargetRequestSequence(targetOpenRequest.sequence); setActiveSubTab("targets"); }
+  const [unifiedTargetRequest, setUnifiedTargetRequest] = useState<{ id: string; sequence: number; code?: string | null } | null>(null);
+  const unifiedTargetTrigger = useRef<HTMLElement | null>(null);
+  if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) {
+    setTargetRequestSequence(targetOpenRequest.sequence);
+    setUnifiedTargetRequest(null);
+    setActiveSubTab("targets");
+  }
+  function returnToUnified() {
+    setUnifiedTargetRequest(null);
+    setActiveSubTab("unified");
+    requestAnimationFrame(() => {
+      const trigger = unifiedTargetTrigger.current;
+      if (trigger?.isConnected && !trigger.matches(":disabled") && !trigger.closest("[hidden],[inert]")) trigger.focus({ preventScroll: true });
+      else document.getElementById("subtab-unified")?.focus({ preventScroll: true });
+    });
+  }
   const [searchQuery, setSearchQuery] = useState("");
   const [processFilter, setProcessFilter] = useState<string>("all");
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -401,7 +420,7 @@ export function ProjectLogisticsManagement({
   }
 
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, tab: SubTab) => {
-    const tabs: SubTab[] = ["dashboard", "targets", "processes", "equipment", "systems", "relations"];
+    const tabs: SubTab[] = ["dashboard", "unified", "targets", "processes", "equipment", "systems", "relations"];
     const idx = tabs.indexOf(tab);
     let nextTab: SubTab | null = null;
     if (e.key === "ArrowRight") {
@@ -458,6 +477,11 @@ export function ProjectLogisticsManagement({
           onKeyDown={(e) => handleTabKeyDown(e, "dashboard")}
         >
           KPI 대시보드
+        </button>
+        <button id="subtab-unified" className={styles.subTabButton} role="tab" type="button"
+          aria-selected={activeSubTab === "unified"} aria-controls="panel-unified" tabIndex={activeSubTab === "unified" ? 0 : -1}
+          onClick={() => setActiveSubTab("unified")} onKeyDown={e => handleTabKeyDown(e, "unified")}>
+          통합 조회
         </button>
         <button id="subtab-targets" className={styles.subTabButton} role="tab" type="button" aria-selected={activeSubTab === "targets"} aria-controls="panel-targets" tabIndex={activeSubTab === "targets" ? 0 : -1} onClick={() => setActiveSubTab("targets")} onKeyDown={e => handleTabKeyDown(e, "targets")}>물류 대상(Target)</button>
         <button
@@ -518,10 +542,11 @@ export function ProjectLogisticsManagement({
       </div>
 
       <div id="panel-targets" role="tabpanel" aria-labelledby="subtab-targets" hidden={activeSubTab !== "targets"}>
-        <ProjectLogisticsTargets openRequest={targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
+        {unifiedTargetRequest ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
+        <ProjectLogisticsTargets openRequest={unifiedTargetRequest ?? targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
       </div>
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
-      {activeSubTab !== "dashboard" && activeSubTab !== "targets" ? (
+      {activeSubTab !== "dashboard" && activeSubTab !== "unified" && activeSubTab !== "targets" ? (
         <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
           <div className={styles.filtersGroup}>
             <input
@@ -630,6 +655,19 @@ export function ProjectLogisticsManagement({
           revision={revision}
           onNavigateToSchedule={onNavigateToSchedule}
         />
+      </div>
+
+      <div id="panel-unified" role="tabpanel" aria-labelledby="subtab-unified" hidden={activeSubTab !== "unified"}>
+        <ProjectLogisticsUnified publicId={publicId} revision={revision}
+          active={active && activeSubTab === "unified"} busy={busy || isSubmitting} editable={editable}
+          logistics={logistics} onOpenTask={onTargetTaskOpen} onOpenAssignment={onOpenAssignment}
+          onOpenMilestone={taskId => onStageOpen?.(taskId)} onResourceSchedule={onResourceSchedule}
+          onOpenTarget={(id, trigger, code) => {
+            if (!editable || busy || isSubmitting) return;
+            unifiedTargetTrigger.current = trigger;
+            setUnifiedTargetRequest({ id, code, sequence: Date.now() });
+            setActiveSubTab("targets");
+          }} />
       </div>
 
       {/* Sub-panel 1: Processes */}

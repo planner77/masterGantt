@@ -1,3 +1,9 @@
+## Issue #624 — 물류 다관점에서 공통 Resource 조회 재사용
+
+「통합 조회」는 기존 `GET /api/projects/{publicId}/resource-dashboard`의 `projectionOrder`, `targetProjection`, `summary`, `stages`와 bounded `/details` selector를 그대로 사용한다. 차원 순서만 `processType,process,workArea,target` / `equipmentType,equipment,target` / `systemType,system,target` / `target,resource`로 변경한다. 필터와 snapshot이 같으면 raw Task/Assignment identity 및 전체 knownMD/MM·기간가중 진척은 관점과 무관하게 동일하다.
+
+`targetProjection.relatedMembers`는 Task T0 연결 coverage, 프로젝트 구성 quantity는 instance ID 고유 합, `summary`는 Assignment A 고유 union이다. 소계 합산으로 Project 전체를 만들지 않는다. `stages[].full`은 전체 canonical Milestone Ready/Blocked 및 소속·선행, `selected`는 현재 선택 Assignment Task 참고값이다. 기존 #621 exact editor/일정/복귀와 stale·권한을 유지한다. [#624 Work Packet](exec-plans/active/ISSUE_624.md).
+
 # Resource KPI 공통 집계 계약
 
 ## Issue #623 — 공통 원시 집계의 종단 수용

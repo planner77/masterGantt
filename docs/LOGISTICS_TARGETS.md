@@ -1,3 +1,9 @@
+## Issue #624 — 물류 Target 이후 V1 다관점 조회
+
+공정·WorkArea/설비·시스템/Target/Resource는 **저장 계층이 아닌** 기존 Resource Target 보고서의 `projectionOrder`다. 공통 Process Type과 site/product occurrence는 다르며 WorkArea 없는 Target, project_common 및 legacy 직접 연결은 null/조회용 그룹으로 유지한다. 표시용 `projectionRowKey`가 달라도 Task/Assignment/Target/instance는 동일 canonical ID를 사용하며 조회만으로 WBS 자동변경·Task 복제·DB mutation이 없다.
+
+구성 설비 `quantity`(고유 equipmentId별 합계)는 현재 Task의 Target member coverage 및 설치실적·공수와 분리한다. 여러 Target·공정의 겹치는 소계는 비가산; 전체는 서버 Assignment union이다. `stages[].full`의 Ready/Blocked는 전체 원본 Gate이며 선택 Task 범위로 재판정하지 않는다. [Issue #624 Work Packet](exec-plans/active/ISSUE_624.md).
+
 # Logistics Target 계약 — F0 (#614)
 
 ## Issue #623 — Resource MVP 통합 수용·운영 인계
