@@ -187,7 +187,15 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await resourceSearch.fill("R-01");
     await expect(resourceFilter).toHaveText("필터 1");
     await expect(dashboard).toHaveAttribute("data-ready", "true");
-    await expect(dashboard.getByRole("region", { name: "그룹 현황" }).getByRole("button", { name: /개발팀 \(G-01\)/ })).toBeVisible();
+    const groupStatus = dashboard.getByRole("region", { name: "그룹 현황", exact: true });
+    const groupDisclosure = groupStatus.getByRole("button", { name: "개발팀", exact: true });
+    await expect(groupDisclosure).toBeVisible();
+    // #717: group identity is name-first; its original code is still available on demand.
+    const groupIdentifiers = groupDisclosure.locator("..").locator("details");
+    await expect(groupIdentifiers).not.toHaveAttribute("open", "");
+    await groupIdentifiers.locator("summary").click();
+    await expect(groupIdentifiers.getByLabel("코드", { exact: true })).toHaveValue("G-01");
+    await groupIdentifiers.locator("summary").click();
     await resourceFilter.click();
     const advanced = dashboard.getByLabel("리소스 고급 필터");
     await advanced.getByLabel("Global Role", { exact: true }).selectOption("DEVELOPER");

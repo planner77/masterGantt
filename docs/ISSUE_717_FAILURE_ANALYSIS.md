@@ -146,3 +146,46 @@
 ### 다음 Full 검증 경계
 
 **필수 직접+교차:** `issue-621-resource-target` exact edit/412/401, `milestone-stage-editor` 5폭/원자 저장, `issue-623-resource-mvp` Target tree/matrix 5폭/원문, 과거 `logistics-target-authoring`, `issue-622-resource-plan-target`, `milestone-dashboard-state`와 신규 `issue-717-name-first`/HTTP persistence, 나머지 6 Shards. 다음 실패 시 이 원장에 **F-006**을 추가하고 다시 합집합을 검토한다. 새 Head Quality/E2E/Docker/Trusted QA/Owner ACCEPT, Main/GHCR/Issue Close는 실제 완료·승인 전 `NOT TESTED`. Version `0.116.1`, `HIGH`, `OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false` 유지.
+
+## 2026-10-18 — F-006: Full PR CI #2944.1 / #130 그룹 표시 + #623 Target subset E2E 새 실패
+
+### 동일 Issue의 모든 원격 실행과 이번 원인 비교
+
+Issue #717의 **유일한 누적 CI 실패 원장**을 지속 갱신한다. 기존 F-001~F-005(그 시점의 FAIL·가설·교정·미검증 포함)는 수정하거나 삭제하지 않는다. GitHub에서 PR #718의 현재 조회 가능한 Run 7건을 확인했다.
+
+| Run/Attempt / Head (정확한 원격 범위) | 결과 / 직접 실패 및 교정·재발 판정 |
+| --- | --- |
+| [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283) · `39080414283.1` / `23e09aada982087047d90037704cdbb8b750bf97` | docs-only PR metadata/DOC_SYNC Work Packet Preflight 실패 F-001. 제품 E2E 미실행 |
+| [#2926.1](https://github.com/planner77/masterGantt/actions/runs/39081286379) · `39081286379.1` / 같은 Head | 별도 metadata-only QA 실패 F-002. Full PR의 제품 검증 증거 아님 |
+| [#2927.1](https://github.com/planner77/masterGantt/actions/runs/39081290832) · `39081290832.1` / `d97f1e60419575f4db3785c239b3ae341b3086d5` | docs-only Full SUCCESS; 실제 Chromium/Docker smoke 구현 SKIPPED. 제품 코드 합격 증거로 전용 금지 |
+| [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) · `39090284911.1` / `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc` | F-003a Shard4 `logistics-target-authoring.spec.ts` 동일 이름 input/textarea strict mode, F-003b 취소된 Shard5 내부 `issue-622-resource-plan-target.spec.ts` 최초 daily Target ID 원문 누락. 이후 각각 보완 |
+| [#2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164) · `39091834164.1` / `6b226df1962791a4d647811b9ad8df854d56e3a1` | F-004 Shard1 `milestone-dashboard-state.spec.ts` 닫힌 IdentifierDetails copy 버튼을 화면 geometry에 포함. #2944 Shard1에서는 해당 #463 E2E PASS 확인 |
+| [#2942.1](https://github.com/planner77/masterGantt/actions/runs/39093363065) · `39093363065.1` / `6d23240008b0022f5376c5f8c4dcb0d1a3fadffd` | F-005a Shard3 `issue-621-resource-target.spec.ts` 배정 이름 뒤 코드 강제 기대, F-005b Shard2 CANCELLED 안 실제 `milestone-stage-editor.spec.ts` 숨긴 copy 버튼 geometry. #2944에서 #621 편집 및 #461 소속 E2E PASS 확인 |
+| **[#2944.1](https://github.com/planner77/masterGantt/actions/runs/39095135631) · `39095135631.1` / `bfd4173f0099d03f3357262cea01b567a51825cf`** | **F-006a #130 그룹 button 구 표기 기대 / F-006b #623 Target B subset 전체 이름 누락.** Quality/Docker PASS, E2E 실패/QA 후속 차단 |
+
+**이번 원본 고정:** Issue #717, PR #718, `pull_request`, branch `docs/issue-717-name-first-identifier-policy`, Run `39095135631.1` 2026-10-18 03:52:23–04:03:40 UTC, Head `bfd4173f0099d03f3357262cea01b567a51825cf`, Base `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`. 별도 test-merge SHA는 신뢰할 증거를 확보하지 못해 **UNKNOWN**(Head/Base를 대신하지 않음). 정책·QA Preflight/PR Fast Gate/TypeScript/ESLint/Unit/Next PR Build 및 **Quality aggregate SUCCESS**, Docker build/smoke 및 **Docker aggregate SUCCESS**. [E2E aggregate job 117581732726](https://github.com/planner77/masterGantt/actions/runs/39095135631/job/117581732726) FAILURE, [QA Final Automated 117581750238](https://github.com/planner77/masterGantt/actions/runs/39095135631/job/117581750238) FAILURE(필수 E2E 실패의 **파생 결과**).
+
+### 최초 실제 실패 — 두 개의 서로 다른 E2E Shard
+
+- **F-006a (직접):** [Chromium Shard1 Job 117580197570](https://github.com/planner77/masterGantt/actions/runs/39095135631/job/117580197570), `tests/e2e/project-filter-toolbar-consistency.spec.ts:190`, #130 Phase 4 일정·리소스 툴바/필터 5폭. `expect(...getByRole("region", {name:"그룹 현황"}).getByRole("button",{name:/개발팀 \(G-01\)/})).toBeVisible()` 가 5초 동안 `element(s) not found`. **57 PASS / 1 FAIL / 76 DID NOT RUN**. 실제 `src/features/resources/project-resource-dashboard.tsx`의 그룹 disclosure button은 `row.name`만 렌더링하고 원본 `G-01`은 인접 닫힌 `IdentifierDetails`에서만 조회·복사한다. mock fixture `tests/fixtures/resource-dashboard-ui.ts`는 name=`개발팀`, code=`G-01`(중복 이름 없음). **TEST_CONTRACT/접근성 이름 소비자 정합성**: 제품 데이터/그룹 소멸/필터 오류가 아니라 구형 UI 레이블을 찾는 locator가 맞지 않음.
+- **F-006b (직접, 전체 Job CANCELLED 안 기록):** [Chromium Shard3 Job 117580197494](https://github.com/planner77/masterGantt/actions/runs/39095135631/job/117580197494), `tests/e2e/issue-623-resource-mvp.spec.ts:177` #623 Target 통합 WBS↔Resource↔Target 6 mutation. `getByRole("group",{name:"Target B 선택 구성원"}).getByRole("checkbox",{name:/^ACS B · 원본 /}).check()` 에서 **테스트 제한시간 60,000ms 초과**, 로그는 해당 Locator를 계속 기다렸음을 표시한다. **43 PASS / 1 FAIL / 56 DID NOT RUN**, GitHub Job 자체는 matrix cancellation으로 `CANCELLED`이지만 내부 실제 1 FAIL을 **반드시 보존**한다. fixture `tests/e2e/fixtures/issue-623-target-resource.ts:43`의 실제 `target.name`은 `Target B · 긴 물류 설비 통합 제어 대상 이름`이며, 제품 `task-target-binding-editor.tsx`의 `fieldset > legend`는 전체 `${target.name} 선택 구성원`. 짧은 고정 이름의 `group`은 존재하지 않는다. 즉 **TEST_CONTRACT**이며 테스트 시간 초과가 서버 timeout·GET 재시도 문제라는 근거는 없다. 선택 그룹을 fixture의 **정확한 전체 Target 이름**으로 찾고, 실제 ACS B 구성원 체크와 최종 서버 canonical `memberIds` 검증은 그대로 둔다.
+- **Shard2/4/5/6** 은 최종 `CANCELLED`, 원격 로그에서 추가 독립 assertion FAIL은 관측되지 않았지만 미실행/진행 중 취소를 PASS라고 할 수 없다. #2944 기준 과거 직접 실패 파일의 **부분적 교차 반례**: Shard1 `milestone-dashboard-state` #463 PASS, Shard2 `milestone-stage-editor` #461 PASS, Shard3 `issue-621-resource-target` #621 PASS, Shard4 `logistics-target-authoring` 7개 관련 케이스 PASS, Shard5 `issue-622-resource-plan-target` PASS. 이 증거는 위 exact Head와 완료된 개별 테스트에만 귀속되며 전체 E2E6 PASS는 아님.
+
+**누적 실제 실패 E2E 파일 합집합:** 
+1. `tests/e2e/logistics-target-authoring.spec.ts` (#2935 Shard4)
+2. `tests/e2e/issue-622-resource-plan-target.spec.ts` (#2935 Shard5 취소 안 실패)
+3. `tests/e2e/milestone-dashboard-state.spec.ts` (#2940 Shard1)
+4. `tests/e2e/issue-621-resource-target.spec.ts` (#2942 Shard3)
+5. `tests/e2e/milestone-stage-editor.spec.ts` (#2942 Shard2 취소 안 실패)
+6. `tests/e2e/project-filter-toolbar-consistency.spec.ts` (#2944 Shard1)
+7. `tests/e2e/issue-623-resource-mvp.spec.ts` (#2944 Shard3 취소 안 실패)
+
+### 교차 원인 / 단일 변경 묶음 / 검증 경계
+
+- **공통 원인 분류:** F-003a/F-005a/F-006a/F-006b는 “raw code를 상시 표시하던 화면 또는 고정 짧은 이름”을 가정한 **이전 E2E 선택자 계약**과 #717 이름-first/full-name UI의 불일치. F-003b는 선택 Target 원문 disclosure 제품 경로 보완, F-004/F-005b는 raw copy 숨김 control을 layout control로 잘못 센 계측, F-001/2는 QA metadata/Work Packet. 이를 한 가지 flaky/CI 인프라 문제로 합치지 않는다.
+- **F-006a 보완:** `tests/e2e/project-filter-toolbar-consistency.spec.ts` 그룹 disclosure는 정확한 `개발팀` accessible name으로 확인하되, 같은 행의 닫힌 `IdentifierDetails`를 열어 `코드=G-01` **원문 값**을 별도로 확인하고 다시 닫는다. 기존 5폭·툴바/검색·고급필터·날짜 오류·Escape/focus/API mutation 경계 assertion 유지.
+- **F-006b 보완:** `tests/e2e/issue-623-resource-mvp.spec.ts`는 `getByRole("group",{ name: `${f.targets[1].name} 선택 구성원`, exact:true })`로 실제 canonical fixture의 전체 표시명에 바인딩. 자식 `/^ACS B · 원본 /` checkbox, 기존 정확 ACS-B member UUID·Target A 설비 source·여섯 별도 mutation과 revision·F0/Excel·권한·full 5폭을 그대로 검증. Test timeout 확대·재시도·skip·CI Gate 변경 없음.
+- **간접 소비자 점검:** PR #718 수정 E2E 19개와 신규 `project-filter-toolbar-consistency`의 이름/코드 병기 matcher를 정적 검색. 알려진 #621/#622/Target 작성 테스트의 구형 대상 라벨은 이전 F-003/F-005에서 정리되었고 실제 #2944의 해당 도달 테스트 PASS. #623 멤버 선택 그룹의 full name은 신규 실측 입력에서 확인; 다른 고정 그룹 선택은 기존 테스트 데이터와 일치함. 전체 Repository의 미실행 테스트를 전수 로컬 통과했다고 주장하지 않음.
+- **서버 계약:** 작업/Target/리소스 실제 ID, API/DB/DTO/Excel/JSON, SVAR Gantt Core, Role/권한·revision·포커스/키보드·선행 관계와 리소스 편집 동작은 변경하지 않는다.
+- **검증 불가 범위:** 이 실행 환경에는 masterGantt 동일-source Node 프로젝트/npm dependency/Chromium이 없어서 로컬 Full/선택 E2E와 Vitest/Build의 새로운 후보 실행은 `NOT TESTED`. GitHub 원격 로그/Source/정적 호출 패턴 확인만 수행. CI 실행 전에 remote PASS를 주장하지 않음. 이후 Full PR CI는 strict 6 Shard/Quality/Docker/Trusted QA gate, maxFailures/timeout/retry/skip 불변. 새 Head의 통과·Owner 검토/병합/Main/GHCR/Issue Close는 사용자 승인·실제 Run 증거 이전에 `NOT TESTED`/미실행.
+- **Issue Lifecycle:** PR #718/Issue #717 유지, 브랜치 1회 non-force 업데이트, `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`, `app=0.116.1`. 게시 전 최신 `main`, unresolved reviews/conflict 재조회 후 GitHub `pull_request.synchronize` Full Run ID/Attempt와 Head를 실제 조회해 기록. **실행 이후 모니터링하지 않음**.

@@ -1,3 +1,8 @@
+## Issue #717 — PR #718 CI #2944.1 누적 F-006a/b와 남은 이름-first E2E 소비자 교정 (2026-10-18)
+
+[Issue #717 단일 누적 실패 원장 F-001~F-006](../../ISSUE_717_FAILURE_ANALYSIS.md)·[Work Packet](ISSUE_717.md)·[TEST_PLAN](../../TEST_PLAN.md). #2923 문서 Preflight/#2926 metadata-only 실패, #2927 docs-only PASS, #2935 Target 생성·Resource Plan ID 실패, #2940 #463 Milestone 숨긴 copy geometry 실패, #2942 #621 allocation label/#461 membership geometry 실패, #2944 #130 Resource Group `개발팀 (G-01)` 구형 라벨과 #623 `Target B 선택 구성원` 고정 group 이름 E2E 실패를 최신 Run·Job·Head·취소 상태까지 비교했다. #2944 Quality/Docker PASS, Shard1 57PASS/1FAIL/76 미실행, Shard3 CANCELLED 내부43PASS/1FAIL/56 미실행, 나머지4 CANCELLED; 과거 #463/#461/#621/Target 작성/#622는 새 Head에서 해당 직접 케이스 PASS, 전체 Full E2E/QA는 FAIL. 기존 fixture·제품 UI의 정확한 이름(유일 group name `개발팀`, 전체 Target B name)으로 selector를 변경하며 #130 원본 code=G-01 on-demand, #623 ACS B member canonical UUID·6 mutation/Resource·Milestone/수정 권한·KPI·5폭 검증은 보존한다. 수정 E2E 19개와 새 #130, 누적 실패 파일7개+간접/음성 소비자를 정적 대조; 동일 앱 Node/Chromium 로컬 실행 NOT TESTED. CI 6 Shard/Quality·Docker/timeout/retry/fail-fast·서버/DB/API/Gantt Core 변경0. 최신 main/리뷰 thread0/충돌0을 다시 확인한 뒤 기존 PR #718 branch 단일 원자적 fast-forward로 새 Full PR CI 시작만 수행한다. HIGH/OWNER_MANAGED/qa_required=true, 0.116.1, release_required=true/release_authorized=false, CI 결과 모니터링/병합/Main/GHCR/Issue 종료 없음.
+
+
 
 ## Issue #717 — PR #718 Full CI #2942.1 누적 F-005a/b 및 소속/리소스 E2E 교차 보완 (2026-10-18)
 
