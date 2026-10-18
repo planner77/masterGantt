@@ -1,8 +1,22 @@
+## Issue #725 — Target 없는 공정·WorkArea 관리 M1 (2026-10-18)
+
+[Work Packet](ISSUE_725.md)에 따라 main `7393483c4a15007868fceeaee70fb9e13c8b119a`와 선행 #724 PR #738의 최신 탐색 shell에서 독립 공정/WorkArea 관리·매핑, 설비의 타 공정 포함 WorkArea0..N 원자 연결, Task 직접 공정0..N/WorkArea API와 null/명시0 구분, Copy/Template v4·지원 교환 누락 차단을 구현한다. #723/#725/#728 최신 W1/W2 결정을 적용하며 Target 생성·Task 공정 자동유도·원본 설비/작업 복제는 하지 않는다. 공유 Task picker/#728 해석·#729 집계는 후속 소유다.
+
+후보0.118.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 실제 backend/frontend/Copy·문서·Chromium 담당을 나누어 구현·문서·사전 검토와 선정20파일215테스트 및 최종Chromium1case·기존인접2case를 통과했다. PR Full CI 시작에서 종료한다. 원격 Required/Trusted QA·Owner ACCEPT는 NOT TESTED이며 CI 완료 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다.
+
+## Issue #724 — Main CI #2957 복구 재개 (2026-10-18)
+
+원본 PR #738은 merge `ea4194763568432ef98e823bb796b59a5beb317c`로 병합됐으나 [Main #2957.1](https://github.com/planner77/masterGantt/actions/runs/39108991895)의 #456 실제 스크롤 capacity Core62/native63<120으로 E2E가 실패했다. 기존 보완 [PR #740](https://github.com/planner77/masterGantt/pull/740)을 재사용하며, 후속 #2960.1의 PR metadata 선언 형식 오류를 별도 교정한다. [단일 누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 L1–L10/F01–F06/M01 전 이력·취소21개 Job 원문·trace 실제 수치와 검증을 보존한다.
+
+이번 요청의 종료점은 보완·리뷰/충돌 정리 및 새 Main CI 시작이다. exact-head Full PR Required3/Trusted QA·최신 main·리뷰0·Owner 위험 수용을 확인한 merge commit 이후 Main CI를 시작하고 완료 모니터링은 생략한다. 기존 PR 시작까지만의 범위 기록은 당시 이력이다. test-only 교정의 version0.117.0 및 release_required=false/release_authorized=false와 원본 #724 제품의 release 의무/Owner 조건부 v0.117.0 승인은 구분하며, Main/GHCR/정식 Release/Issue 종료 성공을 미리 주장하지 않는다. 상세 상태·로컬 결과는 [Work Packet](ISSUE_724.md) 참조.
+
 ## Issue #727 — 프로젝트 리소스 등록과 Task 배정 분리 (2026-10-18)
 
 [Work Packet](ISSUE_727.md): main `7393483c4a15007868fceeaee70fb9e13c8b119a` 및 선행 #724/PR #738 공개 host `23857b6f3b3481a8402c6c421de2f7ff82304fe2`에서 명시 Project–Resource 관계·사용 출처·등록/해제와 Copy/Template·미지원 교환 보호를 구현한다. 등록-only·일반 Task 개인 배정·Summary/Milestone 책임·설비/시스템 역할·비활성을 구분하고 Assignment/공수/Capacity R·ACL은 변경하지 않는다. backend/frontend와 읽기 전용 ui_ux·qa_docs, 최종 infra 게시를 분담한다.
 
-후보0.118.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 관련 문서·사용자 가이드/매뉴얼 영향·Local Fast Feedback·별도 사전 검토 후 main 대상 PR Full CI 시작까지만 진행한다. 게시 직전 선행 #724가 main `ea4194763568432ef98e823bb796b59a5beb317c`에 병합돼 전체 tree 불변 상태로 fast-forward했고 PR diff는 #727에 한정한다. CI 모니터링·병합·main/GHCR·Issue 종료는 수행하지 않는다. 원격 Required3/Trusted·Manager ACCEPT는 NOT TESTED다.
+후보0.119.0 MINOR, HIGH/OWNER_MANAGED/qa_required=true, release_required=true/release_authorized=false. 관련 문서·사용자 가이드/매뉴얼 영향·Local Fast Feedback·별도 사전 검토 후 main 대상 PR Full CI 시작까지만 진행한다. 게시 직전 선행 #724가 main `ea4194763568432ef98e823bb796b59a5beb317c`에 병합돼 전체 tree 불변 상태로 fast-forward했고 PR diff는 #727에 한정한다. CI 모니터링·병합·main/GHCR·Issue 종료는 수행하지 않는다. 원격 Required3/Trusted·Manager ACCEPT는 NOT TESTED다.
+
+main `4ce564a8d9ec646ba584a585a610537f14698476` (#725 / 0028_process_context 포함)에 2-parent로 정렬하며 #727 0029 migration과 누적 테스트·리뷰 P2 멱등 삭제 보완을 포함한다. 초기 0.118.0 로컬 증거는 이전 source snapshot의 기록이고, 통합 exact-head 품질 검증은 새로운 PR Full CI 대상으로 남긴다.
 
 ## Issue #724 — 일정·대시보드·기준정보 N1 (2026-10-18)
 

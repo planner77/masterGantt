@@ -15,5 +15,8 @@ describe("bounded project import parser", () => {
   it("rejects oversize Content-Length before buffering", async () => { await expect(readProjectImportFile(request("{}", "application/json", { "Content-Length": String(IMPORT_FILE_LIMIT_BYTES + 1) }))).rejects.toThrow("too large"); });
   it("enforces actual streamed bytes without Content-Length", async () => { await expect(readProjectImportFile(request(new Uint8Array(IMPORT_FILE_LIMIT_BYTES + 1)))).rejects.toThrow("too large"); });
   it.each(["text/csv", "application/json; charset=latin1"])("rejects unsupported media %s", async (type) => { await expect(readProjectImportFile(request("{}", type))).rejects.toThrow(); });
+  it.each(["equipmentWorkAreas", "workAreaIds", "taskProcessContexts", "taskContexts", "processLinks", "workAreaLinks", "equipment_work_areas", "work_area_ids", "task_process_contexts", "task_contexts", "process_links", "work_area_links"])("rejects unsupported context field %s even when empty or nested", (key) => {
+    for (const value of [null, []]) expect(() => parseProjectImportBytes(bytes(JSON.stringify({schemaVersion:"1.1",tasks:[{[key]:value}]})))).toThrow(expect.objectContaining({code:"PROCESS_CONTEXT_IMPORT_UNSUPPORTED"}));
+  });
   it("rejects encoded bodies", async () => { await expect(readProjectImportFile(request("{}", "application/json", { "Content-Encoding": "gzip" }))).rejects.toThrow(); });
 });

@@ -187,6 +187,7 @@ export function parseCreateEquipmentInput(
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
 
+  const context = equipmentContextFields(body, details);
   const processId = typeof body.processId === "string" ? body.processId.trim() : "";
   if (!processId) {
     details.push("processId must be specified.");
@@ -248,6 +249,7 @@ export function parseCreateEquipmentInput(
   return {
     success: true,
     data: {
+      ...context,
       processId,
       code,
       name,
@@ -270,7 +272,7 @@ export function parseUpdateEquipmentRequest(
   }
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
-  const result: UpdateEquipmentRequest = {};
+  const result: UpdateEquipmentRequest = equipmentContextFields(body, details);
 
   if (body.processId !== undefined) {
     if (typeof body.processId === "string" && body.processId.trim().length > 0) {
@@ -825,4 +827,22 @@ export function parseReplaceTaskLogisticsLinksInput(
       systemLinks,
     },
   };
+}
+
+function equipmentContextFields(body: Record<string, unknown>, details: string[]): Pick<UpdateEquipmentRequest, "workAreaLinks" | "workAreaIds" | "processCatalogRevision"> {
+ const result: Pick<UpdateEquipmentRequest, "workAreaLinks" | "workAreaIds" | "processCatalogRevision"> = {};
+ if (body.workAreaLinks !== undefined && body.workAreaIds !== undefined) details.push("Specify workAreaLinks or workAreaIds, not both.");
+ if (body.workAreaLinks !== undefined) {
+  if (!Array.isArray(body.workAreaLinks) || body.workAreaLinks.length > 200 || body.workAreaLinks.some(value => !value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(key => !["processId", "workAreaId"].includes(key)) || typeof value.processId !== "string" || typeof value.workAreaId !== "string")) details.push("workAreaLinks must be typed process/WorkArea pairs.");
+  else result.workAreaLinks = body.workAreaLinks as UpdateEquipmentRequest["workAreaLinks"];
+ }
+ if (body.workAreaIds !== undefined) {
+  if (!Array.isArray(body.workAreaIds) || body.workAreaIds.length > 200 || body.workAreaIds.some(value => typeof value !== "string")) details.push("workAreaIds must be an array of IDs.");
+  else result.workAreaIds = body.workAreaIds as string[];
+ }
+ if (body.workAreaLinks !== undefined || body.workAreaIds !== undefined) {
+  if (!Number.isSafeInteger(body.processCatalogRevision) || (body.processCatalogRevision as number) < 1) details.push("processCatalogRevision is required for WorkArea changes.");
+  else result.processCatalogRevision = body.processCatalogRevision as number;
+ }
+ return result;
 }

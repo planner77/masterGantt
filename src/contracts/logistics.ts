@@ -1,3 +1,4 @@
+import type { EquipmentWorkAreaInput, EquipmentWorkAreaDto, TaskProcessContextDto } from "./process-context";
 import type { ProjectDto, ProjectPermission } from "./projects";
 
 export type EquipmentType = string;
@@ -72,6 +73,7 @@ export interface SystemResourceRoleDto {
 }
 
 export interface ProcessDto {
+  usageCount?: number;
   id: string; // public_id
   code: string;
   name: string;
@@ -99,6 +101,8 @@ export interface EquipmentDto {
   model: string;
   description: string;
   active: boolean;
+  workAreaIds?: string[];
+  workAreaLinks?: EquipmentWorkAreaInput[];
   controlSystems: EquipmentControlSystemDto[];
   resourceRoles: EquipmentResourceRoleDto[];
   createdAt: string;
@@ -181,6 +185,8 @@ export interface TaskSystemLinkSummaryDto {
 }
 
 export interface ProjectLogisticsDto {
+  equipmentWorkAreas?: EquipmentWorkAreaDto[];
+  taskProcessContexts?: TaskProcessContextDto[];
   processes: ProcessDto[];
   equipment: EquipmentDto[];
   systems: LogisticsSystemDto[];
@@ -219,6 +225,9 @@ export interface UpdateProcessRequest {
 }
 
 export interface CreateEquipmentRequest {
+  workAreaLinks?: EquipmentWorkAreaInput[];
+  workAreaIds?: string[];
+  processCatalogRevision?: number;
   processId: string;
   code: string;
   name: string;
@@ -232,6 +241,9 @@ export interface CreateEquipmentRequest {
 }
 
 export interface UpdateEquipmentRequest {
+  workAreaLinks?: EquipmentWorkAreaInput[];
+  workAreaIds?: string[];
+  processCatalogRevision?: number;
   processId?: string;
   code?: string;
   name?: string;

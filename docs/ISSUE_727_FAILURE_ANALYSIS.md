@@ -35,3 +35,13 @@
 최종 UI primary-button 재사용 뒤 기존5폭5/5 PASS(24.4s)와 최종 screenshot/geometry를 갱신했다. 초기 실패는 위 원장에 보존하며 고유 시나리오를 반복 실행 수로 늘리지 않는다.
 
 마지막 사전 검토의 역할0/1×5폭 조합 미검증을 보완했다. 제품 코드는 그대로 두고 기존 synthetic fixture의 역할0/1/3개를 분산한 동일5폭5/5 PASS(23.3s)를 확인했다. 최종 캡처/geometry 및 해당 테스트의 SHA256만 갱신했으며 과거 최대역할5폭 실행과 구분한다.
+
+## 통합 후 추가 검토·해결 기록 (2026-10-18)
+
+| ID | 관측 사실 | 원인/조치 | 새 source 검증 상태 |
+| --- | --- | --- | --- |
+| R01 | PR #739 inline P2: 미등록 Resource가 기존 Task 배정/책임 역할에 사용 중일 때 DELETE가 409로 거부됨 | `mutate()`가 membership 존재 확인보다 `inUse()`를 먼저 호출함. 동일 transaction에서 명시 관계가 실제 있을 때만 in-use guard를 적용하고, 미등록 상태 DELETE는 changed=false/프로젝트 revision 불변. 기존 등록 사용자 해제 차단을 보존하도록 회귀 단언 추가 | 정적 경로·test 계약 확인. 통합 후 로컬 DB/Vitest는 NOT TESTED, 원격 새 Full PR CI 예정 |
+| R02 | 새 main에 #725 `0028_process_context.sql`이 이미 적용됐으나 #727도 `0028_project_resource_memberships.sql` 사용; `package.json` 버전도 양측0.118.0 | migration 파일 버전 중복은 부팅 `Migration sequence` 검증 실패/기존 0028 checksum 충돌. main 0028 원형 보존, #727 별도 0029로 이동. 기존 migration 관련 테스트6개·신규 #727 테스트 및 DB/API/TEST_PLAN 문서 정렬, #727 후보0.119.0으로 조정 | 정적 인덱스·버전 일치 확인. 기존 0.118 로컬 증거를 통합 tree 검증으로 승격 금지; remote Required3/Trusted 결과 미확인 |
+| R03 | #725와 #727이 Copy/Template/Export·Import·Project 탭·문서/테스트 다수를 병행 수정 | main을 기준 tree로 유지하고 #727 고유 변경 및 양쪽의 다른 API/용어/유실 차단 규칙을 함께 병합. 기존 main 코드를 소거하지 않고 충돌 지점마다 내용 보존을 우선 | text-level 병합만 확인. TS/typecheck, 회귀·DB migration 검증은 새 CI에서 확인 필요 |
+
+CI 결과 미관찰 상태를 과거 SUCCESS로 표시하거나 로컬 미실행을 PASS로 표시하지 않는다.

@@ -37,6 +37,8 @@ export interface ProjectProcessMappingDto {
   occurrenceId: string;
   workAreaId: string | null;
   active: boolean;
+  /** Eligibility independent of an optional inactive compatibility/default WorkArea. */
+  workAreaSelectionActive?: boolean;
 }
 export interface ProcessStandardDiff {
   missingStandardIds: string[];

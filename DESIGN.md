@@ -183,6 +183,7 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 - compact project context + `일정 / 대시보드 / 기준정보` 상위 peer tabs + workspace toolbar + 업무 작업면 구조를 유지한다.
 - 대시보드 하위는 `KPI / Milestone / 공정&WorkArea / 설비 / 물류 시스템 / 리소스`, 기준정보 하위는 `공정&WorkArea / 설비 / 물류 시스템 / 리소스` 순서다. 일정은 전체 WBS가 기본이며 열린 Summary 범위 탭과 명시적인 `전체 일정 보기` 명령을 제공한다. 중복 `전체 프로젝트` 하위 탭은 두지 않는다.
 - 관리와 분석을 탐색에서 구분한다. 기준정보는 원본 등록·수정, 대시보드는 조회·정확한 원본 편집으로 이동하는 경로다. 같은 엔터티의 ID/API/editor를 재사용하며 조회용 계층을 저장 WBS로 만들거나 기준정보·Task·Assignment를 복제하지 않는다.
+- WBS Task가 중심 원장이다. 공정·WorkArea·설비·시스템은 같은 작업을 읽는 관점이며 기준정보 트리를 별도 일정으로 만들지 않는다. 공정의 WorkArea0..N과 설비의 다중 WorkArea0..N을 구분하고, Task의 명시 공정0..N은 구성 관계에서 자동 채우지 않는다. 구역 미연결·공정 미선택은 정상 상태이며 가짜 기본 항목을 생성하지 않는다. 설비가 여러 구역과 관련돼도 원본 수량은 고유 설비 기준으로 유지한다.
 - Target은 기존 데이터의 보조 호환 경로로 유지한다. 새 주메뉴나 신규 업무의 필수 생성 단계로 두지 않으며 자동 숨은 Target을 만들지 않는다. 기존 전역 관리자 권한과 Project 편집 권한은 분리한다.
 - 일반 탭/조회 복귀는 사용자의 명시적인 전체 scope 선택과 다르다. 검색·기간·접힘·선택·focus 및 scope별 상태를 보존하며 숨은 panel을 키보드·보조기술에서 차단한다. Gantt 측정·복원은 기존 lifecycle과 단일 Coordinator를 사용한다.
 - 프로젝트명·편집 상태는 항상 식별 가능하게 하되 description/owner/revision은 progressive disclosure한다.

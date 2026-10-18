@@ -5,9 +5,10 @@
 - Issue: [#727](https://github.com/planner77/masterGantt/issues/727), 상위 #723. 직접 선행 #724/PR #738.
 - baseline: main `7393483c4a15007868fceeaee70fb9e13c8b119a`; 선행 공개 host `23857b6f3b3481a8402c6c421de2f7ff82304fe2`.
 - publication_base: main `ea4194763568432ef98e823bb796b59a5beb317c` (#724/PR #738 병합 후).
+- main_alignment: `4ce564a8d9ec646ba584a585a610537f14698476` (#725 포함, source merge 부모); #727 migration은 적용된 0028_process_context 다음 0029로 신규 추가.
 - working_branch: `feat/issue-727-project-resource-membership`.
 - lifecycle_phase: PR_READY. 구현·문서·선정 Local Fast Feedback·별도 사전 검토 후 PR Full CI 시작까지 진행한다.
-- version_decision: 선행 후보0.117.0 대비 MINOR0.118.0. 새 프로젝트 참여 원장/API/등록 UI를 제공한다.
+- version_decision: main 0.118.0(#725)에 이어 MINOR0.119.0. 새 프로젝트 참여 원장/API/등록 UI를 제공한다.
 - risk_level: HIGH. 새 관계·권한/동시성·사용중 보호 및 Copy/Template·교환 보존에 교차 영향.
 - qa_required: true.
 - qa_method: OWNER_MANAGED. 분리된 Agent 사전 검토는 Owner 병합 승인·원격 Trusted QA·독립 인간 승인과 다르다.
@@ -77,7 +78,7 @@ required_docs와 실제 업데이트/N/A 근거는 위 표다. #720 제품 매�
 - AC2: 같은 SQLite 테스트의 기존 개인 Task 배정·설비/시스템 역할·Summary/Milestone 책임 참조 출처와 개인 배정 없는 역할-only; UI의 등록/배정/책임/비활성 표시·ACL 분리.
 - AC3: 같은 SQLite 테스트의 등록·해제 전후 Assignment/공수 불변·사용중409·global 삭제 차단; 기존 Resource domain Plan 회귀로 Capacity R 산식 유지.
 - AC4: 같은 테스트의 실제 DB+HTTP401/403/409/412·Project 격리·동시 같은 revision1승/1거부·실패 rollback·비활성/역할/등급/Group 필터.
-- AC5: 같은 테스트의 migration0027→0028·재시작·Copy/지원 Template 기존 배정/global ID 보존·unknown 참조 rollback·구 snapshot omission 및 JSON/Excel/Import 미지원 손실 방지.
+- AC5: 같은 테스트의 migration0028→0029·재시작·Copy/지원 Template 기존 배정/global ID 보존·unknown 참조 rollback·구 snapshot omission 및 JSON/Excel/Import 미지원 손실 방지.
 - AC6: `tests/e2e/project-resource-memberships-ui.spec.ts`, `tests/domain/project-resource-memberships-model.test.ts` — 390/768/1024/1440/1920px·keyboard/focus·readonly/dirty/loading/empty/error/stale 및 기존 배정 편집/Resource 회귀. 실행 증거와 미실행 범위는 아래 검증 원장에 구분한다.
 
 ## 검증 선정과 실행 원장
@@ -125,3 +126,10 @@ node scripts/check-markdown-links.mjs
 ## 위험과 후속
 
 참여 등록을 개인 부하/Capacity·실제 수행·ACL로 해석하지 않는다. 사용중 해제는 자동 배정 삭제 없이 차단한다. Snapshot revision 변경과 계획공수 변화는 구별한다. 지원되지 않는 일정 교환으로 관계를 잃지 않으며 SVG/PNG/조회 Excel을 전체 백업이라고 하지 않는다. #724의 병합 이력과 최신 main 이동은 원격 exact Head/base/test-merge 재검증 대상으로 유지한다. 새 Required3/Trusted/Owner HIGH 수용·미해결 리뷰0 확인 전 병합은 승인하지 않는다.
+
+## Main 정렬·리뷰 대응 (2026-10-18)
+
+- PR #739에서 main 4ce564a8d9ec646ba584a585a610537f14698476 (#725 포함)를 head에 병합하면서 main 및 #727 양쪽 기능을 함께 보존한다. 0028_process_context는 이름/체크섬을 변경하지 않고 #727의 이전 0028_project_resource_memberships를 0029_project_resource_memberships로 배치한다.
+- 상호 겹치는 Resource/공정·작업구역/Copy/Template/JSON·Excel guard, Project host, route inventory 및 기존 migration 회귀를 통합한다. 기존 참여-only DELETE의 P2 리뷰는 원래 membership이 없으면 사용 중이더라도 changed=false no-op, membership이 있을 때만 사용 중409로 처리한다.
+- main 0.118.0은 #725 소유이며 이번 신규 기능 후보는 0.119.0이다. 기존 원격 Head192b4f6/local 0.118.0 증거는 역사의 기록으로 보존하되 변경된 통합 tree의 검증 결과로 대체하지 않는다.
+- 환경 제약: GitHub 객체 API를 통한 통합·정적 검토이며 수정된 통합 tree의 로컬 npm/Vitest/Playwright/SQLite 런타임 재실행은 NOT TESTED이다. 새 exact-head Full PR CI(quality/e2e/docker)와 Trusted QA/Owner 승인도 새 Run 증거 전 NOT TESTED다. CI 모니터링·병합/정식 배포/Issue 종료는 이번 범위 밖이다.

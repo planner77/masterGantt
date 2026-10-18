@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { assertScheduleContextExportSupported } from "./project-context-export-guard-core";
 import type { ImportPayload11 } from "../../contracts/import";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import { taskStatusFromProgress, taskStatusProgressConsistent } from "../../domain/task-status";
@@ -76,6 +77,7 @@ export class ProjectJsonExportService {
       // persisted Target references as if this were a complete project backup.
       const projectId = this.database.prepare("SELECT id FROM projects WHERE public_id=?")
         .get(publicId) as {id:number}|undefined;
+      if (projectId) assertScheduleContextExportSupported(this.database,projectId.id);
       if (projectId && this.database.prepare("SELECT 1 FROM project_resource_memberships WHERE project_id=? LIMIT 1").get(projectId.id)) {
         throw new PublicApiError(409, "RESOURCE_MEMBERSHIP_EXPORT_UNSUPPORTED", "프로젝트 리소스 등록은 JSON 일정 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
       }

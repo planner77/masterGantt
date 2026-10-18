@@ -1,0 +1,299 @@
+{
+  "status": "PASS",
+  "caseDurationSeconds": 43.711,
+  "totalRunSeconds": 60.729,
+  "measurements": [
+    {
+      "view": "process-mapping",
+      "viewportWidth": 390,
+      "documentWidths": [
+        390
+      ],
+      "columns": 4,
+      "tableWidth": 680,
+      "scrollOwnerWidth": 366,
+      "scrollOwnerScrollWidth": 680,
+      "scrollOwnerLeft": 12,
+      "scrollOwnerRight": 378,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "catalog-workareas",
+      "viewportWidth": 390,
+      "documentWidths": [
+        390
+      ],
+      "columns": 6,
+      "tableWidth": 680,
+      "scrollOwnerWidth": 366,
+      "scrollOwnerScrollWidth": 680,
+      "scrollOwnerLeft": 12,
+      "scrollOwnerRight": 378,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "process-mapping",
+      "viewportWidth": 768,
+      "documentWidths": [
+        768
+      ],
+      "columns": 4,
+      "tableWidth": 720,
+      "scrollOwnerWidth": 720,
+      "scrollOwnerScrollWidth": 720,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 744,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "catalog-workareas",
+      "viewportWidth": 768,
+      "documentWidths": [
+        768
+      ],
+      "columns": 6,
+      "tableWidth": 720,
+      "scrollOwnerWidth": 720,
+      "scrollOwnerScrollWidth": 720,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 744,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "process-mapping",
+      "viewportWidth": 1024,
+      "documentWidths": [
+        1024
+      ],
+      "columns": 4,
+      "tableWidth": 976,
+      "scrollOwnerWidth": 976,
+      "scrollOwnerScrollWidth": 976,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1000,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "catalog-workareas",
+      "viewportWidth": 1024,
+      "documentWidths": [
+        1024
+      ],
+      "columns": 6,
+      "tableWidth": 976,
+      "scrollOwnerWidth": 976,
+      "scrollOwnerScrollWidth": 976,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1000,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "process-mapping",
+      "viewportWidth": 1440,
+      "documentWidths": [
+        1440
+      ],
+      "columns": 4,
+      "tableWidth": 1392,
+      "scrollOwnerWidth": 1392,
+      "scrollOwnerScrollWidth": 1392,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1416,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "catalog-workareas",
+      "viewportWidth": 1440,
+      "documentWidths": [
+        1440
+      ],
+      "columns": 6,
+      "tableWidth": 1392,
+      "scrollOwnerWidth": 1392,
+      "scrollOwnerScrollWidth": 1392,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1416,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "process-mapping",
+      "viewportWidth": 1920,
+      "documentWidths": [
+        1920
+      ],
+      "columns": 4,
+      "tableWidth": 1872,
+      "scrollOwnerWidth": 1872,
+      "scrollOwnerScrollWidth": 1872,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1896,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "catalog-workareas",
+      "viewportWidth": 1920,
+      "documentWidths": [
+        1920
+      ],
+      "columns": 6,
+      "tableWidth": 1872,
+      "scrollOwnerWidth": 1872,
+      "scrollOwnerScrollWidth": 1872,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1896,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "equipment",
+      "viewportWidth": 390,
+      "documentWidths": [
+        390
+      ],
+      "columns": 10,
+      "tableWidth": 1084.875,
+      "scrollOwnerWidth": 364,
+      "scrollOwnerScrollWidth": 1085,
+      "scrollOwnerLeft": 12,
+      "scrollOwnerRight": 378,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "equipment",
+      "viewportWidth": 768,
+      "documentWidths": [
+        768
+      ],
+      "columns": 10,
+      "tableWidth": 1084.875,
+      "scrollOwnerWidth": 718,
+      "scrollOwnerScrollWidth": 1085,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 744,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "equipment",
+      "viewportWidth": 1024,
+      "documentWidths": [
+        1024
+      ],
+      "columns": 10,
+      "tableWidth": 1084.875,
+      "scrollOwnerWidth": 974,
+      "scrollOwnerScrollWidth": 1085,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1000,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "equipment",
+      "viewportWidth": 1440,
+      "documentWidths": [
+        1440
+      ],
+      "columns": 10,
+      "tableWidth": 1390,
+      "scrollOwnerWidth": 1390,
+      "scrollOwnerScrollWidth": 1390,
+      "scrollOwnerLeft": 24,
+      "scrollOwnerRight": 1416,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    },
+    {
+      "view": "equipment",
+      "viewportWidth": 1920,
+      "documentWidths": [
+        1920
+      ],
+      "columns": 10,
+      "tableWidth": 1438,
+      "scrollOwnerWidth": 1438,
+      "scrollOwnerScrollWidth": 1438,
+      "scrollOwnerLeft": 240,
+      "scrollOwnerRight": 1680,
+      "overflowX": "auto",
+      "maxHeaderBodyLeftDeltaPx": 0,
+      "maxHeaderBodyWidthDeltaPx": 0.0,
+      "maxAdjacentOverlapPx": 0
+    }
+  ],
+  "dialogMeasurements": [
+    {
+      "viewportWidth": 390,
+      "left": 19,
+      "right": 371,
+      "clientWidth": 350,
+      "scrollWidth": 350
+    },
+    {
+      "viewportWidth": 768,
+      "left": 80,
+      "right": 688,
+      "clientWidth": 606,
+      "scrollWidth": 606
+    },
+    {
+      "viewportWidth": 1024,
+      "left": 208,
+      "right": 816,
+      "clientWidth": 606,
+      "scrollWidth": 606
+    },
+    {
+      "viewportWidth": 1440,
+      "left": 416,
+      "right": 1024,
+      "clientWidth": 606,
+      "scrollWidth": 606
+    },
+    {
+      "viewportWidth": 1920,
+      "left": 656,
+      "right": 1264,
+      "clientWidth": 606,
+      "scrollWidth": 606
+    }
+  ]
+}

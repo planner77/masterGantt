@@ -143,6 +143,19 @@ export interface TemplateMembershipSnapshotItem {
   milestoneExternalId: string;
 }
 
+/** Global WorkArea IDs stay stable; Equipment and Process codes are snapshot-local keys. */
+export interface TemplateEquipmentWorkAreasSnapshotItem {
+  equipmentCode: string;
+  workAreaLinks: Array<{ processCode: string; workAreaId: string }>;
+}
+
+export interface TemplateTaskContextSnapshotItem {
+  taskExternalId: string;
+  /** null is a historical unset context; [] is an explicit empty selection. */
+  processLinks: Array<{ processCode: string; scope: "self" | "subtree" }> | null;
+  workAreaLinks: Array<{ processCode: string; workAreaId: string; scope: "self" | "subtree" }> | null;
+}
+
 export interface ProjectTemplateSnapshot {
   /** Explicit Project participants, referencing existing global Resource IDs. */
   resourceMemberships?: string[];
@@ -169,7 +182,10 @@ export interface ProjectTemplateSnapshot {
     taskEquipmentLinks: TemplateTaskEquipmentLinkSnapshotItem[];
     taskSystemLinks: TemplateTaskSystemLinkSnapshotItem[];
     /** Omitted for historical (pre-F2) snapshots. F2 snapshots must use version 2. */
-    schemaVersion?: 2 | 3;
+    schemaVersion?: 2 | 3 | 4;
+    /** Version 4 preserves explicit Equipment locations and Task contexts, including empty selections. */
+    equipmentWorkAreas?: TemplateEquipmentWorkAreasSnapshotItem[];
+    taskContexts?: TemplateTaskContextSnapshotItem[];
     /** Version 3 preserves explicit WBS bindings; inherited rows are never saved. */
     taskTargetBindings?: Array<{ taskExternalId: string; targetCode: string; scope: "self" | "subtree"; selection: "whole" | "subset"; members: Array<{kind: "equipment" | "system"; instanceCode: string; coverage: number | null}> }>;
     processMappings?: TemplateProcessMappingSnapshotItem[];

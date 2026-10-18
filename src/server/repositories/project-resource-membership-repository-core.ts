@@ -147,6 +147,9 @@ export class ProjectResourceMembershipRepository {
     }));
     return { total, counts, resources, groups: groups(groupRows), offset: parameters.offset, limit: parameters.limit };
   }
+  isRegistered(projectId: number, resourceId: number): boolean {
+    return !!this.database.prepare("SELECT 1 FROM project_resource_memberships WHERE project_id=? AND resource_id=?").get(projectId, resourceId);
+  }
   register(projectId: number, resourceId: number, now: string): boolean {
     const existing = this.database.prepare("SELECT 1 FROM project_resource_memberships WHERE project_id=? AND resource_id=?").get(projectId, resourceId);
     if (existing)

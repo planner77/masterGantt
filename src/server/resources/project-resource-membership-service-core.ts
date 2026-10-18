@@ -68,7 +68,7 @@ export class ProjectResourceMembershipService {
       if (registered && !resource.active) {
         throw new PublicApiError(409, "RESOURCE_INACTIVE", "비활성 리소스는 새로 등록할 수 없습니다.");
       }
-      if (!registered && this.memberships.inUse(project.id, resource.id)) {
+      if (!registered && this.memberships.isRegistered(project.id, resource.id) && this.memberships.inUse(project.id, resource.id)) {
         throw new PublicApiError(409, "PROJECT_RESOURCE_IN_USE", "작업 배정 또는 책임·설비·시스템 담당 역할을 먼저 정리해 주세요. 기존 배정은 삭제되지 않았습니다.");
       }
       const changed = registered

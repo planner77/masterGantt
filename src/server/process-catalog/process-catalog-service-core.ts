@@ -1,3 +1,4 @@
+import { ProcessContextRepository, ProcessContextError } from "../repositories/process-context-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 import type { ProcessCatalogKind, ProcessCatalogQuery, ProcessCatalogTriple, ProcessCatalogResponse, ProcessContextResponse, ProcessStandardDiff, ProcessStandardDiffResponse, ProjectProcessMappingResponse, } from "../../contracts/process-catalog";
@@ -87,7 +88,7 @@ export class ProcessCatalogService {
       return this.database.transaction(operation).immediate();
     }
     catch (error) {
-      if (error instanceof ProcessCatalogError) {
+      if (error instanceof ProcessCatalogError || error instanceof ProcessContextError) {
         throw error;
       }
       const code = error && typeof error === "object" && "code" in error ? String(error.code) : "";
@@ -415,7 +416,9 @@ export class ProcessCatalogService {
       });
       if (options.search || options.active !== undefined) {
         const matches = (r: ProcessCatalogRecord) => (options.active === undefined || Boolean(r.active) === options.active) && (!options.search || `${r.code} ${r.name}`.toLocaleLowerCase().includes(options.search.toLocaleLowerCase()));
-        rows.workAreas = rows.workAreas.filter((r) => matches(r) || mappings.some((m) => m.workAreaId === r.public_id));
+        const contexts=new ProcessContextRepository(this.database);
+        const referencedAreas=new Set([...contexts.equipmentLinks(project.id).map(link=>link.workAreaId),...contexts.taskContexts(project.id).flatMap(task=>task.workAreaLinks?.map(link=>link.workAreaId)??[])]);
+        rows.workAreas = rows.workAreas.filter((r) => matches(r) || referencedAreas.has(r.public_id) || mappings.some((m) => m.workAreaId === r.public_id));
         rows.occurrences = rows.occurrences.filter((r) => matches(r) || mappings.some((m) => m.occurrenceId === r.public_id) || rows.workAreas.some((w) => w.occurrence_id === r.id));
         rows.standards = rows.standards.filter((r) => matches(r) || rows.occurrences.some((o) => o.standard_process_id === r.id));
         rows.types = rows.types.filter((r) => matches(r) || rows.occurrences.some((o) => o.process_type_id === r.id) || rows.standards.some((s) => s.process_type_id === r.id));
@@ -469,6 +472,7 @@ export class ProcessCatalogService {
         }
       }
       const changed = (current?.occurrence_id ?? null) !== (occurrence?.id ?? null) || (current?.work_area_id ?? null) !== (workArea?.id ?? null);
+      if ((current?.occurrence_id ?? null) !== (occurrence?.id ?? null) && (this.database.prepare("SELECT 1 FROM equipment_work_areas WHERE project_id=? AND process_id=? UNION ALL SELECT 1 FROM task_work_area_links WHERE project_id=? AND process_id=? LIMIT 1").get(project.id,process.id,project.id,process.id))) fail(409,"PROJECT_PROCESS_MAPPING_IN_USE");
       if (changed) {
         this.repository.setMapping(project.id, process.id, occurrence, workArea, this.clock().toISOString());
         if (!this.projects.advanceRevision(project.id, expected, this.clock().toISOString())) {
@@ -483,4 +487,35 @@ export class ProcessCatalogService {
         } };
     });
   }
+  taskContext(projectPublicId: string, taskPublicId: string) {
+    return this.database.transaction(() => {
+      const project=this.projects.findByPublicId(uuid(projectPublicId));
+      if(!project) return fail(404,"PROJECT_NOT_FOUND");
+      const contexts=new ProcessContextRepository(this.database);
+      const context=contexts.taskContexts(project.id).find(task=>task.taskId===uuid(taskPublicId));
+      if(!context) return fail(404,"TASK_NOT_FOUND");
+      return {data:{projectRevision:project.revision,processCatalogRevision:contexts.revision(),context}};
+    })();
+  }
+  replaceTaskContext(authorization:AuthorizedEditSession,expected:number,taskPublicId:string,input:unknown) {
+    return this.write(() => {
+      const project=this.projects.findCredentialById(authorization.projectId),session=this.sessions.findById(authorization.sessionId);
+      if(!project||!session||project.publicId!==authorization.projectPublicId||session.projectId!==project.id||project.authVersion!==authorization.projectAuthVersion||session.authVersion!==project.authVersion||!session.tokenHash.equals(authorization.tokenHash)||session.revokedAt!==null||!Number.isFinite(Date.parse(session.expiresAt))||Date.parse(session.expiresAt)<=this.clock().getTime()) return fail(401,"EDIT_SESSION_REQUIRED");
+      if(project.revision!==expected) fail(412,"REVISION_MISMATCH");
+      const parsed=inputObject(input,["processCatalogRevision","processLinks","workAreaLinks"]);
+      const contexts=new ProcessContextRepository(this.database);
+      contexts.requireRevision(parsed.processCatalogRevision);
+      const task=this.database.prepare("SELECT id FROM tasks WHERE project_id=? AND public_id=?").get(project.id,uuid(taskPublicId)) as {id:number}|undefined;
+      if(!task) return fail(404,"TASK_NOT_FOUND");
+      const validated=contexts.validateTaskContext(project.id,task.id,{processLinks:parsed.processLinks,workAreaLinks:parsed.workAreaLinks},true);
+      const previous=contexts.taskContexts(project.id).find(value=>value.taskId===taskPublicId);
+      contexts.replaceTask(project.id,task.id,validated);
+      const next=contexts.taskContexts(project.id).find(value=>value.taskId===taskPublicId);
+      const changed=JSON.stringify(previous)!==JSON.stringify(next);
+      if(changed&&!this.projects.advanceRevision(project.id,expected,this.clock().toISOString())) fail(412,"REVISION_MISMATCH");
+      const logistics=new LogisticsService(this.database,{clock:this.clock});
+      return {data:{project:logistics.getProjectDto(project.id),logistics:logistics.getLogisticsDto(project.id),context:next!,processCatalogRevision:contexts.revision(),permission:"edit" as const,operation:{kind:"taskProcessContext" as const,taskId:taskPublicId,changed}}};
+    });
+  }
+
 }

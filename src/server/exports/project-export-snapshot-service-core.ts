@@ -1,4 +1,5 @@
 import type { ResourceExcelExportOptions, ResourceExcelReportBundle } from "../../contracts/resource-excel-export";
+import { assertScheduleContextExportSupported } from "./project-context-export-guard-core";
 import { ResourceDashboardService } from "../resources/resource-dashboard-service-core";
 import type Database from "better-sqlite3";
 
@@ -33,6 +34,7 @@ export class ProjectExportSnapshotService {
       if (!snapshot) return undefined;
       if (expectedRevision !== undefined && snapshot.data.project.revision !== expectedRevision) throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
       const projectId = this.database.prepare("SELECT id FROM projects WHERE public_id=?").get(publicId) as {id:number}|undefined;
+      if (!resourceOptions && projectId) assertScheduleContextExportSupported(this.database,projectId.id);
       if (!includeResourceEffort && !resourceOptions && projectId && this.database.prepare("SELECT 1 FROM project_resource_memberships WHERE project_id=? LIMIT 1").get(projectId.id)) {
         throw new PublicApiError(409, "RESOURCE_MEMBERSHIP_EXPORT_UNSUPPORTED", "프로젝트 리소스 등록은 일정 Excel 형식으로 보존할 수 없습니다. 프로젝트 복사 또는 템플릿을 이용해 주세요.");
       }

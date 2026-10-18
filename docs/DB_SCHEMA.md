@@ -1,6 +1,23 @@
-## Issue #727 — migration 0028 프로젝트 리소스 등록
+## Issue #725 — 선택적 다중 WorkArea·Task 직접 문맥 (migration 0028)
 
-`0028_project_resource_memberships.sql`은 `project_resource_memberships`를 추가한다. `project_id`는 Project FK(CASCADE), `resource_id`는 global Resource FK(RESTRICT), `created_at`은 비어 있지 않은 UTC 문자열이다. `(project_id,resource_id)` 복합 PK의 STRICT/WITHOUT ROWID table이며 Resource별 역참조 index를 둔다. 기존 Project/Task Assignment/설비·시스템 역할을 이 관계에 자동 삽입하지 않는다.
+`db/migrations/0028_process_context.sql`은 기존 공정/설비/Task/Target ID·quantity·revision을 추정 backfill하지 않고 다음 STRICT 관계를 추가한다. 공정의 기존 자유 계층과 occurrence mapping은 유지한다.
+
+| 테이블 | 키·의미 |
+| --- | --- |
+| `equipment_work_areas` | PK(project_id,equipment_id,work_area_id); process_id/occurrence_id/work_area_id로 실제 소유 문맥을 저장 |
+| `task_process_contexts` | PK(project_id,task_id); 명시 선택 도입 marker. row 없음은 legacy-null, row와 하위 연결0개는 명시0개 |
+| `task_process_links` | PK(project_id,task_id,process_id); scope=self/subtree |
+| `task_work_area_links` | PK(project_id,task_id,work_area_id); 직접 선택 공정/occurrence/WorkArea 및 scope |
+
+설비 연결의 `(project_id,equipment_id)` FK와 공정 매핑 `(project_id,process_id,occurrence_id)` FK, 구역 `(occurrence_id,work_area_id)` FK가 Project 격리·정확 소유권을 강제한다. 설비 주 관리 공정과 연결 구역의 공정은 같을 필요가 없다. 같은 Equipment/WorkArea 중복은 금지하며 마지막 관계 삭제는 Equipment/quantity/Task를 삭제하지 않는다.
+
+Task 구역은 `(project_id,task_id,process_id)`를 직접 Task 공정 연결에 FK로 묶으므로 공정을 암묵 생성하지 않는다. Task 삭제는 marker/관계를 cascade하고 공정/매핑/구역은 참조 중 RESTRICT로 보호한다. INSERT/UPDATE scope trigger와 Task type 변경 trigger는 subtree의 Summary-only 조건을 강제한다. Milestone의 nonempty 직접 문맥과 호환되지 않는 type 전환도 DB trigger/service guard로 거부한다. WorkArea subtree에 대응하는 공정 scope도 subtree여야 한다는 조건은 service와 INSERT/UPDATE trigger가 함께 검사한다. 활성/권한/catalog revision은 service에서 검사한다. 마이그레이션 checksum·순서·전체 pending batch rollback과 restart 계약을 유지한다.
+
+canonical 조회에서 모든 Task에 `processLinks/workAreaLinks`를 제공하되 legacy는 null/null, 명시 선택은 배열/배열로 구별한다. Equipment/System/Target의 관계로 Task 공정을 backfill하지 않는다. Copy와 Templatev4는 marker·직접 관계만 remap하고 inherited/effective row를 저장하지 않는다. [API](API.md#issue-725--target-없는-공정workarea-직접-문맥), [복사·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4), [실행 원장](exec-plans/active/ISSUE_725.md)을 함께 따른다.
+
+## Issue #727 — migration 0029 프로젝트 리소스 등록
+
+`0029_project_resource_memberships.sql`은 `project_resource_memberships`를 추가한다. `project_id`는 Project FK(CASCADE), `resource_id`는 global Resource FK(RESTRICT), `created_at`은 비어 있지 않은 UTC 문자열이다. `(project_id,resource_id)` 복합 PK의 STRICT/WITHOUT ROWID table이며 Resource별 역참조 index를 둔다. 기존 Project/Task Assignment/설비·시스템 역할을 이 관계에 자동 삽입하지 않는다.
 
 등록·해제는 IMMEDIATE transaction에서 session binding/authVersion/token hash/expiry, expected Project revision과 최신 Resource·usage를 재검증한다. 신규 등록은 활성 Resource 및 catalogRevision 일치를 요구한다. 변경이 있을 때 Project revision을 정확히 1회 증가시키고 같은 등록/없는 등록 해제는 no-op이다. 사용 중 해제409·stale412·실패는 등록 관계와 Project revision 전체 rollback이며 Assignment 원장에는 쓰지 않는다. Project Copy는 global Resource FK를 그대로 재사용하여 새 Project에 독립 관계를 만든다. Template는 optional `resourceMemberships` global public ID 목록을 최대10000개 중복 없이 보존하며 구 snapshot의 생략은 빈 목록과 호환된다. 전역 삭제는 등록 참조도 사용으로 계산한다.
 

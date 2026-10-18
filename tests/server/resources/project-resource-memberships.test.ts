@@ -133,10 +133,15 @@ describe("Issue727 persisted Project participation", () => {
     expect(result.resources.map(r => r.id).sort()).toEqual([f.r.id, role.id].sort());
     expect(result.resources.find(r => r.id === role.id)).toMatchObject({ registered: false, sources: { membership: false, taskAssignments: false, equipmentRoles: true, systemRoles: true }, usage: { taskAssignments: 0, equipmentRoles: 1, systemRoles: 1 } });
     expect(result.counts).toEqual({ registered: 0, assigned: 1, roleOnly: 1, inactive: 0 });
+    const revisionBeforeNoop = f.a.revision();
+    expect(f.membership.mutate(f.a.authorization, revisionBeforeNoop, f.r.id, false).data.operation).toMatchObject({ registered: false, changed: false });
+    expect(f.a.revision()).toBe(revisionBeforeNoop);
     f.register();
     const before = f.db.prepare("SELECT * FROM task_assignments").all();
     expect(() => f.membership.mutate(f.a.authorization, f.a.revision(), f.r.id, false)).toThrow("작업 배정");
-    expect(() => f.membership.mutate(f.a.authorization, f.a.revision(), role.id, false)).toThrow("작업 배정");
+    const revisionBeforeRoleNoop = f.a.revision();
+    expect(f.membership.mutate(f.a.authorization, revisionBeforeRoleNoop, role.id, false).data.operation).toMatchObject({ registered: false, changed: false });
+    expect(f.a.revision()).toBe(revisionBeforeRoleNoop);
     expect(f.db.prepare("SELECT * FROM task_assignments").all()).toEqual(before);
   });
   it("keeps inactive registrations, filters grade/role/group and blocks global deletion", async () => {
@@ -292,7 +297,7 @@ describe("Issue727 persisted Project participation", () => {
     const fs = await import("node:fs");
     fs.mkdirSync(old);
     for (const name of readdirSync(migrationsDirectory))
-      if (name.endsWith(".sql") && !name.startsWith("0028_"))
+      if (name.endsWith(".sql") && !name.startsWith("0029_"))
         copyFileSync(join(migrationsDirectory, name), join(old, name));
     const filename = join(dir, "app.sqlite3"), initial = openDatabase({ filename, migrationsDirectory: old }).database;
     expect(initial.prepare("SELECT name FROM sqlite_schema WHERE name='project_resource_memberships'").get()).toBeUndefined();
@@ -305,7 +310,7 @@ describe("Issue727 persisted Project participation", () => {
     logistics.replaceSystemResourceRoles(legacyProject.id, legacySystem.id, [{ resourceId: legacyResource.id, role: "developer", isPrimary: 0 }], now);
     const tables = ["projects", "tasks", "task_assignments", "resources", "project_system_resource_roles"];
     const legacyRows = tables.map(table => ({ table, rows: initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() }));
-    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0028_project_resource_memberships.sql"]);
+    expect(runMigrations(initial, migrationsDirectory).applied).toEqual(["0029_project_resource_memberships.sql"]);
     expect(tables.map(table => ({ table, rows: initial.prepare(`SELECT * FROM ${table} ORDER BY id`).all() }))).toEqual(legacyRows);
     expect(new ProjectResourceMembershipService(initial, { clock }).get(legacyProject.publicId).data.resources).toMatchObject([{ id: legacyResource.publicId, registered: false, usage: { taskAssignments: 1, systemRoles: 1 } }]);
     expect(runMigrations(initial, migrationsDirectory).applied).toEqual([]);
