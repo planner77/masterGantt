@@ -142,7 +142,13 @@ test("#552 scoped Summary becoming M keeps the native instance and requires expl
   await expect(page.getByRole("alert").filter({ hasText: "선택한 Summary 범위를 열 수 없습니다." })).toContainText("선택한 범위가 Milestone으로 변경되었습니다. 데이터는 프로젝트 전체 Milestone 목록에 있으며 WBS 범위는 자동으로 넓히지 않습니다.");
   await expect(page.locator(".project-gantt-scope-owner")).toHaveAttribute("inert", ""); await expectSameGanttRoot(page, identity);
   await expect(rowNamed(page, "Stable leaf")).not.toBeVisible();
-  await page.getByRole("button", { name: "전체 일정 보기", exact: true }).click();
+  // #724 F02: there are two legitimate "전체 일정 보기" buttons. Use the
+  // invalid Summary scope's explicit recovery, not the global navigation.
+  const recovery = page.getByRole("alert").filter({ hasText: "선택한 Summary 범위를 열 수 없습니다." });
+  await expect(page.locator(".project-scope-navigation").getByRole("button", { name: "전체 일정 보기", exact: true })).toHaveAttribute("aria-pressed", "false");
+  const recoverFullSchedule = recovery.getByRole("button", { name: "전체 일정 보기", exact: true });
+  await expect(recoverFullSchedule).toBeVisible();
+  await recoverFullSchedule.click();
   await expect(rowNamed(page, "Stable leaf")).toBeVisible(); await expectSameGanttRoot(page, identity);
   await expect(page.locator(`.wx-table-container .wx-row[data-id$="${rootId}"]`)).toHaveCount(0);
   await capture(page, "scope-summary-m-drift-explicit-recovery", { instance: identity, rootId, canonicalIds: state.tasks.map(task => task.taskId), mutationCount: state.posts.length + state.patchRequests.length });

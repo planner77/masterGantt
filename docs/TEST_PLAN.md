@@ -4409,3 +4409,10 @@ AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 
 - 기존 #551 `milestone-timeline-lane.spec.ts`에서 3,000-row/preview 표시 후 peer 이동 시 native Chart 높이 1:1 보존, 복귀 instance/scroll, Grid resize/fullscreen/Milestone 표시·canonical write0를 계속 확인한다. 원본 E2E 실패는 563px 기대/510px 실제이며 엄격 단언을 완화하지 않는다.
 - `project-workspace-tabs-518.spec.ts`에서 두 단계 tablist의 추가 높이가 있어도 비활성 inert/aria-hidden 일정 Gantt Chart 측정 높이 보존과 보조 `dashboard.target/master.targets/master.relations`의 `aria-selected`/roving `tabIndex` 단일 선택(1개) 계약을 검사한다. 숨은 panel focus 차단/정확 drill/범위 선택도 보존한다.
 - 최신 main #719 도움말, `project-logistics-management.spec.ts` 도움말과 3/6/4 메뉴 이관, `resource-kpi-integration-ui.spec.ts`의 `observeIsolatedApi` 실제 fixture callback을 모두 보존한다. 새로운 정확 Head Required3·Trusted QA·Owner 수용은 원격 증거 전 NOT TESTED. [#724 L1–L10 및 F01 누적 분석](ISSUE_724_FAILURE_ANALYSIS.md)을 따른다.
+
+
+## Issue #724 — F02 #552 Summary scope recovery regression (2026-10-18)
+
+- PR CI [#2949.1](https://github.com/planner77/masterGantt/actions/runs/39101001199)의 Chromium shard4 #552 경로는 제품 상태 변경 이전에 `전체 일정 보기` 동명 버튼(상단 전역 명령 및 잘못된 Summary scope 복구)이 2개 존재하여 Playwright strict locator가 실패했다. F01 측정 높이 수정 결과는 해당 Run에서 shard1이 취소되어 아직 확인되지 않았다.
+- 기존 `tests/e2e/milestone-visibility.spec.ts`에서 `선택한 Summary 범위를 열 수 없습니다.` alert 내부 복구 버튼을 명확히 클릭한다. 별도 전역 전체 일정 명령 `aria-pressed=false`, 경고·범위 invalid/inert·Stable leaf 복구·native M 부재·동일 Gantt·mutations0 검증을 유지한다. 제품, 실제 권한, CI Gate, timeout/retry/skip은 바꾸지 않는다.
+- 원격 새 Head full Chromium E2E6/Quality/Docker 및 Trusted QA는 실행 결과 관측 전 **NOT TESTED**. 매번 [#724 전 실패 원장](ISSUE_724_FAILURE_ANALYSIS.md) L1–L10 + F01–F02 전체를 재참조하여 유사한 locator 대상 충돌을 비교한다.

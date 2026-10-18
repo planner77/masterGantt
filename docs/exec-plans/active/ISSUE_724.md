@@ -137,3 +137,10 @@ L9 실제 진단2: Task Editor 종료 후 `BUTTON#project-tab-dashboard.process`
 ### PR CI 첫 원격 실패 F01 / 리뷰·최신 main 충돌 보완 (2026-10-18)
 
 [Run #2947.1](https://github.com/planner77/masterGantt/actions/runs/39099275805) HEAD `ab5693ab911f280188f783865448940ab1aa3543`에서 Chromium shard1 #551 Chart 563→510px가 직접 실패했고 다른 5 shard는 취소되었다. QA Final은 E2E 실패 및 mergeability/test-merge 불일치를 보고했다. 원격 최초 F01과 과거 로컬 L1–L10의 교차 분석·근본 원인·수정·추후 재발 대응은 [#724 단일 누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 기록한다. 비활성 일정 패널 measured-height 보존, 보조 화면 ARIA 선택/roving 일치, 기존 E2E 엄격 단언과 추가 직접 회귀, 최신 main #719 도움말/테스트/문서/버전 충돌 보존을 수정 후보에 적용한다. 새로운 exact Head의 Required3/Trusted QA/Owner ACCEPT는 아직 **NOT TESTED**. `release_authorized=false`, 병합·Main/GHCR·Issue 종료·CI 완료 모니터링은 요청 범위 밖이다.
+
+
+### PR CI #2949.1 누적 실패 F02 — 기존 #552 Summary 복구 selector 교정
+
+- [원본 Run 39101001199.1](https://github.com/planner77/masterGantt/actions/runs/39101001199) HEAD `7d61e956686aff0fa66a06c677c60a53d5dee6f8`, Base `7393483c4a15007868fceeaee70fb9e13c8b119a`, test merge `c4540dd3c7d6887660fffe9ce58fdde4d51d1c69`. Quality/Docker PASS, Chromium shard4의 `milestone-visibility.spec.ts:145` strict locator 2매칭 FAIL, 다른5 shard 취소 및 QA Final required E2E FAIL. 새 코드의 모든 E2E 결과는 아직 미확정.
+- [누적 실패 원장 F02](../../ISSUE_724_FAILURE_ANALYSIS.md)에 과거 L1–L10/F01 전체와의 공통 TEST_CONTRACT 유형·미검증 경계를 기록한다. 기존 Summary→Milestone 명시 복구에서 경고 내부 복구 버튼만 정확히 선택하고 상단 전역 버튼의 `aria-pressed=false`를 확인한다. 클릭 이후 동일 Gantt/native Milestone 제거/무쓰기 단언은 보존한다.
+- 재확인한 최신 main `7393483c4a15007868fceeaee70fb9e13c8b119a`는 현재 HEAD에 합류 완료(behind=0), PR mergeable=true, 미해결 리뷰0; 불필요한 second merge를 만들지 않는다. 새 수정 Commit Push 시 새 Full PR CI가 시작되어야 하며 모니터링/병합/Main/GHCR/Issue 종료는 하지 않는다. 원격 결과·Owner ACCEPT는 **NOT TESTED**, release_authorized=false.
