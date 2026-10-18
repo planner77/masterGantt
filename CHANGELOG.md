@@ -1,4 +1,4 @@
-## [0.119.1] — Unreleased / Issue #717
+## [0.120.1] — Unreleased / Issue #717
 
 - Milestone·물류·Task/관계·리소스·기준정보·Import에서 이름을 주 식별자로 표시하고, 전체 코드/UUID는 요청 시 확인·복사한다. 코드/ID 검색·정확 동명 선택·공정 코드 자동생성/수정과 API/DB/Export·보안/revision·Gantt Core 계약을 보존한다.
 - 공정 코드 선행 열을 제거하고 이름 최소220px 및 내부 표 스크롤을 확보한다. 공통 키보드/터치 disclosure·Clipboard 실패 수동 복사 대체 경로, 단위·5폭·실제 HTTP 회귀와 화면별 예외 인벤토리를 추가한다.
@@ -7,6 +7,15 @@
 - PR CI #2968.1의 대시보드 상위 탭 selected-but-unfocused와 Milestone→공정 보기의 잘못된 자동 복원을 수정한다. active section 재선택은 현재 하위 화면을 유지하고 Tab 초점을 동기로 복원해 비활성 패널 숨김 중 focus 이탈을 방지한다. #725 WorkArea 공정·설비 문맥·migration0028과 기존 이름/ID 표시는 그대로 유지한다.
 
 - PR CI #2976.1의 담당자 이름 조회를 이름 우선 계약에 맞추고, 조회 실패에서도 canonical 이름·원본 코드/ID를 안전하게 확인하도록 보완한다. 동명 대상 구분과 정확한 주 담당/삭제·저장 차단을 유지한다. 과거 18회 실행을 동일 Issue 실패 원장에 보존하고 main #727의 프로젝트 리소스 등록 기능을 통합한다.
+
+- CI #2980.1은 Quality·Chromium E2E 6/6·Docker가 모두 성공했으나, 검사 중 main #728 병합으로 기존 base/test-merge 출처가 변경돼 QA Final이 BLOCKED되었다. 검증 게이트를 완화하지 않고 최신 main과 출처를 다시 정렬해 전체 PR CI를 재시작한다. 후보 버전 0.120.1은 정식 릴리스 승인·GHCR 게시가 아니다.
+
+## [0.120.0] — Unreleased / Issue #728
+
+- WBS Task 중심의 opt-in pure Domain 해석기·KPI 계약을 추가한다. 직접/조상/Target 출처와 고유 Task/Assignment를 보존하고 무배정 작업·등록-only 기준정보를 구분한다.
+- 새 공정 축은 명시 Task 공정0..N만 사용하며 명시0과 구형null을 구분한다. 타 공정 다중 WorkArea·같은 Task 교차 조회·단계별 정확 범위·비가산 총계와 기존 Target/API 호환을 유지한다.
+- 기존 Resource KPI/Plan·Milestone full Gate를 재사용하고 golden/metamorphic 테스트와 관련 입력·산식·문서를 동기화한다. UI·DB writer·신규 endpoint는 후속 #729/#730 범위다.
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 원격 검증 성공·Owner ACCEPT·병합·정식 릴리스 완료가 아니다.
 
 ## [0.119.0] — Unreleased / Issue #727
 

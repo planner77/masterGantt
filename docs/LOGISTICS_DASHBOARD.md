@@ -1,6 +1,12 @@
+## Issue #728 — 새 WBS source와 기존 공정 필터의 경계
+
+기존 서비스의 공정 필터는 아래 §3.2처럼 유효 설비/System 구성 범위를 사용한다. 이번 pure Domain은 이를 수정하지 않는다. 새 WBS 해석 기준에서는 Task의 명시 공정0..N만 작업 모집단에 사용하며, 명시0/구형null·Target 호환 기준을 구분한다. 동일 원시 집합이면 기존 산식을 재사용하지만 새 명시 공정 선택으로 집합이 달라지면 공정별 숫자까지 동일하다고 보장하지 않는다.
+
+무배정 일반 Task도 작업 진척·완료·지연에 포함하고 개인 공수는 고유 Assignment에서만 산출한다. 설비/구역/Milestone/Group 중첩 소계를 합산하지 않으며 조회 단계의 Task/Assignment 범위를 유지한다. Milestone full Gate와 구성 수량은 별도다. 실제 source/version·provenance·golden 수치는 [WBS 공통 계약](WBS_TASK_LEDGER.md), 공개 API/snapshot 통합은 #729다. 현재 화면이 새 source를 사용한다고 주장하지 않는다.
+
 ## Issue #724 — 현재 탐색 경로
 
-기존 KPI는 `대시보드 → KPI`, 통합 조회의 세 관점은 `대시보드 → 공정&WorkArea / 설비 / 물류 시스템`, 원본 관리는 `기준정보`의 같은 엔터티 메뉴로 이동한다. 기존 산식·서버 snapshot·정확 Task/Assignment/Target 편집·일정 drill은 그대로 재사용한다. Target 구성/제어·조율 관계는 관련 기준정보의 보조 호환 진입이며 별도 상위/하위 Target 주메뉴를 만들지 않는다. 아래 #624의 이전 `물류 구성 → 통합 조회` 표기는 당시 경로이며 현재 이관표·공개 subview 계약은 [Project UX](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 따른다. 새 Target0 집계·동적 계층은 #728~#736 후속이다.
+기존 KPI는 `대시보드 → KPI`, 통합 조회의 세 관점은 `대시보드 → 공정&WorkArea / 설비 / 물류 시스템`, 원본 관리는 `기준정보`의 같은 엔터티 메뉴로 이동한다. 기존 산식·서버 snapshot·정확 Task/Assignment/Target 편집·일정 drill은 그대로 재사용한다. Target 구성/제어·조율 관계는 관련 기준정보의 보조 호환 진입이며 별도 상위/하위 Target 주메뉴를 만들지 않는다. 아래 #624의 이전 `물류 구성 → 통합 조회` 표기는 당시 경로이며 현재 이관표·공개 subview 계약은 [Project UX](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권)를 따른다. Target0 공통 Domain은 #728이며 현재 화면/API로의 연결과 동적 계층은 #729~#736 후속이다.
 
 ## Issue #624 — 물류 통합 관점 V1 (기존 Dashboard의 읽기 전용 확장)
 

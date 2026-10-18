@@ -1,3 +1,17 @@
+## Issue #717 — Full #2980.1 Quality/E2E6/Docker SUCCESS 이후 QA Final stale merge F-016 (2026-10-19)
+
+[전용 전체 실패 원장 F-001~F-016](ISSUE_717_FAILURE_ANALYSIS.md)과 [Work Packet](exec-plans/active/ISSUE_717.md) 참조. 최신 [#2980.1](https://github.com/planner77/masterGantt/actions/runs/39163853180) (Head f1f8b08c95bd863bdd272eb529ecf8d76983683c, Base 0b8624651ad20ee5c450d29f4f5de2abdce5036b, test-merge 9806ba00c59c90a01f92d545fc3aae48a58d1140)는 **Quality PASS / Chromium E2E 모든6 Shard 및 aggregate PASS / Docker PASS**였다. 유일 실패는 QA Final Automated의 `mergeability 또는 test merge 불일치` BLOCKED. Run 시작 2026-10-18 20:33:35 UTC 후, 같은 날 20:40:41 UTC #728 main merge `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`가 발생했고 QA Final은 21:00 UTC에 구 Base/test-merge snapshot을 거부했다. **새 제품 Assertion 실패가 아니며 CI 보호 경계의 stale 출처 차단**. 이전 F-015의 실제 Node22/Chromium20파일122PASS는 옛 source의 독립 증거이며 새 main0.120.0 포함 merge source의 PASS가 아님.
+
+- **변경/영향:** PR #718 기존 Name-first·raw ID 조회, 동명·오류 경로, keyboard·5폭/HTTP·SQLite/PR UI 계약 불변. 현재 main #728의 WBS pure Domain, 신규 unit/metamorphic 및 기존 #725·#727 계약·Work Packet 모두 그대로 보존한다. 겹친 CHANGELOG/본 TEST_PLAN/active PLAN/package+lock **5파일**을 통합, manifest/lock root와 최상위 값을 `0.120.1` 후보로 정렬하고 main의 `0.120.0` 변경 원장을 별도 보존. WBS/Target/Resource/Milestone/Navigation/ContextHelp의 간접 소비자에 대해 새로운 exact HEAD에서 Full PR CI Quality/Chromium6/Docker 및 QA metadata/Trusted QA gate를 검증한다.
+- **누적 회귀:** 이전 실제 E2E 실패16파일(#621/#622/#623/#725, Target 작성, #463/#461, #130/#518/#76, Resource UI/#525~527, 오류 복구/등급, 관계·담당자) + #717 직접 name-first/identity persistence, #728 Domain 순수 단위·#727 membership 및 Main #725 Workspace/migration 인터페이스/readonly·권한/원본 저장 음성을 유지한다. 테스트/기준치·timeout/retry/skip/6Shard 정책은 완화하지 않는다. 기존 #2980의 실제 모든6 Shard PASS도 이번 새 Base에 소급 적용하지 않는다.
+- **실행/한계:** 원본 GitHub Run/Job/QA script/merge SHA/commit timestamp와 source patch 대조 수행. 이 세션에서 신규 merged source의 Node/npm/Playwright 본 실행은 `NOT TESTED`. 동일 Source 로컬 F-015 보고의 `verify:prepr fast·targeted UNKNOWN18 BLOCKED`를 PASS로 전환하지 않는다. 본 작업의 종료점은 최신 main ancestry·미해결 리뷰0·mergeable과 새 Full PR CI 시작. 결과 모니터링·병합/Main/GHCR/Finalizer/Issue 종료는 하지 않는다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false.
+
+## Issue #728 — WBS 공통 원장 검증
+
+[입력·지표 사전](WBS_TASK_LEDGER.md), [Work Packet 및 AC_TEST_COVERAGE](exec-plans/active/ISSUE_728.md)를 기준으로 Target0/직접/Target/혼합·명시 공정0/1/N·legacy null·다중 WorkArea·등록/배정/역할을 같은 Task/Assignment ID에서 검증한다. 최신 W1/W2 결정은 명시0을 구성/조상/Target으로 채우지 않는다. MCS 공통2+조립3+검사4+통합5의 전체14/A8/B9/미연결2와 E10 다중 구역 고유10을 고정 검산한다.
+
+선택 단계마다 Task/Assignment 교집합을 유지하는 E1→Milestone→공정 음성, 같은 Task 유효 교차, ACS-only subset/coverage·기존 Summary 합집합·Task 이동, 미배정/Group-only/등록-only/역할-only·unset/partial/configured0/M/M없음/진척 분모0, 선택80%/Project140%와 full Gate 보존, 입력 순서/중복/축 변경 및 mutation0을 Unit/metamorphic로 다룬다. 기존 Resource/Target/Plan/Milestone authority 회귀를 선택하고 UI/API/DB/Gantt writer 비영향의 환경별 제외를 원장에 기록한다. 로컬 PASS는 원격 세 Required·Trusted/Owner 승인과 별개다.
+
 ## Issue #717 — Full CI #2968.1 #518 상위 Navigation focus/하위 화면 보존 E2E 교정 (2026-10-18)
 
 - **원본과 누적:** [전용 실패 원장 F-001~F-012](ISSUE_717_FAILURE_ANALYSIS.md), Full [#2968.1](https://github.com/planner77/masterGantt/actions/runs/39122204893) HEAD `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3`, Base `c2395b17d864692c2e5e5aa36f55ea36e7197541`, Quality/Docker PASS, Shard5 `project-workspace-tabs-518.spec.ts:79` 50PASS/1FAIL/33 DID NOT RUN, 타5 shard CANCELLED, Automated QA E2E 파생 FAIL. 구 docs/metadata run, raw ID selector, 실제 row density, 초기 UX focus 문제를 구분한다.

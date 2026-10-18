@@ -485,3 +485,51 @@ Primary Issue #717 / PR #718의 같은 정규 원장에 추가한다. F-001~F-01
 - `verify:prepr` fast·targeted는 각각 **BLOCKED / sourceStable=true / UNKNOWN18 / MISSING0**. 공통 fingerprint `eb066607c2b0bd455b8a6030e1d89e372f92466fd4b6204f0f9cd9649c33266c`. 보고서는 `.prepr-reports/issue-717-f015-{fast,targeted}-20261019/{report.json,SUMMARY.md}`이며 핵심 source/unknown 증거는 실행 JSON에도 보존했다. 자동 매핑은 보완하지 않았으며 [기존 수동 영향 매핑](ISSUE_717_IDENTITY_INVENTORY.md)과 개별 실제 검증을 별도로 보고한다. CLI를 PASS로 바꾸지 않는다.
 - 독립 read-only `identity_qa`의 F-015 사전 source/docs 검토에서 발견한 동명 구분 P2는 code/ID 보조 복구와 설비/시스템 각각의 정확 Primary·삭제·canonical 오류 회귀로 보완했다. 미해결 P1/P2=0; 최종 commit/tree 재확인과 QA_FINAL/Owner 승인은 별개다.
 - 현재 UI 캡처 [catalog 오류390px](evidence/issue-717/f015/catalog-error-390.png), [공정 이름390px](evidence/issue-717/f015/process-default-390.png), [geometry](evidence/issue-717/f015/geometry-390.json)는 synthetic HTTP fixture의 실제 Chromium 증거다. 실기기·screen reader·모든 화면 전체 조합·운영 검증은 NOT TESTED.
+
+## 2026-10-19 — F-016: Full PR CI #2980.1 Required 3종 성공 후 QA Final stale test-merge 차단
+
+### 원본 Run/Attempt 전체 이력과 전제
+
+[Issue #717 PR #718](https://github.com/planner77/masterGantt/pull/718)은 `AGENTS.md` #704 및 [CI 누적 실패 지침](PR_CI_FAILURE_TRIAGE.md)의 **동일 Primary Issue 단일 원장**을 계속 사용한다. 과거 F-001~F-015의 실제 FAIL·CANCELLED 안 FAIL·시점별 가설·교정·로컬 검증 결과는 소급 수정·삭제하지 않는다. 조회된 관련 Run은 **19개, 모두 attempt 1**이며, 첫 #2923부터 이번 #2980까지 분리한다. 개별 과거 Head/Base/Test-Merge/Job/파일·테스트 누락 내역은 이전 절과 [F-015 전체 CI 증거 JSON](evidence/issue-717/ci-cumulative-20261019.json)을 참조한다.
+
+| CI Run / attempt | immutable Head | 원본 Run 결과 |
+| --- | --- | --- |
+| [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283) · 39080414283.1 | `23e09aada982087047d90037704cdbb8b750bf97` | FAILURE |
+| [#2926.1](https://github.com/planner77/masterGantt/actions/runs/39081286379) · 39081286379.1 | `23e09aada982087047d90037704cdbb8b750bf97` | FAILURE |
+| [#2927.1](https://github.com/planner77/masterGantt/actions/runs/39081290832) · 39081290832.1 | `d97f1e60419575f4db3785c239b3ae341b3086d5` | SUCCESS (docs-only; 제품 E2E SKIPPED) |
+| [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) · 39090284911.1 | `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc` | FAILURE |
+| [#2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164) · 39091834164.1 | `6b226df1962791a4d647811b9ad8df854d56e3a1` | FAILURE |
+| [#2942.1](https://github.com/planner77/masterGantt/actions/runs/39093363065) · 39093363065.1 | `6d23240008b0022f5376c5f8c4dcb0d1a3fadffd` | FAILURE |
+| [#2944.1](https://github.com/planner77/masterGantt/actions/runs/39095135631) · 39095135631.1 | `bfd4173f0099d03f3357262cea01b567a51825cf` | FAILURE |
+| [#2945.1](https://github.com/planner77/masterGantt/actions/runs/39097301048) · 39097301048.1 | `62b17d91e120d8879bf688f910b3e5d3889bf05d` | FAILURE |
+| [#2952.1](https://github.com/planner77/masterGantt/actions/runs/39103690860) · 39103690860.1 | `e876c351280b34633f7edabb3428116d16392d6a` | FAILURE |
+| [#2954.1](https://github.com/planner77/masterGantt/actions/runs/39105484225) · 39105484225.1 | `d41b06d2fd24384a8a18b117432165663e8fcde0` | FAILURE |
+| [#2956.1](https://github.com/planner77/masterGantt/actions/runs/39107357815) · 39107357815.1 | `4a41ae41456e048568a4d0443769ad53fb38d45c` | FAILURE |
+| [#2959.1](https://github.com/planner77/masterGantt/actions/runs/39110550430) · 39110550430.1 | `1c073adfbdda9b9ab36799338293241e7a99d0ca` | FAILURE |
+| [#2968.1](https://github.com/planner77/masterGantt/actions/runs/39122204893) · 39122204893.1 | `9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3` | FAILURE |
+| [#2970.1](https://github.com/planner77/masterGantt/actions/runs/39124981794) · 39124981794.1 | `d2e0878d28186e1916f98ff259bf74b0b1abf27c` | FAILURE |
+| [#2971.1](https://github.com/planner77/masterGantt/actions/runs/39126212649) · 39126212649.1 | `2c362645c281f932c0f0c9d67c81981d00bac5c4` | CANCELLED (로그 내부 실패는 F-015 원장에 보존) |
+| [#2972.1](https://github.com/planner77/masterGantt/actions/runs/39126248569) · 39126248569.1 | `72871264b62a16076c4f7fb68e8c958c14c02955` | FAILURE |
+| [#2975.1](https://github.com/planner77/masterGantt/actions/runs/39129631351) · 39129631351.1 | `8f455a5cfc41f4a0753381260662b5749cf54041` | CANCELLED (로그 내부 실패는 F-015 원장에 보존) |
+| [#2976.1](https://github.com/planner77/masterGantt/actions/runs/39129737531) · 39129737531.1 | `1a6bdbeb6c07ce08c280d0344daadcf5789b8278` | FAILURE |
+| [#2980.1](https://github.com/planner77/masterGantt/actions/runs/39163853180) · 39163853180.1 | `f1f8b08c95bd863bdd272eb529ecf8d76983683c` | FAILURE (Required3 SUCCESS, QA Final BLOCKED) |
+
+### F-016 Run 원본 및 실패 지점 (PRODUCT 테스트가 아니라 POLICY_CI)
+
+- **Run:** [Full #2980.1](https://github.com/planner77/masterGantt/actions/runs/39163853180), ID `39163853180`, attempt1, `pull_request`, branch `docs/issue-717-name-first-identifier-policy`. 생성 2026-10-18T20:33:35Z / 종료 2026-10-18T21:00:11Z. exact Head `f1f8b08c95bd863bdd272eb529ecf8d76983683c`, 이벤트 Base `0b8624651ad20ee5c450d29f4f5de2abdce5036b`, 이벤트 Test-Merge `9806ba00c59c90a01f92d545fc3aae48a58d1140`. Git 데이터에서 test-merge 부모 `[0b862465..., f1f8b08...]`, **Tree `13145cdb0b93615d906442bfdeda53daf291d641` = 원본 PR Head Tree** 직접 확인. 신 main은 이 원본 Run의 검증 대상이 아님.
+- **Quality [Job 117783478936](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783478936): SUCCESS**, Typecheck/Lint/Vitest/Policy/PR Build·Fast Gate·Preflight도 SUCCESS.
+- **Chromium E2E [aggregate Job 117788430486](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117788430486): SUCCESS**, Shard 1 [117783123125](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783123125), 2 [117783123122](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783123122), 3 [117783123175](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783123175), 4 [117783123089](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783123089), 5 [117783123169](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783123169), 6 [117783123084](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783123084) **모두 SUCCESS**. 이번 Run에서 새로운 직접 E2E assertion FAIL은 없음. 전 Run의 미실행/취소를 PASS로 바꾸지 않는다.
+- **Docker [aggregate Job 117783649397](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117783649397): SUCCESS** (build/smoke도 성공).
+- **독립 실패:** [QA Final Automated Job 117788450229](https://github.com/planner77/masterGantt/actions/runs/39163853180/job/117788450229) **FAILURE**. 실행 내역 `NEED_QUALITY=success`, `NEED_E2E=success`, `NEED_DOCKER=success`; 검증기는 `automated_qa=BLOCKED`, `사유: mergeability 또는 test merge 불일치` 반환. 같은 HEAD에서 Required 3종이 실패했다는 기록으로 바꾸지 않는다. `scripts/qa_final_automated.py:snapshot()`은 live PR `mergeable is True` 및 `live.merge_commit_sha == TEST_MERGE_SHA`를 별도 강제하는 보호 Gate다. 검증기를 우회·완화하지 않는다.
+- **동시성·Base 변화 근거:** Run 시작 2026-10-18 20:33:35Z, 바로 당시 Base는 `0b862465...`였다. 그 **7분 뒤 20:40:41Z** Issue #728 PR #742 merge로 `main`이 `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`로 전진했다(시간 기준은 위 원본 UTC 시각이다). QA Final은 **21:00:05Z 이후** 실행되어 이미 이전 Base에 대한 Test-Merge를 보유했고, 후속 읽기에서 PR은 `mergeable=false`/`dirty`로 확인됐다. **원인 분류: POLICY_CI / STALE_BASE_TEST_MERGE**, 새 GitHub base/missing mergeability와 원본 이벤트 snapshot의 차이. 실제 old Code/DB/HTTP/Browser 제품 실패가 아님. 인증된 QA 경로가 구 Test Merge를 거부한 것은 예상한 fail-closed 보호 동작이며 CI 우회로 취급하지 않는다.
+
+### 보완 및 교차/위험/승인 경계
+
+- 이전 main `0b8624651ad20ee5c450d29f4f5de2abdce5036b` → 새 main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`(3커밋, #728 pure WBS Domain/KPI 원장). 차이 21파일: 변경 11·신규10, PR 변경과 겹치는 **CHANGELOG.md / docs/TEST_PLAN.md / docs/exec-plans/active/PLAN.md / package.json / package-lock.json 5파일**이다. #728의 source `src/domain/resources/wbs-task-ledger.ts`, new golden/metamorphic 테스트, 문서·evidence를 모두 main에서 그대로 보존하며 #717 이름 우선·원본 ID/코드·독립 E2E·F-015 evidence/원장을 덮어쓰지 않는다. 버전 충돌은 main0.120.0보다 높은 **0.120.1 PATCH 후보**로 package manifest + lockfile root 3값 일치시키고 `CHANGELOG`의 #728 0.120.0 기록과 #717 0.120.1 기록을 모두 유지한다. SemVer 숫자 정렬은 정식 릴리스/Owner 게시 승인이 아니다.
+- 제품 React/Domain/API/DB/DTO/CI workflow/QA verifier/Runner 제약·검증 skip/timeout/retries, SVAR Core는 변경하지 않는다. 이번 REWORK의 원인은 product E2E가 아닌 인증 Base/test-merge provenance 충돌이므로 #717 테스트를 완화·재작성하거나 QA Final 검증조건을 삭제하지 않는다.
+- **지난 로컬 실증 F-015**: 동결된 *옛 HEAD 소스*에서 누적 실패 E2E 20파일122 PASS/0 FAIL/0 SKIP, 직접 unit18, 타입/Lint/version 등 PASS, Pre-PR fast/targeted는 UNKNOWN18으로 BLOCKED라는 구 기록을 그대로 둔다. 이는 새 #728 main 포함 **0.120.1 merge 후보에서 다시 실행한 결과가 아니다**. 이번 도구 환경에서 정확한 신규 merged source의 Node/Chromium 실제 재실행은 NOT TESTED. 이번 #2980의 서버 CI에 6-shard E2E SUCCESS와 Quality/Docker SUCCESS 증거는 별도로 보존하되 새 HEAD 전체 테스트 완료로 승격하지 않는다.
+- **필요 재검증:** 이전 F-001~F-015의 누적 실제 실패16 E2E 파일 + #717 직접 name-first/동명·원문 Clipboard/HTTP·SQLite, 새 #728 WBS Domain/대시보드 소비자 및 main #727/725/724/719 교차·음성 회귀를 새 정확 HEAD의 Full PR Quality/E2E6/Docker·Trusted QA에서 정상 실행. GitHub main 비교/두 부모 merge/tree·unresolved review thread0·충돌0 확인 후 기존 Draft PR #718에 expected-head **non-force**로 1회 게시, synchronize Full Run ID·attempt·Head를 실제 확인한다. 이번 CI 시작 후 결과 모니터링하지 않는다.
+- **승인/릴리스:** `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `qa_required=true`, `release_required=true`, `release_authorized=false`; PR Draft·Issue OPEN, QA/Trusted/Owner ACCEPT·PR merge/Main CI/GHCR/Finalizer/Issue Close는 별도 단계. 시작된 CI의 성공을 예고하거나 #2980 Required 성공을 신규 base의 최종 판정에 재사용하지 않는다.
+
+### 후속 재실패 대응
+새 Head에서 Full CI가 다시 FAIL/CANCELLED이면 **다음 번호 F-017**을 이 원장에 추가한다. 전체19회 이력과 새 Run/Attempt·실패/취소 Shard 내부 원문·Head/Base/Test-Merge를 같은 표로 확장한다. 이번 QA 출처 불일치가 해결됐는지 판별하고, 과거 Target/Resource/Milestone/Navigation/이름·코드/동명 표시 실패 합집합을 재검토한다. QA/Policy 실패 시 정확한 stale/permission/metadata 사유와 제품 E2E 독립 결과를 계속 분리한다.

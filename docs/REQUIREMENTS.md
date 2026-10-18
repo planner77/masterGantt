@@ -1,3 +1,9 @@
+## Issue #728 — WBS 중심 공통 해석·KPI
+
+Target0을 정상 입력으로 받는 pure Domain 경계가 동일 Task 직접/조상/Target 출처와 개인 Assignment를 고유 ID로 해석한다. 공정·설비·System·Milestone·Resource 관점으로 원본을 복제하지 않으며 무배정 Task와 등록-only 기준정보를 보존한다. 최신 W1/W2 결정에 따라 설비의 타 공정 WorkArea0..N을 허용하고 새 공정 작업범위는 Task 명시 선택0..N만 사용한다. 명시[]를 조상/Target/구성으로 채우지 않고 구형null과 출처/version을 구분한다.
+
+일반 Task 진척/완료/지연, 고유 개인 Assignment 공수, 구성 수량, 등록/배정 인원, 기존 Capacity R 및 Milestone full Gate는 서로 다른 모집단이다. 모든 selector 단계에서 같은 Task/Assignment 범위를 유지하며 소계는 합산하지 않는다. UI·DB writer·신규 endpoint는 이 단위 밖이고 기존 API 의미는 유지한다. 입력·관계·사전은 [WBS 공통 계약](WBS_TASK_LEDGER.md), 실제 검증은 [#728 Work Packet](exec-plans/active/ISSUE_728.md)을 따른다.
+
 ## Issue #725 — Target 없는 공정·WorkArea 관리
 
 `기준정보 → 공정&WorkArea`에서 Project 자유 공정/occurrence 매핑과 공통 Process Type/제품 표준/사업장 공정/WorkArea를 구분해 등록·검색·정렬·활성/비활성·사용처·안전 삭제·명시 표준 적용을 제공한다. 공통 변경은 독립 관리자, Project 매핑과 설비는 Project edit 권한으로 검증한다. Target0개에서 동작하며 Task/Target를 자동 생성하지 않는다. 미분류 legacy Project의 무관한 작업·설비 편집은 유지한다.
