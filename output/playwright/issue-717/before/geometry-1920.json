@@ -1,0 +1,33 @@
+{
+  "source": "main d2768676aa7a0edff67df9bdeb3e1b49979fd577 / mock HTTP browser",
+  "geometry": {
+    "documentWidth": 1920,
+    "headers": [
+      {
+        "name": "공정 코드",
+        "width": 500.921875
+      },
+      {
+        "name": "공정명",
+        "width": 275.0625
+      },
+      {
+        "name": "상위 공정",
+        "width": 145.265625
+      },
+      {
+        "name": "정렬 순서",
+        "width": 145.265625
+      },
+      {
+        "name": "상태",
+        "width": 116.609375
+      },
+      {
+        "name": "관리",
+        "width": 254.875
+      }
+    ],
+    "firstName": 275.0625
+  }
+}

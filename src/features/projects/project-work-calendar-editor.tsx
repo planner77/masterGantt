@@ -368,7 +368,7 @@ export function ProjectWorkCalendarEditor({
         </select></label>
         {entry.targetType!=="PROJECT"?<label className={styles.field}>대상 선택 {index+1}<select id={`calendar-date-${entry.key}-target`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-target`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-target`)?`calendar-date-${entry.key}-target-error`:undefined} value={entry.targetId} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,targetId:event.target.value}:item))}>
           <option value="">대상을 선택하세요</option>
-          {targets.filter((target)=>target.kind===(entry.targetType==="RESOURCE"?"resource":"group")).map((target)=><option key={target.id} value={target.id}>{target.name}{target.code?` (${target.code})`:""}</option>)}
+          {targets.filter((target)=>target.kind===(entry.targetType==="RESOURCE"?"resource":"group")).map((target)=><option key={target.id} value={target.id}>{target.name || "이름 확인 필요"}{target.code&&targets.some(peer=>peer.id!==target.id&&peer.name===target.name)?` (${target.code})`:""}</option>)}
         </select>{showValidation?issues.filter((issue)=>issue.id===`calendar-date-${entry.key}-target`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>:null}
         <div className={styles.actionsRow}>
           <button className="secondary-button" type="button" onClick={()=>{

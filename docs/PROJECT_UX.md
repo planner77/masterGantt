@@ -1,3 +1,7 @@
+## Issue #717 — 이름과 canonical identity 분리
+
+Milestone 표·원인/관리·공정/설비/시스템·Target·Resource 기본 목록은 이름을 먼저 표시한다. 코드/외부 ID/UUID는 명시 식별 정보에서 전체 확인·복사한다. #409 관계 Editor의 ID 검색은 보존하고 후보는 부모 이름·날짜 문맥, 동명 문맥에만 외부 ID를 보조한다. #285 공정 추가의 서버 코드 생성과 수정의 전체 코드 편집은 유지한다. #519 Membership picker를 재구현하지 않는다. 선택값·React key·URL·저장·API/DB/Export·revision과 Gantt Core는 불변이다. [인벤토리](ISSUE_717_IDENTITY_INVENTORY.md)에 관리/매핑·삭제/공유 변경 확인 예외와 원문 접근 경로를 기록한다.
+
 ## Issue #725 — 기준정보 공정·WorkArea 및 설비 다중 구역
 
 `master.processes`의 **기준정보 → 공정&WorkArea**는 Target composer를 거치지 않고 Project 자유 공정 CRUD와 occurrence 매핑을 제공한다. 기존 mapping.workAreaId는 `공정 매핑 기본 구역 (호환)`으로 표시하고 설비의 다중 구역 소속과 구별한다. 공통 관리 영역은 별도 Project Master admin 세션으로 Process Type/제품 표준/사업장 공정/WorkArea의 검색·정렬·활성/사용처·안전 삭제와 명시 선택 표준 apply를 제공한다. Project edit 권한과 공통 관리자 권한을 대신 사용하지 않는다.
@@ -1502,3 +1506,15 @@ Milestone·리소스·물류 구성의 교육용 고정 문단은 인접 도움�
 ### Issue #725 — 표 내부 스크롤과 접근성 이름
 
 공정/WorkArea 관리표의 넓은 내용과 접근성용 숨김 이름은 동일한 내부 scroll owner에 속해야 한다. absolute 숨김 label의 위치 기준도 표의 scroll owner 안으로 결속하여, 마지막 열이 화면 밖에 있어도 문서 전체를 넓히지 않는다. 기존 프로젝트 정보 disclosure의 열기·Escape·focus 동작은 유지한다. 실제390/768/1024/1440/1920px 검증과 최초 실패·진단 가설은 [Work Packet](exec-plans/active/ISSUE_725.md)에 구별한다.
+
+## Issue #717 / #724 — 상위 Navigation 탭의 키보드 포커스와 하위 화면 보존
+
+Workspace 상위 메뉴 `일정 / 대시보드 / 기준정보`의 Tab은 선택 상태(`aria-selected`), 실제 키보드 focus(`document.activeElement`), focus-visible ring·scroll 노출을 **각각** 유지해야 한다. 단지 선택된 탭이어도 keyboard focus가 body로 이탈한 경우 UX 충족으로 보지 않는다.
+
+사용자가 이미 Dashboard 화면을 보고 있는 상태에서 비활성 상위 `일정` tab에 keyboard-focus를 두고 `ArrowRight`로 다시 `대시보드`를 선택하면 **현재 활성 하위 보기**(예: Milestone)를 유지한다. 이전 다른 하위 보기(예: 공정&WorkArea) 저장 값으로 암묵적으로 바꾸지 않는다. 반대로 실제 다른 상위 section에서 Dashboard로 진입할 때는 최근 저장된 하위 보기를 복원한다. React 화면 전환 전 primary tab의 focus를 확보하고, 지연된 focus 복원이 그 뒤의 사용자 조작·Dialog에 끼어들지 않아야 한다. 동일 Gantt instance/Chart 높이·scroll·Task scope·canonical revision/권한/readonly·데이터/필터·URL 의미를 유지한다.
+
+[Issue #717 테스트 계획](TEST_PLAN.md)과 [누적 실패 원장 F-012](ISSUE_717_FAILURE_ANALYSIS.md)의 390/768/1024/1440/1920px, 3px focus-visible ring·모바일 clip·정확 URL/view 및 write0 검증을 따른다. 기존 Issue #724 키보드/공통 Navigation 계약과 #719 상황형 도움말의 Escape/focus 복귀 규칙을 완화하지 않는다.
+
+## Issue #717 — 담당자 식별 정보와 조회 실패 (2026-10-19)
+
+설비 담당자와 시스템 PI 편집의 선택된 인력은 이름을 우선하며, 동명일 때 코드/ID 보조 문맥으로 구분한다. 선택한 원본 ID·코드 전체는 별도의 식별 정보에서 확인·복사할 수 있다. 리소스 catalog 조회 실패 시 canonical 배정의 이름·코드만 사용하고 과거 catalog cache를 섞지 않는다. 식별 정보 조회는 가능하지만 기존 저장·추가·삭제·주 담당 변경은 catalog 재조회 성공 전까지 차단한다. 정확한 선택값과 If-Match는 표시 변경으로 바뀌지 않는다.

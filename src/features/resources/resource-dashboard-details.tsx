@@ -1,4 +1,6 @@
 "use client";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import { resourceProjectionFetch } from "./resource-drill-transport";
 import { useEffect, useRef, useState } from "react";
@@ -225,15 +227,9 @@ export function ResourceDashboardDetails({
                         이 Task 일정
                       </button>
                       {row.assignment ? <button type="button" data-resource-assignment-edit disabled={actionLocked || locked || !onOpenAssignment || !row.assignment.active} title={!row.assignment.active ? "비활성 리소스의 기존 배정은 조회 전용입니다." : undefined} onClick={event => onOpenAssignment?.(row.taskId, row.assignment!.assignmentId, row.assignment!.resourceId, event.currentTarget)}>배정 편집: {row.assignment.resourceName}</button> : null}
-                      {/* Keep canonical Task identity first and WBS path last in the Task column.
-                          Supplemental inactive/Assignment/Target evidence must not obscure #525's
-                          long-list traceability while preserving #621's exact edit/source details. */}
-                      <small data-resource-task-identity="true">
-                        {row.externalId} · {row.taskId}
-                      </small>
+                      <IdentifierDetails label={`${row.taskName} 식별 정보`} identifiers={[{label: "외부 ID", value: row.externalId}, {label: "작업 ID", value: row.taskId}, ...(row.assignment ? [{label: "Assignment ID", value: row.assignment.assignmentId}, {label: "Resource ID", value: row.assignment.resourceId}] : []), ...(row.targetSources?.effectiveTargetIds.map(value => ({label: "Target ID", value})) ?? [])]} />
                       {row.assignment && !row.assignment.active ? <small>비활성 리소스 · 기존 배정 조회 전용</small> : null}
-                      {row.assignment ? <small data-resource-assignment-identity="true">Assignment ID {row.assignment.assignmentId} · Resource ID {row.assignment.resourceId}</small> : null}
-                      {row.targetSources ? <small>Target 출처: 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy 직접 {row.targetSources.legacySources.length} · {row.targetSources.effectiveTargetIds.join(", ") || "Target 미연결"}</small> : null}
+                      {row.targetSources ? <small>Target 출처: 직접 {row.targetSources.bindings.length} · 상속 {row.targetSources.inheritedBindings.length} · Legacy 직접 {row.targetSources.legacySources.length} · {row.targetSources.effectiveTargetIds.length ? `Target ${row.targetSources.effectiveTargetIds.length}개` : "Target 미연결"}</small> : null}
                       <small>
                         {row.wbsPath.map((part) => part.name).join(" / ") ||
                           "—"}

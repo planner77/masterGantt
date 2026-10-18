@@ -135,7 +135,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   await openWorkspaceView(page, "kpi");
   const logisticsPanel = page.locator("#project-panel-logistics");
   await expect(logisticsPanel.getByRole("heading", { name: "관련 Milestone — Milestone 전체 상태 기준", exact: true })).toBeVisible();
-  const relatedStage = logisticsPanel.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤", exact: true }).getByRole("row", { name: /M-B/ });
+  const relatedStage = logisticsPanel.getByRole("region", { name: "Milestone 전체 상태 표 가로 스크롤", exact: true }).locator(`tr[data-milestone-task-id="${b.taskId}"]`);
   await expect(relatedStage).toContainText("Ready"); await expect(relatedStage).toContainText("1 / 1");
   expect((await getBrowserSnapshot()).data.project.revision).toBe(snapshot.data.project.revision);
   await testInfo.attach("actual-canonical-stage-snapshot", { body: JSON.stringify({ projectPublicId: publicId, projectRevision: full.projectRevision, catalogRevision: full.catalogRevision, stageIds: full.rows.map((stage) => stage.milestoneTaskId), assignmentIds: partial.effort.assignmentIds, workloadRange: partial.workloadRange, fullJoin: fullJoin.stageGate, grandTotalMd: partial.effort.plannedMd, bucketTotals: partial.effort.buckets.map((bucket) => ({ milestoneTaskId: bucket.milestoneTaskId, plannedMd: bucket.plannedMd })) }, null, 2), contentType: "application/json" });

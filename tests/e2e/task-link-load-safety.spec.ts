@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, installStatefulProjectFixture, publicId } from "../fixtures/stateful-project";
@@ -117,7 +118,9 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.getByRole("button", { name: "담당자", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
     await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
-    await expect(dialog.locator("strong").filter({ hasText: "기존 담당자 (ENG-01)" })).toBeVisible();
+    await expect(dialog.locator("strong").filter({ hasText: /^기존 담당자$/ })).toBeVisible();
+    await expectRawIdentifier(dialog, "리소스 코드", "ENG-01");
+    await expectRawIdentifier(dialog, "리소스 ID", "res-1");
     await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
     await expect(dialog.getByRole("combobox").first()).toBeDisabled();
     expect(mutations).toBe(0);
@@ -182,14 +185,19 @@ test("재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름
   await openWorkspaceView(page, "equipment");
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   let dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
-  await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toBeVisible();
+  await expect(dialog.locator("strong").filter({ hasText: /^이전 캐시 이름$/ })).toBeVisible();
+  await expectRawIdentifier(dialog, "리소스 코드", "OLD-01");
+  await expectRawIdentifier(dialog, "리소스 ID", "res-1");
   await page.keyboard.press("Escape");
   fail = true;
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
   await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
-  await expect(dialog.getByText("기존 담당자 (ENG-01)", { exact: true })).toBeVisible();
-  await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toHaveCount(0);
+  await expect(dialog.locator("strong").filter({ hasText: /^기존 담당자$/ })).toBeVisible();
+  await expectRawIdentifier(dialog, "리소스 코드", "ENG-01");
+  await expectRawIdentifier(dialog, "리소스 ID", "res-1");
+  await expect(dialog.locator("strong").filter({ hasText: /^이전 캐시 이름$/ })).toHaveCount(0);
+  expect(await dialog.locator("textarea").evaluateAll(fields => fields.some(field => (field as HTMLTextAreaElement).value === "OLD-01"))).toBe(false);
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
 });
 
@@ -203,10 +211,68 @@ test("시스템 PI의 malformed 후보에서도 canonical 이름과 저장 차�
   await openWorkspaceView(page, "systems");
   await page.getByRole("button", { name: "PI/개발자", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: /시스템 PI/ });
-  await expect(dialog.getByText("기존 PI (PI-01)", { exact: true })).toBeVisible();
+  await expect(dialog.locator("strong").filter({ hasText: /^기존 PI$/ })).toBeVisible();
+  await expectRawIdentifier(dialog, "리소스 코드", "PI-01");
+  await expectRawIdentifier(dialog, "리소스 ID", "res-1");
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
   await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
   fail = false;
   await dialog.getByRole("button", { name: "리소스 목록 다시 시도" }).click();
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
 });
+
+for (const kind of ["equipment", "system"] as const) {
+  test(`동명 ${kind === "equipment" ? "설비 담당자" : "시스템 PI"}는 원본별 주 담당·삭제와 canonical 오류 복구를 구분한다`, async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    const role = kind === "equipment" ? "owner" as const : "pi" as const;
+    const resourceRoles = [1, 2].map(n => ({ resourceId: `res-${n}`, resourceName: "동명 담당자", resourceCode: `CAN-${n}`, role, isPrimary: n === 1, active: true }));
+    fixture.logistics = kind === "equipment"
+      ? { processes: [], equipment: [{ ...JSON.parse(JSON.stringify(logistics())).equipment[0], resourceRoles: resourceRoles.map(item => ({ ...item, role: "owner" as const })) }], systems: [], systemLinks: [] }
+      : { processes: [], equipment: [], systems: [{ id: "sys-1", code: "MCS", name: "조율 시스템", systemType: "mcs", layer: "coordinator", scope: "project", processIds: [], coordinatedSystemIds: [], vendor: "", description: "", active: true, createdAt: "", updatedAt: "", resourceRoles: resourceRoles.map(item => ({ ...item, role: "pi" as const })) }], systemLinks: [] };
+    let failCatalog = false;
+    const payloads: unknown[] = [];
+    const matches: (string | undefined)[] = [];
+    await page.route("**/api/resources", route => route.fulfill(failCatalog ? { status: 500, json: {} } : { json: { data: { resources: [1, 2].map(n => ({ id: `res-${n}`, name: "동명 담당자", code: `CAT-${n}`, active: true })) } } }));
+    await page.route(`**${path}/logistics/${kind === "equipment" ? "equipment/eq-1" : "systems/sys-1"}/resource-roles`, route => {
+      payloads.push(route.request().postDataJSON());
+      matches.push(route.request().headers()["if-match"]);
+      return route.fulfill({ status: 500, json: { error: { code: "FAILED", message: "합성 저장 오류" } } });
+    });
+    await page.goto(`/projects/${publicId}`);
+    await openWorkspaceView(page, kind === "equipment" ? "equipment" : "systems");
+    const trigger = page.getByRole("button", { name: kind === "equipment" ? "담당자" : "PI/개발자", exact: true });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: kind === "equipment" ? /설비 담당자 배정/ : /시스템 PI/ });
+    const second = dialog.locator('[data-role-resource-id="res-2"]');
+    await expect(second.locator("strong")).toHaveText("동명 담당자 (CAT-2)");
+    await expectRawIdentifier(dialog, "리소스 ID", "res-2");
+    await expectRawIdentifier(dialog, "리소스 코드", "CAT-2");
+    await second.getByRole("button", { name: kind === "equipment" ? "주 담당 지정" : "주 책임 지정", exact: true }).click();
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    await expect.poll(() => payloads.length).toBe(1);
+    expect(payloads[0]).toEqual({ roles: [{ resourceId: "res-1", role, isPrimary: false }, { resourceId: "res-2", role, isPrimary: true }] });
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+    await second.getByRole("button", { name: "삭제", exact: true }).click();
+    await expect(second).toHaveCount(0);
+    await expect(dialog.locator('[data-role-resource-id="res-1"] strong')).toHaveText("동명 담당자 (CAT-1)");
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    await expect.poll(() => payloads.length).toBe(2);
+    expect(payloads[1]).toEqual({ roles: [{ resourceId: "res-1", role, isPrimary: false }] });
+    expect(matches).toEqual(['"40"', '"40"']);
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+    await page.keyboard.press("Escape");
+    failCatalog = true;
+    await trigger.click();
+    await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
+    for (const n of [1, 2]) {
+      await expect(dialog.locator(`[data-role-resource-id="res-${n}"] strong`)).toHaveText(`동명 담당자 (CAN-${n})`);
+      await expectRawIdentifier(dialog, "리소스 ID", `res-${n}`);
+      await expectRawIdentifier(dialog, "리소스 코드", `CAN-${n}`);
+    }
+    expect(await dialog.locator("textarea").evaluateAll(fields => fields.some(field => (field as HTMLTextAreaElement).value.startsWith("CAT-")))).toBe(false);
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+    await expect(dialog.locator('[data-role-resource-id="res-2"]').getByRole("button", { name: "삭제", exact: true })).toBeDisabled();
+    expect(payloads).toHaveLength(2);
+    expect(fixture.project.revision).toBe(40);
+  });
+}

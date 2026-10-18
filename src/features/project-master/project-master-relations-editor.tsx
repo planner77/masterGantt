@@ -40,20 +40,20 @@ export function ProjectMasterRelationsEditor({ catalog, busy, mutate }: Props) {
       <label>사업부
         <select disabled={busy} value={businessUnitId} onChange={(event) => { setBusinessUnitId(event.target.value);setProductId("");setSiteEntityId("");setRemoveKey(null); }}>
           <option value="">사업부 선택</option>
-          {businessUnits.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}
+          {businessUnits.map((item) => <option key={item.id} value={item.id}>{item.name}{items.some(other => other.id !== item.id && other.category === item.category && other.name === item.name) ? ` (${item.code})` : ""}</option>)}
         </select>
       </label>
       <label>제품
         <select disabled={busy || !businessUnitId} value={productId} onChange={(event) => { setProductId(event.target.value);setSiteEntityId("");setRemoveKey(null); }}>
           <option value="">제품 선택</option>
-          {products.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}
+          {products.map((item) => <option key={item.id} value={item.id}>{item.name}{items.some(other => other.id !== item.id && other.category === item.category && other.name === item.name) ? ` (${item.code})` : ""}</option>)}
         </select>
       </label>
       <button className="secondary-button" type="button" disabled={busy || !businessUnitId || !productId || pairExists} onClick={() => void add(false)}>제품 연결</button>
       <label>사업장/법인
         <select disabled={busy || !pairExists} value={siteEntityId} onChange={(event) => setSiteEntityId(event.target.value)}>
           <option value="">사업장/법인 선택</option>
-          {siteEntities.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.code})</option>)}
+          {siteEntities.map((item) => <option key={item.id} value={item.id}>{item.name}{items.some(other => other.id !== item.id && other.category === item.category && other.name === item.name) ? ` (${item.code})` : ""}</option>)}
         </select>
       </label>
       <button className="secondary-button" type="button" disabled={busy || !pairExists || !siteEntityId || siteExists} onClick={() => void add(true)}>사업장/법인 연결</button>

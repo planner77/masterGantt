@@ -1,4 +1,5 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type {
@@ -29,8 +30,9 @@ import type { LogisticsTargetListResponse, LogisticsTargetUsageDto } from "@/con
 import { taskContextLabels } from "./task-context-label";
 import type { ProjectDto } from "@/contracts/projects";
 import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources";
+import { IdentifierDetails } from "@/components/identifier-details";
+import { logisticsName } from "./logistics-identity";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
-import { ContextHelp } from "@/components/ui/context-help";
 import { ProjectLogisticsTargets } from "./project-logistics-targets";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import { ProjectLogisticsUnified } from "./project-logistics-unified";
@@ -287,7 +289,7 @@ export function ProjectLogisticsManagement({
       if (!includeInactive && !p.active) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q);
+      return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
     });
   }, [logistics.processes, includeInactive, searchQuery]);
 
@@ -300,6 +302,7 @@ export function ProjectLogisticsManagement({
       return (
         e.name.toLowerCase().includes(q) ||
         e.code.toLowerCase().includes(q) ||
+        e.id.toLowerCase().includes(q) ||
         e.model.toLowerCase().includes(q) ||
         e.manufacturer.toLowerCase().includes(q)
       );
@@ -314,7 +317,7 @@ export function ProjectLogisticsManagement({
       }
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
-      return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q);
+      return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     });
   }, [logistics.systems, includeInactive, processFilter, searchQuery]);
 
@@ -417,7 +420,7 @@ export function ProjectLogisticsManagement({
         if(!res.ok)throw new Error();
         const data=(await res.json() as LogisticsTargetListResponse).data;
         if(data.projectRevision!==revision)throw new Error();
-        matching.push(...data.targets.filter(t=>t.members.some(m=>m.kind===kind&&m.entityId===id)).map(t=>({id:t.id,name:`${t.code} · ${t.name} (ID: ${t.id})`})));
+        matching.push(...data.targets.filter(t=>t.members.some(m=>m.kind===kind&&m.entityId===id)).map(t=>({id:t.id,name:`${t.name} (${t.code})`})));
         offset+=data.targets.length;if(offset>=data.total)break;if(!data.targets.length||offset>10000)throw new Error();
       }
       const candidateTaskIds=new Set<string>();const taskIds=new Set<string>();let legacyCount:number|null=null;
@@ -572,7 +575,7 @@ export function ProjectLogisticsManagement({
             <input
               className={styles.searchInput}
               type="search"
-              placeholder="코드 또는 이름 검색"
+              placeholder="이름, 코드 또는 ID 검색"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="물류 항목 검색"
@@ -587,7 +590,7 @@ export function ProjectLogisticsManagement({
                 <option value="all">전체 공정</option>
                 {logistics.processes.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.code} - {p.name}
+                    {logisticsName(p, logistics.processes)}
                   </option>
                 ))}
               </select>
@@ -698,10 +701,9 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "processes"}
       >
         <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+          <table className={`${styles.dataTable} ${styles.processTable}`}>
             <thead>
               <tr>
-                <th>공정 코드</th>
                 <th>공정명</th>
                 <th>상위 공정</th>
                 <th>정렬 순서</th>
@@ -712,7 +714,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredProcesses.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 6 : 5} className={styles.emptyState}>
+                  <td colSpan={editable ? 5 : 4} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 공정이 없습니다.<ContextHelp label="공정 등록 도움말">공정을 등록하여 물류 설비 및 시스템을 체계적으로 분류하세요.</ContextHelp></div>
                   </td>
                 </tr>
@@ -722,15 +724,13 @@ export function ProjectLogisticsManagement({
                   return (
                     <tr key={p.id} className={!p.active ? styles.inactiveRow : undefined}>
                       <td>
-                        <strong>{p.code}</strong>
-                      </td>
-                      <td>
                         <span className={parent ? styles.treeItemLevel1 : styles.treeItemLevel0}>
                           {parent ? "└ " : ""}
-                          {p.name}
+                          <strong>{p.name.trim() || "이름 확인 필요"}</strong>
                         </span>
+                        <IdentifierDetails identifiers={[{ label: "공정 코드", value: p.code }, { label: "공정 ID", value: p.id }]} />
                       </td>
-                      <td>{parent ? `${parent.name} (${parent.code})` : "-"}</td>
+                      <td>{parent ? logisticsName(parent, logistics.processes) : "-"}</td>
                       <td>{p.sortOrder}</td>
                       <td>
                         <span
@@ -789,12 +789,11 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "equipment"}
       >
         <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+          <table className={`${styles.dataTable} ${styles.equipmentTable}`}>
             <thead>
               <tr>
                 <th>주 관리 공정</th>
                 <th>연결 WorkArea</th>
-                <th>설비 코드</th>
                 <th>설비명</th>
                 <th>유형</th>
                 <th>단위/수량</th>
@@ -807,7 +806,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredEquipment.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 10 : 9} className={styles.emptyState}>
+                  <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 설비가 없습니다.<ContextHelp label="설비 등록 도움말">공정에 물류 설비(Stocker, AGV, AMR 등)를 등록하고 제어 시스템을 연결하세요.</ContextHelp></div>
                   </td>
                 </tr>
@@ -822,12 +821,9 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={eq.id} className={!eq.active ? styles.inactiveRow : undefined}>
-                      <td>{proc ? `${proc.name} (${proc.code})` : eq.processId}</td>
+                      <td>{proc ? logisticsName(proc, logistics.processes) : "공정 참조 확인 필요"}</td>
                       <td>{eq.workAreaLinks?.length ? `${eq.workAreaLinks.length}개` : "미연결"}</td>
-                      <td>
-                        <strong>{eq.code}</strong>
-                      </td>
-                      <td>{eq.name}</td>
+                      <td><strong>{eq.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
                           {equipmentTypeLabels.get(eq.equipmentType) ?? eq.equipmentType}
@@ -946,10 +942,9 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "systems"}
       >
         <div className={styles.tableContainer}>
-          <table className={styles.dataTable}>
+          <table className={`${styles.dataTable} ${styles.systemTable}`}>
             <thead>
               <tr>
-                <th>시스템 코드</th>
                 <th>시스템명</th>
                 <th>유형</th>
                 <th>계층</th>
@@ -963,7 +958,7 @@ export function ProjectLogisticsManagement({
             <tbody>
               {filteredSystems.length === 0 ? (
                 <tr>
-                  <td colSpan={editable ? 9 : 8} className={styles.emptyState}>
+                  <td colSpan={editable ? 8 : 7} className={styles.emptyState}>
                     <div className={styles.emptyStateTitle}>등록된 물류 시스템이 없습니다.<ContextHelp label="시스템 등록 도움말">제어 시스템(SCS, ACS 등) 및 상위 조율 시스템(MCS)을 등록하세요.</ContextHelp></div>
                   </td>
                 </tr>
@@ -977,10 +972,7 @@ export function ProjectLogisticsManagement({
 
                   return (
                     <tr key={sys.id} className={!sys.active ? styles.inactiveRow : undefined}>
-                      <td>
-                        <strong>{sys.code}</strong>
-                      </td>
-                      <td>{sys.name}</td>
+                      <td><strong>{sys.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
                           {systemTypeLabels.get(sys.systemType) ?? sys.systemType}
@@ -1004,7 +996,7 @@ export function ProjectLogisticsManagement({
                               const p = processById.get(pid);
                               return (
                                 <span key={pid} className={styles.roleTag}>
-                                  {p ? p.name : pid}
+                                  {p ? logisticsName(p, logistics.processes) : "공정 참조 확인 필요"}
                                 </span>
                               );
                             })}
@@ -1160,7 +1152,7 @@ export function ProjectLogisticsManagement({
                       return (
                         <tr key={coordSys.id}>
                           <td>
-                            <strong>{coordSys.name}</strong> ({coordSys.code})
+                            <strong>{logisticsName(coordSys, logistics.systems)}</strong>
                           </td>
                           <td style={{ color: "var(--text-muted)" }}>연계된 하위 시스템 없음</td>
                           <td>-</td>
@@ -1179,7 +1171,7 @@ export function ProjectLogisticsManagement({
                         <tr key={`${coordSys.id}-${ctrlSys.id}`}>
                           {idx === 0 ? (
                             <td rowSpan={childSys.length}>
-                              <strong>{coordSys.name}</strong> ({coordSys.code})
+                              <strong>{logisticsName(coordSys, logistics.systems)}</strong>
                               <br />
                               <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
                                 {pi ? `★ PI: ${pi.resourceName}` : "PI 미지정"}
@@ -1187,7 +1179,7 @@ export function ProjectLogisticsManagement({
                             </td>
                           ) : null}
                           <td>
-                            <strong>{ctrlSys.name}</strong> ({ctrlSys.code})
+                            <strong>{logisticsName(ctrlSys, logistics.systems)}</strong>
                             {ctrlPi ? ` [PI: ${ctrlPi.resourceName}]` : ""}
                           </td>
                           <td>
@@ -1205,7 +1197,7 @@ export function ProjectLogisticsManagement({
                                       style={{ marginRight: "0.25rem", marginBottom: "0.2rem" }}
                                     >
                                       {isPrimaryCtrl ? "★ " : ""}
-                                      {e.name} ({e.code})
+                                      {logisticsName(e, logistics.equipment)}
                                     </span>
                                   );
                                 })}
@@ -1218,7 +1210,7 @@ export function ProjectLogisticsManagement({
                             {controlledEq
                               .map((e) => {
                                 const owner = e.resourceRoles.find((r) => r.isPrimary);
-                                return owner ? `${e.code}: ${owner.resourceName}` : null;
+                                return owner ? `${e.name}: ${owner.resourceName}` : null;
                               })
                               .filter(Boolean)
                               .join(", ") || "-"}
@@ -1574,7 +1566,7 @@ function ProcessDialog({
               <option value="">(최상위 공정)</option>
               {eligibleParents.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
+                  {logisticsName(p, allProcesses)}
                 </option>
               ))}
             </select>
@@ -1740,7 +1732,7 @@ function EquipmentDialog({
             >
               {allProcesses.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
+                  {logisticsName(p, allProcesses)}
                 </option>
               ))}
             </select>
@@ -1975,7 +1967,7 @@ function EquipmentSystemsDialog({
                       onChange={(e) => toggleSystem(s.id, e.target.checked)}
                     />
                     <span>
-                      <strong>{s.name}</strong> ({s.code}) - {s.systemType.toUpperCase()}
+                      <strong>{logisticsName(s, allSystems)}</strong> - {s.systemType.toUpperCase()}
                     </span>
                   </label>
                   {isSelected ? (
@@ -2065,6 +2057,17 @@ function EquipmentRolesDialog({
     return map;
   }, [catalogResources]);
 
+  function selectedIdentity(resourceId: string) {
+    const res = resourceById.get(resourceId);
+    const canonical = equipment.resourceRoles.find(role => role.resourceId === resourceId);
+    const name = catalogReady && res ? res.name : canonical?.resourceName ?? "등록 정보를 확인할 수 없는 인력";
+    const code = catalogReady && res ? res.code : canonical?.resourceCode;
+    const duplicateName = catalogReady && res
+      ? catalogResources.some(other => other.id !== resourceId && other.name === res.name)
+      : canonical && equipment.resourceRoles.some(other => other.resourceId !== resourceId && other.resourceName === canonical.resourceName && selectedRoles.some(selected => selected.resourceId === other.resourceId));
+    return { name: duplicateName ? `${name} (${code || resourceId})` : name, code };
+  }
+
   const handleAdd = () => {
     if (busy || !catalogReady) return;
     if (!addResourceId) return;
@@ -2147,14 +2150,13 @@ function EquipmentRolesDialog({
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
-              const canonical = equipment.resourceRoles.find((role) => role.resourceId === item.resourceId);
-              const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
-              const gradeText = developerGradeLabel(res?.developerGrade);
+              const { name: displayName } = selectedIdentity(item.resourceId);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
                 <div
                   key={`${item.resourceId}-${item.role}`}
+                  data-role-resource-id={item.resourceId}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -2220,7 +2222,7 @@ function EquipmentRolesDialog({
               <option value="">(리소스 선택)</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {r.name} ({r.code ?? "코드없음"}) · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
+                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
                 </option>
               ))}
             </select>
@@ -2261,6 +2263,15 @@ function EquipmentRolesDialog({
         </div>
 
         </fieldset>
+        <section aria-label="배정된 인력 식별 정보" style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
+          {selectedRoles.map(item => {
+            const { name, code } = selectedIdentity(item.resourceId);
+            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={`${name} 식별 정보`} identifiers={[
+              { label: "리소스 ID", value: item.resourceId },
+              ...(code ? [{ label: "리소스 코드", value: code }] : []),
+            ]} />;
+          })}
+        </section>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
@@ -2495,7 +2506,7 @@ function SystemProcessesDialog({
                   onChange={(e) => toggle(p.id, e.target.checked)}
                 />
                 <span>
-                  <strong>{p.code}</strong> - {p.name}
+                  <strong>{logisticsName(p, allProcesses)}</strong>
                 </span>
               </label>
             ))
@@ -2549,7 +2560,7 @@ function SystemChildrenDialog({
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--text-muted)" }}>
-          상위 조율 시스템({system.code})이 명령/작업을 조율할 하위 제어/조율 시스템을 선택합니다.
+          상위 조율 시스템({system.name})이 명령/작업을 조율할 하위 제어/조율 시스템을 선택합니다.
           <br />
           순환 연계(DAG cycle)는 서버에서 자동으로 검증 및 방지됩니다.
         </p>
@@ -2577,7 +2588,7 @@ function SystemChildrenDialog({
                   onChange={(e) => toggle(s.id, e.target.checked)}
                 />
                 <span>
-                  <strong>{s.code}</strong> - {s.name} ({s.layer === "coordinator" ? "조율" : "제어"})
+                  <strong>{logisticsName(s, allSystems)}</strong> ({s.layer === "coordinator" ? "조율" : "제어"})
                 </span>
               </label>
             ))
@@ -2640,6 +2651,17 @@ function SystemRolesDialog({
     }
     return map;
   }, [catalogResources]);
+
+  function selectedIdentity(resourceId: string) {
+    const res = resourceById.get(resourceId);
+    const canonical = system.resourceRoles.find(role => role.resourceId === resourceId);
+    const name = catalogReady && res ? res.name : canonical?.resourceName ?? "등록 정보를 확인할 수 없는 인력";
+    const code = catalogReady && res ? res.code : canonical?.resourceCode;
+    const duplicateName = catalogReady && res
+      ? catalogResources.some(other => other.id !== resourceId && other.name === res.name)
+      : canonical && system.resourceRoles.some(other => other.resourceId !== resourceId && other.resourceName === canonical.resourceName && selectedRoles.some(selected => selected.resourceId === other.resourceId));
+    return { name: duplicateName ? `${name} (${code || resourceId})` : name, code };
+  }
 
   const handleAdd = () => {
     if (busy || !catalogReady) return;
@@ -2726,14 +2748,14 @@ function SystemRolesDialog({
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
-              const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
-              const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const { name: displayName } = selectedIdentity(item.resourceId);
               const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
                 <div
                   key={`${item.resourceId}-${item.role}`}
+                  data-role-resource-id={item.resourceId}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -2799,7 +2821,7 @@ function SystemRolesDialog({
               <option value="">(리소스 선택)</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {r.name} ({r.code ?? "코드없음"}) {!r.active ? " · 비활성" : ""}
+                  {catalogResources.filter(item => item.name === r.name).length > 1 ? `${r.name} (${r.code ?? r.id})` : r.name} {!r.active ? " · 비활성" : ""}
                 </option>
               ))}
             </select>
@@ -2840,6 +2862,15 @@ function SystemRolesDialog({
         </div>
 
         </fieldset>
+        <section aria-label="배정된 인력 식별 정보" style={{ display: "grid", gap: "0.4rem", minWidth: 0 }}>
+          {selectedRoles.map(item => {
+            const { name, code } = selectedIdentity(item.resourceId);
+            return <IdentifierDetails key={`${item.resourceId}-${item.role}`} label={`${name} 식별 정보`} identifiers={[
+              { label: "리소스 ID", value: item.resourceId },
+              ...(code ? [{ label: "리소스 코드", value: code }] : []),
+            ]} />;
+          })}
+        </section>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소

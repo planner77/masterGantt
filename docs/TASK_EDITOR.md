@@ -1,3 +1,7 @@
+## Issue #717 — 이름 우선 식별 정보
+
+Task Editor·Milestone 소속·Target binding의 원문 ID는 접힌 식별 정보로 조회·복사한다. 관계 후보는 부모 이름·시작일, 필요 시 외부 ID로 동명을 구별하며 검색과 연결 body의 canonical ID는 유지한다. 상위 Task ID가 달라도 부모 표시명이 같으면 같은 표시 문맥으로 판정한다. Assignment의 이름 우선 표시와 Target provenance 원문 접근을 분리한다. readonly·dirty/stale·저장 단위·focus·revision 계약은 기존대로다.
+
 ## Issue #725 — 직접 공정·WorkArea API 인계 (#726 화면 비범위)
 
 Task/Summary의 사용자 선택 공정0..N을 Target 없이 저장하는 `GET/PUT /api/projects/{publicId}/tasks/{taskId}/process-context`를 추가한다. 이번 변경은 공용 Task Editor의 선택 UI를 추가하지 않으며 #726이 이 API와 canonical `logistics.taskProcessContexts`를 소비한다. 기존 설비/System/Target 편집과 상속은 유지한다.

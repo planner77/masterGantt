@@ -1,4 +1,5 @@
 "use client";
+import { ContextHelp } from "@/components/ui/context-help";
 
 import { useEffect, useState, useId, useRef, type KeyboardEvent } from "react";
 import type { LogisticsDashboardDto } from "@/contracts/logistics-dashboard";
@@ -6,7 +7,7 @@ import type { ProjectTaskDto } from "@/contracts/projects";
 import { ProjectMilestoneStageTable } from "../milestones/project-milestone-stage-table";
 import { conversionLabel, dashboardStageValid, projectDateAt } from "../milestones/milestone-dashboard-model";
 import { parseDateOnly } from "@/domain/scheduling/date-only";
-import { ContextHelp } from "@/components/ui/context-help";
+import { IdentifierDetails } from "@/components/identifier-details";
 import styles from "./project-logistics-dashboard.module.css";
 
 export interface ProjectLogisticsDashboardProps {
@@ -550,7 +551,6 @@ export function ProjectLogisticsDashboard({
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>공정 코드</th>
                       <th>공정명</th>
                       <th>연결 작업 수</th>
                       <th>기간 가중 진척률</th>
@@ -562,15 +562,14 @@ export function ProjectLogisticsDashboard({
                   <tbody>
                     {dashboard.breakdowns.processes.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className={styles.emptyNotice}>
+                        <td colSpan={6} className={styles.emptyNotice}>
                           등록된 공정이 없습니다.
                         </td>
                       </tr>
                     ) : (
                       dashboard.breakdowns.processes.map((p) => (
                         <tr key={p.id}>
-                          <td><strong>{p.code}</strong></td>
-                          <td>{p.name} {!p.active && <span style={{ color: "#94a3b8" }}>(비활성)</span>}</td>
+                          <td><strong>{p.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "공정 코드", value: p.code }, { label: "공정 ID", value: p.id }]} /> {!p.active && <span style={{ color: "#94a3b8" }}>(비활성)</span>}</td>
                           <td>{p.taskCount}건</td>
                           <td>
                             {p.progressPercent !== null ? (
@@ -616,7 +615,6 @@ export function ProjectLogisticsDashboard({
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>설비 코드</th>
                       <th>설비명</th>
                       <th>유형 / 수량</th>
                       <th>배치 공정</th>
@@ -632,15 +630,14 @@ export function ProjectLogisticsDashboard({
                   <tbody>
                     {dashboard.breakdowns.equipment.length === 0 ? (
                       <tr>
-                        <td colSpan={11} className={styles.emptyNotice}>
+                        <td colSpan={10} className={styles.emptyNotice}>
                           등록된 설비가 없습니다.
                         </td>
                       </tr>
                     ) : (
                       dashboard.breakdowns.equipment.map((eq) => (
                         <tr key={eq.id}>
-                          <td><strong>{eq.code}</strong></td>
-                          <td>{eq.name} {!eq.active && <span style={{ color: "#94a3b8" }}>(비활성)</span>}</td>
+                          <td><strong>{eq.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /> {!eq.active && <span style={{ color: "#94a3b8" }}>(비활성)</span>}</td>
                           <td>{eq.equipmentType} ({eq.quantity}대)</td>
                           <td>{eq.processName ?? "-"}</td>
                           <td>{eq.primaryControllerName ?? <span style={{ color: "#d97706" }}>미지정</span>}</td>
@@ -690,7 +687,6 @@ export function ProjectLogisticsDashboard({
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>시스템 코드</th>
                       <th>시스템명</th>
                       <th>유형 / 계층</th>
                       <th>주 책임자 (PI)</th>
@@ -704,15 +700,14 @@ export function ProjectLogisticsDashboard({
                   <tbody>
                     {dashboard.breakdowns.systems.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className={styles.emptyNotice}>
+                        <td colSpan={8} className={styles.emptyNotice}>
                           등록된 시스템이 없습니다.
                         </td>
                       </tr>
                     ) : (
                       dashboard.breakdowns.systems.map((sys) => (
                         <tr key={sys.id}>
-                          <td><strong>{sys.code}</strong></td>
-                          <td>{sys.name} {!sys.active && <span style={{ color: "#94a3b8" }}>(비활성)</span>}</td>
+                          <td><strong>{sys.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} /> {!sys.active && <span style={{ color: "#94a3b8" }}>(비활성)</span>}</td>
                           <td>{sys.systemType} ({sys.layer})</td>
                           <td>{sys.primaryPIName ?? <span style={{ color: "#d97706" }}>미지정</span>}</td>
                           <td>{sys.taskCount}건</td>

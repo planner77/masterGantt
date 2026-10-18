@@ -179,7 +179,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   expect([...requestPayload.scope.assignmentIds].sort()).toEqual([...partial.effort.assignmentIds].sort());
   expect(requestPayload.filters).toMatchObject({ from: "2026-10-06", to: "2026-10-07" });
   await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
-  await openWorkspaceView(page, "logistics"); await openWorkspaceView(page, "kpi"); await expect(page.locator("#project-panel-logistics").getByRole("row", { name: /M-JOIN/ })).toContainText("3");
+  await openWorkspaceView(page, "logistics"); await openWorkspaceView(page, "kpi"); await expect(page.locator("#project-panel-logistics").locator(`tr[data-milestone-task-id="${join.taskId}"]`)).toContainText("3");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
 
   // Download both formats through the actual UI, then inspect their bytes.
