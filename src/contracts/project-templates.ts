@@ -157,6 +157,8 @@ export interface TemplateTaskContextSnapshotItem {
 }
 
 export interface ProjectTemplateSnapshot {
+  /** Explicit Project participants, referencing existing global Resource IDs. */
+  resourceMemberships?: string[];
   /** Omission supports snapshots saved before membership preservation. */
   memberships?: TemplateMembershipSnapshotItem[];
   sourceRevision: number;

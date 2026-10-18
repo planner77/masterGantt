@@ -8,6 +8,12 @@ Template는 설비 WorkArea 관계 또는 Task 명시 marker가 있으면 `logis
 
 일정 JSON/Excel은 신규 관계/marker를 담지 못하므로 조용히 누락한 성공 파일을 만들지 않는다. [교환 경계](IMPORT_EXPORT.md#issue-725--공정workarea-문맥과-교환-경계)와 [실행 원장](exec-plans/active/ISSUE_725.md)을 따른다. 이 계약은 전체 참조 교환 #379 또는 배포/원격 검증 완료를 뜻하지 않는다.
 
+## Issue #727 — 명시 리소스 참여 보존
+
+전체 Project Copy는 `project_resource_memberships`를 새 Project에 복사하면서 global Resource ID를 그대로 재사용한다. Resource 원본을 복제하거나 미등록 기존 사용자를 자동 명시 등록하지 않는다. 원본 Project revision·등록·Task/Assignment·설비/시스템 책임 관계는 그대로이며, 복사 중 참조/쓰기 실패는 새 Project·세션·등록을 포함해 전체 rollback한다. 진척 초기화는 참여자 등록을 제거하지 않는다.
+
+지원 Template는 optional `resourceMemberships: string[]`에 global Resource public ID를 최대10000개, 중복 없이 저장·복원한다. 구 Template의 생략은 등록0과 호환되고 비활성 기존 참조도 보존한다. unknown/잘못된/중복 참조를 정상 복원으로 숨기지 않는다. 이 목록은 사람의 신규 생성이나 권한 부여가 아니며 Assignment와 독립이다. 별도 subtree Task Copy는 Project 참여 목록 전체를 복제하는 명령이 아니다. [검증 계획](exec-plans/active/ISSUE_727.md).
+
 # Issue #27 프로젝트 복사
 
 ## 목표

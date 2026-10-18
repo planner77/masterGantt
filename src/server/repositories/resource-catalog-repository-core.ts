@@ -164,6 +164,9 @@ export class ResourceCatalogRepository {
           FROM task_assignments
          WHERE resource_id IS NOT NULL
         UNION ALL
+        SELECT resource_id, project_id, 'membership'
+          FROM project_resource_memberships
+        UNION ALL
         SELECT resource_id, project_id, 'equipment_role'
           FROM project_equipment_resource_roles
         UNION ALL

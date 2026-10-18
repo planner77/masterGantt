@@ -1,3 +1,11 @@
+## Issue #727 — 프로젝트 등록과 작업 배정의 분리
+
+새 Project–Resource 원장의 직접 테스트는 `tests/server/resources/project-resource-memberships.test.ts`다. 실제 SQLite 및 HTTP에서 global ID 재사용/두 Project 격리·미배정 영속·기존 Task/책임 역할 발견·역할/등급/Group·비활성·삭제 보호·401/403/409/412·동시 revision·실패 rollback을 검증한다. migration0028→0029와 재시작/Copy/지원 Template는 등록뿐 아니라 기존 Assignment/역할 보존·구 snapshot·unknown 참조 실패·사람 수 증가0을 비교한다. 미지원 JSON/일정 Excel/forward Import의 조용한 유실을 거부하며 opt-in Resource 보고서는 기존 계산과 경계를 유지한다.
+
+일반 Task 개인 배정과 Summary/Milestone 개인 책임 참조를 구분하고 진척0이 등록/실제 수행을 바꾸지 않는지 확인한다. 등록·해제 전후 고유 Assignment/계획공수·WBS와 기존 Capacity R·Calendar를 비교한다. 등록 인원과 작업 배정 인원은 별도 모집단으로 검산한다. 인접 회귀는 기존 Resource Catalog 삭제·Copy/Template·JSON/Excel·Resource KPI/Plan 계산을 선택하며 새 계산 엔진을 만들지 않는다.
+
+`tests/domain/project-resource-memberships-model.test.ts`와 `tests/e2e/project-resource-memberships-ui.spec.ts`는 이름 우선·검색/필터·페이지·등록 선택/초안 취소·해제 차단·정확 기존 배정 Editor, readonly/dirty/loading/empty/error/stale·keyboard/focus 및390/768/1024/1440/1920px 표 내부 scroll을 다룬다. 기존 #724 screenKey와 동일 Gantt 인스턴스/viewport·무조회쓰기 계약을 유지한다. 실행 결과·개별 미검증·초기 실패와 보완은 [Work Packet](exec-plans/active/ISSUE_727.md), [실패 원장](ISSUE_727_FAILURE_ANALYSIS.md)에 기록한다. Local PASS·사전 Agent 검토는 원격 Full CI Quality/Chromium6/Docker·Trusted QA·Owner ACCEPT와 별도다.
+
 ## Issue #624 — CI #2920.1/#703 #490 Gantt scroll end-boundary 음성 회귀 (2026-10-18)
 
 - [PR CI #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264) 정확 HEAD `829953e8a108d18cb816880606926f2220d954eb` / Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2` / test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. Shard4의 기존 `project-settings-layout-490.spec.ts:149`에서 DOM `scrollWidth-clientWidth`가 19라 `min(120,19)=19` 기대, 실제 native `scrollLeft=18`을 5초 간격으로 반복 관측해 직접 FAILURE. [Trace artifact](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021) 확인. #703 원본 Main [#2901.1](https://github.com/planner77/masterGantt/actions/runs/39029791058) 120/18과 동일한 '경계 기대가 실제 이동 가능성보다 큰' TEST_CONTRACT 계열이나 서로 다른 커밋/기대값. 물리적 브라우저 clamp 근인은 이 Trace만으로 확정하지 않는다.
@@ -4363,6 +4371,8 @@ Dashboard KPI의 Milestone ID 집합/직접 선행 M 원인은 native0행 일정
 
 AC1의 재검토, AC2의 실제 최종 remote tree/Head·Full CI 시작, AC3의 이벤트/권한·metadata/docs-only/fork 경계, AC4의 로컬 구조/실제 원격 실패 구분, AC5의 실측 한계, AC6의 DOC_SYNC는 [Work Packet](exec-plans/active/ISSUE_679.md)에 매핑한다. 원격 권한 만료·서버 경합을 주입하지 않았으면 NOT TESTED이며 로컬 fixture PASS로 바꾸지 않는다. 취소 원인·청구 금액·절감률과 완료 CI가 없는 항목은 추정 성공으로 기록하지 않는다.
 ## Issue #724 — 탐색 N1 변경 영향과 검증
+
+아래 표는 #724 당시의 검증 범위/미구현 경계를 보존한 기록이다. 현재 #727 참여 CRUD의 구현·검증은 이 문서의 #727 절과 해당 Work Packet을 따른다.
 
 기준 main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`, 후보 `0.117.0`, HIGH/OWNER_MANAGED. 구현·기존 테스트 갱신·Local Fast Feedback·사전 검토 후 PR CI 시작까지만 수행한다. 원격 Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 결과 확인 전 NOT TESTED이며 로컬 검증으로 대체하지 않는다. [Work Packet](exec-plans/active/ISSUE_724.md), [누적 실패·차단](ISSUE_724_FAILURE_ANALYSIS.md)을 따른다.
 

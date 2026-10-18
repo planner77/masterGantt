@@ -1,6 +1,12 @@
+## Issue #727 — 등록 인원과 Task 배정 인원
+
+프로젝트 리소스 등록은 `기준정보 → 리소스`에서 관리하며 Resource Dashboard·Plan의 개인 모집단을 확대하지 않는다. `등록 인원`은 명시 Project–Resource 관계의 고유 Resource 수이고, `작업 배정 인원`은 프로젝트의 일반 type=task 개인 Assignment로 참조된 고유 Resource 수다. 둘은 모집단이 달라 서로 같거나 합산 가능한 수치가 아니다. Summary/Milestone의 개인 참조와 설비 Owner·시스템 PI/개발자 역할은 별도 책임 사용이며 개인 Task Assignment가 없으면 계획공수를 만들지 않는다. Group Assignment를 소속 개인에게 자동 배분하지 않는다.
+
+등록-only·역할-only·개인 배정·배정됐으나 진척0·비활성 기존 참조를 구분한다. 배정은 수행 계획이며 실제 수행 인원/실적 공수의 증거가 아니다. 등록·해제는 Assignment/계획 M/D·M/M·기존 Capacity R·WBS를 변경하지 않는다. 기존 R은 개인 배정 이력과 개인 분류/Calendar 계약을 유지한다. `등록 2명 / 작업 배정 1명`이면 새 등록자를 Capacity에 보태지 않는다. 등록 전후에는 같은 분석 조건·기간으로 원시 Assignment와 총계를 비교한다. 등록 revision 변경으로 기존 snapshot 재조회가 필요한 것과 공수 산식 변화는 구분한다. [사용자 절차](TARGET_RESOURCE_USER_GUIDE.md#프로젝트-리소스-등록과-해제), [검증](exec-plans/active/ISSUE_727.md).
+
 ## Issue #724 — 현재 분석/관리 위치
 
-기존 Project 리소스 분석은 `대시보드 → 리소스`에서 기본 현황·Milestone/Target 계층·비교·Plan·Excel 및 정확 Task/Assignment 편집을 제공한다. `기준정보 → 리소스`는 기존 전역 Resource 카탈로그·독립 관리자 인증을 재사용하며, Project 참여 등록이나 Task 배정을 자동 생성하지 않는다. Project 편집 권한과 전역 관리자 권한은 분리한다. 분석 조건·기간·접힘·선택·정확 drill/Editor 복귀 및 아래 기존 산식·분모·snapshot 계약은 메뉴 재배치로 바뀌지 않는다. [현재 경로 및 기능 이관표](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권), [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md#탐색과-전체-일정-복귀)를 따른다.
+기존 Project 리소스 분석은 `대시보드 → 리소스`에서 기본 현황·Milestone/Target 계층·비교·Plan·Excel 및 정확 Task/Assignment 편집을 제공한다. `기준정보 → 리소스`는 #727의 명시 프로젝트 등록·기존 사용 출처를 제공하며, 전역 원본은 `/resources`의 기존 카탈로그·독립 관리자 인증으로 연결한다. 등록만으로 Task 배정을 자동 생성하지 않는다. Project 편집 권한과 전역 관리자 권한은 분리한다. 분석 조건·기간·접힘·선택·정확 drill/Editor 복귀 및 아래 기존 산식·분모·snapshot 계약은 메뉴 재배치로 바뀌지 않는다. [현재 경로 및 기능 이관표](PROJECT_UX.md#기존-기능-이관표와-후속-통합-소유권), [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md#탐색과-전체-일정-복귀)를 따른다.
 
 ## Issue #624 — 물류 다관점에서 공통 Resource 조회 재사용
 

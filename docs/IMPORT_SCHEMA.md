@@ -4,6 +4,10 @@ schema1.0/1.1은 Equipment–WorkArea/Task 직접 공정·WorkArea 컬렉션과 
 
 이 그래프는 Project Copy/별도 Template의 `logistics.schemaVersion=4`에서 remap한다. Templatev4 지원이 schedule JSON1.1의 전체 backup 지원을 뜻하지 않는다. marker/관계가 존재하는 일정 JSON/plain 일정 Excel Export는409 `PROCESS_CONTEXT_EXPORT_UNSUPPORTED`로 거부한다. [교환 경계](IMPORT_EXPORT.md#issue-725--공정workarea-문맥과-교환-경계), [Copy·Template](ISSUE_27_PROJECT_COPY.md#issue-725--직접-문맥의-copytemplate-v4)를 따른다.
 
+## Issue #727 — Resource 참여 관계 미지원 경계
+
+기존 일정 JSON/CSV contract에 `resourceMemberships` 또는 프로젝트 참여 필드를 추가하지 않는다. 미지원 membership 필드는 조용히 무시하지 않고 Import400으로 거부한다. Project에 명시 등록이 있으면 이를 표현하지 못하는 일정 JSON/일반 Excel Export를 명시 오류로 차단한다. 지원 Project Template의 optional `resourceMemberships`는 별도 서버 snapshot contract이며 외부 일정 JSON schema와 혼용하지 않는다. 등록은 Task Assignment/투입률/실제공수의 다른 표현이 아니다. [교환 경계](IMPORT_EXPORT.md), [API](API.md).
+
 # Import contract 1.0 / 1.1
 
 ## Issue #464 — JSON 1.1과 보호된 Import/Export
