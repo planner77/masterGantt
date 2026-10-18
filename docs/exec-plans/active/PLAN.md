@@ -1,3 +1,9 @@
+## Issue #724 — Main CI #2957 복구 재개 (2026-10-18)
+
+원본 PR #738은 merge `ea4194763568432ef98e823bb796b59a5beb317c`로 병합됐으나 [Main #2957.1](https://github.com/planner77/masterGantt/actions/runs/39108991895)의 #456 실제 스크롤 capacity Core62/native63<120으로 E2E가 실패했다. 기존 보완 [PR #740](https://github.com/planner77/masterGantt/pull/740)을 재사용하며, 후속 #2960.1의 PR metadata 선언 형식 오류를 별도 교정한다. [단일 누적 원장](../../ISSUE_724_FAILURE_ANALYSIS.md)에 L1–L10/F01–F06/M01 전 이력·취소21개 Job 원문·trace 실제 수치와 검증을 보존한다.
+
+이번 요청의 종료점은 보완·리뷰/충돌 정리 및 새 Main CI 시작이다. exact-head Full PR Required3/Trusted QA·최신 main·리뷰0·Owner 위험 수용을 확인한 merge commit 이후 Main CI를 시작하고 완료 모니터링은 생략한다. 기존 PR 시작까지만의 범위 기록은 당시 이력이다. test-only 교정의 version0.117.0 및 release_required=false/release_authorized=false와 원본 #724 제품의 release 의무/Owner 조건부 v0.117.0 승인은 구분하며, Main/GHCR/정식 Release/Issue 종료 성공을 미리 주장하지 않는다. 상세 상태·로컬 결과는 [Work Packet](ISSUE_724.md) 참조.
+
 ## Issue #724 — 일정·대시보드·기준정보 N1 (2026-10-18)
 
 최신 main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0` / version `0.116.0`에서 [Work Packet](ISSUE_724.md)의 N1 탐색·기존 기능 이관을 구현한다. 상위3/분석6/기준정보4, 전체 일정·Summary/rootTask와 동일 Gantt·공통 Editor·정확 drill을 보존하고 공개 screenKey/subview로 #725~#736 후속을 연결한다. DESIGN의 관리/분석 분리 원칙과 현재 화면·사용자 경로·#720 매뉴얼 영향을 동기화한다. 새 CRUD·집계·참여 원장·Target 자동생성은 비범위다.

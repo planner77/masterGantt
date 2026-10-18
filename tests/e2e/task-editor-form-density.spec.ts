@@ -151,7 +151,8 @@ test("#456 실제 keyboard 100%·날짜 오류·pending action 폭과 닫기 잠
 
 test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다", async ({ page }) => {
   await mkdir(output, { recursive: true });
-  const fixture = await setup(page, { longList: true });
+  // Exact 120px preservation must start with real scoped Task date extent.
+  const fixture = await setup(page, { longList: true, scrollCapacityWitness: true });
   await page.setViewportSize({ width: 1440, height: 900 });
   const frame = page.locator(".project-gantt-frame"), target = page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000004"]');
   await page.locator('.project-gantt-widget .wx-table-container .wx-row[data-id=":00000000-0000-4000-8000-000000000001"]').click({ button: "right", position: { x: 12, y: 19 } });
@@ -183,6 +184,9 @@ test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor
     queryWitness: { kind: "unchanged" },
   };
   const axisBefore = await waitForGanttReadiness(frame, { ...axisContext, requireRenderedRows: true });
+  const witness = fixture.tasks.find(task => task.externalId === "EDITOR-76");
+  expect(witness?.requestedStart).toBe("2027-04-05");
+  expect(axisBefore.core?.canonicalIds, "real Core must include the scoped date horizon witness").toContain(witness!.taskId);
   const beforeAdmission = evaluateGanttReadiness(axisBefore, { ...axisContext, operation: "scroll", targetLeft: 120 }).admission;
   if (!beforeAdmission.accepted) {
     expect(beforeAdmission.coreCapacity, "scoped Week fixture must have positive Core capacity").toBeGreaterThan(0);
@@ -195,7 +199,9 @@ test("#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor
   expect(readyAdmission.accepted, "same current Core/native axis must admit exact 120px").toBe(true);
   await test.info().attach("issue456-scoped-week-axis-capacity", {
     contentType: "application/json",
-    body: JSON.stringify({ beforeAdmission, readyAdmission, currentWork: axisReady.currentWork, setup: "one native wheel only when admission lacks capacity" }),
+    body: JSON.stringify({ beforeAdmission, readyAdmission, currentWork: axisReady.currentWork,
+      witness: { id: witness!.taskId, date: witness!.requestedStart },
+      setup: beforeAdmission.accepted ? "scoped date horizon" : "scoped horizon plus bounded wheel" }),
   });
   await chart.evaluate((element) => { element.scrollLeft = 120; }); await vertical.evaluate((element) => { element.scrollTop = 38; });
   const state = async () => ({ ...(await frame.evaluate((element) => ({ api: element.getAttribute("data-project-gantt-api-instance"), instance: element.getAttribute("data-project-gantt-instance"), publicViewport: Reflect.get(element, "__masterganttPublicViewport") as { left: number; top: number }, fullscreen: document.fullscreenElement === element, scale: element.getAttribute("data-gantt-scale-mode"), chartScroll: element.querySelector(".wx-chart")!.scrollLeft, verticalScroll: element.querySelector(".wx-gantt")!.scrollTop, selected: Array.from(element.querySelectorAll('.wx-row[data-copy-selected="true"]')).map((node) => node.getAttribute("data-id")), tree: Array.from(element.querySelectorAll('[data-action="open-task"]')).map((node) => ({ id: node.closest("[data-id]")?.getAttribute("data-id"), closed: node.classList.contains("wxi-menu-right") })), scope: document.querySelector('.project-scope-tabs [aria-selected="true"]')?.textContent, rootTask: new URL(location.href).searchParams.get("rootTask") }))), columnGeometry: { task: (await header.getByText("작업", { exact: true }).locator("..").boundingBox())!.width, externalId: (await header.getByText("외부 ID", { exact: true }).locator("..").boundingBox())!.width } });
