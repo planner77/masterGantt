@@ -159,3 +159,9 @@
 - 실제 [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/39089185087/artifacts/12121239923) 분석: focus 후 tooltip은 이미 OPEN/aria-expanded=true, 이어지는 Enter 뒤 닫힘. **실제 keyboard scroll 실행 이전의 중복 토글/테스트 상태 전제 오류**다. 기존 제품 Arrow/Page/Home/End 기능 실패라고 단정하지 않고, keyboard scroll 케이스의 중복 Enter만 제거하며 focus-open + 최종 overflow/scroll/Escape 검증을 강화했다. 6화면×5폭 Enter/Space 회귀는 그대로 둔다.
 - 이전 F-001 코드 교정과 WCAG 관련 사용자 요구, 공통 ContextHelp·원본 제품 범위/권한·API·DB·Gantt 계약은 변경하지 않았다. 이번 코드 변경은 E2E test contract만이며 `DESIGN.md`/영속 가이드 추가 수정은 N/A(이미 영속화됨).
 - 새로운 exact-head Full PR CI 결과는 시작 시점 **NOT TESTED**. `risk_level=HIGH`, `qa_required=true`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`. 원격 final success/Trusted QA/Owner ACCEPT·병합/Main/GHCR/Finalizer는 본 요청에서 승인되지 않았다.
+
+## 2026-10-18 main 정렬 / 누적 실패 원장 정합
+
+- #719 전용 원장의 F-001(#2932.1 QA review BLOCKED)·F-002(#2933.1 신규 keyboard E2E FAIL) 두 사례를 함께 분석하고 처음 4개 절의 오래된 1회/실패 테스트 없음 서술을 현재 **2회/1개 테스트 파일** 기준으로 갱신했다. 원본 실패·Trace·과거 보완은 보존한다.
+- [#449 PR #458 main merge](https://github.com/planner77/masterGantt/commit/3eaa6026923c38f200a463f6985c7cc8f88f9bf0) 후 양쪽 수정이 겹친 `docs/exec-plans/active/PLAN.md`는 #449 상단·#719 하단 계획을 모두 남기는 2-parent merge로 해결한다. DESIGN·#449 감사/원장/Work Packet 4개 blob은 main의 exact content를 채택한다. #719 제품 코드·테스트는 이전 F-001/F-002 보완을 그대로 유지한다.
+- #2937.1은 main 정렬 이전 HEAD에서 시작한 CI로 별도 구분하고 새로운 HEAD 전체 Quality/E2E6/Docker/QA를 실행한다. 본 connector에서 로컬 Playwright는 NOT TESTED. version0.116.1, HIGH/OWNER_MANAGED, release_authorized=false, 정식 병합/게시/종료 승인 없음.

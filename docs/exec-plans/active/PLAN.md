@@ -1,3 +1,7 @@
+## Issue #449 — 최신 구현 대조·영속 UI/UX 지침 통합 (2026-10-18)
+
+하위 #452~#457 및 후속 #490/#491/#502의 closed/completed·FINAL 기록과 main `d2768676aa7a0edff67df9bdeb3e1b49979fd577`의 실제 구현/테스트를 대조했다. 미병합 PR #458의 DESIGN 충돌은 최신 main의 기존 지침을 보존하면서 내부 KPI 참조·입력 식별성·peer 목록/행 밀도·증거 구분만 관련 절에 통합한다. [감사 기록](../../ISSUE_449_UI_UX_AUDIT.md)과 [Work Packet](ISSUE_449.md)에 당시 source/실험, 현재 완료표, 역사적 #457 AC2 GAP/FAIL, open #517 환경 NOT TESTED/BLOCKED를 분리한다. 제품 source·테스트·CI 정책 변경 없음, app0.116.0 유지, LOW/OWNER_MANAGED, release_required=false/release_authorized=false. 요청 종료점은 리뷰·최신 main 충돌 해소 후 PR CI 시작이며 결과 모니터링·병합·배포·Epic 종료는 제외한다.
+
 ## Issue #624 — CI #2920.1 Gantt Scroll 최대 경계 테스트 보완 (2026-10-18)
 
 PR #702 [#2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264)의 Chromium Shard4 #490 scroll 19/18 직접 실패와 Quality/Docker 성공/나머지 shard 취소·QA 파생 실패를 [실패 원장 §12](../../ISSUE_624_CI_FAILURE_ANALYSIS.md)에 합집합 기록한다. #703 원본 Main #2901.1 120/18 보완이 부족했던 `min(120,max)` 경계 가정과 #624 과거 일곱 실패를 비교해, #490 테스트의 setup에만 양수 내부 scroll `min(120,floor(capacity/2))`·실제 accepted 진단을 추가한다. Unit 19→9/18→9·capacity0/1·NaN 음성, 기존 WBS/scroll/metadata/fullscreen 엄격 보존 assertion 및 #456/#552/#667/#621/#623/#624 cross-run E2E·Required3/Trusted QA는 불변. 수정 후보 local/remote 성공은 **NOT TESTED**; Owner release 0.116.0 승인 보존, PR CI 시작 후 결과 모니터링·병합·Main/GHCR/Finalizer·Issue 종료 미수행.

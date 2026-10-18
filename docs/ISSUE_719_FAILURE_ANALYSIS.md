@@ -10,7 +10,7 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 | #722 | [#2932.1 · 39086924294](https://github.com/planner77/masterGantt/actions/runs/39086924294), 2026-10-18 01:33:23 UTC 시작 | CI / `pull_request` full | head `d5344bdfa8239c192bccfbe1c84930d02d7763d8`; base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`; test merge `a248bd383b3abdd51a4270e2e96f27622715c3f2`; branch `feat/issue-719-contextual-help` | **SUCCESS / SUCCESS (6/6 shards) / SUCCESS** | QA Final — Automated **FAIL/BLOCKED**; metadata-only, main-only jobs는 조건부 SKIPPED; 실패한 E2E shard 없음 | [QA Final Job 117559273483](https://github.com/planner77/masterGantt/actions/runs/39086924294/job/117559273483), [Review thread](https://github.com/planner77/masterGantt/pull/722#discussion_r4305289690) |
 | #722 | [#2933.1 · 39089185087](https://github.com/planner77/masterGantt/actions/runs/39089185087), 2026-10-18 02:14~02:21 UTC 주요 E2E/QA | CI / `pull_request` full | head `c69fc7d08957e790f7ec75350e22bb6b603d608f`; base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`; test merge `53e75bf07e9cf49a65c5b8e44a7074b241406c6d`; 동일 branch | **SUCCESS / FAILURE (shard2 FAIL, 나머지 5 CANCELLED) / SUCCESS** | Shard2 `issue-719-contextual-help.spec.ts:145` tooltip not found. 동일 shard 43 PASS/1 FAIL/86 NOT RUN; QA Final FAIL은 파생; 다른 shard 취소는 PASS 아님 | [Shard2 Job 117562440507](https://github.com/planner77/masterGantt/actions/runs/39089185087/job/117562440507), [Playwright report artifact 12121239923](https://github.com/planner77/masterGantt/actions/runs/39089185087/artifacts/12121239923) |
 
-동일 Head의 `fetch_commit_workflow_runs`에서 관측한 PR workflow run은 위 Full 1회. 이후 발생하는 synchronize/metadata-only/재시도는 별도 행에 추가해야 하며, 최초 FAIL을 재해석하거나 삭제해서는 안 된다.
+서로 다른 두 Full Run은 각 시점의 **서로 다른 Head**에 귀속된다. 각 원본 Run/Attempt의 실패 판정은 불변이며 이후 synchronize/metadata-only/rerun도 Head·event·attempt별 별도 행에 추가한다. 접근 가능한 실행에 한해 집계하므로 미관측 실행을 성공으로 간주하지 않는다.
 
 ### 개별 실행 Job 상태
 
@@ -31,7 +31,7 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 | F-001 / #722 · 39086924294.1 / QA job 117559273483 | `QA Final — Automated`: `미해결 review thread`; Codex P2 inline `src/components/ui/context-help.tsx:119-124` (`PRRT_kwDOUUB7Bc6tmScK`, comment `4305289690`) | **POLICY_CI = 올바른 fail-closed 차단**. 원인은 리뷰가 지적한 **PRODUCT/접근성**: 스크롤 가능한 portaled tooltip이 키보드로 읽을 수 없음. 모든 필수 3종과 6 E2E shard는 이미 PASS. E2E 실패·환경 이슈라고 단정할 근거 없음. | 열린 trigger에 focus를 유지해 ArrowUp/Down·PageUp/Down·Home/End를 panel 내부 scrollTop으로 처리. 짧은 높이×긴 KO/EN E2E 추가. 새로운 exact-Head Full CI **NOT TESTED(시작 전)** | 화면 확대/스크린리더/실기기·오래된 HEAD 승인/Trusted QA는 별도 검증, 자동 QA PASS로 Owner 승인 대체 금지 |
 | F-002 / #722 · 39089185087.1 / shard2 117562440507 | 신규 `tests/e2e/issue-719-contextual-help.spec.ts:137`의 line145: `getByRole('tooltip')` not found (`Expected visible`, timeout 5000ms) | **TEST_CONTRACT / 열림·토글 상태 전제 혼선**. 원본 Playwright Trace: `focus` 직후 팝오버 OPEN/`aria-expanded=true`; 직후 `press('Enter')` 실행 뒤 `aria-expanded=false`/팝오버 제거. 실제 스크롤 테스트까지 진행 못함. 이전 접근성 개선 재발을 입증하지 않음. | 신규 keyboard-scroll 케이스에서 focus가 열어준 팝오버를 먼저 `aria-expanded=true`/`tooltip visible`로 확인하고 곧바로 Arrow/Page/Home/End 동작 검증. 기존 6표시화면×5폭 E2E가 Enter/Space를 별도로 계속 검증. 새 PR CI **NOT TESTED** | 단일 재현 Trace 확인; 원격 새 HEAD 전체 E2E, 취소된 shard 재검증 필요 |
 
-누적 원격 실패 테스트 파일 합집합: **없음**(이 사건은 브라우저 테스트 실패가 아니라 QA 리뷰 차단). 수정 대상 코드는 `src/components/ui/context-help.tsx`, 직접 회귀는 `tests/e2e/issue-719-contextual-help.spec.ts`. 기존 E2E 6/6 PASS는 이전 Head에만 유효하며 새 Head의 PASS로 승계하지 않는다.
+누적 원격 실패 **테스트 파일 합집합: `tests/e2e/issue-719-contextual-help.spec.ts`의 신규 keyboard scroll case 1건(F-002)**. F-001은 실패한 브라우저 테스트 0건이며 QA 리뷰 차단이다. F-002의 Shard2 43 PASS/1 FAIL/86 NOT RUN과 다른 5 shard CANCELLED를 별도 보존한다. 기존 E2E 6/6 PASS는 F-001의 이전 Head에서만 유효하고 F-002 이후 새 Head로 승계하지 않는다.
 
 ## 3. 개별 사건: F-001 (2026-10-18)
 
@@ -45,15 +45,15 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 
 ## 4. 전체 이력 종합 진단과 후속 기준
 
-- 현재 등록된 최초 원격 Full CI 실패는 **1회**이며 이전 원격 실패 이력을 임의로 추가하지 않는다. #719 Work Packet에 기록된 최초 로컬 hydration/focus/HMR 교정은 원격 실패 횟수에 합산하지 않는다.
-- 원인 분류: `PRODUCT` (읽기 접근성), 파생된 `POLICY_CI` (정상 차단). `TEST_CONTRACT/FIXTURE_OBSERVABILITY/INIT_TRANSPORT/ENVIRONMENT`로 확정할 증거는 없다.
+- **접근 가능한 원격 Full PR CI 실패 누적 2회**: F-001(#2932.1)은 QA 리뷰 미해결→정책상 정상 차단, F-002(#2933.1)는 신규 E2E focus/Enter 열림 상태 전제 충돌→Shard2 실패·다른 shard 취소 및 QA 파생 실패. 동일 실패로 합산하지 않는다. 원본 로컬 hydration/focus/HMR 교정은 별도 Work Packet 기록이며 원격 실패 수에 포함하지 않는다.
+- **전체 원인 분류**: F-001의 `PRODUCT`(키보드 scroll 접근성) + `POLICY_CI`(열린 리뷰 적법 차단); F-002의 `TEST_CONTRACT`(focus-open 직후 Enter로 이미 열린 popover 토글). 환경 불안정·fixture·transport 문제로 확정할 증거 없음. 기존 원인과 신규 원인을 코드·Trace·Review 근거로 구분한다.
 - 향후 **동일 #719 CI가 다시 실패**하면 이 문서에 Run/Attempt별 원본 Job/Step/Artifact, 최초 실제 오류, 이전 교정의 영향, 누적 실패 파일 합집합, 공통 원인/신규 원인 매트릭스 및 동일 source 교차 검증을 **추가**한다. 직전 Run만 보고 테스트를 무력화하거나 timeout·retry를 일괄 증가시키지 않는다.
 - 리뷰 thread가 해제되어도 원본 #2932.1 결과는 FAILURE다. 새 Full PR CI의 exact Head/base/test merge 및 Required3종·QA Final 상태는 다시 인증하며, 별도의 Trusted QA/Owner 최종 병합 허가와 정식 release_authorized=false는 보존한다.
 
 ## 5. 동일 최종 source 검증 및 인계
 
-- 이 수정은 기존 PR branch에 **원자적 단일 commit**으로 적용 예정. Code/Tests/Docs/Work Packet/실패 원장은 같은 source를 사용하며 적용 직후 실제 새 Head/Run ID는 PR/Issue에 게시한다.
-- 최초 PR `mergeable=true`이고 main과 앞섬 1·뒤짐 0이지만 push 직전에 재확인한다. Codex 리뷰의 실질 코드 교정·댓글 회신 이후 미해결 thread를 해제하고, 새 CI의 Quality/E2E/Docker 및 QA 결과는 시작 전 `NOT TESTED`로 표시한다.
+- 실제 수정 이력: F-001 제품 키보드 스크롤 교정·테스트 도입 commit `c69fc7d08957e790f7ec75350e22bb6b603d608f`; F-002 E2E focus-open 상태 계약 교정·동일 원장 백필 commit `fd51674396f7d69f9edcc08b0af6314a6e2f9d5b`. 이번 정렬은 두 원본 수정과 실패 기록을 보존하면서 새 main의 #449 문서만 병합한다.
+- main 변경 전 PR은 최신이었지만 2026-10-18 `main=3eaa6026923c38f200a463f6985c7cc8f88f9bf0`(#449 PR #458 docs) 병합 뒤 `behind=5, ahead=3, mergeable=false`로 변했다. 공통 변경 파일은 `docs/exec-plans/active/PLAN.md` 단 한 개이며 main 상단 #449와 브랜치 하단 #719 섹션을 모두 살리는 결합으로 resolve한다. `DESIGN.md` 및 #449 신규 3개 문서는 main의 exact blob을 사용한다.
 - `risk_level=HIGH, qa_required=true, qa_method=OWNER_MANAGED, release_required=true, release_authorized=false`. **병합, Main CI, GHCR, Finalizer, 정식 tag, Issue 종료는 이 REWORK 요청 범위 밖**.
 
 ## 6. F-002 — 두 번째 Full PR CI 실패 / 2026-10-18 추가 (원본 F-001 보존)
@@ -77,5 +77,19 @@ Source of truth: [PR_CI_FAILURE_TRIAGE.md](PR_CI_FAILURE_TRIAGE.md)
 
 ### 다음 시행 인계
 
-- 새 test+원장+Work Packet 문서만 **원자적 단일 git commit**으로 수정한다. 다음 PR Head, base/test merge 및 Run/Attempt는 PR/Issue에 기록하며 검사 시작 시 status `IN_PROGRESS` 또는 `NOT TESTED`.
+- F-002 보완은 `fd51674396f7d69f9edcc08b0af6314a6e2f9d5b`로 기존 branch에 이미 제출되었고 [Full CI #2937.1](https://github.com/planner77/masterGantt/actions/runs/39090801870)이 시작되었다. 그러나 그 사이 main #449 변경으로 충돌이 발생하여 이번 요청에서 정확한 최신 main을 2-parent merge로 포함하고 교차 원장 설명도 현재 누적 2회 기준으로 정정한다. 다음 CI는 이 merge 정렬 HEAD 기준 Full PR CI를 별도로 시작한다.
 - 위험 `HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true` / `release_authorized=false`, Trusted QA와 Owner 최종 승인 미실시. 병합/정식 GHCR/Finalizer/Issue 종료를 수행하지 않는다. 이후 #719 실패는 **같은 이 누적 문서의 F-003**에 추가하여 F-001/F-002 전체와 합집합 분석한다.
+
+## 7. F-001/F-002 누적 원인 교차 검증 및 최신 main 정렬 (2026-10-18)
+
+| 항목 | F-001 (#2932.1) | F-002 (#2933.1) | 현 후보 조치·검증 경계 |
+| --- | --- | --- | --- |
+| 최초 실제 장애 | 미해결 리뷰의 keyboard scroll 접근성 | 신규 long-content E2E에서 tooltip 미발견 | F-001 제품 `ContextHelp` Arrow/Page/Home/End 키보드 내부 스크롤 유지, F-002 focus-open 후 중복 Enter 제거 |
+| Required aggregates | Quality SUCCESS / E2E6 SUCCESS / Docker SUCCESS, QA BLOCKED | Quality SUCCESS / E2E FAILURE(1fail/5cancelled) / Docker SUCCESS, QA 파생 FAIL | 각 원본 Head·attempt에서만 인정, 새 exact-Head Quality/E2E6/Docker/QA는 **NOT TESTED** |
+| 원인 분류 | PRODUCT + POLICY_CI | TEST_CONTRACT | ENVIRONMENT/fixture/transport 단정 근거 없음, skip/assertion/timeout/CI Required 완화 없음 |
+| 직접/교차·음성 소비자 | 도움말 primitive, 6화면×5폭, keyboard/touch/초안 | `issue-719-contextual-help.spec.ts`의 focus-open 긴 문자열/short viewport | 인접 Resource/Admin·Milestone/Logistics, Gantt marker-OFF·canonical 계약 새 Full CI 재검증 예정 |
+
+- 이 정렬 직전 #719 HEAD는 `fd51674396f7d69f9edcc08b0af6314a6e2f9d5b`. [Full CI #2937.1 / Run 39090801870](https://github.com/planner77/masterGantt/actions/runs/39090801870)이 해당 Head로 시작했으나 그 사이 main의 [#449 PR #458 merge `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`](https://github.com/planner77/masterGantt/commit/3eaa6026923c38f200a463f6985c7cc8f88f9bf0)까지 다섯 커밋 반영됐다. 정렬 직전 GitHub PR은 `behind=5`/`mergeable=false`; 기존 실행은 새로운 strict main-aligned Head의 검증을 대체하지 않는다.
+- main 변경은 `DESIGN.md`, #449 신규 원장·감사·Work Packet과 `PLAN.md`. #719 제품/테스트와 겹치는 직접 수정은 없고 양측에 동시에 변경된 파일은 `PLAN.md` 하나다. main의 상단 #449와 feature의 하단 #719 계획을 모두 보존한다. #449 DESIGN.md 변경은 기존 #715/#719 도움말 원칙을 삭제하지 않고 화면 간 밀도·컨트롤 식별성·실증 기준을 추가한다. 현재 UI/API/DB/version/CI/QA 보호 정책 불변.
+- 정렬 방법은 기존 feature Head를 첫 부모, latest main을 둘째 부모로 하는 **비강제 Git merge**. 기존 HEAD tree에 main exact blobs + `PLAN.md` 양측 추가 문단 + 누적 원장·Work Packet 정정만 반영한다. 배포 후보 버전 `0.116.1`, `release_required=true` / `release_authorized=false` 유지. 새 HEAD/base/test merge/Run ID는 push 후 다시 조회한다.
+- 이번 GitHub connector-only 실행에서 local Node/Playwright/Chromium **NOT TESTED**. 원격 Git object/tree/parent/ref와 strict behind0, unresolved review0을 검증하고 새 Full PR CI를 시작한다. 최신 Head Quality/E2E/Docker/Trusted QA/Owner ACCEPT는 완료 전 NOT TESTED. 병합·Main/GHCR/Finalizer·tag/Issue 종료는 수행하지 않는다.

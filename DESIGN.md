@@ -48,6 +48,10 @@
 4. 화면별 현재 계약 문서
 5. 외부 reference
 
+### 내부 참조: 프로젝트 물류 KPI (Issue #449)
+
+프로젝트 → 물류 구성 → KPI 대시보드는 의미별 구획, 수평 필터 묶음, 가용 폭에 따른 grid, 숫자·단위 정렬과 상태색의 내부 참조다. 이 정보 구조를 해당 업무에 맞게 적용하며 모든 화면을 KPI 카드로 감싸거나 raw fallback 색상·미정의 token을 복사하지 않는다. Gantt/Grid 작업 면적과 기존 semantic token·도메인 계산을 우선한다.
+
 ## 3. Visual Foundation
 
 ### Color
@@ -168,6 +172,12 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 - footer에서는 secondary navigation/cancel과 primary commit action의 우선순위·위치를 화면 계약으로 명시하고 전역 button margin 때문에 footer geometry가 변하지 않게 한다.
 - 필드/role/action 추가 시 기존 CSS를 그대로 재사용하지 말고 pane/row budget을 다시 계산한다. 390/768/1024/1440/wide desktop과 긴 문자열·최대 control 조합을 실제 browser geometry로 검증한다.
 
+### 동등한 목록과 행 밀도 (Issue #449)
+
+- 동시 비교가 필요 없는 동등한 목록은 활성 목록이 가용 작업 폭을 쓰는 peer tab을 우선 검토한다. 동시 비교가 필요한 pane은 기존 content-aware budget을 유지한다. 탭 전환으로 각 목록의 search/filter/scroll·초안·keyboard/focus를 잃지 않게 한다.
+- 목록은 비교용 정보를 우선하며 모든 행에 표시값과 편집기를 중복 상시 노출하지 않는다. 생성·프로필·구성원 편집은 필요한 시점에 열 수 있게 하고 기존 권한·저장·복귀 계약을 보존한다.
+- row height는 content/control과 내부 padding으로 결정한다. action margin·중복 heading·불필요한 section 여백을 먼저 줄이고 고정 height나 clipping으로 장문·오류·focus를 잘라 밀도를 맞추지 않는다. 높이·버튼 폭의 예외는 화면 계약과 실제 측정 근거를 남긴다. 관리자 40px control과 Task Editor 44px hit-area를 하나의 전역 크기로 강제하지 않는다.
+
 ### Project Workspace
 
 - compact project context + schedule/resources peer tabs + workspace toolbar + Gantt/resource content 구조를 유지한다.
@@ -205,6 +215,10 @@ Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**
 | loading/saving | 중복 mutation을 막고 현재 진행 중임을 텍스트로 알린다. |
 | empty/no result | 실제 데이터 없음과 검색 결과 없음의 의미를 구분한다. |
 | stale/conflict | 최신 상태 재조회/재시도 경로를 명확히 제공한다. |
+
+### 입력 컨트롤 식별성 (Issue #449)
+
+input/select/textarea는 CSS reset 이후에도 정상 상태의 경계·배경·내부 padding·높이·font와 focus/error/disabled/readonly 상태가 식별되어야 한다. label과 오류 연결을 유지하며 placeholder·DOM 존재·fill 성공만으로 식별성을 판정하지 않는다. native radio/checkbox는 브라우저 표현과 연결 label·접근 가능한 target을 검증하며 text input의 border/크기를 일괄 강제하지 않는다. 세부 computed-style·키보드 검증은 [공통 UI/UX 가이드](docs/UI_UX_GUIDELINES.md)와 [회귀 coverage](docs/ISSUE_457_UI_UX_COVERAGE.md)를 따른다.
 
 ### 설명 밀도 및 상황형 도움말 정책 (Issue #715)
 
@@ -275,6 +289,8 @@ UI/UX 관련 Skill을 **실제로 사용**해 화면을 설계·구현·검토�
 구현 전에는 current-state 문제, 목표 사용자 흐름, text wireframe 또는 layout 설명, state matrix, responsive/accessibility 기준을 남긴다.
 
 구현 후에는 before/after browser evidence, keyboard/focus, overflow, relevant E2E와 동일 PR head의 원격 CI를 분리해 검증한다.
+
+공통 CSS/primitive 변경은 양호한 기존 화면도 포함한 소비자 목록을 작성하고 같은 fixture·viewport·실제 환경에서 screenshot과 geometry를 비교한다. 사용자 관찰·source 사실·분리 CSS 실험·실제 앱 조작·E2E·원격 CI·독립 QA를 구분하며 한 증거를 다른 단계의 PASS로 확대하지 않는다. 실제 native 125% zoom과 DPR/deviceScaleFactor는 다른 검증이다. 미실행 환경은 사유와 담당 후속을 남긴다. #449의 역사적 감사와 현재 이관은 [감사 기록](docs/ISSUE_449_UI_UX_AUDIT.md), 화면별 검증 범위와 예외는 [회귀 coverage](docs/ISSUE_457_UI_UX_COVERAGE.md)를 따른다.
 
 ## 9. Rollout Strategy
 
