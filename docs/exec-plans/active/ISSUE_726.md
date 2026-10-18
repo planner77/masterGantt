@@ -157,3 +157,12 @@ Issue 본문과 다중 WorkArea 보완 댓글을 적용한다. #725/#728 최종 
 - Manager 수동 매핑: WorkspaceDialog→master/System focus·반복 Escape/#725, 물류 관리/CSS/type field→신규 master+기존 관리/공유 원본+#725, 직접 물류→신규 Task+Target 혼합+#461, 새 context editor/model→신규 Task context+model+기존 process service·Copy/Template다. 해당 실제11 Chromium·152 Unit과 정적 검증을 실행했다. lockfile은 version만 변경되므로 설치 Core provenance·Dependency 자체는 변하지 않으며 관련 전체 브라우저/Build/Docker 회귀는 PR CI에 위임한다. 이 수동 영향 판정은 자동 도구의 UNKNOWN을 숨기지 않는다.
 - [최종 로컬 manifest](../../evidence/issue726/local-validation.json)는 실제 대상·각 Chromium 결과·실제 HTTP 음성·제품/테스트16개 SHA256·별도 사전 검토·원격 NOT TESTED를 구분한다. 해당 도구 실행 후 추가한 문서·증거는 제품/테스트 지문을 바꾸지 않는다.
 - 서버 schema/API·Gantt writer·workflow/Required3/권한 정책 불변, unresolved 사전 코드 지적0. Owner-managed 사전 Agent 검토와 원격 최종 QA·Owner ACCEPT는 별개다. 공식 Required Quality/E2E/Docker·Trusted QA/Owner는 NOT TESTED, MERGE_READY=BLOCKED다.
+
+## 2026-10-19 — PR #743 CI #2982.1 F-001 REWORK
+
+- [CI #2982.1](https://github.com/planner77/masterGantt/actions/runs/39166340575): Quality/Docker SUCCESS, Chromium Shard 4 실제 6 PASS/1 FAIL(`issue-726-task-logistics.spec.ts:343`), 나머지 Shard 1/2/3/5/6 CANCELLED, 자동 QA FAILURE는 파생. **기존 실패 원본은 보존**한다.
+- 원인: Fixture의 A/B 생성 순서가 임의 UUID의 정렬 순서를 보장하지 않지만 canonical process-context reader는 `ORDER BY p.public_id`를 사용한다. 관계 2개의 ID·scope는 기대와 동일하고 순서만 반대였으므로 **TEST_CONTRACT** 비교 오류로 분류한다. 서버/DB/권한 변경·assertion 약화·timeout/skip/retry 증가는 없다.
+- 변경: `tests/e2e/issue-726-task-logistics.spec.ts`에서 expected·actual 객체 배열을 `processId` 정렬 후 exact 비교한다. 중복, 누락, scope 오염은 여전히 거부한다. 원본 분석과 취소된 Shard 경계·재실행 조건은 [이슈 전용 누적 실패 원장](../../ISSUE_726_FAILURE_ANALYSIS.md)에 기록한다.
+- 재검증: Node v22.16.0 독립 정규화 smoke(역순 성공·중복/scope 오염 실패) PASS. GitHub 연결 Repo checkout/Playwright 실제 환경이 없어 새 source의 typecheck/Chromium 직접 실행은 **NOT TESTED**. 해당 원격 Required3 전체는 새 PR CI를 통해 검증한다. 기존 로컬 11개 PASS/152 Unit PASS를 새 Head의 증거로 승격하지 않는다.
+- 정렬·리뷰: 최초 재수집 시 `main=6f6dadb1b3ac10bc837c09273a0922611b2e3f81`, `behind_by=0`, `mergeable=true`, unresolved review threads=0. 제품/스키마·API·버전·Gantt writer·CI workflow 변경 없음; DOCUMENTATION_SYNC: TEST 계약 변경+실패 원장/본 Work Packet **UPDATED**, 다른 문서는 기존 판단 유지(N/A).
+- 인계: PR synchronize 새 Head Full CI 시작까지만 수행; 결과 모니터링·merge·GHCR/정식 release·Issue 종료는 요청되지 않았다. Required3/Trusted QA/Owner ACCEPT는 새 Head에서 **NOT TESTED**이고 MERGE_READY=BLOCKED.

@@ -340,7 +340,9 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   await save().click();
   await expect.poll(async () => (await readContext()).processLinks?.length).toBe(2);
   const childContext = await readContext();
-  expect(childContext.processLinks).toEqual(f.processIds.map(processId => ({ processId, scope: "self" })));
+  // Direct process links are a set; UUID order is not fixture creation (A/B) order.
+  const byProcessId = (a: { processId: string }, b: { processId: string }) => a.processId.localeCompare(b.processId);
+  expect([...childContext.processLinks].sort(byProcessId)).toEqual(f.processIds.map(processId => ({ processId, scope: "self" })).sort(byProcessId));
   expect(childContext.workAreaLinks).toEqual([{ processId: f.processIds[0], workAreaId: areaA.id, scope: "self" }]);
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   editor = await openEditor(page, f.parentTask.name);
