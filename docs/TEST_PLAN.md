@@ -1,3 +1,13 @@
+
+## Issue #717 — #2940.1 Milestone raw-ID 닫힌 버튼과 visible geometry 계약 (2026-10-18)
+
+- **원본 실패:** [PR #718 Full CI #2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164) [E2E Shard1 #117570351610](https://github.com/planner77/masterGantt/actions/runs/39091834164/job/117570351610): `tests/e2e/milestone-dashboard-state.spec.ts:58` 첫 390px 복합 table geometry false. 7 PASS/1 FAIL/126 미실행, 다른5 Shard CANCELLED; Quality/Docker 성공, E2E/QA 파생 실패. [전용 누적 원장](ISSUE_717_FAILURE_ANALYSIS.md)은 #2923/#2926/#2927/#2935/#2940 원본 경계를 보존한다.
+- **변경 지점/소비자:** 새 #717 native `IdentifierDetails`는 copy button을 닫힌 details DOM에 보유하지만 화면에는 노출하지 않는다. 구 #463 geometry 계측은 all `tbody button`의 DOM layout으로 검증하여 closed ID copy button의 0 rect가 셀 밖이라고 볼 수 있다. 원본 결합 false 상세 flag는 artifact 미포함으로 불명확하므로 새 계측이 개별 flag와 원본 JSON을 남긴다.
+- **직접/음성:** `tests/e2e/milestone-dashboard-state.spec.ts`가 `details:not([open]) button` 존재 및 `toBeHidden()`으로 **닫힌 raw-ID 비표시 계약을 강화**. 시각 레이아웃에 실제 참여하는 `checkVisibility() && width>0 && height>0` button만 cell-contained/nonoverlap 측정. `headerBodyAligned`, `allControlsContainedInCells`, `siblingCellsNonoverlapping`, `siblingControlsNonoverlapping` 네 독립 assertion 유지; visible buttonCount, overflow:auto, first col≥260/table≥1052, 390/768/1024/1440/1920, filter popup/keyboard/outline/focus/inert/write0 원래 수치 불변.
+- **진단:** 각 폭의 `geometry-partial-*.json` 로컬 파일 + Playwright `test.info().attach`를 assertion 전에 보존하므로 다음 원격 FAIL은 어떤 geometry flag인지/열 폭·버튼 rect를 보고한다. 실제 제품 결함이 관측되면 별도 PRODUCT 원인으로 판정, timeout/retry/skip/CI 규칙을 완화하지 않는다.
+- **교차:** #717 `issue-717-name-first.spec.ts`(5폭·touch·ID 펼침/Clipboard), #550 `milestone-management.spec.ts`(기존 visible-only), #622 Resource Plan, #623 Target/Resource, `logistics-target-authoring.spec.ts` 및 PR E2E 6-Shard 전체. Shard4/5 이전 #2935 fail 케이스가 #2940에서 PASS였다는 개별 원본은 유지하되 기타 취소·미실행을 성공으로 전용하지 않는다.
+- **실행:** 이 세션의 masterGantt Node/Playwright 런타임/소스 전체 없음 → 본 후보의 로컬 E2E/build/unit `NOT TESTED`. 원격 새 Head의 Required/Trusted/Owner 수용은 원본 run 완료 증거 전 `NOT TESTED`. DB/API/Server/Gantt Core 및 제품 UI 코드 변경 없음.
+
 ## Issue #717 — PR #718 CI #2935.1 E2E 교차 회귀 수정 (2026-10-18)
 
 [이슈별 누적 실패 원장](ISSUE_717_FAILURE_ANALYSIS.md)의 F-001/#2923, F-002/#2926(metadata-only), #2927 docs-only 성공과 F-003(#2935)의 **실제 서로 다른 두 E2E 실패**를 보존한다.

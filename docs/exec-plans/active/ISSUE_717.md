@@ -97,3 +97,13 @@ Manager는 shared `IdentifierDetails`, Project/Import 표시, 문서/version·E2
 - Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577` 이후 #449 PR #458 merge `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`가 최신 main이다. 이 SHA는 위의 최초 기준선과 구분한다.
 - `DESIGN.md`: #717의 Name-first §1.3과 #449의 내부 KPI/행 밀도/입력 식별성/실제 browser evidence 공통 기준 전부 보존; `PLAN.md`: #717 REWORK/제품 구현과 #449 감사 절 모두 보존. #449 전용 문서 3개는 upstream 원문 그대로 유지하며 해당 Issue 승인/검증을 #717로 전이하지 않는다.
 - main 정렬은 문서/브랜치 작업이며 전체 E2E/QA/Owner SUCCESS를 뜻하지 않는다. 위 `DOC_SYNC`의 `DESIGN.md`·`PLAN.md` 반영 의미는 그대로 유지된다.
+
+## PR CI #2940.1 — F-004 Milestone 기본 닫힘/geometry REWORK (2026-10-18)
+
+- 原본 [Full Run #2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164), Head `6b226df1962791a4d647811b9ad8df854d56e3a1`, Base main `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`; Quality·Docker PASS, E2E Shard1 390px #463 geometry FAIL, 기타5 CANCELLED, QA Automated E2E 파생 FAIL.
+- 누적 [Issue #717 전용 실패 원장](../../ISSUE_717_FAILURE_ANALYSIS.md) F-001(#2923), F-002(#2926 metadata-only), F-003a/b(#2935, Target authoring/Resource Plan), F-004(#2940, 새 Milestone 표시/계측 소비자) 전체와 #2927 docs-only 성공/지난 Head 로컬 evidence를 분리한다. #2940에는 #2935 당시 직접 실패의 E2E 케이스가 새 Head에서 PASS로 관측됐다.
+- 새 진단: 닫힌 `IdentifierDetails` copy 버튼은 DOM에는 있으나 시각/레이아웃 컨트롤이 아니다. 기존 #463 전체 DOM 버튼 geometry 계측은 숨긴 요소를 셀 밖 0 rect로 다룰 수 있다. **결합 assertion이 어떤 flag에서 false인지 원본 raw metric 미첨부로 확증되지 않음**; 고정 원본 Trace와 #717 직접 visible UI 검증을 구별한다.
+- `tests/e2e/milestone-dashboard-state.spec.ts` 최소 Test 변경: `tbody details:not([open]) button`의 존재·숨김 상태를 별도 단언, painted 버튼만 containment/overlap 검증, 4가지 geometry flag별 엄격 assertion과 raw CI attachment. 기존 #463의 table1 first identity width≥260px, table width≥1052px, focus/keyboard/scroll/modal/Gantt inert/read-only·5폭 검증 완화/skip 0. `src/components/identifier-details.tsx` 등 제품 React/CSS/API/DB/SVAR 원본은 변경하지 않는다.
+- 인접 검증: #717 이름/원문/복사/동명, #550 Milestone 관리 visible-only geometry, Resource Plan #622와 Target/Resource #623, Target authoring, PR 6 Shard 전체. 테스트 코드 변경의 제품/CI gate 영향 없음. `docs/TEST_PLAN.md`, 본 Work Packet, `docs/exec-plans/active/PLAN.md`, 누적 실패 원장 동기화. 기존 `## DOCUMENTATION_SYNC`와 `## AC_TEST_COVERAGE` 각 항목 유지.
+- Local 실제 Node/Chromium 실행은 **NOT TESTED** (프로젝트 checkout/node_modules/Playwright 구성 부재), 원본 Artifact/코드 기반 원인 후보·CI 레포트에서 실패 위치는 검증. 이 변경의 완결 PASS는 새 원격 exact-Head Full CI/실제 artifacts 확인 전 주장 불가.
+- Release/승인: `0.116.1`, `HIGH/OWNER_MANAGED/qa_required=true`, `release_required=true/release_authorized=false`. 리뷰 스레드0·충돌0·main 정렬 및 새 Full PR CI 시작까지만 진행, CI 모니터링·Merge/Main CI/GHCR/tag/Issue Close 금지. CI 종료·QA Trusted·Owner ACCEPT는 미확인.

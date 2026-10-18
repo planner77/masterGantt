@@ -85,3 +85,29 @@
 - 준비 당시 #717 Head `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc`, Base `d2768676aa7a0edff67df9bdeb3e1b49979fd577`; 이후 `main`은 [#449 PR #458](https://github.com/planner77/masterGantt/pull/458) 병합 `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`으로 5커밋 앞섰고 GitHub `mergeable_state=dirty`로 조회됐다. 소스 컴포넌트·E2E는 main 변경과 중첩되지 않았고 `DESIGN.md`(4 diff hunks)와 `docs/exec-plans/active/PLAN.md`(새 #449 상단 절)만 양쪽 수정이다.
 - 충돌 해결: #717의 이름 우선 정책/지난 실패/구현과 #449의 내부 KPI 참조·목록/입력/검증 정책, ISSUE_449 문서 3개와 PLAN #449 기록을 **양방향 보존**한 신규 두 부모 merge commit으로 최신 main을 브랜치에 포함한다. 공통 원칙과 과거 수행 증거를 삭제/덮어쓰기 하지 않는다.
 - 원본 #2935.1 Head/Base/실패 로그는 불변, 신규 exact Head 테스트는 시작 전 **NOT TESTED**. 리뷰 thread0과 충돌 해소 여부는 ref 게시 후 API를 다시 확인한다.
+
+## 2026-10-18 — F-004: PR #718 Full CI #2940.1 Milestone 390px geometry 실패 (누적 원장)
+
+### 누적 Run/Attempt 비교 및 원본 증거
+이 문서는 **Primary Issue #717 전용 단일 누적 실패 원장**이다. F-001~F-003 당시 로그와 원인·보완 기록을 삭제하지 않는다. 관련 PR은 #718 하나이며 접근 가능한 다섯 Run의 상태는 아래와 같다.
+
+| 이력 | SHA와 원본 결과 | 이전 수정·이번 연관성 |
+| --- | --- | --- |
+| [#2923.1](https://github.com/planner77/masterGantt/actions/runs/39080414283) | Head `23e09aada982087047d90037704cdbb8b750bf97`, Full FAIL | F-001 PR 위험도·QA 선언과 Work Packet 문서 구조 미충족, 실제 제품 E2E 미실행 |
+| [#2926.1](https://github.com/planner77/masterGantt/actions/runs/39081286379) | 같은 Head, metadata-only FAIL | F-002; 구 Full 증거를 대체하는 실행 아님 |
+| [#2927.1](https://github.com/planner77/masterGantt/actions/runs/39081290832) | Head `d97f1e60419575f4db3785c239b3ae341b3086d5`, docs-only Full SUCCESS | 당시 문서/QA 구조 보완 확인, 실제 제품 Chromium/Docker 구현 SKIPPED |
+| [#2935.1](https://github.com/planner77/masterGantt/actions/runs/39090284911) | Head `a0d6cafe9cbc7c73f4980fd36498c628d8f024dc`, Full E2E FAIL | F-003a Shard4 `logistics-target-authoring.spec.ts:14` 동명 입력/원문 selector, F-003b Shard5 CANCELLED Job 내부 `issue-622-resource-plan-target.spec.ts:53` Target ID 누락. 새 #2940에서 두 재현 케이스 각각 PASS 확인 |
+| [#2940.1](https://github.com/planner77/masterGantt/actions/runs/39091834164) | Head `6b226df1962791a4d647811b9ad8df854d56e3a1`, Full E2E FAIL | **F-004 새로운 Milestone 기본 비표시/geometry 계측 소비자 오류**. 앞선 실패 원인의 단순 재발로 취급하지 않음 |
+
+**F-004 immutable source:** `pull_request`, Run ID/Attempt `39091834164.1` (2026-10-18 02:56:08~03:01:12 UTC), Base `3eaa6026923c38f200a463f6985c7cc8f88f9bf0`; Head 위 SHA. Policy/Preflight/Fast Gate, TypeScript·ESLint·Vitest·Next Build 및 Quality aggregate 모두 SUCCESS. Docker 구현/aggregate SUCCESS. E2E aggregate [Job #117570857792](https://github.com/planner77/masterGantt/actions/runs/39091834164/job/117570857792) FAIL; QA Final — Automated [Job #117570874007](https://github.com/planner77/masterGantt/actions/runs/39091834164/job/117570874007) FAIL은 required E2E 실패에 따른 **파생 차단**.
+- **Shard1 Job [#117570351610](https://github.com/planner77/masterGantt/actions/runs/39091834164/job/117570351610):** 7 PASS, 1 FAIL, 126 DID NOT RUN. `tests/e2e/milestone-dashboard-state.spec.ts:58`의 #463 readonly/F 분리·키보드·5폭 UI 회귀, 첫 **390px**에서 `expect(table.headerBodyAligned && table.allControlsContainedInCells && table.siblingCellsNonoverlapping && table.siblingControlsNonoverlapping).toBe(true)`가 actual `false`.
+- **Shard2/3/4/5/6:** 전체 Job은 `CANCELLED`(PR maxFailures=1/matrix fail-fast). 로그에 확인된 신규 assertion FAIL은 없으나 미실행은 PASS 아님. Shard4의 이전 F-003a `logistics-target-authoring` 초기 Target A/B·다음 2 케이스 PASS, Shard5 이전 F-003b `issue-622-resource-plan-target` PASS; 이는 이번 exact Head에서 도달한 부분만의 증거.
+- **원본 Playwright [shard1 report artifact #12122463440](https://github.com/planner77/masterGantt/actions/runs/39091834164/artifacts/12122463440):** report ZIP/error-context/Trace 확보. Accessibility snapshot의 `<details>`는 기본 닫힌 '식별 정보' summary만 노출하고 내부 복사 버튼은 화면에 나타나지 않음. 테스트 소스는 닫힌 copy 버튼까지 `tbody button` DOM query로 모아 bounding rect를 첫 셀과 비교했다.
+
+### 원인 분류·수정 (사실 / 유력 가설 구분)
+- **TEST_CONTRACT / FIXTURE_OBSERVABILITY:** #717 `IdentifierDetails`가 닫힌 native `details` 안에 `작업 ID 복사` 버튼을 보유한다. DOM query에는 포함되지만 실제 배치 rect가 없는 hidden 버튼을 구 #463 geometry 수집기가 painted control로 계산하므로 셀 안에 들어가지 않는 결과가 가능하다. 기존 #550 관리 E2E와 Resource UI geometry는 이미 `checkVisibility()` 기반 선택을 사용한다.
+- **남은 불확실성:** 기존 #463의 4개 boolean을 하나로 묶어 검사했으며 runner의 `geometry-partial-390.json`을 Playwright artifact에 넣지 않아 **실제 false 필드와 별도 실배치 문제의 동시 존재 여부는 아직 확증 불가**. 화면 전체 겹침 또는 제품 오류가 없었다고 단언하지 않는다. 이 불확실성을 해결하도록 다음 Full에서 flag별 assertion과 JSON attachment를 추가한다.
+- **최소 수정:** `tests/e2e/milestone-dashboard-state.spec.ts`에서 DOM에 숨긴 copy 버튼이 실제 존재하고 닫혀서 `toBeHidden()`인 **별도 음성 확인**을 유지한다. table cell/control bounding 검증은 painted `checkVisibility() && rect.width>0 && rect.height>0`에 한정. 4개의 alignment/containment/overlap 각각의 기준은 동일하게 참이어야 하고, 260px 첫 열·1052px 표 너비·5폭·focus/keyboard/inert/scroll/readonly write0 assertions, E2E timeout/retry/CI fail-fast는 변경하거나 생략하지 않는다.
+- **진단 확보:** width별 geometry JSON을 기존 runner local `output/playwright/issue-463`에 저장하면서 **Playwright `test.info().attach`**에도 assertion *이전에* 기록한다. 이후 실패 시 `headerBodyAligned`, `allControlsContainedInCells`, `siblingCellsNonoverlapping`, `siblingControlsNonoverlapping` 중 실제 실패 key와 해당 표 index/화면폭을 보고한다.
+- **소비자 집합:** #463 `milestone-dashboard-state` 직접; #717 `issue-717-name-first` 5폭/ID 펼침·복사, #550 `milestone-management`, Target/Resource #622/#623와 앞선 #2935 교정 Target authoring 등 변경 영향. 다른 샤드 취소 시 실제 교차 검증은 계속 `NOT TESTED`.
+- **검증 상태:** CI 원본 로그/스냅샷·저장소 소스/정적 회귀 설계 확인은 수행. 현재 실행 환경은 masterGantt checkout/node_modules/Playwright 프로젝트가 없어 실제 동일-source 전체 브라우저·Node 검증은 `NOT TESTED`. 다음 Run 시작만으로 PASS나 QA/Owner 승인 주장 금지. `HIGH/OWNER_MANAGED/qa_required=true`, app`0.116.1`, `release_required=true`, `release_authorized=false`. Issue OPEN/Draft 유지, Merge/Main/정식 GHCR/종료 별도.

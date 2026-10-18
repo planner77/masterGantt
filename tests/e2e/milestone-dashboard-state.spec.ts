@@ -27,6 +27,10 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
   await dashboard(page).getByLabel("Milestone 검색", { exact: true }).fill(""); await expect(region).toBeVisible();
   const causes = dashboard(page).getByRole("button", { name: `${state.tasks[3].name} 전체 원인 확인`, exact: true });
   await causes.click(); await expect(dashboard(page).getByText("미완료 직접 선행 Milestone · 1개", { exact: true })).toBeVisible(); await page.keyboard.press("Escape"); await expect(causes).toBeFocused();
+  // Closed raw-ID disclosures have copy buttons in DOM but must remain hidden.
+  const hiddenCopyButtons = region.locator('tbody details:not([open]) button');
+  expect(await hiddenCopyButtons.count()).toBeGreaterThan(0);
+  await expect(hiddenCopyButtons.first()).toBeHidden();
   await mkdir("output/playwright/issue-463", { recursive: true }); const metrics: unknown[] = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
@@ -44,9 +48,15 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
       const bounds = (e: Element) => { const b = e.getBoundingClientRect(); return { left:b.left,right:b.right,top:b.top,bottom:b.bottom,width:b.width,height:b.height }; };
       const contains = (a: ReturnType<typeof bounds>, b: ReturnType<typeof bounds>) => a.left >= b.left - 1 && a.right <= b.right + 1 && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
       const nonoverlap = (boxes: ReturnType<typeof bounds>[]) => boxes.every((a,i) => boxes.slice(i+1).every((b) => a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1));
+      // Native closed <details> preserves copy buttons in DOM with zero layout bounds.
+      // Only painted controls have meaningful geometry; hidden state is checked above.
+      const rendered = (element: Element) => {
+        const rect = element.getBoundingClientRect();
+        return element.checkVisibility() && rect.width > 0 && rect.height > 0;
+      };
       const tables = Array.from(root.querySelectorAll("table")).map((table) => {
-        const headers = Array.from(table.querySelectorAll("thead th")).map(bounds), row = table.querySelector("tbody tr")!, cells = Array.from(row.children).map(bounds), controls = Array.from(table.querySelectorAll("tbody button")).map((button) => ({ control:bounds(button),cell:bounds(button.closest("td")!) })), owner = table.parentElement!;
-        return { width:table.getBoundingClientRect().width, headerBodyAligned:headers.every((h,i) => Math.abs(h.left-cells[i].left)<=1 && Math.abs(h.width-cells[i].width)<=1), headerBounds:headers,bodyBounds:cells,allControlsContainedInCells:controls.every(({control,cell})=>contains(control,cell)), siblingCellsNonoverlapping:nonoverlap(cells), siblingControlsNonoverlapping:Array.from(table.querySelectorAll("tbody td")).every((cell)=>nonoverlap(Array.from(cell.querySelectorAll("button")).map(bounds))),buttonCount:controls.length,ownerClientWidth:owner.clientWidth,ownerScrollWidth:owner.scrollWidth,ownerOverflowX:getComputedStyle(owner).overflowX };
+        const headers = Array.from(table.querySelectorAll("thead th")).map(bounds), row = table.querySelector("tbody tr")!, cells = Array.from(row.children).map(bounds), controls = Array.from(table.querySelectorAll("tbody button")).filter(rendered).map((button) => ({ control:bounds(button),cell:bounds(button.closest("td")!) })), owner = table.parentElement!;
+        return { width:table.getBoundingClientRect().width, headerBodyAligned:headers.every((h,i) => Math.abs(h.left-cells[i].left)<=1 && Math.abs(h.width-cells[i].width)<=1), headerBounds:headers,bodyBounds:cells,allControlsContainedInCells:controls.every(({control,cell})=>contains(control,cell)), siblingCellsNonoverlapping:nonoverlap(cells), siblingControlsNonoverlapping:Array.from(table.querySelectorAll("tbody td")).every((cell)=>nonoverlap(Array.from(cell.querySelectorAll("button")).filter(rendered).map(bounds))),buttonCount:controls.length,hiddenDisclosureButtons:table.querySelectorAll("tbody details:not([open]) button").length,ownerClientWidth:owner.clientWidth,ownerScrollWidth:owner.scrollWidth,ownerOverflowX:getComputedStyle(owner).overflowX };
       });
       const filters = root.querySelector('[class*="filters"]')!, f = bounds(filters), inputs = Array.from(filters.querySelectorAll("input,button,select")).filter((e)=>e.getBoundingClientRect().width>0).map(bounds), focused = document.activeElement!, focus = bounds(focused), style = getComputedStyle(focused), outset = Math.max(0,parseFloat(style.outlineWidth)+parseFloat(style.outlineOffset)), pane = root.closest(".project-milestone-panel")!, workspaceTabs = document.querySelector(".project-primary-tabs")!;
       const otherControls = Array.from(root.querySelectorAll("button,input,select,summary")).filter((e) => !e.closest("table") && e.checkVisibility() && e.getBoundingClientRect().width > 0).map((e) => { const owner = e.closest("label,article,[class*=sectionHeading],[class*=grandTotal],[class*=multiSummary],[class*=filters],[class*=advanced]") ?? e.parentElement!; return { tag:e.tagName,label:e.getAttribute("aria-label") ?? e.textContent?.trim().slice(0,100),ownerTag:owner.tagName,ownerClass:owner.className,control:bounds(e),owner:bounds(owner) }; });
@@ -54,8 +64,19 @@ test("#463 readonly full-state/F separation, keyboard and five-width geometry", 
       return { failedOtherControls:otherControls.filter(({control,owner})=>!contains(control,owner)),documentHeight:document.documentElement.scrollHeight,otherControlCount:otherControls.length,allOtherControlsContained:otherControls.every(({control,owner})=>contains(control,owner)),focusInScrollOwner:focus.left-outset>=focusOwner.left&&focus.right+outset<=focusOwner.right, viewport:innerWidth,documentWidth:document.documentElement.scrollWidth,tables,filterControlsContained:inputs.every((b)=>contains(b,f)),filterControlsNonoverlapping:nonoverlap(inputs),focusVisible:focus.left-outset>=0&&focus.right+outset<=innerWidth&&focus.top-outset>=0&&focus.bottom+outset<=innerHeight,focusOutline:style.outlineStyle,paneOverflowY:getComputedStyle(pane).overflowY,paneClientHeight:pane.clientHeight,paneScrollHeight:pane.scrollHeight,workspaceTabsClientHeight:workspaceTabs.clientHeight,workspaceTabsScrollHeight:workspaceTabs.scrollHeight,inactiveGanttInert:document.querySelector("#project-panel-schedule")!.hasAttribute("inert"),inactiveGanttHidden:getComputedStyle(document.querySelector("#project-panel-schedule")!).visibility,focusedOutsideInactiveGantt:!document.querySelector("#project-panel-schedule")!.contains(document.activeElement) };
     });
     await writeFile(`output/playwright/issue-463/geometry-partial-${width}.json`, JSON.stringify({ width, popup, ...geometry }, null, 2));
+    // Preserve exact geometry in CI report even if a following assertion fails.
+    await test.info().attach(`issue-463-milestone-geometry-${width}`, { body: JSON.stringify({ width, popup, ...geometry }, null, 2), contentType: "application/json" });
     expect(geometry.documentWidth).toBeLessThanOrEqual(width); expect(geometry.filterControlsContained && geometry.filterControlsNonoverlapping && geometry.focusVisible && geometry.focusInScrollOwner && geometry.allOtherControlsContained).toBe(true); expect(geometry.otherControlCount).toBeGreaterThan(0); expect(geometry.focusOutline).not.toBe("none"); expect(geometry.paneOverflowY).toBe("auto"); expect(geometry.workspaceTabsScrollHeight).toBe(geometry.workspaceTabsClientHeight); expect(geometry.inactiveGanttInert && geometry.focusedOutsideInactiveGantt).toBe(true); expect(geometry.inactiveGanttHidden).toBe("hidden");
-    for (const table of geometry.tables) { expect(table.headerBodyAligned && table.allControlsContainedInCells && table.siblingCellsNonoverlapping && table.siblingControlsNonoverlapping).toBe(true); expect(table.buttonCount).toBeGreaterThan(0); expect(table.ownerOverflowX).toBe("auto"); } expect(geometry.tables[0].headerBounds[0].width).toBeGreaterThanOrEqual(260); expect(geometry.tables[0].width).toBeGreaterThanOrEqual(1052);
+    for (const [index, table] of geometry.tables.entries()) {
+      for (const key of ["headerBodyAligned", "allControlsContainedInCells", "siblingCellsNonoverlapping", "siblingControlsNonoverlapping"] as const) {
+        expect(table[key], `${width}px table ${index} ${key}: visible layout contract`).toBe(true);
+      }
+      expect(table.buttonCount).toBeGreaterThan(0);
+      expect(table.ownerOverflowX).toBe("auto");
+    }
+    expect(geometry.tables[0].hiddenDisclosureButtons).toBeGreaterThan(0);
+    expect(geometry.tables[0].headerBounds[0].width).toBeGreaterThanOrEqual(260);
+    expect(geometry.tables[0].width).toBeGreaterThanOrEqual(1052);
     metrics.push({ width,popup,...geometry }); await page.screenshot({ path:`output/playwright/issue-463/dashboard-stage-table-${width}.png`,fullPage:false });
   }
   await writeFile("output/playwright/issue-463/geometry.json",JSON.stringify(metrics,null,2));
