@@ -1,5 +1,7 @@
 "use client";
 import { ContextHelp } from "@/components/ui/context-help";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useRef, useState } from "react";
 import type { ResourceDashboardDto } from "@/contracts/resource-dashboard";
 import type {
@@ -363,6 +365,7 @@ export function ResourcePlanView({
                       {row.description}
                     </small>
                   ) : null}
+                  {row.selector.kind === "resource" ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:row.selector.resourceId}, ...(data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)?.code ? [{label:"코드",value:data.catalog.resources.find(resource=>"resourceId" in row.selector && resource.id===row.selector.resourceId)!.code!}] : [])]}/> : row.selector.kind === "group" && row.selector.groupId ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label:"그룹 ID",value:row.selector.groupId},...(data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)?.code?[{label:"코드",value:data.catalog.groups.find(group=>"groupId" in row.selector&&group.id===row.selector.groupId)!.code!}]:[])]}/> : null}
                 </th>
                 {periods.map((p) => (
                   <td key={p.key}>{cell(row, p.key)}</td>

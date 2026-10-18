@@ -144,7 +144,10 @@ test("#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow
         const disclosure = table
           .locator('tr[data-plan-row="group"]')
           .first()
-          .locator("th button");
+          // #717: the row header also contains collapsed ID/copy controls.
+          // Only the direct expander owns aria-expanded, not raw-ID copy actions.
+          .locator('th > button[aria-expanded]');
+        await expect(disclosure).toHaveCount(1);
         if ((await disclosure.getAttribute("aria-expanded")) === "false")
           await disclosure.click();
       }
@@ -190,7 +193,7 @@ test("#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow
                     1,
               ),
             ),
-            contained: Array.from(el.querySelectorAll("button")).every((b) => {
+            contained: Array.from(el.querySelectorAll("button")).filter(button => button.checkVisibility()).every((b) => {
               const c = b.closest("th,td")!.getBoundingClientRect(),
                 r = b.getBoundingClientRect();
               return r.left >= c.left - 1 && r.right <= c.right + 1;
@@ -376,17 +379,21 @@ test("#527 50visible hierarchy page context and daily pager focus survive view r
     table = plan
       .getByRole("region", { name: "그룹 기간 계획표", exact: true })
       .locator("table");
-  await table
-    .locator('tr[data-plan-row="group"]')
-    .first()
-    .locator("th button")
-    .click();
+  // #717: the header also contains hidden, readonly ID/code copy buttons.
+  // Keep those actions hidden by default and target the unique painted expander.
+  const groupRow = table.locator('tr[data-plan-row="group"]').first();
+  const hiddenIdentityCopies = groupRow.locator('th details:not([open]) button');
+  expect(await hiddenIdentityCopies.count()).toBeGreaterThan(0);
+  await expect(hiddenIdentityCopies.first()).toBeHidden();
+  const groupDisclosure = groupRow.locator('th > button[aria-expanded]');
+  await expect(groupDisclosure).toHaveCount(1);
+  await groupDisclosure.click();
+  await expect(groupDisclosure).toHaveAttribute("aria-expanded", "true");
   for (let i = 0; i < 24; i++) {
     const disclosure = table
       .locator('tr[data-plan-row="resource"]')
       .filter({ hasText: new RegExp(`^개인 ${i} `) })
-      .getByRole("button")
-      .first();
+      .locator('th > button[aria-expanded]');
     if (
       !(await disclosure.count()) &&
       (await plan

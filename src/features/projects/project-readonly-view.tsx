@@ -1,4 +1,5 @@
 "use client";
+import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
 import { captureCopyViewport, type CanonicalMutationRequest, type CopyViewportContinuity } from "../gantt/viewport/copy-viewport-continuity";
 import type {
   ResourceDrillScopeDto,
@@ -81,7 +82,7 @@ import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
-import { ProjectProcessManagement } from "@/features/logistics/project-process-management";
+import { logisticsName } from "@/features/logistics/logistics-identity";
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
 import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
@@ -316,13 +317,24 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return isVisibleFocusTarget(parentTab) ? parentTab : null;
   }
   function selectSection(section: WorkspaceSection) {
-    // Keyboard focus may start on an inactive parent while its section is already active.
-    // Preserve the visible subview instead of replacing it with a stale remembered screen.
-    const target = section === "schedule" ? "schedule" : activeSection === section ? activeScreen : lastSectionScreens.current[section];
-    selectScreen(target, false);
+    // A keyboard user can focus a primary tab without activating it. If its
+    // section is already active, keep the current subview instead of restoring
+    // a possibly stale saved subview and remounting the focus owner.
+    const destination = section === "schedule" ? "schedule"
+      : activeSection === section ? activeScreen : lastSectionScreens.current[section];
+    const previousTab = screenTabReferences.current.get(section);
+    // Focus the persistent primary tab before React hides the old panel:
+    // waiting only for rAF can leave focus on body after that panel is inert.
+    previousTab?.focus({ preventScroll: true });
+    selectScreen(destination, false);
     requestAnimationFrame(() => {
       const tab = screenTabReferences.current.get(section);
-      tab?.focus({ preventScroll: true }); tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+      if (!tab) return;
+      // Do not steal focus from a newer user action or dialog.
+      if (document.activeElement === previousTab || document.activeElement === document.body || !document.activeElement?.isConnected) {
+        tab.focus({ preventScroll: true });
+      }
+      if (document.activeElement === tab) tab.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
   }
   function handleNavigationKey(event: ReactKeyboardEvent<HTMLButtonElement>, current: string, keys: readonly string[], activate: (key: string) => void) {
@@ -2977,7 +2989,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               </div>
               <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
                 const key = `${target.kind}:${target.id}`;
-                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
+                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name || "이름 확인 필요"}{target.code && assignedTargets.some(peer => peer.id !== target.id && peer.name === target.name) ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
               })}</div>
             </fieldset> ) : null}
           </section>
@@ -3003,7 +3015,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                             }))
                           }
                         />
-                        <span>{proc.name} <code>({proc.code})</code></span>
+                        <span>{logisticsName(proc, logistics.processes)}</span>
                       </label>
                     ))}
                   </div>
@@ -3027,7 +3039,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                             }))
                           }
                         />
-                        <span>{eq.name} <code>({eq.code})</code></span>
+                        <span>{logisticsName(eq, logistics.equipment)}</span>
                       </label>
                     ))}
                   </div>
@@ -3051,7 +3063,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
                             }))
                           }
                         />
-                        <span>{sys.name} <code>({sys.code})</code></span>
+                        <span>{logisticsName(sys, logistics.systems)}</span>
                       </label>
                     ))}
                   </div>

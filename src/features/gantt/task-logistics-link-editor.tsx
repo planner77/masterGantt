@@ -12,6 +12,7 @@ import type {
 } from "@/contracts/logistics";
 import type { ProjectTaskDto } from "../../contracts/projects";
 import { descendantTaskCount } from "./task-process-context-model";
+import { IdentifierDetails } from "@/components/identifier-details";
 import styles from "./project-task-editor.module.css";
 
 interface Props {
@@ -366,8 +367,8 @@ export function TaskLogisticsLinkEditor({
             <ul style={{ listStyle: "none", padding: 0, margin: "0.25rem 0 0" }}>
               {links.inheritedEquipmentLinks.map((item) => (
                 <li key={`${item.sourceTaskId}:${item.equipmentId}`} style={{ fontSize: "0.8rem", padding: "0.15rem 0" }}>
-                  <strong>{item.equipmentName ?? item.equipmentId}</strong>{" "}
-                  <code>({item.equipmentCode})</code>{" "}
+                  <strong>{item.equipmentName?.trim() || "이름 확인 필요"}</strong>{" "}
+                  <IdentifierDetails identifiers={[...(item.equipmentCode ? [{ label: "설비 코드", value: item.equipmentCode }] : []), { label: "설비 ID", value: item.equipmentId }]} />
                   <span style={{ color: "var(--text-muted)" }}>
                     — [상위: {item.sourceTaskName}]에서 하위 적용됨
                   </span>
@@ -379,7 +380,7 @@ export function TaskLogisticsLinkEditor({
 
         {/* 직접 설비 선택 리스트 */}
         {ready && equipmentList.length === 0 ? (
-          <p className={styles.emptyRelation}>등록된 설비가 없습니다. 기준정보 → 물류에서 설비를 등록해 주세요.</p>
+          <p className={styles.emptyRelation}>등록된 설비가 없습니다. 기준정보 → 설비에서 설비를 등록해 주세요.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 180, overflowY: "auto" }}>
             {equipmentList.map((eq) => {
@@ -395,6 +396,9 @@ export function TaskLogisticsLinkEditor({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "0.35rem",
+                    minWidth: 0,
                     padding: "0.35rem 0.25rem",
                     borderBottom: "1px solid var(--border-default)",
                     fontSize: "0.85rem",
@@ -408,7 +412,7 @@ export function TaskLogisticsLinkEditor({
                       onChange={() => toggleEquipment(eq.id)}
                     />
                     <span>
-                      <strong>{eq.name}</strong> <code>{eq.code}</code> ({eq.equipmentType}){!eq.active ? " · 비활성 (새 연결 불가)" : ""}
+                      <strong>{eq.name.trim() || "이름 확인 필요"}</strong>{equipmentList.filter(item => item.id !== eq.id && item.name === eq.name).length ? ` (${eq.code})` : ""} ({eq.equipmentType}){!eq.active ? " · 비활성 (새 연결 불가)" : ""}
                       {primaryOwner ? (
                         <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted)" }}>
                           [담당: {primaryOwner.resourceName}]
@@ -416,6 +420,7 @@ export function TaskLogisticsLinkEditor({
                       ) : null}
                     </span>
                   </label>
+                  <IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} />
 
                   {isChecked && isSummary ? (
                     <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.8rem", cursor: "pointer" }}>
@@ -451,8 +456,8 @@ export function TaskLogisticsLinkEditor({
             <ul style={{ listStyle: "none", padding: 0, margin: "0.25rem 0 0" }}>
               {links.inheritedSystemLinks.map((item) => (
                 <li key={`${item.sourceTaskId}:${item.systemId}`} style={{ fontSize: "0.8rem", padding: "0.15rem 0" }}>
-                  <strong>{item.systemName ?? item.systemId}</strong>{" "}
-                  <code>({item.systemCode})</code>{" "}
+                  <strong>{item.systemName?.trim() || "이름 확인 필요"}</strong>{" "}
+                  <IdentifierDetails identifiers={[...(item.systemCode ? [{ label: "시스템 코드", value: item.systemCode }] : []), { label: "시스템 ID", value: item.systemId }]} />
                   <span style={{ color: "var(--text-muted)" }}>
                     — [상위: {item.sourceTaskName}]에서 하위 적용됨
                   </span>
@@ -464,7 +469,7 @@ export function TaskLogisticsLinkEditor({
 
         {/* 직접 시스템 선택 리스트 */}
         {ready && systemList.length === 0 ? (
-          <p className={styles.emptyRelation}>등록된 물류 시스템이 없습니다. 기준정보 → 물류에서 시스템을 등록해 주세요.</p>
+          <p className={styles.emptyRelation}>등록된 물류 시스템이 없습니다. 기준정보 → 물류 시스템에서 시스템을 등록해 주세요.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 180, overflowY: "auto" }}>
             {systemList.map((sys) => {
@@ -480,6 +485,9 @@ export function TaskLogisticsLinkEditor({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "0.35rem",
+                    minWidth: 0,
                     padding: "0.35rem 0.25rem",
                     borderBottom: "1px solid var(--border-default)",
                     fontSize: "0.85rem",
@@ -493,7 +501,7 @@ export function TaskLogisticsLinkEditor({
                       onChange={() => toggleSystem(sys.id)}
                     />
                     <span>
-                      <strong>{sys.name}</strong> <code>{sys.code}</code> ({sys.systemType}){!sys.active ? " · 비활성 (새 연결 불가)" : ""}
+                      <strong>{sys.name.trim() || "이름 확인 필요"}</strong>{systemList.filter(item => item.id !== sys.id && item.name === sys.name).length ? ` (${sys.code})` : ""} ({sys.systemType}){!sys.active ? " · 비활성 (새 연결 불가)" : ""}
                       {primaryPi ? (
                         <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", color: "var(--text-muted)" }}>
                           [PI: {primaryPi.resourceName}]
@@ -501,6 +509,7 @@ export function TaskLogisticsLinkEditor({
                       ) : null}
                     </span>
                   </label>
+                  <IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} />
 
                   {isChecked && isSummary ? (
                     <label style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.8rem", cursor: "pointer" }}>

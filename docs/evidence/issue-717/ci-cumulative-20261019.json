@@ -1,0 +1,1507 @@
+{
+  "schema": "mastergantt-issue717-cumulative-ci-v1",
+  "captured": "2026-10-19",
+  "source": "GitHub authenticated API + decoded job logs. Historical PR.base from API is mutable and not used. Run inventory 18/18, attempt1 only; 68 failed/cancelled shard log bodies inspected; raw logs not in Git. API source https://api.github.com/repos/planner77/masterGantt/actions/runs?branch=docs%2Fissue-717-name-first-identifier-policy&event=pull_request&per_page=100&page=1",
+  "runs": [
+    {
+      "number": 2923,
+      "id": 39080414283,
+      "attempt": 1,
+      "head": "23e09aada982087047d90037704cdbb8b750bf97",
+      "created": "2026-10-17T23:48:25Z",
+      "conclusion": "failure",
+      "merge": "fc3aada1cc42043ede90e4af6c7d0c46320218ad",
+      "parents": null,
+      "required": [
+        {
+          "id": 117536119969,
+          "name": "Build, static checks, and unit tests",
+          "result": "failure"
+        },
+        {
+          "id": 117536120004,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        },
+        {
+          "id": 117536120008,
+          "name": "Docker build and runtime smoke test",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39080414283",
+      "kind": "full",
+      "shards": [],
+      "base": "6fea0397bc07d0c3adf2d769f9ba6829473503a2",
+      "checkoutSourceJob": 117536032826
+    },
+    {
+      "number": 2926,
+      "id": 39081286379,
+      "attempt": 1,
+      "head": "23e09aada982087047d90037704cdbb8b750bf97",
+      "created": "2026-10-18T00:02:32Z",
+      "conclusion": "failure",
+      "merge": "fc3aada1cc42043ede90e4af6c7d0c46320218ad",
+      "parents": null,
+      "required": [
+        {
+          "id": 117538623587,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117538623610,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117538623627,
+          "name": "Chromium end-to-end tests",
+          "result": "success"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39081286379",
+      "kind": "metadata-only",
+      "shards": [],
+      "base": "6fea0397bc07d0c3adf2d769f9ba6829473503a2",
+      "checkoutSourceJob": 117538557941,
+      "directFailureJob": 117538557723,
+      "directFailure": "2026-10-18T00:02:41.3194152Z QA 경로 BLOCKED: 최신 PR/head/base 귀속 검증 실패 (stale이면 재실행 필요)"
+    },
+    {
+      "number": 2927,
+      "id": 39081290832,
+      "attempt": 1,
+      "head": "d97f1e60419575f4db3785c239b3ae341b3086d5",
+      "created": "2026-10-18T00:02:36Z",
+      "conclusion": "success",
+      "merge": "bd11286e5fc7c10143babb8ce4d6e4e43ca5d614",
+      "parents": null,
+      "required": [
+        {
+          "id": 117538795406,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117538795499,
+          "name": "Chromium end-to-end tests",
+          "result": "success"
+        },
+        {
+          "id": 117538795510,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39081290832",
+      "kind": "full",
+      "shards": [],
+      "base": "6fea0397bc07d0c3adf2d769f9ba6829473503a2",
+      "checkoutSourceJob": 117538570272
+    },
+    {
+      "number": 2935,
+      "id": 39090284911,
+      "attempt": 1,
+      "head": "a0d6cafe9cbc7c73f4980fd36498c628d8f024dc",
+      "created": "2026-10-18T02:29:47Z",
+      "conclusion": "failure",
+      "merge": "3f127510607a0ab05d52fb8d370fdada30603952",
+      "parents": [
+        "a0d6cafe9cbc7c73f4980fd36498c628d8f024dc",
+        "d2768676aa7a0edff67df9bdeb3e1b49979fd577"
+      ],
+      "required": [
+        {
+          "id": 117566071365,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117566191947,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117566293051,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39090284911",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117565762504,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117565762536,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117565762565,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [
+            "1 failed",
+            "80 did not run",
+            "1 passed (1.1m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/issue-622-resource-plan-target.spec.ts",
+              "line": 9,
+              "column": 5,
+              "case": "#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Excel·다섯 화면폭"
+            }
+          ]
+        },
+        {
+          "id": 117565762613,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117565762622,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117565762633,
+          "shard": "4",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "138 did not run",
+            "4 passed (39.0s)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/logistics-target-authoring.spec.ts",
+              "line": 23,
+              "column": 5,
+              "case": "Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집·영향 및 reload 보존"
+            }
+          ]
+        }
+      ],
+      "base": "d2768676aa7a0edff67df9bdeb3e1b49979fd577"
+    },
+    {
+      "number": 2940,
+      "id": 39091834164,
+      "attempt": 1,
+      "head": "6b226df1962791a4d647811b9ad8df854d56e3a1",
+      "created": "2026-10-18T02:56:08Z",
+      "conclusion": "failure",
+      "merge": "c703f1963d40bd29313402f46d21efbaafb2f85f",
+      "parents": [
+        "6b226df1962791a4d647811b9ad8df854d56e3a1",
+        "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+      ],
+      "required": [
+        {
+          "id": 117570583921,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117570670397,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117570857792,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39091834164",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117570351606,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117570351610,
+          "shard": "1",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "126 did not run",
+            "7 passed (1.5m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/milestone-dashboard-state.spec.ts",
+              "line": 17,
+              "column": 5,
+              "case": "#463 readonly full-state/F separation, keyboard and five-width geometry"
+            }
+          ]
+        },
+        {
+          "id": 117570351613,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117570351614,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117570351623,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117570351642,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+    },
+    {
+      "number": 2942,
+      "id": 39093363065,
+      "attempt": 1,
+      "head": "6d23240008b0022f5376c5f8c4dcb0d1a3fadffd",
+      "created": "2026-10-18T03:22:01Z",
+      "conclusion": "failure",
+      "merge": "f88c84fbdf33b89ab4df452d31ac0e6e89713304",
+      "parents": [
+        "6d23240008b0022f5376c5f8c4dcb0d1a3fadffd",
+        "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+      ],
+      "required": [
+        {
+          "id": 117575166568,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117575343453,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117576337830,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39093363065",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117574935119,
+          "shard": "3",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "58 did not run",
+            "41 passed (5.7m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/issue-621-resource-target.spec.ts",
+              "line": 335,
+              "column": 5,
+              "case": "#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 초안 보존"
+            }
+          ]
+        },
+        {
+          "id": 117574935120,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117574935162,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117574935167,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117574935194,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117574935210,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [
+            "1 failed",
+            "1 skipped",
+            "72 did not run",
+            "46 passed (6.5m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/milestone-stage-editor.spec.ts",
+              "line": 9,
+              "column": 5,
+              "case": "#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개·geometry"
+            }
+          ]
+        }
+      ],
+      "base": "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+    },
+    {
+      "number": 2944,
+      "id": 39095135631,
+      "attempt": 1,
+      "head": "bfd4173f0099d03f3357262cea01b567a51825cf",
+      "created": "2026-10-18T03:52:23Z",
+      "conclusion": "failure",
+      "merge": "8b4ed9dacdf5761e2aa3546bf6d06548dbc1075d",
+      "parents": [
+        "bfd4173f0099d03f3357262cea01b567a51825cf",
+        "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+      ],
+      "required": [
+        {
+          "id": 117580351931,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117580559795,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117581732726,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39095135631",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117580197494,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [
+            "1 failed",
+            "56 did not run",
+            "43 passed (7.6m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/issue-623-resource-mvp.spec.ts",
+              "line": 60,
+              "column": 1,
+              "case": "#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방향 동일원본 복귀"
+            }
+          ]
+        },
+        {
+          "id": 117580197522,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117580197532,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117580197552,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117580197568,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117580197570,
+          "shard": "1",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "76 did not run",
+            "57 passed (7.3m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+              "line": 125,
+              "column": 5,
+              "case": "Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다"
+            }
+          ]
+        }
+      ],
+      "base": "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+    },
+    {
+      "number": 2945,
+      "id": 39097301048,
+      "attempt": 1,
+      "head": "62b17d91e120d8879bf688f910b3e5d3889bf05d",
+      "created": "2026-10-18T04:30:02Z",
+      "conclusion": "failure",
+      "merge": "4c26484fd55f4a8ec6ccbdaaa3131b489be068cb",
+      "parents": [
+        "62b17d91e120d8879bf688f910b3e5d3889bf05d",
+        "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+      ],
+      "required": [
+        {
+          "id": 117586807850,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117587033641,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117589013242,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39097301048",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117586647572,
+          "shard": "6",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "32 did not run",
+            "80 passed (12.5m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/project-workspace-ux.spec.ts",
+              "line": 5,
+              "column": 7,
+              "case": "Issue #76 Project Workspace UX › compact context와 일정/리소스 peer view가 Gantt 상태를 보존한다"
+            }
+          ]
+        },
+        {
+          "id": 117586647582,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117586647587,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117586647588,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [
+            "1 failed",
+            "2 did not run",
+            "131 passed (12.8m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-developer-grade.spec.ts",
+              "line": 3,
+              "column": 5,
+              "case": "Issue #288: resource developer grade is created, displayed, and editable"
+            }
+          ]
+        },
+        {
+          "id": 117586647603,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117586647692,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "3eaa6026923c38f200a463f6985c7cc8f88f9bf0"
+    },
+    {
+      "number": 2952,
+      "id": 39103690860,
+      "attempt": 1,
+      "head": "e876c351280b34633f7edabb3428116d16392d6a",
+      "created": "2026-10-18T06:20:28Z",
+      "conclusion": "failure",
+      "merge": "579485da165eb375809f81afeac655b0fdb91df5",
+      "parents": [
+        "e876c351280b34633f7edabb3428116d16392d6a",
+        "7393483c4a15007868fceeaee70fb9e13c8b119a"
+      ],
+      "required": [
+        {
+          "id": 117605597124,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117605799173,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117608033254,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39103690860",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117605358900,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117605358924,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117605358954,
+          "shard": "2",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117605358992,
+          "shard": "3",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117605358996,
+          "shard": "6",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "15 did not run",
+            "97 passed (13.5m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-milestone-views.spec.ts",
+              "line": 36,
+              "column": 5,
+              "case": "#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt"
+            }
+          ]
+        },
+        {
+          "id": 117605359042,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "7393483c4a15007868fceeaee70fb9e13c8b119a"
+    },
+    {
+      "number": 2954,
+      "id": 39105484225,
+      "attempt": 1,
+      "head": "d41b06d2fd24384a8a18b117432165663e8fcde0",
+      "created": "2026-10-18T06:50:46Z",
+      "conclusion": "failure",
+      "merge": "5b33586371a7ee881f9555825e563bb975b88c04",
+      "parents": [
+        "d41b06d2fd24384a8a18b117432165663e8fcde0",
+        "7393483c4a15007868fceeaee70fb9e13c8b119a"
+      ],
+      "required": [
+        {
+          "id": 117610856846,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117611002749,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117612961683,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39105484225",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117610596740,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [
+            "1 failed",
+            "15 did not run",
+            "97 passed (11.2m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-milestone-views.spec.ts",
+              "line": 36,
+              "column": 5,
+              "case": "#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt"
+            }
+          ]
+        },
+        {
+          "id": 117610596744,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117610596769,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117610596773,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117610596776,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117610596896,
+          "shard": "5",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "9 did not run",
+            "72 passed (10.4m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-plan-dashboard.spec.ts",
+              "line": 118,
+              "column": 5,
+              "case": "#527 week/month two hierarchies 20geometry, bound50rows, sticky lastwindow and nativeGantt"
+            }
+          ]
+        }
+      ],
+      "base": "7393483c4a15007868fceeaee70fb9e13c8b119a"
+    },
+    {
+      "number": 2956,
+      "id": 39107357815,
+      "attempt": 1,
+      "head": "4a41ae41456e048568a4d0443769ad53fb38d45c",
+      "created": "2026-10-18T07:21:29Z",
+      "conclusion": "failure",
+      "merge": "3b2c3e30c6432476e361e34faef740a77748f3b2",
+      "parents": [
+        "4a41ae41456e048568a4d0443769ad53fb38d45c",
+        "7393483c4a15007868fceeaee70fb9e13c8b119a"
+      ],
+      "required": [
+        {
+          "id": 117616649598,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117616869549,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117619275577,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39107357815",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117616387258,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [
+            "113 passed (14.4m)"
+          ],
+          "failures": []
+        },
+        {
+          "id": 117616387273,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117616387294,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117616387296,
+          "shard": "5",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "7 did not run",
+            "74 passed (13.7m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-plan-dashboard.spec.ts",
+              "line": 370,
+              "column": 5,
+              "case": "#527 50visible hierarchy page context and daily pager focus survive view return"
+            }
+          ]
+        },
+        {
+          "id": 117616387300,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117616387303,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "7393483c4a15007868fceeaee70fb9e13c8b119a"
+    },
+    {
+      "number": 2959,
+      "id": 39110550430,
+      "attempt": 1,
+      "head": "1c073adfbdda9b9ab36799338293241e7a99d0ca",
+      "created": "2026-10-18T08:12:23Z",
+      "conclusion": "failure",
+      "merge": "c30d3a41efdeab671a0e3ec572bdfb19115887b7",
+      "parents": [
+        "1c073adfbdda9b9ab36799338293241e7a99d0ca",
+        "ea4194763568432ef98e823bb796b59a5beb317c"
+      ],
+      "required": [
+        {
+          "id": 117626183459,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117626765673,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117630627568,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39110550430",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117625984512,
+          "shard": "1",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117625984519,
+          "shard": "4",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "68 did not run",
+            "74 passed (22.9m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-dashboard-ui.spec.ts",
+              "line": 8,
+              "column": 5,
+              "case": "#525 실제 비빈 SQLite/HTTP 공동 Task·중첩 분류·미설정·진단·snapshot 복구"
+            }
+          ]
+        },
+        {
+          "id": 117625984548,
+          "shard": "2",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117625984557,
+          "shard": "6",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117625984562,
+          "shard": "5",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117625984572,
+          "shard": "3",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "ea4194763568432ef98e823bb796b59a5beb317c"
+    },
+    {
+      "number": 2968,
+      "id": 39122204893,
+      "attempt": 1,
+      "head": "9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3",
+      "created": "2026-10-18T11:11:00Z",
+      "conclusion": "failure",
+      "merge": "c243b45124763919e1e3862ba174bf0c05b7125d",
+      "parents": [
+        "9866201b9d5de08c8b070e4a9bf1c7cc1a5f94e3",
+        "c2395b17d864692c2e5e5aa36f55ea36e7197541"
+      ],
+      "required": [
+        {
+          "id": 117660525866,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117660665383,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117662133647,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39122204893",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117660314425,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117660314437,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117660314438,
+          "shard": "5",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "33 did not run",
+            "50 passed (7.1m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+              "line": 6,
+              "column": 5,
+              "case": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry"
+            }
+          ]
+        },
+        {
+          "id": 117660314487,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117660314499,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117660314521,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "c2395b17d864692c2e5e5aa36f55ea36e7197541"
+    },
+    {
+      "number": 2970,
+      "id": 39124981794,
+      "attempt": 1,
+      "head": "d2e0878d28186e1916f98ff259bf74b0b1abf27c",
+      "created": "2026-10-18T11:52:22Z",
+      "conclusion": "failure",
+      "merge": "2294e736c61636b3e21d91382d9b578b247d0206",
+      "parents": [
+        "d2e0878d28186e1916f98ff259bf74b0b1abf27c",
+        "4ce564a8d9ec646ba584a585a610537f14698476"
+      ],
+      "required": [
+        {
+          "id": 117668810912,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117668952457,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117670861454,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39124981794",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117668514289,
+          "shard": "4",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117668514311,
+          "shard": "3",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "49 did not run",
+            "52 passed (10.1m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/issue-725-process-workareas.spec.ts",
+              "line": 88,
+              "column": 5,
+              "case": "#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작"
+            }
+          ]
+        },
+        {
+          "id": 117668514336,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117668514343,
+          "shard": "5",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117668514440,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117668514445,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "4ce564a8d9ec646ba584a585a610537f14698476"
+    },
+    {
+      "number": 2971,
+      "id": 39126212649,
+      "attempt": 1,
+      "head": "2c362645c281f932c0f0c9d67c81981d00bac5c4",
+      "created": "2026-10-18T12:10:46Z",
+      "conclusion": "cancelled",
+      "merge": "db88639d88748d3452c3f447ced6f5637ce28c46",
+      "parents": [
+        "2c362645c281f932c0f0c9d67c81981d00bac5c4",
+        "4ce564a8d9ec646ba584a585a610537f14698476"
+      ],
+      "required": [
+        {
+          "id": 117672397616,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117672615695,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117676459443,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39126212649",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117672159961,
+          "shard": "5",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117672160006,
+          "shard": "6",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117672160034,
+          "shard": "1",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117672160044,
+          "shard": "3",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117672160050,
+          "shard": "2",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117672160067,
+          "shard": "4",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "67 did not run",
+            "75 passed (20.1m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-error-recovery.spec.ts",
+              "line": 78,
+              "column": 9,
+              "case": "resource 409 실패는 초안을 보존하고 명시 재시도 성공만 해당 폼을 비운다"
+            }
+          ]
+        }
+      ],
+      "base": "4ce564a8d9ec646ba584a585a610537f14698476"
+    },
+    {
+      "number": 2972,
+      "id": 39126248569,
+      "attempt": 1,
+      "head": "72871264b62a16076c4f7fb68e8c958c14c02955",
+      "created": "2026-10-18T12:11:18Z",
+      "conclusion": "failure",
+      "merge": "7b1727ba3297a326d47cbc848aaccfc7061ffae6",
+      "parents": [
+        "72871264b62a16076c4f7fb68e8c958c14c02955",
+        "4ce564a8d9ec646ba584a585a610537f14698476"
+      ],
+      "required": [
+        {
+          "id": 117677210136,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117677465931,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117680223093,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39126248569",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117676992328,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117676992340,
+          "shard": "4",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "67 did not run",
+            "75 passed (13.6m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/resource-error-recovery.spec.ts",
+              "line": 78,
+              "column": 9,
+              "case": "resource 409 실패는 초안을 보존하고 명시 재시도 성공만 해당 폼을 비운다"
+            }
+          ]
+        },
+        {
+          "id": 117676992349,
+          "shard": "2",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117676992357,
+          "shard": "6",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117676992390,
+          "shard": "5",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117676992401,
+          "shard": "3",
+          "result": "cancelled",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "4ce564a8d9ec646ba584a585a610537f14698476"
+    },
+    {
+      "number": 2975,
+      "id": 39129631351,
+      "attempt": 1,
+      "head": "8f455a5cfc41f4a0753381260662b5749cf54041",
+      "created": "2026-10-18T13:00:06Z",
+      "conclusion": "cancelled",
+      "merge": "f8a34695fabe3c1e62047e016c612a1198fe2567",
+      "parents": [
+        "8f455a5cfc41f4a0753381260662b5749cf54041",
+        "4ce564a8d9ec646ba584a585a610537f14698476"
+      ],
+      "required": [
+        {
+          "id": 117682725920,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117682857950,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117686957899,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39129631351",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117682432618,
+          "shard": "6",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117682432624,
+          "shard": "1",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117682432631,
+          "shard": "3",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117682432637,
+          "shard": "5",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117682432651,
+          "shard": "4",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "1 skipped",
+            "9 did not run",
+            "132 passed (20.1m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/task-link-load-safety.spec.ts",
+              "line": 169,
+              "column": 5,
+              "case": "재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름을 우선한다"
+            }
+          ]
+        },
+        {
+          "id": 117682432722,
+          "shard": "2",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "4ce564a8d9ec646ba584a585a610537f14698476"
+    },
+    {
+      "number": 2976,
+      "id": 39129737531,
+      "attempt": 1,
+      "head": "1a6bdbeb6c07ce08c280d0344daadcf5789b8278",
+      "created": "2026-10-18T13:01:25Z",
+      "conclusion": "failure",
+      "merge": "835563065a11b1f5c9e51fe847a0157c87326ac3",
+      "parents": [
+        "1a6bdbeb6c07ce08c280d0344daadcf5789b8278",
+        "4ce564a8d9ec646ba584a585a610537f14698476"
+      ],
+      "required": [
+        {
+          "id": 117687719818,
+          "name": "Build, static checks, and unit tests",
+          "result": "success"
+        },
+        {
+          "id": 117687902026,
+          "name": "Docker build and runtime smoke test",
+          "result": "success"
+        },
+        {
+          "id": 117692055703,
+          "name": "Chromium end-to-end tests",
+          "result": "failure"
+        }
+      ],
+      "url": "https://github.com/planner77/masterGantt/actions/runs/39129737531",
+      "kind": "full",
+      "shards": [
+        {
+          "id": 117687447555,
+          "shard": "1",
+          "result": "cancelled",
+          "counts": [
+            "134 passed (20.7m)"
+          ],
+          "failures": []
+        },
+        {
+          "id": 117687447558,
+          "shard": "5",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117687447583,
+          "shard": "3",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117687447596,
+          "shard": "2",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        },
+        {
+          "id": 117687447653,
+          "shard": "4",
+          "result": "failure",
+          "counts": [
+            "1 failed",
+            "1 skipped",
+            "9 did not run",
+            "132 passed (20.7m)"
+          ],
+          "failures": [
+            {
+              "file": "tests/e2e/task-link-load-safety.spec.ts",
+              "line": 169,
+              "column": 5,
+              "case": "재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름을 우선한다"
+            }
+          ]
+        },
+        {
+          "id": 117687447725,
+          "shard": "6",
+          "result": "success",
+          "counts": [],
+          "failures": []
+        }
+      ],
+      "base": "4ce564a8d9ec646ba584a585a610537f14698476"
+    }
+  ],
+  "actualFailedFiles": [
+    "tests/e2e/issue-621-resource-target.spec.ts",
+    "tests/e2e/issue-622-resource-plan-target.spec.ts",
+    "tests/e2e/issue-623-resource-mvp.spec.ts",
+    "tests/e2e/issue-725-process-workareas.spec.ts",
+    "tests/e2e/logistics-target-authoring.spec.ts",
+    "tests/e2e/milestone-dashboard-state.spec.ts",
+    "tests/e2e/milestone-stage-editor.spec.ts",
+    "tests/e2e/project-filter-toolbar-consistency.spec.ts",
+    "tests/e2e/project-workspace-tabs-518.spec.ts",
+    "tests/e2e/project-workspace-ux.spec.ts",
+    "tests/e2e/resource-dashboard-ui.spec.ts",
+    "tests/e2e/resource-developer-grade.spec.ts",
+    "tests/e2e/resource-error-recovery.spec.ts",
+    "tests/e2e/resource-milestone-views.spec.ts",
+    "tests/e2e/resource-plan-dashboard.spec.ts",
+    "tests/e2e/task-link-load-safety.spec.ts"
+  ],
+  "reviewedRunCount": 18,
+  "reviewedFailedOrCancelledShardLogs": 68
+}

@@ -504,6 +504,43 @@
   }
 }
 
+/* Preserve readable entity names while narrow viewports scroll within the table. */
+.processTable {
+  min-width: 728px;
+}
+
+.processTable th:nth-child(1),
+.processTable td:nth-child(1) {
+  min-width: 220px;
+}
+
+.processTable th:nth-child(2),
+.processTable td:nth-child(2) {
+  min-width: 180px;
+}
+
+.processTable th:nth-child(3),
+.processTable td:nth-child(3) {
+  min-width: 80px;
+}
+
+.processTable th:nth-child(4),
+.processTable td:nth-child(4) {
+  min-width: 88px;
+}
+
+.processTable th:nth-child(5),
+.processTable td:nth-child(5) {
+  min-width: 160px;
+}
+
+.equipmentTable th:nth-child(2),
+.equipmentTable td:nth-child(2),
+.systemTable th:first-child,
+.systemTable td:first-child {
+  min-width: 220px;
+}
+
 .typeField {
   display: grid;
   min-width: 0;

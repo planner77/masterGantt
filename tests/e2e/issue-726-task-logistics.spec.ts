@@ -71,6 +71,13 @@ test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중
   let editor = await openEditor(page, f.task.name);
   const equipment = editor.getByRole("group", { name: /관련 설비/ });
   const systems = editor.getByRole("group", { name: /관련 물류 시스템/ });
+  // #717 main integration: the full canonical code/ID is available on demand, not the default label.
+  const equipmentIdentity = equipment.locator("details").first();
+  await expect(equipment.getByRole("checkbox", { name: /AMR-A/ })).toBeEnabled();
+  await equipmentIdentity.locator("summary").click();
+  await expect(equipmentIdentity.getByRole("textbox", { name: "설비 코드", exact: true })).toHaveValue("AMR-A");
+  await expect(equipmentIdentity.getByRole("textbox", { name: "설비 ID", exact: true })).toHaveValue(originals.equipment.find(item => item.code === "AMR-A")!.id);
+  await equipmentIdentity.locator("summary").click();
   await equipment.getByRole("checkbox", { name: /AMR-A/ }).check();
   await equipment.getByRole("checkbox", { name: /AMR-B/ }).check();
   await systems.getByRole("checkbox", { name: /ACS-A/ }).check();

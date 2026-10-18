@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
@@ -688,13 +689,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const candidate = modal.locator(".relation-editor-candidate-item", { hasText: "Alpha leaf" });
     await expect(candidate).toHaveCount(1);
-    await expect(candidate).toContainText("외부 ID: EDITOR-3");
-    await expect(candidate).toContainText(`작업 ID: ${id(3)}`);
+    await expect(candidate).toContainText("Alpha leaf");
+    await expect(candidate).not.toContainText(id(3));
     await candidate.click();
 
     await expect(modal.getByText("Alpha leaf", { exact: true })).toBeVisible();
-    await expect(modal.getByText("외부 ID: EDITOR-3", { exact: true })).toBeVisible();
-    await expect(modal.getByText(`작업 ID: ${id(3)}`, { exact: true })).toBeVisible();
+    await expectRawIdentifier(modal, "외부 ID", "EDITOR-3");
+    await expectRawIdentifier(modal, "작업 ID", id(3));
 
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
     await expect.poll(() => fixture.linkMutations.length).toBe(1);
@@ -721,7 +722,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const modal = relationEditor(page);
     await expect(modal).toContainText("기준 작업 [Milestone]");
     await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Milestone peer");
-    await modal.getByRole("button", { name: /Milestone peer.*외부 ID: EDITOR-6.*작업 ID:/ }).click();
+    await modal.getByRole("button", { name: /^Milestone peer/ }).click();
     await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
     await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
@@ -901,7 +902,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       const body = dialog.locator("form > div").first();
       const footer = dialog.locator("form > footer");
       await expect(dialog).toContainText("일반 작업");
-      await expect(dialog).toContainText("External ID");
+      await expectRawIdentifier(dialog, "외부 ID", "EDITOR-4");
       await expect(dialog).toContainText("Revision 20");
       const dialogBox = await dialog.boundingBox();
       const headerBox = await header.boundingBox();

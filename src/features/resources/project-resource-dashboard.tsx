@@ -1,5 +1,7 @@
 "use client";
 import { ContextHelp } from "@/components/ui/context-help";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import {
   useCallback,
@@ -276,9 +278,10 @@ export function ProjectResourceDashboard({
               <span aria-hidden="true">{open ? "▾" : "▸"}</span>
               <span>
                 {row.name}
-                {row.code ? ` (${row.code})` : ""}
+
               </span>
             </button>
+            {row.id ? <IdentifierDetails label={`${row.name} 식별 정보`} identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
             {!row.active && row.id ? <small>비활성 · 기존 할당</small> : null}
             {kind === "resource" ? (
               <small>
@@ -707,7 +710,7 @@ export function ProjectResourceDashboard({
             <option value="ungrouped">미분류 Resource</option>
             {data?.catalog.groups.map((group) => (
               <option key={group.id} value={group.id}>
-                {group.name}
+                {group.name}{data.catalog.groups.some(other=>other.id!==group.id&&other.name===group.name)?` (${group.code||group.id})`:""}
               </option>
             ))}
           </select>
@@ -724,7 +727,7 @@ export function ProjectResourceDashboard({
             <option value="">전체</option>
             {data?.catalog.resources.map((resource) => (
               <option key={resource.id} value={resource.id}>
-                {resource.name}
+                {resource.name}{data.catalog.resources.some(other=>other.id!==resource.id&&other.name===resource.name)?` (${resource.code||resource.id})`:""}
                 {!resource.active ? " (비활성)" : ""}
               </option>
             ))}

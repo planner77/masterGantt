@@ -1,5 +1,7 @@
 "use client";
 
+import { IdentifierDetails } from "../../components/identifier-details";
+
 import React, { useId, useMemo, useRef, useState } from "react";
 import type { DependencyType, ProjectLinkDto, ProjectTaskDto } from "@/contracts/projects";
 import {
@@ -12,7 +14,7 @@ import {
   getRelatedLinksForAnchor,
   searchCandidateTasks,
 } from "./relation-editor-model";
-import { WorkspaceDialog } from "@/components/workspace-dialog";
+import { WorkspaceDialog } from "../../components/workspace-dialog";
 import "./relation-editor-dialog.css";
 
 type RelationEditorEntryProps =
@@ -32,6 +34,21 @@ export type RelationEditorDialogProps = RelationEditorEntryProps & {
     options: { type: DependencyType; lag: number },
   ) => Promise<boolean>;
 };
+
+/** Resolve duplicate names against the context actually visible to the user. */
+export function relationCandidateContext(
+  task: ProjectTaskDto,
+  tasks: readonly ProjectTaskDto[],
+  byExternalId = new Map(tasks.map(item => [item.externalId, item])),
+): string {
+  const visibleContext = (item: ProjectTaskDto) => {
+    const parent = item.parentExternalId ? byExternalId.get(item.parentExternalId)?.name : "프로젝트 최상위";
+    return `${parent ?? "상위 작업 정보 없음"} · ${item.start ?? "일정 미정"}`;
+  };
+  const context = visibleContext(task);
+  const ambiguous = tasks.some(other => other.taskId !== task.taskId && other.name === task.name && visibleContext(other) === context);
+  return ambiguous ? `${context} · ${task.externalId}` : context;
+}
 
 export function RelationEditorDialog({
   linkId: initialLinkId,
@@ -58,6 +75,8 @@ export function RelationEditorDialog({
   const activeLink = activeLinkId ? links.find((l) => l.id === activeLinkId) : undefined;
 
   const tasksByExternalId = useMemo(() => new Map(tasks.map((t) => [t.externalId, t])), [tasks]);
+
+  const candidateContext = (task: ProjectTaskDto) => relationCandidateContext(task, tasks, tasksByExternalId);
 
   // Anchor task externalId state
   const [anchorExternalId, setAnchorExternalId] = useState<string>(() => {
@@ -560,10 +579,10 @@ export function RelationEditorDialog({
                         >
                           <span className="relation-editor-selected-candidate-name">{selectedCandidate.name}</span>
                           <span className="relation-editor-selected-candidate-ids">
-                            <span>외부 ID: {selectedCandidate.externalId}</span>
-                            <span>작업 ID: {selectedCandidate.taskId}</span>
+                            <span>{candidateContext(selectedCandidate)}</span>
                           </span>
                         </div>
+                        <IdentifierDetails label={`${selectedCandidate.name} 식별 정보`} identifiers={[{label: "외부 ID", value: selectedCandidate.externalId}, {label: "작업 ID", value: selectedCandidate.taskId}]} />
                         <button
                           className="relation-editor-btn relation-editor-btn-secondary"
                           disabled={mutationPending}
@@ -620,8 +639,7 @@ export function RelationEditorDialog({
                                 >
                                   <span className="relation-editor-candidate-name">{candidate.name}</span>
                                   <span className="relation-editor-candidate-ids">
-                                    <span>외부 ID: {candidate.externalId}</span>
-                                    <span>작업 ID: {candidate.taskId}</span>
+                                    <span>{candidateContext(candidate)}</span>
                                   </span>
                                 </button>
                               ))
