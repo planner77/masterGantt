@@ -365,9 +365,13 @@ test("#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류
   await save().click();
   await expect.poll(async () => (await readContext()).processLinks?.length).toBe(2);
   const childContext = await readContext();
+  // The API's legacy-null context is valid before explicit editing, not after
+  // this successful save. Fail on null rather than coerce it to an empty set.
+  const savedProcessLinks = childContext.processLinks;
+  if (savedProcessLinks === null) throw new Error("저장된 직접 공정 관계가 legacy null로 되돌아왔습니다.");
   // Direct process links are a set; UUID order is not fixture creation (A/B) order.
   const byProcessId = (a: { processId: string }, b: { processId: string }) => a.processId.localeCompare(b.processId);
-  expect([...childContext.processLinks].sort(byProcessId)).toEqual(f.processIds.map(processId => ({ processId, scope: "self" })).sort(byProcessId));
+  expect([...savedProcessLinks].sort(byProcessId)).toEqual(f.processIds.map(processId => ({ processId, scope: "self" })).sort(byProcessId));
   expect(childContext.workAreaLinks).toEqual([{ processId: f.processIds[0], workAreaId: areaA.id, scope: "self" }]);
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   editor = await openEditor(page, f.parentTask.name);

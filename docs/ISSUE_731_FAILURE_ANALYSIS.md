@@ -4,6 +4,8 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 
 > **최신 F-002 (2026-10-19 KST):** [Full PR CI #2998.1](https://github.com/planner77/masterGantt/actions/runs/39211001676)은 최초 F-001 리뷰 해결 후 재실행되었지만, Shard4의 #726 공정 문맥 원본 GET에서 ECONNRESET로 실제 E2E FAIL을 기록했다. Required Quality/Docker SUCCESS·E2E FAILURE·QA Final 파생 FAILURE다. 아래 §6 F-002와 교차 원장에 추가하며 기존 §1의 '1개 Run'은 F-001 작성 시점의 역사 기록이다. **접근 가능한 #731 Full Run 2건: #2997.1, #2998.1.** 그 외 metadata-only 및 새 Head CI는 독립 확인 전 별도다. 현재 transport 결함의 정확한 근인은 UNKNOWN이다.
 
+> **최신 F-003 (2026-10-19 KST):** [PR Full CI #2999.1](https://github.com/planner77/masterGantt/actions/runs/39212770619)에서 `tests/e2e/issue-726-task-logistics.spec.ts:370`의 TypeScript **TS2488**이 직접 실패했다. #2998.1 ECONNRESET 교정 때 정확 DTO `TaskProcessLink[] | null` 타입으로 전환했으나 기존 배열 spread에 null 구분이 빠졌다. Fast Gate가 막아 **E2E·Docker·PR Build는 실행되지 않았다**. 이 원장의 F-001/F-002를 소급 변경하지 않고 F-003을 §7에 누적한다. 연결된 PR #746의 원격 Full CI 확인 이력은 #2997.1/#2998.1/#2999.1 (서로 다른 Head·Run·각 attempt1)이다.
+
 **이 문서 하나가 #731의 canonical 원격 실패 원장이다.** 재실패/재개 시 관련 모든 PR·Run·Attempt·Job·Shard·취소·미실행을 다시 수집하고 다음 F-002+ 절을 누적한다. 과거 실패·기각된 가설·원시 결과는 소급 삭제/성공 변경하지 않는다. [#667 기존 누적 선례](ISSUE_667_FAILURE_ANALYSIS.md)와 현재 이슈 실패를 혼합하지 않는다.
 
 ## 1. 모든 관련 PR/Run/Attempt·원본 결과
@@ -91,3 +93,44 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 - 같은 원장 F-001+F-002 **전체 Run·Attempt·Fail-fast Shard/별도 global error**를 조회하고 원본 실패의 불변 보존, source/test 교차, 새로운 증상 독립 판단을 유지한다. 기존 원격 실패 파일 합집합: 직접 E2E tests/e2e/issue-726-task-logistics.spec.ts 1개 + QA Final review gate 1개(테스트 파일 아님). 다른 이슈의 실패 파일 목록은 인접 영향 조사만 한다.
 - 게시 직전 exact PR Head d2a90cd..., latest main(base) 01fdc08.../mergeable/review0 확인 후 기존 branch에 **단일 logical git commit**으로 코드·원장·테스트 계획·Work Packet을 반영한다. 그 직후 PR review0 및 충돌 상태를 다시 검사한다.
 - 새 **pull_request.synchronize Full CI**의 Run ID/Attempt·HEAD/base/test merge와 시작 여부만 확인. CI 완료 모니터링·병합/Main CI/GHCR/Finalizer·Issue 종료/릴리스 승인 제외. 새 Head의 Required3/Trusted QA/Owner ACCEPT는 NOT TESTED; HIGH/OWNER_MANAGED, release_authorized=false 유지.
+
+## 7. F-003 — PR #746 Full CI #2999.1 TypeScript TS2488 / Fast Gate 차단 (2026-10-19)
+
+### 7.1 실제 Source·Run·Job·최초 오류
+
+| 항목 | 확인한 원본 |
+| --- | --- |
+| Issue/PR/event | [#731](https://github.com/planner77/masterGantt/issues/731) / [#746](https://github.com/planner77/masterGantt/pull/746) / `pull_request.synchronize` Full CI |
+| Run/Attempt | [#2999.1 / 39212770619](https://github.com/planner77/masterGantt/actions/runs/39212770619), attempt 1, conclusion FAILURE |
+| Exact Head/Base/Test merge | Head `dd493bd1d973afe8eff80c053a03cd2096ff7afd` / Base `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` / test merge `8af177db944fa36e1163f608bf712a2789a50f32` |
+| 최초 실제 실패 | [TypeScript job `117929793086`](https://github.com/planner77/masterGantt/actions/runs/39212770619/job/117929793086), step 7 `npm run typecheck` (`tsc --noEmit`), exit 2: `tests/e2e/issue-726-task-logistics.spec.ts(370,14): error TS2488: Type 'TaskProcessLink[] &#124; null' must have a '[Symbol.iterator]()' method`. (표시의 `&#124;`은 Markdown 표 구분자 회피이며 실제 TypeScript `| null` 오류.) |
+| 독립 성공 | 경로판정 job `117929657156` SUCCESS, QA Preflight `117929722224` SUCCESS, 정책 `117929793019` SUCCESS, ESLint `117929792988` SUCCESS, Vitest Unit `117929792960` SUCCESS |
+| 연쇄 Gate | PR Fast Gate job `117930281120` FAILURE (`TYPECHECK_RESULT=failure`), Required Quality aggregate `117930347573` FAILURE, Required E2E aggregate `117930347572` FAILURE, Required Docker aggregate `117930347470` FAILURE |
+| 취소/미실행 | PR Next.js production build `117930348592` **SKIPPED**, Chromium E2E PR shard matrix `117930348759` **SKIPPED**, PR Docker smoke 구현 `117930348419` **SKIPPED**. 실제 E2E 테스트 실행 0, Docker 실행 0, Build 실행 0, Fail-fast 취소된 PR shard 0. Main-only placeholders/metadata-only 검사 또한 조건부 SKIPPED이며 PASS로 집계하지 않는다 |
+| QA Final | [job `117930378502`](https://github.com/planner77/masterGantt/actions/runs/39212770619/job/117930378502) FAILURE: `required quality 미성공`; 실질 새로운 리뷰 finding이나 별도 제품 E2E 실패가 아니라 Fast Gate 후속 |
+
+### 7.2 F-001부터 F-003까지 원인 교차 검토
+
+| 원본 사건 | 확정 관측·당시 조치 | F-003에서 확인·미확인 |
+| --- | --- | --- |
+| F-001 #2997.1 / unresolved P2 | KPI WorkArea 구성 분모 PRODUCT → canonical 전체 Task/개인 Assignment 관계로 교정, 리뷰 resolved | #2999.1의 리뷰 thread0, 관련 Unit SUCCESS; 이 Source의 E2E 결과는 Fast Gate 이전 차단으로 NOT RUN |
+| F-002 #2998.1 / Shard4 실제 E2E | `#726 Task process-context` UI 저장 후 독립 APIRequestContext GET의 ECONNRESET, INIT_TRANSPORT(정확 socket/worker 근인 UNKNOWN). 후속 browser same-origin fetch·observeIsolatedApi로 보완 | 같은 E2E는 #2999.1에서 **SKIPPED**이므로 F-002 실증 성공을 주장할 수 없다. 새로운 TypeScript nullability 실패는 이전 reset과 별개. 실제 전송 문제 미재발 여부는 다음 Full E2E까지 UNKNOWN |
+| **F-003 #2999.1 / typecheck** | #2998 교정 코드의 `readContext`가 `TaskProcessContextResponse`로 명시되면서 기존의 `[...childContext.processLinks]`가 `TaskProcessLink[] | null`과 충돌. 코드 계약 대비 E2E 소스의 누락된 정적 null 확인 | 이슈 전용 **TEST_CONTRACT**, 원인 검증됨. 기존 `null`=legacy 미설정, `[]`=명시0 의미 유지. 새 후보는 null 즉시 명시 오류, non-null 정확 관계 집합 단언을 유지. 실제 repo typecheck/원격 PASS는 아직 NOT TESTED |
+
+기록된 Run은 각각 다른 Head, 세 Run 모두 attempt1. #2998의 취소된 E2E5개와 #2999의 Fast Gate로 **아예 실행되지 않은** E2E 6개는 동일 상태가 아니다. 직전 E2E의 6 PASS도 이전 Head 결과로만 보존한다. 이전 QA 성공·Ready 조건을 새 Head로 이월하지 않는다.
+
+### 7.3 직접 원인·교정·회귀 방지
+
+- **실제 소스 근거**: `src/contracts/process-context.ts`의 `TaskProcessContextDto.processLinks: TaskProcessLink[] | null`는 legacy-null과 명시0 `[]`를 구분한다. #2998 당시 테스트는 응답을 `as TaskProcessContextResponse`로 변경했으나 기존 테스트 마지막 부분(본 Run line370)에서 null 확인 없이 spread 했다. 이전 readContext의 암시적 `any`에 가려진 테스트 코드의 타입 결함이며 제품 API/DTO/DB 결함이 아니다.
+- **교정 범위**: `tests/e2e/issue-726-task-logistics.spec.ts`에서 `const savedProcessLinks = childContext.processLinks;` 뒤 `if (savedProcessLinks === null) throw new Error("저장된 직접 공정 관계가 legacy null로 되돌아왔습니다.");`의 runtime null guard를 둔다. 그다음 `[...savedProcessLinks].sort(byProcessId)`에 대해 기존 두 공정 정확 UUID·`scope:"self"` 비교는 **그대로 유지**한다. 빈 배열로 조용히 대체하거나 null 허용 단언으로 바꾸지 않는다.
+- **기존 경계 유지**: 같은 파일에서 legacy initial `toBeNull()`, 명시0 `toEqual([])`, 저장후 2개 관계·하위 포함/WorkArea 정확 원본·리로드·403/409/412·5폭/키보드·full canonical/permission 검사는 삭제/완화하지 않는다. F-002 same-origin/browser API real HTTP/no-store/observer 코드는 변경하지 않는다.
+- **후속 확장 범위**: F-001 서버 KPI direct/target/mixed 3모드와 구성 WorkArea original Tasks/Assignment, F-002 동일 #726 3개 E2E와 공정 self/subtree 원본, 인접 #719/#667 후행 GET·#728/#729 snapshot/원본, Task editor 원본·Milestone Gate, 일반 read-only/권한 실패와 metadata/QA 경계를 대상으로 다음 Full CI를 요구한다. 이번 추가 변경은 TypeScript null guard와 문서에 국한하므로 공통 scheduling/Core·DB·API·Docker/CI workflow/rulesets 및 version0.123.0은 건드리지 않는다.
+- **기존 실패 대비 테스트 실행**: 정적 파일 내용 검토에서 null guard/정확 집합 단언/legacy-null·명시0·browser transport 보존을 확인했다. 별도 Node22/전역 `tsc --strict --noEmit --target ES2022`의 **최소 타입 재현 코드**로 null guard 뒤 배열 spread 타입 좁힘이 동작하는 것만 PASS 확인(실제 저장소 파일을 컴파일한 것이 아님). 저장소 전체 `npm run typecheck`, Vitest, Playwright Chromium, Docker는 연결 GitHub 편집 환경에서 **NOT TESTED**. 로컬 동결/실제 npm dependencies가 없는 환경의 한계를 공개하며 기존 #2998 Unit SUCCESS 또는 #2997 E2E SUCCESS를 새 Head의 PASS라고 보고하지 않는다.
+- **변경 후보**: `tests/e2e/issue-726-task-logistics.spec.ts` 수정된 Blob `4669f12e743d87c1ff93e717a7586c0577434263`. 이 원장 및 `docs/exec-plans/active/ISSUE_731.md`·`docs/TEST_PLAN.md`과 단일 논리 커밋으로 게시한다. 필요 없는 API/문서 의미 변경, full Gate 완화, skip/retry/timeout 증가를 하지 않는다. 향후 유사 오류 방지: 테스트 DTO를 구체화한 후 모든 nullable member 접근을 조사하고, Git Data-only 게시에서는 실제 TypeScript 컴파일 전까지 **NOT TESTED**를 선언한다.
+
+### 7.4 누적 실패 집합·검증·인계
+
+- 직접 테스트 실패 **파일 합집합**: E2E `tests/e2e/issue-726-task-logistics.spec.ts` (F-002 line262, GET ECONNRESET); TypeScript 같은 파일 line370 (F-003, null 스프레드). F-001은 제품 `src/server/logistics/logistics-kpi-service-core.ts` Codex review/QA Final 거부였으며 E2E 테스트 실패가 아니다. 다른 Issue(#667/#726)의 실패는 참고만 하고 이 이슈 실패에 합산하지 않는다.
+- **원격 F-003 증거 보존**: Run #2999.1/Job ID/Step과 TypeScript 원문, 빠른 검사 판정, 취소/미실행 결과. 로그 원문/쿠키/환경/trace·자격증명은 Git에 저장하지 않는다. F-001/F-002의 SHA·가설·근인 불확정 기록은 수정하지 않는다.
+- 코드·문서 후보의 Git Blob/Tree/Parent 및 실제 PR HEAD를 비교하고 main strict·mergeable/review thread0 확인 후 non-force branch ref 갱신만 한다. push synchronize에 의해 Full PR CI가 시작되면 Run ID/attempt·Head/base/test merge 및 event만 확인한다. CI 완료 모니터링하지 않는다.
+- **승인 경계**: HEAD에 대한 원격 Required Quality/E2E6/Docker, Trusted QA 및 Owner 최종 ACCEPT·정식 Release는 새 Run 완료 전 **NOT TESTED/BLOCKED**. 병합/Main/GHCR/Finalizer/Issue close는 요청하지 않았으므로 수행하지 않는다. HIGH/OWNER_MANAGED·`release_authorized=false` 유지.
