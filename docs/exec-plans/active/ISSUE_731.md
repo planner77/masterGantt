@@ -136,3 +136,13 @@
 | `tests/fixtures/logistics-integrated-kpi.ts` | 위 request-state 및 #719 직접 사용27case. 다른 Milestone/time-axis mock warm-up은 strict 타입·정적 대조, 해당 전체 browser spec은 PR CI로 인계 |
 
 직접 API/브라우저94+27case의 PASS는 위 자동 선정 BLOCKED와 별도다. 전체 Unit/E2E6·production build·Docker/SQLite restart·Trusted·strict main/Owner 승인·운영 환경은 PR/환경별 실제 증거가 필요하다. 미실행을 숨기거나 timeout/retry/skip·테스트 단언·CI gate를 완화하지 않았다.
+
+## PR #746 원격 F-001 및 Codex P2 REWORK (2026-10-19)
+
+- [Full CI #2997.1](https://github.com/planner77/masterGantt/actions/runs/39206611413) · attempt1, Head ddfbb26791889876306d3b8e178e9a8729f46165, base 01fdc08bf4b2f69f9797a8bd411d6712e7478c09, test merge 5b56630436448a2bc402e42956f7a0d061957b78. Required Quality/E2E6/Docker SUCCESS, QA Final [job 117919094703](https://github.com/planner77/masterGantt/actions/runs/39206611413/job/117919094703) FAILURE, 사유 '미해결 review thread'. 이전 '원격 PR CI 시작 전'은 최초 개발 당시의 기록이며 이 절이 후속이다.
+- [Codex P2 지적](https://github.com/planner77/masterGantt/pull/746#discussion_r4310736228): WorkArea 구성 taskIds에 현재 KPI 선택 집합 included를 교차하여 관련 Task와 personal Assignment 원본이 KPI 필터를 바꾸면 사라지는 PRODUCT 분모 결함. 다른 configuration.targets는 이미 full canonical 범위를 따른다. QA Final의 리뷰0 보호 차단은 올바른 정책 동작이었다.
+- 제품 교정: src/server/logistics/logistics-kpi-service-core.ts의 WorkArea 관계를 ordinaryRows 전체와 원본 개인 assignments로 계산한다. KPI 선택 집합과 진척·공수/진단·full Milestone Gate·Target0/Target-only/혼합, activeOnly 구성 master 및 구 API default는 변경하지 않는다.
+- 테스트 추가: tests/server/logistics/issue-731-kpi.test.ts에서 direct/target/mixed × process/equipment/system/taskAssignee/role 다섯 필터의 WorkArea Task/Assignment full 드릴 불변 및 선택 KPI에서 T3/A3가 제외되어도 구역 구성에는 존재하는 경계를 검증한다. 수정 파일 Blob 6f0f2dd8204e107de689dae5312cc78ff7d064b1, 테스트 Blob 07d916b5dd864d1c66f76b00af9294fbe42c9e7b.
+- 새 단일 실패 원장 [docs/ISSUE_731_FAILURE_ANALYSIS.md](../../ISSUE_731_FAILURE_ANALYSIS.md)에 원본 Job/Shard/분류/로컬 과거 오류와 미검증을 보존했다. docs/API.md·docs/LOGISTICS_DASHBOARD.md·docs/TEST_PLAN.md와 함께 동기화했고, DESIGN/AGENTS/CI/Ruleset/DB/Scheduling 문서는 새 전역 정책이나 해당 경계의 변경이 없어 N/A(reason). 기존 증거를 소급 변경하지 않는다.
+- 최종 HEAD 로컬 Vitest/Typecheck/Chromium 등은 연결 GitHub 도구에서 직접 실행할 환경이 없어 NOT TESTED. 이전 동결 Head의 서버94/94·Chromium27/27과 원격 Required PASS를 새 Head 증거로 전용하지 않는다. 새로운 Full PR CI/Trusted QA·Owner ACCEPT는 완료 증거 전 NOT TESTED.
+- 발표 방식: 기존 PR Head에 한 논리적 Git Data commit을 비강제로 게시, 지적 스레드에 구현·테스트 근거 회신 및 resolve 후 main 정렬/충돌·review0 확인, 새 Full CI 시작 Run/Attempt만 확인. 병합/Main/GHCR/Finalizer/Issue 종료/정식 릴리스 승인 없음.

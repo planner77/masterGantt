@@ -117,7 +117,9 @@ export function calculateLogisticsIntegratedKpi(input: CalculateDashboardInput, 
       targets: targets.map(row => ({ id: row.id, name: (row as typeof row & { name?: string }).name ?? row.id, active: row.active !== false,
         taskIds: ordinaryRows.filter(task => task.targetIds.includes(row.id)).map(task => task.taskId) })),
       workAreas: workAreas.map(row => {
-        const taskIds = ordinaryRows.filter(task => included.has(task.taskId) && task.workAreaIds.includes(row.id)).map(task => task.taskId), selected = new Set(taskIds);
+        // Configuration drills use the full canonical ordinary Task/Assignment population;
+        // KPI-selected `included` is reserved for the headline and its breakdowns.
+        const taskIds = ordinaryRows.filter(task => task.workAreaIds.includes(row.id)).map(task => task.taskId), selected = new Set(taskIds);
         const equipmentIds = sorted(ledger.configuration.equipmentWorkAreas.filter(link => link.workAreaId === row.id && equipment.some(item => item.id === link.equipmentId)).map(link => link.equipmentId));
         return { id: row.id, name: (row as typeof row & { name?: string }).name ?? row.id, active: ledger.input.workAreaActivity?.find(item => item.id === row.id)?.active !== false, processIds: ledger.prepared.logistics!.processes.filter(process => process.occurrenceId === row.occurrenceId).map(process => process.id), taskIds,
           assignmentIds: sorted(personal.filter(assignment => selected.has(assignment.taskId)).map(assignment => assignment.id)), equipmentIds,

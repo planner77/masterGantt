@@ -14,7 +14,7 @@
 | `effortState` | 기존 공통 `empty|configured|partial|unset` 상태. legacy numeric `effort.plannedMd`는 호환 유지하지만 UI는 all-unset을 미산정, partial을 알려진 합계+미설정으로 표시; 설정0과 별도 |
 | `taskSources` | canonical Task별 명시 공정/WorkArea·유효 설비/System/Target ID와 관계 provenance. 구성 membership/controls/coordinates와 작업 연관을 구별 |
 | `configuration` | 등록 공정/WorkArea/설비 고유 수량/System·명시 등록/참여/개인 배정 인원; 관련 작업·선택 공수와 다른 구성 참고. activeOnly는 구성 표시 범위에 반영 |
-| `configuration.workAreas` | 원본 이름·연결 processIds·관련 Task/Assignment·고유 equipmentIds/quantity. 복수 구역 소계는 Project 수량으로 합산하지 않음 |
+| `configuration.workAreas` | 원본 이름·연결 processIds·전체 canonical 일반 Task/개인 Assignment·고유 equipmentIds/quantity. taskIds/assignmentIds는 process/equipment/system/assignee/role KPI 선택 필터에 따라 축소하지 않음(구성 activeOnly 표시 범위는 별도). 복수 구역 소계는 Project 수량으로 합산하지 않음 |
 | `diagnostics` | 전체 canonical Project의 정확 일반 Task·leaf·개인 Assignment·master ID 목록. 미연결/무배정/Group-only/미설정/일반 작업0 및 active master 책임 누락. 현재 KPI 필터와 다른 전체 진단 범위를 명시 |
 
 출발 목록/편집/일정 이동 직전 같은 조건과 `snapshotId`로 재검증한다. mismatch는409 `STALE_KPI_SOURCE`이며 최신 결과를 다시 조회한다. Task/Assignment ID·source·조건이 다른 응답을 같은 숫자의 drill로 사용하지 않는다. full Milestone Gate는 선택 공정/Task 범위 밖의 전체 canonical membership·선행을 보존한다.

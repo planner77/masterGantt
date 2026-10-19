@@ -79,6 +79,34 @@ describe("#731 explicit integrated logistics KPI consumer", () => {
     }
   });
 
+  it.each(["direct", "target", "mixed"] as const)(
+    "%s WorkArea configuration drill stays canonical when KPI Task/Assignment filters change", mode => {
+      const f = fixture(mode);
+      const baseline = f.report().integrated!.configuration.workAreas;
+      const taskId = f.tasks.get("T3")!.publicId, assignmentId = f.assignmentIds.get("A3")!;
+      expect(baseline).toHaveLength(2);
+      for (const area of baseline) {
+        expect(area.taskIds).toContain(taskId);
+        expect(area.assignmentIds).toContain(assignmentId);
+      }
+      for (const filter of [
+        { processIds: [f.processA.publicId] },
+        { equipmentIds: [f.idleEquipment.publicId] },
+        { systemIds: [f.idleSystem.publicId] },
+        { taskAssigneeResourceIds: [f.resources.get("R2")!.publicId] },
+        { roleResourceIds: [f.resources.get("R2")!.publicId] },
+      ]) {
+        const filtered = f.report(filter);
+        expect(filtered.integrated!.configuration.workAreas).toEqual(baseline);
+      }
+      const excluded = f.report({ systemIds: [f.idleSystem.publicId] });
+      expect(excluded.includedTaskIds).not.toContain(taskId);
+      expect(excluded.integrated!.assignmentIds).not.toContain(assignmentId);
+      expect(excluded.integrated!.configuration.workAreas[0].taskIds).toContain(taskId);
+      expect(excluded.integrated!.configuration.workAreas[0].assignmentIds).toContain(assignmentId);
+    },
+  );
+
   it("preserves inherited Target provenance and explicit0/legacy-null process diagnostics", () => {
     const f = fixture("target"), summary = f.tasks.get("S")!, task = f.tasks.get("T0")!;
     const bindings = new TaskTargetBindingRepository(f.database);

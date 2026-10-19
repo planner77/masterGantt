@@ -4683,3 +4683,11 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 ## Issue #717 F-015 — 담당자 canonical 복구와 누적 실패 합집합 (2026-10-19)
 
 [누적 원장](ISSUE_717_FAILURE_ANALYSIS.md)과 [18회 원본 증거](evidence/issue-717/ci-cumulative-20261019.json)의 실제 실패16파일 전체를 교차 실행한다. 취소 Run 안의 실제 실패와 metadata-only 성공은 별도로 유지한다. 최신 `task-link-load-safety`는 단일 이름/명시 원문 disclosure, 실패 시 canonical 이름·코드/ID, stale cache 배제·저장 차단, 동명 설비 담당/시스템 PI의 정확 Primary·삭제 payload/If-Match를 확인한다. Resource Plan/Target geometry와 Milestone focus 소비자는 실제 보이는 버튼을 검사하면서 기존 임계값을 보존한다. main #727 membership UI/HTTP·SQLite 및 #717 5폭+touch/identity persistence를 같은 제품 소스에서 검증한다. 실행 결과·지문은 Work Packet과 원장 F-015에 기록하며 Required3/6-shard/timeout/retry/skip·CI 권한 변경은 없다.
+
+## Issue #731 F-001 — WorkArea 구성 drill과 KPI 선택 필터 분리 (2026-10-19)
+
+- 원격 [PR #746 / Full CI #2997.1](https://github.com/planner77/masterGantt/actions/runs/39206611413): Quality/E2E 6 Shard/Docker 모두 SUCCESS. QA Final은 미해결 P2 review thread로 BLOCKED. 실제 제품 Unit/E2E/Docker 테스트 FAIL로 기록하지 않는다. 자세한 기록은 [Issue별 누적 원장](ISSUE_731_FAILURE_ANALYSIS.md).
+- 새 규약: WorkArea 구성 Task IDs는 full canonical 일반 Task의 workAreaIds에서, Assignment IDs는 해당 Task들의 고유 개인 Assignment에서 계산한다. KPI 선택 process/equipment/system/taskAssignee/role 조건이 바뀌어도 해당 구성 drill 원본 관계는 동일하다. 구성 activeOnly master 표시 경계, 선택 KPI headline/effort, full Milestone Gate 및 구 API는 유지한다.
+- 새 테스트: tests/server/logistics/issue-731-kpi.test.ts의 direct/Target-only/mixed 3개 모드별 공정·설비·시스템·개인 담당자·역할 선택(5종) 전/후 WorkArea Task/Assignment ID 불변 및 실제 KPI에서 공유 T3/A3가 제외되어도 구역 원본에는 유지되는 음성 검증을 추가한다.
+- 회귀 선정: #731 서버 통합 API/SQLite 및 기존 logistics-dashboard/Target/WBS 원장/WorkArea/공수·Milestone full Gate, #728/#729 공통 source·snapshot, #731 브라우저 상태·readonly/stale/focus 및 #719 도움말, Full PR quality/E2E6/Docker. Gantt writer·DB migration·CI gate/timeout/skip/retry/Ruleset 변경 없음.
+- 수정 후보의 실제 Vitest/TS/브라우저 로컬 재실행은 현재 연결 GitHub 도구 환경에서 NOT TESTED. 기존 Head의 94 Unit·27 Chromium 로컬 PASS 및 #2997.1 Full CI PASS는 새 Head PASS로 전용하지 않는다. synchronize로 신규 Full PR CI 시작과 정확 Head/base/test-merge/Run·Attempt만 확인하며 완료 모니터링은 요청 범위 밖이다.
