@@ -27,8 +27,7 @@ export function observeStatement<T extends object>(
   statement: T,
   current: () => SqlRequestMetrics | undefined,
 ): T {
-  let proxy: T;
-  proxy = new Proxy(statement, {
+  const proxy: T = new Proxy(statement, {
     get(target, name) {
       const value: unknown = Reflect.get(target, name, target);
       if (typeof value !== "function") return value;

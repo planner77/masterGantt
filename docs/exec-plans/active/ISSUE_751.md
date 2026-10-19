@@ -50,3 +50,9 @@ Status: IMPLEMENTED / NEW-HEAD REMOTE ACCEPTANCE NOT TESTED; before-after measur
 - Both local HAR and Playwright trace.network ZIP sanitizer are strict allowlist and caller-asserted UNVERIFIED until authenticated Run ID, attempt, head, job and artifact are provided. Unverified, missing, cancelled or expired data do not become baseline successes.
 - Comparison requires both cohorts to have at least 10 **distinct successful source runs**, six passed Shards per Run, same event/OS/Node/shard/fullyParallel/project/stable test ID. The original #730 trace was produced before this SQL instrumentation; therefore no legitimate before/after SQL improvement result is currently available. `INSUFFICIENT_DATA` is the correct verdict, not a performance improvement claim.
 - No changes to assertion counts, retries, skip, test timeout, CI required gates, underlying data model, GHCR/release authorization. Remains HIGH/OWNER_MANAGED and Draft until Owner reviews residual risks.
+
+## 2026-10-20 — F-005 원본 실패와 신규 Full CI 조건
+
+- Full PR [#3024.1](https://github.com/planner77/masterGantt/actions/runs/39276316902) Head `1acb01cb2b06054ecfbb43e3df5914715a42dc52` / Base `5df178868139c4a307701e4807896691971b3376`는 QA Preflight/Policy/TypeScript SUCCESS, ESLint prefer-const 및 Vitest issue-751-performance-receipt array oracle 두 직접 FAIL을 기록했다. Build/Chromium6/Docker는 Fast Gate로 SKIPPED, Required Aggregate FAILURE는 파생 결과. 이 원본 실패는 불변으로 유지한다.
+- [전용 누적 실패 원장 F-005](../../ISSUE_751_FAILURE_ANALYSIS.md)에 F-001~F-004와 구 HEAD 성공 S-001 교차 비교를 기록했다. SQL observer의 Proxy는 const로 바꾸고 Vitest는 **원본 2건 모두** 검사하여 raw URL/SQL/ID의 비공개를 계속 단언한다. 기존 assert 강도, 타임아웃·skip·retry 및 6 Shard 정책 불변.
+- 이 세션의 로컬 테스트는 NOT TESTED. 새 커밋의 Full PR CI가 시작되더라도 결과/Trusted QA/Owner AC 완료 판정은 실행 후 증거가 필요하다. 일단 새 Run 시작까지만 진행하고 CI 모니터링·병합·Main CI·GHCR·Issue 종료는 수행하지 않는다.

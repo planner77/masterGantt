@@ -49,10 +49,17 @@ describe("Issue 751: sanitized monotonic observation", () => {
         sqlStatementCount: 100 },
     ], 2);
     await observer.attach("ok");
-    expect(data().serverRequests).toMatchObject([{
+    // The unknown API is deliberately retained as a sanitized "other-api"
+    // category; never invent raw URL/identifier details or silently drop it.
+    expect(data().serverRequests).toHaveLength(2);
+    expect(data().serverRequests[0]).toMatchObject({
       route: "assignment-targets", status: 200, serverMs: 235,
       sqlStatementCount: 8, sqlExecutionMs: 17.8,
-    }]);
+    });
+    expect(data().serverRequests[1]).toMatchObject({
+      route: "other-api", status: null, serverMs: null,
+      sqlStatementCount: 100, sqlExecutionMs: null,
+    });
     expect(data().serverEventsDiscarded).toBe(2);
     expect(JSON.stringify(data())).not.toMatch(/12345678|SELECT private|private-uuid/);
   });

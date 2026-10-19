@@ -46,7 +46,18 @@
 | F-002 | Full #3016.1 | POLICY_CI: Issue AC 번호 | SKIPPED | AC1~AC3 |
 | F-003 | Full #3018.1 | POLICY_CI: Work Packet 문서 매핑 | SKIPPED | DOCUMENTATION_SYNC·AC_TEST_COVERAGE |
 | F-004 | Full #3020.1 | FIXTURE_OBSERVABILITY: TS18048 child null narrowing | SKIPPED | 안정 const application 참조 |
+| F-005 | Full #3024.1 | TEST_CONTRACT / ESLint prefer-const | Vitest 1 FAIL, E2E6/Docker SKIPPED | proxy const + 서버 기록 2건 정확 oracle |
 | S-001 | Full #3021.1 / Trusted #663.1 | 검증 성공(구 HEAD) | 6 shards PASS | 추가 AC 구현 전 baseline, 신규 HEAD에는 재검증 필수 |
 
 - 새 작업은 기존 metadata/AC/timeout/required gate 실패를 재발시키지 않는 범위에서 격리 SQL·브라우저·Server 계측, 통제 E2E, read-only comparison/Trace sanitizer와 검증 테스트를 추가한다. 운영 DB/프로덕션 기본 경로 변경 없음.
 - 현재 SQL·compile·fan-out 인과/개선 효과는 검증된 자료가 없으면 `UNKNOWN`/`INSUFFICIENT_DATA`로 보존한다. 새 CI 시작은 성공이나 병합 승인 증거가 아니며 Owner HIGH 위험 수용이 별도로 필요하다.
+
+## F-005: PR #754 Full CI #3024.1 (2026-10-19) — ESLint and Vitest failure on new telemetry
+
+- **출처**: [Full PR CI #3024.1](https://github.com/planner77/masterGantt/actions/runs/39276316902), Run ID `39276316902`, Attempt `1`, event `pull_request`, Head `1acb01cb2b06054ecfbb43e3df5914715a42dc52`, Base `5df178868139c4a307701e4807896691971b3376`; 현재 동일 Head/Base에서 관찰한 PR test-merge ref `fde209e1db3e2159659fcb9ba233547e643affa6`이며 원본 run artifact의 test-merge 교차 인증은 별도.
+- **직접 FAIL A**: ESLint Job `118141705999` `src/server/db/e2e-sql-observer-core.ts:31:3` `prefer-const: 'proxy' is never reassigned`(1 error/13 unrelated warnings). 기존 `let proxy: T; proxy = new Proxy(...)` 두 단계 선언을 동등한 `const proxy: T = new Proxy(...)`로 변경한다. Proxy getter 안의 `proxy`를 참조하는 클로저와 better-sqlite3 receiver, SQL 계측/SQL error 분류는 유지한다.
+- **직접 FAIL B**: Vitest Job `118141706317` (248 실행 대상 파일 중 247 PASS/1 FAIL, 1 SKIPPED; 3056 PASS/1 FAIL/3 SKIPPED). `tests/scripts/issue-751-performance-receipt.test.ts:52`: `serverRequests` 길이 2(알려진 `assignment-targets` 1 + 마스킹된 `other-api` 1)인데 기대 배열 길이 1로 `toMatchObject` 비교하여 Assertion FAIL. 제품 API 실패/개인정보 누출이 아니라 테스트 oracle의 누락이다.
+- **수정 B**: `serverRequests` 길이 2를 정확히 검사하고 첫 요청의 HTTP200/235ms/SQL8/17.8ms 및 두 번째 알 수 없는 API의 안전한 `other-api` 분류·status null/SQL100/원시 ID·SQL 텍스트 비포함을 각각 명시해 양쪽 관측을 더 엄격히 검증한다. 제품 계측 동작을 삭제하거나 `expect`/timeout/skip/retry 완화 금지.
+- **직접/파생 구분**: QA Preflight, 정책 검사, TypeScript SUCCESS. 원본 Fast Gate FAIL은 ESLint·Vitest 미성공에 따른 파생 결과. 이후 PR Build, Chromium E2E 6 shard, Docker 구현 Job은 SKIPPED이고 Required Quality/E2E/Docker aggregate FAILURE 및 QA Final FAILURE는 보호에 따른 파생 결과이다. 어떠한 E2E/Build/Docker PASS도 추정하지 않는다.
+- **전 원장 대조**: F-001/002/003은 `POLICY_CI` 사전 차단, F-004는 `FIXTURE_OBSERVABILITY` TypeScript nullability로 이번 lint/unit 결함과 서로 다른 근인. S-001 구 HEAD #3021.1 Required3/Trusted QA PASS는 구간 근거일 뿐 이번 코드의 PASS가 아니다. F-005는 첫 실제 full unit 집합에서 드러난 새로운 **TEST_CONTRACT + 정적 LINT 구현 결함**이며 데이터·성능 인과관계와 혼동하지 않는다.
+- **교차 검증/인계**: 영향 집합은 두 수정 파일, `tests/server/db/issue-751-sql-observer.test.ts`, `tests/scripts/issue-751-performance-summary.test.ts`, trace/HAR privacy Unit, #623 기존 E2E 및 신규 `issue-751-performance-telemetry.spec.ts`. 로컬 Node/Vitest/ESLint 실행 증거는 이 세션에서 `NOT TESTED`; 기존 원격 TypeScript/Policy PASS도 새 Head로 자동 승계하지 않는다. 새 Full PR CI exact HEAD, Required Quality/Chromium6/Docker 및 기본 main Trusted QA가 필요하다. HIGH/OWNER_MANAGED, Draft, 별도 Owner 최종 병합 승인 전 병합/배포/Issue 종료 금지.
