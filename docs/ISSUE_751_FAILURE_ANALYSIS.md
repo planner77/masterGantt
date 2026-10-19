@@ -30,3 +30,23 @@
 - **근인**: `child: ChildProcess | undefined`는 외부에서 다시 대입 가능한 mutable 변수이므로 비동기 내부 콜백에서 TypeScript의 nullish narrowing이 유지되지 않는다. 반면 해당 서버 시작에서 캡처한 `const application = child`는 non-undefined ChildProcess로 고정된다. `child!` 또는 임의 타입 캐스팅, 테스트 비활성화로 오류 은폐하지 않는다.
 - **대응**: readiness 측정 루프의 exit/signal 상태를 `application.exitCode`와 `application.signalCode`로 확인한다. 이 변수는 기존 `close` 이벤트를 설치한 현재 생성 세대의 동일 Process이고 종료/재시작/Timeout/재시도 계약을 바꾸지 않는다. 다른 `child` 참조는 동일 block에서 안전 검사 후 사용하고 기존 assertion/timeout/retries/skip 불변.
 - **검증 경계**: 해당 수정 전 원격 TypeScript FAIL을 보존한다. 새 source에서 Syntax/타입 검사, 정책·기존 격리 Fixture 회귀 및 PR Full Quality/E2E6/Docker를 새로운 run/attempt로 검증해야 한다. 기존 F-004 실패를 PASS로 소급 처리하지 않는다. 원격 새 CI/QA/Owner 판정은 실행 전 `NOT TESTED`. HIGH/OWNER_MANAGED, release_required=false, release_authorized=false; 병합/GHCR/릴리스 및 이슈 종료 금지.
+
+## S-001 — 기존 HEAD의 검증 성공 (재작업 전 기준, 2026-10-19)
+
+- [Full PR #3021.1](https://github.com/planner77/masterGantt/actions/runs/39263069941), Run ID 39263069941 attempt 1, event pull_request, Head `4ea36f4c0a25f98b2250d9ab583040982e655b85`, Base `5df178868139c4a307701e4807896691971b3376`.
+- Required Quality SUCCESS, Chromium E2E 6/6 Shards 및 aggregate SUCCESS, Docker implementation/aggregate SUCCESS, QA Final Automated SUCCESS; PR metadata path SKIPPED 정상.
+- [Trusted QA #663.1](https://github.com/planner77/masterGantt/actions/runs/39267787594) Run ID 39267787594 attempt 1, QA Final — Trusted SUCCESS. 기본 main 검증기 SHA는 당시 main `5df178868139c4a307701e4807896691971b3376`.
+- **실증 경계**: 기존 Fixture/partial telemetry는 성공한 것이나 SQL query count, trace.network 정제, 실제 slow/abort 통제, cohort before/after comparator는 구 HEAD에 없었다. 따라서 Issue #751 AC 전체 PASS 또는 변경 후 신규 HEAD 성공으로 이월하지 않는다.
+
+## Cross-run 원인 비교와 신규 AC 구현 경계
+
+| 순번 | 원본 실행 | 직접 실패 유형 | 제품 본문 검증 | 교정·증거 |
+| --- | --- | --- | --- | --- |
+| F-001 | Full #3014.1 | POLICY_CI: PR title/qa_method | SKIPPED | 정규 Issue #751 제목·QA meta |
+| F-002 | Full #3016.1 | POLICY_CI: Issue AC 번호 | SKIPPED | AC1~AC3 |
+| F-003 | Full #3018.1 | POLICY_CI: Work Packet 문서 매핑 | SKIPPED | DOCUMENTATION_SYNC·AC_TEST_COVERAGE |
+| F-004 | Full #3020.1 | FIXTURE_OBSERVABILITY: TS18048 child null narrowing | SKIPPED | 안정 const application 참조 |
+| S-001 | Full #3021.1 / Trusted #663.1 | 검증 성공(구 HEAD) | 6 shards PASS | 추가 AC 구현 전 baseline, 신규 HEAD에는 재검증 필수 |
+
+- 새 작업은 기존 metadata/AC/timeout/required gate 실패를 재발시키지 않는 범위에서 격리 SQL·브라우저·Server 계측, 통제 E2E, read-only comparison/Trace sanitizer와 검증 테스트를 추가한다. 운영 DB/프로덕션 기본 경로 변경 없음.
+- 현재 SQL·compile·fan-out 인과/개선 효과는 검증된 자료가 없으면 `UNKNOWN`/`INSUFFICIENT_DATA`로 보존한다. 새 CI 시작은 성공이나 병합 승인 증거가 아니며 Owner HIGH 위험 수용이 별도로 필요하다.

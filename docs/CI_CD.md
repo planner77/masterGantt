@@ -1,3 +1,12 @@
+## Issue #751 — 격리 SQL·Next E2E 단계 계측과 P50/P95 원본 비교 (2026-10-19)
+
+- [Issue #751 Work Packet](exec-plans/active/ISSUE_751.md), [F-001~004 실패 원장](ISSUE_751_FAILURE_ANALYSIS.md), [PR #754](https://github.com/planner77/masterGantt/pull/754)를 따르며, 마지막 성공 [Full PR CI #3021.1](https://github.com/planner77/masterGantt/actions/runs/39263069941)과 Trusted #663.1은 **이전 HEAD**의 근거이다. 새 코드에서 Required Quality/E2E6/Docker·Trusted QA는 새로운 동일 HEAD 증거가 필요하다.
+- 개발용 Playwright test-scoped Next/SQLite 프로세스에만 `ISSUE_751_SQL_METRICS=true`를 주입한다. `src/server/db/e2e-sql-observer-core.ts`는 native better-sqlite3 Statement의 get/all/run/iterate 실행만 request-context AsyncLocalStorage 단위로 count/time/exception 집계한다. API 응답/DB Schema·SQL 텍스트·bind 파라미터는 변경/저장하지 않는다. 일반 운영에는 관측기를 설치하지 않는다.
+- 브라우저 fetch/Observer API·Server HTTP duration/SQL 시간과 Fixture migration/start/readiness/Next warmup/restart/teardown·#623 seed/phaseTime은 서로 다른 샘플이다. 겹치는 요청들의 Duration을 합쳐 wall-clock이나 Next compile/SQL 인과로 단정하지 않는다.
+- 기존 `e2e-timing-ci-shard-*` artifact 30일 및 Job Summary warning-only 경로를 유지한다. 새 Server SQL 집계·상위 느린 단계·HTTP 호출 수, Job/Run 링크를 표시하되 인증 누락/취소/만료/정제 손실은 `INSUFFICIENT_DATA`이다. P95 예산80%는 provisional warning이며 Required Gate/타임아웃/skip/retries 변경 없음.
+- `.github/workflows/issue-751-performance-trend.yml`의 read-only 수동 비교는 반드시 기본 main에 반영된 뒤, Owner 입력의 baseline/candidate 인증 Run ID들을 6/6 Shard 완결·동일 환경·테스트 stable ID/HEAD/attempt로 비교한다. 10개 미만 독립 성공 Run/cohort은 평균/백분위 개선 주장을 금지한다. GitHub Actions 외 신규 DB/장기 서비스/자동 승인 없음.
+- PR CI에서 `tests/python/test_issue_751_*.py` 원본 provenance·정제·표본부족 회귀를 강제하며, Vitest SQL/추세·Browser 실제 오류·지연 통제는 기존 Quality/E2E6 범위에서 실행한다. 이 보호 경로 변경은 HIGH/OWNER_MANAGED, release_required=false/release_authorized=false, 최종 Owner 병합 승인 별도다.
+
 ## Issue #751 — 단계별 E2E 계측 및 추세 비교 (2026-10-19)
 
 - [Failure F-001](ISSUE_751_FAILURE_ANALYSIS.md): PR #754 최초 Full #3014.1은 PR 제목 Primary Issue #751 패턴 및 QA method 메타데이터 누락으로 preflight 전 중단. Required 3 aggregate FAILURE는 연쇄 결과; 실제 TypeScript/Chromium/Docker 테스트는 SKIPPED.

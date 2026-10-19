@@ -40,13 +40,24 @@ for (const event of data.log.entries) {
     route: category, method: allowMethod.test(event.request.method) ? event.request.method : "OTHER",
     startEpochMs: started, durationMs: Math.round(duration * 100) / 100,
     status: Number.isInteger(status) && status >= 100 && status <= 599 ? status : null,
-    outcome: status === 0 || status === -1 || !Number.isInteger(status)
-      ? "incomplete" : status >= 400 ? "http_error" : "complete",
+    outcome: /ABORT|CANCEL/i.test(event._failureText || event._error || "") ? "abort" :
+      /TIMEOUT|timed out/i.test(event._failureText || event._error || "") ? "timeout" :
+      typeof (event._failureText || event._error) === "string" && (event._failureText || event._error).length > 0 ? "network" :
+      status === 0 || status === -1 || !Number.isInteger(status) ? "incomplete" :
+      status >= 400 ? "http_error" : "complete",
   });
 }
 const earliest = observed.length ? Math.min(...observed.map(x => x.startEpochMs)) : 0;
 const report = {
   schemaVersion: 1, source: "EXTERNAL_HAR_UNVERIFIED", truncatedEvents: rejected,
+  provenance: {
+    verification: "CALLER_ASSERTED_NOT_AUTHENTICATED",
+    runId: /^[1-9][0-9]*$/.test(param("--run-id")) ? Number(param("--run-id")) : null,
+    attempt: /^[1-9][0-9]*$/.test(param("--attempt")) ? Number(param("--attempt")) : null,
+    jobId: /^[1-9][0-9]*$/.test(param("--job-id")) ? Number(param("--job-id")) : null,
+    artifactId: /^[1-9][0-9]*$/.test(param("--artifact-id")) ? Number(param("--artifact-id")) : null,
+    headSha: /^[a-f0-9]{40}$/i.test(param("--head-sha")) ? param("--head-sha") : null,
+  },
   events: observed.map(x => ({
     route: x.route, method: x.method, startMs: x.startEpochMs - earliest,
     durationMs: x.durationMs, status: x.status, outcome: x.outcome,

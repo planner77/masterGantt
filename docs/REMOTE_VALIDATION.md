@@ -1,3 +1,12 @@
+## Issue #751 — Trace/HAR 정제 및 원격 수용 절차 (2026-10-19)
+
+- [Work Packet](exec-plans/active/ISSUE_751.md), [실패 원장](ISSUE_751_FAILURE_ANALYSIS.md)를 따른다. 성공한 과거 #3021.1/Trusted #663.1과 다음 변경 HEAD를 구분한다. Fixture 120000ms와 #623 본문60000ms를 합산하지 않는다.
+- test-scoped Next/SQLite에서만 `ISSUE_751_SQL_METRICS=true`를 주입한다. Process-context/Assignment-targets/Task Logistics-links의 browser/server duration, SQLite 동기 query count/time, 동시 HTTP 호출 수를 별도 집계한다. 원시 SQL/query/bind/URL/Secret을 새 Artifact에 저장하지 않는다.
+- 원본 Trace/HAR는 Git에 커밋하지 않는다. 별도 격리 머신에서 `python3 scripts/issue-751-sanitize-playwright-trace.py --input trace.zip --output safe.json --run-id RUN --attempt ATTEMPT --job-id JOB --artifact-id ARTIFACT --head-sha SHA` 또는 `node scripts/issue-751-sanitize-har.mjs --input local.har --output safe.json`을 사용한다. 결과 출처는 GitHub 원본을 별도 검증하기 전 `UNVERIFIED`이다.
+- Full CI에서 SQL native better-sqlite3 관측 Unit, 실제 Chromium 격리 E2E 정상/지연90ms/HTTP503/네트워크 오류/Abort, 기존 #623/731 Fixture 회귀, Quality/E2E6/Docker, 기본 브랜치 Trusted QA를 구별하여 확인한다. 테스트 미실행·취소는 PASS 아님.
+- 메인 반영 후 Owner 수동 `Issue 751 E2E performance trend`에서 baseline/candidate GitHub Run IDs를 구분 입력한다. 6/6 Shard 원본, Run/attempt/Head/OS/Node/shard/parallel/test stable ID, 양쪽 독립 성공 Run10개 이상 아니면 `INSUFFICIENT_DATA`; P95 80%는 warning-only.
+- SQL 시간 비중과 cold/warm 차이는 원인 **후보**일 뿐 Next compile 또는 fan-out 근인의 증명은 아니다. 원본 Trace·동일 환경 실측/반례 확보 전 '개선 성공' 판정 금지.
+
 ## Issue #624 — Full PR CI #2920.1 Playwright 원본 Trace와 Scroll 경계 수용 (2026-10-18)
 
 - 직접 읽은 [Run #2920.1](https://github.com/planner77/masterGantt/actions/runs/39076400264): HEAD `829953e8a108d18cb816880606926f2220d954eb`, Base `6fea0397bc07d0c3adf2d769f9ba6829473503a2`, test-merge `38c0de7c30b267626bdb99e1bb6d53806d61465c`. [Shard4 Playwright report/artifact 12117856021](https://github.com/planner77/masterGantt/actions/runs/39076400264/artifacts/12117856021)의 `error-context`, `test.trace`, `1-trace.trace` 직접 확인: 기존 #490 scroll 첫 설정에서 expected19/native18이 5s/7 관측 동안 고정. 설정 탭, metadata PATCH, native fullscreen의 보존 단언 전에 중단됐다. 독립 원인으로 오인할 수 있는 runtime OOM/Network 오류를 단정하지 않는다(격리 서버 alive, cgroup oomKill0).

@@ -64,8 +64,9 @@ interface IsolatedApplicationRuntime {
   origin: string;
   restart: (patchOnlyReadinessPath?: string) => Promise<void>;
   observeApi: ObserveIsolatedApi;
-  timeStage: <T>(stage: "seed_issue_623", task: () => Promise<T>) => Promise<T>;
+  timeStage: <T>(stage: "seed_issue_623" | "test_body", task: () => Promise<T>) => Promise<T>;
   listen: (page: Page) => () => void;
+  snapshot: () => ReturnType<IsolatedPerformanceReceipt["snapshot"]>;
 }
 
 export const test = base.extend<{
@@ -75,8 +76,9 @@ export const test = base.extend<{
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: (patchOnlyReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
-  timeIsolatedStage: <T>(stage: "seed_issue_623", task: () => Promise<T>) => Promise<T>;
+  timeIsolatedStage: <T>(stage: "seed_issue_623" | "test_body", task: () => Promise<T>) => Promise<T>;
   isolatedBrowserNetwork: void;
+  observedIsolatedPerformance: () => ReturnType<IsolatedPerformanceReceipt["snapshot"]>;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
@@ -92,6 +94,9 @@ export const test = base.extend<{
   timeIsolatedStage: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.timeStage);
   },
+  observedIsolatedPerformance: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.snapshot);
+  },
   isolatedBrowserNetwork: [async ({page, isolatedApplicationRuntime}, provide) => {
     const stop = isolatedApplicationRuntime.listen(page);
     try { await provide(); } finally { stop(); }
@@ -101,7 +106,7 @@ export const test = base.extend<{
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      try { await provide({ origin: external, timeStage: async (_stage, task) => task(), listen: () => () => {}, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
+      try { await provide({ origin: external, timeStage: async (_stage, task) => task(), listen: () => () => {}, snapshot: () => performanceReceipt.snapshot(), observeApi: async (_route, _method, operation) => operation(), restart: async () => {
         testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
         throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
       } }); } finally { await performanceReceipt.attach(testInfo.status === testInfo.expectedStatus ? "ok" : "error"); }
@@ -140,6 +145,7 @@ export const test = base.extend<{
         APP_BASE_URL: origin,
         DATABASE_PATH: resolve(temporary, "database.sqlite3"),
         NEXT_DIST_DIR: distName,
+        ISSUE_751_SQL_METRICS: "true",
         ...(isolatedResourceAdminPassword===undefined?{}:{RESOURCE_CATALOG_ADMIN_PASSWORD:isolatedResourceAdminPassword}),
         ...(isolatedProjectMasterAdminPassword===undefined?{}:{PROJECT_MASTER_ADMIN_PASSWORD:isolatedProjectMasterAdminPassword}),
       };
@@ -253,7 +259,7 @@ export const test = base.extend<{
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
       const observed = observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure"));
-      await provide({ origin, restart, listen: page => performanceReceipt.listen(page),
+      await provide({ origin, restart, listen: page => performanceReceipt.listen(page), snapshot: () => performanceReceipt.snapshot(),
         timeStage: (stage, task) => performanceReceipt.measure(stage, task),
         observeApi: (route, method, operation) => performanceReceipt.api(route, method, () => observed(route, method, operation)),
       });
@@ -269,6 +275,8 @@ export const test = base.extend<{
           await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
         });
       } finally {
+        const serverOutput = diagnostics.stdout.snapshot();
+        performanceReceipt.captureServerEvents(serverOutput.records, serverOutput.droppedRecords);
         await performanceReceipt.attach(testInfo.status === testInfo.expectedStatus ? "ok" : "error");
       }
     }

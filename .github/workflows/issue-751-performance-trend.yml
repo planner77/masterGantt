@@ -6,6 +6,14 @@ on:
         description: "Recent main runs (1-30)"
         required: true
         default: "20"
+      baseline_run_ids:
+        description: "Optional comma-separated authenticated baseline run IDs (1-30)"
+        required: false
+        default: ""
+      candidate_run_ids:
+        description: "Optional comma-separated candidate run IDs (1-30)"
+        required: false
+        default: ""
 permissions:
   contents: read
   actions: read
@@ -26,11 +34,44 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/issue-751-performance-trend.py --repository "$REPOSITORY" --limit "$RUN_COUNT" --output issue-751-trend.json --summary "$GITHUB_STEP_SUMMARY"
+      - name: Explicit before/after comparison (warning only, no release)
+        if: ${{ inputs.baseline_run_ids != '' && inputs.candidate_run_ids != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          BASELINE_IDS: ${{ inputs.baseline_run_ids }}
+          CANDIDATE_IDS: ${{ inputs.candidate_run_ids }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p issue-751-baseline issue-751-candidate
+          for kind in baseline candidate; do
+            if [[ "$kind" == baseline ]]; then ids="$BASELINE_IDS"; else ids="$CANDIDATE_IDS"; fi
+            if [[ ! "$ids" =~ ^[1-9][0-9]*(,[1-9][0-9]*)*$ ]]; then
+              echo "BLOCKED: invalid run IDs" >&2
+              exit 1
+            fi
+            IFS=',' read -ra parts <<< "$ids"
+            if (( ${#parts[@]} > 30 )); then echo "BLOCKED: limit exceeded" >&2; exit 1; fi
+            for id in "${parts[@]}"; do
+              mkdir -p "issue-751-$kind/$id"
+              if ! gh run download "$id" -R "$REPOSITORY" -p 'e2e-timing-ci-shard-*' -D "issue-751-$kind/$id"; then
+                echo "UNAVAILABLE_OR_UNREADABLE: $kind $id; excluded from verified comparison" >> "$GITHUB_STEP_SUMMARY"
+              fi
+            done
+          done
+          python3 scripts/issue-751-performance-compare.py \
+            --baseline-dir issue-751-baseline \
+            --candidate-dir issue-751-candidate \
+            --output issue-751-before-after.json \
+            --summary "$GITHUB_STEP_SUMMARY"
       - name: Store sanitized report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: issue-751-trend
-          path: issue-751-trend.json
+          path: |
+            issue-751-trend.json
+            issue-751-before-after.json
           if-no-files-found: ignore
           retention-days: 30

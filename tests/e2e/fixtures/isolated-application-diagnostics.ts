@@ -8,12 +8,21 @@ const requestIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-
 const events = new Set(["http_request_completed", "http_request_unhandled", "http_request_rejected", "http_request_unexpected_error"]);
 const routePattern = /^\/api\/(?:health\/(?:live|ready)|projects(?:\/\[publicId\](?:\/(?:tasks(?:\/\[taskId\])?|links|milestone-memberships|edit-sessions(?:\/current)?|edit-password))?)?|project-master\/catalog)$/;
 
+// These are fixed route templates, not raw paths or public identifiers.
+const issue751Routes = new Set([
+  "/api/projects/[publicId]/logistics/process-context",
+  "/api/projects/[publicId]/assignment-targets",
+  "/api/projects/[publicId]/resource-dashboard",
+  "/api/projects/[publicId]/resource-dashboard/details",
+  "/api/projects/[publicId]/tasks/[taskId]/logistics-links",
+  "/api/projects/[publicId]/tasks/[taskId]/target-bindings",
+]);
 /** Retain route templates only, never public IDs, query strings, or arbitrary paths. */
 export function diagnosticRoute(value: unknown): string {
   if (typeof value !== "string" || value.includes("?") || value.includes("#")) return "other";
   const template = value.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi, "[id]")
     .replace("/projects/[id]", "/projects/[publicId]").replace("/tasks/[id]", "/tasks/[taskId]");
-  return routePattern.test(template) ? template : "other";
+  return routePattern.test(template) || issue751Routes.has(template) ? template : "other";
 }
 
 export function transportFailureKind(error: unknown): string {
@@ -49,6 +58,7 @@ export class SafeOutputRing {
   private readonly records: SafeRecord[] = [];
   private bytes = 0;
   discardedLines = 0;
+  droppedRecords = 0;
   constructor(private readonly maximumBytes = 8_192, private readonly maximumRecords = 64) {}
   push(chunk: Buffer | string): void {
     const text = chunk.toString();
@@ -75,14 +85,20 @@ export class SafeOutputRing {
     if (input.route !== undefined) record.route = diagnosticRoute(input.route);
     if (typeof input.status === "number" && Number.isInteger(input.status) && input.status >= 100 && input.status <= 599) record.status = input.status;
     if (typeof input.durationMs === "number" && Number.isFinite(input.durationMs) && input.durationMs >= 0) record.durationMs = Math.min(input.durationMs, 3_600_000);
+    if (Number.isSafeInteger(input.sqlStatementCount) && Number(input.sqlStatementCount) >= 0) record.sqlStatementCount = Math.min(Number(input.sqlStatementCount), 100_000);
+    if (typeof input.sqlExecutionMs === "number" && Number.isFinite(input.sqlExecutionMs) && input.sqlExecutionMs >= 0) record.sqlExecutionMs = Math.min(input.sqlExecutionMs, 3_600_000);
+    if (Number.isSafeInteger(input.sqlErrorCount) && Number(input.sqlErrorCount) >= 0) record.sqlErrorCount = Math.min(Number(input.sqlErrorCount), 100_000);
     this.append(record);
   }
   private append(record: SafeRecord): void {
     const size = Buffer.byteLength(JSON.stringify(record));
     this.records.push(record); this.bytes += size;
-    while (this.bytes > this.maximumBytes || this.records.length > this.maximumRecords) this.bytes -= Buffer.byteLength(JSON.stringify(this.records.shift()));
+    while (this.bytes > this.maximumBytes || this.records.length > this.maximumRecords) {
+      this.bytes -= Buffer.byteLength(JSON.stringify(this.records.shift()));
+      this.droppedRecords++;
+    }
   }
-  snapshot() { return { records: this.records.map(record => ({ ...record })), discardedLines: this.discardedLines, retainedBytes: this.bytes }; }
+  snapshot() { return { records: this.records.map(record => ({ ...record })), discardedLines: this.discardedLines, droppedRecords: this.droppedRecords, retainedBytes: this.bytes }; }
 }
 
 function safeSignal(signal: unknown): string | null {
@@ -94,7 +110,7 @@ export class IsolatedApplicationDiagnostics {
   private readonly generations: Array<{ child: ChildProcess; expectedShutdown: boolean; generation: number }> = [];
   private readonly lifecycle: SafeRecord[] = [];
   private readonly requests: SafeRecord[] = [];
-  readonly stdout = new SafeOutputRing();
+  readonly stdout = new SafeOutputRing(256_000, 2_048);
   readonly stderr = new SafeOutputRing();
   track(child: ChildProcess): void {
     const state = { child, expectedShutdown: false, generation: this.generations.length + 1 };

@@ -1,3 +1,11 @@
+## Issue #751 — 격리 E2E/API/SQLite 관측 AC1~AC3 (2026-10-19)
+
+- AC1: `src/server/db/e2e-sql-observer-core.ts`, `src/server/http/request-context-core.ts`, `tests/e2e/fixtures/isolated-application.ts`에서 서버의 SQL count/execution time, migration/readiness/warmup/seed/teardown와 browser/API status/duration/abort를 독립 기록. `tests/server/db/issue-751-sql-observer.test.ts`가 실제 better-sqlite3 native Statement와 request scope를 검증. raw SQL/Bind/ID/token 비기록.
+- AC2: `tests/e2e/issue-751-performance-telemetry.spec.ts`에서 격리 Next/SQLite와 Browser API 성공/90ms 지연/HTTP503/network fail/abort를 통제하고, `tests/scripts/issue-751-performance-receipt.test.ts`, `tests/scripts/issue-751-sanitize-har.test.ts`, `tests/python/test_issue_751_trace_sanitize.py`가 프라이버시·분류·원본 오류 보존을 검증. 기존 #623/731 golden/mutation/5폭 E2E 및 격리 프로세스·SQLite·Build cleanup 회귀 불변.
+- AC3: `scripts/issue-751-performance-compare.py`와 `tests/python/test_issue_751_performance_compare.py`로 인증한 6/6 shard, exact Run/attempt/checkout SHA, 동일 OS/Node/shard/parallel/event/project/test stable ID, 각 코호트 독립 성공 Run10개 이상일 때만 P50/P95/HTTP 호출 수/SQL 시간·호출 수 비교. 누락·취소·보존 만료·다른 환경은 `INSUFFICIENT_DATA`. Job Summary 80%는 잠정 warning-only.
+- F-001~F-004 원본 실패를 불변으로 보존. Full PR #3021.1 / Trusted #663.1은 구 HEAD 4ea36f4c의 SUCCESS로 신규 코드 PASS가 아님. 전후 실제 데이터 확보 전 Next lazy compilation·SQLite 병목·fan-out 인과는 UNKNOWN. timeout/assertion/skip/retry·Required3·6 Shard 불변.
+- [Work Packet](exec-plans/active/ISSUE_751.md), [Failure Ledger](ISSUE_751_FAILURE_ANALYSIS.md), [Remote Validation](REMOTE_VALIDATION.md) 근거.
+
 ## Issue #731 — Main M-003 누적 실패·교차 검증 (2026-10-19)
 
 [단일 실패 원장](ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)의 F-001~F-004/M-001~M-003을 함께 검증한다. 최신 Main #3011.1은 #623 통합60초 종료/후행 disposed 응답과 Task Editor Summary 저장 후 GET ECONNRESET 두 직접 실패다. 원시 socket/Next 내부 근인은 UNKNOWN이며 Quality SUCCESS와 Docker implementation SKIPPED를 구별한다.

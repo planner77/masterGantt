@@ -16,13 +16,18 @@ describe("Issue #751 HAR privacy boundary", () => {
         { startedDateTime: "2026-10-19T10:10:11.000Z", time: 20,
           request: { method: "GET", url: "https://secret.host/api/projects/private123/assignment-targets" },
           response: { status: -1 } },
+        { startedDateTime: "2026-10-19T10:10:12.000Z", time: 80,
+          request: { method: "GET", url: "https://secret.host/api/projects/private123/assignment-targets" },
+          response: { status: 0 }, _failureText: "net::ERR_ABORTED cookie=SECRET" },
       ] } }));
-      execFileSync(process.execPath, [resolve("scripts/issue-751-sanitize-har.mjs"), "--input", input, "--output", output]);
+      execFileSync(process.execPath, [resolve("scripts/issue-751-sanitize-har.mjs"), "--input", input, "--output", output, "--run-id", "3021", "--attempt", "1", "--head-sha", "a".repeat(40)]);
       const raw = readFileSync(output, "utf8"), report = JSON.parse(raw);
       expect(report.events).toMatchObject([
         { route: "process-context", startMs: 0, durationMs: 3517, status: 503, outcome: "http_error" },
         { route: "assignment-targets", startMs: 1000, status: null, outcome: "incomplete" },
+        { route: "assignment-targets", startMs: 2000, status: null, outcome: "abort" },
       ]);
+      expect(report.provenance).toMatchObject({ runId: 3021, attempt: 1, verification: "CALLER_ASSERTED_NOT_AUTHENTICATED" });
       expect(raw).not.toMatch(/secret\.host|private123|SECRET|token=|COOKIE/);
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });

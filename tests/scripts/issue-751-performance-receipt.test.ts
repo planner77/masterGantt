@@ -38,4 +38,22 @@ describe("Issue 751: sanitized monotonic observation", () => {
     await observer.attach("error");
     expect(data().requests.map((x:{outcome:string})=>x.outcome)).toEqual(["http_error","abort"]);
   });
+  it("records SQL and server durations without exposing request IDs or raw SQL", async () => {
+    const { observer, data } = fixture();
+    observer.captureServerEvents([
+      { event: "http_request_completed", method: "GET",
+        route: "/api/projects/[publicId]/assignment-targets",
+        status: 200, durationMs: 235, sqlStatementCount: 8, sqlExecutionMs: 17.8,
+        requestId: "12345678-1234-4123-8123-123456789abc", query: "SELECT private" },
+      { event: "http_request_completed", method: "GET", route: "/api/projects/private-uuid",
+        sqlStatementCount: 100 },
+    ], 2);
+    await observer.attach("ok");
+    expect(data().serverRequests).toMatchObject([{
+      route: "assignment-targets", status: 200, serverMs: 235,
+      sqlStatementCount: 8, sqlExecutionMs: 17.8,
+    }]);
+    expect(data().serverEventsDiscarded).toBe(2);
+    expect(JSON.stringify(data())).not.toMatch(/12345678|SELECT private|private-uuid/);
+  });
 });

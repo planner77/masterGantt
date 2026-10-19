@@ -1,7 +1,7 @@
 import type { Page, Request, Response, TestInfo } from "@playwright/test";
 import { performance } from "node:perf_hooks";
 
-export type Stage = "sqlite_migrate" | "server_start_readiness" | "next_route_warmup" | "next_dynamic_route_warmup" | "fixture_setup" | "fixture_teardown" | "server_restart" | "seed_issue_623";
+export type Stage = "sqlite_migrate" | "server_start_readiness" | "next_route_warmup" | "next_dynamic_route_warmup" | "fixture_setup" | "fixture_teardown" | "server_restart" | "seed_issue_623" | "test_body";
 type Route = "process-context" | "assignment-targets" | "task-logistics-links" | "resource-dashboard" | "target-bindings" | "other-api";
 type Result = "complete" | "http_error" | "abort" | "timeout" | "network" | "other" | "incomplete";
 const MAX_RECORDS = 512;
@@ -39,6 +39,12 @@ export class IsolatedPerformanceReceipt {
   private stack: Stage[] = [];
   private stages: Array<{stage: Stage; startMs: number; durationMs: number; outcome: "ok" | "error"; errorClass: string | null}> = [];
   private requests: RequestSample[] = [];
+  private serverRequests: Array<{
+    route: Route; method: string; status: number | null;
+    serverMs: number | null; sqlStatementCount: number | null;
+    sqlExecutionMs: number | null; sqlErrorCount: number | null;
+  }> = [];
+  private serverEventsDiscarded = 0;
   private discardedRequests = 0;
   constructor(private readonly info: TestInfo) {}
   private append(item: RequestSample) {
@@ -102,16 +108,50 @@ export class IsolatedPerformanceReceipt {
       }
     };
   }
+  /**
+   * Server logs are sanitized by SafeOutputRing first. Never copy server request
+   * IDs, error messages, SQL, headers, or absolute timestamps to the artifact.
+   * Rows are independently observed; overlapping requests are NOT joined by time.
+   */
+  captureServerEvents(records: Array<Record<string, unknown>>, discarded = 0) {
+    this.serverEventsDiscarded += Math.max(0, discarded);
+    for (const record of records) {
+      if (record.event !== "http_request_completed") continue;
+      const route = typeof record.route === "string" ? safeRoute(record.route) : null;
+      if (!route) continue;
+      if (this.serverRequests.length >= MAX_RECORDS) { this.serverEventsDiscarded++; continue; }
+      const safeNumber = (input: unknown) =>
+        typeof input === "number" && Number.isFinite(input) && input >= 0 ? n(input) : null;
+      this.serverRequests.push({
+        route, method: typeof record.method === "string" && METHODS.has(record.method) ? record.method : "OTHER",
+        status: typeof record.status === "number" && Number.isInteger(record.status) && record.status >= 100 && record.status <= 599 ? record.status : null,
+        serverMs: safeNumber(record.durationMs),
+        sqlStatementCount: safeNumber(record.sqlStatementCount),
+        sqlExecutionMs: safeNumber(record.sqlExecutionMs),
+        sqlErrorCount: safeNumber(record.sqlErrorCount),
+      });
+    }
+  }
+  snapshot() {
+    return {
+      requests: this.requests.map(record => ({ ...record })),
+      serverRequests: this.serverRequests.map(record => ({ ...record })),
+      stages: this.stages.map(record => ({ ...record })),
+    };
+  }
   async attach(status: "ok" | "error") {
     const report = {
       schemaVersion: 2, status, source: {
         runId: /^\d+$/.test(process.env.GITHUB_RUN_ID||"")?process.env.GITHUB_RUN_ID:null,
         attempt: /^\d+$/.test(process.env.GITHUB_RUN_ATTEMPT||"")?Number(process.env.GITHUB_RUN_ATTEMPT):null,
         checkoutSha: /^[a-f0-9]{40}$/i.test(process.env.GITHUB_SHA||"")?process.env.GITHUB_SHA:null,
+        headSha: /^[a-f0-9]{40}$/i.test(process.env.E2E_SOURCE_HEAD_SHA||"")?process.env.E2E_SOURCE_HEAD_SHA:null,
         testId:this.info.testId, project:this.info.project.name, retry:this.info.retry, worker:this.info.workerIndex,
       },
       elapsedMs:n(performance.now()-this.started), currentStage:this.stack.at(-1)||null,
       stages:this.stages, requests:this.requests, discardedRequests:this.discardedRequests,
+      serverRequests: this.serverRequests, serverEventsDiscarded: this.serverEventsDiscarded,
+      correlation: "SERVER_AGGREGATE_ONLY_NOT_PER_REQUEST_JOIN",
       timeoutBudgets:{testMs:this.info.timeout, isolatedFixtureMs:120000},
     };
     await this.info.attach("issue-751-isolated-performance",{contentType:"application/json",body:Buffer.from(JSON.stringify(report))});
