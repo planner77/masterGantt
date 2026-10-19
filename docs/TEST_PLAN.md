@@ -1,3 +1,9 @@
+## Issue #730 — F730-011 Full #3029.1 Task Editor 3시간대 30초 예산 실패 (2026-10-20)
+
+[Issue #730 전용 원장 §20](ISSUE_730_FAILURE_ANALYSIS.md#20-f730-011--pr-747-full-30291-task-editor-3시간대-재확인-test-budget-실패-2026-10-20), [PR Full #3029.1](https://github.com/planner77/masterGantt/actions/runs/39320381909) 원본 Trace에 따르면 TypeScript/Unit/ESLint/Build/Docker와 E2E 5개 Shard가 PASS했으나 Shard4의 `project-task-editor-persistence.spec.ts:8`가 기본30초 제한에 도달했다. 같은 실 Task Editor 저장/원본 revision·Task 정보·Gantt/URL 팝업 검증 완료 후 UTC, Asia/Seoul 새 Context와 America/New_York 최종 Editor 진입까지 실행하였다. fixture startup 약15.53초는 test body 시간과 별도로, body 앞부분14.93초 + 시간대 재조회 약4.01/5.44/5.62초에서 deadline. 실제 값 불일치/제품 실패는 관측되지 않았다. Shard4 79PASS/1FAIL/83NOT RUN·다른5 Shard SUCCESS·E2E/QA 파생 FAIL을 구분한다.
+
+**보완:** 처음 한 개 E2E case에만 실측 기반 `test.setTimeout(45_000)` 적용. 세 새 BrowserContext·세 시간대/같은 Task 원본·요청 시작일·기간·이름·원본 PATCH1회·revision/Description/URL·팝업·Gantt 인스턴스/재진입/메뉴 검증을 모두 유지하며 다른 case/global Playwright/CI timeout/retry/skip/Required Gate 변경 없음. 테스트별 단일 원본 연속성 보존을 위해 별도 Project fixture로 분리하지 않는다. 해당 실제 Chromium 첫 case와 같은 파일 나머지 case, 누적 #730 E2E 실패7파일, #623/726/727/731 인접·진단 음성, Required Quality/E2E6/Docker를 exact-Head에서 교차 검증한다. 새 소스의 로컬 전체 typecheck/실 Browser·HTTP·SQLite/Build/Docker는 NOT TESTED이며 원격 최초 Run의 다른 Shard PASS를 새 Source의 PASS로 전용하지 않는다.
+
 ## Issue #730 — F730-010 PR #747 Full #3027.1 #623 여섯 mutation 제한시간 재발 (2026-10-20)
 
 [단일 실패 원장 F730-010](ISSUE_730_FAILURE_ANALYSIS.md#19-f730-010--pr-full-30271의-623-여섯-mutation-테스트-예산-재발-2026-10-20)에 따르면 Shard3 [#3027.1](https://github.com/planner77/masterGantt/actions/runs/39314765099)에서 #623 독립 Golden/OOXML는32.4초 PASS, 여섯 연속 UI 저장 테스트는 body61,586ms로 기존60초 제한을 소진했다. phase fixture20,790ms, 원본4,948ms, WBS명5,015ms/시작일8,587ms/화면전환2,778ms/상태6,379ms/진척5,920ms/배정7,170ms(중단), 여섯 번째 Target 작업은 NOT RUN이다. 마지막 GET이 60초 전체를 소비했다는 잘못된 해석을 금지한다. Quality/Docker/Build 및 Shard3 다른44 PASS와 Fail-fast 취소5Shard를 구분한다.

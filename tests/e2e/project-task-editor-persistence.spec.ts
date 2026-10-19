@@ -6,6 +6,11 @@ import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapsh
 test.use(isolatedApplicationOptions);
 
 test("persists explicit editor changes, task details and safe URL click without remount", async ({ page, browser, observeIsolatedApi }) => {
+  // #730 F730-011: 30s CI trace completed editor persistence + UTC/Seoul and
+  // reached the third fresh browser context before the test-level deadline.
+  // Keep all three timezone checks on the same stored Task with a measured
+  // finite per-test budget; do not extend other tests or global CI timeouts.
+  test.setTimeout(45_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
