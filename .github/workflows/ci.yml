@@ -795,6 +795,10 @@ jobs:
           path: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           if-no-files-found: ignore
           retention-days: 30
+      - name: Issue #751 성능 계측 요약 (경고 전용)
+        if: always()
+        shell: bash
+        run: node scripts/issue-751-performance-summary.mjs "test-results/e2e-timing-shard-${{ matrix.shard }}.json" >> "$GITHUB_STEP_SUMMARY"
       - name: E2E setup 계측 artifact 업로드
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

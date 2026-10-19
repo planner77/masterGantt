@@ -1,3 +1,11 @@
+# Issue #751 — 격리 Fixture 성능 계측 (2026-10-19)
+
+- 최초 CI #3014.1 메타데이터 차단: 제목 Issue 표기 및 QA method 누락; 실제 품질·E2E6·Docker SKIPPED. 전용 기록: [ISSUE_751_FAILURE_ANALYSIS](ISSUE_751_FAILURE_ANALYSIS.md).
+- 변경 Fixture의 monotonic SQLite migration/readiness/warmup/restart/teardown과 #623 seed, Playwright browser/observer API의 sanitised route group/status/duration/error JSON. 기존 E2E timing-shard artifact에 실패/성공 receipt 포함.
+- 개별 동일환경 성공 표본 <10이면 INSUFFICIENT_DATA, 초기 80% 경고 provisional, 필수 Gate 변경 없음. 한 테스트의 fixture 120초와 본문 60초 별개.
+- Controlled slow/abort/network-failure, clean isolation, P50/P95 baseline, SQL/fan-out causal attribution 및 실제 PR Required Quality/E2E6/Docker/Trusted QA 결과는 실행 전 NOT TESTED. 기존 asserts/retries/skips/timeout 불변.
+- [Work Packet](exec-plans/active/ISSUE_751.md) 및 실패 원장의 Run/attempt/HEAD 증거를 반드시 연결.
+
 ## Issue #751 — E2E 격리 계측 (부분 구현, CI 미검증)
 
 - `tests/e2e/fixtures/isolated-performance-receipt.ts`는 단조 clock 기반 단계별 측정과 비민감 JSON 첨부를 제공한다. `isolated-application.ts`는 SQLite migrate, startup/readiness, route warmup, restart 및 teardown을 기록한다.

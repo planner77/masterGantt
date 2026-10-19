@@ -64,6 +64,8 @@ interface IsolatedApplicationRuntime {
   origin: string;
   restart: (patchOnlyReadinessPath?: string) => Promise<void>;
   observeApi: ObserveIsolatedApi;
+  timeStage: <T>(stage: "seed_issue_623", task: () => Promise<T>) => Promise<T>;
+  listen: (page: Page) => () => void;
 }
 
 export const test = base.extend<{
@@ -73,6 +75,8 @@ export const test = base.extend<{
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
   restartIsolatedApplication: (patchOnlyReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
+  timeIsolatedStage: <T>(stage: "seed_issue_623", task: () => Promise<T>) => Promise<T>;
+  isolatedBrowserNetwork: void;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
   isolatedProjectMasterAdminPassword: [undefined, { option: true }],
@@ -85,15 +89,23 @@ export const test = base.extend<{
   observeIsolatedApi: async ({ isolatedApplicationRuntime }, provide) => {
     await provide(isolatedApplicationRuntime.observeApi);
   },
+  timeIsolatedStage: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.timeStage);
+  },
+  isolatedBrowserNetwork: [async ({page, isolatedApplicationRuntime}, provide) => {
+    const stop = isolatedApplicationRuntime.listen(page);
+    try { await provide(); } finally { stop(); }
+  }, {auto:true}],
   isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword }, provide, testInfo) => {
     const performanceReceipt = new IsolatedPerformanceReceipt(testInfo);
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      await provide({ origin: external, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
+      await provide({ origin: external, timeStage: async (_stage, task) => task(), listen: () => () => {}, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
         testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
         throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
       } });
+      await performanceReceipt.attach("ok");
       return;
     }
     await mkdir(resolve(repositoryRoot, ".data"), { recursive: true });
@@ -241,19 +253,19 @@ export const test = base.extend<{
         } finally { restarting = false; }
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
-      await provide({ origin, restart, observeApi: observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure")) });
+      const observed = observeIsolatedApi(diagnostics, () => captureDiagnostics("api_transport_failure"));
+      await provide({ origin, restart, listen: page => performanceReceipt.listen(page),
+        timeStage: (stage, task) => performanceReceipt.measure(stage, task),
+        observeApi: (route, method, operation) => performanceReceipt.api(route, method, () => observed(route, method, operation)),
+      });
     } catch (error) {
       await captureDiagnostics("setup_failure").catch(() => undefined);
       throw error;
     } finally {
       if (testInfo.status !== testInfo.expectedStatus) await captureDiagnostics("test_failure").catch(() => undefined);
-      if (child) {
-        diagnostics.expectShutdown(child);
-        await stopApplication(child, closed);
-      }
-      // Remove only paths allocated by this fixture, after its server exits.
       try {
         await performanceReceipt.measure("fixture_teardown", async () => {
+          if (child) { diagnostics.expectShutdown(child); await stopApplication(child, closed); }
           await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
           await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
         });

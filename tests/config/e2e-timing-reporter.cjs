@@ -6,6 +6,7 @@ class E2ETimingReporter {
   constructor(options = {}) {
     this.outputFile = options.outputFile || process.env.E2E_TIMING_OUTPUT || "";
     this.entries = [];
+    this.receipts = [];
     this.runnerReadyMs = 0;
   }
 
@@ -17,7 +18,21 @@ class E2ETimingReporter {
   }
 
   onTestEnd(test, result) {
-    if (!this.outputFile || result.status !== "passed") return;
+    if (!this.outputFile) return;
+    for (const attachment of result.attachments) {
+      if (attachment.name !== "issue-751-isolated-performance") continue;
+      try {
+        const raw = attachment.body || (attachment.path ? fs.readFileSync(attachment.path) : null);
+        if (!raw || raw.length > 262144) continue;
+        const receipt = JSON.parse(raw.toString("utf8"));
+        if (receipt.schemaVersion !== 2 || !Array.isArray(receipt.stages) || !Array.isArray(receipt.requests)) continue;
+        this.receipts.push({ ...receipt, resultStatus: result.status, testDurationMs: result.duration,
+          beforeHooksMs: result.steps.filter(step => step.title === "Before Hooks").reduce((total, step) => total + step.duration, 0),
+          afterHooksMs: result.steps.filter(step => step.title === "After Hooks").reduce((total, step) => total + step.duration, 0),
+        });
+      } catch { /* Diagnostic errors never change test outcomes. */ }
+    }
+    if (result.status !== "passed") return;
     const relativeFile = path.relative(process.cwd(), test.location.file).split(path.sep).join("/");
     this.entries.push({
       file: relativeFile,
@@ -38,6 +53,8 @@ class E2ETimingReporter {
       status: result.status,
       runnerReadyMs: this.runnerReadyMs,
       entries: this.entries,
+      environment: {os:process.platform, node:process.versions.node, fullyParallel:process.env.CI_E2E_FULLY_PARALLEL==="true"},
+      receipts: this.receipts,
     };
     fs.mkdirSync(path.dirname(this.outputFile), { recursive: true });
     fs.writeFileSync(this.outputFile, JSON.stringify(payload, null, 2) + "\n", "utf8");
