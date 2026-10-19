@@ -1,3 +1,7 @@
+## Issue #731 — Main #3011.1 후속 누적 교정 (2026-10-19)
+
+최신 main `0aa1d3d71f13df6976539ef4ebaaadb9037121c4` /0.123.0에서 `fix/issue-731-main-ci-cumulative`로 재개한다. #62360초 통합 예산과 Task Editor 저장 후 GET reset을 보완하고 과거 실패 파일5개 합집합·음성/인접 회귀를 동일 source에서 검증한다. [단일 실패 원장](../../ISSUE_731_FAILURE_ANALYSIS.md)과 [현재 Work Packet](ISSUE_731.md)을 갱신한다. 제품/버전/CI 정책 변경0, HIGH/OWNER_MANAGED/release_required=true/release_authorized=false. 리뷰/충돌 확인 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·릴리스는 범위 밖이다. 아래 최초 구현/과거 재개 상태는 당시 기록이다.
+
 ## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
 
 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.

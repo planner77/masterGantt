@@ -1,3 +1,13 @@
+## Issue #731 — Main M-003 누적 실패·교차 검증 (2026-10-19)
+
+[단일 실패 원장](ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)의 F-001~F-004/M-001~M-003을 함께 검증한다. 최신 Main #3011.1은 #623 통합60초 종료/후행 disposed 응답과 Task Editor Summary 저장 후 GET ECONNRESET 두 직접 실패다. 원시 socket/Next 내부 근인은 UNKNOWN이며 Quality SUCCESS와 Docker implementation SKIPPED를 구별한다.
+
+- 실패 파일 합집합: `issue-623-resource-mvp.spec.ts`, `project-task-editor-persistence.spec.ts`, `issue-725-process-workareas.spec.ts`, `issue-726-task-logistics.spec.ts`, `logistics-dashboard-request-state.spec.ts` 전체. 로컬 원인 수집은 workers1/retries0/max-failures0이며 Required6Shard 정책은 변경하지 않는다.
+- #623 직접/인접: 독립 golden·Excel60초와 여섯 mutation/동일 원본 복귀60초, 폭별390/768/1024/1440/1920px의 tree→matrix30초. 각 fixture의 정확 UUID/5M/D/0.25M/M·OOXML Y/Z·snapshot/같은 Gantt 인스턴스, 여섯 method/body/revision+1,10개 geometry/keyboard/query0 단언을 보존한다. golden과 mutation의 Project UUID는 독립이다. Excel bytes는 한 번 읽고 phase별 시간/예산 경고는 attachment로 관측한다.
+- Task Editor: 실제 UI 저장 후 canonical GET6곳의 browser same-origin/no-store/observer·HTTP200/JSON, Summary Description/URL 저장·삭제 revision+1/+2 및 derived readonly. setup API GET3곳·독립 mutation/권한 검사는 유지한다. helper의 외부/잘못된 경로·상태/JSON 실패 음성과 Editor readonly/422/500/network/401/412 소비자를 확인한다.
+- 과거 경계: #725 SQLite 재시작/read-only GET405 이후 실제 PATCH200/JSON·정확 WorkAreaIDs, #726 process-context null/명시0·권한/stale·5폭, KPI master focus/외부 사용자 focus 우선2case와 F-001 WorkArea full canonical Task/Assignment 구성을 회귀한다. 과거 PASS는 새 source 검증으로 이월하지 않는다.
+- 최종 source hash·명령/횟수/시간·처음 로컬 FAIL 및 보완·Pre-PR 실제 결과·한계는 원장과 Work Packet에 연결한다. 전체5파일 1회와 별도 반복은 고유 case 수로 합산하지 않는다. 동일 host의 로컬 PASS는 독립 Runner 안정성·새 PR/Main CI·Trusted/Owner ACCEPT가 아니다.
+
 ## Issue #731 — 기존 KPI 통합 소비자 수용
 
 [기능 보존표·AC·실패 원장](exec-plans/active/ISSUE_731.md)을 기준으로 기존 UI와 전용 API를 함께 검증한다. 로컬 빠른 검증과 PR Required Quality/E2E/Docker·Trusted QA·Owner 최종 승인은 별도다.
