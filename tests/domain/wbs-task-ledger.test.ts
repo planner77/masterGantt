@@ -229,6 +229,43 @@ describe("#728 WBS Task ledger — explicit W1/W2 source boundary", () => {
     expect(summarizeWbsTaskLedgerConfiguration(snapshot, [select("workArea", "WA")]).equipmentQuantity).toBe(10);
   });
 
+  it("#733 W1 preserves process parent unions and exact occurrence/WorkArea facts without changing Task identity", () => {
+    const snapshot = resolveWbsTaskLedger(wbsTaskLedgerFixture());
+    const config = (...selectors: WbsTaskLedgerSelector[]) => summarizeWbsTaskLedgerConfiguration(snapshot, selectors);
+    expect(config(select("process", "PB")).equipmentIds).toEqual(["E10", "E5"]);
+    expect(config(select("process", "PB"), select("workArea", "WB")).equipmentIds).toEqual(["E10"]);
+    expect(config(select("processOccurrence", "OB"), select("workArea", "WB")).equipmentIds).toEqual(["E10"]);
+    expect(config(select("process", "PA"), select("workArea", "WB")).equipmentQuantity).toBe(0);
+    expect(config(select("process", "PB"), select("processOccurrence", "OA"), select("workArea", "WB")).equipmentQuantity).toBe(0);
+    expect(config(select("process", null), select("workArea", "WB")).equipmentQuantity).toBe(0);
+    expect(config(select("process", "PB"), select("workArea", null)).equipmentIds).toEqual(["E5"]);
+    expect(config(select("process", "P-NOMAP")).members).toEqual([]);
+    const tasks = selectWbsTaskLedger(snapshot, [select("process", "PB"), select("workArea", "WB"), select("equipment", "E10")]);
+    expect(tasks.taskIds).toEqual(["T3"]); expect(tasks.assignmentIds).toEqual(["A3"]);
+    expect(config(select("process", "PB")).equipmentQuantity).toBe(15);
+    expect(config().equipmentQuantity).toBe(15);
+  });
+
+  it("#733 null WorkArea configuration is process-local while raw Task null selection remains explicit", () => {
+    const input = wbsTaskLedgerFixture();
+    input.equipmentWorkAreas = input.equipmentWorkAreas.filter(row => row.workAreaId === "WB");
+    const snapshot = resolveWbsTaskLedger(input);
+    const config = (...selectors: WbsTaskLedgerSelector[]) => summarizeWbsTaskLedgerConfiguration(snapshot, selectors);
+    expect(config(select("process", "PA"), select("workArea", null)).equipmentIds).toContain("E10");
+    expect(config(select("processOccurrence", "OA"), select("workArea", null)).equipmentIds).toContain("E10");
+    expect(config(select("workArea", null)).equipmentIds).not.toContain("E10");
+    expect(config(select("process", "PB"), select("workArea", null)).equipmentIds).not.toContain("E10");
+    const mixedMembership = resolveWbsTaskLedger(wbsTaskLedgerFixture());
+    expect(summarizeWbsTaskLedgerConfiguration(mixedMembership, [select("process", "PA"), select("workArea", null)]).equipmentIds).not.toContain("E10");
+    expect(config(select("process", "PB"), select("workArea", "WB")).equipmentQuantity).toBe(10);
+    expect(config(select("process", "PA"), select("workArea", "WB")).equipmentQuantity).toBe(0);
+    expect(config(select("process", "PA"), select("workArea", null)).equipmentQuantity).toBe(10);
+    expect(config().equipmentQuantity).toBe(15);
+    const tasks = selectWbsTaskLedger(snapshot, [select("process", "PA"), select("workArea", null)]);
+    expect(tasks.taskIds).toEqual(["T1"]); expect(tasks.assignmentIds).toEqual(["A1"]);
+    expect(selectWbsTaskLedger(snapshot, [...tasks.selectors, select("equipment", "E10")]).taskIds).toEqual([]);
+  });
+
   it("rejects an incomplete #727 resource-membership snapshot instead of silently undercounting registration", () => {
     const input = wbsTaskLedgerFixture();
     const incomplete = { ...input, resourceMemberships: input.resourceMemberships.filter(row => row.id !== "R2") };

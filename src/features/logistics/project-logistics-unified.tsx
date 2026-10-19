@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ProjectLogisticsDto } from "@/contracts/logistics";
 import type { ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardSummary } from "@/contracts/resource-dashboard";
+import { ProcessWorkareaDashboard } from "@/features/resources/process-workarea-dashboard";
 import { WbsViewDashboard } from "@/features/resources/wbs-view-dashboard";
 import type { WbsViewDimension } from "@/contracts/wbs-dashboard-views";
 import { ResourceDrillContext, type WbsViewScheduleRequest, type ResourceScheduleRequest } from "@/features/resources/resource-drill-context";
@@ -46,7 +47,10 @@ export function ProjectLogisticsUnified(props: Props) {
       onOpenTarget: props.editable ? props.onOpenTarget : undefined,
       onSchedule: props.onResourceSchedule ? (request) => props.onResourceSchedule?.({ ...request, binding: null }) : undefined,
     }}>
-      {(["process", "equipment", "system"] as const).map(root => <div key={root} hidden={(props.perspective ?? "process") !== root} inert={(props.perspective ?? "process") !== root}><WbsViewDashboard publicId={props.publicId} revision={props.revision} root={root} active={props.active && (props.perspective ?? "process") === root} busy={props.busy} onOpenTask={props.onOpenTask} onOpenAssignment={props.editable ? props.onOpenAssignment : undefined} onOpenEntity={props.editable ? props.onWbsOpenEntity : undefined} onSchedule={props.onWbsSchedule}/></div>)}
+      {(["process", "equipment", "system"] as const).map(root => {
+        const Dashboard = root === "process" ? ProcessWorkareaDashboard : WbsViewDashboard;
+        return <div key={root} hidden={(props.perspective ?? "process") !== root} inert={(props.perspective ?? "process") !== root}><Dashboard publicId={props.publicId} revision={props.revision} root={root} active={props.active && (props.perspective ?? "process") === root} busy={props.busy} onOpenTask={props.onOpenTask} onOpenAssignment={props.editable ? props.onOpenAssignment : undefined} onOpenEntity={props.editable ? props.onWbsOpenEntity : undefined} onSchedule={props.onWbsSchedule}/></div>;
+      })}
       <UnifiedContent {...props} />
     </ResourceDrillContext.Provider>
   );

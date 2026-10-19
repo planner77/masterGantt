@@ -1,3 +1,13 @@
+## Issue #733 — 공정 consumer용 동일 snapshot 구성 목록·하위 구성 보존
+
+기존 `POST /api/projects/{publicId}/resource-dashboard/views`의 report 응답에 `configurationCatalog`를 추가한다. 동일 SQLite read snapshot의 `processes[{id,name,occurrenceId}]`, `workAreas[{id,name,occurrenceId,processIds}]`, `instances[{kind,id,name}]`, `milestones[{id,name}]`를 제공하며 공정 단독/다른 축에서도 등록 고유 수·원본 이름을 사용할 수 있다. 별도 global catalog 응답이나 다른 revision의 이름/수치를 합치지 않는다. Project 공정 ID와 occurrence ID, WorkArea 소유 mapping은 구별한다. details/scope의 exact Task·Assignment·snapshot 재검증 및 기존 strict 한도는 유지한다.
+
+공정/occurrence 아래 구성의 구역 없음은 해당 공정 범위에 연결 구역이 없다는 조회 상태이며 타 공정 구역 소속은 유지한다. root WorkArea 없음은 전체 구역 소속0이고, Task의 명시 WorkArea selector 의미는 변경하지 않는다.
+
+공통 projection은 root뿐 아니라 실제 구성관계가 있는 하위의 등록-only 후보를 보존한다. Task0의 공정→WorkArea→설비/System 행도 원본 scope로 조회할 수 있지만 Task/Assignment를 생성하지 않는다. 후보가 공유 Milestone/System을 통해 다른 Task를 다시 가져오지 않으며 Task 경로는 기존 교집합을 유지한다. 공통 System의 Project scope를 모든 공정으로 배치하거나 없는 WorkArea 소속을 만들지 않는다.
+
+구성 참고의 공정 관련 설비는 주관리 공정과 명시 다중 WorkArea 소유 공정의 원본 ID 합집합이다. exact WorkArea가 선택되면 그 소속과 공정의 교집합을 사용한다. 따라서 주관리 A의 E10이 B공정 구역에 명시 소속되면 A/B 각각 관련 수량10, Project 고유 수량10이다. 이는 주관리 공정 재지정이나 실제 구역별 배치 대수 분배가 아니다. `configurationReference`와 명시 Task 공정에 따른 작업·개인공수는 별도 모집단이다. 구 logistics default/Target API·DB 저장·권한·Excel 미지원 계약은 불변이다. [수치 정의](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [검증과 남은 한계](exec-plans/active/ISSUE_733.md)를 따른다.
+
 ## Issue #731 — 보존된 KPI의 명시 통합 source
 
 `GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 KPI 화면 전용 public-read다. 기존 `/logistics/dashboard`의 default 및 Resource/Target API는 유지한다. 같은 SQLite read transaction에서 #728 공통 resolver·#729 snapshot과 기존 Logistics KPI 산식을 재사용한다. 기존 `{data:LogisticsDashboardDto}`의 카드/표/품질/full Gate를 보존하고 additive `integrated` metadata·진단을 제공한다. Project session/쿠키 발급·mutation은 없으며 UUID Project404, `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`를 사용한다.

@@ -4,7 +4,7 @@ import { WBS_VIEW_DIMENSIONS, type WbsViewLevel, type WbsViewSpec } from "@/cont
 import { WBS_VIEW_LABELS, validateWbsViewSpec } from "./wbs-view-model";
 import styles from "./wbs-view.module.css";
 const levelValue = (level: WbsViewLevel) => typeof level === "string" ? level : "siblings";
-export function WbsViewComposer({ spec, onApply, onReset }: { spec: WbsViewSpec; onApply: (spec: WbsViewSpec) => void; onReset: () => void }) {
+export function WbsViewComposer({ spec, onApply, onReset, presets }: { presets?: Array<{label:string;levels:WbsViewLevel[]}>; spec: WbsViewSpec; onApply: (spec: WbsViewSpec) => void; onReset: () => void }) {
   const composer=useRef<HTMLDetailsElement>(null);
   const focusAxis=(index:number) => requestAnimationFrame(()=>{const controls=composer.current?.querySelectorAll<HTMLSelectElement>("ol select");(controls?.[Math.max(0,index)]??composer.current?.querySelector<HTMLButtonElement>("[data-add-axis]"))?.focus();});
   const [draft, setDraft] = useState(spec);
@@ -26,6 +26,7 @@ export function WbsViewComposer({ spec, onApply, onReset }: { spec: WbsViewSpec;
       <button type="button" aria-label={`${index + 1}번째 축 삭제`} onClick={() => {update(levels.filter((_, i) => i !== index));focusAxis(Math.min(index,levels.length-2));}}>삭제</button>
     </li>)}</ol>
     <div className={styles.controls}><button data-add-axis type="button" disabled={levels.length >= 7 || !WBS_VIEW_DIMENSIONS.some(d => d !== spec.root && !levels.some(l => typeof l === "string" ? l === d : l.dimensions.includes(d as "equipment" | "system")))} onClick={() => { const dimension = WBS_VIEW_DIMENSIONS.find(d => d !== spec.root && !levels.some(l => typeof l === "string" ? l === d : l.dimensions.includes(d as "equipment" | "system"))); if (dimension) update([...levels, dimension]); }}>하위 축 추가</button>
+      {presets?.map(preset => <button type="button" key={preset.label} onClick={() => update(preset.levels)}>{preset.label}</button>)}
       {spec.root === "equipment" ? <><button type="button" onClick={() => update(["process", "system", "resource"])}>설비 → 공정 → 시스템 → Resource</button><button type="button" onClick={() => update(["milestone", "process"])}>설비 → Milestone → 공정</button></> : null}
       <button type="button" onClick={()=>update([])}>하위 없음</button>
       <button type="button" disabled={!validation.ok} onClick={() => { if (validation.ok) onApply(validation.spec); }}>적용</button>

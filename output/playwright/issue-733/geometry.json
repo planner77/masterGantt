@@ -1,0 +1,1302 @@
+[
+  {
+    "width": 390,
+    "viewport": 390,
+    "document": 390,
+    "header": [
+      {
+        "left": 13,
+        "width": 220
+      },
+      {
+        "left": 233,
+        "width": 144
+      },
+      {
+        "left": 377,
+        "width": 88
+      },
+      {
+        "left": 465,
+        "width": 88
+      },
+      {
+        "left": 553,
+        "width": 88
+      },
+      {
+        "left": 641,
+        "width": 144
+      }
+    ],
+    "body": [
+      {
+        "left": 13,
+        "width": 220
+      },
+      {
+        "left": 233,
+        "width": 144
+      },
+      {
+        "left": 377,
+        "width": 88
+      },
+      {
+        "left": 465,
+        "width": 88
+      },
+      {
+        "left": 553,
+        "width": 88
+      },
+      {
+        "left": 641,
+        "width": 144
+      }
+    ],
+    "owner": {
+      "client": 364,
+      "scroll": 772,
+      "overflow": "auto"
+    },
+    "focusBox": {
+      "left": 241,
+      "right": 295,
+      "ownerLeft": 12,
+      "ownerRight": 378
+    },
+    "boxes": [
+      {
+        "text": "고유 Project 공정",
+        "left": 12,
+        "right": 133
+      },
+      {
+        "text": "2개",
+        "left": 12,
+        "right": 133
+      },
+      {
+        "text": "고유 WorkArea",
+        "left": 157,
+        "right": 261
+      },
+      {
+        "text": "2개",
+        "left": 157,
+        "right": 261
+      },
+      {
+        "text": "설비 관리단위",
+        "left": 12,
+        "right": 112
+      },
+      {
+        "text": "2개",
+        "left": 12,
+        "right": 112
+      },
+      {
+        "text": "설비 원본 수량",
+        "left": 136,
+        "right": 240
+      },
+      {
+        "text": "17대",
+        "left": 136,
+        "right": 240
+      },
+      {
+        "text": "물류 시스템",
+        "left": 264,
+        "right": 348
+      },
+      {
+        "text": "1식",
+        "left": 264,
+        "right": 348
+      },
+      {
+        "text": "현재 작업 0인 공정",
+        "left": 12,
+        "right": 145
+      },
+      {
+        "text": "0개",
+        "left": 12,
+        "right": 145
+      },
+      {
+        "text": "현재 작업 미연결 설비 / System",
+        "left": 12,
+        "right": 236
+      },
+      {
+        "text": "1개 / 0식",
+        "left": 12,
+        "right": 236
+      },
+      {
+        "text": "고유 Task",
+        "left": 12,
+        "right": 82
+      },
+      {
+        "text": "2건",
+        "left": 12,
+        "right": 82
+      },
+      {
+        "text": "완료 / 지연",
+        "left": 106,
+        "right": 185
+      },
+      {
+        "text": "0 / 2건",
+        "left": 106,
+        "right": 185
+      },
+      {
+        "text": "기간가중 진척",
+        "left": 209,
+        "right": 309
+      },
+      {
+        "text": "0.0%",
+        "left": 209,
+        "right": 309
+      },
+      {
+        "text": "관련 계획 M/D",
+        "left": 12,
+        "right": 116
+      },
+      {
+        "text": "2.00 M/D",
+        "left": 12,
+        "right": 116
+      },
+      {
+        "text": "관련 계획 M/M",
+        "left": 140,
+        "right": 260
+      },
+      {
+        "text": "환산 기준 미설정",
+        "left": 140,
+        "right": 260
+      },
+      {
+        "text": "개인 미배정 Task (T0)",
+        "left": 12,
+        "right": 168
+      },
+      {
+        "text": "1건",
+        "left": 12,
+        "right": 168
+      },
+      {
+        "text": "공수 미설정 Assignment",
+        "left": 192,
+        "right": 364
+      },
+      {
+        "text": "0건",
+        "left": 192,
+        "right": 364
+      },
+      {
+        "text": "공정·구역별 구성 참고",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "A 공정 · 구성 설비 1개 / 원본 수량 10대 · System 1식",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "B 공정 · 구성 설비 1개 / 원본 수량 7대 · System 1식",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "구성·연결 진단과 Coverage",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "장거리설비LongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespace · 설비 · Coverage 미설정",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "식별 정보",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "통합 시스템 · 물류 시스템 · Coverage 미설정",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "식별 정보",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "연관 Milestone 전체 Gate (1)",
+        "left": 12,
+        "right": 378
+      },
+      {
+        "text": "식별 정보",
+        "left": 12,
+        "right": 378
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "viewport": 768,
+    "document": 768,
+    "header": [
+      {
+        "left": 21,
+        "width": 280
+      },
+      {
+        "left": 301,
+        "width": 144
+      },
+      {
+        "left": 445,
+        "width": 88
+      },
+      {
+        "left": 533,
+        "width": 88
+      },
+      {
+        "left": 621,
+        "width": 88
+      },
+      {
+        "left": 709,
+        "width": 144
+      }
+    ],
+    "body": [
+      {
+        "left": 21,
+        "width": 280
+      },
+      {
+        "left": 301,
+        "width": 144
+      },
+      {
+        "left": 445,
+        "width": 88
+      },
+      {
+        "left": 533,
+        "width": 88
+      },
+      {
+        "left": 621,
+        "width": 88
+      },
+      {
+        "left": 709,
+        "width": 144
+      }
+    ],
+    "owner": {
+      "client": 718,
+      "scroll": 832,
+      "overflow": "auto"
+    },
+    "focusBox": {
+      "left": 685,
+      "right": 739,
+      "ownerLeft": 24,
+      "ownerRight": 744
+    },
+    "boxes": [
+      {
+        "text": "고유 Project 공정",
+        "left": 24,
+        "right": 145
+      },
+      {
+        "text": "2개",
+        "left": 24,
+        "right": 145
+      },
+      {
+        "text": "고유 WorkArea",
+        "left": 169,
+        "right": 273
+      },
+      {
+        "text": "2개",
+        "left": 169,
+        "right": 273
+      },
+      {
+        "text": "설비 관리단위",
+        "left": 297,
+        "right": 397
+      },
+      {
+        "text": "2개",
+        "left": 297,
+        "right": 397
+      },
+      {
+        "text": "설비 원본 수량",
+        "left": 421,
+        "right": 525
+      },
+      {
+        "text": "17대",
+        "left": 421,
+        "right": 525
+      },
+      {
+        "text": "물류 시스템",
+        "left": 549,
+        "right": 633
+      },
+      {
+        "text": "1식",
+        "left": 549,
+        "right": 633
+      },
+      {
+        "text": "현재 작업 0인 공정",
+        "left": 24,
+        "right": 157
+      },
+      {
+        "text": "0개",
+        "left": 24,
+        "right": 157
+      },
+      {
+        "text": "현재 작업 미연결 설비 / System",
+        "left": 181,
+        "right": 405
+      },
+      {
+        "text": "1개 / 0식",
+        "left": 181,
+        "right": 405
+      },
+      {
+        "text": "고유 Task",
+        "left": 24,
+        "right": 94
+      },
+      {
+        "text": "2건",
+        "left": 24,
+        "right": 94
+      },
+      {
+        "text": "완료 / 지연",
+        "left": 118,
+        "right": 197
+      },
+      {
+        "text": "0 / 2건",
+        "left": 118,
+        "right": 197
+      },
+      {
+        "text": "기간가중 진척",
+        "left": 221,
+        "right": 321
+      },
+      {
+        "text": "0.0%",
+        "left": 221,
+        "right": 321
+      },
+      {
+        "text": "관련 계획 M/D",
+        "left": 345,
+        "right": 449
+      },
+      {
+        "text": "2.00 M/D",
+        "left": 345,
+        "right": 449
+      },
+      {
+        "text": "관련 계획 M/M",
+        "left": 473,
+        "right": 593
+      },
+      {
+        "text": "환산 기준 미설정",
+        "left": 473,
+        "right": 593
+      },
+      {
+        "text": "개인 미배정 Task (T0)",
+        "left": 24,
+        "right": 180
+      },
+      {
+        "text": "1건",
+        "left": 24,
+        "right": 180
+      },
+      {
+        "text": "공수 미설정 Assignment",
+        "left": 204,
+        "right": 376
+      },
+      {
+        "text": "0건",
+        "left": 204,
+        "right": 376
+      },
+      {
+        "text": "공정·구역별 구성 참고",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "A 공정 · 구성 설비 1개 / 원본 수량 10대 · System 1식",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "B 공정 · 구성 설비 1개 / 원본 수량 7대 · System 1식",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "구성·연결 진단과 Coverage",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "장거리설비LongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespace · 설비 · Coverage 미설정",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "통합 시스템 · 물류 시스템 · Coverage 미설정",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "연관 Milestone 전체 Gate (1)",
+        "left": 24,
+        "right": 744
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 744
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "viewport": 1024,
+    "document": 1024,
+    "header": [
+      {
+        "left": 25,
+        "width": 422
+      },
+      {
+        "left": 447,
+        "width": 144
+      },
+      {
+        "left": 591,
+        "width": 88
+      },
+      {
+        "left": 679,
+        "width": 88
+      },
+      {
+        "left": 767,
+        "width": 88
+      },
+      {
+        "left": 855,
+        "width": 144
+      }
+    ],
+    "body": [
+      {
+        "left": 25,
+        "width": 422
+      },
+      {
+        "left": 447,
+        "width": 144
+      },
+      {
+        "left": 591,
+        "width": 88
+      },
+      {
+        "left": 679,
+        "width": 88
+      },
+      {
+        "left": 767,
+        "width": 88
+      },
+      {
+        "left": 855,
+        "width": 144
+      }
+    ],
+    "owner": {
+      "client": 974,
+      "scroll": 974,
+      "overflow": "auto"
+    },
+    "focusBox": {
+      "left": 863,
+      "right": 917,
+      "ownerLeft": 24,
+      "ownerRight": 1000
+    },
+    "boxes": [
+      {
+        "text": "고유 Project 공정",
+        "left": 24,
+        "right": 145
+      },
+      {
+        "text": "2개",
+        "left": 24,
+        "right": 145
+      },
+      {
+        "text": "고유 WorkArea",
+        "left": 169,
+        "right": 273
+      },
+      {
+        "text": "2개",
+        "left": 169,
+        "right": 273
+      },
+      {
+        "text": "설비 관리단위",
+        "left": 297,
+        "right": 397
+      },
+      {
+        "text": "2개",
+        "left": 297,
+        "right": 397
+      },
+      {
+        "text": "설비 원본 수량",
+        "left": 421,
+        "right": 525
+      },
+      {
+        "text": "17대",
+        "left": 421,
+        "right": 525
+      },
+      {
+        "text": "물류 시스템",
+        "left": 549,
+        "right": 633
+      },
+      {
+        "text": "1식",
+        "left": 549,
+        "right": 633
+      },
+      {
+        "text": "현재 작업 0인 공정",
+        "left": 657,
+        "right": 790
+      },
+      {
+        "text": "0개",
+        "left": 657,
+        "right": 790
+      },
+      {
+        "text": "현재 작업 미연결 설비 / System",
+        "left": 24,
+        "right": 248
+      },
+      {
+        "text": "1개 / 0식",
+        "left": 24,
+        "right": 248
+      },
+      {
+        "text": "고유 Task",
+        "left": 24,
+        "right": 94
+      },
+      {
+        "text": "2건",
+        "left": 24,
+        "right": 94
+      },
+      {
+        "text": "완료 / 지연",
+        "left": 118,
+        "right": 197
+      },
+      {
+        "text": "0 / 2건",
+        "left": 118,
+        "right": 197
+      },
+      {
+        "text": "기간가중 진척",
+        "left": 221,
+        "right": 321
+      },
+      {
+        "text": "0.0%",
+        "left": 221,
+        "right": 321
+      },
+      {
+        "text": "관련 계획 M/D",
+        "left": 345,
+        "right": 449
+      },
+      {
+        "text": "2.00 M/D",
+        "left": 345,
+        "right": 449
+      },
+      {
+        "text": "관련 계획 M/M",
+        "left": 473,
+        "right": 593
+      },
+      {
+        "text": "환산 기준 미설정",
+        "left": 473,
+        "right": 593
+      },
+      {
+        "text": "개인 미배정 Task (T0)",
+        "left": 617,
+        "right": 773
+      },
+      {
+        "text": "1건",
+        "left": 617,
+        "right": 773
+      },
+      {
+        "text": "공수 미설정 Assignment",
+        "left": 797,
+        "right": 969
+      },
+      {
+        "text": "0건",
+        "left": 797,
+        "right": 969
+      },
+      {
+        "text": "공정·구역별 구성 참고",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "A 공정 · 구성 설비 1개 / 원본 수량 10대 · System 1식",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "B 공정 · 구성 설비 1개 / 원본 수량 7대 · System 1식",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "구성·연결 진단과 Coverage",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "장거리설비LongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespace · 설비 · Coverage 미설정",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "통합 시스템 · 물류 시스템 · Coverage 미설정",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "연관 Milestone 전체 Gate (1)",
+        "left": 24,
+        "right": 1000
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 1000
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "viewport": 1440,
+    "document": 1440,
+    "header": [
+      {
+        "left": 25,
+        "width": 838
+      },
+      {
+        "left": 863,
+        "width": 144
+      },
+      {
+        "left": 1007,
+        "width": 88
+      },
+      {
+        "left": 1095,
+        "width": 88
+      },
+      {
+        "left": 1183,
+        "width": 88
+      },
+      {
+        "left": 1271,
+        "width": 144
+      }
+    ],
+    "body": [
+      {
+        "left": 25,
+        "width": 838
+      },
+      {
+        "left": 863,
+        "width": 144
+      },
+      {
+        "left": 1007,
+        "width": 88
+      },
+      {
+        "left": 1095,
+        "width": 88
+      },
+      {
+        "left": 1183,
+        "width": 88
+      },
+      {
+        "left": 1271,
+        "width": 144
+      }
+    ],
+    "owner": {
+      "client": 1390,
+      "scroll": 1390,
+      "overflow": "auto"
+    },
+    "focusBox": {
+      "left": 1279,
+      "right": 1333,
+      "ownerLeft": 24,
+      "ownerRight": 1416
+    },
+    "boxes": [
+      {
+        "text": "고유 Project 공정",
+        "left": 24,
+        "right": 145
+      },
+      {
+        "text": "2개",
+        "left": 24,
+        "right": 145
+      },
+      {
+        "text": "고유 WorkArea",
+        "left": 169,
+        "right": 273
+      },
+      {
+        "text": "2개",
+        "left": 169,
+        "right": 273
+      },
+      {
+        "text": "설비 관리단위",
+        "left": 297,
+        "right": 397
+      },
+      {
+        "text": "2개",
+        "left": 297,
+        "right": 397
+      },
+      {
+        "text": "설비 원본 수량",
+        "left": 421,
+        "right": 525
+      },
+      {
+        "text": "17대",
+        "left": 421,
+        "right": 525
+      },
+      {
+        "text": "물류 시스템",
+        "left": 549,
+        "right": 633
+      },
+      {
+        "text": "1식",
+        "left": 549,
+        "right": 633
+      },
+      {
+        "text": "현재 작업 0인 공정",
+        "left": 657,
+        "right": 790
+      },
+      {
+        "text": "0개",
+        "left": 657,
+        "right": 790
+      },
+      {
+        "text": "현재 작업 미연결 설비 / System",
+        "left": 814,
+        "right": 1038
+      },
+      {
+        "text": "1개 / 0식",
+        "left": 814,
+        "right": 1038
+      },
+      {
+        "text": "고유 Task",
+        "left": 24,
+        "right": 94
+      },
+      {
+        "text": "2건",
+        "left": 24,
+        "right": 94
+      },
+      {
+        "text": "완료 / 지연",
+        "left": 118,
+        "right": 197
+      },
+      {
+        "text": "0 / 2건",
+        "left": 118,
+        "right": 197
+      },
+      {
+        "text": "기간가중 진척",
+        "left": 221,
+        "right": 321
+      },
+      {
+        "text": "0.0%",
+        "left": 221,
+        "right": 321
+      },
+      {
+        "text": "관련 계획 M/D",
+        "left": 345,
+        "right": 449
+      },
+      {
+        "text": "2.00 M/D",
+        "left": 345,
+        "right": 449
+      },
+      {
+        "text": "관련 계획 M/M",
+        "left": 473,
+        "right": 593
+      },
+      {
+        "text": "환산 기준 미설정",
+        "left": 473,
+        "right": 593
+      },
+      {
+        "text": "개인 미배정 Task (T0)",
+        "left": 617,
+        "right": 773
+      },
+      {
+        "text": "1건",
+        "left": 617,
+        "right": 773
+      },
+      {
+        "text": "공수 미설정 Assignment",
+        "left": 797,
+        "right": 969
+      },
+      {
+        "text": "0건",
+        "left": 797,
+        "right": 969
+      },
+      {
+        "text": "공정·구역별 구성 참고",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "A 공정 · 구성 설비 1개 / 원본 수량 10대 · System 1식",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "B 공정 · 구성 설비 1개 / 원본 수량 7대 · System 1식",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "구성·연결 진단과 Coverage",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "장거리설비LongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespace · 설비 · Coverage 미설정",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "통합 시스템 · 물류 시스템 · Coverage 미설정",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "연관 Milestone 전체 Gate (1)",
+        "left": 24,
+        "right": 1416
+      },
+      {
+        "text": "식별 정보",
+        "left": 24,
+        "right": 1416
+      }
+    ]
+  },
+  {
+    "width": 1920,
+    "viewport": 1920,
+    "document": 1920,
+    "header": [
+      {
+        "left": 241,
+        "width": 886
+      },
+      {
+        "left": 1127,
+        "width": 144
+      },
+      {
+        "left": 1271,
+        "width": 88
+      },
+      {
+        "left": 1359,
+        "width": 88
+      },
+      {
+        "left": 1447,
+        "width": 88
+      },
+      {
+        "left": 1535,
+        "width": 144
+      }
+    ],
+    "body": [
+      {
+        "left": 241,
+        "width": 886
+      },
+      {
+        "left": 1127,
+        "width": 144
+      },
+      {
+        "left": 1271,
+        "width": 88
+      },
+      {
+        "left": 1359,
+        "width": 88
+      },
+      {
+        "left": 1447,
+        "width": 88
+      },
+      {
+        "left": 1535,
+        "width": 144
+      }
+    ],
+    "owner": {
+      "client": 1438,
+      "scroll": 1438,
+      "overflow": "auto"
+    },
+    "focusBox": {
+      "left": 1543,
+      "right": 1597,
+      "ownerLeft": 240,
+      "ownerRight": 1680
+    },
+    "boxes": [
+      {
+        "text": "고유 Project 공정",
+        "left": 240,
+        "right": 361
+      },
+      {
+        "text": "2개",
+        "left": 240,
+        "right": 361
+      },
+      {
+        "text": "고유 WorkArea",
+        "left": 385,
+        "right": 489
+      },
+      {
+        "text": "2개",
+        "left": 385,
+        "right": 489
+      },
+      {
+        "text": "설비 관리단위",
+        "left": 513,
+        "right": 613
+      },
+      {
+        "text": "2개",
+        "left": 513,
+        "right": 613
+      },
+      {
+        "text": "설비 원본 수량",
+        "left": 637,
+        "right": 741
+      },
+      {
+        "text": "17대",
+        "left": 637,
+        "right": 741
+      },
+      {
+        "text": "물류 시스템",
+        "left": 765,
+        "right": 849
+      },
+      {
+        "text": "1식",
+        "left": 765,
+        "right": 849
+      },
+      {
+        "text": "현재 작업 0인 공정",
+        "left": 873,
+        "right": 1006
+      },
+      {
+        "text": "0개",
+        "left": 873,
+        "right": 1006
+      },
+      {
+        "text": "현재 작업 미연결 설비 / System",
+        "left": 1030,
+        "right": 1254
+      },
+      {
+        "text": "1개 / 0식",
+        "left": 1030,
+        "right": 1254
+      },
+      {
+        "text": "고유 Task",
+        "left": 240,
+        "right": 310
+      },
+      {
+        "text": "2건",
+        "left": 240,
+        "right": 310
+      },
+      {
+        "text": "완료 / 지연",
+        "left": 334,
+        "right": 413
+      },
+      {
+        "text": "0 / 2건",
+        "left": 334,
+        "right": 413
+      },
+      {
+        "text": "기간가중 진척",
+        "left": 437,
+        "right": 537
+      },
+      {
+        "text": "0.0%",
+        "left": 437,
+        "right": 537
+      },
+      {
+        "text": "관련 계획 M/D",
+        "left": 561,
+        "right": 665
+      },
+      {
+        "text": "2.00 M/D",
+        "left": 561,
+        "right": 665
+      },
+      {
+        "text": "관련 계획 M/M",
+        "left": 689,
+        "right": 809
+      },
+      {
+        "text": "환산 기준 미설정",
+        "left": 689,
+        "right": 809
+      },
+      {
+        "text": "개인 미배정 Task (T0)",
+        "left": 833,
+        "right": 989
+      },
+      {
+        "text": "1건",
+        "left": 833,
+        "right": 989
+      },
+      {
+        "text": "공수 미설정 Assignment",
+        "left": 1013,
+        "right": 1185
+      },
+      {
+        "text": "0건",
+        "left": 1013,
+        "right": 1185
+      },
+      {
+        "text": "공정·구역별 구성 참고",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "A 공정 · 구성 설비 1개 / 원본 수량 10대 · System 1식",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "B 공정 · 구성 설비 1개 / 원본 수량 7대 · System 1식",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "구성·연결 진단과 Coverage",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "장거리설비LongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespaceLongEquipmentNameWithoutWhitespace · 설비 · Coverage 미설정",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "식별 정보",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "통합 시스템 · 물류 시스템 · Coverage 미설정",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "식별 정보",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "연관 Milestone 전체 Gate (1)",
+        "left": 240,
+        "right": 1680
+      },
+      {
+        "text": "식별 정보",
+        "left": 240,
+        "right": 1680
+      }
+    ]
+  }
+]

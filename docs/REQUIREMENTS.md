@@ -1,3 +1,7 @@
+## Issue #733 — 공정&WorkArea 관점
+
+Target0에서 등록 공정/선택 WorkArea를 최상위로 조회하고 단독 요약·설비/System 동급 분기·사용자 Milestone/리소스 교차를 제공한다. 공통 원장·API·renderer를 재사용하며 등록-only/미배정·legacy 출처를 보존한다. 고유 구성 수량과 Task/Assignment·coverage/full Gate의 모집단을 분리하고 다중 경로를 합산하지 않는다. 정확 원본 편집·snapshot stale·원래 보기 복귀·readonly/dirty/error·5폭·keyboard·조회 mutation0/Gantt remount0은 [Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5와 [화면 UX](PROJECT_UX.md#issue-733--공정workarea-대시보드)를 따른다.
+
 ## Issue #729 — WBS 다관점 조회·정확 범위
 
 Task/Assignment 원장을 공정·WorkArea·설비·물류 시스템·Resource·Milestone·Group·Role 관점으로 조회하는 versioned opt-in API를 제공한다. root-only 및 순차 단계와 설비/System 형제 분기를 지원하고 등록-only root와 미배정 Task를 보존한다. Task 직접 공정0..N·명시0은 구성/Target/조상에서 채우지 않으며 legacy API의 자동 공정 유도 의미와 구분한다.

@@ -1,3 +1,11 @@
+## Issue #733 — 공정&WorkArea 대시보드
+
+`dashboard.process`는 공정 전용 consumer를 통해 공정 단독 요약과 교차 조회 예시를 제공한다. 공정→선택 WorkArea→[설비 | 물류 시스템]→리소스 및 공정→Milestone→리소스는 같은 Task의 다른 조회 경로이며 실제 지배/제어관계나 WBS parent를 생성하지 않는다. 처음에는 기존처럼 공정 단독 요약을 보여 주고 교차 예시는 조회 구성에서 명시 적용한다. 기존 Project/root 개인 조회 설정은 우선 보존한다.
+
+구성·작업 KPI의 분모를 분리하고 작업0 구성, 구역없음·미매핑·프로젝트 공통을 실제 공정 이름으로 저장하지 않는다. 상세/원본은 현재 snapshot/path의 정확 ID를 재검증하며 dirty/readonly/오류·stale 시 기존 host/editor 규칙을 유지한다. 원본 저장 후 새 report/detail 영수증을 확인한 뒤 같은 경로·필터·선택·focus로 복귀한다. 조회·펼침·구성 변경에 업무 mutation0/Gantt remount0, marker-OFF를 유지한다.
+
+#720 인계는 `dashboard.process` → [공정과 WorkArea 현황](TARGET_RESOURCE_USER_GUIDE.md#공정과-workarea-현황)이며 실제 검증 범위는 [Work Packet](exec-plans/active/ISSUE_733.md)에 기록한다. 기존 #624 Target 호환 화면과 #731 KPI는 별도 유지한다.
+
 ## Issue #731 — KPI 보존과 정확 원본 이동
 
 `dashboard.kpi`는 #724의 **대시보드 → KPI**에서 기존 네 카드·세 세부표·조건/필터·계획 공수·품질·Milestone 전체 Gate를 계속 제공한다. 새 범용 트리로 교체하지 않는다. 통합 출처와 snapshot은 현재 조회의 근거이며 등록 구성/진단의 전체 Project 참고를 현재 선택 공수·진척과 혼합하지 않는다.

@@ -1,3 +1,13 @@
+## Issue #733 — 공정 관점 KPI 소비
+
+공정&WorkArea 전용 화면은 #728 원장을 사용하는 #729 `WbsViewReportDto`의 서버 고유 총계와 diagnostics를 소비한다. 화면별 별도 공수·진척 계산기를 만들지 않는다. 구성 공정/구역은 동일 read snapshot catalog의 distinct ID, 설비관리단위는 distinct equipment ID, 수량은 원본 quantity, 시스템은 distinct instance당1식이다. 등록-only 구성은 Task/개인 배정0이어도 조회한다.
+
+Legacy 문맥·명시 공정 없음의 원본 문맥 진단은 전체 canonical Task 객체(일반 Task/Summary/Milestone) 기준이며, 필터된 일반 작업 실적 KPI와 모집단이 다르다.
+
+작업은 현재 필터와 경로의 고유 일반 Task다. 완료·지연·기간가중 진척은 `totals.tasks`의 count/numerator/denominator/percent를 사용하고 분모0을0%로 바꾸지 않는다. 계획 M/D/M/M는 `totals.assignments.effort`의 설정0·일부 미설정·전체 미설정·배정없음 및 M/M 환산 미설정을 보존한다. 구성 총량과 관련 작업 `relatedMembers`·coverage/출처는 구별한다. 개인 배정 없는 Task를 진척에서 버리거나 구역 수/설비 수로 공수를 배분하지 않는다.
+
+서버 `fullMilestones`는 선택 공정/구역의 일부 작업 완료와 별개인 전체 membership/선행 Gate다. 표의 소계·단계 추가/제거는 상위 고유 총계에 가산하지 않는다. [공정 관점 정의](LOGISTICS_DASHBOARD.md#issue-733--공정workarea-전용-관점), [Work Packet](exec-plans/active/ISSUE_733.md)의 AC-test 및 실제 증거를 따른다.
+
 ## Issue #731 — 기존 물류 KPI의 공통 원장 소비
 
 `대시보드 → KPI`는 기존 화면을 유지하며 #728/#729 공통 원장의 integrated 출처를 전용 read API로 요청한다. 기존 Resource 기본/Plan/Target API와 `projectionOrder`의 default·분모·Excel은 바뀌지 않는다. KPI 전용 DTO를 기존 Resource DTO로 cast하거나 기존 목록 소계를 더하여 전체를 만들지 않는다.

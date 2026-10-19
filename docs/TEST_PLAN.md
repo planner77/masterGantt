@@ -1,3 +1,11 @@
+## Issue #733 — 공정&WorkArea 전용 관점과 구성-only 회귀
+
+[Work Packet](exec-plans/active/ISSUE_733.md)의 AC1~AC5는 공정 descriptor/consumer의 직접 Unit·실제 Chromium, #728 고유 원장 oracle와 #729 SQLite/HTTP의 등록-only 하위·원본 상세/snapshot 음성으로 검증한다. 공정 단독·WorkArea→typed 형제→리소스·Milestone 교차, E10 두 구역 상위10/Task5M/D 중복0·shared System 다른 Task 누출0·작업0 구성·미배정/미설정·full Gate를 포함한다.
+
+원본 수정 후 stale/새 snapshot·동일 경로/필터·focus 복귀·dirty/readonly/error, 390/768/1024/1440/1920px·긴 이름·표 내부 overflow·keyboard/Escape·조회 mutation0/Gantt remount0/marker-OFF를 실제 브라우저와 원본 ID로 확인한다. #730 실패원장의 POST 조회 예외는 정확 method/endpoint에 한정하고 업무 mutation은 계속 감지한다. shared seam의 인접/음성 #730, 기존 #624/KPI·물류/Resource 소비자를 선정한다.
+
+#730의 이전 실제 실패7파일과 각 원인은 역사로 보존하며 이번 결과로 소급 PASS하지 않는다. Local PrePR fast/targeted의 sourceStable·UNKNOWN과 실제 실행을 구분하고 원격 Full Quality/E2E6/Docker·Trusted QA·Owner 승인은 별도다. 실행 수·최초 실패·수정 후 동결 증거·미실행은 Work Packet의 누적 원장에 기록한다.
+
 ## Issue #730 — F730-011 Full #3029.1 Task Editor 3시간대 30초 예산 실패 (2026-10-20)
 
 [Issue #730 전용 원장 §20](ISSUE_730_FAILURE_ANALYSIS.md#20-f730-011--pr-747-full-30291-task-editor-3시간대-재확인-test-budget-실패-2026-10-20), [PR Full #3029.1](https://github.com/planner77/masterGantt/actions/runs/39320381909) 원본 Trace에 따르면 TypeScript/Unit/ESLint/Build/Docker와 E2E 5개 Shard가 PASS했으나 Shard4의 `project-task-editor-persistence.spec.ts:8`가 기본30초 제한에 도달했다. 같은 실 Task Editor 저장/원본 revision·Task 정보·Gantt/URL 팝업 검증 완료 후 UTC, Asia/Seoul 새 Context와 America/New_York 최종 Editor 진입까지 실행하였다. fixture startup 약15.53초는 test body 시간과 별도로, body 앞부분14.93초 + 시간대 재조회 약4.01/5.44/5.62초에서 deadline. 실제 값 불일치/제품 실패는 관측되지 않았다. Shard4 79PASS/1FAIL/83NOT RUN·다른5 Shard SUCCESS·E2E/QA 파생 FAIL을 구분한다.

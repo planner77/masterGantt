@@ -1,4 +1,4 @@
-import { selectWbsTaskLedger, summarizeWbsTaskLedger, type WbsTaskLedgerSnapshot, type WbsTaskLedgerSelection, type WbsTaskLedgerRow } from "../../domain/resources/wbs-task-ledger";
+import { selectWbsTaskLedger, summarizeWbsTaskLedger, summarizeWbsTaskLedgerConfiguration, type WbsTaskLedgerSnapshot, type WbsTaskLedgerSelection, type WbsTaskLedgerRow } from "../../domain/resources/wbs-task-ledger";
 import { WBS_VIEW_LIMITS, type WbsViewQueryInput, type WbsViewPathEntry, type WbsViewDimension } from "../../contracts/wbs-dashboard-views";
 import { getResourceKpiDiagnostics } from "../../domain/resources/resource-kpi";
 import { PublicApiError } from "../http/api-error-core";
@@ -47,9 +47,40 @@ export function createWbsViewProjection(ledger: WbsTaskLedgerSnapshot, input: Wb
       const rawAssigned = new Set(ledger.prepared.assignments.filter(row => row.kind === "resource").map(row => row.taskId));
       if (current.rows.some(row => !rawAssigned.has(row.taskId))) add([]);
     } else for (const row of current.rows) add(dimension === "process" ? row.processIds : dimension === "workArea" ? row.workAreaIds : dimension === "equipment" ? row.equipmentIds : dimension === "system" ? row.systemIds : row.milestoneTaskId === null ? [] : [row.milestoneTaskId]);
+    // Task candidates and registered configuration are independent populations.
+    // Only real configuration axes may extend an empty Task branch.
+    const logistics = ledger.prepared.logistics!;
+    if (path.length && path.every(entry => ["process", "workArea", "equipment", "system"].includes(entry.dimension))) {
+      const configuration = summarizeWbsTaskLedgerConfiguration(ledger, path);
+      if (dimension === "equipment" || dimension === "system") {
+        const ids = dimension === "equipment" ? configuration.equipmentIds : configuration.systemIds;
+        if (ids.length) add(ids);
+      }
+      else if (dimension === "workArea") {
+        const process = path.find(entry => entry.dimension === "process");
+        const instancePath = path.some(entry => entry.dimension === "equipment" || entry.dimension === "system");
+        const equipmentIds = new Set(configuration.equipmentIds);
+        // A System reaches an area only through its actual controls relation.
+        for (const systemId of configuration.systemIds) for (const equipment of ledger.configuration.equipment) {
+          if (equipment.controlSystems.some(control => control.systemId === systemId)) equipmentIds.add(equipment.id);
+        }
+        const membershipAreas = new Set(ledger.configuration.equipmentWorkAreas.filter(row => equipmentIds.has(row.equipmentId)).map(row => row.workAreaId));
+        const areas = logistics.workAreas.filter(area => (!process || process.id !== null && logistics.byProcess.get(process.id)!.occurrenceId === area.occurrenceId) && (!instancePath || membershipAreas.has(area.id)));
+        add(areas.map(row => row.id));
+        if (summarizeWbsTaskLedgerConfiguration(ledger, [...path, { dimension: "workArea", id: null }]).members.length) add([]);
+      } else if (dimension === "process") {
+        const area = path.find(entry => entry.dimension === "workArea");
+        if (area?.id) add(logistics.processes.filter(process => process.occurrenceId === logistics.byWorkArea.get(area.id!)!.occurrenceId).map(process => process.id));
+        else {
+          for (const member of configuration.members) add(member.kind === "equipment" ? [...new Set([...(member.projectProcessId ? [member.projectProcessId] : []), ...ledger.configuration.equipmentWorkAreas.filter(row => row.equipmentId === member.entityId).map(row => row.processId)])] : ledger.configuration.systems.find(row => row.id === member.entityId)!.processIds);
+        }
+      }
+    }
     if (!path.length) {
-      const logistics = ledger.prepared.logistics!;
-      if (dimension === "process") projected.push(...logistics.processes.map(row => row.id));
+      if (dimension === "process") {
+        projected.push(...logistics.processes.map(row => row.id));
+        if (ledger.configuration.systems.some(row => row.scope === "project")) projected.push(null);
+      }
       if (dimension === "workArea") projected.push(...logistics.workAreas.map(row => row.id));
       if (dimension === "equipment" || dimension === "system") projected.push(...logistics.instances.filter(row => row.kind === dimension).map(row => row.entityId));
       if (dimension === "resource") projected.push(...ledger.configuration.resourceMemberships.map(row => row.id));

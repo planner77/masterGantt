@@ -387,13 +387,24 @@ export function summarizeWbsTaskLedgerConfiguration(snapshot: WbsTaskLedgerSnaps
     if (selector.dimension === "system" || selector.dimension === "systemType") return sameInstance("system", systemIds);
     if (selector.dimension === "systemCoordination") return matches([...snapshot.descendants].filter(([, descendants]) => systemIds.some(systemId => descendants.includes(systemId))).map(([systemId]) => systemId), selector.id);
     if (selector.dimension === "target") return matches(logistics!.targets.filter(target => target.members.some(member => member.kind === kind && member.entityId === id)).map(target => target.id), selector.id);
-    const processIds = kind === "equipment" ? instance.projectProcessId ? [instance.projectProcessId] : [] : snapshot.configuration.systems.find(row => row.id === id)!.processIds;
+    // Process-related configuration is the union of its management process and
+    // explicit W1 WorkArea memberships. Exact WorkArea selection intersects it.
+    const areaSelectors = used.filter(row => row.dimension === "workArea" && row.id !== null);
+    const processIds = kind === "equipment"
+      ? ids([...(areaSelectors.length ? [] : instance.projectProcessId ? [instance.projectProcessId] : []), ...snapshot.configuration.equipmentWorkAreas.filter(row => row.equipmentId === id && areaSelectors.every(selector => selector.id === row.workAreaId)).map(row => row.processId)])
+      : snapshot.configuration.systems.find(row => row.id === id)!.processIds;
     if (selector.dimension === "process" || selector.dimension === "processOccurrence") {
       const conditions = used.filter(row => row.dimension === "process" || row.dimension === "processOccurrence");
       if (conditions.some(row => row.id === null)) return !processIds.length && conditions.every(row => row.id === null);
       return processIds.some(processId => conditions.every(row => row.dimension === "process" ? row.id === processId : row.id === logistics!.byProcess.get(processId)!.occurrenceId));
     }
-    if (selector.dimension === "workArea") return matches(snapshot.configuration.equipmentWorkAreas.filter(row => equipmentIds.includes(row.equipmentId)).map(row => row.workAreaId), selector.id);
+    if (selector.dimension === "workArea") {
+      const processConditions = used.filter(row => row.dimension === "process" || row.dimension === "processOccurrence");
+      const areas = snapshot.configuration.equipmentWorkAreas.filter(row => equipmentIds.includes(row.equipmentId) && processConditions.every(condition => condition.id !== null && condition.id === (condition.dimension === "process" ? row.processId : row.occurrenceId)));
+      // A null area is unlinked within the selected configuration process scope.
+      // With no process selector this remains the Project-wide no-membership set.
+      return matches(areas.map(row => row.workAreaId), selector.id);
+    }
     return true;
   }));
   return { scope: "registered configuration; independent from related Task/Assignment population" as const,

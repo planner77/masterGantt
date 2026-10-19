@@ -18,6 +18,8 @@ describe("WBS transport production contract",()=>{
     if(data.projection==="report") expect(()=>readWbsViewResponse({data:{...data,totals:{...data.totals,assignments:{}}}},options)).toThrow();
     expect(()=>readWbsViewResponse({data},{...options,projectRevision:data.projectRevision+1})).toThrow();
     if(data.projection!=="report")throw Error("report");
+    expect(()=>readWbsViewResponse({data:{...data,configurationCatalog:undefined}},options)).toThrow();
+    expect(()=>readWbsViewResponse({data:{...data,configurationCatalog:{...data.configurationCatalog,workAreas:[{...data.configurationCatalog.workAreas[0],processIds:null}]}}},options)).toThrow();
     for(const kind of ["details","scope"] as const){
      const projection=kind==="details"?{kind,snapshotId:data.snapshotId,path:data.children[0].path,view:"tasks" as const,offset:0,limit:2}:{kind,snapshotId:data.snapshotId,path:data.children[0].path};
      const next={...options,input:{...input,projection}};
