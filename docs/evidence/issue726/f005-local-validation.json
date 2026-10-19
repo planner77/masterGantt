@@ -1,0 +1,993 @@
+{
+  "schema": "mastergantt-issue726-f005-local-validation-v1",
+  "issue": 726,
+  "pr": 743,
+  "parentHeadSha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+  "baseMainSha": "0209c72f8a0702415f2e00b63c895549a65dbe81",
+  "version": "0.121.0",
+  "risk_level": "HIGH",
+  "qa_method": "OWNER_MANAGED",
+  "qa_required": true,
+  "changeScope": "정상 synthetic 응답의 필수 permission 복원·DTO 타입 명시·양 응답 readonly/누락4음성. 제품/API/DB/CI/권한 gate 변경0",
+  "productSourceChanged": false,
+  "audit": {
+    "file": "docs/evidence/issue726/f005-ci-audit.json",
+    "sha256": "df25af6e61761ddeb411416b8978f4368aa08a7231b8cdac5fb4a5c60414fed7",
+    "cumulativeSummary": {
+      "full_runs": 5,
+      "run_attempts": [
+        {
+          "run_id": 39166340575,
+          "run_attempt": 1
+        },
+        {
+          "run_id": 39169140616,
+          "run_attempt": 1
+        },
+        {
+          "run_id": 39172673374,
+          "run_attempt": 1
+        },
+        {
+          "run_id": 39174916249,
+          "run_attempt": 1
+        },
+        {
+          "run_id": 39177358648,
+          "run_attempt": 1
+        }
+      ],
+      "shard_jobs": 30,
+      "shard_job_conclusions": {
+        "success": 5,
+        "failure": 5,
+        "cancelled": 20
+      },
+      "actual_failed_test_occurrences": 6,
+      "unique_failed_test_cases": 5,
+      "failure_files": 5,
+      "failure_file_union": [
+        "tests/e2e/issue-726-task-logistics.spec.ts",
+        "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "tests/e2e/issue-719-contextual-help.spec.ts",
+        "tests/e2e/logistics-target-authoring.spec.ts",
+        "tests/e2e/task-link-load-safety.spec.ts"
+      ],
+      "important_context": "F-002-B 숨은 CANCELLED #719 실패를 포함한다. F-005는 과거4개 actual 실패 case가 개별 PASS한 뒤 다른 소비자의 새 실패가 노출된 사건이다. 이전 실패를 소급 PASS로 변경하지 않는다."
+    }
+  },
+  "baseline": {
+    "sourceHeadSha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+    "file": "tests/e2e/task-link-load-safety.spec.ts",
+    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/issue-726-f005-baseline.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-link-load-safety.spec.ts --workers=1 --retries=0 --max-failures=0 --reporter=list,json",
+    "status": "FAIL",
+    "stats": {
+      "startTime": "2026-10-19T00:12:45.470Z",
+      "duration": 87770.073,
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 6,
+      "flaky": 0
+    },
+    "rawReportSha256": "e7523833842ca3e9c4f3fbde63be2b9e9ad628de4ff18ec9242d0bf40462e1b9",
+    "reason": "같은 정상 logistics mock permission누락으로 여섯 조회 실패 변형 모두 복구후 save disabled; 실제6FAIL/12PASS",
+    "rawTraceAndConfigEnvLocalOnly": true
+  },
+  "frozenSource": {
+    "trackedFiles": 933,
+    "roots": [
+      "src",
+      "tests",
+      "package.json",
+      "package-lock.json"
+    ],
+    "algorithm": "git ls-files roots; path->SHA256 map; sha256(json.dumps(map,sort_keys=True).encode())",
+    "startFingerprint": "19239677de2499dabc7ec90a264a2d9e6b7fc8852ebbc64ee2d5b67dd6ee758d",
+    "endFingerprint": "19239677de2499dabc7ec90a264a2d9e6b7fc8852ebbc64ee2d5b67dd6ee758d",
+    "drift": 0,
+    "relevantFileSha256": {
+      "src/features/gantt/task-logistics-link-editor.tsx": "66a1507e7d7e2c62e1f38714dee83db2d67bca107817b591f06b409bdad0da99",
+      "src/contracts/logistics.ts": "f972de8635a4ff9f3ee97ee57694e307c1592b2c775b98863093ec961f80319d",
+      "src/server/logistics/logistics-handlers-core.ts": "d9c481bf68ed0c839bcc94d7c93f356c161fd6ff5100301d8ba66ee60f6e9e29",
+      "tests/e2e/fixtures/task-editor-density.ts": "5d4743a55eccd78c85b15297647ebb5fc4c3ae6e409d26e51d90242e22377514",
+      "tests/fixtures/stateful-project.ts": "ae7cc0e656b566d51944d1022cbbf328b5fdac3c9704054eded2254c0e1fe06e",
+      "tests/e2e/issue-719-contextual-help.spec.ts": "241de9f72214028da1cc678019d21d5920d6340dd17b82ece6756938c786ec8a",
+      "tests/e2e/issue-726-logistics-master.spec.ts": "5d8920fa8d28e12106096524aebc044805e4117facc18d9017f4bc27270b78f2",
+      "tests/e2e/issue-726-task-logistics.spec.ts": "893e5a785fc3a063333358f3d0ff5e9c3030e9c62690591d6f396ead89e3b60e",
+      "tests/e2e/logistics-target-authoring.spec.ts": "1d914ed2498d0bc87c9cc63090fd5fd16cd027fc7aeb6973e86c15101d11cf3a",
+      "tests/e2e/project-logistics-management.spec.ts": "6ea2d4870a1e4d317290c4fcfa741102a9b3e9484a87378cd3f26b200e62c8cc",
+      "tests/e2e/project-settings-layout-490.spec.ts": "3fd23c17a4d2bef11522c5c8063afdd6c65b0166972797603abfc6494ec59a6f",
+      "tests/e2e/project-workspace-tabs-518.spec.ts": "f1c3894292e12f4140fc054f2b49f7f6ea704fdad35b057cdfce9788a4dc22c8",
+      "tests/e2e/task-editor-form-density.spec.ts": "f85f40104f595248b9e3b1af40c7f9ac21b6d81c398598dad61ad3db3cf7e8cf",
+      "tests/e2e/task-link-load-safety.spec.ts": "4e2c5299997a0eda3d33483d478938f10394b9035920d1e70a9d7f1dc17d7548",
+      "tests/e2e/viewport-coordinator.spec.ts": "b665bb14ae2afe5a4e42bb281a027b593adf5b71eb8250791046b47ccf5680f9"
+    }
+  },
+  "unit": {
+    "status": "PASS",
+    "files": 4,
+    "uniqueCases": 51,
+    "durationMs": 1560,
+    "command": "npm test -- tests/features/project-workspace-navigation.test.ts tests/features/gantt/task-process-context-model.test.ts tests/server/logistics/task-logistics-links.test.ts tests/server/logistics/logistics-type-catalog-service.test.ts",
+    "rawLogSha256": "310c82681de6e55d6714f95476e66d35633542891ac0308f98ff6a1a189699a2"
+  },
+  "chromium": {
+    "status": "PASS",
+    "files": 10,
+    "uniqueCases": 62,
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 0,
+    "stats": {
+      "startTime": "2026-10-19T00:16:03.583Z",
+      "duration": 534512.52,
+      "expected": 62,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/issue-726-f005-final-browser.json npx playwright test --config tests/config/playwright.config.ts tests/e2e/issue-726-task-logistics.spec.ts tests/e2e/project-workspace-tabs-518.spec.ts tests/e2e/logistics-target-authoring.spec.ts tests/e2e/issue-719-contextual-help.spec.ts tests/e2e/project-logistics-management.spec.ts tests/e2e/issue-726-logistics-master.spec.ts tests/e2e/task-link-load-safety.spec.ts tests/e2e/task-editor-form-density.spec.ts:94 tests/e2e/task-editor-form-density.spec.ts:152 tests/e2e/viewport-coordinator.spec.ts:6 tests/e2e/project-settings-layout-490.spec.ts:131 --workers=1 --retries=0 --max-failures=0 --reporter=list,json",
+    "rawReportSha256": "1e50d31df4e6c4df735dec711c479a280aaedd5ec2ec9ebb7ca19a06faf0027b",
+    "rawConfigEnvAndTraceExcluded": true,
+    "cases": [
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 56,
+        "title": "#719 milestone 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 8582,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 56,
+        "title": "#719 resource 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 6918,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 56,
+        "title": "#719 resource-admin 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 4887,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 56,
+        "title": "#719 logistics 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 6751,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 56,
+        "title": "#719 logistics-admin 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 4316,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 56,
+        "title": "#719 master 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 4376,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 100,
+        "title": "#719 touch 도움말 tap 열림·바깥 tap 닫힘 및 최소 hit area",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 695,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 113,
+        "title": "#719 공정 없는 설비 추가는 지속 경고를 표시하고 도움말로 숨기지 않는다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1719,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 127,
+        "title": "#719 focus 유지 pointer leave와 profile modal 도움말 Escape는 초안을 보존한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1172,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "line": 147,
+        "title": "#719 긴 도움말을 키보드로 스크롤하고 Escape 시 초점을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 753,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-726-logistics-master.spec.ts",
+        "line": 8,
+        "title": "#726 Target0 master 설비·시스템 생성, 유형 실패 복구, Fleet·WorkArea와 초안 보존",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 16379,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "line": 65,
+        "title": "#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 21714,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "line": 169,
+        "title": "#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 30076,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "line": 236,
+        "title": "#726 Task 공정 0..N·WorkArea self/subtree 원본 연결, 초안·오류 보존과 상위 출처 구별",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 32523,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 24,
+        "title": "Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집·영향 및 reload 보존",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 27229,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 151,
+        "title": "Target 초안·412·readonly·응답역전과 관리자 경계",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 13977,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 215,
+        "title": "Target 390/768/1024/1440/1920px 긴 한글·키보드·focus·내부 overflow",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 9757,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 255,
+        "title": "Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 16512,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 340,
+        "title": "인증된 관리자 inline WorkArea·새 공정 매핑의 별도 저장과 Target 초안 보존",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 8555,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 381,
+        "title": "공유 원본 인스턴스 이름 수정은 사용처 확인 후 한 번 저장하고 모든 Target에 반영",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 12806,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/logistics-target-authoring.spec.ts",
+        "line": 412,
+        "title": "Target 목록·상세·WBS 연결·관리자 입력의 5폭 왕복은 조회만 수행",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 21993,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 218,
+        "title": "#726 설비 유형 조회 중·실패·빈 목록은 이유와 초안을 유지하고 readonly는 추가를 숨긴다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 3871,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 298,
+        "title": "물류 구성 탭 전환 시 Gantt 인스턴스가 유지되고 공정/설비/시스템/연계 화면이 표시된다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 4140,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 383,
+        "title": "Issue #279 물류 서브탭은 수직 스크롤 없이 단일 행과 키보드 가시성을 유지한다 (390px)",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1701,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 383,
+        "title": "Issue #279 물류 서브탭은 수직 스크롤 없이 단일 행과 키보드 가시성을 유지한다 (768px)",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1743,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 383,
+        "title": "Issue #279 물류 서브탭은 수직 스크롤 없이 단일 행과 키보드 가시성을 유지한다 (1024px)",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1790,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 383,
+        "title": "Issue #279 물류 서브탭은 수직 스크롤 없이 단일 행과 키보드 가시성을 유지한다 (1440px)",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1787,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 445,
+        "title": "Readonly 모드에서는 생성/수정/삭제 버튼이 숨겨지고 안내문이 표시된다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1574,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 464,
+        "title": "공정 추가는 코드 입력 없이 저장하고 서버 생성 코드를 canonical 응답으로 표시한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2492,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 545,
+        "title": "Dialog 취소 시 Escape 키로 닫히고 mutation이 발생하지 않는다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1936,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 583,
+        "title": "하위 조율 저장은 childSystemIds 계약을 사용하고 401이면 즉시 읽기 전용으로 전환한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1983,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 612,
+        "title": "삭제 확인은 최신 main의 영구 삭제 DELETE 계약으로 호출한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 1876,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-logistics-management.spec.ts",
+        "line": 641,
+        "title": "반응형 4개 폭(390, 768, 1024, 1440px)에서 공정 추가 모달과 문서에 가로 overflow가 없다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 6716,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-settings-layout-490.spec.ts",
+        "line": 131,
+        "title": "Issue #490: 설정 탭·닫기·metadata 저장은 WBS·Gantt 상태를 유지한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 7390,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "line": 6,
+        "title": "#518 일정·Milestone 상위 탭, dialog origin, Gantt 측정/상태와 5폭 tab geometry",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 8121,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "line": 131,
+        "title": "#724 exact screen·legacy URL·저장된 보기와 Resource 관리자 경계",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 5561,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "line": 172,
+        "title": "#724 auxiliary screen selection has one accessible secondary tab",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 3203,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-editor-form-density.spec.ts",
+        "line": 94,
+        "title": "#456 Milestone 동적 소속과 물류 탭의 조회 geometry를 다섯 폭에 기록한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 5852,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-editor-form-density.spec.ts",
+        "line": 152,
+        "title": "#456 비기본 WBS fullscreen scroll tree column scale selection은 Editor와 metadata 저장 후 유지된다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 5550,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 24,
+        "title": "조회 500에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2779,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 24,
+        "title": "조회 network에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2602,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 24,
+        "title": "조회 malformed에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2778,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 24,
+        "title": "조회 wrong-task에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2596,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 24,
+        "title": "조회 wrong-revision에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2561,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 24,
+        "title": "조회 malformed-role에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2543,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 75,
+        "title": "UI 편집 상태라도 links 응답 권한 readonly이면 기존 연결을 보존하고 PUT을 차단한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2309,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 75,
+        "title": "UI 편집 상태라도 links 응답 권한 missing이면 기존 연결을 보존하고 PUT을 차단한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2363,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 75,
+        "title": "UI 편집 상태라도 logistics 응답 권한 readonly이면 기존 연결을 보존하고 PUT을 차단한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2040,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 75,
+        "title": "UI 편집 상태라도 logistics 응답 권한 missing이면 기존 연결을 보존하고 PUT을 차단한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2351,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 110,
+        "title": "이전 작업의 지연 응답은 새 작업의 실패 상태와 저장 차단을 바꾸지 않는다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2825,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 135,
+        "title": "할당 조회 실패는 저장을 막고 재시도로 정상 빈 목록을 구분한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2005,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 155,
+        "title": "담당자 후보 실패에서 canonical 이름과 재시도/저장 차단 390px",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2518,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 155,
+        "title": "담당자 후보 실패에서 canonical 이름과 재시도/저장 차단 768px",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2451,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 155,
+        "title": "담당자 후보 실패에서 canonical 이름과 재시도/저장 차단 1024px",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2442,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 155,
+        "title": "담당자 후보 실패에서 canonical 이름과 재시도/저장 차단 1440px",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2444,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 186,
+        "title": "비어 있지 않은 AssignmentTargetRefDto를 복원하여 투입률과 If-Match를 보존한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2047,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 205,
+        "title": "Readonly 연결 조회 성공에서도 선택과 mutation을 허용하지 않는다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2361,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 220,
+        "title": "재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름을 우선한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2729,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 252,
+        "title": "시스템 PI의 malformed 후보에서도 canonical 이름과 저장 차단을 유지한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 2242,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 273,
+        "title": "동명 설비 담당자는 원본별 주 담당·삭제와 canonical 오류 복구를 구분한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 3204,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/task-link-load-safety.spec.ts",
+        "line": 273,
+        "title": "동명 시스템 PI는 원본별 주 담당·삭제와 canonical 오류 복구를 구분한다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 3156,
+            "retry": 0
+          }
+        ]
+      },
+      {
+        "file": "tests/e2e/viewport-coordinator.spec.ts",
+        "line": 6,
+        "title": "#571 Editor locate는 실제 행을 이동하고 후속 Project metadata가 이전 위치를 되살리지 않는다",
+        "status": "expected",
+        "attempts": [
+          {
+            "status": "passed",
+            "durationMs": 4464,
+            "retry": 0
+          }
+        ]
+      }
+    ]
+  },
+  "selection": {
+    "cumulativeFailedFiles": "위 audit.cumulativeSummary.failure_file_union5파일 전체",
+    "directAdjacent": "master/관리 전체와 density 물류5폭/fullscreen2case",
+    "indirect": "공유 density fixture 소비자 viewport/settings 각1case",
+    "negative": "links/logistics 각각 readonly/missing4case, UIeditable 및 native강제click에도 PUT0/원본선택/revision40",
+    "localExcluded": "제품0변경 fixture교정에 관련없는 전체 scheduling/Copy/Import·전체E2E/Docker; 원격Required전체는유지",
+    "environmentBoundary": "load-safety/permission은 mock-backed실제React guard, master/Target fixture는 실제HTTP/SQLite. 환경을합쳐서권한/운영PASS로주장하지않음"
+  },
+  "static": {
+    "typecheck": "PASS",
+    "scopedEslintFiles": 2,
+    "scopedEslintErrors": 0,
+    "scopedEslintWarnings": 0,
+    "versionCheck": "PASS",
+    "markdownLinks": "PASS",
+    "diffCheck": "PASS"
+  },
+  "prepr": {
+    "fast": {
+      "report": "docs/evidence/issue726/f005-prepr-fast.json",
+      "status": "BLOCKED",
+      "sourceStable": true,
+      "unknown": 8,
+      "missing": 0,
+      "steps": 0
+    },
+    "targeted": {
+      "report": "docs/evidence/issue726/f005-prepr-targeted.json",
+      "status": "BLOCKED",
+      "sourceStable": true,
+      "unknown": 8,
+      "missing": 0,
+      "steps": 0
+    }
+  },
+  "review": {
+    "agentPreReview": "PASS",
+    "humanIndependentQa": "NOT TESTED",
+    "ownerAccept": "NOT TESTED",
+    "reviewer": "qa_726_rework / 별도 read-only qa_docs Agent",
+    "scope": "코드/문서/원격누적5Run30Shard·raw62개↔manifest exact·unit51 원본·933 source drift0"
+  },
+  "remote": {
+    "quality": "NOT TESTED",
+    "e2e": "NOT TESTED",
+    "docker": "NOT TESTED",
+    "trustedQa": "NOT TESTED",
+    "mergeReady": "BLOCKED",
+    "mainGhcr": "NOT TESTED",
+    "formalRelease": "NOT TESTED",
+    "monitoring": "새CI등록snapshot뒤결과모니터링범위밖"
+  }
+}

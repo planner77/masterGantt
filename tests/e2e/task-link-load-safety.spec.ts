@@ -3,6 +3,7 @@ import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, installStatefulProjectFixture, publicId } from "../fixtures/stateful-project";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import type { ProjectLogisticsResponse, TaskLogisticsLinksResponse } from "../../src/contracts/logistics";
 
 const path = `/api/projects/${publicId}`;
 async function openTask(page: Page, name = "Stable leaf") {
@@ -15,7 +16,7 @@ async function openTask(page: Page, name = "Stable leaf") {
 function logistics() {
   return { processes: [], equipment: [{ id: "eq-1", processId: "proc-1", code: "EQ-01", name: "기존 연결 설비", equipmentType: "stocker", managementUnit: "unit", quantity: 1, manufacturer: "", model: "", description: "", active: true, controlSystems: [], resourceRoles: [{ resourceId: "res-1", resourceCode: "ENG-01", resourceName: "기존 담당자", role: "owner", isPrimary: true, active: true }], createdAt: "", updatedAt: "" }], systems: [], systemLinks: [] } as const;
 }
-function links(taskId: string) {
+function links(taskId: string): TaskLogisticsLinksResponse {
   return { data: { taskId, permission: "edit", links: { taskId, directEquipmentLinks: [{ equipmentId: "eq-1", scope: "self" }], inheritedEquipmentLinks: [], effectiveEquipmentIds: ["eq-1"], directSystemLinks: [], inheritedSystemLinks: [], effectiveSystemIds: [] } } };
 }
 
@@ -37,7 +38,17 @@ for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revis
       if (fail && failure === "network") { await route.abort(); return; }
       await route.fulfill(fail && failure === "500" ? { status: 500, json: {} } : { json: fail && failure === "malformed" ? { data: { links: { directEquipmentLinks: [null] } } } : links(fail && failure === "wrong-task" ? "other-task" : taskId) });
     });
-    await page.route(`**${path}/logistics`, (route) => route.fulfill({ json: { data: { project: { ...fixture.project, revision: fail && failure === "wrong-revision" ? 1 : fixture.project.revision }, logistics: fail && failure === "malformed-role" ? { ...fixture.logistics, equipment: [{ ...fixture.logistics!.equipment[0], resourceRoles: [null] }] } : fixture.logistics } } }));
+    await page.route(`**${path}/logistics`, (route) => {
+      const data: ProjectLogisticsResponse["data"] = {
+        project: { ...fixture.project, revision: fail && failure === "wrong-revision" ? 1 : fixture.project.revision },
+        logistics: fixture.logistics!,
+        permission: fixture.sessionEditable ? "edit" : "readonly",
+      };
+      // This one deliberate malformed response exercises snapshot validation.
+      return route.fulfill({ json: { data: fail && failure === "malformed-role"
+        ? { ...data, logistics: { ...data.logistics, equipment: [{ ...data.logistics.equipment[0], resourceRoles: [null] }] } }
+        : data } });
+    });
     await page.goto(`/projects/${publicId}`);
     const dialog = await openTask(page);
     await expect(dialog.getByRole("alert").filter({ hasText: "물류 연결 정보를 불러오지 못했습니다." })).toBeVisible();
@@ -57,6 +68,43 @@ for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revis
     expect(payload).toEqual({ equipmentLinks: [{ equipmentId: "eq-1", scope: "self" }], systemLinks: [] });
     expect(match).toBe('"40"');
   });
+}
+
+for (const source of ["links", "logistics"] as const) {
+  for (const permission of ["readonly", "missing"] as const) {
+    test(`UI 편집 상태라도 ${source} 응답 권한 ${permission}이면 기존 연결을 보존하고 PUT을 차단한다`, async ({ page }) => {
+      const fixture = await installStatefulProjectFixture(page);
+      fixture.logistics = JSON.parse(JSON.stringify(logistics()));
+      let mutations = 0;
+      // Missing permission is intentional malformed input, never an edit grant.
+      const denied = permission === "readonly" ? { permission: "readonly" as const } : {};
+      const edit = { permission: "edit" as const };
+      await page.route(`**${path}/tasks/*/logistics-links`, route => {
+        if (route.request().method() === "PUT") {
+          mutations++;
+          return route.fulfill({ status: 500, json: {} });
+        }
+        const taskId = new URL(route.request().url()).pathname.split("/").at(-2)!;
+        return route.fulfill({ json: { data: { taskId, links: links(taskId).data.links, ...(source === "links" ? denied : edit) } } });
+      });
+      await page.route(`**${path}/logistics`, route => route.fulfill({ json: { data: {
+        project: fixture.project, logistics: fixture.logistics, ...(source === "logistics" ? denied : edit),
+      } } }));
+      await page.goto(`/projects/${publicId}`);
+      const dialog = await openTask(page);
+      const selected = dialog.getByRole("checkbox", { name: /기존 연결 설비/ });
+      await expect(selected).toBeChecked();
+      await expect(selected).toBeDisabled();
+      await expect(dialog.getByText("서버의 편집 권한을 확인할 수 없습니다. 최신 정보를 다시 불러와 주세요.", { exact: true })).toBeVisible();
+      const save = dialog.getByRole("button", { name: "물류 연결 저장", exact: true });
+      await expect(save).toBeDisabled();
+      await save.evaluate((button: HTMLButtonElement) => { button.disabled = false; button.click(); });
+      await expect(selected).toBeChecked();
+      expect(mutations).toBe(0);
+      expect(fixture.sessionEditable).toBe(true);
+      expect(fixture.project.revision).toBe(40);
+    });
+  }
 }
 
 test("이전 작업의 지연 응답은 새 작업의 실패 상태와 저장 차단을 바꾸지 않는다", async ({ page }) => {

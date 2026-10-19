@@ -1,3 +1,11 @@
+## Issue #726 — 기존 관리 원본과 직접 Task 편집
+
+기준정보 설비/물류 시스템은 기존 단일 CRUD·공유 인스턴스 editor를 재사용한다. 같은 설비/MCS를 공정·Target·표시 경로별로 복제하지 않으며 공유 원본 수정, Target 구성원 해제, 실물 삭제를 구별한다. 수량·역할·controls/coordinates 변경은 기존 공유 사용처 확인과 서버 방어를 통한다.
+
+Task 물류 연결은 직접 Equipment/System 및 #725의 명시 공정/WorkArea 편집이 기본이며 Target whole/subset/coverage는 보조 호환 영역에서 유지한다. 각 경로는 독립 저장이고 UI 재배치로 관계를 자동 복사·변환하지 않는다. 명시 공정0..N·legacy null·self/subtree와 직접/조상 출처를 보존한다. Task에 함께 연결된 설비와 MCS는 작업 연관이며 자동 제어관계·공수 배분·Task 복제의 근거가 아니다. 기준정보 다중 WorkArea는 주 관리 공정과 별도다.
+
+새 schema/서버 writer는 없고 #725 API의 Project/catalog revision 및 기존 canonical gateway를 사용한다. 조회 실패는 빈 연결로 처리하지 않으며 독립 저장 간 dirty/pending 잠금을 유지한다. 출처 안내는 명시 ancestor subtree이며 전체 #728 해석/후속 #729 공개 조회와 구별한다. [Task UX](TASK_EDITOR.md), [검증](exec-plans/active/ISSUE_726.md).
+
 ## Issue #728 — 구성 원장과 WBS 작업 연관
 
 WBS Task가 분석 출발점이다. 같은 Task의 명시 공정·설비·System은 실제 구성/제어관계가 없어도 교차 조회할 수 있지만, 이를 설비 공정 소속/controls/coordinates로 바꾸지 않는다. `E1→Milestone M→공정`은 E1에 관련된 Task/Assignment를 유지하며 M의 다른 작업으로 확장하지 않는다. full Gate는 전체 원본을 유지한다.

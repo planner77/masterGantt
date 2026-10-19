@@ -1,3 +1,7 @@
+## Issue #726 — Task 직접 물류 연결 우선
+
+기존 기준정보 설비/System CRUD를 그대로 사용하고 Target0개에서도 Task 공정/WorkArea0..N 및 설비/System을 직접 연결·재편집한다. 명시0/legacy null·self/subtree·직접/조상 출처, 공유 원본·역할·제어/조율·사용 중 삭제 방어를 보존한다. Target whole/subset/coverage는 보조 호환 영역이며 UI 변경으로 경로를 자동 변환·복제하지 않는다. Project 편집권과 유형 master 관리자 권한을 구분하고 유형 조회·dirty/pending/stale·권한·canonical 갱신을 같은 흐름에서 보호한다. [Task Editor](TASK_EDITOR.md), [실행 원장](exec-plans/active/ISSUE_726.md).
+
 ## Issue #728 — WBS 중심 공통 해석·KPI
 
 Target0을 정상 입력으로 받는 pure Domain 경계가 동일 Task 직접/조상/Target 출처와 개인 Assignment를 고유 ID로 해석한다. 공정·설비·System·Milestone·Resource 관점으로 원본을 복제하지 않으며 무배정 Task와 등록-only 기준정보를 보존한다. 최신 W1/W2 결정에 따라 설비의 타 공정 WorkArea0..N을 허용하고 새 공정 작업범위는 Task 명시 선택0..N만 사용한다. 명시[]를 조상/Target/구성으로 채우지 않고 구형null과 출처/version을 구분한다.

@@ -1,3 +1,16 @@
+## Issue #726 — 직접 공정·구역·설비·시스템과 Target 호환
+
+물류 연결 탭의 기본 흐름은 `직접 공정·작업 구역 → 직접 설비·물류 시스템 연결`이다. 기존 Target는 `Target 연결 (기존 호환)`을 펼쳐 동일한 whole/subset·coverage 편집기를 사용한다. Target0개여도 기존 Task에 설비/System을 직접 연결하며 Target나 구성 원본을 자동 생성·복제하지 않는다. 개인 배정은 기존 리소스 탭에서 관리한다.
+
+직접 공정·WorkArea는 #725의 `GET/PUT .../process-context`와 catalog 조회를 재사용한다. Task 공정은 명시0..N이며 미설정 legacy null과 명시0개를 구분한다. 최초 조회/열기만으로 legacy를 명시0으로 전환하지 않고 `공정 0개로 명시 설정` 또는 실제 선택 후 별도 저장한다. WorkArea의 실제 소유 공정을 같은 요청에 선택하며 상위 공정 없이 구역을 저장하지 않는다. Summary의 각 공정·구역은 self/subtree를 명시하고 구역 subtree에는 소유 공정 subtree가 필요하다. 설비/System/Target 연결이 Task 공정을 자동 추가하지 않는다.
+
+상위 Summary의 명시 subtree 출처는 읽기 전용으로 구별한다. 이 출처 목록은 #728의 전체 해석/집계 결과가 아니며 직접 선택을 채우거나 명시0을 덮어쓰지 않는다. 직접 설비/System의 기존 self/subtree·직접/상속 정보도 유지한다. MCS 연결은 관련 시스템 지정이며 공수 배분율이나 자동 controls/coordinates가 아니다.
+
+공정·직접 물류·Target는 각각 별도 저장하며 한 영역에 초안이 있으면 다른 영역의 mutation을 잠근다. 새 공정 편집도 기존 parent dirty/pending·닫기/작업 이동의 폐기 확인·401·stale·최신 정보 다시 불러오기 계약을 공유한다. Project revision과 catalog revision을 별도로 검증하고 조회 실패를0개로 치환하지 않는다. 반복 Escape도 최상위 Task dialog의 keydown에서 기본 닫기를 막고 동일한 dirty/pending·폐기 확인 판단을 거친다. Nested dialog의 Escape를 가로채지 않는다. 직접 문맥과 설비/System은 기본 정보 form의2열 배치 대신 전용1열 내부 흐름을 사용한다. 저장은 기존 canonical 재조회 gateway로 반영하며 Gantt writer를 추가하지 않는다. [실행·검증](exec-plans/active/ISSUE_726.md).
+
+직접 설비·System 연결은 현재 UI가 편집 상태여도 Task 연결 조회와 Project 물류 원본 조회의 서버 `permission`이 모두 `edit`일 때만 저장한다. 한쪽이 readonly이거나 권한 필드가 누락되면 기존 선택은 보여 주되 변경과 저장을 막고 최신 조회를 안내한다. 조회 성공/선택 복원과 서버 편집 허용은 별도 조건이며 권한을 추정하여 빈 연결을 전송하지 않는다.
+
+
 ## Issue #717 — 이름 우선 식별 정보
 
 Task Editor·Milestone 소속·Target binding의 원문 ID는 접힌 식별 정보로 조회·복사한다. 관계 후보는 부모 이름·시작일, 필요 시 외부 ID로 동명을 구별하며 검색과 연결 body의 canonical ID는 유지한다. 상위 Task ID가 달라도 부모 표시명이 같으면 같은 표시 문맥으로 판정한다. Assignment의 이름 우선 표시와 Target provenance 원문 접근을 분리한다. readonly·dirty/stale·저장 단위·focus·revision 계약은 기존대로다.

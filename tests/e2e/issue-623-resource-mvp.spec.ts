@@ -173,6 +173,10 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   row = await sharedDetail(root, f.task.taskId);
   await row.getByRole("button", { name: "SHARED · WBS 동일 원본", exact: true }).click();
   await editor(page).getByRole("tab", { name: /물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor(page).locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor(page).getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   const binding = editor(page).getByRole("region", { name: "작업 Target 연결", exact: true });
   await binding.getByRole("combobox", { name: `${f.targets[1].name} 구성원 선택`, exact: true }).selectOption("subset");
   await binding.getByRole("group", { name: `${f.targets[1].name} 선택 구성원`, exact: true }).getByRole("checkbox", { name: /^ACS B · 원본 / }).check();

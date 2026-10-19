@@ -65,11 +65,23 @@ test("Target A/B 실제 생성·공유 재사용·ACS subset·동일 Task 편집
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await editor.getByRole("tab", { name: /물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   const bindings = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
   await bindings.getByRole("checkbox", { name: "Target A", exact: true }).check();
   await bindings.getByRole("checkbox", { name: "Target B", exact: true }).check();
   await bindings.getByRole("combobox", { name: "Target A 구성원 선택", exact: true }).selectOption("subset");
   await bindings.getByRole("group", { name: "Target A 선택 구성원" }).getByRole("checkbox", { name: /^ACS A · 원본 / }).check();
+  // Closing the compatibility disclosure preserves its mounted draft and locks
+  // other independently saved sections until that draft is saved or discarded.
+  await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  await expect(bindings).not.toBeVisible();
+  await expect(editor.getByRole("group", { name: /관련 설비/ }).getByRole("checkbox").first()).toBeDisabled();
+  await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  await expect(bindings.getByRole("checkbox", { name: "Target A", exact: true })).toBeChecked();
+  await expect(bindings.getByRole("group", { name: "Target A 선택 구성원" }).getByRole("checkbox", { name: /^ACS A · 원본 / })).toBeChecked();
   const bindingSave = bindings.getByRole("button", { name: "Target 연결 저장", exact: true });
   await bindingSave.click();
   await expect(bindingSave).toBeDisabled();
@@ -252,6 +264,10 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await editor.getByRole("tab", { name: /물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   const bindings = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
   const saved = await (await page.request.get(`${f.api}/tasks/${f.parentTask.taskId}/target-bindings`)).json();
   expect(saved.data.bindings).toEqual([]); // An untargeted management Summary is valid.
@@ -278,6 +294,10 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   await page.locator(".project-gantt-widget .wx-row", { hasText: "통합 시운전" }).first().getByText("통합 시운전", { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
   await editor.getByRole("tab", { name: /물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   await expect(bindings).toContainText("조상 상속");
   await expect(bindings).toContainText("기존 직접 설비·System 출처 1개");
   await expectRawIdentifier(bindings, "작업 ID", f.parentTask.taskId);
@@ -296,6 +316,15 @@ test("Summary subtree 영향·상속/legacy 출처·pending·401 초안 보호",
   });
   await bindings.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
   await expect(editor).toHaveAttribute("aria-busy", "true");
+  await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  await expect(bindings).not.toBeVisible();
+  await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  // #717 name-first contract: unique Targets expose their name; code is only an ambiguity suffix.
+  // Closing/reopening compatibility details during pending save must preserve the exact draft.
+  const pendingTarget = bindings.getByRole("checkbox", { name: "상속 대상", exact: true });
+  await expect(pendingTarget).toHaveCount(1);
+  await expect(pendingTarget).toBeChecked();
+  await expect(bindings.getByRole("button", { name: /Target 연결 저장 중/ })).toBeDisabled();
   await page.keyboard.press("Escape");
   await expect(editor).toBeVisible();
   releaseSave!();
@@ -405,6 +434,10 @@ test("Target 목록·상세·WBS 연결·관리자 입력의 5폭 왕복은 조�
     await original.click();
     const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
     await editor.getByRole("tab", { name: /물류 연결/ }).click();
+    // #726: Target bindings are an explicit compatibility disclosure.
+    if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+      await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+    }
     const bindings = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
     await expect(bindings.getByRole("checkbox", { name: longName, exact: true })).toBeChecked();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

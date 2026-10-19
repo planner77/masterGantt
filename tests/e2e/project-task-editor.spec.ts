@@ -1182,10 +1182,10 @@ test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와
 
 test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장 잠금", async ({ page }) => {
   const fixture = await setup(page);
-  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", resourceRoles: [] }], systems: [] } } } }));
+  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, permission: "edit", logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", active: true, resourceRoles: [] }], systems: [] } } } }));
   await page.route(`**${apiPath}/tasks/${id(4)}/logistics-links`, async (route) => {
     if (route.request().method() === "PUT") { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); return; }
-    await route.fulfill({ json: { data: { taskId: id(4), links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
+    await route.fulfill({ json: { data: { taskId: id(4), permission: "edit", links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
   });
   await openRow(page); const dialog = editor(page); await dialog.getByRole("tab", { name: /물류 연결/ }).click();
   const equipment = dialog.getByRole("checkbox", { name: /설비 초안/ }); await equipment.check();
@@ -1193,7 +1193,7 @@ test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장
   fixture.project.revision++; await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
   await expect(dialog).toContainText("기준 Revision이 변경"); await dialog.getByRole("tab", { name: /물류 연결/ }).click(); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
   await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click(); await expect(equipment).not.toBeChecked(); await equipment.check();
-  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 없습니다"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
+  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 만료"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
 });
 
 test("#461 readonly 검색 조회와 completed 후보 지정 거부", async ({ page }) => {
