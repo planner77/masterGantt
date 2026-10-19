@@ -1,3 +1,9 @@
+## Issue #731 — 기존 KPI와 펼침 진단
+
+기존 KPI 네 카드·품질 패널·세부 탭/표는 그대로 두고 추가 구성/연결 진단만 native disclosure로 펼친다. 기존 표에 고정 열을 추가하지 않는다. 이름·단위·현재 선택과 전체 구성 참고의 분모·full Gate 경고를 직접 표시하고 긴 계산 설명은 상황형 도움말로 제공한다. 정상 미연결/WorkArea 미사용을 오류 색상만으로 평가하지 않는다.
+
+정확 Task/Assignment/master 목록은 원시 ID와 현재 source/snapshot으로 연결하고 기존 editor·단일 host를 재사용한다. 이전 결과가 숨겨진 동안 명령을 잠그며 복귀는 연결된 실제 trigger, 삭제/필터 탈락/새 revision이면 유효 fallback으로 이동한다. 표 내부 scroll·이름 최소 폭·긴 이름 줄바꿈·숫자 단위 nowrap·가려지지 않는 keyboard focus를 5폭에서 확인한다. Design Delta B로 기존 시각/interaction 원칙을 구체화하며 DESIGN.md N/A다. 실제 측정과 미검증은 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
 ## Issue #730 — 고정 root와 동적 조회 구성
 
 Milestone·공정&WorkArea·설비·물류 시스템·리소스의 root는 현재 관점에 고정한다. 접힌 보기 구성에서 하위 축을 추가·삭제·위/아래로 이동하고, 적용 전 초안과 현재 표의 경로를 구별한다. 하위 없음은 root-only 요약이며 설비/System 형제는 한 단계다. root 재등장·중복 축·잘못된 형제·깊이 초과는 서버와 같은 계약으로 거부하고 이유와 삭제/초기화 복구를 제공한다. readonly에서도 조회 설정을 바꿀 수 있지만 원본 수정은 기존 권한을 따른다.

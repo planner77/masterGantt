@@ -1,3 +1,7 @@
+## Issue #731 — KPI 전용 통합 read consumer
+
+기존 Logistics KPI 컴포넌트를 보존하고 전용 `/logistics/kpi?source=integrated` read adapter를 둔다. 한 SQLite read transaction에서 #729의 bounded Project snapshot과 #728의 공통 원장을 읽고 기존 Logistics KPI 계산 authority를 재사용한다. 유효 Task/개인 Assignment 합집합·진단 ID·구성 참고·source/snapshot을 전달하며 기존 `/logistics/dashboard`·Resource/Target default는 바꾸지 않는다. 저장 writer/DB migration·공통 resolver/계산기·Gantt Core/viewport writer는 추가하지 않는다. [계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처).
+
 ## Issue #730 — app-owned 다관점 조회 UI
 
 클라이언트의 공통 composer/table/detail는 #729의 versioned 공개 read API를 소비한다. pure client model의 spec 검증과 Project+root별 versioned browser 설정은 server-only parser를 번들에 가져오지 않는다. 계산 authority·Repository·DB writer는 그대로이며 숫자는 서버 응답에서 읽는다. 원본 ID와 경로 viewRowKey를 분리하고 typed sibling은 조회 행으로만 표현한다.

@@ -35,6 +35,7 @@ import { IdentifierDetails } from "@/components/identifier-details";
 import { logisticsName } from "./logistics-identity";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { ProjectLogisticsTargets } from "./project-logistics-targets";
+import type { KpiMasterKind } from "./logistics-kpi-configuration";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import { ProjectLogisticsUnified } from "./project-logistics-unified";
 import type { WbsViewDimension } from "@/contracts/wbs-dashboard-views";
@@ -66,6 +67,7 @@ function isTypeCatalog(value: unknown): value is LogisticsActiveTypeCatalogRespo
 import type { ProjectTaskDto } from "@/contracts/projects";
 
 export interface ProjectLogisticsManagementProps {
+  kpiSourceRefreshKey?: number;
   subview?: SubTab;
   onSubviewChange?: (view: SubTab) => void;
   onSubviewFocusUnavailable?: () => void;
@@ -78,6 +80,7 @@ export interface ProjectLogisticsManagementProps {
   busy?: boolean;
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
   onTargetTaskOpen?: (taskId: string, trigger?: HTMLElement) => void;
+  onKpiResourceOpen?: (resourceId: string, trigger: HTMLElement, resource?: { name: string; code: string | null }) => void;
   onStageSchedule?: (taskIds: string[]) => void;
   onWbsSchedule?: (request: WbsViewScheduleRequest) => void;
   onWbsOpenEntity?: (dimension: WbsViewDimension, id: string, trigger: HTMLElement) => void;
@@ -97,15 +100,16 @@ export interface ProjectLogisticsManagementProps {
     processIds?: string[];
     equipmentIds?: string[];
     systemIds?: string[];
-  }) => void;
+  }, source?: { snapshotId: string; filters: import("@/contracts/logistics-dashboard").LogisticsDashboardFilterInput }) => void;
   onUnauthorized: () => void;
 }
 
 export type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
-  subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
-  wbsEntityOpenRequest, onWbsEntityRequestHandled, onWbsSchedule, onWbsOpenEntity, targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment,
+  kpiSourceRefreshKey = 0, subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
+  wbsEntityOpenRequest, onWbsEntityRequestHandled, onWbsSchedule, onWbsOpenEntity,
+  targetOpenRequest, tasks = [], active = true, busy = false, onStageOpen, onStageSchedule, onTargetTaskOpen, onResourceSchedule, onOpenAssignment, onKpiResourceOpen,
   publicId,
   projectContext,
   revision,
@@ -122,6 +126,46 @@ export function ProjectLogisticsManagement({
   const [targetRequestSequence, setTargetRequestSequence] = useState<number | null>(null);
   const [unifiedTargetRequest, setUnifiedTargetRequest] = useState<{ id: string; sequence: number; code?: string | null } | null>(null);
   const unifiedTargetTrigger = useRef<HTMLElement | null>(null);
+  const [kpiOrigin, setKpiOrigin] = useState<{ trigger: HTMLElement; revision: number; kind: KpiMasterKind; id: string } | null>(null);
+  function returnToKpi() {
+    const origin = kpiOrigin;
+    setKpiOrigin(null);
+    setUnifiedTargetRequest(null);
+    setActiveSubTab("dashboard");
+    requestAnimationFrame(() => {
+      if (origin?.revision === revision && isVisibleFocusTarget(origin.trigger)) origin.trigger.focus({ preventScroll: true });
+      else {
+        const fallback = document.querySelector<HTMLElement>('[data-testid="logistics-kpi-configuration"] summary');
+        if (isVisibleFocusTarget(fallback)) fallback.focus({ preventScroll: true });
+        else onSubviewFocusUnavailable?.();
+      }
+    });
+  }
+  function openKpiMaster(kind: KpiMasterKind, id: string, trigger: HTMLElement, resource?: { name: string; code: string | null }) {
+    if (busy || isSubmitting) return;
+    if (kind === "resource") { onKpiResourceOpen?.(id, trigger, resource); return; }
+    if (kind === "workArea") {
+      // WorkArea is configured through its existing process occurrence mapping.
+      const processId = trigger.dataset.processId;
+      if (!processId || !logistics.processes.some(row => row.id === processId)) return;
+      setKpiOrigin({ trigger, revision, kind: "process", id: processId });
+      setActiveSubTab("processes");
+      requestAnimationFrame(() => document.getElementById(`logistics-master-process-${processId}`)?.focus({ preventScroll: false }));
+      return;
+    }
+    const candidates = kind === "process" ? logistics.processes : kind === "equipment" ? logistics.equipment : kind === "system" ? logistics.systems : null;
+    if (kind !== "target" && !candidates?.some(row => row.id === id)) return;
+    setKpiOrigin({ trigger, revision, kind, id });
+    if (kind === "target") {
+      setUnifiedTargetRequest({ id, sequence: Date.now() });
+      setActiveSubTab("targets");
+    } else {
+      const view = kind === "process" ? "processes" : kind === "equipment" ? "equipment" : "systems";
+      setActiveSubTab(view);
+      requestAnimationFrame(() => document.getElementById(`logistics-master-${kind}-${id}`)?.focus({ preventScroll: false }));
+    }
+  }
+
   if (targetOpenRequest && targetRequestSequence !== targetOpenRequest.sequence) {
     setTargetRequestSequence(targetOpenRequest.sequence);
     setUnifiedTargetRequest(null);
@@ -190,7 +234,7 @@ export function ProjectLogisticsManagement({
   const catalogRequest = useRef<AbortController | null>(null);
   const [catalogKey, setCatalogKey] = useState<string | null>(null);
   const currentCatalogKey = `${publicId}:${revision}`;
-  useEffect(() => () => { catalogRequest.current?.abort(); }, [currentCatalogKey]);
+  useEffect(() => () => { catalogRequest.current?.abort(); }, [currentCatalogKey, setCatalogResources, setCatalogKey, setCatalogState]);
 
   // Dialog states
   const [processModal, setProcessModal] = useState<{
@@ -269,7 +313,7 @@ export function ProjectLogisticsManagement({
     } catch {
       if (!controller.signal.aborted) setCatalogState("error");
     }
-  }, [currentCatalogKey]);
+  }, [currentCatalogKey, setCatalogResources, setCatalogKey, setCatalogState]);
   const catalogReady = catalogState === "ready" && catalogKey === currentCatalogKey;
 
   // Lookup maps
@@ -292,15 +336,17 @@ export function ProjectLogisticsManagement({
   // Filtered collections
   const filteredProcesses = useMemo(() => {
     return logistics.processes.filter((p) => {
+      if (kpiOrigin?.revision === revision && kpiOrigin.kind === "process" && kpiOrigin.id === p.id) return true;
       if (!includeInactive && !p.active) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q) || p.id.toLowerCase().includes(q);
     });
-  }, [logistics.processes, includeInactive, searchQuery]);
+  }, [logistics.processes, includeInactive, searchQuery, kpiOrigin, revision]);
 
   const filteredEquipment = useMemo(() => {
     return logistics.equipment.filter((e) => {
+      if (kpiOrigin?.revision === revision && kpiOrigin.kind === "equipment" && kpiOrigin.id === e.id) return true;
       if (!includeInactive && !e.active) return false;
       if (processFilter !== "all" && e.processId !== processFilter) return false;
       if (!searchQuery.trim()) return true;
@@ -313,10 +359,11 @@ export function ProjectLogisticsManagement({
         e.manufacturer.toLowerCase().includes(q)
       );
     });
-  }, [logistics.equipment, includeInactive, processFilter, searchQuery]);
+  }, [logistics.equipment, includeInactive, processFilter, searchQuery, kpiOrigin, revision]);
 
   const filteredSystems = useMemo(() => {
     return logistics.systems.filter((s) => {
+      if (kpiOrigin?.revision === revision && kpiOrigin.kind === "system" && kpiOrigin.id === s.id) return true;
       if (!includeInactive && !s.active) return false;
       if (processFilter !== "all") {
         if (s.scope === "processes" && !s.processIds.includes(processFilter)) return false;
@@ -325,7 +372,7 @@ export function ProjectLogisticsManagement({
       const q = searchQuery.toLowerCase();
       return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     });
-  }, [logistics.systems, includeInactive, processFilter, searchQuery]);
+  }, [logistics.systems, includeInactive, processFilter, searchQuery, kpiOrigin, revision]);
 
   // Generic mutation executor
   const executeMutation = async (
@@ -596,7 +643,7 @@ export function ProjectLogisticsManagement({
       </div>
 
       <div id="panel-targets" role="tabpanel" aria-labelledby={hideSubviewNavigation ? undefined : "subtab-targets"} hidden={activeSubTab !== "targets"}>
-        {unifiedTargetRequest ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
+        {unifiedTargetRequest && !kpiOrigin ? <button type="button" className={styles.subTabButton} onClick={returnToUnified}>통합 조회로 돌아가기</button> : null}
         <ProjectLogisticsTargets openRequest={unifiedTargetRequest ?? targetOpenRequest} projectContext={projectContext} publicId={publicId} revision={revision} active={active && activeSubTab === "targets"} editable={editable} busy={busy} logistics={logistics} types={typeCatalog} onTypesChanged={()=>void retryTypeCatalog()} tasks={tasks} onMutated={onRequireRefresh} onUnauthorized={onUnauthorized} onOpenTask={onTargetTaskOpen} onOpenInstance={(kind,id)=>{if(!editable||busy||isSubmitting)return;if(kind==="equipment"){const target=logistics.equipment.find(e=>e.id===id);if(target)setEquipmentModal({open:true,mode:"edit",target});}else{const target=logistics.systems.find(e=>e.id===id);if(target)setSystemModal({open:true,mode:"edit",target});}}}/>
       </div>
       {/* Toolbar (Filters & Actions) - Only for management subtabs */}
@@ -698,6 +745,8 @@ export function ProjectLogisticsManagement({
         </div>
       ) : null}
 
+      {kpiOrigin && activeSubTab !== "dashboard" ? <button type="button" className={styles.subTabButton} onClick={returnToKpi}>KPI로 돌아가기</button> : null}
+
       {/* Sub-panel 0: Dashboard */}
       <div
         id="panel-dashboard"
@@ -706,7 +755,9 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "dashboard"}
       >
         <ProjectLogisticsDashboard
-          busy={busy}
+          sourceRefreshKey={kpiSourceRefreshKey}
+          busy={busy || isSubmitting}
+          logistics={logistics} onOpenTask={onTargetTaskOpen} onOpenAssignment={editable ? onOpenAssignment : undefined} onOpenMaster={openKpiMaster}
           tasks={tasks} active={active && activeSubTab === "dashboard"} onStageOpen={onStageOpen} onStageSchedule={onStageSchedule}
           publicId={publicId}
           revision={revision}
@@ -756,7 +807,7 @@ export function ProjectLogisticsManagement({
                 filteredProcesses.map((p) => {
                   const parent = p.parentProcessId ? processById.get(p.parentProcessId) : undefined;
                   return (
-                    <tr key={p.id} className={!p.active ? styles.inactiveRow : undefined}>
+                    <tr key={p.id} id={`logistics-master-process-${p.id}`} tabIndex={-1} className={!p.active ? styles.inactiveRow : undefined}>
                       <td>
                         <span className={parent ? styles.treeItemLevel1 : styles.treeItemLevel0}>
                           {parent ? "└ " : ""}
@@ -854,7 +905,7 @@ export function ProjectLogisticsManagement({
                   const supportingSysCount = eq.controlSystems.filter((s) => s.controlRole === "supporting").length;
 
                   return (
-                    <tr key={eq.id} className={!eq.active ? styles.inactiveRow : undefined}>
+                    <tr key={eq.id} id={`logistics-master-equipment-${eq.id}`} tabIndex={-1} className={!eq.active ? styles.inactiveRow : undefined}>
                       <td>{proc ? logisticsName(proc, logistics.processes) : "공정 참조 확인 필요"}</td>
                       <td>{eq.workAreaLinks?.length ? `${eq.workAreaLinks.length}개` : "미연결"}</td>
                       <td><strong>{eq.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "설비 코드", value: eq.code }, { label: "설비 ID", value: eq.id }]} /></td>
@@ -1005,7 +1056,7 @@ export function ProjectLogisticsManagement({
                   ).length;
 
                   return (
-                    <tr key={sys.id} className={!sys.active ? styles.inactiveRow : undefined}>
+                    <tr key={sys.id} id={`logistics-master-system-${sys.id}`} tabIndex={-1} className={!sys.active ? styles.inactiveRow : undefined}>
                       <td><strong>{sys.name.trim() || "이름 확인 필요"}</strong><IdentifierDetails identifiers={[{ label: "시스템 코드", value: sys.code }, { label: "시스템 ID", value: sys.id }]} /></td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>

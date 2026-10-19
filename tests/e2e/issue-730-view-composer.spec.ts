@@ -5,6 +5,7 @@ import { test, expect, isolatedApplicationOptions } from "./fixtures/isolated-ap
 import { targetMasterPassword } from "./fixtures/target-project";
 import { seedWbsViewComposer, viewResourcePassword } from "./fixtures/wbs-view-composer";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
+import { isWbsViewReadQuery } from "./helpers/read-only-requests";
 import type { WbsViewQueryInput, WbsViewReportDto, WbsViewSpec } from "../../src/contracts/wbs-dashboard-views";
 
 test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: targetMasterPassword, isolatedResourceAdminPassword: viewResourcePassword, viewport: { width: 1440, height: 1000 } });
@@ -82,6 +83,44 @@ async function geometry(page: Page, root: Locator, width: number) {
   return evidence;
 }
 
+test("#730 pending original scope yields to newer detail or row-name search", async ({ page, isolatedApplication: origin, observeIsolatedApi }) => {
+  test.setTimeout(180_000);
+  const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
+  await openRoot(page, "equipment");
+  const root = dashboard(page);
+  const row = root.locator('tr[data-dimension="equipment"][data-entity-id="' + f.equipment.id + '"]');
+  const pattern = "**/api/projects/" + f.publicId + "/resource-dashboard/views";
+  const release: Array<() => void> = [];
+  let settled = 0;
+  await page.route(pattern, async route => {
+    if (route.request().postDataJSON().projection?.kind !== "scope") return route.continue();
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    await new Promise<void>(unblock => { release.push(unblock); });
+    try { await route.fulfill({ response }); } catch { /* navigation cancelled its request */ }
+    finally { settled++; }
+  });
+  const original = row.getByRole("button", { name: "원본", exact: true });
+  await original.click();
+  await expect.poll(() => release.length).toBe(1);
+  await row.getByRole("button", { name: "상세", exact: true }).click();
+  await expect(root.getByRole("region", { name: "계층 원본 상세", exact: true })).toBeVisible();
+  release[0]();
+  await expect.poll(() => settled).toBe(1);
+  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
+  await expect(root).toBeVisible();
+  await root.getByRole("button", { name: "상세 닫기", exact: true }).click();
+  await original.click();
+  await expect.poll(() => release.length).toBe(2);
+  await root.getByLabel("표의 이름 찾기", { exact: true }).fill("등록만 설비");
+  await expect(row).toHaveCount(0);
+  release[1]();
+  await expect.poll(() => settled).toBe(2);
+  await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
+  await expect(root.getByLabel("표의 이름 찾기", { exact: true })).toHaveValue("등록만 설비");
+  await page.unroute(pattern);
+});
+
 test("#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 복원·Gantt 보존", async ({ page, isolatedApplication: origin, observeIsolatedApi }, info) => {
   test.setTimeout(180_000);
   const f = await seedWbsViewComposer(page, origin, observeIsolatedApi);
@@ -90,7 +129,7 @@ test("#730 실제 HTTP 다섯 고정 관점·수정 계층 두 구성·저장 �
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const originalGantt = await frame.locator(".wx-gantt").elementHandle();
   let mutations = 0;
-  page.on("request", request => { if (request.url().includes(`/api/projects/${f.publicId}/`) && !["GET", "HEAD"].includes(request.method()) && !request.url().endsWith("/resource-dashboard/views")) mutations++; });
+  page.on("request", request => { if (request.url().includes(`/api/projects/${f.publicId}/`) && !["GET", "HEAD"].includes(request.method()) && !isWbsViewReadQuery(request)) mutations++; });
   for (const root of roots) {
     const response = nextReport(page);
     await openRoot(page, root);

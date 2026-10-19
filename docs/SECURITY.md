@@ -1,3 +1,7 @@
+## Issue #731 — KPI 전용 읽기 경로
+
+`GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 Project direct readonly와 같은 public-read이며 route security inventory에 mutation0으로 등록한다. 편집 session을 만들거나 Owner/PI/등록 참여를 편집 ACL로 사용하지 않는다. Project UUID·strict source/filter 및 snapshot 조건을 검증하고 `private, no-store`·`nosniff` 응답을 사용한다. 공개 응답은 같은 Project 원본의 최소 이름/ID·관계/진단 범위이며 password/session·내부 DB ID를 추가하지 않는다. Task/Assignment/master 편집은 기존 Origin/session/If-Match 경계를 계속 적용한다. 실제 수용·오류 검증 상태는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
 ## Issue #729 — bounded WBS 조회와 원본 범위
 
 신규 versioned 다관점 POST는 public-read이며 편집 session을 요구하지 않는다. 기존 읽기 전용 POST와 같이 정확 Origin·bounded JSON 입력, canonical Project ID 및 서버 strict schema를 검증한다. 조회는 revision/Task/Assignment/등록/기준정보 mutation0이다. 저장된 Project와 명시 등록/해당 Project 사용·책임으로 연결된 Resource만 읽고 전역 사용자 전체를 응답하지 않는다.

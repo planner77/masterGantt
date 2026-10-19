@@ -1,3 +1,7 @@
+## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
+
+main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.
+
 ## Issue #730 — 고정 root·동적 하위 축 공통 UI (2026-10-19)
 
 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` / #729 versioned API를 기준으로 [Work Packet](ISSUE_730.md)의 다섯 root·사용자 하위 구성·typed 형제·공통 표/정확 상세·개인 browser 상태·기존 editor/drill 복귀를 구현한다. 기존 KPI/Milestone/Resource 기능과 WBS 원본·서버 합계를 보존한다. DESIGN·화면/사용자 가이드·API 소비/테스트를 함께 갱신한다.

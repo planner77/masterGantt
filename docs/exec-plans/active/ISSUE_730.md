@@ -51,6 +51,7 @@ GSC `1.0.0-candidate` REVIEW_PENDING를 적용한다. 같은 Gantt host와 기�
 - `docs/TARGET_RESOURCE_USER_GUIDE.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_730.md`: UPDATED
+- `docs/ISSUE_730_FAILURE_ANALYSIS.md`: UPDATED (first remote failure; same Issue append-only ledger)
 - `CHANGELOG.md`: UPDATED
 - `docs/DB_SCHEMA.md`: N/A(기존 DB schema·migration·Repository·저장 writer 변경 없음)
 - `docs/SCHEDULING_ENGINE.md`: N/A(기존 Calendar·공수·full Gate 알고리즘 및 Gantt canonical writer 재사용이며 일정 산식 변경 없음)
@@ -152,3 +153,18 @@ npm run verify:prepr -- --mode=targeted --base=01fdc08bf4b2f69f9797a8bd411d6712e
 실제 별도 frontend(UI·순수 상태·탐색·E2E), read-only ui_ux/qa_docs 및 infra 역할을 실행했다. runtime model 이름/effort의 실제 적용은 별도 검증하지 않았으며 역할 설정값을 실행 성능 증거로 사용하지 않는다. 별도 qa_docs의 source/문서 사전 검토는 미해결 P1/P2 0건이며 OWNER_MANAGED의 독립 인간 QA·Trusted PASS·Owner 위험 수용/명시 병합 승인·Manager ACCEPT와 구분한다. 최종 Source/증거 read-only 대조 뒤 단일 변경 묶음을 게시한다.
 
 최종 별도 qa_docs 사전 검토: 현재 source22/제품85 지문 mismatch0, 실제 UI 영수증·5폭 geometry/PNG·PrePR UNKNOWN4/steps0·문서 의미 대조 PASS, 미해결 P1/P2 0건. 마지막 Markdown 링크 검사는270files/exit0다. 이 검토는 원격 Trusted QA·독립 인간 QA·Owner/Manager 최종 승인이 아니다. DOCUMENTATION_SYNC의 로컬 의미 검토를 마쳤으며 검증기 구조 결과의 `SEMANTIC_REVIEW_PENDING` 상태값은 원격 신뢰 검증 결과로 승격하지 않는다. 로컬 문서·증거를 동결하고 원격 PR Full CI 시작 단계로 전달한다.
+
+
+## PR #747 — Full CI #3001.1 실패 후 재작업 (2026-10-19)
+
+- 이슈 전용 누적 문서: [ISSUE_730_FAILURE_ANALYSIS.md](../../ISSUE_730_FAILURE_ANALYSIS.md). Original Full [#3001.1](https://github.com/planner77/masterGantt/actions/runs/39215173057), HEAD `3962299f07e90108990f75b5dbdd811815057e02`, base `01fdc08bf4b2f69f9797a8bd411d6712e7478c09`, test merge `aed0793999f7642d5daf154d36ced58069a97fc4`. Quality/Docker aggregate SUCCESS. Chromium shard1 #463 mutation0 expected/1 received FAIL, other 5 shards CANCELLED, E2E aggregate FAIL, QA Final은 E2E 미성공 파생 FAIL. 취소된 테스트는 PASS로 집계하지 않는다.
+- TEST_CONTRACT 보완: 새로운 read-only `POST /api/projects/{UUID}/resource-dashboard/views`를 일반 업무 쓰기로 잘못 계수한 watcher 수정. #730 최초 로컬 #518/#724 유사 오분류와 [#728](../../ISSUE_728_FAILURE_ANALYSIS.md), [#717](../../ISSUE_717_FAILURE_ANALYSIS.md), [#724](../../ISSUE_724_FAILURE_ANALYSIS.md) 실패 원장의 원인 분리 정책을 대조했다. **exact method/path만 제외**하고 다른 모든 업무 write의 0회 단언은 유지한다. 공통 helper를 #463/#552/#518/#730에 재사용한다.
+- PRODUCT P2: [PR 리뷰 스레드](https://github.com/planner77/masterGantt/pull/747#discussion_r4311267545)는 지연된 original scope 이후 후속 `상세`·행 이름 검색에도 원본으로 이동하는 경합. report/original generation 분리 및 검색·상세·refresh·정렬·구성·접기 등 최신 사용자 의도의 동기 abort를 적용. 실제 HTTP scope 응답을 보류한 후 두 intent 모두 오래된 이동을 거부하는 E2E를 추가했다.
+- 기존 로컬/사전 실패와 최종 소스 영수증은 당시 source에 귀속해 보존한다. 신규 동결 후보의 로컬 full regression/npm/Playwright는 GitHub 원격 편집 경로에서 **NOT TESTED**. PR synchronize가 등록하는 Full CI는 별도 판정하며 QA Gate/timeout/retry/skip/assertion 완화 없음. 최신 main strict·review 0·merge conflict 0 재확인, CI 시작까지만 수행한다. Owner QA 수용·병합/Main/GHCR/정식 릴리스·Issue 종료 및 CI 모니터링은 제외.
+
+## 최신 main(#731) 정렬과 공통 변경 합성 — 2026-10-19
+
+- #730 최초 PR Head `3962299f07e90108990f75b5dbdd811815057e02` / 당시 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` 이후 #731 PR #746 병합으로 main `fbe7db83a4baa2877a75db0769a59077bbe308c4`(5 commits ahead)로 전진했다. GitHub #747은 behind5, mergeable=false로 변경되었다. 과거 테스트·QA PASS를 현재 main 출처로 재사용하지 않는다.
+- 세 갈래 최초 공통 파일 15개를 baseline-relative edit로 대조했다. API/UX/KPI/아키텍처/가이드/PLAN/TEST_PLAN의 두 이슈 추가 내용을 보존, manifest/lock은 0.124.0 후보로 유지하며 0.123.0(#731) CHANGELOG을 보존했다. 실제 공통 React 두 파일에서는 #731의 KPI 통합 source/원본 Resource/WorkArea 작업과 #730의 WBS 원본 이동·세대 검증·공통 구성기를 함께 연결한다.
+- GitHub blobs/원본 patch 재구성은 정적 보존 검증이다. 전체 실제 TypeScript·E2E·Docker·Main/Trusted QA는 새 exact source CI까지 NOT TESTED. 다음 브랜치 ref 업데이트는 기존 #730 HEAD를 첫 부모, 최신 main을 둘째 부모로 보존하는 non-force fast-forward merge이며 branch/PR 정렬 결과로 판단한다.
+- 리뷰 R730-001 동기 취소·F730-001 read-only POST watcher 보완, 회귀 검사기와 단일 실패 원장 경로는 [누적 분석](../../ISSUE_730_FAILURE_ANALYSIS.md)에 기록했다. 사용자 승인 범위는 **새 Full PR CI 시작**까지이며 병합·GHCR·정식 Release·Issue 종료·CI 모니터링은 여전히 제외한다.

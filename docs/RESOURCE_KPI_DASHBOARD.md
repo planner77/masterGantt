@@ -1,3 +1,9 @@
+## Issue #731 — 기존 물류 KPI의 공통 원장 소비
+
+`대시보드 → KPI`는 기존 화면을 유지하며 #728/#729 공통 원장의 integrated 출처를 전용 read API로 요청한다. 기존 Resource 기본/Plan/Target API와 `projectionOrder`의 default·분모·Excel은 바뀌지 않는다. KPI 전용 DTO를 기존 Resource DTO로 cast하거나 기존 목록 소계를 더하여 전체를 만들지 않는다.
+
+작업 KPI는 고유 일반 Task, 계획 공수는 고유 개인 Assignment, 등록 구성/참여는 별도 참고다. 등록-only 인원·역할·다중 WorkArea가 공수/Capacity를 만들지 않는다. nullable/partial/설정0과 full Milestone Gate를 보존하고 상세 Task/Assignment는 정확 원시 ID·source·snapshot으로 기존 editor에 연결한다. [물류 KPI 계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처)·[기능 보존/실행](exec-plans/active/ISSUE_731.md) 참조.
+
 ## Issue #730 — 공통 동적 표의 지표 소비
 
 공통 조회 UI는 #729 view spec/report/details/scope를 그대로 사용한다. root와 하위 경로 변경은 저장 WBS나 Assignment를 바꾸지 않는다. 고유 Task·개인 Assignment·기간가중 진척·계획 M/D/M/M은 서버 원시 합집합 값이며 구성 수량/등록 인원·중첩 소계와 분리한다. 하위 소계를 합쳐 상위 지표를 재계산하지 않으며 등록-only/작업0·미배정·미설정·null을 빈 성공이나 오류로 대체하지 않는다.

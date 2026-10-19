@@ -1,3 +1,22 @@
+## Issue #731 — KPI consumer의 지표 인계
+
+전용 KPI API는 공통 resolver와 #729 snapshot 읽기를 재사용하고 기존 Logistics KPI의 기간가중 진척·지연·임박·계획 공수 계산 authority를 유지한다. 공통 원장/계산기 자체는 변경하지 않는다. 화면은 `source=integrated`를 명시하며 구 API default는 그대로다. 명시 공정 축의 원시 Task/Assignment 범위와 구 구성 유도 공정의 범위가 다르면 수치 동일성을 주장하지 않는다.
+
+| KPI/진단 | 원본·분모·중복 제거·미산정 |
+| --- | --- |
+| 통합 KPI 호환 envelope | 기존 numeric `effort.plannedMd`는 유지하고 additive `effortState`로 all-unset 미산정·partial 알려진 합계·설정0·empty를 구별. 구 API default 불변 |
+| 핵심 진척·지연·공수 | 기존 일반 Task duration/progress/end·고유 개인 Assignment의 Calendar/투입률. 기간분모0=null, null 투입률을100%로 간주하지 않음 |
+| 등록 구성 | 전체 Project 등록 공정/WorkArea/typed 설비/System/Resource master ID. 설비 수량은 고유 equipmentId의 원본 quantity 합 |
+| 관련 작업0 대상 | 전체 일반 Task의 유효 대상·명시 공정/구역과 교차한 master 목록. Milestone만 연결되어도 일반 작업0일 수 있음 |
+| 미연결 일반 Task | 일반 Task 중 유효 설비/System이 모두 없는 정확 Task ID; 기존 leaf(Task+Milestone) 진단과 분모 별도 |
+| 개인 미배정·Group-only | 전체 일반 Task의 원시 개인 Assignment 유무; 역할·등록·Group 배정만으로 개인 공수를 생성하지 않음 |
+| 공수 미설정 | 일반 Task 개인 Assignment의 allocationPercent=null인 정확 Assignment/Task ID. 설정된0과 구별 |
+| Owner/PI/주제어 | 기존 active master·active 역할 Resource·실제 controls 정책의 정확 master ID 목록 |
+| WorkArea 관련 수량 | 해당 구성 membership의 고유 equipmentId quantity; W-A/W-B에 E10이 각각10으로 보여도 상위는10, 작업 수행/공수의 증거 아님 |
+| full Milestone Gate | 기존 전체 canonical effective membership·직접 선행. 선택 Task 범위로 Ready를 축소하지 않음 |
+
+관련 작업5 M/D가 두 공정에 보여도 Project는5다. Target-only 보완 때 추가된 원시 Task/대상·provenance와 source/version을 확인한다. 각 진단 exact ID·범위와 snapshot은 [KPI 계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처), 테스트/실행 상태는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
 # WBS 작업 중심 공통 해석·KPI 계약 — Issue #728
 
 ## 범위와 결정

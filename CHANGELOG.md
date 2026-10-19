@@ -1,3 +1,10 @@
+## [0.123.0] — Unreleased / Issue #731
+
+- 기존 KPI 네 카드·표·조건·품질/full Milestone Gate를 보존하고 직접·상속·Target 통합 원장을 전용 read consumer로 연결한다. 기존 API default는 유지한다.
+- 등록 공정/WorkArea/설비 수량/System/참여 구성과 작업0·미연결·개인 미배정·공수 미설정·책임 누락의 정확 목록을 제공한다. 구성/작업/개인 Assignment 분모와 비가산 총계를 구별한다.
+- 정확 Task/Assignment·기준정보·일정 이동 및 snapshot/focus 복귀, 기능 보존표·지표 사전·사용자 가이드와 관련 회귀를 보강한다.
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. 원격 CI·Trusted QA·Owner 승인·병합·정식 게시는 별도다.
+
 ## [0.122.0] — Unreleased / Issue #729
 
 - WBS 원장 기반 opt-in versioned 조회 API를 추가한다. 선택 root와 순차 하위 단계, 설비/System 형제 분기를 지원하며 기존 projectionOrder/API의 의미는 보존한다.

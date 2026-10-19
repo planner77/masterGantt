@@ -1,3 +1,26 @@
+## Issue #731 — 보존된 KPI의 명시 통합 source
+
+`GET /api/projects/{publicId}/logistics/kpi?source=integrated`는 기존 KPI 화면 전용 public-read다. 기존 `/logistics/dashboard`의 default 및 Resource/Target API는 유지한다. 같은 SQLite read transaction에서 #728 공통 resolver·#729 snapshot과 기존 Logistics KPI 산식을 재사용한다. 기존 `{data:LogisticsDashboardDto}`의 카드/표/품질/full Gate를 보존하고 additive `integrated` metadata·진단을 제공한다. Project session/쿠키 발급·mutation은 없으며 UUID Project404, `Cache-Control: private, no-store`·`X-Content-Type-Options: nosniff`를 사용한다.
+
+필수 `source=integrated` 외 지원 조건은 기존 `asOfDate`(날짜), `horizonDays`(1..90 정수), `systemView=direct|coordination`, `activeOnly=true|false`, `includeDescendantProcesses=true|false`, `mdPerMm`(양수 또는 `null`), `processIds`, `equipmentIds`, `systemIds`, `taskAssigneeResourceIds`, `roleResourceIds` 및 optional `snapshotId`다. ID 목록은 같은 Project 참조만 수락한다. 알 수 없는 key/source·중복 단일 조건·잘못된 filter·foreign 참조는400 `INVALID_REQUEST` 또는 `INVALID_SELECTION`이며 전체로 fallback하지 않는다. 새 공정은 Task의 명시 공정0..N 및 includeDescendantProcesses이며 기존 설비/System 구성 유도와 다르다.
+
+`integrated`는 아래 범위를 결속한다.
+
+| 필드 | 계약 |
+| --- | --- |
+| `source`, `contextSourceVersion` | `direct+target:v1`, `explicit-task-context:v1`; Task 직접·상속·Target 유효 대상 합집합과 명시 공정 기준 |
+| `snapshotId`, `dataSnapshotId`, `filters` | source·원본/read snapshot·필터·기준일/horizon/환산을 결속한 fingerprint. view/legacy Resource snapshot과 서로 cast하지 않음 |
+| `assignmentIds`, `assignmentRows`, `resourceRows` | 현재 KPI의 고유 개인 Assignment ID, 전체 일반 Task의 정확 개인/Group 배정 원본 및 최소 Resource 표시정보; scope 별도 |
+| `effortState` | 기존 공통 `empty|configured|partial|unset` 상태. legacy numeric `effort.plannedMd`는 호환 유지하지만 UI는 all-unset을 미산정, partial을 알려진 합계+미설정으로 표시; 설정0과 별도 |
+| `taskSources` | canonical Task별 명시 공정/WorkArea·유효 설비/System/Target ID와 관계 provenance. 구성 membership/controls/coordinates와 작업 연관을 구별 |
+| `configuration` | 등록 공정/WorkArea/설비 고유 수량/System·명시 등록/참여/개인 배정 인원; 관련 작업·선택 공수와 다른 구성 참고. activeOnly는 구성 표시 범위에 반영 |
+| `configuration.workAreas` | 원본 이름·연결 processIds·전체 canonical 일반 Task/개인 Assignment·고유 equipmentIds/quantity. taskIds/assignmentIds는 process/equipment/system/assignee/role KPI 선택 필터에 따라 축소하지 않음(구성 activeOnly 표시 범위는 별도). 복수 구역 소계는 Project 수량으로 합산하지 않음 |
+| `diagnostics` | 전체 canonical Project의 정확 일반 Task·leaf·개인 Assignment·master ID 목록. 미연결/무배정/Group-only/미설정/일반 작업0 및 active master 책임 누락. 현재 KPI 필터와 다른 전체 진단 범위를 명시 |
+
+출발 목록/편집/일정 이동 직전 같은 조건과 `snapshotId`로 재검증한다. mismatch는409 `STALE_KPI_SOURCE`이며 최신 결과를 다시 조회한다. Task/Assignment ID·source·조건이 다른 응답을 같은 숫자의 drill로 사용하지 않는다. full Milestone Gate는 선택 공정/Task 범위 밖의 전체 canonical membership·선행을 보존한다.
+
+원본 조회는 기존 Task/Assignment·관계 한도를 적용하고 응답2MiB·요청 URL16384자 초과는422 `REPORT_LIMIT_EXCEEDED`로 전체 실패하며 절삭 결과를 반환하지 않는다. 원본 계약 불충분은422 `KPI_SOURCE_INVALID`다. 새로운 일정·실적·원가 계산/Export authority는 없으며 자세한 분모는 [KPI 계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처), 실제 검증과 최초 실패는 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
 ## Issue #730 — versioned view의 UI 소비
 
 대시보드 공통 구성기/표는 아래 #729의 POST `/resource-dashboard/views`를 사용한다. 새 endpoint·공개 DTO·서버 계산·기존 API default 변경은 없다. 고정 root는 화면이 선택하고 사용자는 levels를 편집한다. root-only는 빈 levels, 설비/System 동급은 siblings 한 단계이며 `projectionOrder`나 Target 필터로 변환하지 않는다. report/details/scope의 spec·filters·scope·snapshotId·path를 동일하게 유지하고 stale409에서는 재조회한다. 새 view spec의 기존 Excel 미지원 오류를 유지한다. 화면별 개인 설정 저장은 browser storage이며 이 read API나 Project revision mutation이 아니다. [화면 계약](PROJECT_UX.md), [Work Packet](exec-plans/active/ISSUE_730.md)을 따른다.

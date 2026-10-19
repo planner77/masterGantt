@@ -149,7 +149,7 @@ async function dashboard(page: Page, project: ProjectHarness, query = "") {
 test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import·Copy/Template·소속 확인 통합", async ({ page, baseURL, browser, observeIsolatedApi }, testInfo) => {
   test.setTimeout(360_000); page.setDefaultTimeout(20_000);
   const origin = baseURL!, fixture = await seed(page, origin, observeIsolatedApi), { project, child, summary, join, b, free, warningSource, destination } = fixture;
-  for (const path of ["/milestone-dashboard", "/assigned-targets", "/resource-workload", "/logistics/dashboard", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`, "/exports/json", "/exports/excel", "/imports/preview", "/imports"]) await (await page.request.get(`${project.api}${path}`)).body();
+  for (const path of ["/milestone-dashboard", "/assigned-targets", "/resource-workload", "/logistics/dashboard", "/logistics/kpi?source=integrated", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`, "/exports/json", "/exports/excel", "/imports/preview", "/imports"]) await (await page.request.get(`${project.api}${path}`)).body();
   await page.goto(`/projects/${project.publicId}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   expect(child.type).toBe("task");
   const editor = await openTask(page, child); await expect(editor).toContainText("Summary 기본 단계에서 상속");

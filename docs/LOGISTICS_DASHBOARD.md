@@ -1,3 +1,15 @@
+## Issue #731 — 기존 KPI와 통합 출처
+
+`대시보드 → KPI`는 기존 `ProjectLogisticsDashboard`의 네 카드·공정/설비/System 표·기준일/임박 기간·활성/direct-coordination 조건·품질 패널·full Milestone Gate를 유지한다. [기능 보존표와 실행 원장](exec-plans/active/ISSUE_731.md)을 기준으로 검증한다. 일반 조회는 미연결 Task도 포함하며 등록만으로 진척·개인 공수·실적을 만들지 않는다.
+
+이 화면은 전용 `GET /api/projects/{publicId}/logistics/kpi?source=integrated`를 명시 요청한다. source `direct+target:v1`와 `explicit-task-context:v1`는 #728 공통 해석기의 직접·상속·Target 유효 대상 및 Task 명시 공정 원장이다. 한 SQLite read snapshot에서 기존 KPI 산식을 재사용하며 원시 Task/Assignment는 한 번만 계산한다. 구 `/logistics/dashboard`의 default·구 Target/Resource API의 의미는 바뀌지 않는다. 동일 direct-only 원시 집합의 수치는 보존하지만 Target-only의 종전 누락 보완과 신규 명시 공정 선택에 따른 모집단 변화는 source 근거와 구별한다. 구 공정은 설비/System 구성에서 유도하고 신규 공정은 Task 명시0..N이므로 양쪽 공정별 수치가 항상 같다는 보장은 없다.
+
+계획 공수의 기존 numeric envelope는 유지하되 통합 consumer는 공통 `effortState`를 함께 사용한다. 모든 개인 투입률이 미설정이면 legacy `plannedMd=0`을 설정된0으로 해석하지 않고 UI에 미산정으로 표시한다. 일부 미설정은 알려진 합계+미설정 수, 배정 없음은 대상 없음, 명시 설정/비근무일의0은 설정0이다. 동일 원시 집합의 기존 공정별 최종 반올림도 재사용하며 새로운 explicit 공정 집합에서는 기존 headline 계산 authority를 사용한다.
+
+등록 공정·WorkArea·설비관리단위·고유 수량·System·Project 참여 구성과 일반 Task0·미연결·개인 미배정·공수 미설정·Owner/PI/주제어 목록은 별도 펼침 진단으로 제공한다. 구성 전체 참고와 현재 선택 KPI는 다른 분모다. 특히 WorkArea 상세 taskIds/assignmentIds는 필터링 전 전체 canonical 일반 Task·개인 Assignment 관계에서 계산한다. 공정·설비·시스템·담당자·역할 KPI 선택을 바꿔도 구역 구성 drill의 원본 ID는 누락되지 않는다(activeOnly의 표시 master 범위는 기존대로 적용). 기존 품질 패널의 미연결 leaf(Task+Milestone)와 추가 일반 Task 미연결 목록도 구별한다. WorkArea 미사용·정상 미연결은 오류 판정을 강제하지 않는다. 등록 인원·참여 인원·배정 인원과 개인 Assignment 수는 동일하지 않다.
+
+각 표/진단의 일정 이동은 정확한 서버 Task ID를 사용하며 구성 ID를 legacy 필터로 재해석하지 않는다. Task/Assignment 원본 편집과 기준정보 진입은 기존 editor/host를 재사용한다. 출발 조건·source·snapshot·탭·펼침과 focus를 유지하고 revision/source가 바뀌면 이전 숫자와 명령을 폐기하여 최신 조회를 요구한다. Milestone 표는 현재 선택과 독립된 전체 membership·선행 Gate를 표시한다. 원본 ID는 #717의 이름 우선·접힌 식별 정보에서 확인한다.
+
 ## Issue #730 — 공정·설비·System 공통 조회 구성
 
 대시보드의 공정&WorkArea·설비·물류 시스템은 #729 versioned 원장을 소비하는 공통 하위 축 구성기/표를 사용한다. 고정 root·하위 없는 요약·사용자 축 추가/삭제/순서 변경·typed 설비/System 형제와 정확 상세를 제공한다. 기존 Target 호환 source·프로젝트 KPI의 기능/산식은 별도 보존하며 새 명시 Task 공정 기준을 구 API default로 강제하지 않는다. 표의 상위 총계는 서버 고유 합집합이며 다중 WorkArea 소계를 합산하지 않는다. [Project UX](PROJECT_UX.md), [사용 안내](TARGET_RESOURCE_USER_GUIDE.md#동적-조회-구성과-정확-상세), [실행 증거](exec-plans/active/ISSUE_730.md)를 따른다.
