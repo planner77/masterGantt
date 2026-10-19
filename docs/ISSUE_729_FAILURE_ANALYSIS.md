@@ -29,3 +29,11 @@
 ### 상태
 
 후속 PR/Head, 회귀 테스트 및 PR CI·Trusted QA, 정확한 new Main CI/GHCR/Release, safe cleanup·Issue close는 **NOT TESTED / BLOCKED**. 실제 Run/Attempt/병합/정식 게시 결과 확인 후 같은 문서에 누적한다. 기존 PR #744 Full CI와 Main FAIL을 교정 PR의 새로운 PASS로 바꿔 쓰지 않는다.
+
+## F-002 — 교정 PR #745 최초 PR CI #2994.1 QA Preflight 문서 동기화 FAIL (2026-10-19 KST)
+
+- 원본: [PR #745](https://github.com/planner77/masterGantt/pull/745) HEAD `4c5fec2fa22d79a5bb7b22fc7643ba941a02a774`, base `59f42e291a48608d1280951a7d7874a21992aaa5`. [Full PR CI #2994.1](https://github.com/planner77/masterGantt/actions/runs/39201801581), run ID `39201801581`, attempt1, event pull_request, conclusion failure.
+- 최초 실패 Job: `QA Preflight — 정책·문서 사전 검사` `117896199677`, `원본 base SHA의 QA Preflight 실행 (read-only)`. 실제 사유: `FAIL / DOCUMENTATION_SYNC: docs/exec-plans/active/ISSUE_729.md: DOCUMENTATION_SYNC / AC_TEST_COVERAGE — 문서 변경 또는 N/A(reason) 미입증: docs/TEST_PLAN.md`. 정책/이슈/QA Required 플래그·changed path 검사는 PASS.
+- 결과: PR Fast Gate FAIL에 따라 Quality/E2E/Docker Required aggregates FAIL, 실제 Unit/Chromium/Build/Docker는 skipped; QA Final도 실패. 이는 수용 테스트 구현 실패가 아니라 **신규 테스트 영향 문서 동기화 미충족**.
+- 보완: `docs/TEST_PLAN.md`에 새 AC2/3 역방향 sibling 메타모픽의 테스트 범위 및 F-001/F-002 회귀 근거를 추가하고, Work Packet의 DOCUMENTATION_SYNC에 `docs/TEST_PLAN.md: UPDATED`와 실제 영향/제외 사유를 명시. QA Preflight를 완화하거나 `NOT TESTED`를 PASS로 바꾸지 않음. 신규 push→Full PR CI 전체 재검증.
+- F-001 최초 main trace 실패와 F-002 documentation gate 실패는 서로 다른 원인이다. 두 Run/Attempt의 결과를 보존하며 이후 동일 Issue 재실패 시 이 원장 전체를 누적 대조한다.
