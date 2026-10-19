@@ -6,6 +6,7 @@ import { createServer, type AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
+import { IsolatedPerformanceReceipt } from "./isolated-performance-receipt";
 import { healthObservation, IsolatedApplicationDiagnostics, observeIsolatedApi, resourceSnapshot, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 const repositoryRoot = resolve(__dirname, "../../..");
@@ -85,6 +86,7 @@ export const test = base.extend<{
     await provide(isolatedApplicationRuntime.observeApi);
   },
   isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword, isolatedProjectMasterAdminPassword }, provide, testInfo) => {
+    const performanceReceipt = new IsolatedPerformanceReceipt(testInfo);
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -132,13 +134,13 @@ export const test = base.extend<{
       };
       // Readiness is deliberately read-only/fileMustExist and cannot bootstrap
       // an empty fixture. Use the existing CLI; never touch another database.
-      await executeFile(process.execPath, ["--import", "tsx", resolve(repositoryRoot, "scripts/migrate.ts")], {
+      await performanceReceipt.measure("sqlite_migrate", () => executeFile(process.execPath, ["--import", "tsx", resolve(repositoryRoot, "scripts/migrate.ts")], {
         cwd: repositoryRoot,
         env: applicationEnvironment,
         timeout: 30_000,
         maxBuffer: 16_384,
         windowsHide: true,
-      });
+      }));
       const startApplication = async (patchOnlyReadinessPath?: string): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
@@ -153,6 +155,7 @@ export const test = base.extend<{
         diagnostics.track(child);
         const application = child;
         closed = new Promise<void>((done) => application.once("close", () => done()));
+        await performanceReceipt.measure("server_start_readiness", async () => {
         let ready = false;
         while (Date.now() < deadline) {
           if (spawnError || child.exitCode !== null || child.signalCode !== null) {
@@ -166,10 +169,12 @@ export const test = base.extend<{
           await delay(100);
         }
         if (!ready) throw new Error("격리 E2E 서버 준비 시간이 초과되었습니다. isolated-application-diagnostics 첨부를 확인하세요.");
+        });
         // Read-only route warmup belongs to fixture setup, not the test's 30s
         // behavior budget. GET/405 does not consume create/unlock attempts.
         const missing = "00000000-0000-4000-8000-000000000001";
         const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
+        await performanceReceipt.measure("next_route_warmup", async () => {
         for (const path of paths) {
           const remaining = deadline - Date.now();
           if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
@@ -177,7 +182,9 @@ export const test = base.extend<{
           await response.arrayBuffer();
           if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
         }
+        });
         if (patchOnlyReadinessPath) {
+          await performanceReceipt.measure("next_dynamic_route_warmup", async () => {
           // A healthy /api/health/ready does not establish that the lazy Next.js
           // dynamic PATCH-only route is registered after this isolated restart.
           // Probe GET only (Next returns 405 when the PATCH route is known);
@@ -215,9 +222,10 @@ export const test = base.extend<{
           if (lastStatus !== 405) {
             throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"}, 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
           }
+          });
         }
       };
-      await startApplication();
+      await performanceReceipt.measure("fixture_setup", startApplication);
       baselineResources = await resourceSnapshot(diagnostics.currentPid());
       let restarting = false;
       const restart = async (patchOnlyReadinessPath?: string): Promise<void> => {
@@ -229,7 +237,7 @@ export const test = base.extend<{
           await stopApplication(child, closed);
           child = undefined;
           // Preserve port/origin, SQLite, build output and environment; no migration rerun.
-          await startApplication(patchOnlyReadinessPath);
+          await performanceReceipt.measure("server_restart", () => startApplication(patchOnlyReadinessPath));
         } finally { restarting = false; }
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
@@ -244,8 +252,14 @@ export const test = base.extend<{
         await stopApplication(child, closed);
       }
       // Remove only paths allocated by this fixture, after its server exits.
-      await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-      await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      try {
+        await performanceReceipt.measure("fixture_teardown", async () => {
+          await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+          await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+        });
+      } finally {
+        await performanceReceipt.attach(testInfo.status === testInfo.expectedStatus ? "ok" : "error");
+      }
     }
   }, { scope: "test", timeout: 120_000 }],
 });
