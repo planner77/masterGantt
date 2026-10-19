@@ -1,3 +1,9 @@
+## Issue #751 — F-008 Dev Route 사전 컴파일과 원격 수용 (2026-10-20)
+
+- Run39321562557/#3030.1(Head `501e10081161cc4971b062e83042088cf60e08a1`) Shard5의 `#622`은 후보 GET 4501.785ms/HTTP200 + 같은 기간 Fast Refresh 3954ms 후 strict `allocation=60` 입력 미표시로 중단. 다른 5 Shards는 cancelled, E2E 신규 Test는 미실행; 이전 F-006 Focus 복귀의 성공/실패로 오인 금지. Source [실패 원장 F-008](ISSUE_751_FAILURE_ANALYSIS.md).
+- 동일 격리 Next Dev 인스턴스의 Readiness 경로에서 존재하지 않는 UUIDv4 project로 `GET assigned-targets`와 `GET assignment-targets`의 **컴파일 완료 시도**를 test body 이전에 추가. GET only, unknown Project 허용 가능한 4xx, 5xx fail-closed, 시간은 `next_assigned_targets_warmup` 및 `next_assignment_targets_warmup` receipt로 확인. 기존 startup 90s, fixture 120s, Playwright 본문/strict Focus/input 5s, mutation/권한 전부 유지.
+- 새 Head에서 (1) fixture 두 warmup Stage 성공, (2) 실제 #622 Input=60과 저장40 이후 Focus 복원, (3) #751 통제 E2E, (4) Chromium6/Quality/Docker 3 Required, (5) Trusted QA/Owner 판정을 원본 Run/Attempt별로 분리 검증한다. 기존 F007 네트워크 오류, F006 Focus와 신규 F008 입력 오류의 사실·가설·반례는 소급 PASS 수정하지 않는다.
+
 ## Issue #751 — Native Node header setup 장애 분리 및 원격 판정 (2026-10-20)
 
 - F-007 Run [#3028.1](https://github.com/planner77/masterGantt/actions/runs/39318895759) Shard2 `118288652891`: Node v22.23.3, npm10.9.9, node-gyp11.5.0; `better-sqlite3` native `npm ci`에서 Node header tarball HTTP200 후 SHA checksum URL `ECONNRESET`. E2E 본문은 미실행이며 Shard 5를 포함한 5개 취소는 Focus 문제 재발 여부를 판단할 수 없다.

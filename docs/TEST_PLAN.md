@@ -1,3 +1,10 @@
+## Issue #751 F-008 — #622 Editor 후보 GET 최초 컴파일 계측 (2026-10-20)
+
+- [PR Full #3030.1](https://github.com/planner77/masterGantt/actions/runs/39321562557), Head `501e10081161cc4971b062e83042088cf60e08a1`: Shard5 `tests/e2e/issue-622-resource-plan-target.spec.ts:92` strict 투입률 `60` 입력이 5초간 미표시. Raw trace: `GET assigned-targets` 112.646ms/200, 뒤따른 `GET assignment-targets` 4501.785ms/200 및 Next Fast Refresh 3954ms 중첩, 마지막 Dialog `할당 정보를 불러오는 중…`. F-006은 편집기 닫기 이후 Focus, 이번은 열기 직후 비동기 후보 로딩이므로 같은 테스트라도 서로 다른 원본 FAIL로 보존한다.
+- AC1: `tests/e2e/fixtures/isolated-route-warmup.ts`는 기존 읽기 전용 11경로 + **미존재 Project의 assigned-targets/assignment-targets GET** 순서, unique/타 경로 불변/권한 검증 허용만. `isolated-application.ts`에서 기존 90s startup budget 및 120s fixture, SQLite 격리 유지, `next_assigned_targets_warmup`/`next_assignment_targets_warmup` Stage로 단조 시간·성공/오류 영수증 기록. `tests/scripts/issue-751-route-warmup.test.ts`가 GET-only/UUID와 순서를 검사하고 `issue-751-performance-telemetry.spec.ts`가 실제 Stage 관측을 검사.
+- AC2: `issue-622-resource-plan-target.spec.ts`의 투입률60→40, 동일 Assignment 외 변경0, Editor 닫힌 후 실제 Focus, Target/Plan/Excel/5폭 엄격 E2E는 수정·완화하지 않는다. #623/731 및 resource plan 등의 영향 소비자는 새 Chromium6에서 반드시 실행되어야 한다. F-007 native npm 헤더 보완은 Shard5에서 npm 설치 PASS지만 다른 취소 Shard는 미검증.
+- AC3: 이 변경은 측정 경계 재배치이므로 본문 시간을 단축했다고 단정하지 않고, warm-up 별도 Duration과 동시 API·Fast Refresh를 더하지 않는다. 10독립Run 성공표본과 P50/P95 동일환경 비교 전 `INSUFFICIENT_DATA`. 새 Full PR CI와 Trusted/Owner 최종 수용 전 `NOT TESTED`.
+
 ## Issue #751 — F-007 Chromium native dependency header fallback 제거 (2026-10-20)
 
 - Full #3028.1 Run `39318895759`, Shard2 `118288652891`: exact cache-hit 뒤 `better-sqlite3/node-gyp@11.5.0`이 Node v22.23.3 `SHASUMS256.txt` 네트워크 `ECONNRESET`으로 실패하여 Chromium test body NOT RUN. Shard1/3/4/5/6 CANCELLED, 기존 F-006 #622 Focus 포함 새 구현 회귀 상태는 `NOT TESTED`; E2E aggregate와 QA Final 파생 FAIL. `docs/ISSUE_751_FAILURE_ANALYSIS.md` F-007에 원본·이력 비교·대응을 기록.

@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { promisify } from "node:util";
 import { IsolatedPerformanceReceipt } from "./isolated-performance-receipt";
+import { isolatedReadOnlyWarmupPaths, isolatedWarmupStage } from "./isolated-route-warmup";
 import { healthObservation, IsolatedApplicationDiagnostics, observeIsolatedApi, resourceSnapshot, type ObserveIsolatedApi } from "./isolated-application-diagnostics";
 
 const repositoryRoot = resolve(__dirname, "../../..");
@@ -190,14 +191,22 @@ export const test = base.extend<{
         // Read-only route warmup belongs to fixture setup, not the test's 30s
         // behavior budget. GET/405 does not consume create/unlock attempts.
         const missing = "00000000-0000-4000-8000-000000000001";
-        const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
+        const paths = isolatedReadOnlyWarmupPaths(missing);
         await performanceReceipt.measure("next_route_warmup", async () => {
         for (const path of paths) {
-          const remaining = deadline - Date.now();
-          if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
-          const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
-          await response.arrayBuffer();
-          if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
+          const readOnlyGet = async () => {
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
+            const response = await fetch(`${origin}${path}`, {
+              method: "GET",
+              signal: AbortSignal.timeout(remaining),
+            });
+            await response.arrayBuffer();
+            if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
+          };
+          const stage = isolatedWarmupStage(path);
+          if (stage) await performanceReceipt.measure(stage, readOnlyGet);
+          else await readOnlyGet();
         }
         });
         if (patchOnlyReadinessPath) {

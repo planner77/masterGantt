@@ -1,7 +1,7 @@
 import type { Page, Request, Response, TestInfo } from "@playwright/test";
 import { performance } from "node:perf_hooks";
 
-export type Stage = "sqlite_migrate" | "server_start_readiness" | "next_route_warmup" | "next_dynamic_route_warmup" | "fixture_setup" | "fixture_teardown" | "server_restart" | "seed_issue_623" | "test_body";
+export type Stage = "sqlite_migrate" | "server_start_readiness" | "next_route_warmup" | "next_dynamic_route_warmup" | "fixture_setup" | "fixture_teardown" | "server_restart" | "seed_issue_623" | "test_body" | "next_assigned_targets_warmup" | "next_assignment_targets_warmup";
 type Route = "process-context" | "assignment-targets" | "task-logistics-links" | "resource-dashboard" | "target-bindings" | "other-api";
 type Result = "complete" | "http_error" | "abort" | "timeout" | "network" | "other" | "incomplete";
 const MAX_RECORDS = 512;

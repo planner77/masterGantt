@@ -12,6 +12,12 @@ test.use(isolatedApplicationOptions);
 test("Issue #751 real isolated backend, browser slow/abort/error receipts and cleanup", async ({
   page, isolatedApplication, observedIsolatedPerformance, timeIsolatedStage,
 }) => {
+  // Warmed endpoints must be measurable before the 60s test-body interval.
+  const warmup = observedIsolatedPerformance().stages;
+  for (const stage of ["next_assigned_targets_warmup", "next_assignment_targets_warmup"]) {
+    expect(warmup.some(item => item.stage === stage && item.outcome === "ok" &&
+      Number.isFinite(item.durationMs) && item.durationMs >= 0)).toBe(true);
+  }
   await timeIsolatedStage("test_body", async () => {
   await page.goto(isolatedApplication + "/");
   const ready = await page.evaluate(async () =>
