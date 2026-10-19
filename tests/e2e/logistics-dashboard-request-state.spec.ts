@@ -421,10 +421,74 @@ test("#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 
     const original = configuration.getByRole("button", { name: /원본 구성 보기/ });
     await original.click();
     const process = page.locator('[id="logistics-master-process-proc-1"]');
-    await expect(process).toBeVisible(); await expect(process).toBeFocused();
+    await expect(process).toBeVisible();
+    await expect(process).toHaveAttribute("tabindex", "-1");
+    await expect(process).toBeFocused();
+    // The parent WorkspaceScreen commits asynchronously. A late rAF must not
+    // drop the exact row focus after navigation settles or steal later input.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(process).toBeFocused();
     await expect(process).toContainText("입고 공정");
-    await page.getByRole("button", { name: "KPI로 돌아가기", exact: true }).click();
+    const back = page.getByRole("button", { name: "KPI로 돌아가기", exact: true });
+    await back.focus();
+    await expect(back).toBeFocused();
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(back).toBeFocused();
+    await back.click();
     await expect(configuration.getByRole("heading", { name: new RegExp(label) })).toBeVisible();
     await expect(original).toBeFocused();
   }
 });
+
+
+for (const destination of ["KPI로 돌아가기", "물류 항목 검색"] as const) {
+  test(`#731 패널 외부에 새 초점이 생기면 원본 포커스 재시도를 취소한다 — ${destination}`, async ({ page }) => {
+    const state = await installStatefulProjectFixture(page);
+    state.logistics = { processes: [{ id: "proc-1", code: "PROC-01", name: "입고 공정", parentProcessId: null, sortOrder: 0, active: true, createdAt: "2026-09-29T00:00:00Z", updatedAt: "2026-09-29T00:00:00Z" }], equipment: [], systems: [], systemLinks: [] };
+    await page.route(dashboardPath, route => route.fulfill({ json: { data: diagnosticDashboard(route) } }));
+    const view = await openDashboard(page);
+    await expect(view.getByRole("button", { name: "일정에서 전체 작업 보기" })).toBeVisible();
+    const configuration = view.getByTestId("logistics-kpi-configuration");
+    await configuration.locator("summary").click();
+    await configuration.getByRole("button", { name: /등록 공정/ }).click();
+    const original = configuration.getByRole("button", { name: "원본 구성 보기", exact: true });
+
+    // Keep the precise row temporarily un-focusable. During React's commit,
+    // immediately focus the user's newly chosen sibling control before the
+    // queued row-focus rAF. No network/DB response is mocked as success here.
+    await page.evaluate((chosen) => {
+      const blocker = document.createElement("style");
+      blocker.textContent = '[id="logistics-master-process-proc-1"] { display: none !important; }';
+      document.head.append(blocker);
+      const observer = new MutationObserver(() => {
+        const host = document.querySelector(".project-logistics-panel");
+        const candidate = chosen === "KPI로 돌아가기"
+          ? Array.from(host?.querySelectorAll<HTMLButtonElement>("button") ?? []).find(button => button.textContent?.trim() === chosen)
+          : host?.querySelector<HTMLInputElement>('input[aria-label="물류 항목 검색"]');
+        if (!candidate?.isConnected || !candidate.getClientRects().length || candidate.closest("[hidden], [inert]")) return;
+        candidate.focus({ preventScroll: true });
+        if (document.activeElement !== candidate) return;
+        blocker.remove();
+        observer.disconnect();
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    }, destination);
+    await original.click();
+
+    const chosen = destination === "KPI로 돌아가기"
+      ? page.getByRole("button", { name: "KPI로 돌아가기", exact: true })
+      : page.getByRole("searchbox", { name: "물류 항목 검색", exact: true });
+    const row = page.locator('[id="logistics-master-process-proc-1"]');
+    await expect(row).toBeVisible();
+    await expect(chosen).toBeFocused();
+    // Previously only focus within #panel-processes cancelled the retry.
+    // Both controls are siblings of that panel, not descendants.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(chosen).toBeFocused();
+    await expect(row).not.toBeFocused();
+    await expect(row).toContainText("입고 공정");
+    await page.getByRole("button", { name: "KPI로 돌아가기", exact: true }).click();
+    await expect(original).toBeFocused();
+    expect(state.project.revision).toBe(40);
+  });
+}

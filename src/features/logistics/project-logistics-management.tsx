@@ -1,7 +1,7 @@
 "use client";
 import { ContextHelp } from "@/components/ui/context-help";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type {
   ControlRole,
   CreateEquipmentRequest,
@@ -100,6 +100,7 @@ export interface ProjectLogisticsManagementProps {
 }
 
 export type SubTab = "targets" | "dashboard" | "unified" | "processes" | "equipment" | "systems" | "relations";
+type FocusableMasterKind = "process" | "equipment" | "system";
 
 export function ProjectLogisticsManagement({
   kpiSourceRefreshKey = 0, subview, onSubviewChange, onSubviewFocusUnavailable, hideSubviewNavigation = false, perspective, onPerspectiveChange,
@@ -121,8 +122,10 @@ export function ProjectLogisticsManagement({
   const [unifiedTargetRequest, setUnifiedTargetRequest] = useState<{ id: string; sequence: number; code?: string | null } | null>(null);
   const unifiedTargetTrigger = useRef<HTMLElement | null>(null);
   const [kpiOrigin, setKpiOrigin] = useState<{ trigger: HTMLElement; revision: number; kind: KpiMasterKind; id: string } | null>(null);
+  const pendingMasterFocus = useRef<{ kind: FocusableMasterKind; id: string; revision: number } | null>(null);
   function returnToKpi() {
     const origin = kpiOrigin;
+    pendingMasterFocus.current = null;
     setKpiOrigin(null);
     setUnifiedTargetRequest(null);
     setActiveSubTab("dashboard");
@@ -142,21 +145,22 @@ export function ProjectLogisticsManagement({
       // WorkArea is configured through its existing process occurrence mapping.
       const processId = trigger.dataset.processId;
       if (!processId || !logistics.processes.some(row => row.id === processId)) return;
+      pendingMasterFocus.current = { kind: "process", id: processId, revision };
       setKpiOrigin({ trigger, revision, kind: "process", id: processId });
       setActiveSubTab("processes");
-      requestAnimationFrame(() => document.getElementById(`logistics-master-process-${processId}`)?.focus({ preventScroll: false }));
       return;
     }
     const candidates = kind === "process" ? logistics.processes : kind === "equipment" ? logistics.equipment : kind === "system" ? logistics.systems : null;
     if (kind !== "target" && !candidates?.some(row => row.id === id)) return;
     setKpiOrigin({ trigger, revision, kind, id });
     if (kind === "target") {
+      pendingMasterFocus.current = null;
       setUnifiedTargetRequest({ id, sequence: Date.now() });
       setActiveSubTab("targets");
     } else {
       const view = kind === "process" ? "processes" : kind === "equipment" ? "equipment" : "systems";
+      pendingMasterFocus.current = { kind, id, revision };
       setActiveSubTab(view);
-      requestAnimationFrame(() => document.getElementById(`logistics-master-${kind}-${id}`)?.focus({ preventScroll: false }));
     }
   }
 
@@ -367,6 +371,43 @@ export function ProjectLogisticsManagement({
       return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
     });
   }, [logistics.systems, includeInactive, processFilter, searchQuery, kpiOrigin, revision]);
+
+  // Navigation changes the visible panel in a parent component. The click-time
+  // rAF can fire before that parent's commit, and focus() on a hidden row is a
+  // no-op. Hand off only after React commits the exact canonical master row.
+  useLayoutEffect(() => {
+    const pending = pendingMasterFocus.current;
+    if (!pending || !active || !kpiOrigin || pending.revision !== revision ||
+        pending.kind !== kpiOrigin.kind || pending.id !== kpiOrigin.id) return;
+    const view = pending.kind === "process" ? "processes" : pending.kind === "equipment" ? "equipment" : "systems";
+    if (activeSubTab !== view) {
+      pendingMasterFocus.current = null; // A newer tab navigation supersedes this handoff.
+      return;
+    }
+    let frame = 0;
+    const focusAfterCommit = (attempt: number) => {
+      if (pendingMasterFocus.current !== pending || !active) return;
+      const target = document.getElementById(`logistics-master-${pending.kind}-${pending.id}`);
+      const focused = document.activeElement;
+      // A later deliberate focus within the active master panel takes priority.
+      if (focused instanceof HTMLElement && focused !== document.body && focused !== kpiOrigin.trigger &&
+          isVisibleFocusTarget(focused) && focused !== target) {
+        pendingMasterFocus.current = null;
+        return;
+      }
+      if (isVisibleFocusTarget(target)) {
+        target.focus({ preventScroll: false });
+        if (document.activeElement === target) {
+          pendingMasterFocus.current = null;
+          return;
+        }
+      }
+      if (attempt < 8) frame = requestAnimationFrame(() => focusAfterCommit(attempt + 1));
+      else pendingMasterFocus.current = null;
+    };
+    frame = requestAnimationFrame(() => focusAfterCommit(0));
+    return () => cancelAnimationFrame(frame);
+  }, [active, activeSubTab, kpiOrigin, revision, filteredProcesses, filteredEquipment, filteredSystems]);
 
   // Generic mutation executor
   const executeMutation = async (

@@ -1,9 +1,12 @@
 ## [0.123.0] — Unreleased / Issue #731
 
+- PR #748 Full PR CI #3004.1은 Quality/E2E6/Docker를 모두 통과했으나 Codex P1 미해결 review 차단이 정당하게 발생했다. Main M-001 포커스 인계 후속 bounded rAF가 테이블 밖 검색창·KPI 복귀/Workspace 컨트롤의 새로운 유효 사용자 focus를 빼앗지 않도록 패널 범위 제한을 제거하고 직접 통제 E2E 2개를 보강한다. 원본 #3002 Main/GHCR 미게시와 정식 v0.123.0 release 미승인은 불변.
+
 - 기존 KPI 네 카드·표·조건·품질/full Milestone Gate를 보존하고 직접·상속·Target 통합 원장을 전용 read consumer로 연결한다. 기존 API default는 유지한다.
 - 등록 공정/WorkArea/설비 수량/System/참여 구성과 작업0·미연결·개인 미배정·공수 미설정·책임 누락의 정확 목록을 제공한다. 구성/작업/개인 Assignment 분모와 비가산 총계를 구별한다.
 - 정확 Task/Assignment·기준정보·일정 이동 및 snapshot/focus 복귀, 기능 보존표·지표 사전·사용자 가이드와 관련 회귀를 보강한다.
 - HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. 원격 CI·Trusted QA·Owner 승인·병합·정식 게시는 별도다.
+- 최초 PR #746/Full PR CI #3000.1·Trusted QA 성공 뒤 병합 Main CI #3002.1에서 KPI→공정/WorkArea 원본 이동의 포커스 인계 E2E가 실패하였다. React 상위 화면 commit 전에 실행될 수 있는 단일 rAF focus 경로를 실제 가시 행 기준의 after-commit 한정 인계로 보완하며, 수동 키보드 focus 우선·진단/KPI 복귀를 유지한다. 정확한 초점 이벤트의 근본 경합 원인은 후속 교정 PR CI 결과 전 UNKNOWN. Main CI Quality/Docker PASS, Shard6 FAIL, GHCR 게시 SKIPPED·정식 릴리스 미승인 상태를 보존한다.
 
 ## [0.122.0] — Unreleased / Issue #729
 
