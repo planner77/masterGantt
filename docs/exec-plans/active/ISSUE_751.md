@@ -12,3 +12,25 @@ Status: implementation extended; actual CI and controlled tests NOT TESTED as of
 - Added read-only manual workflow_dispatch issue-751-performance-trend.yml and authenticated scripts/issue-751-performance-trend.py collector for last retained successful main-run timing artifacts. It is not operational on default main until merged, and the history may still be INSUFFICIENT_DATA.
 - Outstanding: direct server SQL query/lazy compile/fan-out causal attribution, genuine failure injection and cleanup repetition, identical-control baseline before/after metrics, official original HAR/Trace intersection. No claims of improvement/PASS until evidence.
 - New source local TypeScript/ESLint/E2E and Full PR 3 required checks/Trusted QA: NOT TESTED. High-risk OWNER_MANAGED; release_required=false, release_authorized=false; no merge/GHCR without Owner approval.
+
+## DOCUMENTATION_SYNC
+
+- `AGENTS.md`: N/A(기존 Issue Lifecycle 보호 규칙과 OWNER_MANAGED/QA 승인 절차 불변)
+- `docs/QA_REVIEW_POLICY.md`: N/A(독립 검증 및 세 Required aggregate 의무와 운영 게이트를 변경하지 않음)
+- `docs/CI_CD.md`: UPDATED
+- `docs/TEST_PLAN.md`: UPDATED
+- `docs/GITHUB_OPERATIONS.md`: N/A(새 토큰이나 저장소 권한·Issue 병합 및 릴리스 절차 도입 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(기존 Full CI/Trusted QA/Owner 수용 절차 불변이며 실행 증거는 전용 Work Packet과 TEST_PLAN에 기록)
+
+## AC_TEST_COVERAGE
+
+- AC1: tests/e2e/fixtures/isolated-performance-receipt.ts, isolated-application.ts, tests/config/e2e-timing-reporter.cjs, tests/e2e/issue-623-resource-mvp.spec.ts 세 종류의 main #731 분할 테스트를 연결하여 fixture/hook/body/seed/API 측정과 source Run/Attempt/checkout 경계를 검증한다. 실제 Chromium 전용 환경은 새 PR CI 전 NOT TESTED.
+- AC2: tests/scripts/issue-751-performance-receipt.test.ts의 monotonic/HTTP503/Abort/Timeout/마스킹 통제와 테스트별 격리 SQLite 생성·정리 계약을 회귀한다. 실제 서버 종료·느린 네트워크·오류 주입 반복은 원격 실행 전 NOT TESTED.
+- AC3: scripts/issue-751-performance-summary.mjs, scripts/issue-751-performance-trend.py, .github/workflows/issue-751-performance-trend.yml, docs/TEST_PLAN.md와 docs/CI_CD.md를 연결하여 각 출처의 동일 환경 P50/P95, warning-only, 표본 부족을 검증한다. 유효한 전후 동일 환경 성능 개선 판단은 실측 전 INSUFFICIENT_DATA.
+
+## CURRENT_VERIFICATION
+
+- #3014.1 F-001: 제목/qa_method 원본 실패, 테스트는 SKIPPED.
+- #3016.1 F-002: Issue AC 식별자 누락, 테스트는 SKIPPED.
+- #3018.1 F-003: Issue AC PASS, Work Packet DOCUMENTATION_SYNC 누락으로 Preflight FAIL, 테스트는 SKIPPED.
+- 이 문서의 AC 및 DOCUMENTATION_SYNC 작성 자체는 원격 검증 PASS가 아님. 최신 HEAD에서 Full PR CI 세 Required와 Trusted QA/Owner 승인 증거를 별도 확인한다.
