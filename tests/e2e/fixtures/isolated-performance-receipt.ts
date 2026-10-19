@@ -38,7 +38,7 @@ export class IsolatedPerformanceReceipt {
       source: {
         runId: process.env.GITHUB_RUN_ID && /^\d+$/.test(process.env.GITHUB_RUN_ID) ? process.env.GITHUB_RUN_ID : null,
         attempt: process.env.GITHUB_RUN_ATTEMPT && /^\d+$/.test(process.env.GITHUB_RUN_ATTEMPT) ? Number(process.env.GITHUB_RUN_ATTEMPT) : null,
-        headSha: process.env.GITHUB_SHA && /^[a-f0-9]{40}$/i.test(process.env.GITHUB_SHA) ? process.env.GITHUB_SHA : null,
+        checkoutSha: process.env.GITHUB_SHA && /^[a-f0-9]{40}$/i.test(process.env.GITHUB_SHA) ? process.env.GITHUB_SHA : null,
         testId: this.testInfo.testId,
         project: this.testInfo.project.name,
         retry: this.testInfo.retry,
