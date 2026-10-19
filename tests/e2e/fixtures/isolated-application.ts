@@ -61,7 +61,7 @@ async function stopApplication(child: ChildProcess, closed: Promise<void>): Prom
 /** Browser contexts alone cannot isolate a server's process-global rate limiter. */
 interface IsolatedApplicationRuntime {
   origin: string;
-  restart: () => Promise<void>;
+  restart: (patchOnlyReadinessPath?: string) => Promise<void>;
   observeApi: ObserveIsolatedApi;
 }
 
@@ -70,7 +70,7 @@ export const test = base.extend<{
   isolatedResourceAdminPassword: string | undefined;
   isolatedProjectMasterAdminPassword: string | undefined;
   isolatedApplicationRuntime: IsolatedApplicationRuntime;
-  restartIsolatedApplication: () => Promise<void>;
+  restartIsolatedApplication: (patchOnlyReadinessPath?: string) => Promise<void>;
   observeIsolatedApi: ObserveIsolatedApi;
 }>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
@@ -139,7 +139,7 @@ export const test = base.extend<{
         maxBuffer: 16_384,
         windowsHide: true,
       });
-      const startApplication = async (): Promise<void> => {
+      const startApplication = async (patchOnlyReadinessPath?: string): Promise<void> => {
         const deadline = Date.now() + startupMilliseconds;
         let spawnError: Error | undefined;
         child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
@@ -177,11 +177,50 @@ export const test = base.extend<{
           await response.arrayBuffer();
           if (response.status >= 500) throw new Error(`격리 E2E 경로 준비 실패: HTTP ${response.status}. isolated-application-diagnostics 첨부를 확인하세요.`);
         }
+        if (patchOnlyReadinessPath) {
+          // A healthy /api/health/ready does not establish that the lazy Next.js
+          // dynamic PATCH-only route is registered after this isolated restart.
+          // Probe GET only (Next returns 405 when the PATCH route is known);
+          // never issue a synthetic PATCH or retry a mutation.
+          const route = new URL(patchOnlyReadinessPath, origin);
+          if (route.origin !== origin || route.search || route.hash ||
+              !/^\/api\/projects\/[0-9a-f-]{36}\/logistics\/equipment\/[0-9a-f-]{36}$/.test(route.pathname)) {
+            throw new Error("격리 E2E 재시작 읽기 전용 준비 검사는 해당 프로젝트의 설비 API만 허용합니다.");
+          }
+          let lastStatus: number | null = null;
+          while (Date.now() < deadline) {
+            if (!child || child.exitCode !== null || child.signalCode !== null) {
+              throw new Error("격리 E2E 경로 준비 중 서버가 종료되었습니다. 진단을 확인하세요.");
+            }
+            const remaining = deadline - Date.now();
+            if (remaining <= 0) break;
+            let response: Response;
+            try {
+              response = await fetch(route, {
+                method: "GET", cache: "no-store",
+                signal: AbortSignal.timeout(Math.min(2_000, remaining)),
+              });
+            } catch {
+              await delay(100); // The read-only route is still compiling; no write retry.
+              continue;
+            }
+            lastStatus = response.status;
+            await response.arrayBuffer();
+            if (lastStatus === 405) break;
+            if (lastStatus !== 404) {
+              throw new Error(`격리 E2E PATCH 전용 동적 경로 준비 결과가 예상 밖입니다: GET HTTP ${lastStatus} (예상 405).`);
+            }
+            await delay(100);
+          }
+          if (lastStatus !== 405) {
+            throw new Error(`격리 E2E 서버 재시작 후 설비 PATCH 경로가 준비되지 않았습니다: read-only GET 마지막 HTTP ${lastStatus ?? "전송 실패"}, 예상 405. isolated-application-diagnostics 첨부를 확인하세요.`);
+          }
+        }
       };
       await startApplication();
       baselineResources = await resourceSnapshot(diagnostics.currentPid());
       let restarting = false;
-      const restart = async (): Promise<void> => {
+      const restart = async (patchOnlyReadinessPath?: string): Promise<void> => {
         if (restarting) throw new Error("격리 E2E 서버 재시작이 이미 진행 중입니다.");
         if (!child) throw new Error("격리 E2E fixture의 실행 프로세스가 없습니다.");
         restarting = true;
@@ -190,7 +229,7 @@ export const test = base.extend<{
           await stopApplication(child, closed);
           child = undefined;
           // Preserve port/origin, SQLite, build output and environment; no migration rerun.
-          await startApplication();
+          await startApplication(patchOnlyReadinessPath);
         } finally { restarting = false; }
       };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
