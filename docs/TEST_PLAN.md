@@ -1,3 +1,13 @@
+## Issue #731 — Main M-003 누적 실패·교차 검증 (2026-10-19)
+
+[단일 실패 원장](ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)의 F-001~F-004/M-001~M-003을 함께 검증한다. 최신 Main #3011.1은 #623 통합60초 종료/후행 disposed 응답과 Task Editor Summary 저장 후 GET ECONNRESET 두 직접 실패다. 원시 socket/Next 내부 근인은 UNKNOWN이며 Quality SUCCESS와 Docker implementation SKIPPED를 구별한다.
+
+- 실패 파일 합집합: `issue-623-resource-mvp.spec.ts`, `project-task-editor-persistence.spec.ts`, `issue-725-process-workareas.spec.ts`, `issue-726-task-logistics.spec.ts`, `logistics-dashboard-request-state.spec.ts` 전체. 로컬 원인 수집은 workers1/retries0/max-failures0이며 Required6Shard 정책은 변경하지 않는다.
+- #623 직접/인접: 독립 golden·Excel60초와 여섯 mutation/동일 원본 복귀60초, 폭별390/768/1024/1440/1920px의 tree→matrix30초. 각 fixture의 정확 UUID/5M/D/0.25M/M·OOXML Y/Z·snapshot/같은 Gantt 인스턴스, 여섯 method/body/revision+1,10개 geometry/keyboard/query0 단언을 보존한다. golden과 mutation의 Project UUID는 독립이다. Excel bytes는 한 번 읽고 phase별 시간/예산 경고는 attachment로 관측한다.
+- Task Editor: 실제 UI 저장 후 canonical GET6곳의 browser same-origin/no-store/observer·HTTP200/JSON, Summary Description/URL 저장·삭제 revision+1/+2 및 derived readonly. setup API GET3곳·독립 mutation/권한 검사는 유지한다. helper의 외부/잘못된 경로·상태/JSON 실패 음성과 Editor readonly/422/500/network/401/412 소비자를 확인한다.
+- 과거 경계: #725 SQLite 재시작/read-only GET405 이후 실제 PATCH200/JSON·정확 WorkAreaIDs, #726 process-context null/명시0·권한/stale·5폭, KPI master focus/외부 사용자 focus 우선2case와 F-001 WorkArea full canonical Task/Assignment 구성을 회귀한다. 과거 PASS는 새 source 검증으로 이월하지 않는다.
+- 최종 source hash·명령/횟수/시간·처음 로컬 FAIL 및 보완·Pre-PR 실제 결과·한계는 원장과 Work Packet에 연결한다. 전체5파일 1회와 별도 반복은 고유 case 수로 합산하지 않는다. 동일 host의 로컬 PASS는 독립 Runner 안정성·새 PR/Main CI·Trusted/Owner ACCEPT가 아니다.
+
 ## Issue #730 — F730-001/002 누적 CI 재작업
 
 원본 [전용 실패 원장 §7](ISSUE_730_FAILURE_ANALYSIS.md)에 두 Full Run의 서로 다른 원인과 source artifact·취소 로그를 누적한다. 첫 #463 readonly POST 관찰기 결함과 최신 Hook deps 누락을 함께 회귀하고 b4의 P2 취소 보완·#731 main 통합을 유지한다. 실제 query를 소비하는 인접 관찰기만 exact method/path helper로 보완하며 업무 mutation0을 약화하지 않는다. parent/Details 원본 명령의 양방향 응답 역전·실제 설비 modal 목적지 음성을 검증하고 후보 source/test를 동결한 뒤 과거 실패 파일·직접/인접/음성 소비자를 실행한다. 실행 명령·고유 케이스·지문/미검증은 같은 원장과 Work Packet에 추가한다. Required3/Trusted/Owner 및 CI 시작 이후 완료 모니터링 경계는 그대로다. 최종 source195Unit PASS, Chromium 원본26PASS/1FAIL 및 #623전체 단발 진단1PASS/1FAIL을 보존한다. #623전체30초 제한의 원인은 UNKNOWN이고 LOCAL_VALIDATED=FAIL이며 실제 PrePR fast/targeted의 UNKNOWN5/BLOCKED를 수동 검증으로 PASS로 바꾸지 않는다.

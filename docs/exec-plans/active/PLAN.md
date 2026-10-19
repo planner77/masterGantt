@@ -1,3 +1,7 @@
+## Issue #731 — Main #3011.1 후속 누적 교정 (2026-10-19)
+
+최신 main `0aa1d3d71f13df6976539ef4ebaaadb9037121c4` /0.123.0에서 `fix/issue-731-main-ci-cumulative`로 재개한다. #62360초 통합 예산과 Task Editor 저장 후 GET reset을 보완하고 과거 실패 파일5개 합집합·음성/인접 회귀를 동일 source에서 검증한다. [단일 실패 원장](../../ISSUE_731_FAILURE_ANALYSIS.md)과 [현재 Work Packet](ISSUE_731.md)을 갱신한다. 제품/버전/CI 정책 변경0, HIGH/OWNER_MANAGED/release_required=true/release_authorized=false. 리뷰/충돌 확인 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·릴리스는 범위 밖이다. 아래 최초 구현/과거 재개 상태는 당시 기록이다.
+
 ## Issue #730 — PR #747 F730-002 누적 보완 재개 (2026-10-19)
 
 최신 main fbe7db83을 이미 통합한 Head b4ba9994에서 두 Full Run/원장·취소 Shard를 대조한다. setter Hook deps 누락3개·readonly POST 인접 관찰기·P2 parent/상세 최신 intent를 [동일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 누적하고 같은 동결 소스의 직접·과거 실패·인접·음성 검증 후 단일 Head를 게시한다. 버전0.124.0/HIGH/OWNER_MANAGED/release_authorized=false. 최종195Unit PASS, Chromium26PASS/1FAIL·#623단발1PASS/1FAIL/원인UNKNOWN, PrePR UNKNOWN5/BLOCKED를 보존해 LOCAL_VALIDATED=FAIL로 인계한다. 미해결 리뷰·충돌을 재확인하고 이 위험을 명시한 새 Full CI 시작까지만 수행하며 완료 모니터링·병합·Release는 하지 않는다.
