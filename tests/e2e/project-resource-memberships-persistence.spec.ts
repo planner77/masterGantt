@@ -1,9 +1,11 @@
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { readBrowserCanonicalSnapshot } from "./helpers/browser-canonical-snapshot";
+import { readBrowserProjectResourceData } from "./helpers/browser-project-resource-data";
 
 const password = "Membership727Synthetic!";
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: password, viewport: { width: 1440, height: 1000 } });
 
-test("membership real SQLite registration survives reload/restart and exact assignment editor keeps dirty guard and Gantt", async ({ page, baseURL, restartIsolatedApplication }) => {
+test("membership real SQLite registration survives reload/restart and exact assignment editor keeps dirty guard and Gantt", async ({ page, baseURL, restartIsolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   const origin = { Origin: baseURL! };
   expect((await page.request.post("/api/resource-catalog/admin-sessions", { headers: origin, data: { password } })).status()).toBe(201);
@@ -18,7 +20,16 @@ test("membership real SQLite registration survives reload/restart and exact assi
   expect(created.status(), await created.text()).toBe(201);
   const publicId = (await created.json()).data.project.publicId;
   const api = `/api/projects/${publicId}`;
-  const snapshot = async () => (await (await page.request.get(api)).json()).data;
+  // Seed reads are independent API requests; only post-UI persistence reads
+  // use the browser's same-origin transport and the isolated observer.
+  const snapshot = async () => {
+    const response = await page.request.get(api);
+    expect(response.status(), "초기 Project API 상태").toBe(200);
+    return (await response.json()).data;
+  };
+  const browserSnapshot = async () => (await readBrowserCanonicalSnapshot(page, api, observeIsolatedApi)).data;
+  const browserResourceRead = <T>(suffix: "assigned-targets" | "resource-memberships") =>
+    readBrowserProjectResourceData<T>(page, `${api}/${suffix}`, observeIsolatedApi);
   let canonical = await snapshot();
   const added = await page.request.post(`${api}/tasks`, { headers: { ...origin, "If-Match": `"${canonical.project.revision}"` }, data: { name: "진척 0 개인 배정 작업", type: "task", start: "2026-10-05", duration: 45, progress: 0 } });
   expect(added.status(), await added.text()).toBe(201); canonical = await snapshot();
@@ -49,9 +60,9 @@ test("membership real SQLite registration survives reload/restart and exact assi
   await registration.getByRole("button", { name: "선택 리소스 등록", exact: true }).click();
   await expect(registration).toHaveCount(0);
   await expect(panel.getByText("등록 1명", { exact: true })).toBeVisible();
-  const after = await snapshot();
+  const after = await browserSnapshot();
   expect(after.tasks).toEqual(before.tasks); expect(after.links).toEqual(before.links);
-  expect((await (await page.request.get(`${api}/assigned-targets`)).json()).data.assignments).toEqual(assignedBefore);
+  expect((await browserResourceRead<{ assignments: typeof assignedBefore }>("assigned-targets")).assignments).toEqual(assignedBefore);
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await panel.getByRole("row", { name: /개인 배정 담당자/ }).getByRole("button", { name: "배정 보기", exact: true }).click();
   const assignmentDialog = page.getByRole("dialog", { name: "개인 배정 담당자 작업 배정", exact: true });
@@ -76,8 +87,8 @@ test("membership real SQLite registration survives reload/restart and exact assi
   await restartIsolatedApplication();
   await page.reload(); await openMembership();
   await expect(panel.getByText("등록 1명", { exact: true })).toBeVisible();
-  const memberships = (await (await page.request.get(`${api}/resource-memberships`)).json()).data;
+  const memberships = await browserResourceRead<{ resources: Array<{ id: string; registered: boolean }> }>("resource-memberships");
   expect(memberships.resources.find((row: { id: string }) => row.id === member.id).registered).toBe(true);
-  expect((await snapshot()).tasks).toEqual(before.tasks);
-  expect((await (await page.request.get(`${api}/assigned-targets`)).json()).data.assignments).toEqual(assignedBefore);
+  expect((await browserSnapshot()).tasks).toEqual(before.tasks);
+  expect((await browserResourceRead<{ assignments: typeof assignedBefore }>("assigned-targets")).assignments).toEqual(assignedBefore);
 });

@@ -6,7 +6,7 @@ import { resolve } from "node:path";
 const methods = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]);
 const requestIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const events = new Set(["http_request_completed", "http_request_unhandled", "http_request_rejected", "http_request_unexpected_error"]);
-const routePattern = /^\/api\/(?:health\/(?:live|ready)|projects(?:\/\[publicId\](?:\/(?:tasks(?:\/\[taskId\](?:\/(?:logistics-links|process-context))?)?|links|milestone-memberships|edit-sessions(?:\/current)?|edit-password))?)?|project-master\/catalog)$/;
+const routePattern = /^\/api\/(?:health\/(?:live|ready)|projects(?:\/\[publicId\](?:\/(?:tasks(?:\/\[taskId\](?:\/(?:logistics-links|process-context))?)?|links|milestone-memberships|assigned-targets|resource-memberships|edit-sessions(?:\/current)?|edit-password))?)?|project-master\/catalog)$/;
 
 /** Retain route templates only, never public IDs, query strings, or arbitrary paths. */
 export function diagnosticRoute(value: unknown): string {

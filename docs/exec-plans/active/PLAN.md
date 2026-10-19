@@ -1,3 +1,7 @@
+## Issue #730 — PR #747 Full #3023.1 멤버십 canonical 조회 교정 (2026-10-20)
+
+PR Head `ec1a18e67b7d1a12b040e8298bde98ba93d93256`/main `5df178868139c4a307701e4807896691971b3376`의 [#3023.1](https://github.com/planner77/masterGantt/actions/runs/39274370437) Shard1 `project-resource-memberships-persistence.spec.ts` 조회 ECONNRESET을 #730 전용 [§17 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. 기존 setup/권한 API 클라이언트는 유지하고 UI 등록 후 browser canonical/Resource source 조회에 동일 origin·observer·HTTP/JSON/원본 단언을 적용한다. 전송/redirect/shape 음성·진단 라우트 비식별 회귀를 추가하며 기존 직접 실패6파일과 #730 기능이 새 Full CI의 영향 범위다. 실제 TCP 원인은 UNKNOWN. 이번 연결 GitHub 세션의 로컬 Node/SQLite/Chromium/Build/Docker는 NOT TESTED이며 이전42 Chromium/219 Unit PASS는 과거 source만의 증거다. HIGH/OWNER_MANAGED/version0.124.0/release_authorized=false, 미해결 리뷰/충돌·main 확인 후 한 묶음 PR CI 시작까지만 진행하고 완료 모니터링·병합·GHCR·릴리스·Issue 종료는 제외한다.
+
 ## Issue #730 — PR #747 Full #3022 누적 실패 보완
 
 Head2a97043f/main5df17886에서 누락 #3012와 최신 #3022를 [단일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. #726 후행 조회 전송/관측 누락과 #719 synthetic WBS 응답 경합을 분리 보완하고 누적 실제 실패5파일·직접/음성 경로를 같은 최종 source에서 검증한다. [Work Packet](ISSUE_730.md)대로 HIGH/OWNER_MANAGED/0.124.0/release_authorized=false를 유지하며 리뷰·main 충돌 확인 후 새 PR Full CI 시작까지만 진행한다. 최종 로컬 고유42 Chromium/16파일219Unit·정적 검사 PASS, source963 mismatch0. PrePR targeted는 dry-run NOT TESTED/UNKNOWN7/steps0이며 exact-Head 원격 전체 검증을 대신하지 않는다. CI 완료 모니터링·main 병합·릴리스·Issue 종료는 범위 밖이다.

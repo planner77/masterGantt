@@ -235,3 +235,10 @@ npm run verify:prepr -- --mode=targeted --base=01fdc08bf4b2f69f9797a8bd411d6712e
 - 새 GitHub 리뷰/충돌이 없는 경우 해결건0을 기록하고, main은 이미 조상인 경우 불필요한 merge commit을 만들지 않는다. 최종 source를 한 묶음 게시 후 정확 Run/Attempt/Head/base/test merge 등록만 확인한다. 사용자 지시대로 CI 완료 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료 및 Manager ACCEPT는 하지 않는다.
 
 - 별도 `/root/qa_review` 최종 read-only 사전 검토 PASS/P1·P2미해결0, source963 재계산 mismatch0. 원격 Head2a97043f/main5df17886/mergeable=true/미해결review0/충돌0을 재조회했고 main이 조상이므로 추가 통합 N/A다. Git push dry-run 인증401로 Git Data API 단일 Ref 게시를 선택하며 전체 tree와 부모를 대조한다. 이것은 Owner/Trusted·Manager 최종 승인이 아니며 새 source CI 등록 후 결과 모니터링 없이 인계한다.
+
+## F730-008 — Full #3023.1 신규 재실패 교정 (2026-10-20)
+
+- 최신 실패 정확 Run `39274370437`/attempt1, source `ec1a18e67b7d1a12b040e8298bde98ba93d93256`, base `5df178868139c4a307701e4807896691971b3376`. [동일 누적 원장 §17](../../ISSUE_730_FAILURE_ANALYSIS.md)에 #727 후행 GET 오류, 직접/파생 Job, F730-001~007 교정과 다른 호출 지점, 원인 UNKNOWN을 누적한다. 기존 remote42 Chromium·219 Unit PASS는 이전 Head 검증일 뿐 새 원격 Source 통과가 아니다.
+- Work Packet의 구현 계약: 리소스 Catalog·Task·Assignment seed API 및 독립 권한 검증은 보존. UI 등록 이후 Project canonical2, assigned-targets2, resource-memberships1만 browser same-origin/no-store/observer로 조회하고 status200/JSON/data의 형태 및 원래 Task/Links/Assignment ID/등록/Gantt/scroll/dirty/재시작 단언을 유지한다. redirect error/1회 조회/위조 URL·민감 정보 비공개. 신규 helper와 E2E 음성 테스트 및 진단 template unit test를 같은 Commit에서 작성한다.
+- 범위: `tests/e2e/project-resource-memberships-persistence.spec.ts`, 신규 `tests/e2e/helpers/browser-project-resource-data.ts`, 신규 `tests/e2e/browser-project-resource-data.spec.ts`, 진단 fixture 및 진단 unit, 실패 원장·TEST_PLAN·active PLAN·CHANGELOG. 제품 runtime/DB/API/디자인/기존 Core/Gantt/시스템 변경 N/A; 원격 CI·Workflow·retry/timeout 변경 N/A.
+- 검증 경계: 연결 GitHub API만으로 파일·문서와 예상 source를 정적으로 대조했고 실제 Node/Vitest/Next/Playwright/Docker/PrePR는 **NOT TESTED**. 새로운 단위/E2E 자동 실행 및 이전 실패 합집합은 원격 Full PR CI에 남긴다. 최종 main/HEAD/review/충돌 확인 후 단일 원자 게시·PR CI 등록까지만이며 CI 완료 모니터링/병합/GHCR·정식 release·Issue 종료/Owner 승인 없음. `release_authorized=false` 불변.

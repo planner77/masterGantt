@@ -1,3 +1,9 @@
+## Issue #730 — F730-008 PR #747 Full #3023.1 멤버십 후행 canonical GET 회귀 (2026-10-20)
+
+[Issue #730 단일 실패 원장 §17](ISSUE_730_FAILURE_ANALYSIS.md)의 직접 #727 멤버십 저장 이후 `apiRequestContext.get: read ECONNRESET`를 참조한다. Shard1 82PASS/1FAIL, Shard3 SUCCESS, 다른 4개 Shard CANCELLED, Required Quality/Docker SUCCESS·E2E/QA Final FAILURE를 별도 판정한다. 프로젝트 신규 등록·Task/Assignment setup API 클라이언트는 유지하고 **실제 UI 리소스 등록 이후** canonical Project2회/assigned-targets2회/resource-memberships1회 조회만 동일 origin browser fetch/no-store 및 observer로 분리한다. 상태200·유효 JSON·해당 배열, 저장 Task/Links·동일 Assignment·등록 상태·재시작·dirty guard·Gantt instance/scroll 확인을 완화하지 않는다.
+
+회귀: `project-resource-memberships-persistence.spec.ts`, 신규 `browser-project-resource-data.spec.ts`(두 endpoint 정상·abort/401/500/bad JSON/bad shape/동일·다른 origin redirect/path 음성·요청 횟수1), `tests/server/e2e/isolated-application-diagnostics.test.ts`(정확 route template·민감 경로 차단), 인접 `project-task-editor-persistence.spec.ts`, `issue-726-task-logistics.spec.ts`, #730 원본/일정, 누적 직접 실패6파일(#463/#550/#719/#623/#726/#727). 원격 Full E2E6/Quality/Docker/Trusted QA로 전체를 재평가하고 새 source 결과 이전까지 NOT TESTED로 둔다. global retry/timeout/skip·workflow 정책/제품 동작·schema 변경 없음.
+
 ## Issue #730 — Full #3022 누적 전송·도움말 fixture 회귀
 
 [동일 실패 원장 §14–16](ISSUE_730_FAILURE_ANALYSIS.md)에서 누락된 #3012 #62360초 실패와 #3022 Task 물류 연결 GET reset을 누적한다. 과거 실제 실패5파일(#463/#550/#719/#623/#726) 전체·직접 #730·전송/관측 정상·음성을 최종 source에 귀속한다. GET reset의 소켓 내부 근인은 UNKNOWN이며 후행 browser/no-store·observer 교정은 업무 HTTP 오류·잘못된 JSON·권한/readonly·정확 원시 ID/revision 단언을 유지한다. #719는 WBS 조회 응답 준비와 도움말 열림을 분리해 async404 영역 높이를 도움말 flow 변경으로 오인하지 않으며 기존 primaryDataTop/documentWidth 정확 동일값·5폭/키보드/터치 단언을 보존한다. 원본·통제 RED·최종 실행 수/소스 지문·미검증·새 PR CI 시작을 구분한다. Required3/6-shard·retry/timeout/skip·Trusted/Owner 승인 규정 불변.

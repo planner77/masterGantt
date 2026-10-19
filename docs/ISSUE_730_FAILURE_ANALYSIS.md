@@ -265,3 +265,28 @@ Primary Issue: [#730](https://github.com/planner77/masterGantt/issues/730) · PR
 - 로컬 Git push dry-run 인증은401로 실패했으므로 기존 연결 Git Data API의 blob→tree→commit 준비/전체 tree 대조→force=false Ref1회→read-back 경로를 사용한다. 토큰 추출·권한 변경·파일별 live PR 게시를 하지 않는다. 실제 Ref/Head·Run 출처와 완료 모니터링 미수행은 게시 후 STATUS로 연결한다.
 
 - 게시 준비 보조 CLI 첫 실행은 LOCAL_BRANCH_MISMATCH/BLOCKED였다(검증용 fix 브랜치와 게시 대상 feat 브랜치가 다름). 기존 feat worktree/브랜치를 변경하지 않고 같은 검증 tree의 별도 게시용 clone에서 대상 이름 브랜치를 구성하여 prepare/before/after를 다시 실행한다. 이 로컬 준비 차단은 source CI 실패나 gate PASS가 아니며 helper 조건을 완화하지 않는다.
+
+## 17. F730-008 — Full PR CI #3023.1 #727 멤버십 저장 후 Project GET 전송 오류 (2026-10-20)
+
+### 17.1 원본 Run·직접 실패와 실패 합집합
+
+- 원본 [PR #747 Full #3023.1 / Run 39274370437](https://github.com/planner77/masterGantt/actions/runs/39274370437), attempt 1, event=`pull_request`, source HEAD `ec1a18e67b7d1a12b040e8298bde98ba93d93256`, base `5df178868139c4a307701e4807896691971b3376`. 새 E2E 실패는 이전 #3022.1 `issue-726-task-logistics.spec.ts`와 **별개 source/파일**이다. 기존 F730-001~007와 이전 42 browser/219 Unit 로컬 증거는 당시 source에만 유효하며 소급 변경하지 않는다.
+- **직접 실패:** [Shard1 Job 118135816061](https://github.com/planner77/masterGantt/actions/runs/39274370437/job/118135816061), `tests/e2e/project-resource-memberships-persistence.spec.ts:6:5` — Project 기준정보 리소스 등록 직후 `after = await snapshot()`(callsite :52)에서 `snapshot` 함수(:21)의 `page.request.get(/api/projects/{UUID})`가 `apiRequestContext.get: read ECONNRESET`로 **HTTP 응답 전 전송 실패**. Shard1에서82 PASS/1 FAIL 이후 fail-fast로 나머지 미실행. Shard3는 SUCCESS, Shard2/4/5/6는 CANCELLED. 취소된 테스트는 성공/실패로 재분류하지 않는다. 원본 log의 URI·Cookie·Authorization·원시 trace는 Git 원장에 복사하지 않는다.
+- **독립/파생 판정:** QA Preflight·Policy·TypeScript·ESLint·Vitest·PR Build·Docker 구현, Required Quality Job `118136456437` 및 Docker Job `118137060088`는 SUCCESS. Required E2E Job `118145624408`는 FAILURE, QA Final Job `118145674684`은 Required E2E 미성공의 종속 FAILURE. 원본 Head 전체 CI/QA는 FAIL이며 이전 로컬 PASS로 덮을 수 없다.
+- 새로 추가된 실패 E2E 파일을 포함하면 #730에서 직접 확인된 **누적 실패 파일 합집합은 6개**: `milestone-dashboard-state.spec.ts` (#3001), `milestone-management-persistence.spec.ts` (#3008), `issue-719-contextual-help.spec.ts` (#3009), `issue-623-resource-mvp.spec.ts` (#3012), `issue-726-task-logistics.spec.ts` (#3022), `project-resource-memberships-persistence.spec.ts` (#3023). 정적/외부 네트워크 실패 #3003/#3005는 browser fail 수에 넣지 않는다.
+
+### 17.2 원인·전용 교정
+
+- UI 등록 PATCH/응답·SQLite persist 실패가 증명된 것이 아니라, UI 등록 후 원본 검증 경로가 여전히 **독립 Playwright APIRequestContext**를 사용하던 누락이다. 로그에는 요청 전송 후 HTTP 응답이 없고 `ECONNRESET`가 있다. `#726 후행 readLinks`, `#550 canonical GET`, `#731 Task Editor GET`과 호출 경로가 같은 종류의 리스크이지만 **실제 TCP 소켓 리셋 내부 근인은 UNKNOWN**이다. 연결 재사용·Next HTTP worker·메모리·서버 재시작은 직접 증거 없이 확정하지 않는다.
+- `tests/e2e/project-resource-memberships-persistence.spec.ts`: 등록 전 Resource Catalog/Task/Assignment **준비·독립 권한 API 요청은 기존 API context 그대로** 유지한다. 실제 `page.goto` 및 UI 등록/다이얼로그/재시작 이후에 검증하는 Project canonical snapshot 2회는 기존 `readBrowserCanonicalSnapshot(page, api, observeIsolatedApi)`로, UI 뒤 `assigned-targets` 검증2회와 `resource-memberships` 확인1회는 제한된 browser GET helper로 전환한다. HTTP200·JSON·원본 Task/Links/Assignment ID·등록 여부·Gantt 인스턴스/스크롤/dirty 편집·재시작 보존 단언은 그대로 둔다.
+- `tests/e2e/helpers/browser-project-resource-data.ts`는 `/api/projects/{UUID}/(assigned-targets|resource-memberships)` 정확 경로만 허용하고 browser `fetch(credentials:same-origin,cache:no-store,redirect:error)` 및 `observeIsolatedApi`로 각각 **한 번만** 조회한다. HTTP200·JSON·data 및 해당 배열 형식을 검증하고 network abort/401/500/잘못된 JSON·응답 구조/동일·타 origin redirect/잘못된 path에서 fail-closed 한다. 원본 GET 실패를 재전송하지 않고 업무 POST/PUT/PATCH/DELETE는 건드리지 않는다.
+- `tests/e2e/fixtures/isolated-application-diagnostics.ts`의 안전한 route template에 위 GET 두 경로만 추가한다. `tests/server/e2e/isolated-application-diagnostics.test.ts`에서 정확 template 허용과 UUID/민감 query/임의 suffix 거부를 검증한다. 원시 Cookie·Authorization·ID·URL·응답 body를 로그에 기록하지 않는다.
+- `tests/e2e/browser-project-resource-data.spec.ts`에서 두 GET의 실제 동일 origin 양성 및 abort/401/500/invalid JSON/invalid shape/2종 redirect·잘못된 path 음성을 수행하도록 회귀를 추가한다. 각 요청 횟수1을 확인하고 retry/timeout/skip/기존 E2E6 Shard 정책은 변경하지 않는다.
+
+### 17.3 검증과 반영 경계
+
+- 이 세션의 연결 GitHub 환경에서는 Node 의존성·실제 SQLite/Next/Chromium을 실행할 수 없었다. **로컬 TypeScript/Unit/실제 Browser/Docker 및 Full PrePR = NOT TESTED**. 새 코드/문서의 엄격 경로·원본 변경/신규 helper 스키마는 정적 검토했으며 **PASS를 주장하지 않는다**. 최종 원격 Full PR CI가 새 정확 HEAD에 대한 Required Quality/E2E6/Docker를 판정하도록 유지한다.
+- 검증 필요: #727 기존 리소스 등록/Assignment·reload/SQLite restart·Task/원본/dirty guard, 새 브라우저 resource GET 정상·오류/redirect 단발, #731 기존 Task Editor canonical, #726 logistics link, #730 WBS 조회 및 #719 geometry/기존 #623 다중 수정, 전체 기존 Full CI. 최신 Head에서만 유효한 결과를 채택하며 과거 #3023의 다른 Shard CANCELLED를 합산하지 않는다.
+- **리뷰/충돌:** 게시 직전 GitHub PR #747의 미해결 스레드0·mergeability/main ancestry를 재확인한다. 기존 P2 thread `PRRT_kwDOUUB7Bc6t0iIK`은 과거 resolved/outdated이며 신규 resolve 0건이다. 새 main 변경이 없을 경우 충돌0/정렬 N/A이고, 바뀌면 보존 통합 후 동일 원장에 추가한다.
+- **범위:** HIGH/OWNER_MANAGED, version 0.124.0, release_required=true/release_authorized=false. 브랜치에 변경 원자 커밋 한 건을 게시하고 `pull_request.synchronize` 새 Full CI 등록/HEAD/base/run만 확인한다. CI 완료 모니터링·병합·Main CI/GHCR/Finalizer·정식 Release·Issue 종료·Owner/Manager ACCEPT는 수행하지 않는다.
+

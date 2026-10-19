@@ -489,6 +489,7 @@
 
 ## [0.124.0] - 2026-10-19
 
+- PR #747 Full #3023.1의 리소스 멤버십 등록 후 canonical Project GET `ECONNRESET`을 #730 실패 원장 F730-008에 기록한다. 초기 seed/권한 API와 저장/원본 단언을 유지하면서 UI 저장 이후 동일 출처 browser GET·비식별 관측 및 리소스 조회 정상/오류·리다이렉트·형식 음성을 보강한다. 정확 TCP 근인 UNKNOWN, 새 Full CI/Trusted·Owner 판정 전 NOT TESTED, retry/timeout/제품 API 변경 없음.
 - PR #747 Full #3022 후행 Task 물류 연결의 실제 browser 조회/오류 관측 누락과 #719 도움말 합성 fixture의 WBS 응답 경합을 보완한다. 원시 ID·revision·권한·geometry 단언과 기존 CI Gate를 유지하며 원격 최초 실패·소켓 근인 UNKNOWN·누적 로컬 결과를 같은 #730 실패 원장에 기록한다.
 
 - PR #747 누적 보완: 원본 편집 callback의 Hook 의존성·최신 탐색 의도와 조회 POST 회귀 관찰기를 교정하고 Issue #730 단일 실패 원장에 원격 원인·재검증을 보존한다.

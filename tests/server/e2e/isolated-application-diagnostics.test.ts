@@ -36,6 +36,15 @@ describe("isolated application diagnostics confidentiality and failure preservat
     }
   });
 
+  it("keeps Resource membership and assignment GET route templates but never IDs, query or neighboring paths", () => {
+    for (const suffix of ["assigned-targets", "resource-memberships"]) {
+      const path = `/api/projects/${requestId}/${suffix}`;
+      expect(diagnosticRoute(path)).toBe(`/api/projects/[publicId]/${suffix}`);
+      expect(diagnosticRoute(`${path}?cookie=PRIVATE_COOKIE`)).toBe("other");
+      expect(diagnosticRoute(`${path}/PRIVATE_SUFFIX`)).toBe("other");
+    }
+  });
+
   it("classifies exact Next runtime messages without retaining their raw text", () => {
     const ring = new SafeOutputRing();
     const warning = "\u001b[1m\u001b[33m⚠\u001b[39m\u001b[22m Server is approaching the used memory threshold, restarting...\r\n";
