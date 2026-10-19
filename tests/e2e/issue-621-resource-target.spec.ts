@@ -359,12 +359,12 @@ test("#621 Target exact Assignment 개인 수정·공동담당 불변·412/401 �
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = await taskEditor(page);
   await expect(editor.getByRole("tab", { name: /^리소스/ })).toHaveAttribute("aria-selected", "true");
-  const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} (${f.resources[0].code}) 투입률 (%)`, { exact: true });
+  const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("100");
-  await expect(editor.getByLabel(`리소스 2 ${f.resources[1].name} (${f.resources[1].code}) 투입률 (%)`, { exact: true })).toHaveCount(0);
+  await expect(editor.getByLabel(`리소스 2 ${f.resources[1].name} 투입률 (%)`, { exact: true })).toHaveCount(0);
   await allocation.fill("80");
-  await editor.getByLabel(`리소스 1 ${f.resources[0].name} (${f.resources[0].code}) 투입 시작`, { exact: true }).fill("2026-10-14");
-  await editor.getByLabel(`리소스 1 ${f.resources[0].name} (${f.resources[0].code}) 투입 종료`, { exact: true }).fill("2026-10-14");
+  await editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입 시작`, { exact: true }).fill("2026-10-14");
+  await editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입 종료`, { exact: true }).fill("2026-10-14");
   let failure: 401 | 412 | null = 412;
   let requests = 0;
   await page.route(`**/api/projects/${f.publicId}/tasks/${f.task.taskId}/assignments`, async route => {
@@ -453,10 +453,14 @@ test("#621 Target 응답역전·실제409 stale·필터탈락 fallback·취소 s
   expect((await f.snapshot()).data.tasks.find(row => row.taskId === f.task.taskId)!.name).toBe("외부 변경으로 보고서 stale");
   await trigger.click();
   await editor.getByRole("tab", { name: /^물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor.locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor.getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   const binding = editor.getByRole("region", { name: "작업 Target 연결", exact: true });
-  await binding.getByLabel(`${f.targets[1].name} (${f.targets[1].code})`, { exact: true }).uncheck();
+  await binding.getByRole("checkbox", { name: f.targets[1].name, exact: true }).uncheck();
   await binding.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
-  await expect(binding.getByLabel(`${f.targets[1].name} (${f.targets[1].code})`, { exact: true })).not.toBeChecked();
+  await expect(binding.getByRole("checkbox", { name: f.targets[1].name, exact: true })).not.toBeChecked();
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await expect(root.getByTestId("resource-target-view")).toContainText("현재 조건에 일치하는 Target 관련 배정이 없습니다");
   await expect.poll(() => page.evaluate(() => { const active = document.activeElement as HTMLElement; return active !== document.body && active.checkVisibility(); })).toBe(true);

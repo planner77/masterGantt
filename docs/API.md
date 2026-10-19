@@ -52,7 +52,7 @@ GET은 `{data:{projectRevision,processCatalogRevision,context,permission}}`, ETa
 
 Milestone에는 nonempty 직접 문맥을 저장할 수 없으며400 `PROCESS_CONTEXT_MILESTONE_FORBIDDEN`이다. 직접 공정이 남아 있는 Task를 Milestone로 전환하거나 subtree 문맥이 남아 있는 Summary를 일반 Task로 바꾸는 요청은409 `PROCESS_CONTEXT_TYPE_CONFLICT`로 거부하며 먼저 호환되지 않는 직접 연결을 명시 해제한다.
 
-Task PUT의 두 배열은 필수다. `processLinks=[{processId,scope:"self"|"subtree"}]`, `workAreaLinks=[{processId,workAreaId,scope}]`이며 각각 최대200개다. `[]/[]`는 명시 공정0개를 저장한다. `null/null` 조회는 구형 미도입 상태이며 PUT의 입력 값이 아니다. `subtree`는 Summary만 허용하고 WorkArea의 소유 공정을 같은 요청의 processLinks에 명시해야 한다. WorkArea scope가 subtree이면 대응 공정도 subtree여야 한다. Equipment/System/WorkArea/Target에서 Task 공정을 채우거나 선택을 암묵 추가하지 않는다. 이 API는 #726 Task Editor 화면의 인계 계약이고 #728 해석·#729 집계 API를 구현하지 않는다.
+Task PUT의 두 배열은 필수다. `processLinks=[{processId,scope:"self"|"subtree"}]`, `workAreaLinks=[{processId,workAreaId,scope}]`이며 각각 최대200개다. `[]/[]`는 명시 공정0개를 저장한다. `null/null` 조회는 구형 미도입 상태이며 PUT의 입력 값이 아니다. `subtree`는 Summary만 허용하고 WorkArea의 소유 공정을 같은 요청의 processLinks에 명시해야 한다. WorkArea scope가 subtree이면 대응 공정도 subtree여야 한다. Equipment/System/WorkArea/Target에서 Task 공정을 채우거나 선택을 암묵 추가하지 않는다. 이 API는 #726 Task Editor의 직접 공정·WorkArea 저장에 사용하며 #728 해석·#729 집계 API와 구별한다.
 
 canonical `logistics`는 `equipmentWorkAreas` typed 연결 전체와 모든 Task의 `taskProcessContexts`를 제공한다. 빈 설비 연결 배열은 실제0개, Task의 `[]`는 명시0개, `null`은 legacy를 뜻하며 실패/부분 읽기를 빈 배열로 바꾸지 않는다. 기존 설비/System/Target 직접·상속 출처는 보존한다. Project context 및 공통 catalog/표준 apply API는 #615를 재사용한다.
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { IdentifierDetails } from "@/components/identifier-details";
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type {
@@ -428,7 +430,7 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
                   {group.resources.map((resource) => (
                     <details className="resource-workload-resource" key={`${group.id ?? "ungrouped"}:${resource.id}`}>
                       <summary>
-                        <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}{(targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code) ? ` (${targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code})` : ""}</span>
+                        <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}</span>
                         <span>{resource.start ?? "—"} ~ {resource.end ?? "—"}</span>
                         <span>{effort(resource.effortMd, resource.effortMm, unit)}</span>
                         {resource.developerGrade ? <span className="status-badge">{gradeLabel(resource.developerGrade)}</span> : null}
@@ -436,6 +438,7 @@ export function LegacyProjectResourceWorkload({ publicId, drillScope = null, onC
                         {resource.overAllocated ? <span className="status-badge danger" title="과투입은 전체 assignment의 일별 투입률 합계 기준입니다.">과투입</span> : null}
                         {resource.unsetCount ? <span className="status-badge warning">미설정 {resource.unsetCount}</span> : null}
                       </summary>
+                      <IdentifierDetails label={`${resource.name} 식별 정보`} identifiers={[{label:"리소스 ID",value:resource.id},...((targetByKey.get(`resource:${resource.id}`)?.code??resource.code)?[{label:"코드",value:(targetByKey.get(`resource:${resource.id}`)?.code??resource.code)!}]:[])]}/>
                       <div className="resource-workload-table-scroll">
                         <table className="resource-workload-table">
                           <thead>

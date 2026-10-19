@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
@@ -688,13 +689,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const candidate = modal.locator(".relation-editor-candidate-item", { hasText: "Alpha leaf" });
     await expect(candidate).toHaveCount(1);
-    await expect(candidate).toContainText("외부 ID: EDITOR-3");
-    await expect(candidate).toContainText(`작업 ID: ${id(3)}`);
+    await expect(candidate).toContainText("Alpha leaf");
+    await expect(candidate).not.toContainText(id(3));
     await candidate.click();
 
     await expect(modal.getByText("Alpha leaf", { exact: true })).toBeVisible();
-    await expect(modal.getByText("외부 ID: EDITOR-3", { exact: true })).toBeVisible();
-    await expect(modal.getByText(`작업 ID: ${id(3)}`, { exact: true })).toBeVisible();
+    await expectRawIdentifier(modal, "외부 ID", "EDITOR-3");
+    await expectRawIdentifier(modal, "작업 ID", id(3));
 
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
     await expect.poll(() => fixture.linkMutations.length).toBe(1);
@@ -721,7 +722,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const modal = relationEditor(page);
     await expect(modal).toContainText("기준 작업 [Milestone]");
     await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Milestone peer");
-    await modal.getByRole("button", { name: /Milestone peer.*외부 ID: EDITOR-6.*작업 ID:/ }).click();
+    await modal.getByRole("button", { name: /^Milestone peer/ }).click();
     await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
     await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
@@ -901,7 +902,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       const body = dialog.locator("form > div").first();
       const footer = dialog.locator("form > footer");
       await expect(dialog).toContainText("일반 작업");
-      await expect(dialog).toContainText("External ID");
+      await expectRawIdentifier(dialog, "외부 ID", "EDITOR-4");
       await expect(dialog).toContainText("Revision 20");
       const dialogBox = await dialog.boundingBox();
       const headerBox = await header.boundingBox();
@@ -1181,10 +1182,10 @@ test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와
 
 test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장 잠금", async ({ page }) => {
   const fixture = await setup(page);
-  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", resourceRoles: [] }], systems: [] } } } }));
+  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, permission: "edit", logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", active: true, resourceRoles: [] }], systems: [] } } } }));
   await page.route(`**${apiPath}/tasks/${id(4)}/logistics-links`, async (route) => {
     if (route.request().method() === "PUT") { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); return; }
-    await route.fulfill({ json: { data: { taskId: id(4), links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
+    await route.fulfill({ json: { data: { taskId: id(4), permission: "edit", links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
   });
   await openRow(page); const dialog = editor(page); await dialog.getByRole("tab", { name: /물류 연결/ }).click();
   const equipment = dialog.getByRole("checkbox", { name: /설비 초안/ }); await equipment.check();
@@ -1192,7 +1193,7 @@ test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장
   fixture.project.revision++; await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
   await expect(dialog).toContainText("기준 Revision이 변경"); await dialog.getByRole("tab", { name: /물류 연결/ }).click(); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
   await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click(); await expect(equipment).not.toBeChecked(); await equipment.check();
-  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 없습니다"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
+  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 만료"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
 });
 
 test("#461 readonly 검색 조회와 completed 후보 지정 거부", async ({ page }) => {

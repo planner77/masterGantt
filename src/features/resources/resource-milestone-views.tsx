@@ -1,5 +1,7 @@
 "use client";
 import { ContextHelp } from "@/components/ui/context-help";
+
+import { IdentifierDetails } from "@/components/identifier-details";
 import { useResourceDrill } from "./resource-drill-context";
 import { resourceProjectionFetch } from "./resource-drill-transport";
 import {
@@ -259,16 +261,13 @@ export function ResourceMilestoneMatrix(props: Props) {
             {rows.slice(rowOffset, rowOffset + 50).map((row) => (
               <tr key={row.id ?? "ungrouped"}>
                 <th scope="row">
-                  <span
-                    className="resource-milestone-identity"
-                    title={row.name}
-                  >
-                    {row.name}
-                  </span>
-                  <small>
-                    {row.code}
-                    {!row.active ? " · 비활성" : ""}
-                  </small>
+                  <div className="resource-milestone-matrix-identity">
+                    <span className="resource-milestone-identity" title={row.name}>
+                      {row.name}
+                    </span>
+                    {row.id ? <IdentifierDetails label="식별 정보" identifiers={[{label: "ID", value: row.id}, ...(row.code ? [{label: "코드", value: row.code}] : [])]} /> : null}
+                  </div>
+                  {!row.active ? <small>비활성</small> : null}
                 </th>
                 {visible.map((m) => (
                   <td key={m.id ?? "unassigned"}>

@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { ISSUE_623_TARGET_RESOURCE as oracle } from "../fixtures/issue-623-target-resource";
 import { inflateRawSync } from "node:zlib";
@@ -139,7 +140,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   await openWorkspaceView(page, "targets");
   await page.getByRole("button", { name: `Target 상세: ${f.targets[0].name}`, exact: true }).click();
   const targetDetail = page.getByRole("dialog", { name: `Target 상세 · ${f.targets[0].name}`, exact: true });
-  await expect(targetDetail).toContainText(f.task.taskId);
+  await expectRawIdentifier(targetDetail, "작업 ID", f.task.taskId);
   await targetDetail.getByRole("button", { name: /원본 작업 편집:.*SHARED · WBS 동일 원본/ }).click();
   await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-10-06");
   await editor(page).getByRole("button", { name: "저장", exact: true }).click();
@@ -160,7 +161,7 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   }
   let row = await sharedDetail(root, f.task.taskId);
   await row.getByRole("button", { name: `배정 편집: ${f.person.name}`, exact: true }).click();
-  const allocation = editor(page).getByLabel(`리소스 1 ${f.person.name} (${f.person.code}) 투입률 (%)`, { exact: true });
+  const allocation = editor(page).getByLabel(`리소스 1 ${f.person.name} 투입률 (%)`, { exact: true });
   await allocation.fill("80");
   await editor(page).getByRole("button", { name: /^할당 저장 \(/ }).click();
   await expect(allocation).toHaveValue("80");
@@ -172,9 +173,13 @@ test("#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방�
   row = await sharedDetail(root, f.task.taskId);
   await row.getByRole("button", { name: "SHARED · WBS 동일 원본", exact: true }).click();
   await editor(page).getByRole("tab", { name: /물류 연결/ }).click();
+  // #726: Target bindings are an explicit compatibility disclosure.
+  if (!(await editor(page).locator("details").filter({ has: page.getByText("Target 연결 (기존 호환)", { exact: true }) }).evaluate(element => (element as HTMLDetailsElement).open))) {
+    await editor(page).getByText("Target 연결 (기존 호환)", { exact: true }).click();
+  }
   const binding = editor(page).getByRole("region", { name: "작업 Target 연결", exact: true });
   await binding.getByRole("combobox", { name: `${f.targets[1].name} 구성원 선택`, exact: true }).selectOption("subset");
-  await binding.getByLabel(/ACS B \(ACS-B\)/).check();
+  await binding.getByRole("group", { name: `${f.targets[1].name} 선택 구성원`, exact: true }).getByRole("checkbox", { name: /^ACS B · 원본 / }).check();
   await binding.getByRole("button", { name: "Target 연결 저장", exact: true }).click();
   await expect(binding.getByRole("button", { name: "Target 연결 저장", exact: true })).toBeDisabled();
   await editor(page).getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
@@ -224,14 +229,20 @@ test("#623 실제 Target 다열·중첩Group 다섯화면폭 geometry·keyboard�
     }
     await expect(region).toBeFocused();
     const keyboardMovement = { scrollLeftBefore, scrollLeftAfter: await region.evaluate(element => element.scrollLeft) };
+    if (layout === "tree") {
+      const hiddenIdentityActions = region.locator('tbody details:not([open]) button');
+      expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
+      await expect(hiddenIdentityActions.first()).toBeHidden();
+    }
     const geometry = await region.evaluate(element => {
       const rect = (node: Element) => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width }; };
       const headers = [...element.querySelectorAll("thead tr:first-child > *")].map(rect); const cells = [...element.querySelectorAll("tbody tr:first-child > *")].map(rect);
-      return { viewport: innerWidth, document: document.documentElement.scrollWidth, owner: element.clientWidth, scroll: element.scrollWidth, focused: document.activeElement === element, headers, cells, buttons: [...element.querySelectorAll("tbody button")].map(button => ({ ...rect(button), parent: rect(button.closest("td,th")!) })) };
+      return { viewport: innerWidth, document: document.documentElement.scrollWidth, owner: element.clientWidth, scroll: element.scrollWidth, focused: document.activeElement === element, headers, cells, buttons: [...element.querySelectorAll("tbody button")].filter(button => button.checkVisibility() && button.getBoundingClientRect().width > 0 && button.getBoundingClientRect().height > 0).map(button => ({ ...rect(button), parent: rect(button.closest("td,th")!) })) };
     });
     expect(geometry.document).toBeLessThanOrEqual(width + 1); expect(geometry.focused).toBe(true);
     if (width === 390) expect(geometry.scroll).toBeGreaterThan(geometry.owner);
     for (let i = 0; i < geometry.headers.length; i++) { expect(Math.abs(geometry.headers[i].left - geometry.cells[i].left)).toBeLessThanOrEqual(1); expect(Math.abs(geometry.headers[i].right - geometry.cells[i].right)).toBeLessThanOrEqual(1); }
+    expect(geometry.buttons.length).toBeGreaterThan(0);
     for (const button of geometry.buttons) { expect(button.left).toBeGreaterThanOrEqual(button.parent.left - 1); expect(button.right).toBeLessThanOrEqual(button.parent.right + 1); }
     measurements.push({ layout, ...geometry, keyboardMovement }); await page.screenshot({ path: `output/playwright/issue-623/${layout}-${width}.png`, fullPage: true });
   }

@@ -1,0 +1,17 @@
+{
+  "width": 390,
+  "geometry": {
+    "identityWidth": 220,
+    "documentWidth": 390,
+    "viewport": 390,
+    "ownerWidth": 364,
+    "tableWidth": 734
+  },
+  "dialogGeometry": {
+    "x": 19,
+    "right": 371,
+    "width": 352
+  },
+  "source": "Issue #717 working tree; mocked HTTP canonical fixture",
+  "revision": 40
+}

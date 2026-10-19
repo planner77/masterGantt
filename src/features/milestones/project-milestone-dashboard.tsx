@@ -6,6 +6,7 @@ import type {
   MilestoneDashboardFilterInput,
   MilestoneDashboardFiltersDto,
 } from "../../contracts/milestone-dashboard";
+import { IdentifierDetails } from "../../components/identifier-details";
 import type { ResourceDrillSourceContext } from "../../contracts/resource-drill";
 import type { ProjectTaskDto } from "../../contracts/projects";
 import type { MilestoneResourceDrill } from "../resources/milestone-resource-drill";
@@ -175,33 +176,39 @@ export function ProjectMilestoneDashboard({
       <legend>{label}</legend>
       <div className={styles.choiceOwner}>
         {options.length ? (
-          options.map((option) => (
-            <label key={option.id} title={`${option.name} · ${option.id}`}>
-              <input
-                type="checkbox"
-                checked={
-                  (filters[key] as string[] | undefined)?.includes(option.id) ??
-                  false
-                }
-                onChange={(event) =>
-                  setFilters((current) => ({
-                    ...current,
-                    [key]: event.target.checked
-                      ? [...(current[key] ?? []), option.id]
-                      : (current[key] ?? []).filter(
-                          (value) => value !== option.id,
-                        ),
-                  }))
-                }
-              />
-              <span>
-                {option.name}
-                {option.externalId || option.code ? (
-                  <small>{option.externalId || option.code}</small>
-                ) : null}
-              </span>
-            </label>
-          ))
+          options.map((option) => {
+            const task = key === "milestoneIds" ? tasks.find((entry) => entry.taskId === option.id) : undefined;
+            return <div key={option.id}>
+              <label title={option.name}>
+                <input
+                  type="checkbox"
+                  checked={
+                    (filters[key] as string[] | undefined)?.includes(option.id) ??
+                    false
+                  }
+                  onChange={(event) =>
+                    setFilters((current) => ({
+                      ...current,
+                      [key]: event.target.checked
+                        ? [...(current[key] ?? []), option.id]
+                        : (current[key] ?? []).filter(
+                            (value) => value !== option.id,
+                          ),
+                    }))
+                  }
+                />
+                <span>
+                  {option.name}
+                  {task ? <small>{task.status === "completed" ? "완료 기록" : task.status === "in_progress" ? "진행 중" : "시작 전"} · {task.start ?? "날짜 미설정"}</small> : null}
+                </span>
+              </label>
+              {key !== "assignmentRoles" && key !== "developerGrades" ? <IdentifierDetails identifiers={[
+                ...(option.externalId ? [{ label: "외부 ID", value: option.externalId }] : []),
+                ...(option.code ? [{ label: "코드", value: option.code }] : []),
+                { label: "ID", value: option.id },
+              ]} /> : null}
+            </div>;
+          })
         ) : (
           <p>선택 대상 없음</p>
         )}
@@ -693,13 +700,9 @@ export function ProjectMilestoneDashboard({
                             : (data.catalog.milestones.find(
                                 (milestone) =>
                                   milestone.id === bucket.milestoneTaskId,
-                              )?.name ?? bucket.milestoneTaskId)}
+                              )?.name ?? "현재 정보에 없는 Milestone")}
                         </span>
-                        <small>
-                          {bucket.milestoneTaskId === null
-                            ? "effective 소속 없음"
-                            : bucket.milestoneTaskId}
-                        </small>
+                        {bucket.milestoneTaskId === null ? <small>effective 소속 없음</small> : <IdentifierDetails identifiers={[{ label: "작업 ID", value: bucket.milestoneTaskId }]} />}
                       </td>
                       <td>{displayEffort(bucket.plannedMd)}</td>
                       <td>{displayEffort(bucket.plannedMm)}</td>

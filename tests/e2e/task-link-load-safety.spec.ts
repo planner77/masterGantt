@@ -1,7 +1,9 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { deferred, installStatefulProjectFixture, publicId } from "../fixtures/stateful-project";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import type { ProjectLogisticsResponse, TaskLogisticsLinksResponse } from "../../src/contracts/logistics";
 
 const path = `/api/projects/${publicId}`;
 async function openTask(page: Page, name = "Stable leaf") {
@@ -14,7 +16,7 @@ async function openTask(page: Page, name = "Stable leaf") {
 function logistics() {
   return { processes: [], equipment: [{ id: "eq-1", processId: "proc-1", code: "EQ-01", name: "기존 연결 설비", equipmentType: "stocker", managementUnit: "unit", quantity: 1, manufacturer: "", model: "", description: "", active: true, controlSystems: [], resourceRoles: [{ resourceId: "res-1", resourceCode: "ENG-01", resourceName: "기존 담당자", role: "owner", isPrimary: true, active: true }], createdAt: "", updatedAt: "" }], systems: [], systemLinks: [] } as const;
 }
-function links(taskId: string) {
+function links(taskId: string): TaskLogisticsLinksResponse {
   return { data: { taskId, permission: "edit", links: { taskId, directEquipmentLinks: [{ equipmentId: "eq-1", scope: "self" }], inheritedEquipmentLinks: [], effectiveEquipmentIds: ["eq-1"], directSystemLinks: [], inheritedSystemLinks: [], effectiveSystemIds: [] } } };
 }
 
@@ -36,7 +38,17 @@ for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revis
       if (fail && failure === "network") { await route.abort(); return; }
       await route.fulfill(fail && failure === "500" ? { status: 500, json: {} } : { json: fail && failure === "malformed" ? { data: { links: { directEquipmentLinks: [null] } } } : links(fail && failure === "wrong-task" ? "other-task" : taskId) });
     });
-    await page.route(`**${path}/logistics`, (route) => route.fulfill({ json: { data: { project: { ...fixture.project, revision: fail && failure === "wrong-revision" ? 1 : fixture.project.revision }, logistics: fail && failure === "malformed-role" ? { ...fixture.logistics, equipment: [{ ...fixture.logistics!.equipment[0], resourceRoles: [null] }] } : fixture.logistics } } }));
+    await page.route(`**${path}/logistics`, (route) => {
+      const data: ProjectLogisticsResponse["data"] = {
+        project: { ...fixture.project, revision: fail && failure === "wrong-revision" ? 1 : fixture.project.revision },
+        logistics: fixture.logistics!,
+        permission: fixture.sessionEditable ? "edit" : "readonly",
+      };
+      // This one deliberate malformed response exercises snapshot validation.
+      return route.fulfill({ json: { data: fail && failure === "malformed-role"
+        ? { ...data, logistics: { ...data.logistics, equipment: [{ ...data.logistics.equipment[0], resourceRoles: [null] }] } }
+        : data } });
+    });
     await page.goto(`/projects/${publicId}`);
     const dialog = await openTask(page);
     await expect(dialog.getByRole("alert").filter({ hasText: "물류 연결 정보를 불러오지 못했습니다." })).toBeVisible();
@@ -56,6 +68,43 @@ for (const failure of ["500", "network", "malformed", "wrong-task", "wrong-revis
     expect(payload).toEqual({ equipmentLinks: [{ equipmentId: "eq-1", scope: "self" }], systemLinks: [] });
     expect(match).toBe('"40"');
   });
+}
+
+for (const source of ["links", "logistics"] as const) {
+  for (const permission of ["readonly", "missing"] as const) {
+    test(`UI 편집 상태라도 ${source} 응답 권한 ${permission}이면 기존 연결을 보존하고 PUT을 차단한다`, async ({ page }) => {
+      const fixture = await installStatefulProjectFixture(page);
+      fixture.logistics = JSON.parse(JSON.stringify(logistics()));
+      let mutations = 0;
+      // Missing permission is intentional malformed input, never an edit grant.
+      const denied = permission === "readonly" ? { permission: "readonly" as const } : {};
+      const edit = { permission: "edit" as const };
+      await page.route(`**${path}/tasks/*/logistics-links`, route => {
+        if (route.request().method() === "PUT") {
+          mutations++;
+          return route.fulfill({ status: 500, json: {} });
+        }
+        const taskId = new URL(route.request().url()).pathname.split("/").at(-2)!;
+        return route.fulfill({ json: { data: { taskId, links: links(taskId).data.links, ...(source === "links" ? denied : edit) } } });
+      });
+      await page.route(`**${path}/logistics`, route => route.fulfill({ json: { data: {
+        project: fixture.project, logistics: fixture.logistics, ...(source === "logistics" ? denied : edit),
+      } } }));
+      await page.goto(`/projects/${publicId}`);
+      const dialog = await openTask(page);
+      const selected = dialog.getByRole("checkbox", { name: /기존 연결 설비/ });
+      await expect(selected).toBeChecked();
+      await expect(selected).toBeDisabled();
+      await expect(dialog.getByText("서버의 편집 권한을 확인할 수 없습니다. 최신 정보를 다시 불러와 주세요.", { exact: true })).toBeVisible();
+      const save = dialog.getByRole("button", { name: "물류 연결 저장", exact: true });
+      await expect(save).toBeDisabled();
+      await save.evaluate((button: HTMLButtonElement) => { button.disabled = false; button.click(); });
+      await expect(selected).toBeChecked();
+      expect(mutations).toBe(0);
+      expect(fixture.sessionEditable).toBe(true);
+      expect(fixture.project.revision).toBe(40);
+    });
+  }
 }
 
 test("이전 작업의 지연 응답은 새 작업의 실패 상태와 저장 차단을 바꾸지 않는다", async ({ page }) => {
@@ -117,7 +166,9 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.getByRole("button", { name: "담당자", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
     await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
-    await expect(dialog.locator("strong").filter({ hasText: "기존 담당자 (ENG-01)" })).toBeVisible();
+    await expect(dialog.locator("strong").filter({ hasText: /^기존 담당자$/ })).toBeVisible();
+    await expectRawIdentifier(dialog, "리소스 코드", "ENG-01");
+    await expectRawIdentifier(dialog, "리소스 ID", "res-1");
     await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
     await expect(dialog.getByRole("combobox").first()).toBeDisabled();
     expect(mutations).toBe(0);
@@ -182,14 +233,19 @@ test("재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름
   await openWorkspaceView(page, "equipment");
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   let dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
-  await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toBeVisible();
+  await expect(dialog.locator("strong").filter({ hasText: /^이전 캐시 이름$/ })).toBeVisible();
+  await expectRawIdentifier(dialog, "리소스 코드", "OLD-01");
+  await expectRawIdentifier(dialog, "리소스 ID", "res-1");
   await page.keyboard.press("Escape");
   fail = true;
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
   await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
-  await expect(dialog.getByText("기존 담당자 (ENG-01)", { exact: true })).toBeVisible();
-  await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toHaveCount(0);
+  await expect(dialog.locator("strong").filter({ hasText: /^기존 담당자$/ })).toBeVisible();
+  await expectRawIdentifier(dialog, "리소스 코드", "ENG-01");
+  await expectRawIdentifier(dialog, "리소스 ID", "res-1");
+  await expect(dialog.locator("strong").filter({ hasText: /^이전 캐시 이름$/ })).toHaveCount(0);
+  expect(await dialog.locator("textarea").evaluateAll(fields => fields.some(field => (field as HTMLTextAreaElement).value === "OLD-01"))).toBe(false);
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
 });
 
@@ -203,10 +259,68 @@ test("시스템 PI의 malformed 후보에서도 canonical 이름과 저장 차�
   await openWorkspaceView(page, "systems");
   await page.getByRole("button", { name: "PI/개발자", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: /시스템 PI/ });
-  await expect(dialog.getByText("기존 PI (PI-01)", { exact: true })).toBeVisible();
+  await expect(dialog.locator("strong").filter({ hasText: /^기존 PI$/ })).toBeVisible();
+  await expectRawIdentifier(dialog, "리소스 코드", "PI-01");
+  await expectRawIdentifier(dialog, "리소스 ID", "res-1");
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
   await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
   fail = false;
   await dialog.getByRole("button", { name: "리소스 목록 다시 시도" }).click();
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
 });
+
+for (const kind of ["equipment", "system"] as const) {
+  test(`동명 ${kind === "equipment" ? "설비 담당자" : "시스템 PI"}는 원본별 주 담당·삭제와 canonical 오류 복구를 구분한다`, async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    const role = kind === "equipment" ? "owner" as const : "pi" as const;
+    const resourceRoles = [1, 2].map(n => ({ resourceId: `res-${n}`, resourceName: "동명 담당자", resourceCode: `CAN-${n}`, role, isPrimary: n === 1, active: true }));
+    fixture.logistics = kind === "equipment"
+      ? { processes: [], equipment: [{ ...JSON.parse(JSON.stringify(logistics())).equipment[0], resourceRoles: resourceRoles.map(item => ({ ...item, role: "owner" as const })) }], systems: [], systemLinks: [] }
+      : { processes: [], equipment: [], systems: [{ id: "sys-1", code: "MCS", name: "조율 시스템", systemType: "mcs", layer: "coordinator", scope: "project", processIds: [], coordinatedSystemIds: [], vendor: "", description: "", active: true, createdAt: "", updatedAt: "", resourceRoles: resourceRoles.map(item => ({ ...item, role: "pi" as const })) }], systemLinks: [] };
+    let failCatalog = false;
+    const payloads: unknown[] = [];
+    const matches: (string | undefined)[] = [];
+    await page.route("**/api/resources", route => route.fulfill(failCatalog ? { status: 500, json: {} } : { json: { data: { resources: [1, 2].map(n => ({ id: `res-${n}`, name: "동명 담당자", code: `CAT-${n}`, active: true })) } } }));
+    await page.route(`**${path}/logistics/${kind === "equipment" ? "equipment/eq-1" : "systems/sys-1"}/resource-roles`, route => {
+      payloads.push(route.request().postDataJSON());
+      matches.push(route.request().headers()["if-match"]);
+      return route.fulfill({ status: 500, json: { error: { code: "FAILED", message: "합성 저장 오류" } } });
+    });
+    await page.goto(`/projects/${publicId}`);
+    await openWorkspaceView(page, kind === "equipment" ? "equipment" : "systems");
+    const trigger = page.getByRole("button", { name: kind === "equipment" ? "담당자" : "PI/개발자", exact: true });
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: kind === "equipment" ? /설비 담당자 배정/ : /시스템 PI/ });
+    const second = dialog.locator('[data-role-resource-id="res-2"]');
+    await expect(second.locator("strong")).toHaveText("동명 담당자 (CAT-2)");
+    await expectRawIdentifier(dialog, "리소스 ID", "res-2");
+    await expectRawIdentifier(dialog, "리소스 코드", "CAT-2");
+    await second.getByRole("button", { name: kind === "equipment" ? "주 담당 지정" : "주 책임 지정", exact: true }).click();
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    await expect.poll(() => payloads.length).toBe(1);
+    expect(payloads[0]).toEqual({ roles: [{ resourceId: "res-1", role, isPrimary: false }, { resourceId: "res-2", role, isPrimary: true }] });
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+    await second.getByRole("button", { name: "삭제", exact: true }).click();
+    await expect(second).toHaveCount(0);
+    await expect(dialog.locator('[data-role-resource-id="res-1"] strong')).toHaveText("동명 담당자 (CAT-1)");
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+    await expect.poll(() => payloads.length).toBe(2);
+    expect(payloads[1]).toEqual({ roles: [{ resourceId: "res-1", role, isPrimary: false }] });
+    expect(matches).toEqual(['"40"', '"40"']);
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+    await page.keyboard.press("Escape");
+    failCatalog = true;
+    await trigger.click();
+    await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
+    for (const n of [1, 2]) {
+      await expect(dialog.locator(`[data-role-resource-id="res-${n}"] strong`)).toHaveText(`동명 담당자 (CAN-${n})`);
+      await expectRawIdentifier(dialog, "리소스 ID", `res-${n}`);
+      await expectRawIdentifier(dialog, "리소스 코드", `CAN-${n}`);
+    }
+    expect(await dialog.locator("textarea").evaluateAll(fields => fields.some(field => (field as HTMLTextAreaElement).value.startsWith("CAT-")))).toBe(false);
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+    await expect(dialog.locator('[data-role-resource-id="res-2"]').getByRole("button", { name: "삭제", exact: true })).toBeDisabled();
+    expect(payloads).toHaveLength(2);
+    expect(fixture.project.revision).toBe(40);
+  });
+}

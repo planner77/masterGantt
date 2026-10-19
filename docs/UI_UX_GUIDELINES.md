@@ -1,3 +1,7 @@
+## Issue #717 — 이름 우선과 식별 정보 요청 조회
+
+`DESIGN.md` §1.3을 적용한다. 일반 행·후보·KPI는 이름과 업무 맥락을 우선하고 코드/UUID는 기본 접힌 `IdentifierDetails`에서 원문을 확인·복사한다. native details/summary·44px·focus ring·readonly textarea 전체 선택·Clipboard 실패 안내를 사용한다. option/listbox 내부에 disclosure/button을 중첩하지 않는다. 동일 표시 후보는 실제 부모 이름/날짜/상태를 비교하고 불충분할 때만 보조 코드를 표시한다. 공정명은 최소220px, 전체 표 예산을 소유한 내부 scroll을 사용한다. [화면 인벤토리](ISSUE_717_IDENTITY_INVENTORY.md)와 [실행 계획](exec-plans/active/ISSUE_717.md)의 실제 검증 범위·미검증 상태를 따른다.
+
 ## #548 — Milestone Grid/Chart 분리와 선택적 마커의 UI/UX 게이트 (2026-10-15)
 
 [Milestone Presentation Policy](MILESTONE_PRESENTATION_POLICY.md)에서 UX source를 정한다. Gantt native WBS 기본선은 Summary/일반 Task만 표시하고 Milestone은 별도 Dashboard/소속 Task·Ready/KPI로 관리한다. 상단 Timeline 마커는 **필수 공간/표시가 아니며 기본 OFF**로, 과거 #549의 '기본 ON' 제안과 #551 기술 preview를 제품 기본 활성화로 취급하지 않는다. 'Milestone 표시' UI가 WBS 행 토글·marker 토글·작업 소속 필터를 동시에 바꾸어서는 안 된다.

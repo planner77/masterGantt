@@ -1,9 +1,28 @@
-## [0.121.0] — Unreleased / Issue #729
+## [0.122.0] — Unreleased / Issue #729
 
 - WBS 원장 기반 opt-in versioned 조회 API를 추가한다. 선택 root와 순차 하위 단계, 설비/System 형제 분기를 지원하며 기존 projectionOrder/API의 의미는 보존한다.
 - Task 직접 공정0..N·미연결·등록-only root·미배정 작업을 보존한다. 상위 총계는 원시 Task/Assignment 합집합이며 경로별 viewRowKey와 실제 관계 provenance를 제공한다.
 - 같은 SQLite read snapshot의 문맥·이름·다중 WorkArea·참여·Calendar를 fingerprint로 결속하고 정확 상세/drill·미지원 Excel의 명시 오류 경계를 제공한다. 동적 화면은 후속 이슈 범위다.
 - HIGH/OWNER_MANAGED, qa_required=true, release_required=true, release_authorized=false. PR CI 시작은 원격 검증 성공·Owner ACCEPT·병합·정식 릴리스 완료가 아니다.
+
+## [0.121.0] — Unreleased / Issue #726
+
+- 공정이 없는 프로젝트에서 설비 추가 버튼이 선행 공정 등록 안내를 표시하도록 복원하고 생성 금지·읽기 전용·저장 중 보호는 유지한다.
+- 기준정보 설비·물류 시스템의 기존 원본 CRUD를 재사용하며 유형 조회 상태·재시도·저장 비활성 이유와 System dirty/stale 보호를 보강했다.
+- Task 물류 연결에서 직접 공정·WorkArea0..N 편집과 직접 설비/System 연결을 우선 제공하고 기존 Target whole/subset/coverage는 보조 호환 영역에 보존했다.
+- 기존 canonical·권한·revision과 다중 WorkArea/공유 원본을 유지하고 사용자 가이드·문서·관련 수용 검증을 갱신했다. 원격 CI·Owner 최종 판정은 별도다.
+
+## [0.120.1] — Unreleased / Issue #717
+
+- Milestone·물류·Task/관계·리소스·기준정보·Import에서 이름을 주 식별자로 표시하고, 전체 코드/UUID는 요청 시 확인·복사한다. 코드/ID 검색·정확 동명 선택·공정 코드 자동생성/수정과 API/DB/Export·보안/revision·Gantt Core 계약을 보존한다.
+- 공정 코드 선행 열을 제거하고 이름 최소220px 및 내부 표 스크롤을 확보한다. 공통 키보드/터치 disclosure·Clipboard 실패 수동 복사 대체 경로, 단위·5폭·실제 HTTP 회귀와 화면별 예외 인벤토리를 추가한다.
+- PR CI 시작까지 진행하며 원격 Required 검사·Trusted QA·Owner 병합 승인·정식 릴리스는 별도다. release_required=true, release_authorized=false.
+- CI #2954.1에서 Resource Plan 그룹 펼침 버튼과 닫힌 ID 복사 버튼을 구분하고, Milestone 비교표의 긴 이름·식별 정보 기본 행을 가로 compact 배치해 390px 행 높이/가시 행 밀도 기준을 복구하도록 보완한다. 44px 식별 정보 열기/원본 ID·코드 조회·복사 및 기존 5폭/서버/Gantt/Resource 검증 상한은 유지하며 새 Full CI 성공 여부는 별도 판정한다.
+- PR CI #2968.1의 대시보드 상위 탭 selected-but-unfocused와 Milestone→공정 보기의 잘못된 자동 복원을 수정한다. active section 재선택은 현재 하위 화면을 유지하고 Tab 초점을 동기로 복원해 비활성 패널 숨김 중 focus 이탈을 방지한다. #725 WorkArea 공정·설비 문맥·migration0028과 기존 이름/ID 표시는 그대로 유지한다.
+
+- PR CI #2976.1의 담당자 이름 조회를 이름 우선 계약에 맞추고, 조회 실패에서도 canonical 이름·원본 코드/ID를 안전하게 확인하도록 보완한다. 동명 대상 구분과 정확한 주 담당/삭제·저장 차단을 유지한다. 과거 18회 실행을 동일 Issue 실패 원장에 보존하고 main #727의 프로젝트 리소스 등록 기능을 통합한다.
+
+- CI #2980.1은 Quality·Chromium E2E 6/6·Docker가 모두 성공했으나, 검사 중 main #728 병합으로 기존 base/test-merge 출처가 변경돼 QA Final이 BLOCKED되었다. 검증 게이트를 완화하지 않고 최신 main과 출처를 다시 정렬해 전체 PR CI를 재시작한다. 후보 버전 0.120.1은 정식 릴리스 승인·GHCR 게시가 아니다.
 
 ## [0.120.0] — Unreleased / Issue #728
 

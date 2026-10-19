@@ -231,11 +231,16 @@ describe("Resource Plan UI scope and snapshot contract", () => {
       { dimension: "target", id: b, name: outsideName, code: "B", active: false },
     ];
     const before = structuredClone(data);
-    expect(planTargetLabel(data, a)).toBe(`Target A · ${a}`);
-    expect(planTargetLabel(data, b)).toBe(`${outsideName} · ${b}`);
-    expect(planTargetLabel(data, "unassigned")).toBe("Target 미연결 · unassigned");
-    expect(planTargetLabel({ ...data, catalog: { ...data.catalog, targetOptions: [] } }, b)).toBe(`Target · ${b}`);
+    expect(planTargetLabel(data, a)).toBe("Target A");
+    expect(planTargetLabel(data, b)).toBe(outsideName);
+    expect(planTargetLabel(data, "unassigned")).toBe("Target 미연결");
+    expect(planTargetLabel({ ...data, catalog: { ...data.catalog, targetOptions: [] } }, b)).toBe("Target 정보 없음");
     expect(data).toEqual(before);
+    data.catalog.targetOptions[2].name = "Target A";
+    expect(planTargetLabel(data, a)).toBe("Target A (A)");
+    expect(planTargetLabel(data, b)).toBe("Target A (B)");
+    data.catalog.targetOptions[2].code = null;
+    expect(planTargetLabel(data, b)).toBe(`Target A (${b})`);
   });
 
 });

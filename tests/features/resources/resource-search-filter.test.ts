@@ -15,6 +15,11 @@ describe("resource-search-filter", () => {
     { id: "g3", name: "기획팀", code: null, description: "", active: true, memberResourceIds: ["r3"] },
   ];
 
+  it("식별 정보의 원문 ID로도 정확한 항목을 찾는다", () => {
+    expect(filterResources(sampleResources, "R2").map(row => row.id)).toEqual(["r2"]);
+    expect(filterGroups(sampleGroups, "G3").map(row => row.id)).toEqual(["g3"]);
+  });
+
   describe("filterResources", () => {
     it("빈 검색어는 전체 리소스를 반환한다", () => {
       expect(filterResources(sampleResources, "")).toHaveLength(3);

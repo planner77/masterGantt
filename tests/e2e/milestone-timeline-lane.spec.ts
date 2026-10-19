@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -168,7 +169,7 @@ test("#551 singleton focus/hover guide and canonical Editor return preserve nati
   await marker.hover(); await page.mouse.move(20,20); await expect(marker).toBeFocused(); await expect(frame.locator(".project-milestone-lane-guide")).toHaveCount(1);
   const focus=await focusObservation(marker); expect(focus.active).toBe(true); expect(focus.outset).toBe(6); expect(focus.centerHit).toBe(true);
   expect(focus.x-6).toBeGreaterThanOrEqual(focus.owner!.x);expect(focus.right+6).toBeLessThanOrEqual(focus.owner!.right);
-  await page.keyboard.press("Enter");const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await expect(editor).toContainText("M-only");
+  await page.keyboard.press("Enter");const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toBeVisible();await expectRawIdentifier(editor, "외부 ID", "M-only");
   await page.keyboard.press("Escape");await expect(editor).toBeHidden();await expect(marker).toBeFocused();
   expect((await probe<Observation>(frame,"read")).instance).toBe(before.instance);expect(state.posts.length+state.patchRequests.length).toBe(0);
   await captureLane(page,info,"singleton-focus-guide",{focus,instance:before.instance,mutationCount:0});
@@ -184,7 +185,7 @@ test("#551 same-date/near-date cluster pagination keyboard and exact-ID Editor r
   await list.getByRole("button",{name:"다음 50개",exact:true}).click();await expect(list.locator("[data-milestone-lane-trigger]")).toHaveCount(6);
   await list.getByRole("button",{name:"이전 50개",exact:true}).click();const items=list.locator("[data-milestone-lane-trigger]");await items.first().focus();await page.keyboard.press("End");await expect(items.last()).toBeFocused();await page.keyboard.press("Home");await expect(items.first()).toBeFocused();await page.keyboard.press("ArrowDown");await expect(items.nth(1)).toBeFocused();
   const id=await items.nth(1).getAttribute("data-milestone-lane-trigger");expect(id).toBe(state.tasks.find(task=>task.externalId==="M-0002")!.taskId);
-  await page.keyboard.press("Enter");const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expect(editor).toContainText("M-0002");await page.keyboard.press("Escape");await expect(editor).toBeHidden();await expect(items.nth(1)).toBeFocused();
+  await page.keyboard.press("Enter");const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});await expectRawIdentifier(editor, "외부 ID", "M-0002");await page.keyboard.press("Escape");await expect(editor).toBeHidden();await expect(items.nth(1)).toBeFocused();
   await page.keyboard.press("Escape");await expect(list).toBeHidden();await expect(markers.first()).toBeFocused();
   expect(state.posts.length+state.patchRequests.length).toBe(0);await captureLane(page,info,"cluster-keyboard",{clusterCount:2,firstCluster:56,pageSize:50,secondPage:6,openedTaskId:id,mutationCount:0});
 });

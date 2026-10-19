@@ -1,3 +1,4 @@
+import { expectRawIdentifier } from "./helpers/identifier-details";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
@@ -50,12 +51,15 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   await table.locator("tbody tr").filter({ hasText: f.resources[0].name }).getByRole("button", { name: /Project 전체 · 초과/ }).first().click();
   const detail = root.getByRole("region", { name: "기간 부하 상세", exact: true });
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
-  await expect(detail).toContainText(f.targets[0].id);
+  await expectRawIdentifier(detail, "Target ID", f.targets[0].id);
   await expect(detail).toContainText(f.targets[0].name);
   await expect(detail).toContainText("선택 Target 밖 배정 포함");
   await detail.locator("tbody th button").first().click();
   await expect(detail).toHaveAttribute("data-detail-state", "ready");
   const row = detail.locator(`[data-canonical-task-id="${f.unset.taskId}"]`);
+  const hiddenIdentityActions = row.locator("details:not([open]) button");
+  expect(await hiddenIdentityActions.count()).toBeGreaterThan(0);
+  for (const action of await hiddenIdentityActions.all()) await expect(action).toBeHidden();
   await expect(row).toContainText(f.targets[1].name);
   for (const width of [390, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -65,7 +69,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
       const rect = (node: Element) => { const box = node.getBoundingClientRect(); return { left: box.left, right: box.right, width: box.width }; };
       const headers = [...element.querySelectorAll("thead th")].map(rect);
       const cells = [...element.querySelectorAll("tbody tr:first-child > *")].map(rect);
-      const buttons = [...element.querySelectorAll("tbody tr:first-child > th button")].map(button => ({ ...rect(button), parent: rect(button.closest("th")!) }));
+      const buttons = [...element.querySelectorAll("tbody tr:first-child > th button")].filter(button => button.checkVisibility()).map(button => ({ ...rect(button), parent: rect(button.closest("th")!) }));
       return { width: innerWidth, document: document.documentElement.scrollWidth, client: element.clientWidth, scroll: element.scrollWidth, focused: document.activeElement === element, headers, cells, buttons };
     });
     expect(geometry.document).toBeLessThanOrEqual(width + 1); expect(geometry.focused).toBe(true);
@@ -84,7 +88,7 @@ test("#622 Target 선택80·Project140·외부 배정 편집 복귀·동일 Exce
   const edit = row.getByRole("button", { name: `배정 편집: ${f.resources[0].name}`, exact: true });
   await edit.focus(); await page.keyboard.press("Enter");
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
-  const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} (${f.resources[0].code}) 투입률 (%)`, { exact: true });
+  const allocation = editor.getByLabel(`리소스 1 ${f.resources[0].name} 투입률 (%)`, { exact: true });
   await expect(allocation).toHaveValue("60");
   await allocation.fill("40");
   await editor.getByRole("button", { name: /^할당 저장 \(/ }).click();

@@ -9,7 +9,7 @@
 - baseline_sha: `6f6dadb1b3ac10bc837c09273a0922611b2e3f81` (main, #728 / PR #742)
 - working_branch: `feat/issue-729-versioned-views`
 - baseline_version: `0.120.0`
-- candidate_version: `0.121.0` (minor: 신규 opt-in 공개 조회 기능, dependency 변경 없음)
+- candidate_version: `0.122.0` (최신 main의 `0.121.0`과 충돌하지 않도록 신규 opt-in 공개 조회 기능의 minor version 순증, dependency 변경 없음)
 - risk_level: HIGH
 - risk_reason: 공개 Project 조회의 원시 Task/Assignment 귀속·다관점 비가산 합계·snapshot/detail/Export 범위가 여러 기존 원장에 걸침
 - qa_required: true
@@ -121,3 +121,11 @@ gantt_standard_version: `GSC 1.0.0-candidate` (`REVIEW_PENDING`). 읽은 문서 
 자동 선정의 generic Gantt browser/Core 및 DB/Import 전체 시나리오는 직접 로컬 실행에서 제외했다. manifest/lock은 version만 변경하고 UI/Gantt/Import/DB writer는 비변경이므로 새 HTTP opt-in read adapter의 직접 SQLite·HTTP와 영향받는19개 suite를 수동 실행했다. 전체 Chromium6/Docker/production build는 PR CI에 유지한다. 수동 매핑은 CLI BLOCKED 상태를 변경하지 않으며 실제 Next 서버 routing·브라우저 async 응답 역전·수동 UX·운영 규모 성능은 해당 환경 증거 전 NOT TESTED다.
 
 문서 의미/구현/테스트 및 docs_gate의 구조/AC mapping을 각각 확인했다. 이 로컬 구조 검사는 `STRUCTURAL_PASS_SEMANTIC_REVIEW_PENDING` / `MAPPING_PASS_SEMANTIC_REVIEW_PENDING`이며 Trusted QA/Owner 병합 승인이 아니다. 신규 spec의 Excel은 명시 미지원409이고 기존 Excel은 회귀로 보존했다. 실제 원격 Required Quality/E2E/Docker·Trusted QA·Manager ACCEPT는 PR CI 시작 후에도 결과 미조회이므로 NOT TESTED, MERGE_READY=BLOCKED다.
+
+
+### main 최신 정렬 및 PR CI 재시작 (2026-10-19 KST)
+
+- 기존 feature HEAD: `f920f4cdf9f4b9a385de20ad65af6371dc6530e8`; 최초 기준 main: `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`; 정렬 main: `0ad91e7b075aa339b3b73ee0b4b3e8bc64e992f2` (이후 main 전진 시 재검토).
+- PR #744 미해결 Review Thread: 0건. 최신 main과 30커밋 차이, 공통 변경 9파일(상단 독립 문서7개 및 package/lock2개)은 #729 소개 문단과 선행 main 문맥을 함께 보존하고 새 버전 `0.122.0`으로 조정한다. 구현 source/test은 PR 원본 blob을 유지한다.
+- 최초 source/test 14파일의 기존 SQLite/HTTP·Unit 증거는 해당 구현 source에 한정된다. 합성 merge에 포함된 최신 main UI 및 version 변경의 전체 제품 검증은 새 exact-head PR CI Quality/E2E6/Docker에서 수행하며 실행 결과는 NOT TESTED이다. 사전 로컬 Pre-PR BLOCKED도 종전대로 유지한다.
+- 이 정렬 작업은 병합 전 PR 검증 재시작까지이고 Owner ACCEPT, GHCR, 정식 Release, 이슈 종료를 허가하거나 수행하지 않는다.
