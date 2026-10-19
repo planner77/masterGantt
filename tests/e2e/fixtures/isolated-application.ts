@@ -101,11 +101,10 @@ export const test = base.extend<{
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      await provide({ origin: external, timeStage: async (_stage, task) => task(), listen: () => () => {}, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
+      try { await provide({ origin: external, timeStage: async (_stage, task) => task(), listen: () => () => {}, observeApi: async (_route, _method, operation) => operation(), restart: async () => {
         testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
         throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
-      } });
-      await performanceReceipt.attach("ok");
+      } }); } finally { await performanceReceipt.attach(testInfo.status === testInfo.expectedStatus ? "ok" : "error"); }
       return;
     }
     await mkdir(resolve(repositoryRoot, ".data"), { recursive: true });

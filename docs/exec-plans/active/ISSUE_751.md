@@ -10,8 +10,10 @@ Status: implementation extended; actual CI and controlled tests NOT TESTED as of
 - Distinct 60s test body and 120s fixture timeouts; old #730 trace Before Hooks 14.6797s and body 59.97s are not summed. Test residual body timing is not independently measured for all tests.
 - Added tests/scripts/issue-751-performance-receipt.test.ts synthetic success, HTTP 503, abort, timeout, privacy and monotonic fixture/seed coverage. The genuine Chromium/Next/SQLite run and cleanup remain NOT TESTED.
 - Added read-only manual workflow_dispatch issue-751-performance-trend.yml and authenticated scripts/issue-751-performance-trend.py collector for last retained successful main-run timing artifacts. It is not operational on default main until merged, and the history may still be INSUFFICIENT_DATA.
-- Outstanding: direct server SQL query/lazy compile/fan-out causal attribution, genuine failure injection and cleanup repetition, identical-control baseline before/after metrics, official original HAR/Trace intersection. No claims of improvement/PASS until evidence.
+- Outstanding: direct server SQL query/lazy compile/fan-out causal attribution, genuine failure injection and cleanup repetition, identical-control baseline before/after metrics, official original Trace intersection. The added local HAR sanitizer does not establish the original HAR evidence without a real trace capture. No claims of improvement/PASS until evidence.
 - New source local TypeScript/ESLint/E2E and Full PR 3 required checks/Trusted QA: NOT TESTED. High-risk OWNER_MANAGED; release_required=false, release_authorized=false; no merge/GHCR without Owner approval.
+
+- Added a bounded local HAR converter and unit regression tests for secure timing/error category extraction; it is a manual evidence utility, not proof of tested production requests.
 
 ## DOCUMENTATION_SYNC
 
@@ -25,7 +27,7 @@ Status: implementation extended; actual CI and controlled tests NOT TESTED as of
 ## AC_TEST_COVERAGE
 
 - AC1: tests/e2e/fixtures/isolated-performance-receipt.ts, isolated-application.ts, tests/config/e2e-timing-reporter.cjs, tests/e2e/issue-623-resource-mvp.spec.ts 세 종류의 main #731 분할 테스트를 연결하여 fixture/hook/body/seed/API 측정과 source Run/Attempt/checkout 경계를 검증한다. 실제 Chromium 전용 환경은 새 PR CI 전 NOT TESTED.
-- AC2: tests/scripts/issue-751-performance-receipt.test.ts의 monotonic/HTTP503/Abort/Timeout/마스킹 통제와 테스트별 격리 SQLite 생성·정리 계약을 회귀한다. 실제 서버 종료·느린 네트워크·오류 주입 반복은 원격 실행 전 NOT TESTED.
+- AC2: tests/scripts/issue-751-sanitize-har.test.ts and tests/scripts/issue-751-performance-receipt.test.ts의 monotonic/HTTP503/Abort/Timeout/마스킹 통제와 테스트별 격리 SQLite 생성·정리 계약을 회귀한다. 실제 서버 종료·느린 네트워크·오류 주입 반복은 원격 실행 전 NOT TESTED.
 - AC3: scripts/issue-751-performance-summary.mjs, scripts/issue-751-performance-trend.py, .github/workflows/issue-751-performance-trend.yml, docs/TEST_PLAN.md와 docs/CI_CD.md를 연결하여 각 출처의 동일 환경 P50/P95, warning-only, 표본 부족을 검증한다. 유효한 전후 동일 환경 성능 개선 판단은 실측 전 INSUFFICIENT_DATA.
 
 ## CURRENT_VERIFICATION
