@@ -1,3 +1,9 @@
+## Issue #751 F-007 — node-gyp Node 22 헤더 checksum ECONNRESET 국소적 해결 (2026-10-20)
+
+- [전용 누적 실패 원장 F-007](ISSUE_751_FAILURE_ANALYSIS.md): PR #754 Full [#3028.1](https://github.com/planner77/masterGantt/actions/runs/39318895759), Shard 2 `118288652891`은 E2E 테스트 전 `better-sqlite3`의 native `node-gyp rebuild`가 `SHASUMS256.txt`를 가져오다 `ECONNRESET`이 발생했다. 정확 키 `~/.npm` cache hit 및 setup-node Node v22.23.3은 이미 준비되었으나 cache hit이 Node 헤더 준비나 성공 테스트를 보장하지 않는다.
+- `.github/actions/node-setup/action.yml`에는 opt-in `use-local-node-headers`(기본 false)가 있다. `ci.yml`의 `&e2e_shard_steps` 공유 anchor에서 **Main·PR Chromium 6개 Shard만 true**를 선언해 setup-node가 설치한 같은 `process.execPath`의 `include/node/node.h`·`common.gypi`를 검증하고 `npm_config_nodedir`를 설정한다. 불일치/헤더 부재는 명시적 Setup FAIL, `npm ci --prefer-offline --no-audit` 및 lockfile 내용은 불변. 외부 SHA/헤더 URL 재요청을 필요 없게 만들며 npm registry 설치와 Playwright dependency download 전체를 offline이라고 주장하지 않는다.
+- TypeScript/ESLint/Vitest/Build/Docker/기존 Policy·Preflight·Required 3종/6Shard/Trusted QA 및 PR fail-fast `--max-failures=1` 유지. 재시도, Timeout, skip, assertion 감소나 `node_modules` 캐시 도입 없음. E2E 내 실제 Node 헤더 경로 존재 여부는 [회귀 테스트](../tests/scripts/issue-751-native-node-headers.test.ts)와 다음 원격 CI에서 검증한다. 정상 설치 후 이전 #622 Focus 및 신규 #751 계측 E2E는 아직 `NOT TESTED`.
+
 ## Issue #751 — 격리 SQL·Next E2E 단계 계측과 P50/P95 원본 비교 (2026-10-19)
 
 - [Issue #751 Work Packet](exec-plans/active/ISSUE_751.md), [F-001~004 실패 원장](ISSUE_751_FAILURE_ANALYSIS.md), [PR #754](https://github.com/planner77/masterGantt/pull/754)를 따르며, 마지막 성공 [Full PR CI #3021.1](https://github.com/planner77/masterGantt/actions/runs/39263069941)과 Trusted #663.1은 **이전 HEAD**의 근거이다. 새 코드에서 Required Quality/E2E6/Docker·Trusted QA는 새로운 동일 HEAD 증거가 필요하다.

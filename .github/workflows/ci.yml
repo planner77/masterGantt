@@ -754,6 +754,7 @@ jobs:
         uses: ./.github/actions/node-setup
         with:
           node-version: ${{ env.NODE_VERSION }}
+          use-local-node-headers: "true"
       - name: Playwright setup 계측
         uses: ./.github/actions/playwright-setup
       - name: E2E shard 실행

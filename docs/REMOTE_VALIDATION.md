@@ -1,3 +1,9 @@
+## Issue #751 — Native Node header setup 장애 분리 및 원격 판정 (2026-10-20)
+
+- F-007 Run [#3028.1](https://github.com/planner77/masterGantt/actions/runs/39318895759) Shard2 `118288652891`: Node v22.23.3, npm10.9.9, node-gyp11.5.0; `better-sqlite3` native `npm ci`에서 Node header tarball HTTP200 후 SHA checksum URL `ECONNRESET`. E2E 본문은 미실행이며 Shard 5를 포함한 5개 취소는 Focus 문제 재발 여부를 판단할 수 없다.
+- 새 E2E shared setup에서 `npm_config_nodedir`은 setup-node가 설치한 실제 Node binary의 parent prefix가 포함한 `node.h`·`common.gypi`를 직접 확인한 뒤에만 적용. 헤더가 없으면 fail-closed 메시지가 남고 대체 버전 헤더나 raw external artifact를 받아 성공 처리하지 않는다. Quality/Build/Release는 opt-in되지 않으며 GitHub 기본 Run/Attempt/head/base/test-merge 인증과 Job/Shard fail-fast 유지.
+- 원격 새 Full CI에서 E2E Shards 1~6이 모두 실제 실행/성공했는지, Shard 2 `npm ci`가 외부 Node header fetch 없이 완료됐는지, 이전 F-006 #622 Resource Plan Focus와 #751 격리 성능 E2E가 실제로 통과했는지를 분리 확인한다. 이 검증의 새 Run/Attempt 원본 없이는 AC/Owner/merge 준비 판정은 `NOT TESTED`.
+
 ## Issue #751 — Shard5 원본 Trace 기반 Focus 교정 검증 (2026-10-20)
 
 - PR #754 Full #3026.1 Run `39314211842` attempt 1, Head `d658baa366eaa613ac1e295a2f2320f5dd1a49ae`, Base `5df178868139c4a307701e4807896691971b3376`, test merge `f641b46402e2cb421d8cccb72412ada55b45fe65`을 원본 `ci-pr-source-39314211842-1` Artifact와 검증. E2E Shard5 `118272495898`의 정식 [Playwright 원본 Artifact](https://github.com/planner77/masterGantt/actions/runs/39314211842/artifacts/12215654837)에서 #622 Task Editor 닫힌 뒤 detail stale/loading→ready, Focus 실패를 확인했다. Raw Trace/스크린샷·개인정보를 원격 Git에 올리지 않는다.

@@ -1,3 +1,9 @@
+## Issue #751 — F-007 Chromium native dependency header fallback 제거 (2026-10-20)
+
+- Full #3028.1 Run `39318895759`, Shard2 `118288652891`: exact cache-hit 뒤 `better-sqlite3/node-gyp@11.5.0`이 Node v22.23.3 `SHASUMS256.txt` 네트워크 `ECONNRESET`으로 실패하여 Chromium test body NOT RUN. Shard1/3/4/5/6 CANCELLED, 기존 F-006 #622 Focus 포함 새 구현 회귀 상태는 `NOT TESTED`; E2E aggregate와 QA Final 파생 FAIL. `docs/ISSUE_751_FAILURE_ANALYSIS.md` F-007에 원본·이력 비교·대응을 기록.
+- `.github/actions/node-setup/action.yml` native opt-in 기본 false, `ci.yml` E2E shared anchor에서만 true. 실제 Node runtime prefix의 `include/node/node.h`/`common.gypi` 존재/일치 검사 후 `npm_config_nodedir`로 로컬 헤더 지정. `npm ci` frozen lockfile/6 shards/Playwright/Timeout/Retry/Assertion·기존 Required gates 유지. `tests/scripts/issue-751-native-node-headers.test.ts`가 opt-in이 E2E 전용이며 설치 루트가 검증 가능한지 테스트.
+- 사전 구조검사와 별개로 정확 변경 HEAD 원격 Node-gyp 빌드 + Chromium6 + Required Quality/Docker/Trusted QA에서만 PASS 가능. 단순 setup cache hit, F-001~F-006 과거 PASS, 취소된 Shard를 이번 결과로 합산 금지.
+
 ## Issue #751 — F-006: #622 Resource Plan 비동기 Focus 복귀 교차 회귀 (2026-10-20)
 
 - 원본 [Full PR CI #3026.1](https://github.com/planner77/masterGantt/actions/runs/39314211842), Head `d658baa366eaa613ac1e295a2f2320f5dd1a49ae`, Base `5df178868139c4a307701e4807896691971b3376`, Shard5 Job `118272495898`은 `tests/e2e/issue-622-resource-plan-target.spec.ts:105`의 `toBeFocused()` 실패. 동일 Run TypeScript/ESLint/Vitest/Policy/Build/Docker PASS, E2E5 Shard 취소·未완료이며 Required E2E FAIL. 이전 Full #3021.1 Shard5의 같은 #622 시나리오는 35.8s PASS였지만 지금 HEAD의 PASS 아님.

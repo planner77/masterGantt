@@ -66,3 +66,12 @@ Status: IMPLEMENTED / NEW-HEAD REMOTE ACCEPTANCE NOT TESTED; before-after measur
 - `tests/features/projects/resource-editor-focus-return.test.ts`에서 stale/loading/0/모달/ready 및 fallback 검사. 실제 `tests/e2e/issue-622-resource-plan-target.spec.ts`의 Focus strict assertion 및 데이터·투입률·Excel·5폭 geometry는 수정하지 않는다. 관련 consumer: #621/#622/#623 Resource/Target, KPI/Plan Dashboard, Workspace focus, 기존 해당 E2E 병합.
 - 이 작업은 Release 필수 QA/Owner 승인을 자동 수용하는 것이 아니다. 새 commit의 local npm/typecheck/Chromium 환경 결과는 이 API 세션에서 NOT TESTED, 새 PR CI Required Quality/E2E6/Docker·Trusted 결과도 실행 전 NOT TESTED. PR Draft, release_required=false/release_authorized=false 유지.
 
+
+## 2026-10-20 — F-007 E2E Native npm setup 외부 연결 실패 및 국소적 복구
+
+- GitHub [Full PR CI #3028.1](https://github.com/planner77/masterGantt/actions/runs/39318895759) Head `2eb1e31970a85c12ccd1a77c238b24ddc6c7f9c1`, Base `5df178868139c4a307701e4807896691971b3376`, exact test merge `d741b087aaa158cd2b15a46d4dce7bd71e01e0e7`. Shard2 Job `118288652891`에서 `better-sqlite3` `node-gyp rebuild` 중 Node 22.23.3 `SHASUMS256.txt` fetch `ECONNRESET`. QA Preflight/Policy/TypeScript/ESLint/Vitest/Build/Docker PASS; Shard2 test body NOT RUN, 나머지 5 Shards CANCELLED, Required E2E/QA Final 파생 FAIL.
+- 이전 F-001~F-006/S-001과의 비교: POLICY/TS/LINT/Unit 원인은 현재 재현되지 않았으며 Focus 문제 F-006은 **Shard5 취소** 때문에 재검증되지 않았다. [Issue 전용 원장 F-007](../../ISSUE_751_FAILURE_ANALYSIS.md)에 단계별 상태와 원본 Evidence를 보존.
+- `.github/actions/node-setup/action.yml`에 기본값 false인 `use-local-node-headers`를 도입해 `.github/workflows/ci.yml` **E2E Shard 공유 steps에서만** opt-in true; `process.execPath`에서 동일 Node 설치 prefix를 유도하고 node.h/common.gypi 존재 후 `npm_config_nodedir`를 export하여 frozen `npm ci`를 실행한다. 다른 Quality/Build/Release는 기존 경로 유지; 테스트 timeout/skip/retry/Fail Fast 변경 없음.
+- `tests/scripts/issue-751-native-node-headers.test.ts`가 E2E 한정 옵트인 및 헤더 존재·기본 false를 테스트한다. 실제 Runner v22.23.3의 동일 version native build 재현 PASS는 새 Full CI 전 `NOT TESTED`. Node header 누락 시 setup 원인을 드러내며 의존성 설치를 PASS로 처리하지 않는다.
+- 검증 영향: 직접 F-007 npm 설치, 누적 모든 실패 원인의 TypeScript/ESLint/Vitest/Policy·docs, 간접 #622 Focus, #623/730/731 Fixture·#751 SQL/Trace 통제, 반례 Quality/Docker·Main E2E 공통 anchor. 새 Full PR CI Quality/Chromium6/Docker, Trusted QA 및 Owner AC 수용은 서로 다른 단계이다. 새로운 E2E 완료 결과가 확인되기 전 #751 AC1~AC3 및 `manager_decision`은 `NOT TESTED`로 유지한다.
+
