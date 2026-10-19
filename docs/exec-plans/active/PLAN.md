@@ -1,3 +1,10 @@
+## Issue #751 — isolated fixture performance telemetry (2026-10-19)
+
+- Primary #751, PR #754: fixed Issue title/QA metadata mismatch from [F-001](../../ISSUE_751_FAILURE_ANALYSIS.md) and preserved original failed Run #3014.1.
+- Includes read-only stage, API and browser timing receipts + reporter, unit/controlled synthetic fault cases and existing 30d artifact, warning-only summary, manual default-main trend collection.
+- Source tests remain unchanged except explicit #623 seed timing wrapper; 60s test/120s fixture, asserts/retries/skip, all six Chromium shards and Required3 remain unchanged.
+- Explicit gaps and NOT TESTED contract are in [Work Packet](ISSUE_751.md). No fresh CI result should be claimed until HEAD Full checks complete. Issue HIGH/OWNER_MANAGED, qa_required=true, release_required=false/release_authorized=false; no merge/GHCR/issue close.
+
 ## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
 
 main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.

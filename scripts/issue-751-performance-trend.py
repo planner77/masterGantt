@@ -26,11 +26,13 @@ def main():
     a=p.parse_args()
     if not re.fullmatch(r"[\w.-]+/[\w.-]+",a.repository) or not 1<=a.limit<=30:
         raise SystemExit("BLOCKED: invalid repository/limit")
-    found=json.loads(call("api","repos/"+a.repository+"/actions/workflows/ci.yml/runs?event=push&branch=main&status=success&per_page=50"))
-    runs=[r for r in found.get("workflow_runs",[]) if r.get("event")=="push" and r.get("conclusion")=="success" and r.get("head_branch")=="main"][:a.limit]
+    found=json.loads(call("api","repos/"+a.repository+"/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50"))
+    runs=[r for r in found.get("workflow_runs",[]) if r.get("event")=="push" and r.get("head_branch")=="main"][:a.limit]
+    non_success=[{"runId":r["id"],"status":str(r.get("conclusion") or r.get("status") or "UNKNOWN")} for r in runs if r.get("conclusion")!="success"]
     groups=defaultdict(list); missing=[]; valid=0
     with tempfile.TemporaryDirectory(prefix="issue751-") as temp:
         for run in runs:
+            if run.get("conclusion")!="success": continue
             run_id=run["id"]
             for shard in range(1,7):
                 name="e2e-timing-ci-shard-"+str(shard)
@@ -66,12 +68,12 @@ def main():
         rows.append({"context":list(key),"count":len(values),"p50Ms":pct(values,.5) if enough else None,
                      "p95Ms":pct(values,.95) if enough else None,"status":"OBSERVED" if enough else "INSUFFICIENT_DATA"})
     result={"schemaVersion":1,"warningOnly":True,"runsConsidered":len(runs),"validShardArtifacts":valid,
-            "missing":missing,"rows":rows,"minimumSamples":10,"causalAttribution":"NOT TESTED"}
+            "missing":missing,"nonSuccessful":non_success,"rows":rows,"minimumSamples":10,"causalAttribution":"NOT TESTED"}
     pathlib.Path(a.output).write_text(json.dumps(result,ensure_ascii=False,indent=2))
     with open(a.summary,"a",encoding="utf8") as output:
         output.write("## Issue #751 performance trend (warning only)\n\n")
         output.write("- Recent successful main CI runs: "+str(len(runs))+", valid shard artifacts: "+str(valid)+"\n")
-        output.write("- Missing/expired/incomplete: "+str(len(missing))+"; never interpret as PASS\n")
+        output.write("- Missing/expired/incomplete: "+str(len(missing))+"; non-success runs: "+str(len(non_success))+"; never interpret as PASS\n")
         output.write("- Same OS/Node/shard/fullyParallel/stable test ID/stage; minimum 10 successful samples\n")
         for row in rows[:30]:
             output.write("- "+str(row["context"][-1])+": n="+str(row["count"])+", P50="+str(row["p50Ms"])+", P95="+str(row["p95Ms"])+" "+row["status"]+"\n")

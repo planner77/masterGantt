@@ -1,3 +1,12 @@
+## Issue #751 — 단계별 E2E 계측 및 추세 비교 (2026-10-19)
+
+- [Failure F-001](ISSUE_751_FAILURE_ANALYSIS.md): PR #754 최초 Full #3014.1은 PR 제목 Primary Issue #751 패턴 및 QA method 메타데이터 누락으로 preflight 전 중단. Required 3 aggregate FAILURE는 연쇄 결과; 실제 TypeScript/Chromium/Docker 테스트는 SKIPPED.
+- Test fixture stage 및 명시적 #623 seed 구간은 monotonic relative clock으로 정제 기록한다. playwright-result Before Hooks/After Hooks와 test fixture 120s, test body 60s timeout을 서로 다른 관측/예산으로 유지하며 trace 14.6797s fixture를 59.97s body에 더해 오분류하지 않는다.
+- Browser request lifecycle과 명시 observer API를 안전한 route 분류/status/duration/abort/network/timeout으로 저장한다. 임의 URL/query/raw Trace/쿠키/Authorization/UUID/원문 오류는 신규 JSON/Job Summary에 쓰지 않는다. 세션 외 page.request 호출 및 server DB query는 전수 계측이 아님.
+- 기존 e2e-timing-ci-shard-* JSON Artifact(30일)에 성공·실패 receipt를 확장하고 Shard Job Summary는 warning-only; 동일 OS/Node/shard/parallel/test ID/stage 성공표본 10개 미만은 INSUFFICIENT_DATA, 80% 경고 provisional.
+- 별도 read-only workflow_dispatch: issue-751-performance-trend.yml은 main에 병합되어 default-branch에 존재한 뒤 Owner가 수동 실행 가능. GH CLI API로 성공한 최근 Main Run Artifact만 인증 비교하며 missing/expired/invalid는 구별하여 자동 PASS 금지. 외부 DB·장기 상시 감시 없음.
+- HIGH/OWNER_MANAGED, qa_required=true, release_required=false, release_authorized=false, Required Quality/Chromium E2E6/Docker/Trusted QA 및 Owner 위험 승인 불변. 새 Head Full PR CI와 실제 원인 확정·baseline 측정/통제 시나리오 증명은 별개다.
+
 ## Issue #712 — Full PR CI Run/Attempt 선택과 병합 후 edited 감사 분리 (2026-10-18)
 
 **사례:** PR #561 Head `3420e54453b43681c9634565b57f13ae8f0443a9`에서 원본 Full [#2892.1](https://github.com/planner77/masterGantt/actions/runs/39021332528)은 세 Required aggregate PASS. 병합 후 metadata-only [#2898.1](https://github.com/planner77/masterGantt/actions/runs/39027102063)은 새 품질/E2E/Docker 테스트 없이 동일 이름 세 aggregate FAIL을 기록했으며, 기존 Lifecycle의 Check Run ID 최대값 방식이 이를 최신 Full 결과로 오인했다.

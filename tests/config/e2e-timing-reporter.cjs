@@ -26,9 +26,12 @@ class E2ETimingReporter {
         if (!raw || raw.length > 262144) continue;
         const receipt = JSON.parse(raw.toString("utf8"));
         if (receipt.schemaVersion !== 2 || !Array.isArray(receipt.stages) || !Array.isArray(receipt.requests)) continue;
+        const beforeHooksMs = result.steps.filter(step => step.title === "Before Hooks").reduce((total, step) => total + step.duration, 0);
+        const afterHooksMs = result.steps.filter(step => step.title === "After Hooks").reduce((total, step) => total + step.duration, 0);
         this.receipts.push({ ...receipt, resultStatus: result.status, testDurationMs: result.duration,
-          beforeHooksMs: result.steps.filter(step => step.title === "Before Hooks").reduce((total, step) => total + step.duration, 0),
-          afterHooksMs: result.steps.filter(step => step.title === "After Hooks").reduce((total, step) => total + step.duration, 0),
+          beforeHooksMs, afterHooksMs,
+          bodyResidualEstimateMs: Math.max(0, result.duration - beforeHooksMs - afterHooksMs),
+          bodyResidualIsEstimate: true,
         });
       } catch { /* Diagnostic errors never change test outcomes. */ }
     }

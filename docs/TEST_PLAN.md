@@ -1,3 +1,9 @@
+## Issue #751 — 자동 회귀 계측 테스트·수동 추세 비교 보강 (2026-10-19)
+
+- tests/scripts/issue-751-performance-receipt.test.ts: 개인정보 마스킹, 성공/503, timeout 원문 유지, abort 분류, fixture/seed 분리 단조 측정 synthetic Unit.
+- scripts/issue-751-performance-trend.py와 기본 main workflow_dispatch: 성공한 main push Run+attempt/Head+각 샤드 artifact 인증, 실패/취소·만료/누락·동일 환경 샘플 구별. 인증되지 않은 데이터나 성공표본 10개 미만은 INSUFFICIENT_DATA. Production SQL 직접 계측 및 실험 기반 인과관계는 N/A/NOT TESTED.
+- 워크플로 자체 변경은 HIGH/OWNER_MANAGED, 기존 Required Quality/E2E6/Docker·보호 승인 불변. 신규 HEAD remote 성능 수치는 CI 이후에만 확정.
+
 # Issue #751 — 격리 Fixture 성능 계측 (2026-10-19)
 
 - 최초 CI #3014.1 메타데이터 차단: 제목 Issue 표기 및 QA method 누락; 실제 품질·E2E6·Docker SKIPPED. 전용 기록: [ISSUE_751_FAILURE_ANALYSIS](ISSUE_751_FAILURE_ANALYSIS.md).
