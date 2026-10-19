@@ -431,3 +431,25 @@
   gap: 0.375rem;
   min-width: 0;
 }
+
+.configuration { min-width: 0; border-block: 1px solid var(--border-default); padding-block: 8px; }
+.configuration summary { min-height: 44px; display: list-item; align-content: center; cursor: pointer; font-weight: 600; }
+.configuration h3, .configuration h4 { margin: 12px 0; font-size: 14px; }
+.configurationGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 8px; }
+.diagnosticButton, .configurationValue { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px; min-height: 44px; border: 1px solid var(--border-default); border-radius: 6px; background: var(--surface-panel); color: var(--text-default); text-align: left; overflow-wrap: anywhere; }
+.diagnosticButton { cursor: pointer; }
+.diagnosticButton strong, .configurationValue strong { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.configuration button:disabled { opacity: var(--state-disabled-opacity); cursor: not-allowed; }
+.configuration button:focus-visible, .configuration summary:focus-visible, .diagnosticDetail h4:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.diagnosticDetail { margin-top: 12px; min-width: 0; border-top: 1px solid var(--border-default); }
+.diagnosticDetail button { min-height: 44px; padding: 6px 10px; border: 1px solid var(--border-control); border-radius: 6px; background: var(--surface-panel); color: var(--action-primary); cursor: pointer; }
+.diagnosticList { list-style: none; margin: 8px 0 0; padding: 0; max-height: 480px; overflow-y: auto; }
+.diagnosticList li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-default); overflow-wrap: anywhere; }
+.diagnosticList li > div { min-width: 0; }
+.diagnosticActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.diagnosticList .scopeNote { display: block; }
+.tableWrapper[role="tabpanel"] { max-width: 100%; min-width: 0; }
+.table td:first-child { min-width: 220px; overflow-wrap: anywhere; }
+.tableWrapper[id$="panel-processes"] .table { min-width: 836px; }
+.tableWrapper[id$="panel-equipment"] .table { min-width: 1460px; }
+.tableWrapper[id$="panel-systems"] .table { min-width: 1132px; }

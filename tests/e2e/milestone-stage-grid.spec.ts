@@ -37,7 +37,7 @@ test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geomet
   for (let i = 0; i < 18; i++) await add(`추가 단계 ${i} 긴 한글 English extraordinary identity`, "milestone", `MORE-${String(i).padStart(2, "0")}`);
   const membership = await page.request.post(`${api}/milestone-memberships`, { headers: { Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` }, data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: empty.taskId, milestoneTaskId: m1.taskId }, { taskId: override.taskId, milestoneTaskId: m2.taskId }] } }); expect(membership.status()).toBe(200); snapshot = await get();
   // Warm read routes before observing UI: lazy Next dev compilation can Fast Refresh effects.
-  for (const path of ["/assigned-targets", "/resource-workload", "/logistics/dashboard?horizonDays=14&systemView=direct", `/tasks/${child.taskId}/logistics-links`, `/tasks/${child.taskId}/assignments`]) { const warm = await page.request.get(`${api}${path}`); await warm.body(); }
+  for (const path of ["/assigned-targets", "/resource-workload", "/logistics/dashboard?horizonDays=14&systemView=direct", "/logistics/kpi?source=integrated&horizonDays=14&systemView=direct", `/tasks/${child.taskId}/logistics-links`, `/tasks/${child.taskId}/assignments`]) { const warm = await page.request.get(`${api}${path}`); await warm.body(); }
 
   await page.setViewportSize({ width: 1440, height: 844 }); await page.goto(`/projects/${id}`); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-api-instance"), row = (taskId: string) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();

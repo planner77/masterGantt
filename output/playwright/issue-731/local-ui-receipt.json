@@ -1,0 +1,198 @@
+{
+  "environment": "Local Chromium, mocked stateful API, Next.js dev; not Remote CI or actual production data",
+  "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/logistics-dashboard-request-state.spec.ts tests/e2e/issue-719-contextual-help.spec.ts --grep '조회 |기준일 기본|빠른 기간|기간 빈|세부 tab|#731|#719 logistics 동일'",
+  "stats": {
+    "total": 27,
+    "expected": 27,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0,
+    "ok": true
+  },
+  "durationMs": 84099.9,
+  "startTime": 1792388548627,
+  "tests": [
+    {
+      "title": "#719 logistics 동일 fixture 5폭 설명 높이·작업면·overflow 및 도움말",
+      "duration": 9826,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 500는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2561,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 network는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2635,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 malformed는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2558,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 invalid-date는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2330,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 wrong-revision는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 3007,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 wrong-filter는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2491,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 missing-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2680,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "조회 malformed-integrated는 이전 결과를 숨기고 다시 시도로 복구한다",
+      "duration": 2603,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "기준일 기본 응답은 추가 조회를 만들지 않고 조건 변경 즉시 오래된 drilldown을 숨긴다",
+      "duration": 2343,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "빠른 기간 변경의 응답 역전은 최신 결과를 유지한다",
+      "duration": 2040,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범위로 복구한다",
+      "duration": 2164,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 390px",
+      "duration": 3244,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 768px",
+      "duration": 3009,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1024px",
+      "duration": 3099,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1440px",
+      "duration": 3050,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 1920px",
+      "duration": 3106,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 390px",
+      "duration": 3261,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 768px",
+      "duration": 3279,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1024px",
+      "duration": 3212,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1440px",
+      "duration": 3892,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 통합 KPI 읽기 전용 진단·정확 Assignment·키보드 복귀·열 예산 1920px",
+      "duration": 3297,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 등록 구성과 연결 작업이 모두 없는 KPI는 0과 빈 진단을 유지한다",
+      "duration": 1668,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 원본 이동 직전 snapshot 변경은 진단과 Task·Assignment 이동을 차단한다",
+      "duration": 1888,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 편집 가능 Task·Assignment 원본 열기와 취소는 정확 ID·조건·진단·초점을 보존한다",
+      "duration": 2602,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 등록 리소스 원본은 정확한 이름·ID를 유지하고 KPI 진단으로 복귀한다",
+      "duration": 2029,
+      "outcome": "expected",
+      "ok": true
+    },
+    {
+      "title": "#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다",
+      "duration": 2681,
+      "outcome": "expected",
+      "ok": true
+    }
+  ],
+  "workingTreeSha256": {
+    "src/features/logistics/project-logistics-dashboard.tsx": "66d590f456f665e9c2f0a59b4538d779a6c786c60eddca428c866f7b861ab143",
+    "src/features/logistics/project-logistics-dashboard.module.css": "3e32cb0fc08d337fb30a2e7fce44b0f62a9602ef6847ef84eced486021defb63",
+    "src/features/logistics/logistics-kpi-configuration.tsx": "96118637b59c5b4264c19cd65513072fe12759511cfa173cf1234f84f4a907e3",
+    "src/features/logistics/logistics-kpi-validation.ts": "2b00f283428f3abf4ff74351caf023105273c64a4f303f166c5ba220491f5298",
+    "src/features/logistics/project-logistics-management.tsx": "f5a5a5e890fe1848ecfd88fdc6ce1547ef0acc1cddace6b1a2108742c46d36e2",
+    "src/features/projects/project-readonly-view.tsx": "ab83a61e4b5ea48627482d40a01eb07c7784242b267d0e728dc15533ffad4a5e",
+    "tests/e2e/logistics-dashboard-request-state.spec.ts": "17af84acc9e6631852d071368b4307ba7219a5ee3215b3c24c090ba9dcd5ff23",
+    "tests/fixtures/logistics-integrated-kpi.ts": "23fe250a4be26bee6bd890ee5768ab51536bb9638b41943bc9a52509446d7e08"
+  },
+  "initialFailures": [
+    "First23 run17PASS/6FAIL: new navigation scope/query mocks absent; WorkArea.processIds validation added mid-run.",
+    "Second23run interrupted8PASS/4FAIL/1interrupted/10notrun: transient source URL ReferenceError expected, fixed frontend.",
+    "Third25run20PASS/5FAIL: wrong test assumption that readonly Assignment source was enabled; corrected to disabled.",
+    "Fourth10run9PASS/1FAIL: readonly Task field uses readonly rather than disabled; corrected not.toBeEditable()."
+  ],
+  "limits": [
+    "Secondary Task context/links/target catalogs are outside these synthetic UI assertions; missing secondary routes can emit404 and admin catalogs401.",
+    "Full27 final run PASS does not replace PR quality/e2e/docker CI."
+  ]
+}

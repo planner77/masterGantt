@@ -1,0 +1,512 @@
+{
+  "schemaVersion": 1,
+  "tool": "mastergantt-prepr",
+  "issue": 731,
+  "pr": null,
+  "mode": "targeted",
+  "status": "BLOCKED",
+  "startedAt": "2026-10-19T05:44:43.045Z",
+  "sourceStart": {
+    "baseRef": "origin/main",
+    "baseSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+    "headSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+    "workingDiffSha256": "2e65f6a41a028dd1b955089ff3cdfe946b862d4e997d6fad7ec396c03bd75d82",
+    "fingerprint": "18e3d60ee7d21cf3aa5da9ed199d2906555f954102967973de1b9094da3c666b",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/PROJECT_UX.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/SECURITY.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TEST_PLAN.md",
+      "docs/UI_UX_GUIDELINES.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/exec-plans/active/ISSUE_731.md",
+      "docs/exec-plans/active/PLAN.md",
+      "output/playwright/issue-731/diagnostic-1024.png",
+      "output/playwright/issue-731/diagnostic-1440.png",
+      "output/playwright/issue-731/diagnostic-1920.png",
+      "output/playwright/issue-731/diagnostic-390.png",
+      "output/playwright/issue-731/diagnostic-768.png",
+      "output/playwright/issue-731/integrated-kpi-column-budget-1024.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-1440.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-1920.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-390.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-768.json",
+      "output/playwright/issue-731/local-ui-receipt.json",
+      "package-lock.json",
+      "package.json",
+      "src/app/api/projects/[publicId]/logistics/kpi/route.ts",
+      "src/contracts/logistics-dashboard.ts",
+      "src/features/logistics/logistics-kpi-configuration.tsx",
+      "src/features/logistics/logistics-kpi-validation.ts",
+      "src/features/logistics/project-logistics-dashboard.module.css",
+      "src/features/logistics/project-logistics-dashboard.tsx",
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/server/logistics/logistics-kpi-handlers-core.ts",
+      "src/server/logistics/logistics-kpi-service-core.ts",
+      "src/server/logistics/logistics-kpi-snapshot-core.ts",
+      "src/server/security/route-security-inventory.ts",
+      "tests/e2e/fixtures/task-editor-density.ts",
+      "tests/e2e/issue-719-contextual-help.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/milestone-stage-dashboard.spec.ts",
+      "tests/e2e/milestone-stage-exchange.spec.ts",
+      "tests/e2e/milestone-stage-grid.spec.ts",
+      "tests/e2e/milestone-timeline-core.spec.ts",
+      "tests/e2e/milestone-timeline-lane.spec.ts",
+      "tests/fixtures/logistics-integrated-kpi.ts",
+      "tests/server/logistics/issue-731-kpi.test.ts",
+      "tests/server/projects/edit-authorization-handlers.test.ts"
+    ]
+  },
+  "sourceEnd": {
+    "baseRef": "origin/main",
+    "baseSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+    "headSha": "01fdc08bf4b2f69f9797a8bd411d6712e7478c09",
+    "workingDiffSha256": "2e65f6a41a028dd1b955089ff3cdfe946b862d4e997d6fad7ec396c03bd75d82",
+    "fingerprint": "18e3d60ee7d21cf3aa5da9ed199d2906555f954102967973de1b9094da3c666b",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/LOGISTICS_DASHBOARD.md",
+      "docs/PROJECT_UX.md",
+      "docs/RESOURCE_KPI_DASHBOARD.md",
+      "docs/SECURITY.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TEST_PLAN.md",
+      "docs/UI_UX_GUIDELINES.md",
+      "docs/WBS_TASK_LEDGER.md",
+      "docs/exec-plans/active/ISSUE_731.md",
+      "docs/exec-plans/active/PLAN.md",
+      "output/playwright/issue-731/diagnostic-1024.png",
+      "output/playwright/issue-731/diagnostic-1440.png",
+      "output/playwright/issue-731/diagnostic-1920.png",
+      "output/playwright/issue-731/diagnostic-390.png",
+      "output/playwright/issue-731/diagnostic-768.png",
+      "output/playwright/issue-731/integrated-kpi-column-budget-1024.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-1440.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-1920.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-390.json",
+      "output/playwright/issue-731/integrated-kpi-column-budget-768.json",
+      "output/playwright/issue-731/local-ui-receipt.json",
+      "package-lock.json",
+      "package.json",
+      "src/app/api/projects/[publicId]/logistics/kpi/route.ts",
+      "src/contracts/logistics-dashboard.ts",
+      "src/features/logistics/logistics-kpi-configuration.tsx",
+      "src/features/logistics/logistics-kpi-validation.ts",
+      "src/features/logistics/project-logistics-dashboard.module.css",
+      "src/features/logistics/project-logistics-dashboard.tsx",
+      "src/features/logistics/project-logistics-management.tsx",
+      "src/features/projects/project-readonly-view.tsx",
+      "src/server/logistics/logistics-kpi-handlers-core.ts",
+      "src/server/logistics/logistics-kpi-service-core.ts",
+      "src/server/logistics/logistics-kpi-snapshot-core.ts",
+      "src/server/security/route-security-inventory.ts",
+      "tests/e2e/fixtures/task-editor-density.ts",
+      "tests/e2e/issue-719-contextual-help.spec.ts",
+      "tests/e2e/logistics-dashboard-request-state.spec.ts",
+      "tests/e2e/milestone-stage-dashboard.spec.ts",
+      "tests/e2e/milestone-stage-exchange.spec.ts",
+      "tests/e2e/milestone-stage-grid.spec.ts",
+      "tests/e2e/milestone-timeline-core.spec.ts",
+      "tests/e2e/milestone-timeline-lane.spec.ts",
+      "tests/fixtures/logistics-integrated-kpi.ts",
+      "tests/server/logistics/issue-731-kpi.test.ts",
+      "tests/server/projects/edit-authorization-handlers.test.ts"
+    ]
+  },
+  "sourceStable": true,
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.123.0",
+    "lockVersion": "0.123.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "package-lock.json",
+        "rule": "issue-552-locked-dependencies",
+        "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+      },
+      {
+        "path": "package.json",
+        "rule": "prepr-tooling",
+        "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+      },
+      {
+        "path": "src/app/api/projects/[publicId]/logistics/kpi/route.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/features/projects/project-readonly-view.tsx",
+        "rule": "issue-552-project-workspace",
+        "reason": "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-handlers-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-handlers-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-service-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-service-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-snapshot-core.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/logistics/logistics-kpi-snapshot-core.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "rule": "http-sqlite",
+        "reason": "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+      },
+      {
+        "path": "src/server/security/route-security-inventory.ts",
+        "rule": "actual-server-imports",
+        "reason": "Actual unit/integration test imports changed server module"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "src/contracts/logistics-dashboard.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/logistics-kpi-configuration.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/logistics-kpi-validation.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-dashboard.module.css",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-dashboard.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/task-editor-density.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/fixtures/logistics-integrated-kpi.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/logistics-dashboard-request-state.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-dashboard-state.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-dashboard.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-exchange.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-stage-grid.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-timeline-core.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-timeline-lane.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/milestone-visibility.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-create-isolation.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-edit-authorization.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-json-import.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-multi-task-copy-paste.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-notifications.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-delete-context.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-quick-view.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "project workspace and canonical Copy guard → error/readonly/selection/Milestone Dashboard/hidden-subtree negative paths"
+        ]
+      },
+      {
+        "path": "tests/e2e/resource-drill-api.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/scripts/prepr-verifier.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+          "Pre-PR tool parser, source provenance, failure and safety regression"
+        ]
+      },
+      {
+        "path": "tests/server/db/database.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/server/logistics/issue-731-kpi.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/projects/edit-authorization-handlers.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually",
+          "Direct import of changed server module",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/server/projects/milestone-dashboard-http.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/projects/task-handler-integration.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "actual HTTP/SQLite/session/401/409/412/422/500, persistence and failure recovery; confirm actual assertions manually"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-dashboard-rollup.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-dashboard.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      },
+      {
+        "path": "tests/server/resources/resource-plan.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Direct import of changed server module"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "diagnostic": null,
+  "steps": [],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "errors": [
+    "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+  ],
+  "artifacts": [],
+  "completedAt": "2026-10-19T05:44:43.273Z"
+}

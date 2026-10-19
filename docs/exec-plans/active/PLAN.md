@@ -1,3 +1,7 @@
+## Issue #731 — 기존 KPI 보존·통합 source와 구성 진단 (2026-10-19)
+
+main `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` /0.122.0에서 별도 `feat/issue-731-kpi-integration`으로 진행한다. 기존 네 카드·세 표·필터·공수/품질/full Gate를 유지하고 #728/#729 공통 원장을 전용 KPI consumer에 연결한다. 추가 구성/연결 진단과 정확 원본 drill·snapshot/focus, 기능 보존표/지표/매뉴얼을 동기화한다. [Work Packet](ISSUE_731.md) 참조. HIGH/OWNER_MANAGED/qa_required=true, candidate0.123.0, release_required=true/release_authorized=false. 요청 종료점은 구현·로컬 검증·문서·PR Full CI 시작이며 CI 모니터링·병합·Main/GHCR·Release·Issue 종료는 범위 밖이다.
+
 ## Issue #729 — versioned WBS 다관점·snapshot·정확 상세 (2026-10-19)
 
 초기 기준 main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`, 정렬 main `0ad91e7b075aa339b3b73ee0b4b3e8bc64e992f2`의 #725/#727/#728을 기준으로 [Work Packet](ISSUE_729.md)의 opt-in view spec/root·설비/System 형제 분기·raw union·same-snapshot 상세/drill·기존 Excel 호환 경계를 구현한다. Task 명시 공정0..N과 legacy 유도 의미를 분리하고 기존 projectionOrder/API·full Milestone Gate·Capacity R를 유지한다. UI·DB writer·CI gate 변경은 없다.

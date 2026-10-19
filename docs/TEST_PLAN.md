@@ -1,3 +1,19 @@
+## Issue #731 — 기존 KPI 통합 소비자 수용
+
+[기능 보존표·AC·실패 원장](exec-plans/active/ISSUE_731.md)을 기준으로 기존 UI와 전용 API를 함께 검증한다. 로컬 빠른 검증과 PR Required Quality/E2E/Docker·Trusted QA·Owner 최종 승인은 별도다.
+
+| 검증 경계 | 주요 양성·음성 조건 |
+| --- | --- |
+| 서버 API/Unit | Target0 direct-only 기존 산식 일치, Target-only·혼합·상속/공유 MCS·조율 dedup, 명시 공정 W2와 기존 구성 범위 구별, 빈/활성 조건, 물류 미연결·무배정·개인 공수 null/0/partial |
+| 구성·진단 | 등록 공정/WorkArea/설비 관리단위·고유 수량/System/등록·참여/배정 인원, 일반 작업0·Owner/PI/주제어의 exact IDs, E10 다중 구역 상위10·동일5 M/D 다중 공정 상위5 |
+| snapshot/권한 | 한 read snapshot·explicit integrated source·strict invalid/foreign filter·stale409·응답 예산 fail-closed·mutation0·readonly·기존 editor의 보호 mutation 유지 |
+| full Gate | 선택/공정/활성 범위를 좁혀도 전체 소속/선행을 사용하며 현재 KPI 분모와 구별 |
+| 실제 UI | 기존 네 카드/세 표/기준일·자동복귀/임박 validation/direct-coordination/active/refresh·retry/tab keyboard, 추가 펼침 진단 exact Task/Assignment/master·일정/복귀·focus |
+| UI 음성·geometry | stale/revision/catalog·error/malformed/응답역전·empty/readonly, 390/768/1024/1440/1920px 긴 이름/내부 표 scroll·열 예산·document overflow·keyboard focus, Gantt 동일 인스턴스 |
+| 간접 소비자 | 기존 logistics request-state·Milestone stage/시간축·#719 도움말·Task Editor 밀도 fixture의 KPI API mock 계약 동기화; 구 API 직접 회귀는 유지 |
+
+전용 서버 `tests/server/logistics/issue-731*.test.ts`, UI `tests/e2e/logistics-dashboard-request-state.spec.ts`의 #731 추가 케이스와 기존 조회 상태 케이스 및 관련 Domain/Resource/full Gate/route inventory를 영향 기반으로 실행한다. 최초 실패를 삭제하지 않고 원인·수정·새 실행 결과와 미실행을 Work Packet에 누적한다. 실제 screen reader/운영 데이터·Windows/최종 수동 UX는 브라우저 자동 검증으로 대체하지 않는다.
+
 ## Issue #729 — Main CI F-001·교정 PR #745 문서/테스트 동기화 (2026-10-19)
 
 - **원인:** PR #744 병합 `59f42e291a48608d1280951a7d7874a21992aaa5`에서 multiline `commit_message`로 [Main CI #2993.1](https://github.com/planner77/masterGantt/actions/runs/39200938710)의 run trace 검증이 실패했다. Product Quality/E2E/Docker는 **skipped**, aggregate FAILURE, 임시 GHCR skipped였다. 원본 실패 보존과 반영 지침은 [전용 실패 원장](ISSUE_729_FAILURE_ANALYSIS.md)을 참조한다.
@@ -4667,3 +4683,27 @@ PR Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED이며 요청 종�
 ## Issue #717 F-015 — 담당자 canonical 복구와 누적 실패 합집합 (2026-10-19)
 
 [누적 원장](ISSUE_717_FAILURE_ANALYSIS.md)과 [18회 원본 증거](evidence/issue-717/ci-cumulative-20261019.json)의 실제 실패16파일 전체를 교차 실행한다. 취소 Run 안의 실제 실패와 metadata-only 성공은 별도로 유지한다. 최신 `task-link-load-safety`는 단일 이름/명시 원문 disclosure, 실패 시 canonical 이름·코드/ID, stale cache 배제·저장 차단, 동명 설비 담당/시스템 PI의 정확 Primary·삭제 payload/If-Match를 확인한다. Resource Plan/Target geometry와 Milestone focus 소비자는 실제 보이는 버튼을 검사하면서 기존 임계값을 보존한다. main #727 membership UI/HTTP·SQLite 및 #717 5폭+touch/identity persistence를 같은 제품 소스에서 검증한다. 실행 결과·지문은 Work Packet과 원장 F-015에 기록하며 Required3/6-shard/timeout/retry/skip·CI 권한 변경은 없다.
+
+## Issue #731 F-001 — WorkArea 구성 drill과 KPI 선택 필터 분리 (2026-10-19)
+
+- 원격 [PR #746 / Full CI #2997.1](https://github.com/planner77/masterGantt/actions/runs/39206611413): Quality/E2E 6 Shard/Docker 모두 SUCCESS. QA Final은 미해결 P2 review thread로 BLOCKED. 실제 제품 Unit/E2E/Docker 테스트 FAIL로 기록하지 않는다. 자세한 기록은 [Issue별 누적 원장](ISSUE_731_FAILURE_ANALYSIS.md).
+- 새 규약: WorkArea 구성 Task IDs는 full canonical 일반 Task의 workAreaIds에서, Assignment IDs는 해당 Task들의 고유 개인 Assignment에서 계산한다. KPI 선택 process/equipment/system/taskAssignee/role 조건이 바뀌어도 해당 구성 drill 원본 관계는 동일하다. 구성 activeOnly master 표시 경계, 선택 KPI headline/effort, full Milestone Gate 및 구 API는 유지한다.
+- 새 테스트: tests/server/logistics/issue-731-kpi.test.ts의 direct/Target-only/mixed 3개 모드별 공정·설비·시스템·개인 담당자·역할 선택(5종) 전/후 WorkArea Task/Assignment ID 불변 및 실제 KPI에서 공유 T3/A3가 제외되어도 구역 원본에는 유지되는 음성 검증을 추가한다.
+- 회귀 선정: #731 서버 통합 API/SQLite 및 기존 logistics-dashboard/Target/WBS 원장/WorkArea/공수·Milestone full Gate, #728/#729 공통 source·snapshot, #731 브라우저 상태·readonly/stale/focus 및 #719 도움말, Full PR quality/E2E6/Docker. Gantt writer·DB migration·CI gate/timeout/skip/retry/Ruleset 변경 없음.
+- 수정 후보의 실제 Vitest/TS/브라우저 로컬 재실행은 현재 연결 GitHub 도구 환경에서 NOT TESTED. 기존 Head의 94 Unit·27 Chromium 로컬 PASS 및 #2997.1 Full CI PASS는 새 Head PASS로 전용하지 않는다. synchronize로 신규 Full PR CI 시작과 정확 Head/base/test-merge/Run·Attempt만 확인하며 완료 모니터링은 요청 범위 밖이다.
+
+## Issue #731 F-002 — PR #746 #2998.1 E2E isolated post-save canonical GET 전송 오류 (2026-10-19)
+
+- 이전 F-001 QA Final 미해결 리뷰와 별도로, [Full PR CI #2998.1](https://github.com/planner77/masterGantt/actions/runs/39211001676)의 shard4 테스트 tests/e2e/issue-726-task-logistics.spec.ts:236/262 (readContext:244)가 UI 저장 뒤 Playwright APIRequestContext GET 중 ECONNRESET. shard4 6 PASS/1 FAIL/156 NOT RUN, shard1/2/3/5/6 CANCELLED, Quality/Unit/Build/Docker SUCCESS, E2E aggregate/QA Final 파생 FAILURE. 이전 #2997.1 E2E 6 shard PASS와 구별. [#731 단일 누적 실패 원장](ISSUE_731_FAILURE_ANALYSIS.md#6-f-002--pr-746-full-ci-29981-726-공정-문맥-read-econnreset-2026-10-19)에 원본과 구분 기록.
+- [Playwright trace artifact](https://github.com/planner77/masterGantt/actions/runs/39211001676/artifacts/12167294969)에서 최초 GET200, 작업 저장 PUT200, 후행 GET reset 확인. 격리 서버 alive/health200, OOM Kill 증가0; 정확한 접속 종료 원인은 UNKNOWN. 제품 기능 오류나 메모리 OOM으로 확정하지 않으며 기록되지 않은 transport retry 성공도 주장하지 않는다.
+- #667 과거 동일 전송 계열 선례에 따라, **화면 진입 이후 원본 상태 검증**을 browser same-origin GET로 하여 Playwright 독립 APIRequestContext pooled socket과 분리한다. GET은 실제 HTTP/SQLite이며 credentials:same-origin/cache:no-store; 기존 observeIsolatedApi에 route/status/request-id/실패 진단을 연결한다. 응답 HTTP200·유효 JSON·data.context 및 기존 원본 processLinks/workAreaLinks/정확 저장·오류/권한·revision·readonly 단언을 그대로 보존한다. 별도 seed/POST/PUT/auth 경로·고의 실패 route·CI fail-fast/retry/timeout/skip 변경 없음.
+- 변경 범위: tests/e2e/issue-726-task-logistics.spec.ts의 테스트 helper 한 곳만 + #731 실패 원장/TEST_PLAN/Work Packet. 직접/인접 회귀: 같은 spec의 Target0·5폭/초안 및 process-context cases 전체, #726 원본 호출·#667 후행 조회, #731 KPI integrated API/WorkArea·#728/#729 WBS source/snapshot 및 원래 #731 브라우저 stale/focus. 기존 raw 테스트의 모든 경로는 새 Full PR 6-shard Quality/E2E/Docker가 검증하며 사용자 요청대로 완료는 모니터링하지 않는다.
+- 새 동결 후보의 실제 로컬 Vitest/TypeScript/Playwright는 GitHub Git Data 도구로 직접 실행 불가: NOT TESTED. 이전 local 94 Unit/27 browser PASS, #2998 원격 Unit SUCCESS를 새 Head PASS로 전용하지 않는다. Server/DB/prod API, version0.123.0, Gantt Core/CI 정책·QA/Owner 승인권 및 기존 #726 issue owner 변경 없음.
+
+## Issue #731 F-003 — #2999.1 TypeScript nullability와 E2E Fast Gate 재검증 (2026-10-19)
+
+- [PR #746 Full CI #2999.1 / Run 39212770619](https://github.com/planner77/masterGantt/actions/runs/39212770619) · exact Head dd493bd1d973afe8eff80c053a03cd2096ff7afd, base 01fdc08bf4b2f69f9797a8bd411d6712e7478c09, test merge 8af177db944fa36e1163f608bf712a2789a50f32. 직접 실패 TypeScript job 117929793086, step7, `tests/e2e/issue-726-task-logistics.spec.ts(370,14) TS2488: TaskProcessLink[] | null` 배열 펼침 불가. 정책·lint·Unit·QA Preflight 성공, Fast Gate가 Typecheck 실패로 차단하여 PR E2E·Build·Docker는 SKIPPED, Required3/QA Final은 파생 실패. 재시도나 CI 실행 오류로 오분류하지 않는다.
+- #2998 F-002의 post-save browser same-origin fetch로 바꾼 `readContext`에서 정확한 `TaskProcessContextResponse` DTO를 적용한 뒤, 기존 `[...childContext.processLinks]`가 nullable `TaskProcessLink[] | null`에 대해 컴파일되지 않았다. 원 계약은 legacy null ≠ 명시 `[]`. 저장 성공 뒤 null은 잘못된 결과이므로 테스트에서 명시 runtime guard로 즉시 실패시키고, non-null `savedProcessLinks`의 기존 정확 2개 원시 UUID/self-scope 정렬 비교를 그대로 유지한다. 타입 검사를 우회하려고 cast/!·nullish default로 원본 오류를 숨기지 않는다.
+- #731 [단일 누적 실패 원장 F-001~F-003](ISSUE_731_FAILURE_ANALYSIS.md#7-f-003--pr-746-full-ci-29991-typescript-ts2488--fast-gate-차단-2026-10-19)은 F-001 리뷰(PRODUCT+policy), F-002 Shard4 실제 ECONNRESET(INIT_TRANSPORT/근인 UNKNOWN), F-003 TypeScript TEST_CONTRACT의 전체 Run/Attempt·실패/취소/미실행을 별도 기록한다. E2E 실제 실패 누적 파일은 issue-726-task-logistics.spec.ts; F-003은 E2E 실행0/기본 TypeScript 실패다.
+- 영향 기반 회귀: 직접 `npm run typecheck`/strict nullable shape, 해당 E2E 파일의 3개 주요 원본/WorkArea/legacy-null·explicit-zero/상속·후행 same-origin GET, 간접 #731 KPI WorkArea 구성 + #728/#729 source/snapshot·#667 canonical GET 및 사용자 인터랙션/readonly, Required Quality/E2E6/Docker. 테스트 함수, 권한·revision, HTTP error/invalid JSON/취소·5폭 기준·CI maxFailures/timeout/retry/skip는 불변.
+- **검증 경계:** repo Node/npm 종속·브라우저/checkout 없는 편집 환경이므로 변경 Head의 실제 `npm run typecheck`/Vitest/Chromium **NOT TESTED**. 별도 Node22 전역 TypeScript `tsc --strict` 최소 타입 재현은 null guard가 TypeScript narrowing을 수행함만 PASS(프로젝트 컴파일/통합 회귀 PASS가 아님). 새로운 exact Head Full PR CI의 시작까지만 확인하며 완료 모니터링·병합·릴리스 없음.

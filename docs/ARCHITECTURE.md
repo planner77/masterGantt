@@ -1,3 +1,7 @@
+## Issue #731 — KPI 전용 통합 read consumer
+
+기존 Logistics KPI 컴포넌트를 보존하고 전용 `/logistics/kpi?source=integrated` read adapter를 둔다. 한 SQLite read transaction에서 #729의 bounded Project snapshot과 #728의 공통 원장을 읽고 기존 Logistics KPI 계산 authority를 재사용한다. 유효 Task/개인 Assignment 합집합·진단 ID·구성 참고·source/snapshot을 전달하며 기존 `/logistics/dashboard`·Resource/Target default는 바꾸지 않는다. 저장 writer/DB migration·공통 resolver/계산기·Gantt Core/viewport writer는 추가하지 않는다. [계약](LOGISTICS_DASHBOARD.md#issue-731--기존-kpi와-통합-출처).
+
 ## Issue #729 — versioned WBS 다관점 read adapter
 
 신규 opt-in 조회는 기존 ResourceDashboardService 및 read snapshot/repository와 #728 `wbs-task-ledger`를 연결한다. Route Handler → Service → Repository → SQLite 경계를 유지하고 한 read transaction에서 Project·공정/WorkArea·Target/member/legacy·Task 문맥·Resource 등록/사용/책임·Calendar를 읽는다. 이름·활성·관계 변경까지 fingerprint에 포함하며 별도 영속 snapshot·WBS/Assignment writer를 만들지 않는다. 기존 호출은 기존 snapshot/공정 유도/`projectionOrder` 의미를 유지한다.

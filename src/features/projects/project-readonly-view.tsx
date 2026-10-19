@@ -100,7 +100,10 @@ type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
 import { DASHBOARD_SCREENS, MASTER_SCREENS, normalizeWorkspaceScreen, legacyWorkspaceScreen, logisticsSubview, workspaceSection, workspaceView, type WorkspaceScreen, type WorkspaceSection, type WorkspaceView } from "./project-workspace-navigation";
 import { ProjectResourceMemberships } from "@/features/resources/project-resource-memberships";
+import { IdentifierDetails } from "@/components/identifier-details";
+type KpiNavigationSource = { snapshotId: string; filters: import("@/contracts/logistics-dashboard").LogisticsDashboardFilterInput };
 type ResourceNavigationState = {
+  kpiSource?: KpiNavigationSource;
   view: WorkspaceView;
   screenKey?: WorkspaceScreen;
   rootTaskId: string | null;
@@ -398,6 +401,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships" | "relations" | "resources">("task");
   const [editorAssignment, setEditorAssignment] = useState<{assignmentId:string; resourceId:string} | undefined>();
   const [resourceTargetRequest, setResourceTargetRequest] = useState<{id:string; sequence:number;code?:string | null} | null>(null);
+  const [kpiResourceOrigin, setKpiResourceOrigin] = useState<{ id: string; name: string; code: string | null; source: ResourceNavigationState; revision: number } | null>(null);
+  const [kpiSourceRefreshKey, setKpiSourceRefreshKey] = useState(0);
   const resourceTargetTrigger = useRef<HTMLElement | null>(null);
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
@@ -1894,6 +1899,20 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       throw Error("REPORT_STALE");
     return result.data;
   }
+  async function validateKpiNavigationSource(source: KpiNavigationSource, signal: AbortSignal) {
+    const params = new URLSearchParams({ source: "integrated", snapshotId: source.snapshotId });
+    for (const [key, value] of Object.entries(source.filters)) {
+      if (value !== undefined) params.set(key, Array.isArray(value) ? value.join(",") : value === null ? "null" : String(value));
+    }
+    try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/kpi?${params}`, { cache: "no-store", credentials: "same-origin", signal });
+    const body = await response.json();
+    if (!response.ok || body.data?.integrated?.snapshotId !== source.snapshotId || body.data?.projectRevision !== confirmedSnapshotReference.current?.data.project.revision) throw Error("REPORT_STALE");
+    } catch (error) {
+      if (!signal.aborted) setKpiSourceRefreshKey(value => value + 1);
+      throw error;
+    }
+  }
   async function performResourceNavigation(
     resolve: (signal: AbortSignal) => Promise<{
       scope: ResourceDrillScopeDto;
@@ -1901,6 +1920,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       label: string;
     }>,
     sourceTrigger?: HTMLElement,
+    kpiSource?: KpiNavigationSource,
   ) {
     if (!navigationAllowed()) return;
     if (navigationFrames.length >= 8) {
@@ -1911,7 +1931,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       );
       return;
     }
-    const source = captureNavigation(sourceTrigger),
+    const source = { ...captureNavigation(sourceTrigger), ...(kpiSource ? { kpiSource } : {}) },
       revision = confirmedSnapshotReference.current!.data.project.revision,
       current = ++navigationGeneration.current,
       controller = new AbortController();
@@ -2380,6 +2400,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     navigationPending.current = true;
     setNavigationLoading(true);
     try {
+      if (pending.source.kpiSource) await validateKpiNavigationSource(pending.source.kpiSource, controller.signal);
       await validateNavigationSource(
         pending.scope.sourceContext,
         controller.signal,
@@ -2427,6 +2448,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const controller = new AbortController();
     navigationAbort.current = controller;
     try {
+      if (frame.source.kpiSource) await validateKpiNavigationSource(frame.source.kpiSource, controller.signal);
       const current = await readNavigationContext(controller.signal);
       if (
         controller.signal.aborted ||
@@ -2458,6 +2480,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   }
   function drillDashboardSchedule(taskIds: string[],
     originalSource?: ResourceDrillSourceContext,
+    kpiSource?: KpiNavigationSource,
   ) {
     if (!taskIds.length) return;
     const currentTasks = confirmedSnapshotReference.current?.data.tasks ?? [];
@@ -2499,6 +2522,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         dashboardQuery(filters),
       );
     if (!report?.resourceScopeContext) throw Error("INVALID_RESPONSE");
+      if (kpiSource) await validateKpiNavigationSource(kpiSource, signal);
       // Existing Milestone/logistics callers already supply a complete canonical Task set.
       const scope: ResourceDrillScopeDto = { schema: "resource-dashboard/1",
         snapshotId: report.snapshotId,
@@ -2525,7 +2549,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         scope,
         label: milestoneIds.length
           ? `Milestone ${milestoneIds.length}개 일정 · 일반 Task ${scope.taskCount} · 평가일 ${originalSource!.asOfDate} · 원본 환산 ${originalSource!.mdPerMm === null ? "미설정" : originalSource!.mdPerMm + " M/D / 1 M/M"} (${originalSource!.mdPerMmSource === "query" ? "명시 기준" : originalSource!.mdPerMmSource === "environment" ? "환경 기준" : "미설정"})`
-          : "출발 화면의 명시 Task 범위",
+          : kpiSource ? "통합 KPI 출발 · 고유 Task 범위 (출발 KPI 조건·분모 유지)" : "출발 화면의 명시 Task 범위",
         destination: {
           ...captureNavigation() ,
           view: "schedule",
@@ -2537,7 +2561,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           trigger: null,
         },
       };
-    });
+    }, undefined, kpiSource);
   }
 
 
@@ -2736,9 +2760,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               {navigationFrames.at(-1)!.scope.taskCount} · Assignment{" "}
               {navigationFrames.at(-1)!.scope.assignmentCount} · 조상 문맥{" "}
               {navigationFrames.at(-1)!.scope.ancestorSummaryIds.length} ·{" "}
-              {navigationFrames.at(-1)!.scope.sourceContext.range.from}–
-              {navigationFrames.at(-1)!.scope.sourceContext.range.to}
+              {navigationFrames.at(-1)!.source.kpiSource ? "일정은 출발 KPI의 정확 작업 목록" : <>{navigationFrames.at(-1)!.scope.sourceContext.range.from}–{navigationFrames.at(-1)!.scope.sourceContext.range.to}</>}
             </span>
+            {navigationFrames.at(-1)!.source.kpiSource ? <IdentifierDetails identifiers={[{ label: "출발 KPI snapshot", value: navigationFrames.at(-1)!.source.kpiSource!.snapshotId }]} /> : null}
             <button
               className="secondary-button"
               type="button"
@@ -3161,9 +3185,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
         />
         <ProjectLogisticsManagement
+          kpiSourceRefreshKey={kpiSourceRefreshKey}
           subview={logisticsSubview(logisticsScreen)} hideSubviewNavigation
           onSubviewFocusUnavailable={() => workspaceFocusFallback(lastUnifiedScreen)?.focus({ preventScroll: true })}
-          onSubviewChange={view => { if (view === "targets" || view === "relations") selectScreen(`master.${view}`, false); else if (view === "unified") selectScreen(lastUnifiedScreen, false); }}
+          onSubviewChange={view => {
+            if (view === "dashboard") selectScreen("dashboard.kpi", false);
+            else if (view === "processes" || view === "equipment" || view === "systems" || view === "targets" || view === "relations") selectScreen(`master.${view}`, false);
+            else if (view === "unified") selectScreen(lastUnifiedScreen, false);
+          }}
           perspective={lastUnifiedScreen === "dashboard.equipment" ? "equipment" : lastUnifiedScreen === "dashboard.system" ? "system" : lastUnifiedScreen === "dashboard.target" ? "target" : "process"}
           onPerspectiveChange={view => { selectScreen(`dashboard.${view}`, false); }}
           targetOpenRequest={resourceTargetRequest}
@@ -3178,7 +3207,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onResourceSchedule={scheduleResourceRequest}
           onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })}
           onStageOpen={(taskId, tab) => openTaskEditor(taskId, tab)}
-          onTargetTaskOpen={(taskId) => openTaskEditor(taskId)}
+          onTargetTaskOpen={(taskId, trigger) => openTaskEditor(taskId, "task", trigger)}
+          onKpiResourceOpen={(resourceId, trigger, resource) => {
+            if (!navigationAllowed()) return;
+            setKpiResourceOrigin({ id: resourceId, name: resource?.name || "선택한 리소스", code: resource?.code ?? null, source: captureNavigation(trigger), revision: project.revision });
+            selectScreen("master.resources", false);
+          }}
           logistics={state.snapshot.data.logistics}
           onLogisticsMutated={(newLogistics, newProject) => {
             const current = confirmedSnapshotReference.current;
@@ -3186,17 +3220,26 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             notify("success", "물류 구성 변경 사항을 저장했습니다.", "물류 구성");
           }}
           onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
-          onNavigateToSchedule={(targetFilter) => {
-            activateScope(null, false);
-            setActiveView("schedule");
-            if (targetFilter) {
-              setTaskFilter((prev) => ({ ...prev, ...targetFilter }));
+          onNavigateToSchedule={(targetFilter, source) => {
+            if (targetFilter.taskIds) {
+              drillDashboardSchedule(targetFilter.taskIds, undefined, source);
             }
           }}
           onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
         />
       </section>
       <section id="project-panel-resource-master" role="tabpanel" aria-labelledby="project-tab-master.resources" hidden={activeView !== "resource-master"} className="project-workspace-panel project-resource-panel">
+        {kpiResourceOrigin ? <aside aria-label="KPI에서 선택한 리소스">
+          <strong>{kpiResourceOrigin.name}</strong>
+          <IdentifierDetails identifiers={[{ label: "리소스 ID", value: kpiResourceOrigin.id }, ...(kpiResourceOrigin.code ? [{ label: "리소스 코드", value: kpiResourceOrigin.code }] : [])]} />
+          <p>KPI에서 선택한 리소스입니다. 아래 프로젝트 전체 참여·배정 목록은 별도 범위입니다.</p>
+          {kpiResourceOrigin.revision !== project.revision ? <p role="status">프로젝트가 변경되었습니다. KPI로 돌아가 최신 결과를 확인하세요.</p> : null}
+          <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => {
+            const origin = kpiResourceOrigin;
+            setKpiResourceOrigin(null);
+            applyNavigation(origin.source, true, true);
+          }}>KPI로 돌아가기</button>
+        </aside> : null}
         <ProjectResourceMemberships recoveryRequired={canonicalRecoveryBlocked} publicId={publicId} revision={project.revision} active={activeView === "resource-master"} editable={editing} disabled={busy || editorSession !== null} onChanged={reloadCanonicalSnapshot} onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} taskNames={new Map(tasks.map(task => [task.taskId, task.name]))} onOpenAssignment={(taskId, assignmentId, resourceId, trigger) => openTaskEditor(taskId, "resources", trigger, { assignmentId, resourceId })} />
         <button type="button" className="secondary-button" onClick={() => selectScreen("schedule")}>작업 일정에서 배정 관리</button>
       </section>
