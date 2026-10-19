@@ -1,3 +1,42 @@
+## Issue #729 — versioned WBS 다관점 조회
+
+`POST /api/projects/{publicId}/resource-dashboard/views`는 새 WBS source를 명시적으로 선택하는 읽기 전용 API다. 기존 `/resource-dashboard`, `/query`, `/details`, `/scope`, Plan 및 `projectionOrder`의 요청/응답·공정 의미는 유지한다. Project 편집 session 없이 public-read이며 exact `Origin`, JSON body, canonical UUID Project ID를 검증한다. URL query는 허용하지 않는다. 조회는 mutation0이고 응답은 `Cache-Control: private, no-store`·`nosniff`다.
+
+```json
+{
+  "spec": {
+    "version": "wbs-view:v1",
+    "contextSourceVersion": "explicit-task-context:v1",
+    "root": "process",
+    "levels": [{"kind":"siblings","dimensions":["equipment","system"]}, "resource"]
+  },
+  "filters": {"from":"2026-10-05","to":"2026-10-09","asOfDate":"2026-10-09"},
+  "projection": {"kind":"report"}
+}
+```
+
+`root` 및 순차 하위 축은 `process | workArea | equipment | system | resource | milestone | group | role`다. `process` ID는 Project-local 공정이며 catalog occurrence ID가 아니다. `levels` 생략 또는 `[]`는 root만 조회한다. 하위의 병렬 단계는 정확히 `{"kind":"siblings","dimensions":["equipment","system"]}` 또는 역순만 지원한다. 다음 단계는 두 형제 각각 아래에 적용되며 equipment→system의 직렬 관계를 만들지 않는다. 모든 축은 spec 전체에서 한 번만 등장하므로 root 재등장·축 반복·순환이 불가능하다. 다른 병렬 조합·unknown key·source/version·잘못된 path 단계는400이다.
+
+지원 예시는 `equipment→process→system→resource`, `equipment→milestone→process`, root-only 및 `process→siblings[equipment,system]→resource`다. 신규 공정은 Task 자신의 명시 선택0..N이다. 명시0과 legacy null을 진단에서 구분하며 설비/System/WorkArea/Target/조상 Summary에서 새 Task 공정을 자동 유도하지 않는다. 원시 Task에 없는 관계를 DTO의 nullable 의미로 생성하지 않는다. 기존 Target 공정 자동 유도 API와 숫자가 다를 수 있으며 같은 Task/Assignment 집합에서 기존 산식과 일치하는 것이 호환 조건이다.
+
+`filters`는 기존 기간/기준일·개인/Group/역할/등급/활성·Task/WBS/Milestone/status/검색·M/M 조건을 strict parser로 검증한다. 신규 endpoint는 기본 Resource 조건만 받으며 Target 전용 필터와 `projectionOrder`는400으로 거부한다. 기존 Target 필터는 기존 endpoint에서 그대로 지원한다. 신규 축을 구 `projectionOrder`로 보내거나 새 명시 공정을 구 공정 필터로 바꾸지 않는다. optional `scope`는 기존 `summarySubtree`, `scheduleSelection`, `exactAssignments`의 typed 범위이며 다른 Project ID는400, 빈 정확 집합은 전체 fallback이 아닌 빈 결과다.
+
+응답 `{data: ...}`는 versioned schema와 `snapshotId`, Project/revision, `sourceContext`, 정규 spec/filter, 기간/asOf/M/M, metadata를 포함한다. report의 원시 `taskIds/assignmentIds`·총계와 `children`은 고유 합집합이고 자식 소계를 가산하지 않는다. 응답 `projection`은 `report | details | scope`를 구별한다. 각 node는 `selector`, `path`, 원본 ID와 별개인 `viewRowKey`, label, 원시 ID 범위, `totals`, Task별 선택 경로 `provenance`, 자식을 제공한다. 구성-only root도 작업0 요약으로 조회할 수 있다. WorkArea0..N의 원본 설비 수량과 관련 작업 KPI를 분리한다. Task 없는 등록 인원이나 책임 역할을 개인 Assignment/공수/Capacity로 만들지 않는다. full Milestone Gate는 전체 canonical membership/선행을 유지한다.
+
+같은 snapshot의 상세와 drill은 같은 요청의 `projection`만 바꾼다.
+
+```json
+{"kind":"details","snapshotId":"<64자리 SHA256>","path":[{"dimension":"equipment","id":"<Project 설비 UUID>"},{"dimension":"milestone","id":"<Milestone UUID>"}],"view":"assignments","offset":0,"limit":50}
+```
+
+`path`는 spec의 root부터 선택한 노드까지의 prefix이며 `[]`는 전체 선택 범위다. 각 단계의 `id:null`은 그 축의 미연결 분기다. `details.view`는 `tasks | assignments`; `totalCount/nextOffset/rows`는 선택 범위 전체와 bounded page를 구별한다. Task 상세와 개인 Assignment 상세를 합쳐 원시 Task를 잃지 않는다. `projection:{kind:"scope",snapshotId,path}`는 같은 경로의 exact Task/Assignment 범위와 source metadata를 반환하며 일정/Plan/Excel 소비자가 출발 문맥을 검증하는 인계용이다. `taskSources`는 해당 Task의 canonical 원본 근거다. 정확 선택 기여는 `selectedSources`와 typed `instanceIds/instancePaths`로 구별하며 구성/Target의 전체 원본 근거를 선택 기여로 가산하지 않는다. 상세 row에도 `selectedSources/instancePaths`를 제공한다. 공유 Milestone M에서 E1-t1과 E2-t2가 있어도 E1→M→공정은 t1만 포함한다. 같은 Task의 여러 관점 교차만 허용하며 다른 Task로 조인 범위를 넓히지 않는다.
+
+snapshot은 같은 SQLite read transaction의 Project·catalog·Calendar·원시 Task/Assignment/Milestone·Target/member/직접 연결·Task 문맥·설비 WorkArea0..N·참여/사용/책임·이름/활성 참조와 source/spec/filter/scope/기간/asOf/M/M을 결속한다. 이름/등록/구역 변경도 이전 selector를 stale로 만든다. 상세의 다른 snapshot/조건은409 `REPORT_STALE`이며 최신 report를 재조회해 다시 선택한다. foreign/유효하지 않은 path는400 `INVALID_SELECTION`, Project 없음404, Origin 불일치403이다. client는 현재 조건/source에 맞는 snapshot만 적용하고 응답 도착 순서를 최신성으로 사용하지 않는다. 이 API 추가만으로 후속 UI의 응답 역전 처리가 구현되었다고 주장하지 않는다.
+
+신규 view spec의 Excel은 `metadata.excel.supported=false`, `WBS_VIEW_EXPORT_UNSUPPORTED`로 명시한다. 기존 Export parser도 이 spec/source가 들어온 요청을409로 거부하며 조건을 생략한 workbook을 생성하지 않는다. 기존 Excel writer/current/project의 의미·Origin/If-Match는 유지한다.
+
+한도는 입력1MiB, 깊이8, 형제 포함 한 단계 fan-out1000, cell5000, provenance source50000, 상세 page100, 응답2MiB다. 기존 source Task5000/Assignment8000/기간366일·Calendar·catalog·WBS path·Resource Plan 예산도 유지하며 초과는422 `REPORT_LIMIT_EXCEEDED`로 전체 실패한다. SQL은 Project별 bulk 읽기이고 행별 추가 SQL이 없다. 실제 fixture/한도/비절삭/query count·bytes·시간 및 미검증 환경은 [#729 Work Packet](exec-plans/active/ISSUE_729.md)을 따른다.
+
 ## Issue #725 — Target 없는 공정·WorkArea 직접 문맥
 
 이 절은 #615의 단일 매핑 WorkArea를 설비·Task 전체 구역으로 확장하지 않는다. 공정 occurrence의 WorkArea는0..N이고 각 WorkArea의 소유 occurrence는 하나다. 설비는 타 공정 구역을 포함한0..N 연결을 가질 수 있으며 기존 `processId`는 주 관리 공정이다. Target 생성·Task 공정 자동 유도는 수행하지 않는다.

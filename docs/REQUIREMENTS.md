@@ -1,3 +1,9 @@
+## Issue #729 — WBS 다관점 조회·정확 범위
+
+Task/Assignment 원장을 공정·WorkArea·설비·물류 시스템·Resource·Milestone·Group·Role 관점으로 조회하는 versioned opt-in API를 제공한다. root-only 및 순차 단계와 설비/System 형제 분기를 지원하고 등록-only root와 미배정 Task를 보존한다. Task 직접 공정0..N·명시0은 구성/Target/조상에서 채우지 않으며 legacy API의 자동 공정 유도 의미와 구분한다.
+
+고유 원시 합집합 총계·경로별 행 식별·실제 관계 provenance, 한 read snapshot의 문맥/이름/등록/Calendar fingerprint와 bounded 정확 상세/drill을 제공한다. 공유 Milestone/설비/System을 거쳐 다른 Task로 범위를 넓히지 않는다. 미지원 새 spec Excel은 조건을 조용히 버리지 않고 전체 거부한다. 기존 public-read/edit 권한과 source/rows/cells/JSON 한도를 유지한다. [공개 계약](API.md#issue-729--versioned-wbs-다관점-조회), [실행 계획](exec-plans/active/ISSUE_729.md)을 따른다. 화면은 #730~#736의 별도 범위다.
+
 ## Issue #726 — Task 직접 물류 연결 우선
 
 기존 기준정보 설비/System CRUD를 그대로 사용하고 Target0개에서도 Task 공정/WorkArea0..N 및 설비/System을 직접 연결·재편집한다. 명시0/legacy null·self/subtree·직접/조상 출처, 공유 원본·역할·제어/조율·사용 중 삭제 방어를 보존한다. Target whole/subset/coverage는 보조 호환 영역이며 UI 변경으로 경로를 자동 변환·복제하지 않는다. Project 편집권과 유형 master 관리자 권한을 구분하고 유형 조회·dirty/pending/stale·권한·canonical 갱신을 같은 흐름에서 보호한다. [Task Editor](TASK_EDITOR.md), [실행 원장](exec-plans/active/ISSUE_726.md).

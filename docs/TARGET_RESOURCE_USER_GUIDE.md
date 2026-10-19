@@ -1,3 +1,11 @@
+## Issue #729 — 새 다관점 API와 현재 화면의 구분
+
+신규 WBS 기반 조회 API는 Task가 직접 선택한 공정0..N을 사용한다. 공정 미연결도 정상이며 같은 Task의 설비·System·Resource·Milestone 관련 작업은 계속 조회할 수 있다. 설비 주 관리 공정·System 담당 공정·설비 연결 구역이 Task 공정을 자동 결정하지 않는다. 기존 화면의 자동 유도 공정 수치와 새 명시 Task 공정 수치가 다를 수 있으므로 출처와 snapshot을 함께 확인한다.
+
+설비/System 형제 분기·다관점 단계·등록-only root API는 후속 #730~#736 화면의 공통 기반이다. 이번 변경만으로 화면의 보기 선택·버튼이 바뀌지는 않는다. 여러 구역·Group·Milestone 소계는 겹칠 수 있으며 상위 고유 합계가 기준이다. 다른 경로의 작업이 섞이지 않도록 정확 상세는 선택한 경로와 같은 snapshot을 요구한다. stale 오류 시 최신 보고서를 조회한 뒤 다시 선택한다.
+
+신규 동적 spec의 Excel은 현재 미지원이다. 기존 Resource 보고서 기능은 그대로이며 새 spec의 조건을 생략한 workbook을 같은 보고서로 취급하지 않는다. 연계 API에서 `taskSources`는 원본 Task 근거이며, 클릭한 경로의 정확 기여는 `selectedSources`와 typed `instanceIds/instancePaths`로 받는다. 원본 구성 출처를 선택된 작업으로 확대하지 않는다. 개발 연계의 실제 wire/한도는 [API](API.md#issue-729--versioned-wbs-다관점-조회), 실행/미검증 범위는 [Work Packet](exec-plans/active/ISSUE_729.md)을 확인한다. #720 매뉴얼은 기존 화면의 anchor를 유지하고 신규 API 기반 화면이 연결될 때 갱신한다.
+
 ## Issue #726 — Target 없이 같은 원본 연결
 
 ### 설비와 물류 시스템 원본 관리

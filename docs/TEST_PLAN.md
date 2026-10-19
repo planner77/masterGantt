@@ -1,3 +1,19 @@
+## Issue #729 — WBS 다관점 HTTP·SQLite 수용
+
+`tests/server/resources/wbs-dashboard-views-http.test.ts`는 migration된 실제 합성 SQLite와 production Handler→Service→Repository를 Node HTTP socket으로 호출한다. mock API 데이터가 아니며 실제 Next 서버·브라우저 네트워크 실행과는 구분한다. `tests/fixtures/wbs-dashboard-views.ts`의 direct(Target0)/Target-only/혼합 원장을 #728 golden과 대조한다.
+
+| 요구사항 | 직접·간접·음성 검증 |
+| --- | --- |
+| AC1 / W1 / W2 | 전체14/조립8/검사9/미연결2, 등록-only root·미배정/Group-only·공수 미설정, 명시0·legacy null, WorkArea0/1/2+와 타 공정 구역 |
+| AC2 / AC3 | root-only·공정 아래 설비/System 형제·equipment→process→system→resource·equipment→milestone→process·Resource/Milestone 교차, 축 순서 독립 raw union·viewRowKey |
+| AC4 | exact Task/Assignment detail·페이지·drill·source metadata, E1-t1/M vs E2-t2 누출0, 범위·조건 변경/foreign ID/Origin/Project 격리·stale |
+| AC5 | 기존 Dashboard/Target KPI/Plan/공수·full Gate 회귀, 새 spec Excel 명시 오류·기존 Excel 호환, 실제 controls와 작업 연관 구분 |
+| AC6 | strict spec/반복/root/병렬/fan-out·bytes/source 한도 초과 전체 실패, 큰 입력의 실제 SQL 실행 수·응답 bytes·실행시간, 조회 mutation0 |
+
+로컬 직접 회귀는 신규 HTTP suite와 기존 WBS Domain·Resource Dashboard/rollup/Target/Plan·Export/route security inventory를 영향 범위에 따라 선정한다. 변경 source→직접 소비자와 source snapshot→기존 Dashboard/Plan/Excel 간접 소비자를 함께 검증한다. scoped 정적 검사와 version/Markdown 링크/diff 확인 및 기존 Pre-PR CLI 결과도 기록하며 UNKNOWN/BLOCKED를 PASS로 바꾸지 않는다. 전체 E2E6/Docker·production build·원격 Trusted QA는 PR CI 증거이며 로컬 결과로 대체하지 않는다.
+
+구현 중 독립 사전 검토에서 scheduleSelection의 Task만 좁고 Assignment가 전체로 남는 문제와 exactAssignments scope가 사용자 Task 조건을 덮는 문제를 실제 SQLite에서 발견했다. 수정 후 scope 교집합·빈 집합·공동담당자 음성을 검증해야 한다. 누적 최초 실패·최종 실행/계측/source 지문·미검증은 [Work Packet](exec-plans/active/ISSUE_729.md)의 실행 원장을 따른다. UI가 변경되지 않아 geometry/keyboard/Core/scroll 증거는 신규 로컬 N/A이며 원격 기존 전체 회귀는 유지한다.
+
 ## Issue #726 — 관리 원본 재사용과 Task 직접 연결 검증
 
 관련 producer는 기존 Project LogisticsManagement·Task Editor 및 #725 process-context 소비 UI다. 새 server schema/API·Gantt writer는 없다. AC별 실제 실행·최초 실패·원격 미검증은 [Work Packet](exec-plans/active/ISSUE_726.md)에 기록한다.

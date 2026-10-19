@@ -1,3 +1,9 @@
+## Issue #729 — 신규 WBS view spec과 기존 보고서 경계
+
+기존 Resource Excel writer·current/project·exact source binding 및 Origin/strong revision 검증은 유지한다. 신규 WBS view spec은 기존 Target `projectionOrder`와 공정 의미가 다르므로 기존 Excel에 자동 변환해 조건을 누락하지 않는다. 신규 API의 exact scope는 snapshot/spec/filter/path와 원시 Task/Assignment/instance ID 및 출처를 함께 인계한다.
+
+이번 신규 동적 spec의 Excel 지원은 명시적으로 미지원이다. 기존 export parser가 신규 spec/source를 받으면 전체 오류를 반환하며 기존 조건만 남긴 성공 workbook을 생성하지 않는다. 일반 기존 Resource Excel은 기존 계약대로 동작한다. 지원되지 않는 spec을 생략한 재요청은 동일 보고서의 Export가 아니므로 사용자 의도 확인 없이 소비자가 자동 수행해서는 안 된다. stale detail/export는 최신 report를 다시 조회한 후 정확 selector를 새로 선택한다. [API](API.md#issue-729--versioned-wbs-다관점-조회)와 [실행 원장](exec-plans/active/ISSUE_729.md)에서 실제 지원 범위를 확인한다.
+
 ## Issue #727 — 프로젝트 리소스 등록과 보고서
 
 Project Resource 등록은 Task 배정/계획공수/Capacity R와 독립이다. 등록 인원을 기존 Resource Excel의 개인 모집단이나 Capacity 분모로 자동 사용하지 않는다. 명시 참여 등록을 표현하지 못하는 일반 일정 Excel은 관계를 잃는 성공 출력 대신 명시적으로 거부한다. 명시 `includeResourceEffort=true` 견적 또는 `resourceDashboard` opt-in Resource Excel은 조회 보고서의 기존 scope·snapshot·raw/null·공수 계약을 유지하며 참여 관계의 backup/roundtrip 형식이 아니다. 기존 Task Target가 있는 Project의 legacy 견적 차단은 그대로이며 이번 변경으로 우회하지 않는다. [교환 경계](IMPORT_EXPORT.md)와 [사용자 가이드](TARGET_RESOURCE_USER_GUIDE.md#프로젝트-리소스-등록과-해제)를 따른다.

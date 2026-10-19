@@ -1,3 +1,11 @@
+## Issue #729 — versioned WBS 다관점·snapshot·정확 상세 (2026-10-19)
+
+초기 기준 main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81`, 정렬 main `0ad91e7b075aa339b3b73ee0b4b3e8bc64e992f2`의 #725/#727/#728을 기준으로 [Work Packet](ISSUE_729.md)의 opt-in view spec/root·설비/System 형제 분기·raw union·same-snapshot 상세/drill·기존 Excel 호환 경계를 구현한다. Task 명시 공정0..N과 legacy 유도 의미를 분리하고 기존 projectionOrder/API·full Milestone Gate·Capacity R를 유지한다. UI·DB writer·CI gate 변경은 없다.
+
+Manager 문서/version/통합, backend 구현, 별도 backend SQLite→HTTP 수용, 읽기 전용 qa_docs 사전 검토를 분리한다. 후보0.122.0, HIGH/qa_required=true/OWNER_MANAGED, release_required=true/release_authorized=false. 요청 종료점은 구현·DOCUMENTATION_SYNC·관련 Local Fast Feedback·사전 검토 후 PR Full CI 시작이다. CI 모니터링·병합·main/GHCR·Release·Issue 종료는 범위 밖이며 원격 Required3/Trusted·Owner ACCEPT는 NOT TESTED다.
+
+2026-10-19 main 정렬: #717/#726 등 선행 30커밋과 #729 변경을 통합하고 충돌 문서 7개 및 package/lock version 0.122.0을 보존한다. 미해결 리뷰 스레드 0건을 확인했다. 새 PR CI의 Quality/E2E6/Docker 결과는 실행 시작 시점 NOT TESTED이고 이전 CI의 성공을 재사용하지 않는다.
+
 ## Issue #726 — 설비·물류 시스템 관리 재사용과 Task 직접 연결 (2026-10-19)
 
 [Work Packet](ISSUE_726.md)에 따라 main `6f6dadb1b3ac10bc837c09273a0922611b2e3f81` / `0.120.0`의 #724 host·#725 문맥 API·#728 공통 해석을 재사용한다. 기존 단일 관리 CRUD·다중 WorkArea0..N·공유 원본을 보존하고, Task 물류 연결의 직접 공정/WorkArea·설비/System 편집을 우선하며 Target 호환을 보조 영역에 유지한다. Task 명시 공정0..N과 legacy null을 구별하고 자동생성·복제·새 Gantt writer는 없다.

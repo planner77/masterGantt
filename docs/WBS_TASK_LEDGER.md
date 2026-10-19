@@ -58,3 +58,9 @@ selector를 순차 적용할 때 매 단계의 선택 Task ID와 Assignment ID �
 MCS1의 공통 T0=2 M/D, 조립 T1=3, 검사 T2=4, 양쪽 T3=5에서 전체는4 Task·14 M/D다. 조립은 T1/T3·8, 검사는 T2/T3·9, 공정 미연결은 T0·2다. 공정 소계17을 전체로 사용하거나 T3를50:50으로 나누지 않는다. 같은5일100% Assignment가 여러 경로에 보이면 전체5 M/D이며 다른 개인의50% Assignment가 추가되면7.5다.
 
 검증은 [Work Packet](exec-plans/active/ISSUE_728.md)의 AC별 테스트와 실행 원장에 기록한다. 새 공정 기준으로 포함 Task가 바뀌는 경우 이전 자동 공정 분류와 숫자까지 같다고 주장하지 않는다. 같은 원시 Task/Assignment 집합의 기존 계산 oracle 일치가 호환 조건이다. #729는 이 source/version과 exact ID 범위를 공개 API/snapshot/detail에 결속해야 하며 구 `projectionOrder`의 의미를 조용히 바꾸지 않는다. #730은 동급 설비/System 분기와 표시용 row key를 구현하며 Task/WBS/Assignment 원본에는 쓰지 않는다.
+
+## Issue #729 — HTTP 소비와 snapshot 결속
+
+신규 versioned view API는 위 pure Domain을 실제 한 SQLite read transaction에서 읽은 Project/catalog/Calendar/Task 문맥/WorkArea0..N/참여 원장과 결속한다. 기존 Domain의 도입 당시 HTTP 비제공 설명은 #728 범위이며 신규 HTTP 계약은 [API](API.md#issue-729--versioned-wbs-다관점-조회)를 따른다. 구 projectionOrder·legacy 공정 필터는 변경하지 않는다.
+
+root와 선택 하위 단계, equipment/system 형제 stage의 각 경로에 viewRowKey·exact Task/Assignment 선택과 관계 provenance를 제공한다. 같은 Task의 축 교차는 허용하고 공유 Milestone을 통한 다른 Task 확장은 거부한다. 신규 명시0·legacy null 및 미연결 분기는 유지한다. 등록/구성만 있는 root는 작업0이며 개인배정을 생성하지 않는다. 상세·drill은 같은 snapshot/spec/filter/path를 재검증한다. 지원하지 않는 새 spec Excel은 명시 오류이며 기존 보고서와 혼합하지 않는다. 실제 AC/한도/계측·실패 및 원격 미검증은 [#729 Work Packet](exec-plans/active/ISSUE_729.md)에 기록한다.

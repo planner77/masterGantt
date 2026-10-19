@@ -1,3 +1,9 @@
+## Issue #729 — 신규 WBS source와 설비/System 형제 조회
+
+신규 opt-in view API는 #728 명시 Task 공정/WorkArea 원장을 사용하며 기존 공정 KPI/Target API의 자동 유도 의미를 바꾸지 않는다. `process`는 Project-local 공정 ID이고 `processOccurrence` 및 legacy projection의 공정과 구별한다. 공정0 Task는 미연결 분기에 남고 Project/System/Resource/Milestone 전체에서 유실되지 않는다. 설비의 교차 공정 WorkArea0..N은 구성 관계이며 Task 공정 선택을 생성하지 않는다.
+
+다른 root 아래 설비와 System을 함께 선택하면 같은 깊이의 typed 형제다. 같은 Task의 설비/System 연관은 조회할 수 있으나 실제 controls/coordinates/membership을 추론하지 않는다. E1→공유 Milestone→공정은 E1의 원시 Task/Assignment만 유지한다. 상위 총계는 원시 합집합이며 Fleet10이 여러 구역에 보여도 Project 고유 수량10이다. 등록-only 항목/작업0과 개인공수 미설정/null/설정0을 분리한다. 공개 계약은 [API](API.md#issue-729--versioned-wbs-다관점-조회), 검증은 [Work Packet](exec-plans/active/ISSUE_729.md), 동적 UI는 #730~#736 후속이다.
+
 ## Issue #728 — 새 WBS source와 기존 공정 필터의 경계
 
 기존 서비스의 공정 필터는 아래 §3.2처럼 유효 설비/System 구성 범위를 사용한다. 이번 pure Domain은 이를 수정하지 않는다. 새 WBS 해석 기준에서는 Task의 명시 공정0..N만 작업 모집단에 사용하며, 명시0/구형null·Target 호환 기준을 구분한다. 동일 원시 집합이면 기존 산식을 재사용하지만 새 명시 공정 선택으로 집합이 달라지면 공정별 숫자까지 동일하다고 보장하지 않는다.
