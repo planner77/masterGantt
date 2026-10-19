@@ -391,7 +391,7 @@ export function ProjectLogisticsManagement({
       const focused = document.activeElement;
       // A later deliberate focus within the active master panel takes priority.
       if (focused instanceof HTMLElement && focused !== document.body && focused !== kpiOrigin.trigger &&
-          isVisibleFocusTarget(focused) && focused !== target && focused.closest(`#panel-${view}`)) {
+          isVisibleFocusTarget(focused) && focused !== target) {
         pendingMasterFocus.current = null;
         return;
       }

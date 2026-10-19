@@ -1,5 +1,7 @@
 ## [0.123.0] — Unreleased / Issue #731
 
+- PR #748 Full PR CI #3004.1은 Quality/E2E6/Docker를 모두 통과했으나 Codex P1 미해결 review 차단이 정당하게 발생했다. Main M-001 포커스 인계 후속 bounded rAF가 테이블 밖 검색창·KPI 복귀/Workspace 컨트롤의 새로운 유효 사용자 focus를 빼앗지 않도록 패널 범위 제한을 제거하고 직접 통제 E2E 2개를 보강한다. 원본 #3002 Main/GHCR 미게시와 정식 v0.123.0 release 미승인은 불변.
+
 - 기존 KPI 네 카드·표·조건·품질/full Milestone Gate를 보존하고 직접·상속·Target 통합 원장을 전용 read consumer로 연결한다. 기존 API default는 유지한다.
 - 등록 공정/WorkArea/설비 수량/System/참여 구성과 작업0·미연결·개인 미배정·공수 미설정·책임 누락의 정확 목록을 제공한다. 구성/작업/개인 Assignment 분모와 비가산 총계를 구별한다.
 - 정확 Task/Assignment·기준정보·일정 이동 및 snapshot/focus 복귀, 기능 보존표·지표 사전·사용자 가이드와 관련 회귀를 보강한다.
