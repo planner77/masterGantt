@@ -27,6 +27,15 @@ describe("isolated application diagnostics confidentiality and failure preservat
     expect(diagnosticRoute("/private/password")).toBe("other");
   });
 
+  it("retains Task logistics/context templates without IDs, query strings or neighboring paths", () => {
+    for (const suffix of ["logistics-links", "process-context"]) {
+      const path = `/api/projects/${requestId}/tasks/${requestId}/${suffix}`;
+      expect(diagnosticRoute(path)).toBe(`/api/projects/[publicId]/tasks/[taskId]/${suffix}`);
+      expect(diagnosticRoute(`${path}?token=PRIVATE_QUERY`)).toBe("other");
+      expect(diagnosticRoute(`${path}/PRIVATE_SUFFIX`)).toBe("other");
+    }
+  });
+
   it("classifies exact Next runtime messages without retaining their raw text", () => {
     const ring = new SafeOutputRing();
     const warning = "\u001b[1m\u001b[33m⚠\u001b[39m\u001b[22m Server is approaching the used memory threshold, restarting...\r\n";

@@ -1,3 +1,7 @@
+## Issue #730 — Full #3022 누적 전송·도움말 fixture 회귀
+
+[동일 실패 원장 §14–16](ISSUE_730_FAILURE_ANALYSIS.md)에서 누락된 #3012 #62360초 실패와 #3022 Task 물류 연결 GET reset을 누적한다. 과거 실제 실패5파일(#463/#550/#719/#623/#726) 전체·직접 #730·전송/관측 정상·음성을 최종 source에 귀속한다. GET reset의 소켓 내부 근인은 UNKNOWN이며 후행 browser/no-store·observer 교정은 업무 HTTP 오류·잘못된 JSON·권한/readonly·정확 원시 ID/revision 단언을 유지한다. #719는 WBS 조회 응답 준비와 도움말 열림을 분리해 async404 영역 높이를 도움말 flow 변경으로 오인하지 않으며 기존 primaryDataTop/documentWidth 정확 동일값·5폭/키보드/터치 단언을 보존한다. 원본·통제 RED·최종 실행 수/소스 지문·미검증·새 PR CI 시작을 구분한다. Required3/6-shard·retry/timeout/skip·Trusted/Owner 승인 규정 불변.
+
 ## Issue #731 — Main M-003 누적 실패·교차 검증 (2026-10-19)
 
 [단일 실패 원장](ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)의 F-001~F-004/M-001~M-003을 함께 검증한다. 최신 Main #3011.1은 #623 통합60초 종료/후행 disposed 응답과 Task Editor Summary 저장 후 GET ECONNRESET 두 직접 실패다. 원시 socket/Next 내부 근인은 UNKNOWN이며 Quality SUCCESS와 Docker implementation SKIPPED를 구별한다.

@@ -1,3 +1,7 @@
+## Issue #730 — PR #747 Full #3022 누적 실패 보완
+
+Head2a97043f/main5df17886에서 누락 #3012와 최신 #3022를 [단일 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가한다. #726 후행 조회 전송/관측 누락과 #719 synthetic WBS 응답 경합을 분리 보완하고 누적 실제 실패5파일·직접/음성 경로를 같은 최종 source에서 검증한다. [Work Packet](ISSUE_730.md)대로 HIGH/OWNER_MANAGED/0.124.0/release_authorized=false를 유지하며 리뷰·main 충돌 확인 후 새 PR Full CI 시작까지만 진행한다. 최종 로컬 고유42 Chromium/16파일219Unit·정적 검사 PASS, source963 mismatch0. PrePR targeted는 dry-run NOT TESTED/UNKNOWN7/steps0이며 exact-Head 원격 전체 검증을 대신하지 않는다. CI 완료 모니터링·main 병합·릴리스·Issue 종료는 범위 밖이다.
+
 ## Issue #731 — Main #3011.1 후속 누적 교정 (2026-10-19)
 
 최신 main `0aa1d3d71f13df6976539ef4ebaaadb9037121c4` /0.123.0에서 `fix/issue-731-main-ci-cumulative`로 재개한다. #62360초 통합 예산과 Task Editor 저장 후 GET reset을 보완하고 과거 실패 파일5개 합집합·음성/인접 회귀를 동일 source에서 검증한다. [단일 실패 원장](../../ISSUE_731_FAILURE_ANALYSIS.md)과 [현재 Work Packet](ISSUE_731.md)을 갱신한다. 제품/버전/CI 정책 변경0, HIGH/OWNER_MANAGED/release_required=true/release_authorized=false. 리뷰/충돌 확인 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·릴리스는 범위 밖이다. 아래 최초 구현/과거 재개 상태는 당시 기록이다.

@@ -4,6 +4,7 @@ import { createTargetProject, targetMasterPassword } from "./fixtures/target-pro
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { openWorkspaceView } from "./helpers/workspace-navigation";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
+import { readBrowserTaskLogisticsLinks } from "./helpers/browser-task-logistics-links";
 import type { TaskProcessContextResponse } from "../../src/contracts/process-context";
 
 // Successful reads/writes use real HTTP and disposable SQLite. Intercepts below
@@ -35,12 +36,6 @@ async function seedOriginals(f: Awaited<ReturnType<typeof createTargetProject>>)
   return (await f.snapshot()).data.logistics!;
 }
 
-async function readLinks(page: Page, api: string, taskId: string) {
-  const response = await page.request.get(`${api}/tasks/${taskId}/logistics-links`);
-  expect(response.status()).toBe(200);
-  return (await response.json()).data.links;
-}
-
 function expectOriginals(current: ProjectLogisticsDto, initial: ProjectLogisticsDto) {
   expect(current.equipment.map(row => row.id).sort()).toEqual(initial.equipment.map(row => row.id).sort());
   expect(current.systems.map(row => row.id).sort()).toEqual(initial.systems.map(row => row.id).sort());
@@ -66,6 +61,7 @@ async function assertEditorGeometry(page: Page, editor: Locator, width: number) 
 test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중복 제출 방지, reload·Summary 상속", async ({ page, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
+  const readLinks = (taskId: string) => readBrowserTaskLogisticsLinks(page, `/api/projects/${f.publicId}/tasks/${taskId}/logistics-links`, observeIsolatedApi);
   const originals = await seedOriginals(f);
   const initialTasks = (await f.snapshot()).data.tasks;
   await page.reload();
@@ -101,7 +97,7 @@ test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중
   await expect(editor.getByRole("button", { name: "물류 연결 저장", exact: true })).toBeEnabled();
   await page.unroute(pattern);
   expect(writes).toBe(1);
-  const links = await readLinks(page, f.api, f.task.taskId);
+  const links = await readLinks(f.task.taskId);
   expect(links.directEquipmentLinks.map((row: { equipmentId: string }) => row.equipmentId).sort()).toEqual(originals.equipment.map(row => row.id).sort());
   expect(links.directSystemLinks.map((row: { systemId: string }) => row.systemId).sort()).toEqual(originals.systems.filter(row => row.code !== "ACS-B").map(row => row.id).sort());
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
@@ -115,8 +111,8 @@ test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중
   await summarySystems.getByRole("checkbox", { name: /ACS-B/ }).check();
   await summarySystems.getByRole("checkbox", { name: "ACS ACS-B 시스템 하위 작업 포함", exact: true }).check();
   await editor.getByRole("button", { name: "물류 연결 저장", exact: true }).click();
-  await expect.poll(async () => (await readLinks(page, f.api, f.task.taskId)).inheritedSystemLinks.length).toBe(1);
-  const child = await readLinks(page, f.api, f.task.taskId);
+  await expect.poll(async () => (await readLinks(f.task.taskId)).inheritedSystemLinks.length).toBe(1);
+  const child = await readLinks(f.task.taskId);
   expect(child.inheritedSystemLinks[0].systemId).toBe(originals.systems.find(row => row.code === "ACS-B")!.id);
   expect(child.inheritedSystemLinks[0].sourceTaskId).toBe(f.parentTask.taskId);
   const snapshot = await f.snapshot();
@@ -128,14 +124,14 @@ test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중
   // These are actual server rejections over HTTP, separate from the injected
   // errors used to exercise UI draft handling in the next scenario.
   const beforeRejectedWrites = await f.snapshot();
-  const beforeChildLinks = await readLinks(page, f.api, f.task.taskId);
+  const beforeChildLinks = await readLinks(f.task.taskId);
   const headers = { Origin: isolatedApplication, "If-Match": `"${beforeRejectedWrites.data.project.revision}"` };
   const linkUrl = `${f.api}/tasks/${f.task.taskId}/logistics-links`;
   const replacement = { equipmentLinks: [], systemLinks: [] };
   const evidence: Array<{ boundary: string; status: number; code?: string }> = [];
   const unchanged = async () => {
     expect(await f.snapshot()).toEqual(beforeRejectedWrites);
-    expect(await readLinks(page, f.api, f.task.taskId)).toEqual(beforeChildLinks);
+    expect(await readLinks(f.task.taskId)).toEqual(beforeChildLinks);
   };
   const wrongOrigin = await page.request.put(linkUrl, { headers: { ...headers, Origin: "https://untrusted.invalid" }, data: replacement });
   expect(wrongOrigin.status()).toBe(403);
@@ -170,6 +166,7 @@ test("#726 Target0에서 기존 Task에 원본 설비·System 직접 연결, 중
 test("#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/409/412 후 보존", async ({ page, isolatedApplication, observeIsolatedApi }) => {
   test.setTimeout(180_000);
   const f = await createTargetProject(page, isolatedApplication, observeIsolatedApi);
+  const readLinks = (taskId: string) => readBrowserTaskLogisticsLinks(page, `/api/projects/${f.publicId}/tasks/${taskId}/logistics-links`, observeIsolatedApi);
   const originals = await seedOriginals(f);
   await page.reload();
   let editor = await openEditor(page, f.task.name);
@@ -201,7 +198,7 @@ test("#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/
     await editor.getByRole("button", { name: "물류 연결 저장", exact: true }).click();
     await expect(editor.getByRole("alert").filter({ hasText: status === 412 ? /Revision/ : status === 403 ? "물류 연결 편집 권한이 없습니다." : `검증 오류 ${status}` })).toBeVisible();
     await expect(equipment().getByRole("checkbox", { name: /AMR-A/ })).toBeChecked();
-    expect((await readLinks(page, f.api, f.task.taskId)).directEquipmentLinks).toEqual([]);
+    expect((await readLinks(f.task.taskId)).directEquipmentLinks).toEqual([]);
     expect((await f.snapshot()).data.project.revision).toBe(revision);
     await page.unroute(pattern);
     await editor.getByRole("button", { name: "최신 정보 다시 불러오기", exact: true }).click();
@@ -216,7 +213,7 @@ test("#726 직접 연결 5폭·긴 이름·키보드·초안 폐기와 HTTP 403/
   await expect(editor.getByRole("alert").filter({ hasText: /편집 권한이 만료/ })).toBeVisible();
   await expect(equipment().getByRole("checkbox", { name: /AMR-A/ })).toBeChecked();
   await expect(equipment().getByRole("checkbox", { name: /AMR-A/ })).toBeDisabled();
-  expect((await readLinks(page, f.api, f.task.taskId)).directEquipmentLinks).toEqual([]);
+  expect((await readLinks(f.task.taskId)).directEquipmentLinks).toEqual([]);
   await page.unroute(pattern);
   await editor.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
   await editor.getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click();

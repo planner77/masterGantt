@@ -3,7 +3,7 @@
 Primary Issue: [#730](https://github.com/planner77/masterGantt/issues/730) · PR [#747](https://github.com/planner77/masterGantt/pull/747) · 최초 분석 2026-10-19 (KST).
 운영 기준: [공통 실패 원장](PR_CI_FAILURE_TRIAGE.md), [AGENTS.md](../AGENTS.md), [Lifecycle](ISSUE_LIFECYCLE.md), [QA 정책](QA_REVIEW_POLICY.md), [Work Packet](exec-plans/active/ISSUE_730.md). **같은 Issue의 다음 실패는 반드시 이 파일에 이어서 기록**한다. 원본 결과를 소급 PASS로 바꾸거나 다른 이슈 실패로 합산하지 않는다.
 
-최신 재개 인덱스: **두 Full Run/Attempt의 누적 목록·Cross-run 매트릭스·보완/검증은 [§7](#7-f730-002--full-30031-통합-후-react-hook-의존성-오류-2026-10-19)**를 참조한다. 아래 §1–6은 최초 진단 당시 이력으로 보존한다.
+최신 재개 인덱스: #3012 누락 이력과 #3022 실패·누적 대조는 §14–16을 참조한다. §1–13의 과거 진단·당시 미검증과 실패는 원래 Head에 귀속해 보존한다.
 
 ## 1. 전체 원격 Run/Attempt 목록
 
@@ -199,3 +199,69 @@ Primary Issue: [#730](https://github.com/planner77/masterGantt/issues/730) · PR
 - **리뷰:** GitHub PR #747의 유일한 리뷰 Thread `PRRT_kwDOUUB7Bc6t0iIK`는 과거 P2 cancelOriginal 보완 답글 이후 `is_resolved=true` 및 `is_outdated=true`, **현재 unresolved=0**이다. 추가로 임의 resolve한 스레드 0건이며 기존 기록은 수정하지 않는다.
 - **검증:** GitHub 원본 3-way 문자/줄 대조 및 문서 추가분·코드 두 감시기 조건 보존을 정적으로 확인했다. 이 GitHub 도구 실행 경계에서 Node/TypeScript/Vitest/Playwright/Docker 실행은 **NOT TESTED**다. F730-001~005의 원본 실패·미확정 원인(특히 #719 20px, #623 실행 예산)을 PASS로 소급하거나 가리지 않는다.
 - **게시/CI:** 기존 HEAD 첫 부모·새 main 둘째 부모의 non-force merge commit 한 개를 준비한다. 브랜치 갱신으로 `pull_request.synchronize` Full PR CI 등록/정확 Head 확인까지만 처리하고, CI 완료 모니터링·Main 병합·GHCR·Finalizer·정식 Release·Issue 종료는 하지 않는다. HIGH/OWNER_MANAGED, `release_authorized=false` 유지.
+
+
+## 14. F730-006 — 누락된 Full #3012.1의 #623 시간 예산 실패 백필
+
+- 원본 [#3012.1 / Run39245366403](https://github.com/planner77/masterGantt/actions/runs/39245366403), attempt1, Head `1b793b3652dac75cd75ca652069ea5abd18fcedb`, base `0aa1d3d71f13df6976539ef4ebaaadb9037121c4`, test merge `fc5a439a939a25cecadd73f6dcad898c04a88905`. §12는 시작 시점 기록이고 이 완료 실패를 아직 담지 않았으므로 이번 재개에서 백필한다.
+- [Shard3 Job118036857253](https://github.com/planner77/masterGantt/actions/runs/39245366403/job/118036857253): `issue-623-resource-mvp.spec.ts:62`의 기존 통합 golden/여섯 mutation case가60,000ms를 초과했다. 후행 `target-bindings` GET 위치188에서 중단,43PASS/1FAIL/59NOT RUN. Quality118037407087/Docker118037863371 SUCCESS, E2E118040985127 FAILURE, QA118041025112는 파생 FAIL이다. 다른 Shard 취소를 PASS로 계산하지 않는다.
+- 같은 통합 case의 시간 예산 결합과 후행 Response 수명은 [#731 M-003](ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)에서 별도로 분석·교정되었다. 이 #730 원본 실패를 #731의 실패 횟수에 합산하지 않으며, §13에서 통합한 최신 main의 golden/여섯 mutation/폭별 독립 시나리오를 그대로 보존한다. 과거 로컬 L730-001의30초 geometry 실패도 소급 PASS로 바꾸지 않는다.
+
+## 15. F730-007 — Full #3022.1 Task 물류 연결 원본 GET 전송 실패
+
+- 원본 [#3022.1 / Run39267641340](https://github.com/planner77/masterGantt/actions/runs/39267641340), attempt1, Head `2a97043f40f3437778e2936b9413ff3269d197af`, base `5df178868139c4a307701e4807896691971b3376`, test merge `c519dffd7b59a0b7a9a32b936e64f39ab7f99997`. 원본 checkout 로그와 source artifact12192639409/digest `sha256:2f0d6959bae32e4c1e32f2fa3c120d6a0b64ae668d048d39fb3ccf64590a4555`를 교차 확인한다. Artifact는 비신뢰 PR 자료이며 Trusted QA 승인으로 사용하지 않는다.
+- [Shard4 Job118112573965](https://github.com/planner77/masterGantt/actions/runs/39267641340/job/118112573965) `issue-726-task-logistics.spec.ts:66` 첫 case에서 후행 `readLinks`(:39, 호출:118)의 GET `/api/projects/[publicId]/tasks/[taskId]/logistics-links`가 HTTP 응답 전 `apiRequestContext.get: read ECONNRESET`.4PASS/1FAIL/158NOT RUN. Required Quality118113171221/Docker118113752230 SUCCESS, E2E118114067957 FAILURE, QA118114116896는 파생 FAIL. 취소된1/2/3/5/6의 부분PASS4/24/34/8/13과 Job CANCELLED를 구분하고, 추가 실제 테스트 FAIL은 관측하지 않았다.
+- 원본 report artifact12194515233/digest `sha256:e673122f7d40b8b600da9cc5cc6cb680071f068392598ab9c5d9ca48fc7e076b`의 제한된 JSON 진단: reason=test_failure,elapsed33170ms, CLI generation1/alive=true/exitCode=null/signal=null, Health200/77ms, Next child RSS 약4.127GB, cgroup oom0/oomKill0. CLI·실패 후 Health가 정상이라는 사실로 HTTP worker의 연속 생존이나 TCP 소켓 원인을 확정하지 않는다. 실패한 helper가 observer를 사용하지 않아 요청 직후 타임라인도 없다. 정확 내부 근인은 **UNKNOWN**, 전송 경계 분류는 **INIT_TRANSPORT**다.
+- #3005의 외부 npm 설치 네트워크와는 별개다. #3008의 canonical GET 및 #731 F-002/M-003-B의 저장 후 별도 APIRequestContext GET과 전송 유형이 같지만 호출 위치가 다르다. #726의 `process-context` 소비자만 이전 browser/no-store·observer 교정에 포함되어 `readLinks` 소비자가 누락된 것을 이번에 대조했다. 모든 업무 mutation·readonly/권한·정확 ID/revision 단언은 유지한다.
+
+## 16. 이번 재개의 누적 교정·검증·리뷰 및 main 정렬
+
+- baseline은 위2a97043f, 별도 `fix/issue-730-pr-ci-3022` worktree. 실제 infra 원본 수집·frontend 구현/회귀·read-only ui_ux 과거 geometry 진단·Manager 문서/게시를 분리한다. 기존 다른 worktree와 인증·DB·runtime 로그는 변경/게시하지 않는다. version0.124.0, HIGH/qa_required=true/OWNER_MANAGED/release_required=true/release_authorized=false 유지.
+- 누적 실제 실패 E2E 파일 합집합은 **5파일**: `milestone-dashboard-state.spec.ts`(#3001), `milestone-management-persistence.spec.ts`(#3008), `issue-719-contextual-help.spec.ts`(#3009), `issue-623-resource-mvp.spec.ts`(#3012), `issue-726-task-logistics.spec.ts`(#3022). #3003 ESLint 및 #3005 npm 설치는 별도 정적/환경 실패다. 같은 파일의 새 case와 취소/미실행을 중복 성공으로 계산하지 않는다.
+- 현재 main5df17886은2a97043f의 조상이다. 시작 시 GitHub mergeable=true, 유일한 기존 P2 Thread `PRRT_kwDOUUB7Bc6t0iIK`는 resolved/outdated, 미해결0. 이번 시작 시 추가 충돌/새 리뷰 해결0건이며 기존 §6/9/12/13의 실제 충돌 해결과 R730-001 답글을 보존한다. 게시 직전 main·Head·리뷰를 다시 확인하고 이동 시 통합한다.
+- 원본 재현 준비의 node_modules 외부 symlink는 Turbopack 경계에서 거부되어 테스트 이전 BLOCKED였다. lockfile 일치를 확인한 물리 dependency 배치로 교정했으며 제품/config 수정이나 실제 #726 테스트 실패로 계수하지 않는다. 원래 첫 case는 로컬1PASS(29.7초)/exit0로 reset이 재현되지 않았다. 이것은 원격 FAIL의 소급 해결 증거가 아니다.
+- 최종 source 교정·같은 source의 실제 실행·문서/리뷰 결과는 아래에 누적한다. 새 Head Required3/Trusted·Owner/Manager 최종 승인은 **NOT TESTED**이며 사용자 요청은 새 PR Full CI 시작까지만이다.
+
+
+### 16.1 원인별 교정과 반례
+
+| 누적 사건 | 이번 교정·검증 경계 |
+| --- | --- |
+| F730-001 #463 조회 POST 오분류 | exact read-only POST helper 및 실제 업무 mutation0 음성을 보존한다. 누적 #463 전체를 최종 source에서 실행한다. |
+| F730-002 Hook 의존성 | 기존 modal setter 의존성 교정을 보존한다. 최종 TypeScript/ESLint와 실제 원본 이동 회귀를 실행한다. |
+| F730-003 외부 npm 설치 reset | source/config 변경 없음. 후속 Head의 npm 설치 성공과 과거 네트워크 원인 해결을 구별하며 무조건 retry를 추가하지 않는다. |
+| F730-004 #550 canonical GET reset | 기존 제한된 read-only GET 재검증 정책을 바꾸지 않고 #550 전체3case를 실행한다. 새 #726 helper는 retry0이며 서로 다른 계약을 혼동하지 않는다. |
+| F730-005 #71920px | 원본 trace와 로컬 제어 재현에서 WBS404 pending→error 높이 변경을 확인했다. synthetic fixture의 정확 POST404와 명시 terminal error barrier로 보완한다. |
+| F730-006 #62360초 | main의 golden/여섯 mutation/5폭 독립 시나리오를 보존하고 전체7case를 실행한다. 과거 실패를 테스트 삭제·timeout 증가로 숨기지 않는다. |
+| F730-007 #726 후행 GET reset | same-origin browser GET/no-store/redirect:error와 safe observer로 누락 callsite를 정합화한다. 정확 TCP 내부 원인은 UNKNOWN이며 실제 HTTP/JSON/원시ID·권한 단언은 유지한다. |
+| R730-001 기존 P2 | 최신 의도·부모/Details/host 두 번째 scope 취소 교정을 유지하고 직접 #730 전체6case를 선정한다. 기존 GitHub thread는 이미 resolved이며 새 해결건으로 계수하지 않는다. |
+
+#719의 원본 trace는 call5258/5262에서 scrollTop383을 유지한 채 미처리 POST가404 PROJECT_NOT_FOUND로 끝나고 sibling WBS가 pending24px→error retry44px로 바뀐 것을 보인다. 로컬은 그 응답을 닫힌 geometry 이후에만 해제하여 **closed1099/opened1119/scroll383→383/writes0/browserErrors0**, 기존 exact equality FAIL/exit1을 재현했다. 이것은 실제 옛 원격 실행과 구분한 제어 재현이며 제품 CSS/ContextHelp 변경 근거가 아니다. 새 fixture는 원래 SQLite에 없는 synthetic Project의 **오류를 명시**하고 기다린다. 성공 WBS DTO를 조작하거나 WBS 기능 PASS로 전용하지 않는다. milestone/resource 지연 응답2case와 기존10case에서 준비 barrier·기존 exact geometry·panel scroll·5폭/keyboard/touch/mutation0을 검증했다. [정제 영수증](evidence/issue-730/rework-3022/help-validation.json)에 RED와 최종12PASS를 분리했다.
+
+#726 새 helper의 실제 browser 음성은 connectionreset abort·HTTP401/500·잘못된JSON200에서 실패하고 요청1회를 유지한다. 별도 사전검토의 로컬 P2(default redirect follow)는 `redirect:error` 및 same-origin/foreign302의 source1/destination0 검증으로 보완했다. 이는 **로컬 코드 검토 지적 해결1건**이며 GitHub 리뷰 스레드를 새로 종료한 것은 아니다. 진단 allowlist는 Task logistics-links/process-context template만 추가하고 UUID·query·body·cookie를 보존하지 않는다. 독립 무세션/Origin/revision API 요청과 업무 PUT/PATCH는 기존 별도 API client로 유지한다.
+
+### 16.2 검증 출처와 범위
+
+- [정제 원격 이력](evidence/issue-730/rework-3022/remote-failures.json)은 알려진 Full7건의 latest-attempt Job/직접 실패를 재조회하고 artifact/checkout 및 취소 Shard를 대조한다. wrapper의 첫 페이지·최신 Attempt 응답 한계 때문에 숨은 Run/과거 Attempt의 전체성을 독립 증명했다고 주장하지 않는다. 미발견 metadata/추가 Attempt를 임의로0건 확정하지 않는다.
+- #719 최종12case는 owned spec의 실행 전후 SHA256 `aa80e01d426bb34bfb040432d0e639274a31257f7d62f9aab1d570e088bb1a7e`가 같다. 전체 src/tests963파일 manifest는 **첫 case 이후 실행 중** 처음 캡처했고 종료 후 mismatch0이며 실행 중 source 수정은 없었다. 이를 전체 manifest의 실행 전 캡처라고 표현하지 않는다. Manager의 나머지 동결 실행과963파일 bytes를 대조한다.
+- 앞선 #726후보4PASS는 redirect 보완 **전** 결과다. 최종 소스의 #7263case·브라우저 음성1case, 누적 다른 파일과 직접/인접 소비자의 결과는 뒤의 별도 실행 영수증에 귀속한다. source가 바뀐 과거 결과를 최종 PASS에 합산하지 않는다.
+
+
+### 16.3 최종 로컬 결과·문서 동기화와 게시 인계
+
+- 최종 동결 [브라우저 영수증](evidence/issue-730/rework-3022/browser-validation.json):7파일30PASS/0FAIL/0SKIP/0flaky/exit0,966,945ms. helper 음성1+#623전체7+#726전체3+#730전체6+#463전체7+#550전체3+Task Editor canonical 인접3이다. 별도 #719전체12와 중복 없이 **고유42case PASS**이며 이전 후보4PASS·원본 재현1PASS·통제RED를 합산하지 않는다. workers1/retries0/max-failures0이며 독립6 Runner와 동등하지 않다. 실행 중 격리 실패 진단 첨부0건이고, 이전 bounded GET 회복 정책의 첫 reset을 숨긴 PASS라는 관측도 없다.
+- 최종 [단위/통합 영수증](evidence/issue-730/rework-3022/unit-validation.json):16파일219PASS/0FAIL/0SKIP/exit0. 기존 직접 domain/model/transport/실제 SQLite HTTP195개와 진단·canonical GET·기존 read-only GET 음성24개를 포함한다. JSON의 numPassedTestSuites35는 describe suite 통계이며35파일을 실행한 뜻이 아니다. 앞선18개 부분 검증은 합산하지 않는다.
+- 전체 src/tests963파일의 [동결 manifest](evidence/issue-730/rework-3022/source-freeze.json)는 실행 전후 mismatch0이고, #719 실행 중/후 manifest와 Manager 실행 전 manifest도 bytes mismatch0이다. aggregate SHA256 `f3cefba56460788e58a985395d18c71f7db170f6820c476f7b54011114742a3c`의 직렬화 방법은 JSON에 명시한다. Node v22.14.0/npm11.10.0의 단일 로컬 host이며 CI Node22.x runner·실기기·운영 환경과 구분한다.
+- [최종 정적 검사](evidence/issue-730/rework-3022/static-validation.json): 전체 typecheck/ESLint/version0.124.0/test discovery/Markdown275파일/diff check 모두 exit0. lint0error/기존13warning, discovery248unit files/757browser cases는 발견 수이지 전체 실행 PASS 수가 아니다. 로컬 전체 Vitest/Playwright·production build/audit/Docker 및 main/GHCR는 NOT TESTED/별도 gate다.
+- 로컬 실행 예외: 브라우저와 병행한 첫 전체 ESLint는 격리 Next 생성물이 존재하는 실행 경계여서 확인한 owned ESLint만 SIGINT로 중단했다(exit130). 브라우저/source를 중단·수정하지 않았다. [첫 정적 시도](evidence/issue-730/rework-3022/static-validation-attempt1.json)는 LOCAL_INTERRUPTED로 보존하고 최종 PASS로 바꾸지 않는다. 브라우저 teardown 후 tracked Next 설정/기존 output26개를 HEAD bytes로 복원, 새 untracked capture12개를 ignored 진단 폴더로 이동한 뒤 standalone 정적 검사를 새로 끝냈다. CI/config/ignore/timeout 규정 변경은 없다.
+- 실제 PrePR는 **targeted dry-run만** 실행했다. [선정 영수증](evidence/issue-730/rework-3022/prepr-selection.json)은 NOT TESTED/sourceStable=true/steps0, UNKNOWN7/missing0이다. UNKNOWN은 기존 logistics3producer·WBS fixture·read-only helper와 이번 diagnostic fixture·Task browser helper다. 실제 실행은 위 수동 선정 명령/영수증에 귀속하며 CLI PASS나 fast/diagnose/전체 회귀 실행으로 전용하지 않는다. 과거 fast/targeted BLOCKED 기록도 보존한다.
+- 영향 매핑: Task browser helper→#726실제3/실제 browser 오류·302음성1 및 canonical 인접3; diagnostic allowlist→진단 unit·실제 SQLite/HTTP 격리 소비자; help fixture→기존10/지연응답2; 기존 WBS/원본 취소·query observer/main #623 교정→누적 실제 실패5파일/직접 #730/Unit219. 제품·DB writer·공개 API/권한·일정/Import/Export/화면 계약은 추가 변경하지 않아 해당 전수 로컬 검증을 반복하지 않고 Required 원격 전체 gate에 남긴다.
+- DOCUMENTATION_SYNC는 이 원장·Work Packet·TEST_PLAN·active PLAN·CHANGELOG·정제 증거를 동기화한다. 제품/설계/API/DB/보안/일정/사용자 가이드·CI/권한/QA 정책의 N/A 근거는 Work Packet을 따른다. raw log/trace/DB/cookie/auth·pre-signed 다운로드 URL은 게시하지 않는다.
+- 게시 범위는 기존 PR747의 완성된 단일 묶음과 새 Full CI 시작이다. 별도 qa_docs의 source/문서/원격·로컬 증거 사전 검토를 받고, 최신 main/expected Head·리뷰0·충돌0 및 전체 Git Tree/부모를 전후 대조한다. 실제 게시 Head·Run/Attempt/base/test merge는 Issue/PR STATUS에 기록하여 이 문서의 검증 대상 source와 연결한다. 새 Head Required Quality/E2E/Docker·Trusted/Owner 위험 수용·Manager ACCEPT는 NOT TESTED이며 CI 완료 모니터링·PR main 병합·Main/GHCR/Release·Issue 종료는 수행하지 않는다.
+
+
+- 최종 별도 read-only Reviewer `/root/qa_review`의 코드·문서·원격/로컬 증거 사전 검토 **PASS, P1/P2 미해결0**. 소스963개 SHA256을 직접 재계산해 mismatch0,42browser/219Unit/정적 검사/PrePR dry-run 경계와 원격 수집 한계·privacy를 대조했다. 구현자의 자체 PASS·독립 인간 QA·Trusted QA·Owner/Manager ACCEPT와 구분한다. 로컬 redirect P2 해결1건, 이번 GitHub 스레드 해결0건이다.
+- 게시 전2026-10-19T14:57Z 원격 재조회: PR Head `2a97043f40f3437778e2936b9413ff3269d197af`, main `5df178868139c4a307701e4807896691971b3376`, test merge `c519dffd7b59a0b7a9a32b936e64f39ab7f99997`, mergeable=true, review unresolved0. git fetch와 main ancestry·unmerged index0도 일치한다. **추가 main 병합 N/A, 새 충돌 해결0건**이며 기존 해결 이력은 보존한다. 이후 게시 직전 이동이 발견되면 재통합·검증한다.
+- 로컬 Git push dry-run 인증은401로 실패했으므로 기존 연결 Git Data API의 blob→tree→commit 준비/전체 tree 대조→force=false Ref1회→read-back 경로를 사용한다. 토큰 추출·권한 변경·파일별 live PR 게시를 하지 않는다. 실제 Ref/Head·Run 출처와 완료 모니터링 미수행은 게시 후 STATUS로 연결한다.
+
+- 게시 준비 보조 CLI 첫 실행은 LOCAL_BRANCH_MISMATCH/BLOCKED였다(검증용 fix 브랜치와 게시 대상 feat 브랜치가 다름). 기존 feat worktree/브랜치를 변경하지 않고 같은 검증 tree의 별도 게시용 clone에서 대상 이름 브랜치를 구성하여 prepare/before/after를 다시 실행한다. 이 로컬 준비 차단은 source CI 실패나 gate PASS가 아니며 helper 조건을 완화하지 않는다.

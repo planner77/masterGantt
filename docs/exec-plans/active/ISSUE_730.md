@@ -214,3 +214,24 @@ npm run verify:prepr -- --mode=targeted --base=01fdc08bf4b2f69f9797a8bd411d6712e
 - 충돌 파일 두 개: `CHANGELOG.md`는 서로 다른 구역 변경을 보존, `docs/TEST_PLAN.md`는 같은 마지막 삽입 위치의 #731 M-002와 #730 F730-004 양쪽 회귀 계약을 누락 없이 통합한다. main-only `tests/e2e/fixtures/isolated-application.ts`, `tests/e2e/issue-725-process-workareas.spec.ts`와 #731 문서/원장은 최신 그대로 유지한다.
 - 기존 [Full #3009.1](https://github.com/planner77/masterGantt/actions/runs/39238265650)의 Chromium Shard2 `issue-719-contextual-help.spec.ts:89` **primaryDataTop 1099→1119(20px)** 실제 FAIL을 별도 F730-005로 [#730 전용 누적 실패 원장](../../ISSUE_730_FAILURE_ANALYSIS.md)에 추가했다. 변경 원인은 UNKNOWN, 다른5 shard CANCELLED/Quality·Docker SUCCESS/QA 파생 FAIL을 분리했다. 이번 범위에서 #719 assertion/CI 보호 규정을 완화하거나 검증되지 않은 제품 수정은 하지 않는다.
 - 새 브랜치는 최초 Head first-parent, 최신 main second-parent 한 번의 merge/ref update로 정렬한다. 새 Head Required3·Trusted QA/Owner 결과는 검증 실행 전 NOT TESTED. CI 실행 등록 확인까지만 수행하며 완료 모니터링/병합/Main/GHCR/Release/Issue 종료하지 않는다.
+
+
+## Full #3022.1 실패 재개 — 누적 원인 보완 및 PR CI 시작
+
+- 기준 Head `2a97043f40f3437778e2936b9413ff3269d197af`, main `5df178868139c4a307701e4807896691971b3376`의 별도 `fix/issue-730-pr-ci-3022` worktree. main은 이미 조상이며 게시 직전 다시 확인한다. HIGH/qa_required=true/OWNER_MANAGED, version0.124.0/dependencies 불변, release_required=true/release_authorized=false. PR을 main으로 병합하거나 릴리스하는 범위는 아니다.
+- infra는 전체 Full/Attempt·artifact/checkout·Job/취소·리뷰 출처를 읽기 전용 수집하고 정제 JSON을 소유한다. frontend는 #726 후행 readLinks와 브라우저/관측 음성, 별도 frontend는 #719 도움말 synthetic fixture 경합만 소유한다. ui_ux는 원본 #719 trace/network를 독립 읽기 전용 대조했다. Manager는 문서·게시·리뷰/충돌 확인, 별도 qa_docs는 최종 코드/문서/실행 증거 사전 검토를 담당한다. 동시 파일 쓰기·브라우저 실행을 하지 않는다.
+- #3012의 #62360초 실패를 백필하고 최신 main의 #731 M-003 시나리오 분리/원시ID·공수·여섯 mutation·폭별 geometry/키보드/같은 Gantt 단언을 보존한다. #3022는 `readLinks` 후행 GET ECONNRESET이며 정확 소켓 근인은 UNKNOWN이다. 앞서 교정된 process-context와 달리 남은 별도 APIRequestContext 호출·observer 누락을 실제 같은 origin browser GET/no-store로 정합화한다. 업무 mutation/HTTP 오류/JSON/권한·readonly 단언은 그대로 유지한다.
+- #719 원본 trace의 같은 scrollTop383에서 WBS pending24px가404 error/retry44px로 바뀌어 primaryDataTop1099→1119였다. legacy synthetic fixture의 미처리 WBS POST가 실제 서버로 전달된 경합을 보완하며, 제품 도움말 CSS나 geometry 동일값 단언을 완화하지 않는다. 실제 로컬 RED/수정 후 결과는 전용 원장에 추가한다.
+- 누적 실제 실패5파일 전체와 직접 #730, 변경 helper/오류관측의 정상·음성 및 #731 인접 canonical 소비자를 최종 source에서 한정 검증한다. 직접 재현·통제 negative·과거 결과·같은 최종 source의 결과를 구분하고 실제 실행 수만 기재한다. 전역 CI6-shard/Required3/timeout/retry/skip·보호 정책은 변경하지 않는다. Local/자동 PrePR/원격 결과는 별도 판정이다.
+- DOCUMENTATION_SYNC: 전용 실패 원장·이 Work Packet·TEST_PLAN·active PLAN·CHANGELOG 및 정제 실행/원격 JSON을 갱신한다. DESIGN/UI_UX/PROJECT_UX/ARCHITECTURE/API/REQUIREMENTS/DB/보안/일정·Import/Export/사용자 가이드 N/A(제품·공개계약 불변, 테스트 전송/합성 fixture 준비만 교정). CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS/QA 정책/AGENTS N/A(기존 Required·권한·게시·승인·누적 진단 절차 그대로 적용).
+- 기존 R730-001 thread는 resolved/outdated, 시작 시 unresolved0/충돌0. 새 리뷰/충돌이 생기면 해결 근거를 같은 실패 원장에 기록한다. 모든 변경을 한 묶음으로 게시하고 새 exact Head Full CI의 Run/Attempt/Head/base/test merge 등록만 확인한다. 완료 모니터링·Main/GHCR/Release/tag·브랜치 정리·Issue 종료·Manager ACCEPT는 수행하지 않는다.
+
+
+### Full #3022 재작업 최종 로컬 판정
+
+- [전용 원장 §16](../../ISSUE_730_FAILURE_ANALYSIS.md), [원격7Run](../../evidence/issue-730/rework-3022/remote-failures.json), [helper/누적 browser30](../../evidence/issue-730/rework-3022/browser-validation.json), [help12/통제RED](../../evidence/issue-730/rework-3022/help-validation.json), [Unit219](../../evidence/issue-730/rework-3022/unit-validation.json), [정적 검사](../../evidence/issue-730/rework-3022/static-validation.json), [source963](../../evidence/issue-730/rework-3022/source-freeze.json)을 연결한다. 고유42 Chromium/16파일219Unit PASS이며 기존 같은 case 반복/제어 실패/이전 후보는 합산하지 않는다. functional source963 mismatch0, help 전체 지문의 실행 중 최초 캡처 한계도 보존한다.
+- TypeScript/ESLint0error·기존13warning/version0.124.0/Markdown275/discovery248unit files·757browser cases/diff PASS. 전체 로컬 회귀/build/audit/Docker·원격 Required/Trusted/Owner·환경별 검증은 별도다. 첫 병행 lint SIGINT/exit130은 LOCAL_INTERRUPTED로 보존했고 browser teardown/생성물 복원 후 standalone PASS를 확정했다.
+- 실제 PrePR targeted dry-run은 NOT TESTED/sourceStable=true/steps0/UNKNOWN7/missing0. full fast/targeted 실행이 아니며 수동 영향 검증으로 CLI 매핑/정책을 수정하지 않는다. 과거 UNKNOWN5/BLOCKED 및 로컬 시간 실패는 원래 출처에 보존한다. 현재42PASS가 과거 원격 FAIL의 소급 성공이나 reset TCP 내부 근인 증명은 아니다.
+- 새 GitHub 리뷰/충돌이 없는 경우 해결건0을 기록하고, main은 이미 조상인 경우 불필요한 merge commit을 만들지 않는다. 최종 source를 한 묶음 게시 후 정확 Run/Attempt/Head/base/test merge 등록만 확인한다. 사용자 지시대로 CI 완료 모니터링·병합·Main/GHCR·정식 릴리스·Issue 종료 및 Manager ACCEPT는 하지 않는다.
+
+- 별도 `/root/qa_review` 최종 read-only 사전 검토 PASS/P1·P2미해결0, source963 재계산 mismatch0. 원격 Head2a97043f/main5df17886/mergeable=true/미해결review0/충돌0을 재조회했고 main이 조상이므로 추가 통합 N/A다. Git push dry-run 인증401로 Git Data API 단일 Ref 게시를 선택하며 전체 tree와 부모를 대조한다. 이것은 Owner/Trusted·Manager 최종 승인이 아니며 새 source CI 등록 후 결과 모니터링 없이 인계한다.
