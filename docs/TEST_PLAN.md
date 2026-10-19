@@ -1,3 +1,10 @@
+## Issue #751 — E2E 격리 계측 (부분 구현, CI 미검증)
+
+- `tests/e2e/fixtures/isolated-performance-receipt.ts`는 단조 clock 기반 단계별 측정과 비민감 JSON 첨부를 제공한다. `isolated-application.ts`는 SQLite migrate, startup/readiness, route warmup, restart 및 teardown을 기록한다.
+- 동일 Run/attempt/test ID의 계측 산출물과 실제 Trace/HAR 요청별 측정, 정상/느림/취소/오류 통제, baseline P50/P95, shard/환경 비교와 Job Summary/경고는 아직 **NOT TESTED / 미구현**이다. 변경 전후 동일 Head/환경 측정 없이 병목 최적화 성공으로 판정하지 않는다.
+- 이전 #623 Before Hooks 약 14.68초와 본문 약 59.97초는 별도 timeout budget으로 기록하며 총합으로 60초 초과 원인을 추정하지 않는다. 테스트 본문 60초·격리 Fixture 120초 제한은 변경하지 않는다.
+- 상세 작업 원장: [ISSUE_751](exec-plans/active/ISSUE_751.md). Required Quality/E2E6/Docker·Trusted QA·Owner 승인 전 PASS를 주장하지 않는다.
+
 ## Issue #731 — 기존 KPI 통합 소비자 수용
 
 [기능 보존표·AC·실패 원장](exec-plans/active/ISSUE_731.md)을 기준으로 기존 UI와 전용 API를 함께 검증한다. 로컬 빠른 검증과 PR Required Quality/E2E/Docker·Trusted QA·Owner 최종 승인은 별도다.
