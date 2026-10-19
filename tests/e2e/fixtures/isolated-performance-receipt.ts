@@ -8,7 +8,13 @@ const MAX_RECORDS = 512;
 const METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 const n = (value: number) => Math.round(value * 100) / 100;
 function failure(error: unknown): Result {
-  const text = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  // Playwright Request.failure() returns { errorText }, not a string/Error.
+  // Do not store raw errorText; only return an allowlisted category.
+  const text = error instanceof Error ? error.message :
+    typeof error === "string" ? error :
+    error !== null && typeof error === "object" &&
+    "errorText" in error && typeof error.errorText === "string"
+      ? error.errorText : "";
   if (/ABORT|CANCEL/i.test(text)) return "abort";
   if (/TIMEOUT|timed out/i.test(text)) return "timeout";
   if (/ECONN|EPIPE|ERR_|ENOTFOUND|NetworkError/i.test(text)) return "network";

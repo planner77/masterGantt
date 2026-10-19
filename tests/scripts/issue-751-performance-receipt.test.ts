@@ -63,4 +63,69 @@ describe("Issue 751: sanitized monotonic observation", () => {
     expect(data().serverEventsDiscarded).toBe(2);
     expect(JSON.stringify(data())).not.toMatch(/12345678|SELECT private|private-uuid/);
   });
+  it("classifies actual Playwright failure() objects and never emits raw errorText", async () => {
+    const { observer, data } = fixture();
+    const events = new EventEmitter();
+    const stop = observer.listen(events as unknown as Page);
+    const aborted = {
+      url: () => "/api/projects/secret123/assignment-targets?token=hidden",
+      method: () => "GET",
+      failure: () => ({ errorText: "net::ERR_ABORTED cookie=private" }),
+    };
+    const network = {
+      url: () => "/api/projects/secret123/assignment-targets",
+      method: () => "GET",
+      failure: () => ({ errorText: "net::ERR_FAILED credential=secret" }),
+    };
+    events.emit("request", aborted);
+    events.emit("requestfailed", aborted);
+    events.emit("request", network);
+    events.emit("requestfailed", network);
+    stop();
+    await observer.attach("error");
+    expect(data().requests).toMatchObject([
+      { source: "browser", route: "assignment-targets", status: null, outcome: "abort" },
+      { source: "browser", route: "assignment-targets", status: null, outcome: "network" },
+    ]);
+    expect(JSON.stringify(data())).not.toMatch(/ERR_ABORTED|ERR_FAILED|secret123|token=|credential=|private/);
+  });
+
+  it("does not treat HTTP response headers or route fulfillment as a finished request", async () => {
+    const { observer, data } = fixture();
+    const events = new EventEmitter();
+    const stop = observer.listen(events as unknown as Page);
+    const pending = {
+      url: () => "/api/projects/uuid/assignment-targets",
+      method: () => "GET",
+      failure: () => null,
+    };
+    events.emit("request", pending);
+    events.emit("response", { request: () => pending, status: () => 503 });
+    stop();
+    await observer.attach("error");
+    expect(data().requests).toMatchObject([
+      { source: "browser", route: "assignment-targets", status: 503, outcome: "incomplete" },
+    ]);
+  });
+
+  it("keeps complete and HTTP error outcomes only for terminal requestfinished events", async () => {
+    const { observer, data } = fixture();
+    const events = new EventEmitter();
+    const stop = observer.listen(events as unknown as Page);
+    for (const status of [200, 503]) {
+      const request = {
+        url: () => "/api/projects/uuid/assignment-targets",
+        method: () => "GET",
+        failure: () => null,
+      };
+      events.emit("request", request);
+      events.emit("response", { request: () => request, status: () => status });
+      events.emit("requestfinished", request);
+    }
+    stop();
+    await observer.attach("ok");
+    expect(data().requests.map((record: { outcome: string }) => record.outcome))
+      .toEqual(["complete", "http_error"]);
+  });
+
 });

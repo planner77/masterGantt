@@ -1,3 +1,9 @@
+## Issue #751 — F-009 Playwright browser terminal E2E 증거 계약 (2026-10-20)
+
+- 원본 [#3031.1](https://github.com/planner77/masterGantt/actions/runs/39324488213) Run39324488213 attempt1 Head `4aa0619b39e0bfd9c876a84e74e9e0f4c7d00757` Shard5 `118307697128`: #622 Focus/투입률/Excel 성공 후 신규 #751 HTTP receipt Expected>=2 complete, Actual1 FAIL. 원본 E2E Timing `12221842831`, Playwright Report `12221287851` 보존. 어떤 Raw HAR/Trace도 Git에 커밋하지 않는다.
+- 동일 Browser synthetic API에 대해 `page.waitForEvent("requestfinished", predicate)`와 `page.waitForEvent("requestfailed", predicate)`를 각각 요청 전에 설치하고, HTTP200/503은 body 소비 완료 뒤 terminal event를 확인하며 Abort/Network는 requestfailed를 확인한다. Playwright는 HTTP503을 network failure가 아닌 completed HTTP response로 처리한다. `Request.failure()?.errorText`는 `abort/network/timeout` allowlist로 변환하며 원문/헤더/개인정보는 artifact에 포함하지 않는다. 공식 계약은 [Request](https://playwright.dev/docs/api/class-request) 및 [Page](https://playwright.dev/docs/api/class-page) 참조.
+- 새 Head CI에서 `tests/e2e/issue-751-performance-telemetry.spec.ts` 실제 2 complete200(하나 90ms delayed) + 1 HTTP503 + 1 network failed + 1 aborted가 모두 terminal로 표시되고 `incomplete/other` 0인지 확인한다. 기존 #622 input60→save40→Focus/Excel 5폭, #623/731, Quality·Docker 및 6 Chromium shard를 새 Run/Attempt로 교차 검증한다. Timeout/Fail-Fast/Skip/Retry 정책 불변, CI 모니터링과 병합/릴리스는 작업 범위에서 제외한다.
+
 ## Issue #751 — F-008 Dev Route 사전 컴파일과 원격 수용 (2026-10-20)
 
 - Run39321562557/#3030.1(Head `501e10081161cc4971b062e83042088cf60e08a1`) Shard5의 `#622`은 후보 GET 4501.785ms/HTTP200 + 같은 기간 Fast Refresh 3954ms 후 strict `allocation=60` 입력 미표시로 중단. 다른 5 Shards는 cancelled, E2E 신규 Test는 미실행; 이전 F-006 Focus 복귀의 성공/실패로 오인 금지. Source [실패 원장 F-008](ISSUE_751_FAILURE_ANALYSIS.md).

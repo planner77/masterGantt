@@ -1,3 +1,10 @@
+## Issue #751 — F-009 HTTP terminal event 및 Playwright failure 분류 검증 (2026-10-20)
+
+- PR #754 Full #3031.1 [Run 39324488213](https://github.com/planner77/masterGantt/actions/runs/39324488213): Shard5 #622 Resource Plan 36.0초 strict PASS, 신규 #751 통제 E2E `issue-751-performance-telemetry.spec.ts:64`는 Expected 2/Actual 1 `complete`로 FAIL, 나머지 5 shard CANCELLED. [원본 Timing #12221842831](https://github.com/planner77/masterGantt/actions/runs/39324488213/artifacts/12221842831)에는 `assignment-targets` 다섯 browser sample 중 complete200 1, incomplete200/503 2, other 2 기록. `E2E Aggregator FAIL`을 병목/제품 변경의 인과로 오인하지 않는다.
+- **AC1/관측 분류기**: `tests/e2e/fixtures/isolated-performance-receipt.ts`는 Node Playwright `Request.failure()`의 `{errorText}`를 raw 저장하지 않고 `abort`·`network`로 변환한다. `tests/scripts/issue-751-performance-receipt.test.ts`는 Playwright 실패 객체, 원문/ID/쿼리 비노출, `response`만 있는 요청은 `incomplete`, `requestfinished`를 받은 HTTP200/503만 complete/http_error로 판정하는 시나리오를 회귀한다.
+- **AC2/실제 Chromium 통제**: `tests/e2e/issue-751-performance-telemetry.spec.ts`에서 Page terminal `requestfinished` 또는 `requestfailed`를 실제 각 synthetic GET 전에 구독, 브라우저 fetch body `arrayBuffer()`를 소비, terminal 이후에 `unrouteAll` 실행. 정상2/503 1/Network 1/Abort 1 각각 정확한 browser receipt, status/90ms 최소지연 및 `other/incomplete` 0을 유지. 기존 #622 E2E 전체 단언, #623·731, fixture timeout 유지.
+- **AC3/원격 검증**: 로컬 source 정적 검토는 실제 Chromium 실행 성공이 아님. 새 Head에서 6 Shard·Required Quality/Docker, Trusted QA와 이전 F-001~F-008 회귀를 분리 판정하고, 변경 전후 SQL·Next compile 병목/충분한 P50/P95 표본은 별도 `INSUFFICIENT_DATA`로 표시한다. 원본 Run/Attempt/HEAD/Artifact를 보존하고 Fail-Fast, Timeout 증가/Assertion 완화/Skip 우회 금지.
+
 ## Issue #751 F-008 — #622 Editor 후보 GET 최초 컴파일 계측 (2026-10-20)
 
 - [PR Full #3030.1](https://github.com/planner77/masterGantt/actions/runs/39321562557), Head `501e10081161cc4971b062e83042088cf60e08a1`: Shard5 `tests/e2e/issue-622-resource-plan-target.spec.ts:92` strict 투입률 `60` 입력이 5초간 미표시. Raw trace: `GET assigned-targets` 112.646ms/200, 뒤따른 `GET assignment-targets` 4501.785ms/200 및 Next Fast Refresh 3954ms 중첩, 마지막 Dialog `할당 정보를 불러오는 중…`. F-006은 편집기 닫기 이후 Focus, 이번은 열기 직후 비동기 후보 로딩이므로 같은 테스트라도 서로 다른 원본 FAIL로 보존한다.

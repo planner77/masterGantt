@@ -26,45 +26,71 @@ test("Issue #751 real isolated backend, browser slow/abort/error receipts and cl
 
   const pattern = "**/api/projects/*/assignment-targets";
   const fakePath = "/api/projects/00000000-0000-4000-8000-000000000001/assignment-targets";
+  const matchingRequest = (request: { url(): string; method(): string }) =>
+    request.method() === "GET" && new URL(request.url()).pathname === fakePath;
+
+  // A resolved fetch(status) and page.unrouteAll() do NOT mean that
+  // Playwright emitted requestfinished. Register the terminal-event waiter
+  // before triggering each request, then consume the response body.
+  const expectHttpCompleted = async (expectedStatus: number) => {
+    const finished = page.waitForEvent("requestfinished", { predicate: matchingRequest });
+    const status = await page.evaluate(async path => {
+      const response = await fetch(path, { cache: "no-store" });
+      await response.arrayBuffer();
+      return response.status;
+    }, fakePath);
+    await finished;
+    expect(status).toBe(expectedStatus);
+  };
+  const expectNetworkFailed = async () => {
+    const failed = page.waitForEvent("requestfailed", { predicate: matchingRequest });
+    const result = await page.evaluate(async path => {
+      try {
+        const response = await fetch(path, { cache: "no-store" });
+        await response.arrayBuffer();
+        return "unexpected_success";
+      } catch {
+        return "request_failed";
+      }
+    }, fakePath);
+    await failed;
+    expect(result).toBe("request_failed");
+  };
 
   await page.route(pattern, route => route.fulfill({
     status: 200, contentType: "application/json", body: '{"data":[]}',
   }));
-  expect(await page.evaluate(async path => (await fetch(path)).status, fakePath)).toBe(200);
+  await expectHttpCompleted(200);
   await page.unrouteAll({ behavior: "wait" });
 
   await page.route(pattern, async route => {
     await delay(90);
     await route.fulfill({ status: 200, body: '{"data":[]}' });
   });
-  expect(await page.evaluate(async path => (await fetch(path)).status, fakePath)).toBe(200);
+  await expectHttpCompleted(200);
   await page.unrouteAll({ behavior: "wait" });
 
   await page.route(pattern, route => route.fulfill({ status: 503, body: '{"error":"deliberate"}' }));
-  expect(await page.evaluate(async path => (await fetch(path)).status, fakePath)).toBe(503);
+  await expectHttpCompleted(503);
   await page.unrouteAll({ behavior: "wait" });
 
   await page.route(pattern, route => route.abort("failed"));
-  const network = await page.evaluate(async path => {
-    try { await fetch(path); return "unexpected_success"; }
-    catch { return "network_error"; }
-  }, fakePath);
-  expect(network).toBe("network_error");
+  await expectNetworkFailed();
   await page.unrouteAll({ behavior: "wait" });
 
   await page.route(pattern, route => route.abort("aborted"));
-  const cancellation = await page.evaluate(async path => {
-    try { await fetch(path); return "unexpected_success"; }
-    catch { return "abort"; }
-  }, fakePath);
-  expect(cancellation).toBe("abort");
+  await expectNetworkFailed();
   await page.unrouteAll({ behavior: "wait" });
 
   const observations = observedIsolatedPerformance().requests.filter(x => x.route === "assignment-targets");
-  expect(observations.filter(x => x.outcome === "complete").length).toBeGreaterThanOrEqual(2);
-  expect(observations.some(x => x.outcome === "http_error" && x.status === 503)).toBe(true);
-  expect(observations.some(x => x.outcome === "network")).toBe(true);
-  expect(observations.some(x => x.outcome === "abort")).toBe(true);
+  // One authoritative browser terminal event for each of the five requests;
+  // no incomplete/other record is accepted as an observed outcome.
+  expect(observations.filter(x => x.source === "browser")).toHaveLength(5);
+  expect(observations.filter(x => x.outcome === "complete")).toHaveLength(2);
+  expect(observations.filter(x => x.outcome === "http_error" && x.status === 503)).toHaveLength(1);
+  expect(observations.filter(x => x.outcome === "network")).toHaveLength(1);
+  expect(observations.filter(x => x.outcome === "abort")).toHaveLength(1);
+  expect(observations.some(x => x.outcome === "incomplete" || x.outcome === "other")).toBe(false);
   expect(observations.some(x => x.outcome === "complete" && x.durationMs >= 60)).toBe(true);
 
   // Real HTTP (no intercept), without mutating fixture data, exercises the SQL
