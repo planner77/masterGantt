@@ -6,6 +6,8 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 
 > **최신 F-003 (2026-10-19 KST):** [PR Full CI #2999.1](https://github.com/planner77/masterGantt/actions/runs/39212770619)에서 `tests/e2e/issue-726-task-logistics.spec.ts:370`의 TypeScript **TS2488**이 직접 실패했다. #2998.1 ECONNRESET 교정 때 정확 DTO `TaskProcessLink[] | null` 타입으로 전환했으나 기존 배열 spread에 null 구분이 빠졌다. Fast Gate가 막아 **E2E·Docker·PR Build는 실행되지 않았다**. 이 원장의 F-001/F-002를 소급 변경하지 않고 F-003을 §7에 누적한다. 연결된 PR #746의 원격 Full CI 확인 이력은 #2997.1/#2998.1/#2999.1 (서로 다른 Head·Run·각 attempt1)이다.
 
+> **2026-10-19 Main 실패 M-001 추가:** PR #746 Full CI [#3000.1](https://github.com/planner77/masterGantt/actions/runs/39213900305) Quality/E2E6/Docker 및 [Trusted QA #643.1](https://github.com/planner77/masterGantt/actions/runs/39217128743) PASS 후 merge SHA `fbe7db83a4baa2877a75db0769a59077bbe308c4`의 [Main #3002.1](https://github.com/planner77/masterGantt/actions/runs/39218195042)은 **Shard6의 #731 공정/WorkArea KPI 원본 초점 복원** 1 FAIL (125 PASS), Quality/Docker PASS, 다른 Shard5 PASS, E2E aggregate FAIL, GHCR 게시 SKIPPED다. 기존 F-001~F-003은 PR 실패 기록으로 유지하고 새로운 **M-001은 Main 별도 실행**으로 §8에 기록한다. #3002의 같은 불변 Merge SHA를 재실행해 교정한 새 소스라고 보고하지 않는다. 필요한 변경은 latest main 기반의 새 보완 PR에서 검증·병합해야 한다.
+
 **이 문서 하나가 #731의 canonical 원격 실패 원장이다.** 재실패/재개 시 관련 모든 PR·Run·Attempt·Job·Shard·취소·미실행을 다시 수집하고 다음 F-002+ 절을 누적한다. 과거 실패·기각된 가설·원시 결과는 소급 삭제/성공 변경하지 않는다. [#667 기존 누적 선례](ISSUE_667_FAILURE_ANALYSIS.md)와 현재 이슈 실패를 혼합하지 않는다.
 
 ## 1. 모든 관련 PR/Run/Attempt·원본 결과
@@ -134,3 +136,38 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 - **원격 F-003 증거 보존**: Run #2999.1/Job ID/Step과 TypeScript 원문, 빠른 검사 판정, 취소/미실행 결과. 로그 원문/쿠키/환경/trace·자격증명은 Git에 저장하지 않는다. F-001/F-002의 SHA·가설·근인 불확정 기록은 수정하지 않는다.
 - 코드·문서 후보의 Git Blob/Tree/Parent 및 실제 PR HEAD를 비교하고 main strict·mergeable/review thread0 확인 후 non-force branch ref 갱신만 한다. push synchronize에 의해 Full PR CI가 시작되면 Run ID/attempt·Head/base/test merge 및 event만 확인한다. CI 완료 모니터링하지 않는다.
 - **승인 경계**: HEAD에 대한 원격 Required Quality/E2E6/Docker, Trusted QA 및 Owner 최종 ACCEPT·정식 Release는 새 Run 완료 전 **NOT TESTED/BLOCKED**. 병합/Main/GHCR/Finalizer/Issue close는 요청하지 않았으므로 수행하지 않는다. HIGH/OWNER_MANAGED·`release_authorized=false` 유지.
+
+## 8. M-001 — #731 병합 후 Main CI #3002.1 KPI 원본 공정 포커스 복원 실패 (2026-10-19)
+
+### 8.1 실제 원격 증거와 발생 범위
+
+| 항목 | 원본 증거 |
+| --- | --- |
+| Primary Issue/PR | [Issue #731](https://github.com/planner77/masterGantt/issues/731), [최초 PR #746](https://github.com/planner77/masterGantt/pull/746) merged; Head `0f844136f8975f6a7e0c246985bd384ea48b43ab`, base `01fdc08bf4b2f69f9797a8bd411d6712e7478c09`, test merge `acbf9a498d3da08262eb58ebf28fe128abdb5aee` |
+| 검증된 원본 PR | [Full CI #3000.1 / run39213900305 attempt1](https://github.com/planner77/masterGantt/actions/runs/39213900305) Quality/E2E6/Docker SUCCESS; [Trusted QA #643.1](https://github.com/planner77/masterGantt/actions/runs/39217128743) SUCCESS. 본 Main 오류를 PR SUCCESS로 상쇄할 수 없음 |
+| 실제 Main | [Main CI #3002.1 / Run39218195042](https://github.com/planner77/masterGantt/actions/runs/39218195042), event `push`, workflow `.github/workflows/ci.yml`, attempt1, HEAD `fbe7db83a4baa2877a75db0769a59077bbe308c4`, first parent(base) `01fdc08bf4b2f69f9797a8bd411d6712e7478c09`, second parent(PR Head) `0f844136f8975f6a7e0c246985bd384ea48b43ab`, Git Tree `f20d9fd1ae55a8aae9f18f358a955491163c99b9` |
+| 독립 성공 | TypeScript, ESLint, Vitest, policy, Next.js production build, main Quality aggregate `117947533008` SUCCESS. Docker smoke `117947042834`/aggregate `117948688108` SUCCESS. Chromium Shard1 `117947042890`, Shard2 `117947042967`, Shard3 `117947042975`, Shard4 `117947042788`, Shard5 `117947042833` 모두 SUCCESS |
+| 최초 **실제** 실패 | [Shard6 job `117947043171` step7](https://github.com/planner77/masterGantt/actions/runs/39218195042/job/117947043171), `tests/e2e/logistics-dashboard-request-state.spec.ts:411` case '#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 초점을 복원한다'에서 **line424 `expect(process).toBeFocused()`** FAIL. locator `[id="logistics-master-process-proc-1"]`는 toBeVisible **PASS**, toBeFocused는 5s 동안 `Received: inactive`. 화면의 정확 원본 `입고 공정` 행이 렌더됐지만 키보드 focus 인계 완료가 아니었다 |
+| Shard6 및 후속 | Shard6 **125 PASS / 1 FAIL**(126 예정, NOT RUN 0); Main `fail-fast=false`, 다른5 shard 성공. Chromium aggregate `117957329601` FAILURE는 위 Shard6 실패 파생. GHCR 임시 `ci-<merge SHA>` Job `117957373205` **SKIPPED**. QA Final PR-only SKIPPED; Main에 독립 QA FAIL이 있었던 것으로 기록하지 않음 |
+| 원본 보존 | [Playwright shard6 report/trace artifact `12171083540`](https://github.com/planner77/masterGantt/actions/runs/39218195042/artifacts/12171083540), CI 로그 및 Run/Job GitHub 출처. Raw trace, 환경, 쿠키·session은 Git에 넣지 않는다 |
+
+### 8.2 누적 F-001~F-003 및 PR PASS와 Main 차이 대조
+
+| 사건 | 당시 근인/교정 | 현재 Main 영향 |
+| --- | --- | --- |
+| F-001 / PR #2997.1 | WorkArea 구성 원본 모집단 PRODUCT + 정상 QA review gate. Task/Assignment canonical 범위 수정, P2 thread resolve | Main Unit/Build 성공, 별도 구성 상세 회귀 로그 없음. 새로운 **원본 이동 후 focus** 기능이 검증 대상이며 모집단 계산 오류 재발로 단정하지 않음 |
+| F-002 / PR #2998.1 | #726 독립 APIRequestContext GET `ECONNRESET` INIT_TRANSPORT(근인 UNKNOWN); UI 이후 browser same-origin GET 및 safe observer 교정 | 이번 실패는 로케이터 toBeFocused이며 HTTP/reset 오류가 아님. Main Shard4 SUCCESS; transport 근인을 소급 증명하지 않음 |
+| F-003 / PR #2999.1 | #726 E2E DTO `TaskProcessLink[] | null` TS2488 TEST_CONTRACT; 명시 null guard | Main TypeScript SUCCESS. 이번 focus 문제는 별개의 UI 시점 계약 |
+| 최종 PR #3000.1 | 같은 #731 Head의 Full CI: 6-shard 모두 SUCCESS, QA Final/Trusted PASS | 동일 code/tree를 Main의 전용 shard 환경에서 검증하자 Shard6 #731 이동 초점이 FAIL. 단일 성공과 실패의 출처·event/runner/timing을 구별하고 'flaky'나 'CI 오류'로 추정 치유 금지 |
+| **M-001 Main #3002.1** | 위치는 원본 이동 이후 행 focus, expected focused vs actual inactive. 제품 src의 클릭 시 단일 `requestAnimationFrame(() => document.getElementById(...).focus())`와 상위 `onSubviewChange`→Parent `setActiveScreen`이 별도 React commit에 의존 | **근인 가설**: click-time rAF가 새 subview/panel commit 또는 렌더/가시성 완료 전에 실행되어 hidden 행 `focus()`가 무효화/나중에 탈취될 수 있음. Trace는 행 존재·불활성만 증명하며 정확한 브라우저 focus 이벤트의 시간순서는 기록 부족으로 UNKNOWN. 제품 focus handoff 경계를 after-commit bounded 확인으로 방어 |
+
+**누적 실제 E2E 실패 파일 합집합**은 `tests/e2e/issue-726-task-logistics.spec.ts`(F-002 전송)와 `tests/e2e/logistics-dashboard-request-state.spec.ts`(M-001 focus)다. F-003은 전자 파일의 타입 검사 실패, F-001은 별도 서버 제품/리뷰 문제. 다른 Issue #667/#726의 사례는 비교 선례이지 #731 원격 실패 건수에 추가하지 않는다.
+
+### 8.3 수정 설계·검증 범위·불확실성
+
+1. **제품 최소 범위:** `src/features/logistics/project-logistics-management.tsx`의 공정/설비/System/WorkArea→공정 원본 이동에서 **click-time 단일 rAF focus를 제거**하고, 정확 canonical `kind,id,revision` 요청을 임시 보존해 **React panel commit 이후** `useLayoutEffect` + 제한 8 frame에서 실제 연결·가시 행만 focus한다. 같은 navigation/연결·revision·subview와 focus 결과를 확인하고 완료 즉시 폐기한다.
+2. **부작용 방지:** 최신 화면 전환에 대한 stale request는 수행하지 않고, 현재 도착 panel 안에서 사용자가 새로 초점을 이동했다면 자동 복원으로 가로채지 않는다. `returnToKpi`는 기존 출발 트리거→fallback 포커스를 유지하면서 pending 복원을 취소한다. 숨긴/비활성/없는 행을 무조건 focus하거나 다른 기준정보를 선택하지 않는다. 원래 데이터·API·권한·revision·Gantt Core·DB·KPI 산식·Target/Resource 기능 수정 없음.
+3. **테스트 보완:** `tests/e2e/logistics-dashboard-request-state.spec.ts`의 **원래 #731 공정/WorkArea 2회 왕복**에 실제 행 `tabindex=-1`/가시성/포커스, 상위 화면 commit 이후 연속 두 animation frame의 focus 유지, 이후 사용자에 의한 'KPI로 돌아가기' 버튼 수동 focus 유지와 기존 KPI 진단 출발 버튼 focus 복귀를 추가한다. 기존 5초 `toBeFocused`/정확 행 이름·revision·snapshot assertion, 다른 Resource/Task/Assignment drill 검증은 완화하지 않는다.
+4. **동일 source 확대 검증 선택:** 원격 실패 합집합 #726 Task process-context E2E와 #731 dashboard-request-state E2E 전체, 인접 master.processes/equipment/systems 및 WorkArea 다중 연결·활성/검색/readonly/새 탭·키보드, Project workspace parent navigation(#724/#717/#624), stale revision/비동기 패널, resource/Task/Assignment 복귀. Next build, lint/typecheck, Unit 및 Full Chromium 6-shard, Docker를 새 HEAD PR CI에 요구. Gantt native layout/Copy/Calendar/Import 등 코드를 건드리지 않는다. 자동 timeout/skip/retry·Assert 완화/QA·Ruleset 변경 없음.
+5. **실행 검증 경계:** GitHub connector Git Data로 후보 source와 변경 Blob·Tree를 정적 대조할 수 있지만 프로젝트 checkout/node_modules/Chromium runtime은 제공되지 않으므로 **로컬 TypeScript/Vitest/실제 browser/HTTP NOT TESTED**. 원본 #3000 PR PASS, 원본 #3002 Quality/Docker PASS는 새 HEAD의 결과로 전용하지 않는다. 실제 React rAF 경합의 재현·제품 PASS는 후속 Full PR CI가 필요.
+6. **문서/릴리스/후속:** 기존 유일한 canonical 원장 `docs/ISSUE_731_FAILURE_ANALYSIS.md`에 M-001 추가, Work Packet/TEST_PLAN/PROJECT_UX/CHANGELOG 동기화. 별도 디자인 시스템 신설 없음: `DESIGN.md` N/A. Main이 이미 병합된 뒤이므로 **원래 PR #746을 수정하거나 불변 Main #3002의 실패를 다른 코드의 PASS로 재해석 금지**. latest main으로 별도 corrective PR(Refs #731)을 생성하고 필수 PR Quality/E2E6/Docker, Trusted QA, 리뷰 thread0·충돌0, Owner 승인 후에만 새 merge/main SHA를 만들 수 있다. 이전 Main #3002 rerun은 수정이 적용되지 않는 동일 SHA이므로 교정 CI 대신 사용하지 않는다. GHCR/Finalizer/정식 `v0.123.0` Release 권한은 `release_authorized=false`; Issue OPEN 유지.

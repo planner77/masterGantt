@@ -421,9 +421,20 @@ test("#731 공정·WorkArea 원본 이동은 정확한 공정 행과 KPI 출발 
     const original = configuration.getByRole("button", { name: /원본 구성 보기/ });
     await original.click();
     const process = page.locator('[id="logistics-master-process-proc-1"]');
-    await expect(process).toBeVisible(); await expect(process).toBeFocused();
+    await expect(process).toBeVisible();
+    await expect(process).toHaveAttribute("tabindex", "-1");
+    await expect(process).toBeFocused();
+    // The parent WorkspaceScreen commits asynchronously. A late rAF must not
+    // drop the exact row focus after navigation settles or steal later input.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(process).toBeFocused();
     await expect(process).toContainText("입고 공정");
-    await page.getByRole("button", { name: "KPI로 돌아가기", exact: true }).click();
+    const back = page.getByRole("button", { name: "KPI로 돌아가기", exact: true });
+    await back.focus();
+    await expect(back).toBeFocused();
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    await expect(back).toBeFocused();
+    await back.click();
     await expect(configuration.getByRole("heading", { name: new RegExp(label) })).toBeVisible();
     await expect(original).toBeFocused();
   }

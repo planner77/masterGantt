@@ -1540,3 +1540,9 @@ Workspace 상위 메뉴 `일정 / 대시보드 / 기준정보`의 Tab은 선택 
 ## Issue #717 — 담당자 식별 정보와 조회 실패 (2026-10-19)
 
 설비 담당자와 시스템 PI 편집의 선택된 인력은 이름을 우선하며, 동명일 때 코드/ID 보조 문맥으로 구분한다. 선택한 원본 ID·코드 전체는 별도의 식별 정보에서 확인·복사할 수 있다. 리소스 catalog 조회 실패 시 canonical 배정의 이름·코드만 사용하고 과거 catalog cache를 섞지 않는다. 식별 정보 조회는 가능하지만 기존 저장·추가·삭제·주 담당 변경은 catalog 재조회 성공 전까지 차단한다. 정확한 선택값과 If-Match는 표시 변경으로 바뀌지 않는다.
+
+## Issue #731 M-001 — KPI 원본 기준정보 행의 화면 전환 후 포커스 안정성 (2026-10-19)
+
+대시보드 KPI 구성·연결 진단의 공정/WorkArea/설비/물류 시스템 '원본 구성 보기'는 같은 Project의 정확한 canonical 기준정보 `kind/id`와 revision을 가진 master 화면으로 전환한다. 상위 WorkspaceScreen과 하위 Logistics subview의 React commit이 완료된 뒤 실제 연결되고 가시인 대응 행에 keyboard focus를 인계한다. click-time rAF 한 번만 호출하는 것으로 인계 완료를 가정하지 않는다. 원래 row `tabindex=-1`, 원본 이름/전체 식별자, 실제 scroll-to-focus를 유지한다.
+
+WorkArea는 등록된 owner 공정 행으로 이동한다. 가려진/비활성/필터 밖/삭제·revision 변경된 원본은 임의의 다른 행에 focus하지 않고 원본 상태를 확인하도록 한다. 닫힌 화면/비활성 패널/늦은 이벤트는 최신 사용자 focus를 훔쳐서는 안 된다. KPI로 돌아올 때 출발 진단 버튼을 우선 복원하고 유효하지 않으면 기존 안전한 summary/상위 view fallback을 따른다. 이번 교정은 UI/UX 기존 focus 규칙을 구체화한 Delta B로 전역 `DESIGN.md` 신규 규칙이 아니라 해당 기능 문서와 테스트에 기록한다. [Main CI M-001 및 회귀 증거](ISSUE_731_FAILURE_ANALYSIS.md#8-m-001--731-병합-후-main-ci-30021-kpi-원본-공정-포커스-복원-실패-2026-10-19).
