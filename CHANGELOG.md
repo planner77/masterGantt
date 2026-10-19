@@ -1,4 +1,6 @@
 ## [0.123.0] — Unreleased / Issue #731
+- Main #3007.1은 다른 5 E2E Shard/Quality/Docker 통과 후 #725 설비 다중 WorkArea 재시작 E2E에서 **동일 동적 PATCH 경로의 HTTP200→HTML404**로 실패했다. 변경된 격리 E2E fixture는 서버 재시작 시 선택적 실제 동적 route를 읽기 전용 GET405로 준비 확인하고, 후속 실제 browser PATCH의 응답200/JSON 및 원래 WorkArea·Dialog 종료 수용 조건을 그대로 검증한다. 서버/제품 API/DB/권한·CI timeout/retry·버전은 유지, Next 내부 404 근인은 원격 재실행 전 UNKNOWN. GHCR 후보 미게시·정식 v0.123.0 미승인 상태 불변.
+
 
 - PR #748 Full PR CI #3004.1은 Quality/E2E6/Docker를 모두 통과했으나 Codex P1 미해결 review 차단이 정당하게 발생했다. Main M-001 포커스 인계 후속 bounded rAF가 테이블 밖 검색창·KPI 복귀/Workspace 컨트롤의 새로운 유효 사용자 focus를 빼앗지 않도록 패널 범위 제한을 제거하고 직접 통제 E2E 2개를 보강한다. 원본 #3002 Main/GHCR 미게시와 정식 v0.123.0 release 미승인은 불변.
 

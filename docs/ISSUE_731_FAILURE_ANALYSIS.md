@@ -10,6 +10,8 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 
 > **최신 F-004 / PR #748 (2026-10-19 KST):** 원본 Main M-001 교정 PR의 [Full CI #3004.1](https://github.com/planner77/masterGantt/actions/runs/39223658039)는 **Required Quality/E2E6/Docker 모두 SUCCESS**였지만, Codex **P1 미해결 review thread**에 의해 QA Final이 **BLOCKED**됐다. 리뷰에서 제품 포커스 복원 경계의 실제 누락을 지적했으므로 QA 우회가 아니라 모든 외부 가시 사용자 focus를 우선하여 기존 복원을 취소하도록 수정한다. 기존 F-001~F-003/M-001은 불변으로 두고 §9 F-004를 누적한다. 이 Issue의 관련 PR은 **#746(merged) + #748(open)**이며 F-004는 병합 Main이 아닌 **PR** 실패다.
 
+> **Main M-002 추가 (2026-10-19 KST):** [Main CI #3007.1](https://github.com/planner77/masterGantt/actions/runs/39232888704) (PR #748 merge SHA `a0297cd4b01e0083273ad3444edc7fa1ed0a145f`)에서 **Shard3의 이웃 #725 재시작 뒤 설비 PATCH가 HTML HTTP404**를 반환하여 저장 대화상자가 닫히지 않았다. Quality/Docker와 E2E 5 shard PASS, Shard3 101PASS/1FAIL/1SKIP, E2E aggregate FAILURE, GHCR 이미지 Job SKIPPED. 이번 실패는 **#731 Main CI 실행에 귀속되는 M-002**이며 #725 과거 원장에는 합산하지 않는다. 정확한 Next dev 내부 원인은 UNKNOWN이다. 기존 원장 F-001~F-004/M-001은 소급 수정하지 않고 아래 §10에 추가한다.
+
 **이 문서 하나가 #731의 canonical 원격 실패 원장이다.** 재실패/재개 시 관련 모든 PR·Run·Attempt·Job·Shard·취소·미실행을 다시 수집하고 다음 F-002+ 절을 누적한다. 과거 실패·기각된 가설·원시 결과는 소급 삭제/성공 변경하지 않는다. [#667 기존 누적 선례](ISSUE_667_FAILURE_ANALYSIS.md)와 현재 이슈 실패를 혼합하지 않는다.
 
 ## 1. 모든 관련 PR/Run/Attempt·원본 결과
@@ -210,3 +212,42 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 5. **수정 검증 상태**: GitHub 연결 Git Data에서 코드의 정확 유일 anchor 치환, 변경 Blob과 원본 엄격 E2E/추가 2개 시나리오·변경 문서/Tree 경계 정적 대조 **PASS(구조에 한정)**. **프로젝트 runtime/Checkout/Node/npm/Chromium/TypeScript 실제 로컬 실행 NOT TESTED**. #3004 Quality/E2E6/Docker SUCCESS는 이전 Head의 결과일 뿐 새 수정 Head 테스트 PASS가 아님.
 6. **리뷰/출처 처리**: 변경 묶음을 하나의 Git commit으로 준비하고 전체 Tree SHA·parent 및 expected Head guard 확인 후 `fix/issue-731-main-focus-3002` 기존 PR #748에 non-force ref 업데이트한다. Codex P1 [4311801144](https://github.com/planner77/masterGantt/pull/748#discussion_r4311801144)에 수정·검증·원장 링크와 미검증을 회신한 뒤 **수정 코드를 실제 게시/확인한 경우만** 스레드를 resolve하고 `unresolved=0`을 읽어 확인한다.
 7. **중단점**: 최신 main/base가 변했는지 재검증하고 GitHub mergeable=true, unresolved0 뒤 `pull_request.synchronize` 새 Full PR CI Run/Attempt·Head/base/test merge 시작 여부만 확인. 완료 모니터링하지 않으며 병합/Main CI/GHCR/Finalizer/정식 v0.123.0 release/Issue close는 수행하지 않는다. `risk_level=HIGH`, `qa_method=OWNER_MANAGED`, `release_required=true`, `release_authorized=false`, `MERGE_READY=BLOCKED` 유지.
+
+## 10. M-002 — 교정 PR #748 병합 뒤 Main CI #3007.1 설비 PATCH 동적 라우트 404 (2026-10-19)
+
+### 10.1 원본 실행/Shard/최초 실패/후속 차단
+
+| 항목 | 불변 증거 |
+| --- | --- |
+| Primary Issue / 연결된 PR | [Issue #731](https://github.com/planner77/masterGantt/issues/731), 최초 PR [#746](https://github.com/planner77/masterGantt/pull/746) merged, Main focus 교정 PR [#748](https://github.com/planner77/masterGantt/pull/748) merged |
+| 최신 PR 성공 | [Full PR CI #3006.1 / run39228359207 attempt1](https://github.com/planner77/masterGantt/actions/runs/39228359207) Head `05ec16852d8940e638f4f5cb754e119ebe1a532a`, Base `fbe7db83a4baa2877a75db0769a59077bbe308c4`, test merge `54ef8603c6db72fd77bf9dff69b275b443029061`, Required Quality/E2E6/Docker 및 [Trusted QA #648.1](https://github.com/planner77/masterGantt/actions/runs/39232336048) SUCCESS. Main 실패를 덮어쓰지 않음 |
+| 해당 Main SHA/source | Merge SHA `a0297cd4b01e0083273ad3444edc7fa1ed0a145f` (parent1 `fbe7db83a4baa2877a75db0769a59077bbe308c4`, parent2 `05ec16852d8940e638f4f5cb754e119ebe1a532a`, git tree `a6e3a249dacb4b653885b6a4cb1d3e3a560b01ee`). [Main CI #3007.1 / run39232888704 attempt1](https://github.com/planner77/masterGantt/actions/runs/39232888704), event `push`, workflow `.github/workflows/ci.yml`, conclusion FAILURE |
+| 독립 성공 | TypeScript `117994951689`, ESLint `117994951568`, Vitest `117994951703`, Next.js Build `117994951547`, 정책 `117994951743`, Required Quality aggregate `117995469385` 모두 SUCCESS. Docker smoke `117994951809`, Required Docker aggregate `117996369906` SUCCESS |
+| E2E 실제 실행 | Shard1 `117994951875`, Shard2 `117994951766`, Shard4 `117994951736`, Shard5 `117994951723`, Shard6 `117994951720`: **SUCCESS**. [Shard3 job117994951768](https://github.com/planner77/masterGantt/actions/runs/39232888704/job/117994951768) step7 **FAILURE**, Playwright **101 PASS / 1 FAIL / 1 SKIPPED**, Main fail-fast=false, CANCELLED 0. Aggregate Chromium E2E `118006666861` FAILURE(파생). |
+| 최초 직접 실패 | `tests/e2e/issue-725-process-workareas.spec.ts:88` case '#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연결·재조회·해제·재시작', line275 `expect(dialog).toHaveCount(0)` Expected0/Actual1 after 5s. [Playwright shard3 report/trace artifact 12179125199](https://github.com/planner77/masterGantt/actions/runs/39232888704/artifacts/12179125199) |
+| 트레이스의 분리된 HTTP 결과 | 재시작 **전** 같은 설비 URL에 대한 실제 browser `PATCH`는 HTTP **200 / application/json**. 재시작 **후** 실제 browser `PATCH`는 HTTP **404 / text/html**, Next 404 페이지. 화면은 '서버 처리 중 오류가 발생했습니다' 상태에서 원본 편집 Dialog를 유지. 업무 `handleUpdateEquipment`가 404 JSON을 반환한 증거는 없음 |
+| 기타 Job/이미지 | Main GHCR 임시 commit 이미지 게시·검증 Job `118006700330` **SKIPPED** (E2E required 실패), PR 전용 metadata/QA placeholder 조건부 SKIPPED. GHCR candidate/tag/digest가 발행됐다고 주장하지 않음 |
+
+### 10.2 전 사건 F-001~F-004 / Main M-001과의 교차 분석
+
+| 과거 사건 | 당시 오류·교정 | M-002의 새 증거/남은 리스크 |
+| --- | --- | --- |
+| F-001 / PR #746 #2997.1 | KPI WorkArea 구성 Task/Assignment 전체 모집단 PRODUCT + P2 unresolved QA. 원본 관계/회귀를 수정하고 resolve | 이번 실패는 #725 설비 PATCH가 handler JSON이 아닌 Next HTML 404인 별도 라우팅/준비 경계; 구성 분모 계산 재발로 단정하지 않음 |
+| F-002 / PR #746 #2998.1 | #726 post-UI `APIRequestContext GET` ECONNRESET, 정확 socket/worker 원인 UNKNOWN. same-origin browser read와 observer로 교정 | 이번 것은 응답 자체가 **HTML HTTP404**, ECONNRESET이 아님. 모두 브라우저/API 경계와 관련 있으므로 별도 INIT_TRANSPORT/초기화·경로 준비 검증 필요 |
+| F-003 / PR #746 #2999.1 | #726 E2E typed `TaskProcessLink[] | null` TS2488, strict null guard로 해결 | Main TypeScript SUCCESS이며 이번 TEST_CONTRACT 오류가 아님 |
+| M-001 / PR #746 Main #3002.1 | KPI→공정/WorkArea 원본 focus visible-but-inactive, Shard6 125PASS/1FAIL, GHCR SKIPPED | #748 React post-commit focus 교정, 이번 Shard6 SUCCESS. M-002는 독립 **서버 재시작 뒤 PATCH route** 경계이며 UI focus 실패가 아님 |
+| F-004 / PR #748 #3004.1 | sibling 사용자 포커스 P1 unresolved review로 QA Final BLOCKED, 제품 guard/2 E2E 음성 회귀 수정 | PR #748 최종 Head의 #3006 E2E6/Trusted PASS; Main #3007에서는 다른 Shard3의 재시작 시나리오에서 새 실제 FAIL. 리뷰를 이번 오류 원인으로 돌리지 않음 |
+| **M-002 / Main #3007.1** | `restartIsolatedApplication()` 다음 동적 `PATCH /api/projects/[publicId]/logistics/equipment/[equipmentId]`가 HTML 404를 반환, Dialog 유지 | 현재 fixture의 `startApplication`은 health200과 기본 GET 경로만 warmup; 동적 PATCH-only route의 준비 여부는 확인하지 않는다. **FIXTURE_OBSERVABILITY/ROUTE_READINESS** 취약점 관측. Next.js dev 라우트 등록/워커 교체 등 **404 정확 내부 근인 UNKNOWN**, DB 데이터 소실/권한/비즈니스 404로 확정하지 않음 |
+
+- **누적 #731 실제 실패 테스트 파일 합집합:** `tests/e2e/issue-726-task-logistics.spec.ts` (F-002 HTTP reset, F-003 동일파일 TS), `tests/e2e/logistics-dashboard-request-state.spec.ts` (M-001 focus), **`tests/e2e/issue-725-process-workareas.spec.ts` (M-002 restart/PATCH 404)**. F-001/#748 F-004는 제품/review·QA Final 게이트로 별도 취급한다.
+- [#725 전용 실패 원장](ISSUE_725_FAILURE_ANALYSIS.md)의 오래된 F-725-001/002/003은 서로 다른 해당 Issue의 PR CI 오류(120px capacity/POST201/original WorkArea owner DOM 순서)다. **이번 이웃 #725 테스트의 #731 Main 실패를 #725 원본 CI 실패로 변경·합산하지 않음**. 다만 전부 교차 회귀 후보에 포함.
+
+### 10.3 보완: 읽기 전용 재시작 readiness + 원래 쓰기 assertion 보존
+
+1. **실제 코드 비교:** `src/app/api/projects/[publicId]/logistics/equipment/[equipmentId]/route.ts`는 `PATCH` / `DELETE`만 export하고 GET 구현은 없다. [Next.js 공식 Route Handler 문서](https://nextjs.org/docs/app/getting-started/route-handlers)는 지원되지 않은 HTTP 메서드에 **405 Method Not Allowed**를 정의한다. 따라서 같은 origin의 실제 동적 URL로 비변경 **GET→405**를 확인하면 route matcher/handler가 준비됐는지 검증할 수 있다. 여기서 GET 404는 ROUTE 미준비 또는 미매칭 가능성이고, GET405만으로 후속 쓰기 성공·정확 Next 내부 근인을 확정하는 것은 아님.
+2. **선택적 fixture 보완:** `tests/e2e/fixtures/isolated-application.ts`의 `restartIsolatedApplication`에 기존 사용자에 영향 없는 선택적 `patchOnlyReadinessPath`를 추가. 특정 형식의 같은 origin 프로젝트 설비 API URL만 허용하고 `restart` 실행 중 같은 `startupMilliseconds=90_000` 예산 안에 GET405가 나타날 때까지 **읽기 전용** 검사. GET404/초기 전송 오류는 서버 초기 준비 기간에 한해 관측하고 100ms 간격의 bounded readiness poll; 다른 HTTP status, 다른 origin/path, child 종료·deadline 초과는 즉시/결국 FAIL로 기록한다. `PATCH` 요청은 **절대 자동 재시도/대체 성공하지 않음**. 기본/타 fixture의 restart 호출은 인자가 없어 이전 초기화 계약 그대로.
+3. **직접 테스트/관측:** `tests/e2e/issue-725-process-workareas.spec.ts`에서 단 한 곳 `restartIsolatedApplication(equipmentPatchPath)`로 경로 준비를 요구. 실제 재시작 후 WorkArea A 해제 저장과 최종 전체 연결 해제의 **두 실제 UI PATCH** 각각 `page.waitForResponse`로 원본 URL/메서드/HTTP200/JSON content-type을 명시 검증하고 요청 상태·Content-Type·x-request-id 존재 유무만 sanitized evidence로 첨부. 기존 Dialog0, 정확 WorkAreaIDs([B]→[]), equipment 한 개·quantity10, Task 원본·Target0·서버 SQLite 재시작·readonly/5폭/권한/중복쓰기 단언을 **변경하거나 완화하지 않는다**.
+4. **원인 구분:** 이것은 제품 E10 다대다 소속 규약을 바꾸는 것이 아니며, 전체 응답을 mock·success로 대체하거나 PATCH retry/CI timeout 증가/skip/allow-404 등 편법을 도입하지 않는다. 라우터가 deadline까지 GET405를 반환하지 않으면 **준비 실패를 명시 실패로 표면화**한다. 실제 후속 PATCH가 404/500이면 정확 status assertion으로 실패를 보존해 지속 원인을 분리 분석한다.
+5. **직접/간접·음성 회귀:** 이번 #725 실제 SQLite·브라우저 restart, #731 KPI focus 원본/2 사용자 override, F-002 #726 Task process-context 이후 GET, #725 WorkArea owner canonical PATCH/P2·Task/Template/Copy, #624/#717 master navigation, #728/#729 WBS/KPI snapshot, stale/401/403/409/412/리소스/설비 다중 구역 수량, 등록-only/Target0 및 필수 Quality·Chromium E2E6·Docker. fixture restart의 기존 인자 없는 사용자는 영향 없는지 실제 검증한다.
+6. **검증·잔여:** 연결 GitHub Git Data로 코드·문서 앵커, 전체 Git Tree/부모/원격 HEAD를 정적으로 검증. 연결 환경에 Node/npm/Chromium/원본 repo checkout이 없어 **동결 후보에 대한 TypeScript/Vitest/Playwright/SQLite 로컬 실실행 NOT TESTED**. 기존 #3006 PR PASS / #3007 Quality/Docker PASS는 다음 PR Head로 이월하지 않으며 새 Full PR CI 검증이 필수.
+7. **다음 작업:** 이미 병합된 #748은 재작성하지 않는다. exact latest `main=a0297cd4b01e0083273ad3444edc7fa1ed0a145f`를 기준으로 별도 **Refs #731** 교정 PR을 만들고 코드/테스트/**같은 단일 #731 실패 원장**·TEST_PLAN·Work Packet을 한 Git commit/fast-forward branch로 게시한다. 리뷰 thread0·충돌0·새 Full PR Run/Attempt/HEAD/base/test-merge 시작까지만 확인하고 CI 완료는 모니터링하지 않는다. OWNER_MANAGED/HIGH, `release_required=true`/`release_authorized=false` 유지, Main/GHCR/Finalizer/정식 `v0.123.0`/Issue close는 이번 새 PR CI 요청 범위 밖.
