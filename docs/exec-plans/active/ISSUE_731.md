@@ -1,6 +1,15 @@
 # Issue #731 — 기존 KPI 보존과 통합 작업 원장 연결
 
-## Issue Work Packet
+## 현재 재개 — Main #3011.1 / M-003 (2026-10-19)
+
+- 현재 baseline: `0aa1d3d71f13df6976539ef4ebaaadb9037121c4`, branch: `fix/issue-731-main-ci-cumulative`, application version: `0.123.0` 불변. 아래 최초 구현/과거 재개의 SHA·로컬/원격 상태는 당시 기록이며 새 Head의 증거가 아니다.
+- [단일 누적 실패 원장 §11](../../ISSUE_731_FAILURE_ANALYSIS.md#11-m-003--pr-749-병합-main-30111의-시간-예산저장-후-조회-실패)에 관련 PR #746/#748/#749와 source CI10개·각 attempt1 전체를 교차 분석한다. 공유 분석과 실제 Run/Trace를 대조했으며, 최신 Docker aggregate SUCCESS는 구현 SKIPPED이므로 runtime smoke PASS로 보고하지 않는다.
+- 이번 변경은 E2E 두 파일의 테스트 구성·응답 수명·저장 후 HTTP 조회/관측 보완이다. #623 golden/Excel과 여섯 mutation을 각각 독립 fixture의60초 case로 나누고 workbook bytes를 한 번 읽는다. 기존 다섯 폭은 폭별 독립30초 case에 tree→matrix 두 모드와 원본/keyboard/query0를 유지한다. Task Editor 후행 canonical GET6곳은 실제 same-origin browser/no-store·observer를 재사용하며 setup GET3곳은 유지한다. 제품·API·DB·CI/QA 정책·version 변경은 없다.
+- 실제 역할: `731_ci_audit` infra 읽기 전용 전체 원격 이력 조사, `731_excel_budget` frontend #623 spec, `731_editor_transport` frontend persistence spec, `731_rework_qa` qa_docs 독립 읽기 전용 사전 검토, Manager 통합·문서·검증·GitHub 게시. 코드 소유권은 분리하고 Sub-Agent는 원격 댓글을 쓰지 않는다.
+- 누적 실패 파일5개 전체를 동일 source에서 workers1/retries0/max-failures0으로 실행하고, 과거 실패 경계의 별도 새 프로세스 실행과 helper·원본 구성 음성 회귀를 구분한다. 최초 로컬 실패/정적 오류도 원장에 누적한다. 한 로컬 host의 PASS는 GitHub 독립 runner·연속 Main 안정성·Required3 PASS가 아니다.
+- 위험/종료: HIGH / OWNER_MANAGED / qa_required=true / manager_decision=NOT TESTED / release_required=true / release_authorized=false. 리뷰·충돌0 및 새 Full PR CI 시작까지만 확인하고 CI 완료 모니터링·병합·Main/GHCR·Finalizer·Release/tag·Issue 종료는 수행하지 않는다.
+
+## Issue Work Packet (최초 구현 당시)
 
 - Issue: [#731](https://github.com/planner77/masterGantt/issues/731), 상위 #723, 선행 #724/#728/#729.
 - baseline_sha: `01fdc08bf4b2f69f9797a8bd411d6712e7478c09` (main).
@@ -67,34 +76,35 @@
 
 ## DOCUMENTATION_SYNC
 
-작성자 Manager. 관련 계약·구현 대조 및 Markdown 링크 검증을 수행하고 원격 QA/Owner 승인과 구분한다.
+현재 M-003 수정 묶음의 영향 기록이다. 최초 구현의 제품 계약 갱신은 기존 main에 포함되어 있으며 이번 E2E 전송/시간 예산 보완으로 다시 변경하지 않는다. Manager가 코드·문서 대조, 링크와 docs_gate 구조 검증을 수행하며 의미 검토/원격 Trusted/Owner 승인과 구분한다.
 
-- `docs/LOGISTICS_DASHBOARD.md`: UPDATED
-- `docs/WBS_TASK_LEDGER.md`: UPDATED
-- `docs/RESOURCE_KPI_DASHBOARD.md`: UPDATED
-- `docs/PROJECT_UX.md`: UPDATED
-- `docs/TARGET_RESOURCE_USER_GUIDE.md`: UPDATED
+- `docs/ISSUE_731_FAILURE_ANALYSIS.md`: UPDATED
 - `docs/TEST_PLAN.md`: UPDATED
-- `docs/API.md`: UPDATED
-- `docs/ARCHITECTURE.md`: UPDATED
-- `docs/SECURITY.md`: UPDATED
-- `docs/UI_UX_GUIDELINES.md`: UPDATED
 - `CHANGELOG.md`: UPDATED
 - `docs/exec-plans/active/PLAN.md`: UPDATED
 - `docs/exec-plans/active/ISSUE_731.md`: UPDATED
-- `DESIGN.md`: N/A(기존 Light UI·이름 우선·native disclosure·내부 scroll 원칙 구체화이며 새 전역 정책 없음)
-- `AGENTS.md`: N/A(기존 역할·OWNER_MANAGED·CI 시작 종료 경계 준수이며 실행 지침 자체 변경 없음)
-- `docs/QA_REVIEW_POLICY.md`: N/A(기존 HIGH·OWNER_MANAGED·Trusted QA·Owner 최종 승인 경계를 유지)
-- `docs/ISSUE_LIFECYCLE.md`: N/A(기존 PR CI 시작 단계까지만 수행하며 lifecycle 계약 불변)
-- `docs/DB_SCHEMA.md`: N/A(기존 관계를 한 read transaction으로 조회하며 저장 schema·migration 불변)
-- `docs/SCHEDULING_ENGINE.md`: N/A(기존 Calendar·공수·full Milestone Gate authority 재사용; 테스트 mock warmup만 갱신)
-- `docs/IMPORT_EXPORT.md`: N/A(기존 Import·Export·Copy·Template writer와 교환 계약 불변)
-- `docs/IMPORT_SCHEMA.md`: N/A(새 KPI는 read consumer이고 import schema·parser·저장 계약 불변)
-- `docs/EXCEL_EXPORT.md`: N/A(기존 Excel writer·source/기간/current/project 범위 불변)
-- `docs/REQUIREMENTS.md`: N/A(기존 WBS 중심 요구의 KPI 소비 구현이며 신규 도메인/전역 정책 없음)
-- `docs/CI_CD.md`: N/A(Required Quality/E2E6/Docker·workflow·Main/GHCR·release 계약 불변)
-- `docs/REMOTE_VALIDATION.md`: N/A(기존 원격 gate와 환경별 증거 규약 유지; 완료 모니터링은 요청 범위 밖)
-- `docs/GITHUB_OPERATIONS.md`: N/A(기존 canonical Refs·branch/title trace·묶음 게시·승인 경계 유지)
+- `docs/LOGISTICS_DASHBOARD.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/WBS_TASK_LEDGER.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/RESOURCE_KPI_DASHBOARD.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/PROJECT_UX.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/TARGET_RESOURCE_USER_GUIDE.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/API.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/ARCHITECTURE.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/SECURITY.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/UI_UX_GUIDELINES.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `DESIGN.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `AGENTS.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/QA_REVIEW_POLICY.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/ISSUE_LIFECYCLE.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/DB_SCHEMA.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/SCHEDULING_ENGINE.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/IMPORT_EXPORT.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/IMPORT_SCHEMA.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/EXCEL_EXPORT.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/REQUIREMENTS.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/CI_CD.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/REMOTE_VALIDATION.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
+- `docs/GITHUB_OPERATIONS.md`: N/A(E2E 구성·응답 수명·저장 후 조회 관측만 보완하며 제품·공개 계약·정책·버전 변경 없음)
 
 ## 누적 실행·실패 원장
 
@@ -193,3 +203,15 @@
 - **보완 범위:** 외부 운영 제품 `src/` 코드/DB/React/SVAR/권한/WorkArea 관계·정식 version0.123.0/CI workflow 변경0. `tests/e2e/fixtures/isolated-application.ts`의 restart는 선택적 정확 Project equipment API route 옵션을 받아 원래 동일 startup 90초 안의 **read-only GET 405**(PATCH/DELETE-only route Next 계약)로 동적 라우트 준비를 감시하고, 404/초기 연결 error만 그 setup budget 안에서 관측. 다른 지위/외부 URL/프로세스 종료/준비 실패는 FAIL. 의도된 한 번뿐인 실제 PATCH 재시도·응답 성공 가장 금지.
 - **수정/회귀:** `tests/e2e/issue-725-process-workareas.spec.ts`의 재시작에서만 선택적 경로 준비 활성화. 실제 browser PATCH 후행 두 건은 정확 HTTP200/JSON·위험하지 않은 status/Content-Type/request-id 존재만 기록하고, 원래 Dialog close·WorkArea B/0·quantity10·Gantt/Task·Target0·409/412/5폭·재시작 persistence 모두 그대로. 기존 비옵션 재시작 consumer는 영향 없음. `docs/TEST_PLAN.md`, 이번 Work Packet, `docs/ISSUE_731_FAILURE_ANALYSIS.md` 동기화 및 CHANGELOG 테스트 경계 보완. API/DB_SCHEMA/ARCHITECTURE/SECURITY/DESIGN/매뉴얼은 제품 계약·화면 신규 변경 없음으로 N/A(reason).
 - **검증 및 다음 단계:** GitHub Git Data blob/전체 Tree/commit parent/strict 최신 main·review0/mergeable 검증 뒤 정확 #731 **신규 correction PR**; PR Full Quality/E2E6/Docker/Trusted QA와 HIGH Owner 승인/정식 version release 승인 분리. 연결 환경에 checked-out repo/npm/Chromium이 없어 실제 로컬 typed compiler·server SQLite/E2E NOT TESTED. 요청 종료점은 **새 Full PR CI 시작**이며 완료 모니터링/병합/Main/GHCR/Finalizer/Issue close 수행하지 않음. `release_authorized=false` 유지.
+
+## M-003 현재 로컬 검증 인계
+
+- source: [정제한 M-003 실행 영수증](../../evidence/issue-731/m003-local-validation.json). #6237case + 기존4실패파일36case의 합집합43/43 PASS,0FAIL/skip/flaky,751,450.72ms. 초기39case의38PASS/1geometryFAIL·TS2532·중단된 초기fast를 삭제하지 않고 같은 원장에 보존한다.
+- Pre-PR fast 실제10단계 PASS(전체 Unit3,048PASS/3SKIP, lint0error/기존13warning, TypeScript·production/standalone/runtime-tools build 포함). helper·구성/legacy KPI·WBS 직접/음성6suite72PASS는 전체 Unit에 포함되므로 합산하지 않는다.
+- fast/targeted의 종합은 생성nextenv/tsconfig·E2E출력의 fingerprint drift 때문에 BLOCKED다(UNKNOWN0/missing0). raw 보고서 판정을 유지하며 생성변경 복원/functional9파일 SHA256 불변을 별도 확인한다. 도구 guard를 바꾸거나 이전Head/원격PASS를 이월하지 않는다.
+- #623 body예산80% 경고5건, 남은 최소3,238ms를 [실패 원장 §11.7](../../ISSUE_731_FAILURE_ANALYSIS.md#117-최종-동결-source의-로컬-실제-결과)에 수치로 기록했다. timing은 안정성 gate가 아니며 새 PR/독립Runner/Main·Trusted/Owner승인 NOT TESTED다.
+- 새 프로세스에서 과거 실패 경계7case와 인접 Editor 오류/readonly6case 총13실행을 별도로 수행한다. 반복7case를 고유 수에 중복 합산하지 않는다. 최종 결과는 실행 후 아래에 추가한다.
+
+- 별도 fresh13/13 PASS(과거 경계7반복+새 인접 오류/readonly6),0FAIL/skip/flaky/retries0. 누적43+새6의 고유 Chromium49case이며 반복 실행을 합산하지 않는다. 최종 raw JSON·phase timing/명령은 위 정제 영수증에 포함한다. 같은 host이므로 독립Runner 연속 안정성은 NOT TESTED다.
+- 생성nextenv/tsconfig·역사적output 복원 후 해당diff0 및functional9hash일치를 확인한다. 독립 `731_rework_qa`의 실제 source/43raw/문서 검토상 P1/P2 잔여0이며 최종13결과·복원 증거를 인계한다. 이는 PRE_QA 범위이고 Owner-managed 독립QA는 N/A, 원격Required3/Trusted·Manager/Owner ACCEPT는 NOT TESTED다.
+- Git CLI write인증 대신 허용된 Git Data API의 blob→전체tree/parent검증→새branch Ref1회 게시를 사용한다. canonical Refs731 새PR와 exactHead/base/testmerge·리뷰0/충돌0·FullCI Run/Attempt 시작은 Issue/PR STATUS 댓글에 연결한다. main/GHCR/Finalizer/Release/tag/Issue종료는 미실행이다.

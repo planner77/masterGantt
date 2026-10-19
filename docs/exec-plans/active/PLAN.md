@@ -1,3 +1,7 @@
+## Issue #731 — Main #3011.1 후속 누적 교정 (2026-10-19)
+
+최신 main `0aa1d3d71f13df6976539ef4ebaaadb9037121c4` /0.123.0에서 `fix/issue-731-main-ci-cumulative`로 재개한다. #62360초 통합 예산과 Task Editor 저장 후 GET reset을 보완하고 과거 실패 파일5개 합집합·음성/인접 회귀를 동일 source에서 검증한다. [단일 실패 원장](../../ISSUE_731_FAILURE_ANALYSIS.md)과 [현재 Work Packet](ISSUE_731.md)을 갱신한다. 제품/버전/CI 정책 변경0, HIGH/OWNER_MANAGED/release_required=true/release_authorized=false. 리뷰/충돌 확인 후 새 PR Full CI 시작까지만 수행하며 완료 모니터링·병합·릴리스는 범위 밖이다. 아래 최초 구현/과거 재개 상태는 당시 기록이다.
+
 ## Issue #751 — isolated fixture performance telemetry (2026-10-19)
 
 - Primary #751, PR #754: fixed Issue title/QA metadata mismatch from [F-001](../../ISSUE_751_FAILURE_ANALYSIS.md) and preserved original failed Run #3014.1.

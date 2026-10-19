@@ -1,6 +1,30 @@
-# Issue #731 / PR #746 — 누적 PR CI 실패 분석
+# Issue #731 — 누적 PR/Main CI 실패 분석
 
 Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR: [#746](https://github.com/planner77/masterGantt/pull/746) · 첫 원격 실패: 2026-10-19 KST · 기준: [PR CI 실패 누적 지침](PR_CI_FAILURE_TRIAGE.md)
+
+## 현재 재개 요약 — M-003 / Main #3011.1 (2026-10-19)
+
+이하 기존 F-001~F-004/M-001~M-002의 당시 조회·OPEN·NOT TESTED 문구는 **역사 기록**이다. 현재 관련 PR #746/#748/#749는 모두 merged이고 최신 main은 `0aa1d3d71f13df6976539ef4ebaaadb9037121c4`다. 재개 시 원장 전체와 실제 GitHub Run·Attempt·6 Shard·리뷰 및 [사용자가 제공한 종합 분석](https://chatgpt.com/s/t_6ad60541d474819188b35458bca00f41)을 대조했다. 공유 분석은 진단 입력이고 실제 Run/Trace로 교차 확인한 사실과 가설을 구별한다.
+
+**이번 직접 실패는 2건**: M-003-A는 #623 통합 시나리오60초 종료와 후행 disposed 응답, M-003-B는 Task Editor UI 저장 후 독립 APIRequestContext canonical GET의 ECONNRESET이다. 아래 §11에 추가하며, 기존 #725 restart/PATCH와 KPI focus는 이번 Main에서 PASS한 각각의 실제 케이스로만 기록한다. 다른 Issue #730의 CI #3001/#3003/#3005/#3008/#3009/#3012를 #731 실패에 합산하지 않는다.
+
+### 현재 확인한 전체 source CI 목록
+
+| 범위 | Run URL / Attempt | 원본 결과와 의미 |
+| --- | --- | --- |
+| PR #746 | [#2997 /39206611413](https://github.com/planner77/masterGantt/actions/runs/39206611413) /1 | Required3 SUCCESS, QA Final unresolved P2 FAILURE(F-001) |
+| PR #746 | [#2998 /39211001676](https://github.com/planner77/masterGantt/actions/runs/39211001676) /1 | #726 GET reset·Shard4 FAILURE, 다른5 CANCELLED(F-002) |
+| PR #746 | [#2999 /39212770619](https://github.com/planner77/masterGantt/actions/runs/39212770619) /1 | TypeScript TS2488·Fast Gate 실패, E2E/Build/Docker 실제 미실행(F-003) |
+| PR #746 | [#3000 /39213900305](https://github.com/planner77/masterGantt/actions/runs/39213900305) /1 | Full CI SUCCESS; 다른 Head의 신규 검증을 대체하지 않음 |
+| Main /PR #746 | [#3002 /39218195042](https://github.com/planner77/masterGantt/actions/runs/39218195042) /1 | KPI 정확 공정 행 focus FAIL(M-001); GHCR SKIPPED |
+| PR #748 | [#3004 /39223658039](https://github.com/planner77/masterGantt/actions/runs/39223658039) /1 | Required3 SUCCESS, unresolved P1 QA Final FAILURE(F-004) |
+| PR #748 | [#3006 /39228359207](https://github.com/planner77/masterGantt/actions/runs/39228359207) /1 | Full CI SUCCESS |
+| Main /PR #748 | [#3007 /39232888704](https://github.com/planner77/masterGantt/actions/runs/39232888704) /1 | #725 restart 뒤 PATCH HTML404(M-002); GHCR SKIPPED |
+| PR #749 | [#3010 /39239166160](https://github.com/planner77/masterGantt/actions/runs/39239166160) /1 | Quality/E2E6·QA SUCCESS; Docker aggregate SUCCESS, implementation SKIPPED |
+| Main /PR #749 | [#3011 /39243175274](https://github.com/planner77/masterGantt/actions/runs/39243175274) /1 | E2E3/4 두 직접 실패(M-003-A/B); Quality/Docker aggregate SUCCESS, Docker implementation 및 GHCR SKIPPED |
+
+총 source CI10건(PR7/Main3), 전부 attempt1. 인증된 run 목록100개 안에 #2997까지 포함됨을 확인했고 #731 source metadata-only 추가 실행은 발견하지 않았다. 별도 Trusted/metadata 감사는 source CI와 섞지 않는다. **#3010/#3011의 Docker는 `REQUIRED=false`, `RESULT=skipped`로 aggregate가 성공한 것이며 runtime smoke 실실행 PASS가 아니다.** 과거 본문·공유 분석의 'Docker PASS'는 이 범위로 읽는다.
+
 
 > **최신 F-002 (2026-10-19 KST):** [Full PR CI #2998.1](https://github.com/planner77/masterGantt/actions/runs/39211001676)은 최초 F-001 리뷰 해결 후 재실행되었지만, Shard4의 #726 공정 문맥 원본 GET에서 ECONNRESET로 실제 E2E FAIL을 기록했다. Required Quality/Docker SUCCESS·E2E FAILURE·QA Final 파생 FAILURE다. 아래 §6 F-002와 교차 원장에 추가하며 기존 §1의 '1개 Run'은 F-001 작성 시점의 역사 기록이다. **접근 가능한 #731 Full Run 2건: #2997.1, #2998.1.** 그 외 metadata-only 및 새 Head CI는 독립 확인 전 별도다. 현재 transport 결함의 정확한 근인은 UNKNOWN이다.
 
@@ -251,3 +275,83 @@ Primary Issue: [#731](https://github.com/planner77/masterGantt/issues/731) · PR
 5. **직접/간접·음성 회귀:** 이번 #725 실제 SQLite·브라우저 restart, #731 KPI focus 원본/2 사용자 override, F-002 #726 Task process-context 이후 GET, #725 WorkArea owner canonical PATCH/P2·Task/Template/Copy, #624/#717 master navigation, #728/#729 WBS/KPI snapshot, stale/401/403/409/412/리소스/설비 다중 구역 수량, 등록-only/Target0 및 필수 Quality·Chromium E2E6·Docker. fixture restart의 기존 인자 없는 사용자는 영향 없는지 실제 검증한다.
 6. **검증·잔여:** 연결 GitHub Git Data로 코드·문서 앵커, 전체 Git Tree/부모/원격 HEAD를 정적으로 검증. 연결 환경에 Node/npm/Chromium/원본 repo checkout이 없어 **동결 후보에 대한 TypeScript/Vitest/Playwright/SQLite 로컬 실실행 NOT TESTED**. 기존 #3006 PR PASS / #3007 Quality/Docker PASS는 다음 PR Head로 이월하지 않으며 새 Full PR CI 검증이 필수.
 7. **다음 작업:** 이미 병합된 #748은 재작성하지 않는다. exact latest `main=a0297cd4b01e0083273ad3444edc7fa1ed0a145f`를 기준으로 별도 **Refs #731** 교정 PR을 만들고 코드/테스트/**같은 단일 #731 실패 원장**·TEST_PLAN·Work Packet을 한 Git commit/fast-forward branch로 게시한다. 리뷰 thread0·충돌0·새 Full PR Run/Attempt/HEAD/base/test-merge 시작까지만 확인하고 CI 완료는 모니터링하지 않는다. OWNER_MANAGED/HIGH, `release_required=true`/`release_authorized=false` 유지, Main/GHCR/Finalizer/정식 `v0.123.0`/Issue close는 이번 새 PR CI 요청 범위 밖.
+
+
+## 11. M-003 — PR #749 병합 Main #3011.1의 시간 예산·저장 후 조회 실패
+
+### 11.1 원본 SHA·실제 두 실패·성공/미실행 구분
+
+- Run: [Main #3011.1 /39243175274](https://github.com/planner77/masterGantt/actions/runs/39243175274), attempt1, event=push, workflow `.github/workflows/ci.yml`, conclusion=FAILURE.
+- Main SHA `0aa1d3d71f13df6976539ef4ebaaadb9037121c4`, parent1/base `a0297cd4b01e0083273ad3444edc7fa1ed0a145f`, parent2/PR #749 Head `bd8b4cbfc5463681fe776e2e925c9d168385e09a`; immutable PR test-merge `e5d95082f90bddd50c3bb46aff0ab30b9c58aff8`, 동일 Tree `99a73f121cdfb9739171dbc18991f1b54c40ba0e`. 코드 차이로 이번 Main 실패를 설명할 증거는 없다.
+- Required Quality aggregate `118029291432` SUCCESS. Docker aggregate `118029249110` SUCCESS는 path policy의 `REQUIRED=false/RESULT=skipped`; Docker 구현은 SKIPPED이므로 실행 PASS를 주장하지 않는다. E2E aggregate `118039660913` FAILURE는 아래 실제 두 실패에 따른 파생 결과. Main GHCR Job `118039691936` SKIPPED.
+- Shard3 [Job118028733073](https://github.com/planner77/masterGantt/actions/runs/39243175274/job/118028733073) step7:101 PASS/1 FAIL/1 SKIP. Shard4 [Job118028732994](https://github.com/planner77/masterGantt/actions/runs/39243175274/job/118028732994) step7:161 PASS/1 FAIL/1 SKIP. 나머지 Shard1 `118028732884`135 PASS, Shard2 `118028733148`129 PASS/1 SKIP, Shard5 `118028733159`84 PASS, Shard6 `118028733095`128 PASS 모두 SUCCESS. 합계738 PASS/2 FAIL/3 SKIP, CANCELLED0. 기존 skip를 새 성공으로 계산하지 않는다.
+- 원본 artifact: [Shard3 12183612240](https://github.com/planner77/masterGantt/actions/runs/39243175274/artifacts/12183612240), [Shard4 12182763366](https://github.com/planner77/masterGantt/actions/runs/39243175274/artifacts/12182763366). raw trace·로그의 cookie/session/환경은 Git에 넣지 않고 정제한 수치/출처만 기록한다.
+
+### 11.2 M-003-A — #623 시간 예산 및 응답 수명
+
+- 파일 `tests/e2e/issue-623-resource-mvp.spec.ts`, 기존 case '#623 실제 통합 구성·F0 원시5M/D·여섯 별도 mutation·양방향 동일원본 복귀', test limit60,000ms.
+- 사실: 과거 같은 통합 case의 #3000 57.8s, #3002 55.3s, #3006 56.9s, #3007 49.0s, #3010 58.9s, 이번 #3011 60초 초과. 직전 PR PASS가 충분한 시간 여유를 증명하지 않았다.
+- Trace: body 시작 기준 +59,857ms에 line190 일정 tab click, +59,960ms에 AfterHooks, +60,758ms 뒤 후행 단언/line201 `workbookResponse.body()`의 `Response has been disposed`. 최초 Excel 검증은 line112에서 body를 이미 읽었다. **반복 body 읽기가 최초 지연 또는 제품 Excel 실패의 직접 원인이라는 주장은 기각**한다. 제한시간 종료와 응답 폐기의 순서를 보존한다.
+- 원인 경계: fixture·API oracle·UI/OOXML·여섯 mutation·최종 복귀를 한 테스트60초에 결합한 **TEST_CONTRACT(시간 예산 결합)** 취약점과 폐기된 Response 후행 사용의 **TEST_CONTRACT**다. 서버/DB 기능 결함이나 특정 HTTP가 느렸다는 인과는 별도 계측 전 UNKNOWN이다. child alive, Health200, cgroup oom/oomKill0 관측은 OOM·프로세스 종료 확정 근거가 없음을 뜻한다.
+- 보완: 조회/기간·M/D/M/M·OOXML golden과 여섯 mutation/양방향 동일원본을 각각 **독립 fixture**의60초 case로 분리한다. 기존5폭 geometry는 아래 로컬 진단에서 추가 예산 취약점이 확인되어 폭별 독립30초 case로 분리한다. 처음 받은 Excel body를 Buffer 한 번으로 확보하여 parsing/bytes evidence에 재사용한다. setup/seed/API/UI/Excel·개별 mutation·복귀/teardown phase 시간을 실패 시에도 attachment에 남긴다. 경고는 진단이며 assertion·timeout·retry/skip 대체가 아니다.
+- 보존: 각 fixture 내부의 원시 Task/개인 Assignment/Target/MCS UUID·5M/D/0.25M/M·OOXML Y/Z·snapshot불변, 여섯 정확 method/body/revision+1·같은 Gantt Core·복귀·10조합/5폭/keyboard/query0를 유지한다. **Golden과 mutation case의 UUID는 독립**이므로 동일 Project에서 수행됐다고 보고하지 않는다. 실제 후행 배정/Target 원본 GET2곳도 같은 origin browser fetch/no-store·observer·HTTP200/JSON으로 묶고 재시도하지 않는다.
+
+### 11.3 M-003-B — Summary 저장 뒤 canonical GET ECONNRESET
+
+- 파일 `tests/e2e/project-task-editor-persistence.spec.ts:110`, case 'Summary Description and URL persist while derived schedule stays readonly', 원본 line162 `page.request.get(api)`에서 HTTP 응답 전 `ECONNRESET`.
+- UI 저장 이후의 별도 APIRequestContext canonical GET이라는 전송 종류는 F-002/#667 선례와 같지만, 호출 위치가 다른 신규 실패다. same-origin browser fetch/no-store helper·`observeIsolatedApi`로 후행6개 조회를 정합화한다. setup의3개 seed GET과 독립 API 쓰기는 유지한다.
+- HTTP200·유효 JSON·원시 Task/description/URL·삭제·스케줄·readonly·mutation count·같은 인스턴스 단언을 유지하며 Summary 저장/삭제 revision+1/+2도 검증한다. helper/production/API/DB·CI 설정은 변경하지 않는다. 정확 socket reuse/Next worker 내부 근인은 **UNKNOWN**이며 단순 미재현 PASS를 근인 해결로 확대하지 않는다.
+- 실패 후 직접 진단은 child alive/exitCode·signal null, Health200(Shard3 21ms /Shard4 14ms), baseline/failure cgroup oom0·oomKill0. OOM·DB 손상·프로세스 강제 종료를 확정하지 않는다. browser 경로가 fault route를 우회하거나 자동 성공/재시도로 바뀌지 않는지 음성 검증한다.
+
+### 11.4 전 이력 교차 매트릭스·실패 합집합
+
+| 사건 | 당시 교정 | 최신 Main #3011의 사실·이번 검증 범위 |
+| --- | --- | --- |
+| F-001 구성 WorkArea/P2 | 전체 canonical Task/Assignment 원본 | Unit·#731 exact source 회귀, 새 필터로 구성 관계를 축소하지 않음 |
+| F-002 #726 GET reset | browser no-store·observer | 다른 Task Editor callsite에서 같은 전송형식 M-003-B. 선례를 공통 후행 경계로 재사용하되 정확 내부 근인 UNKNOWN |
+| F-003 #726 TS2488 | nullable guard | TypeScript 통과 여부 재검증; legacy null/명시0 의미와 정확 관계 단언 보존 |
+| M-001 정확 master focus | post-commit bounded focus | 해당 KPI/WorkArea 원본 왕복과 focus 안정성을 전체 spec에서 다시 실행 |
+| F-004 새 사용자 focus/P1 | 외부 가시 초점 우선 | 검색/복귀 버튼·후속 입력 초점 탈취 음성2개를 포함 |
+| M-002 #725 restart PATCH404 | read-only GET405 준비·실제 PATCH200/JSON | 최신 Main의 원래 restart case49.7s PASS, owner case16.6s PASS. 이 사실은 Next 내부404 근인 해결 증명이 아님; 이번에도 두 원본 case 재실행 |
+| M-003-A #623 budget | coherent scenario 분리·bytes1회·phase 관측 | 원래 모든 원장/수치/여섯 mutation·5폭 검증을 보존하고 동일 source에서 시간 여유를 측정 |
+| M-003-B editor reset | 후행6 GET browser authority·observer | seed3GET/독립 API 권한 유지, actual HTTP/SQLite와 helper 오류·외부 경로 음성 검증 |
+
+**실제 실패 테스트 파일의 논리적 합집합은5개**: `issue-726-task-logistics.spec.ts`, `logistics-dashboard-request-state.spec.ts`, `issue-725-process-workareas.spec.ts`, `issue-623-resource-mvp.spec.ts`, `project-task-editor-persistence.spec.ts`. 정책 QA 실패와 TypeScript 같은 파일 중복, 다른 Issue의 별도 실패를 이 합집합 케이스 수로 중복 계산하지 않는다. 신규 source 동결 후 전체5파일을 workers1/retries0/max-failures0으로 한번 실행하고, 시간/전송·재시작·focus의 한정된 과거 실패 case만 별도 새 격리 실행으로 반복한다. 독립 GitHub runner가 아닌 동일 로컬 host라는 한계를 명시한다.
+
+### 11.5 동결 검증·문서·리뷰/충돌 및 새 PR CI
+
+현재 baseline0aa1d3d7, branch `fix/issue-731-main-ci-cumulative`, version0.123.0 유지. 실제 결과·source SHA256·최초 로컬 실패/재시도·미검증을 실행 후 이 절에 누적한다. 런타임/Unit/Chromium 실행 전에는 NOT TESTED이며 다른 Head의 이전 PASS를 가져오지 않는다. source 변경 시 해당 source의 검증을 재수행한다.
+
+원장·Work Packet·TEST_PLAN·CHANGELOG·active PLAN을 동기화한다. 기존 Product/API/DB/일정/Gate·전역 DESIGN/보안·CI/릴리스 정책은 변경하지 않고 파일별 N/A 근거를 Work Packet에 유지한다. 과거 review #746 P2/#748 P1은 이미 resolved, #749 thread0이고 #731 열린 교정 PR은 없는 것으로 조회했다. 게시 직전 main/branch·새 PR 미해결 리뷰/mergeability를 다시 읽어 충돌/리뷰를 처리한 뒤 **새 Full PR CI 시작만 확인**한다. 완료 모니터링·병합·Main/GHCR·Finalizer·정식 Release·Issue 종료는 범위 밖이다. HIGH/OWNER_MANAGED, release_required=true/release_authorized=false, 새 Required/Trusted/Owner ACCEPT는 NOT TESTED다.
+
+### 11.6 이번 로컬 최초 진단 실패와 후속 보완
+
+- 최초 후보의 TypeScript 실행은 `issue-623-resource-mvp.spec.ts:269 TS2532 Object is possibly undefined`로 FAIL했다. 정확 DTO를 도입한 뒤 `bindings.find(...)`의 부재 guard가 빠진 TEST_CONTRACT이며 과거 F-003과 같은 누락 유형이다. DTO·기대 UUID를 완화하지 않고 명시 runtime guard로 좁힌다. 원격 #3011의 실패 원인으로 소급 합산하지 않는다.
+- 첫5파일39case 진단은 retries0/max-failures0으로 완주해 **38 PASS/1 FAIL/0 SKIP/0 flaky**,586,621ms(9.8분)였다. #623 golden27.2s·여섯 mutation44.6s PASS였으나 기존 단일 geometry30초 case에서 실제31.0s FAIL을 기록했다. phase attachment는 seed17,595ms/UI13,307ms, budgetWarning=true였다. Trace에서390/768/1024/1440의 tree/matrix8조합은 통과했고1920 tree의 scroll poll은 진입 약1.5ms 만에 전체deadline으로 중단됐다. scrollLeft 값 불일치나 제품 overflow 결함을 직접 관측한 실패로 해석하지 않는다.
+- geometry 보완은390/768/1024/1440/1920 **각각 독립 fixture/30초 case**다. default1440에서 snapshot/instance 캡처 후 해당 폭으로 resize하고 tree→matrix 두 모드를 연속 검사한다. 정확 alignment/cell/button bounds·390 keyboard scroll/나머지 focus·write0/canonical 동등/Gantt instance 계약을 유지하며 총10조합이다. 폭별 Project UUID와 evidence JSON/attachment를 분리한다. 전체 또는 case timeout 증가·실패 retry·skip은 없다. 다른 폭을 같은 Project에서 연속 검사했다고 보고하지 않는다.
+- 단계 시간은 진단용이다. body80% 경고는 runner 성능 보장/독립 CI 안정성 gate가 아니며 격리 서버 fixture 자체의 별도120초 제한과 body 밖 page/context 비용을 같은 예산으로 오인하지 않는다. 본문 실패 시 finishBody 이전 teardown 일부가 body 관측에 포함될 수 있다. 원시 trace/secret-bearing 환경 로그는 커밋하지 않는다.
+
+- 초기 Pre-PR fast는 source 동결 전에 시작되어 담당자 수정과 겹칠 수 있어 Manager가 해당 로컬 실행만 SIGINT 중단했다. 보고서는 BLOCKED/Interrupted·sourceStable=false이며 최종 검증으로 사용하지 않는다. source 동결 뒤 새 실행으로 대체하고 이 중단을 원격 CI FAIL/취소나 최종 PASS로 계산하지 않는다.
+
+### 11.7 최종 동결 source의 로컬 실제 결과
+
+- 정제한 [실행 영수증·파일별 SHA256](evidence/issue-731/m003-local-validation.json)에 명령·원래 실패·각 case/phase·Pre-PR 판정을 보존한다. 두 변경 spec은 각각 #623 `157f489ebd31cd9e115eefdfa042985a6f40e7f2c9685f9b54e30d25cdc564d1`, persistence `3e266129bf0652a1ac9a191581d01398fbecf180148e058bd58a9a05141db510`다. 원래39case source와 최종43case source를 구별한다.
+- 최종 누적5파일: **43/43 PASS,0 FAIL/0 SKIP/0 flaky/retries0**,751,450.72ms(12.5분). 실제 `verify:prepr --mode=targeted`에5파일을 명시 include하고 workers1/retries0, 실제 Playwright config maxFailures0으로 완주했다. 기존 reporter에 JSON reporter만 추가했으며 실패 조기중단/CI 설정/timeout을 변경하지 않았다. mock-backed KPI와 실제 SQLite/Next/browser 검사를 단일 host에서 수행한 증거로만 사용한다.
+- 최종 Pre-PR fast의10단계(version/discovery/Markdown/cache/QA fixture/dependencies/TypeScript/ESLint/Unit/production build)는 모두 PASS. 전체 Unit244파일3,048 PASS 및 기존1파일3 SKIP, lint0error/기존13warning. 별도 직접·음성6suite72 PASS는 전체 Unit에 포함되므로 합산하지 않는다. build는 실제 Next/standalone/runtime-tools까지 실행했다.
+- **Pre-PR 종합 fast/targeted는 모두 BLOCKED**다. 자동 매핑 UNKNOWN0/missing0이며, 실제 source fingerprint guard가 Next의 `next-env.d.ts`/`tsconfig.json` 생성 변경과 E2E `output/playwright/**` 출력 변화를 감지해 `STALE`을 반환했다. 이를 PASS로 바꾸거나 도구/정책을 완화하지 않았다. 생성 설정과 역사적 tracked evidence를 원래 baseline으로 복원하고 새 raw 출력은 ignored 로컬 보고서로 보존한다. functional source9파일 SHA256은 최초 동결과 일치한다. 기존 tracked #623 cumulative/geometry 원본을 이번 실행의 새 증거라고 주장하지 않는다.
+
+| #623 최종 body 계측 | 제한 ms | body ms | 남은 body 예산 ms | 80% 진단 경고 |
+| --- | --- | --- | --- | --- |
+| golden / UI·Excel snapshot | 60,000 | 25,212 | 34,788 | false |
+| 여섯 mutation·원본 복귀 | 60,000 | 48,851 | 11,149 | true |
+| 390px tree→matrix | 30,000 | 24,321 | 5,679 | true |
+| 768px tree→matrix | 30,000 | 23,641 | 6,359 | false |
+| 1024px tree→matrix | 30,000 | 26,255 | 3,745 | true |
+| 1440px tree→matrix | 30,000 | 26,762 | 3,238 | true |
+| 1920px tree→matrix | 30,000 | 26,232 | 3,768 | true |
+
+다섯80% 경고가 실제 attachment에 나타났으며 숨기지 않았다. 일부30초 case 여유는3,238ms까지로 여전히 좁다. **PASS는 한 로컬 실행의 관측이고 독립 Runner·연속 Main 안정성은 NOT TESTED**다. 경고는 의미 검증/성공을 대신하지 않고, 같은 제한으로 새 PR CI를 반드시 수행한다. 별도 새 프로세스의 과거 경계/인접 오류13case 실행은 아래 후속 결과로 구별한다.
+
+- 별도 fresh invocation은 **13/13 PASS,0 FAIL/0 SKIP/0 flaky/retries0/max-failures0**였다. 과거 경계7개(golden/여섯 mutation/Summary/#725 restart/KPI 원본 focus/사용자 override2개)와 새 인접 Editor 오류·권한6개(422/500/network/expired401/stale412/readonly)를 한 명령에 실행했다. 누적43개와 겹치는7개를 제외하면 전체 고유 Chromium은49case이며, 반복 실행 수를 고유 수로 합산하지 않는다. 두 번째 golden23.9s/여섯 mutation43.5s/restart51.2s PASS도 같은 로컬 host의 제한된 반복 관측이다.
+- 최종 복원 뒤 tracked next-env/tsconfig·역사적 output diff0, functional9 SHA256 일치를 재확인했다. 새 정제 JSON만 증거로 추가하고 raw trace/session/환경 로그는 Git에 넣지 않는다. Markdown269파일 및 docs_gate의 AC1~6/DOCUMENTATION_SYNC **구조 검사 PASS**는 의미 QA·Owner 승인과 별도다.
+- 독립 읽기 전용 `731_rework_qa`는 실제 raw JSON43case/최종source9hash와 원장/문서를 대조하고 P1/P2 잔여0을 확인했다. HIGH/OWNER_MANAGED의 사전 검토이며 Trusted QA·Owner 위험수용/Manager ACCEPT를 대신하지 않는다. 과거 PR #746/#748은 thread각1/resolved, #749 thread0으로 unresolved0을 재조회했고 main0aa1d3d7 유지. 새 PR의 exact Head/base/test merge·mergeability·리뷰0 및 Full CI 시작은 게시 직후 Issue/PR STATUS 댓글에서 불변 링크로 연결한다. 요청에 따라 CI 완료는 모니터링하지 않는다.
