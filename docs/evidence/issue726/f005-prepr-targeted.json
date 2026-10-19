@@ -1,0 +1,427 @@
+{
+  "schemaVersion": 1,
+  "tool": "mastergantt-prepr",
+  "issue": 726,
+  "pr": 743,
+  "mode": "targeted",
+  "status": "BLOCKED",
+  "startedAt": "2026-10-19T00:25:14.194Z",
+  "sourceStart": {
+    "baseRef": "origin/main",
+    "baseSha": "0209c72f8a0702415f2e00b63c895549a65dbe81",
+    "headSha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+    "workingDiffSha256": "e26e96fbfc9530fadedd1ec284f4a0d9b077da182c24c1d9b3ba03a06cd2c01d",
+    "fingerprint": "a4049de5afc45ed92dea3ab4404519b3fa031728bd9198dee7affd13cd5af2ab",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/ISSUE_726_FAILURE_ANALYSIS.md",
+      "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "docs/PROJECT_UX.md",
+      "docs/REQUIREMENTS.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TASK_EDITOR.md",
+      "docs/TEST_PLAN.md",
+      "docs/evidence/issue726/ci-cumulative-20261019.json",
+      "docs/evidence/issue726/f004-local-validation.json",
+      "docs/evidence/issue726/f004-prepr-fast.json",
+      "docs/evidence/issue726/f004-prepr-targeted.json",
+      "docs/evidence/issue726/f005-ci-audit.json",
+      "docs/evidence/issue726/issue-726-task-1440px.png",
+      "docs/evidence/issue726/issue-726-task-390px.png",
+      "docs/evidence/issue726/local-validation.json",
+      "docs/evidence/issue726/prepr-fast.json",
+      "docs/evidence/issue726/prepr-targeted.json",
+      "docs/exec-plans/active/ISSUE_726.md",
+      "docs/exec-plans/active/PLAN.md",
+      "package-lock.json",
+      "package.json",
+      "src/components/workspace-dialog.tsx",
+      "src/features/gantt/project-task-editor.module.css",
+      "src/features/gantt/project-task-editor.tsx",
+      "src/features/gantt/task-logistics-link-editor.tsx",
+      "src/features/gantt/task-process-context-editor.tsx",
+      "src/features/gantt/task-process-context-model.ts",
+      "src/features/logistics/logistics-type-field.tsx",
+      "src/features/logistics/project-logistics-management.module.css",
+      "src/features/logistics/project-logistics-management.tsx",
+      "tests/e2e/fixtures/task-editor-density.ts",
+      "tests/e2e/issue-621-resource-target.spec.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-726-logistics-master.spec.ts",
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/logistics-target-authoring.spec.ts",
+      "tests/e2e/project-logistics-management.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts",
+      "tests/e2e/task-link-load-safety.spec.ts",
+      "tests/features/gantt/task-process-context-model.test.ts"
+    ]
+  },
+  "sourceEnd": {
+    "baseRef": "origin/main",
+    "baseSha": "0209c72f8a0702415f2e00b63c895549a65dbe81",
+    "headSha": "98a5d8929c174944ae1eedbeec349e4527a73cea",
+    "workingDiffSha256": "e26e96fbfc9530fadedd1ec284f4a0d9b077da182c24c1d9b3ba03a06cd2c01d",
+    "fingerprint": "a4049de5afc45ed92dea3ab4404519b3fa031728bd9198dee7affd13cd5af2ab",
+    "dirty": true,
+    "changed": [
+      "CHANGELOG.md",
+      "docs/API.md",
+      "docs/ARCHITECTURE.md",
+      "docs/ISSUE_726_FAILURE_ANALYSIS.md",
+      "docs/LOGISTICS_DOMAIN_DESIGN.md",
+      "docs/PROJECT_UX.md",
+      "docs/REQUIREMENTS.md",
+      "docs/TARGET_RESOURCE_USER_GUIDE.md",
+      "docs/TASK_EDITOR.md",
+      "docs/TEST_PLAN.md",
+      "docs/evidence/issue726/ci-cumulative-20261019.json",
+      "docs/evidence/issue726/f004-local-validation.json",
+      "docs/evidence/issue726/f004-prepr-fast.json",
+      "docs/evidence/issue726/f004-prepr-targeted.json",
+      "docs/evidence/issue726/f005-ci-audit.json",
+      "docs/evidence/issue726/issue-726-task-1440px.png",
+      "docs/evidence/issue726/issue-726-task-390px.png",
+      "docs/evidence/issue726/local-validation.json",
+      "docs/evidence/issue726/prepr-fast.json",
+      "docs/evidence/issue726/prepr-targeted.json",
+      "docs/exec-plans/active/ISSUE_726.md",
+      "docs/exec-plans/active/PLAN.md",
+      "package-lock.json",
+      "package.json",
+      "src/components/workspace-dialog.tsx",
+      "src/features/gantt/project-task-editor.module.css",
+      "src/features/gantt/project-task-editor.tsx",
+      "src/features/gantt/task-logistics-link-editor.tsx",
+      "src/features/gantt/task-process-context-editor.tsx",
+      "src/features/gantt/task-process-context-model.ts",
+      "src/features/logistics/logistics-type-field.tsx",
+      "src/features/logistics/project-logistics-management.module.css",
+      "src/features/logistics/project-logistics-management.tsx",
+      "tests/e2e/fixtures/task-editor-density.ts",
+      "tests/e2e/issue-621-resource-target.spec.ts",
+      "tests/e2e/issue-623-resource-mvp.spec.ts",
+      "tests/e2e/issue-726-logistics-master.spec.ts",
+      "tests/e2e/issue-726-task-logistics.spec.ts",
+      "tests/e2e/logistics-target-authoring.spec.ts",
+      "tests/e2e/project-logistics-management.spec.ts",
+      "tests/e2e/project-task-editor.spec.ts",
+      "tests/e2e/task-link-load-safety.spec.ts",
+      "tests/features/gantt/task-process-context-model.test.ts"
+    ]
+  },
+  "sourceStable": true,
+  "versions": {
+    "os": "linux",
+    "release": "6.6.87.2-microsoft-standard-WSL2",
+    "cpuCount": 16,
+    "node": "v22.14.0",
+    "npm": "11.10.0",
+    "packageVersion": "0.121.0",
+    "lockVersion": "0.121.0",
+    "playwright": "1.63.0",
+    "chromiumRevision": "1243",
+    "ciNode": "22",
+    "ciPlaywright": "1.63.0",
+    "chromiumExecutable": "Playwright-managed (expected revision; actual browser launch is tested only by E2E)",
+    "e2e": {
+      "fullyParallel": true,
+      "workers": 1,
+      "shardsLocal": 1,
+      "shardsGitHub": 6,
+      "config": "tests/config/playwright.config.ts"
+    }
+  },
+  "risk": "HIGH",
+  "selection": {
+    "risk": "HIGH",
+    "inferredRisk": "HIGH",
+    "matched": [
+      {
+        "path": "package-lock.json",
+        "rule": "issue-552-locked-dependencies",
+        "reason": "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+      },
+      {
+        "path": "package.json",
+        "rule": "prepr-tooling",
+        "reason": "Pre-PR tool parser, source provenance, failure and safety regression"
+      },
+      {
+        "path": "src/features/gantt/project-task-editor.module.css",
+        "rule": "gantt-editor",
+        "reason": "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+      },
+      {
+        "path": "src/features/gantt/project-task-editor.tsx",
+        "rule": "gantt-editor",
+        "reason": "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+      }
+    ],
+    "unknown": [
+      {
+        "path": "src/components/workspace-dialog.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-logistics-link-editor.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-process-context-editor.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/gantt/task-process-context-model.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/logistics-type-field.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.module.css",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "src/features/logistics/project-logistics-management.tsx",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      },
+      {
+        "path": "tests/e2e/fixtures/task-editor-density.ts",
+        "reason": "No verified producer→consumer test map. Manager must map/verify."
+      }
+    ],
+    "missing": [],
+    "excluded": [],
+    "selected": [
+      {
+        "path": "tests/e2e/gantt-state-product-integration.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-621-resource-target.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-623-resource-mvp.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-719-contextual-help.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-726-logistics-master.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/issue-726-task-logistics.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/logistics-target-authoring.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-links-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-logistics-management.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-settings-layout-490.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-delete-context.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-editor-persistence.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-task-editor.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions",
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/e2e/project-workspace-tabs-518.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/task-editor-form-density.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/task-link-load-safety.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Changed test itself",
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/e2e/viewport-coordinator.spec.ts",
+        "kind": "chromium",
+        "reasons": [
+          "Manager manual include"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/axis-transaction-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/canonical-recovery-runtime.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/state-consistency-runtime-fixture.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-delete-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-editor-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-link-scope.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-process-context-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "Changed test itself"
+        ]
+      },
+      {
+        "path": "tests/features/gantt/task-selection-model.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "editor/Task direct behavior, persistence, authorization and adjacent negative actions"
+        ]
+      },
+      {
+        "path": "tests/scripts/prepr-verifier.test.ts",
+        "kind": "unit",
+        "reasons": [
+          "locked dependencies and installed-Core capture provenance → strict manifests, Core runtime and browser compatibility",
+          "Pre-PR tool parser, source provenance, failure and safety regression"
+        ]
+      }
+    ],
+    "state": "BLOCKED",
+    "notSelectedReason": "Not a mapped direct/adjacent consumer for this change; remote Required coverage unchanged"
+  },
+  "diagnostic": null,
+  "steps": [],
+  "deferred": [
+    {
+      "check": "GitHub QA Preflight / Trusted QA / Owner",
+      "state": "DEFERRED",
+      "reason": "GitHub PR metadata, protected base validator and signed approval required"
+    },
+    {
+      "check": "PR Required Quality/E2E/Docker aggregates",
+      "state": "DEFERRED",
+      "reason": "Exact PR head/base/test-merge/run/attempt must be verified by GitHub Actions"
+    },
+    {
+      "check": "6 independent Chromium runners and fail-fast",
+      "state": "DEFERRED",
+      "reason": "Local worker=1 cannot reproduce six GitHub runners"
+    },
+    {
+      "check": "npm audit --omit=dev",
+      "state": "DEFERRED",
+      "reason": "Requires npm registry and CI environment; run explicitly if available"
+    },
+    {
+      "check": "remote Compose/transport/GHCR",
+      "state": "DEFERRED",
+      "reason": "Local test never accesses production runtime or registry"
+    }
+  ],
+  "errors": [
+    "BLOCKED: unknown/missing impacted tests; Manager must map scope before local PASS"
+  ],
+  "artifacts": [],
+  "completedAt": "2026-10-19T00:25:14.424Z"
+}

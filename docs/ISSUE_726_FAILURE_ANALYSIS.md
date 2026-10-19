@@ -1,5 +1,7 @@
 # Issue #726 — 누적 PR CI 실패 원장
 
+> **최신 추가 — 2026-10-19 / F-005:** 조회 가능한5개 Full Run/30 Shard를 누적 대조했다. 실제 원격 실패6회·고유5사례·5파일이며, 이번 #2989.1은 과거4사례가 각각 PASS한 뒤 새 연결 조회 안전성 fixture 계약 누락을 노출했다. 현재 원인·교정·동결 검증은 §8을 따른다. 아래 과거 요약/가설·미검증·FAIL은 당시 기록으로 보존한다.
+
 > **최신 정정 요약 — 2026-10-19 / F-004 재작업:** 완료된 Full Run4개와 모든24 Shard 원문을 대조했다. 실제 실패는5회·고유4 case·4파일이다. F-002의 `CANCELLED` Shard2에도 #719 actual FAIL이 있었으며 F-004는 같은 PRODUCT 회귀의 재발이다. 아래 F-001~F-003의 원본 관측·당시 가설/UNKNOWN/검증 한계는 역사적 기록으로 보존한다. 현재 합집합·정정·새 출처·수정 검증은 §7을 우선한다. 로컬/원격 PASS를 서로 대체하지 않는다.
 
 > Source of Truth: [PR CI 실패 누적 분석 지침](PR_CI_FAILURE_TRIAGE.md). Primary Issue [#726](https://github.com/planner77/masterGantt/issues/726), 구현 PR [#743](https://github.com/planner77/masterGantt/pull/743). 2026-10-19 현재 F-001~F-003 원격 실패 3건을 기록. 기존 원본 실패는 성공으로 재분류하거나 삭제하지 않는다.
@@ -12,6 +14,7 @@
 | F-002 | [#2985.1](https://github.com/planner77/masterGantt/actions/runs/39169140616), `pull_request.synchronize`, `CI`, 2026-10-18 21:44Z | Head `31973c8aefd462ea0e3cf142b829a67252093a95` / Base `6f6dadb1b3ac10bc837c09273a0922611b2e3f81` / Test-merge SHA **UNKNOWN** (현재 PR은 diverged/mergeable=false) | Quality **SUCCESS** (`117799136681`), Docker **SUCCESS** (`117799354160`), Chromium E2E **FAILURE** (`117800756907`); Shard5 **FAILURE** (`117798833705`); QA Final Automated **FAILURE** (`117800776742`, 파생) | [Shard5 original log](https://github.com/planner77/masterGantt/actions/runs/39169140616/job/117798833705), [Playwright report artifact](https://github.com/planner77/masterGantt/actions/runs/39169140616/artifacts/12151294313) |
 | F-003 | [#2987.1](https://github.com/planner77/masterGantt/actions/runs/39172673374), `pull_request.synchronize`, `CI`, 2026-10-18 22:32Z | Head `f00755046eb8c80bb3a0eb4187c0bdd84aa00945` / Base `0209c72f8a0702415f2e00b63c895549a65dbe81` / original Run test-merge **UNKNOWN** | Quality **SUCCESS** (`117809526614`), Docker **SUCCESS** (`117809776026`), Chromium E2E **FAILURE** (`117810406514`); Shard4 **FAILURE** (`117809255536`); QA Final **FAILURE** (`117810423023`, 파생) | [Shard4 original job](https://github.com/planner77/masterGantt/actions/runs/39172673374/job/117809255536), [Playwright report artifact](https://github.com/planner77/masterGantt/actions/runs/39172673374/artifacts/12152763184) |
 | F-004 | [#2988.1](https://github.com/planner77/masterGantt/actions/runs/39174916249), `pull_request.synchronize`, `CI`, 2026-10-18 UTC | Head `1120722a4f6fa4cf8dd9976e9af1472786b08d88` / Base `0209c72f8a0702415f2e00b63c895549a65dbe81` / Test-merge `b844977696fa807255200622f548d5549dd32482` (추가 확보 출처는 §7) | Quality SUCCESS (`117816142658`), Docker SUCCESS (`117816387498`), E2E FAILURE (`117817798349`), QA Final FAILURE (`117817819838`, required E2E 파생); Shard2 FAILURE (`117815890304`), 나머지5 CANCELLED | [Shard2 원본](https://github.com/planner77/masterGantt/actions/runs/39174916249/job/117815890304), [정제24-shard 감사](evidence/issue726/ci-cumulative-20261019.json) |
+| F-005 | [#2989.1](https://github.com/planner77/masterGantt/actions/runs/39177358648), `pull_request.synchronize`, `CI` | Head `98a5d8929c174944ae1eedbeec349e4527a73cea` / Base `0209c72f8a0702415f2e00b63c895549a65dbe81` / Test-merge `c7469cce30dbe26352940e619dbfcb8736900c46` | Quality SUCCESS (`117823264416`), Docker SUCCESS (`117823486937`), E2E FAILURE (`117828226081`), QA FAILURE (`117828245417`, required E2E 파생); Shard4 FAILURE, 다른5 SUCCESS | [Shard4 원본](https://github.com/planner77/masterGantt/actions/runs/39177358648/job/117823051477), [새6-shard 감사](evidence/issue726/f005-ci-audit.json) |
 
 ### Shard 완료/실패/취소 구분
 
@@ -155,3 +158,47 @@
 - 관련 Unit4파일51/51 PASS(1.74초): Navigation 모델/Task 공정 draft/Task 직접 물류 server guard/유형 catalog service. TypeScript·변경3파일 scoped ESLint(오류0/경고0)·version0.121.0·Markdown 링크·diff check PASS. 전체 Unit/전체 E2E/Docker는 이번 최소 수정의 로컬 선정 검증에서 제외하며 원격 Required 전체로 검증한다.
 - 최종 실제 Pre-PR [fast](evidence/issue726/f004-prepr-fast.json)/[targeted](evidence/issue726/f004-prepr-targeted.json)는 모두 **BLOCKED**(exit1, UNKNOWN7/missing0/steps0/sourceStable=true). working fingerprint `37a8e2d63e450a2c330f0503c7e08c3b724e099e4eddc7d38669589465cac8a1`. 전체 PR의 WorkspaceDialog·물류 관리/CSS/type·Task 직접/문맥 editor/model 자동 매핑 부족을 원래 상태로 보존한다. Manager 수동 매핑은 Work Packet의 기존 `최종 추가 검증·자동 도구 한계`와 위6파일·51 Unit으로 연결하며 이번 변경 제품1행의 직접·간접·음성 실제 실행과 자동 도구 차단을 구분한다. 매핑 정책/분류/SourceStable를 완화하거나 BLOCKED를 PASS로 전환하지 않았다. 이후 추가 문서/정제 증거는933파일의 제품·테스트 지문에 영향이 없다.
 - 별도 read-only qa_docs가 원격 정제24 Shard 합계·원본 재현·첫35PASS/1FAIL·최소 source/test patch·문서·최종 지문/결과를 대조한다. 이 사전 검토는 인간 QA_FINAL·Trusted/Owner ACCEPT와 별개다. 새 원격 Required 결과를 PASS로 표시하지 않는다. version0.121.0 유지·HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false. 변경은 UI1행과 관련 시험·이슈 원장/문서/증거이며 API/DB/schema/CI/QA/권한 정책은 불변이다. 게시 직전 main·원격Head·미해결 thread·mergeability를 재검사하고 기존PR743에 변경 묶음을1회 게시한다. 새 exact-Head Required Quality/E2E/Docker·Trusted QA·Owner ACCEPT는 NOT TESTED다. CI 등록 snapshot 뒤 결과 모니터링·병합·main/GHCR·Release·Issue 종료는 수행하지 않는다.
+
+
+## 8. F-005 — #2989.1 연결 재조회 안전성 fixture의 서버 권한 필드 누락 (2026-10-19)
+
+### 8.1 원격 출처·전체 결과
+
+- PR [#743](https://github.com/planner77/masterGantt/pull/743), branch `feat/issue-726-logistics-master`, Full [#2989.1 / Run39177358648](https://github.com/planner77/masterGantt/actions/runs/39177358648), attempt1. Head `98a5d8929c174944ae1eedbeec349e4527a73cea`, Base `0209c72f8a0702415f2e00b63c895549a65dbe81`, test merge `c7469cce30dbe26352940e619dbfcb8736900c46`.
+- [정제 감사](evidence/issue726/f005-ci-audit.json)는 새6 Shard 원문·QA·source artifact12155320346의 JSON/digest/API 및 실제 checkout을 교차 관측했다. 기존4 Run/24 Shard 증거는 변경하지 않는다. Artifact는 PR 비신뢰 JSON이며 역사적 출처 관측이 Trusted QA PASS를 뜻하지 않는다. Connector 첫 페이지/attempt 조회 한계는 감사 JSON에 보존한다.
+- Quality aggregate117823264416·Docker117823486937 SUCCESS. E2E aggregate117828226081 FAILURE, QA117828245417 원문은 `required e2e 미성공` 파생 FAIL이다. Shard4 job117823051477:132PASS/1FAIL/1SKIPPED/25NOTRUN; Shard1:135PASS, Shard2:129PASS/1SKIPPED, Shard3:102PASS/1SKIPPED, Shard5:84PASS, Shard6:113PASS. 전체695PASS/1FAIL/3SKIPPED/25NOTRUN, CANCELLED0. 3SKIP은 기존 before 캡처 전용 케이스이며 이번 보완이 만든 skip이 아니다.
+- 최초 actualFAIL은2026-10-19T00:05:47.094Z, `tests/e2e/task-link-load-safety.spec.ts:23`의 `조회 500에서 빈 PUT을 막고 재시도로 기존 연결을 복원한다`,54행 `expect(save).toBeEnabled()` 5초 후 expected enabled/received disabled다. 바로 앞 기존 연결 checkbox checked는 통과했다. [Playwright report12155537584](https://github.com/planner77/masterGantt/actions/runs/39177358648/artifacts/12155537584)를 보존하며 원본 FAIL을 성공으로 바꾸지 않는다.
+
+### 8.2 전 이력 Cross-run 매트릭스와 새 실패 합집합
+
+| 사건 / 계약 | 과거 판정·보완 | #2989.1 관측 및 현재 후보 재검증 |
+| --- | --- | --- |
+| F-001 / Task 직접 공정 UUID 집합 순서 | TEST_CONTRACT, 양쪽 정렬 후 객체 exact 비교 | 이번 Run 개별 PASS. 정렬·scope·중복/누락 검사를 보존하고 파일 전체 재검증 |
+| F-002-A / #518 Navigation focus | PRODUCT, main #717의 동기 focus·active subview 보존 통합 | 이번 Run 개별 PASS. 원래5폭·keyboard·URL·Gantt 계약 재검증 |
+| F-002-B 및 F-004 / #719 공정0 disabled | PRODUCT, 지속 경고 handler 도달 복원·생성 금지 유지 | 이번 Run 개별 PASS. 원래 경고·권한/초안·유형 실패 회귀 재검증 |
+| F-003 / Target pending 이름우선 | TEST_CONTRACT, 정확 Role/name·고유 count1 | 이번 Run 개별 PASS. 기존 pending/401/whole/subset/공유 원본 검증 유지 |
+| L-001 / master 전역 동명 관측 | TEST_CONTRACT, 관리 panel의 정확 cell/name·count1 | 기존 로컬 추가 발견을 보존하고 master 전체 재검증 |
+| F-005 / 연결 조회 재시도 후 disabled | TEST_CONTRACT/FIXTURE, 정상 mock의 필수 permission 누락 | 이번 원격 신규 실패. 제품 fail-closed는 정상이며 양쪽 응답 permission/인접 fixture·음성4case로 일괄 보완 |
+
+원격 실제 실패 파일 합집합은5개다: `issue-726-task-logistics.spec.ts`, `project-workspace-tabs-518.spec.ts`, `logistics-target-authoring.spec.ts`, `issue-719-contextual-help.spec.ts`, `task-link-load-safety.spec.ts`(모두 `tests/e2e/`). 조회된5 Run/30 Shard의 최종결론은5FAILURE/5SUCCESS/20CANCELLED, 실제 실패6발생/고유5case다. 같은 원인의 로컬6변형 재현을 원격 실패6건 추가로 합산하지 않는다.
+
+### 8.3 계약·인과·반례 및 일괄 보완
+
+- `ProjectLogisticsResponse`와 `TaskLogisticsLinksResponse`의 `data.permission`은 필수다. 실제 `logistics-handlers-core.ts`는 서버 인증에 따라 edit/readonly를 항상 반환한다. #726 `TaskLogisticsLinkEditor`는 links와 logistics 두 응답이 모두 `edit`일 때만 저장하며, 한쪽의 readonly/누락을 UI 편집 상태로 대체하지 않는다.
+- 실패 파일의 `/logistics` 직접 override만 permission을 생략했다. 연결 조회 재시도 자체가 성공하면 checked로 원본을 복원할 수 있지만 서버 편집 허용은 false여서 저장 disabled인 것이 맞다. 공통 stateful fixture는 이미 permission을 반환한다. 따라서 제품 gate 제거/기본 edit 추정은 해법이 아니다. 원격 감사 당시 UNKNOWN 분류는 정적 계약+아래 실제6변형 재현으로 **TEST_CONTRACT/FIXTURE**로 추가 확정하며 감사 원본의 당시 상태는 남긴다.
+- 수정 전 새 실패 파일 전체18case를 worker1/retry0/maxFailures0로 실행: **12PASS/6FAIL**, skip0/flaky0,87.770073초. 500/network/malformed/wrong-task/wrong-revision/malformed-role 여섯 변형 모두 같은 정상 복구 후 disabled로 수렴했다. raw JSON/6 trace는 로컬에 보존하고 Git에는 정제 결과/해시만 저장한다.
+- 정상 `/logistics` 응답에 fixture의 실제 편집 상태를 반영한 permission을 복원하고 DTO 타입을 명시한다. malformed-role 응답은 의도적 무효 입력으로 별도 분기하여 원래 실패 검증을 유지한다. links helper도 실제 DTO 반환 타입을 사용한다. 기존6case의 빈 PUT0·선택 복구·정확 payload/If-Match40·mutation1 assertions와 시간 기준은 변경하지 않는다.
+- `tests/e2e/**` 및 `tests/fixtures/**`의 synthetic 양 GET 응답을 교차 탐색했다. `task-editor-density.ts`의 links 응답에서도 같은 permission 누락을 발견하여 editable→edit/readonly 한 필드를 보완한다. 다른 직접 override(`project-task-editor`)와 공통 stateful 응답은 정상이며 실제 backend GET/PUT-only intercept는 누락으로 분류하지 않는다. 직접 consumer는 form-density, 간접 import는 viewport-coordinator/project-settings-layout-490다.
+- 새 음성4case는 UI editable=true여도 links/logistics 중 각각 readonly/permission누락이면 원본 checked·disabled·권한 안내와 PUT0을 확인한다. DOM disabled를 강제 제거하고 click해도 내부 guard가 write를 막아야 한다. 원본 revision40/기존 관계를 보존한다.
+- 기각: process-context404는 별도 조회 영역이고 직접 물류 disabled 식의 readiness에 포함되지 않는다. dirty=false가 저장을 막는 원인도 아니다. snapshot·연결 복구와 서버 편집 허용을 구분해야 한다. 이번 보완은 제품/API/DB/서버 권한·revision·Gantt writer·CI 정책을 변경하지 않는다.
+- 이전 로컬36case 선정에는 새 load-safety 파일이 없었고 과거 fail-fast는 앞선 사례에서 중단했다. 이번에는 누적5파일 전체와 동일 응답 계열 fixture/소비자·명시 거부4case를 함께 포함한다. 연속 실패의 다른 소비자 누락을 단일 latest-case 재시도로 처리하지 않는다.
+
+### 8.4 동결 검증·문서·인계
+
+최종 후보의 직접/과거5파일 전체+master/관리 전체+form-density의 물류5폭/fullscreen 왕복2case+공유 fixture 간접 소비자 viewport/settings의 각1case를 같은 동결 source로 실행한다. 관련 Navigation/Task 공정/서버 연결·유형 Unit, typecheck/scoped lint/version/Markdown와 실제 Pre-PR fast/targeted를 구분해 결과를 추가한다. 전체 unrelated scheduling/Copy/Import·Docker는 제품 변경0의 fixture 교정에서 로컬 재실행하지 않으며 공식 원격 전체 Required에 맡긴다.
+
+최종 동결 Chromium은 **10파일62/62 PASS**,534.51252초, skip0/flaky0/FAIL0이다. 원본 실패5파일 전체·조회 안전성22case·기존 master/관리·density 직접2case 및 viewport/settings 간접 각1case가 같은 실행에 포함됐다. 관련 Unit4파일51/51 PASS(1.56초), typecheck·변경2파일 scoped ESLint 오류0/경고0·version0.121.0·Markdown265파일·diff check PASS다. 실제 개별62case와 명령·baseline6FAIL/12PASS·raw 해시/선정 범위는 [정제 manifest](evidence/issue726/f005-local-validation.json)에 보존한다.
+
+- 제품·테스트933파일 시작/끝 동결 aggregate `19239677de2499dabc7ec90a264a2d9e6b7fc8852ebbc64ee2d5b67dd6ee758d`, drift0. 제품 src diff0이다. 시험이 만든 tracked 설정/기존 캡처102파일만 원래대로 복원하고 새 output17개는 로컬 임시 경로에 보존했다. raw config.env/trace/HTML은 Git에서 제외한다.
+- 실제 최종 Pre-PR [fast](evidence/issue726/f005-prepr-fast.json)/[targeted](evidence/issue726/f005-prepr-targeted.json)는 둘 다 **BLOCKED**(exit1, UNKNOWN8/missing0/steps0/sourceStable=true). working fingerprint `a4049de5afc45ed92dea3ab4404519b3fa031728bd9198dee7affd13cd5af2ab`. 기존 전체 PR의 미매핑7경로와 이번 density fixture1경로의 자동 producer→consumer 매핑 부족이다. Manager는 앞선 Work Packet의 기존7경로 매핑과 §8.3의 fixture→직접2/간접2 소비자·실제62 Chromium/51 Unit으로 수동 영향 검토했다. 자동 매핑 도구/정책/분류를 수정하거나 BLOCKED를 PASS로 바꾸지 않는다. 자동 선택 전체와 실제 한정 수동 명령의 범위 차이도 구분한다.
+- 별도 qa_docs가 source/test patch·과거와 새 감사·원장/문서 및 raw62case↔manifest·933지문을 읽기 전용으로 대조한다. Agent 사전 검토는 인간 QA_FINAL/Trusted/Owner ACCEPT를 대체하지 않는다. 검증 뒤 추가 문서/정제 증거는 제품·테스트933파일의 지문에 영향이 없다. 기존 Head의 PASS를 새 Head Required3·Trusted/Owner PASS로 승격하지 않는다. HIGH/OWNER_MANAGED/qa_required=true/version0.121.0 유지, release_authorized=false. 게시 직전 최신 Head/main·미해결 리뷰/충돌을 확인하고 기존PR에 변경 묶음을1회 게시하여 새 Full CI 등록까지만 수행한다. CI 모니터링·병합·main/GHCR·Release·Issue 종료는 범위 밖이다.

@@ -8,6 +8,9 @@
 
 공정·직접 물류·Target는 각각 별도 저장하며 한 영역에 초안이 있으면 다른 영역의 mutation을 잠근다. 새 공정 편집도 기존 parent dirty/pending·닫기/작업 이동의 폐기 확인·401·stale·최신 정보 다시 불러오기 계약을 공유한다. Project revision과 catalog revision을 별도로 검증하고 조회 실패를0개로 치환하지 않는다. 반복 Escape도 최상위 Task dialog의 keydown에서 기본 닫기를 막고 동일한 dirty/pending·폐기 확인 판단을 거친다. Nested dialog의 Escape를 가로채지 않는다. 직접 문맥과 설비/System은 기본 정보 form의2열 배치 대신 전용1열 내부 흐름을 사용한다. 저장은 기존 canonical 재조회 gateway로 반영하며 Gantt writer를 추가하지 않는다. [실행·검증](exec-plans/active/ISSUE_726.md).
 
+직접 설비·System 연결은 현재 UI가 편집 상태여도 Task 연결 조회와 Project 물류 원본 조회의 서버 `permission`이 모두 `edit`일 때만 저장한다. 한쪽이 readonly이거나 권한 필드가 누락되면 기존 선택은 보여 주되 변경과 저장을 막고 최신 조회를 안내한다. 조회 성공/선택 복원과 서버 편집 허용은 별도 조건이며 권한을 추정하여 빈 연결을 전송하지 않는다.
+
+
 ## Issue #717 — 이름 우선 식별 정보
 
 Task Editor·Milestone 소속·Target binding의 원문 ID는 접힌 식별 정보로 조회·복사한다. 관계 후보는 부모 이름·시작일, 필요 시 외부 ID로 동명을 구별하며 검색과 연결 body의 canonical ID는 유지한다. 상위 Task ID가 달라도 부모 표시명이 같으면 같은 표시 문맥으로 판정한다. Assignment의 이름 우선 표시와 Target provenance 원문 접근을 분리한다. readonly·dirty/stale·저장 단위·focus·revision 계약은 기존대로다.

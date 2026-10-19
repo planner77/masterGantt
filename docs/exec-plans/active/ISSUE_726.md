@@ -205,3 +205,24 @@ Issue 본문과 다중 WorkArea 보완 댓글을 적용한다. #725/#728 최종 
 - Manager의 게시 허용은 사용자 요청인 PR CI 시작만을 위한 것이며 원격 Required3·Trusted/Owner ACCEPT는 NOT TESTED/MERGE_READY=BLOCKED다. 원격 CI 결과는 모니터링하지 않는다.
 
 - 별도 `qa_726_rework` read-only 사전 검토 PASS: 코드/문서·24 Shard 합계·실제 raw36개↔manifest exact일치·933 지문 drift0·Pre-PR BLOCKED 구분 확인. 인간 QA_FINAL/Trusted/Owner ACCEPT는 NOT TESTED이며 이 Agent PASS를 병합 승인으로 사용하지 않는다.
+
+
+## 2026-10-19 — PR #743 CI #2989.1 F-005 REWORK
+
+- 기준 Head `98a5d8929c174944ae1eedbeec349e4527a73cea`, main/Base `0209c72f8a0702415f2e00b63c895549a65dbe81`, test merge `c7469cce30dbe26352940e619dbfcb8736900c46`. 처음/게시 담당 재점검 mergeable=true, 미해결 thread0/review0. 새 worktree `issue-726-f005`에서 원본 작업 트리를 보존한다.
+- [단일 누적 실패 원장 §8](../../ISSUE_726_FAILURE_ANALYSIS.md)과 [새6 Shard 감사](../../evidence/issue726/f005-ci-audit.json)에5 Run/30 Shard·실제6회/고유5case·파일5개 합집합을 기록한다. #2989.1 quality/docker SUCCESS, Shard4만FAIL/타5 SUCCESS,695PASS/1FAIL/3SKIPPED/25NOTRUN. 과거4case의 이번 개별PASS와 이전FAIL을 구분한다.
+- 원인: load-safety 정상 mock의 필수 `permission` 누락으로 제품의 양 응답 edit 교차 검증이 정상 저장 차단했다. 수정 전 파일 전체18case12PASS/6FAIL(87.770073초). 제품0파일 변경, safety 응답 타입/권한과 인접 density links fixture1필드 보완, 서버 readonly/누락 양 응답4음성 추가. 원래 assertion/timeout/retry·권한·revision·Required3/6-shard는 보존한다.
+- 영향/선정: 누적5실패파일 전체+master/management 전체, form-density 물류5폭/fullscreen2case·viewport coordinator 첫case·settings metadata 왕복1case. 마지막2개는 같은 fixture의 간접 소비자이며 제품 알고리즘 변경0에 대한 한정 smoke다. 관련 Unit4파일과 정적 검사/실제 Pre-PR fast/targeted를 별도 기록한다. Copy/Import/스케줄링/DB·Docker 로컬 전체는 비영향이며 원격 Required 전체에서 판정한다.
+- GSC read_doc_commit `98a5d8929c174944ae1eedbeec349e4527a73cea` / Base0209c72. GSC1.0.0-candidate REVIEW_PENDING·CONFORMANCE/Adapter ADR/Sync Trace/활성 remediation을 따른다. GSC-01(서버 권한)/09(Editor·instance)/11(누적회귀)/12(실제증거)가 관련 범위이며 SC-11의 왕복·SC-13의 원본/권한 부분을 선정한다. 축·DnD·일정 계산 writer는 변경0/N/A, 예외 ADR 없음. 전체 표준 또는 해당 시나리오 전체PASS를 선언하지 않는다.
+- DOCUMENTATION_SYNC UPDATED: 실패 원장/본 Work Packet/PLAN/TEST_PLAN/TASK_EDITOR 및 새 정제 증거. API/DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/DESIGN/UI_UX_GUIDELINES/사용자 가이드/CHANGELOG/CI_CD/REMOTE_VALIDATION/GITHUB_OPERATIONS는 기존 제품·서버 계약과 버전·CI 정책 변경0으로 N/A다. Task 문서는 기존 양 응답 권한 확인의 의미만 명확히 한다.
+- 실제 역할: Manager 분석·문서·통합/Issue댓글, frontend 소유2test파일 수정, 감사 infra 새6-shard 원본 읽기/정제JSON, 별도 qa_docs read-only 사전검토, 게시 infra 최종 위임 후 batch/API게시/CI등록 snapshot. 사용자 범위는 새 CI 시작까지이며 인간 QA/Trusted/Owner ACCEPT와 분리한다. HIGH/OWNER_MANAGED/qa_required=true/release_required=true/release_authorized=false/version0.121.0 유지.
+
+
+### F-005 최종 로컬 검증·자동 도구 구분
+
+- 동결 Chromium10파일62/62 PASS(534.51252초, skip0/flaky0), 관련 Unit4파일51/51 PASS(1.56초), typecheck·변경2파일 ESLint0오류/0경고·version0.121.0·Markdown265·diff PASS. [manifest](../../evidence/issue726/f005-local-validation.json)에 개별 case/실제 명령/수정 전6FAIL/12PASS와 raw 해시를 연결한다.
+- src/tests/package+lock 추적933파일 시작/끝 지문 `19239677de2499dabc7ec90a264a2d9e6b7fc8852ebbc64ee2d5b67dd6ee758d`, drift0, src 변경0. 시험 생성 tracked 설정·캡처102개는 복원하고 미추적 output17개는 로컬 임시 경로에 보존했다. 운영/기존 다른 작업 파일은 변경하지 않는다.
+- 실제 [Pre-PR fast](../../evidence/issue726/f005-prepr-fast.json)/[targeted](../../evidence/issue726/f005-prepr-targeted.json)는 UNKNOWN8/missing0/steps0/sourceStable=true로 BLOCKED이며 working fingerprint `a4049de5afc45ed92dea3ab4404519b3fa031728bd9198dee7affd13cd5af2ab`. 기존7경로+새 density fixture의 자동 매핑 부족을 보존하고 Manager의 수동 직접/간접/음성 선정과 실제62 Chromium/51 Unit으로 구분한다. 그 뒤 추가한 문서/정제 증거는 제품·테스트933지문을 바꾸지 않는다.
+- 새 exact-Head Required3/Trusted QA/Owner ACCEPT는 NOT TESTED/MERGE_READY=BLOCKED. 별도 Agent 사전 검토 뒤 기존PR branch에 한 번 게시하여 CI등록만 확인하며 결과 모니터링하지 않는다.
+
+- 별도 `qa_726_rework` Agent 사전 검토 PASS: 원본62개 결과/Unit51 로그·해시/933파일 drift0/누적 감사·문서/Pre-PR BLOCKED 구분을 독립 대조했다. 인간 QA_FINAL·Trusted/Owner ACCEPT는 NOT TESTED이며 이 사전 PASS는 병합 승인이 아니다.

@@ -104,7 +104,7 @@ export async function setup(page: Page, options: { editable?: boolean; links?: b
       await route.fulfill({ json: { data: { project: fixture.project, logistics: { processes: [], equipment: [], systems: [], systemLinks: [] }, permission: fixture.editable ? "edit" : "readonly" } } }); return;
     }
     if (path.startsWith(`${apiPath}/tasks/`) && path.endsWith("/logistics-links") && request.method() === "GET") {
-      await route.fulfill({ json: { data: { taskId: path.split("/").at(-2), links: { taskId: path.split("/").at(-2), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } }); return;
+      await route.fulfill({ json: { data: { taskId: path.split("/").at(-2), permission: fixture.editable ? "edit" : "readonly", links: { taskId: path.split("/").at(-2), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } }); return;
     }
     if (path === apiPath && request.method() === "GET") {
       fixture.projectReads += 1;
