@@ -169,7 +169,7 @@ export const test = base.extend<{
         await performanceReceipt.measure("server_start_readiness", async () => {
         let ready = false;
         while (Date.now() < deadline) {
-          if (spawnError || child.exitCode !== null || child.signalCode !== null) {
+          if (spawnError || application.exitCode !== null || application.signalCode !== null) {
             throw new Error("격리 E2E 서버가 준비 완료 전에 종료되었습니다. isolated-application-diagnostics 첨부를 확인하세요.");
           }
           try {

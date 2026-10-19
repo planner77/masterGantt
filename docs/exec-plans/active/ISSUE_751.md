@@ -35,4 +35,5 @@ Status: implementation extended; actual CI and controlled tests NOT TESTED as of
 - #3014.1 F-001: 제목/qa_method 원본 실패, 테스트는 SKIPPED.
 - #3016.1 F-002: Issue AC 식별자 누락, 테스트는 SKIPPED.
 - #3018.1 F-003: Issue AC PASS, Work Packet DOCUMENTATION_SYNC 누락으로 Preflight FAIL, 테스트는 SKIPPED.
+- #3020.1 F-004: Preflight/ESLint/Vitest/Policy PASS, TypeScript `TS18048` 두 건(격리 Fixture `child` mutable ref), E2E/Docker 구현 SKIPPED. 동일 서버 instance를 캡처한 `application` const로 readiness 상태 참조를 교정. [전용 원장 F-004](../../ISSUE_751_FAILURE_ANALYSIS.md), 새 HEAD 전체 CI `NOT TESTED`.
 - 이 문서의 AC 및 DOCUMENTATION_SYNC 작성 자체는 원격 검증 PASS가 아님. 최신 HEAD에서 Full PR CI 세 Required와 Trusted QA/Owner 승인 증거를 별도 확인한다.
