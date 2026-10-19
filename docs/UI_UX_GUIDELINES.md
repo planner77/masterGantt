@@ -1,3 +1,9 @@
+## Issue #731 — 기존 KPI와 펼침 진단
+
+기존 KPI 네 카드·품질 패널·세부 탭/표는 그대로 두고 추가 구성/연결 진단만 native disclosure로 펼친다. 기존 표에 고정 열을 추가하지 않는다. 이름·단위·현재 선택과 전체 구성 참고의 분모·full Gate 경고를 직접 표시하고 긴 계산 설명은 상황형 도움말로 제공한다. 정상 미연결/WorkArea 미사용을 오류 색상만으로 평가하지 않는다.
+
+정확 Task/Assignment/master 목록은 원시 ID와 현재 source/snapshot으로 연결하고 기존 editor·단일 host를 재사용한다. 이전 결과가 숨겨진 동안 명령을 잠그며 복귀는 연결된 실제 trigger, 삭제/필터 탈락/새 revision이면 유효 fallback으로 이동한다. 표 내부 scroll·이름 최소 폭·긴 이름 줄바꿈·숫자 단위 nowrap·가려지지 않는 keyboard focus를 5폭에서 확인한다. Design Delta B로 기존 시각/interaction 원칙을 구체화하며 DESIGN.md N/A다. 실제 측정과 미검증은 [Work Packet](exec-plans/active/ISSUE_731.md)을 따른다.
+
 ## Issue #717 — 이름 우선과 식별 정보 요청 조회
 
 `DESIGN.md` §1.3을 적용한다. 일반 행·후보·KPI는 이름과 업무 맥락을 우선하고 코드/UUID는 기본 접힌 `IdentifierDetails`에서 원문을 확인·복사한다. native details/summary·44px·focus ring·readonly textarea 전체 선택·Clipboard 실패 안내를 사용한다. option/listbox 내부에 disclosure/button을 중첩하지 않는다. 동일 표시 후보는 실제 부모 이름/날짜/상태를 비교하고 불충분할 때만 보조 코드를 표시한다. 공정명은 최소220px, 전체 표 예산을 소유한 내부 scroll을 사용한다. [화면 인벤토리](ISSUE_717_IDENTITY_INVENTORY.md)와 [실행 계획](exec-plans/active/ISSUE_717.md)의 실제 검증 범위·미검증 상태를 따른다.

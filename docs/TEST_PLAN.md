@@ -1,3 +1,19 @@
+## Issue #731 — 기존 KPI 통합 소비자 수용
+
+[기능 보존표·AC·실패 원장](exec-plans/active/ISSUE_731.md)을 기준으로 기존 UI와 전용 API를 함께 검증한다. 로컬 빠른 검증과 PR Required Quality/E2E/Docker·Trusted QA·Owner 최종 승인은 별도다.
+
+| 검증 경계 | 주요 양성·음성 조건 |
+| --- | --- |
+| 서버 API/Unit | Target0 direct-only 기존 산식 일치, Target-only·혼합·상속/공유 MCS·조율 dedup, 명시 공정 W2와 기존 구성 범위 구별, 빈/활성 조건, 물류 미연결·무배정·개인 공수 null/0/partial |
+| 구성·진단 | 등록 공정/WorkArea/설비 관리단위·고유 수량/System/등록·참여/배정 인원, 일반 작업0·Owner/PI/주제어의 exact IDs, E10 다중 구역 상위10·동일5 M/D 다중 공정 상위5 |
+| snapshot/권한 | 한 read snapshot·explicit integrated source·strict invalid/foreign filter·stale409·응답 예산 fail-closed·mutation0·readonly·기존 editor의 보호 mutation 유지 |
+| full Gate | 선택/공정/활성 범위를 좁혀도 전체 소속/선행을 사용하며 현재 KPI 분모와 구별 |
+| 실제 UI | 기존 네 카드/세 표/기준일·자동복귀/임박 validation/direct-coordination/active/refresh·retry/tab keyboard, 추가 펼침 진단 exact Task/Assignment/master·일정/복귀·focus |
+| UI 음성·geometry | stale/revision/catalog·error/malformed/응답역전·empty/readonly, 390/768/1024/1440/1920px 긴 이름/내부 표 scroll·열 예산·document overflow·keyboard focus, Gantt 동일 인스턴스 |
+| 간접 소비자 | 기존 logistics request-state·Milestone stage/시간축·#719 도움말·Task Editor 밀도 fixture의 KPI API mock 계약 동기화; 구 API 직접 회귀는 유지 |
+
+전용 서버 `tests/server/logistics/issue-731*.test.ts`, UI `tests/e2e/logistics-dashboard-request-state.spec.ts`의 #731 추가 케이스와 기존 조회 상태 케이스 및 관련 Domain/Resource/full Gate/route inventory를 영향 기반으로 실행한다. 최초 실패를 삭제하지 않고 원인·수정·새 실행 결과와 미실행을 Work Packet에 누적한다. 실제 screen reader/운영 데이터·Windows/최종 수동 UX는 브라우저 자동 검증으로 대체하지 않는다.
+
 ## Issue #729 — Main CI F-001·교정 PR #745 문서/테스트 동기화 (2026-10-19)
 
 - **원인:** PR #744 병합 `59f42e291a48608d1280951a7d7874a21992aaa5`에서 multiline `commit_message`로 [Main CI #2993.1](https://github.com/planner77/masterGantt/actions/runs/39200938710)의 run trace 검증이 실패했다. Product Quality/E2E/Docker는 **skipped**, aggregate FAILURE, 임시 GHCR skipped였다. 원본 실패 보존과 반영 지침은 [전용 실패 원장](ISSUE_729_FAILURE_ANALYSIS.md)을 참조한다.

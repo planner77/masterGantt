@@ -1,17 +1,25 @@
 "use client";
 import { ContextHelp } from "@/components/ui/context-help";
 
-import { useEffect, useState, useId, useRef, type KeyboardEvent } from "react";
-import type { LogisticsDashboardDto } from "@/contracts/logistics-dashboard";
+import { useEffect, useLayoutEffect, useState, useId, useRef, type KeyboardEvent } from "react";
+import type { LogisticsDashboardFilterInput, LogisticsDashboardDto } from "@/contracts/logistics-dashboard";
 import type { ProjectTaskDto } from "@/contracts/projects";
 import { ProjectMilestoneStageTable } from "../milestones/project-milestone-stage-table";
 import { conversionLabel, dashboardStageValid, projectDateAt } from "../milestones/milestone-dashboard-model";
 import { parseDateOnly } from "@/domain/scheduling/date-only";
 import { IdentifierDetails } from "@/components/identifier-details";
 import styles from "./project-logistics-dashboard.module.css";
+import type { ProjectLogisticsDto } from "@/contracts/logistics";
+import { LogisticsKpiConfiguration, type KpiMasterKind } from "./logistics-kpi-configuration";
+import { integratedKpiValid } from "./logistics-kpi-validation";
 
 export interface ProjectLogisticsDashboardProps {
+  sourceRefreshKey?: number;
   tasks?: readonly ProjectTaskDto[];
+  logistics?: ProjectLogisticsDto;
+  onOpenTask?: (taskId: string, trigger?: HTMLElement) => void;
+  onOpenAssignment?: (taskId: string, assignmentId: string, resourceId: string, trigger: HTMLElement) => void;
+  onOpenMaster?: (kind: KpiMasterKind, id: string, trigger: HTMLElement, resource?: { name: string; code: string | null }) => void;
   active?: boolean;
   busy?: boolean;
   onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
@@ -23,12 +31,12 @@ export interface ProjectLogisticsDashboardProps {
     processIds?: string[];
     equipmentIds?: string[];
     systemIds?: string[];
-  }) => void;
+  }, source?: { snapshotId: string; filters: LogisticsDashboardFilterInput }) => void;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> { return !!value && typeof value === "object" && !Array.isArray(value); }
 function isDashboard(value: unknown): value is LogisticsDashboardDto {
-  if (!isRecord(value)) return false;
+  if (!isRecord(value) || !integratedKpiValid(value.integrated)) return false;
   try {
     parseDateOnly(value.asOfDate);
   } catch {
@@ -39,6 +47,8 @@ function isDashboard(value: unknown): value is LogisticsDashboardDto {
   const strings = (item: unknown) => Array.isArray(item) && item.every((entry) => typeof entry === "string");
   const nullableString = (item: unknown) => item === null || typeof item === "string";
   const numericFields = (item: unknown, fields: string[]) => isRecord(item) && fields.every((field) => number(item[field]));
+  const filters = value.integrated.filters;
+  if ((filters.horizonDays ?? 14) !== value.horizonDays || (filters.systemView ?? "direct") !== value.systemView || (filters.activeOnly ?? false) !== value.activeOnly || (filters.asOfDate !== undefined && filters.asOfDate !== value.asOfDate)) return false;
   const kpi = value.kpi;
   const effort = value.effort;
   const quality = value.quality;
@@ -51,7 +61,7 @@ function isDashboard(value: unknown): value is LogisticsDashboardDto {
   for (const kind of ["processes", "equipment", "systems"]) {
     const rows = value.breakdowns[kind];
     if (!Array.isArray(rows) || !rows.every((row) => {
-      if (!isRecord(row) || !["id", "code", "name"].every((field) => typeof row[field] === "string") || typeof row.active !== "boolean" || !numericFields(row, ["taskCount", "overdueTaskCount", "plannedMd"]) || !nullableNumber(row.progressPercent)) return false;
+      if (!isRecord(row) || !["id", "code", "name"].every((field) => typeof row[field] === "string") || typeof row.active !== "boolean" || !numericFields(row, ["taskCount", "overdueTaskCount", "plannedMd"]) || !nullableNumber(row.progressPercent) || !strings(row.taskIds)) return false;
       if (kind === "equipment") return typeof row.equipmentType === "string" && number(row.quantity) && ["processName", "primaryControllerName", "ownerName"].every((field) => nullableString(row[field]));
       if (kind === "systems") return typeof row.systemType === "string" && typeof row.layer === "string" && nullableString(row.primaryPIName) && strings(row.taskIds);
       return true;
@@ -63,11 +73,13 @@ function isDashboard(value: unknown): value is LogisticsDashboardDto {
 type BreakdownTab = "processes" | "equipment" | "systems";
 
 export function ProjectLogisticsDashboard({
-  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule,
+  sourceRefreshKey = 0, tasks = [], logistics, onOpenTask, onOpenAssignment, onOpenMaster, active = true, busy = false, onStageOpen, onStageSchedule,
   publicId,
   revision,
   onNavigateToSchedule,
 }: ProjectLogisticsDashboardProps) {
+  const actionInFlight = useRef(false);
+  const [checkingSource, setCheckingSource] = useState(false);
   const [dashboard, setDashboard] = useState<LogisticsDashboardDto | null>(null);
   const [outcome, setOutcome] = useState<{ key: string | null; status: "loading" | "ready" | "error"; error?: string }>({ key: null, status: "loading" });
 
@@ -91,7 +103,10 @@ export function ProjectLogisticsDashboard({
   const dayAttempt = useRef<string | null>(null), scheduledRefresh = useRef(false);
   const horizonNumber = Number(horizonDays);
   const horizonError = !horizonDays.trim() || !Number.isInteger(horizonNumber) || horizonNumber < 1 || horizonNumber > 90 ? "임박 기준은 1~90 사이의 정수로 입력해 주세요." : null;
-  const requestKey = JSON.stringify([publicId, revision, asOfDate, horizonDays, systemView, activeOnly, refreshKey]);
+  const requestKey = JSON.stringify([publicId, revision, asOfDate, horizonDays, systemView, activeOnly, refreshKey, sourceRefreshKey]);
+  const currentRequest = useRef(requestKey);
+  const currentInteraction = useRef({ active, busy });
+  useLayoutEffect(() => { currentRequest.current = requestKey; currentInteraction.current = { active, busy }; }, [requestKey, active, busy]);
   const ready = !horizonError && outcome.key === requestKey && outcome.status === "ready";
   const isLoading = !horizonError && (outcome.key !== requestKey || outcome.status === "loading");
   const error = outcome.key === requestKey && outcome.status === "error" ? outcome.error : null;
@@ -120,11 +135,11 @@ export function ProjectLogisticsDashboard({
       setOutcome({ key: requestKey, status: "loading" });
       lastAttempt.current = Date.now();
       scheduledRefresh.current = false;
-      const params = new URLSearchParams({ horizonDays: String(horizonNumber), systemView });
+      const params = new URLSearchParams({ source: "integrated", horizonDays: String(horizonNumber), systemView });
       if (asOfDate) params.set("asOfDate", asOfDate);
       if (activeOnly) params.set("activeOnly", "true");
       try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/dashboard?${params}`, { signal: controller.signal, credentials: "same-origin", cache: "no-store" });
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/kpi?${params}`, { signal: controller.signal, credentials: "same-origin", cache: "no-store" });
         if (!response.ok) throw new Error(`대시보드 조회 실패 (HTTP ${response.status})`);
         const json: unknown = await response.json();
         const data = isRecord(json) ? json.data : null;
@@ -154,32 +169,29 @@ export function ProjectLogisticsDashboard({
     return () => { window.clearInterval(clock); window.removeEventListener("focus", catchUp); document.removeEventListener("visibilitychange", catchUp); };
   }, [active, asOfDate, dashboard, isLoading]);
 
+  async function withCurrentSource(action: () => void) {
+    if (!ready || !active || busy || actionInFlight.current || !dashboard?.integrated) return;
+    const expected = dashboard.integrated.snapshotId;
+    actionInFlight.current = true;
+    setCheckingSource(true);
+    try {
+      const params = new URLSearchParams({ source: "integrated", horizonDays: String(horizonNumber), systemView, snapshotId: expected });
+      if (asOfDate) params.set("asOfDate", asOfDate);
+      if (activeOnly) params.set("activeOnly", "true");
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/kpi?${params}`, { credentials: "same-origin", cache: "no-store" });
+      const json: unknown = await response.json();
+      const data = isRecord(json) ? json.data : null;
+      if (!response.ok || !isDashboard(data) || data.projectRevision !== revision || data.integrated?.snapshotId !== expected) throw new Error("원본 snapshot이 변경되었거나 확인할 수 없습니다. 새로고침 후 다시 선택해 주세요.");
+      if (currentRequest.current !== requestKey || !currentInteraction.current.active || currentInteraction.current.busy) return;
+      action();
+    } catch (failure) {
+      if (currentRequest.current === requestKey) setOutcome({ key: requestKey, status: "error", error: failure instanceof Error ? failure.message : "원본 확인에 실패했습니다. 새로고침 후 다시 시도해 주세요." });
+    } finally { actionInFlight.current = false; setCheckingSource(false); }
+  }
   const handleDrillDownToTasks = (taskIds: string[]) => {
-    if (ready && onNavigateToSchedule) {
-      onNavigateToSchedule({ taskIds });
-    }
-  };
-
-  const handleDrillDownToProcess = (procId: string) => {
-    if (ready && onNavigateToSchedule) {
-      onNavigateToSchedule({ processIds: [procId] });
-    }
-  };
-
-  const handleDrillDownToEquipment = (eqId: string) => {
-    if (ready && onNavigateToSchedule) {
-      onNavigateToSchedule({ equipmentIds: [eqId] });
-    }
-  };
-
-  const handleDrillDownToSystem = (sysId: string, taskIds: string[]) => {
-    if (ready && onNavigateToSchedule) {
-      if (systemView === "coordination") {
-        onNavigateToSchedule({ taskIds });
-      } else {
-        onNavigateToSchedule({ systemIds: [sysId] });
-      }
-    }
+    if (!onNavigateToSchedule || !dashboard?.integrated) return;
+    const source = { snapshotId: dashboard.integrated.snapshotId, filters: dashboard.integrated.filters };
+    void withCurrentSource(() => onNavigateToSchedule({ taskIds }, source));
   };
 
   return (
@@ -254,6 +266,7 @@ export function ProjectLogisticsDashboard({
         </button>
       </div>
 
+      {checkingSource ? <p role="status" className={styles.scopeNote}>현재 원본 snapshot을 확인하는 중입니다…</p> : null}
       {error && <div className={styles.errorNotice} role="alert">{error}</div>}
 
       {isLoading && (
@@ -265,6 +278,11 @@ export function ProjectLogisticsDashboard({
       {ready && dashboard && (
         <>
           <p className={styles.scopeNote}>현재 snapshot 평가일 {dashboard.asOfDate} · {dashboard.timezone} · 과거 상태 복원이 아닙니다. {conversionLabel(dashboard.effort.mdPerMm, dashboard.effort.mdPerMmSource)}</p>
+          <div className={styles.headingRow}>
+            <span className={styles.scopeNote}>직접·상속·Target 통합 · 공정은 Task 명시 기준</span>
+            <ContextHelp label="통합 집계 기준 도움말">직접 연결, 상속 연결과 Target 연결을 합친 고유 Task·Assignment를 집계합니다. 기존 직접 연결 중심 집계에서 빠지던 Target-only 작업도 포함합니다. 공정별 현황은 Task에 명시한 공정 기준이며, 조상 공정만 연결된 작업이나 legacy 문맥을 같은 공정 실적으로 합치지 않습니다. 시스템 조율 범위는 위 선택에 따릅니다. 등록 구성·전체 프로젝트 진단, 현재 KPI 선택 범위, 관련 Milestone의 전체 상태는 서로 다른 범위입니다.</ContextHelp>
+            {dashboard.integrated ? <IdentifierDetails label="집계 출처 정보" identifiers={[{ label: "Snapshot ID", value: dashboard.integrated.snapshotId }, { label: "집계 출처", value: dashboard.integrated.source }, { label: "공정 문맥 버전", value: dashboard.integrated.contextSourceVersion }]} /> : null}
+          </div>
           {/* 2. 핵심 KPI 카드 그리드 */}
           <div className={styles.kpiGrid}>
             {/* 카드 1: 기간 가중 진척률 */}
@@ -397,9 +415,9 @@ export function ProjectLogisticsDashboard({
                 <span className={styles.kpiBadge}>자원 계획</span>
               </div>
               <div className={styles.kpiValueRow}>
-                <span className={styles.kpiValue}>{dashboard.effort.plannedMd}</span>
+                <span className={styles.kpiValue}>{dashboard.integrated?.effortState === "unset" ? "미산정" : dashboard.integrated?.effortState === "empty" ? "대상 없음" : dashboard.effort.plannedMd}</span>
                 <span className={styles.kpiUnit}>M/D</span>
-                {dashboard.effort.plannedMm !== null && (
+                {dashboard.integrated?.effortState !== "unset" && dashboard.integrated?.effortState !== "empty" && dashboard.effort.plannedMm !== null && (
                   <>
                     <span style={{ margin: "0 0.25rem", color: "#94a3b8" }}>/</span>
                     <span className={styles.kpiValue} style={{ fontSize: "1.5rem" }}>
@@ -411,7 +429,7 @@ export function ProjectLogisticsDashboard({
                 {dashboard.effort.plannedMm === null ? <span className={styles.kpiUnit}>— M/M · 환산 기준 미설정</span> : null}
               </div>
               <div className={styles.kpiMetaRow}>
-                <span>투입률 미설정 {dashboard.effort.unsetAllocationCount}건</span>
+                <span>{dashboard.integrated?.effortState === "partial" ? "알려진 합계 · " : ""}투입률 미설정 {dashboard.effort.unsetAllocationCount}건</span>
                 <span>단일 배정 dedup 집계</span>
               </div>
               <button
@@ -427,7 +445,7 @@ export function ProjectLogisticsDashboard({
           {dashboard.milestoneStages ? <section className={styles.relatedStages} aria-labelledby={`${tabId}-stages`}>
             <div className={styles.headingRow}><h3 id={`${tabId}-stages`}>관련 Milestone — Milestone 전체 상태 기준</h3><ContextHelp label="물류 관련 Milestone 도움말">물류 연결에 관련된 고유 Milestone입니다. Ready·소속 진척·원인은 전체 소속 작업과 직접 선행 Milestone 기준입니다.</ContextHelp></div>
             <p className={styles.scopeNote}>Milestone 전체 소속 작업·직접 선행 Milestone 기준 · 위 물류 Task·진척·계획 M/D 범위를 확장하지 않습니다.</p>
-            {dashboard.milestoneStages.rows.length ? <ProjectMilestoneStageTable rows={dashboard.milestoneStages.rows} tasks={tasks} enabled={ready && !busy} onOpenTask={onStageOpen} onSchedule={onStageSchedule} /> : <p>관련 Milestone이 없습니다.</p>}
+            {dashboard.milestoneStages.rows.length ? <ProjectMilestoneStageTable rows={dashboard.milestoneStages.rows} tasks={tasks} enabled={ready && active && !busy} onOpenTask={onStageOpen ? (taskId, tab) => { void withCurrentSource(() => onStageOpen(taskId, tab)); } : undefined} onSchedule={onNavigateToSchedule ? handleDrillDownToTasks : onStageSchedule ? taskIds => { void withCurrentSource(() => onStageSchedule(taskIds)); } : undefined} /> : <p>관련 Milestone이 없습니다.</p>}
           </section> : null}
 
           {/* 3. 데이터 품질 및 구성 진단 패널 */}
@@ -491,6 +509,8 @@ export function ProjectLogisticsDashboard({
               </div>
             </div>
           </div>
+
+          {dashboard.integrated ? <LogisticsKpiConfiguration data={dashboard.integrated} dashboard={dashboard} tasks={tasks} logistics={logistics} enabled={ready && active && !busy} onOpenTask={onOpenTask ? (id, trigger) => { void withCurrentSource(() => onOpenTask(id, trigger)); } : undefined} onOpenAssignment={onOpenAssignment ? (taskId, assignmentId, resourceId, trigger) => { void withCurrentSource(() => onOpenAssignment(taskId, assignmentId, resourceId, trigger)); } : undefined} onOpenMaster={onOpenMaster ? (kind, id, trigger, resource) => { void withCurrentSource(() => onOpenMaster(kind, id, trigger, resource)); } : undefined} onSchedule={handleDrillDownToTasks} /> : null}
 
           {/* 4. 세부 현황 표 (Breakdown Tables) */}
           <div className={styles.breakdownSection}>
@@ -597,7 +617,7 @@ export function ProjectLogisticsDashboard({
                               type="button"
                               className={styles.drillBtn}
                               disabled={p.taskCount === 0}
-                              onClick={() => handleDrillDownToProcess(p.id)}
+                              onClick={() => handleDrillDownToTasks(p.taskIds)}
                             >
                               일정 필터
                             </button>
@@ -669,7 +689,7 @@ export function ProjectLogisticsDashboard({
                               type="button"
                               className={styles.drillBtn}
                               disabled={eq.taskCount === 0}
-                              onClick={() => handleDrillDownToEquipment(eq.id)}
+                              onClick={() => handleDrillDownToTasks(eq.taskIds)}
                             >
                               일정 필터
                             </button>
@@ -737,7 +757,7 @@ export function ProjectLogisticsDashboard({
                               type="button"
                               className={styles.drillBtn}
                               disabled={sys.taskCount === 0}
-                              onClick={() => handleDrillDownToSystem(sys.id, sys.taskIds)}
+                              onClick={() => handleDrillDownToTasks(sys.taskIds)}
                             >
                               일정 필터
                             </button>

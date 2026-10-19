@@ -72,7 +72,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   };
   // Compile read routes before measuring browser instance preservation in Next dev.
   await dashboard();
-  for (const path of ["/assigned-targets", "/resource-workload", "/logistics/dashboard", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`]) await (await page.request.get(`${api}${path}`)).body();
+  for (const path of ["/assigned-targets", "/resource-workload", "/logistics/dashboard", "/logistics/kpi?source=integrated", `/tasks/${child.taskId}/assignments`, `/tasks/${child.taskId}/logistics-links`]) await (await page.request.get(`${api}${path}`)).body();
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const row = (taskId: string) => page.locator(`.wx-table-container .wx-row[data-id=":${taskId}"]`).first();

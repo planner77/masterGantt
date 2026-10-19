@@ -59,7 +59,7 @@ async function fixture(page: Page, kind: "mixed" | "cluster" | "large" | "milest
   // their inactive requests bounded without inventing Tasks in zero-row cases.
   if (kind !== "mixed") await page.route(`**${projectPath}/resource-dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   if (kind !== "mixed") await page.route(`**${projectPath}/assigned-targets`, route => route.fulfill({ json: { data: { projectRevision: state.project.revision, catalogRevision: 1, assignments: [], targets: [] } } }));
-  await page.route(`**${projectPath}/logistics/dashboard*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
+  await page.route(`**${projectPath}/logistics/kpi*`, route => route.fulfill({ status: 503, json: { error: { code: "SYNTHETIC_REPORT_UNAVAILABLE" } } }));
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
   // #664/#551: keep the original 5-second gate and the independently

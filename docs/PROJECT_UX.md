@@ -1,3 +1,15 @@
+## Issue #731 — KPI 보존과 정확 원본 이동
+
+`dashboard.kpi`는 #724의 **대시보드 → KPI**에서 기존 네 카드·세 세부표·조건/필터·계획 공수·품질·Milestone 전체 Gate를 계속 제공한다. 새 범용 트리로 교체하지 않는다. 통합 출처와 snapshot은 현재 조회의 근거이며 등록 구성/진단의 전체 Project 참고를 현재 선택 공수·진척과 혼합하지 않는다.
+
+기존 품질 패널 뒤에 추가 구성·연결 진단을 접어 제공한다. 등록 수/수량/작업0 대상·미연결/개인 미배정·공수 미설정·책임 누락은 정확 목록으로 확인한다. 일반 조회에서도 미연결 Task는 숨기지 않으며 미연결·구역 미사용 자체를 오류라고 단정하지 않는다. #717의 이름 우선/식별 정보와 #719의 상황형 도움말을 적용한다.
+
+Task/Assignment·기준정보는 기존 편집/관리 경로를 재사용한다. 일정 이동은 서버 exact Task ID를 전달하고 출발 기준일·임박 범위·활성/direct-coordination·탭·source/snapshot과 focus를 유지한다. 화면 전환으로 다른 분모를 같은 숫자처럼 보이지 않는다. revision/source 변경·오류/응답역전에서는 이전 drill을 숨기고 명시 재조회로 복구한다. readonly 조회는 유지하고 기존 server edit 권한을 우회하지 않는다. 표가 가로 scroll을 소유하고 390/768/1024/1440/1920px·keyboard를 확인한다.
+
+일정 임시 이동 frame은 출발 KPI의 정확 snapshot·필터를 Resource 이동 검증 context와 별도로 보존한다. 이동/확인/복귀는 전용 KPI source를 다시 검증하며 stale/조회 실패 시 이동을 차단하고 기존 KPI 숫자를 무효화해 같은 조건으로 재조회한다. 다른 Resource 검증 기간을 출발 KPI의 공수 기간으로 표시하지 않는다.
+
+`screenKey=dashboard.kpi`의 #720 매뉴얼 인계는 [KPI 가이드](TARGET_RESOURCE_USER_GUIDE.md#kpi와-구성연결-진단)다. 앱 내 `/manual` route/버튼 신설은 이 작업 범위가 아니다. [기능 보존표·Design Delta B·검증 상태](exec-plans/active/ISSUE_731.md)를 따른다.
+
 ## Issue #726 — 기준정보 관리와 Target 없는 Task 물류 연결
 
 기준정보의 `master.equipment` / `master.systems`는 기존 한 LogisticsManagement host의 목록·검색·활성 필터·추가/수정/삭제·담당 역할·제어/조율 dialog를 공유한다. Target 구성에서 원본 편집을 열 때도 동일 인스턴스 ID와 editor를 사용한다. 설비의 주 관리 공정·단품/Fleet·수량·Owner·업체/모델·다중 WorkArea, System의 유형·controller/coordinator·공통/복수 공정·PI/개발자·공급사·controls/coordinates를 보존한다.

@@ -168,6 +168,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/tasks/{taskId}/logistics-links", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/tasks/{taskId}/logistics-links", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/dashboard", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/kpi", method: "GET", policy: "public-read", mutatesState: false },
 ] satisfies readonly RouteSecurityInventoryEntry[]);
 
 export const NEXT_AUTOMATIC_METHOD_SECURITY = Object.freeze({

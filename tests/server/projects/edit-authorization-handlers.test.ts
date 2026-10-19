@@ -542,6 +542,7 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/tasks/{taskId}/logistics-links",
       "PUT /api/projects/{publicId}/tasks/{taskId}/logistics-links",
       "GET /api/projects/{publicId}/logistics/dashboard",
+      "GET /api/projects/{publicId}/logistics/kpi",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
       expect(route.method).not.toBe("GET");
