@@ -263,7 +263,29 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   expect(saved.equipment[0].workAreaIds).toHaveLength(2);
   expect((await f.snapshot()).data.tasks).toEqual(initial.data.tasks);
   await targets();
-  await restartIsolatedApplication();
+  // Read-only GET must observe Next's 405 for this PATCH/DELETE-only dynamic
+  // route after the isolated restart. This warms route registration before
+  // real UI writes without retrying or faking any equipment PATCH response.
+  const equipmentPatchPath = `/api/projects/${f.publicId}/logistics/equipment/${equipmentId}`;
+  await restartIsolatedApplication(equipmentPatchPath);
+  const submitVerifiedPostRestartEdit = async (editDialog: Locator) => {
+    const responsePromise = page.waitForResponse(response =>
+      response.request().method() === "PATCH" &&
+      new URL(response.url()).pathname === equipmentPatchPath);
+    await submitEquipmentEdit(page, editDialog);
+    const response = await responsePromise;
+    const contentType = response.headers()["content-type"] ?? "";
+    await info.attach("issue-731-post-restart-equipment-patch", {
+      contentType: "application/json",
+      body: Buffer.from(JSON.stringify({
+        route: "/api/projects/[publicId]/logistics/equipment/[equipmentId]",
+        method: "PATCH", status: response.status(),
+        contentType, requestIdPresent: Boolean(response.headers()["x-request-id"]),
+      })),
+    });
+    expect(response.status(), "재시작 이후 설비 PATCH는 실제 API 핸들러의 HTTP 200이어야 합니다").toBe(200);
+    expect(contentType, "설비 PATCH는 Next.js HTML 404가 아닌 정상 JSON 응답이어야 합니다").toContain("application/json");
+  };
   await page.reload();
   await openWorkspaceView(page, "equipment");
   await edit().click();
@@ -271,14 +293,14 @@ test("#725 Target0 독립 공정·WorkArea 관리와 타 공정 E10 다중 연�
   await expect(dialog.getByRole("checkbox", { name: /A 작업구역/ })).toBeChecked();
   await expect(dialog.getByRole("checkbox", { name: /공유 이름 구역.*B 공정/ })).toBeChecked();
   await dialog.getByRole("checkbox", { name: /A 작업구역/ }).uncheck();
-  await submitEquipmentEdit(page, dialog);
+  await submitVerifiedPostRestartEdit(dialog);
   await expect(dialog).toHaveCount(0);
   expect((await logistics()).equipment[0].workAreaIds).toEqual([areaB.id]);
   await edit().click();
   dialog = page.getByRole("dialog", { name: "설비 수정", exact: true });
   await dialog.getByRole("button", { name: "전체 연결 해제", exact: true }).click();
   await expect(dialog.getByRole("group", { name: "연결 WorkArea (선택)", exact: true })).toContainText("선택 0개");
-  await submitEquipmentEdit(page, dialog);
+  await submitVerifiedPostRestartEdit(dialog);
   await expect(dialog).toHaveCount(0);
   saved = await logistics();
   expect(saved.equipment).toHaveLength(1);
